@@ -597,10 +597,8 @@ func (u *userPlusDevice) provisionNewDevice() *deviceWrapper {
 
 func kickTeamRekeyd(g *libkb.GlobalContext, t testing.TB) {
 	apiArg := libkb.APIArg{
-		Endpoint: "test/accelerate_team_rekeyd",
-		Args: libkb.HTTPArgs{
-			"timeout": libkb.I{Val: 2000},
-		},
+		Endpoint:    "test/accelerate_team_rekeyd",
+		Args:        libkb.HTTPArgs{},
 		SessionType: libkb.APISessionTypeREQUIRED,
 	}
 

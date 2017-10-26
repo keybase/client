@@ -83,7 +83,7 @@ const TeamTabs = (props: TeamTabsProps) => {
   ]
   if (admin) {
     const requestsLabel = `REQUESTS (${requests.length})`
-    const invitesLabel = `INVITES (${invites.length})`
+    const invitesLabel = `PENDING INVITES (${invites.length})`
     tabs.push(
       <Text
         key="requests"
@@ -151,7 +151,12 @@ class Team extends React.PureComponent<Props> {
     // massage data for rowrenderers
     const memberProps = members.map(member => ({username: member.username, teamname: name}))
     const requestProps = requests.map(req => ({username: req.username, teamname: name}))
-    const inviteProps = invites.map(invite => ({username: invite.name, teamname: name}))
+    const inviteProps = invites.map(invite => ({
+      key: invite.email || invite.username,
+      email: invite.email,
+      teamname: name,
+      username: invite.username,
+    }))
 
     let contents
     if (selectedTab === 'members') {
@@ -199,7 +204,7 @@ class Team extends React.PureComponent<Props> {
         contents =
           !loading &&
           <List
-            keyProperty="username"
+            keyProperty="key"
             items={inviteProps}
             fixedHeight={48}
             renderItem={TeamInviteRow}

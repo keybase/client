@@ -235,11 +235,12 @@ func (o RemoteUserTypingUpdate) DeepCopy() RemoteUserTypingUpdate {
 }
 
 type UpdateConversationMembership struct {
-	InboxVers    InboxVers            `codec:"inboxVers" json:"inboxVers"`
-	Joined       []ConversationMember `codec:"joined" json:"joined"`
-	Removed      []ConversationMember `codec:"removed" json:"removed"`
-	Reset        []ConversationMember `codec:"reset" json:"reset"`
-	UnreadUpdate *UnreadUpdate        `codec:"unreadUpdate,omitempty" json:"unreadUpdate,omitempty"`
+	InboxVers     InboxVers            `codec:"inboxVers" json:"inboxVers"`
+	Joined        []ConversationMember `codec:"joined" json:"joined"`
+	Removed       []ConversationMember `codec:"removed" json:"removed"`
+	Reset         []ConversationMember `codec:"reset" json:"reset"`
+	UnreadUpdate  *UnreadUpdate        `codec:"unreadUpdate,omitempty" json:"unreadUpdate,omitempty"`
+	UnreadUpdates []UnreadUpdate       `codec:"unreadUpdates" json:"unreadUpdates"`
 }
 
 func (o UpdateConversationMembership) DeepCopy() UpdateConversationMembership {
@@ -285,6 +286,17 @@ func (o UpdateConversationMembership) DeepCopy() UpdateConversationMembership {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.UnreadUpdate),
+		UnreadUpdates: (func(x []UnreadUpdate) []UnreadUpdate {
+			if x == nil {
+				return nil
+			}
+			var ret []UnreadUpdate
+			for _, v := range x {
+				vCopy := v.DeepCopy()
+				ret = append(ret, vCopy)
+			}
+			return ret
+		})(o.UnreadUpdates),
 	}
 }
 

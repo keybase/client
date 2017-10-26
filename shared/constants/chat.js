@@ -404,6 +404,7 @@ type _State = {
   inSearch: boolean,
   searchResultTerm: string,
   teamCreationError: string,
+  teamCreationPending: boolean,
   teamJoinError: string,
   teamJoinSuccess: boolean,
 }
@@ -436,6 +437,7 @@ export const makeState: I.RecordFactory<_State> = I.Record({
   tempPendingConversations: I.Map(),
   searchResultTerm: '',
   teamCreationError: '',
+  teamCreationPending: false,
   teamJoinError: '',
   teamJoinSuccess: false,
 })
@@ -626,7 +628,11 @@ export type UpdateLatestMessage = NoErrorTypedAction<
 export type UpdateMetadata = NoErrorTypedAction<'chat:updateMetadata', {users: Array<string>}>
 export type UpdatePaginationNext = NoErrorTypedAction<
   'chat:updatePaginationNext',
-  {conversationIDKey: ConversationIDKey, paginationNext: ?string, paginationPrevious: ?string}
+  {conversationIDKey: ConversationIDKey, paginationNext: ?string}
+>
+export type UpdatePaginationPrev = NoErrorTypedAction<
+  'chat:updatePaginationPrev',
+  {conversationIDKey: ConversationIDKey, paginationPrev: ?string}
 >
 export type UpdateSupersededByState = NoErrorTypedAction<
   'chat:updateSupersededByState',
@@ -1319,6 +1325,14 @@ function getSnippet(state: TypedState, conversationIDKey: ConversationIDKey): st
   return snippet ? snippet.stringValue() : ''
 }
 
+function getPaginationNext(state: TypedState, conversationIDKey: ConversationIDKey): ?string {
+  return state.entities.pagination.next.get(conversationIDKey, null)
+}
+
+function getPaginationPrev(state: TypedState, conversationIDKey: ConversationIDKey): ?string {
+  return state.entities.pagination.prev.get(conversationIDKey, null)
+}
+
 function applyMessageUpdates(message: Message, updates: I.OrderedSet<EditingMessage | UpdatingAttachment>) {
   if (updates.isEmpty()) {
     return message
@@ -1361,6 +1375,8 @@ export {
   getAttachmentPreviewPath,
   getAttachmentSavedPath,
   getDownloadProgress,
+  getPaginationNext,
+  getPaginationPrev,
   getPreviewProgress,
   getUploadProgress,
   getSnippet,

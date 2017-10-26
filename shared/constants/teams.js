@@ -102,18 +102,22 @@ export const makeMemberInfo: I.RecordFactory<_MemberInfo> = I.Record({
 })
 
 type _InviteInfo = {
-  name: string,
-  role: string,
+  email: string,
+  role: TeamRoleType,
+  username: string,
 }
+
 export type InviteInfo = I.RecordOf<_InviteInfo>
 export const makeInviteInfo: I.RecordFactory<_InviteInfo> = I.Record({
-  name: '',
-  role: '',
+  email: '',
+  role: 'writer',
+  username: '',
 })
 
 type _RequestInfo = {
   username: string,
 }
+
 export type RequestInfo = I.RecordOf<_RequestInfo>
 export const makeRequestInfo: I.RecordFactory<_RequestInfo> = I.Record({
   username: '',
@@ -124,6 +128,11 @@ export type TabKey = 'members' | 'requests' | 'pending'
 export type SetTeamCreationError = NoErrorTypedAction<
   'teams:setTeamCreationError',
   {teamCreationError: string}
+>
+
+export type SetTeamCreationPending = NoErrorTypedAction<
+  'teams:setTeamCreationPending',
+  {teamCreationPending: boolean}
 >
 
 export type SetTeamJoinError = NoErrorTypedAction<'teams:setTeamJoinError', {teamJoinError: string}>
@@ -160,8 +169,9 @@ type _State = {
     Teamname,
     I.Set<
       I.RecordOf<{
-        role: string,
-        name: string,
+        email: string,
+        role: TeamRoleType,
+        username: string,
       }>
     >
   >,
@@ -177,6 +187,7 @@ type _State = {
 export type State = I.RecordOf<_State>
 export const makeState: I.RecordFactory<_State> = I.Record({
   convIDToChannelInfo: I.Map(),
+  loaded: false,
   sawChatBanner: false,
   teamNameToConvIDs: I.Map(),
   teamNameToInvites: I.Map(),
@@ -185,9 +196,8 @@ export const makeState: I.RecordFactory<_State> = I.Record({
   teamNameToMembers: I.Map(),
   teamNameToRequests: I.Map(),
   teamNameToTeamSettings: I.Map(),
-  teamnames: I.Set(),
   teammembercounts: I.Map(),
-  loaded: false,
+  teamnames: I.Set(),
 })
 
 const userIsInTeamHelper = (state: TypedState, username: string, service: Service, teamname: string) =>

@@ -123,7 +123,8 @@ function* _incomingMessage(action: Constants.IncomingMessage): SagaGenerator<any
 
         const pagination = incomingMessage.pagination
         if (pagination) {
-          yield put(Creators.updatePaginationNext(conversationIDKey, pagination.next, pagination.previous))
+          // This message will get appended, so only update the prev pointer
+          yield put(Creators.updatePaginationPrev(conversationIDKey, pagination.previous))
         }
 
         // Is this message for the currently selected and focused conversation?
@@ -332,25 +333,31 @@ function* _updateThread({
     const selectedConversationIDKey = yield select(Constants.getSelectedConversation)
     const appFocused = yield select(Shared.focusedSelector)
 
-    yield put(
-      Creators.appendMessages(
-        conversationIDKey,
-        conversationIDKey === selectedConversationIDKey,
-        appFocused,
-        newMessages,
-        false
-      )
-    )
+    yield all([
+      put(Creators.updatePaginationPrev(conversationIDKey, pagination.previous)),
+      put(
+        Creators.appendMessages(
+          conversationIDKey,
+          conversationIDKey === selectedConversationIDKey,
+          appFocused,
+          newMessages,
+          false
+        )
+      ),
+    ])
   } else {
-    yield put(
-      Creators.prependMessages(
-        conversationIDKey,
-        newMessages,
-        !pagination.last,
-        pagination.next,
-        pagination.previous
-      )
-    )
+    yield all([
+      put(Creators.updatePaginationNext(conversationIDKey, pagination.next)),
+      put(
+        Creators.prependMessages(
+          conversationIDKey,
+          newMessages,
+          !pagination.last,
+          pagination.next,
+          pagination.previous
+        )
+      ),
+    ])
   }
 }
 
@@ -401,8 +408,6 @@ function* _loadMoreMessages(action: Constants.LoadMoreMessages): SagaGenerator<a
     }
 
     const oldConversationState = yield select(Shared.conversationStateSelector, conversationIDKey)
-
-    let next = null
     if (oldConversationState && !action.payload.onlyNewerThan) {
       if (action.payload.onlyIfUnloaded && oldConversationState.get('isLoaded')) {
         console.log('Bailing on chat load more due to already has initial load')
@@ -418,9 +423,8 @@ function* _loadMoreMessages(action: Constants.LoadMoreMessages): SagaGenerator<a
         console.log('Bailing on chat load more due to no more to load')
         return
       }
-
-      next = oldConversationState.get('paginationNext', undefined)
     }
+    const next = yield select(Constants.getPaginationNext, conversationIDKey)
 
     yield put(Creators.loadingMessages(conversationIDKey, true))
 
@@ -1264,7 +1268,7 @@ function* _inboxSynced(action: Constants.InboxSynced): SagaGenerator<any, any> {
     return
   }
 
-  const conversation = yield select(Constants.getSelectedConversationStates, selectedConversation)
+  const conversation = yield select(Constants.getSelectedConversationStates)
   if (conversation) {
     const inbox = yield select(Constants.getInbox, selectedConversation)
 
@@ -1291,7 +1295,7 @@ function* _inboxSynced(action: Constants.InboxSynced): SagaGenerator<any, any> {
         return
       }
     }
-    const onlyNewerThan = conversation.paginationPrevious
+    const onlyNewerThan = yield select(Constants.getPaginationPrev, selectedConversation)
     yield put(Creators.loadMoreMessages(selectedConversation, false, false, onlyNewerThan))
   }
 }
@@ -1487,6 +1491,24 @@ function attachmentLoaded(action: Constants.AttachmentLoaded) {
   ])
 }
 
+function _updatePaginationNext(action: Constants.UpdatePaginationNext) {
+  return put(
+    EntityCreators.replaceEntity(
+      ['pagination', 'next'],
+      I.Map({[action.payload.conversationIDKey]: action.payload.paginationNext})
+    )
+  )
+}
+
+function _updatePaginationPrev(action: Constants.UpdatePaginationPrev) {
+  return put(
+    EntityCreators.replaceEntity(
+      ['pagination', 'prev'],
+      I.Map({[action.payload.conversationIDKey]: action.payload.paginationPrev})
+    )
+  )
+}
+
 function* chatSaga(): SagaGenerator<any, any> {
   yield Saga.safeTakeEvery('app:changedFocus', _changedFocus)
   yield Saga.safeTakeEvery('app:changedActive', _changedActive)
@@ -1509,6 +1531,8 @@ function* chatSaga(): SagaGenerator<any, any> {
       Constants.getConversationMessages(s, a.payload.conversationIDKey)
   )
   yield Saga.safeTakeEveryPure('chat:updateTempMessage', _updateMessageEntity)
+  yield Saga.safeTakeEveryPure('chat:updatePaginationNext', _updatePaginationNext)
+  yield Saga.safeTakeEveryPure('chat:updatePaginationPrev', _updatePaginationPrev)
   yield Saga.safeTakeEvery('chat:appendMessages', _appendMessagesToConversation)
   yield Saga.safeTakeEvery('chat:prependMessages', _prependMessagesToConversation)
   yield Saga.safeTakeEvery('chat:outboxMessageBecameReal', _updateOutboxMessageToReal)

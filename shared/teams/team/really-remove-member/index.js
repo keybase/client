@@ -20,20 +20,20 @@ const MaybePopup = isMobile
 type Props = {
   onClose: () => void,
   onRemove: () => void,
+  member: string,
   name: string,
-  username: string,
 }
 
 const ReallyRemoveMember = (props: Props) => (
   <MaybePopup onClose={props.onClose}>
     <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center', flex: 1, padding: globalMargins.large}}>
-      <Avatar username={props.username} size={64} />
+      <Avatar username={props.member} size={64} />
       <Icon type="icon-team-leave-28" style={{marginRight: -60, marginTop: -20, zIndex: 1}} />
       <Text type="Header" style={{marginBottom: globalMargins.large, marginTop: globalMargins.large}}>
-        Are you sure you want to remove {props.username} from {props.name}?
+        Are you sure you want to remove {props.member} from {props.name}?
       </Text>
       <Text type="Body" style={{maxWidth: 450, textAlign: 'center'}}>
-        {props.username} will lose access to all the
+        {props.member} will lose access to all the
         {' '}
         {props.name}
         {' '}
@@ -55,7 +55,7 @@ const ReallyRemoveMember = (props: Props) => (
               : {marginRight: globalMargins.tiny}
           }
         />
-        <Button type="Danger" onClick={props.onRemove} label={`Yes, remove ${props.username}`} />
+        <Button type="Danger" onClick={props.onRemove} label={`Yes, remove ${props.member}`} />
       </Box>
     </Box>
   </MaybePopup>
