@@ -348,15 +348,8 @@ function* _updateThread({
   } else {
     yield all([
       put(Creators.updatePaginationNext(conversationIDKey, pagination.next)),
-      put(
-        Creators.prependMessages(
-          conversationIDKey,
-          newMessages,
-          !pagination.last,
-          pagination.next,
-          pagination.previous
-        )
-      ),
+      put(Creators.updateMoreToLoad(conversationIDKey, !pagination.last)),
+      put(Creators.prependMessages(conversationIDKey, newMessages)),
     ])
   }
 }
@@ -419,7 +412,8 @@ function* _loadMoreMessages(action: Constants.LoadMoreMessages): SagaGenerator<a
         return
       }
 
-      if (oldConversationState.get('moreToLoad') === false) {
+      const moreToLoad = yield select(Constants.getMoreToLoad, conversationIDKey)
+      if (!moreToLoad) {
         console.log('Bailing on chat load more due to no more to load')
         return
       }
@@ -1509,6 +1503,15 @@ function _updatePaginationPrev(action: Constants.UpdatePaginationPrev) {
   )
 }
 
+function _updateMoreToLoad(action: Constants.UpdateMoreToLoad) {
+  return put(
+    EntityCreators.replaceEntity(
+      ['conversation', 'moreToLoad'],
+      I.Map({[action.payload.conversationIDKey]: action.payload.moreToLoad})
+    )
+  )
+}
+
 function* chatSaga(): SagaGenerator<any, any> {
   yield Saga.safeTakeEvery('app:changedFocus', _changedFocus)
   yield Saga.safeTakeEvery('app:changedActive', _changedActive)
@@ -1533,6 +1536,7 @@ function* chatSaga(): SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure('chat:updateTempMessage', _updateMessageEntity)
   yield Saga.safeTakeEveryPure('chat:updatePaginationNext', _updatePaginationNext)
   yield Saga.safeTakeEveryPure('chat:updatePaginationPrev', _updatePaginationPrev)
+  yield Saga.safeTakeEveryPure('chat:updateMoreToLoad', _updateMoreToLoad)
   yield Saga.safeTakeEvery('chat:appendMessages', _appendMessagesToConversation)
   yield Saga.safeTakeEvery('chat:prependMessages', _prependMessagesToConversation)
   yield Saga.safeTakeEvery('chat:outboxMessageBecameReal', _updateOutboxMessageToReal)

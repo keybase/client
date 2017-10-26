@@ -545,9 +545,6 @@ export type PrependMessages = NoErrorTypedAction<
   {
     conversationIDKey: ConversationIDKey,
     messages: Array<Message>,
-    moreToLoad: boolean,
-    paginationNext: ?string,
-    paginationPrevious: ?string,
   }
 >
 export type RemoveOutboxMessage = NoErrorTypedAction<
@@ -789,6 +786,11 @@ export type UpdateSnippet = NoErrorTypedAction<
     snippet: HiddenString,
     conversationIDKey: ConversationIDKey,
   }
+>
+
+export type UpdateMoreToLoad = NoErrorTypedAction<
+  'chat:updateMoreToLoad',
+  {moreToLoad: boolean, conversationIDKey: ConversationIDKey}
 >
 
 export type Actions =
@@ -1333,6 +1335,10 @@ function getPaginationPrev(state: TypedState, conversationIDKey: ConversationIDK
   return state.entities.pagination.prev.get(conversationIDKey, null)
 }
 
+function getMoreToLoad(state: TypedState, conversationIDKey: ConversationIDKey): boolean {
+  return state.entities.conversation.moreToLoad.get(conversationIDKey, true)
+}
+
 function applyMessageUpdates(message: Message, updates: I.OrderedSet<EditingMessage | UpdatingAttachment>) {
   if (updates.isEmpty()) {
     return message
@@ -1375,6 +1381,7 @@ export {
   getAttachmentPreviewPath,
   getAttachmentSavedPath,
   getDownloadProgress,
+  getMoreToLoad,
   getPaginationNext,
   getPaginationPrev,
   getPreviewProgress,

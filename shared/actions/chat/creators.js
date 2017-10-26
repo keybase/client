@@ -41,9 +41,7 @@ const appendMessageActionTransformer = (action: Constants.AppendMessages) => ({
 const prependMessagesActionTransformer = (action: Constants.PrependMessages) => ({
   payload: {
     conversationIDKey: action.payload.conversationIDKey,
-    hasPaginationNext: !!action.payload.paginationNext,
     messages: action.payload.messages.map(safeServerMessageMap),
-    moreToLoad: action.payload.moreToLoad,
   },
   type: action.type,
 })
@@ -347,14 +345,11 @@ function setLoaded(conversationIDKey: Constants.ConversationIDKey, isLoaded: boo
 
 function prependMessages(
   conversationIDKey: Constants.ConversationIDKey,
-  messages: Array<Constants.Message>,
-  moreToLoad: boolean,
-  paginationNext: ?string,
-  paginationPrevious: ?string
+  messages: Array<Constants.Message>
 ): Constants.PrependMessages {
   return {
     logTransformer: prependMessagesActionTransformer,
-    payload: {conversationIDKey, messages, moreToLoad, paginationNext, paginationPrevious},
+    payload: {conversationIDKey, messages},
     type: 'chat:prependMessages',
   }
 }
@@ -639,6 +634,13 @@ function selectNext(rows: Array<any>, direction: -1 | 1): Constants.InboxFilterS
   return {type: 'chat:inboxFilterSelectNext', payload: {rows, direction}}
 }
 
+function updateMoreToLoad(
+  conversationIDKey: Constants.ConversationIDKey,
+  moreToLoad: boolean
+): Constants.UpdateMoreToLoad {
+  return {type: 'chat:updateMoreToLoad', payload: {moreToLoad, conversationIDKey}}
+}
+
 export {
   addPending,
   appendMessages,
@@ -707,6 +709,7 @@ export {
   updateInboxRekeySelf,
   updateLatestMessage,
   updateMetadata,
+  updateMoreToLoad,
   updatePaginationNext,
   updatePaginationPrev,
   updateSnippet,
