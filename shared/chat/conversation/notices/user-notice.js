@@ -13,11 +13,11 @@ export type Props = {
 const AVATAR_SIZE = 24
 
 const UserNotice = ({bgColor, username, children, style}: Props) => (
-  <Box style={{...styleOuterBox}}>
+  <Box style={{...styleOuterBox, ...style}}>
     <Box style={stylesAvatarWrapper(AVATAR_SIZE)}>
       <Avatar size={AVATAR_SIZE} username={username} style={stylesAvatar} />
     </Box>
-    <Box style={{...styleBox, ...style, backgroundColor: bgColor}}>
+    <Box style={{...styleBox, backgroundColor: bgColor}}>
       {children}
     </Box>
   </Box>
@@ -33,7 +33,7 @@ const stylesAvatarWrapper = (avatarSize: number) => ({
   alignItems: 'center',
   height: avatarSize,
   position: 'relative',
-  top: AVATAR_SIZE,
+  top: AVATAR_SIZE / 2,
   zIndex: 10,
 })
 const stylesAvatar = {
