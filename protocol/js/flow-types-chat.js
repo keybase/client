@@ -1249,6 +1249,7 @@ export type GetThreadQuery = {
   disableResolveSupersedes: boolean,
   before?: ?gregor1.Time,
   after?: ?gregor1.Time,
+  messageIDControl?: ?MessageIDControl,
 }
 
 export type GetThreadRemoteRes = {
@@ -1503,6 +1504,12 @@ export type MessageHeadline = {
 }
 
 export type MessageID = uint
+
+export type MessageIDControl = {
+  pivot: MessageID,
+  recent: boolean,
+  num: int,
+}
 
 export type MessageJoin = {}
 

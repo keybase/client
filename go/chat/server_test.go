@@ -1098,26 +1098,64 @@ func TestChatSrvGetThreadLocal(t *testing.T) {
 
 		created := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT,
 			mt, ctc.as(t, users[1]).user())
-		mustPostLocalForTest(t, ctc, users[0], created, chat1.NewMessageBodyWithText(chat1.MessageText{Body: "hello!"}))
+		msgID1, err := postLocalForTest(t, ctc, users[0], created,
+			chat1.NewMessageBodyWithText(chat1.MessageText{Body: "hello!"}))
+		require.NoError(t, err)
+		t.Logf("msgID1: %d", msgID1.MessageID)
 
 		ctx := ctc.as(t, users[0]).startCtx
 		tvres, err := ctc.as(t, users[0]).chatLocalHandler().GetThreadLocal(ctx, chat1.GetThreadLocalArg{
 			ConversationID: created.Id,
+			Query: &chat1.GetThreadQuery{
+				MessageTypes: []chat1.MessageType{chat1.MessageType_TEXT},
+			},
 		})
 		require.NoError(t, err)
 
 		tv := tvres.Thread
-		expectedMessages := 2
-		switch mt {
-		case chat1.ConversationMembersType_KBFS, chat1.ConversationMembersType_IMPTEAM:
-		case chat1.ConversationMembersType_TEAM:
-			expectedMessages++ // the join message
-		default:
-			t.Fatalf("unknown members type: %v", mt)
-		}
+		expectedMessages := 1
 		require.Len(t, tv.Messages, expectedMessages,
 			"unexpected response from GetThreadLocal . number of messages")
 		require.Equal(t, "hello!", tv.Messages[0].Valid().MessageBody.Text().Body)
+
+		// Test message ID control
+		plres, err := postLocalForTest(t, ctc, users[0], created,
+			chat1.NewMessageBodyWithText(chat1.MessageText{Body: "hello!"}))
+		require.NoError(t, err)
+		t.Logf("msgID2: %d", plres.MessageID)
+		msgID3, err := postLocalForTest(t, ctc, users[0], created,
+			chat1.NewMessageBodyWithText(chat1.MessageText{Body: "hello!"}))
+		require.NoError(t, err)
+		t.Logf("msgID3: %d", msgID3.MessageID)
+		tvres, err = ctc.as(t, users[0]).chatLocalHandler().GetThreadLocal(ctx, chat1.GetThreadLocalArg{
+			ConversationID: created.Id,
+			Query: &chat1.GetThreadQuery{
+				MessageTypes: []chat1.MessageType{chat1.MessageType_TEXT},
+				MessageIDControl: &chat1.MessageIDControl{
+					Pivot:  plres.MessageID,
+					Recent: true,
+					Num:    1,
+				},
+			},
+		})
+		require.NoError(t, err)
+		require.Equal(t, 1, len(tvres.Thread.Messages))
+		require.Equal(t, msgID3.MessageID, tvres.Thread.Messages[0].GetMessageID())
+		tvres, err = ctc.as(t, users[0]).chatLocalHandler().GetThreadLocal(ctx, chat1.GetThreadLocalArg{
+			ConversationID: created.Id,
+			Query: &chat1.GetThreadQuery{
+				MessageTypes: []chat1.MessageType{chat1.MessageType_TEXT},
+				MessageIDControl: &chat1.MessageIDControl{
+					Pivot:  plres.MessageID,
+					Recent: false,
+					Num:    1,
+				},
+			},
+		})
+		require.NoError(t, err)
+		require.Equal(t, 1, len(tvres.Thread.Messages))
+		require.Equal(t, msgID1.MessageID, tvres.Thread.Messages[0].GetMessageID())
+
 	})
 }
 
