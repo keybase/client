@@ -93,7 +93,7 @@ const mapStateToProps: MapStateToProps<*, *, *> = (state: TypedState, {users, se
   data: users
     .map((u, i) => ({
       username: u[0],
-      fullName: u[1], // TODO
+      fullName: u[1],
       key: u[0],
     }))
     .filter(
