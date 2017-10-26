@@ -141,7 +141,7 @@ function* _incomingMessage(action: Constants.IncomingMessage): SagaGenerator<any
         if (message.messageID && conversationIsFocused) {
           const {type: msgIDType} = Constants.parseMessageID(message.messageID)
           if (msgIDType === 'rpcMessageID') {
-            yield call(_markAsRead, conversationIDKey, messageID)
+            yield call(_markAsRead, conversationIDKey, message.messageID)
           }
         }
 
