@@ -1,0 +1,15 @@
+[Unit]
+Description=Keybase core service
+# keybase.socket automatically knows to start keybase.service, but for the
+# reverse we need this explicit Requires.
+Requires=keybase.socket
+
+[Service]
+# "notify" means we promise to call SdNotify() at the end of startup.
+Type=notify
+Environment=KEYBASE_SERVICE_TYPE=systemd
+ExecStart=/usr/bin/keybase --debug service
+Restart=on-failure
+
+[Install]
+WantedBy=default.target
