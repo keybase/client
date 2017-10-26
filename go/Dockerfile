@@ -2,7 +2,7 @@ FROM keybaseprivate/glibc
 MAINTAINER Keybase <admin@keybase.io>
 
 # Remove openssl once KBFSDocker changes are in
-RUN apk add --update fuse jq bash openssl git && \
+RUN apk add --update fuse jq bash openssl git iproute2 && \
     rm -rf /tmp/* /var/cache/apk/*
 
 RUN adduser -D keybase && \
