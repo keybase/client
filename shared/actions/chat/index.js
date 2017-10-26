@@ -327,13 +327,13 @@ function* _updateThread({
     const appFocused = yield select(Shared.focusedSelector)
 
     yield put(
-        Creators.appendMessages(
-          conversationIDKey,
-          conversationIDKey === selectedConversationIDKey,
-          appFocused,
-          newMessages,
-          false
-        )
+      Creators.appendMessages(
+        conversationIDKey,
+        conversationIDKey === selectedConversationIDKey,
+        appFocused,
+        newMessages,
+        false
+      )
     )
   } else {
     const last = thread && thread.pagination && thread.pagination.last
