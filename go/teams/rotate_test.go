@@ -4,6 +4,7 @@ import (
 	"context"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/libkb"
@@ -231,4 +232,41 @@ func TestImplicitAdminAfterRotateRequest(t *testing.T) {
 	// owner, otherA should still be non-members
 	assertRole(tc, sub, owner.Username, keybase1.TeamRole_NONE)
 	assertRole(tc, sub, otherA.Username, keybase1.TeamRole_NONE)
+}
+
+// Test multiple rotations racing to post chain links to the same team.
+// The expected behavior is that they each either succeed or run out of attempts.
+func TestRotateRace(t *testing.T) {
+	_, tcs, cleanup := setupNTests(t, 1)
+	defer cleanup()
+
+	t.Logf("U0 creates A")
+	_, rootID := createTeam2(*tcs[0])
+
+	rotate := func(userIndexOperator int) <-chan error {
+		errCh := make(chan error)
+		go func() {
+			err := HandleRotateRequest(context.TODO(), tcs[userIndexOperator].G, rootID, keybase1.PerTeamKeyGeneration(100))
+			errCh <- err
+		}()
+		return errCh
+	}
+
+	assertNoErr := func(errCh <-chan error, msgAndArgs ...interface{}) {
+		select {
+		case err := <-errCh:
+			require.NoError(t, err, msgAndArgs...)
+		case <-time.After(20 * time.Second):
+			require.FailNow(t, "timeout waiting for return channel")
+		}
+	}
+
+	for i := 0; i < 5; i++ {
+		t.Logf("round %v", i)
+
+		errCh1 := rotate(0)
+		errCh2 := rotate(0)
+		assertNoErr(errCh1, "round %v", i)
+		assertNoErr(errCh2, "round %v", i)
+	}
 }

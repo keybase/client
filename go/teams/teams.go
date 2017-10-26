@@ -1346,6 +1346,7 @@ func RetryOnSigOldSeqnoError(ctx context.Context, g *libkb.GlobalContext, post f
 		}
 		return err
 	}
+	g.Log.CDebugf(ctx, "| RetryOnSigOldSeqnoError exhausted attempts")
 	if err == nil {
 		// Should never happen
 		return fmt.Errorf("failed retryable team operation")
