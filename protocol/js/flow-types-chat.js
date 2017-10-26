@@ -1506,7 +1506,7 @@ export type MessageHeadline = {
 export type MessageID = uint
 
 export type MessageIDControl = {
-  pivot: MessageID,
+  pivot?: ?MessageID,
   recent: boolean,
   num: int,
 }

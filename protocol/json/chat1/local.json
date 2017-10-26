@@ -1251,7 +1251,10 @@
       "name": "MessageIDControl",
       "fields": [
         {
-          "type": "MessageID",
+          "type": [
+            null,
+            "MessageID"
+          ],
           "name": "pivot"
         },
         {

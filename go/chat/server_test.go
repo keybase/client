@@ -1132,7 +1132,7 @@ func TestChatSrvGetThreadLocal(t *testing.T) {
 			Query: &chat1.GetThreadQuery{
 				MessageTypes: []chat1.MessageType{chat1.MessageType_TEXT},
 				MessageIDControl: &chat1.MessageIDControl{
-					Pivot:  plres.MessageID,
+					Pivot:  &plres.MessageID,
 					Recent: true,
 					Num:    1,
 				},
@@ -1146,7 +1146,7 @@ func TestChatSrvGetThreadLocal(t *testing.T) {
 			Query: &chat1.GetThreadQuery{
 				MessageTypes: []chat1.MessageType{chat1.MessageType_TEXT},
 				MessageIDControl: &chat1.MessageIDControl{
-					Pivot:  plres.MessageID,
+					Pivot:  &plres.MessageID,
 					Recent: false,
 					Num:    1,
 				},
@@ -1156,6 +1156,19 @@ func TestChatSrvGetThreadLocal(t *testing.T) {
 		require.Equal(t, 1, len(tvres.Thread.Messages))
 		require.Equal(t, msgID1.MessageID, tvres.Thread.Messages[0].GetMessageID())
 
+		tvres, err = ctc.as(t, users[0]).chatLocalHandler().GetThreadLocal(ctx, chat1.GetThreadLocalArg{
+			ConversationID: created.Id,
+			Query: &chat1.GetThreadQuery{
+				MessageTypes: []chat1.MessageType{chat1.MessageType_TEXT},
+				MessageIDControl: &chat1.MessageIDControl{
+					Num: 2,
+				},
+			},
+		})
+		require.NoError(t, err)
+		require.Equal(t, 2, len(tvres.Thread.Messages))
+		require.Equal(t, msgID3.MessageID, tvres.Thread.Messages[0].GetMessageID())
+		require.Equal(t, plres.MessageID, tvres.Thread.Messages[1].GetMessageID())
 	})
 }
 
