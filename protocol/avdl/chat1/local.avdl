@@ -431,7 +431,7 @@ protocol local {
   }
 
   record MessageIDControl {
-    MessageID pivot;
+    union { null, MessageID } pivot;
     boolean recent;
     int num;
   }

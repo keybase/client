@@ -2349,14 +2349,20 @@ func (o ThreadView) DeepCopy() ThreadView {
 }
 
 type MessageIDControl struct {
-	Pivot  MessageID `codec:"pivot" json:"pivot"`
-	Recent bool      `codec:"recent" json:"recent"`
-	Num    int       `codec:"num" json:"num"`
+	Pivot  *MessageID `codec:"pivot,omitempty" json:"pivot,omitempty"`
+	Recent bool       `codec:"recent" json:"recent"`
+	Num    int        `codec:"num" json:"num"`
 }
 
 func (o MessageIDControl) DeepCopy() MessageIDControl {
 	return MessageIDControl{
-		Pivot:  o.Pivot.DeepCopy(),
+		Pivot: (func(x *MessageID) *MessageID {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Pivot),
 		Recent: o.Recent,
 		Num:    o.Num,
 	}

@@ -924,15 +924,17 @@ func XlateMessageIDControlToPagination(control *chat1.MessageIDControl) (res *ch
 	pag := pager.NewThreadPager()
 	res = new(chat1.Pagination)
 	res.Num = control.Num
-	pm := pagerMsg{msgID: control.Pivot}
-	var err error
-	if control.Recent {
-		res.Previous, err = pag.MakeIndex(pm)
-	} else {
-		res.Next, err = pag.MakeIndex(pm)
-	}
-	if err != nil {
-		return nil
+	if control.Pivot != nil {
+		pm := pagerMsg{msgID: *control.Pivot}
+		var err error
+		if control.Recent {
+			res.Previous, err = pag.MakeIndex(pm)
+		} else {
+			res.Next, err = pag.MakeIndex(pm)
+		}
+		if err != nil {
+			return nil
+		}
 	}
 	return res
 }
