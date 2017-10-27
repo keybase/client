@@ -15,6 +15,7 @@ import (
 	"github.com/keybase/kbfs/kbfsblock"
 	"github.com/keybase/kbfs/kbfscrypto"
 	"github.com/keybase/kbfs/kbfsmd"
+	kbgitkbfs "github.com/keybase/kbfs/protocol/kbgitkbfs"
 	"github.com/keybase/kbfs/tlf"
 )
 
@@ -764,4 +765,26 @@ func (s PrefetchStatus) String() string {
 		return "FinishedPrefetch"
 	}
 	return "Unknown"
+}
+
+func (s PrefetchStatus) ToProtocol() kbgitkbfs.PrefetchStatus {
+	protocolPrefetchStatus := kbgitkbfs.PrefetchStatus(s)
+	_, ok := kbgitkbfs.PrefetchStatusRevMap[protocolPrefetchStatus]
+	if !ok {
+		panic("Invalid prefetch status for protocol")
+	}
+	return protocolPrefetchStatus
+}
+
+func PrefetchStatusFromProtocol(
+	protocolPrefetchStatus kbgitkbfs.PrefetchStatus) PrefetchStatus {
+	s := PrefetchStatus(protocolPrefetchStatus)
+	switch s {
+	case NoPrefetch:
+	case TriggeredPrefetch:
+	case FinishedPrefetch:
+	default:
+		panic("Invalid prefetch status from protocol")
+	}
+	return s
 }

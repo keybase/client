@@ -229,7 +229,10 @@ func AddFlagsWithDefaults(
 			"local databases for the journal and disk cache.")
 	params.DiskCacheMode = defaultParams.DiskCacheMode
 	flags.Var(&params.DiskCacheMode, "disk-cache-mode",
-		"Sets the mode for the disk cache. If 'local', then it uses a subdirectory of -storage-root to store the cache.")
+		"Sets the mode for the disk cache. If 'local', then it uses a "+
+			"subdirectory of -storage-root to store the cache. If 'remote', "+
+			"then it connects to the local KBFS instance and delegates disk "+
+			"cache operations to it.")
 	flags.BoolVar(&params.EnableJournal, "enable-journal",
 		defaultParams.EnableJournal, "Enables write journaling for TLFs.")
 
@@ -617,8 +620,6 @@ func doInit(
 	if err != nil {
 		return nil, fmt.Errorf("problem creating service: %s", err)
 	}
-	ctx10s, cancel := context.WithTimeout(ctx, 10*time.Second)
-	defer cancel()
 	err = config.MakeDiskBlockCacheIfNotExists()
 	if err != nil {
 		log.CWarningf(ctx, "Could not initialize disk cache: %+v", err)
@@ -627,7 +628,7 @@ func doInit(
 			NotificationType: keybase1.FSNotificationType_INITIALIZED,
 			ErrorType:        keybase1.FSErrorType_DISK_CACHE_ERROR_LOG_SEND,
 		}
-		defer config.Reporter().Notify(ctx10s, notification)
+		defer config.Reporter().Notify(ctx, notification)
 	} else {
 		log.CDebugf(ctx, "Disk cache of type \"%s\" enabled",
 			params.DiskCacheMode.String())
@@ -703,6 +704,8 @@ func doInit(
 		log.CWarningf(ctx, "Could not enable disk limiter: %+v", err)
 		return nil, err
 	}
+	ctx10s, cancel := context.WithTimeout(ctx, 10*time.Second)
+	defer cancel()
 	// TODO: Don't turn on journaling if either -bserver or
 	// -mdserver point to local implementations.
 	if params.EnableJournal && config.Mode() != InitMinimal {

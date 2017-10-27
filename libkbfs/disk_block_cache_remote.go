@@ -64,15 +64,16 @@ func (dbcr *DiskBlockCacheRemote) Get(ctx context.Context, tlfID tlf.ID,
 		blockID.String(),
 	})
 	if err != nil {
-		return buf, serverHalf, prefetchStatus, err
+		return nil, kbfscrypto.BlockCryptKeyServerHalf{}, NoPrefetch, err
 	}
 
 	serverHalf, err = kbfscrypto.ParseBlockCryptKeyServerHalf(res.ServerHalf)
 	if err != nil {
-		return nil, kbfscrypto.BlockCryptKeyServerHalf{}, prefetchStatus, err
+		return nil, kbfscrypto.BlockCryptKeyServerHalf{}, NoPrefetch, err
 	}
+	prefetchStatus = PrefetchStatusFromProtocol(res.PrefetchStatus)
 
-	return res.Buf, serverHalf, PrefetchStatus(res.PrefetchStatus), nil
+	return res.Buf, serverHalf, prefetchStatus, nil
 }
 
 // Put implements the DiskBlockCache interface for DiskBlockCacheRemote.
@@ -128,7 +129,7 @@ func (dbcr *DiskBlockCacheRemote) UpdateMetadata(ctx context.Context,
 func (dbcr *DiskBlockCacheRemote) Status(ctx context.Context) map[string]DiskBlockCacheStatus {
 	// We don't return a status because it isn't needed in the contexts
 	// this block cache is used.
-	return map[string]DiskBlockCacheStatus{}
+	panic("Status() not implemented in DiskBlockCacheRemote")
 }
 
 // Shutdown implements the DiskBlockCache interface for DiskBlockCacheRemote.

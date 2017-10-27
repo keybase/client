@@ -53,9 +53,10 @@ func (cache *DiskBlockCacheService) GetBlock(ctx context.Context,
 	if err != nil {
 		return kbgitkbfs.GetBlockRes{}, newDiskBlockCacheError(err)
 	}
+	protocolPrefetchStatus := prefetchStatus.ToProtocol()
 
 	return kbgitkbfs.GetBlockRes{
-		buf, serverHalf.String(), kbgitkbfs.PrefetchStatus(prefetchStatus),
+		buf, serverHalf.String(), protocolPrefetchStatus,
 	}, nil
 }
 

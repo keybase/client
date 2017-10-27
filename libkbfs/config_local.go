@@ -1384,7 +1384,7 @@ func (c *ConfigLocal) SetTlfSyncState(tlfID tlf.ID, isSynced bool) error {
 	if isSynced {
 		diskCacheWrapped, ok := c.diskBlockCache.(*diskBlockCacheWrapped)
 		if !ok {
-			return fmt.Errorf("invalid disk cache type to set TLF sync "+
+			return errors.Errorf("invalid disk cache type to set TLF sync "+
 				"state: %T", c.diskBlockCache)
 		}
 		if !diskCacheWrapped.IsSyncCacheEnabled() {
