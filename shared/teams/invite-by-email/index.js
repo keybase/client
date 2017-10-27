@@ -85,7 +85,9 @@ const InviteByEmail = (props: Props) => (
             />
           </ClickableBox>
         </Box>
-        <Text type="BodySmallSemibold" style={{alignSelf: 'flex-start'}}>Enter multiple email addresses</Text>
+        <Text type="BodySmallSemibold" style={{alignSelf: 'flex-start'}}>
+          Enter multiple email addresses, separated by commas
+        </Text>
         <Box
           style={{
             border: `1px solid ${globalColors.black_40}`,
@@ -102,6 +104,7 @@ const InviteByEmail = (props: Props) => (
             rowsMax={8}
             style={styleInside}
             value={props.invitees}
+            small={true}
             inputStyle={styleInput}
           />
         </Box>
