@@ -204,6 +204,8 @@ function safeTakeSerially(pattern: string | Array<any> | Function, worker: Funct
   })
 }
 
+export type {SagaGenerator}
+
 export {
   all,
   call,

@@ -1,10 +1,12 @@
 // @flow
 import * as ChatTypes from '../../constants/types/flow-types-chat'
 import * as Constants from '../../constants/chat'
+import * as I from 'immutable'
 import * as EngineRpc from '../engine/helper'
 import * as Creators from './creators'
 import * as RPCTypes from '../../constants/types/flow-types'
 import * as Saga from '../../util/saga'
+import * as EntityCreators from '../entities'
 import * as Shared from './shared'
 import {putActionIfOnPath, navigateAppend} from '../route-tree'
 import {saveAttachmentDialog, showShareActionSheet} from '../platform-specific'
@@ -414,6 +416,49 @@ function* onOpenAttachmentPopup(action: Constants.OpenAttachmentPopup): SagaGene
   }
 }
 
+function attachmentLoaded(action: Constants.AttachmentLoaded) {
+  const {payload: {messageKey, path, isPreview}} = action
+  if (isPreview) {
+    return Saga.all([
+      Saga.put(EntityCreators.replaceEntity(['attachmentPreviewPath'], I.Map({[messageKey]: path}))),
+      Saga.put(EntityCreators.replaceEntity(['attachmentPreviewProgress'], I.Map({[messageKey]: null}))),
+    ])
+  }
+  return Saga.all([
+    Saga.put(EntityCreators.replaceEntity(['attachmentDownloadedPath'], I.Map({[messageKey]: path}))),
+    Saga.put(EntityCreators.replaceEntity(['attachmentDownloadProgress'], I.Map({[messageKey]: null}))),
+  ])
+}
+
+function updateProgress(action: Constants.DownloadProgress | Constants.UploadProgress) {
+  const {type, payload: {progress, messageKey}} = action
+  if (type === 'chat:downloadProgress') {
+    if (action.payload.isPreview) {
+      return Saga.put(
+        EntityCreators.replaceEntity(['attachmentPreviewProgress'], I.Map({[messageKey]: progress}))
+      )
+    }
+    return Saga.put(
+      EntityCreators.replaceEntity(['attachmentDownloadProgress'], I.Map({[messageKey]: progress}))
+    )
+  }
+  return Saga.put(EntityCreators.replaceEntity(['attachmentUploadProgress'], I.Map({[messageKey]: progress})))
+}
+
+function updateAttachmentSavePath(
+  action: Constants.AttachmentSaveStart | Constants.AttachmentSaveFailed | Constants.AttachmentSaved
+) {
+  const {messageKey} = action.payload
+  switch (action.type) {
+    case 'chat:attachmentSaveFailed':
+    case 'chat:attachmentSaveStart':
+      return Saga.put(EntityCreators.replaceEntity(['attachmentSavedPath'], I.Map({[messageKey]: null})))
+    case 'chat:attachmentSaved':
+      const {path} = action.payload
+      return Saga.put(EntityCreators.replaceEntity(['attachmentSavedPath'], I.Map({[messageKey]: path})))
+  }
+}
+
 function* registerSagas(): SagaGenerator<any, any> {
   yield Saga.safeTakeSerially('chat:loadAttachment', onLoadAttachment)
   yield Saga.safeTakeEvery('chat:openAttachmentPopup', onOpenAttachmentPopup)
@@ -423,6 +468,12 @@ function* registerSagas(): SagaGenerator<any, any> {
   yield Saga.safeTakeEvery('chat:saveAttachmentNative', onSaveAttachmentNative)
   yield Saga.safeTakeEvery('chat:selectAttachment', onSelectAttachment)
   yield Saga.safeTakeEvery('chat:shareAttachment', onShareAttachment)
+  yield Saga.safeTakeEveryPure('chat:attachmentLoaded', attachmentLoaded)
+  yield Saga.safeTakeEveryPure(['chat:downloadProgress', 'chat:uploadProgress'], updateProgress)
+  yield Saga.safeTakeEveryPure(
+    ['chat:attachmentSaveStart', 'chat:attachmentSaveFailed', 'chat:attachmentSaved'],
+    updateAttachmentSavePath
+  )
 }
 
 export {registerSagas}
