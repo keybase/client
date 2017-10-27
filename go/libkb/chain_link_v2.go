@@ -313,6 +313,7 @@ func (o OuterLinkV2) AssertFields(
 	curr LinkID,
 	linkType SigchainV2Type,
 	seqType keybase1.SeqType,
+	ignoreIfUnsupported bool,
 ) (err error) {
 	mkErr := func(format string, arg ...interface{}) error {
 		return SigchainV2MismatchedFieldError{fmt.Sprintf(format, arg...)}
@@ -334,6 +335,9 @@ func (o OuterLinkV2) AssertFields(
 	}
 	if o.SeqType != seqType {
 		return mkErr("seq type: (%d != %d)", o.SeqType, seqType)
+	}
+	if o.IgnoreIfUnsupported != ignoreIfUnsupported {
+		return mkErr("ignore_if_unsupported: (%v != %v)", o.IgnoreIfUnsupported, ignoreIfUnsupported)
 	}
 	return nil
 }
