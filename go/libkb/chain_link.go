@@ -229,6 +229,10 @@ func (c *ChainLink) getPrevFromPayload() LinkID {
 	return c.unpacked.prev
 }
 
+func (c *ChainLink) getSeqTypeFromPayload() keybase1.SeqType {
+	return c.unpacked.seqType
+}
+
 func (c *ChainLink) IsStubbed() bool {
 	return c.unpacked.stubbed
 }
@@ -744,7 +748,7 @@ func (c *ChainLink) verifyPayloadV2() error {
 	if err != nil {
 		return err
 	}
-	seqType := c.unpacked.seqType
+	seqType := c.getSeqTypeFromPayload()
 
 	if err := ol.AssertFields(version, seqno, prev, curr, linkType, seqType); err != nil {
 		return err
