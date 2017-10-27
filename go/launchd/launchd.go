@@ -597,6 +597,20 @@ func (p Plist) Check(path string) (bool, error) {
 	return false, nil
 }
 
+func (p Plist) Env() []string {
+	var env []string
+	for _, envVar := range p.envVars {
+		env = append(env, fmt.Sprintf("%s=%s", envVar.key, envVar.value))
+	}
+	return env
+}
+
+func (p Plist) FallbackCommand() *exec.Cmd {
+	cmd := exec.Command(p.binPath, p.args...)
+	cmd.Env = append(os.Environ(), p.Env()...)
+	return cmd
+}
+
 // TODO Use go-plist library
 func (p Plist) plistXML() string {
 	encodeTag := func(name, val string) string {

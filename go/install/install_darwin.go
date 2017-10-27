@@ -278,7 +278,8 @@ func keybasePlist(context Context, binPath string, label string, log Log) (launc
 func installKeybaseService(context Context, service launchd.Service, plist launchd.Plist, wait time.Duration, log Log) (*keybase1.ServiceStatus, error) {
 	err := launchd.Install(plist, wait, log)
 	if err != nil {
-		return nil, err
+		log.Warning("error installing keybase service via launchd: %s", err)
+		return fallbackStartProcess(context, service, plist, wait, log)
 	}
 
 	st, err := serviceStatusFromLaunchd(service, context.GetServiceInfoPath(), wait, log)
@@ -324,7 +325,8 @@ func kbfsPlist(context Context, kbfsBinPath string, label string, mountDir strin
 func installKBFSService(context Context, service launchd.Service, plist launchd.Plist, wait time.Duration, log Log) (*keybase1.ServiceStatus, error) {
 	err := launchd.Install(plist, wait, log)
 	if err != nil {
-		return nil, err
+		log.Warning("error installing kbfs service via launchd: %s", err)
+		return fallbackStartProcess(context, service, plist, wait, log)
 	}
 
 	st, err := serviceStatusFromLaunchd(service, "", wait, log)
@@ -1031,7 +1033,7 @@ func InstallUpdater(context Context, keybaseBinPath string, force bool, timeout 
 
 	UninstallUpdaterService(context.GetRunMode(), log)
 	log.Debug("Installing updater service (%s, timeout=%s)", label, timeout)
-	if _, err := installUpdaterService(service, plist, timeout, log); err != nil {
+	if _, err := installUpdaterService(context, service, plist, timeout, log); err != nil {
 		log.Errorf("Error installing updater service: %s", err)
 		return err
 	}
@@ -1050,10 +1052,11 @@ func updaterPlist(context Context, label string, serviceBinPath string, keybaseB
 	return launchd.NewPlist(label, serviceBinPath, plistArgs, envVars, logFile, comment), nil
 }
 
-func installUpdaterService(service launchd.Service, plist launchd.Plist, wait time.Duration, log Log) (*keybase1.ServiceStatus, error) {
+func installUpdaterService(context Context, service launchd.Service, plist launchd.Plist, wait time.Duration, log Log) (*keybase1.ServiceStatus, error) {
 	err := launchd.Install(plist, wait, log)
 	if err != nil {
-		return nil, err
+		log.Warning("error installing updated service via launchd: %s", err)
+		return fallbackStartProcess(context, service, plist, wait, log)
 	}
 
 	st, err := serviceStatusFromLaunchd(service, "", wait, log)
@@ -1107,4 +1110,31 @@ func InstallLogPath() (string, error) {
 // SystemLogPath is where privileged keybase processes log to on darwin
 func SystemLogPath() string {
 	return "/Library/Logs/keybase.system.log"
+}
+
+func fallbackStartProcess(context Context, service launchd.Service, plist launchd.Plist, wait time.Duration, log Log) (*keybase1.ServiceStatus, error) {
+	log.Info("falling back to starting %s process manually", service.Label())
+
+	cmd := plist.FallbackCommand()
+	log.Info("fallback command: %s %v (env: %v)", cmd.Path, cmd.Args, cmd.Env)
+	err := cmd.Start()
+	if err != nil {
+		log.Warning("error starting fallback command for %s (%s): %s", service.Label(), cmd.Path, err)
+		return nil, err
+	}
+
+	if cmd.Process == nil {
+		log.Warning("no process after starting command %s", cmd.Path)
+		return nil, fmt.Errorf("failed to start %s (%s)", service.Label(), cmd.Path)
+	}
+
+	log.Info("fallback command started: %s, pid = %d", cmd.Path, cmd.Process.Pid)
+
+	status := keybase1.ServiceStatus{
+		Label:  service.Label(),
+		Pid:    strconv.Itoa(cmd.Process.Pid),
+		Status: keybase1.StatusOK(""),
+	}
+
+	return &status, nil
 }
