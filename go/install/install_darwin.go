@@ -14,7 +14,6 @@ import (
 	"time"
 
 	"github.com/blang/semver"
-	"github.com/kardianos/osext"
 	"github.com/keybase/client/go/install/libnativeinstaller"
 	kbnminstaller "github.com/keybase/client/go/kbnm/installer"
 	"github.com/keybase/client/go/launchd"
@@ -1075,32 +1074,9 @@ func updaterBinName() (string, error) {
 	return "updater", nil
 }
 
-// AppBundleForPath returns path to app bundle
-func AppBundleForPath() (string, error) {
-	path, err := osext.Executable()
-	if err != nil {
-		return "", err
-	}
-	if path == "" {
-		return "", err
-	}
-	paths := strings.SplitN(path, ".app", 2)
-	// If no match, return ""
-	if len(paths) <= 1 {
-		return "", fmt.Errorf("Unable to resolve bundle for valid path: %s; %s", path, err)
-	}
-
-	appPath := paths[0] + ".app"
-	if exists, _ := libkb.FileExists(appPath); !exists {
-		return "", fmt.Errorf("App not found: %s", appPath)
-	}
-
-	return appPath, nil
-}
-
 // RunApp starts the app
 func RunApp(context Context, log Log) error {
-	appPath, err := AppBundleForPath()
+	appPath, err := libnativeinstaller.AppBundleForPath()
 	if err != nil {
 		return err
 	}
