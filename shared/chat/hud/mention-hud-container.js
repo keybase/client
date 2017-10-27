@@ -17,14 +17,15 @@ type ConnectedMentionHudProps = {
 
 const fullNameSelector = inbox => (inbox ? inbox.get('fullNames') : null)
 const participantsSelector = inbox => (inbox ? inbox.get('participants') : null)
+
 const userSelector = createSelector(fullNameSelector, participantsSelector, (fullNames, participants) => {
-  const fullNameArray = fullNames ? fullNames.toArray() : []
-  const participantsArray = participants ? participants.toArray() : []
-  return participantsArray.reduce((res, username) => {
-    const fullName = fullNameArray.find(fn => username === fn[0])
-    res.push({username, fullName: fullName ? fullName[1] : ''})
-    return res
-  }, [])
+  return participants
+    ? participants.reduce((res, username) => {
+        const fullName = fullNames ? fullNames.get(username) : ''
+        res.push({fullName: fullName || '', username})
+        return res
+      }, [])
+    : []
 })
 
 const mapStateToProps: MapStateToProps<*, *, *> = state => {
