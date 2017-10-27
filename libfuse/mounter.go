@@ -13,11 +13,15 @@ import (
 	"runtime"
 
 	"bazil.org/fuse"
+	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/logger"
 )
 
 type mounter struct {
 	options StartOptions
 	c       *fuse.Conn
+	log     logger.Logger
+	runMode libkb.RunMode
 }
 
 // fuseMount tries to mount the mountpoint.
@@ -26,14 +30,20 @@ func (m *mounter) Mount() (err error) {
 	m.c, err = fuseMountDir(m.options.MountPoint, m.options.PlatformParams)
 	// Exit if we were succesful. Otherwise, try unmounting and mounting again.
 	if err == nil {
-		return err
+		return nil
 	}
 
 	// Mount failed, let's try to unmount and then try mounting again, even
 	// if unmounting errors here.
 	m.Unmount()
 
+	// In case we are on darwin, ask the installer to reinstall the mount dir
+	// and try again as the last resort. This specifically fixes a situation
+	// where /keybase gets created and owned by root after Keybase app is
+	// started, and `kbfs` later fails to mount because of a permission error.
+	m.reinstallMountDirIfPossible()
 	m.c, err = fuseMountDir(m.options.MountPoint, m.options.PlatformParams)
+
 	return err
 }
 

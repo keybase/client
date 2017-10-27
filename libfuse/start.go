@@ -29,12 +29,16 @@ type StartOptions struct {
 	MountPoint     string
 }
 
-func startMounting(
-	ctx context.Context, config libkbfs.Config, options StartOptions,
+func startMounting(ctx context.Context,
+	kbCtx libkbfs.Context, config libkbfs.Config, options StartOptions,
 	log logger.Logger, mi *libfs.MountInterrupter) error {
 	log.CDebugf(ctx, "Mounting: %q", options.MountPoint)
 
-	var mounter = &mounter{options: options}
+	var mounter = &mounter{
+		options: options,
+		log:     log,
+		runMode: kbCtx.GetRunMode(),
+	}
 	err := mi.MountAndSetUnmount(mounter)
 	if err != nil {
 		return err
@@ -112,7 +116,7 @@ func Start(options StartOptions, kbCtx libkbfs.Context) *libfs.Error {
 	if options.SkipMount {
 		log.Debug("Skipping mounting filesystem")
 	} else {
-		err = startMounting(ctx, config, options, log, mi)
+		err = startMounting(ctx, kbCtx, config, options, log, mi)
 		if err != nil {
 			// Abort on error if we were force mounting, otherwise continue.
 			if options.ForceMount {

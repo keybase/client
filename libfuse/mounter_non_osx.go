@@ -20,3 +20,7 @@ func GetPlatformSpecificMountOptionsForTest() []fuse.MountOption {
 func translatePlatformSpecificError(err error, platformParams PlatformParams) error {
 	return err
 }
+
+func (m *mounter) reinstallMountDirIfPossible() {
+	// no-op
+}

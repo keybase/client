@@ -10,6 +10,7 @@ import (
 	"errors"
 
 	"bazil.org/fuse"
+	"github.com/keybase/client/go/install/libnativeinstaller"
 )
 
 var kbfusePath = fuse.OSXFUSEPaths{
@@ -75,4 +76,11 @@ func translatePlatformSpecificError(err error, platformParams PlatformParams) er
 				"and pass in --use-system-fuse")
 	}
 	return err
+}
+
+func (m *mounter) reinstallMountDirIfPossible() {
+	err := libnativeinstaller.UninstallMountDir(m.runMode, m.log)
+	m.log.Debug("UninstallMountDir: err=%v", err)
+	err = libnativeinstaller.InstallMountDir(m.runMode, m.log)
+	m.log.Debug("InstallMountDir: err=%v", err)
 }

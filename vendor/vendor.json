@@ -165,6 +165,12 @@
 			"revisionTime": "2017-10-11T18:56:40Z"
 		},
 		{
+			"checksumSHA1": "lN296i0Z+bfaqv60ppG5VJo63jw=",
+			"path": "github.com/keybase/client/go/install/libnativeinstaller",
+			"revision": "2a68f9d8b8deaaedee4e9567b10a491f33b304e5",
+			"revisionTime": "2017-10-27T20:06:14Z"
+		},
+		{
 			"checksumSHA1": "ipYE4GuyO5tR23hY/JJ3RHUI4EA=",
 			"path": "github.com/keybase/client/go/kex2",
 			"revision": "433eb48ff4c25a822386faabcc40fd304269db33",
