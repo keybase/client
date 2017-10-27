@@ -4,7 +4,6 @@ import {Set, Map} from 'immutable'
 import InviteByEmailMobile from '.'
 import {HeaderHoc} from '../../common-adapters'
 import {navigateAppend} from '../../actions/route-tree'
-import * as Contacts from 'react-native-contacts'
 import {
   connect,
   compose,
@@ -16,6 +15,7 @@ import {
 } from '../../util/container'
 import {type OwnProps} from './container'
 import {isAndroid} from '../../constants/platform'
+import {getContacts} from './permissions'
 
 const mapStateToProps = (state: TypedState, {routeProps}: OwnProps) => {
   const teamname = routeProps.get('teamname')
@@ -73,65 +73,16 @@ export default compose(
     lifecycle({
       componentWillMount() {
         // TODO test this permission flow on a real build
-        if (isAndroid) {
-          Contacts.checkPermission((err, permission) => {
-            // Check the existing system settings, see if we need to ask
-            if (err) {
-              console.warn('Error determining Android contact permissions: ', err)
-              this.props._setHasPermission(false)
-              return
-            }
-            if (permission === 'undefined' || permission === 'denied') {
-              // Now we need to show the request dialog
-              Contacts.requestPermission((err, _) => {
-                // second param is supposed to be granted, but is buggy, so we checkPermission again
-                if (err) {
-                  console.warn('Error determining Android contact permissions: ', err)
-                }
-                Contacts.checkPermission((err, permission) => {
-                  // Check to see what the user said
-                  if (err) {
-                    console.warn('Error determining Android contact permissions: ', err)
-                  }
-                  if (permission === 'authorized') {
-                    Contacts.getAll((err, contacts) => {
-                      if (err) {
-                        this.props._setHasPermission(false)
-                      } else {
-                        this.props._setHasPermission(true)
-                        this.props._setContacts(contacts)
-                      }
-                    })
-                  } else {
-                    // If not authorized, then we tried and they said no.
-                    this.props._setHasPermission(false)
-                  }
-                })
-              })
-            } else if (permission === 'authorized') {
-              // If we're already authorized, go ahead and fetch contacts
-              Contacts.getAll((err, contacts) => {
-                if (err) {
-                  this.props._setHasPermission(false)
-                } else {
-                  this.props._setHasPermission(true)
-                  this.props._setContacts(contacts)
-                }
-              })
-            } else {
-              this.props._setHasPermission(false)
-            }
-          })
-        } else {
-          Contacts.getAll((err, contacts) => {
-            if (err) {
-              this.props._setHasPermission(false)
-            } else {
-              this.props._setHasPermission(true)
-              this.props._setContacts(contacts)
-            }
-          })
-        }
+        getContacts().then(
+          val => {
+            this.props._setHasPermission(val.hasPermission)
+            this.props._setContacts(val.contacts)
+          },
+          err => {
+            console.warn('Error fetching contacts: ', err)
+            this.props._setHasPermission(false)
+          }
+        )
       },
     }),
     withPropsOnChange(['contacts'], props => {
