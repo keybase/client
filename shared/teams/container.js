@@ -14,17 +14,20 @@ type StateProps = {
   _teammembercounts: I.Map<Teamname, number>,
   sawChatBanner: boolean,
   loaded: boolean,
+  _newTeams: I.Set<string>,
 }
 
 const mapStateToProps = (state: TypedState): StateProps => {
   const teamnames = state.entities.getIn(['teams', 'teamnames'], I.Set())
   const teammembercounts = state.entities.getIn(['teams', 'teammembercounts'], I.Map())
   const loaded = state.entities.getIn(['teams', 'loaded'], false)
+  const newTeams = state.entities.getIn(['teams', 'newTeams'], I.Set())
   return {
     _teamnames: teamnames,
     _teammembercounts: teammembercounts,
     sawChatBanner: state.entities.getIn(['teams', 'sawChatBanner'], false),
     loaded,
+    _newTeams: newTeams,
   }
 }
 
@@ -82,6 +85,7 @@ const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps) => {
     teamnames,
     teammembercounts: stateProps._teammembercounts.toObject(),
     loaded: stateProps.loaded,
+    newTeams: stateProps._newTeams.toArray(),
     ...dispatchProps,
   }
 }

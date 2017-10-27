@@ -445,7 +445,9 @@ function* _setupTeamHandlers(): SagaGenerator<any, any> {
 }
 
 function* _badgeAppForTeams(action: Constants.BadgeAppForTeams) {
-  yield put(replaceEntity(['teams'], I.Map([['newTeamIDs', action.payload.newTeamIDs]])))
+  // TODO change newTeamIDs once the notification changes
+  const newTeams = action.payload.newTeamIDs || []
+  yield put(replaceEntity(['teams'], I.Map([['newTeams', I.Set(newTeams)]])))
 }
 
 let _wasOnTeamsTab = false

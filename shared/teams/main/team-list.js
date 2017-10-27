@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
 import {ClickableBox, Icon, Avatar, Box, Divider, Text, ProgressIndicator} from '../../common-adapters'
-import {globalMargins, globalStyles} from '../../styles'
+import {globalMargins, globalStyles, globalColors} from '../../styles'
 import {isMobile} from '../../constants/platform'
 
 import type {Teamname} from '../../constants/teams'
@@ -9,6 +9,7 @@ import type {Teamname} from '../../constants/teams'
 export type Props = {
   teamnames: Array<Teamname>,
   teammembercounts: {[string]: number},
+  newTeams: Array<Teamname>,
   onOpenFolder: (teamname: Teamname) => void,
   onManageChat: (teamname: Teamname) => void,
   onViewTeam: (teamname: Teamname) => void,
@@ -17,12 +18,21 @@ export type Props = {
 type RowProps = {
   name: Teamname,
   membercount: number,
+  isNew: boolean,
   onOpenFolder: () => void,
   onManageChat: () => void,
   onViewTeam: () => void,
 }
 
-const Row = ({name, membercount, onOpenFolder, onManageChat, onViewTeam}: RowProps) => (
+export const newCharmStyle = {
+  backgroundColor: globalColors.orange,
+  borderRadius: 1,
+  paddingLeft: 2,
+  paddingRight: 2,
+  marginRight: 4,
+}
+
+const Row = ({name, membercount, isNew, onOpenFolder, onManageChat, onViewTeam}: RowProps) => (
   <Box style={rowStyle}>
     <Box
       style={{
@@ -38,9 +48,15 @@ const Row = ({name, membercount, onOpenFolder, onManageChat, onViewTeam}: RowPro
           <Text type="BodySemibold">
             {name}
           </Text>
-          <Text type="BodySmall">
-            {membercount + ' member' + (membercount !== 1 ? 's' : '')}
-          </Text>
+          <Box style={globalStyles.flexBoxRow}>
+            {isNew &&
+              <Box style={newCharmStyle}>
+                <Text style={{color: globalColors.white, fontSize: 10}} type="BodySmallSemibold">NEW</Text>
+              </Box>}
+            <Text type="BodySmall">
+              {membercount + ' member' + (membercount !== 1 ? 's' : '')}
+            </Text>
+          </Box>
         </Box>
       </ClickableBox>
       {!isMobile && <Icon type="iconfont-folder-private" onClick={onOpenFolder} />}
@@ -64,6 +80,7 @@ const TeamList = (props: Props) => (
       <Row
         key={name}
         name={name}
+        isNew={props.newTeams.includes(name)}
         membercount={props.teammembercounts[name]}
         onOpenFolder={() => props.onOpenFolder(name)}
         onManageChat={() => props.onManageChat(name)}

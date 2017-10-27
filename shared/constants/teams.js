@@ -187,7 +187,7 @@ type _State = {
   teamNameToTeamSettings: I.Map<Teamname, TeamSettings>,
   teamnames: I.Set<Teamname>,
   teammembercounts: I.Map<Teamname, number>,
-  newTeamIDs: I.Set<string>,
+  newTeams: I.Set<string>,
   loaded: boolean,
 }
 export type State = I.RecordOf<_State>
@@ -203,7 +203,7 @@ export const makeState: I.RecordFactory<_State> = I.Record({
   teamNameToRequests: I.Map(),
   teamNameToTeamSettings: I.Map(),
   teammembercounts: I.Map(),
-  newTeamIDs: I.Set(),
+  newTeams: I.Set(),
   teamnames: I.Set(),
 })
 
