@@ -977,6 +977,17 @@ func removeMemberInviteOfType(ctx context.Context, g *libkb.GlobalContext, team 
 	return libkb.NotFoundError{}
 }
 
+func removeMultipleInviteIDs(ctx context.Context, team *Team, invIDs []keybase1.TeamInviteID) error {
+	var cancelList []SCTeamInviteID
+	for _, invID := range invIDs {
+		cancelList = append(cancelList, SCTeamInviteID(invID))
+	}
+	invites := SCTeamInvites{
+		Cancel: &cancelList,
+	}
+	return team.postTeamInvites(ctx, invites)
+}
+
 func removeInviteID(ctx context.Context, team *Team, invID keybase1.TeamInviteID) error {
 	cancelList := []SCTeamInviteID{SCTeamInviteID(invID)}
 	invites := SCTeamInvites{

@@ -284,6 +284,7 @@ func HandleTeamSeitan(ctx context.Context, g *libkb.GlobalContext, msg keybase1.
 	if err != nil {
 		return err
 	}
+	var invitesToCancel []keybase1.TeamInviteID
 
 	var req keybase1.TeamChangeReq
 	req.CompletedInvites = make(map[keybase1.TeamInviteID]keybase1.UserVersionPercentForm)
@@ -294,52 +295,25 @@ func HandleTeamSeitan(ctx context.Context, g *libkb.GlobalContext, msg keybase1.
 			return libkb.NotFoundError{}
 		}
 
-		category, err := invite.Type.C()
+		g.Log.CDebugf(ctx, "Processing Seitan acceptance for invite %s", invite.Id)
+
+		err := handleSeitanSingle(ctx, g, team, invite, seitan)
 		if err != nil {
-			return err
-		}
-
-		if category != keybase1.TeamInviteCategory_SEITAN {
-			return fmt.Errorf("HandleTeamSeitan wanted to claim an invite with category %v", category)
-		}
-
-		peikey, err := SeitanDecodePEIKey(string(invite.Name))
-		if err != nil {
-			return err
-		}
-
-		ikey, err := peikey.DecryptIKey(ctx, team)
-		if err != nil {
-			return err
-		}
-
-		sikey, err := ikey.GenerateSIKey()
-		if err != nil {
-			return err
-		}
-
-		akey, _, err := sikey.GenerateAcceptanceKey(seitan.Uid, seitan.EldestSeqno, seitan.UnixCTime)
-		if err != nil {
-			return err
-		}
-
-		// Decode given AKey to be able to do secure hash comparison.
-		decodedAKey, err := base64.StdEncoding.DecodeString(string(seitan.Akey))
-		if err != nil {
-			return err
-		}
-
-		if !libkb.SecureByteArrayEq(akey, decodedAKey) {
-			return fmt.Errorf("did not end up with the same AKey")
+			g.Log.CDebugf(ctx, "Provided AKey failed to verify with error: \"%v\"; canceling invite.", err)
+			invitesToCancel = append(invitesToCancel, invite.Id)
+			continue
 		}
 
 		uv := NewUserVersion(seitan.Uid, seitan.EldestSeqno)
 		currentRole, err := team.MemberRole(ctx, uv)
 		if err != nil {
+			g.Log.CDebugf(ctx, "Failure in team.MemberRole: %v", err)
 			return err
 		}
 
 		if currentRole.IsOrAbove(invite.Role) {
+			g.Log.CDebugf(ctx, "User already has same or higher role, canceling invite.")
+			invitesToCancel = append(invitesToCancel, invite.Id)
 			continue
 		}
 
@@ -356,8 +330,63 @@ func HandleTeamSeitan(ctx context.Context, g *libkb.GlobalContext, msg keybase1.
 			return fmt.Errorf("Unexpected role in invitation: %v", invite.Role)
 		}
 
+		g.Log.CDebugf(ctx, "Completing invite %s", invite.Id)
 		req.CompletedInvites[seitan.InviteID] = uv.PercentForm()
 	}
 
-	return team.ChangeMembership(ctx, req)
+	if len(invitesToCancel) > 0 {
+		if err := removeMultipleInviteIDs(ctx, team, invitesToCancel); err != nil {
+			return err
+		}
+	}
+
+	if len(req.CompletedInvites) > 0 {
+		// Did we actually bring anyone in? (or all requests were outdated/invalid)
+		return team.ChangeMembership(ctx, req)
+	}
+
+	return nil
+}
+
+func handleSeitanSingle(ctx context.Context, g *libkb.GlobalContext, team *Team, invite keybase1.TeamInvite, seitan keybase1.TeamSeitanRequest) error {
+	category, err := invite.Type.C()
+	if err != nil {
+		return err
+	}
+
+	if category != keybase1.TeamInviteCategory_SEITAN {
+		return fmt.Errorf("HandleTeamSeitan wanted to claim an invite with category %v", category)
+	}
+
+	peikey, err := SeitanDecodePEIKey(string(invite.Name))
+	if err != nil {
+		return err
+	}
+
+	ikey, err := peikey.DecryptIKey(ctx, team)
+	if err != nil {
+		return err
+	}
+
+	sikey, err := ikey.GenerateSIKey()
+	if err != nil {
+		return err
+	}
+
+	akey, _, err := sikey.GenerateAcceptanceKey(seitan.Uid, seitan.EldestSeqno, seitan.UnixCTime)
+	if err != nil {
+		return err
+	}
+
+	// Decode given AKey to be able to do secure hash comparison.
+	decodedAKey, err := base64.StdEncoding.DecodeString(string(seitan.Akey))
+	if err != nil {
+		return err
+	}
+
+	if !libkb.SecureByteArrayEq(akey, decodedAKey) {
+		return fmt.Errorf("did not end up with the same AKey")
+	}
+
+	return nil
 }
