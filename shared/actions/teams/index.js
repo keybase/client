@@ -8,6 +8,7 @@ import * as RpcTypes from '../../constants/types/flow-types'
 import * as Saga from '../../util/saga'
 import * as Creators from './creators'
 import * as ChatCreators from '../chat/creators'
+import * as RouteTreeConstants from '../../constants/route-tree'
 import engine from '../../engine'
 import map from 'lodash/map'
 import {replaceEntity} from '../entities'
@@ -447,6 +448,24 @@ function* _badgeAppForTeams(action: Constants.BadgeAppForTeams) {
   yield put(replaceEntity(['teams'], I.Map([['newTeamIDs', action.payload.newTeamIDs]])))
 }
 
+let _wasOnTeamsTab = false
+const _onTabChange = (action: RouteTreeConstants.SwitchTo) => {
+  const list = I.List(action.payload.path)
+  const root = list.first()
+
+  if (root === teamsTab) {
+    _wasOnTeamsTab = true
+  } else if (_wasOnTeamsTab) {
+    _wasOnTeamsTab = false
+    // clear badges
+    return call(RpcTypes.gregorDismissCategoryRpcPromise, {
+      param: {
+        category: 'new_team',
+      },
+    })
+  }
+}
+
 const teamsSaga = function*(): SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure('teams:leaveTeam', _leaveTeam)
   yield Saga.safeTakeEveryPure('teams:createNewTeam', _createNewTeam)
@@ -466,6 +485,7 @@ const teamsSaga = function*(): SagaGenerator<any, any> {
   yield Saga.safeTakeEvery('teams:editMembership', _editMembership)
   yield Saga.safeTakeEvery('teams:removeMemberOrPendingInvite', _removeMemberOrPendingInvite)
   yield Saga.safeTakeEvery('teams:badgeAppForTeams', _badgeAppForTeams)
+  yield Saga.safeTakeEveryPure(RouteTreeConstants.switchTo, _onTabChange)
 }
 
 export default teamsSaga
