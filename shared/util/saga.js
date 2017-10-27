@@ -3,18 +3,21 @@ import mapValues from 'lodash/mapValues'
 import isEqual from 'lodash/isEqual'
 import map from 'lodash/map'
 import forEach from 'lodash/forEach'
-import {buffers, channel} from 'redux-saga'
+import {buffers, channel, delay} from 'redux-saga'
 import {
   actionChannel,
-  take,
+  all,
   call,
+  cancel,
+  cancelled,
+  fork,
   put,
   race,
   select,
-  fork,
+  spawn,
+  take,
   takeEvery,
   takeLatest,
-  cancelled,
 } from 'redux-saga/effects'
 import {globalError} from '../constants/config'
 import {convertToError} from '../util/errors'
@@ -202,17 +205,27 @@ function safeTakeSerially(pattern: string | Array<any> | Function, worker: Funct
 }
 
 export {
+  all,
+  call,
+  cancel,
   cancelWhen,
+  cancelled,
   closeChannelMap,
   createChannelMap,
+  delay,
   effectOnChannelMap,
+  fork,
   mapSagasToChanMap,
+  put,
   putOnChannelMap,
   safeTakeEvery,
   safeTakeEveryPure,
   safeTakeLatest,
   safeTakeLatestWithCatch,
   safeTakeSerially,
+  select,
   singleFixedChannelConfig,
+  spawn,
+  take,
   takeFromChannelMap,
 }
