@@ -9,7 +9,7 @@ import (
 
 	"github.com/keybase/kbfs/kbfsblock"
 	"github.com/keybase/kbfs/kbfscrypto"
-	kbgitkbfs "github.com/keybase/kbfs/protocol/kbgitkbfs"
+	kbgitkbfs "github.com/keybase/kbfs/protocol/kbgitkbfs1"
 	"github.com/keybase/kbfs/tlf"
 )
 
