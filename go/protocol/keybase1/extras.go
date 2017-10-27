@@ -1632,42 +1632,59 @@ func (t TeamName) IsNil() bool {
 }
 
 // underscores allowed, just not first or doubled
-var namePartRxx = regexp.MustCompile(`([a-zA-Z0-9][a-zA-Z0-9_]?)+`)
+var namePartRxx = regexp.MustCompile(`^([a-zA-Z0-9][a-zA-Z0-9_]?)+$`)
 var implicitRxxString = fmt.Sprintf("^%s[0-9a-f]{%d}$", ImplicitTeamPrefix, ImplicitSuffixLengthBytes*2)
 var implicitNameRxx = regexp.MustCompile(implicitRxxString)
 
 const ImplicitTeamPrefix = "__keybase_implicit_team__"
 const ImplicitSuffixLengthBytes = 16
 
+func stringToTeamNamePart(s string) TeamNamePart {
+	return TeamNamePart(strings.ToLower(s))
+}
+
+func rootTeamNameFromString(s string) (TeamName, error) {
+	if implicitNameRxx.MatchString(s) {
+		return TeamName{Parts: []TeamNamePart{stringToTeamNamePart(s)}}, nil
+	}
+	if err := validatePart(s); err != nil {
+		return TeamName{}, err
+	}
+	return TeamName{Parts: []TeamNamePart{stringToTeamNamePart(s)}}, nil
+}
+
+func validatePart(s string) (err error) {
+	if len(s) == 0 {
+		return errors.New("team names cannot be empty")
+	}
+	if !(len(s) >= 2 && len(s) <= 16) {
+		return errors.New("team names must be between 2 and 16 characters long")
+	}
+	if !namePartRxx.MatchString(s) {
+		return errors.New("Keybase team names must be letters (a-z), numbers, and underscores. Also, they can't start with underscores or use double underscores, to avoid confusion.")
+	}
+	return nil
+}
+
 func TeamNameFromString(s string) (TeamName, error) {
 	ret := TeamName{}
-	var regularErr error
 
 	parts := strings.Split(s, ".")
 	if len(parts) == 0 {
-		return ret, errors.New("need >= 1 part, got 0")
+		return ret, errors.New("team names cannot be empty")
 	}
-
-	if len(parts) == 1 && implicitNameRxx.MatchString(s) {
-		return TeamName{Parts: []TeamNamePart{TeamNamePart(strings.ToLower(s))}}, nil
+	if len(parts) == 1 {
+		return rootTeamNameFromString(s)
 	}
-
 	tmp := make([]TeamNamePart, len(parts))
 	for i, part := range parts {
-		if !(len(part) >= 2 && len(part) <= 16) {
-			regularErr = errors.New("team names must be between 2 and 16 characters long")
-			break
+		err := validatePart(part)
+		if err != nil {
+			return TeamName{}, fmt.Errorf("Could not parse name as team; bad name component %q: %s", part, err.Error())
 		}
-		if !namePartRxx.MatchString(part) {
-			regularErr = fmt.Errorf("Bad name component: %s (at pos %d)", part, i)
-			break
-		}
-		tmp[i] = TeamNamePart(strings.ToLower(part))
+		tmp[i] = stringToTeamNamePart(part)
 	}
-	if regularErr == nil {
-		return TeamName{Parts: tmp}, nil
-	}
-	return ret, fmt.Errorf("Could not parse name as team name: %v", regularErr)
+	return TeamName{Parts: tmp}, nil
 }
 
 func (t TeamName) String() string {
