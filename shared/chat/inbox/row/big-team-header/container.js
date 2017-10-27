@@ -11,8 +11,10 @@ const mapStateToProps = (state: TypedState, {teamname, isActiveRoute}) => {
 }
 
 const mapDispatchToProps = dispatch => ({
-  _onShowMenu: (teamname: string) =>
-    dispatch(navigateAppend([{props: {teamname}, selected: 'manageChannels'}])),
+  _onShowMenu: (teamname: string) => {
+    console.warn('in onShowMenu')
+    dispatch(navigateAppend([{props: {teamname}, selected: 'teamInfo'}]))
+  }
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({

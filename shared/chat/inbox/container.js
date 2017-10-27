@@ -2,6 +2,7 @@
 import * as Constants from '../../constants/chat'
 import * as Inbox from '.'
 import * as Creators from '../../actions/chat/creators'
+import * as TeamCreators from '../../actions/teams/creators'
 import * as I from 'immutable'
 import {
   pausableConnect,
@@ -206,6 +207,7 @@ const mapStateToProps = (state: TypedState, {isActiveRoute, routeState}) => {
 }
 
 const mapDispatchToProps = (dispatch: Dispatch, {focusFilter, routeState, setRouteState}) => ({
+  getTeams: () => dispatch(TeamCreators.getTeams()),
   loadInbox: () => dispatch(Creators.loadInbox()),
   _onSelectNext: (rows, direction) => dispatch(Creators.selectNext(rows, direction)),
   onHotkey: cmd => {
@@ -231,6 +233,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     filter: stateProps.filter,
     isActiveRoute: stateProps.isActiveRoute,
     isLoading: stateProps.isLoading,
+    getTeams: dispatchProps.getTeams,
     loadInbox: dispatchProps.loadInbox,
     user: stateProps.user,
     onHotkey: dispatchProps.onHotkey,
@@ -264,6 +267,8 @@ export default compose(
       if (_lastUser !== this.props.user) {
         _lastUser = this.props.user
         this.props.loadInbox()
+        // also load teams on the first Chat load, to get member counts
+        this.props.getTeams()
       }
     },
   })

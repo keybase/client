@@ -48,7 +48,7 @@ class PopupMenu extends Component<Props> {
                 if (!i.disabled) {
                   hoverClassName = i.danger ? 'menu-hover-danger' : 'menu-hover'
                 } else {
-                  styleDisabled = {opacity: 0.4}
+                  styleDisabled = {opacity: 0.1}
                 }
 
                 const styleClickable = i.disabled ? {} : globalStyles.clickable

@@ -7,6 +7,7 @@ import BlockConversationWarning from './conversation/block-conversation-warning/
 import NewTeamDialogFromChat from './new-team-dialog-container.js'
 import ManageChannels from './manage-channels/container'
 import CreateChannel from './create-channel/container'
+import TeamInfo from './team-info/container'
 import {nothingSelected} from '../constants/chat'
 import Render from './render.desktop'
 
@@ -35,6 +36,11 @@ const conversationRoute = makeRouteDefNode({
     },
     manageChannels: {
       component: ManageChannels,
+      tags: makeLeafTags({layerOnTop: true}),
+      children: {},
+    },
+    teamInfo: {
+      component: TeamInfo,
       tags: makeLeafTags({layerOnTop: true}),
       children: {},
     },
