@@ -767,6 +767,8 @@ func (s PrefetchStatus) String() string {
 	return "Unknown"
 }
 
+// ToProtocol transforms a PrefetchStatus to a kbgitkbfs.PrefetchStatus, while
+// validating its value.
 func (s PrefetchStatus) ToProtocol() kbgitkbfs.PrefetchStatus {
 	protocolPrefetchStatus := kbgitkbfs.PrefetchStatus(s)
 	_, ok := kbgitkbfs.PrefetchStatusRevMap[protocolPrefetchStatus]
@@ -776,6 +778,8 @@ func (s PrefetchStatus) ToProtocol() kbgitkbfs.PrefetchStatus {
 	return protocolPrefetchStatus
 }
 
+// PrefetchStatusFromProtocol transforms a kbgitkbfs.PrefetchStatus to a
+// PrefetchStatus, while validating its value.
 func PrefetchStatusFromProtocol(
 	protocolPrefetchStatus kbgitkbfs.PrefetchStatus) PrefetchStatus {
 	s := PrefetchStatus(protocolPrefetchStatus)
