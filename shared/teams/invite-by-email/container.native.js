@@ -17,17 +17,16 @@ import {
 import {type OwnProps} from './container'
 import {isAndroid} from '../../constants/platform'
 
-const mapStateToProps = (state: TypedState, {routeProps}: OwnProps) => ({
-  name: routeProps.get('teamname'),
-  _pendingInvites: state.entities.getIn(
-    ['teams', 'teamNameToInvites', routeProps.get('teamname') || ''],
-    Set()
-  ),
-  loadingInvites: state.entities.getIn(
-    ['teams', 'teamNameToLoadingInvites', routeProps.get('teamname') || ''],
-    Map()
-  ),
-})
+const mapStateToProps = (state: TypedState, {routeProps}: OwnProps) => {
+  const teamname = routeProps.get('teamname')
+  return {
+    name: teamname,
+    _pendingInvites: teamname ? state.entities.getIn(['teams', 'teamNameToInvites', teamname], Set()) : Set(),
+    loadingInvites: teamname
+      ? state.entities.getIn(['teams', 'teamNameToLoadingInvites', teamname], Map())
+      : Map(),
+  }
+}
 
 const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routeProps}) => ({
   onClose: () => dispatch(navigateUp()),
