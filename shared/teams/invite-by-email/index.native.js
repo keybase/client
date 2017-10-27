@@ -13,7 +13,7 @@ import {
 } from '../../common-adapters/index.native'
 import {globalStyles, globalMargins, globalColors} from '../../styles'
 import {Linking, StyleSheet} from 'react-native'
-import type {MobileProps, ContactRowProps, ContactDisplayProps} from './index'
+import type {MobileProps, ContactRowProps} from './index'
 import {type TeamRoleType} from '../../constants/teams'
 import {isAndroid} from '../../constants/platform'
 
@@ -111,35 +111,10 @@ type State = {
   filter: string,
 }
 
+// Container handles all the props, this just handles filtering
 class InviteByEmail extends React.Component<MobileProps, State> {
   state = {
     filter: '',
-  }
-
-  _onSelectContact(contact: ContactDisplayProps) {
-    if (this._isSelected(contact.recordID)) {
-      this._removeInvitee(contact)
-    } else {
-      this._addInvitee(contact)
-    }
-  }
-
-  _isSelected(id: string): boolean {
-    return this.props.invited.findIndex(rec => rec.contactID === id) >= 0
-  }
-
-  _addInvitee(contact: ContactDisplayProps) {
-    if (contact.email) {
-      this.props.onInviteEmail(contact.email)
-    } else if (contact.phoneNo) {
-      this.props.onInvitePhone(contact.phoneNo)
-    }
-  }
-
-  _removeInvitee(contact: ContactDisplayProps) {
-    if (contact.email) {
-      this.props.onUninvite(contact.email)
-    }
   }
 
   _trim(s: ?string): string {
@@ -160,13 +135,6 @@ class InviteByEmail extends React.Component<MobileProps, State> {
         this._trim(contact.contact.phoneNo).includes(filter)
       )
     })
-    // Add dynamic rowprops here
-    const contactRowProps = filteredContactRows.map(props => ({
-      ...props,
-      selected: this._isSelected(props.id),
-      onClick: () => this._onSelectContact(props.contact),
-      loading: this.props.loadingInvites.get(props.contact.email || props.contact.phoneNo),
-    }))
     let contents
     if (this.props.hasPermission) {
       contents = (
@@ -216,7 +184,7 @@ class InviteByEmail extends React.Component<MobileProps, State> {
           </ClickableBox>
           <List
             keyProperty="id"
-            items={contactRowProps}
+            items={filteredContactRows}
             fixedHeight={56}
             renderItem={contactRow}
             style={{alignSelf: 'stretch'}}
