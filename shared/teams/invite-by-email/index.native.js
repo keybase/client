@@ -1,8 +1,17 @@
 // @flow
 import * as React from 'react'
-import {Avatar, Box, Button, ClickableBox, Icon, Input, List, Text} from '../../common-adapters'
+import {
+  Avatar,
+  Box,
+  Button,
+  ClickableBox,
+  Icon,
+  Input,
+  List,
+  Text,
+  NativeImage,
+} from '../../common-adapters/index.native'
 import {globalStyles, globalMargins, globalColors} from '../../styles'
-import {NativeImage} from '../../common-adapters/native-wrappers.native'
 import {Linking, StyleSheet} from 'react-native'
 import type {MobileProps, ContactRowProps, ContactDisplayProps} from './index'
 import {type TeamRoleType} from '../../constants/teams'
@@ -51,7 +60,7 @@ const AccessDenied = () => (
 
 const contactRow = (i: number, props: ContactRowProps) => {
   const source = typeof props.contact.thumbnailPath === 'string'
-    ? {uri: 'file://' + props.contact.thumbnailPath}
+    ? {uri: `file://${props.contact.thumbnailPath}`}
     : props.contact.thumbnailPath
   const hasThumbnail = props.contact.thumbnailPath && props.contact.thumbnailPath.length > 0
   return (
@@ -103,11 +112,8 @@ type State = {
 }
 
 class InviteByEmail extends React.Component<MobileProps, State> {
-  constructor(props: MobileProps) {
-    super(props)
-    this.state = {
-      filter: '',
-    }
+  state = {
+    filter: '',
   }
 
   _onSelectContact(contact: ContactDisplayProps) {
