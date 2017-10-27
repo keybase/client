@@ -460,7 +460,7 @@ const _onTabChange = (action: RouteTreeConstants.SwitchTo) => {
     // clear badges
     return call(RpcTypes.gregorDismissCategoryRpcPromise, {
       param: {
-        category: 'new_team',
+        category: 'team.newly_added_to_team',
       },
     })
   }
