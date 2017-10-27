@@ -4,6 +4,8 @@
 import {showImagePicker} from 'react-native-image-picker'
 import React, {Component} from 'react'
 import {Box, Icon, Input, Text} from '../../../common-adapters'
+// $FlowIssue
+import CustomTextInput from '../../../common-adapters/custom-input'
 import {globalMargins, globalStyles, globalColors} from '../../../styles'
 import {isIOS} from '../../../constants/platform'
 
@@ -92,22 +94,33 @@ class ConversationInput extends Component<Props> {
 
     return (
       <Box style={styleContainer}>
-        <Input
-          autoCorrect={true}
-          autoCapitalize="sentences"
-          autoFocus={false}
-          hideUnderline={true}
-          hintText="Write a message"
-          inputStyle={styleInputText}
-          multiline={true}
-          onBlur={this._onBlur}
-          onChangeText={this.props.setText}
-          ref={this.props.inputSetRef}
-          small={true}
-          style={styleInput}
-          value={this.props.text}
-          {...multilineOpts}
-        />
+        {isIOS
+          ? <Input
+              autoCorrect={true}
+              autoCapitalize="sentences"
+              autoFocus={false}
+              hideUnderline={true}
+              hintText="Write a message"
+              inputStyle={styleInputText}
+              multiline={true}
+              onBlur={this._onBlur}
+              onChangeText={this.props.setText}
+              ref={this.props.inputSetRef}
+              small={true}
+              style={styleInput}
+              value={this.props.text}
+              {...multilineOpts}
+            />
+          : <CustomTextInput
+              style={styleInput}
+              onChangeText={this.props.setText}
+              onBlur={this._onBlur}
+              placeholder="Write a message"
+              underlineColorAndroid={globalColors.transparent}
+              multiline={true}
+              ref={this.props.inputSetRef}
+              blurOnSubmit={false}
+            />}
         {this.props.typing.length > 0 && <Typing typing={this.props.typing} />}
         <Action
           text={this.props.text}
