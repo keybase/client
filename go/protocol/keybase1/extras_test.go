@@ -4,6 +4,7 @@
 package keybase1
 
 import (
+	"errors"
 	"testing"
 	"time"
 )
@@ -92,5 +93,52 @@ func TestMDGetBehavior(t *testing.T) {
 	// panic elsewhere.
 	for _, b := range MDGetBehaviorMap {
 		b.ShouldCreateClassicTLF()
+	}
+}
+
+func TestTeamNameFromString(t *testing.T) {
+	formatMsg := "Keybase team names must be letters (a-z), numbers, and underscores. Also, they can't start with underscores or use double underscores, to avoid confusion."
+	subteamMsg := "Could not parse name as team; bad name component "
+	lenMsg := "team names must be between 2 and 16 characters long"
+	emptyMsg := "team names cannot be empty"
+	tests := []struct {
+		input string
+		name  TeamName
+		err   error
+	}{
+		{"aabb", TeamName{Parts: []TeamNamePart{stringToTeamNamePart("aabb")}}, nil},
+		{"aa.BB.cc.DD", TeamName{Parts: []TeamNamePart{stringToTeamNamePart("aa"), stringToTeamNamePart("bb"), stringToTeamNamePart("cc"), stringToTeamNamePart("dd")}}, nil},
+		{"a & b", TeamName{}, errors.New(formatMsg)},
+		{" aa", TeamName{}, errors.New(formatMsg)},
+		{"a__a", TeamName{}, errors.New(formatMsg)},
+		{"_aa", TeamName{}, errors.New(formatMsg)},
+		{"a-a", TeamName{}, errors.New(formatMsg)},
+		{"cc.a & b", TeamName{}, errors.New(subteamMsg + "\"a & b\": " + formatMsg)},
+		{"", TeamName{}, errors.New(emptyMsg)},
+		{"aaa..bbb", TeamName{}, errors.New(subteamMsg + "\"\": " + emptyMsg)},
+		{"aabbccddeeff00112233", TeamName{}, errors.New(lenMsg)},
+		{"a", TeamName{}, errors.New(lenMsg)},
+		{"aa.bb.cc.aabbccddeeff00112233", TeamName{}, errors.New(subteamMsg + "\"aabbccddeeff00112233\": " + lenMsg)},
+	}
+	for i, tc := range tests {
+		nm, err := TeamNameFromString(tc.input)
+		if err == nil {
+			if tc.err != nil {
+				t.Fatalf("expected an error in test case %d", i)
+			}
+			if nm.IsNil() {
+				t.Fatalf("expected a non-nil TeamName since no error in test case %d", i)
+			}
+			if !nm.Eq(tc.name) {
+				t.Fatalf("failed name equality at test case %d", i)
+			}
+		} else {
+			if tc.err == nil {
+				t.Fatalf("got an error, but non expected at test case %d", i)
+			}
+			if tc.err.Error() != err.Error() {
+				t.Fatalf("bad error string at test case %d: %s != %s", i, tc.err.Error(), err.Error())
+			}
+		}
 	}
 }
