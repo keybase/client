@@ -14,6 +14,7 @@ import io.keybase.ossifrage.components.VisiblePassReactEditTextManager;
 import io.keybase.ossifrage.modules.KeybaseEngine;
 import io.keybase.ossifrage.modules.KillableModule;
 import io.keybase.ossifrage.modules.LogSend;
+import io.keybase.ossifrage.modules.NativeSettings;
 import io.keybase.ossifrage.modules.ScreenProtector;
 
 public class KBReactPackage implements com.facebook.react.ReactPackage {
@@ -36,6 +37,7 @@ public class KBReactPackage implements com.facebook.react.ReactPackage {
         final KeybaseEngine kbEngine = new KeybaseEngine(reactApplicationContext);
         final LogSend logSend = new LogSend(reactApplicationContext);
         final ScreenProtector screenProtector = new ScreenProtector(reactApplicationContext);
+        final NativeSettings nativeSettings = new NativeSettings(reactApplicationContext);
 
         killableModules.add(kbEngine);
 
@@ -43,6 +45,7 @@ public class KBReactPackage implements com.facebook.react.ReactPackage {
         modules.add(kbEngine);
         modules.add(logSend);
         modules.add(screenProtector);
+        modules.add(nativeSettings);
 
         return modules;
     }
