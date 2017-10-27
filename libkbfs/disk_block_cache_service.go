@@ -41,11 +41,13 @@ func (cache *DiskBlockCacheService) GetBlock(ctx context.Context,
 		return kbgitkbfs.GetBlockRes{},
 			DiskBlockCacheError{"Disk cache is nil"}
 	}
-	tlfID, err := tlf.ParseID(arg.TlfID.String())
+	tlfID := tlf.ID{}
+	err := tlfID.UnmarshalBinary(arg.TlfID)
 	if err != nil {
 		return kbgitkbfs.GetBlockRes{}, newDiskBlockCacheError(err)
 	}
-	blockID, err := kbfsblock.IDFromString(arg.BlockID)
+	blockID := kbfsblock.ID{}
+	err = blockID.UnmarshalBinary(arg.BlockID)
 	if err != nil {
 		return kbgitkbfs.GetBlockRes{}, newDiskBlockCacheError(err)
 	}
@@ -56,7 +58,7 @@ func (cache *DiskBlockCacheService) GetBlock(ctx context.Context,
 	protocolPrefetchStatus := prefetchStatus.ToProtocol()
 
 	return kbgitkbfs.GetBlockRes{
-		buf, serverHalf.String(), protocolPrefetchStatus,
+		buf, serverHalf.Bytes(), protocolPrefetchStatus,
 	}, nil
 }
 
@@ -68,15 +70,18 @@ func (cache *DiskBlockCacheService) PutBlock(ctx context.Context,
 	if dbc == nil {
 		return DiskBlockCacheError{"Disk cache is nil"}
 	}
-	tlfID, err := tlf.ParseID(arg.TlfID.String())
+	tlfID := tlf.ID{}
+	err := tlfID.UnmarshalBinary(arg.TlfID)
 	if err != nil {
 		return newDiskBlockCacheError(err)
 	}
-	blockID, err := kbfsblock.IDFromString(arg.BlockID)
+	blockID := kbfsblock.ID{}
+	err = blockID.UnmarshalBinary(arg.BlockID)
 	if err != nil {
 		return newDiskBlockCacheError(err)
 	}
-	serverHalf, err := kbfscrypto.ParseBlockCryptKeyServerHalf(arg.ServerHalf)
+	serverHalf := kbfscrypto.BlockCryptKeyServerHalf{}
+	err = serverHalf.UnmarshalBinary(arg.ServerHalf)
 	if err != nil {
 		return newDiskBlockCacheError(err)
 	}
@@ -90,7 +95,7 @@ func (cache *DiskBlockCacheService) PutBlock(ctx context.Context,
 // DeleteBlocks implements the DiskBlockCacheInterface interface for
 // DiskBlockCacheService.
 func (cache *DiskBlockCacheService) DeleteBlocks(ctx context.Context,
-	blockIDs []string) (kbgitkbfs.DeleteBlocksRes, error) {
+	blockIDs [][]byte) (kbgitkbfs.DeleteBlocksRes, error) {
 	dbc := cache.config.DiskBlockCache()
 	if dbc == nil {
 		return kbgitkbfs.DeleteBlocksRes{},
@@ -98,7 +103,8 @@ func (cache *DiskBlockCacheService) DeleteBlocks(ctx context.Context,
 	}
 	blocks := make([]kbfsblock.ID, 0, len(blockIDs))
 	for _, b := range blockIDs {
-		blockID, err := kbfsblock.IDFromString(b)
+		blockID := kbfsblock.ID{}
+		err := blockID.UnmarshalBinary(b)
 		if err != nil {
 			return kbgitkbfs.DeleteBlocksRes{}, newDiskBlockCacheError(err)
 		}
@@ -119,7 +125,8 @@ func (cache *DiskBlockCacheService) UpdateBlockMetadata(ctx context.Context,
 	if dbc == nil {
 		return DiskBlockCacheError{"Disk cache is nil"}
 	}
-	blockID, err := kbfsblock.IDFromString(arg.BlockID)
+	blockID := kbfsblock.ID{}
+	err := blockID.UnmarshalBinary(arg.BlockID)
 	if err != nil {
 		return newDiskBlockCacheError(err)
 	}

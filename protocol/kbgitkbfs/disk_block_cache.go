@@ -4,7 +4,6 @@
 package kbgitkbfs1
 
 import (
-	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	context "golang.org/x/net/context"
 )
@@ -32,7 +31,7 @@ var PrefetchStatusRevMap = map[PrefetchStatus]string{
 // GetCachedBlockRes is the response from GetBlock.
 type GetBlockRes struct {
 	Buf            []byte         `codec:"buf" json:"buf"`
-	ServerHalf     string         `codec:"serverHalf" json:"serverHalf"`
+	ServerHalf     []byte         `codec:"serverHalf" json:"serverHalf"`
 	PrefetchStatus PrefetchStatus `codec:"prefetchStatus" json:"prefetchStatus"`
 }
 
@@ -43,23 +42,23 @@ type DeleteBlocksRes struct {
 }
 
 type GetBlockArg struct {
-	TlfID   keybase1.TLFID `codec:"tlfID" json:"tlfID"`
-	BlockID string         `codec:"blockID" json:"blockID"`
+	TlfID   []byte `codec:"tlfID" json:"tlfID"`
+	BlockID []byte `codec:"blockID" json:"blockID"`
 }
 
 type PutBlockArg struct {
-	TlfID      keybase1.TLFID `codec:"tlfID" json:"tlfID"`
-	BlockID    string         `codec:"blockID" json:"blockID"`
-	Buf        []byte         `codec:"buf" json:"buf"`
-	ServerHalf string         `codec:"serverHalf" json:"serverHalf"`
+	TlfID      []byte `codec:"tlfID" json:"tlfID"`
+	BlockID    []byte `codec:"blockID" json:"blockID"`
+	Buf        []byte `codec:"buf" json:"buf"`
+	ServerHalf []byte `codec:"serverHalf" json:"serverHalf"`
 }
 
 type DeleteBlocksArg struct {
-	BlockIDs []string `codec:"blockIDs" json:"blockIDs"`
+	BlockIDs [][]byte `codec:"blockIDs" json:"blockIDs"`
 }
 
 type UpdateBlockMetadataArg struct {
-	BlockID        string         `codec:"blockID" json:"blockID"`
+	BlockID        []byte         `codec:"blockID" json:"blockID"`
 	PrefetchStatus PrefetchStatus `codec:"prefetchStatus" json:"prefetchStatus"`
 }
 
@@ -70,7 +69,7 @@ type DiskBlockCacheInterface interface {
 	// PutBlock puts a block into the disk cache.
 	PutBlock(context.Context, PutBlockArg) error
 	// DeleteBlocks deletes a set of blocks from the disk cache.
-	DeleteBlocks(context.Context, []string) (DeleteBlocksRes, error)
+	DeleteBlocks(context.Context, [][]byte) (DeleteBlocksRes, error)
 	// UpdateBlockMetadata updates the metadata for a block in the disk cache.
 	UpdateBlockMetadata(context.Context, UpdateBlockMetadataArg) error
 }
@@ -164,7 +163,7 @@ func (c DiskBlockCacheClient) PutBlock(ctx context.Context, __arg PutBlockArg) (
 }
 
 // DeleteBlocks deletes a set of blocks from the disk cache.
-func (c DiskBlockCacheClient) DeleteBlocks(ctx context.Context, blockIDs []string) (res DeleteBlocksRes, err error) {
+func (c DiskBlockCacheClient) DeleteBlocks(ctx context.Context, blockIDs [][]byte) (res DeleteBlocksRes, err error) {
 	__arg := DeleteBlocksArg{BlockIDs: blockIDs}
 	err = c.Cli.Call(ctx, "kbgitkbfs.1.DiskBlockCache.DeleteBlocks", []interface{}{__arg}, &res)
 	return

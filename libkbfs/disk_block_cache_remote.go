@@ -9,7 +9,6 @@ import (
 	"net"
 
 	"github.com/keybase/client/go/libkb"
-	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	"github.com/keybase/kbfs/kbfsblock"
 	"github.com/keybase/kbfs/kbfscrypto"
@@ -60,14 +59,14 @@ func (dbcr *DiskBlockCacheRemote) Get(ctx context.Context, tlfID tlf.ID,
 	}()
 
 	res, err := dbcr.client.GetBlock(ctx, kbgitkbfs.GetBlockArg{
-		keybase1.TLFID(tlfID.String()),
-		blockID.String(),
+		tlfID.Bytes(),
+		blockID.Bytes(),
 	})
 	if err != nil {
 		return nil, kbfscrypto.BlockCryptKeyServerHalf{}, NoPrefetch, err
 	}
 
-	serverHalf, err = kbfscrypto.ParseBlockCryptKeyServerHalf(res.ServerHalf)
+	err = serverHalf.UnmarshalBinary(res.ServerHalf)
 	if err != nil {
 		return nil, kbfscrypto.BlockCryptKeyServerHalf{}, NoPrefetch, err
 	}
@@ -86,10 +85,10 @@ func (dbcr *DiskBlockCacheRemote) Put(ctx context.Context, tlfID tlf.ID,
 	}()
 
 	return dbcr.client.PutBlock(ctx, kbgitkbfs.PutBlockArg{
-		keybase1.TLFID(tlfID.String()),
-		blockID.String(),
+		tlfID.Bytes(),
+		blockID.Bytes(),
 		buf,
-		serverHalf.String(),
+		serverHalf.Bytes(),
 	})
 }
 
@@ -103,9 +102,9 @@ func (dbcr *DiskBlockCacheRemote) Delete(ctx context.Context,
 		dbcr.log.LazyTrace(ctx, "DiskBlockCacheRemote: Delete %s block(s) "+
 			"done (err=%+v)", numBlocks, err)
 	}()
-	blocks := make([]string, 0, len(blockIDs))
+	blocks := make([][]byte, 0, len(blockIDs))
 	for _, b := range blockIDs {
-		blocks = append(blocks, b.String())
+		blocks = append(blocks, b.Bytes())
 	}
 	res, err := dbcr.client.DeleteBlocks(ctx, blocks)
 	if err != nil {
@@ -120,8 +119,8 @@ func (dbcr *DiskBlockCacheRemote) UpdateMetadata(ctx context.Context,
 	blockID kbfsblock.ID, prefetchStatus PrefetchStatus) error {
 	return dbcr.client.UpdateBlockMetadata(ctx,
 		kbgitkbfs.UpdateBlockMetadataArg{
-			blockID.String(),
-			kbgitkbfs.PrefetchStatus(prefetchStatus),
+			blockID.Bytes(),
+			prefetchStatus.ToProtocol(),
 		})
 }
 
