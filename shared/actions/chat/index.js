@@ -64,7 +64,11 @@ function* _incomingMessage(action: Constants.IncomingMessage): SagaGenerator<any
           const isConversationLoaded = yield Saga.select(Shared.conversationStateSelector, conversationIDKey)
           if (!isConversationLoaded) return
 
-          const pendingMessage = yield Saga.select(Shared.messageOutboxIDSelector, conversationIDKey, outboxID)
+          const pendingMessage = yield Saga.select(
+            Shared.messageOutboxIDSelector,
+            conversationIDKey,
+            outboxID
+          )
           if (pendingMessage) {
             yield Saga.put(
               Creators.updateTempMessage(
@@ -108,7 +112,9 @@ function* _incomingMessage(action: Constants.IncomingMessage): SagaGenerator<any
           // Sometimes (just for deletes?) we get an incomingMessage without
           // a conv object -- in that case, ask the service to give us an
           // updated one so that the snippet etc gets updated.
-          yield Saga.put(Creators.unboxConversations([conversationIDKey], 'no conv from incoming message', true))
+          yield Saga.put(
+            Creators.unboxConversations([conversationIDKey], 'no conv from incoming message', true)
+          )
         }
 
         const messageUnboxed: ChatTypes.UIMessage = incomingMessage.message
@@ -147,7 +153,11 @@ function* _incomingMessage(action: Constants.IncomingMessage): SagaGenerator<any
           messageFromYou &&
           message.outboxID
         ) {
-          pendingMessage = yield Saga.select(Shared.messageOutboxIDSelector, conversationIDKey, message.outboxID)
+          pendingMessage = yield Saga.select(
+            Shared.messageOutboxIDSelector,
+            conversationIDKey,
+            message.outboxID
+          )
         }
 
         if (pendingMessage) {
@@ -369,7 +379,9 @@ function* _loadMoreMessages(action: Constants.LoadMoreMessages): SagaGenerator<a
       return
     }
 
-    const untrustedState = yield Saga.select(state => state.entities.inboxUntrustedState.get(conversationIDKey))
+    const untrustedState = yield Saga.select(state =>
+      state.entities.inboxUntrustedState.get(conversationIDKey)
+    )
 
     // only load unboxed things
     if (!['unboxed', 'reUnboxing'].includes(untrustedState)) {
@@ -1116,7 +1128,9 @@ function* _updateOutboxMessageToReal({
   const currentMessages = yield Saga.select(Constants.getConversationMessages, conversationIDKey)
   const nextMessages = currentMessages.map(k => (k === oldMessageKey ? newMessageKey : k))
   yield Saga.all([
-    Saga.put(EntityCreators.replaceEntity(['conversationMessages'], I.Map({[conversationIDKey]: nextMessages}))),
+    Saga.put(
+      EntityCreators.replaceEntity(['conversationMessages'], I.Map({[conversationIDKey]: nextMessages}))
+    ),
     Saga.put(
       EntityCreators.mergeEntity(
         [],
@@ -1143,7 +1157,9 @@ function* _findMessagesToDelete(action: Constants.AppendMessages | Constants.Pre
   })
 
   if (deletedIDs.length) {
-    yield Saga.put(EntityCreators.mergeEntity(['deletedIDs'], I.Map({[conversationIDKey]: I.Set(deletedIDs)})))
+    yield Saga.put(
+      EntityCreators.mergeEntity(['deletedIDs'], I.Map({[conversationIDKey]: I.Set(deletedIDs)}))
+    )
   }
 }
 
@@ -1427,9 +1443,13 @@ function updateProgress(action: Constants.DownloadProgress | Constants.UploadPro
   const {type, payload: {progress, messageKey}} = action
   if (type === 'chat:downloadProgress') {
     if (action.payload.isPreview) {
-      return Saga.put(EntityCreators.replaceEntity(['attachmentPreviewProgress'], I.Map({[messageKey]: progress})))
+      return Saga.put(
+        EntityCreators.replaceEntity(['attachmentPreviewProgress'], I.Map({[messageKey]: progress}))
+      )
     }
-    return Saga.put(EntityCreators.replaceEntity(['attachmentDownloadProgress'], I.Map({[messageKey]: progress})))
+    return Saga.put(
+      EntityCreators.replaceEntity(['attachmentDownloadProgress'], I.Map({[messageKey]: progress}))
+    )
   }
   return Saga.put(EntityCreators.replaceEntity(['attachmentUploadProgress'], I.Map({[messageKey]: progress})))
 }
