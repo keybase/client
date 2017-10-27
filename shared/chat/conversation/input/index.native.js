@@ -112,12 +112,20 @@ class ConversationInput extends Component<Props> {
               {...multilineOpts}
             />
           : <CustomTextInput
+              autoCorrect={true}
+              autoCapitalize="sentences"
+              autoFocus={false}
+              autoGrow={true}
               style={styleInput}
               onChangeText={this.props.setText}
               onBlur={this._onBlur}
               placeholder="Write a message"
               underlineColorAndroid={globalColors.transparent}
               multiline={true}
+              maxHeight={80}
+              numberOfLines={1}
+              minHeight={40}
+              defaultValue={this.props.text || undefined}
               ref={this.props.inputSetRef}
               blurOnSubmit={false}
             />}
@@ -201,6 +209,7 @@ const styleContainer = {
 const styleInput = {
   flex: 1,
   marginLeft: globalMargins.tiny,
+  ...(isIOS ? {} : {marginTop: -8, marginBottom: -8}),
 }
 
 export default ConversationInput
