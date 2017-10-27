@@ -15,6 +15,7 @@ import (
 
 	"github.com/blang/semver"
 	"github.com/kardianos/osext"
+	"github.com/keybase/client/go/install/libnativeinstaller"
 	kbnminstaller "github.com/keybase/client/go/kbnm/installer"
 	"github.com/keybase/client/go/launchd"
 	"github.com/keybase/client/go/libkb"
@@ -435,7 +436,7 @@ func Install(context Context, binPath string, sourcePath string, components []st
 	}
 
 	if libkb.IsIn(string(ComponentNameApp), components, false) {
-		err = installAppBundle(context, sourcePath, log)
+		err = libnativeinstaller.InstallAppBundle(context, sourcePath, log)
 		componentResults = append(componentResults, componentResult(string(ComponentNameApp), err))
 		if err != nil {
 			log.Errorf("Error installing app bundle: %s", err)
@@ -459,7 +460,7 @@ func Install(context Context, binPath string, sourcePath string, components []st
 	}
 
 	if libkb.IsIn(string(ComponentNameHelper), components, false) {
-		err = installHelper(context.GetRunMode(), log)
+		err = libnativeinstaller.InstallHelper(context.GetRunMode(), log)
 		componentResults = append(componentResults, componentResult(string(ComponentNameHelper), err))
 		if err != nil {
 			log.Errorf("Error installing Helper: %s", err)
@@ -467,7 +468,7 @@ func Install(context Context, binPath string, sourcePath string, components []st
 	}
 
 	if libkb.IsIn(string(ComponentNameFuse), components, false) {
-		err = installFuse(context.GetRunMode(), log)
+		err = libnativeinstaller.InstallFuse(context.GetRunMode(), log)
 		componentResults = append(componentResults, componentResult(string(ComponentNameFuse), err))
 		if err != nil {
 			log.Errorf("Error installing KBFuse: %s", err)
@@ -475,7 +476,7 @@ func Install(context Context, binPath string, sourcePath string, components []st
 	}
 
 	if libkb.IsIn(string(ComponentNameMountDir), components, false) {
-		err = installMountDir(context.GetRunMode(), log)
+		err = libnativeinstaller.InstallMountDir(context.GetRunMode(), log)
 		componentResults = append(componentResults, componentResult(string(ComponentNameMountDir), err))
 		if err != nil {
 			log.Errorf("Error installing mount directory: %s", err)
@@ -499,7 +500,7 @@ func Install(context Context, binPath string, sourcePath string, components []st
 	}
 
 	if libkb.IsIn(string(ComponentNameCLIPaths), components, false) {
-		err = installCommandLinePrivileged(context.GetRunMode(), log)
+		err = libnativeinstaller.InstallCommandLinePrivileged(context.GetRunMode(), log)
 		componentResults = append(componentResults, componentResult(string(ComponentNameCLIPaths), err))
 		if err != nil {
 			log.Errorf("Error installing command line (privileged): %s", err)
@@ -688,7 +689,7 @@ func Uninstall(context Context, components []string, log Log) keybase1.Uninstall
 	}
 
 	if libkb.IsIn(string(ComponentNameMountDir), components, false) {
-		err = uninstallMountDir(context.GetRunMode(), log)
+		err = libnativeinstaller.UninstallMountDir(context.GetRunMode(), log)
 		componentResults = append(componentResults, componentResult(string(ComponentNameMountDir), err))
 		if err != nil {
 			log.Errorf("Error uninstalling mount dir: %s", err)
@@ -696,7 +697,7 @@ func Uninstall(context Context, components []string, log Log) keybase1.Uninstall
 	}
 
 	if libkb.IsIn(string(ComponentNameFuse), components, false) {
-		err = uninstallFuse(context.GetRunMode(), log)
+		err = libnativeinstaller.UninstallFuse(context.GetRunMode(), log)
 		componentResults = append(componentResults, componentResult(string(ComponentNameFuse), err))
 		if err != nil {
 			log.Errorf("Error uninstalling fuse: %s", err)
@@ -704,7 +705,7 @@ func Uninstall(context Context, components []string, log Log) keybase1.Uninstall
 	}
 
 	if libkb.IsIn(string(ComponentNameApp), components, false) {
-		err = uninstallApp(context.GetRunMode(), log)
+		err = libnativeinstaller.UninstallApp(context.GetRunMode(), log)
 		componentResults = append(componentResults, componentResult(string(ComponentNameApp), err))
 		if err != nil {
 			log.Errorf("Error uninstalling app: %s", err)
@@ -720,7 +721,7 @@ func Uninstall(context Context, components []string, log Log) keybase1.Uninstall
 	}
 
 	if libkb.IsIn(string(ComponentNameCLIPaths), components, false) {
-		err = uninstallCommandLinePrivileged(context.GetRunMode(), log)
+		err = libnativeinstaller.UninstallCommandLinePrivileged(context.GetRunMode(), log)
 		componentResults = append(componentResults, componentResult(string(ComponentNameCLIPaths), err))
 		if err != nil {
 			log.Errorf("Error uninstalling command line (privileged): %s", err)
@@ -728,7 +729,7 @@ func Uninstall(context Context, components []string, log Log) keybase1.Uninstall
 	}
 
 	if libkb.IsIn(string(ComponentNameHelper), components, false) {
-		err = uninstallHelper(context.GetRunMode(), log)
+		err = libnativeinstaller.UninstallHelper(context.GetRunMode(), log)
 		componentResults = append(componentResults, componentResult(string(ComponentNameHelper), err))
 		if err != nil {
 			log.Errorf("Error uninstalling helper: %s", err)
@@ -759,7 +760,7 @@ func UninstallKBFSOnStop(context Context, log Log) error {
 	}
 
 	log.Info("Uninstall mount: %s", mountDir)
-	if err := uninstallMountDir(runMode, log); err != nil {
+	if err := libnativeinstaller.UninstallMountDir(runMode, log); err != nil {
 		return fmt.Errorf("Error uninstalling mount: %s", err)
 	}
 
@@ -797,77 +798,6 @@ func UninstallKBFS(runMode libkb.RunMode, mountDir string, forceUnmount bool, lo
 	}
 
 	return nil
-}
-
-func nativeInstallerAppBundlePath(appPath string) string {
-	return filepath.Join(appPath, "Contents/Resources/KeybaseInstaller.app")
-}
-
-func nativeInstallerAppBundleExecPath(appPath string) string {
-	return filepath.Join(nativeInstallerAppBundlePath(appPath), "Contents/MacOS/Keybase")
-}
-
-func uninstallMountDir(runMode libkb.RunMode, log Log) error {
-	// We need the installer to remove the mount directory (since it's in the root, only the helper tool can do it)
-	return execNativeInstallerWithArg([]string{"--uninstall-mountdir"}, runMode, log)
-}
-
-func uninstallFuse(runMode libkb.RunMode, log Log) error {
-	log.Info("Removing KBFuse")
-	return execNativeInstallerWithArg([]string{"--uninstall-fuse"}, runMode, log)
-}
-
-func uninstallHelper(runMode libkb.RunMode, log Log) error {
-	log.Info("Removing privileged helper tool")
-	return execNativeInstallerWithArg([]string{"--uninstall-helper"}, runMode, log)
-}
-
-func uninstallApp(runMode libkb.RunMode, log Log) error {
-	log.Info("Removing app")
-	return execNativeInstallerWithArg([]string{"--uninstall-app"}, runMode, log)
-}
-
-func installMountDir(runMode libkb.RunMode, log Log) error {
-	log.Info("Creating mount directory")
-	return execNativeInstallerWithArg([]string{"--install-mountdir"}, runMode, log)
-}
-
-func installFuse(runMode libkb.RunMode, log Log) error {
-	log.Info("Installing KBFuse")
-	return execNativeInstallerWithArg([]string{"--install-fuse"}, runMode, log)
-}
-
-func installHelper(runMode libkb.RunMode, log Log) error {
-	log.Info("Installing Helper")
-	return execNativeInstallerWithArg([]string{"--install-helper"}, runMode, log)
-}
-
-func installAppBundle(context Context, sourcePath string, log Log) error {
-	log.Info("Install app bundle")
-	return execNativeInstallerWithArg([]string{"--install-app-bundle", fmt.Sprintf("--source-path=%s", sourcePath)}, context.GetRunMode(), log)
-}
-
-func installCommandLinePrivileged(runMode libkb.RunMode, log Log) error {
-	log.Info("Installing command line (privileged)")
-	return execNativeInstallerWithArg([]string{"--install-cli"}, runMode, log)
-}
-
-func uninstallCommandLinePrivileged(runMode libkb.RunMode, log Log) error {
-	log.Info("Removing command line (privileged)")
-	return execNativeInstallerWithArg([]string{"--uninstall-cli"}, runMode, log)
-}
-
-func execNativeInstallerWithArg(args []string, runMode libkb.RunMode, log Log) error {
-	appPath, err := AppBundleForPath()
-	if err != nil {
-		return err
-	}
-	includeArgs := []string{"--debug", fmt.Sprintf("--run-mode=%s", runMode), fmt.Sprintf("--app-path=%s", appPath), fmt.Sprintf("--timeout=10")}
-	args = append(includeArgs, args...)
-	cmd := exec.Command(nativeInstallerAppBundleExecPath(appPath), args...)
-	output, err := cmd.CombinedOutput()
-	log.Debug("Output (%s): %s", args, string(output))
-	return err
 }
 
 // AutoInstallWithStatus runs the auto install and returns a result
