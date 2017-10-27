@@ -443,7 +443,9 @@ function* _setupTeamHandlers(): SagaGenerator<any, any> {
   })
 }
 
-function* _badgeAppForTeams(action: Constants.BadgeAppForTeams) {}
+function* _badgeAppForTeams(action: Constants.BadgeAppForTeams) {
+  yield put(replaceEntity(['teams'], I.Map([['newTeamIDs', action.payload.newTeamIDs]])))
+}
 
 const teamsSaga = function*(): SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure('teams:leaveTeam', _leaveTeam)
