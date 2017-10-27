@@ -438,13 +438,13 @@ func (tmp *ChainLinkUnpacked) unpackPayloadJSON(payloadJSON *jsonw.Wrapper, payl
 
 	payloadJSON.AtKey("seqno").GetInt64Void(&sq, &err)
 
-	// Assume public unless specified
+	// Assume public unless its a number
 	tmp.seqType = keybase1.SeqType_PUBLIC
-	if jw := payloadJSON.AtKey("seq_type"); !jw.IsNil() {
-		seqTypeInt, err := payloadJSON.AtKey("seq_type").GetInt()
-		if err != nil {
-			return err
-		}
+	seqTypeInt, err := payloadJSON.AtKey("seq_type").GetInt()
+	if err != nil {
+		// seq_type was nil or not a number.
+		// Pretend it was the default
+	} else {
 		tmp.seqType = keybase1.SeqType(seqTypeInt)
 	}
 
