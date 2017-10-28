@@ -2,6 +2,7 @@
 import * as Attachment from './attachment'
 import * as ChatTypes from '../../constants/types/flow-types-chat'
 import * as Constants from '../../constants/chat'
+import * as SearchCreators from '../search/creators'
 import * as Conversation from './conversation'
 import * as Creators from './creators'
 import * as EntityCreators from '../entities'
@@ -9,10 +10,9 @@ import * as I from 'immutable'
 import * as Inbox from './inbox'
 import * as RPCTypes from '../../constants/types/flow-types'
 import * as Saga from '../../util/saga'
-import * as SearchConstants from '../../constants/search'
-import * as SearchCreators from '../search/creators'
 import * as Selectors from '../../constants/selectors'
 import * as SendMessages from './send-messages'
+import * as Search from './search'
 import * as Shared from './shared'
 import engine from '../../engine'
 import some from 'lodash/some'
@@ -24,12 +24,11 @@ import {openInKBFS} from '../kbfs'
 import {parseFolderNameToUsers} from '../../util/kbfs'
 import {publicFolderWithUsers, privateFolderWithUsers, teamFolder} from '../../constants/config'
 import {showMainWindow} from '../platform-specific'
-
-import type {ReturnValue} from '../../constants/types/more'
 import type {ChangedFocus, ChangedActive} from '../../constants/app'
 import type {TypedState} from '../../constants/reducer'
 
 const inSearchSelector = (state: TypedState) => state.chat.get('inSearch')
+
 // How many messages we consider too many to just download when you are stale and we could possibly just append
 const tooManyMessagesToJustAppendOnStale = 200
 
@@ -172,18 +171,6 @@ function* _openFolder(): Saga.SagaGenerator<any, any> {
   } else {
     throw new Error(`Can't find conversation path`)
   }
-}
-
-function* _newChat(action: Constants.NewChat): Saga.SagaGenerator<any, any> {
-  yield Saga.put(Creators.setInboxFilter(''))
-  const ids = yield Saga.select(SearchConstants.getUserInputItemIds, {searchKey: 'chatSearch'})
-  if (ids && !!ids.length) {
-    // Ignore 'New Chat' attempts when we're already building a chat
-    return
-  }
-  yield Saga.put(Creators.setPreviousConversation(yield Saga.select(Constants.getSelectedConversation)))
-  yield Saga.put(Creators.selectConversation(null, false))
-  yield Saga.put(SearchCreators.searchSuggestions('chatSearch'))
 }
 
 function* _updateMetadata(action: Constants.UpdateMetadata): Saga.SagaGenerator<any, any> {
@@ -370,33 +357,6 @@ function* _badgeAppForChat(action: Constants.BadgeAppForChat): Saga.SagaGenerato
   }
 }
 
-function* _appendMessagesToConversation({payload: {conversationIDKey, messages}}: Constants.AppendMessages) {
-  const currentMessages = yield Saga.select(Constants.getConversationMessages, conversationIDKey)
-  const nextMessages = currentMessages.concat(messages.map(m => m.key))
-  yield Saga.put(
-    EntityCreators.replaceEntity(['conversationMessages'], I.Map({[conversationIDKey]: nextMessages}))
-  )
-}
-
-function* _prependMessagesToConversation({payload: {conversationIDKey, messages}}: Constants.AppendMessages) {
-  const currentMessages = yield Saga.select(Constants.getConversationMessages, conversationIDKey)
-  const nextMessages = I.OrderedSet(messages.map(m => m.key)).concat(currentMessages)
-  yield Saga.put(
-    EntityCreators.replaceEntity(['conversationMessages'], I.Map({[conversationIDKey]: nextMessages}))
-  )
-}
-
-function _updateMessageEntity(action: Constants.UpdateTempMessage) {
-  if (!action.error) {
-    const {payload: {message}} = action
-    // You have to wrap this in Map(...) because otherwise the merge will turn message into an immutable struct
-    // We use merge instead of replace because otherwise the replace will turn message into an immutable struct
-    return Saga.put(EntityCreators.mergeEntity(['messages'], I.Map({[message.key]: message})))
-  } else {
-    console.warn('error in updating temp message', action.payload)
-  }
-}
-
 function _updateSnippet({payload: {snippet, conversationIDKey}}: Constants.UpdateSnippet) {
   return Saga.put(EntityCreators.replaceEntity(['convIDToSnippet'], I.Map({[conversationIDKey]: snippet})))
 }
@@ -570,48 +530,6 @@ function* _updateTyping({
   }
 }
 
-// TODO this is kinda confusing. I think there is duplicated state...
-function* _updateTempSearchConversation(action: SearchConstants.UserInputItemsUpdated) {
-  const {payload: {userInputItemIds}} = action
-  const [me, inSearch] = yield Saga.all([
-    Saga.select(Selectors.usernameSelector),
-    Saga.select(inSearchSelector),
-  ])
-
-  if (!inSearch) {
-    return
-  }
-
-  const actionsToPut = [Saga.put(Creators.removeTempPendingConversations())]
-  if (userInputItemIds.length) {
-    actionsToPut.push(Saga.put(Creators.startConversation(userInputItemIds.concat(me), false, true)))
-  } else {
-    actionsToPut.push(Saga.put(Creators.selectConversation(null, false)))
-    actionsToPut.push(Saga.put(SearchCreators.searchSuggestions('chatSearch')))
-  }
-
-  // Always clear the search results when you select/unselect
-  actionsToPut.push(Saga.put(SearchCreators.clearSearchResults('chatSearch')))
-  yield Saga.all(actionsToPut)
-}
-
-function _exitSearch(
-  {payload: {skipSelectPreviousConversation}}: Constants.ExitSearch,
-  [userInputItemIds, previousConversation]: [
-    ReturnValue<typeof SearchConstants.getUserInputItemIds>,
-    ReturnValue<typeof Selectors.previousConversationSelector>,
-  ]
-) {
-  return Saga.all([
-    Saga.put(SearchCreators.clearSearchResults('chatSearch')),
-    Saga.put(SearchCreators.setUserInputItems('chatSearch', [])),
-    Saga.put(Creators.removeTempPendingConversations()),
-    userInputItemIds.length === 0 && !skipSelectPreviousConversation
-      ? Saga.put(Creators.selectConversation(previousConversation, false))
-      : null,
-  ])
-}
-
 const _setNotifications = function*(
   action:
     | Constants.SetNotifications
@@ -704,6 +622,7 @@ function* chatSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.fork(SendMessages.registerSagas)
   yield Saga.fork(Attachment.registerSagas)
   yield Saga.fork(Conversation.registerSagas)
+  yield Saga.fork(Search.registerSagas)
 
   yield Saga.safeTakeEvery('app:changedFocus', _changedFocus)
   yield Saga.safeTakeEvery('app:changedActive', _changedActive)
@@ -715,9 +634,6 @@ function* chatSaga(): Saga.SagaGenerator<any, any> {
     (s: TypedState, a: Constants.RemoveOutboxMessage) =>
       Constants.getConversationMessages(s, a.payload.conversationIDKey)
   )
-  yield Saga.safeTakeEveryPure('chat:updateTempMessage', _updateMessageEntity)
-  yield Saga.safeTakeEvery('chat:appendMessages', _appendMessagesToConversation)
-  yield Saga.safeTakeEvery('chat:prependMessages', _prependMessagesToConversation)
   yield Saga.safeTakeEvery('chat:outboxMessageBecameReal', _updateOutboxMessageToReal)
   yield Saga.safeTakeEvery('chat:blockConversation', _blockConversation)
   yield Saga.safeTakeEvery('chat:incomingTyping', _incomingTyping)
@@ -725,7 +641,6 @@ function* chatSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEvery('chat:markThreadsStale', _markThreadsStale)
   yield Saga.safeTakeEvery('chat:inboxSynced', _inboxSynced)
   yield Saga.safeTakeEvery('chat:muteConversation', _muteConversation)
-  yield Saga.safeTakeEvery('chat:newChat', _newChat)
   yield Saga.safeTakeEvery('chat:openConversation', _openConversation)
   yield Saga.safeTakeEvery('chat:openFolder', _openFolder)
   yield Saga.safeTakeEvery('chat:openTlfInChat', _openTlfInChat)
@@ -735,14 +650,6 @@ function* chatSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEvery('chat:updateTyping', _updateTyping)
   yield Saga.safeTakeLatest('chat:badgeAppForChat', _badgeAppForChat)
   yield Saga.safeTakeLatest('chat:selectConversation', _selectConversation)
-  yield Saga.safeTakeLatest(
-    SearchConstants.isUserInputItemsUpdated('chatSearch'),
-    _updateTempSearchConversation
-  )
-  yield Saga.safeTakeEveryPure('chat:exitSearch', _exitSearch, s => [
-    SearchConstants.getUserInputItemIds(s, {searchKey: 'chatSearch'}),
-    Selectors.previousConversationSelector(s),
-  ])
   yield Saga.safeTakeEvery(
     ['chat:setNotifications', 'chat:updatedNotifications', 'chat:toggleChannelWideNotifications'],
     _setNotifications

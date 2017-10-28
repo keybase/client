@@ -752,6 +752,33 @@ function* _updateThread({
   }
 }
 
+function* _appendMessagesToConversation({payload: {conversationIDKey, messages}}: Constants.AppendMessages) {
+  const currentMessages = yield Saga.select(Constants.getConversationMessages, conversationIDKey)
+  const nextMessages = currentMessages.concat(messages.map(m => m.key))
+  yield Saga.put(
+    EntityCreators.replaceEntity(['conversationMessages'], I.Map({[conversationIDKey]: nextMessages}))
+  )
+}
+
+function* _prependMessagesToConversation({payload: {conversationIDKey, messages}}: Constants.AppendMessages) {
+  const currentMessages = yield Saga.select(Constants.getConversationMessages, conversationIDKey)
+  const nextMessages = I.OrderedSet(messages.map(m => m.key)).concat(currentMessages)
+  yield Saga.put(
+    EntityCreators.replaceEntity(['conversationMessages'], I.Map({[conversationIDKey]: nextMessages}))
+  )
+}
+
+function _updateMessageEntity(action: Constants.UpdateTempMessage) {
+  if (!action.error) {
+    const {payload: {message}} = action
+    // You have to wrap this in Map(...) because otherwise the merge will turn message into an immutable struct
+    // We use merge instead of replace because otherwise the replace will turn message into an immutable struct
+    return Saga.put(EntityCreators.mergeEntity(['messages'], I.Map({[message.key]: message})))
+  } else {
+    console.warn('error in updating temp message', action.payload)
+  }
+}
+
 function* registerSagas(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEvery('chat:clearMessages', _clearConversationMessages)
   yield Saga.safeTakeEvery(['chat:appendMessages', 'chat:prependMessages'], _storeMessageToEntity)
@@ -766,6 +793,9 @@ function* registerSagas(): Saga.SagaGenerator<any, any> {
     (state: TypedState, {payload: {conversationIDKey}}: Constants.UpdateBadging) =>
       Constants.lastMessageID(state, conversationIDKey)
   )
+  yield Saga.safeTakeEveryPure('chat:updateTempMessage', _updateMessageEntity)
+  yield Saga.safeTakeEvery('chat:appendMessages', _appendMessagesToConversation)
+  yield Saga.safeTakeEvery('chat:prependMessages', _prependMessagesToConversation)
 }
 
 export {registerSagas}
