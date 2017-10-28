@@ -14,7 +14,7 @@ let CustomTextInput
 
 // NEVER load this on ios, it kills it
 if (!isIOS) {
-  CustomTextInput = require('../../../common-adapters/custom-input')
+  CustomTextInput = require('../../../common-adapters/custom-input.native')
 }
 
 // TODO we don't autocorrect the last word on submit. We had a solution using blur but this also dismisses they keyboard each time
