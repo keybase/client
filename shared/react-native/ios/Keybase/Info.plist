@@ -23,10 +23,9 @@
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<true/>
 	<key>ITSEncryptionExportComplianceCode</key>
-  <array>
-    <string>63ff6926-88f0-4db0-8886-a4bb56bd4ad5</string>
-    <string>aeafaa12-a017-48c8-a29a-bdd3061f93e3</string>
-  </array>
+	<string>63ff6926-88f0-4db0-8886-a4bb56bd4ad5</string>
+  <key>ITSEncryptionExportComplianceCode</key>
+  <string>aeafaa12-a017-48c8-a29a-bdd3061f93e3</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>NSAppTransportSecurity</key>
