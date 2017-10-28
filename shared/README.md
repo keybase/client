@@ -96,11 +96,11 @@ mode" and follow the instructions there.
 Alternatively, you could choose "Profile" instead of "Run", which does
 a prod build and thus doesn't need any bundler changes.
 
-As for notifications, they don't work in the simulator at all. To get
-it working with a build on a phone, look in `local-debug.native.js`
-and move `config.isDevApplePushToken = true` to outside its enclosing
-`if` statement, and do "Profile". (It's supposed to work without
-changes if you do "Run", but currently doesn't seem to.)
+As for notifications, they don't work in the simulator at all. If you
+choose "Run" and build on a phone, they _should_ just work. If you
+want to do a "Profile" build, look in `local-debug.native.js` and move
+`config.isDevApplePushToken = true` to outside its enclosing `if`
+statement.
 
 ### Android
 
