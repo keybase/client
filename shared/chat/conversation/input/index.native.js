@@ -4,13 +4,18 @@
 import {showImagePicker} from 'react-native-image-picker'
 import React, {Component} from 'react'
 import {Box, Icon, Input, Text} from '../../../common-adapters'
-// $FlowIssue
-import CustomTextInput from '../../../common-adapters/custom-input'
 import {globalMargins, globalStyles, globalColors} from '../../../styles'
 import {isIOS} from '../../../constants/platform'
 
 import type {AttachmentInput} from '../../../constants/chat'
 import type {Props} from '.'
+
+let CustomTextInput
+
+// NEVER load this on ios, it kills it
+if (!isIOS) {
+  CustomTextInput = require('../../../common-adapters/custom-input.native')
+}
 
 // TODO we don't autocorrect the last word on submit. We had a solution using blur but this also dismisses they keyboard each time
 // See if there's a better workaround later
