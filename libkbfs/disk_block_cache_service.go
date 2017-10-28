@@ -36,6 +36,7 @@ func NewDiskBlockCacheService(config diskBlockCacheServiceConfig) *DiskBlockCach
 // DiskBlockCacheService.
 func (cache *DiskBlockCacheService) GetBlock(ctx context.Context,
 	arg kbgitkbfs.GetBlockArg) (kbgitkbfs.GetBlockRes, error) {
+	// TODO: make sure this isn't remote.
 	dbc := cache.config.DiskBlockCache()
 	if dbc == nil {
 		return kbgitkbfs.GetBlockRes{},

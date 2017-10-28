@@ -38,8 +38,8 @@ type diskBlockCacheWrapped struct {
 	storageRoot string
 	// Protects the caches
 	mtx             sync.RWMutex
-	workingSetCache *DiskBlockCacheStandard
-	syncCache       *DiskBlockCacheStandard
+	workingSetCache *DiskBlockCacheLocal
+	syncCache       *DiskBlockCacheLocal
 }
 
 var _ DiskBlockCache = (*diskBlockCacheWrapped)(nil)
@@ -48,7 +48,7 @@ func (cache *diskBlockCacheWrapped) enableCache(
 	typ diskLimitTrackerType, cacheFolder string) (err error) {
 	cache.mtx.Lock()
 	defer cache.mtx.Unlock()
-	var cachePtr **DiskBlockCacheStandard
+	var cachePtr **DiskBlockCacheLocal
 	switch typ {
 	case syncCacheLimitTrackerType:
 		cachePtr = &cache.syncCache
