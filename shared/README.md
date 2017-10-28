@@ -93,6 +93,15 @@ However, you first have to edit
 your computer. Look for the comment "Uncomment for prod JS in dev
 mode" and follow the instructions there.
 
+Alternatively, you could choose "Profile" instead of "Run", which does
+a prod build and thus doesn't need any bundler changes.
+
+As for notifications, they don't work in the simulator at all. To get
+it working with a build on a phone, look in `local-debug.native.js`
+and move `config.isDevApplePushToken = true` to outside its enclosing
+`if` statement, and do "Profile". (It's supposed to work without
+changes if you do "Run", but currently doesn't seem to.)
+
 ### Android
 
 Follow instructions at https://facebook.github.io/react-native/docs/getting-started.html
