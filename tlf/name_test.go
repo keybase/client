@@ -11,7 +11,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestFavoriteNameToPreferredTLFNameFormatAs(t *testing.T) {
+func TestCanonicalToPreferredName(t *testing.T) {
 	for _, q := range []struct {
 		As     libkb.NormalizedUsername
 		Try    CanonicalName
@@ -24,7 +24,7 @@ func TestFavoriteNameToPreferredTLFNameFormatAs(t *testing.T) {
 		{"b", "a,b,c#d,e", "b,a,c#d,e"},
 		{"d", "a,b,c#d,e", "a,b,c#d,e"},
 	} {
-		r, err := FavoriteNameToPreferredTLFNameFormatAs(q.As, q.Try)
+		r, err := CanonicalToPreferredName(q.As, q.Try)
 		assert.Equal(t, q.Answer, r)
 		assert.NoError(t, err)
 	}

@@ -6,9 +6,11 @@ package tlf
 
 import (
 	"fmt"
+	"sort"
 	"strings"
 
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/protocol/keybase1"
 )
 
 const (
@@ -43,13 +45,47 @@ func SplitName(name string) (writerNames, readerNames []string,
 // CanonicalName is a string containing the canonical name of a TLF.
 type CanonicalName string
 
+func getSortedNames(
+	resolved []libkb.NormalizedUsername,
+	unresolved []keybase1.SocialAssertion) []string {
+	var names []string
+	for _, name := range resolved {
+		names = append(names, name.String())
+	}
+	for _, sa := range unresolved {
+		names = append(names, sa.String())
+	}
+	sort.Strings(names)
+	return names
+}
+
+// MakeCanonicalName makes a CanonicalName from components.
+func MakeCanonicalName(resolvedWriters []libkb.NormalizedUsername,
+	unresolvedWriters []keybase1.SocialAssertion,
+	resolvedReaders []libkb.NormalizedUsername,
+	unresolvedReaders []keybase1.SocialAssertion,
+	extensions []HandleExtension) CanonicalName {
+	writerNames := getSortedNames(resolvedWriters, unresolvedWriters)
+	canonicalName := strings.Join(writerNames, ",")
+	if len(resolvedReaders)+len(unresolvedReaders) > 0 {
+		readerNames := getSortedNames(resolvedReaders, unresolvedReaders)
+		canonicalName += ReaderSep + strings.Join(readerNames, ",")
+	}
+
+	extensionList := make(HandleExtensionList, len(extensions))
+	copy(extensionList, extensions)
+	sort.Sort(extensionList)
+	canonicalName += extensionList.Suffix()
+	return CanonicalName(canonicalName)
+}
+
 // PreferredName is a preferred TLF name.
 type PreferredName string
 
-// FavoriteNameToPreferredTLFNameFormatAs formats a favorite names for display with the
-// username given.
-// An empty username is allowed here and results in tlfname being returned unmodified.
-func FavoriteNameToPreferredTLFNameFormatAs(username libkb.NormalizedUsername,
+// CanonicalToPreferredName returns the preferred TLF name, given a
+// canonical name and a username. The username may be empty, and
+// results in the canonical name being being returned unmodified.
+func CanonicalToPreferredName(username libkb.NormalizedUsername,
 	canon CanonicalName) (PreferredName, error) {
 	tlfname := string(canon)
 	if len(username) == 0 {

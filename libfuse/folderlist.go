@@ -254,10 +254,10 @@ func (fl *FolderList) ReadDirAll(ctx context.Context) (res []fuse.Dirent, err er
 		if fav.Type != fl.tlfType {
 			continue
 		}
-		pname, err := tlf.FavoriteNameToPreferredTLFNameFormatAs(
+		pname, err := tlf.CanonicalToPreferredName(
 			session.Name, libkbfs.CanonicalTlfName(fav.Name))
 		if err != nil {
-			fl.fs.log.Errorf("FavoriteNameToPreferredTLFNameFormatAs: %q %v", fav.Name, err)
+			fl.fs.log.Errorf("CanonicalToPreferredName: %q %v", fav.Name, err)
 			continue
 		}
 		res = append(res, fuse.Dirent{

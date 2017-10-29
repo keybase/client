@@ -64,6 +64,14 @@ func resolveOneUser(
 	errCh <- fmt.Errorf("Resolving %v resulted in empty userInfo and empty socialAssertion", user)
 }
 
+func getNames(idToName map[keybase1.UserOrTeamID]libkb.NormalizedUsername) []libkb.NormalizedUsername {
+	var names []libkb.NormalizedUsername
+	for _, name := range idToName {
+		names = append(names, name)
+	}
+	return names
+}
+
 func makeTlfHandleHelper(
 	ctx context.Context, t tlf.Type, writers, readers []resolvableUser,
 	extensions []tlf.HandleExtension) (*TlfHandle, error) {
@@ -129,16 +137,12 @@ func makeTlfHandleHelper(
 		unresolvedReaders = getSortedUnresolved(usedUnresolvedReaders)
 	}
 
-	writerNames := getSortedNames(usedWNames, unresolvedWriters)
-	canonicalName := strings.Join(writerNames, ",")
-	if t == tlf.Private && len(usedRNames)+len(unresolvedReaders) > 0 {
-		readerNames := getSortedNames(usedRNames, unresolvedReaders)
-		canonicalName += tlf.ReaderSep + strings.Join(readerNames, ",")
-	}
+	canonicalName := tlf.MakeCanonicalName(
+		getNames(usedWNames), unresolvedWriters,
+		getNames(usedRNames), unresolvedReaders, extensions)
 
 	extensionList := tlf.HandleExtensionList(extensions)
 	sort.Sort(extensionList)
-	canonicalName += extensionList.Suffix()
 	conflictInfo, finalizedInfo := extensionList.Splat()
 
 	switch t {
@@ -146,26 +150,26 @@ func makeTlfHandleHelper(
 		// All writers and readers must be users.
 		for id := range usedWNames {
 			if !id.IsUser() {
-				return nil, NoSuchNameError{Name: canonicalName}
+				return nil, NoSuchNameError{Name: string(canonicalName)}
 			}
 		}
 		for id := range usedRNames {
 			if !id.IsUser() {
-				return nil, NoSuchNameError{Name: canonicalName}
+				return nil, NoSuchNameError{Name: string(canonicalName)}
 			}
 		}
 	case tlf.Public:
 		// All writers must be users.
 		for id := range usedWNames {
 			if !id.IsUser() {
-				return nil, NoSuchNameError{Name: canonicalName}
+				return nil, NoSuchNameError{Name: string(canonicalName)}
 			}
 		}
 	case tlf.SingleTeam:
 		// The writer must be a team.
 		for id := range usedWNames {
 			if !id.IsTeamOrSubteam() {
-				return nil, NoSuchNameError{Name: canonicalName}
+				return nil, NoSuchNameError{Name: string(canonicalName)}
 			}
 		}
 	default:
@@ -180,7 +184,7 @@ func makeTlfHandleHelper(
 		unresolvedReaders: unresolvedReaders,
 		conflictInfo:      conflictInfo,
 		finalizedInfo:     finalizedInfo,
-		name:              CanonicalTlfName(canonicalName),
+		name:              canonicalName,
 	}
 
 	return h, nil
