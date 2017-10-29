@@ -21,10 +21,6 @@ import (
 )
 
 const (
-	// BServerTokenServer is the expected server type for bserver authentication.
-	BServerTokenServer = "kbfs_block"
-	// BServerTokenExpireIn is the TTL to use when constructing an authentication token.
-	BServerTokenExpireIn = 2 * 60 * 60 // 2 hours
 	// BServerDefaultPingIntervalSeconds is the default interval on which the
 	// client should contact the block server.
 	BServerDefaultPingIntervalSeconds = 10
@@ -72,7 +68,7 @@ func newBlockServerRemoteClientHandler(name string, log logger.Logger,
 	}
 
 	b.authToken = kbfscrypto.NewAuthToken(
-		signer, BServerTokenServer, BServerTokenExpireIn,
+		signer, kbfsblock.ServerTokenServer, kbfsblock.ServerTokenExpireIn,
 		"libkbfs_bserver_remote", VersionString(), b)
 
 	constBackoff := backoff.NewConstantBackOff(RPCReconnectInterval)

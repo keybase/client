@@ -22,10 +22,6 @@ import (
 )
 
 const (
-	// MdServerTokenServer is the expected server type for mdserver authentication.
-	MdServerTokenServer = "kbfs_md"
-	// MdServerTokenExpireIn is the TTL to use when constructing an authentication token.
-	MdServerTokenExpireIn = 2 * 60 * 60 // 2 hours
 	// MdServerBackgroundRekeyPeriod is how long the rekey checker
 	// waits between runs on average. The timer gets reset after
 	// every incoming FolderNeedsRekey RPC.
@@ -109,7 +105,7 @@ func NewMDServerRemote(config Config, srvAddr string,
 	}
 
 	mdServer.authToken = kbfscrypto.NewAuthToken(config.Crypto(),
-		MdServerTokenServer, MdServerTokenExpireIn,
+		kbfsmd.ServerTokenServer, kbfsmd.ServerTokenExpireIn,
 		"libkbfs_mdserver_remote", VersionString(), mdServer)
 	constBackoff := backoff.NewConstantBackOff(RPCReconnectInterval)
 	mdServer.connOpts = rpc.ConnectionOpts{
