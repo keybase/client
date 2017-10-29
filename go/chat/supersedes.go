@@ -1,6 +1,8 @@
 package chat
 
 import (
+	"fmt"
+
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/utils"
@@ -113,7 +115,8 @@ func (t *basicSupersedesTransform) SetMessagesFunc(f getMessagesFunc) {
 }
 
 func (t *basicSupersedesTransform) Run(ctx context.Context,
-	conv types.UnboxConversationInfo, uid gregor1.UID, originalMsgs []chat1.MessageUnboxed) ([]chat1.MessageUnboxed, error) {
+	conv types.UnboxConversationInfo, uid gregor1.UID, originalMsgs []chat1.MessageUnboxed) (res []chat1.MessageUnboxed, err error) {
+	defer t.Trace(ctx, func() error { return err }, fmt.Sprintf("Run(%s)", conv.GetConvID()))()
 
 	// MessageIDs that supersede
 	var superMsgIDs []chat1.MessageID

@@ -510,13 +510,6 @@ func (s *HybridConversationSource) Pull(ctx context.Context, convID chat1.Conver
 	conv, ratelim, err := GetUnverifiedConv(ctx, s.G(), uid, convID, true)
 	rl = append(rl, ratelim)
 
-	// Post process thread before returning
-	defer func() {
-		if err == nil {
-			err = s.postProcessThread(ctx, uid, conv, &thread, query, nil, true)
-		}
-	}()
-
 	var unboxConv unboxConversationInfo
 	if err == nil {
 		unboxConv = conv
