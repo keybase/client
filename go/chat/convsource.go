@@ -44,7 +44,7 @@ func (s *baseConversationSource) SetRemoteInterface(ri func() chat1.RemoteInterf
 }
 
 func (s *baseConversationSource) postProcessThread(ctx context.Context, uid gregor1.UID,
-	conv chat1.Conversation, thread *chat1.ThreadView, q *chat1.GetThreadQuery,
+	conv types.UnboxConversationInfo, thread *chat1.ThreadView, q *chat1.GetThreadQuery,
 	superXform supersedesTransform, checkPrev bool) (err error) {
 
 	// Sanity check the prev pointers in this thread.
@@ -165,7 +165,7 @@ func (s *RemoteConversationSource) Clear(convID chat1.ConversationID, uid gregor
 	return nil
 }
 
-func (s *RemoteConversationSource) GetMessages(ctx context.Context, conv chat1.Conversation,
+func (s *RemoteConversationSource) GetMessages(ctx context.Context, conv types.UnboxConversationInfo,
 	uid gregor1.UID, msgIDs []chat1.MessageID) ([]chat1.MessageUnboxed, error) {
 
 	// Insta fail if we are offline
@@ -364,7 +364,7 @@ func (s *HybridConversationSource) Push(ctx context.Context, convID chat1.Conver
 	return decmsg, continuousUpdate, nil
 }
 
-func (s *HybridConversationSource) identifyTLF(ctx context.Context, conv chat1.Conversation,
+func (s *HybridConversationSource) identifyTLF(ctx context.Context, conv types.UnboxConversationInfo,
 	uid gregor1.UID, msgs []chat1.MessageUnboxed) error {
 
 	// If we are offline, then bail out of here with no error
@@ -387,7 +387,7 @@ func (s *HybridConversationSource) identifyTLF(ctx context.Context, conv chat1.C
 				idMode = keybase1.TLFIdentifyBehavior_CHAT_GUI
 			}
 
-			tlfName := msg.Valid().ClientHeader.TLFNameExpanded(conv.Metadata.FinalizeInfo)
+			tlfName := msg.Valid().ClientHeader.TLFNameExpanded(conv.GetFinalizeInfo())
 
 			var names []string
 			switch conv.GetMembersType() {
@@ -405,7 +405,7 @@ func (s *HybridConversationSource) identifyTLF(ctx context.Context, conv chat1.C
 				}
 				team, err := teams.Load(ctx, s.G().ExternalG(), keybase1.LoadTeamArg{
 					ID:     teamID,
-					Public: conv.Metadata.Visibility == keybase1.TLFVisibility_PUBLIC,
+					Public: msg.Valid().ClientHeader.TlfPublic,
 				})
 				if err != nil {
 					return err
@@ -568,6 +568,10 @@ func (s *HybridConversationSource) Pull(ctx context.Context, convID chat1.Conver
 					s.Debug(ctx, "Pull: skipping mark as read call")
 				}
 			}
+			// Run post process stuff
+			if err = s.postProcessThread(ctx, uid, conv, &thread, query, nil, true); err != nil {
+				return thread, rl, err
+			}
 			return thread, rl, nil
 		}
 		s.Debug(ctx, "Pull: cache miss: err: %s", err.Error())
@@ -610,6 +614,10 @@ func (s *HybridConversationSource) Pull(ctx context.Context, convID chat1.Conver
 		s.Debug(ctx, "Pull: unable to commit thread locally: convID: %s uid: %s", convID, uid)
 	}
 
+	// Run post process stuff
+	if err = s.postProcessThread(ctx, uid, unboxConv, &thread, query, nil, true); err != nil {
+		return thread, rl, err
+	}
 	return thread, rl, nil
 }
 
@@ -708,7 +716,7 @@ func (s *HybridConversationSource) PullLocalOnly(ctx context.Context, convID cha
 	defer func() {
 		if err == nil {
 			superXform := newBasicSupersedesTransform(s.G())
-			superXform.SetMessagesFunc(func(ctx context.Context, conv chat1.Conversation,
+			superXform.SetMessagesFunc(func(ctx context.Context, conv types.UnboxConversationInfo,
 				uid gregor1.UID, msgIDs []chat1.MessageID) (res []chat1.MessageUnboxed, err error) {
 				msgs, err := storage.New(s.G()).FetchMessages(ctx, conv.GetConvID(), uid, msgIDs)
 				if err != nil {
@@ -754,7 +762,7 @@ func (m ByMsgID) Len() int           { return len(m) }
 func (m ByMsgID) Swap(i, j int)      { m[i], m[j] = m[j], m[i] }
 func (m ByMsgID) Less(i, j int) bool { return m[i].GetMessageID() > m[j].GetMessageID() }
 
-func (s *HybridConversationSource) GetMessages(ctx context.Context, conv chat1.Conversation,
+func (s *HybridConversationSource) GetMessages(ctx context.Context, conv types.UnboxConversationInfo,
 	uid gregor1.UID, msgIDs []chat1.MessageID) ([]chat1.MessageUnboxed, error) {
 	convID := conv.GetConvID()
 	s.lockTab.Acquire(ctx, uid, convID)

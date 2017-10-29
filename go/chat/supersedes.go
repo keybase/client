@@ -2,6 +2,7 @@ package chat
 
 import (
 	"github.com/keybase/client/go/chat/globals"
+	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
@@ -10,7 +11,7 @@ import (
 
 type supersedesTransform interface {
 	Run(ctx context.Context,
-		conv chat1.Conversation, uid gregor1.UID, originalMsgs []chat1.MessageUnboxed) ([]chat1.MessageUnboxed, error)
+		conv types.UnboxConversationInfo, uid gregor1.UID, originalMsgs []chat1.MessageUnboxed) ([]chat1.MessageUnboxed, error)
 }
 
 type nullSupersedesTransform struct {
@@ -25,7 +26,7 @@ func newNullSupersedesTransform() nullSupersedesTransform {
 	return nullSupersedesTransform{}
 }
 
-type getMessagesFunc func(context.Context, chat1.Conversation, gregor1.UID, []chat1.MessageID) ([]chat1.MessageUnboxed, error)
+type getMessagesFunc func(context.Context, types.UnboxConversationInfo, gregor1.UID, []chat1.MessageID) ([]chat1.MessageUnboxed, error)
 
 type basicSupersedesTransform struct {
 	globals.Contextified
@@ -112,7 +113,7 @@ func (t *basicSupersedesTransform) SetMessagesFunc(f getMessagesFunc) {
 }
 
 func (t *basicSupersedesTransform) Run(ctx context.Context,
-	conv chat1.Conversation, uid gregor1.UID, originalMsgs []chat1.MessageUnboxed) ([]chat1.MessageUnboxed, error) {
+	conv types.UnboxConversationInfo, uid gregor1.UID, originalMsgs []chat1.MessageUnboxed) ([]chat1.MessageUnboxed, error) {
 
 	// MessageIDs that supersede
 	var superMsgIDs []chat1.MessageID
