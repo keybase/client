@@ -9239,6 +9239,10 @@ timers-browserify@^2.0.2:
   dependencies:
     setimmediate "^1.0.4"
 
+tlds@^1.198.0:
+  version "1.198.0"
+  resolved "https://registry.yarnpkg.com/tlds/-/tlds-1.198.0.tgz#e7413ea5cccb5e1f4de2a1f45230b0c80994a886"
+
 tmp@0.0.28:
   version "0.0.28"
   resolved "https://registry.yarnpkg.com/tmp/-/tmp-0.0.28.tgz#172735b7f614ea7af39664fa84cf0de4e515d120"

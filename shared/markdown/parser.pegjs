@@ -88,13 +88,13 @@ QuoteBlock
  = QuoteBlockMarker WhiteSpace* children:(CodeBlock / TextBlock)* LineTerminatorSequence? { return {type: 'quote-block', children: flatten(children)} }
 
 Bold
- = BoldMarker !WhiteSpace children:__INLINE_MACRO__<!BoldMarker> BoldMarker { return {type: 'bold', children: flatten(children)} }
+ = BoldMarker !WhiteSpace children:__INLINE_MACRO__<!BoldMarker> BoldMarker !(BoldMarker / NormalChar) { return {type: 'bold', children: flatten(children)} }
 
 Italic
- = ItalicMarker !WhiteSpace children:__INLINE_MACRO__<!ItalicMarker> ItalicMarker { return {type: 'italic', children: flatten(children)} }
+ = ItalicMarker !WhiteSpace children:__INLINE_MACRO__<!ItalicMarker> ItalicMarker !(ItalicMarker / NormalChar) { return {type: 'italic', children: flatten(children)} }
 
 Strike
- = StrikeMarker !WhiteSpace children:__INLINE_MACRO__<!StrikeMarker> StrikeMarker { return {type: 'strike', children: flatten(children)} }
+ = StrikeMarker !WhiteSpace children:__INLINE_MACRO__<!StrikeMarker> StrikeMarker !(StrikeMarker / NormalChar) { return {type: 'strike', children: flatten(children)} }
 
 Mention
  = MentionMarker !WhiteSpace children:__INLINE_MACRO__<!ClosingMentionMarker> MentionMarker service:ValidMentionService { return {type: 'mention', children: flatten(children), service: service.toLowerCase()} }
@@ -135,44 +135,86 @@ NativeEmoji
  }
 
 LinkChar
- = !(SpecialChar+ (LineTerminatorSequence / !.)) char:NonBlank { return char }
+ = !(SpecialChar+ (LineTerminatorSequence)) char:NonBlank { return char }
 
-Link
- = proto:("http"i "s"i? ":")? url:(LinkChar+) & {
-     const Url = url.join('')
-     const fullUrl = proto ? proto.join('') + Url : Url
-     const matches = linkExp.exec(fullUrl)
-     if (!matches) {
-       return false
-     }
-     let match
-     const firstMatch = matches[0]
-     const firstChar = firstMatch.substring(0,1)
-     const alphasExp = /^[a-z]$/i
-     if (!alphasExp.exec(firstChar)) {
-       match = matches[3]
-     } else {
-       match = matches[0]
-     }
-     url._match = match  // save the match via expando property (used below)
-     return match
-   }
- {
-   const match = url._match
-   delete url._match
-   const urlText = url.join('')
-   const protoText = proto ? proto.join('') : ''
-   const href = protoText ? match : 'http://' + match
-   let text = protoText + urlText
-   let delims = urlText.split(match)
-   delims = delims.length > 1 ? delims : ["", ""] // Detect if the substring op failed
-   text = delims.length > 1 ? match : text
-   return [
-     delims[0],
-     {type: 'link', href, children: [text]},
-     delims[1],
-   ]
- }
+Link 
+  = url:( [([]* ("http"i "s"i? ":")? (LinkChar+) ) & {
+    let URL = [].concat.apply([], url).join('')
+    if (URL.length < 4) { // 4 chars is the shortest a URL can be (i.e. t.co)
+      return null
+    }
+
+    /* Make sure this is a real TLD */
+    const tldMatch = URL.match(tldExp)
+    if (tldMatch) {
+      const tld = tldMatch[4]
+      if (!tlds.includes(tld)) { // tlds is an array of all valid TLDs
+        return null
+      }
+    }
+    /* ============ */
+
+    /* 
+      From now on we're just deciding what to take off the beginnings / ends 
+      and what to keep. We keep track of what we've trimmed in `trailing` and 
+      `leading` and add it back in as plaintext at the end
+    */
+
+    /* Handle trailing periods etc. */
+    const trailingPunctuationMatch = URL.match(/([\.,;:"!?])$/) // Match only after a period (we can't assume end parens aren't intended to be on the path)
+    let trailing = ''
+    if (trailingPunctuationMatch) { // remove + save trailing punctuation before starting
+      trailing = trailingPunctuationMatch[0] + trailing
+      URL = URL.substring(0, URL.length - trailing.length)
+    }
+    /* ============ */
+
+    /* Remove matching brackets */
+    let leading = ''
+    const puncMap = {
+      '(': ')',
+      '[': ']',
+    }
+    while (URL[URL.length - 1] === puncMap[URL[0]] && URL.length > 4) {
+      leading += URL[0]
+      trailing = URL[URL.length - 1] + trailing
+      URL = URL.substring(1, URL.length - 1)
+    }
+    /* ============ */
+
+    /* Remove all leading punctuation ad-hoc */
+    const leadingPunctuationMatch = URL.match(/^([()[\]"']+)/)
+    if (leadingPunctuationMatch) { // remove + save leading punctuation before starting
+      leading += leadingPunctuationMatch[0]
+      URL = URL.substring(leading.length)
+    }
+    /* ============ */
+
+    /* Remove all trailing punctuation if this is just a TLD (no /) */
+    let tldPuncMatch = URL.match(tldPuncExp)
+    if (tldPuncMatch) {
+      const TLDTrailing = URL.match(/[)\].,;:"']+$/) // We already handled periods etc. in trailingPunctuationMatch (we can assume end parens aren't intended to be on a bare TLD)
+      const addTrailing = TLDTrailing ? TLDTrailing[0] : ''
+      trailing = addTrailing + trailing
+      URL = URL.substring(0, URL.length - addTrailing.length)
+    }
+    /* ============ */
+
+    const matches = linkExp.exec(URL)
+    url._data = {leading: leading, matches: matches, trailing: trailing, URL: URL}
+    return matches
+  } {
+    const leading = url._data.leading
+    const matches = url._data.matches
+    const trailing = url._data.trailing
+    const URL = url._data.URL
+    delete url._data
+    let href = matches[0]
+    if (!(href.toLowerCase().startsWith('http://') || href.toLowerCase().startsWith('https://'))) {
+      href = 'http://' + href
+    }
+    return [leading, {type: 'link', href, children: [URL]}, trailing]
+  }
 
 NonBlank
  = !(WhiteSpace / LineTerminatorSequence) char:. { return char }

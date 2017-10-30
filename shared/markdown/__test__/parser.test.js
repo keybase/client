@@ -82,8 +82,8 @@ describe('Markdown parser', () => {
     check('I \\*should\\* see asterisks')
   })
 
-  it('allows partially styled words correctly', () => {
-    check('is*bolded* *also*isbolded')
+  it('parses chars in the middle of words correctly', () => {
+    check('isnot*bolded* *also*isnotbolded')
   })
 
   it('parses native emoji correctly', () => {
@@ -130,6 +130,7 @@ this is a code block with two newline above\`\`\`
     gopher://blah.com,
     mailto:blah@blah.com
     nytimes.json
+    keybase.diamond
   Include:
     http://keybase.io
     http://keybase.io/
@@ -144,6 +145,7 @@ this is a code block with two newline above\`\`\`
     http://twitter.com
     http://t.co
     t.co
+    keybase.diamonds
     10.0.0.24
     google.com
     keybase.io/a/user/lookup?one=1&two=2
@@ -152,13 +154,19 @@ this is a code block with two newline above\`\`\`
     keybase.io/~user/cool
     http://keybase.io/blah/../up-one/index.html
     keybase.io/)(,)?=56,78,910@123
+    keybase.io/().@:hello*
   These should have the trailing punctuation outside the link:
     amazon.co.uk.
     keybase.io,
     keybase.io.
     keybase.io?
+    keybase.io)
     *http://keybase.io/*.
     *http://keybase.io/~_*
+  These should have only the matching brackets removed from them:
+    (https://en.wikipedia.org/wiki/Redshirt_(character))
+    ([(https://en.wikipedia.org/wiki/Redshirt_(character))])
+    ([keybase.io])
 `)
   })
   it('parses mentions correctly', () => {
