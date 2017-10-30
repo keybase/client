@@ -56,14 +56,22 @@ if (!__STORYBOOK__) {
 if (PERF) {
   console.warn('\n\n\nlocal debug PERF is ONNNNNn!!!!!1!!!11!!!!\nAll console.logs disabled!\n\n\n')
 
+  // $FlowIssue doens't like messing w/ console
   console._log = console.log
+  // $FlowIssue doens't like messing w/ console
   console._warn = console.warn
+  // $FlowIssue doens't like messing w/ console
   console._error = console.error
+  // $FlowIssue doens't like messing w/ console
   console._info = console.info
 
+  // $FlowIssue doens't like messing w/ console
   console.log = noop
+  // $FlowIssue doens't like messing w/ console
   console.warn = noop
+  // $FlowIssue doens't like messing w/ console
   console.error = noop
+  // $FlowIssue doens't like messing w/ console
   console.info = noop
 
   config.enableActionLogging = false
