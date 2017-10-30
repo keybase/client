@@ -9,6 +9,7 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/client/go/systemd"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	kbgitkbfs "github.com/keybase/kbfs/protocol/kbgitkbfs1"
 )
@@ -73,17 +74,28 @@ type KBFSService struct {
 // NewKBFSService creates a new KBFSService.
 func NewKBFSService(kbCtx Context, config kbfsServiceConfig) (
 	*KBFSService, error) {
-	l, err := kbCtx.BindToKBFSSocket()
+	log := config.MakeLogger("FSS")
+	// Check to see if we're receiving a socket from systemd. If not, create
+	// one and bind to it.
+	listener, err := systemd.GetListenerFromEnvironment()
 	if err != nil {
 		return nil, err
 	}
-	log := config.MakeLogger("FSS")
+	if listener != nil {
+		log.Debug("Found listener in the environment. Listening on fd 3.")
+	} else {
+		log.Debug("No listener found in the environment. Binding a new socket.")
+		listener, err = kbCtx.BindToKBFSSocket()
+		if err != nil {
+			return nil, err
+		}
+	}
 	k := &KBFSService{
 		config: config,
 		log:    log,
 		kbCtx:  kbCtx,
 	}
-	k.Run(l)
+	k.Run(listener)
 	return k, nil
 }
 

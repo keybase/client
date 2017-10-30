@@ -11,6 +11,7 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/client/go/systemd"
 	"github.com/keybase/kbfs/libfs"
 	"github.com/keybase/kbfs/libgit"
 	"github.com/keybase/kbfs/libkbfs"
@@ -112,6 +113,13 @@ func Start(options StartOptions, kbCtx libkbfs.Context) *libfs.Error {
 		return libfs.InitError(err.Error())
 	}
 	defer libkbfs.Shutdown()
+
+	// Report "startup successful" to the supervisor (currently just systemd on
+	// Linux). This isn't necessary for correctness, but it allows commands
+	// like "systemctl start kbfs.service" to report startup errors to the
+	// terminal, by delaying their return until they get this notification
+	// (Type=notify, in systemd lingo).
+	systemd.NotifyStartupFinished()
 
 	if options.SkipMount {
 		log.Debug("Skipping mounting filesystem")
