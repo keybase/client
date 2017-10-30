@@ -5,7 +5,6 @@
 package libkbfs
 
 import (
-	"errors"
 	"sync"
 	"time"
 
@@ -249,23 +248,15 @@ func (b *blockServerRemoteClientHandler) OnDisconnected(ctx context.Context,
 
 // ShouldRetry implements the ConnectionHandler interface.
 func (b *blockServerRemoteClientHandler) ShouldRetry(rpcName string, err error) bool {
-	//do not let connection.go's DoCommand retry any batch rpcs automatically
-	//because i will manually retry them without successfully completed references
+	// Do not let connection.go's DoCommand retry any batch rpcs
+	// since batchDowngradeReferences already handles retries.
 	switch rpcName {
 	case "keybase.1.block.delReferenceWithCount":
 		return false
 	case "keybase.1.block.archiveReferenceWithCount":
 		return false
-	case "keybase.1.block.archiveReference":
-		return false
 	}
-	if _, ok := err.(kbfsblock.BServerErrorThrottle); ok {
-		return true
-	}
-	if quotaErr, ok := err.(kbfsblock.BServerErrorOverQuota); ok && quotaErr.Throttled {
-		return true
-	}
-	return false
+	return kbfsblock.IsThrottleError(err)
 }
 
 // ShouldRetryOnConnect implements the ConnectionHandler interface.
@@ -377,48 +368,22 @@ func (b *BlockServerRemote) RefreshAuthToken(ctx context.Context) {
 	b.getConn.RefreshAuthToken(ctx)
 }
 
-func makeBlockIDCombo(id kbfsblock.ID, context kbfsblock.Context) keybase1.BlockIdCombo {
-	// ChargedTo is somewhat confusing when this BlockIdCombo is
-	// used in a BlockReference -- it just refers to the original
-	// creator of the block, i.e. the original user charged for
-	// the block.
-	//
-	// This may all change once we implement groups.
-	return keybase1.BlockIdCombo{
-		BlockHash: id.String(),
-		ChargedTo: context.GetCreator(),
-		BlockType: context.GetBlockType(),
-	}
-}
-
-func makeBlockReference(id kbfsblock.ID, context kbfsblock.Context) keybase1.BlockReference {
-	// Block references to MD blocks are allowed, because they can be
-	// deleted in the case of an MD put failing.
-	return keybase1.BlockReference{
-		Bid: makeBlockIDCombo(id, context),
-		// The actual writer to modify quota for.
-		ChargedTo: context.GetWriter(),
-		Nonce:     keybase1.BlockRefNonce(context.GetRefNonce()),
-	}
-}
-
 // Get implements the BlockServer interface for BlockServerRemote.
 func (b *BlockServerRemote) Get(ctx context.Context, tlfID tlf.ID, id kbfsblock.ID,
 	context kbfsblock.Context) (
 	buf []byte, serverHalf kbfscrypto.BlockCryptKeyServerHalf, err error) {
 	ctx = rpc.WithFireNow(ctx)
-	size := -1
 	b.log.LazyTrace(ctx, "BServer: Get %s", id)
 	defer func() {
 		b.log.LazyTrace(ctx, "BServer: Get %s done (err=%v)", id, err)
 		if err != nil {
 			b.deferLog.CWarningf(
 				ctx, "Get id=%s tlf=%s context=%s sz=%d err=%v",
-				id, tlfID, context, size, err)
+				id, tlfID, context, len(buf), err)
 		} else {
 			b.deferLog.CDebugf(
 				ctx, "Get id=%s tlf=%s context=%s sz=%d",
-				id, tlfID, context, size)
+				id, tlfID, context, len(buf))
 			dbc := b.config.DiskBlockCache()
 			if dbc != nil {
 				// This used to be called in a goroutine to prevent blocking
@@ -429,22 +394,9 @@ func (b *BlockServerRemote) Get(ctx context.Context, tlfID tlf.ID, id kbfsblock.
 		}
 	}()
 
-	arg := keybase1.GetBlockArg{
-		Bid:    makeBlockIDCombo(id, context),
-		Folder: tlfID.String(),
-	}
-
+	arg := kbfsblock.MakeGetBlockArg(tlfID, id, context)
 	res, err := b.getConn.getClient().GetBlock(ctx, arg)
-	if err != nil {
-		return nil, kbfscrypto.BlockCryptKeyServerHalf{}, err
-	}
-
-	size = len(res.Buf)
-	serverHalf, err = kbfscrypto.ParseBlockCryptKeyServerHalf(res.BlockKey)
-	if err != nil {
-		return nil, kbfscrypto.BlockCryptKeyServerHalf{}, err
-	}
-	return res.Buf, serverHalf, nil
+	return kbfsblock.ParseGetBlockRes(res, err)
 }
 
 // Put implements the BlockServer interface for BlockServerRemote.
@@ -471,15 +423,7 @@ func (b *BlockServerRemote) Put(ctx context.Context, tlfID tlf.ID, id kbfsblock.
 		}
 	}()
 
-	arg := keybase1.PutBlockArg{
-		Bid: makeBlockIDCombo(id, bContext),
-		// BlockKey is misnamed -- it contains just the server
-		// half.
-		BlockKey: serverHalf.String(),
-		Folder:   tlfID.String(),
-		Buf:      buf,
-	}
-
+	arg := kbfsblock.MakePutBlockArg(tlfID, id, bContext, buf, serverHalf)
 	// Handle OverQuota errors at the caller
 	return b.putConn.getClient().PutBlock(ctx, arg)
 }
@@ -507,13 +451,7 @@ func (b *BlockServerRemote) PutAgain(ctx context.Context, tlfID tlf.ID, id kbfsb
 		}
 	}()
 
-	arg := keybase1.PutBlockAgainArg{
-		BlockKey: serverHalf.String(),
-		Folder:   tlfID.String(),
-		Buf:      buf,
-		Ref:      makeBlockReference(id, bContext),
-	}
-
+	arg := kbfsblock.MakePutBlockAgainArg(tlfID, id, bContext, buf, serverHalf)
 	// Handle OverQuota errors at the caller
 	return b.putConn.getClient().PutBlockAgain(ctx, arg)
 }
@@ -536,11 +474,9 @@ func (b *BlockServerRemote) AddBlockReference(ctx context.Context, tlfID tlf.ID,
 		}
 	}()
 
+	arg := kbfsblock.MakeAddReferenceArg(tlfID, id, context)
 	// Handle OverQuota errors at the caller
-	return b.putConn.getClient().AddReference(ctx, keybase1.AddReferenceArg{
-		Ref:    makeBlockReference(id, context),
-		Folder: tlfID.String(),
-	})
+	return b.putConn.getClient().AddReference(ctx, arg)
 }
 
 // RemoveBlockReferences implements the BlockServer interface for
@@ -558,17 +494,8 @@ func (b *BlockServerRemote) RemoveBlockReferences(ctx context.Context,
 			b.deferLog.CDebugf(ctx, "RemoveBlockReferences batch size=%d", len(contexts))
 		}
 	}()
-	doneRefs, err := b.batchDowngradeReferences(ctx, tlfID, contexts, false)
-	liveCounts = make(map[kbfsblock.ID]int)
-	for id, nonces := range doneRefs {
-		for _, count := range nonces {
-			if existing, ok := liveCounts[id]; !ok || existing > count {
-				liveCounts[id] = count
-			}
-		}
-	}
-	return liveCounts, err
-
+	doneRefs, err := kbfsblock.BatchDowngradeReferences(ctx, b.log, tlfID, contexts, false, b.putConn.getClient())
+	return kbfsblock.GetLiveCounts(doneRefs), err
 }
 
 // ArchiveBlockReferences implements the BlockServer interface for
@@ -585,7 +512,7 @@ func (b *BlockServerRemote) ArchiveBlockReferences(ctx context.Context,
 			b.deferLog.CDebugf(ctx, "ArchiveBlockReferences batch size=%d", len(contexts))
 		}
 	}()
-	_, err = b.batchDowngradeReferences(ctx, tlfID, contexts, true)
+	_, err = kbfsblock.BatchDowngradeReferences(ctx, b.log, tlfID, contexts, true, b.putConn.getClient())
 	return err
 }
 
@@ -596,107 +523,6 @@ func (b *BlockServerRemote) IsUnflushed(
 	return false, nil
 }
 
-// batchDowngradeReferences archives or deletes a batch of references
-func (b *BlockServerRemote) batchDowngradeReferences(ctx context.Context,
-	tlfID tlf.ID, contexts kbfsblock.ContextMap, archive bool) (
-	doneRefs map[kbfsblock.ID]map[kbfsblock.RefNonce]int, finalError error) {
-	doneRefs = make(map[kbfsblock.ID]map[kbfsblock.RefNonce]int)
-	notDone := b.getNotDone(contexts, doneRefs)
-
-	throttleErr := backoff.Retry(func() error {
-		var res keybase1.DowngradeReferenceRes
-		var err error
-		if archive {
-			res, err = b.putConn.getClient().ArchiveReferenceWithCount(ctx,
-				keybase1.ArchiveReferenceWithCountArg{
-					Refs:   notDone,
-					Folder: tlfID.String(),
-				})
-		} else {
-			res, err = b.putConn.getClient().DelReferenceWithCount(ctx,
-				keybase1.DelReferenceWithCountArg{
-					Refs:   notDone,
-					Folder: tlfID.String(),
-				})
-		}
-
-		// log errors
-		if err != nil {
-			b.log.CWarningf(ctx, "batchDowngradeReferences archive %t sent=%v done=%v failedRef=%v err=%v",
-				archive, notDone, res.Completed, res.Failed, err)
-		} else {
-			b.log.CDebugf(ctx, "batchDowngradeReferences archive %t notdone=%v all succeeded",
-				archive, notDone)
-		}
-
-		// update the set of completed reference
-		for _, ref := range res.Completed {
-			bid, err := kbfsblock.IDFromString(ref.Ref.Bid.BlockHash)
-			if err != nil {
-				continue
-			}
-			nonces, ok := doneRefs[bid]
-			if !ok {
-				nonces = make(map[kbfsblock.RefNonce]int)
-				doneRefs[bid] = nonces
-			}
-			nonces[kbfsblock.RefNonce(ref.Ref.Nonce)] = ref.LiveCount
-		}
-		// update the list of references to downgrade
-		notDone = b.getNotDone(contexts, doneRefs)
-
-		//if context is cancelled, return immediately
-		select {
-		case <-ctx.Done():
-			finalError = ctx.Err()
-			return nil
-		default:
-		}
-
-		// check whether to backoff and retry
-		if err != nil {
-			// if error is of type throttle, retry
-			if _, ok := err.(kbfsblock.BServerErrorThrottle); ok {
-				return err
-			}
-			// non-throttle error, do not retry here
-			finalError = err
-		}
-		return nil
-	}, backoff.NewExponentialBackOff())
-
-	// if backoff has given up retrying, return error
-	if throttleErr != nil {
-		return doneRefs, throttleErr
-	}
-
-	if finalError == nil {
-		if len(notDone) != 0 {
-			b.log.CErrorf(ctx, "batchDowngradeReferences finished successfully with outstanding refs? all=%v done=%v notDone=%v\n", contexts, doneRefs, notDone)
-			return doneRefs,
-				errors.New("batchDowngradeReferences inconsistent result")
-		}
-	}
-	return doneRefs, finalError
-}
-
-// getNotDone returns the set of block references in "all" that do not yet appear in "results"
-func (b *BlockServerRemote) getNotDone(all kbfsblock.ContextMap, doneRefs map[kbfsblock.ID]map[kbfsblock.RefNonce]int) (
-	notDone []keybase1.BlockReference) {
-	for id, idContexts := range all {
-		for _, context := range idContexts {
-			if _, ok := doneRefs[id]; ok {
-				if _, ok1 := doneRefs[id][context.GetRefNonce()]; ok1 {
-					continue
-				}
-			}
-			ref := makeBlockReference(id, context)
-			notDone = append(notDone, ref)
-		}
-	}
-	return notDone
-}
-
 // GetUserQuotaInfo implements the BlockServer interface for BlockServerRemote
 func (b *BlockServerRemote) GetUserQuotaInfo(ctx context.Context) (info *kbfsblock.QuotaInfo, err error) {
 	ctx = rpc.WithFireNow(ctx)
@@ -705,10 +531,7 @@ func (b *BlockServerRemote) GetUserQuotaInfo(ctx context.Context) (info *kbfsblo
 		b.log.LazyTrace(ctx, "BServer: GetUserQuotaInfo done (err=%v)", err)
 	}()
 	res, err := b.getConn.getClient().GetUserQuotaInfo(ctx)
-	if err != nil {
-		return nil, err
-	}
-	return kbfsblock.QuotaInfoDecode(res, b.config.Codec())
+	return kbfsblock.ParseGetQuotaInfoRes(b.config.Codec(), res, err)
 }
 
 // GetTeamQuotaInfo implements the BlockServer interface for BlockServerRemote
@@ -721,10 +544,7 @@ func (b *BlockServerRemote) GetTeamQuotaInfo(
 		b.log.LazyTrace(ctx, "BServer: GetTeamQuotaInfo done (err=%v)", err)
 	}()
 	res, err := b.getConn.getClient().GetTeamQuotaInfo(ctx, tid)
-	if err != nil {
-		return nil, err
-	}
-	return kbfsblock.QuotaInfoDecode(res, b.config.Codec())
+	return kbfsblock.ParseGetQuotaInfoRes(b.config.Codec(), res, err)
 }
 
 // Shutdown implements the BlockServer interface for BlockServerRemote.
