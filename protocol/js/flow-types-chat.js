@@ -485,6 +485,22 @@ export function localPostLocalRpcPromise (request: (requestCommon & {callback?: 
   return new Promise((resolve, reject) => engineRpcOutgoing('chat.1.local.postLocal', request, (error, result) => error ? reject(error) : resolve(result)))
 }
 
+export function localPostMetadataNonblockRpcChannelMap (configKeys: Array<string>, request: requestCommon & {callback?: ?(err: ?any, response: localPostMetadataNonblockResult) => void} & {param: localPostMetadataNonblockRpcParam}): EngineChannel {
+  return engine()._channelMapRpcHelper(configKeys, 'chat.1.local.postMetadataNonblock', request)
+}
+
+export function localPostMetadataNonblockRpcPromise (request: (requestCommon & {callback?: ?(err: ?any, response: localPostMetadataNonblockResult) => void} & {param: localPostMetadataNonblockRpcParam})): Promise<localPostMetadataNonblockResult> {
+  return new Promise((resolve, reject) => engineRpcOutgoing('chat.1.local.postMetadataNonblock', request, (error, result) => error ? reject(error) : resolve(result)))
+}
+
+export function localPostMetadataRpcChannelMap (configKeys: Array<string>, request: requestCommon & {callback?: ?(err: ?any, response: localPostMetadataResult) => void} & {param: localPostMetadataRpcParam}): EngineChannel {
+  return engine()._channelMapRpcHelper(configKeys, 'chat.1.local.postMetadata', request)
+}
+
+export function localPostMetadataRpcPromise (request: (requestCommon & {callback?: ?(err: ?any, response: localPostMetadataResult) => void} & {param: localPostMetadataRpcParam})): Promise<localPostMetadataResult> {
+  return new Promise((resolve, reject) => engineRpcOutgoing('chat.1.local.postMetadata', request, (error, result) => error ? reject(error) : resolve(result)))
+}
+
 export function localPostTextNonblockRpcChannelMap (configKeys: Array<string>, request: requestCommon & {callback?: ?(err: ?any, response: localPostTextNonblockResult) => void} & {param: localPostTextNonblockRpcParam}): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'chat.1.local.postTextNonblock', request)
 }
@@ -2330,6 +2346,24 @@ export type localPostLocalRpcParam = Exact<{
   identifyBehavior: keybase1.TLFIdentifyBehavior
 }>
 
+export type localPostMetadataNonblockRpcParam = Exact<{
+  conversationID: ConversationID,
+  tlfName: string,
+  tlfPublic: boolean,
+  channelName: string,
+  outboxID?: ?OutboxID,
+  clientPrev: MessageID,
+  identifyBehavior: keybase1.TLFIdentifyBehavior
+}>
+
+export type localPostMetadataRpcParam = Exact<{
+  conversationID: ConversationID,
+  tlfName: string,
+  tlfPublic: boolean,
+  channelName: string,
+  identifyBehavior: keybase1.TLFIdentifyBehavior
+}>
+
 export type localPostTextNonblockRpcParam = Exact<{
   conversationID: ConversationID,
   tlfName: string,
@@ -2554,6 +2588,8 @@ type localPostHeadlineNonblockResult = PostLocalNonblockRes
 type localPostHeadlineResult = PostLocalRes
 type localPostLocalNonblockResult = PostLocalNonblockRes
 type localPostLocalResult = PostLocalRes
+type localPostMetadataNonblockResult = PostLocalNonblockRes
+type localPostMetadataResult = PostLocalRes
 type localPostTextNonblockResult = PostLocalNonblockRes
 type localSetAppNotificationSettingsLocalResult = SetAppNotificationSettingsLocalRes
 type localSetConversationStatusLocalResult = SetConversationStatusLocalRes

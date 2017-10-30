@@ -27,6 +27,22 @@ type AvatarProps = {
   backgroundColor: string,
 }
 
+const MutedIcon = ({isMuted, isSelected, participantNeedToRekey, youNeedToRekey}) => {
+  let icon = null
+  if (isMuted) {
+    const type = isSelected
+      ? isMobile ? 'icon-shh-active-24' : 'icon-shh-active-16'
+      : isMobile ? 'icon-shh-24' : 'icon-shh-16'
+    icon = <Icon type={type} style={avatarMutedIconStyle} />
+  } else if (participantNeedToRekey || youNeedToRekey) {
+    const type = isSelected
+      ? isMobile ? 'icon-addon-lock-active-12' : 'icon-addon-lock-active-8'
+      : isMobile ? 'icon-addon-lock-12' : 'icon-addon-lock-8'
+    icon = <Icon type={type} style={avatarLockIconStyle} />
+  }
+  return icon
+}
+
 class Avatars extends PureComponent<AvatarProps> {
   render() {
     const {
@@ -39,20 +55,6 @@ class Avatars extends PureComponent<AvatarProps> {
     } = this.props
 
     const avatarCount = Math.min(2, participants.count())
-
-    let icon
-    if (isMuted) {
-      const type = isSelected
-        ? isMobile ? 'icon-shh-active-24' : 'icon-shh-active-16'
-        : isMobile ? 'icon-shh-24' : 'icon-shh-16'
-      icon = <Icon type={type} style={avatarMutedIconStyle} />
-    } else if (participantNeedToRekey || youNeedToRekey) {
-      const type = isSelected
-        ? isMobile ? 'icon-addon-lock-active-12' : 'icon-addon-lock-active-8'
-        : isMobile ? 'icon-addon-lock-12' : 'icon-addon-lock-8'
-      icon = <Icon type={type} style={avatarLockIconStyle} />
-    }
-
     const opacity = youNeedToRekey || participantNeedToRekey ? 0.4 : 1
     const avatarProps = participants
       .slice(0, 2)
@@ -75,7 +77,12 @@ class Avatars extends PureComponent<AvatarProps> {
             multiPadding={isMobile ? 2 : 0}
             style={opacity === 1 ? multiStyle(backgroundColor) : {...multiStyle(backgroundColor), opacity}}
           />
-          {icon}
+          <MutedIcon
+            isSelected={isSelected}
+            isMuted={isMuted}
+            participantNeedToRekey={participantNeedToRekey}
+            youNeedToRekey={youNeedToRekey}
+          />
         </Box>
       </Box>
     )
@@ -106,6 +113,7 @@ const _avatarBoxStyle = {
   marginRight: globalMargins.tiny,
   maxWidth: isMobile ? 48 : 40,
   minWidth: isMobile ? 48 : 40,
+  position: 'relative',
 }
 
 const avatarInnerBoxStyle = {
@@ -117,11 +125,22 @@ const avatarInnerBoxStyle = {
   position: 'relative',
 }
 
-class TeamAvatar extends PureComponent<{teamname: string}> {
+class TeamAvatar
+  extends PureComponent<{
+    teamname: string,
+    isMuted: boolean,
+    isSelected: boolean,
+  }> {
   render() {
     return (
       <Box style={_avatarBoxStyle}>
         <Avatar teamname={this.props.teamname} size={isMobile ? 48 : 40} />
+        <MutedIcon
+          isSelected={this.props.isSelected}
+          isMuted={this.props.isMuted}
+          participantNeedToRekey={false}
+          youNeedToRekey={false}
+        />
       </Box>
     )
   }
