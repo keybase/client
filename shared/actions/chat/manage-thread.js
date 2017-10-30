@@ -3,6 +3,7 @@
 // Mute, block, starting a new one, selecting one
 import * as ChatTypes from '../../constants/types/flow-types-chat'
 import * as Constants from '../../constants/chat'
+import * as ChatGen from '../../actions/chat-gen'
 import * as Creators from './creators'
 import * as I from 'immutable'
 import * as RPCTypes from '../../constants/types/flow-types'
@@ -96,7 +97,7 @@ function* _selectConversation(action: Constants.SelectConversation): Saga.SagaGe
   // Do this here because it's possible loadMoreMessages bails early
   // but there are still unread messages that need to be marked as read
   if (fromUser && conversationIDKey) {
-    yield Saga.put(Creators.updateBadging(conversationIDKey))
+    yield Saga.put(ChatGen.createUpdateBadging({conversationIDKey}))
     yield Saga.put(Creators.updateLatestMessage(conversationIDKey))
   }
 }

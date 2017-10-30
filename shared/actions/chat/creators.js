@@ -107,10 +107,6 @@ function pendingToRealConversation(
   return {payload: {newKey, oldKey}, type: 'chat:pendingToRealConversation'}
 }
 
-function updateBadging(conversationIDKey: Constants.ConversationIDKey): Constants.UpdateBadging {
-  return {payload: {conversationIDKey}, type: 'chat:updateBadging'}
-}
-
 function updateLatestMessage(conversationIDKey: Constants.ConversationIDKey): Constants.UpdateLatestMessage {
   return {payload: {conversationIDKey}, type: 'chat:updateLatestMessage'}
 }
@@ -730,7 +726,6 @@ export {
   toggleChannelWideNotifications,
   unboxConversations,
   unboxMore,
-  updateBadging,
   updateBrokenTracker,
   updateFinalizedState,
   updateInboxComplete,

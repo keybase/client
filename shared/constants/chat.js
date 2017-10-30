@@ -645,8 +645,6 @@ export type UntrustedInboxVisible = NoErrorTypedAction<
   'chat:untrustedInboxVisible',
   {conversationIDKey: ConversationIDKey, rowsVisible: number}
 >
-export type UpdateBadging = NoErrorTypedAction<'chat:updateBadging', {conversationIDKey: ConversationIDKey}>
-
 export type UpdateConversationUnreadCounts = NoErrorTypedAction<
   'chat:updateConversationUnreadCounts',
   {conversationUnreadCounts: I.Map<ConversationIDKey, UnreadCounts>}
@@ -850,7 +848,6 @@ export type Actions =
   | RemoveTempPendingConversations
   | SelectConversation
   | StartConversation
-  | UpdateBadging
   | UpdateBrokenTracker
   | UpdateInboxComplete
   | UpdateLatestMessage

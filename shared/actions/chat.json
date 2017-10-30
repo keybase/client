@@ -1,0 +1,8 @@
+{
+    "prelude": "import * as Constants from '../constants/chat'",
+    "actions": {
+        "updateBadging": {
+            "conversationIDKey": "Constants.ConversationIDKey"
+        }
+    }
+}

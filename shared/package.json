@@ -22,6 +22,7 @@
     "build-dev": "yarn run _helper build-dev",
     "build-pegjs": "yarn run _node markdown/generate-emoji-parser.js markdown/parser.pegjs",
     "build-prod": "yarn run _helper build-prod",
+    "build-actions": "yarn run _node desktop/yarn-helper/action-creator-creator",
     "package": "yarn run _helper package",
     "hot-server": "yarn run _helper hot-server",
     "hot-server-dumb": "cross-env-shell DUMB=true yarn run _helper hot-server",
@@ -53,9 +54,12 @@
     "setupFiles": [
       "raf/polyfill"
     ],
-    "testPathIgnorePatterns": ["/node_modules/", "/stories/"],
+    "testPathIgnorePatterns": [
+      "/node_modules/",
+      "/stories/"
+    ],
     "snapshotSerializers": [
-        "jest-glamor-react"
+      "jest-glamor-react"
     ],
     "testEnvironment": "jsdom",
     "moduleNameMapper": {
@@ -174,6 +178,7 @@
     "fs-extra": "4.0.2",
     "jest": "21.2.1",
     "jest-glamor-react": "3.1.2",
+    "json5": "0.5.1",
     "klaw-sync": "3.0.0",
     "minimist": "1.2.0",
     "null-loader": "0.1.1",
