@@ -21,7 +21,7 @@ class FilterBigTeamChannel extends PureComponent<Props> {
             ...(this.props.isSelected ? {backgroundColor: globalColors.blue} : undefined),
           }}
         >
-          <TeamAvatar teamname={this.props.teamname} />
+          <TeamAvatar teamname={this.props.teamname} isMuted={false} isSelected={false} />
           <Text
             type="BodySemibold"
             style={{

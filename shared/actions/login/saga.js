@@ -22,7 +22,6 @@ import {setDeviceNameError} from '../signup'
 import {deletePushTokenSaga} from '../push'
 import {selectConversation} from '../chat/creators'
 import {pathSelector, navigateTo, navigateAppend} from '../route-tree'
-import {overrideLoggedInTab} from '../../local-debug'
 import {toDeviceType} from '../../constants/types/more'
 import {all, call, put, take, race, select} from 'redux-saga/effects'
 import * as Saga from '../../util/saga'
@@ -127,9 +126,7 @@ function* navBasedOnLoginAndInitialState(): SagaGenerator<any, any> {
       return
     }
 
-    if (overrideLoggedInTab) {
-      yield put(navigateTo([overrideLoggedInTab]))
-    } else if (initialState) {
+    if (initialState) {
       const {url, tab, conversation} = (initialState: InitialState)
       if (url) {
         yield put(appLink(url))

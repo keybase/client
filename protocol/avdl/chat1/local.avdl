@@ -529,6 +529,8 @@ protocol local {
   PostLocalNonblockRes postEditNonblock(ConversationID conversationID, string tlfName, boolean tlfPublic, MessageID supersedes, string body, union { null, OutboxID } outboxID, MessageID clientPrev, keybase1.TLFIdentifyBehavior identifyBehavior);
   PostLocalNonblockRes postHeadlineNonblock(ConversationID conversationID, string tlfName, boolean tlfPublic,  string headline, union { null, OutboxID } outboxID, MessageID clientPrev, keybase1.TLFIdentifyBehavior identifyBehavior);
   PostLocalRes postHeadline(ConversationID conversationID, string tlfName, boolean tlfPublic, string headline, keybase1.TLFIdentifyBehavior identifyBehavior);
+  PostLocalNonblockRes postMetadataNonblock(ConversationID conversationID, string tlfName, boolean tlfPublic,  string channelName, union { null, OutboxID } outboxID, MessageID clientPrev, keybase1.TLFIdentifyBehavior identifyBehavior);
+  PostLocalRes postMetadata(ConversationID conversationID, string tlfName, boolean tlfPublic, string channelName, keybase1.TLFIdentifyBehavior identifyBehavior);
 
 
   @lint("ignore")
