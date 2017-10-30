@@ -54,7 +54,12 @@ class ProfileContainer extends PureComponent<EitherProps<Props>, void> {
 export default pausableConnect(
   (state, {routeProps, routeState, routePath}: OwnProps) => {
     const myUsername = state.config.username
-    const username = routeProps.get('username') ? routeProps.get('username') : myUsername
+    let username = routeProps.get('username')
+    if (username) {
+      username = username.toLowerCase()
+    } else {
+      username = myUsername
+    }
 
     return {
       currentFriendshipsTab: routeState.get('currentFriendshipsTab'),
