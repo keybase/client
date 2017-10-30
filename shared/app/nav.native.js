@@ -366,7 +366,6 @@ const sceneWrapStyleWithStatusBarPadding = {
 
 const mapStateToProps = (state: TypedState, ownProps: OwnProps) => ({
   _me: state.config.username,
-  dumbFullscreen: state.dev.debugConfig.dumbFullscreen,
   hideNav: ownProps.routeSelected === loginTab,
   reachable: state.gregor.reachability.reachable,
 })

@@ -3,6 +3,7 @@ import * as React from 'react'
 
 export type Props = {
   errorText: string,
+  pending: boolean,
   name: string,
   onBack: () => void,
   onNameChange: () => void,

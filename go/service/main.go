@@ -225,8 +225,13 @@ func (d *Service) Run() (err error) {
 		}
 	}
 
-	if d.G().Env.GetServiceType() == "launchd" {
+	switch d.G().Env.GetServiceType() {
+	case "launchd":
 		d.ForkType = keybase1.ForkType_LAUNCHD
+	case "systemd":
+		d.ForkType = keybase1.ForkType_SYSTEMD
+	default:
+		d.G().Log.Warning("Unknown service type: %q", d.G().Env.GetServiceType())
 	}
 
 	if err = d.GetExclusiveLock(); err != nil {
@@ -253,6 +258,14 @@ func (d *Service) Run() (err error) {
 	}
 
 	d.RunBackgroundOperations(uir)
+
+	// At this point initialization is complete, and we're about to start the
+	// listen loop. This is the natural point to report "startup successful" to
+	// the supervisor (currently just systemd on Linux). This isn't necessary
+	// for correctness, but it allows commands like "systemctl start keybase.service"
+	// to report startup errors to the terminal, by delaying their return
+	// until they get this notification (Type=notify, in systemd lingo).
+	NotifyStartupFinished()
 
 	d.G().ExitCode, err = d.ListenLoopWithStopper(l)
 
@@ -496,11 +509,6 @@ func (d *Service) writeServiceInfo() error {
 }
 
 func (d *Service) hourlyChecks() {
-	// do this right away
-	if err := d.G().LogoutIfRevoked(); err != nil {
-		d.G().Log.Debug("LogoutIfRevoked error: %s", err)
-	}
-
 	ticker := time.NewTicker(1 * time.Hour)
 	d.G().PushShutdownHook(func() error {
 		d.G().Log.Debug("stopping hourlyChecks loop")
@@ -508,6 +516,10 @@ func (d *Service) hourlyChecks() {
 		return nil
 	})
 	go func() {
+		// do this quickly
+		if err := d.G().LogoutIfRevoked(); err != nil {
+			d.G().Log.Debug("LogoutIfRevoked error: %s", err)
+		}
 		for {
 			<-ticker.C
 			d.G().Log.Debug("+ hourly check loop")
@@ -733,15 +745,28 @@ func (d *Service) lockPIDFile() (err error) {
 	return nil
 }
 
-func (d *Service) ConfigRPCServer() (l net.Listener, err error) {
-	if l, err = d.G().BindToSocket(); err != nil {
-		return
+func (d *Service) ConfigRPCServer() (net.Listener, error) {
+	// First, check to see if we've been launched with socket activation by
+	// systemd. If so, the socket is already open. Otherwise open it ourselves.
+	listener, err := GetListenerFromEnvironment()
+	if err != nil {
+		d.G().Log.Error("unexpected error in GetListenerFromEnvironment: %#v", err)
+		return nil, err
+	} else if listener != nil {
+		d.G().Log.Debug("Systemd socket activation in use. Accepting connections on fd 3.")
+	} else {
+		d.G().Log.Debug("No socket activation in the environment. Binding to a new socket.")
+		listener, err = d.G().BindToSocket()
+		if err != nil {
+			return nil, err
+		}
 	}
+
 	if d.startCh != nil {
 		close(d.startCh)
 		d.startCh = nil
 	}
-	return
+	return listener, nil
 }
 
 func (d *Service) Stop(exitCode keybase1.ExitCode) {

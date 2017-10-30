@@ -41,7 +41,6 @@ const appendMessageActionTransformer = (action: Constants.AppendMessages) => ({
 const prependMessagesActionTransformer = (action: Constants.PrependMessages) => ({
   payload: {
     conversationIDKey: action.payload.conversationIDKey,
-    hasPaginationNext: !!action.payload.paginationNext,
     messages: action.payload.messages.map(safeServerMessageMap),
     moreToLoad: action.payload.moreToLoad,
   },
@@ -180,10 +179,11 @@ function loadMoreMessages(
   conversationIDKey: Constants.ConversationIDKey,
   onlyIfUnloaded: boolean,
   fromUser?: boolean = false,
-  onlyNewerThan?: string
+  wantNewer?: boolean = false, // new messages, else older ones
+  numberOverride?: ?number // how many to ask for
 ): Constants.LoadMoreMessages {
   return {
-    payload: {conversationIDKey, onlyIfUnloaded, fromUser, onlyNewerThan},
+    payload: {conversationIDKey, onlyIfUnloaded, fromUser, wantNewer, numberOverride},
     type: 'chat:loadMoreMessages',
   }
 }
@@ -261,12 +261,21 @@ function updateSupersededByState(
 
 function updatePaginationNext(
   conversationIDKey: Constants.ConversationIDKey,
-  paginationNext: ?string,
-  paginationPrevious: ?string
+  paginationNext: ?string
 ): Constants.UpdatePaginationNext {
   return {
-    payload: {conversationIDKey, paginationNext, paginationPrevious},
+    payload: {conversationIDKey, paginationNext},
     type: 'chat:updatePaginationNext',
+  }
+}
+
+function updatePaginationPrev(
+  conversationIDKey: Constants.ConversationIDKey,
+  paginationPrev: ?string
+): Constants.UpdatePaginationPrev {
+  return {
+    payload: {conversationIDKey, paginationPrev},
+    type: 'chat:updatePaginationPrev',
   }
 }
 
@@ -339,13 +348,11 @@ function setLoaded(conversationIDKey: Constants.ConversationIDKey, isLoaded: boo
 function prependMessages(
   conversationIDKey: Constants.ConversationIDKey,
   messages: Array<Constants.Message>,
-  moreToLoad: boolean,
-  paginationNext: ?string,
-  paginationPrevious: ?string
+  moreToLoad: boolean
 ): Constants.PrependMessages {
   return {
     logTransformer: prependMessagesActionTransformer,
-    payload: {conversationIDKey, messages, moreToLoad, paginationNext, paginationPrevious},
+    payload: {conversationIDKey, messages, moreToLoad},
     type: 'chat:prependMessages',
   }
 }
@@ -699,6 +706,7 @@ export {
   updateLatestMessage,
   updateMetadata,
   updatePaginationNext,
+  updatePaginationPrev,
   updateSnippet,
   updateSupersededByState,
   updateSupersedesState,

@@ -23,7 +23,7 @@ const getValidatedState = (state: TypedState) => {
       return true
     }
   }
-  return untrustedState === 'unboxed'
+  return ['reUnboxing', 'unboxed'].includes(untrustedState)
 }
 
 const supersedesIfNoMoreToLoadSelector = createSelector(

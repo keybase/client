@@ -257,6 +257,15 @@ func List(ctx context.Context, g *libkb.GlobalContext, arg keybase1.TeamListArg)
 				FullName: fullName,
 			}
 
+			if !arg.All {
+				members, err := team.Members()
+				if err == nil {
+					anMemberInfo.MemberCount = len(members.AllUIDs())
+				} else {
+					g.Log.CDebugf(subctx, "| Failed to get Members() for team %q: %v", team.ID, err)
+				}
+			}
+
 			anInvites = make(AnnotatedTeamInviteMap)
 			if serverSaysNeedAdmin {
 				anInvites, err = AnnotateInvites(subctx, g, team.chain().inner.ActiveInvites, team.Name().String())

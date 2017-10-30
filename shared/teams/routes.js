@@ -45,6 +45,11 @@ const controlledRolePicker = {
   component: ControlledRolePicker,
   tags: makeLeafTags({layerOnTop: !isMobile}),
 }
+const reallyRemoveMember = {
+  children: {},
+  component: ReallyRemoveMember,
+  tags: makeLeafTags({layerOnTop: !isMobile}),
+}
 
 const routeTree = makeRouteDefNode({
   children: {
@@ -74,16 +79,12 @@ const routeTree = makeRouteDefNode({
         },
         rolePicker,
         reallyLeaveTeam,
+        reallyRemoveMember,
         member: {
           children: {
             rolePicker,
             reallyLeaveTeam,
-
-            reallyRemoveMember: {
-              children: {},
-              component: ReallyRemoveMember,
-              tags: makeLeafTags({layerOnTop: !isMobile}),
-            },
+            reallyRemoveMember,
           },
           component: Member,
         },

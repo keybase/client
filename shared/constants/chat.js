@@ -404,6 +404,7 @@ type _State = {
   inSearch: boolean,
   searchResultTerm: string,
   teamCreationError: string,
+  teamCreationPending: boolean,
   teamJoinError: string,
   teamJoinSuccess: boolean,
 }
@@ -436,6 +437,7 @@ export const makeState: I.RecordFactory<_State> = I.Record({
   tempPendingConversations: I.Map(),
   searchResultTerm: '',
   teamCreationError: '',
+  teamCreationPending: false,
   teamJoinError: '',
   teamJoinSuccess: false,
 })
@@ -501,7 +503,13 @@ export type LeaveConversation = NoErrorTypedAction<
 export type LoadInbox = NoErrorTypedAction<'chat:loadInbox', void>
 export type LoadMoreMessages = NoErrorTypedAction<
   'chat:loadMoreMessages',
-  {conversationIDKey: ConversationIDKey, onlyIfUnloaded: boolean}
+  {
+    conversationIDKey: ConversationIDKey,
+    onlyIfUnloaded: boolean,
+    fromUser: boolean,
+    wantNewer: boolean,
+    numberOverride: ?number,
+  }
 >
 export type LoadingMessages = NoErrorTypedAction<
   'chat:loadingMessages',
@@ -544,8 +552,6 @@ export type PrependMessages = NoErrorTypedAction<
     conversationIDKey: ConversationIDKey,
     messages: Array<Message>,
     moreToLoad: boolean,
-    paginationNext: ?string,
-    paginationPrevious: ?string,
   }
 >
 export type RemoveOutboxMessage = NoErrorTypedAction<
@@ -626,7 +632,11 @@ export type UpdateLatestMessage = NoErrorTypedAction<
 export type UpdateMetadata = NoErrorTypedAction<'chat:updateMetadata', {users: Array<string>}>
 export type UpdatePaginationNext = NoErrorTypedAction<
   'chat:updatePaginationNext',
-  {conversationIDKey: ConversationIDKey, paginationNext: ?string, paginationPrevious: ?string}
+  {conversationIDKey: ConversationIDKey, paginationNext: ?string}
+>
+export type UpdatePaginationPrev = NoErrorTypedAction<
+  'chat:updatePaginationPrev',
+  {conversationIDKey: ConversationIDKey, paginationPrev: ?string}
 >
 export type UpdateSupersededByState = NoErrorTypedAction<
   'chat:updateSupersededByState',
@@ -1086,6 +1096,10 @@ function messageKeyConversationIDKey(key: MessageKey): ConversationIDKey {
   return key.split(':')[0]
 }
 
+function messageKeyKindIsMessageID(key: MessageKey): boolean {
+  return messageKeyKind(key).startsWith('messageID')
+}
+
 function messageKeyKind(key: MessageKey): MessageKeyKind {
   const [, kind] = key.split(':')
   switch (kind) {
@@ -1319,6 +1333,14 @@ function getSnippet(state: TypedState, conversationIDKey: ConversationIDKey): st
   return snippet ? snippet.stringValue() : ''
 }
 
+function getPaginationNext(state: TypedState, conversationIDKey: ConversationIDKey): ?string {
+  return state.entities.pagination.next.get(conversationIDKey, null)
+}
+
+function getPaginationPrev(state: TypedState, conversationIDKey: ConversationIDKey): ?string {
+  return state.entities.pagination.prev.get(conversationIDKey, null)
+}
+
 function applyMessageUpdates(message: Message, updates: I.OrderedSet<EditingMessage | UpdatingAttachment>) {
   if (updates.isEmpty()) {
     return message
@@ -1361,6 +1383,8 @@ export {
   getAttachmentPreviewPath,
   getAttachmentSavedPath,
   getDownloadProgress,
+  getPaginationNext,
+  getPaginationPrev,
   getPreviewProgress,
   getUploadProgress,
   getSnippet,
@@ -1374,6 +1398,7 @@ export {
   makeTeamTitle,
   messageKey,
   messageKeyKind,
+  messageKeyKindIsMessageID,
   messageKeyValue,
   messageKeyConversationIDKey,
   splitMessageIDKey,

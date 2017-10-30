@@ -51,6 +51,16 @@ const makeSearchSubState: I.RecordFactory<_SearchSubState> = I.Record({
   searchKeyToClearSearchTextInput: I.Map(),
 })
 
+type PaginationState = I.RecordOf<{
+  next: I.Map<ChatConstants.ConversationIDKey, string>, // Pass this when we want to get older messages
+  prev: I.Map<ChatConstants.ConversationIDKey, string>, // For when we want to get newer messages
+}>
+
+const makePaginationState = I.Record({
+  next: I.Map(),
+  prev: I.Map(),
+})
+
 // State
 type _State = {
   attachmentDownloadProgress: I.Map<ChatConstants.MessageKey, ?number>,
@@ -80,6 +90,7 @@ type _State = {
     I.Map<ChatConstants.MessageID, I.OrderedSet<ChatConstants.MessageKey>>
   >,
   messages: I.Map<ChatConstants.MessageKey, ChatConstants.Message>,
+  pagination: PaginationState,
   search: SearchSubState,
   searchQueryToResult: I.Map<SearchConstants.SearchQuery, I.List<SearchConstants.SearchResultId>>,
   searchResults: I.Map<SearchConstants.SearchResultId, SearchConstants.SearchResult>,
@@ -116,4 +127,5 @@ export const makeState: I.RecordFactory<_State> = I.Record({
   searchQueryToResult: I.Map(),
   searchResults: I.Map(),
   teams: Teams.makeState(),
+  pagination: makePaginationState(),
 })

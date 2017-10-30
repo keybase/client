@@ -315,6 +315,13 @@
             "UnreadUpdate"
           ],
           "name": "unreadUpdate"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "UnreadUpdate"
+          },
+          "name": "unreadUpdates"
         }
       ]
     },

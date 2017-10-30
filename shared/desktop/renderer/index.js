@@ -23,7 +23,6 @@ import {listenForNotifications} from '../../actions/notifications'
 import {changedFocus, changedActive} from '../../actions/app'
 import merge from 'lodash/merge'
 import throttle from 'lodash/throttle'
-import {resetEngineOnHMR} from '../../local-debug.desktop'
 import {selector as menubarSelector} from '../../menubar/selector'
 import {selector as pineentrySelector} from '../../pinentry/selector'
 import {selector as remotePurgeMessageSelector} from '../../pgp/selector'
@@ -191,9 +190,6 @@ function setupHMR(store) {
         store.dispatch({type: updateReloading, payload: {reloading: true}})
         const NewMain = require('../../app/main.desktop').default
         render(store, NewMain)
-        if (resetEngineOnHMR) {
-          engine().reset()
-        }
       } finally {
         setTimeout(() => store.dispatch({type: updateReloading, payload: {reloading: false}}), 10e3)
       }

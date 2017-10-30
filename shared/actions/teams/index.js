@@ -24,6 +24,7 @@ import type {TypedState} from '../../constants/reducer'
 const _createNewTeam = function*(action: Constants.CreateNewTeam) {
   const {payload: {name}} = action
   yield put(Creators.setTeamCreationError(''))
+  yield put(Creators.setTeamCreationPending(true))
   try {
     yield call(RpcTypes.teamsTeamCreateRpcPromise, {
       param: {name, sendChatNotification: true},
@@ -33,6 +34,8 @@ const _createNewTeam = function*(action: Constants.CreateNewTeam) {
     yield put(navigateTo([isMobile ? chatTab : teamsTab]))
   } catch (error) {
     yield put(Creators.setTeamCreationError(error.desc))
+  } finally {
+    yield put(Creators.setTeamCreationPending(false))
   }
 }
 
@@ -136,7 +139,7 @@ const _removeMemberOrPendingInvite = function*(action: Constants.RemoveMemberOrP
 
   yield put(replaceEntity(['teams', 'teamNameToLoading'], I.Map([[name, true]])))
   try {
-    yield call(RpcTypes.teamsTeamRemoveMemberRpcPromise, {param: {name, username, email}})
+    yield call(RpcTypes.teamsTeamRemoveMemberRpcPromise, {param: {email, name, username}})
   } finally {
     yield put((dispatch: Dispatch) => dispatch(Creators.getDetails(name))) // getDetails will unset loading
   }
@@ -179,21 +182,30 @@ const _createNewTeamFromConversation = function*(
   }
 
   if (participants) {
-    const createRes = yield call(RpcTypes.teamsTeamCreateRpcPromise, {
-      param: {name, sendChatNotification: true},
-    })
-    for (const username of participants.toArray()) {
-      if (!createRes.creatorAdded || username !== me) {
-        yield call(RpcTypes.teamsTeamAddMemberRpcPromise, {
-          param: {
-            email: '',
-            name,
-            role: username === me ? RpcTypes.TeamsTeamRole.admin : RpcTypes.TeamsTeamRole.writer,
-            sendChatNotification: true,
-            username,
-          },
-        })
+    yield put(Creators.setTeamCreationError(''))
+    yield put(Creators.setTeamCreationPending(true))
+    try {
+      const createRes = yield call(RpcTypes.teamsTeamCreateRpcPromise, {
+        param: {name, sendChatNotification: true},
+      })
+      for (const username of participants.toArray()) {
+        if (!createRes.creatorAdded || username !== me) {
+          yield call(RpcTypes.teamsTeamAddMemberRpcPromise, {
+            param: {
+              email: '',
+              name,
+              role: username === me ? RpcTypes.TeamsTeamRole.admin : RpcTypes.TeamsTeamRole.writer,
+              sendChatNotification: true,
+              username,
+            },
+          })
+        }
       }
+      yield put(ChatCreators.selectConversation(null, false))
+    } catch (error) {
+      yield put(Creators.setTeamCreationError(error.desc))
+    } finally {
+      yield put(Creators.setTeamCreationPending(false))
     }
   }
 }
@@ -244,8 +256,11 @@ const _getDetails = function*(action: Constants.GetDetails): SagaGenerator<any, 
 
     const invitesMap = map(results.annotatedActiveInvites, invite =>
       Constants.makeInviteInfo({
-        name: invite.type.c === 4 ? `${invite.name}@${invite.type.sbs}` : invite.name,
+        email: invite.type.c === RpcTypes.TeamsTeamInviteCategory.email ? invite.name : '',
         role: Constants.teamRoleByEnum[invite.role],
+        username: invite.type.c === RpcTypes.TeamsTeamInviteCategory.sbs
+          ? `${invite.name}@${invite.type.sbs}`
+          : '',
       })
     )
 
@@ -325,8 +340,19 @@ const _getTeams = function*(action: Constants.GetTeams): SagaGenerator<any, any>
     })
 
     const teams = results.teams || []
-    const teamnames = teams.map(team => team.fqName)
-    yield put(replaceEntity(['teams'], I.Map({teamnames: I.Set(teamnames)})))
+    const teamnames = []
+    const teammembercounts = {}
+    teams.forEach(team => {
+      teamnames.push(team.fqName)
+      teammembercounts[team.fqName] = team.memberCount
+    })
+
+    yield put(
+      replaceEntity(
+        ['teams'],
+        I.Map({teamnames: I.Set(teamnames), teammembercounts: I.Map(teammembercounts)})
+      )
+    )
   } finally {
     yield put(replaceEntity(['teams'], I.Map([['loaded', true]])))
   }
@@ -409,6 +435,9 @@ function* _setupTeamHandlers(): SagaGenerator<any, any> {
       dispatch(Creators.getTeams())
     })
     engine().setIncomingHandler('keybase.1.NotifyTeam.teamDeleted', () => {
+      dispatch(Creators.getTeams())
+    })
+    engine().setIncomingHandler('keybase.1.NotifyTeam.teamExit', () => {
       dispatch(Creators.getTeams())
     })
   })

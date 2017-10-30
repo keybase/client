@@ -1,65 +1,44 @@
 // @flow
-/*
- * File to stash local debug changes to. Never check this in with changes
- */
-
-import * as Tabs from './constants/tabs'
 import {jsonDebugFileName} from './constants/platform.desktop'
-import {updateConfig} from './app/command-line.desktop.js'
+import noop from 'lodash/noop'
 
-let config: {[key: string]: any} = {
-  actionStatFrequency: 0,
-  allowMultipleInstances: false,
-  closureStoreCheck: false,
-  enableActionLogging: true,
-  enableStoreLogging: false,
-  featureFlagsOverride: null,
-  forceImmediateLogging: false,
-  forceMainWindowPosition: null,
-  forwardLogs: true,
-  ignoreDisconnectOverlay: false,
-  immediateStateLogging: false,
-  initialTabState: {},
-  isTesting: false,
-  logStatFrequency: 0,
-  maskStrings: false,
-  overrideLoggedInTab: null,
-  printOutstandingRPCs: false,
-  printRPC: false,
-  printRoutes: false,
-  filterActionLogs: null,
-  reactPerf: false,
-  redirectOnLogout: true,
-  reduxSagaLogger: false,
-  reduxSagaLoggerMasked: true,
-  resetEngineOnHMR: false,
-  showAllTrackers: false,
-  showDevTools: false,
-  skipSecondaryDevtools: true,
-  userTimings: false,
+// Set this to true if you want to turn off most console logging so you can profile easier
+const PERF = false
+
+let config = {
+  enableActionLogging: true, // Log actions to the log
+  enableStoreLogging: false, // Log full store changes
+  featureFlagsOverride: null, // Override feature flags
+  filterActionLogs: null, // Filter actions in log
+  forceImmediateLogging: false, // Don't wait for idle to log
+  forwardLogs: true, // Send logs to remote console
+  ignoreDisconnectOverlay: false, // Let you use the app even in a disconnected state
+  immediateStateLogging: false, // Don't wait for idle to log state
+  isTesting: false, // Is running a unit test
+  maskStrings: false, // Replace all hiddenstrings w/ fake values
+  printOutstandingRPCs: false, // Periodically print rpcs we're waiting for
+  printRPC: false, // Print rpc traffic
+  reduxSagaLogger: false, // Print saga debug info
+  reduxSagaLoggerMasked: true, // Print saga debug info masked out
+  showDevTools: false, // Show devtools on start
+  skipSecondaryDevtools: true, // Don't show devtools for menubar/trackers etc
+  userTimings: false, // Add user timings api to timeline in chrome
 }
 
-if (__DEV__ && process.env.KEYBASE_LOCAL_DEBUG) {
-  config.actionStatFrequency = 0.8
-  config.allowMultipleInstances = true
+// Developer settings
+if (__DEV__) {
   config.enableActionLogging = false
   config.enableStoreLogging = true
-  config.forwardLogs = false
-  config.logStatFrequency = 0.8
-  config.overrideLoggedInTab = Tabs.settingsTab
-  config.printOutstandingRPCs = true
-  config.printRPC = false
-  config.printRoutes = false
   config.filterActionLogs = null // '^chat|entity'
-  config.redirectOnLogout = false
+  config.forwardLogs = false
+  config.printOutstandingRPCs = true
+  config.printRPC = true
   config.reduxSagaLogger = false
   config.reduxSagaLoggerMasked = false
   config.userTimings = true
-
-  const envJson = envVarDebugJson()
-  config = {...config, ...envJson}
 }
 
+// Load overrides from a local json file
 if (!__STORYBOOK__) {
   const fs = require('fs')
   if (fs.existsSync(jsonDebugFileName)) {
@@ -73,59 +52,58 @@ if (!__STORYBOOK__) {
   }
 }
 
-config = updateConfig(config)
+// If performance testing
+if (PERF) {
+  console.warn('\n\n\nlocal debug PERF is ONNNNNn!!!!!1!!!11!!!!\nAll console.logs disabled!\n\n\n')
 
-if (__DEV__ && process.env.KEYBASE_PERF) {
-  config.actionStatFrequency = 0
+  // $FlowIssue doens't like messing w/ console
+  console._log = console.log
+  // $FlowIssue doens't like messing w/ console
+  console._warn = console.warn
+  // $FlowIssue doens't like messing w/ console
+  console._error = console.error
+  // $FlowIssue doens't like messing w/ console
+  console._info = console.info
+
+  // $FlowIssue doens't like messing w/ console
+  console.log = noop
+  // $FlowIssue doens't like messing w/ console
+  console.warn = noop
+  // $FlowIssue doens't like messing w/ console
+  console.error = noop
+  // $FlowIssue doens't like messing w/ console
+  console.info = noop
+
   config.enableActionLogging = false
   config.enableStoreLogging = false
+  config.filterActionLogs = null
+  config.forceImmediateLogging = false
   config.forwardLogs = false
-  config.logStatFrequency = 0
-  config.overrideLoggedInTab = Tabs.settingsTab
+  config.ignoreDisconnectOverlay = false
+  config.immediateStateLogging = false
   config.printOutstandingRPCs = false
   config.printRPC = false
-  config.printRoutes = false
-  config.redirectOnLogout = false
+  config.reduxSagaLogger = false
+  config.reduxSagaLoggerMasked = false
+  config.userTimings = true
 }
 
 export const {
-  actionStatFrequency,
-  allowMultipleInstances,
-  closureStoreCheck,
   enableActionLogging,
   enableStoreLogging,
   featureFlagsOverride,
+  filterActionLogs,
   forceImmediateLogging,
-  forceMainWindowPosition,
   forwardLogs,
   ignoreDisconnectOverlay,
   immediateStateLogging,
   isTesting,
-  logStatFrequency,
   maskStrings,
-  overrideLoggedInTab,
   printOutstandingRPCs,
   printRPC,
-  printRoutes,
-  reactPerf,
   reduxSagaLogger,
   reduxSagaLoggerMasked,
-  resetEngineOnHMR,
-  showAllTrackers,
   showDevTools,
   skipSecondaryDevtools,
-  filterActionLogs,
   userTimings,
 } = config
-
-export function envVarDebugJson() {
-  if (process.env.KEYBASE_LOCAL_DEBUG_JSON) {
-    try {
-      return JSON.parse(process.env.KEYBASE_LOCAL_DEBUG_JSON)
-    } catch (e) {
-      console.warn('Invalid KEYBASE_LOCAL_DEBUG_JSON:', e)
-    }
-  }
-
-  return null
-}

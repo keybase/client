@@ -85,16 +85,27 @@ const InviteByEmail = (props: Props) => (
             />
           </ClickableBox>
         </Box>
-        <Input
-          autoFocus={true}
-          hintText="Email addresses"
-          multiline={true}
-          onChangeText={invitees => props.onInviteesChange(invitees)}
-          rowsMin={3}
-          rowsMax={8}
-          style={styleInside}
-          value={props.invitees}
-        />
+        <Text type="BodySmallSemibold" style={{alignSelf: 'flex-start'}}>Enter multiple email addresses</Text>
+        <Box
+          style={{
+            border: `1px solid ${globalColors.black_40}`,
+            marginBottom: globalMargins.small,
+            width: '100%',
+          }}
+        >
+          <Input
+            autoFocus={true}
+            multiline={true}
+            hideUnderline={true}
+            onChangeText={invitees => props.onInviteesChange(invitees)}
+            rowsMin={3}
+            rowsMax={8}
+            style={styleInside}
+            value={props.invitees}
+            inputStyle={styleInput}
+          />
+        </Box>
+
         <Button label="Invite" onClick={props.onInvite} type="Primary" />
       </Box>
     </Box>
@@ -102,7 +113,15 @@ const InviteByEmail = (props: Props) => (
 )
 
 const styleInside = {
-  padding: globalMargins.small,
+  padding: globalMargins.tiny,
+  marginTop: 0,
+  margonBottom: 0,
+}
+
+const styleInput = {
+  fontSize: 13,
+  fontWeight: 'normal',
+  textAlign: 'left',
 }
 
 const _styleCover = {

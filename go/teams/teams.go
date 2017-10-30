@@ -454,6 +454,16 @@ func (t *Team) ChangeMembershipPermanent(ctx context.Context, req keybase1.TeamC
 		if err != nil {
 			return err
 		}
+		defer func() {
+			// We must cancel in the case of an error in postChangeItem, but it's safe to cancel
+			// if everything worked. So we always cancel the lease on the way out of this function.
+			// See CORE-6473 for a case in which this was needed. And also the test
+			// `TestOnlyOwnerLeaveThenUpgradeFriend`.
+			err := libkb.CancelDowngradeLease(ctx, t.G(), lease.LeaseID)
+			if err != nil {
+				t.G().Log.CWarningf(ctx, "Failed to cancel downgrade lease: %s", err.Error())
+			}
+		}()
 	}
 	// post the change to the server
 	sigPayloadArgs := sigPayloadArgs{
@@ -532,7 +542,7 @@ func (t *Team) Leave(ctx context.Context, permanent bool) error {
 	if role == keybase1.TeamRole_NONE {
 		_, err := t.getAdminPermission(ctx, false)
 		if err == nil {
-			return NewImplicitAdminCannotLeave()
+			return NewImplicitAdminCannotLeaveError()
 		}
 	}
 
@@ -1346,6 +1356,7 @@ func RetryOnSigOldSeqnoError(ctx context.Context, g *libkb.GlobalContext, post f
 		}
 		return err
 	}
+	g.Log.CDebugf(ctx, "| RetryOnSigOldSeqnoError exhausted attempts")
 	if err == nil {
 		// Should never happen
 		return fmt.Errorf("failed retryable team operation")
