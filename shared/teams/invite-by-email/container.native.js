@@ -87,61 +87,27 @@ export default compose(
         )
       },
     }),
-    // if contacts or pending invites change => recalculate which have already been invited
-    withPropsOnChange(['contacts', '_pendingInvites'], props => {
-      const invited = []
-
-      // Search through pending invites & cross reference against contacts to find any who have been already invited
-      // TODO consider trimming contact matches to match with variations in formatting
-      props._pendingInvites.toJS().forEach(invite => {
-        props.contacts.forEach(contact => {
-          contact.emailAddresses.forEach(address => {
-            if (address.email === invite.email) {
-              invited.push({contactID: contact.recordID + address.email, address: address.email})
-            }
-          })
-          contact.phoneNumbers.forEach(phone => {
-            if (phone.number === invite.name) {
-              invited.push({contactID: contact.recordID + phone.number})
-            }
-          })
-        })
-      })
-
-      return {invited}
-    }),
-    // Dispatch invite actions
+    // Checker for whether address is already in invited array
     withHandlers({
-      onInviteEmail: ({onInviteEmail, role}) => (invitee: string) => role && onInviteEmail({invitee, role}),
-      onInvitePhone: ({onInvitePhone, role}) => (invitee: string) => role && onInvitePhone({invitee, role}),
-      onUninvite: ({onUninvite}) => (invitee: string) => onUninvite(invitee),
-    }),
-    // Delegators to email / phoneNo handlers
-    withHandlers({
-      addInvitee: ({onInviteEmail, onInvitePhone}) => (contact: ContactDisplayProps) => {
-        if (contact.email) {
-          onInviteEmail(contact.email)
-        } else if (contact.phoneNo) {
-          onInvitePhone(contact.phoneNo)
-        }
-      },
-      removeInvitee: ({onUninvite}) => (contact: ContactDisplayProps) => {
-        if (contact.email) {
-          onUninvite(contact.email)
-        }
-      },
-      isSelected: ({invited}) => (id: string): boolean => {
-        return invited.findIndex(rec => rec.contactID === id) >= 0
+      isSelected: ({_pendingInvites}) => (addr: string): boolean => {
+        return !!_pendingInvites.find(rec => rec.email === addr) // TODO search phone number
       },
     }),
     // Delegate to add / remove
-    // We could probable combine this & the above to pipe all the way through
     withHandlers({
-      onSelectContact: ({removeInvitee, addInvitee, isSelected}) => (contact: ContactDisplayProps) => {
-        if (isSelected(contact.recordID)) {
-          removeInvitee(contact)
+      onSelectContact: ({isSelected, invited, role, onUninvite, onInviteEmail, onInvitePhone}) => (
+        contact: ContactDisplayProps
+      ) => {
+        if (!isSelected(contact.email || contact.phoneNo)) {
+          if (contact.email) {
+            role && onInviteEmail({invitee: contact.email, role})
+          } else if (contact.phoneNo) {
+            role && onInvitePhone({invitee: contact.phoneNo, role})
+          }
         } else {
-          addInvitee(contact)
+          if (contact.email) {
+            onUninvite(contact.email)
+          } // TODO phone number uninvite
         }
       },
     }),
@@ -150,35 +116,20 @@ export default compose(
       // Create static contact row props here
       const contactRowProps = props.contacts.reduce((res, contact) => {
         const contactName = isAndroid ? contact.givenName : contact.givenName + ' ' + contact.familyName
-        contact.emailAddresses.forEach(email => {
+        contact.emailAddresses.concat(contact.phoneNumbers).forEach(addr => {
           const cData = {
             name: contactName,
-            email: email.email,
-            label: email.label,
+            phoneNo: addr.number,
+            email: addr.email,
+            label: addr.label,
             thumbnailPath: contact.thumbnailPath,
-            recordID: contact.recordID + email.email,
+            recordID: contact.recordID + (addr.email ? addr.email : addr.number),
           }
           res.push({
-            id: contact.recordID + email.email,
-            loading: props.loadingInvites.get(email.email),
+            id: contact.recordID + (addr.email ? addr.email : addr.number),
+            loading: props.loadingInvites.get(addr.email),
             contact: cData,
-            selected: props.isSelected(cData.recordID),
-            onClick: () => props.onSelectContact(cData),
-          })
-        })
-        contact.phoneNumbers.forEach(phoneNo => {
-          const cData = {
-            name: contactName,
-            phoneNo: phoneNo.number,
-            label: phoneNo.label,
-            thumbnailPath: contact.thumbnailPath,
-            recordID: contact.recordID + phoneNo.number,
-          }
-          res.push({
-            id: contact.recordID + phoneNo.number,
-            loading: props.loadingInvites.get(phoneNo.number),
-            contact: cData,
-            selected: props.isSelected(cData.recordID),
+            selected: props.isSelected(cData.email || cData.phoneNo),
             onClick: () => props.onSelectContact(cData),
           })
         })
