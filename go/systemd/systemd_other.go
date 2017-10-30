@@ -1,6 +1,6 @@
 // +build !linux android
 
-package service
+package systemd
 
 import "net"
 

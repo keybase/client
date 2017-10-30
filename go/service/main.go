@@ -29,6 +29,7 @@ import (
 	gregor1 "github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/pvlsource"
+	"github.com/keybase/client/go/systemd"
 	"github.com/keybase/client/go/teams"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 )
@@ -267,7 +268,7 @@ func (d *Service) Run() (err error) {
 	// for correctness, but it allows commands like "systemctl start keybase.service"
 	// to report startup errors to the terminal, by delaying their return
 	// until they get this notification (Type=notify, in systemd lingo).
-	NotifyStartupFinished()
+	systemd.NotifyStartupFinished()
 
 	d.G().ExitCode, err = d.ListenLoopWithStopper(l)
 
@@ -720,7 +721,7 @@ func (d *Service) GetExclusiveLock() error {
 func (d *Service) cleanupSocketFile() error {
 	// Short circuit if we're running under socket activation -- the socket
 	// file is already set up for us, and we mustn't delete it.
-	if IsSocketActivated() {
+	if systemd.IsSocketActivated() {
 		return nil
 	}
 	sf, err := d.G().Env.GetSocketBindFile()
@@ -755,7 +756,7 @@ func (d *Service) lockPIDFile() (err error) {
 func (d *Service) ConfigRPCServer() (net.Listener, error) {
 	// First, check to see if we've been launched with socket activation by
 	// systemd. If so, the socket is already open. Otherwise open it ourselves.
-	listener, err := GetListenerFromEnvironment()
+	listener, err := systemd.GetListenerFromEnvironment()
 	if err != nil {
 		d.G().Log.Error("unexpected error in GetListenerFromEnvironment: %#v", err)
 		return nil, err
