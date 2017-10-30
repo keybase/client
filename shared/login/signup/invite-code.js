@@ -1,7 +1,8 @@
 // @flow
 import InviteCode from './invite-code.render'
 import {connect, type TypedState} from '../../util/container'
-import {restartSignup, checkInviteCode, startRequestInvite} from '../../actions/signup'
+import {restartSignup, startRequestInvite} from '../../actions/signup'
+import {createCheckInviteCode} from '../../actions/signup-gen'
 
 export default connect(
   (state: TypedState) => ({
@@ -11,7 +12,7 @@ export default connect(
   }),
   (dispatch: Dispatch) => ({
     onBack: () => dispatch(restartSignup()),
-    onInviteCodeSubmit: (code: string) => dispatch(checkInviteCode(code)),
+    onInviteCodeSubmit: (inviteCode: string) => dispatch(createCheckInviteCode({inviteCode})),
     onRequestInvite: () => dispatch(startRequestInvite()),
   })
 )(InviteCode)

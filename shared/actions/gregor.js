@@ -1,5 +1,6 @@
 // @flow
 import * as Constants from '../constants/gregor'
+import * as GregorGen from './gregor-gen'
 import * as I from 'immutable'
 import engine from '../engine'
 import {
@@ -25,10 +26,6 @@ import {type State as GregorState, type OutOfBandMessage} from '../constants/typ
 import {type TypedState} from '../constants/reducer'
 import {usernameSelector, loggedInSelector} from '../constants/selectors'
 import {handleIncomingGregor as gitHandleIncomingGregor} from './git/creators'
-
-function pushState(state: GregorState, reason: PushReason): Constants.PushState {
-  return {type: Constants.pushState, payload: {state, reason}}
-}
 
 function pushOOBM(messages: Array<OutOfBandMessage>): Constants.PushOOBM {
   return {type: Constants.pushOOBM, payload: {messages}}
@@ -126,7 +123,7 @@ function registerGregorListeners() {
 
     // we get this with sessionID == 0 if we call openDialog
     engine().setIncomingHandler('keybase.1.gregorUI.pushState', ({state, reason}, response) => {
-      dispatch(pushState(state, reason))
+      dispatch(GregorGen.createPushState({state, reason}))
       response && response.result()
     })
 
@@ -162,7 +159,9 @@ function* handleChatBanner(items: Array<Constants.NonNullGregorItem>): SagaGener
   }
 }
 
-function* handlePushState(pushAction: Constants.PushState): SagaGenerator<any, any> {
+function* handlePushState(
+  pushAction: GregorGen.ReturnType<typeof GregorGen.createPushState>
+): SagaGenerator<any, any> {
   if (!pushAction.error) {
     const {payload: {state}} = pushAction
     const nonNullItems = toNonNullGregorItems(state)
@@ -228,7 +227,7 @@ function* _injectItem(action: Constants.InjectItem): SagaGenerator<any, any> {
 }
 
 function* gregorSaga(): SagaGenerator<any, any> {
-  yield safeTakeEvery(Constants.pushState, handlePushState)
+  yield safeTakeEvery(GregorGen.pushState, handlePushState)
   yield safeTakeEvery(Constants.pushOOBM, handlePushOOBM)
   yield safeTakeEvery(Constants.injectItem, _injectItem)
   yield safeTakeLatest(Constants.checkReachability, handleCheckReachability)
@@ -237,7 +236,6 @@ function* gregorSaga(): SagaGenerator<any, any> {
 export {
   checkReachability,
   checkReachabilityOnConnect,
-  pushState,
   registerGregorListeners,
   registerReachability,
   listenForNativeReachabilityEvents,

@@ -45,7 +45,11 @@ ${compileAllActionsType(ns, actions)}
 
 function compileAllActionsType(ns: ActionNS, actions: Actions): string {
   return `export type Actions = ${Object.keys(actions)
-    .map((name: ActionName) => `ReturnType<typeof create${capitalize(name)}>`)
+    .map(
+      (name: ActionName) =>
+        `ReturnType<typeof create${capitalize(name)}>` +
+        (actions[name].canError ? ` | ReturnType<typeof create${capitalize(name)}Error>` : '')
+    )
     .join('|')}`
 }
 
@@ -73,6 +77,7 @@ function compileActionCreator(ns: ActionNS, actionName: ActionName, desc: Action
     `export const create${capitalize(actionName)} = (payload: ${printPayload(noErrorPayload)}) => (
   {
     type: ${actionName},
+    error: false,
     payload,
   }
 )` +

@@ -12,6 +12,7 @@ export const updateBadging = 'chat:updateBadging'
 // Action Creators
 export const createUpdateBadging = (payload: {|conversationIDKey: Constants.ConversationIDKey|}) => ({
   type: updateBadging,
+  error: false,
   payload,
 })
 
