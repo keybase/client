@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react'
-import {ClickableBox, Icon, Avatar, Box, Divider, Text, ProgressIndicator} from '../../common-adapters'
+import {ClickableBox, Icon, Avatar, Box, Divider, Text, ProgressIndicator, Meta} from '../../common-adapters'
 import {globalMargins, globalStyles, globalColors} from '../../styles'
 import {isMobile} from '../../constants/platform'
 
@@ -27,9 +27,8 @@ type RowProps = {
 export const newCharmStyle = {
   backgroundColor: globalColors.orange,
   borderRadius: 1,
-  paddingLeft: 2,
-  paddingRight: 2,
   marginRight: 4,
+  alignSelf: 'center',
 }
 
 const Row = ({name, membercount, isNew, onOpenFolder, onManageChat, onViewTeam}: RowProps) => (
@@ -49,10 +48,7 @@ const Row = ({name, membercount, isNew, onOpenFolder, onManageChat, onViewTeam}:
             {name}
           </Text>
           <Box style={globalStyles.flexBoxRow}>
-            {isNew &&
-              <Box style={newCharmStyle}>
-                <Text style={{color: globalColors.white, fontSize: 10}} type="BodySmallSemibold">NEW</Text>
-              </Box>}
+            {isNew && <Meta title="NEW" style={newCharmStyle} />}
             <Text type="BodySmall">
               {membercount + ' member' + (membercount !== 1 ? 's' : '')}
             </Text>
