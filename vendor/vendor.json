@@ -57,6 +57,18 @@
 			"revisionTime": "2016-06-30T22:46:53-07:00"
 		},
 		{
+			"checksumSHA1": "RBwpnMpfQt7Jo7YWrRph0Vwe+f0=",
+			"path": "github.com/coreos/go-systemd/activation",
+			"revision": "d2196463941895ee908e13531a23a39feb9e1243",
+			"revisionTime": "2017-07-31T11:19:25Z"
+		},
+		{
+			"checksumSHA1": "+Zz+leZHHC9C0rx8DoRuffSRPso=",
+			"path": "github.com/coreos/go-systemd/daemon",
+			"revision": "d2196463941895ee908e13531a23a39feb9e1243",
+			"revisionTime": "2017-07-31T11:19:25Z"
+		},
+		{
 			"checksumSHA1": "dvabztWVQX8f6oMLRyv4dLH+TGY=",
 			"path": "github.com/davecgh/go-spew/spew",
 			"revision": "346938d642f2ec3594ed81d874461961cd0faa76",
@@ -223,6 +235,12 @@
 			"path": "github.com/keybase/client/go/pvlsource",
 			"revision": "433eb48ff4c25a822386faabcc40fd304269db33",
 			"revisionTime": "2017-10-11T18:56:40Z"
+		},
+		{
+			"checksumSHA1": "G+30uNG6Pq4KMVcN1TM3+yiIN8Y=",
+			"path": "github.com/keybase/client/go/systemd",
+			"revision": "82426394a049d35f95630d796cb9509ad71808a6",
+			"revisionTime": "2017-10-30T22:38:49Z"
 		},
 		{
 			"checksumSHA1": "qtfSDF71FbCm7kTNKdraxOpU7wY=",
