@@ -16,15 +16,15 @@ import {
 import {scoreFilter, passesStringFilter} from './filtering'
 
 const smallTeamsCollapsedMaxShown = 5
-const getAlwaysShow = (state: TypedState) => state.entities.get('inboxAlwaysShow')
+const getAlwaysShow = (state: TypedState) => state.chat.get('inboxAlwaysShow')
 const getFilter = (state: TypedState) => state.chat.get('inboxFilter').toLowerCase()
-const getInbox = (state: TypedState) => state.entities.get('inbox')
-const getInboxBigChannels = (state: TypedState) => state.entities.get('inboxBigChannels')
-const getInboxBigChannelsToTeam = (state: TypedState) => state.entities.get('inboxBigChannelsToTeam')
-const getIsEmpty = (state: TypedState) => state.entities.get('inboxIsEmpty')
+const getInbox = (state: TypedState) => state.chat.get('inbox')
+const getInboxBigChannels = (state: TypedState) => state.chat.get('inboxBigChannels')
+const getInboxBigChannelsToTeam = (state: TypedState) => state.chat.get('inboxBigChannelsToTeam')
+const getIsEmpty = (state: TypedState) => state.chat.get('inboxIsEmpty')
 const getPending = (state: TypedState) => state.chat.get('pendingConversations')
-const getSmallTimestamps = (state: TypedState) => state.entities.getIn(['inboxSmallTimestamps'], I.Map())
-const getSupersededBy = (state: TypedState) => state.entities.get('inboxSupersededBy')
+const getSmallTimestamps = (state: TypedState) => state.chat.getIn(['inboxSmallTimestamps'], I.Map())
+const getSupersededBy = (state: TypedState) => state.chat.get('inboxSupersededBy')
 const _rowsForSelect = (rows: Array<any>) => rows.filter(r => ['small', 'big'].includes(r.type))
 const _smallTeamsPassThrough = (_, smallTeamsExpanded) => smallTeamsExpanded
 
@@ -200,7 +200,7 @@ const mapStateToProps = (state: TypedState, {isActiveRoute, routeState}) => {
     ...rowMetadata,
     filter,
     isActiveRoute,
-    isLoading: state.chat.get('inboxUntrustedState') === 'loading',
+    isLoading: state.chat.get('inboxGlobalUntrustedState') === 'loading',
     user: Constants.getYou(state),
   }
 }

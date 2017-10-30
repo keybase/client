@@ -16,12 +16,12 @@ const getFinalizedInfo = (state: TypedState, conversationIDKey: Constants.Conver
 const getRekeyInfo = (state: TypedState, conversationIDKey: Constants.ConversationIDKey) =>
   state.chat.getIn(['rekeyInfos', conversationIDKey])
 const getUnreadTotals = (state: TypedState, conversationIDKey: Constants.ConversationIDKey) =>
-  state.entities.getIn(['inboxUnreadCountTotal', conversationIDKey], 0)
+  state.chat.getIn(['inboxUnreadCountTotal', conversationIDKey], 0)
 const getUnreadBadges = (state: TypedState, conversationIDKey: Constants.ConversationIDKey) =>
-  state.entities.getIn(['inboxUnreadCountBadge', conversationIDKey], 0)
+  state.chat.getIn(['inboxUnreadCountBadge', conversationIDKey], 0)
 const getYou = (state: TypedState) => state.config.username || ''
 const getNowOverride = (state: TypedState) => state.chat.nowOverride
-const getUntrustedState = (state: TypedState) => state.entities.inboxUntrustedState
+const getUntrustedState = (state: TypedState) => state.chat.inboxUntrustedState
 const getPendingParticipants = (state: TypedState, conversationIDKey: Constants.ConversationIDKey) =>
   state.chat.get('pendingConversations').get(conversationIDKey) || I.List()
 

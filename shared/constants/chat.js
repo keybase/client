@@ -21,6 +21,22 @@ const createShallowEqualSelector = createSelectorCreator(defaultMemoize, (a, b) 
   isEqualWith(a, b, (a, b, indexOrKey, object, other, stack) => (stack ? a === b : undefined))
 )
 
+export type EntityType = any
+
+export type Delete = NoErrorTypedAction<'chatentity:delete', {keyPath: Array<string>, ids: I.List<string>}>
+export type Merge = NoErrorTypedAction<
+  'chatentity:merge',
+  {keyPath: Array<string>, entities: I.Map<any, EntityType> | I.List<EntityType>}
+>
+export type Replace = NoErrorTypedAction<
+  'chatentity:replace',
+  {keyPath: Array<string>, entities: I.Map<any, EntityType>}
+>
+export type Subtract = NoErrorTypedAction<
+  'chatentity:subtract',
+  {keyPath: Array<string>, entities: I.List<EntityType>}
+>
+
 export type Username = string
 export type MessageKey = string
 type MessageKeyKind =
@@ -377,69 +393,92 @@ export type UnreadCounts = {
 }
 
 type _State = {
-  // TODO  move to entities
-  messageMap: I.Map<MessageKey, Message>,
-  localMessageStates: I.Map<MessageKey, LocalMessageState>,
-  inboxFilter: string,
-  inboxSearch: I.List<string>,
-  conversationStates: I.Map<ConversationIDKey, ConversationState>,
-  finalizedState: FinalizedState,
-  supersedesState: SupersedesState,
-  supersededByState: SupersededByState,
-  metaData: MetaDataMap,
-  conversationUnreadCounts: I.Map<ConversationIDKey, UnreadCounts>,
-  rekeyInfos: I.Map<ConversationIDKey, RekeyInfo>,
   alwaysShow: I.Set<ConversationIDKey>,
-  pendingConversations: I.Map<ConversationIDKey, Participants>,
-  tempPendingConversations: I.Map<ConversationIDKey, boolean>,
-  nowOverride: ?Date,
+  conversationStates: I.Map<ConversationIDKey, ConversationState>,
+  conversationUnreadCounts: I.Map<ConversationIDKey, UnreadCounts>,
   editingMessage: ?Message,
+  finalizedState: FinalizedState,
+  inSearch: boolean,
+  inbox: I.Map<ConversationIDKey, InboxState>,
+  inboxAlwaysShow: I.Map<ConversationIDKey, boolean>,
+  inboxBigChannels: I.Map<ConversationIDKey, string>,
+  inboxBigChannelsToTeam: I.Map<ConversationIDKey, string>,
+  inboxFilter: string,
+  inboxIsEmpty: I.Map<ConversationIDKey, boolean>,
+  inboxSearch: I.List<string>,
+  inboxSmallTimestamps: I.Map<ConversationIDKey, number>,
+  inboxSnippet: I.Map<ConversationIDKey, ?HiddenString>,
+  inboxSupersededBy: I.Map<ConversationIDKey, boolean>,
+  inboxUnreadCountBadge: I.Map<ConversationIDKey, number>,
+  inboxUnreadCountTotal: I.Map<ConversationIDKey, number>,
+  inboxUntrustedState: I.Map<ConversationIDKey, InboxUntrustedState>,
+  inboxGlobalUntrustedState: UntrustedState,
+  inboxVersion: I.Map<ConversationIDKey, number>,
   initialConversation: ?ConversationIDKey,
-  inboxUntrustedState: UntrustedState,
+  localMessageStates: I.Map<MessageKey, LocalMessageState>,
+  messageMap: I.Map<MessageKey, Message>,
+  metaData: MetaDataMap,
+  nowOverride: ?Date,
+  pendingConversations: I.Map<ConversationIDKey, Participants>,
   previousConversation: ?ConversationIDKey,
+  rekeyInfos: I.Map<ConversationIDKey, RekeyInfo>,
   searchPending: boolean,
+  searchResultTerm: string,
   searchResults: ?I.List<SearchConstants.SearchResultId>,
   searchShowingSuggestions: boolean,
   selectedUsersInSearch: I.List<SearchConstants.SearchResultId>,
-  inSearch: boolean,
-  searchResultTerm: string,
+  supersededByState: SupersededByState,
+  supersedesState: SupersedesState,
   teamCreationError: string,
   teamCreationPending: boolean,
   teamJoinError: string,
   teamJoinSuccess: boolean,
+  tempPendingConversations: I.Map<ConversationIDKey, boolean>,
 }
 
 export type State = I.RecordOf<_State>
 export const makeState: I.RecordFactory<_State> = I.Record({
-  messageMap: I.Map(),
-  localMessageStates: I.Map(),
-  inboxFilter: '',
-  inboxSearch: I.List(),
-  conversationStates: I.Map(),
-  metaData: I.Map(),
-  finalizedState: I.Map(),
-  supersedesState: I.Map(),
-  supersededByState: I.Map(),
-  conversationUnreadCounts: I.Map(),
-  rekeyInfos: I.Map(),
   alwaysShow: I.Set(),
-  pendingConversations: I.Map(),
-  nowOverride: null,
+  conversationStates: I.Map(),
+  conversationUnreadCounts: I.Map(),
   editingMessage: null,
+  finalizedState: I.Map(),
+  inSearch: false,
+  inbox: I.Map(),
+  inboxAlwaysShow: I.Map(),
+  inboxBigChannels: I.Map(),
+  inboxBigChannelsToTeam: I.Map(),
+  inboxFilter: '',
+  inboxIsEmpty: I.Map(),
+  inboxSearch: I.List(),
+  inboxSmallTimestamps: I.Map(),
+  inboxSnippet: I.Map(),
+  inboxSupersededBy: I.Map(),
+  inboxUnreadCountBadge: I.Map(),
+  inboxUnreadCountTotal: I.Map(),
+  inboxGlobalUntrustedState: 'unloaded',
+  inboxUntrustedState: I.Map(),
+  inboxVersion: I.Map(),
   initialConversation: null,
-  inboxUntrustedState: 'unloaded',
+  localMessageStates: I.Map(),
+  messageMap: I.Map(),
+  metaData: I.Map(),
+  nowOverride: null,
+  pendingConversations: I.Map(),
   previousConversation: null,
+  rekeyInfos: I.Map(),
   searchPending: false,
+  searchResultTerm: '',
   searchResults: null,
   searchShowingSuggestions: false,
   selectedUsersInSearch: I.List(),
-  inSearch: false,
-  tempPendingConversations: I.Map(),
-  searchResultTerm: '',
+  supersededByState: I.Map(),
+  supersedesState: I.Map(),
   teamCreationError: '',
   teamCreationPending: false,
   teamJoinError: '',
   teamJoinSuccess: false,
+  tempPendingConversations: I.Map(),
 })
 
 export const maxAttachmentPreviewSize = 320
@@ -572,9 +611,9 @@ export type SelectConversation = NoErrorTypedAction<
   {conversationIDKey: ?ConversationIDKey, fromUser: boolean}
 >
 export type SetInboxFilter = NoErrorTypedAction<'chat:inboxFilter', {filter: string}>
-export type SetInboxUntrustedState = NoErrorTypedAction<
-  'chat:inboxUntrustedState',
-  {inboxUntrustedState: UntrustedState}
+export type SetInboxGlobalUntrustedState = NoErrorTypedAction<
+  'chat:inboxGlobalUntrustedState',
+  {inboxGlobalUntrustedState: UntrustedState}
 >
 export type SetPreviousConversation = NoErrorTypedAction<
   'chat:setPreviousConversation',
@@ -1141,7 +1180,7 @@ const getYou = (state: TypedState) => state.config.username || ''
 const getFollowingMap = (state: TypedState) => state.config.following
 const getMetaDataMap = (state: TypedState) => state.chat.get('metaData')
 const getInbox = (state: TypedState, conversationIDKey: ?ConversationIDKey) =>
-  conversationIDKey ? state.entities.getIn(['inbox', conversationIDKey]) : null
+  conversationIDKey ? state.chat.getIn(['inbox', conversationIDKey]) : null
 const getSelectedInbox = (state: TypedState) => getInbox(state, getSelectedConversation(state))
 const getEditingMessage = (state: TypedState) => state.chat.get('editingMessage')
 
@@ -1229,7 +1268,6 @@ const getUserItems = createShallowEqualSelector(
     })
 )
 
-// Selectors for entities
 function getConversationMessages(state: TypedState, convIDKey: ConversationIDKey): I.OrderedSet<MessageKey> {
   return state.entities.conversationMessages.get(convIDKey, I.OrderedSet())
 }
@@ -1329,7 +1367,7 @@ const getLocalMessageStateFromMessageKey = createSelector(
 )
 
 function getSnippet(state: TypedState, conversationIDKey: ConversationIDKey): string {
-  const snippet = state.entities.convIDToSnippet.get(conversationIDKey, null)
+  const snippet = state.chat.inboxSnippet.get(conversationIDKey, null)
   return snippet ? snippet.stringValue() : ''
 }
 

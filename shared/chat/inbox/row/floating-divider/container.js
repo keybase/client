@@ -2,8 +2,8 @@
 import {FloatingDivider} from '.'
 import {createSelector, connect, type TypedState} from '../../../../util/container'
 
-const getInboxBigChannels = (state: TypedState) => state.entities.get('inboxBigChannels')
-const getBadges = (state: TypedState) => state.entities.get('inboxUnreadCountBadge')
+const getInboxBigChannels = (state: TypedState) => state.chat.get('inboxBigChannels')
+const getBadges = (state: TypedState) => state.chat.get('inboxUnreadCountBadge')
 
 const floatinDividerSelector = createSelector(
   [getBadges, getInboxBigChannels],

@@ -2,8 +2,8 @@
 import * as ChatTypes from '../../constants/types/flow-types-chat'
 import * as RPCTypes from '../../constants/types/flow-types'
 import * as Constants from '../../constants/chat'
+import * as I from 'immutable'
 import HiddenString from '../../util/hidden-string'
-import {List} from 'immutable'
 import {chatTab} from '../../constants/tabs'
 import {setRouteState} from '../route-tree'
 import uniq from 'lodash/uniq'
@@ -116,7 +116,7 @@ function updateLatestMessage(conversationIDKey: Constants.ConversationIDKey): Co
 }
 
 function badgeAppForChat(conversations: ?Array<RPCTypes.BadgeConversationInfo>): Constants.BadgeAppForChat {
-  const convos = List(
+  const convos = I.List(
     (conversations || []).map(conversation => Constants.ConversationBadgeStateRecord(conversation))
   )
   return {payload: convos, type: 'chat:badgeAppForChat'}
@@ -577,17 +577,17 @@ function setSelectedRouteState(
   selectedConversation: Constants.ConversationIDKey,
   partialState: Object
 ): SetRouteState {
-  return setRouteState(List([chatTab, selectedConversation]), partialState)
+  return setRouteState(I.List([chatTab, selectedConversation]), partialState)
 }
 
 function setInboxFilter(filter: string): Constants.SetInboxFilter {
   return {payload: {filter}, type: 'chat:inboxFilter'}
 }
 
-function setInboxUntrustedState(
-  inboxUntrustedState: Constants.UntrustedState
-): Constants.SetInboxUntrustedState {
-  return {payload: {inboxUntrustedState}, type: 'chat:inboxUntrustedState'}
+function setInboxGlobalUntrustedState(
+  inboxGlobalUntrustedState: Constants.UntrustedState
+): Constants.SetInboxGlobalUntrustedState {
+  return {payload: {inboxGlobalUntrustedState}, type: 'chat:inboxGlobalUntrustedState'}
 }
 
 function updateThread(
@@ -637,7 +637,40 @@ function selectNext(rows: Array<any>, direction: -1 | 1): Constants.InboxFilterS
   return {type: 'chat:inboxFilterSelectNext', payload: {rows, direction}}
 }
 
+const deleteEntity: (keyPath: Array<string>, ids: I.List<string>) => Constants.Delete = (keyPath, ids) => ({
+  payload: {ids, keyPath},
+  type: 'chatentity:delete',
+})
+
+const mergeEntity: (keyPath: Array<string>, entities: I.Map<any, any> | I.List<any>) => Constants.Merge = (
+  keyPath,
+  entities
+) => ({
+  payload: {entities, keyPath},
+  type: 'chatentity:merge',
+})
+
+const replaceEntity: (keyPath: Array<string>, entities: I.Map<any, any>) => Constants.Replace = (
+  keyPath,
+  entities
+) => ({
+  payload: {entities, keyPath},
+  type: 'chatentity:replace',
+})
+
+const subtractEntity: (keyPath: Array<string>, entities: I.List<any>) => Constants.Subtract = (
+  keyPath,
+  entities
+) => ({
+  payload: {entities, keyPath},
+  type: 'chatentity:subtract',
+})
+
 export {
+  deleteEntity,
+  mergeEntity,
+  replaceEntity,
+  subtractEntity,
   addPending,
   appendMessages,
   attachmentLoaded,
@@ -684,7 +717,7 @@ export {
   selectNext,
   selectConversation,
   setInboxFilter,
-  setInboxUntrustedState,
+  setInboxGlobalUntrustedState,
   setLoaded,
   setNotifications,
   setPreviousConversation,

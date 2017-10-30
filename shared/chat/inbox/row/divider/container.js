@@ -2,7 +2,7 @@
 import {Divider} from '.'
 import {createSelector, connect, type TypedState} from '../../../../util/container'
 
-const getBadges = (state: TypedState) => state.entities.get('inboxUnreadCountBadge')
+const getBadges = (state: TypedState) => state.chat.get('inboxUnreadCountBadge')
 const getOwnProps = (_, {smallIDsHidden}) => ({smallIDsHidden})
 
 const dividerSelector = createSelector([getBadges, getOwnProps], (badges, ownProps) => {

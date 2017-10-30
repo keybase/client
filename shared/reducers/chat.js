@@ -21,6 +21,22 @@ function reducer(state: Constants.State = initialState, action: Constants.Action
   switch (action.type) {
     case CommonConstants.resetStore:
       return Constants.makeState()
+    case 'chatentity:delete': {
+      const {keyPath, ids} = action.payload
+      return state.updateIn(keyPath, map => map.deleteAll(ids))
+    }
+    case 'chatentity:merge': {
+      const {keyPath, entities} = action.payload
+      return state.mergeDeepIn(keyPath, entities)
+    }
+    case 'chatentity:replace': {
+      const {keyPath, entities} = action.payload
+      return state.mergeIn(keyPath, entities)
+    }
+    case 'chatentity:subtract': {
+      const {keyPath, entities} = action.payload
+      return state.updateIn(keyPath, set => set.subtract(entities))
+    }
     case 'chat:clearMessages': {
       const {conversationIDKey} = action.payload
       const origConversationState = state.get('conversationStates').get(conversationIDKey)
@@ -235,8 +251,8 @@ function reducer(state: Constants.State = initialState, action: Constants.Action
       }
       break
     }
-    case 'chat:inboxUntrustedState': {
-      return state.set('inboxUntrustedState', action.payload.inboxUntrustedState)
+    case 'chat:inboxGlobalUntrustedState': {
+      return state.set('inboxGlobalUntrustedState', action.payload.inboxGlobalUntrustedState)
     }
     case 'chat:inboxFilter': {
       return state.set('inboxFilter', action.payload.filter)

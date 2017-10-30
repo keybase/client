@@ -71,7 +71,7 @@ const mapStateToProps = (state: TypedState, {routePath}): StateProps => {
     supersededBy = Constants.convSupersededByInfo(selectedConversationIDKey, state.chat)
 
     const conversationState = state.chat.get('conversationStates').get(selectedConversationIDKey)
-    const untrustedState = state.entities.inboxUntrustedState.get(selectedConversationIDKey)
+    const untrustedState = state.chat.inboxUntrustedState.get(selectedConversationIDKey)
     if (conversationState) {
       const selected = Constants.getInbox(state, selectedConversationIDKey)
       if (selected && untrustedState === 'error') {

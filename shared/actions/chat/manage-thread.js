@@ -4,7 +4,6 @@
 import * as ChatTypes from '../../constants/types/flow-types-chat'
 import * as Constants from '../../constants/chat'
 import * as Creators from './creators'
-import * as EntityCreators from '../entities'
 import * as I from 'immutable'
 import * as RPCTypes from '../../constants/types/flow-types'
 import * as Saga from '../../util/saga'
@@ -17,7 +16,7 @@ import {type SagaGenerator} from '../../constants/types/saga'
 import {type TypedState} from '../../constants/reducer'
 
 const inSearchSelector = (state: TypedState) => state.chat.get('inSearch')
-const inboxSelector = (state: TypedState) => state.entities.get('inbox')
+const inboxSelector = (state: TypedState) => state.chat.get('inbox')
 
 function* _startConversation(action: Constants.StartConversation): Saga.SagaGenerator<any, any> {
   const {users, forceImmediate, temporary} = action.payload
@@ -58,7 +57,7 @@ function* _selectConversation(action: Constants.SelectConversation): Saga.SagaGe
 
   // Always show this in the inbox
   if (conversationIDKey) {
-    yield Saga.put(EntityCreators.mergeEntity(['inboxAlwaysShow'], I.Map({[conversationIDKey]: true})))
+    yield Saga.put(Creators.mergeEntity(['inboxAlwaysShow'], I.Map({[conversationIDKey]: true})))
   }
 
   if (fromUser) {
@@ -111,7 +110,7 @@ const _setNotifications = function*(
   const {payload: {conversationIDKey}} = action
 
   // update the one in the store
-  const old = yield Saga.select(s => s.entities.inbox.get(conversationIDKey))
+  const old = yield Saga.select(s => s.inbox.get(conversationIDKey))
   if (old) {
     let nextNotifications = {}
 
@@ -143,7 +142,7 @@ const _setNotifications = function*(
     }
 
     yield Saga.put.resolve(
-      EntityCreators.replaceEntity(
+      Creators.replaceEntity(
         ['inbox', conversationIDKey],
         old.set('notifications', {
           ...old.notifications,

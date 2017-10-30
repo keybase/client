@@ -15,7 +15,6 @@ import {List, Map} from 'immutable'
 import {globalStyles} from '../styles'
 import {makeRouteStateNode} from '../route-tree'
 import {isMobile} from '../constants/platform'
-import * as EntityConstants from '../constants/entities'
 import * as ChatTypes from '../constants/types/flow-types-chat'
 import type {ConversationIDKey} from '../constants/chat'
 
@@ -186,9 +185,7 @@ const commonConversationsProps = ({selected, inbox: _inbox, rekeyInfos}: any) =>
       pendingConversations: Map(),
       rekeyInfos: rekeyInfos || Map(),
       supersededByState: Map(),
-    }),
-    entities: EntityConstants.makeState({
-      convIDToSnippet: Map(
+      inboxSnippet: Map(
         inbox.reduce((acc, m) => {
           acc[m.conversationIDKey] = `${m.conversationIDKey}`
           return acc

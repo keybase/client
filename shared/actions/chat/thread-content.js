@@ -5,7 +5,6 @@ import * as Creators from './creators'
 import * as EngineRpc from '../engine/helper'
 import * as EntityCreators from '../entities'
 import * as I from 'immutable'
-import * as Inbox from './inbox'
 import * as RPCTypes from '../../constants/types/flow-types'
 import * as Saga from '../../util/saga'
 import * as Selectors from '../../constants/selectors'
@@ -84,9 +83,7 @@ function* _loadMoreMessages(action: Constants.LoadMoreMessages): Saga.SagaGenera
       return
     }
 
-    const untrustedState = yield Saga.select(state =>
-      state.entities.inboxUntrustedState.get(conversationIDKey)
-    )
+    const untrustedState = yield Saga.select(state => state.chat.inboxUntrustedState.get(conversationIDKey))
 
     // only load unboxed things
     if (!['unboxed', 'reUnboxing'].includes(untrustedState)) {
@@ -229,12 +226,6 @@ function _decodeFailureDescription(typ: ChatTypes.OutboxErrorType): string {
 
 function* _incomingMessage(action: Constants.IncomingMessage): Saga.SagaGenerator<any, any> {
   switch (action.payload.activity.activityType) {
-    case ChatTypes.NotifyChatChatActivityType.setStatus:
-      const setStatus: ?ChatTypes.SetStatusInfo = action.payload.activity.setStatus
-      if (setStatus) {
-        yield Saga.call(Inbox.processConversation, setStatus.conv)
-      }
-      return
     case ChatTypes.NotifyChatChatActivityType.failedMessage:
       const failedMessage: ?ChatTypes.FailedMessageInfo = action.payload.activity.failedMessage
       if (failedMessage && failedMessage.outboxRecords) {
@@ -269,15 +260,7 @@ function* _incomingMessage(action: Constants.IncomingMessage): Saga.SagaGenerato
           }
         }
       }
-      return
-    case ChatTypes.NotifyChatChatActivityType.readMessage:
-      if (action.payload.activity.readMessage) {
-        const inboxUIItem: ?ChatTypes.InboxUIItem = action.payload.activity.readMessage.conv
-        if (inboxUIItem) {
-          yield Saga.call(Inbox.processConversation, inboxUIItem)
-        }
-      }
-      return
+      break
     case ChatTypes.NotifyChatChatActivityType.incomingMessage:
       const incomingMessage: ?ChatTypes.IncomingMessage = action.payload.activity.incomingMessage
       if (incomingMessage) {
@@ -292,17 +275,6 @@ function* _incomingMessage(action: Constants.IncomingMessage): Saga.SagaGenerato
         }
 
         const conversationIDKey = Constants.conversationIDToKey(incomingMessage.convID)
-        if (incomingMessage.conv) {
-          yield Saga.call(Inbox.processConversation, incomingMessage.conv)
-        } else {
-          // Sometimes (just for deletes?) we get an incomingMessage without
-          // a conv object -- in that case, ask the service to give us an
-          // updated one so that the snippet etc gets updated.
-          yield Saga.put(
-            Creators.unboxConversations([conversationIDKey], 'no conv from incoming message', true)
-          )
-        }
-
         const messageUnboxed: ChatTypes.UIMessage = incomingMessage.message
         const yourName = yield Saga.select(Selectors.usernameSelector)
         const yourDeviceName = yield Saga.select(Shared.devicenameSelector)
@@ -381,37 +353,6 @@ function* _incomingMessage(action: Constants.IncomingMessage): Saga.SagaGenerato
         }
       }
       break
-    case ChatTypes.NotifyChatChatActivityType.setAppNotificationSettings:
-      if (action.payload.activity && action.payload.activity.setAppNotificationSettings) {
-        const {convID, settings} = action.payload.activity.setAppNotificationSettings
-        if (convID && settings) {
-          const conversationIDKey = Constants.conversationIDToKey(convID)
-          const notifications = Inbox.parseNotifications(settings)
-          if (notifications) {
-            yield Saga.put(Creators.updatedNotifications(conversationIDKey, notifications))
-          }
-        }
-      }
-      break
-    case ChatTypes.NotifyChatChatActivityType.teamtype:
-      // Just reload everything if we get one of these
-      yield Saga.put(Creators.inboxStale('team type changed'))
-      break
-    case ChatTypes.NotifyChatChatActivityType.newConversation:
-      const newConv: ?ChatTypes.NewConversationInfo = action.payload.activity.newConversation
-      if (newConv && newConv.conv) {
-        yield Saga.call(Inbox.processConversation, newConv.conv)
-        break
-      }
-      // Just reload everything if we get this with no InboxUIItem
-      console.log('newConversation with no InboxUIItem')
-      yield Saga.put(Creators.inboxStale('no inbox item for new conv message'))
-      break
-    default:
-      console.warn(
-        'Unsupported incoming message type for Chat of type:',
-        action.payload.activity.activityType
-      )
   }
 }
 

@@ -2,7 +2,6 @@
 import * as ChatTypes from '../../constants/types/flow-types-chat'
 import * as Constants from '../../constants/chat'
 import * as Creators from './creators'
-import * as EntityCreators from '../entities'
 import * as I from 'immutable'
 import getenv from 'getenv'
 import {CommonTLFVisibility, TlfKeysTLFIdentifyBehavior} from '../../constants/types/flow-types'
@@ -16,7 +15,7 @@ function followingSelector(state: TypedState) {
   return state.config.following
 }
 function alwaysShowSelector(state: TypedState) {
-  return state.entities.get('inboxAlwaysShow')
+  return state.chat.get('inboxAlwaysShow')
 }
 function metaDataSelector(state: TypedState) {
   return state.chat.get('metaData')
@@ -46,8 +45,8 @@ function devicenameSelector(state: TypedState) {
   return state.config && state.config.deviceName
 }
 
-function inboxUntrustedStateSelector(state: TypedState) {
-  return state.chat.get('inboxUntrustedState')
+function inboxGlobalUntrustedStateSelector(state: TypedState) {
+  return state.chat.get('inboxGlobalUntrustedState')
 }
 
 function tmpFileName(
@@ -106,8 +105,8 @@ function* startNewConversation(
   if (pendingTlfName) {
     yield put(Creators.pendingToRealConversation(oldConversationIDKey, newConversationIDKey))
   } else if (oldConversationIDKey !== newConversationIDKey) {
-    yield put(EntityCreators.deleteEntity(['inbox'], I.List([oldConversationIDKey])))
-    yield put(EntityCreators.deleteEntity(['inboxSmallTimestamps'], I.List([oldConversationIDKey])))
+    yield put(Creators.deleteEntity(['inbox'], I.List([oldConversationIDKey])))
+    yield put(Creators.deleteEntity(['inboxSmallTimestamps'], I.List([oldConversationIDKey])))
   }
 
   // Select the new version if the old one was selected
@@ -179,7 +178,7 @@ export {
   activeSelector,
   followingSelector,
   getPostingIdentifyBehavior,
-  inboxUntrustedStateSelector,
+  inboxGlobalUntrustedStateSelector,
   makeInboxStateRecords,
   messageOutboxIDSelector,
   metaDataSelector,
