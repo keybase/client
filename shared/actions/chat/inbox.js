@@ -218,7 +218,9 @@ function* processConversation(c: ChatTypes.InboxUIItem): SagaGenerator<any, any>
   const inboxState = _conversationLocalToInboxState(c)
 
   if (inboxState) {
-    yield Saga.put(EntityCreators.replaceEntity(['inboxUntrustedState'], I.Map({[conversationIDKey]: 'unboxed'})))
+    yield Saga.put(
+      EntityCreators.replaceEntity(['inboxUntrustedState'], I.Map({[conversationIDKey]: 'unboxed'}))
+    )
 
     yield Saga.put(EntityCreators.replaceEntity(['inboxVersion'], I.Map({[conversationIDKey]: c.version})))
     if (isBigTeam) {
@@ -263,10 +265,14 @@ function* processConversation(c: ChatTypes.InboxUIItem): SagaGenerator<any, any>
   if (inboxState) {
     // We blocked it
     if (['blocked', 'reported'].includes(inboxState.status)) {
-      yield Saga.put(EntityCreators.deleteEntity(['inboxSmallTimestamps'], I.List([inboxState.conversationIDKey])))
+      yield Saga.put(
+        EntityCreators.deleteEntity(['inboxSmallTimestamps'], I.List([inboxState.conversationIDKey]))
+      )
       yield Saga.put(EntityCreators.deleteEntity(['inbox'], I.List([inboxState.conversationIDKey])))
     } else {
-      yield Saga.put(EntityCreators.replaceEntity(['inbox'], I.Map({[inboxState.conversationIDKey]: inboxState})))
+      yield Saga.put(
+        EntityCreators.replaceEntity(['inbox'], I.Map({[inboxState.conversationIDKey]: inboxState}))
+      )
     }
 
     if (!isBigTeam) {
