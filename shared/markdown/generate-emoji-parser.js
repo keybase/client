@@ -64,11 +64,10 @@ function buildParser() {
   const plaintextExp = /^([A-Za-z0-9!?=+#$%^&()[\],'"\s]|\.\B)*$/
 
   // the regexes here get recompiled on every parse if we put it in the initializer, so we force it to run at import time.
-  // $FlowIssue Unclear why flow isn't accepting String.raw here
   //
   // NOTE: Don't use import here ever. We can't mix import and module.exports. You can use require (or inject the output using stringify)
   //
-
+  // $FlowIssue Unclear why flow isn't accepting String.raw here
   const prependJS = String.raw`
     const tlds = ${JSON.stringify(tlds)}
     const linkExp = ${linkExp}
