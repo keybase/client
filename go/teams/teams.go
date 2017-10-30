@@ -1116,6 +1116,7 @@ func (t *Team) sigTeamItem(ctx context.Context, section SCTeamSection, linkType 
 		latestLinkID,
 		false, /* hasRevokes */
 		seqType,
+		false, /* ignoreIfUnsupported */
 	)
 	if err != nil {
 		return libkb.SigMultiItem{}, err
