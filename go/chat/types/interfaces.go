@@ -28,6 +28,12 @@ type NameInfoSource interface {
 	Lookup(ctx context.Context, name string, vis keybase1.TLFVisibility) (NameInfo, error)
 }
 
+type UnboxConversationInfo interface {
+	GetConvID() chat1.ConversationID
+	GetMembersType() chat1.ConversationMembersType
+	GetFinalizeInfo() *chat1.ConversationFinalizeInfo
+}
+
 type ConversationSource interface {
 	Offlinable
 
@@ -37,7 +43,7 @@ type ConversationSource interface {
 		pagination *chat1.Pagination) (chat1.ThreadView, []*chat1.RateLimit, error)
 	PullLocalOnly(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID,
 		query *chat1.GetThreadQuery, p *chat1.Pagination) (chat1.ThreadView, error)
-	GetMessages(ctx context.Context, conv chat1.Conversation, uid gregor1.UID, msgIDs []chat1.MessageID) ([]chat1.MessageUnboxed, error)
+	GetMessages(ctx context.Context, conv UnboxConversationInfo, uid gregor1.UID, msgIDs []chat1.MessageID) ([]chat1.MessageUnboxed, error)
 	GetMessagesWithRemotes(ctx context.Context, conv chat1.Conversation, uid gregor1.UID,
 		msgs []chat1.MessageBoxed) ([]chat1.MessageUnboxed, error)
 	Clear(convID chat1.ConversationID, uid gregor1.UID) error
