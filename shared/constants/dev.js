@@ -11,7 +11,6 @@ export const timeTravelForward = 'dev:forward'
 export type DebugConfig = {
   dumbFilter: string,
   dumbIndex: number,
-  dumbFullscreen: boolean,
 }
 
 export const updateDebugConfig = 'dev:updateDebugConfig'

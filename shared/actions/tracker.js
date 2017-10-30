@@ -6,7 +6,6 @@ import get from 'lodash/get'
 import engine from '../engine'
 import openUrl from '../util/open-url'
 import {requestIdleCallback} from '../util/idle-callback'
-import {showAllTrackers} from '../local-debug'
 import {isMobile} from '../constants/platform'
 import {type Action, type AsyncAction} from '../constants/types/flux'
 import {type State as ConfigState} from '../constants/config'
@@ -699,11 +698,6 @@ function _serverCallMap(
         dispatch({type: Constants.updateProofState, payload: {username}})
 
         dispatch({type: Constants.identifyFinished, payload: {username}})
-
-        if (showAllTrackers && !isGetProfile) {
-          console.log('showAllTrackers is on, so showing tracker')
-          dispatch({type: Constants.showTracker, payload: {username}})
-        }
 
         dispatch({
           type: Constants.markActiveIdentifyUi,

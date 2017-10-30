@@ -2,7 +2,6 @@
 import React, {Component} from 'react'
 import openURL from '../util/open-url'
 import {defaultColor, fontSizeToSizeStyle, lineClamp, metaData} from './text.meta.native'
-import {clickableVisible} from '../local-debug'
 import {glamorous} from '../styles'
 import shallowEqual from 'shallowequal'
 import {StyleSheet} from 'react-native'
@@ -69,7 +68,6 @@ class Text extends Component<Props> {
       ...(this.props.backgroundMode === 'Normal'
         ? {}
         : _getStyle(this.props.type, this.props.backgroundMode, this.props.lineClamp, !!this.props.onClick)),
-      ...(clickableVisible && this.props.onClick ? visibleStyle : {}),
     }
 
     let style
@@ -94,10 +92,6 @@ class Text extends Component<Props> {
       </StyledText>
     )
   }
-}
-
-const visibleStyle = {
-  backgroundColor: 'rgba(0, 255, 0, 0.1)',
 }
 
 // external things call this so leave the original alone

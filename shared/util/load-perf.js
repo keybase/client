@@ -1,5 +1,4 @@
 // @flow
-import {reactPerf} from '../local-debug'
 import fetchKeys from 'lodash/keys'
 import Perf from './react-perf'
 
@@ -33,10 +32,6 @@ export default function() {
 
       start = !start
     })
-  }
-
-  if (reactPerf) {
-    onPerf(false)
   }
 
   if (typeof window !== 'undefined') {
