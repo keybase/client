@@ -103,13 +103,13 @@ const prettierOptions = json5.parse(
 prettierOptions.printWidth = 500
 
 function main() {
-  const root = path.join(__dirname, '../../actions')
+  const root = path.join(__dirname, '../../actions/json')
   const files = fs.readdirSync(root)
   files.filter(file => path.extname(file) === '.json').forEach(file => {
     const ns = path.basename(file, '.json')
     const desc = json5.parse(fs.readFileSync(path.join(root, file)))
     const generated = prettier.format(compile(ns, desc), prettierOptions)
-    const outPath = path.join(root, ns + '-gen.js')
+    const outPath = path.join(root, '..', ns + '-gen.js')
     console.log(generated)
     fs.writeFileSync(outPath, generated)
   })

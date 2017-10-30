@@ -811,14 +811,15 @@ function* _updateMetadata(action: Constants.UpdateMetadata): Saga.SagaGenerator<
 function* _changedActive(action: ChangedActive): Saga.SagaGenerator<any, any> {
   // Update badging and the latest message due to changing active state.
   const {userActive} = action.payload
-  const appFocused = yield Saga.select(Shared.focusedSelector)
-  const conversationIDKey = yield Saga.select(Constants.getSelectedConversation)
-  const selectedTab = yield Saga.select(Shared.routeSelector)
+  const state: TypedState = yield Saga.select()
+  const appFocused = Shared.focusedSelector(state)
+  const conversationIDKey = Constants.getSelectedConversation(state)
+  const selectedTab = Shared.routeSelector(state)
   const chatTabSelected = selectedTab === chatTab
   // Only do this if focus is retained - otherwise, focus changing logic prevails
   if (conversationIDKey && chatTabSelected && appFocused) {
     if (userActive) {
-      yield Saga.put(ChatGen.createUpdateBadging(conversationIDKey))
+      yield Saga.put(ChatGen.createUpdateBadging({conversationIDKey}))
     } else {
       // Reset the orange line when becoming inactive
       yield Saga.put(Creators.updateLatestMessage(conversationIDKey))
@@ -841,12 +842,13 @@ function* _updateTyping({
 function* _changedFocus(action: ChangedFocus): Saga.SagaGenerator<any, any> {
   // Update badging and the latest message due to the refocus.
   const {appFocused} = action.payload
-  const conversationIDKey = yield Saga.select(Constants.getSelectedConversation)
-  const selectedTab = yield Saga.select(Shared.routeSelector)
+  const state: TypedState = yield Saga.select()
+  const conversationIDKey = Constants.getSelectedConversation(state)
+  const selectedTab = Shared.routeSelector(state)
   const chatTabSelected = selectedTab === chatTab
   if (conversationIDKey && chatTabSelected) {
     if (appFocused) {
-      yield Saga.put(ChatGen.createUpdateBadging(conversationIDKey))
+      yield Saga.put(ChatGen.createUpdateBadging({conversationIDKey}))
     } else {
       // Reset the orange line when focus leaves the app.
       yield Saga.put(Creators.updateLatestMessage(conversationIDKey))
