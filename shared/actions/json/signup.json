@@ -1,0 +1,11 @@
+{
+    "prelude": "import * as Constants from '../constants/signup'",
+    "actions": {
+        "checkInviteCode": {
+            "inviteCode": "string",
+            "canError": {
+                "errorText": "string"
+            }
+        }
+    }
+}
