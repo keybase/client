@@ -50,3 +50,5 @@ func (n nullTeamLoader) Delete(context.Context, keybase1.TeamID) error {
 }
 
 func (n nullTeamLoader) OnLogout() {}
+
+func (n nullTeamLoader) ClearMem() {}
