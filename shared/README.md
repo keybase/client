@@ -83,6 +83,25 @@ the easiest way to fix it is simply to install watchman:
 brew install watchman
 ```
 
+The above suffices for running in the simulator. To run on a real
+phone, first you need to get Marco to invite your Apple ID to the
+Keybase team. Once you accept the invite, you should be able to
+connect your phone to your computer and get XCode to build onto it.
+
+However, you first have to edit
+`react-native/ios/Keybase/AppDelegate.m` to use the bundler running on
+your computer. Look for the comment "Uncomment for prod JS in dev
+mode" and follow the instructions there.
+
+Alternatively, you could choose "Profile" instead of "Run", which does
+a prod build and thus doesn't need any bundler changes.
+
+As for notifications, they don't work in the simulator at all. If you
+choose "Run" and build on a phone, they _should_ just work. If you
+want to do a "Profile" build, look in `local-debug.native.js` and move
+`config.isDevApplePushToken = true` to outside its enclosing `if`
+statement.
+
 ### Android
 
 Follow instructions at https://facebook.github.io/react-native/docs/getting-started.html
