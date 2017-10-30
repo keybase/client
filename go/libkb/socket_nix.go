@@ -54,7 +54,7 @@ func (s SocketInfo) BindToSocket() (ret net.Listener, err error) {
 		if err != nil {
 			return nil, fmt.Errorf("Error getting working directory: %s", err)
 		}
-		s.log.Warning("| Changing current working directory because path for binding is too long")
+		s.log.Debug("| Changing current working directory because path for binding is too long")
 		dir := filepath.Dir(bindFile)
 		s.log.Debug("| Chdir(%s)", dir)
 		if err := os.Chdir(dir); err != nil {
