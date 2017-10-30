@@ -16,6 +16,7 @@ import {isMobile} from '../../constants/platform'
 import {toDeviceType} from '../../constants/types/more'
 import {type Action} from '../../constants/types/flux'
 import {type TypedState} from '../../constants/reducer'
+import {type ChangedFocus, type ChangedActive} from '../../constants/app'
 
 function* _clearConversationMessages({payload: {conversationIDKey}}: Constants.ClearMessages) {
   yield Saga.put(
@@ -779,7 +780,140 @@ function _updateMessageEntity(action: Constants.UpdateTempMessage) {
   }
 }
 
+function* _openConversation({
+  payload: {conversationIDKey},
+}: Constants.OpenConversation): Saga.SagaGenerator<any, any> {
+  yield Saga.put(Creators.selectConversation(conversationIDKey, false))
+}
+
+function _removeOutboxMessage(
+  {payload: {conversationIDKey, outboxID}}: Constants.RemoveOutboxMessage,
+  msgKeys: I.OrderedSet<Constants.MessageKey>
+) {
+  const nextMessages = msgKeys.filter(k => {
+    const {messageID} = Constants.splitMessageIDKey(k)
+    return messageID !== outboxID
+  })
+
+  if (nextMessages.equals(msgKeys)) {
+    return
+  }
+  return Saga.put(
+    EntityCreators.replaceEntity(['conversationMessages'], I.Map({[conversationIDKey]: nextMessages}))
+  )
+}
+
+function* _updateOutboxMessageToReal({
+  payload: {oldMessageKey, newMessageKey},
+}: Constants.OutboxMessageBecameReal) {
+  const localMessageState = yield Saga.select(Constants.getLocalMessageStateFromMessageKey, oldMessageKey)
+  const conversationIDKey = Constants.messageKeyConversationIDKey(newMessageKey)
+  const currentMessages = yield Saga.select(Constants.getConversationMessages, conversationIDKey)
+  const nextMessages = currentMessages.map(k => (k === oldMessageKey ? newMessageKey : k))
+  yield Saga.all([
+    Saga.put(
+      EntityCreators.replaceEntity(['conversationMessages'], I.Map({[conversationIDKey]: nextMessages}))
+    ),
+    Saga.put(
+      EntityCreators.mergeEntity(
+        [],
+        I.Map({
+          attachmentDownloadedPath: I.Map({[newMessageKey]: localMessageState.downloadedPath}),
+          attachmentPreviewPath: I.Map({[newMessageKey]: localMessageState.previewPath}),
+          attachmentPreviewProgress: I.Map({[newMessageKey]: localMessageState.previewProgress}),
+          attachmentDownloadProgress: I.Map({[newMessageKey]: localMessageState.downloadProgress}),
+          attachmentUploadProgress: I.Map({[newMessageKey]: localMessageState.uploadProgress}),
+        })
+      )
+    ),
+  ])
+}
+
+function* _updateMetadata(action: Constants.UpdateMetadata): Saga.SagaGenerator<any, any> {
+  // Don't send sharing before signup values
+  const metaData = yield Saga.select(Shared.metaDataSelector)
+  const usernames = action.payload.users.filter(
+    name =>
+      metaData.getIn([name, 'fullname']) === undefined && name.indexOf('@') === -1 && name.indexOf('#') === -1
+  )
+  if (!usernames.length) {
+    return
+  }
+
+  try {
+    const results: any = yield Saga.call(RPCTypes.apiserverGetRpcPromise, {
+      param: {
+        endpoint: 'user/lookup',
+        args: [{key: 'usernames', value: usernames.join(',')}, {key: 'fields', value: 'profile'}],
+      },
+    })
+
+    const parsed = JSON.parse(results.body)
+    const payload = {}
+    usernames.forEach((username, idx) => {
+      const record = parsed.them[idx]
+      const fullname = (record && record.profile && record.profile.full_name) || ''
+      payload[username] = Constants.makeMetaData({fullname})
+    })
+
+    yield Saga.put(Creators.updatedMetadata(payload))
+  } catch (err) {
+    if (err && err.code === RPCTypes.ConstantsStatusCode.scapinetworkerror) {
+      // Ignore api errors due to offline
+    } else {
+      throw err
+    }
+  }
+}
+
+function* _changedActive(action: ChangedActive): Saga.SagaGenerator<any, any> {
+  // Update badging and the latest message due to changing active state.
+  const {userActive} = action.payload
+  const appFocused = yield Saga.select(Shared.focusedSelector)
+  const conversationIDKey = yield Saga.select(Constants.getSelectedConversation)
+  const selectedTab = yield Saga.select(Shared.routeSelector)
+  const chatTabSelected = selectedTab === chatTab
+  // Only do this if focus is retained - otherwise, focus changing logic prevails
+  if (conversationIDKey && chatTabSelected && appFocused) {
+    if (userActive) {
+      yield Saga.put(Creators.updateBadging(conversationIDKey))
+    } else {
+      // Reset the orange line when becoming inactive
+      yield Saga.put(Creators.updateLatestMessage(conversationIDKey))
+    }
+  }
+}
+
+function* _updateTyping({
+  payload: {conversationIDKey, typing},
+}: Constants.UpdateTyping): Saga.SagaGenerator<any, any> {
+  // Send we-are-typing info up to Gregor.
+  if (!Constants.isPendingConversationIDKey(conversationIDKey)) {
+    const conversationID = Constants.keyToConversationID(conversationIDKey)
+    yield Saga.call(ChatTypes.localUpdateTypingRpcPromise, {
+      param: {conversationID, typing},
+    })
+  }
+}
+
+function* _changedFocus(action: ChangedFocus): Saga.SagaGenerator<any, any> {
+  // Update badging and the latest message due to the refocus.
+  const {appFocused} = action.payload
+  const conversationIDKey = yield Saga.select(Constants.getSelectedConversation)
+  const selectedTab = yield Saga.select(Shared.routeSelector)
+  const chatTabSelected = selectedTab === chatTab
+  if (conversationIDKey && chatTabSelected) {
+    if (appFocused) {
+      yield Saga.put(Creators.updateBadging(conversationIDKey))
+    } else {
+      // Reset the orange line when focus leaves the app.
+      yield Saga.put(Creators.updateLatestMessage(conversationIDKey))
+    }
+  }
+}
+
 function* registerSagas(): Saga.SagaGenerator<any, any> {
+  yield Saga.safeTakeEvery('app:changedActive', _changedActive)
   yield Saga.safeTakeEvery('chat:clearMessages', _clearConversationMessages)
   yield Saga.safeTakeEvery(['chat:appendMessages', 'chat:prependMessages'], _storeMessageToEntity)
   yield Saga.safeTakeEvery(['chat:appendMessages', 'chat:prependMessages'], _findMessagesToDelete)
@@ -796,6 +930,17 @@ function* registerSagas(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure('chat:updateTempMessage', _updateMessageEntity)
   yield Saga.safeTakeEvery('chat:appendMessages', _appendMessagesToConversation)
   yield Saga.safeTakeEvery('chat:prependMessages', _prependMessagesToConversation)
+  yield Saga.safeTakeEveryPure(
+    'chat:removeOutboxMessage',
+    _removeOutboxMessage,
+    (s: TypedState, a: Constants.RemoveOutboxMessage) =>
+      Constants.getConversationMessages(s, a.payload.conversationIDKey)
+  )
+  yield Saga.safeTakeEvery('chat:outboxMessageBecameReal', _updateOutboxMessageToReal)
+  yield Saga.safeTakeEvery('chat:openConversation', _openConversation)
+  yield Saga.safeTakeEvery('chat:updateMetadata', _updateMetadata)
+  yield Saga.safeTakeEvery('chat:updateTyping', _updateTyping)
+  yield Saga.safeTakeEvery('app:changedFocus', _changedFocus)
 }
 
 export {registerSagas}

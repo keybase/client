@@ -1,25 +1,29 @@
 // @flow
+// Actions that have to do with the inbox.
+// Loading, unboxing, filtering, stale, out of sync, badging
 import * as ChatTypes from '../../constants/types/flow-types-chat'
 import * as Constants from '../../constants/chat'
 import * as Creators from './creators'
 import * as EngineRpc from '../engine/helper'
 import * as EntityCreators from '../entities'
-import * as Shared from './shared'
-import * as Saga from '../../util/saga'
-import {RPCTimeoutError} from '../../util/errors'
 import * as I from 'immutable'
-import {
-  CommonDeviceType,
-  CommonTLFVisibility,
-  TlfKeysTLFIdentifyBehavior,
-} from '../../constants/types/flow-types'
-import {globalError} from '../../constants/config'
-import {unsafeUnwrap} from '../../constants/types/more'
-import {usernameSelector} from '../../constants/selectors'
+import * as RPCTypes from '../../constants/types/flow-types'
+import * as Saga from '../../util/saga'
+import * as Selectors from '../../constants/selectors'
+import * as Shared from './shared'
 import HiddenString from '../../util/hidden-string'
+import {NotifyPopup} from '../../native/notifications'
+import {RPCTimeoutError} from '../../util/errors'
+import {chatTab} from '../../constants/tabs'
+import {globalError} from '../../constants/config'
 import {isMobile} from '../../constants/platform'
+import {showMainWindow} from '../platform-specific'
+import {switchTo} from '../route-tree'
+import {type SagaGenerator} from '../../constants/types/saga'
+import {unsafeUnwrap} from '../../constants/types/more'
 
-import type {SagaGenerator} from '../../constants/types/saga'
+// How many messages we consider too many to just download when you are stale and we could possibly just append
+const tooManyMessagesToJustAppendOnStale = 200
 
 // Common props for getting the inbox
 const _getInboxQuery = {
@@ -28,7 +32,7 @@ const _getInboxQuery = {
   status: Object.keys(ChatTypes.CommonConversationStatus)
     .filter(k => !['ignored', 'blocked', 'reported'].includes(k))
     .map(k => ChatTypes.CommonConversationStatus[k]),
-  tlfVisibility: CommonTLFVisibility.private,
+  tlfVisibility: RPCTypes.CommonTLFVisibility.private,
   topicType: ChatTypes.CommonTopicType.chat,
   unreadOnly: false,
 }
@@ -62,7 +66,7 @@ function* onInboxStale(param: Constants.InboxStale): SagaGenerator<any, any> {
       ['chat.1.chatUi.chatInboxUnverified', 'finished'],
       {
         param: {
-          identifyBehavior: TlfKeysTLFIdentifyBehavior.chatGui,
+          identifyBehavior: RPCTypes.TlfKeysTLFIdentifyBehavior.chatGui,
           maxUnbox: 0,
           query: _getInboxQuery,
           skipUnverified: false,
@@ -94,7 +98,7 @@ function* onInboxStale(param: Constants.InboxStale): SagaGenerator<any, any> {
 
     const idToVersion = I.Map((inbox.items || []).map(c => [c.convID, c.version]))
 
-    const author = yield Saga.select(usernameSelector)
+    const author = yield Saga.select(Selectors.usernameSelector)
     const snippets = (inbox.items || []).reduce((map, c) => {
       // If we don't have metaData ignore it
       if (c.localMetadata) {
@@ -432,7 +436,7 @@ function* unboxConversations(action: Constants.UnboxConversations): SagaGenerato
     'unboxConversations',
     {
       param: {
-        identifyBehavior: TlfKeysTLFIdentifyBehavior.chatGui,
+        identifyBehavior: RPCTypes.TlfKeysTLFIdentifyBehavior.chatGui,
         skipUnverified: forInboxSync,
         query: {
           ..._getInboxQuery,
@@ -472,18 +476,18 @@ const parseNotifications = (
   return {
     channelWide: notifications.channelWide,
     desktop: {
-      atmention: settings[CommonDeviceType.desktop.toString()][
+      atmention: settings[RPCTypes.CommonDeviceType.desktop.toString()][
         ChatTypes.CommonNotificationKind.atmention.toString()
       ],
-      generic: settings[CommonDeviceType.desktop.toString()][
+      generic: settings[RPCTypes.CommonDeviceType.desktop.toString()][
         ChatTypes.CommonNotificationKind.generic.toString()
       ],
     },
     mobile: {
-      atmention: settings[CommonDeviceType.mobile.toString()][
+      atmention: settings[RPCTypes.CommonDeviceType.mobile.toString()][
         ChatTypes.CommonNotificationKind.atmention.toString()
       ],
-      generic: settings[CommonDeviceType.mobile.toString()][
+      generic: settings[RPCTypes.CommonDeviceType.mobile.toString()][
         ChatTypes.CommonNotificationKind.generic.toString()
       ],
     },
@@ -494,7 +498,7 @@ const parseNotifications = (
 function _conversationLocalToInboxState(c: ?ChatTypes.InboxUIItem): ?Constants.InboxState {
   if (
     !c ||
-    c.visibility !== CommonTLFVisibility.private || // private chats only
+    c.visibility !== RPCTypes.CommonTLFVisibility.private || // private chats only
     c.name.includes('#') // We don't support mixed reader/writers
   ) {
     return null
@@ -552,13 +556,161 @@ function* filterSelectNext(action: Constants.InboxFilterSelectNext): SagaGenerat
   }
 }
 
+function* _sendNotifications(action: Constants.AppendMessages): Saga.SagaGenerator<any, any> {
+  const appFocused = yield Saga.select(Shared.focusedSelector)
+  const selectedTab = yield Saga.select(Shared.routeSelector)
+  const chatTabSelected = selectedTab === chatTab
+  const convoIsSelected = action.payload.isSelected
+  const svcDisplay = action.payload.svcShouldDisplayNotification
+
+  console.log(
+    'Deciding whether to notify new message:',
+    svcDisplay,
+    convoIsSelected,
+    appFocused,
+    chatTabSelected
+  )
+  // Only send if you're not looking at it and service wants us to
+  if (svcDisplay && (!convoIsSelected || !appFocused || !chatTabSelected)) {
+    const me = yield Saga.select(Selectors.usernameSelector)
+    const message = action.payload.messages.reverse().find(m => m.type === 'Text' && m.author !== me)
+    // Is this message part of a muted conversation? If so don't notify.
+    const convo = yield Saga.select(Constants.getInbox, action.payload.conversationIDKey)
+    if (convo && convo.get('status') !== 'muted') {
+      if (message && message.type === 'Text') {
+        console.log('Sending Chat notification')
+        const snippet = Constants.makeSnippet(Constants.serverMessageToMessageText(message))
+        yield Saga.put((dispatch: Dispatch) => {
+          NotifyPopup(message.author, {body: snippet}, -1, message.author, () => {
+            dispatch(Creators.selectConversation(action.payload.conversationIDKey, false))
+            dispatch(switchTo([chatTab]))
+            dispatch(showMainWindow())
+          })
+        })
+      }
+    }
+  }
+}
+
+function* _markThreadsStale(action: Constants.MarkThreadsStale): Saga.SagaGenerator<any, any> {
+  // Load inbox items of any stale items so we get update on rekeyInfos, etc
+  const {updates} = action.payload
+  const convIDs = updates.map(u => Constants.conversationIDToKey(u.convID))
+  yield Saga.put(Creators.unboxConversations(convIDs, 'thread stale', true))
+
+  // Selected is stale?
+  const selectedConversation = yield Saga.select(Constants.getSelectedConversation)
+  if (!selectedConversation) {
+    return
+  }
+  yield Saga.put(Creators.clearMessages(selectedConversation))
+  yield Saga.put(Creators.loadMoreMessages(selectedConversation, false))
+}
+
+function* _inboxSynced(action: Constants.InboxSynced): Saga.SagaGenerator<any, any> {
+  const {convs} = action.payload
+  const author = yield Saga.select(Selectors.usernameSelector)
+  const items = Shared.makeInboxStateRecords(author, convs, I.Map())
+
+  yield Saga.put(
+    EntityCreators.replaceEntity(
+      ['inbox'],
+      I.Map(
+        items.reduce((map, c) => {
+          map[c.conversationIDKey] = c
+          return map
+        }, {})
+      )
+    )
+  )
+  const convIDs = items.map(item => item.conversationIDKey)
+  yield Saga.put(Creators.unboxConversations(convIDs, 'inbox syncing', true, true))
+
+  const selectedConversation = yield Saga.select(Constants.getSelectedConversation)
+  if (!selectedConversation || convIDs.indexOf(selectedConversation) < 0) {
+    return
+  }
+
+  const conversation = yield Saga.select(Constants.getSelectedConversationStates)
+  if (conversation) {
+    const inbox = yield Saga.select(Constants.getInbox, selectedConversation)
+
+    const messageKeys = yield Saga.select(Constants.getConversationMessages, selectedConversation)
+    const lastMessageKey = messageKeys.last()
+    let numberOverride
+    if (lastMessageKey) {
+      const lastMessage = yield Saga.select(Constants.getMessageFromMessageKey, lastMessageKey)
+      // Check to see if we could possibly be asking for too many messages
+      if (lastMessage && lastMessage.rawMessageID && inbox && inbox.maxMsgID) {
+        numberOverride = inbox.maxMsgID - lastMessage.rawMessageID
+
+        if (numberOverride > tooManyMessagesToJustAppendOnStale) {
+          console.log(
+            'Doing a full load due to too many old messages',
+            inbox.maxMsgID - lastMessage.rawMessageID
+          )
+          yield Saga.all([
+            Saga.put(Creators.clearMessages(selectedConversation)),
+            yield Saga.put(Creators.loadMoreMessages(selectedConversation, false)),
+          ])
+          return
+        }
+      }
+    }
+    // It is VERY important to pass the exact number of things to request here. The pagination system will
+    // return whatever number we ask for on newest messages due to its architecture so if we want only N
+    // newer items we have to explictly ask for N or it will give us messages older than onyNewerThan
+    yield Saga.put(Creators.loadMoreMessages(selectedConversation, false, false, true, numberOverride))
+  }
+}
+function* _badgeAppForChat(action: Constants.BadgeAppForChat): Saga.SagaGenerator<any, any> {
+  const conversations = action.payload
+  let totals: {[key: string]: number} = {}
+  let badges: {[key: string]: number} = {}
+
+  conversations.forEach(conv => {
+    const total = conv.get('unreadMessages')
+    if (total) {
+      const badged = conv.get('badgeCounts')[
+        `${isMobile ? RPCTypes.CommonDeviceType.mobile : RPCTypes.CommonDeviceType.desktop}`
+      ]
+      const conversationIDKey = Constants.conversationIDToKey(conv.get('convID'))
+      totals[conversationIDKey] = total
+      if (badged) {
+        badges[conversationIDKey] = badged
+      }
+    }
+  })
+
+  badges = I.Map(badges)
+  totals = I.Map(totals)
+
+  const oldBadge = yield Saga.select(s => s.entities.inboxUnreadCountBadge)
+  const oldTotal = yield Saga.select(s => s.entities.inboxUnreadCountTotal)
+  if (!I.is(oldBadge, badges)) {
+    yield Saga.put(EntityCreators.replaceEntity([], I.Map({inboxUnreadCountBadge: badges})))
+  }
+  if (!I.is(oldTotal, totals)) {
+    yield Saga.put(EntityCreators.replaceEntity([], I.Map({inboxUnreadCountTotal: totals})))
+  }
+}
+
+function _updateSnippet({payload: {snippet, conversationIDKey}}: Constants.UpdateSnippet) {
+  return Saga.put(EntityCreators.replaceEntity(['convIDToSnippet'], I.Map({[conversationIDKey]: snippet})))
+}
+
 function* registerSagas(): SagaGenerator<any, any> {
+  yield Saga.safeTakeEveryPure('chat:updateSnippet', _updateSnippet)
   yield Saga.safeTakeEvery('chat:getInboxAndUnbox', onGetInboxAndUnbox)
   yield Saga.safeTakeEvery('chat:inboxFilterSelectNext', filterSelectNext)
   yield Saga.safeTakeLatest('chat:inboxStale', onInboxStale)
   yield Saga.safeTakeLatest('chat:loadInbox', onInboxLoad)
   yield Saga.safeTakeLatest('chat:unboxMore', unboxMore)
   yield Saga.safeTakeSerially('chat:unboxConversations', unboxConversations)
+  yield Saga.safeTakeEvery('chat:appendMessages', _sendNotifications)
+  yield Saga.safeTakeEvery('chat:markThreadsStale', _markThreadsStale)
+  yield Saga.safeTakeEvery('chat:inboxSynced', _inboxSynced)
+  yield Saga.safeTakeLatest('chat:badgeAppForChat', _badgeAppForChat)
 }
 
 export {
