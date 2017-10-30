@@ -69,7 +69,6 @@ func ctlStop(g *libkb.GlobalContext, components map[string]bool) error {
 	if libkb.IsBrewBuild {
 		return ctlBrewStop(g)
 	}
-	runMode := g.Env.GetRunMode()
 	g.Log.Debug("Components: %v", components)
 	errs := []error{}
 	if ok := components[install.ComponentNameApp.String()]; ok {
@@ -88,7 +87,7 @@ func ctlStop(g *libkb.GlobalContext, components map[string]bool) error {
 		}
 	}
 	if ok := components[install.ComponentNameUpdater.String()]; ok {
-		if err := install.UninstallUpdaterService(runMode, g.Log); err != nil {
+		if err := install.UninstallUpdaterService(g, g.Log); err != nil {
 			errs = append(errs, err)
 		}
 	}

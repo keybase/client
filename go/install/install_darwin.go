@@ -717,7 +717,7 @@ func Uninstall(context Context, components []string, log Log) keybase1.Uninstall
 	}
 
 	if libkb.IsIn(string(ComponentNameUpdater), components, false) {
-		err = UninstallUpdaterService(context.GetRunMode(), log)
+		err = UninstallUpdaterService(context, log)
 		componentResults = append(componentResults, componentResult(string(ComponentNameUpdater), err))
 		if err != nil {
 			log.Errorf("Error uninstalling updater: %s", err)
@@ -1066,7 +1066,7 @@ func InstallUpdater(context Context, keybaseBinPath string, force bool, timeout 
 		return err
 	}
 
-	UninstallUpdaterService(context.GetRunMode(), log)
+	UninstallUpdaterService(context, log)
 	log.Debug("Installing updater service (%s, timeout=%s)", label, timeout)
 	if _, err := installUpdaterService(context, service, plist, timeout, log); err != nil {
 		log.Errorf("Error installing updater service: %s", err)
@@ -1100,8 +1100,11 @@ func installUpdaterService(context Context, service launchd.Service, plist launc
 }
 
 // UninstallUpdaterService removes updater launchd service
-func UninstallUpdaterService(runMode libkb.RunMode, log Log) error {
-	return launchd.Uninstall(DefaultUpdaterLabel(runMode), defaultLaunchdWait, log)
+func UninstallUpdaterService(context Context, log Log) error {
+	runMode := context.GetRunMode()
+	err0 := fallbackKillProcess(context, log, DefaultUpdaterLabel(runMode), "")
+	err1 := launchd.Uninstall(DefaultUpdaterLabel(runMode), defaultLaunchdWait, log)
+	return libkb.CombineErrors(err0, err1)
 }
 
 // kbfsBinName returns the name for the KBFS executable
@@ -1193,6 +1196,7 @@ func fallbackKillProcess(context Context, log Log, label string, infoPath string
 		return err
 	}
 	if !exists {
+		log.Debug("no fallback pid file exists for %s (%s)", svc.Label(), fpid)
 		return nil
 	}
 
