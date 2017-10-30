@@ -845,7 +845,7 @@
 			"revisionTime": "2017-10-13T00:11:41Z"
 		},
 		{
-			"checksumSHA1": "wq8eG0NqxByMSgSIe7h0Di5CPro=",
+			"checksumSHA1": "4Sj6nbZNTQrA/h8LoFkgn6z8ujo=",
 			"origin": "github.com/keybase/go-git/plumbing/format/packfile",
 			"path": "gopkg.in/src-d/go-git.v4/plumbing/format/packfile",
 			"revision": "08427cdf876e1afa248388fac864a9b74d855ee4",
