@@ -1,6 +1,6 @@
 // @flow
 import React, {PureComponent} from 'react'
-import {Avatar, Box, Text, Icon} from '../../../../common-adapters'
+import {Avatar, Box, Text, Icon, PopupMenu} from '../../../../common-adapters'
 import {globalStyles, globalColors, globalMargins, glamorous} from '../../../../styles'
 import {isMobile} from '../../../../constants/platform'
 
@@ -11,11 +11,23 @@ type Props = {
 
 class BigTeamHeader extends PureComponent<Props> {
   render() {
+    console.warn('in render props are', this.props, this.props.showMenu)
+    const onManageChat = () => {}
+    const onLeaveTeam = () => {}
     return (
       <HeaderBox>
         <Avatar teamname={this.props.teamname} size={isMobile ? 24 : 16} />
-        <Text type="BodySmallSemibold" style={teamStyle}>{this.props.teamname}</Text>
+        <Text type="BodySmallSemibold" style={teamStyle}>{this.props.showMenu ? 'showing' : ''} {this.props.teamname}</Text>
         <Icon className="icon" type="iconfont-gear" onClick={this.props.onShowMenu} style={iconStyle} />
+        {this.props.showMenu &&
+          <PopupMenu
+            items={[
+              {onClick: onManageChat, title: 'Manage chat channels'},
+              {onClick: onLeaveTeam, title: 'Leave team', danger: true},
+            ]}
+            onHidden={() => this.props.setShowMenu(false)}
+            style={{position: 'relative', right: globalMargins.tiny, top: globalMargins.tiny}}
+          />}
       </HeaderBox>
     )
   }
