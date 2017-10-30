@@ -131,5 +131,13 @@ func (l *chainLinkUnpacked) AssertInnerOuterMatch() (err error) {
 		return err
 	}
 
-	return l.outerLink.AssertFields(l.inner.Body.Version, l.inner.Seqno, prev, l.innerLinkID, linkType, l.inner.SeqType)
+	useSeqType := l.inner.SeqType
+	if l.outerLink.SeqType == 0 {
+		// There are links where seq_type is unset on the outer link
+		// but set on the inner link.
+		// Let these pass.
+		useSeqType = l.outerLink.SeqType
+	}
+
+	return l.outerLink.AssertFields(l.inner.Body.Version, l.inner.Seqno, prev, l.innerLinkID, linkType, useSeqType)
 }

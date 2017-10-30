@@ -130,13 +130,14 @@ func (t SigchainV2Type) TeamAllowStub(role keybase1.TeamRole) bool {
 
 // OuterLinkV2 is the second version of Keybase sigchain signatures.
 type OuterLinkV2 struct {
-	_struct  bool             `codec:",toarray"`
-	Version  int              `codec:"version"`
-	Seqno    keybase1.Seqno   `codec:"seqno"`
-	Prev     LinkID           `codec:"prev"`
-	Curr     LinkID           `codec:"curr"`
-	LinkType SigchainV2Type   `codec:"type"`
-	SeqType  keybase1.SeqType `codec:"seqtype"`
+	_struct  bool           `codec:",toarray"`
+	Version  int            `codec:"version"`
+	Seqno    keybase1.Seqno `codec:"seqno"`
+	Prev     LinkID         `codec:"prev"`
+	Curr     LinkID         `codec:"curr"`
+	LinkType SigchainV2Type `codec:"type"`
+	// -- Links exist in the wild that are missing fields below this line.
+	SeqType keybase1.SeqType `codec:"seqtype"`
 }
 
 type OuterLinkV2WithMetadata struct {
