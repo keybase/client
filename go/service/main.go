@@ -226,6 +226,8 @@ func (d *Service) Run() (err error) {
 	}
 
 	switch d.G().Env.GetServiceType() {
+	case "":
+		// Not set, do nothing.
 	case "launchd":
 		d.ForkType = keybase1.ForkType_LAUNCHD
 	case "systemd":
