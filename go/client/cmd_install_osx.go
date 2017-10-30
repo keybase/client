@@ -14,6 +14,7 @@ import (
 
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/install"
+	"github.com/keybase/client/go/install/libnativeinstaller"
 	"github.com/keybase/client/go/launchd"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
@@ -224,7 +225,7 @@ func (v *CmdUninstall) ParseArgv(ctx *cli.Context) error {
 }
 
 func (v *CmdUninstall) Run() error {
-	bundlePath, err := install.AppBundleForPath()
+	bundlePath, err := libnativeinstaller.AppBundleForPath()
 	if err != nil {
 		return err
 	}
@@ -256,7 +257,7 @@ func DiagnoseSocketError(ui libkb.UI, err error) {
 		if libkb.IsBrewBuild {
 			t.Printf("\nThere are no Keybase services installed, you might try running:\n\n\tkeybase install\n\n")
 		} else {
-			bundlePath, err := install.AppBundleForPath()
+			bundlePath, err := libnativeinstaller.AppBundleForPath()
 			if err != nil {
 				t.Printf("No app bundle: %s\n\n", err)
 				return

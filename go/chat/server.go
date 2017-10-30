@@ -1021,6 +1021,36 @@ func (h *Server) PostHeadline(ctx context.Context, arg chat1.PostHeadlineArg) (c
 	return h.PostLocal(ctx, parg)
 }
 
+func (h *Server) PostMetadataNonblock(ctx context.Context, arg chat1.PostMetadataNonblockArg) (chat1.PostLocalNonblockRes, error) {
+	var parg chat1.PostLocalNonblockArg
+	parg.ClientPrev = arg.ClientPrev
+	parg.ConversationID = arg.ConversationID
+	parg.IdentifyBehavior = arg.IdentifyBehavior
+	parg.OutboxID = arg.OutboxID
+	parg.Msg.ClientHeader.MessageType = chat1.MessageType_METADATA
+	parg.Msg.ClientHeader.TlfName = arg.TlfName
+	parg.Msg.ClientHeader.TlfPublic = arg.TlfPublic
+	parg.Msg.MessageBody = chat1.NewMessageBodyWithMetadata(chat1.MessageConversationMetadata{
+		ConversationTitle: arg.ChannelName,
+	})
+
+	return h.PostLocalNonblock(ctx, parg)
+}
+
+func (h *Server) PostMetadata(ctx context.Context, arg chat1.PostMetadataArg) (chat1.PostLocalRes, error) {
+	var parg chat1.PostLocalArg
+	parg.ConversationID = arg.ConversationID
+	parg.IdentifyBehavior = arg.IdentifyBehavior
+	parg.Msg.ClientHeader.MessageType = chat1.MessageType_METADATA
+	parg.Msg.ClientHeader.TlfName = arg.TlfName
+	parg.Msg.ClientHeader.TlfPublic = arg.TlfPublic
+	parg.Msg.MessageBody = chat1.NewMessageBodyWithMetadata(chat1.MessageConversationMetadata{
+		ConversationTitle: arg.ChannelName,
+	})
+
+	return h.PostLocal(ctx, parg)
+}
+
 func (h *Server) GenerateOutboxID(ctx context.Context) (res chat1.OutboxID, err error) {
 	ctx = Context(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_SKIP, nil, h.identNotifier)
 	defer h.Trace(ctx, func() error { return err }, "GenerateOutboxID")()

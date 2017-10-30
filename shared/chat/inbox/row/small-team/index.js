@@ -34,7 +34,11 @@ class SmallTeam extends PureComponent<Props> {
       <ClickableBox onClick={props.onSelectConversation} style={{backgroundColor: props.backgroundColor}}>
         <Box style={{...rowContainerStyle, backgroundColor: props.backgroundColor}}>
           {props.teamname
-            ? <TeamAvatar teamname={props.teamname} />
+            ? <TeamAvatar
+                teamname={props.teamname}
+                isMuted={props.isMuted}
+                isSelected={this.props.isSelected}
+              />
             : <Avatars
                 backgroundColor={props.backgroundColor}
                 isMuted={props.isMuted}

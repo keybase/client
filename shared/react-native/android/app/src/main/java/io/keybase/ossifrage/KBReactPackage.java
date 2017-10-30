@@ -10,6 +10,7 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
+import io.keybase.ossifrage.components.CustomTextInputManager;
 import io.keybase.ossifrage.components.VisiblePassReactEditTextManager;
 import io.keybase.ossifrage.modules.KeybaseEngine;
 import io.keybase.ossifrage.modules.KillableModule;
@@ -54,7 +55,7 @@ public class KBReactPackage implements com.facebook.react.ReactPackage {
 
     @Override
     public List<ViewManager> createViewManagers(ReactApplicationContext reactApplicationContext) {
-        List<ViewManager> modules = Arrays.<ViewManager>asList(new VisiblePassReactEditTextManager());
+        List<ViewManager> modules = Arrays.<ViewManager>asList(new VisiblePassReactEditTextManager(), new CustomTextInputManager());
         return modules;
     }
 }
