@@ -2,7 +2,6 @@ package packfile
 
 import (
 	"bytes"
-	"io/ioutil"
 
 	"gopkg.in/src-d/go-git.v4/plumbing"
 )
@@ -33,22 +32,32 @@ func getDelta(index *deltaIndex, base, target plumbing.EncodedObject) (plumbing.
 	if err != nil {
 		return nil, err
 	}
+	defer br.Close()
 	tr, err := target.Reader()
 	if err != nil {
 		return nil, err
 	}
+	defer tr.Close()
 
-	bb, err := ioutil.ReadAll(br)
+	bb := bufPool.Get().(*bytes.Buffer)
+	bb.Reset()
+	defer bufPool.Put(bb)
+
+	_, err = bb.ReadFrom(br)
 	if err != nil {
 		return nil, err
 	}
 
-	tb, err := ioutil.ReadAll(tr)
+	tb := bufPool.Get().(*bytes.Buffer)
+	tb.Reset()
+	defer bufPool.Put(tb)
+
+	_, err = tb.ReadFrom(tr)
 	if err != nil {
 		return nil, err
 	}
 
-	db := diffDelta(index, bb, tb)
+	db := diffDelta(index, bb.Bytes(), tb.Bytes())
 	delta := &plumbing.MemoryObject{}
 	_, err = delta.Write(db)
 	if err != nil {
