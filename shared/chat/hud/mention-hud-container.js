@@ -15,8 +15,11 @@ type ConnectedMentionHudProps = {
   style?: Object,
 }
 
-const fullNameSelector = inbox => (inbox ? inbox.get('fullNames') : null)
-const participantsSelector = inbox => (inbox ? inbox.get('participants') : null)
+const fullNameSelector = createSelector(getSelectedInbox, inbox => (inbox ? inbox.get('fullNames') : null))
+const participantsSelector = createSelector(
+  getSelectedInbox,
+  inbox => (inbox ? inbox.get('participants') : null)
+)
 
 const userSelector = createSelector(fullNameSelector, participantsSelector, (fullNames, participants) => {
   return participants
@@ -29,9 +32,8 @@ const userSelector = createSelector(fullNameSelector, participantsSelector, (ful
 })
 
 const mapStateToProps: MapStateToProps<*, *, *> = (state, {filter}) => {
-  const inbox = getSelectedInbox(state)
   return {
-    users: userSelector(inbox),
+    users: userSelector(state),
     filter: filter.toLowerCase(),
   }
 }
