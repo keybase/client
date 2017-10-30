@@ -4,7 +4,10 @@
 package install
 
 import (
+	"bytes"
+	"errors"
 	"fmt"
+	"io/ioutil"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -279,7 +282,7 @@ func installKeybaseService(context Context, service launchd.Service, plist launc
 	err := launchd.Install(plist, wait, log)
 	if err != nil {
 		log.Warning("error installing keybase service via launchd: %s", err)
-		return fallbackStartProcess(context, service, plist, wait, log)
+		return nil, err
 	}
 
 	st, err := serviceStatusFromLaunchd(service, context.GetServiceInfoPath(), wait, log)
@@ -287,10 +290,12 @@ func installKeybaseService(context Context, service launchd.Service, plist launc
 }
 
 // UninstallKeybaseServices removes the keybase service (includes homebrew)
-func UninstallKeybaseServices(runMode libkb.RunMode, log Log) error {
+func UninstallKeybaseServices(context Context, log Log) error {
+	runMode := context.GetRunMode()
+	err0 := fallbackKillProcess(context, log, defaultServiceLabel(runMode, false), context.GetServiceInfoPath())
 	err1 := launchd.Uninstall(defaultServiceLabel(runMode, false), defaultLaunchdWait, log)
 	err2 := launchd.Uninstall(defaultServiceLabel(runMode, true), defaultLaunchdWait, log)
-	return libkb.CombineErrors(err1, err2)
+	return libkb.CombineErrors(err0, err1, err2)
 }
 
 func kbfsPlist(context Context, kbfsBinPath string, label string, mountDir string, skipMount bool, log Log) (launchd.Plist, error) {
@@ -326,7 +331,7 @@ func installKBFSService(context Context, service launchd.Service, plist launchd.
 	err := launchd.Install(plist, wait, log)
 	if err != nil {
 		log.Warning("error installing kbfs service via launchd: %s", err)
-		return fallbackStartProcess(context, service, plist, wait, log)
+		return nil, err
 	}
 
 	st, err := serviceStatusFromLaunchd(service, "", wait, log)
@@ -334,10 +339,12 @@ func installKBFSService(context Context, service launchd.Service, plist launchd.
 }
 
 // UninstallKBFSServices removes KBFS service (including homebrew)
-func UninstallKBFSServices(runMode libkb.RunMode, log Log) error {
+func UninstallKBFSServices(context Context, log Log) error {
+	runMode := context.GetRunMode()
+	err0 := fallbackKillProcess(context, log, defaultKBFSLabel(runMode, false), context.GetKBFSInfoPath())
 	err1 := launchd.Uninstall(defaultKBFSLabel(runMode, false), defaultLaunchdWait, log)
 	err2 := launchd.Uninstall(defaultKBFSLabel(runMode, true), defaultLaunchdWait, log)
-	return libkb.CombineErrors(err1, err2)
+	return libkb.CombineErrors(err0, err1, err2)
 }
 
 // NewServiceLabel constructs a service label
@@ -588,12 +595,25 @@ func InstallService(context Context, binPath string, force bool, timeout time.Du
 	if err != nil {
 		return err
 	}
-	UninstallKeybaseServices(context.GetRunMode(), log)
+	UninstallKeybaseServices(context, log)
 	log.Debug("Installing service (%s, timeout=%s)", label, timeout)
 	if _, err := installKeybaseService(context, service, plist, timeout, log); err != nil {
 		log.Errorf("Error installing Keybase service: %s", err)
-		return err
+		pid, err := fallbackStartProcess(context, service, plist, log)
+		if err != nil {
+			return err
+		}
+		log.Debug("service process started: %d, waiting for service info file %s to exist", pid, context.GetServiceInfoPath())
+		spid := strconv.Itoa(pid)
+		_, err = libkb.WaitForServiceInfoFile(context.GetServiceInfoPath(), service.Label(), spid, timeout, log)
+		if err != nil {
+			log.Warning("error waiting for service info file %s: %s", context.GetServiceInfoPath(), err)
+			return err
+		}
+		log.Debug("service info file %s exists, fallback service start worked", context.GetServiceInfoPath())
+		return nil
 	}
+	log.Debug("keybase service installed via launchd successfully")
 	return nil
 }
 
@@ -626,11 +646,26 @@ func InstallKBFS(context Context, binPath string, force bool, skipMountIfNotAvai
 		return err
 	}
 
-	UninstallKBFSServices(context.GetRunMode(), log)
+	UninstallKBFSServices(context, log)
 	log.Debug("Installing KBFS (%s, timeout=%s)", label, timeout)
 	if _, err := installKBFSService(context, kbfsService, plist, timeout, log); err != nil {
-		return err
+		log.Errorf("error installing KBFS: %s", err)
+		pid, err := fallbackStartProcess(context, kbfsService, plist, log)
+		if err != nil {
+			return err
+		}
+		log.Debug("kbfs process started: %d, waiting for kbfs info file %s to exist", pid, context.GetKBFSInfoPath())
+		spid := strconv.Itoa(pid)
+		_, err = libkb.WaitForServiceInfoFile(context.GetKBFSInfoPath(), kbfsService.Label(), spid, timeout, log)
+		if err != nil {
+			log.Warning("error waiting for kbfs info file %s: %s", context.GetKBFSInfoPath(), err)
+			return err
+		}
+		log.Debug("kbfs info file %s exists, kbfs service start worked", context.GetKBFSInfoPath())
+		return nil
 	}
+
+	log.Debug("KBFS installed via launchd successfully")
 	return nil
 }
 
@@ -665,7 +700,7 @@ func Uninstall(context Context, components []string, log Log) keybase1.Uninstall
 		var mountDir string
 		mountDir, err = context.GetMountDir()
 		if err == nil {
-			err = UninstallKBFS(context.GetRunMode(), mountDir, true, log)
+			err = UninstallKBFS(context, mountDir, true, log)
 		}
 		componentResults = append(componentResults, componentResult(string(ComponentNameKBFS), err))
 		if err != nil {
@@ -674,7 +709,7 @@ func Uninstall(context Context, components []string, log Log) keybase1.Uninstall
 	}
 
 	if libkb.IsIn(string(ComponentNameService), components, false) {
-		err = UninstallKeybaseServices(context.GetRunMode(), log)
+		err = UninstallKeybaseServices(context, log)
 		componentResults = append(componentResults, componentResult(string(ComponentNameService), err))
 		if err != nil {
 			log.Errorf("Error uninstalling service: %s", err)
@@ -756,7 +791,7 @@ func UninstallKBFSOnStop(context Context, log Log) error {
 		return err
 	}
 
-	if err := UninstallKBFS(runMode, mountDir, false, log); err != nil {
+	if err := UninstallKBFS(context, mountDir, false, log); err != nil {
 		return err
 	}
 
@@ -769,8 +804,8 @@ func UninstallKBFSOnStop(context Context, log Log) error {
 }
 
 // UninstallKBFS uninstalls all KBFS services, unmounts and optionally removes the mount directory
-func UninstallKBFS(runMode libkb.RunMode, mountDir string, forceUnmount bool, log Log) error {
-	err := UninstallKBFSServices(runMode, log)
+func UninstallKBFS(context Context, mountDir string, forceUnmount bool, log Log) error {
+	err := UninstallKBFSServices(context, log)
 	if err != nil {
 		return err
 	}
@@ -1035,6 +1070,7 @@ func InstallUpdater(context Context, keybaseBinPath string, force bool, timeout 
 	log.Debug("Installing updater service (%s, timeout=%s)", label, timeout)
 	if _, err := installUpdaterService(context, service, plist, timeout, log); err != nil {
 		log.Errorf("Error installing updater service: %s", err)
+		_, err = fallbackStartProcess(context, service, plist, log)
 		return err
 	}
 	return nil
@@ -1055,8 +1091,8 @@ func updaterPlist(context Context, label string, serviceBinPath string, keybaseB
 func installUpdaterService(context Context, service launchd.Service, plist launchd.Plist, wait time.Duration, log Log) (*keybase1.ServiceStatus, error) {
 	err := launchd.Install(plist, wait, log)
 	if err != nil {
-		log.Warning("error installing updated service via launchd: %s", err)
-		return fallbackStartProcess(context, service, plist, wait, log)
+		log.Warning("error installing updater service via launchd: %s", err)
+		return nil, err
 	}
 
 	st, err := serviceStatusFromLaunchd(service, "", wait, log)
@@ -1112,7 +1148,11 @@ func SystemLogPath() string {
 	return "/Library/Logs/keybase.system.log"
 }
 
-func fallbackStartProcess(context Context, service launchd.Service, plist launchd.Plist, wait time.Duration, log Log) (*keybase1.ServiceStatus, error) {
+func fallbackPIDFilename(service launchd.Service) string {
+	return filepath.Join(os.TempDir(), "kbfb."+service.Label())
+}
+
+func fallbackStartProcess(context Context, service launchd.Service, plist launchd.Plist, log Log) (int, error) {
 	log.Info("falling back to starting %s process manually", service.Label())
 
 	cmd := plist.FallbackCommand()
@@ -1120,21 +1160,75 @@ func fallbackStartProcess(context Context, service launchd.Service, plist launch
 	err := cmd.Start()
 	if err != nil {
 		log.Warning("error starting fallback command for %s (%s): %s", service.Label(), cmd.Path, err)
-		return nil, err
+		return 0, err
 	}
 
 	if cmd.Process == nil {
 		log.Warning("no process after starting command %s", cmd.Path)
-		return nil, fmt.Errorf("failed to start %s (%s)", service.Label(), cmd.Path)
+		return 0, fmt.Errorf("failed to start %s (%s)", service.Label(), cmd.Path)
 	}
 
 	log.Info("fallback command started: %s, pid = %d", cmd.Path, cmd.Process.Pid)
 
-	status := keybase1.ServiceStatus{
-		Label:  service.Label(),
-		Pid:    strconv.Itoa(cmd.Process.Pid),
-		Status: keybase1.StatusOK(""),
+	// save pid in a fallback file so uninstall can check
+	f, err := os.Create(fallbackPIDFilename(service))
+	if err != nil {
+		log.Warning("failed to create fallback pid file %s: %s", fallbackPIDFilename(service), err)
+	} else {
+		f.Write([]byte(fmt.Sprintf("%d", cmd.Process.Pid)))
+		f.Close()
 	}
 
-	return &status, nil
+	return cmd.Process.Pid, nil
+}
+
+func fallbackKillProcess(context Context, log Log, label string, infoPath string) error {
+	svc := launchd.NewService(label)
+	svc.SetLogger(log)
+
+	fpid := fallbackPIDFilename(svc)
+
+	exists, err := libkb.FileExists(fpid)
+	if err != nil {
+		return err
+	}
+	if !exists {
+		return nil
+	}
+
+	log.Debug("fallback pid file exists for %s", svc.Label())
+	p, err := ioutil.ReadFile(fpid)
+	if err != nil {
+		return err
+	}
+	pid := string(bytes.TrimSpace(p))
+
+	if infoPath != "" {
+		serviceInfo, err := libkb.LoadServiceInfo(infoPath)
+		if err != nil {
+			log.Warning("error loading service info for %s in file %s: %s", svc.Label(), infoPath, err)
+			return err
+		}
+		if strconv.Itoa(serviceInfo.Pid) != pid {
+			log.Warning("service info pid %d does not match fallback pid %s, not killing anything", serviceInfo.Pid, pid)
+			return errors.New("fallback PID mismatch")
+		}
+	}
+
+	log.Debug("stopping process %s for %s", pid, svc.Label())
+	cmd := exec.Command("kill", pid)
+	out, err := cmd.CombinedOutput()
+	if err != nil {
+		log.Warning("error stopping process %s for %s: %s", pid, svc.Label(), err)
+		log.Debug("command output: %s", out)
+		return err
+	}
+	log.Debug("process %s for %s stopped", pid, svc.Label())
+	if err := os.Remove(fpid); err != nil {
+		log.Warning("error removing fallback pid file %s: %s", fpid, err)
+		return err
+	}
+	log.Debug("fallback pid file %s for %s removed", fpid, svc.Label())
+
+	return nil
 }
