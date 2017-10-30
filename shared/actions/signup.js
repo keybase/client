@@ -34,7 +34,7 @@ function startRequestInvite() {
   }
 }
 
-function checkInviteCode(inviteCode: string) {
+function checkInviteCodeThenNextPhase(inviteCode: string) {
   return (dispatch: Dispatch) => {
     const p: Promise<*> = new Promise((resolve, reject) => {
       dispatch(SignupGen.createCheckInviteCode({inviteCode}))
@@ -79,7 +79,7 @@ function requestAutoInvite() {
         },
       })
         .then(inviteCode => {
-          dispatch(SignupGen.createCheckInviteCode({inviteCode}))
+          dispatch(checkInviteCodeThenNextPhase(inviteCode))
           // For navigateAppend to work in nextPhase(), need the right path.
           dispatch(navigateTo([loginTab, 'signup']))
           inviteCode ? resolve() : reject(new Error('No invite code'))
@@ -451,7 +451,7 @@ function clearDeviceNameError() {
 }
 
 export {
-  checkInviteCode,
+  checkInviteCodeThenNextPhase,
   checkPassphrase,
   checkUsernameEmail,
   clearDeviceNameError,
