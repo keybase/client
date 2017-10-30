@@ -95,7 +95,7 @@ function* _showUserProfile(action: Constants.ShowUserProfile): SagaGenerator<any
   // Assume user exists
   if (!username.includes('@')) {
     yield put(switchTo([peopleTab]))
-    yield put(navigateAppend([{props: {username}, selected: 'profile'}], [peopleTab]))
+    yield put(navigateAppend([{props: {username: username.toLowerCase()}, selected: 'profile'}], [peopleTab]))
     return
   }
 
