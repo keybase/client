@@ -718,6 +718,11 @@ func (d *Service) GetExclusiveLock() error {
 }
 
 func (d *Service) cleanupSocketFile() error {
+	// Short circuit if we're running under socket activation -- the socket
+	// file is already set up for us, and we mustn't delete it.
+	if IsSocketActivated() {
+		return nil
+	}
 	sf, err := d.G().Env.GetSocketBindFile()
 	if err != nil {
 		return err
