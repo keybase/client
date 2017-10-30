@@ -183,11 +183,11 @@ const renderError = (error: RPCError) => {
           <Box style={styleList}>
             <Text type="Body">
               {' '}
-              - Use
+              - Run
               {' '}
               <Text type="TerminalInline">keybase login</Text>
               {' '}
-              on the command line to log in
+              on the device with the corresponding PGP private key
             </Text>
             {!isMobile &&
               <Text type="Body">
@@ -199,7 +199,7 @@ const renderError = (error: RPCError) => {
             </Text>
             <Text type="Body">
               {' '}
-              - Or,
+              - Or, if none of the above are possible,
               {' '}
               <Text type="BodyPrimaryLink" onClick={() => openURL('https://keybase.io/#account-reset')}>
                 reset your account and start fresh

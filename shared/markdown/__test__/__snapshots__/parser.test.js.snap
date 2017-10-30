@@ -1,26 +1,5 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`Markdown parser allows partially styled words correctly 1`] = `
-Object {
-  "children": Array [
-    Object {
-      "children": Array [
-        "is*bolded* ",
-        Object {
-          "children": Array [
-            "also",
-          ],
-          "type": "bold",
-        },
-        "isbolded",
-      ],
-      "type": "text-block",
-    },
-  ],
-  "type": "markup",
-}
-`;
-
 exports[`Markdown parser eats multiple empty lines at end 1`] = `
 Object {
   "children": Array [
@@ -73,6 +52,20 @@ Object {
 exports[`Markdown parser parses an empty line correctly 1`] = `
 Object {
   "children": Array [],
+  "type": "markup",
+}
+`;
+
+exports[`Markdown parser parses chars in the middle of words correctly 1`] = `
+Object {
+  "children": Array [
+    Object {
+      "children": Array [
+        "isnot*bolded* *also*isnotbolded",
+      ],
+      "type": "text-block",
+    },
+  ],
   "type": "markup",
 }
 `;
@@ -243,13 +236,7 @@ Object {
   "children": Array [
     Object {
       "children": Array [
-        Object {
-          "children": Array [
-            "bold",
-          ],
-          "type": "bold",
-        },
-        "*",
+        "*bold**",
       ],
       "type": "text-block",
     },
@@ -723,6 +710,12 @@ Object {
     },
     Object {
       "children": Array [
+        "    keybase.diamond",
+      ],
+      "type": "text-block",
+    },
+    Object {
+      "children": Array [
         "  Include:",
       ],
       "type": "text-block",
@@ -921,6 +914,19 @@ Object {
         "    ",
         Object {
           "children": Array [
+            "keybase.diamonds",
+          ],
+          "href": "http://keybase.diamonds",
+          "type": "link",
+        },
+      ],
+      "type": "text-block",
+    },
+    Object {
+      "children": Array [
+        "    ",
+        Object {
+          "children": Array [
             "10.0.0.24",
           ],
           "href": "http://10.0.0.24",
@@ -1022,6 +1028,20 @@ Object {
     },
     Object {
       "children": Array [
+        "    ",
+        Object {
+          "children": Array [
+            "keybase.io/().@:hello",
+          ],
+          "href": "http://keybase.io/().@:hello",
+          "type": "link",
+        },
+        "*",
+      ],
+      "type": "text-block",
+    },
+    Object {
+      "children": Array [
         "  These should have the trailing punctuation outside the link:",
       ],
       "type": "text-block",
@@ -1087,6 +1107,20 @@ Object {
         "    ",
         Object {
           "children": Array [
+            "keybase.io",
+          ],
+          "href": "http://keybase.io",
+          "type": "link",
+        },
+        ")",
+      ],
+      "type": "text-block",
+    },
+    Object {
+      "children": Array [
+        "    ",
+        Object {
+          "children": Array [
             Object {
               "children": Array [
                 "http://keybase.io/",
@@ -1117,6 +1151,54 @@ Object {
           ],
           "type": "bold",
         },
+      ],
+      "type": "text-block",
+    },
+    Object {
+      "children": Array [
+        "  These should have only the matching brackets removed from them:",
+      ],
+      "type": "text-block",
+    },
+    Object {
+      "children": Array [
+        "    (",
+        Object {
+          "children": Array [
+            "https://en.wikipedia.org/wiki/Redshirt_(character",
+          ],
+          "href": "https://en.wikipedia.org/wiki/Redshirt_(character",
+          "type": "link",
+        },
+        "))",
+      ],
+      "type": "text-block",
+    },
+    Object {
+      "children": Array [
+        "    ([(",
+        Object {
+          "children": Array [
+            "https://en.wikipedia.org/wiki/Redshirt_(character",
+          ],
+          "href": "https://en.wikipedia.org/wiki/Redshirt_(character",
+          "type": "link",
+        },
+        "))])",
+      ],
+      "type": "text-block",
+    },
+    Object {
+      "children": Array [
+        "    ([",
+        Object {
+          "children": Array [
+            "keybase.io",
+          ],
+          "href": "http://keybase.io",
+          "type": "link",
+        },
+        "])",
       ],
       "type": "text-block",
     },

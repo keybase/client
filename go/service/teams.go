@@ -193,6 +193,10 @@ func (h *TeamsHandler) TeamAcceptInvite(ctx context.Context, arg keybase1.TeamAc
 	if err := h.assertLoggedIn(ctx); err != nil {
 		return err
 	}
+	seitan, err := teams.GenerateIKeyFromString(arg.Token)
+	if err == nil {
+		return teams.AcceptSeitan(ctx, h.G().ExternalG(), seitan)
+	}
 	return teams.AcceptInvite(ctx, h.G().ExternalG(), arg.Token)
 }
 
@@ -254,6 +258,13 @@ func (h *TeamsHandler) LoadTeamPlusApplicationKeys(ctx context.Context, arg keyb
 	ctx = libkb.WithLogTag(ctx, "LTPAK")
 	defer h.G().CTraceTimed(ctx, fmt.Sprintf("LoadTeamPlusApplicationKeys(%s)", arg.Id), func() error { return err })()
 	return teams.LoadTeamPlusApplicationKeys(ctx, h.G().ExternalG(), arg.Id, arg.Application, arg.Refreshers)
+}
+
+func (h *TeamsHandler) TeamCreateSeitanToken(ctx context.Context, arg keybase1.TeamCreateSeitanTokenArg) (token string, err error) {
+	if err := h.assertLoggedIn(ctx); err != nil {
+		return "", err
+	}
+	return teams.CreateSeitanToken(ctx, h.G().ExternalG(), arg.Name, arg.Role)
 }
 
 func (h *TeamsHandler) GetTeamRootID(ctx context.Context, id keybase1.TeamID) (keybase1.TeamID, error) {

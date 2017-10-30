@@ -20,7 +20,8 @@
         "KBFS_1",
         "CHAT_2",
         "SALTPACK_3",
-        "GIT_METADATA_4"
+        "GIT_METADATA_4",
+        "SEITAN_INVITE_TOKEN_5"
       ]
     },
     {
@@ -428,7 +429,8 @@
         "UNKNOWN_1",
         "KEYBASE_2",
         "EMAIL_3",
-        "SBS_4"
+        "SBS_4",
+        "SEITAN_5"
       ]
     },
     {
@@ -848,6 +850,64 @@
             "items": "TeamAccessRequest"
           },
           "name": "tars"
+        }
+      ],
+      "lint": "ignore"
+    },
+    {
+      "type": "record",
+      "name": "SeitanAKey",
+      "fields": [],
+      "typedef": "string"
+    },
+    {
+      "type": "record",
+      "name": "TeamSeitanRequest",
+      "fields": [
+        {
+          "type": "TeamInviteID",
+          "name": "inviteID",
+          "jsonkey": "invite_id"
+        },
+        {
+          "type": "UID",
+          "name": "uid"
+        },
+        {
+          "type": "Seqno",
+          "name": "eldestSeqno",
+          "jsonkey": "eldest_seqno"
+        },
+        {
+          "type": "SeitanAKey",
+          "name": "akey"
+        },
+        {
+          "type": "TeamRole",
+          "name": "role"
+        },
+        {
+          "type": "int64",
+          "name": "unixCTime",
+          "jsonkey": "ctime"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "TeamSeitanMsg",
+      "fields": [
+        {
+          "type": "TeamID",
+          "name": "teamID",
+          "jsonkey": "team_id"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "TeamSeitanRequest"
+          },
+          "name": "seitans"
         }
       ],
       "lint": "ignore"
@@ -1593,6 +1653,23 @@
         }
       ],
       "response": null
+    },
+    "teamCreateSeitanToken": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "name",
+          "type": "string"
+        },
+        {
+          "name": "role",
+          "type": "TeamRole"
+        }
+      ],
+      "response": "string"
     },
     "teamAddEmailsBulk": {
       "request": [

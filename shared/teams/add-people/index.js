@@ -137,7 +137,6 @@ const _styleContainer = {
   backgroundColor: globalColors.white,
   borderRadius: 5,
   boxShadow: `0 2px 5px 0 ${globalColors.black_20}`,
-  height: '100%',
   minWidth: 800,
   position: 'relative',
   top: 10,
