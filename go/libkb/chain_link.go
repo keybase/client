@@ -505,6 +505,10 @@ func (c *ChainLink) unpackStubbed(raw string, err error) error {
 	if err != nil {
 		return err
 	}
+	if ol.SeqType == 0 {
+		// Assume public if unset
+		ol.SeqType = keybase1.SeqType_PUBLIC
+	}
 	c.id = ol.LinkID()
 	c.unpacked = &ChainLinkUnpacked{
 		prev:        ol.Prev,
@@ -565,6 +569,10 @@ func (c *ChainLink) Unpack(trusted bool, selfUID keybase1.UID) (err error) {
 		ol2, err = DecodeOuterLinkV2(tmp.sig)
 		if err != nil {
 			return err
+		}
+		if ol2.SeqType == 0 {
+			// Assume public if unset
+			ol2.SeqType = keybase1.SeqType_PUBLIC
 		}
 		tmp.outerLinkV2 = ol2
 		sigKID = ol2.KID

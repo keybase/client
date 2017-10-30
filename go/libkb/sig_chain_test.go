@@ -207,6 +207,10 @@ func doChainTest(t *testing.T, tc TestContext, testCase TestCase) {
 			sigchainErr = err
 			break
 		}
+		require.Equal(t, keybase1.SeqType_PUBLIC, link.unpacked.seqType, "all user chains are public")
+		if link.unpacked.outerLinkV2 != nil {
+			require.Equal(t, link.unpacked.outerLinkV2.SeqType, link.unpacked.seqType, "inner-outer seq_type match")
+		}
 		sigchain.chainLinks = append(sigchain.chainLinks, link)
 	}
 	if sigchainErr == nil {
