@@ -28,10 +28,11 @@ const userSelector = createSelector(fullNameSelector, participantsSelector, (ful
     : []
 })
 
-const mapStateToProps: MapStateToProps<*, *, *> = state => {
+const mapStateToProps: MapStateToProps<*, *, *> = (state, {filter}) => {
   const inbox = getSelectedInbox(state)
   return {
     users: userSelector(inbox),
+    filter: filter.toLowerCase(),
   }
 }
 

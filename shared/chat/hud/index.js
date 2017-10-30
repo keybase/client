@@ -97,7 +97,6 @@ const mapStateToProps: MapStateToProps<*, *, *> = (state: TypedState, {users, se
       key: u.username,
     }))
     .filter(u => {
-      filter = filter.toLowerCase()
       return u.username.toLowerCase().indexOf(filter) >= 0 || u.fullName.toLowerCase().indexOf(filter) >= 0
     })
     .map((u, i) => ({...u, selected: i === selectedIndex})),
