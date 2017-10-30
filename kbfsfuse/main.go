@@ -30,13 +30,13 @@ const usageFormatStr = `Usage:
 
 To run against remote KBFS servers:
   kbfsfuse
-    [-runtime-dir=path/to/dir] [-label=label] [-mount-type=` + defaultMountType + `]
+    [-runtime-dir=path/to/dir] [-label=label] [-mount-type=default|force|none]
 %s
     %s/path/to/mountpoint
 
 To run in a local testing environment:
   kbfsfuse
-    [-runtime-dir=path/to/dir] [-label=label] [-mount-type=` + defaultMountType + `]
+    [-runtime-dir=path/to/dir] [-label=label] [-mount-type=default|force|none]
 %s
     %s/path/to/mountpoint
 
