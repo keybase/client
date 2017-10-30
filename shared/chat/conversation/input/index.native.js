@@ -10,6 +10,13 @@ import {isIOS} from '../../../constants/platform'
 import type {AttachmentInput} from '../../../constants/chat'
 import type {Props} from '.'
 
+let CustomTextInput
+
+// NEVER load this on ios, it kills it
+if (!isIOS) {
+  CustomTextInput = require('../../../common-adapters/custom-input.native')
+}
+
 // TODO we don't autocorrect the last word on submit. We had a solution using blur but this also dismisses they keyboard each time
 // See if there's a better workaround later
 
@@ -92,22 +99,41 @@ class ConversationInput extends Component<Props> {
 
     return (
       <Box style={styleContainer}>
-        <Input
-          autoCorrect={true}
-          autoCapitalize="sentences"
-          autoFocus={false}
-          hideUnderline={true}
-          hintText="Write a message"
-          inputStyle={styleInputText}
-          multiline={true}
-          onBlur={this._onBlur}
-          onChangeText={this.props.setText}
-          ref={this.props.inputSetRef}
-          small={true}
-          style={styleInput}
-          value={this.props.text}
-          {...multilineOpts}
-        />
+        {isIOS
+          ? <Input
+              autoCorrect={true}
+              autoCapitalize="sentences"
+              autoFocus={false}
+              hideUnderline={true}
+              hintText="Write a message"
+              inputStyle={styleInputText}
+              multiline={true}
+              onBlur={this._onBlur}
+              onChangeText={this.props.setText}
+              ref={this.props.inputSetRef}
+              small={true}
+              style={styleInput}
+              value={this.props.text}
+              {...multilineOpts}
+            />
+          : <CustomTextInput
+              autoCorrect={true}
+              autoCapitalize="sentences"
+              autoFocus={false}
+              autoGrow={true}
+              style={styleInput}
+              onChangeText={this.props.setText}
+              onBlur={this._onBlur}
+              placeholder="Write a message"
+              underlineColorAndroid={globalColors.transparent}
+              multiline={true}
+              maxHeight={80}
+              numberOfLines={1}
+              minHeight={40}
+              defaultValue={this.props.text || undefined}
+              ref={this.props.inputSetRef}
+              blurOnSubmit={false}
+            />}
         {this.props.typing.length > 0 && <Typing typing={this.props.typing} />}
         <Action
           text={this.props.text}
@@ -188,6 +214,7 @@ const styleContainer = {
 const styleInput = {
   flex: 1,
   marginLeft: globalMargins.tiny,
+  ...(isIOS ? {} : {marginTop: -8, marginBottom: -8}),
 }
 
 export default ConversationInput
