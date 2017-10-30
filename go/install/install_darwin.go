@@ -292,7 +292,7 @@ func installKeybaseService(context Context, service launchd.Service, plist launc
 // UninstallKeybaseServices removes the keybase service (includes homebrew)
 func UninstallKeybaseServices(context Context, log Log) error {
 	runMode := context.GetRunMode()
-	err0 := fallbackKillProcess(context, log, defaultServiceLabel(runMode, false), context.GetServiceInfoPath())
+	err0 := fallbackKillProcess(context, log, defaultServiceLabel(runMode, false), context.GetServiceInfoPath(), "")
 	err1 := launchd.Uninstall(defaultServiceLabel(runMode, false), defaultLaunchdWait, log)
 	err2 := launchd.Uninstall(defaultServiceLabel(runMode, true), defaultLaunchdWait, log)
 	return libkb.CombineErrors(err0, err1, err2)
@@ -341,7 +341,7 @@ func installKBFSService(context Context, service launchd.Service, plist launchd.
 // UninstallKBFSServices removes KBFS service (including homebrew)
 func UninstallKBFSServices(context Context, log Log) error {
 	runMode := context.GetRunMode()
-	err0 := fallbackKillProcess(context, log, defaultKBFSLabel(runMode, false), context.GetKBFSInfoPath())
+	err0 := fallbackKillProcess(context, log, defaultKBFSLabel(runMode, false), context.GetKBFSInfoPath(), "")
 	err1 := launchd.Uninstall(defaultKBFSLabel(runMode, false), defaultLaunchdWait, log)
 	err2 := launchd.Uninstall(defaultKBFSLabel(runMode, true), defaultLaunchdWait, log)
 	return libkb.CombineErrors(err0, err1, err2)
@@ -1102,7 +1102,8 @@ func installUpdaterService(context Context, service launchd.Service, plist launc
 // UninstallUpdaterService removes updater launchd service
 func UninstallUpdaterService(context Context, log Log) error {
 	runMode := context.GetRunMode()
-	err0 := fallbackKillProcess(context, log, DefaultUpdaterLabel(runMode), "")
+	pidFile := filepath.Join(context.GetCacheDir(), "updater.pid")
+	err0 := fallbackKillProcess(context, log, DefaultUpdaterLabel(runMode), "", pidFile)
 	err1 := launchd.Uninstall(DefaultUpdaterLabel(runMode), defaultLaunchdWait, log)
 	return libkb.CombineErrors(err0, err1)
 }
@@ -1185,7 +1186,7 @@ func fallbackStartProcess(context Context, service launchd.Service, plist launch
 	return cmd.Process.Pid, nil
 }
 
-func fallbackKillProcess(context Context, log Log, label string, infoPath string) error {
+func fallbackKillProcess(context Context, log Log, label string, infoPath, pidPath string) error {
 	svc := launchd.NewService(label)
 	svc.SetLogger(log)
 
@@ -1217,6 +1218,19 @@ func fallbackKillProcess(context Context, log Log, label string, infoPath string
 			log.Warning("service info pid %d does not match fallback pid %s, not killing anything", serviceInfo.Pid, pid)
 			return errors.New("fallback PID mismatch")
 		}
+	} else if pidPath != "" {
+		lp, err := ioutil.ReadFile(pidPath)
+		if err != nil {
+			return err
+		}
+		lpid := string(bytes.TrimSpace(lp))
+		if lpid != pid {
+			log.Warning("pid in file %s (%d) does not match fallback pid %s, not killing anything", pidPath, lpid, pid)
+			return errors.New("fallback PID mismatch")
+		}
+	} else {
+		log.Warning("neither infoPath or pidPath specified, cannot verify fallback PID.")
+		return errors.New("unable to verify fallback PID")
 	}
 
 	log.Debug("stopping process %s for %s", pid, svc.Label())
