@@ -25,6 +25,24 @@ var _ storage.Storer = (*onDemandStorer)(nil)
 func newOnDemandStorer(s storage.Storer) (*onDemandStorer, error) {
 	// Track a small number of recent in-memory objects, to improve
 	// performance without impacting memory too much.
+	//
+	// LRU is very helpful here because of the way delta compression
+	// works. It first sorts the objects by type and descending size,
+	// and then compares each object to a sliding window of previous
+	// objects to find a good match. By default in git, the sliding
+	// window for compression is 10, and it's good to have a
+	// slightly larger cache size than that to avoid thrashing.
+	//
+	// To avoid memory pressure, it might be nice to additionally
+	// consider capping the total size of this cache (e.g., with
+	// github.com/keybase/cache). However, since the set in use is
+	// based on the sliding window, it seems like that should be the
+	// limiting factor. Eventually we might hit some repo where
+	// there's a set of large objects that can overrun memory, but at
+	// the limit that could be any two objects, and then the
+	// compression algorithm in go-git is worthless.  So for now,
+	// let's just limit by number of entries, and add size-limits
+	// later if needed.
 	recentCache, err := lru.New(25)
 	if err != nil {
 		return nil, err
