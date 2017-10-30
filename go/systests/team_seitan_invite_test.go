@@ -95,7 +95,7 @@ func TestTeamInviteSeitanFailures(t *testing.T) {
 	_, err = roo.tc.G.API.Post(arg)
 	require.NoError(t, err)
 
-	t.Logf("Preparet and send invalid akey, waiting for rekeyd")
+	t.Logf("Prepared and send invalid akey, waiting for rekeyd")
 
 	own.kickTeamRekeyd()
 	pollingFound := false
