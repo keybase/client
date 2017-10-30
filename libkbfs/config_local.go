@@ -5,6 +5,7 @@
 package libkbfs
 
 import (
+	"flag"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -103,12 +104,13 @@ type ConfigLocal struct {
 	syncedTlfs       map[tlf.ID]bool
 	defaultBlockType keybase1.BlockType
 	kbfsService      *KBFSService
+	kbCtx            Context
 
-	maxNameBytes    uint32
-	maxDirBytes     uint64
-	rekeyQueue      RekeyQueue
-	storageRoot     string
-	enableDiskCache bool
+	maxNameBytes  uint32
+	maxDirBytes   uint64
+	rekeyQueue    RekeyQueue
+	storageRoot   string
+	diskCacheMode DiskCacheMode
 
 	traceLock    sync.RWMutex
 	traceEnabled bool
@@ -140,6 +142,47 @@ type ConfigLocal struct {
 
 	quotaUsage      map[keybase1.UserOrTeamID]*EventuallyConsistentQuotaUsage
 	rekeyFSMLimiter *OngoingWorkLimiter
+}
+
+// DiskCacheMode represents the mode of initialization for the disk cache.
+type DiskCacheMode int
+
+var _ flag.Value = (*DiskCacheMode)(nil)
+
+const (
+	// DiskCacheModeOff indicates to leave off the disk cache.
+	DiskCacheModeOff DiskCacheMode = iota
+	// DiskCacheModeLocal indicates to use a local disk cache.
+	DiskCacheModeLocal
+	// DiskCacheModeRemote indicates to use a remote disk cache.
+	DiskCacheModeRemote
+)
+
+// String outputs a human-readable description of this DiskBlockCacheMode.
+func (m DiskCacheMode) String() string {
+	switch m {
+	case DiskCacheModeOff:
+		return "off"
+	case DiskCacheModeLocal:
+		return "local"
+	case DiskCacheModeRemote:
+		return "remote"
+	}
+	return "unknown"
+}
+
+// Set parses a string representing a disk block cache initialization mode,
+// and outputs the mode value corresponding to that string. Defaults to
+// DiskCacheModeOff.
+func (m *DiskCacheMode) Set(s string) error {
+	*m = DiskCacheModeOff
+	switch strings.ToLower(strings.TrimSpace(s)) {
+	case "local":
+		*m = DiskCacheModeLocal
+	case "remote":
+		*m = DiskCacheModeRemote
+	}
+	return nil
 }
 
 var _ Config = (*ConfigLocal)(nil)
@@ -317,14 +360,15 @@ func getDefaultCleanBlockCacheCapacity() uint64 {
 // TODO: Now that NewConfigLocal takes loggerFn, add more default
 // components.
 func NewConfigLocal(mode InitMode, loggerFn func(module string) logger.Logger,
-	storageRoot string, enableDiskCache bool) *ConfigLocal {
+	storageRoot string, diskCacheMode DiskCacheMode, kbCtx Context) *ConfigLocal {
 	config := &ConfigLocal{
-		loggerFn:        loggerFn,
-		storageRoot:     storageRoot,
-		mode:            mode,
-		enableDiskCache: enableDiskCache,
+		loggerFn:      loggerFn,
+		storageRoot:   storageRoot,
+		mode:          mode,
+		diskCacheMode: diskCacheMode,
+		kbCtx:         kbCtx,
 	}
-	if enableDiskCache {
+	if diskCacheMode == DiskCacheModeLocal {
 		config.loadSyncedTlfsLocked()
 	}
 	config.SetClock(wallClock{})
@@ -1264,10 +1308,23 @@ func (c *ConfigLocal) resetDiskBlockCacheLocked() error {
 func (c *ConfigLocal) MakeDiskBlockCacheIfNotExists() error {
 	c.lock.Lock()
 	defer c.lock.Unlock()
-	if !c.enableDiskCache || c.diskBlockCache != nil {
+	if c.diskBlockCache != nil {
 		return nil
 	}
-	return c.resetDiskBlockCacheLocked()
+	switch c.diskCacheMode {
+	case DiskCacheModeOff:
+		return nil
+	case DiskCacheModeLocal:
+		return c.resetDiskBlockCacheLocked()
+	case DiskCacheModeRemote:
+		dbc, err := NewDiskBlockCacheRemote(c.kbCtx, c)
+		if err != nil {
+			return err
+		}
+		c.diskBlockCache = dbc
+		return nil
+	}
+	return nil
 }
 
 func (c *ConfigLocal) openConfigLevelDB(configName string) (*levelDb, error) {
@@ -1327,7 +1384,8 @@ func (c *ConfigLocal) SetTlfSyncState(tlfID tlf.ID, isSynced bool) error {
 	if isSynced {
 		diskCacheWrapped, ok := c.diskBlockCache.(*diskBlockCacheWrapped)
 		if !ok {
-			return errors.New("invalid disk cache type to set TLF sync state")
+			return errors.Errorf("invalid disk cache type to set TLF sync "+
+				"state: %T", c.diskBlockCache)
 		}
 		if !diskCacheWrapped.IsSyncCacheEnabled() {
 			return errors.New("sync block cache is not enabled")

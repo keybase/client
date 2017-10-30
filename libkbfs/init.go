@@ -93,9 +93,8 @@ type InitParams struct {
 	// EnableJournal enables journaling.
 	EnableJournal bool
 
-	// EnableDiskCache toggles whether the disk cache is enabled in the
-	// StorageRoot data directory.
-	EnableDiskCache bool
+	// DiskCacheMode specifies which mode to start the disk cache.
+	DiskCacheMode DiskCacheMode
 
 	// StorageRoot, if non-empty, points to a local directory to put its local
 	// databases for things like the journal or disk cache.
@@ -178,7 +177,7 @@ func DefaultInitParams(ctx Context) InitParams {
 		BGFlushPeriod:                  bgFlushPeriodDefault,
 		BGFlushDirOpBatchSize:          bgFlushDirOpBatchSizeDefault,
 		EnableJournal:                  true,
-		EnableDiskCache:                true,
+		DiskCacheMode:                  DiskCacheModeLocal,
 		Mode:                           InitDefaultString,
 	}
 }
@@ -228,9 +227,12 @@ func AddFlagsWithDefaults(
 	flags.StringVar(&params.StorageRoot, "storage-root",
 		defaultParams.StorageRoot, "Specifies where Keybase will store its "+
 			"local databases for the journal and disk cache.")
-	flags.BoolVar(&params.EnableDiskCache, "enable-disk-cache",
-		defaultParams.EnableDiskCache,
-		"Enables the disk cache for the directory specified by -storage-root.")
+	params.DiskCacheMode = defaultParams.DiskCacheMode
+	flags.Var(&params.DiskCacheMode, "disk-cache-mode",
+		"Sets the mode for the disk cache. If 'local', then it uses a "+
+			"subdirectory of -storage-root to store the cache. If 'remote', "+
+			"then it connects to the local KBFS instance and delegates disk "+
+			"cache operations to it.")
 	flags.BoolVar(&params.EnableJournal, "enable-journal",
 		defaultParams.EnableJournal, "Enables write journaling for TLFs.")
 
@@ -558,7 +560,7 @@ func doInit(
 			lg.Configure("", true, "")
 		}
 		return lg
-	}, params.StorageRoot, params.EnableDiskCache)
+	}, params.StorageRoot, params.DiskCacheMode, kbCtx)
 
 	if params.CleanBlockCacheCapacity > 0 {
 		log.CDebugf(
@@ -618,10 +620,25 @@ func doInit(
 	if err != nil {
 		return nil, fmt.Errorf("problem creating service: %s", err)
 	}
+	err = config.MakeDiskBlockCacheIfNotExists()
+	if err != nil {
+		log.CWarningf(ctx, "Could not initialize disk cache: %+v", err)
+		notification := &keybase1.FSNotification{
+			StatusCode:       keybase1.FSStatusCode_ERROR,
+			NotificationType: keybase1.FSNotificationType_INITIALIZED,
+			ErrorType:        keybase1.FSErrorType_DISK_CACHE_ERROR_LOG_SEND,
+		}
+		defer config.Reporter().Notify(ctx, notification)
+	} else {
+		log.CDebugf(ctx, "Disk cache of type \"%s\" enabled",
+			params.DiskCacheMode.String())
+	}
 
 	if config.Mode() == InitDefault {
 		// Initialize kbfsService only when we run a full KBFS process.
-		kbfsService, err := NewKBFSService(kbCtx, kbfsLog)
+		// This requires the disk block cache to have been initialized, if it
+		// should be initialized.
+		kbfsService, err := NewKBFSService(kbCtx, config)
 		if err != nil {
 			// This error shouldn't be fatal
 			log.CWarningf(ctx, "Error starting RPC server for KBFS: %+v", err)
@@ -699,20 +716,6 @@ func doInit(
 			log.CWarningf(ctx, "Could not initialize journal server: %+v", err)
 		}
 		log.CDebugf(ctx, "Journaling enabled")
-	}
-	if params.EnableDiskCache {
-		err = config.MakeDiskBlockCacheIfNotExists()
-		if err != nil {
-			log.CWarningf(ctx, "Could not initialize disk cache: %+v", err)
-			notification := &keybase1.FSNotification{
-				StatusCode:       keybase1.FSStatusCode_ERROR,
-				NotificationType: keybase1.FSNotificationType_INITIALIZED,
-				ErrorType:        keybase1.FSErrorType_DISK_CACHE_ERROR_LOG_SEND,
-			}
-			defer config.Reporter().Notify(ctx10s, notification)
-		} else {
-			log.CDebugf(ctx, "Disk cache enabled")
-		}
 	}
 
 	if params.BGFlushDirOpBatchSize < 1 {

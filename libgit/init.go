@@ -58,7 +58,7 @@ func Params(kbCtx libkbfs.Context,
 	// This is set to false in docker tests for now, but we need it. So
 	// override it to true here.
 	params.EnableJournal = true
-	params.EnableDiskCache = false
+	params.DiskCacheMode = libkbfs.DiskCacheModeRemote
 	params.StorageRoot = tempDir
 	params.Mode = libkbfs.InitSingleOpString
 	params.TLFJournalBackgroundWorkStatus =
@@ -104,6 +104,8 @@ func Init(ctx context.Context, gitKBFSParams libkbfs.InitParams,
 	// Make any blocks written by via this config charged to the git
 	// quota.
 	config.SetDefaultBlockType(keybase1.BlockType_GIT)
+
+	config.MakeDiskBlockCacheIfNotExists()
 
 	return ctx, config, nil
 }

@@ -16,6 +16,7 @@ import (
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
+	"github.com/keybase/kbfs/env"
 	"github.com/keybase/kbfs/kbfscrypto"
 	"github.com/keybase/kbfs/kbfsmd"
 	"github.com/keybase/kbfs/tlf"
@@ -44,7 +45,7 @@ const (
 // TODO: Move more common code here.
 func newConfigForTest(mode InitMode,
 	loggerFn func(module string) logger.Logger) *ConfigLocal {
-	config := NewConfigLocal(mode|InitTest, loggerFn, "", false)
+	config := NewConfigLocal(mode|InitTest, loggerFn, "", DiskCacheModeOff, &env.KBFSContext{})
 
 	bops := NewBlockOpsStandard(config,
 		testBlockRetrievalWorkerQueueSize, testPrefetchWorkerQueueSize)

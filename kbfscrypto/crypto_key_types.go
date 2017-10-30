@@ -102,6 +102,10 @@ func (c publicByte32Container) Data() [32]byte {
 	return c.data
 }
 
+func (c publicByte32Container) Bytes() []byte {
+	return c.data[:]
+}
+
 func (c publicByte32Container) MarshalBinary() (data []byte, err error) {
 	return c.data[:], nil
 }

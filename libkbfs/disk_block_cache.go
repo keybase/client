@@ -47,8 +47,8 @@ const (
 	workingSetCacheName           string = "WorkingSetBlockCache"
 )
 
-// DiskBlockCacheStandard is the standard implementation for DiskBlockCache.
-type DiskBlockCacheStandard struct {
+// DiskBlockCacheLocal is the standard implementation for DiskBlockCache.
+type DiskBlockCacheLocal struct {
 	config     diskBlockCacheConfig
 	log        logger.Logger
 	maxBlockID []byte
@@ -82,7 +82,7 @@ type DiskBlockCacheStandard struct {
 	closer func()
 }
 
-var _ DiskBlockCache = (*DiskBlockCacheStandard)(nil)
+var _ DiskBlockCache = (*DiskBlockCacheLocal)(nil)
 
 // MeterStatus represents the status of a rate meter.
 type MeterStatus struct {
@@ -124,7 +124,7 @@ type DiskBlockCacheStatus struct {
 func newDiskBlockCacheStandardFromStorage(
 	config diskBlockCacheConfig, cacheType diskLimitTrackerType,
 	blockStorage, metadataStorage, tlfStorage storage.Storage) (
-	cache *DiskBlockCacheStandard, err error) {
+	cache *DiskBlockCacheLocal, err error) {
 	log := config.MakeLogger("KBC")
 	closers := make([]io.Closer, 0, 3)
 	closer := func() {
@@ -168,7 +168,7 @@ func newDiskBlockCacheStandardFromStorage(
 	}
 	startedCh := make(chan struct{})
 	startErrCh := make(chan struct{})
-	cache = &DiskBlockCacheStandard{
+	cache = &DiskBlockCacheLocal{
 		config:           config,
 		maxBlockID:       maxBlockID.Bytes(),
 		cacheType:        cacheType,
@@ -293,7 +293,7 @@ func getVersionedPathForDiskCache(log logger.Logger, dirPath string) (
 // specified directory on the filesystem as storage.
 func newDiskBlockCacheStandard(config diskBlockCacheConfig,
 	cacheType diskLimitTrackerType, dirPath string) (
-	cache *DiskBlockCacheStandard, err error) {
+	cache *DiskBlockCacheLocal, err error) {
 	log := config.MakeLogger("DBC")
 	defer func() {
 		if err != nil {
@@ -339,18 +339,18 @@ func newDiskBlockCacheStandard(config diskBlockCacheConfig,
 }
 
 func newDiskBlockCacheStandardForTest(config diskBlockCacheConfig,
-	cacheType diskLimitTrackerType) (*DiskBlockCacheStandard, error) {
+	cacheType diskLimitTrackerType) (*DiskBlockCacheLocal, error) {
 	return newDiskBlockCacheStandardFromStorage(
 		config, cacheType, storage.NewMemStorage(),
 		storage.NewMemStorage(), storage.NewMemStorage())
 }
 
 // WaitUntilStarted waits until this cache has started.
-func (cache *DiskBlockCacheStandard) WaitUntilStarted() {
+func (cache *DiskBlockCacheLocal) WaitUntilStarted() {
 	<-cache.startedCh
 }
 
-func (cache *DiskBlockCacheStandard) syncBlockCountsFromDb() error {
+func (cache *DiskBlockCacheLocal) syncBlockCountsFromDb() error {
 	cache.log.Debug("+ syncBlockCountsFromDb begin")
 	defer cache.log.Debug("- syncBlockCountsFromDb end")
 	// We take a write lock for this to prevent any reads from happening while
@@ -385,13 +385,13 @@ func (cache *DiskBlockCacheStandard) syncBlockCountsFromDb() error {
 
 // tlfKey generates a TLF cache key from a tlf.ID and a binary-encoded block
 // ID.
-func (*DiskBlockCacheStandard) tlfKey(tlfID tlf.ID, blockKey []byte) []byte {
+func (*DiskBlockCacheLocal) tlfKey(tlfID tlf.ID, blockKey []byte) []byte {
 	return append(tlfID.Bytes(), blockKey...)
 }
 
 // updateMetadataLocked updates the LRU time of a block in the LRU cache to
 // the current time.
-func (cache *DiskBlockCacheStandard) updateMetadataLocked(ctx context.Context,
+func (cache *DiskBlockCacheLocal) updateMetadataLocked(ctx context.Context,
 	blockKey []byte, metadata DiskBlockCacheMetadata) error {
 	metadata.LRUTime = cache.config.Clock().Now()
 	encodedMetadata, err := cache.config.Codec().Encode(&metadata)
@@ -408,7 +408,7 @@ func (cache *DiskBlockCacheStandard) updateMetadataLocked(ctx context.Context,
 
 // getMetadataLocked retrieves the metadata for a block in the cache, or
 // returns leveldb.ErrNotFound and a zero-valued metadata otherwise.
-func (cache *DiskBlockCacheStandard) getMetadataLocked(blockID kbfsblock.ID) (
+func (cache *DiskBlockCacheLocal) getMetadataLocked(blockID kbfsblock.ID) (
 	metadata DiskBlockCacheMetadata, err error) {
 	metadataBytes, err := cache.metaDb.Get(blockID.Bytes(), nil)
 	if err != nil {
@@ -428,7 +428,7 @@ func (cache *DiskBlockCacheStandard) getMetadataLocked(blockID kbfsblock.ID) (
 
 // getLRULocked retrieves the LRU time for a block in the cache, or returns
 // leveldb.ErrNotFound and a zero-valued time.Time otherwise.
-func (cache *DiskBlockCacheStandard) getLRULocked(blockID kbfsblock.ID) (
+func (cache *DiskBlockCacheLocal) getLRULocked(blockID kbfsblock.ID) (
 	time.Time, error) {
 	metadata, err := cache.getMetadataLocked(blockID)
 	if err != nil {
@@ -439,7 +439,7 @@ func (cache *DiskBlockCacheStandard) getLRULocked(blockID kbfsblock.ID) (
 
 // decodeBlockCacheEntry decodes a disk block cache entry buffer into an
 // encoded block and server half.
-func (cache *DiskBlockCacheStandard) decodeBlockCacheEntry(buf []byte) ([]byte,
+func (cache *DiskBlockCacheLocal) decodeBlockCacheEntry(buf []byte) ([]byte,
 	kbfscrypto.BlockCryptKeyServerHalf, error) {
 	entry := diskBlockCacheEntry{}
 	err := cache.config.Codec().Decode(buf, &entry)
@@ -451,7 +451,7 @@ func (cache *DiskBlockCacheStandard) decodeBlockCacheEntry(buf []byte) ([]byte,
 
 // encodeBlockCacheEntry encodes an encoded block and serverHalf into a single
 // buffer.
-func (cache *DiskBlockCacheStandard) encodeBlockCacheEntry(buf []byte,
+func (cache *DiskBlockCacheLocal) encodeBlockCacheEntry(buf []byte,
 	serverHalf kbfscrypto.BlockCryptKeyServerHalf) ([]byte, error) {
 	entry := diskBlockCacheEntry{
 		Buf:        buf,
@@ -462,7 +462,7 @@ func (cache *DiskBlockCacheStandard) encodeBlockCacheEntry(buf []byte,
 
 // checkAndLockCache checks whether the cache is started, then locks it based
 // on the provided flag, leaving the cache locked.
-func (cache *DiskBlockCacheStandard) checkCacheLocked(method string) error {
+func (cache *DiskBlockCacheLocal) checkCacheLocked(method string) error {
 	select {
 	case <-cache.startedCh:
 	default:
@@ -482,7 +482,7 @@ func (cache *DiskBlockCacheStandard) checkCacheLocked(method string) error {
 }
 
 // Get implements the DiskBlockCache interface for DiskBlockCacheStandard.
-func (cache *DiskBlockCacheStandard) Get(ctx context.Context, tlfID tlf.ID,
+func (cache *DiskBlockCacheLocal) Get(ctx context.Context, tlfID tlf.ID,
 	blockID kbfsblock.ID) (buf []byte,
 	serverHalf kbfscrypto.BlockCryptKeyServerHalf,
 	prefetchStatus PrefetchStatus, err error) {
@@ -524,7 +524,7 @@ func (cache *DiskBlockCacheStandard) Get(ctx context.Context, tlfID tlf.ID,
 	return buf, serverHalf, prefetchStatus, err
 }
 
-func (cache *DiskBlockCacheStandard) evictUntilBytesAvailable(
+func (cache *DiskBlockCacheLocal) evictUntilBytesAvailable(
 	ctx context.Context, encodedLen int64) (hasEnoughSpace bool, err error) {
 	for i := 0; i < maxEvictionsPerPut; i++ {
 		select {
@@ -557,7 +557,7 @@ func (cache *DiskBlockCacheStandard) evictUntilBytesAvailable(
 }
 
 // Put implements the DiskBlockCache interface for DiskBlockCacheStandard.
-func (cache *DiskBlockCacheStandard) Put(ctx context.Context, tlfID tlf.ID,
+func (cache *DiskBlockCacheLocal) Put(ctx context.Context, tlfID tlf.ID,
 	blockID kbfsblock.ID, buf []byte,
 	serverHalf kbfscrypto.BlockCryptKeyServerHalf) error {
 	cache.lock.Lock()
@@ -661,7 +661,7 @@ func (cache *DiskBlockCacheStandard) Put(ctx context.Context, tlfID tlf.ID,
 
 // GetMetadata implements the DiskBlockCache interface for
 // DiskBlockCacheStandard.
-func (cache *DiskBlockCacheStandard) GetMetadata(ctx context.Context,
+func (cache *DiskBlockCacheLocal) GetMetadata(ctx context.Context,
 	blockID kbfsblock.ID) (DiskBlockCacheMetadata, error) {
 	cache.lock.RLock()
 	defer cache.lock.RUnlock()
@@ -670,7 +670,7 @@ func (cache *DiskBlockCacheStandard) GetMetadata(ctx context.Context,
 
 // UpdateMetadata implements the DiskBlockCache interface for
 // DiskBlockCacheStandard.
-func (cache *DiskBlockCacheStandard) UpdateMetadata(ctx context.Context,
+func (cache *DiskBlockCacheLocal) UpdateMetadata(ctx context.Context,
 	blockID kbfsblock.ID, prefetchStatus PrefetchStatus) (err error) {
 	cache.lock.Lock()
 	defer cache.lock.Unlock()
@@ -700,20 +700,8 @@ func (cache *DiskBlockCacheStandard) UpdateMetadata(ctx context.Context,
 	return cache.updateMetadataLocked(ctx, blockID.Bytes(), md)
 }
 
-// Size implements the DiskBlockCache interface for DiskBlockCacheStandard.
-func (cache *DiskBlockCacheStandard) Size() int64 {
-	cache.lock.RLock()
-	defer cache.lock.RUnlock()
-	err := cache.checkCacheLocked("Size")
-	if err != nil {
-		return 0
-	}
-
-	return int64(cache.currBytes)
-}
-
 // deleteLocked deletes a set of blocks from the disk block cache.
-func (cache *DiskBlockCacheStandard) deleteLocked(ctx context.Context,
+func (cache *DiskBlockCacheLocal) deleteLocked(ctx context.Context,
 	blockEntries []kbfsblock.ID) (numRemoved int, sizeRemoved int64,
 	err error) {
 	if len(blockEntries) == 0 {
@@ -777,7 +765,7 @@ func (cache *DiskBlockCacheStandard) deleteLocked(ctx context.Context,
 }
 
 // Delete implements the DiskBlockCache interface for DiskBlockCacheStandard.
-func (cache *DiskBlockCacheStandard) Delete(ctx context.Context,
+func (cache *DiskBlockCacheLocal) Delete(ctx context.Context,
 	blockIDs []kbfsblock.ID) (numRemoved int, sizeRemoved int64, err error) {
 	cache.lock.Lock()
 	defer cache.lock.Unlock()
@@ -796,7 +784,7 @@ func (cache *DiskBlockCacheStandard) Delete(ctx context.Context,
 // if we need to consider 100 out of 400 blocks, and we assume that the block
 // IDs are uniformly distributed, then our random start point should be in the
 // [0,0.75) interval on the [0,1.0) block ID space.
-func (*DiskBlockCacheStandard) getRandomBlockID(numElements,
+func (*DiskBlockCacheLocal) getRandomBlockID(numElements,
 	totalElements int) (kbfsblock.ID, error) {
 	if totalElements == 0 {
 		return kbfsblock.ID{}, errors.New("")
@@ -814,7 +802,7 @@ func (*DiskBlockCacheStandard) getRandomBlockID(numElements,
 // evictSomeBlocks tries to evict `numBlocks` blocks from the cache. If
 // `blockIDs` doesn't have enough blocks, we evict them all and report how many
 // we evicted.
-func (cache *DiskBlockCacheStandard) evictSomeBlocks(ctx context.Context,
+func (cache *DiskBlockCacheLocal) evictSomeBlocks(ctx context.Context,
 	numBlocks int, blockIDs blockIDsByTime) (numRemoved int, sizeRemoved int64,
 	err error) {
 	defer func() {
@@ -839,7 +827,7 @@ func (cache *DiskBlockCacheStandard) evictSomeBlocks(ctx context.Context,
 // get numBlocks * evictionConsiderationFactor block IDs.  We sort the
 // resulting blocks by value (LRU time) and pick the minimum numBlocks. We then
 // call cache.Delete() on that list of block IDs.
-func (cache *DiskBlockCacheStandard) evictFromTLFLocked(ctx context.Context,
+func (cache *DiskBlockCacheLocal) evictFromTLFLocked(ctx context.Context,
 	tlfID tlf.ID, numBlocks int) (numRemoved int, sizeRemoved int64, err error) {
 	tlfBytes := tlfID.Bytes()
 	numElements := numBlocks * evictionConsiderationFactor
@@ -886,7 +874,7 @@ func (cache *DiskBlockCacheStandard) evictFromTLFLocked(ctx context.Context,
 // evictionConsiderationFactor block IDs.  We sort the resulting blocks by
 // value (LRU time) and pick the minimum numBlocks. We then call cache.Delete()
 // on that list of block IDs.
-func (cache *DiskBlockCacheStandard) evictLocked(ctx context.Context,
+func (cache *DiskBlockCacheLocal) evictLocked(ctx context.Context,
 	numBlocks int) (numRemoved int, sizeRemoved int64, err error) {
 	defer func() {
 		if err == nil {
@@ -930,7 +918,7 @@ func (cache *DiskBlockCacheStandard) evictLocked(ctx context.Context,
 }
 
 // Status implements the DiskBlockCache interface for DiskBlockCacheStandard.
-func (cache *DiskBlockCacheStandard) Status(
+func (cache *DiskBlockCacheLocal) Status(
 	ctx context.Context) map[string]DiskBlockCacheStatus {
 	var name string
 	var maxLimit uint64
@@ -971,7 +959,7 @@ func (cache *DiskBlockCacheStandard) Status(
 }
 
 // Shutdown implements the DiskBlockCache interface for DiskBlockCacheStandard.
-func (cache *DiskBlockCacheStandard) Shutdown(ctx context.Context) {
+func (cache *DiskBlockCacheLocal) Shutdown(ctx context.Context) {
 	// Wait for the cache to either finish starting or error.
 	select {
 	case <-cache.startedCh:
