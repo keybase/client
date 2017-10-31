@@ -629,7 +629,7 @@ function* _markAsRead(
 }
 
 function _updateBadging(
-  {payload: {conversationIDKey, blah}}: ChatGen.ReturnType<typeof ChatGen.createUpdateBadging>,
+  {payload: {conversationIDKey}}: ChatGen.ReturnType<typeof ChatGen.createUpdateBadging>,
   lastMessageID: ?Constants.MessageID
 ) {
   // Update gregor's view of the latest message we've read.
