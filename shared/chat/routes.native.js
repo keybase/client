@@ -11,6 +11,7 @@ import InfoPanel from './conversation/info-panel/container'
 import NewTeamDialog from './new-team-dialog-container.js'
 import ManageChannels from './manage-channels/container'
 import CreateChannel from './create-channel/container'
+import TeamInfoMenu from './inbox/row/team-info-menu'
 
 const conversationRoute = makeRouteDefNode({
   component: Conversation,
@@ -72,6 +73,12 @@ const createChannelRoute = makeRouteDefNode({
   children: {},
 })
 
+const teamInfoMenuRoute = makeRouteDefNode({
+  component: TeamInfoMenu,
+  tags: makeLeafTags({layerOnTop: true}),
+  children: {},
+})
+
 const routeTree = makeRouteDefNode({
   component: ConvListOrSearch,
   children: key => {
@@ -79,6 +86,8 @@ const routeTree = makeRouteDefNode({
       return manageChannelsRoute
     } else if (key === 'createChannel') {
       return createChannelRoute
+    } else if (key === 'teamInfoMenu') {
+      return teamInfoMenuRoute
     }
 
     return conversationRoute

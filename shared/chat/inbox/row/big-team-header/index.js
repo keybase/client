@@ -3,6 +3,7 @@ import React from 'react'
 import {Avatar, Box, Text, Icon, PopupMenu} from '../../../../common-adapters'
 import {globalStyles, globalColors, globalMargins, glamorous} from '../../../../styles'
 import {isMobile} from '../../../../constants/platform'
+import TeamInfoMenu from '../team-info-menu'
 
 type Props = {
   memberCount: number,
@@ -13,8 +14,6 @@ type Props = {
   teamname: string,
 }
 
-const zIndexMenu = 20
-
 const BigTeamHeader = (props: Props) => (
   <HeaderBox>
     <Avatar teamname={props.teamname} size={isMobile ? 24 : 16} />
@@ -22,32 +21,7 @@ const BigTeamHeader = (props: Props) => (
       {props.teamname}
     </Text>
     <Icon className="icon" type="iconfont-gear" onClick={() => props.onSetShowMenu(true)} style={iconStyle} />
-    {props.showMenu &&
-      <PopupMenu
-        header={{
-          title: 'Header',
-          view: (
-            <Box style={teamHeaderStyle}>
-              <Avatar teamname={props.teamname} size={16} />
-              <Text type="BodySmallSemibold" style={teamStyle}>{props.teamname}</Text>
-              <Text type="BodySmall">
-                {props.memberCount + ' member' + (props.memberCount !== 1 ? 's' : '')}
-              </Text>
-            </Box>
-          ),
-        }}
-        items={[
-          {onClick: props.onManageChannels, title: 'Manage chat channels'},
-          {onClick: props.onViewTeam, title: 'View team'},
-        ]}
-        onHidden={() => props.onSetShowMenu(false)}
-        style={{
-          position: isMobile ? 'relative' : 'absolute',
-          right: globalMargins.tiny,
-          top: globalMargins.small,
-          zIndex: zIndexMenu,
-        }}
-      />}
+    {props.showMenu && <TeamInfoMenu {...props} />}
   </HeaderBox>
 )
 
@@ -61,13 +35,6 @@ const iconStyle = {
     : {
         hoverColor: globalColors.black_75,
       }),
-}
-
-const teamHeaderStyle = {
-  ...globalStyles.flexBoxColumn,
-  alignItems: 'center',
-  justifyContent: 'center',
-  padding: globalMargins.tiny,
 }
 
 const teamRowContainerStyle = {

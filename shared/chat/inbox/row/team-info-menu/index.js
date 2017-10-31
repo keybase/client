@@ -56,4 +56,4 @@ const teamStyle = {
   marginRight: globalMargins.tiny,
 }
 
-export {TeamInfoMenu}
+export default TeamInfoMenu
