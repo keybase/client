@@ -578,6 +578,23 @@ func CancelEmailInvite(ctx context.Context, g *libkb.GlobalContext, teamname, em
 	})
 }
 
+func CancelInviteByID(ctx context.Context, g *libkb.GlobalContext, teamname string, inviteID keybase1.TeamInviteID) error {
+	return RetryOnSigOldSeqnoError(ctx, g, func(ctx context.Context, _ int) error {
+		t, err := GetForTeamManagementByStringName(ctx, g, teamname, true)
+		if err != nil {
+			return err
+		}
+
+		// Service-side check for invite id, even though we operate on
+		// TeamInviteID type, API consumer can give us any string.
+		if _, err := keybase1.TeamInviteIDFromString(string(inviteID)); err != nil {
+			return fmt.Errorf("Invalid invite ID: %s", err)
+		}
+
+		return removeInviteID(ctx, t, inviteID)
+	})
+}
+
 func Leave(ctx context.Context, g *libkb.GlobalContext, teamname string, permanent bool) error {
 	return RetryOnSigOldSeqnoError(ctx, g, func(ctx context.Context, _ int) error {
 		t, err := GetForTeamManagementByStringName(ctx, g, teamname, false)
