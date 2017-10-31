@@ -632,3 +632,37 @@ func TestRunnerDeletePackedRef(t *testing.T) {
 	testListAndGetHeadsWithName(t, ctx, config, git1,
 		[]string{"refs/heads/master", "HEAD"}, "user1")
 }
+
+func TestPushcertOptions(t *testing.T) {
+	ctx, config, tempdir := initConfigForRunner(t)
+	defer libkbfs.CheckConfigAndShutdown(ctx, t, config)
+	defer os.RemoveAll(tempdir)
+
+	git, err := ioutil.TempDir(os.TempDir(), "kbfsgittest")
+	require.NoError(t, err)
+	defer os.RemoveAll(git)
+	dotgit := filepath.Join(git, ".git")
+
+	checkPushcert := func(option, expected string) {
+		inputReader, inputWriter := io.Pipe()
+		defer inputWriter.Close()
+		go func() {
+			inputWriter.Write([]byte(fmt.Sprintf(
+				"option pushcert %s\n\n", option)))
+		}()
+
+		var output bytes.Buffer
+		r, err := newRunner(ctx, config, "origin",
+			fmt.Sprintf("keybase://private/user1/test"),
+			dotgit, inputReader, &output, testErrput{t})
+		require.NoError(t, err)
+		err = r.processCommands(ctx)
+		require.NoError(t, err)
+		// if-asked is supported, but signing will never be asked for.
+		require.Equal(t, fmt.Sprintf("%s\n", expected), output.String())
+	}
+
+	checkPushcert("if-asked", "ok")
+	checkPushcert("true", "unsupported")
+	checkPushcert("false", "ok")
+}

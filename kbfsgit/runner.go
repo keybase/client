@@ -45,6 +45,8 @@ const (
 	gitOptionVerbosity = "verbosity"
 	gitOptionProgress  = "progress"
 	gitOptionCloning   = "cloning"
+	gitOptionPushcert  = "pushcert"
+	gitOptionIfAsked   = "if-asked"
 
 	// Debug tag ID for an individual git command passed to the process.
 	ctxCommandOpID = "GITCMDID"
@@ -1502,6 +1504,25 @@ func (r *runner) handleOption(ctx context.Context, args []string) (err error) {
 		r.cloning = b
 		r.log.CDebugf(ctx, "Setting cloning to %t", b)
 		result = "ok"
+	case gitOptionPushcert:
+		if args[1] == gitOptionIfAsked {
+			// "if-asked" means we should sign only if the server
+			// supports it. Our server doesn't support it, but we
+			// should still accept the configuration.
+			result = "ok"
+		} else {
+			b, err := strconv.ParseBool(args[1])
+			if err != nil {
+				return err
+			}
+			if b {
+				// We don't support signing.
+				r.log.CDebugf(ctx, "Signing is unsupported")
+				result = "unsupported"
+			} else {
+				result = "ok"
+			}
+		}
 	default:
 		result = "unsupported"
 	}
