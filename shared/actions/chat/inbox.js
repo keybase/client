@@ -710,7 +710,7 @@ function* _inboxSynced(action: Constants.InboxSynced): Saga.SagaGenerator<any, a
     }
     // It is VERY important to pass the exact number of things to request here. The pagination system will
     // return whatever number we ask for on newest messages due to its architecture so if we want only N
-    // newer items we have to explictly ask for N or it will give us messages older than onyNewerThan
+    // newer items we have to explictly ask for N or it will give us messages older than onlyNewerThan
     yield Saga.put(
       ChatGen.createLoadMoreMessages({
         conversationIDKey: selectedConversation,
