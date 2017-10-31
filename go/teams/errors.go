@@ -260,3 +260,11 @@ func NewTeamDeletedError() error { return &TeamDeletedError{} }
 func (e TeamDeletedError) Error() string {
 	return "team has been deleted"
 }
+
+type SubteamOwnersError struct{}
+
+func NewSubteamOwnersError() error { return &SubteamOwnersError{} }
+
+func (e SubteamOwnersError) Error() string {
+	return "Subteams cannot have owners. Try admin instead."
+}

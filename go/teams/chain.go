@@ -1665,20 +1665,20 @@ func (t *TeamSigChainPlayer) sanityCheckMembers(members SCTeamMembers, options s
 
 	if options.requireOwners {
 		if members.Owners == nil {
-			return nil, fmt.Errorf("team has no owner list: %+v", members)
+			return nil, fmt.Errorf("team has no owner list")
 		}
 		if len(*members.Owners) < 1 {
-			return nil, fmt.Errorf("team has no owners: %+v", members)
+			return nil, fmt.Errorf("team has no owners")
 		}
 	}
 	if options.disallowOwners {
 		if members.Owners != nil && len(*members.Owners) > 0 {
-			return nil, fmt.Errorf("team has owners: %+v", members)
+			return nil, fmt.Errorf("team has owners")
 		}
 	}
 	if !options.allowRemovals {
 		if members.None != nil && len(*members.None) != 0 {
-			return nil, fmt.Errorf("team has removals in link: %+v", members)
+			return nil, fmt.Errorf("team has removals in link")
 		}
 	}
 
