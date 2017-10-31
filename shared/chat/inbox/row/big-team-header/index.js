@@ -22,7 +22,12 @@ class BigTeamHeader extends PureComponent<Props> {
         <Text type="BodySmallSemibold" style={teamStyle}>
           {this.props.teamname}
         </Text>
-        <Icon className="icon" type="iconfont-gear" onClick={() => this.props.onSetShowMenu(true)} style={iconStyle} />
+        <Icon
+          className="icon"
+          type="iconfont-gear"
+          onClick={() => this.props.onSetShowMenu(true)}
+          style={iconStyle}
+        />
         {this.props.showMenu &&
           <PopupMenu
             header={{
