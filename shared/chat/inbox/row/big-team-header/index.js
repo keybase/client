@@ -13,6 +13,8 @@ type Props = {
   teamname: string,
 }
 
+const zIndexMenu = 20
+
 const BigTeamHeader = (props: Props) => (
   <HeaderBox>
     <Avatar teamname={props.teamname} size={isMobile ? 24 : 16} />
@@ -43,7 +45,7 @@ const BigTeamHeader = (props: Props) => (
           position: isMobile ? 'relative' : 'absolute',
           right: globalMargins.tiny,
           top: globalMargins.small,
-          zIndex: 20,
+          zIndex: zIndexMenu,
         }}
       />}
   </HeaderBox>
