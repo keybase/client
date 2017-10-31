@@ -822,7 +822,7 @@ func ListRequests(ctx context.Context, g *libkb.GlobalContext) ([]keybase1.TeamJ
 	for i, ar := range arList.Requests {
 		joinRequests[i] = keybase1.TeamJoinRequest{
 			Name:     ar.FQName,
-			Username: ar.Username,
+			Username: libkb.NewNormalizedUsername(ar.Username).String(),
 		}
 	}
 
