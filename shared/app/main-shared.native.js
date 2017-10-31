@@ -13,7 +13,6 @@ import {listenForNotifications} from '../actions/notifications'
 import {navigateUp, setRouteState} from '../actions/route-tree'
 
 type Props = {
-  dumbFullscreen: boolean,
   folderBadge: number,
   mountPush: boolean,
   routeDef: any,
@@ -59,11 +58,6 @@ class Main extends Component<any> {
   }
 
   render() {
-    if (this.props.dumbFullscreen) {
-      const DumbSheet = require('../dev/dumb-sheet').default
-      return <DumbSheet />
-    }
-
     // TODO: move Push prompt into route
     if (this.props.showPushPrompt) {
       return <Push />
@@ -80,7 +74,6 @@ class Main extends Component<any> {
 }
 
 const mapStateToProps = (state: TypedState) => ({
-  dumbFullscreen: state.dev.debugConfig.dumbFullscreen,
   folderBadge: state.favorite.folderState.privateBadge + state.favorite.folderState.publicBadge,
   routeDef: state.routeTree.routeDef,
   routeState: state.routeTree.routeState,

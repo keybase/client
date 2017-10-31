@@ -74,8 +74,9 @@ func (s *Storage) Delete(ctx context.Context, teamID keybase1.TeamID, public boo
 	return s.disk.Delete(ctx, teamID, public)
 }
 
-func (s *Storage) onLogout() {
-	s.mem.onLogout()
+// Clear the in-memory storage.
+func (s *Storage) clearMem() {
+	s.mem.Clear()
 }
 
 // --------------------------------------------------
@@ -88,7 +89,7 @@ type DiskStorage struct {
 }
 
 // Increment to invalidate the disk cache.
-const diskStorageVersion = 5
+const diskStorageVersion = 6
 
 type DiskStorageItem struct {
 	Version int                `codec:"V"`
@@ -219,7 +220,7 @@ func (s *MemoryStorage) Delete(ctx context.Context, teamID keybase1.TeamID, publ
 	s.lru.Remove(s.key(teamID, public))
 }
 
-func (s *MemoryStorage) onLogout() {
+func (s *MemoryStorage) Clear() {
 	s.lru.Purge()
 }
 

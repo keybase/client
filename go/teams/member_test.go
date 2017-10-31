@@ -677,7 +677,27 @@ func TestLeaveSubteamWithImplicitAdminship(t *testing.T) {
 	require.NoError(t, err)
 	err = Leave(context.TODO(), tc.G, subteamName, false)
 	require.Error(t, err)
-	require.IsType(t, &ImplicitAdminCannotLeave{}, err, "wrong error type")
+	require.IsType(t, &ImplicitAdminCannotLeaveError{}, err, "wrong error type")
+}
+
+// See CORE-6473
+func TestOnlyOwnerLeaveThenUpgradeFriend(t *testing.T) {
+
+	tc, _, otherA, _, name := memberSetupMultiple(t)
+	defer tc.Cleanup()
+
+	if err := SetRoleWriter(context.TODO(), tc.G, name, otherA.Username); err != nil {
+		t.Fatal(err)
+	}
+	if err := Leave(context.TODO(), tc.G, name, false); err == nil {
+		t.Fatal("expected an error when only owner is leaving")
+	}
+	if err := SetRoleOwner(context.TODO(), tc.G, name, otherA.Username); err != nil {
+		t.Fatal(err)
+	}
+	if err := Leave(context.TODO(), tc.G, name, false); err != nil {
+		t.Fatal(err)
+	}
 }
 
 func TestMemberAddResolveCache(t *testing.T) {

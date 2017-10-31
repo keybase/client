@@ -1439,6 +1439,18 @@ func (t *TeamSigChainPlayer) addInnerLink(
 		res.newState = prevState.DeepCopy()
 		err = t.parseTeamSettings(team.Settings, &res.newState)
 		return res, err
+	case libkb.LinkTypeDeleteRoot:
+		return res, NewTeamDeletedError()
+	case libkb.LinkTypeDeleteUpPointer:
+		return res, NewTeamDeletedError()
+	case libkb.LinkTypeLegacyTLFUpgrade:
+		// This link type is not really understood but is processed as a no-op for forward compatibility.
+		// When implementing this for real (or deleting it) be sure to:
+		// - Bust the TeamData cache
+		// - Update SigchainV2Type.RequiresAdminPermission
+		// - Add checks here that the signer is an admin and that this is an implicit team. If those are intended.
+		res.newState = prevState.DeepCopy()
+		return res, nil
 	case "":
 		return res, errors.New("empty body type")
 	default:

@@ -15,7 +15,8 @@ protocol teams {
     KBFS_1,
     CHAT_2,
     SALTPACK_3,
-    GIT_METADATA_4
+    GIT_METADATA_4,
+    SEITAN_INVITE_TOKEN_5
   }
 
   // PerTeamKeyGeneration describes the generation of the secret.
@@ -157,7 +158,8 @@ protocol teams {
     UNKNOWN_1,
     KEYBASE_2,
     EMAIL_3,
-    SBS_4
+    SBS_4,
+    SEITAN_5
   }
 
   variant TeamInviteType switch (TeamInviteCategory c) {
@@ -335,6 +337,28 @@ protocol teams {
     array<TeamAccessRequest> tars;
   }
 
+  @typedef("string")
+  record SeitanAKey {}
+
+  record TeamSeitanRequest {
+    @jsonkey("invite_id")
+    TeamInviteID inviteID;
+    UID uid;
+    @jsonkey("eldest_seqno")
+    Seqno eldestSeqno;
+    SeitanAKey akey;
+    TeamRole role;
+    @jsonkey("ctime")
+    int64 unixCTime;
+  }
+
+  @lint("ignore")
+  record TeamSeitanMsg {
+    @jsonkey("team_id")
+    TeamID teamID;
+    array<TeamSeitanRequest> seitans; 
+  }
+
   /**
    * TeamRefreshData are needed or wanted data requirements that, if unmet, will cause
    * a refresh of the cache.
@@ -484,6 +508,7 @@ protocol teams {
   TeamTreeResult teamTree(int sessionID, TeamName name);
   void teamDelete(int sessionID, string name);
   void teamSetSettings(int sessionID, string name, TeamSettings settings);
+  string teamCreateSeitanToken(int sessionID, string name, TeamRole role);
 
   record BulkRes {
     array<string> invited;

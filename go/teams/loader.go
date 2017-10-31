@@ -848,7 +848,12 @@ func (l *TeamLoader) lows(ctx context.Context, state *keybase1.TeamData) getLink
 }
 
 func (l *TeamLoader) OnLogout() {
-	l.storage.onLogout()
+	l.storage.clearMem()
+}
+
+// Clear the in-memory cache.
+func (l *TeamLoader) ClearMem() {
+	l.storage.clearMem()
 }
 
 func (l *TeamLoader) VerifyTeamName(ctx context.Context, id keybase1.TeamID, name keybase1.TeamName) error {

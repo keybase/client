@@ -1248,6 +1248,27 @@
     },
     {
       "type": "record",
+      "name": "MessageIDControl",
+      "fields": [
+        {
+          "type": [
+            null,
+            "MessageID"
+          ],
+          "name": "pivot"
+        },
+        {
+          "type": "boolean",
+          "name": "recent"
+        },
+        {
+          "type": "int",
+          "name": "num"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "GetThreadQuery",
       "fields": [
         {
@@ -1278,6 +1299,13 @@
             "gregor1.Time"
           ],
           "name": "after"
+        },
+        {
+          "type": [
+            null,
+            "MessageIDControl"
+          ],
+          "name": "messageIDControl"
         }
       ]
     },
@@ -2316,6 +2344,67 @@
         },
         {
           "name": "headline",
+          "type": "string"
+        },
+        {
+          "name": "identifyBehavior",
+          "type": "keybase1.TLFIdentifyBehavior"
+        }
+      ],
+      "response": "PostLocalRes"
+    },
+    "postMetadataNonblock": {
+      "request": [
+        {
+          "name": "conversationID",
+          "type": "ConversationID"
+        },
+        {
+          "name": "tlfName",
+          "type": "string"
+        },
+        {
+          "name": "tlfPublic",
+          "type": "boolean"
+        },
+        {
+          "name": "channelName",
+          "type": "string"
+        },
+        {
+          "name": "outboxID",
+          "type": [
+            null,
+            "OutboxID"
+          ]
+        },
+        {
+          "name": "clientPrev",
+          "type": "MessageID"
+        },
+        {
+          "name": "identifyBehavior",
+          "type": "keybase1.TLFIdentifyBehavior"
+        }
+      ],
+      "response": "PostLocalNonblockRes"
+    },
+    "postMetadata": {
+      "request": [
+        {
+          "name": "conversationID",
+          "type": "ConversationID"
+        },
+        {
+          "name": "tlfName",
+          "type": "string"
+        },
+        {
+          "name": "tlfPublic",
+          "type": "boolean"
+        },
+        {
+          "name": "channelName",
           "type": "string"
         },
         {
