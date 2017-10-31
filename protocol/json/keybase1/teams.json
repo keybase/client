@@ -862,6 +862,100 @@
     },
     {
       "type": "record",
+      "name": "SeitanIKey",
+      "fields": [],
+      "typedef": "string"
+    },
+    {
+      "type": "enum",
+      "name": "SeitanIKeyAndLabelVersion",
+      "symbols": [
+        "V1_1"
+      ]
+    },
+    {
+      "type": "variant",
+      "name": "SeitanIKeyAndLabel",
+      "switch": {
+        "type": "SeitanIKeyAndLabelVersion",
+        "name": "v"
+      },
+      "cases": [
+        {
+          "label": {
+            "name": "V1",
+            "def": false
+          },
+          "body": "SeitanIKeyAndLabelVersion1"
+        },
+        {
+          "label": {
+            "def": true
+          },
+          "body": null
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "SeitanIKeyAndLabelVersion1",
+      "fields": [
+        {
+          "type": "SeitanIKey",
+          "name": "i"
+        },
+        {
+          "type": "SeitanIKeyLabel",
+          "name": "l"
+        }
+      ]
+    },
+    {
+      "type": "enum",
+      "name": "SeitanIKeyLabelType",
+      "symbols": [
+        "SMS_1"
+      ]
+    },
+    {
+      "type": "variant",
+      "name": "SeitanIKeyLabel",
+      "switch": {
+        "type": "SeitanIKeyLabelType",
+        "name": "t"
+      },
+      "cases": [
+        {
+          "label": {
+            "name": "SMS",
+            "def": false
+          },
+          "body": "SeitanIKeyLabelSms"
+        },
+        {
+          "label": {
+            "def": true
+          },
+          "body": null
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "SeitanIKeyLabelSms",
+      "fields": [
+        {
+          "type": "string",
+          "name": "f"
+        },
+        {
+          "type": "string",
+          "name": "n"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "TeamSeitanRequest",
       "fields": [
         {

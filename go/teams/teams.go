@@ -819,7 +819,12 @@ func (t *Team) InviteSeitan(ctx context.Context, role keybase1.TeamRole) (ikey S
 		return ikey, err
 	}
 
-	_, encoded, err := ikey.GeneratePackedEncryptedIKey(ctx, t)
+	var labelSms keybase1.SeitanIKeyLabelSms
+	labelSms.F = "Edwin Powell Hubble"
+	labelSms.N = "+48123ZZ3045"
+
+	label := keybase1.NewSeitanIKeyLabelWithSms(labelSms)
+	_, encoded, err := ikey.GeneratePackedEncryptedIKey(ctx, t, label)
 	if err != nil {
 		return ikey, err
 	}

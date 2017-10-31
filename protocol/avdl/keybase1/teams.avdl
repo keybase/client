@@ -343,6 +343,37 @@ protocol teams {
   @typedef("string")
   record SeitanAKey {}
 
+  @typedef("string")
+  record SeitanIKey {}
+
+  enum SeitanIKeyAndLabelVersion {
+    V1_1
+  }
+
+  variant SeitanIKeyAndLabel switch (SeitanIKeyAndLabelVersion v) {
+    case V1: SeitanIKeyAndLabelVersion1;
+    default: void;
+  }
+
+  record SeitanIKeyAndLabelVersion1 {
+    SeitanIKey i;
+    SeitanIKeyLabel l;
+  }
+
+  enum SeitanIKeyLabelType {
+    SMS_1
+  }
+
+  variant SeitanIKeyLabel switch (SeitanIKeyLabelType t) {
+    case SMS: SeitanIKeyLabelSms;
+    default: void;
+  }
+
+  record SeitanIKeyLabelSms {
+    string f; // FullName
+    string n; // Number
+  }
+
   record TeamSeitanRequest {
     @jsonkey("invite_id")
     TeamInviteID inviteID;

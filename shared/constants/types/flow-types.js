@@ -597,6 +597,14 @@ export const SimpleFSPathType = {
   kbfs: 1,
 }
 
+export const TeamsSeitanIKeyAndLabelVersion = {
+  v1: 1,
+}
+
+export const TeamsSeitanIKeyLabelType = {
+  sms: 1,
+}
+
 export const TeamsTeamApplication = {
   kbfs: 1,
   chat: 2,
@@ -4422,6 +4430,32 @@ export type SecretResponse = {
 }
 
 export type SeitanAKey = string
+
+export type SeitanIKey = string
+
+export type SeitanIKeyAndLabel =
+    { v: 1, v1: ?SeitanIKeyAndLabelVersion1 }
+  | { v: any }
+
+export type SeitanIKeyAndLabelVersion =
+    1 // V1_1
+
+export type SeitanIKeyAndLabelVersion1 = {
+  i: SeitanIKey,
+  l: SeitanIKeyLabel,
+}
+
+export type SeitanIKeyLabel =
+    { t: 1, sms: ?SeitanIKeyLabelSms }
+  | { t: any }
+
+export type SeitanIKeyLabelSms = {
+  f: string,
+  n: string,
+}
+
+export type SeitanIKeyLabelType =
+    1 // SMS_1
 
 export type SelectKeyRes = {
   keyID: string,

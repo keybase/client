@@ -1049,6 +1049,186 @@ func (o SeitanAKey) DeepCopy() SeitanAKey {
 	return o
 }
 
+type SeitanIKey string
+
+func (o SeitanIKey) DeepCopy() SeitanIKey {
+	return o
+}
+
+type SeitanIKeyAndLabelVersion int
+
+const (
+	SeitanIKeyAndLabelVersion_V1 SeitanIKeyAndLabelVersion = 1
+)
+
+func (o SeitanIKeyAndLabelVersion) DeepCopy() SeitanIKeyAndLabelVersion { return o }
+
+var SeitanIKeyAndLabelVersionMap = map[string]SeitanIKeyAndLabelVersion{
+	"V1": 1,
+}
+
+var SeitanIKeyAndLabelVersionRevMap = map[SeitanIKeyAndLabelVersion]string{
+	1: "V1",
+}
+
+func (e SeitanIKeyAndLabelVersion) String() string {
+	if v, ok := SeitanIKeyAndLabelVersionRevMap[e]; ok {
+		return v
+	}
+	return ""
+}
+
+type SeitanIKeyAndLabel struct {
+	V__  SeitanIKeyAndLabelVersion   `codec:"v" json:"v"`
+	V1__ *SeitanIKeyAndLabelVersion1 `codec:"v1,omitempty" json:"v1,omitempty"`
+}
+
+func (o *SeitanIKeyAndLabel) V() (ret SeitanIKeyAndLabelVersion, err error) {
+	switch o.V__ {
+	case SeitanIKeyAndLabelVersion_V1:
+		if o.V1__ == nil {
+			err = errors.New("unexpected nil value for V1__")
+			return ret, err
+		}
+	}
+	return o.V__, nil
+}
+
+func (o SeitanIKeyAndLabel) V1() (res SeitanIKeyAndLabelVersion1) {
+	if o.V__ != SeitanIKeyAndLabelVersion_V1 {
+		panic("wrong case accessed")
+	}
+	if o.V1__ == nil {
+		return
+	}
+	return *o.V1__
+}
+
+func NewSeitanIKeyAndLabelWithV1(v SeitanIKeyAndLabelVersion1) SeitanIKeyAndLabel {
+	return SeitanIKeyAndLabel{
+		V__:  SeitanIKeyAndLabelVersion_V1,
+		V1__: &v,
+	}
+}
+
+func NewSeitanIKeyAndLabelDefault(v SeitanIKeyAndLabelVersion) SeitanIKeyAndLabel {
+	return SeitanIKeyAndLabel{
+		V__: v,
+	}
+}
+
+func (o SeitanIKeyAndLabel) DeepCopy() SeitanIKeyAndLabel {
+	return SeitanIKeyAndLabel{
+		V__: o.V__.DeepCopy(),
+		V1__: (func(x *SeitanIKeyAndLabelVersion1) *SeitanIKeyAndLabelVersion1 {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.V1__),
+	}
+}
+
+type SeitanIKeyAndLabelVersion1 struct {
+	I SeitanIKey      `codec:"i" json:"i"`
+	L SeitanIKeyLabel `codec:"l" json:"l"`
+}
+
+func (o SeitanIKeyAndLabelVersion1) DeepCopy() SeitanIKeyAndLabelVersion1 {
+	return SeitanIKeyAndLabelVersion1{
+		I: o.I.DeepCopy(),
+		L: o.L.DeepCopy(),
+	}
+}
+
+type SeitanIKeyLabelType int
+
+const (
+	SeitanIKeyLabelType_SMS SeitanIKeyLabelType = 1
+)
+
+func (o SeitanIKeyLabelType) DeepCopy() SeitanIKeyLabelType { return o }
+
+var SeitanIKeyLabelTypeMap = map[string]SeitanIKeyLabelType{
+	"SMS": 1,
+}
+
+var SeitanIKeyLabelTypeRevMap = map[SeitanIKeyLabelType]string{
+	1: "SMS",
+}
+
+func (e SeitanIKeyLabelType) String() string {
+	if v, ok := SeitanIKeyLabelTypeRevMap[e]; ok {
+		return v
+	}
+	return ""
+}
+
+type SeitanIKeyLabel struct {
+	T__   SeitanIKeyLabelType `codec:"t" json:"t"`
+	Sms__ *SeitanIKeyLabelSms `codec:"sms,omitempty" json:"sms,omitempty"`
+}
+
+func (o *SeitanIKeyLabel) T() (ret SeitanIKeyLabelType, err error) {
+	switch o.T__ {
+	case SeitanIKeyLabelType_SMS:
+		if o.Sms__ == nil {
+			err = errors.New("unexpected nil value for Sms__")
+			return ret, err
+		}
+	}
+	return o.T__, nil
+}
+
+func (o SeitanIKeyLabel) Sms() (res SeitanIKeyLabelSms) {
+	if o.T__ != SeitanIKeyLabelType_SMS {
+		panic("wrong case accessed")
+	}
+	if o.Sms__ == nil {
+		return
+	}
+	return *o.Sms__
+}
+
+func NewSeitanIKeyLabelWithSms(v SeitanIKeyLabelSms) SeitanIKeyLabel {
+	return SeitanIKeyLabel{
+		T__:   SeitanIKeyLabelType_SMS,
+		Sms__: &v,
+	}
+}
+
+func NewSeitanIKeyLabelDefault(t SeitanIKeyLabelType) SeitanIKeyLabel {
+	return SeitanIKeyLabel{
+		T__: t,
+	}
+}
+
+func (o SeitanIKeyLabel) DeepCopy() SeitanIKeyLabel {
+	return SeitanIKeyLabel{
+		T__: o.T__.DeepCopy(),
+		Sms__: (func(x *SeitanIKeyLabelSms) *SeitanIKeyLabelSms {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Sms__),
+	}
+}
+
+type SeitanIKeyLabelSms struct {
+	F string `codec:"f" json:"f"`
+	N string `codec:"n" json:"n"`
+}
+
+func (o SeitanIKeyLabelSms) DeepCopy() SeitanIKeyLabelSms {
+	return SeitanIKeyLabelSms{
+		F: o.F,
+		N: o.N,
+	}
+}
+
 type TeamSeitanRequest struct {
 	InviteID    TeamInviteID `codec:"inviteID" json:"invite_id"`
 	Uid         UID          `codec:"uid" json:"uid"`
