@@ -79,7 +79,7 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
   onStoreInputText: (selectedConversation: Constants.ConversationIDKey, inputText: string) =>
     dispatch(Creators.setSelectedRouteState(selectedConversation, {inputText: new HiddenString(inputText)})),
   onUpdateTyping: (selectedConversation: Constants.ConversationIDKey, typing: boolean) => {
-    dispatch(Creators.updateTyping(selectedConversation, typing))
+    dispatch(ChatGen.createUpdateTyping({conversationIDKey: selectedConversation, typing}))
   },
 })
 

@@ -1,7 +1,7 @@
 // @flow
 import {compose, withState, withProps, connect, type TypedState} from '../../../util/container'
 import RenderAttachmentPopup from './'
-import {createDeleteMessage} from '../../../actions/chat-gen'
+import {createDeleteMessage, createSaveAttachment} from '../../../actions/chat-gen'
 import * as Constants from '../../../constants/chat'
 import {lookupMessageProps} from '../../shared'
 import {type RouteProps} from '../../../route-tree/render-route'
@@ -48,14 +48,7 @@ export default compose(
         if (!message.messageID || !message.filename) {
           throw new Error('Cannot download attachment with missing messageID or filename')
         }
-        dispatch(
-          ({
-            type: 'chat:saveAttachment',
-            payload: {
-              messageKey: message.key,
-            },
-          }: Constants.SaveAttachment)
-        )
+        dispatch(createSaveAttachment({messageKey: message.key}))
       },
       onOpenInFileUI: (path: string) =>
         dispatch(

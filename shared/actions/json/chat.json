@@ -2,9 +2,11 @@
   "prelude": [
     "import * as Constants from '../constants/chat'",
     "import * as RPCTypes from '../constants/types/flow-types'",
+    "import * as ChatTypes from '../constants/types/flow-types-chat'",
     "import * as I from 'immutable'",
     "import HiddenString from '../util/hidden-string'",
-    "import type {DeviceType} from '../../constants/types/more'"
+    "import {type DeviceType} from '../constants/types/more'",
+    "import {type Path} from '../route-tree'"
   ],
   "actions": {
     "updateBadging": {
@@ -101,7 +103,7 @@
       "rows": "Array<any>",
       "direction": "-1 | 1"
     },
-    "setInboxFilterfilter": {
+    "setInboxFilter": {
       "filter": "string"
     },
     "setInboxGlobalUntrustedState": {
@@ -126,7 +128,7 @@
       "oldMessageKey": "Constants.MessageKey",
       "newMessageKey": "Constants.MessageKey"
     },
-    "clearRekeyconversationIDKey": {
+    "clearRekey": {
       "conversationIDKey": "Constants.ConversationIDKey"
     },
     "updateInboxRekeySelf": {
@@ -141,7 +143,7 @@
       "conversationIDKey": "Constants.ConversationIDKey",
       "outboxID": "Constants.OutboxIDKey"
     },
-    "openConversationconversationIDKey": {
+    "openConversation": {
       "conversationIDKey": "Constants.ConversationIDKey"
     },
     "openAttachmentPopup": {
@@ -160,7 +162,7 @@
     },
     "selectConversation": {
       "conversationIDKey": "?Constants.ConversationIDKey",
-      "fromUser": "boolean"
+      "fromUser?": "boolean"
     },
     "attachmentSaved": {
       "messageKey": "Constants.MessageKey",

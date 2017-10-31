@@ -3,9 +3,11 @@
 import {type PayloadType, type ReturnType} from '../constants/types/more'
 import * as Constants from '../constants/chat'
 import * as RPCTypes from '../constants/types/flow-types'
+import * as ChatTypes from '../constants/types/flow-types-chat'
 import * as I from 'immutable'
 import HiddenString from '../util/hidden-string'
-import type {DeviceType} from '../../constants/types/more'
+import {type DeviceType} from '../constants/types/more'
+import {type Path} from '../route-tree'
 
 // Constants
 export const addPending = 'chat:addPending'
@@ -14,7 +16,7 @@ export const attachmentSaveStart = 'chat:attachmentSaveStart'
 export const attachmentSaved = 'chat:attachmentSaved'
 export const blockConversation = 'chat:blockConversation'
 export const clearMessages = 'chat:clearMessages'
-export const clearRekeyconversationIDKey = 'chat:clearRekeyconversationIDKey'
+export const clearRekey = 'chat:clearRekey'
 export const deleteEntity = 'chat:deleteEntity'
 export const deleteMessage = 'chat:deleteMessage'
 export const editMessage = 'chat:editMessage'
@@ -35,7 +37,7 @@ export const mergeEntity = 'chat:mergeEntity'
 export const muteConversation = 'chat:muteConversation'
 export const newChat = 'chat:newChat'
 export const openAttachmentPopup = 'chat:openAttachmentPopup'
-export const openConversationconversationIDKey = 'chat:openConversationconversationIDKey'
+export const openConversation = 'chat:openConversation'
 export const openFolder = 'chat:openFolder'
 export const openTlfInChat = 'chat:openTlfInChat'
 export const outboxMessageBecameReal = 'chat:outboxMessageBecameReal'
@@ -47,7 +49,7 @@ export const saveAttachment = 'chat:saveAttachment'
 export const selectAttachment = 'chat:selectAttachment'
 export const selectConversation = 'chat:selectConversation'
 export const selectNext = 'chat:selectNext'
-export const setInboxFilterfilter = 'chat:setInboxFilterfilter'
+export const setInboxFilter = 'chat:setInboxFilter'
 export const setInboxGlobalUntrustedState = 'chat:setInboxGlobalUntrustedState'
 export const setLoaded = 'chat:setLoaded'
 export const setNotifications = 'chat:setNotifications'
@@ -84,7 +86,7 @@ export const createAttachmentSaveStart = (payload: {|messageKey: Constants.Messa
 export const createAttachmentSaved = (payload: {|messageKey: Constants.MessageKey, path: ?string|}) => ({error: false, payload, type: attachmentSaved})
 export const createBlockConversation = (payload: {|blocked: boolean, conversationIDKey: Constants.ConversationIDKey, reportUser: boolean|}) => ({error: false, payload, type: blockConversation})
 export const createClearMessages = (payload: {|conversationIDKey: Constants.ConversationIDKey|}) => ({error: false, payload, type: clearMessages})
-export const createClearRekeyconversationIDKey = (payload: {|conversationIDKey: Constants.ConversationIDKey|}) => ({error: false, payload, type: clearRekeyconversationIDKey})
+export const createClearRekey = (payload: {|conversationIDKey: Constants.ConversationIDKey|}) => ({error: false, payload, type: clearRekey})
 export const createDeleteEntity = (payload: {|keyPath: Array<string>, ids: I.List<string>|}) => ({error: false, payload, type: deleteEntity})
 export const createDeleteMessage = (payload: {|message: Constants.Message|}) => ({error: false, payload, type: deleteMessage})
 export const createEditMessage = (payload: {|message: Constants.Message, text: HiddenString|}) => ({error: false, payload, type: editMessage})
@@ -105,7 +107,7 @@ export const createMergeEntity = (payload: {|keyPath: Array<string>, entities: I
 export const createMuteConversation = (payload: {|conversationIDKey: Constants.ConversationIDKey, muted: boolean|}) => ({error: false, payload, type: muteConversation})
 export const createNewChat = () => ({error: false, payload: undefined, type: newChat})
 export const createOpenAttachmentPopup = (payload: {|message: Constants.AttachmentMessage, currentPath: Path|}) => ({error: false, payload, type: openAttachmentPopup})
-export const createOpenConversationconversationIDKey = (payload: {|conversationIDKey: Constants.ConversationIDKey|}) => ({error: false, payload, type: openConversationconversationIDKey})
+export const createOpenConversation = (payload: {|conversationIDKey: Constants.ConversationIDKey|}) => ({error: false, payload, type: openConversation})
 export const createOpenFolder = () => ({error: false, payload: undefined, type: openFolder})
 export const createOpenTlfInChat = (payload: {|tlf: string|}) => ({error: false, payload, type: openTlfInChat})
 export const createOutboxMessageBecameReal = (payload: {|oldMessageKey: Constants.MessageKey, newMessageKey: Constants.MessageKey|}) => ({error: false, payload, type: outboxMessageBecameReal})
@@ -115,9 +117,9 @@ export const createRemoveTempPendingConversations = () => ({error: false, payloa
 export const createReplaceEntity = (payload: {|keyPath: Array<string>, entities: I.Map<any, any> | I.List<any>|}) => ({error: false, payload, type: replaceEntity})
 export const createSaveAttachment = (payload: {|messageKey: Constants.MessageKey|}) => ({error: false, payload, type: saveAttachment})
 export const createSelectAttachment = (payload: {|input: Constants.AttachmentInput|}) => ({error: false, payload, type: selectAttachment})
-export const createSelectConversation = (payload: {|conversationIDKey: ?Constants.ConversationIDKey, fromUser: boolean|}) => ({error: false, payload, type: selectConversation})
+export const createSelectConversation = (payload: {|conversationIDKey: ?Constants.ConversationIDKey, fromUser?: boolean|}) => ({error: false, payload, type: selectConversation})
 export const createSelectNext = (payload: {|rows: Array<any>, direction: -1 | 1|}) => ({error: false, payload, type: selectNext})
-export const createSetInboxFilterfilter = (payload: {|filter: string|}) => ({error: false, payload, type: setInboxFilterfilter})
+export const createSetInboxFilter = (payload: {|filter: string|}) => ({error: false, payload, type: setInboxFilter})
 export const createSetInboxGlobalUntrustedState = (payload: {|inboxGlobalUntrustedState: Constants.UntrustedState|}) => ({error: false, payload, type: setInboxGlobalUntrustedState})
 export const createSetLoaded = (payload: {|conversationIDKey: Constants.ConversationIDKey, isLoaded: boolean|}) => ({error: false, payload, type: setLoaded})
 export const createSetNotifications = (payload: {|conversationIDKey: Constants.ConversationIDKey, deviceType: DeviceType, notifyType: Constants.NotifyType|}) => ({error: false, payload, type: setNotifications})
@@ -154,7 +156,7 @@ export type AttachmentSaveStartPayload = ReturnType<typeof createAttachmentSaveS
 export type AttachmentSavedPayload = ReturnType<typeof createAttachmentSaved>
 export type BlockConversationPayload = ReturnType<typeof createBlockConversation>
 export type ClearMessagesPayload = ReturnType<typeof createClearMessages>
-export type ClearRekeyconversationIDKeyPayload = ReturnType<typeof createClearRekeyconversationIDKey>
+export type ClearRekeyPayload = ReturnType<typeof createClearRekey>
 export type DeleteEntityPayload = ReturnType<typeof createDeleteEntity>
 export type DeleteMessagePayload = ReturnType<typeof createDeleteMessage>
 export type EditMessagePayload = ReturnType<typeof createEditMessage>
@@ -175,7 +177,7 @@ export type MergeEntityPayload = ReturnType<typeof createMergeEntity>
 export type MuteConversationPayload = ReturnType<typeof createMuteConversation>
 export type NewChatPayload = ReturnType<typeof createNewChat>
 export type OpenAttachmentPopupPayload = ReturnType<typeof createOpenAttachmentPopup>
-export type OpenConversationconversationIDKeyPayload = ReturnType<typeof createOpenConversationconversationIDKey>
+export type OpenConversationPayload = ReturnType<typeof createOpenConversation>
 export type OpenFolderPayload = ReturnType<typeof createOpenFolder>
 export type OpenTlfInChatPayload = ReturnType<typeof createOpenTlfInChat>
 export type OutboxMessageBecameRealPayload = ReturnType<typeof createOutboxMessageBecameReal>
@@ -187,7 +189,7 @@ export type SaveAttachmentPayload = ReturnType<typeof createSaveAttachment>
 export type SelectAttachmentPayload = ReturnType<typeof createSelectAttachment>
 export type SelectConversationPayload = ReturnType<typeof createSelectConversation>
 export type SelectNextPayload = ReturnType<typeof createSelectNext>
-export type SetInboxFilterfilterPayload = ReturnType<typeof createSetInboxFilterfilter>
+export type SetInboxFilterPayload = ReturnType<typeof createSetInboxFilter>
 export type SetInboxGlobalUntrustedStatePayload = ReturnType<typeof createSetInboxGlobalUntrustedState>
 export type SetLoadedPayload = ReturnType<typeof createSetLoaded>
 export type SetNotificationsPayload = ReturnType<typeof createSetNotifications>
@@ -226,7 +228,7 @@ export type Actions =
   | ReturnType<typeof createAttachmentSaved>
   | ReturnType<typeof createBlockConversation>
   | ReturnType<typeof createClearMessages>
-  | ReturnType<typeof createClearRekeyconversationIDKey>
+  | ReturnType<typeof createClearRekey>
   | ReturnType<typeof createDeleteEntity>
   | ReturnType<typeof createDeleteMessage>
   | ReturnType<typeof createEditMessage>
@@ -247,7 +249,7 @@ export type Actions =
   | ReturnType<typeof createMuteConversation>
   | ReturnType<typeof createNewChat>
   | ReturnType<typeof createOpenAttachmentPopup>
-  | ReturnType<typeof createOpenConversationconversationIDKey>
+  | ReturnType<typeof createOpenConversation>
   | ReturnType<typeof createOpenFolder>
   | ReturnType<typeof createOpenTlfInChat>
   | ReturnType<typeof createOutboxMessageBecameReal>
@@ -259,7 +261,7 @@ export type Actions =
   | ReturnType<typeof createSelectAttachment>
   | ReturnType<typeof createSelectConversation>
   | ReturnType<typeof createSelectNext>
-  | ReturnType<typeof createSetInboxFilterfilter>
+  | ReturnType<typeof createSetInboxFilter>
   | ReturnType<typeof createSetInboxGlobalUntrustedState>
   | ReturnType<typeof createSetLoaded>
   | ReturnType<typeof createSetNotifications>

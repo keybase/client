@@ -1,6 +1,5 @@
 // @flow
 import * as Constants from '../../../constants/chat'
-import * as Creators from '../../../actions/chat/creators'
 import * as ChatGen from '../../../actions/chat-gen'
 import * as Selectors from '../../../constants/selectors'
 import HiddenString from '../../../util/hidden-string'
@@ -101,7 +100,7 @@ const mapStateToProps = createSelector(
 
 const mapDispatchToProps = (dispatch: Dispatch): DispatchProps => ({
   _onDownloadAttachment: messageKey => {
-    dispatch(Creators.saveAttachment(messageKey))
+    dispatch(ChatGen.createSaveAttachment({messageKey}))
   },
   _onLoadMoreMessages: (conversationIDKey: Constants.ConversationIDKey) => {
     dispatch(ChatGen.createLoadMoreMessages({conversationIDKey, onlyIfUnloaded: false}))
