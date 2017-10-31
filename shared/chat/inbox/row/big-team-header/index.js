@@ -13,9 +13,6 @@ type Props = {
 
 class BigTeamHeader extends PureComponent<Props> {
   render() {
-    console.warn('in render props are', this.props, this.props.showMenu)
-    const onManageChat = () => {}
-    const onViewTeam = () => {}
     return (
       <HeaderBox>
         <Avatar teamname={this.props.teamname} size={isMobile ? 24 : 16} />
@@ -43,12 +40,12 @@ class BigTeamHeader extends PureComponent<Props> {
               ),
             }}
             items={[
-              {onClick: onManageChat, title: 'Manage chat channels'},
-              {onClick: onViewTeam, title: 'View team'},
+              {onClick: this.props.onManageChannels, title: 'Manage chat channels'},
+              {onClick: this.props.onViewTeam, title: 'View team'},
             ]}
             onHidden={() => this.props.onSetShowMenu(false)}
             style={{
-              position: 'absolute',
+              position: isMobile ? 'relative' : 'absolute',
               right: globalMargins.tiny,
               top: globalMargins.small,
               zIndex: 20,

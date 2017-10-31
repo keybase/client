@@ -21,8 +21,9 @@ const mapDispatchToProps = dispatch => ({
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   isActiveRoute: stateProps.isActiveRoute,
   memberCount: stateProps._teammembercounts.get(stateProps.teamname),
-  onManageChannels: () => dispatchProps._onShowMenu(stateProps.teamname),
+  onManageChannels: () => dispatchProps._onManageChannels(stateProps.teamname),
   onSetShowMenu: ownProps.onSetShowMenu,
+  onViewTeam: () => dispatchProps._onViewTeam(stateProps.teamname),
   showMenu: ownProps.showMenu,
   teamname: stateProps.teamname,
 })
