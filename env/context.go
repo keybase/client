@@ -5,6 +5,7 @@
 package env
 
 import (
+	"errors"
 	"fmt"
 	"net"
 	"os"
@@ -175,9 +176,35 @@ func (c *KBFSContext) GetKBFSSocket(clearError bool) (
 	return sw.Conn, sw.Transporter, isNew, sw.Err
 }
 
+// cleanupSocketFile cleans up the socket file for binding.
+func (c *KBFSContext) cleanupSocketFile() error {
+	switch sock := c.kbfsSocket.(type) {
+	case libkb.SocketInfo:
+		sf := sock.GetBindFile()
+		if exists, err := libkb.FileExists(sf); err != nil {
+			return err
+		} else if exists {
+			c.g.Log.Debug("removing stale socket file: %s", sf)
+			if err = os.Remove(sf); err != nil {
+				c.g.Log.Warning("error removing stale socket file: %s", err)
+				return err
+			}
+		}
+	case nil:
+		return errors.New("socket not initialized")
+	default:
+		return errors.New("invalid socket type")
+	}
+	return nil
+}
+
 // BindToKBFSSocket binds to the socket configured in `c.kbfsSocket`.
 func (c *KBFSContext) BindToKBFSSocket() (net.Listener, error) {
-	c.kbfsSocketMtx.RLock()
-	defer c.kbfsSocketMtx.RUnlock()
+	c.kbfsSocketMtx.Lock()
+	defer c.kbfsSocketMtx.Unlock()
+	err := c.cleanupSocketFile()
+	if err != nil {
+		return nil, err
+	}
 	return c.kbfsSocket.BindToSocket()
 }
