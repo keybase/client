@@ -34,7 +34,7 @@ const getDetails = createCachedSelector(
     Constants.getFollowingMap,
   ],
   (
-    message: Constants.TextMessage,
+    message: Constants.SystemMessage,
     you: string,
     channelname: string,
     teamname: string,
