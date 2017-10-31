@@ -17,6 +17,7 @@ const mapStateToProps = (state: TypedState, {teamname, isActiveRoute}) => ({
 const mapDispatchToProps = dispatch => ({
   _onManageChannels: (teamname: string) =>
     dispatch(navigateAppend([{props: {teamname}, selected: 'manageChannels'}])),
+  _onShowMobileMenu: (teamname: string) => dispatch(navigateAppend([{props: {teamname}, selected: 'teamInfoMenu'}])),
   _onViewTeam: (teamname: string) => dispatch(navigateTo([teamsTab, {props: {teamname}, selected: 'team'}])),
 })
 
@@ -25,6 +26,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   memberCount: stateProps._teammembercounts.get(stateProps.teamname),
   onManageChannels: () => dispatchProps._onManageChannels(stateProps.teamname),
   onSetShowMenu: ownProps.onSetShowMenu,
+  onShowMobileMenu: dispatchProps._onShowMobileMenu(stateProps.teamname),
   onViewTeam: () => dispatchProps._onViewTeam(stateProps.teamname),
   showMenu: ownProps.showMenu,
   teamname: stateProps.teamname,
