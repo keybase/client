@@ -1,8 +1,37 @@
 {
-    "prelude": "import * as Constants from '../constants/chat'",
-    "actions": {
-        "updateBadging": {
-            "conversationIDKey": "Constants.ConversationIDKey"
-        }
+  "prelude": "import * as Constants from '../constants/chat'\nimport * as RPCTypes from '../constants/types/flow-types'\nimport * as I from 'immutable'",
+  "actions": {
+    "updateBadging": {
+      "conversationIDKey": "Constants.ConversationIDKey"
+    },
+    "deleteEntity": {
+      "keyPath": "Array<string>",
+      "ids": "I.List<string>"
+    },
+    "mergeEntity": {
+      "keyPath": "Array<string>",
+      "entities": "I.Map<any, any> | I.List<any>"
+    },
+    "replaceEntity": {
+      "keyPath": "Array<string>",
+      "entities": "I.Map<any, any> | I.List<any>"
+    },
+    "subtractEntity": {
+      "keyPath": "Array<string>",
+      "entities": "I.List<any>"
+    },
+    "unboxMore": {},
+    "exitSearch": {
+      "skipSelectPreviousConversation": "boolean"
+    },
+    "pendingToRealConversation": {
+      "oldKey": "Constants.ConversationIDKey",
+      "newKey": "Constants.ConversationIDKey"
+    },
+    "updateLatestMessage": {
+      "conversationIDKey": "Constants.ConversationIDKey"
+    },
+    "openFolder": {
     }
+  }
 }

@@ -2,6 +2,7 @@
 import * as ChatTypes from '../../constants/types/flow-types-chat'
 import * as Constants from '../../constants/chat'
 import * as Creators from './creators'
+import * as ChatGen from '../chat-gen'
 import * as I from 'immutable'
 import getenv from 'getenv'
 import {CommonTLFVisibility, TlfKeysTLFIdentifyBehavior} from '../../constants/types/flow-types'
@@ -63,15 +64,15 @@ function tmpFileName(
 
 // Actually start a new conversation. conversationIDKey can be a pending one or a replacement
 function* startNewConversation(
-  oldConversationIDKey: Constants.ConversationIDKey
+  oldKey: Constants.ConversationIDKey
 ): Generator<any, [?Constants.ConversationIDKey, ?string], any> {
   // Find the participants
-  const pendingTlfName = Constants.pendingConversationIDKeyToTlfName(oldConversationIDKey)
+  const pendingTlfName = Constants.pendingConversationIDKeyToTlfName(oldKey)
   let tlfName
   if (pendingTlfName) {
     tlfName = pendingTlfName
   } else {
-    const existing = yield select(Constants.getInbox, oldConversationIDKey)
+    const existing = yield select(Constants.getInbox, oldKey)
     if (existing) {
       tlfName = existing.get('participants').sort().join(',')
     }
@@ -95,28 +96,28 @@ function* startNewConversation(
     },
   })
 
-  const newConversationIDKey = result ? Constants.conversationIDToKey(result.conv.info.id) : null
-  if (!newConversationIDKey) {
+  const newKey = result ? Constants.conversationIDToKey(result.conv.info.id) : null
+  if (!newKey) {
     console.warn('No convoid from newConvoRPC')
     return [null, null]
   }
 
   // Replace any existing convo
   if (pendingTlfName) {
-    yield put(Creators.pendingToRealConversation(oldConversationIDKey, newConversationIDKey))
-  } else if (oldConversationIDKey !== newConversationIDKey) {
-    yield put(Creators.deleteEntity(['inbox'], I.List([oldConversationIDKey])))
-    yield put(Creators.deleteEntity(['inboxSmallTimestamps'], I.List([oldConversationIDKey])))
+    yield put(ChatGen.createPendingToRealConversation({oldKey, newKey}))
+  } else if (oldKey !== newKey) {
+    yield put(ChatGen.createDeleteEntity({keyPath: ['inbox'], ids: I.List([oldKey])}))
+    yield put(ChatGen.createDeleteEntity({keyPath: ['inboxSmallTimestamps'], ids: I.List([oldKey])}))
   }
 
   // Select the new version if the old one was selected
   const selectedConversation = yield select(Constants.getSelectedConversation)
-  if (selectedConversation === oldConversationIDKey) {
-    yield put(Creators.selectConversation(newConversationIDKey, false))
+  if (selectedConversation === oldKey) {
+    yield put(Creators.selectConversation(newKey, false))
   }
   // Load the inbox so we can post, we wait till this is done
-  yield put(Creators.unboxConversations([newConversationIDKey], 'new convo'))
-  return [newConversationIDKey, tlfName]
+  yield put(Creators.unboxConversations([newKey], 'new convo'))
+  return [newKey, tlfName]
 }
 
 // If we're showing a banner we send chatGui, if we're not we send chatGuiStrict

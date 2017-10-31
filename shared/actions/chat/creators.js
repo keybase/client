@@ -93,33 +93,11 @@ const loadAttachmentPreviewTransformer = ({
   type,
 })
 
-function exitSearch(skipSelectPreviousConversation: boolean): Constants.ExitSearch {
-  return {
-    payload: {skipSelectPreviousConversation},
-    type: 'chat:exitSearch',
-  }
-}
-
-function pendingToRealConversation(
-  oldKey: Constants.ConversationIDKey,
-  newKey: Constants.ConversationIDKey
-): Constants.PendingToRealConversation {
-  return {payload: {newKey, oldKey}, type: 'chat:pendingToRealConversation'}
-}
-
-function updateLatestMessage(conversationIDKey: Constants.ConversationIDKey): Constants.UpdateLatestMessage {
-  return {payload: {conversationIDKey}, type: 'chat:updateLatestMessage'}
-}
-
 function badgeAppForChat(conversations: ?Array<RPCTypes.BadgeConversationInfo>): Constants.BadgeAppForChat {
   const convos = I.List(
     (conversations || []).map(conversation => Constants.ConversationBadgeStateRecord(conversation))
   )
   return {payload: convos, type: 'chat:badgeAppForChat'}
-}
-
-function openFolder(): Constants.OpenFolder {
-  return {payload: undefined, type: 'chat:openFolder'}
 }
 
 function openTlfInChat(tlf: string): Constants.OpenTlfInChat {
@@ -625,48 +603,11 @@ function unboxConversations(
   return {payload: {conversationIDKeys, reason, force, forInboxSync}, type: 'chat:unboxConversations'}
 }
 
-function unboxMore(): Constants.UnboxMore {
-  return {type: 'chat:unboxMore', payload: undefined}
-}
-
 function selectNext(rows: Array<any>, direction: -1 | 1): Constants.InboxFilterSelectNext {
   return {type: 'chat:inboxFilterSelectNext', payload: {rows, direction}}
 }
 
-const deleteEntity: (keyPath: Array<string>, ids: I.List<string>) => Constants.Delete = (keyPath, ids) => ({
-  payload: {ids, keyPath},
-  type: 'chatentity:delete',
-})
-
-const mergeEntity: (keyPath: Array<string>, entities: I.Map<any, any> | I.List<any>) => Constants.Merge = (
-  keyPath,
-  entities
-) => ({
-  payload: {entities, keyPath},
-  type: 'chatentity:merge',
-})
-
-const replaceEntity: (keyPath: Array<string>, entities: I.Map<any, any>) => Constants.Replace = (
-  keyPath,
-  entities
-) => ({
-  payload: {entities, keyPath},
-  type: 'chatentity:replace',
-})
-
-const subtractEntity: (keyPath: Array<string>, entities: I.List<any>) => Constants.Subtract = (
-  keyPath,
-  entities
-) => ({
-  payload: {entities, keyPath},
-  type: 'chatentity:subtract',
-})
-
 export {
-  deleteEntity,
-  mergeEntity,
-  replaceEntity,
-  subtractEntity,
   addPending,
   appendMessages,
   attachmentLoaded,
@@ -680,7 +621,6 @@ export {
   deleteMessage,
   downloadProgress,
   editMessage,
-  exitSearch,
   getInboxAndUnbox,
   inboxStale,
   inboxSynced,
@@ -698,10 +638,8 @@ export {
   newChat,
   openAttachmentPopup,
   openConversation,
-  openFolder,
   openTlfInChat,
   outboxMessageBecameReal,
-  pendingToRealConversation,
   postMessage,
   prependMessages,
   removeOutboxMessage,
@@ -725,13 +663,11 @@ export {
   threadLoadedOffline,
   toggleChannelWideNotifications,
   unboxConversations,
-  unboxMore,
   updateBrokenTracker,
   updateFinalizedState,
   updateInboxComplete,
   updateInboxRekeyOthers,
   updateInboxRekeySelf,
-  updateLatestMessage,
   updateMetadata,
   updatePaginationNext,
   updatePaginationPrev,

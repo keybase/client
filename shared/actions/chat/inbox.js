@@ -3,6 +3,7 @@
 // Loading, unboxing, filtering, stale, out of sync, badging
 import * as ChatTypes from '../../constants/types/flow-types-chat'
 import * as Constants from '../../constants/chat'
+import * as ChatGen from '../chat-gen'
 import * as Creators from './creators'
 import * as EngineRpc from '../engine/helper'
 import * as I from 'immutable'
@@ -109,13 +110,13 @@ function* onInboxStale(action: Constants.InboxStale): SagaGenerator<any, any> {
     const oldInbox = yield Saga.select(s => s.chat.get('inbox'))
     const toDelete = oldInbox.keySeq().toSet().subtract((inbox.items || []).map(c => c.convID))
     const conversations = Shared.makeInboxStateRecords(author, inbox.items || [], oldInbox)
-    yield Saga.put(Creators.replaceEntity(['inboxSnippet'], I.Map(snippets)))
+    yield Saga.put(ChatGen.createReplaceEntity({keyPath: ['inboxSnippet'], entities: I.Map(snippets)}))
     yield Saga.put(Creators.setInboxGlobalUntrustedState('loaded'))
     yield Saga.put(
-      Creators.replaceEntity(
-        ['inboxUntrustedState'],
-        I.Map(conversations.map(c => [c.conversationIDKey, 'untrusted']))
-      )
+      ChatGen.createReplaceEntity({
+        keyPath: ['inboxUntrustedState'],
+        entities: I.Map(conversations.map(c => [c.conversationIDKey, 'untrusted'])),
+      })
     )
 
     const inboxSmallTimestamps = I.Map(
@@ -148,17 +149,21 @@ function* onInboxStale(action: Constants.InboxStale): SagaGenerator<any, any> {
     const inboxIsEmpty = I.Map(conversations.map(c => [c.conversationIDKey, c.isEmpty]))
 
     yield Saga.all([
-      Saga.put(Creators.replaceEntity(['inboxVersion'], idToVersion)),
-      Saga.put(Creators.replaceEntity(['inboxSmallTimestamps'], inboxSmallTimestamps)),
-      Saga.put(Creators.mergeEntity(['inboxBigChannels'], inboxBigChannels)), // keep old names if we have them
-      Saga.put(Creators.replaceEntity(['inboxBigChannelsToTeam'], inboxBigChannelsToTeam)),
-      Saga.put(Creators.replaceEntity(['inboxIsEmpty'], inboxIsEmpty)),
-      Saga.put(Creators.replaceEntity(['inbox'], inboxMap)),
-      Saga.put(Creators.deleteEntity(['inboxVersion'], toDelete)),
-      Saga.put(Creators.deleteEntity(['inboxSmallTimestamps'], toDelete)),
-      Saga.put(Creators.deleteEntity(['inboxBigChannelsToTeam'], toDelete)),
-      Saga.put(Creators.deleteEntity(['inboxIsEmpty'], toDelete)),
-      Saga.put(Creators.deleteEntity(['inbox'], toDelete)),
+      Saga.put(ChatGen.createReplaceEntity({keyPath: ['inboxVersion'], entities: idToVersion})),
+      Saga.put(
+        ChatGen.createReplaceEntity({keyPath: ['inboxSmallTimestamps'], entities: inboxSmallTimestamps})
+      ),
+      Saga.put(ChatGen.createMergeEntity({keyPath: ['inboxBigChannels'], entities: inboxBigChannels})), // keep old names if we have them
+      Saga.put(
+        ChatGen.createReplaceEntity({keyPath: ['inboxBigChannelsToTeam'], entities: inboxBigChannelsToTeam})
+      ),
+      Saga.put(ChatGen.createReplaceEntity({keyPath: ['inboxIsEmpty'], entities: inboxIsEmpty})),
+      Saga.put(ChatGen.createReplaceEntity({keyPath: ['inbox'], entities: inboxMap})),
+      Saga.put(ChatGen.createDeleteEntity({keyPath: ['inboxVersion'], ids: toDelete})),
+      Saga.put(ChatGen.createDeleteEntity({keyPath: ['inboxSmallTimestamps'], ids: toDelete})),
+      Saga.put(ChatGen.createDeleteEntity({keyPath: ['inboxBigChannelsToTeam'], ids: toDelete})),
+      Saga.put(ChatGen.createDeleteEntity({keyPath: ['inboxIsEmpty'], ids: toDelete})),
+      Saga.put(ChatGen.createDeleteEntity({keyPath: ['inbox'], ids: toDelete})),
     ])
 
     // Load the first visible simple and teams so we can get the channel names
@@ -221,31 +226,59 @@ function* _processConversation(c: ChatTypes.InboxUIItem): SagaGenerator<any, any
   const inboxState = _conversationLocalToInboxState(c)
 
   if (inboxState) {
-    yield Saga.put(Creators.replaceEntity(['inboxUntrustedState'], I.Map({[conversationIDKey]: 'unboxed'})))
+    yield Saga.put(
+      ChatGen.createReplaceEntity({
+        keyPath: ['inboxUntrustedState'],
+        entities: I.Map({[conversationIDKey]: 'unboxed'}),
+      })
+    )
 
-    yield Saga.put(Creators.replaceEntity(['inboxVersion'], I.Map({[conversationIDKey]: c.version})))
+    yield Saga.put(
+      ChatGen.createReplaceEntity({
+        keyPath: ['inboxVersion'],
+        entities: I.Map({[conversationIDKey]: c.version}),
+      })
+    )
     if (isBigTeam) {
       // There's a bug where the untrusted inbox state for the channel is incorrect so we
       // instead make sure that the small team maps and the big team maps don't allow duplicates
       yield Saga.all([
         Saga.put(
-          Creators.replaceEntity(['inboxBigChannels'], I.Map({[conversationIDKey]: inboxState.channelname}))
+          ChatGen.createReplaceEntity({
+            keyPath: ['inboxBigChannels'],
+            entities: I.Map({[conversationIDKey]: inboxState.channelname}),
+          })
         ),
         Saga.put(
-          Creators.replaceEntity(
-            ['inboxBigChannelsToTeam'],
-            I.Map({[conversationIDKey]: inboxState.teamname})
-          )
+          ChatGen.createReplaceEntity({
+            keyPath: ['inboxBigChannelsToTeam'],
+            entities: I.Map({[conversationIDKey]: inboxState.teamname}),
+          })
         ),
-        Saga.put(Creators.deleteEntity(['inboxSmallTimestamps'], I.List([conversationIDKey]))),
+        Saga.put(
+          ChatGen.createDeleteEntity({
+            keyPath: ['inboxSmallTimestamps'],
+            ids: I.List([conversationIDKey]),
+          })
+        ),
       ])
     } else {
       yield Saga.all([
         Saga.put(
-          Creators.replaceEntity(['inboxSmallTimestamps'], I.Map({[conversationIDKey]: inboxState.time}))
+          ChatGen.createReplaceEntity({
+            keyPath: ['inboxSmallTimestamps'],
+            entities: I.Map({[conversationIDKey]: inboxState.time}),
+          })
         ),
-        Saga.put(Creators.deleteEntity(['inboxBigChannels'], I.List([conversationIDKey]))),
-        Saga.put(Creators.deleteEntity(['inboxBigChannelsToTeam'], I.List([conversationIDKey]))),
+        Saga.put(
+          ChatGen.createDeleteEntity({keyPath: ['inboxBigChannels'], ids: I.List([conversationIDKey])})
+        ),
+        Saga.put(
+          ChatGen.createDeleteEntity({
+            keyPath: ['inboxBigChannelsToTeam'],
+            ids: I.List([conversationIDKey]),
+          })
+        ),
       ])
     }
   }
@@ -260,10 +293,22 @@ function* _processConversation(c: ChatTypes.InboxUIItem): SagaGenerator<any, any
   if (inboxState) {
     // We blocked it
     if (['blocked', 'reported'].includes(inboxState.status)) {
-      yield Saga.put(Creators.deleteEntity(['inboxSmallTimestamps'], I.List([inboxState.conversationIDKey])))
-      yield Saga.put(Creators.deleteEntity(['inbox'], I.List([inboxState.conversationIDKey])))
+      yield Saga.put(
+        ChatGen.createDeleteEntity({
+          keyPath: ['inboxSmallTimestamps'],
+          ids: I.List([inboxState.conversationIDKey]),
+        })
+      )
+      yield Saga.put(
+        ChatGen.createDeleteEntity({keyPath: ['inbox'], ids: I.List([inboxState.conversationIDKey])})
+      )
     } else {
-      yield Saga.put(Creators.replaceEntity(['inbox'], I.Map({[inboxState.conversationIDKey]: inboxState})))
+      yield Saga.put(
+        ChatGen.createReplaceEntity({
+          keyPath: ['inbox'],
+          entities: I.Map({[inboxState.conversationIDKey]: inboxState}),
+        })
+      )
     }
 
     if (!isBigTeam) {
@@ -285,11 +330,11 @@ const _chatInboxToProcess = []
 function* _chatInboxConversationSubSaga({conv}) {
   const pconv = JSON.parse(conv)
   _chatInboxToProcess.push(pconv)
-  yield Saga.put(Creators.unboxMore())
+  yield Saga.put(ChatGen.createUnboxMore())
   return EngineRpc.rpcResult()
 }
 
-function* unboxMore(): SagaGenerator<any, any> {
+function* _unboxMore(): SagaGenerator<any, any> {
   if (!_chatInboxToProcess.length) {
     return
   }
@@ -301,7 +346,7 @@ function* unboxMore(): SagaGenerator<any, any> {
 
   if (_chatInboxToProcess.length) {
     yield Saga.call(Saga.delay, 100)
-    yield Saga.put(Creators.unboxMore())
+    yield Saga.put(ChatGen.createUnboxMore())
   }
 }
 
@@ -320,9 +365,16 @@ function* _chatInboxFailedSubSaga(params) {
     time: error.remoteConv.readerInfo.mtime,
   })
 
-  yield Saga.put(Creators.replaceEntity(['inboxUntrustedState'], I.Map({[conversationIDKey]: 'error'})))
+  yield Saga.put(
+    ChatGen.createReplaceEntity({
+      keyPath: ['inboxUntrustedState'],
+      entities: I.Map({[conversationIDKey]: 'error'}),
+    })
+  )
   yield Saga.put(Creators.updateSnippet(conversationIDKey, new HiddenString(error.message)))
-  yield Saga.put(Creators.replaceEntity(['inbox'], I.Map({[conversationIDKey]: conversation})))
+  yield Saga.put(
+    ChatGen.createReplaceEntity({keyPath: ['inbox'], entities: I.Map({[conversationIDKey]: conversation})})
+  )
 
   // Mark the conversation as read, to avoid a state where there's a
   // badged conversation that can't be unbadged by clicking on it.
@@ -401,7 +453,9 @@ function* unboxConversations(action: Constants.UnboxConversations): SagaGenerato
   }, {})
 
   // Load new untrusted state
-  yield Saga.put.resolve(Creators.replaceEntity(['inboxUntrustedState'], I.Map(newUntrustedState)))
+  yield Saga.put.resolve(
+    ChatGen.createReplaceEntity({keyPath: ['inboxUntrustedState'], entities: I.Map(newUntrustedState)})
+  )
 
   conversationIDKeys = newConvIDKeys
   if (!conversationIDKeys.length) {
@@ -439,7 +493,10 @@ function* unboxConversations(action: Constants.UnboxConversations): SagaGenerato
     if (error instanceof RPCTimeoutError) {
       console.warn('timed out request for unboxConversations, bailing')
       yield Saga.put.resolve(
-        Creators.replaceEntity(['inboxUntrustedState'], I.Map(conversationIDKeys.map(c => [c, 'untrusted'])))
+        ChatGen.createReplaceEntity({
+          keyPath: ['inboxUntrustedState'],
+          entities: I.Map(conversationIDKeys.map(c => [c, 'untrusted'])),
+        })
       )
     } else {
       console.warn('Error in loadInboxRpc', error)
@@ -597,15 +654,15 @@ function* _inboxSynced(action: Constants.InboxSynced): Saga.SagaGenerator<any, a
   const items = Shared.makeInboxStateRecords(author, convs, I.Map())
 
   yield Saga.put(
-    Creators.replaceEntity(
-      ['inbox'],
-      I.Map(
+    ChatGen.createReplaceEntity({
+      keyPath: ['inbox'],
+      entities: I.Map(
         items.reduce((map, c) => {
           map[c.conversationIDKey] = c
           return map
         }, {})
-      )
-    )
+      ),
+    })
   )
   const convIDs = items.map(item => item.conversationIDKey)
   yield Saga.put(Creators.unboxConversations(convIDs, 'inbox syncing', true, true))
@@ -672,15 +729,21 @@ function* _badgeAppForChat(action: Constants.BadgeAppForChat): Saga.SagaGenerato
   const oldBadge = yield Saga.select(s => s.inboxUnreadCountBadge)
   const oldTotal = yield Saga.select(s => s.inboxUnreadCountTotal)
   if (!I.is(oldBadge, badges)) {
-    yield Saga.put(Creators.replaceEntity([], I.Map({inboxUnreadCountBadge: badges})))
+    yield Saga.put(
+      ChatGen.createReplaceEntity({keyPath: [], entities: I.Map({inboxUnreadCountBadge: badges})})
+    )
   }
   if (!I.is(oldTotal, totals)) {
-    yield Saga.put(Creators.replaceEntity([], I.Map({inboxUnreadCountTotal: totals})))
+    yield Saga.put(
+      ChatGen.createReplaceEntity({keyPath: [], entities: I.Map({inboxUnreadCountTotal: totals})})
+    )
   }
 }
 
 function _updateSnippet({payload: {snippet, conversationIDKey}}: Constants.UpdateSnippet) {
-  return Saga.put(Creators.replaceEntity(['inboxSnippet'], I.Map({[conversationIDKey]: snippet})))
+  return Saga.put(
+    ChatGen.createReplaceEntity({keyPath: ['inboxSnippet'], entities: I.Map({[conversationIDKey]: snippet})})
+  )
 }
 
 function* _incomingMessage(action: Constants.IncomingMessage): Saga.SagaGenerator<any, any> {
@@ -760,7 +823,7 @@ function* registerSagas(): SagaGenerator<any, any> {
   yield Saga.safeTakeEvery('chat:inboxFilterSelectNext', filterSelectNext)
   yield Saga.safeTakeLatest('chat:inboxStale', onInboxStale)
   yield Saga.safeTakeLatest('chat:loadInbox', onInboxLoad)
-  yield Saga.safeTakeLatest('chat:unboxMore', unboxMore)
+  yield Saga.safeTakeLatest('chat:unboxMore', _unboxMore)
   yield Saga.safeTakeSerially('chat:unboxConversations', unboxConversations)
   yield Saga.safeTakeEvery('chat:appendMessages', _sendNotifications)
   yield Saga.safeTakeEvery('chat:markThreadsStale', _markThreadsStale)

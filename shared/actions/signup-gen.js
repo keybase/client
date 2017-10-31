@@ -15,7 +15,6 @@ export const createCheckInviteCode = (payload: {|inviteCode: string|}) => ({
   error: false,
   payload,
 })
-
 export const createCheckInviteCodeError = (payload: {|errorText: string|}) => ({
   type: checkInviteCode,
   error: true,

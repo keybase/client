@@ -58,11 +58,13 @@ function* _selectConversation(action: Constants.SelectConversation): Saga.SagaGe
 
   // Always show this in the inbox
   if (conversationIDKey) {
-    yield Saga.put(Creators.mergeEntity(['inboxAlwaysShow'], I.Map({[conversationIDKey]: true})))
+    yield Saga.put(
+      ChatGen.createMergeEntity({keyPath: ['inboxAlwaysShow'], entities: I.Map({[conversationIDKey]: true})})
+    )
   }
 
   if (fromUser) {
-    yield Saga.put(Creators.exitSearch(true))
+    yield Saga.put(ChatGen.createExitSearch({skipSelectPreviousConversation: true}))
   }
 
   // Load the inbox item always
@@ -98,7 +100,7 @@ function* _selectConversation(action: Constants.SelectConversation): Saga.SagaGe
   // but there are still unread messages that need to be marked as read
   if (fromUser && conversationIDKey) {
     yield Saga.put(ChatGen.createUpdateBadging({conversationIDKey}))
-    yield Saga.put(Creators.updateLatestMessage(conversationIDKey))
+    yield Saga.put(ChatGen.createUpdateLatestMessage({conversationIDKey}))
   }
 }
 
@@ -143,13 +145,13 @@ const _setNotifications = function*(
     }
 
     yield Saga.put.resolve(
-      Creators.replaceEntity(
-        ['inbox', conversationIDKey],
-        old.set('notifications', {
+      ChatGen.createReplaceEntity({
+        keyPath: ['inbox', conversationIDKey],
+        entities: old.set('notifications', {
           ...old.notifications,
           ...nextNotifications,
-        })
-      )
+        }),
+      })
     )
   }
 

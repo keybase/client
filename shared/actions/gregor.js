@@ -9,7 +9,6 @@ import {
   reachabilityStartReachabilityRpcPromise,
   ReachabilityReachable,
   gregorInjectItemRpcPromise,
-  type PushReason,
   type Reachability,
 } from '../constants/types/flow-types'
 import {all, call, put, select} from 'redux-saga/effects'

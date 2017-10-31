@@ -3,6 +3,7 @@
 import * as ChatTypes from '../../constants/types/flow-types-chat'
 import * as Constants from '../../constants/chat'
 import * as Creators from './creators'
+import * as ChatGen from '../chat-gen'
 import * as Shared from './shared'
 import * as Saga from '../../util/saga'
 import HiddenString from '../../util/hidden-string'
@@ -83,7 +84,7 @@ function* postMessage(action: Constants.PostMessage): SagaGenerator<any, any> {
   // that is deleted by exitSearch().
   const inSearch = yield Saga.select((state: TypedState) => state.chat.get('inSearch'))
   if (inSearch) {
-    yield Saga.put(Creators.exitSearch(false))
+    yield Saga.put(ChatGen.createExitSearch({skipSelectPreviousConversation: false}))
   }
 
   const [inboxConvo, lastMessageID]: [Constants.InboxState, ?Constants.MessageID] = yield Saga.all([

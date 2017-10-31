@@ -1,5 +1,6 @@
 // @flow
 import * as Creators from './creators'
+import * as ChatGen from '../chat-gen'
 import * as Constants from '../../constants/chat'
 import * as Selectors from '../../constants/selectors'
 import * as SearchConstants from '../../constants/search'
@@ -23,7 +24,7 @@ function* _newChat(action: Constants.NewChat): Saga.SagaGenerator<any, any> {
 }
 
 function _exitSearch(
-  {payload: {skipSelectPreviousConversation}}: Constants.ExitSearch,
+  {payload: {skipSelectPreviousConversation}}: ChatGen.ReturnType<typeof ChatGen.createExitSearch>,
   [userInputItemIds, previousConversation]: [
     ReturnValue<typeof SearchConstants.getUserInputItemIds>,
     ReturnValue<typeof Selectors.previousConversationSelector>,

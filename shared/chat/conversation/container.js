@@ -2,6 +2,7 @@
 import * as Constants from '../../constants/chat'
 import * as SearchConstants from '../../constants/search'
 import * as Creators from '../../actions/chat/creators'
+import * as ChatGen from '../../actions/chat-gen'
 import HiddenString from '../../util/hidden-string'
 import Conversation from './index'
 import NoConversation from './no-conversation'
@@ -114,7 +115,7 @@ const mapDispatchToProps = (
   dispatch: Dispatch,
   {setRouteState, navigateUp, navigateAppend}
 ): DispatchProps => ({
-  onExitSearch: () => dispatch(Creators.exitSearch(false)),
+  onExitSearch: () => dispatch(ChatGen.createExitSearch({skipSelectPreviousConversation: false})),
   _onAttach: (selectedConversation, inputs: Array<Constants.AttachmentInput>) => {
     dispatch(
       navigateAppend([

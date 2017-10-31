@@ -68,29 +68,31 @@ function actionReduxTypeName(ns: ActionNS, actionName: ActionName): string {
 }
 
 function printPayload(p: Object) {
-  return '{|' + Object.keys(p).map(key => `${key}: ${p[key]}`).join(',\n') + '|}'
+  return Object.keys(p).length
+    ? '(payload: {|' + Object.keys(p).map(key => `${key}: ${p[key]}`).join(',\n') + '|})'
+    : '()'
 }
 
 function compileActionCreator(ns: ActionNS, actionName: ActionName, desc: ActionDesc) {
   const {canError, ...noErrorPayload} = desc
+
   return (
-    `export const create${capitalize(actionName)} = (payload: ${printPayload(noErrorPayload)}) => (
+    `export const create${capitalize(actionName)} = ${printPayload(noErrorPayload)} => (
   {
     type: ${actionName},
     error: false,
-    payload,
+    payload${Object.keys(noErrorPayload).length ? '' : ': undefined'},
   }
 )` +
     (canError
       ? `
-
-export const create${capitalize(actionName)}Error = (payload: ${printPayload(canError)}) => (
-  {
-    type: ${actionName},
-    error: true,
-    payload,
-  }
-)`
+  export const create${capitalize(actionName)}Error = ${printPayload(canError)} => (
+    {
+      type: ${actionName},
+      error: true,
+      payload${Object.keys(canError).length ? '' : ': undefined'},
+    }
+  )`
       : '')
   )
 }

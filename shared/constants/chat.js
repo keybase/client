@@ -21,22 +21,6 @@ const createShallowEqualSelector = createSelectorCreator(defaultMemoize, (a, b) 
   isEqualWith(a, b, (a, b, indexOrKey, object, other, stack) => (stack ? a === b : undefined))
 )
 
-export type EntityType = any
-
-export type Delete = NoErrorTypedAction<'chatentity:delete', {keyPath: Array<string>, ids: I.List<string>}>
-export type Merge = NoErrorTypedAction<
-  'chatentity:merge',
-  {keyPath: Array<string>, entities: I.Map<any, EntityType> | I.List<EntityType>}
->
-export type Replace = NoErrorTypedAction<
-  'chatentity:replace',
-  {keyPath: Array<string>, entities: I.Map<any, EntityType>}
->
-export type Subtract = NoErrorTypedAction<
-  'chatentity:subtract',
-  {keyPath: Array<string>, entities: I.List<EntityType>}
->
-
 export type Username = string
 export type MessageKey = string
 type MessageKeyKind =
@@ -489,7 +473,6 @@ export const maxMessagesToLoadAtATime = 50
 export const nothingSelected = 'chat:noneSelected'
 export const blankChat = 'chat:blankChat'
 
-export type UnboxMore = NoErrorTypedAction<'chat:unboxMore', void>
 export type UnboxConversations = NoErrorTypedAction<
   'chat:unboxConversations',
   {conversationIDKeys: Array<ConversationIDKey>, reason: string, force?: boolean, forInboxSync?: boolean}
@@ -527,7 +510,6 @@ export type ClearMessages = NoErrorTypedAction<'chat:clearMessages', {conversati
 export type ClearRekey = NoErrorTypedAction<'chat:clearRekey', {conversationIDKey: ConversationIDKey}>
 export type DeleteMessage = NoErrorTypedAction<'chat:deleteMessage', {message: Message}>
 export type EditMessage = NoErrorTypedAction<'chat:editMessage', {message: Message, text: HiddenString}>
-export type ExitSearch = NoErrorTypedAction<'chat:exitSearch', {skipSelectPreviousConversation: boolean}>
 export type GetInboxAndUnbox = NoErrorTypedAction<
   'chat:getInboxAndUnbox',
   {conversationIDKeys: Array<ConversationIDKey>}
@@ -575,12 +557,7 @@ export type OpenConversation = NoErrorTypedAction<
   'chat:openConversation',
   {conversationIDKey: ConversationIDKey}
 >
-export type OpenFolder = NoErrorTypedAction<'chat:openFolder', void>
 export type OpenTlfInChat = NoErrorTypedAction<'chat:openTlfInChat', string>
-export type PendingToRealConversation = NoErrorTypedAction<
-  'chat:pendingToRealConversation',
-  {oldKey: ConversationIDKey, newKey: ConversationIDKey}
->
 export type PostMessage = NoErrorTypedAction<
   'chat:postMessage',
   {conversationIDKey: ConversationIDKey, text: HiddenString}
@@ -660,10 +637,6 @@ export type UpdateInboxRekeyOthers = NoErrorTypedAction<
 >
 export type UpdateInboxRekeySelf = NoErrorTypedAction<
   'chat:updateInboxRekeySelf',
-  {conversationIDKey: ConversationIDKey}
->
-export type UpdateLatestMessage = NoErrorTypedAction<
-  'chat:updateLatestMessage',
   {conversationIDKey: ConversationIDKey}
 >
 export type UpdateMetadata = NoErrorTypedAction<'chat:updateMetadata', {users: Array<string>}>
@@ -842,15 +815,12 @@ export type Actions =
   | LoadInbox
   | LoadMoreMessages
   | NewChat
-  | OpenFolder
-  | PendingToRealConversation
   | PrependMessages
   | RemoveTempPendingConversations
   | SelectConversation
   | StartConversation
   | UpdateBrokenTracker
   | UpdateInboxComplete
-  | UpdateLatestMessage
   | UpdateMetadata
   | UpdatedMetadata
   | UpdateTempMessage

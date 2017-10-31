@@ -189,7 +189,7 @@ function* _loadMoreMessages(action: Constants.LoadMoreMessages): Saga.SagaGenera
     const selectedConversationIDKey = yield Saga.select(Constants.getSelectedConversation)
     if (selectedConversationIDKey === conversationIDKey && action.payload.fromUser) {
       yield Saga.put(ChatGen.createUpdateBadging({conversationIDKey}))
-      yield Saga.put(Creators.updateLatestMessage(conversationIDKey))
+      yield Saga.put(ChatGen.createUpdateLatestMessage({conversationIDKey}))
     }
   } finally {
     yield Saga.put(Creators.loadingMessages(conversationIDKey, false))
@@ -822,7 +822,7 @@ function* _changedActive(action: ChangedActive): Saga.SagaGenerator<any, any> {
       yield Saga.put(ChatGen.createUpdateBadging({conversationIDKey}))
     } else {
       // Reset the orange line when becoming inactive
-      yield Saga.put(Creators.updateLatestMessage(conversationIDKey))
+      yield Saga.put(ChatGen.createUpdateLatestMessage({conversationIDKey}))
     }
   }
 }
@@ -851,7 +851,7 @@ function* _changedFocus(action: ChangedFocus): Saga.SagaGenerator<any, any> {
       yield Saga.put(ChatGen.createUpdateBadging({conversationIDKey}))
     } else {
       // Reset the orange line when focus leaves the app.
-      yield Saga.put(Creators.updateLatestMessage(conversationIDKey))
+      yield Saga.put(ChatGen.createUpdateLatestMessage({conversationIDKey}))
     }
   }
 }
