@@ -1034,12 +1034,12 @@ func splitBulk(s string) []string {
 	return strings.FieldsFunc(s, f)
 }
 
-func CreateSeitanToken(ctx context.Context, g *libkb.GlobalContext, teamname string, role keybase1.TeamRole) (string, error) {
+func CreateSeitanToken(ctx context.Context, g *libkb.GlobalContext, teamname string, role keybase1.TeamRole, label keybase1.SeitanIKeyLabel) (string, error) {
 	t, err := GetForTeamManagementByStringName(ctx, g, teamname, true)
 	if err != nil {
 		return "", err
 	}
-	ikey, err := t.InviteSeitan(ctx, role)
+	ikey, err := t.InviteSeitan(ctx, role, label)
 	if err != nil {
 		return "", err
 	}

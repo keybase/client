@@ -565,7 +565,7 @@ protocol teams {
 
   void teamSetSettings(int sessionID, string name, TeamSettings settings);
 
-  string teamCreateSeitanToken(int sessionID, string name, TeamRole role);
+  string teamCreateSeitanToken(int sessionID, string name, TeamRole role, SeitanIKeyLabel label);
 
   record BulkRes {
     array<string> invited;

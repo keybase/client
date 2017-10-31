@@ -277,7 +277,7 @@ func (h *TeamsHandler) TeamCreateSeitanToken(ctx context.Context, arg keybase1.T
 	if err := h.assertLoggedIn(ctx); err != nil {
 		return "", err
 	}
-	return teams.CreateSeitanToken(ctx, h.G().ExternalG(), arg.Name, arg.Role)
+	return teams.CreateSeitanToken(ctx, h.G().ExternalG(), arg.Name, arg.Role, arg.Label)
 }
 
 func (h *TeamsHandler) GetTeamRootID(ctx context.Context, id keybase1.TeamID) (keybase1.TeamID, error) {
