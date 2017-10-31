@@ -17,7 +17,7 @@ type ActionDesc = Payload | ErrorPayload
 type Actions = {[key: ActionName]: ActionDesc}
 
 type FileDesc = {
-  prelude: string, // anything to prepend to our generated file
+  prelude: Array<string>, // anything to prepend to our generated file
   actions: Actions,
 }
 
@@ -26,11 +26,11 @@ type CompileActionFn = (ns: ActionNS, actionName: ActionName, desc: ActionDesc) 
 function compile(ns: ActionNS, {prelude, actions}: FileDesc): string {
   return `// @flow
 /* eslint-disable */
-${prelude}
 
-type _ExtractReturn<B, F: (...args: any[]) => B> = B
-export type ReturnType<F> = _ExtractReturn<*, F>
-export type PayloadType<F> = $PropertyType<ReturnType<F>, 'payload'>
+// NOTE: This file is GENERATED from json files in actions/json. Run 'yarn build-actions' to regenerate
+
+import {type PayloadType, type ReturnType} from '../constants/types/more'
+${prelude.join('\n')}
 
 // Constants
 ${compileActions(ns, actions, compileReduxTypeConstant)}
@@ -38,24 +38,32 @@ ${compileActions(ns, actions, compileReduxTypeConstant)}
 // Action Creators
 ${compileActions(ns, actions, compileActionCreator)}
 
+// Action Payloads
+${compileActions(ns, actions, compileActionPayloads)}
+
 // All Actions
 ${compileAllActionsType(ns, actions)}
   `
 }
 
 function compileAllActionsType(ns: ActionNS, actions: Actions): string {
-  return `export type Actions = ${Object.keys(actions)
+  const actionsTypes = Object.keys(actions)
     .map(
       (name: ActionName) =>
         `ReturnType<typeof create${capitalize(name)}>` +
-        (actions[name].canError ? ` | ReturnType<typeof create${capitalize(name)}Error>` : '')
+        (actions[name].canError ? `\n  | ReturnType<typeof create${capitalize(name)}Error>` : '')
     )
-    .join('|')}`
+    .sort()
+    .join('\n  | ')
+  return `// prettier-ignore
+export type Actions =
+  | ${actionsTypes}`
 }
 
 function compileActions(ns: ActionNS, actions: Actions, compileActionFn: CompileActionFn): string {
   return Object.keys(actions)
     .map((actionName: ActionName) => compileActionFn(ns, actionName, actions[actionName]))
+    .sort()
     .join('\n')
 }
 
@@ -68,29 +76,27 @@ function actionReduxTypeName(ns: ActionNS, actionName: ActionName): string {
 }
 
 function printPayload(p: Object) {
-  return '{|' + Object.keys(p).map(key => `${key}: ${p[key]}`).join(',\n') + '|}'
+  return Object.keys(p).length
+    ? '(payload: {|' + Object.keys(p).map(key => `${key}: ${p[key]}`).join(',\n') + '|})'
+    : '()'
+}
+
+function compileActionPayloads(ns: ActionNS, actionName: ActionName, desc: ActionDesc) {
+  return `export type ${capitalize(actionName)}Payload = ReturnType<typeof create${capitalize(actionName)}>`
 }
 
 function compileActionCreator(ns: ActionNS, actionName: ActionName, desc: ActionDesc) {
   const {canError, ...noErrorPayload} = desc
+
   return (
-    `export const create${capitalize(actionName)} = (payload: ${printPayload(noErrorPayload)}) => (
-  {
-    type: ${actionName},
-    error: false,
-    payload,
-  }
+    `export const create${capitalize(actionName)} = ${printPayload(noErrorPayload)} => (
+  { error: false, payload${Object.keys(noErrorPayload).length ? '' : ': undefined'}, type: ${actionName}, }
 )` +
     (canError
       ? `
-
-export const create${capitalize(actionName)}Error = (payload: ${printPayload(canError)}) => (
-  {
-    type: ${actionName},
-    error: true,
-    payload,
-  }
-)`
+  export const create${capitalize(actionName)}Error = ${printPayload(canError)} => (
+    { error: true, payload${Object.keys(canError).length ? '' : ': undefined'}, type: ${actionName}, }
+  )`
       : '')
   )
 }

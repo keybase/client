@@ -1,8 +1,242 @@
 {
-    "prelude": "import * as Constants from '../constants/chat'",
-    "actions": {
-        "updateBadging": {
-            "conversationIDKey": "Constants.ConversationIDKey"
-        }
+  "prelude": [
+    "import * as Constants from '../constants/chat'",
+    "import * as RPCTypes from '../constants/types/flow-types'",
+    "import * as ChatTypes from '../constants/types/flow-types-chat'",
+    "import * as I from 'immutable'",
+    "import HiddenString from '../util/hidden-string'",
+    "import {type DeviceType} from '../constants/types/more'",
+    "import {type Path} from '../route-tree'"
+  ],
+  "actions": {
+    "updateBadging": {
+      "conversationIDKey": "Constants.ConversationIDKey"
+    },
+    "deleteEntity": {
+      "keyPath": "Array<string>",
+      "ids": "I.List<string>"
+    },
+    "mergeEntity": {
+      "keyPath": "Array<string>",
+      "entities": "I.Map<any, any> | I.List<any>"
+    },
+    "replaceEntity": {
+      "keyPath": "Array<string>",
+      "entities": "I.Map<any, any> | I.List<any>"
+    },
+    "subtractEntity": {
+      "keyPath": "Array<string>",
+      "entities": "I.List<any>"
+    },
+    "unboxMore": {},
+    "exitSearch": {
+      "skipSelectPreviousConversation": "boolean"
+    },
+    "pendingToRealConversation": {
+      "oldKey": "Constants.ConversationIDKey",
+      "newKey": "Constants.ConversationIDKey"
+    },
+    "updateLatestMessage": {
+      "conversationIDKey": "Constants.ConversationIDKey"
+    },
+    "openFolder": {},
+    "openTlfInChat": {
+      "tlf": "string"
+    },
+    "newChat": {},
+    "setupChatHandlers": {},
+    "loadInbox": {},
+    "loadMoreMessages": {
+      "conversationIDKey": "Constants.ConversationIDKey",
+      "onlyIfUnloaded": "boolean",
+      "fromUser?": "boolean",
+      "wantNewer?": "boolean",
+      "numberOverride?": "?number"
+    },
+    "showEditor": {
+      "message": "?Constants.Message"
+    },
+    "muteConversation": {
+      "conversationIDKey": "Constants.ConversationIDKey",
+      "muted": "boolean"
+    },
+    "blockConversation": {
+      "blocked": "boolean",
+      "conversationIDKey": "Constants.ConversationIDKey",
+      "reportUser": "boolean"
+    },
+    "editMessage": {
+      "message": "Constants.Message",
+      "text": "HiddenString"
+    },
+    "leaveConversation": {
+      "conversationIDKey": "Constants.ConversationIDKey"
+    },
+    "deleteMessage": {
+      "message": "Constants.Message"
+    },
+    "addPending": {
+      "participants": "Array<string>",
+      "temporary": "boolean"
+    },
+    "removeTempPendingConversations": {},
+    "updateFinalizedState": {
+      "finalizedState": "Constants.FinalizedState"
+    },
+    "updateSupersedesState": {
+      "supersedesState": "Constants.SupersedesState"
+    },
+    "updateSupersededByState": {
+      "supersededByState": "Constants.SupersededByState"
+    },
+    "markSeenMessage": {
+      "conversationIDKey": "Constants.ConversationIDKey",
+      "messageKey": "Constants.MessageKey"
+    },
+    "unboxConversations": {
+      "conversationIDKeys": "Array<Constants.ConversationIDKey>",
+      "reason": "string",
+      "force?": "boolean",
+      "forInboxSync?": "boolean"
+    },
+    "selectNext": {
+      "rows": "Array<any>",
+      "direction": "-1 | 1"
+    },
+    "setInboxFilter": {
+      "filter": "string"
+    },
+    "setInboxGlobalUntrustedState": {
+      "inboxGlobalUntrustedState": "Constants.UntrustedState"
+    },
+    "updateThread": {
+      "thread": "ChatTypes.UIMessages",
+      "yourName": "string",
+      "yourDeviceName": "string",
+      "conversationIDKey": "string",
+      "append": "boolean"
+    },
+    "updatedNotifications": {
+      "conversationIDKey": "Constants.ConversationIDKey",
+      "notifications": "Constants.NotificationsState"
+    },
+    "updateSnippet": {
+      "conversationIDKey": "Constants.ConversationIDKey",
+      "snippet": "HiddenString"
+    },
+    "outboxMessageBecameReal": {
+      "oldMessageKey": "Constants.MessageKey",
+      "newMessageKey": "Constants.MessageKey"
+    },
+    "clearRekey": {
+      "conversationIDKey": "Constants.ConversationIDKey"
+    },
+    "updateInboxRekeySelf": {
+      "conversationIDKey": "Constants.ConversationIDKey"
+    },
+    "updateInboxRekeyOthers": {
+      "conversationIDKey": "Constants.ConversationIDKey",
+      "rekeyers": "Array<string>"
+    },
+    "updateInboxComplete": {},
+    "removeOutboxMessage": {
+      "conversationIDKey": "Constants.ConversationIDKey",
+      "outboxID": "Constants.OutboxIDKey"
+    },
+    "openConversation": {
+      "conversationIDKey": "Constants.ConversationIDKey"
+    },
+    "openAttachmentPopup": {
+      "message": "Constants.AttachmentMessage",
+      "currentPath": "Path"
+    },
+    "setPreviousConversation": {
+      "conversationIDKey": "?Constants.ConversationIDKey"
+    },
+    "threadLoadedOffline": {
+      "conversationIDKey": "Constants.ConversationIDKey"
+    },
+    "uploadProgress": {
+      "messageKey": "Constants.MessageKey",
+      "progress": "?number"
+    },
+    "selectConversation": {
+      "conversationIDKey": "?Constants.ConversationIDKey",
+      "fromUser?": "boolean"
+    },
+    "attachmentSaved": {
+      "messageKey": "Constants.MessageKey",
+      "path": "?string"
+    },
+    "saveAttachment": {
+      "messageKey": "Constants.MessageKey"
+    },
+    "attachmentSaveStart": {
+      "messageKey": "Constants.MessageKey"
+    },
+    "attachmentSaveFailed": {
+      "messageKey": "Constants.MessageKey"
+    },
+    "selectAttachment": {
+      "input": "Constants.AttachmentInput"
+    },
+    "loadAttachment": {
+      "messageKey": "Constants.MessageKey",
+      "loadPreview": "boolean"
+    },
+    "loadingMessages": {
+      "conversationIDKey": "Constants.ConversationIDKey",
+      "isRequesting": "boolean"
+    },
+    "incomingMessage": {
+      "activity": "ChatTypes.ChatActivity"
+    },
+    "incomingTyping": {
+      "activity": "ChatTypes.TyperInfo"
+    },
+    "updateTyping": {
+      "conversationIDKey": "Constants.ConversationIDKey",
+      "typing": "boolean"
+    },
+    "setTypers": {
+      "conversationIDKey": "Constants.ConversationIDKey",
+      "typing": "Array<string>"
+    },
+    "updateBrokenTracker": {
+      "userToBroken": "{[username: string]: boolean}"
+    },
+    "inboxStale": {
+      "reason": "string"
+    },
+    "markThreadsStale": {
+      "updates": "Array<ChatTypes.ConversationStaleUpdate>"
+    },
+    "inboxSynced": {
+      "convs": "Array<ChatTypes.UnverifiedInboxUIItem>"
+    },
+    "getInboxAndUnbox": {
+      "conversationIDKeys": "Array<Constants.ConversationIDKey>"
+    },
+    "clearMessages": {
+      "conversationIDKey": "Constants.ConversationIDKey"
+    },
+    "setNotifications": {
+      "conversationIDKey": "Constants.ConversationIDKey",
+      "deviceType": "DeviceType",
+      "notifyType": "Constants.NotifyType"
+    },
+    "toggleChannelWideNotifications": {
+      "conversationIDKey": "Constants.ConversationIDKey"
+    },
+    "updateMetadata": {
+      "users": "Array<string>"
+    },
+    "updatedMetadata": {
+      "updated": "{[key: string]: Constants.MetaData}"
+    },
+    "setLoaded": {
+      "conversationIDKey": "Constants.ConversationIDKey",
+      "isLoaded": "boolean"
     }
+  }
 }

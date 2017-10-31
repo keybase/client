@@ -20,7 +20,7 @@ import {isMobile} from '../../constants/platform'
 import {load as loadDevices, setWaiting as setDevicesWaiting, devicesTabLocation} from '../devices'
 import {setDeviceNameError} from '../signup'
 import {deletePushTokenSaga} from '../push'
-import {selectConversation} from '../chat/creators'
+import {createSelectConversation} from '../chat-gen'
 import {pathSelector, navigateTo, navigateAppend} from '../route-tree'
 import {toDeviceType} from '../../constants/types/more'
 import {all, call, put, take, race, select} from 'redux-saga/effects'
@@ -132,7 +132,7 @@ function* navBasedOnLoginAndInitialState(): SagaGenerator<any, any> {
         yield put(appLink(url))
       } else if (tab && isValidInitialTab(tab)) {
         if (tab === chatTab && conversation) {
-          yield put(selectConversation(conversation, false))
+          yield put(createSelectConversation({conversationIDKey: conversation}))
           yield put(navigateTo([chatTab], null, 'initial-restore'))
         } else {
           yield put(navigateTo([tab], null, 'initial-restore'))

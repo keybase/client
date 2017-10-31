@@ -1,6 +1,6 @@
 // @flow
 import * as Constants from '../../../constants/chat'
-import * as Creators from '../../../actions/chat/creators'
+import * as ChatGen from '../../../actions/chat-gen'
 import * as Selectors from '../../../constants/selectors'
 import HiddenString from '../../../util/hidden-string'
 import ListComponent, {type Props} from '.'
@@ -100,16 +100,16 @@ const mapStateToProps = createSelector(
 
 const mapDispatchToProps = (dispatch: Dispatch): DispatchProps => ({
   _onDownloadAttachment: messageKey => {
-    dispatch(Creators.saveAttachment(messageKey))
+    dispatch(ChatGen.createSaveAttachment({messageKey}))
   },
   _onLoadMoreMessages: (conversationIDKey: Constants.ConversationIDKey) => {
-    dispatch(Creators.loadMoreMessages(conversationIDKey, false))
+    dispatch(ChatGen.createLoadMoreMessages({conversationIDKey, onlyIfUnloaded: false}))
   },
   onDeleteMessage: (message: Constants.Message) => {
-    dispatch(Creators.deleteMessage(message))
+    dispatch(ChatGen.createDeleteMessage({message}))
   },
   onEditMessage: (message: Constants.Message, body: string) => {
-    dispatch(Creators.editMessage(message, new HiddenString(body)))
+    dispatch(ChatGen.createEditMessage({message, text: new HiddenString(body)}))
   },
   onMessageAction: (message: Constants.Message) => {
     dispatch(navigateAppend([{props: {message}, selected: 'messageAction'}]))

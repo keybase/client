@@ -1,7 +1,7 @@
 // @flow
 import type {Item, Metadata, OutOfBandMessage} from '../constants/types/flow-types-gregor'
 import type {Reachability} from '../constants/types/flow-types'
-import type {TypedAction, NoErrorTypedAction} from '../constants/types/flux'
+import type {NoErrorTypedAction} from '../constants/types/flux'
 
 export type NonNullGregorItem = {
   md: Metadata,

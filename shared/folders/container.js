@@ -4,7 +4,7 @@ import flags from '../util/feature-flags'
 import {pausableConnect, compose, lifecycle, withProps, type TypedState} from '../util/container'
 import {favoriteList} from '../actions/favorite'
 import {openInKBFS} from '../actions/kbfs'
-import {openTlfInChat} from '../actions/chat'
+import {createOpenTlfInChat} from '../actions/chat-gen'
 import {settingsTab} from '../constants/tabs'
 import {switchTo, navigateAppend, navigateTo} from '../actions/route-tree'
 import {type RouteProps} from '../route-tree/render-route'
@@ -21,7 +21,7 @@ const mapStateToProps = (state: TypedState, {routeState, showingPrivate}: OwnPro
 
 const mapDispatchToProps = (dispatch: any, {routePath, routeState, setRouteState}: OwnProps) => ({
   favoriteList: () => dispatch(favoriteList()),
-  onChat: tlf => dispatch(openTlfInChat(tlf)),
+  onChat: tlf => dispatch(createOpenTlfInChat({tlf})),
   onClick: path => dispatch(navigateAppend([{props: {path}, selected: 'files'}])),
   onOpen: path => dispatch(openInKBFS(path)),
   onRekey: path => dispatch(navigateAppend([{props: {path}, selected: 'files'}])),
