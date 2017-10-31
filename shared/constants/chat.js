@@ -602,14 +602,6 @@ export type UpdateInboxRekeySelf = NoErrorTypedAction<
   {conversationIDKey: ConversationIDKey}
 >
 export type UpdateMetadata = NoErrorTypedAction<'chat:updateMetadata', {users: Array<string>}>
-export type UpdatePaginationNext = NoErrorTypedAction<
-  'chat:updatePaginationNext',
-  {conversationIDKey: ConversationIDKey, paginationNext: ?string}
->
-export type UpdatePaginationPrev = NoErrorTypedAction<
-  'chat:updatePaginationPrev',
-  {conversationIDKey: ConversationIDKey, paginationPrev: ?string}
->
 export type UpdateSupersededByState = NoErrorTypedAction<
   'chat:updateSupersededByState',
   {supersededByState: SupersededByState}
