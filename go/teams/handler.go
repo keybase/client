@@ -127,13 +127,6 @@ func HandleSBSRequest(ctx context.Context, g *libkb.GlobalContext, msg keybase1.
 
 func handleSBSSingle(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID, untrustedInviteeFromGregor keybase1.TeamInvitee) (err error) {
 	defer g.CTrace(ctx, fmt.Sprintf("team.handleSBSSingle(teamID: %v, invitee: %+v)", teamID, untrustedInviteeFromGregor), func() error { return err })()
-	uv := NewUserVersion(untrustedInviteeFromGregor.Uid, untrustedInviteeFromGregor.EldestSeqno)
-	req, err := reqFromRole(uv, untrustedInviteeFromGregor.Role)
-	if err != nil {
-		return err
-	}
-	req.CompletedInvites = make(map[keybase1.TeamInviteID]keybase1.UserVersionPercentForm)
-	req.CompletedInvites[untrustedInviteeFromGregor.InviteID] = uv.PercentForm()
 
 	return RetryOnSigOldSeqnoError(ctx, g, func(ctx context.Context, _ int) error {
 		team, err := Load(ctx, g, keybase1.LoadTeamArg{
@@ -188,6 +181,25 @@ func handleSBSSingle(ctx context.Context, g *libkb.GlobalContext, teamID keybase
 		default:
 			return fmt.Errorf("no verification implemented for invite category %s (%+v)", category, invite)
 		}
+
+		uv := NewUserVersion(untrustedInviteeFromGregor.Uid, untrustedInviteeFromGregor.EldestSeqno)
+
+		currentRole, err := team.MemberRole(ctx, uv)
+		if err != nil {
+			return err
+		}
+
+		if currentRole.IsOrAbove(invite.Role) {
+			g.Log.CDebugf(ctx, "User already has same or higher role, canceling invite.")
+			return removeInviteID(ctx, team, invite.Id)
+		}
+
+		req, err := reqFromRole(uv, invite.Role)
+		if err != nil {
+			return err
+		}
+		req.CompletedInvites = make(map[keybase1.TeamInviteID]keybase1.UserVersionPercentForm)
+		req.CompletedInvites[untrustedInviteeFromGregor.InviteID] = uv.PercentForm()
 
 		g.Log.CDebugf(ctx, "checks passed, proceeding with team.ChangeMembership, req = %+v", req)
 
@@ -245,7 +257,9 @@ func HandleOpenTeamAccessRequest(ctx context.Context, g *libkb.GlobalContext, ms
 		}
 
 		var req keybase1.TeamChangeReq
-		role := team.chain().inner.OpenTeamJoinAs
+		joinAsRole := team.chain().inner.OpenTeamJoinAs
+
+		var needPost bool
 
 		for _, tar := range msg.Tars {
 			uv := NewUserVersion(tar.Uid, tar.EldestSeqno)
@@ -254,20 +268,27 @@ func HandleOpenTeamAccessRequest(ctx context.Context, g *libkb.GlobalContext, ms
 				return err
 			}
 
-			if currentRole.IsOrAbove(role) {
+			if currentRole.IsOrAbove(joinAsRole) {
+				g.Log.CDebugf(ctx, "User already has same or higher role, ignoring open request.")
+				// Invitee is already in the team.
 				continue
 			}
 
-			switch role {
+			needPost = true
+
+			switch joinAsRole {
 			case keybase1.TeamRole_READER:
 				req.Readers = append(req.Readers, uv)
 			case keybase1.TeamRole_WRITER:
 				req.Writers = append(req.Writers, uv)
 			default:
-				return fmt.Errorf("Unexpected role to add to open team: %v", role)
+				return fmt.Errorf("Unexpected role to add to open team: %v", joinAsRole)
 			}
 		}
 
+		if !needPost {
+			return nil
+		}
 		return team.ChangeMembership(ctx, req)
 	})
 }
@@ -334,15 +355,33 @@ func HandleTeamSeitan(ctx context.Context, g *libkb.GlobalContext, msg keybase1.
 		req.CompletedInvites[seitan.InviteID] = uv.PercentForm()
 	}
 
-	if len(invitesToCancel) > 0 {
-		if err := removeMultipleInviteIDs(ctx, team, invitesToCancel); err != nil {
-			return err
-		}
-	}
+	var needReload bool
 
 	if len(req.CompletedInvites) > 0 {
 		// Did we actually bring anyone in? (or all requests were outdated/invalid)
-		return team.ChangeMembership(ctx, req)
+		err = team.ChangeMembership(ctx, req)
+		if err != nil {
+			return err
+		}
+		needReload = true
+	}
+
+	if len(invitesToCancel) > 0 {
+		if needReload {
+			// Reload the team because we posted a link, invalidating the old snapshot
+			team, err = Load(ctx, g, keybase1.LoadTeamArg{
+				ID:          msg.TeamID,
+				Public:      msg.TeamID.IsPublic(),
+				ForceRepoll: true,
+			})
+			if err != nil {
+				return err
+			}
+		}
+		err = removeMultipleInviteIDs(ctx, team, invitesToCancel)
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil
