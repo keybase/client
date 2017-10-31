@@ -641,6 +641,10 @@ func (l *TeamLoader) checkReaderKeyMaskCoverage(ctx context.Context,
 	state *keybase1.TeamData, gen keybase1.PerTeamKeyGeneration) error {
 
 	for _, app := range keybase1.TeamApplicationMap {
+		if app == keybase1.TeamApplication_SEITAN_INVITE_TOKEN {
+			// QUICKFIX don't check seitan coverage: may want to bust team cache later to fix this
+			continue
+		}
 		if _, ok := state.ReaderKeyMasks[app]; !ok {
 			return fmt.Errorf("missing reader key mask for gen:%v app:%v", gen, app)
 		}
