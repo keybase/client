@@ -1,6 +1,6 @@
 // @flow
 import {FilterBigTeamChannel} from '.'
-import * as Creators from '../../../../actions/chat/creators'
+import * as ChatGen from '../../../../actions/chat-gen'
 import {pausableConnect} from '../../../../util/container'
 
 const mapStateToProps = (_, {teamname, channelname, isActiveRoute}) => ({
@@ -11,8 +11,8 @@ const mapStateToProps = (_, {teamname, channelname, isActiveRoute}) => ({
 
 const mapDispatchToProps = (dispatch: Dispatch, {conversationIDKey}) => ({
   onSelectConversation: () => {
-    dispatch(Creators.setInboxFilter(''))
-    dispatch(Creators.selectConversation(conversationIDKey, true))
+    dispatch(ChatGen.createSetInboxFilter({filter: ''}))
+    dispatch(ChatGen.createSelectConversation({conversationIDKey, fromUser: true}))
   },
 })
 

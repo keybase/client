@@ -10,7 +10,7 @@ import {connect} from 'react-redux'
 import {favoriteFolder, ignoreFolder} from '../../actions/favorite'
 import {navigateUp, navigateAppend} from '../../actions/route-tree'
 import {openInKBFS} from '../../actions/kbfs'
-import {openTlfInChat} from '../../actions/chat'
+import {createOpenTlfInChat} from '../../actions/chat-gen'
 
 type Props = $Shape<{
   folder: ?Folder,
@@ -129,7 +129,14 @@ const ConnectedFiles = connect(
   },
   (dispatch: any) =>
     bindActionCreators(
-      {favoriteFolder, ignoreFolder, navigateAppend, navigateUp, openInKBFS, openTlfInChat},
+      {
+        favoriteFolder,
+        ignoreFolder,
+        navigateAppend,
+        navigateUp,
+        openInKBFS,
+        openTlfInChat: createOpenTlfInChat,
+      },
       dispatch
     )
 )(Files)

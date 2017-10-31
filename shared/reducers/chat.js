@@ -1,6 +1,7 @@
 // @flow
 import * as CommonConstants from '../constants/common'
 import * as Constants from '../constants/chat'
+import * as ChatGen from '../actions/chat-gen'
 import {Set, List, Map} from 'immutable'
 import {ReachabilityReachable} from '../constants/types/flow-types'
 
@@ -17,10 +18,28 @@ function updateConversation(
   return conversationStates.update(conversationIDKey, initialConversation, conversationUpdateFn)
 }
 
-function reducer(state: Constants.State = initialState, action: Constants.Actions) {
+function reducer(state: Constants.State = initialState, action: Constants.Actions | ChatGen.Actions) {
   switch (action.type) {
     case CommonConstants.resetStore:
       return Constants.makeState()
+    case ChatGen.deleteEntity: {
+      const {keyPath, ids} = action.payload
+      // $FlowIssue flow can't guarantee the keypath works for all cases
+      return state.updateIn(keyPath, map => map.deleteAll(ids))
+    }
+    case ChatGen.mergeEntity: {
+      const {keyPath, entities} = action.payload
+      return state.mergeDeepIn(keyPath, entities)
+    }
+    case ChatGen.replaceEntity: {
+      const {keyPath, entities} = action.payload
+      return state.mergeIn(keyPath, entities)
+    }
+    case ChatGen.subtractEntity: {
+      const {keyPath, entities} = action.payload
+      // $FlowIssue flow can't guarantee the keypath works for all cases
+      return state.updateIn(keyPath, set => set.subtract(entities))
+    }
     case 'chat:clearMessages': {
       const {conversationIDKey} = action.payload
       const origConversationState = state.get('conversationStates').get(conversationIDKey)
@@ -113,7 +132,7 @@ function reducer(state: Constants.State = initialState, action: Constants.Action
         })
       )
     }
-    case 'chat:updateLatestMessage':
+    case ChatGen.updateLatestMessage:
       // Clear new messages id of conversation
       const newConversationStates = state
         .get('conversationStates')
@@ -188,7 +207,7 @@ function reducer(state: Constants.State = initialState, action: Constants.Action
           pendingConversations.filterNot((v, k) => tempPendingConvIDs.includes(k))
         )
     }
-    case 'chat:pendingToRealConversation': {
+    case ChatGen.pendingToRealConversation: {
       const {oldKey} = action.payload
       const oldPending = state.get('pendingConversations')
       if (oldPending.get(oldKey)) {
@@ -235,8 +254,8 @@ function reducer(state: Constants.State = initialState, action: Constants.Action
       }
       break
     }
-    case 'chat:inboxUntrustedState': {
-      return state.set('inboxUntrustedState', action.payload.inboxUntrustedState)
+    case 'chat:inboxGlobalUntrustedState': {
+      return state.set('inboxGlobalUntrustedState', action.payload.inboxGlobalUntrustedState)
     }
     case 'chat:inboxFilter': {
       return state.set('inboxFilter', action.payload.filter)
@@ -244,7 +263,7 @@ function reducer(state: Constants.State = initialState, action: Constants.Action
     case 'chat:newChat': {
       return state.set('inSearch', true)
     }
-    case 'chat:exitSearch': {
+    case ChatGen.exitSearch: {
       return state.set('inSearch', false)
     }
     case 'teams:setTeamCreationError': {

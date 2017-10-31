@@ -4,7 +4,6 @@ import * as SearchConstants from './search'
 import * as Teams from './teams'
 import * as Git from './git'
 import * as ChatConstants from './chat'
-import HiddenString from '../util/hidden-string'
 import {type NoErrorTypedAction} from './types/flux'
 import {type DeviceDetail} from './devices'
 
@@ -69,22 +68,10 @@ type _State = {
   attachmentPreviewProgress: I.Map<ChatConstants.MessageKey, ?number>,
   attachmentSavedPath: I.Map<ChatConstants.MessageKey, ?string>,
   attachmentUploadProgress: I.Map<ChatConstants.MessageKey, ?number>,
-  convIDToSnippet: I.Map<ChatConstants.ConversationIDKey, ?HiddenString>,
   conversationMessages: I.Map<ChatConstants.ConversationIDKey, I.OrderedSet<ChatConstants.MessageKey>>,
   deletedIDs: I.Map<ChatConstants.ConversationIDKey, I.Set<ChatConstants.MessageID>>,
   devices: I.Map<string, DeviceDetail>,
   git: Git.State,
-  inbox: I.Map<ChatConstants.ConversationIDKey, ChatConstants.InboxState>,
-  inboxAlwaysShow: I.Map<ChatConstants.ConversationIDKey, boolean>,
-  inboxBigChannels: I.Map<ChatConstants.ConversationIDKey, string>,
-  inboxBigChannelsToTeam: I.Map<ChatConstants.ConversationIDKey, string>,
-  inboxIsEmpty: I.Map<ChatConstants.ConversationIDKey, boolean>,
-  inboxSmallTimestamps: I.Map<ChatConstants.ConversationIDKey, number>,
-  inboxSupersededBy: I.Map<ChatConstants.ConversationIDKey, boolean>,
-  inboxUnreadCountBadge: I.Map<ChatConstants.ConversationIDKey, number>,
-  inboxUnreadCountTotal: I.Map<ChatConstants.ConversationIDKey, number>,
-  inboxVersion: I.Map<ChatConstants.ConversationIDKey, number>,
-  inboxUntrustedState: I.Map<ChatConstants.ConversationIDKey, ChatConstants.InboxUntrustedState>,
   messageUpdates: I.Map<
     ChatConstants.ConversationIDKey,
     I.Map<ChatConstants.MessageID, I.OrderedSet<ChatConstants.MessageKey>>
@@ -105,22 +92,10 @@ export const makeState: I.RecordFactory<_State> = I.Record({
   attachmentPreviewProgress: I.Map(),
   attachmentSavedPath: I.Map(),
   attachmentUploadProgress: I.Map(),
-  convIDToSnippet: I.Map(),
   conversationMessages: I.Map(),
   deletedIDs: I.Map(),
   devices: I.Map(),
   git: Git.makeState(),
-  inbox: I.Map(),
-  inboxAlwaysShow: I.Map(),
-  inboxBigChannels: I.Map(),
-  inboxBigChannelsToTeam: I.Map(),
-  inboxIsEmpty: I.Map(), // maps and not sets as we don't have good helpers for that in entities yet
-  inboxSmallTimestamps: I.Map(),
-  inboxSupersededBy: I.Map(),
-  inboxUnreadCountBadge: I.Map(),
-  inboxUnreadCountTotal: I.Map(),
-  inboxUntrustedState: I.Map(),
-  inboxVersion: I.Map(),
   messageUpdates: I.Map(),
   messages: I.Map(),
   search: makeSearchSubState(),
