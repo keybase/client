@@ -1,5 +1,5 @@
 // @flow
-import React, {PureComponent} from 'react'
+import React from 'react'
 import {Avatar, Box, Text, Icon, PopupMenu} from '../../../../common-adapters'
 import {globalStyles, globalColors, globalMargins, glamorous} from '../../../../styles'
 import {isMobile} from '../../../../constants/platform'
@@ -13,50 +13,41 @@ type Props = {
   teamname: string,
 }
 
-class BigTeamHeader extends PureComponent<Props> {
-  render() {
-    return (
-      <HeaderBox>
-        <Avatar teamname={this.props.teamname} size={isMobile ? 24 : 16} />
-        <Text type="BodySmallSemibold" style={teamStyle}>
-          {this.props.teamname}
-        </Text>
-        <Icon
-          className="icon"
-          type="iconfont-gear"
-          onClick={() => this.props.onSetShowMenu(true)}
-          style={iconStyle}
-        />
-        {this.props.showMenu &&
-          <PopupMenu
-            header={{
-              title: 'Header',
-              view: (
-                <Box style={teamHeaderStyle}>
-                  <Avatar teamname={this.props.teamname} size={16} />
-                  <Text type="BodySmallSemibold" style={teamStyle}>{this.props.teamname}</Text>
-                  <Text type="BodySmall">
-                    {this.props.memberCount + ' member' + (this.props.memberCount !== 1 ? 's' : '')}
-                  </Text>
-                </Box>
-              ),
-            }}
-            items={[
-              {onClick: this.props.onManageChannels, title: 'Manage chat channels'},
-              {onClick: this.props.onViewTeam, title: 'View team'},
-            ]}
-            onHidden={() => this.props.onSetShowMenu(false)}
-            style={{
-              position: isMobile ? 'relative' : 'absolute',
-              right: globalMargins.tiny,
-              top: globalMargins.small,
-              zIndex: 20,
-            }}
-          />}
-      </HeaderBox>
-    )
-  }
-}
+const BigTeamHeader = (props: Props) => (
+  <HeaderBox>
+    <Avatar teamname={props.teamname} size={isMobile ? 24 : 16} />
+    <Text type="BodySmallSemibold" style={teamStyle}>
+      {props.teamname}
+    </Text>
+    <Icon className="icon" type="iconfont-gear" onClick={() => props.onSetShowMenu(true)} style={iconStyle} />
+    {props.showMenu &&
+      <PopupMenu
+        header={{
+          title: 'Header',
+          view: (
+            <Box style={teamHeaderStyle}>
+              <Avatar teamname={props.teamname} size={16} />
+              <Text type="BodySmallSemibold" style={teamStyle}>{props.teamname}</Text>
+              <Text type="BodySmall">
+                {props.memberCount + ' member' + (props.memberCount !== 1 ? 's' : '')}
+              </Text>
+            </Box>
+          ),
+        }}
+        items={[
+          {onClick: props.onManageChannels, title: 'Manage chat channels'},
+          {onClick: props.onViewTeam, title: 'View team'},
+        ]}
+        onHidden={() => props.onSetShowMenu(false)}
+        style={{
+          position: isMobile ? 'relative' : 'absolute',
+          right: globalMargins.tiny,
+          top: globalMargins.small,
+          zIndex: 20,
+        }}
+      />}
+  </HeaderBox>
+)
 
 const iconStyle = {
   color: globalColors.black_20,
