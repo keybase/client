@@ -283,6 +283,10 @@ func (s Service) checkPlistPaths(p Plist) error {
 			return fmt.Errorf("log directory %q is not writable by current user (full logPath = %q)", logDir, p.logPath)
 		}
 
+		if otherWritable(logDir) {
+			s.log.Info("warning: log directory %q is writable by anyone", logDir)
+		}
+
 		// log directory looks ok
 		s.log.Info("log directory %q is writable by current user", logDir)
 
@@ -314,6 +318,10 @@ func (s Service) checkPlistPaths(p Plist) error {
 	if !writable(plistDir) {
 		s.log.Info("plist destination %q is not writable by current user", plistDir)
 		return fmt.Errorf("plist destination dir %q is not writable by current user (full filename = %q)", plistDir, plistDest)
+	}
+
+	if otherWritable(plistDir) {
+		s.log.Info("warning: plist destination %q is writable by anyone", plistDir)
 	}
 
 	s.log.Info("paths in plist look ok and have valid permissions")
@@ -691,4 +699,12 @@ func (l emptyLog) Errorf(s string, args ...interface{}) {}
 
 func writable(path string) bool {
 	return unix.Access(path, unix.W_OK) == nil
+}
+
+func otherWritable(path string) bool {
+	fi, err := os.Stat(path)
+	if err != nil {
+		return false
+	}
+	return (fi.Mode() & 0002) != 0
 }
