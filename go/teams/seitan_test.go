@@ -114,7 +114,7 @@ func TestSeitanKnownSamples(t *testing.T) {
 	var secretKey keybase1.Bytes32
 	copy(secretKey[:], fromB64("dKzxu7uoeL4gOpS9a+xPKJ0wM/8SQs8DAsvzqfSu6FU="))
 
-	peiKeyBase64 := "lAEBxBgM+h6D1Ul7FCOfn32pJ9YgnZBta7qKlaXEXNHOZvwo3dy4it8LghhvRtFbiOiSrS5FmeGrFDSgl2Qiw9j2njf6ywPunpi8GVHPbGvllfMGgPCKx/x+t0jyrZzIX6xFMy4xaAkE10wjNHzAjzI5CoiXYD1a7N3b"
+	peiKeyBase64 := "lAEBxBgfSKQYaD+wEBhdRga+OUuEyTlT1lg6sGbEW6uPYbSC94eoWQopzkyVVoaZYYx6sAH3EXewxYkrCoIyncd4hayOFeGZI5XraS/vS5YvqThWj19EZAzxRVBV/W6JrZuiCFuw5Rkx0TJqGg1n+Y65cXSCP5zbPP8="
 
 	peiKey, err := SeitanDecodePEIKey(peiKeyBase64)
 	require.NoError(t, err)
@@ -152,10 +152,10 @@ func TestSeitanKnownSamples(t *testing.T) {
 	// Packing struct is non-deterministic as far as field ordering is
 	// concerned, so we will not be able to get same ciphertext here.
 
-	// peiKey2, _, err := ikey.generatePackedEncryptedIKeyWithSecretKey(secretKey, keybase1.PerTeamKeyGeneration(1), peiKey.RandomNonce, ikeyAndLabelV1.L)
-	// require.NoError(t, err)
-	// require.Equal(t, peiKey.Version, peiKey2.Version)
-	// require.Equal(t, peiKey.TeamKeyGeneration, peiKey2.TeamKeyGeneration)
-	// require.Equal(t, peiKey.RandomNonce, peiKey2.RandomNonce)
-	// require.Equal(t, peiKey.EncryptedIKeyAndLabel, peiKey2.EncryptedIKeyAndLabel)
+	peiKey2, _, err := ikey.generatePackedEncryptedIKeyWithSecretKey(secretKey, keybase1.PerTeamKeyGeneration(1), peiKey.RandomNonce, ikeyAndLabelV1.L)
+	require.NoError(t, err)
+	require.Equal(t, peiKey.Version, peiKey2.Version)
+	require.Equal(t, peiKey.TeamKeyGeneration, peiKey2.TeamKeyGeneration)
+	require.Equal(t, peiKey.RandomNonce, peiKey2.RandomNonce)
+	require.Equal(t, peiKey.EncryptedIKeyAndLabel, peiKey2.EncryptedIKeyAndLabel)
 }
