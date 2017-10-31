@@ -1,6 +1,7 @@
 // @flow
 import * as Constants from '../../../constants/chat'
 import * as Creators from '../../../actions/chat/creators'
+import * as ChatGen from '../../../actions/chat-gen'
 import HiddenString from '../../../util/hidden-string'
 import Input from '.'
 import {compose, withHandlers, withState, lifecycle, connect, type TypedState} from '../../../util/container'
@@ -68,17 +69,17 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
     )
   },
   onEditMessage: (message: Constants.Message, body: string) => {
-    dispatch(Creators.editMessage(message, new HiddenString(body)))
+    dispatch(ChatGen.createEditMessage({message, text: new HiddenString(body)}))
   },
   onPostMessage: (selectedConversation, text) =>
     selectedConversation && dispatch(Creators.postMessage(selectedConversation, new HiddenString(text))),
   onShowEditor: (message: Constants.Message) => {
-    dispatch(Creators.showEditor(message))
+    dispatch(ChatGen.createShowEditor({message}))
   },
   onStoreInputText: (selectedConversation: Constants.ConversationIDKey, inputText: string) =>
     dispatch(Creators.setSelectedRouteState(selectedConversation, {inputText: new HiddenString(inputText)})),
   onUpdateTyping: (selectedConversation: Constants.ConversationIDKey, typing: boolean) => {
-    dispatch(Creators.updateTyping(selectedConversation, typing))
+    dispatch(ChatGen.createUpdateTyping({conversationIDKey: selectedConversation, typing}))
   },
 })
 

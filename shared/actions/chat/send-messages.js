@@ -3,6 +3,7 @@
 import * as ChatTypes from '../../constants/types/flow-types-chat'
 import * as Constants from '../../constants/chat'
 import * as Creators from './creators'
+import * as ChatGen from '../chat-gen'
 import * as Shared from './shared'
 import * as Saga from '../../util/saga'
 import HiddenString from '../../util/hidden-string'
@@ -15,7 +16,7 @@ import {chatTab} from '../../constants/tabs'
 import type {TypedState} from '../../constants/reducer'
 import type {SagaGenerator} from '../../constants/types/saga'
 
-function* deleteMessage(action: Constants.DeleteMessage): SagaGenerator<any, any> {
+function* deleteMessage(action: ChatGen.DeleteMessagePayload): SagaGenerator<any, any> {
   const {message} = action.payload
   if (message.type !== 'Text' && message.type !== 'Attachment') {
     console.warn('Deleting non-text non-attachment message:', message)
@@ -60,7 +61,7 @@ function* deleteMessage(action: Constants.DeleteMessage): SagaGenerator<any, any
     })
     // It's deleted, but we don't get notified that the conversation now has
     // one less outbox entry in it.  Gotta remove it from the store ourselves.
-    yield Saga.put(Creators.removeOutboxMessage(conversationIDKey, outboxID))
+    yield Saga.put(ChatGen.createRemoveOutboxMessage({conversationIDKey, outboxID}))
   } else {
     console.warn('Deleting message without RPC or outbox message ID:', message, messageID)
   }
@@ -83,7 +84,7 @@ function* postMessage(action: Constants.PostMessage): SagaGenerator<any, any> {
   // that is deleted by exitSearch().
   const inSearch = yield Saga.select((state: TypedState) => state.chat.get('inSearch'))
   if (inSearch) {
-    yield Saga.put(Creators.exitSearch(false))
+    yield Saga.put(ChatGen.createExitSearch({skipSelectPreviousConversation: false}))
   }
 
   const [inboxConvo, lastMessageID]: [Constants.InboxState, ?Constants.MessageID] = yield Saga.all([
@@ -138,7 +139,7 @@ function* postMessage(action: Constants.PostMessage): SagaGenerator<any, any> {
   })
 }
 
-function* editMessage(action: Constants.EditMessage): SagaGenerator<any, any> {
+function* editMessage(action: ChatGen.EditMessagePayload): SagaGenerator<any, any> {
   const {message} = action.payload
   if (message.type !== 'Text') {
     console.warn('Editing non-text message:', message)
@@ -179,7 +180,7 @@ function* editMessage(action: Constants.EditMessage): SagaGenerator<any, any> {
   const tlfName: string = inboxConvo.name
 
   // Not editing anymore
-  yield Saga.put(Creators.showEditor(null))
+  yield Saga.put(ChatGen.createShowEditor({message: null}))
 
   // if message post-edit is the same as message pre-edit, skip call and marking message as 'EDITED'
   const prevMessageText = textMessage.message.stringValue()

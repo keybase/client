@@ -7,7 +7,7 @@ import * as ChatTypes from '../../constants/types/flow-types-chat'
 import * as RpcTypes from '../../constants/types/flow-types'
 import * as Saga from '../../util/saga'
 import * as Creators from './creators'
-import * as ChatCreators from '../chat/creators'
+import * as ChatGen from '../chat-gen'
 import engine from '../../engine'
 import map from 'lodash/map'
 import {replaceEntity} from '../entities'
@@ -201,7 +201,7 @@ const _createNewTeamFromConversation = function*(
           })
         }
       }
-      yield put(ChatCreators.selectConversation(null, false))
+      yield put(ChatGen.createSelectConversation({conversationIDKey: null}))
     } catch (error) {
       yield put(Creators.setTeamCreationError(error.desc))
     } finally {
@@ -412,7 +412,7 @@ function* _createChannel(action: Constants.CreateChannel) {
   }
 
   // Select the new channel
-  yield put(ChatCreators.selectConversation(newConversationIDKey, false))
+  yield put(ChatGen.createSelectConversation({conversationIDKey: newConversationIDKey}))
 
   // If we were given a description, set it
   if (description) {

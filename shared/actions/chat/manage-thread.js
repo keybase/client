@@ -3,8 +3,7 @@
 // Mute, block, starting a new one, selecting one
 import * as ChatTypes from '../../constants/types/flow-types-chat'
 import * as Constants from '../../constants/chat'
-import * as Creators from './creators'
-import * as EntityCreators from '../entities'
+import * as ChatGen from '../../actions/chat-gen'
 import * as I from 'immutable'
 import * as RPCTypes from '../../constants/types/flow-types'
 import * as Saga from '../../util/saga'
@@ -17,7 +16,7 @@ import {type SagaGenerator} from '../../constants/types/saga'
 import {type TypedState} from '../../constants/reducer'
 
 const inSearchSelector = (state: TypedState) => state.chat.get('inSearch')
-const inboxSelector = (state: TypedState) => state.entities.get('inbox')
+const inboxSelector = (state: TypedState) => state.chat.get('inbox')
 
 function* _startConversation(action: Constants.StartConversation): Saga.SagaGenerator<any, any> {
   const {users, forceImmediate, temporary} = action.payload
@@ -39,47 +38,53 @@ function* _startConversation(action: Constants.StartConversation): Saga.SagaGene
 
   if (forceImmediate && existing) {
     const newID = yield Saga.call(Shared.startNewConversation, existing.get('conversationIDKey'))
-    yield Saga.put(Creators.selectConversation(newID, false))
+    yield Saga.put(ChatGen.createSelectConversation({conversationIDKey: newID}))
   } else if (existing) {
     // Select existing conversations
-    yield Saga.put(Creators.selectConversation(existing.get('conversationIDKey'), false))
+    yield Saga.put(
+      ChatGen.createSelectConversation({
+        conversationIDKey: existing.get('conversationIDKey'),
+      })
+    )
     yield Saga.put(switchTo([chatTab]))
   } else {
     // Make a pending conversation so it appears in the inbox
     const conversationIDKey = Constants.pendingConversationIDKey(tlfName)
-    yield Saga.put(Creators.addPending(users, temporary))
-    yield Saga.put(Creators.selectConversation(conversationIDKey, false))
+    yield Saga.put(ChatGen.createAddPending({participants: users, temporary}))
+    yield Saga.put(ChatGen.createSelectConversation({conversationIDKey}))
     yield Saga.put(switchTo([chatTab]))
   }
 }
 
-function* _selectConversation(action: Constants.SelectConversation): Saga.SagaGenerator<any, any> {
+function* _selectConversation(action: ChatGen.SelectConversationPayload): Saga.SagaGenerator<any, any> {
   const {conversationIDKey, fromUser} = action.payload
 
   // Always show this in the inbox
   if (conversationIDKey) {
-    yield Saga.put(EntityCreators.mergeEntity(['inboxAlwaysShow'], I.Map({[conversationIDKey]: true})))
+    yield Saga.put(
+      ChatGen.createMergeEntity({keyPath: ['inboxAlwaysShow'], entities: I.Map({[conversationIDKey]: true})})
+    )
   }
 
   if (fromUser) {
-    yield Saga.put(Creators.exitSearch(true))
+    yield Saga.put(ChatGen.createExitSearch({skipSelectPreviousConversation: true}))
   }
 
   // Load the inbox item always
   if (conversationIDKey) {
-    yield Saga.put(Creators.getInboxAndUnbox([conversationIDKey]))
+    yield Saga.put(ChatGen.createGetInboxAndUnbox({conversationIDKeys: [conversationIDKey]}))
   }
 
   const oldConversationState = yield Saga.select(Shared.conversationStateSelector, conversationIDKey)
   if (oldConversationState && oldConversationState.get('isStale') && conversationIDKey) {
-    yield Saga.put(Creators.clearMessages(conversationIDKey))
+    yield Saga.put(ChatGen.createClearMessages({conversationIDKey}))
   }
 
   const inbox = yield Saga.select(Constants.getInbox, conversationIDKey)
   const inSearch = yield Saga.select(inSearchSelector)
   if (inbox && !inbox.teamname) {
     const participants = inbox.get('participants').toArray()
-    yield Saga.put(Creators.updateMetadata(participants))
+    yield Saga.put(ChatGen.createUpdateMetadata({users: participants}))
     // Update search but don't update the filter
     if (inSearch) {
       const me = yield Saga.select(Selectors.usernameSelector)
@@ -88,7 +93,7 @@ function* _selectConversation(action: Constants.SelectConversation): Saga.SagaGe
   }
 
   if (conversationIDKey) {
-    yield Saga.put(Creators.loadMoreMessages(conversationIDKey, true, fromUser))
+    yield Saga.put(ChatGen.createLoadMoreMessages({conversationIDKey, onlyIfUnloaded: true, fromUser}))
     yield Saga.put(navigateTo([conversationIDKey], [chatTab]))
   } else {
     yield Saga.put(navigateTo([chatTab]))
@@ -97,21 +102,21 @@ function* _selectConversation(action: Constants.SelectConversation): Saga.SagaGe
   // Do this here because it's possible loadMoreMessages bails early
   // but there are still unread messages that need to be marked as read
   if (fromUser && conversationIDKey) {
-    yield Saga.put(Creators.updateBadging(conversationIDKey))
-    yield Saga.put(Creators.updateLatestMessage(conversationIDKey))
+    yield Saga.put(ChatGen.createUpdateBadging({conversationIDKey}))
+    yield Saga.put(ChatGen.createUpdateLatestMessage({conversationIDKey}))
   }
 }
 
 const _setNotifications = function*(
   action:
-    | Constants.SetNotifications
-    | Constants.ToggleChannelWideNotifications
-    | Constants.UpdatedNotifications
+    | ChatGen.SetNotificationsPayload
+    | ChatGen.ToggleChannelWideNotificationsPayload
+    | ChatGen.UpdatedNotificationsPayload
 ) {
   const {payload: {conversationIDKey}} = action
 
   // update the one in the store
-  const old = yield Saga.select(s => s.entities.inbox.get(conversationIDKey))
+  const old = yield Saga.select(s => s.inbox.get(conversationIDKey))
   if (old) {
     let nextNotifications = {}
 
@@ -143,13 +148,13 @@ const _setNotifications = function*(
     }
 
     yield Saga.put.resolve(
-      EntityCreators.replaceEntity(
-        ['inbox', conversationIDKey],
-        old.set('notifications', {
+      ChatGen.createReplaceEntity({
+        keyPath: ['inbox', conversationIDKey],
+        entities: old.set('notifications', {
           ...old.notifications,
           ...nextNotifications,
-        })
-      )
+        }),
+      })
     )
   }
 
@@ -189,7 +194,7 @@ const _setNotifications = function*(
   }
 }
 
-function* _blockConversation(action: Constants.BlockConversation): Saga.SagaGenerator<any, any> {
+function* _blockConversation(action: ChatGen.BlockConversationPayload): Saga.SagaGenerator<any, any> {
   const {blocked, conversationIDKey, reportUser} = action.payload
   const conversationID = Constants.keyToConversationID(conversationIDKey)
   if (blocked) {
@@ -203,7 +208,7 @@ function* _blockConversation(action: Constants.BlockConversation): Saga.SagaGene
   }
 }
 
-function* _leaveConversation(action: Constants.LeaveConversation): Saga.SagaGenerator<any, any> {
+function* _leaveConversation(action: ChatGen.LeaveConversationPayload): Saga.SagaGenerator<any, any> {
   const {conversationIDKey} = action.payload
   const conversationID = Constants.keyToConversationID(conversationIDKey)
   yield Saga.call(ChatTypes.localLeaveConversationLocalRpcPromise, {
@@ -211,7 +216,7 @@ function* _leaveConversation(action: Constants.LeaveConversation): Saga.SagaGene
   })
 }
 
-function* _muteConversation(action: Constants.MuteConversation): Saga.SagaGenerator<any, any> {
+function* _muteConversation(action: ChatGen.MuteConversationPayload): Saga.SagaGenerator<any, any> {
   const {conversationIDKey, muted} = action.payload
   const conversationID = Constants.keyToConversationID(conversationIDKey)
   const status = muted ? ChatTypes.CommonConversationStatus.muted : ChatTypes.CommonConversationStatus.unfiled
