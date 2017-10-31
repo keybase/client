@@ -16,7 +16,7 @@ import {chatTab} from '../../constants/tabs'
 import type {TypedState} from '../../constants/reducer'
 import type {SagaGenerator} from '../../constants/types/saga'
 
-function* deleteMessage(action: Constants.DeleteMessage): SagaGenerator<any, any> {
+function* deleteMessage(action: ChatGen.DeleteMessagePayload): SagaGenerator<any, any> {
   const {message} = action.payload
   if (message.type !== 'Text' && message.type !== 'Attachment') {
     console.warn('Deleting non-text non-attachment message:', message)
@@ -139,7 +139,7 @@ function* postMessage(action: Constants.PostMessage): SagaGenerator<any, any> {
   })
 }
 
-function* editMessage(action: Constants.EditMessage): SagaGenerator<any, any> {
+function* editMessage(action: ChatGen.EditMessagePayload): SagaGenerator<any, any> {
   const {message} = action.payload
   if (message.type !== 'Text') {
     console.warn('Editing non-text message:', message)
@@ -180,7 +180,7 @@ function* editMessage(action: Constants.EditMessage): SagaGenerator<any, any> {
   const tlfName: string = inboxConvo.name
 
   // Not editing anymore
-  yield Saga.put(Creators.showEditor(null))
+  yield Saga.put(ChatGen.createShowEditor({message: null}))
 
   // if message post-edit is the same as message pre-edit, skip call and marking message as 'EDITED'
   const prevMessageText = textMessage.message.stringValue()

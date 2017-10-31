@@ -48,7 +48,7 @@ function* _updateFinalized(inbox: ChatTypes.GetInboxLocalRes) {
   )
 
   if (finalizedState.count()) {
-    yield Saga.put(Creators.updateFinalizedState(finalizedState))
+    yield Saga.put(ChatGen.createUpdateFinalizedState({finalizedState}))
   }
 }
 
@@ -210,7 +210,9 @@ function* _processConversation(c: ChatTypes.InboxUIItem): SagaGenerator<any, any
   if (!isTeam) {
     const supersedes = _toSupersedeInfo(conversationIDKey, c.supersedes || [])
     if (supersedes) {
-      yield Saga.put(Creators.updateSupersedesState(I.Map({[conversationIDKey]: supersedes})))
+      yield Saga.put(
+        ChatGen.createUpdateSupersedesState({supersedesState: I.Map({[conversationIDKey]: supersedes})})
+      )
     }
 
     const supersededBy = _toSupersedeInfo(conversationIDKey, c.supersededBy || [])
@@ -219,7 +221,9 @@ function* _processConversation(c: ChatTypes.InboxUIItem): SagaGenerator<any, any
     }
 
     if (c.finalizeInfo) {
-      yield Saga.put(Creators.updateFinalizedState(I.Map({[conversationIDKey]: c.finalizeInfo})))
+      yield Saga.put(
+        ChatGen.createUpdateFinalizedState({finalizedState: I.Map({[conversationIDKey]: c.finalizeInfo})})
+      )
     }
   }
 
@@ -320,7 +324,9 @@ function* _processConversation(c: ChatTypes.InboxUIItem): SagaGenerator<any, any
     const selectedConversation = yield Saga.select(Constants.getSelectedConversation)
     if (selectedConversation === inboxState.conversationIDKey) {
       // load validated selected
-      yield Saga.put(Creators.loadMoreMessages(selectedConversation, true))
+      yield Saga.put(
+        ChatGen.createLoadMoreMessages({conversationIDKey: selectedConversation, onlyIfUnloaded: true})
+      )
     }
   }
 }
@@ -645,7 +651,9 @@ function* _markThreadsStale(action: Constants.MarkThreadsStale): Saga.SagaGenera
     return
   }
   yield Saga.put(Creators.clearMessages(selectedConversation))
-  yield Saga.put(Creators.loadMoreMessages(selectedConversation, false))
+  yield Saga.put(
+    ChatGen.createLoadMoreMessages({conversationIDKey: selectedConversation, onlyIfUnloaded: false})
+  )
 }
 
 function* _inboxSynced(action: Constants.InboxSynced): Saga.SagaGenerator<any, any> {
@@ -692,7 +700,9 @@ function* _inboxSynced(action: Constants.InboxSynced): Saga.SagaGenerator<any, a
           )
           yield Saga.all([
             Saga.put(Creators.clearMessages(selectedConversation)),
-            yield Saga.put(Creators.loadMoreMessages(selectedConversation, false)),
+            yield Saga.put(
+              ChatGen.createLoadMoreMessages({conversationIDKey: selectedConversation, onlyIfUnloaded: false})
+            ),
           ])
           return
         }
@@ -701,7 +711,15 @@ function* _inboxSynced(action: Constants.InboxSynced): Saga.SagaGenerator<any, a
     // It is VERY important to pass the exact number of things to request here. The pagination system will
     // return whatever number we ask for on newest messages due to its architecture so if we want only N
     // newer items we have to explictly ask for N or it will give us messages older than onyNewerThan
-    yield Saga.put(Creators.loadMoreMessages(selectedConversation, false, false, true, numberOverride))
+    yield Saga.put(
+      ChatGen.createLoadMoreMessages({
+        conversationIDKey: selectedConversation,
+        onlyIfUnloaded: false,
+        fromUser: false,
+        wantNewer: true,
+        numberOverride,
+      })
+    )
   }
 }
 function* _badgeAppForChat(action: Constants.BadgeAppForChat): Saga.SagaGenerator<any, any> {

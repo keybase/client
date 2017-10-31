@@ -2,6 +2,7 @@
 import * as Constants from '../../constants/chat'
 import * as Inbox from '.'
 import * as Creators from '../../actions/chat/creators'
+import * as ChatGen from '../../actions/chat-gen'
 import * as I from 'immutable'
 import {
   pausableConnect,
@@ -206,16 +207,16 @@ const mapStateToProps = (state: TypedState, {isActiveRoute, routeState}) => {
 }
 
 const mapDispatchToProps = (dispatch: Dispatch, {focusFilter, routeState, setRouteState}) => ({
-  loadInbox: () => dispatch(Creators.loadInbox()),
+  loadInbox: () => dispatch(ChatGen.createLoadInbox()),
   _onSelectNext: (rows, direction) => dispatch(Creators.selectNext(rows, direction)),
   onHotkey: cmd => {
     if (cmd.endsWith('+n')) {
-      dispatch(Creators.newChat())
+      dispatch(ChatGen.createNewChat())
     } else {
       focusFilter()
     }
   },
-  onNewChat: () => dispatch(Creators.newChat()),
+  onNewChat: () => dispatch(ChatGen.createNewChat()),
   onSelect: (conversationIDKey: ?Constants.ConversationIDKey) => {
     dispatch(Creators.selectConversation(conversationIDKey, true))
   },

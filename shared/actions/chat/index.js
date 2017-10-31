@@ -3,6 +3,7 @@ import * as Attachment from './attachment'
 import * as ChatTypes from '../../constants/types/flow-types-chat'
 import * as Constants from '../../constants/chat'
 import * as Creators from './creators'
+import * as ChatGen from '../chat-gen'
 import * as Inbox from './inbox'
 import * as ManageThread from './manage-thread'
 import * as RPCTypes from '../../constants/types/flow-types'
@@ -90,8 +91,8 @@ function* _setupChatHandlers(): Saga.SagaGenerator<any, any> {
   )
 }
 
-function* _openTlfInChat(action: Constants.OpenTlfInChat): Saga.SagaGenerator<any, any> {
-  const tlf = action.payload
+function* _openTlfInChat(action: ChatGen.OpenTlfInChatPayload): Saga.SagaGenerator<any, any> {
+  const tlf = action.payload.tlf
   const me = yield Saga.select(Selectors.usernameSelector)
   const userlist = parseFolderNameToUsers(me, tlf)
   const users = userlist.map(u => u.username)
@@ -138,4 +139,4 @@ function* chatSaga(): Saga.SagaGenerator<any, any> {
 
 export default chatSaga
 
-export {badgeAppForChat, openTlfInChat, setupChatHandlers, startConversation} from './creators'
+export {badgeAppForChat, startConversation} from './creators'

@@ -1,7 +1,7 @@
 // @flow
 import {compose, withState, withProps, connect, type TypedState} from '../../../util/container'
 import RenderAttachmentPopup from './'
-import {deleteMessage} from '../../../actions/chat/creators'
+import {createDeleteMessage} from '../../../actions/chat-gen'
 import * as Constants from '../../../constants/chat'
 import {lookupMessageProps} from '../../shared'
 import {type RouteProps} from '../../../route-tree/render-route'
@@ -42,7 +42,7 @@ export default compose(
     (dispatch: Dispatch, {navigateUp, navigateAppend}) => ({
       _onMessageAction: (message: Constants.ServerMessage) =>
         dispatch(navigateAppend([{props: {message}, selected: 'messageAction'}])),
-      deleteMessage: message => dispatch(deleteMessage(message)),
+      deleteMessage: message => dispatch(createDeleteMessage({message})),
       onClose: () => dispatch(navigateUp()),
       onDownloadAttachment: (message: Constants.AttachmentMessage) => {
         if (!message.messageID || !message.filename) {

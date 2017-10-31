@@ -1,5 +1,10 @@
 {
-  "prelude": "import * as Constants from '../constants/chat'\nimport * as RPCTypes from '../constants/types/flow-types'\nimport * as I from 'immutable'",
+  "prelude": [
+    "import * as Constants from '../constants/chat'",
+    "import * as RPCTypes from '../constants/types/flow-types'",
+    "import * as I from 'immutable'",
+    "import HiddenString from '../util/hidden-string'"
+  ],
   "actions": {
     "updateBadging": {
       "conversationIDKey": "Constants.ConversationIDKey"
@@ -31,7 +36,52 @@
     "updateLatestMessage": {
       "conversationIDKey": "Constants.ConversationIDKey"
     },
-    "openFolder": {
+    "openFolder": {},
+    "openTlfInChat": {
+      "tlf": "string"
+    },
+    "newChat": {},
+    "setupChatHandlers": {},
+    "loadInbox": {},
+    "loadMoreMessages": {
+      "conversationIDKey": "Constants.ConversationIDKey",
+      "onlyIfUnloaded": "boolean",
+      "fromUser?": "boolean",
+      "wantNewer?": "boolean",
+      "numberOverride?": "?number"
+    },
+    "showEditor": {
+      "message": "?Constants.Message"
+    },
+    "muteConversation": {
+      "conversationIDKey": "Constants.ConversationIDKey",
+      "muted": "boolean"
+    },
+    "blockConversation": {
+      "blocked": "boolean",
+      "conversationIDKey": "Constants.ConversationIDKey",
+      "reportUser": "boolean"
+    },
+    "editMessage": {
+      "message": "Constants.Message",
+      "text": "HiddenString"
+    },
+    "leaveConversation": {
+      "conversationIDKey": "Constants.ConversationIDKey"
+    },
+    "deleteMessage": {
+      "message": "Constants.Message"
+    },
+    "addPending": {
+      "participants": "Array<string>",
+      "temporary": "boolean"
+    },
+    "removeTempPendingConversations": {},
+    "updateFinalizedState": {
+      "finalizedState": "Constants.FinalizedState"
+    },
+    "updateSupersedesState": {
+      "supersedesState": "Constants.SupersedesState"
     }
   }
 }

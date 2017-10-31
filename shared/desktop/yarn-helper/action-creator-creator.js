@@ -17,7 +17,7 @@ type ActionDesc = Payload | ErrorPayload
 type Actions = {[key: ActionName]: ActionDesc}
 
 type FileDesc = {
-  prelude: string, // anything to prepend to our generated file
+  prelude: Array<string>, // anything to prepend to our generated file
   actions: Actions,
 }
 
@@ -27,7 +27,7 @@ function compile(ns: ActionNS, {prelude, actions}: FileDesc): string {
   return `// @flow
 /* eslint-disable */
 import {type PayloadType, type ReturnType} from '../constants/types/more'
-${prelude}
+${prelude.join('\n')}
 
 // Constants
 ${compileActions(ns, actions, compileReduxTypeConstant)}

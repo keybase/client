@@ -100,10 +100,6 @@ function badgeAppForChat(conversations: ?Array<RPCTypes.BadgeConversationInfo>):
   return {payload: convos, type: 'chat:badgeAppForChat'}
 }
 
-function openTlfInChat(tlf: string): Constants.OpenTlfInChat {
-  return {payload: tlf, type: 'chat:openTlfInChat'}
-}
-
 function startConversation(
   users: Array<string>,
   forceImmediate?: boolean = false,
@@ -113,10 +109,6 @@ function startConversation(
     payload: {forceImmediate, users: uniq(users), temporary},
     type: 'chat:startConversation',
   }
-}
-
-function newChat(): Constants.NewChat {
-  return {payload: {}, type: 'chat:newChat'}
 }
 
 function postMessage(
@@ -130,10 +122,6 @@ function postMessage(
   }
 }
 
-function setupChatHandlers(): Constants.SetupChatHandlers {
-  return {payload: undefined, type: 'chat:setupChatHandlers'}
-}
-
 function retryMessage(
   conversationIDKey: Constants.ConversationIDKey,
   outboxIDKey: string
@@ -143,85 +131,6 @@ function retryMessage(
     payload: {conversationIDKey, outboxIDKey},
     type: 'chat:retryMessage',
   }
-}
-
-function loadInbox(): Constants.LoadInbox {
-  return {payload: undefined, type: 'chat:loadInbox'}
-}
-
-function loadMoreMessages(
-  conversationIDKey: Constants.ConversationIDKey,
-  onlyIfUnloaded: boolean,
-  fromUser?: boolean = false,
-  wantNewer?: boolean = false, // new messages, else older ones
-  numberOverride?: ?number // how many to ask for
-): Constants.LoadMoreMessages {
-  return {
-    payload: {conversationIDKey, onlyIfUnloaded, fromUser, wantNewer, numberOverride},
-    type: 'chat:loadMoreMessages',
-  }
-}
-
-function showEditor(message: ?Constants.Message): Constants.ShowEditor {
-  return {payload: {message}, type: 'chat:showEditor'}
-}
-
-function editMessage(message: Constants.Message, text: HiddenString): Constants.EditMessage {
-  return {payload: {message, text}, type: 'chat:editMessage'}
-}
-
-function leaveConversation(conversationIDKey: Constants.ConversationIDKey): Constants.LeaveConversation {
-  return {
-    payload: {conversationIDKey},
-    type: 'chat:leaveConversation',
-  }
-}
-
-function muteConversation(
-  conversationIDKey: Constants.ConversationIDKey,
-  muted: boolean
-): Constants.MuteConversation {
-  return {
-    payload: {conversationIDKey, muted},
-    type: 'chat:muteConversation',
-  }
-}
-
-function blockConversation(
-  blocked: boolean,
-  conversationIDKey: Constants.ConversationIDKey,
-  reportUser: boolean
-): Constants.BlockConversation {
-  return {
-    payload: {blocked, conversationIDKey, reportUser},
-    type: 'chat:blockConversation',
-  }
-}
-
-function deleteMessage(message: Constants.Message): Constants.DeleteMessage {
-  return {payload: {message}, type: 'chat:deleteMessage'}
-}
-
-function addPending(
-  participants: Array<string>,
-  temporary: boolean = false
-): Constants.AddPendingConversation {
-  return {
-    payload: {participants, temporary},
-    type: 'chat:addPendingConversation',
-  }
-}
-
-function removeTempPendingConversations(): Constants.RemoveTempPendingConversations {
-  return {payload: undefined, type: 'chat:removeTempPendingConversations'}
-}
-
-function updateFinalizedState(finalizedState: Constants.FinalizedState): Constants.UpdateFinalizedState {
-  return {payload: {finalizedState}, type: 'chat:updateFinalizedState'}
-}
-
-function updateSupersedesState(supersedesState: Constants.SupersedesState): Constants.UpdateSupersedesState {
-  return {payload: {supersedesState}, type: 'chat:updateSupersedesState'}
 }
 
 function updateSupersededByState(
@@ -608,42 +517,31 @@ function selectNext(rows: Array<any>, direction: -1 | 1): Constants.InboxFilterS
 }
 
 export {
-  addPending,
   appendMessages,
   attachmentLoaded,
   attachmentSaveFailed,
   attachmentSaveStart,
   attachmentSaved,
   badgeAppForChat,
-  blockConversation,
   clearMessages,
   clearRekey,
-  deleteMessage,
   downloadProgress,
-  editMessage,
   getInboxAndUnbox,
   inboxStale,
   inboxSynced,
   incomingMessage,
   incomingTyping,
-  leaveConversation,
   loadAttachment,
   loadAttachmentPreview,
-  loadInbox,
-  loadMoreMessages,
   loadingMessages,
   markSeenMessage,
   markThreadsStale,
-  muteConversation,
-  newChat,
   openAttachmentPopup,
   openConversation,
-  openTlfInChat,
   outboxMessageBecameReal,
   postMessage,
   prependMessages,
   removeOutboxMessage,
-  removeTempPendingConversations,
   retryAttachment,
   retryMessage,
   saveAttachment,
@@ -657,14 +555,11 @@ export {
   setPreviousConversation,
   setSelectedRouteState,
   setTypers,
-  setupChatHandlers,
-  showEditor,
   startConversation,
   threadLoadedOffline,
   toggleChannelWideNotifications,
   unboxConversations,
   updateBrokenTracker,
-  updateFinalizedState,
   updateInboxComplete,
   updateInboxRekeyOthers,
   updateInboxRekeySelf,
@@ -673,7 +568,6 @@ export {
   updatePaginationPrev,
   updateSnippet,
   updateSupersededByState,
-  updateSupersedesState,
   updateTempMessage,
   updateThread,
   updateTyping,

@@ -11,7 +11,7 @@ import type {TypedState} from '../../constants/reducer'
 
 const inSearchSelector = (state: TypedState) => state.chat.get('inSearch')
 
-function* _newChat(action: Constants.NewChat): Saga.SagaGenerator<any, any> {
+function* _newChat(action: ChatGen.NewChatPayload): Saga.SagaGenerator<any, any> {
   yield Saga.put(Creators.setInboxFilter(''))
   const ids = yield Saga.select(SearchConstants.getUserInputItemIds, {searchKey: 'chatSearch'})
   if (ids && !!ids.length) {
@@ -33,7 +33,7 @@ function _exitSearch(
   return Saga.all([
     Saga.put(SearchCreators.clearSearchResults('chatSearch')),
     Saga.put(SearchCreators.setUserInputItems('chatSearch', [])),
-    Saga.put(Creators.removeTempPendingConversations()),
+    Saga.put(ChatGen.createRemoveTempPendingConversations()),
     userInputItemIds.length === 0 && !skipSelectPreviousConversation
       ? Saga.put(Creators.selectConversation(previousConversation, false))
       : null,
@@ -52,7 +52,7 @@ function* _updateTempSearchConversation(action: SearchConstants.UserInputItemsUp
     return
   }
 
-  const actionsToPut = [Saga.put(Creators.removeTempPendingConversations())]
+  const actionsToPut = [Saga.put(ChatGen.createRemoveTempPendingConversations())]
   if (userInputItemIds.length) {
     actionsToPut.push(Saga.put(Creators.startConversation(userInputItemIds.concat(me), false, true)))
   } else {

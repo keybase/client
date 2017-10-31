@@ -47,7 +47,7 @@ function* _startConversation(action: Constants.StartConversation): Saga.SagaGene
   } else {
     // Make a pending conversation so it appears in the inbox
     const conversationIDKey = Constants.pendingConversationIDKey(tlfName)
-    yield Saga.put(Creators.addPending(users, temporary))
+    yield Saga.put(ChatGen.createAddPending({participants: users, temporary}))
     yield Saga.put(Creators.selectConversation(conversationIDKey, false))
     yield Saga.put(switchTo([chatTab]))
   }
@@ -90,7 +90,7 @@ function* _selectConversation(action: Constants.SelectConversation): Saga.SagaGe
   }
 
   if (conversationIDKey) {
-    yield Saga.put(Creators.loadMoreMessages(conversationIDKey, true, fromUser))
+    yield Saga.put(ChatGen.createLoadMoreMessages({conversationIDKey, onlyIfUnloaded: true, fromUser}))
     yield Saga.put(navigateTo([conversationIDKey], [chatTab]))
   } else {
     yield Saga.put(navigateTo([chatTab]))
@@ -191,7 +191,7 @@ const _setNotifications = function*(
   }
 }
 
-function* _blockConversation(action: Constants.BlockConversation): Saga.SagaGenerator<any, any> {
+function* _blockConversation(action: ChatGen.BlockConversationPayload): Saga.SagaGenerator<any, any> {
   const {blocked, conversationIDKey, reportUser} = action.payload
   const conversationID = Constants.keyToConversationID(conversationIDKey)
   if (blocked) {
@@ -205,7 +205,7 @@ function* _blockConversation(action: Constants.BlockConversation): Saga.SagaGene
   }
 }
 
-function* _leaveConversation(action: Constants.LeaveConversation): Saga.SagaGenerator<any, any> {
+function* _leaveConversation(action: ChatGen.LeaveConversationPayload): Saga.SagaGenerator<any, any> {
   const {conversationIDKey} = action.payload
   const conversationID = Constants.keyToConversationID(conversationIDKey)
   yield Saga.call(ChatTypes.localLeaveConversationLocalRpcPromise, {
@@ -213,7 +213,7 @@ function* _leaveConversation(action: Constants.LeaveConversation): Saga.SagaGene
   })
 }
 
-function* _muteConversation(action: Constants.MuteConversation): Saga.SagaGenerator<any, any> {
+function* _muteConversation(action: ChatGen.MuteConversationPayload): Saga.SagaGenerator<any, any> {
   const {conversationIDKey, muted} = action.payload
   const conversationID = Constants.keyToConversationID(conversationIDKey)
   const status = muted ? ChatTypes.CommonConversationStatus.muted : ChatTypes.CommonConversationStatus.unfiled

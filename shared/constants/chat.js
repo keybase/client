@@ -494,22 +494,12 @@ export type AppendMessages = NoErrorTypedAction<
   }
 >
 export type BadgeAppForChat = NoErrorTypedAction<'chat:badgeAppForChat', I.List<ConversationBadgeState>>
-export type BlockConversation = NoErrorTypedAction<
-  'chat:blockConversation',
-  {
-    blocked: boolean,
-    conversationIDKey: ConversationIDKey,
-    reportUser: boolean,
-  }
->
 export type InboxFilterSelectNext = NoErrorTypedAction<
   'chat:inboxFilterSelectNext',
   {rows: any, direction: 1 | -1}
 >
 export type ClearMessages = NoErrorTypedAction<'chat:clearMessages', {conversationIDKey: ConversationIDKey}>
 export type ClearRekey = NoErrorTypedAction<'chat:clearRekey', {conversationIDKey: ConversationIDKey}>
-export type DeleteMessage = NoErrorTypedAction<'chat:deleteMessage', {message: Message}>
-export type EditMessage = NoErrorTypedAction<'chat:editMessage', {message: Message, text: HiddenString}>
 export type GetInboxAndUnbox = NoErrorTypedAction<
   'chat:getInboxAndUnbox',
   {conversationIDKeys: Array<ConversationIDKey>}
@@ -517,21 +507,6 @@ export type GetInboxAndUnbox = NoErrorTypedAction<
 export type InboxStale = NoErrorTypedAction<'chat:inboxStale', {reason: string}>
 export type IncomingMessage = NoErrorTypedAction<'chat:incomingMessage', {activity: ChatTypes.ChatActivity}>
 export type IncomingTyping = NoErrorTypedAction<'chat:incomingTyping', {activity: ChatTypes.TyperInfo}>
-export type LeaveConversation = NoErrorTypedAction<
-  'chat:leaveConversation',
-  {conversationIDKey: ConversationIDKey}
->
-export type LoadInbox = NoErrorTypedAction<'chat:loadInbox', void>
-export type LoadMoreMessages = NoErrorTypedAction<
-  'chat:loadMoreMessages',
-  {
-    conversationIDKey: ConversationIDKey,
-    onlyIfUnloaded: boolean,
-    fromUser: boolean,
-    wantNewer: boolean,
-    numberOverride: ?number,
-  }
->
 export type LoadingMessages = NoErrorTypedAction<
   'chat:loadingMessages',
   {conversationIDKey: ConversationIDKey, isRequesting: boolean}
@@ -544,11 +519,6 @@ export type InboxSynced = NoErrorTypedAction<
   'chat:inboxSynced',
   {convs: Array<ChatTypes.UnverifiedInboxUIItem>}
 >
-export type MuteConversation = NoErrorTypedAction<
-  'chat:muteConversation',
-  {conversationIDKey: ConversationIDKey, muted: boolean}
->
-export type NewChat = NoErrorTypedAction<'chat:newChat', {}>
 export type OpenAttachmentPopup = NoErrorTypedAction<
   'chat:openAttachmentPopup',
   {message: AttachmentMessage, currentPath: Path}
@@ -557,7 +527,6 @@ export type OpenConversation = NoErrorTypedAction<
   'chat:openConversation',
   {conversationIDKey: ConversationIDKey}
 >
-export type OpenTlfInChat = NoErrorTypedAction<'chat:openTlfInChat', string>
 export type PostMessage = NoErrorTypedAction<
   'chat:postMessage',
   {conversationIDKey: ConversationIDKey, text: HiddenString}
@@ -578,7 +547,6 @@ export type ReplaceConversation = NoErrorTypedAction<
   'chat:replaceConversation',
   {oldKey: ConversationIDKey, newKey: ConversationIDKey}
 >
-export type RemoveTempPendingConversations = NoErrorTypedAction<'chat:removeTempPendingConversations', void>
 export type RetryMessage = NoErrorTypedAction<
   'chat:retryMessage',
   {conversationIDKey: ConversationIDKey, outboxIDKey: OutboxIDKey}
@@ -604,8 +572,6 @@ export type SetNotifications = NoErrorTypedAction<
   'chat:setNotifications',
   {conversationIDKey: ConversationIDKey, deviceType: DeviceType, notifyType: NotifyType}
 >
-export type SetupChatHandlers = NoErrorTypedAction<'chat:setupChatHandlers', void>
-export type ShowEditor = NoErrorTypedAction<'chat:showEditor', {message: ?Message}>
 export type StartConversation = NoErrorTypedAction<
   'chat:startConversation',
   {users: Array<string>, forceImmediate: boolean, temporary: boolean}
@@ -625,10 +591,6 @@ export type UntrustedInboxVisible = NoErrorTypedAction<
 export type UpdateConversationUnreadCounts = NoErrorTypedAction<
   'chat:updateConversationUnreadCounts',
   {conversationUnreadCounts: I.Map<ConversationIDKey, UnreadCounts>}
->
-export type UpdateFinalizedState = NoErrorTypedAction<
-  'chat:updateFinalizedState',
-  {finalizedState: FinalizedState}
 >
 export type UpdateInboxComplete = NoErrorTypedAction<'chat:updateInboxComplete', void>
 export type UpdateInboxRekeyOthers = NoErrorTypedAction<
@@ -651,10 +613,6 @@ export type UpdatePaginationPrev = NoErrorTypedAction<
 export type UpdateSupersededByState = NoErrorTypedAction<
   'chat:updateSupersededByState',
   {supersededByState: SupersededByState}
->
-export type UpdateSupersedesState = NoErrorTypedAction<
-  'chat:updateSupersedesState',
-  {supersedesState: SupersedesState}
 >
 export type UpdatedMetadata = NoErrorTypedAction<'chat:updatedMetadata', {updated: {[key: string]: MetaData}}>
 export type UpdatedNotifications = NoErrorTypedAction<
@@ -809,14 +767,7 @@ export type Actions =
   | AddPendingConversation
   | AppendMessages
   | ClearRekey
-  | DeleteMessage
-  | EditMessage
-  | ShowEditor
-  | LoadInbox
-  | LoadMoreMessages
-  | NewChat
   | PrependMessages
-  | RemoveTempPendingConversations
   | SelectConversation
   | StartConversation
   | UpdateBrokenTracker
@@ -826,9 +777,7 @@ export type Actions =
   | UpdateTempMessage
   | MarkSeenMessage
   | AttachmentLoaded
-  | UpdateFinalizedState
   | UpdateSupersededByState
-  | UpdateSupersedesState
   | UpdatedNotifications
 
 function conversationIDToKey(conversationID: ConversationID): ConversationIDKey {
