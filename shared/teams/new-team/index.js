@@ -6,8 +6,9 @@ import {globalColors, globalMargins, globalStyles} from '../../styles'
 
 import type {Props} from './'
 
-const validTeamname = (s: string): boolean => {
-  // This logic is copied from go/protocol/keybase1/extras.go.
+// This logic is copied from go/protocol/keybase1/extras.go.
+
+const validTeamnamePart = (s: string): boolean => {
   if (s.length < 2 || s.length > 16) {
     return false
   }
@@ -15,16 +16,20 @@ const validTeamname = (s: string): boolean => {
   return /^([a-zA-Z0-9][a-zA-Z0-9_]?)+$/.test(s)
 }
 
+const validTeamname = (s: string): boolean => {
+  return s.split('.').every(validTeamnamePart)
+}
+
 const headerText = (errorText: string, name: string): string => {
   if (errorText) {
     return errorText
   }
 
-  const i = name.indexOf('.')
+  const i = name.lastIndexOf('.')
   if (i >= 0) {
-    const teamname = name.substring(0, i)
-    if (validTeamname(teamname)) {
-      return `You're creating a subteam of ${teamname}.`
+    const baseTeamname = name.substring(0, i)
+    if (validTeamname(baseTeamname)) {
+      return `You're creating a subteam of ${baseTeamname}.`
     }
     // TODO: Display an error if teamname isn't valid.
   }
