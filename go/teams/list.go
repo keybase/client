@@ -169,6 +169,9 @@ func List(ctx context.Context, g *libkb.GlobalContext, arg keybase1.TeamListArg)
 	}
 
 	meUID := g.ActiveDevice.UID()
+	if meUID.IsNil() {
+		return nil, libkb.LoginRequiredError{}
+	}
 
 	tracer.Stage("Server")
 	teams, err := getTeamsListFromServer(ctx, g, queryUID, arg.All)

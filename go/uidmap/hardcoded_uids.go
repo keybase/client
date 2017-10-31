@@ -4,11 +4,12 @@ import (
 	"bytes"
 	"compress/zlib"
 	"fmt"
-	"github.com/keybase/client/go/libkb"
-	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"io"
 	"sort"
 	"sync"
+
+	"github.com/keybase/client/go/libkb"
+	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
 var offsets []uint32
@@ -68,14 +69,18 @@ func initUsernames() {
 	zip.Close()
 }
 
+// Returns empty name if not found
 func findHardcoded(uid keybase1.UID) libkb.NormalizedUsername {
 	findInit()
 	searchFor := uid.ToBytes()
-	uidLen := len(searchFor)
-	l := len(uids) / uidLen
+	if len(searchFor) != keybase1.UID_LEN {
+		// wrong uid size
+		return libkb.NormalizedUsername("")
+	}
+	l := len(uids) / keybase1.UID_LEN
 	uidAt := func(i int) []byte {
-		start := i * uidLen
-		return uids[start : start+uidLen]
+		start := i * keybase1.UID_LEN
+		return uids[start : start+keybase1.UID_LEN]
 	}
 	doCmp := func(i int) int {
 		return bytes.Compare(searchFor, uidAt(i))
