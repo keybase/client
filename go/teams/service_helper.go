@@ -1050,7 +1050,7 @@ func splitBulk(s string) []string {
 	return strings.FieldsFunc(s, f)
 }
 
-func CreateSeitanToken(ctx context.Context, g *libkb.GlobalContext, teamname string, role keybase1.TeamRole, label keybase1.SeitanIKeyLabel) (string, error) {
+func CreateSeitanToken(ctx context.Context, g *libkb.GlobalContext, teamname string, role keybase1.TeamRole, label keybase1.SeitanIKeyLabel) (keybase1.SeitanIKey, error) {
 	t, err := GetForTeamManagementByStringName(ctx, g, teamname, true)
 	if err != nil {
 		return "", err
@@ -1060,5 +1060,5 @@ func CreateSeitanToken(ctx context.Context, g *libkb.GlobalContext, teamname str
 		return "", err
 	}
 
-	return string(ikey), err
+	return keybase1.SeitanIKey(ikey), err
 }

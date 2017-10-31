@@ -34,7 +34,7 @@ func TestTeamInviteSeitanHappy(t *testing.T) {
 	t.Logf("Created token %q", token)
 
 	err = roo.teamsClient.TeamAcceptInvite(context.TODO(), keybase1.TeamAcceptInviteArg{
-		Token: token,
+		Token: string(token),
 	})
 	require.NoError(t, err)
 
@@ -72,7 +72,7 @@ func TestTeamInviteSeitanFailures(t *testing.T) {
 
 	// Generate invitation id, but make AKey with different IKey.
 	// Simulate "replay attack" or similar.
-	ikey, err := teams.GenerateIKeyFromString(token)
+	ikey, err := teams.GenerateIKeyFromString(string(token))
 	require.NoError(t, err)
 	sikey, err := ikey.GenerateSIKey()
 	require.NoError(t, err)

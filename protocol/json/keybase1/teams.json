@@ -1787,7 +1787,7 @@
           "type": "SeitanIKeyLabel"
         }
       ],
-      "response": "string"
+      "response": "SeitanIKey"
     },
     "teamAddEmailsBulk": {
       "request": [
