@@ -1,10 +1,11 @@
 // @flow
 import RenderBlockConversationWarning from './'
+import * as ChatGen from '../../../actions/chat-gen'
 import {connect, type TypedState} from '../../../util/container'
 import {navigateTo, navigateUp} from '../../../actions/route-tree'
 import {chatTab} from '../../../constants/tabs'
 import {type RouteProps} from '../../../route-tree/render-route'
-import {type BlockConversation, type ConversationIDKey} from '../../../constants/chat'
+import {type ConversationIDKey} from '../../../constants/chat'
 
 type RenderBlockConversationWarningRouteProps = RouteProps<
   {
@@ -26,10 +27,11 @@ const mapStateToProps = (state: TypedState, {routeProps}: OwnProps) => {
 const mapDispatchToProps = (dispatch: Dispatch) => ({
   onBlock: (conversationIDKey: ConversationIDKey, reportUser: boolean) =>
     dispatch(
-      ({
-        payload: {blocked: true, conversationIDKey, reportUser},
-        type: 'chat:blockConversation',
-      }: BlockConversation)
+      ChatGen.createBlockConversation({
+        blocked: true,
+        conversationIDKey,
+        reportUser,
+      })
     ),
   onBack: () => dispatch(navigateUp()),
   navToRootChat: () => dispatch(navigateTo([chatTab])),

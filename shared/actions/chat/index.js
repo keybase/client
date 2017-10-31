@@ -3,6 +3,7 @@ import * as Attachment from './attachment'
 import * as ChatTypes from '../../constants/types/flow-types-chat'
 import * as Constants from '../../constants/chat'
 import * as Creators from './creators'
+import * as ChatGen from '../chat-gen'
 import * as Inbox from './inbox'
 import * as ManageThread from './manage-thread'
 import * as RPCTypes from '../../constants/types/flow-types'
@@ -17,23 +18,23 @@ import {openInKBFS} from '../kbfs'
 import {parseFolderNameToUsers} from '../../util/kbfs'
 import {publicFolderWithUsers, privateFolderWithUsers, teamFolder} from '../../constants/config'
 
-function* _incomingTyping(action: Constants.IncomingTyping): Saga.SagaGenerator<any, any> {
+function* _incomingTyping(action: ChatGen.IncomingTypingPayload): Saga.SagaGenerator<any, any> {
   // $FlowIssue
   for (const activity of action.payload.activity) {
     const conversationIDKey = Constants.conversationIDToKey(activity.convID)
     const typers = activity.typers || []
     const typing = typers.map(typer => typer.username)
-    yield Saga.put(Creators.setTypers(conversationIDKey, typing))
+    yield Saga.put(ChatGen.createSetTypers({conversationIDKey, typing}))
   }
 }
 
 function* _setupChatHandlers(): Saga.SagaGenerator<any, any> {
   engine().setIncomingActionCreator('chat.1.NotifyChat.NewChatActivity', ({activity}) =>
-    Creators.incomingMessage(activity)
+    ChatGen.createIncomingMessage({activity})
   )
 
   engine().setIncomingActionCreator('chat.1.NotifyChat.ChatTypingUpdate', ({typingUpdates}) =>
-    Creators.incomingTyping(typingUpdates)
+    ChatGen.createIncomingTyping({activity: typingUpdates})
   )
 
   engine().setIncomingActionCreator('chat.1.NotifyChat.ChatIdentifyUpdate', ({update}) => {
@@ -43,25 +44,25 @@ function* _setupChatHandlers(): Saga.SagaGenerator<any, any> {
       map[name] = !!broken.includes(name)
       return map
     }, {})
-    return Creators.updateBrokenTracker(userToBroken)
+    return ChatGen.createUpdateBrokenTracker({userToBroken})
   })
 
   engine().setIncomingActionCreator('chat.1.NotifyChat.ChatTLFFinalize', ({convID}) =>
-    Creators.getInboxAndUnbox([Constants.conversationIDToKey(convID)])
+    ChatGen.createGetInboxAndUnbox({conversationIDKeys: [Constants.conversationIDToKey(convID)]})
   )
 
   engine().setIncomingActionCreator('chat.1.NotifyChat.ChatInboxStale', () =>
-    Creators.inboxStale('service invoked')
+    ChatGen.createInboxStale({reason: 'service invoked'})
   )
 
   engine().setIncomingActionCreator(
     'chat.1.NotifyChat.ChatTLFResolve',
-    ({convID, resolveInfo: {newTLFName}}) => Creators.inboxStale('TLF resolve notification')
+    ({convID, resolveInfo: {newTLFName}}) => ChatGen.createInboxStale({reason: 'TLF resolve notification'})
   )
 
   engine().setIncomingActionCreator('chat.1.NotifyChat.ChatThreadsStale', ({updates}) => {
     if (updates) {
-      return Creators.markThreadsStale(updates)
+      return ChatGen.createMarkThreadsStale({updates})
     }
     return null
   })
@@ -69,29 +70,29 @@ function* _setupChatHandlers(): Saga.SagaGenerator<any, any> {
   engine().setIncomingActionCreator('chat.1.NotifyChat.ChatInboxSynced', ({syncRes}) => {
     switch (syncRes.syncType) {
       case ChatTypes.CommonSyncInboxResType.clear:
-        return Creators.inboxStale('sync with clear result')
+        return ChatGen.createInboxStale({reason: 'sync with clear result'})
       case ChatTypes.CommonSyncInboxResType.current:
-        return Creators.setInboxGlobalUntrustedState('loaded')
+        return ChatGen.createSetInboxGlobalUntrustedState({inboxGlobalUntrustedState: 'loaded'})
       case ChatTypes.CommonSyncInboxResType.incremental:
-        return Creators.inboxSynced(syncRes.incremental.items)
+        return ChatGen.createInboxSynced({convs: syncRes.incremental.items})
     }
-    return Creators.inboxStale('sync with unknown result')
+    return ChatGen.createInboxStale({reason: 'sync with unknown result'})
   })
 
   engine().setIncomingActionCreator('chat.1.NotifyChat.ChatInboxSyncStarted', () => {
-    return Creators.setInboxGlobalUntrustedState('loading')
+    return ChatGen.createSetInboxGlobalUntrustedState({inboxGlobalUntrustedState: 'loading'})
   })
 
   engine().setIncomingActionCreator('chat.1.NotifyChat.ChatJoinedConversation', () =>
-    Creators.inboxStale('joined a conversation')
+    ChatGen.createInboxStale({reason: 'joined a conversation'})
   )
   engine().setIncomingActionCreator('chat.1.NotifyChat.ChatLeftConversation', () =>
-    Creators.inboxStale('left a conversation')
+    ChatGen.createInboxStale({reason: 'left a conversation'})
   )
 }
 
-function* _openTlfInChat(action: Constants.OpenTlfInChat): Saga.SagaGenerator<any, any> {
-  const tlf = action.payload
+function* _openTlfInChat(action: ChatGen.OpenTlfInChatPayload): Saga.SagaGenerator<any, any> {
+  const tlf = action.payload.tlf
   const me = yield Saga.select(Selectors.usernameSelector)
   const userlist = parseFolderNameToUsers(me, tlf)
   const users = userlist.map(u => u.username)
@@ -138,4 +139,4 @@ function* chatSaga(): Saga.SagaGenerator<any, any> {
 
 export default chatSaga
 
-export {badgeAppForChat, openTlfInChat, setupChatHandlers, startConversation} from './creators'
+export {badgeAppForChat, startConversation} from './creators'

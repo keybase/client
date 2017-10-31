@@ -1,6 +1,6 @@
 // @flow
 import * as Constants from '../../../constants/chat'
-import * as Creators from '../../../actions/chat/creators'
+import * as ChatGen from '../../../actions/chat-gen'
 import {SmallTeamInfoPanel, BigTeamInfoPanel} from '.'
 import {Map} from 'immutable'
 import {
@@ -65,10 +65,10 @@ const mapStateToProps = (state: TypedState) => {
 const mapDispatchToProps = (dispatch: Dispatch, {navigateUp}) => ({
   _navToRootChat: () => dispatch(navigateTo([chatTab])),
   _onLeaveConversation: (conversationIDKey: Constants.ConversationIDKey) => {
-    dispatch(Creators.leaveConversation(conversationIDKey))
+    dispatch(ChatGen.createLeaveConversation({conversationIDKey}))
   },
   _onMuteConversation: (conversationIDKey: Constants.ConversationIDKey, muted: boolean) => {
-    dispatch(Creators.muteConversation(conversationIDKey, muted))
+    dispatch(ChatGen.createMuteConversation({conversationIDKey, muted}))
   },
   _onShowBlockConversationDialog: (selectedConversation, participants) => {
     dispatch(

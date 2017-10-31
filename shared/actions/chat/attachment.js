@@ -1,6 +1,7 @@
 // @flow
 import * as ChatTypes from '../../constants/types/flow-types-chat'
 import * as Constants from '../../constants/chat'
+import * as ChatGen from '../chat-gen'
 import * as I from 'immutable'
 import * as EngineRpc from '../engine/helper'
 import * as Creators from './creators'
@@ -17,7 +18,7 @@ import {type TypedState} from '../../constants/reducer'
 import {type SagaGenerator} from '../../constants/types/saga'
 
 function* onShareAttachment({payload: {messageKey}}: Constants.ShareAttachment): SagaGenerator<any, any> {
-  const path = yield Saga.call(onSaveAttachment, Creators.saveAttachment(messageKey))
+  const path = yield Saga.call(onSaveAttachment, ChatGen.createSaveAttachment({messageKey}))
   if (path) {
     yield Saga.call(showShareActionSheet, {url: path})
   }
@@ -26,7 +27,7 @@ function* onShareAttachment({payload: {messageKey}}: Constants.ShareAttachment):
 function* onSaveAttachmentNative({
   payload: {messageKey},
 }: Constants.SaveAttachmentNative): SagaGenerator<any, any> {
-  const path = yield Saga.call(onSaveAttachment, Creators.saveAttachment(messageKey))
+  const path = yield Saga.call(onSaveAttachment, ChatGen.createSaveAttachment({messageKey}))
   if (path) {
     yield Saga.call(saveAttachmentDialog, path)
   }
@@ -35,10 +36,10 @@ function* onSaveAttachmentNative({
 function* onLoadAttachmentPreview({
   payload: {messageKey},
 }: Constants.LoadAttachmentPreview): SagaGenerator<any, any> {
-  yield Saga.put(Creators.loadAttachment(messageKey, true))
+  yield Saga.put(ChatGen.createLoadAttachment({messageKey, loadPreview: true}))
 }
 
-function* onSaveAttachment({payload: {messageKey}}: Constants.SaveAttachment): SagaGenerator<any, any> {
+function* onSaveAttachment({payload: {messageKey}}: ChatGen.SaveAttachmentPayload): SagaGenerator<any, any> {
   const {savedPath, downloadedPath} = yield Saga.select((s: TypedState) => ({
     savedPath: Constants.getAttachmentSavedPath(s, messageKey),
     downloadedPath: Constants.getAttachmentDownloadedPath(s, messageKey),
@@ -48,11 +49,11 @@ function* onSaveAttachment({payload: {messageKey}}: Constants.SaveAttachment): S
     return savedPath
   }
 
-  yield Saga.put(Creators.attachmentSaveStart(messageKey))
+  yield Saga.put(ChatGen.createAttachmentSaveStart({messageKey}))
 
   const startTime = Date.now()
   if (!downloadedPath) {
-    yield Saga.put(Creators.loadAttachment(messageKey, false))
+    yield Saga.put(ChatGen.createLoadAttachment({messageKey, loadPreview: false}))
     console.log('_saveAttachment: waiting for attachment to load', messageKey)
     yield Saga.take(
       action =>
@@ -92,11 +93,11 @@ function* onSaveAttachment({payload: {messageKey}}: Constants.SaveAttachment): S
     yield copy(nextDownloadedPath, destPath)
   } catch (err) {
     console.warn('_saveAttachment: copy failed:', err)
-    yield Saga.put(Creators.attachmentSaveFailed(messageKey))
+    yield Saga.put(ChatGen.createAttachmentSaveFailed({messageKey}))
     return
   }
 
-  yield Saga.put(Creators.attachmentSaved(messageKey, destPath))
+  yield Saga.put(ChatGen.createAttachmentSaved({messageKey, path: destPath}))
   return destPath
 }
 
@@ -115,7 +116,7 @@ const loadAttachmentSagaMap = (messageKey, loadPreview) => ({
 
 function* onLoadAttachment({
   payload: {messageKey, loadPreview},
-}: Constants.LoadAttachment): SagaGenerator<any, any> {
+}: ChatGen.LoadAttachmentPayload): SagaGenerator<any, any> {
   // Check if we should download the attachment. Only one instance of this saga
   // should executes at any time, so that these checks don't interleave with
   // updating initial progress on the download.
@@ -248,7 +249,7 @@ function uploadProgressSubSaga(getCurKey: () => ?Constants.MessageKey) {
   return function*({bytesComplete, bytesTotal}) {
     const curKey = yield Saga.call(getCurKey)
     if (curKey) {
-      yield Saga.put(Creators.uploadProgress(curKey, bytesComplete / bytesTotal))
+      yield Saga.put(ChatGen.createUploadProgress({messageKey: curKey, progress: bytesComplete / bytesTotal}))
     }
     return EngineRpc.rpcResult()
   }
@@ -303,7 +304,7 @@ const postAttachmentSagaMap = (
   'chat.1.chatUi.chatAttachmentPreviewUploadDone': EngineRpc.passthroughResponseSaga,
 })
 
-function* onSelectAttachment({payload: {input}}: Constants.SelectAttachment): Generator<any, any, any> {
+function* onSelectAttachment({payload: {input}}: ChatGen.SelectAttachmentPayload): Generator<any, any, any> {
   const {title, filename} = input
   let {conversationIDKey} = input
   let newConvoTlfName
@@ -382,7 +383,7 @@ function* onSelectAttachment({payload: {input}}: Constants.SelectAttachment): Ge
         )
       }
       const curKey = yield Saga.call(getCurKey)
-      yield Saga.put(Creators.uploadProgress(curKey, null))
+      yield Saga.put(ChatGen.createUploadProgress({messageKey: curKey, progress: null}))
     } else {
       console.warn('Upload Attachment Failed')
     }
@@ -394,11 +395,13 @@ function* onSelectAttachment({payload: {input}}: Constants.SelectAttachment): Ge
 function* onRetryAttachment({
   payload: {input, oldOutboxID},
 }: Constants.RetryAttachment): Generator<any, any, any> {
-  yield Saga.put(Creators.removeOutboxMessage(input.conversationIDKey, oldOutboxID))
+  yield Saga.put(
+    ChatGen.createRemoveOutboxMessage({conversationIDKey: input.conversationIDKey, outboxID: oldOutboxID})
+  )
   yield Saga.call(onSelectAttachment, {payload: {input}})
 }
 
-function* onOpenAttachmentPopup(action: Constants.OpenAttachmentPopup): SagaGenerator<any, any> {
+function* onOpenAttachmentPopup(action: ChatGen.OpenAttachmentPopupPayload): SagaGenerator<any, any> {
   const {message, currentPath} = action.payload
   const messageID = message.messageID
   if (!messageID) {
@@ -412,7 +415,7 @@ function* onOpenAttachmentPopup(action: Constants.OpenAttachmentPopup): SagaGene
     )
   )
   if (!message.hdPreviewPath && message.filename && message.messageID) {
-    yield Saga.put(Creators.loadAttachment(message.key, false))
+    yield Saga.put(ChatGen.createLoadAttachment({messageKey: message.key, loadPreview: false}))
   }
 }
 
@@ -430,7 +433,7 @@ function attachmentLoaded(action: Constants.AttachmentLoaded) {
   ])
 }
 
-function updateProgress(action: Constants.DownloadProgress | Constants.UploadProgress) {
+function updateProgress(action: Constants.DownloadProgress | ChatGen.UploadProgressPayload) {
   const {type, payload: {progress, messageKey}} = action
   if (type === 'chat:downloadProgress') {
     if (action.payload.isPreview) {
@@ -446,7 +449,10 @@ function updateProgress(action: Constants.DownloadProgress | Constants.UploadPro
 }
 
 function updateAttachmentSavePath(
-  action: Constants.AttachmentSaveStart | Constants.AttachmentSaveFailed | Constants.AttachmentSaved
+  action:
+    | ChatGen.AttachmentSaveStartPayload
+    | ChatGen.AttachmentSaveFailedPayload
+    | ChatGen.AttachmentSavedPayload
 ) {
   const {messageKey} = action.payload
   switch (action.type) {

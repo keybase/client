@@ -20,10 +20,10 @@
         "filenames", "babel", "import", "flowtype", "prettier"
     ],
     "settings": {
-        "import/core-modules": [ electron, react-native ],
+        "import/core-modules": [ "electron", "react-native" ],
         "import/resolver": {
-          webpack: 'webpack.config.base.js'
-        },
+          "webpack": "webpack.config.base.js"
+        }
     },
     "rules": {
         "babel/func-params-comma-dangle": "off",
@@ -63,7 +63,7 @@
           "bracketSpacing": false,
           "parser": "flow",
           "semi": false,
-          "printWidth": 110,
+          "printWidth": 110
         }],
         "react/jsx-boolean-value": ["error", "always"],
         "react/jsx-curly-spacing": "off",
