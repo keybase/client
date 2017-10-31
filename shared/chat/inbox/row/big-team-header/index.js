@@ -15,41 +15,69 @@ type Props = {
 
 const zIndexMenu = 20
 
-const BigTeamHeader = (props: Props) => (
-  <HeaderBox>
-    <Avatar teamname={props.teamname} size={isMobile ? 24 : 16} />
-    <Text type="BodySmallSemibold" style={teamStyle}>
-      {props.teamname}
-    </Text>
-    <Icon className="icon" type="iconfont-gear" onClick={() => props.onSetShowMenu(true)} style={iconStyle} />
-    {props.showMenu &&
-      <PopupMenu
-        header={{
-          title: 'Header',
-          view: (
-            <Box style={teamHeaderStyle}>
-              <Avatar teamname={props.teamname} size={16} />
-              <Text type="BodySmallSemibold" style={teamStyle}>{props.teamname}</Text>
-              <Text type="BodySmall">
-                {props.memberCount + ' member' + (props.memberCount !== 1 ? 's' : '')}
-              </Text>
-            </Box>
-          ),
-        }}
-        items={[
-          {onClick: props.onManageChannels, title: 'Manage chat channels'},
-          {onClick: props.onViewTeam, title: 'View team'},
-        ]}
-        onHidden={() => props.onSetShowMenu(false)}
-        style={{
-          position: isMobile ? 'relative' : 'absolute',
-          right: globalMargins.tiny,
-          top: globalMargins.small,
-          zIndex: zIndexMenu,
-        }}
-      />}
-  </HeaderBox>
-)
+type State = {
+  popTop: ?number,
+}
+
+class BigTeamHeader extends React.PureComponent<Props, State> {
+  state = {
+    popTop: null,
+  }
+
+  render() {
+    const props = this.props
+
+    return (
+      <HeaderBox>
+        <Avatar teamname={props.teamname} size={isMobile ? 24 : 16} />
+        <Text type="BodySmallSemibold" style={teamStyle}>
+          {props.teamname}
+        </Text>
+        <Icon
+          className="icon"
+          type="iconfont-gear"
+          onClick={e => {
+            if (!isMobile) {
+              const {top} = e.currentTarget.getBoundingClientRect()
+              this.setState({popTop: top})
+            }
+            props.onSetShowMenu(true)
+          }}
+          style={iconStyle}
+        />
+        {props.showMenu &&
+          <PopupMenu
+            header={{
+              title: 'Header',
+              view: (
+                <Box style={teamHeaderStyle}>
+                  <Avatar teamname={props.teamname} size={16} />
+                  <Text type="BodySmallSemibold" style={teamStyle}>{props.teamname}</Text>
+                  <Text type="BodySmall">
+                    {props.memberCount + ' member' + (props.memberCount !== 1 ? 's' : '')}
+                  </Text>
+                </Box>
+              ),
+            }}
+            items={[
+              {onClick: props.onManageChannels, title: 'Manage chat channels'},
+              {onClick: props.onViewTeam, title: 'View team'},
+            ]}
+            onHidden={() => props.onSetShowMenu(false)}
+            style={{
+              position: isMobile ? 'relative' : 'absolute',
+              right: globalMargins.tiny,
+              top: isMobile ? globalMargins.small : this.state.popTop,
+              zIndex: zIndexMenu,
+            }}
+            styleCatcher={{
+              zIndex: 1,
+            }}
+          />}
+      </HeaderBox>
+    )
+  }
+}
 
 const iconStyle = {
   color: globalColors.black_20,
@@ -79,7 +107,6 @@ const teamRowContainerStyle = {
   minHeight: isMobile ? globalMargins.large : globalMargins.medium,
   paddingLeft: globalMargins.tiny,
   paddingRight: isMobile ? globalMargins.tiny : globalMargins.xtiny,
-  position: 'relative',
 }
 
 const HeaderBox = glamorous(Box)({
