@@ -1,7 +1,7 @@
 // @flow
 import React from 'react'
-import {Avatar, Box, Text, Icon, PopupMenu} from '../../../../common-adapters'
-import {globalStyles, globalColors, globalMargins, glamorous} from '../../../../styles'
+import {Avatar, Box, Text, PopupMenu} from '../../../../common-adapters'
+import {globalStyles, globalColors, globalMargins} from '../../../../styles'
 import {isMobile} from '../../../../constants/platform'
 
 type Props = {
