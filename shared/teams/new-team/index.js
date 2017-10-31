@@ -6,6 +6,32 @@ import {globalColors, globalMargins, globalStyles} from '../../styles'
 
 import type {Props} from './'
 
+const validTeamname = (s: string): boolean => {
+  // This logic is copied from go/protocol/keybase1/extras.go.
+  if (s.length < 2 || s.length > 16) {
+    return false
+  }
+
+  return /^([a-zA-Z0-9][a-zA-Z0-9_]?)+$/.test(s)
+}
+
+const headerText = (errorText: string, name: string): string => {
+  if (errorText) {
+    return errorText
+  }
+
+  const i = name.indexOf('.')
+  if (i >= 0) {
+    const teamname = name.substring(0, i)
+    if (validTeamname(teamname)) {
+      return `You're creating a subteam of ${teamname}.`
+    }
+    // TODO: Display an error if teamname isn't valid.
+  }
+
+  return "For security reasons, team names are unique and can't be changed, so choose carefully."
+}
+
 const Contents = ({errorText, name, onNameChange, onSubmit, pending}: Props) => (
   <ScrollView>
     <Box style={globalStyles.flexBoxColumn}>
@@ -15,8 +41,7 @@ const Contents = ({errorText, name, onNameChange, onSubmit, pending}: Props) => 
           type="BodySemibold"
           backgroundMode={errorText ? 'HighRisk' : 'Announcements'}
         >
-          {errorText ||
-            "For security reasons, team names are unique and can't be changed, so choose carefully."}
+          {headerText(errorText, name)}
         </Text>
       </Box>
 
