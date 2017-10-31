@@ -12,25 +12,29 @@ IF [%UpdateChannel%] == [] goto:donechecking
 
 IF [%UpdateChannel%] == [None] goto:donechecking
 
+IF [%UpdateChannel%] == [Test] goto:donechecking
+
 :: don't bother with ci or checking out source, etc. for smoke2 build
 IF [%UpdateChannel%] == [Smoke2] goto:done_ci
 
 :: Verify driver signing
 :: Check both the built .sys files and the msi package.
+if NOT DEFINED UNARCHIVE_COMMAND set UNARCHIVE_COMMAND="C:\Program Filess (x86)\7-Zip\7z" e -y
+
 signtool verify /all /kp /v %DOKAN_PATH%\\x64\\Win10Release\\dokan1.sys | find "Issued to: Microsoft Windows Hardware Compatibility Publisher"
 IF %ERRORLEVEL% NEQ 0 EXIT /B 1
 signtool verify /all /kp /v %DOKAN_PATH%\\Win32\\Win10Release\\dokan1.sys | find "Issued to: Microsoft Windows Hardware Compatibility Publisher"
 IF %ERRORLEVEL% NEQ 0 EXIT /B 1
-"%ProgramFiles%\\7-Zip\\7z" e -y %DOKAN_PATH%\\dokan_wix\\bin\\x64\\release\\Dokan_x64.msi Win10_Sys
+%UNARCHIVE_COMMAND% %DOKAN_PATH%\\dokan_wix\\bin\\x64\\release\\Dokan_x64.msi Win10_Sys
 IF %ERRORLEVEL% NEQ 0 EXIT /B 1
 signtool verify /all /kp /v Win10_Sys | find "Issued to: Microsoft Windows Hardware Compatibility Publisher"
 IF %ERRORLEVEL% NEQ 0 EXIT /B 1
-"%ProgramFiles%\\7-Zip\\7z" e -y %DOKAN_PATH%\\dokan_wix\\bin\\x86\\release\\Dokan_x86.msi Win10_Sys
+%UNARCHIVE_COMMAND% %DOKAN_PATH%\\dokan_wix\\bin\\x86\\release\\Dokan_x86.msi Win10_Sys
 IF %ERRORLEVEL% NEQ 0 EXIT /B 1
 signtool verify /all /kp /v Win10_Sys | find "Issued to: Microsoft Windows Hardware Compatibility Publisher"
 IF %ERRORLEVEL% NEQ 0 EXIT /B 1
 
-:donechecking
+:donechecking 
 
 call:checkout_keybase client, %ClientRevision% || EXIT /B 1
 call:checkout_keybase kbfs, %KBFSRevision% || EXIT /B 1
@@ -49,7 +53,7 @@ if [%UpdateChannel%] == [SmokeCI] (
     popd
 )
 
-:done_ci
+:done_ci 
 
 pushd %GOPATH%\src\github.com\keybase\client\packaging\windows
 ::Get + increment the global, shared build number
@@ -120,7 +124,7 @@ call %GOPATH%\src\github.com\keybase\client\packaging\windows\dorelease.cmd ||  
 :: and we're done here
 EXIT /B 0
 
-:no_smokea
+:no_smokea 
 
 ::Publish smoke updater jsons to S3
 if [%UpdateChannel%] NEQ [Smoke2] (
@@ -132,19 +136,19 @@ s3browser-con upload prerelease.keybase.io  %GOPATH%\src\github.com\keybase\clie
 set smokeBSemVer=%KEYBASE_VERSION%
 %GOPATH%\src\github.com\keybase\release\release announce-build --build-a="%SmokeASemVer%" --build-b="%smokeBSemVer%" --platform="windows" || EXIT /B 1
 
-:no_smokeb
+:no_smokeb 
 
 echo %ERRORLEVEL%
 
 goto:eof
 
-:checkout_keybase
+:checkout_keybase 
 
 if EXIST %GOPATH%\src\github.com\keybase\%~1 goto:repoexists
 pushd %GOPATH%\src\github.com\keybase
 git clone https://github.com/keybase/%~1.git
 popd
-:repoexists
+:repoexists 
 
 pushd %GOPATH%\src\github.com\keybase\%~1
 git pull || EXIT /B 1
