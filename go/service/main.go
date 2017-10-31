@@ -226,6 +226,8 @@ func (d *Service) Run() (err error) {
 	}
 
 	switch d.G().Env.GetServiceType() {
+	case "":
+		// Not set, do nothing.
 	case "launchd":
 		d.ForkType = keybase1.ForkType_LAUNCHD
 	case "systemd":
@@ -716,6 +718,11 @@ func (d *Service) GetExclusiveLock() error {
 }
 
 func (d *Service) cleanupSocketFile() error {
+	// Short circuit if we're running under socket activation -- the socket
+	// file is already set up for us, and we mustn't delete it.
+	if IsSocketActivated() {
+		return nil
+	}
 	sf, err := d.G().Env.GetSocketBindFile()
 	if err != nil {
 		return err
