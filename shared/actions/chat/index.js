@@ -318,7 +318,8 @@ function* _updateThread({
 
     if ((message.type === 'Text' || message.type === 'Attachment') && messageFromYou && message.outboxID) {
       const outboxID: Constants.OutboxIDKey = message.outboxID
-      const pendingMessage = yield select(Shared.messageOutboxIDSelector, conversationIDKey, outboxID)
+      const state = yield select()
+      const pendingMessage = Shared.messageOutboxIDSelector(state, conversationIDKey, outboxID)
       if (pendingMessage) {
         // Delete the pre-existing pending version of this message, since we're
         // about to add a newly received version of the same message.
