@@ -1,7 +1,6 @@
 // @flow
 import * as ChatTypes from '../../constants/types/flow-types-chat'
 import * as Constants from '../../constants/chat'
-import * as Creators from './creators'
 import * as ChatGen from '../chat-gen'
 import * as I from 'immutable'
 import getenv from 'getenv'
@@ -113,10 +112,10 @@ function* startNewConversation(
   // Select the new version if the old one was selected
   const selectedConversation = yield select(Constants.getSelectedConversation)
   if (selectedConversation === oldKey) {
-    yield put(Creators.selectConversation(newKey, false))
+    yield put(ChatGen.createSelectConversation({conversationIDKey: newKey}))
   }
   // Load the inbox so we can post, we wait till this is done
-  yield put(Creators.unboxConversations([newKey], 'new convo'))
+  yield put(ChatGen.createUnboxConversations({conversationIDKeys: [newKey], reason: 'new convo'}))
   return [newKey, tlfName]
 }
 

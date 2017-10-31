@@ -1,7 +1,6 @@
 // @flow
 import * as Constants from '../../constants/chat'
 import * as Inbox from '.'
-import * as Creators from '../../actions/chat/creators'
 import * as ChatGen from '../../actions/chat-gen'
 import * as I from 'immutable'
 import {
@@ -208,7 +207,7 @@ const mapStateToProps = (state: TypedState, {isActiveRoute, routeState}) => {
 
 const mapDispatchToProps = (dispatch: Dispatch, {focusFilter, routeState, setRouteState}) => ({
   loadInbox: () => dispatch(ChatGen.createLoadInbox()),
-  _onSelectNext: (rows, direction) => dispatch(Creators.selectNext(rows, direction)),
+  _onSelectNext: (rows, direction) => dispatch(ChatGen.createSelectNext({rows, direction})),
   onHotkey: cmd => {
     if (cmd.endsWith('+n')) {
       dispatch(ChatGen.createNewChat())
@@ -218,11 +217,11 @@ const mapDispatchToProps = (dispatch: Dispatch, {focusFilter, routeState, setRou
   },
   onNewChat: () => dispatch(ChatGen.createNewChat()),
   onSelect: (conversationIDKey: ?Constants.ConversationIDKey) => {
-    dispatch(Creators.selectConversation(conversationIDKey, true))
+    dispatch(ChatGen.createSelectConversation({conversationIDKey, fromUser: true}))
   },
-  onSetFilter: (filter: string) => dispatch(Creators.setInboxFilter(filter)),
-  onUntrustedInboxVisible: converationIDKeys =>
-    dispatch(Creators.unboxConversations(converationIDKeys, 'untrusted inbox visible')),
+  onSetFilter: (filter: string) => dispatch(ChatGen.createSetInboxFilter({filter})),
+  onUntrustedInboxVisible: conversationIDKeys =>
+    dispatch(ChatGen.createUnboxConversations({conversationIDKeys, reason: 'untrusted inbox visible'})),
   toggleSmallTeamsExpanded: () => setRouteState({smallTeamsExpanded: !routeState.get('smallTeamsExpanded')}),
 })
 

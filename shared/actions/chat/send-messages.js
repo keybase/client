@@ -61,7 +61,7 @@ function* deleteMessage(action: ChatGen.DeleteMessagePayload): SagaGenerator<any
     })
     // It's deleted, but we don't get notified that the conversation now has
     // one less outbox entry in it.  Gotta remove it from the store ourselves.
-    yield Saga.put(Creators.removeOutboxMessage(conversationIDKey, outboxID))
+    yield Saga.put(ChatGen.createRemoveOutboxMessage({conversationIDKey, outboxID}))
   } else {
     console.warn('Deleting message without RPC or outbox message ID:', message, messageID)
   }

@@ -1,5 +1,4 @@
 // @flow
-import * as ChatTypes from '../../constants/types/flow-types-chat'
 import * as RPCTypes from '../../constants/types/flow-types'
 import * as Constants from '../../constants/chat'
 import * as I from 'immutable'
@@ -8,8 +7,6 @@ import {chatTab} from '../../constants/tabs'
 import {setRouteState} from '../route-tree'
 import uniq from 'lodash/uniq'
 
-import type {DeviceType} from '../../constants/types/more'
-import type {Path} from '../../route-tree'
 import type {SetRouteState} from '../../constants/route-tree'
 
 // Whitelisted action loggers
@@ -133,45 +130,6 @@ function retryMessage(
   }
 }
 
-function updateSupersededByState(
-  supersededByState: Constants.SupersededByState
-): Constants.UpdateSupersededByState {
-  return {
-    payload: {supersededByState},
-    type: 'chat:updateSupersededByState',
-  }
-}
-
-function updatePaginationNext(
-  conversationIDKey: Constants.ConversationIDKey,
-  paginationNext: ?string
-): Constants.UpdatePaginationNext {
-  return {
-    payload: {conversationIDKey, paginationNext},
-    type: 'chat:updatePaginationNext',
-  }
-}
-
-function updatePaginationPrev(
-  conversationIDKey: Constants.ConversationIDKey,
-  paginationPrev: ?string
-): Constants.UpdatePaginationPrev {
-  return {
-    payload: {conversationIDKey, paginationPrev},
-    type: 'chat:updatePaginationPrev',
-  }
-}
-
-function markSeenMessage(
-  conversationIDKey: Constants.ConversationIDKey,
-  messageKey: Constants.MessageKey
-): Constants.MarkSeenMessage {
-  return {
-    payload: {conversationIDKey, messageKey},
-    type: 'chat:markSeenMessage',
-  }
-}
-
 function appendMessages(
   conversationIDKey: Constants.ConversationIDKey,
   isSelected: boolean,
@@ -192,42 +150,6 @@ function appendMessages(
   }
 }
 
-function getInboxAndUnbox(
-  conversationIDKeys: Array<Constants.ConversationIDKey>
-): Constants.GetInboxAndUnbox {
-  return {payload: {conversationIDKeys}, type: 'chat:getInboxAndUnbox'}
-}
-
-function clearMessages(conversationIDKey: Constants.ConversationIDKey): Constants.ClearMessages {
-  return {payload: {conversationIDKey}, type: 'chat:clearMessages'}
-}
-
-function setNotifications(
-  conversationIDKey: Constants.ConversationIDKey,
-  deviceType: DeviceType,
-  notifyType: Constants.NotifyType
-) {
-  return {payload: {conversationIDKey, deviceType, notifyType}, type: 'chat:setNotifications'}
-}
-
-function toggleChannelWideNotifications(
-  conversationIDKey: Constants.ConversationIDKey
-): Constants.ToggleChannelWideNotifications {
-  return {payload: {conversationIDKey}, type: 'chat:toggleChannelWideNotifications'}
-}
-
-function updateMetadata(users: Array<string>): Constants.UpdateMetadata {
-  return {payload: {users}, type: 'chat:updateMetadata'}
-}
-
-function updatedMetadata(updated: {[key: string]: Constants.MetaData}): Constants.UpdatedMetadata {
-  return {payload: {updated}, type: 'chat:updatedMetadata'}
-}
-
-function setLoaded(conversationIDKey: Constants.ConversationIDKey, isLoaded: boolean): Constants.SetLoaded {
-  return {payload: {conversationIDKey, isLoaded}, type: 'chat:setLoaded'}
-}
-
 function prependMessages(
   conversationIDKey: Constants.ConversationIDKey,
   messages: Array<Constants.Message>,
@@ -237,51 +159,6 @@ function prependMessages(
     logTransformer: prependMessagesActionTransformer,
     payload: {conversationIDKey, messages, moreToLoad},
     type: 'chat:prependMessages',
-  }
-}
-
-function incomingMessage(activity: ChatTypes.ChatActivity): Constants.IncomingMessage {
-  return {payload: {activity}, type: 'chat:incomingMessage'}
-}
-
-function incomingTyping(activity: ChatTypes.TyperInfo): Constants.IncomingTyping {
-  return {payload: {activity}, type: 'chat:incomingTyping'}
-}
-
-function updateTyping(
-  conversationIDKey: Constants.ConversationIDKey,
-  typing: boolean
-): Constants.UpdateTyping {
-  return {payload: {conversationIDKey, typing}, type: 'chat:updateTyping'}
-}
-
-function setTypers(conversationIDKey: Constants.ConversationIDKey, typing: Array<string>) {
-  return {payload: {conversationIDKey, typing}, type: 'chat:setTypers'}
-}
-
-function updateBrokenTracker(userToBroken: {[username: string]: boolean}): Constants.UpdateBrokenTracker {
-  return {payload: {userToBroken}, type: 'chat:updateBrokenTracker'}
-}
-
-function inboxStale(reason: string): Constants.InboxStale {
-  return {payload: {reason}, type: 'chat:inboxStale'}
-}
-
-function markThreadsStale(updates: Array<ChatTypes.ConversationStaleUpdate>): Constants.MarkThreadsStale {
-  return {payload: {updates}, type: 'chat:markThreadsStale'}
-}
-
-function inboxSynced(convs: Array<ChatTypes.UnverifiedInboxUIItem>): Constants.InboxSynced {
-  return {payload: {convs}, type: 'chat:inboxSynced'}
-}
-
-function loadingMessages(
-  conversationIDKey: Constants.ConversationIDKey,
-  isRequesting: boolean
-): Constants.LoadingMessages {
-  return {
-    payload: {conversationIDKey, isRequesting},
-    type: 'chat:loadingMessages',
   }
 }
 
@@ -305,32 +182,12 @@ function retryAttachment(message: Constants.AttachmentMessage): Constants.RetryA
   }
 }
 
-function selectAttachment(input: Constants.AttachmentInput): Constants.SelectAttachment {
-  return {payload: {input}, type: 'chat:selectAttachment'}
-}
-
-function loadAttachment(messageKey: Constants.MessageKey, loadPreview: boolean): Constants.LoadAttachment {
-  return {payload: {loadPreview, messageKey}, type: 'chat:loadAttachment'}
-}
-
 function loadAttachmentPreview(messageKey: Constants.MessageKey): Constants.LoadAttachmentPreview {
   return {
     logTransformer: loadAttachmentPreviewTransformer,
     payload: {messageKey},
     type: 'chat:loadAttachmentPreview',
   }
-}
-
-function saveAttachment(messageKey: Constants.MessageKey): Constants.SaveAttachment {
-  return {payload: {messageKey}, type: 'chat:saveAttachment'}
-}
-
-function attachmentSaveStart(messageKey: Constants.MessageKey): Constants.AttachmentSaveStart {
-  return {payload: {messageKey}, type: 'chat:attachmentSaveStart'}
-}
-
-function attachmentSaveFailed(messageKey: Constants.MessageKey): Constants.AttachmentSaveFailed {
-  return {payload: {messageKey}, type: 'chat:attachmentSaveFailed'}
 }
 
 function attachmentLoaded(
@@ -345,10 +202,6 @@ function attachmentLoaded(
   }
 }
 
-function attachmentSaved(messageKey: Constants.MessageKey, path: ?string): Constants.AttachmentSaved {
-  return {payload: {messageKey, path}, type: 'chat:attachmentSaved'}
-}
-
 function downloadProgress(
   messageKey: Constants.MessageKey,
   isPreview: boolean,
@@ -358,21 +211,6 @@ function downloadProgress(
     logTransformer: downloadProgressTransformer,
     payload: {isPreview, messageKey, progress},
     type: 'chat:downloadProgress',
-  }
-}
-
-function uploadProgress(messageKey: Constants.MessageKey, progress: ?number): Constants.UploadProgress {
-  return {payload: {progress, messageKey}, type: 'chat:uploadProgress'}
-}
-
-// Select conversation, fromUser indicates it was triggered by a user and not programatically
-function selectConversation(
-  conversationIDKey: ?Constants.ConversationIDKey,
-  fromUser: boolean
-): Constants.SelectConversation {
-  return {
-    payload: {conversationIDKey, fromUser},
-    type: 'chat:selectConversation',
   }
 }
 
@@ -388,74 +226,6 @@ function updateTempMessage(
   }
 }
 
-function outboxMessageBecameReal(
-  oldMessageKey: Constants.MessageKey,
-  newMessageKey: Constants.MessageKey
-): Constants.OutboxMessageBecameReal {
-  return {
-    payload: {oldMessageKey, newMessageKey},
-    type: 'chat:outboxMessageBecameReal',
-  }
-}
-
-function clearRekey(conversationIDKey: Constants.ConversationIDKey): Constants.ClearRekey {
-  return {payload: {conversationIDKey}, type: 'chat:clearRekey'}
-}
-
-function updateInboxRekeySelf(
-  conversationIDKey: Constants.ConversationIDKey
-): Constants.UpdateInboxRekeySelf {
-  return {payload: {conversationIDKey}, type: 'chat:updateInboxRekeySelf'}
-}
-
-function updateInboxRekeyOthers(
-  conversationIDKey: Constants.ConversationIDKey,
-  rekeyers: Array<string>
-): Constants.UpdateInboxRekeyOthers {
-  return {
-    payload: {conversationIDKey, rekeyers},
-    type: 'chat:updateInboxRekeyOthers',
-  }
-}
-
-function updateInboxComplete(): Constants.UpdateInboxComplete {
-  return {payload: undefined, type: 'chat:updateInboxComplete'}
-}
-
-function removeOutboxMessage(
-  conversationIDKey: Constants.ConversationIDKey,
-  outboxID: Constants.OutboxIDKey
-): Constants.RemoveOutboxMessage {
-  return {
-    payload: {conversationIDKey, outboxID},
-    type: 'chat:removeOutboxMessage',
-  }
-}
-
-function openConversation(conversationIDKey: Constants.ConversationIDKey): Constants.OpenConversation {
-  return {payload: {conversationIDKey}, type: 'chat:openConversation'}
-}
-
-function openAttachmentPopup(
-  message: Constants.AttachmentMessage,
-  currentPath: Path
-): Constants.OpenAttachmentPopup {
-  return {payload: {message, currentPath}, type: 'chat:openAttachmentPopup'}
-}
-
-function setPreviousConversation(
-  conversationIDKey: ?Constants.ConversationIDKey
-): Constants.SetPreviousConversation {
-  return {
-    payload: {conversationIDKey},
-    type: 'chat:setPreviousConversation',
-  }
-}
-
-function threadLoadedOffline(conversationIDKey: Constants.ConversationIDKey): Constants.ThreadLoadedOffline {
-  return {payload: {conversationIDKey}, type: 'chat:threadLoadedOffline'}
-}
-
 function setSelectedRouteState(
   selectedConversation: Constants.ConversationIDKey,
   partialState: Object
@@ -463,115 +233,17 @@ function setSelectedRouteState(
   return setRouteState(I.List([chatTab, selectedConversation]), partialState)
 }
 
-function setInboxFilter(filter: string): Constants.SetInboxFilter {
-  return {payload: {filter}, type: 'chat:inboxFilter'}
-}
-
-function setInboxGlobalUntrustedState(
-  inboxGlobalUntrustedState: Constants.UntrustedState
-): Constants.SetInboxGlobalUntrustedState {
-  return {payload: {inboxGlobalUntrustedState}, type: 'chat:inboxGlobalUntrustedState'}
-}
-
-function updateThread(
-  thread: ChatTypes.UIMessages,
-  yourName: string,
-  yourDeviceName: string,
-  conversationIDKey: string,
-  append: boolean
-): Constants.UpdateThread {
-  return {
-    payload: {thread, yourName, yourDeviceName, conversationIDKey, append},
-    type: 'chat:updateThread',
-  }
-}
-
-function updatedNotifications(
-  conversationIDKey: Constants.ConversationIDKey,
-  notifications: Constants.NotificationsState
-): Constants.UpdatedNotifications {
-  return {
-    payload: {conversationIDKey, notifications},
-    type: 'chat:updatedNotifications',
-  }
-}
-
-function updateSnippet(
-  conversationIDKey: Constants.ConversationIDKey,
-  snippet: HiddenString
-): Constants.UpdateSnippet {
-  return {payload: {conversationIDKey, snippet}, type: 'chat:updateSnippet'}
-}
-
-function unboxConversations(
-  conversationIDKeys: Array<Constants.ConversationIDKey>,
-  reason: string,
-  force?: boolean = false,
-  forInboxSync?: boolean = false
-): Constants.UnboxConversations {
-  return {payload: {conversationIDKeys, reason, force, forInboxSync}, type: 'chat:unboxConversations'}
-}
-
-function selectNext(rows: Array<any>, direction: -1 | 1): Constants.InboxFilterSelectNext {
-  return {type: 'chat:inboxFilterSelectNext', payload: {rows, direction}}
-}
-
 export {
   appendMessages,
   attachmentLoaded,
-  attachmentSaveFailed,
-  attachmentSaveStart,
-  attachmentSaved,
   badgeAppForChat,
-  clearMessages,
-  clearRekey,
   downloadProgress,
-  getInboxAndUnbox,
-  inboxStale,
-  inboxSynced,
-  incomingMessage,
-  incomingTyping,
-  loadAttachment,
   loadAttachmentPreview,
-  loadingMessages,
-  markSeenMessage,
-  markThreadsStale,
-  openAttachmentPopup,
-  openConversation,
-  outboxMessageBecameReal,
   postMessage,
   prependMessages,
-  removeOutboxMessage,
   retryAttachment,
   retryMessage,
-  saveAttachment,
-  selectAttachment,
-  selectNext,
-  selectConversation,
-  setInboxFilter,
-  setInboxGlobalUntrustedState,
-  setLoaded,
-  setNotifications,
-  setPreviousConversation,
   setSelectedRouteState,
-  setTypers,
   startConversation,
-  threadLoadedOffline,
-  toggleChannelWideNotifications,
-  unboxConversations,
-  updateBrokenTracker,
-  updateInboxComplete,
-  updateInboxRekeyOthers,
-  updateInboxRekeySelf,
-  updateMetadata,
-  updatePaginationNext,
-  updatePaginationPrev,
-  updateSnippet,
-  updateSupersededByState,
   updateTempMessage,
-  updateThread,
-  updateTyping,
-  updatedMetadata,
-  updatedNotifications,
-  uploadProgress,
 }

@@ -1,6 +1,6 @@
 // @flow
 import * as Selectors from '../selectors'
-import * as Creators from '../../../../actions/chat/creators'
+import * as ChatGen from '../../../../actions/chat-gen'
 import {FilterSmallTeam} from '.'
 import {pausableConnect, type TypedState} from '../../../../util/container'
 
@@ -26,8 +26,8 @@ const mapStateToProps = (state: TypedState, {conversationIDKey, channelname, tea
 
 const mapDispatchToProps = (dispatch: Dispatch, {conversationIDKey}) => ({
   onSelectConversation: () => {
-    dispatch(Creators.setInboxFilter(''))
-    dispatch(Creators.selectConversation(conversationIDKey, true))
+    dispatch(ChatGen.createSetInboxFilter({filter: ''}))
+    dispatch(ChatGen.createSelectConversation({conversationIDKey, fromUser: true}))
   },
 })
 

@@ -26,6 +26,9 @@ type CompileActionFn = (ns: ActionNS, actionName: ActionName, desc: ActionDesc) 
 function compile(ns: ActionNS, {prelude, actions}: FileDesc): string {
   return `// @flow
 /* eslint-disable */
+
+// NOTE: This file is GENERATED from json files in actions/json. Run 'yarn build-actions' to regenerate
+
 import {type PayloadType, type ReturnType} from '../constants/types/more'
 ${prelude.join('\n')}
 
