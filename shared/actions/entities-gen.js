@@ -11,26 +11,10 @@ export const replaceEntity = 'entities:replaceEntity'
 export const subtractEntity = 'entities:subtractEntity'
 
 // Action Creators
-export const createDeleteEntity = (payload: {|keyPath: Array<string>, ids: I.List<string>|}) => ({
-  type: deleteEntity,
-  error: false,
-  payload,
-})
-export const createMergeEntity = (payload: {|keyPath: Array<string>, entities: I.Map<any, any> | I.List<any>|}) => ({
-  type: mergeEntity,
-  error: false,
-  payload,
-})
-export const createReplaceEntity = (payload: {|keyPath: Array<string>, entities: I.Map<any, any> | I.List<any>|}) => ({
-  type: replaceEntity,
-  error: false,
-  payload,
-})
-export const createSubtractEntity = (payload: {|keyPath: Array<string>, entities: I.List<any>|}) => ({
-  type: subtractEntity,
-  error: false,
-  payload,
-})
+export const createDeleteEntity = (payload: {|keyPath: Array<string>, ids: I.List<string>|}) => ({error: false, payload, type: deleteEntity})
+export const createMergeEntity = (payload: {|keyPath: Array<string>, entities: I.Map<any, any> | I.List<any>|}) => ({error: false, payload, type: mergeEntity})
+export const createReplaceEntity = (payload: {|keyPath: Array<string>, entities: I.Map<any, any> | I.List<any>|}) => ({error: false, payload, type: replaceEntity})
+export const createSubtractEntity = (payload: {|keyPath: Array<string>, entities: I.List<any>|}) => ({error: false, payload, type: subtractEntity})
 
 // Action Payloads
 export type DeleteEntityPayload = ReturnType<typeof createDeleteEntity>

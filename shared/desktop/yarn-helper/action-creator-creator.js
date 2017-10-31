@@ -87,20 +87,12 @@ function compileActionCreator(ns: ActionNS, actionName: ActionName, desc: Action
 
   return (
     `export const create${capitalize(actionName)} = ${printPayload(noErrorPayload)} => (
-  {
-    type: ${actionName},
-    error: false,
-    payload${Object.keys(noErrorPayload).length ? '' : ': undefined'},
-  }
+  { error: false, payload${Object.keys(noErrorPayload).length ? '' : ': undefined'}, type: ${actionName}, }
 )` +
     (canError
       ? `
   export const create${capitalize(actionName)}Error = ${printPayload(canError)} => (
-    {
-      type: ${actionName},
-      error: true,
-      payload${Object.keys(canError).length ? '' : ': undefined'},
-    }
+    { error: true, payload${Object.keys(canError).length ? '' : ': undefined'}, type: ${actionName}, }
   )`
       : '')
   )

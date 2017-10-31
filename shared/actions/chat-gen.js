@@ -18,56 +18,16 @@ export const updateBadging = 'chat:updateBadging'
 export const updateLatestMessage = 'chat:updateLatestMessage'
 
 // Action Creators
-export const createDeleteEntity = (payload: {|keyPath: Array<string>, ids: I.List<string>|}) => ({
-  type: deleteEntity,
-  error: false,
-  payload,
-})
-export const createExitSearch = (payload: {|skipSelectPreviousConversation: boolean|}) => ({
-  type: exitSearch,
-  error: false,
-  payload,
-})
-export const createMergeEntity = (payload: {|keyPath: Array<string>, entities: I.Map<any, any> | I.List<any>|}) => ({
-  type: mergeEntity,
-  error: false,
-  payload,
-})
-export const createOpenFolder = () => ({
-  type: openFolder,
-  error: false,
-  payload: undefined,
-})
-export const createPendingToRealConversation = (payload: {|oldKey: Constants.ConversationIDKey, newKey: Constants.ConversationIDKey|}) => ({
-  type: pendingToRealConversation,
-  error: false,
-  payload,
-})
-export const createReplaceEntity = (payload: {|keyPath: Array<string>, entities: I.Map<any, any> | I.List<any>|}) => ({
-  type: replaceEntity,
-  error: false,
-  payload,
-})
-export const createSubtractEntity = (payload: {|keyPath: Array<string>, entities: I.List<any>|}) => ({
-  type: subtractEntity,
-  error: false,
-  payload,
-})
-export const createUnboxMore = () => ({
-  type: unboxMore,
-  error: false,
-  payload: undefined,
-})
-export const createUpdateBadging = (payload: {|conversationIDKey: Constants.ConversationIDKey|}) => ({
-  type: updateBadging,
-  error: false,
-  payload,
-})
-export const createUpdateLatestMessage = (payload: {|conversationIDKey: Constants.ConversationIDKey|}) => ({
-  type: updateLatestMessage,
-  error: false,
-  payload,
-})
+export const createDeleteEntity = (payload: {|keyPath: Array<string>, ids: I.List<string>|}) => ({error: false, payload, type: deleteEntity})
+export const createExitSearch = (payload: {|skipSelectPreviousConversation: boolean|}) => ({error: false, payload, type: exitSearch})
+export const createMergeEntity = (payload: {|keyPath: Array<string>, entities: I.Map<any, any> | I.List<any>|}) => ({error: false, payload, type: mergeEntity})
+export const createOpenFolder = () => ({error: false, payload: undefined, type: openFolder})
+export const createPendingToRealConversation = (payload: {|oldKey: Constants.ConversationIDKey, newKey: Constants.ConversationIDKey|}) => ({error: false, payload, type: pendingToRealConversation})
+export const createReplaceEntity = (payload: {|keyPath: Array<string>, entities: I.Map<any, any> | I.List<any>|}) => ({error: false, payload, type: replaceEntity})
+export const createSubtractEntity = (payload: {|keyPath: Array<string>, entities: I.List<any>|}) => ({error: false, payload, type: subtractEntity})
+export const createUnboxMore = () => ({error: false, payload: undefined, type: unboxMore})
+export const createUpdateBadging = (payload: {|conversationIDKey: Constants.ConversationIDKey|}) => ({error: false, payload, type: updateBadging})
+export const createUpdateLatestMessage = (payload: {|conversationIDKey: Constants.ConversationIDKey|}) => ({error: false, payload, type: updateLatestMessage})
 
 // Action Payloads
 export type DeleteEntityPayload = ReturnType<typeof createDeleteEntity>

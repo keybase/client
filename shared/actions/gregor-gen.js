@@ -9,11 +9,7 @@ import * as GregorTypes from '../constants/types/flow-types-gregor'
 export const pushState = 'gregor:pushState'
 
 // Action Creators
-export const createPushState = (payload: {|state: GregorTypes.State, reason: RPCTypes.PushReason|}) => ({
-  type: pushState,
-  error: false,
-  payload,
-})
+export const createPushState = (payload: {|state: GregorTypes.State, reason: RPCTypes.PushReason|}) => ({error: false, payload, type: pushState})
 
 // Action Payloads
 export type PushStatePayload = ReturnType<typeof createPushState>
