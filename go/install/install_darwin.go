@@ -599,18 +599,11 @@ func InstallService(context Context, binPath string, force bool, timeout time.Du
 	log.Debug("Installing service (%s, timeout=%s)", label, timeout)
 	if _, err := installKeybaseService(context, service, plist, timeout, log); err != nil {
 		log.Errorf("Error installing Keybase service: %s", err)
-		pid, err := fallbackStartProcess(context, service, plist, log)
+		pid, err := fallbackStartProcessAndWaitForInfo(context, service, plist, context.GetServiceInfoPath(), timeout, log)
 		if err != nil {
 			return err
 		}
-		log.Debug("service process started: %d, waiting for service info file %s to exist", pid, context.GetServiceInfoPath())
-		spid := strconv.Itoa(pid)
-		_, err = libkb.WaitForServiceInfoFile(context.GetServiceInfoPath(), service.Label(), spid, timeout, log)
-		if err != nil {
-			log.Warning("error waiting for service info file %s: %s", context.GetServiceInfoPath(), err)
-			return err
-		}
-		log.Debug("service info file %s exists, fallback service start worked", context.GetServiceInfoPath())
+		log.Debug("fallback keybase service started, pid=%d", pid)
 		return nil
 	}
 	log.Debug("keybase service installed via launchd successfully")
@@ -650,18 +643,11 @@ func InstallKBFS(context Context, binPath string, force bool, skipMountIfNotAvai
 	log.Debug("Installing KBFS (%s, timeout=%s)", label, timeout)
 	if _, err := installKBFSService(context, kbfsService, plist, timeout, log); err != nil {
 		log.Errorf("error installing KBFS: %s", err)
-		pid, err := fallbackStartProcess(context, kbfsService, plist, log)
+		pid, err := fallbackStartProcessAndWaitForInfo(context, kbfsService, plist, context.GetKBFSInfoPath(), timeout, log)
 		if err != nil {
 			return err
 		}
-		log.Debug("kbfs process started: %d, waiting for kbfs info file %s to exist", pid, context.GetKBFSInfoPath())
-		spid := strconv.Itoa(pid)
-		_, err = libkb.WaitForServiceInfoFile(context.GetKBFSInfoPath(), kbfsService.Label(), spid, timeout, log)
-		if err != nil {
-			log.Warning("error waiting for kbfs info file %s: %s", context.GetKBFSInfoPath(), err)
-			return err
-		}
-		log.Debug("kbfs info file %s exists, kbfs service start worked", context.GetKBFSInfoPath())
+		log.Debug("fallback KBFS service started, pid=%d", pid)
 		return nil
 	}
 
@@ -1154,6 +1140,22 @@ func SystemLogPath() string {
 
 func fallbackPIDFilename(service launchd.Service) string {
 	return filepath.Join(os.TempDir(), "kbfb."+service.Label())
+}
+
+func fallbackStartProcessAndWaitForInfo(context Context, service launchd.Service, plist launchd.Plist, infoPath string, timeout time.Duration, log Log) (int, error) {
+	pid, err := fallbackStartProcess(context, service, plist, log)
+	if err != nil {
+		return 0, err
+	}
+	log.Debug("%s process started: %d, waiting for service info file %s to exist", service.Label(), pid, context.GetServiceInfoPath())
+	spid := strconv.Itoa(pid)
+	_, err = libkb.WaitForServiceInfoFile(infoPath, service.Label(), spid, timeout, log)
+	if err != nil {
+		log.Warning("error waiting for %s info file %s: %s", service.Label(), infoPath, err)
+		return 0, err
+	}
+	log.Debug("%s info file %s exists, fallback service start worked", service.Label(), infoPath)
+	return pid, nil
 }
 
 func fallbackStartProcess(context Context, service launchd.Service, plist launchd.Plist, log Log) (int, error) {
