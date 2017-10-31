@@ -15,6 +15,20 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 )
 
+func LoadTeamPlusApplicationKeys(ctx context.Context, g *libkb.GlobalContext, id keybase1.TeamID,
+	application keybase1.TeamApplication, refreshers keybase1.TeamRefreshers) (res keybase1.TeamPlusApplicationKeys, err error) {
+
+	team, err := Load(ctx, g, keybase1.LoadTeamArg{
+		ID:         id,
+		Public:     id.IsPublic(), // infer publicness from id
+		Refreshers: refreshers,
+	})
+	if err != nil {
+		return res, err
+	}
+	return team.ExportToTeamPlusApplicationKeys(ctx, keybase1.Time(0), application)
+}
+
 func membersUIDsToUsernames(ctx context.Context, g *libkb.GlobalContext, m keybase1.TeamMembers, forceRepoll bool) (keybase1.TeamMembersDetails, error) {
 	var ret keybase1.TeamMembersDetails
 	var err error
