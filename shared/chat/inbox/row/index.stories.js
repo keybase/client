@@ -76,7 +76,7 @@ const load = () => {
     ))
     .add('Team', () => (
       <Box style={{borderColor: 'black', borderStyle: 'solid', borderWidth: 1, width: 240}}>
-        <BigTeamHeader teamname="Keybase" onShowMenu={action('onShowHeader')} />
+        <BigTeamHeader memberCount={30} showMenu={false} teamname="Keybase" onSetShowMenu={action('onSetShowMenu')} />
         <BigTeamChannel teamname="Keybase" channelname="#general" {...commonChannel} />
         <BigTeamChannel teamname="Keybase" channelname="#random" showBold={true} {...commonChannel} />
         <BigTeamChannel
@@ -87,7 +87,7 @@ const load = () => {
           {...commonChannel}
         />
         <BigTeamChannel teamname="Keybase" channelname="#video-games" isMuted={true} {...commonChannel} />
-        <BigTeamHeader teamname="techtonica" onShowMenu={action('onShowHeader')} />
+        <BigTeamHeader memberCount={30} showMenu={false} teamname="techtonica" onSetShowMenu={action('onSetShowMenu')} />
         <BigTeamChannel teamname="techtonica" channelname="#general" isSelected={true} {...commonChannel} />
         <BigTeamChannel teamname="techtonica" channelname="#ignore-selected-below" {...commonChannel} />
         <BigTeamChannel

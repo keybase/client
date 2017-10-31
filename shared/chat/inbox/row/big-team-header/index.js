@@ -5,28 +5,49 @@ import {globalStyles, globalColors, globalMargins, glamorous} from '../../../../
 import {isMobile} from '../../../../constants/platform'
 
 type Props = {
+  memberCount: number,
+  onSetShowMenu: boolean => void,
+  showMenu: boolean,
   teamname: string,
-  onShowMenu: () => void,
 }
 
 class BigTeamHeader extends PureComponent<Props> {
   render() {
     console.warn('in render props are', this.props, this.props.showMenu)
     const onManageChat = () => {}
-    const onLeaveTeam = () => {}
+    const onViewTeam = () => {}
     return (
       <HeaderBox>
         <Avatar teamname={this.props.teamname} size={isMobile ? 24 : 16} />
-        <Text type="BodySmallSemibold" style={teamStyle}>{this.props.showMenu ? 'showing' : ''} {this.props.teamname}</Text>
-        <Icon className="icon" type="iconfont-gear" onClick={this.props.onShowMenu} style={iconStyle} />
+        <Text type="BodySmallSemibold" style={teamStyle}>
+          {this.props.teamname}
+        </Text>
+        <Icon className="icon" type="iconfont-gear" onClick={() => this.props.onSetShowMenu(true)} style={iconStyle} />
         {this.props.showMenu &&
           <PopupMenu
+            header={{
+              title: 'Header',
+              view: (
+                <Box style={teamHeaderStyle}>
+                  <Avatar teamname={this.props.teamname} size={16} />
+                  <Text type="BodySmallSemibold" style={teamStyle}>{this.props.teamname}</Text>
+                  <Text type="BodySmall">
+                    {this.props.memberCount + ' member' + (this.props.memberCount !== 1 ? 's' : '')}
+                  </Text>
+                </Box>
+              ),
+            }}
             items={[
               {onClick: onManageChat, title: 'Manage chat channels'},
-              {onClick: onLeaveTeam, title: 'Leave team', danger: true},
+              {onClick: onViewTeam, title: 'View team'},
             ]}
-            onHidden={() => this.props.setShowMenu(false)}
-            style={{position: 'relative', right: globalMargins.tiny, top: globalMargins.tiny}}
+            onHidden={() => this.props.onSetShowMenu(false)}
+            style={{
+              position: 'absolute',
+              right: globalMargins.tiny,
+              top: globalMargins.small,
+              zIndex: 20,
+            }}
           />}
       </HeaderBox>
     )
@@ -45,6 +66,13 @@ const iconStyle = {
       }),
 }
 
+const teamHeaderStyle = {
+  ...globalStyles.flexBoxColumn,
+  alignItems: 'center',
+  justifyContent: 'center',
+  padding: globalMargins.tiny,
+}
+
 const teamRowContainerStyle = {
   ...globalStyles.flexBoxRow,
   ...globalStyles.clickable,
@@ -54,6 +82,7 @@ const teamRowContainerStyle = {
   minHeight: isMobile ? globalMargins.large : globalMargins.medium,
   paddingLeft: globalMargins.tiny,
   paddingRight: isMobile ? globalMargins.tiny : globalMargins.xtiny,
+  position: 'relative',
 }
 
 const HeaderBox = glamorous(Box)({
