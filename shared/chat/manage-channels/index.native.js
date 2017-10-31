@@ -6,7 +6,9 @@ import {renameProp, compose, withProps} from 'recompose'
 
 import type {Props, RowProps} from '.'
 
-const Row = (props: RowProps & {onToggle: () => void}) => (
+const Row = (
+  props: RowProps & {selected: boolean, onToggle: () => void, showEdit: boolean, onEdit: () => void}
+) => (
   <Box style={_rowBox}>
     <Box
       style={{...globalStyles.flexBoxColumn, flex: 1, position: 'relative', paddingRight: globalMargins.tiny}}
@@ -36,7 +38,17 @@ const ManageChannels = (props: Props) => (
         <Icon style={_createIcon} type="iconfont-new" onClick={props.onCreate} />
         <Text type="BodyBigLink" onClick={props.onCreate}>New chat channel</Text>
       </Box>
-      {props.channels.map(c => <Row key={c.name} {...c} onToggle={() => props.onToggle(c.name)} />)}
+      {props.channels.map(c => (
+        <Row
+          key={c.name}
+          description={c.description}
+          name={c.name}
+          selected={props.nextChannelState[c.name]}
+          onToggle={() => props.onToggle(c.name)}
+          showEdit={!props.unsavedSubscriptions}
+          onEdit={() => props.onEdit(c.convID)}
+        />
+      ))}
     </ScrollView>
   </Box>
 )

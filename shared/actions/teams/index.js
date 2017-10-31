@@ -1,4 +1,5 @@
 // @flow
+import _ from 'lodash'
 import * as I from 'immutable'
 import * as Constants from '../../constants/teams'
 import * as ChatConstants from '../../constants/chat'
@@ -9,12 +10,11 @@ import * as Saga from '../../util/saga'
 import * as Creators from './creators'
 import * as ChatCreators from '../chat/creators'
 import engine from '../../engine'
-import map from 'lodash/map'
 import {replaceEntity} from '../entities'
 import {call, put, select, all} from 'redux-saga/effects'
 import {usernameSelector} from '../../constants/selectors'
 import {isMobile} from '../../constants/platform'
-import {navigateTo} from '../route-tree'
+import {navigateTo, pathSelector, setRouteState} from '../route-tree'
 import {chatTab, teamsTab} from '../../constants/tabs'
 
 import type {AnnotatedTeamList} from '../../constants/types/flow-types'
@@ -254,7 +254,7 @@ const _getDetails = function*(action: Constants.GetDetails): SagaGenerator<any, 
       })
     })
 
-    const invitesMap = map(results.annotatedActiveInvites, invite =>
+    const invitesMap = _.map(results.annotatedActiveInvites, invite =>
       Constants.makeInviteInfo({
         email: invite.type.c === RpcTypes.TeamsTeamInviteCategory.email ? invite.name : '',
         role: Constants.teamRoleByEnum[invite.role],
@@ -363,6 +363,7 @@ const _toggleChannelMembership = function*(
 ): SagaGenerator<any, any> {
   const {teamname, channelname} = action.payload
   const {conversationIDKey, participants, you} = yield select((state: TypedState) => {
+    // TODO this is broken. channelnames are not unique
     const conversationIDKey = Constants.getConversationIDKeyFromChannelName(state, channelname)
     return {
       conversationIDKey,
@@ -390,6 +391,38 @@ const _toggleChannelMembership = function*(
 
   // reload
   yield put(Creators.getChannels(teamname))
+}
+
+const _saveChannelMembership = function*(action: Constants.SaveChannelMembership): SagaGenerator<any, any> {
+  const state: TypedState = yield select(s => s)
+  const path = pathSelector(state)
+  const {teamname, channelState} = action.payload
+  const convIDs = Constants.getConvIdsFromTeamName(state, teamname)
+  const channelnameToConvID = _.keyBy(convIDs.toArray(), c => Constants.getChannelNameFromConvID(state, c))
+
+  const calls = _.map(channelState, (wantsToBeInChannel: boolean, channelname: string) => {
+    if (wantsToBeInChannel) {
+      return call(ChatTypes.localJoinConversationLocalRpcPromise, {
+        param: {
+          tlfName: teamname,
+          topicName: channelname,
+          topicType: ChatTypes.CommonTopicType.chat,
+          visibility: RpcTypes.CommonTLFVisibility.private,
+        },
+      })
+    }
+    return call(ChatTypes.localLeaveConversationLocalRpcPromise, {
+      param: {
+        convID: channelnameToConvID[channelname] &&
+          ChatConstants.keyToConversationID(channelnameToConvID[channelname]),
+      },
+    })
+  })
+
+  yield put(setRouteState(path, {waitingForSave: true}))
+  yield all(calls)
+  yield call(_getChannels, Creators.getChannels(teamname))
+  yield put(setRouteState(path, {waitingForSave: false}))
 }
 
 function* _createChannel(action: Constants.CreateChannel) {
@@ -453,6 +486,7 @@ const teamsSaga = function*(): SagaGenerator<any, any> {
   yield Saga.safeTakeEvery('teams:getChannels', _getChannels)
   yield Saga.safeTakeEvery('teams:getTeams', _getTeams)
   yield Saga.safeTakeEvery('teams:toggleChannelMembership', _toggleChannelMembership)
+  yield Saga.safeTakeEvery('teams:saveChannelMembership', _saveChannelMembership)
   yield Saga.safeTakeEvery('teams:createChannel', _createChannel)
   yield Saga.safeTakeEvery('teams:setupTeamHandlers', _setupTeamHandlers)
   yield Saga.safeTakeEvery('teams:addToTeam', _addToTeam)

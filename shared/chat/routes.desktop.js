@@ -6,6 +6,7 @@ import AttachmentInputPopup from './conversation/attachment-input/container'
 import BlockConversationWarning from './conversation/block-conversation-warning/container'
 import NewTeamDialogFromChat from './new-team-dialog-container.js'
 import ManageChannels from './manage-channels/container'
+import EditChannel from './manage-channels/edit-channel-container'
 import CreateChannel from './create-channel/container'
 import {nothingSelected} from '../constants/chat'
 import Render from './render.desktop'
@@ -36,7 +37,13 @@ const conversationRoute = makeRouteDefNode({
     manageChannels: {
       component: ManageChannels,
       tags: makeLeafTags({layerOnTop: true}),
-      children: {},
+      children: {
+        editChannel: {
+          component: EditChannel,
+          tags: makeLeafTags({layerOnTop: true}),
+          children: {},
+        },
+      },
     },
     createChannel: {
       component: CreateChannel,

@@ -8,12 +8,12 @@ import {connect, type TypedState} from '../../util/container'
 import {updateChannelName, updateTopic, deleteChannel} from '../../actions/teams/creators'
 
 const mapStateToProps = (state: TypedState, {navigateUp, routePath, routeProps}) => {
-  const conversationIDKey = routeProps.get('conversationIDKey')
-  const teamname = Constants.getTeamNameFromConvID(state, conversationIDKey)
-  const channelName = Constants.getChannelNameFromConvID(state, conversationIDKey)
-  const topic = Constants.getTopicFromConvID(state, conversationIDKey)
-  const yourRole = Constants.getYourRoleFromConvID(state, conversationIDKey)
-  const canDelete = yourRole && (Constants.isAdmin(yourRole) || Constants.isOwner(yourRole))
+  const conversationIDKey = routeProps.get('conversationIDKey') || ''
+  const teamname = Constants.getTeamNameFromConvID(state, conversationIDKey) || ''
+  const channelName = Constants.getChannelNameFromConvID(state, conversationIDKey) || ''
+  const topic = Constants.getTopicFromConvID(state, conversationIDKey) || ''
+  const yourRole = Constants.getYourRoleFromConvID(state, conversationIDKey) || 'reader'
+  const canDelete = (yourRole && (Constants.isAdmin(yourRole) || Constants.isOwner(yourRole))) || false
   return {
     conversationIDKey,
     teamname,
@@ -27,7 +27,6 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routePath, routePro
   const conversationIDKey = routeProps.get('conversationIDKey')
 
   return {
-    onBack: () => dispatch(navigateUp()),
     onCancel: () => dispatch(navigateUp()),
     _updateChannelName: (newChannelName: string) =>
       dispatch(updateChannelName(conversationIDKey, newChannelName)),
@@ -36,13 +35,14 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routePath, routePro
   }
 }
 
-const mergeProps = (stateProps, dispatchProps, ownProps) => {
+const mergeProps = (stateProps, dispatchProps, {routeProps}) => {
+  const waitingForSave = routeProps.get('waitingForSave')
+
   const deleteRenameDisabled = stateProps.channelName === 'general'
   return {
     teamname: stateProps.teamname,
     channelName: stateProps.channelName,
     topic: stateProps.topic,
-    onBack: dispatchProps.onBack,
     onCancel: dispatchProps.onCancel,
     onDelete: dispatchProps.onDelete,
     showDelete: stateProps.canDelete,
@@ -58,9 +58,11 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
         dispatchProps._updateTopic(newTopic)
       }
     },
+    waitingForSave,
   }
 }
-const ConnectedEditChannel: React.Component<{
-  routeProps: I.RecordOf<{conversationIDKey: ConversationIDKey}>,
-}> = connect(mapStateToProps, mapDispatchToProps, mergeProps)(ManageChannels)
+const ConnectedEditChannel: React.ComponentType<{
+  navigateUp: Function,
+  routeProps: I.RecordOf<{conversationIDKey: ConversationIDKey, waitingForSave: boolean}>,
+}> = connect(mapStateToProps, mapDispatchToProps, mergeProps)(EditChannel)
 export default ConnectedEditChannel

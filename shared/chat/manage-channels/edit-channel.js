@@ -1,19 +1,19 @@
 // @flow
 import * as React from 'react'
 import {compose, withState} from 'recompose'
-import {Avatar, Text, Box, Button, Input, ScrollView, Checkbox, Icon} from '../../common-adapters'
-import {globalStyles, globalColors, globalMargins, glamorous} from '../../styles'
+import {Avatar, Text, Box, Button, Input, Icon} from '../../common-adapters'
+import {globalStyles, globalColors, globalMargins} from '../../styles'
 
 type Props = {
   teamname: string,
   channelName: string,
   topic: string,
-  onBack: () => void,
   onCancel: () => void,
   onSave: (channelName: string, topic: string) => void,
   onDelete: () => void,
   showDelete: boolean,
   deleteRenameDisabled: boolean,
+  waitingForSave: boolean,
 }
 
 type TextState = {
@@ -84,6 +84,7 @@ const _EditChannel = (props: Props & TextState) => (
       <Button
         type="Primary"
         label="Save"
+        waiting={props.waitingForSave}
         disabled={props.channelName === props.newChannelName && props.topic === props.newTopic}
         onClick={() => props.onSave(props.newChannelName, props.newTopic)}
         style={{marginLeft: globalMargins.tiny}}
@@ -113,6 +114,7 @@ const _bottomRowStyle = {
   alignItems: 'center',
   justifyContent: 'center',
   position: 'relative',
+  minWidth: '500px',
 }
 
 export default EditChannel
