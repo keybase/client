@@ -1535,6 +1535,18 @@ func (o TeamGetArg) DeepCopy() TeamGetArg {
 	}
 }
 
+type TeamImplicitAdminsArg struct {
+	SessionID int    `codec:"sessionID" json:"sessionID"`
+	TeamName  string `codec:"teamName" json:"teamName"`
+}
+
+func (o TeamImplicitAdminsArg) DeepCopy() TeamImplicitAdminsArg {
+	return TeamImplicitAdminsArg{
+		SessionID: o.SessionID,
+		TeamName:  o.TeamName,
+	}
+}
+
 type TeamListArg struct {
 	SessionID            int    `codec:"sessionID" json:"sessionID"`
 	UserAssertion        string `codec:"userAssertion" json:"userAssertion"`
@@ -1855,6 +1867,7 @@ type TeamsInterface interface {
 	TeamCreate(context.Context, TeamCreateArg) (TeamCreateResult, error)
 	TeamCreateWithSettings(context.Context, TeamCreateWithSettingsArg) (TeamCreateResult, error)
 	TeamGet(context.Context, TeamGetArg) (TeamDetails, error)
+	TeamImplicitAdmins(context.Context, TeamImplicitAdminsArg) ([]TeamMemberDetails, error)
 	TeamList(context.Context, TeamListArg) (AnnotatedTeamList, error)
 	TeamListSubteamsRecursive(context.Context, TeamListSubteamsRecursiveArg) ([]TeamIDAndName, error)
 	TeamChangeMembership(context.Context, TeamChangeMembershipArg) error
@@ -1931,6 +1944,22 @@ func TeamsProtocol(i TeamsInterface) rpc.Protocol {
 						return
 					}
 					ret, err = i.TeamGet(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"teamImplicitAdmins": {
+				MakeArg: func() interface{} {
+					ret := make([]TeamImplicitAdminsArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]TeamImplicitAdminsArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]TeamImplicitAdminsArg)(nil), args)
+						return
+					}
+					ret, err = i.TeamImplicitAdmins(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -2323,6 +2352,11 @@ func (c TeamsClient) TeamCreateWithSettings(ctx context.Context, __arg TeamCreat
 
 func (c TeamsClient) TeamGet(ctx context.Context, __arg TeamGetArg) (res TeamDetails, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.teams.teamGet", []interface{}{__arg}, &res)
+	return
+}
+
+func (c TeamsClient) TeamImplicitAdmins(ctx context.Context, __arg TeamImplicitAdminsArg) (res []TeamMemberDetails, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.teams.teamImplicitAdmins", []interface{}{__arg}, &res)
 	return
 }
 

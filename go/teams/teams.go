@@ -1275,6 +1275,7 @@ func (t *Team) ForceMerkleRootUpdate(ctx context.Context) error {
 	return err
 }
 
+// All admins, owners, and implicit admins of this team.
 func (t *Team) AllAdmins(ctx context.Context) ([]keybase1.UserVersion, error) {
 	set := make(map[keybase1.UserVersion]bool)
 

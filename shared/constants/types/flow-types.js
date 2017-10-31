@@ -2498,6 +2498,14 @@ export function teamsTeamIgnoreRequestRpcPromise (request: (requestCommon & requ
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.teams.teamIgnoreRequest', request, (error, result) => error ? reject(error) : resolve(result)))
 }
 
+export function teamsTeamImplicitAdminsRpcChannelMap (configKeys: Array<string>, request: requestCommon & {callback?: ?(err: ?any, response: teamsTeamImplicitAdminsResult) => void} & {param: teamsTeamImplicitAdminsRpcParam}): EngineChannel {
+  return engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamImplicitAdmins', request)
+}
+
+export function teamsTeamImplicitAdminsRpcPromise (request: (requestCommon & {callback?: ?(err: ?any, response: teamsTeamImplicitAdminsResult) => void} & {param: teamsTeamImplicitAdminsRpcParam})): Promise<teamsTeamImplicitAdminsResult> {
+  return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.teams.teamImplicitAdmins', request, (error, result) => error ? reject(error) : resolve(result)))
+}
+
 export function teamsTeamLeaveRpcChannelMap (configKeys: Array<string>, request: requestCommon & requestErrorCallback & {param: teamsTeamLeaveRpcParam}): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamLeave', request)
 }
@@ -6352,6 +6360,10 @@ export type teamsTeamIgnoreRequestRpcParam = Exact<{
   username: string
 }>
 
+export type teamsTeamImplicitAdminsRpcParam = Exact<{
+  teamName: string
+}>
+
 export type teamsTeamLeaveRpcParam = Exact<{
   name: string,
   permanent: boolean
@@ -6665,6 +6677,7 @@ type teamsTeamCreateResult = TeamCreateResult
 type teamsTeamCreateSeitanTokenResult = string
 type teamsTeamCreateWithSettingsResult = TeamCreateResult
 type teamsTeamGetResult = TeamDetails
+type teamsTeamImplicitAdminsResult = ?Array<TeamMemberDetails>
 type teamsTeamListRequestsResult = ?Array<TeamJoinRequest>
 type teamsTeamListResult = AnnotatedTeamList
 type teamsTeamListSubteamsRecursiveResult = ?Array<TeamIDAndName>

@@ -96,6 +96,19 @@ func (h *TeamsHandler) TeamGet(ctx context.Context, arg keybase1.TeamGetArg) (re
 	return teams.Details(ctx, h.G().ExternalG(), arg.Name, arg.ForceRepoll)
 }
 
+func (h *TeamsHandler) TeamImplicitAdmins(ctx context.Context, arg keybase1.TeamImplicitAdminsArg) (res []keybase1.TeamMemberDetails, err error) {
+	defer h.G().CTraceTimed(ctx, fmt.Sprintf("TeamImplicitAdmins(%s)", arg.TeamName), func() error { return err })()
+	teamName, err := keybase1.TeamNameFromString(arg.TeamName)
+	if err != nil {
+		return nil, err
+	}
+	teamID, err := teams.ResolveNameToID(ctx, h.G().ExternalG(), teamName)
+	if err != nil {
+		return nil, err
+	}
+	return teams.ImplicitAdmins(ctx, h.G().ExternalG(), teamID)
+}
+
 func (h *TeamsHandler) TeamList(ctx context.Context, arg keybase1.TeamListArg) (res keybase1.AnnotatedTeamList, err error) {
 	defer h.G().CTraceTimed(ctx, fmt.Sprintf("TeamList(%s)", arg.UserAssertion), func() error { return err })()
 	x, err := teams.List(ctx, h.G().ExternalG(), arg)
