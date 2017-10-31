@@ -103,7 +103,7 @@ const HeaderBox = glamorous(Box)({
 
 const teamStyle = {
   color: globalColors.darkBlue,
-  flex: 1,
+  flexGrow: 1,
   marginLeft: globalMargins.tiny,
   marginRight: globalMargins.tiny,
 }
