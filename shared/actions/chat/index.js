@@ -154,7 +154,8 @@ function* _incomingMessage(action: Constants.IncomingMessage): SagaGenerator<any
           message.outboxID
         ) {
           const outboxID: Constants.OutboxIDKey = message.outboxID
-          const pendingMessage = yield select(Shared.messageOutboxIDSelector, conversationIDKey, outboxID)
+          const state = yield select()
+          const pendingMessage = Shared.messageOutboxIDSelector(state, conversationIDKey, outboxID)
 
           if (pendingMessage) {
             yield all([
