@@ -78,7 +78,9 @@ const load = () => {
       <Box style={{borderColor: 'black', borderStyle: 'solid', borderWidth: 1, width: 240}}>
         <BigTeamHeader
           memberCount={30}
+          onManageChannels={action('onManageChannels')}
           onSetShowMenu={action('onSetShowMenu')}
+          onViewTeam={action('onViewTeam')}
           showMenu={false}
           teamname="Keybase"
         />
@@ -94,7 +96,9 @@ const load = () => {
         <BigTeamChannel teamname="Keybase" channelname="#video-games" isMuted={true} {...commonChannel} />
         <BigTeamHeader
           memberCount={30}
+          onManageChannels={action('onManageChannels')}
           onSetShowMenu={action('onSetShowMenu')}
+          onViewTeam={action('onViewTeam')}
           showMenu={false}
           teamname="techtonica"
         />

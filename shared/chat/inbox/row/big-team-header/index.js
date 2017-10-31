@@ -6,7 +6,9 @@ import {isMobile} from '../../../../constants/platform'
 
 type Props = {
   memberCount: number,
+  onManageChannels: () => void,
   onSetShowMenu: boolean => void,
+  onViewTeam: () => void,
   showMenu: boolean,
   teamname: string,
 }
