@@ -1,6 +1,7 @@
 package systests
 
 import (
+	"fmt"
 	"strconv"
 	"testing"
 	"time"
@@ -123,4 +124,69 @@ func TestTeamInviteSeitanFailures(t *testing.T) {
 	role, err := t0.MemberRole(context.TODO(), teams.NewUserVersion(roo.uid, 1))
 	require.NoError(t, err)
 	require.Equal(t, keybase1.TeamRole_NONE, role)
+}
+
+func TestTeamCreateSeitanAndCancel(t *testing.T) {
+	tt := newTeamTester(t)
+	defer tt.cleanup()
+
+	own := tt.addUser("own")
+
+	team := own.createTeam()
+
+	t.Logf("Created team %q", team)
+
+	var labelSms keybase1.SeitanIKeyLabelSms
+	labelSms.F = "Patricia S. Goldman-Rakic"
+	labelSms.N = "+481II222333"
+
+	_, err := own.teamsClient.TeamCreateSeitanToken(context.TODO(), keybase1.TeamCreateSeitanTokenArg{
+		Name:  team,
+		Role:  keybase1.TeamRole_WRITER,
+		Label: keybase1.NewSeitanIKeyLabelWithSms(labelSms),
+	})
+	require.NoError(t, err)
+
+	t.Logf("Created Seitan token")
+
+	details, err := own.teamsClient.TeamGet(context.TODO(), keybase1.TeamGetArg{
+		Name:        team,
+		ForceRepoll: true,
+	})
+	require.NoError(t, err)
+
+	var inviteID keybase1.TeamInviteID
+
+	require.Equal(t, 1, len(details.AnnotatedActiveInvites))
+	for key, invite := range details.AnnotatedActiveInvites {
+		require.Equal(t, keybase1.TeamRole_WRITER, invite.Role)
+		require.EqualValues(t, fmt.Sprintf("%s (%s)", labelSms.F, labelSms.N), invite.Name)
+
+		category, err := invite.Type.C()
+		require.NoError(t, err)
+		require.Equal(t, keybase1.TeamInviteCategory_SEITAN, category)
+
+		// Test rest of the params, unrelated to Seitan.
+		require.Equal(t, key, invite.Id)
+		require.Equal(t, keybase1.UserVersion{}, invite.Uv)
+		require.Equal(t, keybase1.UserVersion{Uid: own.uid, EldestSeqno: 1}, invite.Inviter)
+		require.Equal(t, own.username, invite.InviterUsername)
+		require.Equal(t, team, invite.TeamName)
+
+		inviteID = invite.Id
+	}
+
+	t.Logf("Checked that invite was added correctly, removing invite by id")
+
+	err = own.teamsClient.TeamRemoveMember(context.TODO(), keybase1.TeamRemoveMemberArg{
+		Name:     team,
+		InviteID: inviteID,
+	})
+	require.NoError(t, err)
+
+	t.Logf("Removed, checking if there are no active invites")
+
+	t0, err := teams.GetTeamByNameForTest(context.TODO(), t, own.tc.G, team, false /* public */, true /* needAdmin */)
+	require.NoError(t, err)
+	require.Equal(t, 0, t0.NumActiveInvites())
 }
