@@ -54,7 +54,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, setRouteState, rout
   _onAddPeople: (teamname: Constants.Teamname) =>
     dispatch(navigateAppend([{props: {teamname}, selected: 'addPeople'}])),
   _onCreateSubteam: (teamname: Constants.Teamname) =>
-    dispatch(navigateAppend([{props: {teamname}, selected: 'showNewTeamDialog'}])),
+    dispatch(navigateAppend([{props: {name: `${teamname}.`}, selected: 'showNewTeamDialog'}])),
   _onInviteByEmail: (teamname: Constants.Teamname) =>
     dispatch(navigateAppend([{props: {teamname}, selected: 'inviteByEmail'}])),
   _onLeaveTeam: (teamname: Constants.Teamname) =>
