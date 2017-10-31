@@ -1,10 +1,7 @@
 // @flow
 /* eslint-disable */
+import {type PayloadType, type ReturnType} from '../constants/types/more'
 import * as Constants from '../constants/signup'
-
-type _ExtractReturn<B, F: (...args: any[]) => B> = B
-export type ReturnType<F> = _ExtractReturn<*, F>
-export type PayloadType<F> = $PropertyType<ReturnType<F>, 'payload'>
 
 // Constants
 export const checkInviteCode = 'signup:checkInviteCode'
@@ -21,5 +18,11 @@ export const createCheckInviteCodeError = (payload: {|errorText: string|}) => ({
   payload,
 })
 
+// Action Payloads
+export type CheckInviteCodePayload = ReturnType<typeof createCheckInviteCode>
+
 // All Actions
-export type Actions = ReturnType<typeof createCheckInviteCode> | ReturnType<typeof createCheckInviteCodeError>
+// prettier-ignore
+export type Actions =
+  | ReturnType<typeof createCheckInviteCode>
+  | ReturnType<typeof createCheckInviteCodeError>

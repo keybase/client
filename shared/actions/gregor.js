@@ -158,9 +158,7 @@ function* handleChatBanner(items: Array<Constants.NonNullGregorItem>): SagaGener
   }
 }
 
-function* handlePushState(
-  pushAction: GregorGen.ReturnType<typeof GregorGen.createPushState>
-): SagaGenerator<any, any> {
+function* handlePushState(pushAction: GregorGen.PushStatePayload): SagaGenerator<any, any> {
   if (!pushAction.error) {
     const {payload: {state}} = pushAction
     const nonNullItems = toNonNullGregorItems(state)

@@ -1,11 +1,8 @@
 // @flow
 /* eslint-disable */
+import {type PayloadType, type ReturnType} from '../constants/types/more'
 import * as Constants from '../constants/entities'
 import * as I from 'immutable'
-
-type _ExtractReturn<B, F: (...args: any[]) => B> = B
-export type ReturnType<F> = _ExtractReturn<*, F>
-export type PayloadType<F> = $PropertyType<ReturnType<F>, 'payload'>
 
 // Constants
 export const deleteEntity = 'entities:deleteEntity'
@@ -35,5 +32,16 @@ export const createSubtractEntity = (payload: {|keyPath: Array<string>, entities
   payload,
 })
 
+// Action Payloads
+export type DeleteEntityPayload = ReturnType<typeof createDeleteEntity>
+export type MergeEntityPayload = ReturnType<typeof createMergeEntity>
+export type ReplaceEntityPayload = ReturnType<typeof createReplaceEntity>
+export type SubtractEntityPayload = ReturnType<typeof createSubtractEntity>
+
 // All Actions
-export type Actions = ReturnType<typeof createDeleteEntity> | ReturnType<typeof createMergeEntity> | ReturnType<typeof createReplaceEntity> | ReturnType<typeof createSubtractEntity>
+// prettier-ignore
+export type Actions =
+  | ReturnType<typeof createDeleteEntity>
+  | ReturnType<typeof createMergeEntity>
+  | ReturnType<typeof createReplaceEntity>
+  | ReturnType<typeof createSubtractEntity>

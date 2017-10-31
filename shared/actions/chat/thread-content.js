@@ -629,7 +629,7 @@ function* _markAsRead(
 }
 
 function _updateBadging(
-  {payload: {conversationIDKey, blah}}: ChatGen.ReturnType<typeof ChatGen.createUpdateBadging>,
+  {payload: {conversationIDKey, blah}}: ChatGen.UpdateBadgingPayload,
   lastMessageID: ?Constants.MessageID
 ) {
   // Update gregor's view of the latest message we've read.
@@ -870,7 +870,7 @@ function* registerSagas(): Saga.SagaGenerator<any, any> {
     _updateBadging,
     (
       state: TypedState,
-      {payload: {conversationIDKey}}: ChatGen.ReturnType<typeof ChatGen.createUpdateBadging>
+      {payload: {conversationIDKey}}: ChatGen.UpdateBadgingPayload
     ) => Constants.lastMessageID(state, conversationIDKey)
   )
   yield Saga.safeTakeEveryPure('chat:updateTempMessage', _updateMessageEntity)

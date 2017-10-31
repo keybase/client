@@ -24,7 +24,7 @@ function* _newChat(action: Constants.NewChat): Saga.SagaGenerator<any, any> {
 }
 
 function _exitSearch(
-  {payload: {skipSelectPreviousConversation}}: ChatGen.ReturnType<typeof ChatGen.createExitSearch>,
+  {payload: {skipSelectPreviousConversation}}: ChatGen.ExitSearchPayload,
   [userInputItemIds, previousConversation]: [
     ReturnValue<typeof SearchConstants.getUserInputItemIds>,
     ReturnValue<typeof Selectors.previousConversationSelector>,

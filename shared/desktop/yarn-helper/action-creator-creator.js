@@ -26,11 +26,8 @@ type CompileActionFn = (ns: ActionNS, actionName: ActionName, desc: ActionDesc) 
 function compile(ns: ActionNS, {prelude, actions}: FileDesc): string {
   return `// @flow
 /* eslint-disable */
+import {type PayloadType, type ReturnType} from '../constants/types/more'
 ${prelude}
-
-type _ExtractReturn<B, F: (...args: any[]) => B> = B
-export type ReturnType<F> = _ExtractReturn<*, F>
-export type PayloadType<F> = $PropertyType<ReturnType<F>, 'payload'>
 
 // Constants
 ${compileActions(ns, actions, compileReduxTypeConstant)}
@@ -38,24 +35,32 @@ ${compileActions(ns, actions, compileReduxTypeConstant)}
 // Action Creators
 ${compileActions(ns, actions, compileActionCreator)}
 
+// Action Payloads
+${compileActions(ns, actions, compileActionPayloads)}
+
 // All Actions
 ${compileAllActionsType(ns, actions)}
   `
 }
 
 function compileAllActionsType(ns: ActionNS, actions: Actions): string {
-  return `export type Actions = ${Object.keys(actions)
+  const actionsTypes = Object.keys(actions)
     .map(
       (name: ActionName) =>
         `ReturnType<typeof create${capitalize(name)}>` +
-        (actions[name].canError ? ` | ReturnType<typeof create${capitalize(name)}Error>` : '')
+        (actions[name].canError ? `\n  | ReturnType<typeof create${capitalize(name)}Error>` : '')
     )
-    .join('|')}`
+    .sort()
+    .join('\n  | ')
+  return `// prettier-ignore
+export type Actions =
+  | ${actionsTypes}`
 }
 
 function compileActions(ns: ActionNS, actions: Actions, compileActionFn: CompileActionFn): string {
   return Object.keys(actions)
     .map((actionName: ActionName) => compileActionFn(ns, actionName, actions[actionName]))
+    .sort()
     .join('\n')
 }
 
@@ -71,6 +76,10 @@ function printPayload(p: Object) {
   return Object.keys(p).length
     ? '(payload: {|' + Object.keys(p).map(key => `${key}: ${p[key]}`).join(',\n') + '|})'
     : '()'
+}
+
+function compileActionPayloads(ns: ActionNS, actionName: ActionName, desc: ActionDesc) {
+  return `export type ${capitalize(actionName)}Payload = ReturnType<typeof create${capitalize(actionName)}>`
 }
 
 function compileActionCreator(ns: ActionNS, actionName: ActionName, desc: ActionDesc) {
