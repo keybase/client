@@ -32,7 +32,6 @@
     "start-hot": "yarn run _helper start-hot",
     "start-prod": "yarn run _helper start-prod",
     "rn-start": "./node_modules/react-native/scripts/packager.sh --resetCache",
-    "rn-unsigned-build-android": "cross-env-shell BABEL_ENV=",
     "rn-gobuild-ios": "./react-native/gobuild.sh ios",
     "rn-gobuild-android": "./react-native/gobuild.sh android",
     "rn-packager-wipe-cache": "watchman watch-del-all && rm -rf node_modules && yarn && node ./react-native/wipe-cache.js",
