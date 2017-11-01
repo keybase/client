@@ -8,28 +8,28 @@ import (
 	context "golang.org/x/net/context"
 )
 
-type RefreshArg struct {
+type HomeUIRefreshArg struct {
 }
 
-func (o RefreshArg) DeepCopy() RefreshArg {
-	return RefreshArg{}
+func (o HomeUIRefreshArg) DeepCopy() HomeUIRefreshArg {
+	return HomeUIRefreshArg{}
 }
 
 type HomeUiInterface interface {
-	Refresh(context.Context) error
+	HomeUIRefresh(context.Context) error
 }
 
 func HomeUiProtocol(i HomeUiInterface) rpc.Protocol {
 	return rpc.Protocol{
 		Name: "keybase.1.homeUi",
 		Methods: map[string]rpc.ServeHandlerDescription{
-			"refresh": {
+			"homeUIRefresh": {
 				MakeArg: func() interface{} {
-					ret := make([]RefreshArg, 1)
+					ret := make([]HomeUIRefreshArg, 1)
 					return &ret
 				},
 				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					err = i.Refresh(ctx)
+					err = i.HomeUIRefresh(ctx)
 					return
 				},
 				MethodType: rpc.MethodNotify,
@@ -42,7 +42,7 @@ type HomeUiClient struct {
 	Cli rpc.GenericClient
 }
 
-func (c HomeUiClient) Refresh(ctx context.Context) (err error) {
-	err = c.Cli.Notify(ctx, "keybase.1.homeUi.refresh", []interface{}{RefreshArg{}})
+func (c HomeUiClient) HomeUIRefresh(ctx context.Context) (err error) {
+	err = c.Cli.Notify(ctx, "keybase.1.homeUi.homeUIRefresh", []interface{}{HomeUIRefreshArg{}})
 	return
 }

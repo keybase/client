@@ -6886,7 +6886,7 @@ export type incomingCallMapType = Exact<{
     }>,
     response: CommonResponseHandler
   ) => void,
-  'keybase.1.homeUi.refresh'?: (
+  'keybase.1.homeUi.homeUIRefresh'?: (
     params: Exact<{}>,
     response: CommonResponseHandler
   ) => void,

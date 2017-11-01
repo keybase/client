@@ -3,7 +3,7 @@
   "imports": [],
   "types": [],
   "messages": {
-    "refresh": {
+    "homeUIRefresh": {
       "request": [],
       "response": null,
       "oneway": true
