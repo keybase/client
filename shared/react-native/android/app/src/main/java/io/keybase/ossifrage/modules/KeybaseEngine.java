@@ -86,7 +86,6 @@ public class KeybaseEngine extends ReactContextBaseJavaModule implements Killabl
     public void destroy(){
         try {
             executor.shutdownNow();
-            reset();
             executor.awaitTermination(30, TimeUnit.SECONDS);
             executor = null;
         } catch (Exception e) {
