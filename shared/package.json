@@ -37,8 +37,8 @@
     "rn-gobuild-android": "./react-native/gobuild.sh android",
     "rn-packager-wipe-cache": "watchman watch-del-all && rm -rf node_modules && yarn && node ./react-native/wipe-cache.js",
     "rn-test-ios": "xcodebuild test -project ./react-native/ios/Keybase.xcodeproj -scheme 'Keybase For Test' -destination 'platform=iOS Simulator,name=iPhone 6s,OS=9.3'",
-    "rn-jsbuild-ios": "mkdir -p react-native/ios/dist && react-native bundle --platform ios --dev false --entry-file index.ios.js --bundle-output react-native/ios/dist/main.jsbundle --sourcemap-output react-native/ios/dist/main.jsbundle.sourcemap",
-    "rn-jsbuild-android": "mkdir -p react-native/android/dist && react-native bundle --platform android --dev false --entry-file index.android.js --bundle-output react-native/android/dist/main.jsbundle --sourcemap-output react-native/android/dist/main.jsbundle.sourcemap",
+    "rn-build-ios": "mkdir -p react-native/ios/dist && react-native bundle --platform ios --dev false --entry-file index.ios.js --bundle-output react-native/ios/dist/main.jsbundle --sourcemap-output react-native/ios/dist/main.jsbundle.sourcemap",
+    "rn-build-android": "mkdir -p react-native/android/dist && react-native bundle --platform android --dev false --entry-file index.android.js --bundle-output react-native/android/dist/main.jsbundle --sourcemap-output react-native/android/dist/main.jsbundle.sourcemap",
     "storybook": "start-storybook -s . -p 6006",
     "rn-storybook": "storybook start -p 7007",
     "build-storybook": "build-storybook",
@@ -134,8 +134,7 @@
     "shallowequal": "1.0.2",
     "tlds": "^1.198.0",
     "typedarray-to-buffer": "3.1.2",
-    "util": "0.10.3",
-    "whatwg-url": "^6.3.0"
+    "util": "0.10.3"
   },
   "devDependencies": {
     "@storybook/addon-storyshots": "3.2.13",
@@ -149,7 +148,6 @@
     "babel-loader": "7.1.2",
     "babel-plugin-react-transform": "3.0.0",
     "babel-plugin-transform-builtin-extend": "1.1.2",
-    "babel-plugin-transform-new-target": "7.0.0-alpha.14",
     "babel-plugin-transform-runtime": "6.23.0",
     "babel-preset-env": "1.6.1",
     "babel-preset-es2015": "6.24.1",

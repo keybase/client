@@ -26,8 +26,6 @@ import type {SagaGenerator} from '../../constants/types/saga'
 import type {TypedState} from '../../constants/reducer'
 import type {AppLink} from '../../constants/app'
 import {parseUserId} from '../../util/platforms'
-import {URL} from 'whatwg-url'
-import {urlToUsername} from './app-link'
 
 function editProfile(bio: string, fullName: string, location: string): Constants.EditProfile {
   return {payload: {bio, fullName, location}, type: Constants.editProfile}
@@ -226,16 +224,8 @@ function outputInstructionsActionLink(): Constants.OutputInstructionsActionLink 
 }
 
 function* _onAppLink(action: AppLink): SagaGenerator<any, any> {
-  const link = action.payload.link
-  let url
-  try {
-    url = new URL(link)
-  } catch (e) {
-    console.log('AppLink: could not parse link', link)
-    return
-  }
-  const username = urlToUsername(url)
-  console.log('AppLink: url', url.href, 'username', username)
+  const match = action.payload.link.match(/^https:\/\/keybase\.io\/(\w+)$/)
+  const username = match && match[1]
   if (username) {
     yield put(showUserProfile(username))
   }
