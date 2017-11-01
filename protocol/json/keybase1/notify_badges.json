@@ -51,14 +51,14 @@
         {
           "type": {
             "type": "array",
-            "items": "TeamID"
+            "items": "string"
           },
-          "name": "newTeamIDs"
+          "name": "newTeamNames"
         },
         {
           "type": {
             "type": "array",
-            "items": "TeamID"
+            "items": "string"
           },
           "name": "newTeamAccessRequests"
         }
