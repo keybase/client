@@ -488,29 +488,52 @@ protocol teams {
   }
 
   TeamCreateResult teamCreate(int sessionID, string name, boolean sendChatNotification);
+
   TeamCreateResult teamCreateWithSettings(int sessionID, string name, boolean sendChatNotification, TeamSettings settings);
+
   TeamDetails teamGet(int sessionID, string name, boolean forceRepoll);
+
+  // List all the admins of ancestor teams.
+  // Includes admins of the specified team only if they are also admins of ancestor teams.
+  array<TeamMemberDetails> teamImplicitAdmins(int sessionID, string teamName);
+
   AnnotatedTeamList teamList(int sessionID, string userAssertion, boolean all, boolean includeImplicitTeams);
+
   // admin only
   array<TeamIDAndName> teamListSubteamsRecursive(int sessionID, string parentTeamName, boolean forceRepoll);
+
   void teamChangeMembership(int sessionID, string name, TeamChangeReq req);
+
   TeamAddMemberResult teamAddMember(int sessionID, string name, string email, string username, TeamRole role, boolean sendChatNotification);
+
   void teamRemoveMember(int sessionID, string name, string username, string email);
+
   void teamLeave(int sessionID, string name, boolean permanent);
+
   void teamEditMember(int sessionID, string name, string username, TeamRole role);
+
   void teamRename(int sessionID, TeamName prevName, TeamName newName);
+
   void teamAcceptInvite(int sessionID, string token);
+
   TeamRequestAccessResult teamRequestAccess(int sessionID, string name);
+
   // Accept an invite or request to join a team, try both.
   void teamAcceptInviteOrRequestAccess(int sessionID, string tokenOrName);
+
   array<TeamJoinRequest> teamListRequests(int sessionID);
+
   void teamIgnoreRequest(int sessionID, string name, string username);
+
   // Get a list of all recursive subteams recursively. Sorted alphabetically like a tree.
   // Team must be a root team.
   // Example: a -> [a, a.b, a.b.c, a.b.d, a.e.f, a.e.g]
   TeamTreeResult teamTree(int sessionID, TeamName name);
+
   void teamDelete(int sessionID, string name);
+
   void teamSetSettings(int sessionID, string name, TeamSettings settings);
+
   string teamCreateSeitanToken(int sessionID, string name, TeamRole role);
 
   record BulkRes {

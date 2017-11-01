@@ -1380,6 +1380,22 @@
       ],
       "response": "TeamDetails"
     },
+    "teamImplicitAdmins": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "teamName",
+          "type": "string"
+        }
+      ],
+      "response": {
+        "type": "array",
+        "items": "TeamMemberDetails"
+      }
+    },
     "teamList": {
       "request": [
         {

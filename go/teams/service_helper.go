@@ -114,6 +114,22 @@ func Details(ctx context.Context, g *libkb.GlobalContext, name string, forceRepo
 	return res, nil
 }
 
+// List all the admins of ancestor teams.
+// Includes admins of the specified team only if they are also admins of ancestor teams.
+func ImplicitAdmins(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID) (res []keybase1.TeamMemberDetails, err error) {
+	defer g.CTraceTimed(ctx, fmt.Sprintf("teams::ImplicitAdmins(%v)", teamID), func() error { return err })()
+	if teamID.IsRootTeam() {
+		// Root teams have only explicit admins.
+		return nil, nil
+	}
+	uvs, err := g.GetTeamLoader().ImplicitAdmins(ctx, teamID)
+	if err != nil {
+		return nil, err
+	}
+
+	return userVersionsToDetails(ctx, g, uvs, true /* forceRepoll */)
+}
+
 func members(ctx context.Context, g *libkb.GlobalContext, t *Team, forceRepoll bool) (keybase1.TeamMembersDetails, error) {
 	members, err := t.Members()
 	if err != nil {
