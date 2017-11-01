@@ -27,13 +27,14 @@ function* _newChat(action: ChatGen.NewChatPayload): Saga.SagaGenerator<any, any>
   yield Saga.put(SearchCreators.searchSuggestions('chatSearch'))
 }
 
-function _exitSearch(
-  {payload: {skipSelectPreviousConversation}}: ChatGen.ExitSearchPayload,
-  [userInputItemIds, previousConversation]: [
-    ReturnValue<typeof SearchConstants.getUserInputItemIds>,
-    ReturnValue<typeof Selectors.previousConversationSelector>,
-  ]
-) {
+function _exitSearch({payload: {skipSelectPreviousConversation}}: ChatGen.ExitSearchPayload, s: TypedState) {
+  const userInputItemIds: ReturnValue<
+    typeof SearchConstants.getUserInputItemIds
+  > = SearchConstants.getUserInputItemIds(s, {searchKey: 'chatSearch'})
+  const previousConversation: ReturnValue<
+    typeof Selectors.previousConversationSelector
+  > = Selectors.previousConversationSelector(s)
+
   return Saga.all([
     Saga.put(SearchCreators.clearSearchResults('chatSearch')),
     Saga.put(SearchCreators.setUserInputItems('chatSearch', [])),
@@ -74,10 +75,7 @@ function* registerSagas(): Saga.SagaGenerator<any, any> {
     SearchConstants.isUserInputItemsUpdated('chatSearch'),
     _updateTempSearchConversation
   )
-  yield Saga.safeTakeEveryPure('chat:exitSearch', _exitSearch, s => [
-    SearchConstants.getUserInputItemIds(s, {searchKey: 'chatSearch'}),
-    Selectors.previousConversationSelector(s),
-  ])
+  yield Saga.safeTakeEveryPure('chat:exitSearch', _exitSearch)
   yield Saga.safeTakeEvery('chat:newChat', _newChat)
 }
 
