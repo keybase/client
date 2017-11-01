@@ -1838,6 +1838,9 @@ func (fbo *folderBranchOps) Lookup(ctx context.Context, dir Node, name string) (
 		return nil, EntryInfo{}, err
 	}
 
+	// It's racy for the goroutine to write directly to return param
+	// `node`, so use a new param for that.
+	var n Node
 	var de DirEntry
 	err = runUnlessCanceled(ctx, func() error {
 		if fbo.nodeCache.IsUnlinked(dir) {
@@ -1852,7 +1855,7 @@ func (fbo *folderBranchOps) Lookup(ctx context.Context, dir Node, name string) (
 			return err
 		}
 
-		node, de, err = fbo.blocks.Lookup(ctx, lState, md.ReadOnly(), dir, name)
+		n, de, err = fbo.blocks.Lookup(ctx, lState, md.ReadOnly(), dir, name)
 		if err != nil {
 			return err
 		}
@@ -1861,7 +1864,7 @@ func (fbo *folderBranchOps) Lookup(ctx context.Context, dir Node, name string) (
 	if err != nil {
 		return nil, EntryInfo{}, err
 	}
-	return node, de.EntryInfo, nil
+	return n, de.EntryInfo, nil
 }
 
 // statEntry is like Stat, but it returns a DirEntry. This is used by
