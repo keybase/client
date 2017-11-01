@@ -1,5 +1,6 @@
 // @flow
 import {makeRouteDefNode, makeLeafTags} from '../route-tree'
+import {MaybePopupHoc} from '../common-adapters'
 import Conversation from './conversation/container'
 import AttachmentPopup from './conversation/attachment-popup/container'
 import AttachmentInputPopup from './conversation/attachment-input/container'
@@ -10,6 +11,7 @@ import EditChannel from './manage-channels/edit-channel-container'
 import CreateChannel from './create-channel/container'
 import {nothingSelected} from '../constants/chat'
 import Render from './render.desktop'
+import {isMobile} from '../constants/platform'
 
 const conversationRoute = makeRouteDefNode({
   component: Conversation,
@@ -39,8 +41,8 @@ const conversationRoute = makeRouteDefNode({
       tags: makeLeafTags({layerOnTop: true}),
       children: {
         editChannel: {
-          component: EditChannel,
-          tags: makeLeafTags({layerOnTop: true}),
+          component: MaybePopupHoc(false)(EditChannel),
+          tags: makeLeafTags({hideStatusBar: true, layerOnTop: !isMobile}),
           children: {},
         },
       },
