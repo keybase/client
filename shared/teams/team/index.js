@@ -18,6 +18,7 @@ import {OpenTeamSettingButton} from '../open-team'
 import TeamInviteRow from './invite-row/container'
 import TeamMemberRow from './member-row/container'
 import TeamRequestRow from './request-row/container'
+import flags from '../../util/feature-flags'
 
 export type MemberRowProps = Constants.MemberInfo
 type InviteRowProps = Constants.InviteInfo
@@ -223,12 +224,21 @@ class Team extends React.PureComponent<Props> {
         {youCanAddPeople &&
           <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', marginTop: globalMargins.small}}>
             <Button type="Primary" label="Add people" onClick={onAddPeople} />
-            <Button
-              type="Secondary"
-              label={isMobile ? 'Invite contacts' : 'Invite by email'}
-              onClick={onInviteByEmail}
-              style={{marginLeft: globalMargins.small}}
-            />
+            {!isMobile &&
+              <Button
+                type="Secondary"
+                label="Invite by email"
+                onClick={onInviteByEmail}
+                style={{marginLeft: globalMargins.tiny}}
+              />}
+            {isMobile &&
+              flags.inviteContactsEnabled &&
+              <Button
+                type="Secondary"
+                label="Invite contacts"
+                onClick={onInviteByEmail}
+                style={{marginLeft: globalMargins.tiny}}
+              />}
           </Box>}
         <Help name={name} />
         {admin &&
