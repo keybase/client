@@ -5,36 +5,62 @@ set -e -u -o pipefail
 # This is the script responsible for launching keybase on boot on Linux. A
 # .desktop file will be created by the service on first launch in
 # ~/.config/autostart/ to invoke this script.
-#
-# At some point, it would be nice to have all of this done by systemd, so that
-# we could use all the nice facilities for restart-on-crash and dependency
-# relationships and logging. But until systemd is more widely deployed, it's
-# easier to do everything this way.
+
+exit_success() {
+  echo 'Success!'
+  # Magical squirrel produced by https://github.com/erkin/ponysay
+  cat /opt/keybase/crypto_squirrel.txt
+  exit 0
+}
+
+legacy_kill() {
+  if killall Keybase &> /dev/null ; then
+    echo Shutting down Keybase GUI...
+  fi
+  if fusermount -uz /keybase &> /dev/null ; then
+    echo Unmounting /keybase...
+  fi
+  if killall kbfsfuse &> /dev/null ; then
+    echo Shutting down kbfsfuse...
+  fi
+  if killall keybase &> /dev/null ; then
+    echo Shutting down keybase service...
+  fi
+
+  # There is a race condition where if we try to start the keybase service before
+  # the previous process has died, we might fail to lock the pid file and error
+  # out. Avoid this by waiting for the lock file to be free, on systems with flock
+  # installed.
+  lockfile="${XDG_RUNTIME_DIR:-$HOME/.config}/keybase/keybased.pid"
+  if which flock &> /dev/null && [ -e "$lockfile" ] ; then
+    flock "$lockfile" true
+  fi
+}
+
+# If systemd is available, we use it to manage everything.
+if which systemctl > /dev/null ; then
+  # For compatibility reasons, if the services weren't started with systemd, we
+  # need to kill them the old fashioned way. TODO: Eventually delete this.
+  systemd_token="${XDG_RUNTIME_DIR:-$HOME/.config}/keybase/started_with_systemd"
+  if [ ! -e "$systemd_token" ] ; then
+    legacy_kill
+  fi
+  echo Starting via systemd.
+  # The keybase.gui.service unit has keybase.service and kbfs.service as
+  # dependencies, so we don't have to list them here. But including them lets
+  # us report an error if they fail to start.
+  systemctl --user start keybase.service kbfs.service keybase.gui.service
+  mkdir -p "$(dirname "$systemd_token")"
+  touch "$systemd_token"
+  exit_success
+fi
+
+echo Systemd not available. Starting in the background.
 
 # Stop any existing services. These commands will return errors if keybase
 # isn't already running, but putting them in if-statements prevents those
 # errors from aborting the whole script.
-if killall Keybase &> /dev/null ; then
-  echo Shutting down Keybase GUI...
-fi
-if fusermount -uz /keybase &> /dev/null ; then
-  echo Unmounting /keybase...
-fi
-if killall kbfsfuse &> /dev/null ; then
-  echo Shutting down kbfsfuse...
-fi
-if killall keybase &> /dev/null ; then
-  echo Shutting down keybase service...
-fi
-
-# There is a race condition where if we try to start the keybase service before
-# the previous process has died, we might fail to lock the pid file and error
-# out. Avoid this by waiting for the lock file to be free, on systems with flock
-# installed.
-lockfile="${XDG_RUNTIME_DIR:-$HOME/.config}/keybase/keybased.pid"
-if which flock &> /dev/null && [ -e "$lockfile" ] ; then
-  flock "$lockfile" true
-fi
+legacy_kill
 
 export KEYBASE_RUN_MODE="${KEYBASE_RUN_MODE:-prod}"
 export KEYBASE_DEBUG=1
@@ -50,6 +76,4 @@ kbfsfuse -debug -log-to-file /keybase &>> "$logdir/keybase.start.log" &
 echo Launching Keybase GUI...
 /opt/keybase/Keybase &>> "$logdir/Keybase.app.log" &
 
-echo 'Success!'
-# Magical squirrel produced by https://github.com/erkin/ponysay
-cat /opt/keybase/crypto_squirrel.txt
+exit_success
