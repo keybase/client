@@ -34,6 +34,8 @@ const commands = {
       if (process.platform !== 'win32') {
         makeShims(['regedit'])
       }
+
+      fixURLNewTarget()
     },
     help: 'all: install global eslint. dummy modules',
   },
@@ -65,6 +67,16 @@ function makeShims(shims) {
       )
     } catch (_) {}
   })
+}
+
+// The React native builds don't like the new.target syntax, so
+// replace it with an older snippet of code; see
+// https://stackoverflow.com/questions/33360253/how-do-you-polyfill-javascript-es6-new-target .
+function fixURLNewTarget() {
+  const urlPath = path.resolve(__dirname, '..', '..', 'node_modules', 'whatwg-url', 'lib', 'URL.js')
+  const urlJs = fs.readFileSync(urlPath).toString()
+  const urlJsFixed = urlJs.replace('!new.target', '!(this instanceof URL)')
+  fs.writeFileSync(urlPath, urlJsFixed)
 }
 
 function exec(command, env, options) {
