@@ -14,7 +14,7 @@
     },
     "deleteEntity": {
       "keyPath": "Array<string>",
-      "ids": "I.List<string>"
+      "ids": "Iterable<string>"
     },
     "mergeEntity": {
       "keyPath": "Array<string>",

@@ -19,6 +19,7 @@ import {isMobile} from '../../constants/platform'
 import {showMainWindow} from '../platform-specific'
 import {switchTo} from '../route-tree'
 import {type SagaGenerator} from '../../constants/types/saga'
+import {type TypedState} from '../../constants/reducer'
 import {unsafeUnwrap} from '../../constants/types/more'
 
 // How many messages we consider too many to just download when you are stale and we could possibly just append
@@ -57,6 +58,12 @@ function* onInboxLoad(): SagaGenerator<any, any> {
 
 // Loads the untrusted inbox only
 function* onInboxStale(action: ChatGen.InboxStalePayload): SagaGenerator<any, any> {
+  const state: TypedState = yield Saga.select()
+  const author = Selectors.usernameSelector(state)
+  if (!author) {
+    console.log('Not logged in in inbox stale?')
+    return
+  }
   console.log('onInboxStale: running because of: ' + action.payload.reason)
   try {
     yield Saga.put(ChatGen.createSetInboxGlobalUntrustedState({inboxGlobalUntrustedState: 'loading'}))
@@ -97,7 +104,6 @@ function* onInboxStale(action: ChatGen.InboxStalePayload): SagaGenerator<any, an
 
     const idToVersion = I.Map((inbox.items || []).map(c => [c.convID, c.version]))
 
-    const author = yield Saga.select(Selectors.usernameSelector)
     const snippets = (inbox.items || []).reduce((map, c) => {
       // If we don't have metaData ignore it
       if (c.localMetadata) {
@@ -106,7 +112,7 @@ function* onInboxStale(action: ChatGen.InboxStalePayload): SagaGenerator<any, an
       return map
     }, {})
 
-    const oldInbox = yield Saga.select(s => s.chat.get('inbox'))
+    const oldInbox = state.chat.get('inbox')
     const toDelete = oldInbox.keySeq().toSet().subtract((inbox.items || []).map(c => c.convID))
     const conversations = Shared.makeInboxStateRecords(author, inbox.items || [], oldInbox)
     yield Saga.put(ChatGen.createReplaceEntity({keyPath: ['inboxSnippet'], entities: I.Map(snippets)}))
@@ -391,7 +397,8 @@ function* _chatInboxFailedSubSaga(params) {
   // Mark the conversation as read, to avoid a state where there's a
   // badged conversation that can't be unbadged by clicking on it.
   const {maxMsgid} = error.remoteConv.readerInfo
-  const selectedConversation = yield Saga.select(Constants.getSelectedConversation)
+  const state: TypedState = yield Saga.select()
+  const selectedConversation = Constants.getSelectedConversation(state)
   if (maxMsgid && selectedConversation === conversationIDKey) {
     try {
       yield Saga.call(ChatTypes.localMarkAsReadLocalRpcPromise, {
@@ -443,7 +450,9 @@ const unboxConversationsSagaMap = {
 function* unboxConversations(action: ChatGen.UnboxConversationsPayload): SagaGenerator<any, any> {
   let {conversationIDKeys, reason, force, forInboxSync} = action.payload
 
-  const untrustedState = yield Saga.select(state => state.chat.inboxUntrustedState)
+  const state: TypedState = yield Saga.select()
+  const untrustedState = state.chat.inboxUntrustedState
+
   // Don't unbox pending conversations
   conversationIDKeys = conversationIDKeys.filter(c => !Constants.isPendingConversationIDKey(c))
 
@@ -477,7 +486,8 @@ function* unboxConversations(action: ChatGen.UnboxConversationsPayload): SagaGen
 
   // If we've been asked to unbox something and we don't have a selected thing, lets make it selected (on desktop)
   if (!isMobile) {
-    const selected = yield Saga.select(Constants.getSelectedConversation)
+    const state: TypedState = yield Saga.select()
+    const selected = Constants.getSelectedConversation(state)
     if (!selected) {
       yield Saga.put(
         ChatGen.createSelectConversation({conversationIDKey: conversationIDKeys[0], fromUser: false})
@@ -596,7 +606,8 @@ function* filterSelectNext(action: Constants.InboxFilterSelectNext): SagaGenerat
   const rows = action.payload.rows
   const direction = action.payload.direction
 
-  const selected = yield Saga.select(Constants.getSelectedConversation)
+  const state: TypedState = yield Saga.select()
+  const selected = Constants.getSelectedConversation(state)
 
   const idx = rows.findIndex(r => r.conversationIDKey === selected)
   let nextIdx
@@ -614,8 +625,9 @@ function* filterSelectNext(action: Constants.InboxFilterSelectNext): SagaGenerat
 }
 
 function* _sendNotifications(action: Constants.AppendMessages): Saga.SagaGenerator<any, any> {
-  const appFocused = yield Saga.select(Shared.focusedSelector)
-  const selectedTab = yield Saga.select(Shared.routeSelector)
+  const state: TypedState = yield Saga.select()
+  const appFocused = Shared.focusedSelector(state)
+  const selectedTab = Shared.routeSelector(state)
   const chatTabSelected = selectedTab === chatTab
   const convoIsSelected = action.payload.isSelected
   const svcDisplay = action.payload.svcShouldDisplayNotification
@@ -629,10 +641,10 @@ function* _sendNotifications(action: Constants.AppendMessages): Saga.SagaGenerat
   )
   // Only send if you're not looking at it and service wants us to
   if (svcDisplay && (!convoIsSelected || !appFocused || !chatTabSelected)) {
-    const me = yield Saga.select(Selectors.usernameSelector)
+    const me = Selectors.usernameSelector(state)
     const message = action.payload.messages.reverse().find(m => m.type === 'Text' && m.author !== me)
     // Is this message part of a muted conversation? If so don't notify.
-    const convo = yield Saga.select(Constants.getInbox, action.payload.conversationIDKey)
+    const convo = Constants.getInbox(state, action.payload.conversationIDKey)
     if (convo && convo.get('status') !== 'muted') {
       if (message && message.type === 'Text') {
         console.log('Sending Chat notification')
@@ -662,8 +674,10 @@ function* _markThreadsStale(action: ChatGen.MarkThreadsStalePayload): Saga.SagaG
     ChatGen.createUnboxConversations({conversationIDKeys: convIDs, reason: 'thread stale', force: true})
   )
 
+  const state: TypedState = yield Saga.select()
+
   // Selected is stale?
-  const selectedConversation = yield Saga.select(Constants.getSelectedConversation)
+  const selectedConversation = Constants.getSelectedConversation(state)
   if (!selectedConversation) {
     return
   }
@@ -674,8 +688,14 @@ function* _markThreadsStale(action: ChatGen.MarkThreadsStalePayload): Saga.SagaG
 }
 
 function* _inboxSynced(action: ChatGen.InboxSyncedPayload): Saga.SagaGenerator<any, any> {
+  const state: TypedState = yield Saga.select()
+  const author = Selectors.usernameSelector(state)
+  if (!author) {
+    console.log('_inboxSynced with no logged in user')
+    return
+  }
+
   const {convs} = action.payload
-  const author = yield Saga.select(Selectors.usernameSelector)
   const items = Shared.makeInboxStateRecords(author, convs, I.Map())
 
   yield Saga.put(
@@ -699,20 +719,20 @@ function* _inboxSynced(action: ChatGen.InboxSyncedPayload): Saga.SagaGenerator<a
     })
   )
 
-  const selectedConversation = yield Saga.select(Constants.getSelectedConversation)
+  const selectedConversation = Constants.getSelectedConversation(state)
   if (!selectedConversation || convIDs.indexOf(selectedConversation) < 0) {
     return
   }
 
-  const conversation = yield Saga.select(Constants.getSelectedConversationStates)
+  const conversation = Constants.getSelectedConversationStates(state)
   if (conversation) {
-    const inbox = yield Saga.select(Constants.getInbox, selectedConversation)
+    const inbox = Constants.getInbox(state, selectedConversation)
 
-    const messageKeys = yield Saga.select(Constants.getConversationMessages, selectedConversation)
+    const messageKeys = Constants.getConversationMessages(state, selectedConversation)
     const lastMessageKey = messageKeys.last()
     let numberOverride
     if (lastMessageKey) {
-      const lastMessage = yield Saga.select(Constants.getMessageFromMessageKey, lastMessageKey)
+      const lastMessage = Constants.getMessageFromMessageKey(state, lastMessageKey)
       // Check to see if we could possibly be asking for too many messages
       if (lastMessage && lastMessage.rawMessageID && inbox && inbox.maxMsgID) {
         numberOverride = inbox.maxMsgID - lastMessage.rawMessageID
@@ -768,8 +788,10 @@ function* _badgeAppForChat(action: Constants.BadgeAppForChat): Saga.SagaGenerato
   badges = I.Map(badges)
   totals = I.Map(totals)
 
-  const oldBadge = yield Saga.select(s => s.inboxUnreadCountBadge)
-  const oldTotal = yield Saga.select(s => s.inboxUnreadCountTotal)
+  const state: TypedState = yield Saga.select()
+
+  const oldBadge = state.chat.inboxUnreadCountBadge
+  const oldTotal = state.chat.inboxUnreadCountTotal
   if (!I.is(oldBadge, badges)) {
     yield Saga.put(
       ChatGen.createReplaceEntity({keyPath: [], entities: I.Map({inboxUnreadCountBadge: badges})})
