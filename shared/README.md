@@ -107,6 +107,8 @@ statement.
 Follow instructions at https://facebook.github.io/react-native/docs/getting-started.html
 to install and configure Android.
 
+Follow instructions at https://developer.android.com/ndk/guides/index.html to install and configure the Android NDK.
+
 ```sh
 # Build the go keybaselib
 yarn run rn-gobuild-android
