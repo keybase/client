@@ -549,8 +549,11 @@ func (d *Service) tryGregordConnect() error {
 		// confirm with the API server. In that case we'll swallow the error
 		// and allow control to proceeed to the gregor loop. We'll still
 		// short-circuit for any unexpected errors though.
-		_, isNetworkError := err.(libkb.APINetError)
-		if !isNetworkError {
+		switch err.(type) {
+		case libkb.APINetError:
+		case libkb.LoginStateTimeoutError:
+			d.G().Log.Warning("Network/timeout error received from LoginState, continuing onward: %s", err)
+		default:
 			d.G().Log.Warning("Unexpected non-network error in tryGregordConnect: %s", err)
 			return err
 		}
