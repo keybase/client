@@ -1,6 +1,7 @@
 package libkb
 
 import (
+	"fmt"
 	"sync"
 	"time"
 
@@ -205,11 +206,22 @@ func (m *CachedFullSelf) cacheMe(u *User) {
 // Update updates the CachedFullSelf with a User loaded from someplace else -- let's
 // say the UPAK loader. We throw away objects for other users or that aren't newer than
 // the one we have.
+//
+// CALLER BEWARE! You must only provide this function with a user you know to be "self".
+// This function will not do any checking along those lines (see comment below).
 func (m *CachedFullSelf) Update(ctx context.Context, u *User) (err error) {
-	if !u.GetUID().Equal(m.G().GetMyUID()) {
-		return
-	}
-	defer m.G().CTrace(ctx, "CachedFullSelf#Update", func() error { return err })()
+
+	// NOTE(max) 20171101: We used to do this:
+	//
+	//   if !u.GetUID().Equal(m.G().GetMyUID()) {
+	//   	return
+	//   }
+	//
+	// BUT IS IT DEADLY! The problem is that m.G().GetMyUID() calls into LoginState, but often
+	// we're being called from a LoginState context, so we get a circular locking situation.
+	// So the onus is on the caller to check that we're actually loading self.
+
+	defer m.G().CTrace(ctx, fmt.Sprintf("CachedFullSelf#Update(%s)", u.GetUID()), func() error { return err })()
 	m.Lock()
 	defer m.Unlock()
 
