@@ -6,6 +6,8 @@ import {type ConversationIDKey} from '../../constants/chat'
 import EditChannel from './edit-channel'
 import {connect, type TypedState} from '../../util/container'
 import {updateChannelName, updateTopic, deleteChannel} from '../../actions/teams/creators'
+import {navigateTo} from '../../actions/route-tree'
+import {teamsTab} from '../../constants/tabs'
 
 const mapStateToProps = (state: TypedState, {navigateUp, routePath, routeProps}) => {
   const conversationIDKey = routeProps.get('conversationIDKey') || ''
@@ -31,12 +33,15 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routePath, routePro
     _updateChannelName: (newChannelName: string) =>
       dispatch(updateChannelName(conversationIDKey, newChannelName)),
     _updateTopic: (newTopic: string) => dispatch(updateTopic(conversationIDKey, newTopic)),
-    onDelete: () => dispatch(deleteChannel(conversationIDKey)),
+    _onDelete: teamname => {
+      dispatch(deleteChannel(conversationIDKey))
+      dispatch(navigateTo([teamsTab, {props: {teamname}, selected: 'team'}], []))
+    },
   }
 }
 
-const mergeProps = (stateProps, dispatchProps, {routeProps}) => {
-  const waitingForSave = routeProps.get('waitingForSave')
+const mergeProps = (stateProps, dispatchProps, {routeState}) => {
+  const waitingForSave = routeState.get('waitingForSave')
 
   const deleteRenameDisabled = stateProps.channelName === 'general'
   return {
@@ -44,8 +49,10 @@ const mergeProps = (stateProps, dispatchProps, {routeProps}) => {
     channelName: stateProps.channelName,
     topic: stateProps.topic,
     onCancel: dispatchProps.onCancel,
-    onDelete: dispatchProps.onDelete,
-    showDelete: stateProps.canDelete,
+    onDelete: () => dispatchProps._onDelete(stateProps.teamname),
+    showDelete: false,
+    // TODO enable this after we get a better popup story
+    // showDelete: stateProps.canDelete,
     deleteRenameDisabled,
     onSave: (newChannelName: string, newTopic: string) => {
       if (!deleteRenameDisabled) {
@@ -58,11 +65,12 @@ const mergeProps = (stateProps, dispatchProps, {routeProps}) => {
         dispatchProps._updateTopic(newTopic)
       }
     },
-    waitingForSave,
+    waitingForSave: waitingForSave > 0,
   }
 }
 const ConnectedEditChannel: React.ComponentType<{
   navigateUp: Function,
-  routeProps: I.RecordOf<{conversationIDKey: ConversationIDKey, waitingForSave: boolean}>,
+  routeProps: I.RecordOf<{conversationIDKey: ConversationIDKey}>,
+  routeState: I.RecordOf<{waitingForSave: number}>,
 }> = connect(mapStateToProps, mapDispatchToProps, mergeProps)(EditChannel)
 export default ConnectedEditChannel

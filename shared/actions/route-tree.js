@@ -122,7 +122,10 @@ export function putActionIfOnPath<T: TypedAction<*, *, *>>(
 }
 
 // Update the state object of a route at a specified path.
-export function setRouteState(path: Path, partialState: {}): SetRouteState {
+export function setRouteState(
+  path: Path,
+  partialState: {} | ((oldState: I.Map<string, any>) => I.Map<string, any>)
+): SetRouteState {
   return {
     type: Constants.setRouteState,
     payload: {path, partialState},

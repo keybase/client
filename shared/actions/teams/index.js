@@ -476,6 +476,65 @@ function* _setupTeamHandlers(): SagaGenerator<any, any> {
   })
 }
 
+function* _updateTopic({
+  payload: {conversationIDKey, newTopic},
+}: Constants.UpdateTopic): SagaGenerator<any, any> {
+  const state: TypedState = yield select()
+  const path = pathSelector(state)
+  const teamname = Constants.getTeamNameFromConvID(state, conversationIDKey) || ''
+  const param = {
+    conversationID: ChatConstants.keyToConversationID(conversationIDKey),
+    tlfName: teamname,
+    tlfPublic: false,
+    headline: newTopic,
+    identifyBehavior: RpcTypes.TlfKeysTLFIdentifyBehavior.chatGui,
+  }
+
+  // TODO figure out a better waiting solution.
+  yield all([
+    put(setRouteState(path, s => s.update('waitingForSave', 0, n => n + 1))),
+    call(ChatTypes.localPostHeadlineRpcPromise, {param}),
+  ])
+  yield call(_getChannels, Creators.getChannels(teamname))
+  yield put(setRouteState(path, s => s.update('waitingForSave', 1, n => n - 1)))
+}
+
+function* _updateChannelname({
+  payload: {conversationIDKey, newChannelName},
+}: Constants.UpdateChannelName): SagaGenerator<any, any> {
+  const state: TypedState = yield select()
+  const path = pathSelector(state)
+  const teamname = Constants.getTeamNameFromConvID(state, conversationIDKey) || ''
+  const param = {
+    channelName: newChannelName,
+    conversationID: ChatConstants.keyToConversationID(conversationIDKey),
+    tlfName: teamname,
+    tlfPublic: false,
+    identifyBehavior: RpcTypes.TlfKeysTLFIdentifyBehavior.chatGui,
+  }
+
+  yield all([
+    put(setRouteState(path, s => s.update('waitingForSave', 0, n => n + 1))),
+    call(ChatTypes.localPostMetadataRpcPromise, {param}),
+  ])
+  yield call(_getChannels, Creators.getChannels(teamname))
+  yield put(setRouteState(path, s => s.update('waitingForSave', 1, n => n - 1)))
+}
+
+function* _deleteChannel({payload: {conversationIDKey}}): SagaGenerator<any, any> {
+  const state: TypedState = yield select()
+  const channelName = Constants.getChannelNameFromConvID(state, conversationIDKey)
+  const teamname = Constants.getTeamNameFromConvID(state, conversationIDKey) || ''
+
+  const param = {
+    convID: ChatConstants.keyToConversationID(conversationIDKey),
+    channelName,
+  }
+
+  yield call(ChatTypes.localDeleteConversationLocalRpcPromise, {param})
+  yield call(_getChannels, Creators.getChannels(teamname))
+}
+
 const teamsSaga = function*(): SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure('teams:leaveTeam', _leaveTeam)
   yield Saga.safeTakeEveryPure('teams:createNewTeam', _createNewTeam)
@@ -495,6 +554,9 @@ const teamsSaga = function*(): SagaGenerator<any, any> {
   yield Saga.safeTakeEvery('teams:ignoreRequest', _ignoreRequest)
   yield Saga.safeTakeEvery('teams:editMembership', _editMembership)
   yield Saga.safeTakeEvery('teams:removeMemberOrPendingInvite', _removeMemberOrPendingInvite)
+  yield Saga.safeTakeEvery('teams:updateTopic', _updateTopic)
+  yield Saga.safeTakeEvery('teams:updateChannelName', _updateChannelname)
+  yield Saga.safeTakeEvery('teams:deleteChannel', _deleteChannel)
 }
 
 export default teamsSaga

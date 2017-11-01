@@ -256,18 +256,19 @@ export function routeSetState(
   routeDef: ?RouteDefNode,
   routeState: ?RouteStateNode,
   path: Path,
-  partialState: {}
+  partialState: {} | ((oldState: I.Map<string, any>) => I.Map<string, any>)
 ): RouteStateNode {
   const pathSeq = I.Seq(path)
   const name = pathSeq.first()
-  if (!name) {
-    // $FlowIssue
-    return routeState.update('state', state => state.merge(partialState))
+  if (!name && routeState) {
+    return typeof partialState === 'function'
+      ? routeState.update('state', partialState)
+      : routeState.update('state', state => state.merge(partialState))
   }
   // $FlowIssue
   return routeState.updateChild(name, childState => {
     if (!childState) {
-      throw new InvalidRouteError(`Missing state child: ${name}`)
+      throw new InvalidRouteError(`Missing state child: ${name || 'undefined'}`)
     }
     return routeSetState(routeDef, childState, pathSeq.skip(1), partialState)
   })
