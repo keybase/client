@@ -14,15 +14,17 @@ import (
 
 type CmdTeamGenerateSeitan struct {
 	libkb.Contextified
-	Team string
-	Role keybase1.TeamRole
+	Team     string
+	Role     keybase1.TeamRole
+	FullName string
+	Number   string
 }
 
 func newCmdTeamGenerateSeitan(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	return cli.Command{
 		Name:         "generate-invite-token",
 		ArgumentHelp: "<team name>",
-		Usage:        "Generate an invite token that you can send via SMS, iMessage, or other similar mechanism.",
+		Usage:        "Generate an invite token that you can send via SMS, iMessage, or similar.",
 		Action: func(c *cli.Context) {
 			cmd := NewCmdTeamGenerateSeitanRunner(g)
 			cl.ChooseCommand(cmd, "generate-invite-token", c)
@@ -31,6 +33,14 @@ func newCmdTeamGenerateSeitan(cl *libcmdline.CommandLine, g *libkb.GlobalContext
 			cli.StringFlag{
 				Name:  "r, role",
 				Usage: "team role (owner, admin, writer, reader) [required]",
+			},
+			cli.StringFlag{
+				Name:  "fullname",
+				Usage: "invitee's name",
+			},
+			cli.StringFlag{
+				Name:  "number",
+				Usage: "invitee's phone number",
 			},
 		},
 		Description: teamGenerateSeitanDoc,
@@ -53,6 +63,9 @@ func (c *CmdTeamGenerateSeitan) ParseArgv(ctx *cli.Context) error {
 		return err
 	}
 
+	c.FullName = ctx.String("fullname")
+	c.Number = ctx.String("number")
+
 	return nil
 }
 
@@ -62,9 +75,14 @@ func (c *CmdTeamGenerateSeitan) Run() error {
 		return err
 	}
 
+	var labelSms keybase1.SeitanIKeyLabelSms
+	labelSms.F = c.FullName
+	labelSms.N = c.Number
+
 	arg := keybase1.TeamCreateSeitanTokenArg{
-		Name: c.Team,
-		Role: c.Role,
+		Name:  c.Team,
+		Role:  c.Role,
+		Label: keybase1.NewSeitanIKeyLabelWithSms(labelSms),
 	}
 
 	res, err := cli.TeamCreateSeitanToken(context.Background(), arg)
@@ -88,4 +106,10 @@ func (c *CmdTeamGenerateSeitan) GetUsage() libkb.Usage {
 
 const teamGenerateSeitanDoc = `"keybase team generate-token" allows you to create a one-time use,
 expiring, cryptographically secure token that someone can use to join
-a team.`
+a team.
+
+Optionally, full name and phone number can be provided (using
+--fullname and --number flags) to label created token to make them
+easier to distinguish. Label data is encrypted and visible only to
+admins.
+`

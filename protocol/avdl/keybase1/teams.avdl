@@ -343,6 +343,37 @@ protocol teams {
   @typedef("string")
   record SeitanAKey {}
 
+  @typedef("string")
+  record SeitanIKey {}
+
+  enum SeitanIKeyAndLabelVersion {
+    V1_1
+  }
+
+  variant SeitanIKeyAndLabel switch (SeitanIKeyAndLabelVersion v) {
+    case V1: SeitanIKeyAndLabelVersion1;
+    default: void;
+  }
+
+  record SeitanIKeyAndLabelVersion1 {
+    SeitanIKey i;
+    SeitanIKeyLabel l;
+  }
+
+  enum SeitanIKeyLabelType {
+    SMS_1
+  }
+
+  variant SeitanIKeyLabel switch (SeitanIKeyLabelType t) {
+    case SMS: SeitanIKeyLabelSms;
+    default: void;
+  }
+
+  record SeitanIKeyLabelSms {
+    string f; // FullName
+    string n; // Number
+  }
+
   record TeamSeitanRequest {
     @jsonkey("invite_id")
     TeamInviteID inviteID;
@@ -506,7 +537,7 @@ protocol teams {
 
   TeamAddMemberResult teamAddMember(int sessionID, string name, string email, string username, TeamRole role, boolean sendChatNotification);
 
-  void teamRemoveMember(int sessionID, string name, string username, string email);
+  void teamRemoveMember(int sessionID, string name, string username, string email, TeamInviteID inviteID);
 
   void teamLeave(int sessionID, string name, boolean permanent);
 
@@ -534,7 +565,7 @@ protocol teams {
 
   void teamSetSettings(int sessionID, string name, TeamSettings settings);
 
-  string teamCreateSeitanToken(int sessionID, string name, TeamRole role);
+  SeitanIKey teamCreateSeitanToken(int sessionID, string name, TeamRole role, SeitanIKeyLabel label);
 
   record BulkRes {
     array<string> invited;

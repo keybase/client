@@ -597,6 +597,14 @@ export const SimpleFSPathType = {
   kbfs: 1,
 }
 
+export const TeamsSeitanIKeyAndLabelVersion = {
+  v1: 1,
+}
+
+export const TeamsSeitanIKeyLabelType = {
+  sms: 1,
+}
+
 export const TeamsTeamApplication = {
   kbfs: 1,
   chat: 2,
@@ -4423,6 +4431,32 @@ export type SecretResponse = {
 
 export type SeitanAKey = string
 
+export type SeitanIKey = string
+
+export type SeitanIKeyAndLabel =
+    { v: 1, v1: ?SeitanIKeyAndLabelVersion1 }
+  | { v: any }
+
+export type SeitanIKeyAndLabelVersion =
+    1 // V1_1
+
+export type SeitanIKeyAndLabelVersion1 = {
+  i: SeitanIKey,
+  l: SeitanIKeyLabel,
+}
+
+export type SeitanIKeyLabel =
+    { t: 1, sms: ?SeitanIKeyLabelSms }
+  | { t: any }
+
+export type SeitanIKeyLabelSms = {
+  f: string,
+  n: string,
+}
+
+export type SeitanIKeyLabelType =
+    1 // SMS_1
+
 export type SelectKeyRes = {
   keyID: string,
   doSecretPush: boolean,
@@ -6331,7 +6365,8 @@ export type teamsTeamCreateRpcParam = Exact<{
 
 export type teamsTeamCreateSeitanTokenRpcParam = Exact<{
   name: string,
-  role: TeamRole
+  role: TeamRole,
+  label: SeitanIKeyLabel
 }>
 
 export type teamsTeamCreateWithSettingsRpcParam = Exact<{
@@ -6388,7 +6423,8 @@ export type teamsTeamReAddMemberAfterResetRpcParam = Exact<{
 export type teamsTeamRemoveMemberRpcParam = Exact<{
   name: string,
   username: string,
-  email: string
+  email: string,
+  inviteID: TeamInviteID
 }>
 
 export type teamsTeamRenameRpcParam = Exact<{
@@ -6674,7 +6710,7 @@ type teamsLookupOrCreateImplicitTeamResult = LookupImplicitTeamRes
 type teamsTeamAddEmailsBulkResult = BulkRes
 type teamsTeamAddMemberResult = TeamAddMemberResult
 type teamsTeamCreateResult = TeamCreateResult
-type teamsTeamCreateSeitanTokenResult = string
+type teamsTeamCreateSeitanTokenResult = SeitanIKey
 type teamsTeamCreateWithSettingsResult = TeamCreateResult
 type teamsTeamGetResult = TeamDetails
 type teamsTeamImplicitAdminsResult = ?Array<TeamMemberDetails>

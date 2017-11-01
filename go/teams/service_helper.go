@@ -71,8 +71,7 @@ func Details(ctx context.Context, g *libkb.GlobalContext, name string, forceRepo
 	}
 
 	tracer.Stage("annotate")
-	activeInvites := t.chain().inner.ActiveInvites
-	annotatedInvites, err := AnnotateInvites(ctx, g, activeInvites, t.Name().String())
+	annotatedInvites, err := AnnotateInvites(ctx, g, t)
 	if err != nil {
 		return res, err
 	}
@@ -579,6 +578,23 @@ func CancelEmailInvite(ctx context.Context, g *libkb.GlobalContext, teamname, em
 	})
 }
 
+func CancelInviteByID(ctx context.Context, g *libkb.GlobalContext, teamname string, inviteID keybase1.TeamInviteID) error {
+	return RetryOnSigOldSeqnoError(ctx, g, func(ctx context.Context, _ int) error {
+		t, err := GetForTeamManagementByStringName(ctx, g, teamname, true)
+		if err != nil {
+			return err
+		}
+
+		// Service-side check for invite id, even though we operate on
+		// TeamInviteID type, API consumer can give us any string.
+		if _, err := keybase1.TeamInviteIDFromString(string(inviteID)); err != nil {
+			return fmt.Errorf("Invalid invite ID: %s", err)
+		}
+
+		return removeInviteID(ctx, t, inviteID)
+	})
+}
+
 func Leave(ctx context.Context, g *libkb.GlobalContext, teamname string, permanent bool) error {
 	return RetryOnSigOldSeqnoError(ctx, g, func(ctx context.Context, _ int) error {
 		t, err := GetForTeamManagementByStringName(ctx, g, teamname, false)
@@ -1034,15 +1050,15 @@ func splitBulk(s string) []string {
 	return strings.FieldsFunc(s, f)
 }
 
-func CreateSeitanToken(ctx context.Context, g *libkb.GlobalContext, teamname string, role keybase1.TeamRole) (string, error) {
+func CreateSeitanToken(ctx context.Context, g *libkb.GlobalContext, teamname string, role keybase1.TeamRole, label keybase1.SeitanIKeyLabel) (keybase1.SeitanIKey, error) {
 	t, err := GetForTeamManagementByStringName(ctx, g, teamname, true)
 	if err != nil {
 		return "", err
 	}
-	ikey, err := t.InviteSeitan(ctx, role)
+	ikey, err := t.InviteSeitan(ctx, role, label)
 	if err != nil {
 		return "", err
 	}
 
-	return string(ikey), err
+	return keybase1.SeitanIKey(ikey), err
 }
