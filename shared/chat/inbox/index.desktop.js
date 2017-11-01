@@ -1,8 +1,8 @@
 // @flow
 import React, {PureComponent} from 'react'
 import ReactList from 'react-list'
-import {Text, Icon, ErrorBoundary} from '../../common-adapters'
-import {globalStyles, globalColors, globalMargins} from '../../styles'
+import {ErrorBoundary} from '../../common-adapters'
+import {globalStyles, globalColors} from '../../styles'
 import {makeRow} from './row'
 import FloatingDivider from './row/floating-divider/container'
 import Divider from './row/divider/container'
@@ -10,55 +10,9 @@ import ChatFilterRow from './row/chat-filter-row'
 import debounce from 'lodash/debounce'
 import {isDarwin} from '../../constants/platform'
 import {Owl} from './owl'
+import NewConversation from './row/new-conversation'
 
 import type {Props} from './'
-
-class NewConversation extends PureComponent<{}> {
-  render() {
-    return (
-      <div
-        style={{
-          ...globalStyles.flexBoxRow,
-          alignItems: 'center',
-          backgroundColor: globalColors.blue,
-          flexShrink: 0,
-          minHeight: 48,
-        }}
-      >
-        <div
-          style={{
-            ...globalStyles.flexBoxRow,
-            ...globalStyles.clickable,
-            alignItems: 'center',
-          }}
-        >
-          <div
-            style={{
-              backgroundColor: 'rgba(255, 255, 255, 0.2)',
-              borderRadius: globalMargins.large,
-              height: globalMargins.large,
-              marginLeft: globalMargins.tiny,
-              marginRight: globalMargins.tiny,
-              padding: globalMargins.tiny,
-              width: globalMargins.large,
-            }}
-          >
-            <Icon
-              type="iconfont-chat"
-              style={{
-                color: globalColors.blue,
-                fontSize: 24,
-                marginLeft: 1,
-                marginTop: 1,
-              }}
-            />
-          </div>
-          <Text style={{color: globalColors.white}} type="BodySemibold">New conversation</Text>
-        </div>
-      </div>
-    )
-  }
-}
 
 type State = {
   showFloating: boolean,
@@ -176,6 +130,7 @@ class Inbox extends PureComponent<Props, State> {
             onSelectUp={this.props.onSelectUp}
             onSelectDown={this.props.onSelectDown}
           />
+          // TODO: there is no longer showNewConversation
           {this.props.showNewConversation && <NewConversation />}
           <div style={_scrollableStyle} onScroll={this._onScroll}>
             <ReactList
