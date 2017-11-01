@@ -4,7 +4,7 @@ import type {FeatureFlags} from './feature-flags'
 
 const ff: FeatureFlags = {
   admin: __DEV__,
-  inviteContactsEnabled: false,
+  inviteContactsEnabled: __DEV__,
   plansEnabled: false,
   recentFilesEnabled: false,
   tabPeopleEnabled: false,
