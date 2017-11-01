@@ -132,7 +132,9 @@
     "util": "0.10.3"
   },
   "devDependencies": {
-    "@storybook/addon-actions": "3.2.13",
+    "@storybook/addon-storyshots": "3.2.13",
+    "@storybook/addons": "3.2.13",
+    "@storybook/channels": "3.2.13",
     "@storybook/react": "3.2.12",
     "@storybook/react-native": "3.2.12",
     "babel-cli": "6.26.0",
