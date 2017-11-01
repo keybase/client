@@ -40,7 +40,7 @@ function reducer(state: Constants.State = initialState, action: Constants.Action
       // $FlowIssue flow can't guarantee the keypath works for all cases
       return state.updateIn(keyPath, set => set.subtract(entities))
     }
-    case 'chat:clearMessages': {
+    case ChatGen.clearMessages: {
       const {conversationIDKey} = action.payload
       const origConversationState = state.get('conversationStates').get(conversationIDKey)
       if (!origConversationState) {
@@ -55,7 +55,7 @@ function reducer(state: Constants.State = initialState, action: Constants.Action
         conversationStates.set(conversationIDKey, clearedConversationState)
       )
     }
-    case 'chat:setLoaded': {
+    case ChatGen.setLoaded: {
       const {conversationIDKey, isLoaded} = action.payload
       const newConversationStates = state
         .get('conversationStates')
@@ -100,7 +100,7 @@ function reducer(state: Constants.State = initialState, action: Constants.Action
 
       return state.set('conversationStates', newConversationStates)
     }
-    case 'chat:setTypers': {
+    case ChatGen.setTypers: {
       const {conversationIDKey, typing} = action.payload
       return state.update('conversationStates', conversationStates =>
         updateConversation(conversationStates, conversationIDKey, conversation =>
@@ -108,7 +108,7 @@ function reducer(state: Constants.State = initialState, action: Constants.Action
         )
       )
     }
-    case 'chat:markThreadsStale': {
+    case ChatGen.markThreadsStale: {
       const {updates} = action.payload
       const convIDs = updates.map(u => Constants.conversationIDToKey(u.convID))
       return state.update('conversationStates', conversationStates =>
@@ -120,7 +120,7 @@ function reducer(state: Constants.State = initialState, action: Constants.Action
         })
       )
     }
-    case 'chat:inboxSynced': {
+    case ChatGen.inboxSynced: {
       const {convs} = action.payload
       const convIDs = convs.map(u => u.convID)
       return state.update('conversationStates', conversationStates =>
@@ -141,7 +141,7 @@ function reducer(state: Constants.State = initialState, action: Constants.Action
         )
       state = state.set('conversationStates', newConversationStates)
       return state
-    case 'chat:loadingMessages': {
+    case ChatGen.loadingMessages: {
       const {isRequesting, conversationIDKey} = action.payload
       const newConversationStates = state
         .get('conversationStates')
@@ -150,9 +150,9 @@ function reducer(state: Constants.State = initialState, action: Constants.Action
         )
       return state.set('conversationStates', newConversationStates)
     }
-    case 'chat:updatedMetadata':
+    case ChatGen.updatedMetadata:
       return state.set('metaData', state.get('metaData').merge(action.payload.updated))
-    case 'chat:updateBrokenTracker':
+    case ChatGen.updateBrokenTracker:
       const userToBroken = action.payload.userToBroken
       let metaData = state.get('metaData')
 
@@ -163,11 +163,11 @@ function reducer(state: Constants.State = initialState, action: Constants.Action
       })
 
       return state.set('metaData', metaData)
-    case 'chat:clearRekey': {
+    case ChatGen.clearRekey: {
       const {conversationIDKey} = action.payload
       return state.set('rekeyInfos', state.get('rekeyInfos').delete(conversationIDKey))
     }
-    case 'chat:updateInboxRekeyOthers': {
+    case ChatGen.updateInboxRekeyOthers: {
       const {conversationIDKey, rekeyers} = action.payload
       return state.set(
         'rekeyInfos',
@@ -176,14 +176,14 @@ function reducer(state: Constants.State = initialState, action: Constants.Action
           .set(conversationIDKey, Constants.makeRekeyInfo({rekeyParticipants: List(rekeyers)}))
       )
     }
-    case 'chat:updateInboxRekeySelf': {
+    case ChatGen.updateInboxRekeySelf: {
       const {conversationIDKey} = action.payload
       return state.set(
         'rekeyInfos',
         state.get('rekeyInfos').set(conversationIDKey, Constants.makeRekeyInfo({youCanRekey: true}))
       )
     }
-    case 'chat:addPendingConversation': {
+    case ChatGen.addPending: {
       const {participants, temporary} = action.payload
       const sorted = participants.sort()
       const conversationIDKey = Constants.pendingConversationIDKey(sorted.join(','))
@@ -199,7 +199,7 @@ function reducer(state: Constants.State = initialState, action: Constants.Action
           tempPendingConversations.filter(v => v).set(conversationIDKey, temporary)
         )
     }
-    case 'chat:removeTempPendingConversations': {
+    case ChatGen.removeTempPendingConversations: {
       const tempPendingConvIDs = state.tempPendingConversations.filter(v => v).keySeq().toArray()
       return state
         .update('tempPendingConversations', tempPendingConversations => tempPendingConversations.clear())
@@ -217,25 +217,25 @@ function reducer(state: Constants.State = initialState, action: Constants.Action
       }
       break
     }
-    case 'chat:updateFinalizedState': {
+    case ChatGen.updateFinalizedState: {
       const fs = action.payload.finalizedState
       return state.update('finalizedState', finalizedState => finalizedState.merge(fs))
     }
-    case 'chat:updateSupersedesState': {
+    case ChatGen.updateSupersedesState: {
       const ss = action.payload.supersedesState
       return state.update('supersedesState', supersedesState => supersedesState.merge(ss))
     }
-    case 'chat:updateSupersededByState': {
+    case ChatGen.updateSupersededByState: {
       const sbs = action.payload.supersededByState
       return state.update('supersededByState', supersededByState => supersededByState.merge(sbs))
     }
-    case 'chat:showEditor': {
+    case ChatGen.showEditor: {
       return state.set('editingMessage', action.payload.message)
     }
-    case 'chat:setPreviousConversation': {
+    case ChatGen.setPreviousConversation: {
       return state.set('previousConversation', action.payload.conversationIDKey)
     }
-    case 'chat:threadLoadedOffline': {
+    case ChatGen.threadLoadedOffline: {
       const {conversationIDKey} = action.payload
       const newConversationStates = state
         .get('conversationStates')
@@ -254,13 +254,13 @@ function reducer(state: Constants.State = initialState, action: Constants.Action
       }
       break
     }
-    case 'chat:inboxGlobalUntrustedState': {
+    case ChatGen.inboxGlobalUntrustedState: {
       return state.set('inboxGlobalUntrustedState', action.payload.inboxGlobalUntrustedState)
     }
-    case 'chat:inboxFilter': {
+    case ChatGen.setInboxFilter: {
       return state.set('inboxFilter', action.payload.filter)
     }
-    case 'chat:newChat': {
+    case ChatGen.newChat: {
       return state.set('inSearch', true)
     }
     case ChatGen.exitSearch: {
