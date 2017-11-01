@@ -12,7 +12,8 @@
           "Error"
         ]
       }
-    ]
+    ],
+    "transform-new-target"
   ],
   "env": {
     // Used by node for our own scripts
