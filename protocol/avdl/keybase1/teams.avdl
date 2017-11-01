@@ -11,6 +11,9 @@ protocol teams {
     OWNER_4
   }
 
+  // Note: If you add to this list, take heed.
+  // The client will try to assert RKM coverage or the new application.
+  // First update the server and run add_new_team_app.
   enum TeamApplication {
     KBFS_1,
     CHAT_2,
