@@ -268,3 +268,15 @@ func NewSubteamOwnersError() error { return &SubteamOwnersError{} }
 func (e SubteamOwnersError) Error() string {
 	return "Subteams cannot have owners. Try admin instead."
 }
+
+// The sigchain link is problematically new.
+type GreenLinkError struct{ seqno keybase1.Seqno }
+
+func NewGreenLinkError(seqno keybase1.Seqno) error {
+	return GreenLinkError{seqno: seqno}
+}
+
+func (e GreenLinkError) Error() string {
+	// Report the probable cause for this error.
+	return fmt.Sprintf("team sigchain is being rapidly updated (seqno: %v)", e.seqno)
+}
