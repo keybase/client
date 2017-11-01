@@ -1,5 +1,6 @@
 // @flow
-import _ from 'lodash'
+import map from 'lodash/map'
+import keyBy from 'lodash/keyBy'
 import * as I from 'immutable'
 import * as Constants from '../../constants/teams'
 import * as ChatConstants from '../../constants/chat'
@@ -254,7 +255,7 @@ const _getDetails = function*(action: Constants.GetDetails): SagaGenerator<any, 
       })
     })
 
-    const invitesMap = _.map(results.annotatedActiveInvites, invite =>
+    const invitesMap = map(results.annotatedActiveInvites, invite =>
       Constants.makeInviteInfo({
         email: invite.type.c === RpcTypes.TeamsTeamInviteCategory.email ? invite.name : '',
         role: Constants.teamRoleByEnum[invite.role],
@@ -398,9 +399,9 @@ const _saveChannelMembership = function*(action: Constants.SaveChannelMembership
   const path = pathSelector(state)
   const {teamname, channelState} = action.payload
   const convIDs = Constants.getConvIdsFromTeamName(state, teamname)
-  const channelnameToConvID = _.keyBy(convIDs.toArray(), c => Constants.getChannelNameFromConvID(state, c))
+  const channelnameToConvID = keyBy(convIDs.toArray(), c => Constants.getChannelNameFromConvID(state, c))
 
-  const calls = _.map(channelState, (wantsToBeInChannel: boolean, channelname: string) => {
+  const calls = map(channelState, (wantsToBeInChannel: boolean, channelname: string) => {
     if (wantsToBeInChannel) {
       return call(ChatTypes.localJoinConversationLocalRpcPromise, {
         param: {

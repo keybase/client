@@ -1,5 +1,6 @@
 // @flow
-import _ from 'lodash'
+import pickBy from 'lodash/pickBy'
+import isEqual from 'lodash/isEqual'
 import * as I from 'immutable'
 import * as Constants from '../../constants/teams'
 import ManageChannels from '.'
@@ -53,7 +54,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routePath, routePro
       oldChannelState: ChannelMembershipState,
       nextChannelState: ChannelMembershipState
     ) => {
-      const channelsToChange = _.pickBy(
+      const channelsToChange = pickBy(
         nextChannelState,
         (inChannel: boolean, channelname: string) => inChannel !== oldChannelState[channelname]
       )
@@ -82,7 +83,7 @@ export default compose(
   }),
   lifecycle({
     componentWillReceiveProps: function(nextProps) {
-      if (!_.isEqual(this.props.oldChannelState, nextProps.oldChannelState)) {
+      if (!isEqual(this.props.oldChannelState, nextProps.oldChannelState)) {
         nextProps.setNextChannelState(nextProps.oldChannelState)
       }
     },
@@ -91,6 +92,6 @@ export default compose(
     },
   }),
   withPropsOnChange(['oldChannelState', 'nextChannelState'], props => ({
-    unsavedSubscriptions: !_.isEqual(props.oldChannelState, props.nextChannelState),
+    unsavedSubscriptions: !isEqual(props.oldChannelState, props.nextChannelState),
   }))
 )(ManageChannels)
