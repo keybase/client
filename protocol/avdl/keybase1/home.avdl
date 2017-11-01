@@ -33,7 +33,8 @@ protocol home {
   }
 
   enum HomeScreenPeopleNotificationType {
-    FOLLOWED_0
+    FOLLOWED_0,
+    FOLLOWED_MULTI_1
   }
 
   record HomeScreenPeopleNotificationFollowed {
@@ -41,8 +42,14 @@ protocol home {
     UserSummary user;
   }
 
+  record HomeScreenPeopleNotificationFollowedMulti {
+    array<HomeScreenPeopleNotificationFollowed> followers;
+    int numOthers;
+  }
+
   variant HomeScreenPeopleNotification switch (HomeScreenPeopleNotificationType t) {
     case FOLLOWED: HomeScreenPeopleNotificationFollowed;
+    case FOLLOWED_MULTI: HomeScreenPeopleNotificationFollowedMulti;
   }
 
   record HomeScreenItem {

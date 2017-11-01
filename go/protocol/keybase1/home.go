@@ -192,17 +192,20 @@ func (o HomeScreenTodo) DeepCopy() HomeScreenTodo {
 type HomeScreenPeopleNotificationType int
 
 const (
-	HomeScreenPeopleNotificationType_FOLLOWED HomeScreenPeopleNotificationType = 0
+	HomeScreenPeopleNotificationType_FOLLOWED       HomeScreenPeopleNotificationType = 0
+	HomeScreenPeopleNotificationType_FOLLOWED_MULTI HomeScreenPeopleNotificationType = 1
 )
 
 func (o HomeScreenPeopleNotificationType) DeepCopy() HomeScreenPeopleNotificationType { return o }
 
 var HomeScreenPeopleNotificationTypeMap = map[string]HomeScreenPeopleNotificationType{
-	"FOLLOWED": 0,
+	"FOLLOWED":       0,
+	"FOLLOWED_MULTI": 1,
 }
 
 var HomeScreenPeopleNotificationTypeRevMap = map[HomeScreenPeopleNotificationType]string{
 	0: "FOLLOWED",
+	1: "FOLLOWED_MULTI",
 }
 
 func (e HomeScreenPeopleNotificationType) String() string {
@@ -224,9 +227,32 @@ func (o HomeScreenPeopleNotificationFollowed) DeepCopy() HomeScreenPeopleNotific
 	}
 }
 
+type HomeScreenPeopleNotificationFollowedMulti struct {
+	Followers []HomeScreenPeopleNotificationFollowed `codec:"followers" json:"followers"`
+	NumOthers int                                    `codec:"numOthers" json:"numOthers"`
+}
+
+func (o HomeScreenPeopleNotificationFollowedMulti) DeepCopy() HomeScreenPeopleNotificationFollowedMulti {
+	return HomeScreenPeopleNotificationFollowedMulti{
+		Followers: (func(x []HomeScreenPeopleNotificationFollowed) []HomeScreenPeopleNotificationFollowed {
+			if x == nil {
+				return nil
+			}
+			var ret []HomeScreenPeopleNotificationFollowed
+			for _, v := range x {
+				vCopy := v.DeepCopy()
+				ret = append(ret, vCopy)
+			}
+			return ret
+		})(o.Followers),
+		NumOthers: o.NumOthers,
+	}
+}
+
 type HomeScreenPeopleNotification struct {
-	T__        HomeScreenPeopleNotificationType      `codec:"t" json:"t"`
-	Followed__ *HomeScreenPeopleNotificationFollowed `codec:"followed,omitempty" json:"followed,omitempty"`
+	T__             HomeScreenPeopleNotificationType           `codec:"t" json:"t"`
+	Followed__      *HomeScreenPeopleNotificationFollowed      `codec:"followed,omitempty" json:"followed,omitempty"`
+	FollowedMulti__ *HomeScreenPeopleNotificationFollowedMulti `codec:"followedMulti,omitempty" json:"followedMulti,omitempty"`
 }
 
 func (o *HomeScreenPeopleNotification) T() (ret HomeScreenPeopleNotificationType, err error) {
@@ -234,6 +260,11 @@ func (o *HomeScreenPeopleNotification) T() (ret HomeScreenPeopleNotificationType
 	case HomeScreenPeopleNotificationType_FOLLOWED:
 		if o.Followed__ == nil {
 			err = errors.New("unexpected nil value for Followed__")
+			return ret, err
+		}
+	case HomeScreenPeopleNotificationType_FOLLOWED_MULTI:
+		if o.FollowedMulti__ == nil {
+			err = errors.New("unexpected nil value for FollowedMulti__")
 			return ret, err
 		}
 	}
@@ -250,10 +281,27 @@ func (o HomeScreenPeopleNotification) Followed() (res HomeScreenPeopleNotificati
 	return *o.Followed__
 }
 
+func (o HomeScreenPeopleNotification) FollowedMulti() (res HomeScreenPeopleNotificationFollowedMulti) {
+	if o.T__ != HomeScreenPeopleNotificationType_FOLLOWED_MULTI {
+		panic("wrong case accessed")
+	}
+	if o.FollowedMulti__ == nil {
+		return
+	}
+	return *o.FollowedMulti__
+}
+
 func NewHomeScreenPeopleNotificationWithFollowed(v HomeScreenPeopleNotificationFollowed) HomeScreenPeopleNotification {
 	return HomeScreenPeopleNotification{
 		T__:        HomeScreenPeopleNotificationType_FOLLOWED,
 		Followed__: &v,
+	}
+}
+
+func NewHomeScreenPeopleNotificationWithFollowedMulti(v HomeScreenPeopleNotificationFollowedMulti) HomeScreenPeopleNotification {
+	return HomeScreenPeopleNotification{
+		T__:             HomeScreenPeopleNotificationType_FOLLOWED_MULTI,
+		FollowedMulti__: &v,
 	}
 }
 
@@ -267,6 +315,13 @@ func (o HomeScreenPeopleNotification) DeepCopy() HomeScreenPeopleNotification {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.Followed__),
+		FollowedMulti__: (func(x *HomeScreenPeopleNotificationFollowedMulti) *HomeScreenPeopleNotificationFollowedMulti {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.FollowedMulti__),
 	}
 }
 

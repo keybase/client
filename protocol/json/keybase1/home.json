@@ -76,7 +76,8 @@
       "type": "enum",
       "name": "HomeScreenPeopleNotificationType",
       "symbols": [
-        "FOLLOWED_0"
+        "FOLLOWED_0",
+        "FOLLOWED_MULTI_1"
       ]
     },
     {
@@ -94,6 +95,23 @@
       ]
     },
     {
+      "type": "record",
+      "name": "HomeScreenPeopleNotificationFollowedMulti",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "HomeScreenPeopleNotificationFollowed"
+          },
+          "name": "followers"
+        },
+        {
+          "type": "int",
+          "name": "numOthers"
+        }
+      ]
+    },
+    {
       "type": "variant",
       "name": "HomeScreenPeopleNotification",
       "switch": {
@@ -107,6 +125,13 @@
             "def": false
           },
           "body": "HomeScreenPeopleNotificationFollowed"
+        },
+        {
+          "label": {
+            "name": "FOLLOWED_MULTI",
+            "def": false
+          },
+          "body": "HomeScreenPeopleNotificationFollowedMulti"
         }
       ]
     },

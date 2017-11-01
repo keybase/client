@@ -317,6 +317,7 @@ export const HomeHomeScreenItemType = {
 
 export const HomeHomeScreenPeopleNotificationType = {
   followed: 0,
+  followedMulti: 1,
 }
 
 export const HomeHomeScreenTodoType = {
@@ -3550,14 +3551,21 @@ export type HomeScreenItemType =
 
 export type HomeScreenPeopleNotification =
     { t: 0, followed: ?HomeScreenPeopleNotificationFollowed }
+  | { t: 1, followedMulti: ?HomeScreenPeopleNotificationFollowedMulti }
 
 export type HomeScreenPeopleNotificationFollowed = {
   followTime: Time,
   user: UserSummary,
 }
 
+export type HomeScreenPeopleNotificationFollowedMulti = {
+  followers?: ?Array<HomeScreenPeopleNotificationFollowed>,
+  numOthers: int,
+}
+
 export type HomeScreenPeopleNotificationType =
     0 // FOLLOWED_0
+  | 1 // FOLLOWED_MULTI_1
 
 export type HomeScreenTodo =
     { t: any }
