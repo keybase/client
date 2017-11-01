@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react'
-import {Avatar, Text, Box, ScrollView, Checkbox, Icon, HeaderHoc} from '../../common-adapters'
+import {Avatar, Text, Box, Button, ScrollView, Checkbox, Icon, HeaderHoc} from '../../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../../styles'
 import {renameProp, compose, withProps} from 'recompose'
 
@@ -50,6 +50,25 @@ const ManageChannels = (props: Props) => (
         />
       ))}
     </ScrollView>
+    <Box
+      style={{
+        flex: 2,
+        ...globalStyles.flexBoxColumn,
+        justifyContent: 'flex-end',
+        paddingBottom: globalMargins.small,
+      }}
+    >
+      <Box style={{...globalStyles.flexBoxRow, justifyContent: 'center'}}>
+        <Button
+          type="Primary"
+          label={props.unsavedSubscriptions ? 'Save' : 'Saved'}
+          waiting={props.waitingForSave}
+          disabled={!props.unsavedSubscriptions}
+          onClick={props.onSaveSubscriptions}
+          style={{marginLeft: globalMargins.tiny}}
+        />
+      </Box>
+    </Box>
   </Box>
 )
 
