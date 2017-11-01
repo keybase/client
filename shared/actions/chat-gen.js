@@ -90,7 +90,7 @@ export const createAttachmentSaved = (payload: {|messageKey: Constants.MessageKe
 export const createBlockConversation = (payload: {|blocked: boolean, conversationIDKey: Constants.ConversationIDKey, reportUser: boolean|}) => ({error: false, payload, type: blockConversation})
 export const createClearMessages = (payload: {|conversationIDKey: Constants.ConversationIDKey|}) => ({error: false, payload, type: clearMessages})
 export const createClearRekey = (payload: {|conversationIDKey: Constants.ConversationIDKey|}) => ({error: false, payload, type: clearRekey})
-export const createDeleteEntity = (payload: {|keyPath: Array<string>, ids: I.List<string>|}) => ({error: false, payload, type: deleteEntity})
+export const createDeleteEntity = (payload: {|keyPath: Array<string>, ids: Iterable<string>|}) => ({error: false, payload, type: deleteEntity})
 export const createDeleteMessage = (payload: {|message: Constants.Message|}) => ({error: false, payload, type: deleteMessage})
 export const createEditMessage = (payload: {|message: Constants.Message, text: HiddenString|}) => ({error: false, payload, type: editMessage})
 export const createExitSearch = (payload: {|skipSelectPreviousConversation: boolean|}) => ({error: false, payload, type: exitSearch})
