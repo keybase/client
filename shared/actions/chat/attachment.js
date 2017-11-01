@@ -1,13 +1,14 @@
 // @flow
 import * as ChatTypes from '../../constants/types/flow-types-chat'
 import * as Constants from '../../constants/chat'
+import * as ChatGen from '../chat-gen'
+import * as I from 'immutable'
 import * as EngineRpc from '../engine/helper'
 import * as Creators from './creators'
 import * as RPCTypes from '../../constants/types/flow-types'
 import * as Saga from '../../util/saga'
+import * as EntityCreators from '../entities'
 import * as Shared from './shared'
-import {call, take, put, select, cancel, spawn} from 'redux-saga/effects'
-import {delay} from 'redux-saga'
 import {putActionIfOnPath, navigateAppend} from '../route-tree'
 import {saveAttachmentDialog, showShareActionSheet} from '../platform-specific'
 import {tmpDir, tmpFile, downloadFilePath, copy, exists, stat} from '../../util/file'
@@ -17,29 +18,29 @@ import {type TypedState} from '../../constants/reducer'
 import {type SagaGenerator} from '../../constants/types/saga'
 
 function* onShareAttachment({payload: {messageKey}}: Constants.ShareAttachment): SagaGenerator<any, any> {
-  const path = yield call(onSaveAttachment, Creators.saveAttachment(messageKey))
+  const path = yield Saga.call(onSaveAttachment, ChatGen.createSaveAttachment({messageKey}))
   if (path) {
-    yield call(showShareActionSheet, {url: path})
+    yield Saga.call(showShareActionSheet, {url: path})
   }
 }
 
 function* onSaveAttachmentNative({
   payload: {messageKey},
 }: Constants.SaveAttachmentNative): SagaGenerator<any, any> {
-  const path = yield call(onSaveAttachment, Creators.saveAttachment(messageKey))
+  const path = yield Saga.call(onSaveAttachment, ChatGen.createSaveAttachment({messageKey}))
   if (path) {
-    yield call(saveAttachmentDialog, path)
+    yield Saga.call(saveAttachmentDialog, path)
   }
 }
 
 function* onLoadAttachmentPreview({
   payload: {messageKey},
 }: Constants.LoadAttachmentPreview): SagaGenerator<any, any> {
-  yield put(Creators.loadAttachment(messageKey, true))
+  yield Saga.put(ChatGen.createLoadAttachment({messageKey, loadPreview: true}))
 }
 
-function* onSaveAttachment({payload: {messageKey}}: Constants.SaveAttachment): SagaGenerator<any, any> {
-  const {savedPath, downloadedPath} = yield select((s: TypedState) => ({
+function* onSaveAttachment({payload: {messageKey}}: ChatGen.SaveAttachmentPayload): SagaGenerator<any, any> {
+  const {savedPath, downloadedPath} = yield Saga.select((s: TypedState) => ({
     savedPath: Constants.getAttachmentSavedPath(s, messageKey),
     downloadedPath: Constants.getAttachmentDownloadedPath(s, messageKey),
   }))
@@ -48,13 +49,13 @@ function* onSaveAttachment({payload: {messageKey}}: Constants.SaveAttachment): S
     return savedPath
   }
 
-  yield put(Creators.attachmentSaveStart(messageKey))
+  yield Saga.put(ChatGen.createAttachmentSaveStart({messageKey}))
 
   const startTime = Date.now()
   if (!downloadedPath) {
-    yield put(Creators.loadAttachment(messageKey, false))
+    yield Saga.put(ChatGen.createLoadAttachment({messageKey, loadPreview: false}))
     console.log('_saveAttachment: waiting for attachment to load', messageKey)
-    yield take(
+    yield Saga.take(
       action =>
         action.type === 'chat:attachmentLoaded' &&
         action.payload &&
@@ -72,37 +73,37 @@ function* onSaveAttachment({payload: {messageKey}}: Constants.SaveAttachment): S
     // download.
     if (endTime - startTime < 500) {
       for (let i = 0; i < 5; i++) {
-        yield put(Creators.downloadProgress(messageKey, false, (i + 1) / 5))
-        yield delay(150)
+        yield Saga.put(Creators.downloadProgress(messageKey, false, (i + 1) / 5))
+        yield Saga.delay(150)
       }
-      yield put(Creators.downloadProgress(messageKey, false, null))
+      yield Saga.put(Creators.downloadProgress(messageKey, false, null))
     }
   }
 
-  const nextDownloadedPath = yield select(Constants.getAttachmentDownloadedPath, messageKey)
+  const nextDownloadedPath = yield Saga.select(Constants.getAttachmentDownloadedPath, messageKey)
   if (!nextDownloadedPath) {
     console.warn('_saveAttachment: message failed to download!')
     return
   }
 
-  const {filename} = yield select(Constants.getMessageFromMessageKey, messageKey)
-  const destPath = yield call(downloadFilePath, filename)
+  const {filename} = yield Saga.select(Constants.getMessageFromMessageKey, messageKey)
+  const destPath = yield Saga.call(downloadFilePath, filename)
 
   try {
     yield copy(nextDownloadedPath, destPath)
   } catch (err) {
     console.warn('_saveAttachment: copy failed:', err)
-    yield put(Creators.attachmentSaveFailed(messageKey))
+    yield Saga.put(ChatGen.createAttachmentSaveFailed({messageKey}))
     return
   }
 
-  yield put(Creators.attachmentSaved(messageKey, destPath))
+  yield Saga.put(ChatGen.createAttachmentSaved({messageKey, path: destPath}))
   return destPath
 }
 
 function downloadProgressSubSaga(messageKey, loadPreview) {
   return function*({bytesComplete, bytesTotal}) {
-    yield put(Creators.downloadProgress(messageKey, loadPreview, bytesComplete / bytesTotal))
+    yield Saga.put(Creators.downloadProgress(messageKey, loadPreview, bytesComplete / bytesTotal))
     return EngineRpc.rpcResult()
   }
 }
@@ -115,11 +116,11 @@ const loadAttachmentSagaMap = (messageKey, loadPreview) => ({
 
 function* onLoadAttachment({
   payload: {messageKey, loadPreview},
-}: Constants.LoadAttachment): SagaGenerator<any, any> {
+}: ChatGen.LoadAttachmentPayload): SagaGenerator<any, any> {
   // Check if we should download the attachment. Only one instance of this saga
   // should executes at any time, so that these checks don't interleave with
   // updating initial progress on the download.
-  const {previewPath, previewProgress, downloadedPath, downloadProgress} = yield select(
+  const {previewPath, previewProgress, downloadedPath, downloadProgress} = yield Saga.select(
     Constants.getLocalMessageStateFromMessageKey,
     messageKey
   )
@@ -150,15 +151,15 @@ function* onLoadAttachment({
 
   const {conversationIDKey, messageID} = Constants.splitMessageIDKey(messageKey)
   const destPath = tmpFile(Shared.tmpFileName(loadPreview, conversationIDKey, messageID))
-  const fileExists = yield call(exists, destPath)
+  const fileExists = yield Saga.call(exists, destPath)
   if (fileExists) {
     try {
-      const fileStat = yield call(stat, destPath)
+      const fileStat = yield Saga.call(stat, destPath)
       if (fileStat.size === 0) {
         console.warn('attachment file had size 0. overwriting:', destPath)
         // Fall through to download attachment
       } else {
-        yield put(Creators.attachmentLoaded(messageKey, destPath, loadPreview))
+        yield Saga.put(Creators.attachmentLoaded(messageKey, destPath, loadPreview))
         return
       }
     } catch (err) {
@@ -167,10 +168,10 @@ function* onLoadAttachment({
   }
 
   // Set initial progress value
-  yield put.resolve(Creators.downloadProgress(messageKey, loadPreview, 0))
+  yield Saga.put.resolve(Creators.downloadProgress(messageKey, loadPreview, 0))
 
   // Perform the download in a fork so that the next loadAttachment action can be handled.
-  yield spawn(function*() {
+  yield Saga.spawn(function*() {
     const param = {
       conversationID: Constants.keyToConversationID(conversationIDKey),
       messageID: Constants.parseMessageID(messageID).msgID,
@@ -187,16 +188,16 @@ function* onLoadAttachment({
     )
 
     try {
-      const result = yield call(downloadFileRpc.run)
+      const result = yield Saga.call(downloadFileRpc.run)
       if (EngineRpc.isFinished(result)) {
-        yield put(Creators.attachmentLoaded(messageKey, destPath, loadPreview))
+        yield Saga.put(Creators.attachmentLoaded(messageKey, destPath, loadPreview))
       } else {
         console.warn('downloadFileRpc bailed early')
-        yield put(Creators.attachmentLoaded(messageKey, null, loadPreview))
+        yield Saga.put(Creators.attachmentLoaded(messageKey, null, loadPreview))
       }
     } catch (err) {
       console.warn('attachment failed to load:', err)
-      yield put(Creators.attachmentLoaded(messageKey, null, loadPreview))
+      yield Saga.put(Creators.attachmentLoaded(messageKey, null, loadPreview))
     }
   })
 }
@@ -208,7 +209,7 @@ function* _appendAttachmentPlaceholder(
   title: string,
   uploadPath: string
 ) {
-  const author = yield select(usernameSelector)
+  const author = yield Saga.select(usernameSelector)
   const message: Constants.AttachmentMessage = {
     author,
     conversationIDKey,
@@ -228,10 +229,10 @@ function* _appendAttachmentPlaceholder(
     uploadPath,
   }
 
-  const selectedConversation = yield select(Constants.getSelectedConversation)
-  const appFocused = yield select(Shared.focusedSelector)
+  const selectedConversation = yield Saga.select(Constants.getSelectedConversation)
+  const appFocused = yield Saga.select(Shared.focusedSelector)
 
-  yield put(
+  yield Saga.put(
     Creators.appendMessages(
       conversationIDKey,
       conversationIDKey === selectedConversation,
@@ -240,15 +241,15 @@ function* _appendAttachmentPlaceholder(
       false
     )
   )
-  yield put(Creators.attachmentLoaded(message.key, preview.filename, true))
+  yield Saga.put(Creators.attachmentLoaded(message.key, preview.filename, true))
   return message
 }
 
 function uploadProgressSubSaga(getCurKey: () => ?Constants.MessageKey) {
   return function*({bytesComplete, bytesTotal}) {
-    const curKey = yield call(getCurKey)
+    const curKey = yield Saga.call(getCurKey)
     if (curKey) {
-      yield put(Creators.uploadProgress(curKey, bytesComplete / bytesTotal))
+      yield Saga.put(ChatGen.createUploadProgress({messageKey: curKey, progress: bytesComplete / bytesTotal}))
     }
     return EngineRpc.rpcResult()
   }
@@ -264,7 +265,7 @@ function uploadOutboxIDSubSaga(
 ) {
   return function*({outboxID}) {
     const outboxIDKey = Constants.outboxIDToKey(outboxID)
-    const placeholderMessage = yield call(
+    const placeholderMessage = yield Saga.call(
       _appendAttachmentPlaceholder,
       conversationIDKey,
       outboxIDKey,
@@ -272,8 +273,8 @@ function uploadOutboxIDSubSaga(
       title,
       filename
     )
-    yield call(setCurKey, placeholderMessage.key)
-    yield call(setOutboxId, outboxIDKey)
+    yield Saga.call(setCurKey, placeholderMessage.key)
+    yield Saga.call(setOutboxId, outboxIDKey)
     return EngineRpc.rpcResult()
   }
 }
@@ -303,27 +304,27 @@ const postAttachmentSagaMap = (
   'chat.1.chatUi.chatAttachmentPreviewUploadDone': EngineRpc.passthroughResponseSaga,
 })
 
-function* onSelectAttachment({payload: {input}}: Constants.SelectAttachment): Generator<any, any, any> {
+function* onSelectAttachment({payload: {input}}: ChatGen.SelectAttachmentPayload): Generator<any, any, any> {
   const {title, filename} = input
   let {conversationIDKey} = input
   let newConvoTlfName
 
   if (Constants.isPendingConversationIDKey(conversationIDKey)) {
     // Get a real conversationIDKey
-    ;[conversationIDKey, newConvoTlfName] = yield call(Shared.startNewConversation, conversationIDKey)
+    ;[conversationIDKey, newConvoTlfName] = yield Saga.call(Shared.startNewConversation, conversationIDKey)
     if (!conversationIDKey) {
       return
     }
   }
 
-  const preview = yield call(ChatTypes.localMakePreviewRpcPromise, {
+  const preview = yield Saga.call(ChatTypes.localMakePreviewRpcPromise, {
     param: {
       attachment: {filename},
       outputDir: tmpDir(),
     },
   })
 
-  const inboxConvo = yield select(Constants.getInbox, conversationIDKey)
+  const inboxConvo = yield Saga.select(Constants.getInbox, conversationIDKey)
   const param = {
     conversationID: Constants.keyToConversationID(conversationIDKey),
     tlfName: inboxConvo ? inboxConvo.name : newConvoTlfName,
@@ -332,7 +333,7 @@ function* onSelectAttachment({payload: {input}}: Constants.SelectAttachment): Ge
     preview,
     title,
     metadata: null,
-    identifyBehavior: yield call(Shared.getPostingIdentifyBehavior, conversationIDKey),
+    identifyBehavior: yield Saga.call(Shared.getPostingIdentifyBehavior, conversationIDKey),
   }
 
   // TODO This is really hacky, should get reworked
@@ -361,16 +362,16 @@ function* onSelectAttachment({payload: {input}}: Constants.SelectAttachment): Ge
   const keyChangedTask = yield Saga.safeTakeEvery(
     action => action.type === 'chat:outboxMessageBecameReal' && action.payload.oldMessageKey === getCurKey(),
     function*(action) {
-      yield call(setCurKey, action.payload.newMessageKey)
+      yield Saga.call(setCurKey, action.payload.newMessageKey)
     }
   )
 
   try {
-    const result = yield call(postAttachment.run)
+    const result = yield Saga.call(postAttachment.run)
     if (EngineRpc.isFinished(result)) {
       if (result.error) {
-        const outboxIDKey = yield call(getOutboxIdKey)
-        yield put(
+        const outboxIDKey = yield Saga.call(getOutboxIdKey)
+        yield Saga.put(
           Creators.updateTempMessage(
             conversationIDKey,
             {
@@ -381,48 +382,104 @@ function* onSelectAttachment({payload: {input}}: Constants.SelectAttachment): Ge
           )
         )
       }
-      const curKey = yield call(getCurKey)
-      yield put(Creators.uploadProgress(curKey, null))
+      const curKey = yield Saga.call(getCurKey)
+      yield Saga.put(ChatGen.createUploadProgress({messageKey: curKey, progress: null}))
     } else {
       console.warn('Upload Attachment Failed')
     }
   } finally {
-    yield cancel(keyChangedTask)
+    yield Saga.cancel(keyChangedTask)
   }
 }
 
 function* onRetryAttachment({
   payload: {input, oldOutboxID},
 }: Constants.RetryAttachment): Generator<any, any, any> {
-  yield put(Creators.removeOutboxMessage(input.conversationIDKey, oldOutboxID))
-  yield call(onSelectAttachment, {payload: {input}})
+  yield Saga.put(
+    ChatGen.createRemoveOutboxMessage({conversationIDKey: input.conversationIDKey, outboxID: oldOutboxID})
+  )
+  yield Saga.call(onSelectAttachment, {payload: {input}})
 }
 
-function* onOpenAttachmentPopup(action: Constants.OpenAttachmentPopup): SagaGenerator<any, any> {
+function* onOpenAttachmentPopup(action: ChatGen.OpenAttachmentPopupPayload): SagaGenerator<any, any> {
   const {message, currentPath} = action.payload
   const messageID = message.messageID
   if (!messageID) {
     throw new Error('Cannot open attachment popup for message missing ID')
   }
 
-  yield put(
+  yield Saga.put(
     putActionIfOnPath(
       currentPath,
       navigateAppend([{props: {messageKey: message.key}, selected: 'attachment'}])
     )
   )
   if (!message.hdPreviewPath && message.filename && message.messageID) {
-    yield put(Creators.loadAttachment(message.key, false))
+    yield Saga.put(ChatGen.createLoadAttachment({messageKey: message.key, loadPreview: false}))
   }
 }
 
-export {
-  onLoadAttachment,
-  onLoadAttachmentPreview,
-  onOpenAttachmentPopup,
-  onRetryAttachment,
-  onSaveAttachment,
-  onSaveAttachmentNative,
-  onShareAttachment,
-  onSelectAttachment,
+function attachmentLoaded(action: Constants.AttachmentLoaded) {
+  const {payload: {messageKey, path, isPreview}} = action
+  if (isPreview) {
+    return Saga.all([
+      Saga.put(EntityCreators.replaceEntity(['attachmentPreviewPath'], I.Map({[messageKey]: path}))),
+      Saga.put(EntityCreators.replaceEntity(['attachmentPreviewProgress'], I.Map({[messageKey]: null}))),
+    ])
+  }
+  return Saga.all([
+    Saga.put(EntityCreators.replaceEntity(['attachmentDownloadedPath'], I.Map({[messageKey]: path}))),
+    Saga.put(EntityCreators.replaceEntity(['attachmentDownloadProgress'], I.Map({[messageKey]: null}))),
+  ])
 }
+
+function updateProgress(action: Constants.DownloadProgress | ChatGen.UploadProgressPayload) {
+  const {type, payload: {progress, messageKey}} = action
+  if (type === 'chat:downloadProgress') {
+    if (action.payload.isPreview) {
+      return Saga.put(
+        EntityCreators.replaceEntity(['attachmentPreviewProgress'], I.Map({[messageKey]: progress}))
+      )
+    }
+    return Saga.put(
+      EntityCreators.replaceEntity(['attachmentDownloadProgress'], I.Map({[messageKey]: progress}))
+    )
+  }
+  return Saga.put(EntityCreators.replaceEntity(['attachmentUploadProgress'], I.Map({[messageKey]: progress})))
+}
+
+function updateAttachmentSavePath(
+  action:
+    | ChatGen.AttachmentSaveStartPayload
+    | ChatGen.AttachmentSaveFailedPayload
+    | ChatGen.AttachmentSavedPayload
+) {
+  const {messageKey} = action.payload
+  switch (action.type) {
+    case 'chat:attachmentSaveFailed':
+    case 'chat:attachmentSaveStart':
+      return Saga.put(EntityCreators.replaceEntity(['attachmentSavedPath'], I.Map({[messageKey]: null})))
+    case 'chat:attachmentSaved':
+      const {path} = action.payload
+      return Saga.put(EntityCreators.replaceEntity(['attachmentSavedPath'], I.Map({[messageKey]: path})))
+  }
+}
+
+function* registerSagas(): SagaGenerator<any, any> {
+  yield Saga.safeTakeSerially('chat:loadAttachment', onLoadAttachment)
+  yield Saga.safeTakeEvery('chat:openAttachmentPopup', onOpenAttachmentPopup)
+  yield Saga.safeTakeEvery('chat:loadAttachmentPreview', onLoadAttachmentPreview)
+  yield Saga.safeTakeEvery('chat:retryAttachment', onRetryAttachment)
+  yield Saga.safeTakeEvery('chat:saveAttachment', onSaveAttachment)
+  yield Saga.safeTakeEvery('chat:saveAttachmentNative', onSaveAttachmentNative)
+  yield Saga.safeTakeEvery('chat:selectAttachment', onSelectAttachment)
+  yield Saga.safeTakeEvery('chat:shareAttachment', onShareAttachment)
+  yield Saga.safeTakeEveryPure('chat:attachmentLoaded', attachmentLoaded)
+  yield Saga.safeTakeEveryPure(['chat:downloadProgress', 'chat:uploadProgress'], updateProgress)
+  yield Saga.safeTakeEveryPure(
+    ['chat:attachmentSaveStart', 'chat:attachmentSaveFailed', 'chat:attachmentSaved'],
+    updateAttachmentSavePath
+  )
+}
+
+export {registerSagas}

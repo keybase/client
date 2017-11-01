@@ -397,7 +397,9 @@ const attachmentMap: DumbComponentMap<AttachmentMessageComponent> = {
 }
 */
 
-let mockState = ChatConstants.makeState()
+let mockState = ChatConstants.makeState({
+  inboxSnippet: I.Map({[convID]: new HiddenString('Snippet here')}),
+})
 const firstMsg = textMessageMock('sent', 'cecileb', 'cecileb', {
   text: 'Can you bring the lentils tomorrow?',
 })
@@ -433,7 +435,6 @@ const mockStore = {
       }, {})
     ),
     conversationMessages: I.Map({[convID]: I.OrderedSet(msgs.map(m => m.key))}),
-    convIDToSnippet: I.Map({[convID]: new HiddenString('Snippet here')}),
   }),
 }
 

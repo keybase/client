@@ -1,6 +1,7 @@
 // @flow
 import * as CommonConstants from '../constants/common'
 import * as Constants from '../constants/signup'
+import * as SignupGen from '../actions/signup-gen'
 import {isMobile} from '../constants/platform'
 
 const initialState: Constants.State = {
@@ -22,7 +23,10 @@ const initialState: Constants.State = {
 }
 
 /* eslint-disable no-fallthrough */
-export default function(state: Constants.State = initialState, action: Constants.Actions): Constants.State {
+export default function(
+  state: Constants.State = initialState,
+  action: Constants.Actions | SignupGen.Actions
+): Constants.State {
   switch (action.type) {
     case CommonConstants.resetStore:
     case Constants.resetSignup: // fallthrough
@@ -34,7 +38,7 @@ export default function(state: Constants.State = initialState, action: Constants
       }
       return {...state, waiting: action.payload}
 
-    case Constants.checkInviteCode:
+    case SignupGen.checkInviteCode:
       if (action.error) {
         return {
           ...state,

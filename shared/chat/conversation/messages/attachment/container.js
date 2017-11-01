@@ -1,6 +1,7 @@
 // @flow
 import * as Constants from '../../../../constants/chat'
 import * as Creators from '../../../../actions/chat/creators'
+import * as ChatGen from '../../../../actions/chat-gen'
 import Attachment, {type Props} from '.'
 import shallowEqual from 'shallowequal'
 import {List} from 'immutable'
@@ -22,13 +23,13 @@ const mapStateToProps = (state: TypedState, {messageKey}: OwnProps) => {
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
   _onDownloadAttachment: messageKey => {
-    messageKey && dispatch(Creators.saveAttachment(messageKey))
+    messageKey && dispatch(ChatGen.createSaveAttachment({messageKey}))
   },
   _onEnsurePreviewLoaded: (messageKey: Constants.MessageKey) =>
     dispatch(Creators.loadAttachmentPreview(messageKey)),
   _onOpenInFileUI: (path: string) => dispatch(({payload: {path}, type: 'fs:openInFileUI'}: OpenInFileUI)),
   _onOpenInPopup: (message: Constants.AttachmentMessage, routePath: List<string>) =>
-    dispatch(Creators.openAttachmentPopup(message, routePath)),
+    dispatch(ChatGen.createOpenAttachmentPopup({message, currentPath: routePath})),
 })
 
 const mergeProps = (stateProps, dispatchProps, {measure, onAction}: OwnProps) => ({
