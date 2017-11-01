@@ -197,6 +197,10 @@
       ],
       "response": null
     },
+    "homeActionTaken": {
+      "request": [],
+      "response": null
+    },
     "homeMarkViewed": {
       "request": [],
       "response": null

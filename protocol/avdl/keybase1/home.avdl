@@ -66,6 +66,7 @@ protocol home {
 
   HomeScreen homeGetScreen(boolean markViewed);
   void homeSkipTodoType(HomeScreenTodoType t);
+  void homeActionTaken();
   void homeMarkViewed();
 
 }

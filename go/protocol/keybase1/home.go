@@ -393,6 +393,13 @@ func (o HomeSkipTodoTypeArg) DeepCopy() HomeSkipTodoTypeArg {
 	}
 }
 
+type HomeActionTakenArg struct {
+}
+
+func (o HomeActionTakenArg) DeepCopy() HomeActionTakenArg {
+	return HomeActionTakenArg{}
+}
+
 type HomeMarkViewedArg struct {
 }
 
@@ -403,6 +410,7 @@ func (o HomeMarkViewedArg) DeepCopy() HomeMarkViewedArg {
 type HomeInterface interface {
 	HomeGetScreen(context.Context, bool) (HomeScreen, error)
 	HomeSkipTodoType(context.Context, HomeScreenTodoType) error
+	HomeActionTaken(context.Context) error
 	HomeMarkViewed(context.Context) error
 }
 
@@ -442,6 +450,17 @@ func HomeProtocol(i HomeInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"homeActionTaken": {
+				MakeArg: func() interface{} {
+					ret := make([]HomeActionTakenArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					err = i.HomeActionTaken(ctx)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 			"homeMarkViewed": {
 				MakeArg: func() interface{} {
 					ret := make([]HomeMarkViewedArg, 1)
@@ -470,6 +489,11 @@ func (c HomeClient) HomeGetScreen(ctx context.Context, markViewed bool) (res Hom
 func (c HomeClient) HomeSkipTodoType(ctx context.Context, t HomeScreenTodoType) (err error) {
 	__arg := HomeSkipTodoTypeArg{T: t}
 	err = c.Cli.Call(ctx, "keybase.1.home.homeSkipTodoType", []interface{}{__arg}, nil)
+	return
+}
+
+func (c HomeClient) HomeActionTaken(ctx context.Context) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.home.homeActionTaken", []interface{}{HomeActionTakenArg{}}, nil)
 	return
 }
 

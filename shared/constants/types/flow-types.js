@@ -1561,6 +1561,14 @@ export function gregorInjectItemRpcPromise (request: (requestCommon & {callback?
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.gregor.injectItem', request, (error, result) => error ? reject(error) : resolve(result)))
 }
 
+export function homeHomeActionTakenRpcChannelMap (configKeys: Array<string>, request: requestCommon & requestErrorCallback): EngineChannel {
+  return engine()._channelMapRpcHelper(configKeys, 'keybase.1.home.homeActionTaken', request)
+}
+
+export function homeHomeActionTakenRpcPromise (request: ?(requestCommon & requestErrorCallback)): Promise<void> {
+  return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.home.homeActionTaken', request, (error, result) => error ? reject(error) : resolve(result)))
+}
+
 export function homeHomeGetScreenRpcChannelMap (configKeys: Array<string>, request: requestCommon & {callback?: ?(err: ?any, response: homeHomeGetScreenResult) => void} & {param: homeHomeGetScreenRpcParam}): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.home.homeGetScreen', request)
 }
@@ -6876,6 +6884,10 @@ export type incomingCallMapType = Exact<{
     params: Exact<{
       oobm?: ?Array<gregor1.OutOfBandMessage>
     }>,
+    response: CommonResponseHandler
+  ) => void,
+  'keybase.1.homeUi.refresh'?: (
+    params: Exact<{}>,
     response: CommonResponseHandler
   ) => void,
   'keybase.1.identifyUi.displayTLFCreateWithInvite'?: (
