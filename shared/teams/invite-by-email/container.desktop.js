@@ -1,6 +1,6 @@
 // @flow
 import * as Creators from '../../actions/teams/creators'
-import InviteByEmail from '.'
+import InviteByEmailDesktop from '.'
 import {HeaderHoc} from '../../common-adapters'
 import {navigateAppend} from '../../actions/route-tree'
 import {
@@ -11,8 +11,9 @@ import {
   withState,
   type TypedState,
 } from '../../util/container'
+import {type OwnProps} from './container'
 
-const mapStateToProps = (state: TypedState, {routeProps}) => ({
+const mapStateToProps = (state: TypedState, {routeProps}: OwnProps) => ({
   name: routeProps.get('teamname'),
 })
 
@@ -54,4 +55,4 @@ export default compose(
     }),
     HeaderHoc
   )
-)(InviteByEmail)
+)(InviteByEmailDesktop)
