@@ -130,7 +130,6 @@ class Inbox extends PureComponent<Props, State> {
             onSelectUp={this.props.onSelectUp}
             onSelectDown={this.props.onSelectDown}
           />
-          // TODO: there is no longer showNewConversation
           {this.props.showNewConversation && <NewConversation />}
           <div style={_scrollableStyle} onScroll={this._onScroll}>
             <ReactList
