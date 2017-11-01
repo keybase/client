@@ -254,7 +254,7 @@ function reducer(state: Constants.State = initialState, action: Constants.Action
       }
       break
     }
-    case ChatGen.inboxGlobalUntrustedState: {
+    case ChatGen.setInboxGlobalUntrustedState: {
       return state.set('inboxGlobalUntrustedState', action.payload.inboxGlobalUntrustedState)
     }
     case ChatGen.setInboxFilter: {
