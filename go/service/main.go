@@ -406,19 +406,19 @@ func (d *Service) identifySelf() {
 	// identify2 did a load user for self, so find it and cache it in FullSelfer.
 	them := eng.FullThemUser()
 	me := eng.FullMeUser()
-	var u *libkb.User
+	var self *libkb.User
 	if them != nil && them.GetUID().Equal(uid) {
 		d.G().Log.Debug("identifySelf: using them for full user")
-		u = them
+		self = them
 	} else if me != nil && me.GetUID().Equal(uid) {
 		d.G().Log.Debug("identifySelf: using me for full user")
-		u = me
+		self = me
 	}
-	if u != nil {
-		if err := d.G().GetFullSelfer().Update(context.Background(), u); err != nil {
+	if self != nil {
+		if err := d.G().GetFullSelfer().Update(context.Background(), self); err != nil {
 			d.G().Log.Debug("identifySelf: error updating full self cache: %s", err)
 		} else {
-			d.G().Log.Debug("identifySelf: updated full self cache for: %s", u.GetName())
+			d.G().Log.Debug("identifySelf: updated full self cache for: %s", self.GetName())
 		}
 	}
 }
