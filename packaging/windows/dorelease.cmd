@@ -22,24 +22,24 @@ IF [%UpdateChannel%] == [Smoke2] goto:done_ci
 if NOT DEFINED UNARCHIVE_COMMAND set UNARCHIVE_COMMAND="C:\Program Filess (x86)\7-Zip\7z" e -y
 
 signtool verify /all /kp /v %DOKAN_PATH%\\x64\\Win10Release\\dokan1.sys | find "Issued to: Microsoft Windows Hardware Compatibility Publisher"
-IF %ERRORLEVEL% NEQ 0 EXIT /B 1
+IF %ERRORLEVEL% NEQ 0 goto:build_error || EXIT /B 1
 signtool verify /all /kp /v %DOKAN_PATH%\\Win32\\Win10Release\\dokan1.sys | find "Issued to: Microsoft Windows Hardware Compatibility Publisher"
-IF %ERRORLEVEL% NEQ 0 EXIT /B 1
+IF %ERRORLEVEL% NEQ 0 goto:build_error || EXIT /B 1
 %UNARCHIVE_COMMAND% %DOKAN_PATH%\\dokan_wix\\bin\\x64\\release\\Dokan_x64.msi Win10_Sys
-IF %ERRORLEVEL% NEQ 0 EXIT /B 1
+IF %ERRORLEVEL% NEQ 0 goto:build_error || EXIT /B 1
 signtool verify /all /kp /v Win10_Sys | find "Issued to: Microsoft Windows Hardware Compatibility Publisher"
-IF %ERRORLEVEL% NEQ 0 EXIT /B 1
+IF %ERRORLEVEL% NEQ 0 goto:build_error || EXIT /B 1
 %UNARCHIVE_COMMAND% %DOKAN_PATH%\\dokan_wix\\bin\\x86\\release\\Dokan_x86.msi Win10_Sys
-IF %ERRORLEVEL% NEQ 0 EXIT /B 1
+IF %ERRORLEVEL% NEQ 0 goto:build_error || EXIT /B 1
 signtool verify /all /kp /v Win10_Sys | find "Issued to: Microsoft Windows Hardware Compatibility Publisher"
-IF %ERRORLEVEL% NEQ 0 EXIT /B 1
+IF %ERRORLEVEL% NEQ 0 goto:build_error || EXIT /B 1
 
 :donechecking 
 
-call:checkout_keybase client, %ClientRevision% || EXIT /B 1
-call:checkout_keybase kbfs, %KBFSRevision% || EXIT /B 1
-call:checkout_keybase go-updater, %UpdaterRevision% || EXIT /B 1
-call:checkout_keybase release, %ReleaseRevision% || EXIT /B 1
+call:checkout_keybase client, %ClientRevision% || goto:build_error || EXIT /B 1
+call:checkout_keybase kbfs, %KBFSRevision% || goto:build_error || EXIT /B 1
+call:checkout_keybase go-updater, %UpdaterRevision% || goto:build_error || EXIT /B 1
+call:checkout_keybase release, %ReleaseRevision% || goto:build_error || EXIT /B 1
 
 ::wait for CI
 if [%UpdateChannel%] == [SmokeCI] (
@@ -47,9 +47,9 @@ if [%UpdateChannel%] == [SmokeCI] (
     for /f %%i in ('git -C %GOPATH%\src\github.com\keybase\kbfs rev-parse --short HEAD') do set kbfsCommit=%%i    
     :: need GITHUB_TOKEN
     pushd %GOPATH%\src\github.com\keybase\release
-    go build || EXIT /B 1
-    release wait-ci --repo="client" --commit="%clientCommit%" --context="continuous-integration/jenkins/branch" --context="ci/circleci"  || EXIT /B 1
-    release wait-ci --repo="kbfs" --commit="%kbfsCommit%" --context="continuous-integration/jenkins/branch" --context="ci/circleci"  || EXIT /B 1
+    go build || goto:build_error || EXIT /B 1
+    release wait-ci --repo="client" --commit="%clientCommit%" --context="continuous-integration/jenkins/branch" --context="ci/circleci"  || goto:build_error || EXIT /B 1
+    release wait-ci --repo="kbfs" --commit="%kbfsCommit%" --context="continuous-integration/jenkins/branch" --context="ci/circleci"  || goto:build_error || EXIT /B 1
     popd
 )
 
@@ -57,14 +57,14 @@ if [%UpdateChannel%] == [SmokeCI] (
 
 pushd %GOPATH%\src\github.com\keybase\client\packaging\windows
 ::Get + increment the global, shared build number
-s3browser-con download prerelease.keybase.io prerelease.keybase.io/windows-support/buildnumber/buildnumber.txt . || EXIT /B 1
+s3browser-con download prerelease.keybase.io prerelease.keybase.io/windows-support/buildnumber/buildnumber.txt . || goto:build_error || EXIT /B 1
 set /p BUILD_NUMBER=<windows-support\buildnumber\buildnumber.txt
 set /A BUILD_NUMBER=BUILD_NUMBER+1
 echo %BUILD_NUMBER% > windows-support\buildnumber\buildnumber.txt
-s3browser-con upload prerelease.keybase.io windows-support\buildnumber prerelease.keybase.io/windows-support/buildnumber || EXIT /B 1
+s3browser-con upload prerelease.keybase.io windows-support\buildnumber prerelease.keybase.io/windows-support/buildnumber || goto:build_error || EXIT /B 1
 popd
 
-call %GOPATH%\src\github.com\keybase\client\packaging\windows\build_prerelease.cmd || EXIT /B 1
+call %GOPATH%\src\github.com\keybase\client\packaging\windows\build_prerelease.cmd || goto:build_error || EXIT /B 1
 
 
 ::RunQuiet Utility
@@ -82,21 +82,21 @@ if %ERRORLEVEL% EQU 0 (
     type old.hash
     echo "--- Current hash: ---"
     type rq.hash
-    call ..\..\..\packaging\windows\buildrq.bat || EXIT /B 1
+    call ..\..\..\packaging\windows\buildrq.bat || goto:build_error || EXIT /B 1
 )
 popd
 
-call %GOPATH%\src\github.com\keybase\client\packaging\windows\buildui.bat || EXIT /B 1
+call %GOPATH%\src\github.com\keybase\client\packaging\windows\buildui.bat || goto:build_error || EXIT /B 1
 
 ::Build Installer
-call %GOPATH%\src\github.com\keybase\client\packaging\windows\doinstaller_wix.cmd || EXIT /B 1
+call %GOPATH%\src\github.com\keybase\client\packaging\windows\doinstaller_wix.cmd || goto:build_error || EXIT /B 1
 
 ::Publish to S3
 if %UpdateChannel% NEQ "None" (
     echo "Uploading %BUILD_TAG%"
-    s3browser-con upload prerelease.keybase.io  %GOPATH%\src\github.com\keybase\client\packaging\windows\%BUILD_TAG%\*.exe prerelease.keybase.io/windows  || EXIT /B 1
+    s3browser-con upload prerelease.keybase.io  %GOPATH%\src\github.com\keybase\client\packaging\windows\%BUILD_TAG%\*.exe prerelease.keybase.io/windows  || goto:build_error || EXIT /B 1
     :: Test channel json
-    s3browser-con upload prerelease.keybase.io  %GOPATH%\src\github.com\keybase\client\packaging\windows\%BUILD_TAG%\update-windows-prod-test-v2.json prerelease.keybase.io || EXIT /B 1
+    s3browser-con upload prerelease.keybase.io  %GOPATH%\src\github.com\keybase\client\packaging\windows\%BUILD_TAG%\update-windows-prod-test-v2.json prerelease.keybase.io || goto:build_error || EXIT /B 1
 ) else (
     echo "No update channel"
 )
@@ -111,7 +111,7 @@ if [%UpdateChannel%] NEQ [Smoke] (
 )
 
 :: Smoke A json
-s3browser-con upload prerelease.keybase.io  %GOPATH%\src\github.com\keybase\client\packaging\windows\%BUILD_TAG%\*.json prerelease.keybase.io/windows-support || EXIT /B 1
+s3browser-con upload prerelease.keybase.io  %GOPATH%\src\github.com\keybase\client\packaging\windows\%BUILD_TAG%\*.json prerelease.keybase.io/windows-support || goto:build_error || EXIT /B 1
 
 set PrevUpdateChannel=%UpdateChannel%
 set UpdateChannel=Smoke2
@@ -119,9 +119,10 @@ set smokeASemVer=%KEYBASE_VERSION%
 ::SlackBot?
 
 ::build again
-call %GOPATH%\src\github.com\keybase\client\packaging\windows\dorelease.cmd ||  EXIT /B 1
+call %GOPATH%\src\github.com\keybase\client\packaging\windows\dorelease.cmd || EXIT /B 1
 
 :: and we're done here
+
 EXIT /B 0
 
 :no_smokea 
@@ -129,13 +130,14 @@ EXIT /B 0
 ::Publish smoke updater jsons to S3
 if [%UpdateChannel%] NEQ [Smoke2] (
     echo "Non Smoke2 build"
+    go run %GOPATH%/src/github.com/keybase/slackbot/send/main.go -i=1 "Successfully built Windows " %KEYBASE_VERSION%
     goto :no_smokeb
 )
 ::Smoke B json
-s3browser-con upload prerelease.keybase.io  %GOPATH%\src\github.com\keybase\client\packaging\windows\%BUILD_TAG%\*.json prerelease.keybase.io/windows-support  || EXIT /B 1
+s3browser-con upload prerelease.keybase.io  %GOPATH%\src\github.com\keybase\client\packaging\windows\%BUILD_TAG%\*.json prerelease.keybase.io/windows-support  || goto:build_error || EXIT /B 1
 set smokeBSemVer=%KEYBASE_VERSION%
-%GOPATH%\src\github.com\keybase\release\release announce-build --build-a="%SmokeASemVer%" --build-b="%smokeBSemVer%" --platform="windows" || EXIT /B 1
-
+%GOPATH%\src\github.com\keybase\release\release announce-build --build-a="%SmokeASemVer%" --build-b="%smokeBSemVer%" --platform="windows" || goto:build_error || EXIT /B 1
+go run %GOPATH%/src/github.com/keybase/slackbot/send/main.go -i=1 "Successfully built Windows " --build-a="%SmokeASemVer%" --build-b="%smokeBSemVer%" 
 :no_smokeb 
 
 echo %ERRORLEVEL%
@@ -152,8 +154,12 @@ popd
 
 pushd %GOPATH%\src\github.com\keybase\%~1
 git pull || EXIT /B 1
-git checkout %~2 ||  EXIT /B 1
+git checkout %~2 || EXIT /B 1
 popd
 EXIT /B 0
 
 goto:eof
+
+:build_error
+go run %GOPATH%/src/github.com/keybase/slackbot/send/main.go -i=1 "Error building Windows"
+EXIT /B 1
