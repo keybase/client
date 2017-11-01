@@ -551,9 +551,9 @@ func (d *Service) tryGregordConnect() error {
 		// short-circuit for any unexpected errors though.
 		switch err.(type) {
 		case libkb.LoginStateTimeoutError, libkb.APINetError:
-			d.G().Log.Warning("Network/timeout error received from LoginState, continuing onward: %s", err)
+			d.G().Log.Debug("Network/timeout error received from LoginState, continuing onward: %s", err)
 		default:
-			d.G().Log.Warning("Unexpected non-network error in tryGregordConnect: %s", err)
+			d.G().Log.Debug("Unexpected non-network error in tryGregordConnect: %s", err)
 			return err
 		}
 	} else if !loggedIn {
