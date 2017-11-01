@@ -734,7 +734,13 @@ function* _inboxSynced(action: ChatGen.InboxSyncedPayload): Saga.SagaGenerator<a
     if (lastMessageKey) {
       const lastMessage = Constants.getMessageFromMessageKey(state, lastMessageKey)
       // Check to see if we could possibly be asking for too many messages
-      if (lastMessage && lastMessage.rawMessageID && inbox && inbox.maxMsgID) {
+      if (
+        lastMessage &&
+        typeof lastMessage.rawMessageID === 'number' &&
+        lastMessage.rawMessageID &&
+        inbox &&
+        inbox.maxMsgID
+      ) {
         numberOverride = inbox.maxMsgID - lastMessage.rawMessageID
 
         if (numberOverride > tooManyMessagesToJustAppendOnStale) {

@@ -281,10 +281,17 @@ function* _incomingMessage(action: ChatGen.IncomingMessagePayload): Saga.SagaGen
         const messageUnboxed: ChatTypes.UIMessage = incomingMessage.message
         const yourName = yield Saga.select(Selectors.usernameSelector)
         const yourDeviceName = yield Saga.select(Shared.devicenameSelector)
-        const message = _unboxedToMessage(messageUnboxed, yourName, yourDeviceName, conversationIDKey)
+        const message: Constants.ServerMessage = _unboxedToMessage(
+          messageUnboxed,
+          yourName,
+          yourDeviceName,
+          conversationIDKey
+        )
+
         if (message.type === 'Unhandled') {
           return
         }
+
         const svcShouldDisplayNotification = incomingMessage.displayDesktopNotification
 
         // Is this message for the currently selected and focused conversation?
@@ -299,65 +306,64 @@ function* _incomingMessage(action: ChatGen.IncomingMessagePayload): Saga.SagaGen
         const chatTabSelected = selectedTab === chatTab
         const conversationIsFocused =
           conversationIDKey === selectedConversationIDKey && appFocused && chatTabSelected && userActive
-        const {type: msgIDType} = Constants.parseMessageID(message.messageID)
 
-        if (message && message.messageID && conversationIsFocused && msgIDType === 'rpcMessageID') {
-          yield Saga.call(_markAsRead, conversationIDKey, message.messageID)
+        if (message.messageID && conversationIsFocused) {
+          const {type: msgIDType} = Constants.parseMessageID(message.messageID)
+          if (msgIDType === 'rpcMessageID') {
+            yield Saga.call(_markAsRead, conversationIDKey, message.messageID)
+          }
         }
 
         const messageFromYou =
           message.deviceName === yourDeviceName && message.author && yourName === message.author
 
-        let pendingMessage
         if (
           (message.type === 'Text' || message.type === 'Attachment') &&
           messageFromYou &&
           message.outboxID
         ) {
-          pendingMessage = yield Saga.select(
-            Shared.messageOutboxIDSelector,
-            conversationIDKey,
-            message.outboxID
-          )
-        }
+          const outboxID: Constants.OutboxIDKey = message.outboxID
+          const state = yield Saga.select()
+          const pendingMessage = Shared.messageOutboxIDSelector(state, conversationIDKey, outboxID)
 
-        if (pendingMessage) {
-          yield Saga.all([
-            // If the message has an outboxID and came from our device, then we
-            // sent it and have already rendered it in the message list; we just
-            // need to mark it as sent.
-            Saga.put(Creators.updateTempMessage(conversationIDKey, message, message.outboxID)),
-            Saga.put(
-              ChatGen.createOutboxMessageBecameReal({
-                oldMessageKey: pendingMessage.key,
-                newMessageKey: message.key,
-              })
-            ),
-          ])
+          if (pendingMessage) {
+            yield Saga.all([
+              // If the message has an outboxID and came from our device, then we
+              // sent it and have already rendered it in the message list; we just
+              // need to mark it as sent.
+              Saga.put(Creators.updateTempMessage(conversationIDKey, message, outboxID)),
+              Saga.put(
+                ChatGen.createOutboxMessageBecameReal({
+                  oldMessageKey: pendingMessage.key,
+                  newMessageKey: message.key,
+                })
+              ),
+            ])
 
-          const messageID = message.messageID
-          if (messageID) {
-            yield Saga.put(
-              ChatGen.createMarkSeenMessage({
-                conversationIDKey,
-                messageKey: Constants.messageKey(
+            const messageID = message.messageID
+            if (messageID) {
+              yield Saga.put(
+                ChatGen.createMarkSeenMessage({
                   conversationIDKey,
-                  message.type === 'Text' ? 'messageIDText' : 'messageIDAttachment',
-                  messageID
-                ),
-              })
+                  messageKey: Constants.messageKey(
+                    conversationIDKey,
+                    message.type === 'Text' ? 'messageIDText' : 'messageIDAttachment',
+                    messageID
+                  ),
+                })
+              )
+            }
+          } else {
+            yield Saga.put(
+              Creators.appendMessages(
+                conversationIDKey,
+                conversationIDKey === selectedConversationIDKey,
+                appFocused,
+                [message],
+                svcShouldDisplayNotification
+              )
             )
           }
-        } else {
-          yield Saga.put(
-            Creators.appendMessages(
-              conversationIDKey,
-              conversationIDKey === selectedConversationIDKey,
-              appFocused,
-              [message],
-              svcShouldDisplayNotification
-            )
-          )
         }
       }
       break
@@ -372,7 +378,7 @@ function _unboxedToMessage(
   yourName,
   yourDeviceName,
   conversationIDKey: Constants.ConversationIDKey
-): Constants.Message {
+): Constants.ServerMessage {
   if (message && message.state === ChatTypes.ChatUiMessageUnboxedState.outbox && message.outbox) {
     // Outbox messages are always text, not attachments.
     const payload: ChatTypes.UIMessageOutbox = message.outbox
@@ -393,15 +399,18 @@ function _unboxedToMessage(
 
     return {
       author: yourName,
+      channelMention: 'None',
       conversationIDKey,
       deviceName: yourDeviceName,
       deviceType: isMobile ? 'mobile' : 'desktop',
       editedCount: 0,
       failureDescription,
       key: Constants.messageKey(conversationIDKey, 'outboxIDText', outboxIDKey),
+      mentions: I.Set(),
       message: new HiddenString((messageText && messageText.body) || ''),
       messageState,
       outboxID: outboxIDKey,
+      rawMessageID: -1,
       senderDeviceRevokedAt: null,
       timestamp: payload.ctime,
       type: 'Text',
@@ -512,7 +521,7 @@ function _unboxedToMessage(
           )
           const targetMessageID = payload.messageBody.edit
             ? Constants.rpcMessageIDToMessageID(payload.messageBody.edit.messageID)
-            : 0
+            : ''
           return {
             key: Constants.messageKey(common.conversationIDKey, 'messageIDEdit', common.messageID),
             message,
@@ -529,10 +538,10 @@ function _unboxedToMessage(
           const message = new HiddenString('joined')
           return {
             type: 'System',
-            ...common,
-            editedCount: 0,
+            messageID: common.messageID,
+            author: common.author,
+            timestamp: common.timestamp,
             message,
-            messageState: 'sent', // TODO, distinguish sent/pending once CORE sends it.
             key: Constants.messageKey(common.conversationIDKey, 'system', common.messageID),
           }
         }
@@ -540,10 +549,10 @@ function _unboxedToMessage(
           const message = new HiddenString('left')
           return {
             type: 'System',
-            ...common,
-            editedCount: 0,
+            messageID: common.messageID,
+            author: common.author,
+            timestamp: common.timestamp,
             message,
-            messageState: 'sent', // TODO, distinguish sent/pending once CORE sends it.
             key: Constants.messageKey(common.conversationIDKey, 'system', common.messageID),
           }
         }
@@ -662,19 +671,24 @@ function* _updateThread({
   let newMessages = []
   const newUnboxeds = (thread && thread.messages) || []
   for (const unboxed of newUnboxeds) {
-    const message = _unboxedToMessage(unboxed, yourName, yourDeviceName, conversationIDKey)
+    const message: Constants.ServerMessage = _unboxedToMessage(
+      unboxed,
+      yourName,
+      yourDeviceName,
+      conversationIDKey
+    )
     const messageFromYou =
       message.deviceName === yourDeviceName && message.author && yourName === message.author
 
-    let pendingMessage
     if ((message.type === 'Text' || message.type === 'Attachment') && messageFromYou && message.outboxID) {
-      pendingMessage = yield Saga.select(Shared.messageOutboxIDSelector, conversationIDKey, message.outboxID)
-    }
-
-    if (pendingMessage) {
-      // Delete the pre-existing pending version of this message, since we're
-      // about to add a newly received version of the same message.
-      yield Saga.put(ChatGen.createRemoveOutboxMessage({conversationIDKey, outboxID: message.outboxID}))
+      const outboxID: Constants.OutboxIDKey = message.outboxID
+      const state = yield Saga.select()
+      const pendingMessage = Shared.messageOutboxIDSelector(state, conversationIDKey, outboxID)
+      if (pendingMessage) {
+        // Delete the pre-existing pending version of this message, since we're
+        // about to add a newly received version of the same message.
+        yield Saga.put(ChatGen.createRemoveOutboxMessage({conversationIDKey, outboxID}))
+      }
     }
 
     if (message.type !== 'Unhandled') {

@@ -325,7 +325,8 @@ class PopupEnabledList extends BaseList {
           />
         )
       case 'Attachment':
-        const {savedPath, key: messageKey} = message
+        const {key: messageKey} = message
+        const {savedPath} = localMessageState
         return (
           <AttachmentPopupMenu
             you={this.props.you}
