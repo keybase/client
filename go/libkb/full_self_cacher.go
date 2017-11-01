@@ -217,7 +217,7 @@ func (m *CachedFullSelf) Update(ctx context.Context, u *User) (err error) {
 	//   	return
 	//   }
 	//
-	// BUT IS IT DEADLY! The problem is that m.G().GetMyUID() calls into LoginState, but often
+	// BUT IT IS DEADLY! The problem is that m.G().GetMyUID() calls into LoginState, but often
 	// we're being called from a LoginState context, so we get a circular locking situation.
 	// So the onus is on the caller to check that we're actually loading self.
 
