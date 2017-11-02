@@ -48,15 +48,15 @@ func checkBobProofs(tb libkb.TestingTB, idUI *FakeIdentifyUI, user *keybase1.Use
 	})
 }
 
-func checkCharlieProofs(t *testing.T, idUI *FakeIdentifyUI, user *keybase1.UserPlusKeys) {
-	checkKeyedProfile(t, idUI, user, "charlie", true, map[string]string{
+func checkCharlieProofs(tb libkb.TestingTB, idUI *FakeIdentifyUI, user *keybase1.UserPlusKeys) {
+	checkKeyedProfile(tb, idUI, user, "charlie", true, map[string]string{
 		"github":  "tacoplusplus",
 		"twitter": "tacovontaco",
 	})
 }
 
-func checkDougProofs(t *testing.T, idUI *FakeIdentifyUI, user *keybase1.UserPlusKeys) {
-	checkKeyedProfile(t, idUI, user, "doug", false, nil)
+func checkDougProofs(tb libkb.TestingTB, idUI *FakeIdentifyUI, user *keybase1.UserPlusKeys) {
+	checkKeyedProfile(tb, idUI, user, "doug", false, nil)
 }
 
 func checkKeyedProfile(tb libkb.TestingTB, idUI *FakeIdentifyUI, them *keybase1.UserPlusKeys, name string, hasImg bool, expectedProofs map[string]string) {

@@ -32,7 +32,7 @@ func SetupEngineTest(tb libkb.TestingTB, name string) libkb.TestContext {
 	return tc
 }
 
-func SetupEngineTestRealTriplesec(tb testing.TB, name string) libkb.TestContext {
+func SetupEngineTestRealTriplesec(tb libkb.TestingTB, name string) libkb.TestContext {
 	tc := externals.SetupTest(tb, name, 2)
 	tc.G.NewTriplesec = libkb.NewSecureTriplesec
 	return tc
