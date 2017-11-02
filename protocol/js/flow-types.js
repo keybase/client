@@ -310,6 +310,29 @@ export const GregorUIPushReason = {
   newData: 2,
 }
 
+export const HomeHomeScreenItemType = {
+  todo: 1,
+  people: 2,
+}
+
+export const HomeHomeScreenPeopleNotificationType = {
+  followed: 0,
+  followedMulti: 1,
+}
+
+export const HomeHomeScreenTodoType = {
+  bio: 1,
+  proof: 2,
+  device: 3,
+  follow: 4,
+  chat: 5,
+  paperkey: 6,
+  team: 7,
+  folder: 8,
+  gitRepo: 9,
+  teamShowcase: 10,
+}
+
 export const IdentifyCommonIdentifyReasonType = {
   none: 0,
   id: 1,
@@ -1544,6 +1567,38 @@ export function gregorInjectItemRpcChannelMap (configKeys: Array<string>, reques
 
 export function gregorInjectItemRpcPromise (request: (requestCommon & {callback?: ?(err: ?any, response: gregorInjectItemResult) => void} & {param: gregorInjectItemRpcParam})): Promise<gregorInjectItemResult> {
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.gregor.injectItem', request, (error, result) => error ? reject(error) : resolve(result)))
+}
+
+export function homeHomeActionTakenRpcChannelMap (configKeys: Array<string>, request: requestCommon & requestErrorCallback): EngineChannel {
+  return engine()._channelMapRpcHelper(configKeys, 'keybase.1.home.homeActionTaken', request)
+}
+
+export function homeHomeActionTakenRpcPromise (request: ?(requestCommon & requestErrorCallback)): Promise<void> {
+  return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.home.homeActionTaken', request, (error, result) => error ? reject(error) : resolve(result)))
+}
+
+export function homeHomeGetScreenRpcChannelMap (configKeys: Array<string>, request: requestCommon & {callback?: ?(err: ?any, response: homeHomeGetScreenResult) => void} & {param: homeHomeGetScreenRpcParam}): EngineChannel {
+  return engine()._channelMapRpcHelper(configKeys, 'keybase.1.home.homeGetScreen', request)
+}
+
+export function homeHomeGetScreenRpcPromise (request: (requestCommon & {callback?: ?(err: ?any, response: homeHomeGetScreenResult) => void} & {param: homeHomeGetScreenRpcParam})): Promise<homeHomeGetScreenResult> {
+  return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.home.homeGetScreen', request, (error, result) => error ? reject(error) : resolve(result)))
+}
+
+export function homeHomeMarkViewedRpcChannelMap (configKeys: Array<string>, request: requestCommon & requestErrorCallback): EngineChannel {
+  return engine()._channelMapRpcHelper(configKeys, 'keybase.1.home.homeMarkViewed', request)
+}
+
+export function homeHomeMarkViewedRpcPromise (request: ?(requestCommon & requestErrorCallback)): Promise<void> {
+  return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.home.homeMarkViewed', request, (error, result) => error ? reject(error) : resolve(result)))
+}
+
+export function homeHomeSkipTodoTypeRpcChannelMap (configKeys: Array<string>, request: requestCommon & requestErrorCallback & {param: homeHomeSkipTodoTypeRpcParam}): EngineChannel {
+  return engine()._channelMapRpcHelper(configKeys, 'keybase.1.home.homeSkipTodoType', request)
+}
+
+export function homeHomeSkipTodoTypeRpcPromise (request: (requestCommon & requestErrorCallback & {param: homeHomeSkipTodoTypeRpcParam})): Promise<void> {
+  return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.home.homeSkipTodoType', request, (error, result) => error ? reject(error) : resolve(result)))
 }
 
 export function identifyIdentify2RpcChannelMap (configKeys: Array<string>, request: requestCommon & {callback?: ?(err: ?any, response: identifyIdentify2Result) => void} & {param: identifyIdentify2RpcParam}): EngineChannel {
@@ -3495,6 +3550,61 @@ export type Hello2Res = {
 }
 
 export type HelloRes = string
+
+export type HomeScreen = {
+  lastViewed: Time,
+  items?: ?Array<HomeScreenItem>,
+  followSuggestions?: ?Array<UserSummary>,
+}
+
+export type HomeScreenItem = {
+  badged: boolean,
+  id: HomeScreenItemID,
+  data: HomeScreenItemData,
+}
+
+export type HomeScreenItemData =
+    { t: 1, todo: ?HomeScreenTodo }
+  | { t: 2, people: ?HomeScreenPeopleNotification }
+
+export type HomeScreenItemID = string
+
+export type HomeScreenItemType =
+    1 // TODO_1
+  | 2 // PEOPLE_2
+
+export type HomeScreenPeopleNotification =
+    { t: 0, followed: ?HomeScreenPeopleNotificationFollowed }
+  | { t: 1, followedMulti: ?HomeScreenPeopleNotificationFollowedMulti }
+
+export type HomeScreenPeopleNotificationFollowed = {
+  followTime: Time,
+  user: UserSummary,
+}
+
+export type HomeScreenPeopleNotificationFollowedMulti = {
+  followers?: ?Array<HomeScreenPeopleNotificationFollowed>,
+  numOthers: int,
+}
+
+export type HomeScreenPeopleNotificationType =
+    0 // FOLLOWED_0
+  | 1 // FOLLOWED_MULTI_1
+
+export type HomeScreenTodo =
+    { t: any }
+
+export type HomeScreenTodoType =
+    1 // BIO_1
+  | 2 // PROOF_2
+  | 3 // DEVICE_3
+  | 4 // FOLLOW_4
+  | 5 // CHAT_5
+  | 6 // PAPERKEY_6
+  | 7 // TEAM_7
+  | 8 // FOLDER_8
+  | 9 // GIT_REPO_9
+  | 10 // TEAM_SHOWCASE_10
 
 export type Identify2Res = {
   upk: UserPlusKeys,
@@ -5658,6 +5768,14 @@ export type gregorUIPushStateRpcParam = Exact<{
   reason: PushReason
 }>
 
+export type homeHomeGetScreenRpcParam = Exact<{
+  markViewed: boolean
+}>
+
+export type homeHomeSkipTodoTypeRpcParam = Exact<{
+  t: HomeScreenTodoType
+}>
+
 export type identifyIdentify2RpcParam = Exact<{
   uid: UID,
   userAssertion: string,
@@ -6636,6 +6754,7 @@ type gpgUiSignResult = string
 type gpgUiWantToAddGPGKeyResult = boolean
 type gregorGetStateResult = gregor1.State
 type gregorInjectItemResult = gregor1.MsgID
+type homeHomeGetScreenResult = HomeScreen
 type identifyIdentify2Result = Identify2Res
 type identifyIdentifyLiteResult = IdentifyLiteRes
 type identifyResolve3Result = UserOrTeamLite
@@ -6814,6 +6933,10 @@ export type incomingCallMapType = Exact<{
     params: Exact<{
       oobm?: ?Array<gregor1.OutOfBandMessage>
     }>,
+    response: CommonResponseHandler
+  ) => void,
+  'keybase.1.homeUi.homeUIRefresh'?: (
+    params: Exact<{}>,
     response: CommonResponseHandler
   ) => void,
   'keybase.1.identifyUi.displayTLFCreateWithInvite'?: (
