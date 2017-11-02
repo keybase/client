@@ -1,7 +1,7 @@
 // @flow
 import React, {PureComponent} from 'react'
 import ReactList from 'react-list'
-import {Text, Icon, ErrorBoundary} from '../../common-adapters'
+import {Box, Text, Icon, ErrorBoundary} from '../../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../../styles'
 import {makeRow} from './row'
 import FloatingDivider from './row/floating-divider/container'
@@ -176,16 +176,35 @@ class Inbox extends PureComponent<Props, State> {
             onSelectDown={this.props.onSelectDown}
           />
           {this.props.showNewConversation && <NewConversation />}
-          <div style={_scrollableStyle} onScroll={this._onScroll}>
-            <ReactList
-              ref={this._setRef}
-              useTranslate3d={true}
-              itemRenderer={this._itemRenderer}
-              length={this.props.rows.length}
-              type="variable"
-              itemSizeGetter={this._itemSizeGetter}
-            />
-          </div>
+          {!!this.props.rows.length &&
+            <div style={_scrollableStyle} onScroll={this._onScroll}>
+              <ReactList
+                ref={this._setRef}
+                useTranslate3d={true}
+                itemRenderer={this._itemRenderer}
+                length={this.props.rows.length}
+                type="variable"
+                itemSizeGetter={this._itemSizeGetter}
+              />
+            </div>}
+          {!this.props.rows.length &&
+            <Box style={{flex: 1, ...globalStyles.flexBoxColumn, justifyContent: 'center'}}>
+              <Text type="BodySmall" style={{textAlign: 'center'}}>
+                Sorry, no conversations match this.
+              </Text>
+              <Text type="BodySmall" style={{textAlign: 'center'}}>
+                ,___,
+              </Text>
+              <Text type="BodySmall" style={{textAlign: 'center'}}>
+                [O.o]
+              </Text>
+              <Text type="BodySmall" style={{textAlign: 'center'}}>
+                /)__)
+              </Text>
+              <Text type="BodySmall" style={{textAlign: 'center'}}>
+                -"--"-
+              </Text>
+            </Box>}
           {this.state.showFloating &&
             this.props.showSmallTeamsExpandDivider &&
             <FloatingDivider toggle={this.props.toggleSmallTeamsExpanded} />}
