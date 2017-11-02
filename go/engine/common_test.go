@@ -17,7 +17,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func SetupEngineTest(tb testing.TB, name string) libkb.TestContext {
+func SetupEngineTest(tb libkb.TestingTB, name string) libkb.TestContext {
 	tc := externals.SetupTest(tb, name, 2)
 
 	// use an insecure triplesec in tests
@@ -72,7 +72,7 @@ func (fu FakeUser) UID() keybase1.UID {
 	return libkb.UsernameToUID(fu.Username)
 }
 
-func NewFakeUserOrBust(tb testing.TB, prefix string) (fu *FakeUser) {
+func NewFakeUserOrBust(tb libkb.TestingTB, prefix string) (fu *FakeUser) {
 	var err error
 	if fu, err = NewFakeUser(prefix); err != nil {
 		tb.Fatal(err)
