@@ -1,6 +1,6 @@
 // @flow
 import {makeRouteDefNode} from '../route-tree'
-import {PrivateFolders, PublicFolders} from './container'
+import {PrivateFolders, PublicFolders, TeamFolders} from './container'
 import Files from './files'
 import PaperKey from './files/paperkey'
 
@@ -27,6 +27,11 @@ const routeTree = makeRouteDefNode({
       component: PublicFolders,
       initialState: {showingIgnored: false},
       children: filesSubTree(true),
+    },
+    team: {
+      component: TeamFolders,
+      initialState: {showingIgnored: false},
+      children: filesSubTree(),
     },
   },
 })
