@@ -39,6 +39,7 @@
       "pushLoaded": "boolean"
     },
     "readyForBootstrap": {},
+    "retryBootstrap": {},
     "setInitialState": {
       "initialState": "Constants.InitialState"
     }

@@ -1,10 +1,10 @@
 // @flow
 import * as Constants from '../../constants/config'
 import * as Creators from '../../actions/login/creators'
+import * as ConfigGen from '../../actions/config-gen'
 import {Splash, Intro, Failure} from '.'
 import {connect, type TypedState, compose, branch, renderComponent} from '../../util/container'
 import {requestAutoInvite} from '../../actions/signup'
-import {retryBootstrap} from '../../actions/config'
 
 const mapStateToProps = (state: TypedState) => ({
   bootStatus: state.config.bootStatus,
@@ -22,7 +22,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateAppend}) => ({
     dispatch(Creators.startLogin())
   },
   onRetry: () => {
-    dispatch(retryBootstrap())
+    dispatch(ConfigGen.createRetryBootstrap())
   },
   onSignup: () => {
     dispatch(requestAutoInvite())

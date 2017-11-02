@@ -1,6 +1,5 @@
 // @flow
 // Look at this doc: https://goo.gl/7B6p4H
-
 import * as CommonConstants from '../../constants/common'
 import * as ConfigGen from '../../actions/config-gen'
 import * as Constants from '../../constants/login'
@@ -73,7 +72,8 @@ const getAccounts = (): AsyncAction => dispatch =>
   })
 
 function* setCodePageOtherDeviceRole(otherDeviceRole: Constants.DeviceRole) {
-  const codePage: AfterSelect<typeof codePageSelector> = yield Saga.select(codePageSelector)
+  const state: TypedState = yield Saga.select()
+  const codePage = codePageSelector(state)
   if (codePage.myDeviceRole == null) {
     console.warn("my device role is null, can't setCodePageOtherDeviceRole. Bailing")
     return
@@ -540,7 +540,8 @@ function* reloginSaga({payload: {usernameOrEmail, passphrase}}: Constants.Relogi
 }
 
 function* cameraBrokenModeSaga({payload: {broken}}) {
-  const codePage: AfterSelect<typeof codePageSelector> = yield Saga.select(codePageSelector)
+  const state: TypedState = yield Saga.select()
+  const codePage = codePageSelector(state)
   if (codePage.myDeviceRole == null) {
     console.warn("my device role is null, can't setCameraBrokenMode. Bailing")
     return

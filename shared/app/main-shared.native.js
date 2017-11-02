@@ -2,7 +2,7 @@
 import Push from './push/push.native'
 import React, {Component} from 'react'
 import RenderRoute from '../route-tree/render-route'
-import ConfigGen from '../actions/config-gen'
+import * as ConfigGen from '../actions/config-gen'
 import loadPerf from '../util/load-perf'
 import hello from '../util/hello'
 import {connect, type TypedState} from '../util/container'
@@ -81,7 +81,7 @@ const mapStateToProps = (state: TypedState) => ({
 })
 
 const mapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps) => ({
-  bootstrap: () => dispatch(ConfigGen.createBootstrap()),
+  bootstrap: () => dispatch(ConfigGen.createBootstrap({})),
   hello: () => hello(0, ownProps.platform, [], ownProps.version, true), // TODO real version
   listenForNotifications: () => dispatch(listenForNotifications()),
   navigateUp: () => {

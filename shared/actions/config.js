@@ -25,26 +25,6 @@ isMobile &&
     console.log('accepted update in actions/config')
   })
 
-// const getConfig = (): AsyncAction => (dispatch, getState) =>
-// new Promise((resolve, reject) => {
-// RPCTypes.configGetConfigRpcPromise()
-// .then(config => {
-// dispatch({payload: {config}, type: Constants.configLoaded})
-// resolve()
-// })
-// .catch(error => {
-// reject(error)
-// })
-// })
-
-function isFollower(getState: any, username: string): boolean {
-  return !!getState().config.followers[username]
-}
-
-function isFollowing(getState: () => any, username: string): boolean {
-  return !!getState().config.following[username]
-}
-
 const waitForKBFS = (): AsyncAction => dispatch =>
   new Promise((resolve, reject) => {
     let timedOut = false
@@ -97,9 +77,8 @@ const registerListeners = (): AsyncAction => dispatch => {
   dispatch(GregorCreators.registerReachability())
 }
 
-const retryBootstrap = (): AsyncAction => (dispatch, getState) => {
-  dispatch(ConfigGen.createBootstrapRetry())
-  dispatch(ConfigGen.createBootstrap({}))
+const _retryBootstrap = () => {
+  return Saga.all[(ConfigGen.createBootstrapRetry(), ConfigGen.createBootstrap({}))]
 }
 
 // TODO: It's unfortunate that we have these globals. Ideally,
@@ -214,6 +193,7 @@ function* configSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEvery(ConfigGen.bootstrap, _bootstrap)
   yield Saga.safeTakeEveryPure(ConfigGen.clearRouteState, _clearRouteState)
   yield Saga.safeTakeEveryPure(ConfigGen.persistRouteState, _persistRouteState)
+  yield Saga.safeTakeEveryPure(ConfigGen.retryBootstrap, _retryBootstrap)
 }
 
 export {

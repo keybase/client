@@ -1,6 +1,5 @@
 // @flow
 import * as CommonConstants from '../constants/common'
-import * as ConfigConstants from '../constants/config'
 import * as Constants from '../constants/login'
 
 const initialState: Constants.State = {

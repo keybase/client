@@ -23,6 +23,7 @@ export const globalError = 'config:globalError'
 export const persistRouteState = 'config:persistRouteState'
 export const pushLoaded = 'config:pushLoaded'
 export const readyForBootstrap = 'config:readyForBootstrap'
+export const retryBootstrap = 'config:retryBootstrap'
 export const setInitialState = 'config:setInitialState'
 export const updateFollowing = 'config:updateFollowing'
 
@@ -42,6 +43,7 @@ export const createGlobalError = (payload: {|globalError: ?Error|}) => ({error: 
 export const createPersistRouteState = () => ({error: false, payload: undefined, type: persistRouteState})
 export const createPushLoaded = (payload: {|pushLoaded: boolean|}) => ({error: false, payload, type: pushLoaded})
 export const createReadyForBootstrap = () => ({error: false, payload: undefined, type: readyForBootstrap})
+export const createRetryBootstrap = () => ({error: false, payload: undefined, type: retryBootstrap})
 export const createSetInitialState = (payload: {|initialState: Constants.InitialState|}) => ({error: false, payload, type: setInitialState})
 export const createUpdateFollowing = (payload: {|username: string, isTracking: boolean|}) => ({error: false, payload, type: updateFollowing})
 
@@ -61,6 +63,7 @@ export type GlobalErrorPayload = ReturnType<typeof createGlobalError>
 export type PersistRouteStatePayload = ReturnType<typeof createPersistRouteState>
 export type PushLoadedPayload = ReturnType<typeof createPushLoaded>
 export type ReadyForBootstrapPayload = ReturnType<typeof createReadyForBootstrap>
+export type RetryBootstrapPayload = ReturnType<typeof createRetryBootstrap>
 export type SetInitialStatePayload = ReturnType<typeof createSetInitialState>
 export type UpdateFollowingPayload = ReturnType<typeof createUpdateFollowing>
 
@@ -82,5 +85,6 @@ export type Actions =
   | ReturnType<typeof createPersistRouteState>
   | ReturnType<typeof createPushLoaded>
   | ReturnType<typeof createReadyForBootstrap>
+  | ReturnType<typeof createRetryBootstrap>
   | ReturnType<typeof createSetInitialState>
   | ReturnType<typeof createUpdateFollowing>

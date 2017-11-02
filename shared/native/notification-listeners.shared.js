@@ -1,6 +1,6 @@
 // @flow
-import {receivedBadgeState} from '../actions/notifications'
 import * as ConfigGen from '../actions/config-gen'
+import {receivedBadgeState} from '../actions/notifications'
 import {logoutDone} from '../actions/login/creators'
 import throttle from 'lodash/throttle'
 
@@ -47,7 +47,7 @@ export default function(dispatch: Dispatch, getState: () => Object, notify: any)
         lastLoggedInNotifyUsername = username
       }
 
-      dispatch(ConfigGen.createBootstrap())
+      dispatch(ConfigGen.createBootstrap({}))
       response.result()
     },
     'keybase.1.NotifySession.loggedOut': params => {
