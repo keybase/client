@@ -113,13 +113,14 @@ const snippetRowSelector = createCachedSelector(
 )(passConversationIDKey)
 
 const pendingSnippetRowSelector = createCachedSelector(
-  [getSelected, getPendingParticipants, getNowOverride, passConversationIDKey],
-  (selected, participants, nowOverride, conversationIDKey) => {
+  [getSelected, getPendingParticipants, getNowOverride, passConversationIDKey, getYou],
+  (selected, participants, nowOverride, conversationIDKey, you) => {
     const isSelected = selected === conversationIDKey
     const isMuted = false
     const isError = false
     const timestamp = formatTimeForConversationList(Date.now(), nowOverride)
     const d = _commonDerivedProps(null, null, 0, 0, isError, isSelected)
+    const participantsWithoutYou = Constants.participantFilter(participants, you)
 
     return {
       backgroundColor: d.backgroundColor,
@@ -128,7 +129,7 @@ const pendingSnippetRowSelector = createCachedSelector(
       isMuted,
       isSelected,
       participantNeedToRekey: d.participantNeedToRekey,
-      participants,
+      participants: participantsWithoutYou,
       showBold: d.showBold,
       subColor: d.subColor,
       timestamp,
