@@ -58,9 +58,8 @@ const waitForKBFS = (): AsyncAction => dispatch =>
 
 // Must be an action which returns a promise so put.resolve continues to wait and work
 // TODO could change this to use Take and make it 2 steps instead of using put.resolve()
-// or maybe safetakeevery actualy will return correctly if this returns a promise?
-const getExtendedStatus = (): AsyncAction => dispatch =>
-  new Promise((resolve, reject) => {
+const getExtendedStatus = (): AsyncAction => dispatch => {
+  return new Promise((resolve, reject) => {
     RPCTypes.configGetExtendedStatusRpcPromise()
       .then(extendedConfig => {
         dispatch(ConfigGen.createExtendedConfigLoaded({extendedConfig}))
@@ -70,6 +69,7 @@ const getExtendedStatus = (): AsyncAction => dispatch =>
         reject(error)
       })
   })
+}
 
 const registerListeners = (): AsyncAction => dispatch => {
   dispatch(GregorCreators.listenForNativeReachabilityEvents)
@@ -196,13 +196,5 @@ function* configSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(ConfigGen.retryBootstrap, _retryBootstrap)
 }
 
-export {
-  getExtendedStatus,
-  // isFollower,
-  // isFollowing,
-  // persistRouteState,
-  // retryBootstrap,
-  // waitForKBFS
-}
-
+export {getExtendedStatus}
 export default configSaga

@@ -27,6 +27,7 @@
     "extendedConfigLoaded": {
       "extendedConfig": "RPCTypes.ExtendedStatus"
     },
+    "getExtendedStatus": {},
     "globalError": {
       "globalError": "?Error"
     },

@@ -19,6 +19,7 @@ export const clearRouteState = 'config:clearRouteState'
 export const configLoaded = 'config:configLoaded'
 export const daemonError = 'config:daemonError'
 export const extendedConfigLoaded = 'config:extendedConfigLoaded'
+export const getExtendedStatus = 'config:getExtendedStatus'
 export const globalError = 'config:globalError'
 export const persistRouteState = 'config:persistRouteState'
 export const pushLoaded = 'config:pushLoaded'
@@ -39,6 +40,7 @@ export const createClearRouteState = () => ({error: false, payload: undefined, t
 export const createConfigLoaded = (payload: {|config: RPCTypes.Config|}) => ({error: false, payload, type: configLoaded})
 export const createDaemonError = (payload: {|daemonError: ?Error|}) => ({error: false, payload, type: daemonError})
 export const createExtendedConfigLoaded = (payload: {|extendedConfig: RPCTypes.ExtendedStatus|}) => ({error: false, payload, type: extendedConfigLoaded})
+export const createGetExtendedStatus = () => ({error: false, payload: undefined, type: getExtendedStatus})
 export const createGlobalError = (payload: {|globalError: ?Error|}) => ({error: false, payload, type: globalError})
 export const createPersistRouteState = () => ({error: false, payload: undefined, type: persistRouteState})
 export const createPushLoaded = (payload: {|pushLoaded: boolean|}) => ({error: false, payload, type: pushLoaded})
@@ -59,6 +61,7 @@ export type ClearRouteStatePayload = ReturnType<typeof createClearRouteState>
 export type ConfigLoadedPayload = ReturnType<typeof createConfigLoaded>
 export type DaemonErrorPayload = ReturnType<typeof createDaemonError>
 export type ExtendedConfigLoadedPayload = ReturnType<typeof createExtendedConfigLoaded>
+export type GetExtendedStatusPayload = ReturnType<typeof createGetExtendedStatus>
 export type GlobalErrorPayload = ReturnType<typeof createGlobalError>
 export type PersistRouteStatePayload = ReturnType<typeof createPersistRouteState>
 export type PushLoadedPayload = ReturnType<typeof createPushLoaded>
@@ -81,6 +84,7 @@ export type Actions =
   | ReturnType<typeof createConfigLoaded>
   | ReturnType<typeof createDaemonError>
   | ReturnType<typeof createExtendedConfigLoaded>
+  | ReturnType<typeof createGetExtendedStatus>
   | ReturnType<typeof createGlobalError>
   | ReturnType<typeof createPersistRouteState>
   | ReturnType<typeof createPushLoaded>

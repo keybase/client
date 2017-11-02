@@ -145,6 +145,7 @@ function* navBasedOnLoginAndInitialState(): Saga.SagaGenerator<any, any> {
   } else if (registered) {
     // relogging in
     yield Saga.all([Saga.put.resolve(getExtendedStatus()), Saga.put.resolve(getAccounts())])
+    console.log('aaaa after saga ALL resolve')
     yield Saga.put(navigateTo(['login'], [loginTab]))
   } else if (loginError) {
     // show error on login screen
