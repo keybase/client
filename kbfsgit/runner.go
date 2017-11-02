@@ -1649,3 +1649,18 @@ func (r *runner) processCommands(ctx context.Context) (err error) {
 		}
 	}
 }
+
+func (r *runner) packRefs(ctx context.Context) (err error) {
+	r.log.CDebugf(ctx, "Packing refs")
+	repo, _, err := r.initRepoIfNeeded(ctx, "pack-refs")
+	if err != nil {
+		return err
+	}
+
+	err = repo.Storer.PackRefs()
+	if err != nil {
+		return err
+	}
+
+	return r.waitForJournal(ctx)
+}

@@ -665,3 +665,210 @@ func TestPushcertOptions(t *testing.T) {
 	checkPushcert("true", "unsupported")
 	checkPushcert("false", "ok")
 }
+
+func TestPackRefsAndOverwritePackedRef(t *testing.T) {
+	ctx, config, tempdir := initConfigForRunner(t)
+	defer libkbfs.CheckConfigAndShutdown(ctx, t, config)
+	defer os.RemoveAll(tempdir)
+
+	git1, err := ioutil.TempDir(os.TempDir(), "kbfsgittest")
+	require.NoError(t, err)
+	defer os.RemoveAll(git1)
+
+	// Make shared repo with 2 branches.
+	makeLocalRepoWithOneFile(t, git1, "foo", "hello", "")
+	testPushWithTemplate(t, ctx, config, git1,
+		[]string{"refs/heads/master:refs/heads/master"},
+		"ok %s\n\n", "user1,user2")
+	testPushWithTemplate(t, ctx, config, git1,
+		[]string{"refs/heads/master:refs/heads/test"},
+		"ok %s\n\n", "user1,user2")
+
+	// Config for the second user.
+	config2 := libkbfs.ConfigAsUser(config, "user2")
+	defer libkbfs.CheckConfigAndShutdown(ctx, t, config2)
+	tempdir2, err := ioutil.TempDir(os.TempDir(), "journal_server")
+	require.NoError(t, err)
+	defer os.RemoveAll(tempdir2)
+	err = config2.EnableDiskLimiter(tempdir2)
+	require.NoError(t, err)
+	err = config2.EnableJournaling(
+		ctx, tempdir2, libkbfs.TLFJournalSingleOpBackgroundWorkEnabled)
+	require.NoError(t, err)
+
+	git2, err := ioutil.TempDir(os.TempDir(), "kbfsgittest")
+	require.NoError(t, err)
+	defer os.RemoveAll(git2)
+	dotgit2 := filepath.Join(git2, ".git")
+
+	heads := testListAndGetHeadsWithName(t, ctx, config2, git2,
+		[]string{"refs/heads/master", "refs/heads/test", "HEAD"}, "user1,user2")
+	require.Equal(t, heads[0], heads[1])
+
+	// Have the second user refpack.
+	r, err := newRunner(ctx, config2, "origin",
+		fmt.Sprintf("keybase://private/user1,user2/test"),
+		dotgit2, nil, nil, testErrput{t})
+	require.NoError(t, err)
+
+	// Stall it after it takes the lock.
+	packOnStalled, packUnstall, packCtx := libkbfs.StallMDOp(
+		ctx, config2, libkbfs.StallableMDAfterGetRange, 1)
+	packErrCh := make(chan error)
+	go func() {
+		packErrCh <- r.packRefs(packCtx)
+	}()
+	select {
+	case <-packOnStalled:
+	case <-ctx.Done():
+		t.Fatal(ctx.Err())
+	}
+
+	// While the second user is stalled, have the first user update
+	// one of the refs.
+	addOneFileToRepo(t, git1, "foo2", "hello2")
+	testPushWithTemplate(t, ctx, config, git1,
+		[]string{"refs/heads/master:refs/heads/test"},
+		"ok %s\n\n", "user1,user2")
+
+	close(packUnstall)
+	select {
+	case err := <-packErrCh:
+		require.NoError(t, err)
+	case <-ctx.Done():
+		t.Fatal(ctx.Err())
+	}
+
+	h, err := libkbfs.ParseTlfHandle(
+		ctx, config2.KBPKI(), "user1,user2", tlf.Private)
+	require.NoError(t, err)
+	rootNode, _, err := config2.KBFSOps().GetOrCreateRootNode(
+		ctx, h, libkbfs.MasterBranch)
+	require.NoError(t, err)
+	err = config2.KBFSOps().SyncFromServerForTesting(
+		ctx, rootNode.GetFolderBranch(), nil)
+	require.NoError(t, err)
+	heads = testListAndGetHeadsWithName(t, ctx, config2, git2,
+		[]string{"refs/heads/master", "refs/heads/test", "HEAD"}, "user1,user2")
+	require.NotEqual(t, heads[0], heads[1])
+}
+
+func TestPackRefsAndDeletePackedRef(t *testing.T) {
+	ctx, config, tempdir := initConfigForRunner(t)
+	defer libkbfs.CheckConfigAndShutdown(ctx, t, config)
+	defer os.RemoveAll(tempdir)
+
+	git1, err := ioutil.TempDir(os.TempDir(), "kbfsgittest")
+	require.NoError(t, err)
+	defer os.RemoveAll(git1)
+	dotgit1 := filepath.Join(git1, ".git")
+
+	// Make shared repo with 2 branches.  Make sure there's an initial
+	// pack-refs file.
+	makeLocalRepoWithOneFile(t, git1, "foo", "hello", "")
+	gitExec(t, dotgit1, git1, "pack-refs", "--all")
+	testPushWithTemplate(t, ctx, config, git1,
+		[]string{"refs/heads/master:refs/heads/master"},
+		"ok %s\n\n", "user1,user2")
+	testPushWithTemplate(t, ctx, config, git1,
+		[]string{"refs/heads/master:refs/heads/test"},
+		"ok %s\n\n", "user1,user2")
+
+	// Config for the second user.
+	config2 := libkbfs.ConfigAsUser(config, "user2")
+	defer libkbfs.CheckConfigAndShutdown(ctx, t, config2)
+	tempdir2, err := ioutil.TempDir(os.TempDir(), "journal_server")
+	require.NoError(t, err)
+	defer os.RemoveAll(tempdir2)
+	err = config2.EnableDiskLimiter(tempdir2)
+	require.NoError(t, err)
+	err = config2.EnableJournaling(
+		ctx, tempdir2, libkbfs.TLFJournalSingleOpBackgroundWorkEnabled)
+	require.NoError(t, err)
+
+	git2, err := ioutil.TempDir(os.TempDir(), "kbfsgittest")
+	require.NoError(t, err)
+	defer os.RemoveAll(git2)
+	dotgit2 := filepath.Join(git2, ".git")
+
+	heads := testListAndGetHeadsWithName(t, ctx, config2, git2,
+		[]string{"refs/heads/master", "refs/heads/test", "HEAD"}, "user1,user2")
+	require.Equal(t, heads[0], heads[1])
+
+	// Have the second user refpack.
+	r, err := newRunner(ctx, config2, "origin",
+		fmt.Sprintf("keybase://private/user1,user2/test"),
+		dotgit2, nil, nil, testErrput{t})
+	require.NoError(t, err)
+
+	// Stall it after it takes the lock.
+	packOnStalled, packUnstall, packCtx := libkbfs.StallMDOp(
+		ctx, config2, libkbfs.StallableMDAfterGetRange, 1)
+	packErrCh := make(chan error)
+	go func() {
+		packErrCh <- r.packRefs(packCtx)
+	}()
+	select {
+	case <-packOnStalled:
+	case <-ctx.Done():
+		t.Fatal(ctx.Err())
+	}
+
+	// While the second user is stalled, have the first user delete
+	// one of the refs.  Wait until it tries to get the lock, and then
+	// release the pack-refs call.
+	deleteOnStalled, deleteUnstall, deleteCtx := libkbfs.StallMDOp(
+		ctx, config, libkbfs.StallableMDGetRange, 1)
+	inputReader, inputWriter := io.Pipe()
+	defer inputWriter.Close()
+	go func() {
+		inputWriter.Write([]byte("push :refs/heads/test\n"))
+		inputWriter.Write([]byte("\n\n"))
+	}()
+
+	var output bytes.Buffer
+	deleteRunner, err := newRunner(ctx, config, "origin",
+		"keybase://private/user1,user2/test",
+		dotgit1, inputReader, &output, testErrput{t})
+	require.NoError(t, err)
+	deleteErrCh := make(chan error)
+	go func() {
+		deleteErrCh <- deleteRunner.processCommands(deleteCtx)
+	}()
+	select {
+	case <-deleteOnStalled:
+	case <-ctx.Done():
+		t.Fatal(ctx.Err())
+	}
+	// Release it, and it should block on getting the lock.
+	close(deleteUnstall)
+
+	// Now let the pack-refs finish.
+	close(packUnstall)
+	select {
+	case err := <-packErrCh:
+		require.NoError(t, err)
+	case <-ctx.Done():
+		t.Fatal(ctx.Err())
+	}
+
+	// And the delete should finish right after.
+	select {
+	case err := <-deleteErrCh:
+		require.NoError(t, err)
+	case <-ctx.Done():
+		t.Fatal(ctx.Err())
+	}
+
+	h, err := libkbfs.ParseTlfHandle(
+		ctx, config2.KBPKI(), "user1,user2", tlf.Private)
+	require.NoError(t, err)
+	rootNode, _, err := config2.KBFSOps().GetOrCreateRootNode(
+		ctx, h, libkbfs.MasterBranch)
+	require.NoError(t, err)
+	err = config2.KBFSOps().SyncFromServerForTesting(
+		ctx, rootNode.GetFolderBranch(), nil)
+	require.NoError(t, err)
+	testListAndGetHeadsWithName(t, ctx, config2, git2,
+		[]string{"refs/heads/master", "HEAD"}, "user1,user2")
+}

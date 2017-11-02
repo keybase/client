@@ -35,6 +35,7 @@ const (
 	StallableMDGetLatestHandleForTLF StallableMDOp = "GetLatestHandleForTLF"
 	StallableMDGetUnmergedForTLF     StallableMDOp = "GetUnmergedForTLF"
 	StallableMDGetRange              StallableMDOp = "GetRange"
+	StallableMDAfterGetRange         StallableMDOp = "AfterGetRange"
 	StallableMDGetUnmergedRange      StallableMDOp = "GetUnmergedRange"
 	StallableMDPut                   StallableMDOp = "Put"
 	StallableMDAfterPut              StallableMDOp = "AfterPut"
@@ -463,6 +464,7 @@ func (m *stallingMDOps) GetRange(ctx context.Context, id tlf.ID,
 		var errGetRange error
 		mds, errGetRange = m.delegate.GetRange(
 			ctx, id, start, stop, lockBeforeGet)
+		m.maybeStall(ctx, StallableMDAfterGetRange)
 		return errGetRange
 	})
 	return mds, err
