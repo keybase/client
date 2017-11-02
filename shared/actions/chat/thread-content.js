@@ -644,10 +644,8 @@ function* _markAsRead(
   }
 }
 
-function _updateBadging(
-  {payload: {conversationIDKey}}: ChatGen.UpdateBadgingPayload,
-  lastMessageID: ?Constants.MessageID
-) {
+function _updateBadging({payload: {conversationIDKey}}: ChatGen.UpdateBadgingPayload, state: TypedState) {
+  const lastMessageID: ?Constants.MessageID = Constants.lastMessageID(state, conversationIDKey)
   // Update gregor's view of the latest message we've read.
   if (conversationIDKey && lastMessageID) {
     return Saga.call(_markAsRead, conversationIDKey, lastMessageID)
@@ -751,8 +749,9 @@ function* _openConversation({
 
 function _removeOutboxMessage(
   {payload: {conversationIDKey, outboxID}}: ChatGen.RemoveOutboxMessagePayload,
-  msgKeys: I.OrderedSet<Constants.MessageKey>
+  s: TypedState
 ) {
+  const msgKeys: I.OrderedSet<Constants.MessageKey> = Constants.getConversationMessages(s, conversationIDKey)
   const nextMessages = msgKeys.filter(k => {
     const {messageID} = Constants.splitMessageIDKey(k)
     return messageID !== outboxID
@@ -886,21 +885,11 @@ function* registerSagas(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEvery('chat:loadMoreMessages', Saga.cancelWhen(_threadIsCleared, _loadMoreMessages))
   yield Saga.safeTakeEvery('chat:incomingMessage', _incomingMessage)
   yield Saga.safeTakeEvery('chat:updateThread', _updateThread)
-  yield Saga.safeTakeEveryPure(
-    ChatGen.updateBadging,
-    _updateBadging,
-    (state: TypedState, {payload: {conversationIDKey}}: ChatGen.UpdateBadgingPayload) =>
-      Constants.lastMessageID(state, conversationIDKey)
-  )
+  yield Saga.safeTakeEveryPure(ChatGen.updateBadging, _updateBadging)
   yield Saga.safeTakeEveryPure('chat:updateTempMessage', _updateMessageEntity)
   yield Saga.safeTakeEvery('chat:appendMessages', _appendMessagesToConversation)
   yield Saga.safeTakeEvery('chat:prependMessages', _prependMessagesToConversation)
-  yield Saga.safeTakeEveryPure(
-    'chat:removeOutboxMessage',
-    _removeOutboxMessage,
-    (s: TypedState, a: ChatGen.RemoveOutboxMessagePayload) =>
-      Constants.getConversationMessages(s, a.payload.conversationIDKey)
-  )
+  yield Saga.safeTakeEveryPure('chat:removeOutboxMessage', _removeOutboxMessage)
   yield Saga.safeTakeEvery('chat:outboxMessageBecameReal', _updateOutboxMessageToReal)
   yield Saga.safeTakeEvery('chat:openConversation', _openConversation)
   yield Saga.safeTakeEvery('chat:updateMetadata', _updateMetadata)
