@@ -21,6 +21,8 @@ type ReferenceStorer interface {
 	IterReferences() (ReferenceIter, error)
 	RemoveReference(plumbing.ReferenceName) error
 	SetPackedRefs(refs []plumbing.Reference) error
+	CountLooseRefs() (int, error)
+	PackRefs() error
 }
 
 // ReferenceIter is a generic closable interface for iterating over references.
