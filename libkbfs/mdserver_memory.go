@@ -61,6 +61,12 @@ type mdLockMemKey struct {
 	lockID keybase1.LockID
 }
 
+type mdLockMemVal struct {
+	etime    time.Time
+	holder   mdServerLocal
+	released chan struct{}
+}
+
 type mdServerMemShared struct {
 	// Protects all *db variables and truncateLockManager. After
 	// Shutdown() is called, all *db variables and
@@ -79,7 +85,8 @@ type mdServerMemShared struct {
 	// (TLF ID, crypt public key) -> branch ID
 	branchDb            map[mdBranchKey]BranchID
 	truncateLockManager *mdServerLocalTruncateLockManager
-	lockIDs             map[mdLockMemKey]time.Time // tracks expire time
+	// tracks expire time and holder
+	lockIDs map[mdLockMemKey]mdLockMemVal
 
 	updateManager *mdServerLocalUpdateManager
 }
@@ -113,7 +120,7 @@ func NewMDServerMemory(config mdServerLocalConfig) (*MDServerMemory, error) {
 		writerKeyBundleDb:   writerKeyBundleDb,
 		readerKeyBundleDb:   readerKeyBundleDb,
 		truncateLockManager: &truncateLockManager,
-		lockIDs:             make(map[mdLockMemKey]time.Time),
+		lockIDs:             make(map[mdLockMemKey]mdLockMemVal),
 		updateManager:       newMDServerLocalUpdateManager(),
 	}
 	mdserv := &MDServerMemory{config, log, &shared}
@@ -336,36 +343,43 @@ func (md *MDServerMemory) getCurrentDeviceKey(ctx context.Context) (
 // GetRange implements the MDServer interface for MDServerMemory.
 func (md *MDServerMemory) getRangeLocked(ctx context.Context, id tlf.ID,
 	bid BranchID, mStatus MergeStatus, start, stop kbfsmd.Revision,
-	lockBeforeGet *keybase1.LockID) (rmdses []*RootMetadataSigned, err error) {
+	lockBeforeGet *keybase1.LockID) (
+	rmdses []*RootMetadataSigned, lockWaitCh <-chan struct{}, err error) {
 	md.log.CDebugf(ctx, "GetRange %d %d (%s)", start, stop, mStatus)
 	bid, err = md.checkGetParamsRLocked(ctx, id, bid, mStatus)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
-	defer func() {
-		if err == nil && lockBeforeGet != nil {
-			md.lockLocked(ctx, id, *lockBeforeGet)
+	if lockBeforeGet != nil {
+		lockWaitCh = md.lockLocked(ctx, id, *lockBeforeGet)
+		if lockWaitCh != nil {
+			return nil, lockWaitCh, nil
 		}
-	}()
+		defer func() {
+			if err != nil {
+				md.releaseLockLocked(ctx, id, *lockBeforeGet)
+			}
+		}()
+	}
 
 	if mStatus == Unmerged && bid == NullBranchID {
-		return nil, nil
+		return nil, nil, nil
 	}
 
 	key, err := md.getMDKey(id, bid, mStatus)
 	if err != nil {
-		return nil, kbfsmd.ServerError{Err: err}
+		return nil, nil, kbfsmd.ServerError{Err: err}
 	}
 
 	err = md.checkShutdownRLocked()
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	blockList, ok := md.mdDb[key]
 	if !ok {
-		return nil, nil
+		return nil, nil, nil
 	}
 
 	startI := int(start - blockList.initialRevision)
@@ -387,7 +401,7 @@ func (md *MDServerMemory) getRangeLocked(ctx context.Context, id tlf.ID,
 			md.config.Codec(), id, ver, max, buf,
 			blocks[i].timestamp)
 		if err != nil {
-			return nil, kbfsmd.ServerError{Err: err}
+			return nil, nil, kbfsmd.ServerError{Err: err}
 		}
 		expectedRevision := blockList.initialRevision + kbfsmd.Revision(i)
 		if expectedRevision != rmds.MD.RevisionNumber() {
@@ -397,7 +411,16 @@ func (md *MDServerMemory) getRangeLocked(ctx context.Context, id tlf.ID,
 		rmdses = append(rmdses, rmds)
 	}
 
-	return rmdses, nil
+	return rmdses, nil, nil
+}
+
+func (md *MDServerMemory) doGetRange(ctx context.Context, id tlf.ID,
+	bid BranchID, mStatus MergeStatus, start, stop kbfsmd.Revision,
+	lockBeforeGet *keybase1.LockID) (
+	[]*RootMetadataSigned, <-chan struct{}, error) {
+	md.lock.Lock()
+	defer md.lock.Unlock()
+	return md.getRangeLocked(ctx, id, bid, mStatus, start, stop, lockBeforeGet)
 }
 
 // GetRange implements the MDServer interface for MDServerMemory.
@@ -408,9 +431,24 @@ func (md *MDServerMemory) GetRange(ctx context.Context, id tlf.ID,
 		return nil, err
 	}
 
-	md.lock.Lock()
-	defer md.lock.Unlock()
-	return md.getRangeLocked(ctx, id, bid, mStatus, start, stop, lockBeforeGet)
+	for {
+		rmds, ch, err := md.doGetRange(
+			ctx, id, bid, mStatus, start, stop, lockBeforeGet)
+		if err != nil {
+			return nil, err
+		}
+		if ch == nil {
+			return rmds, err
+		}
+		select {
+		// TODO: wait for the clock to pass the expired time.  We'd
+		// need a new method in the `Clock` interface to support this.
+		case <-ch:
+			continue
+		case <-ctx.Done():
+			return nil, ctx.Err()
+		}
+	}
 }
 
 // Put implements the MDServer interface for MDServerMemory.
@@ -485,10 +523,13 @@ func (md *MDServerMemory) Put(ctx context.Context, rmds *RootMetadataSigned,
 	if mStatus == Unmerged && head == nil {
 		// currHead for unmerged history might be on the main branch
 		prevRev := rmds.MD.RevisionNumber() - 1
-		rmdses, err := md.getRangeLocked(
+		rmdses, ch, err := md.getRangeLocked(
 			ctx, id, NullBranchID, Merged, prevRev, prevRev, nil)
 		if err != nil {
 			return kbfsmd.ServerError{Err: err}
+		}
+		if ch != nil {
+			panic("Got non-nil lock channel with a nil lock context")
 		}
 		if len(rmdses) != 1 {
 			return kbfsmd.ServerError{
@@ -573,48 +614,82 @@ func (md *MDServerMemory) Put(ctx context.Context, rmds *RootMetadataSigned,
 
 func (md *MDServerMemory) isLockedLocked(ctx context.Context,
 	tlfID tlf.ID, lockID keybase1.LockID) bool {
-	expireTime, ok := md.lockIDs[mdLockMemKey{
+	val, ok := md.lockIDs[mdLockMemKey{
 		tlfID:  tlfID,
 		lockID: lockID,
 	}]
 	if !ok {
 		return false
 	}
-	return expireTime.After(md.config.Clock().Now())
+	return val.etime.After(md.config.Clock().Now()) && md == val.holder
 }
 
 func (md *MDServerMemory) lockLocked(ctx context.Context,
-	tlfID tlf.ID, lockID keybase1.LockID) {
-	// NOTE: taking lock would always succeed in MDServerMemory since it's
-	// always within the same session.
+	tlfID tlf.ID, lockID keybase1.LockID) <-chan struct{} {
 	lockKey := mdLockMemKey{
 		tlfID:  tlfID,
 		lockID: lockID,
 	}
-	expireTime, ok := md.lockIDs[lockKey]
-	if !ok || !expireTime.After(md.config.Clock().Now()) {
-		// The lock doesn't exists or has expired.
-		md.lockIDs[lockKey] = md.config.Clock().Now().Add(mdLockTimeout)
+	val, ok := md.lockIDs[lockKey]
+	if !ok || !val.etime.After(md.config.Clock().Now()) {
+		// The lock doesn't exist or has expired.
+		md.lockIDs[lockKey] = mdLockMemVal{
+			etime:    md.config.Clock().Now().Add(mdLockTimeout),
+			holder:   md,
+			released: make(chan struct{}),
+		}
+		if ok {
+			close(val.released)
+		}
+		return nil
+	} else if val.holder == md {
+		// The lock is already held by this instance; just return
+		// without refreshing timestamp.
+		return nil
 	}
-	// The lock is already held; just return without refreshing timestamp.
+	// Someone else holds the lock; the caller needs to release
+	// md.lock and wait for this channel to close.
+	return val.released
 }
 
 func (md *MDServerMemory) releaseLockLocked(ctx context.Context,
 	tlfID tlf.ID, lockID keybase1.LockID) {
-	delete(md.lockIDs, mdLockMemKey{
+	lockKey := mdLockMemKey{
 		tlfID:  tlfID,
 		lockID: lockID,
-	})
-	return
+	}
+	val, ok := md.lockIDs[lockKey]
+	if !ok || val.holder != md {
+		return
+	}
+	delete(md.lockIDs, lockKey)
+	close(val.released)
+}
+
+func (md *MDServerMemory) doLock(ctx context.Context,
+	tlfID tlf.ID, lockID keybase1.LockID) <-chan struct{} {
+	md.lock.Lock()
+	defer md.lock.Unlock()
+	return md.lockLocked(ctx, tlfID, lockID)
 }
 
 // Lock (does not) implement the MDServer interface for MDServerMemory.
 func (md *MDServerMemory) Lock(ctx context.Context,
 	tlfID tlf.ID, lockID keybase1.LockID) error {
-	md.lock.Lock()
-	defer md.lock.Unlock()
-	md.lockLocked(ctx, tlfID, lockID)
-	return nil
+	for {
+		ch := md.doLock(ctx, tlfID, lockID)
+		if ch == nil {
+			return nil
+		}
+		select {
+		// TODO: wait for the clock to pass the expired time.  We'd
+		// need a new method in the `Clock` interface to support this.
+		case <-ch:
+			continue
+		case <-ctx.Done():
+			return ctx.Err()
+		}
+	}
 }
 
 // ReleaseLock (does not) implement the MDServer interface for MDServerMemory.
