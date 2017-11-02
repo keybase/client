@@ -203,7 +203,28 @@ class Inbox extends React.PureComponent<Props, State> {
             windowSize={this._maxVisible}
             getItemLayout={this._getItemLayout}
           />
-          {!this.props.isLoading && !this.props.rows.length && <NoChats />}
+          {!this.props.isLoading && !this.props.rows.length && !this.props.filter && <NoChats />}
+          {!this.props.rows.length &&
+            !!this.props.filter &&
+            <Box
+              style={{...globalStyles.fillAbsolute, ...globalStyles.flexBoxColumn, justifyContent: 'center'}}
+            >
+              <Text type="BodySmall" style={{textAlign: 'center'}}>
+                Sorry, no conversations match this.
+              </Text>
+              <Text type="BodySmall" style={{textAlign: 'center'}}>
+                ,___,
+              </Text>
+              <Text type="BodySmall" style={{textAlign: 'center'}}>
+                [O.o]
+              </Text>
+              <Text type="BodySmall" style={{textAlign: 'center'}}>
+                /)__)
+              </Text>
+              <Text type="BodySmall" style={{textAlign: 'center'}}>
+                -"--"-
+              </Text>
+            </Box>}
           {this.state.showFloating &&
             this.props.showSmallTeamsExpandDivider &&
             <FloatingDivider toggle={this.props.toggleSmallTeamsExpanded} />}

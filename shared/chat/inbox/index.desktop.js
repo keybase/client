@@ -176,19 +176,20 @@ class Inbox extends PureComponent<Props, State> {
             onSelectDown={this.props.onSelectDown}
           />
           {this.props.showNewConversation && <NewConversation />}
-          {!!this.props.rows.length &&
-            <div style={_scrollableStyle} onScroll={this._onScroll}>
-              <ReactList
-                ref={this._setRef}
-                useTranslate3d={true}
-                itemRenderer={this._itemRenderer}
-                length={this.props.rows.length}
-                type="variable"
-                itemSizeGetter={this._itemSizeGetter}
-              />
-            </div>}
+          <div style={_scrollableStyle} onScroll={this._onScroll}>
+            <ReactList
+              ref={this._setRef}
+              useTranslate3d={true}
+              itemRenderer={this._itemRenderer}
+              length={this.props.rows.length}
+              type="variable"
+              itemSizeGetter={this._itemSizeGetter}
+            />
+          </div>
           {!this.props.rows.length &&
-            <Box style={{flex: 1, ...globalStyles.flexBoxColumn, justifyContent: 'center'}}>
+            <Box
+              style={{...globalStyles.fillAbsolute, ...globalStyles.flexBoxColumn, justifyContent: 'center'}}
+            >
               <Text type="BodySmall" style={{textAlign: 'center'}}>
                 Sorry, no conversations match this.
               </Text>
