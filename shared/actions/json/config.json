@@ -1,0 +1,24 @@
+{
+  "prelude": [
+    "import * as Constants from '../constants/config'",
+    "import * as RPCTypes  from '../constants/types/flow-types'"
+  ],
+  "actions": {
+    "pushLoaded": {
+      "isLoaded": "boolean"
+    },
+    "setInitialState": {
+      "initialState": "Constants.InitialState"
+    },
+    "bootstrapStatusLoaded": {
+      "bootstrapStatus": "RPCTypes.BootstrapStatus"
+    },
+    "daemonError": {
+      "daemonError": "?Error"
+    },
+    "updateFollowing": {
+      "username": "string",
+      "isTracking": "boolean"
+    }
+  }
+}
