@@ -231,11 +231,18 @@ func (l *TeamLoader) load2Inner(ctx context.Context, arg load2ArgT) (*load2ResT,
 	return l.load2InnerLocked(ctx, arg)
 }
 
-func (l *TeamLoader) load2InnerLocked(ctx context.Context, arg load2ArgT) (*load2ResT, error) {
-
-	res, err := l.load2InnerLockedRetry(ctx, arg)
-	if err != nil {
-		if _, ok := err.(ProofError); ok && !arg.forceRepoll {
+func (l *TeamLoader) load2InnerLocked(ctx context.Context, arg load2ArgT) (res *load2ResT, err error) {
+	const nRetries = 3
+	for i := 0; i < nRetries; i++ {
+		res, err = l.load2InnerLockedRetry(ctx, arg)
+		switch err.(type) {
+		case nil:
+			return res, nil
+		case ProofError:
+			if arg.forceRepoll {
+				return res, err
+			}
+			// Something went wrong, throw out the cache and try again.
 			l.G().Log.CDebugf(ctx, "Got proof error (%s); trying again with forceRepoll=true", err.Error())
 			arg.forceRepoll = true
 			arg.forceFullReload = true
@@ -244,8 +251,19 @@ func (l *TeamLoader) load2InnerLocked(ctx context.Context, arg load2ArgT) (*load
 			if err == nil {
 				l.G().Log.CDebugf(ctx, "Found an unexpected TeamLoader case in which busting the cache saved the day (original error was: %s)", origErr.Error())
 			}
+			return res, err
+		case GreenLinkError:
+			// Try again
+			l.G().Log.CDebugf(ctx, "TeamLoader retrying after green link")
+			continue
 		}
+		return res, err
 	}
+	if err == nil {
+		// Should never happen
+		return res, fmt.Errorf("failed retryable team load")
+	}
+	// Return the last error
 	return res, err
 }
 
@@ -380,6 +398,15 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 	}
 	for i, link := range links {
 		l.G().Log.CDebugf(ctx, "TeamLoader processing link seqno:%v", link.Seqno())
+
+		if link.Seqno() > lastSeqno {
+			// This link came from a point in the chain after when we checked the merkle leaf.
+			// Processing it would require re-checking merkle.
+			// It would be tricky to ignore it because off-chain data is asserted to be in sync with the chain.
+			// So, return an error that the caller will retry.
+			l.G().Log.CDebugf(ctx, "TeamLoader found green link seqno:%v", link.Seqno())
+			return nil, NewGreenLinkError(link.Seqno())
+		}
 
 		if err := l.checkStubbed(ctx, arg, link); err != nil {
 			return nil, err
