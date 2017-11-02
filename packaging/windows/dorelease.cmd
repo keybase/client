@@ -3,6 +3,9 @@ if NOT DEFINED KBFSRevision set KBFSRevision=master
 if NOT DEFINED UpdaterRevision set UpdaterRevision=master
 if NOT DEFINED ReleaseRevision set ReleaseRevision=master
 
+set OUTPUT=echo
+if DEFINED SlackBot set OUTPUT=go run %GOPATH%/src/github.com/keybase/slackbot/send/main.go -i=1
+
 if NOT DEFINED DOKAN_PATH set DOKAN_PATH=%GOPATH%\bin\dokan-dev\build84
 echo DOKAN_PATH %DOKAN_PATH%
 
@@ -130,14 +133,14 @@ EXIT /B 0
 ::Publish smoke updater jsons to S3
 if [%UpdateChannel%] NEQ [Smoke2] (
     echo "Non Smoke2 build"
-    go run %GOPATH%/src/github.com/keybase/slackbot/send/main.go -i=1 "Successfully built Windows " %KEYBASE_VERSION%
+    %OUTPUT% "Successfully built Windows " %KEYBASE_VERSION%
     goto :no_smokeb
 )
 ::Smoke B json
 s3browser-con upload prerelease.keybase.io  %GOPATH%\src\github.com\keybase\client\packaging\windows\%BUILD_TAG%\*.json prerelease.keybase.io/windows-support  || goto:build_error || EXIT /B 1
 set smokeBSemVer=%KEYBASE_VERSION%
 %GOPATH%\src\github.com\keybase\release\release announce-build --build-a="%SmokeASemVer%" --build-b="%smokeBSemVer%" --platform="windows" || goto:build_error || EXIT /B 1
-go run %GOPATH%/src/github.com/keybase/slackbot/send/main.go -i=1 "Successfully built Windows " --build-a="%SmokeASemVer%" --build-b="%smokeBSemVer%" 
+%OUTPUT% "Successfully built Windows " --build-a="%SmokeASemVer%" --build-b="%smokeBSemVer%" 
 :no_smokeb 
 
 echo %ERRORLEVEL%
@@ -161,5 +164,5 @@ EXIT /B 0
 goto:eof
 
 :build_error
-go run %GOPATH%/src/github.com/keybase/slackbot/send/main.go -i=1 "Error building Windows"
+%OUTPUT% "Error building Windows"
 EXIT /B 1
