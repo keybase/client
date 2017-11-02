@@ -81,7 +81,7 @@ function* startNewConversation(
     console.warn("Shouldn't happen in practice")
     return [null, null]
   }
-  const membersType = flags.admin
+  const membersType = flags.impTeamChatEnabled
     ? ChatTypes.CommonConversationMembersType.impteam
     : ChatTypes.CommonConversationMembersType.kbfs
   const result = yield call(ChatTypes.localNewConversationLocalRpcPromise, {
