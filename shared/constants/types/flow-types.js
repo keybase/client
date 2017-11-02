@@ -4940,6 +4940,7 @@ export type TeamDetails = {
   keyGeneration: PerTeamKeyGeneration,
   annotatedActiveInvites: {[key: string]: AnnotatedTeamInvite},
   settings: TeamSettings,
+  showcase: TeamShowcase,
 }
 
 export type TeamExitRow = {
@@ -5096,6 +5097,12 @@ export type TeamSeitanRequest = {
 export type TeamSettings = {
   open: boolean,
   joinAs: TeamRole,
+}
+
+export type TeamShowcase = {
+  isShowcased: boolean,
+  description: string,
+  setByUID?: ?UID,
 }
 
 export type TeamSigChainState = {

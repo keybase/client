@@ -260,6 +260,10 @@
         {
           "type": "TeamSettings",
           "name": "settings"
+        },
+        {
+          "type": "TeamShowcase",
+          "name": "showcase"
         }
       ]
     },
@@ -1309,6 +1313,29 @@
         {
           "type": "boolean",
           "name": "open"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "TeamShowcase",
+      "fields": [
+        {
+          "type": "boolean",
+          "name": "isShowcased",
+          "jsonkey": "is_showcased"
+        },
+        {
+          "type": "string",
+          "name": "description"
+        },
+        {
+          "type": [
+            null,
+            "UID"
+          ],
+          "name": "setByUID",
+          "jsonkey": "set_by_uid"
         }
       ]
     },

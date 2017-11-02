@@ -24,6 +24,13 @@ type card struct {
 	} `json:"profile"`
 	YouFollowThem bool `json:"you_follow_them"`
 	TheyFollowYou bool `json:"they_follow_you"`
+	TeamShowcase  []struct {
+		FqName          string            `json:"fq_name"`
+		Open            bool              `json:"open"`
+		TeamIsShowcased bool              `json:"team_is_showcased"`
+		Description     string            `json:"description"`
+		Role            keybase1.TeamRole `json:"role"`
+	} `json:"team_showcase"`
 }
 
 func (c *card) GetAppStatus() *libkb.AppStatus {
