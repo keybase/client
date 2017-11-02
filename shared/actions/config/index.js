@@ -1,36 +1,22 @@
 // @flow
+import * as ConfigGen from '../config-gen'
 import * as Constants from '../../constants/config'
-import * as Creators from './creators'
+import * as GregorCreators from '../../actions/gregor'
+import * as RPCTypes from '../../constants/types/flow-types'
+import * as Saga from '../../util/saga'
 import engine from '../../engine'
-import {
-  CommonClientType,
-  configGetBootstrapStatusRpcPromise,
-  configGetConfigRpcPromise,
-  configGetExtendedStatusRpcPromise,
-  configWaitForClientRpcPromise,
-} from '../../constants/types/flow-types'
+import {RouteStateStorage} from '../../actions/route-state-storage'
+import {configurePush} from '../push/creators'
+import {flushLogFile} from '../../util/forward-logs'
+import {fuseStatus} from '../../actions/kbfs'
 import {isMobile, isSimulator} from '../../constants/platform'
 import {listenForKBFSNotifications} from '../../actions/notifications'
-import {fuseStatus} from '../../actions/kbfs'
-import {navBasedOnLoginAndInitialState} from '../../actions/login/creators'
-import {
-  checkReachabilityOnConnect,
-  registerGregorListeners,
-  registerReachability,
-  listenForNativeReachabilityEvents,
-} from '../../actions/gregor'
-import {resetSignup} from '../../actions/signup'
-import {RouteStateStorage} from '../../actions/route-state-storage'
-import * as Saga from '../../util/saga'
-import {configurePush} from '../push/creators'
-import {put, select} from 'redux-saga/effects'
 import {loggedInSelector} from '../../constants/selectors'
-import {flushLogFile} from '../../util/forward-logs'
-
-import type {TypedState} from '../../constants/reducer'
-import type {SagaGenerator} from '../../constants/types/saga'
-import type {InitialState, UpdateFollowing} from '../../constants/config'
-import type {AsyncAction} from '../../constants/types/flux'
+import {navBasedOnLoginAndInitialState} from '../../actions/login/creators'
+import {put, select} from 'redux-saga/effects'
+import {resetSignup} from '../../actions/signup'
+import {type AsyncAction} from '../../constants/types/flux'
+import {type TypedState} from '../../constants/reducer'
 
 // TODO convert to sagas
 
@@ -40,22 +26,17 @@ isMobile &&
     console.log('accepted update in actions/config')
   })
 
-const setInitialState = (initialState: InitialState): Constants.SetInitialState => ({
-  payload: initialState,
-  type: 'config:setInitialState',
-})
-
-const getConfig = (): AsyncAction => (dispatch, getState) =>
-  new Promise((resolve, reject) => {
-    configGetConfigRpcPromise()
-      .then(config => {
-        dispatch({payload: {config}, type: Constants.configLoaded})
-        resolve()
-      })
-      .catch(error => {
-        reject(error)
-      })
-  })
+// const getConfig = (): AsyncAction => (dispatch, getState) =>
+// new Promise((resolve, reject) => {
+// RPCTypes.configGetConfigRpcPromise()
+// .then(config => {
+// dispatch({payload: {config}, type: Constants.configLoaded})
+// resolve()
+// })
+// .catch(error => {
+// reject(error)
+// })
+// })
 
 function isFollower(getState: any, username: string): boolean {
   return !!getState().config.followers[username]
@@ -76,7 +57,9 @@ const waitForKBFS = (): AsyncAction => dispatch =>
       reject(new Error("Waited for KBFS client, but it wasn't not found"))
     }, 10 * 1000)
 
-    configWaitForClientRpcPromise({param: {clientType: CommonClientType.kbfs, timeout: 10.0}})
+    RPCTypes.configWaitForClientRpcPromise({
+      param: {clientType: RPCTypes.CommonClientType.kbfs, timeout: 10.0},
+    })
       .then(found => {
         clearTimeout(timer)
         if (timedOut) {
@@ -96,7 +79,7 @@ const waitForKBFS = (): AsyncAction => dispatch =>
 
 const getExtendedStatus = (): AsyncAction => dispatch =>
   new Promise((resolve, reject) => {
-    configGetExtendedStatusRpcPromise()
+    RPCTypes.configGetExtendedStatusRpcPromise()
       .then(extendedConfig => {
         dispatch({payload: {extendedConfig}, type: Constants.extendedConfigLoaded})
         resolve(extendedConfig)
@@ -107,20 +90,15 @@ const getExtendedStatus = (): AsyncAction => dispatch =>
   })
 
 const registerListeners = (): AsyncAction => dispatch => {
-  dispatch(listenForNativeReachabilityEvents)
-  dispatch(registerGregorListeners())
-  dispatch(registerReachability())
+  dispatch(GregorCreators.listenForNativeReachabilityEvents)
+  dispatch(GregorCreators.registerGregorListeners())
+  dispatch(GregorCreators.registerReachability())
 }
 
 const retryBootstrap = (): AsyncAction => (dispatch, getState) => {
   dispatch({payload: null, type: Constants.bootstrapRetry})
   dispatch(bootstrap())
 }
-
-const daemonError = (error: ?string): Constants.DaemonError => ({
-  payload: {daemonError: error ? new Error(error) : null},
-  type: Constants.daemonError,
-})
 
 // TODO: It's unfortunate that we have these globals. Ideally,
 // bootstrap would be a method on an object.
@@ -141,8 +119,8 @@ const bootstrap = (opts?: BootstrapOptions = {}): AsyncAction => (dispatch, getS
     bootstrapSetup = true
     console.log('[bootstrap] registered bootstrap')
     engine().listenOnConnect('bootstrap', () => {
-      dispatch(daemonError(null))
-      dispatch(checkReachabilityOnConnect())
+      dispatch(ConfigGen.createDaemonError({error: null}))
+      dispatch(GregorCreators.checkReachabilityOnConnect())
       console.log('[bootstrap] bootstrapping on connect')
       dispatch(bootstrap())
     })
@@ -153,7 +131,7 @@ const bootstrap = (opts?: BootstrapOptions = {}): AsyncAction => (dispatch, getS
       .then(() => {
         dispatch({type: 'config:bootstrapSuccess', payload: undefined})
         engine().listenOnDisconnect('daemonError', () => {
-          dispatch(daemonError('Disconnected'))
+          dispatch(ConfigGen.createDaemonError({error: new Error('Disconnected')}))
           flushLogFile()
         })
         dispatch(listenForKBFSNotifications())
@@ -192,7 +170,7 @@ const clearRouteState: AsyncAction = routeStateStorage.clear
 
 const getBootstrapStatus = (): AsyncAction => dispatch =>
   new Promise((resolve, reject) => {
-    configGetBootstrapStatusRpcPromise()
+    RPCTypes.configGetBootstrapStatusRpcPromise()
       .then(bootstrapStatus => {
         dispatch({
           payload: {bootstrapStatus},
@@ -206,12 +184,7 @@ const getBootstrapStatus = (): AsyncAction => dispatch =>
       })
   })
 
-const updateFollowing = (username: string, isTracking: boolean): UpdateFollowing => ({
-  payload: {username, isTracking},
-  type: Constants.updateFollowing,
-})
-
-function* _bootstrapSuccessSaga(): SagaGenerator<any, any> {
+function* _bootstrapSuccessSaga(): Saga.SagaGenerator<any, any> {
   if (isMobile) {
     const pushLoaded = yield select(({config: {pushLoaded}}: TypedState) => pushLoaded)
     const loggedIn = yield select(loggedInSelector)
@@ -219,26 +192,24 @@ function* _bootstrapSuccessSaga(): SagaGenerator<any, any> {
       if (!isSimulator) {
         yield put(configurePush())
       }
-      yield put(Creators.pushLoaded(true))
+      yield put(ConfigGen.createPushLoaded({isLoaded: true}))
     }
   }
 }
 
-function* configSaga(): SagaGenerator<any, any> {
+function* configSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEvery('config:bootstrapSuccess', _bootstrapSuccessSaga)
 }
 
 export {
   bootstrap,
-  getConfig,
+  clearRouteState,
+  // getConfig,
   getExtendedStatus,
   isFollower,
   isFollowing,
-  retryBootstrap,
-  clearRouteState,
   persistRouteState,
-  setInitialState,
-  updateFollowing,
+  retryBootstrap,
   waitForKBFS,
 }
 
