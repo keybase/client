@@ -31,7 +31,8 @@ const headerText = (errorText: string, name: string): string => {
     if (validTeamname(baseTeamname)) {
       return `You're creating a subteam of ${baseTeamname}.`
     }
-    // TODO: Display an error if teamname isn't valid.
+    // TODO: Display an error and disable the submit button if
+    // teamname isn't valid.
   }
 
   return "For security reasons, team names are unique and can't be changed, so choose carefully."
