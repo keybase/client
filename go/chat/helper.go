@@ -291,6 +291,10 @@ func (r *recentConversationParticipants) getActiveScore(ctx context.Context, con
 func (r *recentConversationParticipants) get(ctx context.Context, myUID gregor1.UID) (res []gregor1.UID, err error) {
 	_, convs, err := storage.NewInbox(r.G(), myUID).ReadAll(ctx)
 	if err != nil {
+		if _, ok := err.(storage.MissError); ok {
+			r.Debug(ctx, "get: no inbox, returning blank results")
+			return nil, nil
+		}
 		return nil, err
 	}
 
