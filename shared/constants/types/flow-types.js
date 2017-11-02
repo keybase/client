@@ -5251,6 +5251,7 @@ export type UserCard = {
   twitter: string,
   youFollowThem: boolean,
   theyFollowYou: boolean,
+  teamShowcase?: ?Array<UserTeamShowcase>,
 }
 
 export type UserLogPoint = {
@@ -5341,6 +5342,14 @@ export type UserSummary2Set = {
   users?: ?Array<UserSummary2>,
   time: Time,
   version: int,
+}
+
+export type UserTeamShowcase = {
+  fqName: string,
+  open: boolean,
+  teamIsShowcased: boolean,
+  description: string,
+  role: TeamRole,
 }
 
 export type UserVersion = {

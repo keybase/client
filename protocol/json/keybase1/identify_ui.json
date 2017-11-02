@@ -282,6 +282,37 @@
     },
     {
       "type": "record",
+      "name": "UserTeamShowcase",
+      "fields": [
+        {
+          "type": "string",
+          "name": "fqName",
+          "jsonkey": "fq_name"
+        },
+        {
+          "type": "boolean",
+          "name": "open",
+          "jsonkey": "open"
+        },
+        {
+          "type": "boolean",
+          "name": "teamIsShowcased",
+          "jsonkey": "team_is_showcased"
+        },
+        {
+          "type": "string",
+          "name": "description",
+          "jsonkey": "description"
+        },
+        {
+          "type": "TeamRole",
+          "name": "role",
+          "jsonkey": "role"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "UserCard",
       "fields": [
         {
@@ -323,6 +354,13 @@
         {
           "type": "boolean",
           "name": "theyFollowYou"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "UserTeamShowcase"
+          },
+          "name": "teamShowcase"
         }
       ]
     },

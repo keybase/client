@@ -7,6 +7,8 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 	context "golang.org/x/net/context"
+
+	"github.com/davecgh/go-spew/spew"
 )
 
 type card struct {
@@ -24,13 +26,7 @@ type card struct {
 	} `json:"profile"`
 	YouFollowThem bool `json:"you_follow_them"`
 	TheyFollowYou bool `json:"they_follow_you"`
-	TeamShowcase  []struct {
-		FqName          string            `json:"fq_name"`
-		Open            bool              `json:"open"`
-		TeamIsShowcased bool              `json:"team_is_showcased"`
-		Description     string            `json:"description"`
-		Role            keybase1.TeamRole `json:"role"`
-	} `json:"team_showcase"`
+	TeamShowcase  []keybase1.UserTeamShowcase
 }
 
 func (c *card) GetAppStatus() *libkb.AppStatus {
