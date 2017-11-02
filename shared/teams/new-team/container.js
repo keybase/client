@@ -27,7 +27,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
 
 export default compose(
   connect(mapStateToProps, mapDispatchToProps, mergeProps),
-  withState('name', 'onNameChange', props => props.name),
+  withState('name', 'onNameChange', props => props.name || ''),
   withHandlers({
     onSubmit: ({name, _onCreateNewTeam}) => () => _onCreateNewTeam(name),
   }),
