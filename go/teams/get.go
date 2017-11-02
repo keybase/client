@@ -3,7 +3,6 @@ package teams
 import (
 	"encoding/json"
 	"fmt"
-	"testing"
 
 	"golang.org/x/net/context"
 
@@ -71,7 +70,7 @@ func GetForTeamManagementByTeamID(ctx context.Context, g *libkb.GlobalContext, i
 	return team, fixupTeamGetError(ctx, g, err, id.String(), id.IsPublic())
 }
 
-func GetTeamByNameForTest(ctx context.Context, t *testing.T, g *libkb.GlobalContext, name string, public bool, needAdmin bool) (*Team, error) {
+func GetTeamByNameForTest(ctx context.Context, g *libkb.GlobalContext, name string, public bool, needAdmin bool) (*Team, error) {
 	team, err := Load(ctx, g, keybase1.LoadTeamArg{
 		Name:        name,
 		Public:      public,
