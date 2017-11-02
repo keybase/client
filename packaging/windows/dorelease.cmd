@@ -133,7 +133,7 @@ EXIT /B 0
 ::Publish smoke updater jsons to S3
 if [%UpdateChannel%] NEQ [Smoke2] (
     echo "Non Smoke2 build"
-    %OUTPUT% "Successfully built Windows: %KEYBASE_VERSION%""
+    %OUTPUT% "Successfully built Windows: %KEYBASE_VERSION%"
     goto :no_smokeb
 )
 ::Smoke B json
