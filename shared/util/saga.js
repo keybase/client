@@ -114,19 +114,25 @@ function safeTakeEvery(pattern: string | Array<any> | Function, worker: Function
 // whatever purework returns will be yielded on.
 // i.e. it can return put(someAction). That effectively transforms the input action into another action
 // It can also return all([put(action1), put(action2)]) to dispatch multiple actions
-function safeTakeEveryPure<S, A>(
+function safeTakeEveryPure<A, R, FinalAction>(
   pattern: string | Array<any> | Function,
-  pureWorker: ((action: any) => any) | ((action: any, selectedState: S) => any),
-  selectorFn?: (state: TypedState, action: A) => S
+  pureWorker: ((action: A, state: TypedState) => any) | ((action: A) => any),
+  actionCreatorsWithResult?: (result: R) => FinalAction
 ) {
   return safeTakeEvery(pattern, function* safeTakeEveryPureWorker(action: A) {
-    if (selectorFn) {
-      const selectedState = yield select(selectorFn, action)
-      // $FlowIssue
-      yield pureWorker(action, selectedState)
+    // If the pureWorker fn takes two arguments, let's pass the state
+    let result
+    if (pureWorker.length === 2) {
+      const state: TypedState = yield select()
+      // $FlowIssue - doesn't understand checking for arity
+      result = yield pureWorker(action, state)
     } else {
-      // $FlowIssue
-      yield pureWorker(action)
+      // $FlowIssue - doesn't understand checking for arity
+      result = yield pureWorker(action)
+    }
+
+    if (actionCreatorsWithResult) {
+      yield actionCreatorsWithResult(result)
     }
   })
 }
