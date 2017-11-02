@@ -318,3 +318,29 @@ func (h *TeamsHandler) TeamAddEmailsBulk(ctx context.Context, arg keybase1.TeamA
 
 	return teams.AddEmailsBulk(ctx, h.G().ExternalG(), arg.Name, arg.Emails, arg.Role)
 }
+
+func (h *TeamsHandler) GetTeamShowcase(ctx context.Context, teamname string) (ret keybase1.TeamShowcase, err error) {
+	defer h.G().CTraceTimed(ctx, fmt.Sprintf("GetTeamShowcase(%s)", teamname), func() error { return err })()
+
+	return teams.GetTeamShowcase(ctx, h.G().ExternalG(), teamname)
+}
+
+func (h *TeamsHandler) GetTeamAndMemberShowcase(ctx context.Context, teamname string) (ret keybase1.TeamAndMemberShowcase, err error) {
+	defer h.G().CTraceTimed(ctx, fmt.Sprintf("GetTeamAndMemberShowcase(%s)", teamname), func() error { return err })()
+
+	return teams.GetTeamAndMemberShowcase(ctx, h.G().ExternalG(), teamname)
+}
+
+func (h *TeamsHandler) SetTeamShowcase(ctx context.Context, arg keybase1.SetTeamShowcaseArg) (err error) {
+	defer h.G().CTraceTimed(ctx, fmt.Sprintf("SetTeamShowcase(%s)", arg.Name), func() error { return err })()
+
+	err = teams.SetTeamShowcase(ctx, h.G().ExternalG(), arg.Name, arg.IsShowcased, arg.Description)
+	return err
+}
+
+func (h *TeamsHandler) SetTeamMemberShowcase(ctx context.Context, arg keybase1.SetTeamMemberShowcaseArg) (err error) {
+	defer h.G().CTraceTimed(ctx, fmt.Sprintf("SetTeamMemberShowcase(%s)", arg.Name), func() error { return err })()
+
+	err = teams.SetTeamMemberShowcase(ctx, h.G().ExternalG(), arg.Name, arg.IsShowcased)
+	return err
+}

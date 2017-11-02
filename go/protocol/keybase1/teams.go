@@ -1549,15 +1549,21 @@ func (o TeamRequestAccessResult) DeepCopy() TeamRequestAccessResult {
 }
 
 type TeamShowcase struct {
-	IsShowcased bool   `codec:"isShowcased" json:"is_showcased"`
-	Description string `codec:"description" json:"description"`
-	SetByUID    *UID   `codec:"setByUID,omitempty" json:"set_by_uid,omitempty"`
+	IsShowcased bool    `codec:"isShowcased" json:"is_showcased"`
+	Description *string `codec:"description,omitempty" json:"description,omitempty"`
+	SetByUID    *UID    `codec:"setByUID,omitempty" json:"set_by_uid,omitempty"`
 }
 
 func (o TeamShowcase) DeepCopy() TeamShowcase {
 	return TeamShowcase{
 		IsShowcased: o.IsShowcased,
-		Description: o.Description,
+		Description: (func(x *string) *string {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x)
+			return &tmp
+		})(o.Description),
 		SetByUID: (func(x *UID) *UID {
 			if x == nil {
 				return nil
@@ -1565,6 +1571,18 @@ func (o TeamShowcase) DeepCopy() TeamShowcase {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.SetByUID),
+	}
+}
+
+type TeamAndMemberShowcase struct {
+	TeamShowcase      TeamShowcase `codec:"teamShowcase" json:"teamShowcase"`
+	IsMemberShowcased bool         `codec:"isMemberShowcased" json:"isMemberShowcased"`
+}
+
+func (o TeamAndMemberShowcase) DeepCopy() TeamAndMemberShowcase {
+	return TeamAndMemberShowcase{
+		TeamShowcase:      o.TeamShowcase.DeepCopy(),
+		IsMemberShowcased: o.IsMemberShowcased,
 	}
 }
 
@@ -2069,6 +2087,64 @@ func (o GetTeamRootIDArg) DeepCopy() GetTeamRootIDArg {
 	}
 }
 
+type GetTeamShowcaseArg struct {
+	Name string `codec:"name" json:"name"`
+}
+
+func (o GetTeamShowcaseArg) DeepCopy() GetTeamShowcaseArg {
+	return GetTeamShowcaseArg{
+		Name: o.Name,
+	}
+}
+
+type GetTeamAndMemberShowcaseArg struct {
+	Name string `codec:"name" json:"name"`
+}
+
+func (o GetTeamAndMemberShowcaseArg) DeepCopy() GetTeamAndMemberShowcaseArg {
+	return GetTeamAndMemberShowcaseArg{
+		Name: o.Name,
+	}
+}
+
+type SetTeamShowcaseArg struct {
+	Name        string  `codec:"name" json:"name"`
+	IsShowcased *bool   `codec:"isShowcased,omitempty" json:"isShowcased,omitempty"`
+	Description *string `codec:"description,omitempty" json:"description,omitempty"`
+}
+
+func (o SetTeamShowcaseArg) DeepCopy() SetTeamShowcaseArg {
+	return SetTeamShowcaseArg{
+		Name: o.Name,
+		IsShowcased: (func(x *bool) *bool {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x)
+			return &tmp
+		})(o.IsShowcased),
+		Description: (func(x *string) *string {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x)
+			return &tmp
+		})(o.Description),
+	}
+}
+
+type SetTeamMemberShowcaseArg struct {
+	Name        string `codec:"name" json:"name"`
+	IsShowcased bool   `codec:"isShowcased" json:"isShowcased"`
+}
+
+func (o SetTeamMemberShowcaseArg) DeepCopy() SetTeamMemberShowcaseArg {
+	return SetTeamMemberShowcaseArg{
+		Name:        o.Name,
+		IsShowcased: o.IsShowcased,
+	}
+}
+
 type TeamsInterface interface {
 	TeamCreate(context.Context, TeamCreateArg) (TeamCreateResult, error)
 	TeamCreateWithSettings(context.Context, TeamCreateWithSettingsArg) (TeamCreateResult, error)
@@ -2100,6 +2176,10 @@ type TeamsInterface interface {
 	// * of the refreshers aren't met.
 	LoadTeamPlusApplicationKeys(context.Context, LoadTeamPlusApplicationKeysArg) (TeamPlusApplicationKeys, error)
 	GetTeamRootID(context.Context, TeamID) (TeamID, error)
+	GetTeamShowcase(context.Context, string) (TeamShowcase, error)
+	GetTeamAndMemberShowcase(context.Context, string) (TeamAndMemberShowcase, error)
+	SetTeamShowcase(context.Context, SetTeamShowcaseArg) error
+	SetTeamMemberShowcase(context.Context, SetTeamMemberShowcaseArg) error
 }
 
 func TeamsProtocol(i TeamsInterface) rpc.Protocol {
@@ -2538,6 +2618,70 @@ func TeamsProtocol(i TeamsInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"getTeamShowcase": {
+				MakeArg: func() interface{} {
+					ret := make([]GetTeamShowcaseArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]GetTeamShowcaseArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]GetTeamShowcaseArg)(nil), args)
+						return
+					}
+					ret, err = i.GetTeamShowcase(ctx, (*typedArgs)[0].Name)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"getTeamAndMemberShowcase": {
+				MakeArg: func() interface{} {
+					ret := make([]GetTeamAndMemberShowcaseArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]GetTeamAndMemberShowcaseArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]GetTeamAndMemberShowcaseArg)(nil), args)
+						return
+					}
+					ret, err = i.GetTeamAndMemberShowcase(ctx, (*typedArgs)[0].Name)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"setTeamShowcase": {
+				MakeArg: func() interface{} {
+					ret := make([]SetTeamShowcaseArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]SetTeamShowcaseArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]SetTeamShowcaseArg)(nil), args)
+						return
+					}
+					err = i.SetTeamShowcase(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"setTeamMemberShowcase": {
+				MakeArg: func() interface{} {
+					ret := make([]SetTeamMemberShowcaseArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]SetTeamMemberShowcaseArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]SetTeamMemberShowcaseArg)(nil), args)
+						return
+					}
+					err = i.SetTeamMemberShowcase(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 		},
 	}
 }
@@ -2683,5 +2827,27 @@ func (c TeamsClient) LoadTeamPlusApplicationKeys(ctx context.Context, __arg Load
 func (c TeamsClient) GetTeamRootID(ctx context.Context, id TeamID) (res TeamID, err error) {
 	__arg := GetTeamRootIDArg{Id: id}
 	err = c.Cli.Call(ctx, "keybase.1.teams.getTeamRootID", []interface{}{__arg}, &res)
+	return
+}
+
+func (c TeamsClient) GetTeamShowcase(ctx context.Context, name string) (res TeamShowcase, err error) {
+	__arg := GetTeamShowcaseArg{Name: name}
+	err = c.Cli.Call(ctx, "keybase.1.teams.getTeamShowcase", []interface{}{__arg}, &res)
+	return
+}
+
+func (c TeamsClient) GetTeamAndMemberShowcase(ctx context.Context, name string) (res TeamAndMemberShowcase, err error) {
+	__arg := GetTeamAndMemberShowcaseArg{Name: name}
+	err = c.Cli.Call(ctx, "keybase.1.teams.getTeamAndMemberShowcase", []interface{}{__arg}, &res)
+	return
+}
+
+func (c TeamsClient) SetTeamShowcase(ctx context.Context, __arg SetTeamShowcaseArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.teams.setTeamShowcase", []interface{}{__arg}, nil)
+	return
+}
+
+func (c TeamsClient) SetTeamMemberShowcase(ctx context.Context, __arg SetTeamMemberShowcaseArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.teams.setTeamMemberShowcase", []interface{}{__arg}, nil)
 	return
 }

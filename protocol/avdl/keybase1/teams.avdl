@@ -522,9 +522,14 @@ protocol teams {
   record TeamShowcase {
     @jsonkey("is_showcased")
     boolean isShowcased;
-    string description;
+    union { null, string } description;
     @jsonkey("set_by_uid")
     union { null, UID } setByUID;
+  }
+
+  record TeamAndMemberShowcase {
+    TeamShowcase teamShowcase;
+    boolean isMemberShowcased;
   }
 
   TeamCreateResult teamCreate(int sessionID, string name, boolean sendChatNotification);
@@ -625,4 +630,9 @@ protocol teams {
    */
   TeamPlusApplicationKeys loadTeamPlusApplicationKeys(int sessionID, TeamID id, TeamApplication application, TeamRefreshers refreshers);
   TeamID getTeamRootID(TeamID id);
+
+  TeamShowcase getTeamShowcase(string name);
+  TeamAndMemberShowcase getTeamAndMemberShowcase(string name);
+  void setTeamShowcase(string name, union { null, boolean } isShowcased, union { null, string } description);
+  void setTeamMemberShowcase(string name, boolean isShowcased);
 }

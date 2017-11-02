@@ -2378,12 +2378,28 @@ export function sigsSigListRpcPromise (request: (requestCommon & {callback?: ?(e
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.sigs.sigList', request, (error, result) => error ? reject(error) : resolve(result)))
 }
 
+export function teamsGetTeamAndMemberShowcaseRpcChannelMap (configKeys: Array<string>, request: requestCommon & {callback?: ?(err: ?any, response: teamsGetTeamAndMemberShowcaseResult) => void} & {param: teamsGetTeamAndMemberShowcaseRpcParam}): EngineChannel {
+  return engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.getTeamAndMemberShowcase', request)
+}
+
+export function teamsGetTeamAndMemberShowcaseRpcPromise (request: (requestCommon & {callback?: ?(err: ?any, response: teamsGetTeamAndMemberShowcaseResult) => void} & {param: teamsGetTeamAndMemberShowcaseRpcParam})): Promise<teamsGetTeamAndMemberShowcaseResult> {
+  return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.teams.getTeamAndMemberShowcase', request, (error, result) => error ? reject(error) : resolve(result)))
+}
+
 export function teamsGetTeamRootIDRpcChannelMap (configKeys: Array<string>, request: requestCommon & {callback?: ?(err: ?any, response: teamsGetTeamRootIDResult) => void} & {param: teamsGetTeamRootIDRpcParam}): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.getTeamRootID', request)
 }
 
 export function teamsGetTeamRootIDRpcPromise (request: (requestCommon & {callback?: ?(err: ?any, response: teamsGetTeamRootIDResult) => void} & {param: teamsGetTeamRootIDRpcParam})): Promise<teamsGetTeamRootIDResult> {
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.teams.getTeamRootID', request, (error, result) => error ? reject(error) : resolve(result)))
+}
+
+export function teamsGetTeamShowcaseRpcChannelMap (configKeys: Array<string>, request: requestCommon & {callback?: ?(err: ?any, response: teamsGetTeamShowcaseResult) => void} & {param: teamsGetTeamShowcaseRpcParam}): EngineChannel {
+  return engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.getTeamShowcase', request)
+}
+
+export function teamsGetTeamShowcaseRpcPromise (request: (requestCommon & {callback?: ?(err: ?any, response: teamsGetTeamShowcaseResult) => void} & {param: teamsGetTeamShowcaseRpcParam})): Promise<teamsGetTeamShowcaseResult> {
+  return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.teams.getTeamShowcase', request, (error, result) => error ? reject(error) : resolve(result)))
 }
 
 export function teamsLoadTeamPlusApplicationKeysRpcChannelMap (configKeys: Array<string>, request: requestCommon & {callback?: ?(err: ?any, response: teamsLoadTeamPlusApplicationKeysResult) => void} & {param: teamsLoadTeamPlusApplicationKeysRpcParam}): EngineChannel {
@@ -2408,6 +2424,22 @@ export function teamsLookupOrCreateImplicitTeamRpcChannelMap (configKeys: Array<
 
 export function teamsLookupOrCreateImplicitTeamRpcPromise (request: (requestCommon & {callback?: ?(err: ?any, response: teamsLookupOrCreateImplicitTeamResult) => void} & {param: teamsLookupOrCreateImplicitTeamRpcParam})): Promise<teamsLookupOrCreateImplicitTeamResult> {
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.teams.lookupOrCreateImplicitTeam', request, (error, result) => error ? reject(error) : resolve(result)))
+}
+
+export function teamsSetTeamMemberShowcaseRpcChannelMap (configKeys: Array<string>, request: requestCommon & requestErrorCallback & {param: teamsSetTeamMemberShowcaseRpcParam}): EngineChannel {
+  return engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.setTeamMemberShowcase', request)
+}
+
+export function teamsSetTeamMemberShowcaseRpcPromise (request: (requestCommon & requestErrorCallback & {param: teamsSetTeamMemberShowcaseRpcParam})): Promise<void> {
+  return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.teams.setTeamMemberShowcase', request, (error, result) => error ? reject(error) : resolve(result)))
+}
+
+export function teamsSetTeamShowcaseRpcChannelMap (configKeys: Array<string>, request: requestCommon & requestErrorCallback & {param: teamsSetTeamShowcaseRpcParam}): EngineChannel {
+  return engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.setTeamShowcase', request)
+}
+
+export function teamsSetTeamShowcaseRpcPromise (request: (requestCommon & requestErrorCallback & {param: teamsSetTeamShowcaseRpcParam})): Promise<void> {
+  return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.teams.setTeamShowcase', request, (error, result) => error ? reject(error) : resolve(result)))
 }
 
 export function teamsTeamAcceptInviteOrRequestAccessRpcChannelMap (configKeys: Array<string>, request: requestCommon & requestErrorCallback & {param: teamsTeamAcceptInviteOrRequestAccessRpcParam}): EngineChannel {
@@ -4879,6 +4911,11 @@ export type TeamAddMemberResult = {
   chatSent: boolean,
 }
 
+export type TeamAndMemberShowcase = {
+  teamShowcase: TeamShowcase,
+  isMemberShowcased: boolean,
+}
+
 export type TeamApplication =
     1 // KBFS_1
   | 2 // CHAT_2
@@ -5101,7 +5138,7 @@ export type TeamSettings = {
 
 export type TeamShowcase = {
   isShowcased: boolean,
-  description: string,
+  description?: ?string,
   setByUID?: ?UID,
 }
 
@@ -6327,8 +6364,16 @@ export type streamUiWriteRpcParam = Exact<{
   buf: bytes
 }>
 
+export type teamsGetTeamAndMemberShowcaseRpcParam = Exact<{
+  name: string
+}>
+
 export type teamsGetTeamRootIDRpcParam = Exact<{
   id: TeamID
+}>
+
+export type teamsGetTeamShowcaseRpcParam = Exact<{
+  name: string
 }>
 
 export type teamsLoadTeamPlusApplicationKeysRpcParam = Exact<{
@@ -6345,6 +6390,17 @@ export type teamsLookupImplicitTeamRpcParam = Exact<{
 export type teamsLookupOrCreateImplicitTeamRpcParam = Exact<{
   name: string,
   public: boolean
+}>
+
+export type teamsSetTeamMemberShowcaseRpcParam = Exact<{
+  name: string,
+  isShowcased: boolean
+}>
+
+export type teamsSetTeamShowcaseRpcParam = Exact<{
+  name: string,
+  isShowcased?: ?boolean,
+  description?: ?string
 }>
 
 export type teamsTeamAcceptInviteOrRequestAccessRpcParam = Exact<{
@@ -6719,7 +6775,9 @@ type sigsSigListJSONResult = string
 type sigsSigListResult = ?Array<Sig>
 type streamUiReadResult = bytes
 type streamUiWriteResult = int
+type teamsGetTeamAndMemberShowcaseResult = TeamAndMemberShowcase
 type teamsGetTeamRootIDResult = TeamID
+type teamsGetTeamShowcaseResult = TeamShowcase
 type teamsLoadTeamPlusApplicationKeysResult = TeamPlusApplicationKeys
 type teamsLookupImplicitTeamResult = LookupImplicitTeamRes
 type teamsLookupOrCreateImplicitTeamResult = LookupImplicitTeamRes
