@@ -111,15 +111,27 @@ function canonicalizeTLF(tlf: string): string {
 
 function pathFromFolder({
   isPublic,
+  isTeam,
   users,
 }: {
   isPublic: boolean,
+  isTeam: boolean,
   users: UserList,
 }): {sortName: string, path: string} {
   const rwers = users.filter(u => !u.readOnly).map(u => u.username)
   const readers = users.filter(u => !!u.readOnly).map(u => u.username)
   const sortName = rwers.join(',') + (readers.length ? `#${readers.join(',')}` : '')
-  const path = `${defaultKBFSPath}/${isPublic ? 'public' : 'private'}/${sortName}`
+
+  let subdir = 'unknown'
+  if (isTeam) {
+    subdir = 'team'
+  } else if (isPublic) {
+    subdir = 'public'
+  } else {
+    subdir = 'private'
+  }
+
+  const path = `${defaultKBFSPath}/${subdir}/${sortName}`
   return {sortName, path}
 }
 
@@ -140,6 +152,14 @@ function folderRPCFromPath(path: string): ?FolderRPC {
       created: false,
       folderType: FavoriteFolderType.public,
     }
+  } else if (path.startsWith(`${defaultKBFSPath}/team/`)) {
+    return {
+      name: path.replace(`${defaultKBFSPath}/team/`, ''),
+      private: true,
+      notificationsOn: false,
+      created: false,
+      folderType: FavoriteFolderType.team,
+    }
   } else {
     return null
   }
@@ -148,7 +168,11 @@ function folderRPCFromPath(path: string): ?FolderRPC {
 function folderFromFolderRPCWithMeta(username: string, f: FolderRPCWithMeta): Folder {
   const users = sortUserList(parseFolderNameToUsers(username, f.name))
 
-  const {sortName, path} = pathFromFolder({users, isPublic: !f.private})
+  const {sortName, path} = pathFromFolder({
+    users,
+    isPublic: !f.private,
+    isTeam: f.folderType === FavoriteFolderType.team,
+  })
   const meta: MetaType = f.meta
   const ignored = f.meta === 'ignored'
 
@@ -158,6 +182,7 @@ function folderFromFolderRPCWithMeta(username: string, f: FolderRPCWithMeta): Fo
     sortName,
     hasData: false, // TODO don't have this info
     isPublic: !f.private,
+    isTeam: f.folderType === FavoriteFolderType.team,
     ignored,
     meta,
     recentFiles: [],
