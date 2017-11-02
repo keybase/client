@@ -1,40 +1,9 @@
 // @flow
 import * as Constants from '../constants/config'
+import * as ConfigGen from '../actions/config-gen'
 import * as CommonConstants from '../constants/common'
-import {isMobile} from '../constants/platform'
 
-import type {Action} from '../constants/types/flux'
-
-// Mobile is ready for bootstrap automatically, desktop needs to wait for
-// the installer.
-const readyForBootstrap = isMobile
-
-const initialState: Constants.State = {
-  appFocused: true,
-  userActive: true,
-  appFocusedCount: 0,
-  bootStatus: 'bootStatusLoading',
-  pushLoaded: false,
-  bootstrapTriesRemaining: Constants.MAX_BOOTSTRAP_TRIES,
-  config: null,
-  daemonError: null,
-  error: null,
-  extendedConfig: null,
-  followers: {},
-  following: {},
-  globalError: null,
-  initialState: null,
-  kbfsPath: Constants.defaultKBFSPath,
-  loggedIn: false,
-  registered: false,
-  readyForBootstrap,
-  uid: null,
-  username: null,
-  deviceID: null,
-  deviceName: null,
-}
-
-function arrayToObjectSet(arr) {
+function arrayToObjectSet(arr: ?Array<string>): {[key: string]: true} {
   if (!arr) {
     return {}
   }
@@ -45,93 +14,85 @@ function arrayToObjectSet(arr) {
   }, {})
 }
 
-export default function(state: Constants.State = initialState, action: Action): Constants.State {
+export default function(
+  state: Constants.State = Constants.initialState,
+  action: ConfigGen.Actions
+): Constants.State {
   switch (action.type) {
     case CommonConstants.resetStore:
       return {
-        ...initialState,
+        ...Constants.initialState,
         readyForBootstrap: state.readyForBootstrap,
       }
-    case 'config:pushLoaded': {
+    case ConfigGen.pushLoaded: {
+      const {pushLoaded} = action.payload
       return {
         ...state,
-        pushLoaded: action.payload,
+        pushLoaded,
       }
     }
-
-    case Constants.configLoaded:
-      if (action.payload && action.payload.config) {
-        return {
-          ...state,
-          config: action.payload.config,
-        }
+    case ConfigGen.configLoaded:
+      const {config} = action.payload
+      return {
+        ...state,
+        config,
       }
-      return state
-
-    case Constants.extendedConfigLoaded:
-      if (action.payload && action.payload.extendedConfig) {
-        return {
-          ...state,
-          extendedConfig: action.payload.extendedConfig,
-        }
+    case ConfigGen.extendedConfigLoaded:
+      const {extendedConfig} = action.payload
+      return {
+        ...state,
+        extendedConfig,
       }
-      return state
-
-    case Constants.changeKBFSPath:
-      if (action.payload && action.payload.path) {
-        return {
-          ...state,
-          kbfsPath: action.payload.path,
-        }
+    case ConfigGen.changeKBFSPath:
+      const {kbfsPath} = action.payload
+      return {
+        ...state,
+        kbfsPath,
       }
-      return state
-
-    case 'config:readyForBootstrap': {
+    case ConfigGen.readyForBootstrap: {
       return {
         ...state,
         readyForBootstrap: true,
       }
     }
-
-    case Constants.bootstrapSuccess: {
+    case ConfigGen.bootstrapSuccess: {
       return {
         ...state,
         bootStatus: 'bootStatusBootstrapped',
       }
     }
-
-    case Constants.bootstrapStatusLoaded:
-      const {bootstrapStatus} = action.payload
+    case ConfigGen.bootstrapStatusLoaded:
+      const {
+        bootstrapStatus: {followers: followersArray, following: followingArray, ...bootstrapStatus},
+      } = action.payload
+      const followers = arrayToObjectSet(followersArray)
+      const following = arrayToObjectSet(followingArray)
       return {
         ...state,
         ...bootstrapStatus,
-        following: arrayToObjectSet(bootstrapStatus.following),
-        followers: arrayToObjectSet(bootstrapStatus.followers),
+        followers,
+        following,
       }
-
-    case Constants.bootstrapAttemptFailed: {
+    case ConfigGen.bootstrapAttemptFailed: {
       return {
         ...state,
         bootstrapTriesRemaining: state.bootstrapTriesRemaining - 1,
       }
     }
-
-    case Constants.bootstrapFailed: {
+    case ConfigGen.bootstrapFailed: {
       return {
         ...state,
         bootStatus: 'bootStatusFailure',
       }
     }
-
-    case Constants.bootstrapRetry: {
+    case ConfigGen.bootstrapRetry: {
       return {
         ...state,
         bootStatus: 'bootStatusLoading',
-        bootstrapTriesRemaining: Constants.MAX_BOOTSTRAP_TRIES,
+        bootstrapTriesRemaining: Constants.maxBootstrapTries,
       }
     }
-
-    case Constants.updateFollowing: {
+    case ConfigGen.updateFollowing: {
       const {username, isTracking} = action.payload
       return {
         ...state,
@@ -141,54 +102,46 @@ export default function(state: Constants.State = initialState, action: Action): 
         },
       }
     }
-
-    case Constants.globalErrorDismiss: {
-      return {
-        ...state,
-        globalError: null,
-      }
-    }
-    case Constants.globalError: {
-      const error = action.payload
-      if (error) {
-        console.warn('Error (global):', error)
+    case ConfigGen.globalError: {
+      const {globalError} = action.payload
+      if (globalError) {
+        console.warn('Error (global):', globalError)
       }
       return {
         ...state,
-        globalError: error,
+        globalError,
       }
     }
-    case Constants.daemonError: {
-      const error = action.payload.daemonError
-      if (error) {
-        console.warn('Error (daemon):', error)
+    case ConfigGen.daemonError: {
+      const {daemonError} = action.payload
+      if (daemonError) {
+        console.warn('Error (daemon):', daemonError)
       }
       return {
         ...state,
-        daemonError: error,
+        daemonError,
       }
     }
-
-    case 'config:setInitialState': {
+    case ConfigGen.setInitialState: {
+      const {initialState} = action.payload
       return {
         ...state,
-        initialState: action.payload,
+        initialState,
       }
     }
-
     case 'app:changedFocus':
+      const {appFocused} = action.payload
       return {
         ...state,
-        appFocused: action.payload.appFocused,
+        appFocused,
         appFocusedCount: state.appFocusedCount + 1,
       }
-
     case 'app:changedActive':
+      const {userActive} = action.payload
       return {
         ...state,
-        userActive: action.payload.userActive,
+        userActive,
       }
-
     default:
       return state
   }

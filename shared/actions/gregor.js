@@ -1,6 +1,7 @@
 // @flow
 import * as Constants from '../constants/gregor'
 import * as GregorGen from './gregor-gen'
+import * as ConfigGen from './config-gen'
 import * as I from 'immutable'
 import engine from '../engine'
 import {
@@ -12,7 +13,6 @@ import {
   type Reachability,
 } from '../constants/types/flow-types'
 import {all, call, put, select} from 'redux-saga/effects'
-import {bootstrap} from '../actions/config'
 import {clearErrors} from '../util/pictures'
 import {favoriteList, markTLFCreated} from './favorite'
 import {folderFromPath} from '../constants/favorite.js'
@@ -79,7 +79,7 @@ function registerReachability() {
           // TODO: We should be able to recover from connection problems
           // without re-bootstrapping. Originally we used to do this on HTML5
           // 'online' event, but reachability is more precise.
-          dispatch(bootstrap({isReconnect: true}))
+          dispatch(ConfigGen.createBootstrap({isReconnect: true}))
           clearErrors()
         }
       }

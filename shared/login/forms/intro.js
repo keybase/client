@@ -11,7 +11,7 @@ const mapStateToProps = (state: TypedState) => ({
   justDeletedSelf: state.login.justDeletedSelf,
   justLoginFromRevokedDevice: state.login.justLoginFromRevokedDevice,
   justRevokedSelf: state.login.justRevokedSelf,
-  retrying: state.config.bootstrapTriesRemaining !== Constants.MAX_BOOTSTRAP_TRIES,
+  retrying: state.config.bootstrapTriesRemaining !== Constants.maxBootstrapTries,
 })
 
 const mapDispatchToProps = (dispatch: Dispatch, {navigateAppend}) => ({

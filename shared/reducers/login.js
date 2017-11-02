@@ -40,11 +40,6 @@ export default function(state: Constants.State = initialState, action: any): Con
     case CommonConstants.resetStore:
       return {...initialState}
 
-    case ConfigConstants.statusLoaded:
-      if (action.error || action.payload == null) {
-        return state
-      }
-      break
     case Constants.setMyDeviceCodeState:
       return {
         ...state,
@@ -159,6 +154,4 @@ export default function(state: Constants.State = initialState, action: any): Con
     default:
       return state
   }
-
-  return state
 }

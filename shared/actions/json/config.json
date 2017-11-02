@@ -4,21 +4,43 @@
     "import * as RPCTypes  from '../constants/types/flow-types'"
   ],
   "actions": {
-    "pushLoaded": {
-      "isLoaded": "boolean"
-    },
-    "setInitialState": {
-      "initialState": "Constants.InitialState"
-    },
     "bootstrapStatusLoaded": {
       "bootstrapStatus": "RPCTypes.BootstrapStatus"
+    },
+    "bootstrap": {
+      "isReconnect?": "boolean"
+    },
+    "bootstrapSuccess": {},
+    "bootstrapRetry": {},
+    "bootstrapAttemptFailed": {},
+    "bootstrapFailed": {},
+    "changeKBFSPath": {
+      "kbfsPath": "string"
+    },
+    "clearRouteState": {},
+    "configLoaded": {
+      "config": "RPCTypes.Config"
     },
     "daemonError": {
       "daemonError": "?Error"
     },
+    "extendedConfigLoaded": {
+      "extendedConfig": "RPCTypes.ExtendedStatus"
+    },
+    "globalError": {
+      "globalError": "?Error"
+    },
     "updateFollowing": {
       "username": "string",
       "isTracking": "boolean"
+    },
+    "persistRouteState": {},
+    "pushLoaded": {
+      "pushLoaded": "boolean"
+    },
+    "readyForBootstrap": {},
+    "setInitialState": {
+      "initialState": "Constants.InitialState"
     }
   }
 }
