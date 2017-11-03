@@ -53,6 +53,6 @@ const PublicFolders = withProps({
 
 const TeamFolders = withProps({
   selected: 'team',
-})
+})(ConnectedFolders)
 
 export {PrivateFolders, PublicFolders, TeamFolders}
