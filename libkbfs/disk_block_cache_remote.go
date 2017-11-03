@@ -59,8 +59,8 @@ func (dbcr *DiskBlockCacheRemote) Get(ctx context.Context, tlfID tlf.ID,
 	}()
 
 	res, err := dbcr.client.GetBlock(ctx, kbgitkbfs.GetBlockArg{
-		tlfID.Bytes(),
-		blockID.Bytes(),
+		TlfID:   tlfID.Bytes(),
+		BlockID: blockID.Bytes(),
 	})
 	if err != nil {
 		return nil, kbfscrypto.BlockCryptKeyServerHalf{}, NoPrefetch, err
@@ -85,10 +85,10 @@ func (dbcr *DiskBlockCacheRemote) Put(ctx context.Context, tlfID tlf.ID,
 	}()
 
 	return dbcr.client.PutBlock(ctx, kbgitkbfs.PutBlockArg{
-		tlfID.Bytes(),
-		blockID.Bytes(),
-		buf,
-		serverHalf.Bytes(),
+		TlfID:      tlfID.Bytes(),
+		BlockID:    blockID.Bytes(),
+		Buf:        buf,
+		ServerHalf: serverHalf.Bytes(),
 	})
 }
 
@@ -119,8 +119,8 @@ func (dbcr *DiskBlockCacheRemote) UpdateMetadata(ctx context.Context,
 	blockID kbfsblock.ID, prefetchStatus PrefetchStatus) error {
 	return dbcr.client.UpdateBlockMetadata(ctx,
 		kbgitkbfs.UpdateBlockMetadataArg{
-			blockID.Bytes(),
-			prefetchStatus.ToProtocol(),
+			BlockID:        blockID.Bytes(),
+			PrefetchStatus: prefetchStatus.ToProtocol(),
 		})
 }
 

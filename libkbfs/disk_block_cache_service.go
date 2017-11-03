@@ -59,7 +59,9 @@ func (cache *DiskBlockCacheService) GetBlock(ctx context.Context,
 	protocolPrefetchStatus := prefetchStatus.ToProtocol()
 
 	return kbgitkbfs.GetBlockRes{
-		buf, serverHalf.Bytes(), protocolPrefetchStatus,
+		Buf:            buf,
+		ServerHalf:     serverHalf.Bytes(),
+		PrefetchStatus: protocolPrefetchStatus,
 	}, nil
 }
 
@@ -115,7 +117,10 @@ func (cache *DiskBlockCacheService) DeleteBlocks(ctx context.Context,
 	if err != nil {
 		return kbgitkbfs.DeleteBlocksRes{}, newDiskBlockCacheError(err)
 	}
-	return kbgitkbfs.DeleteBlocksRes{numRemoved, sizeRemoved}, nil
+	return kbgitkbfs.DeleteBlocksRes{
+		NumRemoved:  numRemoved,
+		SizeRemoved: sizeRemoved,
+	}, nil
 }
 
 // UpdateBlockMetadata implements the DiskBlockCacheInterface interface for
