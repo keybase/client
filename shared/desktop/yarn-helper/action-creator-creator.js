@@ -58,7 +58,7 @@ function compileAllActionsType(ns: ActionNS, actions: Actions): string {
   return `// prettier-ignore
 export type Actions =
   | ${actionsTypes}
-  | {type: 'common:resetStore', payload: undefined}
+  | {type: 'common:resetStore', payload: void}
 `
 }
 

@@ -117,7 +117,10 @@ function* _onSubmitNewPassphrase(): SagaGenerator<any, any> {
     const selector = (state: TypedState) => state.settings.passphrase
     const {newPassphrase, newPassphraseConfirm} = (yield select(selector): any)
     if (newPassphrase.stringValue() !== newPassphraseConfirm.stringValue()) {
-      yield put({type: Constants.onUpdatePassphraseError, payload: {error: "Passphrases don't match"}})
+      yield put({
+        type: Constants.onUpdatePassphraseError,
+        payload: {error: new Error("Passphrases don't match")},
+      })
       return
     }
     yield call(RPCTypes.accountPassphraseChangeRpcPromise, {
