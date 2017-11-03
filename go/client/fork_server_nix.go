@@ -8,13 +8,39 @@ package client
 import (
 	"fmt"
 	"os"
+	"os/exec"
 	"syscall"
 
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/client/go/systemd"
 )
 
 func spawnServer(g *libkb.GlobalContext, cl libkb.CommandLine, forkType keybase1.ForkType) (pid int, err error) {
+
+	// If we're running under systemd, start the service as a user unit instead
+	// of forking it directly. We do this here instead of higher up, because we
+	// want to handle the case where the service was previously autoforked, and
+	// then the user upgrades their keybase package to a version with systemd
+	// support. The flock-checking code will short-circuit before we get here,
+	// if the service is running, so we don't have to worry about a conflict.
+	//
+	// We only do this in prod mode, because keybase.service always starts
+	// /usr/bin/keybase, which is probably not what you want if you're
+	// autoforking in dev mode. To run the service you just built in prod mode,
+	// you can either do `keybase --run-mode=prod service` manually, or you can
+	// add a systemd override file (see https://askubuntu.com/q/659267/73244).
+	if g.Env.GetRunMode() == libkb.ProductionRunMode && systemd.IsRunningSystemd() {
+		g.Log.Info("Starting keybase.service.")
+		startCmd := exec.Command("systemctl", "--user", "start", "keybase.service")
+		startCmd.Stdout = os.Stderr
+		startCmd.Stderr = os.Stderr
+		err = startCmd.Run()
+		if err != nil {
+			g.Log.Error("Failed to start keybase.service.")
+		}
+		return
+	}
 
 	var files []uintptr
 	var cmd string
