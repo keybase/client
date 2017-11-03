@@ -75,6 +75,96 @@
       ]
     },
     {
+      "type": "enum",
+      "name": "MessageSystemType",
+      "symbols": [
+        "ADDEDTOTEAM_0",
+        "INVITEADDEDTOTEAM_1",
+        "COMPLEXTEAM_2"
+      ]
+    },
+    {
+      "type": "record",
+      "name": "MessageSystemAddedToTeam",
+      "fields": [
+        {
+          "type": "string",
+          "name": "adder"
+        },
+        {
+          "type": "string",
+          "name": "addee"
+        },
+        {
+          "type": "string",
+          "name": "team"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "MessageSystemInviteAddedToTeam",
+      "fields": [
+        {
+          "type": "string",
+          "name": "inviter"
+        },
+        {
+          "type": "string",
+          "name": "invitee"
+        },
+        {
+          "type": "string",
+          "name": "adder"
+        },
+        {
+          "type": "string",
+          "name": "team"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "MessageSystemComplexTeam",
+      "fields": [
+        {
+          "type": "string",
+          "name": "team"
+        }
+      ]
+    },
+    {
+      "type": "variant",
+      "name": "MessageSystem",
+      "switch": {
+        "type": "MessageSystemType",
+        "name": "systemType"
+      },
+      "cases": [
+        {
+          "label": {
+            "name": "ADDEDTOTEAM",
+            "def": false
+          },
+          "body": "MessageSystemAddedToTeam"
+        },
+        {
+          "label": {
+            "name": "INVITEADDEDTOTEAM",
+            "def": false
+          },
+          "body": "MessageSystemInviteAddedToTeam"
+        },
+        {
+          "label": {
+            "name": "COMPLEXTEAM",
+            "def": false
+          },
+          "body": "MessageSystemComplexTeam"
+        }
+      ]
+    },
+    {
       "type": "record",
       "name": "AssetMetadataImage",
       "fields": [
@@ -365,6 +455,13 @@
             "def": false
           },
           "body": "MessageLeave"
+        },
+        {
+          "label": {
+            "name": "SYSTEM",
+            "def": false
+          },
+          "body": "MessageSystem"
         }
       ]
     },

@@ -73,6 +73,181 @@ func (o MessageHeadline) DeepCopy() MessageHeadline {
 	}
 }
 
+type MessageSystemType int
+
+const (
+	MessageSystemType_ADDEDTOTEAM       MessageSystemType = 0
+	MessageSystemType_INVITEADDEDTOTEAM MessageSystemType = 1
+	MessageSystemType_COMPLEXTEAM       MessageSystemType = 2
+)
+
+func (o MessageSystemType) DeepCopy() MessageSystemType { return o }
+
+var MessageSystemTypeMap = map[string]MessageSystemType{
+	"ADDEDTOTEAM":       0,
+	"INVITEADDEDTOTEAM": 1,
+	"COMPLEXTEAM":       2,
+}
+
+var MessageSystemTypeRevMap = map[MessageSystemType]string{
+	0: "ADDEDTOTEAM",
+	1: "INVITEADDEDTOTEAM",
+	2: "COMPLEXTEAM",
+}
+
+func (e MessageSystemType) String() string {
+	if v, ok := MessageSystemTypeRevMap[e]; ok {
+		return v
+	}
+	return ""
+}
+
+type MessageSystemAddedToTeam struct {
+	Adder string `codec:"adder" json:"adder"`
+	Addee string `codec:"addee" json:"addee"`
+	Team  string `codec:"team" json:"team"`
+}
+
+func (o MessageSystemAddedToTeam) DeepCopy() MessageSystemAddedToTeam {
+	return MessageSystemAddedToTeam{
+		Adder: o.Adder,
+		Addee: o.Addee,
+		Team:  o.Team,
+	}
+}
+
+type MessageSystemInviteAddedToTeam struct {
+	Inviter string `codec:"inviter" json:"inviter"`
+	Invitee string `codec:"invitee" json:"invitee"`
+	Adder   string `codec:"adder" json:"adder"`
+	Team    string `codec:"team" json:"team"`
+}
+
+func (o MessageSystemInviteAddedToTeam) DeepCopy() MessageSystemInviteAddedToTeam {
+	return MessageSystemInviteAddedToTeam{
+		Inviter: o.Inviter,
+		Invitee: o.Invitee,
+		Adder:   o.Adder,
+		Team:    o.Team,
+	}
+}
+
+type MessageSystemComplexTeam struct {
+	Team string `codec:"team" json:"team"`
+}
+
+func (o MessageSystemComplexTeam) DeepCopy() MessageSystemComplexTeam {
+	return MessageSystemComplexTeam{
+		Team: o.Team,
+	}
+}
+
+type MessageSystem struct {
+	SystemType__        MessageSystemType               `codec:"systemType" json:"systemType"`
+	Addedtoteam__       *MessageSystemAddedToTeam       `codec:"addedtoteam,omitempty" json:"addedtoteam,omitempty"`
+	Inviteaddedtoteam__ *MessageSystemInviteAddedToTeam `codec:"inviteaddedtoteam,omitempty" json:"inviteaddedtoteam,omitempty"`
+	Complexteam__       *MessageSystemComplexTeam       `codec:"complexteam,omitempty" json:"complexteam,omitempty"`
+}
+
+func (o *MessageSystem) SystemType() (ret MessageSystemType, err error) {
+	switch o.SystemType__ {
+	case MessageSystemType_ADDEDTOTEAM:
+		if o.Addedtoteam__ == nil {
+			err = errors.New("unexpected nil value for Addedtoteam__")
+			return ret, err
+		}
+	case MessageSystemType_INVITEADDEDTOTEAM:
+		if o.Inviteaddedtoteam__ == nil {
+			err = errors.New("unexpected nil value for Inviteaddedtoteam__")
+			return ret, err
+		}
+	case MessageSystemType_COMPLEXTEAM:
+		if o.Complexteam__ == nil {
+			err = errors.New("unexpected nil value for Complexteam__")
+			return ret, err
+		}
+	}
+	return o.SystemType__, nil
+}
+
+func (o MessageSystem) Addedtoteam() (res MessageSystemAddedToTeam) {
+	if o.SystemType__ != MessageSystemType_ADDEDTOTEAM {
+		panic("wrong case accessed")
+	}
+	if o.Addedtoteam__ == nil {
+		return
+	}
+	return *o.Addedtoteam__
+}
+
+func (o MessageSystem) Inviteaddedtoteam() (res MessageSystemInviteAddedToTeam) {
+	if o.SystemType__ != MessageSystemType_INVITEADDEDTOTEAM {
+		panic("wrong case accessed")
+	}
+	if o.Inviteaddedtoteam__ == nil {
+		return
+	}
+	return *o.Inviteaddedtoteam__
+}
+
+func (o MessageSystem) Complexteam() (res MessageSystemComplexTeam) {
+	if o.SystemType__ != MessageSystemType_COMPLEXTEAM {
+		panic("wrong case accessed")
+	}
+	if o.Complexteam__ == nil {
+		return
+	}
+	return *o.Complexteam__
+}
+
+func NewMessageSystemWithAddedtoteam(v MessageSystemAddedToTeam) MessageSystem {
+	return MessageSystem{
+		SystemType__:  MessageSystemType_ADDEDTOTEAM,
+		Addedtoteam__: &v,
+	}
+}
+
+func NewMessageSystemWithInviteaddedtoteam(v MessageSystemInviteAddedToTeam) MessageSystem {
+	return MessageSystem{
+		SystemType__:        MessageSystemType_INVITEADDEDTOTEAM,
+		Inviteaddedtoteam__: &v,
+	}
+}
+
+func NewMessageSystemWithComplexteam(v MessageSystemComplexTeam) MessageSystem {
+	return MessageSystem{
+		SystemType__:  MessageSystemType_COMPLEXTEAM,
+		Complexteam__: &v,
+	}
+}
+
+func (o MessageSystem) DeepCopy() MessageSystem {
+	return MessageSystem{
+		SystemType__: o.SystemType__.DeepCopy(),
+		Addedtoteam__: (func(x *MessageSystemAddedToTeam) *MessageSystemAddedToTeam {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Addedtoteam__),
+		Inviteaddedtoteam__: (func(x *MessageSystemInviteAddedToTeam) *MessageSystemInviteAddedToTeam {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Inviteaddedtoteam__),
+		Complexteam__: (func(x *MessageSystemComplexTeam) *MessageSystemComplexTeam {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Complexteam__),
+	}
+}
+
 type AssetMetadataImage struct {
 	Width  int `codec:"width" json:"width"`
 	Height int `codec:"height" json:"height"`
@@ -402,6 +577,7 @@ type MessageBody struct {
 	Attachmentuploaded__ *MessageAttachmentUploaded   `codec:"attachmentuploaded,omitempty" json:"attachmentuploaded,omitempty"`
 	Join__               *MessageJoin                 `codec:"join,omitempty" json:"join,omitempty"`
 	Leave__              *MessageLeave                `codec:"leave,omitempty" json:"leave,omitempty"`
+	System__             *MessageSystem               `codec:"system,omitempty" json:"system,omitempty"`
 }
 
 func (o *MessageBody) MessageType() (ret MessageType, err error) {
@@ -449,6 +625,11 @@ func (o *MessageBody) MessageType() (ret MessageType, err error) {
 	case MessageType_LEAVE:
 		if o.Leave__ == nil {
 			err = errors.New("unexpected nil value for Leave__")
+			return ret, err
+		}
+	case MessageType_SYSTEM:
+		if o.System__ == nil {
+			err = errors.New("unexpected nil value for System__")
 			return ret, err
 		}
 	}
@@ -545,6 +726,16 @@ func (o MessageBody) Leave() (res MessageLeave) {
 	return *o.Leave__
 }
 
+func (o MessageBody) System() (res MessageSystem) {
+	if o.MessageType__ != MessageType_SYSTEM {
+		panic("wrong case accessed")
+	}
+	if o.System__ == nil {
+		return
+	}
+	return *o.System__
+}
+
 func NewMessageBodyWithText(v MessageText) MessageBody {
 	return MessageBody{
 		MessageType__: MessageType_TEXT,
@@ -605,6 +796,13 @@ func NewMessageBodyWithLeave(v MessageLeave) MessageBody {
 	return MessageBody{
 		MessageType__: MessageType_LEAVE,
 		Leave__:       &v,
+	}
+}
+
+func NewMessageBodyWithSystem(v MessageSystem) MessageBody {
+	return MessageBody{
+		MessageType__: MessageType_SYSTEM,
+		System__:      &v,
 	}
 }
 
@@ -674,6 +872,13 @@ func (o MessageBody) DeepCopy() MessageBody {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.Leave__),
+		System__: (func(x *MessageSystem) *MessageSystem {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.System__),
 	}
 }
 
