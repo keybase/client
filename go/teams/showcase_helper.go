@@ -70,18 +70,9 @@ func GetTeamAndMemberShowcase(ctx context.Context, g *libkb.GlobalContext, teamn
 }
 
 func SetTeamShowcase(ctx context.Context, g *libkb.GlobalContext, teamname string, isShowcased *bool, description *string) error {
-	t, err := GetForTeamManagementByStringName(ctx, g, teamname, false)
+	t, err := GetForTeamManagementByStringName(ctx, g, teamname, true)
 	if err != nil {
 		return err
-	}
-
-	role, err := t.myRole(ctx)
-	if err != nil {
-		return err
-	}
-
-	if !role.IsOrAbove(keybase1.TeamRole_ADMIN) {
-		return errors.New("only admins can change team showcase settings")
 	}
 
 	if isShowcased == nil && description == nil {
@@ -101,18 +92,9 @@ func SetTeamShowcase(ctx context.Context, g *libkb.GlobalContext, teamname strin
 }
 
 func SetTeamMemberShowcase(ctx context.Context, g *libkb.GlobalContext, teamname string, isShowcased bool) error {
-	t, err := GetForTeamManagementByStringName(ctx, g, teamname, false)
+	t, err := GetForTeamManagementByStringName(ctx, g, teamname, true)
 	if err != nil {
 		return err
-	}
-
-	role, err := t.myRole(ctx)
-	if err != nil {
-		return err
-	}
-
-	if !role.IsOrAbove(keybase1.TeamRole_ADMIN) {
-		return errors.New("only admins can change member showcase settings")
 	}
 
 	arg := apiArg(ctx, "team/member_showcase")
