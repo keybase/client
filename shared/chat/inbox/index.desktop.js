@@ -9,6 +9,7 @@ import Divider from './row/divider/container'
 import ChatFilterRow from './row/chat-filter-row'
 import debounce from 'lodash/debounce'
 import {isDarwin} from '../../constants/platform'
+import {Owl} from './owl'
 
 import type {Props} from './'
 
@@ -186,6 +187,7 @@ class Inbox extends PureComponent<Props, State> {
               itemSizeGetter={this._itemSizeGetter}
             />
           </div>
+          {!this.props.rows.length && <Owl />}
           {this.state.showFloating &&
             this.props.showSmallTeamsExpandDivider &&
             <FloatingDivider toggle={this.props.toggleSmallTeamsExpanded} />}

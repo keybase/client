@@ -115,6 +115,10 @@ func (i *SCChainLinkPayload) SignatureMetadata() keybase1.SignatureMetadata {
 }
 
 func (l *chainLinkUnpacked) AssertInnerOuterMatch() (err error) {
+	if l.inner == nil {
+		return fmt.Errorf("cannot check inner-outer match without inner link")
+	}
+
 	var prev libkb.LinkID
 	if l.inner.Prev != nil {
 		prev, err = libkb.LinkIDFromHex(*l.inner.Prev)
@@ -127,5 +131,13 @@ func (l *chainLinkUnpacked) AssertInnerOuterMatch() (err error) {
 		return err
 	}
 
-	return l.outerLink.AssertFields(l.inner.Body.Version, l.inner.Seqno, prev, l.innerLinkID, linkType)
+	useSeqType := l.inner.SeqType
+	if l.outerLink.SeqType == 0 {
+		// There are links where seq_type is unset on the outer link
+		// but set on the inner link.
+		// Let these pass.
+		useSeqType = l.outerLink.SeqType
+	}
+
+	return l.outerLink.AssertFields(l.inner.Body.Version, l.inner.Seqno, prev, l.innerLinkID, linkType, useSeqType)
 }

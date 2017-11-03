@@ -260,7 +260,9 @@ func (c *CmdTeamListMemberships) formatInviteName(invite keybase1.AnnotatedTeamI
 		case keybase1.TeamInviteCategory_SBS:
 			res = fmt.Sprintf("%s@%s", invite.Name, string(invite.Type.Sbs()))
 		case keybase1.TeamInviteCategory_SEITAN:
-			res = "<secret invite token>"
+			if res == "" {
+				res = "<token without label>"
+			}
 		}
 	}
 	return res

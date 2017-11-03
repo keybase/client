@@ -13,6 +13,7 @@
 		7608E936D0B84B4FB1849590 /* libRCTCamera.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D4D90F8FFC2D4682850A6803 /* libRCTCamera.a */; };
 		A969A40A1CF65C9C00F273F2 /* LogSend.m in Sources */ = {isa = PBXBuildFile; fileRef = A969A4091CF65C9C00F273F2 /* LogSend.m */; };
 		A9BB30DF1E6A274900E713E5 /* libRCTCameraRoll.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A9BB30C51E6A273A00E713E5 /* libRCTCameraRoll.a */; };
+		B698B104E0834338916083E7 /* libRCTContacts.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 8DC2EA7D9170401F8F611036 /* libRCTContacts.a */; };
 		C3A47BFE1E8B148A00974A63 /* keybasemessage.wav in Resources */ = {isa = PBXBuildFile; fileRef = C3A47BFD1E8B148A00974A63 /* keybasemessage.wav */; };
 		DB0846051BA75DC800F54960 /* keybase.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = DB0846041BA75DC800F54960 /* keybase.framework */; };
 		DB27DE571D747A6C003DE8BC /* Utils.m in Sources */ = {isa = PBXBuildFile; fileRef = DB27DE561D747A6C003DE8BC /* Utils.m */; };
@@ -55,6 +56,13 @@
 			proxyType = 2;
 			remoteGlobalIDString = 014A3B5C1C6CF33500B6D375;
 			remoteInfo = RNImagePicker;
+		};
+		37D298091F9A48D600D43971 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 6266E16BBFF8461CAF2DDCB9 /* RCTContacts.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 1441618E1BD0A79300FA4F59;
+			remoteInfo = RCTContacts;
 		};
 		A9BB30C41E6A273A00E713E5 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -319,7 +327,9 @@
 		274AFB721E972F5300615A64 /* libresolv.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libresolv.tbd; path = usr/lib/libresolv.tbd; sourceTree = SDKROOT; };
 		27DDEEF0AE72483E8BF08ED2 /* RNFetchBlob.xcodeproj */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = "wrapper.pb-project"; name = RNFetchBlob.xcodeproj; path = "../../node_modules/react-native-fetch-blob/ios/RNFetchBlob.xcodeproj"; sourceTree = "<group>"; };
 		51B12F21D54542FC8B7379EC /* libRNFetchBlob.a */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = archive.ar; path = libRNFetchBlob.a; sourceTree = "<group>"; };
+		6266E16BBFF8461CAF2DDCB9 /* RCTContacts.xcodeproj */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = "wrapper.pb-project"; name = RCTContacts.xcodeproj; path = "../../node_modules/react-native-contacts/ios/RCTContacts.xcodeproj"; sourceTree = "<group>"; };
 		8A6B0997A42F4CC08AE6F28F /* RCTCamera.xcodeproj */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = "wrapper.pb-project"; name = RCTCamera.xcodeproj; path = "../../node_modules/react-native-camera/ios/RCTCamera.xcodeproj"; sourceTree = "<group>"; };
+		8DC2EA7D9170401F8F611036 /* libRCTContacts.a */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = archive.ar; path = libRCTContacts.a; sourceTree = "<group>"; };
 		A77BBAD7A94F4A2580CA3B23 /* libRNImagePicker.a */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = archive.ar; path = libRNImagePicker.a; sourceTree = "<group>"; };
 		A969A4091CF65C9C00F273F2 /* LogSend.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = LogSend.m; sourceTree = "<group>"; };
 		A969A4161CF65CB200F273F2 /* LogSend.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = LogSend.h; sourceTree = "<group>"; };
@@ -388,6 +398,7 @@
 				7608E936D0B84B4FB1849590 /* libRCTCamera.a in Frameworks */,
 				DCF5D67E98CE413A87F0068C /* libRNImagePicker.a in Frameworks */,
 				39D6D1A57FB3452BA9A3B365 /* libRNFetchBlob.a in Frameworks */,
+				B698B104E0834338916083E7 /* libRCTContacts.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -426,6 +437,14 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
+		37D298061F9A48D600D43971 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				37D2980A1F9A48D600D43971 /* libRCTContacts.a */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
 		832341AE1AAA6A7D00B99B32 /* Libraries */ = {
 			isa = PBXGroup;
 			children = (
@@ -447,6 +466,7 @@
 				8A6B0997A42F4CC08AE6F28F /* RCTCamera.xcodeproj */,
 				FE98B29CDF6C4C4085FF2315 /* RNImagePicker.xcodeproj */,
 				27DDEEF0AE72483E8BF08ED2 /* RNFetchBlob.xcodeproj */,
+				6266E16BBFF8461CAF2DDCB9 /* RCTContacts.xcodeproj */,
 			);
 			name = Libraries;
 			sourceTree = "<group>";
@@ -521,6 +541,7 @@
 				D4D90F8FFC2D4682850A6803 /* libRCTCamera.a */,
 				A77BBAD7A94F4A2580CA3B23 /* libRNImagePicker.a */,
 				51B12F21D54542FC8B7379EC /* libRNFetchBlob.a */,
+				8DC2EA7D9170401F8F611036 /* libRCTContacts.a */,
 			);
 			name = "Recovered References";
 			sourceTree = "<group>";
@@ -798,6 +819,10 @@
 					ProjectRef = A9BB30BC1E6A273A00E713E5 /* RCTCameraRoll.xcodeproj */;
 				},
 				{
+					ProductGroup = 37D298061F9A48D600D43971 /* Products */;
+					ProjectRef = 6266E16BBFF8461CAF2DDCB9 /* RCTContacts.xcodeproj */;
+				},
+				{
 					ProductGroup = DB2BD19B1DE7D97900BB7989 /* Products */;
 					ProjectRef = DB2BD19A1DE7D97900BB7989 /* RCTGeolocation.xcodeproj */;
 				},
@@ -864,6 +889,13 @@
 			fileType = archive.ar;
 			path = libRNImagePicker.a;
 			remoteRef = 27429B071E64A7A90058A4F9 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		37D2980A1F9A48D600D43971 /* libRCTContacts.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = libRCTContacts.a;
+			remoteRef = 37D298091F9A48D600D43971 /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
 		A9BB30C51E6A273A00E713E5 /* libRCTCameraRoll.a */ = {
@@ -1277,12 +1309,14 @@
 					"$(SRCROOT)/../../node_modules/react-native-image-picker/ios",
 					"$(SRCROOT)/../../node_modules/react-native-fetch-blob/ios/**",
 					"$(SRCROOT)/../../node_modules/react-native/Libraries/LinkingIOS",
+					"$(SRCROOT)/../../node_modules/react-native-contacts/ios/RCTContacts",
 				);
 				INFOPLIST_FILE = Keybase/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
+					"\"$(SRCROOT)/Keybase\"",
 					"\"$(SRCROOT)/Keybase\"",
 					"\"$(SRCROOT)/Keybase\"",
 					"\"$(SRCROOT)/Keybase\"",
@@ -1328,12 +1362,14 @@
 					"$(SRCROOT)/../../node_modules/react-native-image-picker/ios",
 					"$(SRCROOT)/../../node_modules/react-native-fetch-blob/ios/**",
 					"$(SRCROOT)/../../node_modules/react-native/Libraries/LinkingIOS",
+					"$(SRCROOT)/../../node_modules/react-native-contacts/ios/RCTContacts",
 				);
 				INFOPLIST_FILE = Keybase/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
+					"\"$(SRCROOT)/Keybase\"",
 					"\"$(SRCROOT)/Keybase\"",
 					"\"$(SRCROOT)/Keybase\"",
 					"\"$(SRCROOT)/Keybase\"",
@@ -1471,6 +1507,7 @@
 					"$(SRCROOT)/../../node_modules/react-native-image-picker/ios",
 					"$(SRCROOT)/../../node_modules/react-native-fs/**",
 					"$(SRCROOT)/../../node_modules/react-native-fetch-blob/ios/**",
+					"$(SRCROOT)/../../node_modules/react-native-contacts/ios/RCTContacts",
 				);
 				INFOPLIST_FILE = Keybase/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
@@ -1516,6 +1553,7 @@
 					"$(SRCROOT)/../../node_modules/react-native-image-picker/ios",
 					"$(SRCROOT)/../../node_modules/react-native-fs/**",
 					"$(SRCROOT)/../../node_modules/react-native-fetch-blob/ios/**",
+					"$(SRCROOT)/../../node_modules/react-native-contacts/ios/RCTContacts",
 				);
 				INFOPLIST_FILE = Keybase/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 9.0;

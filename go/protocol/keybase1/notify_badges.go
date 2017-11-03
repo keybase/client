@@ -26,8 +26,8 @@ type BadgeState struct {
 	InboxVers                 int                     `codec:"inboxVers" json:"inboxVers"`
 	Conversations             []BadgeConversationInfo `codec:"conversations" json:"conversations"`
 	NewGitRepoGlobalUniqueIDs []string                `codec:"newGitRepoGlobalUniqueIDs" json:"newGitRepoGlobalUniqueIDs"`
-	NewTeamIDs                []TeamID                `codec:"newTeamIDs" json:"newTeamIDs"`
-	NewTeamAccessRequests     []TeamID                `codec:"newTeamAccessRequests" json:"newTeamAccessRequests"`
+	NewTeamNames              []string                `codec:"newTeamNames" json:"newTeamNames"`
+	NewTeamAccessRequests     []string                `codec:"newTeamAccessRequests" json:"newTeamAccessRequests"`
 }
 
 func (o BadgeState) DeepCopy() BadgeState {
@@ -58,24 +58,24 @@ func (o BadgeState) DeepCopy() BadgeState {
 			}
 			return ret
 		})(o.NewGitRepoGlobalUniqueIDs),
-		NewTeamIDs: (func(x []TeamID) []TeamID {
+		NewTeamNames: (func(x []string) []string {
 			if x == nil {
 				return nil
 			}
-			var ret []TeamID
+			var ret []string
 			for _, v := range x {
-				vCopy := v.DeepCopy()
+				vCopy := v
 				ret = append(ret, vCopy)
 			}
 			return ret
-		})(o.NewTeamIDs),
-		NewTeamAccessRequests: (func(x []TeamID) []TeamID {
+		})(o.NewTeamNames),
+		NewTeamAccessRequests: (func(x []string) []string {
 			if x == nil {
 				return nil
 			}
-			var ret []TeamID
+			var ret []string
 			for _, v := range x {
-				vCopy := v.DeepCopy()
+				vCopy := v
 				ret = append(ret, vCopy)
 			}
 			return ret

@@ -58,14 +58,16 @@ const reallyRemoveMember = {
   tags: makeLeafTags({layerOnTop: !isMobile}),
 }
 
+const showNewTeamDialog = {
+  children: {},
+  component: NewTeamDialog,
+  tags: makeLeafTags({layerOnTop: !isMobile}),
+}
+
 const routeTree = makeRouteDefNode({
   children: {
     ...makeManageChannels,
-    showNewTeamDialog: {
-      children: {},
-      component: NewTeamDialog,
-      tags: makeLeafTags({layerOnTop: !isMobile}),
-    },
+    showNewTeamDialog,
     showJoinTeamDialog: {
       children: {},
       component: JoinTeamDialog,
@@ -87,6 +89,7 @@ const routeTree = makeRouteDefNode({
         rolePicker,
         reallyLeaveTeam,
         reallyRemoveMember,
+        showNewTeamDialog,
         member: {
           children: {
             rolePicker,

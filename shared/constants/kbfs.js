@@ -35,3 +35,20 @@ export type FSInstallKBFSFinished = NoErrorTypedAction<'fs:installKBSFinished', 
 export type FSOpenDefaultPath = NoErrorTypedAction<'fs:openDefaultPath', {opening: boolean}>
 
 export type FSUninstallKBFS = NoErrorTypedAction<'fs:uninstallKBFS', void>
+
+export type Actions =
+  | FSList
+  | FSListed
+  | FSOpen
+  | OpenInFileUI
+  | FSFuseStatus
+  | FSFuseStatusUpdate
+  | FSInstallFuse
+  | FSInstallFuseResult
+  | FSInstallFuseFinished
+  | FSClearFuseInstall
+  | FSInstallKBFS
+  | FSInstallKBFSResult
+  | FSInstallKBFSFinished
+  | FSOpenDefaultPath
+  | FSUninstallKBFS

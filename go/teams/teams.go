@@ -195,7 +195,7 @@ func (t *Team) ImplicitTeamDisplayName(ctx context.Context) (res keybase1.Implic
 
 	// Add the invites
 	chainInvites := t.chain().inner.ActiveInvites
-	inviteMap, err := AnnotateInvites(ctx, t.G(), chainInvites, t.Name().String())
+	inviteMap, err := AnnotateInvites(ctx, t.G(), t)
 	if err != nil {
 		return res, err
 	}
@@ -801,7 +801,7 @@ func (t *Team) inviteSBSMember(ctx context.Context, username string, role keybas
 	return keybase1.TeamAddMemberResult{Invited: true}, nil
 }
 
-func (t *Team) InviteSeitan(ctx context.Context, role keybase1.TeamRole) (ikey SeitanIKey, err error) {
+func (t *Team) InviteSeitan(ctx context.Context, role keybase1.TeamRole, label keybase1.SeitanIKeyLabel) (ikey SeitanIKey, err error) {
 	t.G().Log.Debug("team %s invite seitan %v", t.Name(), role)
 
 	ikey, err = GenerateIKey()
@@ -819,7 +819,7 @@ func (t *Team) InviteSeitan(ctx context.Context, role keybase1.TeamRole) (ikey S
 		return ikey, err
 	}
 
-	_, encoded, err := ikey.GeneratePackedEncryptedIKey(ctx, t)
+	_, encoded, err := ikey.GeneratePackedEncryptedIKey(ctx, t, label)
 	if err != nil {
 		return ikey, err
 	}
@@ -1275,6 +1275,7 @@ func (t *Team) ForceMerkleRootUpdate(ctx context.Context) error {
 	return err
 }
 
+// All admins, owners, and implicit admins of this team.
 func (t *Team) AllAdmins(ctx context.Context) ([]keybase1.UserVersion, error) {
 	set := make(map[keybase1.UserVersion]bool)
 

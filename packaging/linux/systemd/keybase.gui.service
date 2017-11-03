@@ -1,0 +1,13 @@
+[Unit]
+Description=Keybase GUI
+Wants=keybase.service kbfs.service
+
+[Service]
+Type=simple
+ExecStart=/opt/keybase/Keybase
+
+# We don't set Restart=, since a GUI crash is probably visible to the user.
+
+# We don't have an [Install] section, since the app is intended to be started
+# from ~/.config/autostart. Running it in e.g. an SSH session is unlikely to be
+# correct.

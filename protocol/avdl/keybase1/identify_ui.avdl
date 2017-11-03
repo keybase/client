@@ -84,6 +84,19 @@ protocol identifyUi {
     boolean breaksTracking;
   }
 
+  record UserTeamShowcase {
+    @jsonkey("fq_name")
+    string fqName;
+    @jsonkey("open")
+    boolean open;
+    @jsonkey("team_is_showcased")
+    boolean teamIsShowcased;
+    @jsonkey("description")
+    string description;
+    @jsonkey("role")
+    TeamRole role;
+  }
+
   record UserCard {
     int following;
     int followers;
@@ -95,6 +108,7 @@ protocol identifyUi {
     string twitter;
     boolean youFollowThem;
     boolean theyFollowYou;
+    array<UserTeamShowcase> teamShowcase;
   }
 
   record ConfirmResult {
