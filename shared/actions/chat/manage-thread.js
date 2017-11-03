@@ -109,6 +109,7 @@ function* _selectConversation(action: ChatGen.SelectConversationPayload): Saga.S
 
 const _openTeamConversation = function*(action: ChatGen.OpenTeamConversationPayload) {
   // TODO handle channels you're not a member of, or small teams you've never opened the chat for.
+  // TODO also doesn't correctly select the conversation if the chat tab hasn't been opened yet
   const {payload: {teamname, channelname}} = action
   let state = yield Saga.select()
   if (state.chat.inboxGlobalUntrustedState === 'unloaded') {
@@ -120,8 +121,11 @@ const _openTeamConversation = function*(action: ChatGen.OpenTeamConversationPayl
     value => value.teamname === teamname && value.channelname === channelname
   )
   if (conversation.size === 1) {
-    const conversationID = conversation.keySeq().toArray()[0]
-    console.log('conversationID', conversationID)
+    const conversationIDKey = conversation.keySeq().toArray()[0]
+    yield Saga.put(switchTo([chatTab]))
+    yield Saga.put(ChatGen.createOpenConversation({conversationIDKey}))
+  } else {
+    console.log(`Unable to find conversationID for ${teamname}#${channelname}`)
   }
 }
 
