@@ -77,7 +77,7 @@ if NOT DEFINED BUILD_NUMBER (
 )
 :: ensure it's numeric
 SET "badbuildnumber="&for /f "delims=0123456789" %%i in ("%BUILD_NUMBER%") do set badbuildnumber=%%i
-if defined %badbuildnumber% (
+if defined badbuildnumber (
   echo bad build number
   goto:build_error || EXIT /B 1
 )
