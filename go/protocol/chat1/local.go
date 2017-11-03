@@ -103,32 +103,82 @@ func (e MessageSystemType) String() string {
 }
 
 type MessageSystemAddedToTeam struct {
-	Adder string `codec:"adder" json:"adder"`
-	Addee string `codec:"addee" json:"addee"`
-	Team  string `codec:"team" json:"team"`
+	Team    string   `codec:"team" json:"team"`
+	Adder   string   `codec:"adder" json:"adder"`
+	Addee   string   `codec:"addee" json:"addee"`
+	Owners  []string `codec:"owners" json:"owners"`
+	Admins  []string `codec:"admins" json:"admins"`
+	Writers []string `codec:"writers" json:"writers"`
+	Readers []string `codec:"readers" json:"readers"`
 }
 
 func (o MessageSystemAddedToTeam) DeepCopy() MessageSystemAddedToTeam {
 	return MessageSystemAddedToTeam{
+		Team:  o.Team,
 		Adder: o.Adder,
 		Addee: o.Addee,
-		Team:  o.Team,
+		Owners: (func(x []string) []string {
+			if x == nil {
+				return nil
+			}
+			var ret []string
+			for _, v := range x {
+				vCopy := v
+				ret = append(ret, vCopy)
+			}
+			return ret
+		})(o.Owners),
+		Admins: (func(x []string) []string {
+			if x == nil {
+				return nil
+			}
+			var ret []string
+			for _, v := range x {
+				vCopy := v
+				ret = append(ret, vCopy)
+			}
+			return ret
+		})(o.Admins),
+		Writers: (func(x []string) []string {
+			if x == nil {
+				return nil
+			}
+			var ret []string
+			for _, v := range x {
+				vCopy := v
+				ret = append(ret, vCopy)
+			}
+			return ret
+		})(o.Writers),
+		Readers: (func(x []string) []string {
+			if x == nil {
+				return nil
+			}
+			var ret []string
+			for _, v := range x {
+				vCopy := v
+				ret = append(ret, vCopy)
+			}
+			return ret
+		})(o.Readers),
 	}
 }
 
 type MessageSystemInviteAddedToTeam struct {
-	Inviter string `codec:"inviter" json:"inviter"`
-	Invitee string `codec:"invitee" json:"invitee"`
-	Adder   string `codec:"adder" json:"adder"`
-	Team    string `codec:"team" json:"team"`
+	Team       string                      `codec:"team" json:"team"`
+	Inviter    string                      `codec:"inviter" json:"inviter"`
+	Invitee    string                      `codec:"invitee" json:"invitee"`
+	Adder      string                      `codec:"adder" json:"adder"`
+	InviteType keybase1.TeamInviteCategory `codec:"inviteType" json:"inviteType"`
 }
 
 func (o MessageSystemInviteAddedToTeam) DeepCopy() MessageSystemInviteAddedToTeam {
 	return MessageSystemInviteAddedToTeam{
-		Inviter: o.Inviter,
-		Invitee: o.Invitee,
-		Adder:   o.Adder,
-		Team:    o.Team,
+		Team:       o.Team,
+		Inviter:    o.Inviter,
+		Invitee:    o.Invitee,
+		Adder:      o.Adder,
+		InviteType: o.InviteType.DeepCopy(),
 	}
 }
 

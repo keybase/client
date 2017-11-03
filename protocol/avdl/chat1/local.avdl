@@ -47,6 +47,7 @@ protocol local {
     string inviter;
     string invitee;
     string adder;
+    keybase1.TeamInviteCategory inviteType;
   }
 
   record MessageSystemComplexTeam {

@@ -89,6 +89,10 @@
       "fields": [
         {
           "type": "string",
+          "name": "team"
+        },
+        {
+          "type": "string",
           "name": "adder"
         },
         {
@@ -96,8 +100,32 @@
           "name": "addee"
         },
         {
-          "type": "string",
-          "name": "team"
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "owners"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "admins"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "writers"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "readers"
         }
       ]
     },
@@ -105,6 +133,10 @@
       "type": "record",
       "name": "MessageSystemInviteAddedToTeam",
       "fields": [
+        {
+          "type": "string",
+          "name": "team"
+        },
         {
           "type": "string",
           "name": "inviter"
@@ -118,8 +150,8 @@
           "name": "adder"
         },
         {
-          "type": "string",
-          "name": "team"
+          "type": "keybase1.TeamInviteCategory",
+          "name": "inviteType"
         }
       ]
     },

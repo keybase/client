@@ -1569,9 +1569,13 @@ export type MessageSystem =
   | { systemType: 2, complexteam: ?MessageSystemComplexTeam }
 
 export type MessageSystemAddedToTeam = {
+  team: string,
   adder: string,
   addee: string,
-  team: string,
+  owners?: ?Array<string>,
+  admins?: ?Array<string>,
+  writers?: ?Array<string>,
+  readers?: ?Array<string>,
 }
 
 export type MessageSystemComplexTeam = {
@@ -1579,10 +1583,11 @@ export type MessageSystemComplexTeam = {
 }
 
 export type MessageSystemInviteAddedToTeam = {
+  team: string,
   inviter: string,
   invitee: string,
   adder: string,
-  team: string,
+  inviteType: keybase1.TeamInviteCategory,
 }
 
 export type MessageSystemType =
