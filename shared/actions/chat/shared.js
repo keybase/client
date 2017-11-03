@@ -3,11 +3,11 @@ import * as ChatTypes from '../../constants/types/flow-types-chat'
 import * as Constants from '../../constants/chat'
 import * as ChatGen from '../chat-gen'
 import * as I from 'immutable'
-import getenv from 'getenv'
 import {CommonTLFVisibility, TlfKeysTLFIdentifyBehavior} from '../../constants/types/flow-types'
 import {call, put, select} from 'redux-saga/effects'
 import {parseFolderNameToUsers} from '../../util/kbfs'
 import {usernameSelector} from '../../constants/selectors'
+import flags from '../../util/feature-flags'
 
 import type {TypedState} from '../../constants/reducer'
 
@@ -81,8 +81,7 @@ function* startNewConversation(
     console.warn("Shouldn't happen in practice")
     return [null, null]
   }
-
-  const membersType = getenv('KEYBASE_CHAT_MEMBER_TYPE', 'kbfs') === 'impteam'
+  const membersType = flags.impTeamChatEnabled
     ? ChatTypes.CommonConversationMembersType.impteam
     : ChatTypes.CommonConversationMembersType.kbfs
   const result = yield call(ChatTypes.localNewConversationLocalRpcPromise, {
