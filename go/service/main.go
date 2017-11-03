@@ -537,6 +537,26 @@ func (d *Service) hourlyChecks() {
 	}()
 }
 
+func (d *Service) slowChecks() {
+	ticker := time.NewTicker(6 * time.Hour)
+	d.G().PushShutdownHook(func() error {
+		d.G().Log.Debug("stopping slowChecks loop")
+		ticker.Stop()
+		return nil
+	})
+	go func() {
+		for {
+			<-ticker.C
+			d.G().Log.Debug("+ slow checks loop")
+			d.G().Log.Debug("| checking if current device should log out")
+			if err := d.G().LogoutSelfCheck(); err != nil {
+				d.G().Log.Debug("LogoutSelfCheck error: %s", err)
+			}
+			d.G().Log.Debug("- slow checks loop")
+		}
+	}()
+}
+
 func (d *Service) tryGregordConnect() error {
 	// If we're logged out, LoggedInLoad() will return false with no error,
 	// even if the network is down. However, if we're logged in and the network
