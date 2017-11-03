@@ -1,7 +1,5 @@
 // @flow
 
-import {type Teamname} from '../constants/teams'
-
 // This logic is copied from go/protocol/keybase1/extras.go.
 
 const validTeamnamePart = (s: string): boolean => {
@@ -15,6 +13,8 @@ const validTeamnamePart = (s: string): boolean => {
 const validTeamname = (s: string): boolean => {
   return s.split('.').every(validTeamnamePart)
 }
+
+type Teamname = string
 
 const baseTeamname = (teamname: Teamname): ?Teamname => {
   const i = teamname.lastIndexOf('.')
