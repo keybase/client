@@ -3,22 +3,11 @@ import React from 'react'
 import {Box, Button, HeaderHoc, Input, PopupDialog, Text, ScrollView} from '../../common-adapters/index'
 import {isMobile} from '../../constants/platform'
 import {globalColors, globalMargins, globalStyles} from '../../styles'
+import {validTeamname} from '../teamname'
 
 import type {Props} from './'
 
 // This logic is copied from go/protocol/keybase1/extras.go.
-
-const validTeamnamePart = (s: string): boolean => {
-  if (s.length < 2 || s.length > 16) {
-    return false
-  }
-
-  return /^([a-zA-Z0-9][a-zA-Z0-9_]?)+$/.test(s)
-}
-
-const validTeamname = (s: string): boolean => {
-  return s.split('.').every(validTeamnamePart)
-}
 
 const headerText = (errorText: string, name: string): string => {
   if (errorText) {
