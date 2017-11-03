@@ -67,7 +67,7 @@ go build
 IF %ERRORLEVEL% NEQ 0 (
   goto:build_error || EXIT /B 1
 )
-for /f %%i in ('release winbuildnumber --version=%LIKB_VER%') do set BUILD_NUMBER=%%i
+for /f %%i in ('release winbuildnumber --version=%LIBKB_VER%') do set BUILD_NUMBER=%%i
 echo %BUILD_NUMBER%
 popd
 
