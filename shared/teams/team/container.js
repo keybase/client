@@ -12,9 +12,11 @@ import {getProfile} from '../../actions/tracker'
 import {isMobile} from '../../constants/platform'
 import {navigateAppend} from '../../actions/route-tree'
 import {showUserProfile} from '../../actions/profile'
+import {baseTeamname} from '../teamname'
 
 type StateProps = {
   _memberInfo: I.Set<Constants.MemberInfo>,
+  _parentMemberInfo: I.Set<Constants.MemberInfo>,
   loading: boolean,
   _requests: I.Set<Constants.RequestInfo>,
   _invites: I.Set<Constants.InviteInfo>,
@@ -26,8 +28,12 @@ type StateProps = {
 
 const mapStateToProps = (state: TypedState, {routeProps, routeState}): StateProps => {
   const teamname = routeProps.get('teamname')
+  const baseTeam = baseTeamname(teamname)
   return {
     _memberInfo: state.entities.getIn(['teams', 'teamNameToMembers', teamname], I.Set()),
+    _parentMemberInfo: baseTeam
+      ? state.entities.getIn(['teams', 'teamNameToMembers', baseTeam], I.Set())
+      : I.Set(),
     _requests: state.entities.getIn(['teams', 'teamNameToRequests', teamname], I.Set()),
     _invites: state.entities.getIn(['teams', 'teamNameToInvites', teamname], I.Set()),
     loading: state.entities.getIn(['teams', 'teamNameToLoading', teamname], true),
