@@ -16,7 +16,7 @@ import {baseTeamname} from '../teamname'
 
 type StateProps = {
   _memberInfo: I.Set<Constants.MemberInfo>,
-  _parentMemberInfo: I.Set<Constants.MemberInfo>,
+  _baseMemberInfo: I.Set<Constants.MemberInfo>,
   loading: boolean,
   _requests: I.Set<Constants.RequestInfo>,
   _invites: I.Set<Constants.InviteInfo>,
@@ -31,7 +31,7 @@ const mapStateToProps = (state: TypedState, {routeProps, routeState}): StateProp
   const baseTeam = baseTeamname(teamname)
   return {
     _memberInfo: state.entities.getIn(['teams', 'teamNameToMembers', teamname], I.Set()),
-    _parentMemberInfo: baseTeam
+    _baseMemberInfo: baseTeam
       ? state.entities.getIn(['teams', 'teamNameToMembers', baseTeam], I.Set())
       : I.Set(),
     _requests: state.entities.getIn(['teams', 'teamNameToRequests', teamname], I.Set()),
@@ -90,6 +90,11 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, setRouteState, rout
     ),
 })
 
+const isExplicitAdmin = (memberInfo: I.Set<Constants.MemberInfo>, user: string) => {
+  const info = memberInfo.find(member => member.username === user)
+  return info && (info.type === 'owner' || info.type === 'admin')
+}
+
 const mergeProps = (stateProps, dispatchProps, ownProps) => {
   const onAddPeople = () => dispatchProps._onAddPeople(stateProps.name)
   const onInviteByEmail = () => dispatchProps._onInviteByEmail(stateProps.name)
@@ -98,8 +103,9 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
   const onLeaveTeam = () => dispatchProps._onLeaveTeam(stateProps.name)
   const onClickOpenTeamSetting = () => dispatchProps._onClickOpenTeamSetting(stateProps.isTeamOpen)
   const onCreateSubteam = () => dispatchProps._onCreateSubteam(stateProps.name)
-  const yourType = stateProps._memberInfo.find(member => member.username === stateProps.you)
-  const youCanAddPeople = yourType && (yourType.type === 'owner' || yourType.type === 'admin')
+  const you = stateProps.you
+  const youCanAddPeople =
+    you && (isExplicitAdmin(stateProps._memberInfo, you) || isExplicitAdmin(stateProps._baseMemberInfo, you))
   const youCanCreateSubteam = youCanAddPeople
 
   const customComponent = (
