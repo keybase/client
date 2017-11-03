@@ -71,13 +71,13 @@ for /f %%i in ('release winbuildnumber --version=%LIBKB_VER%') do set BUILD_NUMB
 echo %BUILD_NUMBER%
 popd
 
-if NOT DEFINED BUILD_NUMBER(
+if NOT DEFINED BUILD_NUMBER (
   echo bad build number
   goto:build_error || EXIT /B 1
 )
 :: ensure it's numeric
-SET "badbuildnumber="&for /f "delims=0123456789" %%i in ("%BUILD_NUMBER") do set badbuildnumber=%%i
-if defined badbuildnumber (
+SET "badbuildnumber="&for /f "delims=0123456789" %%i in ("%BUILD_NUMBER%") do set badbuildnumber=%%i
+if defined %badbuildnumber% (
   echo bad build number
   goto:build_error || EXIT /B 1
 )
