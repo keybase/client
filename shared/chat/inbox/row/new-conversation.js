@@ -12,7 +12,7 @@ class NewConversation extends PureComponent<{}> {
           alignItems: 'center',
           backgroundColor: globalColors.blue,
           flexShrink: 0,
-          minHeight: 48,
+          minHeight: 56,
         }}
       >
         <div
