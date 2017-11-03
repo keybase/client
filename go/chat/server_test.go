@@ -2994,8 +2994,8 @@ func TestChatSrvImplicitConversation(t *testing.T) {
 }
 
 func TestChatSrvImpTeamExistingKBFS(t *testing.T) {
-	os.Setenv("KEYBASE_CHAT_MEMBER_TYPE", "impteam")
-	defer os.Setenv("KEYBASE_CHAT_MEMBER_TYPE", "")
+	os.Setenv("KEYBASE_FEATURES", "admin")
+	defer os.Setenv("KEYBASE_FEATURES", "")
 	ctc := makeChatTestContext(t, "NewConversationLocal", 2)
 	defer ctc.cleanup()
 	users := ctc.users()
