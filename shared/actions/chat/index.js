@@ -4,6 +4,7 @@ import * as ChatTypes from '../../constants/types/flow-types-chat'
 import * as Constants from '../../constants/chat'
 import * as Creators from './creators'
 import * as ChatGen from '../chat-gen'
+import * as KBFSGen from '../kbfs-gen'
 import * as Inbox from './inbox'
 import * as ManageThread from './manage-thread'
 import * as RPCTypes from '../../constants/types/flow-types'
@@ -14,7 +15,6 @@ import * as SendMessages from './send-messages'
 import * as ThreadContent from './thread-content'
 import engine from '../../engine'
 import some from 'lodash/some'
-import {openInKBFS} from '../kbfs'
 import {parseFolderNameToUsers} from '../../util/kbfs'
 import {publicFolderWithUsers, privateFolderWithUsers, teamFolder} from '../../constants/config'
 
@@ -117,7 +117,7 @@ function* _openFolder(): Saga.SagaGenerator<any, any> {
         : privateFolderWithUsers
       path = helper(inbox.get('participants').toArray())
     }
-    yield Saga.put(openInKBFS(path))
+    yield Saga.put(KBFSGen.createOpen({path}))
   } else {
     throw new Error(`Can't find conversation path`)
   }

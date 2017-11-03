@@ -176,15 +176,15 @@ function* _handleIncomingGregor(action: GitGen.HandleIncomingGregorPayload): Sag
 }
 
 function* gitSaga(): Saga.SagaGenerator<any, any> {
-  yield Saga.safeTakeLatest('git:loadGit', _loadGit)
-  yield Saga.safeTakeEvery('git:createPersonalRepo', _createPersonalRepo)
-  yield Saga.safeTakeEvery('git:createTeamRepo', _createTeamRepo)
-  yield Saga.safeTakeEvery('git:deletePersonalRepo', _deletePersonalRepo)
-  yield Saga.safeTakeEvery('git:deleteTeamRepo', _deleteTeamRepo)
-  yield Saga.safeTakeLatest('git:setLoading', _setLoading)
-  yield Saga.safeTakeLatest('git:setError', _setError)
-  yield Saga.safeTakeEveryPure('git:badgeAppForGit', _badgeAppForGit)
-  yield Saga.safeTakeEvery('git:handleIncomingGregor', _handleIncomingGregor)
+  yield Saga.safeTakeLatest(GitGen.loadGit, _loadGit)
+  yield Saga.safeTakeEvery(GitGen.createPersonalRepo, _createPersonalRepo)
+  yield Saga.safeTakeEvery(GitGen.createTeamRepo, _createTeamRepo)
+  yield Saga.safeTakeEvery(GitGen.deletePersonalRepo, _deletePersonalRepo)
+  yield Saga.safeTakeEvery(GitGen.deleteTeamRepo, _deleteTeamRepo)
+  yield Saga.safeTakeLatest(GitGen.setLoading, _setLoading)
+  yield Saga.safeTakeLatest(GitGen.setError, _setError)
+  yield Saga.safeTakeEveryPure(GitGen.badgeAppForGit, _badgeAppForGit)
+  yield Saga.safeTakeEvery(GitGen.handleIncomingGregor, _handleIncomingGregor)
   yield Saga.safeTakeEveryPure(RouteTreeConstants.switchTo, _onTabChange)
 }
 

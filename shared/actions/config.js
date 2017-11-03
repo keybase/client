@@ -1,4 +1,5 @@
 // @flow
+import * as KBFSGen from './kbfs-gen'
 import * as ConfigGen from './config-gen'
 import * as Constants from '../constants/config'
 import * as GregorCreators from '../actions/gregor'
@@ -8,7 +9,6 @@ import engine from '../engine'
 import {RouteStateStorage} from '../actions/route-state-storage'
 import {configurePush} from './push/creators'
 import {flushLogFile} from '../util/forward-logs'
-import {fuseStatus} from '../actions/kbfs'
 import {isMobile, isSimulator} from '../constants/platform'
 import {listenForKBFSNotifications} from '../actions/notifications'
 import {loggedInSelector} from '../constants/selectors'
@@ -113,7 +113,11 @@ const bootstrap = (opts: $PropertyType<ConfigGen.BootstrapPayload, 'payload'>): 
     dispatch(registerListeners())
   } else {
     console.log('[bootstrap] performing bootstrap...')
-    Promise.all([dispatch(getBootstrapStatus()), dispatch(waitForKBFS()), dispatch(fuseStatus())])
+    Promise.all([
+      dispatch(getBootstrapStatus()),
+      dispatch(waitForKBFS()),
+      dispatch(KBFSGen.createFuseStatus()),
+    ])
       .then(() => {
         dispatch(ConfigGen.createBootstrapSuccess())
         engine().listenOnDisconnect('daemonError', () => {

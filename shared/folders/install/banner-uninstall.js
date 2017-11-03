@@ -1,10 +1,10 @@
 // @flow
+import * as KBFSGen from '../../actions/kbfs-gen'
 import React, {Component} from 'react'
-import {Box, ProgressIndicator, Text} from '../../common-adapters'
-import {globalStyles, globalColors, globalMargins} from '../../styles'
-import {connect, type TypedState} from '../../util/container'
-import {openInKBFS, uninstallKBFS} from '../../actions/kbfs'
 import electron from 'electron'
+import {Box, ProgressIndicator, Text} from '../../common-adapters'
+import {connect, type TypedState} from '../../util/container'
+import {globalStyles, globalColors, globalMargins} from '../../styles'
 import {isWindows} from '../../constants/platform'
 
 type Props = {
@@ -97,8 +97,8 @@ const mapStateToProps = (state: TypedState) => ({
 })
 
 const mapDispatchToProps = (dispatch: any) => ({
-  openInKBFS: () => dispatch(openInKBFS()),
-  uninstallKBFSAndRestart: () => dispatch(uninstallKBFS()),
+  openInKBFS: () => dispatch(KBFSGen.createOpen({})),
+  uninstallKBFSAndRestart: () => dispatch(KBFSGen.createUninstallKBFS()),
 })
 
 export default connect(mapStateToProps, mapDispatchToProps)(InstalledBanner)

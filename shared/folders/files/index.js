@@ -1,16 +1,15 @@
 // @flow
+import * as ChatGen from '../../actions/chat-gen'
+import * as KBFSGen from '../../actions/kbfs-gen'
 import React, {Component} from 'react'
 import Render from './render'
-import some from 'lodash/some'
-import get from 'lodash/get'
 import flags from '../../util/feature-flags'
+import get from 'lodash/get'
+import some from 'lodash/some'
 import type {Folder} from '../list'
-import {bindActionCreators} from 'redux'
 import {connect} from 'react-redux'
 import {favoriteFolder, ignoreFolder} from '../../actions/favorite'
 import {navigateUp, navigateAppend} from '../../actions/route-tree'
-import {openInKBFS} from '../../actions/kbfs'
-import {createOpenTlfInChat} from '../../actions/chat-gen'
 
 type Props = $Shape<{
   folder: ?Folder,
@@ -110,35 +109,30 @@ class Files extends Component<Props, State> {
   }
 }
 
-const ConnectedFiles = connect(
-  (state: any, {routeProps}) => {
-    const folders: Array<Folder> = [].concat(
-      get(state, 'favorite.folderState.private.tlfs', []),
-      get(state, 'favorite.folderState.public.tlfs', []),
-      get(state, 'favorite.folderState.private.ignored', []),
-      get(state, 'favorite.folderState.public.ignored', [])
-    )
+const mapStateToProps = (state: any, {routeProps}) => {
+  const folders: Array<Folder> = [].concat(
+    get(state, 'favorite.folderState.private.tlfs', []),
+    get(state, 'favorite.folderState.public.tlfs', []),
+    get(state, 'favorite.folderState.private.ignored', []),
+    get(state, 'favorite.folderState.public.ignored', [])
+  )
 
-    const folder = folders.find(f => f.path === routeProps.get('path'))
+  const folder = folders.find(f => f.path === routeProps.get('path'))
 
-    return {
-      path: routeProps.get('path'),
-      folder,
-      username: state.config && state.config.username,
-    }
-  },
-  (dispatch: any) =>
-    bindActionCreators(
-      {
-        favoriteFolder,
-        ignoreFolder,
-        navigateAppend,
-        navigateUp,
-        openInKBFS,
-        openTlfInChat: createOpenTlfInChat,
-      },
-      dispatch
-    )
-)(Files)
+  return {
+    path: routeProps.get('path'),
+    folder,
+    username: state.config && state.config.username,
+  }
+}
 
-export default ConnectedFiles
+const mapDispatchToProps = (dispatch: any) => ({
+  favoriteFolder: path => dispatch(favoriteFolder(path)),
+  ignoreFolder: path => dispatch(ignoreFolder(path)),
+  navigateAppend: route => dispatch(navigateAppend(route)),
+  navigateUp: () => dispatch(navigateUp()),
+  openInKBFS: path => dispatch(KBFSGen.createOpen({path})),
+  openTlfInChat: tlf => dispatch(ChatGen.createOpenTlfInChat({tlf})),
+})
+
+export default connect(mapStateToProps, mapDispatchToProps)(Files)
