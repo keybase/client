@@ -24,18 +24,21 @@ type StateProps = {
   isTeamOpen: boolean,
 }
 
-const mapStateToProps = (state: TypedState, {routeProps, routeState}): StateProps => ({
-  _memberInfo: state.entities.getIn(['teams', 'teamNameToMembers', routeProps.get('teamname')], I.Set()),
-  _requests: state.entities.getIn(['teams', 'teamNameToRequests', routeProps.get('teamname')], I.Set()),
-  _invites: state.entities.getIn(['teams', 'teamNameToInvites', routeProps.get('teamname')], I.Set()),
-  loading: state.entities.getIn(['teams', 'teamNameToLoading', routeProps.get('teamname')], true),
-  name: routeProps.get('teamname'),
-  you: state.config.username,
-  selectedTab: routeState.get('selectedTab') || 'members',
-  isTeamOpen: state.entities.getIn(['teams', 'teamNameToTeamSettings', routeProps.get('teamname')], {
-    open: false,
-  }).open,
-})
+const mapStateToProps = (state: TypedState, {routeProps, routeState}): StateProps => {
+  const teamname = routeProps.get('teamname')
+  return {
+    _memberInfo: state.entities.getIn(['teams', 'teamNameToMembers', teamname], I.Set()),
+    _requests: state.entities.getIn(['teams', 'teamNameToRequests', teamname], I.Set()),
+    _invites: state.entities.getIn(['teams', 'teamNameToInvites', teamname], I.Set()),
+    loading: state.entities.getIn(['teams', 'teamNameToLoading', teamname], true),
+    name: teamname,
+    you: state.config.username,
+    selectedTab: routeState.get('selectedTab') || 'members',
+    isTeamOpen: state.entities.getIn(['teams', 'teamNameToTeamSettings', teamname], {
+      open: false,
+    }).open,
+  }
+}
 
 type DispatchProps = {
   _loadTeam: (teamname: Constants.Teamname) => void,
