@@ -14,6 +14,7 @@ import ChatFilterRow from './row/chat-filter-row'
 import FloatingDivider from './row/floating-divider/container'
 import Divider from './row/divider/container'
 import debounce from 'lodash/debounce'
+import {Owl} from './owl'
 
 import type {Props, RowItem} from './'
 
@@ -204,27 +205,7 @@ class Inbox extends React.PureComponent<Props, State> {
             getItemLayout={this._getItemLayout}
           />
           {!this.props.isLoading && !this.props.rows.length && !this.props.filter && <NoChats />}
-          {!this.props.rows.length &&
-            !!this.props.filter &&
-            <Box
-              style={{...globalStyles.fillAbsolute, ...globalStyles.flexBoxColumn, justifyContent: 'center'}}
-            >
-              <Text type="BodySmall" style={{textAlign: 'center'}}>
-                Sorry, no conversations match this.
-              </Text>
-              <Text type="BodySmall" style={{textAlign: 'center'}}>
-                ,___,
-              </Text>
-              <Text type="BodySmall" style={{textAlign: 'center'}}>
-                [O.o]
-              </Text>
-              <Text type="BodySmall" style={{textAlign: 'center'}}>
-                /)__)
-              </Text>
-              <Text type="BodySmall" style={{textAlign: 'center'}}>
-                -"--"-
-              </Text>
-            </Box>}
+          {!this.props.rows.length && <Owl />}
           {this.state.showFloating &&
             this.props.showSmallTeamsExpandDivider &&
             <FloatingDivider toggle={this.props.toggleSmallTeamsExpanded} />}

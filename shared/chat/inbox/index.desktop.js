@@ -1,7 +1,7 @@
 // @flow
 import React, {PureComponent} from 'react'
 import ReactList from 'react-list'
-import {Box, Text, Icon, ErrorBoundary} from '../../common-adapters'
+import {Text, Icon, ErrorBoundary} from '../../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../../styles'
 import {makeRow} from './row'
 import FloatingDivider from './row/floating-divider/container'
@@ -9,6 +9,7 @@ import Divider from './row/divider/container'
 import ChatFilterRow from './row/chat-filter-row'
 import debounce from 'lodash/debounce'
 import {isDarwin} from '../../constants/platform'
+import {Owl} from './owl'
 
 import type {Props} from './'
 
@@ -186,26 +187,7 @@ class Inbox extends PureComponent<Props, State> {
               itemSizeGetter={this._itemSizeGetter}
             />
           </div>
-          {!this.props.rows.length &&
-            <Box
-              style={{...globalStyles.fillAbsolute, ...globalStyles.flexBoxColumn, justifyContent: 'center'}}
-            >
-              <Text type="BodySmall" style={{textAlign: 'center'}}>
-                Sorry, no conversations match this.
-              </Text>
-              <Text type="BodySmall" style={{textAlign: 'center'}}>
-                ,___,
-              </Text>
-              <Text type="BodySmall" style={{textAlign: 'center'}}>
-                [O.o]
-              </Text>
-              <Text type="BodySmall" style={{textAlign: 'center'}}>
-                /)__)
-              </Text>
-              <Text type="BodySmall" style={{textAlign: 'center'}}>
-                -"--"-
-              </Text>
-            </Box>}
+          {!this.props.rows.length && <Owl />}
           {this.state.showFloating &&
             this.props.showSmallTeamsExpandDivider &&
             <FloatingDivider toggle={this.props.toggleSmallTeamsExpanded} />}
