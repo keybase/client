@@ -199,8 +199,8 @@ func runWithMemberTypes(t *testing.T, f func(membersType chat1.ConversationMembe
 	t.Logf("Team Stage End: %v", time.Now().Sub(start))
 
 	t.Logf("Implicit Team Stage Begin")
-	os.Setenv("KEYBASE_CHAT_MEMBER_TYPE", "impteam")
-	defer os.Setenv("KEYBASE_CHAT_MEMBER_TYPE", "")
+	os.Setenv("KEYBASE_FEATURES", "admin")
+	defer os.Setenv("KEYBASE_FEATURES", "")
 	start = time.Now()
 	f(chat1.ConversationMembersType_IMPTEAM)
 	t.Logf("Implicit Team Stage End: %v", time.Now().Sub(start))
