@@ -26,7 +26,7 @@ import type {SagaGenerator} from '../../constants/types/saga'
 import type {TypedState} from '../../constants/reducer'
 import type {AppLink} from '../../constants/app'
 import {parseUserId} from '../../util/platforms'
-import {URL} from 'whatwg-url'
+import URL from 'url-parse'
 import {urlToUsername} from './app-link'
 
 function editProfile(bio: string, fullName: string, location: string): Constants.EditProfile {

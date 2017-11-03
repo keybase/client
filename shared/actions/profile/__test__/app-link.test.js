@@ -1,6 +1,6 @@
 // @noflow
 /* eslint-env jest */
-import {URL} from 'whatwg-url'
+import URL from 'url-parse'
 import {urlToUsername} from '../app-link'
 
 describe('urlToUsername', () => {
