@@ -1,6 +1,6 @@
 // @flow
+import * as ConfigGen from '../actions/config-gen'
 import {receivedBadgeState} from '../actions/notifications'
-import {bootstrap, updateFollowing} from '../actions/config'
 import {logoutDone} from '../actions/login/creators'
 import throttle from 'lodash/throttle'
 
@@ -47,7 +47,7 @@ export default function(dispatch: Dispatch, getState: () => Object, notify: any)
         lastLoggedInNotifyUsername = username
       }
 
-      dispatch(bootstrap())
+      dispatch(ConfigGen.createBootstrap({}))
       response.result()
     },
     'keybase.1.NotifySession.loggedOut': params => {
@@ -60,7 +60,7 @@ export default function(dispatch: Dispatch, getState: () => Object, notify: any)
       }
     },
     'keybase.1.NotifyTracking.trackingChanged': ({username, isTracking}) => {
-      dispatch(updateFollowing(username, isTracking))
+      dispatch(ConfigGen.createUpdateFollowing({username, isTracking}))
     },
   }
 }

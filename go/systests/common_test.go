@@ -5,16 +5,15 @@ package systests
 
 import (
 	"path/filepath"
-	"testing"
 
-	"github.com/keybase/client/go/externals"
+	"github.com/keybase/client/go/externalstest"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	context "golang.org/x/net/context"
 )
 
-func setupTest(t testing.TB, nm string) *libkb.TestContext {
-	tc := externals.SetupTest(t, nm, 2)
+func setupTest(t libkb.TestingTB, nm string) *libkb.TestContext {
+	tc := externalstest.SetupTest(t, nm, 2)
 	tc.SetRuntimeDir(filepath.Join(tc.Tp.Home, "run"))
 	if err := tc.G.ConfigureSocketInfo(); err != nil {
 		t.Fatal(err)

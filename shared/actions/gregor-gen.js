@@ -21,3 +21,4 @@ export type PushStatePayload = ReturnType<typeof createPushState>
 // prettier-ignore
 export type Actions =
   | ReturnType<typeof createPushState>
+  | {type: 'common:resetStore', payload: void}

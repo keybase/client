@@ -65,7 +65,10 @@ function cleanupUsername(platform, username): string {
   return username
 }
 
-export default function(state: State = initialState, action: Actions) {
+export default function(
+  state: State = initialState,
+  action: Actions | {type: 'common:resetStore', payload: void}
+) {
   switch (action.type) {
     case CommonConstants.resetStore:
       return {...initialState}

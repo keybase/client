@@ -12,7 +12,7 @@ import {
   immediateStateLogging,
   filterActionLogs,
 } from '../local-debug'
-import {globalError} from '../constants/config'
+import * as ConfigGen from '../actions/config-gen'
 import {isMobile} from '../constants/platform'
 import {run as runSagas, create as createSagaMiddleware} from './configure-sagas'
 import {setupLogger, immutableToJS} from '../util/periodic-logger'
@@ -24,10 +24,11 @@ const crashHandler = error => {
     throw error
   }
   if (theStore) {
-    theStore.dispatch({
-      payload: convertToError(error),
-      type: globalError,
-    })
+    theStore.dispatch(
+      ConfigGen.createGlobalError({
+        globalError: convertToError(error),
+      })
+    )
   } else {
     console.warn('Got crash before store created?', error)
   }

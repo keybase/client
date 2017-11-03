@@ -302,3 +302,4 @@ export type Actions =
   | ReturnType<typeof createUpdatedMetadata>
   | ReturnType<typeof createUpdatedNotifications>
   | ReturnType<typeof createUploadProgress>
+  | {type: 'common:resetStore', payload: void}

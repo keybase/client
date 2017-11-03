@@ -595,7 +595,7 @@ func (u *userPlusDevice) provisionNewDevice() *deviceWrapper {
 	return device
 }
 
-func kickTeamRekeyd(g *libkb.GlobalContext, t testing.TB) {
+func kickTeamRekeyd(g *libkb.GlobalContext, t libkb.TestingTB) {
 	apiArg := libkb.APIArg{
 		Endpoint:    "test/accelerate_team_rekeyd",
 		Args:        libkb.HTTPArgs{},

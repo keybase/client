@@ -4,6 +4,7 @@
 import * as ChatTypes from '../../constants/types/flow-types-chat'
 import * as Constants from '../../constants/chat'
 import * as ChatGen from '../chat-gen'
+import * as ConfigGen from '../config-gen'
 import * as EngineRpc from '../engine/helper'
 import * as I from 'immutable'
 import * as RPCTypes from '../../constants/types/flow-types'
@@ -14,7 +15,6 @@ import HiddenString from '../../util/hidden-string'
 import {NotifyPopup} from '../../native/notifications'
 import {RPCTimeoutError} from '../../util/errors'
 import {chatTab} from '../../constants/tabs'
-import {globalError} from '../../constants/config'
 import {isMobile} from '../../constants/platform'
 import {showMainWindow} from '../platform-specific'
 import {switchTo} from '../route-tree'
@@ -432,10 +432,7 @@ function* _chatInboxFailedSubSaga(params) {
       break
     }
     default:
-      yield Saga.put({
-        payload: error,
-        type: globalError,
-      })
+      yield Saga.put(ConfigGen.createGlobalError({globalError: error}))
   }
 
   return EngineRpc.rpcResult()

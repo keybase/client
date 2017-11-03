@@ -19,7 +19,7 @@ import {
   takeEvery,
   takeLatest,
 } from 'redux-saga/effects'
-import {globalError} from '../constants/config'
+import * as ConfigGen from '../actions/config-gen'
 import {convertToError} from '../util/errors'
 
 import type {Action} from '../constants/types/flux'
@@ -93,12 +93,11 @@ function safeTakeEvery(pattern: string | Array<any> | Function, worker: Function
       yield call(worker, ...args)
     } catch (error) {
       // Convert to global error so we don't kill the takeEvery loop
-      yield put(dispatch => {
-        dispatch({
-          payload: convertToError(error),
-          type: globalError,
+      yield put(
+        ConfigGen.createGlobalError({
+          globalError: convertToError(error),
         })
-      })
+      )
     } finally {
       if (yield cancelled()) {
         console.log('safeTakeEvery cancelled')
@@ -148,10 +147,11 @@ function safeTakeLatestWithCatch(
       yield call(worker, ...args)
     } catch (error) {
       // Convert to global error so we don't kill the takeLatest loop
-      yield put({
-        payload: convertToError(error),
-        type: globalError,
-      })
+      yield put(
+        ConfigGen.createGlobalError({
+          globalError: convertToError(error),
+        })
+      )
       yield call(catchHandler, error)
     } finally {
       if (yield cancelled()) {
@@ -189,10 +189,11 @@ function safeTakeSerially(pattern: string | Array<any> | Function, worker: Funct
     } catch (error) {
       // Convert to global error so we don't kill the loop
       yield put(dispatch => {
-        dispatch({
-          payload: convertToError(error),
-          type: globalError,
-        })
+        dispatch(
+          ConfigGen.createGlobalError({
+            globalError: convertToError(error),
+          })
+        )
       })
     } finally {
       if (yield cancelled()) {
@@ -226,6 +227,7 @@ export {
   mapSagasToChanMap,
   put,
   putOnChannelMap,
+  race,
   safeTakeEvery,
   safeTakeEveryPure,
   safeTakeLatest,
