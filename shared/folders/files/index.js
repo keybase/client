@@ -17,6 +17,7 @@ type Props = $Shape<{
   path: string,
   username: string,
   allowIgnore: boolean,
+  isTeam: boolean,
   navigateUp: () => void,
   navigateAppend: (route: any) => void,
   ignoreFolder: (path: string) => void,
@@ -56,7 +57,7 @@ class Files extends Component<Props, State> {
 
   componentDidMount() {
     if (this.props.folder && !this.props.folder.ignored && this.props.folder.meta === 'new') {
-      this.props.favoriteFolder(this.props.path)
+      this.props.favoriteFolder(this.props.path, this.props)
     }
   }
 
@@ -68,7 +69,7 @@ class Files extends Component<Props, State> {
     }
     const openConversationFromFolder = () => {
       const tlf = this.props && this.props.folder && this.props.folder.sortName
-      tlf && this.props.openTlfInChat(tlf)
+      tlf && this.props.openTlfInChat({tlf: tlf, isTeam: this.props.folder.isTeam})
     }
     const ignoreCurrentFolder = () => {
       this.props.ignoreFolder(this.props.path)
@@ -97,6 +98,7 @@ class Files extends Component<Props, State> {
         hasReadOnlyUsers={folder.users && some(folder.users, 'readOnly')}
         waitingForParticipantUnlock={folder.waitingForParticipantUnlock}
         youCanUnlock={folder.youCanUnlock}
+        isTeam={folder.isTeam}
         onBack={() => this.props.navigateUp()}
         openCurrentFolder={openCurrentFolder}
         openConversationFromFolder={openConversationFromFolder}
@@ -115,8 +117,10 @@ const ConnectedFiles = connect(
     const folders: Array<Folder> = [].concat(
       get(state, 'favorite.folderState.private.tlfs', []),
       get(state, 'favorite.folderState.public.tlfs', []),
+      get(state, 'favorite.folderState.team.tlfs', []),
       get(state, 'favorite.folderState.private.ignored', []),
-      get(state, 'favorite.folderState.public.ignored', [])
+      get(state, 'favorite.folderState.public.ignored', []),
+      get(state, 'favorite.folderState.team.ignored', [])
     )
 
     const folder = folders.find(f => f.path === routeProps.get('path'))
