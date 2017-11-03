@@ -109,6 +109,8 @@ function* _selectConversation(action: ChatGen.SelectConversationPayload): Saga.S
 
 const _openTeamConversation = function*(action: ChatGen.OpenTeamConversationPayload) {
   const {payload: {teamname, channelname}} = action
+  const state = yield Saga.select()
+  state
 }
 
 const _setNotifications = function*(
@@ -240,6 +242,7 @@ function* registerSagas(): SagaGenerator<any, any> {
     _setNotifications
   )
   yield Saga.safeTakeEvery('chat:blockConversation', _blockConversation)
+  yield Saga.safeTakeLatest(ChatGen.openTeamConversation, _openTeamConversation)
 }
 
 export {registerSagas}
