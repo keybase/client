@@ -96,6 +96,7 @@ protocol teams {
     PerTeamKeyGeneration keyGeneration;
     map<TeamInviteID,AnnotatedTeamInvite> annotatedActiveInvites;
     TeamSettings settings;
+    TeamShowcase showcase;
   }
 
   record UserVersion {
@@ -518,6 +519,19 @@ protocol teams {
     boolean open;
   }
 
+  record TeamShowcase {
+    @jsonkey("is_showcased")
+    boolean isShowcased;
+    union { null, string } description;
+    @jsonkey("set_by_uid")
+    union { null, UID } setByUID;
+  }
+
+  record TeamAndMemberShowcase {
+    TeamShowcase teamShowcase;
+    boolean isMemberShowcased;
+  }
+
   TeamCreateResult teamCreate(int sessionID, string name, boolean sendChatNotification);
 
   TeamCreateResult teamCreateWithSettings(int sessionID, string name, boolean sendChatNotification, TeamSettings settings);
@@ -616,4 +630,9 @@ protocol teams {
    */
   TeamPlusApplicationKeys loadTeamPlusApplicationKeys(int sessionID, TeamID id, TeamApplication application, TeamRefreshers refreshers);
   TeamID getTeamRootID(TeamID id);
+
+  TeamShowcase getTeamShowcase(string name);
+  TeamAndMemberShowcase getTeamAndMemberShowcase(string name);
+  void setTeamShowcase(string name, union { null, boolean } isShowcased, union { null, string } description);
+  void setTeamMemberShowcase(string name, boolean isShowcased);
 }

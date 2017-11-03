@@ -84,14 +84,6 @@ function* _loadMoreMessages(action: ChatGen.LoadMoreMessagesPayload): Saga.SagaG
       return
     }
 
-    const untrustedState = yield Saga.select(state => state.chat.inboxUntrustedState.get(conversationIDKey))
-
-    // only load unboxed things
-    if (!['unboxed', 'reUnboxing'].includes(untrustedState)) {
-      console.log('Bailing on not yet unboxed conversation', untrustedState)
-      return
-    }
-
     const rekeyInfoSelector = (state: TypedState, conversationIDKey: Constants.ConversationIDKey) => {
       return state.chat.get('rekeyInfos').get(conversationIDKey)
     }

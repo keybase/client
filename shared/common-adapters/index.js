@@ -10,11 +10,11 @@ const MaybePopup = isMobile
   ? (props: {onClose: () => void, children: React.Node}) => (
       <Box style={{height: '100%', width: '100%'}} children={props.children} />
     )
-  : (props: {onClose: () => void, children: React.Node}) => (
+  : (props: {onClose: () => void, children: React.Node, styleCover?: any, styleContainer?: any}) => (
       <PopupDialog
         onClose={props.onClose}
-        styleCover={_styleCover}
-        styleContainer={_styleContainer}
+        styleCover={{..._styleCover, ...props.styleCover}}
+        styleContainer={{..._styleContainer, ...props.styleContainer}}
         children={props.children}
       />
     )

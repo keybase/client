@@ -43,7 +43,7 @@ func TestTeamInviteSeitanHappy(t *testing.T) {
 	own.kickTeamRekeyd()
 	own.waitForTeamChangedGregor(team, keybase1.Seqno(3))
 
-	t0, err := teams.GetTeamByNameForTest(context.TODO(), t, own.tc.G, team, false /* public */, true /* needAdmin */)
+	t0, err := teams.GetTeamByNameForTest(context.TODO(), own.tc.G, team, false /* public */, true /* needAdmin */)
 	require.NoError(t, err)
 
 	role, err := t0.MemberRole(context.TODO(), teams.NewUserVersion(roo.uid, 1))
@@ -117,7 +117,7 @@ func TestTeamInviteSeitanFailures(t *testing.T) {
 
 	require.True(t, pollingFound)
 
-	t0, err := teams.GetTeamByNameForTest(context.TODO(), t, own.tc.G, team, false /* public */, true /* needAdmin */)
+	t0, err := teams.GetTeamByNameForTest(context.TODO(), own.tc.G, team, false /* public */, true /* needAdmin */)
 	require.NoError(t, err)
 	require.EqualValues(t, t0.CurrentSeqno(), 3)
 
@@ -186,7 +186,7 @@ func TestTeamCreateSeitanAndCancel(t *testing.T) {
 
 	t.Logf("Removed, checking if there are no active invites")
 
-	t0, err := teams.GetTeamByNameForTest(context.TODO(), t, own.tc.G, team, false /* public */, true /* needAdmin */)
+	t0, err := teams.GetTeamByNameForTest(context.TODO(), own.tc.G, team, false /* public */, true /* needAdmin */)
 	require.NoError(t, err)
 	require.Equal(t, 0, t0.NumActiveInvites())
 }

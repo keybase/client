@@ -260,6 +260,10 @@
         {
           "type": "TeamSettings",
           "name": "settings"
+        },
+        {
+          "type": "TeamShowcase",
+          "name": "showcase"
         }
       ]
     },
@@ -1314,6 +1318,46 @@
     },
     {
       "type": "record",
+      "name": "TeamShowcase",
+      "fields": [
+        {
+          "type": "boolean",
+          "name": "isShowcased",
+          "jsonkey": "is_showcased"
+        },
+        {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "description"
+        },
+        {
+          "type": [
+            null,
+            "UID"
+          ],
+          "name": "setByUID",
+          "jsonkey": "set_by_uid"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "TeamAndMemberShowcase",
+      "fields": [
+        {
+          "type": "TeamShowcase",
+          "name": "teamShowcase"
+        },
+        {
+          "type": "boolean",
+          "name": "isMemberShowcased"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "BulkRes",
       "fields": [
         {
@@ -1883,6 +1927,60 @@
         }
       ],
       "response": "TeamID"
+    },
+    "getTeamShowcase": {
+      "request": [
+        {
+          "name": "name",
+          "type": "string"
+        }
+      ],
+      "response": "TeamShowcase"
+    },
+    "getTeamAndMemberShowcase": {
+      "request": [
+        {
+          "name": "name",
+          "type": "string"
+        }
+      ],
+      "response": "TeamAndMemberShowcase"
+    },
+    "setTeamShowcase": {
+      "request": [
+        {
+          "name": "name",
+          "type": "string"
+        },
+        {
+          "name": "isShowcased",
+          "type": [
+            null,
+            "boolean"
+          ]
+        },
+        {
+          "name": "description",
+          "type": [
+            null,
+            "string"
+          ]
+        }
+      ],
+      "response": null
+    },
+    "setTeamMemberShowcase": {
+      "request": [
+        {
+          "name": "name",
+          "type": "string"
+        },
+        {
+          "name": "isShowcased",
+          "type": "boolean"
+        }
+      ],
+      "response": null
     }
   },
   "namespace": "keybase.1"
