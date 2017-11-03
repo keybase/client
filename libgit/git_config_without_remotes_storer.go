@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD
 // license that can be found in the LICENSE file.
 
-package kbfsgit
+package libgit
 
 import (
 	"github.com/keybase/kbfs/libfs"
@@ -13,18 +13,21 @@ import (
 	"gopkg.in/src-d/go-git.v4/storage/filesystem"
 )
 
-// configWithoutRemotesStorer strips remotes from the config before
+// GitConfigWithoutRemotesStorer strips remotes from the config before
 // writing them to disk, to work around a gcfg bug (used by go-git
 // when reading configs from disk) that causes a freakout when it sees
 // backslashes in git file URLs.
-type configWithoutRemotesStorer struct {
+type GitConfigWithoutRemotesStorer struct {
 	*filesystem.Storage
 	cfg    *gogitcfg.Config
 	stored bool
 }
 
-func newConfigWithoutRemotesStorer(fs *libfs.FS) (
-	*configWithoutRemotesStorer, error) {
+// NewGitConfigWithoutRemotesStorer creates a new git config
+// implementation that strips remotes from the config before writing
+// them to disk.
+func NewGitConfigWithoutRemotesStorer(fs *libfs.FS) (
+	*GitConfigWithoutRemotesStorer, error) {
 	fsStorer, err := filesystem.NewStorage(fs)
 	if err != nil {
 		return nil, err
@@ -36,22 +39,25 @@ func newConfigWithoutRemotesStorer(fs *libfs.FS) (
 	// To figure out if this config has been written already, check if
 	// it differs from the zero Core value (probably because the
 	// IsBare bit is flipped).
-	return &configWithoutRemotesStorer{
+	return &GitConfigWithoutRemotesStorer{
 		fsStorer,
 		cfg,
 		cfg.Core != gogitcfg.Config{}.Core,
 	}, nil
 }
 
-func (cwrs *configWithoutRemotesStorer) Init() error {
+// Init implements the `storer.Initializer` interface.
+func (cwrs *GitConfigWithoutRemotesStorer) Init() error {
 	return cwrs.Storage.Init()
 }
 
-func (cwrs *configWithoutRemotesStorer) Config() (*gogitcfg.Config, error) {
+// Config implements the `storer.Storer` interface.
+func (cwrs *GitConfigWithoutRemotesStorer) Config() (*gogitcfg.Config, error) {
 	return cwrs.cfg, nil
 }
 
-func (cwrs *configWithoutRemotesStorer) SetConfig(c *gogitcfg.Config) (
+// SetConfig implements the `storer.Storer` interface.
+func (cwrs *GitConfigWithoutRemotesStorer) SetConfig(c *gogitcfg.Config) (
 	err error) {
 	if cwrs.stored && c.Core == cwrs.cfg.Core {
 		// Ignore any change that doesn't change the core we know
@@ -95,5 +101,5 @@ func (cwrs *configWithoutRemotesStorer) SetConfig(c *gogitcfg.Config) (
 	return cwrs.Storage.SetConfig(c)
 }
 
-var _ storage.Storer = (*configWithoutRemotesStorer)(nil)
-var _ storer.Initializer = (*configWithoutRemotesStorer)(nil)
+var _ storage.Storer = (*GitConfigWithoutRemotesStorer)(nil)
+var _ storer.Initializer = (*GitConfigWithoutRemotesStorer)(nil)

@@ -699,24 +699,21 @@ func TestPackRefsAndOverwritePackedRef(t *testing.T) {
 	git2, err := ioutil.TempDir(os.TempDir(), "kbfsgittest")
 	require.NoError(t, err)
 	defer os.RemoveAll(git2)
-	dotgit2 := filepath.Join(git2, ".git")
 
 	heads := testListAndGetHeadsWithName(t, ctx, config2, git2,
 		[]string{"refs/heads/master", "refs/heads/test", "HEAD"}, "user1,user2")
 	require.Equal(t, heads[0], heads[1])
 
-	// Have the second user refpack.
-	r, err := newRunner(ctx, config2, "origin",
-		fmt.Sprintf("keybase://private/user1,user2/test"),
-		dotgit2, nil, nil, testErrput{t})
-	require.NoError(t, err)
-
-	// Stall it after it takes the lock.
+	// Have the second user refpack, but stall it after it takes the lock.
 	packOnStalled, packUnstall, packCtx := libkbfs.StallMDOp(
 		ctx, config2, libkbfs.StallableMDAfterGetRange, 1)
 	packErrCh := make(chan error)
+	h, err := libkbfs.ParseTlfHandle(
+		ctx, config2.KBPKI(), "user1,user2", tlf.Private)
+	require.NoError(t, err)
 	go func() {
-		packErrCh <- r.packRefs(packCtx)
+		packErrCh <- libgit.GCRepo(
+			packCtx, config2, h, "test", "", libgit.GCOptions{MaxLooseRefs: 0})
 	}()
 	select {
 	case <-packOnStalled:
@@ -739,9 +736,6 @@ func TestPackRefsAndOverwritePackedRef(t *testing.T) {
 		t.Fatal(ctx.Err())
 	}
 
-	h, err := libkbfs.ParseTlfHandle(
-		ctx, config2.KBPKI(), "user1,user2", tlf.Private)
-	require.NoError(t, err)
 	rootNode, _, err := config2.KBFSOps().GetOrCreateRootNode(
 		ctx, h, libkbfs.MasterBranch)
 	require.NoError(t, err)
@@ -789,24 +783,21 @@ func TestPackRefsAndDeletePackedRef(t *testing.T) {
 	git2, err := ioutil.TempDir(os.TempDir(), "kbfsgittest")
 	require.NoError(t, err)
 	defer os.RemoveAll(git2)
-	dotgit2 := filepath.Join(git2, ".git")
 
 	heads := testListAndGetHeadsWithName(t, ctx, config2, git2,
 		[]string{"refs/heads/master", "refs/heads/test", "HEAD"}, "user1,user2")
 	require.Equal(t, heads[0], heads[1])
 
-	// Have the second user refpack.
-	r, err := newRunner(ctx, config2, "origin",
-		fmt.Sprintf("keybase://private/user1,user2/test"),
-		dotgit2, nil, nil, testErrput{t})
-	require.NoError(t, err)
-
-	// Stall it after it takes the lock.
+	// Have the second user refpack, but stall it after it takes the lock.
 	packOnStalled, packUnstall, packCtx := libkbfs.StallMDOp(
 		ctx, config2, libkbfs.StallableMDAfterGetRange, 1)
 	packErrCh := make(chan error)
+	h, err := libkbfs.ParseTlfHandle(
+		ctx, config2.KBPKI(), "user1,user2", tlf.Private)
+	require.NoError(t, err)
 	go func() {
-		packErrCh <- r.packRefs(packCtx)
+		packErrCh <- libgit.GCRepo(
+			packCtx, config2, h, "test", "", libgit.GCOptions{MaxLooseRefs: 0})
 	}()
 	select {
 	case <-packOnStalled:
@@ -860,9 +851,6 @@ func TestPackRefsAndDeletePackedRef(t *testing.T) {
 		t.Fatal(ctx.Err())
 	}
 
-	h, err := libkbfs.ParseTlfHandle(
-		ctx, config2.KBPKI(), "user1,user2", tlf.Private)
-	require.NoError(t, err)
 	rootNode, _, err := config2.KBFSOps().GetOrCreateRootNode(
 		ctx, h, libkbfs.MasterBranch)
 	require.NoError(t, err)

@@ -23,6 +23,7 @@ import (
 	"github.com/keybase/kbfs/libkbfs"
 	"github.com/pkg/errors"
 	billy "gopkg.in/src-d/go-billy.v3"
+	"gopkg.in/src-d/go-git.v4/storage"
 )
 
 const (
@@ -33,6 +34,7 @@ const (
 	kbfsDeletedReposDir      = ".kbfs_deleted_repos"
 	minDeletedAgeForCleaning = 1 * time.Hour
 	cleaningTimeLimit        = 2 * time.Second
+	repoGCLockFileName       = ".gc"
 )
 
 // This character set is what Github supports in repo names.  It's
@@ -362,7 +364,8 @@ func getOrCreateRepoAndID(
 	repoName string, uniqID string, op repoOpType) (
 	fs *libfs.FS, id ID, err error) {
 	if !checkValidRepoName(repoName, config) {
-		return nil, NullID, errors.WithStack(libkb.InvalidRepoNameError{Name: repoName})
+		return nil, NullID,
+			errors.WithStack(libkb.InvalidRepoNameError{Name: repoName})
 	}
 
 	rootNode, _, err := config.KBFSOps().GetOrCreateRootNode(
@@ -747,4 +750,81 @@ func RenameRepo(
 		return err
 	}
 	return UpdateRepoMD(ctx, config, tlfHandle, newRepoFS)
+}
+
+// GCOptions describe options foe garbage collection.
+type GCOptions struct {
+	// The most loose refs we will tolerate; if there are more loose
+	// refs, we should pack them.
+	MaxLooseRefs int
+	// TODO: object min age for pruning, and object re-packing thresholds.
+}
+
+func needsGC(storer storage.Storer, options GCOptions) (
+	doPackRefs bool, numLooseRefs int, err error) {
+	numLooseRefs, err = storer.CountLooseRefs()
+	if err != nil {
+		return false, 0, err
+	}
+
+	doPackRefs = numLooseRefs > options.MaxLooseRefs
+	// TODO: check object pruning and object re-packing thresholds.
+	return doPackRefs, numLooseRefs, nil
+}
+
+// GCRepo runs garbage collection on the specified repo, if it exceeds
+// any of the thresholds provided in `options`.
+func GCRepo(
+	ctx context.Context, config libkbfs.Config, tlfHandle *libkbfs.TlfHandle,
+	repoName string, uniqID string, options GCOptions) error {
+	log := config.MakeLogger("")
+	log.CDebugf(ctx, "Checking whether GC is needed for %s/%s",
+		tlfHandle.GetCanonicalName(), repoName)
+
+	fs, _, err := getOrCreateRepoAndID(
+		ctx, config, tlfHandle, repoName, uniqID, getOnly)
+	if err != nil {
+		return err
+	}
+
+	storer, err := NewGitConfigWithoutRemotesStorer(fs)
+	if err != nil {
+		return err
+	}
+
+	doPackRefs, _, err := needsGC(storer, options)
+	if err != nil {
+		return err
+	}
+	if !doPackRefs {
+		log.CDebugf(ctx, "Skipping GC")
+		return nil
+	}
+
+	log.CDebugf(ctx, "Locking for GC")
+	f, err := fs.Create(repoGCLockFileName)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+	err = f.Lock()
+	if err != nil {
+		return err
+	}
+
+	// Check the GC thresholds again since they might have changed
+	// while getting the lock.
+	doPackRefs, numLooseRefs, err := needsGC(storer, options)
+	if err != nil {
+		return err
+	}
+	if !doPackRefs {
+		log.CDebugf(ctx, "GC no longer needed")
+		return nil
+	}
+
+	// For now just pack refs.  TODO: add object pruning and object
+	// re-packing.
+	log.CDebugf(ctx, "Packing %s loose refs", numLooseRefs)
+	return storer.PackRefs()
 }

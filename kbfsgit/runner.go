@@ -280,7 +280,7 @@ func (r *runner) initRepoIfNeeded(ctx context.Context, forCmd string) (
 	// remotes anyway since they'll contain local paths and wouldn't
 	// make sense to other devices, plus that could leak local info.
 	var storage storage.Storer
-	storage, err = newConfigWithoutRemotesStorer(fs)
+	storage, err = libgit.NewGitConfigWithoutRemotesStorer(fs)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -1648,19 +1648,4 @@ func (r *runner) processCommands(ctx context.Context) (err error) {
 			return ctx.Err()
 		}
 	}
-}
-
-func (r *runner) packRefs(ctx context.Context) (err error) {
-	r.log.CDebugf(ctx, "Packing refs")
-	repo, _, err := r.initRepoIfNeeded(ctx, "pack-refs")
-	if err != nil {
-		return err
-	}
-
-	err = repo.Storer.PackRefs()
-	if err != nil {
-		return err
-	}
-
-	return r.waitForJournal(ctx)
 }
