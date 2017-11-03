@@ -1,5 +1,5 @@
 // @flow
-import * as Creators from '../../actions/git/creators'
+import * as GitGen from '../../actions/git-gen'
 import * as Constants from '../../constants/git'
 import DeleteRepo from '.'
 import {compose, renderNothing, branch, connect, type TypedState} from '../../util/container'
@@ -23,8 +23,8 @@ const mapStateToProps = (state: TypedState, {routeProps}) => {
 const mapDispatchToProps = (dispatch: any, {navigateAppend, navigateUp}) => ({
   _onDelete: (teamname: ?string, name: string, notifyTeam: boolean) => {
     const deleteAction = teamname
-      ? Creators.deleteTeamRepo(teamname, name, notifyTeam)
-      : Creators.deletePersonalRepo(name)
+      ? GitGen.createDeleteTeamRepo({teamname, name, notifyTeam})
+      : GitGen.createDeletePersonalRepo({name})
     dispatch(deleteAction)
   },
   onClose: () => dispatch(navigateUp()),

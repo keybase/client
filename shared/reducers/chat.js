@@ -1,5 +1,4 @@
 // @flow
-import * as CommonConstants from '../constants/common'
 import * as Constants from '../constants/chat'
 import * as ChatGen from '../actions/chat-gen'
 import {Set, List, Map} from 'immutable'
@@ -20,7 +19,7 @@ function updateConversation(
 
 function reducer(state: Constants.State = initialState, action: Constants.Actions | ChatGen.Actions) {
   switch (action.type) {
-    case CommonConstants.resetStore:
+    case ChatGen.resetStore:
       return Constants.makeState()
     case ChatGen.deleteEntity: {
       const {keyPath, ids} = action.payload

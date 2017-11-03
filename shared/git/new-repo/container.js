@@ -1,5 +1,5 @@
 // @flow
-import * as Creators from '../../actions/git/creators'
+import * as GitGen from '../../actions/git-gen'
 import * as Constants from '../../constants/git'
 import * as I from 'immutable'
 import NewRepo from '.'
@@ -20,8 +20,8 @@ const mapDispatchToProps = (dispatch: any, {navigateAppend, navigateUp, routePro
   onClose: () => dispatch(navigateUp()),
   onCreate: (name: string, teamname: ?string, notifyTeam: boolean) => {
     const createAction = routeProps.get('isTeam') && teamname
-      ? Creators.createTeamRepo(teamname, name, notifyTeam)
-      : Creators.createPersonalRepo(name)
+      ? GitGen.createCreateTeamRepo({teamname, name, notifyTeam})
+      : GitGen.createCreatePersonalRepo({name})
     dispatch(createAction)
   },
   onNewTeam: () => dispatch(navigateTo([teamsTab], ['showNewTeamDialog'])),

@@ -1,7 +1,7 @@
 // @flow
 import * as ConfigGen from '../../actions/config-gen'
 import * as Constants from '../../constants/git'
-import * as Creators from '../../actions/git/creators'
+import * as GitGen from '../../actions/git-gen'
 import * as Entities from '../entities'
 import * as I from 'immutable'
 import * as RPCTypes from '../../constants/types/flow-types'
@@ -13,9 +13,9 @@ import moment from 'moment'
 import {isMobile} from '../../constants/platform'
 import {navigateTo} from '../route-tree'
 
-function* _loadGit(action: Constants.LoadGit): Saga.SagaGenerator<any, any> {
-  yield Saga.put(Creators.setError(null))
-  yield Saga.put(Creators.setLoading(true))
+function* _loadGit(action: GitGen.LoadGitPayload): Saga.SagaGenerator<any, any> {
+  yield Saga.put(GitGen.createSetError({error: null}))
+  yield Saga.put(GitGen.createSetLoading({loading: true}))
 
   try {
     const results: Array<RPCTypes.GitRepoResult> = yield Saga.call(RPCTypes.gitGetAllGitMetadataRpcPromise, {
@@ -58,29 +58,29 @@ function* _loadGit(action: Constants.LoadGit): Saga.SagaGenerator<any, any> {
 
     yield Saga.put(Entities.replaceEntity(['git'], I.Map({idToInfo: I.Map(idToInfo)})))
   } finally {
-    yield Saga.put(Creators.setLoading(false))
+    yield Saga.put(GitGen.createSetLoading({loading: false}))
   }
 }
 
 // reset errors and set loading, make a call and either go back to the root or show an error
 function* _createDeleteHelper(theCall: *) {
-  yield Saga.put.resolve(Creators.setError(null))
-  yield Saga.put.resolve(Creators.setLoading(true))
+  yield Saga.put.resolve(GitGen.createSetError({error: null}))
+  yield Saga.put.resolve(GitGen.createSetLoading({loading: true}))
   try {
     yield theCall
     yield Saga.put(navigateTo(isMobile ? [Tabs.settingsTab, SettingsConstants.gitTab] : [Tabs.gitTab], []))
-    yield Saga.put.resolve(Creators.setLoading(false))
-    yield Saga.put(Creators.loadGit())
+    yield Saga.put.resolve(GitGen.createSetLoading({loading: false}))
+    yield Saga.put(GitGen.createLoadGit())
   } catch (err) {
-    yield Saga.put(Creators.setError(err))
-    yield Saga.put.resolve(Creators.setLoading(false))
+    yield Saga.put(GitGen.createSetError({error: err}))
+    yield Saga.put.resolve(GitGen.createSetLoading({loading: false}))
   } finally {
     // just in case
-    yield Saga.put.resolve(Creators.setLoading(false))
+    yield Saga.put.resolve(GitGen.createSetLoading({loading: false}))
   }
 }
 
-function* _createPersonalRepo(action: Constants.CreatePersonalRepo): Saga.SagaGenerator<any, any> {
+function* _createPersonalRepo(action: GitGen.CreatePersonalRepoPayload): Saga.SagaGenerator<any, any> {
   yield Saga.call(
     _createDeleteHelper,
     Saga.call(RPCTypes.gitCreatePersonalRepoRpcPromise, {
@@ -91,7 +91,7 @@ function* _createPersonalRepo(action: Constants.CreatePersonalRepo): Saga.SagaGe
   )
 }
 
-function* _createTeamRepo(action: Constants.CreateTeamRepo): Saga.SagaGenerator<any, any> {
+function* _createTeamRepo(action: GitGen.CreateTeamRepoPayload): Saga.SagaGenerator<any, any> {
   yield Saga.call(
     _createDeleteHelper,
     Saga.call(RPCTypes.gitCreateTeamRepoRpcPromise, {
@@ -106,7 +106,7 @@ function* _createTeamRepo(action: Constants.CreateTeamRepo): Saga.SagaGenerator<
   )
 }
 
-function* _deletePersonalRepo(action: Constants.DeletePersonalRepo): Saga.SagaGenerator<any, any> {
+function* _deletePersonalRepo(action: GitGen.DeletePersonalRepoPayload): Saga.SagaGenerator<any, any> {
   yield Saga.call(
     _createDeleteHelper,
     Saga.call(RPCTypes.gitDeletePersonalRepoRpcPromise, {
@@ -117,7 +117,7 @@ function* _deletePersonalRepo(action: Constants.DeletePersonalRepo): Saga.SagaGe
   )
 }
 
-function* _deleteTeamRepo(action: Constants.DeleteTeamRepo): Saga.SagaGenerator<any, any> {
+function* _deleteTeamRepo(action: GitGen.DeleteTeamRepoPayload): Saga.SagaGenerator<any, any> {
   yield Saga.call(
     _createDeleteHelper,
     Saga.call(RPCTypes.gitDeleteTeamRepoRpcPromise, {
@@ -132,15 +132,15 @@ function* _deleteTeamRepo(action: Constants.DeleteTeamRepo): Saga.SagaGenerator<
   )
 }
 
-function* _setLoading(action: Constants.SetLoading): Saga.SagaGenerator<any, any> {
+function* _setLoading(action: GitGen.SetLoadingPayload): Saga.SagaGenerator<any, any> {
   yield Saga.put(Entities.replaceEntity(['git'], I.Map([['loading', action.payload.loading]])))
 }
 
-function* _setError(action: Constants.SetError): Saga.SagaGenerator<any, any> {
-  yield Saga.put(Entities.replaceEntity(['git'], I.Map([['error', action.payload.gitError]])))
+function* _setError(action: GitGen.SetErrorPayload): Saga.SagaGenerator<any, any> {
+  yield Saga.put(Entities.replaceEntity(['git'], I.Map([['error', action.payload.error]])))
 }
 
-const _badgeAppForGit = (action: Constants.BadgeAppForGit) =>
+const _badgeAppForGit = (action: GitGen.BadgeAppForGitPayload) =>
   Saga.put(Entities.replaceEntity(['git'], I.Map([['isNew', I.Set(action.payload.ids)]])))
 
 let _wasOnGitTab = false
@@ -164,12 +164,12 @@ const _onTabChange = (action: RouteTreeConstants.SwitchTo) => {
   return null
 }
 
-function* _handleIncomingGregor(action: Constants.HandleIncomingGregor): Saga.SagaGenerator<any, any> {
+function* _handleIncomingGregor(action: GitGen.HandleIncomingGregorPayload): Saga.SagaGenerator<any, any> {
   const msgs = action.payload.messages.map(msg => JSON.parse(msg.body))
   for (let body of msgs) {
     const needsLoad = ['delete', 'create', 'update'].includes(body.action)
     if (needsLoad) {
-      yield Saga.put(Creators.loadGit())
+      yield Saga.put(GitGen.createLoadGit())
       return // Note: remove (or replace with `continue`) if any other actions may need dispatching
     }
   }

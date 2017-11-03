@@ -1,7 +1,8 @@
 // @flow
-import * as Constants from '../constants/gregor'
-import * as GregorGen from './gregor-gen'
 import * as ConfigGen from './config-gen'
+import * as Constants from '../constants/gregor'
+import * as GitGen from './git-gen'
+import * as GregorGen from './gregor-gen'
 import * as I from 'immutable'
 import engine from '../engine'
 import {
@@ -24,7 +25,6 @@ import {type SagaGenerator} from '../constants/types/saga'
 import {type State as GregorState, type OutOfBandMessage} from '../constants/types/flow-types-gregor'
 import {type TypedState} from '../constants/reducer'
 import {usernameSelector, loggedInSelector} from '../constants/selectors'
-import {handleIncomingGregor as gitHandleIncomingGregor} from './git/creators'
 
 function pushOOBM(messages: Array<OutOfBandMessage>): Constants.PushOOBM {
   return {type: Constants.pushOOBM, payload: {messages}}
@@ -198,7 +198,7 @@ function* handlePushOOBM(pushOOBM: Constants.PushOOBM) {
     // Filter first so we don't dispatch unnecessary actions
     const gitMessages = messages.filter(i => i.system === 'git')
     if (gitMessages.length > 0) {
-      yield put(gitHandleIncomingGregor(gitMessages))
+      yield put(GitGen.createHandleIncomingGregor({messages: gitMessages}))
     }
 
     yield call(handleKbfsFavoritesOOBM, messages.filter(i => i.system === 'kbfs.favorites'))

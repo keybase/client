@@ -11,7 +11,7 @@ export default function(state: Constants.State = initialState, action: EngineGen
     case EngineGen.waitingForRpc:
       const payload = action.payload
       return state.update('rpcWaitingStates', waitingStates =>
-        waitingStates.set(payload.rpcName, payload.waiting)
+        waitingStates.set(payload.name, payload.waiting)
       )
   }
 
