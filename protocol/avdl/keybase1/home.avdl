@@ -16,6 +16,7 @@ protocol home {
   }
 
   enum HomeScreenTodoType {
+    NONE_0,
     BIO_1,
     PROOF_2,
     DEVICE_3,
@@ -54,12 +55,12 @@ protocol home {
 
   record HomeScreenItem {
     boolean badged;
-    HomeScreenItemID id;
     HomeScreenItemData data;
   }
 
   record HomeScreen {
     Time lastViewed;
+    int version;
     array<HomeScreenItem> items;
     array<UserSummary> followSuggestions;
   }

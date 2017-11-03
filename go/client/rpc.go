@@ -362,3 +362,12 @@ func GetGitClient(g *libkb.GlobalContext) (cli keybase1.GitClient, err error) {
 	cli = keybase1.GitClient{Cli: rcli}
 	return cli, nil
 }
+
+func GetHomeClient(g *libkb.GlobalContext) (cli keybase1.HomeClient, err error) {
+	rcli, _, err := GetRPCClientWithContext(g)
+	if err != nil {
+		return cli, err
+	}
+	cli = keybase1.HomeClient{Cli: rcli}
+	return cli, nil
+}
