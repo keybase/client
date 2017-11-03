@@ -58,7 +58,7 @@ if [%UpdateChannel%] == [SmokeCI] (
 
 :done_ci 
 
-for /F delims^=^"^ tokens^=2 %x in ('findstr /C:"Version = " %GOPATH%\src\github.com\keybase\client\go\libkb\version.go') do set LIBKB_VER=%x
+for /F delims^=^"^ tokens^=2 %%x in ('findstr /C:"Version = " %GOPATH%\src\github.com\keybase\client\go\libkb\version.go') do set LIBKB_VER=%%x
 
 :: release
 pushd %GOPATH%\src\github.com\keybase\release
