@@ -353,17 +353,17 @@ function* _incomingMessage(action: ChatGen.IncomingMessagePayload): Saga.SagaGen
                 })
               )
             }
-          } else {
-            yield Saga.put(
-              Creators.appendMessages(
-                conversationIDKey,
-                conversationIDKey === selectedConversationIDKey,
-                appFocused,
-                [message],
-                svcShouldDisplayNotification
-              )
-            )
           }
+        } else {
+          yield Saga.put(
+            Creators.appendMessages(
+              conversationIDKey,
+              conversationIDKey === selectedConversationIDKey,
+              appFocused,
+              [message],
+              svcShouldDisplayNotification
+            )
+          )
         }
       }
       break
