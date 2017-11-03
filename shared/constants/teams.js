@@ -273,7 +273,7 @@ const getYourRoleFromConvID = (state: TypedState, conversationIDKey: ChatConstan
 const isAdmin = (type: TeamRoleType) => type === 'admin'
 const isOwner = (type: TeamRoleType) => type === 'owner'
 
-export const getFollowingMap = ChatConstants.getFollowingMap
+export const getFollowingMap = (state: TypedState) => state.config.following
 export const getFollowerMap = (state: TypedState) => state.config.followers
 
 export {

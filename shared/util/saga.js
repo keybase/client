@@ -211,11 +211,36 @@ function safeTakeSerially(pattern: string | Array<any> | Function, worker: Funct
   })
 }
 
-export type {SagaGenerator}
+// If you `yield identity(x)` you get x back
+function identity<X>(x: X) {
+  return call(() => x)
+}
+
+// these should be opaue types, but eslint doesn't support that yet
+type Ok<X> = {type: 'ok', payload: X}
+type Err<E> = {type: 'err', payload: E}
+type Result<X, E> = Ok<X> | Err<E>
+
+// TODO this doesn't type as well as it could
+function callAndWrap<X, Args, F: (...args: Args) => X, E>(fn: F, ...args: Args): Result<X, E> {
+  const wrapper = function*() {
+    try {
+      const result = yield call(fn, ...args)
+      return {type: 'ok', payload: result}
+    } catch (error) {
+      return {type: 'err', payload: error}
+    }
+  }
+
+  return call(wrapper)
+}
+
+export type {SagaGenerator, Ok, Err, Result}
 
 export {
   all,
   call,
+  callAndWrap,
   cancel,
   cancelWhen,
   cancelled,
@@ -224,6 +249,7 @@ export {
   delay,
   effectOnChannelMap,
   fork,
+  identity,
   mapSagasToChanMap,
   put,
   putOnChannelMap,

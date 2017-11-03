@@ -8,10 +8,17 @@ import {connect, type TypedState} from '../../util/container'
 import {updateChannelName, updateTopic, deleteChannel} from '../../actions/teams/creators'
 import {navigateTo} from '../../actions/route-tree'
 import {teamsTab} from '../../constants/tabs'
+import {anyWaiting} from '../../constants/waiting'
 
 const mapStateToProps = (state: TypedState, {navigateUp, routePath, routeProps}) => {
   const conversationIDKey = routeProps.get('conversationIDKey') || ''
   const teamname = Constants.getTeamNameFromConvID(state, conversationIDKey) || ''
+  const waitingForSave = anyWaiting(
+    state,
+    `updateTopic:${conversationIDKey}`,
+    `updateChannelName:${conversationIDKey}`,
+    `getChannels:${teamname}`
+  )
   const channelName = Constants.getChannelNameFromConvID(state, conversationIDKey) || ''
   const topic = Constants.getTopicFromConvID(state, conversationIDKey) || ''
   const yourRole = Constants.getYourRoleFromConvID(state, conversationIDKey) || 'reader'
@@ -22,6 +29,7 @@ const mapStateToProps = (state: TypedState, {navigateUp, routePath, routeProps})
     channelName,
     topic,
     canDelete,
+    waitingForSave,
   }
 }
 
@@ -41,8 +49,6 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routePath, routePro
 }
 
 const mergeProps = (stateProps, dispatchProps, {routeState}) => {
-  const waitingForSave = routeState.get('waitingForSave')
-
   const deleteRenameDisabled = stateProps.channelName === 'general'
   return {
     teamname: stateProps.teamname,
@@ -65,7 +71,7 @@ const mergeProps = (stateProps, dispatchProps, {routeState}) => {
         dispatchProps._updateTopic(newTopic)
       }
     },
-    waitingForSave: waitingForSave > 0,
+    waitingForSave: stateProps.waitingForSave,
   }
 }
 const ConnectedEditChannel: React.ComponentType<{
