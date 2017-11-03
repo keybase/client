@@ -26,6 +26,18 @@ protocol local {
     string headline;
   }
 
+  enum MessageSystemTypes {
+    ADDEDTOTEAM_0,
+    INVITEADDEDTOTEAM_1
+  }
+
+  record MessageSystem {
+    string text;
+    // We put these in here since we might want to generate notifications for people without
+    ChannelMention chanMention;
+    array<string> atMentions;
+  }
+
   record AssetMetadataImage {
     int width;
     int height;
