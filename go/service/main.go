@@ -299,6 +299,7 @@ func (d *Service) RunBackgroundOperations(uir *UIRouter) {
 	// backgrounded.
 	d.tryLogin()
 	d.hourlyChecks()
+	d.slowChecks()
 	d.createChatModules()
 	d.startupGregor()
 	d.startChatModules()
