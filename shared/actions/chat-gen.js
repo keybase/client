@@ -5,6 +5,7 @@
 
 import {type PayloadType, type ReturnType} from '../constants/types/more'
 import * as Constants from '../constants/chat'
+import * as TeamConstants from '../constants/teams'
 import * as RPCTypes from '../constants/types/flow-types'
 import * as ChatTypes from '../constants/types/flow-types-chat'
 import * as I from 'immutable'
@@ -42,6 +43,7 @@ export const newChat = 'chat:newChat'
 export const openAttachmentPopup = 'chat:openAttachmentPopup'
 export const openConversation = 'chat:openConversation'
 export const openFolder = 'chat:openFolder'
+export const openTeamConversation = 'chat:openTeamConversation'
 export const openTlfInChat = 'chat:openTlfInChat'
 export const outboxMessageBecameReal = 'chat:outboxMessageBecameReal'
 export const pendingToRealConversation = 'chat:pendingToRealConversation'
@@ -112,7 +114,8 @@ export const createNewChat = () => ({error: false, payload: undefined, type: new
 export const createOpenAttachmentPopup = (payload: {|message: Constants.AttachmentMessage, currentPath: Path|}) => ({error: false, payload, type: openAttachmentPopup})
 export const createOpenConversation = (payload: {|conversationIDKey: Constants.ConversationIDKey|}) => ({error: false, payload, type: openConversation})
 export const createOpenFolder = () => ({error: false, payload: undefined, type: openFolder})
-export const createOpenTlfInChat = (payload: {|tlf: string|}) => ({error: false, payload, type: openTlfInChat})
+export const createOpenTeamConversation = (payload: {|teamname: TeamConstants.TeamName, channelname: string|}) => ({error: false, payload, type: openTeamConversation})
+export const createOpenTlfInChat = (payload: {|tlf: string, isTeam?: boolean|}) => ({error: false, payload, type: openTlfInChat})
 export const createOutboxMessageBecameReal = (payload: {|oldMessageKey: Constants.MessageKey, newMessageKey: Constants.MessageKey|}) => ({error: false, payload, type: outboxMessageBecameReal})
 export const createPendingToRealConversation = (payload: {|oldKey: Constants.ConversationIDKey, newKey: Constants.ConversationIDKey|}) => ({error: false, payload, type: pendingToRealConversation})
 export const createRemoveOutboxMessage = (payload: {|conversationIDKey: Constants.ConversationIDKey, outboxID: Constants.OutboxIDKey|}) => ({error: false, payload, type: removeOutboxMessage})
@@ -182,6 +185,7 @@ export type NewChatPayload = ReturnType<typeof createNewChat>
 export type OpenAttachmentPopupPayload = ReturnType<typeof createOpenAttachmentPopup>
 export type OpenConversationPayload = ReturnType<typeof createOpenConversation>
 export type OpenFolderPayload = ReturnType<typeof createOpenFolder>
+export type OpenTeamConversationPayload = ReturnType<typeof createOpenTeamConversation>
 export type OpenTlfInChatPayload = ReturnType<typeof createOpenTlfInChat>
 export type OutboxMessageBecameRealPayload = ReturnType<typeof createOutboxMessageBecameReal>
 export type PendingToRealConversationPayload = ReturnType<typeof createPendingToRealConversation>
@@ -254,6 +258,7 @@ export type Actions =
   | ReturnType<typeof createOpenAttachmentPopup>
   | ReturnType<typeof createOpenConversation>
   | ReturnType<typeof createOpenFolder>
+  | ReturnType<typeof createOpenTeamConversation>
   | ReturnType<typeof createOpenTlfInChat>
   | ReturnType<typeof createOutboxMessageBecameReal>
   | ReturnType<typeof createPendingToRealConversation>

@@ -107,6 +107,10 @@ function* _selectConversation(action: ChatGen.SelectConversationPayload): Saga.S
   }
 }
 
+const _openTeamConversation = function*(action: ChatGen.OpenTeamConversationPayload) {
+  const {payload: {teamname, channelname}} = action
+}
+
 const _setNotifications = function*(
   action:
     | ChatGen.SetNotificationsPayload

@@ -12,7 +12,6 @@ import * as Search from './search'
 import * as Selectors from '../../constants/selectors'
 import * as SendMessages from './send-messages'
 import * as ThreadContent from './thread-content'
-import {Set} from 'immutable'
 import engine from '../../engine'
 import some from 'lodash/some'
 import {openInKBFS} from '../kbfs'
@@ -93,7 +92,11 @@ function* _setupChatHandlers(): Saga.SagaGenerator<any, any> {
 }
 
 function* _openTlfInChat(action: ChatGen.OpenTlfInChatPayload): Saga.SagaGenerator<any, any> {
-  const tlf = action.payload.tlf
+  const {payload: {tlf, isTeam}} = action
+  if (isTeam) {
+    yield Saga.put(ChatGen.createOpenTeamConversation({teamname: tld, channelname: 'general'}))
+    return
+  }
   const me = yield Saga.select(Selectors.usernameSelector)
   const userlist = parseFolderNameToUsers(me, tlf)
   const users = userlist.map(u => u.username)
@@ -101,17 +104,6 @@ function* _openTlfInChat(action: ChatGen.OpenTlfInChatPayload): Saga.SagaGenerat
     console.warn('Bug: openTlfToChat should never be called on a convo with readOnly members.')
     return
   }
-
-  if (users.length === 1) {
-    // Check if this is a
-    const maybeTeamname = users[0]
-    const state = yield Saga.select()
-    const teams = state.entities.getIn(['teams', 'teamnames'], Set())
-    if (teams.includes(maybeTeamname)) {
-      // TODO open team/channel in chat action
-    }
-  }
-
   yield Saga.put(Creators.startConversation(users))
 }
 

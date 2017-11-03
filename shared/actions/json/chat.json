@@ -1,6 +1,7 @@
 {
   "prelude": [
     "import * as Constants from '../constants/chat'",
+    "import * as TeamConstants from '../constants/teams'",
     "import * as RPCTypes from '../constants/types/flow-types'",
     "import * as ChatTypes from '../constants/types/flow-types-chat'",
     "import * as I from 'immutable'",
@@ -41,7 +42,8 @@
     },
     "openFolder": {},
     "openTlfInChat": {
-      "tlf": "string"
+      "tlf": "string",
+      "isTeam?": "boolean"
     },
     "newChat": {},
     "setupChatHandlers": {},
@@ -145,6 +147,10 @@
     },
     "openConversation": {
       "conversationIDKey": "Constants.ConversationIDKey"
+    },
+    "openTeamConversation": {
+      "teamname": "TeamConstants.TeamName",
+      "channelname": "string"
     },
     "openAttachmentPopup": {
       "message": "Constants.AttachmentMessage",

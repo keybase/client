@@ -21,7 +21,7 @@ const mapStateToProps = (state: TypedState, {routeState, selected}: OwnProps) =>
 
 const mapDispatchToProps = (dispatch: any, {routePath, routeState, setRouteState}: OwnProps) => ({
   favoriteList: () => dispatch(favoriteList()),
-  onChat: tlf => dispatch(createOpenTlfInChat({tlf})),
+  onChat: (tlf, isTeam?) => dispatch(createOpenTlfInChat({tlf, isTeam})),
   onClick: path => dispatch(navigateAppend([{props: {path}, selected: 'files'}])),
   onOpen: path => dispatch(openInKBFS(path)),
   onRekey: path => dispatch(navigateAppend([{props: {path}, selected: 'files'}])),
