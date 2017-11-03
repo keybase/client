@@ -10,7 +10,18 @@
       "type": "idl"
     }
   ],
-  "types": [],
+  "types": [
+    {
+      "type": "record",
+      "name": "GcOptions",
+      "fields": [
+        {
+          "type": "int",
+          "name": "maxLooseRefs"
+        }
+      ]
+    }
+  ],
   "messages": {
     "createRepo": {
       "request": [
@@ -39,6 +50,24 @@
       ],
       "response": null,
       "doc": "* deleteRepo deletes repo on KBFS under the given name in the given TLF."
+    },
+    "gc": {
+      "request": [
+        {
+          "name": "folder",
+          "type": "Folder"
+        },
+        {
+          "name": "name",
+          "type": "GitRepoName"
+        },
+        {
+          "name": "options",
+          "type": "GcOptions"
+        }
+      ],
+      "response": null,
+      "doc": "* gc runs garbage collection on the given repo, using the given options to\n   * see whether anything needs to be done."
     }
   },
   "namespace": "keybase.1"

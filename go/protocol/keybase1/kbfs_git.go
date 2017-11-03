@@ -8,6 +8,16 @@ import (
 	context "golang.org/x/net/context"
 )
 
+type GcOptions struct {
+	MaxLooseRefs int `codec:"maxLooseRefs" json:"maxLooseRefs"`
+}
+
+func (o GcOptions) DeepCopy() GcOptions {
+	return GcOptions{
+		MaxLooseRefs: o.MaxLooseRefs,
+	}
+}
+
 type CreateRepoArg struct {
 	Folder Folder      `codec:"folder" json:"folder"`
 	Name   GitRepoName `codec:"name" json:"name"`
@@ -32,12 +42,29 @@ func (o DeleteRepoArg) DeepCopy() DeleteRepoArg {
 	}
 }
 
+type GcArg struct {
+	Folder  Folder      `codec:"folder" json:"folder"`
+	Name    GitRepoName `codec:"name" json:"name"`
+	Options GcOptions   `codec:"options" json:"options"`
+}
+
+func (o GcArg) DeepCopy() GcArg {
+	return GcArg{
+		Folder:  o.Folder.DeepCopy(),
+		Name:    o.Name.DeepCopy(),
+		Options: o.Options.DeepCopy(),
+	}
+}
+
 type KBFSGitInterface interface {
 	// * createRepo creates a bare empty repo on KBFS under the given name in the given TLF.
 	// * It returns the ID of the repo created.
 	CreateRepo(context.Context, CreateRepoArg) (RepoID, error)
 	// * deleteRepo deletes repo on KBFS under the given name in the given TLF.
 	DeleteRepo(context.Context, DeleteRepoArg) error
+	// * gc runs garbage collection on the given repo, using the given options to
+	// * see whether anything needs to be done.
+	Gc(context.Context, GcArg) error
 }
 
 func KBFSGitProtocol(i KBFSGitInterface) rpc.Protocol {
@@ -76,6 +103,22 @@ func KBFSGitProtocol(i KBFSGitInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"gc": {
+				MakeArg: func() interface{} {
+					ret := make([]GcArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]GcArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]GcArg)(nil), args)
+						return
+					}
+					err = i.Gc(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 		},
 	}
 }
@@ -94,5 +137,12 @@ func (c KBFSGitClient) CreateRepo(ctx context.Context, __arg CreateRepoArg) (res
 // * deleteRepo deletes repo on KBFS under the given name in the given TLF.
 func (c KBFSGitClient) DeleteRepo(ctx context.Context, __arg DeleteRepoArg) (err error) {
 	err = c.Cli.Call(ctx, "keybase.1.KBFSGit.deleteRepo", []interface{}{__arg}, nil)
+	return
+}
+
+// * gc runs garbage collection on the given repo, using the given options to
+// * see whether anything needs to be done.
+func (c KBFSGitClient) Gc(ctx context.Context, __arg GcArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.KBFSGit.gc", []interface{}{__arg}, nil)
 	return
 }
