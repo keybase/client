@@ -100,6 +100,7 @@ export type FavoriteAction =
   | FavoriteSwitchTab
   | FavoriteToggleIgnored
   | KbfsStatusUpdated
+  | MarkTLFCreated
 
 // Sometimes we have paths that are just private/foo instead of /keybase/private/foo
 function canonicalizeTLF(tlf: string): string {

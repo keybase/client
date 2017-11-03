@@ -57,7 +57,9 @@ function compileAllActionsType(ns: ActionNS, actions: Actions): string {
     .join('\n  | ')
   return `// prettier-ignore
 export type Actions =
-  | ${actionsTypes}`
+  | ${actionsTypes}
+  | {type: 'common:resetStore', payload: undefined}
+`
 }
 
 function compileActions(ns: ActionNS, actions: Actions, compileActionFn: CompileActionFn): string {

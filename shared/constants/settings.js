@@ -64,6 +64,9 @@ export type State = {
   passphrase: PassphraseState,
 }
 
+export const invitesClearError = 'settings:invitesClearError'
+export type InvitesClearError = NoErrorTypedAction<'settings:invitesClearError', void>
+
 export const invitesReclaim = 'settings:invitesReclaim'
 export type InvitesReclaim = NoErrorTypedAction<'settings:invitesReclaim', {inviteId: string}>
 
@@ -152,6 +155,7 @@ export const loadSettings = 'settings:loadSettings'
 export type LoadSettings = NoErrorTypedAction<'settings:loadSettings', void>
 
 export const loadedSettings = 'settings:loadedSettings'
+export type LoadedSettings = NoErrorTypedAction<'settings:loadedSettings', void>
 
 type LandingTab = 'settingsTabs:landingTab'
 export const landingTab = 'settingsTabs:landingTab'
@@ -198,16 +202,9 @@ export type Tab =
   | ScreenprotectorTab
   | PassphraseTab
 
-export type Actions =
-  | InvitesRefresh
-  | NotificationsRefresh
-  | NotificationsRefreshed
-  | NotificationsSaved
-  | NotificationsToggle
-  | SetAllowDeleteAccount
-
 export const waitingForResponse = 'settings:waitingForResponse'
-export function waiting(waiting: boolean): TypedAction<'settings:waitingForResponse', boolean, void> {
+export type WaitingForResponse = TypedAction<'settings:waitingForResponse', boolean, void>
+export function waiting(waiting: boolean): WaitingForResponse {
   return {
     type: 'settings:waitingForResponse',
     payload: waiting,
@@ -215,3 +212,20 @@ export function waiting(waiting: boolean): TypedAction<'settings:waitingForRespo
 }
 
 export const securityGroup = 'security'
+export type Actions =
+  | OnChangeNewPassphraseConfirm
+  | OnUpdatedPGPSettings
+  | OnUpdatePassphraseError
+  | OnUpdateEmailError
+  | OnChangeNewEmail
+  | LoadedSettings
+  | InvitesClearError
+  | InvitesSent
+  | InvitesRefresh
+  | InvitesRefreshed
+  | NotificationsRefresh
+  | NotificationsRefreshed
+  | NotificationsSaved
+  | NotificationsToggle
+  | SetAllowDeleteAccount
+  | WaitingForResponse
