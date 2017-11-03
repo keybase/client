@@ -268,7 +268,7 @@ func (u *CachedUPAKLoader) loadWithInfo(arg LoadUserArg, info *CachedUserLoadInf
 		if user != nil && err == nil {
 			// Update the full-self cacher after the lock is released, to avoid
 			// any circular locking.
-			if fs := u.G().GetFullSelfer(); fs != nil {
+			if fs := u.G().GetFullSelfer(); fs != nil && arg.self {
 				fs.Update(ctx, user)
 			}
 		}

@@ -599,6 +599,8 @@ type TeamLoader interface {
 	// Delete the cache entry. Does not error if there is no cache entry.
 	Delete(ctx context.Context, teamID keybase1.TeamID) error
 	OnLogout()
+	// Clear the in-memory cache. Does not affect the disk cache.
+	ClearMem()
 }
 
 type KVStoreContext interface {

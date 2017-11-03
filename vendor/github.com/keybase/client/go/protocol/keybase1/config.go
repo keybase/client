@@ -195,6 +195,7 @@ const (
 	ForkType_AUTO     ForkType = 1
 	ForkType_WATCHDOG ForkType = 2
 	ForkType_LAUNCHD  ForkType = 3
+	ForkType_SYSTEMD  ForkType = 4
 )
 
 func (o ForkType) DeepCopy() ForkType { return o }
@@ -204,6 +205,7 @@ var ForkTypeMap = map[string]ForkType{
 	"AUTO":     1,
 	"WATCHDOG": 2,
 	"LAUNCHD":  3,
+	"SYSTEMD":  4,
 }
 
 var ForkTypeRevMap = map[ForkType]string{
@@ -211,6 +213,7 @@ var ForkTypeRevMap = map[ForkType]string{
 	1: "AUTO",
 	2: "WATCHDOG",
 	3: "LAUNCHD",
+	4: "SYSTEMD",
 }
 
 func (e ForkType) String() string {

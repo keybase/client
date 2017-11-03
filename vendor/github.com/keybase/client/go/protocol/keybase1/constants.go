@@ -58,6 +58,7 @@ const (
 	StatusCode_SCKeySyncedPGPNotFound      StatusCode = 929
 	StatusCode_SCKeyNoMatchingGPG          StatusCode = 930
 	StatusCode_SCKeyRevoked                StatusCode = 931
+	StatusCode_SCSigOldSeqno               StatusCode = 1010
 	StatusCode_SCBadTrackSession           StatusCode = 1301
 	StatusCode_SCDeviceBadName             StatusCode = 1404
 	StatusCode_SCDeviceNameInUse           StatusCode = 1408
@@ -201,6 +202,7 @@ var StatusCodeMap = map[string]StatusCode{
 	"SCKeySyncedPGPNotFound":      929,
 	"SCKeyNoMatchingGPG":          930,
 	"SCKeyRevoked":                931,
+	"SCSigOldSeqno":               1010,
 	"SCBadTrackSession":           1301,
 	"SCDeviceBadName":             1404,
 	"SCDeviceNameInUse":           1408,
@@ -342,6 +344,7 @@ var StatusCodeRevMap = map[StatusCode]string{
 	929:  "SCKeySyncedPGPNotFound",
 	930:  "SCKeyNoMatchingGPG",
 	931:  "SCKeyRevoked",
+	1010: "SCSigOldSeqno",
 	1301: "SCBadTrackSession",
 	1404: "SCDeviceBadName",
 	1408: "SCDeviceNameInUse",

@@ -76,6 +76,7 @@ type UnverifiedInboxUIItem struct {
 	Notifications *ConversationNotificationInfo  `codec:"notifications,omitempty" json:"notifications,omitempty"`
 	Time          gregor1.Time                   `codec:"time" json:"time"`
 	Version       ConversationVers               `codec:"version" json:"version"`
+	MaxMsgID      MessageID                      `codec:"maxMsgID" json:"maxMsgID"`
 	LocalMetadata *UnverifiedInboxUIItemMetadata `codec:"localMetadata,omitempty" json:"localMetadata,omitempty"`
 }
 
@@ -95,8 +96,9 @@ func (o UnverifiedInboxUIItem) DeepCopy() UnverifiedInboxUIItem {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.Notifications),
-		Time:    o.Time.DeepCopy(),
-		Version: o.Version.DeepCopy(),
+		Time:     o.Time.DeepCopy(),
+		Version:  o.Version.DeepCopy(),
+		MaxMsgID: o.MaxMsgID.DeepCopy(),
 		LocalMetadata: (func(x *UnverifiedInboxUIItemMetadata) *UnverifiedInboxUIItemMetadata {
 			if x == nil {
 				return nil
@@ -146,6 +148,7 @@ type InboxUIItem struct {
 	Headline          string                        `codec:"headline" json:"headline"`
 	Visibility        keybase1.TLFVisibility        `codec:"visibility" json:"visibility"`
 	Participants      []string                      `codec:"participants" json:"participants"`
+	FullNames         map[string]string             `codec:"fullNames" json:"fullNames"`
 	ResetParticipants []string                      `codec:"resetParticipants" json:"resetParticipants"`
 	Status            ConversationStatus            `codec:"status" json:"status"`
 	MembersType       ConversationMembersType       `codec:"membersType" json:"membersType"`
@@ -155,6 +158,7 @@ type InboxUIItem struct {
 	Notifications     *ConversationNotificationInfo `codec:"notifications,omitempty" json:"notifications,omitempty"`
 	CreatorInfo       *ConversationCreatorInfoLocal `codec:"creatorInfo,omitempty" json:"creatorInfo,omitempty"`
 	Version           ConversationVers              `codec:"version" json:"version"`
+	MaxMsgID          MessageID                     `codec:"maxMsgID" json:"maxMsgID"`
 	FinalizeInfo      *ConversationFinalizeInfo     `codec:"finalizeInfo,omitempty" json:"finalizeInfo,omitempty"`
 	Supersedes        []ConversationMetadata        `codec:"supersedes" json:"supersedes"`
 	SupersededBy      []ConversationMetadata        `codec:"supersededBy" json:"supersededBy"`
@@ -180,6 +184,18 @@ func (o InboxUIItem) DeepCopy() InboxUIItem {
 			}
 			return ret
 		})(o.Participants),
+		FullNames: (func(x map[string]string) map[string]string {
+			if x == nil {
+				return nil
+			}
+			ret := make(map[string]string)
+			for k, v := range x {
+				kCopy := k
+				vCopy := v
+				ret[kCopy] = vCopy
+			}
+			return ret
+		})(o.FullNames),
 		ResetParticipants: (func(x []string) []string {
 			if x == nil {
 				return nil
@@ -210,7 +226,8 @@ func (o InboxUIItem) DeepCopy() InboxUIItem {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.CreatorInfo),
-		Version: o.Version.DeepCopy(),
+		Version:  o.Version.DeepCopy(),
+		MaxMsgID: o.MaxMsgID.DeepCopy(),
 		FinalizeInfo: (func(x *ConversationFinalizeInfo) *ConversationFinalizeInfo {
 			if x == nil {
 				return nil
@@ -285,6 +302,7 @@ type UIMessageValid struct {
 	SenderDeviceRevokedAt *gregor1.Time  `codec:"senderDeviceRevokedAt,omitempty" json:"senderDeviceRevokedAt,omitempty"`
 	AtMentions            []string       `codec:"atMentions" json:"atMentions"`
 	ChannelMention        ChannelMention `codec:"channelMention" json:"channelMention"`
+	ChannelNameMentions   []string       `codec:"channelNameMentions" json:"channelNameMentions"`
 }
 
 func (o UIMessageValid) DeepCopy() UIMessageValid {
@@ -322,6 +340,17 @@ func (o UIMessageValid) DeepCopy() UIMessageValid {
 			return ret
 		})(o.AtMentions),
 		ChannelMention: o.ChannelMention.DeepCopy(),
+		ChannelNameMentions: (func(x []string) []string {
+			if x == nil {
+				return nil
+			}
+			var ret []string
+			for _, v := range x {
+				vCopy := v
+				ret = append(ret, vCopy)
+			}
+			return ret
+		})(o.ChannelNameMentions),
 	}
 }
 
@@ -658,14 +687,14 @@ func (o ChatInboxUnverifiedArg) DeepCopy() ChatInboxUnverifiedArg {
 }
 
 type ChatInboxConversationArg struct {
-	SessionID int         `codec:"sessionID" json:"sessionID"`
-	Conv      InboxUIItem `codec:"conv" json:"conv"`
+	SessionID int    `codec:"sessionID" json:"sessionID"`
+	Conv      string `codec:"conv" json:"conv"`
 }
 
 func (o ChatInboxConversationArg) DeepCopy() ChatInboxConversationArg {
 	return ChatInboxConversationArg{
 		SessionID: o.SessionID,
-		Conv:      o.Conv.DeepCopy(),
+		Conv:      o.Conv,
 	}
 }
 

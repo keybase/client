@@ -30,7 +30,14 @@ const (
 	SigchainV2TypePGPUpdate                   SigchainV2Type = 13
 	SigchainV2TypePerUserKey                  SigchainV2Type = 14
 
-	// teams link types
+	// Team link types
+	// If you add a new one be sure to get all of these too:
+	// - A corresponding libkb.LinkType in constants.go
+	// - SigchainV2TypeFromV1TypeTeams
+	// - SigChainV2Type.IsTeamType
+	// - SigChainV2Type.RequiresAdminPermission
+	// - SigChainV2Type.TeamAllowStub
+	// - TeamSigChainPlayer.addInnerLink (add a case)
 	SigchainV2TypeTeamRoot             SigchainV2Type = 33
 	SigchainV2TypeTeamNewSubteam       SigchainV2Type = 34
 	SigchainV2TypeTeamChangeMembership SigchainV2Type = 35
@@ -56,6 +63,7 @@ func (t SigchainV2Type) NeedsSignature() bool {
 	}
 }
 
+// Whether a type is for team sigchains.
 func (t SigchainV2Type) IsTeamType() bool {
 	switch t {
 	case SigchainV2TypeTeamRoot,
@@ -67,10 +75,29 @@ func (t SigchainV2Type) IsTeamType() bool {
 		SigchainV2TypeTeamRenameSubteam,
 		SigchainV2TypeTeamInvite,
 		SigchainV2TypeTeamRenameUpPointer,
+		SigchainV2TypeTeamDeleteRoot,
+		SigchainV2TypeTeamDeleteSubteam,
+		SigchainV2TypeTeamDeleteUpPointer,
+		SigchainV2TypeTeamLegacyTLFUpgrade,
 		SigchainV2TypeTeamSettings:
 		return true
 	default:
 		return false
+	}
+}
+
+func (t SigchainV2Type) RequiresAdminPermission() bool {
+	if !t.IsTeamType() {
+		return false
+	}
+	switch t {
+	case SigchainV2TypeTeamRoot,
+		SigchainV2TypeTeamRotateKey,
+		SigchainV2TypeTeamLeave,
+		SigchainV2TypeTeamLegacyTLFUpgrade:
+		return false
+	default:
+		return true
 	}
 }
 
@@ -82,47 +109,35 @@ func (t SigchainV2Type) TeamAllowStubWithAdminFlag(isAdmin bool) bool {
 	return t.TeamAllowStub(role)
 }
 
-func (t SigchainV2Type) RequiresAdminPermission() bool {
-	if !t.IsTeamType() {
+// Whether the type can be stubbed for a team member with role
+func (t SigchainV2Type) TeamAllowStub(role keybase1.TeamRole) bool {
+	if role.IsAdminOrAbove() {
+		// Links cannot be stubbed for owners and admins
 		return false
 	}
 	switch t {
-	case SigchainV2TypeTeamLeave, SigchainV2TypeTeamRotateKey, SigchainV2TypeTeamRoot:
-		return false
-	default:
+	case SigchainV2TypeTeamNewSubteam,
+		SigchainV2TypeTeamRenameSubteam,
+		SigchainV2TypeTeamDeleteSubteam,
+		SigchainV2TypeTeamInvite:
 		return true
-	}
-}
-
-// whether the type can be stubbed for a team member with role
-func (t SigchainV2Type) TeamAllowStub(role keybase1.TeamRole) bool {
-	switch role {
-	case keybase1.TeamRole_OWNER:
+	default:
+		// Disallow stubbing of other including unknown links
+		// TODO CORE-6274 allow stubbing of unknown types
 		return false
-	case keybase1.TeamRole_ADMIN:
-		return false
-	case keybase1.TeamRole_NONE, keybase1.TeamRole_READER, keybase1.TeamRole_WRITER:
-		switch t {
-		case SigchainV2TypeTeamNewSubteam, SigchainV2TypeTeamRenameSubteam, SigchainV2TypeTeamDeleteSubteam, SigchainV2TypeTeamInvite:
-			return true
-		default:
-			// disallow stubbing of other including unknown links
-			return false
-		}
 	}
-	// Should never happen. Just disallow stubs.
-	return false
 }
 
 // OuterLinkV2 is the second version of Keybase sigchain signatures.
 type OuterLinkV2 struct {
-	_struct  bool             `codec:",toarray"`
-	Version  int              `codec:"version"`
-	Seqno    keybase1.Seqno   `codec:"seqno"`
-	Prev     LinkID           `codec:"prev"`
-	Curr     LinkID           `codec:"curr"`
-	LinkType SigchainV2Type   `codec:"type"`
-	SeqType  keybase1.SeqType `codec:"seqtype"`
+	_struct  bool           `codec:",toarray"`
+	Version  int            `codec:"version"`
+	Seqno    keybase1.Seqno `codec:"seqno"`
+	Prev     LinkID         `codec:"prev"`
+	Curr     LinkID         `codec:"curr"`
+	LinkType SigchainV2Type `codec:"type"`
+	// -- Links exist in the wild that are missing fields below this line.
+	SeqType keybase1.SeqType `codec:"seqtype"`
 }
 
 type OuterLinkV2WithMetadata struct {
@@ -283,37 +298,50 @@ func SigchainV2TypeFromV1TypeTeams(s string) (ret SigchainV2Type, err error) {
 	return ret, err
 }
 
-func (o OuterLinkV2) AssertFields(v int, s keybase1.Seqno, p LinkID, c LinkID, t SigchainV2Type) (err error) {
+func (o OuterLinkV2) AssertFields(
+	version int,
+	seqno keybase1.Seqno,
+	prev LinkID,
+	curr LinkID,
+	linkType SigchainV2Type,
+	seqType keybase1.SeqType,
+) (err error) {
 	mkErr := func(format string, arg ...interface{}) error {
 		return SigchainV2MismatchedFieldError{fmt.Sprintf(format, arg...)}
 	}
-	if o.Version != v {
-		return mkErr("version field (%d != %d)", o.Version, v)
+	if o.Version != version {
+		return mkErr("version field (%d != %d)", o.Version, version)
 	}
-	if o.Seqno != s {
-		return mkErr("seqno field: (%d != %d)", o.Seqno, s)
+	if o.Seqno != seqno {
+		return mkErr("seqno field: (%d != %d)", o.Seqno, seqno)
 	}
-	if !o.Prev.Eq(p) {
-		return mkErr("prev pointer: (%s != !%s)", o.Prev, p)
+	if !o.Prev.Eq(prev) {
+		return mkErr("prev pointer: (%s != !%s)", o.Prev, prev)
 	}
-	if !o.Curr.Eq(c) {
-		return mkErr("curr pointer: (%s != %s)", o.Curr, c)
+	if !o.Curr.Eq(curr) {
+		return mkErr("curr pointer: (%s != %s)", o.Curr, curr)
 	}
-	if o.LinkType != t {
-		return mkErr("link type: (%d != %d)", o.LinkType, t)
+	if o.LinkType != linkType {
+		return mkErr("link type: (%d != %d)", o.LinkType, linkType)
+	}
+	if o.SeqType != seqType {
+		return mkErr("seq type: (%d != %d)", o.SeqType, seqType)
 	}
 	return nil
 }
 
-func (o OuterLinkV2) AssertSomeFields(v int, s keybase1.Seqno) (err error) {
+func (o OuterLinkV2) AssertSomeFields(
+	version int,
+	seqno keybase1.Seqno,
+) (err error) {
 	mkErr := func(format string, arg ...interface{}) error {
 		return SigchainV2MismatchedFieldError{fmt.Sprintf(format, arg...)}
 	}
-	if o.Version != v {
-		return mkErr("version field (%d != %d)", o.Version, v)
+	if o.Version != version {
+		return mkErr("version field (%d != %d)", o.Version, version)
 	}
-	if o.Seqno != s {
-		return mkErr("seqno field: (%d != %d)", o.Seqno, s)
+	if o.Seqno != seqno {
+		return mkErr("seqno field: (%d != %d)", o.Seqno, seqno)
 	}
 	return nil
 }

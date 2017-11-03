@@ -340,15 +340,17 @@ func (e ChannelMention) String() string {
 }
 
 type UnreadUpdateFull struct {
-	Ignore    bool           `codec:"ignore" json:"ignore"`
-	InboxVers InboxVers      `codec:"inboxVers" json:"inboxVers"`
-	Updates   []UnreadUpdate `codec:"updates" json:"updates"`
+	Ignore          bool             `codec:"ignore" json:"ignore"`
+	InboxVers       InboxVers        `codec:"inboxVers" json:"inboxVers"`
+	InboxSyncStatus SyncInboxResType `codec:"inboxSyncStatus" json:"inboxSyncStatus"`
+	Updates         []UnreadUpdate   `codec:"updates" json:"updates"`
 }
 
 func (o UnreadUpdateFull) DeepCopy() UnreadUpdateFull {
 	return UnreadUpdateFull{
-		Ignore:    o.Ignore,
-		InboxVers: o.InboxVers.DeepCopy(),
+		Ignore:          o.Ignore,
+		InboxVers:       o.InboxVers.DeepCopy(),
+		InboxSyncStatus: o.InboxSyncStatus.DeepCopy(),
 		Updates: (func(x []UnreadUpdate) []UnreadUpdate {
 			if x == nil {
 				return nil
@@ -487,6 +489,32 @@ func (o SyncChatRes) DeepCopy() SyncChatRes {
 		CacheVers: o.CacheVers.DeepCopy(),
 		InboxRes:  o.InboxRes.DeepCopy(),
 	}
+}
+
+type SyncAllProtVers int
+
+const (
+	SyncAllProtVers_V0 SyncAllProtVers = 0
+	SyncAllProtVers_V1 SyncAllProtVers = 1
+)
+
+func (o SyncAllProtVers) DeepCopy() SyncAllProtVers { return o }
+
+var SyncAllProtVersMap = map[string]SyncAllProtVers{
+	"V0": 0,
+	"V1": 1,
+}
+
+var SyncAllProtVersRevMap = map[SyncAllProtVers]string{
+	0: "V0",
+	1: "V1",
+}
+
+func (e SyncAllProtVers) String() string {
+	if v, ok := SyncAllProtVersRevMap[e]; ok {
+		return v
+	}
+	return ""
 }
 
 type SyncAllNotificationType int
@@ -935,6 +963,7 @@ type SyncAllArg struct {
 	InboxVers InboxVers            `codec:"inboxVers" json:"inboxVers"`
 	Ctime     gregor1.Time         `codec:"ctime" json:"ctime"`
 	Fresh     bool                 `codec:"fresh" json:"fresh"`
+	ProtVers  SyncAllProtVers      `codec:"protVers" json:"protVers"`
 }
 
 func (o SyncAllArg) DeepCopy() SyncAllArg {
@@ -945,6 +974,7 @@ func (o SyncAllArg) DeepCopy() SyncAllArg {
 		InboxVers: o.InboxVers.DeepCopy(),
 		Ctime:     o.Ctime.DeepCopy(),
 		Fresh:     o.Fresh,
+		ProtVers:  o.ProtVers.DeepCopy(),
 	}
 }
 

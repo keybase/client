@@ -1721,6 +1721,7 @@ type MessageUnboxedValid struct {
 	AtMentionUsernames    []string                    `codec:"atMentionUsernames" json:"atMentionUsernames"`
 	AtMentions            []gregor1.UID               `codec:"atMentions" json:"atMentions"`
 	ChannelMention        ChannelMention              `codec:"channelMention" json:"channelMention"`
+	ChannelNameMentions   []string                    `codec:"channelNameMentions" json:"channelNameMentions"`
 }
 
 func (o MessageUnboxedValid) DeepCopy() MessageUnboxedValid {
@@ -1782,6 +1783,17 @@ func (o MessageUnboxedValid) DeepCopy() MessageUnboxedValid {
 			return ret
 		})(o.AtMentions),
 		ChannelMention: o.ChannelMention.DeepCopy(),
+		ChannelNameMentions: (func(x []string) []string {
+			if x == nil {
+				return nil
+			}
+			var ret []string
+			for _, v := range x {
+				vCopy := v
+				ret = append(ret, vCopy)
+			}
+			return ret
+		})(o.ChannelNameMentions),
 	}
 }
 
@@ -1995,22 +2007,39 @@ func (o UnreadFirstNumLimit) DeepCopy() UnreadFirstNumLimit {
 	}
 }
 
+type ConversationLocalParticipant struct {
+	Username string  `codec:"username" json:"username"`
+	Fullname *string `codec:"fullname,omitempty" json:"fullname,omitempty"`
+}
+
+func (o ConversationLocalParticipant) DeepCopy() ConversationLocalParticipant {
+	return ConversationLocalParticipant{
+		Username: o.Username,
+		Fullname: (func(x *string) *string {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x)
+			return &tmp
+		})(o.Fullname),
+	}
+}
+
 type ConversationInfoLocal struct {
-	Id           ConversationID            `codec:"id" json:"id"`
-	Triple       ConversationIDTriple      `codec:"triple" json:"triple"`
-	TlfName      string                    `codec:"tlfName" json:"tlfName"`
-	TopicName    string                    `codec:"topicName" json:"topicName"`
-	Visibility   keybase1.TLFVisibility    `codec:"visibility" json:"visibility"`
-	Status       ConversationStatus        `codec:"status" json:"status"`
-	MembersType  ConversationMembersType   `codec:"membersType" json:"membersType"`
-	MemberStatus ConversationMemberStatus  `codec:"memberStatus" json:"memberStatus"`
-	TeamType     TeamType                  `codec:"teamType" json:"teamType"`
-	Existence    ConversationExistence     `codec:"existence" json:"existence"`
-	Version      ConversationVers          `codec:"version" json:"version"`
-	WriterNames  []string                  `codec:"writerNames" json:"writerNames"`
-	ReaderNames  []string                  `codec:"readerNames" json:"readerNames"`
-	FinalizeInfo *ConversationFinalizeInfo `codec:"finalizeInfo,omitempty" json:"finalizeInfo,omitempty"`
-	ResetNames   []string                  `codec:"resetNames" json:"resetNames"`
+	Id           ConversationID                 `codec:"id" json:"id"`
+	Triple       ConversationIDTriple           `codec:"triple" json:"triple"`
+	TlfName      string                         `codec:"tlfName" json:"tlfName"`
+	TopicName    string                         `codec:"topicName" json:"topicName"`
+	Visibility   keybase1.TLFVisibility         `codec:"visibility" json:"visibility"`
+	Status       ConversationStatus             `codec:"status" json:"status"`
+	MembersType  ConversationMembersType        `codec:"membersType" json:"membersType"`
+	MemberStatus ConversationMemberStatus       `codec:"memberStatus" json:"memberStatus"`
+	TeamType     TeamType                       `codec:"teamType" json:"teamType"`
+	Existence    ConversationExistence          `codec:"existence" json:"existence"`
+	Version      ConversationVers               `codec:"version" json:"version"`
+	Participants []ConversationLocalParticipant `codec:"participants" json:"participants"`
+	FinalizeInfo *ConversationFinalizeInfo      `codec:"finalizeInfo,omitempty" json:"finalizeInfo,omitempty"`
+	ResetNames   []string                       `codec:"resetNames" json:"resetNames"`
 }
 
 func (o ConversationInfoLocal) DeepCopy() ConversationInfoLocal {
@@ -2026,28 +2055,17 @@ func (o ConversationInfoLocal) DeepCopy() ConversationInfoLocal {
 		TeamType:     o.TeamType.DeepCopy(),
 		Existence:    o.Existence.DeepCopy(),
 		Version:      o.Version.DeepCopy(),
-		WriterNames: (func(x []string) []string {
+		Participants: (func(x []ConversationLocalParticipant) []ConversationLocalParticipant {
 			if x == nil {
 				return nil
 			}
-			var ret []string
+			var ret []ConversationLocalParticipant
 			for _, v := range x {
-				vCopy := v
+				vCopy := v.DeepCopy()
 				ret = append(ret, vCopy)
 			}
 			return ret
-		})(o.WriterNames),
-		ReaderNames: (func(x []string) []string {
-			if x == nil {
-				return nil
-			}
-			var ret []string
-			for _, v := range x {
-				vCopy := v
-				ret = append(ret, vCopy)
-			}
-			return ret
-		})(o.ReaderNames),
+		})(o.Participants),
 		FinalizeInfo: (func(x *ConversationFinalizeInfo) *ConversationFinalizeInfo {
 			if x == nil {
 				return nil
@@ -2330,12 +2348,33 @@ func (o ThreadView) DeepCopy() ThreadView {
 	}
 }
 
+type MessageIDControl struct {
+	Pivot  *MessageID `codec:"pivot,omitempty" json:"pivot,omitempty"`
+	Recent bool       `codec:"recent" json:"recent"`
+	Num    int        `codec:"num" json:"num"`
+}
+
+func (o MessageIDControl) DeepCopy() MessageIDControl {
+	return MessageIDControl{
+		Pivot: (func(x *MessageID) *MessageID {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Pivot),
+		Recent: o.Recent,
+		Num:    o.Num,
+	}
+}
+
 type GetThreadQuery struct {
-	MarkAsRead               bool          `codec:"markAsRead" json:"markAsRead"`
-	MessageTypes             []MessageType `codec:"messageTypes" json:"messageTypes"`
-	DisableResolveSupersedes bool          `codec:"disableResolveSupersedes" json:"disableResolveSupersedes"`
-	Before                   *gregor1.Time `codec:"before,omitempty" json:"before,omitempty"`
-	After                    *gregor1.Time `codec:"after,omitempty" json:"after,omitempty"`
+	MarkAsRead               bool              `codec:"markAsRead" json:"markAsRead"`
+	MessageTypes             []MessageType     `codec:"messageTypes" json:"messageTypes"`
+	DisableResolveSupersedes bool              `codec:"disableResolveSupersedes" json:"disableResolveSupersedes"`
+	Before                   *gregor1.Time     `codec:"before,omitempty" json:"before,omitempty"`
+	After                    *gregor1.Time     `codec:"after,omitempty" json:"after,omitempty"`
+	MessageIDControl         *MessageIDControl `codec:"messageIDControl,omitempty" json:"messageIDControl,omitempty"`
 }
 
 func (o GetThreadQuery) DeepCopy() GetThreadQuery {
@@ -2367,6 +2406,13 @@ func (o GetThreadQuery) DeepCopy() GetThreadQuery {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.After),
+		MessageIDControl: (func(x *MessageIDControl) *MessageIDControl {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.MessageIDControl),
 	}
 }
 
@@ -3539,6 +3585,52 @@ func (o PostHeadlineArg) DeepCopy() PostHeadlineArg {
 	}
 }
 
+type PostMetadataNonblockArg struct {
+	ConversationID   ConversationID               `codec:"conversationID" json:"conversationID"`
+	TlfName          string                       `codec:"tlfName" json:"tlfName"`
+	TlfPublic        bool                         `codec:"tlfPublic" json:"tlfPublic"`
+	ChannelName      string                       `codec:"channelName" json:"channelName"`
+	OutboxID         *OutboxID                    `codec:"outboxID,omitempty" json:"outboxID,omitempty"`
+	ClientPrev       MessageID                    `codec:"clientPrev" json:"clientPrev"`
+	IdentifyBehavior keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
+}
+
+func (o PostMetadataNonblockArg) DeepCopy() PostMetadataNonblockArg {
+	return PostMetadataNonblockArg{
+		ConversationID: o.ConversationID.DeepCopy(),
+		TlfName:        o.TlfName,
+		TlfPublic:      o.TlfPublic,
+		ChannelName:    o.ChannelName,
+		OutboxID: (func(x *OutboxID) *OutboxID {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.OutboxID),
+		ClientPrev:       o.ClientPrev.DeepCopy(),
+		IdentifyBehavior: o.IdentifyBehavior.DeepCopy(),
+	}
+}
+
+type PostMetadataArg struct {
+	ConversationID   ConversationID               `codec:"conversationID" json:"conversationID"`
+	TlfName          string                       `codec:"tlfName" json:"tlfName"`
+	TlfPublic        bool                         `codec:"tlfPublic" json:"tlfPublic"`
+	ChannelName      string                       `codec:"channelName" json:"channelName"`
+	IdentifyBehavior keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
+}
+
+func (o PostMetadataArg) DeepCopy() PostMetadataArg {
+	return PostMetadataArg{
+		ConversationID:   o.ConversationID.DeepCopy(),
+		TlfName:          o.TlfName,
+		TlfPublic:        o.TlfPublic,
+		ChannelName:      o.ChannelName,
+		IdentifyBehavior: o.IdentifyBehavior.DeepCopy(),
+	}
+}
+
 type SetConversationStatusLocalArg struct {
 	ConversationID   ConversationID               `codec:"conversationID" json:"conversationID"`
 	Status           ConversationStatus           `codec:"status" json:"status"`
@@ -3983,6 +4075,8 @@ type LocalInterface interface {
 	PostEditNonblock(context.Context, PostEditNonblockArg) (PostLocalNonblockRes, error)
 	PostHeadlineNonblock(context.Context, PostHeadlineNonblockArg) (PostLocalNonblockRes, error)
 	PostHeadline(context.Context, PostHeadlineArg) (PostLocalRes, error)
+	PostMetadataNonblock(context.Context, PostMetadataNonblockArg) (PostLocalNonblockRes, error)
+	PostMetadata(context.Context, PostMetadataArg) (PostLocalRes, error)
 	SetConversationStatusLocal(context.Context, SetConversationStatusLocalArg) (SetConversationStatusLocalRes, error)
 	NewConversationLocal(context.Context, NewConversationLocalArg) (NewConversationLocalRes, error)
 	GetInboxSummaryForCLILocal(context.Context, GetInboxSummaryForCLILocalQuery) (GetInboxSummaryForCLILocalRes, error)
@@ -4212,6 +4306,38 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 						return
 					}
 					ret, err = i.PostHeadline(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"postMetadataNonblock": {
+				MakeArg: func() interface{} {
+					ret := make([]PostMetadataNonblockArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]PostMetadataNonblockArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]PostMetadataNonblockArg)(nil), args)
+						return
+					}
+					ret, err = i.PostMetadataNonblock(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"postMetadata": {
+				MakeArg: func() interface{} {
+					ret := make([]PostMetadataArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]PostMetadataArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]PostMetadataArg)(nil), args)
+						return
+					}
+					ret, err = i.PostMetadata(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -4665,6 +4791,16 @@ func (c LocalClient) PostHeadlineNonblock(ctx context.Context, __arg PostHeadlin
 
 func (c LocalClient) PostHeadline(ctx context.Context, __arg PostHeadlineArg) (res PostLocalRes, err error) {
 	err = c.Cli.Call(ctx, "chat.1.local.postHeadline", []interface{}{__arg}, &res)
+	return
+}
+
+func (c LocalClient) PostMetadataNonblock(ctx context.Context, __arg PostMetadataNonblockArg) (res PostLocalNonblockRes, err error) {
+	err = c.Cli.Call(ctx, "chat.1.local.postMetadataNonblock", []interface{}{__arg}, &res)
+	return
+}
+
+func (c LocalClient) PostMetadata(ctx context.Context, __arg PostMetadataArg) (res PostLocalRes, err error) {
+	err = c.Cli.Call(ctx, "chat.1.local.postMetadata", []interface{}{__arg}, &res)
 	return
 }
 
