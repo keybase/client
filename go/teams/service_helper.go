@@ -1094,19 +1094,10 @@ func GetTeamAndMemberShowcase(ctx context.Context, g *libkb.GlobalContext, teamn
 		return ret, err
 	}
 
-	// me, err := libkb.LoadMe(libkb.NewLoadUserArgWithContext(ctx, g))
-	// if err != nil {
-	// 	return ret, err
-	// }
-
-	// role, err := t.MemberRole(ctx, me.ToUserVersion())
-	// if err != nil {
-	// 	return ret, err
-	// }
-
-	// if !role.IsOrAbove(keybase1.TeamRole_ADMIN) {
-	// 	return ret, errors.New("user has to be admin or above to set showcase")
-	// }
+	role, err := t.myRole(ctx)
+	if err != nil {
+		return ret, err
+	}
 
 	arg := apiArg(ctx, "team/get")
 	arg.Args.Add("id", libkb.S{Val: t.ID.String()})
@@ -1117,15 +1108,18 @@ func GetTeamAndMemberShowcase(ctx context.Context, g *libkb.GlobalContext, teamn
 	}
 	ret.TeamShowcase = teamRet.Showcase
 
-	arg = apiArg(ctx, "team/member_showcase")
-	arg.Args.Add("tid", libkb.S{Val: t.ID.String()})
+	if role.IsOrAbove(keybase1.TeamRole_ADMIN) {
+		arg = apiArg(ctx, "team/member_showcase")
+		arg.Args.Add("tid", libkb.S{Val: t.ID.String()})
 
-	var memberRet memberShowcaseRes
-	if err := g.API.GetDecode(arg, &memberRet); err != nil {
-		return ret, err
+		var memberRet memberShowcaseRes
+		if err := g.API.GetDecode(arg, &memberRet); err != nil {
+			return ret, err
+		}
+
+		ret.IsMemberShowcased = memberRet.IsShowcased
 	}
 
-	ret.IsMemberShowcased = memberRet.IsShowcased
 	return ret, nil
 }
 
@@ -1133,6 +1127,15 @@ func SetTeamShowcase(ctx context.Context, g *libkb.GlobalContext, teamname strin
 	t, err := GetForTeamManagementByStringName(ctx, g, teamname, false)
 	if err != nil {
 		return err
+	}
+
+	role, err := t.myRole(ctx)
+	if err != nil {
+		return err
+	}
+
+	if !role.IsOrAbove(keybase1.TeamRole_ADMIN) {
+		return errors.New("only admins can change team showcase settings")
 	}
 
 	if isShowcased == nil && description == nil {
@@ -1155,6 +1158,15 @@ func SetTeamMemberShowcase(ctx context.Context, g *libkb.GlobalContext, teamname
 	t, err := GetForTeamManagementByStringName(ctx, g, teamname, false)
 	if err != nil {
 		return err
+	}
+
+	role, err := t.myRole(ctx)
+	if err != nil {
+		return err
+	}
+
+	if !role.IsOrAbove(keybase1.TeamRole_ADMIN) {
+		return errors.New("only admins can change member showcase settings")
 	}
 
 	arg := apiArg(ctx, "team/member_showcase")
