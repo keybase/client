@@ -3,7 +3,7 @@ import React from 'react'
 import {Box, Button, HeaderHoc, Input, PopupDialog, Text, ScrollView} from '../../common-adapters/index'
 import {isMobile} from '../../constants/platform'
 import {globalColors, globalMargins, globalStyles} from '../../styles'
-import {validTeamname} from '../teamname'
+import {baseTeamname, validTeamname} from '../teamname'
 
 import type {Props} from './'
 
@@ -14,14 +14,12 @@ const headerText = (errorText: string, name: string): string => {
     return errorText
   }
 
-  const i = name.lastIndexOf('.')
-  if (i >= 0) {
-    const baseTeamname = name.substring(0, i)
-    if (validTeamname(baseTeamname)) {
-      return `You're creating a subteam of ${baseTeamname}.`
-    }
-    // TODO: Display an error and disable the submit button if
-    // teamname isn't valid.
+  // TODO: Display an error and disable the submit button if name
+  // isn't a valid teamname.
+
+  const baseTeam = baseTeamname(name)
+  if (baseTeam && validTeamname(baseTeam)) {
+    return `You're creating a subteam of ${baseTeam}.`
   }
 
   return "For security reasons, team names are unique and can't be changed, so choose carefully."

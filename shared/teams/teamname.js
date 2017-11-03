@@ -14,4 +14,13 @@ const validTeamname = (s: string): boolean => {
   return s.split('.').every(validTeamnamePart)
 }
 
-export {validTeamname}
+const baseTeamname = (s: string): ?string => {
+  const i = s.lastIndexOf('.')
+  if (i < 0) {
+    return null
+  }
+
+  return s.substring(0, i)
+}
+
+export {validTeamname, baseTeamname}
