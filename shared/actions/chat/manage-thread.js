@@ -108,9 +108,21 @@ function* _selectConversation(action: ChatGen.SelectConversationPayload): Saga.S
 }
 
 const _openTeamConversation = function*(action: ChatGen.OpenTeamConversationPayload) {
+  // TODO handle channels you're not a member of, or small teams you've never opened the chat for.
   const {payload: {teamname, channelname}} = action
-  const state = yield Saga.select()
-  state
+  let state = yield Saga.select()
+  if (state.chat.inboxGlobalUntrustedState === 'unloaded') {
+    yield Saga.put(ChatGen.createInboxStale({reason: 'Navigating to team channel'}))
+    yield Saga.take(ChatGen.inboxStoreLoaded)
+    state = yield Saga.select()
+  }
+  const conversation = state.chat.inbox.filter(
+    value => value.teamname === teamname && value.channelname === channelname
+  )
+  if (conversation.size === 1) {
+    const conversationID = conversation.keySeq().toArray()[0]
+    console.log('conversationID', conversationID)
+  }
 }
 
 const _setNotifications = function*(

@@ -111,6 +111,7 @@
     "setInboxGlobalUntrustedState": {
       "inboxGlobalUntrustedState": "Constants.UntrustedState"
     },
+    "inboxStoreLoaded": {},
     "updateThread": {
       "thread": "ChatTypes.UIMessages",
       "yourName": "string",

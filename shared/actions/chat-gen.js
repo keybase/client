@@ -27,6 +27,7 @@ export const editMessage = 'chat:editMessage'
 export const exitSearch = 'chat:exitSearch'
 export const getInboxAndUnbox = 'chat:getInboxAndUnbox'
 export const inboxStale = 'chat:inboxStale'
+export const inboxStoreLoaded = 'chat:inboxStoreLoaded'
 export const inboxSynced = 'chat:inboxSynced'
 export const incomingMessage = 'chat:incomingMessage'
 export const incomingTyping = 'chat:incomingTyping'
@@ -98,6 +99,7 @@ export const createEditMessage = (payload: {|message: Constants.Message, text: H
 export const createExitSearch = (payload: {|skipSelectPreviousConversation: boolean|}) => ({error: false, payload, type: exitSearch})
 export const createGetInboxAndUnbox = (payload: {|conversationIDKeys: Array<Constants.ConversationIDKey>|}) => ({error: false, payload, type: getInboxAndUnbox})
 export const createInboxStale = (payload: {|reason: string|}) => ({error: false, payload, type: inboxStale})
+export const createInboxStoreLoaded = () => ({error: false, payload: undefined, type: inboxStoreLoaded})
 export const createInboxSynced = (payload: {|convs: Array<ChatTypes.UnverifiedInboxUIItem>|}) => ({error: false, payload, type: inboxSynced})
 export const createIncomingMessage = (payload: {|activity: ChatTypes.ChatActivity|}) => ({error: false, payload, type: incomingMessage})
 export const createIncomingTyping = (payload: {|activity: ChatTypes.TyperInfo|}) => ({error: false, payload, type: incomingTyping})
@@ -169,6 +171,7 @@ export type EditMessagePayload = ReturnType<typeof createEditMessage>
 export type ExitSearchPayload = ReturnType<typeof createExitSearch>
 export type GetInboxAndUnboxPayload = ReturnType<typeof createGetInboxAndUnbox>
 export type InboxStalePayload = ReturnType<typeof createInboxStale>
+export type InboxStoreLoadedPayload = ReturnType<typeof createInboxStoreLoaded>
 export type InboxSyncedPayload = ReturnType<typeof createInboxSynced>
 export type IncomingMessagePayload = ReturnType<typeof createIncomingMessage>
 export type IncomingTypingPayload = ReturnType<typeof createIncomingTyping>
@@ -242,6 +245,7 @@ export type Actions =
   | ReturnType<typeof createExitSearch>
   | ReturnType<typeof createGetInboxAndUnbox>
   | ReturnType<typeof createInboxStale>
+  | ReturnType<typeof createInboxStoreLoaded>
   | ReturnType<typeof createInboxSynced>
   | ReturnType<typeof createIncomingMessage>
   | ReturnType<typeof createIncomingTyping>
