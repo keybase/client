@@ -116,7 +116,7 @@ export const createNewChat = () => ({error: false, payload: undefined, type: new
 export const createOpenAttachmentPopup = (payload: {|message: Constants.AttachmentMessage, currentPath: Path|}) => ({error: false, payload, type: openAttachmentPopup})
 export const createOpenConversation = (payload: {|conversationIDKey: Constants.ConversationIDKey|}) => ({error: false, payload, type: openConversation})
 export const createOpenFolder = () => ({error: false, payload: undefined, type: openFolder})
-export const createOpenTeamConversation = (payload: {|teamname: TeamConstants.TeamName, channelname: string|}) => ({error: false, payload, type: openTeamConversation})
+export const createOpenTeamConversation = (payload: {|teamname: TeamConstants.Teamname, channelname: string|}) => ({error: false, payload, type: openTeamConversation})
 export const createOpenTlfInChat = (payload: {|tlf: string, isTeam?: boolean|}) => ({error: false, payload, type: openTlfInChat})
 export const createOutboxMessageBecameReal = (payload: {|oldMessageKey: Constants.MessageKey, newMessageKey: Constants.MessageKey|}) => ({error: false, payload, type: outboxMessageBecameReal})
 export const createPendingToRealConversation = (payload: {|oldKey: Constants.ConversationIDKey, newKey: Constants.ConversationIDKey|}) => ({error: false, payload, type: pendingToRealConversation})

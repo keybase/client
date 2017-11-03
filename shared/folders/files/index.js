@@ -23,7 +23,7 @@ type Props = $Shape<{
   ignoreFolder: (path: string) => void,
   favoriteFolder: (path: string) => void,
   openInKBFS: (path: string) => void,
-  openTlfInChat: (tlf: string) => void,
+  openTlfInChat: ({tlf: string, isTeam: boolean}) => void,
 }>
 
 type State = {
@@ -57,7 +57,7 @@ class Files extends Component<Props, State> {
 
   componentDidMount() {
     if (this.props.folder && !this.props.folder.ignored && this.props.folder.meta === 'new') {
-      this.props.favoriteFolder(this.props.path, this.props)
+      this.props.favoriteFolder(this.props.path)
     }
   }
 
@@ -69,7 +69,8 @@ class Files extends Component<Props, State> {
     }
     const openConversationFromFolder = () => {
       const tlf = this.props && this.props.folder && this.props.folder.sortName
-      tlf && this.props.openTlfInChat({tlf: tlf, isTeam: this.props.folder.isTeam})
+      tlf &&
+        this.props.openTlfInChat({tlf: tlf, isTeam: this.props.folder ? this.props.folder.isTeam : false})
     }
     const ignoreCurrentFolder = () => {
       this.props.ignoreFolder(this.props.path)

@@ -150,7 +150,7 @@
       "conversationIDKey": "Constants.ConversationIDKey"
     },
     "openTeamConversation": {
-      "teamname": "TeamConstants.TeamName",
+      "teamname": "TeamConstants.Teamname",
       "channelname": "string"
     },
     "openAttachmentPopup": {

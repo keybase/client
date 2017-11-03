@@ -270,7 +270,10 @@ class FilesRender extends Component<Props> {
                 </Box>
               ))}
             {this.props.isTeam &&
-              <Avatar teamname={this.props.users.length && this.props.users[0].username} size={64} />}
+              <Avatar
+                teamname={this.props.users.length ? this.props.users[0].username : 'unknown'}
+                size={64}
+              />}
           </Box>
           <Box style={styleTLFNameContainer}>
             <Text type="BodySemibold" style={tlfTextStyle}>
