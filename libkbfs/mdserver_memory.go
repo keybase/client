@@ -431,6 +431,9 @@ func (md *MDServerMemory) GetRange(ctx context.Context, id tlf.ID,
 		return nil, err
 	}
 
+	// An RPC-based client would receive a throttle message from the
+	// server and retry with backoff, but here we need to implement
+	// the retry logic explicitly.
 	for {
 		rmds, ch, err := md.doGetRange(
 			ctx, id, bid, mStatus, start, stop, lockBeforeGet)
@@ -673,9 +676,12 @@ func (md *MDServerMemory) doLock(ctx context.Context,
 	return md.lockLocked(ctx, tlfID, lockID)
 }
 
-// Lock (does not) implement the MDServer interface for MDServerMemory.
+// Lock implements the MDServer interface for MDServerMemory.
 func (md *MDServerMemory) Lock(ctx context.Context,
 	tlfID tlf.ID, lockID keybase1.LockID) error {
+	// An RPC-based client would receive a throttle message from the
+	// server and retry with backoff, but here we need to implement
+	// the retry logic explicitly.
 	for {
 		ch := md.doLock(ctx, tlfID, lockID)
 		if ch == nil {
@@ -692,7 +698,7 @@ func (md *MDServerMemory) Lock(ctx context.Context,
 	}
 }
 
-// ReleaseLock (does not) implement the MDServer interface for MDServerMemory.
+// ReleaseLock implements the MDServer interface for MDServerMemory.
 func (md *MDServerMemory) ReleaseLock(ctx context.Context,
 	tlfID tlf.ID, lockID keybase1.LockID) error {
 	md.lock.Lock()
