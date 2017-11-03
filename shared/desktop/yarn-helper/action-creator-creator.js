@@ -33,6 +33,7 @@ import {type PayloadType, type ReturnType} from '../constants/types/more'
 ${prelude.join('\n')}
 
 // Constants
+export const resetStore = 'common:resetStore' // not a part of ${ns} but is handled by every reducer
 ${compileActions(ns, actions, compileReduxTypeConstant)}
 
 // Action Creators
@@ -42,7 +43,7 @@ ${compileActions(ns, actions, compileActionCreator)}
 ${compileActions(ns, actions, compileActionPayloads)}
 
 // All Actions
-${compileAllActionsType(ns, actions)}
+${compileAllActionsType(ns, actions)}  | {type: 'common:resetStore', payload: void}
   `
 }
 
@@ -58,7 +59,6 @@ function compileAllActionsType(ns: ActionNS, actions: Actions): string {
   return `// prettier-ignore
 export type Actions =
   | ${actionsTypes}
-  | {type: 'common:resetStore', payload: void}
 `
 }
 

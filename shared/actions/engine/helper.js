@@ -1,6 +1,6 @@
 // @flow
 // Handles sending requests to the daemon
-import * as Creators from './creators'
+import * as EngineGen from '../engine-gen'
 import mapValues from 'lodash/mapValues'
 import {RPCTimeoutError} from '../../util/errors'
 import engine, {EngineChannel} from '../../engine'
@@ -41,9 +41,9 @@ type RpcRunResult = Finished | FluxTypes.NoErrorTypedAction<'@@engineRPCCall:bai
 
 function _sagaWaitingDecorator(rpcNameKey, saga) {
   return function* _sagaWaitingDecoratorHelper(...args: any) {
-    yield put(Creators.waitingForRpc(rpcNameKey, false))
+    yield put(EngineGen.createWaitingForRpc({name: rpcNameKey, waiting: false}))
     yield call(saga, ...args)
-    yield put(Creators.waitingForRpc(rpcNameKey, true))
+    yield put(EngineGen.createWaitingForRpc({name: rpcNameKey, waiting: true}))
   }
 }
 
@@ -123,7 +123,7 @@ class EngineRpcCall {
       }
       this._engineChannel.close()
       this._subSagaChannel.close()
-      yield put(Creators.waitingForRpc(this._rpcNameKey, false))
+      yield put(EngineGen.createWaitingForRpc({name: this._rpcNameKey, waiting: false}))
     } else {
       console.error('Already cleaned up')
     }
