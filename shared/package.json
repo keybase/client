@@ -134,8 +134,7 @@
     "shallowequal": "1.0.2",
     "tlds": "^1.198.0",
     "typedarray-to-buffer": "3.1.2",
-    "util": "0.10.3",
-    "whatwg-url": "^6.3.0"
+    "util": "0.10.3"
   },
   "devDependencies": {
     "@storybook/addon-storyshots": "3.2.13",
@@ -149,7 +148,6 @@
     "babel-loader": "7.1.2",
     "babel-plugin-react-transform": "3.0.0",
     "babel-plugin-transform-builtin-extend": "1.1.2",
-    "babel-plugin-transform-new-target": "7.0.0-alpha.14",
     "babel-plugin-transform-runtime": "6.23.0",
     "babel-preset-env": "1.6.1",
     "babel-preset-es2015": "6.24.1",
