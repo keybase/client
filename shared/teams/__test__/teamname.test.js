@@ -1,6 +1,6 @@
 // @noflow
 /* eslint-env jest */
-import {validTeamname, baseTeamname} from '../teamname'
+import {validTeamname, baseTeamname, ancestorTeamnames} from '../teamname'
 
 describe('teamname', () => {
   describe('validTeamname', () => {
@@ -25,5 +25,10 @@ describe('teamname', () => {
     expect(baseTeamname('team')).toBe(null)
     expect(baseTeamname('team.sub')).toBe('team')
     expect(baseTeamname('team.sub.sub')).toBe('team.sub')
+  })
+
+  it('ancestorTeamnames', () => {
+    expect(ancestorTeamnames('team.sub.sub')).toEqual(['team.sub', 'team'])
+    expect(ancestorTeamnames('team')).toEqual([])
   })
 })

@@ -35,7 +35,7 @@ const ancestorTeamnames = (teamname: Teamname): Teamname[] => {
     if (!base) {
       break
     }
-    ancestors.push(name)
+    ancestors.push(base)
     name = base
   }
   return ancestors
