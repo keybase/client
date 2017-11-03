@@ -548,6 +548,29 @@ function _unboxedToMessage(
             key: Constants.messageKey(common.conversationIDKey, 'system', common.messageID),
           }
         }
+        case ChatTypes.CommonMessageType.system: {
+          let sysMsgText = '<unknown system message>'
+          const body = payload.messageBody.system
+          switch (body.systemType) {
+            case ChatTypes.LocalMessageSystemType.addedtoteam: {
+              sysMsgText = `Hello! I've just added @${body.addee} to this team.`
+            }
+            case ChatTypes.LocalMessageSystemType.inviteaddedtoteam: {
+              sysMsgText = `Hello! I've just added @${body.invitee} to the team. This user had been invited by @${body.inviter}`
+            }
+            case ChatTypes.LocalMessageSystemType.complexteam: {
+              sysMsgText = `Attention @channel!\n\nI have just created a new channel in team ${body.team}. Here are some things that are now different:\n\n1.) Notifications will not happen for every message. Click or tap the info icon on the right to configure them.\n2.) The #general channel is now in the \"Big Teams\" section of the inbox.\n3.) You can hit the three dots next to %s in the inbox view to join other channels.\n\nEnjoy!`
+            }
+          }
+          return {
+            type: 'Text',
+            ...common,
+            editedCount: payload.superseded ? 1 : 0, // mark it as edited if it's been superseded
+            message: new HiddenString(sysMsgText),
+            messageState: 'sent', // TODO, distinguish sent/pending once CORE sends it.
+            key: Constants.messageKey(common.conversationIDKey, 'messageIDText', common.messageID),
+          }
+        }
         default:
           const unhandled: Constants.UnhandledMessage = {
             ...common,
