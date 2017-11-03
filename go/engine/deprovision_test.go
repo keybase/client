@@ -11,13 +11,13 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func assertFileExists(t testing.TB, path string) {
+func assertFileExists(t libkb.TestingTB, path string) {
 	if _, err := os.Stat(path); os.IsNotExist(err) {
 		t.Fatalf("%s unexpectedly does not exist", path)
 	}
 }
 
-func assertFileDoesNotExist(t testing.TB, path string) {
+func assertFileDoesNotExist(t libkb.TestingTB, path string) {
 	if _, err := os.Stat(path); err == nil {
 		t.Fatalf("%s unexpectedly exists", path)
 	}
