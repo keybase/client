@@ -285,17 +285,36 @@ func (o LinkCheckResult) DeepCopy() LinkCheckResult {
 	}
 }
 
+type UserTeamShowcase struct {
+	FqName          string   `codec:"fqName" json:"fq_name"`
+	Open            bool     `codec:"open" json:"open"`
+	TeamIsShowcased bool     `codec:"teamIsShowcased" json:"team_is_showcased"`
+	Description     string   `codec:"description" json:"description"`
+	Role            TeamRole `codec:"role" json:"role"`
+}
+
+func (o UserTeamShowcase) DeepCopy() UserTeamShowcase {
+	return UserTeamShowcase{
+		FqName:          o.FqName,
+		Open:            o.Open,
+		TeamIsShowcased: o.TeamIsShowcased,
+		Description:     o.Description,
+		Role:            o.Role.DeepCopy(),
+	}
+}
+
 type UserCard struct {
-	Following     int    `codec:"following" json:"following"`
-	Followers     int    `codec:"followers" json:"followers"`
-	Uid           UID    `codec:"uid" json:"uid"`
-	FullName      string `codec:"fullName" json:"fullName"`
-	Location      string `codec:"location" json:"location"`
-	Bio           string `codec:"bio" json:"bio"`
-	Website       string `codec:"website" json:"website"`
-	Twitter       string `codec:"twitter" json:"twitter"`
-	YouFollowThem bool   `codec:"youFollowThem" json:"youFollowThem"`
-	TheyFollowYou bool   `codec:"theyFollowYou" json:"theyFollowYou"`
+	Following     int                `codec:"following" json:"following"`
+	Followers     int                `codec:"followers" json:"followers"`
+	Uid           UID                `codec:"uid" json:"uid"`
+	FullName      string             `codec:"fullName" json:"fullName"`
+	Location      string             `codec:"location" json:"location"`
+	Bio           string             `codec:"bio" json:"bio"`
+	Website       string             `codec:"website" json:"website"`
+	Twitter       string             `codec:"twitter" json:"twitter"`
+	YouFollowThem bool               `codec:"youFollowThem" json:"youFollowThem"`
+	TheyFollowYou bool               `codec:"theyFollowYou" json:"theyFollowYou"`
+	TeamShowcase  []UserTeamShowcase `codec:"teamShowcase" json:"teamShowcase"`
 }
 
 func (o UserCard) DeepCopy() UserCard {
@@ -310,6 +329,17 @@ func (o UserCard) DeepCopy() UserCard {
 		Twitter:       o.Twitter,
 		YouFollowThem: o.YouFollowThem,
 		TheyFollowYou: o.TheyFollowYou,
+		TeamShowcase: (func(x []UserTeamShowcase) []UserTeamShowcase {
+			if x == nil {
+				return nil
+			}
+			var ret []UserTeamShowcase
+			for _, v := range x {
+				vCopy := v.DeepCopy()
+				ret = append(ret, vCopy)
+			}
+			return ret
+		})(o.TeamShowcase),
 	}
 }
 
