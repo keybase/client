@@ -92,3 +92,4 @@ export type Actions =
   | ReturnType<typeof createRetryBootstrap>
   | ReturnType<typeof createSetInitialState>
   | ReturnType<typeof createUpdateFollowing>
+  | {type: 'common:resetStore', payload: void}

@@ -32,3 +32,4 @@ export type Actions =
   | ReturnType<typeof createMergeEntity>
   | ReturnType<typeof createReplaceEntity>
   | ReturnType<typeof createSubtractEntity>
+  | {type: 'common:resetStore', payload: void}

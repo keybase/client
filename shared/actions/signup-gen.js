@@ -21,3 +21,4 @@ export type CheckInviteCodePayload = ReturnType<typeof createCheckInviteCode>
 export type Actions =
   | ReturnType<typeof createCheckInviteCode>
   | ReturnType<typeof createCheckInviteCodeError>
+  | {type: 'common:resetStore', payload: void}

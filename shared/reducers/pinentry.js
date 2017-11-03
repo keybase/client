@@ -9,7 +9,10 @@ const initialState: Constants.State = {
   started: false,
 }
 
-export default function(state: Constants.State = initialState, action: Constants.Actions): Constants.State {
+export default function(
+  state: Constants.State = initialState,
+  action: Constants.Actions | {type: 'common:resetStore', payload: void}
+): Constants.State {
   const sessionID: ?number = action.payload && action.payload.sessionID != null
     ? action.payload.sessionID
     : null

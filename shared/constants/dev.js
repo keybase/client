@@ -18,8 +18,9 @@ export type UpdateDebugConfig = TypedAction<'dev:updateDebugConfig', Exact<Debug
 
 export const updateReloading = 'dev:updatehmrReloading'
 export type UpdateReloading = TypedAction<'dev:updatehmrReloading', {reloading: boolean}, void>
+export type DebugCount = TypedAction<'dev:debugCount', void, void>
 
-export type Actions = UpdateDebugConfig | UpdateReloading
+export type Actions = UpdateDebugConfig | UpdateReloading | DebugCount
 
 export type State = {
   debugConfig: DebugConfig,
