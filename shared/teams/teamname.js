@@ -25,6 +25,8 @@ const baseTeamname = (teamname: Teamname): ?Teamname => {
   return teamname.substring(0, i)
 }
 
+// ancestorTeamnames returns the parent of the given teamname, and its
+// parent, and so on, in order.
 const ancestorTeamnames = (teamname: Teamname): Teamname[] => {
   const ancestors = []
   let name = teamname
