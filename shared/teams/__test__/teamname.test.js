@@ -10,4 +10,12 @@ describe('validTeamname', () => {
       expect(validTeamname(validName)).toBe(true)
     }
   })
+
+  it('invalid names', () => {
+    const validNames = ['some team', 'team.some sub', 'team.sub.some sub', '$ometeam', 'someteam-']
+    for (let i = 0; i < validNames.length; ++i) {
+      const validName = validNames[i]
+      expect(validTeamname(validName)).toBe(false)
+    }
+  })
 })
