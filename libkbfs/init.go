@@ -119,7 +119,7 @@ func defaultBServer(ctx Context) string {
 	case libkb.DevelRunMode:
 		return memoryAddr
 	case libkb.StagingRunMode:
-		return "bserver.dev.keybase.io:443"
+		return "bserver-0.dev.keybase.io:443"
 	case libkb.ProductionRunMode:
 		return "bserver.kbfs.keybase.io:443"
 	default:
@@ -133,7 +133,7 @@ func defaultMDServer(ctx Context) string {
 	case libkb.DevelRunMode:
 		return memoryAddr
 	case libkb.StagingRunMode:
-		return "mdserver.dev.keybase.io:443"
+		return "mdserver-0.dev.keybase.io:443"
 	case libkb.ProductionRunMode:
 		return "mdserver.kbfs.keybase.io:443"
 	default:
