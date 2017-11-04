@@ -1,13 +1,18 @@
 // @flow
 import Devices from '.'
-import {List} from 'immutable'
-import {addNewPhone, addNewComputer} from '../actions/login/creators'
-import {compose, lifecycle, mapProps, withState, withHandlers} from 'recompose'
-import {connect} from 'react-redux'
-import {createSelector} from 'reselect'
+import * as I from 'immutable'
+import * as LoginGen from '../actions/login-gen'
+import {
+  compose,
+  lifecycle,
+  mapProps,
+  withState,
+  withHandlers,
+  connect,
+  createSelector,
+  type TypedState,
+} from '../util/container'
 import {load, paperKeyMake} from '../actions/devices'
-
-import type {TypedState} from '../constants/reducer'
 
 const getAllDevicesSelector = (state: TypedState) => state.devices.get('deviceIDs')
 const getDeviceEntitiesSelector = (state: TypedState) => state.entities.get('devices')
@@ -18,8 +23,8 @@ const getDevicesAndRevokedDevicesSelector = createSelector(
     const split = allDevices.groupBy(
       id => (deviceEntities.getIn([id, 'revokedAt']) ? 'revokedDeviceIDs' : 'deviceIDs')
     )
-    const deviceIDs = split.get('deviceIDs', List())
-    const revokedDeviceIDs = split.get('revokedDeviceIDs', List())
+    const deviceIDs = split.get('deviceIDs', I.List())
+    const revokedDeviceIDs = split.get('revokedDeviceIDs', I.List())
     return {
       deviceIDs,
       revokedDeviceIDs,
@@ -41,9 +46,9 @@ const mapStateToProps = (state: TypedState, {routeState}) => {
 }
 
 const mapDispatchToProps = (dispatch: any, {routeState, setRouteState, navigateUp}) => ({
-  addNewComputer: () => dispatch(addNewComputer()),
+  addNewComputer: () => dispatch(LoginGen.createAddNewComputer()),
   addNewPaperKey: () => dispatch(paperKeyMake()),
-  addNewPhone: () => dispatch(addNewPhone()),
+  addNewPhone: () => dispatch(LoginGen.createAddNewPhone()),
   loadDevices: () => dispatch(load()),
   onBack: () => dispatch(navigateUp()),
   onToggleShowRevoked: () => {

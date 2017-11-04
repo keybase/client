@@ -1,6 +1,7 @@
 // @flow
 import * as KBFSGen from './kbfs-gen'
 import * as ConfigGen from './config-gen'
+import * as LoginGen from './login-gen'
 import * as Constants from '../constants/config'
 import * as GregorCreators from '../actions/gregor'
 import * as RPCTypes from '../constants/types/flow-types'
@@ -12,7 +13,6 @@ import {flushLogFile} from '../util/forward-logs'
 import {isMobile, isSimulator} from '../constants/platform'
 import {listenForKBFSNotifications} from '../actions/notifications'
 import {loggedInSelector} from '../constants/selectors'
-import {navBasedOnLoginAndInitialState} from '../actions/login/creators'
 import {resetSignup} from '../actions/signup'
 import {type AsyncAction} from '../constants/types/flux'
 import {type TypedState} from '../constants/reducer'
@@ -127,12 +127,12 @@ const bootstrap = (opts: $PropertyType<ConfigGen.BootstrapPayload, 'payload'>): 
         dispatch(listenForKBFSNotifications())
         if (!opts.isReconnect) {
           dispatch(async (): Promise<*> => {
-            await dispatch(navBasedOnLoginAndInitialState())
+            await dispatch(LoginGen.createNavBasedOnLoginAndInitialState())
             if (getState().config.loggedIn) {
               // If we're logged in, restore any saved route state and
               // then nav again based on it.
               await dispatch(routeStateStorage.load)
-              await dispatch(navBasedOnLoginAndInitialState())
+              await dispatch(LoginGen.createNavBasedOnLoginAndInitialState())
             }
           })
           dispatch(resetSignup())

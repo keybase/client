@@ -2,8 +2,8 @@
 // Look at this doc: https://goo.gl/7B6p4H
 import * as CommonConstants from '../../constants/common'
 import * as ConfigGen from '../../actions/config-gen'
+import * as LoginGen from '../../actions/login-gen'
 import * as Constants from '../../constants/login'
-import * as Creators from './creators'
 import * as DeviceConstants from '../../constants/devices'
 import * as EngineRpc from '../engine/helper'
 import * as RouteConstants from '../../constants/route-tree'
@@ -40,7 +40,7 @@ function* generateQRCode() {
   const codePage = codePageSelector(state)
 
   if (codePage.textCode) {
-    yield Saga.put(Creators.setQRCode(codePage.textCode.stringValue()))
+    yield Saga.put(LoginGen.createSetQRCode({qrCode: new HiddenString(codePage.textCode.stringValue())}))
   }
 }
 
@@ -48,7 +48,7 @@ function* generateQRCode() {
 // TODO sagaize
 const makeWaitingHandler = (dispatch: Dispatch): {waitingHandler: (waiting: boolean) => void} => ({
   waitingHandler: (waiting: boolean) => {
-    dispatch(Creators.waitingForResponse(waiting))
+    dispatch(LoginGen.createWaitingForResponse({waiting}))
   },
 })
 
@@ -56,16 +56,16 @@ const getAccounts = (): AsyncAction => dispatch =>
   new Promise((resolve, reject) => {
     Types.loginGetConfiguredAccountsRpcPromise({...makeWaitingHandler(dispatch)})
       .then(accounts => {
-        dispatch({payload: {accounts}, type: Constants.configuredAccounts})
+        dispatch(LoginGen.createConfiguredAccounts({accounts}))
         resolve()
       })
       .catch(error => {
         if (error) {
-          dispatch({
-            error: true,
-            payload: error,
-            type: Constants.configuredAccounts,
-          })
+          dispatch(
+            LoginGen.createConfiguredAccountsError({
+              error,
+            })
+          )
           reject(error)
         }
       })
@@ -85,8 +85,8 @@ function* setCodePageOtherDeviceRole(otherDeviceRole: Constants.DeviceRole) {
     return
   }
 
-  yield Saga.put(Creators.setCodePageMode(mode))
-  yield Saga.put(Creators.setOtherDeviceCodeState(otherDeviceRole))
+  yield Saga.put(LoginGen.createSetCodePageMode({mode}))
+  yield Saga.put(LoginGen.createSetOtherDeviceCodeState({state: otherDeviceRole}))
 }
 
 function* navBasedOnLoginAndInitialState(): Saga.SagaGenerator<any, any> {
@@ -145,7 +145,6 @@ function* navBasedOnLoginAndInitialState(): Saga.SagaGenerator<any, any> {
   } else if (registered) {
     // relogging in
     yield Saga.all([Saga.put.resolve(getExtendedStatus()), Saga.put.resolve(getAccounts())])
-    console.log('aaaa after saga ALL resolve')
     yield Saga.put(navigateTo(['login'], [loginTab]))
   } else if (loginError) {
     // show error on login screen
@@ -202,9 +201,9 @@ const displayPrimaryPaperKeySaga = onBackSaga =>
     )
 
     const {onBack, navUp, onFinish} = yield Saga.race({
-      onBack: Saga.take(Constants.onBack),
+      onBack: Saga.take(LoginGen.onBack),
       navUp: Saga.take(RouteConstants.navigateUp),
-      onFinish: Saga.take(Constants.onFinish),
+      onFinish: Saga.take(LoginGen.onFinish),
     })
 
     if (onBack || navUp) {
@@ -230,9 +229,9 @@ const getEmailOrUsernameSaga = onBackSaga =>
     )
 
     const {onBack, navUp, onSubmit} = yield Saga.race({
-      onBack: Saga.take(Constants.onBack),
+      onBack: Saga.take(LoginGen.onBack),
       navUp: Saga.take(RouteConstants.navigateUp),
-      onSubmit: Saga.take(Constants.submitUsernameOrEmail),
+      onSubmit: Saga.take(LoginGen.submitUsernameOrEmail),
     })
 
     if (onBack || navUp) {
@@ -251,7 +250,7 @@ const getEmailOrUsernameSaga = onBackSaga =>
 type DisplayAndPromptSecretArgs = any
 const displayAndPromptSecretSaga = onBackSaga =>
   function*({phrase, previousErr}: DisplayAndPromptSecretArgs) {
-    yield Saga.put(Creators.setTextCode(phrase, previousErr))
+    yield Saga.put(LoginGen.createSetTextCode({textCode: phrase, enterCodeErrorText: previousErr}))
     yield Saga.call(generateQRCode)
 
     // If we have an error, we're already on the right page.
@@ -260,10 +259,10 @@ const displayAndPromptSecretSaga = onBackSaga =>
     }
 
     const {textEntered, qrScanned, onBack, navUp} = yield Saga.race({
-      onBack: Saga.take(Constants.onBack),
+      onBack: Saga.take(LoginGen.onBack),
       navUp: Saga.take(RouteConstants.navigateUp),
-      qrScanned: Saga.take(Constants.qrScanned),
-      textEntered: Saga.take(Constants.provisionTextCodeEntered),
+      qrScanned: Saga.take(LoginGen.qrScanned),
+      textEntered: Saga.take(LoginGen.provisionTextCodeEntered),
     })
 
     if (onBack || navUp) {
@@ -293,9 +292,9 @@ const promptNewDeviceNameSaga = onBackSaga =>
     )
 
     const {onBack, navUp, onSubmit} = yield Saga.race({
-      onBack: Saga.take(Constants.onBack),
+      onBack: Saga.take(LoginGen.onBack),
       navUp: Saga.take(RouteConstants.navigateUp),
-      onSubmit: Saga.take(Constants.submitDeviceName),
+      onSubmit: Saga.take(LoginGen.submitDeviceName),
     })
 
     if (onBack || navUp) {
@@ -322,10 +321,10 @@ const chooseDeviceSaga = onBackSaga =>
     )
 
     const {onBack, navUp, onWont, onSelect} = yield Saga.race({
-      onBack: Saga.take(Constants.onBack),
+      onBack: Saga.take(LoginGen.onBack),
       navUp: Saga.take(RouteConstants.navigateUp),
-      onWont: Saga.take(Constants.onWont),
-      onSelect: Saga.take(Constants.selectDeviceId),
+      onWont: Saga.take(LoginGen.onWont),
+      onSelect: Saga.take(LoginGen.selectDeviceId),
     })
 
     if (onBack || navUp) {
@@ -354,9 +353,9 @@ const chooseGPGMethodSaga = onBackSaga =>
     yield Saga.put(navigateAppend(['gpgSign'], [loginTab, 'login']))
 
     const {onBack, navUp, onSubmit} = yield Saga.race({
-      onBack: Saga.take(Constants.onBack),
+      onBack: Saga.take(LoginGen.onBack),
       navUp: Saga.take(RouteConstants.navigateUp),
-      onSubmit: Saga.take(Constants.chooseGPGMethod),
+      onSubmit: Saga.take(LoginGen.chooseGPGMethod),
     })
 
     if (onBack || navUp) {
@@ -413,9 +412,9 @@ const defaultGetPassphraseSaga = onBackSaga =>
     }
 
     const {onBack, navUp, onSubmit} = yield Saga.race({
-      onBack: Saga.take(Constants.onBack),
+      onBack: Saga.take(LoginGen.onBack),
       navUp: Saga.take(RouteConstants.navigateUp),
-      onSubmit: Saga.take(Constants.submitPassphrase),
+      onSubmit: Saga.take(LoginGen.submitPassphrase),
     })
 
     if (onBack || navUp) {
@@ -430,7 +429,7 @@ const defaultGetPassphraseSaga = onBackSaga =>
   }
 
 function* handleProvisioningError(error) {
-  yield Saga.put(Creators.provisioningError(error))
+  yield Saga.put(LoginGen.createProvisioningError({error}))
   yield Saga.put(
     navigateAppend(
       [
@@ -444,7 +443,7 @@ function* handleProvisioningError(error) {
       [loginTab, 'login']
     )
   )
-  yield Saga.race({onBack: Saga.take(Constants.onBack), navUp: Saga.take(RouteConstants.navigateUp)})
+  yield Saga.race({onBack: Saga.take(LoginGen.onBack), navUp: Saga.take(RouteConstants.navigateUp)})
   yield Saga.call(cancelLogin)
 }
 
@@ -474,7 +473,6 @@ function* loginFlowSaga(usernameOrEmail, passphrase) {
         console.log(error)
         yield Saga.call(handleProvisioningError, error)
       } else {
-        yield Saga.put(Creators.loginDone())
         yield Saga.call(navBasedOnLoginAndInitialState)
       }
     } else if (result === EngineRpc.BailedEarly) {
@@ -493,9 +491,9 @@ function* initalizeMyCodeStateForLogin() {
   // We can either be a newDevice or an existingDevice. Here in the login
   // flow, let's set ourselves to be a newDevice
   yield Saga.put(
-    Creators.setMyDeviceCodeState(
-      isMobile ? Constants.codePageDeviceRoleNewPhone : Constants.codePageDeviceRoleNewComputer
-    )
+    LoginGen.createSetMyDeviceCodeState({
+      state: isMobile ? Constants.codePageDeviceRoleNewPhone : Constants.codePageDeviceRoleNewComputer,
+    })
   )
 }
 
@@ -503,24 +501,26 @@ function* initalizeMyCodeStateForAddingADevice() {
   // We can either be a newDevice or an existingDevice. Here in the adding a device
   // flow, let's set ourselves to be an existing device
   yield Saga.put(
-    Creators.setMyDeviceCodeState(
-      isMobile ? Constants.codePageDeviceRoleExistingPhone : Constants.codePageDeviceRoleExistingComputer
-    )
+    LoginGen.createSetMyDeviceCodeState({
+      state: isMobile
+        ? Constants.codePageDeviceRoleExistingPhone
+        : Constants.codePageDeviceRoleExistingComputer,
+    })
   )
 }
 
 function* startLoginSaga() {
-  yield Saga.put(Creators.setLoginFromRevokedDevice(''))
-  yield Saga.put(Creators.setRevokedSelf(''))
-  yield Saga.put(Creators.setDeletedSelf(''))
+  yield Saga.put(LoginGen.createSetLoginFromRevokedDevice({device: ''}))
+  yield Saga.put(LoginGen.createSetRevokedSelf({revoked: ''}))
+  yield Saga.put(LoginGen.createSetDeletedSelf({name: ''}))
   yield Saga.put(navigateTo(['login', 'usernameOrEmail'], [loginTab]))
 
   yield Saga.call(initalizeMyCodeStateForLogin)
 
   const {onBack, navUp, onSubmit} = yield Saga.race({
-    onBack: Saga.take(Constants.onBack),
+    onBack: Saga.take(LoginGen.onBack),
     navUp: Saga.take(RouteConstants.navigateUp),
-    onSubmit: Saga.take(Constants.submitUsernameOrEmail),
+    onSubmit: Saga.take(LoginGen.submitUsernameOrEmail),
   })
 
   if (onBack || navUp) {
@@ -531,10 +531,10 @@ function* startLoginSaga() {
   }
 }
 
-function* reloginSaga({payload: {usernameOrEmail, passphrase}}: Constants.Relogin) {
-  yield Saga.put(Creators.setLoginFromRevokedDevice(''))
-  yield Saga.put(Creators.setRevokedSelf(''))
-  yield Saga.put(Creators.setDeletedSelf(''))
+function* reloginSaga({payload: {usernameOrEmail, passphrase}}: LoginGen.ReloginPayload) {
+  yield Saga.put(LoginGen.createSetLoginFromRevokedDevice({revoked: ''}))
+  yield Saga.put(LoginGen.createSetRevokedSelf({revoked: ''}))
+  yield Saga.put(LoginGen.createSetDeletedSelf({name: ''}))
 
   yield Saga.call(initalizeMyCodeStateForLogin)
   yield Saga.call(loginFlowSaga, usernameOrEmail, passphrase)
@@ -558,7 +558,7 @@ function* cameraBrokenModeSaga({payload: {broken}}) {
     console.warn("mode is null!, can't setCodePageMode. Bailing")
     return
   }
-  yield Saga.put(Creators.setCodePageMode(mode))
+  yield Saga.put(LoginGen.createSetCodePageMode({mode}))
 }
 
 const _deviceTypeMap: {[key: string]: any} = {
@@ -568,7 +568,7 @@ const _deviceTypeMap: {[key: string]: any} = {
 
 function secretExchangedSaga() {
   return function*() {
-    yield Saga.put(Creators.clearQRCode())
+    yield Saga.put(LoginGen.createClearQRCode())
     return EngineRpc.rpcResult()
   }
 }
@@ -618,7 +618,7 @@ function* openAccountResetPageSaga() {
 }
 
 function* logoutDoneSaga() {
-  yield Saga.put({payload: undefined, type: CommonConstants.resetStore})
+  yield Saga.put({payload: undefined, type: LoginGen.resetStore})
 
   yield Saga.call(navBasedOnLoginAndInitialState)
   yield Saga.put(ConfigGen.createBootstrap({}))
@@ -633,19 +633,19 @@ function* logoutSaga() {
   if (incoming.error) {
     console.log(incoming.error)
   } else {
-    yield Saga.put(Creators.logoutDone())
+    yield Saga.put(LoginGen.createLogoutDone())
   }
 }
 
 function* loginSaga(): Saga.SagaGenerator<any, any> {
-  yield Saga.safeTakeLatest(Constants.startLogin, startLoginSaga)
-  yield Saga.safeTakeLatest(Constants.cameraBrokenMode, cameraBrokenModeSaga)
-  yield Saga.safeTakeLatest(Constants.setCodeMode, generateQRCode)
-  yield Saga.safeTakeLatest(Constants.relogin, reloginSaga)
-  yield Saga.safeTakeLatest(Constants.openAccountResetPage, openAccountResetPageSaga)
-  yield Saga.safeTakeLatest(Constants.navBasedOnLoginAndInitialState, navBasedOnLoginAndInitialState)
-  yield Saga.safeTakeLatest(Constants.logoutDone, logoutDoneSaga)
-  yield Saga.safeTakeLatest(Constants.logout, logoutSaga)
+  yield Saga.safeTakeLatest(LoginGen.startLogin, startLoginSaga)
+  yield Saga.safeTakeLatest(LoginGen.cameraBrokenMode, cameraBrokenModeSaga)
+  yield Saga.safeTakeLatest(LoginGen.setCodeMode, generateQRCode)
+  yield Saga.safeTakeLatest(LoginGen.relogin, reloginSaga)
+  yield Saga.safeTakeLatest(LoginGen.openAccountResetPage, openAccountResetPageSaga)
+  yield Saga.safeTakeLatest(LoginGen.navBasedOnLoginAndInitialState, navBasedOnLoginAndInitialState)
+  yield Saga.safeTakeLatest(LoginGen.logoutDone, logoutDoneSaga)
+  yield Saga.safeTakeLatest(LoginGen.logout, logoutSaga)
   yield Saga.safeTakeLatest('device:addNewDevice', addNewDeviceSaga)
 }
 

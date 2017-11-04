@@ -1,6 +1,6 @@
 // @flow
 import * as Constants from '../../constants/config'
-import * as Creators from '../../actions/login/creators'
+import * as LoginGen from '../../actions/login-gen'
 import * as ConfigGen from '../../actions/config-gen'
 import {Splash, Intro, Failure} from '.'
 import {connect, type TypedState, compose, branch, renderComponent} from '../../util/container'
@@ -19,7 +19,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateAppend}) => ({
     dispatch(navigateAppend(['feedback']))
   },
   onLogin: () => {
-    dispatch(Creators.startLogin())
+    dispatch(LoginGen.createStartLogin())
   },
   onRetry: () => {
     dispatch(ConfigGen.createRetryBootstrap())
