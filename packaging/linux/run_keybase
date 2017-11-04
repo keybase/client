@@ -14,11 +14,15 @@ set -e -u -o pipefail
 # Stop any existing services. These commands will return errors if keybase
 # isn't already running, but putting them in if-statements prevents those
 # errors from aborting the whole script.
+
+# The default mount point is /keybase, but the caller can override that.
+KBFS_MOUNT_POINT="${KBFS_MOUNT_POINT:-/keybase}"
+
 if killall Keybase &> /dev/null ; then
   echo Shutting down Keybase GUI...
 fi
-if fusermount -uz /keybase &> /dev/null ; then
-  echo Unmounting /keybase...
+if fusermount -uz "$KBFS_MOUNT_POINT" &> /dev/null ; then
+  echo Unmounting "$KBFS_MOUNT_POINT"...
 fi
 if killall kbfsfuse &> /dev/null ; then
   echo Shutting down kbfsfuse...
@@ -45,8 +49,8 @@ echo Launching keybase service...
 # We set the --auto-forked flag here so that updated clients that try to
 # restart this service will know to re-fork it themselves. That's all it does.
 keybase -d --log-file="$logdir/keybase.service.log" service --auto-forked &>> "$logdir/keybase.start.log" &
-echo Mounting /keybase...
-kbfsfuse -debug -log-to-file /keybase &>> "$logdir/keybase.start.log" &
+echo Mounting "$KBFS_MOUNT_POINT"...
+kbfsfuse -debug -log-to-file "$KBFS_MOUNT_POINT" &>> "$logdir/keybase.start.log" &
 echo Launching Keybase GUI...
 /opt/keybase/Keybase &>> "$logdir/Keybase.app.log" &
 
