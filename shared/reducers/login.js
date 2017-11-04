@@ -134,12 +134,6 @@ export default function(state: Constants.State = initialState, action: LoginGen.
       }
     case LoginGen.waitingForResponse:
       return {...state, waitingForResponse: action.payload}
-    case LoginGen.relogin:
-      if (action.error) {
-        return {...state, loginError: action.payload && action.payload.message}
-      } else {
-        return state
-      }
     case LoginGen.provisioningError:
       return {...state, codePage: {...state.codePage, qrCodeScanned: false}}
     case LoginGen.resetQRCodeScanned:
