@@ -9,7 +9,6 @@ import {requestAutoInvite} from '../../actions/signup'
 const mapStateToProps = (state: TypedState) => ({
   bootStatus: state.config.bootStatus,
   justDeletedSelf: state.login.justDeletedSelf,
-  justLoginFromRevokedDevice: state.login.justLoginFromRevokedDevice,
   justRevokedSelf: state.login.justRevokedSelf,
   retrying: state.config.bootstrapTriesRemaining !== Constants.maxBootstrapTries,
 })

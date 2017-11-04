@@ -1,6 +1,7 @@
 // @flow
 import * as ChatTypes from '../constants/types/flow-types-chat'
 import * as Constants from '../constants/settings'
+import * as LoginGen from '../actions/login-gen'
 import * as RPCTypes from '../constants/types/flow-types'
 import HiddenString from '../util/hidden-string'
 import mapValues from 'lodash/mapValues'
@@ -9,7 +10,6 @@ import {all, call, put, select, fork, cancel} from 'redux-saga/effects'
 import {delay} from 'redux-saga'
 import {navigateAppend, navigateUp} from '../actions/route-tree'
 import {safeTakeEvery, safeTakeLatest} from '../util/saga'
-import {setDeletedSelf} from '../actions/login/creators'
 import {type SagaGenerator} from '../constants/types/saga'
 import {type TypedState} from '../constants/reducer'
 
@@ -433,7 +433,7 @@ function* deleteAccountForeverSaga(): SagaGenerator<any, any> {
   }
 
   yield call(RPCTypes.loginAccountDeleteRpcPromise)
-  yield put(setDeletedSelf(username))
+  yield put(LoginGen.createSetDeletedSelf({deletedUsername: username}))
 }
 
 function* loadSettingsSaga(): SagaGenerator<any, any> {

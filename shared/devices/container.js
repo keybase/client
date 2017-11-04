@@ -2,6 +2,7 @@
 import Devices from '.'
 import * as I from 'immutable'
 import * as LoginGen from '../actions/login-gen'
+import * as LoginConstants from '../constants/login'
 import {
   compose,
   lifecycle,
@@ -46,9 +47,10 @@ const mapStateToProps = (state: TypedState, {routeState}) => {
 }
 
 const mapDispatchToProps = (dispatch: any, {routeState, setRouteState, navigateUp}) => ({
-  addNewComputer: () => dispatch(LoginGen.createAddNewComputer()),
+  addNewComputer: () =>
+    dispatch(LoginGen.createAddNewDevice({role: LoginConstants.codePageDeviceRoleNewComputer})),
   addNewPaperKey: () => dispatch(paperKeyMake()),
-  addNewPhone: () => dispatch(LoginGen.createAddNewPhone()),
+  addNewPhone: () => dispatch(LoginGen.createAddNewDevice({role: LoginConstants.codePageDeviceRoleNewPhone})),
   loadDevices: () => dispatch(load()),
   onBack: () => dispatch(navigateUp()),
   onToggleShowRevoked: () => {

@@ -1,5 +1,6 @@
 // @flow
 import * as Constants from '../constants/signup'
+import * as LoginGen from './login-gen'
 import * as SignupGen from './signup-gen'
 import * as RPCTypes from '../constants/types/flow-types'
 import HiddenString from '../util/hidden-string'
@@ -7,7 +8,6 @@ import trim from 'lodash/trim'
 import {isMobile} from '../constants/platform'
 import {isValidEmail, isValidName, isValidUsername} from '../util/simple-validators'
 import {loginTab} from '../constants/tabs'
-import * as Creators from './login/creators'
 import {navigateAppend, navigateTo} from '../actions/route-tree'
 
 import type {
@@ -66,9 +66,8 @@ function checkInviteCodeThenNextPhase(inviteCode: string) {
 
 function requestAutoInvite() {
   return (dispatch: Dispatch) => {
-    dispatch(Creators.setLoginFromRevokedDevice(''))
-    dispatch(Creators.setRevokedSelf(''))
-    dispatch(Creators.setDeletedSelf(''))
+    dispatch(LoginGen.createSetRevokedSelf({revoked: ''}))
+    dispatch(LoginGen.createSetDeletedSelf({deletedUsername: ''}))
     const p: Promise<*> = new Promise((resolve, reject) => {
       // TODO: It would be better to book-keep having asked for an auto
       // invite code, instead of just acting as if the one we receive
@@ -425,7 +424,7 @@ function restartSignup() {
         payload: {},
         type: Constants.restartSignup,
       })
-      dispatch(Creators.navBasedOnLoginAndInitialState())
+      dispatch(LoginGen.createNavBasedOnLoginAndInitialState())
       resolve()
     })
     return p

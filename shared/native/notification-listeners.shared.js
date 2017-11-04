@@ -1,7 +1,7 @@
 // @flow
 import * as ConfigGen from '../actions/config-gen'
+import * as LoginGen from '../actions/login-gen'
 import {receivedBadgeState} from '../actions/notifications'
-import {logoutDone} from '../actions/login/creators'
 import throttle from 'lodash/throttle'
 
 import type {Dispatch} from '../constants/types/flux'
@@ -56,7 +56,7 @@ export default function(dispatch: Dispatch, getState: () => Object, notify: any)
 
       // Do we actually think we're logged in?
       if (getState().config.loggedIn) {
-        dispatch(logoutDone())
+        dispatch(LoginGen.createLogoutDone())
       }
     },
     'keybase.1.NotifyTracking.trackingChanged': ({username, isTracking}) => {

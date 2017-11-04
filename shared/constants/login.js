@@ -47,7 +47,6 @@ export type State = {
   forgotPasswordSubmitting: boolean,
   forgotPasswordSuccess: boolean,
   justDeletedSelf: ?string,
-  justLoginFromRevokedDevice: ?boolean,
   justRevokedSelf: ?string,
   loginError: ?string,
   registerUserPassError: ?string,
