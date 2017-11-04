@@ -1,24 +1,49 @@
 // @flow
 import * as React from 'react'
-import {Avatar, Text, Box, Button, ScrollView, Checkbox, Icon, HeaderHoc} from '../../common-adapters'
+import {
+  Avatar,
+  Text,
+  Box,
+  Button,
+  ClickableBox,
+  ScrollView,
+  Checkbox,
+  Icon,
+  HeaderHoc,
+} from '../../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../../styles'
 import {renameProp, compose, withProps} from 'recompose'
 
 import type {Props, RowProps} from '.'
 
+const Edit = ({onClick, style}: {onClick: () => void, style: Object}) => (
+  <ClickableBox style={style} onClick={onClick}>
+    <Icon style={{height: 16, marginRight: globalMargins.xtiny}} type="iconfont-edit" />
+    <Text type="BodySmallPrimaryLink">Edit</Text>
+  </ClickableBox>
+)
+
 const Row = (
   props: RowProps & {selected: boolean, onToggle: () => void, showEdit: boolean, onEdit: () => void}
 ) => (
   <Box style={_rowBox}>
+    <Checkbox style={{alignSelf: 'flex-end'}} checked={props.selected} label="" onCheck={props.onToggle} />
     <Box
-      style={{...globalStyles.flexBoxColumn, flex: 1, position: 'relative', paddingRight: globalMargins.tiny}}
+      style={{...globalStyles.flexBoxColumn, flex: 1, position: 'relative', paddingLeft: globalMargins.tiny}}
     >
       <Text type="BodySemibold" style={{color: globalColors.blue, maxWidth: '100%'}} lineClamp={1}>
         #{props.name}
       </Text>
       <Text type="BodySmall" lineClamp={1}>{props.description}</Text>
     </Box>
-    <Checkbox checked={props.selected} label="" onCheck={props.onToggle} />
+    <Edit
+      style={{
+        ...globalStyles.flexBoxRow,
+        justifyContent: 'flex-end',
+        alignItems: 'center',
+      }}
+      onClick={props.onEdit}
+    />
   </Box>
 )
 

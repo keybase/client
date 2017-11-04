@@ -1,8 +1,9 @@
 // @flow
 import * as React from 'react'
 import {compose, withState} from 'recompose'
-import {Avatar, Text, Box, Button, Input, Icon} from '../../common-adapters'
+import {Avatar, Text, Box, Button, Input, Icon, StandardScreen} from '../../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../../styles'
+import {isMobile} from '../../constants/platform'
 
 type Props = {
   teamname: string,
@@ -41,7 +42,7 @@ const DeleteChannel = ({onClick, disabled}: {onClick: () => void, disabled: bool
   </Box>
 )
 
-const _EditChannel = (props: Props & TextState) => (
+const EditChannelBare = (props: Props & TextState) => (
   <Box style={_boxStyle}>
     <Avatar isTeam={true} teamname={props.teamname} size={24} />
     <Text type="BodySmallSemibold" style={{color: globalColors.darkBlue, marginTop: globalMargins.xtiny}}>
@@ -80,23 +81,32 @@ const _EditChannel = (props: Props & TextState) => (
     </Box>
     <Box style={_bottomRowStyle}>
       {props.showDelete && <DeleteChannel onClick={props.onDelete} disabled={props.deleteRenameDisabled} />}
-      <Button type="Secondary" label="Cancel" onClick={props.onCancel} />
-      <Button
-        type="Primary"
-        label="Save"
-        waiting={props.waitingForSave}
-        disabled={props.channelName === props.newChannelName && props.topic === props.newTopic}
-        onClick={() => props.onSave(props.newChannelName, props.newTopic)}
-        style={{marginLeft: globalMargins.tiny}}
-      />
+      <Box style={globalStyles.flexBoxRow}>
+        <Button type="Secondary" label="Cancel" onClick={props.onCancel} />
+        <Button
+          type="Primary"
+          label="Save"
+          waiting={props.waitingForSave}
+          disabled={props.channelName === props.newChannelName && props.topic === props.newTopic}
+          onClick={() => props.onSave(props.newChannelName, props.newTopic)}
+          style={{marginLeft: globalMargins.tiny}}
+        />
+      </Box>
     </Box>
   </Box>
+)
+
+// TODO(mm) this should be handled at a higher level
+const _EditChannelOnStandardScreen = (props: Props & TextState) => (
+  <StandardScreen onBack={props.onCancel}>
+    <EditChannelBare {...props} />
+  </StandardScreen>
 )
 
 const EditChannel: React.ComponentType<Props> = compose(
   withState('newChannelName', 'onChangeChannelName', ({channelName}: Props) => channelName),
   withState('newTopic', 'onChangeTopic', ({topic}: Props) => topic)
-)(_EditChannel)
+)(isMobile ? _EditChannelOnStandardScreen : EditChannelBare)
 
 const _boxStyle = {
   ...globalStyles.flexBoxColumn,
@@ -105,16 +115,17 @@ const _boxStyle = {
   paddingRight: globalMargins.large,
   paddingTop: globalMargins.medium,
   paddingBottom: globalMargins.medium,
+  ...(isMobile ? {flex: 1} : {}),
 }
 
 const _bottomRowStyle = {
   ...globalStyles.flexBoxRow,
   flex: 1,
   alignSelf: 'stretch',
-  alignItems: 'center',
+  alignItems: 'flex-end',
   justifyContent: 'center',
   position: 'relative',
-  minWidth: '500px',
+  ...(isMobile ? {} : {minWidth: '500px'}),
 }
 
 export default EditChannel
