@@ -10,7 +10,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/keybase/client/go/externals"
+	"github.com/keybase/client/go/externalstest"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 	insecureTriplesec "github.com/keybase/go-triplesec-insecure"
@@ -18,7 +18,7 @@ import (
 )
 
 func SetupEngineTest(tb libkb.TestingTB, name string) libkb.TestContext {
-	tc := externals.SetupTest(tb, name, 2)
+	tc := externalstest.SetupTest(tb, name, 2)
 
 	// use an insecure triplesec in tests
 	tc.G.NewTriplesec = func(passphrase []byte, salt []byte) (libkb.Triplesec, error) {
@@ -33,7 +33,7 @@ func SetupEngineTest(tb libkb.TestingTB, name string) libkb.TestContext {
 }
 
 func SetupEngineTestRealTriplesec(tb libkb.TestingTB, name string) libkb.TestContext {
-	tc := externals.SetupTest(tb, name, 2)
+	tc := externalstest.SetupTest(tb, name, 2)
 	tc.G.NewTriplesec = libkb.NewSecureTriplesec
 	return tc
 }
