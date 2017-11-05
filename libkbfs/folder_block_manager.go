@@ -760,7 +760,7 @@ func (fbm *folderBlockManager) getMostRecentOldEnoughAndGCRevisions(
 			startRev = kbfsmd.RevisionInitial
 		}
 
-		rmds, err := getMDRange(ctx, fbm.config, fbm.id, NullBranchID, startRev,
+		rmds, err := getMDRange(ctx, fbm.config, fbm.id, kbfsmd.NullBranchID, startRev,
 			currHead, Merged, nil)
 		if err != nil {
 			return kbfsmd.RevisionUninitialized,
@@ -866,7 +866,7 @@ outer:
 			startRev = kbfsmd.RevisionInitial
 		}
 
-		rmds, err := getMDRange(ctx, fbm.config, fbm.id, NullBranchID, startRev,
+		rmds, err := getMDRange(ctx, fbm.config, fbm.id, kbfsmd.NullBranchID, startRev,
 			currHead, Merged, nil)
 		if err != nil {
 			return nil, kbfsmd.RevisionUninitialized, false, err

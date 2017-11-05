@@ -760,8 +760,8 @@ type Reporter interface {
 // MDCache gets and puts plaintext top-level metadata into the cache.
 type MDCache interface {
 	// Get gets the metadata object associated with the given TLF ID,
-	// revision number, and branch ID (NullBranchID for merged MD).
-	Get(tlf tlf.ID, rev kbfsmd.Revision, bid BranchID) (ImmutableRootMetadata, error)
+	// revision number, and branch ID (kbfsmd.NullBranchID for merged MD).
+	Get(tlf tlf.ID, rev kbfsmd.Revision, bid kbfsmd.BranchID) (ImmutableRootMetadata, error)
 	// Put stores the metadata object, only if an MD matching that TLF
 	// ID, revision number, and branch ID isn't already cached.  If
 	// there is already a matching item in the cache, we require that
@@ -770,16 +770,16 @@ type MDCache interface {
 	// being fetched from the server.
 	Put(md ImmutableRootMetadata) error
 	// Delete removes the given metadata object from the cache if it exists.
-	Delete(tlf tlf.ID, rev kbfsmd.Revision, bid BranchID)
+	Delete(tlf tlf.ID, rev kbfsmd.Revision, bid kbfsmd.BranchID)
 	// Replace replaces the entry matching the md under the old branch
 	// ID with the new one.  If the old entry doesn't exist, this is
 	// equivalent to a Put, except that it overrides anything else
 	// that's already in the cache.  This should be used when putting
 	// new MDs created locally.
-	Replace(newRmd ImmutableRootMetadata, oldBID BranchID) error
+	Replace(newRmd ImmutableRootMetadata, oldBID kbfsmd.BranchID) error
 	// MarkPutToServer sets `PutToServer` to true for the specified
 	// MD, if it already exists in the cache.
-	MarkPutToServer(tlf tlf.ID, rev kbfsmd.Revision, bid BranchID)
+	MarkPutToServer(tlf tlf.ID, rev kbfsmd.Revision, bid kbfsmd.BranchID)
 }
 
 // KeyCache handles caching for both TLFCryptKeys and BlockCryptKeys.
@@ -987,8 +987,8 @@ type cryptoPure interface {
 
 	// MakeRandomBranchID generates a per-device branch ID using a
 	// CSPRNG.  It will not return LocalSquashBranchID or
-	// NullBranchID.
-	MakeRandomBranchID() (BranchID, error)
+	// kbfsmd.NullBranchID.
+	MakeRandomBranchID() (kbfsmd.BranchID, error)
 
 	// MakeTemporaryBlockID generates a temporary block ID using a
 	// CSPRNG. This is used for indirect blocks before they're
@@ -1101,7 +1101,7 @@ type MDOps interface {
 
 	// GetUnmergedForTLF is the same as the above but for unmerged
 	// metadata.
-	GetUnmergedForTLF(ctx context.Context, id tlf.ID, bid BranchID) (
+	GetUnmergedForTLF(ctx context.Context, id tlf.ID, bid kbfsmd.BranchID) (
 		ImmutableRootMetadata, error)
 
 	// GetRange returns a range of metadata objects corresponding to
@@ -1114,7 +1114,7 @@ type MDOps interface {
 
 	// GetUnmergedRange is the same as the above but for unmerged
 	// metadata history (inclusive).
-	GetUnmergedRange(ctx context.Context, id tlf.ID, bid BranchID,
+	GetUnmergedRange(ctx context.Context, id tlf.ID, bid kbfsmd.BranchID,
 		start, stop kbfsmd.Revision) ([]ImmutableRootMetadata, error)
 
 	// Put stores the metadata object for the given top-level folder.
@@ -1155,7 +1155,7 @@ type MDOps interface {
 
 	// PruneBranch prunes all unmerged history for the given TLF
 	// branch.
-	PruneBranch(ctx context.Context, id tlf.ID, bid BranchID) error
+	PruneBranch(ctx context.Context, id tlf.ID, bid kbfsmd.BranchID) error
 
 	// ResolveBranch prunes all unmerged history for the given TLF
 	// branch, and also deletes any blocks in `blocksToDelete` that
@@ -1166,7 +1166,7 @@ type MDOps interface {
 	// ImmutableRootMetadata requires knowing the verifying key, which
 	// might not be the same as the local user's verifying key if the
 	// MD has been copied from a previous update.
-	ResolveBranch(ctx context.Context, id tlf.ID, bid BranchID,
+	ResolveBranch(ctx context.Context, id tlf.ID, bid kbfsmd.BranchID,
 		blocksToDelete []kbfsblock.ID, rmd *RootMetadata,
 		verifyingKey kbfscrypto.VerifyingKey) (ImmutableRootMetadata, error)
 
@@ -1308,7 +1308,7 @@ type MDServer interface {
 	// If lockBeforeGet is not nil, it takes a lock on the lock ID before
 	// trying to get anything. If taking the lock fails, an error is returned.
 	// Note that taking a lock from the mdserver is idempotent.
-	GetForTLF(ctx context.Context, id tlf.ID, bid BranchID, mStatus MergeStatus,
+	GetForTLF(ctx context.Context, id tlf.ID, bid kbfsmd.BranchID, mStatus MergeStatus,
 		lockBeforeGet *keybase1.LockID) (*RootMetadataSigned, error)
 
 	// GetRange returns a range of (signed/encrypted) metadata objects
@@ -1317,7 +1317,7 @@ type MDServer interface {
 	// If lockBeforeGet is not nil, it takes a lock on the lock ID before
 	// trying to get anything. If taking the lock fails, an error is returned.
 	// Note that taking a lock from the mdserver is idempotent.
-	GetRange(ctx context.Context, id tlf.ID, bid BranchID, mStatus MergeStatus,
+	GetRange(ctx context.Context, id tlf.ID, bid kbfsmd.BranchID, mStatus MergeStatus,
 		start, stop kbfsmd.Revision, lockBeforeGet *keybase1.LockID) (
 		[]*RootMetadataSigned, error)
 
@@ -1349,7 +1349,7 @@ type MDServer interface {
 	ReleaseLock(ctx context.Context, tlfID tlf.ID, lockID keybase1.LockID) error
 
 	// PruneBranch prunes all unmerged history for the given TLF branch.
-	PruneBranch(ctx context.Context, id tlf.ID, bid BranchID) error
+	PruneBranch(ctx context.Context, id tlf.ID, bid kbfsmd.BranchID) error
 
 	// RegisterForUpdate tells the MD server to inform the caller when
 	// there is a merged update with a revision number greater than

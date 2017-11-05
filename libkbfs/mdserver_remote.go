@@ -540,12 +540,12 @@ func (md *MDServerRemote) GetForHandle(ctx context.Context,
 	if err != nil {
 		return tlf.ID{}, nil, err
 	}
-	// BranchID needs to be present when Unmerged is true;
-	// NullBranchID signals that the folder's current branch ID
+	// kbfsmd.BranchID needs to be present when Unmerged is true;
+	// kbfsmd.NullBranchID signals that the folder's current branch ID
 	// should be looked up.
 	arg := keybase1.GetMetadataArg{
 		FolderHandle:  encodedHandle,
-		BranchID:      NullBranchID.String(),
+		BranchID:      kbfsmd.NullBranchID.String(),
 		Unmerged:      mStatus == Unmerged,
 		LockBeforeGet: lockBeforeGet,
 	}
@@ -563,7 +563,7 @@ func (md *MDServerRemote) GetForHandle(ctx context.Context,
 
 // GetForTLF implements the MDServer interface for MDServerRemote.
 func (md *MDServerRemote) GetForTLF(ctx context.Context, id tlf.ID,
-	bid BranchID, mStatus MergeStatus, lockBeforeGet *keybase1.LockID) (rmds *RootMetadataSigned, err error) {
+	bid kbfsmd.BranchID, mStatus MergeStatus, lockBeforeGet *keybase1.LockID) (rmds *RootMetadataSigned, err error) {
 	ctx = rpc.WithFireNow(ctx)
 	md.log.LazyTrace(ctx, "MDServer: GetForTLF %s %s %s", id, bid, mStatus)
 	defer func() {
@@ -590,7 +590,7 @@ func (md *MDServerRemote) GetForTLF(ctx context.Context, id tlf.ID,
 
 // GetRange implements the MDServer interface for MDServerRemote.
 func (md *MDServerRemote) GetRange(ctx context.Context, id tlf.ID,
-	bid BranchID, mStatus MergeStatus, start, stop kbfsmd.Revision,
+	bid kbfsmd.BranchID, mStatus MergeStatus, start, stop kbfsmd.Revision,
 	lockBeforeGet *keybase1.LockID) (rmdses []*RootMetadataSigned, err error) {
 	ctx = rpc.WithFireNow(ctx)
 	md.log.LazyTrace(ctx, "MDServer: GetRange %s %s %s %d-%d", id, bid, mStatus, start, stop)
@@ -710,7 +710,7 @@ func (md *MDServerRemote) ReleaseLock(ctx context.Context,
 
 // PruneBranch implements the MDServer interface for MDServerRemote.
 func (md *MDServerRemote) PruneBranch(
-	ctx context.Context, id tlf.ID, bid BranchID) (err error) {
+	ctx context.Context, id tlf.ID, bid kbfsmd.BranchID) (err error) {
 	ctx = rpc.WithFireNow(ctx)
 	md.log.LazyTrace(ctx, "MDServer: PruneBranch %s %s", id, bid)
 	defer func() {

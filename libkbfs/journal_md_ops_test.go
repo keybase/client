@@ -253,12 +253,12 @@ func TestJournalMDOpsBasics(t *testing.T) {
 	require.NoError(t, err)
 
 	// (8) verify head is pruned
-	head, err = mdOps.GetUnmergedForTLF(ctx, id, NullBranchID)
+	head, err = mdOps.GetUnmergedForTLF(ctx, id, kbfsmd.NullBranchID)
 	require.NoError(t, err)
 	require.Equal(t, ImmutableRootMetadata{}, head)
 
 	// (9) verify revision history is pruned
-	rmdses, err = mdOps.GetUnmergedRange(ctx, id, NullBranchID, 1, 100)
+	rmdses, err = mdOps.GetUnmergedRange(ctx, id, kbfsmd.NullBranchID, 1, 100)
 	require.NoError(t, err)
 	require.Equal(t, 0, len(rmdses))
 
@@ -339,7 +339,7 @@ func TestJournalMDOpsPutUnmergedError(t *testing.T) {
 	rmd := makeMDForJournalMDOpsTest(t, config, id, h, kbfsmd.Revision(1))
 
 	_, err = mdOps.PutUnmerged(ctx, rmd, session.VerifyingKey)
-	require.Error(t, err, "Unmerged put with rmd.BID() == j.branchID == NullBranchID")
+	require.Error(t, err, "Unmerged put with rmd.BID() == j.branchID == kbfsmd.NullBranchID")
 }
 
 func TestJournalMDOpsLocalSquashBranch(t *testing.T) {
@@ -390,7 +390,7 @@ func TestJournalMDOpsLocalSquashBranch(t *testing.T) {
 
 	mdcache := NewMDCacheStandard(10)
 	err = j.convertToBranch(
-		ctx, PendingLocalSquashBranchID, config.Crypto(), config.Codec(),
+		ctx, kbfsmd.PendingLocalSquashBranchID, config.Crypto(), config.Codec(),
 		id, mdcache)
 	require.NoError(t, err)
 
@@ -403,10 +403,10 @@ func TestJournalMDOpsLocalSquashBranch(t *testing.T) {
 
 	// The unmerged head should be the last MD we put, converted to a
 	// branch.
-	irmd, err = mdOps.GetUnmergedForTLF(ctx, id, PendingLocalSquashBranchID)
+	irmd, err = mdOps.GetUnmergedForTLF(ctx, id, kbfsmd.PendingLocalSquashBranchID)
 	require.NoError(t, err)
 	require.Equal(t, rmd.Revision(), irmd.Revision())
-	require.Equal(t, PendingLocalSquashBranchID, irmd.BID())
+	require.Equal(t, kbfsmd.PendingLocalSquashBranchID, irmd.BID())
 
 	// The merged range should just be the initial MD.
 	stopRevision := firstRevision + kbfsmd.Revision(mdCount*2)
@@ -416,7 +416,7 @@ func TestJournalMDOpsLocalSquashBranch(t *testing.T) {
 	require.Equal(t, initialMdID, irmds[0].mdID)
 	require.Equal(t, firstRevision, irmds[0].Revision())
 
-	irmds, err = mdOps.GetUnmergedRange(ctx, id, PendingLocalSquashBranchID,
+	irmds, err = mdOps.GetUnmergedRange(ctx, id, kbfsmd.PendingLocalSquashBranchID,
 		firstRevision, stopRevision)
 	require.NoError(t, err)
 	require.Len(t, irmds, mdCount)

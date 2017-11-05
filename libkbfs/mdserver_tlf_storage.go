@@ -73,7 +73,7 @@ type mdServerTlfStorage struct {
 	// Protects any IO operations in dir or any of its children,
 	// as well as branchJournals and its contents.
 	lock           sync.RWMutex
-	branchJournals map[BranchID]mdIDJournal
+	branchJournals map[kbfsmd.BranchID]mdIDJournal
 }
 
 func makeMDServerTlfStorage(tlfID tlf.ID, codec kbfscodec.Codec,
@@ -86,7 +86,7 @@ func makeMDServerTlfStorage(tlfID tlf.ID, codec kbfscodec.Codec,
 		teamMemChecker: teamMemChecker,
 		mdVer:          mdVer,
 		dir:            dir,
-		branchJournals: make(map[BranchID]mdIDJournal),
+		branchJournals: make(map[kbfsmd.BranchID]mdIDJournal),
 	}
 	return journal
 }
@@ -197,7 +197,7 @@ func (s *mdServerTlfStorage) putMDLocked(
 }
 
 func (s *mdServerTlfStorage) getOrCreateBranchJournalLocked(
-	bid BranchID) (mdIDJournal, error) {
+	bid kbfsmd.BranchID) (mdIDJournal, error) {
 	j, ok := s.branchJournals[bid]
 	if ok {
 		return j, nil
@@ -217,7 +217,7 @@ func (s *mdServerTlfStorage) getOrCreateBranchJournalLocked(
 	return j, nil
 }
 
-func (s *mdServerTlfStorage) getHeadForTLFReadLocked(bid BranchID) (
+func (s *mdServerTlfStorage) getHeadForTLFReadLocked(bid kbfsmd.BranchID) (
 	rmds *RootMetadataSigned, err error) {
 	j, err := s.getOrCreateBranchJournalLocked(bid)
 	if err != nil {
@@ -234,8 +234,8 @@ func (s *mdServerTlfStorage) getHeadForTLFReadLocked(bid BranchID) (
 }
 
 func (s *mdServerTlfStorage) checkGetParamsReadLocked(
-	ctx context.Context, currentUID keybase1.UID, bid BranchID) error {
-	mergedMasterHead, err := s.getHeadForTLFReadLocked(NullBranchID)
+	ctx context.Context, currentUID keybase1.UID, bid kbfsmd.BranchID) error {
+	mergedMasterHead, err := s.getHeadForTLFReadLocked(kbfsmd.NullBranchID)
 	if err != nil {
 		return kbfsmd.ServerError{Err: err}
 	}
@@ -260,7 +260,7 @@ func (s *mdServerTlfStorage) checkGetParamsReadLocked(
 }
 
 func (s *mdServerTlfStorage) getRangeReadLocked(
-	ctx context.Context, currentUID keybase1.UID, bid BranchID,
+	ctx context.Context, currentUID keybase1.UID, bid kbfsmd.BranchID,
 	start, stop kbfsmd.Revision) (
 	[]*RootMetadataSigned, error) {
 	err := s.checkGetParamsReadLocked(ctx, currentUID, bid)
@@ -346,7 +346,7 @@ func (s *mdServerTlfStorage) checkShutdownReadLocked() error {
 
 // All functions below are public functions.
 
-func (s *mdServerTlfStorage) journalLength(bid BranchID) (uint64, error) {
+func (s *mdServerTlfStorage) journalLength(bid kbfsmd.BranchID) (uint64, error) {
 	s.lock.RLock()
 	defer s.lock.RUnlock()
 	err := s.checkShutdownReadLocked()
@@ -363,7 +363,7 @@ func (s *mdServerTlfStorage) journalLength(bid BranchID) (uint64, error) {
 }
 
 func (s *mdServerTlfStorage) getForTLF(
-	ctx context.Context, currentUID keybase1.UID, bid BranchID) (
+	ctx context.Context, currentUID keybase1.UID, bid kbfsmd.BranchID) (
 	*RootMetadataSigned, error) {
 	s.lock.RLock()
 	defer s.lock.RUnlock()
@@ -385,7 +385,7 @@ func (s *mdServerTlfStorage) getForTLF(
 }
 
 func (s *mdServerTlfStorage) getRange(
-	ctx context.Context, currentUID keybase1.UID, bid BranchID,
+	ctx context.Context, currentUID keybase1.UID, bid kbfsmd.BranchID,
 	start, stop kbfsmd.Revision) (
 	[]*RootMetadataSigned, error) {
 	s.lock.RLock()
@@ -421,7 +421,7 @@ func (s *mdServerTlfStorage) put(ctx context.Context,
 
 	// Check permissions
 
-	mergedMasterHead, err := s.getHeadForTLFReadLocked(NullBranchID)
+	mergedMasterHead, err := s.getHeadForTLFReadLocked(kbfsmd.NullBranchID)
 	if err != nil {
 		return false, kbfsmd.ServerError{Err: err}
 	}
@@ -457,7 +457,7 @@ func (s *mdServerTlfStorage) put(ctx context.Context,
 		// currHead for unmerged history might be on the main branch
 		prevRev := rmds.MD.RevisionNumber() - 1
 		rmdses, err := s.getRangeReadLocked(
-			ctx, currentUID, NullBranchID, prevRev, prevRev)
+			ctx, currentUID, kbfsmd.NullBranchID, prevRev, prevRev)
 		if err != nil {
 			return false, kbfsmd.ServerError{Err: err}
 		}

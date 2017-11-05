@@ -316,7 +316,7 @@ func (cr *ConflictResolver) getMDs(ctx context.Context, lState *lockState,
 		return nil, nil, err
 	}
 
-	if len(unmerged) > 0 && unmerged[0].BID() == PendingLocalSquashBranchID {
+	if len(unmerged) > 0 && unmerged[0].BID() == kbfsmd.PendingLocalSquashBranchID {
 		cr.log.CDebugf(ctx, "Squashing local branch")
 		return unmerged, nil, nil
 	}
@@ -404,7 +404,7 @@ func (cr *ConflictResolver) updateCurrInput(ctx context.Context,
 	// the result back to the unmerged branch (basically "rebasing"
 	// it).  See KBFS-1896.
 	if (len(unmerged) > cr.maxRevsThreshold) ||
-		(len(unmerged) > 0 && unmerged[0].BID() == PendingLocalSquashBranchID) {
+		(len(unmerged) > 0 && unmerged[0].BID() == kbfsmd.PendingLocalSquashBranchID) {
 		cr.lockNextTime = true
 	}
 	return nil
@@ -452,7 +452,7 @@ func (cr *ConflictResolver) makeChains(ctx context.Context,
 	mergedSummary := mergedChains.summary(unmergedChains, cr.fbo.nodeCache)
 
 	// Ignore CR summaries for pending local squashes.
-	if len(unmerged) == 0 || unmerged[0].BID() != PendingLocalSquashBranchID {
+	if len(unmerged) == 0 || unmerged[0].BID() != kbfsmd.PendingLocalSquashBranchID {
 		cr.fbo.status.setCRSummary(unmergedSummary, mergedSummary)
 	}
 	return unmergedChains, mergedChains, nil
@@ -3153,7 +3153,7 @@ func (cr *ConflictResolver) doResolve(ctx context.Context, ci conflictInput) {
 		} else {
 			branchPoint := unmergedMDs[0].Revision() - 1
 			mostRecentMergedMD, err = getSingleMD(ctx, cr.config, cr.fbo.id(),
-				NullBranchID, branchPoint, Merged, nil)
+				kbfsmd.NullBranchID, branchPoint, Merged, nil)
 			if err != nil {
 				return
 			}

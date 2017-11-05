@@ -77,12 +77,12 @@ type JournalServerStatus struct {
 // branchChangeListener describes a caller that will get updates via
 // the onTLFBranchChange method call when the journal branch changes
 // for the given TlfID.  If a new branch has been created, the given
-// BranchID will be something other than NullBranchID.  If the current
-// branch was pruned, it will be NullBranchID.  If the implementer
+// kbfsmd.BranchID will be something other than kbfsmd.NullBranchID.  If the current
+// branch was pruned, it will be kbfsmd.NullBranchID.  If the implementer
 // will be accessing the journal, it must do so from another goroutine
 // to avoid deadlocks.
 type branchChangeListener interface {
-	onTLFBranchChange(tlf.ID, BranchID)
+	onTLFBranchChange(tlf.ID, kbfsmd.BranchID)
 }
 
 // mdFlushListener describes a caller that will ge updates via the
@@ -90,7 +90,7 @@ type branchChangeListener interface {
 // accessing the journal, it must do so from another goroutine to
 // avoid deadlocks.
 type mdFlushListener interface {
-	onMDFlush(tlf.ID, BranchID, kbfsmd.Revision)
+	onMDFlush(tlf.ID, kbfsmd.BranchID, kbfsmd.Revision)
 }
 
 // TODO: JournalServer isn't really a server, although it can create

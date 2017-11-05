@@ -449,7 +449,7 @@ func (e MDMismatchError) Error() string {
 type NoSuchMDError struct {
 	Tlf tlf.ID
 	Rev kbfsmd.Revision
-	BID BranchID
+	BID kbfsmd.BranchID
 }
 
 // Error implements the error interface for NoSuchMDError
@@ -872,7 +872,7 @@ func (e InvalidOpError) Error() string {
 // abandon a staged branch due to an unresolvable error.
 type CRAbandonStagedBranchError struct {
 	Err error
-	Bid BranchID
+	Bid kbfsmd.BranchID
 }
 
 func (e CRAbandonStagedBranchError) Error() string {

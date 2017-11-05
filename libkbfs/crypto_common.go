@@ -37,7 +37,7 @@ func (c CryptoCommon) MakeRandomTlfID(t tlf.Type) (tlf.ID, error) {
 }
 
 // MakeRandomBranchID implements the Crypto interface for CryptoCommon.
-func (c CryptoCommon) MakeRandomBranchID() (BranchID, error) {
+func (c CryptoCommon) MakeRandomBranchID() (kbfsmd.BranchID, error) {
 	return kbfsmd.MakeRandomBranchID()
 }
 

@@ -445,7 +445,7 @@ func (m *stallingMDOps) GetLatestHandleForTLF(ctx context.Context, id tlf.ID) (
 }
 
 func (m *stallingMDOps) GetUnmergedForTLF(ctx context.Context, id tlf.ID,
-	bid BranchID) (md ImmutableRootMetadata, err error) {
+	bid kbfsmd.BranchID) (md ImmutableRootMetadata, err error) {
 	m.maybeStall(ctx, StallableMDGetUnmergedForTLF)
 	err = runWithContextCheck(ctx, func(ctx context.Context) error {
 		var errGetUnmergedForTLF error
@@ -469,7 +469,7 @@ func (m *stallingMDOps) GetRange(ctx context.Context, id tlf.ID,
 }
 
 func (m *stallingMDOps) GetUnmergedRange(ctx context.Context, id tlf.ID,
-	bid BranchID, start, stop kbfsmd.Revision) (mds []ImmutableRootMetadata, err error) {
+	bid kbfsmd.BranchID, start, stop kbfsmd.Revision) (mds []ImmutableRootMetadata, err error) {
 	m.maybeStall(ctx, StallableMDGetUnmergedRange)
 	err = runWithContextCheck(ctx, func(ctx context.Context) error {
 		var errGetUnmergedRange error
@@ -505,7 +505,7 @@ func (m *stallingMDOps) PutUnmerged(ctx context.Context, md *RootMetadata,
 }
 
 func (m *stallingMDOps) PruneBranch(
-	ctx context.Context, id tlf.ID, bid BranchID) error {
+	ctx context.Context, id tlf.ID, bid kbfsmd.BranchID) error {
 	m.maybeStall(ctx, StallableMDPruneBranch)
 	return runWithContextCheck(ctx, func(ctx context.Context) error {
 		return m.delegate.PruneBranch(ctx, id, bid)
@@ -513,7 +513,7 @@ func (m *stallingMDOps) PruneBranch(
 }
 
 func (m *stallingMDOps) ResolveBranch(
-	ctx context.Context, id tlf.ID, bid BranchID, blocksToDelete []kbfsblock.ID,
+	ctx context.Context, id tlf.ID, bid kbfsmd.BranchID, blocksToDelete []kbfsblock.ID,
 	rmd *RootMetadata, verifyingKey kbfscrypto.VerifyingKey) (
 	irmd ImmutableRootMetadata, err error) {
 	m.maybeStall(ctx, StallableMDResolveBranch)

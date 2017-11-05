@@ -985,7 +985,7 @@ func (j *tlfJournal) checkServerForConflicts(ctx context.Context,
 	// returns the latest revision number, so we don't have to fetch
 	// the entire MD?
 	currHead, err := j.config.MDServer().GetForTLF(
-		ctx, j.tlfID, NullBranchID, Merged, needLock)
+		ctx, j.tlfID, kbfsmd.NullBranchID, Merged, needLock)
 	if err != nil {
 		return err
 	}
@@ -1169,7 +1169,7 @@ func (j *tlfJournal) getNextMDEntryToFlush(ctx context.Context,
 }
 
 func (j *tlfJournal) convertMDsToBranchLocked(
-	ctx context.Context, bid BranchID, doSignal bool) error {
+	ctx context.Context, bid kbfsmd.BranchID, doSignal bool) error {
 	err := j.mdJournal.convertToBranch(
 		ctx, bid, j.config.Crypto(), j.config.Codec(), j.tlfID,
 		j.config.MDCache())
@@ -1218,7 +1218,7 @@ func (j *tlfJournal) convertMDsToBranchIfOverThreshold(ctx context.Context,
 		return false, err
 	}
 
-	if j.mdJournal.getBranchID() != NullBranchID {
+	if j.mdJournal.getBranchID() != kbfsmd.NullBranchID {
 		// Already on a conflict branch, so nothing to do.
 		return false, nil
 	}
@@ -1293,7 +1293,7 @@ func (j *tlfJournal) convertMDsToBranchIfOverThreshold(ctx context.Context,
 		}
 	}
 
-	err = j.convertMDsToBranchLocked(ctx, PendingLocalSquashBranchID, doSignal)
+	err = j.convertMDsToBranchLocked(ctx, kbfsmd.PendingLocalSquashBranchID, doSignal)
 	if err != nil {
 		return false, err
 	}
@@ -1539,7 +1539,7 @@ func (j *tlfJournal) isOnConflictBranch() (bool, error) {
 		return false, err
 	}
 
-	return j.mdJournal.getBranchID() != NullBranchID, nil
+	return j.mdJournal.getBranchID() != kbfsmd.NullBranchID, nil
 }
 
 func (j *tlfJournal) getJournalStatusLocked() (TLFJournalStatus, error) {
@@ -1988,7 +1988,7 @@ func (j *tlfJournal) putBlockData(
 			storedBytesBefore, storedBytesAfter))
 	}
 
-	if putData && j.mdJournal.branchID == NullBranchID {
+	if putData && j.mdJournal.branchID == kbfsmd.NullBranchID {
 		j.unsquashedBytes += uint64(bufLen)
 	}
 
@@ -2101,18 +2101,18 @@ func (j *tlfJournal) clearFlushingBlockIDs(entries blockEntriesToFlush) error {
 	return nil
 }
 
-func (j *tlfJournal) getBranchID() (BranchID, error) {
+func (j *tlfJournal) getBranchID() (kbfsmd.BranchID, error) {
 	j.journalLock.RLock()
 	defer j.journalLock.RUnlock()
 	if err := j.checkEnabledLocked(); err != nil {
-		return NullBranchID, err
+		return kbfsmd.NullBranchID, err
 	}
 
 	return j.mdJournal.branchID, nil
 }
 
 func (j *tlfJournal) getMDHead(
-	ctx context.Context, bid BranchID) (ImmutableBareRootMetadata, error) {
+	ctx context.Context, bid kbfsmd.BranchID) (ImmutableBareRootMetadata, error) {
 	j.journalLock.RLock()
 	defer j.journalLock.RUnlock()
 	if err := j.checkEnabledLocked(); err != nil {
@@ -2123,7 +2123,7 @@ func (j *tlfJournal) getMDHead(
 }
 
 func (j *tlfJournal) getMDRange(
-	ctx context.Context, bid BranchID, start, stop kbfsmd.Revision) (
+	ctx context.Context, bid kbfsmd.BranchID, start, stop kbfsmd.Revision) (
 	[]ImmutableBareRootMetadata, error) {
 	j.journalLock.RLock()
 	defer j.journalLock.RUnlock()
@@ -2257,9 +2257,9 @@ func (j *tlfJournal) putMD(ctx context.Context, rmd *RootMetadata,
 	return irmd, nil
 }
 
-func (j *tlfJournal) clearMDs(ctx context.Context, bid BranchID) error {
+func (j *tlfJournal) clearMDs(ctx context.Context, bid kbfsmd.BranchID) error {
 	if j.onBranchChange != nil {
-		j.onBranchChange.onTLFBranchChange(j.tlfID, NullBranchID)
+		j.onBranchChange.onTLFBranchChange(j.tlfID, kbfsmd.NullBranchID)
 	}
 
 	j.journalLock.Lock()
@@ -2278,7 +2278,7 @@ func (j *tlfJournal) clearMDs(ctx context.Context, bid BranchID) error {
 }
 
 func (j *tlfJournal) doResolveBranch(ctx context.Context,
-	bid BranchID, blocksToDelete []kbfsblock.ID, rmd *RootMetadata,
+	bid kbfsmd.BranchID, blocksToDelete []kbfsblock.ID, rmd *RootMetadata,
 	mdInfo unflushedPathMDInfo, perRevMap unflushedPathsPerRevMap,
 	verifyingKey kbfscrypto.VerifyingKey) (
 	irmd ImmutableRootMetadata, retry bool, err error) {
@@ -2290,7 +2290,7 @@ func (j *tlfJournal) doResolveBranch(ctx context.Context,
 
 	// The set of unflushed paths could change as part of the
 	// resolution, and the revision numbers definitely change.
-	isPendingLocalSquash := bid == PendingLocalSquashBranchID
+	isPendingLocalSquash := bid == kbfsmd.PendingLocalSquashBranchID
 	if !j.unflushedPaths.reinitializeWithResolution(
 		mdInfo, perRevMap, isPendingLocalSquash) {
 		return ImmutableRootMetadata{}, true, nil
@@ -2347,7 +2347,7 @@ func (j *tlfJournal) doResolveBranch(ctx context.Context,
 }
 
 func (j *tlfJournal) resolveBranch(ctx context.Context,
-	bid BranchID, blocksToDelete []kbfsblock.ID, rmd *RootMetadata,
+	bid kbfsmd.BranchID, blocksToDelete []kbfsblock.ID, rmd *RootMetadata,
 	verifyingKey kbfscrypto.VerifyingKey) (
 	irmd ImmutableRootMetadata, err error) {
 	err = j.prepAndAddRMDWithRetry(ctx, rmd,

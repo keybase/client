@@ -138,23 +138,23 @@ func TestMDServerBasics(t *testing.T) {
 	require.NoError(t, err)
 
 	// (8) verify head is pruned
-	head, err = mdServer.GetForTLF(ctx, id, NullBranchID, Unmerged, nil)
+	head, err = mdServer.GetForTLF(ctx, id, kbfsmd.NullBranchID, Unmerged, nil)
 	require.NoError(t, err)
 	require.Nil(t, head)
 
 	// (9) verify revision history is pruned
-	rmdses, err = mdServer.GetRange(ctx, id, NullBranchID, Unmerged, 1, 100, nil)
+	rmdses, err = mdServer.GetRange(ctx, id, kbfsmd.NullBranchID, Unmerged, 1, 100, nil)
 	require.NoError(t, err)
 	require.Equal(t, 0, len(rmdses))
 
 	// (10) check for proper merged head
-	head, err = mdServer.GetForTLF(ctx, id, NullBranchID, Merged, nil)
+	head, err = mdServer.GetForTLF(ctx, id, kbfsmd.NullBranchID, Merged, nil)
 	require.NoError(t, err)
 	require.NotNil(t, head)
 	require.Equal(t, kbfsmd.Revision(10), head.MD.RevisionNumber())
 
 	// (11) try to get merged range
-	rmdses, err = mdServer.GetRange(ctx, id, NullBranchID, Merged, 1, 100, nil)
+	rmdses, err = mdServer.GetRange(ctx, id, kbfsmd.NullBranchID, Merged, 1, 100, nil)
 	require.NoError(t, err)
 	require.Equal(t, 10, len(rmdses))
 	for i := kbfsmd.Revision(1); i <= 10; i++ {

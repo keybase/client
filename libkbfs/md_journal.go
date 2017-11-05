@@ -140,16 +140,16 @@ type mdJournal struct {
 
 	j mdIDJournal
 
-	// branchID is the BranchID that every MD in the journal is set
-	// to, except for when it is PendingLocalSquashBranchID, in which
+	// branchID is the kbfsmd.BranchID that every MD in the journal is set
+	// to, except for when it is kbfsmd.PendingLocalSquashBranchID, in which
 	// case the journal is a bunch of MDs with a null branchID
 	// followed by a bunch of MDs with bid =
-	// PendingLocalSquashBranchID.
+	// kbfsmd.PendingLocalSquashBranchID.
 	//
 	// branchID doesn't need to be persisted, even if the journal
 	// becomes empty, since on a restart the branch ID is retrieved
 	// from the server (via GetUnmergedForTLF).
-	branchID BranchID
+	branchID kbfsmd.BranchID
 
 	// Set only when the journal becomes empty due to
 	// flushing. This doesn't need to be persisted for the same
@@ -204,8 +204,8 @@ func makeMDJournalWithIDJournal(
 
 	if earliest != nil {
 		if earliest.BID() != latest.BID() &&
-			!(earliest.BID() == NullBranchID &&
-				latest.BID() == PendingLocalSquashBranchID) {
+			!(earliest.BID() == kbfsmd.NullBranchID &&
+				latest.BID() == kbfsmd.PendingLocalSquashBranchID) {
 			return nil, errors.Errorf(
 				"earliest.BID=%s != latest.BID=%s",
 				earliest.BID(), latest.BID())
@@ -481,7 +481,7 @@ func (j mdJournal) getMDAndExtra(ctx context.Context, entry mdIDJournalEntry,
 	}
 
 	if verifyBranchID && rmd.BID() != j.branchID &&
-		!(rmd.BID() == NullBranchID && j.branchID == PendingLocalSquashBranchID) {
+		!(rmd.BID() == kbfsmd.NullBranchID && j.branchID == kbfsmd.PendingLocalSquashBranchID) {
 		return nil, nil, time.Time{}, errors.Errorf(
 			"Branch ID mismatch: expected %s, got %s",
 			j.branchID, rmd.BID())
@@ -610,13 +610,13 @@ func (j mdJournal) checkGetParams(ctx context.Context) (
 }
 
 func (j *mdJournal) convertToBranch(
-	ctx context.Context, bid BranchID, signer kbfscrypto.Signer,
+	ctx context.Context, bid kbfsmd.BranchID, signer kbfscrypto.Signer,
 	codec kbfscodec.Codec, tlfID tlf.ID, mdcache MDCache) (err error) {
-	if j.branchID != NullBranchID {
+	if j.branchID != kbfsmd.NullBranchID {
 		return errors.Errorf(
 			"convertToBranch called with j.branchID=%s", j.branchID)
 	}
-	if bid == NullBranchID {
+	if bid == kbfsmd.NullBranchID {
 		return errors.Errorf(
 			"convertToBranch called with null branchID")
 	}
@@ -682,7 +682,7 @@ func (j *mdJournal) convertToBranch(
 
 	var prevID kbfsmd.ID
 
-	isPendingLocalSquash := bid == PendingLocalSquashBranchID
+	isPendingLocalSquash := bid == kbfsmd.PendingLocalSquashBranchID
 	for _, entry := range allEntries {
 		brmd, _, ts, err := j.getMDAndExtra(ctx, entry, true)
 		if err != nil {
@@ -755,7 +755,7 @@ func (j *mdJournal) convertToBranch(
 		// original commit will be read from disk instead of the cache
 		// in the event of a conversion failure).
 		oldIrmd, err := mdcache.Get(
-			tlfID, brmd.RevisionNumber(), NullBranchID)
+			tlfID, brmd.RevisionNumber(), kbfsmd.NullBranchID)
 		if err == nil && entry.ID == oldIrmd.mdID {
 			newRmd, err := oldIrmd.deepCopy(codec)
 			if err != nil {
@@ -767,7 +767,7 @@ func (j *mdJournal) convertToBranch(
 				MakeImmutableRootMetadata(newRmd,
 					oldIrmd.LastModifyingWriterVerifyingKey(),
 					newID, ts, false),
-				NullBranchID)
+				kbfsmd.NullBranchID)
 			if err != nil {
 				return err
 			}
@@ -908,7 +908,7 @@ func (j *mdJournal) removeFlushedEntry(
 }
 
 func getMdID(ctx context.Context, mdserver MDServer, codec kbfscodec.Codec,
-	tlfID tlf.ID, bid BranchID, mStatus MergeStatus,
+	tlfID tlf.ID, bid kbfsmd.BranchID, mStatus MergeStatus,
 	revision kbfsmd.Revision, lockBeforeGet *keybase1.LockID) (kbfsmd.ID, error) {
 	rmdses, err := mdserver.GetRange(
 		ctx, tlfID, bid, mStatus, revision, revision, lockBeforeGet)
@@ -928,15 +928,15 @@ func getMdID(ctx context.Context, mdserver MDServer, codec kbfscodec.Codec,
 // clearHelper removes all the journal entries starting from
 // earliestBranchRevision and deletes the corresponding MD
 // updates. All MDs from earliestBranchRevision onwards must have
-// branch equal to the given one, which must not be NullBranchID. This
-// means that, if bid != PendingLocalSquashBranchID,
+// branch equal to the given one, which must not be kbfsmd.NullBranchID. This
+// means that, if bid != kbfsmd.PendingLocalSquashBranchID,
 // earliestBranchRevision must equal the earliest revision, and if bid
-// == PendingLocalSquashBranchID, earliestBranchRevision must equal
+// == kbfsmd.PendingLocalSquashBranchID, earliestBranchRevision must equal
 // one past the last local squash revision. If the branch is a pending
 // local squash, it preserves the MD updates corresponding to the
 // prefix of existing local squashes, so they can be re-used in the
 // newly-resolved journal.
-func (j *mdJournal) clearHelper(ctx context.Context, bid BranchID,
+func (j *mdJournal) clearHelper(ctx context.Context, bid kbfsmd.BranchID,
 	earliestBranchRevision kbfsmd.Revision) (err error) {
 	j.log.CDebugf(ctx, "Clearing journal for branch %s", bid)
 	defer func() {
@@ -947,7 +947,7 @@ func (j *mdJournal) clearHelper(ctx context.Context, bid BranchID,
 		}
 	}()
 
-	if bid == NullBranchID {
+	if bid == kbfsmd.NullBranchID {
 		return errors.New("Cannot clear master branch")
 	}
 
@@ -965,7 +965,7 @@ func (j *mdJournal) clearHelper(ctx context.Context, bid BranchID,
 
 	if head == (ImmutableBareRootMetadata{}) {
 		// The journal has been flushed but not cleared yet.
-		j.branchID = NullBranchID
+		j.branchID = kbfsmd.NullBranchID
 		return nil
 	}
 
@@ -990,7 +990,7 @@ func (j *mdJournal) clearHelper(ctx context.Context, bid BranchID,
 		return err
 	}
 
-	j.branchID = NullBranchID
+	j.branchID = kbfsmd.NullBranchID
 
 	// No need to set lastMdID in this case.
 
@@ -1049,11 +1049,11 @@ func (j mdJournal) end() (kbfsmd.Revision, error) {
 	return j.j.end()
 }
 
-func (j mdJournal) getBranchID() BranchID {
+func (j mdJournal) getBranchID() kbfsmd.BranchID {
 	return j.branchID
 }
 
-func (j mdJournal) getHead(ctx context.Context, bid BranchID) (
+func (j mdJournal) getHead(ctx context.Context, bid kbfsmd.BranchID) (
 	ImmutableBareRootMetadata, error) {
 	head, err := j.checkGetParams(ctx)
 	if err != nil {
@@ -1063,8 +1063,8 @@ func (j mdJournal) getHead(ctx context.Context, bid BranchID) (
 		return ImmutableBareRootMetadata{}, nil
 	}
 
-	getLocalSquashHead := bid == NullBranchID &&
-		j.branchID == PendingLocalSquashBranchID
+	getLocalSquashHead := bid == kbfsmd.NullBranchID &&
+		j.branchID == kbfsmd.PendingLocalSquashBranchID
 	if !getLocalSquashHead {
 		if head.BID() != bid {
 			return ImmutableBareRootMetadata{}, nil
@@ -1103,7 +1103,7 @@ func (j mdJournal) getHead(ctx context.Context, bid BranchID) (
 }
 
 func (j mdJournal) getRange(
-	ctx context.Context, bid BranchID, start, stop kbfsmd.Revision) (
+	ctx context.Context, bid kbfsmd.BranchID, start, stop kbfsmd.Revision) (
 	[]ImmutableBareRootMetadata, error) {
 	head, err := j.checkGetParams(ctx)
 	if err != nil {
@@ -1114,8 +1114,8 @@ func (j mdJournal) getRange(
 
 	// If we are on a pending local squash branch, the caller can ask
 	// for "merged" entries that make up a prefix of the journal.
-	getLocalSquashPrefix := bid == NullBranchID &&
-		j.branchID == PendingLocalSquashBranchID
+	getLocalSquashPrefix := bid == kbfsmd.NullBranchID &&
+		j.branchID == kbfsmd.PendingLocalSquashBranchID
 	if head.BID() != bid && !getLocalSquashPrefix {
 		return nil, nil
 	}
@@ -1129,7 +1129,7 @@ func (j mdJournal) getRange(
 		if getLocalSquashPrefix && !entry.IsLocalSquash {
 			// We only need the prefix up to the first non-local-squash.
 			break
-		} else if entry.IsLocalSquash && bid == PendingLocalSquashBranchID {
+		} else if entry.IsLocalSquash && bid == kbfsmd.PendingLocalSquashBranchID {
 			// Ignore the local squash prefix of this journal.
 			continue
 		}
@@ -1231,22 +1231,22 @@ func (j *mdJournal) put(
 			lastMdID = head.mdID
 		}
 
-		if rmd.BID() == NullBranchID && j.branchID == NullBranchID {
+		if rmd.BID() == kbfsmd.NullBranchID && j.branchID == kbfsmd.NullBranchID {
 			return kbfsmd.ID{}, errors.New(
-				"Unmerged put with rmd.BID() == j.branchID == NullBranchID")
+				"Unmerged put with rmd.BID() == j.branchID == kbfsmd.NullBranchID")
 		}
 
 		if head == (ImmutableBareRootMetadata{}) &&
-			j.branchID == NullBranchID {
+			j.branchID == kbfsmd.NullBranchID {
 			// Case Unmerged-3.
 			j.branchID = rmd.BID()
 			// Revert branch ID if we encounter an error.
 			defer func() {
 				if err != nil {
-					j.branchID = NullBranchID
+					j.branchID = kbfsmd.NullBranchID
 				}
 			}()
-		} else if rmd.BID() == NullBranchID {
+		} else if rmd.BID() == kbfsmd.NullBranchID {
 			// Case Unmerged-1.
 			j.log.CDebugf(
 				ctx, "Changing branch ID to %s and prev root to %s for MD for TLF=%s with rev=%s",
@@ -1269,14 +1269,14 @@ func (j *mdJournal) put(
 
 	// The below is code common to all the cases.
 
-	if (mStatus == Merged) != (rmd.BID() == NullBranchID) {
+	if (mStatus == Merged) != (rmd.BID() == kbfsmd.NullBranchID) {
 		return kbfsmd.ID{}, errors.Errorf(
 			"mStatus=%s doesn't match bid=%s", mStatus, rmd.BID())
 	}
 
 	// If we're trying to push a merged MD onto a branch, return a
 	// conflict error so the caller can retry with an unmerged MD.
-	if mStatus == Merged && j.branchID != NullBranchID {
+	if mStatus == Merged && j.branchID != kbfsmd.NullBranchID {
 		return kbfsmd.ID{}, MDJournalConflictError{}
 	}
 
@@ -1286,7 +1286,7 @@ func (j *mdJournal) put(
 			j.branchID, rmd.BID())
 	}
 
-	if isLocalSquash && rmd.BID() != NullBranchID {
+	if isLocalSquash && rmd.BID() != kbfsmd.NullBranchID {
 		return kbfsmd.ID{}, errors.Errorf("A local squash must have a null branch ID,"+
 			" but this one has bid=%s", rmd.BID())
 	}
@@ -1394,14 +1394,14 @@ func (j *mdJournal) put(
 // it preserves the MD updates corresponding to the prefix of existing
 // local squashes, so they can be re-used in the newly-resolved
 // journal.
-func (j *mdJournal) clear(ctx context.Context, bid BranchID) error {
+func (j *mdJournal) clear(ctx context.Context, bid kbfsmd.BranchID) error {
 	earliestBranchRevision, err := j.j.readEarliestRevision()
 	if err != nil {
 		return err
 	}
 
 	if earliestBranchRevision != kbfsmd.RevisionUninitialized &&
-		bid == PendingLocalSquashBranchID {
+		bid == kbfsmd.PendingLocalSquashBranchID {
 		latestRevision, err := j.j.readLatestRevision()
 		if err != nil {
 			return err
@@ -1423,7 +1423,7 @@ func (j *mdJournal) clear(ctx context.Context, bid BranchID) error {
 
 func (j *mdJournal) resolveAndClear(
 	ctx context.Context, signer kbfscrypto.Signer, ekg encryptionKeyGetter,
-	bsplit BlockSplitter, mdcache MDCache, bid BranchID, rmd *RootMetadata) (
+	bsplit BlockSplitter, mdcache MDCache, bid kbfsmd.BranchID, rmd *RootMetadata) (
 	mdID kbfsmd.ID, err error) {
 	j.log.CDebugf(ctx, "Resolve and clear, branch %s, resolve rev %d",
 		bid, rmd.Revision())
@@ -1436,12 +1436,12 @@ func (j *mdJournal) resolveAndClear(
 	}()
 
 	// The resolution must not have a branch ID.
-	if rmd.BID() != NullBranchID {
+	if rmd.BID() != kbfsmd.NullBranchID {
 		return kbfsmd.ID{}, errors.Errorf("Resolution MD has branch ID: %s", rmd.BID())
 	}
 
 	// The branch ID must match our current state.
-	if bid == NullBranchID {
+	if bid == kbfsmd.NullBranchID {
 		return kbfsmd.ID{}, errors.New("Cannot resolve master branch")
 	}
 	if j.branchID != bid {
@@ -1494,7 +1494,7 @@ func (j *mdJournal) resolveAndClear(
 
 	// Put the local squashes back into the new journal, since they
 	// weren't part of the resolve.
-	if bid == PendingLocalSquashBranchID {
+	if bid == kbfsmd.PendingLocalSquashBranchID {
 		for ; earliestBranchRevision <= latestRevision; earliestBranchRevision++ {
 			entry, err := j.j.readJournalEntry(earliestBranchRevision)
 			if err != nil {
@@ -1562,7 +1562,7 @@ func (j *mdJournal) resolveAndClear(
 // the caller already guaranteed that there is no more than 1
 // non-local-squash at the end of the journal.
 func (j *mdJournal) markLatestAsLocalSquash(ctx context.Context) error {
-	if j.branchID != NullBranchID {
+	if j.branchID != kbfsmd.NullBranchID {
 		return errors.Errorf("Can't mark latest as local squash when on a "+
 			"branch (bid=%s)", j.branchID)
 	}

@@ -18,7 +18,7 @@ import (
 	"golang.org/x/net/context"
 )
 
-func getMDStorageLength(t *testing.T, s *mdServerTlfStorage, bid BranchID) int {
+func getMDStorageLength(t *testing.T, s *mdServerTlfStorage, bid kbfsmd.BranchID) int {
 	len, err := s.journalLength(bid)
 	require.NoError(t, err)
 	return int(len)
@@ -44,7 +44,7 @@ func TestMDServerTlfStorageBasic(t *testing.T) {
 		defaultClientMetadataVer, tempdir)
 	defer s.shutdown()
 
-	require.Equal(t, 0, getMDStorageLength(t, s, NullBranchID))
+	require.Equal(t, 0, getMDStorageLength(t, s, kbfsmd.NullBranchID))
 
 	uid := keybase1.MakeTestUID(1)
 	h, err := tlf.MakeHandle(
@@ -54,11 +54,11 @@ func TestMDServerTlfStorageBasic(t *testing.T) {
 	// (1) Validate merged branch is empty.
 
 	ctx := context.Background()
-	head, err := s.getForTLF(ctx, uid, NullBranchID)
+	head, err := s.getForTLF(ctx, uid, kbfsmd.NullBranchID)
 	require.NoError(t, err)
 	require.Nil(t, head)
 
-	require.Equal(t, 0, getMDStorageLength(t, s, NullBranchID))
+	require.Equal(t, 0, getMDStorageLength(t, s, kbfsmd.NullBranchID))
 
 	// (2) Push some new metadata blocks.
 
@@ -78,7 +78,7 @@ func TestMDServerTlfStorageBasic(t *testing.T) {
 		}
 	}
 
-	require.Equal(t, 10, getMDStorageLength(t, s, NullBranchID))
+	require.Equal(t, 10, getMDStorageLength(t, s, kbfsmd.NullBranchID))
 
 	// (3) Trigger a conflict.
 
@@ -88,7 +88,7 @@ func TestMDServerTlfStorageBasic(t *testing.T) {
 	_, err = s.put(ctx, uid, verifyingKey, rmds, nil)
 	require.IsType(t, kbfsmd.ServerErrorConflictRevision{}, err)
 
-	require.Equal(t, 10, getMDStorageLength(t, s, NullBranchID))
+	require.Equal(t, 10, getMDStorageLength(t, s, kbfsmd.NullBranchID))
 
 	// (4) Push some new unmerged metadata blocks linking to the
 	// middle merged block.
@@ -108,7 +108,7 @@ func TestMDServerTlfStorageBasic(t *testing.T) {
 		require.NoError(t, err)
 	}
 
-	require.Equal(t, 10, getMDStorageLength(t, s, NullBranchID))
+	require.Equal(t, 10, getMDStorageLength(t, s, kbfsmd.NullBranchID))
 	require.Equal(t, 35, getMDStorageLength(t, s, bid))
 
 	// (5) Check for proper unmerged head.
@@ -118,7 +118,7 @@ func TestMDServerTlfStorageBasic(t *testing.T) {
 	require.NotNil(t, head)
 	require.Equal(t, kbfsmd.Revision(40), head.MD.RevisionNumber())
 
-	require.Equal(t, 10, getMDStorageLength(t, s, NullBranchID))
+	require.Equal(t, 10, getMDStorageLength(t, s, kbfsmd.NullBranchID))
 	require.Equal(t, 35, getMDStorageLength(t, s, bid))
 
 	// (6) Try to get unmerged range.
@@ -134,20 +134,20 @@ func TestMDServerTlfStorageBasic(t *testing.T) {
 
 	// (10) Check for proper merged head.
 
-	head, err = s.getForTLF(ctx, uid, NullBranchID)
+	head, err = s.getForTLF(ctx, uid, kbfsmd.NullBranchID)
 	require.NoError(t, err)
 	require.NotNil(t, head)
 	require.Equal(t, kbfsmd.Revision(10), head.MD.RevisionNumber())
 
 	// (11) Try to get merged range.
 
-	rmdses, err = s.getRange(ctx, uid, NullBranchID, 1, 100)
+	rmdses, err = s.getRange(ctx, uid, kbfsmd.NullBranchID, 1, 100)
 	require.NoError(t, err)
 	require.Equal(t, 10, len(rmdses))
 	for i := kbfsmd.Revision(1); i <= 10; i++ {
 		require.Equal(t, i, rmdses[i-1].MD.RevisionNumber())
 	}
 
-	require.Equal(t, 10, getMDStorageLength(t, s, NullBranchID))
+	require.Equal(t, 10, getMDStorageLength(t, s, kbfsmd.NullBranchID))
 	require.Equal(t, 35, getMDStorageLength(t, s, bid))
 }

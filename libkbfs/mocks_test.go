@@ -2599,7 +2599,7 @@ func (m *MockMDCache) EXPECT() *MockMDCacheMockRecorder {
 }
 
 // Get mocks base method
-func (m *MockMDCache) Get(tlf tlf.ID, rev kbfsmd.Revision, bid BranchID) (ImmutableRootMetadata, error) {
+func (m *MockMDCache) Get(tlf tlf.ID, rev kbfsmd.Revision, bid kbfsmd.BranchID) (ImmutableRootMetadata, error) {
 	ret := m.ctrl.Call(m, "Get", tlf, rev, bid)
 	ret0, _ := ret[0].(ImmutableRootMetadata)
 	ret1, _ := ret[1].(error)
@@ -2624,7 +2624,7 @@ func (mr *MockMDCacheMockRecorder) Put(md interface{}) *gomock.Call {
 }
 
 // Delete mocks base method
-func (m *MockMDCache) Delete(tlf tlf.ID, rev kbfsmd.Revision, bid BranchID) {
+func (m *MockMDCache) Delete(tlf tlf.ID, rev kbfsmd.Revision, bid kbfsmd.BranchID) {
 	m.ctrl.Call(m, "Delete", tlf, rev, bid)
 }
 
@@ -2634,7 +2634,7 @@ func (mr *MockMDCacheMockRecorder) Delete(tlf, rev, bid interface{}) *gomock.Cal
 }
 
 // Replace mocks base method
-func (m *MockMDCache) Replace(newRmd ImmutableRootMetadata, oldBID BranchID) error {
+func (m *MockMDCache) Replace(newRmd ImmutableRootMetadata, oldBID kbfsmd.BranchID) error {
 	ret := m.ctrl.Call(m, "Replace", newRmd, oldBID)
 	ret0, _ := ret[0].(error)
 	return ret0
@@ -2646,7 +2646,7 @@ func (mr *MockMDCacheMockRecorder) Replace(newRmd, oldBID interface{}) *gomock.C
 }
 
 // MarkPutToServer mocks base method
-func (m *MockMDCache) MarkPutToServer(tlf tlf.ID, rev kbfsmd.Revision, bid BranchID) {
+func (m *MockMDCache) MarkPutToServer(tlf tlf.ID, rev kbfsmd.Revision, bid kbfsmd.BranchID) {
 	m.ctrl.Call(m, "MarkPutToServer", tlf, rev, bid)
 }
 
@@ -3193,9 +3193,9 @@ func (mr *MockcryptoPureMockRecorder) MakeRandomTlfID(t interface{}) *gomock.Cal
 }
 
 // MakeRandomBranchID mocks base method
-func (m *MockcryptoPure) MakeRandomBranchID() (BranchID, error) {
+func (m *MockcryptoPure) MakeRandomBranchID() (kbfsmd.BranchID, error) {
 	ret := m.ctrl.Call(m, "MakeRandomBranchID")
-	ret0, _ := ret[0].(BranchID)
+	ret0, _ := ret[0].(kbfsmd.BranchID)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -3362,9 +3362,9 @@ func (mr *MockCryptoMockRecorder) MakeRandomTlfID(t interface{}) *gomock.Call {
 }
 
 // MakeRandomBranchID mocks base method
-func (m *MockCrypto) MakeRandomBranchID() (BranchID, error) {
+func (m *MockCrypto) MakeRandomBranchID() (kbfsmd.BranchID, error) {
 	ret := m.ctrl.Call(m, "MakeRandomBranchID")
-	ret0, _ := ret[0].(BranchID)
+	ret0, _ := ret[0].(kbfsmd.BranchID)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -3621,7 +3621,7 @@ func (mr *MockMDOpsMockRecorder) GetForTLF(ctx, id, lockBeforeGet interface{}) *
 }
 
 // GetUnmergedForTLF mocks base method
-func (m *MockMDOps) GetUnmergedForTLF(ctx context.Context, id tlf.ID, bid BranchID) (ImmutableRootMetadata, error) {
+func (m *MockMDOps) GetUnmergedForTLF(ctx context.Context, id tlf.ID, bid kbfsmd.BranchID) (ImmutableRootMetadata, error) {
 	ret := m.ctrl.Call(m, "GetUnmergedForTLF", ctx, id, bid)
 	ret0, _ := ret[0].(ImmutableRootMetadata)
 	ret1, _ := ret[1].(error)
@@ -3647,7 +3647,7 @@ func (mr *MockMDOpsMockRecorder) GetRange(ctx, id, start, stop, lockID interface
 }
 
 // GetUnmergedRange mocks base method
-func (m *MockMDOps) GetUnmergedRange(ctx context.Context, id tlf.ID, bid BranchID, start, stop kbfsmd.Revision) ([]ImmutableRootMetadata, error) {
+func (m *MockMDOps) GetUnmergedRange(ctx context.Context, id tlf.ID, bid kbfsmd.BranchID, start, stop kbfsmd.Revision) ([]ImmutableRootMetadata, error) {
 	ret := m.ctrl.Call(m, "GetUnmergedRange", ctx, id, bid, start, stop)
 	ret0, _ := ret[0].([]ImmutableRootMetadata)
 	ret1, _ := ret[1].(error)
@@ -3686,7 +3686,7 @@ func (mr *MockMDOpsMockRecorder) PutUnmerged(ctx, rmd, verifyingKey interface{})
 }
 
 // PruneBranch mocks base method
-func (m *MockMDOps) PruneBranch(ctx context.Context, id tlf.ID, bid BranchID) error {
+func (m *MockMDOps) PruneBranch(ctx context.Context, id tlf.ID, bid kbfsmd.BranchID) error {
 	ret := m.ctrl.Call(m, "PruneBranch", ctx, id, bid)
 	ret0, _ := ret[0].(error)
 	return ret0
@@ -3698,7 +3698,7 @@ func (mr *MockMDOpsMockRecorder) PruneBranch(ctx, id, bid interface{}) *gomock.C
 }
 
 // ResolveBranch mocks base method
-func (m *MockMDOps) ResolveBranch(ctx context.Context, id tlf.ID, bid BranchID, blocksToDelete []kbfsblock.ID, rmd *RootMetadata, verifyingKey kbfscrypto.VerifyingKey) (ImmutableRootMetadata, error) {
+func (m *MockMDOps) ResolveBranch(ctx context.Context, id tlf.ID, bid kbfsmd.BranchID, blocksToDelete []kbfsblock.ID, rmd *RootMetadata, verifyingKey kbfscrypto.VerifyingKey) (ImmutableRootMetadata, error) {
 	ret := m.ctrl.Call(m, "ResolveBranch", ctx, id, bid, blocksToDelete, rmd, verifyingKey)
 	ret0, _ := ret[0].(ImmutableRootMetadata)
 	ret1, _ := ret[1].(error)
@@ -4053,7 +4053,7 @@ func (mr *MockMDServerMockRecorder) GetForHandle(ctx, handle, mStatus, lockBefor
 }
 
 // GetForTLF mocks base method
-func (m *MockMDServer) GetForTLF(ctx context.Context, id tlf.ID, bid BranchID, mStatus MergeStatus, lockBeforeGet *keybase1.LockID) (*RootMetadataSigned, error) {
+func (m *MockMDServer) GetForTLF(ctx context.Context, id tlf.ID, bid kbfsmd.BranchID, mStatus MergeStatus, lockBeforeGet *keybase1.LockID) (*RootMetadataSigned, error) {
 	ret := m.ctrl.Call(m, "GetForTLF", ctx, id, bid, mStatus, lockBeforeGet)
 	ret0, _ := ret[0].(*RootMetadataSigned)
 	ret1, _ := ret[1].(error)
@@ -4066,7 +4066,7 @@ func (mr *MockMDServerMockRecorder) GetForTLF(ctx, id, bid, mStatus, lockBeforeG
 }
 
 // GetRange mocks base method
-func (m *MockMDServer) GetRange(ctx context.Context, id tlf.ID, bid BranchID, mStatus MergeStatus, start, stop kbfsmd.Revision, lockBeforeGet *keybase1.LockID) ([]*RootMetadataSigned, error) {
+func (m *MockMDServer) GetRange(ctx context.Context, id tlf.ID, bid kbfsmd.BranchID, mStatus MergeStatus, start, stop kbfsmd.Revision, lockBeforeGet *keybase1.LockID) ([]*RootMetadataSigned, error) {
 	ret := m.ctrl.Call(m, "GetRange", ctx, id, bid, mStatus, start, stop, lockBeforeGet)
 	ret0, _ := ret[0].([]*RootMetadataSigned)
 	ret1, _ := ret[1].(error)
@@ -4115,7 +4115,7 @@ func (mr *MockMDServerMockRecorder) ReleaseLock(ctx, tlfID, lockID interface{}) 
 }
 
 // PruneBranch mocks base method
-func (m *MockMDServer) PruneBranch(ctx context.Context, id tlf.ID, bid BranchID) error {
+func (m *MockMDServer) PruneBranch(ctx context.Context, id tlf.ID, bid kbfsmd.BranchID) error {
 	ret := m.ctrl.Call(m, "PruneBranch", ctx, id, bid)
 	ret0, _ := ret[0].(error)
 	return ret0
@@ -4327,7 +4327,7 @@ func (mr *MockmdServerLocalMockRecorder) GetForHandle(ctx, handle, mStatus, lock
 }
 
 // GetForTLF mocks base method
-func (m *MockmdServerLocal) GetForTLF(ctx context.Context, id tlf.ID, bid BranchID, mStatus MergeStatus, lockBeforeGet *keybase1.LockID) (*RootMetadataSigned, error) {
+func (m *MockmdServerLocal) GetForTLF(ctx context.Context, id tlf.ID, bid kbfsmd.BranchID, mStatus MergeStatus, lockBeforeGet *keybase1.LockID) (*RootMetadataSigned, error) {
 	ret := m.ctrl.Call(m, "GetForTLF", ctx, id, bid, mStatus, lockBeforeGet)
 	ret0, _ := ret[0].(*RootMetadataSigned)
 	ret1, _ := ret[1].(error)
@@ -4340,7 +4340,7 @@ func (mr *MockmdServerLocalMockRecorder) GetForTLF(ctx, id, bid, mStatus, lockBe
 }
 
 // GetRange mocks base method
-func (m *MockmdServerLocal) GetRange(ctx context.Context, id tlf.ID, bid BranchID, mStatus MergeStatus, start, stop kbfsmd.Revision, lockBeforeGet *keybase1.LockID) ([]*RootMetadataSigned, error) {
+func (m *MockmdServerLocal) GetRange(ctx context.Context, id tlf.ID, bid kbfsmd.BranchID, mStatus MergeStatus, start, stop kbfsmd.Revision, lockBeforeGet *keybase1.LockID) ([]*RootMetadataSigned, error) {
 	ret := m.ctrl.Call(m, "GetRange", ctx, id, bid, mStatus, start, stop, lockBeforeGet)
 	ret0, _ := ret[0].([]*RootMetadataSigned)
 	ret1, _ := ret[1].(error)
@@ -4389,7 +4389,7 @@ func (mr *MockmdServerLocalMockRecorder) ReleaseLock(ctx, tlfID, lockID interfac
 }
 
 // PruneBranch mocks base method
-func (m *MockmdServerLocal) PruneBranch(ctx context.Context, id tlf.ID, bid BranchID) error {
+func (m *MockmdServerLocal) PruneBranch(ctx context.Context, id tlf.ID, bid kbfsmd.BranchID) error {
 	ret := m.ctrl.Call(m, "PruneBranch", ctx, id, bid)
 	ret0, _ := ret[0].(error)
 	return ret0

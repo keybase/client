@@ -78,9 +78,9 @@ func (fc failingCodec) Encode(interface{}) ([]byte, error) {
 	return nil, errors.New("Stopping resolution process early")
 }
 
-func crMakeFakeRMD(rev kbfsmd.Revision, bid BranchID) ImmutableRootMetadata {
+func crMakeFakeRMD(rev kbfsmd.Revision, bid kbfsmd.BranchID) ImmutableRootMetadata {
 	var writerFlags WriterFlags
-	if bid != NullBranchID {
+	if bid != kbfsmd.NullBranchID {
 		writerFlags = MetadataFlagUnmerged
 	}
 	key := kbfscrypto.MakeFakeVerifyingKeyOrBust("fake key")
@@ -139,12 +139,12 @@ func TestCRInput(t *testing.T) {
 		bid, kbfsmd.RevisionInitial, branchPoint).Return(nil, nil)
 
 	for i := branchPoint; i <= mergedHead; i++ {
-		config.mockMdcache.EXPECT().Get(cr.fbo.id(), i, NullBranchID).Return(
-			crMakeFakeRMD(i, NullBranchID), nil)
+		config.mockMdcache.EXPECT().Get(cr.fbo.id(), i, kbfsmd.NullBranchID).Return(
+			crMakeFakeRMD(i, kbfsmd.NullBranchID), nil)
 	}
 	for i := mergedHead + 1; i <= branchPoint-1+2*maxMDsAtATime; i++ {
-		config.mockMdcache.EXPECT().Get(cr.fbo.id(), i, NullBranchID).Return(
-			ImmutableRootMetadata{}, NoSuchMDError{cr.fbo.id(), i, NullBranchID})
+		config.mockMdcache.EXPECT().Get(cr.fbo.id(), i, kbfsmd.NullBranchID).Return(
+			ImmutableRootMetadata{}, NoSuchMDError{cr.fbo.id(), i, kbfsmd.NullBranchID})
 	}
 	config.mockMdops.EXPECT().GetRange(gomock.Any(), cr.fbo.id(), mergedHead+1,
 		gomock.Any(), nil).Return(nil, nil)
@@ -205,19 +205,19 @@ func TestCRInputFracturedRange(t *testing.T) {
 		// be fetched from the server.
 		if i != skipCacheRevision {
 			config.mockMdcache.EXPECT().Get(cr.fbo.id(), i,
-				NullBranchID).Return(crMakeFakeRMD(i, NullBranchID), nil)
+				kbfsmd.NullBranchID).Return(crMakeFakeRMD(i, kbfsmd.NullBranchID), nil)
 		} else {
 			config.mockMdcache.EXPECT().Get(cr.fbo.id(), i,
-				NullBranchID).Return(
-				ImmutableRootMetadata{}, NoSuchMDError{cr.fbo.id(), i, NullBranchID})
+				kbfsmd.NullBranchID).Return(
+				ImmutableRootMetadata{}, NoSuchMDError{cr.fbo.id(), i, kbfsmd.NullBranchID})
 		}
 	}
 	config.mockMdops.EXPECT().GetRange(gomock.Any(), cr.fbo.id(),
 		skipCacheRevision, skipCacheRevision, gomock.Any()).Return(
-		[]ImmutableRootMetadata{crMakeFakeRMD(skipCacheRevision, NullBranchID)}, nil)
+		[]ImmutableRootMetadata{crMakeFakeRMD(skipCacheRevision, kbfsmd.NullBranchID)}, nil)
 	for i := mergedHead + 1; i <= branchPoint-1+2*maxMDsAtATime; i++ {
-		config.mockMdcache.EXPECT().Get(cr.fbo.id(), i, NullBranchID).Return(
-			ImmutableRootMetadata{}, NoSuchMDError{cr.fbo.id(), i, NullBranchID})
+		config.mockMdcache.EXPECT().Get(cr.fbo.id(), i, kbfsmd.NullBranchID).Return(
+			ImmutableRootMetadata{}, NoSuchMDError{cr.fbo.id(), i, kbfsmd.NullBranchID})
 	}
 	config.mockMdops.EXPECT().GetRange(gomock.Any(), cr.fbo.id(), mergedHead+1,
 		gomock.Any(), gomock.Any()).Return(nil, nil)

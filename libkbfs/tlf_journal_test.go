@@ -175,7 +175,7 @@ func (c testTLFJournalConfig) makeMD(
 func (c testTLFJournalConfig) checkMD(rmds *RootMetadataSigned,
 	extra ExtraMetadata, expectedRevision kbfsmd.Revision,
 	expectedPrevRoot kbfsmd.ID, expectedMergeStatus MergeStatus,
-	expectedBranchID BranchID) {
+	expectedBranchID kbfsmd.BranchID) {
 	verifyingKey := c.crypto.SigningKeySigner.Key.GetVerifyingKey()
 	checkBRMD(c.t, c.uid, verifyingKey, c.Codec(),
 		rmds.MD, extra, expectedRevision, expectedPrevRoot,
@@ -189,7 +189,7 @@ func (c testTLFJournalConfig) checkMD(rmds *RootMetadataSigned,
 
 func (c testTLFJournalConfig) checkRange(rmdses []rmdsWithExtra,
 	firstRevision kbfsmd.Revision, firstPrevRoot kbfsmd.ID,
-	mStatus MergeStatus, bid BranchID) {
+	mStatus MergeStatus, bid kbfsmd.BranchID) {
 	c.checkMD(rmdses[0].rmds, rmdses[0].extra, firstRevision,
 		firstPrevRoot, mStatus, bid)
 
@@ -860,7 +860,7 @@ type shimMDServer struct {
 }
 
 func (s *shimMDServer) GetRange(
-	ctx context.Context, id tlf.ID, bid BranchID, mStatus MergeStatus,
+	ctx context.Context, id tlf.ID, bid kbfsmd.BranchID, mStatus MergeStatus,
 	start, stop kbfsmd.Revision, _ *keybase1.LockID) ([]*RootMetadataSigned, error) {
 	rmdses := s.nextGetRange
 	s.nextGetRange = nil
@@ -886,7 +886,7 @@ func (s *shimMDServer) Put(ctx context.Context, rmds *RootMetadataSigned,
 }
 
 func (s *shimMDServer) GetForTLF(
-	ctx context.Context, id tlf.ID, bid BranchID, mStatus MergeStatus, _ *keybase1.LockID) (
+	ctx context.Context, id tlf.ID, bid kbfsmd.BranchID, mStatus MergeStatus, _ *keybase1.LockID) (
 	*RootMetadataSigned, error) {
 	s.getForTLFCalled = true
 	if len(s.rmdses) == 0 {
@@ -954,7 +954,7 @@ func testTLFJournalFlushMDBasic(t *testing.T, ver MetadataVer) {
 	rmdses := mdserver.rmdses
 	require.Equal(t, mdCount, len(rmdses))
 	config.checkRange(
-		rmdses, firstRevision, firstPrevRoot, Merged, NullBranchID)
+		rmdses, firstRevision, firstPrevRoot, Merged, kbfsmd.NullBranchID)
 }
 
 func testTLFJournalFlushMDConflict(t *testing.T, ver MetadataVer) {
@@ -1230,12 +1230,12 @@ func testTLFJournalFlushOrderingAfterSquashAndCR(
 	err = tlfJournal.flush(ctx)
 	require.NoError(t, err)
 	require.Equal(
-		t, PendingLocalSquashBranchID, tlfJournal.mdJournal.getBranchID())
+		t, kbfsmd.PendingLocalSquashBranchID, tlfJournal.mdJournal.getBranchID())
 	requireJournalEntryCounts(t, tlfJournal, blockEnd+2, 2)
 
 	squashMD := config.makeMD(firstRev, firstPrevRoot)
 	irmd, err = tlfJournal.resolveBranch(ctx,
-		PendingLocalSquashBranchID, []kbfsblock.ID{}, squashMD, tlfJournal.key)
+		kbfsmd.PendingLocalSquashBranchID, []kbfsblock.ID{}, squashMD, tlfJournal.key)
 	require.NoError(t, err)
 	prevRoot = irmd.mdID
 	requireJournalEntryCounts(t, tlfJournal, blockEnd+3, 1)
@@ -1258,7 +1258,7 @@ func testTLFJournalFlushOrderingAfterSquashAndCR(
 	// Let it squash (avoiding a branch this time since there's only one MD).
 	err = tlfJournal.flush(ctx)
 	require.NoError(t, err)
-	require.Equal(t, NullBranchID, tlfJournal.mdJournal.getBranchID())
+	require.Equal(t, kbfsmd.NullBranchID, tlfJournal.mdJournal.getBranchID())
 	requireJournalEntryCounts(t, tlfJournal, blockEnd+4, 2)
 
 	// Simulate an MD conflict and try to flush again.  This will
@@ -1277,8 +1277,8 @@ func testTLFJournalFlushOrderingAfterSquashAndCR(
 	err = tlfJournal.flush(ctx)
 	require.NoError(t, err)
 	branchID := tlfJournal.mdJournal.getBranchID()
-	require.NotEqual(t, PendingLocalSquashBranchID, branchID)
-	require.NotEqual(t, NullBranchID, branchID)
+	require.NotEqual(t, kbfsmd.PendingLocalSquashBranchID, branchID)
+	require.NotEqual(t, kbfsmd.NullBranchID, branchID)
 	// Blocks: All the unflushed blocks, plus two unflushed rev markers.
 	requireJournalEntryCounts(
 		t, tlfJournal, blockEnd-maxJournalBlockFlushBatchSize+2, 2)
@@ -1413,7 +1413,7 @@ type testBranchChangeListener struct {
 	c chan<- struct{}
 }
 
-func (tbcl testBranchChangeListener) onTLFBranchChange(_ tlf.ID, _ BranchID) {
+func (tbcl testBranchChangeListener) onTLFBranchChange(_ tlf.ID, _ kbfsmd.BranchID) {
 	tbcl.c <- struct{}{}
 }
 
@@ -1514,7 +1514,7 @@ func testTLFJournalConvertWhileFlushing(t *testing.T, ver MetadataVer) {
 	requireJournalEntryCounts(
 		t, tlfJournal, blocksLeftAfterFlush, mdsLeftAfterFlush)
 	require.Equal(
-		t, PendingLocalSquashBranchID, tlfJournal.mdJournal.getBranchID())
+		t, kbfsmd.PendingLocalSquashBranchID, tlfJournal.mdJournal.getBranchID())
 }
 
 // testTLFJournalSquashWhileFlushing tests that we can do journal
@@ -1547,7 +1547,7 @@ func testTLFJournalSquashWhileFlushing(t *testing.T, ver MetadataVer) {
 	// Since flush() never saw the branch in conflict, it will finish
 	// flushing everything.
 	testTLFJournalGCd(t, tlfJournal)
-	require.Equal(t, NullBranchID, tlfJournal.mdJournal.getBranchID())
+	require.Equal(t, kbfsmd.NullBranchID, tlfJournal.mdJournal.getBranchID())
 }
 
 type testImmediateBackOff struct {
@@ -1718,7 +1718,7 @@ func testTLFJournalSquashByBytes(t *testing.T, ver MetadataVer) {
 	err = tlfJournal.flush(ctx)
 	require.NoError(t, err)
 	require.Equal(
-		t, PendingLocalSquashBranchID, tlfJournal.mdJournal.getBranchID())
+		t, kbfsmd.PendingLocalSquashBranchID, tlfJournal.mdJournal.getBranchID())
 }
 
 // Test that the first revision of a TLF doesn't get squashed.
@@ -1754,16 +1754,16 @@ func testTLFJournalFirstRevNoSquash(t *testing.T, ver MetadataVer) {
 	err = tlfJournal.flush(ctx)
 	require.NoError(t, err)
 	require.Equal(
-		t, PendingLocalSquashBranchID, tlfJournal.mdJournal.getBranchID())
+		t, kbfsmd.PendingLocalSquashBranchID, tlfJournal.mdJournal.getBranchID())
 	requireJournalEntryCounts(t, tlfJournal, 5, 4)
 	unsquashedRange, err := tlfJournal.getMDRange(
-		ctx, NullBranchID, firstRevision, firstRevision+3)
+		ctx, kbfsmd.NullBranchID, firstRevision, firstRevision+3)
 	require.NoError(t, err)
 	require.Len(t, unsquashedRange, 1)
 	require.Equal(t, firstRevision, unsquashedRange[0].RevisionNumber())
 	require.Equal(t, firstMdID, unsquashedRange[0].mdID)
 	squashRange, err := tlfJournal.getMDRange(
-		ctx, PendingLocalSquashBranchID, firstRevision, firstRevision+3)
+		ctx, kbfsmd.PendingLocalSquashBranchID, firstRevision, firstRevision+3)
 	require.NoError(t, err)
 	require.Len(t, squashRange, 3)
 	require.Equal(t, firstRevision+1, squashRange[0].RevisionNumber())
@@ -1826,7 +1826,7 @@ func testTLFJournalSingleOp(t *testing.T, ver MetadataVer) {
 	}
 
 	require.Equal(
-		t, PendingLocalSquashBranchID, tlfJournal.mdJournal.getBranchID())
+		t, kbfsmd.PendingLocalSquashBranchID, tlfJournal.mdJournal.getBranchID())
 	resolveMD := config.makeMD(kbfsmd.Revision(10), kbfsmd.FakeID(1))
 	_, err = tlfJournal.resolveBranch(ctx,
 		tlfJournal.mdJournal.getBranchID(), nil, resolveMD, tlfJournal.key)

@@ -24,7 +24,7 @@ type MDCacheStandard struct {
 type mdCacheKey struct {
 	tlf tlf.ID
 	rev kbfsmd.Revision
-	bid BranchID
+	bid kbfsmd.BranchID
 }
 
 const defaultMDCacheCapacity = 5000
@@ -40,7 +40,7 @@ func NewMDCacheStandard(capacity int) *MDCacheStandard {
 }
 
 // Get implements the MDCache interface for MDCacheStandard.
-func (md *MDCacheStandard) Get(tlf tlf.ID, rev kbfsmd.Revision, bid BranchID) (
+func (md *MDCacheStandard) Get(tlf tlf.ID, rev kbfsmd.Revision, bid kbfsmd.BranchID) (
 	ImmutableRootMetadata, error) {
 	md.lock.RLock()
 	defer md.lock.RUnlock()
@@ -72,7 +72,7 @@ func (md *MDCacheStandard) Put(rmd ImmutableRootMetadata) error {
 
 // Delete implements the MDCache interface for MDCacheStandard.
 func (md *MDCacheStandard) Delete(tlf tlf.ID, rev kbfsmd.Revision,
-	bid BranchID) {
+	bid kbfsmd.BranchID) {
 	md.lock.Lock()
 	defer md.lock.Unlock()
 	key := mdCacheKey{tlf, rev, bid}
@@ -81,7 +81,7 @@ func (md *MDCacheStandard) Delete(tlf tlf.ID, rev kbfsmd.Revision,
 
 // Replace implements the MDCache interface for MDCacheStandard.
 func (md *MDCacheStandard) Replace(newRmd ImmutableRootMetadata,
-	oldBID BranchID) error {
+	oldBID kbfsmd.BranchID) error {
 	md.lock.Lock()
 	defer md.lock.Unlock()
 	oldKey := mdCacheKey{newRmd.TlfID(), newRmd.Revision(), oldBID}
@@ -96,7 +96,7 @@ func (md *MDCacheStandard) Replace(newRmd ImmutableRootMetadata,
 // MarkPutToServer implements the MDCache interface for
 // MDCacheStandard.
 func (md *MDCacheStandard) MarkPutToServer(
-	tlf tlf.ID, rev kbfsmd.Revision, bid BranchID) {
+	tlf tlf.ID, rev kbfsmd.Revision, bid kbfsmd.BranchID) {
 	md.lock.Lock()
 	defer md.lock.Unlock()
 	key := mdCacheKey{tlf, rev, bid}

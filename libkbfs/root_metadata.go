@@ -613,7 +613,7 @@ func (md *RootMetadata) MergedStatus() MergeStatus {
 }
 
 // BID wraps the respective method of the underlying BareRootMetadata for convenience.
-func (md *RootMetadata) BID() BranchID {
+func (md *RootMetadata) BID() kbfsmd.BranchID {
 	return md.bareMd.BID()
 }
 
@@ -641,7 +641,7 @@ func (md *RootMetadata) SetUnmerged() {
 }
 
 // SetBranchID wraps the respective method of the underlying BareRootMetadata for convenience.
-func (md *RootMetadata) SetBranchID(bid BranchID) {
+func (md *RootMetadata) SetBranchID(bid kbfsmd.BranchID) {
 	md.bareMd.SetBranchID(bid)
 }
 

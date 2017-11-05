@@ -35,11 +35,11 @@ func testMdcacheMakeHandle(t *testing.T, n uint32) *TlfHandle {
 }
 
 func testMdcachePut(t *testing.T, tlfID tlf.ID, rev kbfsmd.Revision,
-	bid BranchID, h *TlfHandle, mdcache *MDCacheStandard) {
+	bid kbfsmd.BranchID, h *TlfHandle, mdcache *MDCacheStandard) {
 	rmd, err := makeInitialRootMetadata(defaultClientMetadataVer, tlfID, h)
 	require.NoError(t, err)
 	rmd.SetRevision(rev)
-	if bid != NullBranchID {
+	if bid != kbfsmd.NullBranchID {
 		rmd.SetUnmerged()
 		rmd.SetBranchID(bid)
 	}
@@ -68,7 +68,7 @@ func TestMdcachePut(t *testing.T) {
 	h := testMdcacheMakeHandle(t, 1)
 
 	mdcache := NewMDCacheStandard(100)
-	testMdcachePut(t, tlfID, 1, NullBranchID, h, mdcache)
+	testMdcachePut(t, tlfID, 1, kbfsmd.NullBranchID, h, mdcache)
 }
 
 func TestMdcachePutPastCapacity(t *testing.T) {
@@ -82,14 +82,14 @@ func TestMdcachePutPastCapacity(t *testing.T) {
 	h2 := testMdcacheMakeHandle(t, 2)
 
 	mdcache := NewMDCacheStandard(2)
-	testMdcachePut(t, id0, 0, NullBranchID, h0, mdcache)
+	testMdcachePut(t, id0, 0, kbfsmd.NullBranchID, h0, mdcache)
 	bid := kbfsmd.FakeBranchID(1)
 	testMdcachePut(t, id1, 0, bid, h1, mdcache)
-	testMdcachePut(t, id2, 1, NullBranchID, h2, mdcache)
+	testMdcachePut(t, id2, 1, kbfsmd.NullBranchID, h2, mdcache)
 
 	// id 0 should no longer be in the cache
-	_, err := mdcache.Get(id0, 0, NullBranchID)
-	require.Equal(t, NoSuchMDError{id0, 0, NullBranchID}, err)
+	_, err := mdcache.Get(id0, 0, kbfsmd.NullBranchID)
+	require.Equal(t, NoSuchMDError{id0, 0, kbfsmd.NullBranchID}, err)
 }
 
 func TestMdcacheReplace(t *testing.T) {
@@ -97,9 +97,9 @@ func TestMdcacheReplace(t *testing.T) {
 	h := testMdcacheMakeHandle(t, 1)
 
 	mdcache := NewMDCacheStandard(100)
-	testMdcachePut(t, id, 1, NullBranchID, h, mdcache)
+	testMdcachePut(t, id, 1, kbfsmd.NullBranchID, h, mdcache)
 
-	irmd, err := mdcache.Get(id, 1, NullBranchID)
+	irmd, err := mdcache.Get(id, 1, kbfsmd.NullBranchID)
 	require.NoError(t, err)
 
 	// Change the BID
@@ -110,10 +110,10 @@ func TestMdcacheReplace(t *testing.T) {
 	newRmd.SetBranchID(bid)
 	err = mdcache.Replace(MakeImmutableRootMetadata(newRmd,
 		irmd.LastModifyingWriterVerifyingKey(), kbfsmd.FakeID(2), time.Now(),
-		true), NullBranchID)
+		true), kbfsmd.NullBranchID)
 	require.NoError(t, err)
 
-	_, err = mdcache.Get(id, 1, NullBranchID)
+	_, err = mdcache.Get(id, 1, kbfsmd.NullBranchID)
 	require.IsType(t, NoSuchMDError{}, err)
 	_, err = mdcache.Get(id, 1, bid)
 	require.NoError(t, err)

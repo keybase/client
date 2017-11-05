@@ -953,13 +953,13 @@ func (fs *KBFSOpsStandard) UnregisterFromChanges(
 	return nil
 }
 
-func (fs *KBFSOpsStandard) onTLFBranchChange(tlfID tlf.ID, newBID BranchID) {
+func (fs *KBFSOpsStandard) onTLFBranchChange(tlfID tlf.ID, newBID kbfsmd.BranchID) {
 	ops := fs.getOps(context.Background(),
 		FolderBranch{Tlf: tlfID, Branch: MasterBranch}, FavoritesOpNoChange)
 	ops.onTLFBranchChange(newBID) // folderBranchOps makes a goroutine
 }
 
-func (fs *KBFSOpsStandard) onMDFlush(tlfID tlf.ID, bid BranchID,
+func (fs *KBFSOpsStandard) onMDFlush(tlfID tlf.ID, bid kbfsmd.BranchID,
 	rev kbfsmd.Revision) {
 	ops := fs.getOps(context.Background(),
 		FolderBranch{Tlf: tlfID, Branch: MasterBranch}, FavoritesOpNoChange)
