@@ -745,7 +745,7 @@ type KeyManager interface {
 // Reporter exports events (asynchronously) to any number of sinks
 type Reporter interface {
 	// ReportErr records that a given error happened.
-	ReportErr(ctx context.Context, tlfName CanonicalTlfName, t tlf.Type,
+	ReportErr(ctx context.Context, tlfName tlf.CanonicalName, t tlf.Type,
 		mode ErrorModeType, err error)
 	// AllKnownErrors returns all errors known to this Reporter.
 	AllKnownErrors() []ReportedError

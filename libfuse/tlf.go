@@ -14,6 +14,7 @@ import (
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/kbfs/libfs"
 	"github.com/keybase/kbfs/libkbfs"
+	"github.com/keybase/kbfs/tlf"
 	"golang.org/x/net/context"
 )
 
@@ -27,7 +28,7 @@ type TLF struct {
 }
 
 func newTLF(fl *FolderList, h *libkbfs.TlfHandle,
-	name libkbfs.PreferredTlfName) *TLF {
+	name tlf.PreferredName) *TLF {
 	folder := newFolder(fl, h, name)
 	tlf := &TLF{
 		folder: folder,

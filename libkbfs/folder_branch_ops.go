@@ -6203,7 +6203,7 @@ func (fbo *folderBranchOps) TeamNameChanged(
 
 	// Make a copy of `head` with the new handle.
 	newHandle := oldHandle.deepCopy()
-	newHandle.name = CanonicalTlfName(newName)
+	newHandle.name = tlf.CanonicalName(newName)
 	newHandle.resolvedWriters[tid.AsUserOrTeam()] = newName
 	newHead, err := fbo.head.deepCopy(fbo.config.Codec())
 	if err != nil {

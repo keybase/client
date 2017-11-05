@@ -467,7 +467,7 @@ func TestBlockJournalFlush(t *testing.T) {
 
 		err = flushBlockEntries(
 			ctx, j.log, j.deferLog, blockServer, bcache, reporter,
-			tlfID, CanonicalTlfName("fake TLF"), entries)
+			tlfID, tlf.CanonicalName("fake TLF"), entries)
 		require.NoError(t, err)
 
 		flushedBytes, err = j.removeFlushedEntries(
@@ -542,7 +542,7 @@ func flushBlockJournalOne(ctx context.Context, t *testing.T,
 	require.NoError(t, err)
 	require.Equal(t, 1, entries.length())
 	err = flushBlockEntries(ctx, j.log, j.deferLog, blockServer,
-		bcache, reporter, tlfID, CanonicalTlfName("fake TLF"),
+		bcache, reporter, tlfID, tlf.CanonicalName("fake TLF"),
 		entries)
 	require.NoError(t, err)
 	flushedBytes, err = j.removeFlushedEntries(
@@ -721,7 +721,7 @@ func TestBlockJournalFlushMDRevMarker(t *testing.T) {
 	require.Equal(t, rev, gotRev)
 	require.Equal(t, 2, entries.length())
 	err = flushBlockEntries(ctx, j.log, j.deferLog, blockServer,
-		bcache, reporter, tlfID, CanonicalTlfName("fake TLF"),
+		bcache, reporter, tlfID, tlf.CanonicalName("fake TLF"),
 		entries)
 	require.NoError(t, err)
 	flushedBytes, err := j.removeFlushedEntries(
@@ -787,7 +787,7 @@ func TestBlockJournalFlushMDRevMarkerForPendingLocalSquash(t *testing.T) {
 	require.Len(t, entries.other, 4)
 
 	err = flushBlockEntries(ctx, j.log, j.deferLog, blockServer,
-		bcache, reporter, tlfID, CanonicalTlfName("fake TLF"),
+		bcache, reporter, tlfID, tlf.CanonicalName("fake TLF"),
 		entries)
 	require.NoError(t, err)
 
@@ -861,7 +861,7 @@ func TestBlockJournalIgnoreBlocks(t *testing.T) {
 	require.Equal(t, bID1, entries.puts.blockStates[0].blockPtr.ID)
 	require.Equal(t, bID4, entries.puts.blockStates[1].blockPtr.ID)
 	err = flushBlockEntries(ctx, j.log, j.deferLog, blockServer,
-		bcache, reporter, tlfID, CanonicalTlfName("fake TLF"),
+		bcache, reporter, tlfID, tlf.CanonicalName("fake TLF"),
 		entries)
 	require.NoError(t, err)
 	flushedBytes, err := j.removeFlushedEntries(
@@ -920,7 +920,7 @@ func TestBlockJournalSaveUntilMDFlush(t *testing.T) {
 			maxJournalBlockFlushBatchSize)
 		require.NoError(t, err)
 		err = flushBlockEntries(ctx, j.log, j.deferLog, blockServer,
-			bcache, reporter, tlfID, CanonicalTlfName("fake TLF"),
+			bcache, reporter, tlfID, tlf.CanonicalName("fake TLF"),
 			entries)
 		require.NoError(t, err)
 		flushedBytes, err := j.removeFlushedEntries(

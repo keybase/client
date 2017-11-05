@@ -1079,7 +1079,7 @@ func (j *tlfJournal) flushBlockEntries(
 	}()
 
 	// TODO: fill this in for logging/error purposes.
-	var tlfName CanonicalTlfName
+	var tlfName tlf.CanonicalName
 
 	eg, groupCtx := errgroup.WithContext(ctx)
 	convertCtx, convertCancel := context.WithCancel(groupCtx)

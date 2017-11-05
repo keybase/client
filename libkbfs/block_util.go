@@ -44,7 +44,7 @@ func putBlockToServer(ctx context.Context, bserv BlockServer, tlfID tlf.ID,
 // quota and disk limit errors.
 func PutBlockCheckLimitErrs(ctx context.Context, bserv BlockServer,
 	reporter Reporter, tlfID tlf.ID, blockPtr BlockPointer,
-	readyBlockData ReadyBlockData, tlfName CanonicalTlfName) error {
+	readyBlockData ReadyBlockData, tlfName tlf.CanonicalName) error {
 	err := putBlockToServer(ctx, bserv, tlfID, blockPtr, readyBlockData)
 	switch typedErr := errors.Cause(err).(type) {
 	case kbfsblock.ServerErrorOverQuota:
@@ -70,7 +70,7 @@ func PutBlockCheckLimitErrs(ctx context.Context, bserv BlockServer,
 }
 
 func doOneBlockPut(ctx context.Context, bserv BlockServer, reporter Reporter,
-	tlfID tlf.ID, tlfName CanonicalTlfName, blockState blockState,
+	tlfID tlf.ID, tlfName tlf.CanonicalName, blockState blockState,
 	blocksToRemoveChan chan *FileBlock) error {
 	err := PutBlockCheckLimitErrs(ctx, bserv, reporter, tlfID, blockState.blockPtr,
 		blockState.readyBlockData, tlfName)
@@ -95,7 +95,7 @@ func doOneBlockPut(ctx context.Context, bserv BlockServer, reporter Reporter,
 // Returns a slice of block pointers that resulted in recoverable
 // errors and should be removed by the caller from any saved state.
 func doBlockPuts(ctx context.Context, bserv BlockServer, bcache BlockCache,
-	reporter Reporter, log, deferLog traceLogger, tlfID tlf.ID, tlfName CanonicalTlfName,
+	reporter Reporter, log, deferLog traceLogger, tlfID tlf.ID, tlfName tlf.CanonicalName,
 	bps blockPutState) (blocksToRemove []BlockPointer, err error) {
 	blockCount := len(bps.blockStates)
 	log.LazyTrace(ctx, "doBlockPuts with %d blocks", blockCount)

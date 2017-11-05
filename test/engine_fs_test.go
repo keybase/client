@@ -117,12 +117,12 @@ func (e *fsEngine) GetFavorites(user User, t tlf.Type) (map[string]bool, error) 
 func (e *fsEngine) GetRootDir(user User, tlfName string, t tlf.Type, expectedCanonicalTlfName string) (dir Node, err error) {
 	u := user.(*fsUser)
 	preferredName, err := tlf.CanonicalToPreferredName(u.username,
-		libkbfs.CanonicalTlfName(tlfName))
+		tlf.CanonicalName(tlfName))
 	if err != nil {
 		return nil, err
 	}
 	expectedPreferredName, err := tlf.CanonicalToPreferredName(u.username,
-		libkbfs.CanonicalTlfName(expectedCanonicalTlfName))
+		tlf.CanonicalName(expectedCanonicalTlfName))
 	if err != nil {
 		return nil, err
 	}

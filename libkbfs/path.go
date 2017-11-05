@@ -64,7 +64,7 @@ func buildCanonicalPathForTlfType(t tlf.Type, paths ...string) string {
 }
 
 // buildCanonicalPathForTlfName returns a canonical path for a tlf.
-func buildCanonicalPathForTlfName(t tlf.Type, tlfName CanonicalTlfName) string {
+func buildCanonicalPathForTlfName(t tlf.Type, tlfName tlf.CanonicalName) string {
 	return buildCanonicalPathForTlfType(t, string(tlfName))
 }
 

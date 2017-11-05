@@ -2524,7 +2524,7 @@ func (m *MockReporter) EXPECT() *MockReporterMockRecorder {
 }
 
 // ReportErr mocks base method
-func (m *MockReporter) ReportErr(ctx context.Context, tlfName CanonicalTlfName, t tlf.Type, mode ErrorModeType, err error) {
+func (m *MockReporter) ReportErr(ctx context.Context, tlfName tlf.CanonicalName, t tlf.Type, mode ErrorModeType, err error) {
 	m.ctrl.Call(m, "ReportErr", ctx, tlfName, t, mode, err)
 }
 

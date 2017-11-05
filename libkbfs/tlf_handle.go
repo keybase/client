@@ -21,9 +21,6 @@ import (
 	"golang.org/x/net/context"
 )
 
-// CanonicalTlfName is a temporary alias.
-type CanonicalTlfName = tlf.CanonicalName
-
 // TlfHandle contains all the info in a tlf.Handle as well as
 // additional info. This doesn't embed tlf.Handle to avoid having to
 // keep track of data in multiple places.
@@ -41,7 +38,7 @@ type TlfHandle struct {
 	finalizedInfo     *tlf.HandleExtension
 	// name can be computed from the other fields, but is cached
 	// for speed.
-	name CanonicalTlfName
+	name tlf.CanonicalName
 }
 
 // Type returns the type of the TLF this TlfHandle represents.
@@ -163,13 +160,13 @@ func (h TlfHandle) ConflictInfo() *tlf.HandleExtension {
 	return &conflictInfoCopy
 }
 
-func (h TlfHandle) recomputeNameWithExtensions() CanonicalTlfName {
+func (h TlfHandle) recomputeNameWithExtensions() tlf.CanonicalName {
 	components := strings.Split(string(h.name), tlf.HandleExtensionSep)
 	newName := components[0]
 	extensionList := tlf.HandleExtensionList(h.Extensions())
 	sort.Sort(extensionList)
 	newName += extensionList.Suffix()
-	return CanonicalTlfName(newName)
+	return tlf.CanonicalName(newName)
 }
 
 // WithUpdatedConflictInfo returns a new handle with the conflict info set to
@@ -352,7 +349,7 @@ func (h TlfHandle) deepCopy() *TlfHandle {
 }
 
 // GetCanonicalName returns the canonical name of this TLF.
-func (h *TlfHandle) GetCanonicalName() CanonicalTlfName {
+func (h *TlfHandle) GetCanonicalName() tlf.CanonicalName {
 	if h.name == "" {
 		panic(fmt.Sprintf("TlfHandle %v with no name", h))
 	}
@@ -542,16 +539,13 @@ func (h TlfHandle) IsConflict() bool {
 	return h.conflictInfo != nil
 }
 
-// PreferredTlfName is a temporary alias.
-type PreferredTlfName = tlf.PreferredName
-
 // GetPreferredFormat returns a TLF name formatted with the username given
 // as the parameter first.
 // This calls tlf.CanonicalToPreferredName with the canonical
 // tlf name which will be reordered into the preferred format.
 // An empty username is allowed here and results in the canonical ordering.
 func (h TlfHandle) GetPreferredFormat(
-	username libkb.NormalizedUsername) PreferredTlfName {
+	username libkb.NormalizedUsername) tlf.PreferredName {
 	s, err := tlf.CanonicalToPreferredName(username, h.GetCanonicalName())
 	if err != nil {
 		panic("TlfHandle.GetPreferredFormat: Parsing canonical username failed!")

@@ -150,7 +150,7 @@ func (k *SimpleFS) favoriteList(ctx context.Context, path keybase1.Path, t tlf.T
 			continue
 		}
 		pname, err := tlf.CanonicalToPreferredName(
-			session.Name, libkbfs.CanonicalTlfName(fav.Name))
+			session.Name, tlf.CanonicalName(fav.Name))
 		if err != nil {
 			k.log.Errorf("CanonicalToPreferredName: %q %v", fav.Name, err)
 			continue

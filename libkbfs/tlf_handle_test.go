@@ -89,7 +89,7 @@ func TestParseTlfHandleNotReaderFailure(t *testing.T) {
 	name := "u2,u3"
 	_, err := ParseTlfHandle(ctx, kbpki, name, tlf.Private)
 	assert.Equal(t, 0, kbpki.getIdentifyCalls())
-	assert.Equal(t, ReadAccessError{User: "u1", Tlf: CanonicalTlfName(name), Type: tlf.Private, Filename: "/keybase/private/u2,u3"}, err)
+	assert.Equal(t, ReadAccessError{User: "u1", Tlf: tlf.CanonicalName(name), Type: tlf.Private, Filename: "/keybase/private/u2,u3"}, err)
 }
 
 func TestParseTlfHandleSingleTeamFailures(t *testing.T) {
@@ -175,13 +175,13 @@ func TestParseTlfHandleAssertionPrivateSuccess(t *testing.T) {
 	h, err := ParseTlfHandle(ctx, kbpki, name, tlf.Private)
 	require.NoError(t, err)
 	assert.Equal(t, 0, kbpki.getIdentifyCalls())
-	assert.Equal(t, CanonicalTlfName(name), h.GetCanonicalName())
+	assert.Equal(t, tlf.CanonicalName(name), h.GetCanonicalName())
 
 	// Make sure that generating another handle doesn't change the
 	// name.
 	h2, err := MakeTlfHandle(context.Background(), h.ToBareHandleOrBust(), kbpki)
 	require.NoError(t, err)
-	assert.Equal(t, CanonicalTlfName(name), h2.GetCanonicalName())
+	assert.Equal(t, tlf.CanonicalName(name), h2.GetCanonicalName())
 }
 
 func TestParseTlfHandleAssertionPublicSuccess(t *testing.T) {
@@ -202,13 +202,13 @@ func TestParseTlfHandleAssertionPublicSuccess(t *testing.T) {
 	h, err := ParseTlfHandle(ctx, kbpki, name, tlf.Public)
 	require.NoError(t, err)
 	assert.Equal(t, 0, kbpki.getIdentifyCalls())
-	assert.Equal(t, CanonicalTlfName(name), h.GetCanonicalName())
+	assert.Equal(t, tlf.CanonicalName(name), h.GetCanonicalName())
 
 	// Make sure that generating another handle doesn't change the
 	// name.
 	h2, err := MakeTlfHandle(context.Background(), h.ToBareHandleOrBust(), kbpki)
 	require.NoError(t, err)
-	assert.Equal(t, CanonicalTlfName(name), h2.GetCanonicalName())
+	assert.Equal(t, tlf.CanonicalName(name), h2.GetCanonicalName())
 }
 
 func TestTlfHandleAccessorsPrivate(t *testing.T) {
@@ -348,7 +348,7 @@ func TestTlfHandleConflictInfo(t *testing.T) {
 	}
 
 	name := "u1,u2,u3"
-	cname := CanonicalTlfName(name)
+	cname := tlf.CanonicalName(name)
 	h, err := ParseTlfHandle(ctx, kbpki, name, tlf.Public)
 	require.NoError(t, err)
 
@@ -366,7 +366,7 @@ func TestTlfHandleConflictInfo(t *testing.T) {
 	h, err = h.WithUpdatedConflictInfo(codec, &info)
 	require.NoError(t, err)
 	require.Equal(t, info, *h.ConflictInfo())
-	cname2 := CanonicalTlfName(name + tlf.HandleExtensionSep + info.String())
+	cname2 := tlf.CanonicalName(name + tlf.HandleExtensionSep + info.String())
 	require.Equal(t, h.GetCanonicalName(), cname2)
 
 	info.Date = 101
@@ -374,7 +374,7 @@ func TestTlfHandleConflictInfo(t *testing.T) {
 
 	info.Date = 100
 	h, err = h.WithUpdatedConflictInfo(codec, &info)
-	cname3 := CanonicalTlfName(name + tlf.HandleExtensionSep + info.String())
+	cname3 := tlf.CanonicalName(name + tlf.HandleExtensionSep + info.String())
 	require.NoError(t, err)
 	require.Equal(t, h.GetCanonicalName(), cname3)
 
@@ -410,7 +410,7 @@ func TestTlfHandleFinalizedInfo(t *testing.T) {
 	}
 
 	name := "u1,u2,u3"
-	cname := CanonicalTlfName(name)
+	cname := tlf.CanonicalName(name)
 	h, err := ParseTlfHandle(ctx, kbpki, name, tlf.Public)
 	require.NoError(t, err)
 
@@ -423,7 +423,7 @@ func TestTlfHandleFinalizedInfo(t *testing.T) {
 
 	h.SetFinalizedInfo(&info)
 	require.Equal(t, info, *h.FinalizedInfo())
-	cname2 := CanonicalTlfName(name + tlf.HandleExtensionSep + info.String())
+	cname2 := tlf.CanonicalName(name + tlf.HandleExtensionSep + info.String())
 	require.Equal(t, h.GetCanonicalName(), cname2)
 
 	info.Date = 101
@@ -459,7 +459,7 @@ func TestTlfHandleConflictAndFinalizedInfo(t *testing.T) {
 	h, err = h.WithUpdatedConflictInfo(codec, &cInfo)
 	require.NoError(t, err)
 	require.Equal(t, cInfo, *h.ConflictInfo())
-	cname2 := CanonicalTlfName(name + tlf.HandleExtensionSep + cInfo.String())
+	cname2 := tlf.CanonicalName(name + tlf.HandleExtensionSep + cInfo.String())
 	require.Equal(t, h.GetCanonicalName(), cname2)
 
 	fInfo := tlf.HandleExtension{
@@ -470,7 +470,7 @@ func TestTlfHandleConflictAndFinalizedInfo(t *testing.T) {
 	h.SetFinalizedInfo(&fInfo)
 	require.Equal(t, fInfo, *h.FinalizedInfo())
 	require.Equal(t, cInfo, *h.ConflictInfo())
-	cname3 := cname2 + CanonicalTlfName(tlf.HandleExtensionSep+fInfo.String())
+	cname3 := cname2 + tlf.CanonicalName(tlf.HandleExtensionSep+fInfo.String())
 	require.Equal(t, h.GetCanonicalName(), cname3)
 }
 
@@ -575,13 +575,13 @@ func TestParseTlfHandleSocialAssertion(t *testing.T) {
 	h, err := ParseTlfHandle(ctx, kbpki, name, tlf.Private)
 	assert.Equal(t, 0, kbpki.getIdentifyCalls())
 	require.NoError(t, err)
-	assert.Equal(t, CanonicalTlfName(name), h.GetCanonicalName())
+	assert.Equal(t, tlf.CanonicalName(name), h.GetCanonicalName())
 
 	// Make sure that generating another handle doesn't change the
 	// name.
 	h2, err := MakeTlfHandle(context.Background(), h.ToBareHandleOrBust(), kbpki)
 	require.NoError(t, err)
-	assert.Equal(t, CanonicalTlfName(name), h2.GetCanonicalName())
+	assert.Equal(t, tlf.CanonicalName(name), h2.GetCanonicalName())
 }
 
 func TestParseTlfHandleUIDAssertion(t *testing.T) {
@@ -703,13 +703,13 @@ func TestResolveAgainBasic(t *testing.T) {
 	name := "u1,u2#u3@twitter"
 	h, err := ParseTlfHandle(ctx, kbpki, name, tlf.Private)
 	require.NoError(t, err)
-	assert.Equal(t, CanonicalTlfName(name), h.GetCanonicalName())
+	assert.Equal(t, tlf.CanonicalName(name), h.GetCanonicalName())
 
 	// ResolveAgain shouldn't rely on resolving the original names again.
 	daemon.addNewAssertionForTestOrBust("u3", "u3@twitter")
 	newH, err := h.ResolveAgain(ctx, daemon)
 	require.NoError(t, err)
-	assert.Equal(t, CanonicalTlfName("u1,u2#u3"), newH.GetCanonicalName())
+	assert.Equal(t, tlf.CanonicalName("u1,u2#u3"), newH.GetCanonicalName())
 }
 
 func TestResolveAgainDoubleAsserts(t *testing.T) {
@@ -727,7 +727,7 @@ func TestResolveAgainDoubleAsserts(t *testing.T) {
 	name := "u1,u1@github,u1@twitter#u2,u2@github,u2@twitter"
 	h, err := ParseTlfHandle(ctx, kbpki, name, tlf.Private)
 	require.NoError(t, err)
-	assert.Equal(t, CanonicalTlfName(name), h.GetCanonicalName())
+	assert.Equal(t, tlf.CanonicalName(name), h.GetCanonicalName())
 
 	daemon.addNewAssertionForTestOrBust("u1", "u1@twitter")
 	daemon.addNewAssertionForTestOrBust("u1", "u1@github")
@@ -735,7 +735,7 @@ func TestResolveAgainDoubleAsserts(t *testing.T) {
 	daemon.addNewAssertionForTestOrBust("u2", "u2@github")
 	newH, err := h.ResolveAgain(ctx, daemon)
 	require.NoError(t, err)
-	assert.Equal(t, CanonicalTlfName("u1#u2"), newH.GetCanonicalName())
+	assert.Equal(t, tlf.CanonicalName("u1#u2"), newH.GetCanonicalName())
 }
 
 func TestResolveAgainWriterReader(t *testing.T) {
@@ -753,13 +753,13 @@ func TestResolveAgainWriterReader(t *testing.T) {
 	name := "u1,u2@github#u2@twitter"
 	h, err := ParseTlfHandle(ctx, kbpki, name, tlf.Private)
 	require.NoError(t, err)
-	assert.Equal(t, CanonicalTlfName(name), h.GetCanonicalName())
+	assert.Equal(t, tlf.CanonicalName(name), h.GetCanonicalName())
 
 	daemon.addNewAssertionForTestOrBust("u2", "u2@twitter")
 	daemon.addNewAssertionForTestOrBust("u2", "u2@github")
 	newH, err := h.ResolveAgain(ctx, daemon)
 	require.NoError(t, err)
-	assert.Equal(t, CanonicalTlfName("u1,u2"), newH.GetCanonicalName())
+	assert.Equal(t, tlf.CanonicalName("u1,u2"), newH.GetCanonicalName())
 }
 
 func TestResolveAgainConflict(t *testing.T) {
@@ -777,7 +777,7 @@ func TestResolveAgainConflict(t *testing.T) {
 	name := "u1,u2#u3@twitter"
 	h, err := ParseTlfHandle(ctx, kbpki, name, tlf.Private)
 	require.NoError(t, err)
-	assert.Equal(t, CanonicalTlfName(name), h.GetCanonicalName())
+	assert.Equal(t, tlf.CanonicalName(name), h.GetCanonicalName())
 
 	daemon.addNewAssertionForTestOrBust("u3", "u3@twitter")
 	ext, err := tlf.NewHandleExtension(tlf.HandleExtensionConflict, 1, "", time.Now())
@@ -787,7 +787,7 @@ func TestResolveAgainConflict(t *testing.T) {
 	h.conflictInfo = ext
 	newH, err := h.ResolveAgain(ctx, daemon)
 	require.NoError(t, err)
-	assert.Equal(t, CanonicalTlfName("u1,u2#u3"+
+	assert.Equal(t, tlf.CanonicalName("u1,u2#u3"+
 		tlf.HandleExtensionSep+ext.String()), newH.GetCanonicalName())
 }
 

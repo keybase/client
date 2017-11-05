@@ -38,7 +38,7 @@ func (*FolderList) GetFileInformation(context.Context, *dokan.FileInfo) (*dokan.
 }
 
 func (fl *FolderList) reportErr(ctx context.Context,
-	mode libkbfs.ErrorModeType, tlfName libkbfs.CanonicalTlfName, err error, cancelFn func()) {
+	mode libkbfs.ErrorModeType, tlfName tlf.CanonicalName, err error, cancelFn func()) {
 	if cancelFn != nil {
 		defer cancelFn()
 	}
@@ -74,7 +74,7 @@ func (fl *FolderList) open(ctx context.Context, oc *openContext, path []string) 
 	}
 
 	defer func() {
-		fl.reportErr(ctx, libkbfs.ReadMode, libkbfs.CanonicalTlfName(path[0]), err, nil)
+		fl.reportErr(ctx, libkbfs.ReadMode, tlf.CanonicalName(path[0]), err, nil)
 	}()
 
 	// TODO: A simple lower-casing is not good enough - see CORE-2967
@@ -202,7 +202,7 @@ func (fl *FolderList) FindFiles(ctx context.Context, fi *dokan.FileInfo, ignored
 			continue
 		}
 		pname, err := tlf.CanonicalToPreferredName(session.Name,
-			libkbfs.CanonicalTlfName(fav.Name))
+			tlf.CanonicalName(fav.Name))
 		if err != nil {
 			fl.fs.log.CErrorf(ctx, "CanonicalToPreferredName: %q %v", fav.Name, err)
 			continue

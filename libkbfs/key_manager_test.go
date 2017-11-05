@@ -432,7 +432,7 @@ func testKeyManagerRekeyResolveAgainSuccessPublic(t *testing.T, ver MetadataVer)
 	require.NoError(t, err)
 
 	newH := rmd.GetTlfHandle()
-	require.Equal(t, CanonicalTlfName("alice,bob"), newH.GetCanonicalName())
+	require.Equal(t, tlf.CanonicalName("alice,bob"), newH.GetCanonicalName())
 
 	// Also check MakeBareTlfHandle.
 	oldHandle := rmd.tlfHandle
@@ -473,7 +473,7 @@ func testKeyManagerRekeyResolveAgainSuccessPublicSelf(t *testing.T, ver Metadata
 	require.NoError(t, err)
 
 	newH := rmd.GetTlfHandle()
-	require.Equal(t, CanonicalTlfName("alice,bob,charlie"), newH.GetCanonicalName())
+	require.Equal(t, tlf.CanonicalName("alice,bob,charlie"), newH.GetCanonicalName())
 
 	// Also check MakeBareTlfHandle.
 	oldHandle := rmd.tlfHandle
@@ -517,7 +517,7 @@ func testKeyManagerRekeyResolveAgainSuccessPrivate(t *testing.T, ver MetadataVer
 	}
 
 	newH := rmd.GetTlfHandle()
-	require.Equal(t, CanonicalTlfName("alice,bob,dave@twitter#charlie"),
+	require.Equal(t, tlf.CanonicalName("alice,bob,dave@twitter#charlie"),
 		newH.GetCanonicalName())
 
 	// Also check MakeBareTlfHandle.
@@ -551,7 +551,7 @@ func testKeyManagerRekeyResolveAgainSuccessPrivate(t *testing.T, ver MetadataVer
 	}
 
 	newH = rmd.GetTlfHandle()
-	require.Equal(t, CanonicalTlfName("alice,bob,dave#charlie"),
+	require.Equal(t, tlf.CanonicalName("alice,bob,dave#charlie"),
 		newH.GetCanonicalName())
 
 	// Also check MakeBareTlfHandle.
@@ -617,7 +617,7 @@ func testKeyManagerPromoteReaderSuccess(t *testing.T, ver MetadataVer) {
 
 	newH := rmd.GetTlfHandle()
 	require.Equal(t,
-		CanonicalTlfName("alice,bob"),
+		tlf.CanonicalName("alice,bob"),
 		newH.GetCanonicalName())
 }
 
@@ -667,7 +667,7 @@ func testKeyManagerPromoteReaderSelf(t *testing.T, ver MetadataVer) {
 
 	newH := rmd.GetTlfHandle()
 	require.Equal(t,
-		CanonicalTlfName("alice,bob"),
+		tlf.CanonicalName("alice,bob"),
 		newH.GetCanonicalName())
 }
 
@@ -745,7 +745,7 @@ func testKeyManagerReaderRekeyResolveAgainSuccessPrivate(t *testing.T, ver Metad
 
 	newH := rmd.GetTlfHandle()
 	require.Equal(t,
-		CanonicalTlfName("alice,dave@twitter#bob@twitter,charlie@twitter"),
+		tlf.CanonicalName("alice,dave@twitter#bob@twitter,charlie@twitter"),
 		newH.GetCanonicalName())
 
 	// Now resolve everyone, but have reader bob to do the rekey
@@ -786,7 +786,7 @@ func testKeyManagerReaderRekeyResolveAgainSuccessPrivate(t *testing.T, ver Metad
 	// bob shouldn't have been able to resolve other users since he's
 	// just a reader.
 	newH = rmd.GetTlfHandle()
-	require.Equal(t, CanonicalTlfName("alice,dave@twitter#bob,charlie@twitter"),
+	require.Equal(t, tlf.CanonicalName("alice,dave@twitter#bob,charlie@twitter"),
 		newH.GetCanonicalName())
 
 	// Also check MakeBareTlfHandle.
@@ -825,7 +825,7 @@ func testKeyManagerRekeyResolveAgainNoChangeSuccessPrivate(t *testing.T, ver Met
 
 	newH := rmd.GetTlfHandle()
 	require.Equal(t,
-		CanonicalTlfName("alice,bob,bob@twitter"),
+		tlf.CanonicalName("alice,bob,bob@twitter"),
 		newH.GetCanonicalName())
 
 	// Now resolve everyone, but have reader bob to do the rekey
@@ -855,7 +855,7 @@ func testKeyManagerRekeyResolveAgainNoChangeSuccessPrivate(t *testing.T, ver Met
 	// bob shouldn't have been able to resolve other users since he's
 	// just a reader.
 	newH = rmd.GetTlfHandle()
-	require.Equal(t, CanonicalTlfName("alice,bob"), newH.GetCanonicalName())
+	require.Equal(t, tlf.CanonicalName("alice,bob"), newH.GetCanonicalName())
 
 	// Also check MakeBareTlfHandle.
 	rmd.tlfHandle = nil
@@ -2346,7 +2346,7 @@ func TestKeyManagerGetTeamTLFCryptKey(t *testing.T) {
 		resolvedWriters: map[keybase1.UserOrTeamID]libkb.NormalizedUsername{
 			tid.AsUserOrTeam(): name,
 		},
-		name: CanonicalTlfName(name),
+		name: tlf.CanonicalName(name),
 	}
 
 	rmd, err := makeInitialRootMetadata(SegregatedKeyBundlesVer, tlfID, h)

@@ -771,7 +771,7 @@ func flushNonBPSBlockJournalEntry(
 
 func flushBlockEntries(ctx context.Context, log, deferLog traceLogger,
 	bserver BlockServer, bcache BlockCache, reporter Reporter, tlfID tlf.ID,
-	tlfName CanonicalTlfName, entries blockEntriesToFlush) error {
+	tlfName tlf.CanonicalName, entries blockEntriesToFlush) error {
 	if !entries.flushNeeded() {
 		// Avoid logging anything when there's nothing to flush.
 		return nil

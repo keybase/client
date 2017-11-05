@@ -30,7 +30,7 @@ type Folder struct {
 
 	handleMu       sync.RWMutex
 	h              *libkbfs.TlfHandle
-	hPreferredName libkbfs.PreferredTlfName
+	hPreferredName tlf.PreferredName
 
 	folderBranchMu sync.Mutex
 	folderBranch   libkbfs.FolderBranch
@@ -56,7 +56,7 @@ type Folder struct {
 }
 
 func newFolder(fl *FolderList, h *libkbfs.TlfHandle,
-	hPreferredName libkbfs.PreferredTlfName) *Folder {
+	hPreferredName tlf.PreferredName) *Folder {
 	f := &Folder{
 		fs:             fl.fs,
 		list:           fl,
@@ -67,10 +67,10 @@ func newFolder(fl *FolderList, h *libkbfs.TlfHandle,
 	return f
 }
 
-func (f *Folder) name() libkbfs.CanonicalTlfName {
+func (f *Folder) name() tlf.CanonicalName {
 	f.handleMu.RLock()
 	defer f.handleMu.RUnlock()
-	return libkbfs.CanonicalTlfName(f.hPreferredName)
+	return tlf.CanonicalName(f.hPreferredName)
 }
 
 func (f *Folder) reportErr(ctx context.Context,
@@ -319,7 +319,7 @@ func (f *Folder) tlfHandleChangeInvalidate(ctx context.Context,
 		f.fs.log.CDebugf(ctx,
 			"tlfHandleChangeInvalidate: GetCurrentUserInfoIfPossible failed: %v", err)
 	}
-	oldName, newName := func() (libkbfs.PreferredTlfName, libkbfs.PreferredTlfName) {
+	oldName, newName := func() (tlf.PreferredName, tlf.PreferredName) {
 		f.handleMu.Lock()
 		defer f.handleMu.Unlock()
 		oldName := f.hPreferredName

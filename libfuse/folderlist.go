@@ -30,7 +30,7 @@ type FolderList struct {
 	folders map[string]*TLF
 
 	muRecentlyRemoved sync.RWMutex
-	recentlyRemoved   map[libkbfs.CanonicalTlfName]bool
+	recentlyRemoved   map[tlf.CanonicalName]bool
 }
 
 var _ fs.NodeAccesser = (*FolderList)(nil)
@@ -66,7 +66,7 @@ func (*FolderList) Attr(ctx context.Context, a *fuse.Attr) error {
 var _ fs.NodeRequestLookuper = (*FolderList)(nil)
 
 func (fl *FolderList) reportErr(ctx context.Context,
-	mode libkbfs.ErrorModeType, tlfName libkbfs.CanonicalTlfName, err error) {
+	mode libkbfs.ErrorModeType, tlfName tlf.CanonicalName, err error) {
 	if err == nil {
 		fl.fs.errLog.CDebugf(ctx, "Request complete")
 		return
@@ -81,12 +81,12 @@ func (fl *FolderList) reportErr(ctx context.Context,
 	fl.fs.errLog.CDebugf(ctx, err.Error())
 }
 
-func (fl *FolderList) addToRecentlyRemoved(name libkbfs.CanonicalTlfName) {
+func (fl *FolderList) addToRecentlyRemoved(name tlf.CanonicalName) {
 	func() {
 		fl.muRecentlyRemoved.Lock()
 		defer fl.muRecentlyRemoved.Unlock()
 		if fl.recentlyRemoved == nil {
-			fl.recentlyRemoved = make(map[libkbfs.CanonicalTlfName]bool)
+			fl.recentlyRemoved = make(map[tlf.CanonicalName]bool)
 		}
 		fl.recentlyRemoved[name] = true
 	}()
@@ -97,7 +97,7 @@ func (fl *FolderList) addToRecentlyRemoved(name libkbfs.CanonicalTlfName) {
 	})
 }
 
-func (fl *FolderList) isRecentlyRemoved(name libkbfs.CanonicalTlfName) bool {
+func (fl *FolderList) isRecentlyRemoved(name tlf.CanonicalName) bool {
 	fl.muRecentlyRemoved.RLock()
 	defer fl.muRecentlyRemoved.RUnlock()
 	return fl.recentlyRemoved != nil && fl.recentlyRemoved[name]
@@ -137,7 +137,7 @@ func (fl *FolderList) PathType() libkbfs.PathType {
 // Create implements the fs.NodeCreater interface for FolderList.
 func (fl *FolderList) Create(ctx context.Context, req *fuse.CreateRequest, resp *fuse.CreateResponse) (_ fs.Node, _ fs.Handle, err error) {
 	fl.fs.log.CDebugf(ctx, "FL Create")
-	tlfName := libkbfs.CanonicalTlfName(req.Name)
+	tlfName := tlf.CanonicalName(req.Name)
 	defer func() { fl.reportErr(ctx, libkbfs.WriteMode, tlfName, err) }()
 	if strings.HasPrefix(req.Name, "._") {
 		// Quietly ignore writes to special macOS files, without
@@ -150,7 +150,7 @@ func (fl *FolderList) Create(ctx context.Context, req *fuse.CreateRequest, resp 
 // Mkdir implements the fs.NodeMkdirer interface for FolderList.
 func (fl *FolderList) Mkdir(ctx context.Context, req *fuse.MkdirRequest) (_ fs.Node, err error) {
 	fl.fs.log.CDebugf(ctx, "FL Mkdir")
-	tlfName := libkbfs.CanonicalTlfName(req.Name)
+	tlfName := tlf.CanonicalName(req.Name)
 	defer func() { fl.reportErr(ctx, libkbfs.WriteMode, tlfName, err) }()
 	return nil, libkbfs.NewWriteUnsupportedError(libkbfs.BuildCanonicalPath(fl.PathType(), string(tlfName)))
 }
@@ -160,7 +160,7 @@ func (fl *FolderList) Lookup(ctx context.Context, req *fuse.LookupRequest, resp 
 	fl.fs.log.CDebugf(ctx, "FL Lookup %s", req.Name)
 	defer func() {
 		fl.reportErr(ctx, libkbfs.ReadMode,
-			libkbfs.CanonicalTlfName(req.Name), err)
+			tlf.CanonicalName(req.Name), err)
 	}()
 	fl.mu.Lock()
 	defer fl.mu.Unlock()
@@ -255,7 +255,7 @@ func (fl *FolderList) ReadDirAll(ctx context.Context) (res []fuse.Dirent, err er
 			continue
 		}
 		pname, err := tlf.CanonicalToPreferredName(
-			session.Name, libkbfs.CanonicalTlfName(fav.Name))
+			session.Name, tlf.CanonicalName(fav.Name))
 		if err != nil {
 			fl.fs.log.Errorf("CanonicalToPreferredName: %q %v", fav.Name, err)
 			continue

@@ -173,7 +173,7 @@ func (e ErrorFileAccessError) Error() string {
 type ReadAccessError struct {
 	User     libkb.NormalizedUsername
 	Filename string
-	Tlf      CanonicalTlfName
+	Tlf      tlf.CanonicalName
 	Type     tlf.Type
 }
 
@@ -187,7 +187,7 @@ func (e ReadAccessError) Error() string {
 type WriteAccessError struct {
 	User     libkb.NormalizedUsername
 	Filename string
-	Tlf      CanonicalTlfName
+	Tlf      tlf.CanonicalName
 	Type     tlf.Type
 }
 
@@ -236,7 +236,7 @@ func NewReadAccessError(h *TlfHandle, username libkb.NormalizedUsername, filenam
 
 // NewWriteAccessError is an access error trying to write a file
 func NewWriteAccessError(h *TlfHandle, username libkb.NormalizedUsername, filename string) error {
-	tlfName := CanonicalTlfName("")
+	tlfName := tlf.CanonicalName("")
 	t := tlf.Private
 	if h != nil {
 		tlfName = h.GetCanonicalName()
@@ -261,7 +261,7 @@ func NewWriteUnsupportedError(filename string) error {
 // be rekeyed for the local device, and can be done so by one of the
 // other user's devices.
 type NeedSelfRekeyError struct {
-	Tlf CanonicalTlfName
+	Tlf tlf.CanonicalName
 	Err error
 }
 
@@ -290,7 +290,7 @@ func (e NeedSelfRekeyError) ToStatus() keybase1.Status {
 // be rekeyed for the local device, and can only done so by one of the
 // other users.
 type NeedOtherRekeyError struct {
-	Tlf CanonicalTlfName
+	Tlf tlf.CanonicalName
 	Err error
 }
 
@@ -919,9 +919,9 @@ func (e NoSuchTlfHandleError) Error() string {
 // IncompatibleHandleError indicates that somethine tried to update
 // the head of a TLF with a RootMetadata with an incompatible handle.
 type IncompatibleHandleError struct {
-	oldName                  CanonicalTlfName
-	partiallyResolvedOldName CanonicalTlfName
-	newName                  CanonicalTlfName
+	oldName                  tlf.CanonicalName
+	partiallyResolvedOldName tlf.CanonicalName
+	newName                  tlf.CanonicalName
 }
 
 func (e IncompatibleHandleError) Error() string {

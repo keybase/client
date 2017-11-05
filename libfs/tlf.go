@@ -8,6 +8,7 @@ import (
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/kbfs/kbfsmd"
 	"github.com/keybase/kbfs/libkbfs"
+	"github.com/keybase/kbfs/tlf"
 	"golang.org/x/net/context"
 )
 
@@ -21,7 +22,7 @@ func (TlfDoesNotExist) Error() string { return "TLF does not exist" }
 // FilterTLFEarlyExitError decides whether an error received while
 // trying to create a TLF should result in showing the user an empty
 // folder (exitEarly == true), or not.
-func FilterTLFEarlyExitError(ctx context.Context, err error, log logger.Logger, name libkbfs.CanonicalTlfName) (
+func FilterTLFEarlyExitError(ctx context.Context, err error, log logger.Logger, name tlf.CanonicalName) (
 	exitEarly bool, retErr error) {
 	switch err := err.(type) {
 	case nil:
