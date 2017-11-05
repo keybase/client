@@ -247,7 +247,7 @@ func (b *BlockServerDisk) AddBlockReference(ctx context.Context, tlfID tlf.ID,
 		return err
 	}
 	if !hasRef {
-		return kbfsblock.BServerErrorBlockNonExistent{Msg: fmt.Sprintf("Block ID %s "+
+		return kbfsblock.ServerErrorBlockNonExistent{Msg: fmt.Sprintf("Block ID %s "+
 			"doesn't exist and cannot be referenced.", id)}
 	}
 
@@ -256,7 +256,7 @@ func (b *BlockServerDisk) AddBlockReference(ctx context.Context, tlfID tlf.ID,
 		return err
 	}
 	if !hasNonArchivedRef {
-		return kbfsblock.BServerErrorBlockArchived{Msg: fmt.Sprintf("Block ID %s has "+
+		return kbfsblock.ServerErrorBlockArchived{Msg: fmt.Sprintf("Block ID %s has "+
 			"been archived and cannot be referenced.", id)}
 	}
 
@@ -339,7 +339,7 @@ func (b *BlockServerDisk) ArchiveBlockReferences(ctx context.Context,
 				return err
 			}
 			if !hasContext {
-				return kbfsblock.BServerErrorBlockNonExistent{
+				return kbfsblock.ServerErrorBlockNonExistent{
 					Msg: fmt.Sprintf(
 						"Block ID %s (context %s) doesn't "+
 							"exist and cannot be archived.",

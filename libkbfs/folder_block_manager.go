@@ -573,9 +573,9 @@ func (fbm *folderBlockManager) processBlocksToDelete(ctx context.Context, toDele
 
 	_, err := fbm.deleteBlockRefs(ctx, toDelete.md.TlfID(), toDelete.blocks)
 	// Ignore permanent errors
-	_, isPermErr := err.(kbfsblock.BServerError)
-	_, isNonceNonExistentErr := err.(kbfsblock.BServerErrorNonceNonExistent)
-	_, isBadRequestErr := err.(kbfsblock.BServerErrorBadRequest)
+	_, isPermErr := err.(kbfsblock.ServerError)
+	_, isNonceNonExistentErr := err.(kbfsblock.ServerErrorNonceNonExistent)
+	_, isBadRequestErr := err.(kbfsblock.ServerErrorBadRequest)
 	if err != nil {
 		fbm.log.CWarningf(ctx, "Couldn't delete some ref in batch %v: %v",
 			toDelete.blocks, err)

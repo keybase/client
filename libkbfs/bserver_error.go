@@ -11,7 +11,7 @@ func translateToBlockServerError(err error) error {
 	// actual server returns a similar error.
 	switch err := err.(type) {
 	case blockNonExistentError:
-		return kbfsblock.BServerErrorBlockNonExistent{Msg: err.Error()}
+		return kbfsblock.ServerErrorBlockNonExistent{Msg: err.Error()}
 	default:
 		return err
 	}

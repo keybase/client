@@ -200,7 +200,7 @@ func TestJournalServerOverQuotaError(t *testing.T) {
 	serverHalf, err := kbfscrypto.MakeRandomBlockCryptKeyServerHalf()
 	require.NoError(t, err)
 	err = blockServer.Put(ctx, tlfID1, bID, bCtx, data, serverHalf)
-	expectedQuotaError := kbfsblock.BServerErrorOverQuota{
+	expectedQuotaError := kbfsblock.ServerErrorOverQuota{
 		Usage:     1014,
 		Limit:     1000,
 		Throttled: false,
@@ -237,7 +237,7 @@ func TestJournalServerOverQuotaError(t *testing.T) {
 	require.NoError(t, err)
 	clock.Add(time.Minute)
 	err = blockServer.Put(ctx, tlfID2, bID, bCtx, data, serverHalf)
-	expectedQuotaError = kbfsblock.BServerErrorOverQuota{
+	expectedQuotaError = kbfsblock.ServerErrorOverQuota{
 		Usage:     1014,
 		Limit:     1000,
 		Throttled: false,
@@ -471,7 +471,7 @@ func TestJournalServerLogOutLogIn(t *testing.T) {
 	// Get the block, which should fail.
 
 	_, _, err = blockServer.Get(ctx, tlfID, bID, bCtx)
-	require.IsType(t, kbfsblock.BServerErrorBlockNonExistent{}, err)
+	require.IsType(t, kbfsblock.ServerErrorBlockNonExistent{}, err)
 
 	// Get the head, which should be empty.
 
@@ -592,7 +592,7 @@ func TestJournalServerMultiUser(t *testing.T) {
 	// None of user 1's changes should be visible.
 
 	_, _, err = blockServer.Get(ctx, tlfID, bID1, bCtx1)
-	require.IsType(t, kbfsblock.BServerErrorBlockNonExistent{}, err)
+	require.IsType(t, kbfsblock.ServerErrorBlockNonExistent{}, err)
 
 	head, err := mdOps.GetForTLF(ctx, tlfID, nil)
 	require.NoError(t, err)
@@ -629,10 +629,10 @@ func TestJournalServerMultiUser(t *testing.T) {
 	// No block or MD should be visible.
 
 	_, _, err = blockServer.Get(ctx, tlfID, bID1, bCtx1)
-	require.IsType(t, kbfsblock.BServerErrorBlockNonExistent{}, err)
+	require.IsType(t, kbfsblock.ServerErrorBlockNonExistent{}, err)
 
 	_, _, err = blockServer.Get(ctx, tlfID, bID2, bCtx2)
-	require.IsType(t, kbfsblock.BServerErrorBlockNonExistent{}, err)
+	require.IsType(t, kbfsblock.ServerErrorBlockNonExistent{}, err)
 
 	head, err = mdOps.GetForTLF(ctx, tlfID, nil)
 	require.NoError(t, err)
@@ -656,7 +656,7 @@ func TestJournalServerMultiUser(t *testing.T) {
 	require.Equal(t, serverHalf1, key)
 
 	_, _, err = blockServer.Get(ctx, tlfID, bID2, bCtx2)
-	require.IsType(t, kbfsblock.BServerErrorBlockNonExistent{}, err)
+	require.IsType(t, kbfsblock.ServerErrorBlockNonExistent{}, err)
 
 	head, err = mdOps.GetForTLF(ctx, tlfID, nil)
 	require.NoError(t, err)
@@ -677,7 +677,7 @@ func TestJournalServerMultiUser(t *testing.T) {
 	// Only user 2's block and MD should be visible.
 
 	_, _, err = blockServer.Get(ctx, tlfID, bID1, bCtx1)
-	require.IsType(t, kbfsblock.BServerErrorBlockNonExistent{}, err)
+	require.IsType(t, kbfsblock.ServerErrorBlockNonExistent{}, err)
 
 	buf, key, err = blockServer.Get(ctx, tlfID, bID2, bCtx2)
 	require.NoError(t, err)

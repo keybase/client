@@ -1028,7 +1028,7 @@ func (e UnmergedSelfConflictError) Error() string {
 
 // blockNonExistentError is returned when a block doesn't exist. This
 // is a generic error, suitable for use by non-server types, whereas
-// BServerErrorBlockNonExistent is used only by servers.
+// kbfsblock.ServerErrorBlockNonExistent is used only by servers.
 type blockNonExistentError struct {
 	id kbfsblock.ID
 }
@@ -1124,7 +1124,7 @@ func newDiskBlockCacheError(err error) DiskBlockCacheError {
 	return DiskBlockCacheError{err.Error()}
 }
 
-// ToStatus implements the ExportableError interface for BServerError.
+// ToStatus implements the ExportableError interface for DiskBlockCacheError.
 func (e DiskBlockCacheError) ToStatus() (s keybase1.Status) {
 	s.Code = StatusCodeDiskBlockCacheError
 	s.Name = "DISK_BLOCK_CACHE_ERROR"

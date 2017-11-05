@@ -729,7 +729,7 @@ func (j *JournalServer) maybeReturnOverQuotaError(
 	}
 
 	j.lastQuotaError = now
-	return kbfsblock.BServerErrorOverQuota{
+	return kbfsblock.ServerErrorOverQuota{
 		Usage:     usedQuotaBytes,
 		Limit:     quotaBytes,
 		Throttled: false,

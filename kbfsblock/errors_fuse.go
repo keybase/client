@@ -14,9 +14,9 @@ import (
 
 // TODO: Figure out how to avoid pulling in bazil.org/fuse.
 
-var _ fuse.ErrorNumber = BServerErrorUnauthorized{}
+var _ fuse.ErrorNumber = ServerErrorUnauthorized{}
 
-// Errno implements the fuse.ErrorNumber interface for BServerErrorUnauthorized.
-func (e BServerErrorUnauthorized) Errno() fuse.Errno {
+// Errno implements the fuse.ErrorNumber interface for ServerErrorUnauthorized.
+func (e ServerErrorUnauthorized) Errno() fuse.Errno {
 	return fuse.Errno(syscall.EACCES)
 }

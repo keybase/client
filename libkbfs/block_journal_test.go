@@ -518,11 +518,11 @@ func TestBlockJournalFlush(t *testing.T) {
 
 	// Check they're all gone.
 	buf, key, err = blockServer.Get(ctx, tlfID, bID, bCtx)
-	require.IsType(t, kbfsblock.BServerErrorBlockNonExistent{}, err)
+	require.IsType(t, kbfsblock.ServerErrorBlockNonExistent{}, err)
 	buf, key, err = blockServer.Get(ctx, tlfID, bID, bCtx2)
-	require.IsType(t, kbfsblock.BServerErrorBlockNonExistent{}, err)
+	require.IsType(t, kbfsblock.ServerErrorBlockNonExistent{}, err)
 	buf, key, err = blockServer.Get(ctx, tlfID, bID, bCtx3)
-	require.IsType(t, kbfsblock.BServerErrorBlockNonExistent{}, err)
+	require.IsType(t, kbfsblock.ServerErrorBlockNonExistent{}, err)
 
 	length := j.length()
 	require.Equal(t, uint64(0), length)
@@ -646,10 +646,10 @@ func TestBlockJournalFlushInterleaved(t *testing.T) {
 	flushOneZero()
 
 	_, _, err = blockServer.Get(ctx, tlfID, bID, bCtx)
-	require.IsType(t, kbfsblock.BServerErrorBlockNonExistent{}, err)
+	require.IsType(t, kbfsblock.ServerErrorBlockNonExistent{}, err)
 
 	_, _, err = blockServer.Get(ctx, tlfID, bID, bCtx2)
-	require.IsType(t, kbfsblock.BServerErrorBlockNonExistent{}, err)
+	require.IsType(t, kbfsblock.ServerErrorBlockNonExistent{}, err)
 
 	buf, key, err = blockServer.Get(ctx, tlfID, bID, bCtx3)
 	require.NoError(t, err)
@@ -679,7 +679,7 @@ func TestBlockJournalFlushInterleaved(t *testing.T) {
 	flushOneZero()
 
 	buf, key, err = blockServer.Get(ctx, tlfID, bID, bCtx3)
-	require.IsType(t, kbfsblock.BServerErrorBlockNonExistent{}, err)
+	require.IsType(t, kbfsblock.ServerErrorBlockNonExistent{}, err)
 
 	end, err := j.end()
 	require.NoError(t, err)

@@ -2987,8 +2987,8 @@ func (cr *ConflictResolver) completeResolution(ctx context.Context,
 func (cr *ConflictResolver) maybeUnstageAfterFailure(ctx context.Context,
 	lState *lockState, mergedMDs []ImmutableRootMetadata, err error) error {
 	// Make sure the error is related to a missing block.
-	_, isBlockNotFound := err.(kbfsblock.BServerErrorBlockNonExistent)
-	_, isBlockDeleted := err.(kbfsblock.BServerErrorBlockDeleted)
+	_, isBlockNotFound := err.(kbfsblock.ServerErrorBlockNonExistent)
+	_, isBlockDeleted := err.(kbfsblock.ServerErrorBlockDeleted)
 	if !isBlockNotFound && !isBlockDeleted {
 		return err
 	}

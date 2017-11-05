@@ -2239,7 +2239,7 @@ type blockOpsOverQuota struct {
 
 func (booq *blockOpsOverQuota) Put(ctx context.Context, tlfID tlf.ID,
 	blockPtr BlockPointer, readyBlockData ReadyBlockData) error {
-	return kbfsblock.BServerErrorOverQuota{
+	return kbfsblock.ServerErrorOverQuota{
 		Throttled: true,
 	}
 }
@@ -2322,7 +2322,7 @@ func TestKBFSOpsErrorOnBlockedWriteDuringSync(t *testing.T) {
 	// Both errors should be an OverQuota error
 	syncErr := <-syncErrCh
 	writeErr := <-writeErrCh
-	if _, ok := syncErr.(kbfsblock.BServerErrorOverQuota); !ok {
+	if _, ok := syncErr.(kbfsblock.ServerErrorOverQuota); !ok {
 		t.Fatalf("Unexpected sync err: %v", syncErr)
 	}
 	if writeErr != syncErr {

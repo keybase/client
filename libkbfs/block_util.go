@@ -15,10 +15,10 @@ import (
 )
 
 func isRecoverableBlockError(err error) bool {
-	_, isArchiveError := err.(kbfsblock.BServerErrorBlockArchived)
-	_, isDeleteError := err.(kbfsblock.BServerErrorBlockDeleted)
-	_, isRefError := err.(kbfsblock.BServerErrorBlockNonExistent)
-	_, isMaxExceededError := err.(kbfsblock.BServerErrorMaxRefExceeded)
+	_, isArchiveError := err.(kbfsblock.ServerErrorBlockArchived)
+	_, isDeleteError := err.(kbfsblock.ServerErrorBlockDeleted)
+	_, isRefError := err.(kbfsblock.ServerErrorBlockNonExistent)
+	_, isMaxExceededError := err.(kbfsblock.ServerErrorMaxRefExceeded)
 	return isArchiveError || isDeleteError || isRefError || isMaxExceededError
 }
 
@@ -47,7 +47,7 @@ func PutBlockCheckLimitErrs(ctx context.Context, bserv BlockServer,
 	readyBlockData ReadyBlockData, tlfName CanonicalTlfName) error {
 	err := putBlockToServer(ctx, bserv, tlfID, blockPtr, readyBlockData)
 	switch typedErr := errors.Cause(err).(type) {
-	case kbfsblock.BServerErrorOverQuota:
+	case kbfsblock.ServerErrorOverQuota:
 		if !typedErr.Throttled {
 			// Report the error, but since it's not throttled the Put
 			// actually succeeded, so return nil back to the caller.

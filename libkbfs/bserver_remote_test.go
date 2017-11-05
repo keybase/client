@@ -48,7 +48,7 @@ func (fc *fakeBServerClient) PutBlock(
 func (fc *fakeBServerClient) GetBlock(ctx context.Context, arg keybase1.GetBlockArg) (keybase1.GetBlockRes, error) {
 	e, ok := fc.entries[arg.Bid]
 	if !ok {
-		return keybase1.GetBlockRes{}, kbfsblock.BServerErrorBlockNonExistent{}
+		return keybase1.GetBlockRes{}, kbfsblock.ServerErrorBlockNonExistent{}
 	}
 	return keybase1.GetBlockRes{
 		Buf:      e.buf,
@@ -59,7 +59,7 @@ func (fc *fakeBServerClient) GetBlock(ctx context.Context, arg keybase1.GetBlock
 func (fc *fakeBServerClient) AddReference(ctx context.Context, arg keybase1.AddReferenceArg) error {
 	e, ok := fc.entries[arg.Ref.Bid]
 	if !ok {
-		return kbfsblock.BServerErrorBlockNonExistent{}
+		return kbfsblock.ServerErrorBlockNonExistent{}
 	}
 	e.refs[arg.Ref.Nonce] = arg.Ref
 	return nil

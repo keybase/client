@@ -1462,9 +1462,9 @@ type BlockServer interface {
 	// error if, for a given ID, any of the other arguments differ
 	// from previous Put calls with the same ID.
 	//
-	// If this returns a BServerErrorOverQuota, with Throttled=false,
-	// the caller can treat it as informational and otherwise ignore
-	// the error.
+	// If this returns a kbfsblock.ServerErrorOverQuota, with
+	// Throttled=false, the caller can treat it as informational
+	// and otherwise ignore the error.
 	Put(ctx context.Context, tlfID tlf.ID, id kbfsblock.ID, context kbfsblock.Context,
 		buf []byte, serverHalf kbfscrypto.BlockCryptKeyServerHalf) error
 
@@ -1478,7 +1478,7 @@ type BlockServer interface {
 	// non-zero kbfsblock.RefNonce).  (Contexts with a
 	// kbfsblock.RefNonce of zero should be used when putting the
 	// block for the first time via Put().)  Returns a
-	// BServerErrorBlockNonExistent if id is unknown within this
+	// kbfsblock.ServerErrorBlockNonExistent if id is unknown within this
 	// folder.
 	//
 	// AddBlockReference should be idempotent, although it should
@@ -1486,9 +1486,9 @@ type BlockServer interface {
 	// of the other fields of context differ from previous
 	// AddBlockReference calls with the same ID and refnonce.
 	//
-	// If this returns a BServerErrorOverQuota, with Throttled=false,
-	// the caller can treat it as informational and otherwise ignore
-	// the error.
+	// If this returns a kbfsblock.ServerErrorOverQuota, with
+	// Throttled=false, the caller can treat it as informational
+	// and otherwise ignore the error.
 	AddBlockReference(ctx context.Context, tlfID tlf.ID, id kbfsblock.ID,
 		context kbfsblock.Context) error
 	// RemoveBlockReferences removes the references to the given block

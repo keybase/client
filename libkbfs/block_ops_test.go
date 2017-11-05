@@ -362,7 +362,7 @@ func TestBlockOpsGetFailServerGet(t *testing.T) {
 		BlockPointer{ID: id, DataVer: FirstValidDataVer,
 			KeyGen: latestKeyGen, Context: bCtx},
 		&decryptedBlock, NoCacheEntry)
-	require.IsType(t, kbfsblock.BServerErrorBlockNonExistent{}, err)
+	require.IsType(t, kbfsblock.ServerErrorBlockNonExistent{}, err)
 }
 
 type badGetBlockServer struct {

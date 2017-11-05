@@ -132,7 +132,7 @@ func (j journalBlockServer) AddBlockReference(
 			// journalBlockCache.CheckForBlockPtr, since
 			// CheckForBlockPtr may be called before journaling is
 			// turned on for a TLF.
-			return kbfsblock.BServerErrorBlockNonExistent{}
+			return kbfsblock.ServerErrorBlockNonExistent{}
 		}
 
 		defer func() {
