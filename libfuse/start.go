@@ -21,13 +21,14 @@ import (
 
 // StartOptions are options for starting up
 type StartOptions struct {
-	KbfsParams     libkbfs.InitParams
-	PlatformParams PlatformParams
-	RuntimeDir     string
-	Label          string
-	ForceMount     bool
-	SkipMount      bool
-	MountPoint     string
+	KbfsParams        libkbfs.InitParams
+	PlatformParams    PlatformParams
+	RuntimeDir        string
+	Label             string
+	ForceMount        bool
+	MountErrorIsFatal bool
+	SkipMount         bool
+	MountPoint        string
 }
 
 func startMounting(ctx context.Context,
@@ -127,7 +128,7 @@ func Start(options StartOptions, kbCtx libkbfs.Context) *libfs.Error {
 		err = startMounting(ctx, kbCtx, config, options, log, mi)
 		if err != nil {
 			// Abort on error if we were force mounting, otherwise continue.
-			if options.ForceMount {
+			if options.MountErrorIsFatal {
 				// If we exit we might want to clean a mount behind us.
 				mi.Done()
 				return libfs.MountError(err.Error())

@@ -28,8 +28,9 @@ type mounter struct {
 // On a force mount then unmount, re-mount if unsuccessful
 func (m *mounter) Mount() (err error) {
 	m.c, err = fuseMountDir(m.options.MountPoint, m.options.PlatformParams)
-	// Exit if we were succesful. Otherwise, try unmounting and mounting again.
-	if err == nil {
+	// Exit if we were succesful or we are not a force mounting on error.
+	// Otherwise, try unmounting and mounting again.
+	if err == nil || !m.options.ForceMount {
 		return nil
 	}
 

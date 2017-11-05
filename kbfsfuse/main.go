@@ -30,19 +30,18 @@ const usageFormatStr = `Usage:
 
 To run against remote KBFS servers:
   kbfsfuse
-    [-runtime-dir=path/to/dir] [-label=label] [-mount-type=default|force|none]
+    [-runtime-dir=path/to/dir] [-label=label] [-mount-type=default|force|required|none]
 %s
     %s/path/to/mountpoint
 
 To run in a local testing environment:
   kbfsfuse
-    [-runtime-dir=path/to/dir] [-label=label] [-mount-type=default|force|none]
+    [-runtime-dir=path/to/dir] [-label=label] [-mount-type=default|force|required|none]
 %s
     %s/path/to/mountpoint
 
 Defaults:
-%s
-`
+%s `
 
 func getUsageString(ctx libkbfs.Context) string {
 	remoteUsageStr := libkbfs.GetRemoteUsageString()
@@ -85,13 +84,14 @@ func start() *libfs.Error {
 	}
 
 	options := libfuse.StartOptions{
-		KbfsParams:     *kbfsParams,
-		PlatformParams: *platformParams,
-		RuntimeDir:     *runtimeDir,
-		Label:          *label,
-		ForceMount:     *mountType == "force",
-		SkipMount:      *mountType == "none",
-		MountPoint:     flag.Arg(0),
+		KbfsParams:        *kbfsParams,
+		PlatformParams:    *platformParams,
+		RuntimeDir:        *runtimeDir,
+		Label:             *label,
+		ForceMount:        *mountType == "force" || *mountType == "required",
+		MountErrorIsFatal: *mountType == "required",
+		SkipMount:         *mountType == "none",
+		MountPoint:        flag.Arg(0),
 	}
 
 	return libfuse.Start(options, ctx)
