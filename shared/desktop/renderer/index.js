@@ -5,6 +5,7 @@
 import '../../dev/user-timings'
 import Main from '../../app/main.desktop'
 import * as React from 'react'
+import * as ConfigGen from '../../actions/config-gen'
 import ReactDOM from 'react-dom'
 import RemoteManager from './remote-manager'
 import Root from './container'
@@ -15,7 +16,6 @@ import hello from '../../util/hello'
 import loadPerf from '../../util/load-perf'
 import routeDefs from '../../app/routes'
 import {AppContainer} from 'react-hot-loader'
-import {bootstrap} from '../../actions/config'
 import {disable as disableDragDrop} from '../../util/drag-drop'
 import {getUserImageMap, loadUserImageMap, getTeamImageMap, loadTeamImageMap} from '../../util/pictures'
 import {initAvatarLookup, initAvatarLoad} from '../../common-adapters'
@@ -86,8 +86,8 @@ function setupApp(store) {
 
   // Run installer
   ipcRenderer.on('installed', (event, message) => {
-    store.dispatch({payload: undefined, type: 'config:readyForBootstrap'})
-    store.dispatch(bootstrap())
+    store.dispatch(ConfigGen.createReadyForBootstrap())
+    store.dispatch(ConfigGen.createBootstrap({}))
   })
   ipcRenderer.send('install-check')
 

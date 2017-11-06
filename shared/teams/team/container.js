@@ -53,6 +53,8 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, setRouteState, rout
   _loadTeam: teamname => dispatch(Creators.getDetails(teamname)),
   _onAddPeople: (teamname: Constants.Teamname) =>
     dispatch(navigateAppend([{props: {teamname}, selected: 'addPeople'}])),
+  _onCreateSubteam: (teamname: Constants.Teamname) =>
+    dispatch(navigateAppend([{props: {name: `${teamname}.`}, selected: 'showNewTeamDialog'}])),
   _onInviteByEmail: (teamname: Constants.Teamname) =>
     dispatch(navigateAppend([{props: {teamname}, selected: 'inviteByEmail'}])),
   _onLeaveTeam: (teamname: Constants.Teamname) =>
@@ -86,8 +88,10 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
   const onManageChat = () => dispatchProps._onManageChat(stateProps.name)
   const onLeaveTeam = () => dispatchProps._onLeaveTeam(stateProps.name)
   const onClickOpenTeamSetting = () => dispatchProps._onClickOpenTeamSetting(stateProps.isTeamOpen)
+  const onCreateSubteam = () => dispatchProps._onCreateSubteam(stateProps.name)
   const yourType = stateProps._memberInfo.find(member => member.username === stateProps.you)
   const youCanAddPeople = yourType && (yourType.type === 'owner' || yourType.type === 'admin')
+  const youCanCreateSubteam = youCanAddPeople
 
   const customComponent = (
     <CustomComponent
@@ -109,11 +113,13 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     requests: stateProps._requests.toJS(),
     onAddPeople,
     onInviteByEmail,
+    onCreateSubteam,
     onLeaveTeam,
     onManageChat,
     onOpenFolder,
     onClickOpenTeamSetting,
     youCanAddPeople,
+    youCanCreateSubteam,
   }
 }
 

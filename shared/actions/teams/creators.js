@@ -36,10 +36,18 @@ function addPeopleToTeam(teamname: string, role: string): Constants.AddPeopleToT
 
 function inviteToTeamByEmail(
   teamname: string,
-  role: string,
+  role: Constants.TeamRoleType,
   invitees: string
 ): Constants.InviteToTeamByEmail {
   return {payload: {invitees, role, teamname}, type: 'teams:inviteToTeamByEmail'}
+}
+
+function inviteToTeamByPhone(
+  teamname: string,
+  role: Constants.TeamRoleType,
+  phoneNumber: string
+): Constants.InviteToTeamByPhone {
+  return {payload: {teamname, role, phoneNumber}, type: 'teams:inviteToTeamByPhone'}
 }
 
 function joinTeam(teamname: string): Constants.JoinTeam {
@@ -103,6 +111,13 @@ function setupTeamHandlers(): Constants.SetupTeamHandlers {
   return {payload: undefined, type: 'teams:setupTeamHandlers'}
 }
 
+function badgeAppForTeams(
+  newTeamNames: Array<string>,
+  newTeamAccessRequests: Array<string>
+): Constants.BadgeAppForTeams {
+  return {payload: {newTeamNames, newTeamAccessRequests}, type: 'teams:badgeAppForTeams'}
+}
+
 export {
   addPeopleToTeam,
   addToTeam,
@@ -115,6 +130,7 @@ export {
   getTeams,
   ignoreRequest,
   inviteToTeamByEmail,
+  inviteToTeamByPhone,
   joinTeam,
   leaveTeam,
   makeTeamOpen,
@@ -125,4 +141,5 @@ export {
   setTeamJoinSuccess,
   setupTeamHandlers,
   toggleChannelMembership,
+  badgeAppForTeams,
 }

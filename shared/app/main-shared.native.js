@@ -2,9 +2,9 @@
 import Push from './push/push.native'
 import React, {Component} from 'react'
 import RenderRoute from '../route-tree/render-route'
+import * as ConfigGen from '../actions/config-gen'
 import loadPerf from '../util/load-perf'
 import hello from '../util/hello'
-import {bootstrap, persistRouteState} from '../actions/config'
 import {connect, type TypedState} from '../util/container'
 import debounce from 'lodash/debounce'
 import {getUserImageMap, loadUserImageMap, getTeamImageMap, loadTeamImageMap} from '../util/pictures'
@@ -81,13 +81,13 @@ const mapStateToProps = (state: TypedState) => ({
 })
 
 const mapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps) => ({
-  bootstrap: () => dispatch(bootstrap()),
+  bootstrap: () => dispatch(ConfigGen.createBootstrap({})),
   hello: () => hello(0, ownProps.platform, [], ownProps.version, true), // TODO real version
   listenForNotifications: () => dispatch(listenForNotifications()),
   navigateUp: () => {
     dispatch(navigateUp())
   },
-  persistRouteState: () => dispatch(persistRouteState),
+  persistRouteState: () => dispatch(ConfigGen.createPersistRouteState()),
   setRouteState: (path, partialState) => {
     dispatch(setRouteState(path, partialState))
   },

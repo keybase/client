@@ -57,7 +57,8 @@ type problemSetBody struct {
 }
 
 type newTeamBody struct {
-	TeamID string `json:"id"`
+	TeamID   string `json:"id"`
+	TeamName string `json:"name"`
 }
 
 // UpdateWithGregor updates the badge state from a gregor state.
@@ -69,7 +70,8 @@ func (b *BadgeState) UpdateWithGregor(gstate gregor.State) error {
 	b.state.NewFollowers = 0
 	b.state.RekeysNeeded = 0
 	b.state.NewGitRepoGlobalUniqueIDs = []string{}
-	b.state.NewTeamIDs = nil
+	b.state.NewTeamNames = nil
+	b.state.NewTeamAccessRequests = nil
 
 	items, err := gstate.Items()
 	if err != nil {
@@ -125,12 +127,10 @@ func (b *BadgeState) UpdateWithGregor(gstate gregor.State) error {
 				continue
 			}
 			for _, x := range body {
-				teamID, err := keybase1.TeamIDFromString(x.TeamID)
-				if err != nil {
-					b.log.Warning("BadgeState invalid team id in team.newly_added_to_team item: %v", err)
+				if x.TeamName == "" {
 					continue
 				}
-				b.state.NewTeamIDs = append(b.state.NewTeamIDs, teamID)
+				b.state.NewTeamNames = append(b.state.NewTeamNames, x.TeamName)
 			}
 		case "team.request_access":
 			var body []newTeamBody
@@ -139,12 +139,10 @@ func (b *BadgeState) UpdateWithGregor(gstate gregor.State) error {
 				continue
 			}
 			for _, x := range body {
-				teamID, err := keybase1.TeamIDFromString(x.TeamID)
-				if err != nil {
-					b.log.Warning("BadgeState invalid team id in team.request_access item: %v", err)
+				if x.TeamName == "" {
 					continue
 				}
-				b.state.NewTeamAccessRequests = append(b.state.NewTeamAccessRequests, teamID)
+				b.state.NewTeamAccessRequests = append(b.state.NewTeamAccessRequests, x.TeamName)
 			}
 		}
 	}

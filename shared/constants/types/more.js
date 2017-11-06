@@ -75,10 +75,17 @@ export function unsafeUnwrap<T>(t: ?T): T {
   return t
 }
 
-type _ReturnValue<A, X, Fn: (...args: A) => X> = X // eslint-disable-line
+// eslint-disable-next-line
+type _ReturnValue<A, X, Fn: (...args: A) => X> = X
 export type ReturnValue<F> = _ReturnValue<*, *, F>
 
-export type _PropsOf<Props, C: Component<Props, *>> = Props // eslint-disable-line
+// eslint-disable-next-line
+type _ExtractReturn<B, F: (...args: any[]) => B> = B
+export type ReturnType<F> = _ExtractReturn<*, F>
+export type PayloadType<F> = $PropertyType<ReturnType<F>, 'payload'>
+
+// eslint-disable-next-line
+export type _PropsOf<Props, C: Component<Props, *>> = Props
 export type PropsOf<C> = _PropsOf<*, C>
 
 export type DumbComponentMap<C: Component<*, *>> = {

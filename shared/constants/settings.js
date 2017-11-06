@@ -64,6 +64,9 @@ export type State = {
   passphrase: PassphraseState,
 }
 
+export const invitesClearError = 'settings:invitesClearError'
+export type InvitesClearError = NoErrorTypedAction<'settings:invitesClearError', void>
+
 export const invitesReclaim = 'settings:invitesReclaim'
 export type InvitesReclaim = NoErrorTypedAction<'settings:invitesReclaim', {inviteId: string}>
 
@@ -129,7 +132,7 @@ export const onSubmitNewPassphrase = 'settings:onSubmitNewPassphrase'
 export type OnSubmitNewPassphrase = NoErrorTypedAction<'settings:onSubmitNewPassphrase', void>
 
 export const onUpdatePassphraseError = 'settings:onUpdatePassphraseError'
-export type OnUpdatePassphraseError = NoErrorTypedAction<'settings:onUpdatePassphraseError', {error: string}>
+export type OnUpdatePassphraseError = NoErrorTypedAction<'settings:onUpdatePassphraseError', {error: Error}>
 
 export const onChangeNewEmail = 'settings:onChangeNewEmail'
 export type OnChangeNewEmail = NoErrorTypedAction<'settings:onChangeNewEmail', {email: string}>
@@ -138,7 +141,7 @@ export const onSubmitNewEmail = 'settings:onSubmitNewEmail'
 export type OnSubmitNewEmail = NoErrorTypedAction<'settings:onSubmitNewEmail', void>
 
 export const onUpdateEmailError = 'settings:onUpdateEmailError'
-export type OnUpdateEmailError = NoErrorTypedAction<'settings:onUpdateEmailError', {error: string}>
+export type OnUpdateEmailError = NoErrorTypedAction<'settings:onUpdateEmailError', {error: Error}>
 
 export const onUpdatePGPSettings = 'settings:onUpdatePGPSettings'
 export type OnUpdatePGPSettings = NoErrorTypedAction<'settings:onUpdatePGPSettings', void>
@@ -152,6 +155,7 @@ export const loadSettings = 'settings:loadSettings'
 export type LoadSettings = NoErrorTypedAction<'settings:loadSettings', void>
 
 export const loadedSettings = 'settings:loadedSettings'
+export type LoadedSettings = NoErrorTypedAction<'settings:loadedSettings', void>
 
 type LandingTab = 'settingsTabs:landingTab'
 export const landingTab = 'settingsTabs:landingTab'
@@ -198,16 +202,9 @@ export type Tab =
   | ScreenprotectorTab
   | PassphraseTab
 
-export type Actions =
-  | InvitesRefresh
-  | NotificationsRefresh
-  | NotificationsRefreshed
-  | NotificationsSaved
-  | NotificationsToggle
-  | SetAllowDeleteAccount
-
 export const waitingForResponse = 'settings:waitingForResponse'
-export function waiting(waiting: boolean): TypedAction<'settings:waitingForResponse', boolean, void> {
+export type WaitingForResponse = TypedAction<'settings:waitingForResponse', boolean, void>
+export function waiting(waiting: boolean): WaitingForResponse {
   return {
     type: 'settings:waitingForResponse',
     payload: waiting,
@@ -215,3 +212,21 @@ export function waiting(waiting: boolean): TypedAction<'settings:waitingForRespo
 }
 
 export const securityGroup = 'security'
+export type Actions =
+  | OnChangeNewPassphrase
+  | OnChangeNewPassphraseConfirm
+  | OnUpdatedPGPSettings
+  | OnUpdatePassphraseError
+  | OnUpdateEmailError
+  | OnChangeNewEmail
+  | LoadedSettings
+  | InvitesClearError
+  | InvitesSent
+  | InvitesRefresh
+  | InvitesRefreshed
+  | NotificationsRefresh
+  | NotificationsRefreshed
+  | NotificationsSaved
+  | NotificationsToggle
+  | SetAllowDeleteAccount
+  | WaitingForResponse

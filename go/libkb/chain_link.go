@@ -88,6 +88,7 @@ func (l LinkID) Eq(i2 LinkID) bool {
 type ChainLinkUnpacked struct {
 	prev                               LinkID
 	seqno                              keybase1.Seqno
+	seqType                            keybase1.SeqType
 	payloadJSONStr                     string
 	ctime, etime                       int64
 	pgpFingerprint                     *PGPFingerprint
@@ -228,6 +229,10 @@ func (c *ChainLink) getPrevFromPayload() LinkID {
 	return c.unpacked.prev
 }
 
+func (c *ChainLink) getSeqTypeFromPayload() keybase1.SeqType {
+	return c.unpacked.seqType
+}
+
 func (c *ChainLink) IsStubbed() bool {
 	return c.unpacked.stubbed
 }
@@ -281,7 +286,8 @@ func (c *ChainLink) GetPayloadJSON() *jsonw.Wrapper {
 
 func (c *ChainLink) ToSigChainLocation() keybase1.SigChainLocation {
 	return keybase1.SigChainLocation{
-		Seqno:   c.GetSeqno(),
+		Seqno: c.GetSeqno(),
+		// This code is meant only for user chains
 		SeqType: keybase1.SeqType_PUBLIC,
 	}
 }
@@ -436,6 +442,16 @@ func (tmp *ChainLinkUnpacked) unpackPayloadJSON(payloadJSON *jsonw.Wrapper, payl
 
 	payloadJSON.AtKey("seqno").GetInt64Void(&sq, &err)
 
+	// Assume public unless its a number
+	tmp.seqType = keybase1.SeqType_PUBLIC
+	seqTypeInt, err2 := payloadJSON.AtKey("seq_type").GetInt()
+	if err2 != nil {
+		// seq_type was nil or not a number.
+		// Pretend it was the default
+	} else {
+		tmp.seqType = keybase1.SeqType(seqTypeInt)
+	}
+
 	var ei int64
 	payloadJSON.AtKey("expire_in").GetInt64Void(&ei, &err)
 
@@ -489,10 +505,15 @@ func (c *ChainLink) unpackStubbed(raw string, err error) error {
 	if err != nil {
 		return err
 	}
+	if ol.SeqType == 0 {
+		// Assume public if unset
+		ol.SeqType = keybase1.SeqType_PUBLIC
+	}
 	c.id = ol.LinkID()
 	c.unpacked = &ChainLinkUnpacked{
 		prev:        ol.Prev,
 		seqno:       ol.Seqno,
+		seqType:     ol.SeqType,
 		sigVersion:  ol.Version,
 		outerLinkV2: ol,
 		stubbed:     true,
@@ -548,6 +569,10 @@ func (c *ChainLink) Unpack(trusted bool, selfUID keybase1.UID) (err error) {
 		ol2, err = DecodeOuterLinkV2(tmp.sig)
 		if err != nil {
 			return err
+		}
+		if ol2.SeqType == 0 {
+			// Assume public if unset
+			ol2.SeqType = keybase1.SeqType_PUBLIC
 		}
 		tmp.outerLinkV2 = ol2
 		sigKID = ol2.KID
@@ -728,12 +753,12 @@ func (c *ChainLink) verifyPayloadV2() error {
 	prev := c.getPrevFromPayload()
 	curr := c.getPayloadHash()
 	linkType, err := c.GetSigchainV2Type()
-
 	if err != nil {
 		return err
 	}
+	seqType := c.getSeqTypeFromPayload()
 
-	if err := ol.AssertFields(version, seqno, prev, curr, linkType); err != nil {
+	if err := ol.AssertFields(version, seqno, prev, curr, linkType, seqType); err != nil {
 		return err
 	}
 

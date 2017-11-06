@@ -260,6 +260,10 @@
         {
           "type": "TeamSettings",
           "name": "settings"
+        },
+        {
+          "type": "TeamShowcase",
+          "name": "showcase"
         }
       ]
     },
@@ -862,6 +866,100 @@
     },
     {
       "type": "record",
+      "name": "SeitanIKey",
+      "fields": [],
+      "typedef": "string"
+    },
+    {
+      "type": "enum",
+      "name": "SeitanIKeyAndLabelVersion",
+      "symbols": [
+        "V1_1"
+      ]
+    },
+    {
+      "type": "variant",
+      "name": "SeitanIKeyAndLabel",
+      "switch": {
+        "type": "SeitanIKeyAndLabelVersion",
+        "name": "v"
+      },
+      "cases": [
+        {
+          "label": {
+            "name": "V1",
+            "def": false
+          },
+          "body": "SeitanIKeyAndLabelVersion1"
+        },
+        {
+          "label": {
+            "def": true
+          },
+          "body": null
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "SeitanIKeyAndLabelVersion1",
+      "fields": [
+        {
+          "type": "SeitanIKey",
+          "name": "i"
+        },
+        {
+          "type": "SeitanIKeyLabel",
+          "name": "l"
+        }
+      ]
+    },
+    {
+      "type": "enum",
+      "name": "SeitanIKeyLabelType",
+      "symbols": [
+        "SMS_1"
+      ]
+    },
+    {
+      "type": "variant",
+      "name": "SeitanIKeyLabel",
+      "switch": {
+        "type": "SeitanIKeyLabelType",
+        "name": "t"
+      },
+      "cases": [
+        {
+          "label": {
+            "name": "SMS",
+            "def": false
+          },
+          "body": "SeitanIKeyLabelSms"
+        },
+        {
+          "label": {
+            "def": true
+          },
+          "body": null
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "SeitanIKeyLabelSms",
+      "fields": [
+        {
+          "type": "string",
+          "name": "f"
+        },
+        {
+          "type": "string",
+          "name": "n"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "TeamSeitanRequest",
       "fields": [
         {
@@ -1220,6 +1318,46 @@
     },
     {
       "type": "record",
+      "name": "TeamShowcase",
+      "fields": [
+        {
+          "type": "boolean",
+          "name": "isShowcased",
+          "jsonkey": "is_showcased"
+        },
+        {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "description"
+        },
+        {
+          "type": [
+            null,
+            "UID"
+          ],
+          "name": "setByUID",
+          "jsonkey": "set_by_uid"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "TeamAndMemberShowcase",
+      "fields": [
+        {
+          "type": "TeamShowcase",
+          "name": "teamShowcase"
+        },
+        {
+          "type": "boolean",
+          "name": "isMemberShowcased"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "BulkRes",
       "fields": [
         {
@@ -1380,6 +1518,22 @@
       ],
       "response": "TeamDetails"
     },
+    "teamImplicitAdmins": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "teamName",
+          "type": "string"
+        }
+      ],
+      "response": {
+        "type": "array",
+        "items": "TeamMemberDetails"
+      }
+    },
     "teamList": {
       "request": [
         {
@@ -1484,6 +1638,10 @@
         {
           "name": "email",
           "type": "string"
+        },
+        {
+          "name": "inviteID",
+          "type": "TeamInviteID"
         }
       ],
       "response": null
@@ -1667,9 +1825,13 @@
         {
           "name": "role",
           "type": "TeamRole"
+        },
+        {
+          "name": "label",
+          "type": "SeitanIKeyLabel"
         }
       ],
-      "response": "string"
+      "response": "SeitanIKey"
     },
     "teamAddEmailsBulk": {
       "request": [
@@ -1765,6 +1927,60 @@
         }
       ],
       "response": "TeamID"
+    },
+    "getTeamShowcase": {
+      "request": [
+        {
+          "name": "name",
+          "type": "string"
+        }
+      ],
+      "response": "TeamShowcase"
+    },
+    "getTeamAndMemberShowcase": {
+      "request": [
+        {
+          "name": "name",
+          "type": "string"
+        }
+      ],
+      "response": "TeamAndMemberShowcase"
+    },
+    "setTeamShowcase": {
+      "request": [
+        {
+          "name": "name",
+          "type": "string"
+        },
+        {
+          "name": "isShowcased",
+          "type": [
+            null,
+            "boolean"
+          ]
+        },
+        {
+          "name": "description",
+          "type": [
+            null,
+            "string"
+          ]
+        }
+      ],
+      "response": null
+    },
+    "setTeamMemberShowcase": {
+      "request": [
+        {
+          "name": "name",
+          "type": "string"
+        },
+        {
+          "name": "isShowcased",
+          "type": "boolean"
+        }
+      ],
+      "response": null
     }
   },
   "namespace": "keybase.1"

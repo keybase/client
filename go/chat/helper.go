@@ -291,6 +291,10 @@ func (r *recentConversationParticipants) getActiveScore(ctx context.Context, con
 func (r *recentConversationParticipants) get(ctx context.Context, myUID gregor1.UID) (res []gregor1.UID, err error) {
 	_, convs, err := storage.NewInbox(r.G(), myUID).ReadAll(ctx)
 	if err != nil {
+		if _, ok := err.(storage.MissError); ok {
+			r.Debug(ctx, "get: no inbox, returning blank results")
+			return nil, nil
+		}
 		return nil, err
 	}
 
@@ -868,9 +872,13 @@ func (n *newConversationHelper) create(ctx context.Context) (res chat1.Conversat
 		// If we created a complex team in the process of creating this conversation, send a special
 		// message into the general channel letting everyone know about the change.
 		if ncrres.CreatedComplexTeam {
-			if err := n.G().ChatHelper.SendTextByNameNonblock(ctx, n.tlfName, &globals.DefaultTeamTopic,
+			subBody := chat1.NewMessageSystemWithComplexteam(chat1.MessageSystemComplexTeam{
+				Team: n.tlfName,
+			})
+			body := chat1.NewMessageBodyWithSystem(subBody)
+			if err := n.G().ChatHelper.SendMsgByNameNonblock(ctx, n.tlfName, &globals.DefaultTeamTopic,
 				chat1.ConversationMembersType_TEAM, keybase1.TLFIdentifyBehavior_CHAT_GUI,
-				n.complexTeamIntroMessage()); err != nil {
+				body, chat1.MessageType_SYSTEM); err != nil {
 				n.Debug(ctx, "failed to send complex team intro message: %s", err)
 			}
 		}
@@ -879,11 +887,6 @@ func (n *newConversationHelper) create(ctx context.Context) (res chat1.Conversat
 	}
 
 	return res, rl, reserr
-}
-
-func (n *newConversationHelper) complexTeamIntroMessage() string {
-	return fmt.Sprintf("Attention @channel!\n\nI have just created a new channel in team _%s_. Here are some things that are now different:\n\n1.) Notifications will not happen for every message. Click or tap the info icon on the right to configure them.\n2.) The #general channel is now in the \"Big Teams\" section of the inbox.\n3.) You can hit the three dots next to %s in the inbox view to join other channels.\n\nEnjoy!",
-		n.tlfName, n.tlfName)
 }
 
 func (n *newConversationHelper) makeFirstMessage(ctx context.Context, triple chat1.ConversationIDTriple,

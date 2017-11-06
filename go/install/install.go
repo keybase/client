@@ -136,7 +136,7 @@ func ResolveInstallStatus(version string, bundleVersion string, lastExitStatus s
 			return
 		}
 		bsv, err := semver.Make(bundleVersion)
-		// Invalid bundle bersion
+		// Invalid bundle version
 		if err != nil {
 			installStatus = keybase1.InstallStatus_ERROR
 			installAction = keybase1.InstallAction_NONE

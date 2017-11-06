@@ -199,8 +199,8 @@ func runWithMemberTypes(t *testing.T, f func(membersType chat1.ConversationMembe
 	t.Logf("Team Stage End: %v", time.Now().Sub(start))
 
 	t.Logf("Implicit Team Stage Begin")
-	os.Setenv("KEYBASE_CHAT_MEMBER_TYPE", "impteam")
-	defer os.Setenv("KEYBASE_CHAT_MEMBER_TYPE", "")
+	os.Setenv("KEYBASE_FEATURES", "admin")
+	defer os.Setenv("KEYBASE_FEATURES", "")
 	start = time.Now()
 	f(chat1.ConversationMembersType_IMPTEAM)
 	t.Logf("Implicit Team Stage End: %v", time.Now().Sub(start))
@@ -1749,7 +1749,7 @@ func TestChatSrvPostLocalNonblock(t *testing.T) {
 			require.NoError(t, err)
 			created = ncres.Conv.Info
 			consumeNewMsg(t, listener, chat1.MessageType_JOIN)
-			consumeNewMsg(t, listener, chat1.MessageType_TEXT)
+			consumeNewMsg(t, listener, chat1.MessageType_SYSTEM)
 		default:
 			created = mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT,
 				mt, ctc.as(t, users[1]).user())
@@ -2399,9 +2399,9 @@ func TestChatSrvTeamChannels(t *testing.T) {
 			})
 		require.NoError(t, err)
 		consumeNewMsg(t, listener0, chat1.MessageType_JOIN)
-		consumeNewMsg(t, listener0, chat1.MessageType_TEXT)
-		consumeNewMsg(t, listener1, chat1.MessageType_TEXT)
-		consumeNewMsg(t, listener2, chat1.MessageType_TEXT)
+		consumeNewMsg(t, listener0, chat1.MessageType_SYSTEM)
+		consumeNewMsg(t, listener1, chat1.MessageType_SYSTEM)
+		consumeNewMsg(t, listener2, chat1.MessageType_SYSTEM)
 		_, err = postLocalForTest(t, ctc, users[1], ncres.Conv.Info, chat1.NewMessageBodyWithText(chat1.MessageText{
 			Body: fmt.Sprintf("JOINME"),
 		}))
@@ -2994,8 +2994,8 @@ func TestChatSrvImplicitConversation(t *testing.T) {
 }
 
 func TestChatSrvImpTeamExistingKBFS(t *testing.T) {
-	os.Setenv("KEYBASE_CHAT_MEMBER_TYPE", "impteam")
-	defer os.Setenv("KEYBASE_CHAT_MEMBER_TYPE", "")
+	os.Setenv("KEYBASE_FEATURES", "admin")
+	defer os.Setenv("KEYBASE_FEATURES", "")
 	ctc := makeChatTestContext(t, "NewConversationLocal", 2)
 	defer ctc.cleanup()
 	users := ctc.users()
@@ -3128,8 +3128,8 @@ func TestChatSrvDeleteConversation(t *testing.T) {
 		consumeNewMsg(t, listener0, chat1.MessageType_JOIN)
 		consumeTeamType(t, listener0)
 		consumeTeamType(t, listener1)
-		consumeNewMsg(t, listener0, chat1.MessageType_TEXT)
-		consumeNewMsg(t, listener1, chat1.MessageType_TEXT)
+		consumeNewMsg(t, listener0, chat1.MessageType_SYSTEM)
+		consumeNewMsg(t, listener1, chat1.MessageType_SYSTEM)
 
 		_, err = ctc.as(t, users[1]).chatLocalHandler().JoinConversationByIDLocal(ctx1,
 			channel.Conv.GetConvID())
@@ -3330,8 +3330,8 @@ func TestChatSrvTeamChannelNameMentions(t *testing.T) {
 			require.NoError(t, err)
 			consumeNewMsg(t, listener1, chat1.MessageType_JOIN)
 			if index == 0 {
-				consumeNewMsg(t, listener0, chat1.MessageType_TEXT)
-				consumeNewMsg(t, listener1, chat1.MessageType_TEXT)
+				consumeNewMsg(t, listener0, chat1.MessageType_SYSTEM)
+				consumeNewMsg(t, listener1, chat1.MessageType_SYSTEM)
 			}
 
 			_, err = ctc.as(t, users[0]).chatLocalHandler().JoinConversationByIDLocal(ctx1,

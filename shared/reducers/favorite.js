@@ -1,6 +1,7 @@
 // @flow
 import * as Constants from '../constants/favorite'
 import * as CommonConstants from '../constants/common'
+import * as KBFSConstants from '../constants/kbfs'
 
 const initialState: Constants.State = {
   folderState: {
@@ -33,7 +34,7 @@ const initialState: Constants.State = {
 
 export default function(
   state: Constants.State = initialState,
-  action: Constants.FavoriteAction
+  action: Constants.FavoriteAction | KBFSConstants.Actions | {type: 'common:resetStore', payload: void}
 ): Constants.State {
   switch (action.type) {
     case CommonConstants.resetStore:
@@ -150,7 +151,7 @@ export default function(
         fuseInstalling: false,
         kextPermissionError: false,
       }
-    case 'fs:installKBS':
+    case 'fs:installKBFS':
       return {
         ...state,
         kbfsInstalling: true,
