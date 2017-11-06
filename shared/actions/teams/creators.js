@@ -133,6 +133,13 @@ function deleteChannel(conversationIDKey: ConversationIDKey): Constants.DeleteCh
   return {payload: {conversationIDKey}, type: 'teams:deleteChannel'}
 }
 
+function badgeAppForTeams(
+  newTeamNames: Array<string>,
+  newTeamAccessRequests: Array<string>
+): Constants.BadgeAppForTeams {
+  return {payload: {newTeamNames, newTeamAccessRequests}, type: 'teams:badgeAppForTeams'}
+}
+
 export {
   addPeopleToTeam,
   addToTeam,
@@ -160,4 +167,5 @@ export {
   toggleChannelMembership,
   updateChannelName,
   updateTopic,
+  badgeAppForTeams,
 }

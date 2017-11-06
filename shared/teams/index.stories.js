@@ -21,6 +21,7 @@ const load = () => {
       <Box style={{maxWidth: 320}}>
         <TeamList
           teamnames={teamnames}
+          newTeams={['stripe.usa']}
           teammembercounts={teammembercounts}
           onOpenFolder={action('onOpenFolder')}
           onManageChat={action('onManageChat')}

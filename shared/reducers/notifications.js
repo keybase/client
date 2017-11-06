@@ -26,17 +26,25 @@ export default function(
     case CommonConstants.resetStore:
       return initialState
     case 'notifications:receivedBadgeState': {
-      const {conversations, newTlfs, rekeysNeeded, newGitRepoGlobalUniqueIDs} = action.payload.badgeState
+      const {
+        conversations,
+        newTlfs,
+        rekeysNeeded,
+        newGitRepoGlobalUniqueIDs,
+        newTeamNames,
+      } = action.payload.badgeState
 
       const deviceType = isMobile ? RPCTypes.CommonDeviceType.mobile : RPCTypes.CommonDeviceType.desktop
       const totalMessages = (conversations || [])
         .reduce((total, c) => (c.badgeCounts ? total + c.badgeCounts[`${deviceType}`] : total), 0)
       const newGit = (newGitRepoGlobalUniqueIDs || []).length
+      const newTeams = (newTeamNames || []).length
 
       const navBadges = state.get('navBadges').withMutations(n => {
         n.set(Tabs.chatTab, totalMessages)
         n.set(Tabs.folderTab, newTlfs + rekeysNeeded)
         n.set(Tabs.gitTab, newGit)
+        n.set(Tabs.teamsTab, newTeams)
       })
       let newState = state.withMutations(s => {
         s.set('navBadges', navBadges)
