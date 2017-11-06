@@ -374,6 +374,7 @@ function _updateUserInfo(
   username: string,
   getState: () => {tracker: Constants.State, config: ConfigState}
 ): Action {
+  console.warn('in updateuserinfo with', userCard)
   return {
     type: Constants.updateUserInfo,
     payload: {

@@ -9,6 +9,10 @@ import type {Service} from './search'
 import {type NoErrorTypedAction} from './types/flux'
 import {type TypedState} from './reducer'
 
+type _PublicitySettings = {
+  member: boolean,
+  team: boolean,
+}
 export type TeamSettings = RPCTypes.TeamSettings
 
 export type CreateNewTeam = NoErrorTypedAction<
@@ -189,6 +193,7 @@ type _State = {
   teamNameToLoading: I.Map<Teamname, boolean>,
   teamNameToRequests: I.Map<Teamname, I.List<string>>,
   teamNameToTeamSettings: I.Map<Teamname, TeamSettings>,
+  teamNameToPublicitySettings: I.Map<Teamname, _PublicitySettings>,
   teamnames: I.Set<Teamname>,
   teammembercounts: I.Map<Teamname, number>,
   loaded: boolean,
@@ -206,6 +211,7 @@ export const makeState: I.RecordFactory<_State> = I.Record({
   teamNameToMembers: I.Map(),
   teamNameToRequests: I.Map(),
   teamNameToTeamSettings: I.Map(),
+  teamNameToPublicitySettings: I.Map(),
   teammembercounts: I.Map(),
   teamnames: I.Set(),
 })

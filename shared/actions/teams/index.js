@@ -295,12 +295,43 @@ const _getDetails = function*(action: Constants.GetDetails): SagaGenerator<any, 
       yield put(replaceEntity(['teams', 'teamNameToRequests'], I.Map([[teamname, I.Set()]])))
     }
 
+    yield call(RpcTypes.teamsSetTeamShowcaseRpcPromise, {
+      param: {
+        description: 'Keybase friends!',
+        name: teamname,
+        isShowcased: true,
+      },
+    })
+    yield call(RpcTypes.teamsSetTeamMemberShowcaseRpcPromise, {
+      param: {
+        isShowcased: true,
+        name: teamname,
+      },
+    })
+
+    // Get publicity settings for this team.
+    const publicity: RpcTypes.TeamAndMemberShowcase = yield call(
+      RpcTypes.teamsGetTeamAndMemberShowcaseRpcPromise,
+      {
+        param: {
+          name: teamname,
+        },
+      }
+    )
+
+    console.warn({publicity})
+    const publicityMap = {
+      member: publicity.isMemberShowcased,
+      team: publicity.teamShowcase.isShowcased,
+    }
+
     yield all([
       put(replaceEntity(['teams', 'teamNameToMembers'], I.Map([[teamname, I.Set(infos)]]))),
       put(replaceEntity(['teams', 'teamNameToMemberUsernames'], I.Map([[teamname, memberNames]]))),
       put(replaceEntity(['teams', 'teamNameToRequests'], I.Map(requestMap))),
       put(replaceEntity(['teams', 'teamNameToTeamSettings'], I.Map({[teamname]: results.settings}))),
       put(replaceEntity(['teams', 'teamNameToInvites'], I.Map([[teamname, I.Set(invitesMap)]]))),
+      put(replaceEntity(['teams', 'teamNameToPublicitySettings'], I.Map({[teamname]: publicityMap}))),
     ])
   } finally {
     yield put(replaceEntity(['teams', 'teamNameToLoading'], I.Map([[teamname, false]])))

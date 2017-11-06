@@ -83,7 +83,7 @@ const TeamTabs = (props: TeamTabsProps) => {
     >
       {membersLabel}
     </Text>,
-  ]
+  ]  
   if (admin) {
     const requestsLabel = `REQUESTS (${requests.length})`
     const invitesLabel = `PENDING INVITES (${invites.length})`
@@ -110,6 +110,18 @@ const TeamTabs = (props: TeamTabsProps) => {
       </Text>
     )
   }
+  const publicityLabel = 'PUBLICITY SETTINGS'
+  tabs.push(
+    <Text
+      key="publicity"
+      type="BodySmallSemibold"
+      style={{
+        color: globalColors.black_75,
+      }}
+    >
+      {publicityLabel}
+    </Text>
+  )
   if (loading) {
     tabs.push(<ProgressIndicator style={{alignSelf: 'center', width: 17, height: 17}} />)
   }
@@ -216,6 +228,15 @@ class Team extends React.PureComponent<Props> {
             style={{alignSelf: 'stretch'}}
           />
       }
+    } else if (selectedTab === 'publicity') {
+      contents = (
+        <Text
+          type="BodySmall"
+          style={{color: globalColors.black_40, textAlign: 'center', marginTop: globalMargins.xlarge}}
+        >
+          Publicity settings.
+        </Text>
+      )
     }
 
     const popupMenuItems = [
