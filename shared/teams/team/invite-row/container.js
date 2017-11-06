@@ -10,6 +10,7 @@ import type {TypedState} from '../../../constants/reducer'
 
 type OwnProps = {
   email: string,
+  id: string,
   teamname: string,
   username: string,
 }
@@ -37,9 +38,12 @@ type DispatchProps = {
   onCancelInvite: () => void,
 }
 
-const mapDispatchToProps = (dispatch: Dispatch, {email, teamname, username}: OwnProps): DispatchProps => ({
+const mapDispatchToProps = (
+  dispatch: Dispatch,
+  {email, id, teamname, username}: OwnProps
+): DispatchProps => ({
   onCancelInvite: () =>
-    dispatch(navigateAppend([{props: {email, teamname, username}, selected: 'reallyRemoveMember'}])),
+    dispatch(navigateAppend([{props: {email, id, teamname, username}, selected: 'reallyRemoveMember'}])),
 })
 
 const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps, ownProps: OwnProps) => {

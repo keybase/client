@@ -89,8 +89,19 @@ export default compose(
     }),
     // Checker for whether address is already in invited array
     withHandlers({
-      isSelected: ({_pendingInvites}) => (addr: string): boolean => {
-        return !!_pendingInvites.find(rec => rec.email === addr) // TODO search phone number
+      isSelected: ({_pendingInvites}) => (addr: string, name?: string): boolean => {
+        return !!_pendingInvites.find(rec => {
+          if (rec.email) {
+            return rec.email === addr
+          } else if (rec.name) {
+            const matches = /\((.*)\)/.exec(rec.name)
+            if (matches[1]) {
+              // Check bare numbers against one another
+              return matches[1].replace(/\D/g, '') === addr.replace(/\D/g, '')
+            }
+          }
+          return false
+        })
       },
     }),
     // Delegate to add / remove
@@ -129,7 +140,7 @@ export default compose(
             id: contact.recordID + (addr.email ? addr.email : addr.number),
             loading: props.loadingInvites.get(addr.email),
             contact: cData,
-            selected: props.isSelected(cData.email || cData.phoneNo),
+            selected: props.isSelected(cData.email || cData.phoneNo, cData.name),
             onClick: () => props.onSelectContact(cData),
           })
         })

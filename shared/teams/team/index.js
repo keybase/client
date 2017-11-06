@@ -156,19 +156,30 @@ class Team extends React.PureComponent<Props> {
     // massage data for rowrenderers
     const memberProps = members.map(member => ({username: member.username, teamname: name}))
     const requestProps = requests.map(req => ({username: req.username, teamname: name}))
-    const inviteProps = invites.map(invite => ({
-      key: invite.email || invite.username,
-      email: invite.email,
-      teamname: name,
-      username: invite.username,
-    }))
+    const inviteProps = invites.map(invite => {
+      let inviteInfo
+      if (invite.name) {
+        inviteInfo = {name: invite.name}
+      } else if (invite.email) {
+        inviteInfo = {email: invite.email}
+      } else if (invite.username) {
+        inviteInfo = {username: invite.username}
+      }
+      return {
+        ...inviteInfo,
+        teamname: name,
+        username: invite.username,
+        id: invite.id,
+        key: invite.id,
+      }
+    })
 
     let contents
     if (selectedTab === 'members') {
       contents =
         (members.length !== 0 || !loading) &&
         <List
-          keyProperty="username"
+          keyProperty="key"
           items={memberProps}
           fixedHeight={48}
           renderItem={TeamMemberRow}

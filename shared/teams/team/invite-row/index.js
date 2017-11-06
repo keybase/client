@@ -6,18 +6,21 @@ import {isMobile} from '../../../constants/platform'
 import {typeToLabel} from '../../../constants/teams'
 
 export type Props = {
-  email: string,
-  following: boolean,
+  email?: string, // email invite
+  name?: string, // seitan invite
+  username?: string, // sbs invite
   onCancelInvite: () => void,
-  role: string,
+  following: boolean,
   teamname: string,
-  username: string,
+  role: string,
   you: ?string,
+  id: string,
 }
 
 export const TeamInviteRow = (props: Props) => {
-  const {email, following, onCancelInvite, role, username, you} = props
-  const user = email || username
+  const {following, onCancelInvite, role, you} = props
+  const user = props.email || props.username || props.name || ''
+  const username = props.username || ''
   return (
     <ClickableBox
       style={{
@@ -43,7 +46,12 @@ export const TeamInviteRow = (props: Props) => {
         </Box>
       </Box>
       <Box style={{...globalStyles.flexBoxRow, flexShrink: 1}}>
-        <Button small={true} label="Cancel invite" onClick={onCancelInvite} type="Danger" />
+        <Button
+          small={true}
+          label={isMobile ? 'Cancel' : 'Cancel invite'}
+          onClick={onCancelInvite}
+          type="Secondary"
+        />
       </Box>
     </ClickableBox>
   )

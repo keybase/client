@@ -112,15 +112,19 @@ export const makeMemberInfo: I.RecordFactory<_MemberInfo> = I.Record({
 
 type _InviteInfo = {
   email: string,
+  name: string,
   role: TeamRoleType,
   username: string,
+  id: string,
 }
 
 export type InviteInfo = I.RecordOf<_InviteInfo>
 export const makeInviteInfo: I.RecordFactory<_InviteInfo> = I.Record({
   email: '',
+  name: '',
   role: 'writer',
   username: '',
+  id: '',
 })
 
 type _RequestInfo = {
@@ -179,8 +183,10 @@ type _State = {
     I.Set<
       I.RecordOf<{
         email: string,
+        name: string,
         role: TeamRoleType,
         username: string,
+        id: string,
       }>
     >
   >,

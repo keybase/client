@@ -176,9 +176,12 @@ const _inviteToTeamByPhone = function*(action: Constants.InviteToTeamByPhone) {
     phoneNumber,
     `Hello! Join my team on Keybase!\n\nLog in at keybase.io\n\n Your invite token is ${seitan}`
   )
-  yield put(
-    replaceEntity(['teams', 'teamNameToLoadingInvites'], I.Map([[teamname, I.Map([[phoneNumber, false]])]]))
-  )
+  yield all([
+    put(
+      replaceEntity(['teams', 'teamNameToLoadingInvites'], I.Map([[teamname, I.Map([[phoneNumber, false]])]]))
+    ),
+    put(Creators.getDetails(teamname)),
+  ])
 }
 
 const _ignoreRequest = function*(action: Constants.IgnoreRequest) {
@@ -293,10 +296,12 @@ const _getDetails = function*(action: Constants.GetDetails): SagaGenerator<any, 
     const invitesMap = map(results.annotatedActiveInvites, invite =>
       Constants.makeInviteInfo({
         email: invite.type.c === RpcTypes.TeamsTeamInviteCategory.email ? invite.name : '',
+        name: invite.type.c === RpcTypes.TeamsTeamInviteCategory.seitan ? invite.name : '',
         role: Constants.teamRoleByEnum[invite.role],
         username: invite.type.c === RpcTypes.TeamsTeamInviteCategory.sbs
           ? `${invite.name}@${invite.type.sbs}`
           : '',
+        id: invite.id,
       })
     )
 
