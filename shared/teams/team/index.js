@@ -13,6 +13,7 @@ import {
   PopupMenu,
   ProgressIndicator,
 } from '../../common-adapters'
+import {clamp} from 'lodash'
 import {globalStyles, globalMargins, globalColors} from '../../styles'
 import {isMobile} from '../../constants/platform'
 import {OpenTeamSettingButton} from '../open-team'
@@ -101,7 +102,11 @@ const TeamTabs = (props: TeamTabsProps) => {
 
   let requestsBadge = 0
   if (newTeamRequests.length) {
-    requestsBadge = newTeamRequests.reduce((count, team) => (team === name ? count + 1 : count), 0)
+    requestsBadge = clamp(
+      newTeamRequests.reduce((count, team) => (team === name ? count + 1 : count), 0),
+      0,
+      requests.length
+    )
   }
 
   if (admin) {
@@ -109,7 +114,7 @@ const TeamTabs = (props: TeamTabsProps) => {
     const invitesLabel = `PENDING INVITES (${invites.length})`
     tabs.push(
       <Box key="requests" style={{...globalStyles.flexBoxRow, alignItems: 'center'}}>
-        {requestsBadge && <Badge badgeNumber={requestsBadge} />}
+        {!!requestsBadge && <Badge badgeNumber={requestsBadge} badgeStyle={{marginTop: 1}} />}
         <Text
           type="BodySmallSemibold"
           style={{
