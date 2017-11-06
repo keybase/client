@@ -63,7 +63,7 @@ function* _loadGit(action: GitGen.LoadGitPayload): Saga.SagaGenerator<any, any> 
 }
 
 // reset errors and set loading, make a call and either go back to the root or show an error
-function* _createDeleteHelper(theCall: *) {
+function* _createDeleteHelper(theCall: *): Generator<any, void, any> {
   yield Saga.put.resolve(GitGen.createSetError({error: null}))
   yield Saga.put.resolve(GitGen.createSetLoading({loading: true}))
   try {
