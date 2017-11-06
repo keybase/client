@@ -499,6 +499,16 @@ func GetRepoAndID(
 		ctx, config, tlfHandle, repoName, uniqID, getOnly)
 }
 
+func makeUniqueID(ctx context.Context, config libkbfs.Config) (string, error) {
+	// Create a unique ID using the verifying key and the `config`
+	// object, which should be unique to each call in practice.
+	session, err := config.KBPKI().GetCurrentSession(ctx)
+	if err != nil {
+		return "", err
+	}
+	return fmt.Sprintf("%s-%p", session.VerifyingKey.String(), config), nil
+}
+
 // CreateRepoAndID returns a new stable repo ID for the provided
 // repoName in the given TLF.  If the repo has already been created,
 // it returns a `RepoAlreadyExistsError`.  If `repoName` already
@@ -510,13 +520,10 @@ func GetRepoAndID(
 func CreateRepoAndID(
 	ctx context.Context, config libkbfs.Config, tlfHandle *libkbfs.TlfHandle,
 	repoName string) (ID, error) {
-	// Create a unique ID using the verifying key and the `config`
-	// object, which should be unique to each call in practice.
-	session, err := config.KBPKI().GetCurrentSession(ctx)
+	uniqID, err := makeUniqueID(ctx, config)
 	if err != nil {
 		return NullID, err
 	}
-	uniqID := fmt.Sprintf("%s-%p", session.VerifyingKey.String(), config)
 
 	fs, id, err := getOrCreateRepoAndID(
 		ctx, config, tlfHandle, repoName, uniqID, createOnly)
@@ -791,10 +798,15 @@ func needsGC(storer storage.Storer, options GCOptions) (
 // any of the thresholds provided in `options`.
 func GCRepo(
 	ctx context.Context, config libkbfs.Config, tlfHandle *libkbfs.TlfHandle,
-	repoName string, uniqID string, options GCOptions) (err error) {
+	repoName string, options GCOptions) (err error) {
 	log := config.MakeLogger("")
 	log.CDebugf(ctx, "Checking whether GC is needed for %s/%s",
 		tlfHandle.GetCanonicalName(), repoName)
+
+	uniqID, err := makeUniqueID(ctx, config)
+	if err != nil {
+		return err
+	}
 
 	fs, _, err := getOrCreateRepoAndID(
 		ctx, config, tlfHandle, repoName, uniqID, getOnly)

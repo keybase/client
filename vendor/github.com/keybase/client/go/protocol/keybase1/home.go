@@ -120,6 +120,7 @@ func (o HomeScreenItemData) DeepCopy() HomeScreenItemData {
 type HomeScreenTodoType int
 
 const (
+	HomeScreenTodoType_NONE          HomeScreenTodoType = 0
 	HomeScreenTodoType_BIO           HomeScreenTodoType = 1
 	HomeScreenTodoType_PROOF         HomeScreenTodoType = 2
 	HomeScreenTodoType_DEVICE        HomeScreenTodoType = 3
@@ -135,6 +136,7 @@ const (
 func (o HomeScreenTodoType) DeepCopy() HomeScreenTodoType { return o }
 
 var HomeScreenTodoTypeMap = map[string]HomeScreenTodoType{
+	"NONE":          0,
 	"BIO":           1,
 	"PROOF":         2,
 	"DEVICE":        3,
@@ -148,6 +150,7 @@ var HomeScreenTodoTypeMap = map[string]HomeScreenTodoType{
 }
 
 var HomeScreenTodoTypeRevMap = map[HomeScreenTodoType]string{
+	0:  "NONE",
 	1:  "BIO",
 	2:  "PROOF",
 	3:  "DEVICE",
@@ -327,20 +330,19 @@ func (o HomeScreenPeopleNotification) DeepCopy() HomeScreenPeopleNotification {
 
 type HomeScreenItem struct {
 	Badged bool               `codec:"badged" json:"badged"`
-	Id     HomeScreenItemID   `codec:"id" json:"id"`
 	Data   HomeScreenItemData `codec:"data" json:"data"`
 }
 
 func (o HomeScreenItem) DeepCopy() HomeScreenItem {
 	return HomeScreenItem{
 		Badged: o.Badged,
-		Id:     o.Id.DeepCopy(),
 		Data:   o.Data.DeepCopy(),
 	}
 }
 
 type HomeScreen struct {
 	LastViewed        Time             `codec:"lastViewed" json:"lastViewed"`
+	Version           int              `codec:"version" json:"version"`
 	Items             []HomeScreenItem `codec:"items" json:"items"`
 	FollowSuggestions []UserSummary    `codec:"followSuggestions" json:"followSuggestions"`
 }
@@ -348,6 +350,7 @@ type HomeScreen struct {
 func (o HomeScreen) DeepCopy() HomeScreen {
 	return HomeScreen{
 		LastViewed: o.LastViewed.DeepCopy(),
+		Version:    o.Version,
 		Items: (func(x []HomeScreenItem) []HomeScreenItem {
 			if x == nil {
 				return nil

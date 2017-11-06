@@ -261,3 +261,35 @@ func (rh *RPCHandler) DeleteRepo(
 	rh.scheduleCleaning(arg.Folder)
 	return nil
 }
+
+// Gc implements keybase1.KBFSGitInterface for KeybaseServiceBase.
+func (rh *RPCHandler) Gc(
+	ctx context.Context, arg keybase1.GcArg) (err error) {
+	rh.log.CDebugf(ctx, "Garbage-collecting repo %s from folder %s/%s",
+		arg.Name, arg.Folder.FolderType, arg.Folder.Name)
+	defer func() {
+		rh.log.CDebugf(ctx, "Done garbage-collecting repo: %+v", err)
+	}()
+
+	ctx, gitConfig, tlfHandle, tempDir, err := rh.getHandleAndConfig(
+		ctx, arg.Folder)
+	if err != nil {
+		return err
+	}
+	defer func() {
+		rmErr := os.RemoveAll(tempDir)
+		if rmErr != nil {
+			rh.log.CDebugf(
+				ctx, "Error cleaning storage dir %s: %+v\n", tempDir, rmErr)
+		}
+	}()
+	defer gitConfig.Shutdown(ctx)
+
+	gco := GCOptions{MaxLooseRefs: arg.Options.MaxLooseRefs}
+	err = GCRepo(ctx, gitConfig, tlfHandle, string(arg.Name), gco)
+	if err != nil {
+		return err
+	}
+
+	return rh.waitForJournal(ctx, gitConfig, tlfHandle)
+}

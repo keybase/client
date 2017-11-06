@@ -713,7 +713,7 @@ func TestPackRefsAndOverwritePackedRef(t *testing.T) {
 	require.NoError(t, err)
 	go func() {
 		packErrCh <- libgit.GCRepo(
-			packCtx, config2, h, "test", "", libgit.GCOptions{MaxLooseRefs: 0})
+			packCtx, config2, h, "test", libgit.GCOptions{MaxLooseRefs: 0})
 	}()
 	select {
 	case <-packOnStalled:
@@ -797,7 +797,7 @@ func TestPackRefsAndDeletePackedRef(t *testing.T) {
 	require.NoError(t, err)
 	go func() {
 		packErrCh <- libgit.GCRepo(
-			packCtx, config2, h, "test", "", libgit.GCOptions{MaxLooseRefs: 0})
+			packCtx, config2, h, "test", libgit.GCOptions{MaxLooseRefs: 0})
 	}()
 	select {
 	case <-packOnStalled:
