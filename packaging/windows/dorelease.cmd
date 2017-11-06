@@ -58,14 +58,29 @@ if [%UpdateChannel%] == [SmokeCI] (
 
 :done_ci 
 
-pushd %GOPATH%\src\github.com\keybase\client\packaging\windows
-::Get + increment the global, shared build number
-s3browser-con download prerelease.keybase.io prerelease.keybase.io/windows-support/buildnumber/buildnumber.txt . || goto:build_error || EXIT /B 1
-set /p BUILD_NUMBER=<windows-support\buildnumber\buildnumber.txt
-set /A BUILD_NUMBER=BUILD_NUMBER+1
-echo %BUILD_NUMBER% > windows-support\buildnumber\buildnumber.txt
-s3browser-con upload prerelease.keybase.io windows-support\buildnumber prerelease.keybase.io/windows-support/buildnumber || goto:build_error || EXIT /B 1
+for /F delims^=^"^ tokens^=2 %%x in ('findstr /C:"Version = " %GOPATH%\src\github.com\keybase\client\go\libkb\version.go') do set LIBKB_VER=%%x
+
+:: release
+pushd %GOPATH%\src\github.com\keybase\release
+del release.exe
+go build
+IF %ERRORLEVEL% NEQ 0 (
+  goto:build_error || EXIT /B 1
+)
+for /f %%i in ('release winbuildnumber --version=%LIBKB_VER%') do set BUILD_NUMBER=%%i
+echo %BUILD_NUMBER%
 popd
+
+if NOT DEFINED BUILD_NUMBER (
+  echo bad build number
+  goto:build_error || EXIT /B 1
+)
+:: ensure it's numeric
+SET "badbuildnumber="&for /f "delims=0123456789" %%i in ("%BUILD_NUMBER%") do set badbuildnumber=%%i
+if defined badbuildnumber (
+  echo bad build number
+  goto:build_error || EXIT /B 1
+)
 
 call %GOPATH%\src\github.com\keybase\client\packaging\windows\build_prerelease.cmd || goto:build_error || EXIT /B 1
 
@@ -133,7 +148,7 @@ EXIT /B 0
 ::Publish smoke updater jsons to S3
 if [%UpdateChannel%] NEQ [Smoke2] (
     echo "Non Smoke2 build"
-    %OUTPUT% "Successfully built Windows: %KEYBASE_VERSION%"
+    %OUTPUT% "Successfully built Windows with client: %KEYBASE_VERSION%, kbfs: %KBFS_BUILD%"
     goto :no_smokeb
 )
 ::Smoke B json
