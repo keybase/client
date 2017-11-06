@@ -13,7 +13,6 @@ import (
 
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
-	"github.com/keybase/client/go/systemd"
 )
 
 func spawnServer(g *libkb.GlobalContext, cl libkb.CommandLine, forkType keybase1.ForkType) (pid int, err error) {
@@ -30,7 +29,7 @@ func spawnServer(g *libkb.GlobalContext, cl libkb.CommandLine, forkType keybase1
 	// autoforking in dev mode. To run the service you just built in prod mode,
 	// you can either do `keybase --run-mode=prod service` manually, or you can
 	// add a systemd override file (see https://askubuntu.com/q/659267/73244).
-	if g.Env.GetRunMode() == libkb.ProductionRunMode && systemd.IsRunningSystemd() {
+	if g.Env.WantsSystemd() {
 		g.Log.Info("Starting keybase.service.")
 		startCmd := exec.Command("systemctl", "--user", "start", "keybase.service")
 		startCmd.Stdout = os.Stderr
