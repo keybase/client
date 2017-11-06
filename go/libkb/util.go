@@ -65,8 +65,7 @@ func FileExists(path string) (bool, error) {
 }
 
 func MakeParentDirs(log SkinnyLogger, filename string) error {
-
-	dir, _ := filepath.Split(filename)
+	dir := filepath.Dir(filename)
 	exists, err := FileExists(dir)
 	if err != nil {
 		log.Errorf("Can't see if parent dir %s exists", dir)
@@ -750,4 +749,8 @@ func IsAppStatusCode(err error, code keybase1.StatusCode) bool {
 		return err.Code == int(code)
 	}
 	return false
+}
+
+func CanExec(p string) error {
+	return canExec(p)
 }

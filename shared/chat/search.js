@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react'
-import * as Creators from '../actions/chat/creators'
+import * as ChatGen from '../actions/chat-gen'
 import UserInput from '../search/user-input/container'
 import SearchResultsList from '../search/results-list/container'
 import {Box, ProgressIndicator, HeaderHoc} from '../common-adapters'
@@ -10,7 +10,7 @@ import {globalMargins, globalStyles} from '../styles'
 import {isMobile} from '../constants/platform'
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
-  onExitSearch: () => dispatch(Creators.exitSearch(false)),
+  onExitSearch: () => dispatch(ChatGen.createExitSearch({skipSelectPreviousConversation: false})),
 })
 
 const SearchHeader = props => (

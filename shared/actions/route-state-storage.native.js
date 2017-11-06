@@ -1,7 +1,7 @@
 // @flow
 import {AsyncStorage, Linking} from 'react-native'
 import {chatTab, isValidInitialTab} from '../constants/tabs'
-import {setInitialState} from './config'
+import * as ConfigGen from './config-gen'
 
 import type {Dispatch, GetState} from '../constants/types/flux'
 
@@ -63,9 +63,13 @@ class RouteStateStorage {
 
     if (item.tab) {
       if (item.selectedConversationIDKey) {
-        await dispatch(setInitialState({conversation: item.selectedConversationIDKey, tab: chatTab}))
+        await dispatch(
+          ConfigGen.createSetInitialState({
+            initialState: {conversation: item.selectedConversationIDKey, tab: chatTab},
+          })
+        )
       } else {
-        await dispatch(setInitialState({tab: item.tab}))
+        await dispatch(ConfigGen.createSetInitialState({initialState: {tab: item.tab}}))
       }
     }
   }
@@ -81,7 +85,7 @@ class RouteStateStorage {
 
     if (url) {
       console.log('[RouteState] initial URL:', url)
-      await dispatch(setInitialState({url}))
+      await dispatch(ConfigGen.createSetInitialState({initialState: {url}}))
       return
     }
 

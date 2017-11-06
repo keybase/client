@@ -1,17 +1,17 @@
 // @flow
 import * as Constants from '../../constants/config'
 import * as Creators from '../../actions/login/creators'
+import * as ConfigGen from '../../actions/config-gen'
 import {Splash, Intro, Failure} from '.'
 import {connect, type TypedState, compose, branch, renderComponent} from '../../util/container'
 import {requestAutoInvite} from '../../actions/signup'
-import {retryBootstrap} from '../../actions/config'
 
 const mapStateToProps = (state: TypedState) => ({
   bootStatus: state.config.bootStatus,
   justDeletedSelf: state.login.justDeletedSelf,
   justLoginFromRevokedDevice: state.login.justLoginFromRevokedDevice,
   justRevokedSelf: state.login.justRevokedSelf,
-  retrying: state.config.bootstrapTriesRemaining !== Constants.MAX_BOOTSTRAP_TRIES,
+  retrying: state.config.bootstrapTriesRemaining !== Constants.maxBootstrapTries,
 })
 
 const mapDispatchToProps = (dispatch: Dispatch, {navigateAppend}) => ({
@@ -22,7 +22,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateAppend}) => ({
     dispatch(Creators.startLogin())
   },
   onRetry: () => {
-    dispatch(retryBootstrap())
+    dispatch(ConfigGen.createRetryBootstrap())
   },
   onSignup: () => {
     dispatch(requestAutoInvite())

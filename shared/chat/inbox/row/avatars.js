@@ -68,7 +68,7 @@ class Avatars extends PureComponent<AvatarProps> {
       .toArray()
 
     return (
-      <Box style={avatarBoxStyle(backgroundColor)}>
+      <Box style={avatarBoxStyle}>
         <Box style={avatarInnerBoxStyle}>
           <MultiAvatar
             singleSize={isMobile ? 48 : 40}
@@ -97,14 +97,7 @@ const multiStyle = memoize(backgroundColor => {
   }
 })
 
-const avatarBoxStyle = memoize(backgroundColor => {
-  return {
-    ..._avatarBoxStyle,
-    backgroundColor,
-  }
-})
-
-const _avatarBoxStyle = {
+const avatarBoxStyle = {
   ...globalStyles.flexBoxRow,
   alignItems: 'center',
   flexShrink: 0,
@@ -133,7 +126,7 @@ class TeamAvatar
   }> {
   render() {
     return (
-      <Box style={_avatarBoxStyle}>
+      <Box style={avatarBoxStyle}>
         <Avatar teamname={this.props.teamname} size={isMobile ? 48 : 40} />
         <MutedIcon
           isSelected={this.props.isSelected}

@@ -3,7 +3,6 @@ package teams
 import (
 	"encoding/json"
 	"fmt"
-	"testing"
 
 	"golang.org/x/net/context"
 
@@ -21,7 +20,8 @@ type rawTeam struct {
 	ReaderKeyMasks []keybase1.ReaderKeyMask                               `json:"reader_key_masks"`
 	// Whether the user is only being allowed to view the chain
 	// because they are a member of a descendent team.
-	SubteamReader bool `json:"subteam_reader"`
+	SubteamReader bool                  `json:"subteam_reader"`
+	Showcase      keybase1.TeamShowcase `json:"showcase"`
 }
 
 func (r *rawTeam) GetAppStatus() *libkb.AppStatus {
@@ -71,7 +71,7 @@ func GetForTeamManagementByTeamID(ctx context.Context, g *libkb.GlobalContext, i
 	return team, fixupTeamGetError(ctx, g, err, id.String(), id.IsPublic())
 }
 
-func GetTeamByNameForTest(ctx context.Context, t *testing.T, g *libkb.GlobalContext, name string, public bool, needAdmin bool) (*Team, error) {
+func GetTeamByNameForTest(ctx context.Context, g *libkb.GlobalContext, name string, public bool, needAdmin bool) (*Team, error) {
 	team, err := Load(ctx, g, keybase1.LoadTeamArg{
 		Name:        name,
 		Public:      public,

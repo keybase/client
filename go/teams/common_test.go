@@ -5,7 +5,7 @@ import (
 
 	"golang.org/x/net/context"
 
-	"github.com/keybase/client/go/externals"
+	"github.com/keybase/client/go/externalstest"
 	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -14,7 +14,7 @@ import (
 )
 
 func SetupTest(tb testing.TB, name string, depth int) (tc libkb.TestContext) {
-	tc = externals.SetupTest(tb, name, depth+1)
+	tc = externalstest.SetupTest(tb, name, depth+1)
 
 	// use an insecure triplesec in tests
 	tc.G.NewTriplesec = func(passphrase []byte, salt []byte) (libkb.Triplesec, error) {

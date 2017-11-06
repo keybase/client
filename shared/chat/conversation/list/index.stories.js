@@ -74,6 +74,9 @@ function makeMessage(
     senderDeviceRevokedAt: null,
     key,
     editedCount: 0,
+    mentions: I.Set(),
+    channelMention: 'None',
+    rawMessageID: -1,
   }
 }
 
@@ -128,7 +131,7 @@ const storeFn = (messageMap: {[key: string]: Constants.Message}) => ({
     pendingConversations: I.Map(),
     nowOverride: null,
     editingMessage: null,
-    inboxUntrustedState: 'unloaded',
+    inboxGlobalUntrustedState: 'unloaded',
     previousConversation: null,
     searchPending: false,
     searchResults: null,

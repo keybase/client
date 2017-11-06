@@ -8,7 +8,7 @@ import {isMobile} from '../../constants/platform'
 import {type TypedState} from '../../constants/reducer'
 import {type TeamRoleType} from '../../constants/teams'
 
-/* 
+/*
   Pass through via routeprops
   onComplete gets selected role
   selectedRole sets a default role for the component

@@ -1,0 +1,72 @@
+@namespace("keybase.1")
+
+protocol home {
+
+  @typedef("string")
+  record HomeScreenItemID {}
+
+  enum HomeScreenItemType {
+    TODO_1,
+    PEOPLE_2
+  }
+
+  variant HomeScreenItemData switch (HomeScreenItemType t) {
+    case TODO: HomeScreenTodo;
+    case PEOPLE: HomeScreenPeopleNotification;
+  }
+
+  enum HomeScreenTodoType {
+    BIO_1,
+    PROOF_2,
+    DEVICE_3,
+    FOLLOW_4,
+    CHAT_5,
+    PAPERKEY_6,
+    TEAM_7,
+    FOLDER_8,
+    GIT_REPO_9,
+    TEAM_SHOWCASE_10
+  }
+
+  variant HomeScreenTodo switch (HomeScreenTodoType t) {
+    default: void;
+  }
+
+  enum HomeScreenPeopleNotificationType {
+    FOLLOWED_0,
+    FOLLOWED_MULTI_1
+  }
+
+  record HomeScreenPeopleNotificationFollowed {
+    Time followTime;
+    UserSummary user;
+  }
+
+  record HomeScreenPeopleNotificationFollowedMulti {
+    array<HomeScreenPeopleNotificationFollowed> followers;
+    int numOthers;
+  }
+
+  variant HomeScreenPeopleNotification switch (HomeScreenPeopleNotificationType t) {
+    case FOLLOWED: HomeScreenPeopleNotificationFollowed;
+    case FOLLOWED_MULTI: HomeScreenPeopleNotificationFollowedMulti;
+  }
+
+  record HomeScreenItem {
+    boolean badged;
+    HomeScreenItemID id;
+    HomeScreenItemData data;
+  }
+
+  record HomeScreen {
+    Time lastViewed;
+    array<HomeScreenItem> items;
+    array<UserSummary> followSuggestions;
+  }
+
+  HomeScreen homeGetScreen(boolean markViewed);
+  void homeSkipTodoType(HomeScreenTodoType t);
+  void homeActionTaken();
+  void homeMarkViewed();
+
+}

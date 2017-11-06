@@ -402,9 +402,23 @@ func handleSeitanSingle(ctx context.Context, g *libkb.GlobalContext, team *Team,
 		return err
 	}
 
-	ikey, err := peikey.DecryptIKey(ctx, team)
+	ikeyAndLabel, err := peikey.DecryptIKeyAndLabel(ctx, team)
 	if err != nil {
 		return err
+	}
+
+	var ikey SeitanIKey
+
+	version, err := ikeyAndLabel.V()
+	if err != nil {
+		return fmt.Errorf("While parsing IKeyAndLabel: %s\n", err)
+	}
+
+	switch version {
+	case keybase1.SeitanIKeyAndLabelVersion_V1:
+		ikey = SeitanIKey(ikeyAndLabel.V1().I)
+	default:
+		return fmt.Errorf("Unknown IKeyAndLabel version: %v\n", version)
 	}
 
 	sikey, err := ikey.GenerateSIKey()
