@@ -498,7 +498,11 @@ func ParseAndDecorateAtMentionedUIDs(ctx context.Context, body string, upak libk
 	return newBody, atRes, chanRes
 }
 
-func SystemMessageMentions(ctx context.Context, body chat1.MessageSystem, upak libkb.UPAKLoader) (atMentions []gregor1.UID, chanMention chat1.ChannelMention) {
+type SystemMessageUIDSource interface {
+	LookupUID(ctx context.Context, un libkb.NormalizedUsername) (keybase1.UID, error)
+}
+
+func SystemMessageMentions(ctx context.Context, body chat1.MessageSystem, upak SystemMessageUIDSource) (atMentions []gregor1.UID, chanMention chat1.ChannelMention) {
 	typ, err := body.SystemType()
 	if err != nil {
 		return atMentions, chanMention
@@ -521,6 +525,7 @@ func SystemMessageMentions(ctx context.Context, body chat1.MessageSystem, upak l
 	case chat1.MessageSystemType_COMPLEXTEAM:
 		chanMention = chat1.ChannelMention_ALL
 	}
+	sort.Sort(chat1.ByUID(atMentions))
 	return atMentions, chanMention
 }
 
