@@ -133,28 +133,31 @@ const _editMembership = function*(action: Constants.EditMembership) {
 }
 
 const _removeMemberOrPendingInvite = function*(action: Constants.RemoveMemberOrPendingInvite) {
-  const {payload: {name, username, email}} = action
+  const {payload: {name, username, email, id}} = action
 
   yield put(
-    replaceEntity(['teams', 'teamNameToLoadingInvites'], I.Map([[name, I.Map([[username || email, true]])]]))
+    replaceEntity(
+      ['teams', 'teamNameToLoadingInvites'],
+      I.Map([[name, I.Map([[username || email || id, true]])]])
+    )
   )
 
-  // disallow call with both username & email
-  if (!!username && !!email) {
-    const errMsg = 'Supplied both email and username to removeMemberOrPendingInvite'
+  // disallow call with any pair of username, email, and ID to avoid black-bar errors
+  if ((!!username && !!email) || (!!username && !!id) || (!!email && !!id)) {
+    const errMsg = 'Supplied more than one form of identification to removeMemberOrPendingInvite'
     console.error(errMsg)
     throw new Error(errMsg)
   }
 
   yield put(replaceEntity(['teams', 'teamNameToLoading'], I.Map([[name, true]])))
   try {
-    yield call(RpcTypes.teamsTeamRemoveMemberRpcPromise, {param: {email, name, username}})
+    yield call(RpcTypes.teamsTeamRemoveMemberRpcPromise, {param: {email, name, username, inviteID: id}})
   } finally {
     yield put((dispatch: Dispatch) => dispatch(Creators.getDetails(name))) // getDetails will unset loading
     yield put(
       replaceEntity(
         ['teams', 'teamNameToLoadingInvites'],
-        I.Map([[name, I.Map([[username || email, false]])]])
+        I.Map([[name, I.Map([[username || email || id, false]])]])
       )
     )
   }

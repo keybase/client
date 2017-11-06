@@ -14,7 +14,12 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routeProps}) => ({
   onClose: () => dispatch(navigateUp()),
   onRemove: () => {
     dispatch(
-      Creators.removeMember(routeProps.get('email'), routeProps.get('teamname'), routeProps.get('username'))
+      Creators.removeMember(
+        routeProps.get('email'),
+        routeProps.get('teamname'),
+        routeProps.get('username'),
+        ''
+      )
     )
     dispatch(navigateTo([teamsTab, {props: {teamname: routeProps.get('teamname')}, selected: 'team'}]))
     dispatch(Creators.getDetails(routeProps.get('teamname')))

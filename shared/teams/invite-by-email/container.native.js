@@ -38,8 +38,8 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routeProps}) => ({
     dispatch(Creators.inviteToTeamByPhone(routeProps.get('teamname'), role, invitee, fullName))
     dispatch(Creators.getTeams())
   },
-  onUninvite: (invitee: string) => {
-    dispatch(Creators.removeMember(invitee, routeProps.get('teamname'), ''))
+  onUninvite: (invitee: string, id?: string) => {
+    dispatch(Creators.removeMember(invitee, routeProps.get('teamname'), '', id || ''))
   },
 
   onOpenRolePicker: (role: string, onComplete: string => void) => {
