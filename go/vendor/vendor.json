@@ -344,14 +344,14 @@
 		{
 			"checksumSHA1": "2dhlXqY/z//xieGJNGjMjL4X6Jw=",
 			"path": "github.com/keybase/keybase-test-vectors/go",
-			"revision": "2bfb94411295f18596046369f6bcb3a950ceb1b5",
-			"revisionTime": "2017-08-11T14:07:22Z"
+			"revision": "f14ba3a1aa9ffd72209efaed5342fcc17d66693c",
+			"revisionTime": "2017-11-06T21:33:07Z"
 		},
 		{
-			"checksumSHA1": "x3Cnxu6dehCSPc9aTjS1PO6INLU=",
+			"checksumSHA1": "M0LcepSKs6a5TOM7KXaoiuTKVJ0=",
 			"path": "github.com/keybase/keybase-test-vectors/teamchains",
-			"revision": "c6dbadb0aef19380fc20ff29bf54feb1c549d270",
-			"revisionTime": "2017-09-22T19:43:39Z"
+			"revision": "f14ba3a1aa9ffd72209efaed5342fcc17d66693c",
+			"revisionTime": "2017-11-06T21:33:07Z"
 		},
 		{
 			"path": "github.com/keybase/npipe",
