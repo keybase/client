@@ -51,19 +51,6 @@ const makeState: I.RecordFactory<_State> = I.Record({
   waitingForServer: false,
 })
 
-// Converts a string to the DeviceType enum, logging an error if it doesn't match
-function toDeviceType(s: string): DeviceType {
-  switch (s) {
-    case 'mobile':
-    case 'desktop':
-    case 'backup':
-      return s
-    default:
-      console.log('Unknown Device Type %s. Defaulting to `desktop`', s)
-      return 'desktop'
-  }
-}
-
 export type DeviceType = 'mobile' | 'desktop' | 'backup'
 export type Device = {
   name: string,
@@ -75,6 +62,19 @@ export type Device = {
   provisionedAt: ?RPCTypes.Time,
   revokedAt: ?RPCTypes.Time,
   lastUsed: ?RPCTypes.Time,
+}
+
+// Converts a string to the DeviceType enum, logging an error if it doesn't match
+function toDeviceType(s: string): DeviceType {
+  switch (s) {
+    case 'mobile':
+    case 'desktop':
+    case 'backup':
+      return s
+    default:
+      console.log('Unknown Device Type %s. Defaulting to `desktop`', s)
+      return 'desktop'
+  }
 }
 
 export {makeState, makeDeviceDetail, toDeviceType}

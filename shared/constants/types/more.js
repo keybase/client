@@ -1,7 +1,6 @@
 // @flow
 import {Component} from 'react' // eslint-disable-line
 import pickBy from 'lodash/pickBy'
-import * as RPCTypes from './flow-types'
 
 const ProvablePlatformsMap = {
   twitter: true,
