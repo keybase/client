@@ -18,6 +18,14 @@
         {
           "type": "int",
           "name": "maxLooseRefs"
+        },
+        {
+          "type": "int",
+          "name": "pruneMinLooseObjects"
+        },
+        {
+          "type": "Time",
+          "name": "pruneExpireTime"
         }
       ]
     }

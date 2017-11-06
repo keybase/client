@@ -7,8 +7,16 @@ protocol KBFSGit {
   import idl "favorite.avdl";
 
   record GcOptions {
+    // The most loose refs we will tolerate; if there are more loose
+    // refs, we should pack them.
     int maxLooseRefs;
-  }
+    // The minimum number of potentially-expired loose objects we need
+    // to start the pruning process.
+    int pruneMinLooseObjects;
+    // Any unreachable objects older than this time are subject to
+    // pruning.
+    Time pruneExpireTime;
+}
 
   /**
    * createRepo creates a bare empty repo on KBFS under the given name in the given TLF.

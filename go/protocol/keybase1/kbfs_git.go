@@ -9,12 +9,16 @@ import (
 )
 
 type GcOptions struct {
-	MaxLooseRefs int `codec:"maxLooseRefs" json:"maxLooseRefs"`
+	MaxLooseRefs         int  `codec:"maxLooseRefs" json:"maxLooseRefs"`
+	PruneMinLooseObjects int  `codec:"pruneMinLooseObjects" json:"pruneMinLooseObjects"`
+	PruneExpireTime      Time `codec:"pruneExpireTime" json:"pruneExpireTime"`
 }
 
 func (o GcOptions) DeepCopy() GcOptions {
 	return GcOptions{
-		MaxLooseRefs: o.MaxLooseRefs,
+		MaxLooseRefs:         o.MaxLooseRefs,
+		PruneMinLooseObjects: o.PruneMinLooseObjects,
+		PruneExpireTime:      o.PruneExpireTime.DeepCopy(),
 	}
 }
 

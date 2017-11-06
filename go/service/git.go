@@ -5,6 +5,7 @@ package service
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/keybase/client/go/git"
 	"github.com/keybase/client/go/libkb"
@@ -22,7 +23,9 @@ type GitHandler struct {
 var _ keybase1.GitInterface = (*GitHandler)(nil)
 
 const (
-	gitDefaultMaxLooseRefs = 50
+	gitDefaultMaxLooseRefs         = 50
+	gitDefaultPruneMinLooseObjects = 50
+	gitDefaultPruneExpireAge       = 14 * 24 * time.Hour
 )
 
 func NewGitHandler(xp rpc.Transporter, g *libkb.GlobalContext) *GitHandler {
@@ -304,9 +307,13 @@ func (h *GitHandler) GcTeamRepo(ctx context.Context, arg keybase1.GcTeamRepoArg)
 		FolderType: keybase1.FolderType_TEAM,
 		Private:    !public,
 	}
-	options := keybase1.GcOptions{}
+	options := keybase1.GcOptions{
+		PruneExpireTime: keybase1.ToTime(
+			time.Now().Add(-gitDefaultPruneExpireAge)),
+	}
 	if !arg.Force {
 		options.MaxLooseRefs = gitDefaultMaxLooseRefs
+		options.PruneMinLooseObjects = gitDefaultPruneMinLooseObjects
 	}
 	gcarg := keybase1.GcArg{
 		Folder:  folder,
