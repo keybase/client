@@ -168,7 +168,6 @@ function* onLoadAttachment({
   }
 
   // Set initial progress value
-  // $FlowIssue need updated redux-saga flow-typed
   yield Saga.put.resolve(Creators.downloadProgress(messageKey, loadPreview, 0))
 
   // Perform the download in a fork so that the next loadAttachment action can be handled.
