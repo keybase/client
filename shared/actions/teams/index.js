@@ -72,7 +72,7 @@ const _addPeopleToTeam = function*(action: Constants.AddPeopleToTeam) {
         name: teamname,
         email: '',
         username: id,
-        role: role && RpcTypes.TeamsTeamRole[role],
+        role: role && RpcTypes.teamsTeamRole[role],
         sendChatNotification: true,
       },
     })
@@ -91,7 +91,7 @@ const _inviteByEmail = function*(action: Constants.InviteToTeamByEmail) {
       param: {
         name: teamname,
         emails: invitees,
-        role: role && RpcTypes.TeamsTeamRole[role],
+        role: role && RpcTypes.teamsTeamRole[role],
       },
     })
   } finally {
@@ -110,7 +110,7 @@ const _addToTeam = function*(action: Constants.AddToTeam) {
         name,
         email,
         username,
-        role: role && RpcTypes.TeamsTeamRole[role],
+        role: role && RpcTypes.teamsTeamRole[role],
         sendChatNotification,
       },
     })
@@ -125,7 +125,7 @@ const _editMembership = function*(action: Constants.EditMembership) {
   yield put(replaceEntity(['teams', 'teamNameToLoading'], I.Map([[name, true]])))
   try {
     yield call(RpcTypes.teamsTeamEditMemberRpcPromise, {
-      param: {name, username, role: RpcTypes.TeamsTeamRole[role]},
+      param: {name, username, role: RpcTypes.teamsTeamRole[role]},
     })
   } finally {
     yield put((dispatch: Dispatch) => dispatch(Creators.getDetails(name))) // getDetails will unset loading
@@ -220,7 +220,7 @@ const _createNewTeamFromConversation = function*(
             param: {
               email: '',
               name,
-              role: username === me ? RpcTypes.TeamsTeamRole.admin : RpcTypes.TeamsTeamRole.writer,
+              role: username === me ? RpcTypes.teamsTeamRole.admin : RpcTypes.teamsTeamRole.writer,
               sendChatNotification: true,
               username,
             },
@@ -282,9 +282,9 @@ const _getDetails = function*(action: Constants.GetDetails): SagaGenerator<any, 
 
     const invitesMap = map(results.annotatedActiveInvites, invite =>
       Constants.makeInviteInfo({
-        email: invite.type.c === RpcTypes.TeamsTeamInviteCategory.email ? invite.name : '',
+        email: invite.type.c === RpcTypes.teamsTeamInviteCategory.email ? invite.name : '',
         role: Constants.teamRoleByEnum[invite.role],
-        username: invite.type.c === RpcTypes.TeamsTeamInviteCategory.sbs
+        username: invite.type.c === RpcTypes.teamsTeamInviteCategory.sbs
           ? `${invite.name}@${invite.type.sbs}`
           : '',
       })
@@ -310,10 +310,10 @@ const _getDetails = function*(action: Constants.GetDetails): SagaGenerator<any, 
 const _changeOpenTeamSetting = function*({
   payload: {teamname, convertToOpen, defaultRole},
 }: Constants.MakeTeamOpen) {
-  const param: RpcTypes.teamsTeamSetSettingsRpcParam = {
+  const param: RpcTypes.TeamsTeamSetSettingsRpcParam = {
     name: teamname,
     settings: {
-      joinAs: RpcTypes.TeamsTeamRole[defaultRole],
+      joinAs: RpcTypes.teamsTeamRole[defaultRole],
       open: convertToOpen,
     },
   }
@@ -328,9 +328,9 @@ const _getChannels = function*(action: Constants.GetChannels): SagaGenerator<any
     ChatTypes.localGetTLFConversationsLocalRpcPromise,
     {
       param: {
-        membersType: ChatTypes.CommonConversationMembersType.team,
+        membersType: ChatTypes.commonConversationMembersType.team,
         tlfName: teamname,
-        topicType: ChatTypes.CommonTopicType.chat,
+        topicType: ChatTypes.commonTopicType.chat,
       },
     }
   )
@@ -408,8 +408,8 @@ const _toggleChannelMembership = function*(
       param: {
         tlfName: teamname,
         topicName: channelname,
-        topicType: ChatTypes.CommonTopicType.chat,
-        visibility: RpcTypes.CommonTLFVisibility.private,
+        topicType: ChatTypes.commonTopicType.chat,
+        visibility: RpcTypes.commonTLFVisibility.private,
       },
     })
   }
@@ -422,11 +422,11 @@ function* _createChannel(action: Constants.CreateChannel) {
   const {payload: {channelname, description, teamname}} = action
   const result = yield call(ChatTypes.localNewConversationLocalRpcPromise, {
     param: {
-      identifyBehavior: RpcTypes.TlfKeysTLFIdentifyBehavior.chatGui,
-      membersType: ChatTypes.CommonConversationMembersType.team,
+      identifyBehavior: RpcTypes.tlfKeysTLFIdentifyBehavior.chatGui,
+      membersType: ChatTypes.commonConversationMembersType.team,
       tlfName: teamname,
-      tlfVisibility: RpcTypes.CommonTLFVisibility.private,
-      topicType: ChatTypes.CommonTopicType.chat,
+      tlfVisibility: RpcTypes.commonTLFVisibility.private,
+      topicType: ChatTypes.commonTopicType.chat,
       topicName: channelname,
     },
   })
@@ -449,7 +449,7 @@ function* _createChannel(action: Constants.CreateChannel) {
         tlfPublic: false,
         headline: description,
         clientPrev: null,
-        identifyBehavior: RpcTypes.TlfKeysTLFIdentifyBehavior.chatGui,
+        identifyBehavior: RpcTypes.tlfKeysTLFIdentifyBehavior.chatGui,
       },
     })
   }

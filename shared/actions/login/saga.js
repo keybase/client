@@ -20,14 +20,14 @@ import {isMobile} from '../../constants/platform'
 import {load as loadDevices, setWaiting as setDevicesWaiting, devicesTabLocation} from '../devices'
 import {pathSelector, navigateTo, navigateAppend} from '../route-tree'
 import {setDeviceNameError} from '../signup'
-import {toDeviceType, type DeviceType} from '../../constants/types/more'
+import {toDeviceType, type DeviceType} from '../../constants/devices'
 import {type Dispatch, type AsyncAction} from '../../constants/types/flux'
 import {type InitialState} from '../../constants/config'
 import {type TypedState} from '../../constants/reducer'
 
 const deviceType: DeviceType = isMobile ? 'mobile' : 'desktop'
 const InputCancelError = {
-  code: Types.ConstantsStatusCode.scinputcanceled,
+  code: Types.constantsStatusCode.scinputcanceled,
   desc: 'Cancel Login',
 }
 
@@ -179,7 +179,7 @@ function* cancelLogin() {
 }
 
 function* selectKeySaga() {
-  return EngineRpc.rpcError(new RPCError('Not supported in GUI', Types.ConstantsStatusCode.sckeynotfound))
+  return EngineRpc.rpcError(new RPCError('Not supported in GUI', Types.constantsStatusCode.sckeynotfound))
 }
 
 const displayPrimaryPaperKeySaga = onBackSaga =>
@@ -367,7 +367,7 @@ const chooseGPGMethodSaga = onBackSaga =>
       const exportKey = onSubmit.payload.exportKey
 
       return EngineRpc.rpcResult(
-        exportKey ? Types.ProvisionUiGPGMethod.gpgImport : Types.ProvisionUiGPGMethod.gpgSign
+        exportKey ? Types.provisionUiGPGMethod.gpgImport : Types.provisionUiGPGMethod.gpgSign
       )
     }
   }
@@ -375,7 +375,7 @@ const chooseGPGMethodSaga = onBackSaga =>
 const defaultGetPassphraseSaga = onBackSaga =>
   function*({pinentry: {type, prompt, username, retryLabel}}) {
     switch (type) {
-      case Types.PassphraseCommonPassphraseType.paperKey:
+      case Types.passphraseCommonPassphraseType.paperKey:
         const destination = {
           props: {
             error: retryLabel,
@@ -390,7 +390,7 @@ const defaultGetPassphraseSaga = onBackSaga =>
           yield Saga.put(navigateAppend([destination], [loginTab, 'login']))
         }
         break
-      case Types.PassphraseCommonPassphraseType.passPhrase:
+      case Types.passphraseCommonPassphraseType.passPhrase:
         yield Saga.put(
           navigateAppend(
             [
@@ -409,7 +409,7 @@ const defaultGetPassphraseSaga = onBackSaga =>
         break
       default:
         return EngineRpc.rpcError(
-          new RPCError('Unknown getPassphrase type', Types.ConstantsStatusCode.scnotfound)
+          new RPCError('Unknown getPassphrase type', Types.constantsStatusCode.scnotfound)
         )
     }
 
@@ -461,7 +461,7 @@ function* loginFlowSaga(usernameOrEmail, passphrase) {
     param: {
       deviceType,
       usernameOrEmail,
-      clientType: Types.CommonClientType.guiMain,
+      clientType: Types.commonClientType.guiMain,
     },
   })
 
@@ -562,8 +562,8 @@ function* cameraBrokenModeSaga({payload: {broken}}) {
 }
 
 const _deviceTypeMap: {[key: string]: any} = {
-  [Constants.codePageDeviceRoleNewComputer]: Types.CommonDeviceType.desktop,
-  [Constants.codePageDeviceRoleNewPhone]: Types.CommonDeviceType.mobile,
+  [Constants.codePageDeviceRoleNewComputer]: Types.commonDeviceType.desktop,
+  [Constants.codePageDeviceRoleNewPhone]: Types.commonDeviceType.mobile,
 }
 
 function secretExchangedSaga() {

@@ -2,7 +2,7 @@
 // TODO(mm) Everytype in this file should be pure...
 import type {UserList} from '../common-adapters/usernames'
 import type {Props as FileProps} from '../folders/files/file/render'
-import type {DeviceType} from '../constants/types/more'
+import type {DeviceType} from '../constants/devices'
 import type {Folder as FolderRPC} from '../constants/types/flow-types'
 
 export type FileSection = {

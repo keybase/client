@@ -1,6 +1,6 @@
 // @flow
 import ConfirmOrPending from './confirm-or-pending'
-import {ProveCommonProofStatus} from '../constants/types/flow-types'
+import {proveCommonProofStatus} from '../constants/types/flow-types'
 import {cancelAddProof, backToProfile} from '../actions/profile'
 import {globalColors} from '../styles'
 import {connect} from 'react-redux'
@@ -8,12 +8,12 @@ import {type TypedState} from '../constants/reducer'
 
 const mapStateToProps = (state: TypedState) => {
   const profile = state.profile
-  const isGood = profile.proofFound && profile.proofStatus === ProveCommonProofStatus.ok
+  const isGood = profile.proofFound && profile.proofStatus === proveCommonProofStatus.ok
   const isPending =
     !isGood &&
     !profile.proofFound &&
     !!profile.proofStatus &&
-    profile.proofStatus <= ProveCommonProofStatus.baseHardError
+    profile.proofStatus <= proveCommonProofStatus.baseHardError
 
   if (!profile.platform) {
     throw new Error('No platform passed to confirm or pending container')

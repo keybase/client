@@ -340,7 +340,7 @@ function signup(skipMail: boolean, onDisplayPaperKey?: () => void) {
     const p: Promise<*> = new Promise((resolve, reject) => {
       const {email, username, inviteCode, passphrase, deviceName} = getState().signup
       paperKeyResponse = null
-      const deviceType = isMobile ? RPCTypes.CommonDeviceType.mobile : RPCTypes.CommonDeviceType.desktop
+      const deviceType = isMobile ? RPCTypes.commonDeviceType.mobile : RPCTypes.commonDeviceType.desktop
 
       if (email && username && inviteCode && passphrase && deviceName) {
         RPCTypes.signupSignupRpcPromise({

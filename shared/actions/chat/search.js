@@ -75,8 +75,8 @@ function* registerSagas(): Saga.SagaGenerator<any, any> {
     SearchConstants.isUserInputItemsUpdated('chatSearch'),
     _updateTempSearchConversation
   )
-  yield Saga.safeTakeEveryPure('chat:exitSearch', _exitSearch)
-  yield Saga.safeTakeEvery('chat:newChat', _newChat)
+  yield Saga.safeTakeEveryPure(ChatGen.exitSearch, _exitSearch)
+  yield Saga.safeTakeEvery(ChatGen.newChat, _newChat)
 }
 
 export {registerSagas}

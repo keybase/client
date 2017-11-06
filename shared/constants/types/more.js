@@ -38,42 +38,7 @@ export type ProvablePlatformsType = $Keys<typeof ProvablePlatformsMap>
 export const PlatformsExpanded = Object.keys(pickBy(PlatformsExpandedMap))
 export type PlatformsExpandedType = $Keys<typeof PlatformsExpandedMap>
 
-export type DeviceType = 'mobile' | 'desktop' | 'backup'
 export type Exact<X> = $Shape<X> & X
-
-export type Device = {
-  name: string,
-  deviceID: RPCTypes.DeviceID,
-  type: DeviceType,
-  created: RPCTypes.Time,
-  currentDevice: boolean,
-  provisioner: ?RPCTypes.Device,
-  provisionedAt: ?RPCTypes.Time,
-  revokedAt: ?RPCTypes.Time,
-  lastUsed: ?RPCTypes.Time,
-}
-
-// Converts a string to the DeviceType enum, logging an error if it doesn't match
-export function toDeviceType(s: string): DeviceType {
-  switch (s) {
-    case 'mobile':
-    case 'desktop':
-    case 'backup':
-      return s
-    default:
-      console.log('Unknown Device Type %s. Defaulting to `desktop`', s)
-      return 'desktop'
-  }
-}
-
-// Try to unwrap the maybe, print error if fails
-// $FlowIssue
-export function unsafeUnwrap<T>(t: ?T): T {
-  if (t == null) {
-    console.error('Got null, expected non null')
-  }
-  return t
-}
 
 // eslint-disable-next-line
 type _ReturnValue<A, X, Fn: (...args: A) => X> = X

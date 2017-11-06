@@ -11,7 +11,7 @@ import {
   apiserverGetWithSessionRpcPromise,
   favoriteFavoriteAddRpcPromise,
   favoriteFavoriteIgnoreRpcPromise,
-  FavoriteFolderType,
+  favoriteFolderType,
   NotifyFSRequestFSSyncStatusRequestRpcPromise,
 } from '../constants/types/flow-types'
 import {badgeApp} from './notifications'
@@ -31,16 +31,11 @@ import type {
   FavoriteSwitchTab,
   FavoriteToggleIgnored,
   MarkTLFCreated,
-  SetupKBFSChangedHandler,
 } from '../constants/favorite'
 import type {FolderRPCWithMeta} from '../constants/folders'
 import type {SagaGenerator} from '../constants/types/saga'
 
 const {folderFromFolderRPCWithMeta, folderRPCFromPath} = Constants
-
-function setupKBFSChangedHandler(): SetupKBFSChangedHandler {
-  return {type: Constants.setupKBFSChangedHandler, payload: undefined}
-}
 
 function favoriteSwitchTab(showingPrivate: boolean): FavoriteSwitchTab {
   return {type: Constants.favoriteSwitchTab, payload: {showingPrivate}, error: false}
@@ -168,7 +163,7 @@ function _getFavoritesRPCToFolders(
   }
 
   // kill team folders for now
-  json.favorites = json.favorites.filter(f => f.folderType !== FavoriteFolderType.team)
+  json.favorites = json.favorites.filter(f => f.folderType !== favoriteFolderType.team)
 
   const myKID = findKey(json.users, name => name === username)
 
@@ -192,7 +187,7 @@ function _getFavoritesRPCToFolders(
         created: false,
         waitingForParticipantUnlock: [],
         youCanUnlock: [],
-        folderType: isPrivate ? FavoriteFolderType.private : FavoriteFolderType.public,
+        folderType: isPrivate ? favoriteFolderType.private : favoriteFolderType.public,
       }
 
       if (idx !== -1) {
@@ -343,14 +338,6 @@ function* favoriteSaga(): SagaGenerator<any, any> {
   yield safeTakeEvery(Constants.setupKBFSChangedHandler, _setupKBFSChangedHandler)
 }
 
-export {
-  favoriteFolder,
-  favoriteList,
-  ignoreFolder,
-  markTLFCreated,
-  setupKBFSChangedHandler,
-  favoriteSwitchTab,
-  toggleShowIgnored,
-}
+export {favoriteFolder, favoriteList, ignoreFolder, markTLFCreated, favoriteSwitchTab, toggleShowIgnored}
 
 export default favoriteSaga

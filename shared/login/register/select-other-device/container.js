@@ -2,7 +2,7 @@
 import * as LoginGen from '../../../actions/login-gen'
 import SelectOtherDevice from '.'
 import {connect, type TypedState} from '../../../util/container'
-import {type Device} from '../../../constants/types/more'
+import {type Device} from '../../../constants/devices'
 import {type RouteProps} from '../../../route-tree/render-route'
 
 type OwnProps = RouteProps<
