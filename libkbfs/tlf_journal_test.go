@@ -173,7 +173,7 @@ func (c testTLFJournalConfig) makeMD(
 }
 
 func (c testTLFJournalConfig) checkMD(rmds *RootMetadataSigned,
-	extra ExtraMetadata, expectedRevision kbfsmd.Revision,
+	extra kbfsmd.ExtraMetadata, expectedRevision kbfsmd.Revision,
 	expectedPrevRoot kbfsmd.ID, expectedMergeStatus MergeStatus,
 	expectedBranchID kbfsmd.BranchID) {
 	verifyingKey := c.crypto.SigningKeySigner.Key.GetVerifyingKey()
@@ -770,7 +770,7 @@ type hangingMDServer struct {
 }
 
 func (md hangingMDServer) Put(ctx context.Context, rmds *RootMetadataSigned,
-	_ ExtraMetadata, _ *keybase1.LockContext, _ keybase1.MDPriority) error {
+	_ kbfsmd.ExtraMetadata, _ *keybase1.LockContext, _ keybase1.MDPriority) error {
 	close(md.onPutCh)
 	// Hang until the context is cancelled.
 	<-ctx.Done()
@@ -848,7 +848,7 @@ func testTLFJournalBlockOpWhileBusy(t *testing.T, ver MetadataVer) {
 
 type rmdsWithExtra struct {
 	rmds  *RootMetadataSigned
-	extra ExtraMetadata
+	extra kbfsmd.ExtraMetadata
 }
 
 type shimMDServer struct {
@@ -868,7 +868,7 @@ func (s *shimMDServer) GetRange(
 }
 
 func (s *shimMDServer) Put(ctx context.Context, rmds *RootMetadataSigned,
-	extra ExtraMetadata, _ *keybase1.LockContext, _ keybase1.MDPriority) error {
+	extra kbfsmd.ExtraMetadata, _ *keybase1.LockContext, _ keybase1.MDPriority) error {
 	if s.nextErr != nil {
 		err := s.nextErr
 		s.nextErr = nil
@@ -1046,7 +1046,7 @@ type orderedMDServer struct {
 }
 
 func (s *orderedMDServer) Put(
-	ctx context.Context, rmds *RootMetadataSigned, _ ExtraMetadata,
+	ctx context.Context, rmds *RootMetadataSigned, _ kbfsmd.ExtraMetadata,
 	_ *keybase1.LockContext, _ keybase1.MDPriority) error {
 	s.lock.Lock()
 	defer s.lock.Unlock()

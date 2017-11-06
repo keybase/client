@@ -210,7 +210,7 @@ func (e everyoneOnEveryTeamChecker) IsTeamReader(
 // ImmutableRootMetadata. After this function is called, rmds
 // shouldn't be used.
 func (md *MDOpsStandard) processMetadata(ctx context.Context,
-	handle *TlfHandle, rmds *RootMetadataSigned, extra ExtraMetadata,
+	handle *TlfHandle, rmds *RootMetadataSigned, extra kbfsmd.ExtraMetadata,
 	getRangeLock *sync.Mutex) (ImmutableRootMetadata, error) {
 	// First, verify validity and signatures. Until KBFS-2229 is
 	// complete, KBFS doesn't check for team membership on MDs that
@@ -380,7 +380,7 @@ func (md *MDOpsStandard) GetForHandle(ctx context.Context, handle *TlfHandle,
 
 func (md *MDOpsStandard) processMetadataWithID(ctx context.Context,
 	id tlf.ID, bid kbfsmd.BranchID, handle *TlfHandle, rmds *RootMetadataSigned,
-	extra ExtraMetadata, getRangeLock *sync.Mutex) (ImmutableRootMetadata, error) {
+	extra kbfsmd.ExtraMetadata, getRangeLock *sync.Mutex) (ImmutableRootMetadata, error) {
 	// Make sure the signed-over ID matches
 	if id != rmds.MD.TlfID() {
 		return ImmutableRootMetadata{}, MDMismatchError{
@@ -700,7 +700,7 @@ func (md *MDOpsStandard) GetLatestHandleForTLF(ctx context.Context, id tlf.ID) (
 }
 
 func (md *MDOpsStandard) getExtraMD(ctx context.Context, brmd BareRootMetadata) (
-	extra ExtraMetadata, err error) {
+	extra kbfsmd.ExtraMetadata, err error) {
 	wkbID, rkbID := brmd.GetTLFWriterKeyBundleID(), brmd.GetTLFReaderKeyBundleID()
 	if (wkbID == TLFWriterKeyBundleID{}) || (rkbID == TLFReaderKeyBundleID{}) {
 		// Pre-v3 metadata embed key bundles and as such won't set any IDs.

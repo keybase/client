@@ -30,7 +30,7 @@ func mdDumpGetDeviceString(k kbfscrypto.CryptPublicKey, ui libkbfs.UserInfo) (
 
 func mdDumpGetReplacements(ctx context.Context, codec kbfscodec.Codec,
 	service libkbfs.KeybaseService, brmd libkbfs.BareRootMetadata,
-	extra libkbfs.ExtraMetadata) (map[string]string, error) {
+	extra kbfsmd.ExtraMetadata) (map[string]string, error) {
 	writers, readers, err := brmd.GetUserDevicePublicKeys(extra)
 	if err != nil {
 		return nil, err

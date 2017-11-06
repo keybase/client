@@ -295,7 +295,7 @@ func (s *mdServerTlfStorage) getRangeReadLocked(
 }
 
 func (s *mdServerTlfStorage) putExtraMetadataLocked(rmds *RootMetadataSigned,
-	extra ExtraMetadata) error {
+	extra kbfsmd.ExtraMetadata) error {
 	if extra == nil {
 		return nil
 	}
@@ -400,7 +400,7 @@ func (s *mdServerTlfStorage) getRange(
 
 func (s *mdServerTlfStorage) put(ctx context.Context,
 	currentUID keybase1.UID, currentVerifyingKey kbfscrypto.VerifyingKey,
-	rmds *RootMetadataSigned, extra ExtraMetadata) (
+	rmds *RootMetadataSigned, extra kbfsmd.ExtraMetadata) (
 	recordBranchID bool, err error) {
 	s.lock.Lock()
 	defer s.lock.Unlock()

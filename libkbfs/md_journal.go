@@ -20,7 +20,7 @@ import (
 )
 
 // ImmutableBareRootMetadata is a thin wrapper around a
-// BareRootMetadata and an ExtraMetadata that takes ownership of it
+// BareRootMetadata and a kbfsmd.ExtraMetadata that takes ownership of it
 // and does not ever modify it again. Thus, its MdID can be calculated
 // and stored along with a local timestamp. ImmutableBareRootMetadata
 // objects can be assumed to never alias a (modifiable)
@@ -35,7 +35,7 @@ import (
 // places.
 type ImmutableBareRootMetadata struct {
 	BareRootMetadata
-	extra          ExtraMetadata
+	extra          kbfsmd.ExtraMetadata
 	mdID           kbfsmd.ID
 	localTimestamp time.Time
 }
@@ -43,7 +43,7 @@ type ImmutableBareRootMetadata struct {
 // MakeImmutableBareRootMetadata makes a new ImmutableBareRootMetadata
 // from the given BareRootMetadata and its corresponding MdID.
 func MakeImmutableBareRootMetadata(
-	rmd BareRootMetadata, extra ExtraMetadata, mdID kbfsmd.ID,
+	rmd BareRootMetadata, extra kbfsmd.ExtraMetadata, mdID kbfsmd.ID,
 	localTimestamp time.Time) ImmutableBareRootMetadata {
 	if mdID == (kbfsmd.ID{}) {
 		panic("zero mdID passed to MakeImmutableBareRootMetadata")
@@ -321,7 +321,7 @@ func (j mdJournal) putMDInfo(
 // IDs, if any, after checking them.
 func (j mdJournal) getExtraMetadata(
 	wkbID TLFWriterKeyBundleID, rkbID TLFReaderKeyBundleID,
-	wkbNew, rkbNew bool) (ExtraMetadata, error) {
+	wkbNew, rkbNew bool) (kbfsmd.ExtraMetadata, error) {
 	if (wkbID == TLFWriterKeyBundleID{}) !=
 		(rkbID == TLFReaderKeyBundleID{}) {
 		return nil, errors.Errorf(
@@ -359,7 +359,7 @@ func (j mdJournal) getExtraMetadata(
 	return kbfsmd.NewExtraMetadataV3(wkb, rkb, wkbNew, rkbNew), nil
 }
 
-func (j mdJournal) putExtraMetadata(rmd BareRootMetadata, extra ExtraMetadata) (
+func (j mdJournal) putExtraMetadata(rmd BareRootMetadata, extra kbfsmd.ExtraMetadata) (
 	wkbNew, rkbNew bool, err error) {
 	wkbID := rmd.GetTLFWriterKeyBundleID()
 	rkbID := rmd.GetTLFReaderKeyBundleID()
@@ -427,7 +427,7 @@ func (j mdJournal) putExtraMetadata(rmd BareRootMetadata, extra ExtraMetadata) (
 // RootMetadataSigned object.
 func (j mdJournal) getMDAndExtra(ctx context.Context, entry mdIDJournalEntry,
 	verifyBranchID bool) (
-	MutableBareRootMetadata, ExtraMetadata, time.Time, error) {
+	MutableBareRootMetadata, kbfsmd.ExtraMetadata, time.Time, error) {
 	// Read info.
 
 	timestamp, version, err := j.getMDInfo(entry.ID)
@@ -551,7 +551,7 @@ func (j *mdJournal) removeMD(id kbfsmd.ID) error {
 // can be put in a RootMetadataSigned object.
 func (j mdJournal) getEarliestWithExtra(
 	ctx context.Context, verifyBranchID bool) (
-	kbfsmd.ID, MutableBareRootMetadata, ExtraMetadata, time.Time, error) {
+	kbfsmd.ID, MutableBareRootMetadata, kbfsmd.ExtraMetadata, time.Time, error) {
 	entry, exists, err := j.j.getEarliestEntry()
 	if err != nil {
 		return kbfsmd.ID{}, nil, nil, time.Time{}, err
@@ -826,7 +826,7 @@ func (j *mdJournal) convertToBranch(
 // the returned *RootMetadataSigned will be nil.
 func (j mdJournal) getNextEntryToFlush(
 	ctx context.Context, end kbfsmd.Revision, signer kbfscrypto.Signer) (
-	kbfsmd.ID, *RootMetadataSigned, ExtraMetadata, error) {
+	kbfsmd.ID, *RootMetadataSigned, kbfsmd.ExtraMetadata, error) {
 	mdID, rmd, extra, timestamp, err := j.getEarliestWithExtra(ctx, true)
 	if err != nil {
 		return kbfsmd.ID{}, nil, nil, err

@@ -4079,7 +4079,7 @@ func (mr *MockMDServerMockRecorder) GetRange(ctx, id, bid, mStatus, start, stop,
 }
 
 // Put mocks base method
-func (m *MockMDServer) Put(ctx context.Context, rmds *RootMetadataSigned, extra ExtraMetadata, lockContext *keybase1.LockContext, priority keybase1.MDPriority) error {
+func (m *MockMDServer) Put(ctx context.Context, rmds *RootMetadataSigned, extra kbfsmd.ExtraMetadata, lockContext *keybase1.LockContext, priority keybase1.MDPriority) error {
 	ret := m.ctrl.Call(m, "Put", ctx, rmds, extra, lockContext, priority)
 	ret0, _ := ret[0].(error)
 	return ret0
@@ -4353,7 +4353,7 @@ func (mr *MockmdServerLocalMockRecorder) GetRange(ctx, id, bid, mStatus, start, 
 }
 
 // Put mocks base method
-func (m *MockmdServerLocal) Put(ctx context.Context, rmds *RootMetadataSigned, extra ExtraMetadata, lockContext *keybase1.LockContext, priority keybase1.MDPriority) error {
+func (m *MockmdServerLocal) Put(ctx context.Context, rmds *RootMetadataSigned, extra kbfsmd.ExtraMetadata, lockContext *keybase1.LockContext, priority keybase1.MDPriority) error {
 	ret := m.ctrl.Call(m, "Put", ctx, rmds, extra, lockContext, priority)
 	ret0, _ := ret[0].(error)
 	return ret0

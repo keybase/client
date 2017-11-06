@@ -23,7 +23,7 @@ import (
 // true is returned.
 func isReader(ctx context.Context, teamMemChecker TeamMembershipChecker,
 	currentUID keybase1.UID, mergedMasterHead BareRootMetadata,
-	extra ExtraMetadata) (bool, error) {
+	extra kbfsmd.ExtraMetadata) (bool, error) {
 	h, err := mergedMasterHead.MakeBareTlfHandle(extra)
 	if err != nil {
 		return false, err
@@ -47,7 +47,7 @@ func isReader(ctx context.Context, teamMemChecker TeamMembershipChecker,
 func isWriterOrValidRekey(ctx context.Context,
 	teamMemChecker TeamMembershipChecker, codec kbfscodec.Codec,
 	currentUID keybase1.UID, verifyingKey kbfscrypto.VerifyingKey,
-	mergedMasterHead, newMd BareRootMetadata, prevExtra, extra ExtraMetadata) (
+	mergedMasterHead, newMd BareRootMetadata, prevExtra, extra kbfsmd.ExtraMetadata) (
 	bool, error) {
 	h, err := mergedMasterHead.MakeBareTlfHandle(prevExtra)
 	if err != nil {
@@ -212,7 +212,7 @@ func (m *mdServerLocalUpdateManager) cancel(id tlf.ID, server mdServerLocal) {
 type keyBundleGetter func(tlf.ID, TLFWriterKeyBundleID, TLFReaderKeyBundleID) (
 	*TLFWriterKeyBundleV3, *TLFReaderKeyBundleV3, error)
 
-func getExtraMetadata(kbg keyBundleGetter, brmd BareRootMetadata) (ExtraMetadata, error) {
+func getExtraMetadata(kbg keyBundleGetter, brmd BareRootMetadata) (kbfsmd.ExtraMetadata, error) {
 	tlfID := brmd.TlfID()
 	wkbID := brmd.GetTLFWriterKeyBundleID()
 	rkbID := brmd.GetTLFReaderKeyBundleID()

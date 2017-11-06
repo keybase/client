@@ -1158,7 +1158,7 @@ func (j *tlfJournal) flushBlockEntries(
 }
 
 func (j *tlfJournal) getNextMDEntryToFlush(ctx context.Context,
-	end kbfsmd.Revision) (kbfsmd.ID, *RootMetadataSigned, ExtraMetadata, error) {
+	end kbfsmd.Revision) (kbfsmd.ID, *RootMetadataSigned, kbfsmd.ExtraMetadata, error) {
 	j.journalLock.RLock()
 	defer j.journalLock.RUnlock()
 	if err := j.checkEnabledLocked(); err != nil {

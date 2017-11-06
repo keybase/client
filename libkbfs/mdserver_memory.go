@@ -456,7 +456,7 @@ func (md *MDServerMemory) GetRange(ctx context.Context, id tlf.ID,
 
 // Put implements the MDServer interface for MDServerMemory.
 func (md *MDServerMemory) Put(ctx context.Context, rmds *RootMetadataSigned,
-	extra ExtraMetadata, lc *keybase1.LockContext, _ keybase1.MDPriority) error {
+	extra kbfsmd.ExtraMetadata, lc *keybase1.LockContext, _ keybase1.MDPriority) error {
 	if err := checkContext(ctx); err != nil {
 		return err
 	}
@@ -959,7 +959,7 @@ func (md *MDServerMemory) OffsetFromServerTime() (time.Duration, bool) {
 }
 
 func (md *MDServerMemory) putExtraMetadataLocked(rmds *RootMetadataSigned,
-	extra ExtraMetadata) error {
+	extra kbfsmd.ExtraMetadata) error {
 	if extra == nil {
 		return nil
 	}

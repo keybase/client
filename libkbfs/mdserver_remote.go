@@ -613,7 +613,7 @@ func (md *MDServerRemote) GetRange(ctx context.Context, id tlf.ID,
 
 // Put implements the MDServer interface for MDServerRemote.
 func (md *MDServerRemote) Put(ctx context.Context, rmds *RootMetadataSigned,
-	extra ExtraMetadata, lockContext *keybase1.LockContext,
+	extra kbfsmd.ExtraMetadata, lockContext *keybase1.LockContext,
 	priority keybase1.MDPriority) (err error) {
 	ctx = rpc.WithFireNow(ctx)
 	md.log.LazyTrace(ctx, "MDServer: Put %s %d", rmds.MD.TlfID(), rmds.MD.RevisionNumber())

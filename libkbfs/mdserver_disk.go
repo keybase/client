@@ -399,7 +399,7 @@ func (md *MDServerDisk) GetRange(ctx context.Context, id tlf.ID,
 
 // Put implements the MDServer interface for MDServerDisk.
 func (md *MDServerDisk) Put(ctx context.Context, rmds *RootMetadataSigned,
-	extra ExtraMetadata, _ *keybase1.LockContext, _ keybase1.MDPriority) error {
+	extra kbfsmd.ExtraMetadata, _ *keybase1.LockContext, _ keybase1.MDPriority) error {
 	if err := checkContext(ctx); err != nil {
 		return err
 	}

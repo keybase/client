@@ -1330,7 +1330,7 @@ type MDServer interface {
 	// the time of the put, and optionally (if specified in lockContext)
 	// releases the lock on the lock ID if the put is successful. Releasing the
 	// lock in mdserver is idempotent.
-	Put(ctx context.Context, rmds *RootMetadataSigned, extra ExtraMetadata,
+	Put(ctx context.Context, rmds *RootMetadataSigned, extra kbfsmd.ExtraMetadata,
 		lockContext *keybase1.LockContext, priority keybase1.MDPriority) error
 
 	// Lock ensures lockID for tlfID is taken by this session, i.e.,

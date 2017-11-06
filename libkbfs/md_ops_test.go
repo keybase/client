@@ -94,7 +94,7 @@ func addFakeRMDData(t *testing.T,
 }
 
 func newRMDS(t *testing.T, config Config, h *TlfHandle) (
-	*RootMetadataSigned, ExtraMetadata) {
+	*RootMetadataSigned, kbfsmd.ExtraMetadata) {
 	id := tlf.FakeID(1, h.Type())
 
 	rmd, err := makeInitialRootMetadata(config.MetadataVersion(), id, h)
@@ -224,7 +224,7 @@ func testMDOpsGetForHandlePublicSuccess(t *testing.T, ver MetadataVer) {
 	require.Equal(t, expectedMD, rmd2.bareMd)
 }
 
-func expectGetKeyBundles(ctx context.Context, config *ConfigMock, extra ExtraMetadata) {
+func expectGetKeyBundles(ctx context.Context, config *ConfigMock, extra kbfsmd.ExtraMetadata) {
 	if extraV3, ok := extra.(*kbfsmd.ExtraMetadataV3); ok {
 		wkb := extraV3.GetWriterKeyBundle()
 		rkb := extraV3.GetReaderKeyBundle()
@@ -529,7 +529,7 @@ func testMDOpsGetFailIDCheck(t *testing.T, ver MetadataVer) {
 
 func makeRMDSRange(t *testing.T, config Config,
 	start kbfsmd.Revision, count int, prevID kbfsmd.ID) (
-	rmdses []*RootMetadataSigned, extras []ExtraMetadata) {
+	rmdses []*RootMetadataSigned, extras []kbfsmd.ExtraMetadata) {
 	id := tlf.FakeID(1, tlf.Private)
 	h := parseTlfHandleOrBust(t, config, "alice,bob", tlf.Private)
 	for i := 0; i < count; i++ {
@@ -594,7 +594,7 @@ func (mds *keyBundleMDServer) putRKB(
 }
 
 func (mds *keyBundleMDServer) processRMDSes(
-	rmds *RootMetadataSigned, extra ExtraMetadata) {
+	rmds *RootMetadataSigned, extra kbfsmd.ExtraMetadata) {
 	if extraV3, ok := extra.(*kbfsmd.ExtraMetadataV3); ok {
 		mds.putWKB(rmds.MD.GetTLFWriterKeyBundleID(), extraV3.GetWriterKeyBundle())
 		mds.putRKB(rmds.MD.GetTLFReaderKeyBundleID(), extraV3.GetReaderKeyBundle())
@@ -710,7 +710,7 @@ type fakeMDServerPut struct {
 }
 
 func (s *fakeMDServerPut) Put(ctx context.Context, rmds *RootMetadataSigned,
-	_ ExtraMetadata, _ *keybase1.LockContext, _ keybase1.MDPriority) error {
+	_ kbfsmd.ExtraMetadata, _ *keybase1.LockContext, _ keybase1.MDPriority) error {
 	s.lastRmdsLock.Lock()
 	defer s.lastRmdsLock.Unlock()
 	s.lastRmds = rmds

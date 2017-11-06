@@ -79,9 +79,9 @@ func (fc failingCodec) Encode(interface{}) ([]byte, error) {
 }
 
 func crMakeFakeRMD(rev kbfsmd.Revision, bid kbfsmd.BranchID) ImmutableRootMetadata {
-	var writerFlags WriterFlags
+	var writerFlags kbfsmd.WriterFlags
 	if bid != kbfsmd.NullBranchID {
-		writerFlags = MetadataFlagUnmerged
+		writerFlags = kbfsmd.MetadataFlagUnmerged
 	}
 	key := kbfscrypto.MakeFakeVerifyingKeyOrBust("fake key")
 	return MakeImmutableRootMetadata(&RootMetadata{
