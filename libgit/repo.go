@@ -23,6 +23,9 @@ import (
 	"github.com/keybase/kbfs/libkbfs"
 	"github.com/pkg/errors"
 	billy "gopkg.in/src-d/go-billy.v3"
+	gogit "gopkg.in/src-d/go-git.v4"
+	"gopkg.in/src-d/go-git.v4/plumbing"
+	"gopkg.in/src-d/go-git.v4/plumbing/storer"
 	"gopkg.in/src-d/go-git.v4/storage"
 )
 
@@ -779,19 +782,45 @@ type GCOptions struct {
 	// The most loose refs we will tolerate; if there are more loose
 	// refs, we should pack them.
 	MaxLooseRefs int
-	// TODO: object min age for pruning, and object re-packing thresholds.
+	// The minimum number of potentially-expired loose objects we need
+	// to start the pruning process.
+	PruneMinLooseObjects int
+	// Any unreachable objects older than this time are subject to
+	// pruning.
+	PruneExpireTime time.Time
+	// TODO: object re-packing thresholds.
 }
 
-func needsGC(storer storage.Storer, options GCOptions) (
-	doPackRefs bool, numLooseRefs int, err error) {
-	numLooseRefs, err = storer.CountLooseRefs()
+func needsGC(storage storage.Storer, options GCOptions) (
+	doPackRefs bool, numLooseRefs int, doPruneLoose bool, err error) {
+	numLooseRefs, err = storage.CountLooseRefs()
 	if err != nil {
-		return false, 0, err
+		return false, 0, false, err
 	}
 
 	doPackRefs = numLooseRefs > options.MaxLooseRefs
-	// TODO: check object pruning and object re-packing thresholds.
-	return doPackRefs, numLooseRefs, nil
+
+	// Count the number of loose objects that are older than the
+	// expire time, to see if pruning is needed.
+	numLooseMaybePrune := 0
+	err = storage.ForEachObjectHash(func(h plumbing.Hash) error {
+		t, err := storage.LooseObjectTime(h)
+		if err != nil {
+			return err
+		}
+		if t.Before(options.PruneExpireTime) {
+			numLooseMaybePrune++
+			if numLooseMaybePrune >= options.PruneMinLooseObjects {
+				doPruneLoose = true
+				return storer.ErrStop
+			}
+		}
+		return nil
+	})
+
+	// TODO: check object re-packing thresholds.
+
+	return doPackRefs, numLooseRefs, doPruneLoose, nil
 }
 
 // GCRepo runs garbage collection on the specified repo, if it exceeds
@@ -814,16 +843,16 @@ func GCRepo(
 		return err
 	}
 
-	storer, err := NewGitConfigWithoutRemotesStorer(fs)
+	storage, err := NewGitConfigWithoutRemotesStorer(fs)
 	if err != nil {
 		return err
 	}
 
-	doPackRefs, _, err := needsGC(storer, options)
+	doPackRefs, _, doPruneLoose, err := needsGC(storage, options)
 	if err != nil {
 		return err
 	}
-	if !doPackRefs {
+	if !doPackRefs && !doPruneLoose {
 		log.CDebugf(ctx, "Skipping GC")
 		return nil
 	}
@@ -846,17 +875,37 @@ func GCRepo(
 
 	// Check the GC thresholds again since they might have changed
 	// while getting the lock.
-	doPackRefs, numLooseRefs, err := needsGC(storer, options)
+	doPackRefs, numLooseRefs, doPruneLoose, err := needsGC(storage, options)
 	if err != nil {
 		return err
 	}
-	if !doPackRefs {
+	if !doPackRefs && !doPruneLoose {
 		log.CDebugf(ctx, "GC no longer needed")
 		return nil
 	}
 
-	// For now just pack refs.  TODO: add object pruning and object
-	// re-packing.
-	log.CDebugf(ctx, "Packing %s loose refs", numLooseRefs)
-	return storer.PackRefs()
+	if doPackRefs {
+		log.CDebugf(ctx, "Packing %s loose refs", numLooseRefs)
+		err = storage.PackRefs()
+		if err != nil {
+			return err
+		}
+	}
+
+	if doPruneLoose {
+		repo, err := gogit.Open(storage, nil)
+		if err != nil {
+			return err
+		}
+		err = repo.Prune(gogit.PruneOptions{
+			OnlyObjectsOlderThan: options.PruneExpireTime,
+			Handler:              repo.DeleteObject,
+		})
+		if err != nil {
+			return err
+		}
+	}
+
+	// TODO: add object re-packing.
+	return nil
 }

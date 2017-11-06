@@ -285,7 +285,11 @@ func (rh *RPCHandler) Gc(
 	}()
 	defer gitConfig.Shutdown(ctx)
 
-	gco := GCOptions{MaxLooseRefs: arg.Options.MaxLooseRefs}
+	gco := GCOptions{
+		MaxLooseRefs:         arg.Options.MaxLooseRefs,
+		PruneMinLooseObjects: arg.Options.PruneMinLooseObjects,
+		PruneExpireTime:      keybase1.FromTime(arg.Options.PruneExpireTime),
+	}
 	err = GCRepo(ctx, gitConfig, tlfHandle, string(arg.Name), gco)
 	if err != nil {
 		return err
