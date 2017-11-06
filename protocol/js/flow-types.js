@@ -2947,12 +2947,12 @@ export function userSearchRpcPromise (request: (RequestCommon & {callback?: ?(er
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.user.search', request, (error, result) => error ? reject(error) : resolve(result)))
 }
 
-export type APIRes = {
+export type APIRes = {|
   status: String,
   body: String,
   httpStatus: Int,
   appStatus: String,
-}
+|}
 
 export type AccountEmailChangeRpcParam = {|
   newEmail: String
@@ -2968,7 +2968,7 @@ export type AccountPassphrasePromptRpcParam = {|
   guiArg: GUIEntryArg
 |}
 
-export type AnnotatedMemberInfo = {
+export type AnnotatedMemberInfo = {|
   userID: UID,
   teamID: TeamID,
   username: String,
@@ -2979,9 +2979,9 @@ export type AnnotatedMemberInfo = {
   implicit?: ?ImplicitRole,
   needsPUK: Boolean,
   memberCount: Int,
-}
+|}
 
-export type AnnotatedTeamInvite = {
+export type AnnotatedTeamInvite = {|
   role: TeamRole,
   id: TeamInviteID,
   type: TeamInviteType,
@@ -2990,12 +2990,12 @@ export type AnnotatedTeamInvite = {
   inviter: UserVersion,
   inviterUsername: String,
   teamName: String,
-}
+|}
 
-export type AnnotatedTeamList = {
+export type AnnotatedTeamList = {|
   teams?: ?Array<AnnotatedMemberInfo>,
   annotatedActiveInvites: {[key: string]: AnnotatedTeamInvite},
-}
+|}
 
 export type ApiserverDeleteRpcParam = {|
   endpoint: String,
@@ -3057,13 +3057,13 @@ export type BTCRegisterBTCRpcParam = {|
   force: Boolean
 |}
 
-export type BadgeConversationInfo = {
+export type BadgeConversationInfo = {|
   convID: ChatConversationID,
   badgeCounts: {[key: string]: Int},
   unreadMessages: Int,
-}
+|}
 
-export type BadgeState = {
+export type BadgeState = {|
   newTlfs: Int,
   rekeysNeeded: Int,
   newFollowers: Int,
@@ -3072,7 +3072,7 @@ export type BadgeState = {
   newGitRepoGlobalUniqueIDs?: ?Array<String>,
   newTeamNames?: ?Array<String>,
   newTeamAccessRequests?: ?Array<String>,
-}
+|}
 
 export type BinaryKID = Bytes
 
@@ -3114,13 +3114,13 @@ export type BlockGetTeamQuotaInfoRpcParam = {|
   tid: TeamID
 |}
 
-export type BlockIdCombo = {
+export type BlockIdCombo = {|
   blockHash: String,
   chargedTo: UserOrTeamID,
   blockType: BlockType,
-}
+|}
 
-export type BlockPingResponse = {}
+export type BlockPingResponse = {||}
 
 export type BlockPutBlockAgainRpcParam = {|
   folder: String,
@@ -3138,23 +3138,23 @@ export type BlockPutBlockRpcParam = {|
 
 export type BlockRefNonce = any
 
-export type BlockReference = {
+export type BlockReference = {|
   bid: BlockIdCombo,
   nonce: BlockRefNonce,
   chargedTo: UserOrTeamID,
-}
+|}
 
-export type BlockReferenceCount = {
+export type BlockReferenceCount = {|
   ref: BlockReference,
   liveCount: Int,
-}
+|}
 
 export type BlockType =
     0 // DATA_0
   | 1 // MD_1
   | 2 // GIT_2
 
-export type BootstrapStatus = {
+export type BootstrapStatus = {|
   registered: Boolean,
   loggedIn: Boolean,
   uid: UID,
@@ -3163,47 +3163,47 @@ export type BootstrapStatus = {
   deviceName: String,
   following?: ?Array<String>,
   followers?: ?Array<String>,
-}
+|}
 
 export type BoxNonce = any
 
 export type BoxPublicKey = any
 
-export type BulkRes = {
+export type BulkRes = {|
   invited?: ?Array<String>,
   alreadyInvited?: ?Array<String>,
   malformed?: ?Array<String>,
-}
+|}
 
 export type Bytes32 = any
 
-export type CanonicalTLFNameAndIDWithBreaks = {
+export type CanonicalTLFNameAndIDWithBreaks = {|
   tlfID: TLFID,
   CanonicalName: CanonicalTlfName,
   breaks: TLFBreak,
-}
+|}
 
 export type CanonicalTlfName = String
 
-export type ChallengeInfo = {
+export type ChallengeInfo = {|
   now: Long,
   challenge: String,
-}
+|}
 
 export type ChatConversationID = Bytes
 
-export type CheckProofStatus = {
+export type CheckProofStatus = {|
   found: Boolean,
   status: ProofStatus,
   proofText: String,
   state: ProofState,
-}
+|}
 
-export type CheckResult = {
+export type CheckResult = {|
   proofResult: ProofResult,
   time: Time,
   freshness: CheckResultFreshness,
-}
+|}
 
 export type CheckResultFreshness =
     0 // FRESH_0
@@ -3214,20 +3214,20 @@ export type ChooseType =
     0 // EXISTING_DEVICE_0
   | 1 // NEW_DEVICE_1
 
-export type CiphertextBundle = {
+export type CiphertextBundle = {|
   kid: KID,
   ciphertext: EncryptedBytes32,
   nonce: BoxNonce,
   publicKey: BoxPublicKey,
-}
+|}
 
-export type ClientDetails = {
+export type ClientDetails = {|
   pid: Int,
   clientType: ClientType,
   argv?: ?Array<String>,
   desc: String,
   version: String,
-}
+|}
 
 export type ClientType =
     0 // NONE_0
@@ -3240,13 +3240,13 @@ export type CompatibilityTeamID =
     { typ: 1, legacy: ?TLFID }
   | { typ: 2, modern: ?TeamID }
 
-export type ComponentResult = {
+export type ComponentResult = {|
   name: String,
   status: Status,
   exitCode: Int,
-}
+|}
 
-export type Config = {
+export type Config = {|
   serverURI: String,
   socketFile: String,
   label: String,
@@ -3260,7 +3260,7 @@ export type Config = {
   versionFull: String,
   isAutoForked: Boolean,
   forkType: ForkType,
-}
+|}
 
 export type ConfigClearValueRpcParam = {|
   path: String
@@ -3289,41 +3289,41 @@ export type ConfigSetValueRpcParam = {|
   value: ConfigValue
 |}
 
-export type ConfigValue = {
+export type ConfigValue = {|
   isNull: Boolean,
   b?: ?Boolean,
   i?: ?Int,
   s?: ?String,
   o?: ?String,
-}
+|}
 
 export type ConfigWaitForClientRpcParam = {|
   clientType: ClientType,
   timeout: DurationSec
 |}
 
-export type ConfiguredAccount = {
+export type ConfiguredAccount = {|
   username: String,
   hasStoredSecret: Boolean,
-}
+|}
 
-export type ConfirmResult = {
+export type ConfirmResult = {|
   identityConfirmed: Boolean,
   remoteConfirmed: Boolean,
   expiringLocal: Boolean,
   autoConfirmed: Boolean,
-}
+|}
 
-export type CopyArgs = {
+export type CopyArgs = {|
   opID: OpID,
   src: Path,
   dest: Path,
-}
+|}
 
-export type CryptKey = {
+export type CryptKey = {|
   KeyGeneration: Int,
   Key: Bytes32,
-}
+|}
 
 export type CryptoSignED25519ForKBFSRpcParam = {|
   msg: Bytes,
@@ -3353,14 +3353,14 @@ export type CryptoUnboxBytes32RpcParam = {|
   reason: String
 |}
 
-export type Cryptocurrency = {
+export type Cryptocurrency = {|
   rowId: Int,
   pkhash: Bytes,
   address: String,
   sigID: SigID,
   type: String,
   family: String,
-}
+|}
 
 export type CryptocurrencyRegisterAddressRpcParam = {|
   address: String,
@@ -3387,11 +3387,11 @@ export type CtlStopRpcParam = {|
   exitCode: ExitCode
 |}
 
-export type DbKey = {
+export type DbKey = {|
   dbType: DbType,
   objType: Int,
   key: String,
-}
+|}
 
 export type DbType =
     0 // MAIN_0
@@ -3411,7 +3411,7 @@ export type DebuggingSecondStepRpcParam = {|
   val: Int
 |}
 
-export type Device = {
+export type Device = {|
   type: String,
   name: String,
   deviceID: DeviceID,
@@ -3421,7 +3421,7 @@ export type Device = {
   encryptKey: KID,
   verifyKey: KID,
   status: Int,
-}
+|}
 
 export type DeviceCheckDeviceNameForUserRpcParam = {|
   username: String,
@@ -3432,7 +3432,7 @@ export type DeviceCheckDeviceNameFormatRpcParam = {|
   name: String
 |}
 
-export type DeviceDetail = {
+export type DeviceDetail = {|
   device: Device,
   eldest: Boolean,
   provisioner?: ?Device,
@@ -3441,7 +3441,7 @@ export type DeviceDetail = {
   revokedBy: KID,
   revokedByDevice?: ?Device,
   currentDevice: Boolean,
-}
+|}
 
 export type DeviceID = String
 
@@ -3449,12 +3449,12 @@ export type DeviceType =
     0 // DESKTOP_0
   | 1 // MOBILE_1
 
-export type Dirent = {
+export type Dirent = {|
   time: Time,
   size: Int,
   name: String,
   direntType: DirentType,
-}
+|}
 
 export type DirentType =
     0 // FILE_0
@@ -3462,20 +3462,20 @@ export type DirentType =
   | 2 // SYM_2
   | 3 // EXEC_3
 
-export type DismissReason = {
+export type DismissReason = {|
   type: DismissReasonType,
   reason: String,
   resource: String,
-}
+|}
 
 export type DismissReasonType =
     0 // NONE_0
   | 1 // HANDLED_ELSEWHERE_1
 
-export type DowngradeReferenceRes = {
+export type DowngradeReferenceRes = {|
   completed?: ?Array<BlockReferenceCount>,
   failed: BlockReference,
-}
+|}
 
 export type DurationSec = Double
 
@@ -3483,24 +3483,24 @@ export type ED25519PublicKey = any
 
 export type ED25519Signature = any
 
-export type ED25519SignatureInfo = {
+export type ED25519SignatureInfo = {|
   sig: ED25519Signature,
   publicKey: ED25519PublicKey,
-}
+|}
 
-export type Email = {
+export type Email = {|
   email: String,
   isVerified: Boolean,
-}
+|}
 
 export type EncryptedBytes32 = any
 
-export type EncryptedGitMetadata = {
+export type EncryptedGitMetadata = {|
   v: Int,
   e: Bytes,
   n: BoxNonce,
   gen: PerTeamKeyGeneration,
-}
+|}
 
 export type ErrorNum = Int
 
@@ -3509,7 +3509,7 @@ export type ExitCode =
   | 2 // NOTOK_2
   | 4 // RESTART_4
 
-export type ExtendedStatus = {
+export type ExtendedStatus = {|
   standalone: Boolean,
   passphraseStreamCached: Boolean,
   tsecCached: Boolean,
@@ -3528,12 +3528,12 @@ export type ExtendedStatus = {
   Clients?: ?Array<ClientDetails>,
   platformInfo: PlatformInfo,
   defaultDeviceID: DeviceID,
-}
+|}
 
-export type FSEditListRequest = {
+export type FSEditListRequest = {|
   folder: Folder,
   requestID: Int,
-}
+|}
 
 export type FSErrorType =
     0 // ACCESS_DENIED_0
@@ -3552,7 +3552,7 @@ export type FSErrorType =
   | 13 // DISK_LIMIT_REACHED_13
   | 14 // DISK_CACHE_ERROR_LOG_SEND_14
 
-export type FSNotification = {
+export type FSNotification = {|
   filename: String,
   status: String,
   statusCode: FSStatusCode,
@@ -3562,7 +3562,7 @@ export type FSNotification = {
   writerUid: UID,
   localTime: Time,
   folderType: FolderType,
-}
+|}
 
 export type FSNotificationType =
     0 // ENCRYPTING_0
@@ -3578,28 +3578,28 @@ export type FSNotificationType =
   | 10 // FILE_RENAMED_10
   | 11 // INITIALIZED_11
 
-export type FSPathSyncStatus = {
+export type FSPathSyncStatus = {|
   folderType: FolderType,
   path: String,
   syncingBytes: Int64,
   syncingOps: Int64,
   syncedBytes: Int64,
-}
+|}
 
 export type FSStatusCode =
     0 // START_0
   | 1 // FINISH_1
   | 2 // ERROR_2
 
-export type FSSyncStatus = {
+export type FSSyncStatus = {|
   totalSyncingBytes: Int64,
   totalSyncingOps: Int64,
   pathStatuses?: ?Array<FSPathSyncStatus>,
-}
+|}
 
-export type FSSyncStatusRequest = {
+export type FSSyncStatusRequest = {|
   requestID: Int,
-}
+|}
 
 export type FavoriteFavoriteAddRpcParam = {|
   folder: Folder
@@ -3609,49 +3609,49 @@ export type FavoriteFavoriteIgnoreRpcParam = {|
   folder: Folder
 |}
 
-export type FavoritesResult = {
+export type FavoritesResult = {|
   favoriteFolders?: ?Array<Folder>,
   ignoredFolders?: ?Array<Folder>,
   newFolders?: ?Array<Folder>,
-}
+|}
 
-export type Feature = {
+export type Feature = {|
   allow: Boolean,
   defaultValue: Boolean,
   readonly: Boolean,
   label: String,
-}
+|}
 
-export type File = {
+export type File = {|
   path: String,
-}
+|}
 
-export type FileContent = {
+export type FileContent = {|
   data: Bytes,
   progress: Progress,
-}
+|}
 
-export type FileDescriptor = {
+export type FileDescriptor = {|
   name: String,
   type: FileType,
-}
+|}
 
 export type FileType =
     0 // UNKNOWN_0
   | 1 // DIRECTORY_1
   | 2 // FILE_2
 
-export type FirstStepResult = {
+export type FirstStepResult = {|
   valPlusTwo: Int,
-}
+|}
 
-export type Folder = {
+export type Folder = {|
   name: String,
   private: Boolean,
   notificationsOn: Boolean,
   created: Boolean,
   folderType: FolderType,
-}
+|}
 
 export type FolderType =
     0 // UNKNOWN_0
@@ -3672,24 +3672,24 @@ export type FsListRpcParam = {|
 
 export type FullName = String
 
-export type FullNamePackage = {
+export type FullNamePackage = {|
   version: FullNamePackageVersion,
   fullName: FullName,
   eldestSeqno: Seqno,
   cachedAt: Time,
-}
+|}
 
 export type FullNamePackageVersion =
     0 // V0_0
   | 1 // V1_1
 
-export type FuseMountInfo = {
+export type FuseMountInfo = {|
   path: String,
   fstype: String,
   output: String,
-}
+|}
 
-export type FuseStatus = {
+export type FuseStatus = {|
   version: String,
   bundleVersion: String,
   kextID: String,
@@ -3699,22 +3699,22 @@ export type FuseStatus = {
   installAction: InstallAction,
   mountInfos?: ?Array<FuseMountInfo>,
   status: Status,
-}
+|}
 
-export type GPGKey = {
+export type GPGKey = {|
   algorithm: String,
   keyID: String,
   creation: String,
   expiration: String,
   identities?: ?Array<PGPIdentity>,
-}
+|}
 
 export type GPGMethod =
     0 // GPG_NONE_0
   | 1 // GPG_IMPORT_1
   | 2 // GPG_SIGN_2
 
-export type GUIEntryArg = {
+export type GUIEntryArg = {|
   windowTitle: String,
   prompt: String,
   username: String,
@@ -3723,34 +3723,34 @@ export type GUIEntryArg = {
   retryLabel: String,
   type: PassphraseType,
   features: GUIEntryFeatures,
-}
+|}
 
-export type GUIEntryFeatures = {
+export type GUIEntryFeatures = {|
   showTyping: Feature,
-}
+|}
 
-export type GetBlockRes = {
+export type GetBlockRes = {|
   blockKey: String,
   buf: Bytes,
-}
+|}
 
-export type GetCurrentStatusRes = {
+export type GetCurrentStatusRes = {|
   configured: Boolean,
   registered: Boolean,
   loggedIn: Boolean,
   sessionIsValid: Boolean,
   user?: ?User,
-}
+|}
 
-export type GetPassphraseRes = {
+export type GetPassphraseRes = {|
   passphrase: String,
   storeSecret: Boolean,
-}
+|}
 
-export type GetTLFCryptKeysRes = {
+export type GetTLFCryptKeysRes = {|
   nameIDBreaks: CanonicalTLFNameAndIDWithBreaks,
   CryptKeys?: ?Array<CryptKey>,
-}
+|}
 
 export type GitCreatePersonalRepoRpcParam = {|
   repoName: GitRepoName
@@ -3781,13 +3781,13 @@ export type GitGetGitMetadataRpcParam = {|
   folder: Folder
 |}
 
-export type GitLocalMetadata = {
+export type GitLocalMetadata = {|
   repoName: GitRepoName,
-}
+|}
 
-export type GitLocalMetadataV1 = {
+export type GitLocalMetadataV1 = {|
   repoName: GitRepoName,
-}
+|}
 
 export type GitLocalMetadataVersion =
     1 // V1_1
@@ -3802,7 +3802,7 @@ export type GitPutGitMetadataRpcParam = {|
   notifyTeam: Boolean
 |}
 
-export type GitRepoInfo = {
+export type GitRepoInfo = {|
   folder: Folder,
   repoID: RepoID,
   localMetadata: GitLocalMetadata,
@@ -3810,7 +3810,7 @@ export type GitRepoInfo = {
   repoUrl: String,
   globalUniqueID: String,
   canDelete: Boolean,
-}
+|}
 
 export type GitRepoName = String
 
@@ -3822,13 +3822,13 @@ export type GitRepoResultState =
     0 // ERR_0
   | 1 // OK_1
 
-export type GitServerMetadata = {
+export type GitServerMetadata = {|
   ctime: Time,
   mtime: Time,
   lastModifyingUsername: String,
   lastModifyingDeviceID: DeviceID,
   lastModifyingDeviceName: String,
-}
+|}
 
 export type GpgUiSelectKeyAndPushOptionRpcParam = {|
   keys?: ?Array<GPGKey>
@@ -3862,16 +3862,16 @@ export type GregorUIPushStateRpcParam = {|
   reason: PushReason
 |}
 
-export type HasServerKeysRes = {
+export type HasServerKeysRes = {|
   hasServerKeys: Boolean,
-}
+|}
 
 export type HashMeta = Bytes
 
-export type Hello2Res = {
+export type Hello2Res = {|
   encryptionKey: KID,
   sigPayload: HelloRes,
-}
+|}
 
 export type HelloRes = String
 
@@ -3883,17 +3883,17 @@ export type HomeHomeSkipTodoTypeRpcParam = {|
   t: HomeScreenTodoType
 |}
 
-export type HomeScreen = {
+export type HomeScreen = {|
   lastViewed: Time,
   items?: ?Array<HomeScreenItem>,
   followSuggestions?: ?Array<UserSummary>,
-}
+|}
 
-export type HomeScreenItem = {
+export type HomeScreenItem = {|
   badged: Boolean,
   id: HomeScreenItemID,
   data: HomeScreenItemData,
-}
+|}
 
 export type HomeScreenItemData =
     { t: 1, todo: ?HomeScreenTodo }
@@ -3909,15 +3909,15 @@ export type HomeScreenPeopleNotification =
     { t: 0, followed: ?HomeScreenPeopleNotificationFollowed }
   | { t: 1, followedMulti: ?HomeScreenPeopleNotificationFollowedMulti }
 
-export type HomeScreenPeopleNotificationFollowed = {
+export type HomeScreenPeopleNotificationFollowed = {|
   followTime: Time,
   user: UserSummary,
-}
+|}
 
-export type HomeScreenPeopleNotificationFollowedMulti = {
+export type HomeScreenPeopleNotificationFollowedMulti = {|
   followers?: ?Array<HomeScreenPeopleNotificationFollowed>,
   numOthers: Int,
-}
+|}
 
 export type HomeScreenPeopleNotificationType =
     0 // FOLLOWED_0
@@ -3938,11 +3938,11 @@ export type HomeScreenTodoType =
   | 9 // GIT_REPO_9
   | 10 // TEAM_SHOWCASE_10
 
-export type Identify2Res = {
+export type Identify2Res = {|
   upk: UserPlusKeys,
   identifiedAt: Time,
   trackBreaks?: ?IdentifyTrackBreaks,
-}
+|}
 
 export type IdentifyIdentify2RpcParam = {|
   uid: UID,
@@ -3976,19 +3976,19 @@ export type IdentifyIdentifyLiteRpcParam = {|
   forceDisplay?: Boolean
 |}
 
-export type IdentifyKey = {
+export type IdentifyKey = {|
   pgpFingerprint: Bytes,
   KID: KID,
   trackDiff?: ?TrackDiff,
   breaksTracking: Boolean,
-}
+|}
 
-export type IdentifyLiteRes = {
+export type IdentifyLiteRes = {|
   ul: UserOrTeamLite,
   trackBreaks?: ?IdentifyTrackBreaks,
-}
+|}
 
-export type IdentifyOutcome = {
+export type IdentifyOutcome = {|
   username: String,
   status?: ?Status,
   warnings?: ?Array<String>,
@@ -4003,18 +4003,18 @@ export type IdentifyOutcome = {
   trackOptions: TrackOptions,
   forPGPPull: Boolean,
   reason: IdentifyReason,
-}
+|}
 
-export type IdentifyProofBreak = {
+export type IdentifyProofBreak = {|
   remoteProof: RemoteProof,
   lcr: LinkCheckResult,
-}
+|}
 
-export type IdentifyReason = {
+export type IdentifyReason = {|
   type: IdentifyReasonType,
   reason: String,
   resource: String,
-}
+|}
 
 export type IdentifyReasonType =
     0 // NONE_0
@@ -4040,16 +4040,16 @@ export type IdentifyResolveIdentifyImplicitTeamRpcParam = {|
   identifyBehavior: TLFIdentifyBehavior
 |}
 
-export type IdentifyRow = {
+export type IdentifyRow = {|
   rowId: Int,
   proof: RemoteProof,
   trackDiff?: ?TrackDiff,
-}
+|}
 
-export type IdentifyTrackBreaks = {
+export type IdentifyTrackBreaks = {|
   keys?: ?Array<IdentifyKey>,
   proofs?: ?Array<IdentifyProofBreak>,
-}
+|}
 
 export type IdentifyUiConfirmRpcParam = {|
   outcome: IdentifyOutcome
@@ -4114,7 +4114,7 @@ export type IdentifyUiStartRpcParam = {|
   forceDisplay?: Boolean
 |}
 
-export type Identity = {
+export type Identity = {|
   status?: ?Status,
   whenLastTracked: Time,
   proofs?: ?Array<IdentifyRow>,
@@ -4122,29 +4122,29 @@ export type Identity = {
   revoked?: ?Array<TrackDiff>,
   revokedDetails?: ?Array<RevokedProof>,
   breaksTracking: Boolean,
-}
+|}
 
-export type ImplicitRole = {
+export type ImplicitRole = {|
   role: TeamRole,
   ancestor: TeamID,
-}
+|}
 
-export type ImplicitTeamConflictInfo = {
+export type ImplicitTeamConflictInfo = {|
   generation: Int,
   time: Time,
-}
+|}
 
-export type ImplicitTeamDisplayName = {
+export type ImplicitTeamDisplayName = {|
   isPublic: Boolean,
   writers: ImplicitTeamUserSet,
   readers: ImplicitTeamUserSet,
   conflictInfo?: ?ImplicitTeamConflictInfo,
-}
+|}
 
-export type ImplicitTeamUserSet = {
+export type ImplicitTeamUserSet = {|
   keybaseUsers?: ?Array<String>,
   unresolvedUsers?: ?Array<SocialAssertion>,
-}
+|}
 
 export type InstallAction =
     0 // UNKNOWN_0
@@ -4157,11 +4157,11 @@ export type InstallFuseStatusRpcParam = {|
   bundleVersion: String
 |}
 
-export type InstallResult = {
+export type InstallResult = {|
   componentResults?: ?Array<ComponentResult>,
   status: Status,
   fatal: Boolean,
-}
+|}
 
 export type InstallStatus =
     0 // UNKNOWN_0
@@ -4169,10 +4169,10 @@ export type InstallStatus =
   | 2 // NOT_INSTALLED_2
   | 4 // INSTALLED_4
 
-export type InterestingPerson = {
+export type InterestingPerson = {|
   uid: UID,
   username: String,
-}
+|}
 
 export type KBFSGitCreateRepoRpcParam = {|
   folder: Folder,
@@ -4233,41 +4233,41 @@ export type Kex2ProvisioneeHelloRpcParam = {|
   sigBody: String
 |}
 
-export type KeyBundle = {
+export type KeyBundle = {|
   version: Int,
   bundle: Bytes,
-}
+|}
 
-export type KeyBundleResponse = {
+export type KeyBundleResponse = {|
   WriterBundle: KeyBundle,
   ReaderBundle: KeyBundle,
-}
+|}
 
-export type KeyHalf = {
+export type KeyHalf = {|
   user: UID,
   deviceKID: KID,
   key: Bytes,
-}
+|}
 
-export type KeyInfo = {
+export type KeyInfo = {|
   fingerprint: String,
   key: String,
   desc: String,
-}
+|}
 
 export type KeyType =
     0 // NONE_0
   | 1 // NACL_1
   | 2 // PGP_2
 
-export type KeybaseTime = {
+export type KeybaseTime = {|
   unix: Time,
   chain: Seqno,
-}
+|}
 
 export type LeaseID = String
 
-export type LinkCheckResult = {
+export type LinkCheckResult = {|
   proofId: Int,
   proofResult: ProofResult,
   snoozedResult: ProofResult,
@@ -4278,25 +4278,25 @@ export type LinkCheckResult = {
   remoteDiff?: ?TrackDiff,
   hint?: ?SigHint,
   breaksTracking: Boolean,
-}
+|}
 
 export type LinkID = String
 
-export type ListArgs = {
+export type ListArgs = {|
   opID: OpID,
   path: Path,
-}
+|}
 
-export type ListResult = {
+export type ListResult = {|
   files?: ?Array<File>,
-}
+|}
 
-export type LoadDeviceErr = {
+export type LoadDeviceErr = {|
   where: String,
   desc: String,
-}
+|}
 
-export type LoadTeamArg = {
+export type LoadTeamArg = {|
   ID: TeamID,
   name: String,
   public: Boolean,
@@ -4305,12 +4305,12 @@ export type LoadTeamArg = {
   forceFullReload: Boolean,
   forceRepoll: Boolean,
   staleOK: Boolean,
-}
+|}
 
-export type LockContext = {
+export type LockContext = {|
   requireLockID: LockID,
   releaseAfterSuccess: Boolean,
-}
+|}
 
 export type LockID = Long
 
@@ -4385,17 +4385,17 @@ export type LoginUnlockWithPassphraseRpcParam = {|
   passphrase: String
 |}
 
-export type LookupImplicitTeamRes = {
+export type LookupImplicitTeamRes = {|
   teamID: TeamID,
   name: TeamName,
   displayName: ImplicitTeamDisplayName,
-}
+|}
 
-export type MDBlock = {
+export type MDBlock = {|
   version: Int,
   timestamp: Time,
   block: Bytes,
-}
+|}
 
 export type MDGetBehavior =
     0 // GET_OR_CREATE_CLASSIC_TLF_0
@@ -4405,34 +4405,34 @@ export type MDPriority = Int
 
 export type MaskB64 = Bytes
 
-export type MemberInfo = {
+export type MemberInfo = {|
   userID: UID,
   teamID: TeamID,
   fqName: String,
   isImplicitTeam: Boolean,
   role: TeamRole,
   implicit?: ?ImplicitRole,
-}
+|}
 
 export type MerkleGetCurrentMerkleRootRpcParam = {|
   freshnessMsec: Int
 |}
 
-export type MerkleRoot = {
+export type MerkleRoot = {|
   version: Int,
   root: Bytes,
-}
+|}
 
-export type MerkleRootAndTime = {
+export type MerkleRootAndTime = {|
   root: MerkleRootV2,
   updateTime: Time,
   fetchTime: Time,
-}
+|}
 
-export type MerkleRootV2 = {
+export type MerkleRootV2 = {|
   seqno: Seqno,
   hashMeta: HashMeta,
-}
+|}
 
 export type MerkleTreeID =
     0 // MASTER_0
@@ -4440,10 +4440,10 @@ export type MerkleTreeID =
   | 2 // KBFS_PRIVATE_2
   | 3 // KBFS_PRIVATETEAM_3
 
-export type MerkleTreeLocation = {
+export type MerkleTreeLocation = {|
   leaf: UserOrTeamID,
   loc: SigChainLocation,
-}
+|}
 
 export type MetadataAuthenticateRpcParam = {|
   signature: String
@@ -4548,10 +4548,10 @@ export type MetadataReleaseLockRpcParam = {|
   lockID: LockID
 |}
 
-export type MetadataResponse = {
+export type MetadataResponse = {|
   folderID: String,
   mdBlocks?: ?Array<MDBlock>,
-}
+|}
 
 export type MetadataTruncateLockRpcParam = {|
   folderID: String
@@ -4575,11 +4575,11 @@ export type MetadataUpdateMetadataUpdateRpcParam = {|
   revision: Long
 |}
 
-export type MoveArgs = {
+export type MoveArgs = {|
   opID: OpID,
   src: Path,
   dest: Path,
-}
+|}
 
 export type NaclDHKeyPrivate = any
 
@@ -4589,7 +4589,7 @@ export type NaclSigningKeyPrivate = any
 
 export type NaclSigningKeyPublic = any
 
-export type NotificationChannels = {
+export type NotificationChannels = {|
   session: Boolean,
   users: Boolean,
   kbfs: Boolean,
@@ -4605,7 +4605,7 @@ export type NotificationChannels = {
   badges: Boolean,
   reachability: Boolean,
   team: Boolean,
-}
+|}
 
 export type NotifyBadgesBadgeStateRpcParam = {|
   badgeState: BadgeState
@@ -4709,72 +4709,72 @@ export type OpenFlags =
   | 8 // APPEND_8
   | 16 // DIRECTORY_16
 
-export type OutOfDateInfo = {
+export type OutOfDateInfo = {|
   upgradeTo: String,
   upgradeURI: String,
   customMessage: String,
   criticalClockSkew: Long,
-}
+|}
 
 export type Outcome =
     0 // NONE_0
   | 1 // FIXED_1
   | 2 // IGNORED_2
 
-export type PGPCreateUids = {
+export type PGPCreateUids = {|
   useDefault: Boolean,
   ids?: ?Array<PGPIdentity>,
-}
+|}
 
-export type PGPDecryptOptions = {
+export type PGPDecryptOptions = {|
   assertSigned: Boolean,
   signedBy: String,
-}
+|}
 
-export type PGPEncryptOptions = {
+export type PGPEncryptOptions = {|
   recipients?: ?Array<String>,
   noSign: Boolean,
   noSelf: Boolean,
   binaryOut: Boolean,
   keyQuery: String,
-}
+|}
 
 export type PGPFingerprint = any
 
-export type PGPIdentity = {
+export type PGPIdentity = {|
   username: String,
   comment: String,
   email: String,
-}
+|}
 
-export type PGPPurgeRes = {
+export type PGPPurgeRes = {|
   filenames?: ?Array<String>,
-}
+|}
 
-export type PGPQuery = {
+export type PGPQuery = {|
   secret: Boolean,
   query: String,
   exactMatch: Boolean,
-}
+|}
 
-export type PGPSigVerification = {
+export type PGPSigVerification = {|
   isSigned: Boolean,
   verified: Boolean,
   signer: User,
   signKey: PublicKey,
-}
+|}
 
-export type PGPSignOptions = {
+export type PGPSignOptions = {|
   keyQuery: String,
   mode: SignMode,
   binaryIn: Boolean,
   binaryOut: Boolean,
-}
+|}
 
-export type PGPVerifyOptions = {
+export type PGPVerifyOptions = {|
   signedBy: String,
   signature: Bytes,
-}
+|}
 
 export type PaperprovisionPaperProvisionRpcParam = {|
   username: String,
@@ -4782,10 +4782,10 @@ export type PaperprovisionPaperProvisionRpcParam = {|
   paperKey: String
 |}
 
-export type PassphraseStream = {
+export type PassphraseStream = {|
   passphraseStream: Bytes,
   generation: Int,
-}
+|}
 
 export type PassphraseType =
     0 // NONE_0
@@ -4801,36 +4801,36 @@ export type PathType =
     0 // LOCAL_0
   | 1 // KBFS_1
 
-export type PerTeamKey = {
+export type PerTeamKey = {|
   gen: PerTeamKeyGeneration,
   seqno: Seqno,
   sigKID: KID,
   encKID: KID,
-}
+|}
 
 export type PerTeamKeyGeneration = Int
 
 export type PerTeamKeySeed = any
 
-export type PerTeamKeySeedItem = {
+export type PerTeamKeySeedItem = {|
   seed: PerTeamKeySeed,
   generation: PerTeamKeyGeneration,
   seqno: Seqno,
-}
+|}
 
-export type PerUserKey = {
+export type PerUserKey = {|
   gen: Int,
   seqno: Seqno,
   sigKID: KID,
   encKID: KID,
   signedByKID: KID,
-}
+|}
 
-export type PerUserKeyBox = {
+export type PerUserKeyBox = {|
   generation: PerUserKeyGeneration,
   box: String,
   receiverKID: KID,
-}
+|}
 
 export type PerUserKeyGeneration = Int
 
@@ -4927,39 +4927,39 @@ export type PgpUiOutputSignatureSuccessRpcParam = {|
   signedAt: Time
 |}
 
-export type PingResponse = {
+export type PingResponse = {|
   timestamp: Time,
-}
+|}
 
-export type PlatformInfo = {
+export type PlatformInfo = {|
   os: String,
   osVersion: String,
   arch: String,
   goVersion: String,
-}
+|}
 
-export type ProblemSet = {
+export type ProblemSet = {|
   user: User,
   kid: KID,
   tlfs?: ?Array<ProblemTLF>,
-}
+|}
 
-export type ProblemSetDevices = {
+export type ProblemSetDevices = {|
   problemSet: ProblemSet,
   devices?: ?Array<Device>,
-}
+|}
 
-export type ProblemTLF = {
+export type ProblemTLF = {|
   tlf: TLF,
   score: Int,
   solution_kids?: ?Array<KID>,
-}
+|}
 
-export type Process = {
+export type Process = {|
   pid: String,
   command: String,
   fileDescriptors?: ?Array<FileDescriptor>,
-}
+|}
 
 export type Progress = Int
 
@@ -4972,11 +4972,11 @@ export type PromptOverwriteType =
     0 // SOCIAL_0
   | 1 // SITE_1
 
-export type ProofResult = {
+export type ProofResult = {|
   state: ProofState,
   status: ProofStatus,
   desc: String,
-}
+|}
 
 export type ProofState =
     0 // NONE_0
@@ -5048,11 +5048,11 @@ export type ProofType =
   | 1002 // PGP_1002
   | 100001 // ROOTER_100001
 
-export type Proofs = {
+export type Proofs = {|
   social?: ?Array<TrackProof>,
   web?: ?Array<WebProof>,
   publicKeys?: ?Array<PublicKey>,
-}
+|}
 
 export type ProveCheckProofRpcParam = {|
   sigID: SigID
@@ -5149,7 +5149,7 @@ export type ProvisionUiSwitchToGPGSignOKRpcParam = {|
   importError: String
 |}
 
-export type PublicKey = {
+export type PublicKey = {|
   KID: KID,
   PGPFingerprint: String,
   PGPIdentities?: ?Array<PGPIdentity>,
@@ -5162,14 +5162,14 @@ export type PublicKey = {
   cTime: Time,
   eTime: Time,
   isRevoked: Boolean,
-}
+|}
 
 export type PublicKeyV2 =
     { keyType: 1, nacl: ?PublicKeyV2NaCl }
   | { keyType: 2, pgp: ?PublicKeyV2PGPSummary }
   | { keyType: any }
 
-export type PublicKeyV2Base = {
+export type PublicKeyV2Base = {|
   kid: KID,
   isSibkey: Boolean,
   isEldest: Boolean,
@@ -5177,21 +5177,21 @@ export type PublicKeyV2Base = {
   eTime: Time,
   provisioning: SignatureMetadata,
   revocation?: ?SignatureMetadata,
-}
+|}
 
-export type PublicKeyV2NaCl = {
+export type PublicKeyV2NaCl = {|
   base: PublicKeyV2Base,
   parent?: ?KID,
   deviceID: DeviceID,
   deviceDescription: String,
   deviceType: String,
-}
+|}
 
-export type PublicKeyV2PGPSummary = {
+export type PublicKeyV2PGPSummary = {|
   base: PublicKeyV2Base,
   fingerprint: PGPFingerprint,
   identities?: ?Array<PGPIdentity>,
-}
+|}
 
 export type PushReason =
     0 // NONE_0
@@ -5202,9 +5202,9 @@ export type QuotaVerifySessionRpcParam = {|
   session: String
 |}
 
-export type Reachability = {
+export type Reachability = {|
   reachable: Reachable,
-}
+|}
 
 export type ReachabilityReachabilityChangedRpcParam = {|
   reachability: Reachability
@@ -5215,28 +5215,28 @@ export type Reachable =
   | 1 // YES_1
   | 2 // NO_2
 
-export type ReadArgs = {
+export type ReadArgs = {|
   opID: OpID,
   path: Path,
   offset: Long,
   size: Int,
-}
+|}
 
-export type ReaderKeyMask = {
+export type ReaderKeyMask = {|
   application: TeamApplication,
   generation: PerTeamKeyGeneration,
   mask: MaskB64,
-}
+|}
 
-export type RegisterAddressRes = {
+export type RegisterAddressRes = {|
   type: String,
   family: String,
-}
+|}
 
-export type RekeyEvent = {
+export type RekeyEvent = {|
   eventType: RekeyEventType,
   interruptType: Int,
-}
+|}
 
 export type RekeyEventType =
     0 // NONE_0
@@ -5259,10 +5259,10 @@ export type RekeyRekeySyncRpcParam = {|
   force: Boolean
 |}
 
-export type RekeyRequest = {
+export type RekeyRequest = {|
   folderID: String,
   revision: Long,
-}
+|}
 
 export type RekeyUIRefreshRpcParam = {|
   problemSetDevices: ProblemSetDevices
@@ -5272,34 +5272,34 @@ export type RekeyUIRekeySendEventRpcParam = {|
   event: RekeyEvent
 |}
 
-export type RemoteProof = {
+export type RemoteProof = {|
   proofType: ProofType,
   key: String,
   value: String,
   displayMarkup: String,
   sigID: SigID,
   mTime: Time,
-}
+|}
 
-export type RemoteTrack = {
+export type RemoteTrack = {|
   username: String,
   uid: UID,
   linkID: LinkID,
-}
+|}
 
-export type RemoveArgs = {
+export type RemoveArgs = {|
   opID: OpID,
   path: Path,
-}
+|}
 
 export type RepoID = String
 
-export type ResolveIdentifyImplicitTeamRes = {
+export type ResolveIdentifyImplicitTeamRes = {|
   displayName: String,
   teamID: TeamID,
   writers?: ?Array<UserVersion>,
   trackBreaks: {[key: string]: IdentifyTrackBreaks},
-}
+|}
 
 export type RevokeRevokeDeviceRpcParam = {|
   deviceID: DeviceID,
@@ -5315,42 +5315,42 @@ export type RevokeRevokeSigsRpcParam = {|
   sigIDQueries?: ?Array<String>
 |}
 
-export type RevokeWarning = {
+export type RevokeWarning = {|
   endangeredTLFs?: ?Array<TLF>,
-}
+|}
 
-export type RevokedKey = {
+export type RevokedKey = {|
   key: PublicKey,
   time: KeybaseTime,
   by: KID,
-}
+|}
 
-export type RevokedProof = {
+export type RevokedProof = {|
   proof: RemoteProof,
   diff: TrackDiff,
-}
+|}
 
-export type SaltpackDecryptOptions = {
+export type SaltpackDecryptOptions = {|
   interactive: Boolean,
   forceRemoteCheck: Boolean,
   usePaperKey: Boolean,
-}
+|}
 
-export type SaltpackEncryptOptions = {
+export type SaltpackEncryptOptions = {|
   recipients?: ?Array<String>,
   anonymousSender: Boolean,
   encryptionOnlyMode: Boolean,
   noSelfEncrypt: Boolean,
   binary: Boolean,
   saltpackVersion: Int,
-}
+|}
 
-export type SaltpackEncryptedMessageInfo = {
+export type SaltpackEncryptedMessageInfo = {|
   devices?: ?Array<Device>,
   numAnonReceivers: Int,
   receiverIsAnon: Boolean,
   sender: SaltpackSender,
-}
+|}
 
 export type SaltpackSaltpackDecryptRpcParam = {|
   source: Stream,
@@ -5376,11 +5376,11 @@ export type SaltpackSaltpackVerifyRpcParam = {|
   opts: SaltpackVerifyOptions
 |}
 
-export type SaltpackSender = {
+export type SaltpackSender = {|
   uid: UID,
   username: String,
   senderType: SaltpackSenderType,
-}
+|}
 
 export type SaltpackSenderType =
     0 // NOT_TRACKED_0
@@ -5392,11 +5392,11 @@ export type SaltpackSenderType =
   | 6 // REVOKED_6
   | 7 // EXPIRED_7
 
-export type SaltpackSignOptions = {
+export type SaltpackSignOptions = {|
   detached: Boolean,
   binary: Boolean,
   saltpackVersion: Int,
-}
+|}
 
 export type SaltpackUiSaltpackPromptForDecryptRpcParam = {|
   sender: SaltpackSender,
@@ -5413,10 +5413,10 @@ export type SaltpackUiSaltpackVerifySuccessRpcParam = {|
   sender: SaltpackSender
 |}
 
-export type SaltpackVerifyOptions = {
+export type SaltpackVerifyOptions = {|
   signedBy: String,
   signature: Bytes,
-}
+|}
 
 export type ScanProofsScanProofsRpcParam = {|
   infile: String,
@@ -5427,20 +5427,20 @@ export type ScanProofsScanProofsRpcParam = {|
   ignorefile: String
 |}
 
-export type SearchComponent = {
+export type SearchComponent = {|
   key: String,
   value: String,
   score: Double,
-}
+|}
 
-export type SearchResult = {
+export type SearchResult = {|
   uid: UID,
   username: String,
   components?: ?Array<SearchComponent>,
   score: Double,
-}
+|}
 
-export type SecretEntryArg = {
+export type SecretEntryArg = {|
   desc: String,
   prompt: String,
   err: String,
@@ -5448,23 +5448,23 @@ export type SecretEntryArg = {
   ok: String,
   reason: String,
   showTyping: Boolean,
-}
+|}
 
-export type SecretEntryRes = {
+export type SecretEntryRes = {|
   text: String,
   canceled: Boolean,
   storeSecret: Boolean,
-}
+|}
 
-export type SecretKeys = {
+export type SecretKeys = {|
   signing: NaclSigningKeyPrivate,
   encryption: NaclDHKeyPrivate,
-}
+|}
 
-export type SecretResponse = {
+export type SecretResponse = {|
   secret: Bytes,
   phrase: String,
-}
+|}
 
 export type SecretUiGetPassphraseRpcParam = {|
   pinentry: GUIEntryArg,
@@ -5482,27 +5482,27 @@ export type SeitanIKeyAndLabel =
 export type SeitanIKeyAndLabelVersion =
     1 // V1_1
 
-export type SeitanIKeyAndLabelVersion1 = {
+export type SeitanIKeyAndLabelVersion1 = {|
   i: SeitanIKey,
   l: SeitanIKeyLabel,
-}
+|}
 
 export type SeitanIKeyLabel =
     { t: 1, sms: ?SeitanIKeyLabelSms }
   | { t: any }
 
-export type SeitanIKeyLabelSms = {
+export type SeitanIKeyLabelSms = {|
   f: String,
   n: String,
-}
+|}
 
 export type SeitanIKeyLabelType =
     1 // SMS_1
 
-export type SelectKeyRes = {
+export type SelectKeyRes = {|
   keyID: String,
   doSecretPush: Boolean,
-}
+|}
 
 export type SeqType =
     1 // PUBLIC_1
@@ -5511,7 +5511,7 @@ export type SeqType =
 
 export type Seqno = Int64
 
-export type ServiceStatus = {
+export type ServiceStatus = {|
   version: String,
   label: String,
   pid: String,
@@ -5520,33 +5520,33 @@ export type ServiceStatus = {
   installStatus: InstallStatus,
   installAction: InstallAction,
   status: Status,
-}
+|}
 
-export type ServicesStatus = {
+export type ServicesStatus = {|
   service?: ?Array<ServiceStatus>,
   kbfs?: ?Array<ServiceStatus>,
   updater?: ?Array<ServiceStatus>,
-}
+|}
 
-export type Session = {
+export type Session = {|
   uid: UID,
   username: String,
   token: String,
   deviceSubkeyKid: KID,
   deviceSibkeyKid: KID,
-}
+|}
 
-export type SessionStatus = {
+export type SessionStatus = {|
   SessionFor: String,
   Loaded: Boolean,
   Cleared: Boolean,
   SaltOnly: Boolean,
   Expired: Boolean,
-}
+|}
 
 export type SessionToken = String
 
-export type Sig = {
+export type Sig = {|
   seqno: Seqno,
   sigID: SigID,
   sigIDDisplay: String,
@@ -5556,23 +5556,23 @@ export type Sig = {
   active: Boolean,
   key: String,
   body: String,
-}
+|}
 
-export type SigChainLocation = {
+export type SigChainLocation = {|
   seqno: Seqno,
   seqType: SeqType,
-}
+|}
 
-export type SigHint = {
+export type SigHint = {|
   remoteId: String,
   humanUrl: String,
   apiUrl: String,
   checkText: String,
-}
+|}
 
 export type SigID = String
 
-export type SigListArgs = {
+export type SigListArgs = {|
   sessionID: Int,
   username: String,
   allKeys: Boolean,
@@ -5580,27 +5580,27 @@ export type SigListArgs = {
   filterx: String,
   verbose: Boolean,
   revoked: Boolean,
-}
+|}
 
-export type SigTypes = {
+export type SigTypes = {|
   track: Boolean,
   proof: Boolean,
   cryptocurrency: Boolean,
   isSelf: Boolean,
-}
+|}
 
 export type SignMode =
     0 // ATTACHED_0
   | 1 // DETACHED_1
   | 2 // CLEAR_2
 
-export type SignatureMetadata = {
+export type SignatureMetadata = {|
   signingKID: KID,
   prevMerkleRootSigned: MerkleRootV2,
   firstAppearedUnverified: Seqno,
   time: Time,
   sigChainLocation: SigChainLocation,
-}
+|}
 
 export type SignupCheckInvitationCodeRpcParam = {|
   invitationCode: String
@@ -5616,11 +5616,11 @@ export type SignupInviteRequestRpcParam = {|
   notes: String
 |}
 
-export type SignupRes = {
+export type SignupRes = {|
   passphraseOk: Boolean,
   postOk: Boolean,
   writeOk: Boolean,
-}
+|}
 
 export type SignupSignupRpcParam = {|
   email: String,
@@ -5643,10 +5643,10 @@ export type SigsSigListRpcParam = {|
   arg: SigListArgs
 |}
 
-export type SimpleFSListResult = {
+export type SimpleFSListResult = {|
   entries?: ?Array<Dirent>,
   progress: Progress,
-}
+|}
 
 export type SimpleFSSimpleFSCancelRpcParam = {|
   opID: OpID
@@ -5733,23 +5733,23 @@ export type SimpleFSSimpleFSWriteRpcParam = {|
   content: Bytes
 |}
 
-export type SocialAssertion = {
+export type SocialAssertion = {|
   user: String,
   service: SocialAssertionService,
-}
+|}
 
 export type SocialAssertionService = String
 
-export type StartProofResult = {
+export type StartProofResult = {|
   sigID: SigID,
-}
+|}
 
-export type Status = {
+export type Status = {|
   code: Int,
   name: String,
   desc: String,
   fields?: ?Array<StringKVPair>,
-}
+|}
 
 export type StatusCode =
     0 // SCOk_0
@@ -5892,9 +5892,9 @@ export type StatusCode =
   | 2702 // SCTeamBanned_2702
   | 2703 // SCTeamInvalidBan_2703
 
-export type Stream = {
+export type Stream = {|
   fd: Int,
-}
+|}
 
 export type StreamUiCloseRpcParam = {|
   s: Stream
@@ -5914,27 +5914,27 @@ export type StreamUiWriteRpcParam = {|
   buf: Bytes
 |}
 
-export type StringKVPair = {
+export type StringKVPair = {|
   key: String,
   value: String,
-}
+|}
 
-export type SubteamLogPoint = {
+export type SubteamLogPoint = {|
   name: TeamName,
   seqno: Seqno,
-}
+|}
 
-export type TLF = {
+export type TLF = {|
   id: TLFID,
   name: String,
   writers?: ?Array<String>,
   readers?: ?Array<String>,
   isPrivate: Boolean,
-}
+|}
 
-export type TLFBreak = {
+export type TLFBreak = {|
   breaks?: ?Array<TLFIdentifyFailure>,
-}
+|}
 
 export type TLFID = String
 
@@ -5947,37 +5947,37 @@ export type TLFIdentifyBehavior =
   | 5 // KBFS_QR_5
   | 6 // CHAT_SKIP_6
 
-export type TLFIdentifyFailure = {
+export type TLFIdentifyFailure = {|
   user: User,
   breaks?: ?IdentifyTrackBreaks,
-}
+|}
 
-export type TLFQuery = {
+export type TLFQuery = {|
   tlfName: String,
   identifyBehavior: TLFIdentifyBehavior,
-}
+|}
 
 export type TLFVisibility =
     0 // ANY_0
   | 1 // PUBLIC_1
   | 2 // PRIVATE_2
 
-export type TeamAccessRequest = {
+export type TeamAccessRequest = {|
   uid: UID,
   eldestSeqno: Seqno,
-}
+|}
 
-export type TeamAddMemberResult = {
+export type TeamAddMemberResult = {|
   invited: Boolean,
   user?: ?User,
   emailSent: Boolean,
   chatSent: Boolean,
-}
+|}
 
-export type TeamAndMemberShowcase = {
+export type TeamAndMemberShowcase = {|
   teamShowcase: TeamShowcase,
   isMemberShowcased: Boolean,
-}
+|}
 
 export type TeamApplication =
     1 // KBFS_1
@@ -5986,86 +5986,86 @@ export type TeamApplication =
   | 4 // GIT_METADATA_4
   | 5 // SEITAN_INVITE_TOKEN_5
 
-export type TeamApplicationKey = {
+export type TeamApplicationKey = {|
   application: TeamApplication,
   keyGeneration: PerTeamKeyGeneration,
   key: Bytes32,
-}
+|}
 
-export type TeamCLKRMsg = {
+export type TeamCLKRMsg = {|
   teamID: TeamID,
   generation: PerTeamKeyGeneration,
   score: Int,
-}
+|}
 
-export type TeamChangeReq = {
+export type TeamChangeReq = {|
   owners?: ?Array<UserVersion>,
   admins?: ?Array<UserVersion>,
   writers?: ?Array<UserVersion>,
   readers?: ?Array<UserVersion>,
   none?: ?Array<UserVersion>,
   completedInvites: {[key: string]: UserVersionPercentForm},
-}
+|}
 
-export type TeamChangeRow = {
+export type TeamChangeRow = {|
   id: TeamID,
   name: String,
   keyRotated: Boolean,
   membershipChanged: Boolean,
   latestSeqno: Seqno,
-}
+|}
 
-export type TeamChangeSet = {
+export type TeamChangeSet = {|
   membershipChanged: Boolean,
   keyRotated: Boolean,
   renamed: Boolean,
-}
+|}
 
-export type TeamCreateResult = {
+export type TeamCreateResult = {|
   chatSent: Boolean,
   creatorAdded: Boolean,
-}
+|}
 
-export type TeamData = {
+export type TeamData = {|
   secretless: Boolean,
   name: TeamName,
   chain: TeamSigChainState,
   perTeamKeySeeds: {[key: string]: PerTeamKeySeedItem},
   readerKeyMasks: {[key: string]: {[key: string]: MaskB64}},
   cachedAt: Time,
-}
+|}
 
-export type TeamDetails = {
+export type TeamDetails = {|
   members: TeamMembersDetails,
   keyGeneration: PerTeamKeyGeneration,
   annotatedActiveInvites: {[key: string]: AnnotatedTeamInvite},
   settings: TeamSettings,
   showcase: TeamShowcase,
-}
+|}
 
-export type TeamExitRow = {
+export type TeamExitRow = {|
   id: TeamID,
-}
+|}
 
 export type TeamID = String
 
-export type TeamIDAndName = {
+export type TeamIDAndName = {|
   id: TeamID,
   name: TeamName,
-}
+|}
 
-export type TeamIDWithVisibility = {
+export type TeamIDWithVisibility = {|
   teamID: TeamID,
   visibility: TLFVisibility,
-}
+|}
 
-export type TeamInvite = {
+export type TeamInvite = {|
   role: TeamRole,
   id: TeamInviteID,
   type: TeamInviteType,
   name: TeamInviteName,
   inviter: UserVersion,
-}
+|}
 
 export type TeamInviteCategory =
     0 // NONE_0
@@ -6086,67 +6086,67 @@ export type TeamInviteType =
   | { c: 4, sbs: ?TeamInviteSocialNetwork }
   | { c: any }
 
-export type TeamInvitee = {
+export type TeamInvitee = {|
   inviteID: TeamInviteID,
   uid: UID,
   eldestSeqno: Seqno,
   role: TeamRole,
-}
+|}
 
-export type TeamJoinRequest = {
+export type TeamJoinRequest = {|
   name: String,
   username: String,
-}
+|}
 
-export type TeamList = {
+export type TeamList = {|
   teams?: ?Array<MemberInfo>,
-}
+|}
 
-export type TeamMember = {
+export type TeamMember = {|
   uid: UID,
   role: TeamRole,
   eldestSeqno: Seqno,
   userEldestSeqno: Seqno,
-}
+|}
 
-export type TeamMemberDetails = {
+export type TeamMemberDetails = {|
   uv: UserVersion,
   username: String,
   active: Boolean,
   needsPUK: Boolean,
-}
+|}
 
-export type TeamMembers = {
+export type TeamMembers = {|
   owners?: ?Array<UserVersion>,
   admins?: ?Array<UserVersion>,
   writers?: ?Array<UserVersion>,
   readers?: ?Array<UserVersion>,
-}
+|}
 
-export type TeamMembersDetails = {
+export type TeamMembersDetails = {|
   owners?: ?Array<TeamMemberDetails>,
   admins?: ?Array<TeamMemberDetails>,
   writers?: ?Array<TeamMemberDetails>,
   readers?: ?Array<TeamMemberDetails>,
-}
+|}
 
-export type TeamName = {
+export type TeamName = {|
   parts?: ?Array<TeamNamePart>,
-}
+|}
 
-export type TeamNameLogPoint = {
+export type TeamNameLogPoint = {|
   lastPart: TeamNamePart,
   seqno: Seqno,
-}
+|}
 
 export type TeamNamePart = String
 
-export type TeamOpenReqMsg = {
+export type TeamOpenReqMsg = {|
   teamID: TeamID,
   tars?: ?Array<TeamAccessRequest>,
-}
+|}
 
-export type TeamPlusApplicationKeys = {
+export type TeamPlusApplicationKeys = {|
   id: TeamID,
   name: String,
   implicit: Boolean,
@@ -6155,17 +6155,17 @@ export type TeamPlusApplicationKeys = {
   writers?: ?Array<UserVersion>,
   onlyReaders?: ?Array<UserVersion>,
   applicationKeys?: ?Array<TeamApplicationKey>,
-}
+|}
 
-export type TeamRefreshers = {
+export type TeamRefreshers = {|
   needKeyGeneration: PerTeamKeyGeneration,
   wantMembers?: ?Array<UserVersion>,
   wantMembersRole: TeamRole,
-}
+|}
 
-export type TeamRequestAccessResult = {
+export type TeamRequestAccessResult = {|
   open: Boolean,
-}
+|}
 
 export type TeamRole =
     0 // NONE_0
@@ -6174,38 +6174,38 @@ export type TeamRole =
   | 3 // ADMIN_3
   | 4 // OWNER_4
 
-export type TeamSBSMsg = {
+export type TeamSBSMsg = {|
   teamID: TeamID,
   score: Int,
   invitees?: ?Array<TeamInvitee>,
-}
+|}
 
-export type TeamSeitanMsg = {
+export type TeamSeitanMsg = {|
   teamID: TeamID,
   seitans?: ?Array<TeamSeitanRequest>,
-}
+|}
 
-export type TeamSeitanRequest = {
+export type TeamSeitanRequest = {|
   inviteID: TeamInviteID,
   uid: UID,
   eldestSeqno: Seqno,
   akey: SeitanAKey,
   role: TeamRole,
   unixCTime: Int64,
-}
+|}
 
-export type TeamSettings = {
+export type TeamSettings = {|
   open: Boolean,
   joinAs: TeamRole,
-}
+|}
 
-export type TeamShowcase = {
+export type TeamShowcase = {|
   isShowcased: Boolean,
   description?: ?String,
   setByUID?: ?UID,
-}
+|}
 
-export type TeamSigChainState = {
+export type TeamSigChainState = {|
   reader: UserVersion,
   id: TeamID,
   implicit: Boolean,
@@ -6224,16 +6224,16 @@ export type TeamSigChainState = {
   activeInvites: {[key: string]: TeamInvite},
   open: Boolean,
   openTeamJoinAs: TeamRole,
-}
+|}
 
-export type TeamTreeEntry = {
+export type TeamTreeEntry = {|
   name: TeamName,
   admin: Boolean,
-}
+|}
 
-export type TeamTreeResult = {
+export type TeamTreeResult = {|
   entries?: ?Array<TeamTreeEntry>,
-}
+|}
 
 export type TeamType =
     0 // NONE_0
@@ -6401,9 +6401,9 @@ export type TeamsUiConfirmSubteamDeleteRpcParam = {|
   teamName: String
 |}
 
-export type Test = {
+export type Test = {|
   reply: String,
-}
+|}
 
 export type TestPanicRpcParam = {|
   message: String
@@ -6417,10 +6417,10 @@ export type TestTestRpcParam = {|
   name: String
 |}
 
-export type Text = {
+export type Text = {|
   data: String,
   markup: Boolean,
-}
+|}
 
 export type Time = Long
 
@@ -6444,10 +6444,10 @@ export type TlfPublicCanonicalTLFNameAndIDRpcParam = {|
   query: TLFQuery
 |}
 
-export type TrackDiff = {
+export type TrackDiff = {|
   type: TrackDiffType,
   displayMarkup: String,
-}
+|}
 
 export type TrackDiffType =
     0 // NONE_0
@@ -6471,19 +6471,19 @@ export type TrackFakeTrackingChangedRpcParam = {|
   isTracking: Boolean
 |}
 
-export type TrackOptions = {
+export type TrackOptions = {|
   localOnly: Boolean,
   bypassConfirm: Boolean,
   forceRetrack: Boolean,
   expiringLocal: Boolean,
   forPGPPull: Boolean,
-}
+|}
 
-export type TrackProof = {
+export type TrackProof = {|
   proofType: String,
   proofName: String,
   idString: String,
-}
+|}
 
 export type TrackStatus =
     1 // NEW_OK_1
@@ -6494,11 +6494,11 @@ export type TrackStatus =
   | 6 // UPDATE_OK_6
   | 7 // UPDATE_BROKEN_REVOKED_7
 
-export type TrackSummary = {
+export type TrackSummary = {|
   username: String,
   time: Time,
   isRemote: Boolean,
-}
+|}
 
 export type TrackToken = String
 
@@ -6517,11 +6517,11 @@ export type TrackUntrackRpcParam = {|
   username: String
 |}
 
-export type Tracker = {
+export type Tracker = {|
   tracker: UID,
   status: Int,
   mTime: Time,
-}
+|}
 
 export type UID = String
 
@@ -6546,23 +6546,23 @@ export type UiPromptYesNoRpcParam = {|
   promptDefault: PromptDefault
 |}
 
-export type UnboxAnyRes = {
+export type UnboxAnyRes = {|
   kid: KID,
   plaintext: Bytes32,
   index: Int,
-}
+|}
 
-export type UninstallResult = {
+export type UninstallResult = {|
   componentResults?: ?Array<ComponentResult>,
   status: Status,
-}
+|}
 
-export type User = {
+export type User = {|
   uid: UID,
   username: String,
-}
+|}
 
-export type UserCard = {
+export type UserCard = {|
   following: Int,
   followers: Int,
   uid: UID,
@@ -6574,7 +6574,7 @@ export type UserCard = {
   youFollowThem: Boolean,
   theyFollowYou: Boolean,
   teamShowcase?: ?Array<UserTeamShowcase>,
-}
+|}
 
 export type UserInterestingPeopleRpcParam = {|
   maxUsers: Int
@@ -6629,29 +6629,29 @@ export type UserLoadUserRpcParam = {|
   uid: UID
 |}
 
-export type UserLogPoint = {
+export type UserLogPoint = {|
   role: TeamRole,
   sigMeta: SignatureMetadata,
-}
+|}
 
 export type UserOrTeamID = String
 
-export type UserOrTeamLite = {
+export type UserOrTeamLite = {|
   id: UserOrTeamID,
   name: String,
-}
+|}
 
 export type UserOrTeamResult =
     1 // USER_1
   | 2 // TEAM_2
 
-export type UserPlusAllKeys = {
+export type UserPlusAllKeys = {|
   base: UserPlusKeys,
   pgpKeys?: ?Array<PublicKey>,
   remoteTracks?: ?Array<RemoteTrack>,
-}
+|}
 
-export type UserPlusKeys = {
+export type UserPlusKeys = {|
   uid: UID,
   username: String,
   eldestSeqno: Seqno,
@@ -6662,9 +6662,9 @@ export type UserPlusKeys = {
   uvv: UserVersionVector,
   deletedDeviceKeys?: ?Array<PublicKey>,
   perUserKeys?: ?Array<PerUserKey>,
-}
+|}
 
-export type UserPlusKeysV2 = {
+export type UserPlusKeysV2 = {|
   uid: UID,
   username: String,
   eldestSeqno: Seqno,
@@ -6673,15 +6673,15 @@ export type UserPlusKeysV2 = {
   deviceKeys: {[key: string]: PublicKeyV2NaCl},
   pgpKeys: {[key: string]: PublicKeyV2PGPSummary},
   remoteTracks: {[key: string]: RemoteTrack},
-}
+|}
 
-export type UserPlusKeysV2AllIncarnations = {
+export type UserPlusKeysV2AllIncarnations = {|
   current: UserPlusKeysV2,
   pastIncarnations?: ?Array<UserPlusKeysV2>,
   uvv: UserVersionVector,
   seqnoLinkIDs: {[key: string]: LinkID},
   minorVersion: UPK2MinorVersion,
-}
+|}
 
 export type UserProfileEditRpcParam = {|
   fullName: String,
@@ -6689,20 +6689,20 @@ export type UserProfileEditRpcParam = {|
   bio: String
 |}
 
-export type UserResolution = {
+export type UserResolution = {|
   assertion: SocialAssertion,
   userID: UID,
-}
+|}
 
 export type UserSearchRpcParam = {|
   query: String
 |}
 
-export type UserSettings = {
+export type UserSettings = {|
   emails?: ?Array<Email>,
-}
+|}
 
-export type UserSummary = {
+export type UserSummary = {|
   uid: UID,
   username: String,
   thumbnail: String,
@@ -6712,62 +6712,62 @@ export type UserSummary = {
   proofs: Proofs,
   sigIDDisplay: String,
   trackTime: Time,
-}
+|}
 
-export type UserSummary2 = {
+export type UserSummary2 = {|
   uid: UID,
   username: String,
   thumbnail: String,
   fullName: String,
   isFollower: Boolean,
   isFollowee: Boolean,
-}
+|}
 
-export type UserSummary2Set = {
+export type UserSummary2Set = {|
   users?: ?Array<UserSummary2>,
   time: Time,
   version: Int,
-}
+|}
 
-export type UserTeamShowcase = {
+export type UserTeamShowcase = {|
   fqName: String,
   open: Boolean,
   teamIsShowcased: Boolean,
   description: String,
   role: TeamRole,
-}
+|}
 
-export type UserVersion = {
+export type UserVersion = {|
   uid: UID,
   eldestSeqno: Seqno,
-}
+|}
 
 export type UserVersionPercentForm = String
 
-export type UserVersionVector = {
+export type UserVersionVector = {|
   id: Long,
   sigHints: Int,
   sigChain: Long,
   cachedAt: Time,
-}
+|}
 
-export type VerifySessionRes = {
+export type VerifySessionRes = {|
   uid: UID,
   sid: String,
   generated: Int,
   lifetime: Int,
-}
+|}
 
-export type WebProof = {
+export type WebProof = {|
   hostname: String,
   protocols?: ?Array<String>,
-}
+|}
 
-export type WriteArgs = {
+export type WriteArgs = {|
   opID: OpID,
   path: Path,
   offset: Long,
-}
+|}
 type AccountHasServerKeysResult = HasServerKeysRes
 type AccountPassphrasePromptResult = GetPassphraseRes
 type ApiserverDeleteResult = APIRes

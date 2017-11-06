@@ -791,13 +791,13 @@ export function remoteUpdateTypingRemoteRpcPromise (request: (RequestCommon & Re
   return new Promise((resolve, reject) => engineRpcOutgoing('chat.1.remote.updateTypingRemote', request, (error, result) => error ? reject(error) : resolve(result)))
 }
 
-export type AppNotificationSettingLocal = {
+export type AppNotificationSettingLocal = {|
   deviceType: Keybase1.DeviceType,
   kind: NotificationKind,
   enabled: Boolean,
-}
+|}
 
-export type Asset = {
+export type Asset = {|
   filename: String,
   region: String,
   endpoint: String,
@@ -812,21 +812,21 @@ export type Asset = {
   nonce: Bytes,
   metadata: AssetMetadata,
   tag: AssetTag,
-}
+|}
 
 export type AssetMetadata =
     { assetType: 1, image: ?AssetMetadataImage }
   | { assetType: 2, video: ?AssetMetadataVideo }
   | { assetType: 3, audio: ?AssetMetadataAudio }
 
-export type AssetMetadataAudio = {
+export type AssetMetadataAudio = {|
   durationMs: Int,
-}
+|}
 
-export type AssetMetadataImage = {
+export type AssetMetadataImage = {|
   width: Int,
   height: Int,
-}
+|}
 
 export type AssetMetadataType =
     0 // NONE_0
@@ -834,11 +834,11 @@ export type AssetMetadataType =
   | 2 // VIDEO_2
   | 3 // AUDIO_3
 
-export type AssetMetadataVideo = {
+export type AssetMetadataVideo = {|
   width: Int,
   height: Int,
   durationMs: Int,
-}
+|}
 
 export type AssetTag =
     0 // PRIMARY_0
@@ -855,17 +855,17 @@ export type BodyPlaintext =
   | { version: 9, v9: ?BodyPlaintextUnsupported }
   | { version: 10, v10: ?BodyPlaintextUnsupported }
 
-export type BodyPlaintextMetaInfo = {
+export type BodyPlaintextMetaInfo = {|
   crit: Boolean,
-}
+|}
 
-export type BodyPlaintextUnsupported = {
+export type BodyPlaintextUnsupported = {|
   mi: BodyPlaintextMetaInfo,
-}
+|}
 
-export type BodyPlaintextV1 = {
+export type BodyPlaintextV1 = {|
   messageBody: MessageBody,
-}
+|}
 
 export type BodyPlaintextVersion =
     1 // V1_1
@@ -905,9 +905,9 @@ export type ChatActivityType =
   | 7 // SET_APP_NOTIFICATION_SETTINGS_7
   | 8 // TEAMTYPE_8
 
-export type ChatSyncIncrementalInfo = {
+export type ChatSyncIncrementalInfo = {|
   items?: ?Array<UnverifiedInboxUIItem>,
-}
+|}
 
 export type ChatSyncResult =
     { syncType: 0 }
@@ -962,45 +962,45 @@ export type ChatUiChatThreadFullRpcParam = {|
   thread: String
 |}
 
-export type ConvTypingUpdate = {
+export type ConvTypingUpdate = {|
   convID: ConversationID,
   typers?: ?Array<TyperInfo>,
-}
+|}
 
-export type Conversation = {
+export type Conversation = {|
   metadata: ConversationMetadata,
   readerInfo?: ?ConversationReaderInfo,
   notifications?: ?ConversationNotificationInfo,
   maxMsgs?: ?Array<MessageBoxed>,
   maxMsgSummaries?: ?Array<MessageSummary>,
   creatorInfo?: ?ConversationCreatorInfo,
-}
+|}
 
-export type ConversationCreatorInfo = {
+export type ConversationCreatorInfo = {|
   ctime: Gregor1.Time,
   uid: Gregor1.UID,
-}
+|}
 
-export type ConversationCreatorInfoLocal = {
+export type ConversationCreatorInfoLocal = {|
   ctime: Gregor1.Time,
   username: String,
-}
+|}
 
-export type ConversationErrorLocal = {
+export type ConversationErrorLocal = {|
   typ: ConversationErrorType,
   message: String,
   remoteConv: Conversation,
   unverifiedTLFName: String,
   rekeyInfo?: ?ConversationErrorRekey,
-}
+|}
 
-export type ConversationErrorRekey = {
+export type ConversationErrorRekey = {|
   tlfName: String,
   tlfPublic: Boolean,
   rekeyers?: ?Array<String>,
   writerNames?: ?Array<String>,
   readerNames?: ?Array<String>,
-}
+|}
 
 export type ConversationErrorType =
     0 // PERMANENT_0
@@ -1016,31 +1016,31 @@ export type ConversationExistence =
   | 1 // ARCHIVED_1
   | 2 // DELETED_2
 
-export type ConversationFinalizeInfo = {
+export type ConversationFinalizeInfo = {|
   resetUser: String,
   resetDate: String,
   resetFull: String,
   resetTimestamp: Gregor1.Time,
-}
+|}
 
 export type ConversationID = Bytes
 
-export type ConversationIDMessageIDPair = {
+export type ConversationIDMessageIDPair = {|
   convID: ConversationID,
   msgID: MessageID,
-}
+|}
 
-export type ConversationIDMessageIDPairs = {
+export type ConversationIDMessageIDPairs = {|
   pairs?: ?Array<ConversationIDMessageIDPair>,
-}
+|}
 
-export type ConversationIDTriple = {
+export type ConversationIDTriple = {|
   tlfid: TLFID,
   topicType: TopicType,
   topicID: TopicID,
-}
+|}
 
-export type ConversationInfoLocal = {
+export type ConversationInfoLocal = {|
   id: ConversationID,
   triple: ConversationIDTriple,
   tlfName: String,
@@ -1055,9 +1055,9 @@ export type ConversationInfoLocal = {
   participants?: ?Array<ConversationLocalParticipant>,
   finalizeInfo?: ?ConversationFinalizeInfo,
   resetNames?: ?Array<String>,
-}
+|}
 
-export type ConversationLocal = {
+export type ConversationLocal = {|
   error?: ?ConversationErrorLocal,
   info: ConversationInfoLocal,
   readerInfo: ConversationReaderInfo,
@@ -1068,17 +1068,17 @@ export type ConversationLocal = {
   maxMessages?: ?Array<MessageUnboxed>,
   isEmpty: Boolean,
   identifyFailures?: ?Array<Keybase1.TLFIdentifyFailure>,
-}
+|}
 
-export type ConversationLocalParticipant = {
+export type ConversationLocalParticipant = {|
   username: String,
   fullname?: ?String,
-}
+|}
 
-export type ConversationMember = {
+export type ConversationMember = {|
   uid: Gregor1.UID,
   convID: ConversationID,
-}
+|}
 
 export type ConversationMemberStatus =
     0 // ACTIVE_0
@@ -1092,7 +1092,7 @@ export type ConversationMembersType =
   | 1 // TEAM_1
   | 2 // IMPTEAM_2
 
-export type ConversationMetadata = {
+export type ConversationMetadata = {|
   idTriple: ConversationIDTriple,
   conversationID: ConversationID,
   visibility: Keybase1.TLFVisibility,
@@ -1107,28 +1107,28 @@ export type ConversationMetadata = {
   activeList?: ?Array<Gregor1.UID>,
   allList?: ?Array<Gregor1.UID>,
   resetList?: ?Array<Gregor1.UID>,
-}
+|}
 
-export type ConversationNotificationInfo = {
+export type ConversationNotificationInfo = {|
   channelWide: Boolean,
   settings: {[key: string]: {[key: string]: Boolean}},
-}
+|}
 
-export type ConversationReaderInfo = {
+export type ConversationReaderInfo = {|
   mtime: Gregor1.Time,
   readMsgid: MessageID,
   maxMsgid: MessageID,
   status: ConversationMemberStatus,
-}
+|}
 
-export type ConversationResolveInfo = {
+export type ConversationResolveInfo = {|
   newTLFName: String,
-}
+|}
 
-export type ConversationStaleUpdate = {
+export type ConversationStaleUpdate = {|
   convID: ConversationID,
   updateType: StaleUpdateType,
-}
+|}
 
 export type ConversationStatus =
     0 // UNFILED_0
@@ -1140,78 +1140,78 @@ export type ConversationStatus =
 
 export type ConversationVers = Uint64
 
-export type DeleteConversationLocalRes = {
+export type DeleteConversationLocalRes = {|
   offline: Boolean,
   rateLimits?: ?Array<RateLimit>,
-}
+|}
 
-export type DeleteConversationRemoteRes = {
+export type DeleteConversationRemoteRes = {|
   rateLimit?: ?RateLimit,
-}
+|}
 
-export type DownloadAttachmentLocalRes = {
+export type DownloadAttachmentLocalRes = {|
   offline: Boolean,
   rateLimits?: ?Array<RateLimit>,
   identifyFailures?: ?Array<Keybase1.TLFIdentifyFailure>,
-}
+|}
 
-export type EncryptedData = {
+export type EncryptedData = {|
   v: Int,
   e: Bytes,
   n: Bytes,
-}
+|}
 
-export type FailedMessageInfo = {
+export type FailedMessageInfo = {|
   outboxRecords?: ?Array<OutboxRecord>,
-}
+|}
 
-export type FindConversationsLocalRes = {
+export type FindConversationsLocalRes = {|
   conversations?: ?Array<ConversationLocal>,
   offline: Boolean,
   rateLimits?: ?Array<RateLimit>,
   identifyFailures?: ?Array<Keybase1.TLFIdentifyFailure>,
-}
+|}
 
-export type GenericPayload = {
+export type GenericPayload = {|
   Action: String,
   inboxVers: InboxVers,
   convID: ConversationID,
-}
+|}
 
-export type GetConversationForCLILocalQuery = {
+export type GetConversationForCLILocalQuery = {|
   markAsRead: Boolean,
   MessageTypes?: ?Array<MessageType>,
   Since?: ?String,
   limit: UnreadFirstNumLimit,
   conv: ConversationLocal,
-}
+|}
 
-export type GetConversationForCLILocalRes = {
+export type GetConversationForCLILocalRes = {|
   conversation: ConversationLocal,
   messages?: ?Array<MessageUnboxed>,
   offline: Boolean,
   rateLimits?: ?Array<RateLimit>,
-}
+|}
 
-export type GetConversationMetadataRemoteRes = {
+export type GetConversationMetadataRemoteRes = {|
   conv: Conversation,
   rateLimit?: ?RateLimit,
-}
+|}
 
-export type GetInboxAndUnboxLocalRes = {
+export type GetInboxAndUnboxLocalRes = {|
   conversations?: ?Array<ConversationLocal>,
   pagination?: ?Pagination,
   offline: Boolean,
   rateLimits?: ?Array<RateLimit>,
   identifyFailures?: ?Array<Keybase1.TLFIdentifyFailure>,
-}
+|}
 
-export type GetInboxByTLFIDRemoteRes = {
+export type GetInboxByTLFIDRemoteRes = {|
   convs?: ?Array<Conversation>,
   rateLimit?: ?RateLimit,
-}
+|}
 
-export type GetInboxLocalQuery = {
+export type GetInboxLocalQuery = {|
   name?: ?NameQuery,
   topicName?: ?String,
   convIDs?: ?Array<ConversationID>,
@@ -1224,17 +1224,17 @@ export type GetInboxLocalQuery = {
   unreadOnly: Boolean,
   readOnly: Boolean,
   computeActiveList: Boolean,
-}
+|}
 
-export type GetInboxLocalRes = {
+export type GetInboxLocalRes = {|
   conversationsUnverified?: ?Array<Conversation>,
   pagination?: ?Pagination,
   offline: Boolean,
   rateLimits?: ?Array<RateLimit>,
   identifyFailures?: ?Array<Keybase1.TLFIdentifyFailure>,
-}
+|}
 
-export type GetInboxQuery = {
+export type GetInboxQuery = {|
   convID?: ?ConversationID,
   topicType?: ?TopicType,
   tlfID?: ?TLFID,
@@ -1250,14 +1250,14 @@ export type GetInboxQuery = {
   readOnly: Boolean,
   computeActiveList: Boolean,
   summarizeMaxMsgs: Boolean,
-}
+|}
 
-export type GetInboxRemoteRes = {
+export type GetInboxRemoteRes = {|
   inbox: InboxView,
   rateLimit?: ?RateLimit,
-}
+|}
 
-export type GetInboxSummaryForCLILocalQuery = {
+export type GetInboxSummaryForCLILocalQuery = {|
   topicType: TopicType,
   after: String,
   before: String,
@@ -1266,72 +1266,72 @@ export type GetInboxSummaryForCLILocalQuery = {
   unreadFirst: Boolean,
   unreadFirstLimit: UnreadFirstNumLimit,
   activitySortedLimit: Int,
-}
+|}
 
-export type GetInboxSummaryForCLILocalRes = {
+export type GetInboxSummaryForCLILocalRes = {|
   conversations?: ?Array<ConversationLocal>,
   offline: Boolean,
   rateLimits?: ?Array<RateLimit>,
-}
+|}
 
-export type GetMessagesLocalRes = {
+export type GetMessagesLocalRes = {|
   messages?: ?Array<MessageUnboxed>,
   offline: Boolean,
   rateLimits?: ?Array<RateLimit>,
   identifyFailures?: ?Array<Keybase1.TLFIdentifyFailure>,
-}
+|}
 
-export type GetMessagesRemoteRes = {
+export type GetMessagesRemoteRes = {|
   msgs?: ?Array<MessageBoxed>,
   rateLimit?: ?RateLimit,
-}
+|}
 
-export type GetPublicConversationsRes = {
+export type GetPublicConversationsRes = {|
   conversations?: ?Array<Conversation>,
   rateLimit?: ?RateLimit,
-}
+|}
 
-export type GetTLFConversationsLocalRes = {
+export type GetTLFConversationsLocalRes = {|
   convs?: ?Array<InboxUIItem>,
   offline: Boolean,
   rateLimits?: ?Array<RateLimit>,
-}
+|}
 
-export type GetTLFConversationsRes = {
+export type GetTLFConversationsRes = {|
   conversations?: ?Array<Conversation>,
   rateLimit?: ?RateLimit,
-}
+|}
 
-export type GetThreadLocalRes = {
+export type GetThreadLocalRes = {|
   thread: ThreadView,
   offline: Boolean,
   rateLimits?: ?Array<RateLimit>,
   identifyFailures?: ?Array<Keybase1.TLFIdentifyFailure>,
-}
+|}
 
-export type GetThreadQuery = {
+export type GetThreadQuery = {|
   markAsRead: Boolean,
   messageTypes?: ?Array<MessageType>,
   disableResolveSupersedes: Boolean,
   before?: ?Gregor1.Time,
   after?: ?Gregor1.Time,
   messageIDControl?: ?MessageIDControl,
-}
+|}
 
-export type GetThreadRemoteRes = {
+export type GetThreadRemoteRes = {|
   thread: ThreadViewBoxed,
   membersType: ConversationMembersType,
   rateLimit?: ?RateLimit,
-}
+|}
 
 export type GlobalAppNotificationSetting =
     0 // NEWMESSAGES_0
   | 1 // PLAINTEXTMOBILE_1
   | 2 // PLAINTEXTDESKTOP_2
 
-export type GlobalAppNotificationSettings = {
+export type GlobalAppNotificationSettings = {|
   settings: {[key: string]: Bool},
-}
+|}
 
 export type Hash = Bytes
 
@@ -1347,15 +1347,15 @@ export type HeaderPlaintext =
   | { version: 9, v9: ?HeaderPlaintextUnsupported }
   | { version: 10, v10: ?HeaderPlaintextUnsupported }
 
-export type HeaderPlaintextMetaInfo = {
+export type HeaderPlaintextMetaInfo = {|
   crit: Boolean,
-}
+|}
 
-export type HeaderPlaintextUnsupported = {
+export type HeaderPlaintextUnsupported = {|
   mi: HeaderPlaintextMetaInfo,
-}
+|}
 
-export type HeaderPlaintextV1 = {
+export type HeaderPlaintextV1 = {|
   conv: ConversationIDTriple,
   tlfName: String,
   tlfPublic: Boolean,
@@ -1368,7 +1368,7 @@ export type HeaderPlaintextV1 = {
   outboxID?: ?OutboxID,
   headerSignature?: ?SignatureInfo,
   merkleRoot?: ?MerkleRoot,
-}
+|}
 
 export type HeaderPlaintextVersion =
     1 // V1_1
@@ -1386,7 +1386,7 @@ export type InboxResType =
     0 // VERSIONHIT_0
   | 1 // FULL_1
 
-export type InboxUIItem = {
+export type InboxUIItem = {|
   convID: String,
   isEmpty: Boolean,
   name: String,
@@ -1409,13 +1409,13 @@ export type InboxUIItem = {
   finalizeInfo?: ?ConversationFinalizeInfo,
   supersedes?: ?Array<ConversationMetadata>,
   supersededBy?: ?Array<ConversationMetadata>,
-}
+|}
 
-export type InboxUIItems = {
+export type InboxUIItems = {|
   items?: ?Array<InboxUIItem>,
   pagination?: ?UIPagination,
   offline: Boolean,
-}
+|}
 
 export type InboxVers = Uint64
 
@@ -1423,28 +1423,28 @@ export type InboxView =
     { rtype: 0 }
   | { rtype: 1, full: ?InboxViewFull }
 
-export type InboxViewFull = {
+export type InboxViewFull = {|
   vers: InboxVers,
   conversations?: ?Array<Conversation>,
   pagination?: ?Pagination,
-}
+|}
 
-export type IncomingMessage = {
+export type IncomingMessage = {|
   message: UIMessage,
   convID: ConversationID,
   displayDesktopNotification: Boolean,
   conv?: ?InboxUIItem,
   pagination?: ?UIPagination,
-}
+|}
 
-export type JoinLeaveConversationLocalRes = {
+export type JoinLeaveConversationLocalRes = {|
   offline: Boolean,
   rateLimits?: ?Array<RateLimit>,
-}
+|}
 
-export type JoinLeaveConversationRemoteRes = {
+export type JoinLeaveConversationRemoteRes = {|
   rateLimit?: ?RateLimit,
-}
+|}
 
 export type LocalCancelPostRpcParam = {|
   outboxID: OutboxID
@@ -1471,9 +1471,9 @@ export type LocalDownloadFileAttachmentLocalRpcParam = {|
   identifyBehavior: Keybase1.TLFIdentifyBehavior
 |}
 
-export type LocalFileSource = {
+export type LocalFileSource = {|
   filename: String,
-}
+|}
 
 export type LocalFindConversationsLocalRpcParam = {|
   tlfName: String,
@@ -1698,11 +1698,11 @@ export type LocalSetGlobalAppNotificationSettingsLocalRpcParam = {|
   settings: {[key: string]: Bool}
 |}
 
-export type LocalSource = {
+export type LocalSource = {|
   source: Keybase1.Stream,
   filename: String,
   size: Int,
-}
+|}
 
 export type LocalUnboxMobilePushNotificationRpcParam = {|
   payload: String,
@@ -1716,47 +1716,47 @@ export type LocalUpdateTypingRpcParam = {|
   typing: Boolean
 |}
 
-export type MakePreviewRes = {
+export type MakePreviewRes = {|
   mimeType: String,
   filename?: ?String,
   metadata?: ?AssetMetadata,
   baseMetadata?: ?AssetMetadata,
-}
+|}
 
-export type MarkAsReadLocalRes = {
+export type MarkAsReadLocalRes = {|
   offline: Boolean,
   rateLimits?: ?Array<RateLimit>,
-}
+|}
 
-export type MarkAsReadRes = {
+export type MarkAsReadRes = {|
   rateLimit?: ?RateLimit,
-}
+|}
 
-export type MembersUpdateInfo = {
+export type MembersUpdateInfo = {|
   convID: ConversationID,
   member: String,
   status: ConversationMemberStatus,
-}
+|}
 
-export type MerkleRoot = {
+export type MerkleRoot = {|
   seqno: Long,
   hash: Bytes,
-}
+|}
 
-export type MessageAttachment = {
+export type MessageAttachment = {|
   object: Asset,
   preview?: ?Asset,
   previews?: ?Array<Asset>,
   metadata: Bytes,
   uploaded: Boolean,
-}
+|}
 
-export type MessageAttachmentUploaded = {
+export type MessageAttachmentUploaded = {|
   messageID: MessageID,
   object: Asset,
   previews?: ?Array<Asset>,
   metadata: Bytes,
-}
+|}
 
 export type MessageBody =
     { messageType: 1, text: ?MessageText }
@@ -1769,7 +1769,7 @@ export type MessageBody =
   | { messageType: 9, join: ?MessageJoin }
   | { messageType: 10, leave: ?MessageLeave }
 
-export type MessageBoxed = {
+export type MessageBoxed = {|
   version: MessageBoxedVersion,
   serverHeader?: ?MessageServerHeader,
   clientHeader: MessageClientHeader,
@@ -1777,14 +1777,14 @@ export type MessageBoxed = {
   bodyCiphertext: EncryptedData,
   verifyKey: Bytes,
   keyGeneration: Int,
-}
+|}
 
 export type MessageBoxedVersion =
     0 // VNONE_0
   | 1 // V1_1
   | 2 // V2_2
 
-export type MessageClientHeader = {
+export type MessageClientHeader = {|
   conv: ConversationIDTriple,
   tlfName: String,
   tlfPublic: Boolean,
@@ -1797,9 +1797,9 @@ export type MessageClientHeader = {
   merkleRoot?: ?MerkleRoot,
   outboxID?: ?OutboxID,
   outboxInfo?: ?OutboxInfo,
-}
+|}
 
-export type MessageClientHeaderVerified = {
+export type MessageClientHeaderVerified = {|
   conv: ConversationIDTriple,
   tlfName: String,
   tlfPublic: Boolean,
@@ -1810,64 +1810,64 @@ export type MessageClientHeaderVerified = {
   merkleRoot?: ?MerkleRoot,
   outboxID?: ?OutboxID,
   outboxInfo?: ?OutboxInfo,
-}
+|}
 
-export type MessageConversationMetadata = {
+export type MessageConversationMetadata = {|
   conversationTitle: String,
-}
+|}
 
-export type MessageDelete = {
+export type MessageDelete = {|
   messageIDs?: ?Array<MessageID>,
-}
+|}
 
-export type MessageEdit = {
+export type MessageEdit = {|
   messageID: MessageID,
   body: String,
-}
+|}
 
-export type MessageHeadline = {
+export type MessageHeadline = {|
   headline: String,
-}
+|}
 
 export type MessageID = Uint
 
-export type MessageIDControl = {
+export type MessageIDControl = {|
   pivot?: ?MessageID,
   recent: Boolean,
   num: Int,
-}
+|}
 
-export type MessageJoin = {}
+export type MessageJoin = {||}
 
-export type MessageLeave = {}
+export type MessageLeave = {||}
 
-export type MessagePlaintext = {
+export type MessagePlaintext = {|
   clientHeader: MessageClientHeader,
   messageBody: MessageBody,
-}
+|}
 
-export type MessagePreviousPointer = {
+export type MessagePreviousPointer = {|
   id: MessageID,
   hash: Hash,
-}
+|}
 
-export type MessageServerHeader = {
+export type MessageServerHeader = {|
   messageID: MessageID,
   supersededBy: MessageID,
   ctime: Gregor1.Time,
-}
+|}
 
-export type MessageSummary = {
+export type MessageSummary = {|
   msgID: MessageID,
   messageType: MessageType,
   tlfName: String,
   tlfPublic: Boolean,
   ctime: Gregor1.Time,
-}
+|}
 
-export type MessageText = {
+export type MessageText = {|
   body: String,
-}
+|}
 
 export type MessageType =
     0 // NONE_0
@@ -1888,13 +1888,13 @@ export type MessageUnboxed =
   | { state: 3, outbox: ?OutboxRecord }
   | { state: 4, placeholder: ?MessageUnboxedPlaceholder }
 
-export type MessageUnboxedError = {
+export type MessageUnboxedError = {|
   errType: MessageUnboxedErrorType,
   errMsg: String,
   messageID: MessageID,
   messageType: MessageType,
   ctime: Gregor1.Time,
-}
+|}
 
 export type MessageUnboxedErrorType =
     0 // MISC_0
@@ -1902,9 +1902,9 @@ export type MessageUnboxedErrorType =
   | 2 // BADVERSION_2
   | 3 // IDENTIFY_3
 
-export type MessageUnboxedPlaceholder = {
+export type MessageUnboxedPlaceholder = {|
   messageID: MessageID,
-}
+|}
 
 export type MessageUnboxedState =
     1 // VALID_1
@@ -1912,7 +1912,7 @@ export type MessageUnboxedState =
   | 3 // OUTBOX_3
   | 4 // PLACEHOLDER_4
 
-export type MessageUnboxedValid = {
+export type MessageUnboxedValid = {|
   clientHeader: MessageClientHeaderVerified,
   serverHeader: MessageServerHeader,
   messageBody: MessageBody,
@@ -1928,49 +1928,49 @@ export type MessageUnboxedValid = {
   atMentions?: ?Array<Gregor1.UID>,
   channelMention: ChannelMention,
   channelNameMentions?: ?Array<String>,
-}
+|}
 
-export type NameQuery = {
+export type NameQuery = {|
   name: String,
   membersType: ConversationMembersType,
-}
+|}
 
-export type NewConversationInfo = {
+export type NewConversationInfo = {|
   conv: InboxUIItem,
-}
+|}
 
-export type NewConversationLocalRes = {
+export type NewConversationLocalRes = {|
   conv: ConversationLocal,
   rateLimits?: ?Array<RateLimit>,
   identifyFailures?: ?Array<Keybase1.TLFIdentifyFailure>,
-}
+|}
 
-export type NewConversationPayload = {
+export type NewConversationPayload = {|
   Action: String,
   convID: ConversationID,
   inboxVers: InboxVers,
   unreadUpdate?: ?UnreadUpdate,
-}
+|}
 
-export type NewConversationRemoteRes = {
+export type NewConversationRemoteRes = {|
   convID: ConversationID,
   createdComplexTeam: Boolean,
   rateLimit?: ?RateLimit,
-}
+|}
 
-export type NewMessagePayload = {
+export type NewMessagePayload = {|
   Action: String,
   convID: ConversationID,
   message: MessageBoxed,
   inboxVers: InboxVers,
   unreadUpdate?: ?UnreadUpdate,
-}
+|}
 
-export type NonblockFetchRes = {
+export type NonblockFetchRes = {|
   offline: Boolean,
   rateLimits?: ?Array<RateLimit>,
   identifyFailures?: ?Array<Keybase1.TLFIdentifyFailure>,
-}
+|}
 
 export type NotificationKind =
     0 // GENERIC_0
@@ -2044,77 +2044,77 @@ export type OutboxErrorType =
 
 export type OutboxID = Bytes
 
-export type OutboxInfo = {
+export type OutboxInfo = {|
   prev: MessageID,
   composeTime: Gregor1.Time,
-}
+|}
 
-export type OutboxRecord = {
+export type OutboxRecord = {|
   state: OutboxState,
   outboxID: OutboxID,
   convID: ConversationID,
   ctime: Gregor1.Time,
   Msg: MessagePlaintext,
   identifyBehavior: Keybase1.TLFIdentifyBehavior,
-}
+|}
 
 export type OutboxState =
     { state: 0, sending: ?Int }
   | { state: 1, error: ?OutboxStateError }
 
-export type OutboxStateError = {
+export type OutboxStateError = {|
   message: String,
   typ: OutboxErrorType,
-}
+|}
 
 export type OutboxStateType =
     0 // SENDING_0
   | 1 // ERROR_1
 
-export type Pagination = {
+export type Pagination = {|
   next: Bytes,
   previous: Bytes,
   num: Int,
   last: Boolean,
-}
+|}
 
-export type PostLocalNonblockRes = {
+export type PostLocalNonblockRes = {|
   rateLimits?: ?Array<RateLimit>,
   outboxID: OutboxID,
   identifyFailures?: ?Array<Keybase1.TLFIdentifyFailure>,
-}
+|}
 
-export type PostLocalRes = {
+export type PostLocalRes = {|
   rateLimits?: ?Array<RateLimit>,
   messageID: MessageID,
   identifyFailures?: ?Array<Keybase1.TLFIdentifyFailure>,
-}
+|}
 
-export type PostRemoteRes = {
+export type PostRemoteRes = {|
   msgHeader: MessageServerHeader,
   rateLimit?: ?RateLimit,
-}
+|}
 
-export type RateLimit = {
+export type RateLimit = {|
   name: String,
   callsRemaining: Int,
   windowReset: Int,
   maxCalls: Int,
-}
+|}
 
-export type ReadMessageInfo = {
+export type ReadMessageInfo = {|
   convID: ConversationID,
   msgID: MessageID,
   conv?: ?InboxUIItem,
-}
+|}
 
-export type ReadMessagePayload = {
+export type ReadMessagePayload = {|
   Action: String,
   convID: ConversationID,
   msgID: MessageID,
   inboxVers: InboxVers,
   unreadUpdate?: ?UnreadUpdate,
-}
+|}
 
 export type RemoteDeleteConversationRpcParam = {|
   convID: ConversationID
@@ -2269,14 +2269,14 @@ export type RemoteUpdateTypingRemoteRpcParam = {|
   typing: Boolean
 |}
 
-export type RemoteUserTypingUpdate = {
+export type RemoteUserTypingUpdate = {|
   uid: Gregor1.UID,
   deviceID: Gregor1.DeviceID,
   convID: ConversationID,
   typing: Boolean,
-}
+|}
 
-export type S3Params = {
+export type S3Params = {|
   bucket: String,
   objectKey: String,
   accessKey: String,
@@ -2284,74 +2284,74 @@ export type S3Params = {
   regionName: String,
   regionEndpoint: String,
   regionBucketEndpoint: String,
-}
+|}
 
-export type SealedData = {
+export type SealedData = {|
   v: Int,
   e: Bytes,
   n: Bytes,
-}
+|}
 
-export type ServerCacheVers = {
+export type ServerCacheVers = {|
   inboxVers: Int,
   bodiesVers: Int,
-}
+|}
 
-export type SetAppNotificationSettingsInfo = {
+export type SetAppNotificationSettingsInfo = {|
   convID: ConversationID,
   settings: ConversationNotificationInfo,
-}
+|}
 
-export type SetAppNotificationSettingsLocalRes = {
+export type SetAppNotificationSettingsLocalRes = {|
   offline: Boolean,
   rateLimits?: ?Array<RateLimit>,
-}
+|}
 
-export type SetAppNotificationSettingsPayload = {
+export type SetAppNotificationSettingsPayload = {|
   Action: String,
   convID: ConversationID,
   inboxVers: InboxVers,
   settings: ConversationNotificationInfo,
-}
+|}
 
-export type SetAppNotificationSettingsRes = {
+export type SetAppNotificationSettingsRes = {|
   rateLimit?: ?RateLimit,
-}
+|}
 
-export type SetConversationStatusLocalRes = {
+export type SetConversationStatusLocalRes = {|
   rateLimits?: ?Array<RateLimit>,
   identifyFailures?: ?Array<Keybase1.TLFIdentifyFailure>,
-}
+|}
 
-export type SetConversationStatusRes = {
+export type SetConversationStatusRes = {|
   rateLimit?: ?RateLimit,
-}
+|}
 
-export type SetStatusInfo = {
+export type SetStatusInfo = {|
   convID: ConversationID,
   status: ConversationStatus,
   conv?: ?InboxUIItem,
-}
+|}
 
-export type SetStatusPayload = {
+export type SetStatusPayload = {|
   Action: String,
   convID: ConversationID,
   status: ConversationStatus,
   inboxVers: InboxVers,
   unreadUpdate?: ?UnreadUpdate,
-}
+|}
 
-export type SignEncryptedData = {
+export type SignEncryptedData = {|
   v: Int,
   e: Bytes,
   n: Bytes,
-}
+|}
 
-export type SignatureInfo = {
+export type SignatureInfo = {|
   v: Int,
   s: Bytes,
   k: Bytes,
-}
+|}
 
 export type StaleUpdateType =
     0 // CLEAR_0
@@ -2369,17 +2369,17 @@ export type SyncAllProtVers =
     0 // V0_0
   | 1 // V1_1
 
-export type SyncAllResult = {
+export type SyncAllResult = {|
   auth: Gregor1.AuthResult,
   chat: SyncChatRes,
   notification: SyncAllNotificationRes,
   badge: UnreadUpdateFull,
-}
+|}
 
-export type SyncChatRes = {
+export type SyncChatRes = {|
   cacheVers: ServerCacheVers,
   inboxRes: SyncInboxRes,
-}
+|}
 
 export type SyncInboxRes =
     { typ: 0 }
@@ -2391,60 +2391,60 @@ export type SyncInboxResType =
   | 1 // INCREMENTAL_1
   | 2 // CLEAR_2
 
-export type SyncIncrementalRes = {
+export type SyncIncrementalRes = {|
   vers: InboxVers,
   convs?: ?Array<Conversation>,
-}
+|}
 
 export type TLFConvOrdinal = Uint
 
-export type TLFFinalizeUpdate = {
+export type TLFFinalizeUpdate = {|
   finalizeInfo: ConversationFinalizeInfo,
   convIDs?: ?Array<ConversationID>,
   inboxVers: InboxVers,
-}
+|}
 
 export type TLFID = Bytes
 
-export type TLFResolveUpdate = {
+export type TLFResolveUpdate = {|
   convID: ConversationID,
   inboxVers: InboxVers,
-}
+|}
 
-export type TeamChannelUpdate = {
+export type TeamChannelUpdate = {|
   teamID: TLFID,
-}
+|}
 
 export type TeamType =
     0 // NONE_0
   | 1 // SIMPLE_1
   | 2 // COMPLEX_2
 
-export type TeamTypeInfo = {
+export type TeamTypeInfo = {|
   convID: ConversationID,
   teamType: TeamType,
   conv?: ?InboxUIItem,
-}
+|}
 
-export type TeamTypePayload = {
+export type TeamTypePayload = {|
   Action: String,
   convID: ConversationID,
   teamType: TeamType,
   inboxVers: InboxVers,
   unreadUpdate?: ?UnreadUpdate,
-}
+|}
 
 export type ThreadID = Bytes
 
-export type ThreadView = {
+export type ThreadView = {|
   messages?: ?Array<MessageUnboxed>,
   pagination?: ?Pagination,
-}
+|}
 
-export type ThreadViewBoxed = {
+export type ThreadViewBoxed = {|
   messages?: ?Array<MessageBoxed>,
   pagination?: ?Pagination,
-}
+|}
 
 export type TopicID = Bytes
 
@@ -2455,13 +2455,13 @@ export type TopicType =
   | 1 // CHAT_1
   | 2 // DEV_2
 
-export type TyperInfo = {
+export type TyperInfo = {|
   uid: Keybase1.UID,
   username: String,
   deviceID: Keybase1.DeviceID,
   deviceName: String,
   deviceType: String,
-}
+|}
 
 export type UIMessage =
     { state: 1, valid: ?UIMessageValid }
@@ -2469,15 +2469,15 @@ export type UIMessage =
   | { state: 3, outbox: ?UIMessageOutbox }
   | { state: 4, placeholder: ?MessageUnboxedPlaceholder }
 
-export type UIMessageOutbox = {
+export type UIMessageOutbox = {|
   state: OutboxState,
   outboxID: String,
   messageType: MessageType,
   body: String,
   ctime: Gregor1.Time,
-}
+|}
 
-export type UIMessageValid = {
+export type UIMessageValid = {|
   messageID: MessageID,
   ctime: Gregor1.Time,
   outboxID?: ?String,
@@ -2490,40 +2490,40 @@ export type UIMessageValid = {
   atMentions?: ?Array<String>,
   channelMention: ChannelMention,
   channelNameMentions?: ?Array<String>,
-}
+|}
 
-export type UIMessages = {
+export type UIMessages = {|
   messages?: ?Array<UIMessage>,
   pagination?: ?UIPagination,
-}
+|}
 
-export type UIPagination = {
+export type UIPagination = {|
   next: String,
   previous: String,
   num: Int,
   last: Boolean,
-}
+|}
 
-export type UnreadFirstNumLimit = {
+export type UnreadFirstNumLimit = {|
   NumRead: Int,
   AtLeast: Int,
   AtMost: Int,
-}
+|}
 
-export type UnreadUpdate = {
+export type UnreadUpdate = {|
   convID: ConversationID,
   unreadMessages: Int,
   unreadNotifyingMessages: {[key: string]: Int},
-}
+|}
 
-export type UnreadUpdateFull = {
+export type UnreadUpdateFull = {|
   ignore: Boolean,
   inboxVers: InboxVers,
   inboxSyncStatus: SyncInboxResType,
   updates?: ?Array<UnreadUpdate>,
-}
+|}
 
-export type UnverifiedInboxUIItem = {
+export type UnverifiedInboxUIItem = {|
   convID: String,
   name: String,
   visibility: Keybase1.TLFVisibility,
@@ -2536,30 +2536,30 @@ export type UnverifiedInboxUIItem = {
   version: ConversationVers,
   maxMsgID: MessageID,
   localMetadata?: ?UnverifiedInboxUIItemMetadata,
-}
+|}
 
-export type UnverifiedInboxUIItemMetadata = {
+export type UnverifiedInboxUIItemMetadata = {|
   channelName: String,
   headline: String,
   snippet: String,
   writerNames?: ?Array<String>,
   resetParticipants?: ?Array<String>,
-}
+|}
 
-export type UnverifiedInboxUIItems = {
+export type UnverifiedInboxUIItems = {|
   items?: ?Array<UnverifiedInboxUIItem>,
   pagination?: ?UIPagination,
   offline: Boolean,
-}
+|}
 
-export type UpdateConversationMembership = {
+export type UpdateConversationMembership = {|
   inboxVers: InboxVers,
   joined?: ?Array<ConversationMember>,
   removed?: ?Array<ConversationMember>,
   reset?: ?Array<ConversationMember>,
   unreadUpdate?: ?UnreadUpdate,
   unreadUpdates?: ?Array<UnreadUpdate>,
-}
+|}
 type ChatUiChatConfirmChannelDeleteResult = Boolean
 type LocalDeleteConversationLocalResult = DeleteConversationLocalRes
 type LocalDownloadAttachmentLocalResult = DownloadAttachmentLocalRes

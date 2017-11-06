@@ -42,7 +42,8 @@ export type Folder = {
 }
 
 export type FolderRPCWithMeta = {
+  ...FolderRPC,
   meta: MetaType,
   waitingForParticipantUnlock: Array<ParticipantUnlock>,
   youCanUnlock: Array<Device>,
-} & FolderRPC
+}

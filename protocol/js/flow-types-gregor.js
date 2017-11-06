@@ -188,12 +188,12 @@ export type AuthAuthenticateSessionTokenRpcParam = {|
   session: SessionToken
 |}
 
-export type AuthResult = {
+export type AuthResult = {|
   uid: UID,
   username: String,
   sid: SessionID,
   isAdmin: Boolean,
-}
+|}
 
 export type AuthUpdateRevokeSessionIDsRpcParam = {|
   sessionIDs?: ?Array<SessionID>
@@ -203,31 +203,31 @@ export type Body = Bytes
 
 export type Category = String
 
-export type ConnectedDevice = {
+export type ConnectedDevice = {|
   deviceID: DeviceID,
   deviceType: String,
   devicePlatform: String,
   userAgent: String,
-}
+|}
 
-export type ConnectedUser = {
+export type ConnectedUser = {|
   uid: UID,
   devices?: ?Array<ConnectedDevice>,
-}
+|}
 
 export type DeviceID = Bytes
 
-export type Dismissal = {
+export type Dismissal = {|
   msgIDs?: ?Array<MsgID>,
   ranges?: ?Array<MsgRange>,
-}
+|}
 
 export type DurationMsec = Int64
 
-export type InBandMessage = {
+export type InBandMessage = {|
   stateUpdate?: ?StateUpdateMessage,
   stateSync?: ?StateSyncMessage,
-}
+|}
 
 export type IncomingConsumeMessageMultiRpcParam = {|
   msg: Message,
@@ -273,43 +273,43 @@ export type IncomingVersionRpcParam = {|
   uid: UID
 |}
 
-export type Item = {
+export type Item = {|
   category: Category,
   dtime: TimeOrOffset,
   remindTimes?: ?Array<TimeOrOffset>,
   body: Body,
-}
+|}
 
-export type ItemAndMetadata = {
+export type ItemAndMetadata = {|
   md?: ?Metadata,
   item?: ?Item,
-}
+|}
 
-export type Message = {
+export type Message = {|
   oobm?: ?OutOfBandMessage,
   ibm?: ?InBandMessage,
-}
+|}
 
-export type Metadata = {
+export type Metadata = {|
   uid: UID,
   msgID: MsgID,
   ctime: Time,
   deviceID: DeviceID,
   inBandMsgType: Int,
-}
+|}
 
 export type MsgID = Bytes
 
-export type MsgRange = {
+export type MsgRange = {|
   endTime: TimeOrOffset,
   category: Category,
-}
+|}
 
-export type OutOfBandMessage = {
+export type OutOfBandMessage = {|
   uid: UID,
   system: System,
   body: Body,
-}
+|}
 
 export type OutgoingBroadcastMessageRpcParam = {|
   m: Message
@@ -323,54 +323,54 @@ export type RemindGetRemindersRpcParam = {|
   maxReminders: Int
 |}
 
-export type Reminder = {
+export type Reminder = {|
   item: ItemAndMetadata,
   seqno: Int,
   remindTime: Time,
-}
+|}
 
-export type ReminderID = {
+export type ReminderID = {|
   uid: UID,
   msgID: MsgID,
   seqno: Int,
-}
+|}
 
-export type ReminderSet = {
+export type ReminderSet = {|
   reminders?: ?Array<Reminder>,
   moreRemindersReady: Boolean,
-}
+|}
 
 export type SessionID = String
 
 export type SessionToken = String
 
-export type State = {
+export type State = {|
   items?: ?Array<ItemAndMetadata>,
-}
+|}
 
-export type StateSyncMessage = {
+export type StateSyncMessage = {|
   md: Metadata,
-}
+|}
 
-export type StateUpdateMessage = {
+export type StateUpdateMessage = {|
   md: Metadata,
   creation?: ?Item,
   dismissal?: ?Dismissal,
-}
+|}
 
-export type SyncResult = {
+export type SyncResult = {|
   msgs?: ?Array<InBandMessage>,
   hash: Bytes,
-}
+|}
 
 export type System = String
 
 export type Time = Long
 
-export type TimeOrOffset = {
+export type TimeOrOffset = {|
   time: Time,
   offset: DurationMsec,
-}
+|}
 
 export type UID = Bytes
 type AuthAuthenticateSessionTokenResult = AuthResult

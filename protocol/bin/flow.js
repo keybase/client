@@ -295,7 +295,7 @@ function parseRecord(t) {
     })
     .join('')
 
-  return `{${divider}${fields}}`
+  return `{|${divider}${fields}|}`
 }
 
 function parseVariant(t, project) {
