@@ -503,6 +503,11 @@ const _onTabChange = (action: RouteTreeConstants.SwitchTo) => {
           category: 'team.newly_added_to_team',
         },
       }),
+      call(RpcTypes.gregorDismissCategoryRpcPromise, {
+        param: {
+          category: 'team.request_access',
+        },
+      }),
     ])
   }
 }
