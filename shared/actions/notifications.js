@@ -13,7 +13,7 @@ import {badgeAppForChat} from './chat'
 import {createSetupChatHandlers} from './chat-gen'
 import {badgeAppForGit} from './git/creators'
 import {setupKBFSChangedHandler} from './favorite'
-import {setupTeamHandlers} from './teams/creators'
+import {setupTeamHandlers, badgeAppForTeams} from './teams/creators'
 
 import type {SagaGenerator} from '../constants/types/saga'
 
@@ -88,9 +88,15 @@ function* _listenKBFSSaga(): SagaGenerator<any, any> {
 }
 
 function* _onRecievedBadgeState(action: Constants.ReceivedBadgeState): SagaGenerator<any, any> {
-  const {conversations, newGitRepoGlobalUniqueIDs} = action.payload.badgeState
+  const {
+    conversations,
+    newGitRepoGlobalUniqueIDs,
+    newTeamNames,
+    newTeamAccessRequests,
+  } = action.payload.badgeState
   yield put(badgeAppForChat(conversations))
   yield put(badgeAppForGit(newGitRepoGlobalUniqueIDs))
+  yield put(badgeAppForTeams(newTeamNames || [], newTeamAccessRequests || []))
 }
 
 function* _listenNotifications(): SagaGenerator<any, any> {

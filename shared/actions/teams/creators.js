@@ -111,6 +111,13 @@ function setupTeamHandlers(): Constants.SetupTeamHandlers {
   return {payload: undefined, type: 'teams:setupTeamHandlers'}
 }
 
+function badgeAppForTeams(
+  newTeamNames: Array<string>,
+  newTeamAccessRequests: Array<string>
+): Constants.BadgeAppForTeams {
+  return {payload: {newTeamNames, newTeamAccessRequests}, type: 'teams:badgeAppForTeams'}
+}
+
 export {
   addPeopleToTeam,
   addToTeam,
@@ -134,4 +141,5 @@ export {
   setTeamJoinSuccess,
   setupTeamHandlers,
   toggleChannelMembership,
+  badgeAppForTeams,
 }
