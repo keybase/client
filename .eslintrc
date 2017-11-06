@@ -17,7 +17,7 @@
         "__STORYBOOK__": false
     },
     "plugins": [
-        "filenames", "babel", "import", "flowtype", "prettier", "dependencies"
+        "filenames", "babel", "import", "flowtype", "prettier"
     ],
     "settings": {
         "import/core-modules": [ "electron", "react-native" ],
@@ -30,7 +30,6 @@
         "camelcase": "off",
         "comma-dangle": ["error", "always-multiline"],
         "curly": "off",
-        "dependencies/no-cycles": ["warning"],
         "filenames/match-regex": ["error", "^[0-9a-z-.]+(\\.desktop|\\.native|\\.ios|\\.android)?$"],
         "flowtype/define-flow-type": "error",
         "flowtype/delimiter-dangle": ["error", "always-multiline"],
