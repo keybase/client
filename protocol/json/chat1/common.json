@@ -124,7 +124,8 @@
         "HEADLINE_7",
         "ATTACHMENTUPLOADED_8",
         "JOIN_9",
-        "LEAVE_10"
+        "LEAVE_10",
+        "SYSTEM_11"
       ],
       "go": "nostring"
     },
