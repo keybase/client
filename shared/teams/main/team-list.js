@@ -1,6 +1,16 @@
 // @flow
 import * as React from 'react'
-import {ClickableBox, Icon, Avatar, Box, Divider, Text, ProgressIndicator, Meta} from '../../common-adapters'
+import {
+  ClickableBox,
+  Icon,
+  Avatar,
+  Badge,
+  Box,
+  Divider,
+  Text,
+  ProgressIndicator,
+  Meta,
+} from '../../common-adapters'
 import {globalMargins, globalStyles, globalColors} from '../../styles'
 import {isMobile} from '../../constants/platform'
 
@@ -20,7 +30,7 @@ type RowProps = {
   name: Teamname,
   membercount: number,
   isNew: boolean,
-  hasNewRequests: boolean,
+  newRequests: number,
   onOpenFolder: () => void,
   onManageChat: () => void,
   onViewTeam: () => void,
@@ -33,15 +43,7 @@ export const newCharmStyle = {
   alignSelf: 'center',
 }
 
-const Row = ({
-  name,
-  membercount,
-  isNew,
-  hasNewRequests,
-  onOpenFolder,
-  onManageChat,
-  onViewTeam,
-}: RowProps) => (
+const Row = ({name, membercount, isNew, newRequests, onOpenFolder, onManageChat, onViewTeam}: RowProps) => (
   <Box style={rowStyle}>
     <Box
       style={{
@@ -57,8 +59,10 @@ const Row = ({
           <Text type="BodySemibold">
             {name}
           </Text>
-          <Box style={globalStyles.flexBoxRow}>
-            {(isNew || hasNewRequests) && <Meta title="NEW" style={newCharmStyle} />}
+          <Box style={{...globalStyles.flexBoxRow, alignItems: 'center'}}>
+            {!!newRequests &&
+              <Badge badgeNumber={newRequests} badgeStyle={{marginLeft: 0, marginRight: 3, marginTop: 1}} />}
+            {isNew && <Meta title="NEW" style={newCharmStyle} />}
             <Text type="BodySmall">
               {membercount + ' member' + (membercount !== 1 ? 's' : '')}
             </Text>
@@ -87,7 +91,7 @@ const TeamList = (props: Props) => (
         key={name}
         name={name}
         isNew={props.newTeams.includes(name)}
-        hasNewRequests={props.newTeamRequests.includes(name)}
+        newRequests={props.newTeamRequests.filter(team => team === name).length}
         membercount={props.teammembercounts[name]}
         onOpenFolder={() => props.onOpenFolder(name)}
         onManageChat={() => props.onManageChat(name)}
