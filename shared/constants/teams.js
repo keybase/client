@@ -43,6 +43,14 @@ export type EditMembership = NoErrorTypedAction<
   'teams:editMembership',
   {name: string, username: string, role: TeamRoleType}
 >
+export type InviteToTeamByPhone = NoErrorTypedAction<
+  'teams:inviteToTeamByPhone',
+  {
+    teamname: string,
+    role: string,
+    phoneNumber: string,
+  }
+>
 
 // username -> removeMember
 // email -> removePendingInvite
@@ -180,6 +188,7 @@ type _State = {
       }>
     >
   >,
+  teamNameToLoadingInvites: I.Map<Teamname, I.Map<string, boolean>>,
   teamNameToMembers: I.Map<Teamname, I.Set<MemberInfo>>,
   teamNameToMemberUsernames: I.Map<Teamname, I.Set<string>>,
   teamNameToLoading: I.Map<Teamname, boolean>,
@@ -197,6 +206,7 @@ export const makeState: I.RecordFactory<_State> = I.Record({
   sawChatBanner: false,
   teamNameToConvIDs: I.Map(),
   teamNameToInvites: I.Map(),
+  teamNameToLoadingInvites: I.Map(),
   teamNameToLoading: I.Map(),
   teamNameToMemberUsernames: I.Map(),
   teamNameToMembers: I.Map(),
@@ -216,7 +226,7 @@ const getConversationIDKeyFromChannelName = (state: TypedState, channelname: str
 const getParticipants = (state: TypedState, conversationIDKey: ChatConstants.ConversationIDKey) =>
   state.entities.getIn(['teams', 'convIDToChannelInfo', conversationIDKey, 'participants'], I.Set())
 
-export const getFollowingMap = ChatConstants.getFollowingMap
+export const getFollowingMap = (state: TypedState) => state.config.following
 export const getFollowerMap = (state: TypedState) => state.config.followers
 
 export {getConversationIDKeyFromChannelName, getParticipants, userIsInTeamHelper}

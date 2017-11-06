@@ -4,7 +4,6 @@ import type {Props} from './clickable-box'
 import Box from './box'
 import {TouchableOpacity, TouchableWithoutFeedback} from 'react-native'
 import {globalColors} from '../styles'
-import {clickableVisible} from '../local-debug'
 
 const ClickableBox = ({
   onClick,
@@ -17,9 +16,7 @@ const ClickableBox = ({
   feedback = true,
 }: Props) => {
   if (onClick) {
-    const clickStyle = style
-      ? {...(clickableVisible ? visibleStyle : boxStyle), ...style}
-      : clickableVisible ? visibleStyle : boxStyle
+    const clickStyle = style ? {...boxStyle, ...style} : boxStyle
     if (feedback) {
       return (
         <TouchableOpacity
@@ -59,11 +56,6 @@ const ClickableBox = ({
 
 const boxStyle = {
   borderRadius: 3,
-}
-
-const visibleStyle = {
-  ...boxStyle,
-  backgroundColor: 'rgba(0, 255, 0, 0.1)',
 }
 
 export default ClickableBox

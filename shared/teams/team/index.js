@@ -18,6 +18,7 @@ import {OpenTeamSettingButton} from '../open-team'
 import TeamInviteRow from './invite-row/container'
 import TeamMemberRow from './member-row/container'
 import TeamRequestRow from './request-row/container'
+import flags from '../../util/feature-flags'
 
 export type MemberRowProps = Constants.MemberInfo
 type InviteRowProps = Constants.InviteInfo
@@ -36,11 +37,13 @@ export type Props = {
   onAddPeople: () => void,
   onInviteByEmail: () => void,
   setSelectedTab: (t: ?Constants.TabKey) => void,
+  onCreateSubteam: () => void,
   onLeaveTeam: () => void,
   onManageChat: () => void,
   onClickOpenTeamSetting: () => void,
   isTeamOpen: boolean,
   youCanAddPeople: boolean,
+  youCanCreateSubteam: boolean,
 }
 
 const Help = isMobile
@@ -136,6 +139,7 @@ class Team extends React.PureComponent<Props> {
       showMenu,
       setShowMenu,
       onAddPeople,
+      onCreateSubteam,
       onInviteByEmail,
       onLeaveTeam,
       selectedTab,
@@ -143,6 +147,7 @@ class Team extends React.PureComponent<Props> {
       onManageChat,
       you,
       youCanAddPeople,
+      youCanCreateSubteam,
     } = this.props
 
     const me = members.find(member => member.username === you)
@@ -213,6 +218,15 @@ class Team extends React.PureComponent<Props> {
       }
     }
 
+    const popupMenuItems = [
+      {onClick: onManageChat, title: 'Manage chat channels'},
+      {onClick: onLeaveTeam, title: 'Leave team', danger: true},
+    ]
+
+    if (youCanCreateSubteam) {
+      popupMenuItems.push({onClick: onCreateSubteam, title: 'Create subteam'})
+    }
+
     return (
       <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center', flex: 1}}>
         <Avatar isTeam={true} teamname={name} size={64} />
@@ -223,12 +237,21 @@ class Team extends React.PureComponent<Props> {
         {youCanAddPeople &&
           <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', marginTop: globalMargins.small}}>
             <Button type="Primary" label="Add people" onClick={onAddPeople} />
-            <Button
-              type="Secondary"
-              label="Invite by email"
-              onClick={onInviteByEmail}
-              style={{marginLeft: globalMargins.small}}
-            />
+            {!isMobile &&
+              <Button
+                type="Secondary"
+                label="Invite by email"
+                onClick={onInviteByEmail}
+                style={{marginLeft: globalMargins.tiny}}
+              />}
+            {isMobile &&
+              flags.inviteContactsEnabled &&
+              <Button
+                type="Secondary"
+                label="Invite contacts"
+                onClick={onInviteByEmail}
+                style={{marginLeft: globalMargins.tiny}}
+              />}
           </Box>}
         <Help name={name} />
         {admin &&
@@ -242,10 +265,7 @@ class Team extends React.PureComponent<Props> {
         {contents}
         {showMenu &&
           <PopupMenu
-            items={[
-              {onClick: onManageChat, title: 'Manage chat channels'},
-              {onClick: onLeaveTeam, title: 'Leave team', danger: true},
-            ]}
+            items={popupMenuItems}
             onHidden={() => setShowMenu(false)}
             style={{position: 'absolute', right: globalMargins.tiny, top: globalMargins.large}}
           />}

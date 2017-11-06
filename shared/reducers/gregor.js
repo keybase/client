@@ -11,7 +11,7 @@ const initialState: Constants.State = {
 
 export default function(
   state: Constants.State = initialState,
-  action: Constants.GregorActions
+  action: Constants.GregorActions | {type: 'common:resetStore', payload: void}
 ): Constants.State {
   switch (action.type) {
     case CommonConstants.resetStore:

@@ -14,14 +14,18 @@ const featureOn = (key: $Keys<FeatureFlags>) => features.includes(key)
 
 const ff: FeatureFlags = {
   admin: false,
+  inviteContactsEnabled: false,
   plansEnabled: false,
   recentFilesEnabled: false,
   tabGitEnabled: true,
   tabPeopleEnabled: true,
   teamChatEnabled: true,
+  impTeamChatEnabled: false,
 }
 
-const inAdmin: {[key: $Keys<FeatureFlags>]: boolean} = {}
+const inAdmin: {[key: $Keys<FeatureFlags>]: boolean} = {
+  impTeamChatEnabled: true,
+}
 
 // load overrides
 Object.keys(ff).forEach(k => {

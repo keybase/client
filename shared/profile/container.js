@@ -55,6 +55,9 @@ export default pausableConnect(
   (state, {routeProps, routeState, routePath}: OwnProps) => {
     const myUsername = state.config.username
     const username = routeProps.get('username') ? routeProps.get('username') : myUsername
+    if (username && username !== username.toLowerCase()) {
+      throw new Error('Attempted to navigate to mixed case username.')
+    }
 
     return {
       currentFriendshipsTab: routeState.get('currentFriendshipsTab'),

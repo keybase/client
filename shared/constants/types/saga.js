@@ -1,6 +1,4 @@
 // @flow
-import type {TypedState} from '../reducer'
-
 export type NodeCB = (err: ?any, result: ?any) => void
 
 export type SagaGenerator<Yield, Actions> = Generator<Yield, void, Actions>
@@ -30,6 +28,3 @@ export type SagaMap = {
   // $FlowIssue with returning Generators from functions
   [key: string]: Generator<*, *, *>,
 }
-
-type _AfterSelect<Out, SelectorFn: (state: TypedState) => Out> = Out // eslint-disable-line
-export type AfterSelect<SelectorFn: (state: TypedState) => *> = _AfterSelect<*, SelectorFn>

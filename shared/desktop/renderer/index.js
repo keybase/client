@@ -5,17 +5,17 @@
 import '../../dev/user-timings'
 import Main from '../../app/main.desktop'
 import * as React from 'react'
+import * as ConfigGen from '../../actions/config-gen'
 import ReactDOM from 'react-dom'
 import RemoteManager from './remote-manager'
 import Root from './container'
 import configureStore from '../../store/configure-store'
 import electron, {ipcRenderer} from 'electron'
-import engine, {makeEngine} from '../../engine'
+import {makeEngine} from '../../engine'
 import hello from '../../util/hello'
 import loadPerf from '../../util/load-perf'
 import routeDefs from '../../app/routes'
 import {AppContainer} from 'react-hot-loader'
-import {bootstrap} from '../../actions/config'
 import {disable as disableDragDrop} from '../../util/drag-drop'
 import {getUserImageMap, loadUserImageMap, getTeamImageMap, loadTeamImageMap} from '../../util/pictures'
 import {initAvatarLookup, initAvatarLoad} from '../../common-adapters'
@@ -23,7 +23,6 @@ import {listenForNotifications} from '../../actions/notifications'
 import {changedFocus, changedActive} from '../../actions/app'
 import merge from 'lodash/merge'
 import throttle from 'lodash/throttle'
-import {resetEngineOnHMR} from '../../local-debug.desktop'
 import {selector as menubarSelector} from '../../menubar/selector'
 import {selector as pineentrySelector} from '../../pinentry/selector'
 import {selector as remotePurgeMessageSelector} from '../../pgp/selector'
@@ -87,8 +86,8 @@ function setupApp(store) {
 
   // Run installer
   ipcRenderer.on('installed', (event, message) => {
-    store.dispatch({payload: undefined, type: 'config:readyForBootstrap'})
-    store.dispatch(bootstrap())
+    store.dispatch(ConfigGen.createReadyForBootstrap())
+    store.dispatch(ConfigGen.createBootstrap({}))
   })
   ipcRenderer.send('install-check')
 
@@ -191,9 +190,6 @@ function setupHMR(store) {
         store.dispatch({type: updateReloading, payload: {reloading: true}})
         const NewMain = require('../../app/main.desktop').default
         render(store, NewMain)
-        if (resetEngineOnHMR) {
-          engine().reset()
-        }
       } finally {
         setTimeout(() => store.dispatch({type: updateReloading, payload: {reloading: false}}), 10e3)
       }

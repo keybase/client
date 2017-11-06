@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 
+	"encoding/base64"
+
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -125,13 +127,6 @@ func HandleSBSRequest(ctx context.Context, g *libkb.GlobalContext, msg keybase1.
 
 func handleSBSSingle(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID, untrustedInviteeFromGregor keybase1.TeamInvitee) (err error) {
 	defer g.CTrace(ctx, fmt.Sprintf("team.handleSBSSingle(teamID: %v, invitee: %+v)", teamID, untrustedInviteeFromGregor), func() error { return err })()
-	uv := NewUserVersion(untrustedInviteeFromGregor.Uid, untrustedInviteeFromGregor.EldestSeqno)
-	req, err := reqFromRole(uv, untrustedInviteeFromGregor.Role)
-	if err != nil {
-		return err
-	}
-	req.CompletedInvites = make(map[keybase1.TeamInviteID]keybase1.UserVersionPercentForm)
-	req.CompletedInvites[untrustedInviteeFromGregor.InviteID] = uv.PercentForm()
 
 	return RetryOnSigOldSeqnoError(ctx, g, func(ctx context.Context, _ int) error {
 		team, err := Load(ctx, g, keybase1.LoadTeamArg{
@@ -186,6 +181,25 @@ func handleSBSSingle(ctx context.Context, g *libkb.GlobalContext, teamID keybase
 		default:
 			return fmt.Errorf("no verification implemented for invite category %s (%+v)", category, invite)
 		}
+
+		uv := NewUserVersion(untrustedInviteeFromGregor.Uid, untrustedInviteeFromGregor.EldestSeqno)
+
+		currentRole, err := team.MemberRole(ctx, uv)
+		if err != nil {
+			return err
+		}
+
+		if currentRole.IsOrAbove(invite.Role) {
+			g.Log.CDebugf(ctx, "User already has same or higher role, canceling invite.")
+			return removeInviteID(ctx, team, invite.Id)
+		}
+
+		req, err := reqFromRole(uv, invite.Role)
+		if err != nil {
+			return err
+		}
+		req.CompletedInvites = make(map[keybase1.TeamInviteID]keybase1.UserVersionPercentForm)
+		req.CompletedInvites[untrustedInviteeFromGregor.InviteID] = uv.PercentForm()
 
 		g.Log.CDebugf(ctx, "checks passed, proceeding with team.ChangeMembership, req = %+v", req)
 
@@ -243,7 +257,9 @@ func HandleOpenTeamAccessRequest(ctx context.Context, g *libkb.GlobalContext, ms
 		}
 
 		var req keybase1.TeamChangeReq
-		role := team.chain().inner.OpenTeamJoinAs
+		joinAsRole := team.chain().inner.OpenTeamJoinAs
+
+		var needPost bool
 
 		for _, tar := range msg.Tars {
 			uv := NewUserVersion(tar.Uid, tar.EldestSeqno)
@@ -252,20 +268,178 @@ func HandleOpenTeamAccessRequest(ctx context.Context, g *libkb.GlobalContext, ms
 				return err
 			}
 
-			if currentRole.IsOrAbove(role) {
+			if currentRole.IsOrAbove(joinAsRole) {
+				g.Log.CDebugf(ctx, "User already has same or higher role, ignoring open request.")
+				// Invitee is already in the team.
 				continue
 			}
 
-			switch role {
+			needPost = true
+
+			switch joinAsRole {
 			case keybase1.TeamRole_READER:
 				req.Readers = append(req.Readers, uv)
 			case keybase1.TeamRole_WRITER:
 				req.Writers = append(req.Writers, uv)
 			default:
-				return fmt.Errorf("Unexpected role to add to open team: %v", role)
+				return fmt.Errorf("Unexpected role to add to open team: %v", joinAsRole)
 			}
 		}
 
+		if !needPost {
+			return nil
+		}
 		return team.ChangeMembership(ctx, req)
 	})
+}
+
+func HandleTeamSeitan(ctx context.Context, g *libkb.GlobalContext, msg keybase1.TeamSeitanMsg) (err error) {
+	ctx = libkb.WithLogTag(ctx, "CLKR")
+	defer g.CTrace(ctx, "HandleTeamSeitan", func() error { return err })()
+
+	team, err := Load(ctx, g, keybase1.LoadTeamArg{
+		ID:          msg.TeamID,
+		Public:      msg.TeamID.IsPublic(),
+		ForceRepoll: true,
+	})
+	if err != nil {
+		return err
+	}
+	var invitesToCancel []keybase1.TeamInviteID
+
+	var req keybase1.TeamChangeReq
+	req.CompletedInvites = make(map[keybase1.TeamInviteID]keybase1.UserVersionPercentForm)
+
+	for _, seitan := range msg.Seitans {
+		invite, found := team.chain().FindActiveInviteByID(seitan.InviteID)
+		if !found {
+			return libkb.NotFoundError{}
+		}
+
+		g.Log.CDebugf(ctx, "Processing Seitan acceptance for invite %s", invite.Id)
+
+		err := handleSeitanSingle(ctx, g, team, invite, seitan)
+		if err != nil {
+			g.Log.CDebugf(ctx, "Provided AKey failed to verify with error: \"%v\"; canceling invite.", err)
+			invitesToCancel = append(invitesToCancel, invite.Id)
+			continue
+		}
+
+		uv := NewUserVersion(seitan.Uid, seitan.EldestSeqno)
+		currentRole, err := team.MemberRole(ctx, uv)
+		if err != nil {
+			g.Log.CDebugf(ctx, "Failure in team.MemberRole: %v", err)
+			return err
+		}
+
+		if currentRole.IsOrAbove(invite.Role) {
+			g.Log.CDebugf(ctx, "User already has same or higher role, canceling invite.")
+			invitesToCancel = append(invitesToCancel, invite.Id)
+			continue
+		}
+
+		switch invite.Role {
+		case keybase1.TeamRole_READER:
+			req.Readers = append(req.Readers, uv)
+		case keybase1.TeamRole_WRITER:
+			req.Writers = append(req.Writers, uv)
+		case keybase1.TeamRole_ADMIN:
+			req.Admins = append(req.Admins, uv)
+		case keybase1.TeamRole_OWNER:
+			req.Owners = append(req.Owners, uv)
+		default:
+			return fmt.Errorf("Unexpected role in invitation: %v", invite.Role)
+		}
+
+		g.Log.CDebugf(ctx, "Completing invite %s", invite.Id)
+		req.CompletedInvites[seitan.InviteID] = uv.PercentForm()
+	}
+
+	var needReload bool
+
+	if len(req.CompletedInvites) > 0 {
+		// Did we actually bring anyone in? (or all requests were outdated/invalid)
+		err = team.ChangeMembership(ctx, req)
+		if err != nil {
+			return err
+		}
+		needReload = true
+	}
+
+	if len(invitesToCancel) > 0 {
+		if needReload {
+			// Reload the team because we posted a link, invalidating the old snapshot
+			team, err = Load(ctx, g, keybase1.LoadTeamArg{
+				ID:          msg.TeamID,
+				Public:      msg.TeamID.IsPublic(),
+				ForceRepoll: true,
+			})
+			if err != nil {
+				return err
+			}
+		}
+		err = removeMultipleInviteIDs(ctx, team, invitesToCancel)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func handleSeitanSingle(ctx context.Context, g *libkb.GlobalContext, team *Team, invite keybase1.TeamInvite, seitan keybase1.TeamSeitanRequest) error {
+	category, err := invite.Type.C()
+	if err != nil {
+		return err
+	}
+
+	if category != keybase1.TeamInviteCategory_SEITAN {
+		return fmt.Errorf("HandleTeamSeitan wanted to claim an invite with category %v", category)
+	}
+
+	peikey, err := SeitanDecodePEIKey(string(invite.Name))
+	if err != nil {
+		return err
+	}
+
+	ikeyAndLabel, err := peikey.DecryptIKeyAndLabel(ctx, team)
+	if err != nil {
+		return err
+	}
+
+	var ikey SeitanIKey
+
+	version, err := ikeyAndLabel.V()
+	if err != nil {
+		return fmt.Errorf("While parsing IKeyAndLabel: %s\n", err)
+	}
+
+	switch version {
+	case keybase1.SeitanIKeyAndLabelVersion_V1:
+		ikey = SeitanIKey(ikeyAndLabel.V1().I)
+	default:
+		return fmt.Errorf("Unknown IKeyAndLabel version: %v\n", version)
+	}
+
+	sikey, err := ikey.GenerateSIKey()
+	if err != nil {
+		return err
+	}
+
+	akey, _, err := sikey.GenerateAcceptanceKey(seitan.Uid, seitan.EldestSeqno, seitan.UnixCTime)
+	if err != nil {
+		return err
+	}
+
+	// Decode given AKey to be able to do secure hash comparison.
+	decodedAKey, err := base64.StdEncoding.DecodeString(string(seitan.Akey))
+	if err != nil {
+		return err
+	}
+
+	if !libkb.SecureByteArrayEq(akey, decodedAKey) {
+		return fmt.Errorf("did not end up with the same AKey")
+	}
+
+	return nil
 }

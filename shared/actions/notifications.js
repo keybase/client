@@ -9,7 +9,8 @@ import {call, put, take, fork} from 'redux-saga/effects'
 import {isMobile} from '../constants/platform'
 import {log} from '../native/log/logui'
 import {registerIdentifyUi, setupUserChangedHandler} from './tracker'
-import {setupChatHandlers, badgeAppForChat} from './chat'
+import {badgeAppForChat} from './chat'
+import {createSetupChatHandlers} from './chat-gen'
 import {badgeAppForGit} from './git/creators'
 import {setupKBFSChangedHandler} from './favorite'
 import {setupTeamHandlers, badgeAppForTeams} from './teams/creators'
@@ -82,7 +83,7 @@ function* _listenSaga(): SagaGenerator<any, any> {
 
 function* _listenKBFSSaga(): SagaGenerator<any, any> {
   yield put(setupKBFSChangedHandler())
-  yield put(setupChatHandlers())
+  yield put(createSetupChatHandlers())
   yield put(setupTeamHandlers())
 }
 

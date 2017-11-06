@@ -29,6 +29,7 @@ import (
 	gregor1 "github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/pvlsource"
+	"github.com/keybase/client/go/systemd"
 	"github.com/keybase/client/go/teams"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 )
@@ -226,6 +227,8 @@ func (d *Service) Run() (err error) {
 	}
 
 	switch d.G().Env.GetServiceType() {
+	case "":
+		// Not set, do nothing.
 	case "launchd":
 		d.ForkType = keybase1.ForkType_LAUNCHD
 	case "systemd":
@@ -265,7 +268,7 @@ func (d *Service) Run() (err error) {
 	// for correctness, but it allows commands like "systemctl start keybase.service"
 	// to report startup errors to the terminal, by delaying their return
 	// until they get this notification (Type=notify, in systemd lingo).
-	NotifyStartupFinished()
+	systemd.NotifyStartupFinished()
 
 	d.G().ExitCode, err = d.ListenLoopWithStopper(l)
 
@@ -296,6 +299,7 @@ func (d *Service) RunBackgroundOperations(uir *UIRouter) {
 	// backgrounded.
 	d.tryLogin()
 	d.hourlyChecks()
+	d.slowChecks()
 	d.createChatModules()
 	d.startupGregor()
 	d.startChatModules()
@@ -404,19 +408,19 @@ func (d *Service) identifySelf() {
 	// identify2 did a load user for self, so find it and cache it in FullSelfer.
 	them := eng.FullThemUser()
 	me := eng.FullMeUser()
-	var u *libkb.User
+	var self *libkb.User
 	if them != nil && them.GetUID().Equal(uid) {
 		d.G().Log.Debug("identifySelf: using them for full user")
-		u = them
+		self = them
 	} else if me != nil && me.GetUID().Equal(uid) {
 		d.G().Log.Debug("identifySelf: using me for full user")
-		u = me
+		self = me
 	}
-	if u != nil {
-		if err := d.G().GetFullSelfer().Update(context.Background(), u); err != nil {
+	if self != nil {
+		if err := d.G().GetFullSelfer().Update(context.Background(), self); err != nil {
 			d.G().Log.Debug("identifySelf: error updating full self cache: %s", err)
 		} else {
-			d.G().Log.Debug("identifySelf: updated full self cache for: %s", u.GetName())
+			d.G().Log.Debug("identifySelf: updated full self cache for: %s", self.GetName())
 		}
 	}
 }
@@ -534,6 +538,26 @@ func (d *Service) hourlyChecks() {
 	}()
 }
 
+func (d *Service) slowChecks() {
+	ticker := time.NewTicker(6 * time.Hour)
+	d.G().PushShutdownHook(func() error {
+		d.G().Log.Debug("stopping slowChecks loop")
+		ticker.Stop()
+		return nil
+	})
+	go func() {
+		for {
+			<-ticker.C
+			d.G().Log.Debug("+ slow checks loop")
+			d.G().Log.Debug("| checking if current device should log out")
+			if err := d.G().LogoutSelfCheck(); err != nil {
+				d.G().Log.Debug("LogoutSelfCheck error: %s", err)
+			}
+			d.G().Log.Debug("- slow checks loop")
+		}
+	}()
+}
+
 func (d *Service) tryGregordConnect() error {
 	// If we're logged out, LoggedInLoad() will return false with no error,
 	// even if the network is down. However, if we're logged in and the network
@@ -546,9 +570,11 @@ func (d *Service) tryGregordConnect() error {
 		// confirm with the API server. In that case we'll swallow the error
 		// and allow control to proceeed to the gregor loop. We'll still
 		// short-circuit for any unexpected errors though.
-		_, isNetworkError := err.(libkb.APINetError)
-		if !isNetworkError {
-			d.G().Log.Warning("Unexpected non-network error in tryGregordConnect: %s", err)
+		switch err.(type) {
+		case libkb.LoginStateTimeoutError, libkb.APINetError:
+			d.G().Log.Debug("Network/timeout error received from LoginState, continuing onward: %s", err)
+		default:
+			d.G().Log.Debug("Unexpected non-network error in tryGregordConnect: %s", err)
 			return err
 		}
 	} else if !loggedIn {
@@ -716,6 +742,11 @@ func (d *Service) GetExclusiveLock() error {
 }
 
 func (d *Service) cleanupSocketFile() error {
+	// Short circuit if we're running under socket activation -- the socket
+	// file is already set up for us, and we mustn't delete it.
+	if systemd.IsSocketActivated() {
+		return nil
+	}
 	sf, err := d.G().Env.GetSocketBindFile()
 	if err != nil {
 		return err
@@ -748,7 +779,7 @@ func (d *Service) lockPIDFile() (err error) {
 func (d *Service) ConfigRPCServer() (net.Listener, error) {
 	// First, check to see if we've been launched with socket activation by
 	// systemd. If so, the socket is already open. Otherwise open it ourselves.
-	listener, err := GetListenerFromEnvironment()
+	listener, err := systemd.GetListenerFromEnvironment()
 	if err != nil {
 		d.G().Log.Error("unexpected error in GetListenerFromEnvironment: %#v", err)
 		return nil, err

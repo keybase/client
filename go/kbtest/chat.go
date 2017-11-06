@@ -15,7 +15,7 @@ import (
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/utils"
-	"github.com/keybase/client/go/externals"
+	"github.com/keybase/client/go/externalstest"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
@@ -70,7 +70,7 @@ func NewChatMockWorld(t *testing.T, name string, numUsers int) (world *ChatMockW
 		Msgs:    make(map[string][]*chat1.MessageBoxed),
 	}
 	for i := 0; i < numUsers; i++ {
-		kbTc := externals.SetupTest(t, "chat_"+name, 0)
+		kbTc := externalstest.SetupTest(t, "chat_"+name, 0)
 		tc := ChatTestContext{
 			TestContext: kbTc,
 			ChatG:       &globals.ChatContext{},

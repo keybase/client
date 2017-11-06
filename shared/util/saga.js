@@ -3,20 +3,23 @@ import mapValues from 'lodash/mapValues'
 import isEqual from 'lodash/isEqual'
 import map from 'lodash/map'
 import forEach from 'lodash/forEach'
-import {buffers, channel} from 'redux-saga'
+import {buffers, channel, delay} from 'redux-saga'
 import {
   actionChannel,
-  take,
+  all,
   call,
+  cancel,
+  cancelled,
+  fork,
   put,
   race,
   select,
-  fork,
+  spawn,
+  take,
   takeEvery,
   takeLatest,
-  cancelled,
 } from 'redux-saga/effects'
-import {globalError} from '../constants/config'
+import * as ConfigGen from '../actions/config-gen'
 import {convertToError} from '../util/errors'
 
 import type {Action} from '../constants/types/flux'
@@ -90,12 +93,11 @@ function safeTakeEvery(pattern: string | Array<any> | Function, worker: Function
       yield call(worker, ...args)
     } catch (error) {
       // Convert to global error so we don't kill the takeEvery loop
-      yield put(dispatch => {
-        dispatch({
-          payload: convertToError(error),
-          type: globalError,
+      yield put(
+        ConfigGen.createGlobalError({
+          globalError: convertToError(error),
         })
-      })
+      )
     } finally {
       if (yield cancelled()) {
         console.log('safeTakeEvery cancelled')
@@ -111,19 +113,25 @@ function safeTakeEvery(pattern: string | Array<any> | Function, worker: Function
 // whatever purework returns will be yielded on.
 // i.e. it can return put(someAction). That effectively transforms the input action into another action
 // It can also return all([put(action1), put(action2)]) to dispatch multiple actions
-function safeTakeEveryPure<S, A>(
+function safeTakeEveryPure<A, R, FinalAction>(
   pattern: string | Array<any> | Function,
-  pureWorker: ((action: any) => any) | ((action: any, selectedState: S) => any),
-  selectorFn?: (state: TypedState, action: A) => S
+  pureWorker: ((action: A, state: TypedState) => any) | ((action: A) => any),
+  actionCreatorsWithResult?: (result: R) => FinalAction
 ) {
   return safeTakeEvery(pattern, function* safeTakeEveryPureWorker(action: A) {
-    if (selectorFn) {
-      const selectedState = yield select(selectorFn, action)
-      // $FlowIssue
-      yield pureWorker(action, selectedState)
+    // If the pureWorker fn takes two arguments, let's pass the state
+    let result
+    if (pureWorker.length === 2) {
+      const state: TypedState = yield select()
+      // $FlowIssue - doesn't understand checking for arity
+      result = yield pureWorker(action, state)
     } else {
-      // $FlowIssue
-      yield pureWorker(action)
+      // $FlowIssue - doesn't understand checking for arity
+      result = yield pureWorker(action)
+    }
+
+    if (actionCreatorsWithResult) {
+      yield actionCreatorsWithResult(result)
     }
   })
 }
@@ -139,10 +147,11 @@ function safeTakeLatestWithCatch(
       yield call(worker, ...args)
     } catch (error) {
       // Convert to global error so we don't kill the takeLatest loop
-      yield put({
-        payload: convertToError(error),
-        type: globalError,
-      })
+      yield put(
+        ConfigGen.createGlobalError({
+          globalError: convertToError(error),
+        })
+      )
       yield call(catchHandler, error)
     } finally {
       if (yield cancelled()) {
@@ -180,10 +189,11 @@ function safeTakeSerially(pattern: string | Array<any> | Function, worker: Funct
     } catch (error) {
       // Convert to global error so we don't kill the loop
       yield put(dispatch => {
-        dispatch({
-          payload: convertToError(error),
-          type: globalError,
-        })
+        dispatch(
+          ConfigGen.createGlobalError({
+            globalError: convertToError(error),
+          })
+        )
       })
     } finally {
       if (yield cancelled()) {
@@ -201,18 +211,31 @@ function safeTakeSerially(pattern: string | Array<any> | Function, worker: Funct
   })
 }
 
+export type {SagaGenerator}
+
 export {
+  all,
+  call,
+  cancel,
   cancelWhen,
+  cancelled,
   closeChannelMap,
   createChannelMap,
+  delay,
   effectOnChannelMap,
+  fork,
   mapSagasToChanMap,
+  put,
   putOnChannelMap,
+  race,
   safeTakeEvery,
   safeTakeEveryPure,
   safeTakeLatest,
   safeTakeLatestWithCatch,
   safeTakeSerially,
+  select,
   singleFixedChannelConfig,
+  spawn,
+  take,
   takeFromChannelMap,
 }

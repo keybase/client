@@ -310,6 +310,29 @@ export const GregorUIPushReason = {
   newData: 2,
 }
 
+export const HomeHomeScreenItemType = {
+  todo: 1,
+  people: 2,
+}
+
+export const HomeHomeScreenPeopleNotificationType = {
+  followed: 0,
+  followedMulti: 1,
+}
+
+export const HomeHomeScreenTodoType = {
+  bio: 1,
+  proof: 2,
+  device: 3,
+  follow: 4,
+  chat: 5,
+  paperkey: 6,
+  team: 7,
+  folder: 8,
+  gitRepo: 9,
+  teamShowcase: 10,
+}
+
 export const IdentifyCommonIdentifyReasonType = {
   none: 0,
   id: 1,
@@ -597,11 +620,20 @@ export const SimpleFSPathType = {
   kbfs: 1,
 }
 
+export const TeamsSeitanIKeyAndLabelVersion = {
+  v1: 1,
+}
+
+export const TeamsSeitanIKeyLabelType = {
+  sms: 1,
+}
+
 export const TeamsTeamApplication = {
   kbfs: 1,
   chat: 2,
   saltpack: 3,
   gitMetadata: 4,
+  seitanInviteToken: 5,
 }
 
 export const TeamsTeamInviteCategory = {
@@ -610,6 +642,7 @@ export const TeamsTeamInviteCategory = {
   keybase: 2,
   email: 3,
   sbs: 4,
+  seitan: 5,
 }
 
 export const TeamsTeamRole = {
@@ -1536,6 +1569,38 @@ export function gregorInjectItemRpcPromise (request: (requestCommon & {callback?
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.gregor.injectItem', request, (error, result) => error ? reject(error) : resolve(result)))
 }
 
+export function homeHomeActionTakenRpcChannelMap (configKeys: Array<string>, request: requestCommon & requestErrorCallback): EngineChannel {
+  return engine()._channelMapRpcHelper(configKeys, 'keybase.1.home.homeActionTaken', request)
+}
+
+export function homeHomeActionTakenRpcPromise (request: ?(requestCommon & requestErrorCallback)): Promise<void> {
+  return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.home.homeActionTaken', request, (error, result) => error ? reject(error) : resolve(result)))
+}
+
+export function homeHomeGetScreenRpcChannelMap (configKeys: Array<string>, request: requestCommon & {callback?: ?(err: ?any, response: homeHomeGetScreenResult) => void} & {param: homeHomeGetScreenRpcParam}): EngineChannel {
+  return engine()._channelMapRpcHelper(configKeys, 'keybase.1.home.homeGetScreen', request)
+}
+
+export function homeHomeGetScreenRpcPromise (request: (requestCommon & {callback?: ?(err: ?any, response: homeHomeGetScreenResult) => void} & {param: homeHomeGetScreenRpcParam})): Promise<homeHomeGetScreenResult> {
+  return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.home.homeGetScreen', request, (error, result) => error ? reject(error) : resolve(result)))
+}
+
+export function homeHomeMarkViewedRpcChannelMap (configKeys: Array<string>, request: requestCommon & requestErrorCallback): EngineChannel {
+  return engine()._channelMapRpcHelper(configKeys, 'keybase.1.home.homeMarkViewed', request)
+}
+
+export function homeHomeMarkViewedRpcPromise (request: ?(requestCommon & requestErrorCallback)): Promise<void> {
+  return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.home.homeMarkViewed', request, (error, result) => error ? reject(error) : resolve(result)))
+}
+
+export function homeHomeSkipTodoTypeRpcChannelMap (configKeys: Array<string>, request: requestCommon & requestErrorCallback & {param: homeHomeSkipTodoTypeRpcParam}): EngineChannel {
+  return engine()._channelMapRpcHelper(configKeys, 'keybase.1.home.homeSkipTodoType', request)
+}
+
+export function homeHomeSkipTodoTypeRpcPromise (request: (requestCommon & requestErrorCallback & {param: homeHomeSkipTodoTypeRpcParam})): Promise<void> {
+  return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.home.homeSkipTodoType', request, (error, result) => error ? reject(error) : resolve(result)))
+}
+
 export function identifyIdentify2RpcChannelMap (configKeys: Array<string>, request: requestCommon & {callback?: ?(err: ?any, response: identifyIdentify2Result) => void} & {param: identifyIdentify2RpcParam}): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.identify.identify2', request)
 }
@@ -2368,12 +2433,28 @@ export function sigsSigListRpcPromise (request: (requestCommon & {callback?: ?(e
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.sigs.sigList', request, (error, result) => error ? reject(error) : resolve(result)))
 }
 
+export function teamsGetTeamAndMemberShowcaseRpcChannelMap (configKeys: Array<string>, request: requestCommon & {callback?: ?(err: ?any, response: teamsGetTeamAndMemberShowcaseResult) => void} & {param: teamsGetTeamAndMemberShowcaseRpcParam}): EngineChannel {
+  return engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.getTeamAndMemberShowcase', request)
+}
+
+export function teamsGetTeamAndMemberShowcaseRpcPromise (request: (requestCommon & {callback?: ?(err: ?any, response: teamsGetTeamAndMemberShowcaseResult) => void} & {param: teamsGetTeamAndMemberShowcaseRpcParam})): Promise<teamsGetTeamAndMemberShowcaseResult> {
+  return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.teams.getTeamAndMemberShowcase', request, (error, result) => error ? reject(error) : resolve(result)))
+}
+
 export function teamsGetTeamRootIDRpcChannelMap (configKeys: Array<string>, request: requestCommon & {callback?: ?(err: ?any, response: teamsGetTeamRootIDResult) => void} & {param: teamsGetTeamRootIDRpcParam}): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.getTeamRootID', request)
 }
 
 export function teamsGetTeamRootIDRpcPromise (request: (requestCommon & {callback?: ?(err: ?any, response: teamsGetTeamRootIDResult) => void} & {param: teamsGetTeamRootIDRpcParam})): Promise<teamsGetTeamRootIDResult> {
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.teams.getTeamRootID', request, (error, result) => error ? reject(error) : resolve(result)))
+}
+
+export function teamsGetTeamShowcaseRpcChannelMap (configKeys: Array<string>, request: requestCommon & {callback?: ?(err: ?any, response: teamsGetTeamShowcaseResult) => void} & {param: teamsGetTeamShowcaseRpcParam}): EngineChannel {
+  return engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.getTeamShowcase', request)
+}
+
+export function teamsGetTeamShowcaseRpcPromise (request: (requestCommon & {callback?: ?(err: ?any, response: teamsGetTeamShowcaseResult) => void} & {param: teamsGetTeamShowcaseRpcParam})): Promise<teamsGetTeamShowcaseResult> {
+  return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.teams.getTeamShowcase', request, (error, result) => error ? reject(error) : resolve(result)))
 }
 
 export function teamsLoadTeamPlusApplicationKeysRpcChannelMap (configKeys: Array<string>, request: requestCommon & {callback?: ?(err: ?any, response: teamsLoadTeamPlusApplicationKeysResult) => void} & {param: teamsLoadTeamPlusApplicationKeysRpcParam}): EngineChannel {
@@ -2398,6 +2479,22 @@ export function teamsLookupOrCreateImplicitTeamRpcChannelMap (configKeys: Array<
 
 export function teamsLookupOrCreateImplicitTeamRpcPromise (request: (requestCommon & {callback?: ?(err: ?any, response: teamsLookupOrCreateImplicitTeamResult) => void} & {param: teamsLookupOrCreateImplicitTeamRpcParam})): Promise<teamsLookupOrCreateImplicitTeamResult> {
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.teams.lookupOrCreateImplicitTeam', request, (error, result) => error ? reject(error) : resolve(result)))
+}
+
+export function teamsSetTeamMemberShowcaseRpcChannelMap (configKeys: Array<string>, request: requestCommon & requestErrorCallback & {param: teamsSetTeamMemberShowcaseRpcParam}): EngineChannel {
+  return engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.setTeamMemberShowcase', request)
+}
+
+export function teamsSetTeamMemberShowcaseRpcPromise (request: (requestCommon & requestErrorCallback & {param: teamsSetTeamMemberShowcaseRpcParam})): Promise<void> {
+  return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.teams.setTeamMemberShowcase', request, (error, result) => error ? reject(error) : resolve(result)))
+}
+
+export function teamsSetTeamShowcaseRpcChannelMap (configKeys: Array<string>, request: requestCommon & requestErrorCallback & {param: teamsSetTeamShowcaseRpcParam}): EngineChannel {
+  return engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.setTeamShowcase', request)
+}
+
+export function teamsSetTeamShowcaseRpcPromise (request: (requestCommon & requestErrorCallback & {param: teamsSetTeamShowcaseRpcParam})): Promise<void> {
+  return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.teams.setTeamShowcase', request, (error, result) => error ? reject(error) : resolve(result)))
 }
 
 export function teamsTeamAcceptInviteOrRequestAccessRpcChannelMap (configKeys: Array<string>, request: requestCommon & requestErrorCallback & {param: teamsTeamAcceptInviteOrRequestAccessRpcParam}): EngineChannel {
@@ -2448,6 +2545,14 @@ export function teamsTeamCreateRpcPromise (request: (requestCommon & {callback?:
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.teams.teamCreate', request, (error, result) => error ? reject(error) : resolve(result)))
 }
 
+export function teamsTeamCreateSeitanTokenRpcChannelMap (configKeys: Array<string>, request: requestCommon & {callback?: ?(err: ?any, response: teamsTeamCreateSeitanTokenResult) => void} & {param: teamsTeamCreateSeitanTokenRpcParam}): EngineChannel {
+  return engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamCreateSeitanToken', request)
+}
+
+export function teamsTeamCreateSeitanTokenRpcPromise (request: (requestCommon & {callback?: ?(err: ?any, response: teamsTeamCreateSeitanTokenResult) => void} & {param: teamsTeamCreateSeitanTokenRpcParam})): Promise<teamsTeamCreateSeitanTokenResult> {
+  return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.teams.teamCreateSeitanToken', request, (error, result) => error ? reject(error) : resolve(result)))
+}
+
 export function teamsTeamCreateWithSettingsRpcChannelMap (configKeys: Array<string>, request: requestCommon & {callback?: ?(err: ?any, response: teamsTeamCreateWithSettingsResult) => void} & {param: teamsTeamCreateWithSettingsRpcParam}): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamCreateWithSettings', request)
 }
@@ -2486,6 +2591,14 @@ export function teamsTeamIgnoreRequestRpcChannelMap (configKeys: Array<string>, 
 
 export function teamsTeamIgnoreRequestRpcPromise (request: (requestCommon & requestErrorCallback & {param: teamsTeamIgnoreRequestRpcParam})): Promise<void> {
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.teams.teamIgnoreRequest', request, (error, result) => error ? reject(error) : resolve(result)))
+}
+
+export function teamsTeamImplicitAdminsRpcChannelMap (configKeys: Array<string>, request: requestCommon & {callback?: ?(err: ?any, response: teamsTeamImplicitAdminsResult) => void} & {param: teamsTeamImplicitAdminsRpcParam}): EngineChannel {
+  return engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamImplicitAdmins', request)
+}
+
+export function teamsTeamImplicitAdminsRpcPromise (request: (requestCommon & {callback?: ?(err: ?any, response: teamsTeamImplicitAdminsResult) => void} & {param: teamsTeamImplicitAdminsRpcParam})): Promise<teamsTeamImplicitAdminsResult> {
+  return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.teams.teamImplicitAdmins', request, (error, result) => error ? reject(error) : resolve(result)))
 }
 
 export function teamsTeamLeaveRpcChannelMap (configKeys: Array<string>, request: requestCommon & requestErrorCallback & {param: teamsTeamLeaveRpcParam}): EngineChannel {
@@ -2901,8 +3014,8 @@ export type BadgeState = {
   inboxVers: int,
   conversations?: ?Array<BadgeConversationInfo>,
   newGitRepoGlobalUniqueIDs?: ?Array<string>,
-  newTeamIDs?: ?Array<TeamID>,
-  newTeamAccessRequests?: ?Array<TeamID>,
+  newTeamNames?: ?Array<string>,
+  newTeamAccessRequests?: ?Array<string>,
 }
 
 export type BinaryKID = bytes
@@ -3469,6 +3582,61 @@ export type Hello2Res = {
 }
 
 export type HelloRes = string
+
+export type HomeScreen = {
+  lastViewed: Time,
+  items?: ?Array<HomeScreenItem>,
+  followSuggestions?: ?Array<UserSummary>,
+}
+
+export type HomeScreenItem = {
+  badged: boolean,
+  id: HomeScreenItemID,
+  data: HomeScreenItemData,
+}
+
+export type HomeScreenItemData =
+    { t: 1, todo: ?HomeScreenTodo }
+  | { t: 2, people: ?HomeScreenPeopleNotification }
+
+export type HomeScreenItemID = string
+
+export type HomeScreenItemType =
+    1 // TODO_1
+  | 2 // PEOPLE_2
+
+export type HomeScreenPeopleNotification =
+    { t: 0, followed: ?HomeScreenPeopleNotificationFollowed }
+  | { t: 1, followedMulti: ?HomeScreenPeopleNotificationFollowedMulti }
+
+export type HomeScreenPeopleNotificationFollowed = {
+  followTime: Time,
+  user: UserSummary,
+}
+
+export type HomeScreenPeopleNotificationFollowedMulti = {
+  followers?: ?Array<HomeScreenPeopleNotificationFollowed>,
+  numOthers: int,
+}
+
+export type HomeScreenPeopleNotificationType =
+    0 // FOLLOWED_0
+  | 1 // FOLLOWED_MULTI_1
+
+export type HomeScreenTodo =
+    { t: any }
+
+export type HomeScreenTodoType =
+    1 // BIO_1
+  | 2 // PROOF_2
+  | 3 // DEVICE_3
+  | 4 // FOLLOW_4
+  | 5 // CHAT_5
+  | 6 // PAPERKEY_6
+  | 7 // TEAM_7
+  | 8 // FOLDER_8
+  | 9 // GIT_REPO_9
+  | 10 // TEAM_SHOWCASE_10
 
 export type Identify2Res = {
   upk: UserPlusKeys,
@@ -4403,6 +4571,34 @@ export type SecretResponse = {
   phrase: string,
 }
 
+export type SeitanAKey = string
+
+export type SeitanIKey = string
+
+export type SeitanIKeyAndLabel =
+    { v: 1, v1: ?SeitanIKeyAndLabelVersion1 }
+  | { v: any }
+
+export type SeitanIKeyAndLabelVersion =
+    1 // V1_1
+
+export type SeitanIKeyAndLabelVersion1 = {
+  i: SeitanIKey,
+  l: SeitanIKeyLabel,
+}
+
+export type SeitanIKeyLabel =
+    { t: 1, sms: ?SeitanIKeyLabelSms }
+  | { t: any }
+
+export type SeitanIKeyLabelSms = {
+  f: string,
+  n: string,
+}
+
+export type SeitanIKeyLabelType =
+    1 // SMS_1
+
 export type SelectKeyRes = {
   keyID: string,
   doSecretPush: boolean,
@@ -4825,11 +5021,17 @@ export type TeamAddMemberResult = {
   chatSent: boolean,
 }
 
+export type TeamAndMemberShowcase = {
+  teamShowcase: TeamShowcase,
+  isMemberShowcased: boolean,
+}
+
 export type TeamApplication =
     1 // KBFS_1
   | 2 // CHAT_2
   | 3 // SALTPACK_3
   | 4 // GIT_METADATA_4
+  | 5 // SEITAN_INVITE_TOKEN_5
 
 export type TeamApplicationKey = {
   application: TeamApplication,
@@ -4885,6 +5087,7 @@ export type TeamDetails = {
   keyGeneration: PerTeamKeyGeneration,
   annotatedActiveInvites: {[key: string]: AnnotatedTeamInvite},
   settings: TeamSettings,
+  showcase: TeamShowcase,
 }
 
 export type TeamExitRow = {
@@ -4917,6 +5120,7 @@ export type TeamInviteCategory =
   | 2 // KEYBASE_2
   | 3 // EMAIL_3
   | 4 // SBS_4
+  | 5 // SEITAN_5
 
 export type TeamInviteID = string
 
@@ -5023,9 +5227,29 @@ export type TeamSBSMsg = {
   invitees?: ?Array<TeamInvitee>,
 }
 
+export type TeamSeitanMsg = {
+  teamID: TeamID,
+  seitans?: ?Array<TeamSeitanRequest>,
+}
+
+export type TeamSeitanRequest = {
+  inviteID: TeamInviteID,
+  uid: UID,
+  eldestSeqno: Seqno,
+  akey: SeitanAKey,
+  role: TeamRole,
+  unixCTime: int64,
+}
+
 export type TeamSettings = {
   open: boolean,
   joinAs: TeamRole,
+}
+
+export type TeamShowcase = {
+  isShowcased: boolean,
+  description?: ?string,
+  setByUID?: ?UID,
 }
 
 export type TeamSigChainState = {
@@ -5174,6 +5398,7 @@ export type UserCard = {
   twitter: string,
   youFollowThem: boolean,
   theyFollowYou: boolean,
+  teamShowcase?: ?Array<UserTeamShowcase>,
 }
 
 export type UserLogPoint = {
@@ -5264,6 +5489,14 @@ export type UserSummary2Set = {
   users?: ?Array<UserSummary2>,
   time: Time,
   version: int,
+}
+
+export type UserTeamShowcase = {
+  fqName: string,
+  open: boolean,
+  teamIsShowcased: boolean,
+  description: string,
+  role: TeamRole,
 }
 
 export type UserVersion = {
@@ -5586,6 +5819,14 @@ export type gregorUIPushOutOfBandMessagesRpcParam = Exact<{
 export type gregorUIPushStateRpcParam = Exact<{
   state: gregor1.State,
   reason: PushReason
+}>
+
+export type homeHomeGetScreenRpcParam = Exact<{
+  markViewed: boolean
+}>
+
+export type homeHomeSkipTodoTypeRpcParam = Exact<{
+  t: HomeScreenTodoType
 }>
 
 export type identifyIdentify2RpcParam = Exact<{
@@ -6241,8 +6482,16 @@ export type streamUiWriteRpcParam = Exact<{
   buf: bytes
 }>
 
+export type teamsGetTeamAndMemberShowcaseRpcParam = Exact<{
+  name: string
+}>
+
 export type teamsGetTeamRootIDRpcParam = Exact<{
   id: TeamID
+}>
+
+export type teamsGetTeamShowcaseRpcParam = Exact<{
+  name: string
 }>
 
 export type teamsLoadTeamPlusApplicationKeysRpcParam = Exact<{
@@ -6259,6 +6508,17 @@ export type teamsLookupImplicitTeamRpcParam = Exact<{
 export type teamsLookupOrCreateImplicitTeamRpcParam = Exact<{
   name: string,
   public: boolean
+}>
+
+export type teamsSetTeamMemberShowcaseRpcParam = Exact<{
+  name: string,
+  isShowcased: boolean
+}>
+
+export type teamsSetTeamShowcaseRpcParam = Exact<{
+  name: string,
+  isShowcased?: ?boolean,
+  description?: ?string
 }>
 
 export type teamsTeamAcceptInviteOrRequestAccessRpcParam = Exact<{
@@ -6293,6 +6553,12 @@ export type teamsTeamCreateRpcParam = Exact<{
   sendChatNotification: boolean
 }>
 
+export type teamsTeamCreateSeitanTokenRpcParam = Exact<{
+  name: string,
+  role: TeamRole,
+  label: SeitanIKeyLabel
+}>
+
 export type teamsTeamCreateWithSettingsRpcParam = Exact<{
   name: string,
   sendChatNotification: boolean,
@@ -6319,6 +6585,10 @@ export type teamsTeamIgnoreRequestRpcParam = Exact<{
   username: string
 }>
 
+export type teamsTeamImplicitAdminsRpcParam = Exact<{
+  teamName: string
+}>
+
 export type teamsTeamLeaveRpcParam = Exact<{
   name: string,
   permanent: boolean
@@ -6343,7 +6613,8 @@ export type teamsTeamReAddMemberAfterResetRpcParam = Exact<{
 export type teamsTeamRemoveMemberRpcParam = Exact<{
   name: string,
   username: string,
-  email: string
+  email: string,
+  inviteID: TeamInviteID
 }>
 
 export type teamsTeamRenameRpcParam = Exact<{
@@ -6555,6 +6826,7 @@ type gpgUiSignResult = string
 type gpgUiWantToAddGPGKeyResult = boolean
 type gregorGetStateResult = gregor1.State
 type gregorInjectItemResult = gregor1.MsgID
+type homeHomeGetScreenResult = HomeScreen
 type identifyIdentify2Result = Identify2Res
 type identifyIdentifyLiteResult = IdentifyLiteRes
 type identifyResolve3Result = UserOrTeamLite
@@ -6622,15 +6894,19 @@ type sigsSigListJSONResult = string
 type sigsSigListResult = ?Array<Sig>
 type streamUiReadResult = bytes
 type streamUiWriteResult = int
+type teamsGetTeamAndMemberShowcaseResult = TeamAndMemberShowcase
 type teamsGetTeamRootIDResult = TeamID
+type teamsGetTeamShowcaseResult = TeamShowcase
 type teamsLoadTeamPlusApplicationKeysResult = TeamPlusApplicationKeys
 type teamsLookupImplicitTeamResult = LookupImplicitTeamRes
 type teamsLookupOrCreateImplicitTeamResult = LookupImplicitTeamRes
 type teamsTeamAddEmailsBulkResult = BulkRes
 type teamsTeamAddMemberResult = TeamAddMemberResult
 type teamsTeamCreateResult = TeamCreateResult
+type teamsTeamCreateSeitanTokenResult = SeitanIKey
 type teamsTeamCreateWithSettingsResult = TeamCreateResult
 type teamsTeamGetResult = TeamDetails
+type teamsTeamImplicitAdminsResult = ?Array<TeamMemberDetails>
 type teamsTeamListRequestsResult = ?Array<TeamJoinRequest>
 type teamsTeamListResult = AnnotatedTeamList
 type teamsTeamListSubteamsRecursiveResult = ?Array<TeamIDAndName>
@@ -6731,6 +7007,10 @@ export type incomingCallMapType = Exact<{
     params: Exact<{
       oobm?: ?Array<gregor1.OutOfBandMessage>
     }>,
+    response: CommonResponseHandler
+  ) => void,
+  'keybase.1.homeUi.homeUIRefresh'?: (
+    params: Exact<{}>,
     response: CommonResponseHandler
   ) => void,
   'keybase.1.identifyUi.displayTLFCreateWithInvite'?: (

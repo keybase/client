@@ -62,6 +62,11 @@ func (c *CtlHandler) DbNuke(_ context.Context, sessionID int) error {
 	}
 	ctx.LogUI.Warning("Nuking chat database %s", fn)
 
+	teamLoader := c.G().GetTeamLoader()
+	if teamLoader != nil {
+		teamLoader.ClearMem()
+	}
+
 	// Now drop caches, since we had the DB's state in-memory too.
 	return c.G().ConfigureCaches()
 }

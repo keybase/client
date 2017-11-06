@@ -130,13 +130,14 @@ func (t SigchainV2Type) TeamAllowStub(role keybase1.TeamRole) bool {
 
 // OuterLinkV2 is the second version of Keybase sigchain signatures.
 type OuterLinkV2 struct {
-	_struct  bool             `codec:",toarray"`
-	Version  int              `codec:"version"`
-	Seqno    keybase1.Seqno   `codec:"seqno"`
-	Prev     LinkID           `codec:"prev"`
-	Curr     LinkID           `codec:"curr"`
-	LinkType SigchainV2Type   `codec:"type"`
-	SeqType  keybase1.SeqType `codec:"seqtype"`
+	_struct  bool           `codec:",toarray"`
+	Version  int            `codec:"version"`
+	Seqno    keybase1.Seqno `codec:"seqno"`
+	Prev     LinkID         `codec:"prev"`
+	Curr     LinkID         `codec:"curr"`
+	LinkType SigchainV2Type `codec:"type"`
+	// -- Links exist in the wild that are missing fields below this line.
+	SeqType keybase1.SeqType `codec:"seqtype"`
 }
 
 type OuterLinkV2WithMetadata struct {
@@ -297,37 +298,50 @@ func SigchainV2TypeFromV1TypeTeams(s string) (ret SigchainV2Type, err error) {
 	return ret, err
 }
 
-func (o OuterLinkV2) AssertFields(v int, s keybase1.Seqno, p LinkID, c LinkID, t SigchainV2Type) (err error) {
+func (o OuterLinkV2) AssertFields(
+	version int,
+	seqno keybase1.Seqno,
+	prev LinkID,
+	curr LinkID,
+	linkType SigchainV2Type,
+	seqType keybase1.SeqType,
+) (err error) {
 	mkErr := func(format string, arg ...interface{}) error {
 		return SigchainV2MismatchedFieldError{fmt.Sprintf(format, arg...)}
 	}
-	if o.Version != v {
-		return mkErr("version field (%d != %d)", o.Version, v)
+	if o.Version != version {
+		return mkErr("version field (%d != %d)", o.Version, version)
 	}
-	if o.Seqno != s {
-		return mkErr("seqno field: (%d != %d)", o.Seqno, s)
+	if o.Seqno != seqno {
+		return mkErr("seqno field: (%d != %d)", o.Seqno, seqno)
 	}
-	if !o.Prev.Eq(p) {
-		return mkErr("prev pointer: (%s != !%s)", o.Prev, p)
+	if !o.Prev.Eq(prev) {
+		return mkErr("prev pointer: (%s != !%s)", o.Prev, prev)
 	}
-	if !o.Curr.Eq(c) {
-		return mkErr("curr pointer: (%s != %s)", o.Curr, c)
+	if !o.Curr.Eq(curr) {
+		return mkErr("curr pointer: (%s != %s)", o.Curr, curr)
 	}
-	if o.LinkType != t {
-		return mkErr("link type: (%d != %d)", o.LinkType, t)
+	if o.LinkType != linkType {
+		return mkErr("link type: (%d != %d)", o.LinkType, linkType)
+	}
+	if o.SeqType != seqType {
+		return mkErr("seq type: (%d != %d)", o.SeqType, seqType)
 	}
 	return nil
 }
 
-func (o OuterLinkV2) AssertSomeFields(v int, s keybase1.Seqno) (err error) {
+func (o OuterLinkV2) AssertSomeFields(
+	version int,
+	seqno keybase1.Seqno,
+) (err error) {
 	mkErr := func(format string, arg ...interface{}) error {
 		return SigchainV2MismatchedFieldError{fmt.Sprintf(format, arg...)}
 	}
-	if o.Version != v {
-		return mkErr("version field (%d != %d)", o.Version, v)
+	if o.Version != version {
+		return mkErr("version field (%d != %d)", o.Version, version)
 	}
-	if o.Seqno != s {
-		return mkErr("seqno field: (%d != %d)", o.Seqno, s)
+	if o.Seqno != seqno {
+		return mkErr("seqno field: (%d != %d)", o.Seqno, seqno)
 	}
 	return nil
 }

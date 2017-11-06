@@ -47,19 +47,21 @@ func (e TeamRole) String() string {
 type TeamApplication int
 
 const (
-	TeamApplication_KBFS         TeamApplication = 1
-	TeamApplication_CHAT         TeamApplication = 2
-	TeamApplication_SALTPACK     TeamApplication = 3
-	TeamApplication_GIT_METADATA TeamApplication = 4
+	TeamApplication_KBFS                TeamApplication = 1
+	TeamApplication_CHAT                TeamApplication = 2
+	TeamApplication_SALTPACK            TeamApplication = 3
+	TeamApplication_GIT_METADATA        TeamApplication = 4
+	TeamApplication_SEITAN_INVITE_TOKEN TeamApplication = 5
 )
 
 func (o TeamApplication) DeepCopy() TeamApplication { return o }
 
 var TeamApplicationMap = map[string]TeamApplication{
-	"KBFS":         1,
-	"CHAT":         2,
-	"SALTPACK":     3,
-	"GIT_METADATA": 4,
+	"KBFS":                1,
+	"CHAT":                2,
+	"SALTPACK":            3,
+	"GIT_METADATA":        4,
+	"SEITAN_INVITE_TOKEN": 5,
 }
 
 var TeamApplicationRevMap = map[TeamApplication]string{
@@ -67,6 +69,7 @@ var TeamApplicationRevMap = map[TeamApplication]string{
 	2: "CHAT",
 	3: "SALTPACK",
 	4: "GIT_METADATA",
+	5: "SEITAN_INVITE_TOKEN",
 }
 
 func (e TeamApplication) String() string {
@@ -314,6 +317,7 @@ type TeamDetails struct {
 	KeyGeneration          PerTeamKeyGeneration                 `codec:"keyGeneration" json:"keyGeneration"`
 	AnnotatedActiveInvites map[TeamInviteID]AnnotatedTeamInvite `codec:"annotatedActiveInvites" json:"annotatedActiveInvites"`
 	Settings               TeamSettings                         `codec:"settings" json:"settings"`
+	Showcase               TeamShowcase                         `codec:"showcase" json:"showcase"`
 }
 
 func (o TeamDetails) DeepCopy() TeamDetails {
@@ -333,6 +337,7 @@ func (o TeamDetails) DeepCopy() TeamDetails {
 			return ret
 		})(o.AnnotatedActiveInvites),
 		Settings: o.Settings.DeepCopy(),
+		Showcase: o.Showcase.DeepCopy(),
 	}
 }
 
@@ -550,6 +555,7 @@ const (
 	TeamInviteCategory_KEYBASE TeamInviteCategory = 2
 	TeamInviteCategory_EMAIL   TeamInviteCategory = 3
 	TeamInviteCategory_SBS     TeamInviteCategory = 4
+	TeamInviteCategory_SEITAN  TeamInviteCategory = 5
 )
 
 func (o TeamInviteCategory) DeepCopy() TeamInviteCategory { return o }
@@ -560,6 +566,7 @@ var TeamInviteCategoryMap = map[string]TeamInviteCategory{
 	"KEYBASE": 2,
 	"EMAIL":   3,
 	"SBS":     4,
+	"SEITAN":  5,
 }
 
 var TeamInviteCategoryRevMap = map[TeamInviteCategory]string{
@@ -568,6 +575,7 @@ var TeamInviteCategoryRevMap = map[TeamInviteCategory]string{
 	2: "KEYBASE",
 	3: "EMAIL",
 	4: "SBS",
+	5: "SEITAN",
 }
 
 func (e TeamInviteCategory) String() string {
@@ -1037,6 +1045,234 @@ func (o TeamOpenReqMsg) DeepCopy() TeamOpenReqMsg {
 	}
 }
 
+type SeitanAKey string
+
+func (o SeitanAKey) DeepCopy() SeitanAKey {
+	return o
+}
+
+type SeitanIKey string
+
+func (o SeitanIKey) DeepCopy() SeitanIKey {
+	return o
+}
+
+type SeitanIKeyAndLabelVersion int
+
+const (
+	SeitanIKeyAndLabelVersion_V1 SeitanIKeyAndLabelVersion = 1
+)
+
+func (o SeitanIKeyAndLabelVersion) DeepCopy() SeitanIKeyAndLabelVersion { return o }
+
+var SeitanIKeyAndLabelVersionMap = map[string]SeitanIKeyAndLabelVersion{
+	"V1": 1,
+}
+
+var SeitanIKeyAndLabelVersionRevMap = map[SeitanIKeyAndLabelVersion]string{
+	1: "V1",
+}
+
+func (e SeitanIKeyAndLabelVersion) String() string {
+	if v, ok := SeitanIKeyAndLabelVersionRevMap[e]; ok {
+		return v
+	}
+	return ""
+}
+
+type SeitanIKeyAndLabel struct {
+	V__  SeitanIKeyAndLabelVersion   `codec:"v" json:"v"`
+	V1__ *SeitanIKeyAndLabelVersion1 `codec:"v1,omitempty" json:"v1,omitempty"`
+}
+
+func (o *SeitanIKeyAndLabel) V() (ret SeitanIKeyAndLabelVersion, err error) {
+	switch o.V__ {
+	case SeitanIKeyAndLabelVersion_V1:
+		if o.V1__ == nil {
+			err = errors.New("unexpected nil value for V1__")
+			return ret, err
+		}
+	}
+	return o.V__, nil
+}
+
+func (o SeitanIKeyAndLabel) V1() (res SeitanIKeyAndLabelVersion1) {
+	if o.V__ != SeitanIKeyAndLabelVersion_V1 {
+		panic("wrong case accessed")
+	}
+	if o.V1__ == nil {
+		return
+	}
+	return *o.V1__
+}
+
+func NewSeitanIKeyAndLabelWithV1(v SeitanIKeyAndLabelVersion1) SeitanIKeyAndLabel {
+	return SeitanIKeyAndLabel{
+		V__:  SeitanIKeyAndLabelVersion_V1,
+		V1__: &v,
+	}
+}
+
+func NewSeitanIKeyAndLabelDefault(v SeitanIKeyAndLabelVersion) SeitanIKeyAndLabel {
+	return SeitanIKeyAndLabel{
+		V__: v,
+	}
+}
+
+func (o SeitanIKeyAndLabel) DeepCopy() SeitanIKeyAndLabel {
+	return SeitanIKeyAndLabel{
+		V__: o.V__.DeepCopy(),
+		V1__: (func(x *SeitanIKeyAndLabelVersion1) *SeitanIKeyAndLabelVersion1 {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.V1__),
+	}
+}
+
+type SeitanIKeyAndLabelVersion1 struct {
+	I SeitanIKey      `codec:"i" json:"i"`
+	L SeitanIKeyLabel `codec:"l" json:"l"`
+}
+
+func (o SeitanIKeyAndLabelVersion1) DeepCopy() SeitanIKeyAndLabelVersion1 {
+	return SeitanIKeyAndLabelVersion1{
+		I: o.I.DeepCopy(),
+		L: o.L.DeepCopy(),
+	}
+}
+
+type SeitanIKeyLabelType int
+
+const (
+	SeitanIKeyLabelType_SMS SeitanIKeyLabelType = 1
+)
+
+func (o SeitanIKeyLabelType) DeepCopy() SeitanIKeyLabelType { return o }
+
+var SeitanIKeyLabelTypeMap = map[string]SeitanIKeyLabelType{
+	"SMS": 1,
+}
+
+var SeitanIKeyLabelTypeRevMap = map[SeitanIKeyLabelType]string{
+	1: "SMS",
+}
+
+func (e SeitanIKeyLabelType) String() string {
+	if v, ok := SeitanIKeyLabelTypeRevMap[e]; ok {
+		return v
+	}
+	return ""
+}
+
+type SeitanIKeyLabel struct {
+	T__   SeitanIKeyLabelType `codec:"t" json:"t"`
+	Sms__ *SeitanIKeyLabelSms `codec:"sms,omitempty" json:"sms,omitempty"`
+}
+
+func (o *SeitanIKeyLabel) T() (ret SeitanIKeyLabelType, err error) {
+	switch o.T__ {
+	case SeitanIKeyLabelType_SMS:
+		if o.Sms__ == nil {
+			err = errors.New("unexpected nil value for Sms__")
+			return ret, err
+		}
+	}
+	return o.T__, nil
+}
+
+func (o SeitanIKeyLabel) Sms() (res SeitanIKeyLabelSms) {
+	if o.T__ != SeitanIKeyLabelType_SMS {
+		panic("wrong case accessed")
+	}
+	if o.Sms__ == nil {
+		return
+	}
+	return *o.Sms__
+}
+
+func NewSeitanIKeyLabelWithSms(v SeitanIKeyLabelSms) SeitanIKeyLabel {
+	return SeitanIKeyLabel{
+		T__:   SeitanIKeyLabelType_SMS,
+		Sms__: &v,
+	}
+}
+
+func NewSeitanIKeyLabelDefault(t SeitanIKeyLabelType) SeitanIKeyLabel {
+	return SeitanIKeyLabel{
+		T__: t,
+	}
+}
+
+func (o SeitanIKeyLabel) DeepCopy() SeitanIKeyLabel {
+	return SeitanIKeyLabel{
+		T__: o.T__.DeepCopy(),
+		Sms__: (func(x *SeitanIKeyLabelSms) *SeitanIKeyLabelSms {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Sms__),
+	}
+}
+
+type SeitanIKeyLabelSms struct {
+	F string `codec:"f" json:"f"`
+	N string `codec:"n" json:"n"`
+}
+
+func (o SeitanIKeyLabelSms) DeepCopy() SeitanIKeyLabelSms {
+	return SeitanIKeyLabelSms{
+		F: o.F,
+		N: o.N,
+	}
+}
+
+type TeamSeitanRequest struct {
+	InviteID    TeamInviteID `codec:"inviteID" json:"invite_id"`
+	Uid         UID          `codec:"uid" json:"uid"`
+	EldestSeqno Seqno        `codec:"eldestSeqno" json:"eldest_seqno"`
+	Akey        SeitanAKey   `codec:"akey" json:"akey"`
+	Role        TeamRole     `codec:"role" json:"role"`
+	UnixCTime   int64        `codec:"unixCTime" json:"ctime"`
+}
+
+func (o TeamSeitanRequest) DeepCopy() TeamSeitanRequest {
+	return TeamSeitanRequest{
+		InviteID:    o.InviteID.DeepCopy(),
+		Uid:         o.Uid.DeepCopy(),
+		EldestSeqno: o.EldestSeqno.DeepCopy(),
+		Akey:        o.Akey.DeepCopy(),
+		Role:        o.Role.DeepCopy(),
+		UnixCTime:   o.UnixCTime,
+	}
+}
+
+type TeamSeitanMsg struct {
+	TeamID  TeamID              `codec:"teamID" json:"team_id"`
+	Seitans []TeamSeitanRequest `codec:"seitans" json:"seitans"`
+}
+
+func (o TeamSeitanMsg) DeepCopy() TeamSeitanMsg {
+	return TeamSeitanMsg{
+		TeamID: o.TeamID.DeepCopy(),
+		Seitans: (func(x []TeamSeitanRequest) []TeamSeitanRequest {
+			if x == nil {
+				return nil
+			}
+			var ret []TeamSeitanRequest
+			for _, v := range x {
+				vCopy := v.DeepCopy()
+				ret = append(ret, vCopy)
+			}
+			return ret
+		})(o.Seitans),
+	}
+}
+
 // * TeamRefreshData are needed or wanted data requirements that, if unmet, will cause
 // * a refresh of the cache.
 type TeamRefreshers struct {
@@ -1312,6 +1548,44 @@ func (o TeamRequestAccessResult) DeepCopy() TeamRequestAccessResult {
 	}
 }
 
+type TeamShowcase struct {
+	IsShowcased bool    `codec:"isShowcased" json:"is_showcased"`
+	Description *string `codec:"description,omitempty" json:"description,omitempty"`
+	SetByUID    *UID    `codec:"setByUID,omitempty" json:"set_by_uid,omitempty"`
+}
+
+func (o TeamShowcase) DeepCopy() TeamShowcase {
+	return TeamShowcase{
+		IsShowcased: o.IsShowcased,
+		Description: (func(x *string) *string {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x)
+			return &tmp
+		})(o.Description),
+		SetByUID: (func(x *UID) *UID {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.SetByUID),
+	}
+}
+
+type TeamAndMemberShowcase struct {
+	TeamShowcase      TeamShowcase `codec:"teamShowcase" json:"teamShowcase"`
+	IsMemberShowcased bool         `codec:"isMemberShowcased" json:"isMemberShowcased"`
+}
+
+func (o TeamAndMemberShowcase) DeepCopy() TeamAndMemberShowcase {
+	return TeamAndMemberShowcase{
+		TeamShowcase:      o.TeamShowcase.DeepCopy(),
+		IsMemberShowcased: o.IsMemberShowcased,
+	}
+}
+
 type BulkRes struct {
 	Invited        []string `codec:"invited" json:"invited"`
 	AlreadyInvited []string `codec:"alreadyInvited" json:"alreadyInvited"`
@@ -1481,6 +1755,18 @@ func (o TeamGetArg) DeepCopy() TeamGetArg {
 	}
 }
 
+type TeamImplicitAdminsArg struct {
+	SessionID int    `codec:"sessionID" json:"sessionID"`
+	TeamName  string `codec:"teamName" json:"teamName"`
+}
+
+func (o TeamImplicitAdminsArg) DeepCopy() TeamImplicitAdminsArg {
+	return TeamImplicitAdminsArg{
+		SessionID: o.SessionID,
+		TeamName:  o.TeamName,
+	}
+}
+
 type TeamListArg struct {
 	SessionID            int    `codec:"sessionID" json:"sessionID"`
 	UserAssertion        string `codec:"userAssertion" json:"userAssertion"`
@@ -1546,10 +1832,11 @@ func (o TeamAddMemberArg) DeepCopy() TeamAddMemberArg {
 }
 
 type TeamRemoveMemberArg struct {
-	SessionID int    `codec:"sessionID" json:"sessionID"`
-	Name      string `codec:"name" json:"name"`
-	Username  string `codec:"username" json:"username"`
-	Email     string `codec:"email" json:"email"`
+	SessionID int          `codec:"sessionID" json:"sessionID"`
+	Name      string       `codec:"name" json:"name"`
+	Username  string       `codec:"username" json:"username"`
+	Email     string       `codec:"email" json:"email"`
+	InviteID  TeamInviteID `codec:"inviteID" json:"inviteID"`
 }
 
 func (o TeamRemoveMemberArg) DeepCopy() TeamRemoveMemberArg {
@@ -1558,6 +1845,7 @@ func (o TeamRemoveMemberArg) DeepCopy() TeamRemoveMemberArg {
 		Name:      o.Name,
 		Username:  o.Username,
 		Email:     o.Email,
+		InviteID:  o.InviteID.DeepCopy(),
 	}
 }
 
@@ -1703,6 +1991,22 @@ func (o TeamSetSettingsArg) DeepCopy() TeamSetSettingsArg {
 	}
 }
 
+type TeamCreateSeitanTokenArg struct {
+	SessionID int             `codec:"sessionID" json:"sessionID"`
+	Name      string          `codec:"name" json:"name"`
+	Role      TeamRole        `codec:"role" json:"role"`
+	Label     SeitanIKeyLabel `codec:"label" json:"label"`
+}
+
+func (o TeamCreateSeitanTokenArg) DeepCopy() TeamCreateSeitanTokenArg {
+	return TeamCreateSeitanTokenArg{
+		SessionID: o.SessionID,
+		Name:      o.Name,
+		Role:      o.Role.DeepCopy(),
+		Label:     o.Label.DeepCopy(),
+	}
+}
+
 type TeamAddEmailsBulkArg struct {
 	SessionID int      `codec:"sessionID" json:"sessionID"`
 	Name      string   `codec:"name" json:"name"`
@@ -1783,10 +2087,69 @@ func (o GetTeamRootIDArg) DeepCopy() GetTeamRootIDArg {
 	}
 }
 
+type GetTeamShowcaseArg struct {
+	Name string `codec:"name" json:"name"`
+}
+
+func (o GetTeamShowcaseArg) DeepCopy() GetTeamShowcaseArg {
+	return GetTeamShowcaseArg{
+		Name: o.Name,
+	}
+}
+
+type GetTeamAndMemberShowcaseArg struct {
+	Name string `codec:"name" json:"name"`
+}
+
+func (o GetTeamAndMemberShowcaseArg) DeepCopy() GetTeamAndMemberShowcaseArg {
+	return GetTeamAndMemberShowcaseArg{
+		Name: o.Name,
+	}
+}
+
+type SetTeamShowcaseArg struct {
+	Name        string  `codec:"name" json:"name"`
+	IsShowcased *bool   `codec:"isShowcased,omitempty" json:"isShowcased,omitempty"`
+	Description *string `codec:"description,omitempty" json:"description,omitempty"`
+}
+
+func (o SetTeamShowcaseArg) DeepCopy() SetTeamShowcaseArg {
+	return SetTeamShowcaseArg{
+		Name: o.Name,
+		IsShowcased: (func(x *bool) *bool {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x)
+			return &tmp
+		})(o.IsShowcased),
+		Description: (func(x *string) *string {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x)
+			return &tmp
+		})(o.Description),
+	}
+}
+
+type SetTeamMemberShowcaseArg struct {
+	Name        string `codec:"name" json:"name"`
+	IsShowcased bool   `codec:"isShowcased" json:"isShowcased"`
+}
+
+func (o SetTeamMemberShowcaseArg) DeepCopy() SetTeamMemberShowcaseArg {
+	return SetTeamMemberShowcaseArg{
+		Name:        o.Name,
+		IsShowcased: o.IsShowcased,
+	}
+}
+
 type TeamsInterface interface {
 	TeamCreate(context.Context, TeamCreateArg) (TeamCreateResult, error)
 	TeamCreateWithSettings(context.Context, TeamCreateWithSettingsArg) (TeamCreateResult, error)
 	TeamGet(context.Context, TeamGetArg) (TeamDetails, error)
+	TeamImplicitAdmins(context.Context, TeamImplicitAdminsArg) ([]TeamMemberDetails, error)
 	TeamList(context.Context, TeamListArg) (AnnotatedTeamList, error)
 	TeamListSubteamsRecursive(context.Context, TeamListSubteamsRecursiveArg) ([]TeamIDAndName, error)
 	TeamChangeMembership(context.Context, TeamChangeMembershipArg) error
@@ -1803,6 +2166,7 @@ type TeamsInterface interface {
 	TeamTree(context.Context, TeamTreeArg) (TeamTreeResult, error)
 	TeamDelete(context.Context, TeamDeleteArg) error
 	TeamSetSettings(context.Context, TeamSetSettingsArg) error
+	TeamCreateSeitanToken(context.Context, TeamCreateSeitanTokenArg) (SeitanIKey, error)
 	TeamAddEmailsBulk(context.Context, TeamAddEmailsBulkArg) (BulkRes, error)
 	LookupImplicitTeam(context.Context, LookupImplicitTeamArg) (LookupImplicitTeamRes, error)
 	LookupOrCreateImplicitTeam(context.Context, LookupOrCreateImplicitTeamArg) (LookupImplicitTeamRes, error)
@@ -1812,6 +2176,10 @@ type TeamsInterface interface {
 	// * of the refreshers aren't met.
 	LoadTeamPlusApplicationKeys(context.Context, LoadTeamPlusApplicationKeysArg) (TeamPlusApplicationKeys, error)
 	GetTeamRootID(context.Context, TeamID) (TeamID, error)
+	GetTeamShowcase(context.Context, string) (TeamShowcase, error)
+	GetTeamAndMemberShowcase(context.Context, string) (TeamAndMemberShowcase, error)
+	SetTeamShowcase(context.Context, SetTeamShowcaseArg) error
+	SetTeamMemberShowcase(context.Context, SetTeamMemberShowcaseArg) error
 }
 
 func TeamsProtocol(i TeamsInterface) rpc.Protocol {
@@ -1862,6 +2230,22 @@ func TeamsProtocol(i TeamsInterface) rpc.Protocol {
 						return
 					}
 					ret, err = i.TeamGet(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"teamImplicitAdmins": {
+				MakeArg: func() interface{} {
+					ret := make([]TeamImplicitAdminsArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]TeamImplicitAdminsArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]TeamImplicitAdminsArg)(nil), args)
+						return
+					}
+					ret, err = i.TeamImplicitAdmins(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -2122,6 +2506,22 @@ func TeamsProtocol(i TeamsInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"teamCreateSeitanToken": {
+				MakeArg: func() interface{} {
+					ret := make([]TeamCreateSeitanTokenArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]TeamCreateSeitanTokenArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]TeamCreateSeitanTokenArg)(nil), args)
+						return
+					}
+					ret, err = i.TeamCreateSeitanToken(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 			"teamAddEmailsBulk": {
 				MakeArg: func() interface{} {
 					ret := make([]TeamAddEmailsBulkArg, 1)
@@ -2218,6 +2618,70 @@ func TeamsProtocol(i TeamsInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"getTeamShowcase": {
+				MakeArg: func() interface{} {
+					ret := make([]GetTeamShowcaseArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]GetTeamShowcaseArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]GetTeamShowcaseArg)(nil), args)
+						return
+					}
+					ret, err = i.GetTeamShowcase(ctx, (*typedArgs)[0].Name)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"getTeamAndMemberShowcase": {
+				MakeArg: func() interface{} {
+					ret := make([]GetTeamAndMemberShowcaseArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]GetTeamAndMemberShowcaseArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]GetTeamAndMemberShowcaseArg)(nil), args)
+						return
+					}
+					ret, err = i.GetTeamAndMemberShowcase(ctx, (*typedArgs)[0].Name)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"setTeamShowcase": {
+				MakeArg: func() interface{} {
+					ret := make([]SetTeamShowcaseArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]SetTeamShowcaseArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]SetTeamShowcaseArg)(nil), args)
+						return
+					}
+					err = i.SetTeamShowcase(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"setTeamMemberShowcase": {
+				MakeArg: func() interface{} {
+					ret := make([]SetTeamMemberShowcaseArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]SetTeamMemberShowcaseArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]SetTeamMemberShowcaseArg)(nil), args)
+						return
+					}
+					err = i.SetTeamMemberShowcase(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 		},
 	}
 }
@@ -2238,6 +2702,11 @@ func (c TeamsClient) TeamCreateWithSettings(ctx context.Context, __arg TeamCreat
 
 func (c TeamsClient) TeamGet(ctx context.Context, __arg TeamGetArg) (res TeamDetails, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.teams.teamGet", []interface{}{__arg}, &res)
+	return
+}
+
+func (c TeamsClient) TeamImplicitAdmins(ctx context.Context, __arg TeamImplicitAdminsArg) (res []TeamMemberDetails, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.teams.teamImplicitAdmins", []interface{}{__arg}, &res)
 	return
 }
 
@@ -2322,6 +2791,11 @@ func (c TeamsClient) TeamSetSettings(ctx context.Context, __arg TeamSetSettingsA
 	return
 }
 
+func (c TeamsClient) TeamCreateSeitanToken(ctx context.Context, __arg TeamCreateSeitanTokenArg) (res SeitanIKey, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.teams.teamCreateSeitanToken", []interface{}{__arg}, &res)
+	return
+}
+
 func (c TeamsClient) TeamAddEmailsBulk(ctx context.Context, __arg TeamAddEmailsBulkArg) (res BulkRes, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.teams.teamAddEmailsBulk", []interface{}{__arg}, &res)
 	return
@@ -2353,5 +2827,27 @@ func (c TeamsClient) LoadTeamPlusApplicationKeys(ctx context.Context, __arg Load
 func (c TeamsClient) GetTeamRootID(ctx context.Context, id TeamID) (res TeamID, err error) {
 	__arg := GetTeamRootIDArg{Id: id}
 	err = c.Cli.Call(ctx, "keybase.1.teams.getTeamRootID", []interface{}{__arg}, &res)
+	return
+}
+
+func (c TeamsClient) GetTeamShowcase(ctx context.Context, name string) (res TeamShowcase, err error) {
+	__arg := GetTeamShowcaseArg{Name: name}
+	err = c.Cli.Call(ctx, "keybase.1.teams.getTeamShowcase", []interface{}{__arg}, &res)
+	return
+}
+
+func (c TeamsClient) GetTeamAndMemberShowcase(ctx context.Context, name string) (res TeamAndMemberShowcase, err error) {
+	__arg := GetTeamAndMemberShowcaseArg{Name: name}
+	err = c.Cli.Call(ctx, "keybase.1.teams.getTeamAndMemberShowcase", []interface{}{__arg}, &res)
+	return
+}
+
+func (c TeamsClient) SetTeamShowcase(ctx context.Context, __arg SetTeamShowcaseArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.teams.setTeamShowcase", []interface{}{__arg}, nil)
+	return
+}
+
+func (c TeamsClient) SetTeamMemberShowcase(ctx context.Context, __arg SetTeamMemberShowcaseArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.teams.setTeamMemberShowcase", []interface{}{__arg}, nil)
 	return
 }

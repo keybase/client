@@ -1881,6 +1881,8 @@ func TeamInviteTypeFromString(s string, isDev bool) (TeamInviteType, error) {
 		return NewTeamInviteTypeDefault(TeamInviteCategory_EMAIL), nil
 	case "twitter", "github", "facebook", "reddit", "hackernews", "pgp", "http", "https", "dns":
 		return NewTeamInviteTypeWithSbs(TeamInviteSocialNetwork(s)), nil
+	case "seitan_invite_token":
+		return NewTeamInviteTypeDefault(TeamInviteCategory_SEITAN), nil
 	default:
 		if isDev && s == "rooter" {
 			return NewTeamInviteTypeWithSbs(TeamInviteSocialNetwork(s)), nil
@@ -1903,6 +1905,8 @@ func (t TeamInviteType) String() (string, error) {
 		return "email", nil
 	case TeamInviteCategory_SBS:
 		return string(t.Sbs()), nil
+	case TeamInviteCategory_SEITAN:
+		return "seitan_invite_token", nil
 	case TeamInviteCategory_UNKNOWN:
 		return t.Unknown(), nil
 	}

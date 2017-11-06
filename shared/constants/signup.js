@@ -4,9 +4,6 @@ import type {TypedAction} from '../constants/types/flux'
 
 export type AutoInviteRequestState = 'NotRequested' | 'Requested' | 'Done'
 
-export const checkInviteCode = 'signup:checkInviteCode'
-export type CheckInviteCode = TypedAction<'signup:checkInviteCode', {inviteCode: string}, {errorText: string}>
-
 export const startRequestInvite = 'signup:startRequestInvite'
 export type StartRequestInvite = TypedAction<'signup:startRequestInvite', {}, {}>
 
@@ -63,7 +60,6 @@ export const signupWaiting = 'signup:waiting'
 export type SignupWaiting = TypedAction<'signup:waiting', boolean, void>
 
 export type Actions =
-  | CheckInviteCode
   | CheckUsernameEmail
   | CheckPassphrase
   | SubmitDeviceName

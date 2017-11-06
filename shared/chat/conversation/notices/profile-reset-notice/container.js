@@ -1,6 +1,6 @@
 // @flow
 import * as Constants from '../../../../constants/chat'
-import * as Creators from '../../../../actions/chat/creators'
+import * as ChatGen from '../../../../actions/chat-gen'
 import ProfileResetNotice from '.'
 import {connect, type TypedState} from '../../../../util/container'
 import {type StateProps, type DispatchProps} from './container'
@@ -23,7 +23,7 @@ const mapStateToProps = (state: TypedState) => {
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
   onOpenConversation: (conversationIDKey: Constants.ConversationIDKey) =>
-    dispatch(Creators.openConversation(conversationIDKey)),
+    dispatch(ChatGen.createOpenConversation({conversationIDKey})),
 })
 
 const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps) => ({

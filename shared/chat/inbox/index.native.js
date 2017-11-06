@@ -14,6 +14,7 @@ import ChatFilterRow from './row/chat-filter-row'
 import FloatingDivider from './row/floating-divider/container'
 import Divider from './row/divider/container'
 import debounce from 'lodash/debounce'
+import {Owl} from './owl'
 
 import type {Props, RowItem} from './'
 
@@ -203,7 +204,8 @@ class Inbox extends React.PureComponent<Props, State> {
             windowSize={this._maxVisible}
             getItemLayout={this._getItemLayout}
           />
-          {!this.props.isLoading && !this.props.rows.length && <NoChats />}
+          {!this.props.isLoading && !this.props.rows.length && !this.props.filter && <NoChats />}
+          {!this.props.rows.length && <Owl />}
           {this.state.showFloating &&
             this.props.showSmallTeamsExpandDivider &&
             <FloatingDivider toggle={this.props.toggleSmallTeamsExpanded} />}

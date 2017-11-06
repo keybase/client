@@ -1,22 +1,17 @@
 // @flow
+import * as ConfigGen from '../config-gen'
 import * as Constants from '../../constants/config'
-import path from 'path'
-import fs from 'fs'
-import {
-  installFuseStatusRpcPromise,
-  installInstallFuseRpcPromise,
-  installInstallKBFSRpcPromise,
-  installUninstallKBFSRpcPromise,
-  kbfsMountGetCurrentMountDirRpcPromise,
-} from '../../constants/types/flow-types'
-import {delay} from 'redux-saga'
-import {call, put, select} from 'redux-saga/effects'
+import * as RPCTypes from '../../constants/types/flow-types'
 import electron, {shell} from 'electron'
-import {isLinux, isWindows} from '../../constants/platform'
+import fs from 'fs'
+import path from 'path'
 import {ExitCodeFuseKextPermissionError} from '../../constants/favorite'
-import {fuseStatus} from './index'
+import {call, put, select} from 'redux-saga/effects'
+import {delay} from 'redux-saga'
 import {execFile} from 'child_process'
 import {folderTab} from '../../constants/tabs'
+import {fuseStatus} from './index'
+import {isLinux, isWindows} from '../../constants/platform'
 import {navigateTo, switchTo} from '../route-tree'
 
 import type {
@@ -128,10 +123,10 @@ function openInDefault(openPath: string): Promise<*> {
 function* fuseStatusSaga(): SagaGenerator<any, any> {
   const prevStatus = yield select(state => state.favorite.fuseStatus)
 
-  let status = yield call(installFuseStatusRpcPromise)
+  let status = yield call(RPCTypes.installFuseStatusRpcPromise)
   if (isWindows && status.installStatus !== 4) {
     // Check if another Dokan we didn't install mounted the filesystem
-    const kbfsMount = yield call(kbfsMountGetCurrentMountDirRpcPromise)
+    const kbfsMount = yield call(RPCTypes.kbfsMountGetCurrentMountDirRpcPromise)
     if (kbfsMount && fs.existsSync(kbfsMount)) {
       status.installStatus = 4 // installed
       status.installAction = 1 // none
@@ -150,7 +145,7 @@ function* fuseStatusUpdateSaga({payload: {prevStatus, status}}: FSFuseStatusUpda
 }
 
 function* installFuseSaga(): SagaGenerator<any, any> {
-  const result: InstallResult = yield call(installInstallFuseRpcPromise)
+  const result: InstallResult = yield call(RPCTypes.installInstallFuseRpcPromise)
   const fuseResults = result && result.componentResults
     ? result.componentResults.filter(c => c.name === 'fuse')
     : []
@@ -265,7 +260,7 @@ function* waitForMountAndOpenSaga(): SagaGenerator<any, any> {
 }
 
 function* installKBFSSaga(): SagaGenerator<any, any> {
-  const result: InstallResult = yield call(installInstallKBFSRpcPromise)
+  const result: InstallResult = yield call(RPCTypes.installInstallKBFSRpcPromise)
   const resultAction: FSInstallKBFSResult = {payload: {result}, type: 'fs:installKBFSResult'}
   yield put(resultAction)
 
@@ -278,7 +273,7 @@ function* installKBFSSaga(): SagaGenerator<any, any> {
 }
 
 function* uninstallKBFSSaga(): SagaGenerator<any, any> {
-  const result: UninstallResult = yield call(installUninstallKBFSRpcPromise)
+  const result: UninstallResult = yield call(RPCTypes.installUninstallKBFSRpcPromise)
   yield put({payload: {result}, type: 'fs:uninstallKBFSResult'})
 
   // Restart since we had to uninstall KBFS and it's needed by the service (for chat)
@@ -302,13 +297,13 @@ function* openInWindows(openPath: string): SagaGenerator<any, any> {
   // On windows the path isn't /keybase
   if (kbfsPath === Constants.defaultKBFSPath) {
     // Get current mount
-    kbfsPath = yield call(kbfsMountGetCurrentMountDirRpcPromise)
+    kbfsPath = yield call(RPCTypes.kbfsMountGetCurrentMountDirRpcPromise)
 
     if (!kbfsPath) {
       throw new Error('No kbfsPath (RPC)')
     }
 
-    yield put({payload: {path: kbfsPath}, type: Constants.changeKBFSPath})
+    yield put(ConfigGen.createChangeKBFSPath({kbfsPath}))
   }
 
   openPath = path.resolve(kbfsPath, openPath)
