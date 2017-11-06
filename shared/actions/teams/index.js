@@ -471,8 +471,10 @@ function* _setupTeamHandlers(): SagaGenerator<any, any> {
 }
 
 function* _badgeAppForTeams(action: Constants.BadgeAppForTeams) {
-  // TODO change newTeamIDs once the notification changes
   const newTeams = I.Set(action.payload.newTeamNames || [])
+  // Call getTeams if new teams come in.
+  // Covers the case when we're staring at the teams page so
+  // we don't miss a notification we clear when we tab away
   const existingNewTeams = yield select(state => state.entities.getIn(['teams', 'newTeams'], I.Set()))
   if (!newTeams.equals(existingNewTeams)) {
     yield put(Creators.getTeams())
