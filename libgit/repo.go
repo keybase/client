@@ -281,10 +281,10 @@ func makeExistingRepoError(
 
 func createNewRepoAndID(
 	ctx context.Context, config libkbfs.Config, tlfHandle *libkbfs.TlfHandle,
-	repoName string, fs *libfs.FS) (ID, error) {
+	repoName string, fs *libfs.FS) (repoID ID, err error) {
 	// TODO: take a global repo lock here to make sure only one
 	// client generates the repo ID.
-	repoID, err := makeRandomID()
+	repoID, err = makeRandomID()
 	if err != nil {
 		return NullID, err
 	}
@@ -296,7 +296,12 @@ func createNewRepoAndID(
 	if err != nil {
 		return NullID, err
 	}
-	defer lockFile.Close()
+	defer func() {
+		closeErr := lockFile.Close()
+		if err == nil {
+			err = closeErr
+		}
+	}()
 
 	f, err := fs.Create(kbfsConfigName)
 	if err != nil && !os.IsExist(err) {
@@ -618,7 +623,7 @@ func renameRepoInConfigFile(
 // journal, if desired.
 func RenameRepo(
 	ctx context.Context, config libkbfs.Config, tlfHandle *libkbfs.TlfHandle,
-	oldRepoName, newRepoName string) error {
+	oldRepoName, newRepoName string) (err error) {
 	kbfsOps := config.KBFSOps()
 	rootNode, _, err := kbfsOps.GetOrCreateRootNode(
 		ctx, tlfHandle, libkbfs.MasterBranch)
@@ -662,7 +667,12 @@ func RenameRepo(
 	if err != nil {
 		return err
 	}
-	defer oldLockFile.Close()
+	defer func() {
+		closeErr := oldLockFile.Close()
+		if err == nil {
+			err = closeErr
+		}
+	}()
 
 	if normalizedOldRepoName == normalizedNewRepoName {
 		// All we need to do is update the name in the config file,
@@ -716,7 +726,12 @@ func RenameRepo(
 	if err != nil {
 		return err
 	}
-	defer newLockFile.Close()
+	defer func() {
+		closeErr := newLockFile.Close()
+		if err == nil {
+			err = closeErr
+		}
+	}()
 
 	// Rename this new dir out of the way before we rename.
 	fi, err := fs.Stat(normalizedNewRepoName)
@@ -776,7 +791,7 @@ func needsGC(storer storage.Storer, options GCOptions) (
 // any of the thresholds provided in `options`.
 func GCRepo(
 	ctx context.Context, config libkbfs.Config, tlfHandle *libkbfs.TlfHandle,
-	repoName string, uniqID string, options GCOptions) error {
+	repoName string, uniqID string, options GCOptions) (err error) {
 	log := config.MakeLogger("")
 	log.CDebugf(ctx, "Checking whether GC is needed for %s/%s",
 		tlfHandle.GetCanonicalName(), repoName)
@@ -806,7 +821,12 @@ func GCRepo(
 	if err != nil {
 		return err
 	}
-	defer f.Close()
+	defer func() {
+		closeErr := f.Close()
+		if err == nil {
+			err = closeErr
+		}
+	}()
 	err = f.Lock()
 	if err != nil {
 		return err
