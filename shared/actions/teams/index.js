@@ -166,7 +166,11 @@ const _inviteToTeamByPhone = function*(action: Constants.InviteToTeamByPhone) {
     replaceEntity(['teams', 'teamNameToLoadingInvites'], I.Map([[teamname, I.Map([[phoneNumber, true]])]]))
   )
   const seitan = yield call(RpcTypes.teamsTeamCreateSeitanTokenRpcPromise, {
-    param: {name: teamname, role, label: {t: 1, sms: {f: fullName, n: phoneNumber}}},
+    param: {
+      name: teamname,
+      role: role && RpcTypes.TeamsTeamRole[role],
+      label: {t: 1, sms: {f: fullName, n: phoneNumber}},
+    },
   })
   openSMS(
     phoneNumber,
