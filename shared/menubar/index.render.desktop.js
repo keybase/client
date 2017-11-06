@@ -11,7 +11,7 @@ import type {Props} from './index.render'
 import type {Tab} from '../constants/tabs'
 
 type State = {
-  showingPrivate: boolean,
+  showingPrivate: boolean | string,
   showingMenu: boolean,
 }
 

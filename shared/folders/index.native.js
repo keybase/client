@@ -30,7 +30,7 @@ class FoldersRender extends Component<Props> {
         }}
         styleBadgeNumber={styleBadgeNumber}
         selected={isSelected}
-        label={isPublic ? 'public/' : 'private/'}
+        label={`${folderType}/`}
         badgeNumber={isPublic ? this.props.publicBadge : this.props.privateBadge}
       />
     )

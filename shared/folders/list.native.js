@@ -99,6 +99,7 @@ class ListRender extends Component<Props, State> {
         key={rowKey(row.users)}
         {...row}
         isPublic={this.props.type === 'public'}
+        isTeam={this.props.type === 'team'}
         ignored={sectionID === 'ignored'}
         onClick={this.props.onClick}
       />
