@@ -7,7 +7,6 @@ import {isMobile} from '../../constants/platform'
 import {apiserverDeleteRpcPromise, apiserverPostRpcPromise} from '../../constants/types/flow-types'
 import {chatTab} from '../../constants/tabs'
 import {navigateTo} from '../route-tree'
-import {safeTakeEvery, safeTakeLatest} from '../../util/saga'
 
 import type {TypedState} from '../../constants/reducer'
 
@@ -167,12 +166,12 @@ function* deletePushTokenSaga(): Saga.SagaGenerator<any, any> {
 }
 
 function* pushSaga(): Saga.SagaGenerator<any, any> {
-  yield safeTakeLatest(Constants.permissionsRequest, permissionsRequestSaga)
-  yield safeTakeLatest(Constants.permissionsNo, permissionsNoSaga)
-  yield safeTakeLatest(Constants.pushToken, pushTokenSaga)
-  yield safeTakeLatest(Constants.savePushToken, savePushTokenSaga)
-  yield safeTakeLatest(Constants.configurePush, configurePushSaga)
-  yield safeTakeEvery(Constants.pushNotification, pushNotificationSaga)
+  yield Saga.safeTakeLatest(Constants.permissionsRequest, permissionsRequestSaga)
+  yield Saga.safeTakeLatest(Constants.permissionsNo, permissionsNoSaga)
+  yield Saga.safeTakeLatest(Constants.pushToken, pushTokenSaga)
+  yield Saga.safeTakeLatest(Constants.savePushToken, savePushTokenSaga)
+  yield Saga.safeTakeLatest(Constants.configurePush, configurePushSaga)
+  yield Saga.safeTakeEvery(Constants.pushNotification, pushNotificationSaga)
 }
 
 export default pushSaga
