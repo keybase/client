@@ -106,9 +106,15 @@ export default compose(
     }),
     // Delegate to add / remove
     withHandlers({
-      onSelectContact: ({isSelected, invited, role, onUninvite, onInviteEmail, onInvitePhone}) => (
-        contact: ContactDisplayProps
-      ) => {
+      onSelectContact: ({
+        _pendingInvites,
+        isSelected,
+        invited,
+        role,
+        onUninvite,
+        onInviteEmail,
+        onInvitePhone,
+      }) => (contact: ContactDisplayProps) => {
         if (!isSelected(contact.email || contact.phoneNo)) {
           if (contact.email) {
             role && onInviteEmail({invitee: contact.email, role})
@@ -118,7 +124,22 @@ export default compose(
         } else {
           if (contact.email) {
             onUninvite(contact.email)
-          } // TODO phone number uninvite
+          } else if (contact.phoneNo) {
+            const relevantInvite = _pendingInvites.find(rec => {
+              if (rec.name) {
+                const matches = /\((.*)\)/.exec(rec.name)
+                if (matches[1]) {
+                  // Check bare numbers against one another
+                  return (
+                    matches[1].replace(/\D/g, '') === (contact.phoneNo && contact.phoneNo.replace(/\D/g, ''))
+                  )
+                }
+              }
+            })
+            if (relevantInvite) {
+              onUninvite('', relevantInvite.id)
+            }
+          }
         }
       },
     }),
@@ -138,7 +159,7 @@ export default compose(
           }
           res.push({
             id: contact.recordID + (addr.email ? addr.email : addr.number),
-            loading: props.loadingInvites.get(addr.email),
+            loading: props.loadingInvites.get(addr.email || addr.phoneNo),
             contact: cData,
             selected: props.isSelected(cData.email || cData.phoneNo, cData.name),
             onClick: () => props.onSelectContact(cData),
