@@ -3,6 +3,7 @@ package memory
 
 import (
 	"fmt"
+	"time"
 
 	"gopkg.in/src-d/go-git.v4/config"
 	"gopkg.in/src-d/go-git.v4/plumbing"
@@ -162,6 +163,28 @@ func (o *ObjectStorage) Begin() storer.Transaction {
 		Storage: o,
 		Objects: make(map[plumbing.Hash]plumbing.EncodedObject, 0),
 	}
+}
+
+func (o *ObjectStorage) ForEachObjectHash(fun func(plumbing.Hash) error) error {
+	for h, _ := range o.Objects {
+		err := fun(h)
+		if err != nil {
+			if err == storer.ErrStop {
+				return nil
+			}
+			return err
+		}
+	}
+	return nil
+}
+
+var errNotSupported = fmt.Errorf("Not supported")
+
+func (s *ObjectStorage) LooseObjectTime(hash plumbing.Hash) (time.Time, error) {
+	return time.Time{}, errNotSupported
+}
+func (s *ObjectStorage) DeleteLooseObject(plumbing.Hash) error {
+	return errNotSupported
 }
 
 type TxObjectStorage struct {

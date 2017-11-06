@@ -3,6 +3,7 @@ package filesystem
 import (
 	"io"
 	"os"
+	"time"
 
 	"gopkg.in/src-d/go-git.v4/plumbing"
 	"gopkg.in/src-d/go-git.v4/plumbing/cache"
@@ -504,4 +505,27 @@ func hashListAsMap(l []plumbing.Hash) map[plumbing.Hash]bool {
 	}
 
 	return m
+}
+
+func (s *ObjectStorage) ForEachObjectHash(fun func(plumbing.Hash) error) error {
+	err := s.dir.ForEachObjectHash(fun)
+	if err != nil {
+		if err == storer.ErrStop {
+			return nil
+		}
+		return err
+	}
+	return nil
+}
+
+func (s *ObjectStorage) LooseObjectTime(hash plumbing.Hash) (time.Time, error) {
+	fi, err := s.dir.ObjectStat(hash)
+	if err != nil {
+		return time.Time{}, err
+	}
+	return fi.ModTime(), nil
+}
+
+func (s *ObjectStorage) DeleteLooseObject(hash plumbing.Hash) error {
+	return s.dir.ObjectDelete(hash)
 }

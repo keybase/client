@@ -208,39 +208,67 @@ func (d *DotGit) NewObject() (*ObjectWriter, error) {
 // Objects returns a slice with the hashes of objects found under the
 // .git/objects/ directory.
 func (d *DotGit) Objects() ([]plumbing.Hash, error) {
+	var objects []plumbing.Hash
+	err := d.ForEachObjectHash(func(hash plumbing.Hash) error {
+		objects = append(objects, hash)
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+	return objects, nil
+}
+
+// Objects returns a slice with the hashes of objects found under the
+// .git/objects/ directory.
+func (d *DotGit) ForEachObjectHash(fun func(plumbing.Hash) error) error {
 	files, err := d.fs.ReadDir(objectsPath)
 	if err != nil {
 		if os.IsNotExist(err) {
-			return nil, nil
+			return nil
 		}
 
-		return nil, err
+		return err
 	}
 
-	var objects []plumbing.Hash
 	for _, f := range files {
 		if f.IsDir() && len(f.Name()) == 2 && isHex(f.Name()) {
 			base := f.Name()
 			d, err := d.fs.ReadDir(d.fs.Join(objectsPath, base))
 			if err != nil {
-				return nil, err
+				return err
 			}
 
 			for _, o := range d {
-				objects = append(objects, plumbing.NewHash(base+o.Name()))
+				err = fun(plumbing.NewHash(base + o.Name()))
+				if err != nil {
+					return err
+				}
 			}
 		}
 	}
 
-	return objects, nil
+	return nil
 }
 
-// Object return a fs.File pointing the object file, if exists
-func (d *DotGit) Object(h plumbing.Hash) (billy.File, error) {
+func (d *DotGit) objectPath(h plumbing.Hash) string {
 	hash := h.String()
-	file := d.fs.Join(objectsPath, hash[0:2], hash[2:40])
+	return d.fs.Join(objectsPath, hash[0:2], hash[2:40])
+}
 
-	return d.fs.Open(file)
+// Object returns a fs.File pointing the object file, if exists
+func (d *DotGit) Object(h plumbing.Hash) (billy.File, error) {
+	return d.fs.Open(d.objectPath(h))
+}
+
+// ObjectStat returns a os.FileInfo pointing the object file, if exists
+func (d *DotGit) ObjectStat(h plumbing.Hash) (os.FileInfo, error) {
+	return d.fs.Stat(d.objectPath(h))
+}
+
+// ObjectDelete removes the object file, if exists
+func (d *DotGit) ObjectDelete(h plumbing.Hash) error {
+	return d.fs.Remove(d.objectPath(h))
 }
 
 func (d *DotGit) readReferenceFrom(rd io.Reader, name string) (ref *plumbing.Reference, err error) {
