@@ -138,6 +138,8 @@ export default compose(
             })
             if (relevantInvite) {
               onUninvite('', relevantInvite.id)
+            } else {
+              console.warn('Could not find invite to remove in pending invites')
             }
           }
         }
