@@ -3,6 +3,7 @@ import * as React from 'react'
 import * as Constants from '../../constants/teams'
 import {
   Avatar,
+  Badge,
   Box,
   Button,
   Text,
@@ -30,6 +31,7 @@ export type Props = {
   invites: Array<InviteRowProps>,
   members: Array<MemberRowProps>,
   requests: Array<RequestRowProps>,
+  newTeamRequests: Array<Constants.Teamname>,
   loading: boolean,
   showMenu: boolean,
   selectedTab: Constants.TabKey,
@@ -63,6 +65,8 @@ type TeamTabsProps = {
   admin: boolean,
   invites: Array<InviteRowProps>,
   members: Array<MemberRowProps>,
+  name: Constants.Teamname,
+  newTeamRequests: Array<Constants.Teamname>,
   requests: Array<RequestRowProps>,
   loading?: boolean,
   selectedTab?: string,
@@ -70,7 +74,17 @@ type TeamTabsProps = {
 }
 
 const TeamTabs = (props: TeamTabsProps) => {
-  const {admin, invites, members, requests, loading = false, selectedTab, setSelectedTab} = props
+  const {
+    admin,
+    invites,
+    members,
+    name,
+    newTeamRequests,
+    requests,
+    loading = false,
+    selectedTab,
+    setSelectedTab,
+  } = props
   let membersLabel = 'MEMBERS'
   membersLabel += !loading || members.length !== 0 ? ' (' + members.length + ')' : ''
   const tabs = [
@@ -84,19 +98,28 @@ const TeamTabs = (props: TeamTabsProps) => {
       {membersLabel}
     </Text>,
   ]
+
+  let requestsBadge = 0
+  if (newTeamRequests.length) {
+    requestsBadge = newTeamRequests.reduce((count, team) => (team === name ? count + 1 : count), 0)
+  }
+
   if (admin) {
     const requestsLabel = `REQUESTS (${requests.length})`
     const invitesLabel = `PENDING INVITES (${invites.length})`
     tabs.push(
-      <Text
-        key="requests"
-        type="BodySmallSemibold"
-        style={{
-          color: globalColors.black_75,
-        }}
-      >
-        {requestsLabel}
-      </Text>
+      <Box key="requests" style={{...globalStyles.flexBoxRow, alignItems: 'center'}}>
+        {requestsBadge && <Badge badgeNumber={requestsBadge} />}
+        <Text
+          type="BodySmallSemibold"
+          style={{
+            color: globalColors.black_75,
+          }}
+        >
+          {' '}
+          {requestsLabel}
+        </Text>
+      </Box>
     )
     tabs.push(
       <Text

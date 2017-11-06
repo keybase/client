@@ -18,6 +18,7 @@ type StateProps = {
   loading: boolean,
   _requests: I.Set<Constants.RequestInfo>,
   _invites: I.Set<Constants.InviteInfo>,
+  _newTeamRequests: I.List<string>,
   name: Constants.Teamname,
   you: ?string,
   selectedTab: string,
@@ -28,6 +29,7 @@ const mapStateToProps = (state: TypedState, {routeProps, routeState}): StateProp
   _memberInfo: state.entities.getIn(['teams', 'teamNameToMembers', routeProps.get('teamname')], I.Set()),
   _requests: state.entities.getIn(['teams', 'teamNameToRequests', routeProps.get('teamname')], I.Set()),
   _invites: state.entities.getIn(['teams', 'teamNameToInvites', routeProps.get('teamname')], I.Set()),
+  _newTeamRequests: state.entities.getIn(['teams', 'newTeamRequests'], I.List()),
   loading: state.entities.getIn(['teams', 'teamNameToLoading', routeProps.get('teamname')], true),
   name: routeProps.get('teamname'),
   you: state.config.username,
@@ -111,6 +113,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
       .toArray()
       .sort((a: Constants.MemberInfo, b: Constants.MemberInfo) => a.username.localeCompare(b.username)),
     requests: stateProps._requests.toJS(),
+    newTeamRequests: stateProps._newTeamRequests.toArray(),
     onAddPeople,
     onInviteByEmail,
     onCreateSubteam,

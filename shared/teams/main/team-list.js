@@ -10,6 +10,7 @@ export type Props = {
   teamnames: Array<Teamname>,
   teammembercounts: {[string]: number},
   newTeams: Array<Teamname>,
+  newTeamRequests: Array<Teamname>,
   onOpenFolder: (teamname: Teamname) => void,
   onManageChat: (teamname: Teamname) => void,
   onViewTeam: (teamname: Teamname) => void,
@@ -19,6 +20,7 @@ type RowProps = {
   name: Teamname,
   membercount: number,
   isNew: boolean,
+  hasNewRequests: boolean,
   onOpenFolder: () => void,
   onManageChat: () => void,
   onViewTeam: () => void,
@@ -31,7 +33,15 @@ export const newCharmStyle = {
   alignSelf: 'center',
 }
 
-const Row = ({name, membercount, isNew, onOpenFolder, onManageChat, onViewTeam}: RowProps) => (
+const Row = ({
+  name,
+  membercount,
+  isNew,
+  hasNewRequests,
+  onOpenFolder,
+  onManageChat,
+  onViewTeam,
+}: RowProps) => (
   <Box style={rowStyle}>
     <Box
       style={{
@@ -48,7 +58,7 @@ const Row = ({name, membercount, isNew, onOpenFolder, onManageChat, onViewTeam}:
             {name}
           </Text>
           <Box style={globalStyles.flexBoxRow}>
-            {isNew && <Meta title="NEW" style={newCharmStyle} />}
+            {(isNew || hasNewRequests) && <Meta title="NEW" style={newCharmStyle} />}
             <Text type="BodySmall">
               {membercount + ' member' + (membercount !== 1 ? 's' : '')}
             </Text>
@@ -77,6 +87,7 @@ const TeamList = (props: Props) => (
         key={name}
         name={name}
         isNew={props.newTeams.includes(name)}
+        hasNewRequests={props.newTeamRequests.includes(name)}
         membercount={props.teammembercounts[name]}
         onOpenFolder={() => props.onOpenFolder(name)}
         onManageChat={() => props.onManageChat(name)}

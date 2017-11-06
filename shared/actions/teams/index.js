@@ -472,14 +472,19 @@ function* _setupTeamHandlers(): SagaGenerator<any, any> {
 
 function* _badgeAppForTeams(action: Constants.BadgeAppForTeams) {
   const newTeams = I.Set(action.payload.newTeamNames || [])
+  const newTeamRequests = I.List(action.payload.newTeamAccessRequests || [])
   // Call getTeams if new teams come in.
   // Covers the case when we're staring at the teams page so
   // we don't miss a notification we clear when we tab away
   const existingNewTeams = yield select(state => state.entities.getIn(['teams', 'newTeams'], I.Set()))
-  if (!newTeams.equals(existingNewTeams)) {
+  const existingNewTeamRequests = yield select(state =>
+    state.entities.getIn(['teams', 'newTeamRequests'], I.List())
+  )
+  if (!newTeams.equals(existingNewTeams) || !newTeams.equals(existingNewTeamRequests)) {
     yield put(Creators.getTeams())
   }
   yield put(replaceEntity(['teams'], I.Map([['newTeams', newTeams]])))
+  yield put(replaceEntity(['teams'], I.Map([['newTeamRequests', newTeamRequests]])))
 }
 
 let _wasOnTeamsTab = false
@@ -492,11 +497,13 @@ const _onTabChange = (action: RouteTreeConstants.SwitchTo) => {
   } else if (_wasOnTeamsTab) {
     _wasOnTeamsTab = false
     // clear badges
-    return call(RpcTypes.gregorDismissCategoryRpcPromise, {
-      param: {
-        category: 'team.newly_added_to_team',
-      },
-    })
+    return all([
+      call(RpcTypes.gregorDismissCategoryRpcPromise, {
+        param: {
+          category: 'team.newly_added_to_team',
+        },
+      }),
+    ])
   }
 }
 
