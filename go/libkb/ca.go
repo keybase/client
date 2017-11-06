@@ -3,10 +3,35 @@
 
 package libkb
 
-var BundledCAs = map[string]string{
-	"api.keybase.io":          apiCA,
-	"gregord.kbfs.keybase.io": KBFSProdCA,
-	"gregord.dev.keybase.io":  KBFSDevCA,
+import "strings"
+
+var apiCAOverrideForTest = ""
+
+// GetBundledCAsFromHost returns in root CA in []byte for given host, or nil if
+// no matching CA is found for host.
+func GetBundledCAsFromHost(host string) (rootCA []byte, ok bool) {
+	host = strings.TrimSpace(strings.ToLower(host))
+	switch {
+	case host == "api.keybase.io":
+		if len(apiCAOverrideForTest) > 0 {
+			return []byte(apiCAOverrideForTest), true
+		}
+		return []byte(apiCA), true
+
+	// Staging CA.
+	case strings.HasSuffix(host, "dev.keybase.io"),
+		strings.HasSuffix(host, "dev.keybaseapi.com"):
+		return []byte(KBFSDevCA), true
+
+	// Prod CA.
+	case strings.HasSuffix(host, "kbfs.keybase.io"),
+		strings.HasSuffix(host, "kbfs.keybaseapi.com"),
+		strings.HasSuffix(host, "core.keybaseapi.com"):
+		return []byte(KBFSProdCA), true
+
+	default:
+		return nil, false
+	}
 }
 
 const apiCA = `-----BEGIN CERTIFICATE-----
