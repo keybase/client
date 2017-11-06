@@ -34,8 +34,8 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routeProps}) => ({
     dispatch(Creators.inviteToTeamByEmail(routeProps.get('teamname'), role, invitee))
     dispatch(Creators.getTeams())
   },
-  onInvitePhone: ({invitee, role}) => {
-    dispatch(Creators.inviteToTeamByPhone(routeProps.get('teamname'), role, invitee))
+  onInvitePhone: ({invitee, role, fullName = ''}) => {
+    dispatch(Creators.inviteToTeamByPhone(routeProps.get('teamname'), role, invitee, fullName))
     dispatch(Creators.getTeams())
   },
   onUninvite: (invitee: string) => {
@@ -102,7 +102,7 @@ export default compose(
           if (contact.email) {
             role && onInviteEmail({invitee: contact.email, role})
           } else if (contact.phoneNo) {
-            role && onInvitePhone({invitee: contact.phoneNo, role})
+            role && onInvitePhone({invitee: contact.phoneNo, role, fullName: contact.name})
           }
         } else {
           if (contact.email) {

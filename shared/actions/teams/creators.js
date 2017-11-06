@@ -45,9 +45,10 @@ function inviteToTeamByEmail(
 function inviteToTeamByPhone(
   teamname: string,
   role: Constants.TeamRoleType,
-  phoneNumber: string
+  phoneNumber: string,
+  fullName: string
 ): Constants.InviteToTeamByPhone {
-  return {payload: {teamname, role, phoneNumber}, type: 'teams:inviteToTeamByPhone'}
+  return {payload: {teamname, role, phoneNumber, fullName}, type: 'teams:inviteToTeamByPhone'}
 }
 
 function joinTeam(teamname: string): Constants.JoinTeam {

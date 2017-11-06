@@ -49,6 +49,7 @@ export type InviteToTeamByPhone = NoErrorTypedAction<
     teamname: string,
     role: string,
     phoneNumber: string,
+    fullName: ?string,
   }
 >
 

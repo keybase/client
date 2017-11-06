@@ -161,11 +161,17 @@ const _removeMemberOrPendingInvite = function*(action: Constants.RemoveMemberOrP
 }
 
 const _inviteToTeamByPhone = function*(action: Constants.InviteToTeamByPhone) {
-  const {payload: {teamname, phoneNumber}} = action
+  const {payload: {teamname, role, phoneNumber, fullName = ''}} = action
   yield put(
     replaceEntity(['teams', 'teamNameToLoadingInvites'], I.Map([[teamname, I.Map([[phoneNumber, true]])]]))
   )
-  openSMS(phoneNumber, 'delicious seitan') // TODO replace with token from seitan call
+  const seitan = yield call(RpcTypes.teamsTeamCreateSeitanTokenRpcPromise, {
+    param: {name: teamname, role, label: {t: 1, sms: {f: fullName, n: phoneNumber}}},
+  })
+  openSMS(
+    phoneNumber,
+    `Hello! Join my team on Keybase!\n\nLog in at keybase.io\n\n Your invite token is ${seitan}`
+  )
   yield put(
     replaceEntity(['teams', 'teamNameToLoadingInvites'], I.Map([[teamname, I.Map([[phoneNumber, false]])]]))
   )
