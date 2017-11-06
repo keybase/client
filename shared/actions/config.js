@@ -78,7 +78,7 @@ const registerListeners = (): AsyncAction => dispatch => {
 }
 
 const _retryBootstrap = () => {
-  return Saga.all[(ConfigGen.createBootstrapRetry(), ConfigGen.createBootstrap({}))]
+  return Saga.all([Saga.put(ConfigGen.createBootstrapRetry()), Saga.put(ConfigGen.createBootstrap({}))])
 }
 
 // TODO: It's unfortunate that we have these globals. Ideally,

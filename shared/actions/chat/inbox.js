@@ -37,7 +37,7 @@ const _getInboxQuery = {
 }
 
 // Update inboxes that have been reset
-function* _updateFinalized(inbox: RPCChatTypes.GetInboxLocalRes) {
+function* _updateFinalized(inbox: RPCChatTypes.UnverifiedInboxUIItems): Generator<any, void, any> {
   const finalizedState: Constants.FinalizedState = I.Map(
     (inbox.conversationsUnverified || []).filter(c => c.metadata.finalizeInfo).map(convoUnverified => [
       Constants.conversationIDToKey(convoUnverified.metadata.conversationID),
@@ -212,7 +212,7 @@ function _toSupersedeInfo(
 }
 
 // Update an inbox item
-function* _processConversation(c: RPCChatTypes.InboxUIItem): SagaGenerator<any, any> {
+function* _processConversation(c: RPCChatTypes.InboxUIItem): Generator<any, void, any> {
   const conversationIDKey = c.convID
 
   const isBigTeam = c.teamType === RPCChatTypes.commonTeamType.complex
@@ -364,7 +364,9 @@ function* _unboxMore(): SagaGenerator<any, any> {
   // the most recent thing you asked for is likely what you want
   // (aka scrolling)
   const conv = _chatInboxToProcess.pop()
-  yield Saga.spawn(_processConversation, conv)
+  if (conv) {
+    yield Saga.spawn(_processConversation, conv)
+  }
 
   if (_chatInboxToProcess.length) {
     yield Saga.call(Saga.delay, 100)
@@ -821,7 +823,7 @@ function* _incomingMessage(action: ChatGen.IncomingMessagePayload): Saga.SagaGen
   switch (action.payload.activity.activityType) {
     case RPCChatTypes.notifyChatChatActivityType.setStatus:
       const setStatus: ?RPCChatTypes.SetStatusInfo = action.payload.activity.setStatus
-      if (setStatus) {
+      if (setStatus && setStatus.conv) {
         yield Saga.spawn(_processConversation, setStatus.conv)
       }
       break

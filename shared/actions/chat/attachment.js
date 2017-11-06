@@ -168,10 +168,11 @@ function* onLoadAttachment({
   }
 
   // Set initial progress value
+  // $FlowIssue need updated redux-saga flow-typed
   yield Saga.put.resolve(Creators.downloadProgress(messageKey, loadPreview, 0))
 
   // Perform the download in a fork so that the next loadAttachment action can be handled.
-  yield Saga.spawn(function*() {
+  yield Saga.spawn(function*(): Generator<any, void, any> {
     const param = {
       conversationID: Constants.keyToConversationID(conversationIDKey),
       messageID: Constants.parseMessageID(messageID).msgID,
@@ -208,7 +209,7 @@ function* _appendAttachmentPlaceholder(
   preview: ChatTypes.MakePreviewRes,
   title: string,
   uploadPath: string
-) {
+): Generator<any, Constants.AttachmentMessage, any> {
   const author = yield Saga.select(usernameSelector)
   const message: Constants.AttachmentMessage = {
     author,
@@ -257,7 +258,7 @@ function uploadProgressSubSaga(getCurKey: () => ?Constants.MessageKey) {
 
 function uploadOutboxIDSubSaga(
   conversationIDKey: Constants.ConversationIDKey,
-  preview: boolean,
+  preview: ChatTypes.MakePreviewRes,
   title: string,
   filename: string,
   setCurKey: (key: Constants.MessageKey) => void,
@@ -282,7 +283,7 @@ function uploadOutboxIDSubSaga(
 // Hacky since curKey can change on us
 const postAttachmentSagaMap = (
   conversationIDKey: Constants.ConversationIDKey,
-  preview: boolean,
+  preview: ChatTypes.MakePreviewRes,
   title: string,
   filename: string,
   getCurKey: () => ?Constants.MessageKey,
@@ -344,8 +345,8 @@ function* onSelectAttachment({payload: {input}}: ChatGen.SelectAttachmentPayload
   // local message key basis will change from the outboxID to the messageID.
   // We need to watch for this so that the uploadProgress gets set on the
   // right message key.
-  const getCurKey = () => curKey
-  const getOutboxIdKey = () => outboxID
+  const getCurKey = (): ?Constants.MessageKey => curKey
+  const getOutboxIdKey = (): ?Constants.OutboxIDKey => outboxID
 
   const setCurKey = nextCurKey => {
     curKey = nextCurKey
@@ -398,7 +399,7 @@ function* onRetryAttachment({
   yield Saga.put(
     ChatGen.createRemoveOutboxMessage({conversationIDKey: input.conversationIDKey, outboxID: oldOutboxID})
   )
-  yield Saga.call(onSelectAttachment, {payload: {input}})
+  yield Saga.call(onSelectAttachment, {payload: {input}, type: ChatGen.selectAttachment, error: false})
 }
 
 function* onOpenAttachmentPopup(action: ChatGen.OpenAttachmentPopupPayload): SagaGenerator<any, any> {
