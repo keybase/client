@@ -90,12 +90,12 @@ function* _onRecievedBadgeState(action: Constants.ReceivedBadgeState): SagaGener
   const {
     conversations,
     newGitRepoGlobalUniqueIDs,
-    newTeamIDs,
+    newTeamNames,
     newTeamAccessRequests,
   } = action.payload.badgeState
   yield put(badgeAppForChat(conversations))
   yield put(badgeAppForGit(newGitRepoGlobalUniqueIDs))
-  yield put(badgeAppForTeams(newTeamIDs || [], newTeamAccessRequests || []))
+  yield put(badgeAppForTeams(newTeamNames || [], newTeamAccessRequests || []))
 }
 
 function* _listenNotifications(): SagaGenerator<any, any> {

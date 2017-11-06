@@ -104,10 +104,10 @@ function setupTeamHandlers(): Constants.SetupTeamHandlers {
 }
 
 function badgeAppForTeams(
-  newTeamIDs: Array<string>,
+  newTeamNames: Array<string>,
   newTeamAccessRequests: Array<string>
 ): Constants.BadgeAppForTeams {
-  return {payload: {newTeamIDs, newTeamAccessRequests}, type: 'teams:badgeAppForTeams'}
+  return {payload: {newTeamNames, newTeamAccessRequests}, type: 'teams:badgeAppForTeams'}
 }
 
 export {

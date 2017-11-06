@@ -65,7 +65,7 @@ export type GetTeams = NoErrorTypedAction<'teams:getTeams', {}>
 
 export type BadgeAppForTeams = NoErrorTypedAction<
   'teams:badgeAppForTeams',
-  {newTeamIDs?: ?Array<string>, newTeamAccessRequests?: ?Array<string>}
+  {newTeamNames?: ?Array<string>, newTeamAccessRequests?: ?Array<string>}
 >
 
 export type ToggleChannelMembership = NoErrorTypedAction<
