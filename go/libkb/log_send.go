@@ -6,12 +6,15 @@ package libkb
 import (
 	"bytes"
 	"compress/gzip"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"mime/multipart"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
 
@@ -239,6 +242,81 @@ func findFirstNewline(b []byte) []byte {
 	return b[(index + 1):]
 }
 
+func appendError(collected []byte, err error) []byte {
+	return append(collected, []byte(fmt.Sprintf("\nERROR READING LOGS:\n%#v\n", err))...)
+}
+
+func readBytesFromPipe(log logger.Logger, pipe io.ReadCloser, numBytes int) ([]byte, error) {
+	buf := [4096]byte{}
+	collected := []byte{}
+	for {
+		n, err := pipe.Read(buf[:])
+		collected = append(collected, buf[:n]...)
+		if err == io.EOF {
+			_ = pipe.Close()
+			return collected, nil
+		}
+		if err != nil {
+			// For non-EOF errors, append them to the logs and return what we have.
+			return appendError(collected, err), err
+		}
+		// If the output we've collected grows bigger than it's supposed to be,
+		// just drop everything we've seen so far, add a big warning at the
+		// top, and keep going. This avoids consuming all the memory on the
+		// system if the logs are pathoLOGical, but still lets us see the tail
+		// end of the logs, which is probably what we care about.
+		if len(collected) > numBytes {
+			msg := "WARNING: Lines in the journal are longer than expected. Truncating log."
+			log.Warning(msg)
+			collected = []byte("#####\n" + msg + "\n#####\n")
+		}
+	}
+}
+
+// If systemd is running, we look for logs in the systemd journal for our 3
+// main services.
+func tailSystemdJournal(log logger.Logger, which string, numBytes int) (ret string) {
+	log.Debug("+ tailing journalctl for %s (%d bytes)", which, numBytes)
+	defer func() {
+		log.Debug("- scanned %d bytes", len(ret))
+	}()
+
+	// Journalctl doesn't provide a "last N bytes" flag directly, so instead we
+	// use "last N lines". My own logs for all three services average out to
+	// between 120 and 220 bytes per line. We'll use a slightly conservative
+	// assumption of 300 bytes per line.
+	numLines := numBytes / 300
+
+	journalCmd := exec.Command("journalctl", "--user", "--unit", which, "--lines", strconv.Itoa(numLines))
+	journalCmd.Stderr = os.Stderr
+	stdout, err := journalCmd.StdoutPipe()
+	if err != nil {
+		msg := fmt.Sprintf("Failed to open a pipe for journalctl: %s", err)
+		log.Errorf(msg)
+		return msg
+	}
+	err = journalCmd.Start()
+	if err != nil {
+		msg := fmt.Sprintf("Failed to run journalctl: %s", err)
+		log.Errorf(msg)
+		return msg
+	}
+
+	// Once we start reading output, don't short-circuit on errors. Just log
+	// them, and return whatever we got.
+	output, err := readBytesFromPipe(log, stdout, numBytes)
+	if err != nil {
+		log.Errorf("Error reading from journalctl pipe: %s", err)
+		output = appendError(output, err)
+	}
+	err = journalCmd.Wait()
+	if err != nil {
+		log.Errorf("Journalctl exited with an error: %s", err)
+		output = appendError(output, err)
+	}
+	return string(output)
+}
+
 // tailFile takes the last n bytes, but advances to the first newline. Returns the log (as a string)
 // and a bool, indicating if we read the full log, or we had to advance into the log to find the newline.
 func tailFile(log logger.Logger, which string, filename string, numBytes int) (ret string, seeked bool) {
@@ -295,9 +373,15 @@ func (l *LogSendContext) LogSend(statusJSON, feedback string, sendLogs bool, num
 	var gitLog string
 
 	if sendLogs {
-		kbfsLog = tail(l.G().Log, "kbfs", logs.Kbfs, numBytes)
-		svcLog = tail(l.G().Log, "service", logs.Service, numBytes)
-		desktopLog = tail(l.G().Log, "desktop", logs.Desktop, numBytes)
+		if l.G().Env.WantsSystemd() {
+			svcLog = tailSystemdJournal(l.G().Log, "keybase.service", numBytes)
+			kbfsLog = tailSystemdJournal(l.G().Log, "kbfs.service", numBytes)
+			desktopLog = tailSystemdJournal(l.G().Log, "keybase.gui.service", numBytes)
+		} else {
+			svcLog = tail(l.G().Log, "service", logs.Service, numBytes)
+			kbfsLog = tail(l.G().Log, "kbfs", logs.Kbfs, numBytes)
+			desktopLog = tail(l.G().Log, "desktop", logs.Desktop, numBytes)
+		}
 		updaterLog = tail(l.G().Log, "updater", logs.Updater, numBytes)
 		startLog = tail(l.G().Log, "start", logs.Start, numBytes)
 		installLog = tail(l.G().Log, "install", logs.Install, numBytes)
