@@ -11,12 +11,13 @@ var apiCAOverrideForTest = ""
 // no matching CA is found for host.
 func GetBundledCAsFromHost(host string) (rootCA []byte, ok bool) {
 	host = strings.TrimSpace(strings.ToLower(host))
+	realAPICA := apiCA
+	if len(apiCAOverrideForTest) > 0 {
+		realAPICA = apiCAOverrideForTest
+	}
 	switch {
 	case host == "api.keybase.io":
-		if len(apiCAOverrideForTest) > 0 {
-			return []byte(apiCAOverrideForTest), true
-		}
-		return []byte(apiCA), true
+		return []byte(realAPICA), true
 
 	// Staging CA.
 	case strings.HasSuffix(host, "dev.keybase.io"),
@@ -25,17 +26,21 @@ func GetBundledCAsFromHost(host string) (rootCA []byte, ok bool) {
 
 	// Prod CA.
 	case strings.HasSuffix(host, "kbfs.keybase.io"),
-		strings.HasSuffix(host, "core.keybase.io"),
-		strings.HasSuffix(host, "kbfs.keybaseapi.com"),
-		strings.HasSuffix(host, "core.keybaseapi.com"):
+		strings.HasSuffix(host, "kbfs.keybaseapi.com"):
 		return []byte(KBFSProdCA), true
+
+	// We have services using both CAs on this domain, so need to bundle both.
+	case strings.HasSuffix(host, "core.keybase.io"),
+		strings.HasSuffix(host, "core.keybaseapi.com"):
+		return []byte(realAPICA + KBFSProdCA), true
 
 	default:
 		return nil, false
 	}
 }
 
-const apiCA = `-----BEGIN CERTIFICATE-----
+const apiCA = `
+-----BEGIN CERTIFICATE-----
 MIIGmzCCBIOgAwIBAgIJAPzhpcIBaOeNMA0GCSqGSIb3DQEBBQUAMIGPMQswCQYD
 VQQGEwJVUzELMAkGA1UECBMCTlkxETAPBgNVBAcTCE5ldyBZb3JrMRQwEgYDVQQK
 EwtLZXliYXNlIExMQzEXMBUGA1UECxMOQ2VydCBBdXRob3JpdHkxEzARBgNVBAMT
@@ -72,7 +77,8 @@ inLjxRD+H9Xn1UVXWLM0gaBB7zZcXd2zjMpRsWgezf5IR5vyakJsc7fxzgor3Qeq
 Ri6LvdEkhhFVl5rHMQBwNOPngySrq8cs/ikTLTfQVTYXXA4Ba1YyiMOlfaR1LhKw
 If1AkUV0tfCTNRZ01EotKSK77+o+k214n+BAu+7mO+9B5Kb7lMFQcuWCHXKYB2Md
 cT7Yh09F0QpFUd0ymEfv
------END CERTIFICATE-----`
+-----END CERTIFICATE-----
+`
 
 const KBFSProdCA = `
 -----BEGIN CERTIFICATE-----

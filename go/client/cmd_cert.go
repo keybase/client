@@ -17,7 +17,7 @@ func (c *CmdCert) ParseArgv(ctx *cli.Context) error {
 }
 
 func (c *CmdCert) Run() error {
-	rootCA, _ := libkb.GetBundledCAs("api.keybase.io")
+	rootCA, _ := libkb.GetBundledCAsFromHost("api.keybase.io")
 	_, err := GlobUI.Println(rootCA)
 	return err
 }
