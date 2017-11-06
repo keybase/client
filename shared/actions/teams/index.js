@@ -483,6 +483,19 @@ function* _badgeAppForTeams(action: Constants.BadgeAppForTeams) {
   if (!newTeams.equals(existingNewTeams) || !newTeams.equals(existingNewTeamRequests)) {
     yield put(Creators.getTeams())
   }
+
+  // getDetails for teams that have new access requests
+  // Covers case where we have a badge appear on the requests
+  // tab with no rows showing up
+  const newTeamRequestsSet = I.Set(newTeamRequests)
+  const existingNewTeamRequestsSet = I.Set(existingNewTeamRequests)
+  const toLoad = newTeamRequestsSet.subtract(existingNewTeamRequestsSet)
+  const loadingCalls = []
+  for (let teamname of toLoad.values()) {
+    loadingCalls.push(put(Creators.getDetails(teamname)))
+  }
+  yield all(loadingCalls)
+
   yield put(replaceEntity(['teams'], I.Map([['newTeams', newTeams]])))
   yield put(replaceEntity(['teams'], I.Map([['newTeamRequests', newTeamRequests]])))
 }
