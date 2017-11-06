@@ -271,7 +271,8 @@ class FilesRender extends Component<Props> {
               ))}
             {this.props.isTeam &&
               <Avatar
-                teamname={this.props.users.length ? this.props.users[0].username : 'unknown'}
+                teamname={this.props.users.length ? this.props.users[0].username : ''}
+                isTeam={true}
                 size={64}
               />}
           </Box>

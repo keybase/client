@@ -38,6 +38,7 @@ const Avatars = ({styles, users, smallMode, ignored, isPublic, isTeam}) => {
         ? <Avatar
             size={smallMode ? 32 : 40}
             teamname={teamname}
+            isTeam={true}
             style={{opacity, marginLeft: globalMargins.xtiny, marginTop: globalMargins.xtiny}}
           />
         : <MultiAvatar
