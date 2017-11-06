@@ -55,13 +55,12 @@ func TestRunnerCapabilities(t *testing.T) {
 }
 
 func initConfigForRunner(t *testing.T) (
-	ctx context.Context, config *libkbfs.ConfigLocal, tempDir string) {
+	ctx context.Context, config *libkbfs.ConfigLocal, tempdir string) {
 	ctx = libkbfs.BackgroundContextWithCancellationDelayer()
 	config = libkbfs.MakeTestConfigOrBustLoggedInWithMode(
 		t, 0, libkbfs.InitSingleOp, "user1", "user2")
 	success := false
 
-	var err error
 	tempdir, err := ioutil.TempDir(os.TempDir(), "journal_server")
 	require.NoError(t, err)
 	defer func() {
@@ -77,7 +76,7 @@ func initConfigForRunner(t *testing.T) (
 	require.NoError(t, err)
 
 	success = true
-	return ctx, config, tempDir
+	return ctx, config, tempdir
 }
 
 func testRunnerInitRepo(t *testing.T, tlfType tlf.Type, typeString string) {

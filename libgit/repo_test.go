@@ -20,13 +20,12 @@ import (
 )
 
 func initConfig(t *testing.T) (
-	ctx context.Context, config *libkbfs.ConfigLocal, tempDir string) {
+	ctx context.Context, config *libkbfs.ConfigLocal, tempdir string) {
 	ctx = libkbfs.BackgroundContextWithCancellationDelayer()
 	config = libkbfs.MakeTestConfigOrBustLoggedInWithMode(
 		t, 0, libkbfs.InitSingleOp, "user1")
 	success := false
 
-	var err error
 	tempdir, err := ioutil.TempDir(os.TempDir(), "journal_server")
 	require.NoError(t, err)
 	defer func() {
@@ -41,7 +40,7 @@ func initConfig(t *testing.T) (
 		ctx, tempdir, libkbfs.TLFJournalBackgroundWorkEnabled)
 	require.NoError(t, err)
 
-	return ctx, config, tempDir
+	return ctx, config, tempdir
 }
 
 func TestGetOrCreateRepoAndID(t *testing.T) {
