@@ -548,23 +548,23 @@ function _unboxedToMessage(
             key: Constants.messageKey(common.conversationIDKey, 'system', common.messageID),
           }
         }
-        case ChatTypes.CommonMessageType.system: {
+        case ChatTypes.commonMessageType.system: {
           let sysMsgText = '<unknown system message>'
           const body = payload.messageBody.system
           if (body) {
             switch (body.systemType) {
-              case ChatTypes.LocalMessageSystemType.addedtoteam: {
+              case ChatTypes.localMessageSystemType.addedtoteam: {
                 const user = body.addedtoteam ? `@${body.addedtoteam.addee}` : 'someone'
                 sysMsgText = `Hello! I've just added ${user} to this team.`
                 break
               }
-              case ChatTypes.LocalMessageSystemType.inviteaddedtoteam: {
+              case ChatTypes.localMessageSystemType.inviteaddedtoteam: {
                 const invitee = body.inviteaddedtoteam ? `@${body.inviteaddedtoteam.invitee}` : 'someone'
                 const inviter = body.inviteaddedtoteam ? `@${body.inviteaddedtoteam.inviter}` : 'someone'
                 sysMsgText = `Hello! I've just added ${invitee} to the team. This user had been invited by ${inviter}`
                 break
               }
-              case ChatTypes.LocalMessageSystemType.complexteam: {
+              case ChatTypes.localMessageSystemType.complexteam: {
                 const team = body.complexteam ? body.complexteam.team : '???'
                 sysMsgText = `Attention @channel!\n\nI have just created a new channel in team ${team}. Here are some things that are now different:\n\n1.) Notifications will not happen for every message. Click or tap the info icon on the right to configure them.\n2.) The #general channel is now in the "Big Teams" section of the inbox.\n3.) You can hit the three dots next to ${team} in the inbox view to join other channels.\n\nEnjoy!`
                 break

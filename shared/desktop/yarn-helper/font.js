@@ -2,6 +2,8 @@
 import fs from 'fs'
 import path from 'path'
 import {execSync} from 'child_process'
+import prettier from 'prettier'
+import json5 from 'json5'
 
 const commands = {
   'apply-new-fonts': {
@@ -254,8 +256,8 @@ ${/* eslint-disable */
         meta.push(`require: require(${icons[name].require}),`)
       }
 
-      return `  '${name}': {
-    ${meta.join('\n    ')}
+      return `'${name}': {
+    ${meta.join('\n')}
   },`
     })
     .join('\n')}/* eslint-enable */
@@ -264,8 +266,12 @@ ${/* eslint-disable */
 export type IconType = $Keys<typeof iconMeta_>
 export const iconMeta: {[key: IconType]: IconMeta} = iconMeta_
 `
+  // load prettier rules from eslintrc
+  const prettierOptions = json5.parse(
+    fs.readFileSync(path.join(__dirname, '../../../.eslintrc'), {encoding: 'utf8'})
+  ).rules['prettier/prettier'][1]
 
-  fs.writeFileSync(path.join(__dirname, '../../common-adapters/icon.constants.js'), iconConstants, 'utf8')
+  fs.writeFileSync(path.join(__dirname, '../../common-adapters/icon.constants.js'), prettier.format(iconConstants, prettierOptions), 'utf8')
 }
 
 export default commands
