@@ -77,9 +77,11 @@ func TestHome(t *testing.T) {
 	attachIdentifyUI(t, g, iui)
 	alice.track(wong.username)
 
+	// Wait for a gregor message to bust this cache, at most ~20s. Hopeully this is enough for
+	// slow CI but you never know.
 	wait := 10 * time.Millisecond
 	found := false
-	for i := 0; i < 6; i++ {
+	for i := 0; i < 10; i++ {
 		home = getHome(t, alice, true)
 		if home.Version == 1 && home.LastViewed > keybase1.Time(0) {
 			found = true

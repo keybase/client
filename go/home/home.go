@@ -84,9 +84,9 @@ func (h *Home) Get(ctx context.Context, markViewed bool) (ret keybase1.HomeScree
 			h.G().Log.CDebugf(ctx, "| hit cache (cached %s ago)", diff)
 			if markViewed {
 				h.G().Log.CDebugf(ctx, "| going to server to mark view, anyways")
-				tmp := h.markViewed(ctx)
-				if tmp != nil {
-					h.G().Log.CInfof(ctx, "Error marking home as viewed: %s", tmp.Error())
+				tmpErr := h.markViewed(ctx)
+				if tmpErr != nil {
+					h.G().Log.CInfof(ctx, "Error marking home as viewed: %s", tmpErr.Error())
 				}
 			}
 			return h.cache.obj, nil
