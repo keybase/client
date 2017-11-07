@@ -31,7 +31,7 @@ class List extends PureComponent<Props<*>, void> {
           ...this.props.style,
         }}
       >
-        <div style={globalStyles.fillAbsolute}>
+        <div style={{...globalStyles.fillAbsolute, ...this.props.containerStyle}}>
           <div
             style={{
               height: '100%',

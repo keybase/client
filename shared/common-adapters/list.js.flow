@@ -8,6 +8,7 @@ export type Props<Item> = {
   renderItem: (index: number, item: Item) => React.Node,
   keyProperty?: string, // if passed uses item[keyProperty] for the item keys
   selectedIndex?: number, // TODO work on mobile
+  containerStyle?: any,
 }
 
 export default class List<Item> extends React.Component<Props<Item>, void> {}

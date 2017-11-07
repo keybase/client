@@ -34,7 +34,7 @@ class List extends PureComponent<Props<*>, void> {
           ...this.props.style,
         }}
       >
-        <View style={globalStyles.fillAbsolute}>
+        <View style={{...globalStyles.fillAbsolute, ...this.props.containerStyle}}>
           <FlatList
             renderItem={this._itemRender}
             data={this.props.items}

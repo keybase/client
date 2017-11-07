@@ -75,7 +75,7 @@ type TeamTabsProps = {
 }
 
 const TeamTabs = (props: TeamTabsProps) => {
-  const {admin, invites, members, requests, loading = false, selectedTab, setSelectedTab} = props
+  const {admin, invites, members, loading = false, selectedTab, setSelectedTab} = props
   let membersLabel = 'MEMBERS'
   membersLabel += !loading || members.length !== 0 ? ' (' + members.length + ')' : ''
   const tabs = [
@@ -90,19 +90,7 @@ const TeamTabs = (props: TeamTabsProps) => {
     </Text>,
   ]
   if (admin) {
-    const requestsLabel = `REQUESTS (${requests.length})`
-    const invitesLabel = `PENDING INVITES (${invites.length})`
-    tabs.push(
-      <Text
-        key="requests"
-        type="BodySmallSemibold"
-        style={{
-          color: globalColors.black_75,
-        }}
-      >
-        {requestsLabel}
-      </Text>
-    )
+    const invitesLabel = `INVITES (${invites.length})`
     tabs.push(
       <Text
         key="invites"
@@ -115,7 +103,7 @@ const TeamTabs = (props: TeamTabsProps) => {
       </Text>
     )
   }
-  const publicityLabel = 'PUBLICITY SETTINGS'
+  const publicityLabel = 'SETTINGS'
   if (admin) {
     tabs.push(
       <Text
@@ -197,27 +185,6 @@ class Team extends React.PureComponent<Props> {
           renderItem={TeamMemberRow}
           style={{alignSelf: 'stretch'}}
         />
-    } else if (selectedTab === 'requests') {
-      if (requests.length === 0) {
-        contents = (
-          <Text
-            type="BodySmall"
-            style={{color: globalColors.black_40, textAlign: 'center', marginTop: globalMargins.xlarge}}
-          >
-            This team has no pending requests.
-          </Text>
-        )
-      } else {
-        contents = (
-          <List
-            keyProperty="username"
-            items={requestProps}
-            fixedHeight={48}
-            renderItem={TeamRequestRow}
-            style={{alignSelf: 'stretch'}}
-          />
-        )
-      }
     } else if (selectedTab === 'invites') {
       if (invites.length === 0) {
         contents = (
@@ -231,13 +198,26 @@ class Team extends React.PureComponent<Props> {
       } else {
         contents =
           !loading &&
-          <List
-            keyProperty="key"
-            items={inviteProps}
-            fixedHeight={48}
-            renderItem={TeamInviteRow}
-            style={{alignSelf: 'stretch'}}
-          />
+          <Box style={{...globalStyles.flexBoxColumn, alignSelf: 'stretch', flexGrow: 1}}>
+            <Box style={{...globalStyles.flexBoxRow, flexGrow: 1}}>
+            <List
+                keyProperty="key"
+                items={requestProps}
+                fixedHeight={48}
+                renderItem={TeamRequestRow}
+              />
+          </Box>
+          <Box style={{...globalStyles.flexBoxRow, flexGrow: 1}}>
+            <List
+                keyProperty="key"
+                items={inviteProps}
+                fixedHeight={48}
+                renderItem={TeamInviteRow}
+                style={{alignSelf: 'stretch'}}
+                containerStyle={{position: 'relative'}}
+              />
+          </Box>
+        </Box>
       }
     } else if (selectedTab === 'publicity') {
       const teamsLink = 'keybase.io/popular-teams'
@@ -246,14 +226,14 @@ class Team extends React.PureComponent<Props> {
           <Box
             style={{
               ...globalStyles.flexBoxRow,
-              paddingLeft: globalMargins.small,
+              paddingLeft: globalMargins.tiny,
               paddingTop: globalMargins.small,
             }}
           >
             <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center'}}>
-              <Checkbox checked={publicityTeam} label="" onCheck={setPublicityTeam} />
+              <Checkbox checked={publicityTeam} label="" onCheck={setPublicityTeam} style={{paddingRight: globalMargins.xtiny}} />
             </Box>
-            <Box style={globalStyles.flexBoxColumn}>
+            <Box style={{...globalStyles.flexBoxColumn, flexShrink: 1}}>
               <Text type="Body">
                 Publicize this team on
                 {' '}
@@ -268,14 +248,14 @@ class Team extends React.PureComponent<Props> {
           <Box
             style={{
               ...globalStyles.flexBoxRow,
-              paddingLeft: globalMargins.small,
+              paddingLeft: globalMargins.tiny,
               paddingTop: globalMargins.small,
             }}
           >
             <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center'}}>
-              <Checkbox checked={publicityMember} label="" onCheck={setPublicityMember} />
+              <Checkbox checked={publicityMember} label="" onCheck={setPublicityMember} style={{paddingRight: globalMargins.xtiny}} />
             </Box>
-            <Box style={globalStyles.flexBoxColumn}>
+            <Box style={{...globalStyles.flexBoxColumn, flexShrink: 1}}>
               <Text type="Body">
                 Publish on your own profile that you're an admin of this team
               </Text>
