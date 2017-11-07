@@ -7,7 +7,6 @@ package kbfscrypto
 import (
 	"net"
 	"os"
-	"strings"
 
 	"github.com/keybase/client/go/libkb"
 )
@@ -122,14 +121,6 @@ aOOhUtJxzorYWSCcNZKCUFu1esbmDO4PlkfnzaBVCqPZ3CThPnmUBZ2wg9rpZu2S
 7Q0sQ3FFXg9WqcsduaKRy5d8LKH8ikRooQw/Q5BpZ1tfKJStU6Xjf9U=
 -----END RSA PRIVATE KEY-----`
 
-// DevRootCerts are the root CA certificates for the dev VPC.
-// During rotation multiple certificates are expected in the PEM blob.
-const DevRootCerts = libkb.KBFSDevCA
-
-// ProductionRootCerts are the root CA certificates for the production VPC.
-// During rotation multiple certificates are expected in the PEM blob.
-const ProductionRootCerts = libkb.KBFSProdCA
-
 const (
 	// EnvTestRootCertPEM is the environment variable name for the
 	// CA cert PEM the client uses to verify the KBFS servers when
@@ -148,17 +139,8 @@ func GetRootCerts(serverAddr string) []byte {
 	}
 
 	if host, _, err := net.SplitHostPort(serverAddr); err == nil {
-		if strings.HasSuffix(host, "dev.keybase.io") {
-			return []byte(DevRootCerts)
-		}
-		if strings.HasSuffix(host, "kbfs.keybase.io") {
-			return []byte(ProductionRootCerts)
-		}
-		if strings.HasSuffix(host, "core.keybase.io") {
-			cert, ok := libkb.BundledCAs["api.keybase.io"]
-			if ok {
-				return []byte(cert)
-			}
+		if rootCA, ok := libkb.GetBundledCAsFromHost(host); ok {
+			return rootCA
 		}
 	}
 
