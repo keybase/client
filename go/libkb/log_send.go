@@ -262,7 +262,13 @@ func tailSystemdJournal(log logger.Logger, which string, numBytes int) (ret stri
 	guessedLines := numBytes / 150
 	maxBytes := numBytes * 2
 
-	journalCmd := exec.Command("journalctl", "--user", "--unit", which, "--lines", strconv.Itoa(guessedLines))
+	journalCmd := exec.Command(
+		"journalctl",
+		"--user",
+		"--unit="+which,
+		"--lines="+strconv.Itoa(guessedLines),
+		"--output=cat",
+	)
 	journalCmd.Stderr = os.Stderr
 	stdout, err := journalCmd.StdoutPipe()
 	if err != nil {
