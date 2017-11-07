@@ -880,6 +880,48 @@ func (g *GlobalContext) LogoutIfRevoked() error {
 	return nil
 }
 
+// LogoutSelfCheck checks with the API server to see if this uid+device pair should
+// logout.
+func (g *GlobalContext) LogoutSelfCheck() error {
+	uid := g.ActiveDevice.UID()
+	if uid.IsNil() {
+		g.Log.Debug("LogoutSelfCheck: no uid")
+		return nil
+	}
+	deviceID := g.ActiveDevice.DeviceID()
+	if deviceID.IsNil() {
+		g.Log.Debug("LogoutSelfCheck: no device id")
+		return nil
+	}
+
+	arg := APIArg{
+		NetContext: context.Background(),
+		Endpoint:   "selfcheck",
+		Args: HTTPArgs{
+			"uid":       S{Val: uid.String()},
+			"device_id": S{Val: deviceID.String()},
+		},
+		SessionType: APISessionTypeREQUIRED,
+	}
+	res, err := g.API.Post(arg)
+	if err != nil {
+		return err
+	}
+
+	logout, err := res.Body.AtKey("logout").GetBool()
+	if err != nil {
+		return err
+	}
+
+	g.Log.Debug("LogoutSelfCheck: should log out? %v", logout)
+	if logout {
+		g.Log.Debug("LogoutSelfCheck: logging out...")
+		return g.Logout()
+	}
+
+	return nil
+}
+
 func (g *GlobalContext) MakeAssertionContext() AssertionContext {
 	if g.Services == nil {
 		return nil

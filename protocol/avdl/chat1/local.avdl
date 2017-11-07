@@ -26,6 +26,40 @@ protocol local {
     string headline;
   }
 
+  enum MessageSystemType {
+    ADDEDTOTEAM_0,
+    INVITEADDEDTOTEAM_1,
+    COMPLEXTEAM_2
+  }
+
+  record MessageSystemAddedToTeam {
+    string team;
+    string adder;
+    string addee;
+    array<string> owners;
+    array<string> admins;
+    array<string> writers;
+    array<string> readers;
+  }
+
+  record MessageSystemInviteAddedToTeam {
+    string team;
+    string inviter;
+    string invitee;
+    string adder;
+    keybase1.TeamInviteCategory inviteType;
+  }
+
+  record MessageSystemComplexTeam {
+    string team;
+  }
+
+  variant MessageSystem switch (MessageSystemType systemType) {
+    case ADDEDTOTEAM: MessageSystemAddedToTeam;
+    case INVITEADDEDTOTEAM: MessageSystemInviteAddedToTeam;
+    case COMPLEXTEAM: MessageSystemComplexTeam;
+  }
+
   record AssetMetadataImage {
     int width;
     int height;
@@ -106,6 +140,7 @@ protocol local {
     case ATTACHMENTUPLOADED: MessageAttachmentUploaded;
     case JOIN: MessageJoin;
     case LEAVE: MessageLeave;
+    case SYSTEM: MessageSystem;
   }
 
   enum OutboxStateType {
