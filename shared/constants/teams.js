@@ -158,7 +158,7 @@ export type InviteToTeamByEmail = NoErrorTypedAction<
   {invitees: string, role: string, teamname: string}
 >
 
-export const teamRoleByEnum = invert(RPCTypes.TeamsTeamRole)
+export const teamRoleByEnum = invert(RPCTypes.teamsTeamRole)
 
 export type TypeMap = {
   admin: string | boolean,

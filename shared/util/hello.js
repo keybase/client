@@ -2,7 +2,7 @@
 // Send helloIAm message to service
 
 import engine from '../engine'
-import {CommonClientType, configHelloIAmRpcPromise} from '../constants/types/flow-types'
+import {commonClientType, configHelloIAmRpcPromise} from '../constants/types/flow-types'
 
 export default function(
   pid: number,
@@ -16,7 +16,7 @@ export default function(
     desc,
     version,
     argv: argv,
-    clientType: isMain ? CommonClientType.guiMain : CommonClientType.guiHelper,
+    clientType: isMain ? commonClientType.guiMain : commonClientType.guiHelper,
   }
 
   return new Promise((resolve, reject) => {

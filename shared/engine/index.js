@@ -2,7 +2,7 @@
 // Handles sending requests to the daemon
 import * as Saga from '../util/saga'
 import Session from './session'
-import {ConstantsStatusCode} from '../constants/types/flow-types'
+import {constantsStatusCode} from '../constants/types/flow-types'
 import {call, race} from 'redux-saga/effects'
 import {convertToError} from '../util/errors'
 import {delay} from 'redux-saga'
@@ -16,7 +16,8 @@ import type {ChannelMap} from '../constants/types/saga'
 import type {Action} from '../constants/types/flux'
 import type {CancelHandlerType} from './session'
 import type {createClientType} from './index.platform'
-import type {incomingCallMapType, logUiLogRpcParam} from '../constants/types/flow-types'
+import type {IncomingCallMapType, LogUiLogRpcParam} from '../constants/types/flow-types'
+import type {SessionID, SessionIDKey, WaitingHandlerType, ResponseType, MethodKey} from './types'
 
 class EngineChannel {
   _map: ChannelMap<*>
@@ -131,7 +132,7 @@ class Engine {
   // Default handlers for incoming messages
   _setupCoreHandlers() {
     this.setIncomingHandler('keybase.1.logUi.log', (param, response) => {
-      const logParam: logUiLogRpcParam = param
+      const logParam: LogUiLogRpcParam = param
       log(logParam)
       response && response.result && response.result()
     })
@@ -208,7 +209,7 @@ class Engine {
     response &&
       response.error &&
       response.error({
-        code: ConstantsStatusCode.scgeneric,
+        code: constantsStatusCode.scgeneric,
         desc: `${prefix} incoming RPC ${sessionID} ${method}`,
       })
   }
@@ -248,12 +249,14 @@ class Engine {
   _channelMapRpcHelper(configKeys: Array<string>, method: string, params: any): EngineChannel {
     const channelConfig = Saga.singleFixedChannelConfig(configKeys)
     const channelMap = Saga.createChannelMap(channelConfig)
-    const incomingCallMap = Object.keys(channelMap).reduce((acc, k) => {
+    // $FlowIssue doesn't like empty objects with exact types
+    const empty: IncomingCallMapType = {}
+    const incomingCallMap: IncomingCallMapType = Object.keys(channelMap).reduce((acc, k) => {
       acc[k] = (params, response) => {
         Saga.putOnChannelMap(channelMap, k, {params, response})
       }
       return acc
-    }, {})
+    }, empty)
     const callback = (error, params) => {
       channelMap['finished'] && Saga.putOnChannelMap(channelMap, 'finished', {error, params})
       Saga.closeChannelMap(channelMap)
@@ -267,12 +270,12 @@ class Engine {
     method: string,
     params: ?{
       param?: ?Object,
-      incomingCallMap?: incomingCallMapType,
+      incomingCallMap?: IncomingCallMapType,
       callback?: ?(...args: Array<any>) => void,
       waitingHandler?: WaitingHandlerType,
     },
     callbackOverride?: ?(...args: Array<any>) => void,
-    incomingCallMapOverride?: incomingCallMapType
+    incomingCallMapOverride?: IncomingCallMapType
   ) {
     if (!params) {
       params = {}
@@ -314,7 +317,7 @@ class Engine {
 
   // Make a new session. If the session hangs around forever set dangling to true
   createSession(
-    incomingCallMap: ?incomingCallMapType,
+    incomingCallMap: ?IncomingCallMapType,
     waitingHandler: ?WaitingHandlerType,
     cancelHandler: ?CancelHandlerType,
     dangling?: boolean = false
@@ -363,7 +366,7 @@ class Engine {
     if (response) {
       if (response.error) {
         const cancelError = {
-          code: ConstantsStatusCode.scgeneric,
+          code: constantsStatusCode.scgeneric,
           desc: 'Canceling RPC',
         }
 
@@ -473,7 +476,7 @@ class FakeEngine {
   setIncomingHandler(name: string, callback: Function) {}
   setIncomingActionCreator(method: MethodKey, actionCreator: (param: Object, response: ?Object) => ?Action) {}
   createSession(
-    incomingCallMap: ?incomingCallMapType,
+    incomingCallMap: ?IncomingCallMapType,
     waitingHandler: ?WaitingHandlerType,
     cancelHandler: ?CancelHandlerType,
     dangling?: boolean = false
@@ -487,23 +490,13 @@ class FakeEngine {
     method: string,
     params: {
       param?: ?Object,
-      incomingCallMap?: incomingCallMapType,
+      incomingCallMap?: IncomingCallMapType,
       callback?: ?(...args: Array<any>) => void,
       waitingHandler?: WaitingHandlerType,
     },
     callbackOverride?: ?(...args: Array<any>) => void,
-    incomingCallMapOverride?: incomingCallMapType
+    incomingCallMapOverride?: IncomingCallMapType
   ) {}
-}
-
-export type EndHandlerType = (session: Object) => void
-export type MethodKey = string
-export type SessionID = number
-export type SessionIDKey = string // used in our maps, really converted to a string key
-export type WaitingHandlerType = (waiting: boolean, method: string, sessionID: SessionID) => void
-export type ResponseType = {
-  result(...args: Array<any>): void,
-  error(...args: Array<any>): void,
 }
 
 let engine

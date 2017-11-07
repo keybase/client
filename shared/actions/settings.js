@@ -1,6 +1,7 @@
 // @flow
 import * as ChatTypes from '../constants/types/flow-types-chat'
 import * as Constants from '../constants/settings'
+import * as LoginGen from '../actions/login-gen'
 import * as RPCTypes from '../constants/types/flow-types'
 import HiddenString from '../util/hidden-string'
 import mapValues from 'lodash/mapValues'
@@ -9,7 +10,6 @@ import {all, call, put, select, fork, cancel} from 'redux-saga/effects'
 import {delay} from 'redux-saga'
 import {navigateAppend, navigateUp} from '../actions/route-tree'
 import {safeTakeEvery, safeTakeLatest} from '../util/saga'
-import {setDeletedSelf} from '../actions/login/creators'
 import {type SagaGenerator} from '../constants/types/saga'
 import {type TypedState} from '../constants/reducer'
 
@@ -155,7 +155,7 @@ function* toggleNotificationsSaga(): SagaGenerator<any, any> {
         // Special case this since it will go to chat settings endpoint
         for (const key in group.settings) {
           const setting = group.settings[key]
-          chatGlobalArg[`${ChatTypes.CommonGlobalAppNotificationSetting[setting.name]}`] = setting.subscribed
+          chatGlobalArg[`${ChatTypes.commonGlobalAppNotificationSetting[setting.name]}`] = setting.subscribed
         }
       } else {
         for (const key in group.settings) {
@@ -390,7 +390,7 @@ function* refreshNotificationsSaga(): SagaGenerator<any, any> {
         name: 'plaintextmobile',
         description: 'Display mobile plaintext notifications',
         subscribed: chatGlobalSettings.settings[
-          `${ChatTypes.CommonGlobalAppNotificationSetting.plaintextmobile}`
+          `${ChatTypes.commonGlobalAppNotificationSetting.plaintextmobile}`
         ],
       },
     ],
@@ -433,7 +433,7 @@ function* deleteAccountForeverSaga(): SagaGenerator<any, any> {
   }
 
   yield call(RPCTypes.loginAccountDeleteRpcPromise)
-  yield put(setDeletedSelf(username))
+  yield put(LoginGen.createSetDeletedSelf({deletedUsername: username}))
 }
 
 function* loadSettingsSaga(): SagaGenerator<any, any> {

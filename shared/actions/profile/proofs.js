@@ -5,8 +5,8 @@ import {call, put, select, take} from 'redux-saga/effects'
 import {
   cryptocurrencyRegisterAddressRpcPromise,
   proveStartProofRpcChannelMap,
-  ConstantsStatusCode,
-  ProveCommonProofStatus,
+  constantsStatusCode,
+  proveCommonProofStatus,
   proveCheckProofRpcPromise,
 } from '../../constants/types/flow-types'
 import {navigateTo, navigateAppend} from '../route-tree'
@@ -113,7 +113,7 @@ function* _checkProof(action: CheckProof): SagaGenerator<any, any> {
     yield put(_waitingForResponse(false))
 
     // Values higher than baseHardError are hard errors, below are soft errors (could eventually be resolved by doing nothing)
-    if (!found && status >= ProveCommonProofStatus.baseHardError) {
+    if (!found && status >= proveCommonProofStatus.baseHardError) {
       yield put(_updateErrorText("We couldn't find your proof. Please retry!"))
     } else {
       yield put(_updateProofStatus(found, status))
@@ -201,7 +201,7 @@ function* _addServiceProof(service: ProvablePlatformsType): SagaGenerator<any, a
 
       const engineInst: Engine = yield call(engine)
 
-      const InputCancelError = {code: ConstantsStatusCode.scinputcanceled, desc: 'Cancel Add Proof'}
+      const InputCancelError = {code: constantsStatusCode.scinputcanceled, desc: 'Cancel Add Proof'}
       if (_promptUsernameResponse) {
         yield call([engineInst, engineInst.cancelRPC], _promptUsernameResponse, InputCancelError)
         _promptUsernameResponse = null
@@ -301,7 +301,7 @@ function* _submitCryptoAddress(action: SubmitBTCAddress | SubmitZcashAddress): S
     yield put(_waitingForResponse(true))
     yield call(cryptocurrencyRegisterAddressRpcPromise, {param: {address, force: true, wantedFamily}})
     yield put(_waitingForResponse(false))
-    yield put(_updateProofStatus(true, ProveCommonProofStatus.ok))
+    yield put(_updateProofStatus(true, proveCommonProofStatus.ok))
     yield put(navigateAppend(['confirmOrPending'], [peopleTab]))
   } catch (error) {
     console.warn('Error making proof')

@@ -120,6 +120,7 @@ function main() {
   const files = fs.readdirSync(root)
   files.filter(file => path.extname(file) === '.json').forEach(file => {
     const ns = path.basename(file, '.json')
+    console.log(`Generating ${ns}`)
     const desc = json5.parse(fs.readFileSync(path.join(root, file)))
     const generated = prettier.format(compile(ns, desc), prettierOptions)
     const outPath = path.join(root, '..', ns + '-gen.js')

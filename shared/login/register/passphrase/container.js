@@ -1,5 +1,5 @@
 // @flow
-import * as Creators from '../../../actions/login/creators'
+import * as LoginGen from '../../../actions/login-gen'
 import HiddenString from '../../../util/hidden-string'
 import Passphrase from '.'
 import React, {Component} from 'react'
@@ -61,10 +61,11 @@ const mapStateToProps = (state: TypedState) => ({
 
 const mapDispatchToProps = (dispatch: any) => ({
   onForgotPassphrase: () => {
-    dispatch(Creators.openAccountResetPage())
+    dispatch(LoginGen.createOpenAccountResetPage())
   },
-  onBack: () => dispatch(Creators.onBack()),
-  onSubmit: passphrase => dispatch(Creators.submitPassphrase(new HiddenString(passphrase), false)),
+  onBack: () => dispatch(LoginGen.createOnBack()),
+  onSubmit: (passphrase: string) =>
+    dispatch(LoginGen.createSubmitPassphrase({passphrase: new HiddenString(passphrase), storeSecret: false})),
 })
 
 const mergeProps = (stateProps, dispatchProps, {routeProps}) => ({

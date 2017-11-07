@@ -2,7 +2,7 @@
 import * as Constants from '../../../../constants/chat'
 import Header from '.'
 import {connect, compose, type TypedState} from '../../../../util/container'
-import {CommonConversationMembersType} from '../../../../constants/types/flow-types-chat'
+import {commonConversationMembersType} from '../../../../constants/types/flow-types-chat'
 import flags from '../../../../util/feature-flags'
 import {type OwnProps} from './container'
 
@@ -15,7 +15,7 @@ const mapStateToProps = (state: TypedState, {messageKey}: OwnProps) => {
   const showTeamOffer =
     flags.teamChatEnabled &&
     inbox &&
-    inbox.membersType !== CommonConversationMembersType.team &&
+    inbox.membersType !== commonConversationMembersType.team &&
     inbox.get('participants').count() > 2
 
   return {

@@ -26,13 +26,13 @@ function* _loadGit(action: GitGen.LoadGitPayload): Saga.SagaGenerator<any, any> 
 
     for (let i = 0; i < results.length; i++) {
       const repoResult = results[i]
-      if (repoResult.state === RPCTypes.GitGitRepoResultState.ok && repoResult.ok) {
+      if (repoResult.state === RPCTypes.gitGitRepoResultState.ok && repoResult.ok) {
         const r: RPCTypes.GitRepoInfo = repoResult.ok
         if (!r.folder.private) {
           // Skip public repos
           continue
         }
-        const teamname = r.folder.folderType === RPCTypes.FavoriteFolderType.team ? r.folder.name : null
+        const teamname = r.folder.folderType === RPCTypes.favoriteFolderType.team ? r.folder.name : null
         idToInfo[r.globalUniqueID] = Constants.makeGitInfo({
           canDelete: r.canDelete,
           devicename: r.serverMetadata.lastModifyingDeviceName,
@@ -45,7 +45,7 @@ function* _loadGit(action: GitGen.LoadGitPayload): Saga.SagaGenerator<any, any> 
         })
       } else {
         let errStr: string = 'unknown'
-        if (repoResult.state === RPCTypes.GitGitRepoResultState.err && repoResult.err) {
+        if (repoResult.state === RPCTypes.gitGitRepoResultState.err && repoResult.err) {
           errStr = repoResult.err
         }
         yield Saga.put(
@@ -176,15 +176,15 @@ function* _handleIncomingGregor(action: GitGen.HandleIncomingGregorPayload): Sag
 }
 
 function* gitSaga(): Saga.SagaGenerator<any, any> {
-  yield Saga.safeTakeLatest('git:loadGit', _loadGit)
-  yield Saga.safeTakeEvery('git:createPersonalRepo', _createPersonalRepo)
-  yield Saga.safeTakeEvery('git:createTeamRepo', _createTeamRepo)
-  yield Saga.safeTakeEvery('git:deletePersonalRepo', _deletePersonalRepo)
-  yield Saga.safeTakeEvery('git:deleteTeamRepo', _deleteTeamRepo)
-  yield Saga.safeTakeLatest('git:setLoading', _setLoading)
-  yield Saga.safeTakeLatest('git:setError', _setError)
-  yield Saga.safeTakeEveryPure('git:badgeAppForGit', _badgeAppForGit)
-  yield Saga.safeTakeEvery('git:handleIncomingGregor', _handleIncomingGregor)
+  yield Saga.safeTakeLatest(GitGen.loadGit, _loadGit)
+  yield Saga.safeTakeEvery(GitGen.createPersonalRepo, _createPersonalRepo)
+  yield Saga.safeTakeEvery(GitGen.createTeamRepo, _createTeamRepo)
+  yield Saga.safeTakeEvery(GitGen.deletePersonalRepo, _deletePersonalRepo)
+  yield Saga.safeTakeEvery(GitGen.deleteTeamRepo, _deleteTeamRepo)
+  yield Saga.safeTakeLatest(GitGen.setLoading, _setLoading)
+  yield Saga.safeTakeLatest(GitGen.setError, _setError)
+  yield Saga.safeTakeEveryPure(GitGen.badgeAppForGit, _badgeAppForGit)
+  yield Saga.safeTakeEvery(GitGen.handleIncomingGregor, _handleIncomingGregor)
   yield Saga.safeTakeEveryPure(RouteTreeConstants.switchTo, _onTabChange)
 }
 

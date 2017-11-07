@@ -122,7 +122,7 @@ const inbox = [
     participants: List(participants),
     conversationIDKey: 'convo1',
     status: 'unfiled',
-    teamType: ChatTypes.CommonTeamType.none,
+    teamType: ChatTypes.commonTeamType.none,
     time: now,
   }),
   Constants.makeInboxState({
@@ -130,7 +130,7 @@ const inbox = [
     participants: List(participants.slice(0, 2)),
     conversationIDKey: 'convo2',
     status: 'unfiled',
-    teamType: ChatTypes.CommonTeamType.none,
+    teamType: ChatTypes.commonTeamType.none,
     time: now - 1000 * 60 * 60 * 3,
   }),
   Constants.makeInboxState({
@@ -138,7 +138,7 @@ const inbox = [
     participants: List(participants.slice(0, 3)),
     conversationIDKey: 'convo3',
     status: 'muted',
-    teamType: ChatTypes.CommonTeamType.none,
+    teamType: ChatTypes.commonTeamType.none,
     time: now - 1000 * 60 * 60 * 24 * 3,
   }),
   Constants.makeInboxState({
@@ -146,7 +146,7 @@ const inbox = [
     participants: List(participants.slice(0, 4)),
     conversationIDKey: 'convo5',
     status: 'unfiled',
-    teamType: ChatTypes.CommonTeamType.none,
+    teamType: ChatTypes.commonTeamType.none,
     time: now - 1000 * 60 * 60 * 24 * 30,
   }),
   Constants.makeInboxState({
@@ -154,7 +154,7 @@ const inbox = [
     participants: List(participants.slice(0, 2)),
     conversationIDKey: 'convo6',
     status: 'unfiled',
-    teamType: ChatTypes.CommonTeamType.none,
+    teamType: ChatTypes.commonTeamType.none,
     time: now - 1000 * 60 * 60 * 3,
   }),
   Constants.makeInboxState({
@@ -162,7 +162,7 @@ const inbox = [
     participants: List(participants.slice(0, 1)),
     conversationIDKey: 'convo7',
     status: 'muted',
-    teamType: ChatTypes.CommonTeamType.none,
+    teamType: ChatTypes.commonTeamType.none,
     time: now - 1000 * 60 * 60 * 5,
   }),
 ]

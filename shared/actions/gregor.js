@@ -9,7 +9,7 @@ import {
   delegateUiCtlRegisterGregorFirehoseRpcPromise,
   reachabilityCheckReachabilityRpcPromise,
   reachabilityStartReachabilityRpcPromise,
-  ReachabilityReachable,
+  reachabilityReachable,
   gregorInjectItemRpcPromise,
   type Reachability,
 } from '../constants/types/flow-types'
@@ -75,7 +75,7 @@ function registerReachability() {
       if (loggedInSelector(getState())) {
         dispatch(updateReachability(reachability))
 
-        if (reachability.reachable === ReachabilityReachable.yes) {
+        if (reachability.reachable === reachabilityReachable.yes) {
           // TODO: We should be able to recover from connection problems
           // without re-bootstrapping. Originally we used to do this on HTML5
           // 'online' event, but reachability is more precise.

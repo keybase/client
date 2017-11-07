@@ -1,10 +1,10 @@
 // @flow
+import * as KBFSGen from '../../actions/kbfs-gen'
 import React, {Component} from 'react'
 import {BackButton, Box, Text} from '../../common-adapters'
 import {globalStyles, globalColors} from '../../styles'
 import {shell} from 'electron'
 import {connect, type TypedState} from '../../util/container'
-import {clearFuseInstall, fuseStatus} from '../../actions/kbfs'
 
 type Props = {
   appFocusedCount: number,
@@ -141,8 +141,8 @@ const mapStateToProps = (state: TypedState) => {
 }
 
 const mapDispatchToProps = (dispatch: any) => ({
-  clearFuseInstall: () => dispatch(clearFuseInstall()),
-  getFuseStatus: () => dispatch(fuseStatus()),
+  clearFuseInstall: () => dispatch(KBFSGen.createClearFuseInstall()),
+  getFuseStatus: () => dispatch(KBFSGen.createFuseStatus()),
 })
 
 export default connect(mapStateToProps, mapDispatchToProps)(InstallSecurityPrefs)

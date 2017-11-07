@@ -1,21 +1,15 @@
 // @flow
+import * as Saga from '../../util/saga'
+import * as KBFSGen from '../kbfs-gen'
 
-import type {FSOpen, OpenInFileUI} from '../../constants/kbfs'
-import type {SagaGenerator} from '../../constants/types/saga'
-
-function* fuseStatusSaga(): SagaGenerator<any, any> {}
-
-function* fuseStatusUpdateSaga(): SagaGenerator<any, any> {}
-
-function* installFuseSaga(): SagaGenerator<any, any> {}
-
-function* installDokanSaga(): SagaGenerator<any, any> {}
-
-function* installKBFSSaga(): SagaGenerator<any, any> {}
-
-function* openSaga(action: FSOpen): SagaGenerator<any, any> {}
-
-function* openInFileUISaga(action: OpenInFileUI): SagaGenerator<any, any> {}
+function* fuseStatusSaga(): Saga.SagaGenerator<any, any> {}
+function* fuseStatusUpdateSaga(): Saga.SagaGenerator<any, any> {}
+function* installFuseSaga(): Saga.SagaGenerator<any, any> {}
+function* installDokanSaga(): Saga.SagaGenerator<any, any> {}
+function* installKBFSSaga(): Saga.SagaGenerator<any, any> {}
+function* openSaga(action: KBFSGen.OpenPayload): Saga.SagaGenerator<any, any> {}
+function* openInFileUISaga(action: KBFSGen.OpenInFileUIPayload): Saga.SagaGenerator<any, any> {}
+function* uninstallKBFSSaga(): Saga.SagaGenerator<any, any> {}
 
 export {
   fuseStatusSaga,
@@ -25,4 +19,5 @@ export {
   installDokanSaga,
   openInFileUISaga,
   openSaga,
+  uninstallKBFSSaga,
 }

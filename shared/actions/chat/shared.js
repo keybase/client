@@ -1,9 +1,9 @@
 // @flow
-import * as ChatTypes from '../../constants/types/flow-types-chat'
-import * as Constants from '../../constants/chat'
 import * as ChatGen from '../chat-gen'
+import * as Constants from '../../constants/chat'
 import * as I from 'immutable'
-import {CommonTLFVisibility, TlfKeysTLFIdentifyBehavior} from '../../constants/types/flow-types'
+import * as RPCChatTypes from '../../constants/types/flow-types-chat'
+import * as RPCTypes from '../../constants/types/flow-types'
 import {call, put, select} from 'redux-saga/effects'
 import {parseFolderNameToUsers} from '../../util/kbfs'
 import {usernameSelector} from '../../constants/selectors'
@@ -82,14 +82,14 @@ function* startNewConversation(
     return [null, null]
   }
   const membersType = flags.impTeamChatEnabled
-    ? ChatTypes.CommonConversationMembersType.impteam
-    : ChatTypes.CommonConversationMembersType.kbfs
-  const result = yield call(ChatTypes.localNewConversationLocalRpcPromise, {
+    ? RPCChatTypes.commonConversationMembersType.impteam
+    : RPCChatTypes.commonConversationMembersType.kbfs
+  const result = yield call(RPCChatTypes.localNewConversationLocalRpcPromise, {
     param: {
-      identifyBehavior: TlfKeysTLFIdentifyBehavior.chatGui,
+      identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
       tlfName,
-      tlfVisibility: CommonTLFVisibility.private,
-      topicType: ChatTypes.CommonTopicType.chat,
+      tlfVisibility: RPCTypes.commonTLFVisibility.private,
+      topicType: RPCChatTypes.commonTopicType.chat,
       membersType,
     },
   })
@@ -128,16 +128,18 @@ function* getPostingIdentifyBehavior(
 
   if (inbox && you) {
     const brokenUsers = Constants.getBrokenUsers(inbox.get('participants').toArray(), you, metaData)
-    return brokenUsers.length ? TlfKeysTLFIdentifyBehavior.chatGui : TlfKeysTLFIdentifyBehavior.chatGuiStrict
+    return brokenUsers.length
+      ? RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui
+      : RPCTypes.tlfKeysTLFIdentifyBehavior.chatGuiStrict
   }
 
   // This happens if you start a chat w/o having loaded the inbox state at all
-  return TlfKeysTLFIdentifyBehavior.chatGuiStrict
+  return RPCTypes.tlfKeysTLFIdentifyBehavior.chatGuiStrict
 }
 
 function makeInboxStateRecords(
   author: string,
-  items: Array<ChatTypes.UnverifiedInboxUIItem>,
+  items: Array<RPCChatTypes.UnverifiedInboxUIItem>,
   oldInbox: I.Map<Constants.ConversationIDKey, Constants.InboxState>
 ): Array<Constants.InboxState> {
   return (items || [])
@@ -150,7 +152,7 @@ function makeInboxStateRecords(
         ? I.List(c.localMetadata.writerNames || [])
         : I.List(parseFolderNameToUsers(author, c.name).map(ul => ul.username))
       return Constants.makeInboxState({
-        channelname: c.membersType === ChatTypes.CommonConversationMembersType.team && c.localMetadata
+        channelname: c.membersType === RPCChatTypes.commonConversationMembersType.team && c.localMetadata
           ? c.localMetadata.channelName
           : undefined,
         conversationIDKey: c.convID,
@@ -161,7 +163,7 @@ function makeInboxStateRecords(
         participants: parts,
         status: Constants.ConversationStatusByEnum[c.status || 0],
         teamType: c.teamType,
-        teamname: c.membersType === ChatTypes.CommonConversationMembersType.team ? c.name : undefined,
+        teamname: c.membersType === RPCChatTypes.commonConversationMembersType.team ? c.name : undefined,
         time: c.time,
         version: c.version,
       })
