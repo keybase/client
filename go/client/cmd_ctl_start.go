@@ -32,6 +32,8 @@ func (s *CmdCtlStart) ParseArgv(ctx *cli.Context) error {
 }
 
 func (s *CmdCtlStart) Run() (err error) {
+	// The ForceFork side effect above is all this command does. The
+	// autoforking logic handles launchd and systemd also.
 	return nil
 }
 

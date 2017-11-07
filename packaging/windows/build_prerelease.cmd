@@ -75,15 +75,6 @@ IF %ERRORLEVEL% NEQ 0 (
 )
 popd
 
-:: release
-pushd %GOPATH%\src\github.com\keybase\release
-del release.exe
-go build
-IF %ERRORLEVEL% NEQ 0 (
-  EXIT /B 1
-)
-popd
-
 :: Browser Extension
 pushd %GOPATH%\src\github.com\keybase\client\go\kbnm
 del kbnm.exe

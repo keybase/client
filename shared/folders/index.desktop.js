@@ -1,4 +1,5 @@
 // @flow
+import * as KBFSGen from '../actions/kbfs-gen'
 import Banner from './install/banner'
 import InstallSecurityPrefs from './install/security-prefs'
 import List from './list'
@@ -6,7 +7,6 @@ import React, {Component} from 'react'
 import {Box, TabBar} from '../common-adapters'
 import {TabBarItem, TabBarButton} from '../common-adapters/tab-bar'
 import {connect, type TypedState} from '../util/container'
-import {fuseStatus} from '../actions/kbfs'
 import {globalStyles, globalColors, globalMargins} from '../styles'
 import {isLinux} from '../constants/platform'
 import {type Props, type FolderType} from '.'
@@ -141,7 +141,7 @@ const mapStateToProps = (state: TypedState) => {
 }
 
 const mapDispatchToProps = (dispatch: any) => ({
-  fuseStatus: () => dispatch(fuseStatus()),
+  fuseStatus: () => dispatch(KBFSGen.createFuseStatus()),
 })
 
 export default connect(mapStateToProps, mapDispatchToProps)(FoldersRender)

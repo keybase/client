@@ -1,9 +1,8 @@
 // @flow
-import * as CommonConstants from '../constants/common'
 import * as Constants from '../constants/chat'
 import * as ChatGen from '../actions/chat-gen'
 import {Set, List, Map} from 'immutable'
-import {ReachabilityReachable} from '../constants/types/flow-types'
+import {reachabilityReachable} from '../constants/types/flow-types'
 
 const initialState: Constants.State = Constants.makeState()
 const initialConversation: Constants.ConversationState = Constants.makeConversationState()
@@ -20,7 +19,7 @@ function updateConversation(
 
 function reducer(state: Constants.State = initialState, action: Constants.Actions | ChatGen.Actions) {
   switch (action.type) {
-    case CommonConstants.resetStore:
+    case ChatGen.resetStore:
       return Constants.makeState()
     case ChatGen.deleteEntity: {
       const {keyPath, ids} = action.payload
@@ -245,7 +244,7 @@ function reducer(state: Constants.State = initialState, action: Constants.Action
     }
     case 'gregor:updateReachability': {
       // reset this when we go online
-      if (action.payload.reachability.reachable === ReachabilityReachable.yes) {
+      if (action.payload.reachability.reachable === reachabilityReachable.yes) {
         const newConversationStates = state
           .get('conversationStates')
           .map(conversation => conversation.set('loadedOffline', false))

@@ -421,6 +421,20 @@ type messageView struct {
 	messageType chat1.MessageType
 }
 
+func formatSystemMessage(body chat1.MessageSystem) string {
+	typ, _ := body.SystemType()
+	switch typ {
+	case chat1.MessageSystemType_ADDEDTOTEAM:
+		return fmt.Sprintf("Hello! I've just added @%s to this team.", body.Addedtoteam().Addee)
+	case chat1.MessageSystemType_INVITEADDEDTOTEAM:
+		return fmt.Sprintf("Hello! I've just added @%s to the team. This user had been invited by @%s.",
+			body.Inviteaddedtoteam().Invitee, body.Inviteaddedtoteam().Inviter)
+	case chat1.MessageSystemType_COMPLEXTEAM:
+		return fmt.Sprintf(`Attention @channel! I have just created a new channel in team %s. Here are some things that are now different: 1.) Notifications will not happen for every message. Click or tap the info icon on the right to configure them. 2.) The #general channel is now in the "Big Teams" section of the inbox. 3.) You can hit the three dots next to %s in the inbox view to join other channels. Enjoy!`, body.Complexteam().Team, body.Complexteam().Team)
+	}
+	return "<unknown system message>"
+}
+
 func newMessageViewValid(g *libkb.GlobalContext, conversationID chat1.ConversationID, m chat1.MessageUnboxedValid) (mv messageView, err error) {
 
 	mv.MessageID = m.ServerHeader.MessageID
@@ -478,6 +492,9 @@ func newMessageViewValid(g *libkb.GlobalContext, conversationID chat1.Conversati
 	case chat1.MessageType_LEAVE:
 		mv.Renderable = true
 		mv.Body = "<left the channel>"
+	case chat1.MessageType_SYSTEM:
+		mv.Renderable = true
+		mv.Body = formatSystemMessage(m.MessageBody.System())
 	default:
 		return mv, fmt.Errorf(fmt.Sprintf("unsupported MessageType: %s", typ.String()))
 	}

@@ -8,6 +8,7 @@ import * as Constants from '../constants/entities'
 import * as I from 'immutable'
 
 // Constants
+export const resetStore = 'common:resetStore' // not a part of entities but is handled by every reducer
 export const deleteEntity = 'entities:deleteEntity'
 export const mergeEntity = 'entities:mergeEntity'
 export const replaceEntity = 'entities:replaceEntity'

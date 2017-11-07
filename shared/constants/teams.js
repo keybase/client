@@ -71,6 +71,11 @@ export type MakeTeamOpen = NoErrorTypedAction<
 
 export type GetTeams = NoErrorTypedAction<'teams:getTeams', {}>
 
+export type BadgeAppForTeams = NoErrorTypedAction<
+  'teams:badgeAppForTeams',
+  {newTeamNames?: ?Array<string>, newTeamAccessRequests?: ?Array<string>}
+>
+
 export type ToggleChannelMembership = NoErrorTypedAction<
   'teams:toggleChannelMembership',
   {teamname: string, channelname: string}
@@ -153,7 +158,7 @@ export type InviteToTeamByEmail = NoErrorTypedAction<
   {invitees: string, role: string, teamname: string}
 >
 
-export const teamRoleByEnum = invert(RPCTypes.TeamsTeamRole)
+export const teamRoleByEnum = invert(RPCTypes.teamsTeamRole)
 
 export type TypeMap = {
   admin: string | boolean,
@@ -191,6 +196,7 @@ type _State = {
   teamNameToTeamSettings: I.Map<Teamname, TeamSettings>,
   teamnames: I.Set<Teamname>,
   teammembercounts: I.Map<Teamname, number>,
+  newTeams: I.Set<string>,
   loaded: boolean,
 }
 export type State = I.RecordOf<_State>
@@ -207,6 +213,7 @@ export const makeState: I.RecordFactory<_State> = I.Record({
   teamNameToRequests: I.Map(),
   teamNameToTeamSettings: I.Map(),
   teammembercounts: I.Map(),
+  newTeams: I.Set(),
   teamnames: I.Set(),
 })
 
@@ -219,7 +226,7 @@ const getConversationIDKeyFromChannelName = (state: TypedState, channelname: str
 const getParticipants = (state: TypedState, conversationIDKey: ChatConstants.ConversationIDKey) =>
   state.entities.getIn(['teams', 'convIDToChannelInfo', conversationIDKey, 'participants'], I.Set())
 
-export const getFollowingMap = ChatConstants.getFollowingMap
+export const getFollowingMap = (state: TypedState) => state.config.following
 export const getFollowerMap = (state: TypedState) => state.config.followers
 
 export {getConversationIDKeyFromChannelName, getParticipants, userIsInTeamHelper}

@@ -903,6 +903,11 @@ func (t *Team) postTeamInvites(ctx context.Context, invites SCTeamInvites) error
 		return err
 	}
 
+	err = t.precheckLinkToPost(ctx, sigMultiItem)
+	if err != nil {
+		return fmt.Errorf("cannot post link (precheck): %v", err)
+	}
+
 	payload := t.sigPayload(sigMultiItem, sigPayloadArgs{})
 	return t.postMulti(payload)
 
@@ -1111,6 +1116,7 @@ func (t *Team) sigTeamItem(ctx context.Context, section SCTeamSection, linkType 
 		latestLinkID,
 		false, /* hasRevokes */
 		seqType,
+		false, /* ignoreIfUnsupported */
 	)
 	if err != nil {
 		return libkb.SigMultiItem{}, err

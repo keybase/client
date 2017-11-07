@@ -1,13 +1,11 @@
 // @flow
 import * as Constants from '../../constants/login'
 
-import type {DeviceRole, Mode} from '../../constants/login'
-
 export function defaultModeForDeviceRoles(
-  myDeviceRole: DeviceRole,
-  otherDeviceRole: DeviceRole,
+  myDeviceRole: Constants.DeviceRole,
+  otherDeviceRole: Constants.DeviceRole,
   brokenMode: boolean
-): ?Mode {
+): ?Constants.Mode {
   switch (myDeviceRole + otherDeviceRole) {
     case Constants.codePageDeviceRoleExistingComputer + Constants.codePageDeviceRoleNewComputer:
       return Constants.codePageModeEnterText

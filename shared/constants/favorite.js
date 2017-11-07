@@ -1,6 +1,6 @@
 // @flow
 import {defaultKBFSPath} from './config'
-import {FavoriteFolderType} from '../constants/types/flow-types'
+import {favoriteFolderType} from '../constants/types/flow-types'
 import {parseFolderNameToUsers, sortUserList} from '../util/kbfs'
 
 import type {Exact} from '../constants/types/more'
@@ -143,7 +143,7 @@ function folderRPCFromPath(path: string): ?FolderRPC {
       private: true,
       notificationsOn: false,
       created: false,
-      folderType: FavoriteFolderType.private,
+      folderType: favoriteFolderType.private,
     }
   } else if (path.startsWith(`${defaultKBFSPath}/public/`)) {
     return {
@@ -151,7 +151,7 @@ function folderRPCFromPath(path: string): ?FolderRPC {
       private: false,
       notificationsOn: false,
       created: false,
-      folderType: FavoriteFolderType.public,
+      folderType: favoriteFolderType.public,
     }
   } else if (path.startsWith(`${defaultKBFSPath}/team/`)) {
     return {
@@ -159,7 +159,7 @@ function folderRPCFromPath(path: string): ?FolderRPC {
       private: true,
       notificationsOn: false,
       created: false,
-      folderType: FavoriteFolderType.team,
+      folderType: favoriteFolderType.team,
     }
   } else {
     return null
@@ -172,7 +172,7 @@ function folderFromFolderRPCWithMeta(username: string, f: FolderRPCWithMeta): Fo
   const {sortName, path} = pathFromFolder({
     users,
     isPublic: !f.private,
-    isTeam: f.folderType === FavoriteFolderType.team,
+    isTeam: f.folderType === favoriteFolderType.team,
   })
   const meta: MetaType = f.meta
   const ignored = f.meta === 'ignored'
@@ -183,7 +183,7 @@ function folderFromFolderRPCWithMeta(username: string, f: FolderRPCWithMeta): Fo
     sortName,
     hasData: false, // TODO don't have this info
     isPublic: !f.private,
-    isTeam: f.folderType === FavoriteFolderType.team,
+    isTeam: f.folderType === favoriteFolderType.team,
     ignored,
     meta,
     recentFiles: [],

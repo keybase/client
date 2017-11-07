@@ -89,6 +89,7 @@ type ChainLinkUnpacked struct {
 	prev                               LinkID
 	seqno                              keybase1.Seqno
 	seqType                            keybase1.SeqType
+	ignoreIfUnsupported                bool
 	payloadJSONStr                     string
 	ctime, etime                       int64
 	pgpFingerprint                     *PGPFingerprint
@@ -231,6 +232,10 @@ func (c *ChainLink) getPrevFromPayload() LinkID {
 
 func (c *ChainLink) getSeqTypeFromPayload() keybase1.SeqType {
 	return c.unpacked.seqType
+}
+
+func (c *ChainLink) getIgnoreIfUnsupportedFromPayload() bool {
+	return c.unpacked.ignoreIfUnsupported
 }
 
 func (c *ChainLink) IsStubbed() bool {
@@ -452,6 +457,14 @@ func (tmp *ChainLinkUnpacked) unpackPayloadJSON(payloadJSON *jsonw.Wrapper, payl
 		tmp.seqType = keybase1.SeqType(seqTypeInt)
 	}
 
+	// Assume false if unsupported
+	tmp.ignoreIfUnsupported, err2 = payloadJSON.AtKey("ignore_if_unsupported").GetBool()
+	if err2 != nil {
+		// Was nil or not a number.
+		// Use the default.
+		tmp.ignoreIfUnsupported = false
+	}
+
 	var ei int64
 	payloadJSON.AtKey("expire_in").GetInt64Void(&ei, &err)
 
@@ -511,12 +524,13 @@ func (c *ChainLink) unpackStubbed(raw string, err error) error {
 	}
 	c.id = ol.LinkID()
 	c.unpacked = &ChainLinkUnpacked{
-		prev:        ol.Prev,
-		seqno:       ol.Seqno,
-		seqType:     ol.SeqType,
-		sigVersion:  ol.Version,
-		outerLinkV2: ol,
-		stubbed:     true,
+		prev:                ol.Prev,
+		seqno:               ol.Seqno,
+		seqType:             ol.SeqType,
+		ignoreIfUnsupported: ol.IgnoreIfUnsupported,
+		sigVersion:          ol.Version,
+		outerLinkV2:         ol,
+		stubbed:             true,
 	}
 	return nil
 }
@@ -757,8 +771,9 @@ func (c *ChainLink) verifyPayloadV2() error {
 		return err
 	}
 	seqType := c.getSeqTypeFromPayload()
+	ignoreIfUnsupported := c.getIgnoreIfUnsupportedFromPayload()
 
-	if err := ol.AssertFields(version, seqno, prev, curr, linkType, seqType); err != nil {
+	if err := ol.AssertFields(version, seqno, prev, curr, linkType, seqType, ignoreIfUnsupported); err != nil {
 		return err
 	}
 

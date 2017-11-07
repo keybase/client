@@ -1,6 +1,6 @@
 // @flow
+import * as KBFSGen from '../actions/kbfs-gen'
 import {connect, type TypedState} from '../util/container'
-import {openInKBFS} from '../actions/kbfs'
 import {privateFolderWithUsers} from '../constants/config'
 import {startConversation} from '../actions/chat'
 import NonUserProfile from './non-user-profile'
@@ -16,7 +16,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp}) => ({
   onBack: () => dispatch(navigateUp()),
   onOpenPrivateFolder: (myUsername, username) => {
     if (myUsername && username) {
-      dispatch(openInKBFS(privateFolderWithUsers([username, myUsername])))
+      dispatch(KBFSGen.createOpen({path: privateFolderWithUsers([username, myUsername])}))
     }
   },
   onStartChat: (myUsername, username) => {

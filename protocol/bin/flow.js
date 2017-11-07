@@ -1,17 +1,26 @@
-/* eslint no-multi-spaces: "off", flowtype/require-valid-file-annotation: "off", strict: "off", key-spacing: "off", comma-spacing: "off" */
+// @noflow
 'use strict'
+const prettier = require('prettier')
+const json5 = require('json5')
+const promise = require('bluebird')
+const fs = promise.promisifyAll(require('fs'))
+const path = require('path')
+const codeGenerators = require('./js-code-generators.js')
+const camelcase = require('camelcase')
+const colors = require('colors')
 
-var promise = require('bluebird')
-var fs = promise.promisifyAll(require('fs'))
-var path = require('path')
-var codeGenerators = require('./js-code-generators.js')
-var camelcase = require('camelcase')
-var colors = require('colors')
+// load prettier rules from eslintrc
+const prettierOptions = json5.parse(
+  fs.readFileSync(path.join(__dirname, '../../.eslintrc'), {encoding: 'utf8'})
+).rules['prettier/prettier'][1]
+
+// Allow extra wide
+prettierOptions.printWidth = 9999
 
 var projects = {
   chat1: {
     root: './json/chat1',
-    import: "import * as gregor1 from './flow-types-gregor'\nimport * as keybase1 from './flow-types'",
+    import: "import * as Gregor1 from './flow-types-gregor'\nimport * as Keybase1 from './flow-types'",
     out: 'js/flow-types-chat.js',
     incomingMaps: {},
     seenTypes: {},
@@ -20,7 +29,7 @@ var projects = {
   keybase1: {
     root: 'json/keybase1',
     out: 'js/flow-types.js',
-    import: "import * as gregor1 from './flow-types-gregor'\n",
+    import: "import * as Gregor1 from './flow-types-gregor'\n",
     incomingMaps: {},
     seenTypes: {},
     enums: {},
@@ -85,16 +94,16 @@ function analyzeEnums(json, project) {
       project.enums[t.name] = en
 
       return {
-        name: `${capitalize(json.protocol)}${t.name}`,
+        name: `${json.protocol}${t.name}`,
         map: en,
       }
     })
     .reduce((acc, t) => {
       return acc.concat([
-        `\nexport const ${t.name} = {
+        `\nexport const ${decapitalize(t.name)} = {
   ${Object.keys(t.map)
     .map(k => {
-      return `${k}: ${t.map[k]}` // eslint-disable-line
+      return `${k}: ${t.map[k]}`
     })
     .join(',\n  ')},
 }`,
@@ -127,15 +136,15 @@ function analyzeTypes(json, project) {
 
 function figureType(type) {
   if (!type) {
-    type = 'null' // keep backwards compat with old script
+    return 'null' // keep backwards compat with old script
   }
   if (type instanceof Array) {
     if (type.length === 2) {
       if (type[0] === null) {
-        return `?${type[1]}`
+        return `?${capitalize(type[1])}`
       }
       if (type[1] === null) {
-        return `?${type[0]}`
+        return `?${capitalize(type[0])}`
       }
     }
 
@@ -143,7 +152,7 @@ function figureType(type) {
   } else if (typeof type === 'object') {
     switch (type.type) {
       case 'array':
-        return `?Array<${type.items}>`
+        return `?Array<${capitalize(type.items)}>`
       case 'map':
         return `{[key: string]: ${figureType(type.values)}}`
       default:
@@ -152,7 +161,7 @@ function figureType(type) {
     }
   }
 
-  return type
+  return capitalize(type)
 }
 
 function capitalize(s) {
@@ -183,49 +192,44 @@ function analyzeMessages(json, project) {
 
     const name = `${json.protocol}${capitalize(m)}`
     const responseType = figureType(message.response)
-    const response = responseType === 'null' ? null : `type ${name}Result = ${responseType}`
+    const response = responseType === 'null' ? null : `type ${capitalize(name)}Result = ${responseType}`
 
     const isNotify = message.hasOwnProperty('notify')
     let r = null
     if (!isNotify) {
-      const type = responseType === 'null' ? '' : `result: ${name}Result`
+      const type = responseType === 'null' ? '' : `result: ${capitalize(name)}Result`
       if (type) {
-        r = `,\n    response: {
-      error: RPCErrorHandler,
-      result: (${type}) => void,
-    }`
+        r = `,response: {error: RPCErrorHandler, result: (${type}) => void}`
       } else {
-        r = `,\n    response: CommonResponseHandler`
+        r = `,response: CommonResponseHandler`
       }
     } else {
-      r = ` /* ,\n    response: {} // Notify call
+      r = ` /* , response: {} // Notify call
     */`
     }
 
     let p = params(true, '      ')
     if (p) {
-      p = `\n${p}\n    `
+      p = `${p}    `
     }
 
     if (isUIProtocol) {
-      project.incomingMaps[`keybase.1.${json.protocol}.${m}`] = `(
-    params: Exact<{${p}}>${r}
-  ) => void`
+      project.incomingMaps[`keybase.1.${json.protocol}.${m}`] = `(params: ${p ? `{|${p}|}` : 'void'}${r}) => void`
     }
 
     r = ''
     if (responseType !== 'null') {
-      r = `, response: ${name}Result`
+      r = `, response: ${capitalize(name)}Result`
     }
 
     p = params(false, '  ')
     if (p) {
-      p = `\n${p}\n`
+      p = `${p}`
     }
 
-    const paramType = p ? `\nexport type ${name}RpcParam = Exact<{${p}}>` : ''
-    const callbackType = r ? `{callback?: ?(err: ?any${r}) => void}` : 'requestErrorCallback'
-    const innerParamType = p ? `{param: ${name}RpcParam}` : null
+    const paramType = p ? `\nexport type ${capitalize(name)}RpcParam = {|${p}|}` : ''
+    const callbackType = r ? `{callback?: ?(err: ?any${r}) => void}` : 'RequestErrorCallback'
+    const innerParamType = p ? `{param: ${capitalize(name)}RpcParam}` : null
     const methodName = `'${json.namespace}.${json.protocol}.${m}'`
     const rpcPromise = isUIProtocol
       ? ''
@@ -265,7 +269,7 @@ function parseEnumSymbol(s) {
 }
 
 function parseEnum(t) {
-  return parseUnion(t.symbols.map(s => `${parseEnumSymbol(s)} // ${s}`))
+  return parseUnion(t.symbols.map(s => `${parseEnumSymbol(s)} // ${s}\n`))
 }
 
 function parseMaybe(t) {
@@ -274,26 +278,27 @@ function parseMaybe(t) {
 }
 
 function parseUnion(unionTypes) {
-  return '\n    ' + unionTypes.map(parseInnerType).join('\n  | ')
+  return unionTypes.map(parseInnerType).join(' | ')
 }
 
 function parseRecord(t) {
   lintRecord(t)
   if (t.typedef) {
-    return t.typedef
+    return capitalize(t.typedef)
   }
 
-  const divider = t.fields.length ? '\n' : ''
   const fields = t.fields
     .map(f => {
       const innerType = parseInnerType(f.type)
+      const innerOptional = innerType[0] === '?'
+      const capsInnerType = innerOptional ? `?${capitalize(innerType.substr(1))}` : capitalize(innerType)
 
       // If we have a maybe type, let's also make the key optional
-      return `  ${f.name}${innerType[0] === '?' ? '?' : ''}: ${innerType},\n`
+      return `${f.name}${innerOptional ? '?' : ''}: ${capsInnerType},`
     })
     .join('')
 
-  return `{${divider}${fields}}`
+  return `{|${fields}|}`
 }
 
 function parseVariant(t, project) {
@@ -304,7 +309,6 @@ function parseVariant(t, project) {
 
   var type = parts.shift()
   return (
-    '\n    ' +
     t.cases
       .map(c => {
         if (c.label.def) {
@@ -312,11 +316,11 @@ function parseVariant(t, project) {
           return `{ ${t.switch.name}: any${bodyStr} }`
         } else {
           var label = fixCase(c.label.name)
-          const bodyStr = c.body ? `, ${label}: ?${c.body}` : ''
+          const bodyStr = c.body ? `, ${label}: ?${capitalize(c.body)}` : ''
           return `{ ${t.switch.name}: ${project.enums[type][label]}${bodyStr} }`
         }
       })
-      .join('\n  | ')
+      .join(' | ')
   )
 }
 
@@ -332,7 +336,7 @@ function makeRpcUnionType(typeDefs) {
       return acc.indexOf(clean) === -1 ? acc.concat([clean]) : acc
     }, [])
     .sort()
-    .join('\n  | ')
+    .join('|')
 
   if (rpcTypes) {
     const unionRpcType = `\nexport type rpc =
@@ -346,9 +350,9 @@ function makeRpcUnionType(typeDefs) {
 function write(typeDefs, project) {
   // Need any for weird flow issue where it gets confused by multiple
   // incoming call map types
-  const callMapType = Object.keys(project.incomingMaps).length ? 'incomingCallMapType' : 'any'
+  const callMapType = Object.keys(project.incomingMaps).length ? 'IncomingCallMapType' : 'any'
   const typePrelude = `// @flow
-/* eslint-disable */
+/* eslint-disable no-unused-vars,no-use-before-define,prettier/prettier */
 
 // This file is auto-generated by client/protocol/Makefile.
 ${project.import || ''}
@@ -356,42 +360,34 @@ import engine, {EngineChannel} from '../../engine'
 import {RPCError} from '../../util/errors'
 import {putOnChannelMap, createChannelMap, closeChannelMap} from '../../util/saga'
 import {Buffer} from 'buffer'
-
 import type {ChannelConfig, ChannelMap} from './saga'
-import type {Exact} from './more'
-export type int = number
-export type int64 = number
-export type uint = number
-export type uint64 = number
-export type long = number
-export type double = number
-export type bytes = Buffer
-export type WaitingHandlerType = (waiting: boolean) => void
+
+type Bool = boolean;
+type Boolean = boolean
+type Bytes = Buffer
+type Double = number
+type Int = number
+type Int64 = number
+type Long = number
+type String = string
+type Uint = number
+type Uint64 = number
+type WaitingHandlerType = (waiting: boolean) => void
 
 const engineRpcOutgoing = (method: string, params: any, callbackOverride: any, incomingCallMapOverride: any) => engine()._rpcOutgoing(method, params, callbackOverride, incomingCallMapOverride)
 
-type requestCommon = {
-  waitingHandler?: WaitingHandlerType,
-  incomingCallMap?: ${callMapType},
-}
-
-type requestErrorCallback = {
-  callback?: ?(err: ?RPCError) => void
-}
-
+type RequestCommon = { waitingHandler?: WaitingHandlerType, incomingCallMap?: ${callMapType} }
+type RequestErrorCallback = { callback?: ?(err: ?RPCError) => void }
 type RPCErrorHandler = (err: RPCError) => void
-
-type CommonResponseHandler = {
-  error: RPCErrorHandler,
-  result: (...rest: Array<void>) => void,
-}`
+type CommonResponseHandler = { error: RPCErrorHandler, result: (...rest: Array<void>) => void }`
 
   const incomingMap =
-    `\nexport type incomingCallMapType = Exact<{\n` +
-    Object.keys(project.incomingMaps).map(im => `  '${im}'?: ${project.incomingMaps[im]}`).join(',\n') +
-    '\n}>\n'
+    `\nexport type IncomingCallMapType = {|` +
+    Object.keys(project.incomingMaps).map(im => `  '${im}'?: ${project.incomingMaps[im]}`).join(',') +
+    '|}\n'
   const toWrite = [typePrelude, codeGenerators.channelMapPrelude, typeDefs.join('\n'), incomingMap].join('\n')
-  fs.writeFileSync(project.out, toWrite)
+  const formatted = prettier.format(toWrite, prettierOptions)
+  fs.writeFileSync(project.out, formatted)
 }
 
 function decapitalize(s) {
