@@ -236,12 +236,14 @@ class Team extends React.PureComponent<Props> {
             <Text type="BodySemibold" style={stylesAddYourselfBannerText}>
               You are not a member of this team.
             </Text>
-            <Button
-              style={stylesAddYourselfButton}
-              type="Primary"
+            <Text
+              type="BodySemiboldLink"
+              style={stylesAddYourselfBannerText}
+              className="underline"
               onClick={onAddPeople}
-              label="Add yourself"
-            />
+            >
+              Add yourself
+            </Text>
           </Box>}
         <Avatar isTeam={true} teamname={name} size={64} />
         <Text type="Header" style={{marginTop: globalMargins.tiny}}>
@@ -289,20 +291,17 @@ class Team extends React.PureComponent<Props> {
 }
 
 const stylesAddYourselfBanner = {
-  ...globalStyles.flexBoxRow,
+  ...globalStyles.flexBoxColumn,
   alignItems: 'center',
   alignSelf: 'stretch',
   backgroundColor: globalColors.blue,
   justifyContent: 'center',
   minHeight: 40,
+  marginBottom: globalMargins.tiny,
   paddingBottom: globalMargins.tiny,
   paddingLeft: globalMargins.medium,
   paddingRight: globalMargins.medium,
   paddingTop: globalMargins.tiny,
-}
-
-const stylesAddYourselfButton = {
-  marginTop: globalMargins.medium,
 }
 
 const stylesAddYourselfBannerText = {
