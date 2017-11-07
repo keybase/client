@@ -9,7 +9,12 @@ import (
 
 	sdActivation "github.com/coreos/go-systemd/activation"
 	sdDaemon "github.com/coreos/go-systemd/daemon"
+	sdUtil "github.com/coreos/go-systemd/util"
 )
+
+func IsRunningSystemd() bool {
+	return sdUtil.IsRunningSystemd()
+}
 
 func IsSocketActivated() bool {
 	return (os.Getenv("LISTEN_FDS") != "")
