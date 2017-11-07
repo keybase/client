@@ -1,7 +1,6 @@
 // @flow
 import * as Constants from '../constants/favorite'
-import * as CommonConstants from '../constants/common'
-import * as KBFSConstants from '../constants/kbfs'
+import * as KBFSGen from '../actions/kbfs-gen'
 
 const initialState: Constants.State = {
   folderState: {
@@ -34,10 +33,10 @@ const initialState: Constants.State = {
 
 export default function(
   state: Constants.State = initialState,
-  action: Constants.FavoriteAction | KBFSConstants.Actions | {type: 'common:resetStore', payload: void}
+  action: Constants.FavoriteAction | KBFSGen.Actions | {type: 'common:resetStore', payload: void}
 ): Constants.State {
   switch (action.type) {
-    case CommonConstants.resetStore:
+    case KBFSGen.resetStore:
       return {...initialState}
 
     case Constants.markTLFCreated: {
@@ -117,60 +116,57 @@ export default function(
         kbfsStatus: action.payload,
       }
 
-    case 'fs:fuseStatus':
+    case KBFSGen.fuseStatus:
       return {
         ...state,
         fuseStatusLoading: true,
       }
-    case 'fs:fuseStatusUpdate':
+    case KBFSGen.fuseStatusUpdate:
       return {
         ...state,
         fuseStatus: action.payload.status,
         fuseStatusLoading: false,
       }
-    case 'fs:installFuse':
+    case KBFSGen.installFuse:
       return {
         ...state,
         fuseInstalling: true,
         kextPermissionError: false,
       }
-    case 'fs:installFuseResult':
+    case KBFSGen.installFuseResult:
       const {kextPermissionError} = action.payload
       return {
         ...state,
         kextPermissionError,
       }
-    case 'fs:installFuseFinished':
+    case KBFSGen.installFuseFinished:
       return {
         ...state,
         fuseInstalling: false,
       }
-    case 'fs:clearFuseInstall':
+    case KBFSGen.clearFuseInstall:
       return {
         ...state,
         fuseInstalling: false,
         kextPermissionError: false,
       }
-    case 'fs:installKBFS':
+    case KBFSGen.installKBFS:
       return {
         ...state,
         kbfsInstalling: true,
       }
 
-    case 'fs:installKBSFinished':
+    case KBFSGen.installKBFSFinished:
       return {
         ...state,
         kbfsInstalling: false,
       }
-    case 'fs:openDefaultPath':
+    case KBFSGen.openDefaultPath:
       const {opening} = action.payload
       return {
         ...state,
         kbfsOpening: opening,
       }
-
-    default:
-      break
   }
 
   return state

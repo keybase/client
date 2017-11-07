@@ -1,6 +1,7 @@
 // @flow
 import * as Constants from '../constants/devices'
 import * as I from 'immutable'
+import * as LoginGen from './login-gen'
 import * as RPCTypes from '../constants/types/flow-types'
 import HiddenString from '../util/hidden-string'
 import keyBy from 'lodash/keyBy'
@@ -11,7 +12,6 @@ import {isMobile} from '../constants/platform'
 import {navigateTo} from './route-tree'
 import {replaceEntity} from './entities'
 import {safeTakeEvery, safeTakeLatest} from '../util/saga'
-import {setRevokedSelf} from './login/creators'
 import {type SagaGenerator} from '../constants/types/saga'
 import {type TypedState} from '../constants/reducer'
 
@@ -48,7 +48,13 @@ function* _deviceShowRevokePageSaga(action: Constants.ShowRevokePage): SagaGener
   const {deviceID} = action.payload
   let endangeredTLFs = {endangeredTLFs: []}
   try {
-    endangeredTLFs = yield call(RPCTypes.rekeyGetRevokeWarningRpcPromise, {param: {targetDevice: deviceID}})
+    const state: TypedState = yield select()
+    const actingDevice = state.config.deviceID
+    if (actingDevice) {
+      endangeredTLFs = yield call(RPCTypes.rekeyGetRevokeWarningRpcPromise, {
+        param: {targetDevice: deviceID, actingDevice},
+      })
+    }
   } catch (e) {
     console.warn('Error getting endangered TLFs:', e)
   }
@@ -106,12 +112,12 @@ function* _deviceListSaga(): SagaGenerator<any, any> {
 
 function* _deviceRevokedSaga(action: Constants.Revoke): SagaGenerator<any, any> {
   // Record our current route, only navigate away later if it's unchanged.
-  const beforeRouteState = yield select(state => state.routeTree.routeState)
+  const beforeRouteState = yield select((state: TypedState) => state.routeTree.routeState)
 
   // Revoking the current device uses the "deprovision" RPC instead.
   const {deviceID} = action.payload
 
-  const device = yield select(state => state.entities.getIn(['devices', deviceID]))
+  const device = yield select((state: TypedState) => state.entities.getIn(['devices', deviceID]))
 
   if (!device) {
     throw new Error("Can't find device to remove")
@@ -122,14 +128,14 @@ function* _deviceRevokedSaga(action: Constants.Revoke): SagaGenerator<any, any> 
 
   if (currentDevice) {
     try {
-      const username = yield select(state => state.config && state.config.username)
+      const username = yield select((state: TypedState) => state.config && state.config.username)
       if (!username) {
         throw new Error('No username in device remove')
       }
       yield put(setWaiting(true))
       yield call(RPCTypes.loginDeprovisionRpcPromise, {param: {doRevoke: true, username}})
       yield put(navigateTo([loginTab]))
-      yield put(setRevokedSelf(name))
+      yield put(LoginGen.createSetRevokedSelf({revoked: name}))
     } catch (e) {
       throw new Error("Can't remove current device")
     } finally {
@@ -139,7 +145,9 @@ function* _deviceRevokedSaga(action: Constants.Revoke): SagaGenerator<any, any> 
     // Not the current device.
     try {
       yield put(setWaiting(true))
-      yield call(RPCTypes.revokeRevokeDeviceRpcPromise, {param: {deviceID, force: false}})
+      yield call(RPCTypes.revokeRevokeDeviceRpcPromise, {
+        param: {deviceID, forceSelf: false, forceLast: false},
+      })
     } catch (e) {
       throw new Error("Can't remove device")
     } finally {
@@ -149,7 +157,7 @@ function* _deviceRevokedSaga(action: Constants.Revoke): SagaGenerator<any, any> 
 
   yield put(load())
 
-  const afterRouteState = yield select(state => state.routeTree.routeState)
+  const afterRouteState = yield select((state: TypedState) => state.routeTree.routeState)
   if (I.is(beforeRouteState, afterRouteState)) {
     yield put(navigateTo([...devicesTabLocation]))
   }

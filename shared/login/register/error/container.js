@@ -1,10 +1,10 @@
 // @flow
+import * as LoginGen from '../../../actions/login-gen'
 import RenderError from '.'
-import * as Creators from '../../../actions/login/creators'
 import {connect} from 'react-redux'
 
 const mapDispatchToProps = (dispatch, {routeProps}) => ({
-  onBack: () => dispatch(Creators.onBack()),
+  onBack: () => dispatch(LoginGen.createOnBack()),
   error: routeProps.get('error'),
 })
 

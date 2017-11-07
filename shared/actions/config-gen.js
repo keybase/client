@@ -8,6 +8,7 @@ import * as Constants from '../constants/config'
 import * as RPCTypes from '../constants/types/flow-types'
 
 // Constants
+export const resetStore = 'common:resetStore' // not a part of config but is handled by every reducer
 export const bootstrap = 'config:bootstrap'
 export const bootstrapAttemptFailed = 'config:bootstrapAttemptFailed'
 export const bootstrapFailed = 'config:bootstrapFailed'

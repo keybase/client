@@ -32,14 +32,14 @@ function* _startConversation(action: Constants.StartConversation): Saga.SagaGene
   const inbox = yield Saga.select(inboxSelector)
   const existing = inbox.find(
     state =>
-      state.get('membersType') === ChatTypes.CommonConversationMembersType.kbfs &&
+      state.get('membersType') === ChatTypes.commonConversationMembersType.kbfs &&
       state.get('participants').sort().join(',') === tlfName
   )
 
   if (forceImmediate && existing) {
     const newID = yield Saga.call(Shared.startNewConversation, existing.get('conversationIDKey'))
     yield Saga.put(ChatGen.createSelectConversation({conversationIDKey: newID}))
-  } else if (existing) {
+  } else if (existing && !temporary) {
     // Select existing conversations
     yield Saga.put(
       ChatGen.createSelectConversation({
@@ -75,7 +75,10 @@ function* _selectConversation(action: ChatGen.SelectConversationPayload): Saga.S
     yield Saga.put(ChatGen.createGetInboxAndUnbox({conversationIDKeys: [conversationIDKey]}))
   }
 
-  const oldConversationState = yield Saga.select(Shared.conversationStateSelector, conversationIDKey)
+  let oldConversationState
+  if (conversationIDKey) {
+    oldConversationState = yield Saga.select(Shared.conversationStateSelector, conversationIDKey)
+  }
   if (oldConversationState && oldConversationState.get('isStale') && conversationIDKey) {
     yield Saga.put(ChatGen.createClearMessages({conversationIDKey}))
   }
@@ -121,7 +124,7 @@ const _setNotifications = function*(
   if (old) {
     let nextNotifications = {}
 
-    if (action.type === 'chat:setNotifications') {
+    if (action.type === ChatGen.setNotifications) {
       const {payload: {deviceType, notifyType}} = action
 
       // This is the flip-side of the logic in the notifications container.
@@ -142,9 +145,9 @@ const _setNotifications = function*(
             break
         }
       }
-    } else if (action.type === 'chat:toggleChannelWideNotifications') {
+    } else if (action.type === ChatGen.toggleChannelWideNotifications) {
       nextNotifications = {channelWide: !old.notifications.channelWide}
-    } else if (action.type === 'chat:updatedNotifications') {
+    } else if (action.type === ChatGen.updatedNotifications) {
       nextNotifications = action.payload.notifications
     }
 
@@ -160,7 +163,7 @@ const _setNotifications = function*(
   }
 
   // Send out the update if we made it
-  if (action.type !== 'chat:updatedNotifications') {
+  if (action.type !== ChatGen.updatedNotifications) {
     const inbox = yield Saga.select(Constants.getInbox, conversationIDKey)
     if (inbox && inbox.notifications) {
       const {notifications} = inbox
@@ -169,23 +172,23 @@ const _setNotifications = function*(
         channelWide: notifications.channelWide,
         settings: [
           {
-            deviceType: RPCTypes.CommonDeviceType.desktop,
-            kind: ChatTypes.CommonNotificationKind.atmention,
+            deviceType: RPCTypes.commonDeviceType.desktop,
+            kind: ChatTypes.commonNotificationKind.atmention,
             enabled: notifications.desktop.atmention,
           },
           {
-            deviceType: RPCTypes.CommonDeviceType.desktop,
-            kind: ChatTypes.CommonNotificationKind.generic,
+            deviceType: RPCTypes.commonDeviceType.desktop,
+            kind: ChatTypes.commonNotificationKind.generic,
             enabled: notifications.desktop.generic,
           },
           {
-            deviceType: RPCTypes.CommonDeviceType.mobile,
-            kind: ChatTypes.CommonNotificationKind.atmention,
+            deviceType: RPCTypes.commonDeviceType.mobile,
+            kind: ChatTypes.commonNotificationKind.atmention,
             enabled: notifications.mobile.atmention,
           },
           {
-            deviceType: RPCTypes.CommonDeviceType.mobile,
-            kind: ChatTypes.CommonNotificationKind.generic,
+            deviceType: RPCTypes.commonDeviceType.mobile,
+            kind: ChatTypes.commonNotificationKind.generic,
             enabled: notifications.mobile.generic,
           },
         ],
@@ -200,9 +203,9 @@ function* _blockConversation(action: ChatGen.BlockConversationPayload): Saga.Sag
   const conversationID = Constants.keyToConversationID(conversationIDKey)
   if (blocked) {
     const status = reportUser
-      ? ChatTypes.CommonConversationStatus.reported
-      : ChatTypes.CommonConversationStatus.blocked
-    const identifyBehavior: RPCTypes.TLFIdentifyBehavior = RPCTypes.TlfKeysTLFIdentifyBehavior.chatGui
+      ? ChatTypes.commonConversationStatus.reported
+      : ChatTypes.commonConversationStatus.blocked
+    const identifyBehavior: RPCTypes.TLFIdentifyBehavior = RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui
     yield Saga.call(ChatTypes.localSetConversationStatusLocalRpcPromise, {
       param: {conversationID, identifyBehavior, status},
     })
@@ -220,23 +223,23 @@ function* _leaveConversation(action: ChatGen.LeaveConversationPayload): Saga.Sag
 function* _muteConversation(action: ChatGen.MuteConversationPayload): Saga.SagaGenerator<any, any> {
   const {conversationIDKey, muted} = action.payload
   const conversationID = Constants.keyToConversationID(conversationIDKey)
-  const status = muted ? ChatTypes.CommonConversationStatus.muted : ChatTypes.CommonConversationStatus.unfiled
-  const identifyBehavior: RPCTypes.TLFIdentifyBehavior = RPCTypes.TlfKeysTLFIdentifyBehavior.chatGui
+  const status = muted ? ChatTypes.commonConversationStatus.muted : ChatTypes.commonConversationStatus.unfiled
+  const identifyBehavior: RPCTypes.TLFIdentifyBehavior = RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui
   yield Saga.call(ChatTypes.localSetConversationStatusLocalRpcPromise, {
     param: {conversationID, identifyBehavior, status},
   })
 }
 
 function* registerSagas(): SagaGenerator<any, any> {
-  yield Saga.safeTakeEvery('chat:leaveConversation', _leaveConversation)
-  yield Saga.safeTakeEvery('chat:muteConversation', _muteConversation)
+  yield Saga.safeTakeEvery(ChatGen.leaveConversation, _leaveConversation)
+  yield Saga.safeTakeEvery(ChatGen.muteConversation, _muteConversation)
   yield Saga.safeTakeEvery('chat:startConversation', _startConversation)
-  yield Saga.safeTakeLatest('chat:selectConversation', _selectConversation)
+  yield Saga.safeTakeLatest(ChatGen.selectConversation, _selectConversation)
   yield Saga.safeTakeEvery(
-    ['chat:setNotifications', 'chat:updatedNotifications', 'chat:toggleChannelWideNotifications'],
+    [ChatGen.setNotifications, ChatGen.updatedNotifications, ChatGen.toggleChannelWideNotifications],
     _setNotifications
   )
-  yield Saga.safeTakeEvery('chat:blockConversation', _blockConversation)
+  yield Saga.safeTakeEvery(ChatGen.blockConversation, _blockConversation)
 }
 
 export {registerSagas}

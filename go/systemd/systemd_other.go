@@ -4,6 +4,10 @@ package systemd
 
 import "net"
 
+func IsRunningSystemd() bool {
+	return false
+}
+
 func IsSocketActivated() bool {
 	return false
 }

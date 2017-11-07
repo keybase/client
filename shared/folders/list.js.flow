@@ -1,12 +1,12 @@
 // @flow
 import * as React from 'react'
-import type {FileSection, ParticipantUnlock, Folder as ConstantsFolder} from '../constants/folders'
+import * as Constants from '../constants/folders'
 
-export type Folder = ConstantsFolder
+export type Folder = Constants.Folder
 
 export type Props = {
-  tlfs?: Array<Folder>,
-  ignored?: Array<Folder>,
+  tlfs?: Array<Constants.Folder>,
+  ignored?: Array<Constants.Folder>,
   installed: boolean,
   isPublic: boolean,
   style?: any,
