@@ -14,7 +14,10 @@ const openSMS = (phoneno: string, body?: string): Promise<any> => {
   }
 
   const url = proto + phoneno + query
-  return Linking.openURL(url)
+  if (Linking.canOpenURL(url)) {
+    return Linking.openURL(url)
+  }
+  return Promise.reject(new Error('Cannot open SMS url!'))
 }
 
 export default openSMS
