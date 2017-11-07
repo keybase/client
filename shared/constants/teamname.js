@@ -54,21 +54,16 @@ const ancestorTeamnames = (teamname: Teamname): Teamname[] => {
   return ancestors
 }
 
-const isExplicitAdmin = (memberInfo: I.Set<MemberInfo>, user: string) => {
+const isExplicitAdmin = (memberInfo: I.Set<MemberInfo>, user: string): boolean => {
   const info = memberInfo.find(member => member.username === user)
-  return info && (info.type === 'owner' || info.type === 'admin')
+  if (!info) {
+    return false
+  }
+  return info.type === 'owner' || info.type === 'admin'
 }
 
-const isImplicitAdmin = (ancestorMemberInfo: I.Map<Teamname, I.Set<MemberInfo>>, user: string) => {
+const isImplicitAdmin = (ancestorMemberInfo: I.Map<Teamname, I.Set<MemberInfo>>, user: string): boolean => {
   return ancestorMemberInfo.some(memberInfo => isExplicitAdmin(memberInfo, user))
 }
 
-const isAdmin = (
-  memberInfo: I.Set<MemberInfo>,
-  ancestorMemberInfo: I.Map<Teamname, I.Set<MemberInfo>>,
-  user: string
-) => {
-  return isExplicitAdmin(memberInfo, user) || isImplicitAdmin(ancestorMemberInfo, user)
-}
-
-export {validTeamname, baseTeamname, ancestorTeamnames, isAdmin}
+export {validTeamname, baseTeamname, ancestorTeamnames, isExplicitAdmin, isImplicitAdmin}

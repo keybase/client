@@ -10,7 +10,7 @@ import {compose, lifecycle, withState} from 'recompose'
 import {connect, type TypedState} from '../../util/container'
 import {getProfile} from '../../actions/tracker'
 import {isMobile} from '../../constants/platform'
-import {ancestorTeamnames, isAdmin} from '../../constants/teamname'
+import {ancestorTeamnames, isExplicitAdmin, isImplicitAdmin} from '../../constants/teamname'
 import {navigateAppend} from '../../actions/route-tree'
 import {showUserProfile} from '../../actions/profile'
 
@@ -99,9 +99,21 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
   const onLeaveTeam = () => dispatchProps._onLeaveTeam(stateProps.name)
   const onClickOpenTeamSetting = () => dispatchProps._onClickOpenTeamSetting(stateProps.isTeamOpen)
   const onCreateSubteam = () => dispatchProps._onCreateSubteam(stateProps.name)
+
   const you = stateProps.you
-  const youCanAddPeople = you && isAdmin(stateProps._memberInfo, stateProps._ancestorMemberInfo, you)
-  const youCanCreateSubteam = youCanAddPeople
+  let youExplicitAdmin = false
+  let youImplicitAdmin = false
+  let youAreMember = false
+  if (you) {
+    youExplicitAdmin = isExplicitAdmin(stateProps._memberInfo, you)
+    youImplicitAdmin = isImplicitAdmin(stateProps._ancestorMemberInfo, you)
+    youAreMember = stateProps._memberInfo.some(member => member.username === you)
+  }
+  const youAdmin = youExplicitAdmin && youImplicitAdmin
+
+  const showAddYourselfBanner = !youAreMember && !youExplicitAdmin && youImplicitAdmin
+  const youCanAddPeople = youAdmin
+  const youCanCreateSubteam = youAdmin
 
   const customComponent = (
     <CustomComponent
@@ -128,6 +140,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     onManageChat,
     onOpenFolder,
     onClickOpenTeamSetting,
+    showAddYourselfBanner,
     youCanAddPeople,
     youCanCreateSubteam,
   }
