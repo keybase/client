@@ -16,6 +16,7 @@ import {type Path} from '../route-tree'
 export const resetStore = 'common:resetStore' // not a part of chat but is handled by every reducer
 export const addPending = 'chat:addPending'
 export const appendMessages = 'chat:appendMessages'
+export const attachmentLoaded = 'chat:attachmentLoaded'
 export const attachmentSaveFailed = 'chat:attachmentSaveFailed'
 export const attachmentSaveStart = 'chat:attachmentSaveStart'
 export const attachmentSaved = 'chat:attachmentSaved'
@@ -93,6 +94,7 @@ export const uploadProgress = 'chat:uploadProgress'
 // Action Creators
 export const createAddPending = (payload: {|participants: Array<string>, temporary: boolean|}) => ({error: false, payload, type: addPending})
 export const createAppendMessages = (payload: {|conversationIDKey: Constants.ConversationIDKey, isSelected: boolean, isAppFocused: boolean, messages: Array<Constants.ServerMessage>, svcShouldDisplayNotification: boolean|}) => ({error: false, payload, type: appendMessages})
+export const createAttachmentLoaded = (payload: {|messageKey: Constants.MessageKey, path: ?string, isPreview: boolean|}) => ({error: false, payload, type: attachmentLoaded})
 export const createAttachmentSaveFailed = (payload: {|messageKey: Constants.MessageKey|}) => ({error: false, payload, type: attachmentSaveFailed})
 export const createAttachmentSaveStart = (payload: {|messageKey: Constants.MessageKey|}) => ({error: false, payload, type: attachmentSaveStart})
 export const createAttachmentSaved = (payload: {|messageKey: Constants.MessageKey, path: ?string|}) => ({error: false, payload, type: attachmentSaved})
@@ -170,6 +172,7 @@ export const createUploadProgress = (payload: {|messageKey: Constants.MessageKey
 // Action Payloads
 export type AddPendingPayload = ReturnType<typeof createAddPending>
 export type AppendMessagesPayload = ReturnType<typeof createAppendMessages>
+export type AttachmentLoadedPayload = ReturnType<typeof createAttachmentLoaded>
 export type AttachmentSaveFailedPayload = ReturnType<typeof createAttachmentSaveFailed>
 export type AttachmentSaveStartPayload = ReturnType<typeof createAttachmentSaveStart>
 export type AttachmentSavedPayload = ReturnType<typeof createAttachmentSaved>
@@ -249,6 +252,7 @@ export type UploadProgressPayload = ReturnType<typeof createUploadProgress>
 export type Actions =
   | ReturnType<typeof createAddPending>
   | ReturnType<typeof createAppendMessages>
+  | ReturnType<typeof createAttachmentLoaded>
   | ReturnType<typeof createAttachmentSaveFailed>
   | ReturnType<typeof createAttachmentSaveStart>
   | ReturnType<typeof createAttachmentSaved>

@@ -511,14 +511,6 @@ export type DownloadProgress = NoErrorTypedAction<
     messageKey: MessageKey,
   }
 >
-export type AttachmentLoaded = NoErrorTypedAction<
-  'chat:attachmentLoaded',
-  {
-    messageKey: MessageKey,
-    isPreview: boolean,
-    path: ?string,
-  }
->
 export type UpdateTempMessage = TypedAction<
   'chat:updateTempMessage',
   {
@@ -536,7 +528,7 @@ export type SaveAttachmentNative = NoErrorTypedAction<'chat:saveAttachmentNative
 
 export type ShareAttachment = NoErrorTypedAction<'chat:shareAttachment', {messageKey: MessageKey}>
 
-export type Actions = UpdateTempMessage | AttachmentLoaded
+export type Actions = UpdateTempMessage
 
 function conversationIDToKey(conversationID: ConversationID): ConversationIDKey {
   return conversationID.toString('hex')
