@@ -257,6 +257,10 @@
     },
     "badgeAppForChat": {
       "conversations": "Array<RPCTypes.BadgeConversationInfo>"
+    },
+    "postMessage": {
+      "conversationIDKey": "Constants.ConversationIDKey",
+      "text": "HiddenString"
     }
   }
 }

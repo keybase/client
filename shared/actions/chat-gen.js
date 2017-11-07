@@ -48,6 +48,7 @@ export const openFolder = 'chat:openFolder'
 export const openTlfInChat = 'chat:openTlfInChat'
 export const outboxMessageBecameReal = 'chat:outboxMessageBecameReal'
 export const pendingToRealConversation = 'chat:pendingToRealConversation'
+export const postMessage = 'chat:postMessage'
 export const prependMessages = 'chat:prependMessages'
 export const removeOutboxMessage = 'chat:removeOutboxMessage'
 export const removeTempPendingConversations = 'chat:removeTempPendingConversations'
@@ -122,6 +123,7 @@ export const createOpenFolder = () => ({error: false, payload: undefined, type: 
 export const createOpenTlfInChat = (payload: {|tlf: string|}) => ({error: false, payload, type: openTlfInChat})
 export const createOutboxMessageBecameReal = (payload: {|oldMessageKey: Constants.MessageKey, newMessageKey: Constants.MessageKey|}) => ({error: false, payload, type: outboxMessageBecameReal})
 export const createPendingToRealConversation = (payload: {|oldKey: Constants.ConversationIDKey, newKey: Constants.ConversationIDKey|}) => ({error: false, payload, type: pendingToRealConversation})
+export const createPostMessage = (payload: {|conversationIDKey: Constants.ConversationIDKey, text: HiddenString|}) => ({error: false, payload, type: postMessage})
 export const createPrependMessages = (payload: {|conversationIDKey: Constants.ConversationIDKey, messages: Array<Constants.ServerMessage>, moreToLoad: boolean|}) => ({error: false, payload, type: prependMessages})
 export const createRemoveOutboxMessage = (payload: {|conversationIDKey: Constants.ConversationIDKey, outboxID: Constants.OutboxIDKey|}) => ({error: false, payload, type: removeOutboxMessage})
 export const createRemoveTempPendingConversations = () => ({error: false, payload: undefined, type: removeTempPendingConversations})
@@ -196,6 +198,7 @@ export type OpenFolderPayload = ReturnType<typeof createOpenFolder>
 export type OpenTlfInChatPayload = ReturnType<typeof createOpenTlfInChat>
 export type OutboxMessageBecameRealPayload = ReturnType<typeof createOutboxMessageBecameReal>
 export type PendingToRealConversationPayload = ReturnType<typeof createPendingToRealConversation>
+export type PostMessagePayload = ReturnType<typeof createPostMessage>
 export type PrependMessagesPayload = ReturnType<typeof createPrependMessages>
 export type RemoveOutboxMessagePayload = ReturnType<typeof createRemoveOutboxMessage>
 export type RemoveTempPendingConversationsPayload = ReturnType<typeof createRemoveTempPendingConversations>
@@ -272,6 +275,7 @@ export type Actions =
   | ReturnType<typeof createOpenTlfInChat>
   | ReturnType<typeof createOutboxMessageBecameReal>
   | ReturnType<typeof createPendingToRealConversation>
+  | ReturnType<typeof createPostMessage>
   | ReturnType<typeof createPrependMessages>
   | ReturnType<typeof createRemoveOutboxMessage>
   | ReturnType<typeof createRemoveTempPendingConversations>

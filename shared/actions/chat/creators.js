@@ -18,11 +18,6 @@ const updateTempMessageTransformer = ({
   type,
 })
 
-const postMessageActionTransformer = action => ({
-  payload: {conversationIDKey: action.payload.conversationIDKey},
-  type: action.type,
-})
-
 const retryMessageActionTransformer = action => ({
   payload: {
     conversationIDKey: action.payload.conversationIDKey,
@@ -63,17 +58,6 @@ const loadAttachmentPreviewTransformer = ({
   },
   type,
 })
-
-function postMessage(
-  conversationIDKey: Constants.ConversationIDKey,
-  text: HiddenString
-): Constants.PostMessage {
-  return {
-    logTransformer: postMessageActionTransformer,
-    payload: {conversationIDKey, text},
-    type: 'chat:postMessage',
-  }
-}
 
 function retryMessage(
   conversationIDKey: Constants.ConversationIDKey,
@@ -161,7 +145,6 @@ export {
   attachmentLoaded,
   downloadProgress,
   loadAttachmentPreview,
-  postMessage,
   retryAttachment,
   retryMessage,
   setSelectedRouteState,

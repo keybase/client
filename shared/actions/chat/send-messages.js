@@ -10,6 +10,7 @@ import * as Shared from './shared'
 import * as Saga from '../../util/saga'
 import HiddenString from '../../util/hidden-string'
 import {isMobile} from '../../constants/platform'
+import {enableActionLogging} from '../../local-debug'
 import {usernameSelector} from '../../constants/selectors'
 import {navigateTo} from '../../actions/route-tree'
 import {chatTab} from '../../constants/tabs'
@@ -68,7 +69,7 @@ function* deleteMessage(action: ChatGen.DeleteMessagePayload): SagaGenerator<any
   }
 }
 
-function* postMessage(action: Constants.PostMessage): SagaGenerator<any, any> {
+function* postMessage(action: ChatGen.PostMessagePayload): SagaGenerator<any, any> {
   let {conversationIDKey} = action.payload
   let newConvoTlfName
 
@@ -215,11 +216,24 @@ function* retryMessage(action: Constants.RetryMessage): SagaGenerator<any, any> 
   })
 }
 
+function* _logPostMessage(action: ChatGen.PostMessagePayload): Saga.SagaGenerator<any, any> {
+  const toPrint = {
+    payload: {conversationIDKey: action.payload.conversationIDKey},
+    type: action.type,
+  }
+
+  console.log('Posting message', JSON.stringify(toPrint, null, 2))
+}
+
 function* registerSagas(): SagaGenerator<any, any> {
   yield Saga.safeTakeEvery(ChatGen.deleteMessage, deleteMessage)
   yield Saga.safeTakeEvery(ChatGen.editMessage, editMessage)
-  yield Saga.safeTakeEvery('chat:postMessage', postMessage)
+  yield Saga.safeTakeEvery(ChatGen.postMessage, postMessage)
   yield Saga.safeTakeEvery('chat:retryMessage', retryMessage)
+
+  if (enableActionLogging) {
+    yield Saga.safeTakeEvery(ChatGen.postMessage, _logPostMessage)
+  }
 }
 
 export {registerSagas}

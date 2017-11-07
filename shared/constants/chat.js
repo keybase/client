@@ -486,10 +486,6 @@ export type InboxFilterSelectNext = NoErrorTypedAction<
   'chat:inboxFilterSelectNext',
   {rows: any, direction: 1 | -1}
 >
-export type PostMessage = NoErrorTypedAction<
-  'chat:postMessage',
-  {conversationIDKey: ConversationIDKey, text: HiddenString}
->
 export type ReplaceConversation = NoErrorTypedAction<
   'chat:replaceConversation',
   {oldKey: ConversationIDKey, newKey: ConversationIDKey}
