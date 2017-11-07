@@ -58,7 +58,7 @@ export type InviteToTeamByPhone = NoErrorTypedAction<
 // id -> removePendingSeitanInvite
 export type RemoveMemberOrPendingInvite = NoErrorTypedAction<
   'teams:removeMemberOrPendingInvite',
-  {name: string, username: string, email: string, id: string}
+  {name: string, username: string, email: string, inviteID: string}
 >
 
 export type IgnoreRequest = NoErrorTypedAction<'teams:ignoreRequest', {name: string, username: string}>

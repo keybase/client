@@ -21,6 +21,7 @@ const cleanPhoneNumber: string => string = (dirty: string) => {
   return dirty.replace(/\D/g, '')
 }
 
+// we get invite name as `[name] ([phone number]), this extracts [phone number]
 const extractPhoneNumber: string => ?string = (name: string) => {
   const matches = /\((.*)\)/.exec(name)
   if (matches[1]) {

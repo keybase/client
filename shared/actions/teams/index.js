@@ -133,17 +133,17 @@ const _editMembership = function*(action: Constants.EditMembership) {
 }
 
 const _removeMemberOrPendingInvite = function*(action: Constants.RemoveMemberOrPendingInvite) {
-  const {payload: {name, username, email, id}} = action
+  const {payload: {name, username, email, inviteID}} = action
 
   yield put(
     replaceEntity(
       ['teams', 'teamNameToLoadingInvites'],
-      I.Map([[name, I.Map([[username || email || id, true]])]])
+      I.Map([[name, I.Map([[username || email || inviteID, true]])]])
     )
   )
 
   // disallow call with any pair of username, email, and ID to avoid black-bar errors
-  if ((!!username && !!email) || (!!username && !!id) || (!!email && !!id)) {
+  if ((!!username && !!email) || (!!username && !!inviteID) || (!!email && !!inviteID)) {
     const errMsg = 'Supplied more than one form of identification to removeMemberOrPendingInvite'
     console.error(errMsg)
     throw new Error(errMsg)
@@ -151,13 +151,13 @@ const _removeMemberOrPendingInvite = function*(action: Constants.RemoveMemberOrP
 
   yield put(replaceEntity(['teams', 'teamNameToLoading'], I.Map([[name, true]])))
   try {
-    yield call(RpcTypes.teamsTeamRemoveMemberRpcPromise, {param: {email, name, username, inviteID: id}})
+    yield call(RpcTypes.teamsTeamRemoveMemberRpcPromise, {param: {email, name, username, inviteID}})
   } finally {
     yield put((dispatch: Dispatch) => dispatch(Creators.getDetails(name))) // getDetails will unset loading
     yield put(
       replaceEntity(
         ['teams', 'teamNameToLoadingInvites'],
-        I.Map([[name, I.Map([[username || email || id, false]])]])
+        I.Map([[name, I.Map([[username || email || inviteID, false]])]])
       )
     )
   }
@@ -165,9 +165,6 @@ const _removeMemberOrPendingInvite = function*(action: Constants.RemoveMemberOrP
 
 const _inviteToTeamByPhone = function*(action: Constants.InviteToTeamByPhone) {
   const {payload: {teamname, role, phoneNumber, fullName = ''}} = action
-  yield put(
-    replaceEntity(['teams', 'teamNameToLoadingInvites'], I.Map([[teamname, I.Map([[phoneNumber, true]])]]))
-  )
   const seitan = yield call(RpcTypes.teamsTeamCreateSeitanTokenRpcPromise, {
     param: {
       name: teamname,
@@ -178,21 +175,20 @@ const _inviteToTeamByPhone = function*(action: Constants.InviteToTeamByPhone) {
 
   /* Open SMS */
   // seitan is 16chars
-  // message sans teamname is 134chars long. Absolute max teamname can be is 26chars to fit within 160 sms limit
-  // limit teamname to 15chars (+3 for ellipsis) to leave some wiggle room
-  let clippedTeamname = teamname
-  if (clippedTeamname.length > 18) {
-    clippedTeamname = `...${teamname.substring(teamname.length - 15)}`
+  // message sans teamname is 129chars long. Absolute max teamname + descriptor can be is 31chars to fit within 160 sms limit
+  // max length of a teamname is 16chars, + 5 - 8 chars for descriptor is a max of 24chars for teamDescription
+  let teamDescription
+  if (teamname.length <= 16) {
+    teamDescription = `${teamname} team`
+  } else {
+    // then this must be a subteam, and won't safely fit into a text
+    const subteams = teamname.split('.')
+    teamDescription = `${subteams[subteams.length - 1]} subteam`
   }
-  const bodyText = `Please join the ${clippedTeamname} team on Keybase. Install and paste this in the "Teams" tab:\n\ntoken: ${seitan.toUpperCase()}\n\nquick install: keybase.io/_/go`
+  const bodyText = `Please join the ${teamDescription} on Keybase. Install and paste this in the "Teams" tab:\n\ntoken: ${seitan.toUpperCase()}\n\nquick install: keybase.io/_/go`
   openSMS(phoneNumber, bodyText)
 
-  yield all([
-    put(
-      replaceEntity(['teams', 'teamNameToLoadingInvites'], I.Map([[teamname, I.Map([[phoneNumber, false]])]]))
-    ),
-    put(Creators.getDetails(teamname)),
-  ])
+  yield put(Creators.getDetails(teamname))
 }
 
 const _ignoreRequest = function*(action: Constants.IgnoreRequest) {

@@ -89,9 +89,9 @@ function removeMember(
   email: string,
   name: string,
   username: string,
-  id: string
+  inviteID: string
 ): Constants.RemoveMemberOrPendingInvite {
-  return {payload: {email, name, username, id}, type: 'teams:removeMemberOrPendingInvite'}
+  return {payload: {email, name, username, inviteID}, type: 'teams:removeMemberOrPendingInvite'}
 }
 
 function ignoreRequest(name: string, username: string): Constants.IgnoreRequest {
