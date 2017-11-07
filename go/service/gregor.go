@@ -866,6 +866,7 @@ func (g *gregorHandler) handleInBandMessage(ctx context.Context, cli gregor1.Inc
 	ibm gregor.InBandMessage) (err error) {
 
 	defer g.G().Trace(fmt.Sprintf("gregorHandler#handleInBandMessage with %d handlers", len(g.ibmHandlers)), func() error { return err })()
+	ctx = libkb.WithLogTag(ctx, "GRGIBM")
 
 	var freshHandlers []libkb.GregorInBandMessageHandler
 

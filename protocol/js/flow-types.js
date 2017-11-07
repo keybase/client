@@ -763,6 +763,7 @@ export const homeHomeScreenPeopleNotificationType = {
 }
 
 export const homeHomeScreenTodoType = {
+  none: 0,
   bio: 1,
   proof: 2,
   device: 3,
@@ -2354,9 +2355,9 @@ export type HomeHomeGetScreenRpcParam = {|markViewed: Boolean|}
 
 export type HomeHomeSkipTodoTypeRpcParam = {|t: HomeScreenTodoType|}
 
-export type HomeScreen = {|lastViewed: Time, items?: ?Array<HomeScreenItem>, followSuggestions?: ?Array<UserSummary>|}
+export type HomeScreen = {|lastViewed: Time, version: Int, items?: ?Array<HomeScreenItem>, followSuggestions?: ?Array<UserSummary>|}
 
-export type HomeScreenItem = {|badged: Boolean, id: HomeScreenItemID, data: HomeScreenItemData|}
+export type HomeScreenItem = {|badged: Boolean, data: HomeScreenItemData|}
 
 export type HomeScreenItemData = {t: 1, todo: ?HomeScreenTodo} | {t: 2, people: ?HomeScreenPeopleNotification}
 
@@ -2379,6 +2380,7 @@ export type HomeScreenPeopleNotificationType =
 export type HomeScreenTodo = {t: any}
 
 export type HomeScreenTodoType =
+  | 0 // NONE_0
   | 1 // BIO_1
   | 2 // PROOF_2
   | 3 // DEVICE_3
@@ -3277,7 +3279,6 @@ export type RekeyEventType =
   | 8 // NO_GREGOR_MESSAGES_8
 
 export type RekeyGetRevokeWarningRpcParam = {|
-  session: Int,
   actingDevice: DeviceID,
   targetDevice: DeviceID,
 |}

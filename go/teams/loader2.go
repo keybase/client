@@ -31,7 +31,7 @@ func (l *TeamLoader) fillInStubbedLinks(ctx context.Context,
 	// seqnos needed from the server
 	var requestSeqnos []keybase1.Seqno
 	for _, seqno := range needSeqnos {
-		linkIsAlreadyFilled := TeamSigChainState{inner: state.Chain}.IsLinkFullyPresent(seqno)
+		linkIsAlreadyFilled := TeamSigChainState{inner: state.Chain}.IsLinkFilled(seqno)
 		if seqno <= upperLimit && !linkIsAlreadyFilled {
 			requestSeqnos = append(requestSeqnos, seqno)
 		}
@@ -93,7 +93,7 @@ type getLinksLows struct {
 	ReaderKeyMask keybase1.PerTeamKeyGeneration
 }
 
-// checkStubbed checks if it's OK that a link is stubbed.
+// checkStubbed checks if it's OK if a link is stubbed.
 func (l *TeamLoader) checkStubbed(ctx context.Context, arg load2ArgT, link *chainLinkUnpacked) error {
 	if !link.isStubbed() {
 		return nil
