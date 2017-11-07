@@ -14,7 +14,6 @@ import {navigateAppend} from '../../actions/route-tree'
 import {showUserProfile} from '../../actions/profile'
 import {ancestorTeamnames} from '../teamname'
 
-
 type StateProps = {
   _memberInfo: I.Set<Constants.MemberInfo>,
   _ancestorMemberInfo: I.Map<Constants.Teamname, I.Set<Constants.MemberInfo>>,
