@@ -239,9 +239,9 @@ class Team extends React.PureComponent<Props> {
               You are not a member of this team.
             </Text>
             <Text
+              backgroundMode="Information"
               type="BodySemiboldLink"
               style={stylesAddYourselfBannerText}
-              className="underline"
               onClick={onAddSelf}
             >
               Add yourself
