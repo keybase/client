@@ -548,6 +548,38 @@ function _unboxedToMessage(
             key: Constants.messageKey(common.conversationIDKey, 'system', common.messageID),
           }
         }
+        case ChatTypes.CommonMessageType.system: {
+          let sysMsgText = '<unknown system message>'
+          const body = payload.messageBody.system
+          if (body) {
+            switch (body.systemType) {
+              case ChatTypes.LocalMessageSystemType.addedtoteam: {
+                const user = body.addedtoteam ? `@${body.addedtoteam.addee}` : 'someone'
+                sysMsgText = `Hello! I've just added ${user} to this team.`
+                break
+              }
+              case ChatTypes.LocalMessageSystemType.inviteaddedtoteam: {
+                const invitee = body.inviteaddedtoteam ? `@${body.inviteaddedtoteam.invitee}` : 'someone'
+                const inviter = body.inviteaddedtoteam ? `@${body.inviteaddedtoteam.inviter}` : 'someone'
+                sysMsgText = `Hello! I've just added ${invitee} to the team. This user had been invited by ${inviter}`
+                break
+              }
+              case ChatTypes.LocalMessageSystemType.complexteam: {
+                const team = body.complexteam ? body.complexteam.team : '???'
+                sysMsgText = `Attention @channel!\n\nI have just created a new channel in team ${team}. Here are some things that are now different:\n\n1.) Notifications will not happen for every message. Click or tap the info icon on the right to configure them.\n2.) The #general channel is now in the "Big Teams" section of the inbox.\n3.) You can hit the three dots next to ${team} in the inbox view to join other channels.\n\nEnjoy!`
+                break
+              }
+            }
+          }
+          return {
+            type: 'Text',
+            ...common,
+            editedCount: payload.superseded ? 1 : 0, // mark it as edited if it's been superseded
+            message: new HiddenString(sysMsgText),
+            messageState: 'sent', // TODO, distinguish sent/pending once CORE sends it.
+            key: Constants.messageKey(common.conversationIDKey, 'messageIDText', common.messageID),
+          }
+        }
         default:
           const unhandled: Constants.UnhandledMessage = {
             ...common,

@@ -13,4 +13,5 @@ const (
 	BoxedMetadataMessageBodyMaxLength = 200
 	BoxedJoinMessageBodyMaxLength     = 200
 	BoxedLeaveMessageBodyMaxLength    = 200
+	BoxedSystemMessageBodyMaxLength   = 5000
 )

@@ -7,6 +7,7 @@ import * as ChatTypes from '../../constants/types/flow-types-chat'
 import * as RPCTypes from '../../constants/types/flow-types'
 import * as Saga from '../../util/saga'
 import * as Creators from './creators'
+import * as RouteTreeConstants from '../../constants/route-tree'
 import * as ChatGen from '../chat-gen'
 import engine from '../../engine'
 import map from 'lodash/map'
@@ -473,7 +474,39 @@ function* _setupTeamHandlers(): Saga.SagaGenerator<any, any> {
   })
 }
 
-const teamsSaga = function*(): Saga.SagaGenerator<any, any> {
+function* _badgeAppForTeams(action: Constants.BadgeAppForTeams) {
+  const newTeams = I.Set(action.payload.newTeamNames || [])
+  // Call getTeams if new teams come in.
+  // Covers the case when we're staring at the teams page so
+  // we don't miss a notification we clear when we tab away
+  const existingNewTeams = yield Saga.select((state: TypedState) =>
+    state.entities.getIn(['teams', 'newTeams'], I.Set())
+  )
+  if (!newTeams.equals(existingNewTeams)) {
+    yield Saga.put(Creators.getTeams())
+  }
+  yield Saga.put(replaceEntity(['teams'], I.Map([['newTeams', newTeams]])))
+}
+
+let _wasOnTeamsTab = false
+const _onTabChange = (action: RouteTreeConstants.SwitchTo) => {
+  const list = I.List(action.payload.path)
+  const root = list.first()
+
+  if (root === teamsTab) {
+    _wasOnTeamsTab = true
+  } else if (_wasOnTeamsTab) {
+    _wasOnTeamsTab = false
+    // clear badges
+    return Saga.call(RPCTypes.gregorDismissCategoryRpcPromise, {
+      param: {
+        category: 'team.newly_added_to_team',
+      },
+    })
+  }
+}
+
+const teamsSaga = function*(): SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure('teams:leaveTeam', _leaveTeam)
   yield Saga.safeTakeEveryPure('teams:createNewTeam', _createNewTeam)
   yield Saga.safeTakeEvery('teams:makeTeamOpen', _changeOpenTeamSetting)
@@ -491,6 +524,8 @@ const teamsSaga = function*(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEvery('teams:ignoreRequest', _ignoreRequest)
   yield Saga.safeTakeEvery('teams:editMembership', _editMembership)
   yield Saga.safeTakeEvery('teams:removeMemberOrPendingInvite', _removeMemberOrPendingInvite)
+  yield Saga.safeTakeEvery('teams:badgeAppForTeams', _badgeAppForTeams)
+  yield Saga.safeTakeEveryPure(RouteTreeConstants.switchTo, _onTabChange)
   yield Saga.safeTakeEvery('teams:inviteToTeamByPhone', _inviteToTeamByPhone)
 }
 
