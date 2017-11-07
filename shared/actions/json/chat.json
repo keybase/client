@@ -237,6 +237,13 @@
     "setLoaded": {
       "conversationIDKey": "Constants.ConversationIDKey",
       "isLoaded": "boolean"
+    },
+    "appendMessages": {
+      "conversationIDKey": "Constants.ConversationIDKey",
+      "isSelected": "boolean",
+      "isAppFocused": "boolean",
+      "messages": "Array<Constants.ServerMessage>",
+      "svcShouldDisplayNotification": "boolean"
     }
   }
 }

@@ -121,13 +121,13 @@ function* postMessage(action: Constants.PostMessage): SagaGenerator<any, any> {
   const appFocused = yield Saga.select(Shared.focusedSelector)
 
   yield Saga.put(
-    Creators.appendMessages(
+    ChatGen.createAppendMessages({
       conversationIDKey,
-      conversationIDKey === selectedConversation,
-      appFocused,
-      [message],
-      false
-    )
+      isSelected: conversationIDKey === selectedConversation,
+      isAppFocused: appFocused,
+      messages: [message],
+      svcShouldDisplayNotification: false,
+    })
   )
 
   yield Saga.call(RPCChatTypes.localPostTextNonblockRpcPromise, {

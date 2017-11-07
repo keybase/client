@@ -74,9 +74,8 @@ function reducer(state: Constants.State = initialState, action: Constants.Action
 
       return state.set('conversationStates', newConversationStates)
     }
-    case 'chat:appendMessages': {
-      const appendAction: Constants.AppendMessages = action
-      const {messages: appendMessages, isSelected, conversationIDKey, isAppFocused} = appendAction.payload
+    case ChatGen.appendMessages: {
+      const {messages: appendMessages, isSelected, conversationIDKey, isAppFocused} = action.payload
 
       const newConversationStates = state
         .get('conversationStates')

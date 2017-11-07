@@ -233,13 +233,13 @@ function* _appendAttachmentPlaceholder(
   const appFocused = yield Saga.select(Shared.focusedSelector)
 
   yield Saga.put(
-    Creators.appendMessages(
-      conversationIDKey,
-      conversationIDKey === selectedConversation,
-      appFocused,
-      [message],
-      false
-    )
+    ChatGen.createAppendMessages({
+      conversationIDKey: conversationIDKey,
+      isSelected: conversationIDKey === selectedConversation,
+      isAppFocused: appFocused,
+      messages: [message],
+      svcShouldDisplayNotification: false,
+    })
   )
   yield Saga.put(Creators.attachmentLoaded(message.key, preview.filename, true))
   return message

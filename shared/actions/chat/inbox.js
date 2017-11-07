@@ -628,7 +628,7 @@ function* filterSelectNext(action: Constants.InboxFilterSelectNext): SagaGenerat
   }
 }
 
-function* _sendNotifications(action: Constants.AppendMessages): Saga.SagaGenerator<any, any> {
+function* _sendNotifications(action: ChatGen.AppendMessagesPayload): Saga.SagaGenerator<any, any> {
   const state: TypedState = yield Saga.select()
   const appFocused = Shared.focusedSelector(state)
   const selectedTab = Shared.routeSelector(state)
@@ -903,7 +903,7 @@ function* registerSagas(): SagaGenerator<any, any> {
   yield Saga.safeTakeLatest(ChatGen.loadInbox, onInboxLoad)
   yield Saga.safeTakeLatest(ChatGen.unboxMore, _unboxMore)
   yield Saga.safeTakeSerially(ChatGen.unboxConversations, unboxConversations)
-  yield Saga.safeTakeEvery('chat:appendMessages', _sendNotifications)
+  yield Saga.safeTakeEvery(ChatGen.appendMessages, _sendNotifications)
   yield Saga.safeTakeEvery(ChatGen.markThreadsStale, _markThreadsStale)
   yield Saga.safeTakeEvery(ChatGen.inboxSynced, _inboxSynced)
   yield Saga.safeTakeLatest('chat:badgeAppForChat', _badgeAppForChat)

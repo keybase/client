@@ -482,16 +482,6 @@ export const maxMessagesToLoadAtATime = 50
 export const nothingSelected = 'chat:noneSelected'
 export const blankChat = 'chat:blankChat'
 
-export type AppendMessages = NoErrorTypedAction<
-  'chat:appendMessages',
-  {
-    conversationIDKey: ConversationIDKey,
-    isAppFocused: boolean,
-    isSelected: boolean,
-    messages: Array<ServerMessage>,
-    svcShouldDisplayNotification: boolean,
-  }
->
 export type BadgeAppForChat = NoErrorTypedAction<'chat:badgeAppForChat', I.List<ConversationBadgeState>>
 export type InboxFilterSelectNext = NoErrorTypedAction<
   'chat:inboxFilterSelectNext',
@@ -574,13 +564,7 @@ export type SaveAttachmentNative = NoErrorTypedAction<'chat:saveAttachmentNative
 
 export type ShareAttachment = NoErrorTypedAction<'chat:shareAttachment', {messageKey: MessageKey}>
 
-export type Actions =
-  | AppendMessages
-  | ClearRekey
-  | PrependMessages
-  | StartConversation
-  | UpdateTempMessage
-  | AttachmentLoaded
+export type Actions = ClearRekey | PrependMessages | StartConversation | UpdateTempMessage | AttachmentLoaded
 
 function conversationIDToKey(conversationID: ConversationID): ConversationIDKey {
   return conversationID.toString('hex')

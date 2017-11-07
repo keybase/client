@@ -26,15 +26,6 @@ const safeServerMessageMap = (m: any) => ({
   type: m.type,
 })
 
-const appendMessageActionTransformer = (action: Constants.AppendMessages) => ({
-  payload: {
-    conversationIDKey: action.payload.conversationIDKey,
-    messages: action.payload.messages.map(safeServerMessageMap),
-    svcShouldDisplayNotification: action.payload.svcShouldDisplayNotification,
-  },
-  type: action.type,
-})
-
 const prependMessagesActionTransformer = (action: Constants.PrependMessages) => ({
   payload: {
     conversationIDKey: action.payload.conversationIDKey,
@@ -130,26 +121,6 @@ function retryMessage(
   }
 }
 
-function appendMessages(
-  conversationIDKey: Constants.ConversationIDKey,
-  isSelected: boolean,
-  isAppFocused: boolean,
-  messages: Array<Constants.ServerMessage>,
-  svcShouldDisplayNotification: boolean
-): Constants.AppendMessages {
-  return {
-    logTransformer: appendMessageActionTransformer,
-    payload: {
-      conversationIDKey,
-      isAppFocused,
-      isSelected,
-      messages,
-      svcShouldDisplayNotification,
-    },
-    type: 'chat:appendMessages',
-  }
-}
-
 function prependMessages(
   conversationIDKey: Constants.ConversationIDKey,
   messages: Array<Constants.ServerMessage>,
@@ -234,7 +205,6 @@ function setSelectedRouteState(
 }
 
 export {
-  appendMessages,
   attachmentLoaded,
   badgeAppForChat,
   downloadProgress,
