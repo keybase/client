@@ -116,17 +116,19 @@ const TeamTabs = (props: TeamTabsProps) => {
     )
   }
   const publicityLabel = 'PUBLICITY SETTINGS'
-  tabs.push(
-    <Text
-      key="publicity"
-      type="BodySmallSemibold"
-      style={{
-        color: globalColors.black_75,
-      }}
-    >
-      {publicityLabel}
-    </Text>
-  )
+  if (admin) {
+    tabs.push(
+      <Text
+        key="publicity"
+        type="BodySmallSemibold"
+        style={{
+          color: globalColors.black_75,
+        }}
+      >
+        {publicityLabel}
+      </Text>
+    )
+  }
   if (loading) {
     tabs.push(<ProgressIndicator style={{alignSelf: 'center', width: 17, height: 17}} />)
   }
@@ -238,44 +240,18 @@ class Team extends React.PureComponent<Props> {
           />
       }
     } else if (selectedTab === 'publicity') {
+      const teamsLink = 'keybase.io/popular-teams'
       contents = (
-        <Box
-          key="publicityMember"
-          style={{
-            ...globalStyles.flexBoxRow,
-            alignSelf: 'stretch',
-            paddingLeft: globalMargins.small,
-            paddingTop: globalMargins.small,
-          }}
-        >
-          <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center'}}>
-            <Checkbox checked={publicityMember} key="publicityMember" label="" onCheck={setPublicityMember} />
-          </Box>
-          <Box style={globalStyles.flexBoxColumn}>
-            <Text type="Body">
-              Publish on your own profile that you're an admin of this team
-            </Text>
-            <Text type="BodySmall">
-              Team description and number of members will be public.
-            </Text>
-          </Box>
-        </Box>
-      )
-      if (admin) {
-        const teamsLink = 'keybase.io/popular-teams'
-        contents = [
-          contents,
+        <Box style={{...globalStyles.flexBoxColumn, alignSelf: 'stretch'}}>
           <Box
-            key="publicityTeam"
             style={{
               ...globalStyles.flexBoxRow,
-              alignSelf: 'stretch',
               paddingLeft: globalMargins.small,
               paddingTop: globalMargins.small,
             }}
           >
             <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center'}}>
-              <Checkbox checked={publicityTeam} key="publicityTeam" label="" onCheck={setPublicityTeam} />
+              <Checkbox checked={publicityTeam} label="" onCheck={setPublicityTeam} />
             </Box>
             <Box style={globalStyles.flexBoxColumn}>
               <Text type="Body">
@@ -287,9 +263,29 @@ class Team extends React.PureComponent<Props> {
                 Team descriptions and number of members will be public.
               </Text>
             </Box>
-          </Box>,
-        ]
-      }
+          </Box>
+
+          <Box
+            style={{
+              ...globalStyles.flexBoxRow,
+              paddingLeft: globalMargins.small,
+              paddingTop: globalMargins.small,
+            }}
+          >
+            <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center'}}>
+              <Checkbox checked={publicityMember} label="" onCheck={setPublicityMember} />
+            </Box>
+            <Box style={globalStyles.flexBoxColumn}>
+              <Text type="Body">
+                Publish on your own profile that you're an admin of this team
+              </Text>
+              <Text type="BodySmall">
+                Team description and number of members will be public.
+              </Text>
+            </Box>
+          </Box>
+        </Box>
+      )
     }
 
     const popupMenuItems = [
