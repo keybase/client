@@ -151,11 +151,14 @@ const bootstrap = (opts: $PropertyType<ConfigGen.BootstrapPayload, 'payload'>): 
   }
 }
 
-function _clearRouteState(action: ConfigGen.ClearRouteStatePayload) {
-  return routeStateStorage.clear()
+// Until routeStateStorage is sagaized.
+function* _clearRouteState(action: ConfigGen.ClearRouteStatePayload) {
+  yield Saga.put(routeStateStorage.clear)
 }
-function _persistRouteState(action: ConfigGen.PersistRouteStatePayload) {
-  return routeStateStorage.store()
+
+// Until routeStateStorage is sagaized.
+function* _persistRouteState(action: ConfigGen.PersistRouteStatePayload) {
+  yield Saga.put(routeStateStorage.store)
 }
 
 const getBootstrapStatus = (): AsyncAction => dispatch =>
@@ -192,8 +195,8 @@ function* configSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(ConfigGen.bootstrapSuccess, _bootstrapSuccess)
   yield Saga.safeTakeEvery(ConfigGen.bootstrap, _bootstrap)
   yield Saga.safeTakeEveryPure(ConfigGen.clearRouteState, _clearRouteState)
-  yield Saga.safeTakeEveryPure(ConfigGen.persistRouteState, _persistRouteState)
-  yield Saga.safeTakeEveryPure(ConfigGen.retryBootstrap, _retryBootstrap)
+  yield Saga.safeTakeEvery(ConfigGen.persistRouteState, _persistRouteState)
+  yield Saga.safeTakeEvery(ConfigGen.retryBootstrap, _retryBootstrap)
 }
 
 export {getExtendedStatus}
