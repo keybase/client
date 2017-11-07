@@ -1,6 +1,7 @@
 // @noflow
 /* eslint-env jest */
-import {validTeamname, baseTeamname, ancestorTeamnames} from '../teamname'
+import * as I from 'immutable'
+import {validTeamname, baseTeamname, ancestorTeamnames, isAdmin} from '../teamname'
 
 describe('teamname', () => {
   describe('validTeamname', () => {
@@ -30,5 +31,34 @@ describe('teamname', () => {
   it('ancestorTeamnames', () => {
     expect(ancestorTeamnames('team.sub.sub')).toEqual(['team.sub', 'team'])
     expect(ancestorTeamnames('team')).toEqual([])
+  })
+
+  it('isAdmin', () => {
+    const rootMemberInfo = I.Set([
+      {username: 'alice', type: 'owner'},
+      {username: 'bob', type: 'admin'},
+      {username: 'charlie', type: 'writer'},
+    ])
+    const subInfo = I.Set([{username: 'charlie', type: 'admin'}])
+    const subSubInfo = I.Set([])
+
+    expect(isAdmin(rootMemberInfo, I.Map(), 'alice')).toBe(true)
+    expect(isAdmin(rootMemberInfo, I.Map(), 'bob')).toBe(true)
+    expect(isAdmin(rootMemberInfo, I.Map(), 'charlie')).toBe(false)
+    expect(isAdmin(rootMemberInfo, I.Map(), 'david')).toBe(false)
+
+    const subAncestorMemberInfo = I.Map([['root', rootMemberInfo]])
+
+    expect(isAdmin(subInfo, subAncestorMemberInfo, 'alice')).toBe(true)
+    expect(isAdmin(subInfo, subAncestorMemberInfo, 'bob')).toBe(true)
+    expect(isAdmin(subInfo, subAncestorMemberInfo, 'charlie')).toBe(true)
+    expect(isAdmin(subInfo, subAncestorMemberInfo, 'david')).toBe(false)
+
+    const subSubAncestorMemberInfo = I.Map([['root', rootMemberInfo], ['root.sub', subInfo]])
+
+    expect(isAdmin(subSubInfo, subSubAncestorMemberInfo, 'alice')).toBe(true)
+    expect(isAdmin(subSubInfo, subSubAncestorMemberInfo, 'bob')).toBe(true)
+    expect(isAdmin(subSubInfo, subSubAncestorMemberInfo, 'charlie')).toBe(true)
+    expect(isAdmin(subSubInfo, subSubAncestorMemberInfo, 'david')).toBe(false)
   })
 })
