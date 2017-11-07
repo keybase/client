@@ -15,7 +15,7 @@ const prettierOptions = json5.parse(
 ).rules['prettier/prettier'][1]
 
 // Allow extra wide
-prettierOptions.printWidth = 500
+prettierOptions.printWidth = 9999
 
 var projects = {
   chat1: {
