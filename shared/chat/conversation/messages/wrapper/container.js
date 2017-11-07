@@ -1,6 +1,7 @@
 // @flow
 import * as Constants from '../../../../constants/chat'
 import * as Creators from '../../../../actions/chat/creators'
+import * as ChatGen from '../../../../actions/chat-gen'
 import Wrapper, {type Props} from '.'
 import {compose, withHandlers, lifecycle, connect, type TypedState} from '../../../../util/container'
 import {formatTimeForMessages} from '../../../../util/timestamp'
@@ -45,8 +46,8 @@ const mapStateToProps = (state: TypedState, {messageKey, prevMessageKey}: OwnPro
 
 const mapDispatchToProps = (dispatch: Dispatch): DispatchProps => ({
   _onRetryAttachment: (message: Constants.AttachmentMessage) => dispatch(Creators.retryAttachment(message)),
-  _onRetryText: (conversationIDKey: Constants.ConversationIDKey, outboxID: Constants.OutboxIDKey) =>
-    dispatch(Creators.retryMessage(conversationIDKey, outboxID)),
+  _onRetryText: (conversationIDKey: Constants.ConversationIDKey, outboxIDKey: Constants.OutboxIDKey) =>
+    dispatch(ChatGen.createRetryMessage({conversationIDKey, outboxIDKey})),
   _onUsernameClick: (username: string) => {
     isMobile ? dispatch(showUserProfile(username)) : dispatch(getProfile(username, true, true))
   },

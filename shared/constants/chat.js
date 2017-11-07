@@ -490,10 +490,6 @@ export type ReplaceConversation = NoErrorTypedAction<
   'chat:replaceConversation',
   {oldKey: ConversationIDKey, newKey: ConversationIDKey}
 >
-export type RetryMessage = NoErrorTypedAction<
-  'chat:retryMessage',
-  {conversationIDKey: ConversationIDKey, outboxIDKey: OutboxIDKey}
->
 export type UnboxInbox = NoErrorTypedAction<'chat:unboxInbox', {conversationIDKeys: Array<ConversationIDKey>}>
 export type UntrustedInboxVisible = NoErrorTypedAction<
   'chat:untrustedInboxVisible',

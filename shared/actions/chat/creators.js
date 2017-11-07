@@ -1,11 +1,8 @@
 // @flow
-import * as RPCTypes from '../../constants/types/flow-types'
 import * as Constants from '../../constants/chat'
 import * as I from 'immutable'
-import HiddenString from '../../util/hidden-string'
 import {chatTab} from '../../constants/tabs'
 import {setRouteState} from '../route-tree'
-import uniq from 'lodash/uniq'
 
 import type {SetRouteState} from '../../constants/route-tree'
 
@@ -16,14 +13,6 @@ const updateTempMessageTransformer = ({
 }: Constants.UpdateTempMessage) => ({
   payload: {conversationIDKey, outboxID},
   type,
-})
-
-const retryMessageActionTransformer = action => ({
-  payload: {
-    conversationIDKey: action.payload.conversationIDKey,
-    outboxIDKey: action.payload.outboxIDKey,
-  },
-  type: action.type,
 })
 
 const attachmentLoadedTransformer = ({
@@ -58,17 +47,6 @@ const loadAttachmentPreviewTransformer = ({
   },
   type,
 })
-
-function retryMessage(
-  conversationIDKey: Constants.ConversationIDKey,
-  outboxIDKey: string
-): Constants.RetryMessage {
-  return {
-    logTransformer: retryMessageActionTransformer,
-    payload: {conversationIDKey, outboxIDKey},
-    type: 'chat:retryMessage',
-  }
-}
 
 function retryAttachment(message: Constants.AttachmentMessage): Constants.RetryAttachment {
   const {conversationIDKey, uploadPath, title, previewType, outboxID} = message
@@ -146,7 +124,6 @@ export {
   downloadProgress,
   loadAttachmentPreview,
   retryAttachment,
-  retryMessage,
   setSelectedRouteState,
   updateTempMessage,
 }

@@ -208,7 +208,7 @@ function* editMessage(action: ChatGen.EditMessagePayload): SagaGenerator<any, an
   yield Saga.call(RPCChatTypes.localPostEditNonblockRpcPromise, {param})
 }
 
-function* retryMessage(action: Constants.RetryMessage): SagaGenerator<any, any> {
+function* retryMessage(action: ChatGen.RetryMessagePayload): SagaGenerator<any, any> {
   const {conversationIDKey, outboxIDKey} = action.payload
   yield Saga.put(Creators.updateTempMessage(conversationIDKey, {messageState: 'pending'}, outboxIDKey))
   yield Saga.call(RPCChatTypes.localRetryPostRpcPromise, {
@@ -225,14 +225,30 @@ function* _logPostMessage(action: ChatGen.PostMessagePayload): Saga.SagaGenerato
   console.log('Posting message', JSON.stringify(toPrint, null, 2))
 }
 
+
+function* _logRetryMessage(action: ChatGen.RetryMessagePayload): Saga.SagaGenerator<any, any> {
+const toPrint = {
+  payload: {
+    conversationIDKey: action.payload.conversationIDKey,
+    outboxIDKey: action.payload.outboxIDKey,
+  },
+  type: action.type,
+}
+  console.log('Retrying message', JSON.stringify(toPrint, null, 2))
+}
+
+
+
 function* registerSagas(): SagaGenerator<any, any> {
   yield Saga.safeTakeEvery(ChatGen.deleteMessage, deleteMessage)
   yield Saga.safeTakeEvery(ChatGen.editMessage, editMessage)
   yield Saga.safeTakeEvery(ChatGen.postMessage, postMessage)
-  yield Saga.safeTakeEvery('chat:retryMessage', retryMessage)
+  yield Saga.safeTakeEvery(ChatGen.retryMessage, retryMessage)
 
   if (enableActionLogging) {
     yield Saga.safeTakeEvery(ChatGen.postMessage, _logPostMessage)
+    yield Saga.safeTakeEvery(ChatGen.retryMessage, _logRetryMessage)
+
   }
 }
 

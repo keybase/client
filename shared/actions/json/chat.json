@@ -261,6 +261,10 @@
     "postMessage": {
       "conversationIDKey": "Constants.ConversationIDKey",
       "text": "HiddenString"
+    },
+    "retryMessage": {
+      "conversationIDKey": "Constants.ConversationIDKey",
+      "outboxIDKey": "string"
     }
   }
 }
