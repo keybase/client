@@ -294,7 +294,8 @@ const _getDetails = function*(action: Constants.GetDetails): SagaGenerator<any, 
     if (!requestMap[teamname]) {
       yield put(replaceEntity(['teams', 'teamNameToRequests'], I.Map([[teamname, I.Set()]])))
     }
-
+    /*
+    // Here's how you set.
     yield call(RpcTypes.teamsSetTeamShowcaseRpcPromise, {
       param: {
         description: 'Keybase friends!',
@@ -308,7 +309,7 @@ const _getDetails = function*(action: Constants.GetDetails): SagaGenerator<any, 
         name: teamname,
       },
     })
-
+    */
     // Get publicity settings for this team.
     const publicity: RpcTypes.TeamAndMemberShowcase = yield call(
       RpcTypes.teamsGetTeamAndMemberShowcaseRpcPromise,

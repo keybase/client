@@ -230,12 +230,19 @@ class Team extends React.PureComponent<Props> {
       }
     } else if (selectedTab === 'publicity') {
       contents = (
-        <Text
-          type="BodySmall"
-          style={{color: globalColors.black_40, textAlign: 'center', marginTop: globalMargins.xlarge}}
-        >
-          Publicity settings.
-        </Text>
+        <Box style={{...globalStyles.flexBoxColumn}}>
+          <Box style={{...globalStyles.flexBoxRow, flexShrink: 1}}>
+            <Text
+              type="BodySmall"
+              style={{color: globalColors.black_40, textAlign: 'center', marginTop: globalMargins.xlarge}}
+            >
+              Publicity settings.
+            </Text>
+          </Box>
+          {admin && <Box style={{...globalStyles.flexBoxRow, flexGrow: 1}}>
+            <Text type="BodySmall">is admin</Text>
+          </Box>}
+       </Box>
       )
     }
 
