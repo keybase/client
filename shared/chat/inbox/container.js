@@ -137,7 +137,7 @@ const getFilteredSmallRowItems = createSelector(
         return {
           conversationIDKey,
           filterScore: i
-            ? scoreFilter(lcFilter, i.teamname || '', i.get('participants').toArray(), lcYou)
+            ? scoreFilter(lcFilter, i.teamname || '', i.get('participants').toArray(), lcYou, i.get('time'))
             : 0,
         }
       })

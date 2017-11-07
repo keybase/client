@@ -116,6 +116,7 @@ export const commonMessageType = {
   attachmentuploaded: 8,
   join: 9,
   leave: 10,
+  system: 11,
 }
 
 export const commonNotificationKind = {
@@ -186,6 +187,12 @@ export const localHeaderPlaintextVersion = {
   v8: 8,
   v9: 9,
   v10: 10,
+}
+
+export const localMessageSystemType = {
+  addedtoteam: 0,
+  inviteaddedtoteam: 1,
+  complexteam: 2,
 }
 
 export const localMessageUnboxedErrorType = {
@@ -1768,6 +1775,7 @@ export type MessageBody =
   | { messageType: 8, attachmentuploaded: ?MessageAttachmentUploaded }
   | { messageType: 9, join: ?MessageJoin }
   | { messageType: 10, leave: ?MessageLeave }
+  | { messageType: 11, system: ?MessageSystem }
 
 export type MessageBoxed = {|
   version: MessageBoxedVersion,
@@ -1865,6 +1873,38 @@ export type MessageSummary = {|
   ctime: Gregor1.Time,
 |}
 
+export type MessageSystem =
+    { systemType: 0, addedtoteam: ?MessageSystemAddedToTeam }
+  | { systemType: 1, inviteaddedtoteam: ?MessageSystemInviteAddedToTeam }
+  | { systemType: 2, complexteam: ?MessageSystemComplexTeam }
+
+export type MessageSystemAddedToTeam = {|
+  team: String,
+  adder: String,
+  addee: String,
+  owners?: ?Array<String>,
+  admins?: ?Array<String>,
+  writers?: ?Array<String>,
+  readers?: ?Array<String>,
+|}
+
+export type MessageSystemComplexTeam = {|
+  team: String,
+|}
+
+export type MessageSystemInviteAddedToTeam = {|
+  team: String,
+  inviter: String,
+  invitee: String,
+  adder: String,
+  inviteType: Keybase1.TeamInviteCategory,
+|}
+
+export type MessageSystemType =
+    0 // ADDEDTOTEAM_0
+  | 1 // INVITEADDEDTOTEAM_1
+  | 2 // COMPLEXTEAM_2
+
 export type MessageText = {|
   body: String,
 |}
@@ -1881,6 +1921,7 @@ export type MessageType =
   | 8 // ATTACHMENTUPLOADED_8
   | 9 // JOIN_9
   | 10 // LEAVE_10
+  | 11 // SYSTEM_11
 
 export type MessageUnboxed =
     { state: 1, valid: ?MessageUnboxedValid }
