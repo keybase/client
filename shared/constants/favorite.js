@@ -1,6 +1,6 @@
 // @flow
 import {defaultKBFSPath} from './config'
-import {FavoriteFolderType} from '../constants/types/flow-types'
+import {favoriteFolderType} from '../constants/types/flow-types'
 import {parseFolderNameToUsers, sortUserList} from '../util/kbfs'
 
 import type {Exact} from '../constants/types/more'
@@ -131,7 +131,7 @@ function folderRPCFromPath(path: string): ?FolderRPC {
       private: true,
       notificationsOn: false,
       created: false,
-      folderType: FavoriteFolderType.private,
+      folderType: favoriteFolderType.private,
     }
   } else if (path.startsWith(`${defaultKBFSPath}/public/`)) {
     return {
@@ -139,7 +139,7 @@ function folderRPCFromPath(path: string): ?FolderRPC {
       private: false,
       notificationsOn: false,
       created: false,
-      folderType: FavoriteFolderType.public,
+      folderType: favoriteFolderType.public,
     }
   } else {
     return null

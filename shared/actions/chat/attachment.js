@@ -177,7 +177,7 @@ function* onLoadAttachment({
       messageID: Constants.parseMessageID(messageID).msgID,
       filename: destPath,
       preview: loadPreview,
-      identifyBehavior: RPCTypes.TlfKeysTLFIdentifyBehavior.chatGui,
+      identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
     }
 
     const downloadFileRpc = new EngineRpc.EngineRpcCall(
@@ -360,7 +360,7 @@ function* onSelectAttachment({payload: {input}}: ChatGen.SelectAttachmentPayload
   )
 
   const keyChangedTask = yield Saga.safeTakeEvery(
-    action => action.type === 'chat:outboxMessageBecameReal' && action.payload.oldMessageKey === getCurKey(),
+    action => action.type === ChatGen.outboxMessageBecameReal && action.payload.oldMessageKey === getCurKey(),
     function*(action) {
       yield Saga.call(setCurKey, action.payload.newMessageKey)
     }
@@ -456,28 +456,28 @@ function updateAttachmentSavePath(
 ) {
   const {messageKey} = action.payload
   switch (action.type) {
-    case 'chat:attachmentSaveFailed':
-    case 'chat:attachmentSaveStart':
+    case ChatGen.attachmentSaveFailed:
+    case ChatGen.attachmentSaveStart:
       return Saga.put(EntityCreators.replaceEntity(['attachmentSavedPath'], I.Map({[messageKey]: null})))
-    case 'chat:attachmentSaved':
+    case ChatGen.attachmentSaved:
       const {path} = action.payload
       return Saga.put(EntityCreators.replaceEntity(['attachmentSavedPath'], I.Map({[messageKey]: path})))
   }
 }
 
 function* registerSagas(): SagaGenerator<any, any> {
-  yield Saga.safeTakeSerially('chat:loadAttachment', onLoadAttachment)
-  yield Saga.safeTakeEvery('chat:openAttachmentPopup', onOpenAttachmentPopup)
+  yield Saga.safeTakeSerially(ChatGen.loadAttachment, onLoadAttachment)
+  yield Saga.safeTakeEvery(ChatGen.openAttachmentPopup, onOpenAttachmentPopup)
   yield Saga.safeTakeEvery('chat:loadAttachmentPreview', onLoadAttachmentPreview)
   yield Saga.safeTakeEvery('chat:retryAttachment', onRetryAttachment)
-  yield Saga.safeTakeEvery('chat:saveAttachment', onSaveAttachment)
+  yield Saga.safeTakeEvery(ChatGen.saveAttachment, onSaveAttachment)
   yield Saga.safeTakeEvery('chat:saveAttachmentNative', onSaveAttachmentNative)
-  yield Saga.safeTakeEvery('chat:selectAttachment', onSelectAttachment)
+  yield Saga.safeTakeEvery(ChatGen.selectAttachment, onSelectAttachment)
   yield Saga.safeTakeEvery('chat:shareAttachment', onShareAttachment)
   yield Saga.safeTakeEveryPure('chat:attachmentLoaded', attachmentLoaded)
   yield Saga.safeTakeEveryPure(['chat:downloadProgress', 'chat:uploadProgress'], updateProgress)
   yield Saga.safeTakeEveryPure(
-    ['chat:attachmentSaveStart', 'chat:attachmentSaveFailed', 'chat:attachmentSaved'],
+    [ChatGen.attachmentSaveStart, ChatGen.attachmentSaveFailed, ChatGen.attachmentSaved],
     updateAttachmentSavePath
   )
 }

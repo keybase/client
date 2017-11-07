@@ -3,6 +3,7 @@ import * as Constants from '../constants/notifications'
 import * as GitGen from '../actions/git-gen'
 import * as RPCTypes from '../constants/types/flow-types'
 import * as Saga from '../util/saga'
+import * as FavoriteConstants from '../constants/favorite'
 import ListenerCreator from '../native/notification-listeners'
 import engine, {Engine} from '../engine'
 import {NotifyPopup} from '../native/notifications'
@@ -79,6 +80,10 @@ function* _listenSaga(): SagaGenerator<any, any> {
 
   yield put(registerIdentifyUi())
   yield put(setupUserChangedHandler())
+}
+
+function setupKBFSChangedHandler(): FavoriteConstants.SetupKBFSChangedHandler {
+  return {type: FavoriteConstants.setupKBFSChangedHandler, payload: undefined}
 }
 
 function* _listenKBFSSaga(): SagaGenerator<any, any> {

@@ -1,11 +1,11 @@
 // @flow
+import * as LoginGen from '../actions/login-gen'
 import React, {Component} from 'react'
 import engine from '../engine'
-import {connect} from 'react-redux'
-import {logout} from '../actions/login/creators'
-import {navigateAppend} from '../actions/route-tree'
 import {Box, Text} from '../common-adapters'
+import {connect} from '../util/container'
 import {globalStyles, globalColors} from '../styles'
+import {navigateAppend} from '../actions/route-tree'
 
 class DevMenu extends Component<any> {
   render() {
@@ -39,6 +39,6 @@ export default connect(
     onLogSend: () => dispatch(navigateAppend(['logSend'])),
     onPushDebug: () => dispatch(navigateAppend(['push'])),
     onTestPopup: () => dispatch(navigateAppend(['testPopup'])),
-    logout: () => dispatch(logout()),
+    logout: () => dispatch(LoginGen.createLogout()),
   })
 )(DevMenu)

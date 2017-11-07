@@ -1,6 +1,7 @@
 // @flow
 import * as Constants from '../constants/devices'
 import * as I from 'immutable'
+import * as LoginGen from './login-gen'
 import * as RPCTypes from '../constants/types/flow-types'
 import HiddenString from '../util/hidden-string'
 import keyBy from 'lodash/keyBy'
@@ -11,7 +12,6 @@ import {isMobile} from '../constants/platform'
 import {navigateTo} from './route-tree'
 import {replaceEntity} from './entities'
 import {safeTakeEvery, safeTakeLatest} from '../util/saga'
-import {setRevokedSelf} from './login/creators'
 import {type SagaGenerator} from '../constants/types/saga'
 import {type TypedState} from '../constants/reducer'
 
@@ -129,7 +129,7 @@ function* _deviceRevokedSaga(action: Constants.Revoke): SagaGenerator<any, any> 
       yield put(setWaiting(true))
       yield call(RPCTypes.loginDeprovisionRpcPromise, {param: {doRevoke: true, username}})
       yield put(navigateTo([loginTab]))
-      yield put(setRevokedSelf(name))
+      yield put(LoginGen.createSetRevokedSelf({revoked: name}))
     } catch (e) {
       throw new Error("Can't remove current device")
     } finally {
