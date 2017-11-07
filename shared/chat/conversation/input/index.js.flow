@@ -11,6 +11,7 @@ export type Props = {
   inputSetRef: (r: any) => void,
   inputValue: () => string,
   isLoading: boolean,
+  isPreview: boolean,
   onAttach: (inputs: Array<Constants.AttachmentInput>) => void,
   onEditLastMessage: () => void,
   onEditMessage: (message: ?Constants.Message, text: string) => void,

@@ -2,9 +2,18 @@
 import * as Constants from '../../../constants/chat'
 import * as Creators from '../../../actions/chat/creators'
 import * as ChatGen from '../../../actions/chat-gen'
+import {commonConversationMemberStatus} from '../../../constants/types/flow-types-chat'
 import HiddenString from '../../../util/hidden-string'
 import Input from '.'
-import {compose, withHandlers, withState, lifecycle, connect, type TypedState} from '../../../util/container'
+import {
+  branch,
+  compose,
+  withHandlers,
+  withState,
+  lifecycle,
+  connect,
+  type TypedState,
+} from '../../../util/container'
 import {navigateAppend} from '../../../actions/route-tree'
 import throttle from 'lodash/throttle'
 import {createSelector} from 'reselect'
@@ -27,8 +36,9 @@ const stateDependentProps = createSelector(
     conversationStateSelector,
     Constants.getSelectedRouteState,
     editingMessageSelector,
+    Constants.getSelectedInbox,
   ],
-  (selectedConversationIDKey, conversationState, routeState, editingMessage) => {
+  (selectedConversationIDKey, conversationState, routeState, editingMessage, inbox) => {
     let isLoading = true
     let typing = []
 
@@ -45,9 +55,12 @@ const stateDependentProps = createSelector(
       }
     }
 
+    const isPreview = (inbox && inbox.memberStatus) === commonConversationMemberStatus.preview
+
     return {
       editingMessage,
       isLoading,
+      isPreview,
       defaultText: (routeState && routeState.get('inputText', new HiddenString('')).stringValue()) || '',
       selectedConversationIDKey,
       typing,
