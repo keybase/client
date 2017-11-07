@@ -31,7 +31,10 @@ func spawnServer(g *libkb.GlobalContext, cl libkb.CommandLine, forkType keybase1
 	// add a systemd override file (see https://askubuntu.com/q/659267/73244).
 	if g.Env.WantsSystemd() {
 		g.Log.Info("Starting keybase.service.")
-		startCmd := exec.Command("systemctl", "--user", "start", "keybase.service")
+		// Explicitly restarting the socket ensures it gets recreated, in case
+		// a non-systemd invocation of the service deleted it in the meantime
+		// without telling systemd it was "stopped".
+		startCmd := exec.Command("systemctl", "--user", "restart", "keybase.socket", "keybase.service")
 		startCmd.Stdout = os.Stderr
 		startCmd.Stderr = os.Stderr
 		err = startCmd.Run()
