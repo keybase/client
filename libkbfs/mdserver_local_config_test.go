@@ -7,6 +7,7 @@ package libkbfs
 import (
 	"testing"
 
+	"github.com/keybase/kbfs/kbfsmd"
 	"golang.org/x/net/context"
 )
 
@@ -55,7 +56,7 @@ func (c testMDServerLocalConfig) MetadataVersion() MetadataVer {
 	return defaultClientMetadataVer
 }
 
-func (c testMDServerLocalConfig) teamMembershipChecker() TeamMembershipChecker {
+func (c testMDServerLocalConfig) teamMembershipChecker() kbfsmd.TeamMembershipChecker {
 	// TODO: support team TLFs in the test mdserver.
 	return nil
 }

@@ -66,7 +66,7 @@ type mdServerTlfStorage struct {
 	codec          kbfscodec.Codec
 	crypto         cryptoPure
 	clock          Clock
-	teamMemChecker TeamMembershipChecker
+	teamMemChecker kbfsmd.TeamMembershipChecker
 	mdVer          MetadataVer
 	dir            string
 
@@ -77,7 +77,7 @@ type mdServerTlfStorage struct {
 }
 
 func makeMDServerTlfStorage(tlfID tlf.ID, codec kbfscodec.Codec,
-	clock Clock, teamMemChecker TeamMembershipChecker,
+	clock Clock, teamMemChecker kbfsmd.TeamMembershipChecker,
 	mdVer MetadataVer, dir string) *mdServerTlfStorage {
 	journal := &mdServerTlfStorage{
 		tlfID:          tlfID,

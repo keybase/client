@@ -143,7 +143,7 @@ func (c testTLFJournalConfig) MDServer() MDServer {
 	return c.mdserver
 }
 
-func (c testTLFJournalConfig) teamMembershipChecker() TeamMembershipChecker {
+func (c testTLFJournalConfig) teamMembershipChecker() kbfsmd.TeamMembershipChecker {
 	// TODO: support team TLF tests.
 	return nil
 }

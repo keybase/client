@@ -535,9 +535,6 @@ type CurrentSessionGetter interface {
 	GetCurrentSession(ctx context.Context) (SessionInfo, error)
 }
 
-// TeamMembershipChecker is a temporary alias.
-type TeamMembershipChecker = kbfsmd.TeamMembershipChecker
-
 // teamMembershipChecker is a copy of kbfsmd.TeamMembershipChecker for
 // embedding in KBPKI. Unfortunately, this is necessary since mockgen
 // can't handle embedded interfaces living in other packages.
@@ -637,15 +634,15 @@ type KeyMetadata interface {
 	// return nil.
 	//
 	// TODO: Remove the need for this function in this interface,
-	// so that BareRootMetadata can implement this interface
+	// so that kbfsmd.RootMetadata can implement this interface
 	// fully.
 	GetTlfHandle() *TlfHandle
 
 	// IsWriter checks that the given user is a valid writer of the TLF
 	// right now.
 	IsWriter(
-		ctx context.Context, checker TeamMembershipChecker, uid keybase1.UID,
-		verifyingKey kbfscrypto.VerifyingKey) (
+		ctx context.Context, checker kbfsmd.TeamMembershipChecker,
+		uid keybase1.UID, verifyingKey kbfscrypto.VerifyingKey) (
 		bool, error)
 
 	// HasKeyForUser returns whether or not the given user has
@@ -1701,8 +1698,8 @@ type Config interface {
 	MDCache() MDCache
 	SetMDCache(MDCache)
 	KeyCache() KeyCache
-	SetKeyBundleCache(KeyBundleCache)
-	KeyBundleCache() KeyBundleCache
+	SetKeyBundleCache(kbfsmd.KeyBundleCache)
+	KeyBundleCache() kbfsmd.KeyBundleCache
 	SetKeyCache(KeyCache)
 	SetBlockCache(BlockCache)
 	DirtyBlockCache() DirtyBlockCache
@@ -1941,15 +1938,6 @@ type RekeyQueue interface {
 	// RekeyQueue shouldn't be used anymore.
 	Shutdown()
 }
-
-// BareRootMetadata is a temporary alias.
-type BareRootMetadata = kbfsmd.RootMetadata
-
-// MutableBareRootMetadata is a temporary alias.
-type MutableBareRootMetadata = kbfsmd.MutableRootMetadata
-
-// KeyBundleCache is a temporary alias.
-type KeyBundleCache = kbfsmd.KeyBundleCache
 
 // RekeyFSM is a Finite State Machine (FSM) for housekeeping rekey states for a
 // FolderBranch. Each FolderBranch has its own FSM for rekeys.

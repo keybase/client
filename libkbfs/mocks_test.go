@@ -2188,7 +2188,7 @@ func (mr *MockKeyMetadataMockRecorder) GetTlfHandle() *gomock.Call {
 }
 
 // IsWriter mocks base method
-func (m *MockKeyMetadata) IsWriter(ctx context.Context, checker TeamMembershipChecker, uid keybase1.UID, verifyingKey kbfscrypto.VerifyingKey) (bool, error) {
+func (m *MockKeyMetadata) IsWriter(ctx context.Context, checker kbfsmd.TeamMembershipChecker, uid keybase1.UID, verifyingKey kbfscrypto.VerifyingKey) (bool, error) {
 	ret := m.ctrl.Call(m, "IsWriter", ctx, checker, uid, verifyingKey)
 	ret0, _ := ret[0].(bool)
 	ret1, _ := ret[1].(error)
@@ -5717,7 +5717,7 @@ func (mr *MockConfigMockRecorder) KeyCache() *gomock.Call {
 }
 
 // SetKeyBundleCache mocks base method
-func (m *MockConfig) SetKeyBundleCache(arg0 KeyBundleCache) {
+func (m *MockConfig) SetKeyBundleCache(arg0 kbfsmd.KeyBundleCache) {
 	m.ctrl.Call(m, "SetKeyBundleCache", arg0)
 }
 
@@ -5727,9 +5727,9 @@ func (mr *MockConfigMockRecorder) SetKeyBundleCache(arg0 interface{}) *gomock.Ca
 }
 
 // KeyBundleCache mocks base method
-func (m *MockConfig) KeyBundleCache() KeyBundleCache {
+func (m *MockConfig) KeyBundleCache() kbfsmd.KeyBundleCache {
 	ret := m.ctrl.Call(m, "KeyBundleCache")
-	ret0, _ := ret[0].(KeyBundleCache)
+	ret0, _ := ret[0].(kbfsmd.KeyBundleCache)
 	return ret0
 }
 

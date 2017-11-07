@@ -43,7 +43,7 @@ type tlfJournalConfig interface {
 	usernameGetter() normalizedUsernameGetter
 	MakeLogger(module string) logger.Logger
 	diskLimitTimeout() time.Duration
-	teamMembershipChecker() TeamMembershipChecker
+	teamMembershipChecker() kbfsmd.TeamMembershipChecker
 	BGFlushDirOpBatchSize() int
 }
 
@@ -65,7 +65,7 @@ func (ca tlfJournalConfigAdapter) usernameGetter() normalizedUsernameGetter {
 	return ca.Config.KBPKI()
 }
 
-func (ca tlfJournalConfigAdapter) teamMembershipChecker() TeamMembershipChecker {
+func (ca tlfJournalConfigAdapter) teamMembershipChecker() kbfsmd.TeamMembershipChecker {
 	return ca.Config.KBPKI()
 }
 
@@ -1654,7 +1654,7 @@ func (j *tlfJournal) getUnflushedPathMDInfos(ctx context.Context,
 	for _, ibrmd := range ibrmds {
 		// TODO: Avoid having to do this type assertion and
 		// convert to RootMetadata.
-		brmd, ok := ibrmd.BareRootMetadata.(MutableBareRootMetadata)
+		brmd, ok := ibrmd.RootMetadata.(kbfsmd.MutableRootMetadata)
 		if !ok {
 			return nil, kbfsmd.MutableRootMetadataNoImplError{}
 		}

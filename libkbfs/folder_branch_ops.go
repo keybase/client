@@ -5591,7 +5591,7 @@ func (fbo *folderBranchOps) locallyFinalizeTLF(ctx context.Context) {
 		fbo.log.CErrorf(ctx, "Couldn't get finalized handle: %+v", err)
 		return
 	}
-	finalBrmd, ok := finalRmd.MD.(MutableBareRootMetadata)
+	finalBrmd, ok := finalRmd.MD.(kbfsmd.MutableRootMetadata)
 	if !ok {
 		fbo.log.CErrorf(ctx, "Couldn't get finalized mutable bare MD: %+v", err)
 		return

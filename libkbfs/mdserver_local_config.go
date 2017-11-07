@@ -6,6 +6,7 @@ package libkbfs
 
 import (
 	"github.com/keybase/kbfs/kbfscodec"
+	"github.com/keybase/kbfs/kbfsmd"
 )
 
 // mdServerLocalConfig is the subset of the Config interface needed by
@@ -17,7 +18,7 @@ type mdServerLocalConfig interface {
 	MetadataVersion() MetadataVer
 	logMaker
 	cryptoPureGetter
-	teamMembershipChecker() TeamMembershipChecker
+	teamMembershipChecker() kbfsmd.TeamMembershipChecker
 }
 
 // mdServerLocalConfigWrapper is an adapter for Config objects to the
@@ -30,6 +31,6 @@ func (ca mdServerLocalConfigAdapter) currentSessionGetter() CurrentSessionGetter
 	return ca.Config.KBPKI()
 }
 
-func (ca mdServerLocalConfigAdapter) teamMembershipChecker() TeamMembershipChecker {
+func (ca mdServerLocalConfigAdapter) teamMembershipChecker() kbfsmd.TeamMembershipChecker {
 	return ca.Config.KBPKI()
 }

@@ -49,7 +49,7 @@ func (j journalMDOps) convertImmutableBareRMDToIRMD(ctx context.Context,
 	uid keybase1.UID, key kbfscrypto.VerifyingKey) (
 	ImmutableRootMetadata, error) {
 	// TODO: Avoid having to do this type assertion.
-	brmd, ok := ibrmd.BareRootMetadata.(MutableBareRootMetadata)
+	brmd, ok := ibrmd.RootMetadata.(kbfsmd.MutableRootMetadata)
 	if !ok {
 		return ImmutableRootMetadata{}, kbfsmd.MutableRootMetadataNoImplError{}
 	}

@@ -153,7 +153,7 @@ func putMDRange(t testing.TB, ver MetadataVer, tlfID tlf.ID,
 }
 
 func checkBRMD(t *testing.T, uid keybase1.UID, key kbfscrypto.VerifyingKey,
-	codec kbfscodec.Codec, brmd BareRootMetadata,
+	codec kbfscodec.Codec, brmd kbfsmd.RootMetadata,
 	extra kbfsmd.ExtraMetadata, expectedRevision kbfsmd.Revision,
 	expectedPrevRoot kbfsmd.ID, expectedMergeStatus MergeStatus,
 	expectedBranchID kbfsmd.BranchID) {
@@ -270,7 +270,7 @@ func testMDJournalBasic(t *testing.T, ver MetadataVer) {
 	require.Equal(t, ibrmds[len(ibrmds)-1], head)
 
 	for i := 0; i < mdCount; i++ {
-		require.Equal(t, mds[i].bareMd, ibrmds[i].BareRootMetadata, "i=%d", i)
+		require.Equal(t, mds[i].bareMd, ibrmds[i].RootMetadata, "i=%d", i)
 		require.Equal(t, mds[i].extra, ibrmds[i].extra, "i=%d", i)
 	}
 }
@@ -330,7 +330,7 @@ func testMDJournalPutCase1Empty(t *testing.T, ver MetadataVer) {
 
 	head, err := j.getHead(ctx, kbfsmd.NullBranchID)
 	require.NoError(t, err)
-	require.Equal(t, md.bareMd, head.BareRootMetadata)
+	require.Equal(t, md.bareMd, head.RootMetadata)
 	require.Equal(t, md.extra, head.extra)
 }
 

@@ -408,7 +408,7 @@ func testMDOpsGetForHandlePublicFailVerify(t *testing.T, ver MetadataVer) {
 
 	// Change something in rmds that affects the computed MdID,
 	// which will then cause an MDMismatchError.
-	rmds.MD.(MutableBareRootMetadata).SetRefBytes(100)
+	rmds.MD.(kbfsmd.MutableRootMetadata).SetRefBytes(100)
 	config.mockMdserv.EXPECT().GetForHandle(ctx, h.ToBareHandleOrBust(),
 		Merged, nil).Return(tlf.NullID, rmds, nil)
 
@@ -653,7 +653,7 @@ func testMDOpsGetRangeSuccessHelper(
 	}
 
 	// Do this first since rmdses is consumed.
-	expectedMDs := make([]BareRootMetadata, len(rmdses))
+	expectedMDs := make([]kbfsmd.RootMetadata, len(rmdses))
 	for i, rmds := range rmdses {
 		expectedMDs[i] = rmds.MD
 	}
@@ -679,7 +679,7 @@ func testMDOpsGetRangeFailBadPrevRoot(t *testing.T, ver MetadataVer) {
 
 	rmdses, extras := makeRMDSRange(t, config, 100, 5, kbfsmd.FakeID(1))
 
-	rmdses[2].MD.(MutableBareRootMetadata).SetPrevRoot(kbfsmd.FakeID(1))
+	rmdses[2].MD.(kbfsmd.MutableRootMetadata).SetPrevRoot(kbfsmd.FakeID(1))
 
 	start := kbfsmd.Revision(100)
 	stop := start + kbfsmd.Revision(len(rmdses))
@@ -727,7 +727,7 @@ func (s *fakeMDServerPut) Shutdown() {}
 
 func validatePutPublicRMDS(
 	ctx context.Context, t *testing.T, ver MetadataVer, config Config,
-	inputRmd BareRootMetadata, rmds *RootMetadataSigned) {
+	inputRmd kbfsmd.RootMetadata, rmds *RootMetadataSigned) {
 	// TODO: Handle private RMDS, too.
 
 	// Verify LastModifying* fields.
@@ -858,8 +858,8 @@ func testMDOpsGetRangeFailFinal(t *testing.T, ver MetadataVer) {
 	defer mdOpsShutdown(mockCtrl, config)
 
 	rmdses, extras := makeRMDSRange(t, config, 100, 5, kbfsmd.FakeID(1))
-	rmdses[2].MD.(MutableBareRootMetadata).SetFinalBit()
-	rmdses[2].MD.(MutableBareRootMetadata).SetPrevRoot(rmdses[1].MD.GetPrevRoot())
+	rmdses[2].MD.(kbfsmd.MutableRootMetadata).SetFinalBit()
+	rmdses[2].MD.(kbfsmd.MutableRootMetadata).SetPrevRoot(rmdses[1].MD.GetPrevRoot())
 
 	start := kbfsmd.Revision(100)
 	stop := start + kbfsmd.Revision(len(rmdses))

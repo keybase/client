@@ -4,12 +4,15 @@
 
 package libkbfs
 
-import metrics "github.com/rcrowley/go-metrics"
+import (
+	"github.com/keybase/kbfs/kbfsmd"
+	metrics "github.com/rcrowley/go-metrics"
+)
 
 // KeyBundleCacheMeasured delegates to another KeyBundleCache instance but
 // also keeps track of stats.
 type KeyBundleCacheMeasured struct {
-	delegate                      KeyBundleCache
+	delegate                      kbfsmd.KeyBundleCache
 	getReaderBundleTimer          metrics.Timer
 	getWriterBundleTimer          metrics.Timer
 	putReaderBundleTimer          metrics.Timer
@@ -20,11 +23,11 @@ type KeyBundleCacheMeasured struct {
 	attemptWriterBundleCountMeter metrics.Meter
 }
 
-var _ KeyBundleCache = KeyBundleCacheMeasured{}
+var _ kbfsmd.KeyBundleCache = KeyBundleCacheMeasured{}
 
 // NewKeyBundleCacheMeasured creates and returns a new KeyBundleCacheMeasured
 // instance with the given delegate and registry.
-func NewKeyBundleCacheMeasured(delegate KeyBundleCache, r metrics.Registry) KeyBundleCacheMeasured {
+func NewKeyBundleCacheMeasured(delegate kbfsmd.KeyBundleCache, r metrics.Registry) KeyBundleCacheMeasured {
 	getReaderBundleTimer := metrics.GetOrRegisterTimer("KeyBundleCache.GetTLFReaderKeyBundle", r)
 	putReaderBundleTimer := metrics.GetOrRegisterTimer("KeyBundleCache.PutTLFReaderKeyBundle", r)
 	getWriterBundleTimer := metrics.GetOrRegisterTimer("KeyBundleCache.GetTLFWriterKeyBundle", r)

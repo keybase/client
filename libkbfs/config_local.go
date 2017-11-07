@@ -77,7 +77,7 @@ type ConfigLocal struct {
 	keyman           KeyManager
 	rep              Reporter
 	kcache           KeyCache
-	kbcache          KeyBundleCache
+	kbcache          kbfsmd.KeyBundleCache
 	bcache           BlockCache
 	dirtyBcache      DirtyBlockCache
 	diskBlockCache   DiskBlockCache
@@ -505,14 +505,14 @@ func (c *ConfigLocal) SetKeyCache(k KeyCache) {
 }
 
 // KeyBundleCache implements the Config interface for ConfigLocal.
-func (c *ConfigLocal) KeyBundleCache() KeyBundleCache {
+func (c *ConfigLocal) KeyBundleCache() kbfsmd.KeyBundleCache {
 	c.lock.RLock()
 	defer c.lock.RUnlock()
 	return c.kbcache
 }
 
 // SetKeyBundleCache implements the Config interface for ConfigLocal.
-func (c *ConfigLocal) SetKeyBundleCache(k KeyBundleCache) {
+func (c *ConfigLocal) SetKeyBundleCache(k kbfsmd.KeyBundleCache) {
 	c.lock.Lock()
 	defer c.lock.Unlock()
 	c.kbcache = k

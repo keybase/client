@@ -262,7 +262,7 @@ func (md *MDOpsStandard) processMetadata(ctx context.Context,
 	}
 
 	// TODO: Avoid having to do this type assertion.
-	brmd, ok := rmds.MD.(MutableBareRootMetadata)
+	brmd, ok := rmds.MD.(kbfsmd.MutableRootMetadata)
 	if !ok {
 		return ImmutableRootMetadata{}, kbfsmd.MutableRootMetadataNoImplError{}
 	}
@@ -699,7 +699,7 @@ func (md *MDOpsStandard) GetLatestHandleForTLF(ctx context.Context, id tlf.ID) (
 	return md.config.MDServer().GetLatestHandleForTLF(ctx, id)
 }
 
-func (md *MDOpsStandard) getExtraMD(ctx context.Context, brmd BareRootMetadata) (
+func (md *MDOpsStandard) getExtraMD(ctx context.Context, brmd kbfsmd.RootMetadata) (
 	extra kbfsmd.ExtraMetadata, err error) {
 	wkbID, rkbID := brmd.GetTLFWriterKeyBundleID(), brmd.GetTLFReaderKeyBundleID()
 	if (wkbID == TLFWriterKeyBundleID{}) || (rkbID == TLFReaderKeyBundleID{}) {

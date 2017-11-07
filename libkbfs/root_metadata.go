@@ -77,7 +77,7 @@ func (p PrivateMetadata) ChangesBlockInfo() BlockInfo {
 // PrivateMetadata has to be left serialized due to not having the
 // right keys.
 type RootMetadata struct {
-	bareMd MutableBareRootMetadata
+	bareMd kbfsmd.MutableRootMetadata
 
 	// ExtraMetadata currently contains key bundles for post-v2
 	// metadata.
@@ -98,10 +98,10 @@ var _ KeyMetadata = (*RootMetadata)(nil)
 
 // makeRootMetadata makes a RootMetadata object from the given
 // parameters.
-func makeRootMetadata(bareMd MutableBareRootMetadata,
+func makeRootMetadata(bareMd kbfsmd.MutableRootMetadata,
 	extra kbfsmd.ExtraMetadata, handle *TlfHandle) *RootMetadata {
 	if bareMd == nil {
-		panic("nil MutableBareRootMetadata")
+		panic("nil kbfsmd.MutableRootMetadata")
 	}
 	// extra can be nil.
 	if handle == nil {
@@ -737,7 +737,7 @@ func (md *RootMetadata) fakeInitialRekey() {
 }
 
 // GetBareRootMetadata returns an interface to the underlying serializeable metadata.
-func (md *RootMetadata) GetBareRootMetadata() BareRootMetadata {
+func (md *RootMetadata) GetBareRootMetadata() kbfsmd.RootMetadata {
 	return md.bareMd
 }
 
@@ -821,8 +821,9 @@ func (md *RootMetadata) GetHistoricTLFCryptKey(
 // IsWriter checks that the given user is a valid writer of the TLF
 // right now.  Implements the KeyMetadata interface for RootMetadata.
 func (md *RootMetadata) IsWriter(
-	ctx context.Context, checker TeamMembershipChecker, uid keybase1.UID,
-	verifyingKey kbfscrypto.VerifyingKey) (bool, error) {
+	ctx context.Context, checker kbfsmd.TeamMembershipChecker,
+	uid keybase1.UID, verifyingKey kbfscrypto.VerifyingKey) (
+	bool, error) {
 	h := md.GetTlfHandle()
 	if h.Type() != tlf.SingleTeam {
 		return h.IsWriter(uid), nil
@@ -841,8 +842,8 @@ func (md *RootMetadata) IsWriter(
 // IsReader checks that the given user is a valid reader of the TLF
 // right now.
 func (md *RootMetadata) IsReader(
-	ctx context.Context, checker TeamMembershipChecker, uid keybase1.UID) (
-	bool, error) {
+	ctx context.Context, checker kbfsmd.TeamMembershipChecker,
+	uid keybase1.UID) (bool, error) {
 	h := md.GetTlfHandle()
 	if h.Type() != tlf.SingleTeam {
 		return h.IsReader(uid), nil
@@ -984,7 +985,7 @@ func makeRootMetadataSigned(rmds *kbfsmd.RootMetadataSigned,
 func SignBareRootMetadata(
 	ctx context.Context, codec kbfscodec.Codec,
 	rootMetadataSigner, writerMetadataSigner kbfscrypto.Signer,
-	md BareRootMetadata, untrustedServerTimestamp time.Time) (
+	md kbfsmd.RootMetadata, untrustedServerTimestamp time.Time) (
 	*RootMetadataSigned, error) {
 	rmds, err := kbfsmd.SignRootMetadata(ctx, codec, rootMetadataSigner, writerMetadataSigner, md)
 	if err != nil {

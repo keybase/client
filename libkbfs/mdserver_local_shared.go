@@ -21,8 +21,8 @@ import (
 // Helper to aid in enforcement that only specified public keys can
 // access TLF metadata. mergedMasterHead can be nil, in which case
 // true is returned.
-func isReader(ctx context.Context, teamMemChecker TeamMembershipChecker,
-	currentUID keybase1.UID, mergedMasterHead BareRootMetadata,
+func isReader(ctx context.Context, teamMemChecker kbfsmd.TeamMembershipChecker,
+	currentUID keybase1.UID, mergedMasterHead kbfsmd.RootMetadata,
 	extra kbfsmd.ExtraMetadata) (bool, error) {
 	h, err := mergedMasterHead.MakeBareTlfHandle(extra)
 	if err != nil {
@@ -45,9 +45,9 @@ func isReader(ctx context.Context, teamMemChecker TeamMembershipChecker,
 // access TLF metadata. mergedMasterHead can be nil, in which case
 // true is returned.
 func isWriterOrValidRekey(ctx context.Context,
-	teamMemChecker TeamMembershipChecker, codec kbfscodec.Codec,
+	teamMemChecker kbfsmd.TeamMembershipChecker, codec kbfscodec.Codec,
 	currentUID keybase1.UID, verifyingKey kbfscrypto.VerifyingKey,
-	mergedMasterHead, newMd BareRootMetadata, prevExtra, extra kbfsmd.ExtraMetadata) (
+	mergedMasterHead, newMd kbfsmd.RootMetadata, prevExtra, extra kbfsmd.ExtraMetadata) (
 	bool, error) {
 	h, err := mergedMasterHead.MakeBareTlfHandle(prevExtra)
 	if err != nil {
@@ -212,7 +212,7 @@ func (m *mdServerLocalUpdateManager) cancel(id tlf.ID, server mdServerLocal) {
 type keyBundleGetter func(tlf.ID, TLFWriterKeyBundleID, TLFReaderKeyBundleID) (
 	*TLFWriterKeyBundleV3, *TLFReaderKeyBundleV3, error)
 
-func getExtraMetadata(kbg keyBundleGetter, brmd BareRootMetadata) (kbfsmd.ExtraMetadata, error) {
+func getExtraMetadata(kbg keyBundleGetter, brmd kbfsmd.RootMetadata) (kbfsmd.ExtraMetadata, error) {
 	tlfID := brmd.TlfID()
 	wkbID := brmd.GetTLFWriterKeyBundleID()
 	rkbID := brmd.GetTLFReaderKeyBundleID()
