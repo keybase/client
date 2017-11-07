@@ -102,6 +102,18 @@
 			"revisionTime": "2017-07-31T11:19:25Z"
 		},
 		{
+			"checksumSHA1": "5GD2mlKEoDM+bU1PfSlx8rAz4oc=",
+			"path": "github.com/coreos/go-systemd/util",
+			"revision": "d2196463941895ee908e13531a23a39feb9e1243",
+			"revisionTime": "2017-07-31T11:19:25Z"
+		},
+		{
+			"checksumSHA1": "O8c/VKtW34XPJNNlyeb/im8vWSI=",
+			"path": "github.com/coreos/pkg/dlopen",
+			"revision": "459346e834d8e97be707cd0ea1236acaaa159ffc",
+			"revisionTime": "2017-09-01T14:55:54Z"
+		},
+		{
 			"checksumSHA1": "dvabztWVQX8f6oMLRyv4dLH+TGY=",
 			"path": "github.com/davecgh/go-spew/spew",
 			"revision": "346938d642f2ec3594ed81d874461961cd0faa76",

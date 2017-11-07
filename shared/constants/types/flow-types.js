@@ -323,6 +323,7 @@ export const homeHomeScreenPeopleNotificationType = {
 }
 
 export const homeHomeScreenTodoType = {
+  none: 0,
   bio: 1,
   proof: 2,
   device: 3,
@@ -3885,13 +3886,13 @@ export type HomeHomeSkipTodoTypeRpcParam = {|
 
 export type HomeScreen = {|
   lastViewed: Time,
+  version: Int,
   items?: ?Array<HomeScreenItem>,
   followSuggestions?: ?Array<UserSummary>,
 |}
 
 export type HomeScreenItem = {|
   badged: Boolean,
-  id: HomeScreenItemID,
   data: HomeScreenItemData,
 |}
 
@@ -3927,7 +3928,8 @@ export type HomeScreenTodo =
     { t: any }
 
 export type HomeScreenTodoType =
-    1 // BIO_1
+    0 // NONE_0
+  | 1 // BIO_1
   | 2 // PROOF_2
   | 3 // DEVICE_3
   | 4 // FOLLOW_4
