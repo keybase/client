@@ -13,7 +13,6 @@ import {log} from '../native/log/logui'
 import {registerIdentifyUi, setupUserChangedHandler} from './tracker'
 import {badgeAppForChat} from './chat'
 import {createSetupChatHandlers} from './chat-gen'
-import {setupKBFSChangedHandler} from './favorite'
 import {setupTeamHandlers, badgeAppForTeams} from './teams/creators'
 
 import type {SagaGenerator} from '../constants/types/saga'
