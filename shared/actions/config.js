@@ -152,10 +152,10 @@ const bootstrap = (opts: $PropertyType<ConfigGen.BootstrapPayload, 'payload'>): 
 }
 
 function _clearRouteState(action: ConfigGen.ClearRouteStatePayload) {
-  return routeStateStorage.clear
+  return routeStateStorage.clear()
 }
 function _persistRouteState(action: ConfigGen.PersistRouteStatePayload) {
-  return routeStateStorage.store
+  return routeStateStorage.store()
 }
 
 const getBootstrapStatus = (): AsyncAction => dispatch =>
