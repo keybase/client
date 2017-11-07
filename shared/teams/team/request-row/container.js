@@ -53,7 +53,7 @@ const mapDispatchToProps = (dispatch: Dispatch): DispatchProps => ({
       ])
     ),
   _onChat: (username, myUsername) => {
-    username && myUsername && dispatch(createStartConversation({create: [username, myUsername]}))
+    username && myUsername && dispatch(createStartConversation({users: [username, myUsername]}))
   },
   _onIgnoreRequest: (name: string, username: string) => dispatch(ignoreRequest(name, username)),
 })

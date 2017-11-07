@@ -774,7 +774,7 @@ function _updateMessageEntity(action: Constants.UpdateTempMessage) {
 
 function* _openConversation({
   payload: {conversationIDKey},
-}: Constants.OpenConversation): Saga.SagaGenerator<any, any> {
+}: ChatGen.OpenConversationPayload): Saga.SagaGenerator<any, any> {
   yield Saga.put(ChatGen.createSelectConversation({conversationIDKey}))
 }
 

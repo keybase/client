@@ -20,8 +20,9 @@ const inSearchSelector = (state: TypedState) => state.chat.get('inSearch')
 const inboxSelector = (state: TypedState) => state.chat.get('inbox')
 
 function* _startConversation(action: ChatGen.StartConversationPayload): Saga.SagaGenerator<any, any> {
-  const {users, forceImmediate, temporary} = action.payload
   const users = uniq(action.payload.users)
+  const temporary = action.payload.temporary || false
+  const forceImmediate = action.payload.forceImmediate || false
   const me = yield Saga.select(Selectors.usernameSelector)
 
   if (!users.includes(me)) {
