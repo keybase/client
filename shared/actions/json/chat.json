@@ -265,6 +265,9 @@
     "retryMessage": {
       "conversationIDKey": "Constants.ConversationIDKey",
       "outboxIDKey": "string"
+    },
+    "loadAttachmentPreview": {
+      "messageKey": "Constants.MessageKey"
     }
   }
 }

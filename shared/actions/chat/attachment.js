@@ -9,6 +9,7 @@ import * as RPCTypes from '../../constants/types/flow-types'
 import * as Saga from '../../util/saga'
 import * as EntityCreators from '../entities'
 import * as Shared from './shared'
+import {enableActionLogging} from '../../local-debug'
 import {putActionIfOnPath, navigateAppend} from '../route-tree'
 import {saveAttachmentDialog, showShareActionSheet} from '../platform-specific'
 import {tmpDir, tmpFile, downloadFilePath, copy, exists, stat} from '../../util/file'
@@ -35,7 +36,7 @@ function* onSaveAttachmentNative({
 
 function* onLoadAttachmentPreview({
   payload: {messageKey},
-}: Constants.LoadAttachmentPreview): SagaGenerator<any, any> {
+}: ChatGen.LoadAttachmentPreviewPayload): SagaGenerator<any, any> {
   yield Saga.put(ChatGen.createLoadAttachment({messageKey, loadPreview: true}))
 }
 
@@ -465,10 +466,22 @@ function updateAttachmentSavePath(
   }
 }
 
+function* _logLoadAttachmentPreview(
+  action: ChatGen.LoadAttachmentPreviewPayload
+): Saga.SagaGenerator<any, any> {
+  const toPrint = {
+    payload: {
+      messageKey: action.payload.messageKey,
+    },
+    type: action.type,
+  }
+  console.log('Prepending', JSON.stringify(toPrint, null, 2))
+}
+
 function* registerSagas(): SagaGenerator<any, any> {
   yield Saga.safeTakeSerially(ChatGen.loadAttachment, onLoadAttachment)
   yield Saga.safeTakeEvery(ChatGen.openAttachmentPopup, onOpenAttachmentPopup)
-  yield Saga.safeTakeEvery('chat:loadAttachmentPreview', onLoadAttachmentPreview)
+  yield Saga.safeTakeEvery(ChatGen.loadAttachmentPreview, onLoadAttachmentPreview)
   yield Saga.safeTakeEvery('chat:retryAttachment', onRetryAttachment)
   yield Saga.safeTakeEvery(ChatGen.saveAttachment, onSaveAttachment)
   yield Saga.safeTakeEvery('chat:saveAttachmentNative', onSaveAttachmentNative)
@@ -480,6 +493,10 @@ function* registerSagas(): SagaGenerator<any, any> {
     [ChatGen.attachmentSaveStart, ChatGen.attachmentSaveFailed, ChatGen.attachmentSaved],
     updateAttachmentSavePath
   )
+
+  if (enableActionLogging) {
+    yield Saga.safeTakeEvery(ChatGen.loadAttachmentPreview, _logLoadAttachmentPreview)
+  }
 }
 
 export {registerSagas}

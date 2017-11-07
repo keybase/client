@@ -34,6 +34,7 @@ export const incomingMessage = 'chat:incomingMessage'
 export const incomingTyping = 'chat:incomingTyping'
 export const leaveConversation = 'chat:leaveConversation'
 export const loadAttachment = 'chat:loadAttachment'
+export const loadAttachmentPreview = 'chat:loadAttachmentPreview'
 export const loadInbox = 'chat:loadInbox'
 export const loadMoreMessages = 'chat:loadMoreMessages'
 export const loadingMessages = 'chat:loadingMessages'
@@ -110,6 +111,7 @@ export const createIncomingMessage = (payload: {|activity: ChatTypes.ChatActivit
 export const createIncomingTyping = (payload: {|activity: ChatTypes.TyperInfo|}) => ({error: false, payload, type: incomingTyping})
 export const createLeaveConversation = (payload: {|conversationIDKey: Constants.ConversationIDKey|}) => ({error: false, payload, type: leaveConversation})
 export const createLoadAttachment = (payload: {|messageKey: Constants.MessageKey, loadPreview: boolean|}) => ({error: false, payload, type: loadAttachment})
+export const createLoadAttachmentPreview = (payload: {|messageKey: Constants.MessageKey|}) => ({error: false, payload, type: loadAttachmentPreview})
 export const createLoadInbox = () => ({error: false, payload: undefined, type: loadInbox})
 export const createLoadMoreMessages = (payload: {|conversationIDKey: Constants.ConversationIDKey, onlyIfUnloaded: boolean, fromUser?: boolean, wantNewer?: boolean, numberOverride?: ?number|}) => ({error: false, payload, type: loadMoreMessages})
 export const createLoadingMessages = (payload: {|conversationIDKey: Constants.ConversationIDKey, isRequesting: boolean|}) => ({error: false, payload, type: loadingMessages})
@@ -186,6 +188,7 @@ export type IncomingMessagePayload = ReturnType<typeof createIncomingMessage>
 export type IncomingTypingPayload = ReturnType<typeof createIncomingTyping>
 export type LeaveConversationPayload = ReturnType<typeof createLeaveConversation>
 export type LoadAttachmentPayload = ReturnType<typeof createLoadAttachment>
+export type LoadAttachmentPreviewPayload = ReturnType<typeof createLoadAttachmentPreview>
 export type LoadInboxPayload = ReturnType<typeof createLoadInbox>
 export type LoadMoreMessagesPayload = ReturnType<typeof createLoadMoreMessages>
 export type LoadingMessagesPayload = ReturnType<typeof createLoadingMessages>
@@ -264,6 +267,7 @@ export type Actions =
   | ReturnType<typeof createIncomingTyping>
   | ReturnType<typeof createLeaveConversation>
   | ReturnType<typeof createLoadAttachment>
+  | ReturnType<typeof createLoadAttachmentPreview>
   | ReturnType<typeof createLoadInbox>
   | ReturnType<typeof createLoadMoreMessages>
   | ReturnType<typeof createLoadingMessages>

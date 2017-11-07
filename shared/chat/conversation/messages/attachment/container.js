@@ -26,7 +26,7 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
     messageKey && dispatch(ChatGen.createSaveAttachment({messageKey}))
   },
   _onEnsurePreviewLoaded: (messageKey: Constants.MessageKey) =>
-    dispatch(Creators.loadAttachmentPreview(messageKey)),
+    dispatch(ChatGen.createLoadAttachmentPreview({messageKey})),
   _onOpenInFileUI: (path: string) => dispatch(KBFSGen.createOpenInFileUI({path})),
   _onOpenInPopup: (message: Constants.AttachmentMessage, routePath: List<string>) =>
     dispatch(ChatGen.createOpenAttachmentPopup({message, currentPath: routePath})),

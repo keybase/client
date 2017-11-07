@@ -511,7 +511,6 @@ export type DownloadProgress = NoErrorTypedAction<
     messageKey: MessageKey,
   }
 >
-export type LoadAttachmentPreview = NoErrorTypedAction<'chat:loadAttachmentPreview', {messageKey: MessageKey}>
 export type AttachmentLoaded = NoErrorTypedAction<
   'chat:attachmentLoaded',
   {

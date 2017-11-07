@@ -38,16 +38,6 @@ const downloadProgressTransformer = ({
   type,
 })
 
-const loadAttachmentPreviewTransformer = ({
-  type,
-  payload: {messageKey},
-}: Constants.LoadAttachmentPreview) => ({
-  payload: {
-    messageKey,
-  },
-  type,
-})
-
 function retryAttachment(message: Constants.AttachmentMessage): Constants.RetryAttachment {
   const {conversationIDKey, uploadPath, title, previewType, outboxID} = message
   if (!uploadPath || !title || !previewType) {
@@ -65,14 +55,6 @@ function retryAttachment(message: Constants.AttachmentMessage): Constants.RetryA
   return {
     payload: {input, oldOutboxID: outboxID},
     type: 'chat:retryAttachment',
-  }
-}
-
-function loadAttachmentPreview(messageKey: Constants.MessageKey): Constants.LoadAttachmentPreview {
-  return {
-    logTransformer: loadAttachmentPreviewTransformer,
-    payload: {messageKey},
-    type: 'chat:loadAttachmentPreview',
   }
 }
 
@@ -119,11 +101,4 @@ function setSelectedRouteState(
   return setRouteState(I.List([chatTab, selectedConversation]), partialState)
 }
 
-export {
-  attachmentLoaded,
-  downloadProgress,
-  loadAttachmentPreview,
-  retryAttachment,
-  setSelectedRouteState,
-  updateTempMessage,
-}
+export {attachmentLoaded, downloadProgress, retryAttachment, setSelectedRouteState, updateTempMessage}
