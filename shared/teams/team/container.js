@@ -1,6 +1,7 @@
 // @flow
 import * as Constants from '../../constants/teams'
 import * as Creators from '../../actions/teams/creators'
+import * as Search from '../../actions/search/creators'
 import * as I from 'immutable'
 import * as KBFSGen from '../../actions/kbfs-gen'
 import * as React from 'react'
@@ -51,6 +52,7 @@ type DispatchProps = {
   _loadTeam: (teamname: Constants.Teamname) => void,
   _onOpenFolder: (teamname: Constants.Teamname) => void,
   _onAddPeople: (teamname: Constants.Teamname) => void,
+  _onAddSelf: (teamname: Constants.Teamname, you: string) => void,
   _onInviteByEmail: (teamname: Constants.Teamname) => void,
   _onManageChat: (teamname: Constants.Teamname) => void,
   _onLeaveTeam: (teamname: Constants.Teamname) => void,
@@ -63,6 +65,12 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, setRouteState, rout
   _loadTeam: teamname => dispatch(Creators.getDetails(teamname)),
   _onAddPeople: (teamname: Constants.Teamname) =>
     dispatch(navigateAppend([{props: {teamname}, selected: 'addPeople'}])),
+  _onAddSelf: (teamname: Constants.Teamname, you: ?string) => {
+    if (you) {
+      dispatch(navigateAppend([{props: {teamname}, selected: 'addPeople'}]))
+      dispatch(Search.addResultsToUserInput('addToTeamSearch', [you]))
+    }
+  },
   _onCreateSubteam: (teamname: Constants.Teamname) =>
     dispatch(navigateAppend([{props: {name: `${teamname}.`}, selected: 'showNewTeamDialog'}])),
   _onInviteByEmail: (teamname: Constants.Teamname) =>
@@ -115,6 +123,8 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
   const youCanAddPeople = youAdmin
   const youCanCreateSubteam = youAdmin
 
+  const onAddSelf = () => dispatchProps._onAddSelf(stateProps.name, you)
+
   const customComponent = (
     <CustomComponent
       onOpenFolder={onOpenFolder}
@@ -134,6 +144,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
       .sort((a: Constants.MemberInfo, b: Constants.MemberInfo) => a.username.localeCompare(b.username)),
     requests: stateProps._requests.toJS(),
     onAddPeople,
+    onAddSelf,
     onInviteByEmail,
     onCreateSubteam,
     onLeaveTeam,

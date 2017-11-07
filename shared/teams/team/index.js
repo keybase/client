@@ -36,6 +36,7 @@ export type Props = {
   selectedTab: Constants.TabKey,
   setShowMenu: (s: boolean) => void,
   onAddPeople: () => void,
+  onAddSelf: () => void,
   onInviteByEmail: () => void,
   setSelectedTab: (t: ?Constants.TabKey) => void,
   onCreateSubteam: () => void,
@@ -140,6 +141,7 @@ class Team extends React.PureComponent<Props> {
       showMenu,
       setShowMenu,
       onAddPeople,
+      onAddSelf,
       onCreateSubteam,
       onInviteByEmail,
       onLeaveTeam,
@@ -240,7 +242,7 @@ class Team extends React.PureComponent<Props> {
               type="BodySemiboldLink"
               style={stylesAddYourselfBannerText}
               className="underline"
-              onClick={onAddPeople}
+              onClick={onAddSelf}
             >
               Add yourself
             </Text>
