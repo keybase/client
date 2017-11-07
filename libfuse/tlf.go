@@ -76,7 +76,7 @@ func (tlf *TLF) loadDirHelper(ctx context.Context, mode libkbfs.ErrorModeType,
 		if filterErr {
 			exitEarly, err = libfs.FilterTLFEarlyExitError(ctx, err, tlf.log(), tlf.folder.name())
 		}
-		tlf.folder.reportErr(ctx, mode, err)
+		err = tlf.folder.processError(ctx, mode, err)
 	}()
 
 	handle, err := tlf.folder.resolve(ctx)

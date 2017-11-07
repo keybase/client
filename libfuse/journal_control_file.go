@@ -37,7 +37,7 @@ func (f *JournalControlFile) Write(ctx context.Context, req *fuse.WriteRequest,
 	resp *fuse.WriteResponse) (err error) {
 	f.folder.fs.log.CDebugf(ctx, "JournalControlFile (f.action=%s) Write",
 		f.action)
-	defer func() { f.folder.reportErr(ctx, libkbfs.WriteMode, err) }()
+	defer func() { err = f.folder.processError(ctx, libkbfs.WriteMode, err) }()
 	if len(req.Data) == 0 {
 		return nil
 	}

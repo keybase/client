@@ -82,7 +82,7 @@ func (f *File) Attr(ctx context.Context, a *fuse.Attr) (err error) {
 	defer func() { f.folder.fs.config.MaybeFinishTrace(ctx, err) }()
 
 	f.folder.fs.log.CDebugf(ctx, "File Attr")
-	defer func() { f.folder.reportErr(ctx, libkbfs.ReadMode, err) }()
+	defer func() { err = f.folder.processError(ctx, libkbfs.ReadMode, err) }()
 
 	if reqID, ok := ctx.Value(CtxIDKey).(string); ok {
 		if ei := f.eiCache.getAndDestroyIfMatches(reqID); ei != nil {
@@ -185,7 +185,7 @@ func (f *File) Fsync(ctx context.Context, req *fuse.FsyncRequest) (err error) {
 	defer func() { f.folder.fs.config.MaybeFinishTrace(ctx, err) }()
 
 	f.folder.fs.log.CDebugf(ctx, "File Fsync")
-	defer func() { f.folder.reportErr(ctx, libkbfs.WriteMode, err) }()
+	defer func() { err = f.folder.processError(ctx, libkbfs.WriteMode, err) }()
 
 	// This fits in situation 1 as described in libkbfs/delayed_cancellation.go
 	err = libkbfs.EnableDelayedCancellationWithGracePeriod(
@@ -211,7 +211,7 @@ func (f *File) Read(ctx context.Context, req *fuse.ReadRequest,
 	defer func() { f.folder.fs.config.MaybeFinishTrace(ctx, err) }()
 
 	f.folder.fs.log.CDebugf(ctx, "File Read off=%d sz=%d", off, sz)
-	defer func() { f.folder.reportErr(ctx, libkbfs.ReadMode, err) }()
+	defer func() { err = f.folder.processError(ctx, libkbfs.ReadMode, err) }()
 
 	n, err := f.folder.fs.config.KBFSOps().Read(
 		ctx, f.node, resp.Data[:sz], off)
@@ -233,7 +233,7 @@ func (f *File) Write(ctx context.Context, req *fuse.WriteRequest,
 	defer func() { f.folder.fs.config.MaybeFinishTrace(ctx, err) }()
 
 	f.folder.fs.log.CDebugf(ctx, "File Write sz=%d ", sz)
-	defer func() { f.folder.reportErr(ctx, libkbfs.WriteMode, err) }()
+	defer func() { err = f.folder.processError(ctx, libkbfs.WriteMode, err) }()
 
 	f.eiCache.destroy()
 	if err := f.folder.fs.config.KBFSOps().Write(
@@ -255,7 +255,7 @@ func (f *File) Setattr(ctx context.Context, req *fuse.SetattrRequest,
 	defer func() { f.folder.fs.config.MaybeFinishTrace(ctx, err) }()
 
 	f.folder.fs.log.CDebugf(ctx, "File SetAttr %s", valid)
-	defer func() { f.folder.reportErr(ctx, libkbfs.WriteMode, err) }()
+	defer func() { err = f.folder.processError(ctx, libkbfs.WriteMode, err) }()
 
 	f.eiCache.destroy()
 

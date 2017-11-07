@@ -9,6 +9,7 @@ import (
 	"os"
 	"strings"
 	"sync"
+	"syscall"
 	"time"
 
 	"bazil.org/fuse"
@@ -65,11 +66,11 @@ func (*FolderList) Attr(ctx context.Context, a *fuse.Attr) error {
 
 var _ fs.NodeRequestLookuper = (*FolderList)(nil)
 
-func (fl *FolderList) reportErr(ctx context.Context,
-	mode libkbfs.ErrorModeType, tlfName tlf.CanonicalName, err error) {
+func (fl *FolderList) processError(ctx context.Context,
+	mode libkbfs.ErrorModeType, tlfName tlf.CanonicalName, err error) error {
 	if err == nil {
 		fl.fs.errLog.CDebugf(ctx, "Request complete")
-		return
+		return nil
 	}
 
 	fl.fs.config.Reporter().ReportErr(ctx, tlfName, fl.tlfType, mode, err)
@@ -79,6 +80,7 @@ func (fl *FolderList) reportErr(ctx context.Context,
 	// TODO: Classify errors and escalate the logging level of the
 	// important ones.
 	fl.fs.errLog.CDebugf(ctx, err.Error())
+	return filterError(err)
 }
 
 func (fl *FolderList) addToRecentlyRemoved(name tlf.CanonicalName) {
@@ -138,11 +140,11 @@ func (fl *FolderList) PathType() libkbfs.PathType {
 func (fl *FolderList) Create(ctx context.Context, req *fuse.CreateRequest, resp *fuse.CreateResponse) (_ fs.Node, _ fs.Handle, err error) {
 	fl.fs.log.CDebugf(ctx, "FL Create")
 	tlfName := tlf.CanonicalName(req.Name)
-	defer func() { fl.reportErr(ctx, libkbfs.WriteMode, tlfName, err) }()
+	defer func() { err = fl.processError(ctx, libkbfs.WriteMode, tlfName, err) }()
 	if strings.HasPrefix(req.Name, "._") {
 		// Quietly ignore writes to special macOS files, without
 		// triggering a notification.
-		return nil, nil, libkbfs.WriteUnsupportedError{}.Errno()
+		return nil, nil, syscall.ENOENT
 	}
 	return nil, nil, libkbfs.NewWriteUnsupportedError(libkbfs.BuildCanonicalPath(fl.PathType(), string(tlfName)))
 }
@@ -151,7 +153,7 @@ func (fl *FolderList) Create(ctx context.Context, req *fuse.CreateRequest, resp 
 func (fl *FolderList) Mkdir(ctx context.Context, req *fuse.MkdirRequest) (_ fs.Node, err error) {
 	fl.fs.log.CDebugf(ctx, "FL Mkdir")
 	tlfName := tlf.CanonicalName(req.Name)
-	defer func() { fl.reportErr(ctx, libkbfs.WriteMode, tlfName, err) }()
+	defer func() { err = fl.processError(ctx, libkbfs.WriteMode, tlfName, err) }()
 	return nil, libkbfs.NewWriteUnsupportedError(libkbfs.BuildCanonicalPath(fl.PathType(), string(tlfName)))
 }
 
@@ -159,7 +161,7 @@ func (fl *FolderList) Mkdir(ctx context.Context, req *fuse.MkdirRequest) (_ fs.N
 func (fl *FolderList) Lookup(ctx context.Context, req *fuse.LookupRequest, resp *fuse.LookupResponse) (node fs.Node, err error) {
 	fl.fs.log.CDebugf(ctx, "FL Lookup %s", req.Name)
 	defer func() {
-		fl.reportErr(ctx, libkbfs.ReadMode,
+		err = fl.processError(ctx, libkbfs.ReadMode,
 			tlf.CanonicalName(req.Name), err)
 	}()
 	fl.mu.Lock()
@@ -236,7 +238,7 @@ var _ fs.HandleReadDirAller = (*FolderList)(nil)
 func (fl *FolderList) ReadDirAll(ctx context.Context) (res []fuse.Dirent, err error) {
 	fl.fs.log.CDebugf(ctx, "FL ReadDirAll")
 	defer func() {
-		fl.fs.reportErr(ctx, libkbfs.ReadMode, err)
+		err = fl.fs.processError(ctx, libkbfs.ReadMode, err)
 	}()
 	session, err := fl.fs.config.KBPKI().GetCurrentSession(ctx)
 	isLoggedIn := err == nil
@@ -273,7 +275,7 @@ var _ fs.NodeRemover = (*FolderList)(nil)
 // Remove implements the fs.NodeRemover interface for FolderList.
 func (fl *FolderList) Remove(ctx context.Context, req *fuse.RemoveRequest) (err error) {
 	fl.fs.log.CDebugf(ctx, "FolderList Remove %s", req.Name)
-	defer func() { fl.fs.reportErr(ctx, libkbfs.WriteMode, err) }()
+	defer func() { err = fl.fs.processError(ctx, libkbfs.WriteMode, err) }()
 
 	h, err := libkbfs.ParseTlfHandlePreferred(
 		ctx, fl.fs.config.KBPKI(), req.Name, fl.tlfType)

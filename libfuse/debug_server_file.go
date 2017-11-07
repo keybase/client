@@ -44,7 +44,7 @@ var _ fs.HandleWriter = (*DebugServerFile)(nil)
 func (f *DebugServerFile) Write(ctx context.Context, req *fuse.WriteRequest,
 	resp *fuse.WriteResponse) (err error) {
 	f.fs.log.CDebugf(ctx, "DebugServerFile (enable: %t) Write", f.enable)
-	defer func() { f.fs.reportErr(ctx, libkbfs.WriteMode, err) }()
+	defer func() { err = f.fs.processError(ctx, libkbfs.WriteMode, err) }()
 	if len(req.Data) == 0 {
 		return nil
 	}

@@ -31,7 +31,7 @@ var _ fs.Node = (*Symlink)(nil)
 // Attr implements the fs.Node interface for Symlink
 func (s *Symlink) Attr(ctx context.Context, a *fuse.Attr) (err error) {
 	s.parent.folder.fs.log.CDebugf(ctx, "Symlink Attr")
-	defer func() { s.parent.folder.reportErr(ctx, libkbfs.ReadMode, err) }()
+	defer func() { err = s.parent.folder.processError(ctx, libkbfs.ReadMode, err) }()
 
 	_, de, err := s.parent.folder.fs.config.KBFSOps().Lookup(ctx, s.parent.node, s.name)
 	if err != nil {
@@ -51,7 +51,7 @@ var _ fs.NodeReadlinker = (*Symlink)(nil)
 // Readlink implements the fs.NodeReadlinker interface for Symlink
 func (s *Symlink) Readlink(ctx context.Context, req *fuse.ReadlinkRequest) (link string, err error) {
 	s.parent.folder.fs.log.CDebugf(ctx, "Symlink Readlink")
-	defer func() { s.parent.folder.reportErr(ctx, libkbfs.ReadMode, err) }()
+	defer func() { err = s.parent.folder.processError(ctx, libkbfs.ReadMode, err) }()
 
 	_, de, err := s.parent.folder.fs.config.KBFSOps().Lookup(ctx, s.parent.node, s.name)
 	if err != nil {

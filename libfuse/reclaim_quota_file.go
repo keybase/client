@@ -37,7 +37,7 @@ var _ fs.HandleWriter = (*ReclaimQuotaFile)(nil)
 func (f *ReclaimQuotaFile) Write(ctx context.Context, req *fuse.WriteRequest,
 	resp *fuse.WriteResponse) (err error) {
 	f.folder.fs.log.CDebugf(ctx, "ReclaimQuotaFile Write")
-	defer func() { f.folder.reportErr(ctx, libkbfs.WriteMode, err) }()
+	defer func() { err = f.folder.processError(ctx, libkbfs.WriteMode, err) }()
 	if len(req.Data) == 0 {
 		return nil
 	}

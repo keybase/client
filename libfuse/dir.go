@@ -73,11 +73,11 @@ func (f *Folder) name() tlf.CanonicalName {
 	return tlf.CanonicalName(f.hPreferredName)
 }
 
-func (f *Folder) reportErr(ctx context.Context,
-	mode libkbfs.ErrorModeType, err error) {
+func (f *Folder) processError(ctx context.Context,
+	mode libkbfs.ErrorModeType, err error) error {
 	if err == nil {
 		f.fs.errLog.CDebugf(ctx, "Request complete")
-		return
+		return nil
 	}
 
 	f.fs.config.Reporter().ReportErr(ctx, f.name(), f.list.tlfType, mode, err)
@@ -87,6 +87,7 @@ func (f *Folder) reportErr(ctx context.Context,
 	// TODO: Classify errors and escalate the logging level of the
 	// important ones.
 	f.fs.errLog.CDebugf(ctx, err.Error())
+	return filterError(err)
 }
 
 func (f *Folder) setFolderBranch(folderBranch libkbfs.FolderBranch) error {
@@ -451,7 +452,7 @@ func (d *Dir) Attr(ctx context.Context, a *fuse.Attr) (err error) {
 	defer func() { d.folder.fs.config.MaybeFinishTrace(ctx, err) }()
 
 	d.folder.fs.log.CDebugf(ctx, "Dir Attr")
-	defer func() { d.folder.reportErr(ctx, libkbfs.ReadMode, err) }()
+	defer func() { err = d.folder.processError(ctx, libkbfs.ReadMode, err) }()
 
 	// This fits in situation 1 as described in libkbfs/delayed_cancellation.go
 	err = libkbfs.EnableDelayedCancellationWithGracePeriod(
@@ -486,7 +487,7 @@ func (d *Dir) Lookup(ctx context.Context, req *fuse.LookupRequest, resp *fuse.Lo
 	defer func() { d.folder.fs.config.MaybeFinishTrace(ctx, err) }()
 
 	d.folder.fs.log.CDebugf(ctx, "Dir Lookup %s", req.Name)
-	defer func() { d.folder.reportErr(ctx, libkbfs.ReadMode, err) }()
+	defer func() { err = d.folder.processError(ctx, libkbfs.ReadMode, err) }()
 
 	// This fits in situation 1 as described in libkbfs/delayed_cancellation.go
 	err = libkbfs.EnableDelayedCancellationWithGracePeriod(
@@ -582,7 +583,7 @@ func (d *Dir) Create(ctx context.Context, req *fuse.CreateRequest, resp *fuse.Cr
 	defer func() { d.folder.fs.config.MaybeFinishTrace(ctx, err) }()
 
 	d.folder.fs.log.CDebugf(ctx, "Dir Create %s", req.Name)
-	defer func() { d.folder.reportErr(ctx, libkbfs.WriteMode, err) }()
+	defer func() { err = d.folder.processError(ctx, libkbfs.WriteMode, err) }()
 
 	isExec := (req.Mode.Perm() & 0100) != 0
 	excl := getEXCLFromCreateRequest(req)
@@ -621,7 +622,7 @@ func (d *Dir) Mkdir(ctx context.Context, req *fuse.MkdirRequest) (
 	defer func() { d.folder.fs.config.MaybeFinishTrace(ctx, err) }()
 
 	d.folder.fs.log.CDebugf(ctx, "Dir Mkdir %s", req.Name)
-	defer func() { d.folder.reportErr(ctx, libkbfs.WriteMode, err) }()
+	defer func() { err = d.folder.processError(ctx, libkbfs.WriteMode, err) }()
 
 	// This fits in situation 1 as described in libkbfs/delayed_cancellation.go
 	err = libkbfs.EnableDelayedCancellationWithGracePeriod(
@@ -653,7 +654,7 @@ func (d *Dir) Symlink(ctx context.Context, req *fuse.SymlinkRequest) (
 
 	d.folder.fs.log.CDebugf(ctx, "Dir Symlink %s -> %s",
 		req.NewName, req.Target)
-	defer func() { d.folder.reportErr(ctx, libkbfs.WriteMode, err) }()
+	defer func() { err = d.folder.processError(ctx, libkbfs.WriteMode, err) }()
 
 	// This fits in situation 1 as described in libkbfs/delayed_cancellation.go
 	err = libkbfs.EnableDelayedCancellationWithGracePeriod(
@@ -684,7 +685,7 @@ func (d *Dir) Rename(ctx context.Context, req *fuse.RenameRequest,
 
 	d.folder.fs.log.CDebugf(ctx, "Dir Rename %s -> %s",
 		req.OldName, req.NewName)
-	defer func() { d.folder.reportErr(ctx, libkbfs.WriteMode, err) }()
+	defer func() { err = d.folder.processError(ctx, libkbfs.WriteMode, err) }()
 
 	var realNewDir *Dir
 	switch newDir := newDir.(type) {
@@ -735,7 +736,7 @@ func (d *Dir) Remove(ctx context.Context, req *fuse.RemoveRequest) (err error) {
 	defer func() { d.folder.fs.config.MaybeFinishTrace(ctx, err) }()
 
 	d.folder.fs.log.CDebugf(ctx, "Dir Remove %s", req.Name)
-	defer func() { d.folder.reportErr(ctx, libkbfs.WriteMode, err) }()
+	defer func() { err = d.folder.processError(ctx, libkbfs.WriteMode, err) }()
 
 	// This fits in situation 1 as described in libkbfs/delayed_cancellation.go
 	err = libkbfs.EnableDelayedCancellationWithGracePeriod(
@@ -766,7 +767,7 @@ func (d *Dir) ReadDirAll(ctx context.Context) (res []fuse.Dirent, err error) {
 	defer func() { d.folder.fs.config.MaybeFinishTrace(ctx, err) }()
 
 	d.folder.fs.log.CDebugf(ctx, "Dir ReadDirAll")
-	defer func() { d.folder.reportErr(ctx, libkbfs.ReadMode, err) }()
+	defer func() { err = d.folder.processError(ctx, libkbfs.ReadMode, err) }()
 
 	children, err := d.folder.fs.config.KBFSOps().GetDirChildren(ctx, d.node)
 	if err != nil {
@@ -804,7 +805,7 @@ func (d *Dir) Setattr(ctx context.Context, req *fuse.SetattrRequest, resp *fuse.
 	defer func() { d.folder.fs.config.MaybeFinishTrace(ctx, err) }()
 
 	d.folder.fs.log.CDebugf(ctx, "Dir SetAttr %s", valid)
-	defer func() { d.folder.reportErr(ctx, libkbfs.WriteMode, err) }()
+	defer func() { err = d.folder.processError(ctx, libkbfs.WriteMode, err) }()
 
 	if valid.Mode() {
 		// You can't set the mode on KBFS directories, but we don't
@@ -861,7 +862,7 @@ func (d *Dir) Fsync(ctx context.Context, req *fuse.FsyncRequest) (err error) {
 	defer func() { d.folder.fs.config.MaybeFinishTrace(ctx, err) }()
 
 	d.folder.fs.log.CDebugf(ctx, "Dir Fsync")
-	defer func() { d.folder.reportErr(ctx, libkbfs.WriteMode, err) }()
+	defer func() { err = d.folder.processError(ctx, libkbfs.WriteMode, err) }()
 
 	// This fits in situation 1 as described in libkbfs/delayed_cancellation.go
 	err = libkbfs.EnableDelayedCancellationWithGracePeriod(

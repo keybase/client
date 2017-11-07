@@ -36,7 +36,7 @@ var _ fs.HandleWriter = (*PrefetchFile)(nil)
 func (f *PrefetchFile) Write(ctx context.Context, req *fuse.WriteRequest,
 	resp *fuse.WriteResponse) (err error) {
 	f.fs.log.CDebugf(ctx, "PrefetchFile (enable: %t) Write", f.enable)
-	defer func() { f.fs.reportErr(ctx, libkbfs.WriteMode, err) }()
+	defer func() { err = f.fs.processError(ctx, libkbfs.WriteMode, err) }()
 	if len(req.Data) == 0 {
 		return nil
 	}

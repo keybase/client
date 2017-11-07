@@ -140,7 +140,7 @@ func (t *Trash) Attr(ctx context.Context, a *fuse.Attr) error {
 // ReadDirAll implements the fs.NodeReadDirAller interface for *Trash
 func (t *Trash) ReadDirAll(ctx context.Context) (res []fuse.Dirent, err error) {
 	t.fs.log.CDebugf(ctx, "Trash ReadDirAll")
-	defer func() { t.fs.reportErr(ctx, libkbfs.ReadMode, err) }()
+	defer func() { err = t.fs.processError(ctx, libkbfs.ReadMode, err) }()
 
 	return []fuse.Dirent{
 		{

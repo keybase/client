@@ -34,7 +34,7 @@ var _ fs.HandleWriter = (*RekeyFile)(nil)
 func (f *RekeyFile) Write(ctx context.Context, req *fuse.WriteRequest,
 	resp *fuse.WriteResponse) (err error) {
 	f.folder.fs.log.CDebugf(ctx, "RekeyFile Write")
-	defer func() { f.folder.reportErr(ctx, libkbfs.WriteMode, err) }()
+	defer func() { err = f.folder.processError(ctx, libkbfs.WriteMode, err) }()
 	if len(req.Data) == 0 {
 		return nil
 	}

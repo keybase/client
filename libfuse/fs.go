@@ -13,6 +13,7 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+	"syscall"
 	"time"
 
 	"bazil.org/fuse"
@@ -75,7 +76,7 @@ func makeTraceHandler(renderFn func(http.ResponseWriter, *http.Request, bool)) f
 func NewFS(config libkbfs.Config, conn *fuse.Conn, debug bool, platformParams PlatformParams) *FS {
 	log := config.MakeLogger("kbfsfuse")
 	// We need extra depth for errors, so that we can report the line
-	// number for the caller of reportErr, not reportErr itself.
+	// number for the caller of processError, not processError itself.
 	errLog := log.CloneWithAddedDepth(1)
 	if debug {
 		// Turn on debugging.  TODO: allow a proper log file and
@@ -328,11 +329,11 @@ var _ fs.FS = (*FS)(nil)
 
 var _ fs.FSStatfser = (*FS)(nil)
 
-func (f *FS) reportErr(ctx context.Context,
-	mode libkbfs.ErrorModeType, err error) {
+func (f *FS) processError(ctx context.Context,
+	mode libkbfs.ErrorModeType, err error) error {
 	if err == nil {
 		f.errLog.CDebugf(ctx, "Request complete")
-		return
+		return nil
 	}
 
 	f.config.Reporter().ReportErr(ctx, "", tlf.Private, mode, err)
@@ -342,6 +343,7 @@ func (f *FS) reportErr(ctx context.Context,
 	// TODO: Classify errors and escalate the logging level of the
 	// important ones.
 	f.errLog.CDebugf(ctx, err.Error())
+	return filterError(err)
 }
 
 // Root implements the fs.FS interface for FS.
@@ -433,7 +435,7 @@ var _ fs.NodeRequestLookuper = (*Root)(nil)
 // Lookup implements the fs.NodeRequestLookuper interface for Root.
 func (r *Root) Lookup(ctx context.Context, req *fuse.LookupRequest, resp *fuse.LookupResponse) (_ fs.Node, err error) {
 	r.log().CDebugf(ctx, "FS Lookup %s", req.Name)
-	defer func() { r.private.fs.reportErr(ctx, libkbfs.ReadMode, err) }()
+	defer func() { err = r.private.fs.processError(ctx, libkbfs.ReadMode, err) }()
 
 	specialNode := handleNonTLFSpecialFile(
 		req.Name, r.private.fs, &resp.EntryValid)
@@ -479,11 +481,11 @@ var _ fs.NodeCreater = (*Root)(nil)
 // Create implements the fs.NodeCreater interface for Root.
 func (r *Root) Create(ctx context.Context, req *fuse.CreateRequest, resp *fuse.CreateResponse) (_ fs.Node, _ fs.Handle, err error) {
 	r.log().CDebugf(ctx, "FS Create")
-	defer func() { r.private.fs.reportErr(ctx, libkbfs.WriteMode, err) }()
+	defer func() { err = r.private.fs.processError(ctx, libkbfs.WriteMode, err) }()
 	if strings.HasPrefix(req.Name, "._") {
 		// Quietly ignore writes to special macOS files, without
 		// triggering a notification.
-		return nil, nil, libkbfs.WriteUnsupportedError{}.Errno()
+		return nil, nil, syscall.ENOENT
 	}
 	return nil, nil, libkbfs.NewWriteUnsupportedError(libkbfs.BuildCanonicalPath(r.PathType(), req.Name))
 }
@@ -491,7 +493,7 @@ func (r *Root) Create(ctx context.Context, req *fuse.CreateRequest, resp *fuse.C
 // Mkdir implements the fs.NodeMkdirer interface for Root.
 func (r *Root) Mkdir(ctx context.Context, req *fuse.MkdirRequest) (_ fs.Node, err error) {
 	r.log().CDebugf(ctx, "FS Mkdir")
-	defer func() { r.private.fs.reportErr(ctx, libkbfs.WriteMode, err) }()
+	defer func() { err = r.private.fs.processError(ctx, libkbfs.WriteMode, err) }()
 	return nil, libkbfs.NewWriteUnsupportedError(libkbfs.BuildCanonicalPath(r.PathType(), req.Name))
 }
 
@@ -502,7 +504,7 @@ var _ fs.HandleReadDirAller = (*Root)(nil)
 // ReadDirAll implements the ReadDirAll interface for Root.
 func (r *Root) ReadDirAll(ctx context.Context) (res []fuse.Dirent, err error) {
 	r.log().CDebugf(ctx, "FS ReadDirAll")
-	defer func() { r.private.fs.reportErr(ctx, libkbfs.ReadMode, err) }()
+	defer func() { err = r.private.fs.processError(ctx, libkbfs.ReadMode, err) }()
 	res = []fuse.Dirent{
 		{
 			Type: fuse.DT_Dir,
