@@ -21,6 +21,8 @@ const validTeamname = (s: string): boolean => {
 
 type Teamname = string
 
+type TeamRoleType = 'reader' | 'writer' | 'admin' | 'owner'
+
 type _MemberInfo = {
   type: ?TeamRoleType,
   username: string,
