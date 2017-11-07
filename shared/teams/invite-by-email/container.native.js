@@ -103,6 +103,13 @@ export default compose(
           return false
         })
       },
+      isLoading: ({loadingInvites}) => (email: ?string, phoneNo: ?string): boolean => {
+        const cleanPhoneNo = phoneNo && phoneNo.replace(/\D/g, '')
+        if (cleanPhoneNo) {
+          return loadingInvites.get(cleanPhoneNo)
+        }
+        return !!email && loadingInvites.get(email)
+      },
     }),
     // Delegate to add / remove
     withHandlers({
@@ -161,7 +168,7 @@ export default compose(
           }
           res.push({
             id: contact.recordID + (addr.email ? addr.email : addr.number),
-            loading: props.loadingInvites.get(addr.email || addr.phoneNo),
+            loading: props.isLoading(addr.email, addr.phoneNo),
             contact: cData,
             selected: props.isSelected(cData.email || cData.phoneNo, cData.name),
             onClick: () => props.onSelectContact(cData),
