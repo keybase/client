@@ -159,7 +159,11 @@ export default compose(
   connect(mapStateToProps, mapDispatchToProps, mergeProps),
   lifecycle({
     componentDidMount: function() {
-      this.props._loadTeam(this.props.name)
+      const teamname = this.props.name
+      const teams = ancestorTeamnames(teamname).concat(teamname)
+      for (let i = 0; i < teams.length; ++i) {
+        this.props._loadTeam(teams[i])
+      }
     },
   }),
   HeaderHoc
