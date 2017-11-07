@@ -23,6 +23,7 @@ import (
 	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/gregor"
+	"github.com/keybase/client/go/home"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
@@ -51,6 +52,7 @@ type Service struct {
 	badger               *badges.Badger
 	reachability         *reachability
 	backgroundIdentifier *BackgroundIdentifier
+	home                 *home.Home
 }
 
 type Shutdowner interface {
@@ -71,6 +73,7 @@ func NewService(g *libkb.GlobalContext, isDaemon bool) *Service {
 		attachmentstore:  chat.NewAttachmentStore(g.GetLog(), g.Env.GetRuntimeDir()),
 		badger:           badges.NewBadger(g),
 		gregor:           newGregorHandler(allG),
+		home:             home.NewHome(g),
 	}
 }
 
@@ -126,6 +129,7 @@ func (d *Service) RegisterProtocols(srv *rpc.Server, xp rpc.Transporter, connID 
 		keybase1.BadgerProtocol(newBadgerHandler(xp, g, d.badger)),
 		keybase1.MerkleProtocol(newMerkleHandler(xp, g)),
 		keybase1.GitProtocol(NewGitHandler(xp, g)),
+		keybase1.HomeProtocol(NewHomeHandler(xp, g, d.home)),
 	}
 	for _, proto := range protocols {
 		if err = srv.Register(proto); err != nil {
@@ -459,6 +463,7 @@ func (d *Service) startupGregor() {
 		d.gregor.PushHandler(newRekeyLogHandler(d.G()))
 
 		d.gregor.PushHandler(newTeamHandler(d.G()))
+		d.gregor.PushHandler(d.home)
 
 		// Connect to gregord
 		if gcErr := d.tryGregordConnect(); gcErr != nil {
