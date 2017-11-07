@@ -4,7 +4,7 @@ import type {FriendshipUserInfo} from '../profile/friendships'
 import type {PlatformsExpandedType} from '../constants/types/more'
 import type {Time} from '../constants/types/flow-types'
 import type {TypedAction} from './types/flux'
-import type {identifyUiDisplayTLFCreateWithInviteRpcParam} from './types/flow-types'
+import type {IdentifyUiDisplayTLFCreateWithInviteRpcParam} from './types/flow-types'
 
 const cachedIdentifyGoodUntil = 1000 * 60 * 60
 
@@ -78,7 +78,7 @@ export type UpdateFolders = TypedAction<
 
 export type ShowNonUser = TypedAction<
   'tracker:showNonUser',
-  identifyUiDisplayTLFCreateWithInviteRpcParam,
+  IdentifyUiDisplayTLFCreateWithInviteRpcParam,
   void
 >
 

@@ -1,4 +1,5 @@
 // @flow
+import * as KBFSGen from '../actions/kbfs-gen'
 import ErrorComponent from '../common-adapters/error-profile'
 import Profile from './index'
 import React, {PureComponent} from 'react'
@@ -16,7 +17,6 @@ import {getProfile, updateTrackers, onFollow, onUnfollow, openProofUrl} from '..
 import {isLoading} from '../constants/tracker'
 import {isTesting} from '../local-debug'
 import {navigateAppend, navigateUp} from '../actions/route-tree'
-import {openInKBFS} from '../actions/kbfs'
 import {peopleTab} from '../constants/tabs'
 import {startConversation} from '../actions/chat'
 
@@ -97,7 +97,7 @@ export default pausableConnect(
       dispatch(navigateAppend(['editProfile']))
     },
     onFolderClick: folder => {
-      dispatch(openInKBFS(folder.path))
+      dispatch(KBFSGen.createOpen({path: folder.path}))
     },
     onFollow: username => {
       dispatch(onFollow(username, false))

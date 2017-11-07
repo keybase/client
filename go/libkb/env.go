@@ -14,6 +14,7 @@ import (
 	"time"
 
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/client/go/systemd"
 )
 
 type NullConfiguration struct{}
@@ -709,11 +710,11 @@ func (e *Env) GetBundledCA(host string) string {
 	return e.GetString(
 		func() string { return e.config.GetBundledCA(host) },
 		func() string {
-			ret, ok := BundledCAs[host]
+			ret, ok := GetBundledCAsFromHost(host)
 			if !ok {
-				ret = ""
+				return ""
 			}
-			return ret
+			return string(ret)
 		},
 	)
 }
@@ -1251,6 +1252,12 @@ func (e *Env) RunningInCI() bool {
 	return e.GetBool(false,
 		func() (bool, bool) { return e.getEnvBool("KEYBASE_RUN_CI") },
 	)
+}
+
+func (e *Env) WantsSystemd() bool {
+	return (e.GetRunMode() == ProductionRunMode &&
+		systemd.IsRunningSystemd() &&
+		os.Getenv("KEYBASE_SYSTEMD") == "1")
 }
 
 func GetPlatformString() string {

@@ -1,0 +1,12 @@
+{
+  "prelude": [],
+  "actions": {
+    "errorInRpc": {
+      "error": "Error"
+    },
+    "waitingForRpc": {
+      "waiting": "boolean",
+      "name": "string"
+    }
+  }
+}

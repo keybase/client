@@ -1,8 +1,8 @@
 // @flow
 import {Component} from 'react'
 
-import type {AvatarSize, URLType} from './avatar'
-
+export type URLType = ?(string | Array<{height: number, width: number, uri: string}>)
+export type AvatarSize = 176 | 112 | 80 | 64 | 48 | 40 | 32 | 24 | 16 | 12
 export type URLMap = {
   '200': string,
   '360': string,

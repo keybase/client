@@ -205,7 +205,7 @@ class Inbox extends React.PureComponent<Props, State> {
             getItemLayout={this._getItemLayout}
           />
           {!this.props.isLoading && !this.props.rows.length && !this.props.filter && <NoChats />}
-          {!this.props.rows.length && <Owl />}
+          {!this.props.rows.length && !!this.props.filter && <Owl />}
           {this.state.showFloating &&
             this.props.showSmallTeamsExpandDivider &&
             <FloatingDivider toggle={this.props.toggleSmallTeamsExpanded} />}

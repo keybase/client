@@ -1,5 +1,6 @@
 // @flow
-import * as Creators from '../../actions/login/creators'
+import * as LoginGen from '../../actions/login-gen'
+import HiddenString from '../../util/hidden-string'
 import Login from '.'
 import {compose, withState, withHandlers, connect, type TypedState} from '../../util/container'
 import {requestAutoInvite} from '../../actions/signup'
@@ -22,11 +23,12 @@ const mapStateToProps = (state: TypedState) => {
 }
 
 const mapDispatchToProps = (dispatch: any, {navigateAppend}) => ({
-  onForgotPassphrase: () => dispatch(Creators.openAccountResetPage()),
-  onLogin: (user, passphrase) => dispatch(Creators.relogin(user, passphrase)),
+  onForgotPassphrase: () => dispatch(LoginGen.createOpenAccountResetPage()),
+  onLogin: (user: string, passphrase: string) =>
+    dispatch(LoginGen.createRelogin({usernameOrEmail: user, passphrase: new HiddenString(passphrase)})),
   onSignup: () => dispatch(requestAutoInvite()),
   onSomeoneElse: () => {
-    dispatch(Creators.startLogin())
+    dispatch(LoginGen.createStartLogin())
   },
   onFeedback: () => dispatch(navigateAppend(['feedback'])),
 })

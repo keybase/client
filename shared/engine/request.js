@@ -1,6 +1,6 @@
 // @flow
 // Incoming and outgoing requests that are in a session
-import type {MethodKey, ResponseType} from './index'
+import type {MethodKey, ResponseType} from './types'
 import type {invokeType} from './index.platform'
 
 type SimpleWaiting = (waiting: boolean) => void

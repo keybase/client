@@ -75,6 +75,11 @@ export type MakeTeamOpen = NoErrorTypedAction<
 
 export type GetTeams = NoErrorTypedAction<'teams:getTeams', {}>
 
+export type BadgeAppForTeams = NoErrorTypedAction<
+  'teams:badgeAppForTeams',
+  {newTeamNames?: ?Array<string>, newTeamAccessRequests?: ?Array<string>}
+>
+
 export type ToggleChannelMembership = NoErrorTypedAction<
   'teams:toggleChannelMembership',
   {teamname: string, channelname: string}
@@ -161,6 +166,7 @@ export type SetPublicityMember = NoErrorTypedAction<
   'teams:setPublicityMember',
   {enabled: boolean, teamname: string}
 >
+
 export type SetPublicityTeam = NoErrorTypedAction<
   'teams:setPublicityTeam',
   {enabled: boolean, teamname: string}
@@ -205,6 +211,7 @@ type _State = {
   teamNameToPublicitySettings: I.Map<Teamname, _PublicitySettings>,
   teamnames: I.Set<Teamname>,
   teammembercounts: I.Map<Teamname, number>,
+  newTeams: I.Set<string>,
   loaded: boolean,
 }
 export type State = I.RecordOf<_State>
@@ -222,6 +229,7 @@ export const makeState: I.RecordFactory<_State> = I.Record({
   teamNameToTeamSettings: I.Map(),
   teamNameToPublicitySettings: I.Map(),
   teammembercounts: I.Map(),
+  newTeams: I.Set(),
   teamnames: I.Set(),
 })
 

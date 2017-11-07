@@ -126,7 +126,6 @@ class RouteStateStorage {
     const item = {}
 
     const selectedTab = routeState.selected
-    // $FlowIssue doesn't like sending a string as a tab, which is correct
     if (isValidInitialTab(selectedTab)) {
       item.tab = selectedTab
       if (selectedTab === chatTab) {

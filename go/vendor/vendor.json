@@ -102,6 +102,18 @@
 			"revisionTime": "2017-07-31T11:19:25Z"
 		},
 		{
+			"checksumSHA1": "5GD2mlKEoDM+bU1PfSlx8rAz4oc=",
+			"path": "github.com/coreos/go-systemd/util",
+			"revision": "d2196463941895ee908e13531a23a39feb9e1243",
+			"revisionTime": "2017-07-31T11:19:25Z"
+		},
+		{
+			"checksumSHA1": "O8c/VKtW34XPJNNlyeb/im8vWSI=",
+			"path": "github.com/coreos/pkg/dlopen",
+			"revision": "459346e834d8e97be707cd0ea1236acaaa159ffc",
+			"revisionTime": "2017-09-01T14:55:54Z"
+		},
+		{
 			"checksumSHA1": "dvabztWVQX8f6oMLRyv4dLH+TGY=",
 			"path": "github.com/davecgh/go-spew/spew",
 			"revision": "346938d642f2ec3594ed81d874461961cd0faa76",
@@ -344,14 +356,14 @@
 		{
 			"checksumSHA1": "2dhlXqY/z//xieGJNGjMjL4X6Jw=",
 			"path": "github.com/keybase/keybase-test-vectors/go",
-			"revision": "2bfb94411295f18596046369f6bcb3a950ceb1b5",
-			"revisionTime": "2017-08-11T14:07:22Z"
+			"revision": "f14ba3a1aa9ffd72209efaed5342fcc17d66693c",
+			"revisionTime": "2017-11-06T21:33:07Z"
 		},
 		{
-			"checksumSHA1": "x3Cnxu6dehCSPc9aTjS1PO6INLU=",
+			"checksumSHA1": "M0LcepSKs6a5TOM7KXaoiuTKVJ0=",
 			"path": "github.com/keybase/keybase-test-vectors/teamchains",
-			"revision": "c6dbadb0aef19380fc20ff29bf54feb1c549d270",
-			"revisionTime": "2017-09-22T19:43:39Z"
+			"revision": "f14ba3a1aa9ffd72209efaed5342fcc17d66693c",
+			"revisionTime": "2017-11-06T21:33:07Z"
 		},
 		{
 			"path": "github.com/keybase/npipe",
