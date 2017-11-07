@@ -294,22 +294,7 @@ const _getDetails = function*(action: Constants.GetDetails): SagaGenerator<any, 
     if (!requestMap[teamname]) {
       yield put(replaceEntity(['teams', 'teamNameToRequests'], I.Map([[teamname, I.Set()]])))
     }
-    /*
-    // Here's how you set.
-    yield call(RpcTypes.teamsSetTeamShowcaseRpcPromise, {
-      param: {
-        description: 'Keybase friends!',
-        name: teamname,
-        isShowcased: true,
-      },
-    })
-    yield call(RpcTypes.teamsSetTeamMemberShowcaseRpcPromise, {
-      param: {
-        isShowcased: true,
-        name: teamname,
-      },
-    })
-    */
+
     // Get publicity settings for this team.
     const publicity: RpcTypes.TeamAndMemberShowcase = yield call(
       RpcTypes.teamsGetTeamAndMemberShowcaseRpcPromise,
@@ -501,6 +486,32 @@ function* _setupTeamHandlers(): SagaGenerator<any, any> {
   })
 }
 
+function* _setPublicityMember(action: Constants.SetPublicityMember) {
+  const {payload: {enabled, teamname}} = action
+  yield call(RpcTypes.teamsSetTeamMemberShowcaseRpcPromise, {
+    param: {
+      isShowcased: enabled,
+      name: teamname,
+    },
+  })
+  yield put(replaceEntity(['teams', 'teamNameToLoading'], I.Map([[teamname, true]])))
+  // getDetails will unset loading and update the store with the new value
+  yield put((dispatch: Dispatch) => dispatch(Creators.getDetails(teamname)))
+}
+
+function* _setPublicityTeam(action: Constants.SetPublicityTeam) {
+  const {payload: {enabled, teamname}} = action
+  yield call(RpcTypes.teamsSetTeamShowcaseRpcPromise, {
+    param: {
+      isShowcased: enabled,
+      name: teamname,
+    },
+  })
+  yield put(replaceEntity(['teams', 'teamNameToLoading'], I.Map([[teamname, true]])))
+  // getDetails will unset loading and update the store with the new value
+  yield put((dispatch: Dispatch) => dispatch(Creators.getDetails(teamname)))
+}
+
 const teamsSaga = function*(): SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure('teams:leaveTeam', _leaveTeam)
   yield Saga.safeTakeEveryPure('teams:createNewTeam', _createNewTeam)
@@ -520,6 +531,8 @@ const teamsSaga = function*(): SagaGenerator<any, any> {
   yield Saga.safeTakeEvery('teams:editMembership', _editMembership)
   yield Saga.safeTakeEvery('teams:removeMemberOrPendingInvite', _removeMemberOrPendingInvite)
   yield Saga.safeTakeEvery('teams:inviteToTeamByPhone', _inviteToTeamByPhone)
+  yield Saga.safeTakeEvery('teams:setPublicityMember', _setPublicityMember)
+  yield Saga.safeTakeEvery('teams:setPublicityTeam', _setPublicityTeam)
 }
 
 export default teamsSaga

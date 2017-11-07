@@ -14,14 +14,16 @@ import {getProfile} from '../../actions/tracker'
 import {isMobile} from '../../constants/platform'
 
 type StateProps = {
-  _memberInfo: I.Set<Constants.MemberInfo>,
-  loading: boolean,
-  _requests: I.Set<Constants.RequestInfo>,
   _invites: I.Set<Constants.InviteInfo>,
-  name: Constants.Teamname,
-  you: ?string,
-  selectedTab: string,
+  _memberInfo: I.Set<Constants.MemberInfo>,
+  _requests: I.Set<Constants.RequestInfo>,
   isTeamOpen: boolean,
+  loading: boolean,
+  name: Constants.Teamname,
+  publicityMember: boolean,
+  publicityTeam: boolean,
+  selectedTab: string,
+  you: ?string,
 }
 
 const mapStateToProps = (state: TypedState, {routeProps, routeState}): StateProps => ({
@@ -35,6 +37,15 @@ const mapStateToProps = (state: TypedState, {routeProps, routeState}): StateProp
   isTeamOpen: state.entities.getIn(['teams', 'teamNameToTeamSettings', routeProps.get('teamname')], {
     open: false,
   }).open,
+  publicityMember: state.entities.getIn(
+    ['teams', 'teamNameToPublicitySettings', routeProps.get('teamname')],
+    {
+      member: false,
+    }
+  ).member,
+  publicityTeam: state.entities.getIn(['teams', 'teamNameToPublicitySettings', routeProps.get('teamname')], {
+    team: false,
+  }).team,
 })
 
 type DispatchProps = {
@@ -66,6 +77,10 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, setRouteState, rout
     isMobile ? dispatch(showUserProfile(username)) : dispatch(getProfile(username, true, true))
   },
   setSelectedTab: selectedTab => setRouteState({selectedTab}),
+  _setPublicityMember: (teamname: Constants.Teamname, checked: boolean) =>
+    dispatch(Creators.setPublicityMember(teamname, checked)),
+  _setPublicityTeam: (teamname: Constants.Teamname, checked: boolean) =>
+    dispatch(Creators.setPublicityTeam(teamname, checked)),
   onBack: () => dispatch(navigateUp()),
   _onClickOpenTeamSetting: isTeamOpen =>
     dispatch(
@@ -89,6 +104,8 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
   const onLeaveTeam = () => dispatchProps._onLeaveTeam(stateProps.name)
   const onClickOpenTeamSetting = () => dispatchProps._onClickOpenTeamSetting(stateProps.isTeamOpen)
   const onCreateSubteam = () => dispatchProps._onCreateSubteam(stateProps.name)
+  const setPublicityMember = (checked: boolean) => dispatchProps._setPublicityMember(stateProps.name, checked)
+  const setPublicityTeam = (checked: boolean) => dispatchProps._setPublicityTeam(stateProps.name, checked)
   const yourType = stateProps._memberInfo.find(member => member.username === stateProps.you)
   const youCanAddPeople = yourType && (yourType.type === 'owner' || yourType.type === 'admin')
   const youCanCreateSubteam = youCanAddPeople
@@ -118,6 +135,8 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     onManageChat,
     onOpenFolder,
     onClickOpenTeamSetting,
+    setPublicityMember,
+    setPublicityTeam,
     youCanAddPeople,
     youCanCreateSubteam,
   }

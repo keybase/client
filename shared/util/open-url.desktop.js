@@ -4,6 +4,7 @@
 const openURL = __STORYBOOK__
   ? (url: ?string) => {}
   : (url: ?string) => {
+      console.warn('in openurl', url)
       const shell = require('electron').shell
 
       if (!url) {

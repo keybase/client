@@ -5,6 +5,7 @@ import {
   Avatar,
   Box,
   Button,
+  Checkbox,
   Text,
   Tabs,
   List,
@@ -25,15 +26,11 @@ type InviteRowProps = Constants.InviteInfo
 type RequestRowProps = Constants.RequestInfo
 
 export type Props = {
-  you: string,
-  name: Constants.Teamname,
   invites: Array<InviteRowProps>,
-  members: Array<MemberRowProps>,
-  requests: Array<RequestRowProps>,
+  isTeamOpen: boolean,
   loading: boolean,
-  showMenu: boolean,
-  selectedTab: Constants.TabKey,
-  setShowMenu: (s: boolean) => void,
+  members: Array<MemberRowProps>,
+  name: Constants.Teamname,
   onAddPeople: () => void,
   onInviteByEmail: () => void,
   setSelectedTab: (t: ?Constants.TabKey) => void,
@@ -41,7 +38,15 @@ export type Props = {
   onLeaveTeam: () => void,
   onManageChat: () => void,
   onClickOpenTeamSetting: () => void,
-  isTeamOpen: boolean,
+  publicityMember: boolean,
+  publicityTeam: boolean,
+  requests: Array<RequestRowProps>,
+  selectedTab: Constants.TabKey,
+  setPublicityMember: (checked: boolean) => void,
+  setPublicityTeam: (checked: boolean) => void,
+  showMenu: boolean,
+  setShowMenu: (s: boolean) => void,
+  you: string,
   youCanAddPeople: boolean,
   youCanCreateSubteam: boolean,
 }
@@ -83,7 +88,7 @@ const TeamTabs = (props: TeamTabsProps) => {
     >
       {membersLabel}
     </Text>,
-  ]  
+  ]
   if (admin) {
     const requestsLabel = `REQUESTS (${requests.length})`
     const invitesLabel = `PENDING INVITES (${invites.length})`
@@ -157,6 +162,10 @@ class Team extends React.PureComponent<Props> {
       selectedTab,
       loading,
       onManageChat,
+      publicityMember,
+      publicityTeam,
+      setPublicityMember,
+      setPublicityTeam,
       you,
       youCanAddPeople,
       youCanCreateSubteam,
@@ -230,20 +239,57 @@ class Team extends React.PureComponent<Props> {
       }
     } else if (selectedTab === 'publicity') {
       contents = (
-        <Box style={{...globalStyles.flexBoxColumn}}>
-          <Box style={{...globalStyles.flexBoxRow, flexShrink: 1}}>
-            <Text
-              type="BodySmall"
-              style={{color: globalColors.black_40, textAlign: 'center', marginTop: globalMargins.xlarge}}
-            >
-              Publicity settings.
+        <Box
+          key="publicityMember"
+          style={{
+            ...globalStyles.flexBoxRow,
+            alignSelf: 'stretch',
+            paddingLeft: globalMargins.small,
+            paddingTop: globalMargins.small,
+          }}
+        >
+          <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center'}}>
+            <Checkbox checked={publicityMember} key="publicityMember" label="" onCheck={setPublicityMember} />
+          </Box>
+          <Box style={globalStyles.flexBoxColumn}>
+            <Text type="Body">
+              Publish on your own profile that you're an admin of this team
+            </Text>
+            <Text type="BodySmall">
+              Team description and number of members will be public.
             </Text>
           </Box>
-          {admin && <Box style={{...globalStyles.flexBoxRow, flexGrow: 1}}>
-            <Text type="BodySmall">is admin</Text>
-          </Box>}
-       </Box>
+        </Box>
       )
+      if (admin) {
+        const teamsLink = 'keybase.io/popular-teams'
+        contents = [
+          contents,
+          <Box
+            key="publicityTeam"
+            style={{
+              ...globalStyles.flexBoxRow,
+              alignSelf: 'stretch',
+              paddingLeft: globalMargins.small,
+              paddingTop: globalMargins.small,
+            }}
+          >
+            <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center'}}>
+              <Checkbox checked={publicityTeam} key="publicityTeam" label="" onCheck={setPublicityTeam} />
+            </Box>
+            <Box style={globalStyles.flexBoxColumn}>
+              <Text type="Body">
+                Publicize this team on
+                {' '}
+                <Text type="BodyPrimaryLink" onClickURL={`https://${teamsLink}`}>{teamsLink}</Text>
+              </Text>
+              <Text type="BodySmall">
+                Team descriptions and number of members will be public.
+              </Text>
+            </Box>
+          </Box>,
+        ]
+      }
     }
 
     const popupMenuItems = [

@@ -157,6 +157,15 @@ export type InviteToTeamByEmail = NoErrorTypedAction<
   {invitees: string, role: string, teamname: string}
 >
 
+export type SetPublicityMember = NoErrorTypedAction<
+  'teams:setPublicityMember',
+  {enabled: boolean, teamname: string}
+>
+export type SetPublicityTeam = NoErrorTypedAction<
+  'teams:setPublicityTeam',
+  {enabled: boolean, teamname: string}
+>
+
 export const teamRoleByEnum = invert(RPCTypes.TeamsTeamRole)
 
 export type TypeMap = {
