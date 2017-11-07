@@ -18,7 +18,6 @@ import {OpenTeamSettingButton} from '../open-team'
 import TeamInviteRow from './invite-row/container'
 import TeamMemberRow from './member-row/container'
 import TeamRequestRow from './request-row/container'
-import flags from '../../util/feature-flags'
 
 export type MemberRowProps = Constants.MemberInfo
 type InviteRowProps = Constants.InviteInfo
@@ -256,7 +255,6 @@ class Team extends React.PureComponent<Props> {
                 style={{marginLeft: globalMargins.tiny}}
               />}
             {isMobile &&
-              flags.inviteContactsEnabled &&
               <Button
                 type="Secondary"
                 label="Invite contacts"
