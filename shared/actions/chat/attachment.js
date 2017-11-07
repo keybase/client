@@ -73,10 +73,10 @@ function* onSaveAttachment({payload: {messageKey}}: ChatGen.SaveAttachmentPayloa
     // download.
     if (endTime - startTime < 500) {
       for (let i = 0; i < 5; i++) {
-        yield Saga.put(Creators.downloadProgress(messageKey, false, (i + 1) / 5))
+        yield Saga.put(ChatGen.createDownloadProgress({messageKey, isPreview: false, progress: (i + 1) / 5}))
         yield Saga.delay(150)
       }
-      yield Saga.put(Creators.downloadProgress(messageKey, false, null))
+      yield Saga.put(ChatGen.createDownloadProgress({messageKey, isPreview: false, progress: null}))
     }
   }
 
@@ -103,7 +103,13 @@ function* onSaveAttachment({payload: {messageKey}}: ChatGen.SaveAttachmentPayloa
 
 function downloadProgressSubSaga(messageKey, loadPreview) {
   return function*({bytesComplete, bytesTotal}) {
-    yield Saga.put(Creators.downloadProgress(messageKey, loadPreview, bytesComplete / bytesTotal))
+    yield Saga.put(
+      ChatGen.createDownloadProgress({
+        messageKey,
+        isPreview: loadPreview,
+        progress: bytesComplete / bytesTotal,
+      })
+    )
     return EngineRpc.rpcResult()
   }
 }
@@ -168,7 +174,7 @@ function* onLoadAttachment({
   }
 
   // Set initial progress value
-  yield Saga.put.resolve(Creators.downloadProgress(messageKey, loadPreview, 0))
+  yield Saga.put.resolve(ChatGen.createDownloadProgress({messageKey, isPreview: loadPreview, progress: 0}))
 
   // Perform the download in a fork so that the next loadAttachment action can be handled.
   yield Saga.spawn(function*(): Generator<any, void, any> {
@@ -435,7 +441,7 @@ function attachmentLoaded(action: ChatGen.AttachmentLoadedPayload) {
   ])
 }
 
-function updateProgress(action: Constants.DownloadProgress | ChatGen.UploadProgressPayload) {
+function updateProgress(action: ChatGen.DownloadProgressPayload | ChatGen.UploadProgressPayload) {
   const {type, payload: {progress, messageKey}} = action
   if (type === 'chat:downloadProgress') {
     if (action.payload.isPreview) {
@@ -490,6 +496,19 @@ function* _logAttachmentLoaded(action: ChatGen.AttachmentLoadedPayload): Saga.Sa
   console.log('Load Attachment Loaded', JSON.stringify(toPrint, null, 2))
 }
 
+function* _logDownloadProgress(action: ChatGen.DownloadProgressPayload): Saga.SagaGenerator<any, any> {
+  const toPrint = {
+    payload: {
+      messageKey: action.payload.messageKey,
+      isPreview: action.payload.messageKey,
+      progress: action.payload.progress === 0 ? 'zero' : action.payload.progress === 1 ? 'one' : 'partial',
+    },
+    type: action.type,
+  }
+
+  console.log('Download Progress', JSON.stringify(toPrint, null, 2))
+}
+
 function* registerSagas(): SagaGenerator<any, any> {
   yield Saga.safeTakeSerially(ChatGen.loadAttachment, onLoadAttachment)
   yield Saga.safeTakeEvery(ChatGen.openAttachmentPopup, onOpenAttachmentPopup)
@@ -500,7 +519,7 @@ function* registerSagas(): SagaGenerator<any, any> {
   yield Saga.safeTakeEvery(ChatGen.selectAttachment, onSelectAttachment)
   yield Saga.safeTakeEvery('chat:shareAttachment', onShareAttachment)
   yield Saga.safeTakeEveryPure(ChatGen.attachmentLoaded, attachmentLoaded)
-  yield Saga.safeTakeEveryPure(['chat:downloadProgress', 'chat:uploadProgress'], updateProgress)
+  yield Saga.safeTakeEveryPure([ChatGen.downloadProgress, 'chat:uploadProgress'], updateProgress)
   yield Saga.safeTakeEveryPure(
     [ChatGen.attachmentSaveStart, ChatGen.attachmentSaveFailed, ChatGen.attachmentSaved],
     updateAttachmentSavePath
@@ -509,6 +528,7 @@ function* registerSagas(): SagaGenerator<any, any> {
   if (enableActionLogging) {
     yield Saga.safeTakeEvery(ChatGen.loadAttachmentPreview, _logLoadAttachmentPreview)
     yield Saga.safeTakeEvery(ChatGen.attachmentLoaded, _logAttachmentLoaded)
+    yield Saga.safeTakeEvery(ChatGen.downloadProgress, _logDownloadProgress)
   }
 }
 

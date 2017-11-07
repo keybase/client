@@ -26,6 +26,7 @@ export const clearMessages = 'chat:clearMessages'
 export const clearRekey = 'chat:clearRekey'
 export const deleteEntity = 'chat:deleteEntity'
 export const deleteMessage = 'chat:deleteMessage'
+export const downloadProgress = 'chat:downloadProgress'
 export const editMessage = 'chat:editMessage'
 export const exitSearch = 'chat:exitSearch'
 export const getInboxAndUnbox = 'chat:getInboxAndUnbox'
@@ -104,6 +105,7 @@ export const createClearMessages = (payload: {|conversationIDKey: Constants.Conv
 export const createClearRekey = (payload: {|conversationIDKey: Constants.ConversationIDKey|}) => ({error: false, payload, type: clearRekey})
 export const createDeleteEntity = (payload: {|keyPath: Array<string>, ids: Iterable<string>|}) => ({error: false, payload, type: deleteEntity})
 export const createDeleteMessage = (payload: {|message: Constants.Message|}) => ({error: false, payload, type: deleteMessage})
+export const createDownloadProgress = (payload: {|messageKey: Constants.MessageKey, isPreview: boolean, progress: ?number|}) => ({error: false, payload, type: downloadProgress})
 export const createEditMessage = (payload: {|message: Constants.Message, text: HiddenString|}) => ({error: false, payload, type: editMessage})
 export const createExitSearch = (payload: {|skipSelectPreviousConversation: boolean|}) => ({error: false, payload, type: exitSearch})
 export const createGetInboxAndUnbox = (payload: {|conversationIDKeys: Array<Constants.ConversationIDKey>|}) => ({error: false, payload, type: getInboxAndUnbox})
@@ -182,6 +184,7 @@ export type ClearMessagesPayload = ReturnType<typeof createClearMessages>
 export type ClearRekeyPayload = ReturnType<typeof createClearRekey>
 export type DeleteEntityPayload = ReturnType<typeof createDeleteEntity>
 export type DeleteMessagePayload = ReturnType<typeof createDeleteMessage>
+export type DownloadProgressPayload = ReturnType<typeof createDownloadProgress>
 export type EditMessagePayload = ReturnType<typeof createEditMessage>
 export type ExitSearchPayload = ReturnType<typeof createExitSearch>
 export type GetInboxAndUnboxPayload = ReturnType<typeof createGetInboxAndUnbox>
@@ -262,6 +265,7 @@ export type Actions =
   | ReturnType<typeof createClearRekey>
   | ReturnType<typeof createDeleteEntity>
   | ReturnType<typeof createDeleteMessage>
+  | ReturnType<typeof createDownloadProgress>
   | ReturnType<typeof createEditMessage>
   | ReturnType<typeof createExitSearch>
   | ReturnType<typeof createGetInboxAndUnbox>

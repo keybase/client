@@ -273,6 +273,11 @@
       "messageKey": "Constants.MessageKey",
       "path": "?string",
       "isPreview": "boolean"
+    },
+    "downloadProgress": {
+      "messageKey": "Constants.MessageKey",
+      "isPreview": "boolean",
+      "progress": "?number"
     }
   }
 }
