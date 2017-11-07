@@ -911,6 +911,8 @@ func (b *Boxer) getAtMentionInfo(ctx context.Context, tlfID chat1.TLFID,
 			&b.DebugLabeler)
 		channelNameMentions = utils.ParseChannelNameMentions(ctx, body.Edit().Body, uid, tlfID, membersType,
 			b.G().TeamChannelSource)
+	case chat1.MessageType_SYSTEM:
+		atMentions, chanMention = utils.SystemMessageMentions(ctx, body.System(), b.G().GetUPAKLoader())
 	default:
 		return nil, nil, chanMention, channelNameMentions
 	}

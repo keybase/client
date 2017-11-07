@@ -127,6 +127,9 @@ func (b *BadgeState) UpdateWithGregor(gstate gregor.State) error {
 				continue
 			}
 			for _, x := range body {
+				if x.TeamName == "" {
+					continue
+				}
 				b.state.NewTeamNames = append(b.state.NewTeamNames, x.TeamName)
 			}
 		case "team.request_access":
@@ -136,6 +139,9 @@ func (b *BadgeState) UpdateWithGregor(gstate gregor.State) error {
 				continue
 			}
 			for _, x := range body {
+				if x.TeamName == "" {
+					continue
+				}
 				b.state.NewTeamAccessRequests = append(b.state.NewTeamAccessRequests, x.TeamName)
 			}
 		}

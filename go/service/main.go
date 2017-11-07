@@ -299,6 +299,7 @@ func (d *Service) RunBackgroundOperations(uir *UIRouter) {
 	// backgrounded.
 	d.tryLogin()
 	d.hourlyChecks()
+	d.slowChecks()
 	d.createChatModules()
 	d.startupGregor()
 	d.startChatModules()
@@ -533,6 +534,26 @@ func (d *Service) hourlyChecks() {
 				d.G().Log.Debug("LogoutIfRevoked error: %s", err)
 			}
 			d.G().Log.Debug("- hourly check loop")
+		}
+	}()
+}
+
+func (d *Service) slowChecks() {
+	ticker := time.NewTicker(6 * time.Hour)
+	d.G().PushShutdownHook(func() error {
+		d.G().Log.Debug("stopping slowChecks loop")
+		ticker.Stop()
+		return nil
+	})
+	go func() {
+		for {
+			<-ticker.C
+			d.G().Log.Debug("+ slow checks loop")
+			d.G().Log.Debug("| checking if current device should log out")
+			if err := d.G().LogoutSelfCheck(); err != nil {
+				d.G().Log.Debug("LogoutSelfCheck error: %s", err)
+			}
+			d.G().Log.Debug("- slow checks loop")
 		}
 	}()
 }
