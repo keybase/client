@@ -1,7 +1,7 @@
 // @flow
 import Git from '.'
 import * as I from 'immutable'
-import * as Creators from '../actions/git/creators'
+import * as GitGen from '../actions/git-gen'
 import * as Constants from '../constants/git'
 import {compose, lifecycle, connect, type TypedState} from '../util/container'
 import {createSelector} from 'reselect'
@@ -34,18 +34,18 @@ const mapStateToProps = (state: TypedState, {routeState}) => {
 }
 
 const mapDispatchToProps = (dispatch: any, {navigateAppend, setRouteState, routeState, navigateUp}) => ({
-  _loadGit: () => dispatch(Creators.loadGit()),
+  _loadGit: () => dispatch(GitGen.createLoadGit()),
   onBack: () => dispatch(navigateUp()),
   onNewPersonalRepo: () => {
-    dispatch(Creators.setError(null))
+    dispatch(GitGen.createSetError({error: null}))
     dispatch(navigateAppend([{props: {isTeam: false}, selected: 'newRepo'}]))
   },
   onNewTeamRepo: () => {
-    dispatch(Creators.setError(null))
+    dispatch(GitGen.createSetError({error: null}))
     dispatch(navigateAppend([{props: {isTeam: true}, selected: 'newRepo'}]))
   },
   onShowDelete: (id: string) => {
-    dispatch(Creators.setError(null))
+    dispatch(GitGen.createSetError({error: null}))
     dispatch(navigateAppend([{props: {id}, selected: 'deleteRepo'}]))
   },
   onToggleExpand: (id: string) => {

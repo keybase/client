@@ -1,0 +1,89 @@
+{
+  "prelude": [
+    "import * as Constants from '../constants/login'",
+    "import HiddenString from '../util/hidden-string'"
+  ],
+  "actions": {
+    "startLogin": {},
+    "submitUsernameOrEmail": {
+      "usernameOrEmail": "string"
+    },
+    "relogin": {
+      "usernameOrEmail": "string",
+      "passphrase": "HiddenString",
+      "canError": {
+        "error": "Error"
+      }
+    },
+    "loginDone": {},
+    "submitPassphrase": {
+      "passphrase": "HiddenString",
+      "storeSecret": "boolean"
+    },
+    "someoneElse": {},
+    "onBack": {},
+    "onWont": {},
+    "onFinish": {},
+    "qrScanned": {
+      "phrase": "HiddenString"
+    },
+    "provisionTextCodeEntered": {
+      "phrase": "string"
+    },
+    "selectDeviceId": {
+      "deviceId": "string"
+    },
+    "chooseGPGMethod": {
+      "exportKey": "boolean"
+    },
+    "submitDeviceName": {
+      "deviceName": "string"
+    },
+    "setCodePageMode": {
+      "mode": "Constants.Mode"
+    },
+    "openAccountResetPage": {},
+    "setTextCode": {
+      "enterCodeErrorText": "string",
+      "textCode": "HiddenString"
+    },
+    "setQRCode": {
+      "qrCode": "HiddenString"
+    },
+    "clearQRCode": {},
+    "setMyDeviceCodeState": {
+      "state": "Constants.DeviceRole"
+    },
+    "setOtherDeviceCodeState": {
+      "state": "Constants.DeviceRole"
+    },
+    "provisioningError": {
+      "error": "Error"
+    },
+    "resetQRCodeScanned": {},
+    "logout": {},
+    "addNewDevice": {
+      "role": "Constants.DeviceRole"
+    },
+    "logoutDone": {},
+    "setCameraBrokenMode": {
+      "broken": "boolean"
+    },
+    "navBasedOnLoginAndInitialState": {},
+    "waitingForResponse": {
+      "waiting": "boolean"
+    },
+    "setRevokedSelf": {
+      "revoked": "string"
+    },
+    "setDeletedSelf": {
+      "deletedUsername": "string"
+    },
+    "configuredAccounts": {
+      "accounts": "?Array<{|hasStoredSecret: boolean, username: string|}>",
+      "canError": {
+        "error": "Error"
+      }
+    }
+  }
+}

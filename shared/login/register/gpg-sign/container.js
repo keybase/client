@@ -1,11 +1,11 @@
 // @flow
+import * as LoginGen from '../../../actions/login-gen'
+import {connect} from '../../../util/container'
 import GPGSign from '.'
-import {connect} from 'react-redux'
-import * as Creators from '../../../actions/login/creators'
 
 const mapDispatchToProps = dispatch => ({
-  onBack: () => dispatch(Creators.onBack()),
-  onSubmit: exportKey => dispatch(Creators.chooseGPGMethod(exportKey)),
+  onBack: () => dispatch(LoginGen.createOnBack()),
+  onSubmit: exportKey => dispatch(LoginGen.createChooseGPGMethod({exportKey})),
 })
 
 export default connect(null, mapDispatchToProps)(GPGSign)

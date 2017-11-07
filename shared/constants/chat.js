@@ -12,7 +12,7 @@ import {createSelector, createSelectorCreator, defaultMemoize} from 'reselect'
 import isEqualWith from 'lodash/isEqualWith'
 import {getPath, getPathState} from '../route-tree'
 import {parseUserId, serviceIdToIcon} from '../util/platforms'
-import {type DeviceType} from './types/more'
+import {type DeviceType} from './devices'
 import {type NoErrorTypedAction, type TypedAction} from './types/flux'
 import {type TypedState} from './reducer'
 import {type UserListItem} from '../common-adapters/usernames'
@@ -240,7 +240,7 @@ export type Message = ClientMessage | ServerMessage
 
 export type MaybeTimestamp = TimestampMessage | null
 
-export const ConversationStatusByEnum = invert(ChatTypes.CommonConversationStatus)
+export const ConversationStatusByEnum = invert(ChatTypes.commonConversationStatus)
 type _ConversationState = {
   moreToLoad: ?boolean,
   isLoaded: boolean,
@@ -277,7 +277,7 @@ export const ConversationBadgeStateRecord: I.RecordFactory<_ConversationBadgeSta
   badgeCounts: {},
 })
 
-export type ConversationStateEnum = $Keys<typeof ChatTypes.CommonConversationStatus>
+export type ConversationStateEnum = $Keys<typeof ChatTypes.commonConversationStatus>
 
 export type NotificationsKindState = {
   generic: boolean,
@@ -327,8 +327,8 @@ export const makeInboxState: I.RecordFactory<_InboxState> = I.Record({
   status: 'unfiled',
   time: 0,
   name: '',
-  visibility: RPCTypes.CommonTLFVisibility.private,
-  teamType: ChatTypes.CommonTeamType.none,
+  visibility: RPCTypes.commonTLFVisibility.private,
+  teamType: ChatTypes.commonTeamType.none,
   version: 0,
 })
 
@@ -672,7 +672,7 @@ function makeTeamTitle(messageBody: ?ChatTypes.MessageBody): ?string {
     return null
   }
   switch (messageBody.messageType) {
-    case ChatTypes.CommonMessageType.metadata:
+    case ChatTypes.commonMessageType.metadata:
       return messageBody.metadata ? `#${messageBody.metadata.conversationTitle}` : '<none>'
     default:
       return null
@@ -736,19 +736,19 @@ function clampAttachmentPreviewSize({width, height}: AttachmentSize) {
 }
 
 function parseMetadataPreviewSize(metadata: ChatTypes.AssetMetadata): ?AttachmentSize {
-  if (metadata.assetType === ChatTypes.LocalAssetMetadataType.image && metadata.image) {
+  if (metadata.assetType === ChatTypes.localAssetMetadataType.image && metadata.image) {
     return clampAttachmentPreviewSize(metadata.image)
-  } else if (metadata.assetType === ChatTypes.LocalAssetMetadataType.video && metadata.video) {
+  } else if (metadata.assetType === ChatTypes.localAssetMetadataType.video && metadata.video) {
     return clampAttachmentPreviewSize(metadata.video)
   }
 }
 
 function getAssetDuration(assetMetadata: ?ChatTypes.AssetMetadata): ?number {
-  const assetIsVideo = assetMetadata && assetMetadata.assetType === ChatTypes.LocalAssetMetadataType.video
+  const assetIsVideo = assetMetadata && assetMetadata.assetType === ChatTypes.localAssetMetadataType.video
   if (assetIsVideo) {
     const assetVideoMetadata =
       assetMetadata &&
-      assetMetadata.assetType === ChatTypes.LocalAssetMetadataType.video &&
+      assetMetadata.assetType === ChatTypes.localAssetMetadataType.video &&
       assetMetadata.video
     return assetVideoMetadata ? assetVideoMetadata.durationMs : null
   }
