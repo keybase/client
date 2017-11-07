@@ -1399,7 +1399,8 @@ func (g *gregorHandler) connectTLS() error {
 		WrapErrorFunc:    libkb.MakeWrapError(g.G().ExternalG()),
 		ReconnectBackoff: func() backoff.BackOff { return constBackoff },
 	}
-	g.conn = rpc.NewTLSConnection(uri.HostPort, []byte(rawCA), libkb.NewContextifiedErrorUnwrapper(g.G().ExternalG()), g, libkb.NewRPCLogFactory(g.G().ExternalG()), g.G().Log, opts)
+	g.conn = rpc.NewTLSConnection(rpc.NewFixedRemote(uri.HostPort),
+		[]byte(rawCA), libkb.NewContextifiedErrorUnwrapper(g.G().ExternalG()), g, libkb.NewRPCLogFactory(g.G().ExternalG()), g.G().Log, opts)
 
 	// The client we get here will reconnect to gregord on disconnect if necessary.
 	// We should grab it here instead of in OnConnect, since the connection is not
