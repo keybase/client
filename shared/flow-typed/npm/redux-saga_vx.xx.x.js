@@ -3,7 +3,9 @@
  * Shared interfaces between the modules 'redux-saga' and
  * 'redux-saga/effects'
  *
+This
 https://gist.githubusercontent.com/TomiS/feabd0da885c4cf61065c258ef144ed8/raw/e3d890ebdd2254e50ceb58107c55d3662626da46/redux-saga_v0.15.x.js
+plus support for select() and resolve.put()
  */
 declare interface $npm$ReduxSaga$Channel {
   take: (cb: (msg: mixed) => void) => void,

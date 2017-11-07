@@ -205,6 +205,7 @@ function safeTakeSerially(pattern: string | Array<any> | Function, worker: Funct
     }
   }
 
+  // $FlowIssue confused
   return fork(function* safeTakeSeriallyForkWorker() {
     const chan = yield actionChannel(pattern, buffers.expanding(10))
     while (true) {

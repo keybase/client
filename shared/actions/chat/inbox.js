@@ -39,11 +39,12 @@ const _getInboxQuery = {
 // Update inboxes that have been reset
 function* _updateFinalized(inbox: RPCChatTypes.UnverifiedInboxUIItems): Generator<any, void, any> {
   const finalizedState: Constants.FinalizedState = I.Map(
-    (inbox.conversationsUnverified || []).filter(c => c.metadata.finalizeInfo).map(convoUnverified => [
-      Constants.conversationIDToKey(convoUnverified.metadata.conversationID),
-      // $FlowIssue doesn't understand this is non-null
-      convoUnverified.metadata.finalizeInfo,
-    ])
+    (inbox.conversationsUnverified || [])
+      .filter(c => c.metadata.finalizeInfo)
+      .map(convoUnverified => [
+        Constants.conversationIDToKey(convoUnverified.metadata.conversationID),
+        convoUnverified.metadata.finalizeInfo,
+      ])
   )
 
   if (finalizedState.count()) {
