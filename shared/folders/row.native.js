@@ -2,11 +2,11 @@
 import * as React from 'react'
 import type {Folder} from './list'
 import type {IconType} from '../common-adapters/icon'
-import {Box, Text, Icon, MultiAvatar, Meta, ClickableBox} from '../common-adapters/index.native'
+import {Avatar, Box, Text, Icon, MultiAvatar, Meta, ClickableBox} from '../common-adapters/index.native'
 import {getStyle} from '../common-adapters/text'
 import {globalStyles, globalColors, globalMargins} from '../styles'
 
-const Avatars = ({styles, users, ignored, isPublic}) => {
+const Avatars = ({styles, users, ignored, isPublic, isTeam}) => {
   if (!isPublic && users.length > 1) {
     users = users.filter(({you}) => !you)
   }
@@ -19,18 +19,26 @@ const Avatars = ({styles, users, ignored, isPublic}) => {
     username,
   }))
 
+  let teamname = 'unknown'
+  if (isTeam && users.length > 0) {
+    teamname = users[0].username
+  }
+
   return (
     <Box
       style={{
         ...globalStyles.flexBoxRow,
-        alignItems: 'flex-start',
+        alignItems: 'center',
         height: 56,
         justifyContent: 'flex-start',
         padding: globalMargins.xtiny,
         width: 56,
       }}
     >
-      <MultiAvatar singleSize={40} multiSize={32} avatarProps={avatarProps} style={{opacity}} />
+
+      {isTeam
+        ? <Avatar size={40} teamname={teamname} style={{opacity}} />
+        : <MultiAvatar singleSize={40} multiSize={32} avatarProps={avatarProps} style={{opacity}} />}
     </Box>
   )
 }
@@ -99,6 +107,7 @@ const RowMeta = ({meta, styles}) => {
 const Row = ({
   users,
   isPublic,
+  isTeam,
   ignored,
   meta,
   modified,
@@ -126,7 +135,7 @@ const Row = ({
     <ClickableBox onClick={clickHandler}>
       <Box style={containerStyle}>
         <Box style={{...globalStyles.flexBoxRow, alignItems: 'center'}}>
-          <Avatars users={users} styles={styles} isPublic={isPublic} ignored={ignored} />
+          <Avatars users={users} isTeam={isTeam} styles={styles} isPublic={isPublic} ignored={ignored} />
           <Box style={stylesBodyContainer}>
             <Names
               users={users}
