@@ -116,7 +116,8 @@ const _setNotifications = function*(
   const {payload: {conversationIDKey}} = action
 
   // update the one in the store
-  const old = yield Saga.select(s => s.inbox.get(conversationIDKey))
+  const state = yield Saga.select()
+  const old = state.chat.inbox.get(conversationIDKey)
   if (old) {
     let nextNotifications = {}
 
