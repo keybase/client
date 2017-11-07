@@ -709,11 +709,11 @@ func (e *Env) GetBundledCA(host string) string {
 	return e.GetString(
 		func() string { return e.config.GetBundledCA(host) },
 		func() string {
-			ret, ok := BundledCAs[host]
+			ret, ok := GetBundledCAsFromHost(host)
 			if !ok {
-				ret = ""
+				return ""
 			}
-			return ret
+			return string(ret)
 		},
 	)
 }
