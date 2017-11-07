@@ -34,6 +34,7 @@ export type Folder = {
     username: string,
   },
   isPublic: boolean,
+  isTeam: boolean,
   ignored: boolean,
   hasData: boolean,
   recentFiles: Array<FileSection>, // TODO make pure

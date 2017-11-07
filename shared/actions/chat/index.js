@@ -92,7 +92,11 @@ function* _setupChatHandlers(): Saga.SagaGenerator<any, any> {
 }
 
 function* _openTlfInChat(action: ChatGen.OpenTlfInChatPayload): Saga.SagaGenerator<any, any> {
-  const tlf = action.payload.tlf
+  const {payload: {tlf, isTeam}} = action
+  if (isTeam) {
+    yield Saga.put(ChatGen.createOpenTeamConversation({teamname: tlf, channelname: 'general'}))
+    return
+  }
   const me = yield Saga.select(Selectors.usernameSelector)
   const userlist = parseFolderNameToUsers(me, tlf)
   const users = userlist.map(u => u.username)
