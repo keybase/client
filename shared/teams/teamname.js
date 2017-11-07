@@ -1,4 +1,5 @@
 // @flow
+import * as I from 'immutable'
 
 // This logic is copied from go/protocol/keybase1/extras.go.
 
@@ -15,6 +16,13 @@ const validTeamname = (s: string): boolean => {
 }
 
 type Teamname = string
+
+type _MemberInfo = {
+  type: ?TeamRoleType,
+  username: string,
+}
+
+type MemberInfo = I.RecordOf<_MemberInfo>
 
 const baseTeamname = (teamname: Teamname): ?Teamname => {
   const i = teamname.lastIndexOf('.')
@@ -41,4 +49,21 @@ const ancestorTeamnames = (teamname: Teamname): Teamname[] => {
   return ancestors
 }
 
-export {validTeamname, baseTeamname, ancestorTeamnames}
+const isExplicitAdmin = (memberInfo: I.Set<MemberInfo>, user: string) => {
+  const info = memberInfo.find(member => member.username === user)
+  return info && (info.type === 'owner' || info.type === 'admin')
+}
+
+const isImplicitAdmin = (ancestorMemberInfo: I.Map<Teamname, I.Set<MemberInfo>>, user: string) => {
+  return ancestorMemberInfo.some(memberInfo => isExplicitAdmin(memberInfo, user))
+}
+
+const isAdmin = (
+  memberInfo: I.Set<MemberInfo>,
+  ancestorMemberInfo: I.Map<Teamname, I.Set<MemberInfo>>,
+  user: string
+) => {
+  return isExplicitAdmin(memberInfo, user) || isImplicitAdmin(ancestorMemberInfo, user)
+}
+
+export {validTeamname, baseTeamname, ancestorTeamnames, isAdmin}

@@ -12,7 +12,7 @@ import {getProfile} from '../../actions/tracker'
 import {isMobile} from '../../constants/platform'
 import {navigateAppend} from '../../actions/route-tree'
 import {showUserProfile} from '../../actions/profile'
-import {ancestorTeamnames} from '../teamname'
+import {ancestorTeamnames, isAdmin} from '../teamname'
 
 type StateProps = {
   _memberInfo: I.Set<Constants.MemberInfo>,
@@ -90,26 +90,6 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, setRouteState, rout
       ])
     ),
 })
-
-const isExplicitAdmin = (memberInfo: I.Set<Constants.MemberInfo>, user: string) => {
-  const info = memberInfo.find(member => member.username === user)
-  return info && (info.type === 'owner' || info.type === 'admin')
-}
-
-const isImplicitAdmin = (
-  ancestorMemberInfo: I.Map<Constants.Teamname, I.Set<Constants.MemberInfo>>,
-  user: string
-) => {
-  return ancestorMemberInfo.some(memberInfo => isExplicitAdmin(memberInfo, user))
-}
-
-const isAdmin = (
-  memberInfo: I.Set<Constants.MemberInfo>,
-  ancestorMemberInfo: I.Map<Constants.Teamname, I.Set<Constants.MemberInfo>>,
-  user: string
-) => {
-  return isExplicitAdmin(memberInfo, user) || isImplicitAdmin(ancestorMemberInfo, user)
-}
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => {
   const onAddPeople = () => dispatchProps._onAddPeople(stateProps.name)
