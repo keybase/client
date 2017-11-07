@@ -200,15 +200,10 @@ class Team extends React.PureComponent<Props> {
           !loading &&
           <Box style={{...globalStyles.flexBoxColumn, alignSelf: 'stretch', flexGrow: 1}}>
             <Box style={{...globalStyles.flexBoxRow, flexGrow: 1}}>
-            <List
-                keyProperty="key"
-                items={requestProps}
-                fixedHeight={48}
-                renderItem={TeamRequestRow}
-              />
-          </Box>
-          <Box style={{...globalStyles.flexBoxRow, flexGrow: 1}}>
-            <List
+              <List keyProperty="key" items={requestProps} fixedHeight={48} renderItem={TeamRequestRow} />
+            </Box>
+            <Box style={{...globalStyles.flexBoxRow, flexGrow: 1}}>
+              <List
                 keyProperty="key"
                 items={inviteProps}
                 fixedHeight={48}
@@ -216,8 +211,8 @@ class Team extends React.PureComponent<Props> {
                 style={{alignSelf: 'stretch'}}
                 containerStyle={{position: 'relative'}}
               />
+            </Box>
           </Box>
-        </Box>
       }
     } else if (selectedTab === 'publicity') {
       const teamsLink = 'keybase.io/popular-teams'
@@ -231,7 +226,12 @@ class Team extends React.PureComponent<Props> {
             }}
           >
             <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center'}}>
-              <Checkbox checked={publicityTeam} label="" onCheck={setPublicityTeam} style={{paddingRight: globalMargins.xtiny}} />
+              <Checkbox
+                checked={publicityTeam}
+                label=""
+                onCheck={setPublicityTeam}
+                style={{paddingRight: globalMargins.xtiny}}
+              />
             </Box>
             <Box style={{...globalStyles.flexBoxColumn, flexShrink: 1}}>
               <Text type="Body">
@@ -253,7 +253,12 @@ class Team extends React.PureComponent<Props> {
             }}
           >
             <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center'}}>
-              <Checkbox checked={publicityMember} label="" onCheck={setPublicityMember} style={{paddingRight: globalMargins.xtiny}} />
+              <Checkbox
+                checked={publicityMember}
+                label=""
+                onCheck={setPublicityMember}
+                style={{paddingRight: globalMargins.xtiny}}
+              />
             </Box>
             <Box style={{...globalStyles.flexBoxColumn, flexShrink: 1}}>
               <Text type="Body">
