@@ -52,7 +52,7 @@ function* _deviceShowRevokePageSaga(action: Constants.ShowRevokePage): SagaGener
     const actingDevice = state.config.deviceID
     if (actingDevice) {
       endangeredTLFs = yield call(RPCTypes.rekeyGetRevokeWarningRpcPromise, {
-        param: {targetDevice: deviceID, actingDevice, session: 0}, // AVDL has a bug where session should be sessionID
+        param: {targetDevice: deviceID, actingDevice},
       })
     }
   } catch (e) {
