@@ -109,7 +109,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     youImplicitAdmin = isImplicitAdmin(stateProps._ancestorMemberInfo, you)
     youAreMember = stateProps._memberInfo.some(member => member.username === you)
   }
-  const youAdmin = youExplicitAdmin && youImplicitAdmin
+  const youAdmin = youExplicitAdmin || youImplicitAdmin
 
   const showAddYourselfBanner = !youAreMember && !youExplicitAdmin && youImplicitAdmin
   const youCanAddPeople = youAdmin
