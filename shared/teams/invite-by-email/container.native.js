@@ -17,6 +17,18 @@ import {type OwnProps} from './container'
 import {isAndroid} from '../../constants/platform'
 import {getContacts} from './permissions'
 
+const cleanPhoneNumber: string => string = (dirty: string) => {
+  return dirty.replace(/\D/g, '')
+}
+
+const extractPhoneNumber: string => ?string = (name: string) => {
+  const matches = /\((.*)\)/.exec(name)
+  if (matches[1]) {
+    return cleanPhoneNumber(matches[1])
+  }
+  return ''
+}
+
 const mapStateToProps = (state: TypedState, {routeProps}: OwnProps) => {
   const teamname = routeProps.get('teamname')
   return {
@@ -94,21 +106,32 @@ export default compose(
           if (rec.email) {
             return rec.email === addr
           } else if (rec.name) {
-            const matches = /\((.*)\)/.exec(rec.name)
-            if (matches[1]) {
+            const recPhoneNumber = extractPhoneNumber(rec.name)
+            if (recPhoneNumber) {
               // Check bare numbers against one another
-              return matches[1].replace(/\D/g, '') === addr.replace(/\D/g, '')
+              return recPhoneNumber === cleanPhoneNumber(addr)
             }
           }
           return false
         })
       },
-      isLoading: ({loadingInvites}) => (email: ?string, phoneNo: ?string): boolean => {
-        const cleanPhoneNo = phoneNo && phoneNo.replace(/\D/g, '')
-        if (cleanPhoneNo) {
-          return loadingInvites.get(cleanPhoneNo)
+      isLoading: ({loadingInvites, _pendingInvites}) => (email: ?string, phoneNo: ?string): boolean => {
+        if (email) {
+          return loadingInvites.get(email)
         }
-        return !!email && loadingInvites.get(email)
+        const relevantInvite = _pendingInvites.find(rec => {
+          if (rec.name) {
+            const recPhoneNumber = extractPhoneNumber(rec.name)
+            if (recPhoneNumber) {
+              // Check bare numbers against one another
+              return recPhoneNumber === cleanPhoneNumber(phoneNo || '')
+            }
+          }
+        })
+        if (relevantInvite) {
+          return loadingInvites.get(relevantInvite.id)
+        }
+        return false
       },
     }),
     // Delegate to add / remove
@@ -134,12 +157,10 @@ export default compose(
           } else if (contact.phoneNo) {
             const relevantInvite = _pendingInvites.find(rec => {
               if (rec.name) {
-                const matches = /\((.*)\)/.exec(rec.name)
-                if (matches[1]) {
+                const recPhoneNumber = extractPhoneNumber(rec.name)
+                if (recPhoneNumber) {
                   // Check bare numbers against one another
-                  return (
-                    matches[1].replace(/\D/g, '') === (contact.phoneNo && contact.phoneNo.replace(/\D/g, ''))
-                  )
+                  return recPhoneNumber === cleanPhoneNumber(contact.phoneNo || '')
                 }
               }
             })
@@ -168,7 +189,7 @@ export default compose(
           }
           res.push({
             id: contact.recordID + (addr.email ? addr.email : addr.number),
-            loading: props.isLoading(addr.email, addr.phoneNo),
+            loading: props.isLoading(addr.email, addr.number),
             contact: cData,
             selected: props.isSelected(cData.email || cData.phoneNo, cData.name),
             onClick: () => props.onSelectContact(cData),
