@@ -6,7 +6,7 @@ import * as I from 'immutable'
 import * as RPCTypes from '../../constants/types/flow-types'
 import * as Saga from '../../util/saga'
 import * as Selectors from '../../constants/selectors'
-import _ from 'lodash'
+import isEqual from 'lodash/isEqual'
 import keyBy from 'lodash/keyBy'
 import trim from 'lodash/trim'
 import {SearchError} from '../../util/errors'
@@ -267,7 +267,7 @@ function* addResultsToUserInput({payload: {searchKey, searchResults}}: Constants
     )
   )
   const ids = yield Saga.select(Constants.getUserInputItemIds, {searchKey})
-  if (!_.isEqual(oldIds, ids)) {
+  if (!isEqual(oldIds, ids)) {
     yield Saga.put(Creators.userInputItemsUpdated(searchKey, ids))
   }
 }
@@ -280,14 +280,14 @@ function* removeResultsToUserInput({
     EntityAction.subtractEntity(['search', 'searchKeyToUserInputItemIds', searchKey], I.List(searchResults))
   )
   const ids = yield Saga.select(Constants.getUserInputItemIds, {searchKey})
-  if (!_.isEqual(oldIds, ids)) {
+  if (!isEqual(oldIds, ids)) {
     yield Saga.put(Creators.userInputItemsUpdated(searchKey, ids))
   }
 }
 
 function* setUserInputItems({payload: {searchKey, searchResults}}: Constants.SetUserInputItems) {
   const ids = yield Saga.select(Constants.getUserInputItemIds, {searchKey})
-  if (!_.isEqual(ids, searchResults)) {
+  if (!isEqual(ids, searchResults)) {
     yield Saga.put.resolve(
       EntityAction.replaceEntity(
         ['search', 'searchKeyToUserInputItemIds'],
