@@ -1,5 +1,6 @@
 // @flow
 import * as I from 'immutable'
+import * as RPCTypes from './types/flow-types'
 import type {NoErrorTypedAction} from './types/flux'
 
 export type Load = NoErrorTypedAction<'devices:load', void>
@@ -50,4 +51,30 @@ const makeState: I.RecordFactory<_State> = I.Record({
   waitingForServer: false,
 })
 
-export {makeState, makeDeviceDetail}
+export type DeviceType = 'mobile' | 'desktop' | 'backup'
+export type Device = {
+  name: string,
+  deviceID: RPCTypes.DeviceID,
+  type: DeviceType,
+  created: RPCTypes.Time,
+  currentDevice: boolean,
+  provisioner: ?RPCTypes.Device,
+  provisionedAt: ?RPCTypes.Time,
+  revokedAt: ?RPCTypes.Time,
+  lastUsed: ?RPCTypes.Time,
+}
+
+// Converts a string to the DeviceType enum, logging an error if it doesn't match
+function toDeviceType(s: string): DeviceType {
+  switch (s) {
+    case 'mobile':
+    case 'desktop':
+    case 'backup':
+      return s
+    default:
+      console.log('Unknown Device Type %s. Defaulting to `desktop`', s)
+      return 'desktop'
+  }
+}
+
+export {makeState, makeDeviceDetail, toDeviceType}

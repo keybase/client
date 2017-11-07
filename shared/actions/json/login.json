@@ -80,7 +80,7 @@
       "deletedUsername": "string"
     },
     "configuredAccounts": {
-      "accounts": "?Array<{hasStoredSecret: boolean, username: string}>",
+      "accounts": "?Array<{|hasStoredSecret: boolean, username: string|}>",
       "canError": {
         "error": "Error"
       }

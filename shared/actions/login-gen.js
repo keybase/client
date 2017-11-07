@@ -46,7 +46,7 @@ export const waitingForResponse = 'login:waitingForResponse'
 export const createAddNewDevice = (payload: {|role: Constants.DeviceRole|}) => ({error: false, payload, type: addNewDevice})
 export const createChooseGPGMethod = (payload: {|exportKey: boolean|}) => ({error: false, payload, type: chooseGPGMethod})
 export const createClearQRCode = () => ({error: false, payload: undefined, type: clearQRCode})
-export const createConfiguredAccounts = (payload: {|accounts: ?Array<{hasStoredSecret: boolean, username: string}>|}) => ({error: false, payload, type: configuredAccounts})
+export const createConfiguredAccounts = (payload: {|accounts: ?Array<{|hasStoredSecret: boolean, username: string|}>|}) => ({error: false, payload, type: configuredAccounts})
 export const createConfiguredAccountsError = (payload: {|error: Error|}) => ({error: true, payload, type: configuredAccounts})
 export const createLoginDone = () => ({error: false, payload: undefined, type: loginDone})
 export const createLogout = () => ({error: false, payload: undefined, type: logout})

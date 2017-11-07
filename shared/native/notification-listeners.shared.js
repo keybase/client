@@ -5,7 +5,7 @@ import {receivedBadgeState} from '../actions/notifications'
 import throttle from 'lodash/throttle'
 
 import type {Dispatch} from '../constants/types/flux'
-import type {incomingCallMapType} from '../constants/types/flow-types'
+import type {IncomingCallMapType} from '../constants/types/flow-types'
 
 // Keep track of the last time we notified and ignore if its the same
 let lastLoggedInNotifyUsername = null
@@ -13,7 +13,7 @@ let lastLoggedInNotifyUsername = null
 // We get a counter for badge state, if we get one that's less than what we've seen we toss it
 let lastBadgeStateVersion = -1
 
-export default function(dispatch: Dispatch, getState: () => Object, notify: any): incomingCallMapType {
+export default function(dispatch: Dispatch, getState: () => Object, notify: any): IncomingCallMapType {
   const throttledDispatch = throttle(action => dispatch(action), 1000, {
     leading: false,
     trailing: true,
@@ -50,7 +50,7 @@ export default function(dispatch: Dispatch, getState: () => Object, notify: any)
       dispatch(ConfigGen.createBootstrap({}))
       response.result()
     },
-    'keybase.1.NotifySession.loggedOut': params => {
+    'keybase.1.NotifySession.loggedOut': () => {
       lastBadgeStateVersion = -1
       lastLoggedInNotifyUsername = null
 

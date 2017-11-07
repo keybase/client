@@ -26,13 +26,13 @@ function* _loadGit(action: GitGen.LoadGitPayload): Saga.SagaGenerator<any, any> 
 
     for (let i = 0; i < results.length; i++) {
       const repoResult = results[i]
-      if (repoResult.state === RPCTypes.GitGitRepoResultState.ok && repoResult.ok) {
+      if (repoResult.state === RPCTypes.gitGitRepoResultState.ok && repoResult.ok) {
         const r: RPCTypes.GitRepoInfo = repoResult.ok
         if (!r.folder.private) {
           // Skip public repos
           continue
         }
-        const teamname = r.folder.folderType === RPCTypes.FavoriteFolderType.team ? r.folder.name : null
+        const teamname = r.folder.folderType === RPCTypes.favoriteFolderType.team ? r.folder.name : null
         idToInfo[r.globalUniqueID] = Constants.makeGitInfo({
           canDelete: r.canDelete,
           devicename: r.serverMetadata.lastModifyingDeviceName,
@@ -45,7 +45,7 @@ function* _loadGit(action: GitGen.LoadGitPayload): Saga.SagaGenerator<any, any> 
         })
       } else {
         let errStr: string = 'unknown'
-        if (repoResult.state === RPCTypes.GitGitRepoResultState.err && repoResult.err) {
+        if (repoResult.state === RPCTypes.gitGitRepoResultState.err && repoResult.err) {
           errStr = repoResult.err
         }
         yield Saga.put(

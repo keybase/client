@@ -41,7 +41,7 @@ export type State = {
     qrScanned: ?QRCode,
     textCode: ?HiddenString,
   },
-  configuredAccounts: ?Array<{hasStoredSecret: boolean, username: string}>,
+  configuredAccounts: ?Array<{|hasStoredSecret: boolean, username: string|}>,
   forgotPasswordEmailAddress: string | '',
   forgotPasswordError: ?Error,
   forgotPasswordSubmitting: boolean,

@@ -155,7 +155,7 @@ function* toggleNotificationsSaga(): SagaGenerator<any, any> {
         // Special case this since it will go to chat settings endpoint
         for (const key in group.settings) {
           const setting = group.settings[key]
-          chatGlobalArg[`${ChatTypes.CommonGlobalAppNotificationSetting[setting.name]}`] = setting.subscribed
+          chatGlobalArg[`${ChatTypes.commonGlobalAppNotificationSetting[setting.name]}`] = setting.subscribed
         }
       } else {
         for (const key in group.settings) {
@@ -390,7 +390,7 @@ function* refreshNotificationsSaga(): SagaGenerator<any, any> {
         name: 'plaintextmobile',
         description: 'Display mobile plaintext notifications',
         subscribed: chatGlobalSettings.settings[
-          `${ChatTypes.CommonGlobalAppNotificationSetting.plaintextmobile}`
+          `${ChatTypes.commonGlobalAppNotificationSetting.plaintextmobile}`
         ],
       },
     ],

@@ -37,7 +37,7 @@ const waitForKBFS = (): AsyncAction => dispatch =>
     }, 10 * 1000)
 
     RPCTypes.configWaitForClientRpcPromise({
-      param: {clientType: RPCTypes.CommonClientType.kbfs, timeout: 10.0},
+      param: {clientType: RPCTypes.commonClientType.kbfs, timeout: 10.0},
     })
       .then(found => {
         clearTimeout(timer)
