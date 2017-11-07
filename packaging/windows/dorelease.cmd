@@ -37,7 +37,7 @@ IF %ERRORLEVEL% NEQ 0 goto:build_error || EXIT /B 1
 signtool verify /all /kp /v Win10_Sys | find "Issued to: Microsoft Windows Hardware Compatibility Publisher"
 IF %ERRORLEVEL% NEQ 0 goto:build_error || EXIT /B 1
 
-:donechecking 
+:donechecking
 
 call:checkout_keybase client, %ClientRevision% || goto:build_error || EXIT /B 1
 call:checkout_keybase kbfs, %KBFSRevision% || goto:build_error || EXIT /B 1
@@ -47,7 +47,7 @@ call:checkout_keybase release, %ReleaseRevision% || goto:build_error || EXIT /B 
 ::wait for CI
 if [%UpdateChannel%] == [SmokeCI] (
     for /f %%i in ('git -C %GOPATH%\src\github.com\keybase\client rev-parse --short HEAD') do set clientCommit=%%i
-    for /f %%i in ('git -C %GOPATH%\src\github.com\keybase\kbfs rev-parse --short HEAD') do set kbfsCommit=%%i    
+    for /f %%i in ('git -C %GOPATH%\src\github.com\keybase\kbfs rev-parse --short HEAD') do set kbfsCommit=%%i
     :: need GITHUB_TOKEN
     pushd %GOPATH%\src\github.com\keybase\release
     go build || goto:build_error || EXIT /B 1
@@ -56,7 +56,7 @@ if [%UpdateChannel%] == [SmokeCI] (
     popd
 )
 
-:done_ci 
+:done_ci
 
 for /F delims^=^"^ tokens^=2 %%x in ('findstr /C:"Version = " %GOPATH%\src\github.com\keybase\client\go\libkb\version.go') do set LIBKB_VER=%%x
 
@@ -143,7 +143,7 @@ call %GOPATH%\src\github.com\keybase\client\packaging\windows\dorelease.cmd || E
 
 EXIT /B 0
 
-:no_smokea 
+:no_smokea
 
 ::Publish smoke updater jsons to S3
 if [%UpdateChannel%] NEQ [Smoke2] (
@@ -155,8 +155,8 @@ if [%UpdateChannel%] NEQ [Smoke2] (
 s3browser-con upload prerelease.keybase.io  %GOPATH%\src\github.com\keybase\client\packaging\windows\%BUILD_TAG%\*.json prerelease.keybase.io/windows-support  || goto:build_error || EXIT /B 1
 set smokeBSemVer=%KEYBASE_VERSION%
 %GOPATH%\src\github.com\keybase\release\release announce-build --build-a="%SmokeASemVer%" --build-b="%smokeBSemVer%" --platform="windows" || goto:build_error || EXIT /B 1
-%OUTPUT% "Successfully built Windows: --build-a=%SmokeASemVer% --build-b=%smokeBSemVer% 
-:no_smokeb 
+%OUTPUT% "Successfully built Windows: --build-a=%SmokeASemVer% --build-b=%smokeBSemVer%
+:no_smokeb
 
 echo %ERRORLEVEL%
 
