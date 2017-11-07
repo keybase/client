@@ -175,10 +175,18 @@ const _inviteToTeamByPhone = function*(action: Constants.InviteToTeamByPhone) {
       label: {t: 1, sms: {f: fullName, n: phoneNumber}},
     },
   })
-  openSMS(
-    phoneNumber,
-    `Hello! Join my team on Keybase!\n\nLog in at keybase.io\n\n Your invite token is ${seitan}`
-  )
+
+  /* Open SMS */
+  // seitan is 16chars
+  // message sans teamname is 134chars long. Absolute max teamname can be is 26chars to fit within 160 sms limit
+  // limit teamname to 15chars (+3 for ellipsis) to leave some wiggle room
+  let clippedTeamname = teamname
+  if (clippedTeamname.length > 18) {
+    clippedTeamname = `...${teamname.substring(teamname.length - 15)}`
+  }
+  const bodyText = `Please join the ${clippedTeamname} team on Keybase. Install and paste this in the "Teams" tab:\n\ntoken: ${seitan.toUpperCase()}\n\nquick install: keybase.io/_/go`
+  openSMS(phoneNumber, bodyText)
+
   yield all([
     put(
       replaceEntity(['teams', 'teamNameToLoadingInvites'], I.Map([[teamname, I.Map([[phoneNumber, false]])]]))
