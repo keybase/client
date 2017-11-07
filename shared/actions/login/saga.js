@@ -33,7 +33,7 @@ const InputCancelError = {
 
 const codePageSelector = ({login: {codePage}}: TypedState) => codePage
 
-function* generateQRCode() {
+function* generateQRCode(): Generator<any, void, any> {
   const state: TypedState = yield Saga.select()
   const codePage = codePageSelector(state)
 
@@ -71,7 +71,7 @@ const getAccounts = (): AsyncAction => dispatch =>
       })
   })
 
-function* setCodePageOtherDeviceRole(otherDeviceRole: Constants.DeviceRole) {
+function* setCodePageOtherDeviceRole(otherDeviceRole: Constants.DeviceRole): Generator<any, void, any> {
   const state: TypedState = yield Saga.select()
   const codePage = codePageSelector(state)
   if (codePage.myDeviceRole == null) {
@@ -155,7 +155,11 @@ function* navBasedOnLoginAndInitialState(): Saga.SagaGenerator<any, any> {
   }
 }
 
-const kex2Sagas = (onBackSaga, provisionerSuccessSaga, getPassphraseSaga = defaultGetPassphraseSaga) => ({
+const kex2Sagas = (
+  onBackSaga: () => Generator<any, void, any>,
+  provisionerSuccessSaga,
+  getPassphraseSaga = defaultGetPassphraseSaga
+) => ({
   'keybase.1.gpgUi.selectKey': selectKeySaga,
   'keybase.1.loginUi.displayPrimaryPaperKey': displayPrimaryPaperKeySaga(onBackSaga),
   'keybase.1.loginUi.getEmailOrUsername': getEmailOrUsernameSaga(onBackSaga),
@@ -169,7 +173,7 @@ const kex2Sagas = (onBackSaga, provisionerSuccessSaga, getPassphraseSaga = defau
   'keybase.1.secretUi.getPassphrase': getPassphraseSaga(onBackSaga),
 })
 
-function* cancelLogin() {
+function* cancelLogin(): Generator<any, void, any> {
   const getNumAccounts = (state: TypedState) =>
     state.login.configuredAccounts && state.login.configuredAccounts.length
   const numAccounts = yield Saga.select(getNumAccounts)
@@ -430,7 +434,7 @@ const defaultGetPassphraseSaga = onBackSaga =>
     }
   }
 
-function* handleProvisioningError(error) {
+function* handleProvisioningError(error): Generator<any, void, any> {
   yield Saga.put(LoginGen.createProvisioningError({error}))
   yield Saga.put(
     navigateAppend(
@@ -449,7 +453,7 @@ function* handleProvisioningError(error) {
   yield Saga.call(cancelLogin)
 }
 
-function* loginFlowSaga(usernameOrEmail, passphrase) {
+function* loginFlowSaga(usernameOrEmail, passphrase): Generator<any, void, any> {
   // If there is passphrase, use that.
   const passphraseSaga = passphrase
     ? onBackSaga => () => EngineRpc.rpcResult({passphrase: passphrase.stringValue(), storeSecret: false})
@@ -489,7 +493,7 @@ function* loginFlowSaga(usernameOrEmail, passphrase) {
   }
 }
 
-function* initalizeMyCodeStateForLogin() {
+function* initalizeMyCodeStateForLogin(): Generator<any, void, any> {
   // We can either be a newDevice or an existingDevice. Here in the login
   // flow, let's set ourselves to be a newDevice
   yield Saga.put(
@@ -499,7 +503,7 @@ function* initalizeMyCodeStateForLogin() {
   )
 }
 
-function* initalizeMyCodeStateForAddingADevice() {
+function* initalizeMyCodeStateForAddingADevice(): Generator<any, void, any> {
   // We can either be a newDevice or an existingDevice. Here in the adding a device
   // flow, let's set ourselves to be an existing device
   yield Saga.put(
@@ -585,7 +589,7 @@ function* addNewDeviceSaga({payload: {role}}: LoginGen.AddNewDevicePayload) {
   yield Saga.put(setDevicesWaiting(true))
   yield Saga.call(initalizeMyCodeStateForAddingADevice)
 
-  const onBackSaga = function*() {
+  const onBackSaga = function*(): Generator<any, void, any> {
     yield Saga.put(loadDevices())
     yield Saga.put(navigateTo(devicesTabLocation))
   }

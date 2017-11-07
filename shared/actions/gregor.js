@@ -4,15 +4,8 @@ import * as Constants from '../constants/gregor'
 import * as GitGen from './git-gen'
 import * as GregorGen from './gregor-gen'
 import * as I from 'immutable'
+import * as RPCTypes from '../constants/types/flow-types'
 import engine from '../engine'
-import {
-  delegateUiCtlRegisterGregorFirehoseRpcPromise,
-  reachabilityCheckReachabilityRpcPromise,
-  reachabilityStartReachabilityRpcPromise,
-  reachabilityReachable,
-  gregorInjectItemRpcPromise,
-  type Reachability,
-} from '../constants/types/flow-types'
 import {all, call, put, select} from 'redux-saga/effects'
 import {clearErrors} from '../util/pictures'
 import {favoriteList, markTLFCreated} from './favorite'
@@ -30,7 +23,7 @@ function pushOOBM(messages: Array<OutOfBandMessage>): Constants.PushOOBM {
   return {type: Constants.pushOOBM, payload: {messages}}
 }
 
-function updateReachability(reachability: Reachability): Constants.UpdateReachability {
+function updateReachability(reachability: RPCTypes.Reachability): Constants.UpdateReachability {
   return {type: Constants.updateReachability, payload: {reachability}}
 }
 
@@ -75,7 +68,7 @@ function registerReachability() {
       if (loggedInSelector(getState())) {
         dispatch(updateReachability(reachability))
 
-        if (reachability.reachable === reachabilityReachable.yes) {
+        if (reachability.reachable === RPCTypes.reachabilityReachable.yes) {
           // TODO: We should be able to recover from connection problems
           // without re-bootstrapping. Originally we used to do this on HTML5
           // 'online' event, but reachability is more precise.
@@ -100,7 +93,7 @@ function checkReachabilityOnConnect() {
     // via reachabilityChanged.
     // This should be run on app start and service re-connect in case the
     // service somehow crashed or was restarted manually.
-    reachabilityStartReachabilityRpcPromise()
+    RPCTypes.reachabilityStartReachabilityRpcPromise()
       .then(reachability => {
         dispatch(updateReachability(reachability))
       })
@@ -112,7 +105,7 @@ function checkReachabilityOnConnect() {
 
 function registerGregorListeners() {
   return (dispatch: Dispatch) => {
-    delegateUiCtlRegisterGregorFirehoseRpcPromise()
+    RPCTypes.delegateUiCtlRegisterGregorFirehoseRpcPromise()
       .then(response => {
         console.log('Registered gregor listener')
       })
@@ -173,22 +166,21 @@ function* handlePushState(pushAction: GregorGen.PushStatePayload): SagaGenerator
   }
 }
 
-function* handleKbfsFavoritesOOBM(kbfsFavoriteMessages: Array<OutOfBandMessage>) {
+function* handleKbfsFavoritesOOBM(kbfsFavoriteMessages: Array<OutOfBandMessage>): Generator<any, void, any> {
   const msgsWithParsedBodies = kbfsFavoriteMessages.map(m => ({...m, body: JSON.parse(m.body.toString())}))
   const createdTLFs = msgsWithParsedBodies.filter(m => m.body.action === 'create')
 
   const username: string = (yield select(usernameSelector): any)
-  yield all(
-    createdTLFs
-      .map(m => {
-        const folder = m.body.tlf ? markTLFCreated(folderFromPath(username, m.body.tlf)) : null
-        if (folder && folder.payload && folder.payload.folder) {
-          return put(folder)
-        }
-        console.warn('Failed to parse tlf for oobm:', m)
-      })
-      .filter(i => !!i)
-  )
+  const folderActions = createdTLFs.reduce((arr, m) => {
+    const folder = m.body.tlf ? markTLFCreated(folderFromPath(username, m.body.tlf)) : null
+    if (folder && folder.payload && folder.payload.folder) {
+      arr.push(put(folder))
+      return arr
+    }
+    console.warn('Failed to parse tlf for oobm:', m)
+    return arr
+  }, [])
+  yield all(folderActions)
 }
 
 function* handlePushOOBM(pushOOBM: Constants.PushOOBM) {
@@ -208,17 +200,20 @@ function* handlePushOOBM(pushOOBM: Constants.PushOOBM) {
 }
 
 function* handleCheckReachability(): SagaGenerator<any, any> {
-  const reachability = yield call(reachabilityCheckReachabilityRpcPromise)
+  const reachability = yield call(RPCTypes.reachabilityCheckReachabilityRpcPromise)
   yield put({type: Constants.updateReachability, payload: {reachability}})
 }
 
 function* _injectItem(action: Constants.InjectItem): SagaGenerator<any, any> {
   const {category, body, dtime} = action.payload
-  yield call(gregorInjectItemRpcPromise, {
+  yield call(RPCTypes.gregorInjectItemRpcPromise, {
     param: {
       body,
       cat: category,
-      dtime,
+      dtime: {
+        time: dtime || 0,
+        offset: 0,
+      },
     },
   })
 }

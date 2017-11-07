@@ -301,7 +301,7 @@ function* _incomingMessage(action: ChatGen.IncomingMessagePayload): Saga.SagaGen
 
         if (message.messageID && conversationIsFocused) {
           const {type: msgIDType} = Constants.parseMessageID(message.messageID)
-          if (msgIDType === 'rpcMessageID') {
+          if (msgIDType === 'rpcMessageID' && message.messageID) {
             yield Saga.call(_markAsRead, conversationIDKey, message.messageID)
           }
         }
