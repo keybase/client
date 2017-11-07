@@ -35,7 +35,7 @@ export default function(
         newTeamAccessRequests,
       } = action.payload.badgeState
 
-      const deviceType = isMobile ? RPCTypes.CommonDeviceType.mobile : RPCTypes.CommonDeviceType.desktop
+      const deviceType = isMobile ? RPCTypes.commonDeviceType.mobile : RPCTypes.commonDeviceType.desktop
       const totalMessages = (conversations || [])
         .reduce((total, c) => (c.badgeCounts ? total + c.badgeCounts[`${deviceType}`] : total), 0)
       const newGit = (newGitRepoGlobalUniqueIDs || []).length

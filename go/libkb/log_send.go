@@ -6,12 +6,15 @@ package libkb
 import (
 	"bytes"
 	"compress/gzip"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"mime/multipart"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
 
@@ -239,6 +242,68 @@ func findFirstNewline(b []byte) []byte {
 	return b[(index + 1):]
 }
 
+func appendError(log logger.Logger, collected []byte, format string, args ...interface{}) []byte {
+	msg := "Error reading logs: " + fmt.Sprintf(format, args...)
+	log.Errorf(msg)
+	return append(collected, []byte("\n"+msg+"\n")...)
+}
+
+// If systemd is running, we look for logs in the systemd journal for our 3
+// main services.
+func tailSystemdJournal(log logger.Logger, which string, numBytes int) (ret string) {
+	log.Debug("+ tailing journalctl for %s (%d bytes)", which, numBytes)
+	defer func() {
+		log.Debug("- scanned %d bytes", len(ret))
+	}()
+
+	// Journalctl doesn't provide a "last N bytes" flag directly, so instead we
+	// use "last N lines". Large log files in practice seem to be about 150
+	// bits per line. We'll request lines on that assumption, but if we get
+	// more than 2x as many bytes as we expected, we'll stop reading and
+	// include a big error.
+	guessedLines := numBytes / 150
+	maxBytes := numBytes * 2
+
+	journalCmd := exec.Command(
+		"journalctl",
+		"--user",
+		"--unit="+which,
+		"--lines="+strconv.Itoa(guessedLines),
+		"--output=cat",
+	)
+	journalCmd.Stderr = os.Stderr
+	stdout, err := journalCmd.StdoutPipe()
+	if err != nil {
+		msg := fmt.Sprintf("Failed to open a pipe for journalctl: %s", err)
+		log.Errorf(msg)
+		return msg
+	}
+	err = journalCmd.Start()
+	if err != nil {
+		msg := fmt.Sprintf("Failed to run journalctl: %s", err)
+		log.Errorf(msg)
+		return msg
+	}
+
+	// Once we start reading output, don't short-circuit on errors. Just log
+	// them, and return whatever we got.
+	stdoutLimited := io.LimitReader(stdout, int64(maxBytes))
+	output, err := ioutil.ReadAll(stdoutLimited)
+	if err != nil {
+		output = appendError(log, output, "Error reading from journalctl pipe: %s", err)
+	}
+	// We must close stdout before Wait, or else Wait might deadlock.
+	stdout.Close()
+	err = journalCmd.Wait()
+	if err != nil {
+		output = appendError(log, output, "Journalctl exited with an error: %s", err)
+	}
+	if len(output) >= maxBytes {
+		output = appendError(log, output, "Journal lines longer than expected. Logs truncated.")
+	}
+	return string(output)
+}
+
 // tailFile takes the last n bytes, but advances to the first newline. Returns the log (as a string)
 // and a bool, indicating if we read the full log, or we had to advance into the log to find the newline.
 func tailFile(log logger.Logger, which string, filename string, numBytes int) (ret string, seeked bool) {
@@ -295,9 +360,15 @@ func (l *LogSendContext) LogSend(statusJSON, feedback string, sendLogs bool, num
 	var gitLog string
 
 	if sendLogs {
-		kbfsLog = tail(l.G().Log, "kbfs", logs.Kbfs, numBytes)
-		svcLog = tail(l.G().Log, "service", logs.Service, numBytes)
-		desktopLog = tail(l.G().Log, "desktop", logs.Desktop, numBytes)
+		if l.G().Env.WantsSystemd() {
+			svcLog = tailSystemdJournal(l.G().Log, "keybase.service", numBytes)
+			kbfsLog = tailSystemdJournal(l.G().Log, "kbfs.service", numBytes)
+			desktopLog = tailSystemdJournal(l.G().Log, "keybase.gui.service", numBytes)
+		} else {
+			svcLog = tail(l.G().Log, "service", logs.Service, numBytes)
+			kbfsLog = tail(l.G().Log, "kbfs", logs.Kbfs, numBytes)
+			desktopLog = tail(l.G().Log, "desktop", logs.Desktop, numBytes)
+		}
 		updaterLog = tail(l.G().Log, "updater", logs.Updater, numBytes)
 		startLog = tail(l.G().Log, "start", logs.Start, numBytes)
 		installLog = tail(l.G().Log, "install", logs.Install, numBytes)

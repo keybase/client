@@ -498,6 +498,37 @@ func ParseAndDecorateAtMentionedUIDs(ctx context.Context, body string, upak libk
 	return newBody, atRes, chanRes
 }
 
+type SystemMessageUIDSource interface {
+	LookupUID(ctx context.Context, un libkb.NormalizedUsername) (keybase1.UID, error)
+}
+
+func SystemMessageMentions(ctx context.Context, body chat1.MessageSystem, upak SystemMessageUIDSource) (atMentions []gregor1.UID, chanMention chat1.ChannelMention) {
+	typ, err := body.SystemType()
+	if err != nil {
+		return atMentions, chanMention
+	}
+	switch typ {
+	case chat1.MessageSystemType_ADDEDTOTEAM:
+		addeeUID, err := upak.LookupUID(ctx, libkb.NewNormalizedUsername(body.Addedtoteam().Addee))
+		if err == nil {
+			atMentions = append(atMentions, addeeUID.ToBytes())
+		}
+	case chat1.MessageSystemType_INVITEADDEDTOTEAM:
+		inviteeUID, err := upak.LookupUID(ctx, libkb.NewNormalizedUsername(body.Inviteaddedtoteam().Invitee))
+		if err == nil {
+			atMentions = append(atMentions, inviteeUID.ToBytes())
+		}
+		inviterUID, err := upak.LookupUID(ctx, libkb.NewNormalizedUsername(body.Inviteaddedtoteam().Inviter))
+		if err == nil {
+			atMentions = append(atMentions, inviterUID.ToBytes())
+		}
+	case chat1.MessageSystemType_COMPLEXTEAM:
+		chanMention = chat1.ChannelMention_ALL
+	}
+	sort.Sort(chat1.ByUID(atMentions))
+	return atMentions, chanMention
+}
+
 func PluckMessageIDs(msgs []chat1.MessageSummary) []chat1.MessageID {
 	res := make([]chat1.MessageID, len(msgs))
 	for i, m := range msgs {

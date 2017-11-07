@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/keybase/client/go/git"
 	"github.com/keybase/client/go/libkb"
@@ -110,9 +111,23 @@ func TestGitTeamer(t *testing.T) {
 		iTeamID2, _, _, err := teams.LookupOrCreateImplicitTeam(context.TODO(), g, iTeamNameCreate2, public)
 		require.NoError(t, err)
 		require.Equal(t, public, iTeamID2.IsPublic())
+
 		t.Logf("prove to create the conflict")
 		bob.proveRooter()
-		alice.waitForTeamIDChangedGregor(iTeamID2, alice.getTeamSeqno(iTeamID2)+1)
+
+		t.Logf("wait for someone to add bob")
+		pollForConditionWithTimeout(t, 20*time.Second, "bob to be added to the team after rooter proof", func(ctx context.Context) bool {
+			team, err := teams.Load(ctx, alice.tc.G, keybase1.LoadTeamArg{
+				ID:          iTeamID2,
+				Public:      public,
+				ForceRepoll: true,
+			})
+			require.NoError(t, err)
+			role, err := team.MemberRole(ctx, bob.userVersion())
+			require.NoError(t, err)
+			return role != keybase1.TeamRole_NONE
+		})
+
 		t.Logf("find out the conflict suffix")
 		_, _, _, conflicts, err := teams.LookupImplicitTeamAndConflicts(context.TODO(), g, iTeamNameCreate1, public)
 		require.NoError(t, err)

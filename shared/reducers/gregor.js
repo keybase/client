@@ -2,10 +2,10 @@
 import * as Constants from '../constants/gregor'
 import * as CommonConstants from '../constants/common'
 import keyBy from 'lodash/keyBy'
-import {ReachabilityReachable} from '../constants/types/flow-types'
+import {reachabilityReachable} from '../constants/types/flow-types'
 
 const initialState: Constants.State = {
-  reachability: {reachable: ReachabilityReachable.unknown},
+  reachability: {reachable: reachabilityReachable.unknown},
   seenMsgs: {},
 }
 

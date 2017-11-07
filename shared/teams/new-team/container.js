@@ -2,7 +2,7 @@
 import NewTeamDialog from './'
 import {connect, compose, lifecycle, withState, withHandlers, type TypedState} from '../../util/container'
 import {createNewTeam, setTeamCreationError} from '../../actions/teams/creators'
-import {upperFirst} from 'lodash'
+import upperFirst from 'lodash/upperFirst'
 
 const mapStateToProps = (state: TypedState) => ({
   errorText: upperFirst(state.chat.teamCreationError),

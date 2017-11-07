@@ -1,7 +1,7 @@
 // @flow
 import ErrorRender from '.'
 import {convertToRPCError} from '../../../util/errors'
-import {ConstantsStatusCode} from '../../../constants/types/flow-types'
+import {constantsStatusCode} from '../../../constants/types/flow-types'
 
 import type {DumbComponentMap} from '../../../constants/types/more'
 
@@ -19,19 +19,19 @@ const dumbComponentMap: DumbComponentMap<ErrorRender> = {
     Normal: baseMock,
     DeviceNoProvision: {
       ...baseMock,
-      error: convertToRPCError({code: ConstantsStatusCode.scdevicenoprovision, desc: ''}),
+      error: convertToRPCError({code: constantsStatusCode.scdevicenoprovision, desc: ''}),
     },
     KeyNoMatchingGPG: {
       ...baseMock,
-      error: convertToRPCError({code: ConstantsStatusCode.sckeynomatchinggpg, desc: ''}),
+      error: convertToRPCError({code: constantsStatusCode.sckeynomatchinggpg, desc: ''}),
     },
-    KeyNotFound: {...baseMock, error: convertToRPCError({code: ConstantsStatusCode.sckeynotfound, desc: ''})},
-    UserNotFound: {...baseMock, error: convertToRPCError({code: ConstantsStatusCode.scnotfound, desc: ''})},
+    KeyNotFound: {...baseMock, error: convertToRPCError({code: constantsStatusCode.sckeynotfound, desc: ''})},
+    UserNotFound: {...baseMock, error: convertToRPCError({code: constantsStatusCode.scnotfound, desc: ''})},
     BadLoginPassword: {
       ...baseMock,
-      error: convertToRPCError({code: ConstantsStatusCode.scbadloginpassword, desc: ''}),
+      error: convertToRPCError({code: constantsStatusCode.scbadloginpassword, desc: ''}),
     },
-    KeyNoSecret: {...baseMock, error: convertToRPCError({code: ConstantsStatusCode.sckeynosecret, desc: ''})},
+    KeyNoSecret: {...baseMock, error: convertToRPCError({code: constantsStatusCode.sckeynosecret, desc: ''})},
   },
 }
 

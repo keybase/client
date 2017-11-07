@@ -1,7 +1,7 @@
 // @flow
 import * as CommonConstants from '../constants/common'
 import * as Constants from '../constants/unlock-folders'
-import {toDeviceType} from '../constants/types/more'
+import {toDeviceType} from '../constants/devices'
 
 const initialState: Constants.State = {
   closed: true,

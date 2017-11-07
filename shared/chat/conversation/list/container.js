@@ -1,6 +1,7 @@
 // @flow
 import * as Constants from '../../../constants/chat'
 import * as ChatGen from '../../../actions/chat-gen'
+import * as KBFSGen from '../../../actions/kbfs-gen'
 import * as Selectors from '../../../constants/selectors'
 import HiddenString from '../../../util/hidden-string'
 import ListComponent, {type Props} from '.'
@@ -8,7 +9,6 @@ import {List, is, Set} from 'immutable'
 import {compose, connect, type TypedState} from '../../../util/container'
 import {createSelector, createSelectorCreator, defaultMemoize} from 'reselect'
 import {navigateAppend} from '../../../actions/route-tree'
-import {type OpenInFileUI} from '../../../constants/kbfs'
 import {type OwnProps, type StateProps, type DispatchProps} from './container'
 
 const getValidatedState = (state: TypedState) => {
@@ -114,7 +114,7 @@ const mapDispatchToProps = (dispatch: Dispatch): DispatchProps => ({
   onMessageAction: (message: Constants.Message) => {
     dispatch(navigateAppend([{props: {message}, selected: 'messageAction'}]))
   },
-  onOpenInFileUI: (path: string) => dispatch(({payload: {path}, type: 'fs:openInFileUI'}: OpenInFileUI)),
+  onOpenInFileUI: (path: string) => dispatch(KBFSGen.createOpenInFileUI({path})),
 })
 
 const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps): Props => {
