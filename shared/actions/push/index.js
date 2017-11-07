@@ -1,15 +1,13 @@
 // @flow
 import * as Constants from '../../constants/push'
 import * as Creators from './creators'
+import * as ChatTypes from '../../constants/types/flow-types-chat'
+import * as Saga from '../../util/saga'
 import {isMobile} from '../../constants/platform'
 import {apiserverDeleteRpcPromise, apiserverPostRpcPromise} from '../../constants/types/flow-types'
-import * as ChatTypes from '../../constants/types/flow-types-chat'
-import {call, put, take, select} from 'redux-saga/effects'
 import {chatTab} from '../../constants/tabs'
 import {navigateTo} from '../route-tree'
-import {safeTakeEvery, safeTakeLatest} from '../../util/saga'
 
-import type {SagaGenerator} from '../../constants/types/saga'
 import type {TypedState} from '../../constants/reducer'
 
 import {showUserProfile} from '../profile'
@@ -21,37 +19,37 @@ import {
 } from '../platform-specific'
 
 const pushSelector = ({push: {token, tokenType}}: TypedState) => ({token, tokenType})
-
 const deviceIDSelector = ({config: {deviceID}}: TypedState) => deviceID
 
-function* permissionsNoSaga(): SagaGenerator<any, any> {
-  yield call(setNoPushPermissions)
-  yield put({type: Constants.permissionsRequesting, payload: false})
-  yield put({type: Constants.permissionsPrompt, payload: false})
+function* permissionsNoSaga(): Saga.SagaGenerator<any, any> {
+  yield Saga.call(setNoPushPermissions)
+  yield Saga.put({type: Constants.permissionsRequesting, payload: false})
+  yield Saga.put({type: Constants.permissionsPrompt, payload: false})
 }
 
-function* permissionsRequestSaga(): SagaGenerator<any, any> {
+function* permissionsRequestSaga(): Saga.SagaGenerator<any, any> {
   try {
-    yield put({type: Constants.permissionsRequesting, payload: true})
+    yield Saga.put({type: Constants.permissionsRequesting, payload: true})
 
     console.log('Requesting permissions')
-    const permissions = yield call(requestPushPermissions)
+    const permissions = yield Saga.call(requestPushPermissions)
     console.log('Permissions:', permissions)
     // TODO(gabriel): Set permissions we have in store, might want it at some point?
   } finally {
-    yield put({type: Constants.permissionsRequesting, payload: false})
-    yield put({type: Constants.permissionsPrompt, payload: false})
+    yield Saga.put({type: Constants.permissionsRequesting, payload: false})
+    yield Saga.put({type: Constants.permissionsPrompt, payload: false})
   }
 }
 
-function* pushNotificationSaga(notification: Constants.PushNotification): SagaGenerator<any, any> {
+function* pushNotificationSaga(notification: Constants.PushNotification): Saga.SagaGenerator<any, any> {
   console.log('Push notification:', notification)
   const payload = notification.payload
   if (payload && payload.userInteraction) {
     if (payload.type === 'chat.newmessageSilent') {
       console.info('Push notification: silent notification received')
       try {
-        const unboxRes = yield call(ChatTypes.localUnboxMobilePushNotificationRpcPromise, {
+        const unboxRes = yield Saga.call(ChatTypes.localUnboxMobilePushNotificationRpcPromise, {
+          // $FlowIssue wants all these to be non null
           param: {
             convID: payload.c,
             membersType: payload.t,
@@ -67,7 +65,9 @@ function* pushNotificationSaga(notification: Constants.PushNotification): SagaGe
             return
           }
         }
-        yield call(displayNewMessageNotification, unboxRes, payload.c, payload.b, payload.d)
+        if (unboxRes) {
+          yield Saga.call(displayNewMessageNotification, unboxRes, payload.c, payload.b, payload.d)
+        }
       } catch (err) {
         console.info('failed to unbox silent notification', err)
       }
@@ -78,7 +78,7 @@ function* pushNotificationSaga(notification: Constants.PushNotification): SagaGe
         console.error('Push chat notification payload missing conversation ID')
         return
       }
-      yield put(navigateTo([chatTab, convID]))
+      yield Saga.put(navigateTo([chatTab, convID]))
     } else if (payload.type === 'follow') {
       const {username} = payload
       if (!username) {
@@ -86,23 +86,23 @@ function* pushNotificationSaga(notification: Constants.PushNotification): SagaGe
         return
       }
       console.info('Push notification: follow received, follower= ', username)
-      yield put(showUserProfile(username))
+      yield Saga.put(showUserProfile(username))
     } else {
       console.error('Push notification payload missing or unknown type')
     }
   }
 }
 
-function* pushTokenSaga(action: Constants.PushToken): SagaGenerator<any, any> {
+function* pushTokenSaga(action: Constants.PushToken): Saga.SagaGenerator<any, any> {
   const {token, tokenType} = action.payload
-  yield put(Creators.updatePushToken(token, tokenType))
-  yield put(Creators.savePushToken())
+  yield Saga.put(Creators.updatePushToken(token, tokenType))
+  yield Saga.put(Creators.savePushToken())
 }
 
-function* savePushTokenSaga(): SagaGenerator<any, any> {
+function* savePushTokenSaga(): Saga.SagaGenerator<any, any> {
   try {
-    const {token, tokenType} = (yield select(pushSelector): any)
-    const deviceID = (yield select(deviceIDSelector): any)
+    const {token, tokenType} = (yield Saga.select(pushSelector): any)
+    const deviceID = (yield Saga.select(deviceIDSelector): any)
     if (!deviceID) {
       throw new Error('No device available for saving push token')
     }
@@ -116,7 +116,7 @@ function* savePushTokenSaga(): SagaGenerator<any, any> {
       {key: 'token_type', value: tokenType},
     ]
 
-    yield call(apiserverPostRpcPromise, {
+    yield Saga.call(apiserverPostRpcPromise, {
       param: {
         endpoint: 'device/push_token',
         args: args,
@@ -127,34 +127,34 @@ function* savePushTokenSaga(): SagaGenerator<any, any> {
   }
 }
 
-function* configurePushSaga(): SagaGenerator<any, any> {
+function* configurePushSaga(): Saga.SagaGenerator<any, any> {
   if (isMobile) {
-    const chan = yield call(configurePush)
+    const chan = yield Saga.call(configurePush)
 
     while (true) {
-      const action = yield take(chan)
-      yield put(action)
+      const action = yield Saga.take(chan)
+      yield Saga.put(action)
     }
   }
 }
 
-function* deletePushTokenSaga(): SagaGenerator<any, any> {
+function* deletePushTokenSaga(): Saga.SagaGenerator<any, any> {
   try {
-    const {tokenType} = (yield select(pushSelector): any)
+    const {tokenType} = (yield Saga.select(pushSelector): any)
     if (!tokenType) {
       // No push token to remove.
       console.log('Not deleting push token -- none to remove')
       return
     }
 
-    const deviceID = (yield select(deviceIDSelector): any)
+    const deviceID = (yield Saga.select(deviceIDSelector): any)
     if (!deviceID) {
       throw new Error('No device id available for saving push token')
     }
 
     const args = [{key: 'device_id', value: deviceID}, {key: 'token_type', value: tokenType}]
 
-    yield call(apiserverDeleteRpcPromise, {
+    yield Saga.call(apiserverDeleteRpcPromise, {
       param: {
         endpoint: 'device/push_token',
         args: args,
@@ -165,13 +165,13 @@ function* deletePushTokenSaga(): SagaGenerator<any, any> {
   }
 }
 
-function* pushSaga(): SagaGenerator<any, any> {
-  yield safeTakeLatest(Constants.permissionsRequest, permissionsRequestSaga)
-  yield safeTakeLatest(Constants.permissionsNo, permissionsNoSaga)
-  yield safeTakeLatest(Constants.pushToken, pushTokenSaga)
-  yield safeTakeLatest(Constants.savePushToken, savePushTokenSaga)
-  yield safeTakeLatest(Constants.configurePush, configurePushSaga)
-  yield safeTakeEvery(Constants.pushNotification, pushNotificationSaga)
+function* pushSaga(): Saga.SagaGenerator<any, any> {
+  yield Saga.safeTakeLatest(Constants.permissionsRequest, permissionsRequestSaga)
+  yield Saga.safeTakeLatest(Constants.permissionsNo, permissionsNoSaga)
+  yield Saga.safeTakeLatest(Constants.pushToken, pushTokenSaga)
+  yield Saga.safeTakeLatest(Constants.savePushToken, savePushTokenSaga)
+  yield Saga.safeTakeLatest(Constants.configurePush, configurePushSaga)
+  yield Saga.safeTakeEvery(Constants.pushNotification, pushNotificationSaga)
 }
 
 export default pushSaga

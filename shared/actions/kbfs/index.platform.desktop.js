@@ -13,6 +13,7 @@ import {execFile} from 'child_process'
 import {folderTab} from '../../constants/tabs'
 import {isLinux, isWindows} from '../../constants/platform'
 import {navigateTo, switchTo} from '../route-tree'
+import type {TypedState} from '../../constants/reducer'
 
 // pathToURL takes path and converts to (file://) url.
 // See https://github.com/sindresorhus/file-url
@@ -108,7 +109,8 @@ function openInDefault(openPath: string): Promise<*> {
 }
 
 function* fuseStatusSaga(): Saga.SagaGenerator<any, any> {
-  const prevStatus = yield Saga.select(state => state.favorite.fuseStatus)
+  const state: TypedState = yield Saga.select()
+  const prevStatus = state.favorite.fuseStatus
 
   let status = yield Saga.call(RPCTypes.installFuseStatusRpcPromise)
   if (isWindows && status.installStatus !== 4) {
@@ -262,7 +264,7 @@ function* openInWindows(openPath: string): Saga.SagaGenerator<any, any> {
   }
   openPath = openPath.slice(Constants.defaultKBFSPath.length)
 
-  let kbfsPath = yield Saga.select(state => state.config.kbfsPath)
+  let kbfsPath = yield Saga.select((state: TypedState) => state.config.kbfsPath)
 
   if (!kbfsPath) {
     throw new Error('No kbfsPath')
@@ -293,7 +295,7 @@ function* openInWindows(openPath: string): Saga.SagaGenerator<any, any> {
 function* openSaga(action: KBFSGen.OpenPayload): Saga.SagaGenerator<any, any> {
   const openPath = action.payload.path || Constants.defaultKBFSPath
   const enabled = yield Saga.select(
-    state => state.favorite.fuseStatus && state.favorite.fuseStatus.kextStarted
+    (state: TypedState) => state.favorite.fuseStatus && state.favorite.fuseStatus.kextStarted
   )
   if (isLinux || enabled) {
     console.log('openInKBFS:', openPath)
@@ -310,7 +312,7 @@ function* openSaga(action: KBFSGen.OpenPayload): Saga.SagaGenerator<any, any> {
 
 function* openInFileUISaga({payload: {path}}: KBFSGen.OpenInFileUIPayload): Saga.SagaGenerator<any, any> {
   const enabled = yield Saga.select(
-    state => state.favorite.fuseStatus && state.favorite.fuseStatus.kextStarted
+    (state: TypedState) => state.favorite.fuseStatus && state.favorite.fuseStatus.kextStarted
   )
   if (isLinux || enabled) {
     yield Saga.call(_open, path)

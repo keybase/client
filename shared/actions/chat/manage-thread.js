@@ -75,7 +75,10 @@ function* _selectConversation(action: ChatGen.SelectConversationPayload): Saga.S
     yield Saga.put(ChatGen.createGetInboxAndUnbox({conversationIDKeys: [conversationIDKey]}))
   }
 
-  const oldConversationState = yield Saga.select(Shared.conversationStateSelector, conversationIDKey)
+  let oldConversationState
+  if (conversationIDKey) {
+    oldConversationState = yield Saga.select(Shared.conversationStateSelector, conversationIDKey)
+  }
   if (oldConversationState && oldConversationState.get('isStale') && conversationIDKey) {
     yield Saga.put(ChatGen.createClearMessages({conversationIDKey}))
   }
@@ -116,7 +119,10 @@ const _setNotifications = function*(
   const {payload: {conversationIDKey}} = action
 
   // update the one in the store
-  const old = yield Saga.select(s => s.inbox.get(conversationIDKey))
+  let old
+  if (conversationIDKey) {
+    old = yield Saga.select((s: TypedState) => s.chat.inbox.get(conversationIDKey))
+  }
   if (old) {
     let nextNotifications = {}
 

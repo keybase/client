@@ -133,7 +133,7 @@ function* postMessage(action: Constants.PostMessage): SagaGenerator<any, any> {
   yield Saga.call(RPCChatTypes.localPostTextNonblockRpcPromise, {
     param: {
       conversationID: Constants.keyToConversationID(conversationIDKey),
-      tlfName: inboxConvo ? inboxConvo.name : newConvoTlfName,
+      tlfName: (inboxConvo ? inboxConvo.name : newConvoTlfName) || '',
       tlfPublic: false,
       outboxID,
       body: action.payload.text.stringValue(),

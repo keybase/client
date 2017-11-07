@@ -213,7 +213,7 @@ function* _submitRevokeProof(action: Constants.SubmitRevokeProof): SagaGenerator
   }
 }
 
-function _openURLIfNotNull(nullableThing, url, metaText) {
+function _openURLIfNotNull(nullableThing, url, metaText): void {
   if (nullableThing == null) {
     console.warn("Can't openURL because we have a null", metaText)
     return
