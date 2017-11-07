@@ -783,7 +783,7 @@ type GCOptions struct {
 	// refs, we should pack them.
 	MaxLooseRefs int
 	// The minimum number of potentially-expired loose objects we need
-	// to start the pruning process.
+	// to start the pruning process.  If < 0, pruning will not be done.
 	PruneMinLooseObjects int
 	// Any unreachable objects older than this time are subject to
 	// pruning.
@@ -791,7 +791,9 @@ type GCOptions struct {
 	// TODO: object re-packing thresholds.
 }
 
-func needsGC(storage storage.Storer, options GCOptions) (
+// NeedsGC checks the given repo storage layer against the given
+// options to see what kinds of GC are needed on the repo.
+func NeedsGC(storage storage.Storer, options GCOptions) (
 	doPackRefs bool, numLooseRefs int, doPruneLoose bool, err error) {
 	numLooseRefs, err = storage.CountLooseRefs()
 	if err != nil {
@@ -800,27 +802,49 @@ func needsGC(storage storage.Storer, options GCOptions) (
 
 	doPackRefs = numLooseRefs > options.MaxLooseRefs
 
-	// Count the number of loose objects that are older than the
-	// expire time, to see if pruning is needed.
-	numLooseMaybePrune := 0
-	err = storage.ForEachObjectHash(func(h plumbing.Hash) error {
-		t, err := storage.LooseObjectTime(h)
-		if err != nil {
-			return err
-		}
-		if t.Before(options.PruneExpireTime) {
-			numLooseMaybePrune++
-			if numLooseMaybePrune >= options.PruneMinLooseObjects {
-				doPruneLoose = true
-				return storer.ErrStop
+	if options.PruneMinLooseObjects >= 0 {
+		// Count the number of loose objects that are older than the
+		// expire time, to see if pruning is needed.
+		numLooseMaybePrune := 0
+		err = storage.ForEachObjectHash(func(h plumbing.Hash) error {
+			t, err := storage.LooseObjectTime(h)
+			if err != nil {
+				return err
 			}
-		}
-		return nil
-	})
+			if t.Before(options.PruneExpireTime) {
+				numLooseMaybePrune++
+				if numLooseMaybePrune >= options.PruneMinLooseObjects {
+					doPruneLoose = true
+					return storer.ErrStop
+				}
+			}
+			return nil
+		})
+	}
 
 	// TODO: check object re-packing thresholds.
 
 	return doPackRefs, numLooseRefs, doPruneLoose, nil
+}
+
+func markSuccessfulGC(
+	ctx context.Context, config libkbfs.Config, fs billy.Filesystem) (
+	err error) {
+	changer, ok := fs.(billy.Change)
+	if !ok {
+		return errors.New("FS does not handle changing mtimes")
+	}
+
+	f, err := fs.Create(repoGCLockFileName)
+	if err != nil {
+		return err
+	}
+	err = f.Close()
+	if err != nil {
+		return err
+	}
+	return changer.Chtimes(
+		repoGCLockFileName, time.Time{}, config.Clock().Now())
 }
 
 // GCRepo runs garbage collection on the specified repo, if it exceeds
@@ -842,13 +866,18 @@ func GCRepo(
 	if err != nil {
 		return err
 	}
+	defer func() {
+		if err == nil {
+			err = markSuccessfulGC(ctx, config, fs)
+		}
+	}()
 
 	storage, err := NewGitConfigWithoutRemotesStorer(fs)
 	if err != nil {
 		return err
 	}
 
-	doPackRefs, _, doPruneLoose, err := needsGC(storage, options)
+	doPackRefs, _, doPruneLoose, err := NeedsGC(storage, options)
 	if err != nil {
 		return err
 	}
@@ -875,7 +904,7 @@ func GCRepo(
 
 	// Check the GC thresholds again since they might have changed
 	// while getting the lock.
-	doPackRefs, numLooseRefs, doPruneLoose, err := needsGC(storage, options)
+	doPackRefs, numLooseRefs, doPruneLoose, err := NeedsGC(storage, options)
 	if err != nil {
 		return err
 	}
@@ -908,4 +937,18 @@ func GCRepo(
 
 	// TODO: add object re-packing.
 	return nil
+}
+
+// LastGCTime returns the last time the repo was successfully
+// garbage-collected.
+func LastGCTime(ctx context.Context, fs billy.Filesystem) (
+	time.Time, error) {
+	fi, err := fs.Stat(repoGCLockFileName)
+	if os.IsNotExist(err) {
+		return time.Time{}, nil
+	} else if err != nil {
+		return time.Time{}, err
+	}
+
+	return fi.ModTime(), nil
 }

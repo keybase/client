@@ -36,7 +36,8 @@ func (te testErrput) Write(buf []byte) (int, error) {
 
 func TestRunnerCapabilities(t *testing.T) {
 	ctx := libkbfs.BackgroundContextWithCancellationDelayer()
-	config := libkbfs.MakeTestConfigOrBust(t, "user1")
+	config := libkbfs.MakeTestConfigOrBustLoggedInWithMode(
+		t, 0, libkbfs.InitSingleOp, "user1")
 	defer libkbfs.CheckConfigAndShutdown(ctx, t, config)
 
 	inputReader, inputWriter := io.Pipe()

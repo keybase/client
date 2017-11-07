@@ -18,6 +18,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/kbfsmd"
@@ -81,6 +82,13 @@ const (
 
 	packedRefsPath     = "packed-refs"
 	packedRefsTempPath = "._packed-refs"
+
+	defaultMaxLooseRefs         = 50
+	defaultPruneMinLooseObjects = -1
+	minGCInterval               = 7 * 24 * time.Hour
+
+	unlockPrintBytesStatusThreshold = time.Second / 2
+	gcPrintStatusThreshold          = time.Second
 )
 
 type ctxCommandTagKey int
@@ -100,6 +108,7 @@ type runner struct {
 	input  io.Reader
 	output io.Writer
 	errput io.Writer
+	gcDone bool
 
 	verbosity int64
 	progress  bool
@@ -695,8 +704,6 @@ func (r *runner) printJournalStatusUntilFlushed(
 		ctx, jServer, rootNode.GetFolderBranch().Tlf, doneCh)
 }
 
-const unlockPrintBytesStatusThreshold = time.Second / 2
-
 func (r *runner) processGogitStatus(ctx context.Context,
 	statusChan <-chan plumbing.StatusUpdate, fsEvents <-chan libfs.FSEvent) {
 	if r.h.Type() == tlf.Public {
@@ -998,6 +1005,100 @@ func (r *runner) recursiveCopyWithCounts(
 	return nil
 }
 
+// checkGC should only be called from the main command-processing
+// goroutine.
+func (r *runner) checkGC(ctx context.Context) (err error) {
+	if r.gcDone {
+		return nil
+	}
+	r.gcDone = true
+
+	numUsers := len(r.h.ResolvedWriters()) + len(r.h.UnresolvedWriters()) +
+		len(r.h.ResolvedReaders()) + len(r.h.UnresolvedReaders())
+	if r.h.Type() == tlf.Public || numUsers > 1 {
+		r.log.CDebugf(ctx, "Skipping GC check")
+		return nil
+	}
+
+	r.log.CDebugf(ctx, "Checking for GC")
+
+	var stageSync sync.Once
+	ctx, cancel := context.WithCancel(ctx)
+	defer cancel()
+	go func() {
+		timer := time.NewTimer(gcPrintStatusThreshold)
+		select {
+		case <-timer.C:
+			stageSync.Do(func() {
+				r.printStageStart(ctx,
+					[]byte("Checking repo for inefficiencies... "),
+					"mem.gc.prof", "cpu.gc.prof")
+			})
+		case <-ctx.Done():
+		}
+	}()
+	defer func() {
+		// Prevent stage from starting after we finish the stage.
+		stageSync.Do(func() {})
+		if err == nil {
+			r.printStageEndIfNeeded(ctx)
+		}
+	}()
+
+	fs, _, err := libgit.GetRepoAndID(
+		ctx, r.config, r.h, r.repo, r.uniqID)
+	if _, noRepo := errors.Cause(err).(libkb.RepoDoesntExistError); noRepo {
+		r.log.CDebugf(ctx, "No such repo: %v", err)
+		return nil
+	} else if err != nil {
+		return err
+	}
+
+	lastGCTime, err := libgit.LastGCTime(ctx, fs)
+	if err != nil {
+		return err
+	}
+	if r.config.Clock().Now().Sub(lastGCTime) < minGCInterval {
+		r.log.CDebugf(ctx, "Last GC happened at %s; skipping GC check",
+			lastGCTime)
+		return nil
+	}
+
+	storage, err := libgit.NewGitConfigWithoutRemotesStorer(fs)
+	if err != nil {
+		return err
+	}
+
+	gco := libgit.GCOptions{
+		MaxLooseRefs:         defaultMaxLooseRefs,
+		PruneMinLooseObjects: defaultPruneMinLooseObjects,
+		PruneExpireTime:      time.Time{},
+	}
+	doPackRefs, _, doPruneLoose, err := libgit.NeedsGC(storage, gco)
+	if err != nil {
+		return err
+	}
+	if !doPackRefs && !doPruneLoose {
+		r.log.CDebugf(ctx, "No GC needed")
+		return nil
+	}
+	r.log.CDebugf(ctx, "GC needed: doPackRefs=%t, doPruneLoose=%t",
+		doPackRefs, doPruneLoose)
+	command := fmt.Sprintf("keybase git gc %s", r.repo)
+	if r.h.Type() == tlf.SingleTeam {
+		tid := r.h.FirstResolvedWriter()
+		teamName, err := r.config.KBPKI().GetNormalizedUsername(ctx, tid)
+		if err != nil {
+			return err
+		}
+		command += fmt.Sprintf(" --team %s", teamName)
+	}
+	r.errput.Write([]byte("Tip: this repo could be sped up with some " +
+		"garbage collection. Run this command:\n"))
+	r.errput.Write([]byte("\t" + command + "\n"))
+	return nil
+}
+
 // handleClone copies all the object files of a KBFS repo directly
 // into the local git dir, instead of using go-git to calculate the
 // full set of objects that are to be transferred (which is slow and
@@ -1036,6 +1137,12 @@ func (r *runner) handleClone(ctx context.Context) (err error) {
 	if err != nil {
 		return err
 	}
+
+	err = r.checkGC(ctx)
+	if err != nil {
+		return err
+	}
+
 	_, err = r.output.Write([]byte("\n"))
 	return err
 }
@@ -1123,6 +1230,11 @@ func (r *runner) handleFetchBatch(ctx context.Context, args [][]string) (
 		return err
 	}
 	r.log.CDebugf(ctx, "Done waiting for journal")
+
+	err = r.checkGC(ctx)
+	if err != nil {
+		return err
+	}
 
 	_, err = r.output.Write([]byte("\n"))
 	return err
@@ -1449,6 +1561,11 @@ func (r *runner) handlePushBatch(ctx context.Context, args [][]string) (
 	}
 
 	err = libgit.UpdateRepoMD(ctx, r.config, r.h, fs)
+	if err != nil {
+		return err
+	}
+
+	err = r.checkGC(ctx)
 	if err != nil {
 		return err
 	}
