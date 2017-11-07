@@ -82,5 +82,5 @@ protocol rekey {
    GetRevokeWarning computes the TLFs that will be endangered if actingDevice
    revokes targetDevice.
    */
-  RevokeWarning getRevokeWarning(int session, DeviceID actingDevice, DeviceID targetDevice);
+  RevokeWarning getRevokeWarning(int sessionID, DeviceID actingDevice, DeviceID targetDevice);
 }

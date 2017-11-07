@@ -5250,7 +5250,6 @@ export type RekeyEventType =
   | 8 // NO_GREGOR_MESSAGES_8
 
 export type RekeyGetRevokeWarningRpcParam = {|
-  session: Int,
   actingDevice: DeviceID,
   targetDevice: DeviceID
 |}

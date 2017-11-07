@@ -222,14 +222,14 @@ func (o RekeySyncArg) DeepCopy() RekeySyncArg {
 }
 
 type GetRevokeWarningArg struct {
-	Session      int      `codec:"session" json:"session"`
+	SessionID    int      `codec:"sessionID" json:"sessionID"`
 	ActingDevice DeviceID `codec:"actingDevice" json:"actingDevice"`
 	TargetDevice DeviceID `codec:"targetDevice" json:"targetDevice"`
 }
 
 func (o GetRevokeWarningArg) DeepCopy() GetRevokeWarningArg {
 	return GetRevokeWarningArg{
-		Session:      o.Session,
+		SessionID:    o.SessionID,
 		ActingDevice: o.ActingDevice.DeepCopy(),
 		TargetDevice: o.TargetDevice.DeepCopy(),
 	}
