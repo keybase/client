@@ -33,6 +33,7 @@ function createChannelMap<T>(channelConfig: ChannelConfig<T>): ChannelMap<T> {
   return mapValues(channelConfig, (v, k) => {
     const ret = channel(v())
     // to help debug what's going on in dev/user-timings
+    // $FlowIssue doesn't like us setting this on a sealed object
     ret.userTimingName = k
     return ret
   })
@@ -105,6 +106,7 @@ function safeTakeEvery(pattern: string | Array<any> | Function, worker: Function
     }
   }
 
+  // $FlowIssue confused
   return takeEvery(pattern, safeTakeEveryWorker, ...args)
 }
 
@@ -160,6 +162,7 @@ function safeTakeLatestWithCatch(
     }
   }
 
+  // $FlowIssue confused
   return takeLatest(pattern, safeTakeLatestWithCatchWorker, ...args)
 }
 

@@ -42,6 +42,7 @@ type RpcRunResult = Finished | FluxTypes.NoErrorTypedAction<'@@engineRPCCall:bai
 function _sagaWaitingDecorator(rpcNameKey, saga) {
   return function* _sagaWaitingDecoratorHelper(...args: any) {
     yield put(EngineGen.createWaitingForRpc({name: rpcNameKey, waiting: false}))
+    // $FlowIssue has no way to type this
     yield call(saga, ...args)
     yield put(EngineGen.createWaitingForRpc({name: rpcNameKey, waiting: true}))
   }
@@ -68,6 +69,7 @@ function _handleRPCDecorator(rpcNameKey, saga) {
 // This decorator to put the result on a channel
 function _putReturnOnChan(chan, saga) {
   return function* _putReturnOnChanHelper(...args: any) {
+    // $FlowIssue has no way to type this
     const returnVal = yield call(saga, ...args)
     yield put(chan, _subSagaFinished(returnVal))
   }
@@ -184,6 +186,7 @@ class EngineRpcCall {
         }
 
         // We could have multiple things told to us!
+        // $FlowIssue has no way to type this
         const subSagaTask = yield fork(this._subSagas[raceWinner], result)
         subSagaTasks.push(subSagaTask)
       } finally {
