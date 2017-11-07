@@ -280,3 +280,19 @@ func (e GreenLinkError) Error() string {
 	// Report the probable cause for this error.
 	return fmt.Sprintf("team sigchain is being rapidly updated (seqno: %v)", e.seqno)
 }
+
+type UnsupportedLinkTypeError struct {
+	outerType libkb.SigchainV2Type
+	innerType string
+}
+
+func NewUnsupportedLinkTypeError(outerType libkb.SigchainV2Type, innerType string) error {
+	return UnsupportedLinkTypeError{
+		outerType: outerType,
+		innerType: innerType,
+	}
+}
+
+func (e UnsupportedLinkTypeError) Error() string {
+	return fmt.Sprintf("unsupported team link type: %v (%v)", e.outerType, e.innerType)
+}
