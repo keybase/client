@@ -487,22 +487,9 @@ export type InboxFilterSelectNext = NoErrorTypedAction<
   'chat:inboxFilterSelectNext',
   {rows: any, direction: 1 | -1}
 >
-export type ClearRekey = NoErrorTypedAction<'chat:clearRekey', {conversationIDKey: ConversationIDKey}>
-export type OpenConversation = NoErrorTypedAction<
-  'chat:openConversation',
-  {conversationIDKey: ConversationIDKey}
->
 export type PostMessage = NoErrorTypedAction<
   'chat:postMessage',
   {conversationIDKey: ConversationIDKey, text: HiddenString}
->
-export type PrependMessages = NoErrorTypedAction<
-  'chat:prependMessages',
-  {
-    conversationIDKey: ConversationIDKey,
-    messages: Array<ServerMessage>,
-    moreToLoad: boolean,
-  }
 >
 export type ReplaceConversation = NoErrorTypedAction<
   'chat:replaceConversation',
@@ -511,11 +498,6 @@ export type ReplaceConversation = NoErrorTypedAction<
 export type RetryMessage = NoErrorTypedAction<
   'chat:retryMessage',
   {conversationIDKey: ConversationIDKey, outboxIDKey: OutboxIDKey}
->
-export type SetInboxFilter = NoErrorTypedAction<'chat:inboxFilter', {filter: string}>
-export type StartConversation = NoErrorTypedAction<
-  'chat:startConversation',
-  {users: Array<string>, forceImmediate: boolean, temporary: boolean}
 >
 export type UnboxInbox = NoErrorTypedAction<'chat:unboxInbox', {conversationIDKeys: Array<ConversationIDKey>}>
 export type UntrustedInboxVisible = NoErrorTypedAction<
@@ -564,7 +546,7 @@ export type SaveAttachmentNative = NoErrorTypedAction<'chat:saveAttachmentNative
 
 export type ShareAttachment = NoErrorTypedAction<'chat:shareAttachment', {messageKey: MessageKey}>
 
-export type Actions = ClearRekey | PrependMessages | StartConversation | UpdateTempMessage | AttachmentLoaded
+export type Actions = UpdateTempMessage | AttachmentLoaded
 
 function conversationIDToKey(conversationID: ConversationID): ConversationIDKey {
   return conversationID.toString('hex')

@@ -64,7 +64,7 @@ function reducer(state: Constants.State = initialState, action: Constants.Action
 
       return state.set('conversationStates', newConversationStates)
     }
-    case 'chat:prependMessages': {
+    case ChatGen.prependMessages: {
       const {moreToLoad, conversationIDKey} = action.payload
       const newConversationStates = state
         .get('conversationStates')

@@ -7,7 +7,7 @@ import {ignoreRequest} from '../../../actions/teams/creators'
 import {navigateAppend} from '../../../actions/route-tree'
 import {showUserProfile} from '../../../actions/profile'
 import {getProfile} from '../../../actions/tracker'
-import {startConversation} from '../../../actions/chat'
+import {createStartConversation} from '../../../actions/chat-gen'
 import {isMobile} from '../../../constants/platform'
 
 import type {TypedState} from '../../../constants/reducer'
@@ -53,7 +53,7 @@ const mapDispatchToProps = (dispatch: Dispatch): DispatchProps => ({
       ])
     ),
   _onChat: (username, myUsername) => {
-    username && myUsername && dispatch(startConversation([username, myUsername]))
+    username && myUsername && dispatch(createStartConversation({create: [username, myUsername]}))
   },
   _onIgnoreRequest: (name: string, username: string) => dispatch(ignoreRequest(name, username)),
 })

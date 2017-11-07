@@ -47,6 +47,7 @@ export const openFolder = 'chat:openFolder'
 export const openTlfInChat = 'chat:openTlfInChat'
 export const outboxMessageBecameReal = 'chat:outboxMessageBecameReal'
 export const pendingToRealConversation = 'chat:pendingToRealConversation'
+export const prependMessages = 'chat:prependMessages'
 export const removeOutboxMessage = 'chat:removeOutboxMessage'
 export const removeTempPendingConversations = 'chat:removeTempPendingConversations'
 export const replaceEntity = 'chat:replaceEntity'
@@ -62,6 +63,7 @@ export const setPreviousConversation = 'chat:setPreviousConversation'
 export const setTypers = 'chat:setTypers'
 export const setupChatHandlers = 'chat:setupChatHandlers'
 export const showEditor = 'chat:showEditor'
+export const startConversation = 'chat:startConversation'
 export const subtractEntity = 'chat:subtractEntity'
 export const threadLoadedOffline = 'chat:threadLoadedOffline'
 export const toggleChannelWideNotifications = 'chat:toggleChannelWideNotifications'
@@ -118,6 +120,7 @@ export const createOpenFolder = () => ({error: false, payload: undefined, type: 
 export const createOpenTlfInChat = (payload: {|tlf: string|}) => ({error: false, payload, type: openTlfInChat})
 export const createOutboxMessageBecameReal = (payload: {|oldMessageKey: Constants.MessageKey, newMessageKey: Constants.MessageKey|}) => ({error: false, payload, type: outboxMessageBecameReal})
 export const createPendingToRealConversation = (payload: {|oldKey: Constants.ConversationIDKey, newKey: Constants.ConversationIDKey|}) => ({error: false, payload, type: pendingToRealConversation})
+export const createPrependMessages = (payload: {|conversationIDKey: Constants.ConversationIDKey, messages: Array<Constants.ServerMessage>, moreToLoad: boolean|}) => ({error: false, payload, type: prependMessages})
 export const createRemoveOutboxMessage = (payload: {|conversationIDKey: Constants.ConversationIDKey, outboxID: Constants.OutboxIDKey|}) => ({error: false, payload, type: removeOutboxMessage})
 export const createRemoveTempPendingConversations = () => ({error: false, payload: undefined, type: removeTempPendingConversations})
 export const createReplaceEntity = (payload: {|keyPath: Array<string>, entities: I.Map<any, any> | I.List<any>|}) => ({error: false, payload, type: replaceEntity})
@@ -133,6 +136,7 @@ export const createSetPreviousConversation = (payload: {|conversationIDKey: ?Con
 export const createSetTypers = (payload: {|conversationIDKey: Constants.ConversationIDKey, typing: Array<string>|}) => ({error: false, payload, type: setTypers})
 export const createSetupChatHandlers = () => ({error: false, payload: undefined, type: setupChatHandlers})
 export const createShowEditor = (payload: {|message: ?Constants.Message|}) => ({error: false, payload, type: showEditor})
+export const createStartConversation = (payload: {|users: Array<string>, forceImmediate?: boolean, temporary?: boolean|}) => ({error: false, payload, type: startConversation})
 export const createSubtractEntity = (payload: {|keyPath: Array<string>, entities: I.List<any>|}) => ({error: false, payload, type: subtractEntity})
 export const createThreadLoadedOffline = (payload: {|conversationIDKey: Constants.ConversationIDKey|}) => ({error: false, payload, type: threadLoadedOffline})
 export const createToggleChannelWideNotifications = (payload: {|conversationIDKey: Constants.ConversationIDKey|}) => ({error: false, payload, type: toggleChannelWideNotifications})
@@ -189,6 +193,7 @@ export type OpenFolderPayload = ReturnType<typeof createOpenFolder>
 export type OpenTlfInChatPayload = ReturnType<typeof createOpenTlfInChat>
 export type OutboxMessageBecameRealPayload = ReturnType<typeof createOutboxMessageBecameReal>
 export type PendingToRealConversationPayload = ReturnType<typeof createPendingToRealConversation>
+export type PrependMessagesPayload = ReturnType<typeof createPrependMessages>
 export type RemoveOutboxMessagePayload = ReturnType<typeof createRemoveOutboxMessage>
 export type RemoveTempPendingConversationsPayload = ReturnType<typeof createRemoveTempPendingConversations>
 export type ReplaceEntityPayload = ReturnType<typeof createReplaceEntity>
@@ -204,6 +209,7 @@ export type SetPreviousConversationPayload = ReturnType<typeof createSetPrevious
 export type SetTypersPayload = ReturnType<typeof createSetTypers>
 export type SetupChatHandlersPayload = ReturnType<typeof createSetupChatHandlers>
 export type ShowEditorPayload = ReturnType<typeof createShowEditor>
+export type StartConversationPayload = ReturnType<typeof createStartConversation>
 export type SubtractEntityPayload = ReturnType<typeof createSubtractEntity>
 export type ThreadLoadedOfflinePayload = ReturnType<typeof createThreadLoadedOffline>
 export type ToggleChannelWideNotificationsPayload = ReturnType<typeof createToggleChannelWideNotifications>
@@ -262,6 +268,7 @@ export type Actions =
   | ReturnType<typeof createOpenTlfInChat>
   | ReturnType<typeof createOutboxMessageBecameReal>
   | ReturnType<typeof createPendingToRealConversation>
+  | ReturnType<typeof createPrependMessages>
   | ReturnType<typeof createRemoveOutboxMessage>
   | ReturnType<typeof createRemoveTempPendingConversations>
   | ReturnType<typeof createReplaceEntity>
@@ -277,6 +284,7 @@ export type Actions =
   | ReturnType<typeof createSetTypers>
   | ReturnType<typeof createSetupChatHandlers>
   | ReturnType<typeof createShowEditor>
+  | ReturnType<typeof createStartConversation>
   | ReturnType<typeof createSubtractEntity>
   | ReturnType<typeof createThreadLoadedOffline>
   | ReturnType<typeof createToggleChannelWideNotifications>

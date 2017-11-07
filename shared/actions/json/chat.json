@@ -244,6 +244,16 @@
       "isAppFocused": "boolean",
       "messages": "Array<Constants.ServerMessage>",
       "svcShouldDisplayNotification": "boolean"
+    },
+    "prependMessages": {
+      "conversationIDKey": "Constants.ConversationIDKey",
+      "messages": "Array<Constants.ServerMessage>",
+      "moreToLoad": "boolean"
+    },
+    "startConversation": {
+      "users": "Array<string>",
+      "forceImmediate?": "boolean",
+      "temporary?": "boolean"
     }
   }
 }

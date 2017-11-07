@@ -100,7 +100,7 @@ function* _openTlfInChat(action: ChatGen.OpenTlfInChatPayload): Saga.SagaGenerat
     console.warn('Bug: openTlfToChat should never be called on a convo with readOnly members.')
     return
   }
-  yield Saga.put(Creators.startConversation(users))
+  yield Saga.put(ChatGen.createStartConversation({users}))
 }
 
 function* _openFolder(): Saga.SagaGenerator<any, any> {
@@ -139,4 +139,4 @@ function* chatSaga(): Saga.SagaGenerator<any, any> {
 
 export default chatSaga
 
-export {badgeAppForChat, startConversation} from './creators'
+export {badgeAppForChat} from './creators'

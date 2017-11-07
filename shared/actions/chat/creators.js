@@ -18,23 +18,6 @@ const updateTempMessageTransformer = ({
   type,
 })
 
-const safeServerMessageMap = (m: any) => ({
-  key: m.key,
-  messageID: m.messageID,
-  messageState: m.messageState,
-  outboxID: m.outboxID,
-  type: m.type,
-})
-
-const prependMessagesActionTransformer = (action: Constants.PrependMessages) => ({
-  payload: {
-    conversationIDKey: action.payload.conversationIDKey,
-    messages: action.payload.messages.map(safeServerMessageMap),
-    moreToLoad: action.payload.moreToLoad,
-  },
-  type: action.type,
-})
-
 const postMessageActionTransformer = action => ({
   payload: {conversationIDKey: action.payload.conversationIDKey},
   type: action.type,
@@ -88,17 +71,6 @@ function badgeAppForChat(conversations: ?Array<RPCTypes.BadgeConversationInfo>):
   return {payload: convos, type: 'chat:badgeAppForChat'}
 }
 
-function startConversation(
-  users: Array<string>,
-  forceImmediate?: boolean = false,
-  temporary?: boolean = false
-): Constants.StartConversation {
-  return {
-    payload: {forceImmediate, users: uniq(users), temporary},
-    type: 'chat:startConversation',
-  }
-}
-
 function postMessage(
   conversationIDKey: Constants.ConversationIDKey,
   text: HiddenString
@@ -118,18 +90,6 @@ function retryMessage(
     logTransformer: retryMessageActionTransformer,
     payload: {conversationIDKey, outboxIDKey},
     type: 'chat:retryMessage',
-  }
-}
-
-function prependMessages(
-  conversationIDKey: Constants.ConversationIDKey,
-  messages: Array<Constants.ServerMessage>,
-  moreToLoad: boolean
-): Constants.PrependMessages {
-  return {
-    logTransformer: prependMessagesActionTransformer,
-    payload: {conversationIDKey, messages, moreToLoad},
-    type: 'chat:prependMessages',
   }
 }
 
@@ -210,10 +170,8 @@ export {
   downloadProgress,
   loadAttachmentPreview,
   postMessage,
-  prependMessages,
   retryAttachment,
   retryMessage,
   setSelectedRouteState,
-  startConversation,
   updateTempMessage,
 }
