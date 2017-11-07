@@ -64,13 +64,6 @@ const loadAttachmentPreviewTransformer = ({
   type,
 })
 
-function badgeAppForChat(conversations: ?Array<RPCTypes.BadgeConversationInfo>): Constants.BadgeAppForChat {
-  const convos = I.List(
-    (conversations || []).map(conversation => Constants.ConversationBadgeStateRecord(conversation))
-  )
-  return {payload: convos, type: 'chat:badgeAppForChat'}
-}
-
 function postMessage(
   conversationIDKey: Constants.ConversationIDKey,
   text: HiddenString
@@ -166,7 +159,6 @@ function setSelectedRouteState(
 
 export {
   attachmentLoaded,
-  badgeAppForChat,
   downloadProgress,
   loadAttachmentPreview,
   postMessage,

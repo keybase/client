@@ -138,5 +138,3 @@ function* chatSaga(): Saga.SagaGenerator<any, any> {
 }
 
 export default chatSaga
-
-export {badgeAppForChat} from './creators'

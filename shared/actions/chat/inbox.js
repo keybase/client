@@ -776,12 +776,12 @@ function* _inboxSynced(action: ChatGen.InboxSyncedPayload): Saga.SagaGenerator<a
     )
   }
 }
-function* _badgeAppForChat(action: Constants.BadgeAppForChat): Saga.SagaGenerator<any, any> {
-  const conversations = action.payload
+function* _badgeAppForChat(action: ChatGen.BadgeAppForChatPayload): Saga.SagaGenerator<any, any> {
+  const {conversations} = action.payload
   let totals: {[key: string]: number} = {}
   let badges: {[key: string]: number} = {}
 
-  conversations.forEach(conv => {
+  conversations.map(c => Constants.ConversationBadgeStateRecord(c)).forEach(conv => {
     const total = conv.get('unreadMessages')
     if (total) {
       const badged = conv.get('badgeCounts')[
@@ -906,7 +906,7 @@ function* registerSagas(): SagaGenerator<any, any> {
   yield Saga.safeTakeEvery(ChatGen.appendMessages, _sendNotifications)
   yield Saga.safeTakeEvery(ChatGen.markThreadsStale, _markThreadsStale)
   yield Saga.safeTakeEvery(ChatGen.inboxSynced, _inboxSynced)
-  yield Saga.safeTakeLatest('chat:badgeAppForChat', _badgeAppForChat)
+  yield Saga.safeTakeLatest(ChatGen.badgeAppForChat, _badgeAppForChat)
   yield Saga.safeTakeEvery(ChatGen.incomingMessage, _incomingMessage)
 }
 

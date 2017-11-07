@@ -19,6 +19,7 @@ export const appendMessages = 'chat:appendMessages'
 export const attachmentSaveFailed = 'chat:attachmentSaveFailed'
 export const attachmentSaveStart = 'chat:attachmentSaveStart'
 export const attachmentSaved = 'chat:attachmentSaved'
+export const badgeAppForChat = 'chat:badgeAppForChat'
 export const blockConversation = 'chat:blockConversation'
 export const clearMessages = 'chat:clearMessages'
 export const clearRekey = 'chat:clearRekey'
@@ -92,6 +93,7 @@ export const createAppendMessages = (payload: {|conversationIDKey: Constants.Con
 export const createAttachmentSaveFailed = (payload: {|messageKey: Constants.MessageKey|}) => ({error: false, payload, type: attachmentSaveFailed})
 export const createAttachmentSaveStart = (payload: {|messageKey: Constants.MessageKey|}) => ({error: false, payload, type: attachmentSaveStart})
 export const createAttachmentSaved = (payload: {|messageKey: Constants.MessageKey, path: ?string|}) => ({error: false, payload, type: attachmentSaved})
+export const createBadgeAppForChat = (payload: {|conversations: Array<RPCTypes.BadgeConversationInfo>|}) => ({error: false, payload, type: badgeAppForChat})
 export const createBlockConversation = (payload: {|blocked: boolean, conversationIDKey: Constants.ConversationIDKey, reportUser: boolean|}) => ({error: false, payload, type: blockConversation})
 export const createClearMessages = (payload: {|conversationIDKey: Constants.ConversationIDKey|}) => ({error: false, payload, type: clearMessages})
 export const createClearRekey = (payload: {|conversationIDKey: Constants.ConversationIDKey|}) => ({error: false, payload, type: clearRekey})
@@ -165,6 +167,7 @@ export type AppendMessagesPayload = ReturnType<typeof createAppendMessages>
 export type AttachmentSaveFailedPayload = ReturnType<typeof createAttachmentSaveFailed>
 export type AttachmentSaveStartPayload = ReturnType<typeof createAttachmentSaveStart>
 export type AttachmentSavedPayload = ReturnType<typeof createAttachmentSaved>
+export type BadgeAppForChatPayload = ReturnType<typeof createBadgeAppForChat>
 export type BlockConversationPayload = ReturnType<typeof createBlockConversation>
 export type ClearMessagesPayload = ReturnType<typeof createClearMessages>
 export type ClearRekeyPayload = ReturnType<typeof createClearRekey>
@@ -240,6 +243,7 @@ export type Actions =
   | ReturnType<typeof createAttachmentSaveFailed>
   | ReturnType<typeof createAttachmentSaveStart>
   | ReturnType<typeof createAttachmentSaved>
+  | ReturnType<typeof createBadgeAppForChat>
   | ReturnType<typeof createBlockConversation>
   | ReturnType<typeof createClearMessages>
   | ReturnType<typeof createClearRekey>

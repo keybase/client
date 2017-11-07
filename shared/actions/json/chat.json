@@ -254,6 +254,9 @@
       "users": "Array<string>",
       "forceImmediate?": "boolean",
       "temporary?": "boolean"
+    },
+    "badgeAppForChat": {
+      "conversations": "Array<RPCTypes.BadgeConversationInfo>"
     }
   }
 }

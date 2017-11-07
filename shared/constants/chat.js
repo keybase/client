@@ -482,7 +482,6 @@ export const maxMessagesToLoadAtATime = 50
 export const nothingSelected = 'chat:noneSelected'
 export const blankChat = 'chat:blankChat'
 
-export type BadgeAppForChat = NoErrorTypedAction<'chat:badgeAppForChat', I.List<ConversationBadgeState>>
 export type InboxFilterSelectNext = NoErrorTypedAction<
   'chat:inboxFilterSelectNext',
   {rows: any, direction: 1 | -1}
