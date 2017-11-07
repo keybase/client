@@ -1,5 +1,4 @@
 // @flow
-import * as Creators from './creators'
 import * as ChatGen from '../chat-gen'
 import * as Constants from '../../constants/chat'
 import * as Selectors from '../../constants/selectors'

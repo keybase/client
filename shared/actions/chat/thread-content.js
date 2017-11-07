@@ -2,7 +2,6 @@
 import * as ChatTypes from '../../constants/types/flow-types-chat'
 import * as Constants from '../../constants/chat'
 import * as ChatGen from '../chat-gen'
-import * as Creators from './creators'
 import * as EngineRpc from '../engine/helper'
 import * as EntityCreators from '../entities'
 import * as I from 'immutable'
@@ -241,15 +240,15 @@ function* _incomingMessage(action: ChatGen.IncomingMessagePayload): Saga.SagaGen
           )
           if (pendingMessage) {
             yield Saga.put(
-              Creators.updateTempMessage(
+              ChatGen.createUpdateTempMessage({
                 conversationIDKey,
-                {
+                message: {
                   ...pendingMessage,
                   failureDescription,
                   messageState: 'failed',
                 },
-                outboxID
-              )
+                outboxID,
+              })
             )
           } else {
             throw new Error("Pending message wasn't found!")
@@ -324,7 +323,7 @@ function* _incomingMessage(action: ChatGen.IncomingMessagePayload): Saga.SagaGen
               // If the message has an outboxID and came from our device, then we
               // sent it and have already rendered it in the message list; we just
               // need to mark it as sent.
-              Saga.put(Creators.updateTempMessage(conversationIDKey, message, outboxID)),
+              Saga.put(ChatGen.createUpdateTempMessage({conversationIDKey, message, outboxID})),
               Saga.put(
                 ChatGen.createOutboxMessageBecameReal({
                   oldMessageKey: pendingMessage.key,
@@ -761,7 +760,7 @@ function* _prependMessagesToConversation({
   )
 }
 
-function _updateMessageEntity(action: Constants.UpdateTempMessage) {
+function _updateMessageEntity(action: ChatGen.UpdateTempMessagePayload) {
   if (!action.error) {
     const {payload: {message}} = action
     // You have to wrap this in Map(...) because otherwise the merge will turn message into an immutable struct
@@ -939,6 +938,14 @@ function* _logPrependMessages(action: ChatGen.PrependMessagesPayload): Saga.Saga
   console.log('Prepending', JSON.stringify(toPrint, null, 2))
 }
 
+function* _logUpdateTempMessage(action: ChatGen.UpdateTempMessagePayload): Saga.SagaGenerator<any, any> {
+  const toPrint = {
+    payload: {conversationIDKey: action.payload.conversationIDKey, outboxID: action.payload.outboxID},
+    type: action.type,
+  }
+  console.log('Update temp message', JSON.stringify(toPrint, null, 2))
+}
+
 function* registerSagas(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEvery('app:changedActive', _changedActive)
   yield Saga.safeTakeEvery(ChatGen.clearMessages, _clearConversationMessages)
@@ -949,7 +956,7 @@ function* registerSagas(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEvery(ChatGen.incomingMessage, _incomingMessage)
   yield Saga.safeTakeEvery(ChatGen.updateThread, _updateThread)
   yield Saga.safeTakeEveryPure(ChatGen.updateBadging, _updateBadging)
-  yield Saga.safeTakeEveryPure('chat:updateTempMessage', _updateMessageEntity)
+  yield Saga.safeTakeEveryPure(ChatGen.updateTempMessage, _updateMessageEntity)
   yield Saga.safeTakeEvery(ChatGen.appendMessages, _appendMessagesToConversation)
   yield Saga.safeTakeEvery(ChatGen.prependMessages, _prependMessagesToConversation)
   yield Saga.safeTakeEveryPure(ChatGen.removeOutboxMessage, _removeOutboxMessage)
@@ -962,6 +969,7 @@ function* registerSagas(): Saga.SagaGenerator<any, any> {
   if (enableActionLogging) {
     yield Saga.safeTakeEvery(ChatGen.appendMessages, _logAppendMessages)
     yield Saga.safeTakeEvery(ChatGen.prependMessages, _logPrependMessages)
+    yield Saga.safeTakeEvery(ChatGen.updateTempMessage, _logUpdateTempMessage)
   }
 }
 

@@ -1,6 +1,5 @@
 // @flow
 import * as Constants from '../../../../constants/chat'
-import * as Creators from '../../../../actions/chat/creators'
 import * as ChatGen from '../../../../actions/chat-gen'
 import * as KBFSGen from '../../../../actions/kbfs-gen'
 import Attachment, {type Props} from '.'

@@ -2,7 +2,6 @@
 import * as Attachment from './attachment'
 import * as ChatTypes from '../../constants/types/flow-types-chat'
 import * as Constants from '../../constants/chat'
-import * as Creators from './creators'
 import * as ChatGen from '../chat-gen'
 import * as KBFSGen from '../kbfs-gen'
 import * as Inbox from './inbox'

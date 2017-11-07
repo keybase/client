@@ -278,6 +278,11 @@
       "messageKey": "Constants.MessageKey",
       "isPreview": "boolean",
       "progress": "?number"
+    },
+    "updateTempMessage": {
+      "conversationIDKey": "Constants.ConversationIDKey",
+      "message": "$Shape<Constants.AttachmentMessage> | $Shape<Constants.TextMessage>",
+      "outboxID": "Constants.OutboxIDKey"
     }
   }
 }

@@ -86,6 +86,7 @@ export const updateMetadata = 'chat:updateMetadata'
 export const updateSnippet = 'chat:updateSnippet'
 export const updateSupersededByState = 'chat:updateSupersededByState'
 export const updateSupersedesState = 'chat:updateSupersedesState'
+export const updateTempMessage = 'chat:updateTempMessage'
 export const updateThread = 'chat:updateThread'
 export const updateTyping = 'chat:updateTyping'
 export const updatedMetadata = 'chat:updatedMetadata'
@@ -165,6 +166,7 @@ export const createUpdateMetadata = (payload: {|users: Array<string>|}) => ({err
 export const createUpdateSnippet = (payload: {|conversationIDKey: Constants.ConversationIDKey, snippet: HiddenString|}) => ({error: false, payload, type: updateSnippet})
 export const createUpdateSupersededByState = (payload: {|supersededByState: Constants.SupersededByState|}) => ({error: false, payload, type: updateSupersededByState})
 export const createUpdateSupersedesState = (payload: {|supersedesState: Constants.SupersedesState|}) => ({error: false, payload, type: updateSupersedesState})
+export const createUpdateTempMessage = (payload: {|conversationIDKey: Constants.ConversationIDKey, message: $Shape<Constants.AttachmentMessage> | $Shape<Constants.TextMessage>, outboxID: Constants.OutboxIDKey|}) => ({error: false, payload, type: updateTempMessage})
 export const createUpdateThread = (payload: {|thread: ChatTypes.UIMessages, yourName: string, yourDeviceName: string, conversationIDKey: string, append: boolean|}) => ({error: false, payload, type: updateThread})
 export const createUpdateTyping = (payload: {|conversationIDKey: Constants.ConversationIDKey, typing: boolean|}) => ({error: false, payload, type: updateTyping})
 export const createUpdatedMetadata = (payload: {|updated: {[key: string]: Constants.MetaData}|}) => ({error: false, payload, type: updatedMetadata})
@@ -244,6 +246,7 @@ export type UpdateMetadataPayload = ReturnType<typeof createUpdateMetadata>
 export type UpdateSnippetPayload = ReturnType<typeof createUpdateSnippet>
 export type UpdateSupersededByStatePayload = ReturnType<typeof createUpdateSupersededByState>
 export type UpdateSupersedesStatePayload = ReturnType<typeof createUpdateSupersedesState>
+export type UpdateTempMessagePayload = ReturnType<typeof createUpdateTempMessage>
 export type UpdateThreadPayload = ReturnType<typeof createUpdateThread>
 export type UpdateTypingPayload = ReturnType<typeof createUpdateTyping>
 export type UpdatedMetadataPayload = ReturnType<typeof createUpdatedMetadata>
@@ -325,6 +328,7 @@ export type Actions =
   | ReturnType<typeof createUpdateSnippet>
   | ReturnType<typeof createUpdateSupersededByState>
   | ReturnType<typeof createUpdateSupersedesState>
+  | ReturnType<typeof createUpdateTempMessage>
   | ReturnType<typeof createUpdateThread>
   | ReturnType<typeof createUpdateTyping>
   | ReturnType<typeof createUpdatedMetadata>

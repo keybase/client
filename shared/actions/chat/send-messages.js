@@ -4,7 +4,6 @@ import * as I from 'immutable'
 import * as RPCChatTypes from '../../constants/types/flow-types-chat'
 import * as RPCTypes from '../../constants/types/flow-types'
 import * as Constants from '../../constants/chat'
-import * as Creators from './creators'
 import * as ChatGen from '../chat-gen'
 import * as Shared from './shared'
 import * as Saga from '../../util/saga'
@@ -210,7 +209,9 @@ function* editMessage(action: ChatGen.EditMessagePayload): SagaGenerator<any, an
 
 function* retryMessage(action: ChatGen.RetryMessagePayload): SagaGenerator<any, any> {
   const {conversationIDKey, outboxIDKey} = action.payload
-  yield Saga.put(Creators.updateTempMessage(conversationIDKey, {messageState: 'pending'}, outboxIDKey))
+  yield Saga.put(
+    ChatGen.createUpdateTempMessage({conversationIDKey, message: {messageState: 'pending'}, outboxIDKey})
+  )
   yield Saga.call(RPCChatTypes.localRetryPostRpcPromise, {
     param: {outboxID: Constants.keyToOutboxID(outboxIDKey)},
   })
@@ -225,19 +226,16 @@ function* _logPostMessage(action: ChatGen.PostMessagePayload): Saga.SagaGenerato
   console.log('Posting message', JSON.stringify(toPrint, null, 2))
 }
 
-
 function* _logRetryMessage(action: ChatGen.RetryMessagePayload): Saga.SagaGenerator<any, any> {
-const toPrint = {
-  payload: {
-    conversationIDKey: action.payload.conversationIDKey,
-    outboxIDKey: action.payload.outboxIDKey,
-  },
-  type: action.type,
-}
+  const toPrint = {
+    payload: {
+      conversationIDKey: action.payload.conversationIDKey,
+      outboxIDKey: action.payload.outboxIDKey,
+    },
+    type: action.type,
+  }
   console.log('Retrying message', JSON.stringify(toPrint, null, 2))
 }
-
-
 
 function* registerSagas(): SagaGenerator<any, any> {
   yield Saga.safeTakeEvery(ChatGen.deleteMessage, deleteMessage)
@@ -248,7 +246,6 @@ function* registerSagas(): SagaGenerator<any, any> {
   if (enableActionLogging) {
     yield Saga.safeTakeEvery(ChatGen.postMessage, _logPostMessage)
     yield Saga.safeTakeEvery(ChatGen.retryMessage, _logRetryMessage)
-
   }
 }
 

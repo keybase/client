@@ -898,7 +898,7 @@ function* _incomingMessage(action: ChatGen.IncomingMessagePayload): Saga.SagaGen
 function* registerSagas(): SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(ChatGen.updateSnippet, _updateSnippet)
   yield Saga.safeTakeEvery(ChatGen.getInboxAndUnbox, onGetInboxAndUnbox)
-  yield Saga.safeTakeEvery('chat:selectNext', filterSelectNext)
+  yield Saga.safeTakeEvery(ChatGen.selectNext, filterSelectNext)
   yield Saga.safeTakeLatest(ChatGen.inboxStale, onInboxStale)
   yield Saga.safeTakeLatest(ChatGen.loadInbox, onInboxLoad)
   yield Saga.safeTakeLatest(ChatGen.unboxMore, _unboxMore)

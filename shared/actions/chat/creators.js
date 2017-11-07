@@ -6,15 +6,6 @@ import {setRouteState} from '../route-tree'
 
 import type {SetRouteState} from '../../constants/route-tree'
 
-// Whitelisted action loggers
-const updateTempMessageTransformer = ({
-  type,
-  payload: {conversationIDKey, outboxID},
-}: Constants.UpdateTempMessage) => ({
-  payload: {conversationIDKey, outboxID},
-  type,
-})
-
 function retryAttachment(message: Constants.AttachmentMessage): Constants.RetryAttachment {
   const {conversationIDKey, uploadPath, title, previewType, outboxID} = message
   if (!uploadPath || !title || !previewType) {
@@ -35,18 +26,6 @@ function retryAttachment(message: Constants.AttachmentMessage): Constants.RetryA
   }
 }
 
-function updateTempMessage(
-  conversationIDKey: Constants.ConversationIDKey,
-  message: $Shape<Constants.AttachmentMessage> | $Shape<Constants.TextMessage>,
-  outboxID: Constants.OutboxIDKey
-): Constants.UpdateTempMessage {
-  return {
-    logTransformer: updateTempMessageTransformer,
-    payload: {conversationIDKey, message, outboxID},
-    type: 'chat:updateTempMessage',
-  }
-}
-
 function setSelectedRouteState(
   selectedConversation: Constants.ConversationIDKey,
   partialState: Object
@@ -54,4 +33,4 @@ function setSelectedRouteState(
   return setRouteState(I.List([chatTab, selectedConversation]), partialState)
 }
 
-export {retryAttachment, setSelectedRouteState, updateTempMessage}
+export {retryAttachment, setSelectedRouteState}

@@ -4,7 +4,6 @@ import * as Constants from '../../constants/chat'
 import * as ChatGen from '../chat-gen'
 import * as I from 'immutable'
 import * as EngineRpc from '../engine/helper'
-import * as Creators from './creators'
 import * as RPCTypes from '../../constants/types/flow-types'
 import * as Saga from '../../util/saga'
 import * as EntityCreators from '../entities'
@@ -380,14 +379,14 @@ function* onSelectAttachment({payload: {input}}: ChatGen.SelectAttachmentPayload
       if (result.error) {
         const outboxIDKey = yield Saga.call(getOutboxIdKey)
         yield Saga.put(
-          Creators.updateTempMessage(
+          ChatGen.createUpdateTempMessage({
             conversationIDKey,
-            {
+            message: {
               messageState: 'failed',
               failureDescription: 'upload unsuccessful',
             },
-            outboxIDKey
-          )
+            outboxIDKey,
+          })
         )
       }
       const curKey = yield Saga.call(getCurKey)
