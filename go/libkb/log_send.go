@@ -242,8 +242,10 @@ func findFirstNewline(b []byte) []byte {
 	return b[(index + 1):]
 }
 
-func appendError(collected []byte, err error) []byte {
-	return append(collected, []byte(fmt.Sprintf("\nERROR READING LOGS:\n%#v\n", err))...)
+func appendError(log logger.Logger, collected []byte, format string, args ...interface{}) []byte {
+	msg := "Error reading logs: " + fmt.Sprintf(format, args...)
+	log.Errorf(msg)
+	return append(collected, []byte("\n"+msg+"\n")...)
 }
 
 // If systemd is running, we look for logs in the systemd journal for our 3
@@ -288,17 +290,16 @@ func tailSystemdJournal(log logger.Logger, which string, numBytes int) (ret stri
 	stdoutLimited := io.LimitReader(stdout, int64(maxBytes))
 	output, err := ioutil.ReadAll(stdoutLimited)
 	if err != nil {
-		log.Errorf("Error reading from journalctl pipe: %s", err)
-		output = appendError(output, err)
+		output = appendError(log, output, "Error reading from journalctl pipe: %s", err)
 	}
+	// We must close stdout before Wait, or else Wait might deadlock.
+	stdout.Close()
 	err = journalCmd.Wait()
 	if err != nil {
-		log.Errorf("Journalctl exited with an error: %s", err)
-		output = appendError(output, err)
+		output = appendError(log, output, "Journalctl exited with an error: %s", err)
 	}
 	if len(output) >= maxBytes {
-		truncation := "\n###\n### WARNING: Journal lines longer than expected. Logs truncated.\n###\n"
-		output = append(output, truncation...)
+		output = appendError(log, output, "Journal lines longer than expected. Logs truncated.")
 	}
 	return string(output)
 }
