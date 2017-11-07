@@ -6354,7 +6354,6 @@ export type reachabilityReachabilityChangedRpcParam = Exact<{
 }>
 
 export type rekeyGetRevokeWarningRpcParam = Exact<{
-  session: int,
   actingDevice: DeviceID,
   targetDevice: DeviceID
 }>
