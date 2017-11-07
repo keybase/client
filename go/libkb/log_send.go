@@ -246,33 +246,6 @@ func appendError(collected []byte, err error) []byte {
 	return append(collected, []byte(fmt.Sprintf("\nERROR READING LOGS:\n%#v\n", err))...)
 }
 
-func readBytesFromPipe(log logger.Logger, pipe io.ReadCloser, numBytes int) ([]byte, error) {
-	buf := [4096]byte{}
-	collected := []byte{}
-	for {
-		n, err := pipe.Read(buf[:])
-		collected = append(collected, buf[:n]...)
-		if err == io.EOF {
-			_ = pipe.Close()
-			return collected, nil
-		}
-		if err != nil {
-			// For non-EOF errors, append them to the logs and return what we have.
-			return appendError(collected, err), err
-		}
-		// If the output we've collected grows bigger than it's supposed to be,
-		// just drop everything we've seen so far, add a big warning at the
-		// top, and keep going. This avoids consuming all the memory on the
-		// system if the logs are pathoLOGical, but still lets us see the tail
-		// end of the logs, which is probably what we care about.
-		if len(collected) > numBytes {
-			msg := "WARNING: Lines in the journal are longer than expected. Truncating log."
-			log.Warning(msg)
-			collected = []byte("#####\n" + msg + "\n#####\n")
-		}
-	}
-}
-
 // If systemd is running, we look for logs in the systemd journal for our 3
 // main services.
 func tailSystemdJournal(log logger.Logger, which string, numBytes int) (ret string) {
@@ -282,12 +255,14 @@ func tailSystemdJournal(log logger.Logger, which string, numBytes int) (ret stri
 	}()
 
 	// Journalctl doesn't provide a "last N bytes" flag directly, so instead we
-	// use "last N lines". My own logs for all three services average out to
-	// between 120 and 220 bytes per line. We'll use a slightly conservative
-	// assumption of 300 bytes per line.
-	numLines := numBytes / 300
+	// use "last N lines". Large log files in practice seem to be about 150
+	// bits per line. We'll request lines on that assumption, but if we get
+	// more than 2x as many bytes as we expected, we'll stop reading and
+	// include a big error.
+	guessedLines := numBytes / 150
+	maxBytes := numBytes * 2
 
-	journalCmd := exec.Command("journalctl", "--user", "--unit", which, "--lines", strconv.Itoa(numLines))
+	journalCmd := exec.Command("journalctl", "--user", "--unit", which, "--lines", strconv.Itoa(guessedLines))
 	journalCmd.Stderr = os.Stderr
 	stdout, err := journalCmd.StdoutPipe()
 	if err != nil {
@@ -304,7 +279,8 @@ func tailSystemdJournal(log logger.Logger, which string, numBytes int) (ret stri
 
 	// Once we start reading output, don't short-circuit on errors. Just log
 	// them, and return whatever we got.
-	output, err := readBytesFromPipe(log, stdout, numBytes)
+	stdoutLimited := io.LimitReader(stdout, int64(maxBytes))
+	output, err := ioutil.ReadAll(stdoutLimited)
 	if err != nil {
 		log.Errorf("Error reading from journalctl pipe: %s", err)
 		output = appendError(output, err)
@@ -313,6 +289,10 @@ func tailSystemdJournal(log logger.Logger, which string, numBytes int) (ret stri
 	if err != nil {
 		log.Errorf("Journalctl exited with an error: %s", err)
 		output = appendError(output, err)
+	}
+	if len(output) >= maxBytes {
+		truncation := "\n###\n### WARNING: Journal lines longer than expected. Logs truncated.\n###\n"
+		output = append(output, truncation...)
 	}
 	return string(output)
 }
