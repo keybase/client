@@ -4,21 +4,22 @@ import RNPN from 'react-native-push-notification'
 import * as RPCTypes from '../constants/types/flow-types'
 
 import type {Dispatch} from '../constants/types/flux'
-import type {incomingCallMapType} from '../constants/types/flow-types'
+import type {IncomingCallMapType} from '../constants/types/flow-types'
 
 // TODO(mm) Move these to their own actions
-export default function(dispatch: Dispatch, getState: () => Object, notify: any): incomingCallMapType {
-  const fromShared = shared(dispatch, getState, notify)
-  return {
-    ...fromShared,
+export default function(dispatch: Dispatch, getState: () => Object, notify: any): IncomingCallMapType {
+  const fromShared: IncomingCallMapType = shared(dispatch, getState, notify)
+  const handlers: IncomingCallMapType = {
     'keybase.1.NotifyBadges.badgeState': ({badgeState}) => {
       const sharedBadgeState = fromShared['keybase.1.NotifyBadges.badgeState']
-      sharedBadgeState({badgeState})
+      if (sharedBadgeState) {
+        sharedBadgeState({badgeState})
+      }
 
       const count = (badgeState.conversations || [])
         .reduce(
           (total, c) =>
-            c.badgeCounts ? total + c.badgeCounts[`${RPCTypes.CommonDeviceType.mobile}`] : total,
+            c.badgeCounts ? total + c.badgeCounts[`${RPCTypes.commonDeviceType.mobile}`] : total,
           0
         )
 
@@ -28,4 +29,12 @@ export default function(dispatch: Dispatch, getState: () => Object, notify: any)
       }
     },
   }
+
+  // $FlowIssue doesnt' like spreading exact types
+  const combined: IncomingCallMapType = {
+    ...fromShared,
+    ...handlers,
+  }
+
+  return combined
 }

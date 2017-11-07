@@ -9,6 +9,7 @@ import * as RPCTypes from '../constants/types/flow-types'
 import * as GregorTypes from '../constants/types/flow-types-gregor'
 
 // Constants
+export const resetStore = 'common:resetStore' // not a part of gregor but is handled by every reducer
 export const pushState = 'gregor:pushState'
 
 // Action Creators

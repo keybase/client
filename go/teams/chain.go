@@ -281,8 +281,12 @@ func (t TeamSigChainState) HasAnyStubbedLinks() bool {
 	return false
 }
 
-func (t TeamSigChainState) IsLinkFullyPresent(seqno keybase1.Seqno) bool {
+// Whether the link has been processed and is not stubbed.
+func (t TeamSigChainState) IsLinkFilled(seqno keybase1.Seqno) bool {
 	if seqno > t.inner.LastSeqno {
+		return false
+	}
+	if seqno < 0 {
 		return false
 	}
 	return !t.inner.StubbedLinks[seqno]
@@ -1454,6 +1458,11 @@ func (t *TeamSigChainPlayer) addInnerLink(
 	case "":
 		return res, errors.New("empty body type")
 	default:
+		if link.outerLink.IgnoreIfUnsupported {
+			res.newState = prevState.DeepCopy()
+			return res, nil
+		}
+
 		return res, fmt.Errorf("unsupported link type: %s", payload.Body.Type)
 	}
 }

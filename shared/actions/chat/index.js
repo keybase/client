@@ -4,6 +4,7 @@ import * as ChatTypes from '../../constants/types/flow-types-chat'
 import * as Constants from '../../constants/chat'
 import * as Creators from './creators'
 import * as ChatGen from '../chat-gen'
+import * as KBFSGen from '../kbfs-gen'
 import * as Inbox from './inbox'
 import * as ManageThread from './manage-thread'
 import * as RPCTypes from '../../constants/types/flow-types'
@@ -14,7 +15,6 @@ import * as SendMessages from './send-messages'
 import * as ThreadContent from './thread-content'
 import engine from '../../engine'
 import some from 'lodash/some'
-import {openInKBFS} from '../kbfs'
 import {parseFolderNameToUsers} from '../../util/kbfs'
 import {publicFolderWithUsers, privateFolderWithUsers, teamFolder} from '../../constants/config'
 
@@ -69,11 +69,11 @@ function* _setupChatHandlers(): Saga.SagaGenerator<any, any> {
 
   engine().setIncomingActionCreator('chat.1.NotifyChat.ChatInboxSynced', ({syncRes}) => {
     switch (syncRes.syncType) {
-      case ChatTypes.CommonSyncInboxResType.clear:
+      case ChatTypes.commonSyncInboxResType.clear:
         return ChatGen.createInboxStale({reason: 'sync with clear result'})
-      case ChatTypes.CommonSyncInboxResType.current:
+      case ChatTypes.commonSyncInboxResType.current:
         return ChatGen.createSetInboxGlobalUntrustedState({inboxGlobalUntrustedState: 'loaded'})
-      case ChatTypes.CommonSyncInboxResType.incremental:
+      case ChatTypes.commonSyncInboxResType.incremental:
         return ChatGen.createInboxSynced({convs: syncRes.incremental.items})
     }
     return ChatGen.createInboxStale({reason: 'sync with unknown result'})
@@ -109,15 +109,15 @@ function* _openFolder(): Saga.SagaGenerator<any, any> {
   const inbox = yield Saga.select(Constants.getInbox, conversationIDKey)
   if (inbox) {
     let path
-    if (inbox.membersType === ChatTypes.CommonConversationMembersType.team) {
+    if (inbox.membersType === ChatTypes.commonConversationMembersType.team) {
       path = teamFolder(inbox.teamname)
     } else {
-      const helper = inbox.visibility === RPCTypes.CommonTLFVisibility.public
+      const helper = inbox.visibility === RPCTypes.commonTLFVisibility.public
         ? publicFolderWithUsers
         : privateFolderWithUsers
       path = helper(inbox.get('participants').toArray())
     }
-    yield Saga.put(openInKBFS(path))
+    yield Saga.put(KBFSGen.createOpen({path}))
   } else {
     throw new Error(`Can't find conversation path`)
   }
@@ -131,10 +131,10 @@ function* chatSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.fork(Search.registerSagas)
   yield Saga.fork(ManageThread.registerSagas)
 
-  yield Saga.safeTakeEvery('chat:incomingTyping', _incomingTyping)
-  yield Saga.safeTakeEvery('chat:openFolder', _openFolder)
-  yield Saga.safeTakeEvery('chat:openTlfInChat', _openTlfInChat)
-  yield Saga.safeTakeEvery('chat:setupChatHandlers', _setupChatHandlers)
+  yield Saga.safeTakeEvery(ChatGen.incomingTyping, _incomingTyping)
+  yield Saga.safeTakeEvery(ChatGen.openFolder, _openFolder)
+  yield Saga.safeTakeEvery(ChatGen.openTlfInChat, _openTlfInChat)
+  yield Saga.safeTakeEvery(ChatGen.setupChatHandlers, _setupChatHandlers)
 }
 
 export default chatSaga

@@ -9,10 +9,11 @@ import * as RPCTypes from '../constants/types/flow-types'
 import * as ChatTypes from '../constants/types/flow-types-chat'
 import * as I from 'immutable'
 import HiddenString from '../util/hidden-string'
-import {type DeviceType} from '../constants/types/more'
+import {type DeviceType} from '../constants/devices'
 import {type Path} from '../route-tree'
 
 // Constants
+export const resetStore = 'common:resetStore' // not a part of chat but is handled by every reducer
 export const addPending = 'chat:addPending'
 export const attachmentSaveFailed = 'chat:attachmentSaveFailed'
 export const attachmentSaveStart = 'chat:attachmentSaveStart'

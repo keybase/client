@@ -1,7 +1,7 @@
 // @flow
 
 import Pinentry from './index.render'
-import {PassphraseCommonPassphraseType} from '../constants/types/flow-types'
+import {passphraseCommonPassphraseType} from '../constants/types/flow-types'
 import type {DumbComponentMap} from '../constants/types/more'
 import type {Props} from './index.render'
 
@@ -23,7 +23,7 @@ const propsNormal: Props = {
     },
   },
   prompt: 'Enter your passphrase to unlock the secret key for home computer.',
-  type: PassphraseCommonPassphraseType.passPhrase,
+  type: passphraseCommonPassphraseType.passPhrase,
 }
 
 const paperkeyNormal: Props = {
@@ -33,7 +33,7 @@ const paperkeyNormal: Props = {
       height: 300,
     },
   },
-  type: PassphraseCommonPassphraseType.paperKey,
+  type: passphraseCommonPassphraseType.paperKey,
   prompt: 'Enter your paper key to continue.',
   features: {
     showTyping: {

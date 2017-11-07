@@ -4,7 +4,7 @@ import {connect} from 'react-redux'
 import {compose, withState, withHandlers} from 'recompose'
 import {type TypedState} from '../constants/reducer'
 import {createNewTeamFromConversation, setTeamCreationError} from '../actions/teams/creators'
-import {upperFirst} from 'lodash'
+import upperFirst from 'lodash/upperFirst'
 import {lifecycle} from '../util/container'
 
 const mapStateToProps = (state: TypedState) => ({

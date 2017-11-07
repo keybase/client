@@ -1,8 +1,8 @@
 // @flow
+import * as LoginGen from '../../../actions/login-gen'
 import React, {Component} from 'react'
 import PaperKey from '.'
 import {connect, type TypedState} from '../../../util/container'
-import * as Creators from '../../../actions/login/creators'
 import HiddenString from '../../../util/hidden-string'
 import {type RouteProps} from '../../../route-tree/render-route'
 
@@ -56,8 +56,9 @@ const mapStateToProps = (state: TypedState, {routeProps}: OwnProps) => ({
 })
 
 const mapDispatchToProps = dispatch => ({
-  onBack: () => dispatch(Creators.onBack()),
-  onSubmit: paperkey => dispatch(Creators.submitPassphrase(new HiddenString(paperkey), false)),
+  onBack: () => dispatch(LoginGen.createOnBack()),
+  onSubmit: (paperkey: string) =>
+    dispatch(LoginGen.createSubmitPassphrase({passphrase: new HiddenString(paperkey), storeSecret: false})),
 })
 
 export default connect(mapStateToProps, mapDispatchToProps)(_PaperKey)
