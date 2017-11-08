@@ -15,9 +15,8 @@ const validTeamname = (s: string): boolean => {
   return s.split('.').every(validTeamnamePart)
 }
 
-// The types below are copied from ../constants/teams. Can't import
-// them because it yields an error, possibly because of an import
-// cycle.
+// The types below are copied from ..teams. Can't import them because
+// it yields an error, possibly because of an import cycle.
 
 type Teamname = string
 
