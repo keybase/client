@@ -13,7 +13,6 @@ import {
   PopupMenu,
   ProgressIndicator,
 } from '../../common-adapters'
-import {clamp} from 'lodash'
 import {globalStyles, globalMargins, globalColors} from '../../styles'
 import {isMobile} from '../../constants/platform'
 import {OpenTeamSettingButton} from '../open-team'
@@ -102,9 +101,9 @@ const TeamTabs = (props: TeamTabsProps) => {
 
   let requestsBadge = 0
   if (newTeamRequests.length) {
-    requestsBadge = clamp(
+    // Use min here so we never show a badge number > the (X) number of requests we have
+    requestsBadge = Math.min(
       newTeamRequests.reduce((count, team) => (team === name ? count + 1 : count), 0),
-      0,
       requests.length
     )
   }
@@ -114,7 +113,6 @@ const TeamTabs = (props: TeamTabsProps) => {
     const invitesLabel = `PENDING INVITES (${invites.length})`
     tabs.push(
       <Box key="requests" style={{...globalStyles.flexBoxRow, alignItems: 'center'}}>
-        {!!requestsBadge && <Badge badgeNumber={requestsBadge} badgeStyle={{marginTop: 1}} />}
         <Text
           type="BodySmallSemibold"
           style={{
@@ -124,6 +122,7 @@ const TeamTabs = (props: TeamTabsProps) => {
           {' '}
           {requestsLabel}
         </Text>
+        {!!requestsBadge && <Badge badgeNumber={requestsBadge} badgeStyle={{marginTop: 1, marginLeft: 2}} />}
       </Box>
     )
     tabs.push(
