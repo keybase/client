@@ -74,7 +74,8 @@ type TeamTabsProps = {
   setSelectedTab: (?Constants.TabKey) => void,
 }
 
-const TeamRequestOrInviteRow = (index, row) => row.type === 'request' ? TeamRequestRow(index, row) : TeamInviteRow(index, row)
+const TeamRequestOrInviteRow = (index, row) =>
+  row.type === 'request' ? TeamRequestRow(index, row) : TeamInviteRow(index, row)
 
 const TeamTabs = (props: TeamTabsProps) => {
   const {admin, invites, members, loading = false, selectedTab, setSelectedTab} = props
@@ -202,7 +203,13 @@ class Team extends React.PureComponent<Props> {
       } else {
         contents =
           !loading &&
-            <List keyProperty="key" items={requestsAndInvites} fixedHeight={48} renderItem={TeamRequestOrInviteRow} style={{alignSelf: 'stretch'}} />
+          <List
+            keyProperty="key"
+            items={requestsAndInvites}
+            fixedHeight={48}
+            renderItem={TeamRequestOrInviteRow}
+            style={{alignSelf: 'stretch'}}
+          />
       }
     } else if (selectedTab === 'publicity') {
       const teamsLink = 'keybase.io/popular-teams'
