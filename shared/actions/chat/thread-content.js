@@ -2,7 +2,7 @@
 import * as ChatTypes from '../../constants/types/flow-types-chat'
 import * as Constants from '../../constants/chat'
 import * as ChatGen from '../chat-gen'
-import * as EngineRpc from '../engine/helper'
+import * as EngineRpc from '../../constants/engine'
 import * as EntityCreators from '../entities'
 import * as I from 'immutable'
 import * as RPCTypes from '../../constants/types/flow-types'

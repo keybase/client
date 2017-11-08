@@ -511,7 +511,7 @@ const makeEngine = (dispatch: Dispatch) => {
   return engine
 }
 
-const getEngine = () => {
+const getEngine = (): Engine | FakeEngine => {
   if (__DEV__ && !engine) {
     throw new Error('Engine needs to be initialized first')
   }

@@ -3,7 +3,7 @@
 import * as ConfigGen from '../../actions/config-gen'
 import * as LoginGen from '../../actions/login-gen'
 import * as Constants from '../../constants/login'
-import * as EngineRpc from '../engine/helper'
+import * as EngineRpc from '../../constants/engine'
 import * as RouteConstants from '../../constants/route-tree'
 import * as Saga from '../../util/saga'
 import * as Types from '../../constants/types/flow-types'
