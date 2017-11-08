@@ -72,7 +72,10 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
     dispatch(ChatGen.createEditMessage({message, text: new HiddenString(body)}))
   },
   onPostMessage: (selectedConversation, text) =>
-    selectedConversation && dispatch(Creators.postMessage(selectedConversation, new HiddenString(text))),
+    selectedConversation &&
+    dispatch(
+      ChatGen.createPostMessage({conversationIDKey: selectedConversation, text: new HiddenString(text)})
+    ),
   onShowEditor: (message: Constants.Message) => {
     dispatch(ChatGen.createShowEditor({message}))
   },

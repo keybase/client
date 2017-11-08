@@ -6,7 +6,7 @@ import {compose} from 'recompose'
 import {HeaderHoc} from '../../../common-adapters'
 import {showUserProfile} from '../../../actions/profile'
 import {getProfile} from '../../../actions/tracker'
-import {startConversation} from '../../../actions/chat'
+import {createStartConversation} from '../../../actions/chat-gen'
 import {isMobile} from '../../../constants/platform'
 import {TeamMember} from '.'
 import {type TypedState} from '../../../constants/reducer'
@@ -68,7 +68,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {routeProps, navigateAppend, nav
     dispatch(navigateAppend([{props: {teamname}, selected: 'reallyLeaveTeam'}]))
   },
   _onChat: (username, myUsername) => {
-    username && myUsername && dispatch(startConversation([username, myUsername]))
+    username && myUsername && dispatch(createStartConversation({users: [username, myUsername]}))
   },
   onBack: () => dispatch(navigateUp()),
 })

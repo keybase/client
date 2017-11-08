@@ -11,8 +11,7 @@ import {call, put, take, fork} from 'redux-saga/effects'
 import {isMobile} from '../constants/platform'
 import {log} from '../native/log/logui'
 import {registerIdentifyUi, setupUserChangedHandler} from './tracker'
-import {badgeAppForChat} from './chat'
-import {createSetupChatHandlers} from './chat-gen'
+import {createBadgeAppForChat, createSetupChatHandlers} from './chat-gen'
 import {setupTeamHandlers, badgeAppForTeams} from './teams/creators'
 
 import type {SagaGenerator} from '../constants/types/saga'
@@ -98,7 +97,7 @@ function* _onRecievedBadgeState(action: Constants.ReceivedBadgeState): SagaGener
     newTeamNames,
     newTeamAccessRequests,
   } = action.payload.badgeState
-  yield put(badgeAppForChat(conversations))
+  yield put(createBadgeAppForChat({conversations: conversations || []}))
   yield put(GitGen.createBadgeAppForGit({ids: newGitRepoGlobalUniqueIDs || []}))
   yield put(badgeAppForTeams(newTeamNames || [], newTeamAccessRequests || []))
 }
