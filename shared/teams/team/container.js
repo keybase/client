@@ -75,7 +75,6 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, setRouteState, rout
       navigateAppend([
         {
           props: {
-            onClose: (navigateUpFn: Function) => dispatch(navigateUpFn()),
             actualTeamName: routeProps.get('teamname'),
           },
           selected: isTeamOpen ? 'openCloseTeamSetting' : 'openTeamSetting',

@@ -1,12 +1,29 @@
 // @flow
 import * as React from 'react'
-import {Avatar, Text, Box, PopupDialog, ScrollView, Checkbox, Icon} from '../../common-adapters'
-import {globalStyles, globalColors, globalMargins} from '../../styles'
+import {Avatar, Text, Box, Button, PopupDialog, ScrollView, Checkbox, Icon} from '../../common-adapters'
+import {globalStyles, globalColors, globalMargins, glamorous} from '../../styles'
 
 import type {Props, RowProps} from '.'
 
-const Row = (props: RowProps & {onToggle: () => void}) => (
+const HoverBox = glamorous(Box)({
+  opacity: 0,
+  '.channel-row:hover &': {
+    opacity: 1,
+  },
+})
+
+const Edit = ({onClick, style}: {onClick: () => void, style: Object}) => (
+  <HoverBox style={style} onClick={onClick}>
+    <Icon style={{height: 12, marginRight: globalMargins.xtiny}} type="iconfont-edit" />
+    <Text type="BodySmallPrimaryLink">Edit</Text>
+  </HoverBox>
+)
+
+const Row = (
+  props: RowProps & {selected: boolean, onToggle: () => void, showEdit: boolean, onEdit: () => void}
+) => (
   <Box
+    className={'channel-row'}
     style={{
       ...globalStyles.flexBoxColumn,
       paddingLeft: globalMargins.medium,
@@ -20,13 +37,22 @@ const Row = (props: RowProps & {onToggle: () => void}) => (
             checked={props.selected}
             label=""
             onCheck={props.onToggle}
-            style={{alignSelf: 'flext-start', marginRight: 0}}
+            style={{alignSelf: 'flex-start', marginRight: 0}}
           />
         </Box>
         <Box style={{...globalStyles.flexBoxColumn, marginLeft: globalMargins.tiny, minHeight: 32}}>
           <Text type="BodySemibold" style={{color: globalColors.blue}}>#{props.name}</Text>
           <Text type="BodySmall">{props.description}</Text>
         </Box>
+        {props.showEdit &&
+          <Edit
+            style={{
+              ...globalStyles.flexBoxRow,
+              flex: 1,
+              justifyContent: 'flex-end',
+            }}
+            onClick={props.onEdit}
+          />}
       </Box>
     </Box>
   </Box>
@@ -51,11 +77,34 @@ const ManageChannels = (props: Props) => (
         {props.channels.length} {props.channels.length !== 1 ? 'chat channels' : 'chat channel'}
       </Text>
       <ScrollView style={{alignSelf: 'flex-start', width: '100%', paddingBottom: globalMargins.xlarge}}>
-        {props.channels.map(c => <Row key={c.name} {...c} onToggle={() => props.onToggle(c.name)} />)}
+        {props.channels.map(c => (
+          <Row
+            key={c.name}
+            description={c.description}
+            name={c.name}
+            selected={props.nextChannelState[c.name]}
+            onToggle={() => props.onToggle(c.name)}
+            showEdit={!props.unsavedSubscriptions}
+            onEdit={() => props.onEdit(c.convID)}
+          />
+        ))}
       </ScrollView>
       <Box style={_createStyle}>
         <Icon style={_createIcon} type="iconfont-new" onClick={props.onCreate} />
         <Text type="BodyBigLink" onClick={props.onCreate}>New chat channel</Text>
+      </Box>
+      <Box style={{flex: 2, ...globalStyles.flexBoxColumn, justifyContent: 'flex-end'}}>
+        <Box style={{...globalStyles.flexBoxRow}}>
+          <Button type="Secondary" label="Cancel" onClick={props.onClose} />
+          <Button
+            type="Primary"
+            label={props.unsavedSubscriptions ? 'Save' : 'Saved'}
+            waiting={props.waitingForSave}
+            disabled={!props.unsavedSubscriptions}
+            onClick={props.onSaveSubscriptions}
+            style={{marginLeft: globalMargins.tiny}}
+          />
+        </Box>
       </Box>
     </Box>
   </PopupDialog>
@@ -67,6 +116,8 @@ const _boxStyle = {
   paddingLeft: globalMargins.large,
   paddingRight: globalMargins.large,
   paddingTop: globalMargins.medium,
+  paddingBottom: globalMargins.medium,
+  flex: 1,
 }
 
 const _createIcon = {

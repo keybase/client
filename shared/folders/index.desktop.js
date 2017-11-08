@@ -9,10 +9,11 @@ import {TabBarItem, TabBarButton} from '../common-adapters/tab-bar'
 import {connect, type TypedState} from '../util/container'
 import {globalStyles, globalColors, globalMargins} from '../styles'
 import {isLinux} from '../constants/platform'
-import {type Props} from '.'
+import {type Props, type FolderType} from '.'
 
 class FoldersRender extends Component<Props> {
-  _makeItem(isPublic: boolean, isSelected: boolean) {
+  _makeItem(folderType: FolderType, isSelected: boolean) {
+    let isPublic = folderType === 'public'
     const icon = isPublic ? 'iconfont-folder-public' : 'iconfont-folder-private'
     const selectedColor = isPublic ? globalColors.yellowGreen : globalColors.darkBlue2
     const iconStyle = isPublic
@@ -33,7 +34,7 @@ class FoldersRender extends Component<Props> {
           fontSize: 12,
         }}
         selected={isSelected}
-        label={isPublic ? 'public/' : 'private/'}
+        label={`${folderType}/`}
         badgeNumber={isPublic ? this.props.publicBadge : this.props.privateBadge}
       />
     )
@@ -73,20 +74,20 @@ class FoldersRender extends Component<Props> {
             minHeight: this.props.smallMode ? 32 : 48,
           }}
         >
-          {[false, true].map(isPublic => (
+          {['private', 'public', 'team'].map(selected => (
             <TabBarItem
-              key={isPublic ? 'public' : 'private'}
-              selected={this.props.showingPrivate !== isPublic}
+              key={selected}
+              selected={this.props.selected === selected}
               styleContainer={itemContainerStyle}
-              tabBarButton={this._makeItem(isPublic, this.props.showingPrivate !== isPublic)}
+              tabBarButton={this._makeItem(selected, this.props.selected === selected)}
               onClick={() => {
-                this.props.onSwitchTab && this.props.onSwitchTab(!isPublic)
+                this.props.onSwitchTab && this.props.onSwitchTab(selected)
               }}
             >
               <List
-                {...(isPublic ? this.props.public : this.props.private)}
+                {...this.props[selected]}
                 {...sharedListProps}
-                isPublic={isPublic}
+                type={selected}
                 showIgnored={this.props.showingIgnored}
                 onToggleShowIgnored={this.props.onToggleShowIgnored}
               />

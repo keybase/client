@@ -1,7 +1,7 @@
 // @flow
 import * as I from 'immutable'
 import * as ChatConstants from './chat'
-import {userIsInTeam} from './selectors'
+import {userIsInTeam, usernameSelector} from './selectors'
 import * as RPCTypes from './types/flow-types'
 import invert from 'lodash/invert'
 
@@ -10,6 +10,7 @@ import {type NoErrorTypedAction} from './types/flux'
 import {type TypedState} from './reducer'
 
 export type TeamSettings = RPCTypes.TeamSettings
+export type ChannelMembershipState = {[channelname: string]: boolean}
 
 export type CreateNewTeam = NoErrorTypedAction<
   'teams:createNewTeam',
@@ -158,6 +159,26 @@ export type InviteToTeamByEmail = NoErrorTypedAction<
   {invitees: string, role: string, teamname: string}
 >
 
+export type UpdateChannelName = NoErrorTypedAction<
+  'teams:updateChannelName',
+  {conversationIDKey: ChatConstants.ConversationIDKey, newChannelName: string}
+>
+
+export type UpdateTopic = NoErrorTypedAction<
+  'teams:updateTopic',
+  {conversationIDKey: ChatConstants.ConversationIDKey, newTopic: string}
+>
+
+export type DeleteChannel = NoErrorTypedAction<
+  'teams:deleteChannel',
+  {conversationIDKey: ChatConstants.ConversationIDKey}
+>
+
+export type SaveChannelMembership = NoErrorTypedAction<
+  'teams:saveChannelMembership',
+  {channelState: ChannelMembershipState, teamname: string}
+>
+
 export const teamRoleByEnum = invert(RPCTypes.teamsTeamRole)
 
 export type TypeMap = {
@@ -177,7 +198,7 @@ export const typeToLabel: TypeMap = {
 type _State = {
   convIDToChannelInfo: I.Map<ChatConstants.ConversationIDKey, ChannelInfo>,
   sawChatBanner: boolean,
-  teamNameToConvIDs: I.Map<Teamname, ChatConstants.ConversationIDKey>,
+  teamNameToConvIDs: I.Map<Teamname, I.Set<ChatConstants.ConversationIDKey>>,
   teamNameToInvites: I.Map<
     Teamname,
     I.Set<
@@ -222,13 +243,57 @@ export const makeState: I.RecordFactory<_State> = I.Record({
 const userIsInTeamHelper = (state: TypedState, username: string, service: Service, teamname: string) =>
   service === 'Keybase' ? userIsInTeam(state, teamname, username) : false
 
-const getConversationIDKeyFromChannelName = (state: TypedState, channelname: string) =>
-  state.entities.teams.convIDToChannelInfo.findKey(i => i.channelname === channelname)
+// TODO this is broken. channelnames are not unique
+const getConversationIDKeyFromChannelName = (state: TypedState, channelname: string) => null
+
+const getConvIdsFromTeamName = (state: TypedState, teamname: string) =>
+  state.entities.teams.teamNameToConvIDs.get(teamname, I.Set())
+
+const getTeamNameFromConvID = (state: TypedState, conversationIDKey: ChatConstants.ConversationIDKey) =>
+  state.entities.teams.teamNameToConvIDs.findKey(i => i.has(conversationIDKey))
+
+const getChannelNameFromConvID = (state: TypedState, conversationIDKey: ChatConstants.ConversationIDKey) =>
+  state.entities.teams.convIDToChannelInfo.getIn([conversationIDKey, 'channelname'], null)
+
+const getTopicFromConvID = (state: TypedState, conversationIDKey: ChatConstants.ConversationIDKey) =>
+  state.entities.teams.convIDToChannelInfo.getIn([conversationIDKey, 'description'], null)
 
 const getParticipants = (state: TypedState, conversationIDKey: ChatConstants.ConversationIDKey) =>
   state.entities.getIn(['teams', 'convIDToChannelInfo', conversationIDKey, 'participants'], I.Set())
 
+const getMembersFromConvID = (state: TypedState, conversationIDKey: ChatConstants.ConversationIDKey) => {
+  const teamname = getTeamNameFromConvID(state, conversationIDKey)
+  if (teamname) {
+    return state.entities.teams.teamNameToMembers.get(teamname, I.Set())
+  }
+  return I.Set()
+}
+
+const getYourRoleFromConvID = (state: TypedState, conversationIDKey: ChatConstants.ConversationIDKey) => {
+  const members = getMembersFromConvID(state, conversationIDKey)
+  const you = usernameSelector(state)
+  const youAsMember = members.find(m => m.username === you)
+  if (youAsMember) {
+    return youAsMember.type
+  }
+  return null
+}
+
+const isAdmin = (type: TeamRoleType) => type === 'admin'
+const isOwner = (type: TeamRoleType) => type === 'owner'
+
 export const getFollowingMap = (state: TypedState) => state.config.following
 export const getFollowerMap = (state: TypedState) => state.config.followers
 
-export {getConversationIDKeyFromChannelName, getParticipants, userIsInTeamHelper}
+export {
+  getConvIdsFromTeamName,
+  getConversationIDKeyFromChannelName,
+  getParticipants,
+  userIsInTeamHelper,
+  getTeamNameFromConvID,
+  getChannelNameFromConvID,
+  getTopicFromConvID,
+  getYourRoleFromConvID,
+  isAdmin,
+  isOwner,
+}
