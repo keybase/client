@@ -116,6 +116,7 @@ func (c *CachingTeamChannelSource) GetChannelsTopicName(ctx context.Context, uid
 		SummarizeMaxMsgs: false,
 	})
 	if err != nil {
+		c.Debug(ctx, "GetChannelsTopicName: failed to get TLF convos: %s", err)
 		return res, rl, err
 	}
 	if tlfRes.RateLimit != nil {
