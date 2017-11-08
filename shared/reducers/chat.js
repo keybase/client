@@ -17,7 +17,7 @@ function updateConversation(
   return conversationStates.update(conversationIDKey, initialConversation, conversationUpdateFn)
 }
 
-function reducer(state: Constants.State = initialState, action: Constants.Actions | ChatGen.Actions) {
+function reducer(state: Constants.State = initialState, action: ChatGen.Actions) {
   switch (action.type) {
     case ChatGen.resetStore:
       return Constants.makeState()

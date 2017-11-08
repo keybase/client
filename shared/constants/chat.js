@@ -490,8 +490,6 @@ export type SaveAttachmentNative = NoErrorTypedAction<'chat:saveAttachmentNative
 
 export type ShareAttachment = NoErrorTypedAction<'chat:shareAttachment', {messageKey: MessageKey}>
 
-export type Actions = UpdateTempMessage
-
 function conversationIDToKey(conversationID: ConversationID): ConversationIDKey {
   return conversationID.toString('hex')
 }

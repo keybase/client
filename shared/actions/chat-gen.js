@@ -166,7 +166,7 @@ export const createUpdateMetadata = (payload: {|users: Array<string>|}) => ({err
 export const createUpdateSnippet = (payload: {|conversationIDKey: Constants.ConversationIDKey, snippet: HiddenString|}) => ({error: false, payload, type: updateSnippet})
 export const createUpdateSupersededByState = (payload: {|supersededByState: Constants.SupersededByState|}) => ({error: false, payload, type: updateSupersededByState})
 export const createUpdateSupersedesState = (payload: {|supersedesState: Constants.SupersedesState|}) => ({error: false, payload, type: updateSupersedesState})
-export const createUpdateTempMessage = (payload: {|conversationIDKey: Constants.ConversationIDKey, message: $Shape<Constants.AttachmentMessage> | $Shape<Constants.TextMessage>, outboxID: Constants.OutboxIDKey|}) => ({error: false, payload, type: updateTempMessage})
+export const createUpdateTempMessage = (payload: {|conversationIDKey: Constants.ConversationIDKey, message: $Shape<Constants.AttachmentMessage> | $Shape<Constants.TextMessage>, outboxIDKey: Constants.OutboxIDKey|}) => ({error: false, payload, type: updateTempMessage})
 export const createUpdateThread = (payload: {|thread: ChatTypes.UIMessages, yourName: string, yourDeviceName: string, conversationIDKey: string, append: boolean|}) => ({error: false, payload, type: updateThread})
 export const createUpdateTyping = (payload: {|conversationIDKey: Constants.ConversationIDKey, typing: boolean|}) => ({error: false, payload, type: updateTyping})
 export const createUpdatedMetadata = (payload: {|updated: {[key: string]: Constants.MetaData}|}) => ({error: false, payload, type: updatedMetadata})

@@ -247,7 +247,7 @@ function* _incomingMessage(action: ChatGen.IncomingMessagePayload): Saga.SagaGen
                   failureDescription,
                   messageState: 'failed',
                 },
-                outboxID,
+                outboxIDKey: outboxID,
               })
             )
           } else {
@@ -323,7 +323,7 @@ function* _incomingMessage(action: ChatGen.IncomingMessagePayload): Saga.SagaGen
               // If the message has an outboxID and came from our device, then we
               // sent it and have already rendered it in the message list; we just
               // need to mark it as sent.
-              Saga.put(ChatGen.createUpdateTempMessage({conversationIDKey, message, outboxID})),
+              Saga.put(ChatGen.createUpdateTempMessage({conversationIDKey, message, outboxIDKey: outboxID})),
               Saga.put(
                 ChatGen.createOutboxMessageBecameReal({
                   oldMessageKey: pendingMessage.key,
@@ -940,7 +940,7 @@ function* _logPrependMessages(action: ChatGen.PrependMessagesPayload): Saga.Saga
 
 function* _logUpdateTempMessage(action: ChatGen.UpdateTempMessagePayload): Saga.SagaGenerator<any, any> {
   const toPrint = {
-    payload: {conversationIDKey: action.payload.conversationIDKey, outboxID: action.payload.outboxID},
+    payload: {conversationIDKey: action.payload.conversationIDKey, outboxIDKey: action.payload.outboxIDKey},
     type: action.type,
   }
   console.log('Update temp message', JSON.stringify(toPrint, null, 2))

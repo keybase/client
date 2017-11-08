@@ -606,7 +606,7 @@ function _conversationLocalToInboxState(c: ?RPCChatTypes.InboxUIItem): ?Constant
   })
 }
 
-function* filterSelectNext(action: Constants.InboxFilterSelectNext): SagaGenerator<any, any> {
+function* filterSelectNext(action: ChatGen.SelectNextPayload): SagaGenerator<any, any> {
   const rows = action.payload.rows
   const direction = action.payload.direction
 

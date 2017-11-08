@@ -282,7 +282,7 @@
     "updateTempMessage": {
       "conversationIDKey": "Constants.ConversationIDKey",
       "message": "$Shape<Constants.AttachmentMessage> | $Shape<Constants.TextMessage>",
-      "outboxID": "Constants.OutboxIDKey"
+      "outboxIDKey": "Constants.OutboxIDKey"
     }
   }
 }
