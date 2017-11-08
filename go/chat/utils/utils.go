@@ -663,6 +663,7 @@ func PresentRemoteConversation(rc types.RemoteConversation) (res chat1.Unverifie
 	res.Visibility = rawConv.Metadata.Visibility
 	res.Notifications = rawConv.Notifications
 	res.MembersType = rawConv.GetMembersType()
+	res.MemberStatus = rawConv.ReaderInfo.Status
 	res.TeamType = rawConv.Metadata.TeamType
 	res.Version = rawConv.Metadata.Version
 	res.MaxMsgID = rawConv.ReaderInfo.MaxMsgid
@@ -704,6 +705,7 @@ func PresentConversationLocal(rawConv chat1.ConversationLocal) (res chat1.InboxU
 	res.ResetParticipants = rawConv.Info.ResetNames
 	res.Status = rawConv.Info.Status
 	res.MembersType = rawConv.GetMembersType()
+	res.MemberStatus = rawConv.Info.MemberStatus
 	res.Visibility = rawConv.Info.Visibility
 	res.Time = GetConvMtimeLocal(rawConv)
 	res.FinalizeInfo = rawConv.GetFinalizeInfo()
