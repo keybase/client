@@ -19,11 +19,13 @@ import routeTree from './route-tree'
 import settings from './settings'
 import signup from './signup'
 import tracker from './tracker'
-import type {State} from '../constants/reducer'
 import unlockFolders from './unlock-folders'
+import waiting from './waiting'
 import {combineReducers} from 'redux'
 import {resetStore} from '../constants/common.js'
 import {reducerTimer} from '../dev/user-timings'
+
+import type {State} from '../constants/reducer'
 
 const reducers = {
   chat,
@@ -46,6 +48,7 @@ const reducers = {
   signup,
   tracker,
   unlockFolders,
+  waiting,
 }
 
 const reducer = reducerTimer ? reducerTimer(reducers) : combineReducers(reducers)

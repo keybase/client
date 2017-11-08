@@ -15,8 +15,8 @@ import (
 // in progress connections succeed before returning.
 type sourceOfflinable struct {
 	utils.DebugLabeler
-	offline   bool
-	connected chan bool
+	offline, delayed bool
+	connected        chan bool
 	sync.Mutex
 }
 
@@ -47,6 +47,7 @@ func (s *sourceOfflinable) Disconnected(ctx context.Context) {
 	s.Debug(ctx, "disconnected: offline to true")
 
 	s.offline = true
+	s.delayed = false
 	close(s.connected)
 	s.connected = makeConnectedChan()
 }
@@ -55,20 +56,26 @@ func (s *sourceOfflinable) IsOffline(ctx context.Context) bool {
 	s.Lock()
 	offline := s.offline
 	connected := s.connected
+	delayed := s.delayed
 	s.Unlock()
 
 	if offline {
-		select {
-		case <-connected:
-			s.Lock()
-			defer s.Unlock()
-			s.Debug(ctx, "IsOffline: waited and got %v", s.offline)
-			return s.offline
-		case <-time.After(4 * time.Second):
-			s.Lock()
-			defer s.Unlock()
-			s.Debug(ctx, "IsOffline: timed out")
-			return s.offline
+		if !delayed {
+			select {
+			case <-connected:
+				s.Lock()
+				defer s.Unlock()
+				s.Debug(ctx, "IsOffline: waited and got %v", s.offline)
+				return s.offline
+			case <-time.After(4 * time.Second):
+				s.Lock()
+				defer s.Unlock()
+				s.delayed = true
+				s.Debug(ctx, "IsOffline: timed out")
+				return s.offline
+			}
+		} else {
+			s.Debug(ctx, "IsOffline: offline, but skipping delay since we already did it")
 		}
 	}
 
