@@ -349,7 +349,7 @@ function* _incomingMessage(action: ChatGen.IncomingMessagePayload): Saga.SagaGen
         } else {
           yield Saga.put(
             ChatGen.createAppendMessages({
-              conversationIDKey: conversationIDKey,
+              conversationIDKey,
               isSelected: conversationIDKey === selectedConversationIDKey,
               isAppFocused: appFocused,
               messages: [message],

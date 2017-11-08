@@ -241,7 +241,7 @@ function* _appendAttachmentPlaceholder(
 
   yield Saga.put(
     ChatGen.createAppendMessages({
-      conversationIDKey: conversationIDKey,
+      conversationIDKey,
       isSelected: conversationIDKey === selectedConversation,
       isAppFocused: appFocused,
       messages: [message],
