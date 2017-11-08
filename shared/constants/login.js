@@ -25,6 +25,45 @@ export const codePageModeShowText = 'codePageModeShowText'
 
 export const countDownTime = 5 * 60
 
+export function defaultModeForDeviceRoles(
+  myDeviceRole: DeviceRole,
+  otherDeviceRole: DeviceRole,
+  brokenMode: boolean
+): ?Mode {
+  switch (myDeviceRole + otherDeviceRole) {
+    case codePageDeviceRoleExistingComputer + codePageDeviceRoleNewComputer:
+      return codePageModeEnterText
+    case codePageDeviceRoleNewComputer + codePageDeviceRoleExistingComputer:
+      return codePageModeShowText
+
+    case codePageDeviceRoleExistingComputer + codePageDeviceRoleNewPhone:
+      return codePageModeShowCode
+    case codePageDeviceRoleNewPhone + codePageDeviceRoleExistingComputer:
+      return codePageModeScanCode
+
+    case codePageDeviceRoleExistingPhone + codePageDeviceRoleNewComputer:
+      return codePageModeScanCode
+    case codePageDeviceRoleNewComputer + codePageDeviceRoleExistingPhone:
+      return codePageModeShowCode
+
+    case codePageDeviceRoleExistingPhone + codePageDeviceRoleNewPhone:
+      return brokenMode ? codePageModeShowText : codePageModeShowCode
+    case codePageDeviceRoleNewPhone + codePageDeviceRoleExistingPhone:
+      return brokenMode ? codePageModeEnterText : codePageModeScanCode
+  }
+  return null
+}
+
+export function qrGenerate(code: string): string {
+  const QRCodeGen = require('qrcode-generator')
+  const qr = QRCodeGen(4, 'L')
+  qr.addData(code)
+  qr.make()
+  let tag = qr.createImgTag(10)
+  const src = tag.split(' ')[1]
+  const qrCode = src.split('"')[1]
+  return qrCode
+}
 // It's the b64 encoded value used to render the image
 type QRCode = HiddenString
 
