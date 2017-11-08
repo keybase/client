@@ -443,10 +443,11 @@ func (h *Server) GetThreadLocal(ctx context.Context, arg chat1.GetThreadLocalArg
 	}, nil
 }
 
-func (h *Server) presentThreadView(ctx context.Context, tv chat1.ThreadView) (res chat1.UIMessages) {
+func (h *Server) presentThreadView(ctx context.Context, uid gregor1.UID, tv chat1.ThreadView) (res chat1.UIMessages) {
 	res.Pagination = utils.PresentPagination(tv.Pagination)
 	for _, msg := range tv.Messages {
-		res.Messages = append(res.Messages, utils.PresentMessageUnboxed(msg))
+		res.Messages = append(res.Messages, utils.PresentMessageUnboxed(ctx, msg, uid,
+			h.G().TeamChannelSource))
 	}
 	return res
 }
@@ -454,7 +455,7 @@ func (h *Server) presentThreadView(ctx context.Context, tv chat1.ThreadView) (re
 func (h *Server) GetThreadNonblock(ctx context.Context, arg chat1.GetThreadNonblockArg) (res chat1.NonblockFetchRes, fullErr error) {
 	var identBreaks []keybase1.TLFIdentifyFailure
 	ctx = Context(ctx, h.G(), arg.IdentifyBehavior, &identBreaks, h.identNotifier)
-	uid := h.G().Env.GetUID()
+	uid := gregor1.UID(h.G().Env.GetUID().ToBytes())
 	defer h.Trace(ctx, func() error { return fullErr },
 		fmt.Sprintf("GetThreadNonblock(%s)", arg.ConversationID))()
 	defer func() {
@@ -463,10 +464,10 @@ func (h *Server) GetThreadNonblock(ctx context.Context, arg chat1.GetThreadNonbl
 		// Detect any problem loading the thread, and queue it up in the retrier if there is a problem.
 		// Otherwise, send notice that we successfully loaded the conversation.
 		if res.Offline || fullErr != nil {
-			h.G().FetchRetrier.Failure(ctx, uid.ToBytes(),
+			h.G().FetchRetrier.Failure(ctx, uid,
 				NewConversationRetry(h.G(), arg.ConversationID, nil, ThreadLoad))
 		} else {
-			h.G().FetchRetrier.Success(ctx, uid.ToBytes(),
+			h.G().FetchRetrier.Success(ctx, uid,
 				NewConversationRetry(h.G(), arg.ConversationID, nil, ThreadLoad))
 		}
 	}()
@@ -513,7 +514,7 @@ func (h *Server) GetThreadNonblock(ctx context.Context, arg chat1.GetThreadNonbl
 				time.Sleep(*h.cachedThreadDelay)
 			}
 			localThread, err = h.G().ConvSource.PullLocalOnly(bctx, arg.ConversationID,
-				gregor1.UID(uid.ToBytes()), arg.Query, pagination)
+				uid, arg.Query, pagination)
 			ch <- err
 		}()
 		select {
@@ -543,7 +544,7 @@ func (h *Server) GetThreadNonblock(ctx context.Context, arg chat1.GetThreadNonbl
 			h.Debug(ctx, "GetThreadNonblock: sending cached response: %d messages", len(resThread.Messages))
 			var jsonPt []byte
 			var err error
-			pt := h.presentThreadView(ctx, *resThread)
+			pt := h.presentThreadView(ctx, uid, *resThread)
 			if jsonPt, err = json.Marshal(pt); err != nil {
 				h.Debug(ctx, "GetThreadNonblock: failed to JSON cached response: %s", err)
 				return
@@ -567,7 +568,7 @@ func (h *Server) GetThreadNonblock(ctx context.Context, arg chat1.GetThreadNonbl
 		var remoteThread chat1.ThreadView
 		var rl []*chat1.RateLimit
 		remoteThread, rl, fullErr = h.G().ConvSource.Pull(bctx, arg.ConversationID,
-			gregor1.UID(uid.ToBytes()), arg.Query, pagination)
+			uid, arg.Query, pagination)
 		if fullErr != nil {
 			h.Debug(ctx, "GetThreadNonblock: error running Pull, returning error: %s", fullErr.Error())
 			return
@@ -578,7 +579,7 @@ func (h *Server) GetThreadNonblock(ctx context.Context, arg chat1.GetThreadNonbl
 		h.Debug(ctx, "GetThreadNonblock: sending full response: %d messages", len(remoteThread.Messages))
 		uilock.Lock()
 		defer uilock.Unlock()
-		uires := h.presentThreadView(bctx, remoteThread)
+		uires := h.presentThreadView(bctx, uid, remoteThread)
 		var jsonUIRes []byte
 		if jsonUIRes, fullErr = json.Marshal(uires); fullErr != nil {
 			h.Debug(ctx, "GetThreadNonblock: failed to JSON full result: %s", fullErr)
@@ -2122,7 +2123,6 @@ func (h *Server) JoinConversationLocal(ctx context.Context, arg chat1.JoinConver
 	// List all the conversations on the team
 	teamConvs, err := h.remoteClient().GetTLFConversations(ctx, chat1.GetTLFConversationsArg{
 		TlfID:            nameInfo.ID,
-		MembersType:      chat1.ConversationMembersType_TEAM,
 		TopicType:        arg.TopicType,
 		SummarizeMaxMsgs: false, // tough call here, depends on if we are in most of convos on the team
 	})
@@ -2253,8 +2253,7 @@ func (h *Server) GetTLFConversationsLocal(ctx context.Context, arg chat1.GetTLFC
 	}
 
 	var convs []chat1.ConversationLocal
-	convs, res.RateLimits, err = h.G().TeamChannelSource.GetChannelsFull(ctx, uid, nameInfo.ID, arg.TopicType,
-		arg.MembersType)
+	convs, res.RateLimits, err = h.G().TeamChannelSource.GetChannelsFull(ctx, uid, nameInfo.ID, arg.TopicType)
 	if err != nil {
 		return res, err
 	}

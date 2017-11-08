@@ -72,13 +72,11 @@ func (c *CachingTeamChannelSource) invalidate(ctx context.Context, teamID chat1.
 }
 
 func (c *CachingTeamChannelSource) GetChannelsFull(ctx context.Context, uid gregor1.UID, teamID chat1.TLFID,
-	topicType chat1.TopicType, membersType chat1.ConversationMembersType) (res []chat1.ConversationLocal,
-	rl []chat1.RateLimit, err error) {
+	topicType chat1.TopicType) (res []chat1.ConversationLocal, rl []chat1.RateLimit, err error) {
 	var convs []chat1.Conversation
 	tlfRes, err := c.ri().GetTLFConversations(ctx, chat1.GetTLFConversationsArg{
 		TlfID:            teamID,
 		TopicType:        topicType,
-		MembersType:      membersType,
 		SummarizeMaxMsgs: false,
 	})
 	if err != nil {
@@ -103,7 +101,7 @@ func (c *CachingTeamChannelSource) GetChannelsFull(ctx context.Context, uid greg
 }
 
 func (c *CachingTeamChannelSource) GetChannelsTopicName(ctx context.Context, uid gregor1.UID,
-	teamID chat1.TLFID, topicType chat1.TopicType, membersType chat1.ConversationMembersType) (res []types.ConvIDAndTopicName, rl []chat1.RateLimit, err error) {
+	teamID chat1.TLFID, topicType chat1.TopicType) (res []types.ConvIDAndTopicName, rl []chat1.RateLimit, err error) {
 
 	var ok bool
 	if res, ok = c.fetchFromCache(ctx, teamID); ok {
@@ -115,7 +113,6 @@ func (c *CachingTeamChannelSource) GetChannelsTopicName(ctx context.Context, uid
 	tlfRes, err := c.ri().GetTLFConversations(ctx, chat1.GetTLFConversationsArg{
 		TlfID:            teamID,
 		TopicType:        topicType,
-		MembersType:      membersType,
 		SummarizeMaxMsgs: false,
 	})
 	if err != nil {
