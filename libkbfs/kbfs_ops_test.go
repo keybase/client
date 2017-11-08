@@ -387,7 +387,7 @@ func TestKBFSOpsGetRootNodeCacheSuccess(t *testing.T) {
 
 	// Trigger identify.
 	lState := makeFBOLockState()
-	_, err = ops.getMDForReadLocked(ctx, lState, mdReadNeedIdentify)
+	_, err = ops.getMDForRead(ctx, lState, mdReadNeedIdentify)
 	require.NoError(t, err)
 	assert.True(t, fboIdentityDone(ops))
 }
@@ -416,7 +416,7 @@ func TestKBFSOpsGetRootNodeReIdentify(t *testing.T) {
 
 	// Trigger identify.
 	lState := makeFBOLockState()
-	_, err = ops.getMDForReadLocked(ctx, lState, mdReadNeedIdentify)
+	_, err = ops.getMDForRead(ctx, lState, mdReadNeedIdentify)
 	require.NoError(t, err)
 	assert.True(t, fboIdentityDone(ops))
 
@@ -430,7 +430,7 @@ func TestKBFSOpsGetRootNodeReIdentify(t *testing.T) {
 
 	// Trigger new identify.
 	lState = makeFBOLockState()
-	_, err = ops.getMDForReadLocked(ctx, lState, mdReadNeedIdentify)
+	_, err = ops.getMDForRead(ctx, lState, mdReadNeedIdentify)
 	require.NoError(t, err)
 	assert.True(t, fboIdentityDone(ops))
 }
@@ -470,7 +470,7 @@ func TestKBFSOpsGetRootNodeCacheIdentifyFail(t *testing.T) {
 
 	// Trigger identify.
 	lState := makeFBOLockState()
-	_, err := ops.getMDForReadLocked(ctx, lState, mdReadNeedIdentify)
+	_, err := ops.getMDForRead(ctx, lState, mdReadNeedIdentify)
 	assert.Equal(t, expectedErr, err)
 	assert.False(t, fboIdentityDone(ops))
 }

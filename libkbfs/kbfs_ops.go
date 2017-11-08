@@ -470,9 +470,25 @@ func (fs *KBFSOpsStandard) getMaybeCreateRootNode(
 		h.GetCanonicalPath(), branch, create)
 	defer func() { fs.deferLog.CDebugf(ctx, "Done: %#v", err) }()
 
+	// Check if we already have the MD cached, before contacting any
+	// servers.
+	fops := func() *folderBranchOps {
+		fs.opsLock.Lock()
+		defer fs.opsLock.Unlock()
+		return fs.opsByFav[h.ToFavorite()]
+	}()
+	if fops != nil {
+		node, ei, _, err := fops.getRootNode(ctx)
+		if err != nil {
+			return nil, EntryInfo{}, err
+		}
+		if node != nil {
+			return node, ei, nil
+		}
+	}
+
 	// Do GetForHandle() unlocked -- no cache lookups, should be fine
 	mdops := fs.config.MDOps()
-	// TODO: only do this the first time, cache the folder ID after that
 	_, md, err := mdops.GetForHandle(ctx, h, kbfsmd.Unmerged, nil)
 	if err != nil {
 		return nil, EntryInfo{}, err
