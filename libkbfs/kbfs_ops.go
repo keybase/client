@@ -396,9 +396,12 @@ func (fs *KBFSOpsStandard) getMDByHandle(ctx context.Context,
 		return rmd, nil
 	}
 
-	_, rmd, err = fs.config.MDOps().GetForHandle(ctx, tlfHandle, kbfsmd.Unmerged, nil)
-	if err != nil {
-		return ImmutableRootMetadata{}, err
+	if fs.config.Mode() != InitSingleOp {
+		_, rmd, err = fs.config.MDOps().GetForHandle(
+			ctx, tlfHandle, kbfsmd.Unmerged, nil)
+		if err != nil {
+			return ImmutableRootMetadata{}, err
+		}
 	}
 
 	if rmd == (ImmutableRootMetadata{}) {
@@ -499,9 +502,12 @@ func (fs *KBFSOpsStandard) getMaybeCreateRootNode(
 
 	// Do GetForHandle() unlocked -- no cache lookups, should be fine
 	mdops := fs.config.MDOps()
-	_, md, err := mdops.GetForHandle(ctx, h, kbfsmd.Unmerged, nil)
-	if err != nil {
-		return nil, EntryInfo{}, err
+	var md ImmutableRootMetadata
+	if fs.config.Mode() != InitSingleOp {
+		_, md, err = mdops.GetForHandle(ctx, h, kbfsmd.Unmerged, nil)
+		if err != nil {
+			return nil, EntryInfo{}, err
+		}
 	}
 
 	if md == (ImmutableRootMetadata{}) {
