@@ -478,12 +478,22 @@ func (fs *KBFSOpsStandard) getMaybeCreateRootNode(
 		return fs.opsByFav[h.ToFavorite()]
 	}()
 	if fops != nil {
-		node, ei, _, err := fops.getRootNode(ctx)
+		// If a folderBranchOps already exists for this TLF, use it to
+		// get the root node.  But if we haven't done an identify yet,
+		// we better do so, because `getRootNode()` doesn't do one.
+		lState := makeFBOLockState()
+		md, err := fops.getMDForReadNeedIdentifyOnMaybeFirstAccess(ctx, lState)
 		if err != nil {
 			return nil, EntryInfo{}, err
 		}
-		if node != nil {
-			return node, ei, nil
+		if md != (ImmutableRootMetadata{}) {
+			node, ei, _, err := fops.getRootNode(ctx)
+			if err != nil {
+				return nil, EntryInfo{}, err
+			}
+			if node != nil {
+				return node, ei, nil
+			}
 		}
 	}
 

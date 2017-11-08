@@ -1016,9 +1016,9 @@ func (fbo *folderBranchOps) identifyOnce(
 	return nil
 }
 
-// getMDForReadLocked returns an existing md for a read
-// operation. Note that mds will not be fetched here.
-func (fbo *folderBranchOps) getMDForReadLocked(
+// getMDForRead returns an existing md for a read operation. Note that
+// mds will not be fetched here.
+func (fbo *folderBranchOps) getMDForRead(
 	ctx context.Context, lState *lockState, rtype mdReadType) (
 	md ImmutableRootMetadata, err error) {
 	if rtype != mdReadNeedIdentify && rtype != mdReadNoIdentify {
@@ -1119,7 +1119,7 @@ func (fbo *folderBranchOps) getMDForWriteOrRekeyLocked(
 
 func (fbo *folderBranchOps) getMDForReadHelper(
 	ctx context.Context, lState *lockState, rtype mdReadType) (ImmutableRootMetadata, error) {
-	md, err := fbo.getMDForReadLocked(ctx, lState, rtype)
+	md, err := fbo.getMDForRead(ctx, lState, rtype)
 	if err != nil {
 		return ImmutableRootMetadata{}, err
 	}
@@ -1188,7 +1188,7 @@ func (fbo *folderBranchOps) getMDForReadNeedIdentify(
 // one must be created by the caller.
 func (fbo *folderBranchOps) getMDForReadNeedIdentifyOnMaybeFirstAccess(
 	ctx context.Context, lState *lockState) (ImmutableRootMetadata, error) {
-	md, err := fbo.getMDForReadLocked(ctx, lState, mdReadNeedIdentify)
+	md, err := fbo.getMDForRead(ctx, lState, mdReadNeedIdentify)
 
 	if _, ok := err.(MDWriteNeededInRequest); ok {
 		fbo.mdWriterLock.Lock(lState)
@@ -1727,7 +1727,7 @@ func (fbo *folderBranchOps) getRootNode(ctx context.Context) (
 	lState := makeFBOLockState()
 
 	var md ImmutableRootMetadata
-	md, err = fbo.getMDForReadLocked(ctx, lState, mdReadNoIdentify)
+	md, err = fbo.getMDForRead(ctx, lState, mdReadNoIdentify)
 	if _, ok := err.(MDWriteNeededInRequest); ok {
 		func() {
 			fbo.mdWriterLock.Lock(lState)
@@ -3545,7 +3545,7 @@ func (fbo *folderBranchOps) Write(
 		// Get the MD for reading.  We won't modify it; we'll track the
 		// unref changes on the side, and put them into the MD during the
 		// sync.
-		md, err := fbo.getMDForReadLocked(ctx, lState, mdReadNeedIdentify)
+		md, err := fbo.getMDForRead(ctx, lState, mdReadNeedIdentify)
 		if err != nil {
 			return err
 		}
@@ -3581,7 +3581,7 @@ func (fbo *folderBranchOps) Truncate(
 		// Get the MD for reading.  We won't modify it; we'll track the
 		// unref changes on the side, and put them into the MD during the
 		// sync.
-		md, err := fbo.getMDForReadLocked(ctx, lState, mdReadNeedIdentify)
+		md, err := fbo.getMDForRead(ctx, lState, mdReadNeedIdentify)
 		if err != nil {
 			return err
 		}
