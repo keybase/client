@@ -141,12 +141,8 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
         wrappedTyping(typing)
       }
     },
-    onJoinChannel: () => {
-      dispatchProps.onJoinChannel(stateProps.selectedConversationIDKey)
-    },
-    onLeaveChannel: () => {
-      dispatchProps.onLeaveChannel(stateProps.selectedConversationIDKey)
-    },
+    onJoinChannel: () => dispatchProps.onJoinChannel(stateProps.selectedConversationIDKey),
+    onLeaveChannel: () => dispatchProps.onLeaveChannel(stateProps.selectedConversationIDKey),
   }
 }
 

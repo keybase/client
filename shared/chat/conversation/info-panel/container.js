@@ -73,6 +73,9 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp}) => ({
   _onLeaveConversation: (conversationIDKey: Constants.ConversationIDKey) => {
     dispatch(ChatGen.createLeaveConversation({conversationIDKey}))
   },
+  _onJoinChannel: (selectedConversation: Constants.ConversationIDKey) => {
+    dispatch(ChatGen.createJoinConversation({conversationIDKey: selectedConversation}))
+  },
   _onMuteConversation: (conversationIDKey: Constants.ConversationIDKey, muted: boolean) => {
     dispatch(ChatGen.createMuteConversation({conversationIDKey, muted}))
   },
@@ -110,6 +113,7 @@ const mergeProps = (stateProps, dispatchProps) => ({
       dispatchProps._onLeaveConversation(stateProps.selectedConversationIDKey)
     }
   },
+  onJoinChannel: () => dispatchProps._onJoinChannel(stateProps.selectedConversationIDKey),
   onMuteConversation: stateProps.selectedConversationIDKey &&
     !Constants.isPendingConversationIDKey(stateProps.selectedConversationIDKey)
     ? (muted: boolean) =>
