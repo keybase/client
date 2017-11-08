@@ -739,6 +739,10 @@ export const gregorDismissCategoryRpcChannelMap = (configKeys: Array<string>, re
 
 export const gregorDismissCategoryRpcPromise = (request: (RequestCommon & RequestErrorCallback & {param: GregorDismissCategoryRpcParam})): Promise<void> => new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.gregor.dismissCategory', request, (error, result) => error ? reject(error) : resolve(result)))
 
+export const gregorDismissItemByMsgIDRpcChannelMap = (configKeys: Array<string>, request: RequestCommon & RequestErrorCallback & {param: GregorDismissItemByMsgIDRpcParam}): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.gregor.dismissItemByMsgID', request)
+
+export const gregorDismissItemByMsgIDRpcPromise = (request: (RequestCommon & RequestErrorCallback & {param: GregorDismissItemByMsgIDRpcParam})): Promise<void> => new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.gregor.dismissItemByMsgID', request, (error, result) => error ? reject(error) : resolve(result)))
+
 export const gregorGetStateRpcChannelMap = (configKeys: Array<string>, request: RequestCommon & {callback?: ?(err: ?any, response: GregorGetStateResult) => void}): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.gregor.getState', request)
 
 export const gregorGetStateRpcPromise = (request: ?(RequestCommon & {callback?: ?(err: ?any, response: GregorGetStateResult) => void})): Promise<GregorGetStateResult> => new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.gregor.getState', request, (error, result) => error ? reject(error) : resolve(result)))
@@ -1885,7 +1889,7 @@ export type BTCRegisterBTCRpcParam = {|  address: String,
 
 export type BadgeConversationInfo = {|convID: ChatConversationID,badgeCounts: {[key: string]: Int},unreadMessages: Int,|}
 
-export type BadgeState = {|newTlfs: Int,rekeysNeeded: Int,newFollowers: Int,inboxVers: Int,conversations?: ?Array<BadgeConversationInfo>,newGitRepoGlobalUniqueIDs?: ?Array<String>,newTeamNames?: ?Array<String>,newTeamAccessRequests?: ?Array<String>,|}
+export type BadgeState = {|newTlfs: Int,rekeysNeeded: Int,newFollowers: Int,inboxVers: Int,conversations?: ?Array<BadgeConversationInfo>,newGitRepoGlobalUniqueIDs?: ?Array<String>,newTeamNames?: ?Array<String>,newTeamAccessRequests?: ?Array<String>,teamNamesWithResetUsers?: ?Array<String>,|}
 
 export type BinaryKID = Bytes
 
@@ -2290,6 +2294,8 @@ export type GpgUiSignRpcParam = {|  msg: Bytes,
   fingerprint: Bytes|}
 
 export type GregorDismissCategoryRpcParam = {|  category: Gregor1.Category|}
+
+export type GregorDismissItemByMsgIDRpcParam = {|  id: Gregor1.MsgID|}
 
 export type GregorInjectItemRpcParam = {|  cat: String,
   body: String,

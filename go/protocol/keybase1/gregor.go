@@ -40,10 +40,21 @@ func (o DismissCategoryArg) DeepCopy() DismissCategoryArg {
 	}
 }
 
+type DismissItemByMsgIDArg struct {
+	Id gregor1.MsgID `codec:"id" json:"id"`
+}
+
+func (o DismissItemByMsgIDArg) DeepCopy() DismissItemByMsgIDArg {
+	return DismissItemByMsgIDArg{
+		Id: o.Id.DeepCopy(),
+	}
+}
+
 type GregorInterface interface {
 	GetState(context.Context) (gregor1.State, error)
 	InjectItem(context.Context, InjectItemArg) (gregor1.MsgID, error)
 	DismissCategory(context.Context, gregor1.Category) error
+	DismissItemByMsgID(context.Context, gregor1.MsgID) error
 }
 
 func GregorProtocol(i GregorInterface) rpc.Protocol {
@@ -93,6 +104,22 @@ func GregorProtocol(i GregorInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"dismissItemByMsgID": {
+				MakeArg: func() interface{} {
+					ret := make([]DismissItemByMsgIDArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]DismissItemByMsgIDArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]DismissItemByMsgIDArg)(nil), args)
+						return
+					}
+					err = i.DismissItemByMsgID(ctx, (*typedArgs)[0].Id)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 		},
 	}
 }
@@ -114,5 +141,11 @@ func (c GregorClient) InjectItem(ctx context.Context, __arg InjectItemArg) (res 
 func (c GregorClient) DismissCategory(ctx context.Context, category gregor1.Category) (err error) {
 	__arg := DismissCategoryArg{Category: category}
 	err = c.Cli.Call(ctx, "keybase.1.gregor.dismissCategory", []interface{}{__arg}, nil)
+	return
+}
+
+func (c GregorClient) DismissItemByMsgID(ctx context.Context, id gregor1.MsgID) (err error) {
+	__arg := DismissItemByMsgIDArg{Id: id}
+	err = c.Cli.Call(ctx, "keybase.1.gregor.dismissItemByMsgID", []interface{}{__arg}, nil)
 	return
 }

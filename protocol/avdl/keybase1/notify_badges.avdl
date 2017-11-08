@@ -15,6 +15,7 @@ protocol NotifyBadges {
     array<string> newGitRepoGlobalUniqueIDs;
     array<string> newTeamNames;
     array<string> newTeamAccessRequests;
+    array<string> teamNamesWithResetUsers;
   }
 
   record BadgeConversationInfo {

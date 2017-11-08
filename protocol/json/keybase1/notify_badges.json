@@ -61,6 +61,13 @@
             "items": "string"
           },
           "name": "newTeamAccessRequests"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "teamNamesWithResetUsers"
         }
       ]
     },
