@@ -69,6 +69,10 @@ start_systemd() {
     systemctl --user stop keybase.socket kbfs.socket
   fi
   echo Starting via systemd.
+  # The GUI needs access to the env var KEYBASE_START_UI. This is set to
+  # "hideWindow" by the autostart file that might be calling us. We need to
+  # pass it along.
+  echo "KEYBASE_START_UI=${KEYBASE_START_UI:-}" > "$runtime_dir/keybase.gui.env"
   # The keybase.gui.service unit has keybase.service and kbfs.service as
   # dependencies, so we don't have to list them here. But including them lets
   # us report an error if they fail to start.

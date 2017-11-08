@@ -122,6 +122,16 @@ func (t *Tracker2Syncer) Result() keybase1.UserSummary2Set {
 	if t.res == nil {
 		return keybase1.UserSummary2Set{}
 	}
+
+	// Normalize usernames
+	var normalizedUsers []keybase1.UserSummary2
+	for _, u := range t.res.Users {
+		normalizedUser := u
+		normalizedUser.Username = NewNormalizedUsername(u.Username).String()
+		normalizedUsers = append(normalizedUsers, normalizedUser)
+	}
+	t.res.Users = normalizedUsers
+
 	return *t.res
 }
 
