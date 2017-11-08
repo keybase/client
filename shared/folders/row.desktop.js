@@ -27,7 +27,7 @@ const Avatars = ({styles, users, smallMode, ignored, isPublic, isTeam}) => {
     <Box
       style={{
         ...globalStyles.flexBoxRow,
-        alignItems: 'flex-start',
+        alignItems: 'center',
         height: smallMode ? globalMargins.large : 56,
         justifyContent: 'flex-start',
         padding: globalMargins.xtiny,
@@ -151,7 +151,7 @@ const Row = ({
 
   return (
     <Box style={containerStyle} className="folder-row" onClick={() => onClick && onClick(path)}>
-      <Box style={globalStyles.flexBoxRow}>
+      <Box style={{...globalStyles.flexBoxRow, alignItems: 'center'}}>
         <Avatars
           users={users}
           styles={styles}
