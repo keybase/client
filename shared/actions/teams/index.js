@@ -261,7 +261,6 @@ const _getDetails = function*(action: Constants.GetDetails): Saga.SagaGenerator<
       return reqMap
     }, {})
 
-    console.warn('requestMap is', requestMap)
     const infos = []
     let memberNames = I.Set()
     const types = ['admins', 'owners', 'readers', 'writers']
