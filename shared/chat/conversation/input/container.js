@@ -100,6 +100,10 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
   onJoinChannel: (selectedConversation: Constants.ConversationIDKey) => {
     dispatch(ChatGen.createJoinConversation({conversationIDKey: selectedConversation}))
   },
+  onLeaveChannel: (selectedConversation: Constants.ConversationIDKey) => {
+    dispatch(ChatGen.createLeaveConversation({conversationIDKey: selectedConversation}))
+    dispatch(ChatGen.createSelectConversation({conversationIDKey: null}))
+  },
 })
 
 // TODO type-recompose: fix when recompose types properly
@@ -139,6 +143,9 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
     },
     onJoinChannel: () => {
       dispatchProps.onJoinChannel(stateProps.selectedConversationIDKey)
+    },
+    onLeaveChannel: () => {
+      dispatchProps.onLeaveChannel(stateProps.selectedConversationIDKey)
     },
   }
 }

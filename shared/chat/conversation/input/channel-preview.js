@@ -11,9 +11,19 @@ export default class ChannelPreview extends React.Component<Props> {
         <Text type="BodySemibold" backgroundMode="Announcements">
           Would you like to join #{this.props.channelName}?
         </Text>
-        <Text type="BodySemiboldLink" backgroundMode="Announcements" onClick={this.props.onJoinChannel}>
-          Yes, join
-        </Text>
+        <Box style={globalStyles.flexBoxRow}>
+          <Text type="BodySemiboldLink" backgroundMode="Announcements" onClick={this.props.onJoinChannel}>
+            Yes, join
+          </Text>
+          <Text
+            type="BodySemiboldLink"
+            style={{marginLeft: globalMargins.tiny}}
+            backgroundMode="Announcements"
+            onClick={this.props.onLeaveChannel}
+          >
+            No, thanks
+          </Text>
+        </Box>
       </Box>
     )
   }
