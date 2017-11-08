@@ -11,7 +11,7 @@ import type {Props} from './index.render'
 import type {Tab} from '../constants/tabs'
 
 type State = {
-  showingPrivate: boolean,
+  selected: string,
   showingMenu: boolean,
 }
 
@@ -28,7 +28,7 @@ class MenubarRender extends Component<Props, State> {
     super(props)
 
     this.state = {
-      showingPrivate: props.openToPrivate,
+      selected: props.openToPrivate ? 'private' : 'public',
       showingMenu: props.openWithMenuShowing,
     }
   }
@@ -119,7 +119,7 @@ class MenubarRender extends Component<Props, State> {
       ],
     }
 
-    const styles = this.state.showingPrivate ? stylesPrivate : stylesPublic
+    const styles = this.state.selected === 'private' ? stylesPrivate : stylesPublic
 
     const mergedProps = {
       ...this.props.folderProps,
@@ -128,8 +128,8 @@ class MenubarRender extends Component<Props, State> {
       smallMode: true,
       private: newPrivate,
       public: newPublic,
-      onSwitchTab: showingPrivate => this.setState({showingPrivate}),
-      showingPrivate: this.state.showingPrivate,
+      onSwitchTab: selected => this.setState({selected}),
+      showingPrivate: this.state.selected === 'private',
       onRekey: this.props.onRekey,
     }
 
