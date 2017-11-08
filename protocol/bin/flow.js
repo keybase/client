@@ -1,52 +1,52 @@
 // @noflow
-'use strict'
-const prettier = require('prettier')
-const json5 = require('json5')
-const promise = require('bluebird')
-const fs = promise.promisifyAll(require('fs'))
-const path = require('path')
-const codeGenerators = require('./js-code-generators.js')
-const camelcase = require('camelcase')
-const colors = require('colors')
+"use strict";
+const prettier = require("prettier");
+const json5 = require("json5");
+const promise = require("bluebird");
+const fs = promise.promisifyAll(require("fs"));
+const path = require("path");
+const codeGenerators = require("./js-code-generators.js");
+const camelcase = require("camelcase");
+const colors = require("colors");
 
 // load prettier rules from eslintrc
 const prettierOptions = json5.parse(
-  fs.readFileSync(path.join(__dirname, '../../.eslintrc'), {encoding: 'utf8'})
-).rules['prettier/prettier'][1]
+  fs.readFileSync(path.join(__dirname, "../../.eslintrc"), { encoding: "utf8" })
+).rules["prettier/prettier"][1];
 
 // Allow extra wide
-prettierOptions.printWidth = 9999
+prettierOptions.printWidth = 9999;
 
 var projects = {
   chat1: {
-    root: './json/chat1',
+    root: "./json/chat1",
     import: "import * as Gregor1 from './flow-types-gregor'\nimport * as Keybase1 from './flow-types'",
-    out: 'js/flow-types-chat.js',
+    out: "js/flow-types-chat.js",
     incomingMaps: {},
     seenTypes: {},
-    enums: {},
+    enums: {}
   },
   keybase1: {
-    root: 'json/keybase1',
-    out: 'js/flow-types.js',
+    root: "json/keybase1",
+    out: "js/flow-types.js",
     import: "import * as Gregor1 from './flow-types-gregor'\n",
     incomingMaps: {},
     seenTypes: {},
-    enums: {},
+    enums: {}
   },
   gregor1: {
-    root: './json/gregor1',
-    out: 'js/flow-types-gregor.js',
+    root: "./json/gregor1",
+    out: "js/flow-types-gregor.js",
     incomingMaps: {},
     seenTypes: {},
-    enums: {},
-  },
-}
+    enums: {}
+  }
+};
 
-const reduceArray = arr => arr.reduce((acc, cur) => acc.concat(cur), [])
+const reduceArray = arr => arr.reduce((acc, cur) => acc.concat(cur), []);
 
 Object.keys(projects).forEach(key => {
-  const project = projects[key]
+  const project = projects[key];
   fs
     .readdirAsync(project.root)
     .filter(jsonOnly)
@@ -56,306 +56,336 @@ Object.keys(projects).forEach(key => {
     .then(t => t.filter(key => key && key.length))
     .then(t => t.sort())
     .then(makeRpcUnionType)
-    .then(typeDefs => write(typeDefs, project))
-})
+    .then(typeDefs => write(typeDefs, project));
+});
 
 function jsonOnly(file) {
-  return !!file.match(/.*\.json$/)
+  return !!file.match(/.*\.json$/);
 }
 
 function load(file, project) {
-  return fs.readFileAsync(path.join(project.root, file)).then(JSON.parse)
+  return fs.readFileAsync(path.join(project.root, file)).then(JSON.parse);
 }
 
 function analyze(json, project) {
-  lintJSON(json)
+  lintJSON(json);
   return reduceArray(
-    [].concat(analyzeEnums(json, project), analyzeTypes(json, project), analyzeMessages(json, project))
-  )
+    [].concat(
+      analyzeEnums(json, project),
+      analyzeTypes(json, project),
+      analyzeMessages(json, project)
+    )
+  );
 }
 
 function fixCase(s) {
-  return s.toLowerCase().replace(/(_\w)/g, s => capitalize(s[1]))
+  return s.toLowerCase().replace(/(_\w)/g, s => capitalize(s[1]));
 }
 
 function analyzeEnums(json, project) {
   return json.types
-    .filter(t => t.type === 'enum')
+    .filter(t => t.type === "enum")
     .map(t => {
-      var en = {}
+      var en = {};
 
       t.symbols.forEach(function(s) {
-        const parts = s.split('_')
-        const val = parseInt(parts.pop(), 10)
-        const name = fixCase(parts.join('_'))
-        en[name] = val
-      })
+        const parts = s.split("_");
+        const val = parseInt(parts.pop(), 10);
+        const name = fixCase(parts.join("_"));
+        en[name] = val;
+      });
 
-      project.enums[t.name] = en
+      project.enums[t.name] = en;
 
       return {
         name: `${json.protocol}${t.name}`,
-        map: en,
-      }
+        map: en
+      };
     })
     .reduce((acc, t) => {
       return acc.concat([
         `\nexport const ${decapitalize(t.name)} = {
   ${Object.keys(t.map)
     .map(k => {
-      return `${k}: ${t.map[k]}`
+      return `${k}: ${t.map[k]}`;
     })
-    .join(',\n  ')},
-}`,
-      ])
-    }, [])
+    .join(",\n  ")},
+}`
+      ]);
+    }, []);
 }
 
 function analyzeTypes(json, project) {
   return json.types.map(t => {
     if (project.seenTypes[t.name]) {
-      return null
+      return null;
     }
 
-    project.seenTypes[t.name] = true
+    project.seenTypes[t.name] = true;
 
     switch (t.type) {
-      case 'record':
-        return [`\nexport type ${t.name} = ${parseRecord(t)}`]
-      case 'enum':
-        return [`\nexport type ${t.name} =${parseEnum(t)}`]
-      case 'variant':
-        return [`\nexport type ${t.name} =${parseVariant(t, project)}`]
-      case 'fixed':
-        return [`\nexport type ${t.name} = any`]
+      case "record":
+        return [`\nexport type ${t.name} = ${parseRecord(t)}`];
+      case "enum":
+        return [`\nexport type ${t.name} =${parseEnum(t)}`];
+      case "variant":
+        return [`\nexport type ${t.name} =${parseVariant(t, project)}`];
+      case "fixed":
+        return [`\nexport type ${t.name} = any`];
       default:
-        return null
+        return null;
     }
-  })
+  });
 }
 
 function figureType(type) {
   if (!type) {
-    return 'null' // keep backwards compat with old script
+    return "null"; // keep backwards compat with old script
   }
   if (type instanceof Array) {
     if (type.length === 2) {
       if (type[0] === null) {
-        return `?${capitalize(type[1])}`
+        return `?${capitalize(type[1])}`;
       }
       if (type[1] === null) {
-        return `?${capitalize(type[0])}`
+        return `?${capitalize(type[0])}`;
       }
     }
 
-    return `(${type.map(t => t || 'null').join(' | ')})`
-  } else if (typeof type === 'object') {
+    return `(${type.map(t => t || "null").join(" | ")})`;
+  } else if (typeof type === "object") {
     switch (type.type) {
-      case 'array':
-        return `?Array<${capitalize(type.items)}>`
-      case 'map':
-        return `{[key: string]: ${figureType(type.values)}}`
+      case "array":
+        return `?Array<${capitalize(type.items)}>`;
+      case "map":
+        return `{[key: string]: ${figureType(type.values)}}`;
       default:
-        console.log(`Unknown type: ${type}`)
-        return 'unknown'
+        console.log(`Unknown type: ${type}`);
+        return "unknown";
     }
   }
 
-  return capitalize(type)
+  return capitalize(type);
 }
 
 function capitalize(s) {
-  return s.charAt(0).toUpperCase() + s.slice(1)
+  return s.charAt(0).toUpperCase() + s.slice(1);
 }
 
 function analyzeMessages(json, project) {
   // ui means an incoming rpc. simple regexp to filter this but it might break in the future if
   // the core side doesn't have a consisten naming convention. (must be case insensitive to pass correctly)
   const isUIProtocol =
-    ['notifyCtl'].indexOf(json.protocol) === -1 &&
+    ["notifyCtl"].indexOf(json.protocol) === -1 &&
     !!json.protocol.match(/^(notify.*|.*ui|logsend)$/i) &&
-    !json.protocol.match(/NotifyFSRequest/)
+    !json.protocol.match(/NotifyFSRequest/);
 
   return Object.keys(json.messages).map(m => {
-    const message = json.messages[m]
+    const message = json.messages[m];
 
-    lintMessage(m, message)
+    lintMessage(m, message);
 
     const params = (incoming, prefix) =>
       message.request
-        .filter(r => incoming || r.name !== 'sessionID') // We have the engine handle this under the hood
+        .filter(r => incoming || r.name !== "sessionID") // We have the engine handle this under the hood
         .map(r => {
-          const rtype = figureType(r.type)
-          return `${prefix}${r.name}${r.hasOwnProperty('default') || rtype.startsWith('?') ? '?' : ''}: ${rtype}`
+          const rtype = figureType(r.type);
+          return `${prefix}${r.name}${r.hasOwnProperty("default") || rtype.startsWith("?") ? "?" : ""}: ${rtype}`;
         })
-        .join(',\n')
+        .join(",\n");
 
-    const name = `${json.protocol}${capitalize(m)}`
-    const responseType = figureType(message.response)
-    const response = responseType === 'null' ? null : `type ${capitalize(name)}Result = ${responseType}`
+    const name = `${json.protocol}${capitalize(m)}`;
+    const responseType = figureType(message.response);
+    const response = responseType === "null"
+      ? null
+      : `type ${capitalize(name)}Result = ${responseType}`;
 
-    const isNotify = message.hasOwnProperty('notify')
-    let r = null
+    const isNotify = message.hasOwnProperty("notify");
+    let r = null;
     if (!isNotify) {
-      const type = responseType === 'null' ? '' : `result: ${capitalize(name)}Result`
+      const type = responseType === "null"
+        ? ""
+        : `result: ${capitalize(name)}Result`;
       if (type) {
-        r = `,response: {error: RPCErrorHandler, result: (${type}) => void}`
+        r = `,response: {error: RPCErrorHandler, result: (${type}) => void}`;
       } else {
-        r = `,response: CommonResponseHandler`
+        r = `,response: CommonResponseHandler`;
       }
     } else {
       r = ` /* , response: {} // Notify call
-    */`
+    */`;
     }
 
-    let p = params(true, '      ')
+    let p = params(true, "      ");
     if (p) {
-      p = `${p}    `
+      p = `${p}    `;
     }
 
     if (isUIProtocol) {
-      project.incomingMaps[`keybase.1.${json.protocol}.${m}`] = `(params: ${p ? `{|${p}|}` : 'void'}${r}) => void`
+      project.incomingMaps[
+        `keybase.1.${json.protocol}.${m}`
+      ] = `(params: ${p ? `{|${p}|}` : "void"}${r}) => void`;
     }
 
-    r = ''
-    if (responseType !== 'null') {
-      r = `, response: ${capitalize(name)}Result`
+    r = "";
+    if (responseType !== "null") {
+      r = `, response: ${capitalize(name)}Result`;
     }
 
-    p = params(false, '  ')
+    p = params(false, "  ");
     if (p) {
-      p = `${p}`
+      p = `${p}`;
     }
 
-    const paramType = p ? `\nexport type ${capitalize(name)}RpcParam = {|${p}|}` : ''
-    const callbackType = r ? `{callback?: ?(err: ?any${r}) => void}` : 'RequestErrorCallback'
-    const innerParamType = p ? `{param: ${capitalize(name)}RpcParam}` : null
-    const methodName = `'${json.namespace}.${json.protocol}.${m}'`
+    const paramType = p
+      ? `\nexport type ${capitalize(name)}RpcParam = {|${p}|}`
+      : "";
+    const callbackType = r
+      ? `{callback?: ?(err: ?any${r}) => void}`
+      : "RequestErrorCallback";
+    const innerParamType = p ? `{param: ${capitalize(name)}RpcParam}` : null;
+    const methodName = `'${json.namespace}.${json.protocol}.${m}'`;
     const rpcPromise = isUIProtocol
-      ? ''
-      : codeGenerators.rpcPromiseGen(methodName, name, callbackType, innerParamType, responseType)
+      ? ""
+      : codeGenerators.rpcPromiseGen(
+          methodName,
+          name,
+          callbackType,
+          innerParamType,
+          responseType
+        );
     const rpcChannelMap = isUIProtocol
-      ? ''
-      : codeGenerators.rpcChannelMap(methodName, name, callbackType, innerParamType, responseType)
-    return [paramType, response, rpcPromise, rpcChannelMap]
-  })
+      ? ""
+      : codeGenerators.rpcChannelMap(
+          methodName,
+          name,
+          callbackType,
+          innerParamType,
+          responseType
+        );
+    return [paramType, response, rpcPromise, rpcChannelMap];
+  });
 }
 
 // Type parsing
 function parseInnerType(t) {
   if (!t) {
-    t = 'null' // keep backwards compat with old script
+    t = "null"; // keep backwards compat with old script
   }
   if (t.constructor === Array) {
     if (t.length === 2 && t.indexOf(null) >= 0) {
-      return parseMaybe(t)
+      return parseMaybe(t);
     }
-    return parseUnion(t)
-  } else if (t === 'null') {
-    return 'void'
+    return parseUnion(t);
+  } else if (t === "null") {
+    return "void";
   }
 
   switch (t.type) {
-    case 'record':
-      return parseRecord(t)
+    case "record":
+      return parseRecord(t);
     default:
-      return figureType(t)
+      return figureType(t);
   }
 }
 
 function parseEnumSymbol(s) {
-  var parts = s.split('_')
-  return parseInt(parts.pop(), 10)
+  var parts = s.split("_");
+  return parseInt(parts.pop(), 10);
 }
 
 function parseEnum(t) {
-  return parseUnion(t.symbols.map(s => `${parseEnumSymbol(s)} // ${s}\n`))
+  return parseUnion(t.symbols.map(s => `${parseEnumSymbol(s)} // ${s}\n`));
 }
 
 function parseMaybe(t) {
-  var maybeType = t.filter(x => x !== null)[0]
-  return `?${maybeType}`
+  var maybeType = t.filter(x => x !== null)[0];
+  return `?${maybeType}`;
 }
 
 function parseUnion(unionTypes) {
-  return unionTypes.map(parseInnerType).join(' | ')
+  return unionTypes.map(parseInnerType).join(" | ");
 }
 
 function parseRecord(t) {
-  lintRecord(t)
+  lintRecord(t);
   if (t.typedef) {
-    return capitalize(t.typedef)
+    return capitalize(t.typedef);
   }
 
   const fields = t.fields
     .map(f => {
-      const innerType = parseInnerType(f.type)
-      const innerOptional = innerType[0] === '?'
-      const capsInnerType = innerOptional ? `?${capitalize(innerType.substr(1))}` : capitalize(innerType)
+      const innerType = parseInnerType(f.type);
+      const innerOptional = innerType[0] === "?";
+      const capsInnerType = innerOptional
+        ? `?${capitalize(innerType.substr(1))}`
+        : capitalize(innerType);
 
       // If we have a maybe type, let's also make the key optional
-      return `${f.name}${innerOptional ? '?' : ''}: ${capsInnerType},`
+      return `${f.name}${innerOptional ? "?" : ""}: ${capsInnerType},`;
     })
-    .join('')
+    .join("");
 
-  return `{|${fields}|}`
+  return `{|${fields}|}`;
 }
 
 function parseVariant(t, project) {
-  var parts = t.switch.type.split('.')
+  var parts = t.switch.type.split(".");
   if (parts.length > 1) {
-    project = projects[parts.shift()]
+    project = projects[parts.shift()];
   }
 
-  var type = parts.shift()
-  return (
-    t.cases
-      .map(c => {
-        if (c.label.def) {
-          const bodyStr = c.body ? `, 'default': ?${c.body}` : ''
-          return `{ ${t.switch.name}: any${bodyStr} }`
-        } else {
-          var label = fixCase(c.label.name)
-          const bodyStr = c.body ? `, ${label}: ?${capitalize(c.body)}` : ''
-          return `{ ${t.switch.name}: ${project.enums[type][label]}${bodyStr} }`
-        }
-      })
-      .join(' | ')
-  )
+  var type = parts.shift();
+  return t.cases
+    .map(c => {
+      if (c.label.def) {
+        const bodyStr = c.body ? `, 'default': ?${c.body}` : "";
+        return `{ ${t.switch.name}: any${bodyStr} }`;
+      } else {
+        var label = fixCase(c.label.name);
+        const bodyStr = c.body ? `, ${label}: ?${capitalize(c.body)}` : "";
+        return `{ ${t.switch.name}: ${project.enums[type][label]}${bodyStr} }`;
+      }
+    })
+    .join(" | ");
 }
 
 function makeRpcUnionType(typeDefs) {
   const rpcTypes = typeDefs
     .map(t => {
-      const m = t.match(/(\w*Rpc) \(/)
-      return m && m[1]
+      const m = t.match(/(\w*Rpc) \(/);
+      return m && m[1];
     })
     .filter(t => t)
     .reduce((acc, t) => {
-      const clean = t.trim()
-      return acc.indexOf(clean) === -1 ? acc.concat([clean]) : acc
+      const clean = t.trim();
+      return acc.indexOf(clean) === -1 ? acc.concat([clean]) : acc;
     }, [])
     .sort()
-    .join('|')
+    .join("|");
 
   if (rpcTypes) {
     const unionRpcType = `\nexport type rpc =
-    ${rpcTypes}`
-    return typeDefs.concat(unionRpcType)
+    ${rpcTypes}`;
+    return typeDefs.concat(unionRpcType);
   }
 
-  return typeDefs
+  return typeDefs;
 }
 
+// TODO put this back into the generation when prettier is back
+// eslint-disable no-unused-vars,no-use-before-define,prettier/prettier
 function write(typeDefs, project) {
   // Need any for weird flow issue where it gets confused by multiple
   // incoming call map types
-  const callMapType = Object.keys(project.incomingMaps).length ? 'IncomingCallMapType' : 'any'
+  const callMapType = Object.keys(project.incomingMaps).length
+    ? "IncomingCallMapType"
+    : "any";
   const typePrelude = `// @flow
-/* eslint-disable no-unused-vars,no-use-before-define,prettier/prettier */
+/* eslint-disable */
 
 // This file is auto-generated by client/protocol/Makefile.
-${project.import || ''}
+${project.import || ""}
 import engine, {EngineChannel} from '../../engine'
 import {RPCError} from '../../util/errors'
 import {putOnChannelMap, createChannelMap, closeChannelMap} from '../../util/saga'
@@ -379,118 +409,138 @@ const engineRpcOutgoing = (method: string, params: any, callbackOverride: any, i
 type RequestCommon = { waitingHandler?: WaitingHandlerType, incomingCallMap?: ${callMapType} }
 type RequestErrorCallback = { callback?: ?(err: ?RPCError) => void }
 type RPCErrorHandler = (err: RPCError) => void
-type CommonResponseHandler = { error: RPCErrorHandler, result: (...rest: Array<void>) => void }`
+type CommonResponseHandler = { error: RPCErrorHandler, result: (...rest: Array<void>) => void }`;
 
   const incomingMap =
     `\nexport type IncomingCallMapType = {|` +
-    Object.keys(project.incomingMaps).map(im => `  '${im}'?: ${project.incomingMaps[im]}`).join(',') +
-    '|}\n'
-  const toWrite = [typePrelude, codeGenerators.channelMapPrelude, typeDefs.join('\n'), incomingMap].join('\n')
-  const formatted = prettier.format(toWrite, prettierOptions)
-  fs.writeFileSync(project.out, formatted)
+    Object.keys(project.incomingMaps)
+      .map(im => `  '${im}'?: ${project.incomingMaps[im]}`)
+      .join(",") +
+    "|}\n";
+  const toWrite = [
+    typePrelude,
+    codeGenerators.channelMapPrelude,
+    typeDefs.join("\n"),
+    incomingMap
+  ].join("\n");
+  const formatted = prettier.format(toWrite, prettierOptions);
+  // TEMP until jenkins isn't hosed
+  // fs.writeFileSync(project.out, formatted)
+  fs.writeFileSync(project.out, toWrite);
 }
 
 function decapitalize(s) {
-  return s.charAt(0).toLowerCase() + s.slice(1)
+  return s.charAt(0).toLowerCase() + s.slice(1);
 }
 
 const shorthands = [
-  {re: /Tty([A-Zs]|$)/g, into: 'TTY$1', re2: /^TTY/, into2: 'tty'},
-  {re: /Tlf([A-Zs]|$)/g, into: 'TLF$1', re2: /^TLF/, into2: 'tlf'},
-  {re: /Uid([A-Zs]|$)/g, into: 'UID$1', re2: /^UID/, into2: 'uid'},
-  {re: /Kid([A-Zs]|$)/g, into: 'KID$1', re2: /^KID/, into2: 'kid'},
-  {re: /Cli([A-Z]|$)/g, into: 'CLI$1', re2: /^CLI/, into2: 'cli'},
-  {re: /Api([A-Zs]|$)/g, into: 'API$1', re2: /^API/, into2: 'api'},
-  {re: /Btc([A-Z]|$)/g, into: 'BTC$1', re2: /^BTC/, into2: 'btc'},
-  {re: /Pgp([A-Z]|$)/g, into: 'PGP$1', re2: /^PGP/, into2: 'pgp'},
-  {re: /Gpg([A-Z]|$)/g, into: 'GPG$1', re2: /^GPG/, into2: 'gpg'},
-  {re: /Uri([A-Zs]|$)/g, into: 'URI$1', re2: /^URI/, into2: 'uri'},
-  {re: /Gui([A-Z]|$)/g, into: 'GUI$1', re2: /^GUI/, into2: 'gui'},
+  { re: /Tty([A-Zs]|$)/g, into: "TTY$1", re2: /^TTY/, into2: "tty" },
+  { re: /Tlf([A-Zs]|$)/g, into: "TLF$1", re2: /^TLF/, into2: "tlf" },
+  { re: /Uid([A-Zs]|$)/g, into: "UID$1", re2: /^UID/, into2: "uid" },
+  { re: /Kid([A-Zs]|$)/g, into: "KID$1", re2: /^KID/, into2: "kid" },
+  { re: /Cli([A-Z]|$)/g, into: "CLI$1", re2: /^CLI/, into2: "cli" },
+  { re: /Api([A-Zs]|$)/g, into: "API$1", re2: /^API/, into2: "api" },
+  { re: /Btc([A-Z]|$)/g, into: "BTC$1", re2: /^BTC/, into2: "btc" },
+  { re: /Pgp([A-Z]|$)/g, into: "PGP$1", re2: /^PGP/, into2: "pgp" },
+  { re: /Gpg([A-Z]|$)/g, into: "GPG$1", re2: /^GPG/, into2: "gpg" },
+  { re: /Uri([A-Zs]|$)/g, into: "URI$1", re2: /^URI/, into2: "uri" },
+  { re: /Gui([A-Z]|$)/g, into: "GUI$1", re2: /^GUI/, into2: "gui" },
 
-  {re: /Kbfs([A-Z]|$)/g, into: 'KBFS$1', re2: /^KBFS/, into2: 'kbfs'},
-  {re: /Json([A-Z]|$)/g, into: 'JSON$1', re2: /^JSON/, into2: 'json'},
+  { re: /Kbfs([A-Z]|$)/g, into: "KBFS$1", re2: /^KBFS/, into2: "kbfs" },
+  { re: /Json([A-Z]|$)/g, into: "JSON$1", re2: /^JSON/, into2: "json" },
 
-  {re: /Ed25519([A-Z]|$)/g, into: 'ED25519$1', re2: /^ED25519/, into2: 'ed25519'},
+  {
+    re: /Ed25519([A-Z]|$)/g,
+    into: "ED25519$1",
+    re2: /^ED25519/,
+    into2: "ed25519"
+  },
 
-  {re: /Id([A-Zs]|$)/g, into: 'ID$1', re2: /^ID/, into2: 'id'},
-  {re: /Kv([A-Zs]|$)/g, into: 'KV$1', re2: /^KV/, into2: 'kv'},
-  {re: /Ui([A-Z]|$)/g, into: 'UI$1', re2: /^UI/, into2: 'ui'}, // this has to be placed after the one for UID
-  {re: /Fs([A-Z]|$)/g, into: 'FS$1', re2: /^FS/, into2: 'fs'},
-  {re: /Md([A-Z]|$)/g, into: 'MD$1', re2: /^MD/, into2: 'md'},
-  {re: /Ok([A-Z]|$)/g, into: 'OK$1', re2: /^OK/, into2: 'ok'},
-]
+  { re: /Id([A-Zs]|$)/g, into: "ID$1", re2: /^ID/, into2: "id" },
+  { re: /Kv([A-Zs]|$)/g, into: "KV$1", re2: /^KV/, into2: "kv" },
+  { re: /Ui([A-Z]|$)/g, into: "UI$1", re2: /^UI/, into2: "ui" }, // this has to be placed after the one for UID
+  { re: /Fs([A-Z]|$)/g, into: "FS$1", re2: /^FS/, into2: "fs" },
+  { re: /Md([A-Z]|$)/g, into: "MD$1", re2: /^MD/, into2: "md" },
+  { re: /Ok([A-Z]|$)/g, into: "OK$1", re2: /^OK/, into2: "ok" }
+];
 
 function camelcaseWithSpecialHandlings(s, shouldCapitalize) {
-  const capitalized = capitalize(camelcase(s))
-  let specialized = capitalized
+  const capitalized = capitalize(camelcase(s));
+  let specialized = capitalized;
   for (let shorthand of shorthands) {
-    specialized = specialized.replace(shorthand.re, shorthand.into)
+    specialized = specialized.replace(shorthand.re, shorthand.into);
   }
-  specialized = specialized.replace(/[Tt][Ll][Ff][Ii][Dd]([A-Zs]|$)/g, 'TLFID$1')
+  specialized = specialized.replace(
+    /[Tt][Ll][Ff][Ii][Dd]([A-Zs]|$)/g,
+    "TLFID$1"
+  );
 
   // since the handling FS would replace TLFs with TLFS
-  specialized = specialized.replace(/T[Ll]FS/g, 'TLFs')
+  specialized = specialized.replace(/T[Ll]FS/g, "TLFs");
 
   if (shouldCapitalize) {
-    return specialized
+    return specialized;
   }
 
   for (let shorthand of shorthands) {
-    specialized = specialized.replace(shorthand.re2, shorthand.into2)
+    specialized = specialized.replace(shorthand.re2, shorthand.into2);
   }
 
-  return decapitalize(specialized)
+  return decapitalize(specialized);
 }
 
 function lintTypedef(record, typedef) {
   switch (typedef) {
-    case 'int64':
-    case 'uint':
-    case 'uint64':
+    case "int64":
+    case "uint":
+    case "uint64":
       lintError(
         `${record.name}: ${typedef} cannot be fully represented as a Javascript number (double)`,
         record.lint
-      )
-      break
+      );
+      break;
   }
 }
 
 function lintRecord(record) {
-  lintTypedef(record, record.typedef)
-  const rName = camelcaseWithSpecialHandlings(record.name, true)
+  lintTypedef(record, record.typedef);
+  const rName = camelcaseWithSpecialHandlings(record.name, true);
   if (rName !== record.name) {
-    lintError(`Record name ${record.name} should be ${rName}`, record.lint)
+    lintError(`Record name ${record.name} should be ${rName}`, record.lint);
   }
   record.fields.forEach(f => {
-    const fName = camelcaseWithSpecialHandlings(f.name, false)
+    const fName = camelcaseWithSpecialHandlings(f.name, false);
     if (fName !== f.name) {
-      lintError(`Record variable name ${record.name}.${f.name} should be ${rName}.${fName}`, f.lint)
+      lintError(
+        `Record variable name ${record.name}.${f.name} should be ${rName}.${fName}`,
+        f.lint
+      );
     }
-    if (f.type === 'bool') {
-      lintError(`Use boolean instead of bool: ${f.name}`)
+    if (f.type === "bool") {
+      lintError(`Use boolean instead of bool: ${f.name}`);
     }
-  })
+  });
 }
 
 function lintMessage(name, message) {
-  const mName = camelcaseWithSpecialHandlings(name, false)
+  const mName = camelcaseWithSpecialHandlings(name, false);
   if (mName !== name) {
-    lintError(`Method name ${name} should be ${mName}`, message.lint)
+    lintError(`Method name ${name} should be ${mName}`, message.lint);
   }
 
   message.request.forEach(f => {
-    const fName = camelcaseWithSpecialHandlings(f.name, false)
+    const fName = camelcaseWithSpecialHandlings(f.name, false);
     if (fName !== f.name) {
-      lintError(`Method arg name ${f.name} should be ${fName}`, message.lint)
+      lintError(`Method arg name ${f.name} should be ${fName}`, message.lint);
     }
-    if (f.type === 'bool') {
-      lintError(`Use boolean instead of bool: ${f.name}`)
+    if (f.type === "bool") {
+      lintError(`Use boolean instead of bool: ${f.name}`);
     }
-  })
+  });
 }
 
 function lintJSON(json) {
-  const pName = camelcaseWithSpecialHandlings(json.protocol, true)
+  const pName = camelcaseWithSpecialHandlings(json.protocol, true);
   if (pName !== json.protocol) {
     // Ignore protocol name lint errors by default
     // lintError(`Protocol names should be capitalized: ${json.protocol}`, 'ignore')
@@ -498,10 +548,10 @@ function lintJSON(json) {
 }
 
 function lintError(s, lint) {
-  if (lint === 'ignore') {
-    console.log('Ignoring lint error:', colors.yellow(s))
+  if (lint === "ignore") {
+    console.log("Ignoring lint error:", colors.yellow(s));
   } else {
-    console.log(colors.red(s))
-    process.exit(1)
+    console.log(colors.red(s));
+    process.exit(1);
   }
 }
