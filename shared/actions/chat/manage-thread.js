@@ -113,6 +113,26 @@ function* _selectConversation(action: ChatGen.SelectConversationPayload): Saga.S
   }
 }
 
+const _openTeamConversation = function*(action: ChatGen.OpenTeamConversationPayload) {
+  // TODO handle channels you're not a member of, or small teams you've never opened the chat for.
+  const {payload: {teamname, channelname}} = action
+  let state = yield Saga.select()
+  if (state.chat.inboxGlobalUntrustedState === 'unloaded') {
+    yield Saga.put(ChatGen.createInboxStale({reason: 'Navigating to team channel'}))
+    yield Saga.take(ChatGen.inboxStoreLoaded)
+    state = yield Saga.select()
+  }
+  const conversation = state.chat.inbox.find(
+    value => value.teamname === teamname && value.channelname === channelname
+  )
+  if (conversation) {
+    const {conversationIDKey} = conversation
+    yield Saga.put(navigateTo([chatTab, conversationIDKey]))
+  } else {
+    console.log(`Unable to find conversationID for ${teamname}#${channelname}`)
+  }
+}
+
 const _setNotifications = function*(
   action:
     | ChatGen.SetNotificationsPayload
@@ -245,6 +265,7 @@ function* registerSagas(): SagaGenerator<any, any> {
     _setNotifications
   )
   yield Saga.safeTakeEvery(ChatGen.blockConversation, _blockConversation)
+  yield Saga.safeTakeLatest(ChatGen.openTeamConversation, _openTeamConversation)
 }
 
 export {registerSagas}

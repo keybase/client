@@ -5,6 +5,7 @@
 
 import {type PayloadType, type ReturnType} from '../constants/types/more'
 import * as Constants from '../constants/chat'
+import * as TeamConstants from '../constants/teams'
 import * as RPCTypes from '../constants/types/flow-types'
 import * as ChatTypes from '../constants/types/flow-types-chat'
 import * as I from 'immutable'
@@ -31,6 +32,7 @@ export const editMessage = 'chat:editMessage'
 export const exitSearch = 'chat:exitSearch'
 export const getInboxAndUnbox = 'chat:getInboxAndUnbox'
 export const inboxStale = 'chat:inboxStale'
+export const inboxStoreLoaded = 'chat:inboxStoreLoaded'
 export const inboxSynced = 'chat:inboxSynced'
 export const incomingMessage = 'chat:incomingMessage'
 export const incomingTyping = 'chat:incomingTyping'
@@ -48,6 +50,7 @@ export const newChat = 'chat:newChat'
 export const openAttachmentPopup = 'chat:openAttachmentPopup'
 export const openConversation = 'chat:openConversation'
 export const openFolder = 'chat:openFolder'
+export const openTeamConversation = 'chat:openTeamConversation'
 export const openTlfInChat = 'chat:openTlfInChat'
 export const outboxMessageBecameReal = 'chat:outboxMessageBecameReal'
 export const pendingToRealConversation = 'chat:pendingToRealConversation'
@@ -114,6 +117,7 @@ export const createEditMessage = (payload: {|message: Constants.Message, text: H
 export const createExitSearch = (payload: {|skipSelectPreviousConversation: boolean|}) => ({error: false, payload, type: exitSearch})
 export const createGetInboxAndUnbox = (payload: {|conversationIDKeys: Array<Constants.ConversationIDKey>|}) => ({error: false, payload, type: getInboxAndUnbox})
 export const createInboxStale = (payload: {|reason: string|}) => ({error: false, payload, type: inboxStale})
+export const createInboxStoreLoaded = () => ({error: false, payload: undefined, type: inboxStoreLoaded})
 export const createInboxSynced = (payload: {|convs: Array<ChatTypes.UnverifiedInboxUIItem>|}) => ({error: false, payload, type: inboxSynced})
 export const createIncomingMessage = (payload: {|activity: ChatTypes.ChatActivity|}) => ({error: false, payload, type: incomingMessage})
 export const createIncomingTyping = (payload: {|activity: ChatTypes.TyperInfo|}) => ({error: false, payload, type: incomingTyping})
@@ -131,7 +135,8 @@ export const createNewChat = () => ({error: false, payload: undefined, type: new
 export const createOpenAttachmentPopup = (payload: {|message: Constants.AttachmentMessage, currentPath: Path|}) => ({error: false, payload, type: openAttachmentPopup})
 export const createOpenConversation = (payload: {|conversationIDKey: Constants.ConversationIDKey|}) => ({error: false, payload, type: openConversation})
 export const createOpenFolder = () => ({error: false, payload: undefined, type: openFolder})
-export const createOpenTlfInChat = (payload: {|tlf: string|}) => ({error: false, payload, type: openTlfInChat})
+export const createOpenTeamConversation = (payload: {|teamname: TeamConstants.Teamname, channelname: string|}) => ({error: false, payload, type: openTeamConversation})
+export const createOpenTlfInChat = (payload: {|tlf: string, isTeam?: boolean|}) => ({error: false, payload, type: openTlfInChat})
 export const createOutboxMessageBecameReal = (payload: {|oldMessageKey: Constants.MessageKey, newMessageKey: Constants.MessageKey|}) => ({error: false, payload, type: outboxMessageBecameReal})
 export const createPendingToRealConversation = (payload: {|oldKey: Constants.ConversationIDKey, newKey: Constants.ConversationIDKey|}) => ({error: false, payload, type: pendingToRealConversation})
 export const createPostMessage = (payload: {|conversationIDKey: Constants.ConversationIDKey, text: HiddenString|}) => ({error: false, payload, type: postMessage})
@@ -197,6 +202,7 @@ export type EditMessagePayload = ReturnType<typeof createEditMessage>
 export type ExitSearchPayload = ReturnType<typeof createExitSearch>
 export type GetInboxAndUnboxPayload = ReturnType<typeof createGetInboxAndUnbox>
 export type InboxStalePayload = ReturnType<typeof createInboxStale>
+export type InboxStoreLoadedPayload = ReturnType<typeof createInboxStoreLoaded>
 export type InboxSyncedPayload = ReturnType<typeof createInboxSynced>
 export type IncomingMessagePayload = ReturnType<typeof createIncomingMessage>
 export type IncomingTypingPayload = ReturnType<typeof createIncomingTyping>
@@ -214,6 +220,7 @@ export type NewChatPayload = ReturnType<typeof createNewChat>
 export type OpenAttachmentPopupPayload = ReturnType<typeof createOpenAttachmentPopup>
 export type OpenConversationPayload = ReturnType<typeof createOpenConversation>
 export type OpenFolderPayload = ReturnType<typeof createOpenFolder>
+export type OpenTeamConversationPayload = ReturnType<typeof createOpenTeamConversation>
 export type OpenTlfInChatPayload = ReturnType<typeof createOpenTlfInChat>
 export type OutboxMessageBecameRealPayload = ReturnType<typeof createOutboxMessageBecameReal>
 export type PendingToRealConversationPayload = ReturnType<typeof createPendingToRealConversation>
@@ -282,6 +289,7 @@ export type Actions =
   | ReturnType<typeof createExitSearch>
   | ReturnType<typeof createGetInboxAndUnbox>
   | ReturnType<typeof createInboxStale>
+  | ReturnType<typeof createInboxStoreLoaded>
   | ReturnType<typeof createInboxSynced>
   | ReturnType<typeof createIncomingMessage>
   | ReturnType<typeof createIncomingTyping>
@@ -299,6 +307,7 @@ export type Actions =
   | ReturnType<typeof createOpenAttachmentPopup>
   | ReturnType<typeof createOpenConversation>
   | ReturnType<typeof createOpenFolder>
+  | ReturnType<typeof createOpenTeamConversation>
   | ReturnType<typeof createOpenTlfInChat>
   | ReturnType<typeof createOutboxMessageBecameReal>
   | ReturnType<typeof createPendingToRealConversation>

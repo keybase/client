@@ -169,6 +169,7 @@ function* onInboxStale(action: ChatGen.InboxStalePayload): SagaGenerator<any, an
       Saga.put(ChatGen.createDeleteEntity({keyPath: ['inboxBigChannelsToTeam'], ids: toDelete})),
       Saga.put(ChatGen.createDeleteEntity({keyPath: ['inboxIsEmpty'], ids: toDelete})),
       Saga.put(ChatGen.createDeleteEntity({keyPath: ['inbox'], ids: toDelete})),
+      Saga.put(ChatGen.createInboxStoreLoaded()),
     ])
 
     // Load the first visible simple and teams so we can get the channel names

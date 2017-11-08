@@ -109,13 +109,17 @@ function _folderToState(txt: string = '', username: string, loggedIn: boolean): 
   const newFolders = converted.filter(f => f.meta === 'new')
   const privateBadge = newFolders.reduce((acc, f) => (!f.isPublic ? acc + 1 : acc), 0)
   const publicBadge = newFolders.reduce((acc, f) => (f.isPublic ? acc + 1 : acc), 0)
+  const teamBadge = newFolders.reduce((acc, f) => (f.isTeam ? acc + 1 : acc), 0)
 
-  const [priFolders, pubFolders] = partition(converted, {isPublic: false})
+  const [teamFolders, adhocFolders] = partition(converted, {isTeam: true})
+  const [priFolders, pubFolders] = partition(adhocFolders, {isPublic: false})
   const [privIgnored, priv] = partition(priFolders, {ignored: true})
   const [pubIgnored, pub] = partition(pubFolders, {ignored: true})
+  const [teamIgnored, team] = partition(teamFolders, {ignored: true})
   return {
     privateBadge,
     publicBadge,
+    teamBadge,
     private: {
       tlfs: priv,
       ignored: privIgnored,
@@ -125,6 +129,10 @@ function _folderToState(txt: string = '', username: string, loggedIn: boolean): 
       tlfs: pub,
       ignored: pubIgnored,
       isPublic: true,
+    },
+    team: {
+      tlfs: team,
+      ignored: teamIgnored,
     },
   }
 }
@@ -141,9 +149,6 @@ function _getFavoritesRPCToFolders(
     console.warn('Invalid json from getFavorites: ', err)
     return []
   }
-
-  // kill team folders for now
-  json.favorites = json.favorites.filter(f => f.folderType !== RPCTypes.favoriteFolderType.team)
 
   const myKID = findKey(json.users, name => name === username)
 

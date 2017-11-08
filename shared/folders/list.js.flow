@@ -1,5 +1,6 @@
 // @flow
 import * as React from 'react'
+import {type FolderType} from '.'
 import * as Constants from '../constants/folders'
 
 export type Folder = Constants.Folder
@@ -8,7 +9,7 @@ export type Props = {
   tlfs?: Array<Constants.Folder>,
   ignored?: Array<Constants.Folder>,
   installed: boolean,
-  isPublic: boolean,
+  type: FolderType,
   style?: any,
   smallMode?: boolean,
   onChat?: (tlf: string) => void,
