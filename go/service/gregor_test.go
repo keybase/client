@@ -690,7 +690,7 @@ func TestGregorTeamBadges(t *testing.T) {
 	require.NoError(t, server.ConsumeMessage(context.TODO(), msg))
 	msg = server.newIbm2(uid, gregor1.Category("team.request_access"), gregor1.Body([]byte(`[{"id": "`+teamID+`","name": "teamname"}]`)))
 	require.NoError(t, server.ConsumeMessage(context.TODO(), msg))
-	msg = server.newIbm2(uid, gregor1.Category("team.member_out_from_reset"), gregor1.Body([]byte(`{"reset_user": "`+fakeUID.String()+`","team_names": ["teamname"]}]`)))
+	msg = server.newIbm2(uid, gregor1.Category("team.member_out_from_reset"), gregor1.Body([]byte(`{"reset_user": {"uid":"`+fakeUID.String()+`","username":"alice"},"team_name": "teamname"}`)))
 	require.NoError(t, server.ConsumeMessage(context.TODO(), msg))
 
 	// Sync from the server
@@ -709,6 +709,10 @@ func TestGregorTeamBadges(t *testing.T) {
 	require.Equal(t, "teamname", bs.NewTeamNames[0])
 	require.Equal(t, 1, len(bs.NewTeamAccessRequests), "one team access request")
 	require.Equal(t, "teamname", bs.NewTeamAccessRequests[0])
+	require.Equal(t, 1, len(bs.TeamsWithResetUsers), "one team member out due to reset")
+	require.Equal(t, "teamname", bs.TeamsWithResetUsers[0].Teamname)
+	require.Equal(t, "alice", bs.TeamsWithResetUsers[0].Username)
+	require.Equal(t, msg.ToInBandMessage().Metadata().MsgID(), bs.TeamsWithResetUsers[0].Id)
 }
 
 // TestGregorBadgesOOBM doesn't actually use out of band messages.
