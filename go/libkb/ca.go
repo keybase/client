@@ -34,6 +34,14 @@ func GetBundledCAsFromHost(host string) (rootCA []byte, ok bool) {
 		strings.HasSuffix(host, "core.keybaseapi.com"):
 		return []byte(realAPICA + KBFSProdCA), true
 
+	// kbfstlfd, credauthd
+	case strings.HasSuffix(host, "prod.kb-aws.net"):
+		return []byte(realAPICA + KBFSProdCA), true
+
+	// kbfstlfd, credauthd
+	case strings.HasSuffix(host, "dev.kb-aws.net"):
+		return []byte(realAPICA + KBFSDevCA), true
+
 	default:
 		return nil, false
 	}
