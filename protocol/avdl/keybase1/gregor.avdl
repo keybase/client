@@ -5,5 +5,5 @@ protocol gregor {
   gregor1.State getState();
   gregor1.MsgID injectItem(string cat, string body, gregor1.TimeOrOffset dtime);
   void dismissCategory(gregor1.Category category);
-  void dismissItemByMsgID(gregor1.MsgID id);
+  void dismissItem(gregor1.MsgID id);
 }

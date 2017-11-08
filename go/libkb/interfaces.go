@@ -445,7 +445,7 @@ type Clock interface {
 }
 
 type GregorDismisser interface {
-	DismissItem(cli gregor1.IncomingInterface, id gregor.MsgID) error
+	DismissItem(ctx context.Context, cli gregor1.IncomingInterface, id gregor.MsgID) error
 }
 
 type GregorInBandMessageHandler interface {

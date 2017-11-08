@@ -739,9 +739,9 @@ export const gregorDismissCategoryRpcChannelMap = (configKeys: Array<string>, re
 
 export const gregorDismissCategoryRpcPromise = (request: (RequestCommon & RequestErrorCallback & {param: GregorDismissCategoryRpcParam})): Promise<void> => new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.gregor.dismissCategory', request, (error, result) => error ? reject(error) : resolve(result)))
 
-export const gregorDismissItemByMsgIDRpcChannelMap = (configKeys: Array<string>, request: RequestCommon & RequestErrorCallback & {param: GregorDismissItemByMsgIDRpcParam}): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.gregor.dismissItemByMsgID', request)
+export const gregorDismissItemRpcChannelMap = (configKeys: Array<string>, request: RequestCommon & RequestErrorCallback & {param: GregorDismissItemRpcParam}): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.gregor.dismissItem', request)
 
-export const gregorDismissItemByMsgIDRpcPromise = (request: (RequestCommon & RequestErrorCallback & {param: GregorDismissItemByMsgIDRpcParam})): Promise<void> => new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.gregor.dismissItemByMsgID', request, (error, result) => error ? reject(error) : resolve(result)))
+export const gregorDismissItemRpcPromise = (request: (RequestCommon & RequestErrorCallback & {param: GregorDismissItemRpcParam})): Promise<void> => new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.gregor.dismissItem', request, (error, result) => error ? reject(error) : resolve(result)))
 
 export const gregorGetStateRpcChannelMap = (configKeys: Array<string>, request: RequestCommon & {callback?: ?(err: ?any, response: GregorGetStateResult) => void}): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.gregor.getState', request)
 
@@ -2295,7 +2295,7 @@ export type GpgUiSignRpcParam = {|  msg: Bytes,
 
 export type GregorDismissCategoryRpcParam = {|  category: Gregor1.Category|}
 
-export type GregorDismissItemByMsgIDRpcParam = {|  id: Gregor1.MsgID|}
+export type GregorDismissItemRpcParam = {|  id: Gregor1.MsgID|}
 
 export type GregorInjectItemRpcParam = {|  cat: String,
   body: String,

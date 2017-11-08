@@ -40,12 +40,12 @@ func (o DismissCategoryArg) DeepCopy() DismissCategoryArg {
 	}
 }
 
-type DismissItemByMsgIDArg struct {
+type DismissItemArg struct {
 	Id gregor1.MsgID `codec:"id" json:"id"`
 }
 
-func (o DismissItemByMsgIDArg) DeepCopy() DismissItemByMsgIDArg {
-	return DismissItemByMsgIDArg{
+func (o DismissItemArg) DeepCopy() DismissItemArg {
+	return DismissItemArg{
 		Id: o.Id.DeepCopy(),
 	}
 }
@@ -54,7 +54,7 @@ type GregorInterface interface {
 	GetState(context.Context) (gregor1.State, error)
 	InjectItem(context.Context, InjectItemArg) (gregor1.MsgID, error)
 	DismissCategory(context.Context, gregor1.Category) error
-	DismissItemByMsgID(context.Context, gregor1.MsgID) error
+	DismissItem(context.Context, gregor1.MsgID) error
 }
 
 func GregorProtocol(i GregorInterface) rpc.Protocol {
@@ -104,18 +104,18 @@ func GregorProtocol(i GregorInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
-			"dismissItemByMsgID": {
+			"dismissItem": {
 				MakeArg: func() interface{} {
-					ret := make([]DismissItemByMsgIDArg, 1)
+					ret := make([]DismissItemArg, 1)
 					return &ret
 				},
 				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[]DismissItemByMsgIDArg)
+					typedArgs, ok := args.(*[]DismissItemArg)
 					if !ok {
-						err = rpc.NewTypeError((*[]DismissItemByMsgIDArg)(nil), args)
+						err = rpc.NewTypeError((*[]DismissItemArg)(nil), args)
 						return
 					}
-					err = i.DismissItemByMsgID(ctx, (*typedArgs)[0].Id)
+					err = i.DismissItem(ctx, (*typedArgs)[0].Id)
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -144,8 +144,8 @@ func (c GregorClient) DismissCategory(ctx context.Context, category gregor1.Cate
 	return
 }
 
-func (c GregorClient) DismissItemByMsgID(ctx context.Context, id gregor1.MsgID) (err error) {
-	__arg := DismissItemByMsgIDArg{Id: id}
-	err = c.Cli.Call(ctx, "keybase.1.gregor.dismissItemByMsgID", []interface{}{__arg}, nil)
+func (c GregorClient) DismissItem(ctx context.Context, id gregor1.MsgID) (err error) {
+	__arg := DismissItemArg{Id: id}
+	err = c.Cli.Call(ctx, "keybase.1.gregor.dismissItem", []interface{}{__arg}, nil)
 	return
 }

@@ -39,7 +39,7 @@
       ],
       "response": null
     },
-    "dismissItemByMsgID": {
+    "dismissItem": {
       "request": [
         {
           "name": "id",

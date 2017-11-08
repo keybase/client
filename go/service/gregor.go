@@ -1482,7 +1482,7 @@ func (g *gregorHandler) templateMessage() (*gregor1.Message, error) {
 	}, nil
 }
 
-func (g *gregorHandler) dismissItem(ctx context.Context, cli gregor1.IncomingInterface, id gregor.MsgID) error {
+func (g *gregorHandler) DismissItem(ctx context.Context, cli gregor1.IncomingInterface, id gregor.MsgID) error {
 	if id == nil {
 		return nil
 	}
@@ -1507,6 +1507,7 @@ func (g *gregorHandler) dismissItem(ctx context.Context, cli gregor1.IncomingInt
 	return err
 }
 
+/*
 // `cli` is the interface used to talk to gregor.
 // If nil then the global cli will be used.
 // Be sure to pass a cli when called from within OnConnect, as the global cli would deadlock.
@@ -1519,6 +1520,7 @@ func (g *gregorHandler) DismissItemByMsgID(ctx context.Context, id gregor1.MsgID
 	// using nil for cli for global gregor client.
 	return g.dismissItem(ctx, nil, id)
 }
+*/
 
 func (g *gregorHandler) DismissCategory(ctx context.Context, category gregor1.Category) error {
 	var err error
@@ -1653,8 +1655,8 @@ func (g *gregorRPCHandler) DismissCategory(ctx context.Context, category gregor1
 	return g.gh.DismissCategory(ctx, category)
 }
 
-func (g *gregorRPCHandler) DismissItemByMsgID(ctx context.Context, id gregor1.MsgID) error {
-	return g.gh.DismissItemByMsgID(ctx, id)
+func (g *gregorRPCHandler) DismissItem(ctx context.Context, id gregor1.MsgID) error {
+	return g.gh.DismissItem(ctx, nil, id)
 }
 
 func WrapGenericClientWithTimeout(client rpc.GenericClient, timeout time.Duration, timeoutErr error) rpc.GenericClient {
