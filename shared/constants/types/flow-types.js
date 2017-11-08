@@ -57,6 +57,10 @@ export const KBFSGitDeleteRepoRpcChannelMap = (configKeys: Array<string>, reques
 
 export const KBFSGitDeleteRepoRpcPromise = (request: RequestCommon & RequestErrorCallback & {param: KBFSGitDeleteRepoRpcParam}): Promise<void> => new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.KBFSGit.deleteRepo', request, (error, result) => (error ? reject(error) : resolve(result))))
 
+export const KBFSGitGcRpcChannelMap = (configKeys: Array<string>, request: RequestCommon & RequestErrorCallback & {param: KBFSGitGcRpcParam}): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.KBFSGit.gc', request)
+
+export const KBFSGitGcRpcPromise = (request: RequestCommon & RequestErrorCallback & {param: KBFSGitGcRpcParam}): Promise<void> => new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.KBFSGit.gc', request, (error, result) => (error ? reject(error) : resolve(result))))
+
 export const Kex2Provisionee2DidCounterSign2RpcChannelMap = (configKeys: Array<string>, request: RequestCommon & RequestErrorCallback & {param: Kex2Provisionee2DidCounterSign2RpcParam}): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.Kex2Provisionee2.didCounterSign2', request)
 
 export const Kex2Provisionee2DidCounterSign2RpcPromise = (request: RequestCommon & RequestErrorCallback & {param: Kex2Provisionee2DidCounterSign2RpcParam}): Promise<void> => new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.Kex2Provisionee2.didCounterSign2', request, (error, result) => (error ? reject(error) : resolve(result))))
@@ -700,6 +704,14 @@ export const gitDeletePersonalRepoRpcPromise = (request: RequestCommon & Request
 export const gitDeleteTeamRepoRpcChannelMap = (configKeys: Array<string>, request: RequestCommon & RequestErrorCallback & {param: GitDeleteTeamRepoRpcParam}): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.git.deleteTeamRepo', request)
 
 export const gitDeleteTeamRepoRpcPromise = (request: RequestCommon & RequestErrorCallback & {param: GitDeleteTeamRepoRpcParam}): Promise<void> => new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.git.deleteTeamRepo', request, (error, result) => (error ? reject(error) : resolve(result))))
+
+export const gitGcPersonalRepoRpcChannelMap = (configKeys: Array<string>, request: RequestCommon & RequestErrorCallback & {param: GitGcPersonalRepoRpcParam}): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.git.gcPersonalRepo', request)
+
+export const gitGcPersonalRepoRpcPromise = (request: RequestCommon & RequestErrorCallback & {param: GitGcPersonalRepoRpcParam}): Promise<void> => new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.git.gcPersonalRepo', request, (error, result) => (error ? reject(error) : resolve(result))))
+
+export const gitGcTeamRepoRpcChannelMap = (configKeys: Array<string>, request: RequestCommon & RequestErrorCallback & {param: GitGcTeamRepoRpcParam}): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.git.gcTeamRepo', request)
+
+export const gitGcTeamRepoRpcPromise = (request: RequestCommon & RequestErrorCallback & {param: GitGcTeamRepoRpcParam}): Promise<void> => new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.git.gcTeamRepo', request, (error, result) => (error ? reject(error) : resolve(result))))
 
 export const gitGetAllGitMetadataRpcChannelMap = (configKeys: Array<string>, request: RequestCommon & {callback?: ?(err: ?any, response: GitGetAllGitMetadataResult) => void}): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.git.getAllGitMetadata', request)
 
@@ -2261,6 +2273,8 @@ export type GUIEntryArg = {|windowTitle: String, prompt: String, username: Strin
 
 export type GUIEntryFeatures = {|showTyping: Feature|}
 
+export type GcOptions = {|maxLooseRefs: Int, pruneMinLooseObjects: Int, pruneExpireTime: Time|}
+
 export type GetBlockRes = {|blockKey: String, buf: Bytes|}
 
 export type GetCurrentStatusRes = {|configured: Boolean, registered: Boolean, loggedIn: Boolean, sessionIsValid: Boolean, user?: ?User|}
@@ -2288,6 +2302,17 @@ export type GitDeleteTeamRepoRpcParam = {|
   repoName: GitRepoName,
   teamName: TeamName,
   notifyTeam: Boolean,
+|}
+
+export type GitGcPersonalRepoRpcParam = {|
+  repoName: GitRepoName,
+  force: Boolean,
+|}
+
+export type GitGcTeamRepoRpcParam = {|
+  repoName: GitRepoName,
+  teamName: TeamName,
+  force: Boolean,
 |}
 
 export type GitGetGitMetadataRpcParam = {|folder: Folder|}
@@ -2548,6 +2573,12 @@ export type KBFSGitCreateRepoRpcParam = {|
 export type KBFSGitDeleteRepoRpcParam = {|
   folder: Folder,
   name: GitRepoName,
+|}
+
+export type KBFSGitGcRpcParam = {|
+  folder: Folder,
+  name: GitRepoName,
+  options: GcOptions,
 |}
 
 export type KID = String
