@@ -283,6 +283,9 @@
       "conversationIDKey": "Constants.ConversationIDKey",
       "message": "$Shape<Constants.AttachmentMessage> | $Shape<Constants.TextMessage>",
       "outboxIDKey": "Constants.OutboxIDKey"
+    },
+    "retryAttachment": {
+      "message": "Constants.AttachmentMessage"
     }
   }
 }

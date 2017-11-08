@@ -56,6 +56,7 @@ export const prependMessages = 'chat:prependMessages'
 export const removeOutboxMessage = 'chat:removeOutboxMessage'
 export const removeTempPendingConversations = 'chat:removeTempPendingConversations'
 export const replaceEntity = 'chat:replaceEntity'
+export const retryAttachment = 'chat:retryAttachment'
 export const retryMessage = 'chat:retryMessage'
 export const saveAttachment = 'chat:saveAttachment'
 export const selectAttachment = 'chat:selectAttachment'
@@ -136,6 +137,7 @@ export const createPrependMessages = (payload: {|conversationIDKey: Constants.Co
 export const createRemoveOutboxMessage = (payload: {|conversationIDKey: Constants.ConversationIDKey, outboxID: Constants.OutboxIDKey|}) => ({error: false, payload, type: removeOutboxMessage})
 export const createRemoveTempPendingConversations = () => ({error: false, payload: undefined, type: removeTempPendingConversations})
 export const createReplaceEntity = (payload: {|keyPath: Array<string>, entities: I.Map<any, any> | I.List<any>|}) => ({error: false, payload, type: replaceEntity})
+export const createRetryAttachment = (payload: {|message: Constants.AttachmentMessage|}) => ({error: false, payload, type: retryAttachment})
 export const createRetryMessage = (payload: {|conversationIDKey: Constants.ConversationIDKey, outboxIDKey: string|}) => ({error: false, payload, type: retryMessage})
 export const createSaveAttachment = (payload: {|messageKey: Constants.MessageKey|}) => ({error: false, payload, type: saveAttachment})
 export const createSelectAttachment = (payload: {|input: Constants.AttachmentInput|}) => ({error: false, payload, type: selectAttachment})
@@ -216,6 +218,7 @@ export type PrependMessagesPayload = ReturnType<typeof createPrependMessages>
 export type RemoveOutboxMessagePayload = ReturnType<typeof createRemoveOutboxMessage>
 export type RemoveTempPendingConversationsPayload = ReturnType<typeof createRemoveTempPendingConversations>
 export type ReplaceEntityPayload = ReturnType<typeof createReplaceEntity>
+export type RetryAttachmentPayload = ReturnType<typeof createRetryAttachment>
 export type RetryMessagePayload = ReturnType<typeof createRetryMessage>
 export type SaveAttachmentPayload = ReturnType<typeof createSaveAttachment>
 export type SelectAttachmentPayload = ReturnType<typeof createSelectAttachment>
@@ -298,6 +301,7 @@ export type Actions =
   | ReturnType<typeof createRemoveOutboxMessage>
   | ReturnType<typeof createRemoveTempPendingConversations>
   | ReturnType<typeof createReplaceEntity>
+  | ReturnType<typeof createRetryAttachment>
   | ReturnType<typeof createRetryMessage>
   | ReturnType<typeof createSaveAttachment>
   | ReturnType<typeof createSelectAttachment>

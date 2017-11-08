@@ -399,12 +399,23 @@ function* onSelectAttachment({payload: {input}}: ChatGen.SelectAttachmentPayload
   }
 }
 
-function* onRetryAttachment({
-  payload: {input, oldOutboxID},
-}: Constants.RetryAttachment): Generator<any, any, any> {
-  yield Saga.put(
-    ChatGen.createRemoveOutboxMessage({conversationIDKey: input.conversationIDKey, outboxID: oldOutboxID})
-  )
+function* onRetryAttachment({payload: {message}}: ChatGen.RetryAttachmentPayload): Generator<any, any, any> {
+  const {conversationIDKey, uploadPath, title, previewType, outboxID} = message
+  if (!uploadPath || !title || !previewType) {
+    throw new Error('attempted to retry attachment without upload path')
+  }
+  if (!outboxID) {
+    throw new Error('attempted to retry attachment without outboxID')
+  }
+
+  const input = {
+    conversationIDKey,
+    filename: uploadPath,
+    title,
+    type: previewType || 'Other',
+  }
+
+  yield Saga.put(ChatGen.createRemoveOutboxMessage({conversationIDKey: input.conversationIDKey, outboxID}))
   yield Saga.call(onSelectAttachment, {payload: {input}, type: ChatGen.selectAttachment, error: false})
 }
 
@@ -512,7 +523,7 @@ function* registerSagas(): SagaGenerator<any, any> {
   yield Saga.safeTakeSerially(ChatGen.loadAttachment, onLoadAttachment)
   yield Saga.safeTakeEvery(ChatGen.openAttachmentPopup, onOpenAttachmentPopup)
   yield Saga.safeTakeEvery(ChatGen.loadAttachmentPreview, onLoadAttachmentPreview)
-  yield Saga.safeTakeEvery('chat:retryAttachment', onRetryAttachment)
+  yield Saga.safeTakeEvery(ChatGen.retryAttachment, onRetryAttachment)
   yield Saga.safeTakeEvery(ChatGen.saveAttachment, onSaveAttachment)
   yield Saga.safeTakeEvery('chat:saveAttachmentNative', onSaveAttachmentNative)
   yield Saga.safeTakeEvery(ChatGen.selectAttachment, onSelectAttachment)

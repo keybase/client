@@ -482,12 +482,7 @@ export const maxMessagesToLoadAtATime = 50
 export const nothingSelected = 'chat:noneSelected'
 export const blankChat = 'chat:blankChat'
 
-export type RetryAttachment = NoErrorTypedAction<
-  'chat:retryAttachment',
-  {input: AttachmentInput, oldOutboxID: OutboxIDKey}
->
 export type SaveAttachmentNative = NoErrorTypedAction<'chat:saveAttachmentNative', {messageKey: MessageKey}>
-
 export type ShareAttachment = NoErrorTypedAction<'chat:shareAttachment', {messageKey: MessageKey}>
 
 function conversationIDToKey(conversationID: ConversationID): ConversationIDKey {
