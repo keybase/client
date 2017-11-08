@@ -15,15 +15,14 @@ import {parseUserId} from '../../util/platforms'
 import {peopleTab} from '../../constants/tabs'
 import {pgpSaga} from './pgp'
 import {proofsSaga} from './proofs'
-import {urlToUsername} from './app-link'
 
 import type {TypedState} from '../../constants/reducer'
 import type {AppLink} from '../../constants/app'
 
 function* _editProfile(action: ProfileGen.EditProfilePayload): Saga.SagaGenerator<any, any> {
-  const {bio, fullName, location} = action.payload
+  const {bio, fullname, location} = action.payload
   yield Saga.call(RPCTypes.userProfileEditRpcPromise, {
-    param: {bio, fullName, location},
+    param: {bio, fullName: fullname, location},
   })
   // If the profile tab remained on the edit profile screen, navigate back to the top level.
   yield Saga.put(putActionIfOnPath([peopleTab, 'editProfile'], navigateTo([], [peopleTab]), [peopleTab]))
@@ -157,7 +156,7 @@ function* _onAppLink(action: AppLink): Saga.SagaGenerator<any, any> {
     console.log('AppLink: could not parse link', link)
     return
   }
-  const username = urlToUsername(url)
+  const username = Constants.urlToUsername(url)
   console.log('AppLink: url', url.href, 'username', username)
   if (username) {
     yield Saga.put(ProfileGen.createShowUserProfile({username}))

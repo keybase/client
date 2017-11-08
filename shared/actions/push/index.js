@@ -3,20 +3,19 @@ import * as Constants from '../../constants/push'
 import * as Creators from './creators'
 import * as ChatTypes from '../../constants/types/flow-types-chat'
 import * as Saga from '../../util/saga'
+import * as RPCTypes from '../../constants/types/flow-types'
 import {isMobile} from '../../constants/platform'
-import {apiserverDeleteRpcPromise, apiserverPostRpcPromise} from '../../constants/types/flow-types'
 import {chatTab} from '../../constants/tabs'
 import {navigateTo} from '../route-tree'
-
-import type {TypedState} from '../../constants/reducer'
-
-import {showUserProfile} from '../profile'
+import {createShowUserProfile} from '../profile-gen'
 import {
   requestPushPermissions,
   configurePush,
   displayNewMessageNotification,
   setNoPushPermissions,
 } from '../platform-specific'
+
+import type {TypedState} from '../../constants/reducer'
 
 const pushSelector = ({push: {token, tokenType}}: TypedState) => ({token, tokenType})
 const deviceIDSelector = ({config: {deviceID}}: TypedState) => deviceID
@@ -86,7 +85,7 @@ function* pushNotificationSaga(notification: Constants.PushNotification): Saga.S
         return
       }
       console.info('Push notification: follow received, follower= ', username)
-      yield Saga.put(showUserProfile(username))
+      yield Saga.put(createShowUserProfile({username}))
     } else {
       console.error('Push notification payload missing or unknown type')
     }
@@ -116,7 +115,7 @@ function* savePushTokenSaga(): Saga.SagaGenerator<any, any> {
       {key: 'token_type', value: tokenType},
     ]
 
-    yield Saga.call(apiserverPostRpcPromise, {
+    yield Saga.call(RPCTypes.apiserverPostRpcPromise, {
       param: {
         endpoint: 'device/push_token',
         args: args,
@@ -154,7 +153,7 @@ function* deletePushTokenSaga(): Saga.SagaGenerator<any, any> {
 
     const args = [{key: 'device_id', value: deviceID}, {key: 'token_type', value: tokenType}]
 
-    yield Saga.call(apiserverDeleteRpcPromise, {
+    yield Saga.call(RPCTypes.apiserverDeleteRpcPromise, {
       param: {
         endpoint: 'device/push_token',
         args: args,

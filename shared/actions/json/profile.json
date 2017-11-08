@@ -18,7 +18,7 @@
     },
     "editProfile": {
       "bio": "string",
-      "fullName": "string",
+      "fullname": "string",
       "location": "string"
     },
     "revokeFinish": {
@@ -33,15 +33,15 @@
     "generatePgp": {},
     "onClickAvatar": {
       "username": "string",
-      "openWebsite": "?boolean"
+      "openWebsite?": "?boolean"
     },
     "onClickFollowers": {
       "username": "string",
-      "openWebsite": "?boolean"
+      "openWebsite?": "?boolean"
     },
     "onClickFollowing": {
       "username": "string",
-      "openWebsite": "?boolean"
+      "openWebsite?": "?boolean"
     },
     "outputInstructionsActionLink": {},
     "showUserProfile": {
@@ -54,8 +54,8 @@
     },
     "submitUsername": {},
     "updateErrorText": {
-      "errorText": "?string",
-      "errorCode": "?number"
+      "errorText?": "?string",
+      "errorCode?": "?number"
     },
     "updatePgpInfo": {
       "info": "$Shape<Constants.PgpInfo>",

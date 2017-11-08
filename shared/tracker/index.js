@@ -1,11 +1,11 @@
 // @flow
-import * as trackerActions from '../actions/tracker'
+import * as TrackerActions from '../actions/tracker'
+import * as ProfileGen from '../actions/profile-gen'
 import React, {Component} from 'react'
 import Render, {type RenderPropsUnshaped} from './render'
 import {bindActionCreators} from 'redux'
 import {connect, type TypedState} from '../util/container'
 import {isLoading, type Proof, type SimpleProofState, type UserInfo} from '../constants/tracker'
-import {onClickAvatar, onClickFollowers, onClickFollowing} from '../actions/profile'
 import {createStartConversation} from '../actions/chat-gen'
 import {type ErrorProps} from './error'
 
@@ -86,7 +86,7 @@ export default connect(
     }
   },
   (dispatch: any, ownProps: OwnProps) => {
-    const actions = bindActionCreators(trackerActions, dispatch)
+    const actions = bindActionCreators(TrackerActions, dispatch)
     return {
       errorRetry: ownProps.errorRetry ||
         (() => {
@@ -96,13 +96,13 @@ export default connect(
         username && myUsername && dispatch(createStartConversation({users: [username, myUsername]}))
       },
       onClickAvatar: username => {
-        dispatch(onClickAvatar(username, true))
+        dispatch(ProfileGen.createOnClickAvatar({username, openWebsite: true}))
       },
       onClickFollowers: username => {
-        dispatch(onClickFollowers(username, true))
+        dispatch(ProfileGen.createOnClickFollowers({username, openWebsite: true}))
       },
       onClickFollowing: username => {
-        dispatch(onClickFollowing(username, true))
+        dispatch(ProfileGen.createOnClickFollowing({username, openWebsite: true}))
       },
       onClose: () => {
         actions.onClose(ownProps.username)

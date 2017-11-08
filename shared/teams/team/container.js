@@ -11,7 +11,7 @@ import {connect, type TypedState} from '../../util/container'
 import {getProfile} from '../../actions/tracker'
 import {isMobile} from '../../constants/platform'
 import {navigateAppend} from '../../actions/route-tree'
-import {showUserProfile} from '../../actions/profile'
+import {createShowUserProfile} from '../../actions/profile-gen'
 
 type StateProps = {
   _memberInfo: I.Set<Constants.MemberInfo>,
@@ -64,7 +64,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, setRouteState, rout
   _onOpenFolder: (teamname: Constants.Teamname) =>
     dispatch(KBFSGen.createOpen({path: `/keybase/team/${teamname}`})),
   onUsernameClick: (username: string) => {
-    isMobile ? dispatch(showUserProfile(username)) : dispatch(getProfile(username, true, true))
+    isMobile ? dispatch(createShowUserProfile({username})) : dispatch(getProfile(username, true, true))
   },
   setSelectedTab: selectedTab => setRouteState({selectedTab}),
   onBack: () => dispatch(navigateUp()),

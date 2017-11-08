@@ -21,7 +21,7 @@ function* _checkProof(action: ProfileGen.CheckProofPayload): Saga.SagaGenerator<
     return
   }
 
-  yield Saga.put(ProfileGen.createUpdateErrorText({error: null}))
+  yield Saga.put(ProfileGen.createUpdateErrorText({}))
 
   try {
     yield Saga.put(ProfileGen.createWaiting({waiting: true}))
@@ -30,7 +30,11 @@ function* _checkProof(action: ProfileGen.CheckProofPayload): Saga.SagaGenerator<
 
     // Values higher than baseHardError are hard errors, below are soft errors (could eventually be resolved by doing nothing)
     if (!found && status >= RPCTypes.proveCommonProofStatus.baseHardError) {
-      yield Saga.put(ProfileGen.createUpdateErrorText({error: "We couldn't find your proof. Please retry!"}))
+      yield Saga.put(
+        ProfileGen.createUpdateErrorText({
+          errorText: "We couldn't find your proof. Please retry!",
+        })
+      )
     } else {
       yield Saga.put(ProfileGen.createUpdateProofStatus({found, status}))
       yield Saga.put(navigateAppend(['confirmOrPending'], [peopleTab]))
@@ -38,13 +42,18 @@ function* _checkProof(action: ProfileGen.CheckProofPayload): Saga.SagaGenerator<
   } catch (error) {
     yield Saga.put(ProfileGen.createWaiting({waiting: false}))
     console.warn('Error getting proof update')
-    yield Saga.put(ProfileGen.createUpdateErrorText({error: "We couldn't verify your proof. Please retry!"}))
+    yield Saga.put(
+      ProfileGen.createUpdateErrorText({
+        errorText: "We couldn't verify your proof. Please retry!",
+        errorCode: null,
+      })
+    )
   }
 }
 
 function* _addProof(action: ProfileGen.AddProofPayload): Saga.SagaGenerator<any, any> {
   yield Saga.put(ProfileGen.createUpdatePlatform({platform: action.payload.platform}))
-  yield Saga.put(ProfileGen.createUpdateErrorText({error: null}))
+  yield Saga.put(ProfileGen.createUpdateErrorText({}))
 
   // Special cases
   switch (action.payload.platform) {
@@ -131,7 +140,7 @@ function* _addServiceProof(service: ProvablePlatformsType): Saga.SagaGenerator<a
     } else if (incoming.submitUsername) {
       yield Saga.put(ProfileGen.createCleanupUsername())
       if (_promptUsernameResponse) {
-        yield Saga.put(ProfileGen.createUpdateErrorText({errorText: null, errorCode: null}))
+        yield Saga.put(ProfileGen.createUpdateErrorText({}))
         const username = yield Saga.select((state: TypedState) => state.profile.username)
         _promptUsernameResponse.result(username)
         _promptUsernameResponse = null
@@ -212,7 +221,7 @@ function* _addServiceProof(service: ProvablePlatformsType): Saga.SagaGenerator<a
 }
 
 function* _cancelAddProof(): Saga.SagaGenerator<any, any> {
-  yield Saga.put(ProfileGen.createUpdateErrorText({error: null}))
+  yield Saga.put(ProfileGen.createUpdateErrorText({}))
   yield Saga.put(navigateTo([], [peopleTab]))
 }
 
@@ -230,6 +239,8 @@ function* _submitCryptoAddress(
     case ProfileGen.submitZcashAddress:
       wantedFamily = 'zcash'
       break
+    default:
+      throw new Error('Unknown wantedfamily')
   }
 
   try {

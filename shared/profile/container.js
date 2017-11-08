@@ -1,29 +1,21 @@
 // @flow
 import * as KBFSGen from '../actions/kbfs-gen'
+import * as ProfileGen from '../actions/profile-gen'
+import * as TrackerConstants from '../constants/tracker'
 import ErrorComponent from '../common-adapters/error-profile'
 import Profile from './index'
 import React, {PureComponent} from 'react'
-import {
-  addProof,
-  showUserProfile,
-  onClickAvatar,
-  onClickFollowers,
-  onClickFollowing,
-  checkProof,
-} from '../actions/profile'
 import {searchSuggestions} from '../actions/search/creators'
 import pausableConnect from '../util/pausable-connect'
 import {getProfile, updateTrackers, onFollow, onUnfollow, openProofUrl} from '../actions/tracker'
-import {isLoading} from '../constants/tracker'
 import {isTesting} from '../local-debug'
 import {navigateAppend, navigateUp} from '../actions/route-tree'
 import {peopleTab} from '../constants/tabs'
 import {createStartConversation} from '../actions/chat-gen'
 
 import type {MissingProof} from '../common-adapters/user-proofs'
-import type {Proof} from '../constants/tracker'
 import type {RouteProps} from '../route-tree/render-route'
-import type {Props} from './index'
+import type {Props} from '.'
 import type {Tab as FriendshipsTab} from './friendships'
 
 type OwnProps = RouteProps<{username: ?string}, {currentFriendshipsTab: FriendshipsTab}>
@@ -82,13 +74,13 @@ export default pausableConnect(
       dispatch(createStartConversation({users: [username, myUsername]}))
     },
     onClickAvatar: username => {
-      dispatch(onClickAvatar(username))
+      dispatch(ProfileGen.createOnClickAvatar({username}))
     },
     onClickFollowers: username => {
-      dispatch(onClickFollowers(username))
+      dispatch(ProfileGen.createOnClickFollowers({username}))
     },
     onClickFollowing: username => {
-      dispatch(onClickFollowing(username))
+      dispatch(ProfileGen.createOnClickFollowing({username}))
     },
     onEditAvatar: () => {
       dispatch(navigateAppend(['editAvatar']))
@@ -103,12 +95,12 @@ export default pausableConnect(
       dispatch(onFollow(username, false))
     },
     onMissingProofClick: (missingProof: MissingProof) => {
-      dispatch(addProof(missingProof.type))
+      dispatch(ProfileGen.createAddProof({platform: missingProof.type}))
     },
-    onRecheckProof: (proof: Proof) => {
-      dispatch(checkProof())
+    onRecheckProof: (proof: TrackerConstants.Proof) => {
+      dispatch(ProfileGen.createCheckProof())
     },
-    onRevokeProof: (proof: Proof) => {
+    onRevokeProof: (proof: TrackerConstants.Proof) => {
       dispatch(
         navigateAppend(
           [
@@ -129,9 +121,9 @@ export default pausableConnect(
       dispatch(onUnfollow(username))
     },
     onUserClick: username => {
-      dispatch(showUserProfile(username))
+      dispatch(ProfileGen.createShowUserProfile({username}))
     },
-    onViewProof: (proof: Proof) => {
+    onViewProof: (proof: TrackerConstants.Proof) => {
       dispatch(openProofUrl(proof))
     },
     updateTrackers: username => dispatch(updateTrackers(username)),
@@ -172,7 +164,7 @@ export default pausableConnect(
       followers: stateProps.trackerState ? stateProps.trackerState.trackers : [],
       following: stateProps.trackerState ? stateProps.trackerState.tracking : [],
       isYou,
-      loading: isLoading(stateProps.trackerState) && !isTesting,
+      loading: TrackerConstants.isLoading(stateProps.trackerState) && !isTesting,
       onAcceptProofs: () => dispatchProps.onFollow(username),
       onBack: stateProps.profileIsRoot ? null : dispatchProps.onBack,
       onChat: () => dispatchProps.onChat(stateProps.myUsername, username),

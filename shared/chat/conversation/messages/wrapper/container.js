@@ -5,7 +5,7 @@ import Wrapper, {type Props} from '.'
 import {compose, withHandlers, lifecycle, connect, type TypedState} from '../../../../util/container'
 import {formatTimeForMessages} from '../../../../util/timestamp'
 import {lookupMessageProps} from '../../../shared'
-import {showUserProfile} from '../../../../actions/profile'
+import {createShowUserProfile} from '../../../../actions/profile-gen'
 import {getProfile} from '../../../../actions/tracker'
 import {isMobile} from '../../../../constants/platform'
 import {type OwnProps, type StateProps, type DispatchProps} from './container'
@@ -49,7 +49,7 @@ const mapDispatchToProps = (dispatch: Dispatch): DispatchProps => ({
   _onRetryText: (conversationIDKey: Constants.ConversationIDKey, outboxIDKey: Constants.OutboxIDKey) =>
     dispatch(ChatGen.createRetryMessage({conversationIDKey, outboxIDKey})),
   _onUsernameClick: (username: string) => {
-    isMobile ? dispatch(showUserProfile(username)) : dispatch(getProfile(username, true, true))
+    isMobile ? dispatch(createShowUserProfile({username})) : dispatch(getProfile(username, true, true))
   },
 })
 

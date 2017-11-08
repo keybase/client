@@ -11,7 +11,7 @@ import {
   type TypedState,
 } from '../../../util/container'
 import {navigateAppend, navigateUp} from '../../../actions/route-tree'
-import {showUserProfile} from '../../../actions/profile'
+import {createShowUserProfile} from '../../../actions/profile-gen'
 import {openDialog as openRekeyDialog} from '../../../actions/unlock-folders'
 
 type Props = ParticipantRekeyProps & YouRekeyProps
@@ -49,7 +49,7 @@ const mapDispatchToProps = (dispatch: Dispatch): DispatchProps => ({
   onBack: () => dispatch(navigateUp()),
   onEnterPaperkey: () => dispatch(navigateAppend(['enterPaperkey'])),
   onRekey: () => dispatch(openRekeyDialog()),
-  onShowProfile: (username: string) => dispatch(showUserProfile(username)),
+  onShowProfile: (username: string) => dispatch(createShowUserProfile({username})),
 })
 
 const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps): Props => ({

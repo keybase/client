@@ -14,7 +14,7 @@ import {
 import {createSelector} from 'reselect'
 import {navigateAppend, navigateTo} from '../../../actions/route-tree'
 import {chatTab} from '../../../constants/tabs'
-import {showUserProfile} from '../../../actions/profile'
+import {createShowUserProfile} from '../../../actions/profile-gen'
 import flags from '../../../util/feature-flags'
 
 const getParticipants = createSelector(
@@ -92,7 +92,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp}) => ({
   },
   // Used by HeaderHoc.
   onBack: () => dispatch(navigateUp()),
-  onShowProfile: (username: string) => dispatch(showUserProfile(username)),
+  onShowProfile: (username: string) => dispatch(createShowUserProfile({username})),
 })
 
 const mergeProps = (stateProps, dispatchProps) => ({
