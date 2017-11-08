@@ -964,6 +964,7 @@ type SyncAllArg struct {
 	Ctime     gregor1.Time         `codec:"ctime" json:"ctime"`
 	Fresh     bool                 `codec:"fresh" json:"fresh"`
 	ProtVers  SyncAllProtVers      `codec:"protVers" json:"protVers"`
+	HostName  string               `codec:"hostName" json:"hostName"`
 }
 
 func (o SyncAllArg) DeepCopy() SyncAllArg {
@@ -975,6 +976,7 @@ func (o SyncAllArg) DeepCopy() SyncAllArg {
 		Ctime:     o.Ctime.DeepCopy(),
 		Fresh:     o.Fresh,
 		ProtVers:  o.ProtVers.DeepCopy(),
+		HostName:  o.HostName,
 	}
 }
 

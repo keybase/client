@@ -1347,6 +1347,7 @@ export type RemoteSyncAllRpcParam = {|
   ctime: Gregor1.Time,
   fresh: Boolean,
   protVers: SyncAllProtVers,
+  hostName: String,
 |}
 
 export type RemoteSyncChatRpcParam = {|vers: InboxVers|}
