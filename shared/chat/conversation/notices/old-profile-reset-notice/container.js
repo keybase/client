@@ -1,6 +1,5 @@
 // @flow
 import * as Constants from '../../../../constants/chat'
-import * as Creators from '../../../../actions/chat/creators'
 import * as ChatGen from '../../../../actions/chat-gen'
 import OldProfileResetNotice from '.'
 import {List} from 'immutable'
@@ -28,7 +27,8 @@ const mapStateToProps = (state: TypedState) => {
 const mapDispatchToProps = (dispatch: Dispatch) => ({
   onOpenConversation: (conversationIDKey: Constants.ConversationIDKey) =>
     dispatch(ChatGen.createOpenConversation({conversationIDKey})),
-  startConversation: (users: Array<string>) => dispatch(Creators.startConversation(users, true)),
+  startConversation: (users: Array<string>) =>
+    dispatch(ChatGen.createStartConversation({users, forceImmediate: true})),
 })
 
 const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps) => ({

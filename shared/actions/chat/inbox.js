@@ -608,7 +608,7 @@ function _conversationLocalToInboxState(c: ?RPCChatTypes.InboxUIItem): ?Constant
   })
 }
 
-function* filterSelectNext(action: Constants.InboxFilterSelectNext): SagaGenerator<any, any> {
+function* filterSelectNext(action: ChatGen.SelectNextPayload): SagaGenerator<any, any> {
   const rows = action.payload.rows
   const direction = action.payload.direction
 
@@ -630,7 +630,7 @@ function* filterSelectNext(action: Constants.InboxFilterSelectNext): SagaGenerat
   }
 }
 
-function* _sendNotifications(action: Constants.AppendMessages): Saga.SagaGenerator<any, any> {
+function* _sendNotifications(action: ChatGen.AppendMessagesPayload): Saga.SagaGenerator<any, any> {
   const state: TypedState = yield Saga.select()
   const appFocused = Shared.focusedSelector(state)
   const selectedTab = Shared.routeSelector(state)
@@ -778,12 +778,12 @@ function* _inboxSynced(action: ChatGen.InboxSyncedPayload): Saga.SagaGenerator<a
     )
   }
 }
-function* _badgeAppForChat(action: Constants.BadgeAppForChat): Saga.SagaGenerator<any, any> {
-  const conversations = action.payload
+function* _badgeAppForChat(action: ChatGen.BadgeAppForChatPayload): Saga.SagaGenerator<any, any> {
+  const {conversations} = action.payload
   let totals: {[key: string]: number} = {}
   let badges: {[key: string]: number} = {}
 
-  conversations.forEach(conv => {
+  conversations.map(c => Constants.ConversationBadgeStateRecord(c)).forEach(conv => {
     const total = conv.get('unreadMessages')
     if (total) {
       const badged = conv.get('badgeCounts')[
@@ -905,15 +905,15 @@ function _joinConversation(action: ChatGen.JoinConversationPayload) {
 function* registerSagas(): SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(ChatGen.updateSnippet, _updateSnippet)
   yield Saga.safeTakeEvery(ChatGen.getInboxAndUnbox, onGetInboxAndUnbox)
-  yield Saga.safeTakeEvery('chat:selectNext', filterSelectNext)
+  yield Saga.safeTakeEvery(ChatGen.selectNext, filterSelectNext)
   yield Saga.safeTakeLatest(ChatGen.inboxStale, onInboxStale)
   yield Saga.safeTakeLatest(ChatGen.loadInbox, onInboxLoad)
   yield Saga.safeTakeLatest(ChatGen.unboxMore, _unboxMore)
   yield Saga.safeTakeSerially(ChatGen.unboxConversations, unboxConversations)
-  yield Saga.safeTakeEvery('chat:appendMessages', _sendNotifications)
+  yield Saga.safeTakeEvery(ChatGen.appendMessages, _sendNotifications)
   yield Saga.safeTakeEvery(ChatGen.markThreadsStale, _markThreadsStale)
   yield Saga.safeTakeEvery(ChatGen.inboxSynced, _inboxSynced)
-  yield Saga.safeTakeLatest('chat:badgeAppForChat', _badgeAppForChat)
+  yield Saga.safeTakeLatest(ChatGen.badgeAppForChat, _badgeAppForChat)
   yield Saga.safeTakeEvery(ChatGen.incomingMessage, _incomingMessage)
   yield Saga.safeTakeEveryPure(ChatGen.joinConversation, _joinConversation)
 }

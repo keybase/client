@@ -247,6 +247,61 @@
     },
     "joinConversation": {
       "conversationIDKey": "Constants.ConversationIDKey"
+    },
+    "appendMessages": {
+      "conversationIDKey": "Constants.ConversationIDKey",
+      "isSelected": "boolean",
+      "isAppFocused": "boolean",
+      "messages": "Array<Constants.ServerMessage>",
+      "svcShouldDisplayNotification": "boolean"
+    },
+    "prependMessages": {
+      "conversationIDKey": "Constants.ConversationIDKey",
+      "messages": "Array<Constants.ServerMessage>",
+      "moreToLoad": "boolean"
+    },
+    "startConversation": {
+      "users": "Array<string>",
+      "forceImmediate?": "boolean",
+      "temporary?": "boolean"
+    },
+    "badgeAppForChat": {
+      "conversations": "Array<RPCTypes.BadgeConversationInfo>"
+    },
+    "postMessage": {
+      "conversationIDKey": "Constants.ConversationIDKey",
+      "text": "HiddenString"
+    },
+    "retryMessage": {
+      "conversationIDKey": "Constants.ConversationIDKey",
+      "outboxIDKey": "string"
+    },
+    "loadAttachmentPreview": {
+      "messageKey": "Constants.MessageKey"
+    },
+    "attachmentLoaded": {
+      "messageKey": "Constants.MessageKey",
+      "path": "?string",
+      "isPreview": "boolean"
+    },
+    "downloadProgress": {
+      "messageKey": "Constants.MessageKey",
+      "isPreview": "boolean",
+      "progress": "?number"
+    },
+    "updateTempMessage": {
+      "conversationIDKey": "Constants.ConversationIDKey",
+      "message": "$Shape<Constants.AttachmentMessage> | $Shape<Constants.TextMessage>",
+      "outboxIDKey": "Constants.OutboxIDKey"
+    },
+    "retryAttachment": {
+      "message": "Constants.AttachmentMessage"
+    },
+    "saveAttachmentNative": {
+      "messageKey": "Constants.MessageKey"
+    },
+    "shareAttachment": {
+      "messageKey": "Constants.MessageKey"
     }
   }
 }
