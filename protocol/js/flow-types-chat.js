@@ -1235,7 +1235,8 @@ export type RemoteSyncAllRpcParam = {|  uid: Gregor1.UID,
   inboxVers: InboxVers,
   ctime: Gregor1.Time,
   fresh: Boolean,
-  protVers: SyncAllProtVers|}
+  protVers: SyncAllProtVers,
+  hostName: String|}
 
 export type RemoteSyncChatRpcParam = {|  vers: InboxVers|}
 
