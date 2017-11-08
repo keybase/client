@@ -74,6 +74,12 @@ type TeamTabsProps = {
   setSelectedTab: (?Constants.TabKey) => void,
 }
 
+const TeamRequestOrInviteRow = (row: RequestRowProps | InviteRowProps) => {
+  console.warn('FOO')
+  console.warn('in TeamRequestOrInviteRow props', row)
+  return <Text type='Body'>foo</Text>
+}
+
 const TeamTabs = (props: TeamTabsProps) => {
   const {admin, invites, members, loading = false, selectedTab, setSelectedTab} = props
   let membersLabel = 'MEMBERS'
@@ -173,7 +179,7 @@ class Team extends React.PureComponent<Props> {
       teamname: name,
       username: invite.username,
     }))
-
+    console.warn(requests, requestProps, inviteProps)
     let contents
     if (selectedTab === 'members') {
       contents =
@@ -186,7 +192,8 @@ class Team extends React.PureComponent<Props> {
           style={{alignSelf: 'stretch'}}
         />
     } else if (selectedTab === 'invites') {
-      if (invites.length === 0) {
+      const requestsAndInvites = requestProps.push(inviteProps)
+      if (requestsAndInvites.length === 0) {
         contents = (
           <Text
             type="BodySmall"
@@ -196,23 +203,10 @@ class Team extends React.PureComponent<Props> {
           </Text>
         )
       } else {
+        console.warn('foobar', requestsAndInvites)
         contents =
           !loading &&
-          <Box style={{...globalStyles.flexBoxColumn, alignSelf: 'stretch', flexGrow: 1}}>
-            <Box style={{...globalStyles.flexBoxRow, flexGrow: 1}}>
-              <List keyProperty="key" items={requestProps} fixedHeight={48} renderItem={TeamRequestRow} />
-            </Box>
-            <Box style={{...globalStyles.flexBoxRow, flexGrow: 1}}>
-              <List
-                keyProperty="key"
-                items={inviteProps}
-                fixedHeight={48}
-                renderItem={TeamInviteRow}
-                style={{alignSelf: 'stretch'}}
-                containerStyle={{position: 'relative'}}
-              />
-            </Box>
-          </Box>
+            <List keyProperty="key" items={requestsAndInvites} fixedHeight={48} renderItem={TeamRequestRow} style={{alignSelf: 'stretch'}} />
       }
     } else if (selectedTab === 'publicity') {
       const teamsLink = 'keybase.io/popular-teams'
