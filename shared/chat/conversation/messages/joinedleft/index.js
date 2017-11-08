@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react'
-import {Text} from '../../../../common-adapters'
+import {Text, Usernames} from '../../../../common-adapters'
 import UserNotice from '../../notices/user-notice'
 import {globalColors, globalMargins} from '../../../../styles'
 import {formatTimeForMessages} from '../../../../util/timestamp'
@@ -17,22 +17,41 @@ type Props = {
   you: string,
 }
 
-const SystemNotice = ({channelname, message, onManageChannels, you, following, onUsernameClicked}: Props) => (
+const JoinedLeftNotice = ({
+  channelname,
+  message,
+  onManageChannels,
+  you,
+  following,
+  onUsernameClicked,
+}: Props) => (
   <UserNotice style={{marginTop: globalMargins.small}} username={message.author} bgColor={globalColors.blue4}>
     <Text type="BodySmallSemibold" backgroundMode="Announcements" style={{color: globalColors.black_40}}>
       {formatTimeForMessages(message.timestamp)}
     </Text>
-    {message.message.stringValue().split('\n').map(line => (
-      <Text
-        key={line}
+    <Text type="BodySmallSemibold" backgroundMode="Announcements" style={{color: globalColors.black_40}}>
+      <Usernames
+        inline={true}
         type="BodySmallSemibold"
+        onUsernameClicked={onUsernameClicked}
+        colorFollowing={true}
+        users={[{username: message.author, following, you: you === message.author}]}
+      />
+      {' '}
+      {message.message.stringValue()}
+      {' '}
+      #{channelname}.
+    </Text>
+    {message.author === you &&
+      <Text
         backgroundMode="Announcements"
-        style={{color: globalColors.black_40}}
+        onClick={onManageChannels}
+        style={{color: globalColors.blue}}
+        type="BodySmallPrimaryLink"
       >
-        {line}
-      </Text>
-    ))}
+        Manage channel subscriptions.
+      </Text>}
   </UserNotice>
 )
 
-export default SystemNotice
+export default JoinedLeftNotice
