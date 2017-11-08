@@ -1,9 +1,8 @@
 // @flow
-/* eslint-disable */
-
 // NOTE: This file is GENERATED from json files in actions/json. Run 'yarn build-actions' to regenerate
+/* eslint-disable no-unused-vars,prettier/prettier */
 
-import {type PayloadType, type ReturnType} from '../constants/types/more'
+import {type ReturnType} from '../constants/types/more'
 
 // Constants
 export const resetStore = 'common:resetStore' // not a part of engine but is handled by every reducer
