@@ -148,9 +148,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
 
 export default compose(
   connect(mapStateToProps, mapDispatchToProps, mergeProps),
-  branch(props => {
-    return props.isPreview
-  }, renderComponent(ChannelPreview)),
+  branch(props => props.isPreview, renderComponent(ChannelPreview)),
   withState('text', '_setText', props => props.defaultText || ''),
   withState('mentionPopupOpen', 'setMentionPopupOpen', false),
   withState('mentionFilter', 'setMentionFilter', ''),
