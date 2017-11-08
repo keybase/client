@@ -455,7 +455,7 @@ function attachmentLoaded(action: ChatGen.AttachmentLoadedPayload) {
 
 function updateProgress(action: ChatGen.DownloadProgressPayload | ChatGen.UploadProgressPayload) {
   const {type, payload: {progress, messageKey}} = action
-  if (type === 'chat:downloadProgress') {
+  if (type === ChatGen.downloadProgress) {
     if (action.payload.isPreview) {
       return Saga.put(
         EntityCreators.replaceEntity(['attachmentPreviewProgress'], I.Map({[messageKey]: progress}))
@@ -531,7 +531,7 @@ function* registerSagas(): SagaGenerator<any, any> {
   yield Saga.safeTakeEvery(ChatGen.selectAttachment, onSelectAttachment)
   yield Saga.safeTakeEvery(ChatGen.shareAttachment, onShareAttachment)
   yield Saga.safeTakeEveryPure(ChatGen.attachmentLoaded, attachmentLoaded)
-  yield Saga.safeTakeEveryPure([ChatGen.downloadProgress, 'chat:uploadProgress'], updateProgress)
+  yield Saga.safeTakeEveryPure([ChatGen.downloadProgress, ChatGen.uploadProgress], updateProgress)
   yield Saga.safeTakeEveryPure(
     [ChatGen.attachmentSaveStart, ChatGen.attachmentSaveFailed, ChatGen.attachmentSaved],
     updateAttachmentSavePath
