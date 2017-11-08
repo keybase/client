@@ -220,6 +220,10 @@
   version "7.0.42"
   resolved "https://registry.yarnpkg.com/@types/node/-/node-7.0.42.tgz#051ff1cdbd1e1b7523ba425bc388147483344dbf"
 
+RCTMessageUI@^1.0.1:
+  version "1.0.1"
+  resolved "https://registry.yarnpkg.com/RCTMessageUI/-/RCTMessageUI-1.0.1.tgz#2b6d07fbb3ca9aef79751d635b624df7b8041bac"
+
 abab@^1.0.3:
   version "1.0.3"
   resolved "https://registry.yarnpkg.com/abab/-/abab-1.0.3.tgz#b81de5f7274ec4e756d797cd834f303642724e5d"

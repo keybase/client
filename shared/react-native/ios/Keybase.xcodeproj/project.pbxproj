@@ -5,7 +5,6 @@
 	};
 	objectVersion = 46;
 	objects = {
-
 /* Begin PBXBuildFile section */
 		0044E59D1BCD7CEA008EF7EE /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 0044E59C1BCD7CEA008EF7EE /* LaunchScreen.storyboard */; };
 		2746CFFA1E9884BD00E579B0 /* libresolv.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 274AFB721E972F5300615A64 /* libresolv.tbd */; };
@@ -47,6 +46,7 @@
 		DBDC80121DE7CC8E005387B3 /* SourceCodePro.ttf in Resources */ = {isa = PBXBuildFile; fileRef = DBDC800A1DE7CC8E005387B3 /* SourceCodePro.ttf */; };
 		DBDCF30E1B8D03DD00BA95D8 /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = DBDCF3081B8D03DD00BA95D8 /* Images.xcassets */; };
 		DCF5D67E98CE413A87F0068C /* libRNImagePicker.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A77BBAD7A94F4A2580CA3B23 /* libRNImagePicker.a */; };
+		8E677B4A107D43DF8E48C5CF /* libRCTMessageUI.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 910E3B92F66448458CFAC337 /* libRCTMessageUI.a */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -373,6 +373,8 @@
 		DBDCF3091B8D03DD00BA95D8 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		DBDCF3441B8D04FC00BA95D8 /* Keybase-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "Keybase-Bridging-Header.h"; sourceTree = "<group>"; };
 		FE98B29CDF6C4C4085FF2315 /* RNImagePicker.xcodeproj */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = "wrapper.pb-project"; name = RNImagePicker.xcodeproj; path = "../../node_modules/react-native-image-picker/ios/RNImagePicker.xcodeproj"; sourceTree = "<group>"; };
+		E8B023A6015F4E4096239535 /* RCTMessageUI.xcodeproj */ = {isa = PBXFileReference; name = "RCTMessageUI.xcodeproj"; path = "../../node_modules/RCTMessageUI/RCTMessageUI.xcodeproj"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = wrapper.pb-project; explicitFileType = undefined; includeInIndex = 0; };
+		910E3B92F66448458CFAC337 /* libRCTMessageUI.a */ = {isa = PBXFileReference; name = "libRCTMessageUI.a"; path = "libRCTMessageUI.a"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = archive.ar; explicitFileType = undefined; includeInIndex = 0; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -399,6 +401,7 @@
 				DCF5D67E98CE413A87F0068C /* libRNImagePicker.a in Frameworks */,
 				39D6D1A57FB3452BA9A3B365 /* libRNFetchBlob.a in Frameworks */,
 				B698B104E0834338916083E7 /* libRCTContacts.a in Frameworks */,
+				8E677B4A107D43DF8E48C5CF /* libRCTMessageUI.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -467,6 +470,7 @@
 				FE98B29CDF6C4C4085FF2315 /* RNImagePicker.xcodeproj */,
 				27DDEEF0AE72483E8BF08ED2 /* RNFetchBlob.xcodeproj */,
 				6266E16BBFF8461CAF2DDCB9 /* RCTContacts.xcodeproj */,
+				E8B023A6015F4E4096239535 /* RCTMessageUI.xcodeproj */,
 			);
 			name = Libraries;
 			sourceTree = "<group>";
@@ -1310,12 +1314,14 @@
 					"$(SRCROOT)/../../node_modules/react-native-fetch-blob/ios/**",
 					"$(SRCROOT)/../../node_modules/react-native/Libraries/LinkingIOS",
 					"$(SRCROOT)/../../node_modules/react-native-contacts/ios/RCTContacts",
+					"$(SRCROOT)/../../node_modules/RCTMessageUI/RCTMessageUI",
 				);
 				INFOPLIST_FILE = Keybase/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
+					"\"$(SRCROOT)/Keybase\"",
 					"\"$(SRCROOT)/Keybase\"",
 					"\"$(SRCROOT)/Keybase\"",
 					"\"$(SRCROOT)/Keybase\"",
@@ -1363,12 +1369,14 @@
 					"$(SRCROOT)/../../node_modules/react-native-fetch-blob/ios/**",
 					"$(SRCROOT)/../../node_modules/react-native/Libraries/LinkingIOS",
 					"$(SRCROOT)/../../node_modules/react-native-contacts/ios/RCTContacts",
+					"$(SRCROOT)/../../node_modules/RCTMessageUI/RCTMessageUI",
 				);
 				INFOPLIST_FILE = Keybase/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
+					"\"$(SRCROOT)/Keybase\"",
 					"\"$(SRCROOT)/Keybase\"",
 					"\"$(SRCROOT)/Keybase\"",
 					"\"$(SRCROOT)/Keybase\"",
@@ -1508,6 +1516,7 @@
 					"$(SRCROOT)/../../node_modules/react-native-fs/**",
 					"$(SRCROOT)/../../node_modules/react-native-fetch-blob/ios/**",
 					"$(SRCROOT)/../../node_modules/react-native-contacts/ios/RCTContacts",
+					"$(SRCROOT)/../../node_modules/RCTMessageUI/RCTMessageUI",
 				);
 				INFOPLIST_FILE = Keybase/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
@@ -1554,6 +1563,7 @@
 					"$(SRCROOT)/../../node_modules/react-native-fs/**",
 					"$(SRCROOT)/../../node_modules/react-native-fetch-blob/ios/**",
 					"$(SRCROOT)/../../node_modules/react-native-contacts/ios/RCTContacts",
+					"$(SRCROOT)/../../node_modules/RCTMessageUI/RCTMessageUI",
 				);
 				INFOPLIST_FILE = Keybase/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
