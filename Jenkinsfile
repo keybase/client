@@ -117,9 +117,6 @@ helpers.rootLinuxNode(env, {
                         }
                         parallel (
                             test_linux: {
-                                dir("protocol") {
-                                    sh "./diff_test.sh"
-                                }
                                 parallel (
                                     test_linux_go: { withEnv([
                                         "PATH=${env.PATH}:${env.GOPATH}/bin",
