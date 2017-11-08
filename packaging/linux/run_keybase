@@ -11,6 +11,7 @@ set -e -u -o pipefail
 # systemd user-level services. At some point
 
 runtime_dir="${XDG_RUNTIME_DIR:-$HOME/.config}/keybase"
+mkdir -p "$runtime_dir"
 startup_token="$runtime_dir/startup_mode"
 
 systemd_running() {
@@ -29,7 +30,6 @@ wants_systemd() {
 }
 
 write_startup_token() {
-  mkdir -p "$(dirname "$startup_token")"
   echo "$1" > "$startup_token"
 }
 
