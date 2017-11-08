@@ -1,0 +1,7 @@
+{
+  "prelude": [
+    "import * as Constants from '../constants/profile'",
+  ],
+  "actions": {
+  }
+}
