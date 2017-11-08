@@ -74,7 +74,11 @@ func MakeTestBlockServerOrBust(t logger.TestLogBackend,
 		return blockServer
 
 	case len(bserverAddr) != 0:
-		return NewBlockServerRemote(config, bserverAddr, rpcLogFactory)
+		remote, err := rpc.ParsePrioritizedRoundRobinRemote(bserverAddr)
+		if err != nil {
+			t.Fatal(err)
+		}
+		return NewBlockServerRemote(config, remote, rpcLogFactory)
 
 	default:
 		return NewBlockServerMemory(config.MakeLogger(""))
@@ -164,8 +168,12 @@ func MakeTestConfigOrBustLoggedInWithMode(
 		}
 
 	case len(mdServerAddr) != 0:
+		remote, err := rpc.ParsePrioritizedRoundRobinRemote(mdServerAddr)
+		if err != nil {
+			t.Fatal(err)
+		}
 		// connect to server
-		mdServer = NewMDServerRemote(config, mdServerAddr, newTestRPCLogFactory(t))
+		mdServer = NewMDServerRemote(config, remote, newTestRPCLogFactory(t))
 		// for now the MD server acts as the key server in production
 		keyServer = mdServer.(*MDServerRemote)
 
@@ -254,8 +262,11 @@ func configAsUserWithMode(config *ConfigLocal,
 	c.noBGFlush = config.noBGFlush
 
 	if s, ok := config.BlockServer().(*BlockServerRemote); ok {
-		blockServer := NewBlockServerRemote(c, s.RemoteAddress(),
-			s.putConn.rpcLogFactory)
+		remote, err := rpc.ParsePrioritizedRoundRobinRemote(s.RemoteAddress())
+		if err != nil {
+			panic(err)
+		}
+		blockServer := NewBlockServerRemote(c, remote, s.putConn.rpcLogFactory)
 		c.SetBlockServer(blockServer)
 	} else {
 		c.SetBlockServer(config.BlockServer())
@@ -270,8 +281,12 @@ func configAsUserWithMode(config *ConfigLocal,
 	var mdServer MDServer
 	var keyServer KeyServer
 	if s, ok := config.MDServer().(*MDServerRemote); ok {
+		remote, err := rpc.ParsePrioritizedRoundRobinRemote(s.RemoteAddress())
+		if err != nil {
+			panic(err)
+		}
 		// connect to server
-		mdServer = NewMDServerRemote(c, s.RemoteAddress(), s.rpcLogFactory)
+		mdServer = NewMDServerRemote(c, remote, s.rpcLogFactory)
 		// for now the MD server also acts as the key server.
 		keyServer = mdServer.(*MDServerRemote)
 	} else {

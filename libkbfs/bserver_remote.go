@@ -36,7 +36,7 @@ type blockServerRemoteClientHandler struct {
 	deferLog      logger.Logger
 	csg           CurrentSessionGetter
 	authToken     *kbfscrypto.AuthToken
-	srvAddr       string
+	srvRemote     rpc.Remote
 	connOpts      rpc.ConnectionOpts
 	rpcLogFactory rpc.LogFactory
 	pinger        pinger
@@ -47,7 +47,7 @@ type blockServerRemoteClientHandler struct {
 }
 
 func newBlockServerRemoteClientHandler(name string, log logger.Logger,
-	signer kbfscrypto.Signer, csg CurrentSessionGetter, srvAddr string,
+	signer kbfscrypto.Signer, csg CurrentSessionGetter, srvRemote rpc.Remote,
 	rpcLogFactory rpc.LogFactory) *blockServerRemoteClientHandler {
 	deferLog := log.CloneWithAddedDepth(1)
 	b := &blockServerRemoteClientHandler{
@@ -55,7 +55,7 @@ func newBlockServerRemoteClientHandler(name string, log logger.Logger,
 		log:           log,
 		deferLog:      deferLog,
 		csg:           csg,
-		srvAddr:       srvAddr,
+		srvRemote:     srvRemote,
 		rpcLogFactory: rpcLogFactory,
 	}
 
@@ -91,7 +91,7 @@ func (b *blockServerRemoteClientHandler) initNewConnection() {
 	}
 
 	b.conn = rpc.NewTLSConnection(
-		b.srvAddr, kbfscrypto.GetRootCerts(b.srvAddr),
+		b.srvRemote, kbfscrypto.GetRootCerts(b.srvRemote.Peek()),
 		kbfsblock.ServerErrorUnwrapper{}, b, b.rpcLogFactory, b.log,
 		b.connOpts)
 	b.client = keybase1.BlockClient{Cli: b.conn.GetClient()}
@@ -291,11 +291,11 @@ type blockServerRemoteConfig interface {
 // BlockServerRemote implements the BlockServer interface and
 // represents a remote KBFS block server.
 type BlockServerRemote struct {
-	config     blockServerRemoteConfig
-	shutdownFn func()
-	log        traceLogger
-	deferLog   traceLogger
-	blkSrvAddr string
+	config       blockServerRemoteConfig
+	shutdownFn   func()
+	log          traceLogger
+	deferLog     traceLogger
+	blkSrvRemote rpc.Remote
 
 	putConn *blockServerRemoteClientHandler
 	getConn *blockServerRemoteClientHandler
@@ -307,14 +307,14 @@ var _ BlockServer = (*BlockServerRemote)(nil)
 // NewBlockServerRemote constructs a new BlockServerRemote for the
 // given address.
 func NewBlockServerRemote(config blockServerRemoteConfig,
-	blkSrvAddr string, rpcLogFactory rpc.LogFactory) *BlockServerRemote {
+	blkSrvRemote rpc.Remote, rpcLogFactory rpc.LogFactory) *BlockServerRemote {
 	log := config.MakeLogger("BSR")
 	deferLog := log.CloneWithAddedDepth(1)
 	bs := &BlockServerRemote{
-		config:     config,
-		log:        traceLogger{log},
-		deferLog:   traceLogger{deferLog},
-		blkSrvAddr: blkSrvAddr,
+		config:       config,
+		log:          traceLogger{log},
+		deferLog:     traceLogger{deferLog},
+		blkSrvRemote: blkSrvRemote,
 	}
 	// Use two separate auth clients -- one for writes and one for
 	// reads.  This allows small reads to avoid getting trapped behind
@@ -322,10 +322,10 @@ func NewBlockServerRemote(config blockServerRemoteConfig,
 	// achieve better prioritization within the actual network.
 	bs.putConn = newBlockServerRemoteClientHandler(
 		"BlockServerRemotePut", log, config.Signer(),
-		config.CurrentSessionGetter(), blkSrvAddr, rpcLogFactory)
+		config.CurrentSessionGetter(), blkSrvRemote, rpcLogFactory)
 	bs.getConn = newBlockServerRemoteClientHandler(
 		"BlockServerRemoteGet", log, config.Signer(),
-		config.CurrentSessionGetter(), blkSrvAddr, rpcLogFactory)
+		config.CurrentSessionGetter(), blkSrvRemote, rpcLogFactory)
 
 	bs.shutdownFn = func() {
 		bs.putConn.shutdown()
@@ -359,7 +359,7 @@ func newBlockServerRemoteWithClient(config blockServerRemoteConfig,
 
 // RemoteAddress returns the remote bserver this client is talking to
 func (b *BlockServerRemote) RemoteAddress() string {
-	return b.blkSrvAddr
+	return b.blkSrvRemote.String()
 }
 
 // RefreshAuthToken implements the AuthTokenRefreshHandler interface.

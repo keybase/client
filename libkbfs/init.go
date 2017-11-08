@@ -119,9 +119,14 @@ func defaultBServer(ctx Context) string {
 	case libkb.DevelRunMode:
 		return memoryAddr
 	case libkb.StagingRunMode:
-		return "bserver-0.dev.keybase.io:443"
+		return `
+			bserver-0.dev.keybase.io:443,bserver-1.dev.keybase.io:443;
+			bserver.dev.keybase.io:443`
 	case libkb.ProductionRunMode:
-		return "bserver.kbfs.keybase.io:443"
+		return `
+			bserver-0.kbfs.keybaseapi.com:443,bserver-1.kbfs.keybaseapi.com:443;
+			bserver-0.kbfs.keybase.io:443,bserver-1.kbfs.keybase.io:443;
+			bserver.kbfs.keybase.io:443`
 	default:
 		return ""
 	}
@@ -133,9 +138,14 @@ func defaultMDServer(ctx Context) string {
 	case libkb.DevelRunMode:
 		return memoryAddr
 	case libkb.StagingRunMode:
-		return "mdserver-0.dev.keybase.io:443"
+		return `
+			mdserver-0.dev.keybase.io:443,mdserver-1.dev.keybase.io:443;
+			mdserver.dev.keybase.io`
 	case libkb.ProductionRunMode:
-		return "mdserver.kbfs.keybase.io:443"
+		return `
+			mdserver-0.kbfs.keybaseapi.com:443,mdserver-1.kbfs.keybaseapi.com:443;
+			mdserver-0.kbfs.keybase.io:443,mdserver-1.kbfs.keybase.io:443;
+			mdserver.kbfs.keybase.io:443`
 	default:
 		return ""
 	}
@@ -334,10 +344,14 @@ func makeMDServer(config Config, mdserverAddr string,
 		return NewMDServerDir(mdServerLocalConfigAdapter{config}, mdPath)
 	}
 
+	remote, err := rpc.ParsePrioritizedRoundRobinRemote(mdserverAddr)
+	if err != nil {
+		return nil, err
+	}
 	// remote MD server. this can't fail. reconnection attempts
 	// will be automatic.
-	log.Debug("Using remote mdserver %s", mdserverAddr)
-	mdServer := NewMDServerRemote(config, mdserverAddr, rpcLogFactory)
+	log.Debug("Using remote mdserver %s", remote)
+	mdServer := NewMDServerRemote(config, remote, rpcLogFactory)
 	return mdServer, nil
 }
 
@@ -392,8 +406,12 @@ func makeBlockServer(config Config, bserverAddr string,
 			bserverLog, blockPath), nil
 	}
 
-	log.Debug("Using remote bserver %s", bserverAddr)
-	return NewBlockServerRemote(config, bserverAddr, rpcLogFactory), nil
+	remote, err := rpc.ParsePrioritizedRoundRobinRemote(bserverAddr)
+	if err != nil {
+		return nil, err
+	}
+	log.Debug("Using remote bserver %s", remote)
+	return NewBlockServerRemote(config, remote, rpcLogFactory), nil
 }
 
 // InitLogWithPrefix sets up logging switching to a log file if

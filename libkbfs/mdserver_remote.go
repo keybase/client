@@ -40,7 +40,7 @@ type MDServerRemote struct {
 	config        Config
 	log           traceLogger
 	deferLog      traceLogger
-	mdSrvAddr     string
+	mdSrvRemote   rpc.Remote
 	connOpts      rpc.ConnectionOpts
 	rpcLogFactory rpc.LogFactory
 	authToken     *kbfscrypto.AuthToken
@@ -83,7 +83,7 @@ var _ kbfscrypto.AuthTokenRefreshHandler = (*MDServerRemote)(nil)
 var _ rpc.ConnectionHandler = (*MDServerRemote)(nil)
 
 // NewMDServerRemote returns a new instance of MDServerRemote.
-func NewMDServerRemote(config Config, srvAddr string,
+func NewMDServerRemote(config Config, srvRemote rpc.Remote,
 	rpcLogFactory rpc.LogFactory) *MDServerRemote {
 	log := config.MakeLogger("")
 	deferLog := log.CloneWithAddedDepth(1)
@@ -92,7 +92,7 @@ func NewMDServerRemote(config Config, srvAddr string,
 		observers:     make(map[tlf.ID]chan<- error),
 		log:           traceLogger{log},
 		deferLog:      traceLogger{deferLog},
-		mdSrvAddr:     srvAddr,
+		mdSrvRemote:   srvRemote,
 		rpcLogFactory: rpcLogFactory,
 		rekeyTimer:    time.NewTimer(nextRekeyTime()),
 	}
@@ -148,7 +148,7 @@ func (md *MDServerRemote) initNewConnection() {
 	}
 
 	md.conn = rpc.NewTLSConnection(
-		md.mdSrvAddr, kbfscrypto.GetRootCerts(md.mdSrvAddr),
+		md.mdSrvRemote, kbfscrypto.GetRootCerts(md.mdSrvRemote.Peek()),
 		kbfsmd.ServerErrorUnwrapper{}, md, md.rpcLogFactory,
 		md.config.MakeLogger(""), md.connOpts)
 	md.client = keybase1.MetadataClient{Cli: md.conn.GetClient()}
@@ -174,7 +174,7 @@ func (md *MDServerRemote) reconnect() error {
 
 // RemoteAddress returns the remote mdserver this client is talking to
 func (md *MDServerRemote) RemoteAddress() string {
-	return md.mdSrvAddr
+	return md.mdSrvRemote.String()
 }
 
 // HandlerName implements the ConnectionHandler interface.
@@ -440,7 +440,9 @@ func (md *MDServerRemote) ShouldRetryOnConnect(err error) bool {
 
 // CheckReachability implements the MDServer interface.
 func (md *MDServerRemote) CheckReachability(ctx context.Context) {
-	conn, err := net.DialTimeout("tcp", md.mdSrvAddr, MdServerPingTimeout)
+	conn, err := net.DialTimeout("tcp",
+		// The peeked address is the top choice in most cases.
+		md.mdSrvRemote.Peek(), MdServerPingTimeout)
 	if err != nil {
 		if md.getIsAuthenticated() {
 			md.log.CDebugf(ctx, "MDServerRemote: CheckReachability(): "+
