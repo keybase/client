@@ -134,6 +134,7 @@ type BigTeamInfoPanelProps = infoPanelProps & {
   channelname: string,
   onLeaveConversation: () => void,
   teamname: string,
+  isPreview: boolean,
 }
 
 const _BigTeamInfoPanel = (props: BigTeamInfoPanelProps) => (
@@ -149,13 +150,16 @@ const _BigTeamInfoPanel = (props: BigTeamInfoPanelProps) => (
       </Text>
     </Box>
 
+    {!props.isPreview && <Divider style={styleDivider} />}
+
+    {!props.isPreview &&
+      <MuteRow muted={props.muted} onMute={props.onMuteConversation} label="Mute entire channel" />}
+
+    {!props.isPreview && <Notifications />}
+
     <Divider style={styleDivider} />
 
-    <MuteRow muted={props.muted} onMute={props.onMuteConversation} label="Mute entire channel" />
-
-    <Notifications />
-
-    <Divider style={styleDivider} />
+    {props.isPreview && <Button type="Primary" label="Join channel" small={true} />}
 
     <Button type="Danger" small={true} label="Leave channel" onClick={props.onLeaveConversation} />
 
