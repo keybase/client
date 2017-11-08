@@ -479,26 +479,26 @@ function* _createChannel(action: Constants.CreateChannel) {
 
 function* _setPublicityMember(action: Constants.SetPublicityMember) {
   const {payload: {enabled, teamname}} = action
+  yield Saga.put(replaceEntity(['teams', 'teamNameToLoading'], I.Map([[teamname, true]])))
   yield Saga.call(RPCTypes.teamsSetTeamMemberShowcaseRpcPromise, {
     param: {
       isShowcased: enabled,
       name: teamname,
     },
   })
-  yield Saga.put(replaceEntity(['teams', 'teamNameToLoading'], I.Map([[teamname, true]])))
   // getDetails will unset loading and update the store with the new value
   yield Saga.put((dispatch: Dispatch) => dispatch(Creators.getDetails(teamname)))
 }
 
 function* _setPublicityTeam(action: Constants.SetPublicityTeam) {
   const {payload: {enabled, teamname}} = action
+  yield Saga.put(replaceEntity(['teams', 'teamNameToLoading'], I.Map([[teamname, true]])))
   yield Saga.call(RPCTypes.teamsSetTeamShowcaseRpcPromise, {
     param: {
       isShowcased: enabled,
       name: teamname,
     },
   })
-  yield Saga.put(replaceEntity(['teams', 'teamNameToLoading'], I.Map([[teamname, true]])))
   // getDetails will unset loading and update the store with the new value
   yield Saga.put((dispatch: Dispatch) => dispatch(Creators.getDetails(teamname)))
 }

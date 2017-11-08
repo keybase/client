@@ -74,11 +74,7 @@ type TeamTabsProps = {
   setSelectedTab: (?Constants.TabKey) => void,
 }
 
-const TeamRequestOrInviteRow = (row: RequestRowProps | InviteRowProps) => {
-  console.warn('FOO')
-  console.warn('in TeamRequestOrInviteRow props', row)
-  return <Text type='Body'>foo</Text>
-}
+const TeamRequestOrInviteRow = (index, row) => row.type === 'request' ? TeamRequestRow(index, row) : TeamInviteRow(index, row)
 
 const TeamTabs = (props: TeamTabsProps) => {
   const {admin, invites, members, loading = false, selectedTab, setSelectedTab} = props
@@ -172,14 +168,14 @@ class Team extends React.PureComponent<Props> {
 
     // massage data for rowrenderers
     const memberProps = members.map(member => ({username: member.username, teamname: name}))
-    const requestProps = requests.map(req => ({username: req.username, teamname: name}))
+    const requestProps = requests.map(req => ({type: 'request', teamname: name, username: req.username}))
     const inviteProps = invites.map(invite => ({
-      key: invite.email || invite.username,
       email: invite.email,
+      key: invite.email || invite.username,
       teamname: name,
+      type: 'invite',
       username: invite.username,
     }))
-    console.warn(requests, requestProps, inviteProps)
     let contents
     if (selectedTab === 'members') {
       contents =
@@ -192,7 +188,8 @@ class Team extends React.PureComponent<Props> {
           style={{alignSelf: 'stretch'}}
         />
     } else if (selectedTab === 'invites') {
-      const requestsAndInvites = requestProps.push(inviteProps)
+      // Show requests first, then invites.
+      const requestsAndInvites = requestProps.concat(inviteProps)
       if (requestsAndInvites.length === 0) {
         contents = (
           <Text
@@ -203,10 +200,9 @@ class Team extends React.PureComponent<Props> {
           </Text>
         )
       } else {
-        console.warn('foobar', requestsAndInvites)
         contents =
           !loading &&
-            <List keyProperty="key" items={requestsAndInvites} fixedHeight={48} renderItem={TeamRequestRow} style={{alignSelf: 'stretch'}} />
+            <List keyProperty="key" items={requestsAndInvites} fixedHeight={48} renderItem={TeamRequestOrInviteRow} style={{alignSelf: 'stretch'}} />
       }
     } else if (selectedTab === 'publicity') {
       const teamsLink = 'keybase.io/popular-teams'
