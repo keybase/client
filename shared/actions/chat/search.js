@@ -35,14 +35,16 @@ function _exitSearch({payload: {skipSelectPreviousConversation}}: ChatGen.ExitSe
     typeof Selectors.previousConversationSelector
   > = Selectors.previousConversationSelector(s)
 
-  return Saga.all([
-    Saga.put(SearchCreators.clearSearchResults('chatSearch')),
-    Saga.put(SearchCreators.setUserInputItems('chatSearch', [])),
-    Saga.put(ChatGen.createRemoveTempPendingConversations()),
-    userInputItemIds.length === 0 && !skipSelectPreviousConversation
-      ? Saga.put(ChatGen.createSelectConversation({conversationIDKey: previousConversation}))
-      : null,
-  ])
+  return Saga.all(
+    [
+      Saga.put(SearchCreators.clearSearchResults('chatSearch')),
+      Saga.put(SearchCreators.setUserInputItems('chatSearch', [])),
+      Saga.put(ChatGen.createRemoveTempPendingConversations()),
+      userInputItemIds.length === 0 && !skipSelectPreviousConversation
+        ? Saga.put(ChatGen.createSelectConversation({conversationIDKey: previousConversation}))
+        : null,
+    ].filter(Boolean)
+  )
 }
 
 // TODO this is kinda confusing. I think there is duplicated state...
@@ -75,8 +77,8 @@ function* registerSagas(): Saga.SagaGenerator<any, any> {
     SearchConstants.isUserInputItemsUpdated('chatSearch'),
     _updateTempSearchConversation
   )
-  yield Saga.safeTakeEveryPure('chat:exitSearch', _exitSearch)
-  yield Saga.safeTakeEvery('chat:newChat', _newChat)
+  yield Saga.safeTakeEveryPure(ChatGen.exitSearch, _exitSearch)
+  yield Saga.safeTakeEvery(ChatGen.newChat, _newChat)
 }
 
 export {registerSagas}

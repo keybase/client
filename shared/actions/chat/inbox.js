@@ -1,7 +1,7 @@
 // @flow
 // Actions that have to do with the inbox.
 // Loading, unboxing, filtering, stale, out of sync, badging
-import * as ChatTypes from '../../constants/types/flow-types-chat'
+import * as RPCChatTypes from '../../constants/types/flow-types-chat'
 import * as Constants from '../../constants/chat'
 import * as ChatGen from '../chat-gen'
 import * as ConfigGen from '../config-gen'
@@ -20,7 +20,6 @@ import {showMainWindow} from '../platform-specific'
 import {switchTo} from '../route-tree'
 import {type SagaGenerator} from '../../constants/types/saga'
 import {type TypedState} from '../../constants/reducer'
-import {unsafeUnwrap} from '../../constants/types/more'
 
 // How many messages we consider too many to just download when you are stale and we could possibly just append
 const tooManyMessagesToJustAppendOnStale = 200
@@ -29,22 +28,23 @@ const tooManyMessagesToJustAppendOnStale = 200
 const _getInboxQuery = {
   computeActiveList: true,
   readOnly: false,
-  status: Object.keys(ChatTypes.CommonConversationStatus)
+  status: Object.keys(RPCChatTypes.commonConversationStatus)
     .filter(k => !['ignored', 'blocked', 'reported'].includes(k))
-    .map(k => ChatTypes.CommonConversationStatus[k]),
-  tlfVisibility: RPCTypes.CommonTLFVisibility.private,
-  topicType: ChatTypes.CommonTopicType.chat,
+    .map(k => RPCChatTypes.commonConversationStatus[k]),
+  tlfVisibility: RPCTypes.commonTLFVisibility.private,
+  topicType: RPCChatTypes.commonTopicType.chat,
   unreadOnly: false,
 }
 
 // Update inboxes that have been reset
-function* _updateFinalized(inbox: ChatTypes.GetInboxLocalRes) {
+function* _updateFinalized(inbox: RPCChatTypes.UnverifiedInboxUIItems): Generator<any, void, any> {
   const finalizedState: Constants.FinalizedState = I.Map(
-    (inbox.conversationsUnverified || []).filter(c => c.metadata.finalizeInfo).map(convoUnverified => [
-      Constants.conversationIDToKey(convoUnverified.metadata.conversationID),
-      // $FlowIssue doesn't understand this is non-null
-      convoUnverified.metadata.finalizeInfo,
-    ])
+    (inbox.conversationsUnverified || [])
+      .filter(c => c.metadata.finalizeInfo)
+      .map(convoUnverified => [
+        Constants.conversationIDToKey(convoUnverified.metadata.conversationID),
+        convoUnverified.metadata.finalizeInfo,
+      ])
   )
 
   if (finalizedState.count()) {
@@ -68,11 +68,11 @@ function* onInboxStale(action: ChatGen.InboxStalePayload): SagaGenerator<any, an
   try {
     yield Saga.put(ChatGen.createSetInboxGlobalUntrustedState({inboxGlobalUntrustedState: 'loading'}))
 
-    const loadInboxChanMap = ChatTypes.localGetInboxNonblockLocalRpcChannelMap(
+    const loadInboxChanMap = RPCChatTypes.localGetInboxNonblockLocalRpcChannelMap(
       ['chat.1.chatUi.chatInboxUnverified', 'finished'],
       {
         param: {
-          identifyBehavior: RPCTypes.TlfKeysTLFIdentifyBehavior.chatGui,
+          identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
           maxUnbox: 0,
           query: _getInboxQuery,
           skipUnverified: false,
@@ -99,7 +99,7 @@ function* onInboxStale(action: ChatGen.InboxStalePayload): SagaGenerator<any, an
     incoming['chat.1.chatUi.chatInboxUnverified'].response.result()
 
     const jsonInbox: string = incoming['chat.1.chatUi.chatInboxUnverified'].params.inbox
-    const inbox: ChatTypes.UnverifiedInboxUIItems = JSON.parse(jsonInbox)
+    const inbox: RPCChatTypes.UnverifiedInboxUIItems = JSON.parse(jsonInbox)
     yield Saga.call(_updateFinalized, inbox)
 
     const idToVersion = I.Map((inbox.items || []).map(c => [c.convID, c.version]))
@@ -126,14 +126,14 @@ function* onInboxStale(action: ChatGen.InboxStalePayload): SagaGenerator<any, an
 
     const inboxSmallTimestamps = I.Map(
       conversations
-        .map(c => (c.teamType !== ChatTypes.CommonTeamType.complex ? [c.conversationIDKey, c.time] : null))
+        .map(c => (c.teamType !== RPCChatTypes.commonTeamType.complex ? [c.conversationIDKey, c.time] : null))
         .filter(Boolean)
     )
 
     const inboxBigChannelsToTeam = I.Map(
       conversations
         .map(
-          c => (c.teamType === ChatTypes.CommonTeamType.complex ? [c.conversationIDKey, c.teamname] : null)
+          c => (c.teamType === RPCChatTypes.commonTeamType.complex ? [c.conversationIDKey, c.teamname] : null)
         )
         .filter(Boolean)
     )
@@ -142,7 +142,7 @@ function* onInboxStale(action: ChatGen.InboxStalePayload): SagaGenerator<any, an
       conversations
         .map(
           c =>
-            c.teamType === ChatTypes.CommonTeamType.complex && c.channelname
+            c.teamType === RPCChatTypes.commonTeamType.complex && c.channelname
               ? [c.conversationIDKey, c.channelname]
               : null
         )
@@ -196,23 +196,28 @@ function* onGetInboxAndUnbox({
 
 function _toSupersedeInfo(
   conversationIDKey: Constants.ConversationIDKey,
-  supersedeData: Array<ChatTypes.ConversationMetadata>
+  supersedeData: Array<RPCChatTypes.ConversationMetadata>
 ): ?Constants.SupersedeInfo {
-  const parsed = supersedeData
-    .filter(md => md.idTriple.topicType === ChatTypes.CommonTopicType.chat && md.finalizeInfo)
-    .map(md => ({
-      conversationIDKey: Constants.conversationIDToKey(md.conversationID),
-      finalizeInfo: unsafeUnwrap(md && md.finalizeInfo),
-    }))
-  return parsed.length ? parsed[0] : null
+  const toConvert = supersedeData.find(
+    s => s.idTriple.topicType === RPCChatTypes.commonTopicType.chat && s.finalizeInfo
+  )
+
+  const finalizeInfo = toConvert && toConvert.finalizeInfo
+
+  return toConvert && finalizeInfo
+    ? {
+        conversationIDKey: Constants.conversationIDToKey(toConvert.conversationID),
+        finalizeInfo,
+      }
+    : null
 }
 
 // Update an inbox item
-function* _processConversation(c: ChatTypes.InboxUIItem): SagaGenerator<any, any> {
+function* _processConversation(c: RPCChatTypes.InboxUIItem): Generator<any, void, any> {
   const conversationIDKey = c.convID
 
-  const isBigTeam = c.teamType === ChatTypes.CommonTeamType.complex
-  const isTeam = c.membersType === ChatTypes.CommonConversationMembersType.team
+  const isBigTeam = c.teamType === RPCChatTypes.commonTeamType.complex
+  const isTeam = c.membersType === RPCChatTypes.commonConversationMembersType.team
 
   if (!isTeam) {
     const supersedes = _toSupersedeInfo(conversationIDKey, c.supersedes || [])
@@ -360,7 +365,9 @@ function* _unboxMore(): SagaGenerator<any, any> {
   // the most recent thing you asked for is likely what you want
   // (aka scrolling)
   const conv = _chatInboxToProcess.pop()
-  yield Saga.spawn(_processConversation, conv)
+  if (conv) {
+    yield Saga.spawn(_processConversation, conv)
+  }
 
   if (_chatInboxToProcess.length) {
     yield Saga.call(Saga.delay, 100)
@@ -401,7 +408,7 @@ function* _chatInboxFailedSubSaga(params) {
   const selectedConversation = Constants.getSelectedConversation(state)
   if (maxMsgid && selectedConversation === conversationIDKey) {
     try {
-      yield Saga.call(ChatTypes.localMarkAsReadLocalRpcPromise, {
+      yield Saga.call(RPCChatTypes.localMarkAsReadLocalRpcPromise, {
         param: {
           conversationID: convID,
           msgID: maxMsgid,
@@ -413,20 +420,20 @@ function* _chatInboxFailedSubSaga(params) {
   }
 
   switch (error.typ) {
-    case ChatTypes.LocalConversationErrorType.selfrekeyneeded: {
+    case RPCChatTypes.localConversationErrorType.selfrekeyneeded: {
       yield Saga.put(ChatGen.createUpdateInboxRekeySelf({conversationIDKey}))
       break
     }
-    case ChatTypes.LocalConversationErrorType.otherrekeyneeded: {
+    case RPCChatTypes.localConversationErrorType.otherrekeyneeded: {
       const rekeyers = error.rekeyInfo.rekeyers
       yield Saga.put(ChatGen.createUpdateInboxRekeyOthers({conversationIDKey, rekeyers}))
       break
     }
-    case ChatTypes.LocalConversationErrorType.transient: {
+    case RPCChatTypes.localConversationErrorType.transient: {
       // Just ignore these, it is a transient error
       break
     }
-    case ChatTypes.LocalConversationErrorType.permanent: {
+    case RPCChatTypes.localConversationErrorType.permanent: {
       // Let's show it as failed in the inbox
       break
     }
@@ -494,11 +501,11 @@ function* unboxConversations(action: ChatGen.UnboxConversationsPayload): SagaGen
 
   const loadInboxRpc = new EngineRpc.EngineRpcCall(
     unboxConversationsSagaMap,
-    ChatTypes.localGetInboxNonblockLocalRpcChannelMap,
+    RPCChatTypes.localGetInboxNonblockLocalRpcChannelMap,
     'unboxConversations',
     {
       param: {
-        identifyBehavior: RPCTypes.TlfKeysTLFIdentifyBehavior.chatGui,
+        identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
         skipUnverified: forInboxSync,
         query: {
           ..._getInboxQuery,
@@ -529,7 +536,7 @@ function* unboxConversations(action: ChatGen.UnboxConversationsPayload): SagaGen
 }
 
 const parseNotifications = (
-  notifications: ChatTypes.ConversationNotificationInfo
+  notifications: RPCChatTypes.ConversationNotificationInfo
 ): ?Constants.NotificationsState => {
   if (!notifications || !notifications.settings) {
     return null
@@ -538,29 +545,29 @@ const parseNotifications = (
   return {
     channelWide: notifications.channelWide,
     desktop: {
-      atmention: settings[RPCTypes.CommonDeviceType.desktop.toString()][
-        ChatTypes.CommonNotificationKind.atmention.toString()
+      atmention: settings[RPCTypes.commonDeviceType.desktop.toString()][
+        RPCChatTypes.commonNotificationKind.atmention.toString()
       ],
-      generic: settings[RPCTypes.CommonDeviceType.desktop.toString()][
-        ChatTypes.CommonNotificationKind.generic.toString()
+      generic: settings[RPCTypes.commonDeviceType.desktop.toString()][
+        RPCChatTypes.commonNotificationKind.generic.toString()
       ],
     },
     mobile: {
-      atmention: settings[RPCTypes.CommonDeviceType.mobile.toString()][
-        ChatTypes.CommonNotificationKind.atmention.toString()
+      atmention: settings[RPCTypes.commonDeviceType.mobile.toString()][
+        RPCChatTypes.commonNotificationKind.atmention.toString()
       ],
-      generic: settings[RPCTypes.CommonDeviceType.mobile.toString()][
-        ChatTypes.CommonNotificationKind.generic.toString()
+      generic: settings[RPCTypes.commonDeviceType.mobile.toString()][
+        RPCChatTypes.commonNotificationKind.generic.toString()
       ],
     },
   }
 }
 
 // Convert server to our data type
-function _conversationLocalToInboxState(c: ?ChatTypes.InboxUIItem): ?Constants.InboxState {
+function _conversationLocalToInboxState(c: ?RPCChatTypes.InboxUIItem): ?Constants.InboxState {
   if (
     !c ||
-    c.visibility !== RPCTypes.CommonTLFVisibility.private || // private chats only
+    c.visibility !== RPCTypes.commonTLFVisibility.private || // private chats only
     c.name.includes('#') // We don't support mixed reader/writers
   ) {
     return null
@@ -573,7 +580,7 @@ function _conversationLocalToInboxState(c: ?ChatTypes.InboxUIItem): ?Constants.I
   let teamname = null
   let channelname = null
 
-  if (c.membersType === ChatTypes.CommonConversationMembersType.team) {
+  if (c.membersType === RPCChatTypes.commonConversationMembersType.team) {
     teamname = c.name
     channelname = c.channel
   }
@@ -778,7 +785,7 @@ function* _badgeAppForChat(action: Constants.BadgeAppForChat): Saga.SagaGenerato
     const total = conv.get('unreadMessages')
     if (total) {
       const badged = conv.get('badgeCounts')[
-        `${isMobile ? RPCTypes.CommonDeviceType.mobile : RPCTypes.CommonDeviceType.desktop}`
+        `${isMobile ? RPCTypes.commonDeviceType.mobile : RPCTypes.commonDeviceType.desktop}`
       ]
       const conversationIDKey = Constants.conversationIDToKey(conv.get('convID'))
       totals[conversationIDKey] = total
@@ -815,29 +822,29 @@ function _updateSnippet({payload: {snippet, conversationIDKey}}: ChatGen.UpdateS
 
 function* _incomingMessage(action: ChatGen.IncomingMessagePayload): Saga.SagaGenerator<any, any> {
   switch (action.payload.activity.activityType) {
-    case ChatTypes.NotifyChatChatActivityType.setStatus:
-      const setStatus: ?ChatTypes.SetStatusInfo = action.payload.activity.setStatus
-      if (setStatus) {
+    case RPCChatTypes.notifyChatChatActivityType.setStatus:
+      const setStatus: ?RPCChatTypes.SetStatusInfo = action.payload.activity.setStatus
+      if (setStatus && setStatus.conv) {
         yield Saga.spawn(_processConversation, setStatus.conv)
       }
       break
-    case ChatTypes.NotifyChatChatActivityType.readMessage:
+    case RPCChatTypes.notifyChatChatActivityType.readMessage:
       if (action.payload.activity.readMessage) {
-        const inboxUIItem: ?ChatTypes.InboxUIItem = action.payload.activity.readMessage.conv
+        const inboxUIItem: ?RPCChatTypes.InboxUIItem = action.payload.activity.readMessage.conv
         if (inboxUIItem) {
           yield Saga.spawn(_processConversation, inboxUIItem)
         }
       }
       break
-    case ChatTypes.NotifyChatChatActivityType.incomingMessage:
-      const incomingMessage: ?ChatTypes.IncomingMessage = action.payload.activity.incomingMessage
+    case RPCChatTypes.notifyChatChatActivityType.incomingMessage:
+      const incomingMessage: ?RPCChatTypes.IncomingMessage = action.payload.activity.incomingMessage
       if (incomingMessage) {
         // If it's a public chat, the GUI (currently) wants no part of it. We
         // especially don't want to surface the conversation as if it were a
         // private one, which is what we were doing before this change.
         if (
           incomingMessage.conv &&
-          incomingMessage.conv.visibility !== RPCTypes.CommonTLFVisibility.private
+          incomingMessage.conv.visibility !== RPCTypes.commonTLFVisibility.private
         ) {
           return
         }
@@ -859,12 +866,12 @@ function* _incomingMessage(action: ChatGen.IncomingMessagePayload): Saga.SagaGen
         }
       }
       break
-    case ChatTypes.NotifyChatChatActivityType.teamtype:
+    case RPCChatTypes.notifyChatChatActivityType.teamtype:
       // Just reload everything if we get one of these
       yield Saga.put(ChatGen.createInboxStale({reason: 'team type changed'}))
       break
-    case ChatTypes.NotifyChatChatActivityType.newConversation:
-      const newConv: ?ChatTypes.NewConversationInfo = action.payload.activity.newConversation
+    case RPCChatTypes.notifyChatChatActivityType.newConversation:
+      const newConv: ?RPCChatTypes.NewConversationInfo = action.payload.activity.newConversation
       if (newConv && newConv.conv) {
         yield Saga.spawn(_processConversation, newConv.conv)
         break
@@ -873,7 +880,7 @@ function* _incomingMessage(action: ChatGen.IncomingMessagePayload): Saga.SagaGen
       console.log('newConversation with no InboxUIItem')
       yield Saga.put(ChatGen.createInboxStale({reason: 'no inbox item for new conv message'}))
       break
-    case ChatTypes.NotifyChatChatActivityType.setAppNotificationSettings:
+    case RPCChatTypes.notifyChatChatActivityType.setAppNotificationSettings:
       if (action.payload.activity && action.payload.activity.setAppNotificationSettings) {
         const {convID, settings} = action.payload.activity.setAppNotificationSettings
         if (convID && settings) {
@@ -889,18 +896,18 @@ function* _incomingMessage(action: ChatGen.IncomingMessagePayload): Saga.SagaGen
 }
 
 function* registerSagas(): SagaGenerator<any, any> {
-  yield Saga.safeTakeEveryPure('chat:updateSnippet', _updateSnippet)
-  yield Saga.safeTakeEvery('chat:getInboxAndUnbox', onGetInboxAndUnbox)
+  yield Saga.safeTakeEveryPure(ChatGen.updateSnippet, _updateSnippet)
+  yield Saga.safeTakeEvery(ChatGen.getInboxAndUnbox, onGetInboxAndUnbox)
   yield Saga.safeTakeEvery('chat:selectNext', filterSelectNext)
-  yield Saga.safeTakeLatest('chat:inboxStale', onInboxStale)
-  yield Saga.safeTakeLatest('chat:loadInbox', onInboxLoad)
-  yield Saga.safeTakeLatest('chat:unboxMore', _unboxMore)
-  yield Saga.safeTakeSerially('chat:unboxConversations', unboxConversations)
+  yield Saga.safeTakeLatest(ChatGen.inboxStale, onInboxStale)
+  yield Saga.safeTakeLatest(ChatGen.loadInbox, onInboxLoad)
+  yield Saga.safeTakeLatest(ChatGen.unboxMore, _unboxMore)
+  yield Saga.safeTakeSerially(ChatGen.unboxConversations, unboxConversations)
   yield Saga.safeTakeEvery('chat:appendMessages', _sendNotifications)
-  yield Saga.safeTakeEvery('chat:markThreadsStale', _markThreadsStale)
-  yield Saga.safeTakeEvery('chat:inboxSynced', _inboxSynced)
+  yield Saga.safeTakeEvery(ChatGen.markThreadsStale, _markThreadsStale)
+  yield Saga.safeTakeEvery(ChatGen.inboxSynced, _inboxSynced)
   yield Saga.safeTakeLatest('chat:badgeAppForChat', _badgeAppForChat)
-  yield Saga.safeTakeEvery('chat:incomingMessage', _incomingMessage)
+  yield Saga.safeTakeEvery(ChatGen.incomingMessage, _incomingMessage)
 }
 
 export {registerSagas}

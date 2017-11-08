@@ -1554,7 +1554,7 @@ const iconMeta_ = {
     isFont: true,
     gridSize: 24,
     charCode: 0xe94c,
-  },/* eslint-enable */
+  } /* eslint-enable */,
 }
 
 export type IconType = $Keys<typeof iconMeta_>

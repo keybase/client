@@ -1,17 +1,17 @@
 // @flow
-import * as React from 'react'
-import {connect, type TypedState} from '../../util/container'
-import {compose, lifecycle, withState} from 'recompose'
-import {HeaderHoc} from '../../common-adapters'
-import * as Creators from '../../actions/teams/creators'
 import * as Constants from '../../constants/teams'
+import * as Creators from '../../actions/teams/creators'
 import * as I from 'immutable'
+import * as KBFSGen from '../../actions/kbfs-gen'
+import * as React from 'react'
 import Team, {CustomComponent} from '.'
-import {openInKBFS} from '../../actions/kbfs'
-import {navigateAppend} from '../../actions/route-tree'
-import {showUserProfile} from '../../actions/profile'
+import {HeaderHoc} from '../../common-adapters'
+import {compose, lifecycle, withState} from 'recompose'
+import {connect, type TypedState} from '../../util/container'
 import {getProfile} from '../../actions/tracker'
 import {isMobile} from '../../constants/platform'
+import {navigateAppend} from '../../actions/route-tree'
+import {showUserProfile} from '../../actions/profile'
 
 type StateProps = {
   _memberInfo: I.Set<Constants.MemberInfo>,
@@ -61,7 +61,8 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, setRouteState, rout
     dispatch(navigateAppend([{props: {teamname}, selected: 'reallyLeaveTeam'}])),
   _onManageChat: (teamname: Constants.Teamname) =>
     dispatch(navigateAppend([{props: {teamname}, selected: 'manageChannels'}])),
-  _onOpenFolder: (teamname: Constants.Teamname) => dispatch(openInKBFS(`/keybase/team/${teamname}`)),
+  _onOpenFolder: (teamname: Constants.Teamname) =>
+    dispatch(KBFSGen.createOpen({path: `/keybase/team/${teamname}`})),
   onUsernameClick: (username: string) => {
     isMobile ? dispatch(showUserProfile(username)) : dispatch(getProfile(username, true, true))
   },

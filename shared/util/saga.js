@@ -33,6 +33,7 @@ function createChannelMap<T>(channelConfig: ChannelConfig<T>): ChannelMap<T> {
   return mapValues(channelConfig, (v, k) => {
     const ret = channel(v())
     // to help debug what's going on in dev/user-timings
+    // $FlowIssue doesn't like us setting this on a sealed object
     ret.userTimingName = k
     return ret
   })
@@ -105,6 +106,7 @@ function safeTakeEvery(pattern: string | Array<any> | Function, worker: Function
     }
   }
 
+  // $FlowIssue confused
   return takeEvery(pattern, safeTakeEveryWorker, ...args)
 }
 
@@ -160,6 +162,7 @@ function safeTakeLatestWithCatch(
     }
   }
 
+  // $FlowIssue confused
   return takeLatest(pattern, safeTakeLatestWithCatchWorker, ...args)
 }
 
@@ -202,6 +205,7 @@ function safeTakeSerially(pattern: string | Array<any> | Function, worker: Funct
     }
   }
 
+  // $FlowIssue confused
   return fork(function* safeTakeSeriallyForkWorker() {
     const chan = yield actionChannel(pattern, buffers.expanding(10))
     while (true) {
@@ -213,6 +217,7 @@ function safeTakeSerially(pattern: string | Array<any> | Function, worker: Funct
 
 // If you `yield identity(x)` you get x back
 function identity<X>(x: X) {
+  // $FlowIssue
   return call(() => x)
 }
 
@@ -221,10 +226,34 @@ type Ok<X> = {type: 'ok', payload: X}
 type Err<E> = {type: 'err', payload: E}
 type Result<X, E> = Ok<X> | Err<E>
 
+type Fn0<R> = () => R
+type Fn1<T1, R> = (t1: T1) => R
+type Fn2<T1, T2, R> = (t1: T1, t2: T2) => R
+type Fn3<T1, T2, T3, R> = (t1: T1, t2: T2, t3: T3) => R
+
+type CallAndWrap = (<R, Fn: Fn0<Promise<R>>, WR: Result<R, *>, WFn: Fn0<WR>>(
+  fn: Fn
+) => $Call<call<WR, WFn>>) &
+  (<R, T1, Fn: Fn1<T1, Promise<R>>, WR: Result<R, *>, WFn: Fn1<T1, WR>>(
+    fn: Fn,
+    t1: T1
+  ) => $Call<call<T1, WR, WFn>>) &
+  (<R, T1, T2, Fn: Fn2<T1, T2, Promise<R>>, WR: Result<R, *>, WFn: Fn2<T1, T2, WR>>(
+    fn: Fn,
+    t1: T1,
+    t2: T2
+  ) => $Call<call<T1, T2, WR, WFn>>) &
+  (<R, T1, T2, T3, Fn: Fn3<T1, T2, T3, Promise<R>>, WR: Result<R, *>, WFn: Fn3<T1, T2, T3, WR>>(
+    fn: Fn,
+    t1: T1,
+    t2: T2,
+    t3: T3
+  ) => $Call<call<T1, T2, T3, WR, WFn>>)
 // TODO this doesn't type as well as it could
-function callAndWrap<X, Args, F: (...args: Args) => X, E>(fn: F, ...args: Args): Result<X, E> {
+const callAndWrap: CallAndWrap = (fn, ...args) => {
   const wrapper = function*() {
     try {
+      // $FlowIssue - ignore this part for now
       const result = yield call(fn, ...args)
       return {type: 'ok', payload: result}
     } catch (error) {
@@ -232,6 +261,7 @@ function callAndWrap<X, Args, F: (...args: Args) => X, E>(fn: F, ...args: Args):
     }
   }
 
+  // $FlowIssue
   return call(wrapper)
 }
 

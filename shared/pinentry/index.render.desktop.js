@@ -4,7 +4,7 @@ import React, {Component} from 'react'
 import {globalStyles, globalColors, globalMargins} from '../styles'
 import {autoResize} from '../desktop/renderer/remote-component-helper'
 import {Button, FormWithCheckbox, Header, Text, Box, Icon} from '../common-adapters'
-import {PassphraseCommonPassphraseType} from '../constants/types/flow-types'
+import {passphraseCommonPassphraseType} from '../constants/types/flow-types'
 import type {Props, DefaultProps} from './index.render'
 
 type State = {
@@ -56,7 +56,7 @@ export default class PinentryRender extends Component<Props, State> {
   render() {
     const submitPassphrase = () => this.props.onSubmit(this.state.passphrase, this.state.features)
 
-    const isPaperKey = this.props.type === PassphraseCommonPassphraseType.paperKey
+    const isPaperKey = this.props.type === passphraseCommonPassphraseType.paperKey
     const typeStyle: $Shape<{
       hintText: string,
       style: Object,
@@ -64,15 +64,15 @@ export default class PinentryRender extends Component<Props, State> {
       rowsMax: number,
       floatingHintTextOverride: string,
     }> = {
-      [PassphraseCommonPassphraseType.verifyPassPhrase]: {
+      [passphraseCommonPassphraseType.verifyPassPhrase]: {
         hintText: 'Verify Passphrase',
         style: {marginBottom: 0},
       },
-      [PassphraseCommonPassphraseType.passPhrase]: {
+      [passphraseCommonPassphraseType.passPhrase]: {
         hintText: 'Passphrase',
         style: {marginBottom: 0},
       },
-      [PassphraseCommonPassphraseType.paperKey]: {
+      [passphraseCommonPassphraseType.paperKey]: {
         floatingHintTextOverride: 'Paperkey',
         multiline: true,
         rowsMax: 2,
@@ -81,9 +81,9 @@ export default class PinentryRender extends Component<Props, State> {
     }[this.props.type]
 
     const checkboxContainerStyle = {
-      [PassphraseCommonPassphraseType.verifyPassPhrase]: null,
-      [PassphraseCommonPassphraseType.passPhrase]: null,
-      [PassphraseCommonPassphraseType.paperKey]: {bottom: 0},
+      [passphraseCommonPassphraseType.verifyPassPhrase]: null,
+      [passphraseCommonPassphraseType.passPhrase]: null,
+      [passphraseCommonPassphraseType.paperKey]: {bottom: 0},
     }[this.props.type]
 
     const inputProps = {

@@ -243,7 +243,6 @@ protocol teams {
     map<Seqno, LinkID> linkIDs;
 
     // Set of links that are stubbed-out and whose contents are missing.
-    // Keyed by seqno
     map<Seqno, boolean> stubbedLinks;
 
     // All invitations that are currently active.

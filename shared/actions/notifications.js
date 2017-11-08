@@ -1,7 +1,9 @@
 // @flow
 import * as Constants from '../constants/notifications'
+import * as GitGen from '../actions/git-gen'
 import * as RPCTypes from '../constants/types/flow-types'
 import * as Saga from '../util/saga'
+import * as FavoriteConstants from '../constants/favorite'
 import ListenerCreator from '../native/notification-listeners'
 import engine, {Engine} from '../engine'
 import {NotifyPopup} from '../native/notifications'
@@ -11,8 +13,6 @@ import {log} from '../native/log/logui'
 import {registerIdentifyUi, setupUserChangedHandler} from './tracker'
 import {badgeAppForChat} from './chat'
 import {createSetupChatHandlers} from './chat-gen'
-import {badgeAppForGit} from './git/creators'
-import {setupKBFSChangedHandler} from './favorite'
 import {setupTeamHandlers, badgeAppForTeams} from './teams/creators'
 
 import type {SagaGenerator} from '../constants/types/saga'
@@ -81,6 +81,10 @@ function* _listenSaga(): SagaGenerator<any, any> {
   yield put(setupUserChangedHandler())
 }
 
+function setupKBFSChangedHandler(): FavoriteConstants.SetupKBFSChangedHandler {
+  return {type: FavoriteConstants.setupKBFSChangedHandler, payload: undefined}
+}
+
 function* _listenKBFSSaga(): SagaGenerator<any, any> {
   yield put(setupKBFSChangedHandler())
   yield put(createSetupChatHandlers())
@@ -95,7 +99,7 @@ function* _onRecievedBadgeState(action: Constants.ReceivedBadgeState): SagaGener
     newTeamAccessRequests,
   } = action.payload.badgeState
   yield put(badgeAppForChat(conversations))
-  yield put(badgeAppForGit(newGitRepoGlobalUniqueIDs))
+  yield put(GitGen.createBadgeAppForGit({ids: newGitRepoGlobalUniqueIDs || []}))
   yield put(badgeAppForTeams(newTeamNames || [], newTeamAccessRequests || []))
 }
 

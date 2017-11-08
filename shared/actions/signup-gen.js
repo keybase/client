@@ -7,6 +7,7 @@ import {type PayloadType, type ReturnType} from '../constants/types/more'
 import * as Constants from '../constants/signup'
 
 // Constants
+export const resetStore = 'common:resetStore' // not a part of signup but is handled by every reducer
 export const checkInviteCode = 'signup:checkInviteCode'
 
 // Action Creators

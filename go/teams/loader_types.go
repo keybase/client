@@ -126,9 +126,24 @@ func (l *chainLinkUnpacked) AssertInnerOuterMatch() (err error) {
 			return err
 		}
 	}
+
 	linkType, err := libkb.SigchainV2TypeFromV1TypeTeams(l.inner.Body.Type)
 	if err != nil {
-		return err
+		if l.outerLink.LinkType.IsSupportedTeamType() {
+			// Supported outer type but unrecognized inner type.
+			return err
+		}
+		if !l.outerLink.IgnoreIfUnsupported {
+			// Unsupported outer type marked as critical.
+			return NewUnsupportedLinkTypeError(l.outerLink.LinkType, l.inner.Body.Type)
+		}
+
+		// If the inner link type is not recognized, and the outer link type is not a valid
+		// team link type. Then this may be a link type from the future.
+		// Let it slide without really checking that the inner and outer types match
+		// (because this client doesn't know the mapping).
+		// By assigning this tautology, which will always pass AssertFields.
+		linkType = l.outerLink.LinkType
 	}
 
 	useSeqType := l.inner.SeqType
@@ -139,5 +154,12 @@ func (l *chainLinkUnpacked) AssertInnerOuterMatch() (err error) {
 		useSeqType = l.outerLink.SeqType
 	}
 
-	return l.outerLink.AssertFields(l.inner.Body.Version, l.inner.Seqno, prev, l.innerLinkID, linkType, useSeqType)
+	return l.outerLink.AssertFields(
+		l.inner.Body.Version,
+		l.inner.Seqno,
+		prev,
+		l.innerLinkID,
+		linkType,
+		useSeqType,
+		l.inner.IgnoreIfUnsupported)
 }

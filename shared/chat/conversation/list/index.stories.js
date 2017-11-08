@@ -8,7 +8,7 @@ import {storiesOf, action} from '../../../stories/storybook'
 import {Provider} from 'react-redux'
 import {createStore} from 'redux'
 import List from './index'
-import {range} from 'lodash'
+import range from 'lodash/range'
 import HiddenString from '../../../util/hidden-string'
 import {globalStyles} from '../../../styles'
 

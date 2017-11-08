@@ -1,5 +1,7 @@
 // @flow
+import * as KBFSGen from './kbfs-gen'
 import * as ConfigGen from './config-gen'
+import * as LoginGen from './login-gen'
 import * as Constants from '../constants/config'
 import * as GregorCreators from '../actions/gregor'
 import * as RPCTypes from '../constants/types/flow-types'
@@ -8,11 +10,9 @@ import engine from '../engine'
 import {RouteStateStorage} from '../actions/route-state-storage'
 import {configurePush} from './push/creators'
 import {flushLogFile} from '../util/forward-logs'
-import {fuseStatus} from '../actions/kbfs'
 import {isMobile, isSimulator} from '../constants/platform'
 import {listenForKBFSNotifications} from '../actions/notifications'
 import {loggedInSelector} from '../constants/selectors'
-import {navBasedOnLoginAndInitialState} from '../actions/login/creators'
 import {resetSignup} from '../actions/signup'
 import {type AsyncAction} from '../constants/types/flux'
 import {type TypedState} from '../constants/reducer'
@@ -37,7 +37,7 @@ const waitForKBFS = (): AsyncAction => dispatch =>
     }, 10 * 1000)
 
     RPCTypes.configWaitForClientRpcPromise({
-      param: {clientType: RPCTypes.CommonClientType.kbfs, timeout: 10.0},
+      param: {clientType: RPCTypes.commonClientType.kbfs, timeout: 10.0},
     })
       .then(found => {
         clearTimeout(timer)
@@ -78,7 +78,7 @@ const registerListeners = (): AsyncAction => dispatch => {
 }
 
 const _retryBootstrap = () => {
-  return Saga.all[(ConfigGen.createBootstrapRetry(), ConfigGen.createBootstrap({}))]
+  return Saga.all([Saga.put(ConfigGen.createBootstrapRetry()), Saga.put(ConfigGen.createBootstrap({}))])
 }
 
 // TODO: It's unfortunate that we have these globals. Ideally,
@@ -113,7 +113,11 @@ const bootstrap = (opts: $PropertyType<ConfigGen.BootstrapPayload, 'payload'>): 
     dispatch(registerListeners())
   } else {
     console.log('[bootstrap] performing bootstrap...')
-    Promise.all([dispatch(getBootstrapStatus()), dispatch(waitForKBFS()), dispatch(fuseStatus())])
+    Promise.all([
+      dispatch(getBootstrapStatus()),
+      dispatch(waitForKBFS()),
+      dispatch(KBFSGen.createFuseStatus()),
+    ])
       .then(() => {
         dispatch(ConfigGen.createBootstrapSuccess())
         engine().listenOnDisconnect('daemonError', () => {
@@ -123,12 +127,12 @@ const bootstrap = (opts: $PropertyType<ConfigGen.BootstrapPayload, 'payload'>): 
         dispatch(listenForKBFSNotifications())
         if (!opts.isReconnect) {
           dispatch(async (): Promise<*> => {
-            await dispatch(navBasedOnLoginAndInitialState())
+            await dispatch(LoginGen.createNavBasedOnLoginAndInitialState())
             if (getState().config.loggedIn) {
               // If we're logged in, restore any saved route state and
               // then nav again based on it.
               await dispatch(routeStateStorage.load)
-              await dispatch(navBasedOnLoginAndInitialState())
+              await dispatch(LoginGen.createNavBasedOnLoginAndInitialState())
             }
           })
           dispatch(resetSignup())
@@ -151,11 +155,14 @@ const bootstrap = (opts: $PropertyType<ConfigGen.BootstrapPayload, 'payload'>): 
   }
 }
 
-function _clearRouteState(action: ConfigGen.ClearRouteStatePayload) {
-  return routeStateStorage.clear
+// Until routeStateStorage is sagaized.
+function* _clearRouteState(action: ConfigGen.ClearRouteStatePayload) {
+  yield Saga.put(routeStateStorage.clear)
 }
-function _persistRouteState(action: ConfigGen.PersistRouteStatePayload) {
-  return routeStateStorage.store
+
+// Until routeStateStorage is sagaized.
+function* _persistRouteState(action: ConfigGen.PersistRouteStatePayload) {
+  yield Saga.put(routeStateStorage.store)
 }
 
 const getBootstrapStatus = (): AsyncAction => dispatch =>
@@ -192,8 +199,8 @@ function* configSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(ConfigGen.bootstrapSuccess, _bootstrapSuccess)
   yield Saga.safeTakeEvery(ConfigGen.bootstrap, _bootstrap)
   yield Saga.safeTakeEveryPure(ConfigGen.clearRouteState, _clearRouteState)
-  yield Saga.safeTakeEveryPure(ConfigGen.persistRouteState, _persistRouteState)
-  yield Saga.safeTakeEveryPure(ConfigGen.retryBootstrap, _retryBootstrap)
+  yield Saga.safeTakeEvery(ConfigGen.persistRouteState, _persistRouteState)
+  yield Saga.safeTakeEvery(ConfigGen.retryBootstrap, _retryBootstrap)
 }
 
 export {getExtendedStatus}

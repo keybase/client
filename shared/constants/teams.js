@@ -179,7 +179,7 @@ export type SaveChannelMembership = NoErrorTypedAction<
   {channelState: ChannelMembershipState, teamname: string}
 >
 
-export const teamRoleByEnum = invert(RPCTypes.TeamsTeamRole)
+export const teamRoleByEnum = invert(RPCTypes.teamsTeamRole)
 
 export type TypeMap = {
   admin: string | boolean,
