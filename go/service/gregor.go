@@ -1482,6 +1482,9 @@ func (g *gregorHandler) templateMessage() (*gregor1.Message, error) {
 	}, nil
 }
 
+// `cli` is the interface used to talk to gregor.
+// If nil then the global cli will be used.
+// Be sure to pass a cli when called from within OnConnect, as the global cli would deadlock.
 func (g *gregorHandler) DismissItem(ctx context.Context, cli gregor1.IncomingInterface, id gregor.MsgID) error {
 	if id == nil {
 		return nil
@@ -1506,21 +1509,6 @@ func (g *gregorHandler) DismissItem(ctx context.Context, cli gregor1.IncomingInt
 	err = cli.ConsumeMessage(ctx, *dismissal)
 	return err
 }
-
-/*
-// `cli` is the interface used to talk to gregor.
-// If nil then the global cli will be used.
-// Be sure to pass a cli when called from within OnConnect, as the global cli would deadlock.
-func (g *gregorHandler) DismissItem(cli gregor1.IncomingInterface, id gregor.MsgID) error {
-	// TODO: Should the interface take a context from the caller?
-	return g.dismissItem(context.TODO(), cli, id)
-}
-
-func (g *gregorHandler) DismissItemByMsgID(ctx context.Context, id gregor1.MsgID) error {
-	// using nil for cli for global gregor client.
-	return g.dismissItem(ctx, nil, id)
-}
-*/
 
 func (g *gregorHandler) DismissCategory(ctx context.Context, category gregor1.Category) error {
 	var err error
