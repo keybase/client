@@ -1,8 +1,15 @@
 @namespace("keybase.1")
 protocol NotifyBadges {
   import idl "common.avdl";
+  import idl "github.com/keybase/client/go/protocol/gregor1" as gregor1;
 
   @typedef("bytes")  record ChatConversationID {}
+
+  record TeamMemberOutReset {
+    string teamname;
+    string username;
+    gregor1.MsgID id;
+  }
 
   record BadgeState {
     @lint("ignore")
@@ -15,7 +22,7 @@ protocol NotifyBadges {
     array<string> newGitRepoGlobalUniqueIDs;
     array<string> newTeamNames;
     array<string> newTeamAccessRequests;
-    array<string> teamNamesWithResetUsers;
+    array<TeamMemberOutReset> teamsWithResetUsers;
   }
 
   record BadgeConversationInfo {

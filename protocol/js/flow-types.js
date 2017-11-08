@@ -1889,7 +1889,7 @@ export type BTCRegisterBTCRpcParam = {|  address: String,
 
 export type BadgeConversationInfo = {|convID: ChatConversationID,badgeCounts: {[key: string]: Int},unreadMessages: Int,|}
 
-export type BadgeState = {|newTlfs: Int,rekeysNeeded: Int,newFollowers: Int,inboxVers: Int,conversations?: ?Array<BadgeConversationInfo>,newGitRepoGlobalUniqueIDs?: ?Array<String>,newTeamNames?: ?Array<String>,newTeamAccessRequests?: ?Array<String>,teamNamesWithResetUsers?: ?Array<String>,|}
+export type BadgeState = {|newTlfs: Int,rekeysNeeded: Int,newFollowers: Int,inboxVers: Int,conversations?: ?Array<BadgeConversationInfo>,newGitRepoGlobalUniqueIDs?: ?Array<String>,newTeamNames?: ?Array<String>,newTeamAccessRequests?: ?Array<String>,teamsWithResetUsers?: ?Array<TeamMemberOutReset>,|}
 
 export type BinaryKID = Bytes
 
@@ -3596,6 +3596,8 @@ export type TeamList = {|teams?: ?Array<MemberInfo>,|}
 export type TeamMember = {|uid: UID,role: TeamRole,eldestSeqno: Seqno,userEldestSeqno: Seqno,|}
 
 export type TeamMemberDetails = {|uv: UserVersion,username: String,active: Boolean,needsPUK: Boolean,|}
+
+export type TeamMemberOutReset = {|teamname: String,username: String,id: Gregor1.MsgID,|}
 
 export type TeamMembers = {|owners?: ?Array<UserVersion>,admins?: ?Array<UserVersion>,writers?: ?Array<UserVersion>,readers?: ?Array<UserVersion>,|}
 
