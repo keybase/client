@@ -750,7 +750,7 @@ function* _inboxSynced(action: ChatGen.InboxSyncedPayload): Saga.SagaGenerator<a
         console.log('Doing a full load due to too many old messages', numberOverride)
         yield Saga.all([
           Saga.put(ChatGen.createClearMessages({conversationIDKey: selectedConversation})),
-          yield Saga.put(
+          Saga.put(
             ChatGen.createLoadMoreMessages({conversationIDKey: selectedConversation, onlyIfUnloaded: false})
           ),
         ])
