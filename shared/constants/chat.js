@@ -39,6 +39,7 @@ type MessageKeyKind =
   | 'timestamp'
   | 'supersedes'
   | 'system'
+  | 'joinedleft'
 
 // TODO: Ideally, this would be 'Text' | 'Error' | etc.
 export type MessageType = string
@@ -165,6 +166,16 @@ export type ChatSecuredHeaderMessage = {
   type: 'ChatSecuredHeader',
   key: MessageKey,
 }
+
+export type JoinedLeftMessage = {
+  type: 'JoinedLeft',
+  messageID?: MessageID,
+  author: string,
+  timestamp: number,
+  message: HiddenString,
+  key: MessageKey,
+}
+
 export type SystemMessage = {
   type: 'System',
   messageID?: MessageID,
@@ -234,6 +245,7 @@ export type ServerMessage =
   | UpdatingAttachment
   | InvisibleErrorMessage
   | SystemMessage
+  | JoinedLeftMessage
 
 export type Message = ClientMessage | ServerMessage
 
@@ -761,6 +773,8 @@ function messageKeyKindIsMessageID(key: MessageKey): boolean {
 function messageKeyKind(key: MessageKey): MessageKeyKind {
   const [, kind] = key.split(':')
   switch (kind) {
+    case 'joinedleft':
+      return 'joinedleft'
     case 'system':
       return 'system'
     case 'error':
