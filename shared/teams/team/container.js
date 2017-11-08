@@ -10,9 +10,9 @@ import {compose, lifecycle, withState} from 'recompose'
 import {connect, type TypedState} from '../../util/container'
 import {getProfile} from '../../actions/tracker'
 import {isMobile} from '../../constants/platform'
+import {ancestorTeamnames, isAdmin} from '../../constants/teamname'
 import {navigateAppend} from '../../actions/route-tree'
 import {showUserProfile} from '../../actions/profile'
-import {ancestorTeamnames, isAdmin} from '../teamname'
 
 type StateProps = {
   _memberInfo: I.Set<Constants.MemberInfo>,
