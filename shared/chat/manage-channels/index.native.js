@@ -1,22 +1,49 @@
 // @flow
 import * as React from 'react'
-import {Avatar, Text, Box, ScrollView, Checkbox, Icon, HeaderHoc} from '../../common-adapters'
+import {
+  Avatar,
+  Text,
+  Box,
+  Button,
+  ClickableBox,
+  ScrollView,
+  Checkbox,
+  Icon,
+  HeaderHoc,
+} from '../../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../../styles'
 import {renameProp, compose, withProps} from 'recompose'
 
 import type {Props, RowProps} from '.'
 
-const Row = (props: RowProps & {onToggle: () => void}) => (
+const Edit = ({onClick, style}: {onClick: () => void, style: Object}) => (
+  <ClickableBox style={style} onClick={onClick}>
+    <Icon style={{height: 16, marginRight: globalMargins.xtiny}} type="iconfont-edit" />
+    <Text type="BodySmallPrimaryLink">Edit</Text>
+  </ClickableBox>
+)
+
+const Row = (
+  props: RowProps & {selected: boolean, onToggle: () => void, showEdit: boolean, onEdit: () => void}
+) => (
   <Box style={_rowBox}>
+    <Checkbox style={{alignSelf: 'flex-end'}} checked={props.selected} label="" onCheck={props.onToggle} />
     <Box
-      style={{...globalStyles.flexBoxColumn, flex: 1, position: 'relative', paddingRight: globalMargins.tiny}}
+      style={{...globalStyles.flexBoxColumn, flex: 1, position: 'relative', paddingLeft: globalMargins.tiny}}
     >
       <Text type="BodySemibold" style={{color: globalColors.blue, maxWidth: '100%'}} lineClamp={1}>
         #{props.name}
       </Text>
       <Text type="BodySmall" lineClamp={1}>{props.description}</Text>
     </Box>
-    <Checkbox checked={props.selected} label="" onCheck={props.onToggle} />
+    <Edit
+      style={{
+        ...globalStyles.flexBoxRow,
+        justifyContent: 'flex-end',
+        alignItems: 'center',
+      }}
+      onClick={props.onEdit}
+    />
   </Box>
 )
 
@@ -36,8 +63,37 @@ const ManageChannels = (props: Props) => (
         <Icon style={_createIcon} type="iconfont-new" onClick={props.onCreate} />
         <Text type="BodyBigLink" onClick={props.onCreate}>New chat channel</Text>
       </Box>
-      {props.channels.map(c => <Row key={c.name} {...c} onToggle={() => props.onToggle(c.name)} />)}
+      {props.channels.map(c => (
+        <Row
+          key={c.name}
+          description={c.description}
+          name={c.name}
+          selected={props.nextChannelState[c.name]}
+          onToggle={() => props.onToggle(c.name)}
+          showEdit={!props.unsavedSubscriptions}
+          onEdit={() => props.onEdit(c.convID)}
+        />
+      ))}
     </ScrollView>
+    <Box
+      style={{
+        flex: 2,
+        ...globalStyles.flexBoxColumn,
+        justifyContent: 'flex-end',
+        paddingBottom: globalMargins.small,
+      }}
+    >
+      <Box style={{...globalStyles.flexBoxRow, justifyContent: 'center'}}>
+        <Button
+          type="Primary"
+          label={props.unsavedSubscriptions ? 'Save' : 'Saved'}
+          waiting={props.waitingForSave}
+          disabled={!props.unsavedSubscriptions}
+          onClick={props.onSaveSubscriptions}
+          style={{marginLeft: globalMargins.tiny}}
+        />
+      </Box>
+    </Box>
   </Box>
 )
 
