@@ -32,6 +32,7 @@ export const inboxStoreLoaded = 'chat:inboxStoreLoaded'
 export const inboxSynced = 'chat:inboxSynced'
 export const incomingMessage = 'chat:incomingMessage'
 export const incomingTyping = 'chat:incomingTyping'
+export const joinConversation = 'chat:joinConversation'
 export const leaveConversation = 'chat:leaveConversation'
 export const loadAttachment = 'chat:loadAttachment'
 export const loadInbox = 'chat:loadInbox'
@@ -104,6 +105,7 @@ export const createInboxStoreLoaded = () => ({error: false, payload: undefined, 
 export const createInboxSynced = (payload: {|convs: Array<ChatTypes.UnverifiedInboxUIItem>|}) => ({error: false, payload, type: inboxSynced})
 export const createIncomingMessage = (payload: {|activity: ChatTypes.ChatActivity|}) => ({error: false, payload, type: incomingMessage})
 export const createIncomingTyping = (payload: {|activity: ChatTypes.TyperInfo|}) => ({error: false, payload, type: incomingTyping})
+export const createJoinConversation = (payload: {|conversationIDKey: Constants.ConversationIDKey|}) => ({error: false, payload, type: joinConversation})
 export const createLeaveConversation = (payload: {|conversationIDKey: Constants.ConversationIDKey|}) => ({error: false, payload, type: leaveConversation})
 export const createLoadAttachment = (payload: {|messageKey: Constants.MessageKey, loadPreview: boolean|}) => ({error: false, payload, type: loadAttachment})
 export const createLoadInbox = () => ({error: false, payload: undefined, type: loadInbox})
@@ -176,6 +178,7 @@ export type InboxStoreLoadedPayload = ReturnType<typeof createInboxStoreLoaded>
 export type InboxSyncedPayload = ReturnType<typeof createInboxSynced>
 export type IncomingMessagePayload = ReturnType<typeof createIncomingMessage>
 export type IncomingTypingPayload = ReturnType<typeof createIncomingTyping>
+export type JoinConversationPayload = ReturnType<typeof createJoinConversation>
 export type LeaveConversationPayload = ReturnType<typeof createLeaveConversation>
 export type LoadAttachmentPayload = ReturnType<typeof createLoadAttachment>
 export type LoadInboxPayload = ReturnType<typeof createLoadInbox>
@@ -250,6 +253,7 @@ export type Actions =
   | ReturnType<typeof createInboxSynced>
   | ReturnType<typeof createIncomingMessage>
   | ReturnType<typeof createIncomingTyping>
+  | ReturnType<typeof createJoinConversation>
   | ReturnType<typeof createLeaveConversation>
   | ReturnType<typeof createLoadAttachment>
   | ReturnType<typeof createLoadInbox>

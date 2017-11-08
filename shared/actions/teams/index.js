@@ -409,12 +409,9 @@ const _toggleChannelMembership = function*(
       },
     })
   } else {
-    yield Saga.call(ChatTypes.localJoinConversationLocalRpcPromise, {
+    yield Saga.call(ChatTypes.localJoinConversationByIDLocalRpcPromise, {
       param: {
-        tlfName: teamname,
-        topicName: channelname,
-        topicType: ChatTypes.commonTopicType.chat,
-        visibility: RPCTypes.commonTLFVisibility.private,
+        convID: ChatConstants.keyToConversationID(conversationIDKey),
       },
     })
   }

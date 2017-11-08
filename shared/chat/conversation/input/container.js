@@ -5,9 +5,11 @@ import * as ChatGen from '../../../actions/chat-gen'
 import {commonConversationMemberStatus} from '../../../constants/types/flow-types-chat'
 import HiddenString from '../../../util/hidden-string'
 import Input from '.'
+import ChannelPreview from './channel-preview'
 import {
   branch,
   compose,
+  renderComponent,
   withHandlers,
   withState,
   lifecycle,
@@ -58,6 +60,7 @@ const stateDependentProps = createSelector(
     const isPreview = (inbox && inbox.memberStatus) === commonConversationMemberStatus.preview
 
     return {
+      channelName: inbox && inbox.channelname,
       editingMessage,
       isLoading,
       isPreview,
@@ -93,6 +96,9 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
     dispatch(Creators.setSelectedRouteState(selectedConversation, {inputText: new HiddenString(inputText)})),
   onUpdateTyping: (selectedConversation: Constants.ConversationIDKey, typing: boolean) => {
     dispatch(ChatGen.createUpdateTyping({conversationIDKey: selectedConversation, typing}))
+  },
+  onJoinChannel: (selectedConversation: Constants.ConversationIDKey) => {
+    dispatch(ChatGen.createJoinConversation({conversationIDKey: selectedConversation}))
   },
 })
 
@@ -131,11 +137,17 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
         wrappedTyping(typing)
       }
     },
+    onJoinChannel: () => {
+      dispatchProps.onJoinChannel(stateProps.selectedConversationIDKey)
+    },
   }
 }
 
 export default compose(
   connect(mapStateToProps, mapDispatchToProps, mergeProps),
+  branch(props => {
+    return props.isPreview
+  }, renderComponent(ChannelPreview)),
   withState('text', '_setText', props => props.defaultText || ''),
   withState('mentionPopupOpen', 'setMentionPopupOpen', false),
   withState('mentionFilter', 'setMentionFilter', ''),

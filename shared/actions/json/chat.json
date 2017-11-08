@@ -244,6 +244,9 @@
     "setLoaded": {
       "conversationIDKey": "Constants.ConversationIDKey",
       "isLoaded": "boolean"
+    },
+    "joinConversation": {
+      "conversationIDKey": "Constants.ConversationIDKey"
     }
   }
 }
