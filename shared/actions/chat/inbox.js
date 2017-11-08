@@ -593,6 +593,7 @@ function _conversationLocalToInboxState(c: ?RPCChatTypes.InboxUIItem): ?Constant
     conversationIDKey,
     isEmpty: c.isEmpty,
     maxMsgID: c.maxMsgID,
+    memberStatus: c.memberStatus,
     membersType: c.membersType,
     name: c.name,
     notifications,
