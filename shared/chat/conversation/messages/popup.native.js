@@ -137,14 +137,15 @@ export default connect(
     onShowEditor: () => dispatch(ChatGen.createShowEditor({message: routeProps.get('message')})),
     onSaveAttachment: message =>
       dispatch(
-        ({
-          type: 'chat:saveAttachmentNative',
-          payload: {messageKey: message.key},
-        }: ChatConstants.SaveAttachmentNative)
+        ChatGen.createSaveAttachmentNative({
+          messageKey: message.key,
+        })
       ),
     onShareAttachment: message =>
       dispatch(
-        ({type: 'chat:shareAttachment', payload: {messageKey: message.key}}: ChatConstants.ShareAttachment)
+        ChatGen.createShareAttachment({
+          messageKey: message.key,
+        })
       ),
   })
 )(MessagePopup)

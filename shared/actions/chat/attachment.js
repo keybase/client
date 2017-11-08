@@ -17,7 +17,9 @@ import {usernameSelector} from '../../constants/selectors'
 import {type TypedState} from '../../constants/reducer'
 import {type SagaGenerator} from '../../constants/types/saga'
 
-function* onShareAttachment({payload: {messageKey}}: Constants.ShareAttachment): SagaGenerator<any, any> {
+function* onShareAttachment({
+  payload: {messageKey},
+}: ChatGen.ShareAttachmentPayload): SagaGenerator<any, any> {
   const path = yield Saga.call(onSaveAttachment, ChatGen.createSaveAttachment({messageKey}))
   if (path) {
     yield Saga.call(showShareActionSheet, {url: path})
@@ -26,7 +28,7 @@ function* onShareAttachment({payload: {messageKey}}: Constants.ShareAttachment):
 
 function* onSaveAttachmentNative({
   payload: {messageKey},
-}: Constants.SaveAttachmentNative): SagaGenerator<any, any> {
+}: ChatGen.SaveAttachmentNativePayload): SagaGenerator<any, any> {
   const path = yield Saga.call(onSaveAttachment, ChatGen.createSaveAttachment({messageKey}))
   if (path) {
     yield Saga.call(saveAttachmentDialog, path)
@@ -525,9 +527,9 @@ function* registerSagas(): SagaGenerator<any, any> {
   yield Saga.safeTakeEvery(ChatGen.loadAttachmentPreview, onLoadAttachmentPreview)
   yield Saga.safeTakeEvery(ChatGen.retryAttachment, onRetryAttachment)
   yield Saga.safeTakeEvery(ChatGen.saveAttachment, onSaveAttachment)
-  yield Saga.safeTakeEvery('chat:saveAttachmentNative', onSaveAttachmentNative)
+  yield Saga.safeTakeEvery(ChatGen.saveAttachmentNative, onSaveAttachmentNative)
   yield Saga.safeTakeEvery(ChatGen.selectAttachment, onSelectAttachment)
-  yield Saga.safeTakeEvery('chat:shareAttachment', onShareAttachment)
+  yield Saga.safeTakeEvery(ChatGen.shareAttachment, onShareAttachment)
   yield Saga.safeTakeEveryPure(ChatGen.attachmentLoaded, attachmentLoaded)
   yield Saga.safeTakeEveryPure([ChatGen.downloadProgress, 'chat:uploadProgress'], updateProgress)
   yield Saga.safeTakeEveryPure(

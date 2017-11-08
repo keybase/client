@@ -286,6 +286,12 @@
     },
     "retryAttachment": {
       "message": "Constants.AttachmentMessage"
+    },
+    "saveAttachmentNative": {
+      "messageKey": "Constants.MessageKey"
+    },
+    "shareAttachment": {
+      "messageKey": "Constants.MessageKey"
     }
   }
 }

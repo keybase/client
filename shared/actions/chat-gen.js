@@ -59,6 +59,7 @@ export const replaceEntity = 'chat:replaceEntity'
 export const retryAttachment = 'chat:retryAttachment'
 export const retryMessage = 'chat:retryMessage'
 export const saveAttachment = 'chat:saveAttachment'
+export const saveAttachmentNative = 'chat:saveAttachmentNative'
 export const selectAttachment = 'chat:selectAttachment'
 export const selectConversation = 'chat:selectConversation'
 export const selectNext = 'chat:selectNext'
@@ -69,6 +70,7 @@ export const setNotifications = 'chat:setNotifications'
 export const setPreviousConversation = 'chat:setPreviousConversation'
 export const setTypers = 'chat:setTypers'
 export const setupChatHandlers = 'chat:setupChatHandlers'
+export const shareAttachment = 'chat:shareAttachment'
 export const showEditor = 'chat:showEditor'
 export const startConversation = 'chat:startConversation'
 export const subtractEntity = 'chat:subtractEntity'
@@ -140,6 +142,7 @@ export const createReplaceEntity = (payload: {|keyPath: Array<string>, entities:
 export const createRetryAttachment = (payload: {|message: Constants.AttachmentMessage|}) => ({error: false, payload, type: retryAttachment})
 export const createRetryMessage = (payload: {|conversationIDKey: Constants.ConversationIDKey, outboxIDKey: string|}) => ({error: false, payload, type: retryMessage})
 export const createSaveAttachment = (payload: {|messageKey: Constants.MessageKey|}) => ({error: false, payload, type: saveAttachment})
+export const createSaveAttachmentNative = (payload: {|messageKey: Constants.MessageKey|}) => ({error: false, payload, type: saveAttachmentNative})
 export const createSelectAttachment = (payload: {|input: Constants.AttachmentInput|}) => ({error: false, payload, type: selectAttachment})
 export const createSelectConversation = (payload: {|conversationIDKey: ?Constants.ConversationIDKey, fromUser?: boolean|}) => ({error: false, payload, type: selectConversation})
 export const createSelectNext = (payload: {|rows: Array<any>, direction: -1 | 1|}) => ({error: false, payload, type: selectNext})
@@ -150,6 +153,7 @@ export const createSetNotifications = (payload: {|conversationIDKey: Constants.C
 export const createSetPreviousConversation = (payload: {|conversationIDKey: ?Constants.ConversationIDKey|}) => ({error: false, payload, type: setPreviousConversation})
 export const createSetTypers = (payload: {|conversationIDKey: Constants.ConversationIDKey, typing: Array<string>|}) => ({error: false, payload, type: setTypers})
 export const createSetupChatHandlers = () => ({error: false, payload: undefined, type: setupChatHandlers})
+export const createShareAttachment = (payload: {|messageKey: Constants.MessageKey|}) => ({error: false, payload, type: shareAttachment})
 export const createShowEditor = (payload: {|message: ?Constants.Message|}) => ({error: false, payload, type: showEditor})
 export const createStartConversation = (payload: {|users: Array<string>, forceImmediate?: boolean, temporary?: boolean|}) => ({error: false, payload, type: startConversation})
 export const createSubtractEntity = (payload: {|keyPath: Array<string>, entities: I.List<any>|}) => ({error: false, payload, type: subtractEntity})
@@ -220,6 +224,7 @@ export type RemoveTempPendingConversationsPayload = ReturnType<typeof createRemo
 export type ReplaceEntityPayload = ReturnType<typeof createReplaceEntity>
 export type RetryAttachmentPayload = ReturnType<typeof createRetryAttachment>
 export type RetryMessagePayload = ReturnType<typeof createRetryMessage>
+export type SaveAttachmentNativePayload = ReturnType<typeof createSaveAttachmentNative>
 export type SaveAttachmentPayload = ReturnType<typeof createSaveAttachment>
 export type SelectAttachmentPayload = ReturnType<typeof createSelectAttachment>
 export type SelectConversationPayload = ReturnType<typeof createSelectConversation>
@@ -231,6 +236,7 @@ export type SetNotificationsPayload = ReturnType<typeof createSetNotifications>
 export type SetPreviousConversationPayload = ReturnType<typeof createSetPreviousConversation>
 export type SetTypersPayload = ReturnType<typeof createSetTypers>
 export type SetupChatHandlersPayload = ReturnType<typeof createSetupChatHandlers>
+export type ShareAttachmentPayload = ReturnType<typeof createShareAttachment>
 export type ShowEditorPayload = ReturnType<typeof createShowEditor>
 export type StartConversationPayload = ReturnType<typeof createStartConversation>
 export type SubtractEntityPayload = ReturnType<typeof createSubtractEntity>
@@ -304,6 +310,7 @@ export type Actions =
   | ReturnType<typeof createRetryAttachment>
   | ReturnType<typeof createRetryMessage>
   | ReturnType<typeof createSaveAttachment>
+  | ReturnType<typeof createSaveAttachmentNative>
   | ReturnType<typeof createSelectAttachment>
   | ReturnType<typeof createSelectConversation>
   | ReturnType<typeof createSelectNext>
@@ -314,6 +321,7 @@ export type Actions =
   | ReturnType<typeof createSetPreviousConversation>
   | ReturnType<typeof createSetTypers>
   | ReturnType<typeof createSetupChatHandlers>
+  | ReturnType<typeof createShareAttachment>
   | ReturnType<typeof createShowEditor>
   | ReturnType<typeof createStartConversation>
   | ReturnType<typeof createSubtractEntity>

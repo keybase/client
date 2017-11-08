@@ -13,7 +13,6 @@ import isEqualWith from 'lodash/isEqualWith'
 import {getPath, getPathState} from '../route-tree'
 import {parseUserId, serviceIdToIcon} from '../util/platforms'
 import {type DeviceType} from './devices'
-import {type NoErrorTypedAction} from './types/flux'
 import {type TypedState} from './reducer'
 import {type UserListItem} from '../common-adapters/usernames'
 
@@ -481,9 +480,6 @@ export const maxMessagesToLoadAtATime = 50
 
 export const nothingSelected = 'chat:noneSelected'
 export const blankChat = 'chat:blankChat'
-
-export type SaveAttachmentNative = NoErrorTypedAction<'chat:saveAttachmentNative', {messageKey: MessageKey}>
-export type ShareAttachment = NoErrorTypedAction<'chat:shareAttachment', {messageKey: MessageKey}>
 
 function conversationIDToKey(conversationID: ConversationID): ConversationIDKey {
   return conversationID.toString('hex')
