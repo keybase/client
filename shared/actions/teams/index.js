@@ -617,8 +617,7 @@ function* _badgeAppForTeams(action: Constants.BadgeAppForTeams) {
   const newTeamRequestsSet = I.Set(newTeamRequests)
   const existingNewTeamRequestsSet = I.Set(existingNewTeamRequests)
   const toLoad = newTeamRequestsSet.subtract(existingNewTeamRequestsSet)
-  const loadingCalls = []
-  toLoad.map(teamname => loadingCalls.push(Saga.put(Creators.getDetails(teamname))))
+  const loadingCalls = toLoad.map(teamname => Saga.put(Creators.getDetails(teamname)))
   yield Saga.all(loadingCalls)
 
   yield Saga.put(replaceEntity(['teams'], I.Map([['newTeams', newTeams]])))
