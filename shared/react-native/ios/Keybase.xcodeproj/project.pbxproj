@@ -73,13 +73,6 @@
 			remoteGlobalIDString = 3DBE0D0D1F3B181C0099AA32;
 			remoteInfo = "fishhook-tvOS";
 		};
-		3757577B1FB3B12C00F2ADBB /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = E8B023A6015F4E4096239535 /* RCTMessageUI.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = 6F10AAB01CFE01FB009BF564;
-			remoteInfo = RCTMessageUI;
-		};
 		37D298091F9A48D600D43971 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 6266E16BBFF8461CAF2DDCB9 /* RCTContacts.xcodeproj */;
@@ -398,7 +391,6 @@
 		DBDCF3081B8D03DD00BA95D8 /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Images.xcassets; sourceTree = "<group>"; };
 		DBDCF3091B8D03DD00BA95D8 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		DBDCF3441B8D04FC00BA95D8 /* Keybase-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "Keybase-Bridging-Header.h"; sourceTree = "<group>"; };
-		E8B023A6015F4E4096239535 /* RCTMessageUI.xcodeproj */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = "wrapper.pb-project"; name = RCTMessageUI.xcodeproj; path = ../../node_modules/RCTMessageUI/RCTMessageUI.xcodeproj; sourceTree = "<group>"; };
 		FE98B29CDF6C4C4085FF2315 /* RNImagePicker.xcodeproj */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = "wrapper.pb-project"; name = RNImagePicker.xcodeproj; path = "../../node_modules/react-native-image-picker/ios/RNImagePicker.xcodeproj"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -465,14 +457,6 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
-		375757781FB3B12C00F2ADBB /* Products */ = {
-			isa = PBXGroup;
-			children = (
-				3757577C1FB3B12C00F2ADBB /* libRCTMessageUI.a */,
-			);
-			name = Products;
-			sourceTree = "<group>";
-		};
 		37D298061F9A48D600D43971 /* Products */ = {
 			isa = PBXGroup;
 			children = (
@@ -503,7 +487,6 @@
 				FE98B29CDF6C4C4085FF2315 /* RNImagePicker.xcodeproj */,
 				27DDEEF0AE72483E8BF08ED2 /* RNFetchBlob.xcodeproj */,
 				6266E16BBFF8461CAF2DDCB9 /* RCTContacts.xcodeproj */,
-				E8B023A6015F4E4096239535 /* RCTMessageUI.xcodeproj */,
 			);
 			name = Libraries;
 			sourceTree = "<group>";
@@ -881,10 +864,6 @@
 					ProjectRef = DB2BD1A01DE7D97900BB7989 /* RCTLinking.xcodeproj */;
 				},
 				{
-					ProductGroup = 375757781FB3B12C00F2ADBB /* Products */;
-					ProjectRef = E8B023A6015F4E4096239535 /* RCTMessageUI.xcodeproj */;
-				},
-				{
 					ProductGroup = DB2BD1A41DE7D97900BB7989 /* Products */;
 					ProjectRef = DB2BD1A31DE7D97900BB7989 /* RCTNetwork.xcodeproj */;
 				},
@@ -949,13 +928,6 @@
 			fileType = archive.ar;
 			path = "libfishhook-tvOS.a";
 			remoteRef = 375757681FB3B12C00F2ADBB /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
-		3757577C1FB3B12C00F2ADBB /* libRCTMessageUI.a */ = {
-			isa = PBXReferenceProxy;
-			fileType = archive.ar;
-			path = libRCTMessageUI.a;
-			remoteRef = 3757577B1FB3B12C00F2ADBB /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
 		37D2980A1F9A48D600D43971 /* libRCTContacts.a */ = {
