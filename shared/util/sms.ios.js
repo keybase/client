@@ -1,22 +1,14 @@
 // @flow
-import {MessageUI} from 'RCTMessageUI'
+import {NativeModules} from 'react-native'
 
-const openSMS = (phoneno: string, body?: string): Promise<any> => {
-  return new Promise((resolve, reject) => {
-    MessageUI.showMessageComposeWithOptions(
-      {
-        body,
-        recipients: [phoneno],
-      },
-      (error, messageComposeResult) => {
-        if (error) {
-          reject(error)
-        } else {
-          resolve(messageComposeResult)
-        }
-      }
-    )
-  })
+const openSMS = (phonenos: string[], body?: string): Promise<any> => {
+  const messageUI = NativeModules.MessageUI
+  if (!messageUI) {
+    const err = new Error('Unable to load native messageUI module')
+    console.error(err)
+    return Promise.reject(err)
+  }
+  return messageUI.composeMessage(phonenos, body || '')
 }
 
 export default openSMS

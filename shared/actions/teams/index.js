@@ -193,7 +193,7 @@ const _inviteToTeamByPhone = function*(action: Constants.InviteToTeamByPhone) {
     teamDescription = `${subteams[subteams.length - 1]} subteam`
   }
   const bodyText = `Please join the ${teamDescription} on Keybase. Install and paste this in the "Teams" tab:\n\ntoken: ${seitan.toUpperCase()}\n\nquick install: keybase.io/_/go`
-  openSMS(phoneNumber, bodyText)
+  openSMS([phoneNumber], bodyText).catch(err => console.log('Error sending SMS', err))
 
   yield Saga.put(Creators.getDetails(teamname))
 }
