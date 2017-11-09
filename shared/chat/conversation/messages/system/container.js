@@ -2,7 +2,6 @@
 import * as Constants from '../../../../constants/chat'
 import SystemNotice from '.'
 import createCachedSelector from 're-reselect'
-import {compose} from 'recompose'
 import {connect} from 'react-redux'
 
 import type {TypedState} from '../../../../constants/reducer'
@@ -19,4 +18,6 @@ const getDetails = createCachedSelector(
 
 const mapStateToProps = (state: TypedState, {messageKey}: OwnProps) => getDetails(state, messageKey)
 
-export default compose(connect(mapStateToProps, () => {}))(SystemNotice)
+const mapDispatchToProps = () => {}
+
+export default connect(mapStateToProps, mapDispatchToProps)(SystemNotice)
