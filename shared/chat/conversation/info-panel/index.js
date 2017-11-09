@@ -178,7 +178,7 @@ const _SmallTeamInfoPanel = (props: SmallTeamInfoPanelProps) => (
     <MuteRow muted={props.muted} onMute={props.onMuteConversation} label="Mute all notifications" />
 
     <Notifications />
-    <Box style={{...globalStyles.flexBoxColumn, flex: '1', justifyContent: 'flex-end'}}>
+    <Box style={{...globalStyles.flexBoxColumn, flex: 1, justifyContent: 'flex-end'}}>
       <Divider style={styleDivider} />
       <ClickableBox onClick={props.onLeaveTeam} style={headerButtonBoxStyle}>
         <Icon type="iconfont-team-leave" style={createIconStyle} />
