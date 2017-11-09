@@ -14,9 +14,18 @@ import {RPCTimeoutError} from '../util/errors'
 const BailEarly = {type: '@@engineRPCCall:bailEarly'}
 const BailedEarly = {type: '@@engineRPCCall:bailedEarly', payload: undefined}
 
-const rpcResult = payload => ({type: '@@engineRPCCall:respondResult', payload})
-const rpcError = payload => ({type: '@@engineRPCCall:respondError', payload})
-const rpcCancel = payload => ({type: '@@engineRPCCall:respondCancel', payload})
+const rpcResult = <T>(payload: T): {type: '@@engineRPCCall:respondResult', payload: T} => ({
+  type: '@@engineRPCCall:respondResult',
+  payload,
+})
+const rpcError = <T>(payload: T): {type: '@@engineRPCCall:respondError', payload: T} => ({
+  type: '@@engineRPCCall:respondError',
+  payload,
+})
+const rpcCancel = <T>(payload: T): {type: '@@engineRPCCall:respondCancel', payload: T} => ({
+  type: '@@engineRPCCall:respondCancel',
+  payload,
+})
 
 const _subSagaFinished = payload => ({type: '@@engineRPCCall:subSagaFinished', payload})
 

@@ -287,11 +287,10 @@ const promptNewDeviceNameSaga = onBackSaga =>
   function*({
     existingDevices,
     errorMessage,
-  }: {|
-    sessionID: number,
-    existingDevices?: ?Array<string>,
-    errorMessage: string,
-  |}): Generator<
+  }: $PropertyType<
+    $PropertyType<RPCTypes.IncomingType, 'keybase.1.provisionUi.PromptNewDeviceName'>,
+    'params'
+  >): Generator<
     any,
 
       | {type: '@@engineRPCCall:respondResult', payload: string}
@@ -322,11 +321,9 @@ const promptNewDeviceNameSaga = onBackSaga =>
 
     if (onBack || navUp) {
       yield Saga.call(onBackSaga)
-      // TEMP put this back
-      // return EngineRpc.rpcCancel(InputCancelError)
+      return EngineRpc.rpcCancel(InputCancelError)
     } else if (onSubmit) {
-      return EngineRpc.rpcResult(23)
-      // return EngineRpc.rpcResult(onSubmit.payload.deviceName)
+      return EngineRpc.rpcResult(onSubmit.payload.deviceName)
     }
 
     return null
