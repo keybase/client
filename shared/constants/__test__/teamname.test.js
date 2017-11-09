@@ -1,7 +1,7 @@
 // @noflow
 /* eslint-env jest */
 import * as I from 'immutable'
-import {validTeamname, baseTeamname, ancestorTeamnames, isAdmin} from '../teamname'
+import {validTeamname, baseTeamname, ancestorTeamnames, isExplicitAdmin, isImplicitAdmin} from '../teamname'
 
 describe('teamname', () => {
   describe('validTeamname', () => {
@@ -33,32 +33,29 @@ describe('teamname', () => {
     expect(ancestorTeamnames('team')).toEqual([])
   })
 
-  it('isAdmin', () => {
-    const rootMemberInfo = I.Set([
+  it('isExplicitAdmin', () => {
+    const memberInfo = I.Set([
       {username: 'alice', type: 'owner'},
       {username: 'bob', type: 'admin'},
       {username: 'charlie', type: 'writer'},
     ])
-    const subInfo = I.Set([{username: 'charlie', type: 'admin'}])
-    const subSubInfo = I.Set([])
 
-    expect(isAdmin(rootMemberInfo, I.Map(), 'alice')).toBe(true)
-    expect(isAdmin(rootMemberInfo, I.Map(), 'bob')).toBe(true)
-    expect(isAdmin(rootMemberInfo, I.Map(), 'charlie')).toBe(false)
-    expect(isAdmin(rootMemberInfo, I.Map(), 'david')).toBe(false)
+    expect(isExplicitAdmin(memberInfo, 'alice')).toBe(true)
+    expect(isExplicitAdmin(memberInfo, 'bob')).toBe(true)
+    expect(isExplicitAdmin(memberInfo, 'charlie')).toBe(false)
+    expect(isExplicitAdmin(memberInfo, 'david')).toBe(false)
+  })
 
-    const subAncestorMemberInfo = I.Map([['root', rootMemberInfo]])
+  it('isImplicitAdmin', () => {
+    const rootMemberInfo = I.Set([{username: 'alice', type: 'owner'}])
 
-    expect(isAdmin(subInfo, subAncestorMemberInfo, 'alice')).toBe(true)
-    expect(isAdmin(subInfo, subAncestorMemberInfo, 'bob')).toBe(true)
-    expect(isAdmin(subInfo, subAncestorMemberInfo, 'charlie')).toBe(true)
-    expect(isAdmin(subInfo, subAncestorMemberInfo, 'david')).toBe(false)
+    const subMemberInfo = I.Set([{username: 'bob', type: 'admin'}])
 
-    const subSubAncestorMemberInfo = I.Map([['root', rootMemberInfo], ['root.sub', subInfo]])
+    const ancestorMemberInfo = I.Map([['root', rootMemberInfo], ['root.sub', subMemberInfo]])
 
-    expect(isAdmin(subSubInfo, subSubAncestorMemberInfo, 'alice')).toBe(true)
-    expect(isAdmin(subSubInfo, subSubAncestorMemberInfo, 'bob')).toBe(true)
-    expect(isAdmin(subSubInfo, subSubAncestorMemberInfo, 'charlie')).toBe(true)
-    expect(isAdmin(subSubInfo, subSubAncestorMemberInfo, 'david')).toBe(false)
+    expect(isImplicitAdmin(ancestorMemberInfo, 'alice')).toBe(true)
+    expect(isImplicitAdmin(ancestorMemberInfo, 'bob')).toBe(true)
+    expect(isImplicitAdmin(ancestorMemberInfo, 'charlie')).toBe(false)
+    expect(isImplicitAdmin(ancestorMemberInfo, 'david')).toBe(false)
   })
 })

@@ -1,6 +1,7 @@
 // @flow
 import * as Constants from '../../constants/teams'
 import * as Creators from '../../actions/teams/creators'
+import * as Search from '../../actions/search/creators'
 import * as I from 'immutable'
 import * as KBFSGen from '../../actions/kbfs-gen'
 import * as React from 'react'
@@ -10,7 +11,7 @@ import {compose, lifecycle, withState} from 'recompose'
 import {connect, type TypedState} from '../../util/container'
 import {getProfile} from '../../actions/tracker'
 import {isMobile} from '../../constants/platform'
-import {ancestorTeamnames, isAdmin} from '../../constants/teamname'
+import {ancestorTeamnames, isExplicitAdmin, isImplicitAdmin} from '../../constants/teamname'
 import {navigateAppend} from '../../actions/route-tree'
 import {showUserProfile} from '../../actions/profile'
 
@@ -51,6 +52,7 @@ type DispatchProps = {
   _loadTeam: (teamname: Constants.Teamname) => void,
   _onOpenFolder: (teamname: Constants.Teamname) => void,
   _onAddPeople: (teamname: Constants.Teamname) => void,
+  _onAddSelf: (teamname: Constants.Teamname, you: string) => void,
   _onInviteByEmail: (teamname: Constants.Teamname) => void,
   _onManageChat: (teamname: Constants.Teamname) => void,
   _onLeaveTeam: (teamname: Constants.Teamname) => void,
@@ -63,6 +65,12 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, setRouteState, rout
   _loadTeam: teamname => dispatch(Creators.getDetails(teamname)),
   _onAddPeople: (teamname: Constants.Teamname) =>
     dispatch(navigateAppend([{props: {teamname}, selected: 'addPeople'}])),
+  _onAddSelf: (teamname: Constants.Teamname, you: ?string) => {
+    if (you) {
+      dispatch(navigateAppend([{props: {teamname}, selected: 'addPeople'}]))
+      dispatch(Search.addResultsToUserInput('addToTeamSearch', [you]))
+    }
+  },
   _onCreateSubteam: (teamname: Constants.Teamname) =>
     dispatch(navigateAppend([{props: {name: `${teamname}.`}, selected: 'showNewTeamDialog'}])),
   _onInviteByEmail: (teamname: Constants.Teamname) =>
@@ -99,9 +107,23 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
   const onLeaveTeam = () => dispatchProps._onLeaveTeam(stateProps.name)
   const onClickOpenTeamSetting = () => dispatchProps._onClickOpenTeamSetting(stateProps.isTeamOpen)
   const onCreateSubteam = () => dispatchProps._onCreateSubteam(stateProps.name)
+
   const you = stateProps.you
-  const youCanAddPeople = you && isAdmin(stateProps._memberInfo, stateProps._ancestorMemberInfo, you)
-  const youCanCreateSubteam = youCanAddPeople
+  let youExplicitAdmin = false
+  let youImplicitAdmin = false
+  let youAreMember = false
+  if (you) {
+    youExplicitAdmin = isExplicitAdmin(stateProps._memberInfo, you)
+    youImplicitAdmin = isImplicitAdmin(stateProps._ancestorMemberInfo, you)
+    youAreMember = stateProps._memberInfo.some(member => member.username === you)
+  }
+  const youAdmin = youExplicitAdmin || youImplicitAdmin
+
+  const showAddYourselfBanner = !youAreMember && !youExplicitAdmin && youImplicitAdmin
+  const youCanAddPeople = youAdmin
+  const youCanCreateSubteam = youAdmin
+
+  const onAddSelf = () => dispatchProps._onAddSelf(stateProps.name, you)
 
   const customComponent = (
     <CustomComponent
@@ -122,12 +144,14 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
       .sort((a: Constants.MemberInfo, b: Constants.MemberInfo) => a.username.localeCompare(b.username)),
     requests: stateProps._requests.toJS(),
     onAddPeople,
+    onAddSelf,
     onInviteByEmail,
     onCreateSubteam,
     onLeaveTeam,
     onManageChat,
     onOpenFolder,
     onClickOpenTeamSetting,
+    showAddYourselfBanner,
     youCanAddPeople,
     youCanCreateSubteam,
   }
