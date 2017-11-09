@@ -256,11 +256,11 @@ const _getDetails = function*(action: Constants.GetDetails): Saga.SagaGenerator<
 
     const implicitAdminDetails: Array<
       RPCTypes.TeamMemberDetails
-    > = yield Saga.call(RPCTypes.teamsTeamImplicitAdminsRpcPromise, {
+    > = (yield Saga.call(RPCTypes.teamsTeamImplicitAdminsRpcPromise, {
       param: {
         teamName: teamname,
       },
-    }) || []
+    })) || []
     const implicitAdminUsernames = I.Set(implicitAdminDetails.map(x => x.username))
 
     // Get requests to join
