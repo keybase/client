@@ -62,9 +62,9 @@ const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps, ownPro
     )
   const role = user.get('role')
   return {
-    ...ownProps,
     ...dispatchProps,
     ...stateProps,
+    label: ownProps.email || ownProps.username || ownProps.name,
     role,
   }
 }

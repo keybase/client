@@ -6,21 +6,15 @@ import {isMobile} from '../../../constants/platform'
 import {typeToLabel} from '../../../constants/teams'
 
 export type Props = {
-  email?: string, // email invite
-  name?: string, // seitan invite
-  username?: string, // sbs invite
+  label: string, // email, sbs, or seitan
   onCancelInvite: () => void,
   following: boolean,
-  teamname: string,
   role: string,
   you: ?string,
-  id: string,
 }
 
 export const TeamInviteRow = (props: Props) => {
-  const {following, onCancelInvite, role, you} = props
-  const user = props.email || props.username || props.name || ''
-  const username = props.username || ''
+  const {following, onCancelInvite, role, you, label} = props
   return (
     <ClickableBox
       style={{
@@ -33,12 +27,12 @@ export const TeamInviteRow = (props: Props) => {
       }}
     >
       <Box style={{...globalStyles.flexBoxRow, flexGrow: 1}}>
-        <Avatar username={username} size={isMobile ? 48 : 32} />
+        <Avatar username={label} size={isMobile ? 48 : 32} />
         <Box style={{...globalStyles.flexBoxColumn, marginLeft: globalMargins.small}}>
           <Usernames
             type="BodySemibold"
             colorFollowing={true}
-            users={[{following, username: user, you: you === username}]}
+            users={[{following, username: label, you: you === label}]}
           />
           <Box style={globalStyles.flexBoxRow}>
             <Text type="BodySmall">{role && typeToLabel[role]}</Text>
