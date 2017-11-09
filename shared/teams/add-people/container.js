@@ -28,7 +28,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routeProps}) => ({
     dispatch(SearchCreators.setUserInputItems('addToTeamSearch', []))
   },
   onClose: () => {
-    dispatch(navigateUp()),
+    dispatch(navigateUp())
     dispatch(SearchCreators.clearSearchResults('addToTeamSearch'))
     dispatch(SearchCreators.setUserInputItems('addToTeamSearch', []))
   },
