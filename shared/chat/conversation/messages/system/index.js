@@ -22,9 +22,9 @@ const SystemNotice = ({channelname, message, onManageChannels, you, following, o
     <Text type="BodySmallSemibold" backgroundMode="Announcements" style={{color: globalColors.black_40}}>
       {formatTimeForMessages(message.timestamp)}
     </Text>
-    {message.message.stringValue().split('\n').map(line => (
+    {message.message.stringValue().split('\n').map((line, index) => (
       <Text
-        key={line}
+        key={index}
         type="BodySmallSemibold"
         backgroundMode="Announcements"
         style={{color: globalColors.black_40}}
