@@ -1035,6 +1035,7 @@ func (r *runner) checkGC(ctx context.Context) (err error) {
 					"mem.gc.prof", "cpu.gc.prof")
 			})
 		case <-ctx.Done():
+			timer.Stop()
 		}
 	}()
 	defer func() {
