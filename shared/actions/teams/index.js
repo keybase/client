@@ -254,6 +254,15 @@ const _getDetails = function*(action: Constants.GetDetails): Saga.SagaGenerator<
       },
     })
 
+    const implicitAdminDetails: Array<
+      RPCTypes.TeamMemberDetails
+    > = yield Saga.call(RPCTypes.teamsTeamImplicitAdminsRpcPromise, {
+      param: {
+        teamName: teamname,
+      },
+    }) || []
+    const implicitAdminUsernames = I.Set(implicitAdminDetails.map(x => x.username))
+
     // Get requests to join
     const requests: RPCTypes.TeamJoinRequest[] = yield Saga.call(RPCTypes.teamsTeamListRequestsRpcPromise)
     requests.sort((a, b) => a.username.localeCompare(b.username))
@@ -321,6 +330,12 @@ const _getDetails = function*(action: Constants.GetDetails): Saga.SagaGenerator<
     yield Saga.all([
       Saga.put(replaceEntity(['teams', 'teamNameToMembers'], I.Map([[teamname, I.Set(infos)]]))),
       Saga.put(replaceEntity(['teams', 'teamNameToMemberUsernames'], I.Map([[teamname, memberNames]]))),
+      Saga.put(
+        replaceEntity(
+          ['teams', 'teamNameToImplicitAdminUsernames'],
+          I.Map([[teamname, implicitAdminUsernames]])
+        )
+      ),
       Saga.put(replaceEntity(['teams', 'teamNameToRequests'], I.Map(requestMap))),
       Saga.put(replaceEntity(['teams', 'teamNameToTeamSettings'], I.Map({[teamname]: details.settings}))),
       Saga.put(replaceEntity(['teams', 'teamNameToInvites'], I.Map([[teamname, I.Set(invitesMap)]]))),
