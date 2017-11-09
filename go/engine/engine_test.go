@@ -7,10 +7,11 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"fmt"
-	"testing"
+
+	"github.com/keybase/client/go/libkb"
 )
 
-func fakeUser(tb testing.TB, prefix string) (username, email string) {
+func fakeUser(tb libkb.TestingTB, prefix string) (username, email string) {
 	buf := make([]byte, 5)
 	if _, err := rand.Read(buf); err != nil {
 		tb.Fatal(err)
@@ -20,7 +21,7 @@ func fakeUser(tb testing.TB, prefix string) (username, email string) {
 	return username, email
 }
 
-func fakePassphrase(t testing.TB) string {
+func fakePassphrase(t libkb.TestingTB) string {
 	buf := make([]byte, 12)
 	if _, err := rand.Read(buf); err != nil {
 		t.Fatal(err)

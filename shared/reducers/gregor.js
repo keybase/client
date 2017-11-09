@@ -2,16 +2,16 @@
 import * as Constants from '../constants/gregor'
 import * as CommonConstants from '../constants/common'
 import keyBy from 'lodash/keyBy'
-import {ReachabilityReachable} from '../constants/types/flow-types'
+import {reachabilityReachable} from '../constants/types/flow-types'
 
 const initialState: Constants.State = {
-  reachability: {reachable: ReachabilityReachable.unknown},
+  reachability: {reachable: reachabilityReachable.unknown},
   seenMsgs: {},
 }
 
 export default function(
   state: Constants.State = initialState,
-  action: Constants.GregorActions
+  action: Constants.GregorActions | {type: 'common:resetStore', payload: void}
 ): Constants.State {
   switch (action.type) {
     case CommonConstants.resetStore:

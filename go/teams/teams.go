@@ -56,6 +56,10 @@ func (t *Team) IsImplicit() bool {
 	return t.chain().IsImplicit()
 }
 
+func (t *Team) IsSubteam() bool {
+	return t.chain().IsSubteam()
+}
+
 func (t *Team) IsOpen() bool {
 	return t.chain().IsOpen()
 }
@@ -92,6 +96,10 @@ func (t *Team) ChatKey(ctx context.Context) (keybase1.TeamApplicationKey, error)
 
 func (t *Team) GitMetadataKey(ctx context.Context) (keybase1.TeamApplicationKey, error) {
 	return t.ApplicationKey(ctx, keybase1.TeamApplication_GIT_METADATA)
+}
+
+func (t *Team) SeitanInviteTokenKey(ctx context.Context) (keybase1.TeamApplicationKey, error) {
+	return t.ApplicationKey(ctx, keybase1.TeamApplication_SEITAN_INVITE_TOKEN)
 }
 
 func (t *Team) IsMember(ctx context.Context, uv keybase1.UserVersion) bool {
@@ -187,7 +195,7 @@ func (t *Team) ImplicitTeamDisplayName(ctx context.Context) (res keybase1.Implic
 
 	// Add the invites
 	chainInvites := t.chain().inner.ActiveInvites
-	inviteMap, err := AnnotateInvites(ctx, t.G(), chainInvites, t.Name().String())
+	inviteMap, err := AnnotateInvites(ctx, t.G(), t)
 	if err != nil {
 		return res, err
 	}
@@ -295,6 +303,8 @@ func (t *Team) applicationKeyForMask(mask keybase1.ReaderKeyMask, secret keybase
 		derivationString = libkb.TeamSaltpackDerivationString
 	case keybase1.TeamApplication_GIT_METADATA:
 		derivationString = libkb.TeamGitMetadataDerivationString
+	case keybase1.TeamApplication_SEITAN_INVITE_TOKEN:
+		derivationString = libkb.TeamSeitanTokenDerivationString
 	default:
 		return keybase1.TeamApplicationKey{}, errors.New("invalid application id")
 	}
@@ -430,7 +440,13 @@ func (t *Team) getDowngradedUsers(ctx context.Context, ms *memberSet) (uids []ke
 	return uids, nil
 }
 
-func (t *Team) ChangeMembershipPermanent(ctx context.Context, req keybase1.TeamChangeReq, permanent bool) error {
+func (t *Team) ChangeMembershipPermanent(ctx context.Context, req keybase1.TeamChangeReq, permanent bool) (err error) {
+	defer t.G().CTrace(ctx, "Team.ChangeMembershipPermanent", func() error { return err })()
+
+	if t.IsSubteam() && len(req.Owners) > 0 {
+		return NewSubteamOwnersError()
+	}
+
 	// create the change membership section + secretBoxes
 	section, secretBoxes, implicitAdminBoxes, memberSet, err := t.changeMembershipSection(ctx, req)
 	if err != nil {
@@ -454,6 +470,16 @@ func (t *Team) ChangeMembershipPermanent(ctx context.Context, req keybase1.TeamC
 		if err != nil {
 			return err
 		}
+		defer func() {
+			// We must cancel in the case of an error in postChangeItem, but it's safe to cancel
+			// if everything worked. So we always cancel the lease on the way out of this function.
+			// See CORE-6473 for a case in which this was needed. And also the test
+			// `TestOnlyOwnerLeaveThenUpgradeFriend`.
+			err := libkb.CancelDowngradeLease(ctx, t.G(), lease.LeaseID)
+			if err != nil {
+				t.G().Log.CWarningf(ctx, "Failed to cancel downgrade lease: %s", err.Error())
+			}
+		}()
 	}
 	// post the change to the server
 	sigPayloadArgs := sigPayloadArgs{
@@ -532,7 +558,7 @@ func (t *Team) Leave(ctx context.Context, permanent bool) error {
 	if role == keybase1.TeamRole_NONE {
 		_, err := t.getAdminPermission(ctx, false)
 		if err == nil {
-			return NewImplicitAdminCannotLeave()
+			return NewImplicitAdminCannotLeaveError()
 		}
 	}
 
@@ -698,7 +724,6 @@ func (t *Team) HasActiveInvite(name keybase1.TeamInviteName, typ string) (bool, 
 // If uv.Uid is set, then username is ignored.
 // Otherwise resolvedUsername and uv are ignored.
 func (t *Team) InviteMember(ctx context.Context, username string, role keybase1.TeamRole, resolvedUsername libkb.NormalizedUsername, uv keybase1.UserVersion) (keybase1.TeamAddMemberResult, error) {
-
 	// if a user version was previously loaded, then there is a keybase user for username, but
 	// without a PUK or without any keys. Note that we are allowed to invites Owners in this
 	// manner. But if we're inviting for anything else, then no owner invites are allowed.
@@ -724,6 +749,10 @@ func (t *Team) InviteMember(ctx context.Context, username string, role keybase1.
 func (t *Team) InviteEmailMember(ctx context.Context, email string, role keybase1.TeamRole) error {
 	t.G().Log.Debug("team %s invite email member %s", t.Name(), email)
 
+	if t.IsSubteam() && role == keybase1.TeamRole_OWNER {
+		return NewSubteamOwnersError()
+	}
+
 	if role == keybase1.TeamRole_OWNER {
 		return errors.New("You cannot invite an owner to a team over email.")
 	}
@@ -738,6 +767,7 @@ func (t *Team) InviteEmailMember(ctx context.Context, email string, role keybase
 
 func (t *Team) inviteKeybaseMember(ctx context.Context, uv keybase1.UserVersion, role keybase1.TeamRole, resolvedUsername libkb.NormalizedUsername) (keybase1.TeamAddMemberResult, error) {
 	t.G().Log.Debug("team %s invite keybase member %s", t.Name(), uv)
+
 	invite := SCTeamInvite{
 		Type: "keybase",
 		Name: uv.TeamInviteName(),
@@ -771,6 +801,42 @@ func (t *Team) inviteSBSMember(ctx context.Context, username string, role keybas
 	return keybase1.TeamAddMemberResult{Invited: true}, nil
 }
 
+func (t *Team) InviteSeitan(ctx context.Context, role keybase1.TeamRole, label keybase1.SeitanIKeyLabel) (ikey SeitanIKey, err error) {
+	t.G().Log.Debug("team %s invite seitan %v", t.Name(), role)
+
+	ikey, err = GenerateIKey()
+	if err != nil {
+		return ikey, err
+	}
+
+	sikey, err := ikey.GenerateSIKey()
+	if err != nil {
+		return ikey, err
+	}
+
+	inviteID, err := sikey.GenerateTeamInviteID()
+	if err != nil {
+		return ikey, err
+	}
+
+	_, encoded, err := ikey.GeneratePackedEncryptedIKey(ctx, t, label)
+	if err != nil {
+		return ikey, err
+	}
+
+	invite := SCTeamInvite{
+		Type: "seitan_invite_token",
+		Name: keybase1.TeamInviteName(encoded),
+		ID:   inviteID,
+	}
+
+	if err := t.postInvite(ctx, invite, role); err != nil {
+		return ikey, err
+	}
+
+	return ikey, err
+}
+
 func (t *Team) postInvite(ctx context.Context, invite SCTeamInvite, role keybase1.TeamRole) error {
 	existing, err := t.HasActiveInvite(invite.Name, invite.Type)
 	if err != nil {
@@ -778,6 +844,10 @@ func (t *Team) postInvite(ctx context.Context, invite SCTeamInvite, role keybase
 	}
 	if existing {
 		return libkb.ExistsError{Msg: "An invite for this user already exists."}
+	}
+
+	if t.IsSubteam() && role == keybase1.TeamRole_OWNER {
+		return NewSubteamOwnersError()
 	}
 
 	invList := []SCTeamInvite{invite}
@@ -800,6 +870,10 @@ func (t *Team) postTeamInvites(ctx context.Context, invites SCTeamInvites) error
 	admin, err := t.getAdminPermission(ctx, true)
 	if err != nil {
 		return err
+	}
+
+	if t.IsSubteam() && invites.Owners != nil && len(*invites.Owners) > 0 {
+		return NewSubteamOwnersError()
 	}
 
 	entropy, err := makeSCTeamEntropy()
@@ -827,6 +901,11 @@ func (t *Team) postTeamInvites(ctx context.Context, invites SCTeamInvites) error
 	sigMultiItem, err := t.sigTeamItem(ctx, teamSection, libkb.LinkTypeInvite, mr)
 	if err != nil {
 		return err
+	}
+
+	err = t.precheckLinkToPost(ctx, sigMultiItem)
+	if err != nil {
+		return fmt.Errorf("cannot post link (precheck): %v", err)
 	}
 
 	payload := t.sigPayload(sigMultiItem, sigPayloadArgs{})
@@ -895,6 +974,10 @@ func (t *Team) changeMembershipSection(ctx context.Context, req keybase1.TeamCha
 	admin, err := t.getAdminPermission(ctx, true)
 	if err != nil {
 		return SCTeamSection{}, nil, nil, nil, err
+	}
+
+	if t.IsSubteam() && len(req.Owners) > 0 {
+		return SCTeamSection{}, nil, nil, nil, NewSubteamOwnersError()
 	}
 
 	// load the member set specified in req
@@ -1033,6 +1116,7 @@ func (t *Team) sigTeamItem(ctx context.Context, section SCTeamSection, linkType 
 		latestLinkID,
 		false, /* hasRevokes */
 		seqType,
+		false, /* ignoreIfUnsupported */
 	)
 	if err != nil {
 		return libkb.SigMultiItem{}, err
@@ -1126,7 +1210,7 @@ func (t *Team) rotateBoxes(ctx context.Context, memSet *memberSet) (*PerTeamShar
 		return nil, nil, err
 	}
 
-	if t.chain().IsSubteam() {
+	if t.IsSubteam() {
 		// rotate needs to be keyed for all admins above it
 		allParentAdmins, err := t.G().GetTeamLoader().ImplicitAdmins(ctx, t.ID)
 		if err != nil {
@@ -1197,6 +1281,7 @@ func (t *Team) ForceMerkleRootUpdate(ctx context.Context) error {
 	return err
 }
 
+// All admins, owners, and implicit admins of this team.
 func (t *Team) AllAdmins(ctx context.Context) ([]keybase1.UserVersion, error) {
 	set := make(map[keybase1.UserVersion]bool)
 
@@ -1216,7 +1301,7 @@ func (t *Team) AllAdmins(ctx context.Context) ([]keybase1.UserVersion, error) {
 		set[m] = true
 	}
 
-	if t.chain().IsSubteam() {
+	if t.IsSubteam() {
 		imp, err := t.G().GetTeamLoader().ImplicitAdmins(ctx, t.ID)
 		if err != nil {
 			return nil, err
@@ -1231,20 +1316,6 @@ func (t *Team) AllAdmins(ctx context.Context) ([]keybase1.UserVersion, error) {
 		all = append(all, uv)
 	}
 	return all, nil
-}
-
-func LoadTeamPlusApplicationKeys(ctx context.Context, g *libkb.GlobalContext, id keybase1.TeamID,
-	application keybase1.TeamApplication, refreshers keybase1.TeamRefreshers) (res keybase1.TeamPlusApplicationKeys, err error) {
-
-	team, err := Load(ctx, g, keybase1.LoadTeamArg{
-		ID:         id,
-		Public:     id.IsPublic(), // infer publicness from id
-		Refreshers: refreshers,
-	})
-	if err != nil {
-		return res, err
-	}
-	return team.ExportToTeamPlusApplicationKeys(ctx, keybase1.Time(0), application)
 }
 
 // Restriction inherited from ListSubteams:
@@ -1346,6 +1417,7 @@ func RetryOnSigOldSeqnoError(ctx context.Context, g *libkb.GlobalContext, post f
 		}
 		return err
 	}
+	g.Log.CDebugf(ctx, "| RetryOnSigOldSeqnoError exhausted attempts")
 	if err == nil {
 		// Should never happen
 		return fmt.Errorf("failed retryable team operation")

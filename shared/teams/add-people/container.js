@@ -1,6 +1,7 @@
 // @flow
 import * as Creators from '../../actions/teams/creators'
 import * as SearchCreators from '../../actions/search/creators'
+import * as SearchConstants from '../../constants/search'
 import AddPeople from '.'
 import {HeaderHoc} from '../../common-adapters'
 import {navigateAppend} from '../../actions/route-tree'
@@ -14,6 +15,7 @@ import {
 } from '../../util/container'
 
 const mapStateToProps = (state: TypedState, {routeProps}) => ({
+  isEmpty: SearchConstants.getUserInputItemIds(state, {searchKey: 'addToTeamSearch'}).length === 0,
   name: routeProps.get('teamname'),
 })
 
@@ -25,7 +27,11 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routeProps}) => ({
     dispatch(SearchCreators.clearSearchResults('addToTeamSearch'))
     dispatch(SearchCreators.setUserInputItems('addToTeamSearch', []))
   },
-  onClose: () => dispatch(navigateUp()),
+  onClose: () => {
+    dispatch(navigateUp())
+    dispatch(SearchCreators.clearSearchResults('addToTeamSearch'))
+    dispatch(SearchCreators.setUserInputItems('addToTeamSearch', []))
+  },
   onOpenRolePicker: (role: string, onComplete: string => void) => {
     dispatch(
       navigateAppend([

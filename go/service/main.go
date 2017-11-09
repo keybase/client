@@ -23,12 +23,14 @@ import (
 	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/gregor"
+	"github.com/keybase/client/go/home"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	gregor1 "github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/pvlsource"
+	"github.com/keybase/client/go/systemd"
 	"github.com/keybase/client/go/teams"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 )
@@ -50,6 +52,7 @@ type Service struct {
 	badger               *badges.Badger
 	reachability         *reachability
 	backgroundIdentifier *BackgroundIdentifier
+	home                 *home.Home
 }
 
 type Shutdowner interface {
@@ -70,6 +73,7 @@ func NewService(g *libkb.GlobalContext, isDaemon bool) *Service {
 		attachmentstore:  chat.NewAttachmentStore(g.GetLog(), g.Env.GetRuntimeDir()),
 		badger:           badges.NewBadger(g),
 		gregor:           newGregorHandler(allG),
+		home:             home.NewHome(g),
 	}
 }
 
@@ -125,6 +129,7 @@ func (d *Service) RegisterProtocols(srv *rpc.Server, xp rpc.Transporter, connID 
 		keybase1.BadgerProtocol(newBadgerHandler(xp, g, d.badger)),
 		keybase1.MerkleProtocol(newMerkleHandler(xp, g)),
 		keybase1.GitProtocol(NewGitHandler(xp, g)),
+		keybase1.HomeProtocol(NewHomeHandler(xp, g, d.home)),
 	}
 	for _, proto := range protocols {
 		if err = srv.Register(proto); err != nil {
@@ -225,8 +230,15 @@ func (d *Service) Run() (err error) {
 		}
 	}
 
-	if d.G().Env.GetServiceType() == "launchd" {
+	switch d.G().Env.GetServiceType() {
+	case "":
+		// Not set, do nothing.
+	case "launchd":
 		d.ForkType = keybase1.ForkType_LAUNCHD
+	case "systemd":
+		d.ForkType = keybase1.ForkType_SYSTEMD
+	default:
+		d.G().Log.Warning("Unknown service type: %q", d.G().Env.GetServiceType())
 	}
 
 	if err = d.GetExclusiveLock(); err != nil {
@@ -253,6 +265,14 @@ func (d *Service) Run() (err error) {
 	}
 
 	d.RunBackgroundOperations(uir)
+
+	// At this point initialization is complete, and we're about to start the
+	// listen loop. This is the natural point to report "startup successful" to
+	// the supervisor (currently just systemd on Linux). This isn't necessary
+	// for correctness, but it allows commands like "systemctl start keybase.service"
+	// to report startup errors to the terminal, by delaying their return
+	// until they get this notification (Type=notify, in systemd lingo).
+	systemd.NotifyStartupFinished()
 
 	d.G().ExitCode, err = d.ListenLoopWithStopper(l)
 
@@ -283,6 +303,7 @@ func (d *Service) RunBackgroundOperations(uir *UIRouter) {
 	// backgrounded.
 	d.tryLogin()
 	d.hourlyChecks()
+	d.slowChecks()
 	d.createChatModules()
 	d.startupGregor()
 	d.startChatModules()
@@ -391,19 +412,19 @@ func (d *Service) identifySelf() {
 	// identify2 did a load user for self, so find it and cache it in FullSelfer.
 	them := eng.FullThemUser()
 	me := eng.FullMeUser()
-	var u *libkb.User
+	var self *libkb.User
 	if them != nil && them.GetUID().Equal(uid) {
 		d.G().Log.Debug("identifySelf: using them for full user")
-		u = them
+		self = them
 	} else if me != nil && me.GetUID().Equal(uid) {
 		d.G().Log.Debug("identifySelf: using me for full user")
-		u = me
+		self = me
 	}
-	if u != nil {
-		if err := d.G().GetFullSelfer().Update(context.Background(), u); err != nil {
+	if self != nil {
+		if err := d.G().GetFullSelfer().Update(context.Background(), self); err != nil {
 			d.G().Log.Debug("identifySelf: error updating full self cache: %s", err)
 		} else {
-			d.G().Log.Debug("identifySelf: updated full self cache for: %s", u.GetName())
+			d.G().Log.Debug("identifySelf: updated full self cache for: %s", self.GetName())
 		}
 	}
 }
@@ -442,6 +463,7 @@ func (d *Service) startupGregor() {
 		d.gregor.PushHandler(newRekeyLogHandler(d.G()))
 
 		d.gregor.PushHandler(newTeamHandler(d.G()))
+		d.gregor.PushHandler(d.home)
 
 		// Connect to gregord
 		if gcErr := d.tryGregordConnect(); gcErr != nil {
@@ -496,11 +518,6 @@ func (d *Service) writeServiceInfo() error {
 }
 
 func (d *Service) hourlyChecks() {
-	// do this right away
-	if err := d.G().LogoutIfRevoked(); err != nil {
-		d.G().Log.Debug("LogoutIfRevoked error: %s", err)
-	}
-
 	ticker := time.NewTicker(1 * time.Hour)
 	d.G().PushShutdownHook(func() error {
 		d.G().Log.Debug("stopping hourlyChecks loop")
@@ -508,6 +525,10 @@ func (d *Service) hourlyChecks() {
 		return nil
 	})
 	go func() {
+		// do this quickly
+		if err := d.G().LogoutIfRevoked(); err != nil {
+			d.G().Log.Debug("LogoutIfRevoked error: %s", err)
+		}
 		for {
 			<-ticker.C
 			d.G().Log.Debug("+ hourly check loop")
@@ -518,6 +539,26 @@ func (d *Service) hourlyChecks() {
 				d.G().Log.Debug("LogoutIfRevoked error: %s", err)
 			}
 			d.G().Log.Debug("- hourly check loop")
+		}
+	}()
+}
+
+func (d *Service) slowChecks() {
+	ticker := time.NewTicker(6 * time.Hour)
+	d.G().PushShutdownHook(func() error {
+		d.G().Log.Debug("stopping slowChecks loop")
+		ticker.Stop()
+		return nil
+	})
+	go func() {
+		for {
+			<-ticker.C
+			d.G().Log.Debug("+ slow checks loop")
+			d.G().Log.Debug("| checking if current device should log out")
+			if err := d.G().LogoutSelfCheck(); err != nil {
+				d.G().Log.Debug("LogoutSelfCheck error: %s", err)
+			}
+			d.G().Log.Debug("- slow checks loop")
 		}
 	}()
 }
@@ -534,9 +575,11 @@ func (d *Service) tryGregordConnect() error {
 		// confirm with the API server. In that case we'll swallow the error
 		// and allow control to proceeed to the gregor loop. We'll still
 		// short-circuit for any unexpected errors though.
-		_, isNetworkError := err.(libkb.APINetError)
-		if !isNetworkError {
-			d.G().Log.Warning("Unexpected non-network error in tryGregordConnect: %s", err)
+		switch err.(type) {
+		case libkb.LoginStateTimeoutError, libkb.APINetError:
+			d.G().Log.Debug("Network/timeout error received from LoginState, continuing onward: %s", err)
+		default:
+			d.G().Log.Debug("Unexpected non-network error in tryGregordConnect: %s", err)
 			return err
 		}
 	} else if !loggedIn {
@@ -704,6 +747,11 @@ func (d *Service) GetExclusiveLock() error {
 }
 
 func (d *Service) cleanupSocketFile() error {
+	// Short circuit if we're running under socket activation -- the socket
+	// file is already set up for us, and we mustn't delete it.
+	if systemd.IsSocketActivated() {
+		return nil
+	}
 	sf, err := d.G().Env.GetSocketBindFile()
 	if err != nil {
 		return err
@@ -733,15 +781,28 @@ func (d *Service) lockPIDFile() (err error) {
 	return nil
 }
 
-func (d *Service) ConfigRPCServer() (l net.Listener, err error) {
-	if l, err = d.G().BindToSocket(); err != nil {
-		return
+func (d *Service) ConfigRPCServer() (net.Listener, error) {
+	// First, check to see if we've been launched with socket activation by
+	// systemd. If so, the socket is already open. Otherwise open it ourselves.
+	listener, err := systemd.GetListenerFromEnvironment()
+	if err != nil {
+		d.G().Log.Error("unexpected error in GetListenerFromEnvironment: %#v", err)
+		return nil, err
+	} else if listener != nil {
+		d.G().Log.Debug("Systemd socket activation in use. Accepting connections on fd 3.")
+	} else {
+		d.G().Log.Debug("No socket activation in the environment. Binding to a new socket.")
+		listener, err = d.G().BindToSocket()
+		if err != nil {
+			return nil, err
+		}
 	}
+
 	if d.startCh != nil {
 		close(d.startCh)
 		d.startCh = nil
 	}
-	return
+	return listener, nil
 }
 
 func (d *Service) Stop(exitCode keybase1.ExitCode) {
@@ -836,7 +897,7 @@ func (d *Service) GregorDismiss(id gregor.MsgID) error {
 	if d.gregor == nil {
 		return errors.New("can't gregor dismiss without a gregor")
 	}
-	return d.gregor.DismissItem(gregor1.IncomingClient{Cli: d.gregor.cli}, id)
+	return d.gregor.DismissItem(context.Background(), gregor1.IncomingClient{Cli: d.gregor.cli}, id)
 }
 
 func (d *Service) GregorInject(cat string, body []byte) (gregor.MsgID, error) {

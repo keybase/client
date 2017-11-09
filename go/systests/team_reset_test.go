@@ -152,6 +152,13 @@ func TestTeamDelete(t *testing.T) {
 
 	divDebug(ctx, "Cam sent a chat")
 	readChats(team, bob, 2)
+
+	// XXX this assertion currently fails
+	// bob.assertMemberInactive(team, ann)
+	bob.assertMemberActive(team, cam)
+	// XXX this assertion currently fails
+	// cam.assertMemberInactive(team, ann)
+	cam.assertMemberActive(team, bob)
 }
 
 func TestTeamReset(t *testing.T) {
@@ -177,6 +184,10 @@ func TestTeamReset(t *testing.T) {
 	team := ann.createTeam([]*smuUser{bob, cam})
 	divDebug(ctx, "team created (%s)", team.name)
 
+	// ensure bob is active according to other users
+	ann.assertMemberActive(team, bob)
+	cam.assertMemberActive(team, bob)
+
 	sendChat(team, ann, "0")
 	divDebug(ctx, "Sent chat '0' (%s via %s)", team.name, ann.username)
 
@@ -191,8 +202,16 @@ func TestTeamReset(t *testing.T) {
 	pollForMembershipUpdate(team, ann, bob, cam)
 	divDebug(ctx, "Polled for rekey")
 
+	// bob should be inactive according to other users
+	ann.assertMemberInactive(team, bob)
+	cam.assertMemberInactive(team, bob)
+
 	bob.loginAfterReset(10)
 	divDebug(ctx, "Bob logged in after reset")
+
+	// bob should be inactive according to other users
+	ann.assertMemberInactive(team, bob)
+	cam.assertMemberInactive(team, bob)
 
 	_, err := bob.teamGet(team)
 	require.Error(t, err)
@@ -440,7 +459,6 @@ func TestImplicitTeamReset(t *testing.T) {
 }
 
 func TestImplicitTeamUserReset(t *testing.T) {
-	t.Skip()
 	ctx := newSMUContext(t)
 	defer ctx.cleanup()
 

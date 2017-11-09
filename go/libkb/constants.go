@@ -42,7 +42,7 @@ var ServerLookup = map[RunMode]string{
 const (
 	DevelGregorServerURI      = "fmprpc://localhost:9911"
 	StagingGregorServerURI    = "fmprpc+tls://gregord.dev.keybase.io:443"
-	ProductionGregorServerURI = "fmprpc+tls://gregord.kbfs.keybase.io:443"
+	ProductionGregorServerURI = "fmprpc+tls://chat-0.core.keybaseapi.com:443"
 )
 
 var GregorServerLookup = map[RunMode]string{
@@ -122,6 +122,8 @@ const (
 
 	// By default, only 64 files can be opened.
 	LevelDBNumFiles = 64
+
+	HomeCacheTimeout = (time.Hour - time.Minute)
 )
 
 const RemoteIdentifyUITimeout = 5 * time.Second
@@ -304,12 +306,12 @@ const (
 	// team links
 	LinkTypeTeamRoot         LinkType = "team.root"
 	LinkTypeNewSubteam       LinkType = "team.new_subteam"
-	LinkTypeSubteamHead      LinkType = "team.subteam_head"
 	LinkTypeChangeMembership LinkType = "team.change_membership"
 	LinkTypeRotateKey        LinkType = "team.rotate_key"
 	LinkTypeLeave            LinkType = "team.leave"
-	LinkTypeInvite           LinkType = "team.invite"
+	LinkTypeSubteamHead      LinkType = "team.subteam_head"
 	LinkTypeRenameSubteam    LinkType = "team.rename_subteam"
+	LinkTypeInvite           LinkType = "team.invite"
 	LinkTypeRenameUpPointer  LinkType = "team.rename_up_pointer"
 	LinkTypeDeleteRoot       LinkType = "team.delete_root"
 	LinkTypeDeleteSubteam    LinkType = "team.delete_subteam"
@@ -625,6 +627,7 @@ const (
 	TeamSaltpackDerivationString         = "Keybase-Derived-Team-NaCl-Saltpack-1"
 	TeamPrevKeySecretBoxDerivationString = "Keybase-Derived-Team-NaCl-SecretBox-1"
 	TeamGitMetadataDerivationString      = "Keybase-Derived-Team-NaCl-GitMetadata-1"
+	TeamSeitanTokenDerivationString      = "Keybase-Derived-Team-NaCl-SeitanInviteToken-1"
 )
 
 func CurrentSaltpackVersion() saltpack.Version {

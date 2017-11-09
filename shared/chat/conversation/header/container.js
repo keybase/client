@@ -1,6 +1,6 @@
 // @flow
 import * as Constants from '../../../constants/chat'
-import * as Creators from '../../../actions/chat/creators'
+import * as ChatGen from '../../../actions/chat-gen'
 import {List} from 'immutable'
 import {ChannelHeader, UsernameHeader} from '.'
 import {branch, compose, renderComponent, connect, type TypedState} from '../../../util/container'
@@ -32,7 +32,7 @@ const mapStateToProps = (state: TypedState, {infoPanelOpen}: OwnProps) => ({
 
 const mapDispatchToProps = (dispatch: Dispatch, {onBack, onToggleInfoPanel}: OwnProps) => ({
   onBack,
-  onOpenFolder: () => dispatch(Creators.openFolder()),
+  onOpenFolder: () => dispatch(ChatGen.createOpenFolder()),
   onShowProfile: (username: string) => dispatch(showUserProfile(username)),
   onToggleInfoPanel,
 })

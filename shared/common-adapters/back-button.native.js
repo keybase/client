@@ -7,7 +7,6 @@ import Box from './box'
 import Icon from './icon'
 import {globalStyles} from '../styles'
 import type {Props} from './back-button'
-import {clickableVisible} from '../local-debug'
 
 export default class BackButton extends Component<Props> {
   onClick(event: SyntheticEvent<>) {
@@ -21,7 +20,7 @@ export default class BackButton extends Component<Props> {
   render() {
     return (
       <NativeTouchableWithoutFeedback onPress={e => this.onClick(e)}>
-        <Box style={{...styles.container, ...(clickableVisible ? visibleStyle : {}), ...this.props.style}}>
+        <Box style={{...styles.container, ...this.props.style}}>
           <Icon type="iconfont-back" style={{...styles.icon, ...this.props.iconStyle}} />
           {(this.props.badgeNumber || 0) > 0 &&
             <Badge badgeNumber={this.props.badgeNumber} badgeStyle={{marginLeft: -3, marginTop: -12}} />}
@@ -29,10 +28,6 @@ export default class BackButton extends Component<Props> {
       </NativeTouchableWithoutFeedback>
     )
   }
-}
-
-const visibleStyle = {
-  backgroundColor: 'rgba(0, 255, 0, 0.1)',
 }
 
 export const styles = {

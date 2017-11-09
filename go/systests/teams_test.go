@@ -108,50 +108,6 @@ func TestTeamRotateOnRevoke(t *testing.T) {
 	}
 }
 
-func TestImplicitTeamRotateOnRevokePrivate(t *testing.T) {
-	testImplicitTeamRotateOnRevoke(t, false)
-}
-
-func TestImplicitTeamRotateOnRevokePublic(t *testing.T) {
-	testImplicitTeamRotateOnRevoke(t, true)
-}
-
-func testImplicitTeamRotateOnRevoke(t *testing.T, public bool) {
-	t.Logf("public: %v", public)
-	tt := newTeamTester(t)
-	defer tt.cleanup()
-
-	alice := tt.addUser("alice")
-
-	tt.addUser("bob")
-	bob := tt.users[1]
-
-	iTeamName := strings.Join([]string{alice.username, bob.username}, ",")
-
-	t.Logf("make an implicit team")
-	team, err := alice.lookupImplicitTeam(true /*create*/, iTeamName, public)
-	require.NoError(t, err)
-
-	// get the before state of the team
-	before, err := GetTeamForTestByID(context.TODO(), alice.tc.G, team, public)
-	require.NoError(t, err)
-	require.Equal(t, keybase1.PerTeamKeyGeneration(1), before.Generation())
-	secretBefore := before.Data.PerTeamKeySeeds[before.Generation()].Seed.ToBytes()
-
-	bob.revokePaperKey()
-	alice.waitForRotateByID(team, keybase1.Seqno(2))
-
-	// check that key was rotated for team
-	after, err := GetTeamForTestByID(context.TODO(), alice.tc.G, team, public)
-	require.NoError(t, err)
-	require.Equal(t, keybase1.PerTeamKeyGeneration(2), after.Generation(), "generation after rotate")
-
-	secretAfter := after.Data.PerTeamKeySeeds[after.Generation()].Seed.ToBytes()
-	if libkb.SecureByteArrayEq(secretAfter, secretBefore) {
-		t.Fatal("team secret did not change when rotated")
-	}
-}
-
 type teamTester struct {
 	t     *testing.T
 	users []*userPlusDevice
@@ -162,12 +118,24 @@ func newTeamTester(t *testing.T) *teamTester {
 }
 
 func (tt *teamTester) addUser(pre string) *userPlusDevice {
+	return tt.addUserHelper(pre, true)
+}
+
+func (tt *teamTester) addPuklessUser(pre string) *userPlusDevice {
+	return tt.addUserHelper(pre, false)
+}
+
+func (tt *teamTester) addUserHelper(pre string, puk bool) *userPlusDevice {
 	tctx := setupTest(tt.t, pre)
+	if !puk {
+		tctx.Tp.DisableUpgradePerUserKey = true
+	}
 	var u userPlusDevice
 	u.device = &deviceWrapper{tctx: tctx}
 	u.device.start(0)
 
 	userInfo := randomUser(pre)
+	require.True(tt.t, libkb.CheckUsername.F(userInfo.username), "username check failed (%v): %v", libkb.CheckUsername.Hint, userInfo.username)
 	tc := u.device.tctx
 	g := tc.G
 	signupUI := signupUI{
@@ -402,7 +370,7 @@ func (u *userPlusDevice) waitForTeamChangedGregor(team string, toSeqno keybase1.
 				u.tc.T.Logf("change matched!")
 				return
 			}
-			u.tc.T.Logf("ignoring change message (expected team = %q, seqno = %d)", team, toSeqno)
+			u.tc.T.Logf("ignoring change message for team %q seqno %d %+v (expected team = %q, seqno = %d)", arg.TeamName, arg.LatestSeqno, arg.Changes, team, toSeqno)
 		case <-time.After(1 * time.Second):
 		}
 	}
@@ -531,6 +499,11 @@ func (u *userPlusDevice) kickTeamRekeyd() {
 }
 
 func (u *userPlusDevice) lookupImplicitTeam(create bool, displayName string, public bool) (keybase1.TeamID, error) {
+	res, err := u.lookupImplicitTeam2(create, displayName, public)
+	return res.TeamID, err
+}
+
+func (u *userPlusDevice) lookupImplicitTeam2(create bool, displayName string, public bool) (keybase1.LookupImplicitTeamRes, error) {
 	cli := u.teamsClient
 	var err error
 	var res keybase1.LookupImplicitTeamRes
@@ -539,8 +512,7 @@ func (u *userPlusDevice) lookupImplicitTeam(create bool, displayName string, pub
 	} else {
 		res, err = cli.LookupImplicitTeam(context.TODO(), keybase1.LookupImplicitTeamArg{Name: displayName, Public: public})
 	}
-
-	return res.TeamID, err
+	return res, err
 }
 
 func (u *userPlusDevice) newSecretUI() *libkb.TestSecretUI {
@@ -595,12 +567,10 @@ func (u *userPlusDevice) provisionNewDevice() *deviceWrapper {
 	return device
 }
 
-func kickTeamRekeyd(g *libkb.GlobalContext, t testing.TB) {
+func kickTeamRekeyd(g *libkb.GlobalContext, t libkb.TestingTB) {
 	apiArg := libkb.APIArg{
-		Endpoint: "test/accelerate_team_rekeyd",
-		Args: libkb.HTTPArgs{
-			"timeout": libkb.I{Val: 2000},
-		},
+		Endpoint:    "test/accelerate_team_rekeyd",
+		Args:        libkb.HTTPArgs{},
 		SessionType: libkb.APISessionTypeREQUIRED,
 	}
 

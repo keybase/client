@@ -90,4 +90,10 @@ protocol git {
 
   // delete a team repo
   void deleteTeamRepo(GitRepoName repoName, TeamName teamName, boolean notifyTeam);
+
+  // GC a personal, private repo
+  void gcPersonalRepo(GitRepoName repoName, boolean force);
+
+  // GC a team repo
+  void gcTeamRepo(GitRepoName repoName, TeamName teamName, boolean force);
 }

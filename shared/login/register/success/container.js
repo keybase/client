@@ -1,5 +1,5 @@
 // @flow
-import * as Creators from '../../../actions/login/creators'
+import * as LoginGen from '../../../actions/login-gen'
 import HiddenString from '../../../util/hidden-string'
 import RenderSuccess from '../../signup/success/index.render'
 import {connect, type TypedState} from '../../../util/container'
@@ -21,8 +21,8 @@ const mapStateToProps = (s: TypedState, {routeProps}: OwnProps) => ({
 })
 
 const mapDispatchToProps = dispatch => ({
-  onFinish: () => dispatch(Creators.onFinish()),
-  onBack: () => dispatch(Creators.onBack()),
+  onFinish: () => dispatch(LoginGen.createOnFinish()),
+  onBack: () => dispatch(LoginGen.createOnBack()),
 })
 
 export default connect(mapStateToProps, mapDispatchToProps)(RenderSuccess)

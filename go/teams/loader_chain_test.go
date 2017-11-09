@@ -194,7 +194,7 @@ func runUnit(t *testing.T, unit TestCase) {
 					require.Contains(t, errstr, loadSpec.ErrorSubstr)
 				}
 				if len(loadSpec.ErrorType) > 0 {
-					require.Equal(t, loadSpec.ErrorType, reflect.TypeOf(err).Name(), "unexpected error type")
+					require.Equal(t, loadSpec.ErrorType, reflect.TypeOf(err).Name(), "unexpected error type [%T]", err)
 				}
 			}
 		}

@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react'
-import {Text, Usernames} from '../../../../common-adapters'
+import {Text} from '../../../../common-adapters'
 import UserNotice from '../../notices/user-notice'
 import {globalColors, globalMargins} from '../../../../styles'
 import {formatTimeForMessages} from '../../../../util/timestamp'
@@ -22,28 +22,16 @@ const SystemNotice = ({channelname, message, onManageChannels, you, following, o
     <Text type="BodySmallSemibold" backgroundMode="Announcements" style={{color: globalColors.black_40}}>
       {formatTimeForMessages(message.timestamp)}
     </Text>
-    <Text type="BodySmallSemibold" backgroundMode="Announcements" style={{color: globalColors.black_40}}>
-      <Usernames
-        inline={true}
-        type="BodySmallSemibold"
-        onUsernameClicked={onUsernameClicked}
-        colorFollowing={true}
-        users={[{username: message.author, following, you: you === message.author}]}
-      />
-      {' '}
-      {message.message.stringValue()}
-      {' '}
-      #{channelname}.
-    </Text>
-    {message.author === you &&
+    {message.message.stringValue().split('\n').map((line, index) => (
       <Text
+        key={index}
+        type="BodySmallSemibold"
         backgroundMode="Announcements"
-        onClick={onManageChannels}
-        style={{color: globalColors.blue}}
-        type="BodySmallPrimaryLink"
+        style={{color: globalColors.black_40}}
       >
-        Manage channel subscriptions.
-      </Text>}
+        {line}
+      </Text>
+    ))}
   </UserNotice>
 )
 

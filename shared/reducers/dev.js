@@ -31,7 +31,7 @@ export default function(state: Constants.State = initialState, action: Constants
     }
   }
 
-  if (action.type === 'debugCount') {
+  if (action.type === 'dev:debugCount') {
     return {
       ...state,
       debugCount: state.debugCount + 1,

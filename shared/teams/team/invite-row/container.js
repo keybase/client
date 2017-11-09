@@ -4,12 +4,14 @@ import {connect} from 'react-redux'
 import * as Constants from '../../../constants/teams'
 import * as I from 'immutable'
 import {TeamInviteRow} from '.'
+import {navigateAppend} from '../../../actions/route-tree'
 
 import type {TypedState} from '../../../constants/reducer'
 
 type OwnProps = {
-  username: string,
+  email: string,
   teamname: string,
+  username: string,
 }
 
 const getFollowing = (state, username: string) => {
@@ -31,22 +33,32 @@ const mapStateToProps = (state: TypedState, {teamname, username}: OwnProps): Sta
   you: state.config.username,
 })
 
-type DispatchProps = {}
+type DispatchProps = {
+  onCancelInvite: () => void,
+}
+
+const mapDispatchToProps = (dispatch: Dispatch, {email, teamname, username}: OwnProps): DispatchProps => ({
+  onCancelInvite: () =>
+    dispatch(navigateAppend([{props: {email, teamname, username}, selected: 'reallyRemoveMember'}])),
+})
 
 const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps, ownProps: OwnProps) => {
   const user =
-    stateProps._members && stateProps._members.find(member => member.username === ownProps.username)
-  const type = user ? user.type : null
+    stateProps._invites &&
+    stateProps._invites.find(
+      invite => invite.username === ownProps.username || invite.email === ownProps.email
+    )
+  const role = user.get('role')
   return {
     ...ownProps,
     ...dispatchProps,
     ...stateProps,
-    type,
+    role,
   }
 }
 
-export const ConnectedInviteRow = connect(mapStateToProps, null, mergeProps)(TeamInviteRow)
+export const ConnectedInviteRow = connect(mapStateToProps, mapDispatchToProps, mergeProps)(TeamInviteRow)
 
 export default function(i: number, props: OwnProps) {
-  return <ConnectedInviteRow key={props.username} {...props} />
+  return <ConnectedInviteRow key={props.email || props.username} {...props} />
 }

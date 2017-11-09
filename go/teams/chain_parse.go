@@ -141,13 +141,14 @@ func (link *SCChainLink) UnmarshalPayload() (res SCChainLinkPayload, err error) 
 }
 
 type SCChainLinkPayload struct {
-	Body     SCPayloadBody    `json:"body,omitempty"`
-	Ctime    int              `json:"ctime,omitempty"`
-	ExpireIn int              `json:"expire_in,omitempty"`
-	Prev     *string          `json:"prev,omitempty"`
-	SeqType  keybase1.SeqType `json:"seq_type,omitempty"`
-	Seqno    keybase1.Seqno   `json:"seqno,omitempty"`
-	Tag      string           `json:"tag,omitempty"`
+	Body                SCPayloadBody    `json:"body,omitempty"`
+	Ctime               int              `json:"ctime,omitempty"`
+	ExpireIn            int              `json:"expire_in,omitempty"`
+	Prev                *string          `json:"prev,omitempty"`
+	SeqType             keybase1.SeqType `json:"seq_type,omitempty"`
+	Seqno               keybase1.Seqno   `json:"seqno,omitempty"`
+	Tag                 string           `json:"tag,omitempty"`
+	IgnoreIfUnsupported bool             `json:"ignore_if_unsupported,omitempty"`
 }
 
 func (s SCChainLinkPayload) SigChainLocation() keybase1.SigChainLocation {

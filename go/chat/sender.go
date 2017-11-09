@@ -408,6 +408,9 @@ func (s *BlockingSender) Prepare(ctx context.Context, plaintext chat1.MessagePla
 	case chat1.MessageType_EDIT:
 		atMentions, chanMention = utils.ParseAtMentionedUIDs(ctx,
 			plaintext.MessageBody.Edit().Body, s.G().GetUPAKLoader(), &s.DebugLabeler)
+	case chat1.MessageType_SYSTEM:
+		atMentions, chanMention = utils.SystemMessageMentions(ctx, plaintext.MessageBody.System(),
+			s.G().GetUPAKLoader())
 	}
 
 	if len(atMentions) > 0 {

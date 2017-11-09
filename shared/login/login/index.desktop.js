@@ -83,7 +83,9 @@ class Login extends Component<Props, State> {
               type="Primary"
               label={this.props.selectedUser}
               labelStyle={{color: globalColors.orange, fontSize: 16, paddingLeft: 18}}
-              onClick={this._toggleOpen}
+              onClick={() => {
+                /* handled by the ButtonBox */
+              }}
               style={{backgroundColor: globalColors.white, flex: 1}}
             />
             <Icon type="iconfont-caret-down" inheritColor={true} style={{fontSize: 11}} />

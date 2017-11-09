@@ -8,7 +8,7 @@ import {storiesOf, action} from '../../../stories/storybook'
 import {Provider} from 'react-redux'
 import {createStore} from 'redux'
 import List from './index'
-import {range} from 'lodash'
+import range from 'lodash/range'
 import HiddenString from '../../../util/hidden-string'
 import {globalStyles} from '../../../styles'
 
@@ -74,6 +74,9 @@ function makeMessage(
     senderDeviceRevokedAt: null,
     key,
     editedCount: 0,
+    mentions: I.Set(),
+    channelMention: 'None',
+    rawMessageID: -1,
   }
 }
 
@@ -128,7 +131,7 @@ const storeFn = (messageMap: {[key: string]: Constants.Message}) => ({
     pendingConversations: I.Map(),
     nowOverride: null,
     editingMessage: null,
-    inboxUntrustedState: 'unloaded',
+    inboxGlobalUntrustedState: 'unloaded',
     previousConversation: null,
     searchPending: false,
     searchResults: null,

@@ -815,9 +815,14 @@ func (g *PushHandler) MembershipUpdate(ctx context.Context, m gregor.OutOfBandMe
 			g.notifyMembersUpdate(ctx, uid, cm, chat1.ConversationMemberStatus_RESET)
 		}
 
-		// Fire off badger update
-		if g.badger != nil && update.UnreadUpdate != nil {
-			g.badger.PushChatUpdate(*update.UnreadUpdate, update.InboxVers)
+		// Fire off badger updates
+		if g.badger != nil {
+			if update.UnreadUpdate != nil {
+				g.badger.PushChatUpdate(*update.UnreadUpdate, update.InboxVers)
+			}
+			for _, upd := range update.UnreadUpdates {
+				g.badger.PushChatUpdate(upd, update.InboxVers)
+			}
 		}
 
 		return nil

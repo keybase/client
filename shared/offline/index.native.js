@@ -2,13 +2,13 @@
 import * as React from 'react'
 import {Box, Text, Icon} from '../common-adapters'
 import {globalStyles, globalColors} from '../styles'
-import {ReachabilityReachable} from '../constants/types/flow-types'
+import {reachabilityReachable} from '../constants/types/flow-types'
 import {ignoreDisconnectOverlay} from '../local-debug'
 
 import type {Props} from './index'
 
 const Offline = ({reachable}: Props) => {
-  if (reachable !== ReachabilityReachable.no) {
+  if (reachable !== reachabilityReachable.no) {
     return null
   }
 

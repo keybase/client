@@ -177,7 +177,7 @@ func (c *CmdTeamListMemberships) runUser(cli keybase1.TeamsClient) error {
 	if c.showAll {
 		fmt.Fprintf(c.tabw, "Team\tRole\tUsername\tFull name\n")
 	} else {
-		fmt.Fprintf(c.tabw, "Team\tRole\n")
+		fmt.Fprintf(c.tabw, "Team\tRole\tMembers\n")
 	}
 	for _, t := range list.Teams {
 		var role string
@@ -193,7 +193,7 @@ func (c *CmdTeamListMemberships) runUser(cli keybase1.TeamsClient) error {
 		if c.showAll {
 			fmt.Fprintf(c.tabw, "%s\t%s\t%s\t%s\n", t.FqName, role, t.Username, t.FullName)
 		} else {
-			fmt.Fprintf(c.tabw, "%s\t%s\n", t.FqName, role)
+			fmt.Fprintf(c.tabw, "%s\t%s\t%d\n", t.FqName, role, t.MemberCount)
 		}
 	}
 	if c.showAll {
@@ -259,6 +259,10 @@ func (c *CmdTeamListMemberships) formatInviteName(invite keybase1.AnnotatedTeamI
 		switch category {
 		case keybase1.TeamInviteCategory_SBS:
 			res = fmt.Sprintf("%s@%s", invite.Name, string(invite.Type.Sbs()))
+		case keybase1.TeamInviteCategory_SEITAN:
+			if res == "" {
+				res = "<token without label>"
+			}
 		}
 	}
 	return res

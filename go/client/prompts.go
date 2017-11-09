@@ -65,4 +65,5 @@ const (
 	OutputDescriptorGeneric libkb.OutputDescriptor = iota
 	OutputDescriptorPrimaryPaperKey
 	OutputDescriptorEndageredTLFs
+	OutputDescriptorHomeDump
 )

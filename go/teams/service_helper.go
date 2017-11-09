@@ -3,6 +3,7 @@ package teams
 import (
 	"errors"
 	"fmt"
+	"strconv"
 	"strings"
 	"time"
 	"unicode"
@@ -13,6 +14,20 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 )
+
+func LoadTeamPlusApplicationKeys(ctx context.Context, g *libkb.GlobalContext, id keybase1.TeamID,
+	application keybase1.TeamApplication, refreshers keybase1.TeamRefreshers) (res keybase1.TeamPlusApplicationKeys, err error) {
+
+	team, err := Load(ctx, g, keybase1.LoadTeamArg{
+		ID:         id,
+		Public:     id.IsPublic(), // infer publicness from id
+		Refreshers: refreshers,
+	})
+	if err != nil {
+		return res, err
+	}
+	return team.ExportToTeamPlusApplicationKeys(ctx, keybase1.Time(0), application)
+}
 
 func membersUIDsToUsernames(ctx context.Context, g *libkb.GlobalContext, m keybase1.TeamMembers, forceRepoll bool) (keybase1.TeamMembersDetails, error) {
 	var ret keybase1.TeamMembersDetails
@@ -56,8 +71,7 @@ func Details(ctx context.Context, g *libkb.GlobalContext, name string, forceRepo
 	}
 
 	tracer.Stage("annotate")
-	activeInvites := t.chain().inner.ActiveInvites
-	annotatedInvites, err := AnnotateInvites(ctx, g, activeInvites, t.Name().String())
+	annotatedInvites, err := AnnotateInvites(ctx, g, t)
 	if err != nil {
 		return res, err
 	}
@@ -97,6 +111,22 @@ func Details(ctx context.Context, g *libkb.GlobalContext, name string, forceRepo
 	res.Settings.Open = t.IsOpen()
 	res.Settings.JoinAs = t.chain().inner.OpenTeamJoinAs
 	return res, nil
+}
+
+// List all the admins of ancestor teams.
+// Includes admins of the specified team only if they are also admins of ancestor teams.
+func ImplicitAdmins(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID) (res []keybase1.TeamMemberDetails, err error) {
+	defer g.CTraceTimed(ctx, fmt.Sprintf("teams::ImplicitAdmins(%v)", teamID), func() error { return err })()
+	if teamID.IsRootTeam() {
+		// Root teams have only explicit admins.
+		return nil, nil
+	}
+	uvs, err := g.GetTeamLoader().ImplicitAdmins(ctx, teamID)
+	if err != nil {
+		return nil, err
+	}
+
+	return userVersionsToDetails(ctx, g, uvs, true /* forceRepoll */)
 }
 
 func members(ctx context.Context, g *libkb.GlobalContext, t *Team, forceRepoll bool) (keybase1.TeamMembersDetails, error) {
@@ -421,6 +451,10 @@ func AddEmailsBulk(ctx context.Context, g *libkb.GlobalContext, teamname, emails
 
 func EditMember(ctx context.Context, g *libkb.GlobalContext, teamname, username string, role keybase1.TeamRole) error {
 	uv, err := loadUserVersionByUsername(ctx, g, username)
+	if err == errInviteRequired {
+		g.Log.CDebugf(ctx, "team %s: edit member %s, member is an invite link", teamname, username)
+		return editMemberInvite(ctx, g, teamname, username, role, uv)
+	}
 	if err != nil {
 		return err
 	}
@@ -448,6 +482,24 @@ func EditMember(ctx context.Context, g *libkb.GlobalContext, teamname, username 
 
 		return t.ChangeMembership(ctx, req)
 	})
+}
+
+func editMemberInvite(ctx context.Context, g *libkb.GlobalContext, teamname, username string, role keybase1.TeamRole, uv keybase1.UserVersion) error {
+	t, err := GetForTeamManagementByStringName(ctx, g, teamname, true)
+	if err != nil {
+		return err
+	}
+
+	if err := removeMemberInvite(ctx, g, t, username, uv); err != nil {
+		g.Log.CDebugf(ctx, "editMemberInvite error in removeMemberInvite: %s", err)
+		return err
+	}
+	// use AddMember in case it's possible to add them directly now
+	if _, err := AddMember(ctx, g, teamname, username, role); err != nil {
+		g.Log.CDebugf(ctx, "editMemberInvite error in AddMember: %s", err)
+		return err
+	}
+	return nil
 }
 
 func MemberRole(ctx context.Context, g *libkb.GlobalContext, teamname, username string) (role keybase1.TeamRole, err error) {
@@ -526,6 +578,23 @@ func CancelEmailInvite(ctx context.Context, g *libkb.GlobalContext, teamname, em
 	})
 }
 
+func CancelInviteByID(ctx context.Context, g *libkb.GlobalContext, teamname string, inviteID keybase1.TeamInviteID) error {
+	return RetryOnSigOldSeqnoError(ctx, g, func(ctx context.Context, _ int) error {
+		t, err := GetForTeamManagementByStringName(ctx, g, teamname, true)
+		if err != nil {
+			return err
+		}
+
+		// Service-side check for invite id, even though we operate on
+		// TeamInviteID type, API consumer can give us any string.
+		if _, err := keybase1.TeamInviteIDFromString(string(inviteID)); err != nil {
+			return fmt.Errorf("Invalid invite ID: %s", err)
+		}
+
+		return removeInviteID(ctx, t, inviteID)
+	})
+}
+
 func Leave(ctx context.Context, g *libkb.GlobalContext, teamname string, permanent bool) error {
 	return RetryOnSigOldSeqnoError(ctx, g, func(ctx context.Context, _ int) error {
 		t, err := GetForTeamManagementByStringName(ctx, g, teamname, false)
@@ -564,6 +633,36 @@ func AcceptInvite(ctx context.Context, g *libkb.GlobalContext, token string) err
 	arg := apiArg(ctx, "team/token")
 	arg.Args.Add("token", libkb.S{Val: token})
 	_, err := g.API.Post(arg)
+	return err
+}
+
+func AcceptSeitan(ctx context.Context, g *libkb.GlobalContext, ikey SeitanIKey) error {
+	me, err := libkb.LoadMe(libkb.NewLoadUserArgWithContext(ctx, g))
+	if err != nil {
+		return err
+	}
+
+	sikey, err := ikey.GenerateSIKey()
+	if err != nil {
+		return err
+	}
+
+	inviteID, err := sikey.GenerateTeamInviteID()
+	if err != nil {
+		return err
+	}
+
+	unixNow := time.Now().Unix()
+	_, encoded, err := sikey.GenerateAcceptanceKey(me.GetUID(), me.GetCurrentEldestSeqno(), unixNow)
+	if err != nil {
+		return err
+	}
+
+	arg := apiArg(ctx, "team/seitan")
+	arg.Args.Add("akey", libkb.S{Val: encoded})
+	arg.Args.Add("now", libkb.S{Val: strconv.FormatInt(unixNow, 10)})
+	arg.Args.Add("invite_id", libkb.S{Val: string(inviteID)})
+	_, err = g.API.Post(arg)
 	return err
 }
 
@@ -769,7 +868,7 @@ func ListRequests(ctx context.Context, g *libkb.GlobalContext) ([]keybase1.TeamJ
 	for i, ar := range arList.Requests {
 		joinRequests[i] = keybase1.TeamJoinRequest{
 			Name:     ar.FQName,
-			Username: ar.Username,
+			Username: libkb.NewNormalizedUsername(ar.Username).String(),
 		}
 	}
 
@@ -924,6 +1023,17 @@ func removeMemberInviteOfType(ctx context.Context, g *libkb.GlobalContext, team 
 	return libkb.NotFoundError{}
 }
 
+func removeMultipleInviteIDs(ctx context.Context, team *Team, invIDs []keybase1.TeamInviteID) error {
+	var cancelList []SCTeamInviteID
+	for _, invID := range invIDs {
+		cancelList = append(cancelList, SCTeamInviteID(invID))
+	}
+	invites := SCTeamInvites{
+		Cancel: &cancelList,
+	}
+	return team.postTeamInvites(ctx, invites)
+}
+
 func removeInviteID(ctx context.Context, team *Team, invID keybase1.TeamInviteID) error {
 	cancelList := []SCTeamInviteID{SCTeamInviteID(invID)}
 	invites := SCTeamInvites{
@@ -938,4 +1048,17 @@ func splitBulk(s string) []string {
 		return unicode.IsSpace(c) || c == ','
 	}
 	return strings.FieldsFunc(s, f)
+}
+
+func CreateSeitanToken(ctx context.Context, g *libkb.GlobalContext, teamname string, role keybase1.TeamRole, label keybase1.SeitanIKeyLabel) (keybase1.SeitanIKey, error) {
+	t, err := GetForTeamManagementByStringName(ctx, g, teamname, true)
+	if err != nil {
+		return "", err
+	}
+	ikey, err := t.InviteSeitan(ctx, role, label)
+	if err != nil {
+		return "", err
+	}
+
+	return keybase1.SeitanIKey(ikey), err
 }

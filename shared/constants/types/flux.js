@@ -1,7 +1,6 @@
 // @flow
-import type {TypedState} from '../reducer'
-
-export type LogTransformer = (action: TypedAction<*, *, *>, oldState: TypedState) => Object // eslint-disable-line no-use-before-define
+// Don't import reducer here as it causes a cyclical dependency
+export type LogTransformer = any
 
 export type TypedAction<T, P, E> =
   | {
@@ -20,7 +19,7 @@ export type TypedAction<T, P, E> =
 export type NoErrorTypedAction<T, P> = TypedAction<T, P, P>
 
 export type Action = TypedAction<any, any, any>
-export type GetState = () => TypedState
+export type GetState = () => any
 export type AsyncAction = (dispatch: Dispatch, getState: GetState) => ?Promise<*> // eslint-disable-line no-use-before-define
 export type Dispatch = (action: AsyncAction | Action) => ?Promise<*> // eslint-disable-line no-use-before-define
 

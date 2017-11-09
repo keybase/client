@@ -1,14 +1,13 @@
 // @flow
-import * as ChatTypes from '../../constants/types/flow-types-chat'
+import * as ChatGen from '../chat-gen'
 import * as Constants from '../../constants/chat'
-import * as Creators from './creators'
-import * as EntityCreators from '../entities'
 import * as I from 'immutable'
-import getenv from 'getenv'
-import {CommonTLFVisibility, TlfKeysTLFIdentifyBehavior} from '../../constants/types/flow-types'
+import * as RPCChatTypes from '../../constants/types/flow-types-chat'
+import * as RPCTypes from '../../constants/types/flow-types'
 import {call, put, select} from 'redux-saga/effects'
 import {parseFolderNameToUsers} from '../../util/kbfs'
 import {usernameSelector} from '../../constants/selectors'
+import flags from '../../util/feature-flags'
 
 import type {TypedState} from '../../constants/reducer'
 
@@ -16,7 +15,7 @@ function followingSelector(state: TypedState) {
   return state.config.following
 }
 function alwaysShowSelector(state: TypedState) {
-  return state.entities.get('inboxAlwaysShow')
+  return state.chat.get('inboxAlwaysShow')
 }
 function metaDataSelector(state: TypedState) {
   return state.chat.get('metaData')
@@ -38,7 +37,7 @@ function messageOutboxIDSelector(
   state: TypedState,
   conversationIDKey: Constants.ConversationIDKey,
   outboxID: Constants.OutboxIDKey
-): Constants.Message {
+): ?Constants.Message {
   return Constants.getMessageFromConvKeyMessageID(state, conversationIDKey, outboxID)
 }
 
@@ -46,8 +45,8 @@ function devicenameSelector(state: TypedState) {
   return state.config && state.config.deviceName
 }
 
-function inboxUntrustedStateSelector(state: TypedState) {
-  return state.chat.get('inboxUntrustedState')
+function inboxGlobalUntrustedStateSelector(state: TypedState) {
+  return state.chat.get('inboxGlobalUntrustedState')
 }
 
 function tmpFileName(
@@ -64,17 +63,17 @@ function tmpFileName(
 
 // Actually start a new conversation. conversationIDKey can be a pending one or a replacement
 function* startNewConversation(
-  oldConversationIDKey: Constants.ConversationIDKey
+  oldKey: Constants.ConversationIDKey
 ): Generator<any, [?Constants.ConversationIDKey, ?string], any> {
   // Find the participants
-  const pendingTlfName = Constants.pendingConversationIDKeyToTlfName(oldConversationIDKey)
+  const pendingTlfName = Constants.pendingConversationIDKeyToTlfName(oldKey)
   let tlfName
   if (pendingTlfName) {
     tlfName = pendingTlfName
   } else {
-    const existing = yield select(Constants.getInbox, oldConversationIDKey)
+    const existing = yield select(Constants.getInbox, oldKey)
     if (existing) {
-      tlfName = existing.get('participants').join(',')
+      tlfName = existing.get('participants').sort().join(',')
     }
   }
 
@@ -82,42 +81,41 @@ function* startNewConversation(
     console.warn("Shouldn't happen in practice")
     return [null, null]
   }
-
-  const membersType = getenv('KEYBASE_CHAT_MEMBER_TYPE', 'kbfs') === 'impteam'
-    ? ChatTypes.CommonConversationMembersType.impteam
-    : ChatTypes.CommonConversationMembersType.kbfs
-  const result = yield call(ChatTypes.localNewConversationLocalRpcPromise, {
+  const membersType = flags.impTeamChatEnabled
+    ? RPCChatTypes.commonConversationMembersType.impteam
+    : RPCChatTypes.commonConversationMembersType.kbfs
+  const result = yield call(RPCChatTypes.localNewConversationLocalRpcPromise, {
     param: {
-      identifyBehavior: TlfKeysTLFIdentifyBehavior.chatGui,
+      identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
       tlfName,
-      tlfVisibility: CommonTLFVisibility.private,
-      topicType: ChatTypes.CommonTopicType.chat,
+      tlfVisibility: RPCTypes.commonTLFVisibility.private,
+      topicType: RPCChatTypes.commonTopicType.chat,
       membersType,
     },
   })
 
-  const newConversationIDKey = result ? Constants.conversationIDToKey(result.conv.info.id) : null
-  if (!newConversationIDKey) {
+  const newKey = result ? Constants.conversationIDToKey(result.conv.info.id) : null
+  if (!newKey) {
     console.warn('No convoid from newConvoRPC')
     return [null, null]
   }
 
   // Replace any existing convo
   if (pendingTlfName) {
-    yield put(Creators.pendingToRealConversation(oldConversationIDKey, newConversationIDKey))
-  } else if (oldConversationIDKey !== newConversationIDKey) {
-    yield put(EntityCreators.deleteEntity(['inbox'], I.List([oldConversationIDKey])))
-    yield put(EntityCreators.deleteEntity(['inboxSmallTimestamps'], I.List([oldConversationIDKey])))
+    yield put(ChatGen.createPendingToRealConversation({oldKey, newKey}))
+  } else if (oldKey !== newKey) {
+    yield put(ChatGen.createDeleteEntity({keyPath: ['inbox'], ids: I.List([oldKey])}))
+    yield put(ChatGen.createDeleteEntity({keyPath: ['inboxSmallTimestamps'], ids: I.List([oldKey])}))
   }
 
   // Select the new version if the old one was selected
   const selectedConversation = yield select(Constants.getSelectedConversation)
-  if (selectedConversation === oldConversationIDKey) {
-    yield put(Creators.selectConversation(newConversationIDKey, false))
+  if (selectedConversation === oldKey) {
+    yield put(ChatGen.createSelectConversation({conversationIDKey: newKey}))
   }
   // Load the inbox so we can post, we wait till this is done
-  yield put(Creators.unboxConversations([newConversationIDKey]))
-  return [newConversationIDKey, tlfName]
+  yield put(ChatGen.createUnboxConversations({conversationIDKeys: [newKey], reason: 'new convo'}))
+  return [newKey, tlfName]
 }
 
 // If we're showing a banner we send chatGui, if we're not we send chatGuiStrict
@@ -130,16 +128,18 @@ function* getPostingIdentifyBehavior(
 
   if (inbox && you) {
     const brokenUsers = Constants.getBrokenUsers(inbox.get('participants').toArray(), you, metaData)
-    return brokenUsers.length ? TlfKeysTLFIdentifyBehavior.chatGui : TlfKeysTLFIdentifyBehavior.chatGuiStrict
+    return brokenUsers.length
+      ? RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui
+      : RPCTypes.tlfKeysTLFIdentifyBehavior.chatGuiStrict
   }
 
   // This happens if you start a chat w/o having loaded the inbox state at all
-  return TlfKeysTLFIdentifyBehavior.chatGuiStrict
+  return RPCTypes.tlfKeysTLFIdentifyBehavior.chatGuiStrict
 }
 
 function makeInboxStateRecords(
   author: string,
-  items: Array<ChatTypes.UnverifiedInboxUIItem>,
+  items: Array<RPCChatTypes.UnverifiedInboxUIItem>,
   oldInbox: I.Map<Constants.ConversationIDKey, Constants.InboxState>
 ): Array<Constants.InboxState> {
   return (items || [])
@@ -152,18 +152,19 @@ function makeInboxStateRecords(
         ? I.List(c.localMetadata.writerNames || [])
         : I.List(parseFolderNameToUsers(author, c.name).map(ul => ul.username))
       return Constants.makeInboxState({
-        channelname: c.membersType === ChatTypes.CommonConversationMembersType.team && c.localMetadata
+        channelname: c.membersType === RPCChatTypes.commonConversationMembersType.team && c.localMetadata
           ? c.localMetadata.channelName
           : undefined,
         conversationIDKey: c.convID,
         fullNames: I.Map(),
         info: null,
         maxMsgID: c.maxMsgID,
+        memberStatus: c.memberStatus,
         membersType: c.membersType,
         participants: parts,
         status: Constants.ConversationStatusByEnum[c.status || 0],
         teamType: c.teamType,
-        teamname: c.membersType === ChatTypes.CommonConversationMembersType.team ? c.name : undefined,
+        teamname: c.membersType === RPCChatTypes.commonConversationMembersType.team ? c.name : undefined,
         time: c.time,
         version: c.version,
       })
@@ -179,7 +180,7 @@ export {
   activeSelector,
   followingSelector,
   getPostingIdentifyBehavior,
-  inboxUntrustedStateSelector,
+  inboxGlobalUntrustedStateSelector,
   makeInboxStateRecords,
   messageOutboxIDSelector,
   metaDataSelector,

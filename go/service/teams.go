@@ -96,6 +96,19 @@ func (h *TeamsHandler) TeamGet(ctx context.Context, arg keybase1.TeamGetArg) (re
 	return teams.Details(ctx, h.G().ExternalG(), arg.Name, arg.ForceRepoll)
 }
 
+func (h *TeamsHandler) TeamImplicitAdmins(ctx context.Context, arg keybase1.TeamImplicitAdminsArg) (res []keybase1.TeamMemberDetails, err error) {
+	defer h.G().CTraceTimed(ctx, fmt.Sprintf("TeamImplicitAdmins(%s)", arg.TeamName), func() error { return err })()
+	teamName, err := keybase1.TeamNameFromString(arg.TeamName)
+	if err != nil {
+		return nil, err
+	}
+	teamID, err := teams.ResolveNameToID(ctx, h.G().ExternalG(), teamName)
+	if err != nil {
+		return nil, err
+	}
+	return teams.ImplicitAdmins(ctx, h.G().ExternalG(), teamID)
+}
+
 func (h *TeamsHandler) TeamList(ctx context.Context, arg keybase1.TeamListArg) (res keybase1.AnnotatedTeamList, err error) {
 	defer h.G().CTraceTimed(ctx, fmt.Sprintf("TeamList(%s)", arg.UserAssertion), func() error { return err })()
 	x, err := teams.List(ctx, h.G().ExternalG(), arg)
@@ -158,6 +171,9 @@ func (h *TeamsHandler) TeamRemoveMember(ctx context.Context, arg keybase1.TeamRe
 	if len(arg.Email) > 0 {
 		h.G().Log.CDebugf(ctx, "TeamRemoveMember: received email address, using CancelEmailInvite for %q in team %q", arg.Email, arg.Name)
 		return teams.CancelEmailInvite(ctx, h.G().ExternalG(), arg.Name, arg.Email)
+	} else if len(arg.InviteID) > 0 {
+		h.G().Log.CDebugf(ctx, "TeamRemoveMember: received InviteID, using CancelInviteByID for %q in team %q", arg.InviteID, arg.Name)
+		return teams.CancelInviteByID(ctx, h.G().ExternalG(), arg.Name, arg.InviteID)
 	}
 	h.G().Log.CDebugf(ctx, "TeamRemoveMember: using RemoveMember for %q in team %q", arg.Username, arg.Name)
 	return teams.RemoveMember(ctx, h.G().ExternalG(), arg.Name, arg.Username)
@@ -192,6 +208,10 @@ func (h *TeamsHandler) TeamAcceptInvite(ctx context.Context, arg keybase1.TeamAc
 	defer h.G().CTraceTimed(ctx, "TeamAcceptInvite", func() error { return err })()
 	if err := h.assertLoggedIn(ctx); err != nil {
 		return err
+	}
+	seitan, err := teams.GenerateIKeyFromString(arg.Token)
+	if err == nil {
+		return teams.AcceptSeitan(ctx, h.G().ExternalG(), seitan)
 	}
 	return teams.AcceptInvite(ctx, h.G().ExternalG(), arg.Token)
 }
@@ -243,16 +263,24 @@ func (h *TeamsHandler) TeamDelete(ctx context.Context, arg keybase1.TeamDeleteAr
 }
 
 func (h *TeamsHandler) TeamSetSettings(ctx context.Context, arg keybase1.TeamSetSettingsArg) (err error) {
+	defer h.G().CTraceTimed(ctx, fmt.Sprintf("TeamSetSettings(%s)", arg.Name), func() error { return err })()
 	if err := h.assertLoggedIn(ctx); err != nil {
 		return err
 	}
 	return teams.ChangeTeamSettings(ctx, h.G().ExternalG(), arg.Name, arg.Settings)
 }
 
-func (h *TeamsHandler) LoadTeamPlusApplicationKeys(netCtx context.Context, arg keybase1.LoadTeamPlusApplicationKeysArg) (keybase1.TeamPlusApplicationKeys, error) {
-	netCtx = libkb.WithLogTag(netCtx, "LTPAK")
-	h.G().Log.CDebugf(netCtx, "+ TeamHandler#LoadTeamPlusApplicationKeys(%+v)", arg)
-	return teams.LoadTeamPlusApplicationKeys(netCtx, h.G().ExternalG(), arg.Id, arg.Application, arg.Refreshers)
+func (h *TeamsHandler) LoadTeamPlusApplicationKeys(ctx context.Context, arg keybase1.LoadTeamPlusApplicationKeysArg) (res keybase1.TeamPlusApplicationKeys, err error) {
+	ctx = libkb.WithLogTag(ctx, "LTPAK")
+	defer h.G().CTraceTimed(ctx, fmt.Sprintf("LoadTeamPlusApplicationKeys(%s)", arg.Id), func() error { return err })()
+	return teams.LoadTeamPlusApplicationKeys(ctx, h.G().ExternalG(), arg.Id, arg.Application, arg.Refreshers)
+}
+
+func (h *TeamsHandler) TeamCreateSeitanToken(ctx context.Context, arg keybase1.TeamCreateSeitanTokenArg) (token keybase1.SeitanIKey, err error) {
+	if err := h.assertLoggedIn(ctx); err != nil {
+		return "", err
+	}
+	return teams.CreateSeitanToken(ctx, h.G().ExternalG(), arg.Name, arg.Role, arg.Label)
 }
 
 func (h *TeamsHandler) GetTeamRootID(ctx context.Context, id keybase1.TeamID) (keybase1.TeamID, error) {
@@ -277,7 +305,8 @@ func (h *TeamsHandler) LookupOrCreateImplicitTeam(ctx context.Context, arg keyba
 	return res, err
 }
 
-func (h *TeamsHandler) TeamReAddMemberAfterReset(ctx context.Context, arg keybase1.TeamReAddMemberAfterResetArg) error {
+func (h *TeamsHandler) TeamReAddMemberAfterReset(ctx context.Context, arg keybase1.TeamReAddMemberAfterResetArg) (err error) {
+	defer h.G().CTraceTimed(ctx, fmt.Sprintf("TeamReAddMemberAfterReset(%s)", arg.Id), func() error { return err })()
 	if err := h.assertLoggedIn(ctx); err != nil {
 		return err
 	}
@@ -288,4 +317,30 @@ func (h *TeamsHandler) TeamAddEmailsBulk(ctx context.Context, arg keybase1.TeamA
 	defer h.G().CTraceTimed(ctx, fmt.Sprintf("TeamAddEmailsBulk(%s)", arg.Name), func() error { return err })()
 
 	return teams.AddEmailsBulk(ctx, h.G().ExternalG(), arg.Name, arg.Emails, arg.Role)
+}
+
+func (h *TeamsHandler) GetTeamShowcase(ctx context.Context, teamname string) (ret keybase1.TeamShowcase, err error) {
+	defer h.G().CTraceTimed(ctx, fmt.Sprintf("GetTeamShowcase(%s)", teamname), func() error { return err })()
+
+	return teams.GetTeamShowcase(ctx, h.G().ExternalG(), teamname)
+}
+
+func (h *TeamsHandler) GetTeamAndMemberShowcase(ctx context.Context, teamname string) (ret keybase1.TeamAndMemberShowcase, err error) {
+	defer h.G().CTraceTimed(ctx, fmt.Sprintf("GetTeamAndMemberShowcase(%s)", teamname), func() error { return err })()
+
+	return teams.GetTeamAndMemberShowcase(ctx, h.G().ExternalG(), teamname)
+}
+
+func (h *TeamsHandler) SetTeamShowcase(ctx context.Context, arg keybase1.SetTeamShowcaseArg) (err error) {
+	defer h.G().CTraceTimed(ctx, fmt.Sprintf("SetTeamShowcase(%s)", arg.Name), func() error { return err })()
+
+	err = teams.SetTeamShowcase(ctx, h.G().ExternalG(), arg.Name, arg.IsShowcased, arg.Description)
+	return err
+}
+
+func (h *TeamsHandler) SetTeamMemberShowcase(ctx context.Context, arg keybase1.SetTeamMemberShowcaseArg) (err error) {
+	defer h.G().CTraceTimed(ctx, fmt.Sprintf("SetTeamMemberShowcase(%s)", arg.Name), func() error { return err })()
+
+	err = teams.SetTeamMemberShowcase(ctx, h.G().ExternalG(), arg.Name, arg.IsShowcased)
+	return err
 }

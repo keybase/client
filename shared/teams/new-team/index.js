@@ -2,11 +2,30 @@
 import React from 'react'
 import {Box, Button, HeaderHoc, Input, PopupDialog, Text, ScrollView} from '../../common-adapters/index'
 import {isMobile} from '../../constants/platform'
+import {validTeamname, baseTeamname} from '../../constants/teamname'
 import {globalColors, globalMargins, globalStyles} from '../../styles'
 
 import type {Props} from './'
 
-const Contents = ({errorText, name, onNameChange, onSubmit}: Props) => (
+// This logic is copied from go/protocol/keybase1/extras.go.
+
+const headerText = (errorText: string, name: string): string => {
+  if (errorText) {
+    return errorText
+  }
+
+  // TODO: Display an error and disable the submit button if name
+  // isn't a valid teamname.
+
+  const baseTeam = baseTeamname(name)
+  if (baseTeam && validTeamname(baseTeam)) {
+    return `You're creating a subteam of ${baseTeam}.`
+  }
+
+  return "For security reasons, team names are unique and can't be changed, so choose carefully."
+}
+
+const Contents = ({errorText, name, onNameChange, onSubmit, pending}: Props) => (
   <ScrollView>
     <Box style={globalStyles.flexBoxColumn}>
       <Box style={{...styleContainer, backgroundColor: errorText ? globalColors.red : globalColors.blue}}>
@@ -15,8 +34,7 @@ const Contents = ({errorText, name, onNameChange, onSubmit}: Props) => (
           type="BodySemibold"
           backgroundMode={errorText ? 'HighRisk' : 'Announcements'}
         >
-          {errorText ||
-            "For security reasons, team names are unique and can't be changed, so choose carefully."}
+          {headerText(errorText, name)}
         </Text>
       </Box>
 
@@ -35,6 +53,7 @@ const Contents = ({errorText, name, onNameChange, onSubmit}: Props) => (
           value={name}
           onChangeText={onNameChange}
           onEnterKeyDown={onSubmit}
+          disabled={pending}
         />
         <Box style={{...globalStyles.flexBoxRow, marginTop: globalMargins.xlarge}}>
           <Button
@@ -42,6 +61,7 @@ const Contents = ({errorText, name, onNameChange, onSubmit}: Props) => (
             style={{marginLeft: globalMargins.tiny}}
             onClick={onSubmit}
             label="Create team"
+            disabled={pending}
           />
         </Box>
       </Box>

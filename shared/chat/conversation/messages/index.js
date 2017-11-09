@@ -3,6 +3,7 @@ import * as Constants from '../../../constants/chat'
 import Attachment from './attachment/container'
 import ErrorMessage from './error/container'
 import Header from './header/container'
+import JoinedLeft from './joinedleft/container'
 import System from './system/container'
 import ProfileResetNotice from '../notices/profile-reset-notice/container'
 import * as React from 'react'
@@ -25,6 +26,8 @@ const factory = (
 ) => {
   const kind = Constants.messageKeyKind(messageKey)
   switch (kind) {
+    case 'joinedleft':
+      return <JoinedLeft messageKey={messageKey} />
     case 'system':
       return <System messageKey={messageKey} />
     case 'header':

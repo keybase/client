@@ -11,6 +11,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/keybase/client/go/chat/pager"
+
 	"regexp"
 
 	"github.com/keybase/client/go/chat/globals"
@@ -426,7 +428,7 @@ func ParseChannelNameMentions(ctx context.Context, body string, uid gregor1.UID,
 	return res
 }
 
-var atMentionRegExp = regexp.MustCompile(`\B@([a-z][a-z0-9_]+)`)
+var atMentionRegExp = regexp.MustCompile(`\B@([a-z0-9][a-z0-9_]+)`)
 
 func parseRegexpNames(ctx context.Context, body string, re *regexp.Regexp) (res []string) {
 	matches := re.FindAllStringSubmatch(body, -1)
@@ -494,6 +496,37 @@ func ParseAndDecorateAtMentionedUIDs(ctx context.Context, body string, upak libk
 		return m
 	})
 	return newBody, atRes, chanRes
+}
+
+type SystemMessageUIDSource interface {
+	LookupUID(ctx context.Context, un libkb.NormalizedUsername) (keybase1.UID, error)
+}
+
+func SystemMessageMentions(ctx context.Context, body chat1.MessageSystem, upak SystemMessageUIDSource) (atMentions []gregor1.UID, chanMention chat1.ChannelMention) {
+	typ, err := body.SystemType()
+	if err != nil {
+		return atMentions, chanMention
+	}
+	switch typ {
+	case chat1.MessageSystemType_ADDEDTOTEAM:
+		addeeUID, err := upak.LookupUID(ctx, libkb.NewNormalizedUsername(body.Addedtoteam().Addee))
+		if err == nil {
+			atMentions = append(atMentions, addeeUID.ToBytes())
+		}
+	case chat1.MessageSystemType_INVITEADDEDTOTEAM:
+		inviteeUID, err := upak.LookupUID(ctx, libkb.NewNormalizedUsername(body.Inviteaddedtoteam().Invitee))
+		if err == nil {
+			atMentions = append(atMentions, inviteeUID.ToBytes())
+		}
+		inviterUID, err := upak.LookupUID(ctx, libkb.NewNormalizedUsername(body.Inviteaddedtoteam().Inviter))
+		if err == nil {
+			atMentions = append(atMentions, inviterUID.ToBytes())
+		}
+	case chat1.MessageSystemType_COMPLEXTEAM:
+		chanMention = chat1.ChannelMention_ALL
+	}
+	sort.Sort(chat1.ByUID(atMentions))
+	return atMentions, chanMention
 }
 
 func PluckMessageIDs(msgs []chat1.MessageSummary) []chat1.MessageID {
@@ -630,6 +663,7 @@ func PresentRemoteConversation(rc types.RemoteConversation) (res chat1.Unverifie
 	res.Visibility = rawConv.Metadata.Visibility
 	res.Notifications = rawConv.Notifications
 	res.MembersType = rawConv.GetMembersType()
+	res.MemberStatus = rawConv.ReaderInfo.Status
 	res.TeamType = rawConv.Metadata.TeamType
 	res.Version = rawConv.Metadata.Version
 	res.MaxMsgID = rawConv.ReaderInfo.MaxMsgid
@@ -671,6 +705,7 @@ func PresentConversationLocal(rawConv chat1.ConversationLocal) (res chat1.InboxU
 	res.ResetParticipants = rawConv.Info.ResetNames
 	res.Status = rawConv.Info.Status
 	res.MembersType = rawConv.GetMembersType()
+	res.MemberStatus = rawConv.Info.MemberStatus
 	res.Visibility = rawConv.Info.Visibility
 	res.Time = GetConvMtimeLocal(rawConv)
 	res.FinalizeInfo = rawConv.GetFinalizeInfo()
@@ -905,4 +940,34 @@ func UsernamePackageToParticipant(p libkb.UsernamePackage) chat1.ConversationLoc
 		Username: p.NormalizedUsername.String(),
 		Fullname: fullName,
 	}
+}
+
+type pagerMsg struct {
+	msgID chat1.MessageID
+}
+
+func (p pagerMsg) GetMessageID() chat1.MessageID {
+	return p.msgID
+}
+
+func XlateMessageIDControlToPagination(control *chat1.MessageIDControl) (res *chat1.Pagination) {
+	if control == nil {
+		return res
+	}
+	pag := pager.NewThreadPager()
+	res = new(chat1.Pagination)
+	res.Num = control.Num
+	if control.Pivot != nil {
+		pm := pagerMsg{msgID: *control.Pivot}
+		var err error
+		if control.Recent {
+			res.Previous, err = pag.MakeIndex(pm)
+		} else {
+			res.Next, err = pag.MakeIndex(pm)
+		}
+		if err != nil {
+			return nil
+		}
+	}
+	return res
 }

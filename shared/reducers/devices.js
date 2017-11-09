@@ -4,7 +4,10 @@ import {makeState, type State, type Actions} from '../constants/devices'
 
 const initialState: State = makeState()
 
-export default function(state: State = initialState, action: Actions) {
+export default function(
+  state: State = initialState,
+  action: Actions | {type: 'common:resetStore', payload: void}
+) {
   switch (action.type) {
     case 'common:resetStore':
       return initialState

@@ -1,7 +1,6 @@
 // @flow
-import * as CommonConstants from '../constants/common'
-import * as ConfigConstants from '../constants/config'
 import * as Constants from '../constants/login'
+import * as LoginGen from '../actions/login-gen'
 
 const initialState: Constants.State = {
   codePage: {
@@ -27,7 +26,6 @@ const initialState: Constants.State = {
   forgotPasswordSubmitting: false,
   forgotPasswordSuccess: false,
   justDeletedSelf: null,
-  justLoginFromRevokedDevice: null,
   justRevokedSelf: null,
   loginError: null,
   registerUserPassError: null,
@@ -35,58 +33,58 @@ const initialState: Constants.State = {
   waitingForResponse: false,
 }
 
-export default function(state: Constants.State = initialState, action: any): Constants.State {
+export default function(state: Constants.State = initialState, action: LoginGen.Actions): Constants.State {
   switch (action.type) {
-    case CommonConstants.resetStore:
+    case LoginGen.resetStore:
       return {...initialState}
 
-    case ConfigConstants.statusLoaded:
-      if (action.error || action.payload == null) {
-        return state
-      }
-      break
-    case Constants.setMyDeviceCodeState:
+    case LoginGen.setMyDeviceCodeState:
+      const {state: myDeviceRole} = action.payload
       return {
         ...state,
         codePage: {
           ...state.codePage,
-          myDeviceRole: action.payload,
+          myDeviceRole,
         },
       }
-    case Constants.setOtherDeviceCodeState:
+    case LoginGen.setOtherDeviceCodeState:
+      const {state: otherDeviceRole} = action.payload
       return {
         ...state,
         codePage: {
           ...state.codePage,
-          otherDeviceRole: action.payload,
+          otherDeviceRole,
         },
       }
-    case Constants.setCodeMode:
+    case LoginGen.setCodePageMode:
+      const {mode} = action.payload
       return {
         ...state,
         codePage: {
           ...state.codePage,
-          mode: action.payload,
+          mode,
         },
       }
-    case Constants.setTextCode:
+    case LoginGen.setTextCode:
+      const {enterCodeErrorText, textCode} = action.payload
       return {
         ...state,
         codePage: {
           ...state.codePage,
-          enterCodeErrorText: action.payload.enterCodeErrorText,
-          textCode: action.payload.textCode,
+          enterCodeErrorText,
+          textCode,
         },
       }
-    case Constants.setQRCode:
+    case LoginGen.setQRCode:
+      const {qrCode} = action.payload
       return {
         ...state,
         codePage: {
           ...state.codePage,
-          qrCode: action.payload.qrCode,
+          qrCode,
         },
       }
-    case Constants.clearQRCode:
+    case LoginGen.clearQRCode:
       return {
         ...state,
         codePage: {
@@ -94,71 +92,46 @@ export default function(state: Constants.State = initialState, action: any): Con
           qrCode: null,
         },
       }
-    case Constants.qrScanned:
+    case LoginGen.qrScanned:
+      const {phrase} = action.payload
       return {
         ...state,
         codePage: {
           ...state.codePage,
           qrCodeScanned: true,
-          qrScanned: action.payload,
+          qrScanned: phrase,
         },
       }
-    case Constants.actionUpdateForgotPasswordEmailAddress:
-      return {
-        ...state,
-        forgotPasswordEmailAddress: action.error ? '' : action.payload,
-        forgotPasswordError: action.error ? action.payload : null,
-        forgotPasswordSuccess: false,
-      }
-    case Constants.actionSetForgotPasswordSubmitting:
-      return {
-        ...state,
-        forgotPasswordError: null,
-        forgotPasswordSubmitting: true,
-        forgotPasswordSuccess: false,
-      }
-    case Constants.actionForgotPasswordDone:
-      return {
-        ...state,
-        forgotPasswordError: action.error,
-        forgotPasswordSubmitting: false,
-        forgotPasswordSuccess: !action.error,
-      }
-    case Constants.cameraBrokenMode:
+    case LoginGen.setCameraBrokenMode:
+      const {broken} = action.payload
       return {
         ...state,
         codePage: {
           ...state.codePage,
-          cameraBrokenMode: action.payload,
+          cameraBrokenMode: broken,
         },
       }
-    case Constants.configuredAccounts:
+    case LoginGen.configuredAccounts:
       if (action.payload.error) {
         return {...state, configuredAccounts: []}
       } else {
-        return {...state, configuredAccounts: action.payload.accounts}
+        const {accounts} = action.payload
+        return {...state, configuredAccounts: accounts}
       }
-    case Constants.waitingForResponse:
-      return {...state, waitingForResponse: action.payload}
-    case Constants.loginDone:
-      if (action.error) {
-        return {...state, loginError: action.payload && action.payload.message}
-      } else {
-        return state
-      }
-    case Constants.provisioningError:
+    case LoginGen.waitingForResponse:
+      const {waiting} = action.payload
+      return {...state, waitingForResponse: waiting}
+    case LoginGen.provisioningError:
       return {...state, codePage: {...state.codePage, qrCodeScanned: false}}
-    case Constants.resetQRCodeScanned:
+    case LoginGen.resetQRCodeScanned:
       return {...state, codePage: {...state.codePage, qrCodeScanned: false}}
-    case Constants.setRevokedSelf:
-      return {...state, justRevokedSelf: action.payload}
-    case Constants.setDeletedSelf:
-      return {...state, justDeletedSelf: action.payload}
-    case Constants.setLoginFromRevokedDevice:
-      return {...state, justLoginFromRevokedDevice: action.payload}
+    case LoginGen.setRevokedSelf:
+      const {revoked} = action.payload
+      return {...state, justRevokedSelf: revoked}
+    case LoginGen.setDeletedSelf:
+      const {deletedUsername} = action.payload
+      return {...state, justDeletedSelf: deletedUsername}
     default:
       return state
   }
-
-  return state
 }

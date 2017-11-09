@@ -1,10 +1,10 @@
 // @flow
 import * as ChatConstants from '../../../constants/chat'
+import * as ChatGen from '../../../actions/chat-gen'
 import * as React from 'react'
 import MessagePopupHeader from './popup-header'
 import {NativeClipboard, PopupMenu} from '../../../common-adapters/index.native'
 import {connect, type TypedState} from '../../../util/container'
-import {deleteMessage, showEditor} from '../../../actions/chat/creators'
 import {isIOS} from '../../../constants/platform'
 import {type RouteProps} from '../../../route-tree/render-route'
 import {type TextProps, type AttachmentProps} from './popup'
@@ -131,20 +131,21 @@ export default connect(
   },
   (dispatch: Dispatch, {routeProps, navigateUp}: OwnProps) => ({
     onDeleteMessage: (message: ChatConstants.ServerMessage) => {
-      dispatch(deleteMessage(message))
+      dispatch(ChatGen.createDeleteMessage({message}))
     },
     onHidden: () => dispatch(navigateUp()),
-    onShowEditor: () => dispatch(showEditor(routeProps.get('message'))),
+    onShowEditor: () => dispatch(ChatGen.createShowEditor({message: routeProps.get('message')})),
     onSaveAttachment: message =>
       dispatch(
-        ({
-          type: 'chat:saveAttachmentNative',
-          payload: {messageKey: message.key},
-        }: ChatConstants.SaveAttachmentNative)
+        ChatGen.createSaveAttachmentNative({
+          messageKey: message.key,
+        })
       ),
     onShareAttachment: message =>
       dispatch(
-        ({type: 'chat:shareAttachment', payload: {messageKey: message.key}}: ChatConstants.ShareAttachment)
+        ChatGen.createShareAttachment({
+          messageKey: message.key,
+        })
       ),
   })
 )(MessagePopup)

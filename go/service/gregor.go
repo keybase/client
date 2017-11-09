@@ -661,6 +661,7 @@ func (g *gregorHandler) OnConnect(ctx context.Context, conn *rpc.Connection,
 		Ctime:     latestCtime,
 		Fresh:     g.firstConnect,
 		ProtVers:  chat1.SyncAllProtVers_V1,
+		HostName:  g.GetURI().Host,
 	})
 	if err != nil {
 		// This will cause us to try and refresh session on the next attempt
@@ -866,6 +867,7 @@ func (g *gregorHandler) handleInBandMessage(ctx context.Context, cli gregor1.Inc
 	ibm gregor.InBandMessage) (err error) {
 
 	defer g.G().Trace(fmt.Sprintf("gregorHandler#handleInBandMessage with %d handlers", len(g.ibmHandlers)), func() error { return err })()
+	ctx = libkb.WithLogTag(ctx, "GRGIBM")
 
 	var freshHandlers []libkb.GregorInBandMessageHandler
 
@@ -1398,7 +1400,8 @@ func (g *gregorHandler) connectTLS() error {
 		WrapErrorFunc:    libkb.MakeWrapError(g.G().ExternalG()),
 		ReconnectBackoff: func() backoff.BackOff { return constBackoff },
 	}
-	g.conn = rpc.NewTLSConnection(uri.HostPort, []byte(rawCA), libkb.NewContextifiedErrorUnwrapper(g.G().ExternalG()), g, libkb.NewRPCLogFactory(g.G().ExternalG()), g.G().Log, opts)
+	g.conn = rpc.NewTLSConnection(rpc.NewFixedRemote(uri.HostPort),
+		[]byte(rawCA), libkb.NewContextifiedErrorUnwrapper(g.G().ExternalG()), g, libkb.NewRPCLogFactory(g.G().ExternalG()), g.G().Log, opts)
 
 	// The client we get here will reconnect to gregord on disconnect if necessary.
 	// We should grab it here instead of in OnConnect, since the connection is not
@@ -1482,12 +1485,12 @@ func (g *gregorHandler) templateMessage() (*gregor1.Message, error) {
 // `cli` is the interface used to talk to gregor.
 // If nil then the global cli will be used.
 // Be sure to pass a cli when called from within OnConnect, as the global cli would deadlock.
-func (g *gregorHandler) DismissItem(cli gregor1.IncomingInterface, id gregor.MsgID) error {
+func (g *gregorHandler) DismissItem(ctx context.Context, cli gregor1.IncomingInterface, id gregor.MsgID) error {
 	if id == nil {
 		return nil
 	}
 	var err error
-	defer g.G().Trace(fmt.Sprintf("gregorHandler.DismissItem(%s)", id.String()),
+	defer g.G().Trace(fmt.Sprintf("gregorHandler.dismissItem(%s)", id.String()),
 		func() error { return err },
 	)()
 
@@ -1503,8 +1506,7 @@ func (g *gregorHandler) DismissItem(cli gregor1.IncomingInterface, id gregor.Msg
 	if cli == nil {
 		cli = gregor1.IncomingClient{Cli: g.cli}
 	}
-	// TODO: Should the interface take a context from the caller?
-	err = cli.ConsumeMessage(context.TODO(), *dismissal)
+	err = cli.ConsumeMessage(ctx, *dismissal)
 	return err
 }
 
@@ -1639,6 +1641,10 @@ func (g *gregorRPCHandler) InjectItem(ctx context.Context, arg keybase1.InjectIt
 
 func (g *gregorRPCHandler) DismissCategory(ctx context.Context, category gregor1.Category) error {
 	return g.gh.DismissCategory(ctx, category)
+}
+
+func (g *gregorRPCHandler) DismissItem(ctx context.Context, id gregor1.MsgID) error {
+	return g.gh.DismissItem(ctx, nil, id)
 }
 
 func WrapGenericClientWithTimeout(client rpc.GenericClient, timeout time.Duration, timeoutErr error) rpc.GenericClient {
