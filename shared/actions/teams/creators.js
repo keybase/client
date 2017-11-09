@@ -166,7 +166,7 @@ export {
   leaveTeam,
   makeTeamOpen,
   removeMember,
-  saveChannelMembership,  
+  saveChannelMembership,
   setPublicityMember,
   setPublicityTeam,
   setTeamCreationError,

@@ -54,10 +54,8 @@ const mapStateToProps = (state: TypedState, {routeProps, routeState}): StateProp
     publicityTeam: state.entities.getIn(['teams', 'teamNameToPublicitySettings', teamname], {
       team: false,
     }).team,
-    you: state.config.username,
     selectedTab: routeState.get('selectedTab') || 'members',
     you: state.config.username,
-
   }
 }
 
@@ -139,7 +137,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
   const showAddYourselfBanner = !youAreMember && !youExplicitAdmin && youImplicitAdmin
   const youCanAddPeople = youAdmin
   const youCanCreateSubteam = youAdmin
-  
+
   const onAddSelf = () => dispatchProps._onAddSelf(stateProps.name, you)
   const setPublicityMember = (checked: boolean) => dispatchProps._setPublicityMember(stateProps.name, checked)
   const setPublicityTeam = (checked: boolean) => dispatchProps._setPublicityTeam(stateProps.name, checked)

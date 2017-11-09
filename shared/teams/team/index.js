@@ -43,7 +43,7 @@ export type Props = {
   publicityTeam: boolean,
   requests: Array<RequestRowProps>,
   selectedTab: Constants.TabKey,
-  showAddYourselfBanner: boolean,  
+  showAddYourselfBanner: boolean,
   setPublicityMember: (checked: boolean) => void,
   setPublicityTeam: (checked: boolean) => void,
   showMenu: boolean,
