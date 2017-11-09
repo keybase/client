@@ -14,6 +14,7 @@ const backgroundImageFn = (set: string, sheetSize: string) => emojiSet
 // a full crash is triggered. Here we check the value between the first
 // pair of colons & make sure it's not a skin-tone modifier and that we
 // have a match for it in the emoji index
+// Bug filed here: https://github.com/missive/emoji-mart/issues/143
 const emojiDataRegex = /:([^:]*):(:skin-tone-\d:)?/i
 const isValidEmoji = (fullEmoji: string) => {
   const match = emojiDataRegex.exec(fullEmoji)
