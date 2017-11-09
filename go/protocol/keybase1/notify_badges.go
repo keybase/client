@@ -4,6 +4,7 @@
 package keybase1
 
 import (
+	gregor1 "github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	context "golang.org/x/net/context"
 )
@@ -19,6 +20,20 @@ func (o ChatConversationID) DeepCopy() ChatConversationID {
 	})(o)
 }
 
+type TeamMemberOutReset struct {
+	Teamname string        `codec:"teamname" json:"teamname"`
+	Username string        `codec:"username" json:"username"`
+	Id       gregor1.MsgID `codec:"id" json:"id"`
+}
+
+func (o TeamMemberOutReset) DeepCopy() TeamMemberOutReset {
+	return TeamMemberOutReset{
+		Teamname: o.Teamname,
+		Username: o.Username,
+		Id:       o.Id.DeepCopy(),
+	}
+}
+
 type BadgeState struct {
 	NewTlfs                   int                     `codec:"newTlfs" json:"newTlfs"`
 	RekeysNeeded              int                     `codec:"rekeysNeeded" json:"rekeysNeeded"`
@@ -28,6 +43,7 @@ type BadgeState struct {
 	NewGitRepoGlobalUniqueIDs []string                `codec:"newGitRepoGlobalUniqueIDs" json:"newGitRepoGlobalUniqueIDs"`
 	NewTeamNames              []string                `codec:"newTeamNames" json:"newTeamNames"`
 	NewTeamAccessRequests     []string                `codec:"newTeamAccessRequests" json:"newTeamAccessRequests"`
+	TeamsWithResetUsers       []TeamMemberOutReset    `codec:"teamsWithResetUsers" json:"teamsWithResetUsers"`
 }
 
 func (o BadgeState) DeepCopy() BadgeState {
@@ -80,6 +96,17 @@ func (o BadgeState) DeepCopy() BadgeState {
 			}
 			return ret
 		})(o.NewTeamAccessRequests),
+		TeamsWithResetUsers: (func(x []TeamMemberOutReset) []TeamMemberOutReset {
+			if x == nil {
+				return nil
+			}
+			var ret []TeamMemberOutReset
+			for _, v := range x {
+				vCopy := v.DeepCopy()
+				ret = append(ret, vCopy)
+			}
+			return ret
+		})(o.TeamsWithResetUsers),
 	}
 }
 

@@ -552,6 +552,62 @@ func (u *smuUser) teamGet(team smuTeam) (keybase1.TeamDetails, error) {
 	return details, err
 }
 
+func (u *smuUser) teamMemberDetails(team smuTeam, user *smuUser) ([]keybase1.TeamMemberDetails, error) {
+	teamDetails, err := u.teamGet(team)
+	if err != nil {
+		return nil, err
+	}
+	var all []keybase1.TeamMemberDetails
+	all = append(all, teamDetails.Members.Owners...)
+	all = append(all, teamDetails.Members.Admins...)
+	all = append(all, teamDetails.Members.Writers...)
+	all = append(all, teamDetails.Members.Readers...)
+
+	var matches []keybase1.TeamMemberDetails
+	for _, m := range all {
+		if m.Username == user.username {
+			matches = append(matches, m)
+		}
+	}
+	if len(matches) == 0 {
+		return nil, libkb.NotFoundError{}
+	}
+	return matches, nil
+}
+
+func (u *smuUser) isMemberActive(team smuTeam, user *smuUser) (bool, error) {
+	details, err := u.teamMemberDetails(team, user)
+	if err != nil {
+		return false, err
+	}
+	for _, d := range details {
+		if d.Active {
+			return true, nil
+		}
+	}
+	return false, nil
+}
+
+func (u *smuUser) assertMemberActive(team smuTeam, user *smuUser) {
+	active, err := u.isMemberActive(team, user)
+	if err != nil {
+		u.ctx.t.Fatalf("assertMemberActive error: %s", err)
+	}
+	if !active {
+		u.ctx.t.Errorf("user %s not active", user.username)
+	}
+}
+
+func (u *smuUser) assertMemberInactive(team smuTeam, user *smuUser) {
+	active, err := u.isMemberActive(team, user)
+	if err != nil {
+		u.ctx.t.Fatalf("assertMemberInactive error: %s", err)
+	}
+	if active {
+		u.ctx.t.Errorf("user %s is active", user.username)
+	}
+}
+
 func (u *smuUser) uid() keybase1.UID {
 	return u.primaryDevice().tctx.G.Env.GetUID()
 }
