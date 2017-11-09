@@ -11,7 +11,7 @@ var apiCAOverrideForTest = ""
 // no matching CA is found for host.
 func GetBundledCAsFromHost(host string) (rootCA []byte, ok bool) {
 	host = strings.TrimSpace(strings.ToLower(host))
-	realAPICA := apiCA
+	realAPICA := APICA
 	if len(apiCAOverrideForTest) > 0 {
 		realAPICA = apiCAOverrideForTest
 	}
@@ -39,7 +39,7 @@ func GetBundledCAsFromHost(host string) (rootCA []byte, ok bool) {
 	}
 }
 
-const apiCA = `
+const APICA = `
 -----BEGIN CERTIFICATE-----
 MIIGmzCCBIOgAwIBAgIJAPzhpcIBaOeNMA0GCSqGSIb3DQEBBQUAMIGPMQswCQYD
 VQQGEwJVUzELMAkGA1UECBMCTlkxETAPBgNVBAcTCE5ldyBZb3JrMRQwEgYDVQQK

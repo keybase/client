@@ -69,6 +69,18 @@
 			"revisionTime": "2017-07-31T11:19:25Z"
 		},
 		{
+			"checksumSHA1": "5GD2mlKEoDM+bU1PfSlx8rAz4oc=",
+			"path": "github.com/coreos/go-systemd/util",
+			"revision": "d2196463941895ee908e13531a23a39feb9e1243",
+			"revisionTime": "2017-07-31T11:19:25Z"
+		},
+		{
+			"checksumSHA1": "O8c/VKtW34XPJNNlyeb/im8vWSI=",
+			"path": "github.com/coreos/pkg/dlopen",
+			"revision": "459346e834d8e97be707cd0ea1236acaaa159ffc",
+			"revisionTime": "2017-09-01T14:55:54Z"
+		},
+		{
 			"checksumSHA1": "dvabztWVQX8f6oMLRyv4dLH+TGY=",
 			"path": "github.com/davecgh/go-spew/spew",
 			"revision": "346938d642f2ec3594ed81d874461961cd0faa76",
@@ -189,10 +201,10 @@
 			"revisionTime": "2017-11-03T20:00:56Z"
 		},
 		{
-			"checksumSHA1": "wmubMh/ujsVAsY5giF+oz7XhlvA=",
+			"checksumSHA1": "RHtIjT+vs6ChXUfEoR1Ec4PvAgE=",
 			"path": "github.com/keybase/client/go/libkb",
-			"revision": "ebf80c84e7efeaa05a5517836d6287bd77a9e3d4",
-			"revisionTime": "2017-11-07T00:10:26Z"
+			"revision": "1e7295ce1e35f64b3c13f26830239c9cbf3c5379",
+			"revisionTime": "2017-11-09T00:37:13Z"
 		},
 		{
 			"checksumSHA1": "sDU20AqsRHtvIGsBLpNiRqtKKt4=",
@@ -237,10 +249,10 @@
 			"revisionTime": "2017-11-03T20:00:56Z"
 		},
 		{
-			"checksumSHA1": "G+30uNG6Pq4KMVcN1TM3+yiIN8Y=",
+			"checksumSHA1": "KEK7tTs81o0slpJggatWCTSmsO0=",
 			"path": "github.com/keybase/client/go/systemd",
-			"revision": "48d481846d575f64aa78234f99d003b03f3416c0",
-			"revisionTime": "2017-11-03T20:00:56Z"
+			"revision": "1e7295ce1e35f64b3c13f26830239c9cbf3c5379",
+			"revisionTime": "2017-11-09T00:37:13Z"
 		},
 		{
 			"checksumSHA1": "qtfSDF71FbCm7kTNKdraxOpU7wY=",

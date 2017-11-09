@@ -7,8 +7,6 @@ package kbfscrypto
 import (
 	"net"
 	"os"
-
-	"github.com/keybase/client/go/libkb"
 )
 
 // TestRootCert is a CA cert which can be used for testing TLS support.
@@ -131,7 +129,8 @@ const (
 
 // GetRootCerts returns a byte array with the appropriate root certs
 // for the given host:port string.
-func GetRootCerts(serverAddr string) []byte {
+func GetRootCerts(serverAddr string,
+	certGetter func(host string) (certsBundle []byte, ok bool)) []byte {
 	// Use the environment variable, if set.
 	envTestRootCert := os.Getenv(EnvTestRootCertPEM)
 	if len(envTestRootCert) != 0 {
@@ -139,7 +138,7 @@ func GetRootCerts(serverAddr string) []byte {
 	}
 
 	if host, _, err := net.SplitHostPort(serverAddr); err == nil {
-		if rootCA, ok := libkb.GetBundledCAsFromHost(host); ok {
+		if rootCA, ok := certGetter(host); ok {
 			return rootCA
 		}
 	}
