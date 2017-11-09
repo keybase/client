@@ -187,25 +187,25 @@ function* onLoadAttachment({
       identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
     }
 
-    const downloadFileRpc = new EngineRpc.EngineRpcCall(
-      loadAttachmentSagaMap(messageKey, loadPreview),
-      ChatTypes.localDownloadFileAttachmentLocalRpcChannelMap,
-      `localDownloadFileAttachmentLocal-${conversationIDKey}-${messageID}`,
-      {param}
-    )
+    // TEMP
+    // const downloadFileRpc = new EngineRpc.EngineRpcCall(
+    // loadAttachmentSagaMap(messageKey, loadPreview),
+    // `localDownloadFileAttachmentLocal-${conversationIDKey}-${messageID}`,
+    // configKeys => ChatTypes.localDownloadFileAttachmentLocalRpcChannelMap(configKeys, param)
+    // )
 
-    try {
-      const result = yield Saga.call(downloadFileRpc.run)
-      if (EngineRpc.isFinished(result)) {
-        yield Saga.put(ChatGen.createAttachmentLoaded({messageKey, path: destPath, isPreview: loadPreview}))
-      } else {
-        console.warn('downloadFileRpc bailed early')
-        yield Saga.put(ChatGen.createAttachmentLoaded({messageKey, path: null, isPreview: loadPreview}))
-      }
-    } catch (err) {
-      console.warn('attachment failed to load:', err)
-      yield Saga.put(ChatGen.createAttachmentLoaded({messageKey, path: null, isPreview: loadPreview}))
-    }
+    // try {
+    // const result = yield Saga.call(downloadFileRpc.run)
+    // if (EngineRpc.isFinished(result)) {
+    // yield Saga.put(ChatGen.createAttachmentLoaded({messageKey, path: destPath, isPreview: loadPreview}))
+    // } else {
+    // console.warn('downloadFileRpc bailed early')
+    // yield Saga.put(ChatGen.createAttachmentLoaded({messageKey, path: null, isPreview: loadPreview}))
+    // }
+    // } catch (err) {
+    // console.warn('attachment failed to load:', err)
+    // yield Saga.put(ChatGen.createAttachmentLoaded({messageKey, path: null, isPreview: loadPreview}))
+    // }
   })
 }
 
@@ -314,89 +314,84 @@ const postAttachmentSagaMap = (
 })
 
 function* onSelectAttachment({payload: {input}}: ChatGen.SelectAttachmentPayload): Generator<any, any, any> {
-  const {title, filename} = input
-  let {conversationIDKey} = input
-  let newConvoTlfName
-
-  if (Constants.isPendingConversationIDKey(conversationIDKey)) {
-    // Get a real conversationIDKey
-    ;[conversationIDKey, newConvoTlfName] = yield Saga.call(Shared.startNewConversation, conversationIDKey)
-    if (!conversationIDKey) {
-      return
-    }
-  }
-
-  const preview = yield Saga.call(ChatTypes.localMakePreviewRpcPromise, {
-    attachment: {filename},
-    outputDir: tmpDir(),
-  })
-
-  const inboxConvo = yield Saga.select(Constants.getInbox, conversationIDKey)
-  const param = {
-    conversationID: Constants.keyToConversationID(conversationIDKey),
-    tlfName: inboxConvo ? inboxConvo.name : newConvoTlfName,
-    visibility: inboxConvo.visibility,
-    attachment: {filename},
-    preview,
-    title,
-    metadata: null,
-    identifyBehavior: yield Saga.call(Shared.getPostingIdentifyBehavior, conversationIDKey),
-  }
-
-  // TODO This is really hacky, should get reworked
-  let curKey: ?Constants.MessageKey = null
-  let outboxID = null
-
-  // When we receive the attachment placeholder message from the server, the
-  // local message key basis will change from the outboxID to the messageID.
-  // We need to watch for this so that the uploadProgress gets set on the
-  // right message key.
-  const getCurKey = (): ?Constants.MessageKey => curKey
-  const getOutboxIdKey = (): ?Constants.OutboxIDKey => outboxID
-
-  const setCurKey = nextCurKey => {
-    curKey = nextCurKey
-  }
-  const setOutboxIdKey = nextOutboxID => (outboxID = nextOutboxID)
-
-  const postAttachment = new EngineRpc.EngineRpcCall(
-    postAttachmentSagaMap(conversationIDKey, preview, title, filename, getCurKey, setCurKey, setOutboxIdKey),
-    ChatTypes.localPostFileAttachmentLocalRpcChannelMap,
-    `localPostFileAttachmentLocal-${conversationIDKey}-${title}-${filename}`,
-    {param}
-  )
-
-  const keyChangedTask = yield Saga.safeTakeEvery(
-    action => action.type === ChatGen.outboxMessageBecameReal && action.payload.oldMessageKey === getCurKey(),
-    function*(action) {
-      yield Saga.call(setCurKey, action.payload.newMessageKey)
-    }
-  )
-
-  try {
-    const result = yield Saga.call(postAttachment.run)
-    if (EngineRpc.isFinished(result)) {
-      if (result.error) {
-        const outboxIDKey = yield Saga.call(getOutboxIdKey)
-        yield Saga.put(
-          ChatGen.createUpdateTempMessage({
-            conversationIDKey,
-            message: {
-              messageState: 'failed',
-              failureDescription: 'upload unsuccessful',
-            },
-            outboxIDKey,
-          })
-        )
-      }
-      const curKey = yield Saga.call(getCurKey)
-      yield Saga.put(ChatGen.createUploadProgress({messageKey: curKey, progress: null}))
-    } else {
-      console.warn('Upload Attachment Failed')
-    }
-  } finally {
-    yield Saga.cancel(keyChangedTask)
-  }
+  // TEMP
+  // const {title, filename} = input
+  // let {conversationIDKey} = input
+  // let newConvoTlfName
+  // if (Constants.isPendingConversationIDKey(conversationIDKey)) {
+  // // Get a real conversationIDKey
+  // ;[conversationIDKey, newConvoTlfName] = yield Saga.call(Shared.startNewConversation, conversationIDKey)
+  // if (!conversationIDKey) {
+  // return
+  // }
+  // }
+  // const preview = yield Saga.call(ChatTypes.localMakePreviewRpcPromise, {
+  // attachment: {filename},
+  // outputDir: tmpDir(),
+  // })
+  // const inboxConvo = yield Saga.select(Constants.getInbox, conversationIDKey)
+  // const tlfName = inboxConvo ? inboxConvo.name : newConvoTlfName
+  // if (!tlfName) {
+  // throw new Error('No tlfname in onSelectAttachment')
+  // }
+  // const param = {
+  // conversationID: Constants.keyToConversationID(conversationIDKey),
+  // tlfName,
+  // visibility: inboxConvo.visibility,
+  // attachment: {filename},
+  // preview,
+  // title,
+  // metadata: null,
+  // identifyBehavior: yield Saga.call(Shared.getPostingIdentifyBehavior, conversationIDKey),
+  // }
+  // // TODO This is really hacky, should get reworked
+  // let curKey: ?Constants.MessageKey = null
+  // let outboxID = null
+  // // When we receive the attachment placeholder message from the server, the
+  // // local message key basis will change from the outboxID to the messageID.
+  // // We need to watch for this so that the uploadProgress gets set on the
+  // // right message key.
+  // const getCurKey = (): ?Constants.MessageKey => curKey
+  // const getOutboxIdKey = (): ?Constants.OutboxIDKey => outboxID
+  // const setCurKey = nextCurKey => {
+  // curKey = nextCurKey
+  // }
+  // const setOutboxIdKey = nextOutboxID => (outboxID = nextOutboxID)
+  // const postAttachment = new EngineRpc.EngineRpcCall(
+  // postAttachmentSagaMap(conversationIDKey, preview, title, filename, getCurKey, setCurKey, setOutboxIdKey),
+  // `localPostFileAttachmentLocal-${conversationIDKey}-${title}-${filename}`,
+  // configKeys => ChatTypes.localPostFileAttachmentLocalRpcChannelMap(configKeys, param)
+  // )
+  // const keyChangedTask = yield Saga.safeTakeEvery(
+  // action => action.type === ChatGen.outboxMessageBecameReal && action.payload.oldMessageKey === getCurKey(),
+  // function*(action) {
+  // yield Saga.call(setCurKey, action.payload.newMessageKey)
+  // }
+  // )
+  // try {
+  // const result = yield Saga.call(postAttachment.run)
+  // if (EngineRpc.isFinished(result)) {
+  // if (result.error) {
+  // const outboxIDKey = yield Saga.call(getOutboxIdKey)
+  // yield Saga.put(
+  // ChatGen.createUpdateTempMessage({
+  // conversationIDKey,
+  // message: {
+  // messageState: 'failed',
+  // failureDescription: 'upload unsuccessful',
+  // },
+  // outboxIDKey,
+  // })
+  // )
+  // }
+  // const curKey = yield Saga.call(getCurKey)
+  // yield Saga.put(ChatGen.createUploadProgress({messageKey: curKey, progress: null}))
+  // } else {
+  // console.warn('Upload Attachment Failed')
+  // }
+  // } finally {
+  // yield Saga.cancel(keyChangedTask)
+  // }
 }
 
 function* onRetryAttachment({payload: {message}}: ChatGen.RetryAttachmentPayload): Generator<any, any, any> {

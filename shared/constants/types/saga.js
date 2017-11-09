@@ -25,6 +25,5 @@ export type ChannelMap<T> = {
 }
 
 export type SagaMap = {
-  // $FlowIssue with returning Generators from functions
   [key: string]: Generator<*, *, *>,
 }
