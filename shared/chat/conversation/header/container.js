@@ -8,6 +8,7 @@ import {createSelector} from 'reselect'
 import {showUserProfile} from '../../../actions/profile'
 import {chatTab} from '../../../constants/tabs'
 import {type OwnProps} from './container'
+import * as ChatTypes from '../../../constants/types/flow-types-chat'
 
 const getUsers = createSelector(
   [Constants.getYou, Constants.getTLF, Constants.getFollowingMap, Constants.getMetaDataMap],
@@ -28,6 +29,7 @@ const mapStateToProps = (state: TypedState, {infoPanelOpen}: OwnProps) => ({
   infoPanelOpen,
   teamName: Constants.getTeamName(state),
   users: getUsers(state),
+  smallTeam: Constants.getTeamType(state) === ChatTypes.commonTeamType.simple,
 })
 
 const mapDispatchToProps = (dispatch: Dispatch, {onBack, onToggleInfoPanel}: OwnProps) => ({

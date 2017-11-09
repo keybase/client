@@ -1,7 +1,8 @@
 // @flow
 import * as Constants from '../../../constants/chat'
+import * as TeamConstants from '../../../constants/teams'
 import * as ChatGen from '../../../actions/chat-gen'
-import {SmallTeamInfoPanel, BigTeamInfoPanel} from '.'
+import {ConversationInfoPanel, SmallTeamInfoPanel, BigTeamInfoPanel} from '.'
 import {Map} from 'immutable'
 import {
   compose,
@@ -13,9 +14,10 @@ import {
 } from '../../../util/container'
 import {createSelector} from 'reselect'
 import {navigateAppend, navigateTo} from '../../../actions/route-tree'
-import {chatTab} from '../../../constants/tabs'
+import {chatTab, teamsTab} from '../../../constants/tabs'
 import {showUserProfile} from '../../../actions/profile'
 import flags from '../../../util/feature-flags'
+import * as ChatTypes from '../../../constants/types/flow-types-chat'
 
 const getParticipants = createSelector(
   [
@@ -51,6 +53,7 @@ const mapStateToProps = (state: TypedState) => {
   const channelname = inbox.get('channelname')
   const teamname = inbox.get('teamname')
   const showTeamButton = flags.teamChatEnabled
+  const smallTeam = Constants.getTeamType(state) === ChatTypes.commonTeamType.simple
 
   return {
     channelname,
@@ -59,6 +62,7 @@ const mapStateToProps = (state: TypedState) => {
     selectedConversationIDKey,
     showTeamButton,
     teamname,
+    smallTeam,
   }
 }
 
@@ -90,6 +94,10 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp}) => ({
       ])
     )
   },
+  _onLeaveTeam: (teamname: TeamConstants.Teamname) =>
+    dispatch(navigateAppend([{props: {teamname}, selected: 'reallyLeaveTeam'}])),
+  _onViewTeam: (teamname: TeamConstants.Teamname) =>
+    dispatch(navigateTo([teamsTab, {props: {teamname: teamname}, selected: 'team'}])),
   // Used by HeaderHoc.
   onBack: () => dispatch(navigateUp()),
   onShowProfile: (username: string) => dispatch(showUserProfile(username)),
@@ -119,12 +127,15 @@ const mergeProps = (stateProps, dispatchProps) => ({
     stateProps.selectedConversationIDKey &&
       dispatchProps._onShowNewTeamDialog(stateProps.selectedConversationIDKey)
   },
+  onLeaveTeam: () => dispatchProps._onLeaveTeam(stateProps.teamname),
+  onViewTeam: () => dispatchProps._onViewTeam(stateProps.teamname),
 })
 
 const ConnectedInfoPanel = compose(
   connect(mapStateToProps, mapDispatchToProps, mergeProps),
   branch(props => !props.selectedConversationIDKey, renderNothing),
-  branch(props => props.channelname, renderComponent(BigTeamInfoPanel))
+  branch(props => props.channelname && !props.smallTeam, renderComponent(BigTeamInfoPanel)),
+  branch(props => !props.channelname && !props.smallTeam, renderComponent(ConversationInfoPanel))
 )(SmallTeamInfoPanel)
 
 export default ConnectedInfoPanel
