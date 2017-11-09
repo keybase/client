@@ -12,7 +12,6 @@
 		370EFC8E1FB3BDE1004DB3BB /* MessageUIManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 370EFC8D1FB3BDE1004DB3BB /* MessageUIManager.m */; };
 		39D6D1A57FB3452BA9A3B365 /* libRNFetchBlob.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 51B12F21D54542FC8B7379EC /* libRNFetchBlob.a */; };
 		7608E936D0B84B4FB1849590 /* libRCTCamera.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D4D90F8FFC2D4682850A6803 /* libRCTCamera.a */; };
-		8E677B4A107D43DF8E48C5CF /* libRCTMessageUI.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 910E3B92F66448458CFAC337 /* libRCTMessageUI.a */; };
 		A969A40A1CF65C9C00F273F2 /* LogSend.m in Sources */ = {isa = PBXBuildFile; fileRef = A969A4091CF65C9C00F273F2 /* LogSend.m */; };
 		A9BB30DF1E6A274900E713E5 /* libRCTCameraRoll.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A9BB30C51E6A273A00E713E5 /* libRCTCameraRoll.a */; };
 		B698B104E0834338916083E7 /* libRCTContacts.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 8DC2EA7D9170401F8F611036 /* libRCTContacts.a */; };
@@ -348,7 +347,6 @@
 		6266E16BBFF8461CAF2DDCB9 /* RCTContacts.xcodeproj */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = "wrapper.pb-project"; name = RCTContacts.xcodeproj; path = "../../node_modules/react-native-contacts/ios/RCTContacts.xcodeproj"; sourceTree = "<group>"; };
 		8A6B0997A42F4CC08AE6F28F /* RCTCamera.xcodeproj */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = "wrapper.pb-project"; name = RCTCamera.xcodeproj; path = "../../node_modules/react-native-camera/ios/RCTCamera.xcodeproj"; sourceTree = "<group>"; };
 		8DC2EA7D9170401F8F611036 /* libRCTContacts.a */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = archive.ar; path = libRCTContacts.a; sourceTree = "<group>"; };
-		910E3B92F66448458CFAC337 /* libRCTMessageUI.a */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = archive.ar; path = libRCTMessageUI.a; sourceTree = "<group>"; };
 		A77BBAD7A94F4A2580CA3B23 /* libRNImagePicker.a */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = archive.ar; path = libRNImagePicker.a; sourceTree = "<group>"; };
 		A969A4091CF65C9C00F273F2 /* LogSend.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = LogSend.m; sourceTree = "<group>"; };
 		A969A4161CF65CB200F273F2 /* LogSend.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = LogSend.h; sourceTree = "<group>"; };
@@ -418,7 +416,6 @@
 				DCF5D67E98CE413A87F0068C /* libRNImagePicker.a in Frameworks */,
 				39D6D1A57FB3452BA9A3B365 /* libRNFetchBlob.a in Frameworks */,
 				B698B104E0834338916083E7 /* libRCTContacts.a in Frameworks */,
-				8E677B4A107D43DF8E48C5CF /* libRCTMessageUI.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -562,7 +559,6 @@
 				A77BBAD7A94F4A2580CA3B23 /* libRNImagePicker.a */,
 				51B12F21D54542FC8B7379EC /* libRNFetchBlob.a */,
 				8DC2EA7D9170401F8F611036 /* libRCTContacts.a */,
-				910E3B92F66448458CFAC337 /* libRCTMessageUI.a */,
 			);
 			name = "Recovered References";
 			sourceTree = "<group>";
