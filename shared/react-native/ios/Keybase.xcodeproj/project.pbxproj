@@ -57,14 +57,22 @@
 			remoteGlobalIDString = 014A3B5C1C6CF33500B6D375;
 			remoteInfo = RNImagePicker;
 		};
+<<<<<<< HEAD
 		375757661FB3B12C00F2ADBB /* PBXContainerItemProxy */ = {
+=======
+		27B80F581FB4C0F3008EF78B /* PBXContainerItemProxy */ = {
+>>>>>>> master
 			isa = PBXContainerItemProxy;
 			containerPortal = DB2BD1B21DE7D97900BB7989 /* RCTWebSocket.xcodeproj */;
 			proxyType = 2;
 			remoteGlobalIDString = 3DBE0D001F3B181A0099AA32;
 			remoteInfo = fishhook;
 		};
+<<<<<<< HEAD
 		375757681FB3B12C00F2ADBB /* PBXContainerItemProxy */ = {
+=======
+		27B80F5A1FB4C0F3008EF78B /* PBXContainerItemProxy */ = {
+>>>>>>> master
 			isa = PBXContainerItemProxy;
 			containerPortal = DB2BD1B21DE7D97900BB7989 /* RCTWebSocket.xcodeproj */;
 			proxyType = 2;
@@ -665,8 +673,13 @@
 			children = (
 				DB2BD1E21DE7D97900BB7989 /* libRCTWebSocket.a */,
 				DB2BD1E41DE7D97900BB7989 /* libRCTWebSocket-tvOS.a */,
+<<<<<<< HEAD
 				375757671FB3B12C00F2ADBB /* libfishhook.a */,
 				375757691FB3B12C00F2ADBB /* libfishhook-tvOS.a */,
+=======
+				27B80F591FB4C0F3008EF78B /* libfishhook.a */,
+				27B80F5B1FB4C0F3008EF78B /* libfishhook-tvOS.a */,
+>>>>>>> master
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -912,6 +925,7 @@
 			remoteRef = 27429B071E64A7A90058A4F9 /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
+<<<<<<< HEAD
 		375757671FB3B12C00F2ADBB /* libfishhook.a */ = {
 			isa = PBXReferenceProxy;
 			fileType = archive.ar;
@@ -924,6 +938,20 @@
 			fileType = archive.ar;
 			path = "libfishhook-tvOS.a";
 			remoteRef = 375757681FB3B12C00F2ADBB /* PBXContainerItemProxy */;
+=======
+		27B80F591FB4C0F3008EF78B /* libfishhook.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = libfishhook.a;
+			remoteRef = 27B80F581FB4C0F3008EF78B /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		27B80F5B1FB4C0F3008EF78B /* libfishhook-tvOS.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = "libfishhook-tvOS.a";
+			remoteRef = 27B80F5A1FB4C0F3008EF78B /* PBXContainerItemProxy */;
+>>>>>>> master
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
 		37D2980A1F9A48D600D43971 /* libRCTContacts.a */ = {
@@ -1357,6 +1385,8 @@
 					"$(inherited)",
 					"-ObjC",
 					"-lc++",
+					"-Xlinker",
+					"-no_branch_islands",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = keybase.ios;
 				PRODUCT_NAME = Keybase;
@@ -1405,6 +1435,8 @@
 					"$(inherited)",
 					"-ObjC",
 					"-lc++",
+					"-Xlinker",
+					"-no_branch_islands",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = keybase.ios;
 				PRODUCT_NAME = Keybase;

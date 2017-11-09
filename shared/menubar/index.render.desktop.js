@@ -1,5 +1,5 @@
 // @flow
-import Folders from '../folders'
+import Folders, {type FolderType} from '../folders'
 import React, {Component} from 'react'
 import UserAdd from './user-add'
 import {Box, Icon, Text, Button, PopupMenu, Badge} from '../common-adapters/index'
@@ -11,7 +11,7 @@ import type {Props} from './index.render'
 import type {Tab} from '../constants/tabs'
 
 type State = {
-  selected: string,
+  selected: FolderType,
   showingMenu: boolean,
 }
 
@@ -129,7 +129,7 @@ class MenubarRender extends Component<Props, State> {
       private: newPrivate,
       public: newPublic,
       onSwitchTab: selected => this.setState({selected}),
-      showingPrivate: this.state.selected === 'private',
+      selected: this.state.selected,
       onRekey: this.props.onRekey,
     }
 

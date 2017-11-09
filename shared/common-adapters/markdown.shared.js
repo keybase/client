@@ -47,7 +47,7 @@ function preprocessMarkdown(markdown: string, meta: ?MarkdownMeta) {
     return markdown
   }
 
-  return markdown.replace(/\B@([a-z][a-z0-9_]+)/g, (match, matchedGroup) => {
+  return markdown.replace(/\B@([a-z0-9][a-z0-9_]+)/g, (match, matchedGroup) => {
     if (matchedGroup === 'here' || matchedGroup === 'channel' || mentions.has(matchedGroup)) {
       return `${match}@keybase`
     }

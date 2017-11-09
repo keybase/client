@@ -9,6 +9,10 @@ import type {Service} from './search'
 import {type NoErrorTypedAction} from './types/flux'
 import {type TypedState} from './reducer'
 
+type _PublicitySettings = {
+  member: boolean,
+  team: boolean,
+}
 export type TeamSettings = RPCTypes.TeamSettings
 export type ChannelMembershipState = {[channelname: string]: boolean}
 
@@ -165,6 +169,16 @@ export type InviteToTeamByEmail = NoErrorTypedAction<
   {invitees: string, role: string, teamname: string}
 >
 
+export type SetPublicityMember = NoErrorTypedAction<
+  'teams:setPublicityMember',
+  {enabled: boolean, teamname: string}
+>
+
+export type SetPublicityTeam = NoErrorTypedAction<
+  'teams:setPublicityTeam',
+  {enabled: boolean, teamname: string}
+>
+
 export type UpdateChannelName = NoErrorTypedAction<
   'teams:updateChannelName',
   {conversationIDKey: ChatConstants.ConversationIDKey, newChannelName: string}
@@ -223,6 +237,7 @@ type _State = {
   teamNameToLoading: I.Map<Teamname, boolean>,
   teamNameToRequests: I.Map<Teamname, I.List<string>>,
   teamNameToTeamSettings: I.Map<Teamname, TeamSettings>,
+  teamNameToPublicitySettings: I.Map<Teamname, _PublicitySettings>,
   teamnames: I.Set<Teamname>,
   teammembercounts: I.Map<Teamname, number>,
   newTeams: I.Set<string>,
@@ -241,6 +256,7 @@ export const makeState: I.RecordFactory<_State> = I.Record({
   teamNameToMembers: I.Map(),
   teamNameToRequests: I.Map(),
   teamNameToTeamSettings: I.Map(),
+  teamNameToPublicitySettings: I.Map(),
   teammembercounts: I.Map(),
   newTeams: I.Set(),
   teamnames: I.Set(),

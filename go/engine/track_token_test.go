@@ -12,6 +12,7 @@ import (
 	gregor1 "github.com/keybase/client/go/protocol/gregor1"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/clockwork"
+	context "golang.org/x/net/context"
 )
 
 func TestTrackTokenIdentify2(t *testing.T) {
@@ -419,7 +420,7 @@ type FakeGregorDismisser struct {
 
 var _ libkb.GregorDismisser = (*FakeGregorDismisser)(nil)
 
-func (d *FakeGregorDismisser) DismissItem(cli gregor1.IncomingInterface, id gregor.MsgID) error {
+func (d *FakeGregorDismisser) DismissItem(ctx context.Context, cli gregor1.IncomingInterface, id gregor.MsgID) error {
 	d.dismissedMsgID = id
 	return nil
 }
