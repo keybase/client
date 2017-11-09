@@ -5,6 +5,7 @@ import * as FluxTypes from './types/flux'
 import * as I from 'immutable'
 import * as Saga from '../util/saga'
 import * as SagaTypes from './types/saga'
+import * as Types from '../engine/types'
 import {getEngine, EngineChannel} from '../engine'
 import mapValues from 'lodash/mapValues'
 import {RPCTimeoutError} from '../util/errors'
@@ -13,11 +14,11 @@ import {RPCTimeoutError} from '../util/errors'
 const BailEarly = {type: '@@engineRPCCall:bailEarly'}
 const BailedEarly = {type: '@@engineRPCCall:bailedEarly', payload: undefined}
 
-const rpcResult = (args: any) => ({type: '@@engineRPCCall:respondResult', payload: args})
-const rpcError = (args: any) => ({type: '@@engineRPCCall:respondError', payload: args})
-const rpcCancel = (args: any) => ({type: '@@engineRPCCall:respondCancel', payload: args})
+const rpcResult = payload => ({type: '@@engineRPCCall:respondResult', payload})
+const rpcError = payload => ({type: '@@engineRPCCall:respondError', payload})
+const rpcCancel = payload => ({type: '@@engineRPCCall:respondCancel', payload})
 
-const _subSagaFinished = (args: any) => ({type: '@@engineRPCCall:subSagaFinished', payload: args})
+const _subSagaFinished = payload => ({type: '@@engineRPCCall:subSagaFinished', payload})
 
 const _isResult = ({type} = {}) => type === '@@engineRPCCall:respondResult'
 const _isError = ({type} = {}) => type === '@@engineRPCCall:respondError'
@@ -76,23 +77,35 @@ function passthroughResponseSaga() {
   return rpcResult()
 }
 
+type P = {|sessionID: number, existingDevices?: ?Array<string>, errorMessage: string|}
+type R = Generator<
+  any,
+
+    | {type: '@@engineRPCCall:respondResult', payload: string}
+    | {type: '@@engineRPCCall:respondError', payload: Types.RPCErrorHandler}
+    | null,
+  any
+>
+type TEMP = {
+  'keybase.1.provisionUi.PromptNewDeviceName': (params: P) => R,
+  'finished'?: void,
+}
+
 class EngineRpcCall {
   _subSagas: SagaTypes.SagaMap
   _chanConfig: SagaTypes.ChannelConfig<*>
-  _rpc: Function
+  _makeRequest: (configKeys: Array<string>) => EngineChannel
   _rpcNameKey: string // Used for the waiting state and error messages.
-  _request: any
 
   _subSagaChannel: SagaTypes.Channel<*>
   _engineChannel: EngineChannel
   _cleanedUp: boolean
 
-  constructor(sagaMap: SagaTypes.SagaMap, rpc: any, rpcNameKey: string, request: any) {
+  constructor(sagaMap: TEMP, rpcNameKey: string, makeRequest: (configKeys: Array<string>) => EngineChannel) {
     this._chanConfig = Saga.singleFixedChannelConfig(Object.keys(sagaMap))
     this._rpcNameKey = rpcNameKey
-    this._rpc = rpc
+    this._makeRequest = makeRequest
     this._cleanedUp = false
-    this._request = request
     this._subSagaChannel = Saga.channel(Saga.buffers.expanding(10))
     // $FlowIssue with this
     this.run = this.run.bind(this) // In case we mess up and forget to do call([ctx, ctx.run])
@@ -129,11 +142,7 @@ class EngineRpcCall {
   }
 
   *run(timeout: ?number): Generator<any, RpcRunResult, any> {
-    this._engineChannel = yield Saga.call(
-      this._rpc,
-      [...Object.keys(this._subSagas), 'finished'],
-      this._request
-    )
+    this._engineChannel = yield Saga.call(this._makeRequest, [...Object.keys(this._subSagas), 'finished'])
 
     const subSagaTasks: Array<any> = []
     while (true) {

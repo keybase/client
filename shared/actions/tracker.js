@@ -431,7 +431,7 @@ function _serverCallMap(
   getState: Function,
   onStart: ?(username: string) => void,
   onFinish: ?() => void
-): RPCTypes.IncomingCallMapType {
+) {
   // if true we already have a pending call so lets skip a ton of work
   let username
   let clearPendingTimeout

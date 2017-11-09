@@ -71,121 +71,120 @@ function _threadIsCleared(originalAction: Action, checkAction: Action): boolean 
 }
 
 function* _loadMoreMessages(action: ChatGen.LoadMoreMessagesPayload): Saga.SagaGenerator<any, any> {
-  const conversationIDKey = action.payload.conversationIDKey
-  const recent = action.payload.wantNewer === true
+  // TEMP
+  // const conversationIDKey = action.payload.conversationIDKey
+  // const recent = action.payload.wantNewer === true
 
-  try {
-    if (!conversationIDKey) {
-      return
-    }
+  // try {
+    // if (!conversationIDKey) {
+      // return
+    // }
 
-    if (Constants.isPendingConversationIDKey(conversationIDKey)) {
-      console.log('Bailing on selected pending conversation no matching inbox')
-      return
-    }
+    // if (Constants.isPendingConversationIDKey(conversationIDKey)) {
+      // console.log('Bailing on selected pending conversation no matching inbox')
+      // return
+    // }
 
-    const rekeyInfoSelector = (state: TypedState, conversationIDKey: Constants.ConversationIDKey) => {
-      return state.chat.get('rekeyInfos').get(conversationIDKey)
-    }
-    const rekeyInfo = yield Saga.select(rekeyInfoSelector, conversationIDKey)
+    // const rekeyInfoSelector = (state: TypedState, conversationIDKey: Constants.ConversationIDKey) => {
+      // return state.chat.get('rekeyInfos').get(conversationIDKey)
+    // }
+    // const rekeyInfo = yield Saga.select(rekeyInfoSelector, conversationIDKey)
 
-    if (rekeyInfo) {
-      console.log('Bailing on chat due to rekey info')
-      return
-    }
+    // if (rekeyInfo) {
+      // console.log('Bailing on chat due to rekey info')
+      // return
+    // }
 
-    const oldConversationState = yield Saga.select(Shared.conversationStateSelector, conversationIDKey)
-    if (oldConversationState && !recent) {
-      if (action.payload.onlyIfUnloaded && oldConversationState.get('isLoaded')) {
-        console.log('Bailing on chat load more due to already has initial load')
-        return
-      }
+    // const oldConversationState = yield Saga.select(Shared.conversationStateSelector, conversationIDKey)
+    // if (oldConversationState && !recent) {
+      // if (action.payload.onlyIfUnloaded && oldConversationState.get('isLoaded')) {
+        // console.log('Bailing on chat load more due to already has initial load')
+        // return
+      // }
 
-      if (oldConversationState.get('isRequesting')) {
-        console.log('Bailing on chat load more due to isRequesting already')
-        return
-      }
+      // if (oldConversationState.get('isRequesting')) {
+        // console.log('Bailing on chat load more due to isRequesting already')
+        // return
+      // }
 
-      if (oldConversationState.get('moreToLoad') === false) {
-        console.log('Bailing on chat load more due to no more to load')
-        return
-      }
-    }
+      // if (oldConversationState.get('moreToLoad') === false) {
+        // console.log('Bailing on chat load more due to no more to load')
+        // return
+      // }
+    // }
 
-    yield Saga.put(ChatGen.createLoadingMessages({conversationIDKey, isRequesting: true}))
+    // yield Saga.put(ChatGen.createLoadingMessages({conversationIDKey, isRequesting: true}))
 
-    const yourName = yield Saga.select(Selectors.usernameSelector)
-    const yourDeviceName = yield Saga.select(Shared.devicenameSelector)
+    // const yourName = yield Saga.select(Selectors.usernameSelector)
+    // const yourDeviceName = yield Saga.select(Shared.devicenameSelector)
 
-    // We receive the list with edit/delete/etc already applied so lets filter that out
-    const messageTypes = Object.keys(ChatTypes.commonMessageType)
-      .filter(k => !['edit', 'delete', 'headline', 'attachmentuploaded'].includes(k))
-      .map(k => ChatTypes.commonMessageType[k])
-    const conversationID = Constants.keyToConversationID(conversationIDKey)
+    // // We receive the list with edit/delete/etc already applied so lets filter that out
+    // const messageTypes = Object.keys(ChatTypes.commonMessageType)
+      // .filter(k => !['edit', 'delete', 'headline', 'attachmentuploaded'].includes(k))
+      // .map(k => ChatTypes.commonMessageType[k])
+    // const conversationID = Constants.keyToConversationID(conversationIDKey)
 
-    const messageKeys = yield Saga.select(Constants.getConversationMessages, conversationIDKey)
-    // Find a real message id (ignore outbox etc)
-    let pivotMessageKey = recent
-      ? messageKeys.findLast(Constants.messageKeyKindIsMessageID)
-      : messageKeys.find(Constants.messageKeyKindIsMessageID)
+    // const messageKeys = yield Saga.select(Constants.getConversationMessages, conversationIDKey)
+    // // Find a real message id (ignore outbox etc)
+    // let pivotMessageKey = recent
+      // ? messageKeys.findLast(Constants.messageKeyKindIsMessageID)
+      // : messageKeys.find(Constants.messageKeyKindIsMessageID)
 
-    let pivot
-    if (pivotMessageKey) {
-      const message = yield Saga.select(Constants.getMessageFromMessageKey, pivotMessageKey)
-      pivot = message ? message.rawMessageID : null
-    }
+    // let pivot
+    // if (pivotMessageKey) {
+      // const message = yield Saga.select(Constants.getMessageFromMessageKey, pivotMessageKey)
+      // pivot = message ? message.rawMessageID : null
+    // }
 
-    const loadThreadChanMapRpc = new EngineRpc.EngineRpcCall(
-      getThreadNonblockSagaMap(yourName, yourDeviceName, conversationIDKey, recent),
-      ChatTypes.localGetThreadNonblockRpcChannelMap,
-      'localGetThreadNonblock',
-      {
-        param: {
-          conversationID,
-          identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
-          query: {
-            disableResolveSupersedes: false,
-            markAsRead: true,
-            messageTypes,
-            messageIDControl: {
-              pivot,
-              recent,
-              num: action.payload.numberOverride || Constants.maxMessagesToLoadAtATime,
-            },
-          },
-        },
-      }
-    )
+    // const loadThreadChanMapRpc = new EngineRpc.EngineRpcCall(
+      // getThreadNonblockSagaMap(yourName, yourDeviceName, conversationIDKey, recent),
+      // 'localGetThreadNonblock',
+      // configKeys =>
+        // ChatTypes.localGetThreadNonblockRpcChannelMap(configKeys, {
+          // conversationID,
+          // identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
+          // query: {
+            // disableResolveSupersedes: false,
+            // markAsRead: true,
+            // messageTypes,
+            // messageIDControl: {
+              // pivot,
+              // recent,
+              // num: action.payload.numberOverride || Constants.maxMessagesToLoadAtATime,
+            // },
+          // },
+        // })
+    // )
 
-    const result = yield Saga.call(loadThreadChanMapRpc.run)
+    // const result = yield Saga.call(loadThreadChanMapRpc.run)
 
-    if (EngineRpc.isFinished(result)) {
-      const {payload: {params, error}} = result
+    // if (EngineRpc.isFinished(result)) {
+      // const {payload: {params, error}} = result
 
-      if (error) {
-        console.warn('error in localGetThreadNonblock', error)
-      }
+      // if (error) {
+        // console.warn('error in localGetThreadNonblock', error)
+      // }
 
-      if (params.offline) {
-        yield Saga.put(ChatGen.createThreadLoadedOffline({conversationIDKey}))
-      }
+      // if (params.offline) {
+        // yield Saga.put(ChatGen.createThreadLoadedOffline({conversationIDKey}))
+      // }
 
-      yield Saga.put(ChatGen.createSetLoaded({conversationIDKey, isLoaded: !error})) // reset isLoaded on error
-    } else {
-      console.warn('localGetThreadNonblock rpc bailed early')
-    }
+      // yield Saga.put(ChatGen.createSetLoaded({conversationIDKey, isLoaded: !error})) // reset isLoaded on error
+    // } else {
+      // console.warn('localGetThreadNonblock rpc bailed early')
+    // }
 
-    // Do this here because it's possible loading messages takes a while
-    // If this is the selected conversation and this was a result of user action
-    // We can assume the messages we've loaded have been seen.
-    const selectedConversationIDKey = yield Saga.select(Constants.getSelectedConversation)
-    if (selectedConversationIDKey === conversationIDKey && action.payload.fromUser) {
-      yield Saga.put(ChatGen.createUpdateBadging({conversationIDKey}))
-      yield Saga.put(ChatGen.createUpdateLatestMessage({conversationIDKey}))
-    }
-  } finally {
-    yield Saga.put(ChatGen.createLoadingMessages({conversationIDKey, isRequesting: false}))
-  }
+    // // Do this here because it's possible loading messages takes a while
+    // // If this is the selected conversation and this was a result of user action
+    // // We can assume the messages we've loaded have been seen.
+    // const selectedConversationIDKey = yield Saga.select(Constants.getSelectedConversation)
+    // if (selectedConversationIDKey === conversationIDKey && action.payload.fromUser) {
+      // yield Saga.put(ChatGen.createUpdateBadging({conversationIDKey}))
+      // yield Saga.put(ChatGen.createUpdateLatestMessage({conversationIDKey}))
+    // }
+  // } finally {
+    // yield Saga.put(ChatGen.createLoadingMessages({conversationIDKey, isRequesting: false}))
+  // }
 }
 
 function subSagaUpdateThread(yourName, yourDeviceName, conversationIDKey, append) {
