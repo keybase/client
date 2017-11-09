@@ -247,12 +247,21 @@ const _getDetails = function*(action: Constants.GetDetails): Saga.SagaGenerator<
   const teamname = action.payload.teamname
   yield Saga.put(replaceEntity(['teams', 'teamNameToLoading'], I.Map([[teamname, true]])))
   try {
-    const results: RPCTypes.TeamDetails = yield Saga.call(RPCTypes.teamsTeamGetRpcPromise, {
+    const details: RPCTypes.TeamDetails = yield Saga.call(RPCTypes.teamsTeamGetRpcPromise, {
       param: {
         name: teamname,
         forceRepoll: false,
       },
     })
+
+    const implicitAdminDetails: Array<
+      RPCTypes.TeamMemberDetails
+    > = (yield Saga.call(RPCTypes.teamsTeamImplicitAdminsRpcPromise, {
+      param: {
+        teamName: teamname,
+      },
+    })) || []
+    const implicitAdminUsernames = I.Set(implicitAdminDetails.map(x => x.username))
 
     // Get requests to join
     const requests: RPCTypes.TeamJoinRequest[] = yield Saga.call(RPCTypes.teamsTeamListRequestsRpcPromise)
@@ -276,8 +285,8 @@ const _getDetails = function*(action: Constants.GetDetails): Saga.SagaGenerator<
       writers: 'writer',
     }
     types.forEach(type => {
-      const details = results.members[type] || []
-      details.forEach(({username}) => {
+      const members = details.members[type] || []
+      members.forEach(({username}) => {
         infos.push(
           Constants.makeMemberInfo({
             type: typeMap[type],
@@ -288,7 +297,7 @@ const _getDetails = function*(action: Constants.GetDetails): Saga.SagaGenerator<
       })
     })
 
-    const invitesMap = map(results.annotatedActiveInvites, invite =>
+    const invitesMap = map(details.annotatedActiveInvites, invite =>
       Constants.makeInviteInfo({
         email: invite.type.c === RPCTypes.teamsTeamInviteCategory.email ? invite.name : '',
         role: Constants.teamRoleByEnum[invite.role],
@@ -321,8 +330,14 @@ const _getDetails = function*(action: Constants.GetDetails): Saga.SagaGenerator<
     yield Saga.all([
       Saga.put(replaceEntity(['teams', 'teamNameToMembers'], I.Map([[teamname, I.Set(infos)]]))),
       Saga.put(replaceEntity(['teams', 'teamNameToMemberUsernames'], I.Map([[teamname, memberNames]]))),
+      Saga.put(
+        replaceEntity(
+          ['teams', 'teamNameToImplicitAdminUsernames'],
+          I.Map([[teamname, implicitAdminUsernames]])
+        )
+      ),
       Saga.put(replaceEntity(['teams', 'teamNameToRequests'], I.Map(requestMap))),
-      Saga.put(replaceEntity(['teams', 'teamNameToTeamSettings'], I.Map({[teamname]: results.settings}))),
+      Saga.put(replaceEntity(['teams', 'teamNameToTeamSettings'], I.Map({[teamname]: details.settings}))),
       Saga.put(replaceEntity(['teams', 'teamNameToInvites'], I.Map([[teamname, I.Set(invitesMap)]]))),
       Saga.put(replaceEntity(['teams', 'teamNameToPublicitySettings'], I.Map({[teamname]: publicityMap}))),
     ])

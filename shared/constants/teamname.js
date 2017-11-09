@@ -1,5 +1,4 @@
 // @flow
-import * as I from 'immutable'
 
 // This logic is copied from go/protocol/keybase1/extras.go.
 
@@ -15,19 +14,10 @@ const validTeamname = (s: string): boolean => {
   return s.split('.').every(validTeamnamePart)
 }
 
-// The types below are copied from ..teams. Can't import them because
-// it yields an error, possibly because of an import cycle.
+// The type below is copied from ..teams. Can't import it because
+// doing so yields an error, possibly because of an import cycle.
 
 type Teamname = string
-
-type TeamRoleType = 'reader' | 'writer' | 'admin' | 'owner'
-
-type _MemberInfo = {
-  type: ?TeamRoleType,
-  username: string,
-}
-
-type MemberInfo = I.RecordOf<_MemberInfo>
 
 const baseTeamname = (teamname: Teamname): ?Teamname => {
   const i = teamname.lastIndexOf('.')
@@ -38,32 +28,4 @@ const baseTeamname = (teamname: Teamname): ?Teamname => {
   return teamname.substring(0, i)
 }
 
-// ancestorTeamnames returns the parent of the given teamname, and its
-// parent, and so on, in order.
-const ancestorTeamnames = (teamname: Teamname): Teamname[] => {
-  const ancestors = []
-  let name = teamname
-  while (true) {
-    const base = baseTeamname(name)
-    if (!base) {
-      break
-    }
-    ancestors.push(base)
-    name = base
-  }
-  return ancestors
-}
-
-const isExplicitAdmin = (memberInfo: I.Set<MemberInfo>, user: string): boolean => {
-  const info = memberInfo.find(member => member.username === user)
-  if (!info) {
-    return false
-  }
-  return info.type === 'owner' || info.type === 'admin'
-}
-
-const isImplicitAdmin = (ancestorMemberInfo: I.Map<Teamname, I.Set<MemberInfo>>, user: string): boolean => {
-  return ancestorMemberInfo.some(memberInfo => isExplicitAdmin(memberInfo, user))
-}
-
-export {validTeamname, baseTeamname, ancestorTeamnames, isExplicitAdmin, isImplicitAdmin}
+export {validTeamname, baseTeamname}

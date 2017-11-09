@@ -11,14 +11,13 @@ import {compose, lifecycle, withState} from 'recompose'
 import {connect, type TypedState} from '../../util/container'
 import {getProfile} from '../../actions/tracker'
 import {isMobile} from '../../constants/platform'
-import {ancestorTeamnames, isExplicitAdmin, isImplicitAdmin} from '../../constants/teamname'
 import {navigateAppend} from '../../actions/route-tree'
 import {showUserProfile} from '../../actions/profile'
 
 type StateProps = {
   _invites: I.Set<Constants.InviteInfo>,
   _memberInfo: I.Set<Constants.MemberInfo>,
-  _ancestorMemberInfo: I.Map<Constants.Teamname, I.Set<Constants.MemberInfo>>,
+  _implicitAdminUsernames: I.Set<string>,
   _requests: I.Set<Constants.RequestInfo>,
   _newTeamRequests: I.List<string>,
   isTeamOpen: boolean,
@@ -35,13 +34,14 @@ const mapStateToProps = (state: TypedState, {routeProps, routeState}): StateProp
   if (!teamname) {
     throw new Error('There was a problem loading the team page, please report this error.')
   }
-  const ancestorTeams = I.Set(ancestorTeamnames(teamname))
-  const memberInfos = state.entities.getIn(['teams', 'teamNameToMembers'], I.Map())
-  const memberInfo = memberInfos.get(teamname, I.Set())
-  const ancestorMemberInfo = memberInfos.filter((v, k) => ancestorTeams.has(k))
+  const memberInfo = state.entities.getIn(['teams', 'teamNameToMembers', teamname], I.Set())
+  const implicitAdminUsernames = state.entities.getIn(
+    ['teams', 'teamNameToImplicitAdminUsernames', teamname],
+    I.Set()
+  )
   return {
     _memberInfo: memberInfo,
-    _ancestorMemberInfo: ancestorMemberInfo,
+    _implicitAdminUsernames: implicitAdminUsernames,
     _requests: state.entities.getIn(['teams', 'teamNameToRequests', teamname], I.Set()),
     _invites: state.entities.getIn(['teams', 'teamNameToInvites', teamname], I.Set()),
     isTeamOpen: state.entities.getIn(['teams', 'teamNameToTeamSettings', teamname], {
@@ -116,6 +116,14 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, setRouteState, rout
     ),
 })
 
+const isExplicitAdmin = (memberInfo: I.Set<Constants.MemberInfo>, user: string): boolean => {
+  const info = memberInfo.find(member => member.username === user)
+  if (!info) {
+    return false
+  }
+  return info.type === 'owner' || info.type === 'admin'
+}
+
 const mergeProps = (stateProps, dispatchProps, ownProps) => {
   const onAddPeople = () => dispatchProps._onAddPeople(stateProps.name)
   const onInviteByEmail = () => dispatchProps._onInviteByEmail(stateProps.name)
@@ -131,7 +139,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
   let youAreMember = false
   if (you) {
     youExplicitAdmin = isExplicitAdmin(stateProps._memberInfo, you)
-    youImplicitAdmin = isImplicitAdmin(stateProps._ancestorMemberInfo, you)
+    youImplicitAdmin = stateProps._implicitAdminUsernames.has(you)
     youAreMember = stateProps._memberInfo.some(member => member.username === you)
   }
   const youAdmin = youExplicitAdmin || youImplicitAdmin
@@ -184,11 +192,7 @@ export default compose(
   connect(mapStateToProps, mapDispatchToProps, mergeProps),
   lifecycle({
     componentDidMount: function() {
-      const teamname = this.props.name
-      const teams = ancestorTeamnames(teamname).concat(teamname)
-      for (let i = 0; i < teams.length; ++i) {
-        this.props._loadTeam(teams[i])
-      }
+      this.props._loadTeam(this.props.name)
     },
   }),
   HeaderHoc
