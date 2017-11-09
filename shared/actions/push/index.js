@@ -49,12 +49,12 @@ function* pushNotificationSaga(notification: Constants.PushNotification): Saga.S
       try {
         const unboxRes = yield Saga.call(ChatTypes.localUnboxMobilePushNotificationRpcPromise, {
           // $FlowIssue wants all these to be non null
-          param: {
-            convID: payload.c,
-            membersType: payload.t,
-            payload: payload.m,
-            pushIDs: payload.p,
-          },
+          convID: payload.c,
+          // $FlowIssue wants all these to be non null
+          membersType: payload.t,
+          // $FlowIssue wants all these to be non null
+          payload: payload.m,
+          pushIDs: payload.p,
         })
         if (payload.x && payload.x > 0) {
           const num = payload.x
@@ -116,10 +116,8 @@ function* savePushTokenSaga(): Saga.SagaGenerator<any, any> {
     ]
 
     yield Saga.call(RPCTypes.apiserverPostRpcPromise, {
-      param: {
-        endpoint: 'device/push_token',
-        args: args,
-      },
+      endpoint: 'device/push_token',
+      args: args,
     })
   } catch (err) {
     console.warn('Error trying to save push token:', err)
@@ -154,10 +152,8 @@ function* deletePushTokenSaga(): Saga.SagaGenerator<any, any> {
     const args = [{key: 'device_id', value: deviceID}, {key: 'token_type', value: tokenType}]
 
     yield Saga.call(RPCTypes.apiserverDeleteRpcPromise, {
-      param: {
-        endpoint: 'device/push_token',
-        args: args,
-      },
+      endpoint: 'device/push_token',
+      args: args,
     })
   } catch (err) {
     console.warn('Error trying to delete push token:', err)

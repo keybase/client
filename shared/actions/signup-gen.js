@@ -2,7 +2,9 @@
 // NOTE: This file is GENERATED from json files in actions/json. Run 'yarn build-actions' to regenerate
 /* eslint-disable no-unused-vars,prettier/prettier */
 
-import {type ReturnType} from '../constants/types/more'
+import * as I from 'immutable'
+import * as RPCTypes from '../constants/types/flow-types'
+import * as More from '../constants/types/more'
 import * as Constants from '../constants/signup'
 
 // Constants
@@ -14,11 +16,11 @@ export const createCheckInviteCode = (payload: {|inviteCode: string|}) => ({erro
 export const createCheckInviteCodeError = (payload: {|errorText: string|}) => ({error: true, payload, type: checkInviteCode})
 
 // Action Payloads
-export type CheckInviteCodePayload = ReturnType<typeof createCheckInviteCode>
+export type CheckInviteCodePayload = More.ReturnType<typeof createCheckInviteCode>
 
 // All Actions
 // prettier-ignore
 export type Actions =
-  | ReturnType<typeof createCheckInviteCode>
-  | ReturnType<typeof createCheckInviteCodeError>
+  | More.ReturnType<typeof createCheckInviteCode>
+  | More.ReturnType<typeof createCheckInviteCodeError>
   | {type: 'common:resetStore', payload: void}

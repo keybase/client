@@ -1,5 +1,4 @@
 // @flow
-import * as Constants from '../../constants/profile'
 import * as ProfileGen from '../../actions/profile-gen'
 import Finished from './finished-generating-pgp'
 import GeneratePgp from './generating-pgp'

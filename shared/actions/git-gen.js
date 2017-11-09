@@ -2,7 +2,9 @@
 // NOTE: This file is GENERATED from json files in actions/json. Run 'yarn build-actions' to regenerate
 /* eslint-disable no-unused-vars,prettier/prettier */
 
-import {type ReturnType} from '../constants/types/more'
+import * as I from 'immutable'
+import * as RPCTypes from '../constants/types/flow-types'
+import * as More from '../constants/types/more'
 import * as RPCTypesGregor from '../constants/types/flow-types-gregor'
 
 // Constants
@@ -29,26 +31,26 @@ export const createSetError = (payload: {|error: ?Error|}) => ({error: false, pa
 export const createSetLoading = (payload: {|loading: boolean|}) => ({error: false, payload, type: setLoading})
 
 // Action Payloads
-export type BadgeAppForGitPayload = ReturnType<typeof createBadgeAppForGit>
-export type CreatePersonalRepoPayload = ReturnType<typeof createCreatePersonalRepo>
-export type CreateTeamRepoPayload = ReturnType<typeof createCreateTeamRepo>
-export type DeletePersonalRepoPayload = ReturnType<typeof createDeletePersonalRepo>
-export type DeleteTeamRepoPayload = ReturnType<typeof createDeleteTeamRepo>
-export type HandleIncomingGregorPayload = ReturnType<typeof createHandleIncomingGregor>
-export type LoadGitPayload = ReturnType<typeof createLoadGit>
-export type SetErrorPayload = ReturnType<typeof createSetError>
-export type SetLoadingPayload = ReturnType<typeof createSetLoading>
+export type BadgeAppForGitPayload = More.ReturnType<typeof createBadgeAppForGit>
+export type CreatePersonalRepoPayload = More.ReturnType<typeof createCreatePersonalRepo>
+export type CreateTeamRepoPayload = More.ReturnType<typeof createCreateTeamRepo>
+export type DeletePersonalRepoPayload = More.ReturnType<typeof createDeletePersonalRepo>
+export type DeleteTeamRepoPayload = More.ReturnType<typeof createDeleteTeamRepo>
+export type HandleIncomingGregorPayload = More.ReturnType<typeof createHandleIncomingGregor>
+export type LoadGitPayload = More.ReturnType<typeof createLoadGit>
+export type SetErrorPayload = More.ReturnType<typeof createSetError>
+export type SetLoadingPayload = More.ReturnType<typeof createSetLoading>
 
 // All Actions
 // prettier-ignore
 export type Actions =
-  | ReturnType<typeof createBadgeAppForGit>
-  | ReturnType<typeof createCreatePersonalRepo>
-  | ReturnType<typeof createCreateTeamRepo>
-  | ReturnType<typeof createDeletePersonalRepo>
-  | ReturnType<typeof createDeleteTeamRepo>
-  | ReturnType<typeof createHandleIncomingGregor>
-  | ReturnType<typeof createLoadGit>
-  | ReturnType<typeof createSetError>
-  | ReturnType<typeof createSetLoading>
+  | More.ReturnType<typeof createBadgeAppForGit>
+  | More.ReturnType<typeof createCreatePersonalRepo>
+  | More.ReturnType<typeof createCreateTeamRepo>
+  | More.ReturnType<typeof createDeletePersonalRepo>
+  | More.ReturnType<typeof createDeleteTeamRepo>
+  | More.ReturnType<typeof createHandleIncomingGregor>
+  | More.ReturnType<typeof createLoadGit>
+  | More.ReturnType<typeof createSetError>
+  | More.ReturnType<typeof createSetLoading>
   | {type: 'common:resetStore', payload: void}

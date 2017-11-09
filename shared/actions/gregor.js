@@ -207,13 +207,11 @@ function* handleCheckReachability(): SagaGenerator<any, any> {
 function* _injectItem(action: Constants.InjectItem): SagaGenerator<any, any> {
   const {category, body, dtime} = action.payload
   yield call(RPCTypes.gregorInjectItemRpcPromise, {
-    param: {
-      body,
-      cat: category,
-      dtime: {
-        time: dtime || 0,
-        offset: 0,
-      },
+    body,
+    cat: category,
+    dtime: {
+      time: dtime || 0,
+      offset: 0,
     },
   })
 }

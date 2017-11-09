@@ -2,10 +2,10 @@
 // NOTE: This file is GENERATED from json files in actions/json. Run 'yarn build-actions' to regenerate
 /* eslint-disable no-unused-vars,prettier/prettier */
 
-import {type ReturnType} from '../constants/types/more'
-import * as Constants from '../constants/profile'
+import * as I from 'immutable'
 import * as RPCTypes from '../constants/types/flow-types'
 import * as More from '../constants/types/more'
+import * as Constants from '../constants/profile'
 
 // Constants
 export const resetStore = 'common:resetStore' // not a part of profile but is handled by every reducer
@@ -77,72 +77,72 @@ export const createUpdateUsername = (payload: {|username: string|}) => ({error: 
 export const createWaiting = (payload: {|waiting: boolean|}) => ({error: false, payload, type: waiting})
 
 // Action Payloads
-export type AddProofPayload = ReturnType<typeof createAddProof>
-export type BackToProfilePayload = ReturnType<typeof createBackToProfile>
-export type CancelAddProofPayload = ReturnType<typeof createCancelAddProof>
-export type CancelPgpGenPayload = ReturnType<typeof createCancelPgpGen>
-export type CheckProofPayload = ReturnType<typeof createCheckProof>
-export type CleanupUsernamePayload = ReturnType<typeof createCleanupUsername>
-export type DropPgpPayload = ReturnType<typeof createDropPgp>
-export type EditProfilePayload = ReturnType<typeof createEditProfile>
-export type FinishRevokingPayload = ReturnType<typeof createFinishRevoking>
-export type FinishedWithKeyGenPayload = ReturnType<typeof createFinishedWithKeyGen>
-export type GeneratePgpPayload = ReturnType<typeof createGeneratePgp>
-export type OnClickAvatarPayload = ReturnType<typeof createOnClickAvatar>
-export type OnClickFollowersPayload = ReturnType<typeof createOnClickFollowers>
-export type OnClickFollowingPayload = ReturnType<typeof createOnClickFollowing>
-export type OutputInstructionsActionLinkPayload = ReturnType<typeof createOutputInstructionsActionLink>
-export type RevokeFinishPayload = ReturnType<typeof createRevokeFinish>
-export type RevokeWaitingPayload = ReturnType<typeof createRevokeWaiting>
-export type ShowUserProfilePayload = ReturnType<typeof createShowUserProfile>
-export type SubmitBTCAddressPayload = ReturnType<typeof createSubmitBTCAddress>
-export type SubmitRevokeProofPayload = ReturnType<typeof createSubmitRevokeProof>
-export type SubmitUsernamePayload = ReturnType<typeof createSubmitUsername>
-export type SubmitZcashAddressPayload = ReturnType<typeof createSubmitZcashAddress>
-export type UpdateErrorTextPayload = ReturnType<typeof createUpdateErrorText>
-export type UpdatePgpInfoPayload = ReturnType<typeof createUpdatePgpInfo>
-export type UpdatePgpPublicKeyPayload = ReturnType<typeof createUpdatePgpPublicKey>
-export type UpdatePlatformPayload = ReturnType<typeof createUpdatePlatform>
-export type UpdateProofStatusPayload = ReturnType<typeof createUpdateProofStatus>
-export type UpdateProofTextPayload = ReturnType<typeof createUpdateProofText>
-export type UpdateSigIDPayload = ReturnType<typeof createUpdateSigID>
-export type UpdateUsernamePayload = ReturnType<typeof createUpdateUsername>
-export type WaitingPayload = ReturnType<typeof createWaiting>
+export type AddProofPayload = More.ReturnType<typeof createAddProof>
+export type BackToProfilePayload = More.ReturnType<typeof createBackToProfile>
+export type CancelAddProofPayload = More.ReturnType<typeof createCancelAddProof>
+export type CancelPgpGenPayload = More.ReturnType<typeof createCancelPgpGen>
+export type CheckProofPayload = More.ReturnType<typeof createCheckProof>
+export type CleanupUsernamePayload = More.ReturnType<typeof createCleanupUsername>
+export type DropPgpPayload = More.ReturnType<typeof createDropPgp>
+export type EditProfilePayload = More.ReturnType<typeof createEditProfile>
+export type FinishRevokingPayload = More.ReturnType<typeof createFinishRevoking>
+export type FinishedWithKeyGenPayload = More.ReturnType<typeof createFinishedWithKeyGen>
+export type GeneratePgpPayload = More.ReturnType<typeof createGeneratePgp>
+export type OnClickAvatarPayload = More.ReturnType<typeof createOnClickAvatar>
+export type OnClickFollowersPayload = More.ReturnType<typeof createOnClickFollowers>
+export type OnClickFollowingPayload = More.ReturnType<typeof createOnClickFollowing>
+export type OutputInstructionsActionLinkPayload = More.ReturnType<typeof createOutputInstructionsActionLink>
+export type RevokeFinishPayload = More.ReturnType<typeof createRevokeFinish>
+export type RevokeWaitingPayload = More.ReturnType<typeof createRevokeWaiting>
+export type ShowUserProfilePayload = More.ReturnType<typeof createShowUserProfile>
+export type SubmitBTCAddressPayload = More.ReturnType<typeof createSubmitBTCAddress>
+export type SubmitRevokeProofPayload = More.ReturnType<typeof createSubmitRevokeProof>
+export type SubmitUsernamePayload = More.ReturnType<typeof createSubmitUsername>
+export type SubmitZcashAddressPayload = More.ReturnType<typeof createSubmitZcashAddress>
+export type UpdateErrorTextPayload = More.ReturnType<typeof createUpdateErrorText>
+export type UpdatePgpInfoPayload = More.ReturnType<typeof createUpdatePgpInfo>
+export type UpdatePgpPublicKeyPayload = More.ReturnType<typeof createUpdatePgpPublicKey>
+export type UpdatePlatformPayload = More.ReturnType<typeof createUpdatePlatform>
+export type UpdateProofStatusPayload = More.ReturnType<typeof createUpdateProofStatus>
+export type UpdateProofTextPayload = More.ReturnType<typeof createUpdateProofText>
+export type UpdateSigIDPayload = More.ReturnType<typeof createUpdateSigID>
+export type UpdateUsernamePayload = More.ReturnType<typeof createUpdateUsername>
+export type WaitingPayload = More.ReturnType<typeof createWaiting>
 
 // All Actions
 // prettier-ignore
 export type Actions =
-  | ReturnType<typeof createAddProof>
-  | ReturnType<typeof createBackToProfile>
-  | ReturnType<typeof createCancelAddProof>
-  | ReturnType<typeof createCancelPgpGen>
-  | ReturnType<typeof createCheckProof>
-  | ReturnType<typeof createCleanupUsername>
-  | ReturnType<typeof createDropPgp>
-  | ReturnType<typeof createEditProfile>
-  | ReturnType<typeof createFinishRevoking>
-  | ReturnType<typeof createFinishedWithKeyGen>
-  | ReturnType<typeof createGeneratePgp>
-  | ReturnType<typeof createOnClickAvatar>
-  | ReturnType<typeof createOnClickFollowers>
-  | ReturnType<typeof createOnClickFollowing>
-  | ReturnType<typeof createOutputInstructionsActionLink>
-  | ReturnType<typeof createRevokeFinish>
-  | ReturnType<typeof createRevokeFinishError>
-  | ReturnType<typeof createRevokeWaiting>
-  | ReturnType<typeof createShowUserProfile>
-  | ReturnType<typeof createSubmitBTCAddress>
-  | ReturnType<typeof createSubmitRevokeProof>
-  | ReturnType<typeof createSubmitUsername>
-  | ReturnType<typeof createSubmitZcashAddress>
-  | ReturnType<typeof createUpdateErrorText>
-  | ReturnType<typeof createUpdatePgpInfo>
-  | ReturnType<typeof createUpdatePgpInfoError>
-  | ReturnType<typeof createUpdatePgpPublicKey>
-  | ReturnType<typeof createUpdatePlatform>
-  | ReturnType<typeof createUpdateProofStatus>
-  | ReturnType<typeof createUpdateProofText>
-  | ReturnType<typeof createUpdateSigID>
-  | ReturnType<typeof createUpdateUsername>
-  | ReturnType<typeof createWaiting>
+  | More.ReturnType<typeof createAddProof>
+  | More.ReturnType<typeof createBackToProfile>
+  | More.ReturnType<typeof createCancelAddProof>
+  | More.ReturnType<typeof createCancelPgpGen>
+  | More.ReturnType<typeof createCheckProof>
+  | More.ReturnType<typeof createCleanupUsername>
+  | More.ReturnType<typeof createDropPgp>
+  | More.ReturnType<typeof createEditProfile>
+  | More.ReturnType<typeof createFinishRevoking>
+  | More.ReturnType<typeof createFinishedWithKeyGen>
+  | More.ReturnType<typeof createGeneratePgp>
+  | More.ReturnType<typeof createOnClickAvatar>
+  | More.ReturnType<typeof createOnClickFollowers>
+  | More.ReturnType<typeof createOnClickFollowing>
+  | More.ReturnType<typeof createOutputInstructionsActionLink>
+  | More.ReturnType<typeof createRevokeFinish>
+  | More.ReturnType<typeof createRevokeFinishError>
+  | More.ReturnType<typeof createRevokeWaiting>
+  | More.ReturnType<typeof createShowUserProfile>
+  | More.ReturnType<typeof createSubmitBTCAddress>
+  | More.ReturnType<typeof createSubmitRevokeProof>
+  | More.ReturnType<typeof createSubmitUsername>
+  | More.ReturnType<typeof createSubmitZcashAddress>
+  | More.ReturnType<typeof createUpdateErrorText>
+  | More.ReturnType<typeof createUpdatePgpInfo>
+  | More.ReturnType<typeof createUpdatePgpInfoError>
+  | More.ReturnType<typeof createUpdatePgpPublicKey>
+  | More.ReturnType<typeof createUpdatePlatform>
+  | More.ReturnType<typeof createUpdateProofStatus>
+  | More.ReturnType<typeof createUpdateProofText>
+  | More.ReturnType<typeof createUpdateSigID>
+  | More.ReturnType<typeof createUpdateUsername>
+  | More.ReturnType<typeof createWaiting>
   | {type: 'common:resetStore', payload: void}

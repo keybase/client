@@ -51,14 +51,14 @@ function* deleteMessage(action: ChatGen.DeleteMessagePayload): SagaGenerator<any
       tlfName,
       tlfPublic: false,
     }
-    yield Saga.call(RPCChatTypes.localPostDeleteNonblockRpcPromise, {param})
+    yield Saga.call(RPCChatTypes.localPostDeleteNonblockRpcPromise, param)
   } else if (messageID.type === 'outboxID') {
     // Deleting a local outbox message.
     const outboxID = message.outboxID
     if (!outboxID) throw new Error('No outboxID for pending message delete')
 
     yield Saga.call(RPCChatTypes.localCancelPostRpcPromise, {
-      param: {outboxID: Constants.keyToOutboxID(outboxID)},
+      outboxID: Constants.keyToOutboxID(outboxID),
     })
     // It's deleted, but we don't get notified that the conversation now has
     // one less outbox entry in it.  Gotta remove it from the store ourselves.
@@ -131,15 +131,13 @@ function* postMessage(action: ChatGen.PostMessagePayload): SagaGenerator<any, an
   )
 
   yield Saga.call(RPCChatTypes.localPostTextNonblockRpcPromise, {
-    param: {
-      conversationID: Constants.keyToConversationID(conversationIDKey),
-      tlfName: (inboxConvo ? inboxConvo.name : newConvoTlfName) || '',
-      tlfPublic: false,
-      outboxID,
-      body: action.payload.text.stringValue(),
-      identifyBehavior: yield Saga.call(Shared.getPostingIdentifyBehavior, conversationIDKey),
-      clientPrev: lastMessageID ? Constants.parseMessageID(lastMessageID).msgID : 0,
-    },
+    conversationID: Constants.keyToConversationID(conversationIDKey),
+    tlfName: (inboxConvo ? inboxConvo.name : newConvoTlfName) || '',
+    tlfPublic: false,
+    outboxID,
+    body: action.payload.text.stringValue(),
+    identifyBehavior: yield Saga.call(Shared.getPostingIdentifyBehavior, conversationIDKey),
+    clientPrev: lastMessageID ? Constants.parseMessageID(lastMessageID).msgID : 0,
   })
 }
 
@@ -204,7 +202,7 @@ function* editMessage(action: ChatGen.EditMessagePayload): SagaGenerator<any, an
     tlfName,
     tlfPublic: false,
   }
-  yield Saga.call(RPCChatTypes.localPostEditNonblockRpcPromise, {param})
+  yield Saga.call(RPCChatTypes.localPostEditNonblockRpcPromise, param)
 }
 
 function* retryMessage(action: ChatGen.RetryMessagePayload): SagaGenerator<any, any> {
@@ -213,7 +211,7 @@ function* retryMessage(action: ChatGen.RetryMessagePayload): SagaGenerator<any, 
     ChatGen.createUpdateTempMessage({conversationIDKey, message: {messageState: 'pending'}, outboxIDKey})
   )
   yield Saga.call(RPCChatTypes.localRetryPostRpcPromise, {
-    param: {outboxID: Constants.keyToOutboxID(outboxIDKey)},
+    outboxID: Constants.keyToOutboxID(outboxIDKey),
   })
 }
 

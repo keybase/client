@@ -95,9 +95,7 @@ function* _onSubmitNewEmail(): Saga.SagaGenerator<any, any> {
     const newEmailSelector = ({settings: {email: {newEmail}}}: TypedState) => newEmail
     const newEmail: string = yield Saga.select(newEmailSelector)
     yield Saga.call(RPCTypes.accountEmailChangeRpcPromise, {
-      param: {
-        newEmail,
-      },
+      newEmail,
     })
     yield Saga.put(loadSettings())
     yield Saga.put(navigateUp())
@@ -122,11 +120,9 @@ function* _onSubmitNewPassphrase(): Saga.SagaGenerator<any, any> {
       return
     }
     yield Saga.call(RPCTypes.accountPassphraseChangeRpcPromise, {
-      param: {
-        oldPassphrase: '',
-        passphrase: newPassphrase.stringValue(),
-        force: true,
-      },
+      oldPassphrase: '',
+      passphrase: newPassphrase.stringValue(),
+      force: true,
     })
     yield Saga.put(navigateUp())
   } catch (error) {
@@ -172,17 +168,13 @@ function* toggleNotificationsSaga(): Saga.SagaGenerator<any, any> {
 
     const [result] = yield Saga.all([
       Saga.call(RPCTypes.apiserverPostJSONRpcPromise, {
-        param: {
-          endpoint: 'account/subscribe',
-          args: [],
-          JSONPayload,
-        },
+        endpoint: 'account/subscribe',
+        args: [],
+        JSONPayload,
       }),
       Saga.call(ChatTypes.localSetGlobalAppNotificationSettingsLocalRpcPromise, {
-        param: {
-          settings: {
-            ...chatGlobalArg,
-          },
+        settings: {
+          ...chatGlobalArg,
         },
       }),
     ])
@@ -203,10 +195,8 @@ function* reclaimInviteSaga(invitesReclaimAction: Constants.InvitesReclaim): Sag
   const {inviteId} = invitesReclaimAction.payload
   try {
     yield Saga.call(RPCTypes.apiserverPostRpcPromise, {
-      param: {
-        endpoint: 'cancel_invitation',
-        args: [{key: 'invitation_id', value: inviteId}],
-      },
+      endpoint: 'cancel_invitation',
+      args: [{key: 'invitation_id', value: inviteId}],
     })
     yield Saga.put(
       ({
@@ -229,10 +219,8 @@ function* reclaimInviteSaga(invitesReclaimAction: Constants.InvitesReclaim): Sag
 
 function* refreshInvitesSaga(): Saga.SagaGenerator<any, any> {
   const json: ?{body: string} = yield Saga.call(RPCTypes.apiserverGetWithSessionRpcPromise, {
-    param: {
-      endpoint: 'invitations_sent',
-      args: [],
-    },
+    endpoint: 'invitations_sent',
+    args: [],
   })
 
   const results: {
@@ -295,10 +283,8 @@ function* sendInviteSaga(invitesSendAction: Constants.InvitesSend): Saga.SagaGen
     }
 
     const response: ?{body: string} = yield Saga.call(RPCTypes.apiserverPostRpcPromise, {
-      param: {
-        endpoint: 'send_invitation',
-        args,
-      },
+      endpoint: 'send_invitation',
+      args,
     })
     if (response) {
       const parsedBody = JSON.parse(response.body)
@@ -355,12 +341,10 @@ function* refreshNotificationsSaga(): Saga.SagaGenerator<any, any> {
     chatGlobalSettings: ChatTypes.GlobalAppNotificationSettings,
   ] = yield Saga.all([
     Saga.call(RPCTypes.apiserverGetWithSessionRpcPromise, {
-      param: {
-        endpoint: 'account/subscriptions',
-        args: [],
-      },
+      endpoint: 'account/subscriptions',
+      args: [],
     }),
-    Saga.call(ChatTypes.localGetGlobalAppNotificationSettingsLocalRpcPromise, {}),
+    Saga.call(ChatTypes.localGetGlobalAppNotificationSettingsLocalRpcPromise),
   ])
   yield Saga.cancel(delayThenEmptyTask)
 

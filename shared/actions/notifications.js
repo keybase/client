@@ -61,7 +61,7 @@ function* _listenSaga(): SagaGenerator<any, any> {
 
   const engineInst: Engine = yield call(engine)
   yield call([engineInst, engineInst.listenOnConnect], 'setNotifications', () => {
-    RPCTypes.notifyCtlSetNotificationsRpcPromise({param: {channels}}).catch(error => {
+    RPCTypes.notifyCtlSetNotificationsRpcPromise({channels}).catch(error => {
       if (error != null) {
         console.warn('error in toggling notifications: ', error)
       }

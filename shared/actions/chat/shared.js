@@ -85,13 +85,11 @@ function* startNewConversation(
     ? RPCChatTypes.commonConversationMembersType.impteam
     : RPCChatTypes.commonConversationMembersType.kbfs
   const result = yield call(RPCChatTypes.localNewConversationLocalRpcPromise, {
-    param: {
-      identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
-      tlfName,
-      tlfVisibility: RPCTypes.commonTLFVisibility.private,
-      topicType: RPCChatTypes.commonTopicType.chat,
-      membersType,
-    },
+    identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
+    tlfName,
+    tlfVisibility: RPCTypes.commonTLFVisibility.private,
+    topicType: RPCChatTypes.commonTopicType.chat,
+    membersType,
   })
 
   const newKey = result ? Constants.conversationIDToKey(result.conv.info.id) : null

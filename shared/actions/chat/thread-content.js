@@ -659,7 +659,8 @@ function* _markAsRead(
 
   try {
     yield Saga.call(ChatTypes.localMarkAsReadLocalRpcPromise, {
-      param: {conversationID, msgID},
+      conversationID,
+      msgID,
     })
 
     _lastMarkedAsRead[conversationIDKey] = messageID
@@ -834,10 +835,8 @@ function* _updateMetadata(action: ChatGen.UpdateMetadataPayload): Saga.SagaGener
 
   try {
     const results: any = yield Saga.call(RPCTypes.apiserverGetRpcPromise, {
-      param: {
-        endpoint: 'user/lookup',
-        args: [{key: 'usernames', value: usernames.join(',')}, {key: 'fields', value: 'profile'}],
-      },
+      endpoint: 'user/lookup',
+      args: [{key: 'usernames', value: usernames.join(',')}, {key: 'fields', value: 'profile'}],
     })
 
     const parsed = JSON.parse(results.body)
@@ -884,7 +883,8 @@ function* _updateTyping({
   if (!Constants.isPendingConversationIDKey(conversationIDKey)) {
     const conversationID = Constants.keyToConversationID(conversationIDKey)
     yield Saga.call(ChatTypes.localUpdateTypingRpcPromise, {
-      param: {conversationID, typing},
+      conversationID,
+      typing,
     })
   }
 }

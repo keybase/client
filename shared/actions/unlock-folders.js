@@ -1,40 +1,26 @@
 // @flow
 import * as Constants from '../constants/unlock-folders'
+import * as RPCTypes from '../constants/types/flow-types'
 import HiddenString from '../util/hidden-string'
 import engine from '../engine'
-import type {
-  ToPaperKeyInput,
-  OnBackFromPaperKey,
-  CheckPaperKey,
-  Finish,
-  Waiting,
-  RegisterRekeyListenerAction,
-  NewRekeyPopupAction,
-} from '../constants/unlock-folders'
 import type {AsyncAction, Dispatch} from '../constants/types/flux'
-import {
-  delegateUiCtlRegisterRekeyUIRpcPromise,
-  loginPaperKeySubmitRpcPromise,
-  rekeyShowPendingRekeyStatusRpcPromise,
-  rekeyRekeyStatusFinishRpcPromise,
-} from '../constants/types/flow-types'
 
-export function toPaperKeyInput(): ToPaperKeyInput {
+export function toPaperKeyInput(): Constants.ToPaperKeyInput {
   return {type: Constants.toPaperKeyInput, payload: {}}
 }
 
-export function onBackFromPaperKey(): OnBackFromPaperKey {
+export function onBackFromPaperKey(): Constants.OnBackFromPaperKey {
   return {type: Constants.onBackFromPaperKey, payload: {}}
 }
 
-function waiting(currentlyWaiting: boolean): Waiting {
+function waiting(currentlyWaiting: boolean): Constants.Waiting {
   return {type: Constants.waiting, payload: currentlyWaiting}
 }
 
 export function checkPaperKey(paperKey: HiddenString) {
   return (dispatch: Dispatch) => {
-    loginPaperKeySubmitRpcPromise({
-      param: {paperPhrase: paperKey.stringValue()},
+    RPCTypes.loginPaperKeySubmitRpcPromise({
+      paperPhrase: paperKey.stringValue(),
       waitingHandler: isWaiting => {
         dispatch(waiting(isWaiting))
       },
@@ -43,24 +29,30 @@ export function checkPaperKey(paperKey: HiddenString) {
         dispatch({type: Constants.checkPaperKey, payload: {success: true}})
       })
       .catch(err => {
-        dispatch(({type: Constants.checkPaperKey, error: true, payload: {error: err.message}}: CheckPaperKey))
+        dispatch(
+          ({
+            type: Constants.checkPaperKey,
+            error: true,
+            payload: {error: err.message},
+          }: Constants.CheckPaperKey)
+        )
       })
   }
 }
 
-export function finish(): Finish {
+export function finish(): Constants.Finish {
   return {type: Constants.finish, payload: {}}
 }
 
 export function openDialog(): AsyncAction {
   return dispatch => {
-    rekeyShowPendingRekeyStatusRpcPromise()
+    RPCTypes.rekeyShowPendingRekeyStatusRpcPromise()
   }
 }
 
 export function close(): AsyncAction {
   return (dispatch, getState) => {
-    rekeyRekeyStatusFinishRpcPromise()
+    RPCTypes.rekeyRekeyStatusFinishRpcPromise()
     dispatch({type: Constants.close, payload: {}})
   }
 }
@@ -68,7 +60,7 @@ export function close(): AsyncAction {
 export function registerRekeyListener(): (dispatch: Dispatch) => void {
   return dispatch => {
     engine().listenOnConnect('registerRekeyUI', () => {
-      delegateUiCtlRegisterRekeyUIRpcPromise()
+      RPCTypes.delegateUiCtlRegisterRekeyUIRpcPromise()
         .then(response => {
           console.log('Registered rekey ui')
         })
@@ -97,7 +89,12 @@ export function registerRekeyListener(): (dispatch: Dispatch) => void {
       response && response.result(session.id)
     })
 
-    dispatch(({type: Constants.registerRekeyListener, payload: {started: true}}: RegisterRekeyListenerAction))
+    dispatch(
+      ({
+        type: Constants.registerRekeyListener,
+        payload: {started: true},
+      }: Constants.RegisterRekeyListenerAction)
+    )
   }
 }
 
@@ -111,7 +108,7 @@ const refreshHandler = ({sessionID, problemSetDevices}, response, dispatch) => {
         sessionID,
         problemSet: problemSetDevices.problemSet,
       },
-    }: NewRekeyPopupAction)
+    }: Constants.NewRekeyPopupAction)
   )
   response && response.result()
 }

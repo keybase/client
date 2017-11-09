@@ -71,12 +71,10 @@ function* onInboxStale(action: ChatGen.InboxStalePayload): SagaGenerator<any, an
     const loadInboxChanMap = RPCChatTypes.localGetInboxNonblockLocalRpcChannelMap(
       ['chat.1.chatUi.chatInboxUnverified', 'finished'],
       {
-        param: {
-          identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
-          maxUnbox: 0,
-          query: _getInboxQuery,
-          skipUnverified: false,
-        },
+        identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
+        maxUnbox: 0,
+        query: _getInboxQuery,
+        skipUnverified: false,
       }
     )
 
@@ -410,10 +408,8 @@ function* _chatInboxFailedSubSaga(params) {
   if (maxMsgid && selectedConversation === conversationIDKey) {
     try {
       yield Saga.call(RPCChatTypes.localMarkAsReadLocalRpcPromise, {
-        param: {
-          conversationID: convID,
-          msgID: maxMsgid,
-        },
+        conversationID: convID,
+        msgID: maxMsgid,
       })
     } catch (err) {
       console.log(`Couldn't mark as read ${conversationIDKey} ${err}`)

@@ -40,7 +40,7 @@ function* _onMobileAppStateChanged(action: Constants.MobileAppState): SagaGenera
       background: RPCTypes.appStateAppState.background,
     }[nextAppState] || RPCTypes.appStateAppState.foreground
 
-  yield call(RPCTypes.appStateUpdateAppStateRpcPromise, {param: {state}})
+  yield call(RPCTypes.appStateUpdateAppStateRpcPromise, {state})
 }
 
 function* appStateSaga(): SagaGenerator<any, any> {

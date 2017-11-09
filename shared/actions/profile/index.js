@@ -22,7 +22,9 @@ import type {AppLink} from '../../constants/app'
 function* _editProfile(action: ProfileGen.EditProfilePayload): Saga.SagaGenerator<any, any> {
   const {bio, fullname, location} = action.payload
   yield Saga.call(RPCTypes.userProfileEditRpcPromise, {
-    param: {bio, fullName: fullname, location},
+    bio,
+    fullName: fullname,
+    location,
   })
   // If the profile tab remained on the edit profile screen, navigate back to the top level.
   yield Saga.put(putActionIfOnPath([peopleTab, 'editProfile'], navigateTo([], [peopleTab]), [peopleTab]))
@@ -125,7 +127,7 @@ function* _onClickFollowing(action: ProfileGen.OnClickFollowingPayload): Saga.Sa
 function* _submitRevokeProof(action: ProfileGen.SubmitRevokeProofPayload): Saga.SagaGenerator<any, any> {
   try {
     yield Saga.put(ProfileGen.createRevokeWaiting({waiting: true}))
-    yield Saga.call(RPCTypes.revokeRevokeSigsRpcPromise, {param: {sigIDQueries: [action.payload.proofId]}})
+    yield Saga.call(RPCTypes.revokeRevokeSigsRpcPromise, {sigIDQueries: [action.payload.proofId]})
     yield Saga.put(ProfileGen.createRevokeWaiting({waiting: false}))
     yield Saga.put(ProfileGen.createFinishRevoking())
   } catch (error) {

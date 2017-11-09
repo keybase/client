@@ -113,23 +113,21 @@ function triggerIdentify(
     new Promise((resolve, reject) => {
       dispatch({type: Constants.identifyStarted, payload: null})
       RPCTypes.identifyIdentify2RpcPromise({
-        param: {
-          uid,
-          userAssertion,
-          alwaysBlock: false,
-          noErrorOnTrackFailure: true,
-          forceRemoteCheck: false,
-          forceDisplay,
-          useDelegateUI: true,
-          needProofSet: true,
-          reason: {
-            type: RPCTypes.identifyCommonIdentifyReasonType.id,
-            reason: profileFromUI,
-            resource: '',
-          },
-          allowEmptySelfID: true,
-          noSkipSelf: true,
+        uid,
+        userAssertion,
+        alwaysBlock: false,
+        noErrorOnTrackFailure: true,
+        forceRemoteCheck: false,
+        forceDisplay,
+        useDelegateUI: true,
+        needProofSet: true,
+        reason: {
+          type: RPCTypes.identifyCommonIdentifyReasonType.id,
+          reason: profileFromUI,
+          resource: '',
         },
+        allowEmptySelfID: true,
+        noSkipSelf: true,
       })
         .then(response => {
           dispatch({type: Constants.identifyFinished, payload: {username: uid || userAssertion}})
@@ -148,7 +146,7 @@ function triggerIdentify(
 function registerIdentifyUi(): TrackerActionCreator {
   const registerIdentifyUiHelper = (dispatch, getState) => {
     engine().listenOnConnect('registerIdentifyUi', () => {
-      RPCTypes.delegateUiCtlRegisterIdentifyUIRpcPromise({})
+      RPCTypes.delegateUiCtlRegisterIdentifyUIRpcPromise()
         .then(response => {
           console.log('Registered identify ui')
         })
@@ -246,7 +244,7 @@ function onUnfollow(username: string): TrackerActionCreator {
     dispatch(_onWaiting(username, true))
 
     RPCTypes.trackUntrackRpcPromise({
-      param: {username},
+      username,
     })
       .then(response => {
         dispatch(_onWaiting(username, false))
@@ -280,7 +278,8 @@ function _trackUser(trackToken: ?string, localIgnore: boolean): Promise<boolean>
   return new Promise((resolve, reject) => {
     if (trackToken != null) {
       RPCTypes.trackTrackWithTokenRpcPromise({
-        param: {trackToken, options},
+        trackToken,
+        options,
       })
         .then(response => {
           console.log('Finished tracking', response)
@@ -347,7 +346,7 @@ function onFollow(
 }
 
 function _dismissWithToken(trackToken) {
-  RPCTypes.trackDismissWithTokenRpcPromise({param: {trackToken}}).catch(err => {
+  RPCTypes.trackDismissWithTokenRpcPromise({trackToken}).catch(err => {
     console.log('err dismissWithToken', err)
   })
 }
@@ -773,10 +772,8 @@ function _listTrackersOrTracking(
 ): Promise<Array<FriendshipUserInfo>> {
   return new Promise((resolve, reject) => {
     RPCTypes.userListTrackers2RpcPromise({
-      param: {
-        assertion: username,
-        reverse: !listTrackers,
-      },
+      assertion: username,
+      reverse: !listTrackers,
     })
       .then(response => {
         if (response.users) {

@@ -198,7 +198,7 @@ function* _addSaga(action: Constants.FavoriteAdd): Saga.SagaGenerator<any, any> 
     yield put(action)
   } else {
     try {
-      yield call(RPCTypes.favoriteFavoriteAddRpcPromise, {param: {folder}})
+      yield call(RPCTypes.favoriteFavoriteAddRpcPromise, {folder})
       const action: Constants.FavoriteAdded = {type: Constants.favoriteAdded, payload: undefined}
       yield put(action)
       yield put(favoriteList())
@@ -219,7 +219,7 @@ function* _ignoreSaga(action: Constants.FavoriteAdd): Saga.SagaGenerator<any, an
     yield put(action)
   } else {
     try {
-      yield call(RPCTypes.favoriteFavoriteIgnoreRpcPromise, {param: {folder}})
+      yield call(RPCTypes.favoriteFavoriteIgnoreRpcPromise, {folder})
       const action: Constants.FavoriteIgnored = {type: Constants.favoriteIgnored, payload: undefined}
       yield put(action)
       yield put(favoriteList())
@@ -232,10 +232,8 @@ function* _ignoreSaga(action: Constants.FavoriteAdd): Saga.SagaGenerator<any, an
 function* _listSaga(): Saga.SagaGenerator<any, any> {
   try {
     const results = yield call(RPCTypes.apiserverGetWithSessionRpcPromise, {
-      param: {
-        endpoint: 'kbfs/favorite/list',
-        args: [{key: 'problems', value: '1'}],
-      },
+      endpoint: 'kbfs/favorite/list',
+      args: [{key: 'problems', value: '1'}],
     })
     const username = yield select((state: TypedState) => state.config && state.config.username)
     const loggedIn = yield select((state: TypedState) => state.config && state.config.loggedIn)
@@ -311,7 +309,7 @@ function* _setupKBFSChangedHandler(): Saga.SagaGenerator<any, any> {
     }
   })
 
-  yield call(RPCTypes.NotifyFSRequestFSSyncStatusRequestRpcPromise, {param: {req: {requestID: 0}}})
+  yield call(RPCTypes.NotifyFSRequestFSSyncStatusRequestRpcPromise, {req: {requestID: 0}})
 }
 
 function* favoriteSaga(): Saga.SagaGenerator<any, any> {

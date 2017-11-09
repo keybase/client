@@ -18,9 +18,9 @@ function* _loadGit(action: GitGen.LoadGitPayload): Saga.SagaGenerator<any, any> 
   yield Saga.put(GitGen.createSetLoading({loading: true}))
 
   try {
-    const results: Array<RPCTypes.GitRepoResult> = yield Saga.call(RPCTypes.gitGetAllGitMetadataRpcPromise, {
-      param: {},
-    }) || []
+    const results: Array<RPCTypes.GitRepoResult> = yield Saga.call(
+      RPCTypes.gitGetAllGitMetadataRpcPromise
+    ) || []
 
     let idToInfo = {}
 
@@ -84,9 +84,7 @@ function* _createPersonalRepo(action: GitGen.CreatePersonalRepoPayload): Saga.Sa
   yield Saga.call(
     _createDeleteHelper,
     Saga.call(RPCTypes.gitCreatePersonalRepoRpcPromise, {
-      param: {
-        repoName: action.payload.name,
-      },
+      repoName: action.payload.name,
     })
   )
 }
@@ -95,12 +93,10 @@ function* _createTeamRepo(action: GitGen.CreateTeamRepoPayload): Saga.SagaGenera
   yield Saga.call(
     _createDeleteHelper,
     Saga.call(RPCTypes.gitCreateTeamRepoRpcPromise, {
-      param: {
-        notifyTeam: action.payload.notifyTeam,
-        repoName: action.payload.name,
-        teamName: {
-          parts: action.payload.teamname.split('.'),
-        },
+      notifyTeam: action.payload.notifyTeam,
+      repoName: action.payload.name,
+      teamName: {
+        parts: action.payload.teamname.split('.'),
       },
     })
   )
@@ -110,9 +106,7 @@ function* _deletePersonalRepo(action: GitGen.DeletePersonalRepoPayload): Saga.Sa
   yield Saga.call(
     _createDeleteHelper,
     Saga.call(RPCTypes.gitDeletePersonalRepoRpcPromise, {
-      param: {
-        repoName: action.payload.name,
-      },
+      repoName: action.payload.name,
     })
   )
 }
@@ -121,12 +115,10 @@ function* _deleteTeamRepo(action: GitGen.DeleteTeamRepoPayload): Saga.SagaGenera
   yield Saga.call(
     _createDeleteHelper,
     Saga.call(RPCTypes.gitDeleteTeamRepoRpcPromise, {
-      param: {
-        notifyTeam: action.payload.notifyTeam,
-        repoName: action.payload.name,
-        teamName: {
-          parts: action.payload.teamname.split('.'),
-        },
+      notifyTeam: action.payload.notifyTeam,
+      repoName: action.payload.name,
+      teamName: {
+        parts: action.payload.teamname.split('.'),
       },
     })
   )
@@ -155,9 +147,7 @@ const _onTabChange = (action: RouteTreeConstants.SwitchTo) => {
     _wasOnGitTab = false
     // clear badges
     return Saga.call(RPCTypes.gregorDismissCategoryRpcPromise, {
-      param: {
-        category: 'new_git_repo',
-      },
+      category: 'new_git_repo',
     })
   }
 

@@ -1,8 +1,6 @@
 {
   "prelude": [
-    "import * as Constants from '../constants/profile'",
-    "import * as RPCTypes from '../constants/types/flow-types'",
-    "import * as More from '../constants/types/more'"
+    "import * as Constants from '../constants/profile'"
   ],
   "actions": {
     "addProof": {

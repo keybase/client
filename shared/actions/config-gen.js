@@ -2,9 +2,10 @@
 // NOTE: This file is GENERATED from json files in actions/json. Run 'yarn build-actions' to regenerate
 /* eslint-disable no-unused-vars,prettier/prettier */
 
-import {type ReturnType} from '../constants/types/more'
-import * as Constants from '../constants/config'
+import * as I from 'immutable'
 import * as RPCTypes from '../constants/types/flow-types'
+import * as More from '../constants/types/more'
+import * as Constants from '../constants/config'
 
 // Constants
 export const resetStore = 'common:resetStore' // not a part of config but is handled by every reducer
@@ -50,46 +51,46 @@ export const createSetInitialState = (payload: {|initialState: Constants.Initial
 export const createUpdateFollowing = (payload: {|username: string, isTracking: boolean|}) => ({error: false, payload, type: updateFollowing})
 
 // Action Payloads
-export type BootstrapAttemptFailedPayload = ReturnType<typeof createBootstrapAttemptFailed>
-export type BootstrapFailedPayload = ReturnType<typeof createBootstrapFailed>
-export type BootstrapPayload = ReturnType<typeof createBootstrap>
-export type BootstrapRetryPayload = ReturnType<typeof createBootstrapRetry>
-export type BootstrapStatusLoadedPayload = ReturnType<typeof createBootstrapStatusLoaded>
-export type BootstrapSuccessPayload = ReturnType<typeof createBootstrapSuccess>
-export type ChangeKBFSPathPayload = ReturnType<typeof createChangeKBFSPath>
-export type ClearRouteStatePayload = ReturnType<typeof createClearRouteState>
-export type ConfigLoadedPayload = ReturnType<typeof createConfigLoaded>
-export type DaemonErrorPayload = ReturnType<typeof createDaemonError>
-export type ExtendedConfigLoadedPayload = ReturnType<typeof createExtendedConfigLoaded>
-export type GetExtendedStatusPayload = ReturnType<typeof createGetExtendedStatus>
-export type GlobalErrorPayload = ReturnType<typeof createGlobalError>
-export type PersistRouteStatePayload = ReturnType<typeof createPersistRouteState>
-export type PushLoadedPayload = ReturnType<typeof createPushLoaded>
-export type ReadyForBootstrapPayload = ReturnType<typeof createReadyForBootstrap>
-export type RetryBootstrapPayload = ReturnType<typeof createRetryBootstrap>
-export type SetInitialStatePayload = ReturnType<typeof createSetInitialState>
-export type UpdateFollowingPayload = ReturnType<typeof createUpdateFollowing>
+export type BootstrapAttemptFailedPayload = More.ReturnType<typeof createBootstrapAttemptFailed>
+export type BootstrapFailedPayload = More.ReturnType<typeof createBootstrapFailed>
+export type BootstrapPayload = More.ReturnType<typeof createBootstrap>
+export type BootstrapRetryPayload = More.ReturnType<typeof createBootstrapRetry>
+export type BootstrapStatusLoadedPayload = More.ReturnType<typeof createBootstrapStatusLoaded>
+export type BootstrapSuccessPayload = More.ReturnType<typeof createBootstrapSuccess>
+export type ChangeKBFSPathPayload = More.ReturnType<typeof createChangeKBFSPath>
+export type ClearRouteStatePayload = More.ReturnType<typeof createClearRouteState>
+export type ConfigLoadedPayload = More.ReturnType<typeof createConfigLoaded>
+export type DaemonErrorPayload = More.ReturnType<typeof createDaemonError>
+export type ExtendedConfigLoadedPayload = More.ReturnType<typeof createExtendedConfigLoaded>
+export type GetExtendedStatusPayload = More.ReturnType<typeof createGetExtendedStatus>
+export type GlobalErrorPayload = More.ReturnType<typeof createGlobalError>
+export type PersistRouteStatePayload = More.ReturnType<typeof createPersistRouteState>
+export type PushLoadedPayload = More.ReturnType<typeof createPushLoaded>
+export type ReadyForBootstrapPayload = More.ReturnType<typeof createReadyForBootstrap>
+export type RetryBootstrapPayload = More.ReturnType<typeof createRetryBootstrap>
+export type SetInitialStatePayload = More.ReturnType<typeof createSetInitialState>
+export type UpdateFollowingPayload = More.ReturnType<typeof createUpdateFollowing>
 
 // All Actions
 // prettier-ignore
 export type Actions =
-  | ReturnType<typeof createBootstrap>
-  | ReturnType<typeof createBootstrapAttemptFailed>
-  | ReturnType<typeof createBootstrapFailed>
-  | ReturnType<typeof createBootstrapRetry>
-  | ReturnType<typeof createBootstrapStatusLoaded>
-  | ReturnType<typeof createBootstrapSuccess>
-  | ReturnType<typeof createChangeKBFSPath>
-  | ReturnType<typeof createClearRouteState>
-  | ReturnType<typeof createConfigLoaded>
-  | ReturnType<typeof createDaemonError>
-  | ReturnType<typeof createExtendedConfigLoaded>
-  | ReturnType<typeof createGetExtendedStatus>
-  | ReturnType<typeof createGlobalError>
-  | ReturnType<typeof createPersistRouteState>
-  | ReturnType<typeof createPushLoaded>
-  | ReturnType<typeof createReadyForBootstrap>
-  | ReturnType<typeof createRetryBootstrap>
-  | ReturnType<typeof createSetInitialState>
-  | ReturnType<typeof createUpdateFollowing>
+  | More.ReturnType<typeof createBootstrap>
+  | More.ReturnType<typeof createBootstrapAttemptFailed>
+  | More.ReturnType<typeof createBootstrapFailed>
+  | More.ReturnType<typeof createBootstrapRetry>
+  | More.ReturnType<typeof createBootstrapStatusLoaded>
+  | More.ReturnType<typeof createBootstrapSuccess>
+  | More.ReturnType<typeof createChangeKBFSPath>
+  | More.ReturnType<typeof createClearRouteState>
+  | More.ReturnType<typeof createConfigLoaded>
+  | More.ReturnType<typeof createDaemonError>
+  | More.ReturnType<typeof createExtendedConfigLoaded>
+  | More.ReturnType<typeof createGetExtendedStatus>
+  | More.ReturnType<typeof createGlobalError>
+  | More.ReturnType<typeof createPersistRouteState>
+  | More.ReturnType<typeof createPushLoaded>
+  | More.ReturnType<typeof createReadyForBootstrap>
+  | More.ReturnType<typeof createRetryBootstrap>
+  | More.ReturnType<typeof createSetInitialState>
+  | More.ReturnType<typeof createUpdateFollowing>
   | {type: 'common:resetStore', payload: void}

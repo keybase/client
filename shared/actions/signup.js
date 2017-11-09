@@ -40,9 +40,7 @@ function checkInviteCodeThenNextPhase(inviteCode: string) {
       dispatch(SignupGen.createCheckInviteCode({inviteCode}))
 
       RPCTypes.signupCheckInvitationCodeRpcPromise({
-        param: {
-          invitationCode: inviteCode,
-        },
+        invitationCode: inviteCode,
         waitingHandler: isWaiting => {
           dispatch(waiting(isWaiting))
         },
@@ -116,11 +114,9 @@ function requestInvite(email: string, name: string) {
       }
 
       RPCTypes.signupInviteRequestRpcPromise({
-        param: {
-          email: email,
-          fullname: name,
-          notes: 'Requested through GUI app',
-        },
+        email: email,
+        fullname: name,
+        notes: 'Requested through GUI app',
         waitingHandler: isWaiting => {
           dispatch(waiting(isWaiting))
         },
@@ -185,7 +181,7 @@ function checkUsernameEmail(username: ?string, email: ?string) {
       }
 
       RPCTypes.signupCheckUsernameAvailableRpcPromise({
-        param: {username},
+        username,
         waitingHandler: isWaiting => {
           dispatch(waiting(isWaiting))
         },
@@ -283,7 +279,7 @@ function submitDeviceName(deviceName: string, skipMail?: boolean, onDisplayPaper
         )
       } else {
         RPCTypes.deviceCheckDeviceNameFormatRpcPromise({
-          param: {name: deviceName},
+          name: deviceName,
           waitingHandler: isWaiting => {
             dispatch(waiting(isWaiting))
           },
@@ -361,18 +357,16 @@ function signup(skipMail: boolean, onDisplayPaperKey?: () => void) {
               dispatch(nextPhase())
             },
           },
-          param: {
-            deviceName,
-            deviceType,
-            email,
-            genPGPBatch: false,
-            genPaper: false,
-            inviteCode,
-            passphrase: passphrase.stringValue(),
-            skipMail,
-            storeSecret: true,
-            username,
-          },
+          deviceName,
+          deviceType,
+          email,
+          genPGPBatch: false,
+          genPaper: false,
+          inviteCode,
+          passphrase: passphrase.stringValue(),
+          skipMail,
+          storeSecret: true,
+          username,
           waitingHandler: isWaiting => {
             dispatch(waiting(isWaiting))
           },

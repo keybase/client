@@ -327,10 +327,8 @@ function* onSelectAttachment({payload: {input}}: ChatGen.SelectAttachmentPayload
   }
 
   const preview = yield Saga.call(ChatTypes.localMakePreviewRpcPromise, {
-    param: {
-      attachment: {filename},
-      outputDir: tmpDir(),
-    },
+    attachment: {filename},
+    outputDir: tmpDir(),
   })
 
   const inboxConvo = yield Saga.select(Constants.getInbox, conversationIDKey)

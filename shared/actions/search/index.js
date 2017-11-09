@@ -154,14 +154,12 @@ function _parseSuggestion(username: string) {
 function _apiSearch(searchTerm: string, service: string = '', limit: number = 20): Promise<Array<RawResult>> {
   service = service === 'Keybase' ? '' : service
   return RPCTypes.apiserverGetWithSessionRpcPromise({
-    param: {
-      args: [
-        {key: 'q', value: trim(searchTerm)},
-        {key: 'num_wanted', value: String(limit)},
-        {key: 'service', value: service},
-      ],
-      endpoint: 'user/user_search',
-    },
+    args: [
+      {key: 'q', value: trim(searchTerm)},
+      {key: 'num_wanted', value: String(limit)},
+      {key: 'service', value: service},
+    ],
+    endpoint: 'user/user_search',
   }).then(results => JSON.parse(results.body))
 }
 
@@ -221,9 +219,7 @@ function* searchSuggestions({payload: {maxUsers, searchKey}}: Constants.SearchSu
   let suggestions: Array<
     RPCTypes.InterestingPerson
   > = yield Saga.call(RPCTypes.userInterestingPeopleRpcPromise, {
-    param: {
-      maxUsers,
-    },
+    maxUsers,
   })
 
   // No search results (e.g. this user doesn't follow/chat anyone)

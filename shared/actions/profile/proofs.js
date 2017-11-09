@@ -25,7 +25,7 @@ function* _checkProof(action: ProfileGen.CheckProofPayload): Saga.SagaGenerator<
 
   try {
     yield Saga.put(ProfileGen.createWaiting({waiting: true}))
-    const {found, status} = yield Saga.call(RPCTypes.proveCheckProofRpcPromise, {param: {sigID}})
+    const {found, status} = yield Saga.call(RPCTypes.proveCheckProofRpcPromise, {sigID})
     yield Saga.put(ProfileGen.createWaiting({waiting: false}))
 
     // Values higher than baseHardError are hard errors, below are soft errors (could eventually be resolved by doing nothing)
@@ -100,13 +100,11 @@ function* _addServiceProof(service: ProvablePlatformsType): Saga.SagaGenerator<a
       'finished',
     ],
     {
-      param: {
-        auto: false,
-        force: true,
-        promptPosted: false,
-        service,
-        username: '',
-      },
+      auto: false,
+      force: true,
+      promptPosted: false,
+      service,
+      username: '',
     }
   )
 
@@ -246,7 +244,9 @@ function* _submitCryptoAddress(
   try {
     yield Saga.put(ProfileGen.createWaiting({waiting: true}))
     yield Saga.call(RPCTypes.cryptocurrencyRegisterAddressRpcPromise, {
-      param: {address, force: true, wantedFamily},
+      address,
+      force: true,
+      wantedFamily,
     })
 
     yield Saga.put(ProfileGen.createWaiting({waiting: false}))

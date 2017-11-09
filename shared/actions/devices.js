@@ -52,7 +52,8 @@ function* _deviceShowRevokePageSaga(action: Constants.ShowRevokePage): SagaGener
     const actingDevice = state.config.deviceID
     if (actingDevice) {
       endangeredTLFs = yield call(RPCTypes.rekeyGetRevokeWarningRpcPromise, {
-        param: {targetDevice: deviceID, actingDevice},
+        targetDevice: deviceID,
+        actingDevice,
       })
     }
   } catch (e) {
@@ -133,7 +134,7 @@ function* _deviceRevokedSaga(action: Constants.Revoke): SagaGenerator<any, any> 
         throw new Error('No username in device remove')
       }
       yield put(setWaiting(true))
-      yield call(RPCTypes.loginDeprovisionRpcPromise, {param: {doRevoke: true, username}})
+      yield call(RPCTypes.loginDeprovisionRpcPromise, {doRevoke: true, username})
       yield put(navigateTo([loginTab]))
       yield put(LoginGen.createSetRevokedSelf({revoked: name}))
     } catch (e) {
@@ -146,7 +147,9 @@ function* _deviceRevokedSaga(action: Constants.Revoke): SagaGenerator<any, any> 
     try {
       yield put(setWaiting(true))
       yield call(RPCTypes.revokeRevokeDeviceRpcPromise, {
-        param: {deviceID, forceSelf: false, forceLast: false},
+        deviceID,
+        forceSelf: false,
+        forceLast: false,
       })
     } catch (e) {
       throw new Error("Can't remove device")

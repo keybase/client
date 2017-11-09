@@ -218,7 +218,7 @@ const _setNotifications = function*(
           },
         ],
       }
-      yield Saga.call(ChatTypes.localSetAppNotificationSettingsLocalRpcPromise, {param})
+      yield Saga.call(ChatTypes.localSetAppNotificationSettingsLocalRpcPromise, param)
     }
   }
 }
@@ -232,7 +232,9 @@ function* _blockConversation(action: ChatGen.BlockConversationPayload): Saga.Sag
       : ChatTypes.commonConversationStatus.blocked
     const identifyBehavior: RPCTypes.TLFIdentifyBehavior = RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui
     yield Saga.call(ChatTypes.localSetConversationStatusLocalRpcPromise, {
-      param: {conversationID, identifyBehavior, status},
+      conversationID,
+      identifyBehavior,
+      status,
     })
   }
 }
@@ -241,7 +243,7 @@ function* _leaveConversation(action: ChatGen.LeaveConversationPayload): Saga.Sag
   const {conversationIDKey} = action.payload
   const conversationID = Constants.keyToConversationID(conversationIDKey)
   yield Saga.call(ChatTypes.localLeaveConversationLocalRpcPromise, {
-    param: {convID: conversationID},
+    convID: conversationID,
   })
 }
 
@@ -251,7 +253,9 @@ function* _muteConversation(action: ChatGen.MuteConversationPayload): Saga.SagaG
   const status = muted ? ChatTypes.commonConversationStatus.muted : ChatTypes.commonConversationStatus.unfiled
   const identifyBehavior: RPCTypes.TLFIdentifyBehavior = RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui
   yield Saga.call(ChatTypes.localSetConversationStatusLocalRpcPromise, {
-    param: {conversationID, identifyBehavior, status},
+    conversationID,
+    identifyBehavior,
+    status,
   })
 }
 
