@@ -2347,7 +2347,8 @@ func (h *Server) sendRemoteNotificationSuccessful(ctx context.Context, pushIDs [
 			h.Debug(ctx, "sendRemoteNotificationSuccessful: failed to parse CAs: %s", err.Error())
 			return
 		}
-		conn = rpc.NewTLSConnection(uri.HostPort, []byte(rawCA), libkb.NewContextifiedErrorUnwrapper(h.G().ExternalG()),
+		conn = rpc.NewTLSConnection(rpc.NewFixedRemote(uri.HostPort),
+			[]byte(rawCA), libkb.NewContextifiedErrorUnwrapper(h.G().ExternalG()),
 			&remoteNotificationSuccessHandler{}, libkb.NewRPCLogFactory(h.G().ExternalG()), h.G().Log,
 			rpc.ConnectionOpts{})
 	} else {

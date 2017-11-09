@@ -30,6 +30,13 @@ function toggleChannelMembership(teamname: string, channelname: string): Constan
   return {payload: {channelname, teamname}, type: 'teams:toggleChannelMembership'}
 }
 
+function saveChannelMembership(
+  teamname: string,
+  channelState: Constants.ChannelMembershipState
+): Constants.SaveChannelMembership {
+  return {payload: {channelState, teamname}, type: 'teams:saveChannelMembership'}
+}
+
 function addPeopleToTeam(teamname: string, role: string): Constants.AddPeopleToTeam {
   return {payload: {role, teamname}, type: 'teams:addPeopleToTeam'}
 }
@@ -119,6 +126,21 @@ function setupTeamHandlers(): Constants.SetupTeamHandlers {
   return {payload: undefined, type: 'teams:setupTeamHandlers'}
 }
 
+function updateChannelName(
+  conversationIDKey: ConversationIDKey,
+  newChannelName: string
+): Constants.UpdateChannelName {
+  return {payload: {conversationIDKey, newChannelName}, type: 'teams:updateChannelName'}
+}
+
+function updateTopic(conversationIDKey: ConversationIDKey, newTopic: string): Constants.UpdateTopic {
+  return {payload: {conversationIDKey, newTopic}, type: 'teams:updateTopic'}
+}
+
+function deleteChannel(conversationIDKey: ConversationIDKey): Constants.DeleteChannel {
+  return {payload: {conversationIDKey}, type: 'teams:deleteChannel'}
+}
+
 function badgeAppForTeams(
   newTeamNames: Array<string>,
   newTeamAccessRequests: Array<string>
@@ -132,6 +154,7 @@ export {
   createChannel,
   createNewTeam,
   createNewTeamFromConversation,
+  deleteChannel,
   editMembership,
   getChannels,
   getDetails,
@@ -143,6 +166,7 @@ export {
   leaveTeam,
   makeTeamOpen,
   removeMember,
+  saveChannelMembership,  
   setPublicityMember,
   setPublicityTeam,
   setTeamCreationError,
@@ -151,5 +175,7 @@ export {
   setTeamJoinSuccess,
   setupTeamHandlers,
   toggleChannelMembership,
+  updateChannelName,
+  updateTopic,
   badgeAppForTeams,
 }

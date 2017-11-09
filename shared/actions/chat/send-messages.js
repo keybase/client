@@ -4,12 +4,12 @@ import * as I from 'immutable'
 import * as RPCChatTypes from '../../constants/types/flow-types-chat'
 import * as RPCTypes from '../../constants/types/flow-types'
 import * as Constants from '../../constants/chat'
-import * as Creators from './creators'
 import * as ChatGen from '../chat-gen'
 import * as Shared from './shared'
 import * as Saga from '../../util/saga'
 import HiddenString from '../../util/hidden-string'
 import {isMobile} from '../../constants/platform'
+import {enableActionLogging} from '../../local-debug'
 import {usernameSelector} from '../../constants/selectors'
 import {navigateTo} from '../../actions/route-tree'
 import {chatTab} from '../../constants/tabs'
@@ -68,7 +68,7 @@ function* deleteMessage(action: ChatGen.DeleteMessagePayload): SagaGenerator<any
   }
 }
 
-function* postMessage(action: Constants.PostMessage): SagaGenerator<any, any> {
+function* postMessage(action: ChatGen.PostMessagePayload): SagaGenerator<any, any> {
   let {conversationIDKey} = action.payload
   let newConvoTlfName
 
@@ -121,13 +121,13 @@ function* postMessage(action: Constants.PostMessage): SagaGenerator<any, any> {
   const appFocused = yield Saga.select(Shared.focusedSelector)
 
   yield Saga.put(
-    Creators.appendMessages(
+    ChatGen.createAppendMessages({
       conversationIDKey,
-      conversationIDKey === selectedConversation,
-      appFocused,
-      [message],
-      false
-    )
+      isSelected: conversationIDKey === selectedConversation,
+      isAppFocused: appFocused,
+      messages: [message],
+      svcShouldDisplayNotification: false,
+    })
   )
 
   yield Saga.call(RPCChatTypes.localPostTextNonblockRpcPromise, {
@@ -207,19 +207,46 @@ function* editMessage(action: ChatGen.EditMessagePayload): SagaGenerator<any, an
   yield Saga.call(RPCChatTypes.localPostEditNonblockRpcPromise, {param})
 }
 
-function* retryMessage(action: Constants.RetryMessage): SagaGenerator<any, any> {
+function* retryMessage(action: ChatGen.RetryMessagePayload): SagaGenerator<any, any> {
   const {conversationIDKey, outboxIDKey} = action.payload
-  yield Saga.put(Creators.updateTempMessage(conversationIDKey, {messageState: 'pending'}, outboxIDKey))
+  yield Saga.put(
+    ChatGen.createUpdateTempMessage({conversationIDKey, message: {messageState: 'pending'}, outboxIDKey})
+  )
   yield Saga.call(RPCChatTypes.localRetryPostRpcPromise, {
     param: {outboxID: Constants.keyToOutboxID(outboxIDKey)},
   })
 }
 
+function* _logPostMessage(action: ChatGen.PostMessagePayload): Saga.SagaGenerator<any, any> {
+  const toPrint = {
+    payload: {conversationIDKey: action.payload.conversationIDKey},
+    type: action.type,
+  }
+
+  console.log('Posting message', JSON.stringify(toPrint, null, 2))
+}
+
+function* _logRetryMessage(action: ChatGen.RetryMessagePayload): Saga.SagaGenerator<any, any> {
+  const toPrint = {
+    payload: {
+      conversationIDKey: action.payload.conversationIDKey,
+      outboxIDKey: action.payload.outboxIDKey,
+    },
+    type: action.type,
+  }
+  console.log('Retrying message', JSON.stringify(toPrint, null, 2))
+}
+
 function* registerSagas(): SagaGenerator<any, any> {
   yield Saga.safeTakeEvery(ChatGen.deleteMessage, deleteMessage)
   yield Saga.safeTakeEvery(ChatGen.editMessage, editMessage)
-  yield Saga.safeTakeEvery('chat:postMessage', postMessage)
-  yield Saga.safeTakeEvery('chat:retryMessage', retryMessage)
+  yield Saga.safeTakeEvery(ChatGen.postMessage, postMessage)
+  yield Saga.safeTakeEvery(ChatGen.retryMessage, retryMessage)
+
+  if (enableActionLogging) {
+    yield Saga.safeTakeEvery(ChatGen.postMessage, _logPostMessage)
+    yield Saga.safeTakeEvery(ChatGen.retryMessage, _logRetryMessage)
+  }
 }
 
 export {registerSagas}

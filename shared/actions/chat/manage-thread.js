@@ -10,6 +10,7 @@ import * as Saga from '../../util/saga'
 import * as SearchCreators from '../search/creators'
 import * as Selectors from '../../constants/selectors'
 import * as Shared from './shared'
+import uniq from 'lodash/uniq'
 import {chatTab} from '../../constants/tabs'
 import {navigateTo, switchTo} from '../route-tree'
 import {type SagaGenerator} from '../../constants/types/saga'
@@ -18,8 +19,10 @@ import {type TypedState} from '../../constants/reducer'
 const inSearchSelector = (state: TypedState) => state.chat.get('inSearch')
 const inboxSelector = (state: TypedState) => state.chat.get('inbox')
 
-function* _startConversation(action: Constants.StartConversation): Saga.SagaGenerator<any, any> {
-  const {users, forceImmediate, temporary} = action.payload
+function* _startConversation(action: ChatGen.StartConversationPayload): Saga.SagaGenerator<any, any> {
+  const users = uniq(action.payload.users)
+  const temporary = action.payload.temporary || false
+  const forceImmediate = action.payload.forceImmediate || false
   const me = yield Saga.select(Selectors.usernameSelector)
 
   if (!users.includes(me)) {
@@ -255,7 +258,7 @@ function* _muteConversation(action: ChatGen.MuteConversationPayload): Saga.SagaG
 function* registerSagas(): SagaGenerator<any, any> {
   yield Saga.safeTakeEvery(ChatGen.leaveConversation, _leaveConversation)
   yield Saga.safeTakeEvery(ChatGen.muteConversation, _muteConversation)
-  yield Saga.safeTakeEvery('chat:startConversation', _startConversation)
+  yield Saga.safeTakeEvery(ChatGen.startConversation, _startConversation)
   yield Saga.safeTakeLatest(ChatGen.selectConversation, _selectConversation)
   yield Saga.safeTakeEvery(
     [ChatGen.setNotifications, ChatGen.updatedNotifications, ChatGen.toggleChannelWideNotifications],

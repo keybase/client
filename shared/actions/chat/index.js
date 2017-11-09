@@ -2,7 +2,6 @@
 import * as Attachment from './attachment'
 import * as ChatTypes from '../../constants/types/flow-types-chat'
 import * as Constants from '../../constants/chat'
-import * as Creators from './creators'
 import * as ChatGen from '../chat-gen'
 import * as KBFSGen from '../kbfs-gen'
 import * as Inbox from './inbox'
@@ -104,7 +103,7 @@ function* _openTlfInChat(action: ChatGen.OpenTlfInChatPayload): Saga.SagaGenerat
     console.warn('Bug: openTlfToChat should never be called on a convo with readOnly members.')
     return
   }
-  yield Saga.put(Creators.startConversation(users))
+  yield Saga.put(ChatGen.createStartConversation({users}))
 }
 
 function* _openFolder(): Saga.SagaGenerator<any, any> {
@@ -142,5 +141,3 @@ function* chatSaga(): Saga.SagaGenerator<any, any> {
 }
 
 export default chatSaga
-
-export {badgeAppForChat, startConversation} from './creators'

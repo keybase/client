@@ -779,6 +779,10 @@
         {
           "name": "protVers",
           "type": "SyncAllProtVers"
+        },
+        {
+          "name": "hostName",
+          "type": "string"
         }
       ],
       "response": "SyncAllResult"

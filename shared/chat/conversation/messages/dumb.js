@@ -9,7 +9,7 @@ import Wrapper from './wrapper'
 import {Box} from '../../../common-adapters'
 import * as ChatConstants from '../../../constants/chat'
 import * as EntityConstants from '../../../constants/entities'
-import * as ChatCreators from '../../../actions/chat/creators'
+import * as ChatGen from '../../../actions/chat-gen'
 import * as I from 'immutable'
 import chatReducer from '../../../reducers/chat'
 
@@ -414,13 +414,13 @@ const failedMessage = textMessageMock('failed', 'cecileb', 'cecileb', {
 })
 mockState = chatReducer(
   mockState,
-  ChatCreators.appendMessages(
-    convID, // conv id
-    true, // isSelected
-    true, // isAppFocused
-    [firstMsg, secondMsg, pendingMessage, failedMessage], //  messages: Array<Constants.Message>
-    false
-  )
+  ChatGen.createAppendMessages({
+    conversationIDKey: convID,
+    isSelected: true,
+    isAppFocused: true,
+    messages: [firstMsg, secondMsg, pendingMessage, failedMessage],
+    svcShouldDisplayNotification: false,
+  })
 )
 
 const msgs = [firstMsg, secondMsg, pendingMessage, failedMessage]

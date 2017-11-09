@@ -39,6 +39,7 @@ function* _onMobileAppStateChanged(action: Constants.MobileAppState): SagaGenera
       inactive: RPCTypes.appStateAppState.inactive,
       background: RPCTypes.appStateAppState.background,
     }[nextAppState] || RPCTypes.appStateAppState.foreground
+  console.log(`setting app state on service to: ${state}`)
 
   yield call(RPCTypes.appStateUpdateAppStateRpcPromise, {param: {state}})
 }

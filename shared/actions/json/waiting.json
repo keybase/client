@@ -1,0 +1,11 @@
+{
+  "prelude": [],
+  "actions": {
+    "incrementWaiting": {
+      "key": "string"
+    },
+    "decrementWaiting": {
+      "key": "string"
+    }
+  }
+}
