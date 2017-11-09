@@ -321,6 +321,7 @@ class Team extends React.PureComponent<Props> {
               type="BodySemiboldLink"
               style={stylesAddYourselfBannerText}
               onClick={onAddSelf}
+              underline={true}
             >
               Add yourself
             </Text>
