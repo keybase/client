@@ -33,10 +33,12 @@ export type Props = {
   requests: Array<RequestRowProps>,
   newTeamRequests: Array<Constants.Teamname>,
   loading: boolean,
+  showAddYourselfBanner: boolean,
   showMenu: boolean,
   selectedTab: Constants.TabKey,
   setShowMenu: (s: boolean) => void,
   onAddPeople: () => void,
+  onAddSelf: () => void,
   onInviteByEmail: () => void,
   setSelectedTab: (t: ?Constants.TabKey) => void,
   onCreateSubteam: () => void,
@@ -166,10 +168,12 @@ class Team extends React.PureComponent<Props> {
       showMenu,
       setShowMenu,
       onAddPeople,
+      onAddSelf,
       onCreateSubteam,
       onInviteByEmail,
       onLeaveTeam,
       selectedTab,
+      showAddYourselfBanner,
       loading,
       onManageChat,
       you,
@@ -256,6 +260,20 @@ class Team extends React.PureComponent<Props> {
 
     return (
       <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center', flex: 1}}>
+        {showAddYourselfBanner &&
+          <Box style={stylesAddYourselfBanner}>
+            <Text type="BodySemibold" style={stylesAddYourselfBannerText}>
+              You are not a member of this team.
+            </Text>
+            <Text
+              backgroundMode="Information"
+              type="BodySemiboldLink"
+              style={stylesAddYourselfBannerText}
+              onClick={onAddSelf}
+            >
+              Add yourself
+            </Text>
+          </Box>}
         <Avatar isTeam={true} teamname={name} size={64} />
         <Text type="Header" style={{marginTop: globalMargins.tiny}}>
           {name}
@@ -299,6 +317,25 @@ class Team extends React.PureComponent<Props> {
       </Box>
     )
   }
+}
+
+const stylesAddYourselfBanner = {
+  ...globalStyles.flexBoxColumn,
+  alignItems: 'center',
+  alignSelf: 'stretch',
+  backgroundColor: globalColors.blue,
+  justifyContent: 'center',
+  minHeight: 40,
+  marginBottom: globalMargins.tiny,
+  paddingBottom: globalMargins.tiny,
+  paddingLeft: globalMargins.medium,
+  paddingRight: globalMargins.medium,
+  paddingTop: globalMargins.tiny,
+}
+
+const stylesAddYourselfBannerText = {
+  color: globalColors.white,
+  textAlign: 'center',
 }
 
 export default Team

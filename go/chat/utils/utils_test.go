@@ -30,9 +30,9 @@ func TestParseDurationExtended(t *testing.T) {
 }
 
 func TestParseAtMentionsNames(t *testing.T) {
-	text := "@chat_1e2263952c @9mike hello! @mike From @chat_5511c5e0ce. @ksjdskj 889@ds8 @_dskdjs @k1"
+	text := "@chat_1e2263952c hello! @mike From @chat_5511c5e0ce. @ksjdskj 889@ds8 @_dskdjs @k1 @0011_"
 	matches := ParseAtMentionsNames(context.TODO(), text)
-	expected := []string{"chat_1e2263952c", "mike", "chat_5511c5e0ce", "ksjdskj", "k1"}
+	expected := []string{"chat_1e2263952c", "mike", "chat_5511c5e0ce", "ksjdskj", "k1", "0011_"}
 	require.Equal(t, expected, matches)
 	text = "@mike@jim"
 	matches = ParseAtMentionsNames(context.TODO(), text)

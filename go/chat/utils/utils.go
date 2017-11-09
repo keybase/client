@@ -428,7 +428,7 @@ func ParseChannelNameMentions(ctx context.Context, body string, uid gregor1.UID,
 	return res
 }
 
-var atMentionRegExp = regexp.MustCompile(`\B@([a-z][a-z0-9_]+)`)
+var atMentionRegExp = regexp.MustCompile(`\B@([a-z0-9][a-z0-9_]+)`)
 
 func parseRegexpNames(ctx context.Context, body string, re *regexp.Regexp) (res []string) {
 	matches := re.FindAllStringSubmatch(body, -1)
