@@ -754,3 +754,11 @@ func IsAppStatusCode(err error, code keybase1.StatusCode) bool {
 func CanExec(p string) error {
 	return canExec(p)
 }
+
+func CurrentBinaryRealpath() (string, error) {
+	absolute, err := filepath.Abs(os.Args[0])
+	if err != nil {
+		return "", err
+	}
+	return filepath.EvalSymlinks(absolute)
+}

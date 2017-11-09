@@ -224,36 +224,38 @@ func (e ForkType) String() string {
 }
 
 type Config struct {
-	ServerURI    string   `codec:"serverURI" json:"serverURI"`
-	SocketFile   string   `codec:"socketFile" json:"socketFile"`
-	Label        string   `codec:"label" json:"label"`
-	RunMode      string   `codec:"runMode" json:"runMode"`
-	GpgExists    bool     `codec:"gpgExists" json:"gpgExists"`
-	GpgPath      string   `codec:"gpgPath" json:"gpgPath"`
-	Version      string   `codec:"version" json:"version"`
-	Path         string   `codec:"path" json:"path"`
-	ConfigPath   string   `codec:"configPath" json:"configPath"`
-	VersionShort string   `codec:"versionShort" json:"versionShort"`
-	VersionFull  string   `codec:"versionFull" json:"versionFull"`
-	IsAutoForked bool     `codec:"isAutoForked" json:"isAutoForked"`
-	ForkType     ForkType `codec:"forkType" json:"forkType"`
+	ServerURI      string   `codec:"serverURI" json:"serverURI"`
+	SocketFile     string   `codec:"socketFile" json:"socketFile"`
+	Label          string   `codec:"label" json:"label"`
+	RunMode        string   `codec:"runMode" json:"runMode"`
+	GpgExists      bool     `codec:"gpgExists" json:"gpgExists"`
+	GpgPath        string   `codec:"gpgPath" json:"gpgPath"`
+	Version        string   `codec:"version" json:"version"`
+	Path           string   `codec:"path" json:"path"`
+	BinaryRealpath string   `codec:"binaryRealpath" json:"binaryRealpath"`
+	ConfigPath     string   `codec:"configPath" json:"configPath"`
+	VersionShort   string   `codec:"versionShort" json:"versionShort"`
+	VersionFull    string   `codec:"versionFull" json:"versionFull"`
+	IsAutoForked   bool     `codec:"isAutoForked" json:"isAutoForked"`
+	ForkType       ForkType `codec:"forkType" json:"forkType"`
 }
 
 func (o Config) DeepCopy() Config {
 	return Config{
-		ServerURI:    o.ServerURI,
-		SocketFile:   o.SocketFile,
-		Label:        o.Label,
-		RunMode:      o.RunMode,
-		GpgExists:    o.GpgExists,
-		GpgPath:      o.GpgPath,
-		Version:      o.Version,
-		Path:         o.Path,
-		ConfigPath:   o.ConfigPath,
-		VersionShort: o.VersionShort,
-		VersionFull:  o.VersionFull,
-		IsAutoForked: o.IsAutoForked,
-		ForkType:     o.ForkType.DeepCopy(),
+		ServerURI:      o.ServerURI,
+		SocketFile:     o.SocketFile,
+		Label:          o.Label,
+		RunMode:        o.RunMode,
+		GpgExists:      o.GpgExists,
+		GpgPath:        o.GpgPath,
+		Version:        o.Version,
+		Path:           o.Path,
+		BinaryRealpath: o.BinaryRealpath,
+		ConfigPath:     o.ConfigPath,
+		VersionShort:   o.VersionShort,
+		VersionFull:    o.VersionFull,
+		IsAutoForked:   o.IsAutoForked,
+		ForkType:       o.ForkType.DeepCopy(),
 	}
 }
 
