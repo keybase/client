@@ -308,4 +308,8 @@ Showcase a team publicly:
     keybase team settings acme --showcase=yes
 Promote a team on your profile:
     keybase team settings acme --profile-promote=yes
+Set a description for the team to show if promoted:
+    keybase team settings acme --description="Rocket-Powered Products"
+Clear the team description:
+    keybase team settings acme --description=""
 `
