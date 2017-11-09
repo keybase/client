@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"github.com/keybase/kbfs/kbfscrypto"
+	"github.com/keybase/kbfs/kbfsmd"
 	"github.com/keybase/kbfs/tlf"
 )
 
@@ -16,7 +17,7 @@ func TestKeyCacheBasic(t *testing.T) {
 	cache := NewKeyCacheStandard(10)
 	id := tlf.FakeID(100, tlf.Public)
 	key := kbfscrypto.MakeTLFCryptKey([32]byte{0xf})
-	keyGen := FirstValidKeyGen
+	keyGen := kbfsmd.FirstValidKeyGen
 	_, err := cache.GetTLFCryptKey(id, keyGen)
 	if _, ok := err.(KeyCacheMissError); !ok {
 		t.Fatal(errors.New("expected KeyCacheMissError"))

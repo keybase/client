@@ -586,7 +586,7 @@ func (e UnverifiableTlfUpdateError) Error() string {
 // and key generation wasn't found in cache.
 type KeyCacheMissError struct {
 	tlf    tlf.ID
-	keyGen KeyGen
+	keyGen kbfsmd.KeyGen
 }
 
 // Error implements the error interface for KeyCacheMissError.
@@ -598,7 +598,7 @@ func (e KeyCacheMissError) Error() string {
 // and key generation was found in cache but the object type was unknown.
 type KeyCacheHitError struct {
 	tlf    tlf.ID
-	keyGen KeyGen
+	keyGen kbfsmd.KeyGen
 }
 
 // Error implements the error interface for KeyCacheHitError.

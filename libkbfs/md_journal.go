@@ -132,7 +132,7 @@ type mdJournal struct {
 	clock          Clock
 	teamMemChecker kbfsmd.TeamMembershipChecker
 	tlfID          tlf.ID
-	mdVer          MetadataVer
+	mdVer          kbfsmd.MetadataVer
 	dir            string
 
 	log      logger.Logger
@@ -161,7 +161,7 @@ func makeMDJournalWithIDJournal(
 	ctx context.Context, uid keybase1.UID, key kbfscrypto.VerifyingKey,
 	codec kbfscodec.Codec, crypto cryptoPure, clock Clock,
 	teamMemChecker kbfsmd.TeamMembershipChecker, tlfID tlf.ID,
-	mdVer MetadataVer, dir string, idJournal mdIDJournal,
+	mdVer kbfsmd.MetadataVer, dir string, idJournal mdIDJournal,
 	log logger.Logger) (*mdJournal, error) {
 	if uid == keybase1.UID("") {
 		return nil, errors.New("Empty user")
@@ -225,7 +225,7 @@ func makeMDJournal(
 	ctx context.Context, uid keybase1.UID, key kbfscrypto.VerifyingKey,
 	codec kbfscodec.Codec, crypto cryptoPure, clock Clock,
 	teamMemChecker kbfsmd.TeamMembershipChecker, tlfID tlf.ID,
-	mdVer MetadataVer, dir string,
+	mdVer kbfsmd.MetadataVer, dir string,
 	log logger.Logger) (*mdJournal, error) {
 	journalDir := mdJournalPath(dir)
 	idJournal, err := makeMdIDJournal(codec, journalDir)
@@ -296,14 +296,14 @@ func (j mdJournal) mdInfoPath(id kbfsmd.ID) string {
 // since the Go JSON library doesn't support it natively.
 type mdInfo struct {
 	Timestamp time.Time
-	Version   MetadataVer
+	Version   kbfsmd.MetadataVer
 }
 
-func (j mdJournal) getMDInfo(id kbfsmd.ID) (time.Time, MetadataVer, error) {
+func (j mdJournal) getMDInfo(id kbfsmd.ID) (time.Time, kbfsmd.MetadataVer, error) {
 	var info mdInfo
 	err := ioutil.DeserializeFromJSONFile(j.mdInfoPath(id), &info)
 	if err != nil {
-		return time.Time{}, MetadataVer(-1), err
+		return time.Time{}, kbfsmd.MetadataVer(-1), err
 	}
 
 	return info.Timestamp, info.Version, nil
@@ -312,7 +312,7 @@ func (j mdJournal) getMDInfo(id kbfsmd.ID) (time.Time, MetadataVer, error) {
 // putMDInfo assumes that the parent directory of j.mdInfoPath(id)
 // (which is j.mdPath(id)) has already been created.
 func (j mdJournal) putMDInfo(
-	id kbfsmd.ID, timestamp time.Time, version MetadataVer) error {
+	id kbfsmd.ID, timestamp time.Time, version kbfsmd.MetadataVer) error {
 	info := mdInfo{timestamp, version}
 	return ioutil.SerializeToJSONFile(info, j.mdInfoPath(id))
 }
@@ -908,7 +908,7 @@ func (j *mdJournal) removeFlushedEntry(
 }
 
 func getMdID(ctx context.Context, mdserver MDServer, codec kbfscodec.Codec,
-	tlfID tlf.ID, bid kbfsmd.BranchID, mStatus MergeStatus,
+	tlfID tlf.ID, bid kbfsmd.BranchID, mStatus kbfsmd.MergeStatus,
 	revision kbfsmd.Revision, lockBeforeGet *keybase1.LockID) (kbfsmd.ID, error) {
 	rmdses, err := mdserver.GetRange(
 		ctx, tlfID, bid, mStatus, revision, revision, lockBeforeGet)
@@ -1223,7 +1223,7 @@ func (j *mdJournal) put(
 	mStatus := rmd.MergedStatus()
 
 	// Make modifications for the Unmerged cases.
-	if mStatus == Unmerged {
+	if mStatus == kbfsmd.Unmerged {
 		var lastMdID kbfsmd.ID
 		if head == (ImmutableBareRootMetadata{}) {
 			lastMdID = j.lastMdID
@@ -1269,14 +1269,14 @@ func (j *mdJournal) put(
 
 	// The below is code common to all the cases.
 
-	if (mStatus == Merged) != (rmd.BID() == kbfsmd.NullBranchID) {
+	if (mStatus == kbfsmd.Merged) != (rmd.BID() == kbfsmd.NullBranchID) {
 		return kbfsmd.ID{}, errors.Errorf(
 			"mStatus=%s doesn't match bid=%s", mStatus, rmd.BID())
 	}
 
 	// If we're trying to push a merged MD onto a branch, return a
 	// conflict error so the caller can retry with an unmerged MD.
-	if mStatus == Merged && j.branchID != kbfsmd.NullBranchID {
+	if mStatus == kbfsmd.Merged && j.branchID != kbfsmd.NullBranchID {
 		return kbfsmd.ID{}, MDJournalConflictError{}
 	}
 

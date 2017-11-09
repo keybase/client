@@ -440,7 +440,7 @@ type KeybaseService interface {
 	// isn't a member of the team yet according to local caches; it
 	// may be set to "" if no server check is required.
 	LoadTeamPlusKeys(ctx context.Context, tid keybase1.TeamID,
-		desiredKeyGen KeyGen, desiredUser keybase1.UserVersion,
+		desiredKeyGen kbfsmd.KeyGen, desiredUser keybase1.UserVersion,
 		desiredRole keybase1.TeamRole) (TeamInfo, error)
 
 	// CurrentSession returns a SessionInfo struct with all the
@@ -556,8 +556,8 @@ type teamKeysGetter interface {
 	// check if that particular key gen isn't yet known; it may be set
 	// to UnspecifiedKeyGen if no server check is required.
 	GetTeamTLFCryptKeys(ctx context.Context, tid keybase1.TeamID,
-		desiredKeyGen KeyGen) (
-		map[KeyGen]kbfscrypto.TLFCryptKey, KeyGen, error)
+		desiredKeyGen kbfsmd.KeyGen) (
+		map[kbfsmd.KeyGen]kbfscrypto.TLFCryptKey, kbfsmd.KeyGen, error)
 }
 
 type teamRootIDGetter interface {
@@ -628,7 +628,7 @@ type KeyMetadata interface {
 	// LatestKeyGeneration returns the most recent key generation
 	// with key data in this object, or PublicKeyGen if this TLF
 	// is public.
-	LatestKeyGeneration() KeyGen
+	LatestKeyGeneration() kbfsmd.KeyGen
 
 	// GetTlfHandle returns the handle for the TLF. It must not
 	// return nil.
@@ -656,10 +656,10 @@ type KeyMetadata interface {
 	// false if not found. This returns an error if the TLF is
 	// public.
 	GetTLFCryptKeyParams(
-		keyGen KeyGen, user keybase1.UID,
+		keyGen kbfsmd.KeyGen, user keybase1.UID,
 		key kbfscrypto.CryptPublicKey) (
 		kbfscrypto.TLFEphemeralPublicKey,
-		EncryptedTLFCryptKeyClientHalf,
+		kbfscrypto.EncryptedTLFCryptKeyClientHalf,
 		TLFCryptKeyServerHalfID, bool, error)
 
 	// StoresHistoricTLFCryptKeys returns whether or not history keys are
@@ -668,7 +668,7 @@ type KeyMetadata interface {
 
 	// GetHistoricTLFCryptKey attempts to symmetrically decrypt the key at the given
 	// generation using the current generation's TLFCryptKey.
-	GetHistoricTLFCryptKey(codec kbfscodec.Codec, keyGen KeyGen,
+	GetHistoricTLFCryptKey(codec kbfscodec.Codec, keyGen kbfsmd.KeyGen,
 		currentKey kbfscrypto.TLFCryptKey) (
 		kbfscrypto.TLFCryptKey, error)
 }
@@ -782,9 +782,9 @@ type MDCache interface {
 // KeyCache handles caching for both TLFCryptKeys and BlockCryptKeys.
 type KeyCache interface {
 	// GetTLFCryptKey gets the crypt key for the given TLF.
-	GetTLFCryptKey(tlf.ID, KeyGen) (kbfscrypto.TLFCryptKey, error)
+	GetTLFCryptKey(tlf.ID, kbfsmd.KeyGen) (kbfscrypto.TLFCryptKey, error)
 	// PutTLFCryptKey stores the crypt key for the given TLF.
-	PutTLFCryptKey(tlf.ID, KeyGen, kbfscrypto.TLFCryptKey) error
+	PutTLFCryptKey(tlf.ID, kbfsmd.KeyGen, kbfscrypto.TLFCryptKey) error
 }
 
 // BlockCacheLifetime denotes the lifetime of an entry in BlockCache.
@@ -1016,22 +1016,22 @@ type cryptoPure interface {
 	// EncryptPrivateMetadata encrypts a PrivateMetadata object.
 	EncryptPrivateMetadata(
 		pmd PrivateMetadata, key kbfscrypto.TLFCryptKey) (
-		EncryptedPrivateMetadata, error)
+		kbfscrypto.EncryptedPrivateMetadata, error)
 	// DecryptPrivateMetadata decrypts a PrivateMetadata object.
 	DecryptPrivateMetadata(
-		encryptedPMD EncryptedPrivateMetadata,
+		encryptedPMD kbfscrypto.EncryptedPrivateMetadata,
 		key kbfscrypto.TLFCryptKey) (PrivateMetadata, error)
 
 	// EncryptBlocks encrypts a block. plainSize is the size of the encoded
 	// block; EncryptBlock() must guarantee that plainSize <=
 	// len(encryptedBlock).
 	EncryptBlock(block Block, key kbfscrypto.BlockCryptKey) (
-		plainSize int, encryptedBlock EncryptedBlock, err error)
+		plainSize int, encryptedBlock kbfscrypto.EncryptedBlock, err error)
 
 	// DecryptBlock decrypts a block. Similar to EncryptBlock(),
 	// DecryptBlock() must guarantee that (size of the decrypted
 	// block) <= len(encryptedBlock).
-	DecryptBlock(encryptedBlock EncryptedBlock,
+	DecryptBlock(encryptedBlock kbfscrypto.EncryptedBlock,
 		key kbfscrypto.BlockCryptKey, block Block) error
 }
 
@@ -1050,7 +1050,7 @@ type Crypto interface {
 	// private key and the TLF's ephemeral public key.
 	DecryptTLFCryptKeyClientHalf(ctx context.Context,
 		publicKey kbfscrypto.TLFEphemeralPublicKey,
-		encryptedClientHalf EncryptedTLFCryptKeyClientHalf) (
+		encryptedClientHalf kbfscrypto.EncryptedTLFCryptKeyClientHalf) (
 		kbfscrypto.TLFCryptKeyClientHalf, error)
 
 	// DecryptTLFCryptKeyClientHalfAny decrypts one of the
@@ -1084,7 +1084,7 @@ type MDOps interface {
 	// returned, but if it is non-empty, then its ID must match
 	// the returned ID.
 	GetForHandle(
-		ctx context.Context, handle *TlfHandle, mStatus MergeStatus,
+		ctx context.Context, handle *TlfHandle, mStatus kbfsmd.MergeStatus,
 		lockBeforeGet *keybase1.LockID) (tlf.ID, ImmutableRootMetadata, error)
 
 	// GetForTLF returns the current metadata object
@@ -1295,7 +1295,7 @@ type MDServer interface {
 	// returned, but if it is non-nil, then its ID must match the
 	// returned ID.
 	GetForHandle(ctx context.Context, handle tlf.Handle,
-		mStatus MergeStatus, lockBeforeGet *keybase1.LockID) (
+		mStatus kbfsmd.MergeStatus, lockBeforeGet *keybase1.LockID) (
 		tlf.ID, *RootMetadataSigned, error)
 
 	// GetForTLF returns the current (signed/encrypted) metadata object
@@ -1305,7 +1305,7 @@ type MDServer interface {
 	// If lockBeforeGet is not nil, it takes a lock on the lock ID before
 	// trying to get anything. If taking the lock fails, an error is returned.
 	// Note that taking a lock from the mdserver is idempotent.
-	GetForTLF(ctx context.Context, id tlf.ID, bid kbfsmd.BranchID, mStatus MergeStatus,
+	GetForTLF(ctx context.Context, id tlf.ID, bid kbfsmd.BranchID, mStatus kbfsmd.MergeStatus,
 		lockBeforeGet *keybase1.LockID) (*RootMetadataSigned, error)
 
 	// GetRange returns a range of (signed/encrypted) metadata objects
@@ -1314,7 +1314,7 @@ type MDServer interface {
 	// If lockBeforeGet is not nil, it takes a lock on the lock ID before
 	// trying to get anything. If taking the lock fails, an error is returned.
 	// Note that taking a lock from the mdserver is idempotent.
-	GetRange(ctx context.Context, id tlf.ID, bid kbfsmd.BranchID, mStatus MergeStatus,
+	GetRange(ctx context.Context, id tlf.ID, bid kbfsmd.BranchID, mStatus kbfsmd.MergeStatus,
 		start, stop kbfsmd.Revision, lockBeforeGet *keybase1.LockID) (
 		[]*RootMetadataSigned, error)
 
@@ -1726,8 +1726,8 @@ type Config interface {
 	SetClock(Clock)
 	ConflictRenamer() ConflictRenamer
 	SetConflictRenamer(ConflictRenamer)
-	MetadataVersion() MetadataVer
-	SetMetadataVersion(MetadataVer)
+	MetadataVersion() kbfsmd.MetadataVer
+	SetMetadataVersion(kbfsmd.MetadataVer)
 	DefaultBlockType() keybase1.BlockType
 	SetDefaultBlockType(blockType keybase1.BlockType)
 	RekeyQueue() RekeyQueue

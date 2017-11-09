@@ -9,6 +9,7 @@ import (
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/kbfs/kbfsmd"
 	"github.com/keybase/kbfs/libkbfs"
 	"github.com/keybase/kbfs/tlf"
 )
@@ -44,7 +45,7 @@ type Engine interface {
 	// second; if zero, the engine defaults are used.  opTimeout
 	// specifies a per-operation timeout; if it is more than the
 	// default engine timeout, or if it is zero, it has no effect.
-	InitTest(ver libkbfs.MetadataVer, blockSize int64,
+	InitTest(ver kbfsmd.MetadataVer, blockSize int64,
 		blockChangeSize int64, batchSize int, bwKBps int,
 		opTimeout time.Duration, users []libkb.NormalizedUsername,
 		teams teamMap, clock libkbfs.Clock,

@@ -340,7 +340,7 @@ func (fs *KBFSOpsStandard) getOrInitializeNewMDMaster(ctx context.Context,
 		}
 	}()
 
-	id, md, err = mdops.GetForHandle(ctx, h, Merged, nil)
+	id, md, err = mdops.GetForHandle(ctx, h, kbfsmd.Merged, nil)
 	if err != nil {
 		return false, ImmutableRootMetadata{}, id, err
 	}
@@ -369,7 +369,7 @@ func (fs *KBFSOpsStandard) getOrInitializeNewMDMaster(ctx context.Context,
 		return false, ImmutableRootMetadata{}, id, err
 	}
 
-	id, md, err = mdops.GetForHandle(ctx, h, Merged, nil)
+	id, md, err = mdops.GetForHandle(ctx, h, kbfsmd.Merged, nil)
 	if err != nil {
 		return false, ImmutableRootMetadata{}, id, err
 	}
@@ -396,7 +396,7 @@ func (fs *KBFSOpsStandard) getMDByHandle(ctx context.Context,
 		return rmd, nil
 	}
 
-	_, rmd, err = fs.config.MDOps().GetForHandle(ctx, tlfHandle, Unmerged, nil)
+	_, rmd, err = fs.config.MDOps().GetForHandle(ctx, tlfHandle, kbfsmd.Unmerged, nil)
 	if err != nil {
 		return ImmutableRootMetadata{}, err
 	}
@@ -473,7 +473,7 @@ func (fs *KBFSOpsStandard) getMaybeCreateRootNode(
 	// Do GetForHandle() unlocked -- no cache lookups, should be fine
 	mdops := fs.config.MDOps()
 	// TODO: only do this the first time, cache the folder ID after that
-	_, md, err := mdops.GetForHandle(ctx, h, Unmerged, nil)
+	_, md, err := mdops.GetForHandle(ctx, h, kbfsmd.Unmerged, nil)
 	if err != nil {
 		return nil, EntryInfo{}, err
 	}

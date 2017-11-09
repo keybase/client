@@ -35,7 +35,7 @@ type tlfJournalConfig interface {
 	BlockCache() BlockCache
 	BlockOps() BlockOps
 	MDCache() MDCache
-	MetadataVersion() MetadataVer
+	MetadataVersion() kbfsmd.MetadataVer
 	Reporter() Reporter
 	encryptionKeyGetter() encryptionKeyGetter
 	mdDecryptionKeyGetter() mdDecryptionKeyGetter
@@ -985,7 +985,7 @@ func (j *tlfJournal) checkServerForConflicts(ctx context.Context,
 	// returns the latest revision number, so we don't have to fetch
 	// the entire MD?
 	currHead, err := j.config.MDServer().GetForTLF(
-		ctx, j.tlfID, kbfsmd.NullBranchID, Merged, needLock)
+		ctx, j.tlfID, kbfsmd.NullBranchID, kbfsmd.Merged, needLock)
 	if err != nil {
 		return err
 	}
@@ -1492,7 +1492,7 @@ func (j *tlfJournal) flushOneMDOp(ctx context.Context,
 			}
 			// We must have already flushed this MD, so continue.
 			pushErr = nil
-		} else if rmds.MD.MergedStatus() == Merged {
+		} else if rmds.MD.MergedStatus() == kbfsmd.Merged {
 			j.log.CDebugf(ctx, "Conflict detected %v", pushErr)
 			// Convert MDs to a branch and return -- the journal
 			// pauses until the resolution is complete.

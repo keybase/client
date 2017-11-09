@@ -409,7 +409,7 @@ func (m *stallingMDOps) maybeStall(ctx context.Context, opName StallableMDOp) {
 }
 
 func (m *stallingMDOps) GetForHandle(
-	ctx context.Context, handle *TlfHandle, mStatus MergeStatus,
+	ctx context.Context, handle *TlfHandle, mStatus kbfsmd.MergeStatus,
 	lockBeforeGet *keybase1.LockID) (
 	tlfID tlf.ID, md ImmutableRootMetadata, err error) {
 	m.maybeStall(ctx, StallableMDGetForHandle)

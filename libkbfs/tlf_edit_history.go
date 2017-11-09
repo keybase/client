@@ -384,7 +384,7 @@ func (teh *TlfEditHistory) GetComplete(ctx context.Context,
 	estimates.update(rmds)
 
 	// If unmerged, get all the unmerged updates.
-	if head.MergedStatus() == Unmerged {
+	if head.MergedStatus() == kbfsmd.Unmerged {
 		_, unmergedRmds, err := getUnmergedMDUpdates(ctx, teh.config, head.TlfID(),
 			head.BID(), head.Revision()-1)
 		if err != nil {
@@ -432,7 +432,7 @@ func (teh *TlfEditHistory) GetComplete(ctx context.Context,
 			}
 
 			olderRmds, err := getMDRange(ctx, teh.config, head.TlfID(), kbfsmd.NullBranchID,
-				startRev, endRev, Merged, nil)
+				startRev, endRev, kbfsmd.Merged, nil)
 			if err != nil {
 				return nil, err
 			}

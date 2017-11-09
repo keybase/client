@@ -77,7 +77,7 @@ func (j journalMDOps) convertImmutableBareRMDToIRMD(ctx context.Context,
 // kbfsmd.NullBranchID and mStatus is Unmerged, the branch ID check is
 // skipped.
 func (j journalMDOps) getHeadFromJournal(
-	ctx context.Context, id tlf.ID, bid kbfsmd.BranchID, mStatus MergeStatus,
+	ctx context.Context, id tlf.ID, bid kbfsmd.BranchID, mStatus kbfsmd.MergeStatus,
 	handle *TlfHandle) (
 	ImmutableRootMetadata, error) {
 	tlfJournal, ok := j.jServer.getTLFJournal(id, handle)
@@ -85,7 +85,7 @@ func (j journalMDOps) getHeadFromJournal(
 		return ImmutableRootMetadata{}, nil
 	}
 
-	if mStatus == Unmerged && bid == kbfsmd.NullBranchID {
+	if mStatus == kbfsmd.Unmerged && bid == kbfsmd.NullBranchID {
 		// We need to look up the branch ID because the caller didn't
 		// know it.
 		var err error
@@ -113,7 +113,7 @@ func (j journalMDOps) getHeadFromJournal(
 		return ImmutableRootMetadata{}, nil
 	}
 
-	if mStatus == Unmerged && bid != kbfsmd.NullBranchID && bid != head.BID() {
+	if mStatus == kbfsmd.Unmerged && bid != kbfsmd.NullBranchID && bid != head.BID() {
 		// The given branch ID doesn't match the one in the
 		// journal, which can only be an error.
 		return ImmutableRootMetadata{},
@@ -157,7 +157,7 @@ func (j journalMDOps) getHeadFromJournal(
 }
 
 func (j journalMDOps) getRangeFromJournal(
-	ctx context.Context, id tlf.ID, bid kbfsmd.BranchID, mStatus MergeStatus,
+	ctx context.Context, id tlf.ID, bid kbfsmd.BranchID, mStatus kbfsmd.MergeStatus,
 	start, stop kbfsmd.Revision) (
 	[]ImmutableRootMetadata, error) {
 	tlfJournal, ok := j.jServer.getTLFJournal(id, nil)
@@ -185,7 +185,7 @@ func (j journalMDOps) getRangeFromJournal(
 		return nil, nil
 	}
 
-	if mStatus == Unmerged && bid != kbfsmd.NullBranchID && bid != head.BID() {
+	if mStatus == kbfsmd.Unmerged && bid != kbfsmd.NullBranchID && bid != head.BID() {
 		// The given branch ID doesn't match the one in the
 		// journal, which can only be an error.
 		return nil, fmt.Errorf("Expected branch ID %s, got %s",
@@ -223,7 +223,7 @@ func (j journalMDOps) getRangeFromJournal(
 }
 
 func (j journalMDOps) GetForHandle(ctx context.Context, handle *TlfHandle,
-	mStatus MergeStatus, lockBeforeGet *keybase1.LockID) (
+	mStatus kbfsmd.MergeStatus, lockBeforeGet *keybase1.LockID) (
 	tlfID tlf.ID, rmd ImmutableRootMetadata, err error) {
 	// TODO: Ideally, *TlfHandle would have a nicer String() function.
 	j.jServer.log.LazyTrace(ctx, "jMDOps: GetForHandle %+v %s", handle, mStatus)
@@ -247,7 +247,7 @@ func (j journalMDOps) GetForHandle(ctx context.Context, handle *TlfHandle,
 		return tlf.ID{}, ImmutableRootMetadata{}, err
 	}
 	tlfID, _, err = j.jServer.config.MDServer().GetForHandle(
-		ctx, bh, Merged, lockBeforeGet)
+		ctx, bh, kbfsmd.Merged, lockBeforeGet)
 	if err != nil {
 		return tlf.ID{}, ImmutableRootMetadata{}, err
 	}
@@ -289,7 +289,7 @@ func (j journalMDOps) GetForHandle(ctx context.Context, handle *TlfHandle,
 // TODO: Combine the two GetForTLF functions in MDOps to avoid the
 // need for this helper function.
 func (j journalMDOps) getForTLF(ctx context.Context, id tlf.ID, bid kbfsmd.BranchID,
-	mStatus MergeStatus, lockBeforeGet *keybase1.LockID,
+	mStatus kbfsmd.MergeStatus, lockBeforeGet *keybase1.LockID,
 	delegateFn func(context.Context, tlf.ID, *keybase1.LockID) (
 		ImmutableRootMetadata, error)) (ImmutableRootMetadata, error) {
 	// If the journal has a head, use that.
@@ -314,7 +314,7 @@ func (j journalMDOps) GetForTLF(
 	}()
 
 	return j.getForTLF(
-		ctx, id, kbfsmd.NullBranchID, Merged, lockBeforeGet, j.MDOps.GetForTLF)
+		ctx, id, kbfsmd.NullBranchID, kbfsmd.Merged, lockBeforeGet, j.MDOps.GetForTLF)
 }
 
 func (j journalMDOps) GetUnmergedForTLF(
@@ -329,13 +329,13 @@ func (j journalMDOps) GetUnmergedForTLF(
 		ImmutableRootMetadata, error) {
 		return j.MDOps.GetUnmergedForTLF(ctx, id, bid)
 	}
-	return j.getForTLF(ctx, id, bid, Unmerged, nil, delegateFn)
+	return j.getForTLF(ctx, id, bid, kbfsmd.Unmerged, nil, delegateFn)
 }
 
 // TODO: Combine the two GetRange functions in MDOps to avoid the need
 // for this helper function.
 func (j journalMDOps) getRange(
-	ctx context.Context, id tlf.ID, bid kbfsmd.BranchID, mStatus MergeStatus,
+	ctx context.Context, id tlf.ID, bid kbfsmd.BranchID, mStatus kbfsmd.MergeStatus,
 	start, stop kbfsmd.Revision, lockBeforeGet *keybase1.LockID,
 	delegateFn func(ctx context.Context, id tlf.ID,
 		start, stop kbfsmd.Revision, lockBeforeGet *keybase1.LockID) (
@@ -414,7 +414,7 @@ func (j journalMDOps) GetRange(ctx context.Context, id tlf.ID, start,
 		j.jServer.deferLog.LazyTrace(ctx, "jMDOps: GetRange %s %d-%d done (err=%v)", id, start, stop, err)
 	}()
 
-	return j.getRange(ctx, id, kbfsmd.NullBranchID, Merged, start, stop, lockBeforeGet,
+	return j.getRange(ctx, id, kbfsmd.NullBranchID, kbfsmd.Merged, start, stop, lockBeforeGet,
 		j.MDOps.GetRange)
 }
 
@@ -431,7 +431,7 @@ func (j journalMDOps) GetUnmergedRange(
 		[]ImmutableRootMetadata, error) {
 		return j.MDOps.GetUnmergedRange(ctx, id, bid, start, stop)
 	}
-	return j.getRange(ctx, id, bid, Unmerged, start, stop, nil,
+	return j.getRange(ctx, id, bid, kbfsmd.Unmerged, start, stop, nil,
 		delegateFn)
 }
 

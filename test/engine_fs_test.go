@@ -22,6 +22,7 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/ioutil"
+	"github.com/keybase/kbfs/kbfsmd"
 	"github.com/keybase/kbfs/libfs"
 	"github.com/keybase/kbfs/libkbfs"
 	"github.com/keybase/kbfs/tlf"
@@ -569,7 +570,7 @@ func fiTypeString(fi os.FileInfo) string {
 	return "OTHER"
 }
 
-func (e *fsEngine) InitTest(ver libkbfs.MetadataVer,
+func (e *fsEngine) InitTest(ver kbfsmd.MetadataVer,
 	blockSize int64, blockChangeSize int64, batchSize int, bwKBps int,
 	opTimeout time.Duration, users []libkb.NormalizedUsername, teams teamMap,
 	clock libkbfs.Clock, journal bool) map[libkb.NormalizedUsername]User {

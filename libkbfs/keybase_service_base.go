@@ -13,6 +13,7 @@ import (
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/kbfscrypto"
+	"github.com/keybase/kbfs/kbfsmd"
 	"golang.org/x/net/context"
 )
 
@@ -493,7 +494,7 @@ var allowedLoadTeamRoles = map[keybase1.TeamRole]bool{
 // LoadTeamPlusKeys implements the KeybaseService interface for
 // KeybaseServiceBase.
 func (k *KeybaseServiceBase) LoadTeamPlusKeys(
-	ctx context.Context, tid keybase1.TeamID, desiredKeyGen KeyGen,
+	ctx context.Context, tid keybase1.TeamID, desiredKeyGen kbfsmd.KeyGen,
 	desiredUser keybase1.UserVersion, desiredRole keybase1.TeamRole) (
 	TeamInfo, error) {
 	if !allowedLoadTeamRoles[desiredRole] {
@@ -505,7 +506,7 @@ func (k *KeybaseServiceBase) LoadTeamPlusKeys(
 		// If the cached team info doesn't satisfy our desires, don't
 		// use it.
 		satisfiesDesires := true
-		if desiredKeyGen >= FirstValidKeyGen {
+		if desiredKeyGen >= kbfsmd.FirstValidKeyGen {
 			// If `desiredKeyGen` is at most as large as the keygen in
 			// the cached latest team info, then our cached info
 			// satisfies our desires.
@@ -535,7 +536,7 @@ func (k *KeybaseServiceBase) LoadTeamPlusKeys(
 		Application: keybase1.TeamApplication_KBFS,
 	}
 
-	if desiredKeyGen >= FirstValidKeyGen {
+	if desiredKeyGen >= kbfsmd.FirstValidKeyGen {
 		arg.Refreshers.NeedKeyGeneration =
 			keybase1.PerTeamKeyGeneration(desiredKeyGen)
 	}
@@ -559,12 +560,12 @@ func (k *KeybaseServiceBase) LoadTeamPlusKeys(
 	info := TeamInfo{
 		Name:      libkb.NormalizedUsername(res.Name),
 		TID:       res.Id,
-		CryptKeys: make(map[KeyGen]kbfscrypto.TLFCryptKey),
+		CryptKeys: make(map[kbfsmd.KeyGen]kbfscrypto.TLFCryptKey),
 		Writers:   make(map[keybase1.UID]bool),
 		Readers:   make(map[keybase1.UID]bool),
 	}
 	for _, key := range res.ApplicationKeys {
-		keyGen := KeyGen(key.KeyGeneration)
+		keyGen := kbfsmd.KeyGen(key.KeyGeneration)
 		info.CryptKeys[keyGen] =
 			kbfscrypto.MakeTLFCryptKey(key.Key)
 		if keyGen > info.LatestKeyGen {
@@ -972,7 +973,7 @@ func (k *KeybaseServiceBase) GetTLFCryptKeys(ctx context.Context,
 
 	for i, key := range keys {
 		res.CryptKeys = append(res.CryptKeys, keybase1.CryptKey{
-			KeyGeneration: int(FirstValidKeyGen) + i,
+			KeyGeneration: int(kbfsmd.FirstValidKeyGen) + i,
 			Key:           keybase1.Bytes32(key.Data()),
 		})
 	}

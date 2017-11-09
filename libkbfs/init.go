@@ -19,6 +19,7 @@ import (
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
+	"github.com/keybase/kbfs/kbfsmd"
 )
 
 const (
@@ -69,7 +70,7 @@ type InitParams struct {
 
 	// MetadataVersion is the default version of metadata to use
 	// when creating new metadata.
-	MetadataVersion MetadataVer
+	MetadataVersion kbfsmd.MetadataVer
 
 	// LogToFile if true, logs to a default file location.
 	LogToFile bool
@@ -152,16 +153,16 @@ func defaultMDServer(ctx Context) string {
 }
 
 // defaultMetadataVersion returns the default metadata version per run mode.
-func defaultMetadataVersion(ctx Context) MetadataVer {
+func defaultMetadataVersion(ctx Context) kbfsmd.MetadataVer {
 	switch ctx.GetRunMode() {
 	case libkb.DevelRunMode:
-		return SegregatedKeyBundlesVer
+		return kbfsmd.SegregatedKeyBundlesVer
 	case libkb.StagingRunMode:
-		return SegregatedKeyBundlesVer
+		return kbfsmd.SegregatedKeyBundlesVer
 	case libkb.ProductionRunMode:
-		return SegregatedKeyBundlesVer
+		return kbfsmd.SegregatedKeyBundlesVer
 	default:
-		return SegregatedKeyBundlesVer
+		return kbfsmd.SegregatedKeyBundlesVer
 	}
 }
 
@@ -618,7 +619,7 @@ func doInit(
 		config.SetKeyBundleCache(keyBundleCache)
 	}
 
-	config.SetMetadataVersion(MetadataVer(params.MetadataVersion))
+	config.SetMetadataVersion(kbfsmd.MetadataVer(params.MetadataVersion))
 	config.SetTLFValidDuration(params.TLFValidDuration)
 	config.SetBGFlushPeriod(params.BGFlushPeriod)
 

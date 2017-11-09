@@ -119,7 +119,7 @@ func makeRootMetadata(bareMd kbfsmd.MutableRootMetadata,
 // and handle. Note that if the given ID/handle are private, rekeying
 // must be done separately.
 func makeInitialRootMetadata(
-	ver MetadataVer, tlfID tlf.ID, h *TlfHandle) (*RootMetadata, error) {
+	ver kbfsmd.MetadataVer, tlfID tlf.ID, h *TlfHandle) (*RootMetadata, error) {
 	bh, err := h.ToBareHandle()
 	if err != nil {
 		return nil, err
@@ -190,7 +190,7 @@ func (md *RootMetadata) deepCopy(codec kbfscodec.Codec) (*RootMetadata, error) {
 // with cleared block change lists and cleared serialized metadata),
 // with the revision incremented and a correct backpointer.
 func (md *RootMetadata) MakeSuccessor(
-	ctx context.Context, latestMDVer MetadataVer, codec kbfscodec.Codec,
+	ctx context.Context, latestMDVer kbfsmd.MetadataVer, codec kbfscodec.Codec,
 	keyManager KeyManager, merkleGetter merkleRootGetter,
 	teamKeyer teamKeysGetter, mdID kbfsmd.ID, isWriter bool) (
 	*RootMetadata, error) {
@@ -230,7 +230,7 @@ func (md *RootMetadata) MakeSuccessor(
 				return nil, err
 			}
 			_, keyGen, err := teamKeyer.GetTeamTLFCryptKeys(
-				ctx, tid, UnspecifiedKeyGen)
+				ctx, tid, kbfsmd.UnspecifiedKeyGen)
 			if err != nil {
 				return nil, err
 			}
@@ -282,10 +282,10 @@ func (md *RootMetadata) MakeBareTlfHandle() (tlf.Handle, error) {
 func (md *RootMetadata) IsInitialized() bool {
 	keyGen := md.LatestKeyGeneration()
 	if md.TlfID().Type() == tlf.Public {
-		return keyGen == PublicKeyGen
+		return keyGen == kbfsmd.PublicKeyGen
 	}
 	// The data is only initialized once we have at least one set of keys
-	return keyGen >= FirstValidKeyGen
+	return keyGen >= kbfsmd.FirstValidKeyGen
 }
 
 // AddRefBlock adds the newly-referenced block to the add block change list.
@@ -454,19 +454,19 @@ func (md *RootMetadata) loadCachedBlockChanges(
 
 // GetTLFCryptKeyParams wraps the respective method of the underlying BareRootMetadata for convenience.
 func (md *RootMetadata) GetTLFCryptKeyParams(
-	keyGen KeyGen, user keybase1.UID, key kbfscrypto.CryptPublicKey) (
-	kbfscrypto.TLFEphemeralPublicKey, EncryptedTLFCryptKeyClientHalf,
+	keyGen kbfsmd.KeyGen, user keybase1.UID, key kbfscrypto.CryptPublicKey) (
+	kbfscrypto.TLFEphemeralPublicKey, kbfscrypto.EncryptedTLFCryptKeyClientHalf,
 	TLFCryptKeyServerHalfID, bool, error) {
 	return md.bareMd.GetTLFCryptKeyParams(keyGen, user, key, md.extra)
 }
 
 // KeyGenerationsToUpdate wraps the respective method of the underlying BareRootMetadata for convenience.
-func (md *RootMetadata) KeyGenerationsToUpdate() (KeyGen, KeyGen) {
+func (md *RootMetadata) KeyGenerationsToUpdate() (kbfsmd.KeyGen, kbfsmd.KeyGen) {
 	return md.bareMd.KeyGenerationsToUpdate()
 }
 
 // LatestKeyGeneration wraps the respective method of the underlying BareRootMetadata for convenience.
-func (md *RootMetadata) LatestKeyGeneration() KeyGen {
+func (md *RootMetadata) LatestKeyGeneration() kbfsmd.KeyGen {
 	return md.bareMd.LatestKeyGeneration()
 }
 
@@ -587,7 +587,7 @@ func (md *RootMetadata) MerkleRoot() keybase1.MerkleRootV2 {
 }
 
 // MergedStatus wraps the respective method of the underlying BareRootMetadata for convenience.
-func (md *RootMetadata) MergedStatus() MergeStatus {
+func (md *RootMetadata) MergedStatus() kbfsmd.MergeStatus {
 	return md.bareMd.MergedStatus()
 }
 
@@ -602,7 +602,7 @@ func (md *RootMetadata) PrevRoot() kbfsmd.ID {
 }
 
 // Version returns the underlying BareRootMetadata version.
-func (md *RootMetadata) Version() MetadataVer {
+func (md *RootMetadata) Version() kbfsmd.MetadataVer {
 	return md.bareMd.Version()
 }
 
@@ -812,7 +812,7 @@ func (md *RootMetadata) StoresHistoricTLFCryptKeys() bool {
 
 // GetHistoricTLFCryptKey implements the KeyMetadata interface for RootMetadata.
 func (md *RootMetadata) GetHistoricTLFCryptKey(
-	codec kbfscodec.Codec, keyGen KeyGen,
+	codec kbfscodec.Codec, keyGen kbfsmd.KeyGen,
 	currentKey kbfscrypto.TLFCryptKey) (kbfscrypto.TLFCryptKey, error) {
 	return md.bareMd.GetHistoricTLFCryptKey(
 		codec, keyGen, currentKey, md.extra)
@@ -1009,7 +1009,7 @@ func (rmds *RootMetadataSigned) MakeFinalCopy(
 // DecodeRootMetadataSigned deserializes a metadata block into the
 // specified versioned structure.
 func DecodeRootMetadataSigned(
-	codec kbfscodec.Codec, tlf tlf.ID, ver, max MetadataVer, buf []byte,
+	codec kbfscodec.Codec, tlf tlf.ID, ver, max kbfsmd.MetadataVer, buf []byte,
 	untrustedServerTimestamp time.Time) (
 	*RootMetadataSigned, error) {
 	rmds, err := kbfsmd.DecodeRootMetadataSigned(codec, tlf, ver, max, buf)

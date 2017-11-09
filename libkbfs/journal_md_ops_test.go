@@ -112,7 +112,7 @@ func TestJournalMDOpsBasics(t *testing.T) {
 
 	mdOps := jServer.mdOps()
 
-	id, irmd, err := mdOps.GetForHandle(ctx, h, Merged, nil)
+	id, irmd, err := mdOps.GetForHandle(ctx, h, kbfsmd.Merged, nil)
 	require.NoError(t, err)
 	require.NotEqual(t, tlf.NullID, id)
 	require.Equal(t, ImmutableRootMetadata{}, irmd)
@@ -137,7 +137,7 @@ func TestJournalMDOpsBasics(t *testing.T) {
 		prevRoot = irmd.mdID
 	}
 
-	id, head, err := mdOps.GetForHandle(ctx, h, Merged, nil)
+	id, head, err := mdOps.GetForHandle(ctx, h, kbfsmd.Merged, nil)
 	require.NoError(t, err)
 	require.NotEqual(t, tlf.NullID, id)
 	require.NotEqual(t, ImmutableRootMetadata{}, head)
@@ -206,7 +206,7 @@ func TestJournalMDOpsBasics(t *testing.T) {
 	require.NotEqual(t, ImmutableRootMetadata{}, head)
 	require.Equal(t, kbfsmd.Revision(10), head.Revision())
 
-	_, head, err = mdOps.GetForHandle(ctx, h, Unmerged, nil)
+	_, head, err = mdOps.GetForHandle(ctx, h, kbfsmd.Unmerged, nil)
 	require.NoError(t, err)
 	require.NotEqual(t, ImmutableRootMetadata{}, head)
 	require.Equal(t, kbfsmd.Revision(10), head.Revision())
@@ -296,7 +296,7 @@ func TestJournalMDOpsPutUnmerged(t *testing.T) {
 
 	mdOps := jServer.mdOps()
 
-	id, irmd, err := mdOps.GetForHandle(ctx, h, Merged, nil)
+	id, irmd, err := mdOps.GetForHandle(ctx, h, kbfsmd.Merged, nil)
 	require.NoError(t, err)
 	require.NotEqual(t, tlf.NullID, id)
 	require.Equal(t, ImmutableRootMetadata{}, irmd)
@@ -328,7 +328,7 @@ func TestJournalMDOpsPutUnmergedError(t *testing.T) {
 
 	mdOps := jServer.mdOps()
 
-	id, irmd, err := mdOps.GetForHandle(ctx, h, Merged, nil)
+	id, irmd, err := mdOps.GetForHandle(ctx, h, kbfsmd.Merged, nil)
 	require.NoError(t, err)
 	require.NotEqual(t, tlf.NullID, id)
 	require.Equal(t, ImmutableRootMetadata{}, irmd)
@@ -357,7 +357,7 @@ func TestJournalMDOpsLocalSquashBranch(t *testing.T) {
 	require.NoError(t, err)
 
 	mdOps := jServer.mdOps()
-	id, irmd, err := mdOps.GetForHandle(ctx, h, Merged, nil)
+	id, irmd, err := mdOps.GetForHandle(ctx, h, kbfsmd.Merged, nil)
 	require.NoError(t, err)
 	require.Equal(t, ImmutableRootMetadata{}, irmd)
 	err = jServer.Enable(ctx, id, nil, TLFJournalBackgroundWorkPaused)

@@ -182,7 +182,7 @@ func assembleBlock(ctx context.Context, keyGetter blockKeyGetter,
 	blockCryptKey := kbfscrypto.UnmaskBlockCryptKey(
 		blockServerHalf, tlfCryptKey)
 
-	var encryptedBlock EncryptedBlock
+	var encryptedBlock kbfscrypto.EncryptedBlock
 	err = codec.Decode(buf, &encryptedBlock)
 	if err != nil {
 		return err

@@ -90,10 +90,10 @@ func (c CryptoCommon) MakeRandomTLFKeys() (kbfscrypto.TLFPublicKey,
 // EncryptPrivateMetadata implements the Crypto interface for CryptoCommon.
 func (c CryptoCommon) EncryptPrivateMetadata(
 	pmd PrivateMetadata, key kbfscrypto.TLFCryptKey) (
-	encryptedPmd EncryptedPrivateMetadata, err error) {
+	encryptedPmd kbfscrypto.EncryptedPrivateMetadata, err error) {
 	encodedPmd, err := c.codec.Encode(pmd)
 	if err != nil {
-		return EncryptedPrivateMetadata{}, err
+		return kbfscrypto.EncryptedPrivateMetadata{}, err
 	}
 
 	return kbfscrypto.EncryptEncodedPrivateMetadata(encodedPmd, key)
@@ -101,7 +101,7 @@ func (c CryptoCommon) EncryptPrivateMetadata(
 
 // DecryptPrivateMetadata implements the Crypto interface for CryptoCommon.
 func (c CryptoCommon) DecryptPrivateMetadata(
-	encryptedPmd EncryptedPrivateMetadata, key kbfscrypto.TLFCryptKey) (
+	encryptedPmd kbfscrypto.EncryptedPrivateMetadata, key kbfscrypto.TLFCryptKey) (
 	PrivateMetadata, error) {
 	encodedPrivateMetadata, err := kbfscrypto.DecryptPrivateMetadata(
 		encryptedPmd, key)
@@ -179,21 +179,21 @@ func (c CryptoCommon) depadBlock(paddedBlock []byte) ([]byte, error) {
 
 // EncryptBlock implements the Crypto interface for CryptoCommon.
 func (c CryptoCommon) EncryptBlock(block Block, key kbfscrypto.BlockCryptKey) (
-	plainSize int, encryptedBlock EncryptedBlock, err error) {
+	plainSize int, encryptedBlock kbfscrypto.EncryptedBlock, err error) {
 	encodedBlock, err := c.codec.Encode(block)
 	if err != nil {
-		return -1, EncryptedBlock{}, err
+		return -1, kbfscrypto.EncryptedBlock{}, err
 	}
 
 	paddedBlock, err := c.padBlock(encodedBlock)
 	if err != nil {
-		return -1, EncryptedBlock{}, err
+		return -1, kbfscrypto.EncryptedBlock{}, err
 	}
 
 	encryptedBlock, err =
 		kbfscrypto.EncryptPaddedEncodedBlock(paddedBlock, key)
 	if err != nil {
-		return -1, EncryptedBlock{}, err
+		return -1, kbfscrypto.EncryptedBlock{}, err
 	}
 
 	plainSize = len(encodedBlock)
@@ -202,7 +202,7 @@ func (c CryptoCommon) EncryptBlock(block Block, key kbfscrypto.BlockCryptKey) (
 
 // DecryptBlock implements the Crypto interface for CryptoCommon.
 func (c CryptoCommon) DecryptBlock(
-	encryptedBlock EncryptedBlock, key kbfscrypto.BlockCryptKey,
+	encryptedBlock kbfscrypto.EncryptedBlock, key kbfscrypto.BlockCryptKey,
 	block Block) error {
 	paddedBlock, err := kbfscrypto.DecryptBlock(encryptedBlock, key)
 	if err != nil {

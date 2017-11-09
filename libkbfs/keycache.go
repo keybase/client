@@ -7,6 +7,7 @@ package libkbfs
 import (
 	lru "github.com/hashicorp/golang-lru"
 	"github.com/keybase/kbfs/kbfscrypto"
+	"github.com/keybase/kbfs/kbfsmd"
 	"github.com/keybase/kbfs/tlf"
 )
 
@@ -17,7 +18,7 @@ type KeyCacheStandard struct {
 
 type keyCacheKey struct {
 	tlf    tlf.ID
-	keyGen KeyGen
+	keyGen kbfsmd.KeyGen
 }
 
 var _ KeyCache = (*KeyCacheStandard)(nil)
@@ -33,7 +34,7 @@ func NewKeyCacheStandard(capacity int) *KeyCacheStandard {
 }
 
 // GetTLFCryptKey implements the KeyCache interface for KeyCacheStandard.
-func (k *KeyCacheStandard) GetTLFCryptKey(tlf tlf.ID, keyGen KeyGen) (
+func (k *KeyCacheStandard) GetTLFCryptKey(tlf tlf.ID, keyGen kbfsmd.KeyGen) (
 	kbfscrypto.TLFCryptKey, error) {
 	cacheKey := keyCacheKey{tlf, keyGen}
 	if entry, ok := k.lru.Get(cacheKey); ok {
@@ -48,7 +49,7 @@ func (k *KeyCacheStandard) GetTLFCryptKey(tlf tlf.ID, keyGen KeyGen) (
 
 // PutTLFCryptKey implements the KeyCache interface for KeyCacheStandard.
 func (k *KeyCacheStandard) PutTLFCryptKey(
-	tlf tlf.ID, keyGen KeyGen, key kbfscrypto.TLFCryptKey) error {
+	tlf tlf.ID, keyGen kbfsmd.KeyGen, key kbfscrypto.TLFCryptKey) error {
 	cacheKey := keyCacheKey{tlf, keyGen}
 	k.lru.Add(cacheKey, key)
 	return nil

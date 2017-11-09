@@ -15,6 +15,7 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/kbfscodec"
 	"github.com/keybase/kbfs/kbfscrypto"
+	"github.com/keybase/kbfs/kbfsmd"
 	"golang.org/x/net/context"
 )
 
@@ -206,7 +207,7 @@ func TestKBPKIClientGetTeamTLFCryptKeys(t *testing.T) {
 
 	for _, team := range localTeams {
 		keys, keyGen, err := c.GetTeamTLFCryptKeys(
-			context.Background(), team.TID, UnspecifiedKeyGen)
+			context.Background(), team.TID, kbfsmd.UnspecifiedKeyGen)
 		if err != nil {
 			t.Error(err)
 		}
@@ -214,7 +215,7 @@ func TestKBPKIClientGetTeamTLFCryptKeys(t *testing.T) {
 			t.Errorf("Team TLF crypt keys don't match: %v vs %v",
 				team.CryptKeys, keys)
 		}
-		if keyGen != FirstValidKeyGen {
+		if keyGen != kbfsmd.FirstValidKeyGen {
 			t.Errorf("Unexpected team key gen: %v", keyGen)
 		}
 	}

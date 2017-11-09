@@ -51,8 +51,8 @@ type TeamInfo struct {
 	// a nice type, unfortunately.
 	Name         libkb.NormalizedUsername
 	TID          keybase1.TeamID
-	CryptKeys    map[KeyGen]kbfscrypto.TLFCryptKey
-	LatestKeyGen KeyGen
+	CryptKeys    map[kbfsmd.KeyGen]kbfscrypto.TLFCryptKey
+	LatestKeyGen kbfsmd.KeyGen
 	RootID       keybase1.TeamID // for subteams only
 
 	Writers map[keybase1.UID]bool
@@ -71,58 +71,19 @@ type SessionInfo struct {
 	VerifyingKey   kbfscrypto.VerifyingKey
 }
 
-// EncryptionVer is a temporary alias.
-type EncryptionVer = kbfscrypto.EncryptionVer
-
-// Temporary aliases.
-const (
-	EncryptionSecretbox EncryptionVer = kbfscrypto.EncryptionSecretbox
-)
-
-// EncryptedTLFCryptKeyClientHalf is a temporary alias.
-type EncryptedTLFCryptKeyClientHalf = kbfscrypto.EncryptedTLFCryptKeyClientHalf
-
-// EncryptedPrivateMetadata is a temporary alias.
-type EncryptedPrivateMetadata = kbfscrypto.EncryptedPrivateMetadata
-
-// EncryptedBlock is a temporary alias.
-type EncryptedBlock = kbfscrypto.EncryptedBlock
-
-// EncryptedTLFCryptKeys is a temporary alias.
-type EncryptedTLFCryptKeys = kbfscrypto.EncryptedTLFCryptKeys
-
 // EncryptedTLFCryptKeyClientAndEphemeral has what's needed to
 // request a client half decryption.
 type EncryptedTLFCryptKeyClientAndEphemeral struct {
 	// PublicKey contains the wrapped Key ID of the public key
 	PubKey kbfscrypto.CryptPublicKey
 	// ClientHalf contains the encrypted client half of the TLF key
-	ClientHalf EncryptedTLFCryptKeyClientHalf
+	ClientHalf kbfscrypto.EncryptedTLFCryptKeyClientHalf
 	// EPubKey contains the ephemeral public key used to encrypt ClientHalf
 	EPubKey kbfscrypto.TLFEphemeralPublicKey
 }
 
-// KeyGen is a temporary alias.
-type KeyGen = kbfsmd.KeyGen
-
-// Temporary aliases.
 const (
-	PublicKeyGen      KeyGen = kbfsmd.PublicKeyGen
-	UnspecifiedKeyGen KeyGen = kbfsmd.UnspecifiedKeyGen
-	FirstValidKeyGen  KeyGen = kbfsmd.FirstValidKeyGen
-)
-
-// MetadataVer is a temporary alias.
-type MetadataVer = kbfsmd.MetadataVer
-
-// Temporary aliases.
-const (
-	FirstValidMetadataVer   MetadataVer = kbfsmd.FirstValidMetadataVer
-	PreExtraMetadataVer     MetadataVer = kbfsmd.PreExtraMetadataVer
-	InitialExtraMetadataVer MetadataVer = kbfsmd.InitialExtraMetadataVer
-	SegregatedKeyBundlesVer MetadataVer = kbfsmd.SegregatedKeyBundlesVer
-
-	defaultClientMetadataVer MetadataVer = kbfsmd.SegregatedKeyBundlesVer
+	defaultClientMetadataVer kbfsmd.MetadataVer = kbfsmd.SegregatedKeyBundlesVer
 )
 
 // DataVer is the type of a version for marshalled KBFS data
@@ -229,7 +190,7 @@ func (bdt BlockDirectType) String() string {
 // considering how old clients will handle them.
 type BlockPointer struct {
 	ID         kbfsblock.ID    `codec:"i"`
-	KeyGen     KeyGen          `codec:"k"`           // if valid, which generation of the TLF{Writer,Reader}KeyBundle to use.
+	KeyGen     kbfsmd.KeyGen   `codec:"k"`           // if valid, which generation of the TLF{Writer,Reader}KeyBundle to use.
 	DataVer    DataVer         `codec:"d"`           // if valid, which version of the KBFS data structures is pointed to
 	DirectType BlockDirectType `codec:"t,omitempty"` // the type (direct, indirect, or unknown [if omitted]) of the pointed-to block
 	kbfsblock.Context
@@ -562,15 +523,6 @@ type ReportedError struct {
 	Error error
 	Stack []uintptr
 }
-
-// MergeStatus is a temporary alias.
-type MergeStatus = kbfsmd.MergeStatus
-
-// Temporary aliases.
-const (
-	Merged   MergeStatus = kbfsmd.Merged
-	Unmerged MergeStatus = kbfsmd.Unmerged
-)
 
 // OpSummary describes the changes performed by a single op, and is
 // suitable for encoding directly as JSON.

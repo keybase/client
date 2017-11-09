@@ -38,7 +38,7 @@ func NewCryptoLocal(codec kbfscodec.Codec,
 // CryptoLocal.
 func (c CryptoLocal) DecryptTLFCryptKeyClientHalf(ctx context.Context,
 	publicKey kbfscrypto.TLFEphemeralPublicKey,
-	encryptedClientHalf EncryptedTLFCryptKeyClientHalf) (
+	encryptedClientHalf kbfscrypto.EncryptedTLFCryptKeyClientHalf) (
 	kbfscrypto.TLFCryptKeyClientHalf, error) {
 	return kbfscrypto.DecryptTLFCryptKeyClientHalf(
 		c.cryptPrivateKey, publicKey, encryptedClientHalf)

@@ -52,7 +52,7 @@ func (c testMDServerLocalConfig) currentSessionGetter() CurrentSessionGetter {
 	return c.csg
 }
 
-func (c testMDServerLocalConfig) MetadataVersion() MetadataVer {
+func (c testMDServerLocalConfig) MetadataVersion() kbfsmd.MetadataVer {
 	return defaultClientMetadataVer
 }
 

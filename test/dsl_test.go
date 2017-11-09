@@ -17,6 +17,7 @@ import (
 	"time"
 
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/kbfs/kbfsmd"
 	"github.com/keybase/kbfs/libfs"
 	"github.com/keybase/kbfs/libkbfs"
 	"github.com/keybase/kbfs/tlf"
@@ -32,7 +33,7 @@ const (
 )
 
 type opt struct {
-	ver                      libkbfs.MetadataVer
+	ver                      kbfsmd.MetadataVer
 	usernames                []libkb.NormalizedUsername
 	teams                    teamMap
 	tlfName                  string
@@ -59,14 +60,14 @@ type opt struct {
 
 // Also copy testMetadataVers, so that we can set it independently
 // from libkbfs tests.
-var testMetadataVers = []libkbfs.MetadataVer{
-	libkbfs.InitialExtraMetadataVer, libkbfs.SegregatedKeyBundlesVer,
+var testMetadataVers = []kbfsmd.MetadataVer{
+	kbfsmd.InitialExtraMetadataVer, kbfsmd.SegregatedKeyBundlesVer,
 }
 
 // runTestOverMetadataVers runs the given test function over all
 // metadata versions to test.
 func runTestOverMetadataVers(
-	t *testing.T, f func(t *testing.T, ver libkbfs.MetadataVer)) {
+	t *testing.T, f func(t *testing.T, ver kbfsmd.MetadataVer)) {
 	for _, ver := range testMetadataVers {
 		ver := ver // capture range variable.
 		t.Run(ver.String(), func(t *testing.T) {
@@ -80,7 +81,7 @@ func runTestOverMetadataVers(
 // runBenchmarkOverMetadataVers runs the given benchmark function over
 // all metadata versions to test.
 func runBenchmarkOverMetadataVers(
-	b *testing.B, f func(b *testing.B, ver libkbfs.MetadataVer)) {
+	b *testing.B, f func(b *testing.B, ver kbfsmd.MetadataVer)) {
 	for _, ver := range testMetadataVers {
 		ver := ver // capture range variable.
 		b.Run(ver.String(), func(b *testing.B) {
@@ -90,7 +91,7 @@ func runBenchmarkOverMetadataVers(
 }
 
 func runOneTestOrBenchmark(
-	tb testing.TB, ver libkbfs.MetadataVer, actions ...optionOp) {
+	tb testing.TB, ver kbfsmd.MetadataVer, actions ...optionOp) {
 	o := &opt{
 		ver:    ver,
 		tb:     tb,
@@ -103,14 +104,14 @@ func runOneTestOrBenchmark(
 }
 
 func test(t *testing.T, actions ...optionOp) {
-	runTestOverMetadataVers(t, func(t *testing.T, ver libkbfs.MetadataVer) {
+	runTestOverMetadataVers(t, func(t *testing.T, ver kbfsmd.MetadataVer) {
 		runOneTestOrBenchmark(t, ver, actions...)
 	})
 }
 
 func benchmark(b *testing.B, tb testing.TB, actions ...optionOp) {
 	runBenchmarkOverMetadataVers(
-		b, func(b *testing.B, ver libkbfs.MetadataVer) {
+		b, func(b *testing.B, ver kbfsmd.MetadataVer) {
 			runOneTestOrBenchmark(tb, ver, actions...)
 		})
 }
@@ -257,7 +258,7 @@ func users(ns ...username) optionOp {
 func team(teamName libkb.NormalizedUsername, writers string,
 	readers string) optionOp {
 	return func(o *opt) {
-		if o.ver == libkbfs.InitialExtraMetadataVer {
+		if o.ver == kbfsmd.InitialExtraMetadataVer {
 			o.tb.Skip("mdv2 doesn't support teams")
 		}
 		if o.teams == nil {

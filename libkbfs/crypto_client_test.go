@@ -87,7 +87,7 @@ func (fc FakeCryptoClient) Call(ctx context.Context, s string, args interface{},
 		publicKey := kbfscrypto.MakeTLFEphemeralPublicKey(
 			arg.PeersPublicKey)
 		encryptedClientHalf := kbfscrypto.MakeEncryptedTLFCryptKeyClientHalfForTest(
-			EncryptionSecretbox, arg.EncryptedBytes32[:],
+			kbfscrypto.EncryptionSecretbox, arg.EncryptedBytes32[:],
 			arg.Nonce[:])
 		clientHalf, err := fc.Local.DecryptTLFCryptKeyClientHalf(
 			ctx, publicKey, encryptedClientHalf)
@@ -108,7 +108,7 @@ func (fc FakeCryptoClient) Call(ctx context.Context, s string, args interface{},
 			ePublicKey := kbfscrypto.MakeTLFEphemeralPublicKey(
 				k.PublicKey)
 			encryptedClientHalf := kbfscrypto.MakeEncryptedTLFCryptKeyClientHalfForTest(
-				EncryptionSecretbox,
+				kbfscrypto.EncryptionSecretbox,
 				k.Ciphertext[:],
 				k.Nonce[:])
 			keys = append(keys, EncryptedTLFCryptKeyClientAndEphemeral{
@@ -204,7 +204,7 @@ func TestCryptoClientDecryptTLFCryptKeyClientHalfBoxSeal(t *testing.T) {
 	ephPrivateKeyData := ephPrivateKey.Data()
 	encryptedBytes := box.Seal(nil, clientHalfData[:], &nonce, (*[32]byte)(&dhKeyPair.Public), &ephPrivateKeyData)
 	encryptedClientHalf := kbfscrypto.MakeEncryptedTLFCryptKeyClientHalfForTest(
-		EncryptionSecretbox, encryptedBytes, nonce[:])
+		kbfscrypto.EncryptionSecretbox, encryptedBytes, nonce[:])
 
 	decryptedClientHalf, err := c.DecryptTLFCryptKeyClientHalf(
 		context.Background(), ephPublicKey, encryptedClientHalf)
@@ -237,7 +237,7 @@ func TestCryptoClientDecryptEncryptedTLFCryptKeyClientHalf(t *testing.T) {
 	// performs encryption.
 	encryptedClientHalf, err := kbfscrypto.EncryptTLFCryptKeyClientHalf(ephPrivateKey, cryptPrivateKey.GetPublicKey(), clientHalf)
 	require.NoError(t, err)
-	require.Equal(t, EncryptionSecretbox, encryptedClientHalf.Version)
+	require.Equal(t, kbfscrypto.EncryptionSecretbox, encryptedClientHalf.Version)
 
 	decryptedClientHalf, err := c.DecryptTLFCryptKeyClientHalf(
 		context.Background(), ephPublicKey, encryptedClientHalf)
@@ -290,7 +290,7 @@ func TestCryptoClientDecryptEncryptedTLFCryptKeyClientHalfAny(t *testing.T) {
 		// performs encryption.
 		encryptedClientHalf, err := kbfscrypto.EncryptTLFCryptKeyClientHalf(ephPrivateKey, cryptPrivateKey.GetPublicKey(), clientHalf)
 		require.NoError(t, err)
-		require.Equal(t, EncryptionSecretbox,
+		require.Equal(t, kbfscrypto.EncryptionSecretbox,
 			encryptedClientHalf.Version)
 		keys = append(keys, EncryptedTLFCryptKeyClientAndEphemeral{
 			PubKey:     cryptPrivateKey.GetPublicKey(),

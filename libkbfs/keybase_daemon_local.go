@@ -16,6 +16,7 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/kbfscodec"
 	"github.com/keybase/kbfs/kbfscrypto"
+	"github.com/keybase/kbfs/kbfsmd"
 	"github.com/syndtr/goleveldb/leveldb"
 	"github.com/syndtr/goleveldb/leveldb/util"
 )
@@ -258,7 +259,7 @@ func (k *KeybaseDaemonLocal) LoadUserPlusKeys(ctx context.Context,
 
 // LoadTeamPlusKeys implements KeybaseDaemon for KeybaseDaemonLocal.
 func (k *KeybaseDaemonLocal) LoadTeamPlusKeys(
-	ctx context.Context, tid keybase1.TeamID, _ KeyGen, _ keybase1.UserVersion,
+	ctx context.Context, tid keybase1.TeamID, _ kbfsmd.KeyGen, _ keybase1.UserVersion,
 	_ keybase1.TeamRole) (TeamInfo, error) {
 	if err := checkContext(ctx); err != nil {
 		return TeamInfo{}, err
@@ -556,7 +557,7 @@ func (k *KeybaseDaemonLocal) addTeamReaderForTest(
 }
 
 func (k *KeybaseDaemonLocal) addTeamKeyForTest(
-	tid keybase1.TeamID, newKeyGen KeyGen,
+	tid keybase1.TeamID, newKeyGen kbfsmd.KeyGen,
 	newKey kbfscrypto.TLFCryptKey) error {
 	k.lock.Lock()
 	defer k.lock.Unlock()

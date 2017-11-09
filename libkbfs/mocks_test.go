@@ -1441,7 +1441,7 @@ func (mr *MockKeybaseServiceMockRecorder) LoadUnverifiedKeys(ctx, uid interface{
 }
 
 // LoadTeamPlusKeys mocks base method
-func (m *MockKeybaseService) LoadTeamPlusKeys(ctx context.Context, tid keybase1.TeamID, desiredKeyGen KeyGen, desiredUser keybase1.UserVersion, desiredRole keybase1.TeamRole) (TeamInfo, error) {
+func (m *MockKeybaseService) LoadTeamPlusKeys(ctx context.Context, tid keybase1.TeamID, desiredKeyGen kbfsmd.KeyGen, desiredUser keybase1.UserVersion, desiredRole keybase1.TeamRole) (TeamInfo, error) {
 	ret := m.ctrl.Call(m, "LoadTeamPlusKeys", ctx, tid, desiredKeyGen, desiredUser, desiredRole)
 	ret0, _ := ret[0].(TeamInfo)
 	ret1, _ := ret[1].(error)
@@ -1838,10 +1838,10 @@ func (m *MockteamKeysGetter) EXPECT() *MockteamKeysGetterMockRecorder {
 }
 
 // GetTeamTLFCryptKeys mocks base method
-func (m *MockteamKeysGetter) GetTeamTLFCryptKeys(ctx context.Context, tid keybase1.TeamID, desiredKeyGen KeyGen) (map[KeyGen]kbfscrypto.TLFCryptKey, KeyGen, error) {
+func (m *MockteamKeysGetter) GetTeamTLFCryptKeys(ctx context.Context, tid keybase1.TeamID, desiredKeyGen kbfsmd.KeyGen) (map[kbfsmd.KeyGen]kbfscrypto.TLFCryptKey, kbfsmd.KeyGen, error) {
 	ret := m.ctrl.Call(m, "GetTeamTLFCryptKeys", ctx, tid, desiredKeyGen)
-	ret0, _ := ret[0].(map[KeyGen]kbfscrypto.TLFCryptKey)
-	ret1, _ := ret[1].(KeyGen)
+	ret0, _ := ret[0].(map[kbfsmd.KeyGen]kbfscrypto.TLFCryptKey)
+	ret1, _ := ret[1].(kbfsmd.KeyGen)
 	ret2, _ := ret[2].(error)
 	return ret0, ret1, ret2
 }
@@ -2004,10 +2004,10 @@ func (mr *MockKBPKIMockRecorder) IsTeamReader(ctx, tid, uid interface{}) *gomock
 }
 
 // GetTeamTLFCryptKeys mocks base method
-func (m *MockKBPKI) GetTeamTLFCryptKeys(ctx context.Context, tid keybase1.TeamID, desiredKeyGen KeyGen) (map[KeyGen]kbfscrypto.TLFCryptKey, KeyGen, error) {
+func (m *MockKBPKI) GetTeamTLFCryptKeys(ctx context.Context, tid keybase1.TeamID, desiredKeyGen kbfsmd.KeyGen) (map[kbfsmd.KeyGen]kbfscrypto.TLFCryptKey, kbfsmd.KeyGen, error) {
 	ret := m.ctrl.Call(m, "GetTeamTLFCryptKeys", ctx, tid, desiredKeyGen)
-	ret0, _ := ret[0].(map[KeyGen]kbfscrypto.TLFCryptKey)
-	ret1, _ := ret[1].(KeyGen)
+	ret0, _ := ret[0].(map[kbfsmd.KeyGen]kbfscrypto.TLFCryptKey)
+	ret1, _ := ret[1].(kbfsmd.KeyGen)
 	ret2, _ := ret[2].(error)
 	return ret0, ret1, ret2
 }
@@ -2164,9 +2164,9 @@ func (mr *MockKeyMetadataMockRecorder) TlfID() *gomock.Call {
 }
 
 // LatestKeyGeneration mocks base method
-func (m *MockKeyMetadata) LatestKeyGeneration() KeyGen {
+func (m *MockKeyMetadata) LatestKeyGeneration() kbfsmd.KeyGen {
 	ret := m.ctrl.Call(m, "LatestKeyGeneration")
-	ret0, _ := ret[0].(KeyGen)
+	ret0, _ := ret[0].(kbfsmd.KeyGen)
 	return ret0
 }
 
@@ -2214,10 +2214,10 @@ func (mr *MockKeyMetadataMockRecorder) HasKeyForUser(user interface{}) *gomock.C
 }
 
 // GetTLFCryptKeyParams mocks base method
-func (m *MockKeyMetadata) GetTLFCryptKeyParams(keyGen KeyGen, user keybase1.UID, key kbfscrypto.CryptPublicKey) (kbfscrypto.TLFEphemeralPublicKey, EncryptedTLFCryptKeyClientHalf, TLFCryptKeyServerHalfID, bool, error) {
+func (m *MockKeyMetadata) GetTLFCryptKeyParams(keyGen kbfsmd.KeyGen, user keybase1.UID, key kbfscrypto.CryptPublicKey) (kbfscrypto.TLFEphemeralPublicKey, kbfscrypto.EncryptedTLFCryptKeyClientHalf, TLFCryptKeyServerHalfID, bool, error) {
 	ret := m.ctrl.Call(m, "GetTLFCryptKeyParams", keyGen, user, key)
 	ret0, _ := ret[0].(kbfscrypto.TLFEphemeralPublicKey)
-	ret1, _ := ret[1].(EncryptedTLFCryptKeyClientHalf)
+	ret1, _ := ret[1].(kbfscrypto.EncryptedTLFCryptKeyClientHalf)
 	ret2, _ := ret[2].(TLFCryptKeyServerHalfID)
 	ret3, _ := ret[3].(bool)
 	ret4, _ := ret[4].(error)
@@ -2242,7 +2242,7 @@ func (mr *MockKeyMetadataMockRecorder) StoresHistoricTLFCryptKeys() *gomock.Call
 }
 
 // GetHistoricTLFCryptKey mocks base method
-func (m *MockKeyMetadata) GetHistoricTLFCryptKey(codec kbfscodec.Codec, keyGen KeyGen, currentKey kbfscrypto.TLFCryptKey) (kbfscrypto.TLFCryptKey, error) {
+func (m *MockKeyMetadata) GetHistoricTLFCryptKey(codec kbfscodec.Codec, keyGen kbfsmd.KeyGen, currentKey kbfscrypto.TLFCryptKey) (kbfscrypto.TLFCryptKey, error) {
 	ret := m.ctrl.Call(m, "GetHistoricTLFCryptKey", codec, keyGen, currentKey)
 	ret0, _ := ret[0].(kbfscrypto.TLFCryptKey)
 	ret1, _ := ret[1].(error)
@@ -2679,7 +2679,7 @@ func (m *MockKeyCache) EXPECT() *MockKeyCacheMockRecorder {
 }
 
 // GetTLFCryptKey mocks base method
-func (m *MockKeyCache) GetTLFCryptKey(arg0 tlf.ID, arg1 KeyGen) (kbfscrypto.TLFCryptKey, error) {
+func (m *MockKeyCache) GetTLFCryptKey(arg0 tlf.ID, arg1 kbfsmd.KeyGen) (kbfscrypto.TLFCryptKey, error) {
 	ret := m.ctrl.Call(m, "GetTLFCryptKey", arg0, arg1)
 	ret0, _ := ret[0].(kbfscrypto.TLFCryptKey)
 	ret1, _ := ret[1].(error)
@@ -2692,7 +2692,7 @@ func (mr *MockKeyCacheMockRecorder) GetTLFCryptKey(arg0, arg1 interface{}) *gomo
 }
 
 // PutTLFCryptKey mocks base method
-func (m *MockKeyCache) PutTLFCryptKey(arg0 tlf.ID, arg1 KeyGen, arg2 kbfscrypto.TLFCryptKey) error {
+func (m *MockKeyCache) PutTLFCryptKey(arg0 tlf.ID, arg1 kbfsmd.KeyGen, arg2 kbfscrypto.TLFCryptKey) error {
 	ret := m.ctrl.Call(m, "PutTLFCryptKey", arg0, arg1, arg2)
 	ret0, _ := ret[0].(error)
 	return ret0
@@ -3274,9 +3274,9 @@ func (mr *MockcryptoPureMockRecorder) MakeRandomBlockCryptKeyServerHalf() *gomoc
 }
 
 // EncryptPrivateMetadata mocks base method
-func (m *MockcryptoPure) EncryptPrivateMetadata(pmd PrivateMetadata, key kbfscrypto.TLFCryptKey) (EncryptedPrivateMetadata, error) {
+func (m *MockcryptoPure) EncryptPrivateMetadata(pmd PrivateMetadata, key kbfscrypto.TLFCryptKey) (kbfscrypto.EncryptedPrivateMetadata, error) {
 	ret := m.ctrl.Call(m, "EncryptPrivateMetadata", pmd, key)
-	ret0, _ := ret[0].(EncryptedPrivateMetadata)
+	ret0, _ := ret[0].(kbfscrypto.EncryptedPrivateMetadata)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -3287,7 +3287,7 @@ func (mr *MockcryptoPureMockRecorder) EncryptPrivateMetadata(pmd, key interface{
 }
 
 // DecryptPrivateMetadata mocks base method
-func (m *MockcryptoPure) DecryptPrivateMetadata(encryptedPMD EncryptedPrivateMetadata, key kbfscrypto.TLFCryptKey) (PrivateMetadata, error) {
+func (m *MockcryptoPure) DecryptPrivateMetadata(encryptedPMD kbfscrypto.EncryptedPrivateMetadata, key kbfscrypto.TLFCryptKey) (PrivateMetadata, error) {
 	ret := m.ctrl.Call(m, "DecryptPrivateMetadata", encryptedPMD, key)
 	ret0, _ := ret[0].(PrivateMetadata)
 	ret1, _ := ret[1].(error)
@@ -3300,10 +3300,10 @@ func (mr *MockcryptoPureMockRecorder) DecryptPrivateMetadata(encryptedPMD, key i
 }
 
 // EncryptBlock mocks base method
-func (m *MockcryptoPure) EncryptBlock(block Block, key kbfscrypto.BlockCryptKey) (int, EncryptedBlock, error) {
+func (m *MockcryptoPure) EncryptBlock(block Block, key kbfscrypto.BlockCryptKey) (int, kbfscrypto.EncryptedBlock, error) {
 	ret := m.ctrl.Call(m, "EncryptBlock", block, key)
 	ret0, _ := ret[0].(int)
-	ret1, _ := ret[1].(EncryptedBlock)
+	ret1, _ := ret[1].(kbfscrypto.EncryptedBlock)
 	ret2, _ := ret[2].(error)
 	return ret0, ret1, ret2
 }
@@ -3314,7 +3314,7 @@ func (mr *MockcryptoPureMockRecorder) EncryptBlock(block, key interface{}) *gomo
 }
 
 // DecryptBlock mocks base method
-func (m *MockcryptoPure) DecryptBlock(encryptedBlock EncryptedBlock, key kbfscrypto.BlockCryptKey, block Block) error {
+func (m *MockcryptoPure) DecryptBlock(encryptedBlock kbfscrypto.EncryptedBlock, key kbfscrypto.BlockCryptKey, block Block) error {
 	ret := m.ctrl.Call(m, "DecryptBlock", encryptedBlock, key, block)
 	ret0, _ := ret[0].(error)
 	return ret0
@@ -3443,9 +3443,9 @@ func (mr *MockCryptoMockRecorder) MakeRandomBlockCryptKeyServerHalf() *gomock.Ca
 }
 
 // EncryptPrivateMetadata mocks base method
-func (m *MockCrypto) EncryptPrivateMetadata(pmd PrivateMetadata, key kbfscrypto.TLFCryptKey) (EncryptedPrivateMetadata, error) {
+func (m *MockCrypto) EncryptPrivateMetadata(pmd PrivateMetadata, key kbfscrypto.TLFCryptKey) (kbfscrypto.EncryptedPrivateMetadata, error) {
 	ret := m.ctrl.Call(m, "EncryptPrivateMetadata", pmd, key)
-	ret0, _ := ret[0].(EncryptedPrivateMetadata)
+	ret0, _ := ret[0].(kbfscrypto.EncryptedPrivateMetadata)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -3456,7 +3456,7 @@ func (mr *MockCryptoMockRecorder) EncryptPrivateMetadata(pmd, key interface{}) *
 }
 
 // DecryptPrivateMetadata mocks base method
-func (m *MockCrypto) DecryptPrivateMetadata(encryptedPMD EncryptedPrivateMetadata, key kbfscrypto.TLFCryptKey) (PrivateMetadata, error) {
+func (m *MockCrypto) DecryptPrivateMetadata(encryptedPMD kbfscrypto.EncryptedPrivateMetadata, key kbfscrypto.TLFCryptKey) (PrivateMetadata, error) {
 	ret := m.ctrl.Call(m, "DecryptPrivateMetadata", encryptedPMD, key)
 	ret0, _ := ret[0].(PrivateMetadata)
 	ret1, _ := ret[1].(error)
@@ -3469,10 +3469,10 @@ func (mr *MockCryptoMockRecorder) DecryptPrivateMetadata(encryptedPMD, key inter
 }
 
 // EncryptBlock mocks base method
-func (m *MockCrypto) EncryptBlock(block Block, key kbfscrypto.BlockCryptKey) (int, EncryptedBlock, error) {
+func (m *MockCrypto) EncryptBlock(block Block, key kbfscrypto.BlockCryptKey) (int, kbfscrypto.EncryptedBlock, error) {
 	ret := m.ctrl.Call(m, "EncryptBlock", block, key)
 	ret0, _ := ret[0].(int)
-	ret1, _ := ret[1].(EncryptedBlock)
+	ret1, _ := ret[1].(kbfscrypto.EncryptedBlock)
 	ret2, _ := ret[2].(error)
 	return ret0, ret1, ret2
 }
@@ -3483,7 +3483,7 @@ func (mr *MockCryptoMockRecorder) EncryptBlock(block, key interface{}) *gomock.C
 }
 
 // DecryptBlock mocks base method
-func (m *MockCrypto) DecryptBlock(encryptedBlock EncryptedBlock, key kbfscrypto.BlockCryptKey, block Block) error {
+func (m *MockCrypto) DecryptBlock(encryptedBlock kbfscrypto.EncryptedBlock, key kbfscrypto.BlockCryptKey, block Block) error {
 	ret := m.ctrl.Call(m, "DecryptBlock", encryptedBlock, key, block)
 	ret0, _ := ret[0].(error)
 	return ret0
@@ -3534,7 +3534,7 @@ func (mr *MockCryptoMockRecorder) SignToString(arg0, arg1 interface{}) *gomock.C
 }
 
 // DecryptTLFCryptKeyClientHalf mocks base method
-func (m *MockCrypto) DecryptTLFCryptKeyClientHalf(ctx context.Context, publicKey kbfscrypto.TLFEphemeralPublicKey, encryptedClientHalf EncryptedTLFCryptKeyClientHalf) (kbfscrypto.TLFCryptKeyClientHalf, error) {
+func (m *MockCrypto) DecryptTLFCryptKeyClientHalf(ctx context.Context, publicKey kbfscrypto.TLFEphemeralPublicKey, encryptedClientHalf kbfscrypto.EncryptedTLFCryptKeyClientHalf) (kbfscrypto.TLFCryptKeyClientHalf, error) {
 	ret := m.ctrl.Call(m, "DecryptTLFCryptKeyClientHalf", ctx, publicKey, encryptedClientHalf)
 	ret0, _ := ret[0].(kbfscrypto.TLFCryptKeyClientHalf)
 	ret1, _ := ret[1].(error)
@@ -3594,7 +3594,7 @@ func (m *MockMDOps) EXPECT() *MockMDOpsMockRecorder {
 }
 
 // GetForHandle mocks base method
-func (m *MockMDOps) GetForHandle(ctx context.Context, handle *TlfHandle, mStatus MergeStatus, lockBeforeGet *keybase1.LockID) (tlf.ID, ImmutableRootMetadata, error) {
+func (m *MockMDOps) GetForHandle(ctx context.Context, handle *TlfHandle, mStatus kbfsmd.MergeStatus, lockBeforeGet *keybase1.LockID) (tlf.ID, ImmutableRootMetadata, error) {
 	ret := m.ctrl.Call(m, "GetForHandle", ctx, handle, mStatus, lockBeforeGet)
 	ret0, _ := ret[0].(tlf.ID)
 	ret1, _ := ret[1].(ImmutableRootMetadata)
@@ -4039,7 +4039,7 @@ func (mr *MockMDServerMockRecorder) RefreshAuthToken(arg0 interface{}) *gomock.C
 }
 
 // GetForHandle mocks base method
-func (m *MockMDServer) GetForHandle(ctx context.Context, handle tlf.Handle, mStatus MergeStatus, lockBeforeGet *keybase1.LockID) (tlf.ID, *RootMetadataSigned, error) {
+func (m *MockMDServer) GetForHandle(ctx context.Context, handle tlf.Handle, mStatus kbfsmd.MergeStatus, lockBeforeGet *keybase1.LockID) (tlf.ID, *RootMetadataSigned, error) {
 	ret := m.ctrl.Call(m, "GetForHandle", ctx, handle, mStatus, lockBeforeGet)
 	ret0, _ := ret[0].(tlf.ID)
 	ret1, _ := ret[1].(*RootMetadataSigned)
@@ -4053,7 +4053,7 @@ func (mr *MockMDServerMockRecorder) GetForHandle(ctx, handle, mStatus, lockBefor
 }
 
 // GetForTLF mocks base method
-func (m *MockMDServer) GetForTLF(ctx context.Context, id tlf.ID, bid kbfsmd.BranchID, mStatus MergeStatus, lockBeforeGet *keybase1.LockID) (*RootMetadataSigned, error) {
+func (m *MockMDServer) GetForTLF(ctx context.Context, id tlf.ID, bid kbfsmd.BranchID, mStatus kbfsmd.MergeStatus, lockBeforeGet *keybase1.LockID) (*RootMetadataSigned, error) {
 	ret := m.ctrl.Call(m, "GetForTLF", ctx, id, bid, mStatus, lockBeforeGet)
 	ret0, _ := ret[0].(*RootMetadataSigned)
 	ret1, _ := ret[1].(error)
@@ -4066,7 +4066,7 @@ func (mr *MockMDServerMockRecorder) GetForTLF(ctx, id, bid, mStatus, lockBeforeG
 }
 
 // GetRange mocks base method
-func (m *MockMDServer) GetRange(ctx context.Context, id tlf.ID, bid kbfsmd.BranchID, mStatus MergeStatus, start, stop kbfsmd.Revision, lockBeforeGet *keybase1.LockID) ([]*RootMetadataSigned, error) {
+func (m *MockMDServer) GetRange(ctx context.Context, id tlf.ID, bid kbfsmd.BranchID, mStatus kbfsmd.MergeStatus, start, stop kbfsmd.Revision, lockBeforeGet *keybase1.LockID) ([]*RootMetadataSigned, error) {
 	ret := m.ctrl.Call(m, "GetRange", ctx, id, bid, mStatus, start, stop, lockBeforeGet)
 	ret0, _ := ret[0].([]*RootMetadataSigned)
 	ret1, _ := ret[1].(error)
@@ -4313,7 +4313,7 @@ func (mr *MockmdServerLocalMockRecorder) RefreshAuthToken(arg0 interface{}) *gom
 }
 
 // GetForHandle mocks base method
-func (m *MockmdServerLocal) GetForHandle(ctx context.Context, handle tlf.Handle, mStatus MergeStatus, lockBeforeGet *keybase1.LockID) (tlf.ID, *RootMetadataSigned, error) {
+func (m *MockmdServerLocal) GetForHandle(ctx context.Context, handle tlf.Handle, mStatus kbfsmd.MergeStatus, lockBeforeGet *keybase1.LockID) (tlf.ID, *RootMetadataSigned, error) {
 	ret := m.ctrl.Call(m, "GetForHandle", ctx, handle, mStatus, lockBeforeGet)
 	ret0, _ := ret[0].(tlf.ID)
 	ret1, _ := ret[1].(*RootMetadataSigned)
@@ -4327,7 +4327,7 @@ func (mr *MockmdServerLocalMockRecorder) GetForHandle(ctx, handle, mStatus, lock
 }
 
 // GetForTLF mocks base method
-func (m *MockmdServerLocal) GetForTLF(ctx context.Context, id tlf.ID, bid kbfsmd.BranchID, mStatus MergeStatus, lockBeforeGet *keybase1.LockID) (*RootMetadataSigned, error) {
+func (m *MockmdServerLocal) GetForTLF(ctx context.Context, id tlf.ID, bid kbfsmd.BranchID, mStatus kbfsmd.MergeStatus, lockBeforeGet *keybase1.LockID) (*RootMetadataSigned, error) {
 	ret := m.ctrl.Call(m, "GetForTLF", ctx, id, bid, mStatus, lockBeforeGet)
 	ret0, _ := ret[0].(*RootMetadataSigned)
 	ret1, _ := ret[1].(error)
@@ -4340,7 +4340,7 @@ func (mr *MockmdServerLocalMockRecorder) GetForTLF(ctx, id, bid, mStatus, lockBe
 }
 
 // GetRange mocks base method
-func (m *MockmdServerLocal) GetRange(ctx context.Context, id tlf.ID, bid kbfsmd.BranchID, mStatus MergeStatus, start, stop kbfsmd.Revision, lockBeforeGet *keybase1.LockID) ([]*RootMetadataSigned, error) {
+func (m *MockmdServerLocal) GetRange(ctx context.Context, id tlf.ID, bid kbfsmd.BranchID, mStatus kbfsmd.MergeStatus, start, stop kbfsmd.Revision, lockBeforeGet *keybase1.LockID) ([]*RootMetadataSigned, error) {
 	ret := m.ctrl.Call(m, "GetRange", ctx, id, bid, mStatus, start, stop, lockBeforeGet)
 	ret0, _ := ret[0].([]*RootMetadataSigned)
 	ret1, _ := ret[1].(error)
@@ -6019,9 +6019,9 @@ func (mr *MockConfigMockRecorder) SetConflictRenamer(arg0 interface{}) *gomock.C
 }
 
 // MetadataVersion mocks base method
-func (m *MockConfig) MetadataVersion() MetadataVer {
+func (m *MockConfig) MetadataVersion() kbfsmd.MetadataVer {
 	ret := m.ctrl.Call(m, "MetadataVersion")
-	ret0, _ := ret[0].(MetadataVer)
+	ret0, _ := ret[0].(kbfsmd.MetadataVer)
 	return ret0
 }
 
@@ -6031,7 +6031,7 @@ func (mr *MockConfigMockRecorder) MetadataVersion() *gomock.Call {
 }
 
 // SetMetadataVersion mocks base method
-func (m *MockConfig) SetMetadataVersion(arg0 MetadataVer) {
+func (m *MockConfig) SetMetadataVersion(arg0 kbfsmd.MetadataVer) {
 	m.ctrl.Call(m, "SetMetadataVersion", arg0)
 }
 

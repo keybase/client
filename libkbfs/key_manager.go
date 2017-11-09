@@ -60,7 +60,7 @@ func (km *KeyManagerStandard) GetTLFCryptKeyForBlockDecryption(
 func (km *KeyManagerStandard) GetTLFCryptKeyOfAllGenerations(
 	ctx context.Context, kmd KeyMetadata) (
 	keys []kbfscrypto.TLFCryptKey, err error) {
-	for g := FirstValidKeyGen; g <= kmd.LatestKeyGeneration(); g++ {
+	for g := kbfsmd.FirstValidKeyGen; g <= kmd.LatestKeyGeneration(); g++ {
 		var key kbfscrypto.TLFCryptKey
 		key, err = km.getTLFCryptKeyUsingCurrentDevice(ctx, kmd, g, true)
 		if err != nil {
@@ -72,7 +72,7 @@ func (km *KeyManagerStandard) GetTLFCryptKeyOfAllGenerations(
 }
 
 func (km *KeyManagerStandard) getTLFCryptKeyUsingCurrentDevice(
-	ctx context.Context, kmd KeyMetadata, keyGen KeyGen, cache bool) (
+	ctx context.Context, kmd KeyMetadata, keyGen kbfsmd.KeyGen, cache bool) (
 	tlfCryptKey kbfscrypto.TLFCryptKey, err error) {
 	flags := getTLFCryptKeyFlags(0)
 	if cache {
@@ -90,7 +90,7 @@ const (
 )
 
 func (km *KeyManagerStandard) getTLFCryptKey(ctx context.Context,
-	kmd KeyMetadata, keyGen KeyGen, flags getTLFCryptKeyFlags) (
+	kmd KeyMetadata, keyGen kbfsmd.KeyGen, flags getTLFCryptKeyFlags) (
 	kbfscrypto.TLFCryptKey, error) {
 	tlfID := kmd.TlfID()
 
@@ -98,7 +98,7 @@ func (km *KeyManagerStandard) getTLFCryptKey(ctx context.Context,
 		return kbfscrypto.PublicTLFCryptKey, nil
 	}
 
-	if keyGen < FirstValidKeyGen {
+	if keyGen < kbfsmd.FirstValidKeyGen {
 		return kbfscrypto.TLFCryptKey{}, kbfsmd.InvalidKeyGenerationError{TlfID: tlfID, KeyGen: keyGen}
 	}
 	// Is this some key we don't know yet?  Shouldn't really ever happen,
@@ -209,7 +209,7 @@ func (km *KeyManagerStandard) getTLFCryptKey(ctx context.Context,
 
 func (km *KeyManagerStandard) getTLFCryptKeyParams(
 	ctx context.Context, kmd KeyMetadata,
-	keyGen KeyGen, uid keybase1.UID, username libkb.NormalizedUsername,
+	keyGen kbfsmd.KeyGen, uid keybase1.UID, username libkb.NormalizedUsername,
 	flags getTLFCryptKeyFlags) (
 	clientHalf kbfscrypto.TLFCryptKeyClientHalf,
 	serverHalfID TLFCryptKeyServerHalfID,
@@ -487,11 +487,11 @@ func (km *KeyManagerStandard) Rekey(ctx context.Context, md *RootMetadata, promp
 	}
 
 	currKeyGen := md.LatestKeyGeneration()
-	if (md.TlfID().Type() == tlf.Public) != (currKeyGen == PublicKeyGen) {
+	if (md.TlfID().Type() == tlf.Public) != (currKeyGen == kbfsmd.PublicKeyGen) {
 		return false, nil, errors.Errorf(
 			"ID %v has type=%s but currKeyGen is %d (isPublic=%t)",
 			md.TlfID(), md.TlfID().Type(), currKeyGen,
-			currKeyGen == PublicKeyGen)
+			currKeyGen == kbfsmd.PublicKeyGen)
 	}
 
 	if promptPaper && md.TlfID().Type() != tlf.Private {
@@ -566,7 +566,7 @@ func (km *KeyManagerStandard) Rekey(ctx context.Context, md *RootMetadata, promp
 	// Decide whether we have a new device and/or a revoked device, or neither.
 	// Look up all the device public keys for all writers and readers first.
 
-	incKeyGen := currKeyGen < FirstValidKeyGen
+	incKeyGen := currKeyGen < kbfsmd.FirstValidKeyGen
 
 	if !isWriter && incKeyGen {
 		// Readers cannot create the first key generation
@@ -784,7 +784,7 @@ func (km *KeyManagerStandard) Rekey(ctx context.Context, md *RootMetadata, promp
 	// generation though, since that's not really a "re"key.
 	//
 	// TODO: Shouldn't this happen earlier?
-	if currKeyGen >= FirstValidKeyGen {
+	if currKeyGen >= kbfsmd.FirstValidKeyGen {
 		km.config.Reporter().Notify(ctx, rekeyNotification(
 			ctx, km.config, resolvedHandle, false))
 	}
@@ -795,7 +795,7 @@ func (km *KeyManagerStandard) Rekey(ctx context.Context, md *RootMetadata, promp
 	// the latest key generation.
 	//
 	// TODO: Add test coverage for this.
-	if currKeyGen >= FirstValidKeyGen {
+	if currKeyGen >= kbfsmd.FirstValidKeyGen {
 		allRemovalInfo, err := md.revokeRemovedDevices(
 			updatedWriterKeys, updatedReaderKeys)
 		if err != nil {
@@ -838,7 +838,7 @@ func (km *KeyManagerStandard) Rekey(ctx context.Context, md *RootMetadata, promp
 	// symmetrically encrypted and appended to a list for MDv3
 	// metadata.
 	var currTLFCryptKey kbfscrypto.TLFCryptKey
-	if md.StoresHistoricTLFCryptKeys() && currKeyGen >= FirstValidKeyGen {
+	if md.StoresHistoricTLFCryptKeys() && currKeyGen >= kbfsmd.FirstValidKeyGen {
 		flags := getTLFCryptKeyAnyDevice
 		if promptPaper {
 			flags |= getTLFCryptKeyPromptPaper

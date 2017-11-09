@@ -324,7 +324,7 @@ func isArchivableOp(op op) bool {
 }
 
 func isArchivableMDOrError(md ReadOnlyRootMetadata) error {
-	if md.MergedStatus() != Merged {
+	if md.MergedStatus() != kbfsmd.Merged {
 		return fmt.Errorf("md rev=%d is not merged", md.Revision())
 	}
 
@@ -341,7 +341,7 @@ func isArchivableMDOrError(md ReadOnlyRootMetadata) error {
 func (fbm *folderBlockManager) archiveUnrefBlocks(md ReadOnlyRootMetadata) {
 	// Don't archive for unmerged revisions, because conflict
 	// resolution might undo some of the unreferences.
-	if md.MergedStatus() != Merged {
+	if md.MergedStatus() != kbfsmd.Merged {
 		return
 	}
 
@@ -360,7 +360,7 @@ func (fbm *folderBlockManager) archiveUnrefBlocks(md ReadOnlyRootMetadata) {
 func (fbm *folderBlockManager) archiveUnrefBlocksNoWait(md ReadOnlyRootMetadata) {
 	// Don't archive for unmerged revisions, because conflict
 	// resolution might undo some of the unreferences.
-	if md.MergedStatus() != Merged {
+	if md.MergedStatus() != kbfsmd.Merged {
 		return
 	}
 
@@ -761,7 +761,7 @@ func (fbm *folderBlockManager) getMostRecentOldEnoughAndGCRevisions(
 		}
 
 		rmds, err := getMDRange(ctx, fbm.config, fbm.id, kbfsmd.NullBranchID, startRev,
-			currHead, Merged, nil)
+			currHead, kbfsmd.Merged, nil)
 		if err != nil {
 			return kbfsmd.RevisionUninitialized,
 				kbfsmd.RevisionUninitialized, err
@@ -867,7 +867,7 @@ outer:
 		}
 
 		rmds, err := getMDRange(ctx, fbm.config, fbm.id, kbfsmd.NullBranchID, startRev,
-			currHead, Merged, nil)
+			currHead, kbfsmd.Merged, nil)
 		if err != nil {
 			return nil, kbfsmd.RevisionUninitialized, false, err
 		}
@@ -1041,7 +1041,7 @@ func (fbm *folderBlockManager) doReclamation(timer *time.Timer) (err error) {
 		return err
 	} else if err := isReadableOrError(ctx, fbm.config.KBPKI(), head.ReadOnly()); err != nil {
 		return err
-	} else if head.MergedStatus() != Merged {
+	} else if head.MergedStatus() != kbfsmd.Merged {
 		return errors.New("Supposedly fully-merged MD is unexpectedly unmerged")
 	} else if head.IsFinal() {
 		return kbfsmd.MetadataIsFinalError{}

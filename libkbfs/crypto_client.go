@@ -124,10 +124,10 @@ func (c *CryptoClient) SignToString(ctx context.Context, msg []byte) (
 }
 
 func (c *CryptoClient) prepareTLFCryptKeyClientHalf(
-	encryptedClientHalf EncryptedTLFCryptKeyClientHalf) (
+	encryptedClientHalf kbfscrypto.EncryptedTLFCryptKeyClientHalf) (
 	encryptedData keybase1.EncryptedBytes32, nonce keybase1.BoxNonce,
 	err error) {
-	if encryptedClientHalf.Version != EncryptionSecretbox {
+	if encryptedClientHalf.Version != kbfscrypto.EncryptionSecretbox {
 		return keybase1.EncryptedBytes32{}, keybase1.BoxNonce{},
 			errors.WithStack(kbfscrypto.UnknownEncryptionVer{
 				Ver: encryptedClientHalf.Version})
@@ -154,7 +154,7 @@ func (c *CryptoClient) prepareTLFCryptKeyClientHalf(
 // CryptoClient.
 func (c *CryptoClient) DecryptTLFCryptKeyClientHalf(ctx context.Context,
 	publicKey kbfscrypto.TLFEphemeralPublicKey,
-	encryptedClientHalf EncryptedTLFCryptKeyClientHalf) (
+	encryptedClientHalf kbfscrypto.EncryptedTLFCryptKeyClientHalf) (
 	clientHalf kbfscrypto.TLFCryptKeyClientHalf, err error) {
 	c.log.CDebugf(ctx, "Decrypting TLF client key half")
 	defer func() {

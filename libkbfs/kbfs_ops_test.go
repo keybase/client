@@ -334,11 +334,11 @@ func makeImmutableRMDForTest(t *testing.T, config Config, rmd *RootMetadata,
 func injectNewRMD(t *testing.T, config *ConfigMock) (
 	keybase1.UserOrTeamID, tlf.ID, *RootMetadata) {
 	id, h, rmd := createNewRMD(t, config, "alice", tlf.Private)
-	var keyGen KeyGen
+	var keyGen kbfsmd.KeyGen
 	if id.Type() == tlf.Public {
-		keyGen = PublicKeyGen
+		keyGen = kbfsmd.PublicKeyGen
 	} else {
-		keyGen = 1
+		keyGen = kbfsmd.FirstValidKeyGen
 	}
 	rmd.data.Dir = DirEntry{
 		BlockInfo: BlockInfo{
@@ -512,7 +512,7 @@ func fillInNewMD(t *testing.T, config *ConfigMock, rmd *RootMetadata) {
 	}
 	rootPtr := BlockPointer{
 		ID:      kbfsblock.FakeID(42),
-		KeyGen:  1,
+		KeyGen:  kbfsmd.FirstValidKeyGen,
 		DataVer: 1,
 	}
 
@@ -584,10 +584,10 @@ func TestKBFSOpsGetRootMDForHandleExisting(t *testing.T) {
 		},
 	}
 
-	config.mockMdops.EXPECT().GetForHandle(gomock.Any(), h, Unmerged,
+	config.mockMdops.EXPECT().GetForHandle(gomock.Any(), h, kbfsmd.Unmerged,
 		nil).Return(tlf.ID{}, ImmutableRootMetadata{}, nil)
 	config.mockMdops.EXPECT().GetForHandle(
-		gomock.Any(), h, Merged, nil).Return(tlf.ID{},
+		gomock.Any(), h, kbfsmd.Merged, nil).Return(tlf.ID{},
 		makeImmutableRMDForTest(t, config, rmd, kbfsmd.FakeID(1)), nil)
 	ops := getOps(config, id)
 	assert.False(t, fboIdentityDone(ops))
@@ -659,7 +659,7 @@ func makeIFP(id kbfsblock.ID, kmd KeyMetadata, config Config,
 func makeBIFromID(id kbfsblock.ID, user keybase1.UserOrTeamID) BlockInfo {
 	return BlockInfo{
 		BlockPointer: BlockPointer{
-			ID: id, KeyGen: 1, DataVer: 1,
+			ID: id, KeyGen: kbfsmd.FirstValidKeyGen, DataVer: 1,
 			Context: kbfsblock.Context{
 				Creator: user,
 			},
@@ -925,7 +925,7 @@ func TestKBFSOpsLookupSuccess(t *testing.T) {
 	}
 	bPath := ops.nodeCache.PathFromNode(bn)
 	expectedBNode := pathNode{makeBP(bID, rmd, config, u), "b"}
-	expectedBNode.KeyGen = 1
+	expectedBNode.KeyGen = kbfsmd.FirstValidKeyGen
 	if ei != dirBlock.Children["b"].EntryInfo {
 		t.Errorf("Lookup returned a bad entry info: %v vs %v",
 			ei, dirBlock.Children["b"].EntryInfo)
@@ -2250,7 +2250,7 @@ func TestKBFSOpsWriteOverMultipleBlocks(t *testing.T) {
 	id2 := kbfsblock.FakeID(45)
 	rootBlock := NewDirBlock().(*DirBlock)
 	filePtr := BlockPointer{
-		ID: fileID, KeyGen: 1, DataVer: 1,
+		ID: fileID, KeyGen: kbfsmd.FirstValidKeyGen, DataVer: 1,
 		Context: kbfsblock.Context{
 			Creator: uid,
 		},

@@ -16,6 +16,7 @@ import (
 	"github.com/keybase/kbfs/ioutil"
 	"github.com/keybase/kbfs/kbfsblock"
 	"github.com/keybase/kbfs/kbfscrypto"
+	"github.com/keybase/kbfs/kbfsmd"
 	"github.com/keybase/kbfs/tlf"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
@@ -784,7 +785,7 @@ func TestJournalServerTeamTLFWithRestart(t *testing.T) {
 
 	rmd, err := makeInitialRootMetadata(config.MetadataVersion(), tlfID, h)
 	require.NoError(t, err)
-	rmd.bareMd.SetLatestKeyGenerationForTeamTLF(FirstValidKeyGen)
+	rmd.bareMd.SetLatestKeyGenerationForTeamTLF(kbfsmd.FirstValidKeyGen)
 
 	_, err = mdOps.Put(ctx, rmd, session.VerifyingKey,
 		nil, keybase1.MDPriorityNormal)

@@ -15,7 +15,7 @@ type mdServerLocalConfig interface {
 	Clock() Clock
 	Codec() kbfscodec.Codec
 	currentSessionGetter() CurrentSessionGetter
-	MetadataVersion() MetadataVer
+	MetadataVersion() kbfsmd.MetadataVer
 	logMaker
 	cryptoPureGetter
 	teamMembershipChecker() kbfsmd.TeamMembershipChecker

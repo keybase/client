@@ -78,7 +78,7 @@ func isReadableOrError(
 }
 
 func getMDRange(ctx context.Context, config Config, id tlf.ID, bid kbfsmd.BranchID,
-	start kbfsmd.Revision, end kbfsmd.Revision, mStatus MergeStatus,
+	start kbfsmd.Revision, end kbfsmd.Revision, mStatus kbfsmd.MergeStatus,
 	lockBeforeGet *keybase1.LockID) (rmds []ImmutableRootMetadata, err error) {
 	// The range is invalid.  Don't treat as an error though; it just
 	// indicates that we don't yet know about any revisions.
@@ -118,10 +118,10 @@ func getMDRange(ctx context.Context, config Config, id tlf.ID, bid kbfsmd.Branch
 	for _, r := range toDownload {
 		var fetchedRmds []ImmutableRootMetadata
 		switch mStatus {
-		case Merged:
+		case kbfsmd.Merged:
 			fetchedRmds, err = config.MDOps().GetRange(
 				ctx, id, r.start, r.end, lockBeforeGet)
-		case Unmerged:
+		case kbfsmd.Unmerged:
 			fetchedRmds, err = config.MDOps().GetUnmergedRange(
 				ctx, id, bid, r.start, r.end)
 		default:
@@ -167,7 +167,7 @@ func getMDRange(ctx context.Context, config Config, id tlf.ID, bid kbfsmd.Branch
 
 // getSingleMD returns an MD that is required to exist.
 func getSingleMD(ctx context.Context, config Config, id tlf.ID, bid kbfsmd.BranchID,
-	rev kbfsmd.Revision, mStatus MergeStatus, lockBeforeGet *keybase1.LockID) (
+	rev kbfsmd.Revision, mStatus kbfsmd.MergeStatus, lockBeforeGet *keybase1.LockID) (
 	ImmutableRootMetadata, error) {
 	rmds, err := getMDRange(
 		ctx, config, id, bid, rev, rev, mStatus, lockBeforeGet)
@@ -202,7 +202,7 @@ func getMergedMDUpdates(ctx context.Context, config Config, id tlf.ID,
 	for {
 		end := start + maxMDsAtATime - 1 // range is inclusive
 		rmds, err := getMDRange(ctx, config, id, kbfsmd.NullBranchID, start, end,
-			Merged, lockBeforeGet)
+			kbfsmd.Merged, lockBeforeGet)
 		if err != nil {
 			return nil, err
 		}
@@ -306,7 +306,7 @@ func getUnmergedMDUpdates(ctx context.Context, config Config, id tlf.ID,
 		}
 
 		rmds, err := getMDRange(ctx, config, id, bid, startRev, currHead,
-			Unmerged, nil)
+			kbfsmd.Unmerged, nil)
 		if err != nil {
 			return kbfsmd.RevisionUninitialized, nil, err
 		}
@@ -494,7 +494,7 @@ func decryptMDPrivateData(ctx context.Context, codec kbfscodec.Codec,
 		}
 	} else {
 		// decrypt the root data for non-public directories
-		var encryptedPrivateMetadata EncryptedPrivateMetadata
+		var encryptedPrivateMetadata kbfscrypto.EncryptedPrivateMetadata
 		if err := codec.Decode(serializedPrivateMetadata,
 			&encryptedPrivateMetadata); err != nil {
 			return PrivateMetadata{}, err

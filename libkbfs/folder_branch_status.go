@@ -24,10 +24,10 @@ type FolderBranchStatus struct {
 	HeadWriter          libkb.NormalizedUsername
 	DiskUsage           uint64
 	RekeyPending        bool
-	LatestKeyGeneration KeyGen
+	LatestKeyGeneration kbfsmd.KeyGen
 	FolderID            string
 	Revision            kbfsmd.Revision
-	MDVersion           MetadataVer
+	MDVersion           kbfsmd.MetadataVer
 	RootBlockID         string
 	SyncEnabled         bool
 	PrefetchStatus      string

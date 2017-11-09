@@ -67,7 +67,7 @@ type mdServerTlfStorage struct {
 	crypto         cryptoPure
 	clock          Clock
 	teamMemChecker kbfsmd.TeamMembershipChecker
-	mdVer          MetadataVer
+	mdVer          kbfsmd.MetadataVer
 	dir            string
 
 	// Protects any IO operations in dir or any of its children,
@@ -78,7 +78,7 @@ type mdServerTlfStorage struct {
 
 func makeMDServerTlfStorage(tlfID tlf.ID, codec kbfscodec.Codec,
 	clock Clock, teamMemChecker kbfsmd.TeamMembershipChecker,
-	mdVer MetadataVer, dir string) *mdServerTlfStorage {
+	mdVer kbfsmd.MetadataVer, dir string) *mdServerTlfStorage {
 	journal := &mdServerTlfStorage{
 		tlfID:          tlfID,
 		codec:          codec,
@@ -120,7 +120,7 @@ func (s *mdServerTlfStorage) mdPath(id kbfsmd.ID) string {
 type serializedRMDS struct {
 	EncodedRMDS []byte
 	Timestamp   time.Time
-	Version     MetadataVer
+	Version     kbfsmd.MetadataVer
 }
 
 // getMDReadLocked verifies the MD data (but not the signature) for
@@ -453,7 +453,7 @@ func (s *mdServerTlfStorage) put(ctx context.Context,
 		return false, kbfsmd.ServerError{Err: err}
 	}
 
-	if mStatus == Unmerged && head == nil {
+	if mStatus == kbfsmd.Unmerged && head == nil {
 		// currHead for unmerged history might be on the main branch
 		prevRev := rmds.MD.RevisionNumber() - 1
 		rmdses, err := s.getRangeReadLocked(

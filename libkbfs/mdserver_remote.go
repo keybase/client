@@ -515,7 +515,7 @@ func (md *MDServerRemote) get(ctx context.Context, arg keybase1.GetMetadataArg) 
 	// deserialize blocks
 	rmdses = make([]*RootMetadataSigned, len(response.MdBlocks))
 	for i, block := range response.MdBlocks {
-		ver, max := MetadataVer(block.Version), md.config.MetadataVersion()
+		ver, max := kbfsmd.MetadataVer(block.Version), md.config.MetadataVersion()
 		rmds, err := DecodeRootMetadataSigned(
 			md.config.Codec(), tlfID, ver, max, block.Block,
 			keybase1.FromTime(block.Timestamp))
@@ -529,7 +529,7 @@ func (md *MDServerRemote) get(ctx context.Context, arg keybase1.GetMetadataArg) 
 
 // GetForHandle implements the MDServer interface for MDServerRemote.
 func (md *MDServerRemote) GetForHandle(ctx context.Context,
-	handle tlf.Handle, mStatus MergeStatus, lockBeforeGet *keybase1.LockID) (
+	handle tlf.Handle, mStatus kbfsmd.MergeStatus, lockBeforeGet *keybase1.LockID) (
 	tlfID tlf.ID, rmds *RootMetadataSigned, err error) {
 	ctx = rpc.WithFireNow(ctx)
 	// TODO: Ideally, *tlf.Handle would have a nicer String() function.
@@ -548,7 +548,7 @@ func (md *MDServerRemote) GetForHandle(ctx context.Context,
 	arg := keybase1.GetMetadataArg{
 		FolderHandle:  encodedHandle,
 		BranchID:      kbfsmd.NullBranchID.String(),
-		Unmerged:      mStatus == Unmerged,
+		Unmerged:      mStatus == kbfsmd.Unmerged,
 		LockBeforeGet: lockBeforeGet,
 	}
 
@@ -565,7 +565,7 @@ func (md *MDServerRemote) GetForHandle(ctx context.Context,
 
 // GetForTLF implements the MDServer interface for MDServerRemote.
 func (md *MDServerRemote) GetForTLF(ctx context.Context, id tlf.ID,
-	bid kbfsmd.BranchID, mStatus MergeStatus, lockBeforeGet *keybase1.LockID) (rmds *RootMetadataSigned, err error) {
+	bid kbfsmd.BranchID, mStatus kbfsmd.MergeStatus, lockBeforeGet *keybase1.LockID) (rmds *RootMetadataSigned, err error) {
 	ctx = rpc.WithFireNow(ctx)
 	md.log.LazyTrace(ctx, "MDServer: GetForTLF %s %s %s", id, bid, mStatus)
 	defer func() {
@@ -575,7 +575,7 @@ func (md *MDServerRemote) GetForTLF(ctx context.Context, id tlf.ID,
 	arg := keybase1.GetMetadataArg{
 		FolderID:      id.String(),
 		BranchID:      bid.String(),
-		Unmerged:      mStatus == Unmerged,
+		Unmerged:      mStatus == kbfsmd.Unmerged,
 		LockBeforeGet: lockBeforeGet,
 	}
 
@@ -592,7 +592,7 @@ func (md *MDServerRemote) GetForTLF(ctx context.Context, id tlf.ID,
 
 // GetRange implements the MDServer interface for MDServerRemote.
 func (md *MDServerRemote) GetRange(ctx context.Context, id tlf.ID,
-	bid kbfsmd.BranchID, mStatus MergeStatus, start, stop kbfsmd.Revision,
+	bid kbfsmd.BranchID, mStatus kbfsmd.MergeStatus, start, stop kbfsmd.Revision,
 	lockBeforeGet *keybase1.LockID) (rmdses []*RootMetadataSigned, err error) {
 	ctx = rpc.WithFireNow(ctx)
 	md.log.LazyTrace(ctx, "MDServer: GetRange %s %s %s %d-%d", id, bid, mStatus, start, stop)
@@ -603,7 +603,7 @@ func (md *MDServerRemote) GetRange(ctx context.Context, id tlf.ID,
 	arg := keybase1.GetMetadataArg{
 		FolderID:      id.String(),
 		BranchID:      bid.String(),
-		Unmerged:      mStatus == Unmerged,
+		Unmerged:      mStatus == kbfsmd.Unmerged,
 		StartRevision: start.Number(),
 		StopRevision:  stop.Number(),
 		LockBeforeGet: lockBeforeGet,
@@ -643,7 +643,7 @@ func (md *MDServerRemote) Put(ctx context.Context, rmds *RootMetadataSigned,
 		arg.LockContext = &copied
 	}
 
-	if rmds.Version() < SegregatedKeyBundlesVer {
+	if rmds.Version() < kbfsmd.SegregatedKeyBundlesVer {
 		if extra != nil {
 			return fmt.Errorf("Unexpected non-nil extra: %+v", extra)
 		}
@@ -1157,7 +1157,7 @@ func (md *MDServerRemote) GetKeyBundles(ctx context.Context,
 	}
 
 	if response.WriterBundle.Bundle != nil {
-		if response.WriterBundle.Version != int(SegregatedKeyBundlesVer) {
+		if response.WriterBundle.Version != int(kbfsmd.SegregatedKeyBundlesVer) {
 			err = fmt.Errorf("Unsupported writer bundle version: %d",
 				response.WriterBundle.Version)
 			return nil, nil, err
@@ -1180,7 +1180,7 @@ func (md *MDServerRemote) GetKeyBundles(ctx context.Context,
 	}
 
 	if response.ReaderBundle.Bundle != nil {
-		if response.ReaderBundle.Version != int(SegregatedKeyBundlesVer) {
+		if response.ReaderBundle.Version != int(kbfsmd.SegregatedKeyBundlesVer) {
 			err = fmt.Errorf("Unsupported reader bundle version: %d",
 				response.ReaderBundle.Version)
 			return nil, nil, err

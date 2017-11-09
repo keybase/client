@@ -45,7 +45,7 @@ func getTlfID(
 	}
 
 	_, irmd, err := config.MDOps().GetForHandle(
-		ctx, handle, libkbfs.Merged, nil)
+		ctx, handle, kbfsmd.Merged, nil)
 	if err != nil {
 		return tlf.ID{}, err
 	}
@@ -189,7 +189,7 @@ func mdGetMergedHeadForWriter(ctx context.Context, config libkbfs.Config,
 	fmt.Printf("Looking for unmerged branch...\n")
 
 	_, unmergedIRMD, err := config.MDOps().GetForHandle(
-		ctx, handle, libkbfs.Unmerged, nil)
+		ctx, handle, kbfsmd.Unmerged, nil)
 	if err != nil {
 		return libkbfs.ImmutableRootMetadata{}, err
 	}
@@ -202,7 +202,7 @@ func mdGetMergedHeadForWriter(ctx context.Context, config libkbfs.Config,
 	fmt.Printf("Getting latest metadata...\n")
 
 	_, irmd, err := config.MDOps().GetForHandle(
-		ctx, handle, libkbfs.Merged, nil)
+		ctx, handle, kbfsmd.Merged, nil)
 	if err != nil {
 		return libkbfs.ImmutableRootMetadata{}, err
 	}
