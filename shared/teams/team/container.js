@@ -20,6 +20,7 @@ type StateProps = {
   _memberInfo: I.Set<Constants.MemberInfo>,
   _ancestorMemberInfo: I.Map<Constants.Teamname, I.Set<Constants.MemberInfo>>,
   _requests: I.Set<Constants.RequestInfo>,
+  _newTeamRequests: I.List<string>,
   isTeamOpen: boolean,
   loading: boolean,
   name: Constants.Teamname,
@@ -46,6 +47,7 @@ const mapStateToProps = (state: TypedState, {routeProps, routeState}): StateProp
     isTeamOpen: state.entities.getIn(['teams', 'teamNameToTeamSettings', teamname], {
       open: false,
     }).open,
+    _newTeamRequests: state.entities.getIn(['teams', 'newTeamRequests'], I.List()),
     loading: state.entities.getIn(['teams', 'teamNameToLoading', teamname], true),
     name: teamname,
     publicityMember: state.entities.getIn(['teams', 'teamNameToPublicitySettings', teamname], {
@@ -160,6 +162,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
       .toArray()
       .sort((a: Constants.MemberInfo, b: Constants.MemberInfo) => a.username.localeCompare(b.username)),
     requests: stateProps._requests.toJS(),
+    newTeamRequests: stateProps._newTeamRequests.toArray(),
     onAddPeople,
     onAddSelf,
     onInviteByEmail,

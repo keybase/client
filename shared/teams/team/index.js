@@ -3,6 +3,7 @@ import * as React from 'react'
 import * as Constants from '../../constants/teams'
 import {
   Avatar,
+  Badge,
   Box,
   Button,
   Checkbox,
@@ -28,6 +29,7 @@ type RequestRowProps = Constants.RequestInfo
 export type Props = {
   invites: Array<InviteRowProps>,
   isTeamOpen: boolean,
+  newTeamRequests: Array<Constants.Teamname>,
   loading: boolean,
   members: Array<MemberRowProps>,
   name: Constants.Teamname,
@@ -70,6 +72,8 @@ type TeamTabsProps = {
   admin: boolean,
   invites: Array<InviteRowProps>,
   members: Array<MemberRowProps>,
+  name: Constants.Teamname,
+  newTeamRequests: Array<Constants.Teamname>,
   requests: Array<RequestRowProps>,
   loading?: boolean,
   selectedTab?: string,
@@ -80,7 +84,17 @@ const TeamRequestOrInviteRow = (index, row) =>
   row.type === 'request' ? TeamRequestRow(index, row) : TeamInviteRow(index, row)
 
 const TeamTabs = (props: TeamTabsProps) => {
-  const {admin, invites, members, loading = false, selectedTab, setSelectedTab} = props
+  const {
+    admin,
+    invites,
+    members,
+    name,
+    newTeamRequests,
+    requests,
+    loading = false,
+    selectedTab,
+    setSelectedTab,
+  } = props
   let membersLabel = 'MEMBERS'
   membersLabel += !loading || members.length !== 0 ? ' (' + members.length + ')' : ''
   const tabs = [
@@ -94,18 +108,30 @@ const TeamTabs = (props: TeamTabsProps) => {
       {membersLabel}
     </Text>,
   ]
+
+  let requestsBadge = 0
+  if (newTeamRequests.length) {
+    // Use min here so we never show a badge number > the (X) number of requests we have
+    requestsBadge = Math.min(
+      newTeamRequests.reduce((count, team) => (team === name ? count + 1 : count), 0),
+      requests.length
+    )
+  }
+
   if (admin) {
     const invitesLabel = `INVITES (${invites.length})`
     tabs.push(
-      <Text
-        key="invites"
-        type="BodySmallSemibold"
-        style={{
-          color: globalColors.black_75,
-        }}
-      >
-        {invitesLabel}
-      </Text>
+      <Box key="invites" style={{...globalStyles.flexBoxRow, alignItems: 'center'}}>
+        <Text
+          type="BodySmallSemibold"
+          style={{
+            color: globalColors.black_75,
+          }}
+        >
+          {invitesLabel}
+        </Text>
+        {!!requestsBadge && <Badge badgeNumber={requestsBadge} badgeStyle={{marginTop: 1, marginLeft: 2}} />}
+      </Box>
     )
   }
   const publicityLabel = 'SETTINGS'
