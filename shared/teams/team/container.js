@@ -116,7 +116,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, setRouteState, rout
     ),
 })
 
-const isExplicitAdmin = (memberInfo: I.Set<MemberInfo>, user: string): boolean => {
+const isExplicitAdmin = (memberInfo: I.Set<Constants.MemberInfo>, user: string): boolean => {
   const info = memberInfo.find(member => member.username === user)
   if (!info) {
     return false
