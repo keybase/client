@@ -275,6 +275,10 @@
         },
         {
           "type": "string",
+          "name": "binaryRealpath"
+        },
+        {
+          "type": "string",
           "name": "configPath"
         },
         {

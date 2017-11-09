@@ -16,19 +16,24 @@ import {navigateAppend} from '../../actions/route-tree'
 import {showUserProfile} from '../../actions/profile'
 
 type StateProps = {
+  _invites: I.Set<Constants.InviteInfo>,
   _memberInfo: I.Set<Constants.MemberInfo>,
   _ancestorMemberInfo: I.Map<Constants.Teamname, I.Set<Constants.MemberInfo>>,
-  loading: boolean,
   _requests: I.Set<Constants.RequestInfo>,
-  _invites: I.Set<Constants.InviteInfo>,
-  name: Constants.Teamname,
-  you: ?string,
-  selectedTab: string,
   isTeamOpen: boolean,
+  loading: boolean,
+  name: Constants.Teamname,
+  publicityMember: boolean,
+  publicityTeam: boolean,
+  selectedTab: string,
+  you: ?string,
 }
 
 const mapStateToProps = (state: TypedState, {routeProps, routeState}): StateProps => {
   const teamname = routeProps.get('teamname')
+  if (!teamname) {
+    throw new Error('There was a problem loading the team page, please report this error.')
+  }
   const ancestorTeams = I.Set(ancestorTeamnames(teamname))
   const memberInfos = state.entities.getIn(['teams', 'teamNameToMembers'], I.Map())
   const memberInfo = memberInfos.get(teamname, I.Set())
@@ -38,13 +43,19 @@ const mapStateToProps = (state: TypedState, {routeProps, routeState}): StateProp
     _ancestorMemberInfo: ancestorMemberInfo,
     _requests: state.entities.getIn(['teams', 'teamNameToRequests', teamname], I.Set()),
     _invites: state.entities.getIn(['teams', 'teamNameToInvites', teamname], I.Set()),
-    loading: state.entities.getIn(['teams', 'teamNameToLoading', teamname], true),
-    name: teamname,
-    you: state.config.username,
-    selectedTab: routeState.get('selectedTab') || 'members',
     isTeamOpen: state.entities.getIn(['teams', 'teamNameToTeamSettings', teamname], {
       open: false,
     }).open,
+    loading: state.entities.getIn(['teams', 'teamNameToLoading', teamname], true),
+    name: teamname,
+    publicityMember: state.entities.getIn(['teams', 'teamNameToPublicitySettings', teamname], {
+      member: false,
+    }).member,
+    publicityTeam: state.entities.getIn(['teams', 'teamNameToPublicitySettings', teamname], {
+      team: false,
+    }).team,
+    selectedTab: routeState.get('selectedTab') || 'members',
+    you: state.config.username,
   }
 }
 
@@ -85,6 +96,10 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, setRouteState, rout
     isMobile ? dispatch(showUserProfile(username)) : dispatch(getProfile(username, true, true))
   },
   setSelectedTab: selectedTab => setRouteState({selectedTab}),
+  _setPublicityMember: (teamname: Constants.Teamname, checked: boolean) =>
+    dispatch(Creators.setPublicityMember(teamname, checked)),
+  _setPublicityTeam: (teamname: Constants.Teamname, checked: boolean) =>
+    dispatch(Creators.setPublicityTeam(teamname, checked)),
   onBack: () => dispatch(navigateUp()),
   _onClickOpenTeamSetting: isTeamOpen =>
     dispatch(
@@ -124,6 +139,8 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
   const youCanCreateSubteam = youAdmin
 
   const onAddSelf = () => dispatchProps._onAddSelf(stateProps.name, you)
+  const setPublicityMember = (checked: boolean) => dispatchProps._setPublicityMember(stateProps.name, checked)
+  const setPublicityTeam = (checked: boolean) => dispatchProps._setPublicityTeam(stateProps.name, checked)
 
   const customComponent = (
     <CustomComponent
@@ -151,6 +168,8 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     onManageChat,
     onOpenFolder,
     onClickOpenTeamSetting,
+    setPublicityMember,
+    setPublicityTeam,
     showAddYourselfBanner,
     youCanAddPeople,
     youCanCreateSubteam,
