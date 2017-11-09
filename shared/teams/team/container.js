@@ -26,27 +26,30 @@ type StateProps = {
   you: ?string,
 }
 
-const mapStateToProps = (state: TypedState, {routeProps, routeState}): StateProps => ({
-  _memberInfo: state.entities.getIn(['teams', 'teamNameToMembers', routeProps.get('teamname')], I.Set()),
-  _requests: state.entities.getIn(['teams', 'teamNameToRequests', routeProps.get('teamname')], I.Set()),
-  _invites: state.entities.getIn(['teams', 'teamNameToInvites', routeProps.get('teamname')], I.Set()),
-  loading: state.entities.getIn(['teams', 'teamNameToLoading', routeProps.get('teamname')], true),
-  name: routeProps.get('teamname'),
-  you: state.config.username,
-  selectedTab: routeState.get('selectedTab') || 'members',
-  isTeamOpen: state.entities.getIn(['teams', 'teamNameToTeamSettings', routeProps.get('teamname')], {
-    open: false,
-  }).open,
-  publicityMember: state.entities.getIn(
-    ['teams', 'teamNameToPublicitySettings', routeProps.get('teamname')],
-    {
+const mapStateToProps = (state: TypedState, {routeProps, routeState}): StateProps => {
+  const teamname = routeProps.get('teamname')
+  if (!teamname) {
+    throw new Error('There was a problem loading the team page, please report this error.')
+  }
+  return {
+    _memberInfo: state.entities.getIn(['teams', 'teamNameToMembers', teamname], I.Set()),
+    _requests: state.entities.getIn(['teams', 'teamNameToRequests', teamname], I.Set()),
+    _invites: state.entities.getIn(['teams', 'teamNameToInvites', teamname], I.Set()),
+    isTeamOpen: state.entities.getIn(['teams', 'teamNameToTeamSettings', teamname], {
+      open: false,
+    }).open,
+    loading: state.entities.getIn(['teams', 'teamNameToLoading', teamname], true),
+    name: teamname,
+    publicityMember: state.entities.getIn(['teams', 'teamNameToPublicitySettings', teamname], {
       member: false,
-    }
-  ).member,
-  publicityTeam: state.entities.getIn(['teams', 'teamNameToPublicitySettings', routeProps.get('teamname')], {
-    team: false,
-  }).team,
-})
+    }).member,
+    publicityTeam: state.entities.getIn(['teams', 'teamNameToPublicitySettings', teamname], {
+      team: false,
+    }).team,
+    selectedTab: routeState.get('selectedTab') || 'members',
+    you: state.config.username,
+  }
+}
 
 type DispatchProps = {
   _loadTeam: (teamname: Constants.Teamname) => void,
