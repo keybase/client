@@ -27,7 +27,11 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routeProps}) => ({
     dispatch(SearchCreators.clearSearchResults('addToTeamSearch'))
     dispatch(SearchCreators.setUserInputItems('addToTeamSearch', []))
   },
-  onClose: () => dispatch(navigateUp()),
+  onClose: () => {
+    dispatch(navigateUp()),
+    dispatch(SearchCreators.clearSearchResults('addToTeamSearch'))
+    dispatch(SearchCreators.setUserInputItems('addToTeamSearch', []))
+  },
   onOpenRolePicker: (role: string, onComplete: string => void) => {
     dispatch(
       navigateAppend([
