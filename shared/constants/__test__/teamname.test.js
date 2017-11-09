@@ -1,7 +1,6 @@
 // @noflow
 /* eslint-env jest */
-import * as I from 'immutable'
-import {validTeamname, baseTeamname, ancestorTeamnames, isExplicitAdmin, isImplicitAdmin} from '../teamname'
+import {validTeamname, baseTeamname} from '../teamname'
 
 describe('teamname', () => {
   describe('validTeamname', () => {
