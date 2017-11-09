@@ -20,7 +20,6 @@ type StateProps = {
   _memberInfo: I.Set<Constants.MemberInfo>,
   _ancestorMemberInfo: I.Map<Constants.Teamname, I.Set<Constants.MemberInfo>>,
   _requests: I.Set<Constants.RequestInfo>,
-  _invites: I.Set<Constants.InviteInfo>,
   _newTeamRequests: I.List<string>,
   isTeamOpen: boolean,
   loading: boolean,
