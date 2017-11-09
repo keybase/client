@@ -17,7 +17,7 @@ function updateConversation(
   return conversationStates.update(conversationIDKey, initialConversation, conversationUpdateFn)
 }
 
-function reducer(state: Constants.State = initialState, action: Constants.Actions | ChatGen.Actions) {
+function reducer(state: Constants.State = initialState, action: ChatGen.Actions) {
   switch (action.type) {
     case ChatGen.resetStore:
       return Constants.makeState()
@@ -64,7 +64,7 @@ function reducer(state: Constants.State = initialState, action: Constants.Action
 
       return state.set('conversationStates', newConversationStates)
     }
-    case 'chat:prependMessages': {
+    case ChatGen.prependMessages: {
       const {moreToLoad, conversationIDKey} = action.payload
       const newConversationStates = state
         .get('conversationStates')
@@ -74,9 +74,8 @@ function reducer(state: Constants.State = initialState, action: Constants.Action
 
       return state.set('conversationStates', newConversationStates)
     }
-    case 'chat:appendMessages': {
-      const appendAction: Constants.AppendMessages = action
-      const {messages: appendMessages, isSelected, conversationIDKey, isAppFocused} = appendAction.payload
+    case ChatGen.appendMessages: {
+      const {messages: appendMessages, isSelected, conversationIDKey, isAppFocused} = action.payload
 
       const newConversationStates = state
         .get('conversationStates')

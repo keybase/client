@@ -18,7 +18,7 @@ import {isLoading} from '../constants/tracker'
 import {isTesting} from '../local-debug'
 import {navigateAppend, navigateUp} from '../actions/route-tree'
 import {peopleTab} from '../constants/tabs'
-import {startConversation} from '../actions/chat'
+import {createStartConversation} from '../actions/chat-gen'
 
 import type {MissingProof} from '../common-adapters/user-proofs'
 import type {Proof} from '../constants/tracker'
@@ -79,7 +79,7 @@ export default pausableConnect(
       setRouteState({currentFriendshipsTab})
     },
     onChat: (myUsername, username) => {
-      dispatch(startConversation([username, myUsername]))
+      dispatch(createStartConversation({users: [username, myUsername]}))
     },
     onClickAvatar: username => {
       dispatch(onClickAvatar(username))

@@ -1,5 +1,5 @@
 // @flow
-import React from 'react'
+import * as React from 'react'
 import * as I from 'immutable'
 import {navigateAppend} from '../../actions/route-tree'
 import {MakeOpenTeamConfirm, MakeTeamClosed, type OpenTeamConfirmProps} from '.'
@@ -9,7 +9,7 @@ import * as Creators from '../../actions/teams/creators'
 import * as Constants from '../../constants/teams'
 
 type OpenTeamSettingProps = {
-  onClose: () => void,
+  navigateUp: Function,
   routeProps: I.RecordOf<{actualTeamName: string}>,
 }
 
@@ -19,9 +19,10 @@ type _RoleState = {
 }
 
 const mapDispatchToProps = (dispatch, props: OpenTeamSettingProps & OpenTeamConfirmProps & _RoleState) => ({
+  onClose: () => dispatch(props.navigateUp()),
   onMakeTeamOpen: () => {
     dispatch(Creators.makeTeamOpen(props.routeProps.get('actualTeamName'), true, props.defaultRole))
-    props.onClose()
+    dispatch(props.navigateUp())
   },
   onChangeDefaultRole: () => {
     dispatch(
@@ -40,7 +41,7 @@ const mapDispatchToProps = (dispatch, props: OpenTeamSettingProps & OpenTeamConf
   },
 })
 
-const ConnectedMakeOpenTeamConfirm: Class<React.Component<OpenTeamSettingProps, void>> = compose(
+const ConnectedMakeOpenTeamConfirm: React.ComponentType<OpenTeamSettingProps> = compose(
   withState('teamNameInput', 'onChangeTeamNameInput', ''),
   withState('defaultRole', '_onChangeDefaultRole', 'reader'),
   withPropsOnChange(['teamNameInput'], (props: OpenTeamConfirmProps & OpenTeamSettingProps) => ({
@@ -49,12 +50,12 @@ const ConnectedMakeOpenTeamConfirm: Class<React.Component<OpenTeamSettingProps, 
   connect(undefined, mapDispatchToProps)
 )(MakeOpenTeamConfirm)
 
-const ConnectedMakeTeamClosed: Class<
-  React.Component<OpenTeamSettingProps, void>
+const ConnectedMakeTeamClosed: React.ComponentType<
+  OpenTeamSettingProps
 > = connect(undefined, (dispatch, props: OpenTeamSettingProps) => ({
   onMakeTeamClosed: () => {
     dispatch(Creators.makeTeamOpen(props.routeProps.get('actualTeamName'), false, 'reader'))
-    props.onClose()
+    dispatch(props.navigateUp())
   },
 }))(MakeTeamClosed)
 
