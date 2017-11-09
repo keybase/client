@@ -61,10 +61,11 @@ class NewRepo extends React.Component<Props, State> {
           alignItems: 'center',
           paddingLeft: globalMargins.small,
           paddingRight: globalMargins.small,
+          width: '100%',
         }}
       >
         <Avatar isTeam={true} teamname={item} size={16} style={{marginRight: globalMargins.tiny}} />
-        <Text type="Header">{item}</Text>
+        <Text type="Header" lineClamp={1}>{item}</Text>
       </Box>
     )
   }
@@ -82,6 +83,10 @@ class NewRepo extends React.Component<Props, State> {
 
   _onSubmit = () => {
     this.props.onCreate(this.state.name, this.state.selectedTeam, this.props.isTeam && this.state.notifyTeam)
+  }
+
+  _canSubmit = () => {
+    return this.state.name && !(this.props.isTeam && !this.state.selectedTeam)
   }
 
   render() {
@@ -144,7 +149,7 @@ class NewRepo extends React.Component<Props, State> {
               type="Primary"
               onClick={this._onSubmit}
               label="Create"
-              disabled={!this.state.name}
+              disabled={!this._canSubmit()}
               waiting={this.props.loading}
             />
           </Box>
