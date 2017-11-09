@@ -20,7 +20,6 @@ import (
 	"github.com/keybase/kbfs/libfs"
 	"github.com/keybase/kbfs/libgit"
 	"github.com/keybase/kbfs/libkbfs"
-	"github.com/pkg/errors"
 )
 
 var version = flag.Bool("version", false, "Print version")
@@ -46,18 +45,11 @@ func getUsageString(ctx libkbfs.Context) string {
 		usageFormatStr, remoteUsageStr, localUsageStr, defaultUsageStr)
 }
 
-func getLocalGitDir() (gitDir string, err error) {
+func getLocalGitDir() (gitDir string) {
 	gitDir = os.Getenv("GIT_DIR")
-	fi, err := os.Stat(gitDir)
-	if err != nil {
-		return "", err
-	}
-	if !fi.IsDir() {
-		return "", errors.Errorf("GIT_DIR=%s, but is not a dir", gitDir)
-	}
 	// On Windows, git annoyingly puts normal slashes in the
 	// environment variable.
-	return filepath.FromSlash(gitDir), nil
+	return filepath.FromSlash(gitDir)
 }
 
 func checkService(kbCtx env.Context) *libfs.Error {
@@ -163,16 +155,11 @@ func start() (startErr *libfs.Error) {
 		return libfs.InitError("extra arguments specified (flags go before the first argument)")
 	}
 
-	gitDir, err := getLocalGitDir()
-	if err != nil {
-		return libfs.InitError(err.Error())
-	}
-
 	options := kbfsgit.StartOptions{
 		KbfsParams: *kbfsParams,
 		Remote:     remote,
 		Repo:       repo,
-		GitDir:     gitDir,
+		GitDir:     getLocalGitDir(),
 	}
 
 	ctx := context.Background()
