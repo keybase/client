@@ -10,14 +10,23 @@ import type {Props} from './emoji'
 
 const backgroundImageFn = (set: string, sheetSize: string) => emojiSet
 
-const skinToneRegex = /:([^:]*):(:skin-tone-\d:)?/i
-
+// Workaround for bug where if an invalid emoji name is supplied to Emoji,
+// a full crash is triggered. Here we check the value between the first
+// pair of colons & make sure it's not a skin-tone modifier and that we
+// have a match for it in the emoji index
+const emojiDataRegex = /:([^:]*):(:skin-tone-\d:)?/i
 const isValidEmoji = (fullEmoji: string) => {
-  const parts = skinToneRegex.exec(fullEmoji)
-  if (parts) {
-    return !parts[1].startsWith('skin-tone') && emojiIndex.search(parts[1]).length > 0
+  const match = emojiDataRegex.exec(fullEmoji)
+  if (match) {
+    const id = match[1] && match[1].toLowerCase()
+    const searchResults = emojiIndex.search(id)
+    for (let emoji of searchResults) {
+      if (emoji.id.toLowerCase() === id) {
+        return true
+      }
+    }
   }
-  return true
+  return false
 }
 
 // Size 0 is cause we want the native emoji for copy/paste and not for rendering
