@@ -26,7 +26,7 @@ export const TeamInviteRow = (props: Props) => {
         width: '100%',
       }}
     >
-      <Box style={{...globalStyles.flexBoxRow, flexGrow: 1}}>
+      <Box style={{...globalStyles.flexBoxRow, flexGrow: 1, alignItems: 'center'}}>
         <Avatar username={label} size={isMobile ? 48 : 32} />
         <Box style={{...globalStyles.flexBoxColumn, marginLeft: globalMargins.small}}>
           <Usernames
