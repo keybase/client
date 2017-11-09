@@ -303,12 +303,28 @@ const _getDetails = function*(action: Constants.GetDetails): Saga.SagaGenerator<
       yield Saga.put(replaceEntity(['teams', 'teamNameToRequests'], I.Map([[teamname, I.Set()]])))
     }
 
+    // Get publicity settings for this team.
+    const publicity: RPCTypes.TeamAndMemberShowcase = yield Saga.call(
+      RPCTypes.teamsGetTeamAndMemberShowcaseRpcPromise,
+      {
+        param: {
+          name: teamname,
+        },
+      }
+    )
+
+    const publicityMap = {
+      member: publicity.isMemberShowcased,
+      team: publicity.teamShowcase.isShowcased,
+    }
+
     yield Saga.all([
       Saga.put(replaceEntity(['teams', 'teamNameToMembers'], I.Map([[teamname, I.Set(infos)]]))),
       Saga.put(replaceEntity(['teams', 'teamNameToMemberUsernames'], I.Map([[teamname, memberNames]]))),
       Saga.put(replaceEntity(['teams', 'teamNameToRequests'], I.Map(requestMap))),
       Saga.put(replaceEntity(['teams', 'teamNameToTeamSettings'], I.Map({[teamname]: results.settings}))),
       Saga.put(replaceEntity(['teams', 'teamNameToInvites'], I.Map([[teamname, I.Set(invitesMap)]]))),
+      Saga.put(replaceEntity(['teams', 'teamNameToPublicitySettings'], I.Map({[teamname]: publicityMap}))),
     ])
   } finally {
     yield Saga.put(replaceEntity(['teams', 'teamNameToLoading'], I.Map([[teamname, false]])))
@@ -518,6 +534,32 @@ function* _createChannel(action: Constants.CreateChannel) {
   }
 }
 
+function* _setPublicityMember(action: Constants.SetPublicityMember) {
+  const {payload: {enabled, teamname}} = action
+  yield Saga.put(replaceEntity(['teams', 'teamNameToLoading'], I.Map([[teamname, true]])))
+  yield Saga.call(RPCTypes.teamsSetTeamMemberShowcaseRpcPromise, {
+    param: {
+      isShowcased: enabled,
+      name: teamname,
+    },
+  })
+  // getDetails will unset loading and update the store with the new value
+  yield Saga.put((dispatch: Dispatch) => dispatch(Creators.getDetails(teamname)))
+}
+
+function* _setPublicityTeam(action: Constants.SetPublicityTeam) {
+  const {payload: {enabled, teamname}} = action
+  yield Saga.put(replaceEntity(['teams', 'teamNameToLoading'], I.Map([[teamname, true]])))
+  yield Saga.call(RPCTypes.teamsSetTeamShowcaseRpcPromise, {
+    param: {
+      isShowcased: enabled,
+      name: teamname,
+    },
+  })
+  // getDetails will unset loading and update the store with the new value
+  yield Saga.put((dispatch: Dispatch) => dispatch(Creators.getDetails(teamname)))
+}
+
 function* _setupTeamHandlers(): Saga.SagaGenerator<any, any> {
   yield Saga.put((dispatch: Dispatch) => {
     engine().setIncomingHandler('keybase.1.NotifyTeam.teamChanged', () => {
@@ -675,6 +717,8 @@ const teamsSaga = function*(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEvery('teams:badgeAppForTeams', _badgeAppForTeams)
   yield Saga.safeTakeEveryPure(RouteTreeConstants.switchTo, _onTabChange)
   yield Saga.safeTakeEvery('teams:inviteToTeamByPhone', _inviteToTeamByPhone)
+  yield Saga.safeTakeEvery('teams:setPublicityMember', _setPublicityMember)
+  yield Saga.safeTakeEvery('teams:setPublicityTeam', _setPublicityTeam)
 }
 
 export default teamsSaga

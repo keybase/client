@@ -1986,7 +1986,7 @@ export type CompatibilityTeamID ={ typ: 1, legacy: ?TLFID } | { typ: 2, modern: 
 
 export type ComponentResult = {|name: String,status: Status,exitCode: Int,|}
 
-export type Config = {|serverURI: String,socketFile: String,label: String,runMode: String,gpgExists: Boolean,gpgPath: String,version: String,path: String,configPath: String,versionShort: String,versionFull: String,isAutoForked: Boolean,forkType: ForkType,|}
+export type Config = {|serverURI: String,socketFile: String,label: String,runMode: String,gpgExists: Boolean,gpgPath: String,version: String,path: String,binaryRealpath: String,configPath: String,versionShort: String,versionFull: String,isAutoForked: Boolean,forkType: ForkType,|}
 
 export type ConfigClearValueRpcParam = {|  path: String|}
 

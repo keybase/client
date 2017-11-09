@@ -113,6 +113,26 @@ func FixVersionClash(g *libkb.GlobalContext, cl libkb.CommandLine) (err error) {
 			semverClient, semverService)
 	}
 
+	// There's a common situation in development where the service is running
+	// from a production install under a watchdog/launchd/systemd, but the
+	// client is a binary you just built from your GOPATH. In this case,
+	// restarting the service (e.g. `systemctl --user restart keybase.service`)
+	// isn't going to help. Detect that situation by comparing the paths of the
+	// binaries involved, and print a warning instead of restarting. Note that
+	// older services don't send the BinaryRealpath field, so we have to check
+	// that it's not empty.
+	clientRealpath, err := libkb.CurrentBinaryRealpath()
+	if err != nil {
+		g.Log.Warning("Failed to get current realpath: %s", err)
+	} else if serviceConfig.BinaryRealpath != "" && serviceConfig.BinaryRealpath != clientRealpath {
+		g.Log.Warning("Service is running v%s, while client is running v%s.",
+			semverService, semverClient)
+		g.Log.Warning("Skipping restart, because their paths differ:")
+		g.Log.Warning("service: %s", serviceConfig.BinaryRealpath)
+		g.Log.Warning(" client: %s", clientRealpath)
+		return nil
+	}
+
 	g.Log.Warning("Restarting after upgrade; service is running v%s, while v%s is available",
 		semverService, semverClient)
 
