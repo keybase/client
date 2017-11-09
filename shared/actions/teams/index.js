@@ -636,16 +636,31 @@ function* _deleteChannel({payload: {conversationIDKey}}): Saga.SagaGenerator<any
 
 function* _badgeAppForTeams(action: Constants.BadgeAppForTeams) {
   const newTeams = I.Set(action.payload.newTeamNames || [])
+  const newTeamRequests = I.List(action.payload.newTeamAccessRequests || [])
   // Call getTeams if new teams come in.
   // Covers the case when we're staring at the teams page so
   // we don't miss a notification we clear when we tab away
   const existingNewTeams = yield Saga.select((state: TypedState) =>
     state.entities.getIn(['teams', 'newTeams'], I.Set())
   )
-  if (!newTeams.equals(existingNewTeams)) {
+  const existingNewTeamRequests = yield Saga.select((state: TypedState) =>
+    state.entities.getIn(['teams', 'newTeamRequests'], I.List())
+  )
+  if (!newTeams.equals(existingNewTeams) || !newTeams.equals(existingNewTeamRequests)) {
     yield Saga.put(Creators.getTeams())
   }
+
+  // getDetails for teams that have new access requests
+  // Covers case where we have a badge appear on the requests
+  // tab with no rows showing up
+  const newTeamRequestsSet = I.Set(newTeamRequests)
+  const existingNewTeamRequestsSet = I.Set(existingNewTeamRequests)
+  const toLoad = newTeamRequestsSet.subtract(existingNewTeamRequestsSet)
+  const loadingCalls = toLoad.map(teamname => Saga.put(Creators.getDetails(teamname)))
+  yield Saga.all(loadingCalls.toArray())
+
   yield Saga.put(replaceEntity(['teams'], I.Map([['newTeams', newTeams]])))
+  yield Saga.put(replaceEntity(['teams'], I.Map([['newTeamRequests', newTeamRequests]])))
 }
 
 let _wasOnTeamsTab = false
@@ -658,11 +673,18 @@ const _onTabChange = (action: RouteTreeConstants.SwitchTo) => {
   } else if (_wasOnTeamsTab) {
     _wasOnTeamsTab = false
     // clear badges
-    return Saga.call(RPCTypes.gregorDismissCategoryRpcPromise, {
-      param: {
-        category: 'team.newly_added_to_team',
-      },
-    })
+    return Saga.all([
+      Saga.call(RPCTypes.gregorDismissCategoryRpcPromise, {
+        param: {
+          category: 'team.newly_added_to_team',
+        },
+      }),
+      Saga.call(RPCTypes.gregorDismissCategoryRpcPromise, {
+        param: {
+          category: 'team.request_access',
+        },
+      }),
+    ])
   }
 }
 
