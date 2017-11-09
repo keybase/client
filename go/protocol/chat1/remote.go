@@ -850,17 +850,6 @@ type GetTLFConversationsArg struct {
 	SummarizeMaxMsgs bool      `codec:"summarizeMaxMsgs" json:"summarizeMaxMsgs"`
 }
 
-<<<<<<< HEAD
-=======
-func (o GetTLFConversationsArg) DeepCopy() GetTLFConversationsArg {
-	return GetTLFConversationsArg{
-		TlfID:            o.TlfID.DeepCopy(),
-		TopicType:        o.TopicType.DeepCopy(),
-		SummarizeMaxMsgs: o.SummarizeMaxMsgs,
-	}
-}
-
->>>>>>> move channel name mention parsing to present
 type SetAppNotificationSettingsArg struct {
 	ConvID   ConversationID               `codec:"convID" json:"convID"`
 	Settings ConversationNotificationInfo `codec:"settings" json:"settings"`
