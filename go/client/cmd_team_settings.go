@@ -29,6 +29,7 @@ func newCmdTeamSettings(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.
 		Name:         "settings",
 		ArgumentHelp: "<team name>",
 		Usage:        "Edit team settings.",
+		Description:  teamSettingsDoc,
 		Action: func(c *cli.Context) {
 			cmd := NewCmdTeamSettingsRunner(g)
 			cl.ChooseCommand(cmd, "settings", c)
@@ -267,10 +268,8 @@ func (c *CmdTeamSettings) printCurrentSettings(ctx context.Context, cli keybase1
 	if showcaseInfo != nil && showcaseInfo.TeamShowcase.Description != nil {
 		dui.Printf("  Description:     %v\n", *showcaseInfo.TeamShowcase.Description)
 	}
-	dui.Printf("  Open:            %v\n", c.tfToYn(details.Settings.Open, ""))
-	if details.Settings.Open {
-		dui.Printf("  New member role: %s\n", strings.ToLower(details.Settings.JoinAs.String()))
-	}
+	dui.Printf("  Open:            %v\n", c.tfToYn(details.Settings.Open,
+		fmt.Sprintf("default membership = %v", strings.ToLower(details.Settings.JoinAs.String()))))
 	if showcaseInfo != nil {
 		dui.Printf("  Showcased:       %v\n", c.tfToYn(showcaseInfo.TeamShowcase.IsShowcased, "on keybase.io/popular-teams"))
 		dui.Printf("  Promoted:        %v\n", c.tfToYn(showcaseInfo.IsMemberShowcased, "on your profile"))
@@ -297,3 +296,16 @@ func (c *CmdTeamSettings) GetUsage() libkb.Usage {
 		KbKeyring: true,
 	}
 }
+
+const teamSettingsDoc = `"keybase team settings" lets you edit settings for a team
+
+EXAMPLES:
+Review team settings:
+    keybase team settings acme
+Open a team so anyone can join as a reader:
+    keybase team settings acme --open-team=reader
+Showcase a team publicly:
+    keybase team settings acme --showcase=yes
+Promote a team on your profile:
+    keybase team settings acme --profile-promote=yes
+`
