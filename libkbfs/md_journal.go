@@ -260,12 +260,12 @@ func (j mdJournal) readerKeyBundlesV3Path() string {
 // ). The full ID can be recovered just by hashing the data again with
 // the same hash type.
 
-func (j mdJournal) writerKeyBundleV3Path(id TLFWriterKeyBundleID) string {
+func (j mdJournal) writerKeyBundleV3Path(id kbfsmd.TLFWriterKeyBundleID) string {
 	idStr := id.String()
 	return filepath.Join(j.writerKeyBundlesV3Path(), idStr[:34])
 }
 
-func (j mdJournal) readerKeyBundleV3Path(id TLFReaderKeyBundleID) string {
+func (j mdJournal) readerKeyBundleV3Path(id kbfsmd.TLFReaderKeyBundleID) string {
 	idStr := id.String()
 	return filepath.Join(j.readerKeyBundlesV3Path(), idStr[:34])
 }
@@ -320,17 +320,17 @@ func (j mdJournal) putMDInfo(
 // getExtraMetadata gets the extra metadata corresponding to the given
 // IDs, if any, after checking them.
 func (j mdJournal) getExtraMetadata(
-	wkbID TLFWriterKeyBundleID, rkbID TLFReaderKeyBundleID,
+	wkbID kbfsmd.TLFWriterKeyBundleID, rkbID kbfsmd.TLFReaderKeyBundleID,
 	wkbNew, rkbNew bool) (kbfsmd.ExtraMetadata, error) {
-	if (wkbID == TLFWriterKeyBundleID{}) !=
-		(rkbID == TLFReaderKeyBundleID{}) {
+	if (wkbID == kbfsmd.TLFWriterKeyBundleID{}) !=
+		(rkbID == kbfsmd.TLFReaderKeyBundleID{}) {
 		return nil, errors.Errorf(
 			"wkbID is empty (%t) != rkbID is empty (%t)",
-			wkbID == TLFWriterKeyBundleID{},
-			rkbID == TLFReaderKeyBundleID{})
+			wkbID == kbfsmd.TLFWriterKeyBundleID{},
+			rkbID == kbfsmd.TLFReaderKeyBundleID{})
 	}
 
-	if wkbID == (TLFWriterKeyBundleID{}) {
+	if wkbID == (kbfsmd.TLFWriterKeyBundleID{}) {
 		return nil, nil
 	}
 
@@ -365,20 +365,20 @@ func (j mdJournal) putExtraMetadata(rmd kbfsmd.RootMetadata, extra kbfsmd.ExtraM
 	rkbID := rmd.GetTLFReaderKeyBundleID()
 
 	if extra == nil {
-		if wkbID != (TLFWriterKeyBundleID{}) {
+		if wkbID != (kbfsmd.TLFWriterKeyBundleID{}) {
 			panic(errors.Errorf("unexpected non-nil wkbID %s", wkbID))
 		}
-		if rkbID != (TLFReaderKeyBundleID{}) {
+		if rkbID != (kbfsmd.TLFReaderKeyBundleID{}) {
 			panic(errors.Errorf("unexpected non-nil rkbID %s", rkbID))
 		}
 		return false, false, nil
 	}
 
-	if wkbID == (TLFWriterKeyBundleID{}) {
+	if wkbID == (kbfsmd.TLFWriterKeyBundleID{}) {
 		panic("writer key bundle ID is empty")
 	}
 
-	if rkbID == (TLFReaderKeyBundleID{}) {
+	if rkbID == (kbfsmd.TLFReaderKeyBundleID{}) {
 		panic("reader key bundle ID is empty")
 	}
 

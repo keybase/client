@@ -160,10 +160,10 @@ func (kmd emptyKeyMetadata) HasKeyForUser(user keybase1.UID) (bool, error) {
 func (kmd emptyKeyMetadata) GetTLFCryptKeyParams(
 	keyGen kbfsmd.KeyGen, user keybase1.UID, key kbfscrypto.CryptPublicKey) (
 	kbfscrypto.TLFEphemeralPublicKey, kbfscrypto.EncryptedTLFCryptKeyClientHalf,
-	TLFCryptKeyServerHalfID, bool, error) {
+	kbfscrypto.TLFCryptKeyServerHalfID, bool, error) {
 	return kbfscrypto.TLFEphemeralPublicKey{},
 		kbfscrypto.EncryptedTLFCryptKeyClientHalf{},
-		TLFCryptKeyServerHalfID{}, false, nil
+		kbfscrypto.TLFCryptKeyServerHalfID{}, false, nil
 }
 
 func (kmd emptyKeyMetadata) StoresHistoricTLFCryptKeys() bool {
@@ -267,8 +267,8 @@ func testKeyManagerCachedSecretKeyForBlockDecryptionSuccess(t *testing.T, ver kb
 
 // makeDirWKeyInfoMap creates a new user device key info map with a writer key.
 func makeDirWKeyInfoMap(uid keybase1.UID,
-	cryptPublicKey kbfscrypto.CryptPublicKey) UserDevicePublicKeys {
-	return UserDevicePublicKeys{
+	cryptPublicKey kbfscrypto.CryptPublicKey) kbfsmd.UserDevicePublicKeys {
+	return kbfsmd.UserDevicePublicKeys{
 		uid: {
 			cryptPublicKey: true,
 		},
@@ -291,7 +291,7 @@ func testKeyManagerUncachedSecretKeyForEncryptionSuccess(t *testing.T, ver kbfsm
 
 	_, err = rmd.AddKeyGeneration(config.Codec(),
 		makeDirWKeyInfoMap(uid.AsUserOrBust(), session.CryptPublicKey),
-		UserDevicePublicKeys{},
+		kbfsmd.UserDevicePublicKeys{},
 		kbfscrypto.TLFEphemeralPublicKey{},
 		kbfscrypto.TLFEphemeralPrivateKey{},
 		kbfscrypto.TLFPublicKey{}, kbfscrypto.TLFPrivateKey{},
@@ -322,7 +322,7 @@ func testKeyManagerUncachedSecretKeyForMDDecryptionSuccess(t *testing.T, ver kbf
 	storedTLFCryptKey := kbfscrypto.MakeTLFCryptKey([32]byte{0x1})
 
 	_, err = rmd.AddKeyGeneration(config.Codec(),
-		makeDirWKeyInfoMap(uid.AsUserOrBust(), subkey), UserDevicePublicKeys{},
+		makeDirWKeyInfoMap(uid.AsUserOrBust(), subkey), kbfsmd.UserDevicePublicKeys{},
 		kbfscrypto.TLFEphemeralPublicKey{},
 		kbfscrypto.TLFEphemeralPrivateKey{},
 		kbfscrypto.TLFPublicKey{}, kbfscrypto.TLFPrivateKey{},
@@ -356,7 +356,7 @@ func testKeyManagerUncachedSecretKeyForBlockDecryptionSuccess(t *testing.T, ver 
 
 	_, err = rmd.AddKeyGeneration(config.Codec(),
 		makeDirWKeyInfoMap(uid.AsUserOrBust(), session.CryptPublicKey),
-		UserDevicePublicKeys{},
+		kbfsmd.UserDevicePublicKeys{},
 		kbfscrypto.TLFEphemeralPublicKey{},
 		kbfscrypto.TLFEphemeralPrivateKey{},
 		kbfscrypto.TLFPublicKey{}, kbfscrypto.TLFPrivateKey{},
@@ -369,7 +369,7 @@ func testKeyManagerUncachedSecretKeyForBlockDecryptionSuccess(t *testing.T, ver 
 	}
 	_, err = rmd.AddKeyGeneration(config.Codec(),
 		makeDirWKeyInfoMap(uid.AsUserOrBust(), session.CryptPublicKey),
-		UserDevicePublicKeys{},
+		kbfsmd.UserDevicePublicKeys{},
 		kbfscrypto.TLFEphemeralPublicKey{},
 		kbfscrypto.TLFEphemeralPrivateKey{},
 		kbfscrypto.TLFPublicKey{}, kbfscrypto.TLFPrivateKey{},

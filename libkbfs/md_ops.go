@@ -702,7 +702,7 @@ func (md *MDOpsStandard) GetLatestHandleForTLF(ctx context.Context, id tlf.ID) (
 func (md *MDOpsStandard) getExtraMD(ctx context.Context, brmd kbfsmd.RootMetadata) (
 	extra kbfsmd.ExtraMetadata, err error) {
 	wkbID, rkbID := brmd.GetTLFWriterKeyBundleID(), brmd.GetTLFReaderKeyBundleID()
-	if (wkbID == TLFWriterKeyBundleID{}) || (rkbID == TLFReaderKeyBundleID{}) {
+	if (wkbID == kbfsmd.TLFWriterKeyBundleID{}) || (rkbID == kbfsmd.TLFReaderKeyBundleID{}) {
 		// Pre-v3 metadata embed key bundles and as such won't set any IDs.
 		return nil, nil
 	}
@@ -725,10 +725,10 @@ func (md *MDOpsStandard) getExtraMD(ctx context.Context, brmd kbfsmd.RootMetadat
 	}
 	if wkb != nil {
 		// Don't need the writer bundle.
-		_, rkb, err = mdserv.GetKeyBundles(ctx, tlf, TLFWriterKeyBundleID{}, rkbID)
+		_, rkb, err = mdserv.GetKeyBundles(ctx, tlf, kbfsmd.TLFWriterKeyBundleID{}, rkbID)
 	} else if rkb != nil {
 		// Don't need the reader bundle.
-		wkb, _, err = mdserv.GetKeyBundles(ctx, tlf, wkbID, TLFReaderKeyBundleID{})
+		wkb, _, err = mdserv.GetKeyBundles(ctx, tlf, wkbID, kbfsmd.TLFReaderKeyBundleID{})
 	} else {
 		// Need them both.
 		wkb, rkb, err = mdserv.GetKeyBundles(ctx, tlf, wkbID, rkbID)

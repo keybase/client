@@ -319,17 +319,17 @@ func ConfigAsUser(config *ConfigLocal,
 	return configAsUserWithMode(config, loggedInUser, config.Mode())
 }
 
-// NewEmptyTLFWriterKeyBundle creates a new empty TLFWriterKeyBundleV2
-func NewEmptyTLFWriterKeyBundle() TLFWriterKeyBundleV2 {
-	return TLFWriterKeyBundleV2{
-		WKeys: make(UserDeviceKeyInfoMapV2, 0),
+// NewEmptyTLFWriterKeyBundle creates a new empty kbfsmd.TLFWriterKeyBundleV2
+func NewEmptyTLFWriterKeyBundle() kbfsmd.TLFWriterKeyBundleV2 {
+	return kbfsmd.TLFWriterKeyBundleV2{
+		WKeys: make(kbfsmd.UserDeviceKeyInfoMapV2, 0),
 	}
 }
 
-// NewEmptyTLFReaderKeyBundle creates a new empty TLFReaderKeyBundleV2
-func NewEmptyTLFReaderKeyBundle() TLFReaderKeyBundleV2 {
-	return TLFReaderKeyBundleV2{
-		RKeys: make(UserDeviceKeyInfoMapV2, 0),
+// NewEmptyTLFReaderKeyBundle creates a new empty kbfsmd.TLFReaderKeyBundleV2
+func NewEmptyTLFReaderKeyBundle() kbfsmd.TLFReaderKeyBundleV2 {
+	return kbfsmd.TLFReaderKeyBundleV2{
+		RKeys: make(kbfsmd.UserDeviceKeyInfoMapV2, 0),
 	}
 }
 

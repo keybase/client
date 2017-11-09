@@ -660,7 +660,7 @@ type KeyMetadata interface {
 		key kbfscrypto.CryptPublicKey) (
 		kbfscrypto.TLFEphemeralPublicKey,
 		kbfscrypto.EncryptedTLFCryptKeyClientHalf,
-		TLFCryptKeyServerHalfID, bool, error)
+		kbfscrypto.TLFCryptKeyServerHalfID, bool, error)
 
 	// StoresHistoricTLFCryptKeys returns whether or not history keys are
 	// symmetrically encrypted; if not, they're encrypted per-device.
@@ -1178,20 +1178,20 @@ type KeyOps interface {
 	// GetTLFCryptKeyServerHalf gets a server-side key half for a
 	// device given the key half ID.
 	GetTLFCryptKeyServerHalf(ctx context.Context,
-		serverHalfID TLFCryptKeyServerHalfID,
+		serverHalfID kbfscrypto.TLFCryptKeyServerHalfID,
 		cryptPublicKey kbfscrypto.CryptPublicKey) (
 		kbfscrypto.TLFCryptKeyServerHalf, error)
 
 	// PutTLFCryptKeyServerHalves stores a server-side key halves for a
 	// set of users and devices.
 	PutTLFCryptKeyServerHalves(ctx context.Context,
-		keyServerHalves UserDeviceKeyServerHalves) error
+		keyServerHalves kbfsmd.UserDeviceKeyServerHalves) error
 
 	// DeleteTLFCryptKeyServerHalf deletes a server-side key half for a
 	// device given the key half ID.
 	DeleteTLFCryptKeyServerHalf(ctx context.Context,
 		uid keybase1.UID, key kbfscrypto.CryptPublicKey,
-		serverHalfID TLFCryptKeyServerHalfID) error
+		serverHalfID kbfscrypto.TLFCryptKeyServerHalfID) error
 }
 
 // Prefetcher is an interface to a block prefetcher.
@@ -1412,8 +1412,8 @@ type MDServer interface {
 	// for the respective bundle. If a bundle cannot be found, an
 	// error is returned and nils are returned for both bundles.
 	GetKeyBundles(ctx context.Context, tlfID tlf.ID,
-		wkbID TLFWriterKeyBundleID, rkbID TLFReaderKeyBundleID) (
-		*TLFWriterKeyBundleV3, *TLFReaderKeyBundleV3, error)
+		wkbID kbfsmd.TLFWriterKeyBundleID, rkbID kbfsmd.TLFReaderKeyBundleID) (
+		*kbfsmd.TLFWriterKeyBundleV3, *kbfsmd.TLFReaderKeyBundleV3, error)
 
 	// CheckReachability is called when the Keybase service sends a notification
 	// that network connectivity has changed.
@@ -1570,20 +1570,20 @@ type KeyServer interface {
 	// GetTLFCryptKeyServerHalf gets a server-side key half for a
 	// device given the key half ID.
 	GetTLFCryptKeyServerHalf(ctx context.Context,
-		serverHalfID TLFCryptKeyServerHalfID,
+		serverHalfID kbfscrypto.TLFCryptKeyServerHalfID,
 		cryptPublicKey kbfscrypto.CryptPublicKey) (
 		kbfscrypto.TLFCryptKeyServerHalf, error)
 
 	// PutTLFCryptKeyServerHalves stores a server-side key halves for a
 	// set of users and devices.
 	PutTLFCryptKeyServerHalves(ctx context.Context,
-		keyServerHalves UserDeviceKeyServerHalves) error
+		keyServerHalves kbfsmd.UserDeviceKeyServerHalves) error
 
 	// DeleteTLFCryptKeyServerHalf deletes a server-side key half for a
 	// device given the key half ID.
 	DeleteTLFCryptKeyServerHalf(ctx context.Context,
 		uid keybase1.UID, key kbfscrypto.CryptPublicKey,
-		serverHalfID TLFCryptKeyServerHalfID) error
+		serverHalfID kbfscrypto.TLFCryptKeyServerHalfID) error
 
 	// Shutdown is called to free any KeyServer resources.
 	Shutdown()

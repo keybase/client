@@ -704,8 +704,8 @@ func (md *MDServerDisk) OffsetFromServerTime() (time.Duration, bool) {
 
 // GetKeyBundles implements the MDServer interface for MDServerDisk.
 func (md *MDServerDisk) GetKeyBundles(ctx context.Context,
-	tlfID tlf.ID, wkbID TLFWriterKeyBundleID, rkbID TLFReaderKeyBundleID) (
-	*TLFWriterKeyBundleV3, *TLFReaderKeyBundleV3, error) {
+	tlfID tlf.ID, wkbID kbfsmd.TLFWriterKeyBundleID, rkbID kbfsmd.TLFReaderKeyBundleID) (
+	*kbfsmd.TLFWriterKeyBundleV3, *kbfsmd.TLFReaderKeyBundleV3, error) {
 	if err := checkContext(ctx); err != nil {
 		return nil, nil, err
 	}

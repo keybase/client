@@ -34,12 +34,12 @@ type mdBranchKey struct {
 
 type mdExtraWriterKey struct {
 	tlfID          tlf.ID
-	writerBundleID TLFWriterKeyBundleID
+	writerBundleID kbfsmd.TLFWriterKeyBundleID
 }
 
 type mdExtraReaderKey struct {
 	tlfID          tlf.ID
-	readerBundleID TLFReaderKeyBundleID
+	readerBundleID kbfsmd.TLFReaderKeyBundleID
 }
 
 type mdBlockMem struct {
@@ -79,9 +79,9 @@ type mdServerMemShared struct {
 	// (TLF ID, branch ID) -> list of MDs
 	mdDb map[mdBlockKey]mdBlockMemList
 	// Writer key bundle ID -> writer key bundles
-	writerKeyBundleDb map[mdExtraWriterKey]TLFWriterKeyBundleV3
+	writerKeyBundleDb map[mdExtraWriterKey]kbfsmd.TLFWriterKeyBundleV3
 	// Reader key bundle ID -> reader key bundles
-	readerKeyBundleDb map[mdExtraReaderKey]TLFReaderKeyBundleV3
+	readerKeyBundleDb map[mdExtraReaderKey]kbfsmd.TLFReaderKeyBundleV3
 	// (TLF ID, crypt public key) -> branch ID
 	branchDb            map[mdBranchKey]kbfsmd.BranchID
 	truncateLockManager *mdServerLocalTruncateLockManager
@@ -108,8 +108,8 @@ func NewMDServerMemory(config mdServerLocalConfig) (*MDServerMemory, error) {
 	latestHandleDb := make(map[tlf.ID]tlf.Handle)
 	mdDb := make(map[mdBlockKey]mdBlockMemList)
 	branchDb := make(map[mdBranchKey]kbfsmd.BranchID)
-	writerKeyBundleDb := make(map[mdExtraWriterKey]TLFWriterKeyBundleV3)
-	readerKeyBundleDb := make(map[mdExtraReaderKey]TLFReaderKeyBundleV3)
+	writerKeyBundleDb := make(map[mdExtraWriterKey]kbfsmd.TLFWriterKeyBundleV3)
+	readerKeyBundleDb := make(map[mdExtraReaderKey]kbfsmd.TLFReaderKeyBundleV3)
 	log := config.MakeLogger("MDSM")
 	truncateLockManager := newMDServerLocalTruncatedLockManager()
 	shared := mdServerMemShared{
@@ -973,7 +973,7 @@ func (md *MDServerMemory) putExtraMetadataLocked(rmds *RootMetadataSigned,
 
 	if extraV3.IsWriterKeyBundleNew() {
 		wkbID := rmds.MD.GetTLFWriterKeyBundleID()
-		if wkbID == (TLFWriterKeyBundleID{}) {
+		if wkbID == (kbfsmd.TLFWriterKeyBundleID{}) {
 			panic("writer key bundle ID is empty")
 		}
 		md.writerKeyBundleDb[mdExtraWriterKey{tlfID, wkbID}] =
@@ -982,7 +982,7 @@ func (md *MDServerMemory) putExtraMetadataLocked(rmds *RootMetadataSigned,
 
 	if extraV3.IsReaderKeyBundleNew() {
 		rkbID := rmds.MD.GetTLFReaderKeyBundleID()
-		if rkbID == (TLFReaderKeyBundleID{}) {
+		if rkbID == (kbfsmd.TLFReaderKeyBundleID{}) {
 			panic("reader key bundle ID is empty")
 		}
 		md.readerKeyBundleDb[mdExtraReaderKey{tlfID, rkbID}] =
@@ -992,15 +992,15 @@ func (md *MDServerMemory) putExtraMetadataLocked(rmds *RootMetadataSigned,
 }
 
 func (md *MDServerMemory) getKeyBundlesRLocked(tlfID tlf.ID,
-	wkbID TLFWriterKeyBundleID, rkbID TLFReaderKeyBundleID) (
-	*TLFWriterKeyBundleV3, *TLFReaderKeyBundleV3, error) {
+	wkbID kbfsmd.TLFWriterKeyBundleID, rkbID kbfsmd.TLFReaderKeyBundleID) (
+	*kbfsmd.TLFWriterKeyBundleV3, *kbfsmd.TLFReaderKeyBundleV3, error) {
 	err := md.checkShutdownRLocked()
 	if err != nil {
 		return nil, nil, err
 	}
 
-	var wkb *TLFWriterKeyBundleV3
-	if wkbID != (TLFWriterKeyBundleID{}) {
+	var wkb *kbfsmd.TLFWriterKeyBundleV3
+	if wkbID != (kbfsmd.TLFWriterKeyBundleID{}) {
 		foundWKB, ok := md.writerKeyBundleDb[mdExtraWriterKey{tlfID, wkbID}]
 		if !ok {
 			return nil, nil, errors.Errorf(
@@ -1015,8 +1015,8 @@ func (md *MDServerMemory) getKeyBundlesRLocked(tlfID tlf.ID,
 		wkb = &foundWKB
 	}
 
-	var rkb *TLFReaderKeyBundleV3
-	if rkbID != (TLFReaderKeyBundleID{}) {
+	var rkb *kbfsmd.TLFReaderKeyBundleV3
+	if rkbID != (kbfsmd.TLFReaderKeyBundleID{}) {
 		foundRKB, ok := md.readerKeyBundleDb[mdExtraReaderKey{tlfID, rkbID}]
 		if !ok {
 			return nil, nil, errors.Errorf(
@@ -1036,8 +1036,8 @@ func (md *MDServerMemory) getKeyBundlesRLocked(tlfID tlf.ID,
 
 // GetKeyBundles implements the MDServer interface for MDServerMemory.
 func (md *MDServerMemory) GetKeyBundles(ctx context.Context,
-	tlfID tlf.ID, wkbID TLFWriterKeyBundleID, rkbID TLFReaderKeyBundleID) (
-	*TLFWriterKeyBundleV3, *TLFReaderKeyBundleV3, error) {
+	tlfID tlf.ID, wkbID kbfsmd.TLFWriterKeyBundleID, rkbID kbfsmd.TLFReaderKeyBundleID) (
+	*kbfsmd.TLFWriterKeyBundleV3, *kbfsmd.TLFReaderKeyBundleV3, error) {
 	if err := checkContext(ctx); err != nil {
 		return nil, nil, err
 	}

@@ -7,6 +7,7 @@ package libkbfs
 import (
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/kbfscrypto"
+	"github.com/keybase/kbfs/kbfsmd"
 	"golang.org/x/net/context"
 )
 
@@ -21,7 +22,7 @@ var _ KeyOps = (*KeyOpsStandard)(nil)
 
 // GetTLFCryptKeyServerHalf is an implementation of the KeyOps interface.
 func (k *KeyOpsStandard) GetTLFCryptKeyServerHalf(ctx context.Context,
-	serverHalfID TLFCryptKeyServerHalfID, key kbfscrypto.CryptPublicKey) (
+	serverHalfID kbfscrypto.TLFCryptKeyServerHalfID, key kbfscrypto.CryptPublicKey) (
 	kbfscrypto.TLFCryptKeyServerHalf, error) {
 	// get the key half from the server
 	serverHalf, err := k.config.KeyServer().GetTLFCryptKeyServerHalf(ctx, serverHalfID, key)
@@ -44,7 +45,7 @@ func (k *KeyOpsStandard) GetTLFCryptKeyServerHalf(ctx context.Context,
 
 // PutTLFCryptKeyServerHalves is an implementation of the KeyOps interface.
 func (k *KeyOpsStandard) PutTLFCryptKeyServerHalves(ctx context.Context,
-	keyServerHalves UserDeviceKeyServerHalves) error {
+	keyServerHalves kbfsmd.UserDeviceKeyServerHalves) error {
 	// upload the keys
 	return k.config.KeyServer().PutTLFCryptKeyServerHalves(ctx, keyServerHalves)
 }
@@ -52,7 +53,7 @@ func (k *KeyOpsStandard) PutTLFCryptKeyServerHalves(ctx context.Context,
 // DeleteTLFCryptKeyServerHalf is an implementation of the KeyOps interface.
 func (k *KeyOpsStandard) DeleteTLFCryptKeyServerHalf(ctx context.Context,
 	uid keybase1.UID, key kbfscrypto.CryptPublicKey,
-	serverHalfID TLFCryptKeyServerHalfID) error {
+	serverHalfID kbfscrypto.TLFCryptKeyServerHalfID) error {
 	return k.config.KeyServer().DeleteTLFCryptKeyServerHalf(
 		ctx, uid, key, serverHalfID)
 }

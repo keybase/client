@@ -456,7 +456,7 @@ func (md *RootMetadata) loadCachedBlockChanges(
 func (md *RootMetadata) GetTLFCryptKeyParams(
 	keyGen kbfsmd.KeyGen, user keybase1.UID, key kbfscrypto.CryptPublicKey) (
 	kbfscrypto.TLFEphemeralPublicKey, kbfscrypto.EncryptedTLFCryptKeyClientHalf,
-	TLFCryptKeyServerHalfID, bool, error) {
+	kbfscrypto.TLFCryptKeyServerHalfID, bool, error) {
 	return md.bareMd.GetTLFCryptKeyParams(keyGen, user, key, md.extra)
 }
 
@@ -743,13 +743,13 @@ func (md *RootMetadata) GetBareRootMetadata() kbfsmd.RootMetadata {
 
 // AddKeyGeneration adds a new key generation to this revision of metadata.
 func (md *RootMetadata) AddKeyGeneration(codec kbfscodec.Codec,
-	wKeys, rKeys UserDevicePublicKeys,
+	wKeys, rKeys kbfsmd.UserDevicePublicKeys,
 	ePubKey kbfscrypto.TLFEphemeralPublicKey,
 	ePrivKey kbfscrypto.TLFEphemeralPrivateKey,
 	pubKey kbfscrypto.TLFPublicKey,
 	privKey kbfscrypto.TLFPrivateKey,
 	currCryptKey, nextCryptKey kbfscrypto.TLFCryptKey) (
-	serverHalves UserDeviceKeyServerHalves, err error) {
+	serverHalves kbfsmd.UserDeviceKeyServerHalves, err error) {
 	nextExtra, serverHalves, err := md.bareMd.AddKeyGeneration(
 		codec, md.extra, wKeys, rKeys, ePubKey, ePrivKey,
 		pubKey, currCryptKey, nextCryptKey)
@@ -767,17 +767,17 @@ func (md *RootMetadata) promoteReaders(
 }
 
 func (md *RootMetadata) revokeRemovedDevices(
-	wKeys, rKeys UserDevicePublicKeys) (
-	ServerHalfRemovalInfo, error) {
+	wKeys, rKeys kbfsmd.UserDevicePublicKeys) (
+	kbfsmd.ServerHalfRemovalInfo, error) {
 	return md.bareMd.RevokeRemovedDevices(wKeys, rKeys, md.extra)
 }
 
 func (md *RootMetadata) updateKeyBundles(
-	codec kbfscodec.Codec, wKeys, rKeys UserDevicePublicKeys,
+	codec kbfscodec.Codec, wKeys, rKeys kbfsmd.UserDevicePublicKeys,
 	ePubKey kbfscrypto.TLFEphemeralPublicKey,
 	ePrivKey kbfscrypto.TLFEphemeralPrivateKey,
 	tlfCryptKeys []kbfscrypto.TLFCryptKey) (
-	[]UserDeviceKeyServerHalves, error) {
+	[]kbfsmd.UserDeviceKeyServerHalves, error) {
 	return md.bareMd.UpdateKeyBundles(codec, md.extra,
 		wKeys, rKeys, ePubKey, ePrivKey, tlfCryptKeys)
 }
@@ -787,21 +787,21 @@ func (md *RootMetadata) finalizeRekey(codec kbfscodec.Codec) error {
 }
 
 func (md *RootMetadata) getUserDevicePublicKeys() (
-	writers, readers UserDevicePublicKeys, err error) {
+	writers, readers kbfsmd.UserDevicePublicKeys, err error) {
 	return md.bareMd.GetUserDevicePublicKeys(md.extra)
 }
 
 // GetTLFWriterKeyBundleID returns the ID of the externally-stored
 // writer key bundle, or the zero value if this object stores it
 // internally.
-func (md *RootMetadata) GetTLFWriterKeyBundleID() TLFWriterKeyBundleID {
+func (md *RootMetadata) GetTLFWriterKeyBundleID() kbfsmd.TLFWriterKeyBundleID {
 	return md.bareMd.GetTLFWriterKeyBundleID()
 }
 
 // GetTLFReaderKeyBundleID returns the ID of the externally-stored
 // reader key bundle, or the zero value if this object stores it
 // internally.
-func (md *RootMetadata) GetTLFReaderKeyBundleID() TLFReaderKeyBundleID {
+func (md *RootMetadata) GetTLFReaderKeyBundleID() kbfsmd.TLFReaderKeyBundleID {
 	return md.bareMd.GetTLFReaderKeyBundleID()
 }
 

@@ -685,8 +685,8 @@ func (e NotDirectFileBlockError) Error() string {
 
 // KeyHalfMismatchError is returned when the key server doesn't return the expected key half.
 type KeyHalfMismatchError struct {
-	Expected TLFCryptKeyServerHalfID
-	Actual   TLFCryptKeyServerHalfID
+	Expected kbfscrypto.TLFCryptKeyServerHalfID
+	Actual   kbfscrypto.TLFCryptKeyServerHalfID
 }
 
 // Error implements the error interface for KeyHalfMismatchError.

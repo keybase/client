@@ -992,7 +992,7 @@ func (md *MDServerRemote) IsConnected() bool {
 
 // GetTLFCryptKeyServerHalf is an implementation of the KeyServer interface.
 func (md *MDServerRemote) GetTLFCryptKeyServerHalf(ctx context.Context,
-	serverHalfID TLFCryptKeyServerHalfID,
+	serverHalfID kbfscrypto.TLFCryptKeyServerHalfID,
 	cryptKey kbfscrypto.CryptPublicKey) (
 	serverHalf kbfscrypto.TLFCryptKeyServerHalf, err error) {
 	ctx = rpc.WithFireNow(ctx)
@@ -1029,7 +1029,7 @@ func (md *MDServerRemote) GetTLFCryptKeyServerHalf(ctx context.Context,
 
 // PutTLFCryptKeyServerHalves is an implementation of the KeyServer interface.
 func (md *MDServerRemote) PutTLFCryptKeyServerHalves(ctx context.Context,
-	keyServerHalves UserDeviceKeyServerHalves) (err error) {
+	keyServerHalves kbfsmd.UserDeviceKeyServerHalves) (err error) {
 	ctx = rpc.WithFireNow(ctx)
 	md.log.LazyTrace(ctx, "KeyServer: PutTLFCryptKeyServerHalves %v", keyServerHalves)
 	defer func() {
@@ -1063,7 +1063,7 @@ func (md *MDServerRemote) PutTLFCryptKeyServerHalves(ctx context.Context,
 // DeleteTLFCryptKeyServerHalf is an implementation of the KeyServer interface.
 func (md *MDServerRemote) DeleteTLFCryptKeyServerHalf(ctx context.Context,
 	uid keybase1.UID, key kbfscrypto.CryptPublicKey,
-	serverHalfID TLFCryptKeyServerHalfID) (err error) {
+	serverHalfID kbfscrypto.TLFCryptKeyServerHalfID) (err error) {
 	ctx = rpc.WithFireNow(ctx)
 	md.log.LazyTrace(ctx, "KeyServer: DeleteTLFCryptKeyServerHalf %s %s", uid, serverHalfID)
 	defer func() {
@@ -1137,8 +1137,8 @@ func (md *MDServerRemote) backgroundRekeyChecker(ctx context.Context) {
 
 // GetKeyBundles implements the MDServer interface for MDServerRemote.
 func (md *MDServerRemote) GetKeyBundles(ctx context.Context,
-	tlf tlf.ID, wkbID TLFWriterKeyBundleID, rkbID TLFReaderKeyBundleID) (
-	wkb *TLFWriterKeyBundleV3, rkb *TLFReaderKeyBundleV3, err error) {
+	tlf tlf.ID, wkbID kbfsmd.TLFWriterKeyBundleID, rkbID kbfsmd.TLFReaderKeyBundleID) (
+	wkb *kbfsmd.TLFWriterKeyBundleV3, rkb *kbfsmd.TLFReaderKeyBundleV3, err error) {
 	ctx = rpc.WithFireNow(ctx)
 	md.log.LazyTrace(ctx, "KeyServer: GetKeyBundles %s %s %s", tlf, wkbID, rkbID)
 	defer func() {
@@ -1162,7 +1162,7 @@ func (md *MDServerRemote) GetKeyBundles(ctx context.Context,
 				response.WriterBundle.Version)
 			return nil, nil, err
 		}
-		wkb = new(TLFWriterKeyBundleV3)
+		wkb = new(kbfsmd.TLFWriterKeyBundleV3)
 		err = md.config.Codec().Decode(response.WriterBundle.Bundle, wkb)
 		if err != nil {
 			return nil, nil, err
@@ -1185,7 +1185,7 @@ func (md *MDServerRemote) GetKeyBundles(ctx context.Context,
 				response.ReaderBundle.Version)
 			return nil, nil, err
 		}
-		rkb = new(TLFReaderKeyBundleV3)
+		rkb = new(kbfsmd.TLFReaderKeyBundleV3)
 		err = md.config.Codec().Decode(response.ReaderBundle.Bundle, rkb)
 		if err != nil {
 			return nil, nil, err

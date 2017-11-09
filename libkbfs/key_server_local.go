@@ -23,7 +23,7 @@ import (
 // KeyServerLocal puts/gets key server halves in/from a local leveldb instance.
 type KeyServerLocal struct {
 	config Config
-	db     *leveldb.DB // TLFCryptKeyServerHalfID -> TLFCryptKeyServerHalf
+	db     *leveldb.DB // kbfscrypto.TLFCryptKeyServerHalfID -> TLFCryptKeyServerHalf
 	log    logger.Logger
 
 	shutdownLock *sync.RWMutex
@@ -86,7 +86,7 @@ func NewKeyServerTempDir(config Config) (*KeyServerLocal, error) {
 // GetTLFCryptKeyServerHalf implements the KeyServer interface for
 // KeyServerLocal.
 func (ks *KeyServerLocal) GetTLFCryptKeyServerHalf(ctx context.Context,
-	serverHalfID TLFCryptKeyServerHalfID, key kbfscrypto.CryptPublicKey) (
+	serverHalfID kbfscrypto.TLFCryptKeyServerHalfID, key kbfscrypto.CryptPublicKey) (
 	serverHalf kbfscrypto.TLFCryptKeyServerHalf, err error) {
 	if err := checkContext(ctx); err != nil {
 		return kbfscrypto.TLFCryptKeyServerHalf{}, err
@@ -125,7 +125,7 @@ func (ks *KeyServerLocal) GetTLFCryptKeyServerHalf(ctx context.Context,
 
 // PutTLFCryptKeyServerHalves implements the KeyOps interface for KeyServerLocal.
 func (ks *KeyServerLocal) PutTLFCryptKeyServerHalves(ctx context.Context,
-	keyServerHalves UserDeviceKeyServerHalves) error {
+	keyServerHalves kbfsmd.UserDeviceKeyServerHalves) error {
 	if err := checkContext(ctx); err != nil {
 		return err
 	}
@@ -158,7 +158,7 @@ func (ks *KeyServerLocal) PutTLFCryptKeyServerHalves(ctx context.Context,
 // KeyServerLocal.
 func (ks *KeyServerLocal) DeleteTLFCryptKeyServerHalf(ctx context.Context,
 	_ keybase1.UID, _ kbfscrypto.CryptPublicKey,
-	serverHalfID TLFCryptKeyServerHalfID) error {
+	serverHalfID kbfscrypto.TLFCryptKeyServerHalfID) error {
 	if err := checkContext(ctx); err != nil {
 		return err
 	}

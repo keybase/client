@@ -37,7 +37,7 @@ func mdDumpGetReplacements(ctx context.Context, codec kbfscodec.Codec,
 	}
 
 	replacements := make(map[string]string)
-	for _, userKeys := range []libkbfs.UserDevicePublicKeys{writers, readers} {
+	for _, userKeys := range []kbfsmd.UserDevicePublicKeys{writers, readers} {
 		for u, deviceKeys := range userKeys {
 			if _, ok := replacements[u.String()]; ok {
 				continue
