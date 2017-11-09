@@ -121,9 +121,8 @@ const TeamTabs = (props: TeamTabsProps) => {
   if (admin) {
     const invitesLabel = `INVITES (${invites.length})`
     tabs.push(
-      <Box key="requests" style={{...globalStyles.flexBoxRow, alignItems: 'center'}}>
+      <Box key="invites" style={{...globalStyles.flexBoxRow, alignItems: 'center'}}>
         <Text
-          key="invites"
           type="BodySmallSemibold"
           style={{
             color: globalColors.black_75,
