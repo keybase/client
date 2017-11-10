@@ -963,8 +963,8 @@ func (cr *ConflictResolver) resolveMergedPaths(ctx context.Context,
 
 	// While we're at it, find any deleted unmerged directory chains
 	// containing operations, where the corresponding merged chain has
-	// changed.  The unmerged ops will need to be re-applied in that
-	// case.
+	// changed.  The unmerged rm ops will need to be re-applied in
+	// that case.
 	var newUnmergedPaths []path
 	for original, unmergedChain := range unmergedChains.byOriginal {
 		if !unmergedChains.isDeleted(original) || len(unmergedChain.ops) == 0 ||
@@ -980,6 +980,16 @@ func (cr *ConflictResolver) resolveMergedPaths(ctx context.Context,
 		cr.log.CDebugf(ctx, "A modified unmerged path %v was deleted but "+
 			"also modified in the merged branch %v",
 			unmergedChain.mostRecent, mergedChain.mostRecent)
+
+		// We know that everything in the directory has been removed,
+		// so only rm ops matter.
+		var newOps []op
+		for _, op := range unmergedChain.ops {
+			if rop, ok := op.(*rmOp); ok {
+				newOps = append(newOps, rop)
+			}
+		}
+		unmergedChain.ops = newOps
 
 		// Fake the unmerged path, it doesn't matter
 		unmergedPath := path{
