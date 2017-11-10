@@ -249,9 +249,9 @@ const _getDetails = function*(action: Constants.GetDetails): Saga.SagaGenerator<
 
     const requestMap = requests.reduce((reqMap, req) => {
       if (!reqMap[req.name]) {
-        reqMap[req.name] = I.List()
+        reqMap[req.name] = I.Set()
       }
-      reqMap[req.name] = reqMap[req.name].push({username: req.username})
+      reqMap[req.name] = reqMap[req.name].add(Constants.makeRequestInfo({username: req.username}))
       return reqMap
     }, {})
 
