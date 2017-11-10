@@ -502,6 +502,7 @@ func (e *loginProvision) deviceName(ctx *Context) (string, error) {
 			return "", err
 		}
 		if !libkb.CheckDeviceName.F(devname) {
+			e.G().Log.Debug("invalid device name supplied: %s", devname)
 			arg.ErrorMessage = "Invalid device name. Device names should be " + libkb.CheckDeviceName.Hint
 			continue
 		}

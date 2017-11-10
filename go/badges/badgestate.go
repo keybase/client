@@ -11,6 +11,7 @@ import (
 	"github.com/keybase/client/go/gregor"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/chat1"
+	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
 	jsonw "github.com/keybase/go-jsonw"
 )
@@ -59,6 +60,14 @@ type problemSetBody struct {
 type newTeamBody struct {
 	TeamID   string `json:"id"`
 	TeamName string `json:"name"`
+}
+
+type memberOutBody struct {
+	TeamName  string `json:"team_name"`
+	ResetUser struct {
+		UID      string `json:"uid"`
+		Username string `json:"username"`
+	} `json:"reset_user"`
 }
 
 // UpdateWithGregor updates the badge state from a gregor state.
@@ -144,6 +153,20 @@ func (b *BadgeState) UpdateWithGregor(gstate gregor.State) error {
 				}
 				b.state.NewTeamAccessRequests = append(b.state.NewTeamAccessRequests, x.TeamName)
 			}
+		case "team.member_out_from_reset":
+			var body memberOutBody
+			if err := json.Unmarshal(item.Body().Bytes(), &body); err != nil {
+				b.log.Warning("BadgeState unmarshal error for team.member_out_from_reset item: %v", err)
+				continue
+			}
+
+			msgID := item.Metadata().MsgID().(gregor1.MsgID)
+			m := keybase1.TeamMemberOutReset{
+				Teamname: body.TeamName,
+				Username: body.ResetUser.Username,
+				Id:       msgID,
+			}
+			b.state.TeamsWithResetUsers = append(b.state.TeamsWithResetUsers, m)
 		}
 	}
 
