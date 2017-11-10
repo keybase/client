@@ -22,6 +22,7 @@ const load = () => {
         <TeamList
           teamnames={teamnames}
           newTeams={['stripe.usa']}
+          newTeamRequests={['techtonica']}
           teammembercounts={teammembercounts}
           onOpenFolder={action('onOpenFolder')}
           onManageChat={action('onManageChat')}

@@ -38,6 +38,15 @@
         }
       ],
       "response": null
+    },
+    "dismissItem": {
+      "request": [
+        {
+          "name": "id",
+          "type": "gregor1.MsgID"
+        }
+      ],
+      "response": null
     }
   },
   "namespace": "keybase.1"

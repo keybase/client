@@ -85,7 +85,11 @@ func SetTeamShowcase(ctx context.Context, g *libkb.GlobalContext, teamname strin
 		arg.Args.Add("is_showcased", libkb.B{Val: *isShowcased})
 	}
 	if description != nil {
-		arg.Args.Add("description", libkb.S{Val: *description})
+		if len(*description) > 0 {
+			arg.Args.Add("description", libkb.S{Val: *description})
+		} else {
+			arg.Args.Add("clear_description", libkb.B{Val: true})
+		}
 	}
 	_, err = g.API.Post(arg)
 	return err

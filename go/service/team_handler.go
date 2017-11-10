@@ -69,7 +69,7 @@ func (r *teamHandler) rotateTeam(ctx context.Context, cli gregor1.IncomingInterf
 	}
 
 	r.G().Log.Debug("dismissing team.clkr item since rotate succeeded")
-	return r.G().GregorDismisser.DismissItem(cli, item.Metadata().MsgID())
+	return r.G().GregorDismisser.DismissItem(ctx, cli, item.Metadata().MsgID())
 }
 
 func (r *teamHandler) changeTeam(ctx context.Context, cli gregor1.IncomingInterface, item gregor.Item, changes keybase1.TeamChangeSet) error {
@@ -96,7 +96,7 @@ func (r *teamHandler) deleteTeam(ctx context.Context, cli gregor1.IncomingInterf
 		return err
 	}
 
-	return r.G().GregorDismisser.DismissItem(cli, item.Metadata().MsgID())
+	return r.G().GregorDismisser.DismissItem(ctx, cli, item.Metadata().MsgID())
 }
 
 func (r *teamHandler) exitTeam(ctx context.Context, cli gregor1.IncomingInterface, item gregor.Item) error {
@@ -112,7 +112,7 @@ func (r *teamHandler) exitTeam(ctx context.Context, cli gregor1.IncomingInterfac
 	}
 
 	r.G().Log.Debug("dismissing team.exit: %v", item.Metadata().MsgID().String())
-	return r.G().GregorDismisser.DismissItem(cli, item.Metadata().MsgID())
+	return r.G().GregorDismisser.DismissItem(ctx, cli, item.Metadata().MsgID())
 }
 
 func (r *teamHandler) sharingBeforeSignup(ctx context.Context, cli gregor1.IncomingInterface, item gregor.Item) error {
@@ -129,7 +129,7 @@ func (r *teamHandler) sharingBeforeSignup(ctx context.Context, cli gregor1.Incom
 	}
 
 	r.G().Log.Debug("dismissing team.sbs item since it succeeded")
-	return r.G().GregorDismisser.DismissItem(cli, item.Metadata().MsgID())
+	return r.G().GregorDismisser.DismissItem(ctx, cli, item.Metadata().MsgID())
 }
 
 func (r *teamHandler) openTeamAccessRequest(ctx context.Context, cli gregor1.IncomingInterface, item gregor.Item) error {
@@ -146,7 +146,7 @@ func (r *teamHandler) openTeamAccessRequest(ctx context.Context, cli gregor1.Inc
 	}
 
 	r.G().Log.Debug("dismissing team.openreq item since it succeeded")
-	return r.G().GregorDismisser.DismissItem(cli, item.Metadata().MsgID())
+	return r.G().GregorDismisser.DismissItem(ctx, cli, item.Metadata().MsgID())
 }
 
 func (r *teamHandler) seitanCompletion(ctx context.Context, cli gregor1.IncomingInterface, item gregor.Item) error {
@@ -163,7 +163,7 @@ func (r *teamHandler) seitanCompletion(ctx context.Context, cli gregor1.Incoming
 	}
 
 	r.G().Log.Debug("dismissing team.seitan item since it succeeded")
-	return r.G().GregorDismisser.DismissItem(cli, item.Metadata().MsgID())
+	return r.G().GregorDismisser.DismissItem(ctx, cli, item.Metadata().MsgID())
 }
 
 func (r *teamHandler) Dismiss(ctx context.Context, cli gregor1.IncomingInterface, category string, item gregor.Item) (bool, error) {

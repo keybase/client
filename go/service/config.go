@@ -226,6 +226,15 @@ func (h ConfigHandler) GetConfig(_ context.Context, sessionID int) (keybase1.Con
 	dir, err := filepath.Abs(filepath.Dir(os.Args[0]))
 	if err == nil {
 		c.Path = dir
+	} else {
+		h.G().Log.Warning("Failed to get service path: %s", err)
+	}
+
+	realpath, err := libkb.CurrentBinaryRealpath()
+	if err == nil {
+		c.BinaryRealpath = realpath
+	} else {
+		h.G().Log.Warning("Failed to get service realpath: %s", err)
 	}
 
 	c.ConfigPath = h.G().Env.GetConfigFilename()

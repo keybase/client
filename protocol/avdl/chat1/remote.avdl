@@ -238,7 +238,7 @@ protocol remote {
     array<Conversation> conversations;
     union { null, RateLimit } rateLimit;
   }
-  GetTLFConversationsRes getTLFConversations(TLFID tlfID, TopicType topicType, ConversationMembersType membersType, boolean summarizeMaxMsgs);
+  GetTLFConversationsRes getTLFConversations(TLFID tlfID, TopicType topicType, boolean summarizeMaxMsgs);
 
   // Chat notification configuration endpoint. Does not need to be complete, just a delta on the
   // currently configured settings.

@@ -16,9 +16,11 @@ import (
 
 type CmdTeamRemoveMember struct {
 	libkb.Contextified
-	Team     string
+	Team string
+
 	Username string
 	Email    string
+	InviteID keybase1.TeamInviteID
 	Force    bool
 }
 
@@ -31,6 +33,7 @@ func newCmdTeamRemoveMember(cl *libcmdline.CommandLine, g *libkb.GlobalContext) 
 		Name:         "remove-member",
 		ArgumentHelp: "<team name> --user=<username>",
 		Usage:        "Remove a user from a team.",
+		Description:  teamRemoveMemberDoc,
 		Action: func(c *cli.Context) {
 			cmd := &CmdTeamRemoveMember{Contextified: libkb.NewContextified(g)}
 			cl.ChooseCommand(cmd, "remove-member", c)
@@ -42,11 +45,15 @@ func newCmdTeamRemoveMember(cl *libcmdline.CommandLine, g *libkb.GlobalContext) 
 			},
 			cli.StringFlag{
 				Name:  "email",
-				Usage: "cancel pending email invite address",
+				Usage: "cancel a pending invite by email address",
+			},
+			cli.StringFlag{
+				Name:  "invite-id",
+				Usage: "cancel a pending invite by ID",
 			},
 			cli.BoolFlag{
 				Name:  "f, force",
-				Usage: "bypass warnings",
+				Usage: "don't ask for confirmation",
 			},
 		},
 	}
@@ -61,26 +68,35 @@ func (c *CmdTeamRemoveMember) ParseArgv(ctx *cli.Context) error {
 
 	c.Username = ctx.String("user")
 	c.Email = ctx.String("email")
+	if ctx.IsSet("invite-id") {
+		c.InviteID, err = keybase1.TeamInviteIDFromString(ctx.String("invite-id"))
+		if err != nil {
+			errStr := "Invite IDs are 32 characters and end in '27' (%v)."
+			errStr = errStr + " Use `keybase team list-members %s --show-invite-id` to find one."
+			return fmt.Errorf(errStr, err, c.Team)
+		}
+	}
 	c.Force = ctx.Bool("force")
 
-	if len(c.Username) > 0 && len(c.Email) > 0 {
-		return errors.New("You cannot specify --user and --email.  Please choose one.")
-	}
-
-	if len(c.Username) == 0 && len(c.Email) == 0 {
-		return errors.New("Username or email required.  Use --user or --email flag.")
-	}
+	var actions []string
 
 	if len(c.Username) > 0 {
 		if libkb.CheckEmail.F(c.Username) {
-			return errors.New("If you'd like to cancel a pending invite by email address, please use `--email` instead of `--user`. If you'd like to remove an existing member from your team, please use their keybase username.")
+			return fmt.Errorf("Invalid username %q", c.Username)
 		}
+		actions = append(actions, "username")
 	}
-
 	if len(c.Email) > 0 {
 		if !libkb.CheckEmail.F(c.Email) {
-			return fmt.Errorf("Invalid email address %q. If you'd like to remove an existing member for your team, please use their keybase username and the `--user` flag instead of `--email`.", c.Email)
+			return fmt.Errorf("Invalid email address %q", c.Email)
 		}
+		actions = append(actions, "email")
+	}
+	if len(c.InviteID) > 0 {
+		actions = append(actions, "invite-id")
+	}
+	if len(actions) != 1 {
+		return errors.New("Specify one of 'user', 'email', 'invite-id'")
 	}
 
 	return nil
@@ -123,16 +139,21 @@ func (c *CmdTeamRemoveMember) Run() error {
 		Name:     c.Team,
 		Username: c.Username,
 		Email:    c.Email,
+		InviteID: c.InviteID,
 	}
 
 	if err = cli.TeamRemoveMember(context.Background(), arg); err != nil {
 		switch err.(type) {
 		case libkb.NotFoundError:
 			if len(c.Email) > 0 {
-				ui.Printf("Error: there is currently no pending invitation for %s.\nIf that person is already on your team, please remove them with their keybase username.\n\n", c.Email)
+				ui.Printf("Error: No pending invitation for %s.\nIf that person is already on your team, please remove them with their keybase username.\n\n", c.Email)
 				return nil
 			}
-			ui.Printf("Error: there is currently no user %s on team %s.\n\n", c.Username, c.Team)
+			if len(c.InviteID) > 0 {
+				ui.Printf("Error: No pending invite with ID %v", c.InviteID)
+				return nil
+			}
+			ui.Printf("Error: No user %s on team %s.\n\n", c.Username, c.Team)
 			return nil
 		}
 		return err
@@ -140,10 +161,13 @@ func (c *CmdTeamRemoveMember) Run() error {
 
 	if len(c.Email) > 0 {
 		ui.Printf("Success! %s invitation canceled for team %s.\n", c.Email, c.Team)
-	} else {
-		ui.Printf("Success! %s removed from team %s.\n", c.Username, c.Team)
+		return nil
 	}
-
+	if len(c.InviteID) > 0 {
+		ui.Printf("Success! Invitation canceled for team %s.\n", c.Team)
+		return nil
+	}
+	ui.Printf("Success! %s removed from team %s.\n", c.Username, c.Team)
 	return nil
 }
 
@@ -154,3 +178,15 @@ func (c *CmdTeamRemoveMember) GetUsage() libkb.Usage {
 		KbKeyring: true,
 	}
 }
+
+const teamRemoveMemberDoc = `"keybase team remove-member" lets you remove members and cancel invites
+
+EXAMPLES:
+    Remove a user from the team:
+        keybase team remove-member acme --user roadrunner
+    Cancel an email invite:
+        keybase team remove-member acme --email roadrunner@acme.com
+    Cancel a secret token invite (like sms):
+        keybase team list-members acme --show-invite-id # to get the invite ID
+        keybase team remove-member acme --invite-id 9cfd13f927bcd1f6832fefa084bb2127
+`

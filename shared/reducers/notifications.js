@@ -32,13 +32,14 @@ export default function(
         rekeysNeeded,
         newGitRepoGlobalUniqueIDs,
         newTeamNames,
+        newTeamAccessRequests,
       } = action.payload.badgeState
 
       const deviceType = isMobile ? RPCTypes.commonDeviceType.mobile : RPCTypes.commonDeviceType.desktop
       const totalMessages = (conversations || [])
         .reduce((total, c) => (c.badgeCounts ? total + c.badgeCounts[`${deviceType}`] : total), 0)
       const newGit = (newGitRepoGlobalUniqueIDs || []).length
-      const newTeams = (newTeamNames || []).length
+      const newTeams = (newTeamNames || []).length + (newTeamAccessRequests || []).length
 
       const navBadges = state.get('navBadges').withMutations(n => {
         n.set(Tabs.chatTab, totalMessages)

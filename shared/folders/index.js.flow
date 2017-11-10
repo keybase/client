@@ -14,7 +14,7 @@ export type Props = {
   team: ListProps,
   selected: FolderType,
   showingIgnored: boolean,
-  onSwitchTab?: (selected: string) => void,
+  onSwitchTab?: (selected: FolderType) => void,
   listStyle?: any,
   smallMode?: boolean,
   onClick?: (path: string) => void,
