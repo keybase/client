@@ -202,6 +202,7 @@ const mapStateToProps = (state: TypedState, {isActiveRoute, routeState}) => {
     isActiveRoute,
     isLoading: state.chat.get('inboxGlobalUntrustedState') === 'loading',
     user: Constants.getYou(state),
+    inSearch: state.chat.get('inSearch'),
   }
 }
 
@@ -247,6 +248,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     smallTeamsExpanded: stateProps.smallTeamsExpanded,
     toggleSmallTeamsExpanded: dispatchProps.toggleSmallTeamsExpanded,
     filterFocusCount: ownProps.filterFocusCount,
+    inSearch: stateProps.inSearch,
   }
 }
 

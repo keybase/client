@@ -24,6 +24,7 @@ const getNowOverride = (state: TypedState) => state.chat.nowOverride
 const getUntrustedState = (state: TypedState) => state.chat.inboxUntrustedState
 const getPendingParticipants = (state: TypedState, conversationIDKey: Constants.ConversationIDKey) =>
   state.chat.get('pendingConversations').get(conversationIDKey) || I.List()
+const getInSearch = (state: TypedState) => state.chat.get('inSearch')
 
 function _commonDerivedProps(
   rekeyInfo,
@@ -73,6 +74,7 @@ const snippetRowSelector = createCachedSelector(
     getYou,
     getNowOverride,
     getUntrustedState,
+    getInSearch,
   ],
   (
     inbox,
@@ -84,9 +86,10 @@ const snippetRowSelector = createCachedSelector(
     unreadBadge,
     you,
     nowOverride,
-    untrustedState
+    untrustedState,
+    inSearch
   ) => {
-    const isSelected = selected === conversationIDKey
+    const isSelected = !inSearch && selected === conversationIDKey
     const isMuted = inbox && inbox.get('status') === 'muted'
     const isError = untrustedState.get(conversationIDKey) === 'error'
     const participants = inbox ? Constants.participantFilter(inbox.get('participants'), you) : I.List()
@@ -113,9 +116,9 @@ const snippetRowSelector = createCachedSelector(
 )(passConversationIDKey)
 
 const pendingSnippetRowSelector = createCachedSelector(
-  [getSelected, getPendingParticipants, getNowOverride, passConversationIDKey, getYou],
-  (selected, participants, nowOverride, conversationIDKey, you) => {
-    const isSelected = selected === conversationIDKey
+  [getSelected, getPendingParticipants, getNowOverride, passConversationIDKey, getYou, getInSearch],
+  (selected, participants, nowOverride, conversationIDKey, you, inSearch) => {
+    const isSelected = !inSearch && selected === conversationIDKey
     const isMuted = false
     const isError = false
     const timestamp = formatTimeForConversationList(Date.now(), nowOverride)
