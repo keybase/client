@@ -5,8 +5,27 @@ import {globalStyles, globalColors, globalMargins} from '../../styles'
 
 import type {Props} from '.'
 
+const errorHeader = (errorText: string) => {
+  if (!errorText) {
+    return null
+  }
+
+  return (
+    <Box style={{backgroundColor: globalColors.red}}>
+      <Text
+        style={{margin: globalMargins.tiny, textAlign: 'center', width: '100%'}}
+        type="BodySemibold"
+        backgroundMode={errorText ? 'HighRisk' : 'Announcements'}
+      >
+        {errorText}
+      </Text>
+    </Box>
+  )
+}
+
 const CreateChannel = (props: Props) => (
   <PopupDialog onClose={props.onClose} styleCover={_styleCover} styleContainer={_styleContainer}>
+    {errorHeader(props.errorText)}
     <Box style={_boxStyle}>
       <Avatar isTeam={true} teamname={props.teamname} size={24} />
       <Text type="BodySmallSemibold" style={{color: globalColors.darkBlue, marginTop: globalMargins.xtiny}}>

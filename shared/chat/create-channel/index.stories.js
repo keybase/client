@@ -11,6 +11,7 @@ const load = () => {
       <CreateChannel
         channelname="random"
         description="Random USA Stripes"
+        errorText=""
         onBack={action('onBack')}
         onClose={action('onClose')}
         onChannelnameChange={action('onChannelnameChange')}

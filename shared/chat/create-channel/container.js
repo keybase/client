@@ -1,17 +1,22 @@
 // @flow
 import CreateChannel from '.'
-import {compose, withHandlers, withState, connect, type TypedState} from '../../util/container'
-import {createChannel} from '../../actions/teams/creators'
+import {compose, withHandlers, lifecycle, withState, connect, type TypedState} from '../../util/container'
+import {createChannel, setChannelCreationError} from '../../actions/teams/creators'
 import {navigateTo} from '../../actions/route-tree'
 import {chatTab} from '../../constants/tabs'
+import upperFirst from 'lodash/upperFirst'
 
 const mapStateToProps = (state: TypedState, {routeProps}) => {
   return {
+    errorText: upperFirst(state.chat.channelCreationError),
     teamname: routeProps.get('teamname'),
   }
 }
 
 const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routePath}) => ({
+  _onSetChannelCreationError: error => {
+    dispatch(setChannelCreationError(error))
+  },
   onBack: () => dispatch(navigateTo(['manageChannels'], routePath.butLast())),
   onClose: () => dispatch(navigateUp()),
   onCreateChannel: ({channelname, description, teamname}) => {
@@ -28,5 +33,10 @@ export default compose(
   withHandlers({
     onSubmit: ({channelname, description, onCreateChannel, teamname}) => () =>
       channelname && onCreateChannel({channelname, description, teamname}),
+  }),
+  lifecycle({
+    componentDidMount: function() {
+      this.props._onSetChannelCreationError('')
+    },
   })
 )(CreateChannel)
