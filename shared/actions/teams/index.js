@@ -551,9 +551,6 @@ function* _createChannel(action: Constants.CreateChannel) {
       return null
     }
 
-    // Select the new channel
-    yield Saga.put(ChatGen.createSelectConversation({conversationIDKey: newConversationIDKey}))
-
     // If we were given a description, set it
     if (description) {
       yield Saga.call(ChatTypes.localPostHeadlineNonblockRpcPromise, {
@@ -567,6 +564,13 @@ function* _createChannel(action: Constants.CreateChannel) {
         },
       })
     }
+
+    // This is kind of gross, but we're assuming we're on the teams tab
+    // yield Saga.put(navigateUp())
+
+    // Select the new channel, and switch to the chat tab.
+    yield Saga.put(ChatGen.createSelectConversation({conversationIDKey: newConversationIDKey}))
+    yield Saga.put(navigateTo([chatTab]))
   } catch (error) {
     yield Saga.put(Creators.setChannelCreationError(error.desc))
   }
