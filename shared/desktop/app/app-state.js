@@ -176,7 +176,7 @@ export default class AppState {
     clearTimeout(this.managed.debounceChangeTimer)
   }
 
-  _isValidState(state: State): boolean {
+  _isValidWindowState(state: State): boolean {
     // Check if the display where the window was last open is still available
     let rect = {
       x: state.x || 0,
@@ -200,7 +200,7 @@ export default class AppState {
     try {
       const stateLoaded = JSON.parse(fs.readFileSync(configPath, {encoding: 'utf8'}))
 
-      if (!this._isValidState(stateLoaded)) {
+      if (!this._isValidWindowState(stateLoaded)) {
         stateLoaded.x = null
         stateLoaded.y = null
       }
