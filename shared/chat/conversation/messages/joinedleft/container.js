@@ -7,7 +7,7 @@ import {connect} from 'react-redux'
 import {navigateTo, switchTo} from '../../../../actions/route-tree'
 import {teamsTab} from '../../../../constants/tabs'
 import {isMobile} from '../../../../constants/platform'
-import {showUserProfile} from '../../../../actions/profile'
+import {createShowUserProfile} from '../../../../actions/profile-gen'
 import {getProfile} from '../../../../actions/tracker'
 
 import type {TypedState} from '../../../../constants/reducer'
@@ -56,7 +56,7 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
     dispatch(switchTo([teamsTab]))
   },
   onUsernameClicked: (username: string) => {
-    isMobile ? dispatch(showUserProfile(username)) : dispatch(getProfile(username, true, true))
+    isMobile ? dispatch(createShowUserProfile({username})) : dispatch(getProfile(username, true, true))
   },
 })
 
