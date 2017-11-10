@@ -300,16 +300,16 @@ func (c *CmdTeamSettings) GetUsage() libkb.Usage {
 const teamSettingsDoc = `"keybase team settings" lets you edit settings for a team
 
 EXAMPLES:
-Review team settings:
-    keybase team settings acme
-Open a team so anyone can join as a reader:
-    keybase team settings acme --open-team=reader
-Showcase a team publicly:
-    keybase team settings acme --showcase=yes
-Promote a team on your profile:
-    keybase team settings acme --profile-promote=yes
-Set a description for the team to show if promoted:
-    keybase team settings acme --description="Rocket-Powered Products"
-Clear the team description:
-    keybase team settings acme --description=""
+    Review team settings:
+        keybase team settings acme
+    Open a team so anyone can join as a reader:
+        keybase team settings acme --open-team=reader
+    Showcase a team publicly:
+        keybase team settings acme --showcase=yes
+    Promote a team on your profile:
+        keybase team settings acme --profile-promote=yes
+    Set a description for the team to show if promoted:
+        keybase team settings acme --description="Rocket-Powered Products"
+    Clear the team description:
+        keybase team settings acme --description=""
 `
