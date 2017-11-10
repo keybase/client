@@ -122,7 +122,7 @@ class Session {
 
     // Add the sessionID
     const wrappedParam = {
-      param,
+      ...param,
       sessionID: this.id,
     }
 
