@@ -640,8 +640,25 @@ func doInit(
 	if err != nil {
 		return nil, fmt.Errorf("problem creating service: %s", err)
 	}
+	if registry := config.MetricsRegistry(); registry != nil {
+		service = NewKeybaseServiceMeasured(service, registry)
+	}
+	config.SetKeybaseService(service)
 
-	// Initialize MDServer connection
+	// Initialize KBPKI client (needed for MD Server).
+	k := NewKBPKIClient(config, kbfsLog)
+	config.SetKBPKI(k)
+
+	config.SetReporter(NewReporterKBPKI(config, 10, 1000))
+
+	// Initialize Crypto client (needed for MD and Block servers).
+	crypto, err := keybaseServiceCn.NewCrypto(config, params, kbCtx, kbfsLog)
+	if err != nil {
+		return nil, fmt.Errorf("problem creating crypto: %s", err)
+	}
+	config.SetCrypto(crypto)
+
+	// Initialize MDServer connection.
 	mdServer, err := makeMDServer(
 		config, params.MDServerAddr, kbCtx.NewRPCLogFactory(), log)
 	if err != nil {
@@ -649,7 +666,8 @@ func doInit(
 	}
 	config.SetMDServer(mdServer)
 
-	// note: the mdserver is the keyserver at the moment.
+	// Initialize KeyServer connection.  MDServer is the KeyServer at the
+	// moment.
 	keyServer, err := makeKeyServer(config, params.MDServerAddr, log)
 	if err != nil {
 		return nil, fmt.Errorf("problem creating key server: %+v", err)
@@ -659,7 +677,7 @@ func doInit(
 	}
 	config.SetKeyServer(keyServer)
 
-	// Initialize BlockServer connection
+	// Initialize BlockServer connection.
 	bserv, err := makeBlockServer(
 		config, params.BServerAddr, kbCtx.NewRPCLogFactory(), log)
 	if err != nil {
@@ -697,26 +715,6 @@ func doInit(
 			log.CDebugf(ctx, "Started RPC server for KBFS")
 		}
 	}
-
-	if registry := config.MetricsRegistry(); registry != nil {
-		service = NewKeybaseServiceMeasured(service, registry)
-	}
-
-	config.SetKeybaseService(service)
-
-	k := NewKBPKIClient(config, kbfsLog)
-	config.SetKBPKI(k)
-
-	config.SetReporter(NewReporterKBPKI(config, 10, 1000))
-
-	// crypto must be initialized before the MD and block servers
-	// are initialized, since those depend on crypto.
-	crypto, err := keybaseServiceCn.NewCrypto(config, params, kbCtx, kbfsLog)
-	if err != nil {
-		return nil, fmt.Errorf("problem creating crypto: %s", err)
-	}
-
-	config.SetCrypto(crypto)
 
 	err = config.EnableDiskLimiter(params.StorageRoot)
 	if err != nil {
