@@ -527,23 +527,23 @@ function _unboxedToMessage(
         case ChatTypes.commonMessageType.join: {
           const message = new HiddenString('joined')
           return {
-            type: 'System',
+            type: 'JoinedLeft',
             messageID: common.messageID,
             author: common.author,
             timestamp: common.timestamp,
             message,
-            key: Constants.messageKey(common.conversationIDKey, 'system', common.messageID),
+            key: Constants.messageKey(common.conversationIDKey, 'joinedleft', common.messageID),
           }
         }
         case ChatTypes.commonMessageType.leave: {
           const message = new HiddenString('left')
           return {
-            type: 'System',
+            type: 'JoinedLeft',
             messageID: common.messageID,
             author: common.author,
             timestamp: common.timestamp,
             message,
-            key: Constants.messageKey(common.conversationIDKey, 'system', common.messageID),
+            key: Constants.messageKey(common.conversationIDKey, 'joinedleft', common.messageID),
           }
         }
         case ChatTypes.commonMessageType.system: {
@@ -570,12 +570,12 @@ function _unboxedToMessage(
             }
           }
           return {
-            type: 'Text',
+            type: 'System',
             ...common,
             editedCount: payload.superseded ? 1 : 0, // mark it as edited if it's been superseded
             message: new HiddenString(sysMsgText),
-            messageState: 'sent', // TODO, distinguish sent/pending once CORE sends it.
-            key: Constants.messageKey(common.conversationIDKey, 'messageIDText', common.messageID),
+            messageState: 'sent',
+            key: Constants.messageKey(common.conversationIDKey, 'system', common.messageID),
           }
         }
         default:

@@ -343,6 +343,8 @@ protocol teams {
   @typedef("string")
   record SeitanAKey {}
 
+  // The secret shared with the recipient.
+  // With this information one can accept an invite.
   @typedef("string")
   record SeitanIKey {}
 

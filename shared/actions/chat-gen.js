@@ -35,6 +35,7 @@ export const inboxStoreLoaded = 'chat:inboxStoreLoaded'
 export const inboxSynced = 'chat:inboxSynced'
 export const incomingMessage = 'chat:incomingMessage'
 export const incomingTyping = 'chat:incomingTyping'
+export const joinConversation = 'chat:joinConversation'
 export const leaveConversation = 'chat:leaveConversation'
 export const loadAttachment = 'chat:loadAttachment'
 export const loadAttachmentPreview = 'chat:loadAttachmentPreview'
@@ -120,6 +121,7 @@ export const createInboxStoreLoaded = () => ({error: false, payload: undefined, 
 export const createInboxSynced = (payload: {|convs: Array<ChatTypes.UnverifiedInboxUIItem>|}) => ({error: false, payload, type: inboxSynced})
 export const createIncomingMessage = (payload: {|activity: ChatTypes.ChatActivity|}) => ({error: false, payload, type: incomingMessage})
 export const createIncomingTyping = (payload: {|activity: ChatTypes.TyperInfo|}) => ({error: false, payload, type: incomingTyping})
+export const createJoinConversation = (payload: {|conversationIDKey: Constants.ConversationIDKey|}) => ({error: false, payload, type: joinConversation})
 export const createLeaveConversation = (payload: {|conversationIDKey: Constants.ConversationIDKey|}) => ({error: false, payload, type: leaveConversation})
 export const createLoadAttachment = (payload: {|messageKey: Constants.MessageKey, loadPreview: boolean|}) => ({error: false, payload, type: loadAttachment})
 export const createLoadAttachmentPreview = (payload: {|messageKey: Constants.MessageKey|}) => ({error: false, payload, type: loadAttachmentPreview})
@@ -205,6 +207,7 @@ export type InboxStoreLoadedPayload = More.ReturnType<typeof createInboxStoreLoa
 export type InboxSyncedPayload = More.ReturnType<typeof createInboxSynced>
 export type IncomingMessagePayload = More.ReturnType<typeof createIncomingMessage>
 export type IncomingTypingPayload = More.ReturnType<typeof createIncomingTyping>
+export type JoinConversationPayload = More.ReturnType<typeof createJoinConversation>
 export type LeaveConversationPayload = More.ReturnType<typeof createLeaveConversation>
 export type LoadAttachmentPayload = More.ReturnType<typeof createLoadAttachment>
 export type LoadAttachmentPreviewPayload = More.ReturnType<typeof createLoadAttachmentPreview>
@@ -292,6 +295,7 @@ export type Actions =
   | More.ReturnType<typeof createInboxSynced>
   | More.ReturnType<typeof createIncomingMessage>
   | More.ReturnType<typeof createIncomingTyping>
+  | More.ReturnType<typeof createJoinConversation>
   | More.ReturnType<typeof createLeaveConversation>
   | More.ReturnType<typeof createLoadAttachment>
   | More.ReturnType<typeof createLoadAttachmentPreview>

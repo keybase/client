@@ -162,17 +162,32 @@ func (h *TeamsHandler) TeamAddMember(ctx context.Context, arg keybase1.TeamAddMe
 }
 
 func (h *TeamsHandler) TeamRemoveMember(ctx context.Context, arg keybase1.TeamRemoveMemberArg) (err error) {
-	defer h.G().CTraceTimed(ctx, fmt.Sprintf("TeamRemoveMember(%s,%s)", arg.Name, arg.Username),
+	defer h.G().CTraceTimed(ctx, fmt.Sprintf("TeamRemoveMember(%s, u:%q, e:%q, i:%q)", arg.Name, arg.Username, arg.Email, arg.InviteID),
 		func() error { return err })()
 
 	if err := h.assertLoggedIn(ctx); err != nil {
 		return err
 	}
+
+	var exclusiveActions []string
+	if len(arg.Username) > 0 {
+		exclusiveActions = append(exclusiveActions, "username")
+	}
+	if len(arg.Email) > 0 {
+		exclusiveActions = append(exclusiveActions, "email")
+	}
+	if len(arg.InviteID) > 0 {
+		exclusiveActions = append(exclusiveActions, "inviteID")
+	}
+	if len(exclusiveActions) > 1 {
+		return fmt.Errorf("TeamRemoveMember can only do 1 of %v at a time", exclusiveActions)
+	}
+
 	if len(arg.Email) > 0 {
 		h.G().Log.CDebugf(ctx, "TeamRemoveMember: received email address, using CancelEmailInvite for %q in team %q", arg.Email, arg.Name)
 		return teams.CancelEmailInvite(ctx, h.G().ExternalG(), arg.Name, arg.Email)
 	} else if len(arg.InviteID) > 0 {
-		h.G().Log.CDebugf(ctx, "TeamRemoveMember: received InviteID, using CancelInviteByID for %q in team %q", arg.InviteID, arg.Name)
+		h.G().Log.CDebugf(ctx, "TeamRemoveMember: received inviteID, using CancelInviteByID for %q in team %q", arg.InviteID, arg.Name)
 		return teams.CancelInviteByID(ctx, h.G().ExternalG(), arg.Name, arg.InviteID)
 	}
 	h.G().Log.CDebugf(ctx, "TeamRemoveMember: using RemoveMember for %q in team %q", arg.Username, arg.Name)

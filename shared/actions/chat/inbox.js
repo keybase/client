@@ -501,12 +501,12 @@ function* unboxConversations(action: ChatGen.UnboxConversationsPayload): SagaGen
     RPCChatTypes.localGetInboxNonblockLocalRpcChannelMap,
     'unboxConversations',
     {
-        identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
-        skipUnverified: forInboxSync,
-        query: {
-          ..._getInboxQuery,
-          convIDs: conversationIDKeys.map(Constants.keyToConversationID),
-        },
+      identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
+      skipUnverified: forInboxSync,
+      query: {
+        ..._getInboxQuery,
+        convIDs: conversationIDKeys.map(Constants.keyToConversationID),
+      },
     }
   )
 
@@ -587,6 +587,7 @@ function _conversationLocalToInboxState(c: ?RPCChatTypes.InboxUIItem): ?Constant
     conversationIDKey,
     isEmpty: c.isEmpty,
     maxMsgID: c.maxMsgID,
+    memberStatus: c.memberStatus,
     membersType: c.membersType,
     name: c.name,
     notifications,
@@ -890,6 +891,11 @@ function* _incomingMessage(action: ChatGen.IncomingMessagePayload): Saga.SagaGen
   }
 }
 
+function _joinConversation(action: ChatGen.JoinConversationPayload) {
+  const convID = Constants.keyToConversationID(action.payload.conversationIDKey)
+  return Saga.call(RPCChatTypes.localJoinConversationByIDLocalRpcPromise, {convID})
+}
+
 function* registerSagas(): SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(ChatGen.updateSnippet, _updateSnippet)
   yield Saga.safeTakeEvery(ChatGen.getInboxAndUnbox, onGetInboxAndUnbox)
@@ -903,6 +909,7 @@ function* registerSagas(): SagaGenerator<any, any> {
   yield Saga.safeTakeEvery(ChatGen.inboxSynced, _inboxSynced)
   yield Saga.safeTakeLatest(ChatGen.badgeAppForChat, _badgeAppForChat)
   yield Saga.safeTakeEvery(ChatGen.incomingMessage, _incomingMessage)
+  yield Saga.safeTakeEveryPure(ChatGen.joinConversation, _joinConversation)
 }
 
 export {registerSagas}

@@ -308,7 +308,7 @@ const promptNewDeviceNameSaga = onBackSaga =>
       yield Saga.call(onBackSaga)
       return EngineRpc.rpcCancel(InputCancelError)
     } else if (onSubmit) {
-      return EngineRpc.rpcResult(onSubmit.payload.deviceName)
+      return EngineRpc.rpcResult(onSubmit.payload)
     }
   }
 

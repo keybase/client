@@ -171,7 +171,7 @@ popd
 :repoexists 
 
 pushd %GOPATH%\src\github.com\keybase\%~1
-git pull || EXIT /B 1
+git pull origin %~2 || EXIT /B 1
 git checkout %~2 || EXIT /B 1
 popd
 EXIT /B 0

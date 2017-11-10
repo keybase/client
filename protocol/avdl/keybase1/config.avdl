@@ -89,6 +89,7 @@ protocol config {
     string gpgPath;
     string version;
     string path;
+    string binaryRealpath;
     string configPath;
     string versionShort;
     string versionFull;

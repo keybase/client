@@ -243,6 +243,9 @@
       "conversationIDKey": "Constants.ConversationIDKey",
       "isLoaded": "boolean"
     },
+    "joinConversation": {
+      "conversationIDKey": "Constants.ConversationIDKey"
+    },
     "appendMessages": {
       "conversationIDKey": "Constants.ConversationIDKey",
       "isSelected": "boolean",

@@ -701,6 +701,10 @@ export const gregorDismissCategoryRpcChannelMap = (configKeys: Array<string>, re
 
 export const gregorDismissCategoryRpcPromise = (request: GregorDismissCategoryRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.gregor.dismissCategory', request, (error, result) => error ? reject(error) : resolve(result)))
 
+export const gregorDismissItemRpcChannelMap = (configKeys: Array<string>, request: GregorDismissItemRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.gregor.dismissItem', request)
+
+export const gregorDismissItemRpcPromise = (request: GregorDismissItemRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.gregor.dismissItem', request, (error, result) => error ? reject(error) : resolve(result)))
+
 export const gregorGetStateRpcChannelMap = (configKeys: Array<string>, request: GregorGetStateRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.gregor.getState', request)
 
 export const gregorGetStateRpcPromise = (request: GregorGetStateRpcParam): Promise<GregorGetStateResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.gregor.getState', request, (error, result) => error ? reject(error) : resolve(result)))
@@ -1832,7 +1836,7 @@ export type BTCRegisterBTCRpcParam = {|address: String,force: Boolean,incomingCa
 
 export type BadgeConversationInfo = {|convID: ChatConversationID,badgeCounts: {[key: string]: Int},unreadMessages: Int,|}
 
-export type BadgeState = {|newTlfs: Int,rekeysNeeded: Int,newFollowers: Int,inboxVers: Int,conversations?: ?Array<BadgeConversationInfo>,newGitRepoGlobalUniqueIDs?: ?Array<String>,newTeamNames?: ?Array<String>,newTeamAccessRequests?: ?Array<String>,|}
+export type BadgeState = {|newTlfs: Int,rekeysNeeded: Int,newFollowers: Int,inboxVers: Int,conversations?: ?Array<BadgeConversationInfo>,newGitRepoGlobalUniqueIDs?: ?Array<String>,newTeamNames?: ?Array<String>,newTeamAccessRequests?: ?Array<String>,teamsWithResetUsers?: ?Array<TeamMemberOutReset>,|}
 
 export type BadgerGetBadgeStateRpcParam = ?{|incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
@@ -1925,7 +1929,7 @@ export type CompatibilityTeamID ={ typ: 1, legacy: ?TLFID } | { typ: 2, modern: 
 
 export type ComponentResult = {|name: String,status: Status,exitCode: Int,|}
 
-export type Config = {|serverURI: String,socketFile: String,label: String,runMode: String,gpgExists: Boolean,gpgPath: String,version: String,path: String,configPath: String,versionShort: String,versionFull: String,isAutoForked: Boolean,forkType: ForkType,|}
+export type Config = {|serverURI: String,socketFile: String,label: String,runMode: String,gpgExists: Boolean,gpgPath: String,version: String,path: String,binaryRealpath: String,configPath: String,versionShort: String,versionFull: String,isAutoForked: Boolean,forkType: ForkType,|}
 
 export type ConfigCheckAPIServerOutOfDateWarningRpcParam = ?{|incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
@@ -2249,6 +2253,8 @@ export type GpgUiSignRpcParam = {|msg: Bytes,fingerprint: Bytes,incomingCallMap?
 export type GpgUiWantToAddGPGKeyRpcParam = ?{|incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
 export type GregorDismissCategoryRpcParam = {|category: Gregor1.Category,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+
+export type GregorDismissItemRpcParam = {|id: Gregor1.MsgID,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
 export type GregorGetStateRpcParam = ?{|incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
@@ -3438,6 +3444,8 @@ export type TeamList = {|teams?: ?Array<MemberInfo>,|}
 export type TeamMember = {|uid: UID,role: TeamRole,eldestSeqno: Seqno,userEldestSeqno: Seqno,|}
 
 export type TeamMemberDetails = {|uv: UserVersion,username: String,active: Boolean,needsPUK: Boolean,|}
+
+export type TeamMemberOutReset = {|teamname: String,username: String,id: Gregor1.MsgID,|}
 
 export type TeamMembers = {|owners?: ?Array<UserVersion>,admins?: ?Array<UserVersion>,writers?: ?Array<UserVersion>,readers?: ?Array<UserVersion>,|}
 

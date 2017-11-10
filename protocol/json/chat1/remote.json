@@ -928,10 +928,6 @@
           "type": "TopicType"
         },
         {
-          "name": "membersType",
-          "type": "ConversationMembersType"
-        },
-        {
           "name": "summarizeMaxMsgs",
           "type": "boolean"
         }
