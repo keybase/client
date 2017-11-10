@@ -424,10 +424,6 @@ func (p *CommandLine) PopulateApp(addHelp bool, extraFlags []cli.Flag) {
 			Usage: "Enable debugging mode.",
 		},
 		cli.BoolFlag{
-			Name:  "support-per-user-key",
-			Usage: "Support per-user keys. Experimental, may break sigchain!",
-		},
-		cli.BoolFlag{
 			Name:  "upgrade-per-user-key",
 			Usage: "Create new per-user-keys. Experimental, will break sigchain!",
 		},
