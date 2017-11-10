@@ -48,11 +48,12 @@ call:checkout_keybase release, %ReleaseRevision% || goto:build_error || EXIT /B 
 if [%UpdateChannel%] == [SmokeCI] (
     for /f %%i in ('git -C %GOPATH%\src\github.com\keybase\client rev-parse --short HEAD') do set clientCommit=%%i
     for /f %%i in ('git -C %GOPATH%\src\github.com\keybase\kbfs rev-parse --short HEAD') do set kbfsCommit=%%i
+    echo [%clientCommit%] [%kbfsCommit%]
     :: need GITHUB_TOKEN
     pushd %GOPATH%\src\github.com\keybase\release
     go build || goto:build_error || EXIT /B 1
-    release wait-ci --repo="client" --commit="%clientCommit%" --context="continuous-integration/jenkins/branch" --context="ci/circleci"  || goto:build_error || EXIT /B 1
-    release wait-ci --repo="kbfs" --commit="%kbfsCommit%" --context="continuous-integration/jenkins/branch" --context="ci/circleci"  || goto:build_error || EXIT /B 1
+    release wait-ci --repo="client" --commit="%clientCommit%" --context="continuous-integration/jenkins/branch" --context="ci/circleci"  || goto:ci_error
+    release wait-ci --repo="kbfs" --commit="%kbfsCommit%" --context="continuous-integration/jenkins/branch" --context="ci/circleci"  || goto:ci_error
     popd
 )
 
@@ -178,6 +179,10 @@ EXIT /B 0
 
 goto:eof
 
-:build_error
+:build_error 
 %OUTPUT% "Error building Windows"
+EXIT /B 1
+
+:ci_error 
+%OUTPUT% "CI Failure building Windows"
 EXIT /B 1
