@@ -327,7 +327,6 @@ protocol local {
     array<string> atMentionUsernames;
     array<gregor1.UID> atMentions;
     ChannelMention channelMention;
-    array<string> channelNameMentions;
   }
 
   enum MessageUnboxedErrorType {

@@ -169,9 +169,7 @@ type AppState interface {
 type TeamChannelSource interface {
 	Offlinable
 
-	GetChannelsFull(context.Context, gregor1.UID, chat1.TLFID, chat1.TopicType,
-		chat1.ConversationMembersType) ([]chat1.ConversationLocal, []chat1.RateLimit, error)
-	GetChannelsTopicName(context.Context, gregor1.UID, chat1.TLFID, chat1.TopicType,
-		chat1.ConversationMembersType) ([]ConvIDAndTopicName, []chat1.RateLimit, error)
+	GetChannelsFull(context.Context, gregor1.UID, chat1.TLFID, chat1.TopicType) ([]chat1.ConversationLocal, []chat1.RateLimit, error)
+	GetChannelsTopicName(context.Context, gregor1.UID, chat1.TLFID, chat1.TopicType) ([]ConvIDAndTopicName, []chat1.RateLimit, error)
 	ChannelsChanged(context.Context, chat1.TLFID)
 }

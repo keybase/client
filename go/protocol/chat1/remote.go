@@ -845,10 +845,9 @@ type DeleteConversationArg struct {
 }
 
 type GetTLFConversationsArg struct {
-	TlfID            TLFID                   `codec:"tlfID" json:"tlfID"`
-	TopicType        TopicType               `codec:"topicType" json:"topicType"`
-	MembersType      ConversationMembersType `codec:"membersType" json:"membersType"`
-	SummarizeMaxMsgs bool                    `codec:"summarizeMaxMsgs" json:"summarizeMaxMsgs"`
+	TlfID            TLFID     `codec:"tlfID" json:"tlfID"`
+	TopicType        TopicType `codec:"topicType" json:"topicType"`
+	SummarizeMaxMsgs bool      `codec:"summarizeMaxMsgs" json:"summarizeMaxMsgs"`
 }
 
 type SetAppNotificationSettingsArg struct {
