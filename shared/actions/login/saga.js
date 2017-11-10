@@ -628,7 +628,7 @@ function* addNewDeviceSaga({payload: {role}}: LoginGen.AddNewDevicePayload) {
     yield Saga.put(navigateTo(devicesTabLocation))
   }
 
-  const onSuccessSaga = function*(): Generator<any, void, any> {
+  const onSuccessSaga = function*(): Generator<any, any, any> {
     yield Saga.call(onBackSaga)
     return EngineRpc.rpcResult()
   }
