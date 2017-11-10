@@ -631,6 +631,37 @@ func doInit(
 
 	kbfsLog := config.MakeLogger("")
 
+	mdServer, err := makeMDServer(
+		config, params.MDServerAddr, kbCtx.NewRPCLogFactory(), log)
+	if err != nil {
+		return nil, fmt.Errorf("problem creating MD server: %+v", err)
+	}
+	config.SetMDServer(mdServer)
+
+	// note: the mdserver is the keyserver at the moment.
+	keyServer, err := makeKeyServer(config, params.MDServerAddr, log)
+	if err != nil {
+		return nil, fmt.Errorf("problem creating key server: %+v", err)
+	}
+
+	if registry := config.MetricsRegistry(); registry != nil {
+		keyServer = NewKeyServerMeasured(keyServer, registry)
+	}
+
+	config.SetKeyServer(keyServer)
+
+	bserv, err := makeBlockServer(
+		config, params.BServerAddr, kbCtx.NewRPCLogFactory(), log)
+	if err != nil {
+		return nil, fmt.Errorf("cannot open block database: %+v", err)
+	}
+
+	if registry := config.MetricsRegistry(); registry != nil {
+		bserv = NewBlockServerMeasured(bserv, registry)
+	}
+
+	config.SetBlockServer(bserv)
+
 	if keybaseServiceCn == nil {
 		keybaseServiceCn = keybaseDaemon{}
 	}
@@ -686,37 +717,6 @@ func doInit(
 	}
 
 	config.SetCrypto(crypto)
-
-	mdServer, err := makeMDServer(
-		config, params.MDServerAddr, kbCtx.NewRPCLogFactory(), log)
-	if err != nil {
-		return nil, fmt.Errorf("problem creating MD server: %+v", err)
-	}
-	config.SetMDServer(mdServer)
-
-	// note: the mdserver is the keyserver at the moment.
-	keyServer, err := makeKeyServer(config, params.MDServerAddr, log)
-	if err != nil {
-		return nil, fmt.Errorf("problem creating key server: %+v", err)
-	}
-
-	if registry := config.MetricsRegistry(); registry != nil {
-		keyServer = NewKeyServerMeasured(keyServer, registry)
-	}
-
-	config.SetKeyServer(keyServer)
-
-	bserv, err := makeBlockServer(
-		config, params.BServerAddr, kbCtx.NewRPCLogFactory(), log)
-	if err != nil {
-		return nil, fmt.Errorf("cannot open block database: %+v", err)
-	}
-
-	if registry := config.MetricsRegistry(); registry != nil {
-		bserv = NewBlockServerMeasured(bserv, registry)
-	}
-
-	config.SetBlockServer(bserv)
 
 	err = config.EnableDiskLimiter(params.StorageRoot)
 	if err != nil {
