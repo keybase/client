@@ -308,6 +308,23 @@ func IsVisibleChatMessageType(messageType chat1.MessageType) bool {
 	return false
 }
 
+func IsNotifiableChatMessageType(messageType chat1.MessageType, atMentions []gregor1.UID, chanMention chat1.ChannelMention) bool {
+	if IsVisibleChatMessageType(messageType) {
+		return true
+	}
+
+	if messageType != chat1.MessageType_EDIT {
+		return false
+	}
+
+	// an edit with atMention or channel mention should generate notifications
+	if len(atMentions) > 0 || chanMention != chat1.ChannelMention_NONE {
+		return true
+	}
+
+	return false
+}
+
 type DebugLabeler struct {
 	log     logger.Logger
 	label   string
