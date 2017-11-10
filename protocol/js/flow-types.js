@@ -3114,7 +3114,7 @@ export type RemoveArgs = {|opID: OpID,path: Path,|}
 
 export type RepoID = String
 
-export type ResolveIdentifyImplicitTeamRes = {|displayName: String,teamID: TeamID,writers?: ?Array<UserVersion>,trackBreaks: {[key: string]: IdentifyTrackBreaks},|}
+export type ResolveIdentifyImplicitTeamRes = {|displayName: String,teamID: TeamID,writers?: ?Array<UserVersion>,trackBreaks: {[key: string]: IdentifyTrackBreaks},folderID: String,|}
 
 export type RevokeRevokeDeviceRpcParam = {|  deviceID: DeviceID,
   forceSelf: Boolean,

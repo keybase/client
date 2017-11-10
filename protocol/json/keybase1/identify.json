@@ -109,6 +109,10 @@
             "keys": "UserVersion"
           },
           "name": "trackBreaks"
+        },
+        {
+          "type": "string",
+          "name": "folderID"
         }
       ]
     }
