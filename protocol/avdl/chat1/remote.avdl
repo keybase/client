@@ -229,6 +229,7 @@ protocol remote {
   }
   JoinLeaveConversationRemoteRes joinConversation(ConversationID convID);
   JoinLeaveConversationRemoteRes leaveConversation(ConversationID convID);
+  JoinLeaveConversationRemoteRes previewConversation(ConversationID convID);
   record DeleteConversationRemoteRes {
     union { null, RateLimit } rateLimit;
   }

@@ -310,6 +310,13 @@
           "name": "reset"
         },
         {
+          "type": {
+            "type": "array",
+            "items": "ConversationID"
+          },
+          "name": "previewed"
+        },
+        {
           "type": [
             null,
             "UnreadUpdate"
