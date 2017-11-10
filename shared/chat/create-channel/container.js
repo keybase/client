@@ -3,7 +3,7 @@ import CreateChannel from '.'
 import {compose, withHandlers, lifecycle, withState, connect, type TypedState} from '../../util/container'
 import {createChannel, setChannelCreationError} from '../../actions/teams/creators'
 import {navigateTo} from '../../actions/route-tree'
-import {chatTab} from '../../constants/tabs'
+// import {chatTab} from '../../constants/tabs'
 import upperFirst from 'lodash/upperFirst'
 
 const mapStateToProps = (state: TypedState, {routeProps}) => {
@@ -21,8 +21,9 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routePath}) => ({
   onClose: () => dispatch(navigateUp()),
   onCreateChannel: ({channelname, description, teamname}) => {
     dispatch(createChannel(teamname, channelname, description))
-    dispatch(navigateUp())
-    dispatch(navigateTo([chatTab]))
+    // TODO: Only on success.
+    // dispatch(navigateUp())
+    // dispatch(navigateTo([chatTab]))
   },
 })
 
