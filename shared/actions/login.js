@@ -463,11 +463,9 @@ function* loginFlowSaga(usernameOrEmail, passphrase): Generator<any, void, any> 
   const loginSagas = kex2Sagas(cancelLogin, EngineRpc.passthroughResponseSaga, passphraseSaga)
 
   const loginRpcCall = new EngineRpc.EngineRpcCall(loginSagas, Types.loginLoginRpcChannelMap, 'loginRpc', {
-    param: {
-      deviceType,
-      usernameOrEmail,
-      clientType: Types.commonClientType.guiMain,
-    },
+    deviceType,
+    usernameOrEmail,
+    clientType: Types.commonClientType.guiMain,
   })
 
   try {

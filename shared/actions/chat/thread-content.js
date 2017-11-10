@@ -140,18 +140,16 @@ function* _loadMoreMessages(action: ChatGen.LoadMoreMessagesPayload): Saga.SagaG
       ChatTypes.localGetThreadNonblockRpcChannelMap,
       'localGetThreadNonblock',
       {
-        param: {
-          conversationID,
-          identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
-          query: {
-            disableResolveSupersedes: false,
-            markAsRead: true,
-            messageTypes,
-            messageIDControl: {
-              pivot,
-              recent,
-              num: action.payload.numberOverride || Constants.maxMessagesToLoadAtATime,
-            },
+        conversationID,
+        identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
+        query: {
+          disableResolveSupersedes: false,
+          markAsRead: true,
+          messageTypes,
+          messageIDControl: {
+            pivot,
+            recent,
+            num: action.payload.numberOverride || Constants.maxMessagesToLoadAtATime,
           },
         },
       }

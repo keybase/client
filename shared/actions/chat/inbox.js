@@ -501,14 +501,12 @@ function* unboxConversations(action: ChatGen.UnboxConversationsPayload): SagaGen
     RPCChatTypes.localGetInboxNonblockLocalRpcChannelMap,
     'unboxConversations',
     {
-      param: {
         identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
         skipUnverified: forInboxSync,
         query: {
           ..._getInboxQuery,
           convIDs: conversationIDKeys.map(Constants.keyToConversationID),
         },
-      },
     }
   )
 
