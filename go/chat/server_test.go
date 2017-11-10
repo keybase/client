@@ -1046,6 +1046,7 @@ func TestChatSrvPostLocalAtMention(t *testing.T) {
 			require.True(t, info.Message.IsValid())
 			require.Equal(t, chat1.MessageType_SYSTEM, info.Message.GetMessageType())
 			require.Equal(t, 1, len(info.Message.Valid().AtMentions))
+			require.Equal(t, users[1].Username, info.Message.Valid().AtMentions[0])
 			require.Equal(t, chat1.ChannelMention_NONE, info.Message.Valid().ChannelMention)
 			require.True(t, info.DisplayDesktopNotification)
 		case <-time.After(20 * time.Second):
