@@ -1549,9 +1549,10 @@ func (o TeamRequestAccessResult) DeepCopy() TeamRequestAccessResult {
 }
 
 type TeamShowcase struct {
-	IsShowcased bool    `codec:"isShowcased" json:"is_showcased"`
-	Description *string `codec:"description,omitempty" json:"description,omitempty"`
-	SetByUID    *UID    `codec:"setByUID,omitempty" json:"set_by_uid,omitempty"`
+	IsShowcased       bool    `codec:"isShowcased" json:"is_showcased"`
+	Description       *string `codec:"description,omitempty" json:"description,omitempty"`
+	SetByUID          *UID    `codec:"setByUID,omitempty" json:"set_by_uid,omitempty"`
+	AnyMemberShowcase bool    `codec:"anyMemberShowcase" json:"any_member_showcase"`
 }
 
 func (o TeamShowcase) DeepCopy() TeamShowcase {
@@ -1571,6 +1572,7 @@ func (o TeamShowcase) DeepCopy() TeamShowcase {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.SetByUID),
+		AnyMemberShowcase: o.AnyMemberShowcase,
 	}
 }
 
@@ -1881,9 +1883,10 @@ type GetTeamAndMemberShowcaseArg struct {
 }
 
 type SetTeamShowcaseArg struct {
-	Name        string  `codec:"name" json:"name"`
-	IsShowcased *bool   `codec:"isShowcased,omitempty" json:"isShowcased,omitempty"`
-	Description *string `codec:"description,omitempty" json:"description,omitempty"`
+	Name              string  `codec:"name" json:"name"`
+	IsShowcased       *bool   `codec:"isShowcased,omitempty" json:"isShowcased,omitempty"`
+	Description       *string `codec:"description,omitempty" json:"description,omitempty"`
+	AnyMemberShowcase *bool   `codec:"anyMemberShowcase,omitempty" json:"anyMemberShowcase,omitempty"`
 }
 
 type SetTeamMemberShowcaseArg struct {
