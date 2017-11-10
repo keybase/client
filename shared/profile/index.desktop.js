@@ -99,14 +99,16 @@ class ProfileRender extends PureComponent<Props, State> {
         pendingMessage = 'Your proof is pending. DNS proofs can take a few hours to recognize.'
       }
       return {
-        header: pendingMessage && {
-          title: 'header',
-          view: (
-            <PopupHeaderText color={globalColors.white} backgroundColor={globalColors.blue}>
-              {pendingMessage}
-            </PopupHeaderText>
-          ),
-        },
+        header: pendingMessage
+          ? {
+              title: 'header',
+              view: (
+                <PopupHeaderText color={globalColors.white} backgroundColor={globalColors.blue}>
+                  {pendingMessage}
+                </PopupHeaderText>
+              ),
+            }
+          : null,
         items: [
           {
             title: shared.revokeProofLanguage(proof.type),
@@ -261,9 +263,9 @@ class ProfileRender extends PureComponent<Props, State> {
     const missingProofs = !this.props.isYou
       ? []
       : shared.missingProofs(this.props.proofs, this.props.onMissingProofClick)
-    const proofMenuContent =
-      this.state.proofMenuIndex != null &&
-      this._proofMenuContent(this.props.proofs[this.state.proofMenuIndex])
+    const proofMenuContent = this.state.proofMenuIndex != null
+      ? this._proofMenuContent(this.props.proofs[this.state.proofMenuIndex])
+      : null
 
     return (
       <Box style={styleOuterContainer}>

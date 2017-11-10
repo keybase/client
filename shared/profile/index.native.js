@@ -117,7 +117,7 @@ class Profile extends Component<Props, State> {
         pendingMessage = 'Your proof is pending. DNS proofs can take a few hours to recognize.'
       }
       return {
-        header: pendingMessage && {title: pendingMessage},
+        header: pendingMessage ? {title: pendingMessage} : null,
         items: [{title: 'Revoke', danger: true, onClick: () => this.props.onRevokeProof(proof)}],
       }
     }

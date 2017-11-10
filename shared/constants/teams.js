@@ -213,7 +213,7 @@ type _State = {
   teamNameToMembers: I.Map<Teamname, I.Set<MemberInfo>>,
   teamNameToMemberUsernames: I.Map<Teamname, I.Set<string>>,
   teamNameToLoading: I.Map<Teamname, boolean>,
-  teamNameToRequests: I.Map<Teamname, I.List<string>>,
+  teamNameToRequests: I.Map<Teamname, I.Set<string>>,
   teamNameToTeamSettings: I.Map<Teamname, TeamSettings>,
   teamnames: I.Set<Teamname>,
   teammembercounts: I.Map<Teamname, number>,
