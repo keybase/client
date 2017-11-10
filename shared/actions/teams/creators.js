@@ -111,6 +111,10 @@ function setPublicityTeam(teamname: string, enabled: boolean) {
   return {payload: {enabled, teamname}, type: 'teams:setPublicityTeam'}
 }
 
+function setChannelCreationError(channelCreationError: string): Constants.SetChannelCreationError {
+  return {payload: {channelCreationError}, type: 'teams:setChannelCreationError'}
+}
+
 function setTeamCreationError(teamCreationError: string): Constants.SetTeamCreationError {
   return {payload: {teamCreationError}, type: 'teams:setTeamCreationError'}
 }
@@ -172,6 +176,7 @@ export {
   makeTeamOpen,
   removeMember,
   saveChannelMembership,
+  setChannelCreationError,
   setPublicityMember,
   setPublicityTeam,
   setTeamCreationError,
