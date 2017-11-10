@@ -11,6 +11,7 @@ import (
 	"os"
 	"runtime"
 	"sync"
+	"time"
 
 	jsonw "github.com/keybase/go-jsonw"
 )
@@ -47,26 +48,33 @@ func (f *JSONFile) GetWrapper() *jsonw.Wrapper {
 }
 func (f *JSONFile) Exists() bool { return f.exists }
 
-func (f *JSONFile) Load(warnOnNotFound bool) error {
-	f.G().Log.Debug("+ loading %s file: %s", f.which, f.filename)
-	file, err := os.Open(f.filename)
-	if err != nil {
-		if os.IsNotExist(err) {
-			msg := fmt.Sprintf("No %s file found; tried %s", f.which, f.filename)
-			if warnOnNotFound {
-				f.G().Log.Warning(msg)
-			} else {
-				f.G().Log.Debug(msg)
+func (f *JSONFile) Load(warnOnNotFound bool) (err error) {
+	var file *os.File
+	maxPermissionRetries := 5
+	for i := 0; i < maxPermissionRetries; i++ {
+		f.G().Log.Debug("+ loading %s file: %s", f.which, f.filename)
+		file, err = os.Open(f.filename)
+		if err != nil {
+			if os.IsNotExist(err) {
+				msg := fmt.Sprintf("No %s file found; tried %s", f.which, f.filename)
+				if warnOnNotFound {
+					f.G().Log.Warning(msg)
+				} else {
+					f.G().Log.Debug(msg)
+				}
+				return nil
 			}
-			return nil
+			if os.IsPermission(err) {
+				f.G().Log.Warning("Permission denied opening %s file %s", f.which, f.filename)
+				if i == maxPermissionRetries-1 {
+					return nil
+				}
+				time.Sleep(200 * time.Millisecond)
+				continue
+			}
+			return err
 		}
-
-		if os.IsPermission(err) {
-			f.G().Log.Warning("Permission denied opening %s file %s", f.which, f.filename)
-			return nil
-		}
-
-		return err
+		break
 	}
 	f.exists = true
 	defer file.Close()
