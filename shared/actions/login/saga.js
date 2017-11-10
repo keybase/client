@@ -204,12 +204,15 @@ const displayPrimaryPaperKeySaga = onBackSaga =>
       )
     )
 
-    const {onBack, navUp, onFinish} = yield Saga.race({
+    const {onBack, navUp, onFinish} = (yield Saga.race({
       onBack: Saga.take(LoginGen.onBack),
       navUp: Saga.take(RouteConstants.navigateUp),
       onFinish: Saga.take(LoginGen.onFinish),
+    }): {
+      onBack: ?LoginGen.OnBackPayload,
+      navUp: ?RouteConstants.NavigateUp,
+      onFinish: ?LoginGen.OnFinishPayload,
     })
-
     if (onBack || navUp) {
       yield Saga.call(onBackSaga)
       return EngineRpc.rpcCancel(InputCancelError)
@@ -232,17 +235,20 @@ const getEmailOrUsernameSaga = onBackSaga =>
       )
     )
 
-    const {onBack, navUp, onSubmit} = yield Saga.race({
+    const {onBack, navUp, onSubmit} = (yield Saga.race({
       onBack: Saga.take(LoginGen.onBack),
       navUp: Saga.take(RouteConstants.navigateUp),
       onSubmit: Saga.take(LoginGen.submitUsernameOrEmail),
+    }): {
+      onBack: ?LoginGen.OnBackPayload,
+      navUp: ?RouteConstants.NavigateUp,
+      onSubmit: ?LoginGen.SubmitUsernameOrEmailPayload,
     })
-
     if (onBack || navUp) {
       yield Saga.call(onBackSaga)
       return EngineRpc.rpcCancel(InputCancelError)
     } else if (onSubmit) {
-      const usernameOrEmail = onSubmit.payload.usernameOrEmail
+      const {usernameOrEmail} = onSubmit.payload
       if (!usernameOrEmail) {
         console.error('no email')
       }
@@ -264,18 +270,25 @@ const displayAndPromptSecretSaga = onBackSaga =>
       yield Saga.put(navigateAppend(['codePage']))
     }
 
-    const {textEntered, qrScanned, onBack, navUp} = yield Saga.race({
+    const {textEntered, qrScanned, onBack, navUp} = (yield Saga.race({
       onBack: Saga.take(LoginGen.onBack),
       navUp: Saga.take(RouteConstants.navigateUp),
       qrScanned: Saga.take(LoginGen.qrScanned),
       textEntered: Saga.take(LoginGen.provisionTextCodeEntered),
+    }): {
+      onBack: ?LoginGen.OnBackPayload,
+      navUp: ?RouteConstants.NavigateUp,
+      qrScanned: ?LoginGen.QrScannedPayload,
+      textEntered: ?LoginGen.ProvisionTextCodeEnteredPayload,
     })
-
     if (onBack || navUp) {
       yield Saga.call(onBackSaga)
       return EngineRpc.rpcCancel(InputCancelError)
-    } else if (qrScanned || textEntered) {
-      const phrase: HiddenString = qrScanned ? qrScanned.payload.phrase : textEntered.payload.phrase
+    } else if (qrScanned) {
+      const phrase: HiddenString = qrScanned.payload.phrase
+      return EngineRpc.rpcResult({phrase: phrase.stringValue(), secret: null})
+    } else if (textEntered) {
+      const phrase: HiddenString = textEntered.payload.phrase
       return EngineRpc.rpcResult({phrase: phrase.stringValue(), secret: null})
     }
   }
@@ -297,17 +310,21 @@ const promptNewDeviceNameSaga = onBackSaga =>
       )
     )
 
-    const {onBack, navUp, onSubmit} = yield Saga.race({
+    const {onBack, navUp, onSubmit} = (yield Saga.race({
       onBack: Saga.take(LoginGen.onBack),
       navUp: Saga.take(RouteConstants.navigateUp),
       onSubmit: Saga.take(LoginGen.submitDeviceName),
+    }): {
+      onBack: ?LoginGen.OnBackPayload,
+      navUp: ?RouteConstants.NavigateUp,
+      onSubmit: ?LoginGen.SubmitDeviceNamePayload,
     })
-
     if (onBack || navUp) {
       yield Saga.call(onBackSaga)
       return EngineRpc.rpcCancel(InputCancelError)
     } else if (onSubmit) {
-      return EngineRpc.rpcResult(onSubmit.payload)
+      const {deviceName} = onSubmit.payload
+      return EngineRpc.rpcResult(deviceName)
     }
   }
 
@@ -326,13 +343,17 @@ const chooseDeviceSaga = onBackSaga =>
       )
     )
 
-    const {onBack, navUp, onWont, onSelect} = yield Saga.race({
+    const {onBack, navUp, onWont, onSelect} = (yield Saga.race({
       onBack: Saga.take(LoginGen.onBack),
       navUp: Saga.take(RouteConstants.navigateUp),
       onWont: Saga.take(LoginGen.onWont),
       onSelect: Saga.take(LoginGen.selectDeviceId),
+    }): {
+      onBack: ?LoginGen.OnBackPayload,
+      navUp: ?RouteConstants.NavigateUp,
+      onWont: ?LoginGen.OnWontPayload,
+      onSelect: ?LoginGen.SelectDeviceIdPayload,
     })
-
     if (onBack || navUp) {
       yield Saga.call(onBackSaga)
       return EngineRpc.rpcCancel(InputCancelError)
@@ -358,12 +379,15 @@ const chooseGPGMethodSaga = onBackSaga =>
   function*() {
     yield Saga.put(navigateAppend(['gpgSign'], [loginTab, 'login']))
 
-    const {onBack, navUp, onSubmit} = yield Saga.race({
+    const {onBack, navUp, onSubmit} = (yield Saga.race({
       onBack: Saga.take(LoginGen.onBack),
       navUp: Saga.take(RouteConstants.navigateUp),
       onSubmit: Saga.take(LoginGen.chooseGPGMethod),
+    }): {
+      onBack: ?LoginGen.OnBackPayload,
+      navUp: ?RouteConstants.NavigateUp,
+      onSubmit: ?LoginGen.ChooseGPGMethodPayload,
     })
-
     if (onBack || navUp) {
       yield Saga.call(onBackSaga)
       return EngineRpc.rpcCancel(InputCancelError)
@@ -417,12 +441,15 @@ const defaultGetPassphraseSaga = onBackSaga =>
         )
     }
 
-    const {onBack, navUp, onSubmit} = yield Saga.race({
+    const {onBack, navUp, onSubmit} = (yield Saga.race({
       onBack: Saga.take(LoginGen.onBack),
       navUp: Saga.take(RouteConstants.navigateUp),
       onSubmit: Saga.take(LoginGen.submitPassphrase),
+    }): {
+      onBack: ?LoginGen.OnBackPayload,
+      navUp: ?RouteConstants.NavigateUp,
+      onSubmit: ?LoginGen.SubmitPassphrasePayload,
     })
-
     if (onBack || navUp) {
       yield Saga.call(onBackSaga)
       return EngineRpc.rpcCancel(InputCancelError)
@@ -456,7 +483,11 @@ function* handleProvisioningError(error): Generator<any, void, any> {
 function* loginFlowSaga(usernameOrEmail, passphrase): Generator<any, void, any> {
   // If there is passphrase, use that.
   const passphraseSaga = passphrase
-    ? onBackSaga => () => EngineRpc.rpcResult({passphrase: passphrase.stringValue(), storeSecret: false})
+    ? onBackSaga => () =>
+        EngineRpc.rpcResult({
+          passphrase: passphrase ? passphrase.stringValue() : 'NEVER HAPPENS',
+          storeSecret: false,
+        })
     : defaultGetPassphraseSaga
 
   const loginSagas = kex2Sagas(cancelLogin, EngineRpc.passthroughResponseSaga, passphraseSaga)
@@ -522,12 +553,15 @@ function* startLoginSaga() {
 
   yield Saga.call(initalizeMyCodeStateForLogin)
 
-  const {onBack, navUp, onSubmit} = yield Saga.race({
+  const {onBack, navUp, onSubmit} = (yield Saga.race({
     onBack: Saga.take(LoginGen.onBack),
     navUp: Saga.take(RouteConstants.navigateUp),
     onSubmit: Saga.take(LoginGen.submitUsernameOrEmail),
+  }): {
+    onBack: ?LoginGen.OnBackPayload,
+    navUp: ?RouteConstants.NavigateUp,
+    onSubmit: ?LoginGen.SubmitUsernameOrEmailPayload,
   })
-
   if (onBack || navUp) {
     yield Saga.call(cancelLogin)
   } else if (onSubmit) {
