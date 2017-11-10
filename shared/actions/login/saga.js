@@ -646,12 +646,7 @@ function* addNewDeviceSaga({payload: {role}}: LoginGen.AddNewDevicePayload) {
     {}
   )
 
-  try {
-    yield Saga.call(addDeviceRpc.run)
-  } catch (error) {
-    console.warn('error in adding device', error)
-  }
-
+  yield Saga.call(addDeviceRpc.run)
   yield Saga.call(onBackSaga)
   yield Saga.put(setDevicesWaiting(false))
 }
