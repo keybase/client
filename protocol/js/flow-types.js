@@ -3622,7 +3622,7 @@ export type TeamSeitanRequest = {|inviteID: TeamInviteID,uid: UID,eldestSeqno: S
 
 export type TeamSettings = {|open: Boolean,joinAs: TeamRole,|}
 
-export type TeamShowcase = {|isShowcased: Boolean,description?: ?String,setByUID?: ?UID,|}
+export type TeamShowcase = {|isShowcased: Boolean,description?: ?String,setByUID?: ?UID,anyMemberShowcase: Boolean,|}
 
 export type TeamSigChainState = {|reader: UserVersion,id: TeamID,implicit: Boolean,public: Boolean,rootAncestor: TeamName,nameDepth: Int,nameLog?: ?Array<TeamNameLogPoint>,lastSeqno: Seqno,lastLinkID: LinkID,parentID?: ?TeamID,userLog: {[key: string]: ?Array<UserLogPoint>},subteamLog: {[key: string]: ?Array<SubteamLogPoint>},perTeamKeys: {[key: string]: PerTeamKey},linkIDs: {[key: string]: LinkID},stubbedLinks: {[key: string]: Boolean},activeInvites: {[key: string]: TeamInvite},open: Boolean,openTeamJoinAs: TeamRole,|}
 
@@ -3656,7 +3656,8 @@ export type TeamsSetTeamMemberShowcaseRpcParam = {|  name: String,
 
 export type TeamsSetTeamShowcaseRpcParam = {|  name: String,
   isShowcased?: ?Boolean,
-  description?: ?String|}
+  description?: ?String,
+  anyMemberShowcase?: ?Boolean|}
 
 export type TeamsTeamAcceptInviteOrRequestAccessRpcParam = {|  tokenOrName: String|}
 

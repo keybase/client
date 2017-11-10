@@ -205,9 +205,10 @@ func (c *CmdTeamSettings) Run() error {
 
 func (c *CmdTeamSettings) setDescription(ctx context.Context, cli keybase1.TeamsClient, desc string) error {
 	return cli.SetTeamShowcase(ctx, keybase1.SetTeamShowcaseArg{
-		Name:        c.Team.String(),
-		IsShowcased: nil,
-		Description: &desc,
+		Name:              c.Team.String(),
+		IsShowcased:       nil,
+		Description:       &desc,
+		AnyMemberShowcase: nil,
 	})
 }
 
@@ -250,15 +251,20 @@ func (c *CmdTeamSettings) setProfilePromote(ctx context.Context, cli keybase1.Te
 }
 
 func (c *CmdTeamSettings) setAllowProfilePromote(ctx context.Context, cli keybase1.TeamsClient, allow bool) error {
-	// awaiting CORE-6550
-	return fmt.Errorf("The ability to allow non-admins to promote your team is coming soon!")
+	return cli.SetTeamShowcase(ctx, keybase1.SetTeamShowcaseArg{
+		Name:              c.Team.String(),
+		IsShowcased:       nil,
+		Description:       nil,
+		AnyMemberShowcase: &allow,
+	})
 }
 
 func (c *CmdTeamSettings) setShowcase(ctx context.Context, cli keybase1.TeamsClient, showcase bool) error {
 	return cli.SetTeamShowcase(ctx, keybase1.SetTeamShowcaseArg{
-		Name:        c.Team.String(),
-		IsShowcased: &showcase,
-		Description: nil,
+		Name:              c.Team.String(),
+		IsShowcased:       &showcase,
+		Description:       nil,
+		AnyMemberShowcase: nil,
 	})
 }
 
@@ -279,13 +285,14 @@ func (c *CmdTeamSettings) printCurrentSettings(ctx context.Context, cli keybase1
 	dui := c.G().UI.GetTerminalUI()
 	dui.Printf("Current settings for team %q:\n", c.Team.String())
 	if showcaseInfo != nil && showcaseInfo.TeamShowcase.Description != nil {
-		dui.Printf("  Description:     %v\n", *showcaseInfo.TeamShowcase.Description)
+		dui.Printf("  Description:             %v\n", *showcaseInfo.TeamShowcase.Description)
 	}
-	dui.Printf("  Open:            %v\n", c.tfToYn(details.Settings.Open,
+	dui.Printf("  Open:                    %v\n", c.tfToYn(details.Settings.Open,
 		fmt.Sprintf("default membership = %v", strings.ToLower(details.Settings.JoinAs.String()))))
 	if showcaseInfo != nil {
-		dui.Printf("  Showcased:       %v\n", c.tfToYn(showcaseInfo.TeamShowcase.IsShowcased, "on keybase.io/popular-teams"))
-		dui.Printf("  Promoted:        %v\n", c.tfToYn(showcaseInfo.IsMemberShowcased, "on your profile"))
+		dui.Printf("  Showcased:               %v\n", c.tfToYn(showcaseInfo.TeamShowcase.IsShowcased, "on keybase.io/popular-teams"))
+		dui.Printf("  Promoted:                %v\n", c.tfToYn(showcaseInfo.IsMemberShowcased, "on your profile"))
+		dui.Printf("  Non-admins can promote:  %v\n", c.tfToYn(showcaseInfo.TeamShowcase.AnyMemberShowcase, "on their profiles"))
 		// CORE-6550: show whether non-admins are allowed to promote
 	}
 
