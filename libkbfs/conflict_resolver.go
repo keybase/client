@@ -1394,6 +1394,40 @@ func crConflictCheckQuick(unmergedChain, mergedChain *crChain) bool {
 			(unmergedChain.hasSetAttrOp() && mergedChain.hasSetAttrOp()))
 }
 
+func (cr *ConflictResolver) getSingleUnmergedPath(
+	ctx context.Context, unmergedChains *crChains, chain *crChain) (
+	path, error) {
+	// Reuse some code by creating a new chains object
+	// consisting of only this node.
+	newChains := newCRChainsEmpty()
+	newChains.byOriginal[chain.original] = chain
+	newChains.byMostRecent[chain.mostRecent] = chain
+	// Fake out the rest of the chains to populate newPtrs.
+	for _, c := range unmergedChains.byOriginal {
+		if c.original == chain.original {
+			continue
+		}
+		newChain := &crChain{
+			original:   c.original,
+			mostRecent: c.mostRecent,
+		}
+		newChains.byOriginal[c.original] = newChain
+		newChains.byMostRecent[c.mostRecent] = newChain
+	}
+	newChains.mostRecentChainMDInfo = unmergedChains.mostRecentChainMDInfo
+	unmergedPaths, err := newChains.getPaths(ctx, &cr.fbo.blocks,
+		cr.log, cr.fbo.nodeCache, false)
+	if err != nil {
+		return path{}, err
+	}
+
+	if len(unmergedPaths) != 1 {
+		return path{}, fmt.Errorf("Couldn't find the unmerged path for %v",
+			chain.original)
+	}
+	return unmergedPaths[0], nil
+}
+
 // fixRenameConflicts checks every unmerged createOp associated with a
 // rename to see if it will cause a cycle.  If so, it makes it a
 // symlink create operation instead.  It also checks whether a
@@ -1522,36 +1556,12 @@ func (cr *ConflictResolver) fixRenameConflicts(ctx context.Context,
 					"merged path for %v", parent)
 			}
 
-			// Reuse some code by creating a new chains object
-			// consisting of only this node.
-			newChains := newCRChainsEmpty()
 			chain := unmergedChains.byOriginal[info.originalNewParent]
-			newChains.byOriginal[chain.original] = chain
-			newChains.byMostRecent[chain.mostRecent] = chain
-			// Fake out the rest of the chains to populate newPtrs
-			for _, c := range unmergedChains.byOriginal {
-				if c.original == chain.original {
-					continue
-				}
-				newChain := &crChain{
-					original:   c.original,
-					mostRecent: c.mostRecent,
-				}
-				newChains.byOriginal[c.original] = newChain
-				newChains.byMostRecent[c.mostRecent] = newChain
-			}
-			newChains.mostRecentChainMDInfo = unmergedChains.mostRecentChainMDInfo
-			unmergedPaths, err := newChains.getPaths(ctx, &cr.fbo.blocks,
-				cr.log, cr.fbo.nodeCache, false)
+			unmergedPath, err = cr.getSingleUnmergedPath(
+				ctx, unmergedChains, chain)
 			if err != nil {
 				return nil, err
 			}
-
-			if len(unmergedPaths) != 1 {
-				return nil, fmt.Errorf("fixRenameConflicts: couldn't find the "+
-					"unmerged path for %v", info.originalNewParent)
-			}
-			unmergedPath = unmergedPaths[0]
 			// Look backwards to find the first parent with a merged path.
 			n := len(unmergedPath.path) - 1
 			for i := n; i >= 0; i-- {
