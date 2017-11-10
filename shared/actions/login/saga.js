@@ -628,8 +628,13 @@ function* addNewDeviceSaga({payload: {role}}: LoginGen.AddNewDevicePayload) {
     yield Saga.put(navigateTo(devicesTabLocation))
   }
 
+  const onSuccessSaga = function*(): Generator<any, void, any> {
+    yield Saga.call(onBackSaga)
+    return EngineRpc.rpcResult()
+  }
+
   const addDeviceSagas = {
-    ...kex2Sagas(onBackSaga, onBackSaga),
+    ...kex2Sagas(onBackSaga, onSuccessSaga),
     'keybase.1.provisionUi.chooseDeviceType': chooseDeviceTypeSaga(role),
     'keybase.1.provisionUi.DisplaySecretExchanged': secretExchangedSaga(),
   }
@@ -644,7 +649,7 @@ function* addNewDeviceSaga({payload: {role}}: LoginGen.AddNewDevicePayload) {
   try {
     yield Saga.call(addDeviceRpc.run)
   } catch (error) {
-    console.warn('error in adding device')
+    console.warn('error in adding device', error)
   }
 
   yield Saga.call(onBackSaga)
