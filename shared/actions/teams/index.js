@@ -530,38 +530,45 @@ const _afterSaveChannelMembership = results => {
 
 function* _createChannel(action: Constants.CreateChannel) {
   const {payload: {channelname, description, teamname}} = action
-  const result = yield Saga.call(ChatTypes.localNewConversationLocalRpcPromise, {
-    param: {
-      identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
-      membersType: ChatTypes.commonConversationMembersType.team,
-      tlfName: teamname,
-      tlfVisibility: RPCTypes.commonTLFVisibility.private,
-      topicType: ChatTypes.commonTopicType.chat,
-      topicName: channelname,
-    },
-  })
 
-  const newConversationIDKey = result ? ChatConstants.conversationIDToKey(result.conv.info.id) : null
-  if (!newConversationIDKey) {
-    console.warn('No convoid from newConvoRPC')
-    return null
-  }
-
-  // Select the new channel
-  yield Saga.put(ChatGen.createSelectConversation({conversationIDKey: newConversationIDKey}))
-
-  // If we were given a description, set it
-  if (description) {
-    yield Saga.call(ChatTypes.localPostHeadlineNonblockRpcPromise, {
+  yield Saga.put(Creators.setChannelCreationError(''))
+  try {
+    const result = yield Saga.call(ChatTypes.localNewConversationLocalRpcPromise, {
       param: {
-        conversationID: result.conv.info.id,
-        tlfName: teamname,
-        tlfPublic: false,
-        headline: description,
-        clientPrev: 0,
         identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
+        membersType: ChatTypes.commonConversationMembersType.team,
+        tlfName: teamname,
+        tlfVisibility: RPCTypes.commonTLFVisibility.private,
+        topicType: ChatTypes.commonTopicType.chat,
+        topicName: channelname,
       },
     })
+
+    // No error if we get here.
+    const newConversationIDKey = result ? ChatConstants.conversationIDToKey(result.conv.info.id) : null
+    if (!newConversationIDKey) {
+      console.warn('No convoid from newConvoRPC')
+      return null
+    }
+
+    // Select the new channel
+    yield Saga.put(ChatGen.createSelectConversation({conversationIDKey: newConversationIDKey}))
+
+    // If we were given a description, set it
+    if (description) {
+      yield Saga.call(ChatTypes.localPostHeadlineNonblockRpcPromise, {
+        param: {
+          conversationID: result.conv.info.id,
+          tlfName: teamname,
+          tlfPublic: false,
+          headline: description,
+          clientPrev: 0,
+          identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
+        },
+      })
+    }
+  } catch (error) {
+    yield Saga.put(Creators.setChannelCreationError(error.desc))
   }
 }
 
