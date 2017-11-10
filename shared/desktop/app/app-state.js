@@ -199,12 +199,13 @@ export default class AppState {
     }
     try {
       const stateLoaded = JSON.parse(fs.readFileSync(configPath, {encoding: 'utf8'}))
-      if (this._isValidState(stateLoaded)) {
-        this.state = stateLoaded
-      } else {
-        // still keep the openAtLoginSet state even if the display changes
-        this.state.openAtLoginSet = stateLoaded.openAtLoginSet
+
+      if (!this._isValidState(stateLoaded)) {
+        stateLoaded.x = null
+        stateLoaded.y = null
       }
+
+      this.state = stateLoaded
     } catch (e) {
       console.warn('Error loading app state:', e)
     }
