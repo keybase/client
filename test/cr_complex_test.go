@@ -844,6 +844,55 @@ func TestCrUnmergedSetMtimeOfRemovedDir(t *testing.T) {
 	)
 }
 
+// bob sets the mtime of a dir that is also modified by alice, then
+// removes that dir.  Regression test for KBFS-1691.
+func TestCrUnmergedSetMtimeAndRemoveModifiedDir(t *testing.T) {
+	origMtime := time.Now().Add(1 * time.Minute)
+	targetMtime := time.Now().Add(2 * time.Minute)
+	test(t,
+		users("alice", "bob"),
+		as(alice,
+			mkdir("a/b/c"),
+			mkfile("a/b/c/d", "hello"),
+			setmtime("a/b/c", origMtime),
+			setmtime("a/b", origMtime),
+		),
+		as(bob,
+			disableUpdates(),
+		),
+		as(alice,
+			mkfile("a/b/c/e", "hello2"),
+			mkfile("a/b/f", "hello3"),
+		),
+		as(bob, noSync(),
+			setmtime("a/b/c", targetMtime),
+			setmtime("a/b", targetMtime),
+			rm("a/b/c/d"),
+			rmdir("a/b/c"),
+			rmdir("a/b"),
+			reenableUpdates(),
+			lsdir("", m{"a$": "DIR"}),
+			lsdir("a", m{"b$": "DIR"}),
+			lsdir("a/b", m{"c$": "DIR", "f$": "FILE"}),
+			mtime("a/b", origMtime),
+			lsdir("a/b/c", m{"e$": "FILE"}),
+			mtime("a/b/c", origMtime),
+			read("a/b/c/e", "hello2"),
+			read("a/b/f", "hello3"),
+		),
+		as(alice,
+			lsdir("", m{"a$": "DIR"}),
+			lsdir("a", m{"b$": "DIR"}),
+			lsdir("a/b", m{"c$": "DIR", "f$": "FILE"}),
+			mtime("a/b", origMtime),
+			lsdir("a/b/c", m{"e$": "FILE"}),
+			mtime("a/b/c", origMtime),
+			read("a/b/c/e", "hello2"),
+			read("a/b/f", "hello3"),
+		),
+	)
+}
+
 // bob moves and sets the mtime of a file that was written by alice
 func TestCrConflictMoveAndSetMtimeWrittenFile(t *testing.T) {
 	targetMtime := time.Now().Add(1 * time.Minute)
