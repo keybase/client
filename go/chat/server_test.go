@@ -1036,7 +1036,7 @@ func TestChatSrvPostLocalAtMention(t *testing.T) {
 			require.Fail(t, "no new message")
 		}
 
-		// Test that system messages to the right thing
+		// Test that system messages do the right thing
 		subBody := chat1.NewMessageSystemWithAddedtoteam(chat1.MessageSystemAddedToTeam{
 			Addee: users[1].Username,
 		})
