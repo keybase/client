@@ -275,8 +275,8 @@ const displayAndPromptSecretSaga = onBackSaga =>
       yield Saga.call(onBackSaga)
       return EngineRpc.rpcCancel(InputCancelError)
     } else if (qrScanned || textEntered) {
-      const phrase = qrScanned ? qrScanned.payload.phrase : textEntered.payload.phrase
-      return EngineRpc.rpcResult({phrase, secret: null})
+      const phrase: HiddenString = qrScanned ? qrScanned.payload.phrase : textEntered.payload.phrase
+      return EngineRpc.rpcResult({phrase: phrase.stringValue(), secret: null})
     }
   }
 
@@ -544,7 +544,7 @@ function* reloginSaga({payload: {usernameOrEmail, passphrase}}: LoginGen.Relogin
   yield Saga.call(loginFlowSaga, usernameOrEmail, passphrase)
 }
 
-function* cameraBrokenModeSaga({payload: {broken}}) {
+function* cameraBrokenModeSaga({payload: {broken}}: LoginGen.SetCameraBrokenModePayload) {
   const state: TypedState = yield Saga.select()
   const codePage = codePageSelector(state)
   if (codePage.myDeviceRole == null) {
