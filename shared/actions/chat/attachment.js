@@ -191,7 +191,7 @@ function* onLoadAttachment({
       loadAttachmentSagaMap(messageKey, loadPreview),
       ChatTypes.localDownloadFileAttachmentLocalRpcChannelMap,
       `localDownloadFileAttachmentLocal-${conversationIDKey}-${messageID}`,
-      {param}
+      param
     )
 
     try {
