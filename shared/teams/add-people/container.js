@@ -15,11 +15,14 @@ import {
   type TypedState,
 } from '../../util/container'
 
-const mapStateToProps = (state: TypedState, {routeProps}) => ({
-  isEmpty: SearchConstants.getUserInputItemIds(state, {searchKey: 'addToTeamSearch'}).length === 0,
-  name: routeProps.get('teamname'),
-  _yourMember: teamMemberRecordSelector(state, {teamname: routeProps.get('teamname')}),
-})
+const mapStateToProps = (state: TypedState, {routeProps}) => {
+  const teamname = routeProps.get('teamname')
+  return {
+    isEmpty: SearchConstants.getUserInputItemIds(state, {searchKey: 'addToTeamSearch'}).length === 0,
+    name: teamname,
+    _yourMember: teamMemberRecordSelector(state, {teamname: teamname}),
+  }
+}
 
 const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routeProps}) => ({
   onAddPeople: (role: string, sendNotification: boolean) => {
@@ -75,9 +78,9 @@ export default compose(
         onRoleChange,
         sendNotification,
         setSendNotification,
-        yourMember,
+        _yourMember,
       }) => () => {
-        onOpenRolePicker(role, sendNotification, yourMember.type === 'owner', (role, sendNotification) => {
+        onOpenRolePicker(role, sendNotification, _yourMember.type === 'owner', (role, sendNotification) => {
           onRoleChange(role)
           setSendNotification(sendNotification)
         })
