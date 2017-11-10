@@ -631,6 +631,7 @@ func doInit(
 
 	kbfsLog := config.MakeLogger("")
 
+	// Initialize Keybase service connection
 	if keybaseServiceCn == nil {
 		keybaseServiceCn = keybaseDaemon{}
 	}
@@ -639,6 +640,54 @@ func doInit(
 	if err != nil {
 		return nil, fmt.Errorf("problem creating service: %s", err)
 	}
+	if registry := config.MetricsRegistry(); registry != nil {
+		service = NewKeybaseServiceMeasured(service, registry)
+	}
+	config.SetKeybaseService(service)
+
+	// Initialize KBPKI client (needed for MD Server).
+	k := NewKBPKIClient(config, kbfsLog)
+	config.SetKBPKI(k)
+
+	config.SetReporter(NewReporterKBPKI(config, 10, 1000))
+
+	// Initialize Crypto client (needed for MD and Block servers).
+	crypto, err := keybaseServiceCn.NewCrypto(config, params, kbCtx, kbfsLog)
+	if err != nil {
+		return nil, fmt.Errorf("problem creating crypto: %s", err)
+	}
+	config.SetCrypto(crypto)
+
+	// Initialize MDServer connection.
+	mdServer, err := makeMDServer(
+		config, params.MDServerAddr, kbCtx.NewRPCLogFactory(), log)
+	if err != nil {
+		return nil, fmt.Errorf("problem creating MD server: %+v", err)
+	}
+	config.SetMDServer(mdServer)
+
+	// Initialize KeyServer connection.  MDServer is the KeyServer at the
+	// moment.
+	keyServer, err := makeKeyServer(config, params.MDServerAddr, log)
+	if err != nil {
+		return nil, fmt.Errorf("problem creating key server: %+v", err)
+	}
+	if registry := config.MetricsRegistry(); registry != nil {
+		keyServer = NewKeyServerMeasured(keyServer, registry)
+	}
+	config.SetKeyServer(keyServer)
+
+	// Initialize BlockServer connection.
+	bserv, err := makeBlockServer(
+		config, params.BServerAddr, kbCtx.NewRPCLogFactory(), log)
+	if err != nil {
+		return nil, fmt.Errorf("cannot open block database: %+v", err)
+	}
+	if registry := config.MetricsRegistry(); registry != nil {
+		bserv = NewBlockServerMeasured(bserv, registry)
+	}
+	config.SetBlockServer(bserv)
+
 	err = config.MakeDiskBlockCacheIfNotExists()
 	if err != nil {
 		log.CWarningf(ctx, "Could not initialize disk cache: %+v", err)
@@ -666,57 +715,6 @@ func doInit(
 			log.CDebugf(ctx, "Started RPC server for KBFS")
 		}
 	}
-
-	if registry := config.MetricsRegistry(); registry != nil {
-		service = NewKeybaseServiceMeasured(service, registry)
-	}
-
-	config.SetKeybaseService(service)
-
-	k := NewKBPKIClient(config, kbfsLog)
-	config.SetKBPKI(k)
-
-	config.SetReporter(NewReporterKBPKI(config, 10, 1000))
-
-	// crypto must be initialized before the MD and block servers
-	// are initialized, since those depend on crypto.
-	crypto, err := keybaseServiceCn.NewCrypto(config, params, kbCtx, kbfsLog)
-	if err != nil {
-		return nil, fmt.Errorf("problem creating crypto: %s", err)
-	}
-
-	config.SetCrypto(crypto)
-
-	mdServer, err := makeMDServer(
-		config, params.MDServerAddr, kbCtx.NewRPCLogFactory(), log)
-	if err != nil {
-		return nil, fmt.Errorf("problem creating MD server: %+v", err)
-	}
-	config.SetMDServer(mdServer)
-
-	// note: the mdserver is the keyserver at the moment.
-	keyServer, err := makeKeyServer(config, params.MDServerAddr, log)
-	if err != nil {
-		return nil, fmt.Errorf("problem creating key server: %+v", err)
-	}
-
-	if registry := config.MetricsRegistry(); registry != nil {
-		keyServer = NewKeyServerMeasured(keyServer, registry)
-	}
-
-	config.SetKeyServer(keyServer)
-
-	bserv, err := makeBlockServer(
-		config, params.BServerAddr, kbCtx.NewRPCLogFactory(), log)
-	if err != nil {
-		return nil, fmt.Errorf("cannot open block database: %+v", err)
-	}
-
-	if registry := config.MetricsRegistry(); registry != nil {
-		bserv = NewBlockServerMeasured(bserv, registry)
-	}
-
-	config.SetBlockServer(bserv)
 
 	err = config.EnableDiskLimiter(params.StorageRoot)
 	if err != nil {
