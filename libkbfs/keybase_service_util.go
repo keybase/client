@@ -70,8 +70,14 @@ func serviceLoggedIn(ctx context.Context, config Config, session SessionInfo,
 			"%+v", err)
 	}
 
-	config.MDServer().RefreshAuthToken(ctx)
-	config.BlockServer().RefreshAuthToken(ctx)
+	mdServer := config.MDServer()
+	if mdServer != nil {
+		mdServer.RefreshAuthToken(ctx)
+	}
+	bServer := config.BlockServer()
+	if bServer != nil {
+		bServer.RefreshAuthToken(ctx)
+	}
 	config.KBFSOps().RefreshCachedFavorites(ctx)
 	config.KBFSOps().PushStatusChange()
 }
@@ -82,8 +88,14 @@ func serviceLoggedOut(ctx context.Context, config Config) {
 		jServer.shutdownExistingJournals(ctx)
 	}
 	config.ResetCaches()
-	config.MDServer().RefreshAuthToken(ctx)
-	config.BlockServer().RefreshAuthToken(ctx)
+	mdServer := config.MDServer()
+	if mdServer != nil {
+		mdServer.RefreshAuthToken(ctx)
+	}
+	bServer := config.BlockServer()
+	if bServer != nil {
+		bServer.RefreshAuthToken(ctx)
+	}
 	config.KBFSOps().RefreshCachedFavorites(ctx)
 	config.KBFSOps().PushStatusChange()
 

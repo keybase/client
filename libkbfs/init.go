@@ -631,6 +631,17 @@ func doInit(
 
 	kbfsLog := config.MakeLogger("")
 
+	// Initialize Keybase service connection
+	if keybaseServiceCn == nil {
+		keybaseServiceCn = keybaseDaemon{}
+	}
+	service, err := keybaseServiceCn.NewKeybaseService(
+		config, params, kbCtx, kbfsLog)
+	if err != nil {
+		return nil, fmt.Errorf("problem creating service: %s", err)
+	}
+
+	// Initialize MDServer connection
 	mdServer, err := makeMDServer(
 		config, params.MDServerAddr, kbCtx.NewRPCLogFactory(), log)
 	if err != nil {
@@ -643,33 +654,22 @@ func doInit(
 	if err != nil {
 		return nil, fmt.Errorf("problem creating key server: %+v", err)
 	}
-
 	if registry := config.MetricsRegistry(); registry != nil {
 		keyServer = NewKeyServerMeasured(keyServer, registry)
 	}
-
 	config.SetKeyServer(keyServer)
 
+	// Initialize BlockServer connection
 	bserv, err := makeBlockServer(
 		config, params.BServerAddr, kbCtx.NewRPCLogFactory(), log)
 	if err != nil {
 		return nil, fmt.Errorf("cannot open block database: %+v", err)
 	}
-
 	if registry := config.MetricsRegistry(); registry != nil {
 		bserv = NewBlockServerMeasured(bserv, registry)
 	}
-
 	config.SetBlockServer(bserv)
 
-	if keybaseServiceCn == nil {
-		keybaseServiceCn = keybaseDaemon{}
-	}
-	service, err := keybaseServiceCn.NewKeybaseService(
-		config, params, kbCtx, kbfsLog)
-	if err != nil {
-		return nil, fmt.Errorf("problem creating service: %s", err)
-	}
 	err = config.MakeDiskBlockCacheIfNotExists()
 	if err != nil {
 		log.CWarningf(ctx, "Could not initialize disk cache: %+v", err)
