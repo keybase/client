@@ -20,8 +20,8 @@ const mapStateToProps = (state: TypedState, {routeProps}) => ({
 })
 
 const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routeProps}) => ({
-  onAddPeople: (role: string) => {
-    dispatch(Creators.addPeopleToTeam(routeProps.get('teamname'), role))
+  onAddPeople: (role: string, sendNotification: boolean) => {
+    dispatch(Creators.addPeopleToTeam(routeProps.get('teamname'), role, sendNotification))
     dispatch(navigateUp())
     dispatch(Creators.getTeams())
     dispatch(SearchCreators.clearSearchResults('addToTeamSearch'))
@@ -32,14 +32,21 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routeProps}) => ({
     dispatch(SearchCreators.clearSearchResults('addToTeamSearch'))
     dispatch(SearchCreators.setUserInputItems('addToTeamSearch', []))
   },
-  onOpenRolePicker: (role: string, onComplete: string => void) => {
+  onOpenRolePicker: (
+    role: string,
+    sendNotification: boolean,
+    allowOwner: boolean,
+    onComplete: (string, boolean) => void
+  ) => {
     dispatch(
       navigateAppend([
         {
           props: {
-            allowOwner: false,
+            allowOwner,
             onComplete,
             selectedRole: role,
+            sendNotificationChecked: sendNotification,
+            showNotificationCheckbox: true,
           },
           selected: 'controlledRolePicker',
         },
@@ -52,12 +59,26 @@ export default compose(
   connect(mapStateToProps, mapDispatchToProps),
   compose(
     withState('role', 'onRoleChange', 'writer'),
+    withState('sendNotification', 'setSendNotification', true),
     withPropsOnChange(['onExitSearch'], props => ({
       onCancel: () => props.onClose(),
       title: 'Add people',
     })),
     withHandlers({
-      onAddPeople: ({onAddPeople, role}) => () => role && onAddPeople(role),
+      onAddPeople: ({onAddPeople, role, sendNotification}) => () =>
+        role && onAddPeople(role, sendNotification),
+      onOpenRolePicker: ({
+        onOpenRolePicker,
+        role,
+        onRoleChange,
+        sendNotification,
+        setSendNotification,
+      }) => () => {
+        onOpenRolePicker(role, sendNotification, false, (role, sendNotification) => {
+          onRoleChange(role)
+          setSendNotification(sendNotification)
+        })
+      },
     }),
     HeaderHoc
   )

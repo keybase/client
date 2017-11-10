@@ -37,8 +37,12 @@ function saveChannelMembership(
   return {payload: {channelState, teamname}, type: 'teams:saveChannelMembership'}
 }
 
-function addPeopleToTeam(teamname: string, role: string): Constants.AddPeopleToTeam {
-  return {payload: {role, teamname}, type: 'teams:addPeopleToTeam'}
+function addPeopleToTeam(
+  teamname: string,
+  role: string,
+  sendChatNotification: boolean
+): Constants.AddPeopleToTeam {
+  return {payload: {role, teamname, sendChatNotification}, type: 'teams:addPeopleToTeam'}
 }
 
 function inviteToTeamByEmail(

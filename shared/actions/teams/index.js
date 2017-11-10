@@ -66,7 +66,7 @@ const _leaveTeam = function(action: Constants.LeaveTeam) {
 }
 
 const _addPeopleToTeam = function*(action: Constants.AddPeopleToTeam) {
-  const {payload: {role, teamname}} = action
+  const {payload: {role, teamname, sendChatNotification}} = action
   yield Saga.put(replaceEntity(['teams', 'teamNameToLoading'], I.Map([[teamname, true]])))
   const ids = yield Saga.select(SearchConstants.getUserInputItemIds, {searchKey: 'addToTeamSearch'})
   for (const id of ids) {
@@ -76,7 +76,7 @@ const _addPeopleToTeam = function*(action: Constants.AddPeopleToTeam) {
         email: '',
         username: id,
         role: role ? RPCTypes.teamsTeamRole[role] : RPCTypes.teamsTeamRole.none,
-        sendChatNotification: true,
+        sendChatNotification,
       },
     })
   }

@@ -27,6 +27,7 @@ export type RolePickerProps = {
   allowOwner?: boolean,
   sendNotification: boolean,
   teamname: string,
+  sendNotificationChecked?: boolean,
   showSendNotification: boolean,
   setConfirm: (confirm: boolean) => void,
   setSelectedRole: (r: TeamRoleType) => void,
@@ -92,6 +93,7 @@ export const RoleOptions = ({
   allowOwner = true,
   setSendNotification,
   sendNotification,
+  sendNotificationChecked,
   setConfirm,
   showSendNotification,
 }: RolePickerProps) => (
@@ -121,7 +123,7 @@ export const RoleOptions = ({
         label={controlled ? 'Select' : 'Continue'}
         type="Primary"
         onClick={() => setConfirm(true)}
-        disabled={selectedRole === currentType}
+        disabled={selectedRole === currentType && sendNotificationChecked === sendNotification}
       />
     </Box>
   </Box>

@@ -156,7 +156,10 @@ export type SetTeamCreationPending = NoErrorTypedAction<
 export type SetTeamJoinError = NoErrorTypedAction<'teams:setTeamJoinError', {teamJoinError: string}>
 export type SetTeamJoinSuccess = NoErrorTypedAction<'teams:setTeamJoinSuccess', {teamJoinSuccess: boolean}>
 
-export type AddPeopleToTeam = NoErrorTypedAction<'teams:addPeopleToTeam', {role: string, teamname: string}>
+export type AddPeopleToTeam = NoErrorTypedAction<
+  'teams:addPeopleToTeam',
+  {role: string, teamname: string, sendChatNotification: boolean}
+>
 
 export type InviteToTeamByEmail = NoErrorTypedAction<
   'teams:inviteToTeamByEmail',
