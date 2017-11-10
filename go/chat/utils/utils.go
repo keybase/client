@@ -727,6 +727,15 @@ func PresentConversationLocals(convs []chat1.ConversationLocal) (res []chat1.Inb
 	return res
 }
 
+func PresentThreadView(ctx context.Context, uid gregor1.UID, tv chat1.ThreadView,
+	tcs types.TeamChannelSource) (res chat1.UIMessages) {
+	res.Pagination = PresentPagination(tv.Pagination)
+	for _, msg := range tv.Messages {
+		res.Messages = append(res.Messages, PresentMessageUnboxed(ctx, msg, uid, tcs))
+	}
+	return res
+}
+
 func PresentMessageUnboxed(ctx context.Context, rawMsg chat1.MessageUnboxed, uid gregor1.UID,
 	tcs types.TeamChannelSource) (res chat1.UIMessage) {
 	state, err := rawMsg.State()

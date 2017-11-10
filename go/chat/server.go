@@ -443,15 +443,6 @@ func (h *Server) GetThreadLocal(ctx context.Context, arg chat1.GetThreadLocalArg
 	}, nil
 }
 
-func (h *Server) presentThreadView(ctx context.Context, uid gregor1.UID, tv chat1.ThreadView) (res chat1.UIMessages) {
-	res.Pagination = utils.PresentPagination(tv.Pagination)
-	for _, msg := range tv.Messages {
-		res.Messages = append(res.Messages, utils.PresentMessageUnboxed(ctx, msg, uid,
-			h.G().TeamChannelSource))
-	}
-	return res
-}
-
 func (h *Server) GetThreadNonblock(ctx context.Context, arg chat1.GetThreadNonblockArg) (res chat1.NonblockFetchRes, fullErr error) {
 	var identBreaks []keybase1.TLFIdentifyFailure
 	ctx = Context(ctx, h.G(), arg.IdentifyBehavior, &identBreaks, h.identNotifier)
@@ -544,7 +535,7 @@ func (h *Server) GetThreadNonblock(ctx context.Context, arg chat1.GetThreadNonbl
 			h.Debug(ctx, "GetThreadNonblock: sending cached response: %d messages", len(resThread.Messages))
 			var jsonPt []byte
 			var err error
-			pt := h.presentThreadView(ctx, uid, *resThread)
+			pt := utils.PresentThreadView(ctx, uid, *resThread, h.G().TeamChannelSource)
 			if jsonPt, err = json.Marshal(pt); err != nil {
 				h.Debug(ctx, "GetThreadNonblock: failed to JSON cached response: %s", err)
 				return
@@ -579,7 +570,7 @@ func (h *Server) GetThreadNonblock(ctx context.Context, arg chat1.GetThreadNonbl
 		h.Debug(ctx, "GetThreadNonblock: sending full response: %d messages", len(remoteThread.Messages))
 		uilock.Lock()
 		defer uilock.Unlock()
-		uires := h.presentThreadView(bctx, uid, remoteThread)
+		uires := utils.PresentThreadView(bctx, uid, remoteThread, h.G().TeamChannelSource)
 		var jsonUIRes []byte
 		if jsonUIRes, fullErr = json.Marshal(uires); fullErr != nil {
 			h.Debug(ctx, "GetThreadNonblock: failed to JSON full result: %s", fullErr)
