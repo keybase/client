@@ -1035,6 +1035,22 @@ func TestChatSrvPostLocalAtMention(t *testing.T) {
 		case <-time.After(20 * time.Second):
 			require.Fail(t, "no new message")
 		}
+
+		// Test that system messages to the right thing
+		subBody := chat1.NewMessageSystemWithAddedtoteam(chat1.MessageSystemAddedToTeam{
+			Addee: users[1].Username,
+		})
+		mustPostLocalForTest(t, ctc, users[0], created, chat1.NewMessageBodyWithSystem(subBody))
+		select {
+		case info := <-listener.newMessage:
+			require.True(t, info.Message.IsValid())
+			require.Equal(t, chat1.MessageType_SYSTEM, info.Message.GetMessageType())
+			require.Equal(t, 1, len(info.Message.Valid().AtMentions))
+			require.Equal(t, chat1.ChannelMention_NONE, info.Message.Valid().ChannelMention)
+			require.True(t, info.DisplayDesktopNotification)
+		case <-time.After(20 * time.Second):
+			require.Fail(t, "no new message")
+		}
 	})
 }
 
