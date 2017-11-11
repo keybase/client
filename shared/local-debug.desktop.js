@@ -82,7 +82,7 @@ if (PERF) {
   config.ignoreDisconnectOverlay = false
   config.immediateStateLogging = false
   config.printOutstandingRPCs = false
-  config.printRPC = false
+  config.printRPC = true
   config.reduxSagaLogger = false
   config.reduxSagaLoggerMasked = false
   config.userTimings = true
