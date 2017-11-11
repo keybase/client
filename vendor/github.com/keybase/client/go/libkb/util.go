@@ -754,3 +754,38 @@ func IsAppStatusCode(err error, code keybase1.StatusCode) bool {
 func CanExec(p string) error {
 	return canExec(p)
 }
+
+func CurrentBinaryRealpath() (string, error) {
+	absolute, err := filepath.Abs(os.Args[0])
+	if err != nil {
+		return "", err
+	}
+	return filepath.EvalSymlinks(absolute)
+}
+
+var adminFeatureList = map[keybase1.UID]bool{
+	"23260c2ce19420f97b58d7d95b68ca00": true, // Chris Coyne "chris"
+	"dbb165b7879fe7b1174df73bed0b9500": true, // Max Krohn, "max"
+	"ef2e49961eddaa77094b45ed635cfc00": true, // Jeremy Stribling, "strib"
+	"41b1f75fb55046d370608425a3208100": true, // Jack O'Connor, "oconnor663"
+	"9403ede05906b942fd7361f40a679500": true, // Jinyang Li, "jinyang"
+	"1563ec26dc20fd162a4f783551141200": true, // Patrick Crosby, "patrick"
+	"ebbe1d99410ab70123262cf8dfc87900": true, // Fred Akalin, "akalin"
+	"e0b4166c9c839275cf5633ff65c3e819": true, // Chris Nojima, "chrisnojima"
+	"d95f137b3b4a3600bc9e39350adba819": true, // Cécile Boucheron, "cecileb"
+	"4c230ae8d2f922dc2ccc1d2f94890700": true, // Marco Polo, "marcopolo"
+	"237e85db5d939fbd4b84999331638200": true, // Chris Ball, "cjb"
+	"69da56f622a2ac750b8e590c3658a700": true, // John Zila, "jzila"
+	"673a740cd20fb4bd348738b16d228219": true, // Steve Sanders, "zanderz"
+	"95e88f2087e480cae28f08d81554bc00": true, // Mike Maxim, "mikem"
+	"08abe80bd2da8984534b2d8f7b12c700": true, // Song Gao, "songgao"
+	"eb08cb06e608ea41bd893946445d7919": true, // Miles Steele, "mlsteele"
+	"743338e8d5987e0e5077f0fddc763f19": true, // Taru Karttunen, "taruti"
+	"ee71dbc8e4e3e671e29a94caef5e1b19": true, // Michał Zochniak, "zapu"
+	"8c7c57995cd14780e351fc90ca7dc819": true, // Danny Ayoub, "ayoubd"
+}
+
+// IsKeybaseAdmin returns true if uid is a keybase admin.
+func IsKeybaseAdmin(uid keybase1.UID) bool {
+	return adminFeatureList[uid]
+}

@@ -455,7 +455,7 @@ type FakeGregorDismisser struct {
 
 var _ GregorDismisser = (*FakeGregorDismisser)(nil)
 
-func (f *FakeGregorDismisser) DismissItem(cli gregor1.IncomingInterface, id gregor.MsgID) error {
+func (f *FakeGregorDismisser) DismissItem(_ context.Context, cli gregor1.IncomingInterface, id gregor.MsgID) error {
 	f.dismissedIDs = append(f.dismissedIDs, id)
 	return nil
 }
