@@ -1,0 +1,41 @@
+{
+  "prelude": [
+    "import * as Constants from '../constants/favorite'",
+    "import * as Folders from '../constants/folders'"
+  ],
+  "actions": {
+    "favoriteAdd": {
+      "path": "string"
+    },
+    "favoriteAdded": {
+      "canError": {
+        "errorText": "string"
+      }
+    },
+    "favoriteIgnore": {
+      "path": "string"
+    },
+    "favoriteIgnored": {
+      "canError": {
+        "errorText": "string"
+      }
+    },
+    "favoriteList": {},
+    "favoriteListed": {
+      "folders": "Constants.FolderState"
+    },
+    "favoriteSwitchTab": {
+      "showingPrivate": "boolean"
+    },
+    "favoriteToggleIgnored": {
+      "isPrivate": "boolean"
+    },
+    "kbfsStatusUpdated": {
+      "status": "Constants.KBFSStatus"
+    },
+    "markTLFCreated": {
+      "folder": "Folders.Folder"
+    },
+    "setupKBFSChangedHandler": {}
+  }
+}

@@ -1,18 +1,17 @@
 // @flow
 import * as ConfigGen from './config-gen'
 import * as Constants from '../constants/gregor'
+import * as FavoriteGen from './favorite-gen'
 import * as GitGen from './git-gen'
 import * as GregorGen from './gregor-gen'
 import * as I from 'immutable'
 import * as RPCTypes from '../constants/types/flow-types'
+import * as Saga from '../util/saga'
 import engine from '../engine'
-import {all, call, put, select} from 'redux-saga/effects'
 import {clearErrors} from '../util/pictures'
-import {favoriteList, markTLFCreated} from './favorite'
 import {folderFromPath} from '../constants/favorite.js'
 import {nativeReachabilityEvents} from '../util/reachability'
 import {replaceEntity} from './entities'
-import {safeTakeEvery, safeTakeLatest} from '../util/saga'
 import {type Dispatch} from '../constants/types/flux'
 import {type SagaGenerator} from '../constants/types/saga'
 import {type State as GregorState, type OutOfBandMessage} from '../constants/types/flow-types-gregor'
@@ -132,14 +131,14 @@ function registerGregorListeners() {
 }
 
 function* handleTLFUpdate(items: Array<Constants.NonNullGregorItem>): SagaGenerator<any, any> {
-  const seenMsgs: Constants.MsgMap = yield select((state: TypedState) => state.gregor.seenMsgs)
+  const seenMsgs: Constants.MsgMap = yield Saga.select((state: TypedState) => state.gregor.seenMsgs)
 
   // Check if any are a tlf items
   const tlfUpdates = items.filter(isTlfItem)
   const newTlfUpdates = tlfUpdates.filter(gItem => !seenMsgs[gItem.md.msgID.toString('base64')])
   if (newTlfUpdates.length) {
-    yield put(updateSeenMsgs(newTlfUpdates))
-    yield put(favoriteList())
+    yield Saga.put(updateSeenMsgs(newTlfUpdates))
+    yield Saga.put(FavoriteGen.createFavoriteList())
   }
 }
 
@@ -147,7 +146,7 @@ function* handleChatBanner(items: Array<Constants.NonNullGregorItem>): SagaGener
   const sawChatBanner = items.find(i => i.item && i.item.category === 'sawChatBanner')
   if (sawChatBanner) {
     // TODO move this to teams eventually
-    yield put(replaceEntity(['teams'], I.Map([['sawChatBanner', true]])))
+    yield Saga.put(replaceEntity(['teams'], I.Map([['sawChatBanner', true]])))
   }
 }
 
@@ -159,8 +158,8 @@ function* handlePushState(pushAction: GregorGen.PushStatePayload): SagaGenerator
       console.warn('Lost some messages in filtering out nonNull gregor items')
     }
 
-    yield call(handleTLFUpdate, nonNullItems)
-    yield call(handleChatBanner, nonNullItems)
+    yield Saga.call(handleTLFUpdate, nonNullItems)
+    yield Saga.call(handleChatBanner, nonNullItems)
   } else {
     console.log('Error in gregor pushState', pushAction.payload)
   }
@@ -170,17 +169,18 @@ function* handleKbfsFavoritesOOBM(kbfsFavoriteMessages: Array<OutOfBandMessage>)
   const msgsWithParsedBodies = kbfsFavoriteMessages.map(m => ({...m, body: JSON.parse(m.body.toString())}))
   const createdTLFs = msgsWithParsedBodies.filter(m => m.body.action === 'create')
 
-  const username: string = (yield select(usernameSelector): any)
+  const username: string = (yield Saga.select(usernameSelector): any)
   const folderActions = createdTLFs.reduce((arr, m) => {
-    const folder = m.body.tlf ? markTLFCreated(folderFromPath(username, m.body.tlf)) : null
-    if (folder && folder.payload && folder.payload.folder) {
-      arr.push(put(folder))
+    const folder = m.body.tlf ? folderFromPath(username, m.body.tlf) : null
+
+    if (folder) {
+      arr.push(Saga.put(FavoriteGen.createMarkTLFCreated({folder})))
       return arr
     }
     console.warn('Failed to parse tlf for oobm:', m)
     return arr
   }, [])
-  yield all(folderActions)
+  yield Saga.all(folderActions)
 }
 
 function* handlePushOOBM(pushOOBM: Constants.PushOOBM) {
@@ -190,23 +190,23 @@ function* handlePushOOBM(pushOOBM: Constants.PushOOBM) {
     // Filter first so we don't dispatch unnecessary actions
     const gitMessages = messages.filter(i => i.system === 'git')
     if (gitMessages.length > 0) {
-      yield put(GitGen.createHandleIncomingGregor({messages: gitMessages}))
+      yield Saga.put(GitGen.createHandleIncomingGregor({messages: gitMessages}))
     }
 
-    yield call(handleKbfsFavoritesOOBM, messages.filter(i => i.system === 'kbfs.favorites'))
+    yield Saga.call(handleKbfsFavoritesOOBM, messages.filter(i => i.system === 'kbfs.favorites'))
   } else {
     console.log('Error in gregor oobm', pushOOBM.payload)
   }
 }
 
 function* handleCheckReachability(): SagaGenerator<any, any> {
-  const reachability = yield call(RPCTypes.reachabilityCheckReachabilityRpcPromise)
-  yield put({type: Constants.updateReachability, payload: {reachability}})
+  const reachability = yield Saga.call(RPCTypes.reachabilityCheckReachabilityRpcPromise)
+  yield Saga.put({type: Constants.updateReachability, payload: {reachability}})
 }
 
 function* _injectItem(action: Constants.InjectItem): SagaGenerator<any, any> {
   const {category, body, dtime} = action.payload
-  yield call(RPCTypes.gregorInjectItemRpcPromise, {
+  yield Saga.call(RPCTypes.gregorInjectItemRpcPromise, {
     body,
     cat: category,
     dtime: {
@@ -217,10 +217,10 @@ function* _injectItem(action: Constants.InjectItem): SagaGenerator<any, any> {
 }
 
 function* gregorSaga(): SagaGenerator<any, any> {
-  yield safeTakeEvery(GregorGen.pushState, handlePushState)
-  yield safeTakeEvery(Constants.pushOOBM, handlePushOOBM)
-  yield safeTakeEvery(Constants.injectItem, _injectItem)
-  yield safeTakeLatest(Constants.checkReachability, handleCheckReachability)
+  yield Saga.safeTakeEvery(GregorGen.pushState, handlePushState)
+  yield Saga.safeTakeEvery(Constants.pushOOBM, handlePushOOBM)
+  yield Saga.safeTakeEvery(Constants.injectItem, _injectItem)
+  yield Saga.safeTakeLatest(Constants.checkReachability, handleCheckReachability)
 }
 
 export {
