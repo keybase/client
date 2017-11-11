@@ -56,9 +56,9 @@ const MakeOpenTeamConfirm = compose(
         </Text>
         <Input
           style={{flexShrink: 0}}
-          value={description}
-          onChangeText={onChangeDescription}
-          hintText="Team description"
+          value={teamNameInput}
+          onChangeText={onChangeTeamNameInput}
+          hintText="Team Name"
         />
       </Box>
 
