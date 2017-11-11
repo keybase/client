@@ -1,0 +1,14 @@
+{
+  "prelude": [
+    "import * as Constants from '../constants/dev'"
+  ],
+  "actions": {
+    "updateDebugConfig": {
+      "config": "Constants.DebugConfig"
+    },
+    "updatehmrReloading": {
+      "reloading": "boolean"
+    },
+    "debugCount": {}
+  }
+}

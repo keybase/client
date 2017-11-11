@@ -5,6 +5,7 @@
 import '../../dev/user-timings'
 import Main from '../../app/main.desktop'
 import * as AppGen from '../../actions/app-gen'
+import * as DevGen from '../../actions/dev-gen'
 import * as React from 'react'
 import * as ConfigGen from '../../actions/config-gen'
 import ReactDOM from 'react-dom'
@@ -31,8 +32,6 @@ import {setRouteDef} from '../../actions/route-tree'
 import {setupContextMenu} from '../app/menu-helper'
 import {setupSource} from '../../util/forward-logs'
 import flags from '../../util/feature-flags'
-import {updateDebugConfig} from '../../actions/dev'
-import {updateReloading} from '../../constants/dev'
 import InputMonitor from './inputmonitor'
 
 let _store
@@ -142,7 +141,8 @@ function setupApp(store) {
   // Introduce ourselves to the service
   hello(process.pid, 'Main Renderer', process.argv, __VERSION__, true) // eslint-disable-line no-undef
 
-  store.dispatch(updateDebugConfig(require('../../local-debug-live')))
+  // $FlowIssue doesn't like the require
+  store.dispatch(DevGen.createUpdateDebugConfig({config: require('../../local-debug-live')}))
 }
 
 const FontLoader = () => (
@@ -187,17 +187,18 @@ function setupHMR(store) {
     module.hot.accept(['../../app/main.desktop', '../../app/routes'], () => {
       store.dispatch(setRouteDef(require('../../app/routes').default))
       try {
-        store.dispatch({type: updateReloading, payload: {reloading: true}})
+        store.dispatch(DevGen.createUpdatehmrReloading({reloading: true}))
         const NewMain = require('../../app/main.desktop').default
         render(store, NewMain)
       } finally {
-        setTimeout(() => store.dispatch({type: updateReloading, payload: {reloading: false}}), 10e3)
+        setTimeout(() => store.dispatch(DevGen.createUpdatehmrReloading({reloading: false})), 10e3)
       }
     })
 
   module.hot &&
     module.hot.accept('../../local-debug-live', () => {
-      store.dispatch(updateDebugConfig(require('../../local-debug-live')))
+      // $FlowIssue doesn't like the require
+      store.dispatch(DevGen.createUpdateDebugConfig({config: require('../../local-debug-live')}))
     })
 
   module.hot && module.hot.accept('../../common-adapters/index.js', () => {})

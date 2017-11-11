@@ -1,41 +1,29 @@
 // @flow
-import * as CommonConstants from '../constants/common'
+import * as DevGen from '../actions/dev-gen'
 import * as Constants from '../constants/dev'
 
-const initialState: Constants.State = {
-  debugConfig: {
-    dumbFilter: '',
-    dumbFullscreen: false,
-    dumbIndex: 0,
-  },
-  hmrReloading: false,
-  debugCount: 0,
-}
-
-export default function(state: Constants.State = initialState, action: Constants.Actions) {
-  if (action.type === CommonConstants.resetStore) {
-    return {...initialState}
+export default function(state: Constants.State = Constants.initialState, action: DevGen.Actions) {
+  switch (action.type) {
+    case DevGen.resetStore:
+      return {...Constants.initialState}
+    case DevGen.updateDebugConfig:
+      const {config} = action.payload
+      return {
+        ...state,
+        debugConfig: {...state.debugConfig, ...config},
+      }
+    case DevGen.updatehmrReloading:
+      const {reloading} = action.payload
+      return {
+        ...state,
+        reloading,
+      }
+    case DevGen.debugCount:
+      return {
+        ...state,
+        debugCount: state.debugCount + 1,
+      }
   }
 
-  if (action.type === Constants.updateDebugConfig) {
-    return {
-      ...state,
-      debugConfig: {...state.debugConfig, ...action.payload},
-    }
-  }
-
-  if (action.type === Constants.updateReloading && !action.error) {
-    return {
-      ...state,
-      reloading: action.payload.reloading,
-    }
-  }
-
-  if (action.type === 'dev:debugCount') {
-    return {
-      ...state,
-      debugCount: state.debugCount + 1,
-    }
-  }
   return state
 }
