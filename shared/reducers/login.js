@@ -21,7 +21,6 @@ const initialState: Constants.State = {
     existingDevices: [],
     onSubmit: () => {},
   },
-  forgotPasswordEmailAddress: '',
   forgotPasswordError: null,
   forgotPasswordSubmitting: false,
   forgotPasswordSuccess: false,
