@@ -23,7 +23,7 @@ func TestShowcaseTeam(t *testing.T) {
 	t.Logf("Created team %q", name)
 
 	isShowcased := true
-	err = SetTeamShowcase(context.TODO(), tc.G, name, &isShowcased, nil)
+	err = SetTeamShowcase(context.TODO(), tc.G, name, &isShowcased, nil, nil)
 	require.NoError(t, err)
 
 	showcase, err := GetTeamShowcase(context.TODO(), tc.G, name)
@@ -34,7 +34,7 @@ func TestShowcaseTeam(t *testing.T) {
 	require.Nil(t, nil, showcase.Description)
 
 	description := "Hello world"
-	err = SetTeamShowcase(context.TODO(), tc.G, name, nil, &description)
+	err = SetTeamShowcase(context.TODO(), tc.G, name, nil, &description, nil)
 	require.NoError(t, err)
 
 	showcase, err = GetTeamShowcase(context.TODO(), tc.G, name)
@@ -46,7 +46,7 @@ func TestShowcaseTeam(t *testing.T) {
 	require.Equal(t, "Hello world", *showcase.Description)
 
 	isShowcased = false
-	err = SetTeamShowcase(context.TODO(), tc.G, name, &isShowcased, nil)
+	err = SetTeamShowcase(context.TODO(), tc.G, name, &isShowcased, nil, nil)
 	require.NoError(t, err)
 
 	showcase, err = GetTeamShowcase(context.TODO(), tc.G, name)
@@ -74,12 +74,12 @@ func TestShowcaseMember(t *testing.T) {
 	name := createTeam(tc)
 	t.Logf("Created team %q", name)
 
-	var nilTeamShowcase = keybase1.TeamShowcase{IsShowcased: false, Description: nil, SetByUID: nil}
+	var defaultTeamShowcase = keybase1.TeamShowcase{IsShowcased: false, Description: nil, SetByUID: nil, AnyMemberShowcase: true}
 
 	tmShowcase, err := GetTeamAndMemberShowcase(context.TODO(), tc.G, name)
 	require.NoError(t, err)
 	require.Equal(t, false, tmShowcase.IsMemberShowcased)
-	require.Equal(t, nilTeamShowcase, tmShowcase.TeamShowcase)
+	require.Equal(t, defaultTeamShowcase, tmShowcase.TeamShowcase)
 
 	err = SetTeamMemberShowcase(context.TODO(), tc.G, name, true)
 	require.NoError(t, err)
@@ -87,11 +87,11 @@ func TestShowcaseMember(t *testing.T) {
 	tmShowcase, err = GetTeamAndMemberShowcase(context.TODO(), tc.G, name)
 	require.NoError(t, err)
 	require.Equal(t, true, tmShowcase.IsMemberShowcased)
-	require.Equal(t, nilTeamShowcase, tmShowcase.TeamShowcase)
+	require.Equal(t, defaultTeamShowcase, tmShowcase.TeamShowcase)
 
 	isShowcased := true
 	description := "Hello Team!"
-	err = SetTeamShowcase(context.TODO(), tc.G, name, &isShowcased, &description)
+	err = SetTeamShowcase(context.TODO(), tc.G, name, &isShowcased, &description, nil)
 	require.NoError(t, err)
 
 	tmShowcase, err = GetTeamAndMemberShowcase(context.TODO(), tc.G, name)
@@ -121,7 +121,8 @@ func TestShowcasePermissions(t *testing.T) {
 
 	isShowcased := true
 	description := "This team is showcased"
-	err = SetTeamShowcase(context.TODO(), tc.G, team, &isShowcased, &description)
+	anyMemberShowcase := false
+	err = SetTeamShowcase(context.TODO(), tc.G, team, &isShowcased, &description, &anyMemberShowcase)
 	require.NoError(t, err)
 
 	err = SetTeamMemberShowcase(context.TODO(), tc.G, team, true)
@@ -137,7 +138,7 @@ func TestShowcasePermissions(t *testing.T) {
 	// Set- functions should check membership and not issue request
 	// when user is not an admin or higher.
 	isShowcased = false
-	err = SetTeamShowcase(context.TODO(), tc.G, team, &isShowcased, nil)
+	err = SetTeamShowcase(context.TODO(), tc.G, team, &isShowcased, nil, nil)
 	require.Error(t, err)
 
 	// AppStatusErrors means we bounced off server instead of being
@@ -145,10 +146,12 @@ func TestShowcasePermissions(t *testing.T) {
 	_, ok := err.(libkb.AppStatusError)
 	require.False(t, ok)
 
+	// But we expect to hit server error here: because server checks
+	// anyMemberShowcase, not us.
 	err = SetTeamMemberShowcase(context.TODO(), tc.G, team, true)
 	require.Error(t, err)
 	_, ok = err.(libkb.AppStatusError)
-	require.False(t, ok)
+	require.True(t, ok)
 
 	// Get- functions should still work.
 	ret, err := GetTeamAndMemberShowcase(context.TODO(), tc.G, team)
