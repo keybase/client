@@ -323,6 +323,7 @@ const _getDetails = function*(action: Constants.GetDetails): Saga.SagaGenerator<
     )
 
     const publicityMap = {
+      description: publicity.teamShowcase.description,
       member: publicity.isMemberShowcased,
       team: publicity.teamShowcase.isShowcased,
     }

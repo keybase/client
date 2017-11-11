@@ -10,6 +10,7 @@ import {type NoErrorTypedAction} from './types/flux'
 import {type TypedState} from './reducer'
 
 type _PublicitySettings = {
+  description: string,
   member: boolean,
   team: boolean,
 }
