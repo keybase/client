@@ -730,7 +730,7 @@ func (k *SimpleFS) getRemoteRootNode(ctx context.Context, path keybase1.Path) (
 		return nil, libkbfs.EntryInfo{}, nil, err
 	}
 	tlf, err := libkbfs.ParseTlfHandlePreferred(
-		ctx, k.config.KBPKI(), ps[0], t)
+		ctx, k.config.KBPKI(), k.config.MDOps(), ps[0], t)
 	if err != nil {
 		return nil, libkbfs.EntryInfo{}, nil, err
 	}

@@ -69,7 +69,13 @@ func mdOpsInit(t *testing.T, ver kbfsmd.MetadataVer) (mockCtrl *gomock.Controlle
 	injectShimCrypto(config)
 	interposeDaemonKBPKI(config, "alice", "bob", "charlie")
 	ctx = context.Background()
-	return
+
+	// Don't test implicit teams.
+	config.mockKbpki.EXPECT().ResolveImplicitTeam(
+		gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).AnyTimes().
+		Return(ImplicitTeamInfo{}, errors.New("No such team"))
+
+	return mockCtrl, config, ctx
 }
 
 func mdOpsShutdown(mockCtrl *gomock.Controller, config *ConfigMock) {
@@ -95,7 +101,10 @@ func addFakeRMDData(t *testing.T,
 
 func newRMDS(t *testing.T, config Config, h *TlfHandle) (
 	*RootMetadataSigned, kbfsmd.ExtraMetadata) {
-	id := tlf.FakeID(1, h.Type())
+	id := h.tlfID
+	if id == tlf.NullID {
+		id = tlf.FakeID(1, h.Type())
+	}
 
 	rmd, err := makeInitialRootMetadata(config.MetadataVersion(), id, h)
 	require.NoError(t, err)
@@ -209,19 +218,22 @@ func testMDOpsGetForHandlePublicSuccess(t *testing.T, ver kbfsmd.MetadataVer) {
 	mockCtrl, config, ctx := mdOpsInit(t, ver)
 	defer mdOpsShutdown(mockCtrl, config)
 
-	h := parseTlfHandleOrBust(t, config, "alice,bob", tlf.Public)
+	id := tlf.FakeID(1, tlf.Public)
+	h := parseTlfHandleOrBust(t, config, "alice,bob", tlf.Public, id)
 	rmds, _ := newRMDS(t, config, h)
+	h.tlfID = tlf.NullID
 
 	verifyMDForPublic(config, rmds, nil)
 
 	config.mockMdserv.EXPECT().GetForHandle(ctx, h.ToBareHandleOrBust(),
-		kbfsmd.Merged, nil).Return(tlf.NullID, rmds, nil)
+		kbfsmd.Merged, nil).Return(id, rmds, nil)
 
 	// Do this first, since rmds is consumed.
 	expectedMD := rmds.MD
-	_, rmd2, err := config.MDOps().GetForHandle(ctx, h, kbfsmd.Merged, nil)
+	id2, rmd2, err := config.MDOps().GetForHandle(ctx, h, kbfsmd.Merged, nil)
 	require.NoError(t, err)
 	require.Equal(t, expectedMD, rmd2.bareMd)
+	require.Equal(t, id, id2)
 }
 
 func expectGetKeyBundles(ctx context.Context, config *ConfigMock, extra kbfsmd.ExtraMetadata) {
@@ -238,39 +250,44 @@ func testMDOpsGetForHandlePrivateSuccess(t *testing.T, ver kbfsmd.MetadataVer) {
 	mockCtrl, config, ctx := mdOpsInit(t, ver)
 	defer mdOpsShutdown(mockCtrl, config)
 
-	h := parseTlfHandleOrBust(t, config, "alice,bob", tlf.Private)
+	id := tlf.FakeID(1, tlf.Private)
+	h := parseTlfHandleOrBust(t, config, "alice,bob", tlf.Private, id)
 	rmds, extra := newRMDS(t, config, h)
+	h.tlfID = tlf.NullID
 
 	verifyMDForPrivate(config, rmds)
 
 	config.mockMdserv.EXPECT().GetForHandle(ctx, h.ToBareHandleOrBust(),
-		kbfsmd.Merged, nil).Return(tlf.NullID, rmds, nil)
+		kbfsmd.Merged, nil).Return(id, rmds, nil)
 	expectGetKeyBundles(ctx, config, extra)
 
 	// Do this first, since rmds is consumed.
 	expectedMD := rmds.MD
-	_, rmd2, err := config.MDOps().GetForHandle(ctx, h, kbfsmd.Merged, nil)
+	id2, rmd2, err := config.MDOps().GetForHandle(ctx, h, kbfsmd.Merged, nil)
 	require.NoError(t, err)
 	require.Equal(t, expectedMD, rmd2.bareMd)
+	require.Equal(t, id, id2)
 }
 
 func testMDOpsGetForUnresolvedHandlePublicSuccess(t *testing.T, ver kbfsmd.MetadataVer) {
 	mockCtrl, config, ctx := mdOpsInit(t, ver)
 	defer mdOpsShutdown(mockCtrl, config)
 
-	h := parseTlfHandleOrBust(t, config, "alice,bob", tlf.Public)
+	id := tlf.FakeID(1, tlf.Public)
+	h := parseTlfHandleOrBust(t, config, "alice,bob", tlf.Public, id)
 	rmds, _ := newRMDS(t, config, h)
+	h.tlfID = tlf.NullID
 
 	// Do this before setting tlfHandle to nil.
 	verifyMDForPublic(config, rmds, nil)
 
-	hUnresolved, err := ParseTlfHandle(ctx, config.KBPKI(),
+	hUnresolved, err := ParseTlfHandle(ctx, config.KBPKI(), nil,
 		"alice,bob@twitter", tlf.Public)
 	require.NoError(t, err)
 
 	config.mockMdserv.EXPECT().GetForHandle(ctx,
 		hUnresolved.ToBareHandleOrBust(), kbfsmd.Merged, nil).Return(
-		tlf.NullID, rmds, nil).Times(2)
+		id, rmds, nil).Times(2)
 
 	// First time should fail.
 	_, _, err = config.MDOps().GetForHandle(ctx, hUnresolved, kbfsmd.Merged, nil)
@@ -291,15 +308,15 @@ func testMDOpsGetForUnresolvedMdHandlePublicSuccess(t *testing.T, ver kbfsmd.Met
 	mockCtrl, config, ctx := mdOpsInit(t, ver)
 	defer mdOpsShutdown(mockCtrl, config)
 
-	mdHandle1, err := ParseTlfHandle(ctx, config.KBPKI(),
+	mdHandle1, err := ParseTlfHandle(ctx, config.KBPKI(), nil,
 		"alice,dave@twitter", tlf.Public)
 	require.NoError(t, err)
 
-	mdHandle2, err := ParseTlfHandle(ctx, config.KBPKI(),
+	mdHandle2, err := ParseTlfHandle(ctx, config.KBPKI(), nil,
 		"alice,bob,charlie", tlf.Public)
 	require.NoError(t, err)
 
-	mdHandle3, err := ParseTlfHandle(ctx, config.KBPKI(),
+	mdHandle3, err := ParseTlfHandle(ctx, config.KBPKI(), nil,
 		"alice,bob@twitter,charlie@twitter", tlf.Public)
 	require.NoError(t, err)
 
@@ -314,7 +331,7 @@ func testMDOpsGetForUnresolvedMdHandlePublicSuccess(t *testing.T, ver kbfsmd.Met
 	verifyMDForPublic(config, rmds3, nil)
 
 	h, err := ParseTlfHandle(
-		ctx, config.KBPKI(), "alice,bob,charlie@twitter", tlf.Public)
+		ctx, config.KBPKI(), nil, "alice,bob,charlie@twitter", tlf.Public)
 	require.NoError(t, err)
 
 	config.mockMdserv.EXPECT().GetForHandle(ctx, h.ToBareHandleOrBust(),
@@ -350,10 +367,11 @@ func testMDOpsGetForUnresolvedHandlePublicFailure(t *testing.T, ver kbfsmd.Metad
 	mockCtrl, config, ctx := mdOpsInit(t, ver)
 	defer mdOpsShutdown(mockCtrl, config)
 
-	h := parseTlfHandleOrBust(t, config, "alice,bob", tlf.Public)
+	id := tlf.FakeID(1, tlf.Public)
+	h := parseTlfHandleOrBust(t, config, "alice,bob", tlf.Public, id)
 	rmds, _ := newRMDS(t, config, h)
 
-	hUnresolved, err := ParseTlfHandle(ctx, config.KBPKI(),
+	hUnresolved, err := ParseTlfHandle(ctx, config.KBPKI(), nil,
 		"alice,bob@github,bob@twitter", tlf.Public)
 	require.NoError(t, err)
 
@@ -362,7 +380,7 @@ func testMDOpsGetForUnresolvedHandlePublicFailure(t *testing.T, ver kbfsmd.Metad
 
 	config.mockMdserv.EXPECT().GetForHandle(ctx,
 		hUnresolved.ToBareHandleOrBust(), kbfsmd.Merged, nil).Return(
-		tlf.NullID, rmds, nil)
+		id, rmds, nil)
 
 	// Should still fail.
 	_, _, err = config.MDOps().GetForHandle(ctx, hUnresolved, kbfsmd.Merged, nil)
@@ -375,14 +393,16 @@ func testMDOpsGetForHandlePublicFailFindKey(t *testing.T, ver kbfsmd.MetadataVer
 	mockCtrl, config, ctx := mdOpsInit(t, ver)
 	defer mdOpsShutdown(mockCtrl, config)
 
-	h := parseTlfHandleOrBust(t, config, "alice,bob", tlf.Public)
+	id := tlf.FakeID(1, tlf.Public)
+	h := parseTlfHandleOrBust(t, config, "alice,bob", tlf.Public, id)
 	rmds, _ := newRMDS(t, config, h)
+	h.tlfID = tlf.NullID
 
 	// Do this before setting tlfHandle to nil.
 	verifyMDForPublic(config, rmds, VerifyingKeyNotFoundError{})
 
 	config.mockMdserv.EXPECT().GetForHandle(ctx, h.ToBareHandleOrBust(),
-		kbfsmd.Merged, nil).Return(tlf.NullID, rmds, nil)
+		kbfsmd.Merged, nil).Return(id, rmds, nil)
 
 	_, _, err := config.MDOps().GetForHandle(ctx, h, kbfsmd.Merged, nil)
 	if _, ok := err.(UnverifiableTlfUpdateError); !ok {
@@ -403,14 +423,16 @@ func testMDOpsGetForHandlePublicFailVerify(t *testing.T, ver kbfsmd.MetadataVer)
 	mockCtrl, config, ctx := mdOpsInit(t, ver)
 	defer mdOpsShutdown(mockCtrl, config)
 
-	h := parseTlfHandleOrBust(t, config, "alice,bob", tlf.Public)
+	id := tlf.FakeID(1, tlf.Public)
+	h := parseTlfHandleOrBust(t, config, "alice,bob", tlf.Public, id)
 	rmds, _ := newRMDS(t, config, h)
+	h.tlfID = tlf.NullID
 
 	// Change something in rmds that affects the computed MdID,
 	// which will then cause an MDMismatchError.
 	rmds.MD.(kbfsmd.MutableRootMetadata).SetRefBytes(100)
 	config.mockMdserv.EXPECT().GetForHandle(ctx, h.ToBareHandleOrBust(),
-		kbfsmd.Merged, nil).Return(tlf.NullID, rmds, nil)
+		kbfsmd.Merged, nil).Return(id, rmds, nil)
 
 	_, _, err := config.MDOps().GetForHandle(ctx, h, kbfsmd.Merged, nil)
 	require.IsType(t, MDMismatchError{}, err)
@@ -420,7 +442,7 @@ func testMDOpsGetForHandleFailGet(t *testing.T, ver kbfsmd.MetadataVer) {
 	mockCtrl, config, ctx := mdOpsInit(t, ver)
 	defer mdOpsShutdown(mockCtrl, config)
 
-	h := parseTlfHandleOrBust(t, config, "alice,bob", tlf.Private)
+	h := parseTlfHandleOrBust(t, config, "alice,bob", tlf.Private, tlf.NullID)
 
 	err := errors.New("Fake fail")
 
@@ -437,13 +459,15 @@ func testMDOpsGetForHandleFailHandleCheck(t *testing.T, ver kbfsmd.MetadataVer) 
 	mockCtrl, config, ctx := mdOpsInit(t, ver)
 	defer mdOpsShutdown(mockCtrl, config)
 
-	h := parseTlfHandleOrBust(t, config, "alice,bob", tlf.Private)
+	id := tlf.FakeID(1, tlf.Private)
+	h := parseTlfHandleOrBust(t, config, "alice,bob", tlf.Private, id)
 	rmds, extra := newRMDS(t, config, h)
+	h.tlfID = tlf.NullID
 
 	// Make a different handle.
-	otherH := parseTlfHandleOrBust(t, config, "alice", tlf.Private)
+	otherH := parseTlfHandleOrBust(t, config, "alice", tlf.Private, tlf.NullID)
 	config.mockMdserv.EXPECT().GetForHandle(ctx, otherH.ToBareHandleOrBust(),
-		kbfsmd.Merged, nil).Return(tlf.NullID, rmds, nil)
+		kbfsmd.Merged, nil).Return(id, rmds, nil)
 	expectGetKeyBundles(ctx, config, extra)
 
 	_, _, err := config.MDOps().GetForHandle(ctx, otherH, kbfsmd.Merged, nil)
@@ -456,7 +480,8 @@ func testMDOpsGetSuccess(t *testing.T, ver kbfsmd.MetadataVer) {
 	mockCtrl, config, ctx := mdOpsInit(t, ver)
 	defer mdOpsShutdown(mockCtrl, config)
 
-	h := parseTlfHandleOrBust(t, config, "alice,bob", tlf.Private)
+	id := tlf.FakeID(1, tlf.Private)
+	h := parseTlfHandleOrBust(t, config, "alice,bob", tlf.Private, id)
 	rmds, extra := newRMDS(t, config, h)
 
 	// Do this before setting tlfHandle to nil.
@@ -477,7 +502,8 @@ func testMDOpsGetBlankSigFailure(t *testing.T, ver kbfsmd.MetadataVer) {
 	mockCtrl, config, ctx := mdOpsInit(t, ver)
 	defer mdOpsShutdown(mockCtrl, config)
 
-	h := parseTlfHandleOrBust(t, config, "alice,bob", tlf.Private)
+	id := tlf.FakeID(1, tlf.Private)
+	h := parseTlfHandleOrBust(t, config, "alice,bob", tlf.Private, id)
 	rmds, extra := newRMDS(t, config, h)
 	rmds.SigInfo = kbfscrypto.SignatureInfo{}
 
@@ -511,7 +537,8 @@ func testMDOpsGetFailIDCheck(t *testing.T, ver kbfsmd.MetadataVer) {
 	mockCtrl, config, ctx := mdOpsInit(t, ver)
 	defer mdOpsShutdown(mockCtrl, config)
 
-	h := parseTlfHandleOrBust(t, config, "alice,bob", tlf.Private)
+	id := tlf.FakeID(1, tlf.Private)
+	h := parseTlfHandleOrBust(t, config, "alice,bob", tlf.Private, id)
 	rmds, extra := newRMDS(t, config, h)
 
 	id2 := tlf.FakeID(2, tlf.Public)
@@ -531,7 +558,7 @@ func makeRMDSRange(t *testing.T, config Config,
 	start kbfsmd.Revision, count int, prevID kbfsmd.ID) (
 	rmdses []*RootMetadataSigned, extras []kbfsmd.ExtraMetadata) {
 	id := tlf.FakeID(1, tlf.Private)
-	h := parseTlfHandleOrBust(t, config, "alice,bob", tlf.Private)
+	h := parseTlfHandleOrBust(t, config, "alice,bob", tlf.Private, id)
 	for i := 0; i < count; i++ {
 		rmd, err := makeInitialRootMetadata(config.MetadataVersion(), id, h)
 		if err != nil {
@@ -779,7 +806,7 @@ func testMDOpsPutPublicSuccess(t *testing.T, ver kbfsmd.MetadataVer) {
 	config.SetMDServer(&mdServer)
 
 	id := tlf.FakeID(1, tlf.Public)
-	h := parseTlfHandleOrBust(t, config, "alice,bob", tlf.Public)
+	h := parseTlfHandleOrBust(t, config, "alice,bob", tlf.Public, id)
 
 	rmd, err := makeInitialRootMetadata(config.MetadataVersion(), id, h)
 	require.NoError(t, err)
@@ -802,7 +829,7 @@ func testMDOpsPutPrivateSuccess(t *testing.T, ver kbfsmd.MetadataVer) {
 	config.SetCodec(kbfscodec.NewMsgpack())
 
 	id := tlf.FakeID(1, tlf.Private)
-	h := parseTlfHandleOrBust(t, config, "alice,bob", tlf.Private)
+	h := parseTlfHandleOrBust(t, config, "alice,bob", tlf.Private, id)
 	rmd, err := makeInitialRootMetadata(config.MetadataVersion(), id, h)
 	require.NoError(t, err)
 	addFakeRMDData(t, config.Codec(), rmd, h)
@@ -830,7 +857,7 @@ func testMDOpsPutFailEncode(t *testing.T, ver kbfsmd.MetadataVer) {
 	defer mdOpsShutdown(mockCtrl, config)
 
 	id := tlf.FakeID(1, tlf.Private)
-	h := parseTlfHandleOrBust(t, config, "alice,bob", tlf.Private)
+	h := parseTlfHandleOrBust(t, config, "alice,bob", tlf.Private, id)
 	rmd, err := makeInitialRootMetadata(config.MetadataVersion(), id, h)
 	require.NoError(t, err)
 

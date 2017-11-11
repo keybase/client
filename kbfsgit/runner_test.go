@@ -91,7 +91,8 @@ func testRunnerInitRepo(t *testing.T, tlfType tlf.Type, typeString string) {
 		inputWriter.Write([]byte("list\n\n"))
 	}()
 
-	h, err := libkbfs.ParseTlfHandle(ctx, config.KBPKI(), "user1", tlfType)
+	h, err := libkbfs.ParseTlfHandle(
+		ctx, config.KBPKI(), config.MDOps(), "user1", tlfType)
 	require.NoError(t, err)
 	if tlfType != tlf.Public {
 		_, err = libgit.CreateRepoAndID(ctx, config, h, "test")
@@ -279,7 +280,8 @@ func testRunnerPushFetch(t *testing.T, cloning bool, secondRepoHasBranch bool) {
 
 	makeLocalRepoWithOneFile(t, git1, "foo", "hello", "")
 
-	h, err := libkbfs.ParseTlfHandle(ctx, config.KBPKI(), "user1", tlf.Private)
+	h, err := libkbfs.ParseTlfHandle(
+		ctx, config.KBPKI(), config.MDOps(), "user1", tlf.Private)
 	require.NoError(t, err)
 	_, err = libgit.CreateRepoAndID(ctx, config, h, "test")
 	require.NoError(t, err)
@@ -357,7 +359,8 @@ func TestRunnerDeleteBranch(t *testing.T) {
 
 	makeLocalRepoWithOneFile(t, git, "foo", "hello", "")
 
-	h, err := libkbfs.ParseTlfHandle(ctx, config.KBPKI(), "user1", tlf.Private)
+	h, err := libkbfs.ParseTlfHandle(
+		ctx, config.KBPKI(), config.MDOps(), "user1", tlf.Private)
 	require.NoError(t, err)
 	_, err = libgit.CreateRepoAndID(ctx, config, h, "test")
 	require.NoError(t, err)
@@ -386,7 +389,8 @@ func TestRunnerExitEarlyOnEOF(t *testing.T) {
 
 	makeLocalRepoWithOneFile(t, git, "foo", "hello", "")
 
-	h, err := libkbfs.ParseTlfHandle(ctx, config.KBPKI(), "user1", tlf.Private)
+	h, err := libkbfs.ParseTlfHandle(
+		ctx, config.KBPKI(), config.MDOps(), "user1", tlf.Private)
 	require.NoError(t, err)
 	rootNode, _, err := config.KBFSOps().GetOrCreateRootNode(
 		ctx, h, libkbfs.MasterBranch)
@@ -424,7 +428,8 @@ func TestForcePush(t *testing.T) {
 
 	makeLocalRepoWithOneFile(t, git, "foo", "hello", "")
 
-	h, err := libkbfs.ParseTlfHandle(ctx, config.KBPKI(), "user1", tlf.Private)
+	h, err := libkbfs.ParseTlfHandle(
+		ctx, config.KBPKI(), config.MDOps(), "user1", tlf.Private)
 	require.NoError(t, err)
 	_, err = libgit.CreateRepoAndID(ctx, config, h, "test")
 	require.NoError(t, err)
@@ -462,7 +467,8 @@ func TestPushAllWithPackedRefs(t *testing.T) {
 	dotgit := filepath.Join(git, ".git")
 	gitExec(t, dotgit, git, "pack-refs", "--all")
 
-	h, err := libkbfs.ParseTlfHandle(ctx, config.KBPKI(), "user1", tlf.Private)
+	h, err := libkbfs.ParseTlfHandle(
+		ctx, config.KBPKI(), config.MDOps(), "user1", tlf.Private)
 	require.NoError(t, err)
 	_, err = libgit.CreateRepoAndID(ctx, config, h, "test")
 	require.NoError(t, err)
@@ -484,7 +490,8 @@ func TestPushSomeWithPackedRefs(t *testing.T) {
 	require.NoError(t, err)
 	defer os.RemoveAll(git)
 
-	h, err := libkbfs.ParseTlfHandle(ctx, config.KBPKI(), "user1", tlf.Private)
+	h, err := libkbfs.ParseTlfHandle(
+		ctx, config.KBPKI(), config.MDOps(), "user1", tlf.Private)
 	require.NoError(t, err)
 	_, err = libgit.CreateRepoAndID(ctx, config, h, "test")
 	require.NoError(t, err)
@@ -607,7 +614,8 @@ func TestRunnerDeletePackedRef(t *testing.T) {
 
 	gitExec(t, dotgit1, git1, "pack-refs", "--all")
 
-	h, err := libkbfs.ParseTlfHandle(ctx, config.KBPKI(), "user1", tlf.Private)
+	h, err := libkbfs.ParseTlfHandle(
+		ctx, config.KBPKI(), config.MDOps(), "user1", tlf.Private)
 	require.NoError(t, err)
 	_, err = libgit.CreateRepoAndID(ctx, config, h, "test")
 	require.NoError(t, err)
@@ -710,7 +718,7 @@ func TestPackRefsAndOverwritePackedRef(t *testing.T) {
 		ctx, config2, libkbfs.StallableMDAfterGetRange, 1)
 	packErrCh := make(chan error)
 	h, err := libkbfs.ParseTlfHandle(
-		ctx, config2.KBPKI(), "user1,user2", tlf.Private)
+		ctx, config2.KBPKI(), config.MDOps(), "user1,user2", tlf.Private)
 	require.NoError(t, err)
 	go func() {
 		packErrCh <- libgit.GCRepo(
@@ -794,7 +802,7 @@ func TestPackRefsAndDeletePackedRef(t *testing.T) {
 		ctx, config2, libkbfs.StallableMDAfterGetRange, 1)
 	packErrCh := make(chan error)
 	h, err := libkbfs.ParseTlfHandle(
-		ctx, config2.KBPKI(), "user1,user2", tlf.Private)
+		ctx, config2.KBPKI(), config.MDOps(), "user1,user2", tlf.Private)
 	require.NoError(t, err)
 	go func() {
 		packErrCh <- libgit.GCRepo(

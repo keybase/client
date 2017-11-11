@@ -153,7 +153,7 @@ func newRunner(ctx context.Context, config libkbfs.Config,
 	}
 
 	h, err := libkbfs.GetHandleFromFolderNameAndType(
-		ctx, config.KBPKI(), parts[1], t)
+		ctx, config.KBPKI(), config.MDOps(), parts[1], t)
 	if err != nil {
 		return nil, err
 	}

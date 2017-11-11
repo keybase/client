@@ -506,7 +506,9 @@ func (km *KeyManagerStandard) Rekey(ctx context.Context, md *RootMetadata, promp
 		return false, nil, err
 	}
 
-	resolvedHandle, err := handle.ResolveAgain(ctx, km.config.KBPKI())
+	idGetter := constIDGetter{md.TlfID()}
+	resolvedHandle, err := handle.ResolveAgain(
+		ctx, km.config.KBPKI(), idGetter)
 	if err != nil {
 		return false, nil, err
 	}
@@ -520,8 +522,8 @@ func (km *KeyManagerStandard) Rekey(ctx context.Context, md *RootMetadata, promp
 				"already a reader; reverting back to the original handle")
 		} else {
 			// Only allow yourself to change
-			resolvedHandle, err =
-				handle.ResolveAgainForUser(ctx, km.config.KBPKI(), session.UID)
+			resolvedHandle, err = handle.ResolveAgainForUser(
+				ctx, km.config.KBPKI(), idGetter, session.UID)
 			if err != nil {
 				return false, nil, err
 			}

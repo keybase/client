@@ -26,7 +26,8 @@ func makeFS(t *testing.T, subdir string) (
 	context.Context, *libkbfs.TlfHandle, *FS) {
 	ctx := libkbfs.BackgroundContextWithCancellationDelayer()
 	config := libkbfs.MakeTestConfigOrBust(t, "user1", "user2")
-	h, err := libkbfs.ParseTlfHandle(ctx, config.KBPKI(), "user1", tlf.Private)
+	h, err := libkbfs.ParseTlfHandle(
+		ctx, config.KBPKI(), config.MDOps(), "user1", tlf.Private)
 	require.NoError(t, err)
 	fs, err := NewFS(ctx, config, h, subdir, "", keybase1.MDPriorityNormal)
 	require.NoError(t, err)
@@ -57,7 +58,8 @@ func makeFSWithJournal(t *testing.T, subdir string) (
 		assert.NoError(t, err)
 	}
 
-	h, err := libkbfs.ParseTlfHandle(ctx, config.KBPKI(), "user1", tlf.Private)
+	h, err := libkbfs.ParseTlfHandle(
+		ctx, config.KBPKI(), config.MDOps(), "user1", tlf.Private)
 	require.NoError(t, err)
 	fs, err := NewFS(ctx, config, h, subdir, "", keybase1.MDPriorityNormal)
 	require.NoError(t, err)
@@ -265,7 +267,7 @@ func TestStat(t *testing.T) {
 	config2.SetClock(clock)
 
 	h2, err := libkbfs.ParseTlfHandle(
-		ctx, config2.KBPKI(), "user2#user1", tlf.Private)
+		ctx, config2.KBPKI(), config2.MDOps(), "user2#user1", tlf.Private)
 	require.NoError(t, err)
 	fs2U2, err := NewFS(ctx, config2, h2, "", "", keybase1.MDPriorityNormal)
 	require.NoError(t, err)

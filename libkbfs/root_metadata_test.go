@@ -292,7 +292,7 @@ func testMakeRekeyReadError(t *testing.T, ver kbfsmd.MetadataVer) {
 	defer config.Shutdown(ctx)
 
 	tlfID := tlf.FakeID(1, tlf.Private)
-	h := parseTlfHandleOrBust(t, config, "alice", tlf.Private)
+	h := parseTlfHandleOrBust(t, config, "alice", tlf.Private, tlfID)
 	rmd, err := makeInitialRootMetadata(config.MetadataVersion(), tlfID, h)
 	require.NoError(t, err)
 
@@ -319,7 +319,7 @@ func testMakeRekeyReadErrorResolvedHandle(t *testing.T, ver kbfsmd.MetadataVer) 
 
 	tlfID := tlf.FakeID(1, tlf.Private)
 	h, err := ParseTlfHandle(
-		ctx, config.KBPKI(), "alice,bob@twitter", tlf.Private)
+		ctx, config.KBPKI(), nil, "alice,bob@twitter", tlf.Private)
 	require.NoError(t, err)
 	rmd, err := makeInitialRootMetadata(config.MetadataVersion(), tlfID, h)
 	require.NoError(t, err)
@@ -338,7 +338,7 @@ func testMakeRekeyReadErrorResolvedHandle(t *testing.T, ver kbfsmd.MetadataVer) 
 	config.KeybaseService().(*KeybaseDaemonLocal).addNewAssertionForTestOrBust(
 		"bob", "bob@twitter")
 
-	resolvedHandle, err := h.ResolveAgain(ctx, config.KBPKI())
+	resolvedHandle, err := h.ResolveAgain(ctx, config.KBPKI(), nil)
 	require.NoError(t, err)
 
 	dummyErr := errors.New("dummy")
@@ -394,7 +394,7 @@ func TestRootMetadataUpconversionPrivate(t *testing.T) {
 	defer config.Shutdown(ctx)
 
 	tlfID := tlf.FakeID(1, tlf.Private)
-	h := parseTlfHandleOrBust(t, config, "alice,alice@twitter#bob,charlie@twitter,eve@reddit", tlf.Private)
+	h := parseTlfHandleOrBust(t, config, "alice,alice@twitter#bob,charlie@twitter,eve@reddit", tlf.Private, tlfID)
 	rmd, err := makeInitialRootMetadata(kbfsmd.InitialExtraMetadataVer, tlfID, h)
 	require.NoError(t, err)
 	require.Equal(t, kbfsmd.KeyGen(0), rmd.LatestKeyGeneration())
@@ -552,7 +552,7 @@ func TestRootMetadataUpconversionPublic(t *testing.T) {
 
 	tlfID := tlf.FakeID(1, tlf.Public)
 	h := parseTlfHandleOrBust(
-		t, config, "alice,bob,charlie@twitter", tlf.Public)
+		t, config, "alice,bob,charlie@twitter", tlf.Public, tlfID)
 	rmd, err := makeInitialRootMetadata(kbfsmd.InitialExtraMetadataVer, tlfID, h)
 	require.NoError(t, err)
 	require.Equal(t, kbfsmd.PublicKeyGen, rmd.LatestKeyGeneration())
@@ -607,7 +607,7 @@ func TestRootMetadataUpconversionPrivateConflict(t *testing.T) {
 
 	tlfID := tlf.FakeID(1, tlf.Private)
 	h := parseTlfHandleOrBust(
-		t, config, "alice,bob (conflicted copy 2017-08-24)", tlf.Private)
+		t, config, "alice,bob (conflicted copy 2017-08-24)", tlf.Private, tlfID)
 	rmd, err := makeInitialRootMetadata(kbfsmd.InitialExtraMetadataVer, tlfID, h)
 	require.NoError(t, err)
 	require.Equal(t, kbfsmd.KeyGen(0), rmd.LatestKeyGeneration())
@@ -704,7 +704,7 @@ func TestRootMetadataReaderUpconversionPrivate(t *testing.T) {
 	defer configWriter.Shutdown(ctx)
 
 	tlfID := tlf.FakeID(1, tlf.Private)
-	h := parseTlfHandleOrBust(t, configWriter, "alice#bob", tlf.Private)
+	h := parseTlfHandleOrBust(t, configWriter, "alice#bob", tlf.Private, tlfID)
 	rmd, err := makeInitialRootMetadata(kbfsmd.InitialExtraMetadataVer, tlfID, h)
 	require.NoError(t, err)
 	require.Equal(t, kbfsmd.KeyGen(0), rmd.LatestKeyGeneration())

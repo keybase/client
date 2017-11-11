@@ -43,7 +43,13 @@ func keyManagerInit(t *testing.T, ver kbfsmd.MetadataVer) (mockCtrl *gomock.Cont
 	cryptoPure := MakeCryptoCommon(codec)
 	config.SetCrypto(shimKMCrypto{config.Crypto(), cryptoPure})
 	config.SetMetadataVersion(ver)
-	return
+
+	// Don't test implicit teams.
+	config.mockKbpki.EXPECT().ResolveImplicitTeam(
+		gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).AnyTimes().
+		Return(ImplicitTeamInfo{}, errors.New("No such team"))
+
+	return mockCtrl, config, ctx
 }
 
 func keyManagerShutdown(mockCtrl *gomock.Controller, config *ConfigMock) {
@@ -280,7 +286,7 @@ func testKeyManagerUncachedSecretKeyForEncryptionSuccess(t *testing.T, ver kbfsm
 	defer keyManagerShutdown(mockCtrl, config)
 
 	id := tlf.FakeID(1, tlf.Private)
-	h := parseTlfHandleOrBust(t, config, "alice", tlf.Private)
+	h := parseTlfHandleOrBust(t, config, "alice", tlf.Private, id)
 	uid := h.FirstResolvedWriter()
 	rmd, err := makeInitialRootMetadata(config.MetadataVersion(), id, h)
 	require.NoError(t, err)
@@ -313,7 +319,7 @@ func testKeyManagerUncachedSecretKeyForMDDecryptionSuccess(t *testing.T, ver kbf
 	defer keyManagerShutdown(mockCtrl, config)
 
 	id := tlf.FakeID(1, tlf.Private)
-	h := parseTlfHandleOrBust(t, config, "alice", tlf.Private)
+	h := parseTlfHandleOrBust(t, config, "alice", tlf.Private, id)
 	uid := h.FirstResolvedWriter()
 	rmd, err := makeInitialRootMetadata(config.MetadataVersion(), id, h)
 	require.NoError(t, err)
@@ -344,7 +350,7 @@ func testKeyManagerUncachedSecretKeyForBlockDecryptionSuccess(t *testing.T, ver 
 	defer keyManagerShutdown(mockCtrl, config)
 
 	id := tlf.FakeID(1, tlf.Private)
-	h := parseTlfHandleOrBust(t, config, "alice", tlf.Private)
+	h := parseTlfHandleOrBust(t, config, "alice", tlf.Private, id)
 	uid := h.FirstResolvedWriter()
 	rmd, err := makeInitialRootMetadata(config.MetadataVersion(), id, h)
 	require.NoError(t, err)
@@ -393,7 +399,7 @@ func testKeyManagerRekeySuccessPrivate(t *testing.T, ver kbfsmd.MetadataVer) {
 	defer keyManagerShutdown(mockCtrl, config)
 
 	id := tlf.FakeID(1, tlf.Private)
-	h := parseTlfHandleOrBust(t, config, "alice", tlf.Private)
+	h := parseTlfHandleOrBust(t, config, "alice", tlf.Private, id)
 	rmd, err := makeInitialRootMetadata(config.MetadataVersion(), id, h)
 	require.NoError(t, err)
 
@@ -415,7 +421,7 @@ func testKeyManagerRekeyResolveAgainSuccessPublic(t *testing.T, ver kbfsmd.Metad
 
 	id := tlf.FakeID(1, tlf.Public)
 	h, err := ParseTlfHandle(
-		ctx, config.KBPKI(), "alice,bob@twitter", tlf.Public)
+		ctx, config.KBPKI(), nil, "alice,bob@twitter", tlf.Public)
 	require.NoError(t, err)
 	rmd, err := makeInitialRootMetadata(config.MetadataVersion(), id, h)
 	require.NoError(t, err)
@@ -455,7 +461,8 @@ func testKeyManagerRekeyResolveAgainSuccessPublicSelf(t *testing.T, ver kbfsmd.M
 
 	id := tlf.FakeID(1, tlf.Public)
 	h, err := ParseTlfHandle(
-		ctx, config.KBPKI(), "alice@twitter,bob,charlie@twitter", tlf.Public)
+		ctx, config.KBPKI(), nil, "alice@twitter,bob,charlie@twitter",
+		tlf.Public)
 	require.NoError(t, err)
 	rmd, err := makeInitialRootMetadata(config.MetadataVersion(), id, h)
 	require.NoError(t, err)
@@ -490,8 +497,8 @@ func testKeyManagerRekeyResolveAgainSuccessPrivate(t *testing.T, ver kbfsmd.Meta
 
 	id := tlf.FakeID(1, tlf.Private)
 	h, err := ParseTlfHandle(
-		ctx, config.KBPKI(), "alice,bob@twitter,dave@twitter#charlie@twitter",
-		tlf.Private)
+		ctx, config.KBPKI(), constIDGetter{id},
+		"alice,bob@twitter,dave@twitter#charlie@twitter", tlf.Private)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -580,7 +587,7 @@ func testKeyManagerPromoteReaderSuccess(t *testing.T, ver kbfsmd.MetadataVer) {
 	defer CheckConfigAndShutdown(ctx, t, config)
 
 	id := tlf.FakeID(1, tlf.Private)
-	h, err := ParseTlfHandle(ctx, config.KBPKI(),
+	h, err := ParseTlfHandle(ctx, config.KBPKI(), nil,
 		"alice,bob@twitter#bob", tlf.Private)
 	require.NoError(t, err)
 
@@ -628,7 +635,7 @@ func testKeyManagerPromoteReaderSelf(t *testing.T, ver kbfsmd.MetadataVer) {
 	defer CheckConfigAndShutdown(ctx, t, config)
 
 	id := tlf.FakeID(1, tlf.Private)
-	h, err := ParseTlfHandle(ctx, config.KBPKI(),
+	h, err := ParseTlfHandle(ctx, config.KBPKI(), nil,
 		"alice,bob@twitter#bob", tlf.Private)
 	require.NoError(t, err)
 
@@ -678,7 +685,7 @@ func testKeyManagerReaderRekeyShouldNotPromote(t *testing.T, ver kbfsmd.Metadata
 	defer CheckConfigAndShutdown(ctx, t, config)
 
 	id := tlf.FakeID(1, tlf.Private)
-	h, err := ParseTlfHandle(ctx, config.KBPKI(),
+	h, err := ParseTlfHandle(ctx, config.KBPKI(), nil,
 		"alice,charlie@twitter#bob,charlie", tlf.Private)
 	require.NoError(t, err)
 
@@ -721,7 +728,7 @@ func testKeyManagerReaderRekeyResolveAgainSuccessPrivate(t *testing.T, ver kbfsm
 	defer keyManagerShutdown(mockCtrl, config)
 
 	id := tlf.FakeID(1, tlf.Private)
-	h, err := ParseTlfHandle(ctx, config.KBPKI(),
+	h, err := ParseTlfHandle(ctx, config.KBPKI(), constIDGetter{id},
 		"alice,dave@twitter#bob@twitter,charlie@twitter", tlf.Private)
 	if err != nil {
 		t.Fatal(err)
@@ -801,7 +808,8 @@ func testKeyManagerRekeyResolveAgainNoChangeSuccessPrivate(t *testing.T, ver kbf
 	defer keyManagerShutdown(mockCtrl, config)
 
 	id := tlf.FakeID(1, tlf.Private)
-	h, err := ParseTlfHandle(ctx, config.KBPKI(), "alice,bob,bob@twitter",
+	h, err := ParseTlfHandle(
+		ctx, config.KBPKI(), constIDGetter{id}, "alice,bob,bob@twitter",
 		tlf.Private)
 	if err != nil {
 		t.Fatal(err)

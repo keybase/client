@@ -5,6 +5,7 @@
 package libkbfs
 
 import (
+	"errors"
 	"fmt"
 	"reflect"
 	"sort"
@@ -26,6 +27,9 @@ func fbStatusTestInit(t *testing.T) (*gomock.Controller, *ConfigMock,
 	ctr := NewSafeTestReporter(t)
 	mockCtrl := gomock.NewController(ctr)
 	config := NewConfigMock(mockCtrl, ctr)
+	config.mockKbpki.EXPECT().ResolveImplicitTeam(
+		gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).AnyTimes().
+		Return(ImplicitTeamInfo{}, errors.New("No such team"))
 	nodeCache := NewMockNodeCache(mockCtrl)
 	fbsk := newFolderBranchStatusKeeper(config, nodeCache)
 	interposeDaemonKBPKI(config, "alice", "bob")
@@ -108,7 +112,7 @@ func TestFBStatusAllFields(t *testing.T) {
 
 	// make a new root metadata
 	id := tlf.FakeID(1, tlf.Private)
-	h := parseTlfHandleOrBust(t, config, "alice", tlf.Private)
+	h := parseTlfHandleOrBust(t, config, "alice", tlf.Private, id)
 	u := h.FirstResolvedWriter()
 	rmd, err := makeInitialRootMetadata(config.MetadataVersion(), id, h)
 	require.NoError(t, err)

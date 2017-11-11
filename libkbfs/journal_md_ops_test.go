@@ -107,7 +107,7 @@ func TestJournalMDOpsBasics(t *testing.T) {
 		[]keybase1.UserOrTeamID{session.UID.AsUserOrTeam()}, nil, nil, nil, nil)
 	require.NoError(t, err)
 
-	h, err := MakeTlfHandle(ctx, bh, config.KBPKI())
+	h, err := MakeTlfHandle(ctx, bh, config.KBPKI(), nil)
 	require.NoError(t, err)
 
 	mdOps := jServer.mdOps()
@@ -116,6 +116,7 @@ func TestJournalMDOpsBasics(t *testing.T) {
 	require.NoError(t, err)
 	require.NotEqual(t, tlf.NullID, id)
 	require.Equal(t, ImmutableRootMetadata{}, irmd)
+	h.tlfID = id
 
 	err = jServer.Enable(ctx, id, nil, TLFJournalBackgroundWorkPaused)
 	require.NoError(t, err)
@@ -291,7 +292,7 @@ func TestJournalMDOpsPutUnmerged(t *testing.T) {
 		[]keybase1.UserOrTeamID{session.UID.AsUserOrTeam()}, nil, nil, nil, nil)
 	require.NoError(t, err)
 
-	h, err := MakeTlfHandle(ctx, bh, config.KBPKI())
+	h, err := MakeTlfHandle(ctx, bh, config.KBPKI(), nil)
 	require.NoError(t, err)
 
 	mdOps := jServer.mdOps()
@@ -323,7 +324,7 @@ func TestJournalMDOpsPutUnmergedError(t *testing.T) {
 		[]keybase1.UserOrTeamID{session.UID.AsUserOrTeam()}, nil, nil, nil, nil)
 	require.NoError(t, err)
 
-	h, err := MakeTlfHandle(ctx, bh, config.KBPKI())
+	h, err := MakeTlfHandle(ctx, bh, config.KBPKI(), nil)
 	require.NoError(t, err)
 
 	mdOps := jServer.mdOps()
@@ -353,7 +354,7 @@ func TestJournalMDOpsLocalSquashBranch(t *testing.T) {
 		[]keybase1.UserOrTeamID{session.UID.AsUserOrTeam()}, nil, nil, nil, nil)
 	require.NoError(t, err)
 
-	h, err := MakeTlfHandle(ctx, bh, config.KBPKI())
+	h, err := MakeTlfHandle(ctx, bh, config.KBPKI(), nil)
 	require.NoError(t, err)
 
 	mdOps := jServer.mdOps()

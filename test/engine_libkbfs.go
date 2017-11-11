@@ -197,12 +197,12 @@ func (k *LibKBFS) GetUID(u User) (uid keybase1.UID) {
 }
 
 func parseTlfHandle(
-	ctx context.Context, kbpki libkbfs.KBPKI, tlfName string, t tlf.Type) (
-	h *libkbfs.TlfHandle, err error) {
+	ctx context.Context, kbpki libkbfs.KBPKI, mdOps libkbfs.MDOps,
+	tlfName string, t tlf.Type) (h *libkbfs.TlfHandle, err error) {
 	// Limit to one non-canonical name for now.
 outer:
 	for i := 0; i < 2; i++ {
-		h, err = libkbfs.ParseTlfHandle(ctx, kbpki, tlfName, t)
+		h, err = libkbfs.ParseTlfHandle(ctx, kbpki, mdOps, tlfName, t)
 		switch err := err.(type) {
 		case nil:
 			break outer
@@ -244,7 +244,7 @@ func (k *LibKBFS) GetRootDir(u User, tlfName string, t tlf.Type, expectedCanonic
 
 	ctx, cancel := k.newContext(u)
 	defer cancel()
-	h, err := parseTlfHandle(ctx, config.KBPKI(), tlfName, t)
+	h, err := parseTlfHandle(ctx, config.KBPKI(), config.MDOps(), tlfName, t)
 	if err != nil {
 		return nil, err
 	}
@@ -491,7 +491,7 @@ func (k *LibKBFS) GetMtime(u User, file Node) (mtime time.Time, err error) {
 // name.
 func getRootNode(ctx context.Context, config libkbfs.Config, tlfName string,
 	t tlf.Type) (libkbfs.Node, error) {
-	h, err := parseTlfHandle(ctx, config.KBPKI(), tlfName, t)
+	h, err := parseTlfHandle(ctx, config.KBPKI(), config.MDOps(), tlfName, t)
 	if err != nil {
 		return nil, err
 	}
@@ -647,7 +647,7 @@ func (k *LibKBFS) EnableJournal(u User, tlfName string, t tlf.Type) error {
 		return err
 	}
 
-	h, err := parseTlfHandle(ctx, config.KBPKI(), tlfName, t)
+	h, err := parseTlfHandle(ctx, config.KBPKI(), config.MDOps(), tlfName, t)
 	if err != nil {
 		return err
 	}

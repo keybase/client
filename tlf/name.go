@@ -19,18 +19,28 @@ const (
 	ReaderSep = "#"
 )
 
-// SplitName splits a TLF name into components.
-func SplitName(name string) (writerNames, readerNames []string,
-	extensionSuffix string, err error) {
+// SplitExtension separates any extension suffix from the assertions.
+func SplitExtension(name string) (
+	assertions, extensionSuffix string, err error) {
 	names := strings.SplitN(name, HandleExtensionSep, 2)
 	if len(names) > 2 {
-		return nil, nil, "", BadNameError{name}
+		return "", "", BadNameError{name}
 	}
 	if len(names) > 1 {
 		extensionSuffix = names[1]
 	}
+	return names[0], extensionSuffix, nil
+}
 
-	splitNames := strings.SplitN(names[0], ReaderSep, 3)
+// SplitName splits a TLF name into components.
+func SplitName(name string) (writerNames, readerNames []string,
+	extensionSuffix string, err error) {
+	assertions, extensionSuffix, err := SplitExtension(name)
+	if err != nil {
+		return nil, nil, "", err
+	}
+
+	splitNames := strings.SplitN(assertions, ReaderSep, 3)
 	if len(splitNames) > 2 {
 		return nil, nil, "", BadNameError{name}
 	}

@@ -112,7 +112,7 @@ func (rh *RPCHandler) getHandleAndConfig(
 	tlfHandle *libkbfs.TlfHandle, tempDir string, err error) {
 	// Make sure we have a legit folder name.
 	tlfHandle, err = libkbfs.GetHandleFromFolderNameAndType(
-		ctx, rh.config.KBPKI(), folder.Name,
+		ctx, rh.config.KBPKI(), rh.config.MDOps(), folder.Name,
 		tlf.TypeFromFolderType(folder.FolderType))
 	if err != nil {
 		return nil, nil, nil, "", err

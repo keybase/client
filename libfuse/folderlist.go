@@ -183,7 +183,7 @@ func (fl *FolderList) Lookup(ctx context.Context, req *fuse.LookupRequest, resp 
 	}
 
 	h, err := libkbfs.ParseTlfHandlePreferred(
-		ctx, fl.fs.config.KBPKI(), req.Name, fl.tlfType)
+		ctx, fl.fs.config.KBPKI(), fl.fs.config.MDOps(), req.Name, fl.tlfType)
 	switch err := err.(type) {
 	case nil:
 		// no error
@@ -278,7 +278,7 @@ func (fl *FolderList) Remove(ctx context.Context, req *fuse.RemoveRequest) (err 
 	defer func() { err = fl.fs.processError(ctx, libkbfs.WriteMode, err) }()
 
 	h, err := libkbfs.ParseTlfHandlePreferred(
-		ctx, fl.fs.config.KBPKI(), req.Name, fl.tlfType)
+		ctx, fl.fs.config.KBPKI(), fl.fs.config.MDOps(), req.Name, fl.tlfType)
 
 	switch err := err.(type) {
 	case nil:

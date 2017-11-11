@@ -127,7 +127,7 @@ func (fl *FolderList) open(ctx context.Context, oc *openContext, path []string) 
 		}
 
 		h, err := libkbfs.ParseTlfHandlePreferred(
-			ctx, fl.fs.config.KBPKI(), name, fl.tlfType)
+			ctx, fl.fs.config.KBPKI(), fl.fs.config.MDOps(), name, fl.tlfType)
 		fl.fs.log.CDebugf(ctx, "FL Lookup continuing -> %v,%v", h, err)
 		switch err := err.(type) {
 		case nil:

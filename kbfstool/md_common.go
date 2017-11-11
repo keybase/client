@@ -15,8 +15,8 @@ import (
 
 var mdGetRegexp = regexp.MustCompile("^(.+?)(?::(.*?))?(?:\\^(.*?))?$")
 
-func parseTLFPath(ctx context.Context, kbpki libkbfs.KBPKI, tlfStr string) (
-	*libkbfs.TlfHandle, error) {
+func parseTLFPath(ctx context.Context, kbpki libkbfs.KBPKI,
+	mdOps libkbfs.MDOps, tlfStr string) (*libkbfs.TlfHandle, error) {
 	p, err := fsrpc.NewPath(tlfStr)
 	if err != nil {
 		return nil, err
@@ -28,7 +28,7 @@ func parseTLFPath(ctx context.Context, kbpki libkbfs.KBPKI, tlfStr string) (
 		return nil, fmt.Errorf(
 			"%q is not the root path of a TLF", tlfStr)
 	}
-	return fsrpc.ParseTlfHandle(ctx, kbpki, p.TLFName, p.TLFType)
+	return fsrpc.ParseTlfHandle(ctx, kbpki, mdOps, p.TLFName, p.TLFType)
 }
 
 func getTlfID(
@@ -39,7 +39,7 @@ func getTlfID(
 		return tlfID, nil
 	}
 
-	handle, err := parseTLFPath(ctx, config.KBPKI(), tlfStr)
+	handle, err := parseTLFPath(ctx, config.KBPKI(), config.MDOps(), tlfStr)
 	if err != nil {
 		return tlf.ID{}, err
 	}
@@ -169,7 +169,7 @@ func mdParseAndGet(ctx context.Context, config libkbfs.Config, input string) (
 
 func mdGetMergedHeadForWriter(ctx context.Context, config libkbfs.Config,
 	tlfPath string) (libkbfs.ImmutableRootMetadata, error) {
-	handle, err := parseTLFPath(ctx, config.KBPKI(), tlfPath)
+	handle, err := parseTLFPath(ctx, config.KBPKI(), config.MDOps(), tlfPath)
 	if err != nil {
 		return libkbfs.ImmutableRootMetadata{}, err
 	}

@@ -336,47 +336,49 @@ func (fs *KBFSOpsStandard) getOrInitializeNewMDMaster(ctx context.Context,
 		if getExtendedIdentify(ctx).behavior.AlwaysRunIdentify() &&
 			!initialized && err == nil {
 			kbpki := fs.config.KBPKI()
-			// We are not running identify for existing TLFs in KBFS. This makes sure
-			// if requested, identify runs even for existing TLFs.
+			// We are not running identify for existing TLFs in
+			// KBFS. This makes sure if requested, identify runs even
+			// for existing TLFs.
 			err = identifyHandle(ctx, kbpki, kbpki, h)
 		}
 	}()
 
-	id, md, err = mdops.GetForHandle(ctx, h, kbfsmd.Merged, nil)
-	if err != nil {
-		return false, ImmutableRootMetadata{}, id, err
-	}
-	if md != (ImmutableRootMetadata{}) {
-		return false, md, id, nil
+	if h.tlfID == tlf.NullID {
+		return false, ImmutableRootMetadata{}, tlf.NullID,
+			errors.New("No ID")
 	}
 
-	if id == (tlf.ID{}) {
-		return false, ImmutableRootMetadata{}, id, errors.New("No ID or MD")
+	md, err = mdops.GetForTLF(ctx, h.tlfID, nil)
+	if err != nil {
+		return false, ImmutableRootMetadata{}, tlf.NullID, err
+	}
+	if md != (ImmutableRootMetadata{}) {
+		return false, md, h.tlfID, nil
 	}
 
 	if !create {
-		return false, ImmutableRootMetadata{}, id, nil
+		return false, ImmutableRootMetadata{}, h.tlfID, nil
 	}
 
 	// Init new MD.
 
-	fb := FolderBranch{Tlf: id, Branch: MasterBranch}
+	fb := FolderBranch{Tlf: h.tlfID, Branch: MasterBranch}
 	fops := fs.getOpsByHandle(ctx, h, fb, fop)
 
-	err = fops.SetInitialHeadToNew(ctx, id, h)
+	err = fops.SetInitialHeadToNew(ctx, h.tlfID, h)
 	// Someone else initialized the TLF out from under us, so we
 	// didn't initialize it.
 	_, alreadyExisted := errors.Cause(err).(RekeyConflictError)
 	if err != nil && !alreadyExisted {
-		return false, ImmutableRootMetadata{}, id, err
+		return false, ImmutableRootMetadata{}, tlf.NullID, err
 	}
 
-	id, md, err = mdops.GetForHandle(ctx, h, kbfsmd.Merged, nil)
+	md, err = mdops.GetForTLF(ctx, h.tlfID, nil)
 	if err != nil {
-		return false, ImmutableRootMetadata{}, id, err
+		return false, ImmutableRootMetadata{}, tlf.NullID, err
 	}
 
-	return !alreadyExisted, md, id, err
+	return !alreadyExisted, md, h.tlfID, err
 
 }
 
@@ -394,13 +396,17 @@ func (fs *KBFSOpsStandard) getMDByHandle(ctx context.Context,
 		return rmd, nil
 	}
 
+	if tlfHandle.tlfID == tlf.NullID {
+		return ImmutableRootMetadata{}, errors.New("No ID")
+	}
+
 	// Check for an unmerged MD first, unless we're in single-op
 	// mode.  If this is a single-op, we can skip this check because
 	// there's basically no way for a TLF to start off as unmerged
 	// since single-ops should be using a fresh journal.
 	if fs.config.Mode() != InitSingleOp {
-		_, rmd, err = fs.config.MDOps().GetForHandle(
-			ctx, tlfHandle, kbfsmd.Unmerged, nil)
+		rmd, err = fs.config.MDOps().GetUnmergedForTLF(
+			ctx, tlfHandle.tlfID, kbfsmd.NullBranchID)
 		if err != nil {
 			return ImmutableRootMetadata{}, err
 		}
@@ -498,6 +504,10 @@ func (fs *KBFSOpsStandard) getMaybeCreateRootNode(
 		}
 	}
 
+	if h.tlfID == tlf.NullID {
+		return nil, EntryInfo{}, errors.New("No ID")
+	}
+
 	mdops := fs.config.MDOps()
 	var md ImmutableRootMetadata
 	// Check for an unmerged MD first, unless we're in single-op
@@ -505,7 +515,7 @@ func (fs *KBFSOpsStandard) getMaybeCreateRootNode(
 	// there's basically no way for a TLF to start off as unmerged
 	// since single-ops should be using a fresh journal.
 	if fs.config.Mode() != InitSingleOp {
-		_, md, err = mdops.GetForHandle(ctx, h, kbfsmd.Unmerged, nil)
+		md, err = mdops.GetUnmergedForTLF(ctx, h.tlfID, kbfsmd.NullBranchID)
 		if err != nil {
 			return nil, EntryInfo{}, err
 		}

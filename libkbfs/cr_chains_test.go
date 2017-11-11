@@ -160,7 +160,7 @@ func newChainMDForTest(t *testing.T) rootMetadataWithKeyAndTimestamp {
 	}
 
 	ctx := context.Background()
-	h, err := MakeTlfHandle(ctx, bh, nug)
+	h, err := MakeTlfHandle(ctx, bh, nug, nil)
 	require.NoError(t, err)
 
 	rmd, err := makeInitialRootMetadata(defaultClientMetadataVer, tlfID, h)

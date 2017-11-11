@@ -84,6 +84,11 @@ func kbfsOpsInit(t *testing.T) (mockCtrl *gomock.Controller,
 	config.mockMdserv.EXPECT().OffsetFromServerTime().
 		Return(time.Duration(0), true).AnyTimes()
 
+	// Don't test implicit teams.
+	config.mockKbpki.EXPECT().ResolveImplicitTeam(
+		gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).AnyTimes().
+		Return(ImplicitTeamInfo{}, errors.New("No such team"))
+
 	// None of these tests depend on time
 	config.mockClock.EXPECT().Now().AnyTimes().Return(time.Now())
 
@@ -249,8 +254,9 @@ func TestKBFSOpsGetFavoritesSuccess(t *testing.T) {
 	config, _, ctx, cancel := kbfsOpsInitNoMocks(t, "alice", "bob")
 	defer kbfsTestShutdownNoMocks(t, config, ctx, cancel)
 
-	handle1 := parseTlfHandleOrBust(t, config, "alice", tlf.Private)
-	handle2 := parseTlfHandleOrBust(t, config, "alice,bob", tlf.Private)
+	handle1 := parseTlfHandleOrBust(t, config, "alice", tlf.Private, tlf.NullID)
+	handle2 := parseTlfHandleOrBust(
+		t, config, "alice,bob", tlf.Private, tlf.NullID)
 
 	// dup for testing
 	handles := []*TlfHandle{handle1, handle2, handle2}
@@ -262,7 +268,7 @@ func TestKBFSOpsGetFavoritesSuccess(t *testing.T) {
 	// The favorites list contains our own public dir by default, even
 	// if KBPKI doesn't return it.
 
-	handle3 := parseTlfHandleOrBust(t, config, "alice", tlf.Public)
+	handle3 := parseTlfHandleOrBust(t, config, "alice", tlf.Public, tlf.NullID)
 	handles = append(handles, handle3)
 
 	handles2, err := config.KBFSOps().GetFavorites(ctx)
@@ -302,7 +308,8 @@ func getOps(config Config, id tlf.ID) *folderBranchOps {
 func createNewRMD(t *testing.T, config Config, name string, ty tlf.Type) (
 	tlf.ID, *TlfHandle, *RootMetadata) {
 	id := tlf.FakeID(1, ty)
-	h := parseTlfHandleOrBust(t, config, name, ty)
+	h := parseTlfHandleOrBust(t, config, name, ty, id)
+	h.tlfID = id
 	rmd, err := makeInitialRootMetadata(config.MetadataVersion(), id, h)
 	require.NoError(t, err)
 	return id, h, rmd
@@ -584,10 +591,11 @@ func TestKBFSOpsGetRootMDForHandleExisting(t *testing.T) {
 		},
 	}
 
-	config.mockMdops.EXPECT().GetForHandle(gomock.Any(), h, kbfsmd.Unmerged,
-		nil).Return(tlf.ID{}, ImmutableRootMetadata{}, nil)
-	config.mockMdops.EXPECT().GetForHandle(
-		gomock.Any(), h, kbfsmd.Merged, nil).Return(tlf.ID{},
+	config.mockMdops.EXPECT().GetUnmergedForTLF(
+		gomock.Any(), id, kbfsmd.NullBranchID).Return(
+		ImmutableRootMetadata{}, nil)
+	config.mockMdops.EXPECT().GetForTLF(
+		gomock.Any(), id, nil).Return(
 		makeImmutableRMDForTest(t, config, rmd, kbfsmd.FakeID(1)), nil)
 	ops := getOps(config, id)
 	assert.False(t, fboIdentityDone(ops))
@@ -787,7 +795,8 @@ func TestKBFSOpsGetBaseDirChildrenUncachedFailNonReader(t *testing.T) {
 
 	id := tlf.FakeID(1, tlf.Private)
 
-	h := parseTlfHandleOrBust(t, config, "bob#alice", tlf.Private)
+	h := parseTlfHandleOrBust(t, config, "bob#alice", tlf.Private, id)
+	h.tlfID = id
 	// Hack around access check in ParseTlfHandle.
 	h.resolvedReaders = nil
 
@@ -1567,12 +1576,12 @@ func TestRenameFailAcrossTopLevelFolders(t *testing.T) {
 	defer kbfsTestShutdown(mockCtrl, config, ctx, cancel)
 
 	id1 := tlf.FakeID(1, tlf.Private)
-	h1 := parseTlfHandleOrBust(t, config, "alice,bob", tlf.Private)
+	h1 := parseTlfHandleOrBust(t, config, "alice,bob", tlf.Private, id1)
 	rmd1, err := makeInitialRootMetadata(config.MetadataVersion(), id1, h1)
 	require.NoError(t, err)
 
 	id2 := tlf.FakeID(2, tlf.Private)
-	h2 := parseTlfHandleOrBust(t, config, "alice,bob,charlie", tlf.Private)
+	h2 := parseTlfHandleOrBust(t, config, "alice,bob,charlie", tlf.Private, id2)
 	rmd2, err := makeInitialRootMetadata(config.MetadataVersion(), id2, h2)
 	require.NoError(t, err)
 
@@ -1609,7 +1618,7 @@ func TestRenameFailAcrossBranches(t *testing.T) {
 	defer kbfsTestShutdown(mockCtrl, config, ctx, cancel)
 
 	id1 := tlf.FakeID(1, tlf.Private)
-	h1 := parseTlfHandleOrBust(t, config, "alice,bob", tlf.Private)
+	h1 := parseTlfHandleOrBust(t, config, "alice,bob", tlf.Private, id1)
 	rmd1, err := makeInitialRootMetadata(config.MetadataVersion(), id1, h1)
 	require.NoError(t, err)
 
@@ -3393,7 +3402,8 @@ func TestGetTLFCryptKeysAfterFirstError(t *testing.T) {
 	}
 	config.SetMDServer(mdserver)
 
-	h := parseTlfHandleOrBust(t, config, "alice", tlf.Private)
+	id := tlf.FakeID(1, tlf.Private)
+	h := parseTlfHandleOrBust(t, config, "alice", tlf.Private, id)
 
 	_, _, err := config.KBFSOps().GetTLFCryptKeys(ctx, h)
 	if err != createErr {
@@ -3415,8 +3425,10 @@ func TestForceFastForwardOnEmptyTLF(t *testing.T) {
 	defer kbfsTestShutdownNoMocksNoCheck(t, config, ctx, cancel)
 
 	// Look up bob's public folder.
-	h := parseTlfHandleOrBust(t, config, "bob", tlf.Public)
-	_, _, err := config.KBFSOps().GetOrCreateRootNode(ctx, h, MasterBranch)
+	h, err := ParseTlfHandle(
+		ctx, config.KBPKI(), config.MDOps(), "bob", tlf.Public)
+	require.NoError(t, err)
+	_, _, err = config.KBFSOps().GetOrCreateRootNode(ctx, h, MasterBranch)
 	if _, ok := err.(WriteAccessError); !ok {
 		t.Fatalf("Unexpected err reading a public TLF: %+v", err)
 	}
@@ -3545,7 +3557,9 @@ func TestKBFSOpsBasicTeamTLF(t *testing.T) {
 	AddTeamReaderForTestOrBust(t, config3, tid, uid3)
 
 	t.Log("Look up bob's public folder.")
-	h := parseTlfHandleOrBust(t, config1, string(name), tlf.SingleTeam)
+	h, err := ParseTlfHandle(
+		ctx, config1.KBPKI(), config1.MDOps(), string(name), tlf.SingleTeam)
+	require.NoError(t, err)
 	kbfsOps1 := config1.KBFSOps()
 	rootNode1, _, err := kbfsOps1.GetOrCreateRootNode(
 		ctx, h, MasterBranch)

@@ -175,12 +175,12 @@ func TestJournalServerOverQuotaError(t *testing.T) {
 	err = jServer.Enable(ctx, tlfID1, nil, TLFJournalBackgroundWorkPaused)
 	require.NoError(t, err)
 	tlfID2 := tlf.FakeID(2, tlf.SingleTeam)
-	h, err := ParseTlfHandle(ctx, config.KBPKI(), "t1", tlf.SingleTeam)
+	h, err := ParseTlfHandle(ctx, config.KBPKI(), nil, "t1", tlf.SingleTeam)
 	require.NoError(t, err)
 	err = jServer.Enable(ctx, tlfID2, h, TLFJournalBackgroundWorkPaused)
 	require.NoError(t, err)
 	tlfID3 := tlf.FakeID(2, tlf.SingleTeam)
-	h, err = ParseTlfHandle(ctx, config.KBPKI(), "t1.sub", tlf.SingleTeam)
+	h, err = ParseTlfHandle(ctx, config.KBPKI(), nil, "t1.sub", tlf.SingleTeam)
 	require.NoError(t, err)
 	err = jServer.Enable(ctx, tlfID3, h, TLFJournalBackgroundWorkPaused)
 	require.NoError(t, err)
@@ -188,7 +188,7 @@ func TestJournalServerOverQuotaError(t *testing.T) {
 	blockServer := config.BlockServer()
 
 	h, err = ParseTlfHandle(
-		ctx, config.KBPKI(), "test_user1,test_user2", tlf.Private)
+		ctx, config.KBPKI(), nil, "test_user1,test_user2", tlf.Private)
 	require.NoError(t, err)
 	id1 := h.ResolvedWriters()[0]
 
@@ -298,7 +298,7 @@ func TestJournalServerOverDiskLimitError(t *testing.T) {
 	blockServer := config.BlockServer()
 
 	h, err := ParseTlfHandle(
-		ctx, config.KBPKI(), "test_user1,test_user2", tlf.Private)
+		ctx, config.KBPKI(), nil, "test_user1,test_user2", tlf.Private)
 	require.NoError(t, err)
 	id1 := h.ResolvedWriters()[0]
 
@@ -363,7 +363,8 @@ func TestJournalServerRestart(t *testing.T) {
 	blockServer := config.BlockServer()
 	mdOps := config.MDOps()
 
-	h, err := ParseTlfHandle(ctx, config.KBPKI(), "test_user1", tlf.Private)
+	h, err := ParseTlfHandle(
+		ctx, config.KBPKI(), nil, "test_user1", tlf.Private)
 	require.NoError(t, err)
 	id := h.ResolvedWriters()[0]
 
@@ -435,7 +436,8 @@ func TestJournalServerLogOutLogIn(t *testing.T) {
 	blockServer := config.BlockServer()
 	mdOps := config.MDOps()
 
-	h, err := ParseTlfHandle(ctx, config.KBPKI(), "test_user1", tlf.Private)
+	h, err := ParseTlfHandle(
+		ctx, config.KBPKI(), nil, "test_user1", tlf.Private)
 	require.NoError(t, err)
 	id := h.ResolvedWriters()[0]
 
@@ -542,7 +544,7 @@ func TestJournalServerMultiUser(t *testing.T) {
 	mdOps := config.MDOps()
 
 	h, err := ParseTlfHandle(
-		ctx, config.KBPKI(), "test_user1,test_user2", tlf.Private)
+		ctx, config.KBPKI(), nil, "test_user1,test_user2", tlf.Private)
 	require.NoError(t, err)
 	id1 := h.ResolvedWriters()[0]
 	id2 := h.ResolvedWriters()[1]
@@ -704,7 +706,8 @@ func TestJournalServerEnableAuto(t *testing.T) {
 	require.Len(t, tlfIDs, 0)
 
 	blockServer := config.BlockServer()
-	h, err := ParseTlfHandle(ctx, config.KBPKI(), "test_user1", tlf.Private)
+	h, err := ParseTlfHandle(
+		ctx, config.KBPKI(), nil, "test_user1", tlf.Private)
 	require.NoError(t, err)
 	id := h.ResolvedWriters()[0]
 
@@ -759,7 +762,8 @@ func TestJournalServerTeamTLFWithRestart(t *testing.T) {
 	// journal tries to access it.
 	jServer.delegateBlockServer = shutdownOnlyBlockServer{}
 
-	h, err := ParseTlfHandle(ctx, config.KBPKI(), string(name), tlf.SingleTeam)
+	h, err := ParseTlfHandle(
+		ctx, config.KBPKI(), nil, string(name), tlf.SingleTeam)
 	require.NoError(t, err)
 
 	tlfID := tlf.FakeID(2, tlf.SingleTeam)

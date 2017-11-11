@@ -883,7 +883,7 @@ func (fbo *folderBranchOps) setHeadSuccessorLocked(ctx context.Context,
 	// unmerged branch. Add checks for this.
 	resolvesTo, partialResolvedOldHandle, err :=
 		oldHandle.ResolvesTo(
-			ctx, fbo.config.Codec(), fbo.config.KBPKI(),
+			ctx, fbo.config.Codec(), fbo.config.KBPKI(), fbo.config.MDOps(),
 			*newHandle)
 	if err != nil {
 		return err
@@ -5591,7 +5591,8 @@ func (fbo *folderBranchOps) locallyFinalizeTLF(ctx context.Context) {
 		fbo.log.CErrorf(ctx, "Couldn't get finalized bare handle: %+v", err)
 		return
 	}
-	handle, err := MakeTlfHandle(ctx, bareHandle, fbo.config.KBPKI())
+	handle, err := MakeTlfHandle(
+		ctx, bareHandle, fbo.config.KBPKI(), fbo.config.MDOps())
 	if err != nil {
 		fbo.log.CErrorf(ctx, "Couldn't get finalized handle: %+v", err)
 		return

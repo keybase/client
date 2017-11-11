@@ -200,7 +200,8 @@ func (f *Folder) resolve(ctx context.Context) (*libkbfs.TlfHandle, error) {
 	// the first load.  Otherwise, since we haven't subscribed to
 	// updates yet for this folder, we might have missed a name
 	// change.
-	handle, err := f.h.ResolveAgain(ctx, f.fs.config.KBPKI())
+	handle, err := f.h.ResolveAgain(
+		ctx, f.fs.config.KBPKI(), f.fs.config.MDOps())
 	if err != nil {
 		return nil, err
 	}

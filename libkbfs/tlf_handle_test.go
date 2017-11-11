@@ -44,11 +44,11 @@ func TestParseTlfHandleEarlyFailure(t *testing.T) {
 	ctx := context.Background()
 
 	name := "w1,w2#r1"
-	_, err := ParseTlfHandle(ctx, nil, name, tlf.Public)
+	_, err := ParseTlfHandle(ctx, nil, nil, name, tlf.Public)
 	assert.Equal(t, NoSuchNameError{Name: name}, err)
 
 	nonCanonicalName := "W1,w2#r1"
-	_, err = ParseTlfHandle(ctx, nil, nonCanonicalName, tlf.Private)
+	_, err = ParseTlfHandle(ctx, nil, nil, nonCanonicalName, tlf.Private)
 	assert.Equal(t, TlfNameNotCanonical{nonCanonicalName, name}, err)
 }
 
@@ -67,7 +67,7 @@ func TestParseTlfHandleNoUserFailure(t *testing.T) {
 	}
 
 	name := "u2,u3#u4"
-	_, err := ParseTlfHandle(ctx, kbpki, name, tlf.Private)
+	_, err := ParseTlfHandle(ctx, kbpki, nil, name, tlf.Private)
 	assert.Equal(t, 0, kbpki.getIdentifyCalls())
 	assert.Equal(t, NoSuchUserError{"u4"}, err)
 }
@@ -87,7 +87,7 @@ func TestParseTlfHandleNotReaderFailure(t *testing.T) {
 	}
 
 	name := "u2,u3"
-	_, err := ParseTlfHandle(ctx, kbpki, name, tlf.Private)
+	_, err := ParseTlfHandle(ctx, kbpki, nil, name, tlf.Private)
 	assert.Equal(t, 0, kbpki.getIdentifyCalls())
 	assert.Equal(t, ReadAccessError{User: "u1", Tlf: tlf.CanonicalName(name), Type: tlf.Private, Filename: "/keybase/private/u2,u3"}, err)
 }
@@ -107,12 +107,12 @@ func TestParseTlfHandleSingleTeamFailures(t *testing.T) {
 		},
 	}
 
-	_, err := ParseTlfHandle(ctx, kbpki, "u1", tlf.SingleTeam)
+	_, err := ParseTlfHandle(ctx, kbpki, nil, "u1", tlf.SingleTeam)
 	assert.Equal(t, 0, kbpki.getIdentifyCalls())
 	assert.Equal(t, NoSuchUserError{Input: "u1@team"}, err)
 
 	checkNoSuchName := func(name string, ty tlf.Type) {
-		_, err := ParseTlfHandle(ctx, kbpki, name, ty)
+		_, err := ParseTlfHandle(ctx, kbpki, nil, name, ty)
 		assert.Equal(t, 0, kbpki.getIdentifyCalls())
 		if ty == tlf.SingleTeam {
 			assert.Equal(t, NoSuchNameError{Name: name}, err)
@@ -150,7 +150,7 @@ func TestParseTlfHandleAssertionNotCanonicalFailure(t *testing.T) {
 
 	name := "u1,u3#u2"
 	nonCanonicalName := "u1,u3@twitter#u2"
-	_, err := ParseTlfHandle(ctx, kbpki, nonCanonicalName, tlf.Private)
+	_, err := ParseTlfHandle(ctx, kbpki, nil, nonCanonicalName, tlf.Private)
 	// Names with assertions should be identified before the error
 	// is returned.
 	assert.Equal(t, 3, kbpki.getIdentifyCalls())
@@ -172,14 +172,15 @@ func TestParseTlfHandleAssertionPrivateSuccess(t *testing.T) {
 	}
 
 	name := "u1,u3"
-	h, err := ParseTlfHandle(ctx, kbpki, name, tlf.Private)
+	h, err := ParseTlfHandle(ctx, kbpki, nil, name, tlf.Private)
 	require.NoError(t, err)
 	assert.Equal(t, 0, kbpki.getIdentifyCalls())
 	assert.Equal(t, tlf.CanonicalName(name), h.GetCanonicalName())
 
 	// Make sure that generating another handle doesn't change the
 	// name.
-	h2, err := MakeTlfHandle(context.Background(), h.ToBareHandleOrBust(), kbpki)
+	h2, err := MakeTlfHandle(
+		context.Background(), h.ToBareHandleOrBust(), kbpki, nil)
 	require.NoError(t, err)
 	assert.Equal(t, tlf.CanonicalName(name), h2.GetCanonicalName())
 }
@@ -199,14 +200,15 @@ func TestParseTlfHandleAssertionPublicSuccess(t *testing.T) {
 	}
 
 	name := "u1,u2,u3"
-	h, err := ParseTlfHandle(ctx, kbpki, name, tlf.Public)
+	h, err := ParseTlfHandle(ctx, kbpki, nil, name, tlf.Public)
 	require.NoError(t, err)
 	assert.Equal(t, 0, kbpki.getIdentifyCalls())
 	assert.Equal(t, tlf.CanonicalName(name), h.GetCanonicalName())
 
 	// Make sure that generating another handle doesn't change the
 	// name.
-	h2, err := MakeTlfHandle(context.Background(), h.ToBareHandleOrBust(), kbpki)
+	h2, err := MakeTlfHandle(
+		context.Background(), h.ToBareHandleOrBust(), kbpki, nil)
 	require.NoError(t, err)
 	assert.Equal(t, tlf.CanonicalName(name), h2.GetCanonicalName())
 }
@@ -224,7 +226,7 @@ func TestTlfHandleAccessorsPrivate(t *testing.T) {
 	}
 
 	name := "u1,u2@twitter,u3,u4@twitter#u2,u5@twitter,u6@twitter"
-	h, err := ParseTlfHandle(ctx, kbpki, name, tlf.Private)
+	h, err := ParseTlfHandle(ctx, kbpki, nil, name, tlf.Private)
 	require.NoError(t, err)
 
 	require.False(t, h.Type() == tlf.Public)
@@ -293,7 +295,7 @@ func TestTlfHandleAccessorsPublic(t *testing.T) {
 	}
 
 	name := "u1,u2@twitter,u3,u4@twitter"
-	h, err := ParseTlfHandle(ctx, kbpki, name, tlf.Public)
+	h, err := ParseTlfHandle(ctx, kbpki, nil, name, tlf.Public)
 	require.NoError(t, err)
 
 	require.True(t, h.Type() == tlf.Public)
@@ -349,7 +351,7 @@ func TestTlfHandleConflictInfo(t *testing.T) {
 
 	name := "u1,u2,u3"
 	cname := tlf.CanonicalName(name)
-	h, err := ParseTlfHandle(ctx, kbpki, name, tlf.Public)
+	h, err := ParseTlfHandle(ctx, kbpki, nil, name, tlf.Public)
 	require.NoError(t, err)
 
 	require.Nil(t, h.ConflictInfo())
@@ -411,7 +413,7 @@ func TestTlfHandleFinalizedInfo(t *testing.T) {
 
 	name := "u1,u2,u3"
 	cname := tlf.CanonicalName(name)
-	h, err := ParseTlfHandle(ctx, kbpki, name, tlf.Public)
+	h, err := ParseTlfHandle(ctx, kbpki, nil, name, tlf.Public)
 	require.NoError(t, err)
 
 	require.Nil(t, h.FinalizedInfo())
@@ -446,7 +448,7 @@ func TestTlfHandleConflictAndFinalizedInfo(t *testing.T) {
 	}
 
 	name := "u1,u2,u3"
-	h, err := ParseTlfHandle(ctx, kbpki, name, tlf.Public)
+	h, err := ParseTlfHandle(ctx, kbpki, nil, name, tlf.Public)
 	require.NoError(t, err)
 
 	require.Nil(t, h.ConflictInfo())
@@ -489,7 +491,7 @@ func TestTlfHandlEqual(t *testing.T) {
 	}
 
 	name1 := "u1,u2@twitter,u3,u4@twitter"
-	h1, err := ParseTlfHandle(ctx, kbpki, name1, tlf.Public)
+	h1, err := ParseTlfHandle(ctx, kbpki, nil, name1, tlf.Public)
 	require.NoError(t, err)
 
 	eq, err := h1.Equals(codec, *h1)
@@ -498,7 +500,7 @@ func TestTlfHandlEqual(t *testing.T) {
 
 	// Test public bit.
 
-	h2, err := ParseTlfHandle(ctx, kbpki, name1, tlf.Private)
+	h2, err := ParseTlfHandle(ctx, kbpki, nil, name1, tlf.Private)
 	require.NoError(t, err)
 	eq, err = h1.Equals(codec, *h2)
 	require.NoError(t, err)
@@ -507,7 +509,7 @@ func TestTlfHandlEqual(t *testing.T) {
 	// Test resolved and unresolved readers and writers.
 
 	name1 = "u1,u2@twitter#u3,u4@twitter"
-	h1, err = ParseTlfHandle(ctx, kbpki, name1, tlf.Private)
+	h1, err = ParseTlfHandle(ctx, kbpki, nil, name1, tlf.Private)
 	require.NoError(t, err)
 
 	for _, name2 := range []string{
@@ -516,7 +518,7 @@ func TestTlfHandlEqual(t *testing.T) {
 		"u1,u2@twitter#u4@twitter,u5",
 		"u1,u2@twitter#u3,u5@twitter",
 	} {
-		h2, err := ParseTlfHandle(ctx, kbpki, name2, tlf.Private)
+		h2, err := ParseTlfHandle(ctx, kbpki, nil, name2, tlf.Private)
 		require.NoError(t, err)
 		eq, err := h1.Equals(codec, *h2)
 		require.NoError(t, err)
@@ -525,7 +527,7 @@ func TestTlfHandlEqual(t *testing.T) {
 
 	// Test conflict info and finalized info.
 
-	h2, err = ParseTlfHandle(ctx, kbpki, name1, tlf.Private)
+	h2, err = ParseTlfHandle(ctx, kbpki, nil, name1, tlf.Private)
 	require.NoError(t, err)
 	info := tlf.HandleExtension{
 		Date:   100,
@@ -539,7 +541,7 @@ func TestTlfHandlEqual(t *testing.T) {
 	require.NoError(t, err)
 	require.False(t, eq)
 
-	h2, err = ParseTlfHandle(ctx, kbpki, name1, tlf.Private)
+	h2, err = ParseTlfHandle(ctx, kbpki, nil, name1, tlf.Private)
 	require.NoError(t, err)
 	h2.SetFinalizedInfo(&info)
 
@@ -548,7 +550,7 @@ func TestTlfHandlEqual(t *testing.T) {
 	require.False(t, eq)
 
 	// Test panic on name difference.
-	h2, err = ParseTlfHandle(ctx, kbpki, name1, tlf.Private)
+	h2, err = ParseTlfHandle(ctx, kbpki, nil, name1, tlf.Private)
 	require.NoError(t, err)
 	h2.name += "x"
 
@@ -572,14 +574,15 @@ func TestParseTlfHandleSocialAssertion(t *testing.T) {
 	}
 
 	name := "u1,u2#u3@twitter"
-	h, err := ParseTlfHandle(ctx, kbpki, name, tlf.Private)
+	h, err := ParseTlfHandle(ctx, kbpki, nil, name, tlf.Private)
 	assert.Equal(t, 0, kbpki.getIdentifyCalls())
 	require.NoError(t, err)
 	assert.Equal(t, tlf.CanonicalName(name), h.GetCanonicalName())
 
 	// Make sure that generating another handle doesn't change the
 	// name.
-	h2, err := MakeTlfHandle(context.Background(), h.ToBareHandleOrBust(), kbpki)
+	h2, err := MakeTlfHandle(
+		context.Background(), h.ToBareHandleOrBust(), kbpki, nil)
 	require.NoError(t, err)
 	assert.Equal(t, tlf.CanonicalName(name), h2.GetCanonicalName())
 }
@@ -599,7 +602,7 @@ func TestParseTlfHandleUIDAssertion(t *testing.T) {
 	}
 
 	a := currentUID.String() + "@uid"
-	_, err := ParseTlfHandle(ctx, kbpki, a, tlf.Private)
+	_, err := ParseTlfHandle(ctx, kbpki, nil, a, tlf.Private)
 	assert.Equal(t, 1, kbpki.getIdentifyCalls())
 	assert.Equal(t, TlfNameNotCanonical{a, "u1"}, err)
 }
@@ -620,7 +623,7 @@ func TestParseTlfHandleAndAssertion(t *testing.T) {
 	}
 
 	a := currentUID.String() + "@uid+u1@twitter"
-	_, err := ParseTlfHandle(ctx, kbpki, a, tlf.Private)
+	_, err := ParseTlfHandle(ctx, kbpki, nil, a, tlf.Private)
 	// We expect 1 extra identify for compound assertions until
 	// KBFS-2022 is completed.
 	assert.Equal(t, 1+1, kbpki.getIdentifyCalls())
@@ -646,7 +649,7 @@ func TestParseTlfHandleConflictSuffix(t *testing.T) {
 	}
 
 	a := "u1 " + ci.String()
-	h, err := ParseTlfHandle(ctx, kbpki, a, tlf.Private)
+	h, err := ParseTlfHandle(ctx, kbpki, nil, a, tlf.Private)
 	require.NoError(t, err)
 	require.NotNil(t, h.ConflictInfo())
 	require.Equal(t, ci.String(), h.ConflictInfo().String())
@@ -668,7 +671,7 @@ func TestParseTlfHandleFailConflictingAssertion(t *testing.T) {
 	}
 
 	a := currentUID.String() + "@uid+u2@twitter"
-	_, err := ParseTlfHandle(ctx, kbpki, a, tlf.Private)
+	_, err := ParseTlfHandle(ctx, kbpki, nil, a, tlf.Private)
 	// We expect 1 extra identify for compound assertions until
 	// KBFS-2022 is completed.
 	assert.Equal(t, 0+1, kbpki.getIdentifyCalls())
@@ -678,9 +681,9 @@ func TestParseTlfHandleFailConflictingAssertion(t *testing.T) {
 // parseTlfHandleOrBust parses the given TLF name, which must be
 // canonical, into a TLF handle, and failing if there's an error.
 func parseTlfHandleOrBust(t logger.TestLogBackend, config Config,
-	name string, ty tlf.Type) *TlfHandle {
+	name string, ty tlf.Type, id tlf.ID) *TlfHandle {
 	ctx := context.Background()
-	h, err := ParseTlfHandle(ctx, config.KBPKI(), name, ty)
+	h, err := ParseTlfHandle(ctx, config.KBPKI(), constIDGetter{id}, name, ty)
 	if err != nil {
 		t.Fatalf("Couldn't parse %s (type=%s) into a TLF handle: %v",
 			name, ty, err)
@@ -701,13 +704,13 @@ func TestResolveAgainBasic(t *testing.T) {
 	}
 
 	name := "u1,u2#u3@twitter"
-	h, err := ParseTlfHandle(ctx, kbpki, name, tlf.Private)
+	h, err := ParseTlfHandle(ctx, kbpki, nil, name, tlf.Private)
 	require.NoError(t, err)
 	assert.Equal(t, tlf.CanonicalName(name), h.GetCanonicalName())
 
 	// ResolveAgain shouldn't rely on resolving the original names again.
 	daemon.addNewAssertionForTestOrBust("u3", "u3@twitter")
-	newH, err := h.ResolveAgain(ctx, daemon)
+	newH, err := h.ResolveAgain(ctx, daemon, nil)
 	require.NoError(t, err)
 	assert.Equal(t, tlf.CanonicalName("u1,u2#u3"), newH.GetCanonicalName())
 }
@@ -725,7 +728,7 @@ func TestResolveAgainDoubleAsserts(t *testing.T) {
 	}
 
 	name := "u1,u1@github,u1@twitter#u2,u2@github,u2@twitter"
-	h, err := ParseTlfHandle(ctx, kbpki, name, tlf.Private)
+	h, err := ParseTlfHandle(ctx, kbpki, nil, name, tlf.Private)
 	require.NoError(t, err)
 	assert.Equal(t, tlf.CanonicalName(name), h.GetCanonicalName())
 
@@ -733,7 +736,7 @@ func TestResolveAgainDoubleAsserts(t *testing.T) {
 	daemon.addNewAssertionForTestOrBust("u1", "u1@github")
 	daemon.addNewAssertionForTestOrBust("u2", "u2@twitter")
 	daemon.addNewAssertionForTestOrBust("u2", "u2@github")
-	newH, err := h.ResolveAgain(ctx, daemon)
+	newH, err := h.ResolveAgain(ctx, daemon, nil)
 	require.NoError(t, err)
 	assert.Equal(t, tlf.CanonicalName("u1#u2"), newH.GetCanonicalName())
 }
@@ -751,13 +754,13 @@ func TestResolveAgainWriterReader(t *testing.T) {
 	}
 
 	name := "u1,u2@github#u2@twitter"
-	h, err := ParseTlfHandle(ctx, kbpki, name, tlf.Private)
+	h, err := ParseTlfHandle(ctx, kbpki, nil, name, tlf.Private)
 	require.NoError(t, err)
 	assert.Equal(t, tlf.CanonicalName(name), h.GetCanonicalName())
 
 	daemon.addNewAssertionForTestOrBust("u2", "u2@twitter")
 	daemon.addNewAssertionForTestOrBust("u2", "u2@github")
-	newH, err := h.ResolveAgain(ctx, daemon)
+	newH, err := h.ResolveAgain(ctx, daemon, nil)
 	require.NoError(t, err)
 	assert.Equal(t, tlf.CanonicalName("u1,u2"), newH.GetCanonicalName())
 }
@@ -775,7 +778,7 @@ func TestResolveAgainConflict(t *testing.T) {
 	}
 
 	name := "u1,u2#u3@twitter"
-	h, err := ParseTlfHandle(ctx, kbpki, name, tlf.Private)
+	h, err := ParseTlfHandle(ctx, kbpki, nil, name, tlf.Private)
 	require.NoError(t, err)
 	assert.Equal(t, tlf.CanonicalName(name), h.GetCanonicalName())
 
@@ -785,7 +788,7 @@ func TestResolveAgainConflict(t *testing.T) {
 		t.Fatal(err)
 	}
 	h.conflictInfo = ext
-	newH, err := h.ResolveAgain(ctx, daemon)
+	newH, err := h.ResolveAgain(ctx, daemon, nil)
 	require.NoError(t, err)
 	assert.Equal(t, tlf.CanonicalName("u1,u2#u3"+
 		tlf.HandleExtensionSep+ext.String()), newH.GetCanonicalName())
@@ -806,29 +809,29 @@ func TestTlfHandleResolvesTo(t *testing.T) {
 	}
 
 	name1 := "u1,u2@twitter,u3,u4@twitter"
-	h1, err := ParseTlfHandle(ctx, kbpki, name1, tlf.Public)
+	h1, err := ParseTlfHandle(ctx, kbpki, nil, name1, tlf.Public)
 	require.NoError(t, err)
 
 	resolvesTo, partialResolvedH1, err :=
-		h1.ResolvesTo(ctx, codec, kbpki, *h1)
+		h1.ResolvesTo(ctx, codec, kbpki, nil, *h1)
 	require.NoError(t, err)
 	require.True(t, resolvesTo)
 	require.Equal(t, h1, partialResolvedH1)
 
 	// Test different public bit.
 
-	h2, err := ParseTlfHandle(ctx, kbpki, name1, tlf.Private)
+	h2, err := ParseTlfHandle(ctx, kbpki, nil, name1, tlf.Private)
 	require.NoError(t, err)
 
 	resolvesTo, partialResolvedH1, err =
-		h1.ResolvesTo(ctx, codec, kbpki, *h2)
+		h1.ResolvesTo(ctx, codec, kbpki, nil, *h2)
 	require.NoError(t, err)
 	require.False(t, resolvesTo)
 	require.Equal(t, h1, partialResolvedH1)
 
 	// Test adding conflict info or finalized info.
 
-	h2, err = ParseTlfHandle(ctx, kbpki, name1, tlf.Public)
+	h2, err = ParseTlfHandle(ctx, kbpki, nil, name1, tlf.Public)
 	require.NoError(t, err)
 	info := tlf.HandleExtension{
 		Date:   100,
@@ -839,12 +842,12 @@ func TestTlfHandleResolvesTo(t *testing.T) {
 	require.NoError(t, err)
 
 	resolvesTo, partialResolvedH1, err =
-		h1.ResolvesTo(ctx, codec, kbpki, *h2)
+		h1.ResolvesTo(ctx, codec, kbpki, nil, *h2)
 	require.NoError(t, err)
 	require.True(t, resolvesTo)
 	require.Equal(t, h1, partialResolvedH1)
 
-	h2, err = ParseTlfHandle(ctx, kbpki, name1, tlf.Public)
+	h2, err = ParseTlfHandle(ctx, kbpki, nil, name1, tlf.Public)
 	require.NoError(t, err)
 	info = tlf.HandleExtension{
 		Date:   101,
@@ -854,14 +857,14 @@ func TestTlfHandleResolvesTo(t *testing.T) {
 	h2.SetFinalizedInfo(&info)
 
 	resolvesTo, partialResolvedH1, err =
-		h1.ResolvesTo(ctx, codec, kbpki, *h2)
+		h1.ResolvesTo(ctx, codec, kbpki, nil, *h2)
 	require.NoError(t, err)
 	require.True(t, resolvesTo)
 	require.Equal(t, h1, partialResolvedH1)
 
 	// Test differing conflict info or finalized info.
 
-	h2, err = ParseTlfHandle(ctx, kbpki, name1, tlf.Public)
+	h2, err = ParseTlfHandle(ctx, kbpki, nil, name1, tlf.Public)
 	require.NoError(t, err)
 	info = tlf.HandleExtension{
 		Date:   100,
@@ -879,13 +882,13 @@ func TestTlfHandleResolvesTo(t *testing.T) {
 	require.NoError(t, err)
 
 	resolvesTo, partialResolvedH1, err =
-		h1.ResolvesTo(ctx, codec, kbpki, *h2)
+		h1.ResolvesTo(ctx, codec, kbpki, nil, *h2)
 	require.NoError(t, err)
 	require.False(t, resolvesTo)
 
-	h1, err = ParseTlfHandle(ctx, kbpki, name1, tlf.Public)
+	h1, err = ParseTlfHandle(ctx, kbpki, nil, name1, tlf.Public)
 	require.NoError(t, err)
-	h2, err = ParseTlfHandle(ctx, kbpki, name1, tlf.Public)
+	h2, err = ParseTlfHandle(ctx, kbpki, nil, name1, tlf.Public)
 	require.NoError(t, err)
 	info = tlf.HandleExtension{
 		Date:   101,
@@ -901,13 +904,13 @@ func TestTlfHandleResolvesTo(t *testing.T) {
 	h1.SetFinalizedInfo(&info)
 
 	resolvesTo, partialResolvedH1, err =
-		h1.ResolvesTo(ctx, codec, kbpki, *h2)
+		h1.ResolvesTo(ctx, codec, kbpki, nil, *h2)
 	require.NoError(t, err)
 	require.False(t, resolvesTo)
 
 	// Try to add conflict info to a finalized handle.
 
-	h2, err = ParseTlfHandle(ctx, kbpki, name1, tlf.Public)
+	h2, err = ParseTlfHandle(ctx, kbpki, nil, name1, tlf.Public)
 	info = tlf.HandleExtension{
 		Date:   100,
 		Number: 50,
@@ -917,13 +920,13 @@ func TestTlfHandleResolvesTo(t *testing.T) {
 	require.NoError(t, err)
 
 	resolvesTo, partialResolvedH1, err =
-		h1.ResolvesTo(ctx, codec, kbpki, *h2)
+		h1.ResolvesTo(ctx, codec, kbpki, nil, *h2)
 	require.Error(t, err)
 
 	// Test positive resolution cases.
 
 	name1 = "u1,u2@twitter,u5#u3,u4@twitter"
-	h1, err = ParseTlfHandle(ctx, kbpki, name1, tlf.Private)
+	h1, err = ParseTlfHandle(ctx, kbpki, nil, name1, tlf.Private)
 	require.NoError(t, err)
 
 	type testCase struct {
@@ -939,13 +942,13 @@ func TestTlfHandleResolvesTo(t *testing.T) {
 		// Resolve to existing reader.
 		{"u1,u3,u5#u4@twitter", "u3"},
 	} {
-		h2, err = ParseTlfHandle(ctx, kbpki, tc.name2, tlf.Private)
+		h2, err = ParseTlfHandle(ctx, kbpki, nil, tc.name2, tlf.Private)
 		require.NoError(t, err)
 
 		daemon.addNewAssertionForTestOrBust(tc.resolveTo, "u2@twitter")
 
 		resolvesTo, partialResolvedH1, err =
-			h1.ResolvesTo(ctx, codec, kbpki, *h2)
+			h1.ResolvesTo(ctx, codec, kbpki, nil, *h2)
 		require.NoError(t, err)
 		assert.True(t, resolvesTo, tc.name2)
 		require.Equal(t, h2, partialResolvedH1, tc.name2)
@@ -962,13 +965,13 @@ func TestTlfHandleResolvesTo(t *testing.T) {
 		{"u1,u2,u5#u3,u4@twitter", "u1"},
 		{"u1,u2,u5#u3,u4@twitter", "u3"},
 	} {
-		h2, err = ParseTlfHandle(ctx, kbpki, tc.name2, tlf.Private)
+		h2, err = ParseTlfHandle(ctx, kbpki, nil, tc.name2, tlf.Private)
 		require.NoError(t, err)
 
 		daemon.addNewAssertionForTestOrBust(tc.resolveTo, "u2@twitter")
 
 		resolvesTo, partialResolvedH1, err =
-			h1.ResolvesTo(ctx, codec, kbpki, *h2)
+			h1.ResolvesTo(ctx, codec, kbpki, nil, *h2)
 		require.NoError(t, err)
 		assert.False(t, resolvesTo, tc.name2)
 
@@ -989,7 +992,7 @@ func TestParseTlfHandleNoncanonicalExtensions(t *testing.T) {
 	}
 
 	name := "u1,u2#u3 (conflicted copy 2016-03-14 #3) (files before u2 account reset 2016-03-14 #2)"
-	h, err := ParseTlfHandle(ctx, kbpki, name, tlf.Private)
+	h, err := ParseTlfHandle(ctx, kbpki, nil, name, tlf.Private)
 	require.Nil(t, err)
 	assert.Equal(t, tlf.HandleExtension{
 		Type:   tlf.HandleExtensionConflict,
@@ -1004,6 +1007,66 @@ func TestParseTlfHandleNoncanonicalExtensions(t *testing.T) {
 	}, *h.FinalizedInfo())
 
 	nonCanonicalName := "u1,u2#u3 (files before u2 account reset 2016-03-14 #2) (conflicted copy 2016-03-14 #3)"
-	_, err = ParseTlfHandle(ctx, kbpki, nonCanonicalName, tlf.Private)
+	_, err = ParseTlfHandle(ctx, kbpki, nil, nonCanonicalName, tlf.Private)
 	assert.Equal(t, TlfNameNotCanonical{nonCanonicalName, name}, err)
+}
+
+func TestParseTlfHandleImplicitTeams(t *testing.T) {
+	ctx := context.Background()
+
+	localUsers := MakeLocalUsers([]libkb.NormalizedUsername{"u1", "u2", "u3"})
+	currentUID := localUsers[0].UID
+	daemon := NewKeybaseDaemonMemory(
+		currentUID, localUsers, nil, kbfscodec.NewMsgpack())
+
+	kbpki := &daemonKBPKI{
+		daemon: daemon,
+	}
+
+	counter := byte(1)
+	newITeam := func(name, suffix string, ty tlf.Type) (
+		keybase1.TeamID, tlf.ID) {
+		iteamInfo, err := daemon.ResolveIdentifyImplicitTeam(
+			ctx, name, suffix, ty, true, "")
+		require.NoError(t, err)
+		tlfID := tlf.FakeID(counter, ty)
+		counter++
+		err = daemon.addImplicitTeamTlfID(iteamInfo.TID, tlfID)
+		require.NoError(t, err)
+		return iteamInfo.TID, tlfID
+	}
+
+	check := func(name string, tid keybase1.TeamID, tlfID tlf.ID, ty tlf.Type) {
+		h, err := ParseTlfHandle(ctx, kbpki, nil, name, ty)
+		require.NoError(t, err)
+		require.Len(t, h.ResolvedWriters(), 1)
+		require.Len(t, h.ResolvedReaders(), 0)
+		require.Len(t, h.UnresolvedWriters(), 0)
+		require.Len(t, h.UnresolvedReaders(), 0)
+		require.Equal(t, tid.String(), h.FirstResolvedWriter().String())
+		require.Equal(t, tlfID, h.tlfID)
+	}
+
+	// Private implicit teams.
+	tid1, tlfID1 := newITeam("u1", "", tlf.Private)
+	check("u1", tid1, tlfID1, tlf.Private)
+	tid2, tlfID2 := newITeam("u1,u2", "", tlf.Private)
+	check("u1,u2", tid2, tlfID2, tlf.Private)
+	tid3, tlfID3 := newITeam("u1,u2,u3", "", tlf.Private)
+	check("u1,u2,u3", tid3, tlfID3, tlf.Private)
+
+	// Public implicit teams.
+	tid4, tlfID4 := newITeam("u1", "", tlf.Public)
+	check("u1", tid4, tlfID4, tlf.Public)
+	tid5, tlfID5 := newITeam("u1,u2", "", tlf.Public)
+	check("u1,u2", tid5, tlfID5, tlf.Public)
+
+	// Implicit team with a suffix.
+	tid6, tlfID6 := newITeam(
+		"u1,u2", "(conflicted copy 2016-03-14 #3)", tlf.Private)
+	check("u1,u2 (conflicted copy 2016-03-14 #3)", tid6, tlfID6, tlf.Private)
+
+	// Implicit team with readers.
+	tid7, tlfID7 := newITeam("u1,u2#u3", "", tlf.Private)
+	check("u1,u2#u3", tid7, tlfID7, tlf.Private)
 }

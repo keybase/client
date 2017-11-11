@@ -374,17 +374,20 @@ func (md *MDOpsStandard) GetForHandle(ctx context.Context, handle *TlfHandle,
 		return tlf.ID{}, ImmutableRootMetadata{}, err
 	}
 
-	mdHandle, err := MakeTlfHandle(ctx, bareMdHandle, md.config.KBPKI())
+	mdHandle, err := MakeTlfHandle(ctx, bareMdHandle, md.config.KBPKI(), nil)
 	if err != nil {
 		return tlf.ID{}, ImmutableRootMetadata{}, err
 	}
 
 	// Check for mutual handle resolution.
 	if err := mdHandle.MutuallyResolvesTo(ctx, md.config.Codec(),
-		md.config.KBPKI(), *handle, rmds.MD.RevisionNumber(), rmds.MD.TlfID(),
-		md.log); err != nil {
+		md.config.KBPKI(), nil, *handle, rmds.MD.RevisionNumber(),
+		rmds.MD.TlfID(), md.log); err != nil {
 		return tlf.ID{}, ImmutableRootMetadata{}, err
 	}
+	// Set the ID after checking the resolve, because `handle` doesn't
+	// have the TLF ID set yet.
+	mdHandle.tlfID = id
 
 	// TODO: For now, use the mdHandle that came with rmds for
 	// consistency. In the future, we'd want to eventually notify
@@ -430,6 +433,15 @@ func (md *MDOpsStandard) processMetadataWithID(ctx context.Context,
 	return md.processMetadata(ctx, handle, rmds, extra, getRangeLock)
 }
 
+type constIDGetter struct {
+	id tlf.ID
+}
+
+func (c constIDGetter) GetIDForHandle(_ context.Context, _ *TlfHandle) (
+	tlf.ID, error) {
+	return c.id, nil
+}
+
 func (md *MDOpsStandard) getForTLF(ctx context.Context, id tlf.ID,
 	bid kbfsmd.BranchID, mStatus kbfsmd.MergeStatus, lockBeforeGet *keybase1.LockID) (
 	ImmutableRootMetadata, error) {
@@ -450,7 +462,8 @@ func (md *MDOpsStandard) getForTLF(ctx context.Context, id tlf.ID,
 	if err != nil {
 		return ImmutableRootMetadata{}, err
 	}
-	handle, err := MakeTlfHandle(ctx, bareHandle, md.config.KBPKI())
+	handle, err := MakeTlfHandle(
+		ctx, bareHandle, md.config.KBPKI(), constIDGetter{id})
 	if err != nil {
 		return ImmutableRootMetadata{}, err
 	}
@@ -499,7 +512,8 @@ func (md *MDOpsStandard) processRange(ctx context.Context, id tlf.ID,
 			if err != nil {
 				return err
 			}
-			handle, err := MakeTlfHandle(groupCtx, bareHandle, md.config.KBPKI())
+			handle, err := MakeTlfHandle(
+				groupCtx, bareHandle, md.config.KBPKI(), constIDGetter{id})
 			if err != nil {
 				return err
 			}

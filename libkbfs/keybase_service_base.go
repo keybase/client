@@ -914,7 +914,8 @@ func (k *KeybaseServiceBase) FSEditListRequest(ctx context.Context,
 	k.log.CDebugf(ctx, "Edit list request for %s (public: %t)",
 		req.Folder.Name, !req.Folder.Private)
 	tlfHandle, err := getHandleFromFolderName(
-		ctx, k.config.KBPKI(), req.Folder.Name, !req.Folder.Private)
+		ctx, k.config.KBPKI(), k.config.MDOps(), req.Folder.Name,
+		!req.Folder.Private)
 	if err != nil {
 		return err
 	}
@@ -1020,7 +1021,7 @@ func (k *KeybaseServiceBase) GetTLFCryptKeys(ctx context.Context,
 	}
 
 	tlfHandle, err := getHandleFromFolderName(
-		ctx, k.config.KBPKI(), query.TlfName, false)
+		ctx, k.config.KBPKI(), k.config.MDOps(), query.TlfName, false)
 	if err != nil {
 		return res, err
 	}
@@ -1062,7 +1063,8 @@ func (k *KeybaseServiceBase) GetPublicCanonicalTLFNameAndID(
 	}
 
 	tlfHandle, err := getHandleFromFolderName(
-		ctx, k.config.KBPKI(), query.TlfName, true /* public */)
+		ctx, k.config.KBPKI(), k.config.MDOps(), query.TlfName,
+		true /* public */)
 	if err != nil {
 		return res, err
 	}
