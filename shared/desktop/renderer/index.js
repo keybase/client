@@ -4,6 +4,7 @@
  */
 import '../../dev/user-timings'
 import Main from '../../app/main.desktop'
+import * as AppGen from '../../actions/app-gen'
 import * as React from 'react'
 import * as ConfigGen from '../../actions/config-gen'
 import ReactDOM from 'react-dom'
@@ -20,7 +21,6 @@ import {disable as disableDragDrop} from '../../util/drag-drop'
 import {getUserImageMap, loadUserImageMap, getTeamImageMap, loadTeamImageMap} from '../../util/pictures'
 import {initAvatarLookup, initAvatarLoad} from '../../common-adapters'
 import {listenForNotifications} from '../../actions/notifications'
-import {changedFocus, changedActive} from '../../actions/app'
 import merge from 'lodash/merge'
 import throttle from 'lodash/throttle'
 import {selector as menubarSelector} from '../../menubar/selector'
@@ -92,16 +92,16 @@ function setupApp(store) {
   ipcRenderer.send('install-check')
 
   var inputMonitor = new InputMonitor(function(isActive) {
-    store.dispatch(changedActive(isActive))
+    store.dispatch(AppGen.createChangedActive({userActive: isActive}))
   })
   inputMonitor.startActiveTimer()
 
   window.addEventListener('focus', () => {
     inputMonitor.goActive()
-    store.dispatch(changedFocus(true))
+    store.dispatch(AppGen.createChangedFocus({appFocused: true}))
   })
   window.addEventListener('blur', () => {
-    store.dispatch(changedFocus(false))
+    store.dispatch(AppGen.createChangedFocus({appFocused: false}))
   })
 
   const _menubarSelector = menubarSelector()

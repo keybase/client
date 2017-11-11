@@ -1,5 +1,6 @@
 // @flow
 // Look at this doc: https://goo.gl/7B6p4H
+import * as AppGen from './app-gen'
 import * as ConfigGen from './config-gen'
 import * as LoginGen from './login-gen'
 import * as Constants from '../constants/login'
@@ -10,7 +11,6 @@ import * as Types from '../constants/types/flow-types'
 import HiddenString from '../util/hidden-string'
 import openURL from '../util/open-url'
 import {RPCError} from '../util/errors'
-import {appLink} from './app'
 import {chatTab, loginTab, peopleTab, isValidInitialTab} from '../constants/tabs'
 import {createSelectConversation} from './chat-gen'
 import {deletePushTokenSaga} from './push'
@@ -127,7 +127,7 @@ function* navBasedOnLoginAndInitialState(): Saga.SagaGenerator<any, any> {
     if (initialState) {
       const {url, tab, conversation} = (initialState: InitialState)
       if (url) {
-        yield Saga.put(appLink(url))
+        yield Saga.put(AppGen.createLink({link: url}))
       } else if (tab && isValidInitialTab(tab)) {
         if (tab === chatTab && conversation) {
           yield Saga.put(createSelectConversation({conversationIDKey: conversation}))

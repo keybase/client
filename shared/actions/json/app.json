@@ -1,7 +1,17 @@
 {
-  "prelude": [
-      "TODO"
-  ],
+  "prelude": [],
   "actions": {
+    "changedFocus": {
+      "appFocused": "boolean"
+    },
+    "changedActive": {
+      "userActive": "boolean"
+    },
+    "link": {
+      "link": "string"
+    },
+    "mobileAppState": {
+      "nextAppState": "string"
+    }
   }
 }

@@ -1,4 +1,5 @@
 // @flow
+import * as AppGen from '../app-gen'
 import * as ChatTypes from '../../constants/types/flow-types-chat'
 import * as Constants from '../../constants/chat'
 import * as ChatGen from '../chat-gen'
@@ -16,7 +17,6 @@ import {enableActionLogging} from '../../local-debug'
 import {toDeviceType} from '../../constants/devices'
 import {type Action} from '../../constants/types/flux'
 import {type TypedState} from '../../constants/reducer'
-import {type ChangedFocus, type ChangedActive} from '../../constants/app'
 
 function* _clearConversationMessages({payload: {conversationIDKey}}: ChatGen.ClearMessagesPayload) {
   yield Saga.put(
@@ -855,7 +855,7 @@ function* _updateMetadata(action: ChatGen.UpdateMetadataPayload): Saga.SagaGener
   }
 }
 
-function* _changedActive(action: ChangedActive): Saga.SagaGenerator<any, any> {
+function* _changedActive(action: AppGen.ChangedActivePayload): Saga.SagaGenerator<any, any> {
   // Update badging and the latest message due to changing active state.
   const {userActive} = action.payload
   const state: TypedState = yield Saga.select()
@@ -887,7 +887,7 @@ function* _updateTyping({
   }
 }
 
-function* _changedFocus(action: ChangedFocus): Saga.SagaGenerator<any, any> {
+function* _changedFocus(action: AppGen.ChangedFocusPayload): Saga.SagaGenerator<any, any> {
   // Update badging and the latest message due to the refocus.
   const {appFocused} = action.payload
   const state: TypedState = yield Saga.select()
@@ -945,7 +945,7 @@ function* _logUpdateTempMessage(action: ChatGen.UpdateTempMessagePayload): Saga.
 }
 
 function* registerSagas(): Saga.SagaGenerator<any, any> {
-  yield Saga.safeTakeEvery('app:changedActive', _changedActive)
+  yield Saga.safeTakeEvery(AppGen.changedActive, _changedActive)
   yield Saga.safeTakeEvery(ChatGen.clearMessages, _clearConversationMessages)
   yield Saga.safeTakeEvery([ChatGen.appendMessages, ChatGen.prependMessages], _storeMessageToEntity)
   yield Saga.safeTakeEvery([ChatGen.appendMessages, ChatGen.prependMessages], _findMessagesToDelete)
@@ -962,7 +962,7 @@ function* registerSagas(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEvery(ChatGen.openConversation, _openConversation)
   yield Saga.safeTakeEvery(ChatGen.updateMetadata, _updateMetadata)
   yield Saga.safeTakeEvery(ChatGen.updateTyping, _updateTyping)
-  yield Saga.safeTakeEvery('app:changedFocus', _changedFocus)
+  yield Saga.safeTakeEvery(AppGen.changedFocus, _changedFocus)
 
   if (enableActionLogging) {
     yield Saga.safeTakeEvery(ChatGen.appendMessages, _logAppendMessages)
