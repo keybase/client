@@ -1081,11 +1081,6 @@ export const metadataLockRpcChannelMap = (configKeys: Array<string>, request: Re
 
 export const metadataLockRpcPromise = (request: (RequestCommon & RequestErrorCallback & {param: MetadataLockRpcParam})): Promise<void> => new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.metadata.lock', request, (error, result) => error ? reject(error) : resolve(result)))
 
-export const metadataMDGetBehavior = {
-  getOrCreateClassicTlf: 0,
-  getClassicTlfNoCreate: 1,
-}
-
 export const metadataPing2RpcChannelMap = (configKeys: Array<string>, request: RequestCommon & {callback?: ?(err: ?any, response: MetadataPing2Result) => void}): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.metadata.ping2', request)
 
 export const metadataPing2RpcPromise = (request: ?(RequestCommon & {callback?: ?(err: ?any, response: MetadataPing2Result) => void})): Promise<MetadataPing2Result> => new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.metadata.ping2', request, (error, result) => error ? reject(error) : resolve(result)))
@@ -2608,10 +2603,6 @@ export type LookupImplicitTeamRes = {|teamID: TeamID,name: TeamName,displayName:
 
 export type MDBlock = {|version: Int,timestamp: Time,block: Bytes,|}
 
-export type MDGetBehavior =0 // GET_OR_CREATE_CLASSIC_TLF_0
- | 1 // GET_CLASSIC_TLF_NO_CREATE_1
-
-
 export type MDPriority = Int
 
 export type MaskB64 = Bytes
@@ -2674,8 +2665,7 @@ export type MetadataGetMetadataRpcParam = {|  folderID: String,
   startRevision: Long,
   stopRevision: Long,
   logTags: {[key: string]: String},
-  lockBeforeGet?: ?LockID,
-  getBehavior: MDGetBehavior|}
+  lockBeforeGet?: ?LockID|}
 
 export type MetadataLockRpcParam = {|  folderID: String,
   lockID: LockID|}

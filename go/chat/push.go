@@ -352,7 +352,7 @@ func (g *PushHandler) shouldDisplayDesktopNotification(ctx context.Context,
 		apptype := keybase1.DeviceType_DESKTOP
 		kind := chat1.NotificationKind_GENERIC
 		switch typ {
-		case chat1.MessageType_TEXT:
+		case chat1.MessageType_TEXT, chat1.MessageType_SYSTEM:
 			for _, at := range msg.Valid().AtMentions {
 				if at.Eq(uid) {
 					kind = chat1.NotificationKind_ATMENTION
