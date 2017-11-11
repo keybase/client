@@ -5,7 +5,7 @@ import * as TrackerConstants from '../constants/tracker'
 import ErrorComponent from '../common-adapters/error-profile'
 import Profile from './index'
 import React, {PureComponent} from 'react'
-import {searchSuggestions} from '../actions/search/creators'
+import {createSearchSuggestions} from '../actions/search-gen'
 import pausableConnect from '../util/pausable-connect'
 import {getProfile, updateTrackers, onFollow, onUnfollow, openProofUrl} from '../actions/tracker'
 import {isTesting} from '../local-debug'
@@ -114,7 +114,7 @@ export default pausableConnect(
       )
     },
     onSearch: () => {
-      dispatch(searchSuggestions('profileSearch'))
+      dispatch(createSearchSuggestions({searchKey: 'profileSearch'}))
       dispatch(navigateAppend([{props: {}, selected: 'search'}]))
     },
     onUnfollow: username => {

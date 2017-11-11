@@ -1,7 +1,7 @@
 // @flow
 import * as Constants from '../../constants/teams'
 import * as Creators from '../../actions/teams/creators'
-import * as Search from '../../actions/search/creators'
+import * as SearchGen from '../../actions/search-gen'
 import * as I from 'immutable'
 import * as KBFSGen from '../../actions/kbfs-gen'
 import * as React from 'react'
@@ -81,7 +81,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, setRouteState, rout
   _onAddSelf: (teamname: Constants.Teamname, you: ?string) => {
     if (you) {
       dispatch(navigateAppend([{props: {teamname}, selected: 'addPeople'}]))
-      dispatch(Search.addResultsToUserInput('addToTeamSearch', [you]))
+      dispatch(SearchGen.createAddResultsToUserInput({searchKey: 'addToTeamSearch', searchResults: [you]}))
     }
   },
   _onCreateSubteam: (teamname: Constants.Teamname) =>
