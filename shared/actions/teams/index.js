@@ -565,6 +565,7 @@ function* _createChannel(action: Constants.CreateChannel) {
       })
     }
 
+    // Dismiss the create channel dialog.
     yield Saga.put(navigateTo([], routePath.butLast()))
 
     // Select the new channel, and switch to the chat tab.
