@@ -1,18 +1,18 @@
 // @flow
+import * as DevicesGen from '../../actions/devices-gen'
 import Render from '../../login/signup/success/index.render'
 import {connect, compose, mapProps} from '../../util/container'
 import {navigateUp} from '../../actions/route-tree'
-import {load, paperKeyMake} from '../../actions/devices'
 
 const mapStateToProps = (state, {routeProps}) => ({
   paperkey: routeProps.get('paperKey'),
 })
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
-  generatePaperKey: () => dispatch(paperKeyMake()),
+  generatePaperKey: () => dispatch(DevicesGen.createPaperKeyMake()),
   onBack: () => dispatch(navigateUp()),
   onFinish: () => {
-    dispatch(load())
+    dispatch(DevicesGen.createLoad())
     dispatch(navigateUp())
   },
 })

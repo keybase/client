@@ -1,16 +1,9 @@
 // @flow
 import * as I from 'immutable'
 import * as RPCTypes from './types/flow-types'
-import type {NoErrorTypedAction} from './types/flux'
-
-export type Load = NoErrorTypedAction<'devices:load', void>
-export type Loaded = NoErrorTypedAction<'devices:loaded', {deviceIDs: Array<string>}>
-export type PaperKeyMake = NoErrorTypedAction<'devices:paperKeyMake', void>
-export type Revoke = NoErrorTypedAction<'devices:revoke', {deviceID: string}>
-export type ShowRevokePage = NoErrorTypedAction<'devices:showRevokePage', {deviceID: string}>
-export type Waiting = NoErrorTypedAction<'devices:waiting', {waiting: boolean}>
-
-export type Actions = Load | Loaded | PaperKeyMake | Revoke | ShowRevokePage | Waiting
+import * as SettingsConstants from './settings'
+import * as Tabs from './tabs'
+import {isMobile} from './platform'
 
 // TODO could potentially use entities for devices provisioned by other devices but we still have
 // to support pgp
@@ -77,4 +70,6 @@ function toDeviceType(s: string): DeviceType {
   }
 }
 
-export {makeState, makeDeviceDetail, toDeviceType}
+const devicesTabLocation = isMobile ? [Tabs.settingsTab, SettingsConstants.devicesTab] : [Tabs.devicesTab]
+
+export {devicesTabLocation, makeState, makeDeviceDetail, toDeviceType}

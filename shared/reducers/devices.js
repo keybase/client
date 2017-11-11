@@ -1,22 +1,20 @@
 // @flow
-import {List} from 'immutable'
-import {makeState, type State, type Actions} from '../constants/devices'
+import * as I from 'immutable'
+import * as Constants from '../constants/devices'
+import * as DevicesGen from '../actions/devices-gen'
 
-const initialState: State = makeState()
+const initialState: Constants.State = Constants.makeState()
 
-export default function(
-  state: State = initialState,
-  action: Actions | {type: 'common:resetStore', payload: void}
-) {
+export default function(state: Constants.State = initialState, action: DevicesGen.Actions) {
   switch (action.type) {
-    case 'common:resetStore':
+    case DevicesGen.resetStore:
       return initialState
-    case 'devices:waiting':
+    case DevicesGen.setWaiting:
       const {waiting} = action.payload
       return state.set('waitingForServer', waiting)
-    case 'devices:loaded':
+    case DevicesGen.loaded:
       const {deviceIDs} = action.payload
-      return state.set('deviceIDs', List(deviceIDs))
+      return state.set('deviceIDs', I.List(deviceIDs))
   }
 
   return state

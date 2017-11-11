@@ -2,6 +2,7 @@
 // Look at this doc: https://goo.gl/7B6p4H
 import * as AppGen from './app-gen'
 import * as ConfigGen from './config-gen'
+import * as DevicesGen from './devices-gen'
 import * as LoginGen from './login-gen'
 import * as Constants from '../constants/login'
 import * as EngineRpc from '../constants/engine'
@@ -16,10 +17,9 @@ import {createSelectConversation} from './chat-gen'
 import {deletePushTokenSaga} from './push'
 import {getExtendedStatus} from './config'
 import {isMobile} from '../constants/platform'
-import {load as loadDevices, setWaiting as setDevicesWaiting, devicesTabLocation} from './devices'
 import {pathSelector, navigateTo, navigateAppend} from './route-tree'
 import {setDeviceNameError} from './signup'
-import {toDeviceType, type DeviceType} from '../constants/devices'
+import {devicesTabLocation, toDeviceType, type DeviceType} from '../constants/devices'
 import {type Dispatch, type AsyncAction} from '../constants/types/flux'
 import {type InitialState} from '../constants/config'
 import {type TypedState} from '../constants/reducer'
@@ -619,11 +619,11 @@ function chooseDeviceTypeSaga(role) {
 }
 
 function* addNewDeviceSaga({payload: {role}}: LoginGen.AddNewDevicePayload) {
-  yield Saga.put(setDevicesWaiting(true))
+  yield Saga.put(DevicesGen.createSetWaiting({waiting: true}))
   yield Saga.call(initalizeMyCodeStateForAddingADevice)
 
   const onBackSaga = function*(): Generator<any, void, any> {
-    yield Saga.put(loadDevices())
+    yield Saga.put(DevicesGen.createLoad())
     yield Saga.put(navigateTo(devicesTabLocation))
   }
 
@@ -647,7 +647,7 @@ function* addNewDeviceSaga({payload: {role}}: LoginGen.AddNewDevicePayload) {
 
   yield Saga.call(addDeviceRpc.run)
   yield Saga.call(onBackSaga)
-  yield Saga.put(setDevicesWaiting(false))
+  yield Saga.put(DevicesGen.createSetWaiting({waiting: false}))
 }
 
 function* openAccountResetPageSaga() {
