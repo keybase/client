@@ -18,26 +18,6 @@ import {type State as GregorState, type OutOfBandMessage} from '../constants/typ
 import {type TypedState} from '../constants/reducer'
 import {usernameSelector, loggedInSelector} from '../constants/selectors'
 
-function pushOOBM(messages: Array<OutOfBandMessage>): Constants.PushOOBM {
-  return {type: Constants.pushOOBM, payload: {messages}}
-}
-
-function updateReachability(reachability: RPCTypes.Reachability): Constants.UpdateReachability {
-  return {type: Constants.updateReachability, payload: {reachability}}
-}
-
-function checkReachability(): Constants.CheckReachability {
-  return {type: Constants.checkReachability, payload: undefined}
-}
-
-function updateSeenMsgs(seenMsgs: Array<Constants.NonNullGregorItem>): Constants.UpdateSeenMsgs {
-  return {type: Constants.updateSeenMsgs, payload: {seenMsgs}}
-}
-
-function injectItem(category: string, body: string, dtime?: ?Date): Constants.InjectItem {
-  return {type: Constants.injectItem, payload: {category, body, dtime}}
-}
-
 function isTlfItem(gItem: Constants.NonNullGregorItem): boolean {
   return !!(gItem && gItem.item && gItem.item.category && gItem.item.category === 'tlf')
 }
@@ -65,7 +45,7 @@ function registerReachability() {
       // Gregor reachability is only valid if we're logged in
       // TODO remove this when core stops sending us these when we're logged out
       if (loggedInSelector(getState())) {
-        dispatch(updateReachability(reachability))
+        dispatch(GregorGen.createUpdateReachability({reachability}))
 
         if (reachability.reachable === RPCTypes.reachabilityReachable.yes) {
           // TODO: We should be able to recover from connection problems
@@ -94,7 +74,7 @@ function checkReachabilityOnConnect() {
     // service somehow crashed or was restarted manually.
     RPCTypes.reachabilityStartReachabilityRpcPromise()
       .then(reachability => {
-        dispatch(updateReachability(reachability))
+        dispatch(GregorGen.createUpdateReachability({reachability}))
       })
       .catch(err => {
         console.warn('error bootstrapping reachability: ', err)
@@ -122,7 +102,7 @@ function registerGregorListeners() {
       if (oobm && oobm.length) {
         const filteredOOBM = oobm.filter(oobm => !!oobm)
         if (filteredOOBM.length) {
-          dispatch(pushOOBM(filteredOOBM))
+          dispatch(GregorGen.createPushOOBM({messages: filteredOOBM}))
         }
       }
       response && response.result()
@@ -137,7 +117,7 @@ function* handleTLFUpdate(items: Array<Constants.NonNullGregorItem>): SagaGenera
   const tlfUpdates = items.filter(isTlfItem)
   const newTlfUpdates = tlfUpdates.filter(gItem => !seenMsgs[gItem.md.msgID.toString('base64')])
   if (newTlfUpdates.length) {
-    yield Saga.put(updateSeenMsgs(newTlfUpdates))
+    yield Saga.put(GregorGen.createUpdateSeenMsgs({seenMsgs: newTlfUpdates}))
     yield Saga.put(FavoriteGen.createFavoriteList())
   }
 }
@@ -150,7 +130,7 @@ function* handleChatBanner(items: Array<Constants.NonNullGregorItem>): SagaGener
   }
 }
 
-function* handlePushState(pushAction: GregorGen.PushStatePayload): SagaGenerator<any, any> {
+function* _handlePushState(pushAction: GregorGen.PushStatePayload): SagaGenerator<any, any> {
   if (!pushAction.error) {
     const {payload: {state}} = pushAction
     const nonNullItems = toNonNullGregorItems(state)
@@ -183,7 +163,7 @@ function* handleKbfsFavoritesOOBM(kbfsFavoriteMessages: Array<OutOfBandMessage>)
   yield Saga.all(folderActions)
 }
 
-function* handlePushOOBM(pushOOBM: Constants.PushOOBM) {
+function* _handlePushOOBM(pushOOBM: GregorGen.PushOOBMPayload) {
   if (!pushOOBM.error) {
     const {payload: {messages}} = pushOOBM
 
@@ -199,12 +179,12 @@ function* handlePushOOBM(pushOOBM: Constants.PushOOBM) {
   }
 }
 
-function* handleCheckReachability(): SagaGenerator<any, any> {
+function* _handleCheckReachability(action: GregorGen.CheckReachabilityPayload): SagaGenerator<any, any> {
   const reachability = yield Saga.call(RPCTypes.reachabilityCheckReachabilityRpcPromise)
-  yield Saga.put({type: Constants.updateReachability, payload: {reachability}})
+  yield Saga.put(GregorGen.createUpdateReachability({reachability}))
 }
 
-function* _injectItem(action: Constants.InjectItem): SagaGenerator<any, any> {
+function* _injectItem(action: GregorGen.InjectItemPayload): SagaGenerator<any, any> {
   const {category, body, dtime} = action.payload
   yield Saga.call(RPCTypes.gregorInjectItemRpcPromise, {
     body,
@@ -217,19 +197,17 @@ function* _injectItem(action: Constants.InjectItem): SagaGenerator<any, any> {
 }
 
 function* gregorSaga(): SagaGenerator<any, any> {
-  yield Saga.safeTakeEvery(GregorGen.pushState, handlePushState)
-  yield Saga.safeTakeEvery(Constants.pushOOBM, handlePushOOBM)
-  yield Saga.safeTakeEvery(Constants.injectItem, _injectItem)
-  yield Saga.safeTakeLatest(Constants.checkReachability, handleCheckReachability)
+  yield Saga.safeTakeEvery(GregorGen.pushState, _handlePushState)
+  yield Saga.safeTakeEvery(GregorGen.pushOOBM, _handlePushOOBM)
+  yield Saga.safeTakeEvery(GregorGen.injectItem, _injectItem)
+  yield Saga.safeTakeLatest(GregorGen.checkReachability, _handleCheckReachability)
 }
 
 export {
-  checkReachability,
   checkReachabilityOnConnect,
   registerGregorListeners,
   registerReachability,
   listenForNativeReachabilityEvents,
-  injectItem,
 }
 
 export default gregorSaga

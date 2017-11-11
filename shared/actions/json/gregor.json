@@ -1,12 +1,27 @@
 {
   "prelude": [
     "import * as Constants from '../constants/gregor'",
-    "import * as GregorTypes from '../constants/types/flow-types-gregor'"
+    "import * as RPCTypesGregor from '../constants/types/flow-types-gregor'"
   ],
   "actions": {
     "pushState": {
-      "state": "GregorTypes.State",
+      "state": "RPCTypesGregor.State",
       "reason": "RPCTypes.PushReason"
+    },
+    "checkReachability": {},
+    "pushOOBM": {
+      "messages": "Array<RPCTypesGregor.OutOfBandMessage>"
+    },
+    "updateReachability": {
+      "reachability": "RPCTypes.Reachability"
+    },
+    "updateSeenMsgs": {
+      "seenMsgs": "Array<Constants.NonNullGregorItem>"
+    },
+    "injectItem": {
+      "category": "string",
+      "body": "string",
+      "dtime?": "?Date"
     }
   }
 }

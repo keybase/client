@@ -1,6 +1,7 @@
 // @flow
 import * as Constants from '../constants/chat'
 import * as ChatGen from '../actions/chat-gen'
+import * as GregorGen from '../actions/gregor-gen'
 import {Set, List, Map} from 'immutable'
 import {reachabilityReachable} from '../constants/types/flow-types'
 
@@ -241,7 +242,7 @@ function reducer(state: Constants.State = initialState, action: ChatGen.Actions)
         )
       return state.set('conversationStates', newConversationStates)
     }
-    case 'gregor:updateReachability': {
+    case GregorGen.updateReachability: {
       // reset this when we go online
       if (action.payload.reachability.reachable === reachabilityReachable.yes) {
         const newConversationStates = state
