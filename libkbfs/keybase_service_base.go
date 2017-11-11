@@ -330,11 +330,13 @@ func (k *KeybaseServiceBase) KeyfamilyChanged(ctx context.Context,
 	k.setCachedUserInfo(uid, UserInfo{})
 	k.clearCachedUnverifiedKeys(uid)
 
-	mdServer := k.config.MDServer()
-	if mdServer != nil && k.getCachedCurrentSession().UID == uid {
-		// Ignore any errors for now, we don't want to block this
-		// notification and it's not worth spawning a goroutine for.
-		mdServer.CheckForRekeys(context.Background())
+	if k.getCachedCurrentSession().UID == uid {
+		mdServer := k.config.MDServer()
+		if mdServer != nil {
+			// Ignore any errors for now, we don't want to block this
+			// notification and it's not worth spawning a goroutine for.
+			mdServer.CheckForRekeys(context.Background())
+		}
 	}
 
 	return nil
