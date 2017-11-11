@@ -26,13 +26,16 @@ import {convertToError} from '../../util/errors'
 import type {TypedState} from '../../constants/reducer'
 
 const _createNewTeam = function*(action: Constants.CreateNewTeam) {
-  const {payload: {name}} = action
+  const {payload: {name, routePath}} = action
   yield Saga.put(Creators.setTeamCreationError(''))
   yield Saga.put(Creators.setTeamCreationPending(true))
   try {
     yield Saga.call(RPCTypes.teamsTeamCreateRpcPromise, {
       param: {name, sendChatNotification: true},
     })
+
+    // Dismiss the create team dialog.
+    yield Saga.put(navigateTo([], routePath.butLast()))
 
     // No error if we get here.
     yield Saga.put(navigateTo([isMobile ? chatTab : teamsTab]))

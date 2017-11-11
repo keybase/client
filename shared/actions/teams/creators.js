@@ -2,8 +2,8 @@
 import * as Constants from '../../constants/teams'
 import type {ConversationIDKey} from '../../constants/chat'
 
-function createNewTeam(name: string) {
-  return {payload: {name}, type: 'teams:createNewTeam'}
+function createNewTeam(name: string, routePath: I.List<string>) {
+  return {payload: {name, routePath}, type: 'teams:createNewTeam'}
 }
 
 function createNewTeamFromConversation(conversationIDKey: ConversationIDKey, name: string) {

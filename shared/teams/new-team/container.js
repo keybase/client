@@ -9,9 +9,9 @@ const mapStateToProps = (state: TypedState) => ({
   pending: state.chat.teamCreationPending,
 })
 
-const mapDispatchToProps = (dispatch: Dispatch, {navigateUp}) => ({
+const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routePath}) => ({
   _onCreateNewTeam: name => {
-    dispatch(createNewTeam(name))
+    dispatch(createNewTeam(name, routePath))
   },
   _onSetTeamCreationError: error => {
     dispatch(setTeamCreationError(error))
