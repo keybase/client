@@ -1,32 +1,56 @@
 // @flow
 import * as React from 'react'
 import {Avatar, Box, Button, HeaderHoc, Input, Text} from '../../common-adapters'
-import {globalStyles, globalMargins} from '../../styles'
+import {globalStyles, globalColors, globalMargins} from '../../styles'
 import {renameProp, compose, withProps} from 'recompose'
 
 import type {Props} from '.'
 
+const errorHeader = (errorText: string) => {
+  if (!errorText) {
+    return null
+  }
+
+  return (
+    <Box
+      style={{
+        backgroundColor: globalColors.red,
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: globalMargins.small,
+      }}
+    >
+      <Text type="BodySemibold" backgroundMode={'HighRisk'}>
+        {errorText}
+      </Text>
+    </Box>
+  )
+}
+
 const CreateChannel = (props: Props) => (
-  <Box style={_boxStyle}>
-    <Box style={_inputStyle}>
-      <Input
-        autoFocus={true}
-        hintText="Channel name"
-        value={props.channelname}
-        onChangeText={channelname => props.onChannelnameChange(channelname)}
-      />
-    </Box>
-    <Box style={_inputStyle}>
-      <Input
-        autoCorrect={true}
-        autoFocus={false}
-        hintText="Description or topic (optional)"
-        value={props.description}
-        onChangeText={description => props.onDescriptionChange(description)}
-      />
-    </Box>
-    <Box style={_buttonsStyle}>
-      <Button type="Primary" onClick={props.onSubmit} label="Save" />
+  <Box>
+    {errorHeader(props.errorText)}
+    <Box style={_boxStyle}>
+      <Box style={_inputStyle}>
+        <Input
+          autoFocus={true}
+          hintText="Channel name"
+          value={props.channelname}
+          onChangeText={channelname => props.onChannelnameChange(channelname)}
+        />
+      </Box>
+      <Box style={_inputStyle}>
+        <Input
+          autoCorrect={true}
+          autoFocus={false}
+          hintText="Description or topic (optional)"
+          value={props.description}
+          onChangeText={description => props.onDescriptionChange(description)}
+        />
+      </Box>
+      <Box style={_buttonsStyle}>
+        <Button type="Primary" onClick={props.onSubmit} label="Save" />
+      </Box>
     </Box>
   </Box>
 )

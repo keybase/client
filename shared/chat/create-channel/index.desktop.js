@@ -15,7 +15,7 @@ const errorHeader = (errorText: string) => {
       <Text
         style={{margin: globalMargins.tiny, textAlign: 'center', width: '100%'}}
         type="BodySemibold"
-        backgroundMode={errorText ? 'HighRisk' : 'Announcements'}
+        backgroundMode={'HighRisk'}
       >
         {errorText}
       </Text>
