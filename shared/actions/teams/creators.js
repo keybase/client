@@ -1,5 +1,6 @@
 // @flow
 import * as Constants from '../../constants/teams'
+import * as I from 'immutable'
 import type {ConversationIDKey} from '../../constants/chat'
 
 function createNewTeam(name: string, routePath: I.List<string>) {
