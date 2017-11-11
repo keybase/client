@@ -8,7 +8,7 @@ import * as RPCTypes from '../constants/types/flow-types'
 import * as Saga from '../util/saga'
 import engine from '../engine'
 import {RouteStateStorage} from '../actions/route-state-storage'
-import {configurePush} from './push/creators'
+import {createConfigurePush} from './push-gen'
 import {flushLogFile} from '../util/forward-logs'
 import {isMobile, isSimulator} from '../constants/platform'
 import {listenForKBFSNotifications} from '../actions/notifications'
@@ -188,7 +188,7 @@ function _bootstrapSuccess(action: ConfigGen.BootstrapSuccessPayload, state: Typ
   const loggedIn = loggedInSelector(state)
   if (!pushLoaded && loggedIn) {
     if (!isSimulator) {
-      actions.push(Saga.put(configurePush()))
+      actions.push(Saga.put(createConfigurePush()))
     }
     actions.push(Saga.put(ConfigGen.createPushLoaded({pushLoaded: true})))
   }

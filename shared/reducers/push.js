@@ -1,25 +1,24 @@
 // @flow
-import * as CommonConstants from '../constants/common'
+import * as PushGen from '../actions/push-gen'
 import * as Constants from '../constants/push'
 
-import type {State} from '../constants/push'
-
-function reducer(state: State = Constants.initialState, action: any): State {
+function reducer(state: Constants.State = Constants.initialState, action: PushGen.Actions): Constants.State {
   switch (action.type) {
-    case CommonConstants.resetStore:
+    case PushGen.resetStore:
       return {...Constants.initialState}
-    case Constants.permissionsRequesting:
-      const permissionsRequesting = action.payload
+    case PushGen.permissionsRequesting:
+      const {requesting} = action.payload
       return {
         ...state,
-        permissionsRequesting,
+        permissionsRequesting: requesting,
       }
-    case Constants.permissionsPrompt:
+    case PushGen.permissionsPrompt:
+      const {prompt} = action.payload
       return {
         ...state,
-        permissionsPrompt: action.payload,
+        permissionsPrompt: prompt,
       }
-    case Constants.updatePushToken:
+    case PushGen.updatePushToken:
       const {token, tokenType} = action.payload
       return {
         ...state,

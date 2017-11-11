@@ -1,0 +1,34 @@
+{
+  "prelude": [
+    "import * as Constants from '../constants/push'"
+  ],
+  "actions": {
+    "configurePush": {},
+    "permissionsNo": {},
+    "permissionsRequest": {},
+    "permissionsRequesting": {
+      "requesting": "boolean"
+    },
+    "permissionsPrompt": {
+      "prompt": "boolean"
+    },
+    "pushToken": {
+      "token": "string",
+      "tokenType": "Constants.TokenType"
+    },
+    "registrationError": {
+      "error": "Error"
+    },
+    "error": {
+      "error": "Error"
+    },
+    "updatePushToken": {
+      "token": "string",
+      "tokenType": "Constants.TokenType"
+    },
+    "savePushToken": {},
+    "notification": {
+      "notification": "Constants.PushNotification"
+    }
+  }
+}
