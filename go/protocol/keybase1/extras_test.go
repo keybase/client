@@ -87,15 +87,6 @@ func TestUserOrTeamIDChecking(t *testing.T) {
 	}
 }
 
-func TestMDGetBehavior(t *testing.T) {
-	// Makes sure any potential addition to the MDGetBehavior enum without
-	// extending ShouldCreateClassicTLF would fail on CI, so that we don't
-	// panic elsewhere.
-	for _, b := range MDGetBehaviorMap {
-		b.ShouldCreateClassicTLF()
-	}
-}
-
 func TestTeamNameFromString(t *testing.T) {
 	formatMsg := "Keybase team names must be letters (a-z), numbers, and underscores. Also, they can't start with underscores or use double underscores, to avoid confusion."
 	subteamMsg := "Could not parse name as team; bad name component "
