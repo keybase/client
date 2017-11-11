@@ -11,7 +11,7 @@ const errorHeader = (errorText: string) => {
   }
 
   return (
-    <Box style={{backgroundColor: globalColors.red}}>
+    <Box style={{..._boxStyle, backgroundColor: globalColors.red}}>
       <Text
         style={{margin: globalMargins.tiny, textAlign: 'center', width: '100%'}}
         type="BodySemibold"
@@ -25,8 +25,7 @@ const errorHeader = (errorText: string) => {
 
 const CreateChannel = (props: Props) => (
   <PopupDialog onClose={props.onClose} styleCover={_styleCover} styleContainer={_styleContainer}>
-    {errorHeader(props.errorText)}
-    <Box style={_boxStyle}>
+    <Box style={{..._boxStyle, paddingTop: globalMargins.medium}}>
       <Avatar isTeam={true} teamname={props.teamname} size={24} />
       <Text type="BodySmallSemibold" style={{color: globalColors.darkBlue, marginTop: globalMargins.xtiny}}>
         {props.teamname}
@@ -34,6 +33,9 @@ const CreateChannel = (props: Props) => (
       <Text type="Header" style={{marginBottom: globalMargins.tiny, marginTop: globalMargins.tiny}}>
         New chat channel
       </Text>
+    </Box>
+    {errorHeader(props.errorText)}
+    <Box style={_boxStyle}>
       <Box style={_backStyle} onClick={props.onBack}>
         <Icon style={_backIcon} type="iconfont-back" />
         <Text type="BodyPrimaryLink" onClick={props.onBack}>Back</Text>
@@ -86,7 +88,6 @@ const _boxStyle = {
   alignItems: 'center',
   paddingLeft: globalMargins.large,
   paddingRight: globalMargins.large,
-  paddingTop: globalMargins.medium,
 }
 
 const _backIcon = {
