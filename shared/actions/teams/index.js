@@ -529,7 +529,7 @@ const _afterSaveChannelMembership = results => {
 }
 
 function* _createChannel(action: Constants.CreateChannel) {
-  const {payload: {channelname, description, teamname}} = action
+  const {payload: {channelname, description, teamname, routePath}} = action
 
   yield Saga.put(Creators.setChannelCreationError(''))
   try {
@@ -565,8 +565,7 @@ function* _createChannel(action: Constants.CreateChannel) {
       })
     }
 
-    // This is kind of gross, but we're assuming we're on the teams tab
-    // yield Saga.put(navigateUp())
+    yield Saga.put(navigateTo([], routePath.butLast()))
 
     // Select the new channel, and switch to the chat tab.
     yield Saga.put(ChatGen.createSelectConversation({conversationIDKey: newConversationIDKey}))

@@ -1,5 +1,6 @@
 // @flow
 import * as Constants from '../../constants/teams'
+import * as I from 'immutable'
 import type {ConversationIDKey} from '../../constants/chat'
 
 function createNewTeam(name: string) {
@@ -10,8 +11,13 @@ function createNewTeamFromConversation(conversationIDKey: ConversationIDKey, nam
   return {payload: {conversationIDKey, name}, type: 'teams:createNewTeamFromConversation'}
 }
 
-function createChannel(teamname: string, channelname: string, description: ?string) {
-  return {payload: {channelname, description, teamname}, type: 'teams:createChannel'}
+function createChannel(
+  teamname: string,
+  channelname: string,
+  description: ?string,
+  routePath: I.List<string>
+) {
+  return {payload: {channelname, description, teamname, routePath}, type: 'teams:createChannel'}
 }
 
 function getChannels(teamname: string): Constants.GetChannels {

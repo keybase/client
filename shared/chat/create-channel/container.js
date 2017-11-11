@@ -20,7 +20,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routePath}) => ({
   onBack: () => dispatch(navigateTo(['manageChannels'], routePath.butLast())),
   onClose: () => dispatch(navigateUp()),
   onCreateChannel: ({channelname, description, teamname}) => {
-    dispatch(createChannel(teamname, channelname, description))
+    dispatch(createChannel(teamname, channelname, description, routePath))
     // TODO: Only on success.
     // dispatch(navigateUp())
     // dispatch(navigateTo([chatTab]))
