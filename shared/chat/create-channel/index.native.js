@@ -17,10 +17,13 @@ const errorHeader = (errorText: string) => {
         backgroundColor: globalColors.red,
         alignItems: 'center',
         justifyContent: 'center',
-        padding: globalMargins.small,
       }}
     >
-      <Text type="BodySemibold" backgroundMode={'HighRisk'}>
+      <Text
+        style={{margin: globalMargins.tiny, textAlign: 'center', width: '100%'}}
+        type="BodySemibold"
+        backgroundMode={'HighRisk'}
+      >
         {errorText}
       </Text>
     </Box>
