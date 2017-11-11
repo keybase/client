@@ -57,7 +57,7 @@ export const createOnBack = () => ({error: false, payload: undefined, type: onBa
 export const createOnFinish = () => ({error: false, payload: undefined, type: onFinish})
 export const createOnWont = () => ({error: false, payload: undefined, type: onWont})
 export const createOpenAccountResetPage = () => ({error: false, payload: undefined, type: openAccountResetPage})
-export const createProvisionTextCodeEntered = (payload: {|phrase: string|}) => ({error: false, payload, type: provisionTextCodeEntered})
+export const createProvisionTextCodeEntered = (payload: {|phrase: HiddenString|}) => ({error: false, payload, type: provisionTextCodeEntered})
 export const createProvisioningError = (payload: {|error: Error|}) => ({error: false, payload, type: provisioningError})
 export const createQrScanned = (payload: {|phrase: HiddenString|}) => ({error: false, payload, type: qrScanned})
 export const createRelogin = (payload: {|usernameOrEmail: string, passphrase: HiddenString|}) => ({error: false, payload, type: relogin})

@@ -1043,11 +1043,6 @@ export const metadataLockRpcChannelMap = (configKeys: Array<string>, request: Me
 
 export const metadataLockRpcPromise = (request: MetadataLockRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.metadata.lock', request, (error, result) => error ? reject(error) : resolve(result)))
 
-export const metadataMDGetBehavior = {
-  getOrCreateClassicTlf: 0,
-  getClassicTlfNoCreate: 1,
-}
-
 export const metadataPing2RpcChannelMap = (configKeys: Array<string>, request: MetadataPing2RpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.metadata.ping2', request)
 
 export const metadataPing2RpcPromise = (request: MetadataPing2RpcParam): Promise<MetadataPing2Result> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.metadata.ping2', request, (error, result) => error ? reject(error) : resolve(result)))
@@ -2543,10 +2538,6 @@ export type LookupImplicitTeamRes = {|teamID: TeamID,name: TeamName,displayName:
 
 export type MDBlock = {|version: Int,timestamp: Time,block: Bytes,|}
 
-export type MDGetBehavior =0 // GET_OR_CREATE_CLASSIC_TLF_0
- | 1 // GET_CLASSIC_TLF_NO_CREATE_1
-
-
 export type MDPriority = Int
 
 export type MaskB64 = Bytes
@@ -2593,7 +2584,7 @@ export type MetadataGetMerkleRootRpcParam = {|treeID: MerkleTreeID,seqNo: Long,i
 
 export type MetadataGetMerkleRootSinceRpcParam = {|treeID: MerkleTreeID,when: Time,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
-export type MetadataGetMetadataRpcParam = {|folderID: String,folderHandle: Bytes,branchID: String,unmerged: Boolean,startRevision: Long,stopRevision: Long,logTags: {[key: string]: String},lockBeforeGet?: ?LockID,getBehavior: MDGetBehavior,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type MetadataGetMetadataRpcParam = {|folderID: String,folderHandle: Bytes,branchID: String,unmerged: Boolean,startRevision: Long,stopRevision: Long,logTags: {[key: string]: String},lockBeforeGet?: ?LockID,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
 export type MetadataLockRpcParam = {|folderID: String,lockID: LockID,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
