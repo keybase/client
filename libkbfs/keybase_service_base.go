@@ -330,10 +330,11 @@ func (k *KeybaseServiceBase) KeyfamilyChanged(ctx context.Context,
 	k.setCachedUserInfo(uid, UserInfo{})
 	k.clearCachedUnverifiedKeys(uid)
 
-	if k.getCachedCurrentSession().UID == uid {
+	mdServer := k.config.MDServer()
+	if mdServer != nil && k.getCachedCurrentSession().UID == uid {
 		// Ignore any errors for now, we don't want to block this
 		// notification and it's not worth spawning a goroutine for.
-		k.config.MDServer().CheckForRekeys(context.Background())
+		mdServer.CheckForRekeys(context.Background())
 	}
 
 	return nil
@@ -343,7 +344,10 @@ func (k *KeybaseServiceBase) KeyfamilyChanged(ctx context.Context,
 func (k *KeybaseServiceBase) ReachabilityChanged(ctx context.Context,
 	reachability keybase1.Reachability) error {
 	k.log.CDebugf(ctx, "CheckReachability invoked: %v", reachability)
-	k.config.MDServer().CheckReachability(ctx)
+	mdServer := k.config.MDServer()
+	if mdServer != nil {
+		mdServer.CheckReachability(ctx)
+	}
 	return nil
 }
 
@@ -355,7 +359,8 @@ func (k *KeybaseServiceBase) StartReachability(ctx context.Context) (res keybase
 // CheckReachability implements keybase1.ReachabilityInterface.
 func (k *KeybaseServiceBase) CheckReachability(ctx context.Context) (res keybase1.Reachability, err error) {
 	res.Reachable = keybase1.Reachable_NO
-	if k.config.MDServer().IsConnected() {
+	mdServer := k.config.MDServer()
+	if mdServer != nil && mdServer.IsConnected() {
 		res.Reachable = keybase1.Reachable_YES
 	}
 	return res, nil
@@ -377,7 +382,10 @@ func (k *KeybaseServiceBase) PaperKeyCached(ctx context.Context,
 		}
 		// Ignore any errors for now, we don't want to block this
 		// notification and it's not worth spawning a goroutine for.
-		k.config.MDServer().CheckForRekeys(context.Background())
+		mdServer := k.config.MDServer()
+		if mdServer != nil {
+			mdServer.CheckForRekeys(context.Background())
+		}
 	}
 
 	return nil
