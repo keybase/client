@@ -13,7 +13,7 @@ export const resetStore = 'common:resetStore' // not a part of gregor but is han
 export const pushState = 'gregor:pushState'
 
 // Action Creators
-export const createPushState = (payload: {|state: GregorTypes.State, reason: RPCTypes.PushReason|}) => ({error: false, payload, type: pushState})
+export const createPushState = (payload: {|+state: GregorTypes.State, +reason: RPCTypes.PushReason|}) => ({error: false, payload, type: pushState})
 
 // Action Payloads
 export type PushStatePayload = More.ReturnType<typeof createPushState>

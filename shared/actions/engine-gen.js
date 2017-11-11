@@ -12,8 +12,8 @@ export const errorInRpc = 'engine:errorInRpc'
 export const waitingForRpc = 'engine:waitingForRpc'
 
 // Action Creators
-export const createErrorInRpc = (payload: {|error: Error|}) => ({error: false, payload, type: errorInRpc})
-export const createWaitingForRpc = (payload: {|waiting: boolean, name: string|}) => ({error: false, payload, type: waitingForRpc})
+export const createErrorInRpc = (payload: {|+error: Error|}) => ({error: false, payload, type: errorInRpc})
+export const createWaitingForRpc = (payload: {|+waiting: boolean, +name: string|}) => ({error: false, payload, type: waitingForRpc})
 
 // Action Payloads
 export type ErrorInRpcPayload = More.ReturnType<typeof createErrorInRpc>

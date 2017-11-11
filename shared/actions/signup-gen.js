@@ -12,8 +12,8 @@ export const resetStore = 'common:resetStore' // not a part of signup but is han
 export const checkInviteCode = 'signup:checkInviteCode'
 
 // Action Creators
-export const createCheckInviteCode = (payload: {|inviteCode: string|}) => ({error: false, payload, type: checkInviteCode})
-export const createCheckInviteCodeError = (payload: {|errorText: string|}) => ({error: true, payload, type: checkInviteCode})
+export const createCheckInviteCode = (payload: {|+inviteCode: string|}) => ({error: false, payload, type: checkInviteCode})
+export const createCheckInviteCodeError = (payload: {|+errorText: string|}) => ({error: true, payload, type: checkInviteCode})
 
 // Action Payloads
 export type CheckInviteCodePayload = More.ReturnType<typeof createCheckInviteCode>
