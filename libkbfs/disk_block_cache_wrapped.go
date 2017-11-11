@@ -218,8 +218,10 @@ func (cache *diskBlockCacheWrapped) Status(
 	cache.mtx.RLock()
 	defer cache.mtx.RUnlock()
 	statuses := make(map[string]DiskBlockCacheStatus, 2)
-	for name, status := range cache.workingSetCache.Status(ctx) {
-		statuses[name] = status
+	if cache.workingSetCache != nil {
+		for name, status := range cache.workingSetCache.Status(ctx) {
+			statuses[name] = status
+		}
 	}
 	if cache.syncCache == nil {
 		return statuses
