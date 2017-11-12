@@ -1,25 +1,24 @@
 // @flow
 import * as React from 'react'
-import * as I from 'immutable'
-import {navigateAppend} from '../../actions/route-tree'
 import EditTeamDescription, {type Props} from '.'
 import {connect} from 'react-redux'
 import {compose, withState, withHandlers} from 'recompose'
 import * as Creators from '../../actions/teams/creators'
-import * as Constants from '../../constants/teams'
 
 import type {TypedState} from '../../constants/reducer'
 
 const mapStateToProps = (state: TypedState, {routeProps}) => {
   const teamname = routeProps.get('teamname')
   if (!teamname) {
-    throw new Error('There was a problem loading the description page, please report this error.')    
+    throw new Error('There was a problem loading the description page, please report this error.')
   }
-  const origDescription = state.entities.getIn(['teams', 'teamNameToPublicitySettings', teamname], {description: ''}).description
+  const origDescription = state.entities.getIn(['teams', 'teamNameToPublicitySettings', teamname], {
+    description: '',
+  }).description
   return {
     origDescription,
     teamname,
-  } 
+  }
 }
 
 const mapDispatchToProps = (dispatch, {navigateUp, routeProps}) => ({

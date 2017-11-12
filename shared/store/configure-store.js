@@ -87,7 +87,7 @@ const errorCatching = store => next => action => {
 }
 
 let middlewares = [errorCatching, createSagaMiddleware(crashHandler), thunkMiddleware]
-/*
+
 if (enableStoreLogging) {
   middlewares.push(loggerMiddleware)
 } else if (enableActionLogging) {
@@ -101,8 +101,6 @@ if (__DEV__ && typeof window !== 'undefined') {
     }, 1000)
   }
 }
-*/
-middlewares.push(createLogger())
 
 export default function configureStore(initialState: any) {
   const store = createStore(rootReducer, initialState, storeEnhancer(middlewares))

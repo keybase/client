@@ -45,10 +45,7 @@ export type AddToTeam = NoErrorTypedAction<
     sendChatNotification: boolean,
   }
 >
-export type EditDescription = NoErrorTypedAction<
-  'teams:editDescription',
-  {description: string, name: string}
->
+export type EditDescription = NoErrorTypedAction<'teams:editDescription', {description: string, name: string}>
 export type EditMembership = NoErrorTypedAction<
   'teams:editMembership',
   {name: string, username: string, role: TeamRoleType}

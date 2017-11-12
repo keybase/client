@@ -44,7 +44,8 @@ const mapStateToProps = (state: TypedState, {routeProps, routeState}): StateProp
     _implicitAdminUsernames: implicitAdminUsernames,
     _requests: state.entities.getIn(['teams', 'teamNameToRequests', teamname], I.Set()),
     _invites: state.entities.getIn(['teams', 'teamNameToInvites', teamname], I.Set()),
-    description: state.entities.getIn(['teams', 'teamNameToPublicitySettings', teamname], {description: ''}).description,
+    description: state.entities.getIn(['teams', 'teamNameToPublicitySettings', teamname], {description: ''})
+      .description,
     isTeamOpen: state.entities.getIn(['teams', 'teamNameToTeamSettings', teamname], {
       open: false,
     }).open,
@@ -117,7 +118,10 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, setRouteState, rout
         },
       ])
     ),
-  _onEditDescription: () => dispatch(navigateAppend([{props: {teamname: routeProps.get('teamname')}, selected: 'editTeamDescription'}])),
+  _onEditDescription: () =>
+    dispatch(
+      navigateAppend([{props: {teamname: routeProps.get('teamname')}, selected: 'editTeamDescription'}])
+    ),
 })
 
 const isExplicitAdmin = (memberInfo: I.Set<Constants.MemberInfo>, user: string): boolean => {
@@ -135,7 +139,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
   const onManageChat = () => dispatchProps._onManageChat(stateProps.name)
   const onLeaveTeam = () => dispatchProps._onLeaveTeam(stateProps.name)
   const onClickOpenTeamSetting = () => dispatchProps._onClickOpenTeamSetting(stateProps.isTeamOpen)
-  const onEditDescription = () => dispatchProps._onEditDescription()  
+  const onEditDescription = () => dispatchProps._onEditDescription()
   const onCreateSubteam = () => dispatchProps._onCreateSubteam(stateProps.name)
 
   const you = stateProps.you
