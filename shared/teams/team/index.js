@@ -338,7 +338,7 @@ class Team extends React.PureComponent<Props> {
         </Text>
         <Text type="BodySmall">TEAM</Text>
         <Text type="BodySmall">{memberCount + ' member' + (memberCount !== 1 ? 's' : '')} • {me && me.type && Constants.typeToLabel[me.type]}</Text>
-        <Text style={{paddingTop: globalMargins.tiny}} onClick={onEditDescription} type="BodySecondaryLink">{description}</Text>
+        <Text style={{paddingTop: globalMargins.tiny, color: description ? globalColors.black : globalColors.black_20}} onClick={onEditDescription} type={"BodySecondaryLink"}>{description || "Write a brief description"}</Text>
 
         {youCanAddPeople &&
           <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', marginTop: globalMargins.small}}>

@@ -4,44 +4,20 @@ import {Box} from '../../common-adapters'
 import {storiesOf, action} from '../../stories/storybook'
 import {withState} from 'recompose'
 
-import {OpenTeamSettingButton, MakeOpenTeamConfirm, MakeTeamClosed} from '.'
-
-const MakeOpenTeamConfirmWithState = withState('defaultRole', 'onChangeDefaultRole', 'reader')(props => (
-  <Box style={storyWrapStyle}>
-    <MakeOpenTeamConfirm
-      teamNameInput={''}
-      onChangeTeamNameInput={action('onChangeTeamNameInput')}
-      onCancel={action('onCancel')}
-      confirmEnabled={props.confirmEnabled}
-      defaultRole={props.defaultRole}
-      onChangeDefaultRole={props.onChangeDefaultRole}
-      onMakeTeamOpen={action('onMakeTeamOpen')}
-    />
-  </Box>
-))
+import EditTeamDescription from '.'
 
 const load = () => {
-  storiesOf('Open Team Access/Button', module)
-    .add('OpenTeamSettingButtonWithOpenTeam', () => (
+  storiesOf('Edit team description', module)
+    .add('Description unchanged', () => (
       <Box style={storyWrapStyle}>
-        <OpenTeamSettingButton onClick={action('onClick')} isOpen={true} />
+        <EditTeamDescription description='First description' origDescription='First description' teamname='testteam' onChangeDescription={action('onChangeDescription')} onClose={action('onClose')} onSetDescription={action('onSetDescription')} />
       </Box>
     ))
-    .add('OpenTeamSettingButtonWithClosedTeam', () => (
+    .add('Description changed', () => (
       <Box style={storyWrapStyle}>
-        <OpenTeamSettingButton onClick={action('onClick')} isOpen={false} />
+        <EditTeamDescription description='Second description' origDescription='First description' teamname='testteam' onChangeDescription={action('onChangeDescription')} onClose={action('onClose')} onSetDescription={action('onSetDescription')} />
       </Box>
     ))
-
-  storiesOf('Open Team Access/Confirm Make Open', module)
-    .add('Confirm disabled', () => <MakeOpenTeamConfirmWithState confirmEnabled={false} />)
-    .add('Confirm enabled', () => <MakeOpenTeamConfirmWithState confirmEnabled={true} />)
-
-  storiesOf('Open Team Access/Confirm Make Closed', module).add('OpenTeamSettingButtonWithOpenTeam', () => (
-    <Box style={storyWrapStyle}>
-      <MakeTeamClosed onMakeTeamClosed={action('makeTeamClosed')} />
-    </Box>
-  ))
 }
 
 const storyWrapStyle = {

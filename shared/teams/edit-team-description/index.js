@@ -56,4 +56,3 @@ const centerText = {
 }
 
 export default EditTeamDescription
-export type {Props}
