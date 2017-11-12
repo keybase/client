@@ -65,7 +65,7 @@ func (f *JSONFile) Load(warnOnNotFound bool) (err error) {
 				return nil
 			}
 			if os.IsPermission(err) {
-				f.G().Log.Warning("Permission denied opening %s file %s", f.which, f.filename)
+				f.G().Log.Warning("Permission denied opening %s file %s: %s", f.which, f.filename, err)
 				if i == maxPermissionRetries-1 {
 					return nil
 				}
