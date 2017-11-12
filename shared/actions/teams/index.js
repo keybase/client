@@ -125,7 +125,6 @@ const _addToTeam = function*(action: Constants.AddToTeam) {
 
 const _editDescription = function*(action: Constants.EditDescription) {
   const {payload: {name, description}} = action
-  console.warn({name, description})
   yield Saga.put(replaceEntity(['teams', 'teamNameToLoading'], I.Map([[name, true]])))
   try {
     yield Saga.call(RPCTypes.teamsSetTeamShowcaseRpcPromise, {
