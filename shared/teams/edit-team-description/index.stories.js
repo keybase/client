@@ -6,9 +6,9 @@ import {storiesOf, action} from '../../stories/storybook'
 import EditTeamDescription from '.'
 
 const sharedProps = {
-  description: "First description",
-  origDescription: "First description",
-  teamname: "testteam",
+  description: ;First description',
+  origDescription: 'First description',
+  teamname: 'testteam',
   onChangeDescription: action('onChangeDescription'),
   onClose: action('onClose'),
   onSetDescription: action('onSetDescription'),
