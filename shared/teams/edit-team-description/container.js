@@ -22,11 +22,11 @@ const mapStateToProps = (state: TypedState, {routeProps}) => {
   } 
 }
 
-const mapDispatchToProps = (dispatch, props: Props) => ({
-  onClose: () => dispatch(props.navigateUp()),
+const mapDispatchToProps = (dispatch, {navigateUp, routeProps}) => ({
+  onClose: () => dispatch(navigateUp()),
   _onSetDescription: (description: string) => {
-    dispatch(Creators.editTeamDescription(props.routeProps.get('teamname'), description))
-    dispatch(props.navigateUp())
+    dispatch(Creators.editTeamDescription(routeProps.get('teamname'), description))
+    dispatch(navigateUp())
   },
 })
 

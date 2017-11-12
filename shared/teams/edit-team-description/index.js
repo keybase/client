@@ -8,7 +8,7 @@ import {isMobile} from '../../constants/platform'
 export type Props = {
   description: string,
   onChangeDescription: (description: string) => void,
-  onSetDescription: (description: string) => void,
+  onSetDescription: ?(event: SyntheticEvent<>) => void,
   onClose: () => void,
   origDescription: string,
   teamname: string,  
