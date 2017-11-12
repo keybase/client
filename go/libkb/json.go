@@ -69,7 +69,7 @@ func (f *JSONFile) Load(warnOnNotFound bool) (err error) {
 				if i == maxPermissionRetries-1 {
 					return nil
 				}
-				time.Sleep(200 * time.Millisecond)
+				time.Sleep(time.Second)
 				continue
 			}
 			return err
