@@ -4,9 +4,9 @@
 package badges
 
 import (
-	"sync"
-
+	"bytes"
 	"encoding/json"
+	"sync"
 
 	"github.com/keybase/client/go/gregor"
 	"github.com/keybase/client/go/logger"
@@ -70,6 +70,11 @@ type memberOutBody struct {
 	} `json:"reset_user"`
 }
 
+type homeStateBody struct {
+	Version int `json:"version"`
+	BadgeCount int `json:"badge_count"`
+}
+
 // UpdateWithGregor updates the badge state from a gregor state.
 func (b *BadgeState) UpdateWithGregor(gstate gregor.State) error {
 	b.Lock()
@@ -81,6 +86,9 @@ func (b *BadgeState) UpdateWithGregor(gstate gregor.State) error {
 	b.state.NewGitRepoGlobalUniqueIDs = []string{}
 	b.state.NewTeamNames = nil
 	b.state.NewTeamAccessRequests = nil
+	b.state.HomeTodoItems = 0
+
+	var hsb *homeStateBody
 
 	items, err := gstate.Items()
 	if err != nil {
@@ -93,6 +101,18 @@ func (b *BadgeState) UpdateWithGregor(gstate gregor.State) error {
 		}
 		category := categoryObj.String()
 		switch category {
+		case "home.state":
+			var tmp homeStateBody
+			byt := item.Body().Bytes()
+			dec := json.NewDecoder(bytes.NewReader(byt))
+			if err := dec.Decode(&tmp); err != nil {
+				b.log.Warning("BadgeState got bad home.state object; error: %v; on %q", err, string(byt))
+				continue
+			}
+			if hsb == nil || hsb.Version < tmp.Version {
+				hsb = &tmp
+				b.state.HomeTodoItems = hsb.BadgeCount
+			}
 		case "tlf":
 			jsw, err := jsonw.Unmarshal(item.Body().Bytes())
 			if err != nil {

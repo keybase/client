@@ -39,6 +39,7 @@ type BadgeState struct {
 	RekeysNeeded              int                     `codec:"rekeysNeeded" json:"rekeysNeeded"`
 	NewFollowers              int                     `codec:"newFollowers" json:"newFollowers"`
 	InboxVers                 int                     `codec:"inboxVers" json:"inboxVers"`
+	HomeTodoItems             int                     `codec:"homeTodoItems" json:"homeTodoItems"`
 	Conversations             []BadgeConversationInfo `codec:"conversations" json:"conversations"`
 	NewGitRepoGlobalUniqueIDs []string                `codec:"newGitRepoGlobalUniqueIDs" json:"newGitRepoGlobalUniqueIDs"`
 	NewTeamNames              []string                `codec:"newTeamNames" json:"newTeamNames"`
@@ -48,10 +49,11 @@ type BadgeState struct {
 
 func (o BadgeState) DeepCopy() BadgeState {
 	return BadgeState{
-		NewTlfs:      o.NewTlfs,
-		RekeysNeeded: o.RekeysNeeded,
-		NewFollowers: o.NewFollowers,
-		InboxVers:    o.InboxVers,
+		NewTlfs:       o.NewTlfs,
+		RekeysNeeded:  o.RekeysNeeded,
+		NewFollowers:  o.NewFollowers,
+		InboxVers:     o.InboxVers,
+		HomeTodoItems: o.HomeTodoItems,
 		Conversations: (func(x []BadgeConversationInfo) []BadgeConversationInfo {
 			if x == nil {
 				return nil
