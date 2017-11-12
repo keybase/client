@@ -23,9 +23,6 @@ export default function(
   action: NotificationsGen.Actions
 ): Constants.State {
   switch (action.type) {
-    case 'foo':
-      console.log(action.payload.whut)
-      break
     case NotificationsGen.resetStore:
       return initialState
     case NotificationsGen.receivedBadgeState: {
