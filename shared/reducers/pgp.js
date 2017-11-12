@@ -1,25 +1,21 @@
 // @flow
 import * as Constants from '../constants/pgp'
-import * as CommonConstants from '../constants/common'
-
-const initialState: Constants.State = {
-  open: false,
-}
+import * as PgpGen from '../actions/pgp-gen'
 
 export default function(
-  state: Constants.State = initialState,
-  action: Constants.Actions | {type: 'common:resetStore', payload: void}
+  state: Constants.State = Constants.initialState,
+  action: PgpGen.Actions
 ): Constants.State {
   switch (action.type) {
-    case CommonConstants.resetStore:
-      return {...initialState}
+    case PgpGen.resetStore:
+      return {...Constants.initialState}
 
-    case Constants.pgpKeyInSecretStoreFile:
+    case PgpGen.pgpKeyInSecretStoreFile:
       return {
         ...state,
         open: true,
       }
-    case Constants.pgpAckedMessage:
+    case PgpGen.pgpAckedMessage:
       return {
         ...state,
         open: false,
