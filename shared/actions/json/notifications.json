@@ -1,0 +1,21 @@
+{
+  "prelude": [
+    "import * as Constants from '../constants/notifications'"
+  ],
+  "actions": {
+    "log": {
+      "level": "RPCTypes.LogLevel",
+      "text": "string"
+    },
+    "badgeApp": {
+      "key": "Constants.NotificationKeys",
+      "on": "boolean",
+      "count?": "number"
+    },
+    "receivedBadgeState": {
+      "badgeState": "RPCTypes.BadgeState"
+    },
+    "listenForNotifications": {},
+    "listenForKBFSNotifications": {}
+  }
+}

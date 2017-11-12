@@ -1,6 +1,6 @@
 // @flow
-import * as Constants from '../constants/notifications'
 import * as GitGen from '../actions/git-gen'
+import * as NotificationsGen from '../actions/notifications-gen'
 import * as FavoriteGen from '../actions/favorite-gen'
 import * as RPCTypes from '../constants/types/flow-types'
 import * as Saga from '../util/saga'
@@ -9,38 +9,11 @@ import engine, {Engine} from '../engine'
 import {NotifyPopup} from '../native/notifications'
 import {call, put, take, fork} from 'redux-saga/effects'
 import {isMobile} from '../constants/platform'
-import {log} from '../native/log/logui'
 import {registerIdentifyUi, setupUserChangedHandler} from './tracker'
 import {createBadgeAppForChat, createSetupChatHandlers} from './chat-gen'
 import {setupTeamHandlers, badgeAppForTeams} from './teams/creators'
 
-import type {SagaGenerator} from '../constants/types/saga'
-
-function logUiLog(
-  {text, level}: {text: RPCTypes.Text, level: RPCTypes.LogLevel},
-  response: any
-): Constants.LogAction {
-  log({level, text})
-  return {payload: {level, text: text.data}, type: 'notifications:log'}
-}
-
-function listenForNotifications(): Constants.ListenForNotifications {
-  return {payload: undefined, type: 'notifications:listenForNotifications'}
-}
-
-function listenForKBFSNotifications(): Constants.ListenForKBFSNotifications {
-  return {payload: undefined, type: 'notifications:listenForKBFSNotifications'}
-}
-
-function badgeApp(key: Constants.NotificationKeys, on: boolean, count: number = 0): Constants.BadgeAppAction {
-  return {payload: {count, key, on}, type: 'notifications:badgeApp'}
-}
-
-function receivedBadgeState(badgeState: RPCTypes.BadgeState): Constants.ReceivedBadgeState {
-  return {payload: {badgeState}, type: 'notifications:receivedBadgeState'}
-}
-
-function* _listenSaga(): SagaGenerator<any, any> {
+function* _listenSaga(): Saga.SagaGenerator<any, any> {
   const channels = {
     app: true,
     badges: true,
@@ -80,13 +53,15 @@ function* _listenSaga(): SagaGenerator<any, any> {
   yield put(setupUserChangedHandler())
 }
 
-function* _listenKBFSSaga(): SagaGenerator<any, any> {
+function* _listenKBFSSaga(): Saga.SagaGenerator<any, any> {
   yield put(FavoriteGen.createSetupKBFSChangedHandler())
   yield put(createSetupChatHandlers())
   yield put(setupTeamHandlers())
 }
 
-function* _onRecievedBadgeState(action: Constants.ReceivedBadgeState): SagaGenerator<any, any> {
+function* _onRecievedBadgeState(
+  action: NotificationsGen.ReceivedBadgeStatePayload
+): Saga.SagaGenerator<any, any> {
   const {
     conversations,
     newGitRepoGlobalUniqueIDs,
@@ -98,22 +73,20 @@ function* _onRecievedBadgeState(action: Constants.ReceivedBadgeState): SagaGener
   yield put(badgeAppForTeams(newTeamNames || [], newTeamAccessRequests || []))
 }
 
-function* _listenNotifications(): SagaGenerator<any, any> {
-  yield take('notifications:listenForNotifications')
+function* _listenNotifications(): Saga.SagaGenerator<any, any> {
+  yield take(NotificationsGen.listenForNotifications)
   yield call(_listenSaga)
 }
 
-function* _listenForKBFSNotifications(): SagaGenerator<any, any> {
-  yield take('notifications:listenForKBFSNotifications')
+function* _listenForKBFSNotifications(): Saga.SagaGenerator<any, any> {
+  yield take(NotificationsGen.listenForKBFSNotifications)
   yield call(_listenKBFSSaga)
 }
 
-function* notificationsSaga(): SagaGenerator<any, any> {
+function* notificationsSaga(): Saga.SagaGenerator<any, any> {
   yield fork(_listenNotifications)
   yield fork(_listenForKBFSNotifications)
-  yield Saga.safeTakeLatest('notifications:receivedBadgeState', _onRecievedBadgeState)
+  yield Saga.safeTakeLatest(NotificationsGen.receivedBadgeState, _onRecievedBadgeState)
 }
-
-export {badgeApp, listenForNotifications, listenForKBFSNotifications, logUiLog, receivedBadgeState}
 
 export default notificationsSaga

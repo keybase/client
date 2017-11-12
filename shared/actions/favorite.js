@@ -3,6 +3,7 @@ import * as Constants from '../constants/favorite'
 import * as RPCTypes from '../constants/types/flow-types'
 import * as Saga from '../util/saga'
 import * as FavoriteGen from './favorite-gen'
+import * as NotificationsGen from './notifications-gen'
 import flatten from 'lodash/flatten'
 import partition from 'lodash/partition'
 import difference from 'lodash/difference'
@@ -10,7 +11,6 @@ import debounce from 'lodash/debounce'
 import findKey from 'lodash/findKey'
 import engine from '../engine'
 import {NotifyPopup} from '../native/notifications'
-import {badgeApp} from './notifications'
 import {call, put, select} from 'redux-saga/effects'
 import {isMobile} from '../constants/platform'
 
@@ -250,7 +250,7 @@ function* _setupKBFSChangedHandler(): Saga.SagaGenerator<any, any> {
     const debouncedKBFSStopped = debounce(() => {
       if (_kbfsUploadingState === true) {
         _kbfsUploadingState = false
-        const badgeAction: Action = badgeApp('kbfsUploading', false)
+        const badgeAction: Action = NotificationsGen.createBadgeApp({key: 'kbfsUploading', on: false})
         dispatch(badgeAction)
         dispatch(FavoriteGen.createKbfsStatusUpdated({status: {isAsyncWriteHappening: false}}))
       }
@@ -262,7 +262,7 @@ function* _setupKBFSChangedHandler(): Saga.SagaGenerator<any, any> {
         // ie. we don't get the syncingBytes or ops correctly (always zero)
         if (_kbfsUploadingState === false) {
           _kbfsUploadingState = true
-          const badgeAction: Action = badgeApp('kbfsUploading', true)
+          const badgeAction: Action = NotificationsGen.createBadgeApp({key: 'kbfsUploading', on: true})
           dispatch(badgeAction)
           dispatch(FavoriteGen.createKbfsStatusUpdated({status: {isAsyncWriteHappening: true}}))
         }

@@ -1,6 +1,6 @@
 // @flow
 import * as Constants from '../constants/notifications'
-import * as CommonConstants from '../constants/common'
+import * as NotificationsGen from '../actions/notifications-gen'
 import * as Tabs from '../constants/tabs'
 import * as RPCTypes from '../constants/types/flow-types'
 import {isMobile} from '../constants/platform'
@@ -20,12 +20,15 @@ const _updateWidgetBadge = (s: Constants.State): Constants.State => {
 
 export default function(
   state: Constants.State = initialState,
-  action: Constants.Actions | {type: 'common:resetStore', payload: void}
+  action: NotificationsGen.Actions
 ): Constants.State {
   switch (action.type) {
-    case CommonConstants.resetStore:
+    case 'foo':
+      console.log(action.payload.whut)
+      break
+    case NotificationsGen.resetStore:
       return initialState
-    case 'notifications:receivedBadgeState': {
+    case NotificationsGen.receivedBadgeState: {
       const {
         conversations,
         newTlfs,
@@ -56,13 +59,11 @@ export default function(
       newState = _updateWidgetBadge(newState)
       return newState
     }
-    case 'notifications:badgeApp':
-      const badgeAction: Constants.BadgeAppAction = action
-
-      let newState = state.update('keyState', ks => ks.set(badgeAction.payload.key, badgeAction.payload.on))
+    case NotificationsGen.badgeApp:
+      const {key, on} = action.payload
+      let newState = state.update('keyState', ks => ks.set(key, on))
       newState = _updateWidgetBadge(newState)
       return newState
-    default:
-      return state
   }
+  return state
 }
