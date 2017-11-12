@@ -119,7 +119,7 @@ export function propsForPlatform(props: Props): MoreProps {
             Enter the following as a TXT entry in your DNS zone,
             {' '}
             <Text type="BodySemibold">exactly as it appears</Text>
-            . If you need a "name" for your entry, give it "@".
+            . If you need a "name" for your entry, give it "_keybase".
           </Text>
         ),
         onCompleteText: 'OK posted! Check for it!',
