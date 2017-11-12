@@ -33,7 +33,15 @@ func newCmdTeamRemoveMember(cl *libcmdline.CommandLine, g *libkb.GlobalContext) 
 		Name:         "remove-member",
 		ArgumentHelp: "<team name> --user=<username>",
 		Usage:        "Remove a user from a team.",
-		Description:  teamRemoveMemberDoc,
+		Examples: `
+Remove a user from the team:
+    keybase team remove-member acme --user roadrunner
+Cancel an email invite:
+    keybase team remove-member acme --email roadrunner@acme.com
+Cancel a secret token invite (like sms):
+    keybase team list-members acme --show-invite-id # to get the invite ID
+    keybase team remove-member acme --invite-id 9cfd13f927bcd1f6832fefa084bb2127
+`,
 		Action: func(c *cli.Context) {
 			cmd := &CmdTeamRemoveMember{Contextified: libkb.NewContextified(g)}
 			cl.ChooseCommand(cmd, "remove-member", c)
@@ -178,15 +186,3 @@ func (c *CmdTeamRemoveMember) GetUsage() libkb.Usage {
 		KbKeyring: true,
 	}
 }
-
-const teamRemoveMemberDoc = `"keybase team remove-member" lets you remove members and cancel invites
-
-EXAMPLES:
-    Remove a user from the team:
-        keybase team remove-member acme --user roadrunner
-    Cancel an email invite:
-        keybase team remove-member acme --email roadrunner@acme.com
-    Cancel a secret token invite (like sms):
-        keybase team list-members acme --show-invite-id # to get the invite ID
-        keybase team remove-member acme --invite-id 9cfd13f927bcd1f6832fefa084bb2127
-`

@@ -6,6 +6,7 @@
 import {type PayloadType, type ReturnType} from '../constants/types/more'
 
 // Constants
+export const resetStore = 'common:resetStore' // not a part of waiting but is handled by every reducer
 export const decrementWaiting = 'waiting:decrementWaiting'
 export const incrementWaiting = 'waiting:incrementWaiting'
 

@@ -666,6 +666,11 @@ function* _deleteChannel({payload: {conversationIDKey}}): Saga.SagaGenerator<any
 }
 
 function* _badgeAppForTeams(action: Constants.BadgeAppForTeams) {
+  const username = yield Saga.select((state: TypedState) => state.config.username)
+  if (!username) {
+    // Don't make any calls we don't have permission to.
+    return
+  }
   const newTeams = I.Set(action.payload.newTeamNames || [])
   const newTeamRequests = I.List(action.payload.newTeamAccessRequests || [])
   // Call getTeams if new teams come in.
