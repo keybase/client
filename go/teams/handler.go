@@ -339,11 +339,20 @@ func HandleOpenTeamAccessRequest(ctx context.Context, g *libkb.GlobalContext, ms
 			var invList []SCTeamInvite
 			var inviteSection SCTeamInvites
 			for _, uv := range keybaseInvites {
-				invList = append(invList, SCTeamInvite{
+				invite := SCTeamInvite{
 					Type: "keybase",
 					Name: uv.TeamInviteName(),
 					ID:   NewInviteID(),
-				})
+				}
+				
+				existing, err := team.HasActiveInvite(invite.Name, invite.Type)
+				if err != nil || existing {
+					// Either we are doing something wrong or the user was
+					// already invited - move on.
+					continue
+				}
+
+				invList = append(invList, invite)
 			}
 
 			switch joinAsRole {
