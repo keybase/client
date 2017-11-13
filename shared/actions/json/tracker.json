@@ -1,0 +1,140 @@
+{
+  "prelude": [
+    "import * as FolderConstants from '../constants/folders'"
+  ],
+  "actions": {
+    "cacheIdentify": {
+      "uid": "string",
+      "goodTill": "number"
+    },
+    "identifyFinished": {
+      "username": "string",
+      "canError": {
+        "username": "string",
+        "error": "string"
+      }
+    },
+    "identifyStarted": {
+      "username": "string"
+    },
+    "updateEldestKidChanged": {
+      "username": "string"
+    },
+    "onClose": {
+      "username": "string"
+    },
+    "pendingIdentify": {
+      "username": "string",
+      "pending": "boolean"
+    },
+    "showNonUser": {
+      "username": "string",
+      "nonUser": "RPCTypes.IdentifyUiDisplayTLFCreateWithInviteRpcParam"
+    },
+    "updateFolders": {
+      "username": "string",
+      "tlfs": "Array<FolderConstants.Folder>"
+    },
+    "startTimer": {},
+    "stopTimer": {},
+    "updateUsername": {
+      "username": "string"
+    },
+    "waiting": {
+      "username": "string",
+      "waiting": "boolean"
+    },
+    "updateBTC": {
+      "username": "string",
+      "address": "string",
+      "sigID": "string"
+    },
+    "updateZcash": {
+      "username": "string",
+      "address": "string",
+      "sigID": "string"
+    },
+    "updatePGPKey": {
+      "username": "string",
+      "pgpFingerprint": "Buffer",
+      "kid": "string"
+    },
+    "markActiveIdentifyUi": {
+      "username": "string",
+      "active": "boolean"
+    },
+    "remoteDismiss": {
+      "username": "string"
+    },
+    "updateProofState": {
+      "username": "string"
+    },
+    "updateProof": {
+      "remoteProof": "RPCTypes.RemoteProof",
+      "linkCheckResult": "RPCTypes.LinkCheckResult",
+      "username": "string"
+    },
+    "parseFriendship": {
+      "username": "string",
+      "thumbnailUrl": "string",
+      "uid": "string",
+      "fullname": "string",
+      "followsYou": "string",
+      "following": "string"
+    },
+    "clearIdentifyCache": {
+      "uid": "string"
+    },
+    "updateUserInfo": {
+      "userCard": "RPCTypes.UserCard",
+      "username": "string"
+    },
+    "registerIdentifyUi": {
+      "started": "boolean"
+    },
+    "onRefollow": {
+      "username": "string"
+    },
+    "onUnfollow": {
+      "username": "string"
+    },
+    "updateReason": {
+      "username": "string",
+      "reason": "?string"
+    },
+    "resetProofs": {
+      "username": "string"
+    },
+    "showTracker": {
+      "username": "string"
+    },
+    "onFollow": {
+      "username": "string"
+    },
+    "onError": {
+      "username": "string",
+      "extraText": "string"
+    },
+    "setProofs": {
+      "username": "string",
+      "identity": "RPCTypes.Identity"
+    },
+    "reportLastTrack": {
+      "username": "string",
+      "tracking?": "boolean"
+    },
+    "updateTrackToken": {
+      "username": "string",
+      "trackToken": "RPCTypes.TrackToken"
+    },
+    "setNeedTrackTokenDismiss": {
+      "username": "string",
+      "needTrackTokenDismiss": "boolean"
+    },
+    "updateTrackers": {
+      "username": "string",
+      "trackers": "Array<{|username: string, thumbnailUrl: ?string, uid: string, fullname: string, followsYou: boolean, following: boolean|}>",
+      "tracking": "Array<{|username: string, thumbnailUrl: ?string, uid: string, fullname: string, followsYou: boolean, following: boolean|}>"
+    }
+  }
+}

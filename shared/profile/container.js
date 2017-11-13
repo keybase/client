@@ -1,7 +1,8 @@
 // @flow
 import * as KBFSGen from '../actions/kbfs-gen'
 import * as ProfileGen from '../actions/profile-gen'
-import * as TrackerConstants from '../constants/tracker'
+import * as Constants from '../constants/tracker'
+import * as Types from '../constants/types/tracker'
 import ErrorComponent from '../common-adapters/error-profile'
 import Profile from './index'
 import React, {PureComponent} from 'react'
@@ -97,10 +98,10 @@ export default pausableConnect(
     onMissingProofClick: (missingProof: MissingProof) => {
       dispatch(ProfileGen.createAddProof({platform: missingProof.type}))
     },
-    onRecheckProof: (proof: TrackerConstants.Proof) => {
+    onRecheckProof: (proof: Types.Proof) => {
       dispatch(ProfileGen.createCheckProof())
     },
-    onRevokeProof: (proof: TrackerConstants.Proof) => {
+    onRevokeProof: (proof: Types.Proof) => {
       dispatch(
         navigateAppend(
           [
@@ -123,7 +124,7 @@ export default pausableConnect(
     onUserClick: username => {
       dispatch(ProfileGen.createShowUserProfile({username}))
     },
-    onViewProof: (proof: TrackerConstants.Proof) => {
+    onViewProof: (proof: Types.Proof) => {
       dispatch(openProofUrl(proof))
     },
     updateTrackers: username => dispatch(updateTrackers(username)),
@@ -164,7 +165,7 @@ export default pausableConnect(
       followers: stateProps.trackerState ? stateProps.trackerState.trackers : [],
       following: stateProps.trackerState ? stateProps.trackerState.tracking : [],
       isYou,
-      loading: TrackerConstants.isLoading(stateProps.trackerState) && !isTesting,
+      loading: Constants.isLoading(stateProps.trackerState) && !isTesting,
       onAcceptProofs: () => dispatchProps.onFollow(username),
       onBack: stateProps.profileIsRoot ? null : dispatchProps.onBack,
       onChat: () => dispatchProps.onChat(stateProps.myUsername, username),

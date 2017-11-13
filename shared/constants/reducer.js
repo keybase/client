@@ -17,7 +17,7 @@ import * as Push from '../constants/push'
 import * as RouteTree from '../constants/route-tree'
 import * as Settings from '../constants/settings'
 import * as Signup from '../constants/signup'
-import * as Tracker from '../constants/tracker'
+import * as Tracker from '../constants/types/tracker'
 import * as UnlockFolders from '../constants/unlock-folders'
 import * as Waiting from '../constants/waiting'
 
