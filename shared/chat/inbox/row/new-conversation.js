@@ -1,12 +1,12 @@
 // @flow
 import React, {PureComponent} from 'react'
-import {Text, Icon} from '../../../common-adapters'
+import {Box, Text, Icon} from '../../../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../../../styles'
 
 class NewConversation extends PureComponent<{}> {
   render() {
     return (
-      <div
+      <Box
         style={{
           ...globalStyles.flexBoxRow,
           alignItems: 'center',
@@ -15,37 +15,37 @@ class NewConversation extends PureComponent<{}> {
           minHeight: 56,
         }}
       >
-        <div
+        <Box
           style={{
             ...globalStyles.flexBoxRow,
             ...globalStyles.clickable,
             alignItems: 'center',
           }}
         >
-          <div
+          <Box
             style={{
-              backgroundColor: 'rgba(255, 255, 255, 0.2)',
+              ...globalStyles.flexBoxRow,
+              alignItems: 'center',
+              justifyContent: 'center',
+              backgroundColor: globalColors.blue2,
               borderRadius: globalMargins.large,
               height: globalMargins.large,
               marginLeft: globalMargins.tiny,
-              marginRight: globalMargins.tiny,
-              padding: globalMargins.tiny,
+              marginRight: globalMargins.small,
               width: globalMargins.large,
             }}
           >
             <Icon
-              type="iconfont-chat"
+              type="iconfont-people"
               style={{
                 color: globalColors.blue,
                 fontSize: 24,
-                marginLeft: 1,
-                marginTop: 1,
               }}
             />
-          </div>
+          </Box>
           <Text style={{color: globalColors.white}} type="BodySemibold">New conversation</Text>
-        </div>
-      </div>
+        </Box>
+      </Box>
     )
   }
 }
