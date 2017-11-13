@@ -349,7 +349,7 @@ func (h *TeamsHandler) GetTeamAndMemberShowcase(ctx context.Context, teamname st
 func (h *TeamsHandler) SetTeamShowcase(ctx context.Context, arg keybase1.SetTeamShowcaseArg) (err error) {
 	defer h.G().CTraceTimed(ctx, fmt.Sprintf("SetTeamShowcase(%s)", arg.Name), func() error { return err })()
 
-	err = teams.SetTeamShowcase(ctx, h.G().ExternalG(), arg.Name, arg.IsShowcased, arg.Description)
+	err = teams.SetTeamShowcase(ctx, h.G().ExternalG(), arg.Name, arg.IsShowcased, arg.Description, arg.AnyMemberShowcase)
 	return err
 }
 

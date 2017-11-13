@@ -526,6 +526,8 @@ protocol teams {
     union { null, string } description;
     @jsonkey("set_by_uid")
     union { null, UID } setByUID;
+    @jsonkey("any_member_showcase")
+    boolean anyMemberShowcase;
   }
 
   record TeamAndMemberShowcase {
@@ -634,6 +636,6 @@ protocol teams {
 
   TeamShowcase getTeamShowcase(string name);
   TeamAndMemberShowcase getTeamAndMemberShowcase(string name);
-  void setTeamShowcase(string name, union { null, boolean } isShowcased, union { null, string } description);
+  void setTeamShowcase(string name, union { null, boolean } isShowcased, union { null, string } description, union { null, boolean } anyMemberShowcase);
   void setTeamMemberShowcase(string name, boolean isShowcased);
 }

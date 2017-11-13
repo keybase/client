@@ -1339,6 +1339,11 @@
           ],
           "name": "setByUID",
           "jsonkey": "set_by_uid"
+        },
+        {
+          "type": "boolean",
+          "name": "anyMemberShowcase",
+          "jsonkey": "any_member_showcase"
         }
       ]
     },
@@ -1964,6 +1969,13 @@
           "type": [
             null,
             "string"
+          ]
+        },
+        {
+          "name": "anyMemberShowcase",
+          "type": [
+            null,
+            "boolean"
           ]
         }
       ],
