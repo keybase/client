@@ -16,7 +16,7 @@ import engine from '../../engine'
 import {replaceEntity} from '../entities'
 import {usernameSelector} from '../../constants/selectors'
 import {isMobile} from '../../constants/platform'
-import {navigateTo} from '../route-tree'
+import {putActionIfOnPath, navigateTo} from '../route-tree'
 import {chatTab, teamsTab} from '../../constants/tabs'
 import openSMS from '../../util/sms'
 import {createDecrementWaiting, createIncrementWaiting} from '../../actions/waiting-gen'
@@ -26,7 +26,7 @@ import {convertToError} from '../../util/errors'
 import type {TypedState} from '../../constants/reducer'
 
 const _createNewTeam = function*(action: Constants.CreateNewTeam) {
-  const {payload: {name, routePath}} = action
+  const {payload: {name, rootPath, sourceSubPath, destSubPath}} = action
   yield Saga.put(Creators.setTeamCreationError(''))
   yield Saga.put(Creators.setTeamCreationPending(true))
   try {
@@ -35,7 +35,7 @@ const _createNewTeam = function*(action: Constants.CreateNewTeam) {
     })
 
     // Dismiss the create team dialog.
-    yield Saga.put(navigateTo([], routePath.butLast()))
+    yield Saga.put(putActionIfOnPath(sourceSubPath, navigateTo(destSubPath, rootPath), rootPath))
 
     // No error if we get here.
     yield Saga.put(navigateTo([isMobile ? chatTab : teamsTab]))

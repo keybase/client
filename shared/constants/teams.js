@@ -21,7 +21,9 @@ export type CreateNewTeam = NoErrorTypedAction<
   'teams:createNewTeam',
   {
     name: string,
-    routePath: I.List<string>,
+    rootPath: I.List<string>,
+    sourceSubPath: I.List<string>,
+    destSubPath: I.List<string>,
   }
 >
 

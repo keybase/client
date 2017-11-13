@@ -3,8 +3,13 @@ import * as Constants from '../../constants/teams'
 import * as I from 'immutable'
 import type {ConversationIDKey} from '../../constants/chat'
 
-function createNewTeam(name: string, routePath: I.List<string>) {
-  return {payload: {name, routePath}, type: 'teams:createNewTeam'}
+function createNewTeam(
+  name: string,
+  tab: string,
+  sourceSubPath: I.List<string>,
+  destSubPath: I.List<string>
+) {
+  return {payload: {name, tab, sourceSubPath, destSubPath}, type: 'teams:createNewTeam'}
 }
 
 function createNewTeamFromConversation(conversationIDKey: ConversationIDKey, name: string) {
