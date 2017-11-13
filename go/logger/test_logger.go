@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"runtime"
 	"strings"
-	"sync/atomic"
+	"sync"
 	"time"
 
 	logging "github.com/keybase/go-logging"
@@ -36,7 +36,8 @@ type TestLogBackend interface {
 type TestLogger struct {
 	log          TestLogBackend
 	extraDepth   int
-	failReported int32 // 1 is true
+	failReported bool
+	sync.Mutex
 }
 
 func NewTestLogger(log TestLogBackend) *TestLogger {
@@ -49,10 +50,12 @@ var _ Logger = (*TestLogger)(nil)
 // ctx can be `nil`
 func (log *TestLogger) common(ctx context.Context, lvl logging.Level, useFatal bool, fmts string, arg ...interface{}) {
 	if log.log.Failed() {
-		failReported := atomic.SwapInt32(&(log.failReported), 1)
-		if failReported == 0 {
+		log.Lock()
+		if !log.failReported {
 			log.log.Logf("TEST FAILED: %s", log.log.Name())
 		}
+		log.failReported = true
+		log.Unlock()
 	}
 
 	if ctx != nil {
@@ -168,8 +171,12 @@ func (log *TestLogger) RotateLogFile() error {
 }
 
 func (log *TestLogger) CloneWithAddedDepth(depth int) Logger {
-	clone := *log
-	clone.extraDepth += depth
+	log.Lock()
+	defer log.Unlock()
+	var clone TestLogger
+	clone.log = log.log
+	clone.extraDepth = log.extraDepth + depth
+	clone.failReported = log.failReported
 	return &clone
 }
 
