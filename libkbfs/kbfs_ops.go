@@ -396,6 +396,10 @@ func (fs *KBFSOpsStandard) getMDByHandle(ctx context.Context,
 		return rmd, nil
 	}
 
+	// Check for an unmerged MD first, unless we're in single-op
+	// mode.  If this is a single-op, we can skip this check because
+	// there's basically no way for a TLF to start off as unmerged
+	// since single-ops should be using a fresh journal.
 	if fs.config.Mode() != InitSingleOp {
 		_, rmd, err = fs.config.MDOps().GetForHandle(
 			ctx, tlfHandle, kbfsmd.Unmerged, nil)
@@ -500,9 +504,12 @@ func (fs *KBFSOpsStandard) getMaybeCreateRootNode(
 		}
 	}
 
-	// Do GetForHandle() unlocked -- no cache lookups, should be fine
 	mdops := fs.config.MDOps()
 	var md ImmutableRootMetadata
+	// Check for an unmerged MD first, unless we're in single-op
+	// mode.  If this is a single-op, we can skip this check because
+	// there's basically no way for a TLF to start off as unmerged
+	// since single-ops should be using a fresh journal.
 	if fs.config.Mode() != InitSingleOp {
 		_, md, err = mdops.GetForHandle(ctx, h, kbfsmd.Unmerged, nil)
 		if err != nil {
