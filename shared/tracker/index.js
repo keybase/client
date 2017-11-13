@@ -1,6 +1,5 @@
 // @flow
 import * as Creators from '../actions/tracker'
-import * as TrackerGen from '../actions/tracker-gen'
 import * as ProfileGen from '../actions/profile-gen'
 import React, {Component} from 'react'
 import Render, {type RenderPropsUnshaped} from './render'
