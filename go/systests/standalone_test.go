@@ -14,12 +14,15 @@ import (
 )
 
 type standaloneUserArgs struct {
-	disableGregor bool
+	disableGregor            bool
+	suppressTeamChatAnnounce bool
 }
 
 func makeUserStandalone(t *testing.T, pre string, opts standaloneUserArgs) *userPlusDevice {
 	tctx := setupTest(t, pre)
 	var u userPlusDevice
+
+	u.suppressTeamChatAnnounce = opts.suppressTeamChatAnnounce
 
 	g := tctx.G
 	if opts.disableGregor {
