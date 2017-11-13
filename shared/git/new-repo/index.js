@@ -65,7 +65,18 @@ class NewRepo extends React.Component<Props, State> {
         }}
       >
         <Avatar isTeam={true} teamname={item} size={16} style={{marginRight: globalMargins.tiny}} />
-        <Text type="Header" lineClamp={1}>{item}</Text>
+        <Text
+          type="Header"
+          style={{
+            width: '100%',
+            display: 'block',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap',
+          }}
+        >
+          {item}
+        </Text>
       </Box>
     )
   }
