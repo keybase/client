@@ -366,7 +366,7 @@ func TestImpTeamWithMultipleRooters(t *testing.T) {
 			if (arg.TeamID.Eq(team1) || arg.TeamID.Eq(team2)) && arg.Changes.MembershipChanged && !arg.Changes.KeyRotated && !arg.Changes.Renamed && arg.LatestSeqno == toSeqno {
 				t.Logf("change matched with %q", arg.TeamID)
 				winningTeam = arg.TeamID
-				return
+				break
 			}
 		case <-time.After(1 * time.Second):
 		}
@@ -377,10 +377,10 @@ func TestImpTeamWithMultipleRooters(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, teamFinal, winningTeam)
 
-	team1, err = alice.lookupImplicitTeam(false /*create*/, displayNameRooter1, false /*isPublic*/)
+	_, err = alice.lookupImplicitTeam(false /*create*/, displayNameRooter1, false /*isPublic*/)
 	require.Error(t, err)
 
-	team2, err = alice.lookupImplicitTeam(false /*create*/, displayNameRooter2, false /*isPublic*/)
+	_, err = alice.lookupImplicitTeam(false /*create*/, displayNameRooter2, false /*isPublic*/)
 	require.Error(t, err)
 }
 

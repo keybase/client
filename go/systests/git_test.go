@@ -46,7 +46,7 @@ func TestGitTeamer(t *testing.T) {
 	require.Equal(t, res.Visibility, keybase1.TLFVisibility_PRIVATE)
 
 	t.Logf("public team")
-	teamID, teamName = tt.users[0].createTeam2()
+	_, teamName = tt.users[0].createTeam2()
 	res, err = aliceTeamer.LookupOrCreate(context.Background(), keybase1.Folder{
 		Name:       teamName.String(),
 		Private:    false,
