@@ -18,7 +18,16 @@ func getHome(t *testing.T, u *userPlusDevice, markViewed bool) keybase1.HomeScre
 	return home
 }
 
-func assertTodoPresent(t *testing.T, home keybase1.HomeScreen, wanted keybase1.HomeScreenTodoType) {
+func getBadgeState(t *testing.T, u *userPlusDevice) keybase1.BadgeState {
+	g := u.tc.G
+	cli, err := client.GetBadgerClient(g)
+	require.NoError(t, err)
+	ret, err := cli.GetBadgeState(context.TODO())
+	require.NoError(t, err)
+	return ret
+}
+
+func assertTodoPresent(t *testing.T, home keybase1.HomeScreen, wanted keybase1.HomeScreenTodoType, isBadged bool) {
 	for _, item := range home.Items {
 		typ, err := item.Data.T()
 		if err != nil {
@@ -31,6 +40,7 @@ func assertTodoPresent(t *testing.T, home keybase1.HomeScreen, wanted keybase1.H
 				t.Fatal(err)
 			}
 			if typ == wanted {
+				require.Equal(t, item.Badged, isBadged)
 				return
 			}
 		}
@@ -68,9 +78,12 @@ func TestHome(t *testing.T) {
 	wong := tt.users[1]
 
 	home := getHome(t, alice, true)
-	require.Equal(t, home.Version, 0, "on home version 0")
-	require.Equal(t, home.LastViewed, keybase1.Time(0), "never viewed before")
-	assertTodoPresent(t, home, keybase1.HomeScreenTodoType_FOLLOW)
+	initialVersion := home.Version
+	require.True(t, (initialVersion > 0), "initial version should be > 0")
+	assertTodoPresent(t, home, keybase1.HomeScreenTodoType_FOLLOW, true)
+	badges := getBadgeState(t, alice)
+	g.Log.Debug("Previous badge state: %+v", badges)
+	countPre := badges.HomeTodoItems
 
 	iui := newSimpleIdentifyUI()
 	iui.confirmRes = keybase1.ConfirmResult{IdentityConfirmed: true, RemoteConfirmed: true, AutoConfirmed: true}
@@ -83,11 +96,13 @@ func TestHome(t *testing.T) {
 	found := false
 	for i := 0; i < 10; i++ {
 		home = getHome(t, alice, true)
-		if home.Version == 1 && home.LastViewed > keybase1.Time(0) {
+		badges = getBadgeState(t, alice)
+		g.Log.Debug("Iter %d of check loop: Home is: %+v; BadgeState is: %+v", i, home, badges)
+		if home.Version > initialVersion && badges.HomeTodoItems < countPre {
 			found = true
 			break
 		}
-		t.Logf("Didn't get an update; waiting %s more", wait)
+		g.Log.Debug("Didn't get an update; waiting %s more", wait)
 		time.Sleep(wait)
 		wait = wait * 2
 	}

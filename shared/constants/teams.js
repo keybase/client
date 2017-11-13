@@ -10,6 +10,7 @@ import {type NoErrorTypedAction} from './types/flux'
 import {type TypedState} from './reducer'
 
 type _PublicitySettings = {
+  description: string,
   member: boolean,
   team: boolean,
 }
@@ -44,6 +45,7 @@ export type AddToTeam = NoErrorTypedAction<
     sendChatNotification: boolean,
   }
 >
+export type EditDescription = NoErrorTypedAction<'teams:editDescription', {description: string, name: string}>
 export type EditMembership = NoErrorTypedAction<
   'teams:editMembership',
   {name: string, username: string, role: TeamRoleType}
@@ -234,6 +236,7 @@ type _State = {
   teamNameToLoadingInvites: I.Map<Teamname, I.Map<string, boolean>>,
   teamNameToMembers: I.Map<Teamname, I.Set<MemberInfo>>,
   teamNameToMemberUsernames: I.Map<Teamname, I.Set<string>>,
+  teamNameToImplicitAdminUsernames: I.Map<Teamname, I.Set<string>>,
   teamNameToLoading: I.Map<Teamname, boolean>,
   teamNameToRequests: I.Map<Teamname, I.List<string>>,
   teamNameToTeamSettings: I.Map<Teamname, TeamSettings>,
@@ -241,6 +244,7 @@ type _State = {
   teamnames: I.Set<Teamname>,
   teammembercounts: I.Map<Teamname, number>,
   newTeams: I.Set<string>,
+  newTeamRequests: I.List<string>,
   loaded: boolean,
 }
 export type State = I.RecordOf<_State>
@@ -253,12 +257,14 @@ export const makeState: I.RecordFactory<_State> = I.Record({
   teamNameToLoadingInvites: I.Map(),
   teamNameToLoading: I.Map(),
   teamNameToMemberUsernames: I.Map(),
+  teamNameToImplicitAdminUsernames: I.Map(),
   teamNameToMembers: I.Map(),
   teamNameToRequests: I.Map(),
   teamNameToTeamSettings: I.Map(),
   teamNameToPublicitySettings: I.Map(),
   teammembercounts: I.Map(),
   newTeams: I.Set(),
+  newTeamRequests: I.List(),
   teamnames: I.Set(),
 })
 

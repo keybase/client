@@ -5,6 +5,7 @@ import {Box, Button, Text} from '../../common-adapters'
 
 type Props = {
   onDBNuke: () => void,
+  onBack: () => void,
 }
 
 function DBNuke(props: Props) {
@@ -16,11 +17,11 @@ function DBNuke(props: Props) {
         flex: 1,
         padding: globalMargins.medium,
         paddingTop: globalMargins.xlarge,
-        paddingBottom: globalMargins.xlarge,
+        paddingBottom: globalMargins.medium,
       }}
     >
-      <Text type="Body" style={{textAlign: 'center', padding: globalMargins.small}}>
-        Don't do anything here unless instructed to by a developer.
+      <Text type="BodySemibold" style={{textAlign: 'center'}}>
+        Please don't do anything here unless instructed to by a developer.
       </Text>
       <Button
         style={{marginTop: globalMargins.small}}

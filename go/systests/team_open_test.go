@@ -33,6 +33,7 @@ func TestTeamOpenAutoAddMember(t *testing.T) {
 			JoinAs: keybase1.TeamRole_READER,
 		},
 	})
+	require.NoError(t, err)
 
 	t.Logf("Open team name is %q", teamName)
 

@@ -126,8 +126,7 @@ func (e *PGPDecrypt) Run(ctx *Context) (err error) {
 		if e.signer == nil {
 			// signer isn't a keybase user
 			e.G().Log.Debug("message signed by key unknown to keybase: %X", e.signStatus.KeyID)
-			OutputSignatureSuccessNonKeybase(ctx, e.signStatus.KeyID, e.signStatus.SignatureTime)
-			return nil
+			return OutputSignatureSuccessNonKeybase(ctx, e.signStatus.KeyID, e.signStatus.SignatureTime)
 		}
 
 		// identify the signer
@@ -154,8 +153,7 @@ func (e *PGPDecrypt) Run(ctx *Context) (err error) {
 	}
 
 	bundle := libkb.NewPGPKeyBundle(e.signStatus.Entity)
-	OutputSignatureSuccess(ctx, bundle.GetFingerprint(), e.signer, e.signStatus.SignatureTime)
-	return nil
+	return OutputSignatureSuccess(ctx, bundle.GetFingerprint(), e.signer, e.signStatus.SignatureTime)
 }
 
 func (e *PGPDecrypt) SignatureStatus() *libkb.SignatureStatus {

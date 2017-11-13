@@ -3,6 +3,7 @@ import * as React from 'react'
 import * as Constants from '../../constants/teams'
 import {
   Avatar,
+  Badge,
   Box,
   Button,
   Checkbox,
@@ -25,16 +26,20 @@ type InviteRowProps = Constants.InviteInfo
 type RequestRowProps = Constants.RequestInfo
 
 export type Props = {
+  description: string,
   invites: Array<InviteRowProps>,
   isTeamOpen: boolean,
+  newTeamRequests: Array<Constants.Teamname>,
   loading: boolean,
   members: Array<MemberRowProps>,
+  memberCount: number,
   name: Constants.Teamname,
   onAddPeople: () => void,
   onAddSelf: () => void,
   onInviteByEmail: () => void,
   setSelectedTab: (t: ?Constants.TabKey) => void,
   onCreateSubteam: () => void,
+  onEditDescription: () => void,
   onLeaveTeam: () => void,
   onManageChat: () => void,
   onClickOpenTeamSetting: () => void,
@@ -69,6 +74,8 @@ type TeamTabsProps = {
   admin: boolean,
   invites: Array<InviteRowProps>,
   members: Array<MemberRowProps>,
+  name: Constants.Teamname,
+  newTeamRequests: Array<Constants.Teamname>,
   requests: Array<RequestRowProps>,
   loading?: boolean,
   selectedTab?: string,
@@ -79,7 +86,17 @@ const TeamRequestOrInviteRow = (index, row) =>
   row.type === 'request' ? TeamRequestRow(index, row) : TeamInviteRow(index, row)
 
 const TeamTabs = (props: TeamTabsProps) => {
-  const {admin, invites, members, loading = false, selectedTab, setSelectedTab} = props
+  const {
+    admin,
+    invites,
+    members,
+    name,
+    newTeamRequests,
+    requests,
+    loading = false,
+    selectedTab,
+    setSelectedTab,
+  } = props
   let membersLabel = 'MEMBERS'
   membersLabel += !loading || members.length !== 0 ? ' (' + members.length + ')' : ''
   const tabs = [
@@ -93,18 +110,30 @@ const TeamTabs = (props: TeamTabsProps) => {
       {membersLabel}
     </Text>,
   ]
+
+  let requestsBadge = 0
+  if (newTeamRequests.length) {
+    // Use min here so we never show a badge number > the (X) number of requests we have
+    requestsBadge = Math.min(
+      newTeamRequests.reduce((count, team) => (team === name ? count + 1 : count), 0),
+      requests.length
+    )
+  }
+
   if (admin) {
     const invitesLabel = `INVITES (${invites.length})`
     tabs.push(
-      <Text
-        key="invites"
-        type="BodySmallSemibold"
-        style={{
-          color: globalColors.black_75,
-        }}
-      >
-        {invitesLabel}
-      </Text>
+      <Box key="invites" style={{...globalStyles.flexBoxRow, alignItems: 'center'}}>
+        <Text
+          type="BodySmallSemibold"
+          style={{
+            color: globalColors.black_75,
+          }}
+        >
+          {invitesLabel}
+        </Text>
+        {!!requestsBadge && <Badge badgeNumber={requestsBadge} badgeStyle={{marginTop: 1, marginLeft: 2}} />}
+      </Box>
     )
   }
   const publicityLabel = 'SETTINGS'
@@ -143,6 +172,7 @@ const TeamTabs = (props: TeamTabsProps) => {
 class Team extends React.PureComponent<Props> {
   render() {
     const {
+      description,
       invites,
       name,
       members,
@@ -152,11 +182,13 @@ class Team extends React.PureComponent<Props> {
       onAddPeople,
       onAddSelf,
       onCreateSubteam,
+      onEditDescription,
       onInviteByEmail,
       onLeaveTeam,
       selectedTab,
       showAddYourselfBanner,
       loading,
+      memberCount,
       onManageChat,
       publicityMember,
       publicityTeam,
@@ -306,6 +338,7 @@ class Team extends React.PureComponent<Props> {
               type="BodySemiboldLink"
               style={stylesAddYourselfBannerText}
               onClick={onAddSelf}
+              underline={true}
             >
               Add yourself
             </Text>
@@ -315,6 +348,24 @@ class Team extends React.PureComponent<Props> {
           {name}
         </Text>
         <Text type="BodySmall">TEAM</Text>
+        <Text type="BodySmall">
+          {memberCount + ' member' + (memberCount !== 1 ? 's' : '')}
+          {' '}
+          •
+          {' '}
+          {me && me.type && Constants.typeToLabel[me.type]}
+        </Text>
+        <Text
+          style={{
+            paddingTop: globalMargins.tiny,
+            color: description ? globalColors.black : globalColors.black_20,
+          }}
+          onClick={onEditDescription}
+          type={'BodySecondaryLink'}
+        >
+          {description || 'Write a brief description'}
+        </Text>
+
         {youCanAddPeople &&
           <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', marginTop: globalMargins.small}}>
             <Button type="Primary" label="Add people" onClick={onAddPeople} />
