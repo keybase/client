@@ -123,6 +123,21 @@ const _addToTeam = function*(action: Constants.AddToTeam) {
   }
 }
 
+const _editDescription = function*(action: Constants.EditDescription) {
+  const {payload: {name, description}} = action
+  yield Saga.put(replaceEntity(['teams', 'teamNameToLoading'], I.Map([[name, true]])))
+  try {
+    yield Saga.call(RPCTypes.teamsSetTeamShowcaseRpcPromise, {
+      param: {
+        description,
+        name,
+      },
+    })
+  } finally {
+    yield Saga.put((dispatch: Dispatch) => dispatch(Creators.getDetails(name))) // getDetails will unset loading
+  }
+}
+
 const _editMembership = function*(action: Constants.EditMembership) {
   const {payload: {name, username, role}} = action
   yield Saga.put(replaceEntity(['teams', 'teamNameToLoading'], I.Map([[name, true]])))
@@ -323,6 +338,7 @@ const _getDetails = function*(action: Constants.GetDetails): Saga.SagaGenerator<
     )
 
     const publicityMap = {
+      description: publicity.teamShowcase.description,
       member: publicity.isMemberShowcased,
       team: publicity.teamShowcase.isShowcased,
     }
@@ -729,6 +745,7 @@ const teamsSaga = function*(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEvery('teams:addPeopleToTeam', _addPeopleToTeam)
   yield Saga.safeTakeEvery('teams:inviteToTeamByEmail', _inviteByEmail)
   yield Saga.safeTakeEvery('teams:ignoreRequest', _ignoreRequest)
+  yield Saga.safeTakeEvery('teams:editDescription', _editDescription)
   yield Saga.safeTakeEvery('teams:editMembership', _editMembership)
   yield Saga.safeTakeEvery('teams:removeMemberOrPendingInvite', _removeMemberOrPendingInvite)
   yield Saga.safeTakeEveryPure('teams:updateTopic', _updateTopic, last)
