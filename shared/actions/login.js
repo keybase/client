@@ -4,6 +4,7 @@ import * as AppGen from './app-gen'
 import * as ConfigGen from './config-gen'
 import * as DevicesGen from './devices-gen'
 import * as LoginGen from './login-gen'
+import * as SignupGen from './signup-gen'
 import * as Constants from '../constants/login'
 import * as EngineRpc from '../constants/engine'
 import * as RouteConstants from '../constants/route-tree'
@@ -18,7 +19,6 @@ import {deletePushTokenSaga} from './push'
 import {getExtendedStatus} from './config'
 import {isMobile} from '../constants/platform'
 import {pathSelector, navigateTo, navigateAppend} from './route-tree'
-import {setDeviceNameError} from './signup'
 import {devicesTabLocation, toDeviceType, type DeviceType} from '../constants/devices'
 import {type Dispatch, type AsyncAction} from '../constants/types/flux'
 import {type InitialState} from '../constants/config'
@@ -296,7 +296,7 @@ const displayAndPromptSecretSaga = onBackSaga =>
 
 const promptNewDeviceNameSaga = onBackSaga =>
   function*({existingDevices, errorMessage}) {
-    yield Saga.put(setDeviceNameError(errorMessage))
+    yield Saga.put(SignupGen.createSetDeviceNameError({deviceNameError: errorMessage}))
     yield Saga.put(
       navigateAppend(
         [
