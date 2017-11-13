@@ -31,7 +31,7 @@ func (m *mounter) Mount() (err error) {
 	// Exit if we were succesful or we are not a force mounting on error.
 	// Otherwise, try unmounting and mounting again.
 	if err == nil || !m.options.ForceMount {
-		return nil
+		return err
 	}
 
 	// Mount failed, let's try to unmount and then try mounting again, even
