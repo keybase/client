@@ -5,11 +5,11 @@ import type {ConversationIDKey} from '../../constants/chat'
 
 function createNewTeam(
   name: string,
-  tab: string,
+  rootPath: I.List<string>,
   sourceSubPath: I.List<string>,
   destSubPath: I.List<string>
 ) {
-  return {payload: {name, tab, sourceSubPath, destSubPath}, type: 'teams:createNewTeam'}
+  return {payload: {name, rootPath, sourceSubPath, destSubPath}, type: 'teams:createNewTeam'}
 }
 
 function createNewTeamFromConversation(conversationIDKey: ConversationIDKey, name: string) {
