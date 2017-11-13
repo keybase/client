@@ -49,6 +49,7 @@ export type TabBarButtonProps = Exact<{
   style?: Object,
   styleContainer?: Object,
   styleBadge?: Object,
+  styleBadgeContainer?: Object,
   styleIcon?: Object,
   styleBadgeNumber?: Object,
   styleLabel?: Object,

@@ -19,14 +19,18 @@ class FoldersRender extends Component<Props> {
     const iconStyle = isPublic
       ? {color: globalColors.yellowGreen2, marginBottom: isSelected ? 0 : 0, opacity: isSelected ? 1.0 : 0.6}
       : {color: globalColors.darkBlue2, marginBottom: isSelected ? 0 : 0, opacity: isSelected ? 1.0 : 0.6}
+    const badgeNumber = this.props[folderType + 'Badge']
     return (
       <TabBarButton
         source={{type: 'icon', icon}}
         style={{
           ...styleItem,
           borderBottom: `solid 2px ${isSelected ? selectedColor : 'transparent'}`,
+          paddingLeft: 0,
+          width: 106 + 2 / 3,
         }}
         styleBadge={styleBadge}
+        styleBadgeContainer={{position: 'absolute', right: -1 * globalMargins.tiny}}
         styleIcon={{...styleIcon, ...iconStyle}}
         styleLabel={{
           color: isPublic ? globalColors.yellowGreen2 : globalColors.darkBlue,
@@ -35,7 +39,7 @@ class FoldersRender extends Component<Props> {
         }}
         selected={isSelected}
         label={`${folderType}/`}
-        badgeNumber={isPublic ? this.props.publicBadge : this.props.privateBadge}
+        badgeNumber={badgeNumber}
       />
     )
   }
@@ -117,9 +121,7 @@ const styleItem = {
   ...globalStyles.flexBoxRow,
   paddingTop: 8,
   paddingBottom: 8,
-  paddingLeft: globalMargins.medium,
-  paddingRight: globalMargins.medium,
-  justifyContent: 'flex-start',
+  justifyContent: 'center',
   backgroundColor: globalColors.transparent,
 }
 
