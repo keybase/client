@@ -200,16 +200,17 @@ func (tt *teamTester) cleanup() {
 }
 
 type userPlusDevice struct {
-	uid           keybase1.UID
-	username      string
-	passphrase    string
-	userInfo      *signupInfo
-	backupKey     backupKey
-	device        *deviceWrapper
-	tc            *libkb.TestContext
-	deviceClient  keybase1.DeviceClient
-	teamsClient   keybase1.TeamsClient
-	notifications *teamNotifyHandler
+	uid                      keybase1.UID
+	username                 string
+	passphrase               string
+	userInfo                 *signupInfo
+	backupKey                backupKey
+	device                   *deviceWrapper
+	tc                       *libkb.TestContext
+	deviceClient             keybase1.DeviceClient
+	teamsClient              keybase1.TeamsClient
+	notifications            *teamNotifyHandler
+	suppressTeamChatAnnounce bool
 }
 
 func (u *userPlusDevice) createTeam() string {
@@ -223,6 +224,9 @@ func (u *userPlusDevice) createTeam() string {
 		u.tc.T.Fatal(err)
 	}
 	create.TeamName = name
+	create.SuppressTeamChatAnnounce = u.suppressTeamChatAnnounce
+	tracer := u.tc.G.CTimeTracer(context.Background(), "tracer-create-team")
+	defer tracer.Finish()
 	if err := create.Run(); err != nil {
 		u.tc.T.Fatal(err)
 	}
@@ -243,6 +247,7 @@ func (u *userPlusDevice) addTeamMember(team, username string, role keybase1.Team
 	add.Team = team
 	add.Username = username
 	add.Role = role
+	add.SkipChatNotification = u.suppressTeamChatAnnounce
 	if err := add.Run(); err != nil {
 		u.tc.T.Fatal(err)
 	}

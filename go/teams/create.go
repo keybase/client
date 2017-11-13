@@ -258,7 +258,7 @@ func makeSigAndPostRootTeam(ctx context.Context, g *libkb.GlobalContext, me *lib
 }
 
 func CreateRootTeam(ctx context.Context, g *libkb.GlobalContext, nameString string, settings keybase1.TeamSettings) (err error) {
-	defer g.CTrace(ctx, "CreateRootTeam", func() error { return err })()
+	defer g.CTraceTimed(ctx, "CreateRootTeam", func() error { return err })()
 
 	perUserKeyUpgradeSoft(ctx, g, "create-root-team")
 
