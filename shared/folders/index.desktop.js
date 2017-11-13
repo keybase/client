@@ -11,6 +11,8 @@ import {globalStyles, globalColors, globalMargins} from '../styles'
 import {isLinux} from '../constants/platform'
 import {type Props, type FolderType} from '.'
 
+// NOTE: This component is also used in menu-bar (widget)
+// Make sure to check behavior there if you're changing this
 class FoldersRender extends Component<Props> {
   _makeItem(folderType: FolderType, isSelected: boolean) {
     let isPublic = folderType === 'public'
