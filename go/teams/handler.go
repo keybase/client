@@ -344,14 +344,13 @@ func HandleOpenTeamAccessRequest(ctx context.Context, g *libkb.GlobalContext, ms
 					Name: uv.TeamInviteName(),
 					ID:   NewInviteID(),
 				})
-
 			}
 
 			switch joinAsRole {
 			case keybase1.TeamRole_READER:
 				inviteSection.Readers = &invList
 			case keybase1.TeamRole_WRITER:
-				inviteSection.Readers = &invList
+				inviteSection.Writers = &invList
 			default:
 				return fmt.Errorf("Unexpected role to add to open team: %v", joinAsRole)
 			}
