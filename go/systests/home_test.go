@@ -68,8 +68,7 @@ func TestHome(t *testing.T) {
 	wong := tt.users[1]
 
 	home := getHome(t, alice, true)
-	require.Equal(t, home.Version, 0, "on home version 0")
-	require.Equal(t, home.LastViewed, keybase1.Time(0), "never viewed before")
+	require.Equal(t, home.Version, 1, "on home version 1")
 	assertTodoPresent(t, home, keybase1.HomeScreenTodoType_FOLLOW)
 
 	iui := newSimpleIdentifyUI()
@@ -83,7 +82,7 @@ func TestHome(t *testing.T) {
 	found := false
 	for i := 0; i < 10; i++ {
 		home = getHome(t, alice, true)
-		if home.Version == 1 && home.LastViewed > keybase1.Time(0) {
+		if home.Version == 2 {
 			found = true
 			break
 		}
