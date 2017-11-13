@@ -371,7 +371,7 @@ func (u *userPlusDevice) waitForTeamChangedGregor(team string, toSeqno keybase1.
 				return
 			}
 			u.tc.T.Logf("ignoring change message for team %q seqno %d %+v (expected team = %q, seqno = %d)", arg.TeamName, arg.LatestSeqno, arg.Changes, team, toSeqno)
-		case <-time.After(1 * time.Second):
+		case <-time.After(1 * time.Second * libkb.CITimeMultiplier(u.tc.G)):
 		}
 	}
 	u.tc.T.Fatalf("timed out waiting for team rotate %s", team)
@@ -388,7 +388,7 @@ func (u *userPlusDevice) waitForTeamIDChangedGregor(teamID keybase1.TeamID, toSe
 				return
 			}
 			u.tc.T.Logf("ignoring change message (expected teamID = %q, seqno = %d)", teamID.String(), toSeqno)
-		case <-time.After(1 * time.Second):
+		case <-time.After(1 * time.Second * libkb.CITimeMultiplier(u.tc.G)):
 		}
 	}
 	u.tc.T.Fatalf("timed out waiting for team rotate %s", teamID)
@@ -400,7 +400,7 @@ func (u *userPlusDevice) drainGregor() {
 		case <-u.notifications.rotateCh:
 			u.tc.T.Logf("dropped notification")
 			// drop
-		case <-time.After(500 * time.Millisecond):
+		case <-time.After(500 * time.Millisecond * libkb.CITimeMultiplier(u.tc.G)):
 			u.tc.T.Logf("no notification received, drain complete")
 			return
 		}
@@ -424,7 +424,7 @@ func (u *userPlusDevice) waitForRotate(team string, toSeqno keybase1.Seqno) {
 				return
 			}
 			u.tc.T.Logf("ignoring rotate message")
-		case <-time.After(1 * time.Second):
+		case <-time.After(1 * time.Second * libkb.CITimeMultiplier(u.tc.G)):
 		}
 	}
 	u.tc.T.Fatalf("timed out waiting for team rotate %s", team)
@@ -446,7 +446,7 @@ func (u *userPlusDevice) waitForRotateByID(teamID keybase1.TeamID, toSeqno keyba
 				return
 			}
 			u.tc.T.Logf("ignoring rotate message")
-		case <-time.After(1 * time.Second):
+		case <-time.After(1 * time.Second * libkb.CITimeMultiplier(u.tc.G)):
 		}
 	}
 	u.tc.T.Fatalf("timed out waiting for team rotate %s", teamID)
@@ -463,7 +463,7 @@ func (u *userPlusDevice) waitForTeamChangedAndRotated(team string, toSeqno keyba
 				return
 			}
 			u.tc.T.Logf("ignoring change message (expected team = %q, seqno = %d)", team, toSeqno)
-		case <-time.After(1 * time.Second):
+		case <-time.After(1 * time.Second * libkb.CITimeMultiplier(u.tc.G)):
 		}
 	}
 	u.tc.T.Fatalf("timed out waiting for team rotate %s", team)
@@ -635,6 +635,7 @@ func TestGetTeamRootID(t *testing.T) {
 	require.NoError(t, err)
 
 	subteamName, err := parentName.Append("mysubteam")
+	require.NoError(t, err)
 
 	t.Logf("create a sub-subteam")
 	subteamID2, err := teams.CreateSubteam(context.TODO(), tt.users[0].tc.G, "teamofsubs", subteamName)
