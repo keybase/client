@@ -417,8 +417,7 @@ func FindConversations(ctx context.Context, g *globals.Context, debugger utils.D
 				debugger.Debug(ctx, "FindConversations: failed to get TLFID from name: %s", err.Error())
 				return res, rl, err
 			}
-			tlfConvs, irl, err := g.TeamChannelSource.GetChannelsFull(ctx, uid, nameInfo.ID, topicType,
-				membersType)
+			tlfConvs, irl, err := g.TeamChannelSource.GetChannelsFull(ctx, uid, nameInfo.ID, topicType)
 			if err != nil {
 				debugger.Debug(ctx, "FindConversations: failed to list TLF conversations: %s", err.Error())
 				return res, rl, err

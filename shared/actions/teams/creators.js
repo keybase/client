@@ -83,6 +83,10 @@ function addToTeam(
   return {payload: {name, email, username, role, sendChatNotification}, type: 'teams:addToTeam'}
 }
 
+function editTeamDescription(name: string, description: string): Constants.EditDescription {
+  return {payload: {description, name}, type: 'teams:editDescription'}
+}
+
 function editMembership(
   name: string,
   username: string,
@@ -156,6 +160,7 @@ export {
   createNewTeamFromConversation,
   deleteChannel,
   editMembership,
+  editTeamDescription,
   getChannels,
   getDetails,
   getTeams,

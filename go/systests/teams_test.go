@@ -635,6 +635,7 @@ func TestGetTeamRootID(t *testing.T) {
 	require.NoError(t, err)
 
 	subteamName, err := parentName.Append("mysubteam")
+	require.NoError(t, err)
 
 	t.Logf("create a sub-subteam")
 	subteamID2, err := teams.CreateSubteam(context.TODO(), tt.users[0].tc.G, "teamofsubs", subteamName)
