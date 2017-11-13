@@ -49,13 +49,13 @@ var _ Logger = (*TestLogger)(nil)
 
 // ctx can be `nil`
 func (log *TestLogger) common(ctx context.Context, lvl logging.Level, useFatal bool, fmts string, arg ...interface{}) {
+	log.Lock()
+	defer log.Unlock()
 	if log.log.Failed() {
-		log.Lock()
 		if !log.failReported {
 			log.log.Logf("TEST FAILED: %s", log.log.Name())
 		}
 		log.failReported = true
-		log.Unlock()
 	}
 
 	if ctx != nil {

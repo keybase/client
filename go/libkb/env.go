@@ -226,7 +226,7 @@ func (e *Env) GetMountDir() (string, error) {
 		return e.GetString(
 			func() string { return e.cmd.GetMountDir() },
 			func() string { return os.Getenv("KEYBASE_MOUNTDIR") },
-			func() string { return e.config.GetMountDir() },
+			func() string { return e.GetConfig().GetMountDir() },
 		), nil
 	}
 	switch runMode {
@@ -269,7 +269,7 @@ func (e *Env) getHomeFromCmdOrConfig() string {
 	return e.GetString(
 		func() string { return e.Test.Home },
 		func() string { return e.cmd.GetHome() },
-		func() string { return e.config.GetHome() },
+		func() string { return e.GetConfig().GetHome() },
 	)
 }
 
@@ -405,7 +405,7 @@ func (e *Env) GetServerURI() string {
 	return e.GetString(
 		func() string { return e.cmd.GetServerURI() },
 		func() string { return os.Getenv("KEYBASE_SERVER_URI") },
-		func() string { return e.config.GetServerURI() },
+		func() string { return e.GetConfig().GetServerURI() },
 		func() string { return ServerLookup[e.GetRunMode()] },
 	)
 }
@@ -415,7 +415,7 @@ func (e *Env) GetConfigFilename() string {
 		func() string { return e.Test.ConfigFilename },
 		func() string { return e.cmd.GetConfigFilename() },
 		func() string { return os.Getenv("KEYBASE_CONFIG_FILE") },
-		func() string { return e.config.GetConfigFilename() },
+		func() string { return e.GetConfig().GetConfigFilename() },
 		func() string { return filepath.Join(e.GetConfigDir(), ConfigFile) },
 	)
 }
@@ -424,7 +424,7 @@ func (e *Env) GetUpdaterConfigFilename() string {
 	return e.GetString(
 		func() string { return e.cmd.GetUpdaterConfigFilename() },
 		func() string { return os.Getenv("KEYBASE_UPDATER_CONFIG_FILE") },
-		func() string { return e.config.GetUpdaterConfigFilename() },
+		func() string { return e.GetConfig().GetUpdaterConfigFilename() },
 		func() string { return filepath.Join(e.GetConfigDir(), UpdaterConfigFile) },
 	)
 }
@@ -433,7 +433,7 @@ func (e *Env) GetSessionFilename() string {
 	return e.GetString(
 		func() string { return e.cmd.GetSessionFilename() },
 		func() string { return os.Getenv("KEYBASE_SESSION_FILE") },
-		func() string { return e.config.GetSessionFilename() },
+		func() string { return e.GetConfig().GetSessionFilename() },
 		func() string { return filepath.Join(e.GetCacheDir(), SessionFile) },
 	)
 }
@@ -442,7 +442,7 @@ func (e *Env) GetDbFilename() string {
 	return e.GetString(
 		func() string { return e.cmd.GetDbFilename() },
 		func() string { return os.Getenv("KEYBASE_DB_FILE") },
-		func() string { return e.config.GetDbFilename() },
+		func() string { return e.GetConfig().GetDbFilename() },
 		func() string { return filepath.Join(e.GetDataDir(), DBFile) },
 	)
 }
@@ -451,7 +451,7 @@ func (e *Env) GetChatDbFilename() string {
 	return e.GetString(
 		func() string { return e.cmd.GetChatDbFilename() },
 		func() string { return os.Getenv("KEYBASE_CHAT_DB_FILE") },
-		func() string { return e.config.GetChatDbFilename() },
+		func() string { return e.GetConfig().GetChatDbFilename() },
 		func() string { return filepath.Join(e.GetDataDir(), ChatDBFile) },
 	)
 }
@@ -462,7 +462,7 @@ func (e *Env) GetPvlKitFilename() string {
 	return e.GetString(
 		func() string { return e.cmd.GetPvlKitFilename() },
 		func() string { return os.Getenv("KEYBASE_PVL_KIT_FILE") },
-		func() string { return e.config.GetPvlKitFilename() },
+		func() string { return e.GetConfig().GetPvlKitFilename() },
 	)
 }
 
@@ -471,7 +471,7 @@ func (e *Env) GetDebug() bool {
 		func() (bool, bool) { return e.Test.GetDebug() },
 		func() (bool, bool) { return e.cmd.GetDebug() },
 		func() (bool, bool) { return e.getEnvBool("KEYBASE_DEBUG") },
-		func() (bool, bool) { return e.config.GetDebug() },
+		func() (bool, bool) { return e.GetConfig().GetDebug() },
 	)
 }
 
@@ -498,7 +498,7 @@ func (e *Env) GetAutoFork() bool {
 			},
 			{
 				neg: false,
-				f:   func() (bool, bool) { return e.config.GetAutoFork() },
+				f:   func() (bool, bool) { return e.GetConfig().GetAutoFork() },
 			},
 		},
 	)
@@ -508,7 +508,7 @@ func (e *Env) GetStandalone() bool {
 	return e.GetBool(false,
 		func() (bool, bool) { return e.cmd.GetStandalone() },
 		func() (bool, bool) { return e.getEnvBool("KEYBASE_STANDALONE") },
-		func() (bool, bool) { return e.config.GetStandalone() },
+		func() (bool, bool) { return e.GetConfig().GetStandalone() },
 	)
 }
 
@@ -516,7 +516,7 @@ func (e *Env) GetLogFormat() string {
 	return e.GetString(
 		func() string { return e.cmd.GetLogFormat() },
 		func() string { return os.Getenv("KEYBASE_LOG_FORMAT") },
-		func() string { return e.config.GetLogFormat() },
+		func() string { return e.GetConfig().GetLogFormat() },
 	)
 }
 
@@ -541,7 +541,7 @@ func (e *Env) GetAPIDump() bool {
 }
 
 func (e *Env) GetUsername() NormalizedUsername {
-	return e.config.GetUsername()
+	return e.GetConfig().GetUsername()
 }
 
 func (e *Env) GetSocketBindFile() (string, error) {
@@ -555,7 +555,7 @@ func (e *Env) defaultSocketFile() string {
 	socketFile := e.GetString(
 		func() string { return e.cmd.GetSocketFile() },
 		func() string { return os.Getenv("KEYBASE_SOCKET_FILE") },
-		func() string { return e.config.GetSocketFile() },
+		func() string { return e.GetConfig().GetSocketFile() },
 	)
 	if socketFile == "" {
 		socketFile = filepath.Join(e.GetRuntimeDir(), SocketFile)
@@ -585,7 +585,7 @@ func (e *Env) GetSocketDialFiles() ([]string, error) {
 func (e *Env) GetGregorURI() string {
 	return e.GetString(
 		func() string { return os.Getenv("KEYBASE_PUSH_SERVER_URI") },
-		func() string { return e.config.GetGregorURI() },
+		func() string { return e.GetConfig().GetGregorURI() },
 		func() string { return e.cmd.GetGregorURI() },
 		func() string { return GregorServerLookup[e.GetRunMode()] },
 	)
@@ -594,7 +594,7 @@ func (e *Env) GetGregorURI() string {
 func (e *Env) GetGregorSaveInterval() time.Duration {
 	return e.GetDuration(time.Minute,
 		func() (time.Duration, bool) { return e.getEnvDuration("KEYBASE_PUSH_SAVE_INTERVAL") },
-		func() (time.Duration, bool) { return e.config.GetGregorSaveInterval() },
+		func() (time.Duration, bool) { return e.GetConfig().GetGregorSaveInterval() },
 		func() (time.Duration, bool) { return e.cmd.GetGregorSaveInterval() },
 	)
 }
@@ -603,7 +603,7 @@ func (e *Env) GetGregorDisabled() bool {
 	return e.GetBool(false,
 		func() (bool, bool) { return e.cmd.GetGregorDisabled() },
 		func() (bool, bool) { return getEnvBool("KEYBASE_PUSH_DISABLED") },
-		func() (bool, bool) { return e.config.GetGregorDisabled() },
+		func() (bool, bool) { return e.GetConfig().GetGregorDisabled() },
 	)
 }
 
@@ -611,14 +611,14 @@ func (e *Env) GetBGIdentifierDisabled() bool {
 	return e.GetBool(true,
 		func() (bool, bool) { return e.cmd.GetBGIdentifierDisabled() },
 		func() (bool, bool) { return getEnvBool("KEYBASE_BG_IDENTIFIER_DISABLED") },
-		func() (bool, bool) { return e.config.GetBGIdentifierDisabled() },
+		func() (bool, bool) { return e.GetConfig().GetBGIdentifierDisabled() },
 	)
 }
 
 func (e *Env) GetGregorPingInterval() time.Duration {
 	return e.GetDuration(10*time.Second,
 		func() (time.Duration, bool) { return e.getEnvDuration("KEYBASE_PUSH_PING_INTERVAL") },
-		func() (time.Duration, bool) { return e.config.GetGregorPingInterval() },
+		func() (time.Duration, bool) { return e.GetConfig().GetGregorPingInterval() },
 		func() (time.Duration, bool) { return e.cmd.GetGregorPingInterval() },
 	)
 }
@@ -626,7 +626,7 @@ func (e *Env) GetGregorPingInterval() time.Duration {
 func (e *Env) GetGregorPingTimeout() time.Duration {
 	return e.GetDuration(5*time.Second,
 		func() (time.Duration, bool) { return e.getEnvDuration("KEYBASE_PUSH_PING_TIMEOUT") },
-		func() (time.Duration, bool) { return e.config.GetGregorPingTimeout() },
+		func() (time.Duration, bool) { return e.GetConfig().GetGregorPingTimeout() },
 		func() (time.Duration, bool) { return e.cmd.GetGregorPingTimeout() },
 	)
 }
@@ -634,7 +634,7 @@ func (e *Env) GetGregorPingTimeout() time.Duration {
 func (e *Env) GetChatDelivererInterval() time.Duration {
 	return e.GetDuration(30*time.Second,
 		func() (time.Duration, bool) { return e.getEnvDuration("KEYBASE_CHAT_DELIVERER_INTERVAL") },
-		func() (time.Duration, bool) { return e.config.GetChatDelivererInterval() },
+		func() (time.Duration, bool) { return e.GetConfig().GetChatDelivererInterval() },
 		func() (time.Duration, bool) { return e.cmd.GetChatDelivererInterval() },
 	)
 }
@@ -643,7 +643,7 @@ func (e *Env) GetPidFile() (ret string, err error) {
 	ret = e.GetString(
 		func() string { return e.cmd.GetPidFile() },
 		func() string { return os.Getenv("KEYBASE_PID_FILE") },
-		func() string { return e.config.GetPidFile() },
+		func() string { return e.GetConfig().GetPidFile() },
 	)
 	if len(ret) == 0 {
 		ret = filepath.Join(e.GetRuntimeDir(), PIDFile)
@@ -667,7 +667,7 @@ func (e *Env) GetProxy() string {
 		func() string { return e.cmd.GetProxy() },
 		func() string { return os.Getenv("https_proxy") },
 		func() string { return os.Getenv("http_proxy") },
-		func() string { return e.config.GetProxy() },
+		func() string { return e.GetConfig().GetProxy() },
 	)
 }
 
@@ -676,7 +676,7 @@ func (e *Env) GetGpgHome() string {
 		func() string { return e.Test.GPGHome },
 		func() string { return e.cmd.GetGpgHome() },
 		func() string { return os.Getenv("GNUPGHOME") },
-		func() string { return e.config.GetGpgHome() },
+		func() string { return e.GetConfig().GetGpgHome() },
 		func() string { return filepath.Join(e.GetHome(), ".gnupg") },
 	)
 }
@@ -685,7 +685,7 @@ func (e *Env) GetPinentry() string {
 	return e.GetString(
 		func() string { return e.cmd.GetPinentry() },
 		func() string { return os.Getenv("KEYBASE_PINENTRY") },
-		func() string { return e.config.GetPinentry() },
+		func() string { return e.GetConfig().GetPinentry() },
 	)
 }
 
@@ -702,13 +702,13 @@ func (e *Env) GetNoPinentry() bool {
 	return e.GetBool(false,
 		func() (bool, bool) { return isno(e.cmd.GetPinentry()) },
 		func() (bool, bool) { return isno(os.Getenv("KEYBASE_PINENTRY")) },
-		func() (bool, bool) { return e.config.GetNoPinentry() },
+		func() (bool, bool) { return e.GetConfig().GetNoPinentry() },
 	)
 }
 
 func (e *Env) GetBundledCA(host string) string {
 	return e.GetString(
-		func() string { return e.config.GetBundledCA(host) },
+		func() string { return e.GetConfig().GetBundledCA(host) },
 		func() string {
 			ret, ok := GetBundledCAsFromHost(host)
 			if !ok {
@@ -723,7 +723,7 @@ func (e *Env) GetUserCacheMaxAge() time.Duration {
 	return e.GetDuration(UserCacheMaxAge,
 		func() (time.Duration, bool) { return e.cmd.GetUserCacheMaxAge() },
 		func() (time.Duration, bool) { return e.getEnvDuration("KEYBASE_USER_CACHE_MAX_AGE") },
-		func() (time.Duration, bool) { return e.config.GetUserCacheMaxAge() },
+		func() (time.Duration, bool) { return e.GetConfig().GetUserCacheMaxAge() },
 	)
 }
 
@@ -731,7 +731,7 @@ func (e *Env) GetAPITimeout() time.Duration {
 	return e.GetDuration(HTTPDefaultTimeout,
 		func() (time.Duration, bool) { return e.cmd.GetAPITimeout() },
 		func() (time.Duration, bool) { return e.getEnvDuration("KEYBASE_API_TIMEOUT") },
-		func() (time.Duration, bool) { return e.config.GetAPITimeout() },
+		func() (time.Duration, bool) { return e.GetConfig().GetAPITimeout() },
 	)
 }
 
@@ -739,7 +739,7 @@ func (e *Env) GetScraperTimeout() time.Duration {
 	return e.GetDuration(HTTPDefaultScraperTimeout,
 		func() (time.Duration, bool) { return e.cmd.GetScraperTimeout() },
 		func() (time.Duration, bool) { return e.getEnvDuration("KEYBASE_SCRAPER_TIMEOUT") },
-		func() (time.Duration, bool) { return e.config.GetScraperTimeout() },
+		func() (time.Duration, bool) { return e.GetConfig().GetScraperTimeout() },
 	)
 }
 
@@ -747,35 +747,35 @@ func (e *Env) GetLocalTrackMaxAge() time.Duration {
 	return e.GetDuration(LocalTrackMaxAge,
 		func() (time.Duration, bool) { return e.cmd.GetLocalTrackMaxAge() },
 		func() (time.Duration, bool) { return e.getEnvDuration("KEYBASE_LOCAL_TRACK_MAX_AGE") },
-		func() (time.Duration, bool) { return e.config.GetLocalTrackMaxAge() },
+		func() (time.Duration, bool) { return e.GetConfig().GetLocalTrackMaxAge() },
 	)
 }
 func (e *Env) GetProofCacheSize() int {
 	return e.GetInt(ProofCacheSize,
 		e.cmd.GetProofCacheSize,
 		func() (int, bool) { return e.getEnvInt("KEYBASE_PROOF_CACHE_SIZE") },
-		e.config.GetProofCacheSize,
+		e.GetConfig().GetProofCacheSize,
 	)
 }
 
 func (e *Env) GetProofCacheLongDur() time.Duration {
 	return e.GetDuration(ProofCacheLongDur,
 		func() (time.Duration, bool) { return e.getEnvDuration("KEYBASE_PROOF_CACHE_LONG_DUR") },
-		e.config.GetProofCacheLongDur,
+		e.GetConfig().GetProofCacheLongDur,
 	)
 }
 
 func (e *Env) GetProofCacheMediumDur() time.Duration {
 	return e.GetDuration(ProofCacheMediumDur,
 		func() (time.Duration, bool) { return e.getEnvDuration("KEYBASE_PROOF_CACHE_MEDIUM_DUR") },
-		e.config.GetProofCacheMediumDur,
+		e.GetConfig().GetProofCacheMediumDur,
 	)
 }
 
 func (e *Env) GetProofCacheShortDur() time.Duration {
 	return e.GetDuration(ProofCacheShortDur,
 		func() (time.Duration, bool) { return e.getEnvDuration("KEYBASE_PROOF_CACHE_SHORT_DUR") },
-		e.config.GetProofCacheShortDur,
+		e.GetConfig().GetProofCacheShortDur,
 	)
 }
 
@@ -783,7 +783,7 @@ func (e *Env) GetLinkCacheSize() int {
 	return e.GetInt(LinkCacheSize,
 		e.cmd.GetLinkCacheSize,
 		func() (int, bool) { return e.getEnvInt("KEYBASE_LINK_CACHE_SIZE") },
-		e.config.GetLinkCacheSize,
+		e.GetConfig().GetLinkCacheSize,
 	)
 }
 
@@ -791,7 +791,7 @@ func (e *Env) GetUPAKCacheSize() int {
 	return e.GetInt(UPAKCacheSize,
 		e.cmd.GetUPAKCacheSize,
 		func() (int, bool) { return e.getEnvInt("KEYBASE_UPAK_CACHE_SIZE") },
-		e.config.GetUPAKCacheSize,
+		e.GetConfig().GetUPAKCacheSize,
 	)
 }
 
@@ -799,7 +799,7 @@ func (e *Env) GetUIDMapFullNameCacheSize() int {
 	return e.GetInt(UIDMapFullNameCacheSize,
 		e.cmd.GetUIDMapFullNameCacheSize,
 		func() (int, bool) { return e.getEnvInt("KEYBASE_UID_MAP_FULL_NAME_CACHE_SIZE") },
-		e.config.GetUIDMapFullNameCacheSize,
+		e.GetConfig().GetUIDMapFullNameCacheSize,
 	)
 }
 
@@ -807,14 +807,14 @@ func (e *Env) GetLevelDBNumFiles() int {
 	return e.GetInt(LevelDBNumFiles,
 		e.cmd.GetLevelDBNumFiles,
 		func() (int, bool) { return e.getEnvInt("KEYBASE_LEVELDB_NUM_FILES") },
-		e.config.GetLevelDBNumFiles,
+		e.GetConfig().GetLevelDBNumFiles,
 	)
 }
 
 func (e *Env) GetLinkCacheCleanDur() time.Duration {
 	return e.GetDuration(LinkCacheCleanDur,
 		func() (time.Duration, bool) { return e.getEnvDuration("KEYBASE_LINK_CACHE_CLEAN_DUR") },
-		e.config.GetLinkCacheCleanDur,
+		e.GetConfig().GetLinkCacheCleanDur,
 	)
 }
 
@@ -843,7 +843,7 @@ func (e *Env) GetRunMode() RunMode {
 
 	pick(e.cmd.GetRunMode())
 	pick(StringToRunMode(os.Getenv("KEYBASE_RUN_MODE")))
-	pick(e.config.GetRunMode())
+	pick(e.GetConfig().GetRunMode())
 	pick(DefaultRunMode, nil)
 
 	// If we aren't running in devel or staging and we're testing. Let's run in devel.
@@ -860,8 +860,8 @@ func (e *Env) GetAppType() AppType {
 		return e.cmd.GetAppType()
 	case StringToAppType(os.Getenv("KEYBASE_APP_TYPE")) != NoAppType:
 		return StringToAppType(os.Getenv("KEYBASE_APP_TYPE"))
-	case e.config.GetAppType() != NoAppType:
-		return e.config.GetAppType()
+	case e.GetConfig().GetAppType() != NoAppType:
+		return e.GetConfig().GetAppType()
 	default:
 		return NoAppType
 	}
@@ -876,11 +876,11 @@ func (e *Env) GetFeatureFlags() FeatureFlags {
 	}
 	pick(e.cmd.GetFeatureFlags())
 	pick(StringToFeatureFlags(os.Getenv("KEYBASE_FEATURES")), nil)
-	pick(e.config.GetFeatureFlags())
+	pick(e.GetConfig().GetFeatureFlags())
 	return ret
 }
 
-func (e *Env) GetUID() keybase1.UID { return e.config.GetUID() }
+func (e *Env) GetUID() keybase1.UID { return e.GetConfig().GetUID() }
 
 func (e *Env) GetStringList(list ...(func() []string)) []string {
 	for _, f := range list {
@@ -895,7 +895,7 @@ func (e *Env) GetMerkleKIDs() []keybase1.KID {
 	slist := e.GetStringList(
 		func() []string { return e.cmd.GetMerkleKIDs() },
 		func() []string { return e.getEnvPath("KEYBASE_MERKLE_KIDS") },
-		func() []string { return e.config.GetMerkleKIDs() },
+		func() []string { return e.GetConfig().GetMerkleKIDs() },
 		func() []string {
 			ret := MerkleProdKIDs
 			if e.GetRunMode() == DevelRunMode || e.GetRunMode() == StagingRunMode {
@@ -921,7 +921,7 @@ func (e *Env) GetCodeSigningKIDs() []keybase1.KID {
 	slist := e.GetStringList(
 		func() []string { return e.cmd.GetCodeSigningKIDs() },
 		func() []string { return e.getEnvPath("KEYBASE_CODE_SIGNING_KIDS") },
-		func() []string { return e.config.GetCodeSigningKIDs() },
+		func() []string { return e.GetConfig().GetCodeSigningKIDs() },
 		func() []string {
 			ret := CodeSigningProdKIDs
 			if e.GetRunMode() == DevelRunMode || e.GetRunMode() == StagingRunMode {
@@ -948,7 +948,7 @@ func (e *Env) GetGpg() string {
 		func() string { return e.Test.GPG },
 		func() string { return e.cmd.GetGpg() },
 		func() string { return os.Getenv("GPG") },
-		func() string { return e.config.GetGpg() },
+		func() string { return e.GetConfig().GetGpg() },
 	)
 }
 
@@ -956,7 +956,7 @@ func (e *Env) GetGpgOptions() []string {
 	return e.GetStringList(
 		func() []string { return e.Test.GPGOptions },
 		func() []string { return e.cmd.GetGpgOptions() },
-		func() []string { return e.config.GetGpgOptions() },
+		func() []string { return e.GetConfig().GetGpgOptions() },
 	)
 }
 
@@ -964,20 +964,20 @@ func (e *Env) GetSecretKeyringTemplate() string {
 	return e.GetString(
 		func() string { return e.cmd.GetSecretKeyringTemplate() },
 		func() string { return os.Getenv("KEYBASE_SECRET_KEYRING_TEMPLATE") },
-		func() string { return e.config.GetSecretKeyringTemplate() },
+		func() string { return e.GetConfig().GetSecretKeyringTemplate() },
 		func() string { return filepath.Join(e.GetConfigDir(), SecretKeyringTemplate) },
 	)
 }
 
 func (e *Env) GetSalt() []byte {
-	return e.config.GetSalt()
+	return e.GetConfig().GetSalt()
 }
 
 func (e *Env) GetLocalRPCDebug() string {
 	return e.GetString(
 		func() string { return e.cmd.GetLocalRPCDebug() },
 		func() string { return os.Getenv("KEYBASE_LOCAL_RPC_DEBUG") },
-		func() string { return e.config.GetLocalRPCDebug() },
+		func() string { return e.GetConfig().GetLocalRPCDebug() },
 	)
 }
 
@@ -989,7 +989,7 @@ func (e *Env) GetTimers() string {
 	return e.GetString(
 		func() string { return e.cmd.GetTimers() },
 		func() string { return os.Getenv("KEYBASE_TIMERS") },
-		func() string { return e.config.GetTimers() },
+		func() string { return e.GetConfig().GetTimers() },
 	)
 }
 
@@ -1012,7 +1012,7 @@ func (e *Env) GetChatInboxSourceLocalizeThreads() int {
 		10,
 		e.cmd.GetChatInboxSourceLocalizeThreads,
 		func() (int, bool) { return e.getEnvInt("KEYBASE_INBOX_SOURCE_LOCALIZE_THREADS") },
-		e.config.GetChatInboxSourceLocalizeThreads,
+		e.GetConfig().GetChatInboxSourceLocalizeThreads,
 	)
 }
 
@@ -1026,15 +1026,15 @@ func (e *Env) GetChatMemberType() string {
 }
 
 func (e *Env) GetDeviceID() keybase1.DeviceID {
-	return e.config.GetDeviceID()
+	return e.GetConfig().GetDeviceID()
 }
 
 func (e *Env) GetDeviceIDForUsername(u NormalizedUsername) keybase1.DeviceID {
-	return e.config.GetDeviceIDForUsername(u)
+	return e.GetConfig().GetDeviceIDForUsername(u)
 }
 
 func (e *Env) GetDeviceIDForUID(u keybase1.UID) keybase1.DeviceID {
-	return e.config.GetDeviceIDForUID(u)
+	return e.GetConfig().GetDeviceIDForUID(u)
 }
 
 func (e *Env) GetInstallID() (ret InstallID) {
@@ -1066,7 +1066,7 @@ func (e *Env) GetTorMode() TorMode {
 
 	pick(e.cmd.GetTorMode())
 	pick(StringToTorMode(os.Getenv("KEYBASE_TOR_MODE")))
-	pick(e.config.GetTorMode())
+	pick(e.GetConfig().GetTorMode())
 
 	return ret
 }
@@ -1075,7 +1075,7 @@ func (e *Env) GetTorHiddenAddress() string {
 	return e.GetString(
 		func() string { return e.cmd.GetTorHiddenAddress() },
 		func() string { return os.Getenv("KEYBASE_TOR_HIDDEN_ADDRESS") },
-		func() string { return e.config.GetTorHiddenAddress() },
+		func() string { return e.GetConfig().GetTorHiddenAddress() },
 		func() string { return TorServerURI },
 	)
 }
@@ -1084,7 +1084,7 @@ func (e *Env) GetTorProxy() string {
 	return e.GetString(
 		func() string { return e.cmd.GetTorProxy() },
 		func() string { return os.Getenv("KEYBASE_TOR_PROXY") },
-		func() string { return e.config.GetTorProxy() },
+		func() string { return e.GetConfig().GetTorProxy() },
 		func() string { return TorProxy },
 	)
 }
@@ -1092,7 +1092,7 @@ func (e *Env) GetTorProxy() string {
 func (e *Env) GetStoredSecretAccessGroup() string {
 	var override = e.GetBool(
 		false,
-		func() (bool, bool) { return e.config.GetSecurityAccessGroupOverride() },
+		func() (bool, bool) { return e.GetConfig().GetSecurityAccessGroupOverride() },
 	)
 
 	if override {
@@ -1177,19 +1177,19 @@ func (c AppConfig) GetChatInboxSourceLocalizeThreads() (int, bool) {
 }
 
 func (e *Env) GetUpdatePreferenceAuto() (bool, bool) {
-	return e.config.GetUpdatePreferenceAuto()
+	return e.GetConfig().GetUpdatePreferenceAuto()
 }
 
 func (e *Env) GetUpdatePreferenceSkip() string {
-	return e.config.GetUpdatePreferenceSkip()
+	return e.GetConfig().GetUpdatePreferenceSkip()
 }
 
 func (e *Env) GetUpdatePreferenceSnoozeUntil() keybase1.Time {
-	return e.config.GetUpdatePreferenceSnoozeUntil()
+	return e.GetConfig().GetUpdatePreferenceSnoozeUntil()
 }
 
 func (e *Env) GetUpdateLastChecked() keybase1.Time {
-	return e.config.GetUpdateLastChecked()
+	return e.GetConfig().GetUpdateLastChecked()
 }
 
 func (e *Env) SetUpdatePreferenceAuto(b bool) error {
@@ -1209,15 +1209,15 @@ func (e *Env) SetUpdateLastChecked(t keybase1.Time) error {
 }
 
 func (e *Env) GetUpdateURL() string {
-	return e.config.GetUpdateURL()
+	return e.GetConfig().GetUpdateURL()
 }
 
 func (e *Env) GetUpdateDisabled() (bool, bool) {
-	return e.config.GetUpdateDisabled()
+	return e.GetConfig().GetUpdateDisabled()
 }
 
 func (e *Env) IsAdmin() bool {
-	b, _ := e.config.IsAdmin()
+	b, _ := e.GetConfig().IsAdmin()
 	return b
 }
 
@@ -1225,7 +1225,7 @@ func (e *Env) GetVDebugSetting() string {
 	return e.GetString(
 		func() string { return e.cmd.GetVDebugSetting() },
 		func() string { return os.Getenv("KEYBASE_VDEBUG") },
-		func() string { return e.config.GetVDebugSetting() },
+		func() string { return e.GetConfig().GetVDebugSetting() },
 		func() string { return "" },
 	)
 }
