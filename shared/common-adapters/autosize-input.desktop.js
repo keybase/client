@@ -66,6 +66,7 @@ class AutosizeInput extends Component<Props, State> {
       >
         <input
           autoFocus={this.props.autoFocus}
+          className="lighterPlaceholder"
           ref={el => {
             this._inputEl = el
           }}
@@ -108,7 +109,7 @@ const resetStyle = {
 }
 
 const placeholderColorCSS = `
-input::placeholder { 
+input.lighterPlaceholder::placeholder { 
   color: ${globalColors.black_20};
 }
 `
