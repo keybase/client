@@ -7,7 +7,7 @@ import React, {Component} from 'react'
 import {Box, TabBar} from '../common-adapters'
 import {TabBarItem, TabBarButton} from '../common-adapters/tab-bar'
 import {connect, type TypedState} from '../util/container'
-import {globalStyles, globalColors, globalMargins} from '../styles'
+import {globalStyles, globalColors} from '../styles'
 import {isLinux} from '../constants/platform'
 import {type Props, type FolderType} from '.'
 
@@ -25,6 +25,8 @@ class FoldersRender extends Component<Props> {
         style={{
           ...styleItem,
           borderBottom: `solid 2px ${isSelected ? selectedColor : 'transparent'}`,
+          paddingLeft: 0,
+          width: 106 + 2 / 3,
         }}
         styleBadge={styleBadge}
         styleIcon={{...styleIcon, ...iconStyle}}
@@ -117,9 +119,7 @@ const styleItem = {
   ...globalStyles.flexBoxRow,
   paddingTop: 8,
   paddingBottom: 8,
-  paddingLeft: globalMargins.medium,
-  paddingRight: globalMargins.medium,
-  justifyContent: 'flex-start',
+  justifyContent: 'center',
   backgroundColor: globalColors.transparent,
 }
 
