@@ -293,7 +293,6 @@ func (c *CmdTeamSettings) printCurrentSettings(ctx context.Context, cli keybase1
 		dui.Printf("  Showcased:               %v\n", c.tfToYn(showcaseInfo.TeamShowcase.IsShowcased, "on keybase.io/popular-teams"))
 		dui.Printf("  Promoted:                %v\n", c.tfToYn(showcaseInfo.IsMemberShowcased, "on your profile"))
 		dui.Printf("  Non-admins can promote:  %v\n", c.tfToYn(showcaseInfo.TeamShowcase.AnyMemberShowcase, "on their profiles"))
-		// CORE-6550: show whether non-admins are allowed to promote
 	}
 
 	return nil
