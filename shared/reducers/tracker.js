@@ -12,9 +12,9 @@ function updateUserState(
 ): Types.State {
   return {
     ...state,
-    trackers: {
-      ...state.trackers,
-      [username]: sub(state.trackers[username]),
+    userTrackers: {
+      ...state.userTrackers,
+      [username]: sub(state.userTrackers[username]),
     },
   }
 }
@@ -44,7 +44,7 @@ export default function(
         trackers: {},
         nonUserTrackers: {},
       }
-    case TrackerGen.startTimer:
+    case TrackerGen.setStartTimer:
       return {
         ...state,
         timerActive: state.timerActive + 1,
@@ -72,7 +72,7 @@ export default function(
           [username]: pending ? true : undefined,
         },
       }
-    case TrackerGen.registerIdentifyUi:
+    case TrackerGen.setRegisterIdentifyUi:
       const {started} = action.payload
       return {
         ...state,
@@ -93,23 +93,28 @@ export default function(
           serviceName: nonUser.socialAssertion.service,
         }
       })
-    case TrackerGen.onClose: {
+    case TrackerGen.setOnClose: {
       const {username} = action.payload
-      const isTracker = state.trackers[username]
-      return isTracker
-        ? updateUserState(state, username, state => ({
-            ...state,
-            closed: true,
-            hidden: false,
-            lastAction: null,
-            needTrackTokenDismiss: !!state && !state.trackToken, // did we have a track token at this time?
-            shouldFollow: false, // don't follow if they close x out the window
-          }))
-        : updateNonUserState(state, username, state => ({
-            ...state,
-            closed: true,
-            hidden: false,
-          }))
+      const isUser = state.userTrackers[username]
+      if (isUser) {
+        return updateUserState(state, username, state => ({
+          ...state,
+          closed: true,
+          hidden: false,
+          lastAction: null,
+          needTrackTokenDismiss: !!state && !state.trackToken, // did we have a track token at this time?
+          shouldFollow: false, // don't follow if they close x out the window
+        }))
+      }
+      const isNonUser = state.nonUserTrackers[username]
+      if (isNonUser) {
+        return updateNonUserState(state, username, state => ({
+          ...state,
+          closed: true,
+          hidden: false,
+        }))
+      }
+      break
     }
     case TrackerGen.updateUsername: {
       const {username} = action.payload
@@ -144,7 +149,7 @@ export default function(
         ...state,
         waiting,
       }))
-    case TrackerGen.onFollow: {
+    case TrackerGen.setOnFollow: {
       const {username} = action.payload
       return updateUserState(state, username, state => ({
         ...state,
@@ -153,7 +158,7 @@ export default function(
         reason: `You have followed ${username}.`,
       }))
     }
-    case TrackerGen.onRefollow: {
+    case TrackerGen.setOnRefollow: {
       const {username} = action.payload
       return updateUserState(state, username, state => ({
         ...state,
@@ -163,7 +168,7 @@ export default function(
         eldestKidChanged: false,
       }))
     }
-    case TrackerGen.onUnfollow: {
+    case TrackerGen.setOnUnfollow: {
       const {username} = action.payload
       return updateUserState(state, username, state => ({
         ...state,
@@ -350,7 +355,7 @@ export default function(
         ...state,
         closed: true,
       }))
-    case TrackerGen.updateTrackers: {
+    case TrackerGen.setUpdateTrackers: {
       const {trackers, tracking} = action.payload
       return updateUserState(state, action.payload.username, state => ({
         ...state,

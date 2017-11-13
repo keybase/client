@@ -59,7 +59,7 @@ const initialState: Types.State = {
   pendingIdentifies: {},
   serverStarted: false,
   timerActive: 0,
-  trackers: {},
+  userTrackers: {},
   nonUserTrackers: {},
   // tracking: [],
 }

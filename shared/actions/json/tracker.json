@@ -20,7 +20,7 @@
     "updateEldestKidChanged": {
       "username": "string"
     },
-    "onClose": {
+    "setOnClose": {
       "username": "string"
     },
     "pendingIdentify": {
@@ -35,7 +35,7 @@
       "username": "string",
       "tlfs": "Array<FolderConstants.Folder>"
     },
-    "startTimer": {},
+    "setStartTimer": {},
     "stopTimer": {},
     "updateUsername": {
       "username": "string"
@@ -89,13 +89,13 @@
       "userCard": "RPCTypes.UserCard",
       "username": "string"
     },
-    "registerIdentifyUi": {
+    "setRegisterIdentifyUi": {
       "started": "boolean"
     },
-    "onRefollow": {
+    "setOnUnfollow": {
       "username": "string"
     },
-    "onUnfollow": {
+    "setOnRefollow": {
       "username": "string"
     },
     "updateReason": {
@@ -108,7 +108,7 @@
     "showTracker": {
       "username": "string"
     },
-    "onFollow": {
+    "setOnFollow": {
       "username": "string"
     },
     "onError": {
@@ -131,7 +131,7 @@
       "username": "string",
       "needTrackTokenDismiss": "boolean"
     },
-    "updateTrackers": {
+    "setUpdateTrackers": {
       "username": "string",
       "trackers": "Array<{|username: string, thumbnailUrl: ?string, uid: string, fullname: string, followsYou: boolean, following: boolean|}>",
       "tracking": "Array<{|username: string, thumbnailUrl: ?string, uid: string, fullname: string, followsYou: boolean, following: boolean|}>"

@@ -65,15 +65,15 @@ class RemoteTracker extends Component<Props> {
 
 const mapStateToProps = (state: TypedState) => ({
   started: state.tracker.serverStarted,
-  trackers: state.tracker.trackers,
+  trackers: state.tracker.userTrackers,
   nonUserTrackers: state.tracker.nonUserTrackers,
 })
 
 const mapDispatchToProps = (dispatch: any) => ({
-  startTimer: () => dispatch(TrackerGen.createStartTimer()),
+  startTimer: () => dispatch(Creators.startTimer()),
   stopTimer: () => dispatch(TrackerGen.createStopTimer()),
   errorRetry: (username: string) => dispatch(Creators.getProfile(username, true)),
-  onClose: (username: string) => dispatch(TrackerGen.createOnClose({username})),
+  onClose: (username: string) => dispatch(Creators.onClose(username)),
 })
 
 export default connect(mapStateToProps, mapDispatchToProps)(RemoteTracker)

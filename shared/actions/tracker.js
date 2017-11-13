@@ -12,9 +12,12 @@ import {isMobile} from '../constants/platform'
 import {type TypedState} from '../constants/reducer'
 import {type FriendshipUserInfo} from '../profile/friendships'
 
+// TODO sagaize this
+// Currently most things will call these thunks but they also tend to dispatch a generated action with the same name
+
 const startTimer = () => (dispatch: Dispatch, getState: () => TypedState) => {
   // Increments timerActive as a count of open tracker popups.
-  dispatch(TrackerGen.createStartTimer())
+  dispatch(TrackerGen.createSetStartTimer())
   const timerActive = getState().tracker.timerActive
   if (timerActive === 1) {
     // We're transitioning from 0->1, no tracker popups to one, start timer.
@@ -55,7 +58,7 @@ const getProfile = (username: string, ignoreCache: boolean = false, forceDisplay
     return
   }
 
-  const trackerState = tracker && tracker.trackers ? tracker.trackers[username] : null
+  const trackerState = tracker.userTrackers[username]
   const uid = trackerState && trackerState.type === 'tracker'
     ? trackerState.userInfo && trackerState.userInfo.uid
     : null
@@ -166,7 +169,7 @@ function registerIdentifyUi() {
       }
     )
 
-    dispatch(TrackerGen.createRegisterIdentifyUi({started: true}))
+    dispatch(TrackerGen.createSetRegisterIdentifyUi({started: true}))
   }
 
   return registerIdentifyUiHelper
@@ -177,7 +180,7 @@ const onRefollow = (username: string) => (dispatch: Dispatch, getState: () => Ty
 
   const dispatchRefollowAction = () => {
     dispatch(TrackerGen.createWaiting({username, waiting: false}))
-    dispatch(TrackerGen.createOnRefollow({username}))
+    dispatch(TrackerGen.createSetOnRefollow({username}))
   }
   const dispatchErrorAction = errText => {
     dispatch(TrackerGen.createWaiting({username, waiting: false}))
@@ -207,7 +210,7 @@ const onUnfollow = (username: string) => (dispatch: Dispatch, getState: () => Ty
       console.log('err untracking', err)
     })
 
-  dispatch(TrackerGen.createOnUnfollow({username}))
+  dispatch(TrackerGen.createSetOnUnfollow({username}))
 }
 
 const _trackUser = (trackToken: ?string, localIgnore: boolean): Promise<boolean> =>
@@ -242,16 +245,13 @@ const onIgnore = (username: string): ((dispatch: Dispatch) => void) => dispatch 
 }
 
 function _getTrackToken(state, username) {
-  const trackerState = state.tracker.trackers[username]
-  return trackerState && trackerState.type === 'tracker' ? trackerState.trackToken : null
+  const trackerState = state.tracker.userTrackers[username]
+  return trackerState ? trackerState.trackToken : null
 }
 
-function _getUsername(uid: string, state: {tracker: Types.State}): ?string {
-  const trackers = state.tracker && state.tracker.trackers
-  return Object.keys(trackers).find(
-    (name: string) =>
-      trackers[name].type === 'tracker' && trackers[name].userInfo && trackers[name].userInfo.uid === uid
-  )
+function _getUsername(uid: string, state: TypedState): ?string {
+  const trackers = state.tracker.userTrackers
+  return Object.keys(trackers).find(name => trackers[name].userInfo.uid === uid)
 }
 
 const onFollow = (username: string, localIgnore?: boolean) => (
@@ -261,7 +261,7 @@ const onFollow = (username: string, localIgnore?: boolean) => (
   const trackToken = _getTrackToken(getState(), username)
 
   const dispatchFollowedAction = () => {
-    dispatch(TrackerGen.createOnFollow({username}))
+    dispatch(TrackerGen.createSetOnFollow({username}))
     dispatch(TrackerGen.createWaiting({username, waiting: false}))
   }
   const dispatchErrorAction = errText => {
@@ -291,7 +291,7 @@ const onClose = (username: string) => (dispatch: Dispatch, getState: () => Typed
     console.log(`Missing trackToken for ${username}, waiting...`)
   }
 
-  dispatch(TrackerGen.createOnClose({username}))
+  dispatch(TrackerGen.createSetOnClose({username}))
 }
 
 const sessionIDToUsername: {[key: number]: string} = {}
@@ -519,7 +519,7 @@ function _serverCallMap(
       addToIdleResponseQueue(() => {
         dispatch(TrackerGen.createUpdateTrackToken({username, trackToken}))
 
-        const userState = getState().tracker.trackers[username]
+        const userState = getState().tracker.userTrackers[username]
         if (userState && userState.needTrackTokenDismiss) {
           _dismissWithToken(trackToken)
 
@@ -626,7 +626,7 @@ const _fillFolders = (username: string) => (dispatch: Dispatch, getState: () => 
 const updateTrackers = (username: string) => (dispatch: Dispatch, getState: () => TypedState) =>
   Promise.all([listTrackers(username), listTracking(username)])
     .then(([trackers, tracking]) => {
-      dispatch(TrackerGen.createUpdateTrackers({username, trackers, tracking}))
+      dispatch(TrackerGen.createSetUpdateTrackers({username, trackers, tracking}))
     })
     .catch(e => {
       console.warn('Failed to get followers/followings', e)

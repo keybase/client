@@ -91,7 +91,7 @@ export type State = {
   pendingIdentifies: {[key: string]: boolean},
   serverStarted: boolean,
   timerActive: number,
-  trackers: {[key: string]: TrackerState},
+  userTrackers: {[key: string]: TrackerState},
   nonUserTrackers: {[key: string]: NonUserState},
   // tracking: Array<FriendshipUserInfo>,
 }

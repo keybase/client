@@ -1,9 +1,9 @@
 // @flow
-import * as TrackerActions from '../actions/tracker'
+import * as Creators from '../actions/tracker'
+import * as TrackerGen from '../actions/tracker-gen'
 import * as ProfileGen from '../actions/profile-gen'
 import React, {Component} from 'react'
 import Render, {type RenderPropsUnshaped} from './render'
-import {bindActionCreators} from 'redux'
 import {connect, type TypedState} from '../util/container'
 import {isLoading} from '../constants/tracker'
 import {type Proof, type SimpleProofState, type UserInfo} from '../constants/types/tracker'
@@ -71,76 +71,58 @@ type OwnProps = {
   username: string,
 }
 
-export default connect(
-  (state: TypedState, ownProps: OwnProps) => {
-    const trackerState = state.tracker.trackers[ownProps.username]
-    return {
-      ...state.tracker,
-      actionBarReady: !trackerState.serverActive && !trackerState.error,
-      errorMessage: trackerState.error,
-      loading: isLoading(trackerState),
-      loggedIn: state.config && state.config.loggedIn,
-      myUsername: state.config && state.config.username,
-      nonUser: trackerState && trackerState.type === 'nonUser',
-      ...trackerState,
-      ...ownProps,
-    }
-  },
-  (dispatch: any, ownProps: OwnProps) => {
-    const actions = bindActionCreators(TrackerActions, dispatch)
-    return {
-      errorRetry: ownProps.errorRetry ||
-        (() => {
-          actions.getProfile(ownProps.username, true)
-        }),
-      onChat: (username, myUsername) => {
-        username && myUsername && dispatch(createStartConversation({users: [username, myUsername]}))
-      },
-      onClickAvatar: username => {
-        dispatch(ProfileGen.createOnClickAvatar({username, openWebsite: true}))
-      },
-      onClickFollowers: username => {
-        dispatch(ProfileGen.createOnClickFollowers({username, openWebsite: true}))
-      },
-      onClickFollowing: username => {
-        dispatch(ProfileGen.createOnClickFollowing({username, openWebsite: true}))
-      },
-      onClose: () => {
-        actions.onClose(ownProps.username)
-      },
-      onFollow: () => {
-        actions.onFollow(ownProps.username)
-      },
-      onIgnore: () => {
-        actions.onIgnore(ownProps.username)
-      },
-      onRefollow: () => {
-        actions.onRefollow(ownProps.username)
-      },
-      onUnfollow: () => {
-        actions.onUnfollow(ownProps.username)
-      },
-      startTimer: () => {
-        actions.startTimer()
-      },
-    }
-  },
-  (stateProps, dispatchProps, ownProps) => {
-    const {myUsername, username} = stateProps
-    return {
-      ...ownProps,
-      ...stateProps,
-      ...dispatchProps,
-      error: stateProps.errorMessage
-        ? {
-            errorMessage: stateProps.errorMessage,
-            onRetry: dispatchProps.errorRetry,
-          }
-        : null,
-      onChat: () => dispatchProps.onChat(username, myUsername),
-      onClickAvatar: () => dispatchProps.onClickAvatar(username),
-      onClickFollowers: () => dispatchProps.onClickFollowers(username),
-      onClickFollowing: () => dispatchProps.onClickFollowing(username),
-    }
+const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
+  const trackerState =
+    state.tracker.userTrackers[ownProps.username] || state.tracker.nonUserTrackers[ownProps.username]
+  return {
+    ...state.tracker, // why is this happening?
+    actionBarReady: !trackerState.serverActive && !trackerState.error,
+    errorMessage: trackerState.error,
+    loading: isLoading(trackerState),
+    loggedIn: state.config && state.config.loggedIn,
+    myUsername: state.config && state.config.username,
+    nonUser: trackerState && trackerState.type === 'nonUser',
+    ...trackerState,
+    ...ownProps,
   }
-)(Tracker)
+}
+
+const mapDispatchToProps = (dispatch: any, ownProps: OwnProps) => ({
+  errorRetry: ownProps.errorRetry
+    ? ownProps.errorRetry
+    : () => dispatch(Creators.getProfile(ownProps.username, true)),
+  onChat: (username: string, myUsername: string) =>
+    username && myUsername && dispatch(createStartConversation({users: [username, myUsername]})),
+  onClickAvatar: (username: string) =>
+    dispatch(ProfileGen.createOnClickAvatar({username, openWebsite: true})),
+  onClickFollowers: (username: string) =>
+    dispatch(ProfileGen.createOnClickFollowers({username, openWebsite: true})),
+  onClickFollowing: (username: string) =>
+    dispatch(ProfileGen.createOnClickFollowing({username, openWebsite: true})),
+  onClose: () => dispatch(Creators.onClose(ownProps.username)),
+  onFollow: () => dispatch(Creators.onFollow(ownProps.username)),
+  onIgnore: () => dispatch(Creators.onIgnore(ownProps.username)),
+  onRefollow: () => dispatch(Creators.onRefollow(ownProps.username)),
+  onUnfollow: () => dispatch(Creators.onUnfollow(ownProps.username)),
+  startTimer: () => dispatch(Creators.startTimer()),
+})
+
+const mergeProps = (stateProps, dispatchProps, ownProps) => {
+  const {myUsername, username} = stateProps
+  return {
+    ...ownProps,
+    ...stateProps,
+    ...dispatchProps,
+    error: stateProps.errorMessage
+      ? {
+          errorMessage: stateProps.errorMessage,
+          onRetry: dispatchProps.errorRetry,
+        }
+      : null,
+    onChat: () => dispatchProps.onChat(username, myUsername),
+    onClickAvatar: () => dispatchProps.onClickAvatar(username),
+    onClickFollowers: () => dispatchProps.onClickFollowers(username),
+    onClickFollowing: () => dispatchProps.onClickFollowing(username),
+  }
+}
+export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(Tracker)
