@@ -1884,7 +1884,7 @@ export type BTCRegisterBTCRpcParam = {|  address: String,
 
 export type BadgeConversationInfo = {|convID: ChatConversationID,badgeCounts: {[key: string]: Int},unreadMessages: Int,|}
 
-export type BadgeState = {|newTlfs: Int,rekeysNeeded: Int,newFollowers: Int,inboxVers: Int,conversations?: ?Array<BadgeConversationInfo>,newGitRepoGlobalUniqueIDs?: ?Array<String>,newTeamNames?: ?Array<String>,newTeamAccessRequests?: ?Array<String>,teamsWithResetUsers?: ?Array<TeamMemberOutReset>,|}
+export type BadgeState = {|newTlfs: Int,rekeysNeeded: Int,newFollowers: Int,inboxVers: Int,homeTodoItems: Int,conversations?: ?Array<BadgeConversationInfo>,newGitRepoGlobalUniqueIDs?: ?Array<String>,newTeamNames?: ?Array<String>,newTeamAccessRequests?: ?Array<String>,teamsWithResetUsers?: ?Array<TeamMemberOutReset>,|}
 
 export type BinaryKID = Bytes
 

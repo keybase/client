@@ -58,6 +58,10 @@
           "name": "inboxVers"
         },
         {
+          "type": "int",
+          "name": "homeTodoItems"
+        },
+        {
           "type": {
             "type": "array",
             "items": "BadgeConversationInfo"
