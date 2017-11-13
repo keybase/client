@@ -44,8 +44,7 @@ const mapStateToProps = (state: TypedState, {routeProps, routeState}): StateProp
     _implicitAdminUsernames: implicitAdminUsernames,
     _requests: state.entities.getIn(['teams', 'teamNameToRequests', teamname], I.Set()),
     _invites: state.entities.getIn(['teams', 'teamNameToInvites', teamname], I.Set()),
-    description: state.entities.getIn(['teams', 'teamNameToPublicitySettings', teamname], {description: ''})
-      .description,
+    description: state.entities.getIn(['teams', 'teamNameToPublicitySettings', teamname, 'description'], ''),
     isTeamOpen: state.entities.getIn(['teams', 'teamNameToTeamSettings', teamname], {
       open: false,
     }).open,
