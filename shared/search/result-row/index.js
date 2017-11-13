@@ -18,8 +18,13 @@ const Left = ({leftService, leftIcon, leftUsername, leftFollowingState}) => {
         width: isMobile ? 170 : 215,
       }}
     >
-      <Box style={{...globalStyles.flexBoxCenter, width: 32}}>
-        <IconOrAvatar service={leftService} username={leftUsername} icon={leftIcon} avatarSize={32} />
+      <Box style={{...globalStyles.flexBoxCenter, width: isMobile ? 40 : 32}}>
+        <IconOrAvatar
+          service={leftService}
+          username={leftUsername}
+          icon={leftIcon}
+          avatarSize={isMobile ? 40 : 32}
+        />
       </Box>
       <Text
         type="BodySemibold"
@@ -53,7 +58,7 @@ const Middle = ({rightService, rightIcon, rightUsername, rightFullname, rightFol
           style={{
             fontSize: 12,
             height: 12,
-            marginRight: 3,
+            marginRight: globalMargins.xtiny,
             width: 12,
           }}
         />
@@ -64,13 +69,6 @@ const Middle = ({rightService, rightIcon, rightUsername, rightFullname, rightFol
       </Box>
       {!!rightFullname &&
         <Box style={globalStyles.flexBoxRow}>
-          <Box
-            style={{
-              maxWidth: 15,
-              minHeight: 1,
-              minWidth: 15,
-            }}
-          />
           <Text type="BodySmall">{rightFullname}</Text>
         </Box>}
     </Box>

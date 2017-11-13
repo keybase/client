@@ -66,4 +66,5 @@ const (
 	OutputDescriptorPrimaryPaperKey
 	OutputDescriptorEndageredTLFs
 	OutputDescriptorHomeDump
+	OutputDescriptorBadgeDump
 )

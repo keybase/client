@@ -12,6 +12,7 @@ class FoldersRender extends Component<Props> {
   _makeItem(folderType: string, isSelected: boolean) {
     let isPublic = folderType === 'public'
     const icon = isPublic ? 'icon-folder-public-24' : 'icon-folder-private-24'
+    const badgeNumber = this.props[folderType + 'Badge']
     return (
       <TabBarButton
         source={{type: 'icon', icon}}
@@ -31,7 +32,7 @@ class FoldersRender extends Component<Props> {
         styleBadgeNumber={styleBadgeNumber}
         selected={isSelected}
         label={`${folderType}/`}
-        badgeNumber={isPublic ? this.props.publicBadge : this.props.privateBadge}
+        badgeNumber={badgeNumber}
       />
     )
   }

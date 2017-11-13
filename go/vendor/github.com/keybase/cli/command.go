@@ -18,6 +18,8 @@ type Command struct {
 	Usage string
 	// A longer explanation of how the command works
 	Description string
+	// Example usage
+	Examples string
 	// The function to call when checking for bash command completions
 	BashComplete func(context *Context)
 	// An action to execute before any sub-subcommands are run, but after the context is ready
@@ -149,6 +151,12 @@ func (c Command) HasName(name string) bool {
 		}
 	}
 	return false
+}
+
+// Strips and indents with 3 spaces examples.
+func (c Command) ExamplesFormatted() string {
+	prefix := "   "
+	return prefix + strings.Join(strings.Split(strings.TrimSpace(c.Examples), "\n"), "\n"+prefix)
 }
 
 func (c Command) startApp(ctx *Context) error {

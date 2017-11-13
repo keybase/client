@@ -352,7 +352,7 @@ func (g *PushHandler) shouldDisplayDesktopNotification(ctx context.Context,
 		apptype := keybase1.DeviceType_DESKTOP
 		kind := chat1.NotificationKind_GENERIC
 		switch typ {
-		case chat1.MessageType_TEXT:
+		case chat1.MessageType_TEXT, chat1.MessageType_SYSTEM:
 			for _, at := range msg.Valid().AtMentions {
 				if at.Eq(uid) {
 					kind = chat1.NotificationKind_ATMENTION
@@ -461,7 +461,7 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage) (
 				}
 				desktopNotification := g.shouldDisplayDesktopNotification(ctx, uid, conv, decmsg)
 				activity = chat1.NewChatActivityWithIncomingMessage(chat1.IncomingMessage{
-					Message: utils.PresentMessageUnboxed(decmsg),
+					Message: utils.PresentMessageUnboxed(ctx, decmsg, uid, g.G().TeamChannelSource),
 					ConvID:  nm.ConvID,
 					Conv:    g.presentUIItem(conv),
 					DisplayDesktopNotification: desktopNotification,

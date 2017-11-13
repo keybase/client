@@ -44,11 +44,13 @@ const mapStateToProps = (state: TypedState, {routeProps, routeState}): StateProp
     _implicitAdminUsernames: implicitAdminUsernames,
     _requests: state.entities.getIn(['teams', 'teamNameToRequests', teamname], I.Set()),
     _invites: state.entities.getIn(['teams', 'teamNameToInvites', teamname], I.Set()),
+    description: state.entities.getIn(['teams', 'teamNameToPublicitySettings', teamname, 'description'], ''),
     isTeamOpen: state.entities.getIn(['teams', 'teamNameToTeamSettings', teamname], {
       open: false,
     }).open,
     _newTeamRequests: state.entities.getIn(['teams', 'newTeamRequests'], I.List()),
     loading: state.entities.getIn(['teams', 'teamNameToLoading', teamname], true),
+    memberCount: state.entities.getIn(['teams', 'teammembercounts', teamname], 0),
     name: teamname,
     publicityMember: state.entities.getIn(['teams', 'teamNameToPublicitySettings', teamname], {
       member: false,
@@ -72,6 +74,7 @@ type DispatchProps = {
   setSelectedTab: (tab: string) => void,
   onBack: () => void,
   _onClickOpenTeamSetting: () => void,
+  _onEditDescription: () => void,
 }
 
 const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, setRouteState, routeProps}): DispatchProps => ({
@@ -114,6 +117,10 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, setRouteState, rout
         },
       ])
     ),
+  _onEditDescription: () =>
+    dispatch(
+      navigateAppend([{props: {teamname: routeProps.get('teamname')}, selected: 'editTeamDescription'}])
+    ),
 })
 
 const isExplicitAdmin = (memberInfo: I.Set<Constants.MemberInfo>, user: string): boolean => {
@@ -131,6 +138,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
   const onManageChat = () => dispatchProps._onManageChat(stateProps.name)
   const onLeaveTeam = () => dispatchProps._onLeaveTeam(stateProps.name)
   const onClickOpenTeamSetting = () => dispatchProps._onClickOpenTeamSetting(stateProps.isTeamOpen)
+  const onEditDescription = () => dispatchProps._onEditDescription()
   const onCreateSubteam = () => dispatchProps._onCreateSubteam(stateProps.name)
 
   const you = stateProps.you
@@ -179,6 +187,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     onManageChat,
     onOpenFolder,
     onClickOpenTeamSetting,
+    onEditDescription,
     setPublicityMember,
     setPublicityTeam,
     showAddYourselfBanner,

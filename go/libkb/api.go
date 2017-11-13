@@ -396,7 +396,7 @@ func doRetry(ctx context.Context, g Contextifier, arg APIArg, cli *Client, req *
 // a canceler, and an error. The canceler ought to be called before the caller (or its caller) is done
 // with this request.
 func doTimeout(origCtx context.Context, g Contextifier, cli *Client, req *http.Request, timeout time.Duration) (*http.Response, func(), error) {
-	ctx, cancel := context.WithTimeout(origCtx, timeout*CITimeMultiplier(g))
+	ctx, cancel := context.WithTimeout(origCtx, timeout*CITimeMultiplier(g.G()))
 	resp, err := ctxhttp.Do(ctx, cli.cli, req)
 	return resp, cancel, err
 }
