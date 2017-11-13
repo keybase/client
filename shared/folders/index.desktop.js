@@ -7,7 +7,7 @@ import React, {Component} from 'react'
 import {Box, TabBar} from '../common-adapters'
 import {TabBarItem, TabBarButton} from '../common-adapters/tab-bar'
 import {connect, type TypedState} from '../util/container'
-import {globalStyles, globalColors} from '../styles'
+import {globalStyles, globalColors, globalMargins} from '../styles'
 import {isLinux} from '../constants/platform'
 import {type Props, type FolderType} from '.'
 
@@ -19,6 +19,7 @@ class FoldersRender extends Component<Props> {
     const iconStyle = isPublic
       ? {color: globalColors.yellowGreen2, marginBottom: isSelected ? 0 : 0, opacity: isSelected ? 1.0 : 0.6}
       : {color: globalColors.darkBlue2, marginBottom: isSelected ? 0 : 0, opacity: isSelected ? 1.0 : 0.6}
+    const badgeNumber = this.props[folderType + 'Badge']
     return (
       <TabBarButton
         source={{type: 'icon', icon}}
@@ -29,6 +30,7 @@ class FoldersRender extends Component<Props> {
           width: 106 + 2 / 3,
         }}
         styleBadge={styleBadge}
+        styleBadgeContainer={{position: 'absolute', right: -1 * globalMargins.tiny}}
         styleIcon={{...styleIcon, ...iconStyle}}
         styleLabel={{
           color: isPublic ? globalColors.yellowGreen2 : globalColors.darkBlue,
@@ -37,7 +39,7 @@ class FoldersRender extends Component<Props> {
         }}
         selected={isSelected}
         label={`${folderType}/`}
-        badgeNumber={isPublic ? this.props.publicBadge : this.props.privateBadge}
+        badgeNumber={badgeNumber}
       />
     )
   }
