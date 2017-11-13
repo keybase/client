@@ -1,5 +1,4 @@
 // @flow
-import type {NoErrorTypedAction, TypedAction} from '../constants/types/flux'
 import type {Email} from './types/flow-types'
 import type {AcceptedInvite, PendingInvite} from '../settings/invites/index'
 import HiddenString from '../util/hidden-string'
@@ -64,99 +63,45 @@ export type State = {
   passphrase: PassphraseState,
 }
 
-export const invitesClearError = 'settings:invitesClearError'
-export type InvitesClearError = NoErrorTypedAction<'settings:invitesClearError', void>
-
-export const invitesReclaim = 'settings:invitesReclaim'
-export type InvitesReclaim = NoErrorTypedAction<'settings:invitesReclaim', {inviteId: string}>
-
-export const invitesReclaimed = 'settings:invitesReclaimed'
-export type InvitesReclaimed = TypedAction<'settings:invitesReclaimed', void, {errorText: string}>
-
-export const invitesRefresh = 'settings:invitesRefresh'
-export type InvitesRefresh = NoErrorTypedAction<'settings:invitesRefresh', void>
-export const invitesRefreshed = 'settings:invitesRefreshed'
-export type InvitesRefreshed = NoErrorTypedAction<'settings:invitesRefreshed', InvitesState>
-
-export const invitesSend = 'settings:invitesSend'
-export type InvitesSend = NoErrorTypedAction<
-  'settings:invitesSend',
-  {
-    email: string,
-    message: ?string,
-  }
->
-
-export const invitesSent = 'settings:invitesSent'
-export type InvitesSent = TypedAction<'settings:invitesSent', {email: string}, {error: Error}>
-
-export const notificationsRefresh = 'settings:notificationsRefresh'
-export type NotificationsRefresh = NoErrorTypedAction<'settings:notificationsRefresh', void>
-export const notificationsRefreshed = 'settings:notificationsRefreshed'
-export type NotificationsRefreshed = NoErrorTypedAction<'settings:notificationsRefreshed', NotificationsState>
-
-export const notificationsSaved = 'settings:notificationsSaved'
-export type NotificationsSaved = NoErrorTypedAction<'settings:notificationsSaved', void>
-
-export const notificationsToggle = 'settings:notificationsToggle'
-export type NotificationsToggle = NoErrorTypedAction<
-  'settings:notificationsToggle',
-  {group: string, name: ?string}
->
-
-export const setAllowDeleteAccount = 'settings:setAllowDeleteAccount'
-export type SetAllowDeleteAccount = NoErrorTypedAction<'settings:setAllowDeleteAccount', boolean>
-
-export const dbNuke = 'settings:dbNuke'
-export type DBNuke = NoErrorTypedAction<'settings:dbNuke', void>
-
-export const deleteAccountForever = 'settings:deleteAccountForever'
-export type DeleteAccountForever = NoErrorTypedAction<'settings:deleteAccountForever', void>
-
-export const onChangeNewPassphrase = 'settings:onChangeNewPassphrase'
-export type OnChangeNewPassphrase = NoErrorTypedAction<
-  'settings:onChangeNewPassphrase',
-  {passphrase: HiddenString}
->
-
-export const onChangeNewPassphraseConfirm = 'settings:onChangeNewPassphraseConfirm'
-export type OnChangeNewPassphraseConfirm = NoErrorTypedAction<
-  'settings:onChangeNewPassphraseConfirm',
-  {passphrase: HiddenString}
->
-
-export const onChangeShowPassphrase = 'settings:onChangeShowPassphrase'
-export type OnChangeShowPassphrase = NoErrorTypedAction<'settings:onChangeShowPassphrase', void>
-
-export const onSubmitNewPassphrase = 'settings:onSubmitNewPassphrase'
-export type OnSubmitNewPassphrase = NoErrorTypedAction<'settings:onSubmitNewPassphrase', void>
-
-export const onUpdatePassphraseError = 'settings:onUpdatePassphraseError'
-export type OnUpdatePassphraseError = NoErrorTypedAction<'settings:onUpdatePassphraseError', {error: Error}>
-
-export const onChangeNewEmail = 'settings:onChangeNewEmail'
-export type OnChangeNewEmail = NoErrorTypedAction<'settings:onChangeNewEmail', {email: string}>
-
-export const onSubmitNewEmail = 'settings:onSubmitNewEmail'
-export type OnSubmitNewEmail = NoErrorTypedAction<'settings:onSubmitNewEmail', void>
-
-export const onUpdateEmailError = 'settings:onUpdateEmailError'
-export type OnUpdateEmailError = NoErrorTypedAction<'settings:onUpdateEmailError', {error: Error}>
-
-export const onUpdatePGPSettings = 'settings:onUpdatePGPSettings'
-export type OnUpdatePGPSettings = NoErrorTypedAction<'settings:onUpdatePGPSettings', void>
-
-export const onUpdatedPGPSettings = 'settings:onUpdatedPGPSettings'
-export type OnUpdatedPGPSettings = NoErrorTypedAction<'settings:onUpdatedPGPSettings', {hasKeys: boolean}>
+const initialState: State = {
+  allowDeleteAccount: false,
+  email: {
+    emails: [],
+    error: null,
+    newEmail: '',
+  },
+  invites: {
+    acceptedInvites: [],
+    error: null,
+    pendingInvites: [],
+  },
+  notifications: {
+    allowEdit: false,
+    groups: {
+      email: {
+        settings: null,
+        unsubscribedFromAll: false,
+      },
+    },
+  },
+  passphrase: {
+    error: null,
+    hasPGPKeyOnServer: null,
+    newPassphrase: new HiddenString(''),
+    newPassphraseConfirm: new HiddenString(''),
+    newPassphraseConfirmError: null,
+    newPassphraseError: null,
+  },
+  push: {
+    permissionsPrompt: false,
+    permissionsRequesting: false,
+    token: '',
+    tokenType: '',
+  },
+  waitingForResponse: false,
+}
 
 export type PlanLevel = string
-
-export const loadSettings = 'settings:loadSettings'
-export type LoadSettings = NoErrorTypedAction<'settings:loadSettings', void>
-
-export const loadedSettings = 'settings:loadedSettings'
-export type LoadedSettings = NoErrorTypedAction<'settings:loadedSettings', void>
-
 type LandingTab = 'settingsTabs:landingTab'
 export const landingTab = 'settingsTabs:landingTab'
 type UpdatePaymentTab = 'settingsTabs:updatePaymentTab'
@@ -202,31 +147,5 @@ export type Tab =
   | ScreenprotectorTab
   | PassphraseTab
 
-export const waitingForResponse = 'settings:waitingForResponse'
-export type WaitingForResponse = TypedAction<'settings:waitingForResponse', boolean, void>
-export function waiting(waiting: boolean): WaitingForResponse {
-  return {
-    type: 'settings:waitingForResponse',
-    payload: waiting,
-  }
-}
-
 export const securityGroup = 'security'
-export type Actions =
-  | OnChangeNewPassphrase
-  | OnChangeNewPassphraseConfirm
-  | OnUpdatedPGPSettings
-  | OnUpdatePassphraseError
-  | OnUpdateEmailError
-  | OnChangeNewEmail
-  | LoadedSettings
-  | InvitesClearError
-  | InvitesSent
-  | InvitesRefresh
-  | InvitesRefreshed
-  | NotificationsRefresh
-  | NotificationsRefreshed
-  | NotificationsSaved
-  | NotificationsToggle
-  | SetAllowDeleteAccount
-  | WaitingForResponse
+export {initialState}
