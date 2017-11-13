@@ -73,6 +73,10 @@ start_systemd() {
   # "hideWindow" by the autostart file that might be calling us. We need to
   # pass it along.
   echo "KEYBASE_START_UI=${KEYBASE_START_UI:-}" > "$runtime_dir/keybase.gui.env"
+  # Some distros (e.g. Ubuntu 16.04) don't make X session variables available
+  # to user units automatically. Add them to the env file ourselves.
+  echo "DISPLAY=${DISPLAY:-}" >> "$runtime_dir/keybase.gui.env"
+  echo "XAUTHORITY=${XAUTHORITY:-}" >> "$runtime_dir/keybase.gui.env"
   # The keybase.gui.service unit has keybase.service and kbfs.service as
   # dependencies, so we don't have to list them here. But including them lets
   # us report an error if they fail to start.
