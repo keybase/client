@@ -647,12 +647,11 @@ function* _sendNotifications(action: ChatGen.AppendMessagesPayload): Saga.SagaGe
   )
   // Only send if you're not looking at it and service wants us to
   if (svcDisplay && (!convoIsSelected || !appFocused || !chatTabSelected)) {
-    const me = Selectors.usernameSelector(state)
-    const message = action.payload.messages.reverse().find(m => m.type === 'Text' && m.author !== me)
+    const message = action.payload.messages.reverse().find(m => m.type === 'Text' || m.type === 'System')
     // Is this message part of a muted conversation? If so don't notify.
     const convo = Constants.getInbox(state, action.payload.conversationIDKey)
     if (convo && convo.get('status') !== 'muted') {
-      if (message && message.type === 'Text') {
+      if (message && (message.type === 'Text' || message.type === 'System')) {
         console.log('Sending Chat notification')
         const snippet = Constants.makeSnippet(Constants.serverMessageToMessageText(message))
         yield Saga.put((dispatch: Dispatch) => {
