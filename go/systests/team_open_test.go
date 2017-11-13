@@ -218,3 +218,30 @@ func TestTeamOpenBans(t *testing.T) {
 	require.True(t, ok)
 	require.Equal(t, appErr.Code, libkb.SCTeamBanned)
 }
+
+func TestTeamOpenPuklessRequest(t *testing.T) {
+	tt := newTeamTester(t)
+	defer tt.cleanup()
+
+	own := tt.addUser("own")
+	bob := tt.addPuklessUser("bob")
+
+	team := own.createTeam()
+	t.Logf("Open team name is %q", team)
+
+	err := teams.ChangeTeamSettings(context.TODO(), own.tc.G, team, keybase1.TeamSettings{Open: true, JoinAs: keybase1.TeamRole_READER})
+	require.NoError(t, err)
+
+	_, err = bob.teamsClient.TeamRequestAccess(context.TODO(), keybase1.TeamRequestAccessArg{Name: team})
+	require.NoError(t, err)
+
+	own.kickTeamRekeyd()
+	own.pollForTeamSeqnoLink(team, keybase1.Seqno(3))
+
+	teamObj, err := teams.Load(context.TODO(), own.tc.G, keybase1.LoadTeamArg{
+		Name:        team,
+		ForceRepoll: true,
+	})
+	require.NoError(t, err)
+	require.Equal(t, 1, teamObj.NumActiveInvites())
+}
