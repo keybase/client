@@ -24,10 +24,7 @@ const cleanPhoneNumber: string => string = (dirty: string) => {
 // we get invite name as `[name] ([phone number]), this extracts [phone number]
 const extractPhoneNumber: string => ?string = (name: string) => {
   const matches = /\((.*)\)/.exec(name)
-  if (matches[1]) {
-    return cleanPhoneNumber(matches[1])
-  }
-  return ''
+  return (matches[1] && cleanPhoneNumber(matches[1])) || ''
 }
 
 const mapStateToProps = (state: TypedState, {routeProps}: OwnProps) => {
