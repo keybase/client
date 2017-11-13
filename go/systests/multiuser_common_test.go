@@ -577,6 +577,7 @@ func (u *smuUser) teamMemberDetails(team smuTeam, user *smuUser) ([]keybase1.Tea
 
 func (u *smuUser) isMemberActive(team smuTeam, user *smuUser) (bool, error) {
 	details, err := u.teamMemberDetails(team, user)
+	u.ctx.t.Logf("isMemberActive team member details for %s: %+v", user.username, details)
 	if err != nil {
 		return false, err
 	}
@@ -594,7 +595,7 @@ func (u *smuUser) assertMemberActive(team smuTeam, user *smuUser) {
 		u.ctx.t.Fatalf("assertMemberActive error: %s", err)
 	}
 	if !active {
-		u.ctx.t.Errorf("user %s not active", user.username)
+		u.ctx.t.Errorf("user %s not active (expected active)", user.username)
 	}
 }
 
@@ -604,10 +605,34 @@ func (u *smuUser) assertMemberInactive(team smuTeam, user *smuUser) {
 		u.ctx.t.Fatalf("assertMemberInactive error: %s", err)
 	}
 	if active {
-		u.ctx.t.Errorf("user %s is active", user.username)
+		u.ctx.t.Errorf("user %s is active (expected inactive)", user.username)
 	}
 }
 
 func (u *smuUser) uid() keybase1.UID {
 	return u.primaryDevice().tctx.G.Env.GetUID()
+}
+
+func (u *smuUser) openTeam(team smuTeam, role keybase1.TeamRole) {
+	cli := u.getTeamsClient()
+	err := cli.TeamSetSettings(context.Background(), keybase1.TeamSetSettingsArg{
+		Name: team.name,
+		Settings: keybase1.TeamSettings{
+			Open:   true,
+			JoinAs: role,
+		},
+	})
+	if err != nil {
+		u.ctx.t.Fatal(err)
+	}
+}
+
+func (u *smuUser) requestAccess(team smuTeam) {
+	cli := u.getTeamsClient()
+	_, err := cli.TeamRequestAccess(context.Background(), keybase1.TeamRequestAccessArg{
+		Name: team.name,
+	})
+	if err != nil {
+		u.ctx.t.Fatal(err)
+	}
 }
