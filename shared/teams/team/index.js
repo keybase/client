@@ -27,17 +27,20 @@ type InviteRowProps = Constants.InviteInfo
 type RequestRowProps = Constants.RequestInfo
 
 export type Props = {
+  description: string,
   invites: Array<InviteRowProps>,
   isTeamOpen: boolean,
   newTeamRequests: Array<Constants.Teamname>,
   loading: boolean,
   members: Array<MemberRowProps>,
+  memberCount: number,
   name: Constants.Teamname,
   onAddPeople: () => void,
   onAddSelf: () => void,
   onInviteByEmail: () => void,
   setSelectedTab: (t: ?Constants.TabKey) => void,
   onCreateSubteam: () => void,
+  onEditDescription: () => void,
   onLeaveTeam: () => void,
   onManageChat: () => void,
   onClickOpenTeamSetting: () => void,
@@ -170,6 +173,7 @@ const TeamTabs = (props: TeamTabsProps) => {
 class Team extends React.PureComponent<Props> {
   render() {
     const {
+      description,
       invites,
       name,
       members,
@@ -179,11 +183,13 @@ class Team extends React.PureComponent<Props> {
       onAddPeople,
       onAddSelf,
       onCreateSubteam,
+      onEditDescription,
       onInviteByEmail,
       onLeaveTeam,
       selectedTab,
       showAddYourselfBanner,
       loading,
+      memberCount,
       onManageChat,
       publicityMember,
       publicityTeam,
@@ -321,6 +327,7 @@ class Team extends React.PureComponent<Props> {
               type="BodySemiboldLink"
               style={stylesAddYourselfBannerText}
               onClick={onAddSelf}
+              underline={true}
             >
               Add yourself
             </Text>
@@ -330,6 +337,24 @@ class Team extends React.PureComponent<Props> {
           {name}
         </Text>
         <Text type="BodySmall">TEAM</Text>
+        <Text type="BodySmall">
+          {memberCount + ' member' + (memberCount !== 1 ? 's' : '')}
+          {' '}
+          •
+          {' '}
+          {me && me.type && Constants.typeToLabel[me.type]}
+        </Text>
+        <Text
+          style={{
+            paddingTop: globalMargins.tiny,
+            color: description ? globalColors.black : globalColors.black_20,
+          }}
+          onClick={onEditDescription}
+          type={'BodySecondaryLink'}
+        >
+          {description || 'Write a brief description'}
+        </Text>
+
         {youCanAddPeople &&
           <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', marginTop: globalMargins.small}}>
             <Button type="Primary" label="Add people" onClick={onAddPeople} />

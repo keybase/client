@@ -465,6 +465,27 @@ func (m *ChatRemoteMock) createBogusBody(typ chat1.MessageType) chat1.MessageBod
 	}
 }
 
+type dummyChannelSource struct{}
+
+func (d dummyChannelSource) GetChannelsFull(ctx context.Context, uid gregor1.UID, tlfID chat1.TLFID,
+	topicType chat1.TopicType) ([]chat1.ConversationLocal, []chat1.RateLimit, error) {
+	return nil, nil, nil
+}
+
+func (d dummyChannelSource) GetChannelsTopicName(ctx context.Context, uid gregor1.UID, tlfID chat1.TLFID,
+	topicType chat1.TopicType) ([]types.ConvIDAndTopicName, []chat1.RateLimit, error) {
+	return nil, nil, nil
+}
+
+func (d dummyChannelSource) ChannelsChanged(ctx context.Context, tlfID chat1.TLFID) {}
+
+func (d dummyChannelSource) IsOffline(ctx context.Context) bool {
+	return false
+}
+
+func (d dummyChannelSource) Connected(ctx context.Context)    {}
+func (d dummyChannelSource) Disconnected(ctx context.Context) {}
+
 func (m *ChatRemoteMock) PostRemote(ctx context.Context, arg chat1.PostRemoteArg) (res chat1.PostRemoteRes, err error) {
 	uid := arg.MessageBoxed.ClientHeader.Sender
 	conv := m.world.GetConversationByID(arg.ConversationID)
@@ -487,12 +508,12 @@ func (m *ChatRemoteMock) PostRemote(ctx context.Context, arg chat1.PostRemoteArg
 	// hit notify router with new message
 	if m.world.TcsByID[uid.String()].G.NotifyRouter != nil {
 		activity := chat1.NewChatActivityWithIncomingMessage(chat1.IncomingMessage{
-			Message: utils.PresentMessageUnboxed(
+			Message: utils.PresentMessageUnboxed(ctx,
 				chat1.NewMessageUnboxedWithValid(chat1.MessageUnboxedValid{
 					ClientHeader: m.headerToVerifiedForTesting(inserted.ClientHeader),
 					ServerHeader: *inserted.ServerHeader,
 					MessageBody:  m.createBogusBody(inserted.GetMessageType()),
-				})),
+				}), uid, dummyChannelSource{}),
 		})
 		m.world.TcsByID[uid.String()].G.NotifyRouter.HandleNewChatActivity(context.Background(),
 			keybase1.UID(uid.String()), &activity)

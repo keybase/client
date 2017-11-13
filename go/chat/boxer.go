@@ -499,7 +499,7 @@ func (b *Boxer) unboxV1(ctx context.Context, boxed chat1.MessageBoxed,
 	}
 
 	// Get at mention usernames
-	atMentions, atMentionUsernames, chanMention, channelNameMentions :=
+	atMentions, atMentionUsernames, chanMention :=
 		b.getAtMentionInfo(ctx, clientHeader.Conv.Tlfid, membersType, body)
 
 	ierr = b.compareHeadersV1(ctx, boxed.ClientHeader, clientHeader)
@@ -523,7 +523,6 @@ func (b *Boxer) unboxV1(ctx context.Context, boxed chat1.MessageBoxed,
 		AtMentions:            atMentions,
 		AtMentionUsernames:    atMentionUsernames,
 		ChannelMention:        chanMention,
-		ChannelNameMentions:   channelNameMentions,
 	}, nil
 }
 
@@ -635,7 +634,7 @@ func (b *Boxer) unboxV2(ctx context.Context, boxed chat1.MessageBoxed,
 		ctx, clientHeader.Sender, clientHeader.SenderDevice)
 
 	// Get at mention usernames
-	atMentions, atMentionUsernames, chanMention, channelNameMentions :=
+	atMentions, atMentionUsernames, chanMention :=
 		b.getAtMentionInfo(ctx, clientHeader.Conv.Tlfid, membersType, body)
 
 	// create an unboxed message
@@ -654,7 +653,6 @@ func (b *Boxer) unboxV2(ctx context.Context, boxed chat1.MessageBoxed,
 		AtMentions:            atMentions,
 		AtMentionUsernames:    atMentionUsernames,
 		ChannelMention:        chanMention,
-		ChannelNameMentions:   channelNameMentions,
 	}, nil
 }
 
@@ -892,29 +890,23 @@ func (b *Boxer) getSenderInfoLocal(ctx context.Context, uid1 gregor1.UID, device
 }
 
 func (b *Boxer) getAtMentionInfo(ctx context.Context, tlfID chat1.TLFID,
-	membersType chat1.ConversationMembersType, body chat1.MessageBody) (atMentions []gregor1.UID, atMentionUsernames []string, chanMention chat1.ChannelMention, channelNameMentions []string) {
+	membersType chat1.ConversationMembersType, body chat1.MessageBody) (atMentions []gregor1.UID, atMentionUsernames []string, chanMention chat1.ChannelMention) {
 	chanMention = chat1.ChannelMention_NONE
 	typ, err := body.MessageType()
 	if err != nil {
-		return nil, nil, chanMention, channelNameMentions
+		return nil, nil, chanMention
 	}
-	uid := gregor1.UID(b.G().GetEnv().GetUID().ToBytes())
-
 	switch typ {
 	case chat1.MessageType_TEXT:
 		atMentions, chanMention = utils.ParseAtMentionedUIDs(ctx, body.Text().Body, b.G().GetUPAKLoader(),
 			&b.DebugLabeler)
-		channelNameMentions = utils.ParseChannelNameMentions(ctx, body.Text().Body, uid, tlfID, membersType,
-			b.G().TeamChannelSource)
 	case chat1.MessageType_EDIT:
 		atMentions, chanMention = utils.ParseAtMentionedUIDs(ctx, body.Edit().Body, b.G().GetUPAKLoader(),
 			&b.DebugLabeler)
-		channelNameMentions = utils.ParseChannelNameMentions(ctx, body.Edit().Body, uid, tlfID, membersType,
-			b.G().TeamChannelSource)
 	case chat1.MessageType_SYSTEM:
 		atMentions, chanMention = utils.SystemMessageMentions(ctx, body.System(), b.G().GetUPAKLoader())
 	default:
-		return nil, nil, chanMention, channelNameMentions
+		return nil, nil, chanMention
 	}
 
 	usernames := make(map[string]bool)
@@ -928,7 +920,7 @@ func (b *Boxer) getAtMentionInfo(ctx context.Context, tlfID chat1.TLFID,
 	for u := range usernames {
 		atMentionUsernames = append(atMentionUsernames, u)
 	}
-	return atMentions, atMentionUsernames, chanMention, channelNameMentions
+	return atMentions, atMentionUsernames, chanMention
 }
 
 func (b *Boxer) UnboxMessages(ctx context.Context, boxed []chat1.MessageBoxed, conv unboxConversationInfo) (unboxed []chat1.MessageUnboxed, err error) {

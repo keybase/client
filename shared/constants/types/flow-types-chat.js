@@ -1069,7 +1069,7 @@ export type MessageUnboxedState =1 // VALID_1
  | 4 // PLACEHOLDER_4
 
 
-export type MessageUnboxedValid = {|clientHeader: MessageClientHeaderVerified,serverHeader: MessageServerHeader,messageBody: MessageBody,senderUsername: String,senderDeviceName: String,senderDeviceType: String,bodyHash: Hash,headerHash: Hash,headerSignature?: ?SignatureInfo,verificationKey?: ?Bytes,senderDeviceRevokedAt?: ?Gregor1.Time,atMentionUsernames?: ?Array<String>,atMentions?: ?Array<Gregor1.UID>,channelMention: ChannelMention,channelNameMentions?: ?Array<String>,|}
+export type MessageUnboxedValid = {|clientHeader: MessageClientHeaderVerified,serverHeader: MessageServerHeader,messageBody: MessageBody,senderUsername: String,senderDeviceName: String,senderDeviceType: String,bodyHash: Hash,headerHash: Hash,headerSignature?: ?SignatureInfo,verificationKey?: ?Bytes,senderDeviceRevokedAt?: ?Gregor1.Time,atMentionUsernames?: ?Array<String>,atMentions?: ?Array<Gregor1.UID>,channelMention: ChannelMention,|}
 
 export type NameQuery = {|name: String,membersType: ConversationMembersType,|}
 
@@ -1178,7 +1178,6 @@ export type RemoteGetS3ParamsRpcParam = {|  conversationID: ConversationID|}
 
 export type RemoteGetTLFConversationsRpcParam = {|  tlfID: TLFID,
   topicType: TopicType,
-  membersType: ConversationMembersType,
   summarizeMaxMsgs: Boolean|}
 
 export type RemoteGetThreadRemoteRpcParam = {|  conversationID: ConversationID,
