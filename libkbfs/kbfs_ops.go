@@ -218,6 +218,12 @@ func (fs *KBFSOpsStandard) AddFavorite(ctx context.Context,
 	return nil
 }
 
+func (fs *KBFSOpsStandard) getOpsByFav(fav Favorite) *folderBranchOps {
+	fs.opsLock.Lock()
+	defer fs.opsLock.Unlock()
+	return fs.opsByFav[fav]
+}
+
 // DeleteFavorite implements the KBFSOps interface for
 // KBFSOpsStandard.
 func (fs *KBFSOpsStandard) DeleteFavorite(ctx context.Context,
@@ -230,11 +236,7 @@ func (fs *KBFSOpsStandard) DeleteFavorite(ctx context.Context,
 	isLoggedIn := err == nil
 
 	// Let this ops remove itself, if we have one available.
-	ops := func() *folderBranchOps {
-		fs.opsLock.Lock()
-		defer fs.opsLock.Unlock()
-		return fs.opsByFav[fav]
-	}()
+	ops := fs.getOpsByFav(fav)
 	if ops != nil {
 		err := ops.doFavoritesOp(ctx, fs.favs, FavoritesOpRemove, nil)
 		if _, ok := err.(OpsCantHandleFavorite); !ok {
@@ -380,11 +382,7 @@ func (fs *KBFSOpsStandard) getOrInitializeNewMDMaster(ctx context.Context,
 
 func (fs *KBFSOpsStandard) getMDByHandle(ctx context.Context,
 	tlfHandle *TlfHandle, fop FavoritesOp) (rmd ImmutableRootMetadata, err error) {
-	fbo := func() *folderBranchOps {
-		fs.opsLock.Lock()
-		defer fs.opsLock.Unlock()
-		return fs.opsByFav[tlfHandle.ToFavorite()]
-	}()
+	fbo := fs.getOpsByFav(tlfHandle.ToFavorite())
 	if fbo != nil {
 		lState := makeFBOLockState()
 		rmd, err = fbo.getMDForReadNeedIdentifyOnMaybeFirstAccess(ctx, lState)
@@ -479,11 +477,7 @@ func (fs *KBFSOpsStandard) getMaybeCreateRootNode(
 
 	// Check if we already have the MD cached, before contacting any
 	// servers.
-	fops := func() *folderBranchOps {
-		fs.opsLock.Lock()
-		defer fs.opsLock.Unlock()
-		return fs.opsByFav[h.ToFavorite()]
-	}()
+	fops := fs.getOpsByFav(h.ToFavorite())
 	if fops != nil {
 		// If a folderBranchOps already exists for this TLF, use it to
 		// get the root node.  But if we haven't done an identify yet,
