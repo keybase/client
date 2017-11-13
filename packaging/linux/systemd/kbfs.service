@@ -9,8 +9,9 @@ Wants=keybase.service
 # "notify" means we promise to call SdNotify() at the end of startup.
 Type=notify
 # Forcibly unmount /keybase in case there's anything there. The "-" prefix
-# means that error codes from this command are ignored.
-ExecStartPre=-/usr/bin/fusermount -uz /keybase
+# means that error codes from this command are ignored. We use /usr/bin/env
+# because some systems put fusermount in /bin and others put it in /usr/bin.
+ExecStartPre=-/usr/bin/env fusermount -uz /keybase
 ExecStart=/usr/bin/kbfsfuse -debug /keybase
 Restart=on-failure
 
