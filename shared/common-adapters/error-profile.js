@@ -13,7 +13,7 @@ export type Props = {
 
 const ErrorLoadingProfile = ({error, onBack}: Props) => (
   <Box style={{width: 320, flex: 1}}>
-    <Box style={{marginTop: globalMargins.xlarge, textAlign: 'center'}}>
+    <Box style={{marginTop: globalMargins.xlarge}}>
       <Text type="BodyError" style={{textAlign: 'center', color: globalColors.black_40}}>
         Error loading profile: {error}
       </Text>
