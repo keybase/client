@@ -4,7 +4,7 @@ import * as RPCChatTypes from './flow-types-chat'
 import * as RPCTypes from './flow-types'
 import * as SearchConstants from '../search'
 import HiddenString from '../../util/hidden-string'
-import type {DeviceType} from '../devices'
+import type {DeviceType} from './devices'
 
 export type Username = string
 export type MessageKey = string

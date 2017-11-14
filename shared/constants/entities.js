@@ -5,7 +5,7 @@ import * as Teams from './teams'
 import * as Git from './git'
 import * as ChatTypes from './types/chat'
 import {type NoErrorTypedAction} from './types/flux'
-import {type DeviceDetail} from './devices'
+import {type DeviceDetail} from './types/devices'
 
 export type EntityType = any // TODO stronger typing?
 

@@ -1,6 +1,6 @@
 // @flow
 import type {DeviceID} from '../constants/types/flow-types'
-import type {DeviceType} from '../constants/devices'
+import type {DeviceType} from '../constants/types/devices'
 
 export type Device = {
   type: DeviceType,
