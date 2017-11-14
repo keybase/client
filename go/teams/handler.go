@@ -241,8 +241,6 @@ func HandleOpenTeamAccessRequest(ctx context.Context, g *libkb.GlobalContext, ms
 	ctx = libkb.WithLogTag(ctx, "CLKR")
 	defer g.CTrace(ctx, "HandleOpenTeamAccessRequest", func() error { return err })()
 
-	g.Log.CDebugf(ctx, "HandleOpenTeamAccessRequest msg: %+v", msg)
-
 	return RetryOnSigOldSeqnoError(ctx, g, func(ctx context.Context, _ int) error {
 		team, err := Load(ctx, g, keybase1.LoadTeamArg{
 			ID:          msg.TeamID,

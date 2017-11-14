@@ -161,7 +161,7 @@ func TestTeamDelete(t *testing.T) {
 	cam.assertMemberActive(team, bob)
 }
 
-func TestTeamReset0(t *testing.T) {
+func TestTeamReset(t *testing.T) {
 	ctx := newSMUContext(t)
 	defer ctx.cleanup()
 
