@@ -1,6 +1,5 @@
 {
   "prelude": [
-    "import * as Constants from '../constants/signup'",
     "import HiddenString from '../util/hidden-string'"
   ],
   "actions": {
