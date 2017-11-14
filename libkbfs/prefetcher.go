@@ -145,6 +145,18 @@ func (p *blockPrefetcher) newPrefetch(count int, triggered bool,
 func (p *blockPrefetcher) applyToParentsRecursive(
 	f func(kbfsblock.ID, *prefetch),
 	blockID kbfsblock.ID, pre *prefetch) {
+	defer func() {
+		if r := recover(); r != nil {
+			id := kbfsblock.ZeroID
+			if pre.req != nil {
+				id = pre.req.ptr.ID
+			}
+			p.log.CErrorf(pre.ctx, "Next prefetch in panic unroll: id=%s, "+
+				"subtreeBlockCount=%d, subtreeTriggered=%t, parents=%+v",
+				id, pre.subtreeBlockCount, pre.subtreeTriggered, pre.parents)
+			panic(r)
+		}
+	}()
 	for b := range pre.parents {
 		parent, ok := p.prefetches[b]
 		if !ok {
@@ -164,6 +176,9 @@ func (p *blockPrefetcher) completePrefetch(
 	return func(blockID kbfsblock.ID, pp *prefetch) {
 		pp.subtreeBlockCount -= numBlocks
 		if pp.subtreeBlockCount < 0 {
+			// Both log and panic so that we get the PFID in the log.
+			p.log.CErrorf(pp.ctx, "panic: completePrefetch overstepped its "+
+				"bounds")
 			panic("completePrefetch overstepped its bounds")
 		}
 		if pp.subtreeBlockCount == 0 {
@@ -183,6 +198,8 @@ func (p *blockPrefetcher) completePrefetch(
 func (p *blockPrefetcher) decrementPrefetch(_ kbfsblock.ID, pp *prefetch) {
 	pp.subtreeBlockCount--
 	if pp.subtreeBlockCount < 0 {
+		// Both log and panic so that we get the PFID in the log.
+		p.log.CErrorf(pp.ctx, "panic: decrementPrefetch overstepped its bounds")
 		panic("decrementPrefetch overstepped its bounds")
 	}
 }
@@ -453,6 +470,10 @@ func (p *blockPrefetcher) run(testSyncCh <-chan struct{}) {
 				// First we handle finished prefetches.
 				if isPrefetchWaiting {
 					if pre.subtreeBlockCount < 0 {
+						// Both log and panic so that we get the PFID in the
+						// log.
+						p.log.CErrorf(ctx, "the subtreeBlockCount for a "+
+							"block should never be < 0")
 						panic("the subtreeBlockCount for a block should " +
 							"never be < 0")
 					}
@@ -510,6 +531,10 @@ func (p *blockPrefetcher) run(testSyncCh <-chan struct{}) {
 					// it has been successfully fetched. We need to percolate
 					// that information up the tree.
 					if pre.subtreeBlockCount == 0 {
+						// Both log and panic so that we get the PFID in the
+						// log.
+						p.log.CErrorf(ctx, "prefetch was in the tree, "+
+							"wasn't triggered, but had a block count of 0")
 						panic("prefetch was in the tree, wasn't triggered, " +
 							"but had a block count of 0")
 					}
