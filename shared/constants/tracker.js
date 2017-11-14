@@ -61,7 +61,6 @@ const initialState: Types.State = {
   timerActive: 0,
   userTrackers: {},
   nonUserTrackers: {},
-  // tracking: [],
 }
 
 const initialTrackerState = (username: string): Types.TrackerState => ({
