@@ -18,8 +18,11 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routePath}) => ({
   },
   onBack: () => dispatch(navigateTo(['manageChannels'], routePath.butLast())),
   onClose: () => dispatch(navigateUp()),
-  onCreateChannel: ({channelname, description, teamname}) => {
-    dispatch(createChannel(teamname, channelname, description, routePath))
+  _onCreateChannel: ({channelname, description, teamname}) => {
+    const rootPath = routePath.take(1)
+    const sourceSubPath = routePath.rest()
+    const destSubPath = sourceSubPath.butLast()
+    dispatch(createChannel(teamname, channelname, description, rootPath, sourceSubPath, destSubPath))
   },
 })
 
@@ -28,8 +31,9 @@ export default compose(
   withState('channelname', 'onChannelnameChange'),
   withState('description', 'onDescriptionChange'),
   withHandlers({
-    onSubmit: ({channelname, description, onCreateChannel, teamname}) => () =>
-      channelname && onCreateChannel({channelname, description, teamname}),
+    onSubmit: ({channelname, description, _onCreateChannel, teamname}) => () => {
+      channelname && _onCreateChannel({channelname, description, teamname})
+    },
   }),
   lifecycle({
     componentDidMount: function() {

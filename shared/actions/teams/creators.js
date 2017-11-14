@@ -15,9 +15,14 @@ function createChannel(
   teamname: string,
   channelname: string,
   description: ?string,
-  routePath: I.List<string>
+  rootPath: I.List<string>,
+  sourceSubPath: I.List<string>,
+  destSubPath: I.List<string>
 ) {
-  return {payload: {channelname, description, teamname, routePath}, type: 'teams:createChannel'}
+  return {
+    payload: {channelname, description, teamname, rootPath, sourceSubPath, destSubPath},
+    type: 'teams:createChannel',
+  }
 }
 
 function getChannels(teamname: string): Constants.GetChannels {

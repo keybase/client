@@ -16,7 +16,7 @@ import engine from '../../engine'
 import {replaceEntity} from '../entities'
 import {usernameSelector} from '../../constants/selectors'
 import {isMobile} from '../../constants/platform'
-import {navigateTo} from '../route-tree'
+import {putActionIfOnPath, navigateTo} from '../route-tree'
 import {chatTab, teamsTab} from '../../constants/tabs'
 import openSMS from '../../util/sms'
 import {createDecrementWaiting, createIncrementWaiting} from '../../actions/waiting-gen'
@@ -529,7 +529,7 @@ const _afterSaveChannelMembership = results => {
 }
 
 function* _createChannel(action: Constants.CreateChannel) {
-  const {payload: {channelname, description, teamname, routePath}} = action
+  const {payload: {channelname, description, teamname, rootPath, sourceSubPath, destSubPath}} = action
 
   yield Saga.put(Creators.setChannelCreationError(''))
   try {
@@ -566,7 +566,9 @@ function* _createChannel(action: Constants.CreateChannel) {
     }
 
     // Dismiss the create channel dialog.
-    yield Saga.put(navigateTo([], routePath.butLast()))
+    yield Saga.put(
+      putActionIfOnPath(rootPath.concat(sourceSubPath), navigateTo(destSubPath, rootPath), rootPath)
+    )
 
     // Select the new channel, and switch to the chat tab.
     yield Saga.put(ChatGen.createSelectConversation({conversationIDKey: newConversationIDKey}))

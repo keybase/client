@@ -92,7 +92,14 @@ export type SetupTeamHandlers = NoErrorTypedAction<'teams:setupTeamHandlers', vo
 export type GetDetails = NoErrorTypedAction<'teams:getDetails', {teamname: string}>
 export type CreateChannel = NoErrorTypedAction<
   'teams:createChannel',
-  {channelname: string, description: string, routePath: I.List<string>, teamname: string}
+  {
+    channelname: string,
+    description: string,
+    teamname: string,
+    rootPath: I.List<string>,
+    sourceSubPath: I.List<string>,
+    destSubPath: I.List<string>,
+  }
 >
 
 export type Teamname = string
