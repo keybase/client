@@ -7,7 +7,7 @@ import * as KBFSGen from '../../actions/kbfs-gen'
 import * as React from 'react'
 import Team, {CustomComponent} from '.'
 import {HeaderHoc} from '../../common-adapters'
-import {compose, lifecycle, withPropsOnChange, withState} from 'recompose'
+import {compose, lifecycle, withState} from 'recompose'
 import {connect, type TypedState} from '../../util/container'
 import {getProfile} from '../../actions/tracker'
 import {isMobile} from '../../constants/platform'
@@ -22,7 +22,7 @@ type StateProps = {
   _newTeamRequests: I.List<string>,
   loading: boolean,
   openTeam: boolean,
-  openTeamRole: Constants.TeamRoleType,  
+  openTeamRole: Constants.TeamRoleType,
   name: Constants.Teamname,
   publicityAnyMember: boolean,
   publicityMember: boolean,
@@ -52,7 +52,9 @@ const mapStateToProps = (state: TypedState, {routeProps, routeState}): StateProp
     loading: state.entities.getIn(['teams', 'teamNameToLoading', teamname], true),
     memberCount: state.entities.getIn(['teams', 'teammembercounts', teamname], 0),
     name: teamname,
-    openTeamRole: Constants.teamRoleByEnum[state.entities.getIn(['teams', 'teamNameToTeamSettings', teamname, 'joinAs'], 'reader')],    
+    openTeamRole: Constants.teamRoleByEnum[
+      state.entities.getIn(['teams', 'teamNameToTeamSettings', teamname, 'joinAs'], 'reader')
+    ],
     publicityAnyMember: state.entities.getIn(
       ['teams', 'teamNameToPublicitySettings', teamname, 'anyMemberShowcase'],
       false
@@ -80,7 +82,10 @@ type DispatchProps = {
   _onEditDescription: () => void,
 }
 
-const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, openTeamRole, setOpenTeamRole, setRouteState, routeProps}): DispatchProps => ({
+const mapDispatchToProps = (
+  dispatch: Dispatch,
+  {navigateUp, openTeamRole, setOpenTeamRole, setRouteState, routeProps}
+): DispatchProps => ({
   _loadTeam: teamname => dispatch(Creators.getDetails(teamname)),
   _onAddPeople: (teamname: Constants.Teamname) =>
     dispatch(navigateAppend([{props: {teamname}, selected: 'addPeople'}])),
@@ -120,13 +125,14 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, openTeamRole, setOp
       navigateAppend([
         {
           props: {
-            onComplete: (role: Constants.TeamRoleType) => dispatch(Creators.makeTeamOpen(routeProps.get('teamname'), openTeam, role)),
+            onComplete: (role: Constants.TeamRoleType) =>
+              dispatch(Creators.makeTeamOpen(routeProps.get('teamname'), openTeam, role)),
             selectedRole: openTeamRole,
             allowOwner: false,
             allowAdmin: false,
           },
           selected: 'controlledRolePicker',
-        }
+        },
       ])
     )
   },
@@ -167,12 +173,14 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
   const youCanCreateSubteam = youAdmin
 
   const onAddSelf = () => dispatchProps._onAddSelf(stateProps.name, you)
-  const onSetOpenTeamRole = () => dispatchProps._onSetOpenTeamRole(stateProps.openTeam, stateProps.openTeamRole)
+  const onSetOpenTeamRole = () =>
+    dispatchProps._onSetOpenTeamRole(stateProps.openTeam, stateProps.openTeamRole)
   const setPublicityAnyMember = (checked: boolean) =>
     dispatchProps._setPublicityAnyMember(stateProps.name, checked)
   const setPublicityMember = (checked: boolean) => dispatchProps._setPublicityMember(stateProps.name, checked)
   const setPublicityTeam = (checked: boolean) => dispatchProps._setPublicityTeam(stateProps.name, checked)
-  const setOpenTeam = (checked: boolean) => dispatchProps._setOpenTeam(stateProps.name, checked, stateProps.openTeamRole)
+  const setOpenTeam = (checked: boolean) =>
+    dispatchProps._setOpenTeam(stateProps.name, checked, stateProps.openTeamRole)
 
   const customComponent = (
     <CustomComponent
@@ -216,7 +224,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
 
 export default compose(
   withState('showMenu', 'setShowMenu', false),
-  connect(mapStateToProps, mapDispatchToProps, mergeProps),       
+  connect(mapStateToProps, mapDispatchToProps, mergeProps),
   lifecycle({
     componentDidMount: function() {
       this.props._loadTeam(this.props.name)

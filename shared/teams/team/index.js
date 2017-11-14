@@ -16,7 +16,6 @@ import {
 } from '../../common-adapters'
 import {globalStyles, globalMargins, globalColors} from '../../styles'
 import {isMobile} from '../../constants/platform'
-import {OpenTeamSettingButton} from '../open-team'
 import TeamInviteRow from './invite-row/container'
 import TeamMemberRow from './member-row/container'
 import TeamRequestRow from './request-row/container'
@@ -43,7 +42,6 @@ export type Props = {
   onEditDescription: () => void,
   onLeaveTeam: () => void,
   onManageChat: () => void,
-  onClickOpenTeamSetting: () => void,
   onSetOpenTeamRole: () => void,
   openTeam: boolean,
   openTeamRole: Constants.TeamRoleType,
@@ -352,7 +350,15 @@ class Team extends React.PureComponent<Props> {
                     Make this an open team
                   </Text>
                   <Text type="BodySmall">
-                    Anyone will be able to join immediately.  Users will join as <Text type={openTeam ? "BodySmallPrimaryLink" : "BodySmall"} onClick={openTeam ? onSetOpenTeamRole : undefined}>{openTeamRole}</Text>.
+                    Anyone will be able to join immediately.  Users will join as
+                    {' '}
+                    <Text
+                      type={openTeam ? 'BodySmallPrimaryLink' : 'BodySmall'}
+                      onClick={openTeam ? onSetOpenTeamRole : undefined}
+                    >
+                      {openTeamRole}
+                    </Text>
+                    .
                   </Text>
                 </Box>
               </Box>
@@ -430,13 +436,6 @@ class Team extends React.PureComponent<Props> {
               />}
           </Box>}
         <Help name={name} />
-        {admin &&
-          <Box style={{marginTop: globalMargins.medium, marginBottom: globalMargins.medium}}>
-            <OpenTeamSettingButton
-              onClick={this.props.onClickOpenTeamSetting}
-              isOpen={this.props.isTeamOpen}
-            />
-          </Box>}
         <TeamTabs {...this.props} admin={admin} />
         {contents}
         {showMenu &&

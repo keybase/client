@@ -76,7 +76,7 @@ const routeTree = makeRouteDefNode({
     team: {
       children: {
         ...makeManageChannels,
-        controlledRolePicker,  
+        controlledRolePicker,
         rolePicker,
         reallyLeaveTeam,
         reallyRemoveMember,
