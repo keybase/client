@@ -638,3 +638,44 @@ func TestTeamReAddAfterReset(t *testing.T) {
 
 	readChats(team, bob, 1)
 }
+
+func TestTeamOpenReset(t *testing.T) {
+	ctx := newSMUContext(t)
+	defer ctx.cleanup()
+
+	ann := ctx.installKeybaseForUser("ann", 10)
+	ann.signup()
+	divDebug(ctx, "Signed up ann (%s)", ann.username)
+	bob := ctx.installKeybaseForUser("bob", 10)
+	bob.signup()
+	divDebug(ctx, "Signed up bob (%s)", bob.username)
+
+	for _, user := range []*smuUser{ann, bob} {
+		for _, device := range user.devices {
+			device.tctx.G.UIDMapper.SetTestingNoCachingMode(true)
+		}
+	}
+
+	team := ann.createTeam([]*smuUser{bob})
+	divDebug(ctx, "team created (%s)", team.name)
+	ann.openTeam(team, keybase1.TeamRole_WRITER)
+	ann.assertMemberActive(team, bob)
+
+	bob.reset()
+	divDebug(ctx, "Reset bob (%s)", bob.username)
+
+	kickTeamRekeyd(ann.getPrimaryGlobalContext(), t)
+
+	details := ann.pollForMembershipUpdate(team, keybase1.PerTeamKeyGeneration(2))
+	t.Logf("details from poll: %+v", details)
+	ann.assertMemberInactive(team, bob)
+
+	bob.loginAfterReset(10)
+	divDebug(ctx, "Bob logged in after reset")
+
+	bob.requestAccess(team)
+	divDebug(ctx, "Bob requested access to open team after reset")
+
+	ann.pollForMembershipUpdate(team, keybase1.PerTeamKeyGeneration(3))
+	ann.assertMemberActive(team, bob)
+}
