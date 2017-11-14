@@ -8,6 +8,7 @@ import * as SignupGen from './signup-gen'
 import * as Types from '../constants/types/login'
 import * as Constants from '../constants/login'
 import * as EngineRpc from '../constants/engine'
+import * as RouteTypes from '../constants/types/route-tree'
 import * as RouteConstants from '../constants/route-tree'
 import * as Saga from '../util/saga'
 import * as RPCTypes from '../constants/types/flow-types'
@@ -213,7 +214,7 @@ const displayPrimaryPaperKeySaga = onBackSaga =>
       onFinish: Saga.take(LoginGen.onFinish),
     }): {
       onBack: ?LoginGen.OnBackPayload,
-      navUp: ?RouteConstants.NavigateUp,
+      navUp: ?RouteTypes.NavigateUp,
       onFinish: ?LoginGen.OnFinishPayload,
     })
     if (onBack || navUp) {
@@ -244,7 +245,7 @@ const getEmailOrUsernameSaga = onBackSaga =>
       onSubmit: Saga.take(LoginGen.submitUsernameOrEmail),
     }): {
       onBack: ?LoginGen.OnBackPayload,
-      navUp: ?RouteConstants.NavigateUp,
+      navUp: ?RouteTypes.NavigateUp,
       onSubmit: ?LoginGen.SubmitUsernameOrEmailPayload,
     })
     if (onBack || navUp) {
@@ -280,7 +281,7 @@ const displayAndPromptSecretSaga = onBackSaga =>
       textEntered: Saga.take(LoginGen.provisionTextCodeEntered),
     }): {
       onBack: ?LoginGen.OnBackPayload,
-      navUp: ?RouteConstants.NavigateUp,
+      navUp: ?RouteTypes.NavigateUp,
       qrScanned: ?LoginGen.QrScannedPayload,
       textEntered: ?LoginGen.ProvisionTextCodeEnteredPayload,
     })
@@ -319,7 +320,7 @@ const promptNewDeviceNameSaga = onBackSaga =>
       onSubmit: Saga.take(LoginGen.submitDeviceName),
     }): {
       onBack: ?LoginGen.OnBackPayload,
-      navUp: ?RouteConstants.NavigateUp,
+      navUp: ?RouteTypes.NavigateUp,
       onSubmit: ?LoginGen.SubmitDeviceNamePayload,
     })
     if (onBack || navUp) {
@@ -353,7 +354,7 @@ const chooseDeviceSaga = onBackSaga =>
       onSelect: Saga.take(LoginGen.selectDeviceId),
     }): {
       onBack: ?LoginGen.OnBackPayload,
-      navUp: ?RouteConstants.NavigateUp,
+      navUp: ?RouteTypes.NavigateUp,
       onWont: ?LoginGen.OnWontPayload,
       onSelect: ?LoginGen.SelectDeviceIdPayload,
     })
@@ -388,7 +389,7 @@ const chooseGPGMethodSaga = onBackSaga =>
       onSubmit: Saga.take(LoginGen.chooseGPGMethod),
     }): {
       onBack: ?LoginGen.OnBackPayload,
-      navUp: ?RouteConstants.NavigateUp,
+      navUp: ?RouteTypes.NavigateUp,
       onSubmit: ?LoginGen.ChooseGPGMethodPayload,
     })
     if (onBack || navUp) {
@@ -450,7 +451,7 @@ const defaultGetPassphraseSaga = onBackSaga =>
       onSubmit: Saga.take(LoginGen.submitPassphrase),
     }): {
       onBack: ?LoginGen.OnBackPayload,
-      navUp: ?RouteConstants.NavigateUp,
+      navUp: ?RouteTypes.NavigateUp,
       onSubmit: ?LoginGen.SubmitPassphrasePayload,
     })
     if (onBack || navUp) {
@@ -560,7 +561,7 @@ function* startLoginSaga() {
     onSubmit: Saga.take(LoginGen.submitUsernameOrEmail),
   }): {
     onBack: ?LoginGen.OnBackPayload,
-    navUp: ?RouteConstants.NavigateUp,
+    navUp: ?RouteTypes.NavigateUp,
     onSubmit: ?LoginGen.SubmitUsernameOrEmailPayload,
   })
   if (onBack || navUp) {
