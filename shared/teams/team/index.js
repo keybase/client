@@ -44,6 +44,9 @@ export type Props = {
   onLeaveTeam: () => void,
   onManageChat: () => void,
   onClickOpenTeamSetting: () => void,
+  onSetOpenTeamRole: () => void,
+  openTeam: boolean,
+  openTeamRole: Constants.TeamRoleType,
   publicityAnyMember: boolean,
   publicityMember: boolean,
   publicityTeam: boolean,
@@ -54,6 +57,7 @@ export type Props = {
   setPublicityMember: (checked: boolean) => void,
   setPublicityTeam: (checked: boolean) => void,
   showMenu: boolean,
+  setOpenTeam: (checked: boolean) => void,
   setShowMenu: (s: boolean) => void,
   you: string,
   youCanShowcase: boolean,
@@ -189,14 +193,18 @@ class Team extends React.PureComponent<Props> {
       onEditDescription,
       onInviteByEmail,
       onLeaveTeam,
+      onSetOpenTeamRole,
       selectedTab,
       showAddYourselfBanner,
       loading,
       memberCount,
       onManageChat,
+      openTeam,
+      openTeamRole,
       publicityAnyMember,
       publicityMember,
       publicityTeam,
+      setOpenTeam,
       setPublicityAnyMember,
       setPublicityMember,
       setPublicityTeam,
@@ -326,6 +334,25 @@ class Team extends React.PureComponent<Props> {
                   </Text>
                   <Text type="BodySmall">
                     Team descriptions and number of members will be public.
+                  </Text>
+                </Box>
+              </Box>
+
+              <Box style={stylesSettingsTabRow}>
+                <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center'}}>
+                  <Checkbox
+                    checked={openTeam}
+                    label=""
+                    onCheck={setOpenTeam}
+                    style={{paddingRight: globalMargins.xtiny}}
+                  />
+                </Box>
+                <Box style={{...globalStyles.flexBoxColumn, flexShrink: 1}}>
+                  <Text type="Body">
+                    Make this an open team
+                  </Text>
+                  <Text type="BodySmall">
+                    Anyone will be able to join immediately.  Users will join as <Text type={openTeam ? "BodySmallPrimaryLink" : "BodySmall"} onClick={openTeam ? onSetOpenTeamRole : undefined}>{openTeamRole}</Text>.
                   </Text>
                 </Box>
               </Box>
