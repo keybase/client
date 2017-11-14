@@ -6,6 +6,7 @@ import (
 
 	"golang.org/x/net/context"
 
+	"github.com/davecgh/go-spew/spew"
 	"github.com/keybase/client/go/client"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
@@ -217,6 +218,8 @@ func TestTeamOpenBans(t *testing.T) {
 	require.Equal(t, appErr.Code, libkb.SCTeamBanned)
 }
 
+// Add a user who has reset but does not have a sigchain yet
+// to a team that they were already on before they reset.
 func TestTeamOpenRequestForPreresetMember(t *testing.T) {
 	tt := newTeamTester(t)
 	defer tt.cleanup()
@@ -235,13 +238,25 @@ func TestTeamOpenRequestForPreresetMember(t *testing.T) {
 
 	bob.reset()
 
+	// Simulate an incoming open team request to add bob.
 	mkTar := func(uv keybase1.UserVersion) keybase1.TeamAccessRequest {
 		return keybase1.TeamAccessRequest(uv)
 	}
-
 	err := teams.HandleOpenTeamAccessRequest(context.Background(), alice.device.tctx.G, keybase1.TeamOpenReqMsg{
 		TeamID: teamID,
 		Tars:   []keybase1.TeamAccessRequest{mkTar(bob.userVersion())},
 	})
 	require.NoError(t, err)
+
+	t.Logf("bob should be invited")
+	team := alice.teamGetDetails(teamName.String())
+	require.Len(t, team.AnnotatedActiveInvites, 1, "should be 1 invite")
+	for _, invite := range team.AnnotatedActiveInvites {
+		t.Logf("invite: %v", spew.Sdump(invite))
+		category, err := invite.Type.C()
+		require.NoError(t, err)
+		require.Equal(t, keybase1.TeamInviteCategory_SBS, category)
+		require.Equal(t, bob.userVersion().PercentForm(), invite.Name)
+		require.Equal(t, keybase1.TeamRole_READER, invite.Role)
+	}
 }

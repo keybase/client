@@ -244,6 +244,7 @@ func (t TeamSigChainState) GetLatestUVWithUID(uid keybase1.UID) (res keybase1.Us
 	found := false
 	for uv := range t.inner.UserLog {
 		if uv.Uid == uid && t.getUserRole(uv) != keybase1.TeamRole_NONE && (!found || res.EldestSeqno < uv.EldestSeqno) {
+			// @@@ EEK on last term?
 			res = uv
 			found = true
 		}
@@ -964,6 +965,7 @@ func (t *TeamSigChainPlayer) addInnerLink(
 				removal, ok := removals[uv.Uid]
 				if ok {
 					if removal.uv.EldestSeqno >= uv.EldestSeqno {
+						// @@@ EEK?
 						return res, NewImplicitTeamOperationError("replaced with older eldest seqno: %v -> %v",
 							removal.uv.EldestSeqno, uv.EldestSeqno)
 					}

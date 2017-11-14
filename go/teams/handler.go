@@ -288,6 +288,7 @@ func HandleOpenTeamAccessRequest(ctx context.Context, g *libkb.GlobalContext, ms
 			existingUV, err := team.UserVersionByUID(ctx, uv.Uid)
 			if err == nil {
 				if existingUV.EldestSeqno > uv.EldestSeqno {
+					// @@@ EEK
 					return fmt.Errorf("newer version of user %v already exists in team %q (%v > %v)", tar, team.Name(), existingUV.EldestSeqno, uv.EldestSeqno)
 				}
 				g.Log.CDebugf(ctx, "Will remove old version of user (%s) from team", existingUV)

@@ -349,6 +349,7 @@ func AddMember(ctx context.Context, g *libkb.GlobalContext, teamname, username s
 			// member in the team to automatically remove them (so AddMember
 			// can function as a Re-Add).
 			if existingUV.EldestSeqno > uv.EldestSeqno {
+				// @@@ EEK
 				return fmt.Errorf("newer version of user %q already exists in team %q (%v > %v)", resolvedUsername, teamname, existingUV.EldestSeqno, uv.EldestSeqno)
 			}
 			req.None = []keybase1.UserVersion{existingUV}
@@ -932,6 +933,7 @@ func ReAddMemberAfterReset(ctx context.Context, g *libkb.GlobalContext, teamID k
 		if existingUV.EldestSeqno == uv.EldestSeqno {
 			return libkb.ExistsError{Msg: fmt.Sprintf("user %q has not reset, no need to re-add", username)}
 		} else if existingUV.EldestSeqno > uv.EldestSeqno {
+			// @@@ EEK
 			return fmt.Errorf("newer version of user %q already exists in team %q (%v > %v)", username, teamID, existingUV.EldestSeqno, uv.EldestSeqno)
 		}
 
