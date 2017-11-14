@@ -19,7 +19,7 @@ import type {State as Settings} from '../constants/types/settings'
 import type {State as Signup} from '../constants/types/signup'
 import type {State as Tracker} from '../constants/types/tracker'
 import type {State as UnlockFolders} from '../constants/types/unlock-folders'
-import type {State as Waiting} from '../constants/waiting'
+import type {State as Waiting} from '../constants/types/waiting'
 
 export type TypedState = {
   config: Config,
