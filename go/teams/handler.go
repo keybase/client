@@ -241,6 +241,8 @@ func HandleOpenTeamAccessRequest(ctx context.Context, g *libkb.GlobalContext, ms
 	ctx = libkb.WithLogTag(ctx, "CLKR")
 	defer g.CTrace(ctx, "HandleOpenTeamAccessRequest", func() error { return err })()
 
+	g.Log.CDebugf(ctx, "HandleOpenTeamAccessRequest msg: %+v", msg)
+
 	return RetryOnSigOldSeqnoError(ctx, g, func(ctx context.Context, _ int) error {
 		team, err := Load(ctx, g, keybase1.LoadTeamArg{
 			ID:          msg.TeamID,
@@ -284,9 +286,19 @@ func HandleOpenTeamAccessRequest(ctx context.Context, g *libkb.GlobalContext, ms
 			default:
 				return fmt.Errorf("Unexpected role to add to open team: %v", joinAsRole)
 			}
+
+			existingUV, err := team.UserVersionByUID(ctx, uv.Uid)
+			if err == nil {
+				if existingUV.EldestSeqno > uv.EldestSeqno {
+					return fmt.Errorf("newer version of user %v already exists in team %q (%v > %v)", tar, team.Name(), existingUV.EldestSeqno, uv.EldestSeqno)
+				}
+				g.Log.CDebugf(ctx, "Will remove old version of user (%s) from team", existingUV)
+				req.None = append(req.None, existingUV)
+			}
 		}
 
 		if !needPost {
+			g.Log.CDebugf(ctx, "no post needed, not doing change membership for %+v", msg)
 			return nil
 		}
 		return team.ChangeMembership(ctx, req)

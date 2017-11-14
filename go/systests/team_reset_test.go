@@ -658,7 +658,7 @@ func TestTeamOpenReset(t *testing.T) {
 
 	team := ann.createTeam([]*smuUser{bob})
 	divDebug(ctx, "team created (%s)", team.name)
-	// ann.openTeam(team, keybase1.TeamRole_WRITER)
+	ann.openTeam(team, keybase1.TeamRole_WRITER)
 	ann.assertMemberActive(team, bob)
 
 	bob.reset()
@@ -670,14 +670,12 @@ func TestTeamOpenReset(t *testing.T) {
 	t.Logf("details from poll: %+v", details)
 	ann.assertMemberInactive(team, bob)
 
-	/*
-		bob.loginAfterReset(10)
-		divDebug(ctx, "Bob logged in after reset")
+	bob.loginAfterReset(10)
+	divDebug(ctx, "Bob logged in after reset")
 
-		bob.requestAccess(team)
-		divDebug(ctx, "Bob requested access to open team after reset")
+	bob.requestAccess(team)
+	divDebug(ctx, "Bob requested access to open team after reset")
 
-		ann.pollForMembershipUpdate(team, keybase1.PerTeamKeyGeneration(3))
-		ann.assertMemberActive(team, bob)
-	*/
+	ann.pollForMembershipUpdate(team, keybase1.PerTeamKeyGeneration(3))
+	ann.assertMemberActive(team, bob)
 }
