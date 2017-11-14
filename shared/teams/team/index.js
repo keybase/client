@@ -44,16 +44,19 @@ export type Props = {
   onLeaveTeam: () => void,
   onManageChat: () => void,
   onClickOpenTeamSetting: () => void,
+  publicityAnyMember: boolean,
   publicityMember: boolean,
   publicityTeam: boolean,
   requests: Array<RequestRowProps>,
   selectedTab: Constants.TabKey,
   showAddYourselfBanner: boolean,
+  setPublicityAnyMember: (checked: boolean) => void,
   setPublicityMember: (checked: boolean) => void,
   setPublicityTeam: (checked: boolean) => void,
   showMenu: boolean,
   setShowMenu: (s: boolean) => void,
   you: string,
+  youCanShowcase: boolean,
   youCanAddPeople: boolean,
   youCanCreateSubteam: boolean,
 }
@@ -137,20 +140,20 @@ const TeamTabs = (props: TeamTabsProps) => {
       </Box>
     )
   }
+
   const publicityLabel = 'SETTINGS'
-  if (admin) {
-    tabs.push(
-      <Text
-        key="publicity"
-        type="BodySmallSemibold"
-        style={{
-          color: globalColors.black_75,
-        }}
-      >
-        {publicityLabel}
-      </Text>
-    )
-  }
+  tabs.push(
+    <Text
+      key="publicity"
+      type="BodySmallSemibold"
+      style={{
+        color: globalColors.black_75,
+      }}
+    >
+      {publicityLabel}
+    </Text>
+  )
+
   if (loading) {
     tabs.push(<ProgressIndicator style={{alignSelf: 'center', width: 17, height: 17}} />)
   }
@@ -191,13 +194,16 @@ class Team extends React.PureComponent<Props> {
       loading,
       memberCount,
       onManageChat,
+      publicityAnyMember,
       publicityMember,
       publicityTeam,
+      setPublicityAnyMember,
       setPublicityMember,
       setPublicityTeam,
       you,
       youCanAddPeople,
       youCanCreateSubteam,
+      youCanShowcase,
     } = this.props
 
     const me = members.find(member => member.username === you)
@@ -260,48 +266,70 @@ class Team extends React.PureComponent<Props> {
           >
             <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center'}}>
               <Checkbox
-                checked={publicityTeam}
-                label=""
-                onCheck={setPublicityTeam}
-                style={{paddingRight: globalMargins.xtiny}}
-              />
-            </Box>
-            <Box style={{...globalStyles.flexBoxColumn, flexShrink: 1}}>
-              <Text type="Body">
-                Publicize this team on
-                {' '}
-                <Text type="BodyPrimaryLink" onClickURL={`https://${teamsLink}`}>{teamsLink}</Text>
-              </Text>
-              <Text type="BodySmall">
-                Team descriptions and number of members will be public.
-              </Text>
-            </Box>
-          </Box>
-
-          <Box
-            style={{
-              ...globalStyles.flexBoxRow,
-              paddingLeft: globalMargins.tiny,
-              paddingTop: globalMargins.small,
-            }}
-          >
-            <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center'}}>
-              <Checkbox
                 checked={publicityMember}
+                disabled={!youCanShowcase}
                 label=""
                 onCheck={setPublicityMember}
                 style={{paddingRight: globalMargins.xtiny}}
               />
             </Box>
             <Box style={{...globalStyles.flexBoxColumn, flexShrink: 1}}>
-              <Text type="Body">
-                Publish on your own profile that you're an admin of this team
+              <Text style={{color: youCanShowcase ? globalColors.black : globalColors.grey}} type="Body">
+                Publish team on your own profile
               </Text>
               <Text type="BodySmall">
-                Team description and number of members will be public.
+                {youCanShowcase
+                  ? 'Team description and number of members will be public.'
+                  : "Admins aren't allowing members to publish this team on their profile."}
               </Text>
             </Box>
           </Box>
+          {admin &&
+            <Box style={globalStyles.flexBoxColumn}>
+              <Box style={stylesSettingsTabRow}>
+                <Text type="Header">Team</Text>
+              </Box>
+
+              <Box style={stylesSettingsTabRow}>
+                <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center'}}>
+                  <Checkbox
+                    checked={publicityAnyMember}
+                    label=""
+                    onCheck={setPublicityAnyMember}
+                    style={{paddingRight: globalMargins.xtiny}}
+                  />
+                </Box>
+                <Box style={{...globalStyles.flexBoxColumn, flexShrink: 1}}>
+                  <Text type="Body">
+                    Allow non-admin members to publish the team on their profile
+                  </Text>
+                  <Text type="BodySmall">
+                    Team descriptions and number of members will be public.
+                  </Text>
+                </Box>
+              </Box>
+
+              <Box style={stylesSettingsTabRow}>
+                <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center'}}>
+                  <Checkbox
+                    checked={publicityTeam}
+                    label=""
+                    onCheck={setPublicityTeam}
+                    style={{paddingRight: globalMargins.xtiny}}
+                  />
+                </Box>
+                <Box style={{...globalStyles.flexBoxColumn, flexShrink: 1}}>
+                  <Text type="Body">
+                    Publicize this team on
+                    {' '}
+                    <Text type="BodyPrimaryLink" onClickURL={`https://${teamsLink}`}>{teamsLink}</Text>
+                  </Text>
+                  <Text type="BodySmall">
+                    Team descriptions and number of members will be public.
+                  </Text>
+                </Box>
+              </Box>
+            </Box>}
         </Box>
       )
     }
@@ -412,6 +440,12 @@ const stylesAddYourselfBanner = {
 const stylesAddYourselfBannerText = {
   color: globalColors.white,
   textAlign: 'center',
+}
+
+const stylesSettingsTabRow = {
+  ...globalStyles.flexBoxRow,
+  paddingLeft: globalMargins.tiny,
+  paddingTop: globalMargins.small,
 }
 
 export default Team

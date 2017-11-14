@@ -23,6 +23,7 @@ type StateProps = {
   isTeamOpen: boolean,
   loading: boolean,
   name: Constants.Teamname,
+  publicityAnyMember: boolean,
   publicityMember: boolean,
   publicityTeam: boolean,
   selectedTab: string,
@@ -39,25 +40,27 @@ const mapStateToProps = (state: TypedState, {routeProps, routeState}): StateProp
     ['teams', 'teamNameToImplicitAdminUsernames', teamname],
     I.Set()
   )
+
   return {
     _memberInfo: memberInfo,
     _implicitAdminUsernames: implicitAdminUsernames,
     _requests: state.entities.getIn(['teams', 'teamNameToRequests', teamname], I.Set()),
     _invites: state.entities.getIn(['teams', 'teamNameToInvites', teamname], I.Set()),
     description: state.entities.getIn(['teams', 'teamNameToPublicitySettings', teamname, 'description'], ''),
-    isTeamOpen: state.entities.getIn(['teams', 'teamNameToTeamSettings', teamname], {
-      open: false,
-    }).open,
+    isTeamOpen: state.entities.getIn(['teams', 'teamNameToTeamSettings', teamname, 'open'], false),
     _newTeamRequests: state.entities.getIn(['teams', 'newTeamRequests'], I.List()),
     loading: state.entities.getIn(['teams', 'teamNameToLoading', teamname], true),
     memberCount: state.entities.getIn(['teams', 'teammembercounts', teamname], 0),
     name: teamname,
-    publicityMember: state.entities.getIn(['teams', 'teamNameToPublicitySettings', teamname], {
-      member: false,
-    }).member,
-    publicityTeam: state.entities.getIn(['teams', 'teamNameToPublicitySettings', teamname], {
-      team: false,
-    }).team,
+    publicityAnyMember: state.entities.getIn(
+      ['teams', 'teamNameToPublicitySettings', teamname, 'anyMemberShowcase'],
+      false
+    ),
+    publicityMember: state.entities.getIn(
+      ['teams', 'teamNameToPublicitySettings', teamname, 'member'],
+      false
+    ),
+    publicityTeam: state.entities.getIn(['teams', 'teamNameToPublicitySettings', teamname, 'team'], false),
     selectedTab: routeState.get('selectedTab') || 'members',
     you: state.config.username,
   }
@@ -101,6 +104,8 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, setRouteState, rout
     isMobile ? dispatch(showUserProfile(username)) : dispatch(getProfile(username, true, true))
   },
   setSelectedTab: selectedTab => setRouteState({selectedTab}),
+  _setPublicityAnyMember: (teamname: Constants.Teamname, checked: boolean) =>
+    dispatch(Creators.setPublicityAnyMember(teamname, checked)),
   _setPublicityMember: (teamname: Constants.Teamname, checked: boolean) =>
     dispatch(Creators.setPublicityMember(teamname, checked)),
   _setPublicityTeam: (teamname: Constants.Teamname, checked: boolean) =>
@@ -157,6 +162,8 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
   const youCanCreateSubteam = youAdmin
 
   const onAddSelf = () => dispatchProps._onAddSelf(stateProps.name, you)
+  const setPublicityAnyMember = (checked: boolean) =>
+    dispatchProps._setPublicityAnyMember(stateProps.name, checked)
   const setPublicityMember = (checked: boolean) => dispatchProps._setPublicityMember(stateProps.name, checked)
   const setPublicityTeam = (checked: boolean) => dispatchProps._setPublicityTeam(stateProps.name, checked)
 
@@ -167,6 +174,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
       onShowMenu={() => ownProps.setShowMenu(true)}
     />
   )
+  const youCanShowcase = youAdmin || stateProps.publicityAnyMember
   return {
     ...stateProps,
     ...dispatchProps,
@@ -188,11 +196,13 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     onOpenFolder,
     onClickOpenTeamSetting,
     onEditDescription,
+    setPublicityAnyMember,
     setPublicityMember,
     setPublicityTeam,
     showAddYourselfBanner,
     youCanAddPeople,
     youCanCreateSubteam,
+    youCanShowcase,
   }
 }
 

@@ -10,6 +10,7 @@ import {type NoErrorTypedAction} from './types/flux'
 import {type TypedState} from './reducer'
 
 type _PublicitySettings = {
+  anyMemberShowcase: boolean,
   description: string,
   member: boolean,
   team: boolean,
@@ -166,6 +167,11 @@ export type AddPeopleToTeam = NoErrorTypedAction<'teams:addPeopleToTeam', {role:
 export type InviteToTeamByEmail = NoErrorTypedAction<
   'teams:inviteToTeamByEmail',
   {invitees: string, role: string, teamname: string}
+>
+
+export type SetPublicityAnyMember = NoErrorTypedAction<
+  'teams:setPublicityAnyMember',
+  {enabled: boolean, teamname: string}
 >
 
 export type SetPublicityMember = NoErrorTypedAction<
