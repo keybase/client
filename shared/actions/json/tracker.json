@@ -82,9 +82,6 @@
       "followsYou": "string",
       "following": "string"
     },
-    "clearIdentifyCache": {
-      "uid": "string"
-    },
     "updateUserInfo": {
       "userCard": "RPCTypes.UserCard",
       "username": "string"

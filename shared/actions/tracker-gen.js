@@ -10,7 +10,6 @@ import * as FolderConstants from '../constants/folders'
 // Constants
 export const resetStore = 'common:resetStore' // not a part of tracker but is handled by every reducer
 export const cacheIdentify = 'tracker:cacheIdentify'
-export const clearIdentifyCache = 'tracker:clearIdentifyCache'
 export const identifyFinished = 'tracker:identifyFinished'
 export const identifyStarted = 'tracker:identifyStarted'
 export const markActiveIdentifyUi = 'tracker:markActiveIdentifyUi'
@@ -47,7 +46,6 @@ export const waiting = 'tracker:waiting'
 
 // Action Creators
 export const createCacheIdentify = (payload: {|+uid: string, +goodTill: number|}) => ({error: false, payload, type: cacheIdentify})
-export const createClearIdentifyCache = (payload: {|+uid: string|}) => ({error: false, payload, type: clearIdentifyCache})
 export const createIdentifyFinished = (payload: {|+username: string|}) => ({error: false, payload, type: identifyFinished})
 export const createIdentifyFinishedError = (payload: {|+username: string, +error: string|}) => ({error: true, payload, type: identifyFinished})
 export const createIdentifyStarted = (payload: {|+username: string|}) => ({error: false, payload, type: identifyStarted})
@@ -85,7 +83,6 @@ export const createWaiting = (payload: {|+username: string, +waiting: boolean|})
 
 // Action Payloads
 export type CacheIdentifyPayload = More.ReturnType<typeof createCacheIdentify>
-export type ClearIdentifyCachePayload = More.ReturnType<typeof createClearIdentifyCache>
 export type IdentifyFinishedPayload = More.ReturnType<typeof createIdentifyFinished>
 export type IdentifyStartedPayload = More.ReturnType<typeof createIdentifyStarted>
 export type MarkActiveIdentifyUiPayload = More.ReturnType<typeof createMarkActiveIdentifyUi>
@@ -124,7 +121,6 @@ export type WaitingPayload = More.ReturnType<typeof createWaiting>
 // prettier-ignore
 export type Actions =
   | More.ReturnType<typeof createCacheIdentify>
-  | More.ReturnType<typeof createClearIdentifyCache>
   | More.ReturnType<typeof createIdentifyFinished>
   | More.ReturnType<typeof createIdentifyFinishedError>
   | More.ReturnType<typeof createIdentifyStarted>

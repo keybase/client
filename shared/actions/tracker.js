@@ -36,7 +36,7 @@ const startTimer = () => (dispatch: Dispatch, getState: () => TypedState) => {
 function setupUserChangedHandler() {
   const setupUserChangedHandlerHelper = (dispatch: Dispatch, getState: () => TypedState) => {
     engine().setIncomingHandler('keybase.1.NotifyUsers.userChanged', ({uid}) => {
-      dispatch(TrackerGen.createClearIdentifyCache({uid}))
+      dispatch(TrackerGen.createCacheIdentify({uid, goodTill: 0}))
       const username = _getUsername(uid, getState())
       if (username) {
         dispatch(getProfile(username))
