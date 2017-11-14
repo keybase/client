@@ -17,7 +17,6 @@ import roles from '../teams/role-picker/index.stories'
 import search from '../search/search.stories'
 import teams from '../teams/index.stories'
 import text from '../common-adapters/text.stories'
-import openTeam from '../teams/open-team/index.stories'
 import editTeamDescription from '../teams/edit-team-description/index.stories'
 
 const stories = {
@@ -35,7 +34,6 @@ const stories = {
   editTeamDescription,
   git,
   icon,
-  openTeam,
   radiobutton,
   roles,
   search,
