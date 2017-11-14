@@ -363,7 +363,7 @@ function* onSelectAttachment({payload: {input}}: ChatGen.SelectAttachmentPayload
     postAttachmentSagaMap(conversationIDKey, preview, title, filename, getCurKey, setCurKey, setOutboxIdKey),
     ChatTypes.localPostFileAttachmentLocalRpcChannelMap,
     `localPostFileAttachmentLocal-${conversationIDKey}-${title}-${filename}`,
-    {param}
+    param
   )
 
   const keyChangedTask = yield Saga.safeTakeEvery(
