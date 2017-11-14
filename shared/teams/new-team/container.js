@@ -12,7 +12,7 @@ const mapStateToProps = (state: TypedState) => ({
 const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routePath}) => ({
   _onCreateNewTeam: name => {
     const rootPath = routePath.take(1)
-    const sourceSubPath = rootPath.rest()
+    const sourceSubPath = routePath.rest()
     const destSubPath = sourceSubPath.butLast()
     dispatch(createNewTeam(name, rootPath, sourceSubPath, destSubPath))
   },

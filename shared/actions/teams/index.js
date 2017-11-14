@@ -35,7 +35,9 @@ const _createNewTeam = function*(action: Constants.CreateNewTeam) {
     })
 
     // Dismiss the create team dialog.
-    yield Saga.put(putActionIfOnPath(sourceSubPath, navigateTo(destSubPath, rootPath), rootPath))
+    yield Saga.put(
+      putActionIfOnPath(rootPath.concat(sourceSubPath), navigateTo(destSubPath, rootPath), rootPath)
+    )
 
     // No error if we get here.
     yield Saga.put(navigateTo([isMobile ? chatTab : teamsTab]))
