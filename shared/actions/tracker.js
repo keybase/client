@@ -10,7 +10,7 @@ import openUrl from '../util/open-url'
 import {requestIdleCallback} from '../util/idle-callback'
 import {isMobile} from '../constants/platform'
 import {type TypedState} from '../constants/reducer'
-import {type FriendshipUserInfo} from '../profile/friendships'
+import type {FriendshipUserInfo} from '../profile/friendships'
 
 // TODO sagaize this
 // Currently most things will call these thunks but they also tend to dispatch a generated action with the same name
