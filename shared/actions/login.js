@@ -21,7 +21,7 @@ import {isMobile} from '../constants/platform'
 import {pathSelector, navigateTo, navigateAppend} from './route-tree'
 import {devicesTabLocation, toDeviceType, type DeviceType} from '../constants/devices'
 import {type Dispatch, type AsyncAction} from '../constants/types/flux'
-import {type InitialState} from '../constants/config'
+import {type InitialState} from '../constants/types/config'
 import {type TypedState} from '../constants/reducer'
 
 const deviceType: DeviceType = isMobile ? 'mobile' : 'desktop'

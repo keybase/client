@@ -1,7 +1,7 @@
 // @flow
 import * as Billing from '../constants/plan-billing'
 import * as Chat from '../constants/types/chat'
-import * as Config from '../constants/config'
+import * as Config from '../constants/types/config'
 import * as Dev from '../constants/dev'
 import * as Devices from '../constants/devices'
 import * as Entity from '../constants/entities'
@@ -44,7 +44,3 @@ export type TypedState = {
   unlockFolders: UnlockFolders.State,
   waiting: Waiting.State,
 }
-
-// TODO swap State with TypedState when TypedState includes everything we care about
-export type State = {[key: string]: any}
-export const stateKey = 'reducer:stateKey'
