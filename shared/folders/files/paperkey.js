@@ -1,9 +1,10 @@
 // @flow
 import * as Constants from '../../constants/unlock-folders'
+import * as UnlockFoldersGen from '../../actions/unlock-folders-gen'
+import * as Creators from '../../actions/unlock-folders'
 import HiddenString from '../../util/hidden-string'
 import React, {Component} from 'react'
 import PaperKey from '../../login/register/paper-key'
-import {checkPaperKey, toPaperKeyInput, onBackFromPaperKey} from '../../actions/unlock-folders'
 import {connect, type TypedState} from '../../util/container'
 import {navigateUp} from '../../actions/route-tree'
 
@@ -51,26 +52,17 @@ class _PaperKey extends Component<Props, {paperKey: string}> {
   }
 }
 
-export default connect(
-  (state: TypedState, ownProps) => {
-    return {
-      waiting: state.unlockFolders.waiting,
-      error: state.unlockFolders.paperkeyError || '',
-      phase: state.unlockFolders.phase,
-    }
-  },
-  (dispatch: any) => ({
-    onBack: () => {
-      dispatch(navigateUp())
-    },
-    checkPaperKey: paperkey => {
-      dispatch(checkPaperKey(paperkey))
-    },
-    toPaperKeyInput: () => {
-      dispatch(toPaperKeyInput())
-    },
-    onBackFromPaperKey: () => {
-      dispatch(onBackFromPaperKey())
-    },
-  })
-)(_PaperKey)
+const mapStateToProps = (state: TypedState, ownProps) => ({
+  waiting: state.unlockFolders.waiting,
+  error: state.unlockFolders.paperkeyError || '',
+  phase: state.unlockFolders.phase,
+})
+
+const mapDispatchToProps = (dispatch: Dispatch) => ({
+  onBack: () => dispatch(navigateUp()),
+  checkPaperKey: paperkey => dispatch(Creators.checkPaperKey(paperkey)),
+  toPaperKeyInput: () => dispatch(UnlockFoldersGen.createToPaperKeyInput()),
+  onBackFromPaperKey: () => dispatch(UnlockFoldersGen.createOnBackFromPaperKey()),
+})
+
+export default connect(mapStateToProps, mapDispatchToProps)(_PaperKey)

@@ -14,7 +14,6 @@ export type State = {
   paperkeyError: ?string,
   phase: 'dead' | 'promptOtherDevice' | 'paperKeyInput' | 'success',
   sessionID: ?number,
-  started: boolean,
   waiting: boolean,
 }
 
@@ -24,7 +23,6 @@ const initialState: State = {
   paperkeyError: null,
   phase: 'dead',
   sessionID: null,
-  started: false,
   waiting: false,
 }
 

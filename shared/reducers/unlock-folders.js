@@ -10,36 +10,32 @@ export default function(
   switch (action.type) {
     case UnlockFoldersGen.resetStore:
       return {
-        ...initialState,
-        started: state.started,
+        ...Constants.initialState,
       }
-
-    case UnlockFoldersGen.close:
+    case UnlockFoldersGen.closeDone:
       return {
         ...state,
         closed: true,
       }
-    case UnlockFoldersGen.waiting:{
+    case UnlockFoldersGen.waiting: {
       const {waiting} = action.payload
       return {
         ...state,
         waiting,
       }
     }
-
     case UnlockFoldersGen.onBackFromPaperKey:
       return {
         ...state,
         paperkeyError: '',
         phase: 'promptOtherDevice',
       }
-
     case UnlockFoldersGen.toPaperKeyInput:
       return {
         ...state,
         phase: 'paperKeyInput',
       }
-    case UnlockFoldersGen.checkPaperKey:
+    case UnlockFoldersGen.checkPaperKeyDone:
       if (action.error) {
         return {
           ...state,
@@ -57,34 +53,20 @@ export default function(
         closed: true,
         phase: 'dead',
       }
+    case UnlockFoldersGen.newRekeyPopup: {
+      const devices = action.payload.devices.map(({name, type, deviceID}) => ({
+        deviceID,
+        name,
+        type: toDeviceType(type),
+      }))
 
-    case UnlockFoldersGen.registerRekeyListener:
-      if (action.payload && action.payload.started) {
-        return {
-          ...state,
-          started: true,
-        }
-      } else {
-        return state
+      return {
+        ...state,
+        closed: !devices.length,
+        devices,
+        sessionID: action.payload.sessionID,
       }
-    case UnlockFoldersGen.newRekeyPopup:
-      if (state.started && action.payload) {
-        const devices = action.payload.devices.map(({name, type, deviceID}) => ({
-          deviceID,
-          name,
-          type: toDeviceType(type),
-        }))
-
-        return {
-          ...state,
-          closed: !devices.length,
-          devices,
-          sessionID: action.payload.sessionID,
-        }
-      }
-      return state
-
-    default:
-      return state
+    }
   }
+  return state
 }

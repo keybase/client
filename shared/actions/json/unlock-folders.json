@@ -3,17 +3,16 @@
     "import * as Constants from '../constants/unlock-folders'"
   ],
   "actions": {
-    "checkPaperKey": {
-      "success": "true",
+    "checkPaperKeyDone": {
       "canError": {
         "error": "string"
       }
     },
-    "close": {},
+    "closeDone": {},
     "finish": {},
     "newRekeyPopup": {
       "sessionID": "number",
-      "devices": "Array<RPCTypes.Service>",
+      "devices": "Array<RPCTypes.Device>",
       "problemSet": "RPCTypes.ProblemSet"
     },
     "onBackFromPaperKey": {},

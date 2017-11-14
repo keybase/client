@@ -1,6 +1,7 @@
 // @flow
 import * as Constants from '../constants/unlock-folders'
 import * as Creators from '../actions/unlock-folders'
+import * as UnlockFoldersGen from '../actions/unlock-folders-gen'
 import HiddenString from '../util/hidden-string'
 import React, {Component} from 'react'
 import Render from './render'
@@ -45,10 +46,10 @@ const mapStateToProps = ({unlockFolders: {devices, phase, paperkeyError, waiting
 
 const mapDispatchToProps = (dispatch: Dispatch, ownProps: any) => ({
   close: () => ownProps.onCancel(),
-  onBackFromPaperKey: () => dispatch(Creators.onBackFromPaperKey()),
+  onBackFromPaperKey: () => dispatch(UnlockFoldersGen.createOnBackFromPaperKey()),
   onContinueFromPaperKey: pk => dispatch(Creators.checkPaperKey(pk)),
-  onFinish: () => dispatch(Creators.finish()),
-  toPaperKeyInput: () => dispatch(Creators.toPaperKeyInput()),
+  onFinish: () => dispatch(UnlockFoldersGen.createFinish()),
+  toPaperKeyInput: () => dispatch(UnlockFoldersGen.createToPaperKeyInput()),
 })
 
 export default connect(mapStateToProps, mapDispatchToProps)(UnlockFolders)
