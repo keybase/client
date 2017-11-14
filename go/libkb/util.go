@@ -687,8 +687,8 @@ func SleepUntilWithContext(ctx context.Context, clock clockwork.Clock, deadline 
 	}
 }
 
-func CITimeMultiplier(g Contextifier) time.Duration {
-	if g.G().GetEnv().RunningInCI() {
+func CITimeMultiplier(g *GlobalContext) time.Duration {
+	if g.GetEnv().RunningInCI() {
 		return time.Duration(3)
 	}
 	return time.Duration(1)

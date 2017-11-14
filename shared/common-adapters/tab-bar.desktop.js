@@ -193,7 +193,7 @@ class TabBarButton extends React.Component<TabBarButtonProps> {
             {this.props.label}
           </Text>}
         {badgeNumber > 0 &&
-          <Box style={styleBadgeIcon}>
+          <Box style={{...styleBadgeIcon, ...this.props.styleBadgeContainer}}>
             <Badge
               badgeNumber={badgeNumber}
               badgeStyle={this.props.styleBadge}

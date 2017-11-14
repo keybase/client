@@ -16,7 +16,7 @@ import engine from '../../engine'
 import {replaceEntity} from '../entities'
 import {usernameSelector} from '../../constants/selectors'
 import {isMobile} from '../../constants/platform'
-import {navigateTo} from '../route-tree'
+import {putActionIfOnPath, navigateTo} from '../route-tree'
 import {chatTab, teamsTab} from '../../constants/tabs'
 import openSMS from '../../util/sms'
 import {createDecrementWaiting, createIncrementWaiting} from '../../actions/waiting-gen'
@@ -26,13 +26,18 @@ import {convertToError} from '../../util/errors'
 import type {TypedState} from '../../constants/reducer'
 
 const _createNewTeam = function*(action: Constants.CreateNewTeam) {
-  const {payload: {name}} = action
+  const {payload: {name, rootPath, sourceSubPath, destSubPath}} = action
   yield Saga.put(Creators.setTeamCreationError(''))
   yield Saga.put(Creators.setTeamCreationPending(true))
   try {
     yield Saga.call(RPCTypes.teamsTeamCreateRpcPromise, {
       param: {name, sendChatNotification: true},
     })
+
+    // Dismiss the create team dialog.
+    yield Saga.put(
+      putActionIfOnPath(rootPath.concat(sourceSubPath), navigateTo(destSubPath, rootPath), rootPath)
+    )
 
     // No error if we get here.
     yield Saga.put(navigateTo([isMobile ? chatTab : teamsTab]))
@@ -119,6 +124,21 @@ const _addToTeam = function*(action: Constants.AddToTeam) {
     })
   } finally {
     // TODO handle error, but for now make sure loading is unset
+    yield Saga.put((dispatch: Dispatch) => dispatch(Creators.getDetails(name))) // getDetails will unset loading
+  }
+}
+
+const _editDescription = function*(action: Constants.EditDescription) {
+  const {payload: {name, description}} = action
+  yield Saga.put(replaceEntity(['teams', 'teamNameToLoading'], I.Map([[name, true]])))
+  try {
+    yield Saga.call(RPCTypes.teamsSetTeamShowcaseRpcPromise, {
+      param: {
+        description,
+        name,
+      },
+    })
+  } finally {
     yield Saga.put((dispatch: Dispatch) => dispatch(Creators.getDetails(name))) // getDetails will unset loading
   }
 }
@@ -323,6 +343,7 @@ const _getDetails = function*(action: Constants.GetDetails): Saga.SagaGenerator<
     )
 
     const publicityMap = {
+      description: publicity.teamShowcase.description,
       member: publicity.isMemberShowcased,
       team: publicity.teamShowcase.isShowcased,
     }
@@ -729,6 +750,7 @@ const teamsSaga = function*(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEvery('teams:addPeopleToTeam', _addPeopleToTeam)
   yield Saga.safeTakeEvery('teams:inviteToTeamByEmail', _inviteByEmail)
   yield Saga.safeTakeEvery('teams:ignoreRequest', _ignoreRequest)
+  yield Saga.safeTakeEvery('teams:editDescription', _editDescription)
   yield Saga.safeTakeEvery('teams:editMembership', _editMembership)
   yield Saga.safeTakeEvery('teams:removeMemberOrPendingInvite', _removeMemberOrPendingInvite)
   yield Saga.safeTakeEveryPure('teams:updateTopic', _updateTopic, last)

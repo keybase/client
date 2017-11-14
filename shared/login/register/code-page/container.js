@@ -67,9 +67,10 @@ const mapDispatchToProps = dispatch => ({
   onBack: () => dispatch(LoginGen.createOnBack()),
   setCodePageMode: mode => dispatch(LoginGen.createSetCodePageMode({mode})),
   setCameraBrokenMode: (broken: boolean) => dispatch(LoginGen.createSetCameraBrokenMode({broken})),
-  qrScanned: ({data}) => dispatch(LoginGen.createQrScanned({phrase: new HiddenString(data)})),
+  qrScanned: ({data}: {data: string}) => dispatch(LoginGen.createQrScanned({phrase: new HiddenString(data)})),
   resetQRCodeScanned: () => dispatch(LoginGen.createResetQRCodeScanned()),
-  textEntered: phrase => dispatch(LoginGen.createProvisionTextCodeEntered({phrase})),
+  textEntered: (phrase: string) =>
+    dispatch(LoginGen.createProvisionTextCodeEntered({phrase: new HiddenString(phrase)})),
 })
 
 export default connect(mapStateToProps, mapDispatchToProps)(_CodePage)

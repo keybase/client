@@ -647,12 +647,11 @@ function* _sendNotifications(action: ChatGen.AppendMessagesPayload): Saga.SagaGe
   )
   // Only send if you're not looking at it and service wants us to
   if (svcDisplay && (!convoIsSelected || !appFocused || !chatTabSelected)) {
-    const me = Selectors.usernameSelector(state)
-    const message = action.payload.messages.reverse().find(m => m.type === 'Text' && m.author !== me)
+    const message = action.payload.messages.reverse().find(m => m.type === 'Text' || m.type === 'System')
     // Is this message part of a muted conversation? If so don't notify.
     const convo = Constants.getInbox(state, action.payload.conversationIDKey)
     if (convo && convo.get('status') !== 'muted') {
-      if (message && message.type === 'Text') {
+      if (message && (message.type === 'Text' || message.type === 'System')) {
         console.log('Sending Chat notification')
         const snippet = Constants.makeSnippet(Constants.serverMessageToMessageText(message))
         yield Saga.put((dispatch: Dispatch) => {
@@ -703,6 +702,10 @@ function* _inboxSynced(action: ChatGen.InboxSyncedPayload): Saga.SagaGenerator<a
 
   const {convs} = action.payload
   const items = Shared.makeInboxStateRecords(author, convs, I.Map())
+  const latestMaxMsgID = convs.reduce((acc, c) => {
+    acc[c.convID] = c.maxMsgID
+    return acc
+  }, {})
 
   yield Saga.put(
     ChatGen.createReplaceEntity({
@@ -733,35 +736,26 @@ function* _inboxSynced(action: ChatGen.InboxSyncedPayload): Saga.SagaGenerator<a
   const conversation = Constants.getSelectedConversationStates(state)
   if (conversation) {
     const inbox = Constants.getInbox(state, selectedConversation)
+    const lastMessageIDWeAreShowing = Constants.lastMessageID(state, selectedConversation)
 
-    const messageKeys = Constants.getConversationMessages(state, selectedConversation)
-    const lastMessageKey = messageKeys.last()
+    // Check the data we are given first, then our state
+    const knownMaxMessageID: ?number = latestMaxMsgID[selectedConversation] || (inbox ? inbox.maxMsgID : null)
+
     let numberOverride
-    if (lastMessageKey) {
-      const lastMessage = Constants.getMessageFromMessageKey(state, lastMessageKey)
-      // Check to see if we could possibly be asking for too many messages
-      if (
-        lastMessage &&
-        typeof lastMessage.rawMessageID === 'number' &&
-        lastMessage.rawMessageID &&
-        inbox &&
-        inbox.maxMsgID
-      ) {
-        numberOverride = inbox.maxMsgID - lastMessage.rawMessageID
+    if (lastMessageIDWeAreShowing && knownMaxMessageID) {
+      const lastRpcMessageIdWeAreShowing = Constants.messageIDToRpcMessageID(lastMessageIDWeAreShowing)
 
-        if (numberOverride > tooManyMessagesToJustAppendOnStale) {
-          console.log(
-            'Doing a full load due to too many old messages',
-            inbox.maxMsgID - lastMessage.rawMessageID
-          )
-          yield Saga.all([
-            Saga.put(ChatGen.createClearMessages({conversationIDKey: selectedConversation})),
-            yield Saga.put(
-              ChatGen.createLoadMoreMessages({conversationIDKey: selectedConversation, onlyIfUnloaded: false})
-            ),
-          ])
-          return
-        }
+      // Check to see if we could possibly be asking for too many messages
+      numberOverride = knownMaxMessageID - lastRpcMessageIdWeAreShowing
+      if (numberOverride > tooManyMessagesToJustAppendOnStale) {
+        console.log('Doing a full load due to too many old messages', numberOverride)
+        yield Saga.all([
+          Saga.put(ChatGen.createClearMessages({conversationIDKey: selectedConversation})),
+          Saga.put(
+            ChatGen.createLoadMoreMessages({conversationIDKey: selectedConversation, onlyIfUnloaded: false})
+          ),
+        ])
+        return
       }
     }
     // It is VERY important to pass the exact number of things to request here. The pagination system will

@@ -10,6 +10,7 @@ import {type NoErrorTypedAction} from './types/flux'
 import {type TypedState} from './reducer'
 
 type _PublicitySettings = {
+  description: string,
   member: boolean,
   team: boolean,
 }
@@ -20,6 +21,9 @@ export type CreateNewTeam = NoErrorTypedAction<
   'teams:createNewTeam',
   {
     name: string,
+    rootPath: I.List<string>,
+    sourceSubPath: I.List<string>,
+    destSubPath: I.List<string>,
   }
 >
 
@@ -44,6 +48,7 @@ export type AddToTeam = NoErrorTypedAction<
     sendChatNotification: boolean,
   }
 >
+export type EditDescription = NoErrorTypedAction<'teams:editDescription', {description: string, name: string}>
 export type EditMembership = NoErrorTypedAction<
   'teams:editMembership',
   {name: string, username: string, role: TeamRoleType}

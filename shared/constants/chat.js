@@ -611,6 +611,8 @@ function serverMessageToMessageText(message: ServerMessage): ?string {
   switch (message.type) {
     case 'Text':
       return message.message.stringValue()
+    case 'System':
+      return message.message.stringValue()
     default:
       return null
   }
