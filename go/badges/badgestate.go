@@ -71,7 +71,7 @@ type memberOutBody struct {
 }
 
 type homeStateBody struct {
-	Version int `json:"version"`
+	Version    int `json:"version"`
 	BadgeCount int `json:"badge_count"`
 }
 
