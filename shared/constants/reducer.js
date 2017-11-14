@@ -2,7 +2,7 @@
 import * as Billing from '../constants/plan-billing'
 import * as Chat from '../constants/types/chat'
 import * as Config from '../constants/types/config'
-import * as Dev from '../constants/dev'
+import * as Dev from '../constants/types/dev'
 import * as Devices from '../constants/devices'
 import * as Entity from '../constants/entities'
 import * as Engine from '../constants/engine'
