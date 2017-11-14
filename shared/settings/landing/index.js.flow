@@ -2,7 +2,7 @@
 import {Component} from 'react'
 
 import type {PlanLevel} from '../../constants/settings'
-import type {PaymentInfo, AvailablePlan} from '../../constants/plan-billing'
+import type {PaymentInfo, AvailablePlan} from '../../constants/types/plan-billing'
 
 export type PlanProps = {
   onInfo: (level: PlanLevel) => void,

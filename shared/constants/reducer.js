@@ -1,5 +1,5 @@
 // @flow
-import type {State as Billing} from '../constants/plan-billing'
+import type {State as Billing} from '../constants/types/plan-billing'
 import type {State as Chat} from '../constants/types/chat'
 import type {State as Config} from '../constants/types/config'
 import type {State as Dev} from '../constants/types/dev'

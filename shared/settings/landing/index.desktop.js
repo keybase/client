@@ -9,7 +9,11 @@ import flags from '../../util/feature-flags'
 
 import type {Props, AccountProps, PlanProps} from './index'
 import type {PlanLevel} from '../../constants/settings'
-import type {PaymentInfo as PaymentInfoType, AvailablePlan, ChangeType} from '../../constants/plan-billing'
+import type {
+  PaymentInfo as PaymentInfoType,
+  AvailablePlan,
+  ChangeType,
+} from '../../constants/types/plan-billing'
 
 const ROW_HEIGHT = 48
 
