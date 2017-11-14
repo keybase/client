@@ -453,9 +453,6 @@ func (t *Team) ChangeMembershipPermanent(ctx context.Context, req keybase1.TeamC
 		return err
 	}
 
-	t.G().Log.CDebugf(ctx, "change membership section: %+v", section)
-	t.G().Log.CDebugf(ctx, "change membership section members writers: %+v", section.Members.Writers)
-
 	if err := t.ForceMerkleRootUpdate(ctx); err != nil {
 		return err
 	}
