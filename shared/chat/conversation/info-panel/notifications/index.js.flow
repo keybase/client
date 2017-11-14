@@ -1,6 +1,6 @@
 // @flow
 import {Component} from 'react'
-import type {NotifyType} from '../../../../constants/chat'
+import type {NotifyType} from '../../../../constants/types/chat'
 
 export type Props = {
   channelWide: boolean,

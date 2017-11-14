@@ -1,7 +1,7 @@
 // @flow
 import uniq from 'lodash/uniq'
 import {isMobile, runMode} from './platform'
-import {type ConversationIDKey} from './chat'
+import {type ConversationIDKey} from './types/chat'
 import {type Tab} from './tabs'
 import {type Config, type DeviceID, type ExtendedStatus} from './types/flow-types'
 

@@ -1,12 +1,13 @@
 // @flow
 import * as Constants from '../../../../constants/chat'
+import * as Types from '../../../../constants/types/chat'
 import * as ChatGen from '../../../../actions/chat-gen'
 import Notifications from '.'
 import {compose, branch, renderNothing, connect, type TypedState} from '../../../../util/container'
 import {type DeviceType} from '../../../../constants/devices'
 import {type StateProps, type DispatchProps} from './container'
 
-const serverStateToProps = (notifications: Constants.NotificationsState, type: 'desktop' | 'mobile') => {
+const serverStateToProps = (notifications: Types.NotificationsState, type: 'desktop' | 'mobile') => {
   // The server state has independent bool values for atmention/generic,
   // but the design has three radio buttons -- atmention, generic, never.
   // So:
@@ -53,11 +54,11 @@ const mapStateToProps = (state: TypedState) => {
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
   onSetNotification: (
-    conversationIDKey: Constants.ConversationIDKey,
+    conversationIDKey: Types.ConversationIDKey,
     deviceType: DeviceType,
-    notifyType: Constants.NotifyType
+    notifyType: Types.NotifyType
   ) => dispatch(ChatGen.createSetNotifications({conversationIDKey, deviceType, notifyType})),
-  onToggleChannelWide: (conversationIDKey: Constants.ConversationIDKey) =>
+  onToggleChannelWide: (conversationIDKey: Types.ConversationIDKey) =>
     dispatch(ChatGen.createToggleChannelWideNotifications({conversationIDKey})),
 })
 
@@ -69,10 +70,10 @@ const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps) => {
       channelWide: stateProps.channelWide,
       desktop: stateProps.desktop,
       mobile: stateProps.mobile,
-      onSetDesktop: (notifyType: Constants.NotifyType) => {
+      onSetDesktop: (notifyType: Types.NotifyType) => {
         dispatchProps.onSetNotification(conversationIDKey, 'desktop', notifyType)
       },
-      onSetMobile: (notifyType: Constants.NotifyType) => {
+      onSetMobile: (notifyType: Types.NotifyType) => {
         dispatchProps.onSetNotification(conversationIDKey, 'mobile', notifyType)
       },
       onToggleChannelWide: () => {

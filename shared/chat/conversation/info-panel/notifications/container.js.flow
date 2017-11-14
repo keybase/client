@@ -1,25 +1,24 @@
 // @flow
 import {Component} from 'react'
-import * as Constants from '../../../../constants/chat'
+import * as Types from '../../../../constants/types/chat'
 import type {DeviceType} from '../../../../constants/devices'
-import type {NotifyType} from '../../../../constants/chat'
 
 export type StateProps =
   | {|
       channelWide: boolean,
       conversationIDKey: string,
-      desktop: NotifyType,
-      mobile: NotifyType,
+      desktop: Types.NotifyType,
+      mobile: Types.NotifyType,
     |}
   | {||}
 
 export type DispatchProps = {|
   onSetNotification: (
-    conversationIDKey: Constants.ConversationIDKey,
+    conversationIDKey: Types.ConversationIDKey,
     deviceType: DeviceType,
-    notifyType: Constants.NotifyType
+    notifyType: Types.NotifyType
   ) => void,
-  onToggleChannelWide: (conversationIDKey: Constants.ConversationIDKey) => void,
+  onToggleChannelWide: (conversationIDKey: Types.ConversationIDKey) => void,
 |}
 
 export default class Notifications extends Component<{}, void> {}

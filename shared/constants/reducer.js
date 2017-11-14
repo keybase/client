@@ -1,6 +1,6 @@
 // @flow
 import * as Billing from '../constants/plan-billing'
-import * as Chat from '../constants/chat'
+import * as Chat from '../constants/types/chat'
 import * as Config from '../constants/config'
 import * as Dev from '../constants/dev'
 import * as Devices from '../constants/devices'

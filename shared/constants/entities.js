@@ -3,7 +3,7 @@ import * as I from 'immutable'
 import * as SearchConstants from './search'
 import * as Teams from './teams'
 import * as Git from './git'
-import * as ChatConstants from './chat'
+import * as ChatTypes from './types/chat'
 import {type NoErrorTypedAction} from './types/flux'
 import {type DeviceDetail} from './devices'
 
@@ -51,8 +51,8 @@ const makeSearchSubState: I.RecordFactory<_SearchSubState> = I.Record({
 })
 
 type PaginationState = I.RecordOf<{
-  next: I.Map<ChatConstants.ConversationIDKey, string>, // Pass this when we want to get older messages
-  prev: I.Map<ChatConstants.ConversationIDKey, string>, // For when we want to get newer messages
+  next: I.Map<ChatTypes.ConversationIDKey, string>, // Pass this when we want to get older messages
+  prev: I.Map<ChatTypes.ConversationIDKey, string>, // For when we want to get newer messages
 }>
 
 const makePaginationState = I.Record({
@@ -62,21 +62,21 @@ const makePaginationState = I.Record({
 
 // State
 type _State = {
-  attachmentDownloadProgress: I.Map<ChatConstants.MessageKey, ?number>,
-  attachmentDownloadedPath: I.Map<ChatConstants.MessageKey, ?string>,
-  attachmentPreviewPath: I.Map<ChatConstants.MessageKey, ?string>,
-  attachmentPreviewProgress: I.Map<ChatConstants.MessageKey, ?number>,
-  attachmentSavedPath: I.Map<ChatConstants.MessageKey, ?string>,
-  attachmentUploadProgress: I.Map<ChatConstants.MessageKey, ?number>,
-  conversationMessages: I.Map<ChatConstants.ConversationIDKey, I.OrderedSet<ChatConstants.MessageKey>>,
-  deletedIDs: I.Map<ChatConstants.ConversationIDKey, I.Set<ChatConstants.MessageID>>,
+  attachmentDownloadProgress: I.Map<ChatTypes.MessageKey, ?number>,
+  attachmentDownloadedPath: I.Map<ChatTypes.MessageKey, ?string>,
+  attachmentPreviewPath: I.Map<ChatTypes.MessageKey, ?string>,
+  attachmentPreviewProgress: I.Map<ChatTypes.MessageKey, ?number>,
+  attachmentSavedPath: I.Map<ChatTypes.MessageKey, ?string>,
+  attachmentUploadProgress: I.Map<ChatTypes.MessageKey, ?number>,
+  conversationMessages: I.Map<ChatTypes.ConversationIDKey, I.OrderedSet<ChatTypes.MessageKey>>,
+  deletedIDs: I.Map<ChatTypes.ConversationIDKey, I.Set<ChatTypes.MessageID>>,
   devices: I.Map<string, DeviceDetail>,
   git: Git.State,
   messageUpdates: I.Map<
-    ChatConstants.ConversationIDKey,
-    I.Map<ChatConstants.MessageID, I.OrderedSet<ChatConstants.MessageKey>>
+    ChatTypes.ConversationIDKey,
+    I.Map<ChatTypes.MessageID, I.OrderedSet<ChatTypes.MessageKey>>
   >,
-  messages: I.Map<ChatConstants.MessageKey, ChatConstants.Message>,
+  messages: I.Map<ChatTypes.MessageKey, ChatTypes.Message>,
   pagination: PaginationState,
   search: SearchSubState,
   searchQueryToResult: I.Map<SearchConstants.SearchQuery, I.List<SearchConstants.SearchResultId>>,
