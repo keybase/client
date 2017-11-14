@@ -744,24 +744,21 @@ function* _updateThread({
   }
 }
 
-function* _appendMessagesToConversation({
-  payload: {conversationIDKey, messages},
-}: ChatGen.AppendMessagesPayload) {
-  const currentMessages = yield Saga.select(Constants.getConversationMessages, conversationIDKey)
-  const nextMessages = currentMessages.concat(messages.map(m => m.key))
-  yield Saga.put(
-    EntityCreators.replaceEntity(['conversationMessages'], I.Map({[conversationIDKey]: nextMessages}))
-  )
-}
-
-function* _prependMessagesToConversation({
-  payload: {conversationIDKey, messages},
-}: ChatGen.AppendMessagesPayload) {
-  const currentMessages = yield Saga.select(Constants.getConversationMessages, conversationIDKey)
-  const nextMessages = I.OrderedSet(messages.map(m => m.key)).concat(currentMessages)
-  yield Saga.put(
-    EntityCreators.replaceEntity(['conversationMessages'], I.Map({[conversationIDKey]: nextMessages}))
-  )
+function* _appendOrPrependMessagesToConversation(arg: ChatGen.AppendMessagesPayload) {
+  const {conversationIDKey, messages} = arg.payload
+  if (arg.type === ChatGen.appendMessages) {
+    const currentMessages = yield Saga.select(Constants.getConversationMessages, conversationIDKey)
+    const nextMessages = currentMessages.concat(messages.map(m => m.key))
+    yield Saga.put(
+      EntityCreators.replaceEntity(['conversationMessages'], I.Map({[conversationIDKey]: nextMessages}))
+    )
+  } else {
+    const currentMessages = yield Saga.select(Constants.getConversationMessages, conversationIDKey)
+    const nextMessages = I.OrderedSet(messages.map(m => m.key)).concat(currentMessages)
+    yield Saga.put(
+      EntityCreators.replaceEntity(['conversationMessages'], I.Map({[conversationIDKey]: nextMessages}))
+    )
+  }
 }
 
 function _updateMessageEntity(action: ChatGen.UpdateTempMessagePayload) {
@@ -961,8 +958,10 @@ function* registerSagas(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEvery(ChatGen.updateThread, _updateThread)
   yield Saga.safeTakeEveryPure(ChatGen.updateBadging, _updateBadging)
   yield Saga.safeTakeEveryPure(ChatGen.updateTempMessage, _updateMessageEntity)
-  yield Saga.safeTakeEvery(ChatGen.appendMessages, _appendMessagesToConversation)
-  yield Saga.safeTakeEvery(ChatGen.prependMessages, _prependMessagesToConversation)
+  yield Saga.safeTakeSerially(
+    [ChatGen.appendMessages, ChatGen.prependMessages],
+    _appendOrPrependMessagesToConversation
+  )
   yield Saga.safeTakeEveryPure(ChatGen.removeOutboxMessage, _removeOutboxMessage)
   yield Saga.safeTakeEvery(ChatGen.outboxMessageBecameReal, _updateOutboxMessageToReal)
   yield Saga.safeTakeEvery(ChatGen.openConversation, _openConversation)
