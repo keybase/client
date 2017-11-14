@@ -744,21 +744,20 @@ function* _updateThread({
   }
 }
 
-function* _appendOrPrependMessagesToConversation(arg: ChatGen.AppendMessagesPayload) {
+function* _appendOrPrependMessagesToConversation(
+  arg: ChatGen.AppendMessagesPayload | ChatGen.PrependMessagesPayload
+) {
   const {conversationIDKey, messages} = arg.payload
+  const currentMessages = yield Saga.select(Constants.getConversationMessages, conversationIDKey)
+  let nextMessages = I.OrderedSet()
   if (arg.type === ChatGen.appendMessages) {
-    const currentMessages = yield Saga.select(Constants.getConversationMessages, conversationIDKey)
-    const nextMessages = currentMessages.concat(messages.map(m => m.key))
-    yield Saga.put(
-      EntityCreators.replaceEntity(['conversationMessages'], I.Map({[conversationIDKey]: nextMessages}))
-    )
+    nextMessages = currentMessages.concat(messages.map(m => m.key))
   } else {
-    const currentMessages = yield Saga.select(Constants.getConversationMessages, conversationIDKey)
-    const nextMessages = I.OrderedSet(messages.map(m => m.key)).concat(currentMessages)
-    yield Saga.put(
-      EntityCreators.replaceEntity(['conversationMessages'], I.Map({[conversationIDKey]: nextMessages}))
-    )
+    nextMessages = I.OrderedSet(messages.map(m => m.key)).concat(currentMessages)
   }
+  yield Saga.put(
+    EntityCreators.replaceEntity(['conversationMessages'], I.Map({[conversationIDKey]: nextMessages}))
+  )
 }
 
 function _updateMessageEntity(action: ChatGen.UpdateTempMessagePayload) {
@@ -953,7 +952,7 @@ function* registerSagas(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEvery([ChatGen.appendMessages, ChatGen.prependMessages], _storeMessageToEntity)
   yield Saga.safeTakeEvery([ChatGen.appendMessages, ChatGen.prependMessages], _findMessagesToDelete)
   yield Saga.safeTakeEvery([ChatGen.appendMessages, ChatGen.prependMessages], _findMessageUpdates)
-  yield Saga.safeTakeEvery(ChatGen.loadMoreMessages, Saga.cancelWhen(_threadIsCleared, _loadMoreMessages))
+  yield Saga.safeTakeSerially(ChatGen.loadMoreMessages, Saga.cancelWhen(_threadIsCleared, _loadMoreMessages))
   yield Saga.safeTakeEvery(ChatGen.incomingMessage, _incomingMessage)
   yield Saga.safeTakeEvery(ChatGen.updateThread, _updateThread)
   yield Saga.safeTakeEveryPure(ChatGen.updateBadging, _updateBadging)
