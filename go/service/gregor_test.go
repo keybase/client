@@ -685,9 +685,12 @@ func TestGregorTeamBadges(t *testing.T) {
 
 	t.Logf("server message")
 	teamID := keybase1.MakeTestTeamID(1, false)
-	msg := server.newIbm2(uid, gregor1.Category("team.newly_added_to_team"), gregor1.Body([]byte(`[{"id": "`+teamID+`"}]`)))
+	fakeUID := keybase1.MakeTestUID(1)
+	msg := server.newIbm2(uid, gregor1.Category("team.newly_added_to_team"), gregor1.Body([]byte(`[{"id": "`+teamID+`","name": "teamname"}]`)))
 	require.NoError(t, server.ConsumeMessage(context.TODO(), msg))
-	msg = server.newIbm2(uid, gregor1.Category("team.request_access"), gregor1.Body([]byte(`[{"id": "`+teamID+`"}]`)))
+	msg = server.newIbm2(uid, gregor1.Category("team.request_access"), gregor1.Body([]byte(`[{"id": "`+teamID+`","name": "teamname"}]`)))
+	require.NoError(t, server.ConsumeMessage(context.TODO(), msg))
+	msg = server.newIbm2(uid, gregor1.Category("team.member_out_from_reset"), gregor1.Body([]byte(`{"reset_user": {"uid":"`+fakeUID.String()+`","username":"alice"},"team_name": "teamname"}`)))
 	require.NoError(t, server.ConsumeMessage(context.TODO(), msg))
 
 	// Sync from the server
@@ -702,10 +705,14 @@ func TestGregorTeamBadges(t *testing.T) {
 	require.NoError(t, h.badger.Resync(context.TODO(), ri, h.gregorCli, nil))
 
 	bs := listener.getBadgeState(t)
-	require.Equal(t, 1, len(bs.NewTeamIDs), "one new team id")
-	require.Equal(t, teamID, bs.NewTeamIDs[0])
+	require.Equal(t, 1, len(bs.NewTeamNames), "one new team name")
+	require.Equal(t, "teamname", bs.NewTeamNames[0])
 	require.Equal(t, 1, len(bs.NewTeamAccessRequests), "one team access request")
-	require.Equal(t, teamID, bs.NewTeamAccessRequests[0])
+	require.Equal(t, "teamname", bs.NewTeamAccessRequests[0])
+	require.Equal(t, 1, len(bs.TeamsWithResetUsers), "one team member out due to reset")
+	require.Equal(t, "teamname", bs.TeamsWithResetUsers[0].Teamname)
+	require.Equal(t, "alice", bs.TeamsWithResetUsers[0].Username)
+	require.Equal(t, msg.ToInBandMessage().Metadata().MsgID(), bs.TeamsWithResetUsers[0].Id)
 }
 
 // TestGregorBadgesOOBM doesn't actually use out of band messages.

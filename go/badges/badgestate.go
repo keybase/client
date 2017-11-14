@@ -11,6 +11,7 @@ import (
 	"github.com/keybase/client/go/gregor"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/chat1"
+	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
 	jsonw "github.com/keybase/go-jsonw"
 )
@@ -57,7 +58,16 @@ type problemSetBody struct {
 }
 
 type newTeamBody struct {
-	TeamID string `json:"id"`
+	TeamID   string `json:"id"`
+	TeamName string `json:"name"`
+}
+
+type memberOutBody struct {
+	TeamName  string `json:"team_name"`
+	ResetUser struct {
+		UID      string `json:"uid"`
+		Username string `json:"username"`
+	} `json:"reset_user"`
 }
 
 // UpdateWithGregor updates the badge state from a gregor state.
@@ -69,7 +79,8 @@ func (b *BadgeState) UpdateWithGregor(gstate gregor.State) error {
 	b.state.NewFollowers = 0
 	b.state.RekeysNeeded = 0
 	b.state.NewGitRepoGlobalUniqueIDs = []string{}
-	b.state.NewTeamIDs = nil
+	b.state.NewTeamNames = nil
+	b.state.NewTeamAccessRequests = nil
 
 	items, err := gstate.Items()
 	if err != nil {
@@ -125,12 +136,10 @@ func (b *BadgeState) UpdateWithGregor(gstate gregor.State) error {
 				continue
 			}
 			for _, x := range body {
-				teamID, err := keybase1.TeamIDFromString(x.TeamID)
-				if err != nil {
-					b.log.Warning("BadgeState invalid team id in team.newly_added_to_team item: %v", err)
+				if x.TeamName == "" {
 					continue
 				}
-				b.state.NewTeamIDs = append(b.state.NewTeamIDs, teamID)
+				b.state.NewTeamNames = append(b.state.NewTeamNames, x.TeamName)
 			}
 		case "team.request_access":
 			var body []newTeamBody
@@ -139,13 +148,25 @@ func (b *BadgeState) UpdateWithGregor(gstate gregor.State) error {
 				continue
 			}
 			for _, x := range body {
-				teamID, err := keybase1.TeamIDFromString(x.TeamID)
-				if err != nil {
-					b.log.Warning("BadgeState invalid team id in team.request_access item: %v", err)
+				if x.TeamName == "" {
 					continue
 				}
-				b.state.NewTeamAccessRequests = append(b.state.NewTeamAccessRequests, teamID)
+				b.state.NewTeamAccessRequests = append(b.state.NewTeamAccessRequests, x.TeamName)
 			}
+		case "team.member_out_from_reset":
+			var body memberOutBody
+			if err := json.Unmarshal(item.Body().Bytes(), &body); err != nil {
+				b.log.Warning("BadgeState unmarshal error for team.member_out_from_reset item: %v", err)
+				continue
+			}
+
+			msgID := item.Metadata().MsgID().(gregor1.MsgID)
+			m := keybase1.TeamMemberOutReset{
+				Teamname: body.TeamName,
+				Username: body.ResetUser.Username,
+				Id:       msgID,
+			}
+			b.state.TeamsWithResetUsers = append(b.state.TeamsWithResetUsers, m)
 		}
 	}
 

@@ -1,6 +1,7 @@
 // @flow
 import React, {Component} from 'react'
 import Invites, {type Props, type PendingInvite} from '.'
+import * as Constants from '../../constants/settings'
 import {invitesReclaim, invitesRefresh, invitesSend} from '../../actions/settings'
 import {openURLWithHelper} from '../../util/open-url'
 import {navigateAppend} from '../../actions/route-tree'
@@ -26,7 +27,7 @@ const mapStateToProps = (state: TypedState) => ({
 })
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
-  onClearError: () => dispatch({type: 'invites:clearError'}),
+  onClearError: () => dispatch({type: Constants.invitesClearError}),
   onGenerateInvitation: (email: string, message: string) => dispatch(invitesSend(email, message)),
   onReclaimInvitation: (inviteId: string) => dispatch(invitesReclaim(inviteId)),
   onRefresh: () => dispatch(invitesRefresh()),

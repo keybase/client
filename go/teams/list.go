@@ -169,6 +169,9 @@ func List(ctx context.Context, g *libkb.GlobalContext, arg keybase1.TeamListArg)
 	}
 
 	meUID := g.ActiveDevice.UID()
+	if meUID.IsNil() {
+		return nil, libkb.LoginRequiredError{}
+	}
 
 	tracer.Stage("Server")
 	teams, err := getTeamsListFromServer(ctx, g, queryUID, arg.All)
@@ -268,7 +271,7 @@ func List(ctx context.Context, g *libkb.GlobalContext, arg keybase1.TeamListArg)
 
 			anInvites = make(AnnotatedTeamInviteMap)
 			if serverSaysNeedAdmin {
-				anInvites, err = AnnotateInvites(subctx, g, team.chain().inner.ActiveInvites, team.Name().String())
+				anInvites, err = AnnotateInvites(subctx, g, team)
 				if err != nil {
 					g.Log.CDebugf(subctx, "| Failed to AnnotateInvites for team %q: %v", team.ID, err)
 					return nil
@@ -330,7 +333,49 @@ func ListSubteamsRecursive(ctx context.Context, g *libkb.GlobalContext, parentTe
 	return res, nil
 }
 
-func AnnotateInvites(ctx context.Context, g *libkb.GlobalContext, invites map[keybase1.TeamInviteID]keybase1.TeamInvite, teamName string) (map[keybase1.TeamInviteID]keybase1.AnnotatedTeamInvite, error) {
+func AnnotateSeitanInvite(ctx context.Context, team *Team, invite keybase1.TeamInvite) (name keybase1.TeamInviteName, err error) {
+	peikey, err := SeitanDecodePEIKey(string(invite.Name))
+	if err != nil {
+		return name, err
+	}
+	ikeyAndLabel, err := peikey.DecryptIKeyAndLabel(ctx, team)
+	if err != nil {
+		return name, err
+	}
+	version, err := ikeyAndLabel.V()
+	if err != nil {
+		return name, err
+	}
+	switch version {
+	case keybase1.SeitanIKeyAndLabelVersion_V1:
+		v1 := ikeyAndLabel.V1()
+		label := v1.L
+		labelType, err := label.T()
+		if err != nil {
+			return name, err
+		}
+		switch labelType {
+		case keybase1.SeitanIKeyLabelType_SMS:
+			sms := label.Sms()
+			var smsName string
+			if sms.F != "" && sms.N != "" {
+				smsName = fmt.Sprintf("%s (%s)", sms.F, sms.N)
+			} else if sms.F != "" {
+				smsName = sms.F
+			} else if sms.N != "" {
+				smsName = sms.N
+			}
+
+			return keybase1.TeamInviteName(smsName), nil
+		}
+	}
+
+	return "", nil
+}
+
+func AnnotateInvites(ctx context.Context, g *libkb.GlobalContext, team *Team) (map[keybase1.TeamInviteID]keybase1.AnnotatedTeamInvite, error) {
+	invites := team.chain().inner.ActiveInvites
+	teamName := team.Name().String()
 
 	annotatedInvites := make(map[keybase1.TeamInviteID]keybase1.AnnotatedTeamInvite, len(invites))
 	upakLoader := g.GetUPAKLoader()
@@ -361,7 +406,13 @@ func AnnotateInvites(ctx context.Context, g *libkb.GlobalContext, invites map[ke
 				continue
 			}
 			name = keybase1.TeamInviteName(up.Username)
+		} else if category == keybase1.TeamInviteCategory_SEITAN {
+			name, err = AnnotateSeitanInvite(ctx, team, invite)
+			if err != nil {
+				return annotatedInvites, err
+			}
 		}
+
 		annotatedInvites[id] = keybase1.AnnotatedTeamInvite{
 			Role:            invite.Role,
 			Id:              invite.Id,

@@ -13,7 +13,8 @@ import (
 
 type CmdTeamAcceptInvite struct {
 	libkb.Contextified
-	Token string
+	Token  string
+	Seitan bool
 }
 
 func newCmdTeamAcceptInvite(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {

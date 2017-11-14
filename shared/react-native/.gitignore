@@ -23,6 +23,7 @@ project.xcworkspace
 xcuserdata
 Pods
 shared
+fastlane/README.md
 
 keybase.framework
 

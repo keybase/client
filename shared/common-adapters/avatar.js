@@ -9,6 +9,7 @@ import {requestIdleCallback} from '../util/idle-callback'
 import {globalStyles} from '../styles'
 
 import type {IconType} from './icon'
+import type {URLType, AvatarSize} from './avatar.render'
 
 export type URLMap = {
   '200': string,
@@ -16,14 +17,12 @@ export type URLMap = {
   '40': string,
 }
 
-export type AvatarSize = 176 | 112 | 80 | 64 | 48 | 40 | 32 | 24 | 16 | 12
 export type UserPictureSize = 360 | 200 | 40
 export type AvatarLookupCallback = (username: string, urlMap: ?URLMap) => void
 export type AvatarLookup = (username: string) => ?URLMap
 export type AvatarLoad = (username: string, callback: AvatarLookupCallback) => void
 export type TeamAvatarLookup = (teamname: string) => ?URLMap
 export type TeamAvatarLoad = (teamname: string, callback: AvatarLookupCallback) => void
-export type URLType = ?(string | Array<{height: number, width: number, uri: string}>)
 export type Props = {
   borderColor?: string,
   children?: any,
@@ -252,23 +251,23 @@ class Avatar extends React.PureComponent<Props, State> {
   }
 
   _followIconType() {
-    try {
-      return followStateToType[String(this.props.size)][this.props.followsYou ? 'theyYes' : 'theyNo'][
+    const sizeString = String(this.props.size)
+    if (followStateToType.hasOwnProperty(sizeString)) {
+      return followStateToType[sizeString][this.props.followsYou ? 'theyYes' : 'theyNo'][
         this.props.following ? 'youYes' : 'youNo'
       ]
-    } catch (_) {
-      return null
     }
+    return null
   }
 
   _followIconSize() {
-    try {
-      return followStateToSize[String(this.props.size)][this.props.followsYou ? 'theyYes' : 'theyNo'][
+    const sizeString = String(this.props.size)
+    if (followStateToSize.hasOwnProperty(sizeString)) {
+      return followStateToSize[sizeString][this.props.followsYou ? 'theyYes' : 'theyNo'][
         this.props.following ? 'youYes' : 'youNo'
       ]
-    } catch (_) {
-      return 0
     }
+    return 0
   }
 
   render() {
@@ -322,3 +321,4 @@ const initLoad = (loadAvatar: AvatarLoad, loadTeam: TeamAvatarLoad) => {
 
 export default Avatar
 export {initLoad, initLookup}
+export type {AvatarSize}

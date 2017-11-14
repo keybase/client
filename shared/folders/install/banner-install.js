@@ -1,9 +1,9 @@
 // @flow
+import * as KBFSGen from '../../actions/kbfs-gen'
 import React, {Component} from 'react'
 import {Box, Text} from '../../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../../styles'
 import {connect, type TypedState} from '../../util/container'
-import {fuseStatus, installFuse} from '../../actions/kbfs'
 import {fileUIName} from '../../constants/platform'
 
 type Props = {
@@ -60,8 +60,8 @@ const mapStateToProps = (state: TypedState) => {
 }
 
 const mapDispatchToProps = (dispatch: any) => ({
-  getFuseStatus: () => dispatch(fuseStatus()),
-  installFuse: () => dispatch(installFuse()),
+  getFuseStatus: () => dispatch(KBFSGen.createFuseStatus()),
+  installFuse: () => dispatch(KBFSGen.createInstallFuse()),
 })
 
 export default connect(mapStateToProps, mapDispatchToProps)(InstallBanner)

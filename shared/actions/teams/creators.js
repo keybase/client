@@ -30,16 +30,31 @@ function toggleChannelMembership(teamname: string, channelname: string): Constan
   return {payload: {channelname, teamname}, type: 'teams:toggleChannelMembership'}
 }
 
+function saveChannelMembership(
+  teamname: string,
+  channelState: Constants.ChannelMembershipState
+): Constants.SaveChannelMembership {
+  return {payload: {channelState, teamname}, type: 'teams:saveChannelMembership'}
+}
+
 function addPeopleToTeam(teamname: string, role: string): Constants.AddPeopleToTeam {
   return {payload: {role, teamname}, type: 'teams:addPeopleToTeam'}
 }
 
 function inviteToTeamByEmail(
   teamname: string,
-  role: string,
+  role: Constants.TeamRoleType,
   invitees: string
 ): Constants.InviteToTeamByEmail {
   return {payload: {invitees, role, teamname}, type: 'teams:inviteToTeamByEmail'}
+}
+
+function inviteToTeamByPhone(
+  teamname: string,
+  role: Constants.TeamRoleType,
+  phoneNumber: string
+): Constants.InviteToTeamByPhone {
+  return {payload: {teamname, role, phoneNumber}, type: 'teams:inviteToTeamByPhone'}
 }
 
 function joinTeam(teamname: string): Constants.JoinTeam {
@@ -84,6 +99,14 @@ function ignoreRequest(name: string, username: string): Constants.IgnoreRequest 
   return {payload: {name, username}, type: 'teams:ignoreRequest'}
 }
 
+function setPublicityMember(teamname: string, enabled: boolean) {
+  return {payload: {enabled, teamname}, type: 'teams:setPublicityMember'}
+}
+
+function setPublicityTeam(teamname: string, enabled: boolean) {
+  return {payload: {enabled, teamname}, type: 'teams:setPublicityTeam'}
+}
+
 function setTeamCreationError(teamCreationError: string): Constants.SetTeamCreationError {
   return {payload: {teamCreationError}, type: 'teams:setTeamCreationError'}
 }
@@ -103,26 +126,56 @@ function setupTeamHandlers(): Constants.SetupTeamHandlers {
   return {payload: undefined, type: 'teams:setupTeamHandlers'}
 }
 
+function updateChannelName(
+  conversationIDKey: ConversationIDKey,
+  newChannelName: string
+): Constants.UpdateChannelName {
+  return {payload: {conversationIDKey, newChannelName}, type: 'teams:updateChannelName'}
+}
+
+function updateTopic(conversationIDKey: ConversationIDKey, newTopic: string): Constants.UpdateTopic {
+  return {payload: {conversationIDKey, newTopic}, type: 'teams:updateTopic'}
+}
+
+function deleteChannel(conversationIDKey: ConversationIDKey): Constants.DeleteChannel {
+  return {payload: {conversationIDKey}, type: 'teams:deleteChannel'}
+}
+
+function badgeAppForTeams(
+  newTeamNames: Array<string>,
+  newTeamAccessRequests: Array<string>
+): Constants.BadgeAppForTeams {
+  return {payload: {newTeamNames, newTeamAccessRequests}, type: 'teams:badgeAppForTeams'}
+}
+
 export {
   addPeopleToTeam,
   addToTeam,
   createChannel,
   createNewTeam,
   createNewTeamFromConversation,
+  deleteChannel,
   editMembership,
   getChannels,
   getDetails,
   getTeams,
   ignoreRequest,
   inviteToTeamByEmail,
+  inviteToTeamByPhone,
   joinTeam,
   leaveTeam,
   makeTeamOpen,
   removeMember,
+  saveChannelMembership,
+  setPublicityMember,
+  setPublicityTeam,
   setTeamCreationError,
   setTeamCreationPending,
   setTeamJoinError,
   setTeamJoinSuccess,
   setupTeamHandlers,
   toggleChannelMembership,
+  updateChannelName,
+  updateTopic,
+  badgeAppForTeams,
 }

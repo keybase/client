@@ -1,11 +1,13 @@
 package teams
 
 import (
+	"sort"
 	"testing"
 	"time"
 
 	"golang.org/x/net/context"
 
+	"github.com/davecgh/go-spew/spew"
 	"github.com/keybase/client/go/externals"
 	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/libkb"
@@ -55,6 +57,10 @@ func memberSetupMultiple(t *testing.T) (tc libkb.TestContext, owner, otherA, oth
 // no members in subteam.
 func memberSetupSubteam(t *testing.T) (tc libkb.TestContext, owner, otherA, otherB *kbtest.FakeUser, root, sub string) {
 	tc, owner, otherA, otherB, root = memberSetupMultiple(t)
+
+	t.Logf("mss owner: %v", owner.Username)
+	t.Logf("mss otherA: %v", otherA.Username)
+	t.Logf("mss otherB: %v", otherB.Username)
 
 	// add otherA and otherB as admins to rootName
 	_, err := AddMember(context.TODO(), tc.G, root, otherA.Username, keybase1.TeamRole_ADMIN)
@@ -546,26 +552,44 @@ func TestMemberAddAsImplicitAdmin(t *testing.T) {
 	// owner created a subteam, otherA is implicit admin, otherB is nobody
 	// (all of that tested in memberSetupSubteam)
 
-	// switch to `otherA` user
-	tc.G.Logout()
-	if err := otherA.Login(tc.G); err != nil {
-		t.Fatal(err)
+	switchTo := func(to *kbtest.FakeUser) {
+		tc.G.Logout()
+		err := to.Login(tc.G)
+		require.NoError(t, err)
 	}
+
+	switchTo(otherA)
 
 	// otherA has the power to add otherB to the subteam
 	res, err := AddMember(context.TODO(), tc.G, subteamName, otherB.Username, keybase1.TeamRole_WRITER)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if res.User.Username != otherB.Username {
-		t.Errorf("AddMember result username %q does not match arg username %q", res.User.Username, otherB.Username)
-	}
+	require.NoError(t, err)
+	require.Equal(t, otherB.Username, res.User.Username, "AddMember result username does not match arg")
 	// otherB should now be a writer
 	assertRole(tc, subteamName, otherB.Username, keybase1.TeamRole_WRITER)
 
 	// owner, otherA should still be non-members
 	assertRole(tc, subteamName, owner.Username, keybase1.TeamRole_NONE)
 	assertRole(tc, subteamName, otherA.Username, keybase1.TeamRole_NONE)
+
+	switchTo(otherB)
+	// Test ImplicitAdmins
+	subteamName2, err := keybase1.TeamNameFromString(subteamName)
+	require.NoError(t, err)
+	subteamID, err := ResolveNameToID(context.TODO(), tc.G, subteamName2)
+	require.NoError(t, err)
+	ias, err := ImplicitAdmins(context.TODO(), tc.G, subteamID)
+	require.NoError(t, err)
+	t.Logf("res: %v", spew.Sdump(ias))
+	require.Len(t, ias, 2, "number of implicit admins")
+	sort.Slice(ias, func(i, _ int) bool {
+		return ias[i].Uv.Eq(owner.GetUserVersion())
+	})
+	require.Equal(t, owner.GetUserVersion(), ias[0].Uv)
+	require.Equal(t, owner.Username, ias[0].Username)
+	require.True(t, ias[0].Active)
+	require.Equal(t, otherA.GetUserVersion(), ias[1].Uv)
+	require.Equal(t, otherA.Username, ias[1].Username)
+	require.True(t, ias[1].Active)
 }
 
 func TestLeave(t *testing.T) {
@@ -678,6 +702,26 @@ func TestLeaveSubteamWithImplicitAdminship(t *testing.T) {
 	err = Leave(context.TODO(), tc.G, subteamName, false)
 	require.Error(t, err)
 	require.IsType(t, &ImplicitAdminCannotLeaveError{}, err, "wrong error type")
+}
+
+// See CORE-6473
+func TestOnlyOwnerLeaveThenUpgradeFriend(t *testing.T) {
+
+	tc, _, otherA, _, name := memberSetupMultiple(t)
+	defer tc.Cleanup()
+
+	if err := SetRoleWriter(context.TODO(), tc.G, name, otherA.Username); err != nil {
+		t.Fatal(err)
+	}
+	if err := Leave(context.TODO(), tc.G, name, false); err == nil {
+		t.Fatal("expected an error when only owner is leaving")
+	}
+	if err := SetRoleOwner(context.TODO(), tc.G, name, otherA.Username); err != nil {
+		t.Fatal(err)
+	}
+	if err := Leave(context.TODO(), tc.G, name, false); err != nil {
+		t.Fatal(err)
+	}
 }
 
 func TestMemberAddResolveCache(t *testing.T) {

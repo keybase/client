@@ -34,7 +34,7 @@ const (
 	// If you add a new one be sure to get all of these too:
 	// - A corresponding libkb.LinkType in constants.go
 	// - SigchainV2TypeFromV1TypeTeams
-	// - SigChainV2Type.IsTeamType
+	// - SigChainV2Type.IsSupportedTeamType
 	// - SigChainV2Type.RequiresAdminPermission
 	// - SigChainV2Type.TeamAllowStub
 	// - TeamSigChainPlayer.addInnerLink (add a case)
@@ -64,7 +64,8 @@ func (t SigchainV2Type) NeedsSignature() bool {
 }
 
 // Whether a type is for team sigchains.
-func (t SigchainV2Type) IsTeamType() bool {
+// Also the list of which types are supported by this client.
+func (t SigchainV2Type) IsSupportedTeamType() bool {
 	switch t {
 	case SigchainV2TypeTeamRoot,
 		SigchainV2TypeTeamNewSubteam,
@@ -87,7 +88,7 @@ func (t SigchainV2Type) IsTeamType() bool {
 }
 
 func (t SigchainV2Type) RequiresAdminPermission() bool {
-	if !t.IsTeamType() {
+	if !t.IsSupportedTeamType() {
 		return false
 	}
 	switch t {
@@ -122,21 +123,29 @@ func (t SigchainV2Type) TeamAllowStub(role keybase1.TeamRole) bool {
 		SigchainV2TypeTeamInvite:
 		return true
 	default:
-		// Disallow stubbing of other including unknown links
-		// TODO CORE-6274 allow stubbing of unknown types
-		return false
+		// Disallow stubbing of other known links.
+		// Allow stubbing of unknown link types for forward compatibility.
+		return !t.IsSupportedTeamType()
 	}
 }
 
 // OuterLinkV2 is the second version of Keybase sigchain signatures.
 type OuterLinkV2 struct {
-	_struct  bool             `codec:",toarray"`
-	Version  int              `codec:"version"`
-	Seqno    keybase1.Seqno   `codec:"seqno"`
-	Prev     LinkID           `codec:"prev"`
-	Curr     LinkID           `codec:"curr"`
-	LinkType SigchainV2Type   `codec:"type"`
-	SeqType  keybase1.SeqType `codec:"seqtype"`
+	_struct  bool           `codec:",toarray"`
+	Version  int            `codec:"version"`
+	Seqno    keybase1.Seqno `codec:"seqno"`
+	Prev     LinkID         `codec:"prev"`
+	Curr     LinkID         `codec:"curr"`
+	LinkType SigchainV2Type `codec:"type"`
+	// -- Links exist in the wild that are missing fields below this line.
+	SeqType keybase1.SeqType `codec:"seqtype"`
+	// -- Links exist in the wild that are missing fields below this line too.
+	// Whether the link can be ignored by clients that do not support its link type.
+	// This does _not_ mean the link can be ignored if the client supports the link type.
+	// When it comes to stubbing, if the link is unsupported and this bit is set then
+	// - it can be stubbed for non-admins
+	// - it cannot be stubbed for admins
+	IgnoreIfUnsupported bool `codec:"ignore_if_unsupported"`
 }
 
 type OuterLinkV2WithMetadata struct {
@@ -297,37 +306,54 @@ func SigchainV2TypeFromV1TypeTeams(s string) (ret SigchainV2Type, err error) {
 	return ret, err
 }
 
-func (o OuterLinkV2) AssertFields(v int, s keybase1.Seqno, p LinkID, c LinkID, t SigchainV2Type) (err error) {
+func (o OuterLinkV2) AssertFields(
+	version int,
+	seqno keybase1.Seqno,
+	prev LinkID,
+	curr LinkID,
+	linkType SigchainV2Type,
+	seqType keybase1.SeqType,
+	ignoreIfUnsupported bool,
+) (err error) {
 	mkErr := func(format string, arg ...interface{}) error {
 		return SigchainV2MismatchedFieldError{fmt.Sprintf(format, arg...)}
 	}
-	if o.Version != v {
-		return mkErr("version field (%d != %d)", o.Version, v)
+	if o.Version != version {
+		return mkErr("version field (%d != %d)", o.Version, version)
 	}
-	if o.Seqno != s {
-		return mkErr("seqno field: (%d != %d)", o.Seqno, s)
+	if o.Seqno != seqno {
+		return mkErr("seqno field: (%d != %d)", o.Seqno, seqno)
 	}
-	if !o.Prev.Eq(p) {
-		return mkErr("prev pointer: (%s != !%s)", o.Prev, p)
+	if !o.Prev.Eq(prev) {
+		return mkErr("prev pointer: (%s != !%s)", o.Prev, prev)
 	}
-	if !o.Curr.Eq(c) {
-		return mkErr("curr pointer: (%s != %s)", o.Curr, c)
+	if !o.Curr.Eq(curr) {
+		return mkErr("curr pointer: (%s != %s)", o.Curr, curr)
 	}
-	if o.LinkType != t {
-		return mkErr("link type: (%d != %d)", o.LinkType, t)
+	if o.LinkType != linkType {
+		return mkErr("link type: (%d != %d)", o.LinkType, linkType)
+	}
+	if o.SeqType != seqType {
+		return mkErr("seq type: (%d != %d)", o.SeqType, seqType)
+	}
+	if o.IgnoreIfUnsupported != ignoreIfUnsupported {
+		return mkErr("ignore_if_unsupported: (%v != %v)", o.IgnoreIfUnsupported, ignoreIfUnsupported)
 	}
 	return nil
 }
 
-func (o OuterLinkV2) AssertSomeFields(v int, s keybase1.Seqno) (err error) {
+func (o OuterLinkV2) AssertSomeFields(
+	version int,
+	seqno keybase1.Seqno,
+) (err error) {
 	mkErr := func(format string, arg ...interface{}) error {
 		return SigchainV2MismatchedFieldError{fmt.Sprintf(format, arg...)}
 	}
-	if o.Version != v {
-		return mkErr("version field (%d != %d)", o.Version, v)
+	if o.Version != version {
+		return mkErr("version field (%d != %d)", o.Version, version)
 	}
-	if o.Seqno != s {
-		return mkErr("seqno field: (%d != %d)", o.Seqno, s)
+	if o.Seqno != seqno {
+		return mkErr("seqno field: (%d != %d)", o.Seqno, seqno)
 	}
 	return nil
 }

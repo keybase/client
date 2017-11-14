@@ -64,6 +64,18 @@ func RequestDowngradeLeaseByKID(ctx context.Context, g *GlobalContext, kids []ke
 	return leaseWithMerkleRoot(ctx, g, res)
 }
 
+func CancelDowngradeLease(ctx context.Context, g *GlobalContext, l keybase1.LeaseID) error {
+	_, err := g.API.Post(APIArg{
+		Endpoint:    "downgrade/cancel",
+		SessionType: APISessionTypeREQUIRED,
+		NetContext:  ctx,
+		Args: HTTPArgs{
+			"downgrade_lease_id": S{string(l)},
+		},
+	})
+	return err
+}
+
 func RequestDowngradeLeaseBySigIDs(ctx context.Context, g *GlobalContext, sigIDs []keybase1.SigID) (lease *Lease, mr *MerkleRoot, err error) {
 	var res leaseReply
 	err = g.API.PostDecode(APIArg{

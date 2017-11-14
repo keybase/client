@@ -1,9 +1,9 @@
 // @flow
 import * as Constants from '../../../../constants/chat'
-import * as Creators from '../../../../actions/chat/creators'
+import * as ChatGen from '../../../../actions/chat-gen'
 import Notifications from '.'
 import {compose, branch, renderNothing, connect, type TypedState} from '../../../../util/container'
-import {type DeviceType} from '../../../../constants/types/more'
+import {type DeviceType} from '../../../../constants/devices'
 import {type StateProps, type DispatchProps} from './container'
 
 const serverStateToProps = (notifications: Constants.NotificationsState, type: 'desktop' | 'mobile') => {
@@ -56,9 +56,9 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
     conversationIDKey: Constants.ConversationIDKey,
     deviceType: DeviceType,
     notifyType: Constants.NotifyType
-  ) => dispatch(Creators.setNotifications(conversationIDKey, deviceType, notifyType)),
+  ) => dispatch(ChatGen.createSetNotifications({conversationIDKey, deviceType, notifyType})),
   onToggleChannelWide: (conversationIDKey: Constants.ConversationIDKey) =>
-    dispatch(Creators.toggleChannelWideNotifications(conversationIDKey)),
+    dispatch(ChatGen.createToggleChannelWideNotifications({conversationIDKey})),
 })
 
 const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps) => {

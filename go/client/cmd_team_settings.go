@@ -1,7 +1,7 @@
 package client
 
 import (
-	"errors"
+	"fmt"
 	"strings"
 
 	"github.com/keybase/cli"
@@ -13,9 +13,15 @@ import (
 
 type CmdTeamSettings struct {
 	libkb.Contextified
-	Team      keybase1.TeamName
-	PrintOnly bool
-	Settings  keybase1.TeamSettings
+
+	Team keybase1.TeamName
+
+	// These fields are non-zero valued when their action is requested
+	Description         *string
+	JoinAsRole          *keybase1.TeamRole
+	ProfilePromote      *bool
+	AllowProfilePromote *bool
+	Showcase            *bool
 }
 
 func newCmdTeamSettings(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
@@ -23,22 +29,51 @@ func newCmdTeamSettings(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.
 		Name:         "settings",
 		ArgumentHelp: "<team name>",
 		Usage:        "Edit team settings.",
+		Examples: `
+Review team settings:
+    keybase team settings acme
+Open a team so anyone can join as a reader:
+    keybase team settings acme --open-team=reader
+Showcase a team publicly:
+    keybase team settings acme --showcase=yes
+Promote a team on your profile:
+    keybase team settings acme --profile-promote=yes
+Set a description for the team to show if promoted:
+    keybase team settings acme --description="Rocket-Powered Products"
+Clear the team description:
+    keybase team settings acme --description=""
+`,
 		Action: func(c *cli.Context) {
 			cmd := NewCmdTeamSettingsRunner(g)
 			cl.ChooseCommand(cmd, "settings", c)
 		},
 		Flags: []cli.Flag{
+			// Many of these are StringFlag instead of BoolFlag because BoolFlag is displeasing.
+			// For example `keybase team settings teamname --bool-flag false` sets the flag to true.
+
 			cli.BoolFlag{
-				Name:  "set-open",
-				Usage: "set team to open",
-			},
-			cli.BoolFlag{
-				Name:  "set-closed",
-				Usage: "set team to closed",
+				Name:  "p, print",
+				Usage: "Print all your team settings",
 			},
 			cli.StringFlag{
-				Name:  "join-as",
-				Usage: "team role (writer, reader) [required when changing team to open]",
+				Name:  "description",
+				Usage: "Set the team description",
+			},
+			cli.StringFlag{
+				Name:  "open-team",
+				Usage: "[reader|writer|off] Set whether anyone can join without being invited and the role they become",
+			},
+			cli.StringFlag{
+				Name:  "profile-promote",
+				Usage: "[yes|no] Set whether your own profile should promote this team and its description",
+			},
+			cli.StringFlag{
+				Name:  "allow-profile-promote",
+				Usage: "[yes|no] Set whether non-admins are allowed to promote this team and its description on their profiles",
+			},
+			cli.StringFlag{
+				Name:  "showcase",
+				Usage: "[yes|no] Set whether to promote this team and its description on keybase.io/popular-teams",
 			},
 		},
 	}
@@ -48,67 +83,148 @@ func NewCmdTeamSettingsRunner(g *libkb.GlobalContext) *CmdTeamSettings {
 	return &CmdTeamSettings{Contextified: libkb.NewContextified(g)}
 }
 
-func (c *CmdTeamSettings) ParseArgv(ctx *cli.Context) error {
-	var err error
+func (c *CmdTeamSettings) ParseArgv(ctx *cli.Context) (err error) {
 	c.Team, err = ParseOneTeamNameK1(ctx)
 	if err != nil {
 		return err
 	}
 
-	if ctx.NumFlags() == 0 {
-		// Just a team name and no other flags - print current team settings.
-		c.PrintOnly = true
-		return nil
+	var exclusiveActions []string
+
+	if ctx.IsSet("description") {
+		exclusiveActions = append(exclusiveActions, "description")
+		desc := ctx.String("description")
+		c.Description = &desc
 	}
 
-	if ctx.Bool("set-open") && ctx.Bool("set-closed") {
-		return errors.New("cannot use --set-open and --set-closed at the same time")
+	if ctx.IsSet("open-team") {
+		exclusiveActions = append(exclusiveActions, "open-team")
 
-	}
-
-	if ctx.Bool("set-open") {
-		c.Settings.Open = true
-
-		srole := ctx.String("join-as")
-		if srole == "" {
-			return errors.New("team role required via --join-as flag")
-		}
-
-		role, ok := keybase1.TeamRoleMap[strings.ToUpper(srole)]
-		if !ok {
-			return errors.New("invalid team role, please use writer, or reader")
-		}
-
-		switch role {
-		case keybase1.TeamRole_READER, keybase1.TeamRole_WRITER:
-			break
+		role := keybase1.TeamRole_NONE
+		val := ctx.String("open-team")
+		switch val {
+		case "reader":
+			role = keybase1.TeamRole_READER
+		case "writer":
+			role = keybase1.TeamRole_WRITER
 		default:
-			return errors.New("invalid team role, please use writer, or reader")
+			open, err := cli.ParseBoolFriendly(val)
+			if err != nil || open {
+				return fmt.Errorf("open-team must be one of [reader|writer|off]")
+			}
 		}
+		c.JoinAsRole = &role
+	}
 
-		c.Settings.JoinAs = role
-	} else if ctx.Bool("set-closed") {
-		c.Settings.Open = false
-	} else {
-		// Happens when user supplies --join-as only:
-		// > keybase team edit teamname --join-as reader
-		// For simplicity, we require always --set-open/--set-closed flag,
-		// even if user just wants to change join_as role.
-		return errors.New("--set-open or --set-closed flag is required")
+	if ctx.IsSet("profile-promote") {
+		exclusiveActions = append(exclusiveActions, "profile-promote")
+		val, err := ctx.BoolStrict("profile-promote")
+		if err != nil {
+			return err
+		}
+		c.ProfilePromote = &val
+	}
+
+	if ctx.IsSet("allow-profile-promote") {
+		exclusiveActions = append(exclusiveActions, "allow-profile-promote")
+		val, err := ctx.BoolStrict("allow-profile-promote")
+		if err != nil {
+			return err
+		}
+		c.AllowProfilePromote = &val
+	}
+
+	if ctx.IsSet("showcase") {
+		exclusiveActions = append(exclusiveActions, "showcase")
+		val, err := ctx.BoolStrict("showcase")
+		if err != nil {
+			return err
+		}
+		c.Showcase = &val
+	}
+
+	if len(exclusiveActions) > 1 {
+		return fmt.Errorf("only one of these actions a time: %v", strings.Join(exclusiveActions, ", "))
 	}
 
 	return nil
 }
 
-func (c *CmdTeamSettings) applySettings(cli keybase1.TeamsClient) error {
-	dui := c.G().UI.GetTerminalUI()
+func (c *CmdTeamSettings) Run() error {
+	ctx, ctxCancel := context.WithCancel(context.TODO())
+	defer ctxCancel()
+	ctx = libkb.WithLogTag(ctx, "CTS")
 
-	arg := keybase1.TeamSetSettingsArg{
-		Name:     c.Team.String(),
-		Settings: c.Settings,
+	cli, err := GetTeamsClient(c.G())
+	if err != nil {
+		return err
 	}
 
-	err := cli.TeamSetSettings(context.Background(), arg)
+	if c.Description != nil {
+		err = c.setDescription(ctx, cli, *c.Description)
+		if err != nil {
+			return err
+		}
+	}
+
+	if c.JoinAsRole != nil {
+		err = c.setOpenness(ctx, cli, *c.JoinAsRole)
+		if err != nil {
+			return err
+		}
+	}
+
+	if c.ProfilePromote != nil {
+		err = c.setProfilePromote(ctx, cli, *c.ProfilePromote)
+		if err != nil {
+			return err
+		}
+	}
+
+	if c.AllowProfilePromote != nil {
+		err = c.setAllowProfilePromote(ctx, cli, *c.AllowProfilePromote)
+		if err != nil {
+			return err
+		}
+	}
+
+	if c.Showcase != nil {
+		err = c.setShowcase(ctx, cli, *c.Showcase)
+		if err != nil {
+			return err
+		}
+	}
+
+	err = c.printCurrentSettings(ctx, cli)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (c *CmdTeamSettings) setDescription(ctx context.Context, cli keybase1.TeamsClient, desc string) error {
+	return cli.SetTeamShowcase(ctx, keybase1.SetTeamShowcaseArg{
+		Name:        c.Team.String(),
+		IsShowcased: nil,
+		Description: &desc,
+	})
+}
+
+func (c *CmdTeamSettings) setOpenness(ctx context.Context, cli keybase1.TeamsClient, joinAsRole keybase1.TeamRole) error {
+	dui := c.G().UI.GetTerminalUI()
+
+	open := joinAsRole != keybase1.TeamRole_NONE
+
+	arg := keybase1.TeamSetSettingsArg{
+		Name: c.Team.String(),
+		Settings: keybase1.TeamSettings{
+			Open:   open,
+			JoinAs: joinAsRole,
+		},
+	}
+
+	err := cli.TeamSetSettings(ctx, arg)
 	if err != nil {
 		if e, ok := err.(libkb.NoOpError); ok {
 			dui.Printf("%s\n", e.Desc)
@@ -118,37 +234,72 @@ func (c *CmdTeamSettings) applySettings(cli keybase1.TeamsClient) error {
 		return err
 	}
 
-	dui.Printf("Team settings were changed.\n")
+	if open {
+		dui.Printf("Team set to open.\n")
+	} else {
+		dui.Printf("Team set to closed.\n")
+	}
 	return nil
 }
 
-func (c *CmdTeamSettings) Run() error {
-	cli, err := GetTeamsClient(c.G())
+func (c *CmdTeamSettings) setProfilePromote(ctx context.Context, cli keybase1.TeamsClient, promote bool) error {
+	return cli.SetTeamMemberShowcase(ctx, keybase1.SetTeamMemberShowcaseArg{
+		Name:        c.Team.String(),
+		IsShowcased: promote,
+	})
+}
+
+func (c *CmdTeamSettings) setAllowProfilePromote(ctx context.Context, cli keybase1.TeamsClient, allow bool) error {
+	// awaiting CORE-6550
+	return fmt.Errorf("The ability to allow non-admins to promote your team is coming soon!")
+}
+
+func (c *CmdTeamSettings) setShowcase(ctx context.Context, cli keybase1.TeamsClient, showcase bool) error {
+	return cli.SetTeamShowcase(ctx, keybase1.SetTeamShowcaseArg{
+		Name:        c.Team.String(),
+		IsShowcased: &showcase,
+		Description: nil,
+	})
+}
+
+func (c *CmdTeamSettings) printCurrentSettings(ctx context.Context, cli keybase1.TeamsClient) error {
+	details, err := cli.TeamGet(ctx, keybase1.TeamGetArg{Name: c.Team.String(), ForceRepoll: true})
 	if err != nil {
 		return err
 	}
 
-	if !c.PrintOnly {
-		if err := c.applySettings(cli); err != nil {
-			return err
-		}
-	}
-
-	details, err := cli.TeamGet(context.Background(), keybase1.TeamGetArg{Name: c.Team.String(), ForceRepoll: !c.PrintOnly})
+	var showcaseInfo *keybase1.TeamAndMemberShowcase
+	tmp, err := cli.GetTeamAndMemberShowcase(ctx, c.Team.String())
 	if err != nil {
-		return err
+		c.G().Log.CDebugf(ctx, "failed to get team showcase info: %v", err)
+	} else {
+		showcaseInfo = &tmp
 	}
 
 	dui := c.G().UI.GetTerminalUI()
-	dui.Printf("Current settings of team %q:\n", c.Team.String())
-	if details.Settings.Open {
-		dui.Printf("  Open:\t\t\ttrue\n")
-		dui.Printf("  New member role:\t%s\n", strings.ToLower(details.Settings.JoinAs.String()))
-	} else {
-		dui.Printf("  Open:\tfalse\n")
+	dui.Printf("Current settings for team %q:\n", c.Team.String())
+	if showcaseInfo != nil && showcaseInfo.TeamShowcase.Description != nil {
+		dui.Printf("  Description:     %v\n", *showcaseInfo.TeamShowcase.Description)
+	}
+	dui.Printf("  Open:            %v\n", c.tfToYn(details.Settings.Open,
+		fmt.Sprintf("default membership = %v", strings.ToLower(details.Settings.JoinAs.String()))))
+	if showcaseInfo != nil {
+		dui.Printf("  Showcased:       %v\n", c.tfToYn(showcaseInfo.TeamShowcase.IsShowcased, "on keybase.io/popular-teams"))
+		dui.Printf("  Promoted:        %v\n", c.tfToYn(showcaseInfo.IsMemberShowcased, "on your profile"))
+		// CORE-6550: show whether non-admins are allowed to promote
 	}
 
 	return nil
+}
+
+func (c *CmdTeamSettings) tfToYn(x bool, parenthetical string) string {
+	if x {
+		if len(parenthetical) > 0 {
+			return fmt.Sprintf("yes (%v)", parenthetical)
+		}
+		return "yes"
+	}
+	return "no"
 }
 
 func (c *CmdTeamSettings) GetUsage() libkb.Usage {

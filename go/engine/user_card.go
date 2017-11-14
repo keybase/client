@@ -22,8 +22,9 @@ type card struct {
 		Website  string `json:"website"`
 		Twitter  string `json:"twitter"`
 	} `json:"profile"`
-	YouFollowThem bool `json:"you_follow_them"`
-	TheyFollowYou bool `json:"they_follow_you"`
+	YouFollowThem bool                        `json:"you_follow_them"`
+	TheyFollowYou bool                        `json:"they_follow_you"`
+	TeamShowcase  []keybase1.UserTeamShowcase `json:"team_showcase"`
 }
 
 func (c *card) GetAppStatus() *libkb.AppStatus {
@@ -71,6 +72,7 @@ func getUserCard(ctx context.Context, g *libkb.GlobalContext, uid keybase1.UID, 
 		Twitter:       card.Profile.Twitter,
 		YouFollowThem: card.YouFollowThem,
 		TheyFollowYou: card.TheyFollowYou,
+		TeamShowcase:  card.TeamShowcase,
 	}
 
 	if err := g.CardCache.Set(ret, useSession); err != nil {

@@ -15,7 +15,6 @@ import {List, Map} from 'immutable'
 import {globalStyles} from '../styles'
 import {makeRouteStateNode} from '../route-tree'
 import {isMobile} from '../constants/platform'
-import * as EntityConstants from '../constants/entities'
 import * as ChatTypes from '../constants/types/flow-types-chat'
 import type {ConversationIDKey} from '../constants/chat'
 
@@ -123,7 +122,7 @@ const inbox = [
     participants: List(participants),
     conversationIDKey: 'convo1',
     status: 'unfiled',
-    teamType: ChatTypes.CommonTeamType.none,
+    teamType: ChatTypes.commonTeamType.none,
     time: now,
   }),
   Constants.makeInboxState({
@@ -131,7 +130,7 @@ const inbox = [
     participants: List(participants.slice(0, 2)),
     conversationIDKey: 'convo2',
     status: 'unfiled',
-    teamType: ChatTypes.CommonTeamType.none,
+    teamType: ChatTypes.commonTeamType.none,
     time: now - 1000 * 60 * 60 * 3,
   }),
   Constants.makeInboxState({
@@ -139,7 +138,7 @@ const inbox = [
     participants: List(participants.slice(0, 3)),
     conversationIDKey: 'convo3',
     status: 'muted',
-    teamType: ChatTypes.CommonTeamType.none,
+    teamType: ChatTypes.commonTeamType.none,
     time: now - 1000 * 60 * 60 * 24 * 3,
   }),
   Constants.makeInboxState({
@@ -147,7 +146,7 @@ const inbox = [
     participants: List(participants.slice(0, 4)),
     conversationIDKey: 'convo5',
     status: 'unfiled',
-    teamType: ChatTypes.CommonTeamType.none,
+    teamType: ChatTypes.commonTeamType.none,
     time: now - 1000 * 60 * 60 * 24 * 30,
   }),
   Constants.makeInboxState({
@@ -155,7 +154,7 @@ const inbox = [
     participants: List(participants.slice(0, 2)),
     conversationIDKey: 'convo6',
     status: 'unfiled',
-    teamType: ChatTypes.CommonTeamType.none,
+    teamType: ChatTypes.commonTeamType.none,
     time: now - 1000 * 60 * 60 * 3,
   }),
   Constants.makeInboxState({
@@ -163,7 +162,7 @@ const inbox = [
     participants: List(participants.slice(0, 1)),
     conversationIDKey: 'convo7',
     status: 'muted',
-    teamType: ChatTypes.CommonTeamType.none,
+    teamType: ChatTypes.commonTeamType.none,
     time: now - 1000 * 60 * 60 * 5,
   }),
 ]
@@ -186,9 +185,7 @@ const commonConversationsProps = ({selected, inbox: _inbox, rekeyInfos}: any) =>
       pendingConversations: Map(),
       rekeyInfos: rekeyInfos || Map(),
       supersededByState: Map(),
-    }),
-    entities: EntityConstants.makeState({
-      convIDToSnippet: Map(
+      inboxSnippet: Map(
         inbox.reduce((acc, m) => {
           acc[m.conversationIDKey] = `${m.conversationIDKey}`
           return acc

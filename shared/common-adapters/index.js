@@ -1,8 +1,8 @@
 // @flow
 import * as React from 'react'
-import * as I from 'immutable'
 import Box from './box'
 import PopupDialog from './popup-dialog'
+import {connect} from 'react-redux'
 import {isMobile} from '../constants/platform'
 import {globalColors} from '../styles'
 
@@ -10,29 +10,43 @@ const MaybePopup = isMobile
   ? (props: {onClose: () => void, children: React.Node}) => (
       <Box style={{height: '100%', width: '100%'}} children={props.children} />
     )
-  : (props: {onClose: () => void, children: React.Node}) => (
+  : (props: {
+      onClose: () => void,
+      children: React.Node,
+      cover?: boolean,
+      styleCover?: any,
+      styleContainer?: any,
+    }) => (
       <PopupDialog
         onClose={props.onClose}
-        styleCover={_styleCover}
-        styleContainer={_styleContainer}
+        styleCover={props.cover ? {..._styleCover, ...props.styleCover} : {}}
+        styleContainer={props.cover ? {..._styleContainer, ...props.styleContainer} : {}}
         children={props.children}
       />
     )
 
-function MaybePopupHoc<P: {}>(WrappedComponent: React.ComponentType<P>) {
-  return (
-    props: P & {navigateUp: Function, routeProps: I.RecordOf<{onClose: (navigateUpFn: Function) => void}>}
-  ) => {
-    const onClose = () => {
-      props.routeProps && props.routeProps.get('onClose') && props.routeProps.get('onClose')(props.navigateUp)
-    }
+// TODO properly type this
+const DispatchNavUpHoc: any = connect(undefined, (dispatch, {navigateUp}) => ({
+  connectedNavigateUp: () => dispatch(navigateUp()),
+}))
+
+// TODO properly type this
+const _MaybePopupHoc: any = (cover: boolean) => {
+  return WrappedComponent => props => {
+    const onClose = props.onClose || props.connectedNavigateUp
     return (
-      <MaybePopup onClose={onClose}>
-        <WrappedComponent onClose={onClose} {...(props: P)} />
+      <MaybePopup onClose={onClose} cover={!!cover}>
+        <WrappedComponent onClose={onClose} {...props} />
       </MaybePopup>
     )
   }
 }
+
+type MaybePopupHocType<P> = (
+  cover: boolean
+) => (WrappedComponent: React.ComponentType<P>) => React.ComponentType<P>
+const MaybePopupHoc: MaybePopupHocType<*> = (cover: boolean) => Component =>
+  DispatchNavUpHoc(_MaybePopupHoc(cover)(Component))
 
 const _styleCover = {
   alignItems: 'stretch',

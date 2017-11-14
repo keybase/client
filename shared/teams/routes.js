@@ -7,6 +7,7 @@ import InviteByEmailDialog from './invite-by-email/container'
 import NewTeamDialog from './new-team/container'
 import JoinTeamDialog from './join-team/container'
 import ManageChannels from '../chat/manage-channels/container'
+import EditChannel from '../chat/manage-channels/edit-channel-container'
 import CreateChannel from '../chat/create-channel/container'
 import ReallyLeaveTeam from './really-leave-team/container'
 import RolePicker from './role-picker/container'
@@ -19,9 +20,15 @@ import {isMobile} from '../constants/platform'
 
 const makeManageChannels = {
   manageChannels: {
-    children: {},
     component: ManageChannels,
     tags: makeLeafTags({hideStatusBar: true, layerOnTop: !isMobile}),
+    children: {
+      editChannel: {
+        component: MaybePopupHoc(false)(EditChannel),
+        tags: makeLeafTags({hideStatusBar: true, layerOnTop: !isMobile}),
+        children: {},
+      },
+    },
   },
   createChannel: {
     children: {},
@@ -51,14 +58,16 @@ const reallyRemoveMember = {
   tags: makeLeafTags({layerOnTop: !isMobile}),
 }
 
+const showNewTeamDialog = {
+  children: {},
+  component: NewTeamDialog,
+  tags: makeLeafTags({layerOnTop: !isMobile}),
+}
+
 const routeTree = makeRouteDefNode({
   children: {
     ...makeManageChannels,
-    showNewTeamDialog: {
-      children: {},
-      component: NewTeamDialog,
-      tags: makeLeafTags({layerOnTop: !isMobile}),
-    },
+    showNewTeamDialog,
     showJoinTeamDialog: {
       children: {},
       component: JoinTeamDialog,
@@ -69,17 +78,18 @@ const routeTree = makeRouteDefNode({
         ...makeManageChannels,
         openTeamSetting: {
           children: {controlledRolePicker},
-          component: MaybePopupHoc(ConnectedMakeOpenTeamConfirm),
+          component: MaybePopupHoc(true)(ConnectedMakeOpenTeamConfirm),
           tags: makeLeafTags({layerOnTop: !isMobile}),
         },
         openCloseTeamSetting: {
           children: {},
-          component: MaybePopupHoc(ConnectedMakeTeamClosed),
+          component: MaybePopupHoc(true)(ConnectedMakeTeamClosed),
           tags: makeLeafTags({layerOnTop: !isMobile}),
         },
         rolePicker,
         reallyLeaveTeam,
         reallyRemoveMember,
+        showNewTeamDialog,
         member: {
           children: {
             rolePicker,

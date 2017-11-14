@@ -1,36 +1,19 @@
 // @flow
+import * as ConfigGen from '../config-gen'
+import * as KBFSGen from '../kbfs-gen'
 import * as Constants from '../../constants/config'
-import path from 'path'
-import fs from 'fs'
-import {
-  installFuseStatusRpcPromise,
-  installInstallFuseRpcPromise,
-  installInstallKBFSRpcPromise,
-  installUninstallKBFSRpcPromise,
-  kbfsMountGetCurrentMountDirRpcPromise,
-} from '../../constants/types/flow-types'
-import {delay} from 'redux-saga'
-import {call, put, select} from 'redux-saga/effects'
+import * as Saga from '../../util/saga'
+import * as RPCTypes from '../../constants/types/flow-types'
 import electron, {shell} from 'electron'
-import {isLinux, isWindows} from '../../constants/platform'
+import fs from 'fs'
+import path from 'path'
 import {ExitCodeFuseKextPermissionError} from '../../constants/favorite'
-import {fuseStatus} from './index'
+import {delay} from 'redux-saga'
 import {execFile} from 'child_process'
 import {folderTab} from '../../constants/tabs'
+import {isLinux, isWindows} from '../../constants/platform'
 import {navigateTo, switchTo} from '../route-tree'
-
-import type {
-  FSInstallFuseFinished,
-  FSInstallFuseResult,
-  FSInstallKBFSResult,
-  FSInstallKBFSFinished,
-  FSOpen,
-  FSOpenDefaultPath,
-  FSFuseStatusUpdate,
-  OpenInFileUI,
-} from '../../constants/kbfs'
-import type {SagaGenerator} from '../../constants/types/saga'
-import type {InstallResult, UninstallResult} from '../../constants/types/flow-types'
+import type {TypedState} from '../../constants/reducer'
 
 // pathToURL takes path and converts to (file://) url.
 // See https://github.com/sindresorhus/file-url
@@ -125,32 +108,34 @@ function openInDefault(openPath: string): Promise<*> {
   return _open(openPath)
 }
 
-function* fuseStatusSaga(): SagaGenerator<any, any> {
-  const prevStatus = yield select(state => state.favorite.fuseStatus)
+function* fuseStatusSaga(): Saga.SagaGenerator<any, any> {
+  const state: TypedState = yield Saga.select()
+  const prevStatus = state.favorite.fuseStatus
 
-  let status = yield call(installFuseStatusRpcPromise)
+  let status = yield Saga.call(RPCTypes.installFuseStatusRpcPromise)
   if (isWindows && status.installStatus !== 4) {
     // Check if another Dokan we didn't install mounted the filesystem
-    const kbfsMount = yield call(kbfsMountGetCurrentMountDirRpcPromise)
+    const kbfsMount = yield Saga.call(RPCTypes.kbfsMountGetCurrentMountDirRpcPromise)
     if (kbfsMount && fs.existsSync(kbfsMount)) {
       status.installStatus = 4 // installed
       status.installAction = 1 // none
       status.kextStarted = true
     }
   }
-  const action: FSFuseStatusUpdate = {payload: {prevStatus, status}, type: 'fs:fuseStatusUpdate'}
-  yield put(action)
+  yield Saga.put(KBFSGen.createFuseStatusUpdate({prevStatus, status}))
 }
 
-function* fuseStatusUpdateSaga({payload: {prevStatus, status}}: FSFuseStatusUpdate): SagaGenerator<any, any> {
+function* fuseStatusUpdateSaga({
+  payload: {prevStatus, status},
+}: KBFSGen.FuseStatusUpdatePayload): Saga.SagaGenerator<any, any> {
   // If our kextStarted status changed, finish KBFS install
   if (status.kextStarted && prevStatus && !prevStatus.kextStarted) {
-    yield call(installKBFSSaga)
+    yield Saga.call(installKBFSSaga)
   }
 }
 
-function* installFuseSaga(): SagaGenerator<any, any> {
-  const result: InstallResult = yield call(installInstallFuseRpcPromise)
+function* installFuseSaga(): Saga.SagaGenerator<any, any> {
+  const result: RPCTypes.InstallResult = yield Saga.call(RPCTypes.installInstallFuseRpcPromise)
   const fuseResults = result && result.componentResults
     ? result.componentResults.filter(c => c.name === 'fuse')
     : []
@@ -163,16 +148,9 @@ function* installFuseSaga(): SagaGenerator<any, any> {
     yield delay(1e3)
   }
 
-  const resultAction: FSInstallFuseResult = {
-    payload: {kextPermissionError},
-    type: 'fs:installFuseResult',
-  }
-  yield put(resultAction)
-
-  yield put(fuseStatus())
-
-  const finishedAction: FSInstallFuseFinished = {payload: undefined, type: 'fs:installFuseFinished'}
-  yield put(finishedAction)
+  yield Saga.put(KBFSGen.createInstallFuseResult({kextPermissionError}))
+  yield Saga.put(KBFSGen.createFuseStatus())
+  yield Saga.put(KBFSGen.createInstallFuseFinished())
 }
 
 function findKeybaseInstallerString(): Promise<string> {
@@ -223,8 +201,8 @@ function installCachedDokan(): Promise<*> {
   )
 }
 
-function* installDokanSaga(): SagaGenerator<any, any> {
-  yield call(installCachedDokan)
+function* installDokanSaga(): Saga.SagaGenerator<any, any> {
+  yield Saga.call(installCachedDokan)
 }
 
 function waitForMount(attempt: number): Promise<*> {
@@ -253,33 +231,26 @@ function waitForMountAndOpen(): Promise<*> {
   return waitForMount(0).then(openDefaultPath)
 }
 
-function* waitForMountAndOpenSaga(): SagaGenerator<any, any> {
-  const openAction: FSOpenDefaultPath = {payload: {opening: true}, type: 'fs:openDefaultPath'}
-  yield put(openAction)
+function* waitForMountAndOpenSaga(): Saga.SagaGenerator<any, any> {
+  yield Saga.put(KBFSGen.createOpenDefaultPath({opening: true}))
   try {
-    yield call(waitForMountAndOpen)
+    yield Saga.call(waitForMountAndOpen)
   } finally {
-    const openFinishedAction: FSOpenDefaultPath = {payload: {opening: false}, type: 'fs:openDefaultPath'}
-    yield put(openFinishedAction)
+    yield Saga.put(KBFSGen.createOpenDefaultPath({opening: false}))
   }
 }
 
-function* installKBFSSaga(): SagaGenerator<any, any> {
-  const result: InstallResult = yield call(installInstallKBFSRpcPromise)
-  const resultAction: FSInstallKBFSResult = {payload: {result}, type: 'fs:installKBFSResult'}
-  yield put(resultAction)
-
-  const openAction: FSOpenDefaultPath = {payload: {opening: true}, type: 'fs:openDefaultPath'}
-  yield put(openAction)
-  const finishedAction: FSInstallKBFSFinished = {payload: undefined, type: 'fs:installKBSFinished'}
-  yield put(finishedAction)
-
-  yield call(waitForMountAndOpenSaga)
+function* installKBFSSaga(): Saga.SagaGenerator<any, any> {
+  const result: RPCTypes.InstallResult = yield Saga.call(RPCTypes.installInstallKBFSRpcPromise)
+  yield Saga.put(KBFSGen.createInstallKBFSResult({result}))
+  yield Saga.put(KBFSGen.createOpenDefaultPath({opening: true}))
+  yield Saga.put(KBFSGen.createInstallKBFSFinished())
+  yield Saga.call(waitForMountAndOpenSaga)
 }
 
-function* uninstallKBFSSaga(): SagaGenerator<any, any> {
-  const result: UninstallResult = yield call(installUninstallKBFSRpcPromise)
-  yield put({payload: {result}, type: 'fs:uninstallKBFSResult'})
+function* uninstallKBFSSaga(): Saga.SagaGenerator<any, any> {
+  yield Saga.call(RPCTypes.installUninstallKBFSRpcPromise)
+  yield Saga.put(KBFSGen.createUninstallKBFS())
 
   // Restart since we had to uninstall KBFS and it's needed by the service (for chat)
   const app = electron.remote.app
@@ -287,13 +258,13 @@ function* uninstallKBFSSaga(): SagaGenerator<any, any> {
   app.exit(0)
 }
 
-function* openInWindows(openPath: string): SagaGenerator<any, any> {
+function* openInWindows(openPath: string): Saga.SagaGenerator<any, any> {
   if (!openPath.startsWith(Constants.defaultKBFSPath)) {
     throw new Error(`openInWindows requires ${Constants.defaultKBFSPath} prefix: ${openPath}`)
   }
   openPath = openPath.slice(Constants.defaultKBFSPath.length)
 
-  let kbfsPath = yield select(state => state.config.kbfsPath)
+  let kbfsPath = yield Saga.select((state: TypedState) => state.config.kbfsPath)
 
   if (!kbfsPath) {
     throw new Error('No kbfsPath')
@@ -302,13 +273,13 @@ function* openInWindows(openPath: string): SagaGenerator<any, any> {
   // On windows the path isn't /keybase
   if (kbfsPath === Constants.defaultKBFSPath) {
     // Get current mount
-    kbfsPath = yield call(kbfsMountGetCurrentMountDirRpcPromise)
+    kbfsPath = yield Saga.call(RPCTypes.kbfsMountGetCurrentMountDirRpcPromise)
 
     if (!kbfsPath) {
       throw new Error('No kbfsPath (RPC)')
     }
 
-    yield put({payload: {path: kbfsPath}, type: Constants.changeKBFSPath})
+    yield Saga.put(ConfigGen.createChangeKBFSPath({kbfsPath}))
   }
 
   openPath = path.resolve(kbfsPath, openPath)
@@ -318,32 +289,36 @@ function* openInWindows(openPath: string): SagaGenerator<any, any> {
     throw new Error(`openInWindows requires ${kbfsPath} prefix: ${openPath}`)
   }
 
-  yield call(_open, openPath)
+  yield Saga.call(_open, openPath)
 }
 
-function* openSaga(action: FSOpen): SagaGenerator<any, any> {
+function* openSaga(action: KBFSGen.OpenPayload): Saga.SagaGenerator<any, any> {
   const openPath = action.payload.path || Constants.defaultKBFSPath
-  const enabled = yield select(state => state.favorite.fuseStatus && state.favorite.fuseStatus.kextStarted)
+  const enabled = yield Saga.select(
+    (state: TypedState) => state.favorite.fuseStatus && state.favorite.fuseStatus.kextStarted
+  )
   if (isLinux || enabled) {
     console.log('openInKBFS:', openPath)
     if (isWindows) {
       yield* openInWindows(openPath)
     } else {
-      yield call(openInDefault, openPath)
+      yield Saga.call(openInDefault, openPath)
     }
   } else {
-    yield put(navigateTo([], [folderTab]))
-    yield put(switchTo([folderTab]))
+    yield Saga.put(navigateTo([], [folderTab]))
+    yield Saga.put(switchTo([folderTab]))
   }
 }
 
-function* openInFileUISaga({payload: {path}}: OpenInFileUI): SagaGenerator<any, any> {
-  const enabled = yield select(state => state.favorite.fuseStatus && state.favorite.fuseStatus.kextStarted)
+function* openInFileUISaga({payload: {path}}: KBFSGen.OpenInFileUIPayload): Saga.SagaGenerator<any, any> {
+  const enabled = yield Saga.select(
+    (state: TypedState) => state.favorite.fuseStatus && state.favorite.fuseStatus.kextStarted
+  )
   if (isLinux || enabled) {
-    yield call(_open, path)
+    yield Saga.call(_open, path)
   } else {
-    yield put(navigateTo([], [folderTab]))
-    yield put(switchTo([folderTab]))
+    yield Saga.put(navigateTo([], [folderTab]))
+    yield Saga.put(switchTo([folderTab]))
   }
 }
 

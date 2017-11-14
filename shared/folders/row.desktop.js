@@ -1,11 +1,11 @@
 // @flow
 import * as React from 'react'
 import type {Folder} from './list'
-import {Box, Button, Text, Icon, MultiAvatar, Meta, Usernames} from '../common-adapters'
+import {Box, Button, Text, Icon, MultiAvatar, Avatar, Meta, Usernames} from '../common-adapters'
 import {getStyle} from '../common-adapters/text'
 import {globalStyles, globalColors, globalMargins} from '../styles'
 
-const Avatars = ({styles, users, smallMode, ignored, isPublic}) => {
+const Avatars = ({styles, users, smallMode, ignored, isPublic, isTeam}) => {
   if (!isPublic && users.length > 1) {
     users = users.filter(({you}) => !you)
   }
@@ -18,23 +18,35 @@ const Avatars = ({styles, users, smallMode, ignored, isPublic}) => {
     username,
   }))
 
+  let teamname = 'unknown'
+  if (isTeam && users.length > 0) {
+    teamname = users[0].username
+  }
+
   return (
     <Box
       style={{
         ...globalStyles.flexBoxRow,
-        alignItems: 'flex-start',
+        alignItems: 'center',
         height: smallMode ? globalMargins.large : 56,
         justifyContent: 'flex-start',
         padding: globalMargins.xtiny,
         width: smallMode ? globalMargins.large : 56,
       }}
     >
-      <MultiAvatar
-        singleSize={smallMode ? 32 : 40}
-        multiSize={smallMode ? 24 : 32}
-        avatarProps={avatarProps}
-        style={{opacity}}
-      />
+      {isTeam
+        ? <Avatar
+            size={smallMode ? 32 : 40}
+            teamname={teamname}
+            isTeam={true}
+            style={{opacity, marginLeft: globalMargins.xtiny, marginTop: globalMargins.xtiny}}
+          />
+        : <MultiAvatar
+            singleSize={smallMode ? 32 : 40}
+            multiSize={smallMode ? 24 : 32}
+            avatarProps={avatarProps}
+            style={{opacity}}
+          />}
     </Box>
   )
 }
@@ -86,7 +98,7 @@ type RowType = {
   smallMode: boolean,
   sortName: string,
   onOpen: (path: string) => void,
-  onChat: (tlf: string) => void,
+  onChat: (tlf: string, isTeam?: boolean) => void,
   onClick: (path: string) => void,
   onRekey: (path: string) => void,
 }
@@ -94,6 +106,7 @@ type RowType = {
 const Row = ({
   users,
   isPublic,
+  isTeam,
   hasReadOnlyUsers,
   ignored,
   installed,
@@ -119,7 +132,7 @@ const Row = ({
     event.preventDefault()
     event.stopPropagation()
     if (onChat) {
-      onChat(sortName)
+      onChat(sortName, isTeam)
     }
   }
   const styles = isPublic ? stylesPublic : stylesPrivate
@@ -138,8 +151,15 @@ const Row = ({
 
   return (
     <Box style={containerStyle} className="folder-row" onClick={() => onClick && onClick(path)}>
-      <Box style={globalStyles.flexBoxRow}>
-        <Avatars users={users} styles={styles} smallMode={smallMode} ignored={ignored} isPublic={isPublic} />
+      <Box style={{...globalStyles.flexBoxRow, alignItems: 'center'}}>
+        <Avatars
+          users={users}
+          styles={styles}
+          smallMode={smallMode}
+          ignored={ignored}
+          isPublic={isPublic}
+          isTeam={isTeam}
+        />
         <Box style={stylesBodyContainer}>
           <Usernames
             users={users}

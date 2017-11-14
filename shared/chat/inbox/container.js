@@ -1,7 +1,7 @@
 // @flow
 import * as Constants from '../../constants/chat'
 import * as Inbox from '.'
-import * as Creators from '../../actions/chat/creators'
+import * as ChatGen from '../../actions/chat-gen'
 import * as I from 'immutable'
 import {
   pausableConnect,
@@ -16,15 +16,15 @@ import {
 import {scoreFilter, passesStringFilter} from './filtering'
 
 const smallTeamsCollapsedMaxShown = 5
-const getAlwaysShow = (state: TypedState) => state.entities.get('inboxAlwaysShow')
+const getAlwaysShow = (state: TypedState) => state.chat.get('inboxAlwaysShow')
 const getFilter = (state: TypedState) => state.chat.get('inboxFilter').toLowerCase()
-const getInbox = (state: TypedState) => state.entities.get('inbox')
-const getInboxBigChannels = (state: TypedState) => state.entities.get('inboxBigChannels')
-const getInboxBigChannelsToTeam = (state: TypedState) => state.entities.get('inboxBigChannelsToTeam')
-const getIsEmpty = (state: TypedState) => state.entities.get('inboxIsEmpty')
+const getInbox = (state: TypedState) => state.chat.get('inbox')
+const getInboxBigChannels = (state: TypedState) => state.chat.get('inboxBigChannels')
+const getInboxBigChannelsToTeam = (state: TypedState) => state.chat.get('inboxBigChannelsToTeam')
+const getIsEmpty = (state: TypedState) => state.chat.get('inboxIsEmpty')
 const getPending = (state: TypedState) => state.chat.get('pendingConversations')
-const getSmallTimestamps = (state: TypedState) => state.entities.getIn(['inboxSmallTimestamps'], I.Map())
-const getSupersededBy = (state: TypedState) => state.entities.get('inboxSupersededBy')
+const getSmallTimestamps = (state: TypedState) => state.chat.getIn(['inboxSmallTimestamps'], I.Map())
+const getSupersededBy = (state: TypedState) => state.chat.get('inboxSupersededBy')
 const _rowsForSelect = (rows: Array<any>) => rows.filter(r => ['small', 'big'].includes(r.type))
 const _smallTeamsPassThrough = (_, smallTeamsExpanded) => smallTeamsExpanded
 
@@ -137,7 +137,7 @@ const getFilteredSmallRowItems = createSelector(
         return {
           conversationIDKey,
           filterScore: i
-            ? scoreFilter(lcFilter, i.teamname || '', i.get('participants').toArray(), lcYou)
+            ? scoreFilter(lcFilter, i.teamname || '', i.get('participants').toArray(), lcYou, i.get('time'))
             : 0,
         }
       })
@@ -200,28 +200,28 @@ const mapStateToProps = (state: TypedState, {isActiveRoute, routeState}) => {
     ...rowMetadata,
     filter,
     isActiveRoute,
-    isLoading: state.chat.get('inboxUntrustedState') === 'loading',
+    isLoading: state.chat.get('inboxGlobalUntrustedState') === 'loading',
     user: Constants.getYou(state),
   }
 }
 
 const mapDispatchToProps = (dispatch: Dispatch, {focusFilter, routeState, setRouteState}) => ({
-  loadInbox: () => dispatch(Creators.loadInbox()),
-  _onSelectNext: (rows, direction) => dispatch(Creators.selectNext(rows, direction)),
+  loadInbox: () => dispatch(ChatGen.createLoadInbox()),
+  _onSelectNext: (rows, direction) => dispatch(ChatGen.createSelectNext({rows, direction})),
   onHotkey: cmd => {
     if (cmd.endsWith('+n')) {
-      dispatch(Creators.newChat())
+      dispatch(ChatGen.createNewChat())
     } else {
       focusFilter()
     }
   },
-  onNewChat: () => dispatch(Creators.newChat()),
+  onNewChat: () => dispatch(ChatGen.createNewChat()),
   onSelect: (conversationIDKey: ?Constants.ConversationIDKey) => {
-    dispatch(Creators.selectConversation(conversationIDKey, true))
+    dispatch(ChatGen.createSelectConversation({conversationIDKey, fromUser: true}))
   },
-  onSetFilter: (filter: string) => dispatch(Creators.setInboxFilter(filter)),
-  onUntrustedInboxVisible: converationIDKeys =>
-    dispatch(Creators.unboxConversations(converationIDKeys, 'untrusted inbox visible')),
+  onSetFilter: (filter: string) => dispatch(ChatGen.createSetInboxFilter({filter})),
+  onUntrustedInboxVisible: conversationIDKeys =>
+    dispatch(ChatGen.createUnboxConversations({conversationIDKeys, reason: 'untrusted inbox visible'})),
   toggleSmallTeamsExpanded: () => setRouteState({smallTeamsExpanded: !routeState.get('smallTeamsExpanded')}),
 })
 

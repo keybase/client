@@ -1,5 +1,6 @@
 // @flow
 import * as favoriteAction from '../actions/favorite'
+import * as KBFSGen from '../actions/kbfs-gen'
 import React, {Component} from 'react'
 import Render from './index.render'
 import engine from '../engine'
@@ -10,7 +11,6 @@ import {executeActionsForContext} from '../util/quit-helper.desktop'
 import {loginTab, type Tab} from '../constants/tabs'
 import {navigateTo, switchTo} from '../actions/route-tree'
 import {openDialog as openRekeyDialog} from '../actions/unlock-folders'
-import {openInKBFS} from '../actions/kbfs'
 import {shell, ipcRenderer} from 'electron'
 import {type KBFSStatus} from '../constants/favorite'
 import {type Props as FolderProps} from '../folders'
@@ -191,7 +191,8 @@ export default connect(
     badgeInfo: (state.notifications && state.notifications.navBadges) || {},
   }),
   dispatch => ({
-    ...bindActionCreators({...favoriteAction, openInKBFS, openRekeyDialog}, dispatch),
+    ...bindActionCreators({...favoriteAction, openRekeyDialog}, dispatch),
+    openInKBFS: path => dispatch(KBFSGen.createOpen({path})),
     onShowLoginTab: () => {
       dispatch(navigateTo([loginTab]))
     },

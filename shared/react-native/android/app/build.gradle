@@ -93,7 +93,7 @@ android {
         minSdkVersion 16
         targetSdkVersion 23
         versionCode timestamp()
-        versionName "1.0.8"
+        versionName "1.0.9"
         ndk {
             abiFilters "armeabi-v7a", "x86"
         }
@@ -178,4 +178,5 @@ dependencies {
     compile project(':react-native-camera')
     compile project(':react-native-image-picker')
     compile project(':react-native-fetch-blob')
+    compile project(':react-native-contacts')
 }

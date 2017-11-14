@@ -1,7 +1,9 @@
 // @flow
 import * as Constants from '../constants/notifications'
+import * as GitGen from '../actions/git-gen'
 import * as RPCTypes from '../constants/types/flow-types'
 import * as Saga from '../util/saga'
+import * as FavoriteConstants from '../constants/favorite'
 import ListenerCreator from '../native/notification-listeners'
 import engine, {Engine} from '../engine'
 import {NotifyPopup} from '../native/notifications'
@@ -9,10 +11,8 @@ import {call, put, take, fork} from 'redux-saga/effects'
 import {isMobile} from '../constants/platform'
 import {log} from '../native/log/logui'
 import {registerIdentifyUi, setupUserChangedHandler} from './tracker'
-import {setupChatHandlers, badgeAppForChat} from './chat'
-import {badgeAppForGit} from './git/creators'
-import {setupKBFSChangedHandler} from './favorite'
-import {setupTeamHandlers} from './teams/creators'
+import {createBadgeAppForChat, createSetupChatHandlers} from './chat-gen'
+import {setupTeamHandlers, badgeAppForTeams} from './teams/creators'
 
 import type {SagaGenerator} from '../constants/types/saga'
 
@@ -80,16 +80,26 @@ function* _listenSaga(): SagaGenerator<any, any> {
   yield put(setupUserChangedHandler())
 }
 
+function setupKBFSChangedHandler(): FavoriteConstants.SetupKBFSChangedHandler {
+  return {type: FavoriteConstants.setupKBFSChangedHandler, payload: undefined}
+}
+
 function* _listenKBFSSaga(): SagaGenerator<any, any> {
   yield put(setupKBFSChangedHandler())
-  yield put(setupChatHandlers())
+  yield put(createSetupChatHandlers())
   yield put(setupTeamHandlers())
 }
 
 function* _onRecievedBadgeState(action: Constants.ReceivedBadgeState): SagaGenerator<any, any> {
-  const {conversations, newGitRepoGlobalUniqueIDs} = action.payload.badgeState
-  yield put(badgeAppForChat(conversations))
-  yield put(badgeAppForGit(newGitRepoGlobalUniqueIDs))
+  const {
+    conversations,
+    newGitRepoGlobalUniqueIDs,
+    newTeamNames,
+    newTeamAccessRequests,
+  } = action.payload.badgeState
+  yield put(createBadgeAppForChat({conversations: conversations || []}))
+  yield put(GitGen.createBadgeAppForGit({ids: newGitRepoGlobalUniqueIDs || []}))
+  yield put(badgeAppForTeams(newTeamNames || [], newTeamAccessRequests || []))
 }
 
 function* _listenNotifications(): SagaGenerator<any, any> {

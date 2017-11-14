@@ -4,12 +4,11 @@ import React, {Component} from 'react'
 import configureStore from '../store/configure-store'
 import routeDefs from './routes'
 import {AppRegistry, AppState, Linking, Text} from 'react-native'
-import {Box} from '../common-adapters'
 import {Provider} from 'react-redux'
 import {appLink, mobileAppStateChanged} from '../actions/app'
 import {makeEngine} from '../engine'
 import {setRouteDef} from '../actions/route-tree'
-import {setup as setupLocalDebug, dumbSheetOnly, dumbChatOnly} from '../local-debug'
+import {setup as setupLocalDebug} from '../local-debug'
 import {setupSource} from '../util/forward-logs'
 
 // We don't want global font scaling as this messes up a TON of stuff. let's opt in
@@ -69,22 +68,9 @@ class Keybase extends Component<any> {
   }
 
   render() {
-    let child
-
-    if (dumbSheetOnly) {
-      // Defer loading this
-      const DumbSheet = require('../dev/dumb-sheet').default
-      child = <Box style={{flex: 1, marginTop: 40}}><DumbSheet /></Box>
-    } else if (dumbChatOnly) {
-      const DumbChatOnly = require('../dev/chat-only.native').default
-      child = <DumbChatOnly />
-    } else {
-      child = <Main />
-    }
-
     return (
       <Provider store={this.store}>
-        {child}
+        <Main />
       </Provider>
     )
   }

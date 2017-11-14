@@ -4,6 +4,11 @@
     {
       "path": "common.avdl",
       "type": "idl"
+    },
+    {
+      "path": "github.com/keybase/client/go/protocol/gregor1",
+      "type": "idl",
+      "import_as": "gregor1"
     }
   ],
   "types": [
@@ -12,6 +17,24 @@
       "name": "ChatConversationID",
       "fields": [],
       "typedef": "bytes"
+    },
+    {
+      "type": "record",
+      "name": "TeamMemberOutReset",
+      "fields": [
+        {
+          "type": "string",
+          "name": "teamname"
+        },
+        {
+          "type": "string",
+          "name": "username"
+        },
+        {
+          "type": "gregor1.MsgID",
+          "name": "id"
+        }
+      ]
     },
     {
       "type": "record",
@@ -51,16 +74,23 @@
         {
           "type": {
             "type": "array",
-            "items": "TeamID"
+            "items": "string"
           },
-          "name": "newTeamIDs"
+          "name": "newTeamNames"
         },
         {
           "type": {
             "type": "array",
-            "items": "TeamID"
+            "items": "string"
           },
           "name": "newTeamAccessRequests"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "TeamMemberOutReset"
+          },
+          "name": "teamsWithResetUsers"
         }
       ]
     },

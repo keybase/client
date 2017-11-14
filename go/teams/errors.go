@@ -260,3 +260,39 @@ func NewTeamDeletedError() error { return &TeamDeletedError{} }
 func (e TeamDeletedError) Error() string {
 	return "team has been deleted"
 }
+
+type SubteamOwnersError struct{}
+
+func NewSubteamOwnersError() error { return &SubteamOwnersError{} }
+
+func (e SubteamOwnersError) Error() string {
+	return "Subteams cannot have owners. Try admin instead."
+}
+
+// The sigchain link is problematically new.
+type GreenLinkError struct{ seqno keybase1.Seqno }
+
+func NewGreenLinkError(seqno keybase1.Seqno) error {
+	return GreenLinkError{seqno: seqno}
+}
+
+func (e GreenLinkError) Error() string {
+	// Report the probable cause for this error.
+	return fmt.Sprintf("team sigchain is being rapidly updated (seqno: %v)", e.seqno)
+}
+
+type UnsupportedLinkTypeError struct {
+	outerType libkb.SigchainV2Type
+	innerType string
+}
+
+func NewUnsupportedLinkTypeError(outerType libkb.SigchainV2Type, innerType string) error {
+	return UnsupportedLinkTypeError{
+		outerType: outerType,
+		innerType: innerType,
+	}
+}
+
+func (e UnsupportedLinkTypeError) Error() string {
+	return fmt.Sprintf("unsupported team link type: %v (%v)", e.outerType, e.innerType)
+}

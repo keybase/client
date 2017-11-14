@@ -79,15 +79,17 @@ export default class AppState {
     this._loadAppListeners()
   }
 
+  // Changing this to use fs.writeFileSync because:
+  //
+  // https://nodejs.org/api/fs.html#fs_fs_writefile_file_data_options_callback
+  // > Note that it is unsafe to use fs.writeFile multiple times on the same file without waiting for the callback.
+  //
+  // It's hard to reproduce, but I have seen cases where this app-state.json file gets messed up.
   saveState() {
     try {
       let configPath = this.config.path
       let stateToSave = this.state
-      fs.writeFile(configPath, JSON.stringify(stateToSave), err => {
-        if (err) {
-          throw err
-        }
-      })
+      fs.writeFileSync(configPath, JSON.stringify(stateToSave))
     } catch (err) {
       console.log(`Error saving file: ${err}`)
     }
@@ -174,7 +176,7 @@ export default class AppState {
     clearTimeout(this.managed.debounceChangeTimer)
   }
 
-  _isValidState(state: State): boolean {
+  _isValidWindowState(state: State): boolean {
     // Check if the display where the window was last open is still available
     let rect = {
       x: state.x || 0,
@@ -197,9 +199,13 @@ export default class AppState {
     }
     try {
       const stateLoaded = JSON.parse(fs.readFileSync(configPath, {encoding: 'utf8'}))
-      if (this._isValidState(stateLoaded)) {
-        this.state = stateLoaded
+
+      if (!this._isValidWindowState(stateLoaded)) {
+        stateLoaded.x = null
+        stateLoaded.y = null
       }
+
+      this.state = stateLoaded
     } catch (e) {
       console.warn('Error loading app state:', e)
     }

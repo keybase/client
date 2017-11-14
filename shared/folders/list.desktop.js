@@ -38,7 +38,7 @@ const Rows = ({
   tlfs = [],
   installed,
   isIgnored,
-  isPublic,
+  type,
   onOpen,
   onChat,
   onClick,
@@ -51,7 +51,8 @@ const Rows = ({
         <Row
           {...tlf}
           key={rowKey(tlf.users)}
-          isPublic={isPublic}
+          isPublic={type === 'public'}
+          isTeam={type === 'team'}
           hasReadOnlyUsers={tlf.users && some(tlf.users, 'readOnly')}
           ignored={isIgnored}
           installed={installed}

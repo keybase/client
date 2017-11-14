@@ -779,6 +779,10 @@
         {
           "name": "protVers",
           "type": "SyncAllProtVers"
+        },
+        {
+          "name": "hostName",
+          "type": "string"
         }
       ],
       "response": "SyncAllResult"
@@ -922,10 +926,6 @@
         {
           "name": "topicType",
           "type": "TopicType"
-        },
-        {
-          "name": "membersType",
-          "type": "ConversationMembersType"
         },
         {
           "name": "summarizeMaxMsgs",

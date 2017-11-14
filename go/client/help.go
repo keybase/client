@@ -199,7 +199,10 @@ USAGE:
    keybase {{.FullName}}{{ if .Subcommands }} <command>{{ end }}{{if .Flags}} [command options]{{end}} {{ .ArgumentHelp }}{{if .Description}}
 
 DESCRIPTION:
-   {{.Description}}{{end}}{{ if .Subcommands }}
+   {{.Description}}{{end}}{{ if .Examples }}
+
+EXAMPLES:
+{{.ExamplesFormatted}}{{ end }}{{ if .Subcommands }}
 
 COMMANDS:
    {{range .Subcommands}}{{if .Usage }}{{join .Names ", "}}{{ "\t" }}{{.Usage}}{{ end }}

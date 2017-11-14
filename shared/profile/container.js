@@ -1,4 +1,5 @@
 // @flow
+import * as KBFSGen from '../actions/kbfs-gen'
 import ErrorComponent from '../common-adapters/error-profile'
 import Profile from './index'
 import React, {PureComponent} from 'react'
@@ -16,9 +17,8 @@ import {getProfile, updateTrackers, onFollow, onUnfollow, openProofUrl} from '..
 import {isLoading} from '../constants/tracker'
 import {isTesting} from '../local-debug'
 import {navigateAppend, navigateUp} from '../actions/route-tree'
-import {openInKBFS} from '../actions/kbfs'
 import {peopleTab} from '../constants/tabs'
-import {startConversation} from '../actions/chat'
+import {createStartConversation} from '../actions/chat-gen'
 
 import type {MissingProof} from '../common-adapters/user-proofs'
 import type {Proof} from '../constants/tracker'
@@ -55,6 +55,9 @@ export default pausableConnect(
   (state, {routeProps, routeState, routePath}: OwnProps) => {
     const myUsername = state.config.username
     const username = routeProps.get('username') ? routeProps.get('username') : myUsername
+    if (username && username !== username.toLowerCase()) {
+      throw new Error('Attempted to navigate to mixed case username.')
+    }
 
     return {
       currentFriendshipsTab: routeState.get('currentFriendshipsTab'),
@@ -76,7 +79,7 @@ export default pausableConnect(
       setRouteState({currentFriendshipsTab})
     },
     onChat: (myUsername, username) => {
-      dispatch(startConversation([username, myUsername]))
+      dispatch(createStartConversation({users: [username, myUsername]}))
     },
     onClickAvatar: username => {
       dispatch(onClickAvatar(username))
@@ -94,7 +97,7 @@ export default pausableConnect(
       dispatch(navigateAppend(['editProfile']))
     },
     onFolderClick: folder => {
-      dispatch(openInKBFS(folder.path))
+      dispatch(KBFSGen.createOpen({path: folder.path}))
     },
     onFollow: username => {
       dispatch(onFollow(username, false))

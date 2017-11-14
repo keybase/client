@@ -3,8 +3,10 @@ import * as React from 'react'
 import * as Constants from '../../constants/teams'
 import {
   Avatar,
+  Badge,
   Box,
   Button,
+  Checkbox,
   Text,
   Tabs,
   List,
@@ -18,29 +20,39 @@ import {OpenTeamSettingButton} from '../open-team'
 import TeamInviteRow from './invite-row/container'
 import TeamMemberRow from './member-row/container'
 import TeamRequestRow from './request-row/container'
+import flags from '../../util/feature-flags'
 
 export type MemberRowProps = Constants.MemberInfo
 type InviteRowProps = Constants.InviteInfo
 type RequestRowProps = Constants.RequestInfo
 
 export type Props = {
-  you: string,
-  name: Constants.Teamname,
   invites: Array<InviteRowProps>,
-  members: Array<MemberRowProps>,
-  requests: Array<RequestRowProps>,
+  isTeamOpen: boolean,
+  newTeamRequests: Array<Constants.Teamname>,
   loading: boolean,
-  showMenu: boolean,
-  selectedTab: Constants.TabKey,
-  setShowMenu: (s: boolean) => void,
+  members: Array<MemberRowProps>,
+  name: Constants.Teamname,
   onAddPeople: () => void,
+  onAddSelf: () => void,
   onInviteByEmail: () => void,
   setSelectedTab: (t: ?Constants.TabKey) => void,
+  onCreateSubteam: () => void,
   onLeaveTeam: () => void,
   onManageChat: () => void,
   onClickOpenTeamSetting: () => void,
-  isTeamOpen: boolean,
+  publicityMember: boolean,
+  publicityTeam: boolean,
+  requests: Array<RequestRowProps>,
+  selectedTab: Constants.TabKey,
+  showAddYourselfBanner: boolean,
+  setPublicityMember: (checked: boolean) => void,
+  setPublicityTeam: (checked: boolean) => void,
+  showMenu: boolean,
+  setShowMenu: (s: boolean) => void,
+  you: string,
   youCanAddPeople: boolean,
+  youCanCreateSubteam: boolean,
 }
 
 const Help = isMobile
@@ -60,14 +72,29 @@ type TeamTabsProps = {
   admin: boolean,
   invites: Array<InviteRowProps>,
   members: Array<MemberRowProps>,
+  name: Constants.Teamname,
+  newTeamRequests: Array<Constants.Teamname>,
   requests: Array<RequestRowProps>,
   loading?: boolean,
   selectedTab?: string,
   setSelectedTab: (?Constants.TabKey) => void,
 }
 
+const TeamRequestOrInviteRow = (index, row) =>
+  row.type === 'request' ? TeamRequestRow(index, row) : TeamInviteRow(index, row)
+
 const TeamTabs = (props: TeamTabsProps) => {
-  const {admin, invites, members, requests, loading = false, selectedTab, setSelectedTab} = props
+  const {
+    admin,
+    invites,
+    members,
+    name,
+    newTeamRequests,
+    requests,
+    loading = false,
+    selectedTab,
+    setSelectedTab,
+  } = props
   let membersLabel = 'MEMBERS'
   membersLabel += !loading || members.length !== 0 ? ' (' + members.length + ')' : ''
   const tabs = [
@@ -81,29 +108,43 @@ const TeamTabs = (props: TeamTabsProps) => {
       {membersLabel}
     </Text>,
   ]
-  if (admin) {
-    const requestsLabel = `REQUESTS (${requests.length})`
-    const invitesLabel = `PENDING INVITES (${invites.length})`
-    tabs.push(
-      <Text
-        key="requests"
-        type="BodySmallSemibold"
-        style={{
-          color: globalColors.black_75,
-        }}
-      >
-        {requestsLabel}
-      </Text>
+
+  let requestsBadge = 0
+  if (newTeamRequests.length) {
+    // Use min here so we never show a badge number > the (X) number of requests we have
+    requestsBadge = Math.min(
+      newTeamRequests.reduce((count, team) => (team === name ? count + 1 : count), 0),
+      requests.length
     )
+  }
+
+  if (admin) {
+    const invitesLabel = `INVITES (${invites.length})`
+    tabs.push(
+      <Box key="invites" style={{...globalStyles.flexBoxRow, alignItems: 'center'}}>
+        <Text
+          type="BodySmallSemibold"
+          style={{
+            color: globalColors.black_75,
+          }}
+        >
+          {invitesLabel}
+        </Text>
+        {!!requestsBadge && <Badge badgeNumber={requestsBadge} badgeStyle={{marginTop: 1, marginLeft: 2}} />}
+      </Box>
+    )
+  }
+  const publicityLabel = 'SETTINGS'
+  if (admin) {
     tabs.push(
       <Text
-        key="invites"
+        key="publicity"
         type="BodySmallSemibold"
         style={{
           color: globalColors.black_75,
         }}
       >
-        {invitesLabel}
+        {publicityLabel}
       </Text>
     )
   }
@@ -136,13 +177,21 @@ class Team extends React.PureComponent<Props> {
       showMenu,
       setShowMenu,
       onAddPeople,
+      onAddSelf,
+      onCreateSubteam,
       onInviteByEmail,
       onLeaveTeam,
       selectedTab,
+      showAddYourselfBanner,
       loading,
       onManageChat,
+      publicityMember,
+      publicityTeam,
+      setPublicityMember,
+      setPublicityTeam,
       you,
       youCanAddPeople,
+      youCanCreateSubteam,
     } = this.props
 
     const me = members.find(member => member.username === you)
@@ -150,14 +199,14 @@ class Team extends React.PureComponent<Props> {
 
     // massage data for rowrenderers
     const memberProps = members.map(member => ({username: member.username, teamname: name}))
-    const requestProps = requests.map(req => ({username: req.username, teamname: name}))
+    const requestProps = requests.map(req => ({type: 'request', teamname: name, username: req.username}))
     const inviteProps = invites.map(invite => ({
-      key: invite.email || invite.username,
       email: invite.email,
+      key: invite.email || invite.username,
       teamname: name,
+      type: 'invite',
       username: invite.username,
     }))
-
     let contents
     if (selectedTab === 'members') {
       contents =
@@ -169,29 +218,10 @@ class Team extends React.PureComponent<Props> {
           renderItem={TeamMemberRow}
           style={{alignSelf: 'stretch'}}
         />
-    } else if (selectedTab === 'requests') {
-      if (requests.length === 0) {
-        contents = (
-          <Text
-            type="BodySmall"
-            style={{color: globalColors.black_40, textAlign: 'center', marginTop: globalMargins.xlarge}}
-          >
-            This team has no pending requests.
-          </Text>
-        )
-      } else {
-        contents = (
-          <List
-            keyProperty="username"
-            items={requestProps}
-            fixedHeight={48}
-            renderItem={TeamRequestRow}
-            style={{alignSelf: 'stretch'}}
-          />
-        )
-      }
     } else if (selectedTab === 'invites') {
-      if (invites.length === 0) {
+      // Show requests first, then invites.
+      const requestsAndInvites = requestProps.concat(inviteProps)
+      if (requestsAndInvites.length === 0) {
         contents = (
           <Text
             type="BodySmall"
@@ -205,16 +235,97 @@ class Team extends React.PureComponent<Props> {
           !loading &&
           <List
             keyProperty="key"
-            items={inviteProps}
+            items={requestsAndInvites}
             fixedHeight={48}
-            renderItem={TeamInviteRow}
+            renderItem={TeamRequestOrInviteRow}
             style={{alignSelf: 'stretch'}}
           />
       }
+    } else if (selectedTab === 'publicity') {
+      const teamsLink = 'keybase.io/popular-teams'
+      contents = (
+        <Box style={{...globalStyles.flexBoxColumn, alignSelf: 'stretch'}}>
+          <Box
+            style={{
+              ...globalStyles.flexBoxRow,
+              paddingLeft: globalMargins.tiny,
+              paddingTop: globalMargins.small,
+            }}
+          >
+            <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center'}}>
+              <Checkbox
+                checked={publicityTeam}
+                label=""
+                onCheck={setPublicityTeam}
+                style={{paddingRight: globalMargins.xtiny}}
+              />
+            </Box>
+            <Box style={{...globalStyles.flexBoxColumn, flexShrink: 1}}>
+              <Text type="Body">
+                Publicize this team on
+                {' '}
+                <Text type="BodyPrimaryLink" onClickURL={`https://${teamsLink}`}>{teamsLink}</Text>
+              </Text>
+              <Text type="BodySmall">
+                Team descriptions and number of members will be public.
+              </Text>
+            </Box>
+          </Box>
+
+          <Box
+            style={{
+              ...globalStyles.flexBoxRow,
+              paddingLeft: globalMargins.tiny,
+              paddingTop: globalMargins.small,
+            }}
+          >
+            <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center'}}>
+              <Checkbox
+                checked={publicityMember}
+                label=""
+                onCheck={setPublicityMember}
+                style={{paddingRight: globalMargins.xtiny}}
+              />
+            </Box>
+            <Box style={{...globalStyles.flexBoxColumn, flexShrink: 1}}>
+              <Text type="Body">
+                Publish on your own profile that you're an admin of this team
+              </Text>
+              <Text type="BodySmall">
+                Team description and number of members will be public.
+              </Text>
+            </Box>
+          </Box>
+        </Box>
+      )
+    }
+
+    const popupMenuItems = [
+      {onClick: onManageChat, title: 'Manage chat channels'},
+      {onClick: onLeaveTeam, title: 'Leave team', danger: true},
+    ]
+
+    if (youCanCreateSubteam) {
+      popupMenuItems.push({onClick: onCreateSubteam, title: 'Create subteam'})
     }
 
     return (
       <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center', flex: 1}}>
+        {showAddYourselfBanner &&
+          <Box style={stylesAddYourselfBanner}>
+            <Text type="BodySemibold" style={stylesAddYourselfBannerText}>
+              You are not a member of this team.
+            </Text>
+            <Text
+              backgroundMode="Information"
+              type="BodySemiboldLink"
+              style={stylesAddYourselfBannerText}
+              onClick={onAddSelf}
+              underline={true}
+            >
+              Add yourself
+            </Text>
+          </Box>}
         <Avatar isTeam={true} teamname={name} size={64} />
         <Text type="Header" style={{marginTop: globalMargins.tiny}}>
           {name}
@@ -223,12 +334,21 @@ class Team extends React.PureComponent<Props> {
         {youCanAddPeople &&
           <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', marginTop: globalMargins.small}}>
             <Button type="Primary" label="Add people" onClick={onAddPeople} />
-            <Button
-              type="Secondary"
-              label="Invite by email"
-              onClick={onInviteByEmail}
-              style={{marginLeft: globalMargins.small}}
-            />
+            {!isMobile &&
+              <Button
+                type="Secondary"
+                label="Invite by email"
+                onClick={onInviteByEmail}
+                style={{marginLeft: globalMargins.tiny}}
+              />}
+            {isMobile &&
+              flags.inviteContactsEnabled &&
+              <Button
+                type="Secondary"
+                label="Invite contacts"
+                onClick={onInviteByEmail}
+                style={{marginLeft: globalMargins.tiny}}
+              />}
           </Box>}
         <Help name={name} />
         {admin &&
@@ -242,16 +362,32 @@ class Team extends React.PureComponent<Props> {
         {contents}
         {showMenu &&
           <PopupMenu
-            items={[
-              {onClick: onManageChat, title: 'Manage chat channels'},
-              {onClick: onLeaveTeam, title: 'Leave team', danger: true},
-            ]}
+            items={popupMenuItems}
             onHidden={() => setShowMenu(false)}
             style={{position: 'absolute', right: globalMargins.tiny, top: globalMargins.large}}
           />}
       </Box>
     )
   }
+}
+
+const stylesAddYourselfBanner = {
+  ...globalStyles.flexBoxColumn,
+  alignItems: 'center',
+  alignSelf: 'stretch',
+  backgroundColor: globalColors.blue,
+  justifyContent: 'center',
+  minHeight: 40,
+  marginBottom: globalMargins.tiny,
+  paddingBottom: globalMargins.tiny,
+  paddingLeft: globalMargins.medium,
+  paddingRight: globalMargins.medium,
+  paddingTop: globalMargins.tiny,
+}
+
+const stylesAddYourselfBannerText = {
+  color: globalColors.white,
+  textAlign: 'center',
 }
 
 export default Team
