@@ -4,7 +4,7 @@ import {connect} from 'react-redux'
 import {navigateUp} from '../../actions/route-tree'
 import {priceToString, planToStars} from '../../constants/plan-billing'
 import {type AvailablePlan} from '../../constants/types/plan-billing'
-import {type PlanLevel} from '../../constants/settings'
+import {type PlanLevel} from '../../constants/types/settings'
 import {type RouteProps} from '../../route-tree/render-route'
 import {type TypedState} from '../../constants/reducer'
 

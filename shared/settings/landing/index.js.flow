@@ -1,7 +1,7 @@
 // @flow
 import {Component} from 'react'
 
-import type {PlanLevel} from '../../constants/settings'
+import type {PlanLevel} from '../../constants/types/settings'
 import type {PaymentInfo, AvailablePlan} from '../../constants/types/plan-billing'
 
 export type PlanProps = {

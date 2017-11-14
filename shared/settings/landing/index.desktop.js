@@ -8,7 +8,7 @@ import {priceToString, planToStars, comparePlans} from '../../constants/plan-bil
 import flags from '../../util/feature-flags'
 
 import type {Props, AccountProps, PlanProps} from './index'
-import type {PlanLevel} from '../../constants/settings'
+import type {PlanLevel} from '../../constants/types/settings'
 import type {
   PaymentInfo as PaymentInfoType,
   AvailablePlan,
