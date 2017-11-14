@@ -755,6 +755,9 @@ function* _appendOrPrependMessagesToConversation(
   } else {
     nextMessages = I.OrderedSet(messages.map(m => m.key)).concat(currentMessages)
   }
+  console.log(
+    `arg: ${JSON.stringify(arg)} currentMessages: ${JSON.stringify(currentMessages)} nextMessage: ${JSON.stringify(nextMessages)}`
+  )
   yield Saga.put(
     EntityCreators.replaceEntity(['conversationMessages'], I.Map({[conversationIDKey]: nextMessages}))
   )
