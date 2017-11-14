@@ -1,57 +1,45 @@
 // @flow
-import * as CommonConstants from '../constants/common'
+import * as UnlockFoldersGen from '../actions/unlock-folders-gen'
 import * as Constants from '../constants/unlock-folders'
 import {toDeviceType} from '../constants/devices'
 
-const initialState: Constants.State = {
-  closed: true,
-  devices: null,
-  paperkeyError: null,
-  phase: 'dead',
-  sessionID: null,
-  started: false,
-  waiting: false,
-}
-
 export default function(
-  state: Constants.State = initialState,
-  action: Constants.Actions | {type: 'common:resetStore', payload: void}
+  state: Constants.State = Constants.initialState,
+  action: UnlockFoldersGen.Actions
 ): Constants.State {
   switch (action.type) {
-    case CommonConstants.resetStore:
+    case UnlockFoldersGen.resetStore:
       return {
         ...initialState,
         started: state.started,
       }
 
-    case Constants.close:
+    case UnlockFoldersGen.close:
       return {
         ...state,
         closed: true,
       }
-    case Constants.waiting:
-      if (action.error) {
-        return state
-      }
-
+    case UnlockFoldersGen.waiting:{
+      const {waiting} = action.payload
       return {
         ...state,
-        waiting: action.payload,
+        waiting,
       }
+    }
 
-    case Constants.onBackFromPaperKey:
+    case UnlockFoldersGen.onBackFromPaperKey:
       return {
         ...state,
         paperkeyError: '',
         phase: 'promptOtherDevice',
       }
 
-    case Constants.toPaperKeyInput:
+    case UnlockFoldersGen.toPaperKeyInput:
       return {
         ...state,
         phase: 'paperKeyInput',
       }
-    case Constants.checkPaperKey:
+    case UnlockFoldersGen.checkPaperKey:
       if (action.error) {
         return {
           ...state,
@@ -63,14 +51,14 @@ export default function(
           phase: 'success',
         }
       }
-    case Constants.finish:
+    case UnlockFoldersGen.finish:
       return {
         ...state,
         closed: true,
         phase: 'dead',
       }
 
-    case Constants.registerRekeyListener:
+    case UnlockFoldersGen.registerRekeyListener:
       if (action.payload && action.payload.started) {
         return {
           ...state,
@@ -79,7 +67,7 @@ export default function(
       } else {
         return state
       }
-    case Constants.newRekeyPopup:
+    case UnlockFoldersGen.newRekeyPopup:
       if (state.started && action.payload) {
         const devices = action.payload.devices.map(({name, type, deviceID}) => ({
           deviceID,
