@@ -5,11 +5,12 @@ import * as ConfigGen from './config-gen'
 import * as DevicesGen from './devices-gen'
 import * as LoginGen from './login-gen'
 import * as SignupGen from './signup-gen'
+import * as Types from '../constants/types/login'
 import * as Constants from '../constants/login'
 import * as EngineRpc from '../constants/engine'
 import * as RouteConstants from '../constants/route-tree'
 import * as Saga from '../util/saga'
-import * as Types from '../constants/types/flow-types'
+import * as RPCTypes from '../constants/types/flow-types'
 import HiddenString from '../util/hidden-string'
 import openURL from '../util/open-url'
 import {RPCError} from '../util/errors'
@@ -27,7 +28,7 @@ import {type TypedState} from '../constants/reducer'
 
 const deviceType: DeviceType = isMobile ? 'mobile' : 'desktop'
 const InputCancelError = {
-  code: Types.constantsStatusCode.scinputcanceled,
+  code: RPCTypes.constantsStatusCode.scinputcanceled,
   desc: 'Cancel Login',
 }
 
@@ -56,7 +57,7 @@ const makeWaitingHandler = (dispatch: Dispatch): {waitingHandler: (waiting: bool
 
 const getAccounts = (): AsyncAction => dispatch =>
   new Promise((resolve, reject) => {
-    Types.loginGetConfiguredAccountsRpcPromise({...makeWaitingHandler(dispatch)})
+    RPCTypes.loginGetConfiguredAccountsRpcPromise({...makeWaitingHandler(dispatch)})
       .then(accounts => {
         dispatch(LoginGen.createConfiguredAccounts({accounts}))
         resolve()
@@ -73,7 +74,7 @@ const getAccounts = (): AsyncAction => dispatch =>
       })
   })
 
-function* setCodePageOtherDeviceRole(otherDeviceRole: Constants.DeviceRole): Generator<any, void, any> {
+function* setCodePageOtherDeviceRole(otherDeviceRole: Types.DeviceRole): Generator<any, void, any> {
   const state: TypedState = yield Saga.select()
   const codePage = codePageSelector(state)
   if (codePage.myDeviceRole == null) {
@@ -185,7 +186,7 @@ function* cancelLogin(): Generator<any, void, any> {
 }
 
 function* selectKeySaga() {
-  return EngineRpc.rpcError(new RPCError('Not supported in GUI', Types.constantsStatusCode.sckeynotfound))
+  return EngineRpc.rpcError(new RPCError('Not supported in GUI', RPCTypes.constantsStatusCode.sckeynotfound))
 }
 
 const displayPrimaryPaperKeySaga = onBackSaga =>
@@ -332,7 +333,7 @@ const promptNewDeviceNameSaga = onBackSaga =>
 
 // TODO change types in flow-types to generate this
 const chooseDeviceSaga = onBackSaga =>
-  function*({devices, canSelectNoDevice}: {devices: Array<Types.Device>, canSelectNoDevice: boolean}) {
+  function*({devices, canSelectNoDevice}: {devices: Array<RPCTypes.Device>, canSelectNoDevice: boolean}) {
     yield Saga.put(
       navigateAppend(
         [
@@ -368,7 +369,7 @@ const chooseDeviceSaga = onBackSaga =>
         const role = ({
           desktop: Constants.codePageDeviceRoleExistingComputer,
           mobile: Constants.codePageDeviceRoleExistingPhone,
-        }: {[key: DeviceType]: Constants.DeviceRole})[toDeviceType(device.type)]
+        }: {[key: DeviceType]: Types.DeviceRole})[toDeviceType(device.type)]
         if (role) {
           yield Saga.call(setCodePageOtherDeviceRole, role)
         }
@@ -397,7 +398,7 @@ const chooseGPGMethodSaga = onBackSaga =>
       const exportKey = onSubmit.payload.exportKey
 
       return EngineRpc.rpcResult(
-        exportKey ? Types.provisionUiGPGMethod.gpgImport : Types.provisionUiGPGMethod.gpgSign
+        exportKey ? RPCTypes.provisionUiGPGMethod.gpgImport : RPCTypes.provisionUiGPGMethod.gpgSign
       )
     }
   }
@@ -405,7 +406,7 @@ const chooseGPGMethodSaga = onBackSaga =>
 const defaultGetPassphraseSaga = onBackSaga =>
   function*({pinentry: {type, prompt, username, retryLabel}}) {
     switch (type) {
-      case Types.passphraseCommonPassphraseType.paperKey:
+      case RPCTypes.passphraseCommonPassphraseType.paperKey:
         const destination = {
           props: {
             error: retryLabel,
@@ -420,7 +421,7 @@ const defaultGetPassphraseSaga = onBackSaga =>
           yield Saga.put(navigateAppend([destination], [loginTab, 'login']))
         }
         break
-      case Types.passphraseCommonPassphraseType.passPhrase:
+      case RPCTypes.passphraseCommonPassphraseType.passPhrase:
         yield Saga.put(
           navigateAppend(
             [
@@ -439,7 +440,7 @@ const defaultGetPassphraseSaga = onBackSaga =>
         break
       default:
         return EngineRpc.rpcError(
-          new RPCError('Unknown getPassphrase type', Types.constantsStatusCode.scnotfound)
+          new RPCError('Unknown getPassphrase type', RPCTypes.constantsStatusCode.scnotfound)
         )
     }
 
@@ -494,10 +495,10 @@ function* loginFlowSaga(usernameOrEmail, passphrase): Generator<any, void, any> 
 
   const loginSagas = kex2Sagas(cancelLogin, EngineRpc.passthroughResponseSaga, passphraseSaga)
 
-  const loginRpcCall = new EngineRpc.EngineRpcCall(loginSagas, Types.loginLoginRpcChannelMap, 'loginRpc', {
+  const loginRpcCall = new EngineRpc.EngineRpcCall(loginSagas, RPCTypes.loginLoginRpcChannelMap, 'loginRpc', {
     deviceType,
     usernameOrEmail,
-    clientType: Types.commonClientType.guiMain,
+    clientType: RPCTypes.commonClientType.guiMain,
   })
 
   try {
@@ -600,8 +601,8 @@ function* cameraBrokenModeSaga({payload: {broken}}: LoginGen.SetCameraBrokenMode
 }
 
 const _deviceTypeMap: {[key: string]: any} = {
-  [Constants.codePageDeviceRoleNewComputer]: Types.commonDeviceType.desktop,
-  [Constants.codePageDeviceRoleNewPhone]: Types.commonDeviceType.mobile,
+  [Constants.codePageDeviceRoleNewComputer]: RPCTypes.commonDeviceType.desktop,
+  [Constants.codePageDeviceRoleNewPhone]: RPCTypes.commonDeviceType.mobile,
 }
 
 function secretExchangedSaga() {
@@ -641,7 +642,7 @@ function* addNewDeviceSaga({payload: {role}}: LoginGen.AddNewDevicePayload) {
 
   const addDeviceRpc = new EngineRpc.EngineRpcCall(
     addDeviceSagas,
-    Types.deviceDeviceAddRpcChannelMap,
+    RPCTypes.deviceDeviceAddRpcChannelMap,
     'addDeviceRpc',
     {}
   )
@@ -666,7 +667,7 @@ function* logoutSaga() {
   yield Saga.all([Saga.call(deletePushTokenSaga), Saga.put(ConfigGen.createClearRouteState())])
 
   // Add waiting handler
-  const chanMap = Types.loginLogoutRpcChannelMap(['finished'], {})
+  const chanMap = RPCTypes.loginLogoutRpcChannelMap(['finished'], {})
   const incoming = yield chanMap.take('finished')
   if (incoming.error) {
     console.log(incoming.error)
