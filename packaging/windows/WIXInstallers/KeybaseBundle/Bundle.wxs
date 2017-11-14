@@ -97,6 +97,7 @@
         Description="Remove previous drivers"
         PerMachine="yes"
         Permanent="yes"
+        Compressed="yes"
 	Cache="yes">
         <ExitCode Value="1641" Behavior="forceReboot"/>
         <ExitCode Value="3010" Behavior="forceReboot"/>
@@ -107,6 +108,8 @@
  	   which need to remain in sync. Also, "repair" doesn't seem to work, so we omit that attribute -->	    
       <ExePackage Id="vcredist_2015_x86.exe"
                   Name="vc_redist.x86.exe"
+                  Compressed="no"
+                  SourceFile="Redist\VCRedist_2015\vc_redist.x86.exe"
                   InstallCommand="/norestart /passive /chainingpackage ADMINDEPLOYMENT"
                   UninstallCommand="/uninstall /norestart /passive /chainingpackage ADMINDEPLOYMENT"
                   Protocol="netfx4"
@@ -114,9 +117,7 @@
                   DetectCondition="(vcredist_2015_x86_installed AND vcredist_2015_x86_version AND vcredist_2015_x86_versionnumber &gt;= v14.0.23918) OR NOT driver"
                   PerMachine="yes"
                   Vital="yes"
-                  Cache="yes"
                   SuppressSignatureVerification="yes"
-                  SourceFile="Redist\VCRedist_2015\vc_redist.x86.exe"
                   DownloadUrl="https://download.microsoft.com/download/6/D/F/6DF3FF94-F7F9-4F0B-838C-A328D1A7D0EE/vc_redist.x86.exe"
       >
         <ExitCode Value="1641" Behavior="scheduleReboot"/>
@@ -128,6 +129,8 @@
  	   which need to remain in sync -->	    
       <ExePackage Id="vcredist_2015_x64.exe"
                   Name="vc_redist.x64.exe"
+                  Compressed="no"
+                  SourceFile="Redist\VCRedist_2015\vc_redist.x64.exe"
                   InstallCommand="/norestart /passive /chainingpackage ADMINDEPLOYMENT"
                   UninstallCommand="/uninstall /norestart /passive /chainingpackage ADMINDEPLOYMENT"
                   Protocol="netfx4"
@@ -136,9 +139,7 @@
                   DetectCondition="(vcredist_2015_x64_installed AND vcredist_2015_x64_version AND vcredist_2015_x64_versionnumber &gt;= v14.0.23918) OR NOT driver"
                   PerMachine="yes"
                   Vital="yes"
-                  Cache="yes"
                   SuppressSignatureVerification="yes"
-                  SourceFile="Redist\VCRedist_2015\vc_redist.x64.exe"
                   DownloadUrl="https://download.microsoft.com/download/6/D/F/6DF3FF94-F7F9-4F0B-838C-A328D1A7D0EE/vc_redist.x64.exe"
                   >
         <ExitCode Value="1641" Behavior="scheduleReboot"/>
@@ -224,12 +225,13 @@
                   DownloadUrl="https://download.microsoft.com/download/9/6/F/96FD0525-3DDF-423D-8845-5F92F4A6883E/Windows8.1-KB2999226-x64.msu"
                   />
 
-      <MsiPackage SourceFile="$(var.DOKAN_PATH)\dokan_wix\bin\x86\$(var.Configuration)\Dokan_x86.msi"
+      <MsiPackage Name="Dokan_x86.msi"
+                  SourceFile="$(var.DOKAN_PATH)\dokan_wix\bin\x86\$(var.Configuration)\Dokan_x86.msi"
                   InstallCondition="NOT VersionNT64 AND (driver OR DokanUninstallString)"
-                  Compressed="yes"
+                  Compressed="no"
                   Visible="yes"
                   Permanent="yes"
-		  Cache="yes"
+		  DownloadUrl="http://s3.amazonaws.com/prerelease.keybase.io/windows-support/dokan-dev/build84/dokan_wix/bin/x86/$(var.Configuration)/Dokan_x86.msi"
                   >
         <!--<MsiProperty Name="ADDLOCAL" Value="ALL" />-->
         <MsiProperty Name="MSIUNINSTALLSUPERSEDEDCOMPONENTS" Value="1"/>
@@ -237,12 +239,14 @@
         <MsiProperty Name="INSTALLDEVFILES" Value="0" />
       </MsiPackage>
 
-      <MsiPackage SourceFile="$(var.DOKAN_PATH)\dokan_wix\bin\x64\$(var.Configuration)\Dokan_x64.msi"
+      <MsiPackage Name="Dokan_x64.msi"
+                  SourceFile="$(var.DOKAN_PATH)\dokan_wix\bin\x64\$(var.Configuration)\Dokan_x64.msi"
                   InstallCondition="VersionNT64 AND (driver OR DokanUninstallString)"
-                  Compressed="yes"
+                  Compressed="no"
                   Visible="yes"
                   Permanent="yes"
-		  Cache="yes"
+		  DownloadUrl="http://s3.amazonaws.com/prerelease.keybase.io/windows-support/dokan-dev/build84/dokan_wix/bin/x86/$(var.Configuration)/Dokan_x86.msi"
+
                   >
         <!--<MsiProperty Name="ADDLOCAL" Value="ALL" />-->
         <MsiProperty Name="MSIUNINSTALLSUPERSEDEDCOMPONENTS" Value="1"/>
