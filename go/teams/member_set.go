@@ -138,9 +138,9 @@ func loadMember(ctx context.Context, g *libkb.GlobalContext, uv keybase1.UserVer
 			key = puk
 		}
 	}
-	if key.Gen <= 0 {
-		return member{}, nun, fmt.Errorf("user has no per-user key: %v (%v)", uv.String(), nun.String())
-	}
+	// if key.Gen <= 0 {
+	// 	return member{}, nun, fmt.Errorf("user has no per-user key: %v (%v)", uv.String(), nun.String())
+	// }
 
 	// return a member with UserVersion and a PerUserKey
 	return member{

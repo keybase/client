@@ -200,18 +200,27 @@ func (tt *teamTester) cleanup() {
 }
 
 type userPlusDevice struct {
-	uid                      keybase1.UID
-	username                 string
-	passphrase               string
-	userInfo                 *signupInfo
-	backupKey                backupKey
-	device                   *deviceWrapper
-	tc                       *libkb.TestContext
-	deviceClient             keybase1.DeviceClient
-	teamsClient              keybase1.TeamsClient
+	uid          keybase1.UID
+	username     string
+	passphrase   string
+	userInfo     *signupInfo
+	backupKey    backupKey
+	device       *deviceWrapper
+	tc           *libkb.TestContext
+	deviceClient keybase1.DeviceClient
+	teamsClient  keybase1.TeamsClient
+	// rpcCli                   *rpc.Client
 	notifications            *teamNotifyHandler
 	suppressTeamChatAnnounce bool
 }
+
+// func (u *userPlusDevice) teamsClient() *keybase1.TeamsClient {
+// 	keybase1.TeamsClient{Cli: u.rpcCli}
+// }
+
+// func (u *userPlusDevice) deviceClient() {
+// 	keybase1.DeviceClient{Cli: u.rpcCli}
+// }
 
 func (u *userPlusDevice) createTeam() string {
 	create := client.NewCmdTeamCreateRunner(u.tc.G)
@@ -240,6 +249,14 @@ func (u *userPlusDevice) createTeam2() (teamID keybase1.TeamID, teamName keybase
 	})
 	require.NoError(u.tc.T, err)
 	return team.ID, team.Name()
+}
+
+func (u *userPlusDevice) teamSetSettings(teamName string, settings keybase1.TeamSettings) {
+	err := u.teamsClient.TeamSetSettings(context.Background(), keybase1.TeamSetSettingsArg{
+		Name:     teamName,
+		Settings: settings,
+	})
+	require.NoError(u.tc.T, err)
 }
 
 func (u *userPlusDevice) addTeamMember(team, username string, role keybase1.TeamRole) {
@@ -352,7 +369,9 @@ func (u *userPlusDevice) devices() []keybase1.Device {
 }
 
 func (u *userPlusDevice) userVersion() keybase1.UserVersion {
-	return keybase1.UserVersion{Uid: u.uid, EldestSeqno: 1}
+	uv, err := u.device.userClient.MeUserVersion(context.TODO(), 0)
+	require.NoError(u.tc.T, err)
+	return uv
 }
 
 func (u *userPlusDevice) paperKeyID() keybase1.DeviceID {
@@ -570,6 +589,15 @@ func (u *userPlusDevice) provisionNewDevice() *deviceWrapper {
 	require.True(t, device.deviceKey.KID.Exists())
 
 	return device
+}
+
+func (u *userPlusDevice) reset() {
+	uvBefore := u.userVersion()
+	err := u.device.userClient.ResetUser(context.TODO(), 0)
+	require.NoError(u.tc.T, err)
+	uvAfter := u.userVersion()
+	require.NotEqual(u.tc.T, uvBefore.EldestSeqno, uvAfter.EldestSeqno,
+		"eldest seqno should change as result of reset")
 }
 
 func kickTeamRekeyd(g *libkb.GlobalContext, t libkb.TestingTB) {

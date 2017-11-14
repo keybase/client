@@ -146,4 +146,6 @@ protocol user {
   // deleteUser deletes the user. Only works in Dev mode since it's so dangerous
   void deleteUser(int sessionID);
 
+  UserVersion meUserVersion(int sessionID);
+
 }

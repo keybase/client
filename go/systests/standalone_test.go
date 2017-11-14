@@ -68,6 +68,7 @@ func makeUserStandalone(t *testing.T, pre string, opts standaloneUserArgs) *user
 	require.NoError(t, err)
 
 	u.deviceClient = keybase1.DeviceClient{Cli: cli}
+	// u.rpcCli = cli
 
 	return &u
 }

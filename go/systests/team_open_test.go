@@ -24,8 +24,7 @@ func TestTeamOpenAutoAddMember(t *testing.T) {
 	require.NoError(t, err)
 	teamName = strings.ToLower(teamName)
 
-	cli := own.teamsClient
-	_, err = cli.TeamCreateWithSettings(context.TODO(), keybase1.TeamCreateWithSettingsArg{
+	_, err = own.teamsClient.TeamCreateWithSettings(context.TODO(), keybase1.TeamCreateWithSettingsArg{
 		Name:                 teamName,
 		SendChatNotification: false,
 		Settings: keybase1.TeamSettings{
@@ -216,4 +215,33 @@ func TestTeamOpenBans(t *testing.T) {
 	appErr, ok := err.(libkb.AppStatusError)
 	require.True(t, ok)
 	require.Equal(t, appErr.Code, libkb.SCTeamBanned)
+}
+
+func TestTeamOpenRequestForPreresetMember(t *testing.T) {
+	tt := newTeamTester(t)
+	defer tt.cleanup()
+
+	alice := tt.addUser("alice")
+	bob := tt.addUser("bob")
+
+	teamID, teamName := alice.createTeam2()
+
+	alice.teamSetSettings(teamName.String(), keybase1.TeamSettings{
+		Open:   true,
+		JoinAs: keybase1.TeamRole_READER,
+	})
+
+	alice.addTeamMember(teamName.String(), bob.username, keybase1.TeamRole_WRITER)
+
+	bob.reset()
+
+	mkTar := func(uv keybase1.UserVersion) keybase1.TeamAccessRequest {
+		return keybase1.TeamAccessRequest(uv)
+	}
+
+	err := teams.HandleOpenTeamAccessRequest(context.Background(), alice.device.tctx.G, keybase1.TeamOpenReqMsg{
+		TeamID: teamID,
+		Tars:   []keybase1.TeamAccessRequest{mkTar(bob.userVersion())},
+	})
+	require.NoError(t, err)
 }

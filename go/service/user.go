@@ -322,3 +322,16 @@ func (h *UserHandler) InterestingPeople(ctx context.Context, maxUsers int) (res 
 	}
 	return res, nil
 }
+
+func (l *UserHandler) MeUserVersion(ctx context.Context, sessionID int) (res keybase1.UserVersion, err error) {
+	loadMeArg := libkb.NewLoadUserArg(l.G()).
+		WithNetContext(ctx).
+		WithUID(l.G().Env.GetUID()).
+		WithSelf(true).
+		WithPublicKeyOptional()
+	upak, _, err := l.G().GetUPAKLoader().LoadV2(loadMeArg)
+	if err != nil {
+		return keybase1.UserVersion{}, err
+	}
+	return upak.Current.ToUserVersion(), nil
+}
