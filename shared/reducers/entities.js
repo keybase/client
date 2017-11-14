@@ -1,6 +1,7 @@
 // @flow
 import * as CommonConstants from '../constants/common'
-import {makeState, type Actions, type State} from '../constants/entities'
+import {makeState} from '../constants/entities'
+import {type Actions, type State} from '../constants/types/entities'
 
 const initialState: State = makeState()
 
