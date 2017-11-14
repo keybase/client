@@ -2,8 +2,6 @@
 import * as TrackerGen from '../actions/tracker-gen'
 import * as Types from '../constants/types/tracker'
 import * as Constants from '../constants/tracker'
-// import * as RPCTypes from '../constants/types/flow-types'
-//
 
 function updateUserState(
   state: Types.State,
@@ -54,7 +52,7 @@ export default function(
         ...state,
         timerActive: state.timerActive - 1,
       }
-    case TrackerGen.cacheIdentify:
+    case TrackerGen.cacheIdentify: {
       const {goodTill, uid} = action.payload
       return {
         ...state,
@@ -63,7 +61,8 @@ export default function(
           [uid]: goodTill,
         },
       }
-    case TrackerGen.pendingIdentify:
+    }
+    case TrackerGen.pendingIdentify: {
       const {username, pending} = action.payload
       return {
         ...state,
@@ -72,14 +71,16 @@ export default function(
           [username]: pending ? true : undefined,
         },
       }
-    case TrackerGen.setRegisterIdentifyUi:
+    }
+    case TrackerGen.setRegisterIdentifyUi: {
       const {started} = action.payload
       return {
         ...state,
         serverStarted: started,
       }
+    }
 
-    case TrackerGen.showNonUser:
+    case TrackerGen.showNonUser: {
       const {nonUser} = action.payload
       return updateNonUserState(state, action.payload.username, state => {
         return {
@@ -93,6 +94,7 @@ export default function(
           serviceName: nonUser.socialAssertion.service,
         }
       })
+    }
     case TrackerGen.setOnClose: {
       const {username} = action.payload
       const isUser = state.userTrackers[username]
@@ -131,24 +133,27 @@ export default function(
         ...state,
         reason: (action.payload && action.payload.reason) || (state && state.reason),
       }))
-    case TrackerGen.updateTrackToken:
+    case TrackerGen.updateTrackToken: {
       const {trackToken} = action.payload
       return updateUserState(state, action.payload.username, state => ({
         ...state,
         trackToken: trackToken,
       }))
-    case TrackerGen.setNeedTrackTokenDismiss:
+    }
+    case TrackerGen.setNeedTrackTokenDismiss: {
       const {needTrackTokenDismiss} = action.payload
       return updateUserState(state, action.payload.username, state => ({
         ...state,
         needTrackTokenDismiss,
       }))
-    case TrackerGen.waiting:
+    }
+    case TrackerGen.waiting: {
       const {waiting} = action.payload
       return updateUserState(state, action.payload.username, state => ({
         ...state,
         waiting,
       }))
+    }
     case TrackerGen.setOnFollow: {
       const {username} = action.payload
       return updateUserState(state, username, state => ({
@@ -303,12 +308,13 @@ export default function(
         }
       })
     }
-    case TrackerGen.updateProof:
-      const {remoteProof, linkCheckResult} = action.payload
+    case TrackerGen.updateProof: {
+      const {remoteProof, linkCheckResult, username} = action.payload
       return updateUserState(state, action.payload.username, state => ({
         ...state,
         proofs: Constants.updateProof(username, state ? state.proofs : [], remoteProof, linkCheckResult),
       }))
+    }
     case TrackerGen.updateUserInfo: {
       const {userCard, username} = action.payload
       const userInfo = {
@@ -326,13 +332,14 @@ export default function(
         userInfo,
       }))
     }
-    case TrackerGen.markActiveIdentifyUi:
+    case TrackerGen.markActiveIdentifyUi: {
       const {active} = action.payload
       return updateUserState(state, action.payload.username, state => ({
         ...state,
         serverActive: active,
       }))
-    case TrackerGen.reportLastTrack:
+    }
+    case TrackerGen.reportLastTrack: {
       const {tracking} = action.payload
       return updateUserState(state, action.payload.username, state => {
         const proofs = (state ? state.proofs : []).map(
@@ -344,6 +351,7 @@ export default function(
           proofs,
         }
       })
+    }
     case TrackerGen.showTracker:
       return updateUserState(state, action.payload.username, state => ({
         ...state,
@@ -364,13 +372,14 @@ export default function(
         tracking,
       }))
     }
-    case TrackerGen.updateFolders:
+    case TrackerGen.updateFolders: {
       const {tlfs} = action.payload
       return updateUserState(state, action.payload.username, state => ({
         ...state,
         tlfs,
       }))
-    case TrackerGen.identifyFinished:
+    }
+    case TrackerGen.identifyFinished: {
       if (action.error) {
         const {error} = action.payload
         return updateUserState(state, action.payload.username, state => ({
@@ -384,6 +393,7 @@ export default function(
           error: null,
         }))
       }
+    }
   }
   return state
 }
