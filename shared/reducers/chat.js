@@ -263,6 +263,10 @@ function reducer(state: Constants.State = initialState, action: ChatGen.Actions)
     case ChatGen.exitSearch: {
       return state.set('inSearch', false)
     }
+    case 'teams:setChannelCreationError': {
+      const {payload: {channelCreationError}} = action
+      return state.set('channelCreationError', channelCreationError)
+    }
     case 'teams:setTeamCreationError': {
       const {payload: {teamCreationError}} = action
       return state.set('teamCreationError', teamCreationError)
