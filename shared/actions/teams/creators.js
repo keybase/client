@@ -16,8 +16,18 @@ function createNewTeamFromConversation(conversationIDKey: ConversationIDKey, nam
   return {payload: {conversationIDKey, name}, type: 'teams:createNewTeamFromConversation'}
 }
 
-function createChannel(teamname: string, channelname: string, description: ?string) {
-  return {payload: {channelname, description, teamname}, type: 'teams:createChannel'}
+function createChannel(
+  teamname: string,
+  channelname: string,
+  description: ?string,
+  rootPath: I.List<string>,
+  sourceSubPath: I.List<string>,
+  destSubPath: I.List<string>
+) {
+  return {
+    payload: {channelname, description, teamname, rootPath, sourceSubPath, destSubPath},
+    type: 'teams:createChannel',
+  }
 }
 
 function getChannels(teamname: string): Constants.GetChannels {
@@ -121,6 +131,10 @@ function setPublicityTeam(teamname: string, enabled: boolean) {
   return {payload: {enabled, teamname}, type: 'teams:setPublicityTeam'}
 }
 
+function setChannelCreationError(channelCreationError: string): Constants.SetChannelCreationError {
+  return {payload: {channelCreationError}, type: 'teams:setChannelCreationError'}
+}
+
 function setTeamCreationError(teamCreationError: string): Constants.SetTeamCreationError {
   return {payload: {teamCreationError}, type: 'teams:setTeamCreationError'}
 }
@@ -182,6 +196,7 @@ export {
   makeTeamOpen,
   removeMember,
   saveChannelMembership,
+  setChannelCreationError,
   setPublicityMember,
   setPublicityTeam,
   setTeamCreationError,
