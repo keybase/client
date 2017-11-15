@@ -15,10 +15,12 @@ import {type TeamRoleType} from '../../constants/teams'
   allowOwner specifies whether the user can choose the 'owner' option
 */
 export type ControlledRolePickerProps = {
-  onComplete: (role: TeamRoleType) => void,
+  onComplete: (role: TeamRoleType, sendNotification: boolean) => void,
   selectedRole?: TeamRoleType,
   allowOwner?: boolean,
   allowAdmin?: boolean,
+  showNotificationCheckbox?: boolean,
+  sendNotificationChecked?: boolean,
 }
 
 const mapStateToProps = (state: TypedState, {routeProps}) => {
@@ -26,6 +28,8 @@ const mapStateToProps = (state: TypedState, {routeProps}) => {
   const _onComplete = routeProps.get('onComplete')
   const allowAdmin = routeProps.get('allowAdmin')
   const allowOwner = routeProps.get('allowOwner')
+  const sendNotificationChecked = routeProps.get('sendNotificationChecked')
+  const showSendNotification = routeProps.get('showNotificationCheckbox')
   return {
     _onComplete,
     allowAdmin,
@@ -33,9 +37,8 @@ const mapStateToProps = (state: TypedState, {routeProps}) => {
     confirm: false,
     controlled: true,
     currentType,
-    sendNotification: false,
-    setSendNotification: () => {},
-    showSendNotification: false,
+    sendNotificationChecked,
+    showSendNotification,
     username: '',
   }
 }
@@ -59,9 +62,10 @@ const PopupWrapped = props => (
 export default compose(
   connect(mapStateToProps, mapDispatchToProps),
   withState('selectedRole', 'setSelectedRole', props => props.currentType),
+  withState('sendNotification', 'setSendNotification', props => props.sendNotificationChecked),
   withHandlers({
-    setConfirm: ({_onComplete, onBack, selectedRole}) => (confirm: boolean) => {
-      _onComplete(selectedRole)
+    setConfirm: ({_onComplete, onBack, selectedRole, sendNotification}) => (confirm: boolean) => {
+      _onComplete(selectedRole, sendNotification)
       onBack()
     },
   })
