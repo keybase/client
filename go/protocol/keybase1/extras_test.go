@@ -7,8 +7,6 @@ import (
 	"errors"
 	"testing"
 	"time"
-
-	"github.com/keybase/kbfs/cache"
 )
 
 func TestTime(t *testing.T) {
@@ -135,8 +133,3 @@ func TestTeamNameFromString(t *testing.T) {
 		}
 	}
 }
-
-var _ cache.Measurable = (*KID)(nil)
-var _ cache.Measurable = UID("")
-var _ cache.Measurable = TeamID("")
-var _ cache.Measurable = UserOrTeamID("")
