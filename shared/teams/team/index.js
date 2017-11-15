@@ -20,7 +20,6 @@ import {OpenTeamSettingButton} from '../open-team'
 import TeamInviteRow from './invite-row/container'
 import TeamMemberRow from './member-row/container'
 import TeamRequestRow from './request-row/container'
-import flags from '../../util/feature-flags'
 
 export type MemberRowProps = Constants.MemberInfo
 type InviteRowProps = Constants.InviteInfo
@@ -205,20 +204,32 @@ class Team extends React.PureComponent<Props> {
 
     // massage data for rowrenderers
     const memberProps = members.map(member => ({username: member.username, teamname: name}))
-    const requestProps = requests.map(req => ({type: 'request', teamname: name, username: req.username}))
-    const inviteProps = invites.map(invite => ({
-      email: invite.email,
-      key: invite.email || invite.username,
-      teamname: name,
-      type: 'invite',
-      username: invite.username,
-    }))
+    const requestProps = requests.map(req => ({type: 'request', username: req.username, teamname: name}))
+    const inviteProps = invites.map(invite => {
+      let inviteInfo
+      if (invite.name) {
+        inviteInfo = {name: invite.name}
+      } else if (invite.email) {
+        inviteInfo = {email: invite.email}
+      } else if (invite.username) {
+        inviteInfo = {username: invite.username}
+      }
+      return {
+        ...inviteInfo,
+        teamname: name,
+        username: invite.username,
+        id: invite.id,
+        type: 'invite',
+        key: invite.id,
+      }
+    })
+
     let contents
     if (selectedTab === 'members') {
       contents =
         (members.length !== 0 || !loading) &&
         <List
-          keyProperty="username"
+          keyProperty="key"
           items={memberProps}
           fixedHeight={48}
           renderItem={TeamMemberRow}
@@ -366,7 +377,6 @@ class Team extends React.PureComponent<Props> {
                 style={{marginLeft: globalMargins.tiny}}
               />}
             {isMobile &&
-              flags.inviteContactsEnabled &&
               <Button
                 type="Secondary"
                 label="Invite contacts"

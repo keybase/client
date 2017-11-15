@@ -160,42 +160,62 @@ const _editMembership = function*(action: Constants.EditMembership) {
 }
 
 const _removeMemberOrPendingInvite = function*(action: Constants.RemoveMemberOrPendingInvite) {
-  const {payload: {name, username, email}} = action
+  const {payload: {name, username, email, inviteID}} = action
 
   yield Saga.put(
-    replaceEntity(['teams', 'teamNameToLoadingInvites'], I.Map([[name, I.Map([[username || email, true]])]]))
+    replaceEntity(
+      ['teams', 'teamNameToLoadingInvites'],
+      I.Map([[name, I.Map([[username || email || inviteID, true]])]])
+    )
   )
 
-  // disallow call with both username & email
-  if (!!username && !!email) {
-    const errMsg = 'Supplied both email and username to removeMemberOrPendingInvite'
+  // disallow call with any pair of username, email, and ID to avoid black-bar errors
+  if ((!!username && !!email) || (!!username && !!inviteID) || (!!email && !!inviteID)) {
+    const errMsg = 'Supplied more than one form of identification to removeMemberOrPendingInvite'
     console.error(errMsg)
     throw new Error(errMsg)
   }
 
   yield Saga.put(replaceEntity(['teams', 'teamNameToLoading'], I.Map([[name, true]])))
   try {
-    yield Saga.call(RPCTypes.teamsTeamRemoveMemberRpcPromise, {param: {email, name, username, inviteID: ''}})
+    yield Saga.call(RPCTypes.teamsTeamRemoveMemberRpcPromise, {param: {email, name, username, inviteID}})
   } finally {
     yield Saga.put((dispatch: Dispatch) => dispatch(Creators.getDetails(name))) // getDetails will unset loading
     yield Saga.put(
       replaceEntity(
         ['teams', 'teamNameToLoadingInvites'],
-        I.Map([[name, I.Map([[username || email, false]])]])
+        I.Map([[name, I.Map([[username || email || inviteID, false]])]])
       )
     )
   }
 }
 
 const _inviteToTeamByPhone = function*(action: Constants.InviteToTeamByPhone) {
-  const {payload: {teamname, phoneNumber}} = action
-  yield Saga.put(
-    replaceEntity(['teams', 'teamNameToLoadingInvites'], I.Map([[teamname, I.Map([[phoneNumber, true]])]]))
-  )
-  openSMS(phoneNumber, 'delicious seitan') // TODO replace with token from seitan call
-  yield Saga.put(
-    replaceEntity(['teams', 'teamNameToLoadingInvites'], I.Map([[teamname, I.Map([[phoneNumber, false]])]]))
-  )
+  const {payload: {teamname, role, phoneNumber, fullName = ''}} = action
+  const seitan = yield Saga.call(RPCTypes.teamsTeamCreateSeitanTokenRpcPromise, {
+    param: {
+      name: teamname,
+      role: (!!role && RPCTypes.teamsTeamRole[role]) || 0,
+      label: {t: 1, sms: ({f: fullName || '', n: phoneNumber}: RPCTypes.SeitanIKeyLabelSms)},
+    },
+  })
+
+  /* Open SMS */
+  // seitan is 16chars
+  // message sans teamname is 129chars long. Absolute max teamname + descriptor can be is 31chars to fit within 160 sms limit
+  // max length of a teamname is 16chars, + 5 - 8 chars for descriptor is a max of 24chars for teamDescription
+  let teamDescription
+  if (teamname.length <= 16) {
+    teamDescription = `${teamname} team`
+  } else {
+    // then this must be a subteam, and won't safely fit into a text
+    const subteams = teamname.split('.')
+    teamDescription = `${subteams[subteams.length - 1]} subteam`
+  }
+  const bodyText = `Please join the ${teamDescription} on Keybase. Install and paste this in the "Teams" tab:\n\ntoken: ${seitan.toUpperCase()}\n\nquick install: keybase.io/_/go`
+  openSMS([phoneNumber], bodyText).catch(err => console.log('Error sending SMS', err))
+
+  yield Saga.put(Creators.getDetails(teamname))
 }
 
 const _ignoreRequest = function*(action: Constants.IgnoreRequest) {
@@ -320,10 +340,12 @@ const _getDetails = function*(action: Constants.GetDetails): Saga.SagaGenerator<
     const invitesMap = map(details.annotatedActiveInvites, invite =>
       Constants.makeInviteInfo({
         email: invite.type.c === RPCTypes.teamsTeamInviteCategory.email ? invite.name : '',
+        name: invite.type.c === RPCTypes.teamsTeamInviteCategory.seitan ? invite.name : '',
         role: Constants.teamRoleByEnum[invite.role],
         username: invite.type.c === RPCTypes.teamsTeamInviteCategory.sbs
           ? `${invite.name}@${invite.type.sbs}`
           : '',
+        id: invite.id,
       })
     )
 

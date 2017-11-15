@@ -72,9 +72,10 @@ function inviteToTeamByEmail(
 function inviteToTeamByPhone(
   teamname: string,
   role: Constants.TeamRoleType,
-  phoneNumber: string
+  phoneNumber: string,
+  fullName: string
 ): Constants.InviteToTeamByPhone {
-  return {payload: {teamname, role, phoneNumber}, type: 'teams:inviteToTeamByPhone'}
+  return {payload: {teamname, role, phoneNumber, fullName}, type: 'teams:inviteToTeamByPhone'}
 }
 
 function joinTeam(teamname: string): Constants.JoinTeam {
@@ -115,8 +116,13 @@ function editMembership(
   return {payload: {name, username, role}, type: 'teams:editMembership'}
 }
 
-function removeMember(email: string, name: string, username: string): Constants.RemoveMemberOrPendingInvite {
-  return {payload: {email, name, username}, type: 'teams:removeMemberOrPendingInvite'}
+function removeMember(
+  email: string,
+  name: string,
+  username: string,
+  inviteID: string
+): Constants.RemoveMemberOrPendingInvite {
+  return {payload: {email, name, username, inviteID}, type: 'teams:removeMemberOrPendingInvite'}
 }
 
 function ignoreRequest(name: string, username: string): Constants.IgnoreRequest {
