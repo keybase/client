@@ -643,6 +643,34 @@ func LeaveConversation(ctx context.Context, g *globals.Context, debugger utils.D
 	return rl, nil
 }
 
+func PreviewConversation(ctx context.Context, g *globals.Context, debugger utils.DebugLabeler,
+	ri func() chat1.RemoteInterface, uid gregor1.UID, convID chat1.ConversationID) (rl []chat1.RateLimit, err error) {
+	alreadyIn, irl, err := g.InboxSource.IsMember(ctx, uid, convID)
+	if err != nil {
+		debugger.Debug(ctx, "PreviewConversation: IsMember err: %s", err.Error())
+		// Pretend we're in.
+		alreadyIn = true
+	}
+	if irl != nil {
+		rl = append(rl, *irl)
+	}
+	if alreadyIn {
+		debugger.Debug(ctx, "PreviewConversation: already in the conversation, no need to preview")
+		return nil, nil
+	}
+
+	previewRes, err := ri().PreviewConversation(ctx, convID)
+	if err != nil {
+		debugger.Debug(ctx, "PreviewConversation: failed to preview conversation: %s", err.Error())
+		return rl, err
+	}
+	if previewRes.RateLimit != nil {
+		rl = append(rl, *previewRes.RateLimit)
+	}
+
+	return rl, nil
+}
+
 func NewConversation(ctx context.Context, g *globals.Context, uid gregor1.UID, tlfName string, topicName *string,
 	topicType chat1.TopicType, membersType chat1.ConversationMembersType, vis keybase1.TLFVisibility,
 	ri func() chat1.RemoteInterface) (chat1.ConversationLocal, []chat1.RateLimit, error) {
