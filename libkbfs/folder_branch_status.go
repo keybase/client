@@ -191,7 +191,7 @@ func (fbsk *folderBranchStatusKeeper) getStatusWithoutJournaling(
 
 	var fbs FolderBranchStatus
 
-	var tlfID tlf.ID
+	tlfID := tlf.NullID
 	if fbsk.md != (ImmutableRootMetadata{}) {
 		tlfID = fbsk.md.TlfID()
 		fbs.Staged = fbsk.md.IsUnmergedSet()
