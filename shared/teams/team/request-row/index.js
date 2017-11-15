@@ -58,24 +58,24 @@ export const TeamRequestRow = (props: Props) => {
         }}
       >
         <Button
+          label="Let in as..."
+          onClick={onAccept}
           small={true}
           style={{backgroundColor: globalColors.green, marginLeft: globalMargins.xtiny}}
           type="Primary"
-          label="Let in as..."
-          onClick={onAccept}
         />
         <Button
+          label="Ignore"
+          onClick={onIgnoreRequest}
           small={true}
           style={{marginLeft: globalMargins.xtiny}}
           type="Danger"
-          label="Ignore"
-          onClick={onIgnoreRequest}
         />
         {!isMobile &&
           <Icon
             onClick={onChat}
-            type="iconfont-chat"
             style={{fontSize: 20, marginLeft: globalMargins.tiny}}
+            type="iconfont-chat"
           />}
       </Box>
     </Box>
@@ -83,8 +83,8 @@ export const TeamRequestRow = (props: Props) => {
 }
 
 const styleCharm = {
+  alignSelf: 'center',
   backgroundColor: globalColors.orange,
   borderRadius: 1,
-  marginRight: 4,
-  alignSelf: 'center',
+  marginRight: globalMargins.xtiny,
 }
