@@ -1561,13 +1561,17 @@ func AddMembersBestEffort(ctx context.Context, g *libkb.GlobalContext, teamID ke
 	var needPostMembership bool
 
 	for _, uv := range uvs {
+		var becameAnInvite bool
 		loadedUV, err := loadUserVersionByUID(ctx, g, uv.Uid)
 		if err != nil {
 			if err == errInviteRequired {
 				keybaseInvites = append(keybaseInvites, uv)
+				becameAnInvite = true
 				g.Log.CDebugf(ctx, "Invite required for %+v", uv)
+			} else {
+				g.Log.CDebugf(ctx, "got unexpected error while trying to load user: %s: %v; skipping", uv, err)
+				continue
 			}
-			continue
 		}
 
 		if loadedUV.EldestSeqno != uv.EldestSeqno {
@@ -1596,9 +1600,11 @@ func AddMembersBestEffort(ctx context.Context, g *libkb.GlobalContext, teamID ke
 			req.None = append(req.None, existingUV)
 		}
 
-		err = req.AddUVWithRole(uv, role)
-		if err != nil {
-			return fmt.Errorf("Unexpected role: %v when adding %s, bailing out", role, uv)
+		if !becameAnInvite {
+			err = req.AddUVWithRole(uv, role)
+			if err != nil {
+				return fmt.Errorf("Unexpected role: %v when adding %s, bailing out", role, uv)
+			}
 		}
 
 		needPostMembership = true

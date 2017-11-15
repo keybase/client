@@ -12,6 +12,7 @@ import (
 	logger "github.com/keybase/client/go/logger"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	service "github.com/keybase/client/go/service"
+	teams "github.com/keybase/client/go/teams"
 	clockwork "github.com/keybase/clockwork"
 	rpc "github.com/keybase/go-framed-msgpack-rpc/rpc"
 	"github.com/stretchr/testify/require"
@@ -366,6 +367,27 @@ func (u *smuUser) pollForMembershipUpdate(team smuTeam, kg keybase1.PerTeamKeyGe
 	}
 	u.ctx.t.Fatalf("Failed to find the needed key generation (%d) after %s of waiting (%d iterations)", kg, totalWait, i)
 	return keybase1.TeamDetails{}
+}
+
+func (u *smuUser) pollForTeamSeqnoLink(team smuTeam, toSeqno keybase1.Seqno) {
+	for i := 0; i < 20; i++ {
+		details, err := teams.Load(context.TODO(), u.getPrimaryGlobalContext(), keybase1.LoadTeamArg{
+			Name:        team.name,
+			ForceRepoll: true,
+		})
+		if err != nil {
+			u.ctx.t.Fatalf("error while loading team %q: %v", team.name, err)
+		}
+
+		if details.CurrentSeqno() >= toSeqno {
+			u.ctx.t.Logf("Found new seqno %d at poll loop iter %d", details.CurrentSeqno(), i)
+			return
+		}
+
+		time.Sleep(500 * time.Millisecond)
+	}
+
+	u.ctx.t.Fatalf("timed out waiting for team rotate %s", team)
 }
 
 func (u *smuUser) createTeam(writers []*smuUser) smuTeam {

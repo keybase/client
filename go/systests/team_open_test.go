@@ -245,3 +245,41 @@ func TestTeamOpenPuklessRequest(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, 1, teamObj.NumActiveInvites())
 }
+
+func TestTeamOpenRemoveOldUVAddInvite(t *testing.T) {
+	ctx := newSMUContext(t)
+	defer ctx.cleanup()
+
+	ann := ctx.installKeybaseForUser("ann", 10)
+	ann.signup()
+	bob := ctx.installKeybaseForUser("bob", 10)
+	bob.signup()
+
+	team := ann.createTeam([]*smuUser{bob})
+	t.Logf("Open team name is %q", team)
+
+	annCtx := ann.getPrimaryGlobalContext()
+
+	ann.openTeam(team, keybase1.TeamRole_READER)
+
+	bob.reset()
+	bob.loginAfterResetNoPUK(10)
+
+	bob.requestAccess(team)
+
+	kickTeamRekeyd(ann.getPrimaryGlobalContext(), t)
+	ann.pollForTeamSeqnoLink(team, keybase1.Seqno(5))
+
+	teamObj, err := teams.Load(context.TODO(), annCtx, keybase1.LoadTeamArg{
+		Name:        team.name,
+		ForceRepoll: true,
+	})
+	require.NoError(t, err)
+
+	require.Equal(t, 1, teamObj.NumActiveInvites())
+
+	members, err := teamObj.Members()
+	require.NoError(t, err)
+	// expecting just ann, pre-reset version of bob should have been removed.
+	require.Equal(t, 1, len(members.AllUIDs()))
+}
