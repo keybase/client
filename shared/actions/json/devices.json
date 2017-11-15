@@ -1,7 +1,5 @@
 {
-  "prelude": [
-    "import * as Constants from '../constants/devices'"
-  ],
+  "prelude": [],
   "actions": {
     "load": {},
     "loaded": {

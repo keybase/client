@@ -1,4 +1,5 @@
 {
+  "skipReducer": true,
   "prelude": [
     "import * as RPCTypesGregor from '../constants/types/flow-types-gregor'"
   ],

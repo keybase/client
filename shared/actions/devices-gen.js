@@ -5,7 +5,7 @@
 import * as I from 'immutable'
 import * as RPCTypes from '../constants/types/flow-types'
 import * as More from '../constants/types/more'
-import * as Constants from '../constants/devices'
+import * as Types from '../constants/types/devices'
 
 // Constants
 export const resetStore = 'common:resetStore' // not a part of devices but is handled by every reducer
@@ -32,13 +32,10 @@ export type RevokePayload = More.ReturnType<typeof createRevoke>
 export type SetWaitingPayload = More.ReturnType<typeof createSetWaiting>
 export type ShowRevokePagePayload = More.ReturnType<typeof createShowRevokePage>
 
+// Reducer type
+// prettier-ignore
+export type ReducerMap = {|'common:resetStore': (state: Types.State, action: {type: 'common:resetStore', payload: void}) => Types.State, 'devices:load': (state: Types.State, action: LoadPayload) => Types.State, 'devices:loaded': (state: Types.State, action: LoadedPayload) => Types.State, 'devices:paperKeyMake': (state: Types.State, action: PaperKeyMakePayload) => Types.State, 'devices:revoke': (state: Types.State, action: RevokePayload) => Types.State, 'devices:setWaiting': (state: Types.State, action: SetWaitingPayload) => Types.State, 'devices:showRevokePage': (state: Types.State, action: ShowRevokePagePayload) => Types.State|}
+
 // All Actions
 // prettier-ignore
-export type Actions =
-  | More.ReturnType<typeof createLoad>
-  | More.ReturnType<typeof createLoaded>
-  | More.ReturnType<typeof createPaperKeyMake>
-  | More.ReturnType<typeof createRevoke>
-  | More.ReturnType<typeof createSetWaiting>
-  | More.ReturnType<typeof createShowRevokePage>
-  | {type: 'common:resetStore', payload: void}
+export type Actions = LoadPayload | LoadedPayload | PaperKeyMakePayload | RevokePayload | SetWaitingPayload | ShowRevokePagePayload | {type: 'common:resetStore', payload: void}

@@ -5,7 +5,7 @@
 import * as I from 'immutable'
 import * as RPCTypes from '../constants/types/flow-types'
 import * as More from '../constants/types/more'
-import * as Constants from '../constants/pinentry'
+import * as Types from '../constants/types/pinentry'
 
 // Constants
 export const resetStore = 'common:resetStore' // not a part of pinentry but is handled by every reducer
@@ -26,11 +26,10 @@ export type OnCancelPayload = More.ReturnType<typeof createOnCancel>
 export type OnSubmitPayload = More.ReturnType<typeof createOnSubmit>
 export type RegisterPinentryListenerPayload = More.ReturnType<typeof createRegisterPinentryListener>
 
+// Reducer type
+// prettier-ignore
+export type ReducerMap = {|'common:resetStore': (state: Types.State, action: {type: 'common:resetStore', payload: void}) => Types.State, 'pinentry:newPinentry': (state: Types.State, action: NewPinentryPayload) => Types.State, 'pinentry:onCancel': (state: Types.State, action: OnCancelPayload) => Types.State, 'pinentry:onSubmit': (state: Types.State, action: OnSubmitPayload) => Types.State, 'pinentry:registerPinentryListener': (state: Types.State, action: RegisterPinentryListenerPayload) => Types.State|}
+
 // All Actions
 // prettier-ignore
-export type Actions =
-  | More.ReturnType<typeof createNewPinentry>
-  | More.ReturnType<typeof createOnCancel>
-  | More.ReturnType<typeof createOnSubmit>
-  | More.ReturnType<typeof createRegisterPinentryListener>
-  | {type: 'common:resetStore', payload: void}
+export type Actions = NewPinentryPayload | OnCancelPayload | OnSubmitPayload | RegisterPinentryListenerPayload | {type: 'common:resetStore', payload: void}

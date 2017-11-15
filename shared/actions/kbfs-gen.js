@@ -54,28 +54,16 @@ export type InstallKBFSPayload = More.ReturnType<typeof createInstallKBFS>
 export type InstallKBFSResultPayload = More.ReturnType<typeof createInstallKBFSResult>
 export type ListPayload = More.ReturnType<typeof createList>
 export type ListedPayload = More.ReturnType<typeof createListed>
+export type ListedErrorPayload = More.ReturnType<typeof createListedError>
 export type OpenDefaultPathPayload = More.ReturnType<typeof createOpenDefaultPath>
 export type OpenInFileUIPayload = More.ReturnType<typeof createOpenInFileUI>
 export type OpenPayload = More.ReturnType<typeof createOpen>
 export type UninstallKBFSPayload = More.ReturnType<typeof createUninstallKBFS>
 
+// Reducer type
+// Skipped
+
 // All Actions
 // prettier-ignore
-export type Actions =
-  | More.ReturnType<typeof createClearFuseInstall>
-  | More.ReturnType<typeof createFuseStatus>
-  | More.ReturnType<typeof createFuseStatusUpdate>
-  | More.ReturnType<typeof createInstallFuse>
-  | More.ReturnType<typeof createInstallFuseFinished>
-  | More.ReturnType<typeof createInstallFuseResult>
-  | More.ReturnType<typeof createInstallKBFS>
-  | More.ReturnType<typeof createInstallKBFSFinished>
-  | More.ReturnType<typeof createInstallKBFSResult>
-  | More.ReturnType<typeof createList>
-  | More.ReturnType<typeof createListed>
-  | More.ReturnType<typeof createListedError>
-  | More.ReturnType<typeof createOpen>
-  | More.ReturnType<typeof createOpenDefaultPath>
-  | More.ReturnType<typeof createOpenInFileUI>
-  | More.ReturnType<typeof createUninstallKBFS>
-  | {type: 'common:resetStore', payload: void}
+export type Actions = ClearFuseInstallPayload | FuseStatusPayload | FuseStatusUpdatePayload | InstallFuseFinishedPayload | InstallFusePayload | InstallFuseResultPayload | InstallKBFSFinishedPayload | InstallKBFSPayload | InstallKBFSResultPayload | ListPayload | ListedPayload
+ | ListedErrorPayload | OpenDefaultPathPayload | OpenInFileUIPayload | OpenPayload | UninstallKBFSPayload | {type: 'common:resetStore', payload: void}

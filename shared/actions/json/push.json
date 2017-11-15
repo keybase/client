@@ -1,7 +1,5 @@
 {
-  "prelude": [
-    "import * as Types from '../constants/types/push'"
-  ],
+  "prelude": [],
   "actions": {
     "configurePush": {},
     "permissionsNo": {},

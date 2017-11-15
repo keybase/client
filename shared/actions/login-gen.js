@@ -84,6 +84,7 @@ export type AddNewDevicePayload = More.ReturnType<typeof createAddNewDevice>
 export type ChooseGPGMethodPayload = More.ReturnType<typeof createChooseGPGMethod>
 export type ClearQRCodePayload = More.ReturnType<typeof createClearQRCode>
 export type ConfiguredAccountsPayload = More.ReturnType<typeof createConfiguredAccounts>
+export type ConfiguredAccountsErrorPayload = More.ReturnType<typeof createConfiguredAccountsError>
 export type LoginDonePayload = More.ReturnType<typeof createLoginDone>
 export type LogoutDonePayload = More.ReturnType<typeof createLogoutDone>
 export type LogoutPayload = More.ReturnType<typeof createLogout>
@@ -96,6 +97,7 @@ export type ProvisionTextCodeEnteredPayload = More.ReturnType<typeof createProvi
 export type ProvisioningErrorPayload = More.ReturnType<typeof createProvisioningError>
 export type QrScannedPayload = More.ReturnType<typeof createQrScanned>
 export type ReloginPayload = More.ReturnType<typeof createRelogin>
+export type ReloginErrorPayload = More.ReturnType<typeof createReloginError>
 export type ResetQRCodeScannedPayload = More.ReturnType<typeof createResetQRCodeScanned>
 export type SelectDeviceIdPayload = More.ReturnType<typeof createSelectDeviceId>
 export type SetCameraBrokenModePayload = More.ReturnType<typeof createSetCameraBrokenMode>
@@ -113,41 +115,12 @@ export type SubmitPassphrasePayload = More.ReturnType<typeof createSubmitPassphr
 export type SubmitUsernameOrEmailPayload = More.ReturnType<typeof createSubmitUsernameOrEmail>
 export type WaitingForResponsePayload = More.ReturnType<typeof createWaitingForResponse>
 
+// Reducer type
+// prettier-ignore
+export type ReducerMap = {|'common:resetStore': (state: Types.State, action: {type: 'common:resetStore', payload: void}) => Types.State, 'login:addNewDevice': (state: Types.State, action: AddNewDevicePayload) => Types.State, 'login:chooseGPGMethod': (state: Types.State, action: ChooseGPGMethodPayload) => Types.State, 'login:clearQRCode': (state: Types.State, action: ClearQRCodePayload) => Types.State, 'login:configuredAccounts': (state: Types.State, action: ConfiguredAccountsPayload|ConfiguredAccountsErrorPayload) => Types.State, 'login:loginDone': (state: Types.State, action: LoginDonePayload) => Types.State, 'login:logout': (state: Types.State, action: LogoutPayload) => Types.State, 'login:logoutDone': (state: Types.State, action: LogoutDonePayload) => Types.State, 'login:navBasedOnLoginAndInitialState': (state: Types.State, action: NavBasedOnLoginAndInitialStatePayload) => Types.State, 'login:onBack': (state: Types.State, action: OnBackPayload) => Types.State, 'login:onFinish': (state: Types.State, action: OnFinishPayload) => Types.State, 'login:onWont': (state: Types.State, action: OnWontPayload) => Types.State, 'login:openAccountResetPage': (state: Types.State, action: OpenAccountResetPagePayload) => Types.State, 'login:provisionTextCodeEntered': (state: Types.State, action: ProvisionTextCodeEnteredPayload) => Types.State, 'login:provisioningError': (state: Types.State, action: ProvisioningErrorPayload) => Types.State, 'login:qrScanned': (state: Types.State, action: QrScannedPayload) => Types.State, 'login:relogin': (state: Types.State, action: ReloginPayload|ReloginErrorPayload) => Types.State, 'login:resetQRCodeScanned': (state: Types.State, action: ResetQRCodeScannedPayload) => Types.State, 'login:selectDeviceId': (state: Types.State, action: SelectDeviceIdPayload) => Types.State, 'login:setCameraBrokenMode': (state: Types.State, action: SetCameraBrokenModePayload) => Types.State, 'login:setCodePageMode': (state: Types.State, action: SetCodePageModePayload) => Types.State, 'login:setDeletedSelf': (state: Types.State, action: SetDeletedSelfPayload) => Types.State, 'login:setMyDeviceCodeState': (state: Types.State, action: SetMyDeviceCodeStatePayload) => Types.State, 'login:setOtherDeviceCodeState': (state: Types.State, action: SetOtherDeviceCodeStatePayload) => Types.State, 'login:setQRCode': (state: Types.State, action: SetQRCodePayload) => Types.State, 'login:setRevokedSelf': (state: Types.State, action: SetRevokedSelfPayload) => Types.State, 'login:setTextCode': (state: Types.State, action: SetTextCodePayload) => Types.State, 'login:someoneElse': (state: Types.State, action: SomeoneElsePayload) => Types.State, 'login:startLogin': (state: Types.State, action: StartLoginPayload) => Types.State, 'login:submitDeviceName': (state: Types.State, action: SubmitDeviceNamePayload) => Types.State, 'login:submitPassphrase': (state: Types.State, action: SubmitPassphrasePayload) => Types.State, 'login:submitUsernameOrEmail': (state: Types.State, action: SubmitUsernameOrEmailPayload) => Types.State, 'login:waitingForResponse': (state: Types.State, action: WaitingForResponsePayload) => Types.State|}
+
 // All Actions
 // prettier-ignore
-export type Actions =
-  | More.ReturnType<typeof createAddNewDevice>
-  | More.ReturnType<typeof createChooseGPGMethod>
-  | More.ReturnType<typeof createClearQRCode>
-  | More.ReturnType<typeof createConfiguredAccounts>
-  | More.ReturnType<typeof createConfiguredAccountsError>
-  | More.ReturnType<typeof createLoginDone>
-  | More.ReturnType<typeof createLogout>
-  | More.ReturnType<typeof createLogoutDone>
-  | More.ReturnType<typeof createNavBasedOnLoginAndInitialState>
-  | More.ReturnType<typeof createOnBack>
-  | More.ReturnType<typeof createOnFinish>
-  | More.ReturnType<typeof createOnWont>
-  | More.ReturnType<typeof createOpenAccountResetPage>
-  | More.ReturnType<typeof createProvisionTextCodeEntered>
-  | More.ReturnType<typeof createProvisioningError>
-  | More.ReturnType<typeof createQrScanned>
-  | More.ReturnType<typeof createRelogin>
-  | More.ReturnType<typeof createReloginError>
-  | More.ReturnType<typeof createResetQRCodeScanned>
-  | More.ReturnType<typeof createSelectDeviceId>
-  | More.ReturnType<typeof createSetCameraBrokenMode>
-  | More.ReturnType<typeof createSetCodePageMode>
-  | More.ReturnType<typeof createSetDeletedSelf>
-  | More.ReturnType<typeof createSetMyDeviceCodeState>
-  | More.ReturnType<typeof createSetOtherDeviceCodeState>
-  | More.ReturnType<typeof createSetQRCode>
-  | More.ReturnType<typeof createSetRevokedSelf>
-  | More.ReturnType<typeof createSetTextCode>
-  | More.ReturnType<typeof createSomeoneElse>
-  | More.ReturnType<typeof createStartLogin>
-  | More.ReturnType<typeof createSubmitDeviceName>
-  | More.ReturnType<typeof createSubmitPassphrase>
-  | More.ReturnType<typeof createSubmitUsernameOrEmail>
-  | More.ReturnType<typeof createWaitingForResponse>
-  | {type: 'common:resetStore', payload: void}
+export type Actions = AddNewDevicePayload | ChooseGPGMethodPayload | ClearQRCodePayload | ConfiguredAccountsPayload
+ | ConfiguredAccountsErrorPayload | LoginDonePayload | LogoutDonePayload | LogoutPayload | NavBasedOnLoginAndInitialStatePayload | OnBackPayload | OnFinishPayload | OnWontPayload | OpenAccountResetPagePayload | ProvisionTextCodeEnteredPayload | ProvisioningErrorPayload | QrScannedPayload | ReloginPayload
+ | ReloginErrorPayload | ResetQRCodeScannedPayload | SelectDeviceIdPayload | SetCameraBrokenModePayload | SetCodePageModePayload | SetDeletedSelfPayload | SetMyDeviceCodeStatePayload | SetOtherDeviceCodeStatePayload | SetQRCodePayload | SetRevokedSelfPayload | SetTextCodePayload | SomeoneElsePayload | StartLoginPayload | SubmitDeviceNamePayload | SubmitPassphrasePayload | SubmitUsernameOrEmailPayload | WaitingForResponsePayload | {type: 'common:resetStore', payload: void}

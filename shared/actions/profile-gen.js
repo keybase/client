@@ -93,6 +93,7 @@ export type OnClickFollowersPayload = More.ReturnType<typeof createOnClickFollow
 export type OnClickFollowingPayload = More.ReturnType<typeof createOnClickFollowing>
 export type OutputInstructionsActionLinkPayload = More.ReturnType<typeof createOutputInstructionsActionLink>
 export type RevokeFinishPayload = More.ReturnType<typeof createRevokeFinish>
+export type RevokeFinishErrorPayload = More.ReturnType<typeof createRevokeFinishError>
 export type RevokeWaitingPayload = More.ReturnType<typeof createRevokeWaiting>
 export type ShowUserProfilePayload = More.ReturnType<typeof createShowUserProfile>
 export type SubmitBTCAddressPayload = More.ReturnType<typeof createSubmitBTCAddress>
@@ -101,6 +102,7 @@ export type SubmitUsernamePayload = More.ReturnType<typeof createSubmitUsername>
 export type SubmitZcashAddressPayload = More.ReturnType<typeof createSubmitZcashAddress>
 export type UpdateErrorTextPayload = More.ReturnType<typeof createUpdateErrorText>
 export type UpdatePgpInfoPayload = More.ReturnType<typeof createUpdatePgpInfo>
+export type UpdatePgpInfoErrorPayload = More.ReturnType<typeof createUpdatePgpInfoError>
 export type UpdatePgpPublicKeyPayload = More.ReturnType<typeof createUpdatePgpPublicKey>
 export type UpdatePlatformPayload = More.ReturnType<typeof createUpdatePlatform>
 export type UpdateProofStatusPayload = More.ReturnType<typeof createUpdateProofStatus>
@@ -109,40 +111,12 @@ export type UpdateSigIDPayload = More.ReturnType<typeof createUpdateSigID>
 export type UpdateUsernamePayload = More.ReturnType<typeof createUpdateUsername>
 export type WaitingPayload = More.ReturnType<typeof createWaiting>
 
+// Reducer type
+// prettier-ignore
+export type ReducerMap = {|'common:resetStore': (state: Types.State, action: {type: 'common:resetStore', payload: void}) => Types.State, 'profile:addProof': (state: Types.State, action: AddProofPayload) => Types.State, 'profile:backToProfile': (state: Types.State, action: BackToProfilePayload) => Types.State, 'profile:cancelAddProof': (state: Types.State, action: CancelAddProofPayload) => Types.State, 'profile:cancelPgpGen': (state: Types.State, action: CancelPgpGenPayload) => Types.State, 'profile:checkProof': (state: Types.State, action: CheckProofPayload) => Types.State, 'profile:cleanupUsername': (state: Types.State, action: CleanupUsernamePayload) => Types.State, 'profile:dropPgp': (state: Types.State, action: DropPgpPayload) => Types.State, 'profile:editProfile': (state: Types.State, action: EditProfilePayload) => Types.State, 'profile:finishRevoking': (state: Types.State, action: FinishRevokingPayload) => Types.State, 'profile:finishedWithKeyGen': (state: Types.State, action: FinishedWithKeyGenPayload) => Types.State, 'profile:generatePgp': (state: Types.State, action: GeneratePgpPayload) => Types.State, 'profile:onClickAvatar': (state: Types.State, action: OnClickAvatarPayload) => Types.State, 'profile:onClickFollowers': (state: Types.State, action: OnClickFollowersPayload) => Types.State, 'profile:onClickFollowing': (state: Types.State, action: OnClickFollowingPayload) => Types.State, 'profile:outputInstructionsActionLink': (state: Types.State, action: OutputInstructionsActionLinkPayload) => Types.State, 'profile:revokeFinish': (state: Types.State, action: RevokeFinishPayload|RevokeFinishErrorPayload) => Types.State, 'profile:revokeWaiting': (state: Types.State, action: RevokeWaitingPayload) => Types.State, 'profile:showUserProfile': (state: Types.State, action: ShowUserProfilePayload) => Types.State, 'profile:submitBTCAddress': (state: Types.State, action: SubmitBTCAddressPayload) => Types.State, 'profile:submitRevokeProof': (state: Types.State, action: SubmitRevokeProofPayload) => Types.State, 'profile:submitUsername': (state: Types.State, action: SubmitUsernamePayload) => Types.State, 'profile:submitZcashAddress': (state: Types.State, action: SubmitZcashAddressPayload) => Types.State, 'profile:updateErrorText': (state: Types.State, action: UpdateErrorTextPayload) => Types.State, 'profile:updatePgpInfo': (state: Types.State, action: UpdatePgpInfoPayload|UpdatePgpInfoErrorPayload) => Types.State, 'profile:updatePgpPublicKey': (state: Types.State, action: UpdatePgpPublicKeyPayload) => Types.State, 'profile:updatePlatform': (state: Types.State, action: UpdatePlatformPayload) => Types.State, 'profile:updateProofStatus': (state: Types.State, action: UpdateProofStatusPayload) => Types.State, 'profile:updateProofText': (state: Types.State, action: UpdateProofTextPayload) => Types.State, 'profile:updateSigID': (state: Types.State, action: UpdateSigIDPayload) => Types.State, 'profile:updateUsername': (state: Types.State, action: UpdateUsernamePayload) => Types.State, 'profile:waiting': (state: Types.State, action: WaitingPayload) => Types.State|}
+
 // All Actions
 // prettier-ignore
-export type Actions =
-  | More.ReturnType<typeof createAddProof>
-  | More.ReturnType<typeof createBackToProfile>
-  | More.ReturnType<typeof createCancelAddProof>
-  | More.ReturnType<typeof createCancelPgpGen>
-  | More.ReturnType<typeof createCheckProof>
-  | More.ReturnType<typeof createCleanupUsername>
-  | More.ReturnType<typeof createDropPgp>
-  | More.ReturnType<typeof createEditProfile>
-  | More.ReturnType<typeof createFinishRevoking>
-  | More.ReturnType<typeof createFinishedWithKeyGen>
-  | More.ReturnType<typeof createGeneratePgp>
-  | More.ReturnType<typeof createOnClickAvatar>
-  | More.ReturnType<typeof createOnClickFollowers>
-  | More.ReturnType<typeof createOnClickFollowing>
-  | More.ReturnType<typeof createOutputInstructionsActionLink>
-  | More.ReturnType<typeof createRevokeFinish>
-  | More.ReturnType<typeof createRevokeFinishError>
-  | More.ReturnType<typeof createRevokeWaiting>
-  | More.ReturnType<typeof createShowUserProfile>
-  | More.ReturnType<typeof createSubmitBTCAddress>
-  | More.ReturnType<typeof createSubmitRevokeProof>
-  | More.ReturnType<typeof createSubmitUsername>
-  | More.ReturnType<typeof createSubmitZcashAddress>
-  | More.ReturnType<typeof createUpdateErrorText>
-  | More.ReturnType<typeof createUpdatePgpInfo>
-  | More.ReturnType<typeof createUpdatePgpInfoError>
-  | More.ReturnType<typeof createUpdatePgpPublicKey>
-  | More.ReturnType<typeof createUpdatePlatform>
-  | More.ReturnType<typeof createUpdateProofStatus>
-  | More.ReturnType<typeof createUpdateProofText>
-  | More.ReturnType<typeof createUpdateSigID>
-  | More.ReturnType<typeof createUpdateUsername>
-  | More.ReturnType<typeof createWaiting>
-  | {type: 'common:resetStore', payload: void}
+export type Actions = AddProofPayload | BackToProfilePayload | CancelAddProofPayload | CancelPgpGenPayload | CheckProofPayload | CleanupUsernamePayload | DropPgpPayload | EditProfilePayload | FinishRevokingPayload | FinishedWithKeyGenPayload | GeneratePgpPayload | OnClickAvatarPayload | OnClickFollowersPayload | OnClickFollowingPayload | OutputInstructionsActionLinkPayload | RevokeFinishPayload
+ | RevokeFinishErrorPayload | RevokeWaitingPayload | ShowUserProfilePayload | SubmitBTCAddressPayload | SubmitRevokeProofPayload | SubmitUsernamePayload | SubmitZcashAddressPayload | UpdateErrorTextPayload | UpdatePgpInfoPayload
+ | UpdatePgpInfoErrorPayload | UpdatePgpPublicKeyPayload | UpdatePlatformPayload | UpdateProofStatusPayload | UpdateProofTextPayload | UpdateSigIDPayload | UpdateUsernamePayload | WaitingPayload | {type: 'common:resetStore', payload: void}

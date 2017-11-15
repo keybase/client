@@ -25,11 +25,9 @@ export type ChangedFocusPayload = More.ReturnType<typeof createChangedFocus>
 export type LinkPayload = More.ReturnType<typeof createLink>
 export type MobileAppStatePayload = More.ReturnType<typeof createMobileAppState>
 
+// Reducer type
+// Skipped
+
 // All Actions
 // prettier-ignore
-export type Actions =
-  | More.ReturnType<typeof createChangedActive>
-  | More.ReturnType<typeof createChangedFocus>
-  | More.ReturnType<typeof createLink>
-  | More.ReturnType<typeof createMobileAppState>
-  | {type: 'common:resetStore', payload: void}
+export type Actions = ChangedActivePayload | ChangedFocusPayload | LinkPayload | MobileAppStatePayload | {type: 'common:resetStore', payload: void}

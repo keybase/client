@@ -5,8 +5,8 @@
 import * as I from 'immutable'
 import * as RPCTypes from '../constants/types/flow-types'
 import * as More from '../constants/types/more'
-import * as TeamConstants from '../constants/teams'
 import * as Types from '../constants/types/chat'
+import * as TeamConstants from '../constants/teams'
 import * as RPCChatTypes from '../constants/types/flow-types-chat'
 import HiddenString from '../util/hidden-string'
 import {type DeviceType} from '../constants/types/devices'
@@ -271,91 +271,10 @@ export type UpdatedMetadataPayload = More.ReturnType<typeof createUpdatedMetadat
 export type UpdatedNotificationsPayload = More.ReturnType<typeof createUpdatedNotifications>
 export type UploadProgressPayload = More.ReturnType<typeof createUploadProgress>
 
+// Reducer type
+// prettier-ignore
+export type ReducerMap = {|'chat:addPending': (state: Types.State, action: AddPendingPayload) => Types.State, 'chat:appendMessages': (state: Types.State, action: AppendMessagesPayload) => Types.State, 'chat:attachmentLoaded': (state: Types.State, action: AttachmentLoadedPayload) => Types.State, 'chat:attachmentSaveFailed': (state: Types.State, action: AttachmentSaveFailedPayload) => Types.State, 'chat:attachmentSaveStart': (state: Types.State, action: AttachmentSaveStartPayload) => Types.State, 'chat:attachmentSaved': (state: Types.State, action: AttachmentSavedPayload) => Types.State, 'chat:badgeAppForChat': (state: Types.State, action: BadgeAppForChatPayload) => Types.State, 'chat:blockConversation': (state: Types.State, action: BlockConversationPayload) => Types.State, 'chat:clearMessages': (state: Types.State, action: ClearMessagesPayload) => Types.State, 'chat:clearRekey': (state: Types.State, action: ClearRekeyPayload) => Types.State, 'chat:deleteEntity': (state: Types.State, action: DeleteEntityPayload) => Types.State, 'chat:deleteMessage': (state: Types.State, action: DeleteMessagePayload) => Types.State, 'chat:downloadProgress': (state: Types.State, action: DownloadProgressPayload) => Types.State, 'chat:editMessage': (state: Types.State, action: EditMessagePayload) => Types.State, 'chat:exitSearch': (state: Types.State, action: ExitSearchPayload) => Types.State, 'chat:getInboxAndUnbox': (state: Types.State, action: GetInboxAndUnboxPayload) => Types.State, 'chat:inboxStale': (state: Types.State, action: InboxStalePayload) => Types.State, 'chat:inboxStoreLoaded': (state: Types.State, action: InboxStoreLoadedPayload) => Types.State, 'chat:inboxSynced': (state: Types.State, action: InboxSyncedPayload) => Types.State, 'chat:incomingMessage': (state: Types.State, action: IncomingMessagePayload) => Types.State, 'chat:incomingTyping': (state: Types.State, action: IncomingTypingPayload) => Types.State, 'chat:joinConversation': (state: Types.State, action: JoinConversationPayload) => Types.State, 'chat:leaveConversation': (state: Types.State, action: LeaveConversationPayload) => Types.State, 'chat:loadAttachment': (state: Types.State, action: LoadAttachmentPayload) => Types.State, 'chat:loadAttachmentPreview': (state: Types.State, action: LoadAttachmentPreviewPayload) => Types.State, 'chat:loadInbox': (state: Types.State, action: LoadInboxPayload) => Types.State, 'chat:loadMoreMessages': (state: Types.State, action: LoadMoreMessagesPayload) => Types.State, 'chat:loadingMessages': (state: Types.State, action: LoadingMessagesPayload) => Types.State, 'chat:markSeenMessage': (state: Types.State, action: MarkSeenMessagePayload) => Types.State, 'chat:markThreadsStale': (state: Types.State, action: MarkThreadsStalePayload) => Types.State, 'chat:mergeEntity': (state: Types.State, action: MergeEntityPayload) => Types.State, 'chat:muteConversation': (state: Types.State, action: MuteConversationPayload) => Types.State, 'chat:newChat': (state: Types.State, action: NewChatPayload) => Types.State, 'chat:openAttachmentPopup': (state: Types.State, action: OpenAttachmentPopupPayload) => Types.State, 'chat:openConversation': (state: Types.State, action: OpenConversationPayload) => Types.State, 'chat:openFolder': (state: Types.State, action: OpenFolderPayload) => Types.State, 'chat:openTeamConversation': (state: Types.State, action: OpenTeamConversationPayload) => Types.State, 'chat:openTlfInChat': (state: Types.State, action: OpenTlfInChatPayload) => Types.State, 'chat:outboxMessageBecameReal': (state: Types.State, action: OutboxMessageBecameRealPayload) => Types.State, 'chat:pendingToRealConversation': (state: Types.State, action: PendingToRealConversationPayload) => Types.State, 'chat:postMessage': (state: Types.State, action: PostMessagePayload) => Types.State, 'chat:prependMessages': (state: Types.State, action: PrependMessagesPayload) => Types.State, 'chat:removeOutboxMessage': (state: Types.State, action: RemoveOutboxMessagePayload) => Types.State, 'chat:removeTempPendingConversations': (state: Types.State, action: RemoveTempPendingConversationsPayload) => Types.State, 'chat:replaceEntity': (state: Types.State, action: ReplaceEntityPayload) => Types.State, 'chat:retryAttachment': (state: Types.State, action: RetryAttachmentPayload) => Types.State, 'chat:retryMessage': (state: Types.State, action: RetryMessagePayload) => Types.State, 'chat:saveAttachment': (state: Types.State, action: SaveAttachmentPayload) => Types.State, 'chat:saveAttachmentNative': (state: Types.State, action: SaveAttachmentNativePayload) => Types.State, 'chat:selectAttachment': (state: Types.State, action: SelectAttachmentPayload) => Types.State, 'chat:selectConversation': (state: Types.State, action: SelectConversationPayload) => Types.State, 'chat:selectNext': (state: Types.State, action: SelectNextPayload) => Types.State, 'chat:setInboxFilter': (state: Types.State, action: SetInboxFilterPayload) => Types.State, 'chat:setInboxGlobalUntrustedState': (state: Types.State, action: SetInboxGlobalUntrustedStatePayload) => Types.State, 'chat:setLoaded': (state: Types.State, action: SetLoadedPayload) => Types.State, 'chat:setNotifications': (state: Types.State, action: SetNotificationsPayload) => Types.State, 'chat:setPreviousConversation': (state: Types.State, action: SetPreviousConversationPayload) => Types.State, 'chat:setTypers': (state: Types.State, action: SetTypersPayload) => Types.State, 'chat:setupChatHandlers': (state: Types.State, action: SetupChatHandlersPayload) => Types.State, 'chat:shareAttachment': (state: Types.State, action: ShareAttachmentPayload) => Types.State, 'chat:showEditor': (state: Types.State, action: ShowEditorPayload) => Types.State, 'chat:startConversation': (state: Types.State, action: StartConversationPayload) => Types.State, 'chat:subtractEntity': (state: Types.State, action: SubtractEntityPayload) => Types.State, 'chat:threadLoadedOffline': (state: Types.State, action: ThreadLoadedOfflinePayload) => Types.State, 'chat:toggleChannelWideNotifications': (state: Types.State, action: ToggleChannelWideNotificationsPayload) => Types.State, 'chat:unboxConversations': (state: Types.State, action: UnboxConversationsPayload) => Types.State, 'chat:unboxMore': (state: Types.State, action: UnboxMorePayload) => Types.State, 'chat:updateBadging': (state: Types.State, action: UpdateBadgingPayload) => Types.State, 'chat:updateBrokenTracker': (state: Types.State, action: UpdateBrokenTrackerPayload) => Types.State, 'chat:updateFinalizedState': (state: Types.State, action: UpdateFinalizedStatePayload) => Types.State, 'chat:updateInboxComplete': (state: Types.State, action: UpdateInboxCompletePayload) => Types.State, 'chat:updateInboxRekeyOthers': (state: Types.State, action: UpdateInboxRekeyOthersPayload) => Types.State, 'chat:updateInboxRekeySelf': (state: Types.State, action: UpdateInboxRekeySelfPayload) => Types.State, 'chat:updateLatestMessage': (state: Types.State, action: UpdateLatestMessagePayload) => Types.State, 'chat:updateMetadata': (state: Types.State, action: UpdateMetadataPayload) => Types.State, 'chat:updateSnippet': (state: Types.State, action: UpdateSnippetPayload) => Types.State, 'chat:updateSupersededByState': (state: Types.State, action: UpdateSupersededByStatePayload) => Types.State, 'chat:updateSupersedesState': (state: Types.State, action: UpdateSupersedesStatePayload) => Types.State, 'chat:updateTempMessage': (state: Types.State, action: UpdateTempMessagePayload) => Types.State, 'chat:updateThread': (state: Types.State, action: UpdateThreadPayload) => Types.State, 'chat:updateTyping': (state: Types.State, action: UpdateTypingPayload) => Types.State, 'chat:updatedMetadata': (state: Types.State, action: UpdatedMetadataPayload) => Types.State, 'chat:updatedNotifications': (state: Types.State, action: UpdatedNotificationsPayload) => Types.State, 'chat:uploadProgress': (state: Types.State, action: UploadProgressPayload) => Types.State, 'common:resetStore': (state: Types.State, action: {type: 'common:resetStore', payload: void}) => Types.State|}
+
 // All Actions
 // prettier-ignore
-export type Actions =
-  | More.ReturnType<typeof createAddPending>
-  | More.ReturnType<typeof createAppendMessages>
-  | More.ReturnType<typeof createAttachmentLoaded>
-  | More.ReturnType<typeof createAttachmentSaveFailed>
-  | More.ReturnType<typeof createAttachmentSaveStart>
-  | More.ReturnType<typeof createAttachmentSaved>
-  | More.ReturnType<typeof createBadgeAppForChat>
-  | More.ReturnType<typeof createBlockConversation>
-  | More.ReturnType<typeof createClearMessages>
-  | More.ReturnType<typeof createClearRekey>
-  | More.ReturnType<typeof createDeleteEntity>
-  | More.ReturnType<typeof createDeleteMessage>
-  | More.ReturnType<typeof createDownloadProgress>
-  | More.ReturnType<typeof createEditMessage>
-  | More.ReturnType<typeof createExitSearch>
-  | More.ReturnType<typeof createGetInboxAndUnbox>
-  | More.ReturnType<typeof createInboxStale>
-  | More.ReturnType<typeof createInboxStoreLoaded>
-  | More.ReturnType<typeof createInboxSynced>
-  | More.ReturnType<typeof createIncomingMessage>
-  | More.ReturnType<typeof createIncomingTyping>
-  | More.ReturnType<typeof createJoinConversation>
-  | More.ReturnType<typeof createLeaveConversation>
-  | More.ReturnType<typeof createLoadAttachment>
-  | More.ReturnType<typeof createLoadAttachmentPreview>
-  | More.ReturnType<typeof createLoadInbox>
-  | More.ReturnType<typeof createLoadMoreMessages>
-  | More.ReturnType<typeof createLoadingMessages>
-  | More.ReturnType<typeof createMarkSeenMessage>
-  | More.ReturnType<typeof createMarkThreadsStale>
-  | More.ReturnType<typeof createMergeEntity>
-  | More.ReturnType<typeof createMuteConversation>
-  | More.ReturnType<typeof createNewChat>
-  | More.ReturnType<typeof createOpenAttachmentPopup>
-  | More.ReturnType<typeof createOpenConversation>
-  | More.ReturnType<typeof createOpenFolder>
-  | More.ReturnType<typeof createOpenTeamConversation>
-  | More.ReturnType<typeof createOpenTlfInChat>
-  | More.ReturnType<typeof createOutboxMessageBecameReal>
-  | More.ReturnType<typeof createPendingToRealConversation>
-  | More.ReturnType<typeof createPostMessage>
-  | More.ReturnType<typeof createPrependMessages>
-  | More.ReturnType<typeof createRemoveOutboxMessage>
-  | More.ReturnType<typeof createRemoveTempPendingConversations>
-  | More.ReturnType<typeof createReplaceEntity>
-  | More.ReturnType<typeof createRetryAttachment>
-  | More.ReturnType<typeof createRetryMessage>
-  | More.ReturnType<typeof createSaveAttachment>
-  | More.ReturnType<typeof createSaveAttachmentNative>
-  | More.ReturnType<typeof createSelectAttachment>
-  | More.ReturnType<typeof createSelectConversation>
-  | More.ReturnType<typeof createSelectNext>
-  | More.ReturnType<typeof createSetInboxFilter>
-  | More.ReturnType<typeof createSetInboxGlobalUntrustedState>
-  | More.ReturnType<typeof createSetLoaded>
-  | More.ReturnType<typeof createSetNotifications>
-  | More.ReturnType<typeof createSetPreviousConversation>
-  | More.ReturnType<typeof createSetTypers>
-  | More.ReturnType<typeof createSetupChatHandlers>
-  | More.ReturnType<typeof createShareAttachment>
-  | More.ReturnType<typeof createShowEditor>
-  | More.ReturnType<typeof createStartConversation>
-  | More.ReturnType<typeof createSubtractEntity>
-  | More.ReturnType<typeof createThreadLoadedOffline>
-  | More.ReturnType<typeof createToggleChannelWideNotifications>
-  | More.ReturnType<typeof createUnboxConversations>
-  | More.ReturnType<typeof createUnboxMore>
-  | More.ReturnType<typeof createUpdateBadging>
-  | More.ReturnType<typeof createUpdateBrokenTracker>
-  | More.ReturnType<typeof createUpdateFinalizedState>
-  | More.ReturnType<typeof createUpdateInboxComplete>
-  | More.ReturnType<typeof createUpdateInboxRekeyOthers>
-  | More.ReturnType<typeof createUpdateInboxRekeySelf>
-  | More.ReturnType<typeof createUpdateLatestMessage>
-  | More.ReturnType<typeof createUpdateMetadata>
-  | More.ReturnType<typeof createUpdateSnippet>
-  | More.ReturnType<typeof createUpdateSupersededByState>
-  | More.ReturnType<typeof createUpdateSupersedesState>
-  | More.ReturnType<typeof createUpdateTempMessage>
-  | More.ReturnType<typeof createUpdateThread>
-  | More.ReturnType<typeof createUpdateTyping>
-  | More.ReturnType<typeof createUpdatedMetadata>
-  | More.ReturnType<typeof createUpdatedNotifications>
-  | More.ReturnType<typeof createUploadProgress>
-  | {type: 'common:resetStore', payload: void}
+export type Actions = AddPendingPayload | AppendMessagesPayload | AttachmentLoadedPayload | AttachmentSaveFailedPayload | AttachmentSaveStartPayload | AttachmentSavedPayload | BadgeAppForChatPayload | BlockConversationPayload | ClearMessagesPayload | ClearRekeyPayload | DeleteEntityPayload | DeleteMessagePayload | DownloadProgressPayload | EditMessagePayload | ExitSearchPayload | GetInboxAndUnboxPayload | InboxStalePayload | InboxStoreLoadedPayload | InboxSyncedPayload | IncomingMessagePayload | IncomingTypingPayload | JoinConversationPayload | LeaveConversationPayload | LoadAttachmentPayload | LoadAttachmentPreviewPayload | LoadInboxPayload | LoadMoreMessagesPayload | LoadingMessagesPayload | MarkSeenMessagePayload | MarkThreadsStalePayload | MergeEntityPayload | MuteConversationPayload | NewChatPayload | OpenAttachmentPopupPayload | OpenConversationPayload | OpenFolderPayload | OpenTeamConversationPayload | OpenTlfInChatPayload | OutboxMessageBecameRealPayload | PendingToRealConversationPayload | PostMessagePayload | PrependMessagesPayload | RemoveOutboxMessagePayload | RemoveTempPendingConversationsPayload | ReplaceEntityPayload | RetryAttachmentPayload | RetryMessagePayload | SaveAttachmentNativePayload | SaveAttachmentPayload | SelectAttachmentPayload | SelectConversationPayload | SelectNextPayload | SetInboxFilterPayload | SetInboxGlobalUntrustedStatePayload | SetLoadedPayload | SetNotificationsPayload | SetPreviousConversationPayload | SetTypersPayload | SetupChatHandlersPayload | ShareAttachmentPayload | ShowEditorPayload | StartConversationPayload | SubtractEntityPayload | ThreadLoadedOfflinePayload | ToggleChannelWideNotificationsPayload | UnboxConversationsPayload | UnboxMorePayload | UpdateBadgingPayload | UpdateBrokenTrackerPayload | UpdateFinalizedStatePayload | UpdateInboxCompletePayload | UpdateInboxRekeyOthersPayload | UpdateInboxRekeySelfPayload | UpdateLatestMessagePayload | UpdateMetadataPayload | UpdateSnippetPayload | UpdateSupersededByStatePayload | UpdateSupersedesStatePayload | UpdateTempMessagePayload | UpdateThreadPayload | UpdateTypingPayload | UpdatedMetadataPayload | UpdatedNotificationsPayload | UploadProgressPayload | {type: 'common:resetStore', payload: void}

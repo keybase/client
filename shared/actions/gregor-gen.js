@@ -33,13 +33,10 @@ export type PushStatePayload = More.ReturnType<typeof createPushState>
 export type UpdateReachabilityPayload = More.ReturnType<typeof createUpdateReachability>
 export type UpdateSeenMsgsPayload = More.ReturnType<typeof createUpdateSeenMsgs>
 
+// Reducer type
+// prettier-ignore
+export type ReducerMap = {|'common:resetStore': (state: Types.State, action: {type: 'common:resetStore', payload: void}) => Types.State, 'gregor:checkReachability': (state: Types.State, action: CheckReachabilityPayload) => Types.State, 'gregor:injectItem': (state: Types.State, action: InjectItemPayload) => Types.State, 'gregor:pushOOBM': (state: Types.State, action: PushOOBMPayload) => Types.State, 'gregor:pushState': (state: Types.State, action: PushStatePayload) => Types.State, 'gregor:updateReachability': (state: Types.State, action: UpdateReachabilityPayload) => Types.State, 'gregor:updateSeenMsgs': (state: Types.State, action: UpdateSeenMsgsPayload) => Types.State|}
+
 // All Actions
 // prettier-ignore
-export type Actions =
-  | More.ReturnType<typeof createCheckReachability>
-  | More.ReturnType<typeof createInjectItem>
-  | More.ReturnType<typeof createPushOOBM>
-  | More.ReturnType<typeof createPushState>
-  | More.ReturnType<typeof createUpdateReachability>
-  | More.ReturnType<typeof createUpdateSeenMsgs>
-  | {type: 'common:resetStore', payload: void}
+export type Actions = CheckReachabilityPayload | InjectItemPayload | PushOOBMPayload | PushStatePayload | UpdateReachabilityPayload | UpdateSeenMsgsPayload | {type: 'common:resetStore', payload: void}

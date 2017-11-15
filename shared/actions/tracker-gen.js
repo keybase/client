@@ -5,6 +5,7 @@
 import * as I from 'immutable'
 import * as RPCTypes from '../constants/types/flow-types'
 import * as More from '../constants/types/more'
+import * as Types from '../constants/types/tracker'
 import * as FolderConstants from '../constants/folders'
 
 // Constants
@@ -84,6 +85,7 @@ export const createWaiting = (payload: {|+username: string, +waiting: boolean|})
 // Action Payloads
 export type CacheIdentifyPayload = More.ReturnType<typeof createCacheIdentify>
 export type IdentifyFinishedPayload = More.ReturnType<typeof createIdentifyFinished>
+export type IdentifyFinishedErrorPayload = More.ReturnType<typeof createIdentifyFinishedError>
 export type IdentifyStartedPayload = More.ReturnType<typeof createIdentifyStarted>
 export type MarkActiveIdentifyUiPayload = More.ReturnType<typeof createMarkActiveIdentifyUi>
 export type OnErrorPayload = More.ReturnType<typeof createOnError>
@@ -117,42 +119,11 @@ export type UpdateUsernamePayload = More.ReturnType<typeof createUpdateUsername>
 export type UpdateZcashPayload = More.ReturnType<typeof createUpdateZcash>
 export type WaitingPayload = More.ReturnType<typeof createWaiting>
 
+// Reducer type
+// prettier-ignore
+export type ReducerMap = {|'common:resetStore': (state: Types.State, action: {type: 'common:resetStore', payload: void}) => Types.State, 'tracker:cacheIdentify': (state: Types.State, action: CacheIdentifyPayload) => Types.State, 'tracker:identifyFinished': (state: Types.State, action: IdentifyFinishedPayload|IdentifyFinishedErrorPayload) => Types.State, 'tracker:identifyStarted': (state: Types.State, action: IdentifyStartedPayload) => Types.State, 'tracker:markActiveIdentifyUi': (state: Types.State, action: MarkActiveIdentifyUiPayload) => Types.State, 'tracker:onError': (state: Types.State, action: OnErrorPayload) => Types.State, 'tracker:parseFriendship': (state: Types.State, action: ParseFriendshipPayload) => Types.State, 'tracker:pendingIdentify': (state: Types.State, action: PendingIdentifyPayload) => Types.State, 'tracker:remoteDismiss': (state: Types.State, action: RemoteDismissPayload) => Types.State, 'tracker:reportLastTrack': (state: Types.State, action: ReportLastTrackPayload) => Types.State, 'tracker:resetProofs': (state: Types.State, action: ResetProofsPayload) => Types.State, 'tracker:setNeedTrackTokenDismiss': (state: Types.State, action: SetNeedTrackTokenDismissPayload) => Types.State, 'tracker:setOnClose': (state: Types.State, action: SetOnClosePayload) => Types.State, 'tracker:setOnFollow': (state: Types.State, action: SetOnFollowPayload) => Types.State, 'tracker:setOnRefollow': (state: Types.State, action: SetOnRefollowPayload) => Types.State, 'tracker:setOnUnfollow': (state: Types.State, action: SetOnUnfollowPayload) => Types.State, 'tracker:setProofs': (state: Types.State, action: SetProofsPayload) => Types.State, 'tracker:setRegisterIdentifyUi': (state: Types.State, action: SetRegisterIdentifyUiPayload) => Types.State, 'tracker:setStartTimer': (state: Types.State, action: SetStartTimerPayload) => Types.State, 'tracker:setUpdateTrackers': (state: Types.State, action: SetUpdateTrackersPayload) => Types.State, 'tracker:showNonUser': (state: Types.State, action: ShowNonUserPayload) => Types.State, 'tracker:showTracker': (state: Types.State, action: ShowTrackerPayload) => Types.State, 'tracker:stopTimer': (state: Types.State, action: StopTimerPayload) => Types.State, 'tracker:updateBTC': (state: Types.State, action: UpdateBTCPayload) => Types.State, 'tracker:updateEldestKidChanged': (state: Types.State, action: UpdateEldestKidChangedPayload) => Types.State, 'tracker:updateFolders': (state: Types.State, action: UpdateFoldersPayload) => Types.State, 'tracker:updatePGPKey': (state: Types.State, action: UpdatePGPKeyPayload) => Types.State, 'tracker:updateProof': (state: Types.State, action: UpdateProofPayload) => Types.State, 'tracker:updateProofState': (state: Types.State, action: UpdateProofStatePayload) => Types.State, 'tracker:updateReason': (state: Types.State, action: UpdateReasonPayload) => Types.State, 'tracker:updateTrackToken': (state: Types.State, action: UpdateTrackTokenPayload) => Types.State, 'tracker:updateUserInfo': (state: Types.State, action: UpdateUserInfoPayload) => Types.State, 'tracker:updateUsername': (state: Types.State, action: UpdateUsernamePayload) => Types.State, 'tracker:updateZcash': (state: Types.State, action: UpdateZcashPayload) => Types.State, 'tracker:waiting': (state: Types.State, action: WaitingPayload) => Types.State|}
+
 // All Actions
 // prettier-ignore
-export type Actions =
-  | More.ReturnType<typeof createCacheIdentify>
-  | More.ReturnType<typeof createIdentifyFinished>
-  | More.ReturnType<typeof createIdentifyFinishedError>
-  | More.ReturnType<typeof createIdentifyStarted>
-  | More.ReturnType<typeof createMarkActiveIdentifyUi>
-  | More.ReturnType<typeof createOnError>
-  | More.ReturnType<typeof createParseFriendship>
-  | More.ReturnType<typeof createPendingIdentify>
-  | More.ReturnType<typeof createRemoteDismiss>
-  | More.ReturnType<typeof createReportLastTrack>
-  | More.ReturnType<typeof createResetProofs>
-  | More.ReturnType<typeof createSetNeedTrackTokenDismiss>
-  | More.ReturnType<typeof createSetOnClose>
-  | More.ReturnType<typeof createSetOnFollow>
-  | More.ReturnType<typeof createSetOnRefollow>
-  | More.ReturnType<typeof createSetOnUnfollow>
-  | More.ReturnType<typeof createSetProofs>
-  | More.ReturnType<typeof createSetRegisterIdentifyUi>
-  | More.ReturnType<typeof createSetStartTimer>
-  | More.ReturnType<typeof createSetUpdateTrackers>
-  | More.ReturnType<typeof createShowNonUser>
-  | More.ReturnType<typeof createShowTracker>
-  | More.ReturnType<typeof createStopTimer>
-  | More.ReturnType<typeof createUpdateBTC>
-  | More.ReturnType<typeof createUpdateEldestKidChanged>
-  | More.ReturnType<typeof createUpdateFolders>
-  | More.ReturnType<typeof createUpdatePGPKey>
-  | More.ReturnType<typeof createUpdateProof>
-  | More.ReturnType<typeof createUpdateProofState>
-  | More.ReturnType<typeof createUpdateReason>
-  | More.ReturnType<typeof createUpdateTrackToken>
-  | More.ReturnType<typeof createUpdateUserInfo>
-  | More.ReturnType<typeof createUpdateUsername>
-  | More.ReturnType<typeof createUpdateZcash>
-  | More.ReturnType<typeof createWaiting>
-  | {type: 'common:resetStore', payload: void}
+export type Actions = CacheIdentifyPayload | IdentifyFinishedPayload
+ | IdentifyFinishedErrorPayload | IdentifyStartedPayload | MarkActiveIdentifyUiPayload | OnErrorPayload | ParseFriendshipPayload | PendingIdentifyPayload | RemoteDismissPayload | ReportLastTrackPayload | ResetProofsPayload | SetNeedTrackTokenDismissPayload | SetOnClosePayload | SetOnFollowPayload | SetOnRefollowPayload | SetOnUnfollowPayload | SetProofsPayload | SetRegisterIdentifyUiPayload | SetStartTimerPayload | SetUpdateTrackersPayload | ShowNonUserPayload | ShowTrackerPayload | StopTimerPayload | UpdateBTCPayload | UpdateEldestKidChangedPayload | UpdateFoldersPayload | UpdatePGPKeyPayload | UpdateProofPayload | UpdateProofStatePayload | UpdateReasonPayload | UpdateTrackTokenPayload | UpdateUserInfoPayload | UpdateUsernamePayload | UpdateZcashPayload | WaitingPayload | {type: 'common:resetStore', payload: void}

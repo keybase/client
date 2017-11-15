@@ -5,7 +5,7 @@
 import * as I from 'immutable'
 import * as RPCTypes from '../constants/types/flow-types'
 import * as More from '../constants/types/more'
-import * as Constants from '../constants/unlock-folders'
+import * as Types from '../constants/types/unlock-folders'
 
 // Constants
 export const resetStore = 'common:resetStore' // not a part of unlock-folders but is handled by every reducer
@@ -31,6 +31,7 @@ export const createWaiting = (payload: {|+waiting: boolean|}) => ({error: false,
 
 // Action Payloads
 export type CheckPaperKeyDonePayload = More.ReturnType<typeof createCheckPaperKeyDone>
+export type CheckPaperKeyDoneErrorPayload = More.ReturnType<typeof createCheckPaperKeyDoneError>
 export type CloseDonePayload = More.ReturnType<typeof createCloseDone>
 export type FinishPayload = More.ReturnType<typeof createFinish>
 export type NewRekeyPopupPayload = More.ReturnType<typeof createNewRekeyPopup>
@@ -39,16 +40,11 @@ export type RegisterRekeyListenerPayload = More.ReturnType<typeof createRegister
 export type ToPaperKeyInputPayload = More.ReturnType<typeof createToPaperKeyInput>
 export type WaitingPayload = More.ReturnType<typeof createWaiting>
 
+// Reducer type
+// prettier-ignore
+export type ReducerMap = {|'common:resetStore': (state: Types.State, action: {type: 'common:resetStore', payload: void}) => Types.State, 'unlock-folders:checkPaperKeyDone': (state: Types.State, action: CheckPaperKeyDonePayload|CheckPaperKeyDoneErrorPayload) => Types.State, 'unlock-folders:closeDone': (state: Types.State, action: CloseDonePayload) => Types.State, 'unlock-folders:finish': (state: Types.State, action: FinishPayload) => Types.State, 'unlock-folders:newRekeyPopup': (state: Types.State, action: NewRekeyPopupPayload) => Types.State, 'unlock-folders:onBackFromPaperKey': (state: Types.State, action: OnBackFromPaperKeyPayload) => Types.State, 'unlock-folders:registerRekeyListener': (state: Types.State, action: RegisterRekeyListenerPayload) => Types.State, 'unlock-folders:toPaperKeyInput': (state: Types.State, action: ToPaperKeyInputPayload) => Types.State, 'unlock-folders:waiting': (state: Types.State, action: WaitingPayload) => Types.State|}
+
 // All Actions
 // prettier-ignore
-export type Actions =
-  | More.ReturnType<typeof createCheckPaperKeyDone>
-  | More.ReturnType<typeof createCheckPaperKeyDoneError>
-  | More.ReturnType<typeof createCloseDone>
-  | More.ReturnType<typeof createFinish>
-  | More.ReturnType<typeof createNewRekeyPopup>
-  | More.ReturnType<typeof createOnBackFromPaperKey>
-  | More.ReturnType<typeof createRegisterRekeyListener>
-  | More.ReturnType<typeof createToPaperKeyInput>
-  | More.ReturnType<typeof createWaiting>
-  | {type: 'common:resetStore', payload: void}
+export type Actions = CheckPaperKeyDonePayload
+ | CheckPaperKeyDoneErrorPayload | CloseDonePayload | FinishPayload | NewRekeyPopupPayload | OnBackFromPaperKeyPayload | RegisterRekeyListenerPayload | ToPaperKeyInputPayload | WaitingPayload | {type: 'common:resetStore', payload: void}

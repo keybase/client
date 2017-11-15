@@ -5,6 +5,7 @@
 import * as I from 'immutable'
 import * as RPCTypes from '../constants/types/flow-types'
 import * as More from '../constants/types/more'
+import * as Types from '../constants/types/engine'
 
 // Constants
 export const resetStore = 'common:resetStore' // not a part of engine but is handled by every reducer
@@ -19,9 +20,10 @@ export const createWaitingForRpc = (payload: {|+waiting: boolean, +name: string|
 export type ErrorInRpcPayload = More.ReturnType<typeof createErrorInRpc>
 export type WaitingForRpcPayload = More.ReturnType<typeof createWaitingForRpc>
 
+// Reducer type
+// prettier-ignore
+export type ReducerMap = {|'common:resetStore': (state: Types.State, action: {type: 'common:resetStore', payload: void}) => Types.State, 'engine:errorInRpc': (state: Types.State, action: ErrorInRpcPayload) => Types.State, 'engine:waitingForRpc': (state: Types.State, action: WaitingForRpcPayload) => Types.State|}
+
 // All Actions
 // prettier-ignore
-export type Actions =
-  | More.ReturnType<typeof createErrorInRpc>
-  | More.ReturnType<typeof createWaitingForRpc>
-  | {type: 'common:resetStore', payload: void}
+export type Actions = ErrorInRpcPayload | WaitingForRpcPayload | {type: 'common:resetStore', payload: void}

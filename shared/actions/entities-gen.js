@@ -5,7 +5,7 @@
 import * as I from 'immutable'
 import * as RPCTypes from '../constants/types/flow-types'
 import * as More from '../constants/types/more'
-import * as Constants from '../constants/entities'
+import * as Types from '../constants/types/entities'
 
 // Constants
 export const resetStore = 'common:resetStore' // not a part of entities but is handled by every reducer
@@ -26,11 +26,10 @@ export type MergeEntityPayload = More.ReturnType<typeof createMergeEntity>
 export type ReplaceEntityPayload = More.ReturnType<typeof createReplaceEntity>
 export type SubtractEntityPayload = More.ReturnType<typeof createSubtractEntity>
 
+// Reducer type
+// prettier-ignore
+export type ReducerMap = {|'common:resetStore': (state: Types.State, action: {type: 'common:resetStore', payload: void}) => Types.State, 'entities:deleteEntity': (state: Types.State, action: DeleteEntityPayload) => Types.State, 'entities:mergeEntity': (state: Types.State, action: MergeEntityPayload) => Types.State, 'entities:replaceEntity': (state: Types.State, action: ReplaceEntityPayload) => Types.State, 'entities:subtractEntity': (state: Types.State, action: SubtractEntityPayload) => Types.State|}
+
 // All Actions
 // prettier-ignore
-export type Actions =
-  | More.ReturnType<typeof createDeleteEntity>
-  | More.ReturnType<typeof createMergeEntity>
-  | More.ReturnType<typeof createReplaceEntity>
-  | More.ReturnType<typeof createSubtractEntity>
-  | {type: 'common:resetStore', payload: void}
+export type Actions = DeleteEntityPayload | MergeEntityPayload | ReplaceEntityPayload | SubtractEntityPayload | {type: 'common:resetStore', payload: void}

@@ -1,7 +1,5 @@
 {
-  "prelude": [
-    "import * as Constants from '../constants/unlock-folders'"
-  ],
+  "prelude": [],
   "actions": {
     "checkPaperKeyDone": {
       "canError": {

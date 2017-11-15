@@ -5,6 +5,7 @@
 import * as I from 'immutable'
 import * as RPCTypes from '../constants/types/flow-types'
 import * as More from '../constants/types/more'
+import * as Types from '../constants/types/signup'
 import HiddenString from '../util/hidden-string'
 
 // Constants
@@ -48,41 +49,36 @@ export const createWaiting = (payload: {|+waiting: boolean|}) => ({error: false,
 
 // Action Payloads
 export type CheckInviteCodePayload = More.ReturnType<typeof createCheckInviteCode>
+export type CheckInviteCodeErrorPayload = More.ReturnType<typeof createCheckInviteCodeError>
 export type CheckPassphrasePayload = More.ReturnType<typeof createCheckPassphrase>
+export type CheckPassphraseErrorPayload = More.ReturnType<typeof createCheckPassphraseError>
 export type CheckUsernameEmailPayload = More.ReturnType<typeof createCheckUsernameEmail>
+export type CheckUsernameEmailErrorPayload = More.ReturnType<typeof createCheckUsernameEmailError>
 export type ClearDeviceNameErrorPayload = More.ReturnType<typeof createClearDeviceNameError>
 export type RequestInvitePayload = More.ReturnType<typeof createRequestInvite>
+export type RequestInviteErrorPayload = More.ReturnType<typeof createRequestInviteError>
 export type ResetSignupPayload = More.ReturnType<typeof createResetSignup>
 export type RestartSignupPayload = More.ReturnType<typeof createRestartSignup>
 export type SetDeviceNameErrorPayload = More.ReturnType<typeof createSetDeviceNameError>
 export type ShowPaperKeyPayload = More.ReturnType<typeof createShowPaperKey>
 export type ShowSuccessPayload = More.ReturnType<typeof createShowSuccess>
 export type SignupPayload = More.ReturnType<typeof createSignup>
+export type SignupErrorPayload = More.ReturnType<typeof createSignupError>
 export type StartRequestInvitePayload = More.ReturnType<typeof createStartRequestInvite>
 export type SubmitDeviceNamePayload = More.ReturnType<typeof createSubmitDeviceName>
+export type SubmitDeviceNameErrorPayload = More.ReturnType<typeof createSubmitDeviceNameError>
 export type WaitingPayload = More.ReturnType<typeof createWaiting>
+
+// Reducer type
+// prettier-ignore
+export type ReducerMap = {|'common:resetStore': (state: Types.State, action: {type: 'common:resetStore', payload: void}) => Types.State, 'signup:checkInviteCode': (state: Types.State, action: CheckInviteCodePayload|CheckInviteCodeErrorPayload) => Types.State, 'signup:checkPassphrase': (state: Types.State, action: CheckPassphrasePayload|CheckPassphraseErrorPayload) => Types.State, 'signup:checkUsernameEmail': (state: Types.State, action: CheckUsernameEmailPayload|CheckUsernameEmailErrorPayload) => Types.State, 'signup:clearDeviceNameError': (state: Types.State, action: ClearDeviceNameErrorPayload) => Types.State, 'signup:requestInvite': (state: Types.State, action: RequestInvitePayload|RequestInviteErrorPayload) => Types.State, 'signup:resetSignup': (state: Types.State, action: ResetSignupPayload) => Types.State, 'signup:restartSignup': (state: Types.State, action: RestartSignupPayload) => Types.State, 'signup:setDeviceNameError': (state: Types.State, action: SetDeviceNameErrorPayload) => Types.State, 'signup:showPaperKey': (state: Types.State, action: ShowPaperKeyPayload) => Types.State, 'signup:showSuccess': (state: Types.State, action: ShowSuccessPayload) => Types.State, 'signup:signup': (state: Types.State, action: SignupPayload|SignupErrorPayload) => Types.State, 'signup:startRequestInvite': (state: Types.State, action: StartRequestInvitePayload) => Types.State, 'signup:submitDeviceName': (state: Types.State, action: SubmitDeviceNamePayload|SubmitDeviceNameErrorPayload) => Types.State, 'signup:waiting': (state: Types.State, action: WaitingPayload) => Types.State|}
 
 // All Actions
 // prettier-ignore
-export type Actions =
-  | More.ReturnType<typeof createCheckInviteCode>
-  | More.ReturnType<typeof createCheckInviteCodeError>
-  | More.ReturnType<typeof createCheckPassphrase>
-  | More.ReturnType<typeof createCheckPassphraseError>
-  | More.ReturnType<typeof createCheckUsernameEmail>
-  | More.ReturnType<typeof createCheckUsernameEmailError>
-  | More.ReturnType<typeof createClearDeviceNameError>
-  | More.ReturnType<typeof createRequestInvite>
-  | More.ReturnType<typeof createRequestInviteError>
-  | More.ReturnType<typeof createResetSignup>
-  | More.ReturnType<typeof createRestartSignup>
-  | More.ReturnType<typeof createSetDeviceNameError>
-  | More.ReturnType<typeof createShowPaperKey>
-  | More.ReturnType<typeof createShowSuccess>
-  | More.ReturnType<typeof createSignup>
-  | More.ReturnType<typeof createSignupError>
-  | More.ReturnType<typeof createStartRequestInvite>
-  | More.ReturnType<typeof createSubmitDeviceName>
-  | More.ReturnType<typeof createSubmitDeviceNameError>
-  | More.ReturnType<typeof createWaiting>
-  | {type: 'common:resetStore', payload: void}
+export type Actions = CheckInviteCodePayload
+ | CheckInviteCodeErrorPayload | CheckPassphrasePayload
+ | CheckPassphraseErrorPayload | CheckUsernameEmailPayload
+ | CheckUsernameEmailErrorPayload | ClearDeviceNameErrorPayload | RequestInvitePayload
+ | RequestInviteErrorPayload | ResetSignupPayload | RestartSignupPayload | SetDeviceNameErrorPayload | ShowPaperKeyPayload | ShowSuccessPayload | SignupPayload
+ | SignupErrorPayload | StartRequestInvitePayload | SubmitDeviceNamePayload
+ | SubmitDeviceNameErrorPayload | WaitingPayload | {type: 'common:resetStore', payload: void}

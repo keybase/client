@@ -40,8 +40,10 @@ export const createSetupKBFSChangedHandler = () => ({error: false, payload: unde
 // Action Payloads
 export type FavoriteAddPayload = More.ReturnType<typeof createFavoriteAdd>
 export type FavoriteAddedPayload = More.ReturnType<typeof createFavoriteAdded>
+export type FavoriteAddedErrorPayload = More.ReturnType<typeof createFavoriteAddedError>
 export type FavoriteIgnorePayload = More.ReturnType<typeof createFavoriteIgnore>
 export type FavoriteIgnoredPayload = More.ReturnType<typeof createFavoriteIgnored>
+export type FavoriteIgnoredErrorPayload = More.ReturnType<typeof createFavoriteIgnoredError>
 export type FavoriteListPayload = More.ReturnType<typeof createFavoriteList>
 export type FavoriteListedPayload = More.ReturnType<typeof createFavoriteListed>
 export type FavoriteSwitchTabPayload = More.ReturnType<typeof createFavoriteSwitchTab>
@@ -50,20 +52,12 @@ export type KbfsStatusUpdatedPayload = More.ReturnType<typeof createKbfsStatusUp
 export type MarkTLFCreatedPayload = More.ReturnType<typeof createMarkTLFCreated>
 export type SetupKBFSChangedHandlerPayload = More.ReturnType<typeof createSetupKBFSChangedHandler>
 
+// Reducer type
+// prettier-ignore
+export type ReducerMap = {|'common:resetStore': (state: Types.State, action: {type: 'common:resetStore', payload: void}) => Types.State, 'favorite:favoriteAdd': (state: Types.State, action: FavoriteAddPayload) => Types.State, 'favorite:favoriteAdded': (state: Types.State, action: FavoriteAddedPayload|FavoriteAddedErrorPayload) => Types.State, 'favorite:favoriteIgnore': (state: Types.State, action: FavoriteIgnorePayload) => Types.State, 'favorite:favoriteIgnored': (state: Types.State, action: FavoriteIgnoredPayload|FavoriteIgnoredErrorPayload) => Types.State, 'favorite:favoriteList': (state: Types.State, action: FavoriteListPayload) => Types.State, 'favorite:favoriteListed': (state: Types.State, action: FavoriteListedPayload) => Types.State, 'favorite:favoriteSwitchTab': (state: Types.State, action: FavoriteSwitchTabPayload) => Types.State, 'favorite:favoriteToggleIgnored': (state: Types.State, action: FavoriteToggleIgnoredPayload) => Types.State, 'favorite:kbfsStatusUpdated': (state: Types.State, action: KbfsStatusUpdatedPayload) => Types.State, 'favorite:markTLFCreated': (state: Types.State, action: MarkTLFCreatedPayload) => Types.State, 'favorite:setupKBFSChangedHandler': (state: Types.State, action: SetupKBFSChangedHandlerPayload) => Types.State|}
+
 // All Actions
 // prettier-ignore
-export type Actions =
-  | More.ReturnType<typeof createFavoriteAdd>
-  | More.ReturnType<typeof createFavoriteAdded>
-  | More.ReturnType<typeof createFavoriteAddedError>
-  | More.ReturnType<typeof createFavoriteIgnore>
-  | More.ReturnType<typeof createFavoriteIgnored>
-  | More.ReturnType<typeof createFavoriteIgnoredError>
-  | More.ReturnType<typeof createFavoriteList>
-  | More.ReturnType<typeof createFavoriteListed>
-  | More.ReturnType<typeof createFavoriteSwitchTab>
-  | More.ReturnType<typeof createFavoriteToggleIgnored>
-  | More.ReturnType<typeof createKbfsStatusUpdated>
-  | More.ReturnType<typeof createMarkTLFCreated>
-  | More.ReturnType<typeof createSetupKBFSChangedHandler>
-  | {type: 'common:resetStore', payload: void}
+export type Actions = FavoriteAddPayload | FavoriteAddedPayload
+ | FavoriteAddedErrorPayload | FavoriteIgnorePayload | FavoriteIgnoredPayload
+ | FavoriteIgnoredErrorPayload | FavoriteListPayload | FavoriteListedPayload | FavoriteSwitchTabPayload | FavoriteToggleIgnoredPayload | KbfsStatusUpdatedPayload | MarkTLFCreatedPayload | SetupKBFSChangedHandlerPayload | {type: 'common:resetStore', payload: void}
