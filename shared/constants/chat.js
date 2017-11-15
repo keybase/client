@@ -400,6 +400,7 @@ export type UnreadCounts = {
 
 type _State = {
   alwaysShow: I.Set<ConversationIDKey>,
+  channelCreationError: string,
   conversationStates: I.Map<ConversationIDKey, ConversationState>,
   conversationUnreadCounts: I.Map<ConversationIDKey, UnreadCounts>,
   editingMessage: ?Message,
@@ -445,6 +446,7 @@ type _State = {
 export type State = I.RecordOf<_State>
 export const makeState: I.RecordFactory<_State> = I.Record({
   alwaysShow: I.Set(),
+  channelCreationError: '',
   conversationStates: I.Map(),
   conversationUnreadCounts: I.Map(),
   editingMessage: null,
@@ -610,6 +612,8 @@ function participantFilter(participants: I.List<string>, you: string): I.List<st
 function serverMessageToMessageText(message: ServerMessage): ?string {
   switch (message.type) {
     case 'Text':
+      return message.message.stringValue()
+    case 'System':
       return message.message.stringValue()
     default:
       return null

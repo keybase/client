@@ -252,7 +252,7 @@ func HandleOpenTeamAccessRequest(ctx context.Context, g *libkb.GlobalContext, ms
 		}
 
 		if !team.IsOpen() {
-			g.Log.CDebugf(ctx, "team %q is not an open team", team.Name)
+			g.Log.CDebugf(ctx, "team %q is not an open team", team.Name())
 			return nil // Not an error - let the handler dismiss the message.
 		}
 
@@ -284,9 +284,19 @@ func HandleOpenTeamAccessRequest(ctx context.Context, g *libkb.GlobalContext, ms
 			default:
 				return fmt.Errorf("Unexpected role to add to open team: %v", joinAsRole)
 			}
+
+			existingUV, err := team.UserVersionByUID(ctx, uv.Uid)
+			if err == nil {
+				if existingUV.EldestSeqno > uv.EldestSeqno {
+					return fmt.Errorf("newer version of user %v already exists in team %q (%v > %v)", tar, team.Name(), existingUV.EldestSeqno, uv.EldestSeqno)
+				}
+				g.Log.CDebugf(ctx, "Will remove old version of user (%s) from team", existingUV)
+				req.None = append(req.None, existingUV)
+			}
 		}
 
 		if !needPost {
+			g.Log.CDebugf(ctx, "no post needed, not doing change membership for %+v", msg)
 			return nil
 		}
 		return team.ChangeMembership(ctx, req)

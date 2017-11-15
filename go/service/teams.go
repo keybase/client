@@ -195,7 +195,7 @@ func (h *TeamsHandler) TeamRemoveMember(ctx context.Context, arg keybase1.TeamRe
 }
 
 func (h *TeamsHandler) TeamEditMember(ctx context.Context, arg keybase1.TeamEditMemberArg) (err error) {
-	defer h.G().CTraceTimed(ctx, fmt.Sprintf("TeamEditMember(%s,%s)", arg.Name, arg.Username),
+	defer h.G().CTraceTimed(ctx, fmt.Sprintf("TeamEditMember(%s,%s,%s)", arg.Name, arg.Username, arg.Role),
 		func() error { return err })()
 	if err := h.assertLoggedIn(ctx); err != nil {
 		return err
