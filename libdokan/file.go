@@ -138,7 +138,7 @@ func (f *File) SetAllocationSize(ctx context.Context, fi *dokan.FileInfo, newSiz
 
 // SetFileAttributes for Dokan.
 func (f *File) SetFileAttributes(ctx context.Context, fi *dokan.FileInfo, fileAttributes dokan.FileAttribute) error {
-	f.folder.fs.logEnter(ctx, "File SetFileAttributes")
+	f.folder.fs.logEnterf(ctx, "File SetFileAttributes %X", fileAttributes)
 	// TODO handle attributes for real.
 	return nil
 }

@@ -587,10 +587,17 @@ func makeFI(fname C.LPCWSTR, pfi C.PDOKAN_FILE_INFO) *FileInfo {
 }
 
 func packTime(t time.Time) C.FILETIME {
+	if t.IsZero() {
+		return C.FILETIME{}
+	}
 	ft := syscall.NsecToFiletime(t.UnixNano())
 	return C.FILETIME{dwLowDateTime: C.DWORD(ft.LowDateTime), dwHighDateTime: C.DWORD(ft.HighDateTime)}
 }
 func unpackTime(c C.FILETIME) time.Time {
+	// Zero means ignore. Sometimes -1 is passed for ignore too.
+	if c == (C.FILETIME{}) || c == (C.FILETIME{0xFFFFffff, 0xFFFFffff}) {
+		return time.Time{}
+	}
 	ft := syscall.Filetime{LowDateTime: uint32(c.dwLowDateTime), HighDateTime: uint32(c.dwHighDateTime)}
 	// This is valid, see docs and code for package time.
 	return time.Unix(0, ft.Nanoseconds())

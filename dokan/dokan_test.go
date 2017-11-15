@@ -11,11 +11,17 @@ import (
 	"time"
 )
 
-func TestTimePacking(t *testing.T) {
-	t0 := time.Now()
-	if !t0.Equal(unpackTime(packTime(t0))) {
-		t.Fatal("Time unpack+pack not equal with original!")
+func testTimePacking(t *testing.T, t0 time.Time) {
+	t1 := unpackTime(packTime(t0))
+	if !t0.Equal(t1) {
+		t.Fatal("Time pack+unpack not equal with original: %v => %v", t0, t1)
 	}
+}
+
+func TestTimePacking(t *testing.T) {
+	testTimePacking(t, time.Time{})
+	testTimePacking(t, time.Now())
+	testTimePacking(t, time.Unix(0, 0))
 }
 
 func TestCtxAlloc(t *testing.T) {

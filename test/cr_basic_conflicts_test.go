@@ -235,6 +235,7 @@ func TestCrConflictCreateFile(t *testing.T) {
 // a file of the same name. Regression test for KBFS-668.
 func TestCrConflictSetattrVsRecreatedFileInRoot(t *testing.T) {
 	test(t,
+		skip("dokan", "SetEx is a no-op on Dokan, thus no conflict"),
 		users("alice", "bob"),
 		as(alice,
 			mkfile("a", "hello"),
