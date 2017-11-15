@@ -109,7 +109,7 @@
       "filter": "string"
     },
     "setInboxSyncingState": {
-      "inboxSyncingState": "Constants.InboxSyncingState"
+      "inboxSyncingState": "Constants.SyncingState"
     },
     "setInboxGlobalUntrustedState": {
       "inboxGlobalUntrustedState": "Constants.UntrustedState"
