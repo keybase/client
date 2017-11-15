@@ -33,7 +33,7 @@ func (f *FSO) SetFileTime(ctx context.Context, fi *dokan.FileInfo, creation time
 		return f.folder.fs.config.KBFSOps().SetMtime(ctx, f.node, &lastWrite)
 	}
 
-	return dokan.ErrNotSupported
+	return nil
 }
 
 type refcount struct {
