@@ -245,129 +245,18 @@ func HandleOpenTeamAccessRequest(ctx context.Context, g *libkb.GlobalContext, ms
 			return nil // Not an error - let the handler dismiss the message.
 		}
 
-		var req keybase1.TeamChangeReq
 		joinAsRole := team.chain().inner.OpenTeamJoinAs
 		if joinAsRole != keybase1.TeamRole_READER && joinAsRole != keybase1.TeamRole_WRITER {
 			return fmt.Errorf("unexpected role to add to open team: %v", joinAsRole)
 		}
 
-		var errors []error
-		var keybaseInvites []keybase1.UserVersion
-		var needPostMembership bool
-
+		var uvs []keybase1.UserVersion
 		for _, tar := range msg.Tars {
-			uv, err := loadUserVersionByUID(ctx, g, tar.Uid)
-			if err != nil {
-				if err == errInviteRequired {
-					keybaseInvites = append(keybaseInvites, uv)
-					g.Log.CDebugf(ctx, "Invite required for %+v", uv)
-				}
-
-				continue
-			}
-
-			//uv := NewUserVersion(tar.Uid, tar.EldestSeqno)
-			currentRole, err := team.MemberRole(ctx, uv)
-			if err != nil {
-				g.Log.CWarningf(ctx, "error processing open team access request for %+v: %s", tar, err)
-				errors = append(errors, err)
-				continue
-			}
-
-			if currentRole.IsOrAbove(joinAsRole) {
-				g.Log.CDebugf(ctx, "user already has same or higher role, ignoring open request.")
-				// Invitee is already in the team.
-				continue
-			}
-
-			needPostMembership = true
-
-			switch joinAsRole {
-			case keybase1.TeamRole_READER:
-				req.Readers = append(req.Readers, uv)
-			case keybase1.TeamRole_WRITER:
-				req.Writers = append(req.Writers, uv)
-			}
-
-			existingUV, err := team.UserVersionByUID(ctx, uv.Uid)
-			if err == nil {
-				if existingUV.EldestSeqno > uv.EldestSeqno {
-					g.Log.CWarningf(ctx, "newer version of user %v already exists in team %q (%v > %v)", tar, team.Name(), existingUV.EldestSeqno, uv.EldestSeqno)
-					errors = append(errors, err)
-					continue
-				}
-				g.Log.CDebugf(ctx, "will remove old version of user (%s) from team", existingUV)
-				req.None = append(req.None, existingUV)
-			}
-
+			uvs = append(uvs, NewUserVersion(tar.Uid, tar.EldestSeqno))
 		}
 
-		numToAdd := len(req.Readers) + len(req.Writers)
-		if numToAdd == 0 {
-			g.Log.CDebugf(ctx, "no post needed, not doing change membership for %+v", msg)
-			if len(errors) > 0 {
-				g.Log.CDebugf(ctx, "errors found: %d, returning the first one", len(errors))
-				return errors[0]
-			}
-			return nil
-		}
-
-		if len(errors) > 0 {
-			g.Log.CDebugf(ctx, "%d errors found preparing open team change membership request, but adding %d users without errors to team", len(errors), numToAdd)
-		}
-
-		if needPostMembership {
-			err = team.ChangeMembership(ctx, req)
-			if err != nil {
-				return err
-			}
-		}
-
-		if len(keybaseInvites) > 0 {
-			if needPostMembership {
-				// Reload team after posting previous link.
-				team, err = Load(ctx, g, keybase1.LoadTeamArg{
-					ID:          msg.TeamID,
-					Public:      msg.TeamID.IsPublic(),
-					ForceRepoll: true,
-				})
-				if err != nil {
-					return err
-				}
-			}
-
-			var invList []SCTeamInvite
-			var inviteSection SCTeamInvites
-			for _, uv := range keybaseInvites {
-				invite := SCTeamInvite{
-					Type: "keybase",
-					Name: uv.TeamInviteName(),
-					ID:   NewInviteID(),
-				}
-				
-				existing, err := team.HasActiveInvite(invite.Name, invite.Type)
-				if err != nil || existing {
-					// Either we are doing something wrong or the user was
-					// already invited - move on.
-					continue
-				}
-
-				invList = append(invList, invite)
-			}
-
-			switch joinAsRole {
-			case keybase1.TeamRole_READER:
-				inviteSection.Readers = &invList
-			case keybase1.TeamRole_WRITER:
-				inviteSection.Writers = &invList
-			default:
-				return fmt.Errorf("Unexpected role to add to open team: %v", joinAsRole)
-			}
-
-			return team.postTeamInvites(ctx, inviteSection)
-		}
-
-		return nil
+		// No need to forceRepoll here because we just loaded the team few lines above.
+		return AddMembersBestEffort(ctx, g, msg.TeamID, joinAsRole, uvs, false /* forceRepoll */)
 	})
 }
 
