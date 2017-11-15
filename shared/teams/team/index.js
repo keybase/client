@@ -229,7 +229,12 @@ class Team extends React.PureComponent<Props> {
 
     // massage data for rowrenderers
     const memberProps = members.map(member => ({username: member.username, teamname: name}))
-    const requestProps = requests.map(req => ({key: req.username, teamname: name, type: 'request', username: req.username}))
+    const requestProps = requests.map(req => ({
+      key: req.username,
+      teamname: name,
+      type: 'request',
+      username: req.username,
+    }))
     const inviteProps = invites.map(invite => {
       let inviteInfo
       if (invite.name) {
