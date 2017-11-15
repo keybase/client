@@ -983,7 +983,7 @@ func TestMemberAddRace(t *testing.T) {
 	mod := func(userIndexOperator, userIndexTarget int, add bool) <-chan error {
 		errCh := make(chan error)
 		go func() {
-			ctx := context.TODO()
+			ctx := context.Background()
 			ctx = libkb.WithLogTag(ctx, "TEST")
 			var err error
 			desc := "removes"
@@ -992,10 +992,10 @@ func TestMemberAddRace(t *testing.T) {
 			}
 			t.Logf("U%v %v U%v", userIndexOperator, desc, userIndexTarget)
 			if add {
-				_, err = AddMember(context.TODO(),
+				_, err = AddMember(ctx,
 					tcs[userIndexOperator].G, rootName.String(), fus[userIndexTarget].Username, keybase1.TeamRole_READER)
 			} else {
-				err = RemoveMember(context.TODO(),
+				err = RemoveMember(ctx,
 					tcs[userIndexOperator].G, rootName.String(), fus[userIndexTarget].Username)
 			}
 			errCh <- err
@@ -1064,7 +1064,7 @@ func TestMemberAddRaceConflict(t *testing.T) {
 	mod := func(userIndexOperator, userIndexTarget int, add bool) <-chan error {
 		errCh := make(chan error)
 		go func() {
-			ctx := context.TODO()
+			ctx := context.Background()
 			ctx = libkb.WithLogTag(ctx, "TEST")
 			var err error
 			desc := "removes"
@@ -1073,10 +1073,10 @@ func TestMemberAddRaceConflict(t *testing.T) {
 			}
 			t.Logf("U%v %v U%v", userIndexOperator, desc, userIndexTarget)
 			if add {
-				_, err = AddMember(context.TODO(),
+				_, err = AddMember(ctx,
 					tcs[userIndexOperator].G, rootName.String(), fus[userIndexTarget].Username, keybase1.TeamRole_READER)
 			} else {
-				err = RemoveMember(context.TODO(),
+				err = RemoveMember(ctx,
 					tcs[userIndexOperator].G, rootName.String(), fus[userIndexTarget].Username)
 			}
 			errCh <- err
