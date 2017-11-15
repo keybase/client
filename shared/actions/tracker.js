@@ -779,11 +779,7 @@ function _listTrackersOrTracking(
       },
     })
       .then(response => {
-        if (response.users) {
-          resolve(response.users.map(_parseFriendship))
-        } else {
-          reject(new Error('invalid tracker result'))
-        }
+        resolve((response.users || []).map(_parseFriendship))
       })
       .catch(error => {
         console.log('err getting trackers', error)

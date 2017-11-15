@@ -69,6 +69,7 @@ export const selectConversation = 'chat:selectConversation'
 export const selectNext = 'chat:selectNext'
 export const setInboxFilter = 'chat:setInboxFilter'
 export const setInboxGlobalUntrustedState = 'chat:setInboxGlobalUntrustedState'
+export const setInboxSyncingState = 'chat:setInboxSyncingState'
 export const setLoaded = 'chat:setLoaded'
 export const setNotifications = 'chat:setNotifications'
 export const setPreviousConversation = 'chat:setPreviousConversation'
@@ -155,6 +156,7 @@ export const createSelectConversation = (payload: {|conversationIDKey: ?Constant
 export const createSelectNext = (payload: {|rows: Array<any>, direction: -1 | 1|}) => ({error: false, payload, type: selectNext})
 export const createSetInboxFilter = (payload: {|filter: string|}) => ({error: false, payload, type: setInboxFilter})
 export const createSetInboxGlobalUntrustedState = (payload: {|inboxGlobalUntrustedState: Constants.UntrustedState|}) => ({error: false, payload, type: setInboxGlobalUntrustedState})
+export const createSetInboxSyncingState = (payload: {|inboxSyncingState: Constants.InboxSyncingState|}) => ({error: false, payload, type: setInboxSyncingState})
 export const createSetLoaded = (payload: {|conversationIDKey: Constants.ConversationIDKey, isLoaded: boolean|}) => ({error: false, payload, type: setLoaded})
 export const createSetNotifications = (payload: {|conversationIDKey: Constants.ConversationIDKey, deviceType: DeviceType, notifyType: Constants.NotifyType|}) => ({error: false, payload, type: setNotifications})
 export const createSetPreviousConversation = (payload: {|conversationIDKey: ?Constants.ConversationIDKey|}) => ({error: false, payload, type: setPreviousConversation})
@@ -241,6 +243,7 @@ export type SelectConversationPayload = ReturnType<typeof createSelectConversati
 export type SelectNextPayload = ReturnType<typeof createSelectNext>
 export type SetInboxFilterPayload = ReturnType<typeof createSetInboxFilter>
 export type SetInboxGlobalUntrustedStatePayload = ReturnType<typeof createSetInboxGlobalUntrustedState>
+export type SetInboxSyncingStatePayload = ReturnType<typeof createSetInboxSyncingState>
 export type SetLoadedPayload = ReturnType<typeof createSetLoaded>
 export type SetNotificationsPayload = ReturnType<typeof createSetNotifications>
 export type SetPreviousConversationPayload = ReturnType<typeof createSetPreviousConversation>
@@ -329,6 +332,7 @@ export type Actions =
   | ReturnType<typeof createSelectNext>
   | ReturnType<typeof createSetInboxFilter>
   | ReturnType<typeof createSetInboxGlobalUntrustedState>
+  | ReturnType<typeof createSetInboxSyncingState>
   | ReturnType<typeof createSetLoaded>
   | ReturnType<typeof createSetNotifications>
   | ReturnType<typeof createSetPreviousConversation>

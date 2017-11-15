@@ -71,7 +71,7 @@ function* _setupChatHandlers(): Saga.SagaGenerator<any, any> {
       case ChatTypes.commonSyncInboxResType.clear:
         return ChatGen.createInboxStale({reason: 'sync with clear result'})
       case ChatTypes.commonSyncInboxResType.current:
-        return ChatGen.createSetInboxGlobalUntrustedState({inboxGlobalUntrustedState: 'loaded'})
+        return ChatGen.createSetInboxSyncingState({inboxSyncingState: 'notSyncing'})
       case ChatTypes.commonSyncInboxResType.incremental:
         return ChatGen.createInboxSynced({convs: syncRes.incremental.items})
     }
@@ -79,7 +79,7 @@ function* _setupChatHandlers(): Saga.SagaGenerator<any, any> {
   })
 
   engine().setIncomingActionCreator('chat.1.NotifyChat.ChatInboxSyncStarted', () => {
-    return ChatGen.createSetInboxGlobalUntrustedState({inboxGlobalUntrustedState: 'loading'})
+    return ChatGen.createSetInboxSyncingState({inboxSyncingState: 'syncing'})
   })
 
   engine().setIncomingActionCreator('chat.1.NotifyChat.ChatJoinedConversation', () =>

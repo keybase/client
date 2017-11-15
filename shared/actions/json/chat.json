@@ -108,6 +108,9 @@
     "setInboxFilter": {
       "filter": "string"
     },
+    "setInboxSyncingState": {
+      "inboxSyncingState": "Constants.InboxSyncingState"
+    },
     "setInboxGlobalUntrustedState": {
       "inboxGlobalUntrustedState": "Constants.UntrustedState"
     },
