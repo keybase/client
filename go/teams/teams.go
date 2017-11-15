@@ -1560,8 +1560,6 @@ func AddMembersBestEffort(ctx context.Context, g *libkb.GlobalContext, teamID ke
 	var keybaseInvites []keybase1.UserVersion
 	var needPostMembership bool
 
-	_ = req
-
 	for _, uv := range uvs {
 		loadedUV, err := loadUserVersionByUID(ctx, g, uv.Uid)
 		if err != nil {
@@ -1569,7 +1567,6 @@ func AddMembersBestEffort(ctx context.Context, g *libkb.GlobalContext, teamID ke
 				keybaseInvites = append(keybaseInvites, uv)
 				g.Log.CDebugf(ctx, "Invite required for %+v", uv)
 			}
-
 			continue
 		}
 
