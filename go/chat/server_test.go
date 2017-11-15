@@ -2384,6 +2384,7 @@ func TestChatSrvTeamChannels(t *testing.T) {
 
 		ctx := ctc.as(t, users[0]).startCtx
 		ctx1 := ctc.as(t, users[1]).startCtx
+		ctx2 := ctc.as(t, users[2]).startCtx
 
 		listener0 := newServerChatListener()
 		ctc.as(t, users[0]).h.G().SetService()
@@ -2523,6 +2524,7 @@ func TestChatSrvTeamChannels(t *testing.T) {
 			Body: fmt.Sprintf("FAIL: @%s", users[2].Username),
 		}))
 		require.NoError(t, err)
+		consumeJoinConv(t, listener2)
 		consumeNewMsg(t, listener0, chat1.MessageType_TEXT)
 		consumeNewMsg(t, listener1, chat1.MessageType_TEXT)
 		consumeNewMsg(t, listener2, chat1.MessageType_TEXT)
@@ -2595,6 +2597,29 @@ func TestChatSrvTeamChannels(t *testing.T) {
 			require.Len(t, tvres.Thread.Messages, 1, "expected number of LEAVE messages")
 		default:
 			t.Fatalf("unknown members type: %v", mt)
+		}
+
+		t.Logf("u2 leaves and explicitly previews channel")
+		_, err = ctc.as(t, users[2]).chatLocalHandler().LeaveConversationLocal(ctx1,
+			ncres.Conv.GetConvID())
+		require.NoError(t, err)
+		consumeNewMsg(t, listener0, chat1.MessageType_LEAVE)
+		consumeNewMsg(t, listener1, chat1.MessageType_LEAVE)
+		consumeNewMsg(t, listener2, chat1.MessageType_LEAVE)
+		consumeLeaveConv(t, listener2)
+		_, err = ctc.as(t, users[2]).chatLocalHandler().PreviewConversationByIDLocal(ctx2, ncres.Conv.Info.Id)
+		require.NoError(t, err)
+		consumeJoinConv(t, listener2)
+		iboxRes, err := ctc.as(t, users[2]).chatLocalHandler().GetInboxAndUnboxLocal(ctx2,
+			chat1.GetInboxAndUnboxLocalArg{})
+		require.NoError(t, err)
+		require.Equal(t, 2, len(iboxRes.Conversations))
+		for _, conv := range iboxRes.Conversations {
+			if conv.GetConvID().Eq(ncres.Conv.Info.Id) {
+				require.Equal(t, chat1.ConversationMemberStatus_PREVIEW, conv.Info.MemberStatus)
+			} else {
+				require.Equal(t, chat1.ConversationMemberStatus_ACTIVE, conv.Info.MemberStatus)
+			}
 		}
 	})
 }

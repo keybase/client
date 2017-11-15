@@ -648,8 +648,8 @@ func PreviewConversation(ctx context.Context, g *globals.Context, debugger utils
 	alreadyIn, irl, err := g.InboxSource.IsMember(ctx, uid, convID)
 	if err != nil {
 		debugger.Debug(ctx, "PreviewConversation: IsMember err: %s", err.Error())
-		// Pretend we're in.
-		alreadyIn = true
+		// Assume we aren't in, server will reject us otherwise.
+		alreadyIn = false
 	}
 	if irl != nil {
 		rl = append(rl, *irl)

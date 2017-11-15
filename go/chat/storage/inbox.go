@@ -1126,7 +1126,6 @@ func (i *Inbox) MembershipUpdate(ctx context.Context, vers chat1.InboxVers,
 	var ujs []types.RemoteConversation
 	for _, uj := range userJoined {
 		i.Debug(ctx, "MembershipUpdate: joined conv: %s", uj.GetConvID())
-		uj.ReaderInfo.Status = chat1.ConversationMemberStatus_ACTIVE
 		ujs = append(ujs, types.RemoteConversation{
 			Conv: uj,
 		})

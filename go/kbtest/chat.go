@@ -690,6 +690,10 @@ func (m *ChatRemoteMock) LeaveConversation(ctx context.Context, convID chat1.Con
 	return chat1.JoinLeaveConversationRemoteRes{}, nil
 }
 
+func (m *ChatRemoteMock) PreviewConversation(ctx context.Context, convID chat1.ConversationID) (chat1.JoinLeaveConversationRemoteRes, error) {
+	return chat1.JoinLeaveConversationRemoteRes{}, nil
+}
+
 func (m *ChatRemoteMock) DeleteConversation(ctx context.Context, convID chat1.ConversationID) (chat1.DeleteConversationRemoteRes, error) {
 	return chat1.DeleteConversationRemoteRes{}, nil
 }
