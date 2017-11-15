@@ -7,6 +7,8 @@ import (
 	"errors"
 	"testing"
 	"time"
+
+	"github.com/stretchr/testify/require"
 )
 
 func TestTime(t *testing.T) {
@@ -132,4 +134,12 @@ func TestTeamNameFromString(t *testing.T) {
 			}
 		}
 	}
+}
+
+func TestSize(t *testing.T) {
+	require.Equal(t, UID("a").Size(), 9)
+	require.Equal(t, TeamID("a").Size(), 9)
+	require.Equal(t, UserOrTeamID("a").Size(), 9)
+	kid := KID("a")
+	require.Equal(t, kid.Size(), 9)
 }
