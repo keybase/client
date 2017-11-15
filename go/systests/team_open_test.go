@@ -267,7 +267,7 @@ func TestTeamOpenRemoveOldUVAddInvite(t *testing.T) {
 
 	bob.requestAccess(team)
 
-	kickTeamRekeyd(ann.getPrimaryGlobalContext(), t)
+	kickTeamRekeyd(annCtx, t)
 	ann.pollForTeamSeqnoLink(team, keybase1.Seqno(5))
 
 	teamObj, err := teams.Load(context.TODO(), annCtx, keybase1.LoadTeamArg{
@@ -276,10 +276,24 @@ func TestTeamOpenRemoveOldUVAddInvite(t *testing.T) {
 	})
 	require.NoError(t, err)
 
+	loadUserArg := libkb.NewLoadUserArg(annCtx).
+		WithNetContext(context.TODO()).
+		WithName(bob.username).
+		WithPublicKeyOptional().
+		WithForcePoll(true)
+	upak, _, err := annCtx.GetUPAKLoader().LoadV2(loadUserArg)
+	require.NoError(t, err)
+
+	seqno := upak.Current.EldestSeqno
+
 	require.Equal(t, 1, teamObj.NumActiveInvites())
+	ret, err := teamObj.HasActiveInvite(teams.NewUserVersion(bob.uid(), seqno).TeamInviteName(), "keybase")
+	require.NoError(t, err)
+	require.True(t, ret)
 
 	members, err := teamObj.Members()
 	require.NoError(t, err)
 	// expecting just ann, pre-reset version of bob should have been removed.
 	require.Equal(t, 1, len(members.AllUIDs()))
+	require.Equal(t, ann.uid(), members.AllUIDs()[0])
 }
