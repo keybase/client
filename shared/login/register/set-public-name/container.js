@@ -61,6 +61,7 @@ class _SetPublicName extends Component<ContainerProps, State> {
 
     return (
       <SetPublicName
+        clearDeviceNameError={this.props.clearDeviceNameError}
         deviceName={this.state.deviceName}
         onChange={this._onChange}
         onSubmit={() => this.props.onSubmit(this.state.deviceName)}
