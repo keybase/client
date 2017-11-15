@@ -118,9 +118,6 @@ const BOOL isDebug = NO;
 
   NSURL *jsCodeLocation;
 
-  // Uncomment for prod JS in dev mode. If you're building onto a
-  // phone, you'll have to change localhost:8081 to point to the
-  // bundler running on your computer.
   // Uncomment for prod JS in dev mode (and comment the line after
   // that). If you're building onto a phone, you'll have to change
   // localhost:8081 to point to the bundler running on your computer.
