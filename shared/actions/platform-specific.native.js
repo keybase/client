@@ -69,17 +69,36 @@ function displayNewMessageNotification(text: string, convID: ?string, badgeCount
         param.filter(p => p.userInfo && p.userInfo.msgID === myMsgID).map(p => p.identifier)
       )
     })
-  }
 
-  PushNotifications.localNotification({
-    message: text,
-    soundName: 'keybasemessage.wav',
-    userInfo: {
-      convID: convID,
-      type: 'chat.newmessage',
-    },
-    number: badgeCount,
-  })
+    PushNotificationIOS.getDeliveredNotifications(param => {
+      const messages = []
+
+      PushNotificationIOS.removeDeliveredNotifications(
+        param
+          .filter(p => {
+            if (p.userInfo && p.userInfo.convID === convID) {
+              messages.push(p.body)
+              return true
+            }
+            return false
+          })
+          .map(p => p.identifier)
+      )
+      messages.push(text)
+
+      const message = messages.join('\n')
+
+      PushNotifications.localNotification({
+        message,
+        soundName: 'keybasemessage.wav',
+        userInfo: {
+          convID: convID,
+          type: 'chat.newmessage',
+        },
+        number: badgeCount,
+      })
+    })
+  }
 }
 
 function configurePush() {
