@@ -72,5 +72,5 @@ const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps, ownPro
 export const ConnectedRequestRow = connect(mapStateToProps, mapDispatchToProps, mergeProps)(TeamRequestRow)
 
 export default function(i: number, props: OwnProps) {
-  return <ConnectedRequestRow key={i+props.username} {...props} />
+  return <ConnectedRequestRow {...props} />
 }

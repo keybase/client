@@ -58,9 +58,8 @@ export type Props = {
   youCanCreateSubteam: boolean,
 }
 
-const TeamDividerRow = (index, {title}) =>
+const TeamDividerRow = (index, {key}) => (
   <Box
-    key={index+title}
     style={{
       ...globalStyles.flexBoxRow,
       alignItems: 'center',
@@ -68,12 +67,13 @@ const TeamDividerRow = (index, {title}) =>
       height: globalMargins.medium,
       padding: globalMargins.tiny,
       width: '100%',
-      }}
+    }}
   >
-    <Box key={index+title+'box'} style={{...globalStyles.flexBoxRow, flexGrow: 1}}>
-      <Text key={index+title+'text'} style={{color: globalColors.black_40}} type="BodySmall">{title}</Text>
+    <Box style={{...globalStyles.flexBoxRow, flexGrow: 1}}>
+      <Text style={{color: globalColors.black_40}} type="BodySmall">{key}</Text>
     </Box>
   </Box>
+)
 
 const Help = isMobile
   ? () => null
@@ -107,7 +107,7 @@ const TeamRequestOrDividerOrInviteRow = (index, row) => {
     case 'invite':
       return TeamInviteRow(index, row)
     default:
-      return TeamDividerRow(index, row) 
+      return TeamDividerRow(index, row)
   }
 }
 
@@ -230,7 +230,12 @@ class Team extends React.PureComponent<Props> {
 
     // massage data for rowrenderers
     const memberProps = members.map(member => ({username: member.username, teamname: name}))
-    const requestProps = requests.map(req => ({type: 'request', teamname: name, username: req.username}))
+    const requestProps = requests.map(req => ({
+      key: req.username,
+      teamname: name,
+      type: 'request',
+      username: req.username,
+    }))
     const inviteProps = invites.map(invite => ({
       email: invite.email,
       key: invite.email || invite.username,
@@ -251,12 +256,14 @@ class Team extends React.PureComponent<Props> {
         />
     } else if (selectedTab === 'invites') {
       // Show requests first, then invites.
-      const requestsAndInvites = [
-        {type: 'divider', title: 'Requests'},
-        ...requestProps,
-        {type: 'divider', title: 'Invites'},
-        ...inviteProps,
-      ]
+      const requestsAndInvites = requestProps.length > 0
+        ? [
+            {key: 'Requests', type: 'divider'},
+            ...requestProps,
+            {key: 'Invites', type: 'divider'},
+            ...inviteProps,
+          ]
+        : [...requestProps, ...inviteProps]
       if (requestsAndInvites.length === 0) {
         contents = (
           <Text
@@ -270,7 +277,6 @@ class Team extends React.PureComponent<Props> {
         contents =
           !loading &&
           <List
-            keyProperty="key"
             items={requestsAndInvites}
             fixedHeight={48}
             renderItem={TeamRequestOrDividerOrInviteRow}

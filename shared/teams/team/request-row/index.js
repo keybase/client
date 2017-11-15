@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react'
-import {Avatar, Box, Button, ClickableBox, Icon, Meta, Text, Usernames} from '../../../common-adapters'
+import {Avatar, Box, Button, ClickableBox, Icon, Meta, Usernames} from '../../../common-adapters'
 import {globalColors, globalMargins, globalStyles} from '../../../styles'
 import {isMobile} from '../../../constants/platform'
 
@@ -57,19 +57,26 @@ export const TeamRequestRow = (props: Props) => {
           marginTop: isMobile ? globalMargins.tiny : 0,
         }}
       >
-        <Button small={true} style={{backgroundColor: globalColors.green, marginLeft: globalMargins.xtiny}} type="Primary" label="Let in as..." onClick={onAccept} />
         <Button
-          small={true} style={{marginLeft: globalMargins.xtiny}}
+          small={true}
+          style={{backgroundColor: globalColors.green, marginLeft: globalMargins.xtiny}}
+          type="Primary"
+          label="Let in as..."
+          onClick={onAccept}
+        />
+        <Button
+          small={true}
+          style={{marginLeft: globalMargins.xtiny}}
           type="Danger"
           label="Ignore"
           onClick={onIgnoreRequest}
         />
-        {!isMobile && 
-        <Icon
-          onClick={onChat}
-          type="iconfont-chat"
-          style={{fontSize: 20, marginLeft: globalMargins.tiny}}
-       />}
+        {!isMobile &&
+          <Icon
+            onClick={onChat}
+            type="iconfont-chat"
+            style={{fontSize: 20, marginLeft: globalMargins.tiny}}
+          />}
       </Box>
     </Box>
   )
