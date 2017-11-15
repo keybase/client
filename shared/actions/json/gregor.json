@@ -1,6 +1,5 @@
 {
   "prelude": [
-    "import * as Types from '../constants/types/gregor'",
     "import * as RPCTypesGregor from '../constants/types/flow-types-gregor'"
   ],
   "actions": {

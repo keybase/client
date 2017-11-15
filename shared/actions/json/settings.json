@@ -1,6 +1,5 @@
 {
   "prelude": [
-    "import * as Types from '../constants/types/settings'",
     "import HiddenString from '../util/hidden-string'"
   ],
   "actions": {

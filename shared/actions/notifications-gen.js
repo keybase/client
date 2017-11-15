@@ -29,12 +29,10 @@ export type ListenForNotificationsPayload = More.ReturnType<typeof createListenF
 export type LogPayload = More.ReturnType<typeof createLog>
 export type ReceivedBadgeStatePayload = More.ReturnType<typeof createReceivedBadgeState>
 
+// Reducer type
+// prettier-ignore
+export type ReducerMap = {|'common:resetStore': (state: Types.State, action: {type: 'common:resetStore', payload: void}) => Types.State, 'notifications:badgeApp': (state: Types.State, action: BadgeAppPayload) => Types.State, 'notifications:listenForKBFSNotifications': (state: Types.State, action: ListenForKBFSNotificationsPayload) => Types.State, 'notifications:listenForNotifications': (state: Types.State, action: ListenForNotificationsPayload) => Types.State, 'notifications:log': (state: Types.State, action: LogPayload) => Types.State, 'notifications:receivedBadgeState': (state: Types.State, action: ReceivedBadgeStatePayload) => Types.State|}
+
 // All Actions
 // prettier-ignore
-export type Actions =
-  | More.ReturnType<typeof createBadgeApp>
-  | More.ReturnType<typeof createListenForKBFSNotifications>
-  | More.ReturnType<typeof createListenForNotifications>
-  | More.ReturnType<typeof createLog>
-  | More.ReturnType<typeof createReceivedBadgeState>
-  | {type: 'common:resetStore', payload: void}
+export type Actions = BadgeAppPayload | ListenForKBFSNotificationsPayload | ListenForNotificationsPayload | LogPayload | ReceivedBadgeStatePayload | {type: 'common:resetStore', payload: void}

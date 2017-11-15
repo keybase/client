@@ -47,18 +47,10 @@ export type RegistrationErrorPayload = More.ReturnType<typeof createRegistration
 export type SavePushTokenPayload = More.ReturnType<typeof createSavePushToken>
 export type UpdatePushTokenPayload = More.ReturnType<typeof createUpdatePushToken>
 
+// Reducer type
+// prettier-ignore
+export type ReducerMap = {|'common:resetStore': (state: Types.State, action: {type: 'common:resetStore', payload: void}) => Types.State, 'push:configurePush': (state: Types.State, action: ConfigurePushPayload) => Types.State, 'push:error': (state: Types.State, action: ErrorPayload) => Types.State, 'push:notification': (state: Types.State, action: NotificationPayload) => Types.State, 'push:permissionsNo': (state: Types.State, action: PermissionsNoPayload) => Types.State, 'push:permissionsPrompt': (state: Types.State, action: PermissionsPromptPayload) => Types.State, 'push:permissionsRequest': (state: Types.State, action: PermissionsRequestPayload) => Types.State, 'push:permissionsRequesting': (state: Types.State, action: PermissionsRequestingPayload) => Types.State, 'push:pushToken': (state: Types.State, action: PushTokenPayload) => Types.State, 'push:registrationError': (state: Types.State, action: RegistrationErrorPayload) => Types.State, 'push:savePushToken': (state: Types.State, action: SavePushTokenPayload) => Types.State, 'push:updatePushToken': (state: Types.State, action: UpdatePushTokenPayload) => Types.State|}
+
 // All Actions
 // prettier-ignore
-export type Actions =
-  | More.ReturnType<typeof createConfigurePush>
-  | More.ReturnType<typeof createError>
-  | More.ReturnType<typeof createNotification>
-  | More.ReturnType<typeof createPermissionsNo>
-  | More.ReturnType<typeof createPermissionsPrompt>
-  | More.ReturnType<typeof createPermissionsRequest>
-  | More.ReturnType<typeof createPermissionsRequesting>
-  | More.ReturnType<typeof createPushToken>
-  | More.ReturnType<typeof createRegistrationError>
-  | More.ReturnType<typeof createSavePushToken>
-  | More.ReturnType<typeof createUpdatePushToken>
-  | {type: 'common:resetStore', payload: void}
+export type Actions = ConfigurePushPayload | ErrorPayload | NotificationPayload | PermissionsNoPayload | PermissionsPromptPayload | PermissionsRequestPayload | PermissionsRequestingPayload | PushTokenPayload | RegistrationErrorPayload | SavePushTokenPayload | UpdatePushTokenPayload | {type: 'common:resetStore', payload: void}

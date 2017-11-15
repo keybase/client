@@ -5,6 +5,7 @@
 import * as I from 'immutable'
 import * as RPCTypes from '../constants/types/flow-types'
 import * as More from '../constants/types/more'
+import * as Types from '../constants/types/waiting'
 
 // Constants
 export const resetStore = 'common:resetStore' // not a part of waiting but is handled by every reducer
@@ -19,9 +20,10 @@ export const createIncrementWaiting = (payload: {|+key: string|}) => ({error: fa
 export type DecrementWaitingPayload = More.ReturnType<typeof createDecrementWaiting>
 export type IncrementWaitingPayload = More.ReturnType<typeof createIncrementWaiting>
 
+// Reducer type
+// prettier-ignore
+export type ReducerMap = {|'common:resetStore': (state: Types.State, action: {type: 'common:resetStore', payload: void}) => Types.State, 'waiting:decrementWaiting': (state: Types.State, action: DecrementWaitingPayload) => Types.State, 'waiting:incrementWaiting': (state: Types.State, action: IncrementWaitingPayload) => Types.State|}
+
 // All Actions
 // prettier-ignore
-export type Actions =
-  | More.ReturnType<typeof createDecrementWaiting>
-  | More.ReturnType<typeof createIncrementWaiting>
-  | {type: 'common:resetStore', payload: void}
+export type Actions = DecrementWaitingPayload | IncrementWaitingPayload | {type: 'common:resetStore', payload: void}

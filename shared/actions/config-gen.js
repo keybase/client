@@ -71,26 +71,10 @@ export type RetryBootstrapPayload = More.ReturnType<typeof createRetryBootstrap>
 export type SetInitialStatePayload = More.ReturnType<typeof createSetInitialState>
 export type UpdateFollowingPayload = More.ReturnType<typeof createUpdateFollowing>
 
+// Reducer type
+// prettier-ignore
+export type ReducerMap = {|'common:resetStore': (state: Types.State, action: {type: 'common:resetStore', payload: void}) => Types.State, 'config:bootstrap': (state: Types.State, action: BootstrapPayload) => Types.State, 'config:bootstrapAttemptFailed': (state: Types.State, action: BootstrapAttemptFailedPayload) => Types.State, 'config:bootstrapFailed': (state: Types.State, action: BootstrapFailedPayload) => Types.State, 'config:bootstrapRetry': (state: Types.State, action: BootstrapRetryPayload) => Types.State, 'config:bootstrapStatusLoaded': (state: Types.State, action: BootstrapStatusLoadedPayload) => Types.State, 'config:bootstrapSuccess': (state: Types.State, action: BootstrapSuccessPayload) => Types.State, 'config:changeKBFSPath': (state: Types.State, action: ChangeKBFSPathPayload) => Types.State, 'config:clearRouteState': (state: Types.State, action: ClearRouteStatePayload) => Types.State, 'config:configLoaded': (state: Types.State, action: ConfigLoadedPayload) => Types.State, 'config:daemonError': (state: Types.State, action: DaemonErrorPayload) => Types.State, 'config:extendedConfigLoaded': (state: Types.State, action: ExtendedConfigLoadedPayload) => Types.State, 'config:getExtendedStatus': (state: Types.State, action: GetExtendedStatusPayload) => Types.State, 'config:globalError': (state: Types.State, action: GlobalErrorPayload) => Types.State, 'config:persistRouteState': (state: Types.State, action: PersistRouteStatePayload) => Types.State, 'config:pushLoaded': (state: Types.State, action: PushLoadedPayload) => Types.State, 'config:readyForBootstrap': (state: Types.State, action: ReadyForBootstrapPayload) => Types.State, 'config:retryBootstrap': (state: Types.State, action: RetryBootstrapPayload) => Types.State, 'config:setInitialState': (state: Types.State, action: SetInitialStatePayload) => Types.State, 'config:updateFollowing': (state: Types.State, action: UpdateFollowingPayload) => Types.State|}
+
 // All Actions
 // prettier-ignore
-export type Actions =
-  | More.ReturnType<typeof createBootstrap>
-  | More.ReturnType<typeof createBootstrapAttemptFailed>
-  | More.ReturnType<typeof createBootstrapFailed>
-  | More.ReturnType<typeof createBootstrapRetry>
-  | More.ReturnType<typeof createBootstrapStatusLoaded>
-  | More.ReturnType<typeof createBootstrapSuccess>
-  | More.ReturnType<typeof createChangeKBFSPath>
-  | More.ReturnType<typeof createClearRouteState>
-  | More.ReturnType<typeof createConfigLoaded>
-  | More.ReturnType<typeof createDaemonError>
-  | More.ReturnType<typeof createExtendedConfigLoaded>
-  | More.ReturnType<typeof createGetExtendedStatus>
-  | More.ReturnType<typeof createGlobalError>
-  | More.ReturnType<typeof createPersistRouteState>
-  | More.ReturnType<typeof createPushLoaded>
-  | More.ReturnType<typeof createReadyForBootstrap>
-  | More.ReturnType<typeof createRetryBootstrap>
-  | More.ReturnType<typeof createSetInitialState>
-  | More.ReturnType<typeof createUpdateFollowing>
-  | {type: 'common:resetStore', payload: void}
+export type Actions = BootstrapAttemptFailedPayload | BootstrapFailedPayload | BootstrapPayload | BootstrapRetryPayload | BootstrapStatusLoadedPayload | BootstrapSuccessPayload | ChangeKBFSPathPayload | ClearRouteStatePayload | ConfigLoadedPayload | DaemonErrorPayload | ExtendedConfigLoadedPayload | GetExtendedStatusPayload | GlobalErrorPayload | PersistRouteStatePayload | PushLoadedPayload | ReadyForBootstrapPayload | RetryBootstrapPayload | SetInitialStatePayload | UpdateFollowingPayload | {type: 'common:resetStore', payload: void}

@@ -1,7 +1,5 @@
 {
-  "prelude": [
-    "import * as Types from '../constants/types/config'"
-  ],
+  "prelude": [],
   "actions": {
     "bootstrapStatusLoaded": {
       "bootstrapStatus": "RPCTypes.BootstrapStatus"

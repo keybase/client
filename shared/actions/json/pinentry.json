@@ -1,7 +1,5 @@
 {
-  "prelude": [
-    "import * as Constants from '../constants/pinentry'"
-  ],
+  "prelude": [],
   "actions": {
     "registerPinentryListener": {
       "started": "boolean"

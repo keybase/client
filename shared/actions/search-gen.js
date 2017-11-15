@@ -5,6 +5,7 @@
 import * as I from 'immutable'
 import * as RPCTypes from '../constants/types/flow-types'
 import * as More from '../constants/types/more'
+
 import * as Constants from '../constants/search'
 
 // Constants
@@ -44,17 +45,9 @@ export type SetUserInputItemsPayload = More.ReturnType<typeof createSetUserInput
 export type UpdateSelectedSearchResultPayload = More.ReturnType<typeof createUpdateSelectedSearchResult>
 export type UserInputItemsUpdatedPayload = More.ReturnType<typeof createUserInputItemsUpdated>
 
+// Reducer type
+// Skipped
+
 // All Actions
 // prettier-ignore
-export type Actions =
-  | More.ReturnType<typeof createAddClickedFromUserInput>
-  | More.ReturnType<typeof createAddResultsToUserInput>
-  | More.ReturnType<typeof createClearSearchResults>
-  | More.ReturnType<typeof createFinishedSearch>
-  | More.ReturnType<typeof createRemoveResultsToUserInput>
-  | More.ReturnType<typeof createSearch>
-  | More.ReturnType<typeof createSearchSuggestions>
-  | More.ReturnType<typeof createSetUserInputItems>
-  | More.ReturnType<typeof createUpdateSelectedSearchResult>
-  | More.ReturnType<typeof createUserInputItemsUpdated>
-  | {type: 'common:resetStore', payload: void}
+export type Actions = AddClickedFromUserInputPayload | AddResultsToUserInputPayload | ClearSearchResultsPayload | FinishedSearchPayload | RemoveResultsToUserInputPayload | SearchPayload | SearchSuggestionsPayload | SetUserInputItemsPayload | UpdateSelectedSearchResultPayload | UserInputItemsUpdatedPayload | {type: 'common:resetStore', payload: void}

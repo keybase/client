@@ -1,6 +1,5 @@
 {
   "prelude": [
-    "import * as Types from '../constants/types/favorite'",
     "import * as Folders from '../constants/folders'"
   ],
   "actions": {

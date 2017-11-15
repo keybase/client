@@ -5,6 +5,7 @@
 import * as I from 'immutable'
 import * as RPCTypes from '../constants/types/flow-types'
 import * as More from '../constants/types/more'
+
 import * as RPCTypesGregor from '../constants/types/flow-types-gregor'
 
 // Constants
@@ -41,16 +42,9 @@ export type LoadGitPayload = More.ReturnType<typeof createLoadGit>
 export type SetErrorPayload = More.ReturnType<typeof createSetError>
 export type SetLoadingPayload = More.ReturnType<typeof createSetLoading>
 
+// Reducer type
+// Skipped
+
 // All Actions
 // prettier-ignore
-export type Actions =
-  | More.ReturnType<typeof createBadgeAppForGit>
-  | More.ReturnType<typeof createCreatePersonalRepo>
-  | More.ReturnType<typeof createCreateTeamRepo>
-  | More.ReturnType<typeof createDeletePersonalRepo>
-  | More.ReturnType<typeof createDeleteTeamRepo>
-  | More.ReturnType<typeof createHandleIncomingGregor>
-  | More.ReturnType<typeof createLoadGit>
-  | More.ReturnType<typeof createSetError>
-  | More.ReturnType<typeof createSetLoading>
-  | {type: 'common:resetStore', payload: void}
+export type Actions = BadgeAppForGitPayload | CreatePersonalRepoPayload | CreateTeamRepoPayload | DeletePersonalRepoPayload | DeleteTeamRepoPayload | HandleIncomingGregorPayload | LoadGitPayload | SetErrorPayload | SetLoadingPayload | {type: 'common:resetStore', payload: void}

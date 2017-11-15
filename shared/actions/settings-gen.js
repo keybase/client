@@ -75,10 +75,12 @@ export type DeleteAccountForeverPayload = More.ReturnType<typeof createDeleteAcc
 export type InvitesClearErrorPayload = More.ReturnType<typeof createInvitesClearError>
 export type InvitesReclaimPayload = More.ReturnType<typeof createInvitesReclaim>
 export type InvitesReclaimedPayload = More.ReturnType<typeof createInvitesReclaimed>
+export type InvitesReclaimedErrorPayload = More.ReturnType<typeof createInvitesReclaimedError>
 export type InvitesRefreshPayload = More.ReturnType<typeof createInvitesRefresh>
 export type InvitesRefreshedPayload = More.ReturnType<typeof createInvitesRefreshed>
 export type InvitesSendPayload = More.ReturnType<typeof createInvitesSend>
 export type InvitesSentPayload = More.ReturnType<typeof createInvitesSent>
+export type InvitesSentErrorPayload = More.ReturnType<typeof createInvitesSentError>
 export type LoadSettingsPayload = More.ReturnType<typeof createLoadSettings>
 export type LoadedSettingsPayload = More.ReturnType<typeof createLoadedSettings>
 export type NotificationsRefreshPayload = More.ReturnType<typeof createNotificationsRefresh>
@@ -98,36 +100,12 @@ export type OnUpdatedPGPSettingsPayload = More.ReturnType<typeof createOnUpdated
 export type SetAllowDeleteAccountPayload = More.ReturnType<typeof createSetAllowDeleteAccount>
 export type WaitingForResponsePayload = More.ReturnType<typeof createWaitingForResponse>
 
+// Reducer type
+// prettier-ignore
+export type ReducerMap = {|'common:resetStore': (state: Types.State, action: {type: 'common:resetStore', payload: void}) => Types.State, 'settings:dbNuke': (state: Types.State, action: DbNukePayload) => Types.State, 'settings:deleteAccountForever': (state: Types.State, action: DeleteAccountForeverPayload) => Types.State, 'settings:invitesClearError': (state: Types.State, action: InvitesClearErrorPayload) => Types.State, 'settings:invitesReclaim': (state: Types.State, action: InvitesReclaimPayload) => Types.State, 'settings:invitesReclaimed': (state: Types.State, action: InvitesReclaimedPayload|InvitesReclaimedErrorPayload) => Types.State, 'settings:invitesRefresh': (state: Types.State, action: InvitesRefreshPayload) => Types.State, 'settings:invitesRefreshed': (state: Types.State, action: InvitesRefreshedPayload) => Types.State, 'settings:invitesSend': (state: Types.State, action: InvitesSendPayload) => Types.State, 'settings:invitesSent': (state: Types.State, action: InvitesSentPayload|InvitesSentErrorPayload) => Types.State, 'settings:loadSettings': (state: Types.State, action: LoadSettingsPayload) => Types.State, 'settings:loadedSettings': (state: Types.State, action: LoadedSettingsPayload) => Types.State, 'settings:notificationsRefresh': (state: Types.State, action: NotificationsRefreshPayload) => Types.State, 'settings:notificationsRefreshed': (state: Types.State, action: NotificationsRefreshedPayload) => Types.State, 'settings:notificationsSaved': (state: Types.State, action: NotificationsSavedPayload) => Types.State, 'settings:notificationsToggle': (state: Types.State, action: NotificationsTogglePayload) => Types.State, 'settings:onChangeNewEmail': (state: Types.State, action: OnChangeNewEmailPayload) => Types.State, 'settings:onChangeNewPassphrase': (state: Types.State, action: OnChangeNewPassphrasePayload) => Types.State, 'settings:onChangeNewPassphraseConfirm': (state: Types.State, action: OnChangeNewPassphraseConfirmPayload) => Types.State, 'settings:onChangeShowPassphrase': (state: Types.State, action: OnChangeShowPassphrasePayload) => Types.State, 'settings:onSubmitNewEmail': (state: Types.State, action: OnSubmitNewEmailPayload) => Types.State, 'settings:onSubmitNewPassphrase': (state: Types.State, action: OnSubmitNewPassphrasePayload) => Types.State, 'settings:onUpdateEmailError': (state: Types.State, action: OnUpdateEmailErrorPayload) => Types.State, 'settings:onUpdatePGPSettings': (state: Types.State, action: OnUpdatePGPSettingsPayload) => Types.State, 'settings:onUpdatePassphraseError': (state: Types.State, action: OnUpdatePassphraseErrorPayload) => Types.State, 'settings:onUpdatedPGPSettings': (state: Types.State, action: OnUpdatedPGPSettingsPayload) => Types.State, 'settings:setAllowDeleteAccount': (state: Types.State, action: SetAllowDeleteAccountPayload) => Types.State, 'settings:waitingForResponse': (state: Types.State, action: WaitingForResponsePayload) => Types.State|}
+
 // All Actions
 // prettier-ignore
-export type Actions =
-  | More.ReturnType<typeof createDbNuke>
-  | More.ReturnType<typeof createDeleteAccountForever>
-  | More.ReturnType<typeof createInvitesClearError>
-  | More.ReturnType<typeof createInvitesReclaim>
-  | More.ReturnType<typeof createInvitesReclaimed>
-  | More.ReturnType<typeof createInvitesReclaimedError>
-  | More.ReturnType<typeof createInvitesRefresh>
-  | More.ReturnType<typeof createInvitesRefreshed>
-  | More.ReturnType<typeof createInvitesSend>
-  | More.ReturnType<typeof createInvitesSent>
-  | More.ReturnType<typeof createInvitesSentError>
-  | More.ReturnType<typeof createLoadSettings>
-  | More.ReturnType<typeof createLoadedSettings>
-  | More.ReturnType<typeof createNotificationsRefresh>
-  | More.ReturnType<typeof createNotificationsRefreshed>
-  | More.ReturnType<typeof createNotificationsSaved>
-  | More.ReturnType<typeof createNotificationsToggle>
-  | More.ReturnType<typeof createOnChangeNewEmail>
-  | More.ReturnType<typeof createOnChangeNewPassphrase>
-  | More.ReturnType<typeof createOnChangeNewPassphraseConfirm>
-  | More.ReturnType<typeof createOnChangeShowPassphrase>
-  | More.ReturnType<typeof createOnSubmitNewEmail>
-  | More.ReturnType<typeof createOnSubmitNewPassphrase>
-  | More.ReturnType<typeof createOnUpdateEmailError>
-  | More.ReturnType<typeof createOnUpdatePGPSettings>
-  | More.ReturnType<typeof createOnUpdatePassphraseError>
-  | More.ReturnType<typeof createOnUpdatedPGPSettings>
-  | More.ReturnType<typeof createSetAllowDeleteAccount>
-  | More.ReturnType<typeof createWaitingForResponse>
-  | {type: 'common:resetStore', payload: void}
+export type Actions = DbNukePayload | DeleteAccountForeverPayload | InvitesClearErrorPayload | InvitesReclaimPayload | InvitesReclaimedPayload
+ | InvitesReclaimedErrorPayload | InvitesRefreshPayload | InvitesRefreshedPayload | InvitesSendPayload | InvitesSentPayload
+ | InvitesSentErrorPayload | LoadSettingsPayload | LoadedSettingsPayload | NotificationsRefreshPayload | NotificationsRefreshedPayload | NotificationsSavedPayload | NotificationsTogglePayload | OnChangeNewEmailPayload | OnChangeNewPassphraseConfirmPayload | OnChangeNewPassphrasePayload | OnChangeShowPassphrasePayload | OnSubmitNewEmailPayload | OnSubmitNewPassphrasePayload | OnUpdateEmailErrorPayload | OnUpdatePGPSettingsPayload | OnUpdatePassphraseErrorPayload | OnUpdatedPGPSettingsPayload | SetAllowDeleteAccountPayload | WaitingForResponsePayload | {type: 'common:resetStore', payload: void}

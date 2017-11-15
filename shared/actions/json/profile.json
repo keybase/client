@@ -1,7 +1,5 @@
 {
-  "prelude": [
-    "import * as Types from '../constants/types/profile'"
-  ],
+  "prelude": [],
   "actions": {
     "addProof": {
       "platform": "More.PlatformsExpandedType"

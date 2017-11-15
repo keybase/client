@@ -5,7 +5,7 @@
 import * as I from 'immutable'
 import * as RPCTypes from '../constants/types/flow-types'
 import * as More from '../constants/types/more'
-import * as Constants from '../constants/pgp'
+import * as Types from '../constants/types/pgp'
 
 // Constants
 export const resetStore = 'common:resetStore' // not a part of pgp but is handled by every reducer
@@ -20,9 +20,10 @@ export const createPgpKeyInSecretStoreFile = () => ({error: false, payload: unde
 export type PgpAckedMessagePayload = More.ReturnType<typeof createPgpAckedMessage>
 export type PgpKeyInSecretStoreFilePayload = More.ReturnType<typeof createPgpKeyInSecretStoreFile>
 
+// Reducer type
+// prettier-ignore
+export type ReducerMap = {|'common:resetStore': (state: Types.State, action: {type: 'common:resetStore', payload: void}) => Types.State, 'pgp:pgpAckedMessage': (state: Types.State, action: PgpAckedMessagePayload) => Types.State, 'pgp:pgpKeyInSecretStoreFile': (state: Types.State, action: PgpKeyInSecretStoreFilePayload) => Types.State|}
+
 // All Actions
 // prettier-ignore
-export type Actions =
-  | More.ReturnType<typeof createPgpAckedMessage>
-  | More.ReturnType<typeof createPgpKeyInSecretStoreFile>
-  | {type: 'common:resetStore', payload: void}
+export type Actions = PgpAckedMessagePayload | PgpKeyInSecretStoreFilePayload | {type: 'common:resetStore', payload: void}
