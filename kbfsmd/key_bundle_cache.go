@@ -46,8 +46,7 @@ func NewKeyBundleCacheRandom(capacityBytes int) *KeyBundleCacheStandard {
 // GetTLFReaderKeyBundle implements the KeyBundleCache interface for KeyBundleCacheStandard.
 func (k *KeyBundleCacheStandard) GetTLFReaderKeyBundle(
 	bundleID TLFReaderKeyBundleID) (*TLFReaderKeyBundleV3, error) {
-	cacheKey := bundleID.String()
-	if entry, ok := k.cache.Get(cacheKey); ok {
+	if entry, ok := k.cache.Get(bundleID); ok {
 		if rkb, ok := entry.(TLFReaderKeyBundleV3); ok {
 			return &rkb, nil
 		}
@@ -60,8 +59,7 @@ func (k *KeyBundleCacheStandard) GetTLFReaderKeyBundle(
 // GetTLFWriterKeyBundle implements the KeyBundleCache interface for KeyBundleCacheStandard.
 func (k *KeyBundleCacheStandard) GetTLFWriterKeyBundle(
 	bundleID TLFWriterKeyBundleID) (*TLFWriterKeyBundleV3, error) {
-	cacheKey := bundleID.String()
-	if entry, ok := k.cache.Get(cacheKey); ok {
+	if entry, ok := k.cache.Get(bundleID); ok {
 		if wkb, ok := entry.(TLFWriterKeyBundleV3); ok {
 			return &wkb, nil
 		}
@@ -74,13 +72,11 @@ func (k *KeyBundleCacheStandard) GetTLFWriterKeyBundle(
 // PutTLFReaderKeyBundle implements the KeyBundleCache interface for KeyBundleCacheStandard.
 func (k *KeyBundleCacheStandard) PutTLFReaderKeyBundle(
 	bundleID TLFReaderKeyBundleID, rkb TLFReaderKeyBundleV3) {
-	cacheKey := bundleID.String()
-	k.cache.Add(cacheKey, rkb)
+	k.cache.Add(bundleID, rkb)
 }
 
 // PutTLFWriterKeyBundle implements the KeyBundleCache interface for KeyBundleCacheStandard.
 func (k *KeyBundleCacheStandard) PutTLFWriterKeyBundle(
 	bundleID TLFWriterKeyBundleID, wkb TLFWriterKeyBundleV3) {
-	cacheKey := bundleID.String()
-	k.cache.Add(cacheKey, wkb)
+	k.cache.Add(bundleID, wkb)
 }

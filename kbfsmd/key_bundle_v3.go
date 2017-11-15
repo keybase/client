@@ -55,6 +55,8 @@ func (dkimV3 DeviceKeyInfoMapV3) Size() int {
 	return mapSize + contentSize
 }
 
+var _ cache.Measurable = DeviceKeyInfoMapV3{}
+
 func (dkimV3 DeviceKeyInfoMapV3) fillInDeviceInfos(
 	uid keybase1.UID, tlfCryptKey kbfscrypto.TLFCryptKey,
 	ePrivKey kbfscrypto.TLFEphemeralPrivateKey, ePubIndex int,
@@ -107,6 +109,8 @@ func (udkimV3 UserDeviceKeyInfoMapV3) Size() int {
 
 	return mapSize + contentSize
 }
+
+var _ cache.Measurable = UserDeviceKeyInfoMapV3{}
 
 // ToPublicKeys converts this object to a UserDevicePublicKeys object.
 func (udkimV3 UserDeviceKeyInfoMapV3) ToPublicKeys() UserDevicePublicKeys {
@@ -282,6 +286,8 @@ func (wkb TLFWriterKeyBundleV3) Size() (bytes int) {
 	return bytes
 }
 
+var _ cache.Measurable = TLFWriterKeyBundleV3{}
+
 // IsWriter returns true if the given user device is in the device set.
 func (wkb TLFWriterKeyBundleV3) IsWriter(user keybase1.UID, deviceKey kbfscrypto.CryptPublicKey) bool {
 	_, ok := wkb.Keys[user][deviceKey]
@@ -342,6 +348,13 @@ func (h TLFWriterKeyBundleID) Bytes() []byte {
 func (h TLFWriterKeyBundleID) String() string {
 	return h.h.String()
 }
+
+// Size implements the cache.Measurable interface.
+func (h TLFWriterKeyBundleID) Size() int {
+	return h.h.Size()
+}
+
+var _ cache.Measurable = TLFWriterKeyBundleID{}
 
 // MarshalBinary implements the encoding.BinaryMarshaler interface for
 // TLFWriterKeyBundleID. Returns an error if the TLFWriterKeyBundleID is invalid and not the
@@ -426,6 +439,8 @@ func (rkb TLFReaderKeyBundleV3) Size() (bytes int) {
 
 	return bytes
 }
+
+var _ cache.Measurable = TLFReaderKeyBundleV3{}
 
 // IsReader returns true if the given user device is in the reader set.
 func (rkb TLFReaderKeyBundleV3) IsReader(user keybase1.UID, deviceKey kbfscrypto.CryptPublicKey) bool {
@@ -519,3 +534,10 @@ func MakeTLFReaderKeyBundleID(codec kbfscodec.Codec, rkb TLFReaderKeyBundleV3) (
 	}
 	return TLFReaderKeyBundleID{h}, nil
 }
+
+// Size implements the cache.Measurable interface.
+func (h TLFReaderKeyBundleID) Size() int {
+	return h.h.Size()
+}
+
+var _ cache.Measurable = TLFReaderKeyBundleID{}
