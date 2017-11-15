@@ -5511,6 +5511,11 @@ func (fbo *folderBranchOps) maybeFastForward(ctx context.Context,
 
 	fbo.mdWriterLock.Lock(lState)
 	defer fbo.mdWriterLock.Unlock(lState)
+	// Don't update while the in-memory state is dirty.
+	if fbo.blocks.GetState(lState) != cleanState {
+		return false, nil
+	}
+
 	// If the journal has anything in it, don't fast-forward since we
 	// haven't finished flushing yet.  If there was really a remote
 	// update on the server, we'll end up in CR eventually.
