@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
-import {Avatar, Box, Button, ClickableBox, Usernames} from '../../../common-adapters'
-import {globalStyles, globalMargins} from '../../../styles'
+import {Avatar, Box, Button, ClickableBox, Icon, Meta, Text, Usernames} from '../../../common-adapters'
+import {globalColors, globalMargins, globalStyles} from '../../../styles'
 import {isMobile} from '../../../constants/platform'
 
 export type Props = {
@@ -45,6 +45,9 @@ export const TeamRequestRow = (props: Props) => {
             colorFollowing={true}
             users={[{username, following, you: you === username}]}
           />
+          <Box style={globalStyles.flexBoxRow}>
+            <Meta title="PLEASE DECIDE" style={styleCharm} />
+          </Box>
         </Box>
       </ClickableBox>
       <Box
@@ -54,15 +57,27 @@ export const TeamRequestRow = (props: Props) => {
           marginTop: isMobile ? globalMargins.tiny : 0,
         }}
       >
-        <Button type="Secondary" label="Chat" onClick={onChat} />
+        <Button small={true} style={{backgroundColor: globalColors.green, marginLeft: globalMargins.xtiny}} type="Primary" label="Let in as..." onClick={onAccept} />
         <Button
-          style={{marginLeft: globalMargins.xtiny}}
-          type="Secondary"
+          small={true} style={{marginLeft: globalMargins.xtiny}}
+          type="Danger"
           label="Ignore"
           onClick={onIgnoreRequest}
         />
-        <Button style={{marginLeft: globalMargins.xtiny}} type="Primary" label="Accept" onClick={onAccept} />
+        {!isMobile && 
+        <Icon
+          onClick={onChat}
+          type="iconfont-chat"
+          style={{fontSize: 20, marginLeft: globalMargins.tiny}}
+       />}
       </Box>
     </Box>
   )
+}
+
+const styleCharm = {
+  backgroundColor: globalColors.orange,
+  borderRadius: 1,
+  marginRight: 4,
+  alignSelf: 'center',
 }
