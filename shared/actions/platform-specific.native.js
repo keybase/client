@@ -65,14 +65,7 @@ function displayNewMessageNotification(text: string, convID: ?string, badgeCount
   // Dismiss any non-plaintext notifications for the same message ID
   if (isIOS) {
     PushNotificationIOS.getDeliveredNotifications(param => {
-      PushNotificationIOS.removeDeliveredNotifications(
-        param.filter(p => p.userInfo && p.userInfo.msgID === myMsgID).map(p => p.identifier)
-      )
-    })
-
-    PushNotificationIOS.getDeliveredNotifications(param => {
       const messages = []
-
       PushNotificationIOS.removeDeliveredNotifications(
         param
           .filter(p => {
