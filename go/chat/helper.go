@@ -590,7 +590,7 @@ func JoinConversation(ctx context.Context, g *globals.Context, debugger utils.De
 			Uid:    uid,
 			ConvID: convID,
 		},
-	}, nil, nil); err != nil {
+	}, nil, nil, nil); err != nil {
 		debugger.Debug(ctx, "JoinConversation: failed to apply membership update: %s", err.Error())
 	}
 

@@ -436,7 +436,8 @@ func (s *RemoteInboxSource) TlfFinalize(ctx context.Context, uid gregor1.UID, ve
 }
 
 func (s *RemoteInboxSource) MembershipUpdate(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
-	joined []chat1.ConversationMember, removed []chat1.ConversationMember, resets []chat1.ConversationMember) (res types.MembershipUpdateRes, err error) {
+	joined []chat1.ConversationMember, removed []chat1.ConversationMember, resets []chat1.ConversationMember,
+	previews []chat1.ConversationID) (res types.MembershipUpdateRes, err error) {
 	return res, err
 }
 
@@ -743,7 +744,8 @@ func (s *HybridInboxSource) TlfFinalize(ctx context.Context, uid gregor1.UID, ve
 }
 
 func (s *HybridInboxSource) MembershipUpdate(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
-	joined []chat1.ConversationMember, removed []chat1.ConversationMember, resets []chat1.ConversationMember) (res types.MembershipUpdateRes, err error) {
+	joined []chat1.ConversationMember, removed []chat1.ConversationMember, resets []chat1.ConversationMember,
+	previews []chat1.ConversationID) (res types.MembershipUpdateRes, err error) {
 	defer s.Trace(ctx, func() error { return err }, "MembershipUpdate")()
 
 	// Separate into joins and removed on uid, and then on other users
@@ -755,6 +757,9 @@ func (s *HybridInboxSource) MembershipUpdate(ctx context.Context, uid gregor1.UI
 			res.OthersJoinedConvs = append(res.OthersJoinedConvs, j)
 		}
 	}
+	// Append any previewed channels as well. We can do this since we just fetch all these conversations from
+	// the server, and that will have the proper member status set.
+	userJoined = append(userJoined, previews...)
 	for _, r := range removed {
 		if r.Uid.Eq(uid) {
 			res.UserRemovedConvs = append(res.UserRemovedConvs, r.ConvID)
