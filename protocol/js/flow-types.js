@@ -1808,6 +1808,10 @@ export const userLoadUserRpcChannelMap = (configKeys: Array<string>, request: Re
 
 export const userLoadUserRpcPromise = (request: (RequestCommon & {callback?: ?(err: ?any, response: UserLoadUserResult) => void} & {param: UserLoadUserRpcParam})): Promise<UserLoadUserResult> => new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.user.loadUser', request, (error, result) => error ? reject(error) : resolve(result)))
 
+export const userMeUserVersionRpcChannelMap = (configKeys: Array<string>, request: RequestCommon & {callback?: ?(err: ?any, response: UserMeUserVersionResult) => void}): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.user.meUserVersion', request)
+
+export const userMeUserVersionRpcPromise = (request: ?(RequestCommon & {callback?: ?(err: ?any, response: UserMeUserVersionResult) => void})): Promise<UserMeUserVersionResult> => new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.user.meUserVersion', request, (error, result) => error ? reject(error) : resolve(result)))
+
 export const userProfileEditRpcChannelMap = (configKeys: Array<string>, request: RequestCommon & RequestErrorCallback & {param: UserProfileEditRpcParam}): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.user.profileEdit', request)
 
 export const userProfileEditRpcPromise = (request: (RequestCommon & RequestErrorCallback & {param: UserProfileEditRpcParam})): Promise<void> => new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.user.profileEdit', request, (error, result) => error ? reject(error) : resolve(result)))
@@ -4078,6 +4082,7 @@ type UserLoadUncheckedUserSummariesResult = ?Array<UserSummary>
 type UserLoadUserByNameResult = User
 type UserLoadUserPlusKeysResult = UserPlusKeys
 type UserLoadUserResult = User
+type UserMeUserVersionResult = UserVersion
 type UserSearchResult = ?Array<SearchResult>
 
 export type IncomingCallMapType = {|  'keybase.1.gpgUi.wantToAddGPGKey'?: (params: {|      sessionID: Int    |},response: {error: RPCErrorHandler, result: (result: GpgUiWantToAddGPGKeyResult) => void}) => void,  'keybase.1.gpgUi.confirmDuplicateKeyChosen'?: (params: {|      sessionID: Int    |},response: {error: RPCErrorHandler, result: (result: GpgUiConfirmDuplicateKeyChosenResult) => void}) => void,  'keybase.1.gpgUi.selectKeyAndPushOption'?: (params: {|      sessionID: Int,
