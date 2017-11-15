@@ -511,6 +511,11 @@ func (t TeamID) AsUserOrTeam() UserOrTeamID {
 	return UserOrTeamID(t)
 }
 
+// Size implements the cache.Measurable interface.
+func (t TeamID) Size() int {
+	return len(t)
+}
+
 func (s SigID) IsNil() bool {
 	return len(s) == 0
 }
@@ -719,6 +724,11 @@ func (u *UID) UnmarshalJSON(b []byte) error {
 	}
 	*u = uid
 	return nil
+}
+
+// Size implements the cache.Measurable interface.
+func (u UID) Size() int {
+	return len(u)
 }
 
 func (k *KID) MarshalJSON() ([]byte, error) {
@@ -1411,6 +1421,11 @@ func (ut UserOrTeamID) GetShard(shardCount int) (int, error) {
 	// LittleEndian.Uint32 truncates to obtain 4 bytes from the buffer
 	n := binary.LittleEndian.Uint32(bytes)
 	return int(n % uint32(shardCount)), nil
+}
+
+// Size implements the cache.Measurable interface.
+func (ut UserOrTeamID) Size() int {
+	return len(ut)
 }
 
 func (m *MaskB64) UnmarshalJSON(b []byte) error {
