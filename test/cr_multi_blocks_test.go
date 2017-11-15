@@ -156,6 +156,7 @@ func TestCrConflictWriteToRemovedMultiblockFile(t *testing.T) {
 // bob makes a file that was removed by alice executable
 func TestCrConflictSetexToRemovedMultiblockFile(t *testing.T) {
 	test(t,
+		skip("dokan", "SetEx is a non-op on Dokan, thus no conflict."),
 		blockSize(20), users("alice", "bob"),
 		as(alice,
 			mkdir("a"),
