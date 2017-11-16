@@ -849,8 +849,13 @@ const getParticipantsWithFullNames = createSelector(
   }
 )
 
-const getTLF = createSelector([getParticipants], participants => {
-  return participants.join(',')
+const getTLF = createSelector([getSelectedInbox, getSelectedConversation], (selectedInbox, selected) => {
+  if (selected && isPendingConversationIDKey(selected)) {
+    return pendingConversationIDKeyToTlfName(selected) || ''
+  } else if (selected !== nothingSelected && selectedInbox) {
+    return selectedInbox.participants.join(',')
+  }
+  return ''
 })
 
 const getMuted = createSelector(
