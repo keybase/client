@@ -2085,6 +2085,13 @@ func (e RevokeLastDeviceError) Error() string {
 	return "cannot revoke the last device in your account without confirmation"
 }
 
+// users with PGP keys who try to revoke last device get this:
+type RevokeLastDevicePGPError struct{}
+
+func (e RevokeLastDevicePGPError) Error() string {
+	return "You cannot revoke the last device in your account. You can reset your account here: keybase.io/#account-reset"
+}
+
 //=============================================================================
 
 type ImplicitTeamDisplayNameError struct {

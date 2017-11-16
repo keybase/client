@@ -457,3 +457,67 @@ func TestRevokeLastDevice(t *testing.T) {
 
 	assertNumDevicesAndKeys(tc, u, 0, 0)
 }
+
+func TestRevokeLastDevicePGP(t *testing.T) {
+	tc := SetupEngineTest(t, "rev")
+	u1 := createFakeUserWithPGPOnly(t, tc)
+	assertNumDevicesAndKeys(tc, u1, 0, 1)
+	Logout(tc)
+	tc.Cleanup()
+
+	tc = SetupEngineTest(t, "rev")
+	defer tc.Cleanup()
+
+	ctx := &Context{
+		ProvisionUI: newTestProvisionUIPassphrase(),
+		LoginUI:     &libkb.TestLoginUI{Username: u1.Username},
+		LogUI:       tc.G.UI.GetLogUI(),
+		SecretUI:    u1.NewSecretUI(),
+		GPGUI:       &gpgtestui{},
+	}
+	eng := NewLogin(tc.G, libkb.DeviceTypeDesktop, "", keybase1.ClientType_CLI)
+	if err := RunEngine(eng, ctx); err != nil {
+		t.Fatal(err)
+	}
+	testUserHasDeviceKey(tc)
+	hasZeroPaperDev(tc, u1)
+	if err := AssertProvisioned(tc); err != nil {
+		t.Fatal(err)
+	}
+
+	devices, _ := getActiveDevicesAndKeys(tc, u1)
+	thisDevice := devices[0]
+
+	// Revoking the current device should fail.
+	err := doRevokeDevice(tc, u1, thisDevice.ID, false, false)
+	if err == nil {
+		t.Fatal("Expected revoking the current device to fail.")
+	}
+	if _, ok := err.(libkb.RevokeLastDevicePGPError); !ok {
+		t.Fatalf("expected libkb.RevokeLastDevicePGPError, got %T", err)
+	}
+
+	assertNumDevicesAndKeys(tc, u1, 1, 3)
+
+	// Since this is the last device, it should fail with `force` too:
+	err = doRevokeDevice(tc, u1, thisDevice.ID, true, false)
+	if err == nil {
+		t.Fatal("Expected revoking the current last device to fail.")
+	}
+	if _, ok := err.(libkb.RevokeLastDevicePGPError); !ok {
+		t.Fatalf("expected libkb.RevokeLastDevicePGPError, got %T", err)
+	}
+
+	assertNumDevicesAndKeys(tc, u1, 1, 3)
+
+	// With `force` and `forceLast`, the revoke should also fail because of pgp key
+	err = doRevokeDevice(tc, u1, thisDevice.ID, true, true)
+	if err == nil {
+		t.Fatal("Expected revoking current last device with forceLast to fail")
+	}
+	if _, ok := err.(libkb.RevokeLastDevicePGPError); !ok {
+		t.Fatalf("expected libkb.RevokeLastDevicePGPError, got %T", err)
+	}
+
+	assertNumDevicesAndKeys(tc, u1, 1, 3)
+}
