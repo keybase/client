@@ -785,10 +785,13 @@ function* _badgeAppForChat(action: ChatGen.BadgeAppForChatPayload): Saga.SagaGen
       const badged = conv.get('badgeCounts')[
         `${isMobile ? RPCTypes.commonDeviceType.mobile : RPCTypes.commonDeviceType.desktop}`
       ]
-      const conversationIDKey = Constants.conversationIDToKey(conv.get('convID'))
-      totals[conversationIDKey] = total
-      if (badged) {
-        badges[conversationIDKey] = badged
+      const convID = conv.get('convID')
+      if (convID) {
+        const conversationIDKey = Constants.conversationIDToKey(convID)
+        totals[conversationIDKey] = total
+        if (badged) {
+          badges[conversationIDKey] = badged
+        }
       }
     }
   })

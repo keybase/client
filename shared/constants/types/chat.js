@@ -240,7 +240,7 @@ export type _ConversationState = {
   typing: I.Set<Username>,
 }
 export type _ConversationBadgeState = {
-  convID: ConversationID,
+  convID: ?ConversationID,
   unreadMessages: number,
   badgeCounts: {[key: string]: number},
 }

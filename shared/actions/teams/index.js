@@ -371,9 +371,8 @@ function _afterGetChannels(
 
   const convs = results.convs || []
   convs.forEach(conv => {
-    const convID = ChatConstants.conversationIDToKey(conv.convID)
-    convIDs.push(convID)
-    convIDToChannelInfo[convID] = Constants.makeChannelInfo({
+    convIDs.push(conv.convID)
+    convIDToChannelInfo[conv.convID] = Constants.makeChannelInfo({
       channelname: conv.channel,
       description: conv.headline,
       participants: I.Set(conv.participants || []),
@@ -448,7 +447,7 @@ const _saveChannelMembership = function(
   {payload: {teamname, channelState}}: Constants.SaveChannelMembership,
   state: TypedState
 ) {
-  const convIDs = Constants.getConvIdsFromTeamName(state, teamname)
+  const convIDs: I.Set<string> = Constants.getConvIdsFromTeamName(state, teamname)
   const channelnameToConvID = keyBy(convIDs.toArray(), c => Constants.getChannelNameFromConvID(state, c))
   const waitingKey = {key: `saveChannel:${teamname}`}
 
@@ -461,11 +460,14 @@ const _saveChannelMembership = function(
         visibility: RPCTypes.commonTLFVisibility.private,
       })
     }
-    return Saga.callAndWrap(RPCChatTypes.localLeaveConversationLocalRpcPromise, {
-      convID: channelnameToConvID[channelname] &&
-        ChatConstants.keyToConversationID(channelnameToConvID[channelname]),
-    })
-  })
+    const convID =
+      channelnameToConvID[channelname] && ChatConstants.keyToConversationID(channelnameToConvID[channelname])
+    if (convID) {
+      return Saga.callAndWrap(RPCChatTypes.localLeaveConversationLocalRpcPromise, {
+        convID,
+      })
+    }
+  }).filter(Boolean)
 
   return Saga.all([
     Saga.all(calls),

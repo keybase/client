@@ -264,7 +264,7 @@ const userIsInTeamHelper = (state: TypedState, username: string, service: Servic
 // TODO this is broken. channelnames are not unique
 const getConversationIDKeyFromChannelName = (state: TypedState, channelname: string) => null
 
-const getConvIdsFromTeamName = (state: TypedState, teamname: string) =>
+const getConvIdsFromTeamName = (state: TypedState, teamname: string): I.Set<string> =>
   state.entities.teams.teamNameToConvIDs.get(teamname, I.Set())
 
 const getTeamNameFromConvID = (state: TypedState, conversationIDKey: Types.ConversationIDKey) =>

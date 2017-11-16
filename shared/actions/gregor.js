@@ -146,12 +146,17 @@ function* _handlePushState(pushAction: GregorGen.PushStatePayload): SagaGenerato
 }
 
 function* handleKbfsFavoritesOOBM(kbfsFavoriteMessages: Array<OutOfBandMessage>): Generator<any, void, any> {
-  const msgsWithParsedBodies = kbfsFavoriteMessages.map(m => ({...m, body: JSON.parse(m.body.toString())}))
-  const createdTLFs = msgsWithParsedBodies.filter(m => m.body.action === 'create')
+  const createdTLFs: Array<{action: string, tlf: ?string}> = kbfsFavoriteMessages
+    .map(m => JSON.parse(m.body.toString()))
+    .filter(m => m.action === 'create')
 
-  const username: string = (yield Saga.select(usernameSelector): any)
+  const state: TypedState = yield Saga.select()
+  const username = usernameSelector(state)
+  if (!username) {
+    return
+  }
   const folderActions = createdTLFs.reduce((arr, m) => {
-    const folder = m.body.tlf ? folderFromPath(username, m.body.tlf) : null
+    const folder = m.tlf ? folderFromPath(username, m.tlf) : null
 
     if (folder) {
       arr.push(Saga.put(FavoriteGen.createMarkTLFCreated({folder})))
