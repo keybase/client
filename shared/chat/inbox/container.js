@@ -66,12 +66,15 @@ const getTeamToChannel = createSelector(
     inboxBigChannels,
     inboxBigChannelsToTeam
   ): {[teamname: string]: {[channelname: string]: Types.ConversationIDKey}} => {
-    const teamToChannels = {}
+    const teamToChannels: {[teamname: string]: {[channelname: string]: Types.ConversationIDKey}} = {}
     inboxBigChannelsToTeam.forEach((teamname, id) => {
       if (!teamToChannels[teamname]) {
         teamToChannels[teamname] = {}
       }
-      teamToChannels[teamname][inboxBigChannels.get(id)] = id
+      const channelname = inboxBigChannels.get(id)
+      if (channelname) {
+        teamToChannels[teamname][channelname] = id
+      }
     })
     return teamToChannels
   }
@@ -243,11 +246,9 @@ const mapDispatchToProps = (dispatch: any => void, {focusFilter, routeState, set
   toggleSmallTeamsExpanded: () => setRouteState({smallTeamsExpanded: !routeState.get('smallTeamsExpanded')}),
 })
 
-type StateProps = More.ReturnType<typeof mapStateToProps>
-
 // This merge props is not spreading on purpose so we never have any random props that might mutate and force a re-render
 const mergeProps = (
-  stateProps: StateProps,
+  stateProps: More.ReturnType<typeof mapStateToProps>,
   dispatchProps: More.ReturnType<typeof mapDispatchToProps>,
   ownProps: OwnProps
 ) => {
