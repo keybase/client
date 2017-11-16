@@ -244,6 +244,10 @@ func TestTeamOpenPuklessRequest(t *testing.T) {
 	})
 	require.NoError(t, err)
 	require.Equal(t, 1, teamObj.NumActiveInvites())
+
+	members, err := teamObj.Members()
+	require.NoError(t, err)
+	require.Equal(t, 1, len(members.AllUIDs())) // just owner
 }
 
 func TestTeamOpenRemoveOldUVAddInvite(t *testing.T) {

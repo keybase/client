@@ -1532,9 +1532,9 @@ func (t *Team) notify(ctx context.Context, changes keybase1.TeamChangeSet) {
 // adding members:
 // - User can be PUK-less. AddMembersBestEffort will create a
 //   keybase-type invite in this case.
-// - Previous UV of this user can be in the database. Then, a
-//   delete will be issued for that UV before adding new one
-//   (or adding a new invite).
+// - This user might have reset and previous UV is in the team.
+//   Then, a delete will be issued for that UV before adding new
+//   membership (or adding a new invite).
 // - If user has a PUK, it will add them normally, unless they
 //   already are in the team with a higher role.
 //
@@ -1615,14 +1615,15 @@ func AddMembersBestEffort(ctx context.Context, g *libkb.GlobalContext, teamID ke
 		if !becameAnInvite {
 			err = req.AddUVWithRole(uv, role)
 			if err != nil {
-				return fmt.Errorf("Unexpected role: %v when adding %s, bailing out", role, uv)
+				return fmt.Errorf("Failed to AddUVWithRole(%s,%s): %v; bailing out", uv, role, err)
 			}
-
 			needPostMembership = true
 		}
 	}
 
 	if needPostMembership {
+		memberCount := len(req.Owners) + len(req.Admins) + len(req.Writers) + len(req.Readers)
+		g.Log.CDebugf(ctx, "Posting ChangeMembership with %d members", memberCount)
 		err = team.ChangeMembership(ctx, req)
 		if err != nil {
 			return err
@@ -1678,6 +1679,7 @@ func AddMembersBestEffort(ctx context.Context, g *libkb.GlobalContext, teamID ke
 			return fmt.Errorf("Unexpected role: %v", role)
 		}
 
+		g.Log.CDebugf(ctx, "Posting TeamInvites with %d invites", len(invList))
 		return team.postTeamInvites(ctx, inviteSection)
 	}
 
