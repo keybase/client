@@ -713,7 +713,6 @@ func (s *HybridInboxSource) TeamTypeChanged(ctx context.Context, uid gregor1.UID
 		s.Debug(ctx, "TeamTypeChanged: failed to read team type conv: %s", err.Error())
 		return nil, err
 	}
-	s.Debug(ctx, "TeamTypeChanged: desktop generic: %v", remoteConv.Notifications.Settings[keybase1.DeviceType_DESKTOP][chat1.NotificationKind_GENERIC])
 	ib := storage.NewInbox(s.G(), uid)
 	if cerr := ib.TeamTypeChanged(ctx, vers, convID, teamType, remoteConv.Notifications); cerr != nil {
 		err = s.handleInboxError(ctx, cerr, uid)
