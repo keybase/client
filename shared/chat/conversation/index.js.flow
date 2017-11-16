@@ -1,7 +1,6 @@
 // @flow
 import {Component} from 'react'
 import * as Constants from '../../constants/chat'
-import * as SearchConstants from '../../constants/search'
 
 export type Props = {|
   editLastMessageCounter: number,
@@ -26,6 +25,7 @@ export type Props = {|
   chatText: string,
   setChatText: (nextText: string) => void,
   showTeamOffer: boolean,
+  fromManageChannels: ?boolean,
 |}
 
 export default class Conversation extends Component<Props> {}

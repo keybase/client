@@ -66,7 +66,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routePath, routePro
     },
     onPreview: (conversationIDKey: string) => {
       dispatch(ChatGen.createPreviewChannel({conversationIDKey}))
-      dispatch(navigateTo([chatTab, conversationIDKey]))
+      dispatch(navigateTo([chatTab, {selected: conversationIDKey, props: {fromManageChannels: true}}]))
     },
   }
 }

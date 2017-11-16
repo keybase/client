@@ -36,6 +36,7 @@ type StateProps = {|
   showTeamOffer: boolean,
   inboxFilter: ?string,
   showSearchResults: boolean,
+  fromManageChannels: boolean,
 |}
 
 type DispatchProps = {|
@@ -50,7 +51,7 @@ type DispatchProps = {|
   onShowTrackerInSearch: (id: string) => void,
 |}
 
-const mapStateToProps = (state: TypedState, {routePath}): StateProps => {
+const mapStateToProps = (state: TypedState, {routePath, routeProps}): StateProps => {
   const selectedConversationIDKey = Constants.getSelectedConversation(state)
   const routeState = Constants.getSelectedRouteState(state)
 
@@ -108,6 +109,7 @@ const mapStateToProps = (state: TypedState, {routePath}): StateProps => {
     inSearch,
     defaultChatText,
     showTeamOffer,
+    fromManageChannels: routeProps.get('fromManageChannels'),
   }
 }
 
