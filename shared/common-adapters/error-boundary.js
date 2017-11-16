@@ -13,17 +13,20 @@ type ErrorInfo = {
   componentStack: string,
 }
 
+type AllErrorInfo = {
+  name: string,
+  message: string,
+  stack: string,
+  componentStack: string,
+}
+
 const detailStyle = {
   ...globalStyles.selectable,
   whiteSpace: 'pre',
 }
 
 // eslint-disable-next-line handle-callback-err
-const Fallback = ({error, info}: *) => {
-  const message = error.message || '(No error message)'
-  const stack = error.stack || '(No error stack)'
-  let componentStack = (info && info.componentStack) || '(No component stack)'
-
+const Fallback = ({info: {name, message, stack, componentStack}}: {info: AllErrorInfo}) => {
   return (
     <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center', flex: 1, justifyContent: 'center'}}>
       <Text type="Header">Something went wrong...</Text>
@@ -46,7 +49,7 @@ const Fallback = ({error, info}: *) => {
           </Text>
         </Box>}
       <Text type="BodySmall" style={{marginTop: 20}}>Error message: </Text>
-      <Text type="BodySmall" style={globalStyles.selectable}>{message}</Text>
+      <Text type="BodySmall" style={globalStyles.selectable}>{`${name}: ${message}`}</Text>
       <Text type="BodySmall" style={{marginTop: 20}}>Error stack: </Text>
       <ScrollView style={{maxHeight: 100, padding: 10}}>
         <Text type="BodySmall" style={detailStyle}>{stack}</Text>
@@ -59,31 +62,32 @@ const Fallback = ({error, info}: *) => {
   )
 }
 
-class ErrorBoundary extends React.PureComponent<any, {error: ?Error, info: ?ErrorInfo}> {
-  state = {
-    error: null,
-    info: null,
-  }
+type State = {
+  info: ?AllErrorInfo,
+}
+
+class ErrorBoundary extends React.PureComponent<any, State> {
+  state = {info: null}
 
   componentWillReceiveProps(nextProps: any) {
     if (this.props.children !== nextProps.children) {
-      if (this.state.error) {
-        this.setState({error: null, info: null})
-      }
+      this.setState({})
     }
   }
 
   componentDidCatch(error: Error, info: ErrorInfo): void {
-    console.log('Got boundary error!')
-    console.log('Error message:', error.message)
-    console.log('Error stack:', error.stack)
-    console.log('Component stack:', info.componentStack)
-    this.setState({error, info})
+    const allInfo: AllErrorInfo = {
+      name: error.name,
+      message: error.message,
+      stack: error.stack,
+      componentStack: info.componentStack,
+    }
+    this.setState({info: allInfo})
   }
 
   render() {
-    if (this.state.error) {
-      return <Fallback error={this.state.error} info={this.state.info} />
+    if (this.state.info) {
+      return <Fallback info={this.state.info} />
     }
     return this.props.children
   }
