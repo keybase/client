@@ -74,14 +74,18 @@ const Fallback = ({info: {name, message, stack, componentStack}}: {info: AllErro
   )
 }
 
+type Props = {
+  children: React.Node,
+}
+
 type State = {
   info: ?AllErrorInfo,
 }
 
-class ErrorBoundary extends React.PureComponent<any, State> {
+class ErrorBoundary extends React.PureComponent<Props, State> {
   state = {info: null}
 
-  componentWillReceiveProps(nextProps: any) {
+  componentWillReceiveProps(nextProps: Props) {
     if (this.props.children !== nextProps.children) {
       this.setState({})
     }
