@@ -201,7 +201,8 @@ helpers.rootLinuxNode(env, {
                             },
                             integrate: {
                                 build([
-                                    job: "/kbfs-server/master",
+                                    // TODO: Switch this back to master before merging.
+                                    job: "/kbfs-server/PR-441",
                                     parameters: [
                                         [$class: 'StringParameterValue',
                                             name: 'kbfsProjectName',
