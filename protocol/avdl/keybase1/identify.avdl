@@ -91,6 +91,7 @@ protocol identify {
     TeamID teamID;
     array<UserVersion> writers; // Members of the team that can write. The team OWNERs.
     map<UserVersion,IdentifyTrackBreaks> trackBreaks;
+    TLFID folderID; // i-team TLF ID, if there is one
   }
 
 }
