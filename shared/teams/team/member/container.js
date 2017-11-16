@@ -1,4 +1,5 @@
 // @flow
+import * as Types from '../../../constants/types/teams'
 import * as Constants from '../../../constants/teams'
 import * as I from 'immutable'
 import {connect} from 'react-redux'
@@ -17,7 +18,7 @@ type StateProps = {
   follower: boolean,
   _you: ?string,
   _username: string,
-  _memberInfo: I.Set<Constants.MemberInfo>,
+  _memberInfo: I.Set<Types.MemberInfo>,
   loading: boolean,
 }
 

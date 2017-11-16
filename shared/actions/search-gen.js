@@ -5,7 +5,7 @@
 import * as I from 'immutable'
 import * as RPCTypes from '../constants/types/flow-types'
 import * as More from '../constants/types/more'
-import * as Constants from '../constants/search'
+import * as Types from '../constants/types/search'
 
 // Constants
 export const resetStore = 'common:resetStore' // not a part of search but is handled by every reducer
@@ -22,15 +22,15 @@ export const userInputItemsUpdated = 'search:userInputItemsUpdated'
 
 // Action Creators
 export const createAddClickedFromUserInput = (payload: {|+searchKey: string|}) => ({error: false, payload, type: addClickedFromUserInput})
-export const createAddResultsToUserInput = (payload: {|+searchKey: string, +searchResults: Array<Constants.SearchResultId>|}) => ({error: false, payload, type: addResultsToUserInput})
+export const createAddResultsToUserInput = (payload: {|+searchKey: string, +searchResults: Array<Types.SearchResultId>|}) => ({error: false, payload, type: addResultsToUserInput})
 export const createClearSearchResults = (payload: {|+searchKey: string|}) => ({error: false, payload, type: clearSearchResults})
-export const createFinishedSearch = (payload: {|+searchResults: Array<Constants.SearchResultId>, +searchResultTerm: string, +service: Constants.Service, +searchKey: string, +searchShowingSuggestions?: boolean|}) => ({error: false, payload, type: finishedSearch})
-export const createRemoveResultsToUserInput = (payload: {|+searchKey: string, +searchResults: Array<Constants.SearchResultId>|}) => ({error: false, payload, type: removeResultsToUserInput})
-export const createSearch = (payload: {|+term: string, +service: Constants.Service, +searchKey: string|}) => ({error: false, payload, type: search})
+export const createFinishedSearch = (payload: {|+searchResults: Array<Types.SearchResultId>, +searchResultTerm: string, +service: Types.Service, +searchKey: string, +searchShowingSuggestions?: boolean|}) => ({error: false, payload, type: finishedSearch})
+export const createRemoveResultsToUserInput = (payload: {|+searchKey: string, +searchResults: Array<Types.SearchResultId>|}) => ({error: false, payload, type: removeResultsToUserInput})
+export const createSearch = (payload: {|+term: string, +service: Types.Service, +searchKey: string|}) => ({error: false, payload, type: search})
 export const createSearchSuggestions = (payload: {|+maxUsers?: number, +searchKey: string|}) => ({error: false, payload, type: searchSuggestions})
-export const createSetUserInputItems = (payload: {|+searchKey: string, +searchResults: Array<Constants.SearchResultId>|}) => ({error: false, payload, type: setUserInputItems})
-export const createUpdateSelectedSearchResult = (payload: {|+searchKey: string, +id: ?Constants.SearchResultId|}) => ({error: false, payload, type: updateSelectedSearchResult})
-export const createUserInputItemsUpdated = (payload: {|+searchKey: string, +userInputItemIds: Array<Constants.SearchResultId>|}) => ({error: false, payload, type: userInputItemsUpdated})
+export const createSetUserInputItems = (payload: {|+searchKey: string, +searchResults: Array<Types.SearchResultId>|}) => ({error: false, payload, type: setUserInputItems})
+export const createUpdateSelectedSearchResult = (payload: {|+searchKey: string, +id: ?Types.SearchResultId|}) => ({error: false, payload, type: updateSelectedSearchResult})
+export const createUserInputItemsUpdated = (payload: {|+searchKey: string, +userInputItemIds: Array<Types.SearchResultId>|}) => ({error: false, payload, type: userInputItemsUpdated})
 
 // Action Payloads
 export type AddClickedFromUserInputPayload = More.ReturnType<typeof createAddClickedFromUserInput>

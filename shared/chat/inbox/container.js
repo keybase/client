@@ -1,5 +1,6 @@
 // @flow
 import * as Constants from '../../constants/chat'
+import * as More from '../../constants/types/more'
 import * as Types from '../../constants/types/chat'
 import * as Inbox from '.'
 import * as ChatGen from '../../actions/chat-gen'
@@ -12,9 +13,9 @@ import {
   withHandlers,
   createSelector,
   createImmutableEqualSelector,
-  type TypedState,
 } from '../../util/container'
 import {scoreFilter, passesStringFilter} from './filtering'
+import type {TypedState} from '../../constants/reducer'
 
 const smallTeamsCollapsedMaxShown = 5
 const getAlwaysShow = (state: TypedState) => state.chat.get('inboxAlwaysShow')
@@ -26,7 +27,9 @@ const getIsEmpty = (state: TypedState) => state.chat.get('inboxIsEmpty')
 const getPending = (state: TypedState) => state.chat.get('pendingConversations')
 const getSmallTimestamps = (state: TypedState) => state.chat.getIn(['inboxSmallTimestamps'], I.Map())
 const getSupersededBy = (state: TypedState) => state.chat.get('inboxSupersededBy')
-const _rowsForSelect = (rows: Array<any>) => rows.filter(r => ['small', 'big'].includes(r.type))
+const _rowsForSelect = (rows: Array<Inbox.RowItem>): Array<Inbox.RowItemSmall | Inbox.RowItemBig> =>
+  // $FlowIssue doesn't underestand filter refinement sadly
+  rows.filter(r => r.type === 'small' || r.type === 'big')
 const _smallTeamsPassThrough = (_, smallTeamsExpanded) => smallTeamsExpanded
 
 // This chain of reselects is to optimize not having to redo any work
@@ -63,12 +66,15 @@ const getTeamToChannel = createSelector(
     inboxBigChannels,
     inboxBigChannelsToTeam
   ): {[teamname: string]: {[channelname: string]: Types.ConversationIDKey}} => {
-    const teamToChannels = {}
+    const teamToChannels: {[teamname: string]: {[channelname: string]: Types.ConversationIDKey}} = {}
     inboxBigChannelsToTeam.forEach((teamname, id) => {
       if (!teamToChannels[teamname]) {
         teamToChannels[teamname] = {}
       }
-      teamToChannels[teamname][inboxBigChannels.get(id)] = id
+      const channelname = inboxBigChannels.get(id)
+      if (channelname) {
+        teamToChannels[teamname][channelname] = id
+      }
     })
     return teamToChannels
   }
@@ -180,7 +186,19 @@ const getFilteredRows = createSelector(
   }
 )
 
-const mapStateToProps = (state: TypedState, {isActiveRoute, routeState}) => {
+type OwnProps = {
+  isActiveRoute: boolean,
+  filterFocusCount: number,
+  routeState: I.RecordOf<{
+    smallTeamsExpanded: boolean,
+  }>,
+  focusFilter: () => void,
+  setRouteState: ({
+    smallTeamsExpanded?: boolean,
+  }) => void,
+}
+
+const mapStateToProps = (state: TypedState, {isActiveRoute, routeState}: OwnProps) => {
   const filter = getFilter(state)
   const smallTeamsExpanded = routeState.get('smallTeamsExpanded')
 
@@ -202,14 +220,17 @@ const mapStateToProps = (state: TypedState, {isActiveRoute, routeState}) => {
     filter,
     isActiveRoute,
     isLoading: state.chat.get('inboxGlobalUntrustedState') === 'loading',
-    user: Constants.getYou(state),
+    _user: Constants.getYou(state),
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch, {focusFilter, routeState, setRouteState}) => ({
+const mapDispatchToProps = (dispatch: any => void, {focusFilter, routeState, setRouteState}: OwnProps) => ({
   loadInbox: () => dispatch(ChatGen.createLoadInbox()),
-  _onSelectNext: (rows, direction) => dispatch(ChatGen.createSelectNext({rows, direction})),
-  onHotkey: cmd => {
+  _onSelectNext: (rows: Array<Inbox.RowItemSmall | Inbox.RowItemBig>, direction: -1 | 1) =>
+    dispatch(
+      ChatGen.createSelectNext({rows: rows.map(r => ({conversationIDKey: r.conversationIDKey})), direction})
+    ),
+  onHotkey: (cmd: string) => {
     if (cmd.endsWith('+n')) {
       dispatch(ChatGen.createNewChat())
     } else {
@@ -221,19 +242,23 @@ const mapDispatchToProps = (dispatch: Dispatch, {focusFilter, routeState, setRou
     dispatch(ChatGen.createSelectConversation({conversationIDKey, fromUser: true}))
   },
   onSetFilter: (filter: string) => dispatch(ChatGen.createSetInboxFilter({filter})),
-  onUntrustedInboxVisible: conversationIDKeys =>
+  onUntrustedInboxVisible: (conversationIDKeys: Array<Types.ConversationIDKey>) =>
     dispatch(ChatGen.createUnboxConversations({conversationIDKeys, reason: 'untrusted inbox visible'})),
   toggleSmallTeamsExpanded: () => setRouteState({smallTeamsExpanded: !routeState.get('smallTeamsExpanded')}),
 })
 
 // This merge props is not spreading on purpose so we never have any random props that might mutate and force a re-render
-const mergeProps = (stateProps, dispatchProps, ownProps) => {
+const mergeProps = (
+  stateProps: More.ReturnType<typeof mapStateToProps>,
+  dispatchProps: More.ReturnType<typeof mapDispatchToProps>,
+  ownProps: OwnProps
+) => {
   return {
     filter: stateProps.filter,
     isActiveRoute: stateProps.isActiveRoute,
     isLoading: stateProps.isLoading,
     loadInbox: dispatchProps.loadInbox,
-    user: stateProps.user,
+    _user: stateProps._user,
     onHotkey: dispatchProps.onHotkey,
     onNewChat: dispatchProps.onNewChat,
     onSelect: dispatchProps.onSelect,
@@ -262,9 +287,10 @@ export default compose(
   pausableConnect(mapStateToProps, mapDispatchToProps, mergeProps),
   lifecycle({
     componentDidMount: function() {
-      if (_lastUser !== this.props.user) {
-        _lastUser = this.props.user
-        this.props.loadInbox()
+      const props: Inbox.Props & {_user: ?string} = this.props
+      if (_lastUser !== props._user) {
+        _lastUser = props._user
+        props.loadInbox()
       }
     },
   })

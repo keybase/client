@@ -1,6 +1,5 @@
 // @flow
 import {RPCError} from '../util/errors'
-import {Buffer} from 'buffer'
 export type EndHandlerType = (session: Object) => void
 export type MethodKey = string
 export type SessionID = number
@@ -22,3 +21,4 @@ export type Long = number
 export type String = string
 export type Uint = number
 export type Uint64 = number
+export {RPCError} from '../util/errors'

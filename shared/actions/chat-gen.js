@@ -5,7 +5,7 @@
 import * as I from 'immutable'
 import * as RPCTypes from '../constants/types/flow-types'
 import * as More from '../constants/types/more'
-import * as TeamConstants from '../constants/teams'
+import * as TeamTypes from '../constants/types/teams'
 import * as Types from '../constants/types/chat'
 import * as RPCChatTypes from '../constants/types/flow-types-chat'
 import HiddenString from '../util/hidden-string'
@@ -136,7 +136,7 @@ export const createNewChat = () => ({error: false, payload: undefined, type: new
 export const createOpenAttachmentPopup = (payload: {|+message: Types.AttachmentMessage, +currentPath: Path|}) => ({error: false, payload, type: openAttachmentPopup})
 export const createOpenConversation = (payload: {|+conversationIDKey: Types.ConversationIDKey|}) => ({error: false, payload, type: openConversation})
 export const createOpenFolder = () => ({error: false, payload: undefined, type: openFolder})
-export const createOpenTeamConversation = (payload: {|+teamname: TeamConstants.Teamname, +channelname: string|}) => ({error: false, payload, type: openTeamConversation})
+export const createOpenTeamConversation = (payload: {|+teamname: TeamTypes.Teamname, +channelname: string|}) => ({error: false, payload, type: openTeamConversation})
 export const createOpenTlfInChat = (payload: {|+tlf: string, +isTeam?: boolean|}) => ({error: false, payload, type: openTlfInChat})
 export const createOutboxMessageBecameReal = (payload: {|+oldMessageKey: Types.MessageKey, +newMessageKey: Types.MessageKey|}) => ({error: false, payload, type: outboxMessageBecameReal})
 export const createPendingToRealConversation = (payload: {|+oldKey: Types.ConversationIDKey, +newKey: Types.ConversationIDKey|}) => ({error: false, payload, type: pendingToRealConversation})
@@ -151,7 +151,7 @@ export const createSaveAttachment = (payload: {|+messageKey: Types.MessageKey|})
 export const createSaveAttachmentNative = (payload: {|+messageKey: Types.MessageKey|}) => ({error: false, payload, type: saveAttachmentNative})
 export const createSelectAttachment = (payload: {|+input: Types.AttachmentInput|}) => ({error: false, payload, type: selectAttachment})
 export const createSelectConversation = (payload: {|+conversationIDKey: ?Types.ConversationIDKey, +fromUser?: boolean|}) => ({error: false, payload, type: selectConversation})
-export const createSelectNext = (payload: {|+rows: Array<any>, +direction: -1 | 1|}) => ({error: false, payload, type: selectNext})
+export const createSelectNext = (payload: {|+rows: Array<{conversationIDKey: Types.ConversationIDKey}>, +direction: -1 | 1|}) => ({error: false, payload, type: selectNext})
 export const createSetInboxFilter = (payload: {|+filter: string|}) => ({error: false, payload, type: setInboxFilter})
 export const createSetInboxGlobalUntrustedState = (payload: {|+inboxGlobalUntrustedState: Types.UntrustedState|}) => ({error: false, payload, type: setInboxGlobalUntrustedState})
 export const createSetLoaded = (payload: {|+conversationIDKey: Types.ConversationIDKey, +isLoaded: boolean|}) => ({error: false, payload, type: setLoaded})

@@ -1,6 +1,6 @@
 {
   "prelude": [
-    "import * as TeamConstants from '../constants/teams'",
+    "import * as TeamTypes from '../constants/types/teams'",
     "import * as Types from '../constants/types/chat'",
     "import * as RPCChatTypes from '../constants/types/flow-types-chat'",
     "import HiddenString from '../util/hidden-string'",
@@ -100,7 +100,7 @@
       "forInboxSync?": "boolean"
     },
     "selectNext": {
-      "rows": "Array<any>",
+      "rows": "Array<{conversationIDKey: Types.ConversationIDKey}>",
       "direction": "-1 | 1"
     },
     "setInboxFilter": {
@@ -148,7 +148,7 @@
       "conversationIDKey": "Types.ConversationIDKey"
     },
     "openTeamConversation": {
-      "teamname": "TeamConstants.Teamname",
+      "teamname": "TeamTypes.Teamname",
       "channelname": "string"
     },
     "openAttachmentPopup": {

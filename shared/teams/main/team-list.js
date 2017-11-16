@@ -14,7 +14,7 @@ import {
 import {globalMargins, globalStyles, globalColors} from '../../styles'
 import {isMobile} from '../../constants/platform'
 
-import type {Teamname} from '../../constants/teams'
+import type {Teamname} from '../../constants/types/teams'
 
 export type Props = {
   teamnames: Array<Teamname>,

@@ -5,176 +5,176 @@
 import * as Gregor1 from './flow-types-gregor'
 
 import engine, {EngineChannel} from '../../engine'
-import type {Boolean, Bool, Bytes, Double, Int, Int64, Long, String, Uint, Uint64, WaitingHandlerType, RPCErrorHandler, CommonResponseHandler} from '../../engine/types'
+import type {Boolean, Bool, Bytes, Double, Int, Int64, Long, String, Uint, Uint64, WaitingHandlerType, RPCErrorHandler, CommonResponseHandler, RPCError} from '../../engine/types'
 
 
 export const BTCRegisterBTCRpcChannelMap = (configKeys: Array<string>, request: BTCRegisterBTCRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.BTC.registerBTC', request)
 
-export const BTCRegisterBTCRpcPromise = (request: BTCRegisterBTCRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.BTC.registerBTC', request, (error, result) => error ? reject(error) : resolve(result)))
+export const BTCRegisterBTCRpcPromise = (request: BTCRegisterBTCRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.BTC.registerBTC', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
 
 export const KBFSGitCreateRepoRpcChannelMap = (configKeys: Array<string>, request: KBFSGitCreateRepoRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.KBFSGit.createRepo', request)
 
-export const KBFSGitCreateRepoRpcPromise = (request: KBFSGitCreateRepoRpcParam): Promise<KBFSGitCreateRepoResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.KBFSGit.createRepo', request, (error, result) => error ? reject(error) : resolve(result)))
+export const KBFSGitCreateRepoRpcPromise = (request: KBFSGitCreateRepoRpcParam): Promise<KBFSGitCreateRepoResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.KBFSGit.createRepo', request, (error: RPCError, result: KBFSGitCreateRepoResult) => error ? reject(error) : resolve(result)))
 
 export const KBFSGitDeleteRepoRpcChannelMap = (configKeys: Array<string>, request: KBFSGitDeleteRepoRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.KBFSGit.deleteRepo', request)
 
-export const KBFSGitDeleteRepoRpcPromise = (request: KBFSGitDeleteRepoRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.KBFSGit.deleteRepo', request, (error, result) => error ? reject(error) : resolve(result)))
+export const KBFSGitDeleteRepoRpcPromise = (request: KBFSGitDeleteRepoRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.KBFSGit.deleteRepo', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
 
 export const KBFSGitGcRpcChannelMap = (configKeys: Array<string>, request: KBFSGitGcRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.KBFSGit.gc', request)
 
-export const KBFSGitGcRpcPromise = (request: KBFSGitGcRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.KBFSGit.gc', request, (error, result) => error ? reject(error) : resolve(result)))
+export const KBFSGitGcRpcPromise = (request: KBFSGitGcRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.KBFSGit.gc', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
 
 export const Kex2Provisionee2DidCounterSign2RpcChannelMap = (configKeys: Array<string>, request: Kex2Provisionee2DidCounterSign2RpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.Kex2Provisionee2.didCounterSign2', request)
 
-export const Kex2Provisionee2DidCounterSign2RpcPromise = (request: Kex2Provisionee2DidCounterSign2RpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.Kex2Provisionee2.didCounterSign2', request, (error, result) => error ? reject(error) : resolve(result)))
+export const Kex2Provisionee2DidCounterSign2RpcPromise = (request: Kex2Provisionee2DidCounterSign2RpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.Kex2Provisionee2.didCounterSign2', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
 
 export const Kex2Provisionee2Hello2RpcChannelMap = (configKeys: Array<string>, request: Kex2Provisionee2Hello2RpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.Kex2Provisionee2.hello2', request)
 
-export const Kex2Provisionee2Hello2RpcPromise = (request: Kex2Provisionee2Hello2RpcParam): Promise<Kex2Provisionee2Hello2Result> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.Kex2Provisionee2.hello2', request, (error, result) => error ? reject(error) : resolve(result)))
+export const Kex2Provisionee2Hello2RpcPromise = (request: Kex2Provisionee2Hello2RpcParam): Promise<Kex2Provisionee2Hello2Result> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.Kex2Provisionee2.hello2', request, (error: RPCError, result: Kex2Provisionee2Hello2Result) => error ? reject(error) : resolve(result)))
 
 export const Kex2ProvisioneeDidCounterSignRpcChannelMap = (configKeys: Array<string>, request: Kex2ProvisioneeDidCounterSignRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.Kex2Provisionee.didCounterSign', request)
 
-export const Kex2ProvisioneeDidCounterSignRpcPromise = (request: Kex2ProvisioneeDidCounterSignRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.Kex2Provisionee.didCounterSign', request, (error, result) => error ? reject(error) : resolve(result)))
+export const Kex2ProvisioneeDidCounterSignRpcPromise = (request: Kex2ProvisioneeDidCounterSignRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.Kex2Provisionee.didCounterSign', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
 
 export const Kex2ProvisioneeHelloRpcChannelMap = (configKeys: Array<string>, request: Kex2ProvisioneeHelloRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.Kex2Provisionee.hello', request)
 
-export const Kex2ProvisioneeHelloRpcPromise = (request: Kex2ProvisioneeHelloRpcParam): Promise<Kex2ProvisioneeHelloResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.Kex2Provisionee.hello', request, (error, result) => error ? reject(error) : resolve(result)))
+export const Kex2ProvisioneeHelloRpcPromise = (request: Kex2ProvisioneeHelloRpcParam): Promise<Kex2ProvisioneeHelloResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.Kex2Provisionee.hello', request, (error: RPCError, result: Kex2ProvisioneeHelloResult) => error ? reject(error) : resolve(result)))
 
 export const Kex2ProvisionerKexStartRpcChannelMap = (configKeys: Array<string>, request: Kex2ProvisionerKexStartRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.Kex2Provisioner.kexStart', request)
 
-export const Kex2ProvisionerKexStartRpcPromise = (request: Kex2ProvisionerKexStartRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.Kex2Provisioner.kexStart', request, (error, result) => error ? reject(error) : resolve(result)))
+export const Kex2ProvisionerKexStartRpcPromise = (request: Kex2ProvisionerKexStartRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.Kex2Provisioner.kexStart', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
 
 export const NotifyFSRequestFSEditListRequestRpcChannelMap = (configKeys: Array<string>, request: NotifyFSRequestFSEditListRequestRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.NotifyFSRequest.FSEditListRequest', request)
 
-export const NotifyFSRequestFSEditListRequestRpcPromise = (request: NotifyFSRequestFSEditListRequestRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.NotifyFSRequest.FSEditListRequest', request, (error, result) => error ? reject(error) : resolve(result)))
+export const NotifyFSRequestFSEditListRequestRpcPromise = (request: NotifyFSRequestFSEditListRequestRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.NotifyFSRequest.FSEditListRequest', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
 
 export const NotifyFSRequestFSSyncStatusRequestRpcChannelMap = (configKeys: Array<string>, request: NotifyFSRequestFSSyncStatusRequestRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.NotifyFSRequest.FSSyncStatusRequest', request)
 
-export const NotifyFSRequestFSSyncStatusRequestRpcPromise = (request: NotifyFSRequestFSSyncStatusRequestRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.NotifyFSRequest.FSSyncStatusRequest', request, (error, result) => error ? reject(error) : resolve(result)))
+export const NotifyFSRequestFSSyncStatusRequestRpcPromise = (request: NotifyFSRequestFSSyncStatusRequestRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.NotifyFSRequest.FSSyncStatusRequest', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
 
 export const ScanProofsScanProofsRpcChannelMap = (configKeys: Array<string>, request: ScanProofsScanProofsRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.ScanProofs.scanProofs', request)
 
-export const ScanProofsScanProofsRpcPromise = (request: ScanProofsScanProofsRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.ScanProofs.scanProofs', request, (error, result) => error ? reject(error) : resolve(result)))
+export const ScanProofsScanProofsRpcPromise = (request: ScanProofsScanProofsRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.ScanProofs.scanProofs', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
 
 export const SecretKeysGetSecretKeysRpcChannelMap = (configKeys: Array<string>, request: SecretKeysGetSecretKeysRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.SecretKeys.getSecretKeys', request)
 
-export const SecretKeysGetSecretKeysRpcPromise = (request: SecretKeysGetSecretKeysRpcParam): Promise<SecretKeysGetSecretKeysResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.SecretKeys.getSecretKeys', request, (error, result) => error ? reject(error) : resolve(result)))
+export const SecretKeysGetSecretKeysRpcPromise = (request: SecretKeysGetSecretKeysRpcParam): Promise<SecretKeysGetSecretKeysResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.SecretKeys.getSecretKeys', request, (error: RPCError, result: SecretKeysGetSecretKeysResult) => error ? reject(error) : resolve(result)))
 
 export const SimpleFSSimpleFSCancelRpcChannelMap = (configKeys: Array<string>, request: SimpleFSSimpleFSCancelRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.SimpleFS.simpleFSCancel', request)
 
-export const SimpleFSSimpleFSCancelRpcPromise = (request: SimpleFSSimpleFSCancelRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.SimpleFS.simpleFSCancel', request, (error, result) => error ? reject(error) : resolve(result)))
+export const SimpleFSSimpleFSCancelRpcPromise = (request: SimpleFSSimpleFSCancelRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.SimpleFS.simpleFSCancel', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
 
 export const SimpleFSSimpleFSCheckRpcChannelMap = (configKeys: Array<string>, request: SimpleFSSimpleFSCheckRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.SimpleFS.simpleFSCheck', request)
 
-export const SimpleFSSimpleFSCheckRpcPromise = (request: SimpleFSSimpleFSCheckRpcParam): Promise<SimpleFSSimpleFSCheckResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.SimpleFS.simpleFSCheck', request, (error, result) => error ? reject(error) : resolve(result)))
+export const SimpleFSSimpleFSCheckRpcPromise = (request: SimpleFSSimpleFSCheckRpcParam): Promise<SimpleFSSimpleFSCheckResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.SimpleFS.simpleFSCheck', request, (error: RPCError, result: SimpleFSSimpleFSCheckResult) => error ? reject(error) : resolve(result)))
 
 export const SimpleFSSimpleFSCloseRpcChannelMap = (configKeys: Array<string>, request: SimpleFSSimpleFSCloseRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.SimpleFS.simpleFSClose', request)
 
-export const SimpleFSSimpleFSCloseRpcPromise = (request: SimpleFSSimpleFSCloseRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.SimpleFS.simpleFSClose', request, (error, result) => error ? reject(error) : resolve(result)))
+export const SimpleFSSimpleFSCloseRpcPromise = (request: SimpleFSSimpleFSCloseRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.SimpleFS.simpleFSClose', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
 
 export const SimpleFSSimpleFSCopyRecursiveRpcChannelMap = (configKeys: Array<string>, request: SimpleFSSimpleFSCopyRecursiveRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.SimpleFS.simpleFSCopyRecursive', request)
 
-export const SimpleFSSimpleFSCopyRecursiveRpcPromise = (request: SimpleFSSimpleFSCopyRecursiveRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.SimpleFS.simpleFSCopyRecursive', request, (error, result) => error ? reject(error) : resolve(result)))
+export const SimpleFSSimpleFSCopyRecursiveRpcPromise = (request: SimpleFSSimpleFSCopyRecursiveRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.SimpleFS.simpleFSCopyRecursive', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
 
 export const SimpleFSSimpleFSCopyRpcChannelMap = (configKeys: Array<string>, request: SimpleFSSimpleFSCopyRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.SimpleFS.simpleFSCopy', request)
 
-export const SimpleFSSimpleFSCopyRpcPromise = (request: SimpleFSSimpleFSCopyRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.SimpleFS.simpleFSCopy', request, (error, result) => error ? reject(error) : resolve(result)))
+export const SimpleFSSimpleFSCopyRpcPromise = (request: SimpleFSSimpleFSCopyRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.SimpleFS.simpleFSCopy', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
 
 export const SimpleFSSimpleFSGetOpsRpcChannelMap = (configKeys: Array<string>, request: SimpleFSSimpleFSGetOpsRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.SimpleFS.simpleFSGetOps', request)
 
-export const SimpleFSSimpleFSGetOpsRpcPromise = (request: SimpleFSSimpleFSGetOpsRpcParam): Promise<SimpleFSSimpleFSGetOpsResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.SimpleFS.simpleFSGetOps', request, (error, result) => error ? reject(error) : resolve(result)))
+export const SimpleFSSimpleFSGetOpsRpcPromise = (request: SimpleFSSimpleFSGetOpsRpcParam): Promise<SimpleFSSimpleFSGetOpsResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.SimpleFS.simpleFSGetOps', request, (error: RPCError, result: SimpleFSSimpleFSGetOpsResult) => error ? reject(error) : resolve(result)))
 
 export const SimpleFSSimpleFSListRecursiveRpcChannelMap = (configKeys: Array<string>, request: SimpleFSSimpleFSListRecursiveRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.SimpleFS.simpleFSListRecursive', request)
 
-export const SimpleFSSimpleFSListRecursiveRpcPromise = (request: SimpleFSSimpleFSListRecursiveRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.SimpleFS.simpleFSListRecursive', request, (error, result) => error ? reject(error) : resolve(result)))
+export const SimpleFSSimpleFSListRecursiveRpcPromise = (request: SimpleFSSimpleFSListRecursiveRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.SimpleFS.simpleFSListRecursive', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
 
 export const SimpleFSSimpleFSListRpcChannelMap = (configKeys: Array<string>, request: SimpleFSSimpleFSListRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.SimpleFS.simpleFSList', request)
 
-export const SimpleFSSimpleFSListRpcPromise = (request: SimpleFSSimpleFSListRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.SimpleFS.simpleFSList', request, (error, result) => error ? reject(error) : resolve(result)))
+export const SimpleFSSimpleFSListRpcPromise = (request: SimpleFSSimpleFSListRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.SimpleFS.simpleFSList', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
 
 export const SimpleFSSimpleFSMakeOpidRpcChannelMap = (configKeys: Array<string>, request: SimpleFSSimpleFSMakeOpidRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.SimpleFS.simpleFSMakeOpid', request)
 
-export const SimpleFSSimpleFSMakeOpidRpcPromise = (request: SimpleFSSimpleFSMakeOpidRpcParam): Promise<SimpleFSSimpleFSMakeOpidResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.SimpleFS.simpleFSMakeOpid', request, (error, result) => error ? reject(error) : resolve(result)))
+export const SimpleFSSimpleFSMakeOpidRpcPromise = (request: SimpleFSSimpleFSMakeOpidRpcParam): Promise<SimpleFSSimpleFSMakeOpidResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.SimpleFS.simpleFSMakeOpid', request, (error: RPCError, result: SimpleFSSimpleFSMakeOpidResult) => error ? reject(error) : resolve(result)))
 
 export const SimpleFSSimpleFSMoveRpcChannelMap = (configKeys: Array<string>, request: SimpleFSSimpleFSMoveRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.SimpleFS.simpleFSMove', request)
 
-export const SimpleFSSimpleFSMoveRpcPromise = (request: SimpleFSSimpleFSMoveRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.SimpleFS.simpleFSMove', request, (error, result) => error ? reject(error) : resolve(result)))
+export const SimpleFSSimpleFSMoveRpcPromise = (request: SimpleFSSimpleFSMoveRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.SimpleFS.simpleFSMove', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
 
 export const SimpleFSSimpleFSOpenRpcChannelMap = (configKeys: Array<string>, request: SimpleFSSimpleFSOpenRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.SimpleFS.simpleFSOpen', request)
 
-export const SimpleFSSimpleFSOpenRpcPromise = (request: SimpleFSSimpleFSOpenRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.SimpleFS.simpleFSOpen', request, (error, result) => error ? reject(error) : resolve(result)))
+export const SimpleFSSimpleFSOpenRpcPromise = (request: SimpleFSSimpleFSOpenRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.SimpleFS.simpleFSOpen', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
 
 export const SimpleFSSimpleFSReadListRpcChannelMap = (configKeys: Array<string>, request: SimpleFSSimpleFSReadListRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.SimpleFS.simpleFSReadList', request)
 
-export const SimpleFSSimpleFSReadListRpcPromise = (request: SimpleFSSimpleFSReadListRpcParam): Promise<SimpleFSSimpleFSReadListResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.SimpleFS.simpleFSReadList', request, (error, result) => error ? reject(error) : resolve(result)))
+export const SimpleFSSimpleFSReadListRpcPromise = (request: SimpleFSSimpleFSReadListRpcParam): Promise<SimpleFSSimpleFSReadListResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.SimpleFS.simpleFSReadList', request, (error: RPCError, result: SimpleFSSimpleFSReadListResult) => error ? reject(error) : resolve(result)))
 
 export const SimpleFSSimpleFSReadRpcChannelMap = (configKeys: Array<string>, request: SimpleFSSimpleFSReadRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.SimpleFS.simpleFSRead', request)
 
-export const SimpleFSSimpleFSReadRpcPromise = (request: SimpleFSSimpleFSReadRpcParam): Promise<SimpleFSSimpleFSReadResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.SimpleFS.simpleFSRead', request, (error, result) => error ? reject(error) : resolve(result)))
+export const SimpleFSSimpleFSReadRpcPromise = (request: SimpleFSSimpleFSReadRpcParam): Promise<SimpleFSSimpleFSReadResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.SimpleFS.simpleFSRead', request, (error: RPCError, result: SimpleFSSimpleFSReadResult) => error ? reject(error) : resolve(result)))
 
 export const SimpleFSSimpleFSRemoveRpcChannelMap = (configKeys: Array<string>, request: SimpleFSSimpleFSRemoveRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.SimpleFS.simpleFSRemove', request)
 
-export const SimpleFSSimpleFSRemoveRpcPromise = (request: SimpleFSSimpleFSRemoveRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.SimpleFS.simpleFSRemove', request, (error, result) => error ? reject(error) : resolve(result)))
+export const SimpleFSSimpleFSRemoveRpcPromise = (request: SimpleFSSimpleFSRemoveRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.SimpleFS.simpleFSRemove', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
 
 export const SimpleFSSimpleFSRenameRpcChannelMap = (configKeys: Array<string>, request: SimpleFSSimpleFSRenameRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.SimpleFS.simpleFSRename', request)
 
-export const SimpleFSSimpleFSRenameRpcPromise = (request: SimpleFSSimpleFSRenameRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.SimpleFS.simpleFSRename', request, (error, result) => error ? reject(error) : resolve(result)))
+export const SimpleFSSimpleFSRenameRpcPromise = (request: SimpleFSSimpleFSRenameRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.SimpleFS.simpleFSRename', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
 
 export const SimpleFSSimpleFSSetStatRpcChannelMap = (configKeys: Array<string>, request: SimpleFSSimpleFSSetStatRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.SimpleFS.simpleFSSetStat', request)
 
-export const SimpleFSSimpleFSSetStatRpcPromise = (request: SimpleFSSimpleFSSetStatRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.SimpleFS.simpleFSSetStat', request, (error, result) => error ? reject(error) : resolve(result)))
+export const SimpleFSSimpleFSSetStatRpcPromise = (request: SimpleFSSimpleFSSetStatRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.SimpleFS.simpleFSSetStat', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
 
 export const SimpleFSSimpleFSStatRpcChannelMap = (configKeys: Array<string>, request: SimpleFSSimpleFSStatRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.SimpleFS.simpleFSStat', request)
 
-export const SimpleFSSimpleFSStatRpcPromise = (request: SimpleFSSimpleFSStatRpcParam): Promise<SimpleFSSimpleFSStatResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.SimpleFS.simpleFSStat', request, (error, result) => error ? reject(error) : resolve(result)))
+export const SimpleFSSimpleFSStatRpcPromise = (request: SimpleFSSimpleFSStatRpcParam): Promise<SimpleFSSimpleFSStatResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.SimpleFS.simpleFSStat', request, (error: RPCError, result: SimpleFSSimpleFSStatResult) => error ? reject(error) : resolve(result)))
 
 export const SimpleFSSimpleFSWaitRpcChannelMap = (configKeys: Array<string>, request: SimpleFSSimpleFSWaitRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.SimpleFS.simpleFSWait', request)
 
-export const SimpleFSSimpleFSWaitRpcPromise = (request: SimpleFSSimpleFSWaitRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.SimpleFS.simpleFSWait', request, (error, result) => error ? reject(error) : resolve(result)))
+export const SimpleFSSimpleFSWaitRpcPromise = (request: SimpleFSSimpleFSWaitRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.SimpleFS.simpleFSWait', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
 
 export const SimpleFSSimpleFSWriteRpcChannelMap = (configKeys: Array<string>, request: SimpleFSSimpleFSWriteRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.SimpleFS.simpleFSWrite', request)
 
-export const SimpleFSSimpleFSWriteRpcPromise = (request: SimpleFSSimpleFSWriteRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.SimpleFS.simpleFSWrite', request, (error, result) => error ? reject(error) : resolve(result)))
+export const SimpleFSSimpleFSWriteRpcPromise = (request: SimpleFSSimpleFSWriteRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.SimpleFS.simpleFSWrite', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
 
 export const accountEmailChangeRpcChannelMap = (configKeys: Array<string>, request: AccountEmailChangeRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.account.emailChange', request)
 
-export const accountEmailChangeRpcPromise = (request: AccountEmailChangeRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.account.emailChange', request, (error, result) => error ? reject(error) : resolve(result)))
+export const accountEmailChangeRpcPromise = (request: AccountEmailChangeRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.account.emailChange', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
 
 export const accountHasServerKeysRpcChannelMap = (configKeys: Array<string>, request: AccountHasServerKeysRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.account.hasServerKeys', request)
 
-export const accountHasServerKeysRpcPromise = (request: AccountHasServerKeysRpcParam): Promise<AccountHasServerKeysResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.account.hasServerKeys', request, (error, result) => error ? reject(error) : resolve(result)))
+export const accountHasServerKeysRpcPromise = (request: AccountHasServerKeysRpcParam): Promise<AccountHasServerKeysResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.account.hasServerKeys', request, (error: RPCError, result: AccountHasServerKeysResult) => error ? reject(error) : resolve(result)))
 
 export const accountPassphraseChangeRpcChannelMap = (configKeys: Array<string>, request: AccountPassphraseChangeRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.account.passphraseChange', request)
 
-export const accountPassphraseChangeRpcPromise = (request: AccountPassphraseChangeRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.account.passphraseChange', request, (error, result) => error ? reject(error) : resolve(result)))
+export const accountPassphraseChangeRpcPromise = (request: AccountPassphraseChangeRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.account.passphraseChange', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
 
 export const accountPassphrasePromptRpcChannelMap = (configKeys: Array<string>, request: AccountPassphrasePromptRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.account.passphrasePrompt', request)
 
-export const accountPassphrasePromptRpcPromise = (request: AccountPassphrasePromptRpcParam): Promise<AccountPassphrasePromptResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.account.passphrasePrompt', request, (error, result) => error ? reject(error) : resolve(result)))
+export const accountPassphrasePromptRpcPromise = (request: AccountPassphrasePromptRpcParam): Promise<AccountPassphrasePromptResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.account.passphrasePrompt', request, (error: RPCError, result: AccountPassphrasePromptResult) => error ? reject(error) : resolve(result)))
 
 export const accountResetAccountRpcChannelMap = (configKeys: Array<string>, request: AccountResetAccountRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.account.resetAccount', request)
 
-export const accountResetAccountRpcPromise = (request: AccountResetAccountRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.account.resetAccount', request, (error, result) => error ? reject(error) : resolve(result)))
+export const accountResetAccountRpcPromise = (request: AccountResetAccountRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.account.resetAccount', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
 
 export const apiserverDeleteRpcChannelMap = (configKeys: Array<string>, request: ApiserverDeleteRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.apiserver.Delete', request)
 
-export const apiserverDeleteRpcPromise = (request: ApiserverDeleteRpcParam): Promise<ApiserverDeleteResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.apiserver.Delete', request, (error, result) => error ? reject(error) : resolve(result)))
+export const apiserverDeleteRpcPromise = (request: ApiserverDeleteRpcParam): Promise<ApiserverDeleteResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.apiserver.Delete', request, (error: RPCError, result: ApiserverDeleteResult) => error ? reject(error) : resolve(result)))
 
 export const apiserverGetRpcChannelMap = (configKeys: Array<string>, request: ApiserverGetRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.apiserver.Get', request)
 
-export const apiserverGetRpcPromise = (request: ApiserverGetRpcParam): Promise<ApiserverGetResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.apiserver.Get', request, (error, result) => error ? reject(error) : resolve(result)))
+export const apiserverGetRpcPromise = (request: ApiserverGetRpcParam): Promise<ApiserverGetResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.apiserver.Get', request, (error: RPCError, result: ApiserverGetResult) => error ? reject(error) : resolve(result)))
 
 export const apiserverGetWithSessionRpcChannelMap = (configKeys: Array<string>, request: ApiserverGetWithSessionRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.apiserver.GetWithSession', request)
 
-export const apiserverGetWithSessionRpcPromise = (request: ApiserverGetWithSessionRpcParam): Promise<ApiserverGetWithSessionResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.apiserver.GetWithSession', request, (error, result) => error ? reject(error) : resolve(result)))
+export const apiserverGetWithSessionRpcPromise = (request: ApiserverGetWithSessionRpcParam): Promise<ApiserverGetWithSessionResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.apiserver.GetWithSession', request, (error: RPCError, result: ApiserverGetWithSessionResult) => error ? reject(error) : resolve(result)))
 
 export const apiserverPostJSONRpcChannelMap = (configKeys: Array<string>, request: ApiserverPostJSONRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.apiserver.PostJSON', request)
 
-export const apiserverPostJSONRpcPromise = (request: ApiserverPostJSONRpcParam): Promise<ApiserverPostJSONResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.apiserver.PostJSON', request, (error, result) => error ? reject(error) : resolve(result)))
+export const apiserverPostJSONRpcPromise = (request: ApiserverPostJSONRpcParam): Promise<ApiserverPostJSONResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.apiserver.PostJSON', request, (error: RPCError, result: ApiserverPostJSONResult) => error ? reject(error) : resolve(result)))
 
 export const apiserverPostRpcChannelMap = (configKeys: Array<string>, request: ApiserverPostRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.apiserver.Post', request)
 
-export const apiserverPostRpcPromise = (request: ApiserverPostRpcParam): Promise<ApiserverPostResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.apiserver.Post', request, (error, result) => error ? reject(error) : resolve(result)))
+export const apiserverPostRpcPromise = (request: ApiserverPostRpcParam): Promise<ApiserverPostResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.apiserver.Post', request, (error: RPCError, result: ApiserverPostResult) => error ? reject(error) : resolve(result)))
 
 export const appStateAppState = {
   foreground: 0,
@@ -185,7 +185,7 @@ export const appStateAppState = {
 
 export const appStateUpdateAppStateRpcChannelMap = (configKeys: Array<string>, request: AppStateUpdateAppStateRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.appState.updateAppState', request)
 
-export const appStateUpdateAppStateRpcPromise = (request: AppStateUpdateAppStateRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.appState.updateAppState', request, (error, result) => error ? reject(error) : resolve(result)))
+export const appStateUpdateAppStateRpcPromise = (request: AppStateUpdateAppStateRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.appState.updateAppState', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
 
 export const backendCommonBlockType = {
   data: 0,
@@ -195,59 +195,59 @@ export const backendCommonBlockType = {
 
 export const badgerGetBadgeStateRpcChannelMap = (configKeys: Array<string>, request: BadgerGetBadgeStateRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.badger.getBadgeState', request)
 
-export const badgerGetBadgeStateRpcPromise = (request: BadgerGetBadgeStateRpcParam): Promise<BadgerGetBadgeStateResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.badger.getBadgeState', request, (error, result) => error ? reject(error) : resolve(result)))
+export const badgerGetBadgeStateRpcPromise = (request: BadgerGetBadgeStateRpcParam): Promise<BadgerGetBadgeStateResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.badger.getBadgeState', request, (error: RPCError, result: BadgerGetBadgeStateResult) => error ? reject(error) : resolve(result)))
 
 export const blockAddReferenceRpcChannelMap = (configKeys: Array<string>, request: BlockAddReferenceRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.block.addReference', request)
 
-export const blockAddReferenceRpcPromise = (request: BlockAddReferenceRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.block.addReference', request, (error, result) => error ? reject(error) : resolve(result)))
+export const blockAddReferenceRpcPromise = (request: BlockAddReferenceRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.block.addReference', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
 
 export const blockArchiveReferenceRpcChannelMap = (configKeys: Array<string>, request: BlockArchiveReferenceRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.block.archiveReference', request)
 
-export const blockArchiveReferenceRpcPromise = (request: BlockArchiveReferenceRpcParam): Promise<BlockArchiveReferenceResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.block.archiveReference', request, (error, result) => error ? reject(error) : resolve(result)))
+export const blockArchiveReferenceRpcPromise = (request: BlockArchiveReferenceRpcParam): Promise<BlockArchiveReferenceResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.block.archiveReference', request, (error: RPCError, result: BlockArchiveReferenceResult) => error ? reject(error) : resolve(result)))
 
 export const blockArchiveReferenceWithCountRpcChannelMap = (configKeys: Array<string>, request: BlockArchiveReferenceWithCountRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.block.archiveReferenceWithCount', request)
 
-export const blockArchiveReferenceWithCountRpcPromise = (request: BlockArchiveReferenceWithCountRpcParam): Promise<BlockArchiveReferenceWithCountResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.block.archiveReferenceWithCount', request, (error, result) => error ? reject(error) : resolve(result)))
+export const blockArchiveReferenceWithCountRpcPromise = (request: BlockArchiveReferenceWithCountRpcParam): Promise<BlockArchiveReferenceWithCountResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.block.archiveReferenceWithCount', request, (error: RPCError, result: BlockArchiveReferenceWithCountResult) => error ? reject(error) : resolve(result)))
 
 export const blockAuthenticateSessionRpcChannelMap = (configKeys: Array<string>, request: BlockAuthenticateSessionRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.block.authenticateSession', request)
 
-export const blockAuthenticateSessionRpcPromise = (request: BlockAuthenticateSessionRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.block.authenticateSession', request, (error, result) => error ? reject(error) : resolve(result)))
+export const blockAuthenticateSessionRpcPromise = (request: BlockAuthenticateSessionRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.block.authenticateSession', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
 
 export const blockBlockPingRpcChannelMap = (configKeys: Array<string>, request: BlockBlockPingRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.block.blockPing', request)
 
-export const blockBlockPingRpcPromise = (request: BlockBlockPingRpcParam): Promise<BlockBlockPingResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.block.blockPing', request, (error, result) => error ? reject(error) : resolve(result)))
+export const blockBlockPingRpcPromise = (request: BlockBlockPingRpcParam): Promise<BlockBlockPingResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.block.blockPing', request, (error: RPCError, result: BlockBlockPingResult) => error ? reject(error) : resolve(result)))
 
 export const blockDelReferenceRpcChannelMap = (configKeys: Array<string>, request: BlockDelReferenceRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.block.delReference', request)
 
-export const blockDelReferenceRpcPromise = (request: BlockDelReferenceRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.block.delReference', request, (error, result) => error ? reject(error) : resolve(result)))
+export const blockDelReferenceRpcPromise = (request: BlockDelReferenceRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.block.delReference', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
 
 export const blockDelReferenceWithCountRpcChannelMap = (configKeys: Array<string>, request: BlockDelReferenceWithCountRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.block.delReferenceWithCount', request)
 
-export const blockDelReferenceWithCountRpcPromise = (request: BlockDelReferenceWithCountRpcParam): Promise<BlockDelReferenceWithCountResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.block.delReferenceWithCount', request, (error, result) => error ? reject(error) : resolve(result)))
+export const blockDelReferenceWithCountRpcPromise = (request: BlockDelReferenceWithCountRpcParam): Promise<BlockDelReferenceWithCountResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.block.delReferenceWithCount', request, (error: RPCError, result: BlockDelReferenceWithCountResult) => error ? reject(error) : resolve(result)))
 
 export const blockGetBlockRpcChannelMap = (configKeys: Array<string>, request: BlockGetBlockRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.block.getBlock', request)
 
-export const blockGetBlockRpcPromise = (request: BlockGetBlockRpcParam): Promise<BlockGetBlockResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.block.getBlock', request, (error, result) => error ? reject(error) : resolve(result)))
+export const blockGetBlockRpcPromise = (request: BlockGetBlockRpcParam): Promise<BlockGetBlockResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.block.getBlock', request, (error: RPCError, result: BlockGetBlockResult) => error ? reject(error) : resolve(result)))
 
 export const blockGetSessionChallengeRpcChannelMap = (configKeys: Array<string>, request: BlockGetSessionChallengeRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.block.getSessionChallenge', request)
 
-export const blockGetSessionChallengeRpcPromise = (request: BlockGetSessionChallengeRpcParam): Promise<BlockGetSessionChallengeResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.block.getSessionChallenge', request, (error, result) => error ? reject(error) : resolve(result)))
+export const blockGetSessionChallengeRpcPromise = (request: BlockGetSessionChallengeRpcParam): Promise<BlockGetSessionChallengeResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.block.getSessionChallenge', request, (error: RPCError, result: BlockGetSessionChallengeResult) => error ? reject(error) : resolve(result)))
 
 export const blockGetTeamQuotaInfoRpcChannelMap = (configKeys: Array<string>, request: BlockGetTeamQuotaInfoRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.block.getTeamQuotaInfo', request)
 
-export const blockGetTeamQuotaInfoRpcPromise = (request: BlockGetTeamQuotaInfoRpcParam): Promise<BlockGetTeamQuotaInfoResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.block.getTeamQuotaInfo', request, (error, result) => error ? reject(error) : resolve(result)))
+export const blockGetTeamQuotaInfoRpcPromise = (request: BlockGetTeamQuotaInfoRpcParam): Promise<BlockGetTeamQuotaInfoResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.block.getTeamQuotaInfo', request, (error: RPCError, result: BlockGetTeamQuotaInfoResult) => error ? reject(error) : resolve(result)))
 
 export const blockGetUserQuotaInfoRpcChannelMap = (configKeys: Array<string>, request: BlockGetUserQuotaInfoRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.block.getUserQuotaInfo', request)
 
-export const blockGetUserQuotaInfoRpcPromise = (request: BlockGetUserQuotaInfoRpcParam): Promise<BlockGetUserQuotaInfoResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.block.getUserQuotaInfo', request, (error, result) => error ? reject(error) : resolve(result)))
+export const blockGetUserQuotaInfoRpcPromise = (request: BlockGetUserQuotaInfoRpcParam): Promise<BlockGetUserQuotaInfoResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.block.getUserQuotaInfo', request, (error: RPCError, result: BlockGetUserQuotaInfoResult) => error ? reject(error) : resolve(result)))
 
 export const blockPutBlockAgainRpcChannelMap = (configKeys: Array<string>, request: BlockPutBlockAgainRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.block.putBlockAgain', request)
 
-export const blockPutBlockAgainRpcPromise = (request: BlockPutBlockAgainRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.block.putBlockAgain', request, (error, result) => error ? reject(error) : resolve(result)))
+export const blockPutBlockAgainRpcPromise = (request: BlockPutBlockAgainRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.block.putBlockAgain', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
 
 export const blockPutBlockRpcChannelMap = (configKeys: Array<string>, request: BlockPutBlockRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.block.putBlock', request)
 
-export const blockPutBlockRpcPromise = (request: BlockPutBlockRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.block.putBlock', request, (error, result) => error ? reject(error) : resolve(result)))
+export const blockPutBlockRpcPromise = (request: BlockPutBlockRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.block.putBlock', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
 
 export const commonClientType = {
   none: 0,
@@ -310,11 +310,11 @@ export const commonUserOrTeamResult = {
 
 export const configCheckAPIServerOutOfDateWarningRpcChannelMap = (configKeys: Array<string>, request: ConfigCheckAPIServerOutOfDateWarningRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.config.checkAPIServerOutOfDateWarning', request)
 
-export const configCheckAPIServerOutOfDateWarningRpcPromise = (request: ConfigCheckAPIServerOutOfDateWarningRpcParam): Promise<ConfigCheckAPIServerOutOfDateWarningResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.config.checkAPIServerOutOfDateWarning', request, (error, result) => error ? reject(error) : resolve(result)))
+export const configCheckAPIServerOutOfDateWarningRpcPromise = (request: ConfigCheckAPIServerOutOfDateWarningRpcParam): Promise<ConfigCheckAPIServerOutOfDateWarningResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.config.checkAPIServerOutOfDateWarning', request, (error: RPCError, result: ConfigCheckAPIServerOutOfDateWarningResult) => error ? reject(error) : resolve(result)))
 
 export const configClearValueRpcChannelMap = (configKeys: Array<string>, request: ConfigClearValueRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.config.clearValue', request)
 
-export const configClearValueRpcPromise = (request: ConfigClearValueRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.config.clearValue', request, (error, result) => error ? reject(error) : resolve(result)))
+export const configClearValueRpcPromise = (request: ConfigClearValueRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.config.clearValue', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
 
 export const configForkType = {
   none: 0,
@@ -326,43 +326,43 @@ export const configForkType = {
 
 export const configGetBootstrapStatusRpcChannelMap = (configKeys: Array<string>, request: ConfigGetBootstrapStatusRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.config.getBootstrapStatus', request)
 
-export const configGetBootstrapStatusRpcPromise = (request: ConfigGetBootstrapStatusRpcParam): Promise<ConfigGetBootstrapStatusResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.config.getBootstrapStatus', request, (error, result) => error ? reject(error) : resolve(result)))
+export const configGetBootstrapStatusRpcPromise = (request: ConfigGetBootstrapStatusRpcParam): Promise<ConfigGetBootstrapStatusResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.config.getBootstrapStatus', request, (error: RPCError, result: ConfigGetBootstrapStatusResult) => error ? reject(error) : resolve(result)))
 
 export const configGetConfigRpcChannelMap = (configKeys: Array<string>, request: ConfigGetConfigRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.config.getConfig', request)
 
-export const configGetConfigRpcPromise = (request: ConfigGetConfigRpcParam): Promise<ConfigGetConfigResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.config.getConfig', request, (error, result) => error ? reject(error) : resolve(result)))
+export const configGetConfigRpcPromise = (request: ConfigGetConfigRpcParam): Promise<ConfigGetConfigResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.config.getConfig', request, (error: RPCError, result: ConfigGetConfigResult) => error ? reject(error) : resolve(result)))
 
 export const configGetCurrentStatusRpcChannelMap = (configKeys: Array<string>, request: ConfigGetCurrentStatusRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.config.getCurrentStatus', request)
 
-export const configGetCurrentStatusRpcPromise = (request: ConfigGetCurrentStatusRpcParam): Promise<ConfigGetCurrentStatusResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.config.getCurrentStatus', request, (error, result) => error ? reject(error) : resolve(result)))
+export const configGetCurrentStatusRpcPromise = (request: ConfigGetCurrentStatusRpcParam): Promise<ConfigGetCurrentStatusResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.config.getCurrentStatus', request, (error: RPCError, result: ConfigGetCurrentStatusResult) => error ? reject(error) : resolve(result)))
 
 export const configGetExtendedStatusRpcChannelMap = (configKeys: Array<string>, request: ConfigGetExtendedStatusRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.config.getExtendedStatus', request)
 
-export const configGetExtendedStatusRpcPromise = (request: ConfigGetExtendedStatusRpcParam): Promise<ConfigGetExtendedStatusResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.config.getExtendedStatus', request, (error, result) => error ? reject(error) : resolve(result)))
+export const configGetExtendedStatusRpcPromise = (request: ConfigGetExtendedStatusRpcParam): Promise<ConfigGetExtendedStatusResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.config.getExtendedStatus', request, (error: RPCError, result: ConfigGetExtendedStatusResult) => error ? reject(error) : resolve(result)))
 
 export const configGetValueRpcChannelMap = (configKeys: Array<string>, request: ConfigGetValueRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.config.getValue', request)
 
-export const configGetValueRpcPromise = (request: ConfigGetValueRpcParam): Promise<ConfigGetValueResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.config.getValue', request, (error, result) => error ? reject(error) : resolve(result)))
+export const configGetValueRpcPromise = (request: ConfigGetValueRpcParam): Promise<ConfigGetValueResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.config.getValue', request, (error: RPCError, result: ConfigGetValueResult) => error ? reject(error) : resolve(result)))
 
 export const configHelloIAmRpcChannelMap = (configKeys: Array<string>, request: ConfigHelloIAmRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.config.helloIAm', request)
 
-export const configHelloIAmRpcPromise = (request: ConfigHelloIAmRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.config.helloIAm', request, (error, result) => error ? reject(error) : resolve(result)))
+export const configHelloIAmRpcPromise = (request: ConfigHelloIAmRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.config.helloIAm', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
 
 export const configSetPathRpcChannelMap = (configKeys: Array<string>, request: ConfigSetPathRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.config.setPath', request)
 
-export const configSetPathRpcPromise = (request: ConfigSetPathRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.config.setPath', request, (error, result) => error ? reject(error) : resolve(result)))
+export const configSetPathRpcPromise = (request: ConfigSetPathRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.config.setPath', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
 
 export const configSetUserConfigRpcChannelMap = (configKeys: Array<string>, request: ConfigSetUserConfigRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.config.setUserConfig', request)
 
-export const configSetUserConfigRpcPromise = (request: ConfigSetUserConfigRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.config.setUserConfig', request, (error, result) => error ? reject(error) : resolve(result)))
+export const configSetUserConfigRpcPromise = (request: ConfigSetUserConfigRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.config.setUserConfig', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
 
 export const configSetValueRpcChannelMap = (configKeys: Array<string>, request: ConfigSetValueRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.config.setValue', request)
 
-export const configSetValueRpcPromise = (request: ConfigSetValueRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.config.setValue', request, (error, result) => error ? reject(error) : resolve(result)))
+export const configSetValueRpcPromise = (request: ConfigSetValueRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.config.setValue', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
 
 export const configWaitForClientRpcChannelMap = (configKeys: Array<string>, request: ConfigWaitForClientRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.config.waitForClient', request)
 
-export const configWaitForClientRpcPromise = (request: ConfigWaitForClientRpcParam): Promise<ConfigWaitForClientResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.config.waitForClient', request, (error, result) => error ? reject(error) : resolve(result)))
+export const configWaitForClientRpcPromise = (request: ConfigWaitForClientRpcParam): Promise<ConfigWaitForClientResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.config.waitForClient', request, (error: RPCError, result: ConfigWaitForClientResult) => error ? reject(error) : resolve(result)))
 
 export const constantsStatusCode = {
   scok: 0,
@@ -508,47 +508,47 @@ export const constantsStatusCode = {
 
 export const cryptoSignED25519ForKBFSRpcChannelMap = (configKeys: Array<string>, request: CryptoSignED25519ForKBFSRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.crypto.signED25519ForKBFS', request)
 
-export const cryptoSignED25519ForKBFSRpcPromise = (request: CryptoSignED25519ForKBFSRpcParam): Promise<CryptoSignED25519ForKBFSResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.crypto.signED25519ForKBFS', request, (error, result) => error ? reject(error) : resolve(result)))
+export const cryptoSignED25519ForKBFSRpcPromise = (request: CryptoSignED25519ForKBFSRpcParam): Promise<CryptoSignED25519ForKBFSResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.crypto.signED25519ForKBFS', request, (error: RPCError, result: CryptoSignED25519ForKBFSResult) => error ? reject(error) : resolve(result)))
 
 export const cryptoSignED25519RpcChannelMap = (configKeys: Array<string>, request: CryptoSignED25519RpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.crypto.signED25519', request)
 
-export const cryptoSignED25519RpcPromise = (request: CryptoSignED25519RpcParam): Promise<CryptoSignED25519Result> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.crypto.signED25519', request, (error, result) => error ? reject(error) : resolve(result)))
+export const cryptoSignED25519RpcPromise = (request: CryptoSignED25519RpcParam): Promise<CryptoSignED25519Result> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.crypto.signED25519', request, (error: RPCError, result: CryptoSignED25519Result) => error ? reject(error) : resolve(result)))
 
 export const cryptoSignToStringRpcChannelMap = (configKeys: Array<string>, request: CryptoSignToStringRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.crypto.signToString', request)
 
-export const cryptoSignToStringRpcPromise = (request: CryptoSignToStringRpcParam): Promise<CryptoSignToStringResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.crypto.signToString', request, (error, result) => error ? reject(error) : resolve(result)))
+export const cryptoSignToStringRpcPromise = (request: CryptoSignToStringRpcParam): Promise<CryptoSignToStringResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.crypto.signToString', request, (error: RPCError, result: CryptoSignToStringResult) => error ? reject(error) : resolve(result)))
 
 export const cryptoUnboxBytes32AnyRpcChannelMap = (configKeys: Array<string>, request: CryptoUnboxBytes32AnyRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.crypto.unboxBytes32Any', request)
 
-export const cryptoUnboxBytes32AnyRpcPromise = (request: CryptoUnboxBytes32AnyRpcParam): Promise<CryptoUnboxBytes32AnyResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.crypto.unboxBytes32Any', request, (error, result) => error ? reject(error) : resolve(result)))
+export const cryptoUnboxBytes32AnyRpcPromise = (request: CryptoUnboxBytes32AnyRpcParam): Promise<CryptoUnboxBytes32AnyResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.crypto.unboxBytes32Any', request, (error: RPCError, result: CryptoUnboxBytes32AnyResult) => error ? reject(error) : resolve(result)))
 
 export const cryptoUnboxBytes32RpcChannelMap = (configKeys: Array<string>, request: CryptoUnboxBytes32RpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.crypto.unboxBytes32', request)
 
-export const cryptoUnboxBytes32RpcPromise = (request: CryptoUnboxBytes32RpcParam): Promise<CryptoUnboxBytes32Result> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.crypto.unboxBytes32', request, (error, result) => error ? reject(error) : resolve(result)))
+export const cryptoUnboxBytes32RpcPromise = (request: CryptoUnboxBytes32RpcParam): Promise<CryptoUnboxBytes32Result> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.crypto.unboxBytes32', request, (error: RPCError, result: CryptoUnboxBytes32Result) => error ? reject(error) : resolve(result)))
 
 export const cryptocurrencyRegisterAddressRpcChannelMap = (configKeys: Array<string>, request: CryptocurrencyRegisterAddressRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.cryptocurrency.registerAddress', request)
 
-export const cryptocurrencyRegisterAddressRpcPromise = (request: CryptocurrencyRegisterAddressRpcParam): Promise<CryptocurrencyRegisterAddressResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.cryptocurrency.registerAddress', request, (error, result) => error ? reject(error) : resolve(result)))
+export const cryptocurrencyRegisterAddressRpcPromise = (request: CryptocurrencyRegisterAddressRpcParam): Promise<CryptocurrencyRegisterAddressResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.cryptocurrency.registerAddress', request, (error: RPCError, result: CryptocurrencyRegisterAddressResult) => error ? reject(error) : resolve(result)))
 
 export const ctlAppExitRpcChannelMap = (configKeys: Array<string>, request: CtlAppExitRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.ctl.appExit', request)
 
-export const ctlAppExitRpcPromise = (request: CtlAppExitRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.ctl.appExit', request, (error, result) => error ? reject(error) : resolve(result)))
+export const ctlAppExitRpcPromise = (request: CtlAppExitRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.ctl.appExit', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
 
 export const ctlDbDeleteRpcChannelMap = (configKeys: Array<string>, request: CtlDbDeleteRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.ctl.dbDelete', request)
 
-export const ctlDbDeleteRpcPromise = (request: CtlDbDeleteRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.ctl.dbDelete', request, (error, result) => error ? reject(error) : resolve(result)))
+export const ctlDbDeleteRpcPromise = (request: CtlDbDeleteRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.ctl.dbDelete', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
 
 export const ctlDbGetRpcChannelMap = (configKeys: Array<string>, request: CtlDbGetRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.ctl.dbGet', request)
 
-export const ctlDbGetRpcPromise = (request: CtlDbGetRpcParam): Promise<CtlDbGetResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.ctl.dbGet', request, (error, result) => error ? reject(error) : resolve(result)))
+export const ctlDbGetRpcPromise = (request: CtlDbGetRpcParam): Promise<CtlDbGetResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.ctl.dbGet', request, (error: RPCError, result: CtlDbGetResult) => error ? reject(error) : resolve(result)))
 
 export const ctlDbNukeRpcChannelMap = (configKeys: Array<string>, request: CtlDbNukeRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.ctl.dbNuke', request)
 
-export const ctlDbNukeRpcPromise = (request: CtlDbNukeRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.ctl.dbNuke', request, (error, result) => error ? reject(error) : resolve(result)))
+export const ctlDbNukeRpcPromise = (request: CtlDbNukeRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.ctl.dbNuke', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
 
 export const ctlDbPutRpcChannelMap = (configKeys: Array<string>, request: CtlDbPutRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.ctl.dbPut', request)
 
-export const ctlDbPutRpcPromise = (request: CtlDbPutRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.ctl.dbPut', request, (error, result) => error ? reject(error) : resolve(result)))
+export const ctlDbPutRpcPromise = (request: CtlDbPutRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.ctl.dbPut', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
 
 export const ctlDbType = {
   main: 0,
@@ -563,75 +563,75 @@ export const ctlExitCode = {
 
 export const ctlLogRotateRpcChannelMap = (configKeys: Array<string>, request: CtlLogRotateRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.ctl.logRotate', request)
 
-export const ctlLogRotateRpcPromise = (request: CtlLogRotateRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.ctl.logRotate', request, (error, result) => error ? reject(error) : resolve(result)))
+export const ctlLogRotateRpcPromise = (request: CtlLogRotateRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.ctl.logRotate', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
 
 export const ctlReloadRpcChannelMap = (configKeys: Array<string>, request: CtlReloadRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.ctl.reload', request)
 
-export const ctlReloadRpcPromise = (request: CtlReloadRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.ctl.reload', request, (error, result) => error ? reject(error) : resolve(result)))
+export const ctlReloadRpcPromise = (request: CtlReloadRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.ctl.reload', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
 
 export const ctlStopRpcChannelMap = (configKeys: Array<string>, request: CtlStopRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.ctl.stop', request)
 
-export const ctlStopRpcPromise = (request: CtlStopRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.ctl.stop', request, (error, result) => error ? reject(error) : resolve(result)))
+export const ctlStopRpcPromise = (request: CtlStopRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.ctl.stop', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
 
 export const debuggingFirstStepRpcChannelMap = (configKeys: Array<string>, request: DebuggingFirstStepRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.debugging.firstStep', request)
 
-export const debuggingFirstStepRpcPromise = (request: DebuggingFirstStepRpcParam): Promise<DebuggingFirstStepResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.debugging.firstStep', request, (error, result) => error ? reject(error) : resolve(result)))
+export const debuggingFirstStepRpcPromise = (request: DebuggingFirstStepRpcParam): Promise<DebuggingFirstStepResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.debugging.firstStep', request, (error: RPCError, result: DebuggingFirstStepResult) => error ? reject(error) : resolve(result)))
 
 export const debuggingIncrementRpcChannelMap = (configKeys: Array<string>, request: DebuggingIncrementRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.debugging.increment', request)
 
-export const debuggingIncrementRpcPromise = (request: DebuggingIncrementRpcParam): Promise<DebuggingIncrementResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.debugging.increment', request, (error, result) => error ? reject(error) : resolve(result)))
+export const debuggingIncrementRpcPromise = (request: DebuggingIncrementRpcParam): Promise<DebuggingIncrementResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.debugging.increment', request, (error: RPCError, result: DebuggingIncrementResult) => error ? reject(error) : resolve(result)))
 
 export const debuggingSecondStepRpcChannelMap = (configKeys: Array<string>, request: DebuggingSecondStepRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.debugging.secondStep', request)
 
-export const debuggingSecondStepRpcPromise = (request: DebuggingSecondStepRpcParam): Promise<DebuggingSecondStepResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.debugging.secondStep', request, (error, result) => error ? reject(error) : resolve(result)))
+export const debuggingSecondStepRpcPromise = (request: DebuggingSecondStepRpcParam): Promise<DebuggingSecondStepResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.debugging.secondStep', request, (error: RPCError, result: DebuggingSecondStepResult) => error ? reject(error) : resolve(result)))
 
 export const delegateUiCtlRegisterGregorFirehoseRpcChannelMap = (configKeys: Array<string>, request: DelegateUiCtlRegisterGregorFirehoseRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.delegateUiCtl.registerGregorFirehose', request)
 
-export const delegateUiCtlRegisterGregorFirehoseRpcPromise = (request: DelegateUiCtlRegisterGregorFirehoseRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.delegateUiCtl.registerGregorFirehose', request, (error, result) => error ? reject(error) : resolve(result)))
+export const delegateUiCtlRegisterGregorFirehoseRpcPromise = (request: DelegateUiCtlRegisterGregorFirehoseRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.delegateUiCtl.registerGregorFirehose', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
 
 export const delegateUiCtlRegisterIdentifyUIRpcChannelMap = (configKeys: Array<string>, request: DelegateUiCtlRegisterIdentifyUIRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.delegateUiCtl.registerIdentifyUI', request)
 
-export const delegateUiCtlRegisterIdentifyUIRpcPromise = (request: DelegateUiCtlRegisterIdentifyUIRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.delegateUiCtl.registerIdentifyUI', request, (error, result) => error ? reject(error) : resolve(result)))
+export const delegateUiCtlRegisterIdentifyUIRpcPromise = (request: DelegateUiCtlRegisterIdentifyUIRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.delegateUiCtl.registerIdentifyUI', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
 
 export const delegateUiCtlRegisterRekeyUIRpcChannelMap = (configKeys: Array<string>, request: DelegateUiCtlRegisterRekeyUIRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.delegateUiCtl.registerRekeyUI', request)
 
-export const delegateUiCtlRegisterRekeyUIRpcPromise = (request: DelegateUiCtlRegisterRekeyUIRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.delegateUiCtl.registerRekeyUI', request, (error, result) => error ? reject(error) : resolve(result)))
+export const delegateUiCtlRegisterRekeyUIRpcPromise = (request: DelegateUiCtlRegisterRekeyUIRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.delegateUiCtl.registerRekeyUI', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
 
 export const delegateUiCtlRegisterSecretUIRpcChannelMap = (configKeys: Array<string>, request: DelegateUiCtlRegisterSecretUIRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.delegateUiCtl.registerSecretUI', request)
 
-export const delegateUiCtlRegisterSecretUIRpcPromise = (request: DelegateUiCtlRegisterSecretUIRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.delegateUiCtl.registerSecretUI', request, (error, result) => error ? reject(error) : resolve(result)))
+export const delegateUiCtlRegisterSecretUIRpcPromise = (request: DelegateUiCtlRegisterSecretUIRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.delegateUiCtl.registerSecretUI', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
 
 export const delegateUiCtlRegisterUpdateUIRpcChannelMap = (configKeys: Array<string>, request: DelegateUiCtlRegisterUpdateUIRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.delegateUiCtl.registerUpdateUI', request)
 
-export const delegateUiCtlRegisterUpdateUIRpcPromise = (request: DelegateUiCtlRegisterUpdateUIRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.delegateUiCtl.registerUpdateUI', request, (error, result) => error ? reject(error) : resolve(result)))
+export const delegateUiCtlRegisterUpdateUIRpcPromise = (request: DelegateUiCtlRegisterUpdateUIRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.delegateUiCtl.registerUpdateUI', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
 
 export const deviceCheckDeviceNameForUserRpcChannelMap = (configKeys: Array<string>, request: DeviceCheckDeviceNameForUserRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.device.checkDeviceNameForUser', request)
 
-export const deviceCheckDeviceNameForUserRpcPromise = (request: DeviceCheckDeviceNameForUserRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.device.checkDeviceNameForUser', request, (error, result) => error ? reject(error) : resolve(result)))
+export const deviceCheckDeviceNameForUserRpcPromise = (request: DeviceCheckDeviceNameForUserRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.device.checkDeviceNameForUser', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
 
 export const deviceCheckDeviceNameFormatRpcChannelMap = (configKeys: Array<string>, request: DeviceCheckDeviceNameFormatRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.device.checkDeviceNameFormat', request)
 
-export const deviceCheckDeviceNameFormatRpcPromise = (request: DeviceCheckDeviceNameFormatRpcParam): Promise<DeviceCheckDeviceNameFormatResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.device.checkDeviceNameFormat', request, (error, result) => error ? reject(error) : resolve(result)))
+export const deviceCheckDeviceNameFormatRpcPromise = (request: DeviceCheckDeviceNameFormatRpcParam): Promise<DeviceCheckDeviceNameFormatResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.device.checkDeviceNameFormat', request, (error: RPCError, result: DeviceCheckDeviceNameFormatResult) => error ? reject(error) : resolve(result)))
 
 export const deviceDeviceAddRpcChannelMap = (configKeys: Array<string>, request: DeviceDeviceAddRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.device.deviceAdd', request)
 
-export const deviceDeviceAddRpcPromise = (request: DeviceDeviceAddRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.device.deviceAdd', request, (error, result) => error ? reject(error) : resolve(result)))
+export const deviceDeviceAddRpcPromise = (request: DeviceDeviceAddRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.device.deviceAdd', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
 
 export const deviceDeviceHistoryListRpcChannelMap = (configKeys: Array<string>, request: DeviceDeviceHistoryListRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.device.deviceHistoryList', request)
 
-export const deviceDeviceHistoryListRpcPromise = (request: DeviceDeviceHistoryListRpcParam): Promise<DeviceDeviceHistoryListResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.device.deviceHistoryList', request, (error, result) => error ? reject(error) : resolve(result)))
+export const deviceDeviceHistoryListRpcPromise = (request: DeviceDeviceHistoryListRpcParam): Promise<DeviceDeviceHistoryListResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.device.deviceHistoryList', request, (error: RPCError, result: DeviceDeviceHistoryListResult) => error ? reject(error) : resolve(result)))
 
 export const deviceDeviceListRpcChannelMap = (configKeys: Array<string>, request: DeviceDeviceListRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.device.deviceList', request)
 
-export const deviceDeviceListRpcPromise = (request: DeviceDeviceListRpcParam): Promise<DeviceDeviceListResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.device.deviceList', request, (error, result) => error ? reject(error) : resolve(result)))
+export const deviceDeviceListRpcPromise = (request: DeviceDeviceListRpcParam): Promise<DeviceDeviceListResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.device.deviceList', request, (error: RPCError, result: DeviceDeviceListResult) => error ? reject(error) : resolve(result)))
 
 export const favoriteFavoriteAddRpcChannelMap = (configKeys: Array<string>, request: FavoriteFavoriteAddRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.favorite.favoriteAdd', request)
 
-export const favoriteFavoriteAddRpcPromise = (request: FavoriteFavoriteAddRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.favorite.favoriteAdd', request, (error, result) => error ? reject(error) : resolve(result)))
+export const favoriteFavoriteAddRpcPromise = (request: FavoriteFavoriteAddRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.favorite.favoriteAdd', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
 
 export const favoriteFavoriteIgnoreRpcChannelMap = (configKeys: Array<string>, request: FavoriteFavoriteIgnoreRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.favorite.favoriteIgnore', request)
 
-export const favoriteFavoriteIgnoreRpcPromise = (request: FavoriteFavoriteIgnoreRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.favorite.favoriteIgnore', request, (error, result) => error ? reject(error) : resolve(result)))
+export const favoriteFavoriteIgnoreRpcPromise = (request: FavoriteFavoriteIgnoreRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.favorite.favoriteIgnore', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
 
 export const favoriteFolderType = {
   unknown: 0,
@@ -642,47 +642,47 @@ export const favoriteFolderType = {
 
 export const favoriteGetFavoritesRpcChannelMap = (configKeys: Array<string>, request: FavoriteGetFavoritesRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.favorite.getFavorites', request)
 
-export const favoriteGetFavoritesRpcPromise = (request: FavoriteGetFavoritesRpcParam): Promise<FavoriteGetFavoritesResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.favorite.getFavorites', request, (error, result) => error ? reject(error) : resolve(result)))
+export const favoriteGetFavoritesRpcPromise = (request: FavoriteGetFavoritesRpcParam): Promise<FavoriteGetFavoritesResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.favorite.getFavorites', request, (error: RPCError, result: FavoriteGetFavoritesResult) => error ? reject(error) : resolve(result)))
 
 export const fsListRpcChannelMap = (configKeys: Array<string>, request: FsListRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.fs.List', request)
 
-export const fsListRpcPromise = (request: FsListRpcParam): Promise<FsListResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.fs.List', request, (error, result) => error ? reject(error) : resolve(result)))
+export const fsListRpcPromise = (request: FsListRpcParam): Promise<FsListResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.fs.List', request, (error: RPCError, result: FsListResult) => error ? reject(error) : resolve(result)))
 
 export const gitCreatePersonalRepoRpcChannelMap = (configKeys: Array<string>, request: GitCreatePersonalRepoRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.git.createPersonalRepo', request)
 
-export const gitCreatePersonalRepoRpcPromise = (request: GitCreatePersonalRepoRpcParam): Promise<GitCreatePersonalRepoResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.git.createPersonalRepo', request, (error, result) => error ? reject(error) : resolve(result)))
+export const gitCreatePersonalRepoRpcPromise = (request: GitCreatePersonalRepoRpcParam): Promise<GitCreatePersonalRepoResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.git.createPersonalRepo', request, (error: RPCError, result: GitCreatePersonalRepoResult) => error ? reject(error) : resolve(result)))
 
 export const gitCreateTeamRepoRpcChannelMap = (configKeys: Array<string>, request: GitCreateTeamRepoRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.git.createTeamRepo', request)
 
-export const gitCreateTeamRepoRpcPromise = (request: GitCreateTeamRepoRpcParam): Promise<GitCreateTeamRepoResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.git.createTeamRepo', request, (error, result) => error ? reject(error) : resolve(result)))
+export const gitCreateTeamRepoRpcPromise = (request: GitCreateTeamRepoRpcParam): Promise<GitCreateTeamRepoResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.git.createTeamRepo', request, (error: RPCError, result: GitCreateTeamRepoResult) => error ? reject(error) : resolve(result)))
 
 export const gitDeleteGitMetadataRpcChannelMap = (configKeys: Array<string>, request: GitDeleteGitMetadataRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.git.deleteGitMetadata', request)
 
-export const gitDeleteGitMetadataRpcPromise = (request: GitDeleteGitMetadataRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.git.deleteGitMetadata', request, (error, result) => error ? reject(error) : resolve(result)))
+export const gitDeleteGitMetadataRpcPromise = (request: GitDeleteGitMetadataRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.git.deleteGitMetadata', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
 
 export const gitDeletePersonalRepoRpcChannelMap = (configKeys: Array<string>, request: GitDeletePersonalRepoRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.git.deletePersonalRepo', request)
 
-export const gitDeletePersonalRepoRpcPromise = (request: GitDeletePersonalRepoRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.git.deletePersonalRepo', request, (error, result) => error ? reject(error) : resolve(result)))
+export const gitDeletePersonalRepoRpcPromise = (request: GitDeletePersonalRepoRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.git.deletePersonalRepo', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
 
 export const gitDeleteTeamRepoRpcChannelMap = (configKeys: Array<string>, request: GitDeleteTeamRepoRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.git.deleteTeamRepo', request)
 
-export const gitDeleteTeamRepoRpcPromise = (request: GitDeleteTeamRepoRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.git.deleteTeamRepo', request, (error, result) => error ? reject(error) : resolve(result)))
+export const gitDeleteTeamRepoRpcPromise = (request: GitDeleteTeamRepoRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.git.deleteTeamRepo', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
 
 export const gitGcPersonalRepoRpcChannelMap = (configKeys: Array<string>, request: GitGcPersonalRepoRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.git.gcPersonalRepo', request)
 
-export const gitGcPersonalRepoRpcPromise = (request: GitGcPersonalRepoRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.git.gcPersonalRepo', request, (error, result) => error ? reject(error) : resolve(result)))
+export const gitGcPersonalRepoRpcPromise = (request: GitGcPersonalRepoRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.git.gcPersonalRepo', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
 
 export const gitGcTeamRepoRpcChannelMap = (configKeys: Array<string>, request: GitGcTeamRepoRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.git.gcTeamRepo', request)
 
-export const gitGcTeamRepoRpcPromise = (request: GitGcTeamRepoRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.git.gcTeamRepo', request, (error, result) => error ? reject(error) : resolve(result)))
+export const gitGcTeamRepoRpcPromise = (request: GitGcTeamRepoRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.git.gcTeamRepo', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
 
 export const gitGetAllGitMetadataRpcChannelMap = (configKeys: Array<string>, request: GitGetAllGitMetadataRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.git.getAllGitMetadata', request)
 
-export const gitGetAllGitMetadataRpcPromise = (request: GitGetAllGitMetadataRpcParam): Promise<GitGetAllGitMetadataResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.git.getAllGitMetadata', request, (error, result) => error ? reject(error) : resolve(result)))
+export const gitGetAllGitMetadataRpcPromise = (request: GitGetAllGitMetadataRpcParam): Promise<GitGetAllGitMetadataResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.git.getAllGitMetadata', request, (error: RPCError, result: GitGetAllGitMetadataResult) => error ? reject(error) : resolve(result)))
 
 export const gitGetGitMetadataRpcChannelMap = (configKeys: Array<string>, request: GitGetGitMetadataRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.git.getGitMetadata', request)
 
-export const gitGetGitMetadataRpcPromise = (request: GitGetGitMetadataRpcParam): Promise<GitGetGitMetadataResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.git.getGitMetadata', request, (error, result) => error ? reject(error) : resolve(result)))
+export const gitGetGitMetadataRpcPromise = (request: GitGetGitMetadataRpcParam): Promise<GitGetGitMetadataResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.git.getGitMetadata', request, (error: RPCError, result: GitGetGitMetadataResult) => error ? reject(error) : resolve(result)))
 
 export const gitGitLocalMetadataVersion = {
   v1: 1,
@@ -695,23 +695,23 @@ export const gitGitRepoResultState = {
 
 export const gitPutGitMetadataRpcChannelMap = (configKeys: Array<string>, request: GitPutGitMetadataRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.git.putGitMetadata', request)
 
-export const gitPutGitMetadataRpcPromise = (request: GitPutGitMetadataRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.git.putGitMetadata', request, (error, result) => error ? reject(error) : resolve(result)))
+export const gitPutGitMetadataRpcPromise = (request: GitPutGitMetadataRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.git.putGitMetadata', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
 
 export const gregorDismissCategoryRpcChannelMap = (configKeys: Array<string>, request: GregorDismissCategoryRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.gregor.dismissCategory', request)
 
-export const gregorDismissCategoryRpcPromise = (request: GregorDismissCategoryRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.gregor.dismissCategory', request, (error, result) => error ? reject(error) : resolve(result)))
+export const gregorDismissCategoryRpcPromise = (request: GregorDismissCategoryRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.gregor.dismissCategory', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
 
 export const gregorDismissItemRpcChannelMap = (configKeys: Array<string>, request: GregorDismissItemRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.gregor.dismissItem', request)
 
-export const gregorDismissItemRpcPromise = (request: GregorDismissItemRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.gregor.dismissItem', request, (error, result) => error ? reject(error) : resolve(result)))
+export const gregorDismissItemRpcPromise = (request: GregorDismissItemRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.gregor.dismissItem', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
 
 export const gregorGetStateRpcChannelMap = (configKeys: Array<string>, request: GregorGetStateRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.gregor.getState', request)
 
-export const gregorGetStateRpcPromise = (request: GregorGetStateRpcParam): Promise<GregorGetStateResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.gregor.getState', request, (error, result) => error ? reject(error) : resolve(result)))
+export const gregorGetStateRpcPromise = (request: GregorGetStateRpcParam): Promise<GregorGetStateResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.gregor.getState', request, (error: RPCError, result: GregorGetStateResult) => error ? reject(error) : resolve(result)))
 
 export const gregorInjectItemRpcChannelMap = (configKeys: Array<string>, request: GregorInjectItemRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.gregor.injectItem', request)
 
-export const gregorInjectItemRpcPromise = (request: GregorInjectItemRpcParam): Promise<GregorInjectItemResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.gregor.injectItem', request, (error, result) => error ? reject(error) : resolve(result)))
+export const gregorInjectItemRpcPromise = (request: GregorInjectItemRpcParam): Promise<GregorInjectItemResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.gregor.injectItem', request, (error: RPCError, result: GregorInjectItemResult) => error ? reject(error) : resolve(result)))
 
 export const gregorUIPushReason = {
   none: 0,
@@ -721,15 +721,15 @@ export const gregorUIPushReason = {
 
 export const homeHomeActionTakenRpcChannelMap = (configKeys: Array<string>, request: HomeHomeActionTakenRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.home.homeActionTaken', request)
 
-export const homeHomeActionTakenRpcPromise = (request: HomeHomeActionTakenRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.home.homeActionTaken', request, (error, result) => error ? reject(error) : resolve(result)))
+export const homeHomeActionTakenRpcPromise = (request: HomeHomeActionTakenRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.home.homeActionTaken', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
 
 export const homeHomeGetScreenRpcChannelMap = (configKeys: Array<string>, request: HomeHomeGetScreenRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.home.homeGetScreen', request)
 
-export const homeHomeGetScreenRpcPromise = (request: HomeHomeGetScreenRpcParam): Promise<HomeHomeGetScreenResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.home.homeGetScreen', request, (error, result) => error ? reject(error) : resolve(result)))
+export const homeHomeGetScreenRpcPromise = (request: HomeHomeGetScreenRpcParam): Promise<HomeHomeGetScreenResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.home.homeGetScreen', request, (error: RPCError, result: HomeHomeGetScreenResult) => error ? reject(error) : resolve(result)))
 
 export const homeHomeMarkViewedRpcChannelMap = (configKeys: Array<string>, request: HomeHomeMarkViewedRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.home.homeMarkViewed', request)
 
-export const homeHomeMarkViewedRpcPromise = (request: HomeHomeMarkViewedRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.home.homeMarkViewed', request, (error, result) => error ? reject(error) : resolve(result)))
+export const homeHomeMarkViewedRpcPromise = (request: HomeHomeMarkViewedRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.home.homeMarkViewed', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
 
 export const homeHomeScreenItemType = {
   todo: 1,
@@ -757,7 +757,7 @@ export const homeHomeScreenTodoType = {
 
 export const homeHomeSkipTodoTypeRpcChannelMap = (configKeys: Array<string>, request: HomeHomeSkipTodoTypeRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.home.homeSkipTodoType', request)
 
-export const homeHomeSkipTodoTypeRpcPromise = (request: HomeHomeSkipTodoTypeRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.home.homeSkipTodoType', request, (error, result) => error ? reject(error) : resolve(result)))
+export const homeHomeSkipTodoTypeRpcPromise = (request: HomeHomeSkipTodoTypeRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.home.homeSkipTodoType', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
 
 export const identifyCommonIdentifyReasonType = {
   none: 0,
@@ -796,19 +796,19 @@ export const identifyCommonTrackStatus = {
 
 export const identifyIdentify2RpcChannelMap = (configKeys: Array<string>, request: IdentifyIdentify2RpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.identify.identify2', request)
 
-export const identifyIdentify2RpcPromise = (request: IdentifyIdentify2RpcParam): Promise<IdentifyIdentify2Result> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.identify.identify2', request, (error, result) => error ? reject(error) : resolve(result)))
+export const identifyIdentify2RpcPromise = (request: IdentifyIdentify2RpcParam): Promise<IdentifyIdentify2Result> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.identify.identify2', request, (error: RPCError, result: IdentifyIdentify2Result) => error ? reject(error) : resolve(result)))
 
 export const identifyIdentifyLiteRpcChannelMap = (configKeys: Array<string>, request: IdentifyIdentifyLiteRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.identify.identifyLite', request)
 
-export const identifyIdentifyLiteRpcPromise = (request: IdentifyIdentifyLiteRpcParam): Promise<IdentifyIdentifyLiteResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.identify.identifyLite', request, (error, result) => error ? reject(error) : resolve(result)))
+export const identifyIdentifyLiteRpcPromise = (request: IdentifyIdentifyLiteRpcParam): Promise<IdentifyIdentifyLiteResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.identify.identifyLite', request, (error: RPCError, result: IdentifyIdentifyLiteResult) => error ? reject(error) : resolve(result)))
 
 export const identifyResolve3RpcChannelMap = (configKeys: Array<string>, request: IdentifyResolve3RpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.identify.Resolve3', request)
 
-export const identifyResolve3RpcPromise = (request: IdentifyResolve3RpcParam): Promise<IdentifyResolve3Result> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.identify.Resolve3', request, (error, result) => error ? reject(error) : resolve(result)))
+export const identifyResolve3RpcPromise = (request: IdentifyResolve3RpcParam): Promise<IdentifyResolve3Result> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.identify.Resolve3', request, (error: RPCError, result: IdentifyResolve3Result) => error ? reject(error) : resolve(result)))
 
 export const identifyResolveIdentifyImplicitTeamRpcChannelMap = (configKeys: Array<string>, request: IdentifyResolveIdentifyImplicitTeamRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.identify.resolveIdentifyImplicitTeam', request)
 
-export const identifyResolveIdentifyImplicitTeamRpcPromise = (request: IdentifyResolveIdentifyImplicitTeamRpcParam): Promise<IdentifyResolveIdentifyImplicitTeamResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.identify.resolveIdentifyImplicitTeam', request, (error, result) => error ? reject(error) : resolve(result)))
+export const identifyResolveIdentifyImplicitTeamRpcPromise = (request: IdentifyResolveIdentifyImplicitTeamRpcParam): Promise<IdentifyResolveIdentifyImplicitTeamResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.identify.resolveIdentifyImplicitTeam', request, (error: RPCError, result: IdentifyResolveIdentifyImplicitTeamResult) => error ? reject(error) : resolve(result)))
 
 export const identifyUiCheckResultFreshness = {
   fresh: 0,
@@ -823,7 +823,7 @@ export const identifyUiDismissReasonType = {
 
 export const installFuseStatusRpcChannelMap = (configKeys: Array<string>, request: InstallFuseStatusRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.install.fuseStatus', request)
 
-export const installFuseStatusRpcPromise = (request: InstallFuseStatusRpcParam): Promise<InstallFuseStatusResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.install.fuseStatus', request, (error, result) => error ? reject(error) : resolve(result)))
+export const installFuseStatusRpcPromise = (request: InstallFuseStatusRpcParam): Promise<InstallFuseStatusResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.install.fuseStatus', request, (error: RPCError, result: InstallFuseStatusResult) => error ? reject(error) : resolve(result)))
 
 export const installInstallAction = {
   unknown: 0,
@@ -835,15 +835,15 @@ export const installInstallAction = {
 
 export const installInstallCommandLinePrivilegedRpcChannelMap = (configKeys: Array<string>, request: InstallInstallCommandLinePrivilegedRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.install.installCommandLinePrivileged', request)
 
-export const installInstallCommandLinePrivilegedRpcPromise = (request: InstallInstallCommandLinePrivilegedRpcParam): Promise<InstallInstallCommandLinePrivilegedResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.install.installCommandLinePrivileged', request, (error, result) => error ? reject(error) : resolve(result)))
+export const installInstallCommandLinePrivilegedRpcPromise = (request: InstallInstallCommandLinePrivilegedRpcParam): Promise<InstallInstallCommandLinePrivilegedResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.install.installCommandLinePrivileged', request, (error: RPCError, result: InstallInstallCommandLinePrivilegedResult) => error ? reject(error) : resolve(result)))
 
 export const installInstallFuseRpcChannelMap = (configKeys: Array<string>, request: InstallInstallFuseRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.install.installFuse', request)
 
-export const installInstallFuseRpcPromise = (request: InstallInstallFuseRpcParam): Promise<InstallInstallFuseResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.install.installFuse', request, (error, result) => error ? reject(error) : resolve(result)))
+export const installInstallFuseRpcPromise = (request: InstallInstallFuseRpcParam): Promise<InstallInstallFuseResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.install.installFuse', request, (error: RPCError, result: InstallInstallFuseResult) => error ? reject(error) : resolve(result)))
 
 export const installInstallKBFSRpcChannelMap = (configKeys: Array<string>, request: InstallInstallKBFSRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.install.installKBFS', request)
 
-export const installInstallKBFSRpcPromise = (request: InstallInstallKBFSRpcParam): Promise<InstallInstallKBFSResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.install.installKBFS', request, (error, result) => error ? reject(error) : resolve(result)))
+export const installInstallKBFSRpcPromise = (request: InstallInstallKBFSRpcParam): Promise<InstallInstallKBFSResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.install.installKBFS', request, (error: RPCError, result: InstallInstallKBFSResult) => error ? reject(error) : resolve(result)))
 
 export const installInstallStatus = {
   unknown: 0,
@@ -854,7 +854,7 @@ export const installInstallStatus = {
 
 export const installUninstallKBFSRpcChannelMap = (configKeys: Array<string>, request: InstallUninstallKBFSRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.install.uninstallKBFS', request)
 
-export const installUninstallKBFSRpcPromise = (request: InstallUninstallKBFSRpcParam): Promise<InstallUninstallKBFSResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.install.uninstallKBFS', request, (error, result) => error ? reject(error) : resolve(result)))
+export const installUninstallKBFSRpcPromise = (request: InstallUninstallKBFSRpcParam): Promise<InstallUninstallKBFSResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.install.uninstallKBFS', request, (error: RPCError, result: InstallUninstallKBFSResult) => error ? reject(error) : resolve(result)))
 
 export const kbfsCommonFSErrorType = {
   accessDenied: 0,
@@ -897,207 +897,207 @@ export const kbfsCommonFSStatusCode = {
 
 export const kbfsFSEditListRpcChannelMap = (configKeys: Array<string>, request: KbfsFSEditListRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.kbfs.FSEditList', request)
 
-export const kbfsFSEditListRpcPromise = (request: KbfsFSEditListRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.kbfs.FSEditList', request, (error, result) => error ? reject(error) : resolve(result)))
+export const kbfsFSEditListRpcPromise = (request: KbfsFSEditListRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.kbfs.FSEditList', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
 
 export const kbfsFSEventRpcChannelMap = (configKeys: Array<string>, request: KbfsFSEventRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.kbfs.FSEvent', request)
 
-export const kbfsFSEventRpcPromise = (request: KbfsFSEventRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.kbfs.FSEvent', request, (error, result) => error ? reject(error) : resolve(result)))
+export const kbfsFSEventRpcPromise = (request: KbfsFSEventRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.kbfs.FSEvent', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
 
 export const kbfsFSSyncEventRpcChannelMap = (configKeys: Array<string>, request: KbfsFSSyncEventRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.kbfs.FSSyncEvent', request)
 
-export const kbfsFSSyncEventRpcPromise = (request: KbfsFSSyncEventRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.kbfs.FSSyncEvent', request, (error, result) => error ? reject(error) : resolve(result)))
+export const kbfsFSSyncEventRpcPromise = (request: KbfsFSSyncEventRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.kbfs.FSSyncEvent', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
 
 export const kbfsFSSyncStatusRpcChannelMap = (configKeys: Array<string>, request: KbfsFSSyncStatusRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.kbfs.FSSyncStatus', request)
 
-export const kbfsFSSyncStatusRpcPromise = (request: KbfsFSSyncStatusRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.kbfs.FSSyncStatus', request, (error, result) => error ? reject(error) : resolve(result)))
+export const kbfsFSSyncStatusRpcPromise = (request: KbfsFSSyncStatusRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.kbfs.FSSyncStatus', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
 
 export const kbfsMountGetAllAvailableMountDirsRpcChannelMap = (configKeys: Array<string>, request: KbfsMountGetAllAvailableMountDirsRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.kbfsMount.GetAllAvailableMountDirs', request)
 
-export const kbfsMountGetAllAvailableMountDirsRpcPromise = (request: KbfsMountGetAllAvailableMountDirsRpcParam): Promise<KbfsMountGetAllAvailableMountDirsResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.kbfsMount.GetAllAvailableMountDirs', request, (error, result) => error ? reject(error) : resolve(result)))
+export const kbfsMountGetAllAvailableMountDirsRpcPromise = (request: KbfsMountGetAllAvailableMountDirsRpcParam): Promise<KbfsMountGetAllAvailableMountDirsResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.kbfsMount.GetAllAvailableMountDirs', request, (error: RPCError, result: KbfsMountGetAllAvailableMountDirsResult) => error ? reject(error) : resolve(result)))
 
 export const kbfsMountGetCurrentMountDirRpcChannelMap = (configKeys: Array<string>, request: KbfsMountGetCurrentMountDirRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.kbfsMount.GetCurrentMountDir', request)
 
-export const kbfsMountGetCurrentMountDirRpcPromise = (request: KbfsMountGetCurrentMountDirRpcParam): Promise<KbfsMountGetCurrentMountDirResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.kbfsMount.GetCurrentMountDir', request, (error, result) => error ? reject(error) : resolve(result)))
+export const kbfsMountGetCurrentMountDirRpcPromise = (request: KbfsMountGetCurrentMountDirRpcParam): Promise<KbfsMountGetCurrentMountDirResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.kbfsMount.GetCurrentMountDir', request, (error: RPCError, result: KbfsMountGetCurrentMountDirResult) => error ? reject(error) : resolve(result)))
 
 export const kbfsMountSetCurrentMountDirRpcChannelMap = (configKeys: Array<string>, request: KbfsMountSetCurrentMountDirRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.kbfsMount.SetCurrentMountDir', request)
 
-export const kbfsMountSetCurrentMountDirRpcPromise = (request: KbfsMountSetCurrentMountDirRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.kbfsMount.SetCurrentMountDir', request, (error, result) => error ? reject(error) : resolve(result)))
+export const kbfsMountSetCurrentMountDirRpcPromise = (request: KbfsMountSetCurrentMountDirRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.kbfsMount.SetCurrentMountDir', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
 
 export const logRegisterLoggerRpcChannelMap = (configKeys: Array<string>, request: LogRegisterLoggerRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.log.registerLogger', request)
 
-export const logRegisterLoggerRpcPromise = (request: LogRegisterLoggerRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.log.registerLogger', request, (error, result) => error ? reject(error) : resolve(result)))
+export const logRegisterLoggerRpcPromise = (request: LogRegisterLoggerRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.log.registerLogger', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
 
 export const loginAccountDeleteRpcChannelMap = (configKeys: Array<string>, request: LoginAccountDeleteRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.login.accountDelete', request)
 
-export const loginAccountDeleteRpcPromise = (request: LoginAccountDeleteRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.login.accountDelete', request, (error, result) => error ? reject(error) : resolve(result)))
+export const loginAccountDeleteRpcPromise = (request: LoginAccountDeleteRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.login.accountDelete', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
 
 export const loginClearStoredSecretRpcChannelMap = (configKeys: Array<string>, request: LoginClearStoredSecretRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.login.clearStoredSecret', request)
 
-export const loginClearStoredSecretRpcPromise = (request: LoginClearStoredSecretRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.login.clearStoredSecret', request, (error, result) => error ? reject(error) : resolve(result)))
+export const loginClearStoredSecretRpcPromise = (request: LoginClearStoredSecretRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.login.clearStoredSecret', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
 
 export const loginDeprovisionRpcChannelMap = (configKeys: Array<string>, request: LoginDeprovisionRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.login.deprovision', request)
 
-export const loginDeprovisionRpcPromise = (request: LoginDeprovisionRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.login.deprovision', request, (error, result) => error ? reject(error) : resolve(result)))
+export const loginDeprovisionRpcPromise = (request: LoginDeprovisionRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.login.deprovision', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
 
 export const loginGetConfiguredAccountsRpcChannelMap = (configKeys: Array<string>, request: LoginGetConfiguredAccountsRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.login.getConfiguredAccounts', request)
 
-export const loginGetConfiguredAccountsRpcPromise = (request: LoginGetConfiguredAccountsRpcParam): Promise<LoginGetConfiguredAccountsResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.login.getConfiguredAccounts', request, (error, result) => error ? reject(error) : resolve(result)))
+export const loginGetConfiguredAccountsRpcPromise = (request: LoginGetConfiguredAccountsRpcParam): Promise<LoginGetConfiguredAccountsResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.login.getConfiguredAccounts', request, (error: RPCError, result: LoginGetConfiguredAccountsResult) => error ? reject(error) : resolve(result)))
 
 export const loginLoginProvisionedDeviceRpcChannelMap = (configKeys: Array<string>, request: LoginLoginProvisionedDeviceRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.login.loginProvisionedDevice', request)
 
-export const loginLoginProvisionedDeviceRpcPromise = (request: LoginLoginProvisionedDeviceRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.login.loginProvisionedDevice', request, (error, result) => error ? reject(error) : resolve(result)))
+export const loginLoginProvisionedDeviceRpcPromise = (request: LoginLoginProvisionedDeviceRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.login.loginProvisionedDevice', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
 
 export const loginLoginRpcChannelMap = (configKeys: Array<string>, request: LoginLoginRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.login.login', request)
 
-export const loginLoginRpcPromise = (request: LoginLoginRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.login.login', request, (error, result) => error ? reject(error) : resolve(result)))
+export const loginLoginRpcPromise = (request: LoginLoginRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.login.login', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
 
 export const loginLoginWithPaperKeyRpcChannelMap = (configKeys: Array<string>, request: LoginLoginWithPaperKeyRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.login.loginWithPaperKey', request)
 
-export const loginLoginWithPaperKeyRpcPromise = (request: LoginLoginWithPaperKeyRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.login.loginWithPaperKey', request, (error, result) => error ? reject(error) : resolve(result)))
+export const loginLoginWithPaperKeyRpcPromise = (request: LoginLoginWithPaperKeyRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.login.loginWithPaperKey', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
 
 export const loginLogoutRpcChannelMap = (configKeys: Array<string>, request: LoginLogoutRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.login.logout', request)
 
-export const loginLogoutRpcPromise = (request: LoginLogoutRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.login.logout', request, (error, result) => error ? reject(error) : resolve(result)))
+export const loginLogoutRpcPromise = (request: LoginLogoutRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.login.logout', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
 
 export const loginPaperKeyRpcChannelMap = (configKeys: Array<string>, request: LoginPaperKeyRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.login.paperKey', request)
 
-export const loginPaperKeyRpcPromise = (request: LoginPaperKeyRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.login.paperKey', request, (error, result) => error ? reject(error) : resolve(result)))
+export const loginPaperKeyRpcPromise = (request: LoginPaperKeyRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.login.paperKey', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
 
 export const loginPaperKeySubmitRpcChannelMap = (configKeys: Array<string>, request: LoginPaperKeySubmitRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.login.paperKeySubmit', request)
 
-export const loginPaperKeySubmitRpcPromise = (request: LoginPaperKeySubmitRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.login.paperKeySubmit', request, (error, result) => error ? reject(error) : resolve(result)))
+export const loginPaperKeySubmitRpcPromise = (request: LoginPaperKeySubmitRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.login.paperKeySubmit', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
 
 export const loginPgpProvisionRpcChannelMap = (configKeys: Array<string>, request: LoginPgpProvisionRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.login.pgpProvision', request)
 
-export const loginPgpProvisionRpcPromise = (request: LoginPgpProvisionRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.login.pgpProvision', request, (error, result) => error ? reject(error) : resolve(result)))
+export const loginPgpProvisionRpcPromise = (request: LoginPgpProvisionRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.login.pgpProvision', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
 
 export const loginRecoverAccountFromEmailAddressRpcChannelMap = (configKeys: Array<string>, request: LoginRecoverAccountFromEmailAddressRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.login.recoverAccountFromEmailAddress', request)
 
-export const loginRecoverAccountFromEmailAddressRpcPromise = (request: LoginRecoverAccountFromEmailAddressRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.login.recoverAccountFromEmailAddress', request, (error, result) => error ? reject(error) : resolve(result)))
+export const loginRecoverAccountFromEmailAddressRpcPromise = (request: LoginRecoverAccountFromEmailAddressRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.login.recoverAccountFromEmailAddress', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
 
 export const loginUnlockRpcChannelMap = (configKeys: Array<string>, request: LoginUnlockRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.login.unlock', request)
 
-export const loginUnlockRpcPromise = (request: LoginUnlockRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.login.unlock', request, (error, result) => error ? reject(error) : resolve(result)))
+export const loginUnlockRpcPromise = (request: LoginUnlockRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.login.unlock', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
 
 export const loginUnlockWithPassphraseRpcChannelMap = (configKeys: Array<string>, request: LoginUnlockWithPassphraseRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.login.unlockWithPassphrase', request)
 
-export const loginUnlockWithPassphraseRpcPromise = (request: LoginUnlockWithPassphraseRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.login.unlockWithPassphrase', request, (error, result) => error ? reject(error) : resolve(result)))
+export const loginUnlockWithPassphraseRpcPromise = (request: LoginUnlockWithPassphraseRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.login.unlockWithPassphrase', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
 
 export const merkleGetCurrentMerkleRootRpcChannelMap = (configKeys: Array<string>, request: MerkleGetCurrentMerkleRootRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.merkle.getCurrentMerkleRoot', request)
 
-export const merkleGetCurrentMerkleRootRpcPromise = (request: MerkleGetCurrentMerkleRootRpcParam): Promise<MerkleGetCurrentMerkleRootResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.merkle.getCurrentMerkleRoot', request, (error, result) => error ? reject(error) : resolve(result)))
+export const merkleGetCurrentMerkleRootRpcPromise = (request: MerkleGetCurrentMerkleRootRpcParam): Promise<MerkleGetCurrentMerkleRootResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.merkle.getCurrentMerkleRoot', request, (error: RPCError, result: MerkleGetCurrentMerkleRootResult) => error ? reject(error) : resolve(result)))
 
 export const metadataAuthenticateRpcChannelMap = (configKeys: Array<string>, request: MetadataAuthenticateRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.metadata.authenticate', request)
 
-export const metadataAuthenticateRpcPromise = (request: MetadataAuthenticateRpcParam): Promise<MetadataAuthenticateResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.metadata.authenticate', request, (error, result) => error ? reject(error) : resolve(result)))
+export const metadataAuthenticateRpcPromise = (request: MetadataAuthenticateRpcParam): Promise<MetadataAuthenticateResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.metadata.authenticate', request, (error: RPCError, result: MetadataAuthenticateResult) => error ? reject(error) : resolve(result)))
 
 export const metadataDeleteKeyRpcChannelMap = (configKeys: Array<string>, request: MetadataDeleteKeyRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.metadata.deleteKey', request)
 
-export const metadataDeleteKeyRpcPromise = (request: MetadataDeleteKeyRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.metadata.deleteKey', request, (error, result) => error ? reject(error) : resolve(result)))
+export const metadataDeleteKeyRpcPromise = (request: MetadataDeleteKeyRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.metadata.deleteKey', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
 
 export const metadataGetChallengeRpcChannelMap = (configKeys: Array<string>, request: MetadataGetChallengeRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.metadata.getChallenge', request)
 
-export const metadataGetChallengeRpcPromise = (request: MetadataGetChallengeRpcParam): Promise<MetadataGetChallengeResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.metadata.getChallenge', request, (error, result) => error ? reject(error) : resolve(result)))
+export const metadataGetChallengeRpcPromise = (request: MetadataGetChallengeRpcParam): Promise<MetadataGetChallengeResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.metadata.getChallenge', request, (error: RPCError, result: MetadataGetChallengeResult) => error ? reject(error) : resolve(result)))
 
 export const metadataGetFolderHandleRpcChannelMap = (configKeys: Array<string>, request: MetadataGetFolderHandleRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.metadata.getFolderHandle', request)
 
-export const metadataGetFolderHandleRpcPromise = (request: MetadataGetFolderHandleRpcParam): Promise<MetadataGetFolderHandleResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.metadata.getFolderHandle', request, (error, result) => error ? reject(error) : resolve(result)))
+export const metadataGetFolderHandleRpcPromise = (request: MetadataGetFolderHandleRpcParam): Promise<MetadataGetFolderHandleResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.metadata.getFolderHandle', request, (error: RPCError, result: MetadataGetFolderHandleResult) => error ? reject(error) : resolve(result)))
 
 export const metadataGetFoldersForRekeyRpcChannelMap = (configKeys: Array<string>, request: MetadataGetFoldersForRekeyRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.metadata.getFoldersForRekey', request)
 
-export const metadataGetFoldersForRekeyRpcPromise = (request: MetadataGetFoldersForRekeyRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.metadata.getFoldersForRekey', request, (error, result) => error ? reject(error) : resolve(result)))
+export const metadataGetFoldersForRekeyRpcPromise = (request: MetadataGetFoldersForRekeyRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.metadata.getFoldersForRekey', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
 
 export const metadataGetKeyBundlesRpcChannelMap = (configKeys: Array<string>, request: MetadataGetKeyBundlesRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.metadata.getKeyBundles', request)
 
-export const metadataGetKeyBundlesRpcPromise = (request: MetadataGetKeyBundlesRpcParam): Promise<MetadataGetKeyBundlesResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.metadata.getKeyBundles', request, (error, result) => error ? reject(error) : resolve(result)))
+export const metadataGetKeyBundlesRpcPromise = (request: MetadataGetKeyBundlesRpcParam): Promise<MetadataGetKeyBundlesResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.metadata.getKeyBundles', request, (error: RPCError, result: MetadataGetKeyBundlesResult) => error ? reject(error) : resolve(result)))
 
 export const metadataGetKeyRpcChannelMap = (configKeys: Array<string>, request: MetadataGetKeyRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.metadata.getKey', request)
 
-export const metadataGetKeyRpcPromise = (request: MetadataGetKeyRpcParam): Promise<MetadataGetKeyResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.metadata.getKey', request, (error, result) => error ? reject(error) : resolve(result)))
+export const metadataGetKeyRpcPromise = (request: MetadataGetKeyRpcParam): Promise<MetadataGetKeyResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.metadata.getKey', request, (error: RPCError, result: MetadataGetKeyResult) => error ? reject(error) : resolve(result)))
 
 export const metadataGetLatestFolderHandleRpcChannelMap = (configKeys: Array<string>, request: MetadataGetLatestFolderHandleRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.metadata.getLatestFolderHandle', request)
 
-export const metadataGetLatestFolderHandleRpcPromise = (request: MetadataGetLatestFolderHandleRpcParam): Promise<MetadataGetLatestFolderHandleResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.metadata.getLatestFolderHandle', request, (error, result) => error ? reject(error) : resolve(result)))
+export const metadataGetLatestFolderHandleRpcPromise = (request: MetadataGetLatestFolderHandleRpcParam): Promise<MetadataGetLatestFolderHandleResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.metadata.getLatestFolderHandle', request, (error: RPCError, result: MetadataGetLatestFolderHandleResult) => error ? reject(error) : resolve(result)))
 
 export const metadataGetMerkleNodeRpcChannelMap = (configKeys: Array<string>, request: MetadataGetMerkleNodeRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.metadata.getMerkleNode', request)
 
-export const metadataGetMerkleNodeRpcPromise = (request: MetadataGetMerkleNodeRpcParam): Promise<MetadataGetMerkleNodeResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.metadata.getMerkleNode', request, (error, result) => error ? reject(error) : resolve(result)))
+export const metadataGetMerkleNodeRpcPromise = (request: MetadataGetMerkleNodeRpcParam): Promise<MetadataGetMerkleNodeResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.metadata.getMerkleNode', request, (error: RPCError, result: MetadataGetMerkleNodeResult) => error ? reject(error) : resolve(result)))
 
 export const metadataGetMerkleRootLatestRpcChannelMap = (configKeys: Array<string>, request: MetadataGetMerkleRootLatestRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.metadata.getMerkleRootLatest', request)
 
-export const metadataGetMerkleRootLatestRpcPromise = (request: MetadataGetMerkleRootLatestRpcParam): Promise<MetadataGetMerkleRootLatestResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.metadata.getMerkleRootLatest', request, (error, result) => error ? reject(error) : resolve(result)))
+export const metadataGetMerkleRootLatestRpcPromise = (request: MetadataGetMerkleRootLatestRpcParam): Promise<MetadataGetMerkleRootLatestResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.metadata.getMerkleRootLatest', request, (error: RPCError, result: MetadataGetMerkleRootLatestResult) => error ? reject(error) : resolve(result)))
 
 export const metadataGetMerkleRootRpcChannelMap = (configKeys: Array<string>, request: MetadataGetMerkleRootRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.metadata.getMerkleRoot', request)
 
-export const metadataGetMerkleRootRpcPromise = (request: MetadataGetMerkleRootRpcParam): Promise<MetadataGetMerkleRootResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.metadata.getMerkleRoot', request, (error, result) => error ? reject(error) : resolve(result)))
+export const metadataGetMerkleRootRpcPromise = (request: MetadataGetMerkleRootRpcParam): Promise<MetadataGetMerkleRootResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.metadata.getMerkleRoot', request, (error: RPCError, result: MetadataGetMerkleRootResult) => error ? reject(error) : resolve(result)))
 
 export const metadataGetMerkleRootSinceRpcChannelMap = (configKeys: Array<string>, request: MetadataGetMerkleRootSinceRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.metadata.getMerkleRootSince', request)
 
-export const metadataGetMerkleRootSinceRpcPromise = (request: MetadataGetMerkleRootSinceRpcParam): Promise<MetadataGetMerkleRootSinceResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.metadata.getMerkleRootSince', request, (error, result) => error ? reject(error) : resolve(result)))
+export const metadataGetMerkleRootSinceRpcPromise = (request: MetadataGetMerkleRootSinceRpcParam): Promise<MetadataGetMerkleRootSinceResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.metadata.getMerkleRootSince', request, (error: RPCError, result: MetadataGetMerkleRootSinceResult) => error ? reject(error) : resolve(result)))
 
 export const metadataGetMetadataRpcChannelMap = (configKeys: Array<string>, request: MetadataGetMetadataRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.metadata.getMetadata', request)
 
-export const metadataGetMetadataRpcPromise = (request: MetadataGetMetadataRpcParam): Promise<MetadataGetMetadataResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.metadata.getMetadata', request, (error, result) => error ? reject(error) : resolve(result)))
+export const metadataGetMetadataRpcPromise = (request: MetadataGetMetadataRpcParam): Promise<MetadataGetMetadataResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.metadata.getMetadata', request, (error: RPCError, result: MetadataGetMetadataResult) => error ? reject(error) : resolve(result)))
 
 export const metadataLockRpcChannelMap = (configKeys: Array<string>, request: MetadataLockRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.metadata.lock', request)
 
-export const metadataLockRpcPromise = (request: MetadataLockRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.metadata.lock', request, (error, result) => error ? reject(error) : resolve(result)))
+export const metadataLockRpcPromise = (request: MetadataLockRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.metadata.lock', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
 
 export const metadataPing2RpcChannelMap = (configKeys: Array<string>, request: MetadataPing2RpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.metadata.ping2', request)
 
-export const metadataPing2RpcPromise = (request: MetadataPing2RpcParam): Promise<MetadataPing2Result> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.metadata.ping2', request, (error, result) => error ? reject(error) : resolve(result)))
+export const metadataPing2RpcPromise = (request: MetadataPing2RpcParam): Promise<MetadataPing2Result> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.metadata.ping2', request, (error: RPCError, result: MetadataPing2Result) => error ? reject(error) : resolve(result)))
 
 export const metadataPingRpcChannelMap = (configKeys: Array<string>, request: MetadataPingRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.metadata.ping', request)
 
-export const metadataPingRpcPromise = (request: MetadataPingRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.metadata.ping', request, (error, result) => error ? reject(error) : resolve(result)))
+export const metadataPingRpcPromise = (request: MetadataPingRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.metadata.ping', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
 
 export const metadataPruneBranchRpcChannelMap = (configKeys: Array<string>, request: MetadataPruneBranchRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.metadata.pruneBranch', request)
 
-export const metadataPruneBranchRpcPromise = (request: MetadataPruneBranchRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.metadata.pruneBranch', request, (error, result) => error ? reject(error) : resolve(result)))
+export const metadataPruneBranchRpcPromise = (request: MetadataPruneBranchRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.metadata.pruneBranch', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
 
 export const metadataPutKeysRpcChannelMap = (configKeys: Array<string>, request: MetadataPutKeysRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.metadata.putKeys', request)
 
-export const metadataPutKeysRpcPromise = (request: MetadataPutKeysRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.metadata.putKeys', request, (error, result) => error ? reject(error) : resolve(result)))
+export const metadataPutKeysRpcPromise = (request: MetadataPutKeysRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.metadata.putKeys', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
 
 export const metadataPutMetadataRpcChannelMap = (configKeys: Array<string>, request: MetadataPutMetadataRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.metadata.putMetadata', request)
 
-export const metadataPutMetadataRpcPromise = (request: MetadataPutMetadataRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.metadata.putMetadata', request, (error, result) => error ? reject(error) : resolve(result)))
+export const metadataPutMetadataRpcPromise = (request: MetadataPutMetadataRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.metadata.putMetadata', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
 
 export const metadataRegisterForUpdatesRpcChannelMap = (configKeys: Array<string>, request: MetadataRegisterForUpdatesRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.metadata.registerForUpdates', request)
 
-export const metadataRegisterForUpdatesRpcPromise = (request: MetadataRegisterForUpdatesRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.metadata.registerForUpdates', request, (error, result) => error ? reject(error) : resolve(result)))
+export const metadataRegisterForUpdatesRpcPromise = (request: MetadataRegisterForUpdatesRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.metadata.registerForUpdates', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
 
 export const metadataReleaseLockRpcChannelMap = (configKeys: Array<string>, request: MetadataReleaseLockRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.metadata.releaseLock', request)
 
-export const metadataReleaseLockRpcPromise = (request: MetadataReleaseLockRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.metadata.releaseLock', request, (error, result) => error ? reject(error) : resolve(result)))
+export const metadataReleaseLockRpcPromise = (request: MetadataReleaseLockRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.metadata.releaseLock', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
 
 export const metadataTruncateLockRpcChannelMap = (configKeys: Array<string>, request: MetadataTruncateLockRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.metadata.truncateLock', request)
 
-export const metadataTruncateLockRpcPromise = (request: MetadataTruncateLockRpcParam): Promise<MetadataTruncateLockResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.metadata.truncateLock', request, (error, result) => error ? reject(error) : resolve(result)))
+export const metadataTruncateLockRpcPromise = (request: MetadataTruncateLockRpcParam): Promise<MetadataTruncateLockResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.metadata.truncateLock', request, (error: RPCError, result: MetadataTruncateLockResult) => error ? reject(error) : resolve(result)))
 
 export const metadataTruncateUnlockRpcChannelMap = (configKeys: Array<string>, request: MetadataTruncateUnlockRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.metadata.truncateUnlock', request)
 
-export const metadataTruncateUnlockRpcPromise = (request: MetadataTruncateUnlockRpcParam): Promise<MetadataTruncateUnlockResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.metadata.truncateUnlock', request, (error, result) => error ? reject(error) : resolve(result)))
+export const metadataTruncateUnlockRpcPromise = (request: MetadataTruncateUnlockRpcParam): Promise<MetadataTruncateUnlockResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.metadata.truncateUnlock', request, (error: RPCError, result: MetadataTruncateUnlockResult) => error ? reject(error) : resolve(result)))
 
 export const metadataUpdateFolderNeedsRekeyRpcChannelMap = (configKeys: Array<string>, request: MetadataUpdateFolderNeedsRekeyRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.metadataUpdate.folderNeedsRekey', request)
 
-export const metadataUpdateFolderNeedsRekeyRpcPromise = (request: MetadataUpdateFolderNeedsRekeyRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.metadataUpdate.folderNeedsRekey', request, (error, result) => error ? reject(error) : resolve(result)))
+export const metadataUpdateFolderNeedsRekeyRpcPromise = (request: MetadataUpdateFolderNeedsRekeyRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.metadataUpdate.folderNeedsRekey', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
 
 export const metadataUpdateFoldersNeedRekeyRpcChannelMap = (configKeys: Array<string>, request: MetadataUpdateFoldersNeedRekeyRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.metadataUpdate.foldersNeedRekey', request)
 
-export const metadataUpdateFoldersNeedRekeyRpcPromise = (request: MetadataUpdateFoldersNeedRekeyRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.metadataUpdate.foldersNeedRekey', request, (error, result) => error ? reject(error) : resolve(result)))
+export const metadataUpdateFoldersNeedRekeyRpcPromise = (request: MetadataUpdateFoldersNeedRekeyRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.metadataUpdate.foldersNeedRekey', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
 
 export const metadataUpdateMetadataUpdateRpcChannelMap = (configKeys: Array<string>, request: MetadataUpdateMetadataUpdateRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.metadataUpdate.metadataUpdate', request)
 
-export const metadataUpdateMetadataUpdateRpcPromise = (request: MetadataUpdateMetadataUpdateRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.metadataUpdate.metadataUpdate', request, (error, result) => error ? reject(error) : resolve(result)))
+export const metadataUpdateMetadataUpdateRpcPromise = (request: MetadataUpdateMetadataUpdateRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.metadataUpdate.metadataUpdate', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
 
 export const notifyCtlSetNotificationsRpcChannelMap = (configKeys: Array<string>, request: NotifyCtlSetNotificationsRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.notifyCtl.setNotifications', request)
 
-export const notifyCtlSetNotificationsRpcPromise = (request: NotifyCtlSetNotificationsRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.notifyCtl.setNotifications', request, (error, result) => error ? reject(error) : resolve(result)))
+export const notifyCtlSetNotificationsRpcPromise = (request: NotifyCtlSetNotificationsRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.notifyCtl.setNotifications', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
 
 export const paperprovisionPaperProvisionRpcChannelMap = (configKeys: Array<string>, request: PaperprovisionPaperProvisionRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.paperprovision.paperProvision', request)
 
-export const paperprovisionPaperProvisionRpcPromise = (request: PaperprovisionPaperProvisionRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.paperprovision.paperProvision', request, (error, result) => error ? reject(error) : resolve(result)))
+export const paperprovisionPaperProvisionRpcPromise = (request: PaperprovisionPaperProvisionRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.paperprovision.paperProvision', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
 
 export const passphraseCommonPassphraseType = {
   none: 0,
@@ -1108,67 +1108,67 @@ export const passphraseCommonPassphraseType = {
 
 export const pgpPgpDecryptRpcChannelMap = (configKeys: Array<string>, request: PgpPgpDecryptRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.pgp.pgpDecrypt', request)
 
-export const pgpPgpDecryptRpcPromise = (request: PgpPgpDecryptRpcParam): Promise<PgpPgpDecryptResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.pgp.pgpDecrypt', request, (error, result) => error ? reject(error) : resolve(result)))
+export const pgpPgpDecryptRpcPromise = (request: PgpPgpDecryptRpcParam): Promise<PgpPgpDecryptResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.pgp.pgpDecrypt', request, (error: RPCError, result: PgpPgpDecryptResult) => error ? reject(error) : resolve(result)))
 
 export const pgpPgpDeletePrimaryRpcChannelMap = (configKeys: Array<string>, request: PgpPgpDeletePrimaryRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.pgp.pgpDeletePrimary', request)
 
-export const pgpPgpDeletePrimaryRpcPromise = (request: PgpPgpDeletePrimaryRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.pgp.pgpDeletePrimary', request, (error, result) => error ? reject(error) : resolve(result)))
+export const pgpPgpDeletePrimaryRpcPromise = (request: PgpPgpDeletePrimaryRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.pgp.pgpDeletePrimary', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
 
 export const pgpPgpEncryptRpcChannelMap = (configKeys: Array<string>, request: PgpPgpEncryptRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.pgp.pgpEncrypt', request)
 
-export const pgpPgpEncryptRpcPromise = (request: PgpPgpEncryptRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.pgp.pgpEncrypt', request, (error, result) => error ? reject(error) : resolve(result)))
+export const pgpPgpEncryptRpcPromise = (request: PgpPgpEncryptRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.pgp.pgpEncrypt', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
 
 export const pgpPgpExportByFingerprintRpcChannelMap = (configKeys: Array<string>, request: PgpPgpExportByFingerprintRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.pgp.pgpExportByFingerprint', request)
 
-export const pgpPgpExportByFingerprintRpcPromise = (request: PgpPgpExportByFingerprintRpcParam): Promise<PgpPgpExportByFingerprintResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.pgp.pgpExportByFingerprint', request, (error, result) => error ? reject(error) : resolve(result)))
+export const pgpPgpExportByFingerprintRpcPromise = (request: PgpPgpExportByFingerprintRpcParam): Promise<PgpPgpExportByFingerprintResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.pgp.pgpExportByFingerprint', request, (error: RPCError, result: PgpPgpExportByFingerprintResult) => error ? reject(error) : resolve(result)))
 
 export const pgpPgpExportByKIDRpcChannelMap = (configKeys: Array<string>, request: PgpPgpExportByKIDRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.pgp.pgpExportByKID', request)
 
-export const pgpPgpExportByKIDRpcPromise = (request: PgpPgpExportByKIDRpcParam): Promise<PgpPgpExportByKIDResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.pgp.pgpExportByKID', request, (error, result) => error ? reject(error) : resolve(result)))
+export const pgpPgpExportByKIDRpcPromise = (request: PgpPgpExportByKIDRpcParam): Promise<PgpPgpExportByKIDResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.pgp.pgpExportByKID', request, (error: RPCError, result: PgpPgpExportByKIDResult) => error ? reject(error) : resolve(result)))
 
 export const pgpPgpExportRpcChannelMap = (configKeys: Array<string>, request: PgpPgpExportRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.pgp.pgpExport', request)
 
-export const pgpPgpExportRpcPromise = (request: PgpPgpExportRpcParam): Promise<PgpPgpExportResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.pgp.pgpExport', request, (error, result) => error ? reject(error) : resolve(result)))
+export const pgpPgpExportRpcPromise = (request: PgpPgpExportRpcParam): Promise<PgpPgpExportResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.pgp.pgpExport', request, (error: RPCError, result: PgpPgpExportResult) => error ? reject(error) : resolve(result)))
 
 export const pgpPgpImportRpcChannelMap = (configKeys: Array<string>, request: PgpPgpImportRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.pgp.pgpImport', request)
 
-export const pgpPgpImportRpcPromise = (request: PgpPgpImportRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.pgp.pgpImport', request, (error, result) => error ? reject(error) : resolve(result)))
+export const pgpPgpImportRpcPromise = (request: PgpPgpImportRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.pgp.pgpImport', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
 
 export const pgpPgpKeyGenDefaultRpcChannelMap = (configKeys: Array<string>, request: PgpPgpKeyGenDefaultRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.pgp.pgpKeyGenDefault', request)
 
-export const pgpPgpKeyGenDefaultRpcPromise = (request: PgpPgpKeyGenDefaultRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.pgp.pgpKeyGenDefault', request, (error, result) => error ? reject(error) : resolve(result)))
+export const pgpPgpKeyGenDefaultRpcPromise = (request: PgpPgpKeyGenDefaultRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.pgp.pgpKeyGenDefault', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
 
 export const pgpPgpKeyGenRpcChannelMap = (configKeys: Array<string>, request: PgpPgpKeyGenRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.pgp.pgpKeyGen', request)
 
-export const pgpPgpKeyGenRpcPromise = (request: PgpPgpKeyGenRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.pgp.pgpKeyGen', request, (error, result) => error ? reject(error) : resolve(result)))
+export const pgpPgpKeyGenRpcPromise = (request: PgpPgpKeyGenRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.pgp.pgpKeyGen', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
 
 export const pgpPgpPullRpcChannelMap = (configKeys: Array<string>, request: PgpPgpPullRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.pgp.pgpPull', request)
 
-export const pgpPgpPullRpcPromise = (request: PgpPgpPullRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.pgp.pgpPull', request, (error, result) => error ? reject(error) : resolve(result)))
+export const pgpPgpPullRpcPromise = (request: PgpPgpPullRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.pgp.pgpPull', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
 
 export const pgpPgpPurgeRpcChannelMap = (configKeys: Array<string>, request: PgpPgpPurgeRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.pgp.pgpPurge', request)
 
-export const pgpPgpPurgeRpcPromise = (request: PgpPgpPurgeRpcParam): Promise<PgpPgpPurgeResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.pgp.pgpPurge', request, (error, result) => error ? reject(error) : resolve(result)))
+export const pgpPgpPurgeRpcPromise = (request: PgpPgpPurgeRpcParam): Promise<PgpPgpPurgeResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.pgp.pgpPurge', request, (error: RPCError, result: PgpPgpPurgeResult) => error ? reject(error) : resolve(result)))
 
 export const pgpPgpSelectRpcChannelMap = (configKeys: Array<string>, request: PgpPgpSelectRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.pgp.pgpSelect', request)
 
-export const pgpPgpSelectRpcPromise = (request: PgpPgpSelectRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.pgp.pgpSelect', request, (error, result) => error ? reject(error) : resolve(result)))
+export const pgpPgpSelectRpcPromise = (request: PgpPgpSelectRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.pgp.pgpSelect', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
 
 export const pgpPgpSignRpcChannelMap = (configKeys: Array<string>, request: PgpPgpSignRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.pgp.pgpSign', request)
 
-export const pgpPgpSignRpcPromise = (request: PgpPgpSignRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.pgp.pgpSign', request, (error, result) => error ? reject(error) : resolve(result)))
+export const pgpPgpSignRpcPromise = (request: PgpPgpSignRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.pgp.pgpSign', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
 
 export const pgpPgpStorageDismissRpcChannelMap = (configKeys: Array<string>, request: PgpPgpStorageDismissRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.pgp.pgpStorageDismiss', request)
 
-export const pgpPgpStorageDismissRpcPromise = (request: PgpPgpStorageDismissRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.pgp.pgpStorageDismiss', request, (error, result) => error ? reject(error) : resolve(result)))
+export const pgpPgpStorageDismissRpcPromise = (request: PgpPgpStorageDismissRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.pgp.pgpStorageDismiss', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
 
 export const pgpPgpUpdateRpcChannelMap = (configKeys: Array<string>, request: PgpPgpUpdateRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.pgp.pgpUpdate', request)
 
-export const pgpPgpUpdateRpcPromise = (request: PgpPgpUpdateRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.pgp.pgpUpdate', request, (error, result) => error ? reject(error) : resolve(result)))
+export const pgpPgpUpdateRpcPromise = (request: PgpPgpUpdateRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.pgp.pgpUpdate', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
 
 export const pgpPgpVerifyRpcChannelMap = (configKeys: Array<string>, request: PgpPgpVerifyRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.pgp.pgpVerify', request)
 
-export const pgpPgpVerifyRpcPromise = (request: PgpPgpVerifyRpcParam): Promise<PgpPgpVerifyResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.pgp.pgpVerify', request, (error, result) => error ? reject(error) : resolve(result)))
+export const pgpPgpVerifyRpcPromise = (request: PgpPgpVerifyRpcParam): Promise<PgpPgpVerifyResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.pgp.pgpVerify', request, (error: RPCError, result: PgpPgpVerifyResult) => error ? reject(error) : resolve(result)))
 
 export const pgpSignMode = {
   attached: 0,
@@ -1184,7 +1184,7 @@ export const processFileType = {
 
 export const proveCheckProofRpcChannelMap = (configKeys: Array<string>, request: ProveCheckProofRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.prove.checkProof', request)
 
-export const proveCheckProofRpcPromise = (request: ProveCheckProofRpcParam): Promise<ProveCheckProofResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.prove.checkProof', request, (error, result) => error ? reject(error) : resolve(result)))
+export const proveCheckProofRpcPromise = (request: ProveCheckProofRpcParam): Promise<ProveCheckProofResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.prove.checkProof', request, (error: RPCError, result: ProveCheckProofResult) => error ? reject(error) : resolve(result)))
 
 export const proveCommonProofState = {
   none: 0,
@@ -1261,7 +1261,7 @@ export const proveCommonProofType = {
 
 export const proveStartProofRpcChannelMap = (configKeys: Array<string>, request: ProveStartProofRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.prove.startProof', request)
 
-export const proveStartProofRpcPromise = (request: ProveStartProofRpcParam): Promise<ProveStartProofResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.prove.startProof', request, (error, result) => error ? reject(error) : resolve(result)))
+export const proveStartProofRpcPromise = (request: ProveStartProofRpcParam): Promise<ProveStartProofResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.prove.startProof', request, (error: RPCError, result: ProveStartProofResult) => error ? reject(error) : resolve(result)))
 
 export const proveUiPromptOverwriteType = {
   social: 0,
@@ -1289,15 +1289,15 @@ export const provisionUiProvisionMethod = {
 
 export const quotaVerifySessionRpcChannelMap = (configKeys: Array<string>, request: QuotaVerifySessionRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.quota.verifySession', request)
 
-export const quotaVerifySessionRpcPromise = (request: QuotaVerifySessionRpcParam): Promise<QuotaVerifySessionResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.quota.verifySession', request, (error, result) => error ? reject(error) : resolve(result)))
+export const quotaVerifySessionRpcPromise = (request: QuotaVerifySessionRpcParam): Promise<QuotaVerifySessionResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.quota.verifySession', request, (error: RPCError, result: QuotaVerifySessionResult) => error ? reject(error) : resolve(result)))
 
 export const reachabilityCheckReachabilityRpcChannelMap = (configKeys: Array<string>, request: ReachabilityCheckReachabilityRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.reachability.checkReachability', request)
 
-export const reachabilityCheckReachabilityRpcPromise = (request: ReachabilityCheckReachabilityRpcParam): Promise<ReachabilityCheckReachabilityResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.reachability.checkReachability', request, (error, result) => error ? reject(error) : resolve(result)))
+export const reachabilityCheckReachabilityRpcPromise = (request: ReachabilityCheckReachabilityRpcParam): Promise<ReachabilityCheckReachabilityResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.reachability.checkReachability', request, (error: RPCError, result: ReachabilityCheckReachabilityResult) => error ? reject(error) : resolve(result)))
 
 export const reachabilityReachabilityChangedRpcChannelMap = (configKeys: Array<string>, request: ReachabilityReachabilityChangedRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.reachability.reachabilityChanged', request)
 
-export const reachabilityReachabilityChangedRpcPromise = (request: ReachabilityReachabilityChangedRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.reachability.reachabilityChanged', request, (error, result) => error ? reject(error) : resolve(result)))
+export const reachabilityReachabilityChangedRpcPromise = (request: ReachabilityReachabilityChangedRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.reachability.reachabilityChanged', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
 
 export const reachabilityReachable = {
   unknown: 0,
@@ -1307,19 +1307,19 @@ export const reachabilityReachable = {
 
 export const reachabilityStartReachabilityRpcChannelMap = (configKeys: Array<string>, request: ReachabilityStartReachabilityRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.reachability.startReachability', request)
 
-export const reachabilityStartReachabilityRpcPromise = (request: ReachabilityStartReachabilityRpcParam): Promise<ReachabilityStartReachabilityResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.reachability.startReachability', request, (error, result) => error ? reject(error) : resolve(result)))
+export const reachabilityStartReachabilityRpcPromise = (request: ReachabilityStartReachabilityRpcParam): Promise<ReachabilityStartReachabilityResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.reachability.startReachability', request, (error: RPCError, result: ReachabilityStartReachabilityResult) => error ? reject(error) : resolve(result)))
 
 export const rekeyDebugShowRekeyStatusRpcChannelMap = (configKeys: Array<string>, request: RekeyDebugShowRekeyStatusRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.rekey.debugShowRekeyStatus', request)
 
-export const rekeyDebugShowRekeyStatusRpcPromise = (request: RekeyDebugShowRekeyStatusRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.rekey.debugShowRekeyStatus', request, (error, result) => error ? reject(error) : resolve(result)))
+export const rekeyDebugShowRekeyStatusRpcPromise = (request: RekeyDebugShowRekeyStatusRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.rekey.debugShowRekeyStatus', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
 
 export const rekeyGetPendingRekeyStatusRpcChannelMap = (configKeys: Array<string>, request: RekeyGetPendingRekeyStatusRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.rekey.getPendingRekeyStatus', request)
 
-export const rekeyGetPendingRekeyStatusRpcPromise = (request: RekeyGetPendingRekeyStatusRpcParam): Promise<RekeyGetPendingRekeyStatusResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.rekey.getPendingRekeyStatus', request, (error, result) => error ? reject(error) : resolve(result)))
+export const rekeyGetPendingRekeyStatusRpcPromise = (request: RekeyGetPendingRekeyStatusRpcParam): Promise<RekeyGetPendingRekeyStatusResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.rekey.getPendingRekeyStatus', request, (error: RPCError, result: RekeyGetPendingRekeyStatusResult) => error ? reject(error) : resolve(result)))
 
 export const rekeyGetRevokeWarningRpcChannelMap = (configKeys: Array<string>, request: RekeyGetRevokeWarningRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.rekey.getRevokeWarning', request)
 
-export const rekeyGetRevokeWarningRpcPromise = (request: RekeyGetRevokeWarningRpcParam): Promise<RekeyGetRevokeWarningResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.rekey.getRevokeWarning', request, (error, result) => error ? reject(error) : resolve(result)))
+export const rekeyGetRevokeWarningRpcPromise = (request: RekeyGetRevokeWarningRpcParam): Promise<RekeyGetRevokeWarningResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.rekey.getRevokeWarning', request, (error: RPCError, result: RekeyGetRevokeWarningResult) => error ? reject(error) : resolve(result)))
 
 export const rekeyOutcome = {
   none: 0,
@@ -1329,15 +1329,15 @@ export const rekeyOutcome = {
 
 export const rekeyRekeyStatusFinishRpcChannelMap = (configKeys: Array<string>, request: RekeyRekeyStatusFinishRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.rekey.rekeyStatusFinish', request)
 
-export const rekeyRekeyStatusFinishRpcPromise = (request: RekeyRekeyStatusFinishRpcParam): Promise<RekeyRekeyStatusFinishResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.rekey.rekeyStatusFinish', request, (error, result) => error ? reject(error) : resolve(result)))
+export const rekeyRekeyStatusFinishRpcPromise = (request: RekeyRekeyStatusFinishRpcParam): Promise<RekeyRekeyStatusFinishResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.rekey.rekeyStatusFinish', request, (error: RPCError, result: RekeyRekeyStatusFinishResult) => error ? reject(error) : resolve(result)))
 
 export const rekeyRekeySyncRpcChannelMap = (configKeys: Array<string>, request: RekeyRekeySyncRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.rekey.rekeySync', request)
 
-export const rekeyRekeySyncRpcPromise = (request: RekeyRekeySyncRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.rekey.rekeySync', request, (error, result) => error ? reject(error) : resolve(result)))
+export const rekeyRekeySyncRpcPromise = (request: RekeyRekeySyncRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.rekey.rekeySync', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
 
 export const rekeyShowPendingRekeyStatusRpcChannelMap = (configKeys: Array<string>, request: RekeyShowPendingRekeyStatusRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.rekey.showPendingRekeyStatus', request)
 
-export const rekeyShowPendingRekeyStatusRpcPromise = (request: RekeyShowPendingRekeyStatusRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.rekey.showPendingRekeyStatus', request, (error, result) => error ? reject(error) : resolve(result)))
+export const rekeyShowPendingRekeyStatusRpcPromise = (request: RekeyShowPendingRekeyStatusRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.rekey.showPendingRekeyStatus', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
 
 export const rekeyUIRekeyEventType = {
   none: 0,
@@ -1353,31 +1353,31 @@ export const rekeyUIRekeyEventType = {
 
 export const revokeRevokeDeviceRpcChannelMap = (configKeys: Array<string>, request: RevokeRevokeDeviceRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.revoke.revokeDevice', request)
 
-export const revokeRevokeDeviceRpcPromise = (request: RevokeRevokeDeviceRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.revoke.revokeDevice', request, (error, result) => error ? reject(error) : resolve(result)))
+export const revokeRevokeDeviceRpcPromise = (request: RevokeRevokeDeviceRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.revoke.revokeDevice', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
 
 export const revokeRevokeKeyRpcChannelMap = (configKeys: Array<string>, request: RevokeRevokeKeyRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.revoke.revokeKey', request)
 
-export const revokeRevokeKeyRpcPromise = (request: RevokeRevokeKeyRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.revoke.revokeKey', request, (error, result) => error ? reject(error) : resolve(result)))
+export const revokeRevokeKeyRpcPromise = (request: RevokeRevokeKeyRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.revoke.revokeKey', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
 
 export const revokeRevokeSigsRpcChannelMap = (configKeys: Array<string>, request: RevokeRevokeSigsRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.revoke.revokeSigs', request)
 
-export const revokeRevokeSigsRpcPromise = (request: RevokeRevokeSigsRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.revoke.revokeSigs', request, (error, result) => error ? reject(error) : resolve(result)))
+export const revokeRevokeSigsRpcPromise = (request: RevokeRevokeSigsRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.revoke.revokeSigs', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
 
 export const saltpackSaltpackDecryptRpcChannelMap = (configKeys: Array<string>, request: SaltpackSaltpackDecryptRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.saltpack.saltpackDecrypt', request)
 
-export const saltpackSaltpackDecryptRpcPromise = (request: SaltpackSaltpackDecryptRpcParam): Promise<SaltpackSaltpackDecryptResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.saltpack.saltpackDecrypt', request, (error, result) => error ? reject(error) : resolve(result)))
+export const saltpackSaltpackDecryptRpcPromise = (request: SaltpackSaltpackDecryptRpcParam): Promise<SaltpackSaltpackDecryptResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.saltpack.saltpackDecrypt', request, (error: RPCError, result: SaltpackSaltpackDecryptResult) => error ? reject(error) : resolve(result)))
 
 export const saltpackSaltpackEncryptRpcChannelMap = (configKeys: Array<string>, request: SaltpackSaltpackEncryptRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.saltpack.saltpackEncrypt', request)
 
-export const saltpackSaltpackEncryptRpcPromise = (request: SaltpackSaltpackEncryptRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.saltpack.saltpackEncrypt', request, (error, result) => error ? reject(error) : resolve(result)))
+export const saltpackSaltpackEncryptRpcPromise = (request: SaltpackSaltpackEncryptRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.saltpack.saltpackEncrypt', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
 
 export const saltpackSaltpackSignRpcChannelMap = (configKeys: Array<string>, request: SaltpackSaltpackSignRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.saltpack.saltpackSign', request)
 
-export const saltpackSaltpackSignRpcPromise = (request: SaltpackSaltpackSignRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.saltpack.saltpackSign', request, (error, result) => error ? reject(error) : resolve(result)))
+export const saltpackSaltpackSignRpcPromise = (request: SaltpackSaltpackSignRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.saltpack.saltpackSign', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
 
 export const saltpackSaltpackVerifyRpcChannelMap = (configKeys: Array<string>, request: SaltpackSaltpackVerifyRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.saltpack.saltpackVerify', request)
 
-export const saltpackSaltpackVerifyRpcPromise = (request: SaltpackSaltpackVerifyRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.saltpack.saltpackVerify', request, (error, result) => error ? reject(error) : resolve(result)))
+export const saltpackSaltpackVerifyRpcPromise = (request: SaltpackSaltpackVerifyRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.saltpack.saltpackVerify', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
 
 export const saltpackUiSaltpackSenderType = {
   notTracked: 0,
@@ -1392,39 +1392,39 @@ export const saltpackUiSaltpackSenderType = {
 
 export const sessionCurrentSessionRpcChannelMap = (configKeys: Array<string>, request: SessionCurrentSessionRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.session.currentSession', request)
 
-export const sessionCurrentSessionRpcPromise = (request: SessionCurrentSessionRpcParam): Promise<SessionCurrentSessionResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.session.currentSession', request, (error, result) => error ? reject(error) : resolve(result)))
+export const sessionCurrentSessionRpcPromise = (request: SessionCurrentSessionRpcParam): Promise<SessionCurrentSessionResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.session.currentSession', request, (error: RPCError, result: SessionCurrentSessionResult) => error ? reject(error) : resolve(result)))
 
 export const sessionSessionPingRpcChannelMap = (configKeys: Array<string>, request: SessionSessionPingRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.session.sessionPing', request)
 
-export const sessionSessionPingRpcPromise = (request: SessionSessionPingRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.session.sessionPing', request, (error, result) => error ? reject(error) : resolve(result)))
+export const sessionSessionPingRpcPromise = (request: SessionSessionPingRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.session.sessionPing', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
 
 export const signupCheckInvitationCodeRpcChannelMap = (configKeys: Array<string>, request: SignupCheckInvitationCodeRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.signup.checkInvitationCode', request)
 
-export const signupCheckInvitationCodeRpcPromise = (request: SignupCheckInvitationCodeRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.signup.checkInvitationCode', request, (error, result) => error ? reject(error) : resolve(result)))
+export const signupCheckInvitationCodeRpcPromise = (request: SignupCheckInvitationCodeRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.signup.checkInvitationCode', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
 
 export const signupCheckUsernameAvailableRpcChannelMap = (configKeys: Array<string>, request: SignupCheckUsernameAvailableRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.signup.checkUsernameAvailable', request)
 
-export const signupCheckUsernameAvailableRpcPromise = (request: SignupCheckUsernameAvailableRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.signup.checkUsernameAvailable', request, (error, result) => error ? reject(error) : resolve(result)))
+export const signupCheckUsernameAvailableRpcPromise = (request: SignupCheckUsernameAvailableRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.signup.checkUsernameAvailable', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
 
 export const signupGetInvitationCodeRpcChannelMap = (configKeys: Array<string>, request: SignupGetInvitationCodeRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.signup.getInvitationCode', request)
 
-export const signupGetInvitationCodeRpcPromise = (request: SignupGetInvitationCodeRpcParam): Promise<SignupGetInvitationCodeResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.signup.getInvitationCode', request, (error, result) => error ? reject(error) : resolve(result)))
+export const signupGetInvitationCodeRpcPromise = (request: SignupGetInvitationCodeRpcParam): Promise<SignupGetInvitationCodeResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.signup.getInvitationCode', request, (error: RPCError, result: SignupGetInvitationCodeResult) => error ? reject(error) : resolve(result)))
 
 export const signupInviteRequestRpcChannelMap = (configKeys: Array<string>, request: SignupInviteRequestRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.signup.inviteRequest', request)
 
-export const signupInviteRequestRpcPromise = (request: SignupInviteRequestRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.signup.inviteRequest', request, (error, result) => error ? reject(error) : resolve(result)))
+export const signupInviteRequestRpcPromise = (request: SignupInviteRequestRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.signup.inviteRequest', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
 
 export const signupSignupRpcChannelMap = (configKeys: Array<string>, request: SignupSignupRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.signup.signup', request)
 
-export const signupSignupRpcPromise = (request: SignupSignupRpcParam): Promise<SignupSignupResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.signup.signup', request, (error, result) => error ? reject(error) : resolve(result)))
+export const signupSignupRpcPromise = (request: SignupSignupRpcParam): Promise<SignupSignupResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.signup.signup', request, (error: RPCError, result: SignupSignupResult) => error ? reject(error) : resolve(result)))
 
 export const sigsSigListJSONRpcChannelMap = (configKeys: Array<string>, request: SigsSigListJSONRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.sigs.sigListJSON', request)
 
-export const sigsSigListJSONRpcPromise = (request: SigsSigListJSONRpcParam): Promise<SigsSigListJSONResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.sigs.sigListJSON', request, (error, result) => error ? reject(error) : resolve(result)))
+export const sigsSigListJSONRpcPromise = (request: SigsSigListJSONRpcParam): Promise<SigsSigListJSONResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.sigs.sigListJSON', request, (error: RPCError, result: SigsSigListJSONResult) => error ? reject(error) : resolve(result)))
 
 export const sigsSigListRpcChannelMap = (configKeys: Array<string>, request: SigsSigListRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.sigs.sigList', request)
 
-export const sigsSigListRpcPromise = (request: SigsSigListRpcParam): Promise<SigsSigListResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.sigs.sigList', request, (error, result) => error ? reject(error) : resolve(result)))
+export const sigsSigListRpcPromise = (request: SigsSigListRpcParam): Promise<SigsSigListResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.sigs.sigList', request, (error: RPCError, result: SigsSigListResult) => error ? reject(error) : resolve(result)))
 
 export const simpleFSAsyncOps = {
   list: 0,
@@ -1459,27 +1459,27 @@ export const simpleFSPathType = {
 
 export const teamsGetTeamAndMemberShowcaseRpcChannelMap = (configKeys: Array<string>, request: TeamsGetTeamAndMemberShowcaseRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.getTeamAndMemberShowcase', request)
 
-export const teamsGetTeamAndMemberShowcaseRpcPromise = (request: TeamsGetTeamAndMemberShowcaseRpcParam): Promise<TeamsGetTeamAndMemberShowcaseResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.getTeamAndMemberShowcase', request, (error, result) => error ? reject(error) : resolve(result)))
+export const teamsGetTeamAndMemberShowcaseRpcPromise = (request: TeamsGetTeamAndMemberShowcaseRpcParam): Promise<TeamsGetTeamAndMemberShowcaseResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.getTeamAndMemberShowcase', request, (error: RPCError, result: TeamsGetTeamAndMemberShowcaseResult) => error ? reject(error) : resolve(result)))
 
 export const teamsGetTeamRootIDRpcChannelMap = (configKeys: Array<string>, request: TeamsGetTeamRootIDRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.getTeamRootID', request)
 
-export const teamsGetTeamRootIDRpcPromise = (request: TeamsGetTeamRootIDRpcParam): Promise<TeamsGetTeamRootIDResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.getTeamRootID', request, (error, result) => error ? reject(error) : resolve(result)))
+export const teamsGetTeamRootIDRpcPromise = (request: TeamsGetTeamRootIDRpcParam): Promise<TeamsGetTeamRootIDResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.getTeamRootID', request, (error: RPCError, result: TeamsGetTeamRootIDResult) => error ? reject(error) : resolve(result)))
 
 export const teamsGetTeamShowcaseRpcChannelMap = (configKeys: Array<string>, request: TeamsGetTeamShowcaseRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.getTeamShowcase', request)
 
-export const teamsGetTeamShowcaseRpcPromise = (request: TeamsGetTeamShowcaseRpcParam): Promise<TeamsGetTeamShowcaseResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.getTeamShowcase', request, (error, result) => error ? reject(error) : resolve(result)))
+export const teamsGetTeamShowcaseRpcPromise = (request: TeamsGetTeamShowcaseRpcParam): Promise<TeamsGetTeamShowcaseResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.getTeamShowcase', request, (error: RPCError, result: TeamsGetTeamShowcaseResult) => error ? reject(error) : resolve(result)))
 
 export const teamsLoadTeamPlusApplicationKeysRpcChannelMap = (configKeys: Array<string>, request: TeamsLoadTeamPlusApplicationKeysRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.loadTeamPlusApplicationKeys', request)
 
-export const teamsLoadTeamPlusApplicationKeysRpcPromise = (request: TeamsLoadTeamPlusApplicationKeysRpcParam): Promise<TeamsLoadTeamPlusApplicationKeysResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.loadTeamPlusApplicationKeys', request, (error, result) => error ? reject(error) : resolve(result)))
+export const teamsLoadTeamPlusApplicationKeysRpcPromise = (request: TeamsLoadTeamPlusApplicationKeysRpcParam): Promise<TeamsLoadTeamPlusApplicationKeysResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.loadTeamPlusApplicationKeys', request, (error: RPCError, result: TeamsLoadTeamPlusApplicationKeysResult) => error ? reject(error) : resolve(result)))
 
 export const teamsLookupImplicitTeamRpcChannelMap = (configKeys: Array<string>, request: TeamsLookupImplicitTeamRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.lookupImplicitTeam', request)
 
-export const teamsLookupImplicitTeamRpcPromise = (request: TeamsLookupImplicitTeamRpcParam): Promise<TeamsLookupImplicitTeamResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.lookupImplicitTeam', request, (error, result) => error ? reject(error) : resolve(result)))
+export const teamsLookupImplicitTeamRpcPromise = (request: TeamsLookupImplicitTeamRpcParam): Promise<TeamsLookupImplicitTeamResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.lookupImplicitTeam', request, (error: RPCError, result: TeamsLookupImplicitTeamResult) => error ? reject(error) : resolve(result)))
 
 export const teamsLookupOrCreateImplicitTeamRpcChannelMap = (configKeys: Array<string>, request: TeamsLookupOrCreateImplicitTeamRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.lookupOrCreateImplicitTeam', request)
 
-export const teamsLookupOrCreateImplicitTeamRpcPromise = (request: TeamsLookupOrCreateImplicitTeamRpcParam): Promise<TeamsLookupOrCreateImplicitTeamResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.lookupOrCreateImplicitTeam', request, (error, result) => error ? reject(error) : resolve(result)))
+export const teamsLookupOrCreateImplicitTeamRpcPromise = (request: TeamsLookupOrCreateImplicitTeamRpcParam): Promise<TeamsLookupOrCreateImplicitTeamResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.lookupOrCreateImplicitTeam', request, (error: RPCError, result: TeamsLookupOrCreateImplicitTeamResult) => error ? reject(error) : resolve(result)))
 
 export const teamsSeitanIKeyAndLabelVersion = {
   v1: 1,
@@ -1491,27 +1491,27 @@ export const teamsSeitanIKeyLabelType = {
 
 export const teamsSetTeamMemberShowcaseRpcChannelMap = (configKeys: Array<string>, request: TeamsSetTeamMemberShowcaseRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.setTeamMemberShowcase', request)
 
-export const teamsSetTeamMemberShowcaseRpcPromise = (request: TeamsSetTeamMemberShowcaseRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.setTeamMemberShowcase', request, (error, result) => error ? reject(error) : resolve(result)))
+export const teamsSetTeamMemberShowcaseRpcPromise = (request: TeamsSetTeamMemberShowcaseRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.setTeamMemberShowcase', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
 
 export const teamsSetTeamShowcaseRpcChannelMap = (configKeys: Array<string>, request: TeamsSetTeamShowcaseRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.setTeamShowcase', request)
 
-export const teamsSetTeamShowcaseRpcPromise = (request: TeamsSetTeamShowcaseRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.setTeamShowcase', request, (error, result) => error ? reject(error) : resolve(result)))
+export const teamsSetTeamShowcaseRpcPromise = (request: TeamsSetTeamShowcaseRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.setTeamShowcase', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
 
 export const teamsTeamAcceptInviteOrRequestAccessRpcChannelMap = (configKeys: Array<string>, request: TeamsTeamAcceptInviteOrRequestAccessRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamAcceptInviteOrRequestAccess', request)
 
-export const teamsTeamAcceptInviteOrRequestAccessRpcPromise = (request: TeamsTeamAcceptInviteOrRequestAccessRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamAcceptInviteOrRequestAccess', request, (error, result) => error ? reject(error) : resolve(result)))
+export const teamsTeamAcceptInviteOrRequestAccessRpcPromise = (request: TeamsTeamAcceptInviteOrRequestAccessRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamAcceptInviteOrRequestAccess', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
 
 export const teamsTeamAcceptInviteRpcChannelMap = (configKeys: Array<string>, request: TeamsTeamAcceptInviteRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamAcceptInvite', request)
 
-export const teamsTeamAcceptInviteRpcPromise = (request: TeamsTeamAcceptInviteRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamAcceptInvite', request, (error, result) => error ? reject(error) : resolve(result)))
+export const teamsTeamAcceptInviteRpcPromise = (request: TeamsTeamAcceptInviteRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamAcceptInvite', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
 
 export const teamsTeamAddEmailsBulkRpcChannelMap = (configKeys: Array<string>, request: TeamsTeamAddEmailsBulkRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamAddEmailsBulk', request)
 
-export const teamsTeamAddEmailsBulkRpcPromise = (request: TeamsTeamAddEmailsBulkRpcParam): Promise<TeamsTeamAddEmailsBulkResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamAddEmailsBulk', request, (error, result) => error ? reject(error) : resolve(result)))
+export const teamsTeamAddEmailsBulkRpcPromise = (request: TeamsTeamAddEmailsBulkRpcParam): Promise<TeamsTeamAddEmailsBulkResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamAddEmailsBulk', request, (error: RPCError, result: TeamsTeamAddEmailsBulkResult) => error ? reject(error) : resolve(result)))
 
 export const teamsTeamAddMemberRpcChannelMap = (configKeys: Array<string>, request: TeamsTeamAddMemberRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamAddMember', request)
 
-export const teamsTeamAddMemberRpcPromise = (request: TeamsTeamAddMemberRpcParam): Promise<TeamsTeamAddMemberResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamAddMember', request, (error, result) => error ? reject(error) : resolve(result)))
+export const teamsTeamAddMemberRpcPromise = (request: TeamsTeamAddMemberRpcParam): Promise<TeamsTeamAddMemberResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamAddMember', request, (error: RPCError, result: TeamsTeamAddMemberResult) => error ? reject(error) : resolve(result)))
 
 export const teamsTeamApplication = {
   kbfs: 1,
@@ -1523,39 +1523,39 @@ export const teamsTeamApplication = {
 
 export const teamsTeamChangeMembershipRpcChannelMap = (configKeys: Array<string>, request: TeamsTeamChangeMembershipRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamChangeMembership', request)
 
-export const teamsTeamChangeMembershipRpcPromise = (request: TeamsTeamChangeMembershipRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamChangeMembership', request, (error, result) => error ? reject(error) : resolve(result)))
+export const teamsTeamChangeMembershipRpcPromise = (request: TeamsTeamChangeMembershipRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamChangeMembership', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
 
 export const teamsTeamCreateRpcChannelMap = (configKeys: Array<string>, request: TeamsTeamCreateRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamCreate', request)
 
-export const teamsTeamCreateRpcPromise = (request: TeamsTeamCreateRpcParam): Promise<TeamsTeamCreateResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamCreate', request, (error, result) => error ? reject(error) : resolve(result)))
+export const teamsTeamCreateRpcPromise = (request: TeamsTeamCreateRpcParam): Promise<TeamsTeamCreateResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamCreate', request, (error: RPCError, result: TeamsTeamCreateResult) => error ? reject(error) : resolve(result)))
 
 export const teamsTeamCreateSeitanTokenRpcChannelMap = (configKeys: Array<string>, request: TeamsTeamCreateSeitanTokenRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamCreateSeitanToken', request)
 
-export const teamsTeamCreateSeitanTokenRpcPromise = (request: TeamsTeamCreateSeitanTokenRpcParam): Promise<TeamsTeamCreateSeitanTokenResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamCreateSeitanToken', request, (error, result) => error ? reject(error) : resolve(result)))
+export const teamsTeamCreateSeitanTokenRpcPromise = (request: TeamsTeamCreateSeitanTokenRpcParam): Promise<TeamsTeamCreateSeitanTokenResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamCreateSeitanToken', request, (error: RPCError, result: TeamsTeamCreateSeitanTokenResult) => error ? reject(error) : resolve(result)))
 
 export const teamsTeamCreateWithSettingsRpcChannelMap = (configKeys: Array<string>, request: TeamsTeamCreateWithSettingsRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamCreateWithSettings', request)
 
-export const teamsTeamCreateWithSettingsRpcPromise = (request: TeamsTeamCreateWithSettingsRpcParam): Promise<TeamsTeamCreateWithSettingsResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamCreateWithSettings', request, (error, result) => error ? reject(error) : resolve(result)))
+export const teamsTeamCreateWithSettingsRpcPromise = (request: TeamsTeamCreateWithSettingsRpcParam): Promise<TeamsTeamCreateWithSettingsResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamCreateWithSettings', request, (error: RPCError, result: TeamsTeamCreateWithSettingsResult) => error ? reject(error) : resolve(result)))
 
 export const teamsTeamDeleteRpcChannelMap = (configKeys: Array<string>, request: TeamsTeamDeleteRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamDelete', request)
 
-export const teamsTeamDeleteRpcPromise = (request: TeamsTeamDeleteRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamDelete', request, (error, result) => error ? reject(error) : resolve(result)))
+export const teamsTeamDeleteRpcPromise = (request: TeamsTeamDeleteRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamDelete', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
 
 export const teamsTeamEditMemberRpcChannelMap = (configKeys: Array<string>, request: TeamsTeamEditMemberRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamEditMember', request)
 
-export const teamsTeamEditMemberRpcPromise = (request: TeamsTeamEditMemberRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamEditMember', request, (error, result) => error ? reject(error) : resolve(result)))
+export const teamsTeamEditMemberRpcPromise = (request: TeamsTeamEditMemberRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamEditMember', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
 
 export const teamsTeamGetRpcChannelMap = (configKeys: Array<string>, request: TeamsTeamGetRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamGet', request)
 
-export const teamsTeamGetRpcPromise = (request: TeamsTeamGetRpcParam): Promise<TeamsTeamGetResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamGet', request, (error, result) => error ? reject(error) : resolve(result)))
+export const teamsTeamGetRpcPromise = (request: TeamsTeamGetRpcParam): Promise<TeamsTeamGetResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamGet', request, (error: RPCError, result: TeamsTeamGetResult) => error ? reject(error) : resolve(result)))
 
 export const teamsTeamIgnoreRequestRpcChannelMap = (configKeys: Array<string>, request: TeamsTeamIgnoreRequestRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamIgnoreRequest', request)
 
-export const teamsTeamIgnoreRequestRpcPromise = (request: TeamsTeamIgnoreRequestRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamIgnoreRequest', request, (error, result) => error ? reject(error) : resolve(result)))
+export const teamsTeamIgnoreRequestRpcPromise = (request: TeamsTeamIgnoreRequestRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamIgnoreRequest', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
 
 export const teamsTeamImplicitAdminsRpcChannelMap = (configKeys: Array<string>, request: TeamsTeamImplicitAdminsRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamImplicitAdmins', request)
 
-export const teamsTeamImplicitAdminsRpcPromise = (request: TeamsTeamImplicitAdminsRpcParam): Promise<TeamsTeamImplicitAdminsResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamImplicitAdmins', request, (error, result) => error ? reject(error) : resolve(result)))
+export const teamsTeamImplicitAdminsRpcPromise = (request: TeamsTeamImplicitAdminsRpcParam): Promise<TeamsTeamImplicitAdminsResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamImplicitAdmins', request, (error: RPCError, result: TeamsTeamImplicitAdminsResult) => error ? reject(error) : resolve(result)))
 
 export const teamsTeamInviteCategory = {
   none: 0,
@@ -1568,35 +1568,35 @@ export const teamsTeamInviteCategory = {
 
 export const teamsTeamLeaveRpcChannelMap = (configKeys: Array<string>, request: TeamsTeamLeaveRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamLeave', request)
 
-export const teamsTeamLeaveRpcPromise = (request: TeamsTeamLeaveRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamLeave', request, (error, result) => error ? reject(error) : resolve(result)))
+export const teamsTeamLeaveRpcPromise = (request: TeamsTeamLeaveRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamLeave', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
 
 export const teamsTeamListRequestsRpcChannelMap = (configKeys: Array<string>, request: TeamsTeamListRequestsRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamListRequests', request)
 
-export const teamsTeamListRequestsRpcPromise = (request: TeamsTeamListRequestsRpcParam): Promise<TeamsTeamListRequestsResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamListRequests', request, (error, result) => error ? reject(error) : resolve(result)))
+export const teamsTeamListRequestsRpcPromise = (request: TeamsTeamListRequestsRpcParam): Promise<TeamsTeamListRequestsResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamListRequests', request, (error: RPCError, result: TeamsTeamListRequestsResult) => error ? reject(error) : resolve(result)))
 
 export const teamsTeamListRpcChannelMap = (configKeys: Array<string>, request: TeamsTeamListRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamList', request)
 
-export const teamsTeamListRpcPromise = (request: TeamsTeamListRpcParam): Promise<TeamsTeamListResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamList', request, (error, result) => error ? reject(error) : resolve(result)))
+export const teamsTeamListRpcPromise = (request: TeamsTeamListRpcParam): Promise<TeamsTeamListResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamList', request, (error: RPCError, result: TeamsTeamListResult) => error ? reject(error) : resolve(result)))
 
 export const teamsTeamListSubteamsRecursiveRpcChannelMap = (configKeys: Array<string>, request: TeamsTeamListSubteamsRecursiveRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamListSubteamsRecursive', request)
 
-export const teamsTeamListSubteamsRecursiveRpcPromise = (request: TeamsTeamListSubteamsRecursiveRpcParam): Promise<TeamsTeamListSubteamsRecursiveResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamListSubteamsRecursive', request, (error, result) => error ? reject(error) : resolve(result)))
+export const teamsTeamListSubteamsRecursiveRpcPromise = (request: TeamsTeamListSubteamsRecursiveRpcParam): Promise<TeamsTeamListSubteamsRecursiveResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamListSubteamsRecursive', request, (error: RPCError, result: TeamsTeamListSubteamsRecursiveResult) => error ? reject(error) : resolve(result)))
 
 export const teamsTeamReAddMemberAfterResetRpcChannelMap = (configKeys: Array<string>, request: TeamsTeamReAddMemberAfterResetRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamReAddMemberAfterReset', request)
 
-export const teamsTeamReAddMemberAfterResetRpcPromise = (request: TeamsTeamReAddMemberAfterResetRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamReAddMemberAfterReset', request, (error, result) => error ? reject(error) : resolve(result)))
+export const teamsTeamReAddMemberAfterResetRpcPromise = (request: TeamsTeamReAddMemberAfterResetRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamReAddMemberAfterReset', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
 
 export const teamsTeamRemoveMemberRpcChannelMap = (configKeys: Array<string>, request: TeamsTeamRemoveMemberRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamRemoveMember', request)
 
-export const teamsTeamRemoveMemberRpcPromise = (request: TeamsTeamRemoveMemberRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamRemoveMember', request, (error, result) => error ? reject(error) : resolve(result)))
+export const teamsTeamRemoveMemberRpcPromise = (request: TeamsTeamRemoveMemberRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamRemoveMember', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
 
 export const teamsTeamRenameRpcChannelMap = (configKeys: Array<string>, request: TeamsTeamRenameRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamRename', request)
 
-export const teamsTeamRenameRpcPromise = (request: TeamsTeamRenameRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamRename', request, (error, result) => error ? reject(error) : resolve(result)))
+export const teamsTeamRenameRpcPromise = (request: TeamsTeamRenameRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamRename', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
 
 export const teamsTeamRequestAccessRpcChannelMap = (configKeys: Array<string>, request: TeamsTeamRequestAccessRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamRequestAccess', request)
 
-export const teamsTeamRequestAccessRpcPromise = (request: TeamsTeamRequestAccessRpcParam): Promise<TeamsTeamRequestAccessResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamRequestAccess', request, (error, result) => error ? reject(error) : resolve(result)))
+export const teamsTeamRequestAccessRpcPromise = (request: TeamsTeamRequestAccessRpcParam): Promise<TeamsTeamRequestAccessResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamRequestAccess', request, (error: RPCError, result: TeamsTeamRequestAccessResult) => error ? reject(error) : resolve(result)))
 
 export const teamsTeamRole = {
   none: 0,
@@ -1608,39 +1608,39 @@ export const teamsTeamRole = {
 
 export const teamsTeamSetSettingsRpcChannelMap = (configKeys: Array<string>, request: TeamsTeamSetSettingsRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamSetSettings', request)
 
-export const teamsTeamSetSettingsRpcPromise = (request: TeamsTeamSetSettingsRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamSetSettings', request, (error, result) => error ? reject(error) : resolve(result)))
+export const teamsTeamSetSettingsRpcPromise = (request: TeamsTeamSetSettingsRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamSetSettings', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
 
 export const teamsTeamTreeRpcChannelMap = (configKeys: Array<string>, request: TeamsTeamTreeRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamTree', request)
 
-export const teamsTeamTreeRpcPromise = (request: TeamsTeamTreeRpcParam): Promise<TeamsTeamTreeResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamTree', request, (error, result) => error ? reject(error) : resolve(result)))
+export const teamsTeamTreeRpcPromise = (request: TeamsTeamTreeRpcParam): Promise<TeamsTeamTreeResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamTree', request, (error: RPCError, result: TeamsTeamTreeResult) => error ? reject(error) : resolve(result)))
 
 export const testPanicRpcChannelMap = (configKeys: Array<string>, request: TestPanicRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.test.panic', request)
 
-export const testPanicRpcPromise = (request: TestPanicRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.test.panic', request, (error, result) => error ? reject(error) : resolve(result)))
+export const testPanicRpcPromise = (request: TestPanicRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.test.panic', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
 
 export const testTestCallbackRpcChannelMap = (configKeys: Array<string>, request: TestTestCallbackRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.test.testCallback', request)
 
-export const testTestCallbackRpcPromise = (request: TestTestCallbackRpcParam): Promise<TestTestCallbackResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.test.testCallback', request, (error, result) => error ? reject(error) : resolve(result)))
+export const testTestCallbackRpcPromise = (request: TestTestCallbackRpcParam): Promise<TestTestCallbackResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.test.testCallback', request, (error: RPCError, result: TestTestCallbackResult) => error ? reject(error) : resolve(result)))
 
 export const testTestRpcChannelMap = (configKeys: Array<string>, request: TestTestRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.test.test', request)
 
-export const testTestRpcPromise = (request: TestTestRpcParam): Promise<TestTestResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.test.test', request, (error, result) => error ? reject(error) : resolve(result)))
+export const testTestRpcPromise = (request: TestTestRpcParam): Promise<TestTestResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.test.test', request, (error: RPCError, result: TestTestResult) => error ? reject(error) : resolve(result)))
 
 export const tlfCompleteAndCanonicalizePrivateTlfNameRpcChannelMap = (configKeys: Array<string>, request: TlfCompleteAndCanonicalizePrivateTlfNameRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.tlf.completeAndCanonicalizePrivateTlfName', request)
 
-export const tlfCompleteAndCanonicalizePrivateTlfNameRpcPromise = (request: TlfCompleteAndCanonicalizePrivateTlfNameRpcParam): Promise<TlfCompleteAndCanonicalizePrivateTlfNameResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.tlf.completeAndCanonicalizePrivateTlfName', request, (error, result) => error ? reject(error) : resolve(result)))
+export const tlfCompleteAndCanonicalizePrivateTlfNameRpcPromise = (request: TlfCompleteAndCanonicalizePrivateTlfNameRpcParam): Promise<TlfCompleteAndCanonicalizePrivateTlfNameResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.tlf.completeAndCanonicalizePrivateTlfName', request, (error: RPCError, result: TlfCompleteAndCanonicalizePrivateTlfNameResult) => error ? reject(error) : resolve(result)))
 
 export const tlfCryptKeysRpcChannelMap = (configKeys: Array<string>, request: TlfCryptKeysRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.tlf.CryptKeys', request)
 
-export const tlfCryptKeysRpcPromise = (request: TlfCryptKeysRpcParam): Promise<TlfCryptKeysResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.tlf.CryptKeys', request, (error, result) => error ? reject(error) : resolve(result)))
+export const tlfCryptKeysRpcPromise = (request: TlfCryptKeysRpcParam): Promise<TlfCryptKeysResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.tlf.CryptKeys', request, (error: RPCError, result: TlfCryptKeysResult) => error ? reject(error) : resolve(result)))
 
 export const tlfKeysGetPublicCanonicalTLFNameAndIDRpcChannelMap = (configKeys: Array<string>, request: TlfKeysGetPublicCanonicalTLFNameAndIDRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.tlfKeys.getPublicCanonicalTLFNameAndID', request)
 
-export const tlfKeysGetPublicCanonicalTLFNameAndIDRpcPromise = (request: TlfKeysGetPublicCanonicalTLFNameAndIDRpcParam): Promise<TlfKeysGetPublicCanonicalTLFNameAndIDResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.tlfKeys.getPublicCanonicalTLFNameAndID', request, (error, result) => error ? reject(error) : resolve(result)))
+export const tlfKeysGetPublicCanonicalTLFNameAndIDRpcPromise = (request: TlfKeysGetPublicCanonicalTLFNameAndIDRpcParam): Promise<TlfKeysGetPublicCanonicalTLFNameAndIDResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.tlfKeys.getPublicCanonicalTLFNameAndID', request, (error: RPCError, result: TlfKeysGetPublicCanonicalTLFNameAndIDResult) => error ? reject(error) : resolve(result)))
 
 export const tlfKeysGetTLFCryptKeysRpcChannelMap = (configKeys: Array<string>, request: TlfKeysGetTLFCryptKeysRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.tlfKeys.getTLFCryptKeys', request)
 
-export const tlfKeysGetTLFCryptKeysRpcPromise = (request: TlfKeysGetTLFCryptKeysRpcParam): Promise<TlfKeysGetTLFCryptKeysResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.tlfKeys.getTLFCryptKeys', request, (error, result) => error ? reject(error) : resolve(result)))
+export const tlfKeysGetTLFCryptKeysRpcPromise = (request: TlfKeysGetTLFCryptKeysRpcParam): Promise<TlfKeysGetTLFCryptKeysResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.tlfKeys.getTLFCryptKeys', request, (error: RPCError, result: TlfKeysGetTLFCryptKeysResult) => error ? reject(error) : resolve(result)))
 
 export const tlfKeysTLFIdentifyBehavior = {
   defaultKbfs: 0,
@@ -1654,31 +1654,31 @@ export const tlfKeysTLFIdentifyBehavior = {
 
 export const tlfPublicCanonicalTLFNameAndIDRpcChannelMap = (configKeys: Array<string>, request: TlfPublicCanonicalTLFNameAndIDRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.tlf.publicCanonicalTLFNameAndID', request)
 
-export const tlfPublicCanonicalTLFNameAndIDRpcPromise = (request: TlfPublicCanonicalTLFNameAndIDRpcParam): Promise<TlfPublicCanonicalTLFNameAndIDResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.tlf.publicCanonicalTLFNameAndID', request, (error, result) => error ? reject(error) : resolve(result)))
+export const tlfPublicCanonicalTLFNameAndIDRpcPromise = (request: TlfPublicCanonicalTLFNameAndIDRpcParam): Promise<TlfPublicCanonicalTLFNameAndIDResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.tlf.publicCanonicalTLFNameAndID', request, (error: RPCError, result: TlfPublicCanonicalTLFNameAndIDResult) => error ? reject(error) : resolve(result)))
 
 export const trackCheckTrackingRpcChannelMap = (configKeys: Array<string>, request: TrackCheckTrackingRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.track.checkTracking', request)
 
-export const trackCheckTrackingRpcPromise = (request: TrackCheckTrackingRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.track.checkTracking', request, (error, result) => error ? reject(error) : resolve(result)))
+export const trackCheckTrackingRpcPromise = (request: TrackCheckTrackingRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.track.checkTracking', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
 
 export const trackDismissWithTokenRpcChannelMap = (configKeys: Array<string>, request: TrackDismissWithTokenRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.track.dismissWithToken', request)
 
-export const trackDismissWithTokenRpcPromise = (request: TrackDismissWithTokenRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.track.dismissWithToken', request, (error, result) => error ? reject(error) : resolve(result)))
+export const trackDismissWithTokenRpcPromise = (request: TrackDismissWithTokenRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.track.dismissWithToken', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
 
 export const trackFakeTrackingChangedRpcChannelMap = (configKeys: Array<string>, request: TrackFakeTrackingChangedRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.track.fakeTrackingChanged', request)
 
-export const trackFakeTrackingChangedRpcPromise = (request: TrackFakeTrackingChangedRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.track.fakeTrackingChanged', request, (error, result) => error ? reject(error) : resolve(result)))
+export const trackFakeTrackingChangedRpcPromise = (request: TrackFakeTrackingChangedRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.track.fakeTrackingChanged', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
 
 export const trackTrackRpcChannelMap = (configKeys: Array<string>, request: TrackTrackRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.track.track', request)
 
-export const trackTrackRpcPromise = (request: TrackTrackRpcParam): Promise<TrackTrackResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.track.track', request, (error, result) => error ? reject(error) : resolve(result)))
+export const trackTrackRpcPromise = (request: TrackTrackRpcParam): Promise<TrackTrackResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.track.track', request, (error: RPCError, result: TrackTrackResult) => error ? reject(error) : resolve(result)))
 
 export const trackTrackWithTokenRpcChannelMap = (configKeys: Array<string>, request: TrackTrackWithTokenRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.track.trackWithToken', request)
 
-export const trackTrackWithTokenRpcPromise = (request: TrackTrackWithTokenRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.track.trackWithToken', request, (error, result) => error ? reject(error) : resolve(result)))
+export const trackTrackWithTokenRpcPromise = (request: TrackTrackWithTokenRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.track.trackWithToken', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
 
 export const trackUntrackRpcChannelMap = (configKeys: Array<string>, request: TrackUntrackRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.track.untrack', request)
 
-export const trackUntrackRpcPromise = (request: TrackUntrackRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.track.untrack', request, (error, result) => error ? reject(error) : resolve(result)))
+export const trackUntrackRpcPromise = (request: TrackUntrackRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.track.untrack', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
 
 export const uPKKeyType = {
   none: 0,
@@ -1708,79 +1708,79 @@ export const uiPromptDefault = {
 
 export const userDeleteUserRpcChannelMap = (configKeys: Array<string>, request: UserDeleteUserRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.user.deleteUser', request)
 
-export const userDeleteUserRpcPromise = (request: UserDeleteUserRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.user.deleteUser', request, (error, result) => error ? reject(error) : resolve(result)))
+export const userDeleteUserRpcPromise = (request: UserDeleteUserRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.user.deleteUser', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
 
 export const userInterestingPeopleRpcChannelMap = (configKeys: Array<string>, request: UserInterestingPeopleRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.user.interestingPeople', request)
 
-export const userInterestingPeopleRpcPromise = (request: UserInterestingPeopleRpcParam): Promise<UserInterestingPeopleResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.user.interestingPeople', request, (error, result) => error ? reject(error) : resolve(result)))
+export const userInterestingPeopleRpcPromise = (request: UserInterestingPeopleRpcParam): Promise<UserInterestingPeopleResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.user.interestingPeople', request, (error: RPCError, result: UserInterestingPeopleResult) => error ? reject(error) : resolve(result)))
 
 export const userListTrackers2RpcChannelMap = (configKeys: Array<string>, request: UserListTrackers2RpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.user.listTrackers2', request)
 
-export const userListTrackers2RpcPromise = (request: UserListTrackers2RpcParam): Promise<UserListTrackers2Result> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.user.listTrackers2', request, (error, result) => error ? reject(error) : resolve(result)))
+export const userListTrackers2RpcPromise = (request: UserListTrackers2RpcParam): Promise<UserListTrackers2Result> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.user.listTrackers2', request, (error: RPCError, result: UserListTrackers2Result) => error ? reject(error) : resolve(result)))
 
 export const userListTrackersByNameRpcChannelMap = (configKeys: Array<string>, request: UserListTrackersByNameRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.user.listTrackersByName', request)
 
-export const userListTrackersByNameRpcPromise = (request: UserListTrackersByNameRpcParam): Promise<UserListTrackersByNameResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.user.listTrackersByName', request, (error, result) => error ? reject(error) : resolve(result)))
+export const userListTrackersByNameRpcPromise = (request: UserListTrackersByNameRpcParam): Promise<UserListTrackersByNameResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.user.listTrackersByName', request, (error: RPCError, result: UserListTrackersByNameResult) => error ? reject(error) : resolve(result)))
 
 export const userListTrackersRpcChannelMap = (configKeys: Array<string>, request: UserListTrackersRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.user.listTrackers', request)
 
-export const userListTrackersRpcPromise = (request: UserListTrackersRpcParam): Promise<UserListTrackersResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.user.listTrackers', request, (error, result) => error ? reject(error) : resolve(result)))
+export const userListTrackersRpcPromise = (request: UserListTrackersRpcParam): Promise<UserListTrackersResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.user.listTrackers', request, (error: RPCError, result: UserListTrackersResult) => error ? reject(error) : resolve(result)))
 
 export const userListTrackersSelfRpcChannelMap = (configKeys: Array<string>, request: UserListTrackersSelfRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.user.listTrackersSelf', request)
 
-export const userListTrackersSelfRpcPromise = (request: UserListTrackersSelfRpcParam): Promise<UserListTrackersSelfResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.user.listTrackersSelf', request, (error, result) => error ? reject(error) : resolve(result)))
+export const userListTrackersSelfRpcPromise = (request: UserListTrackersSelfRpcParam): Promise<UserListTrackersSelfResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.user.listTrackersSelf', request, (error: RPCError, result: UserListTrackersSelfResult) => error ? reject(error) : resolve(result)))
 
 export const userListTrackingJSONRpcChannelMap = (configKeys: Array<string>, request: UserListTrackingJSONRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.user.listTrackingJSON', request)
 
-export const userListTrackingJSONRpcPromise = (request: UserListTrackingJSONRpcParam): Promise<UserListTrackingJSONResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.user.listTrackingJSON', request, (error, result) => error ? reject(error) : resolve(result)))
+export const userListTrackingJSONRpcPromise = (request: UserListTrackingJSONRpcParam): Promise<UserListTrackingJSONResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.user.listTrackingJSON', request, (error: RPCError, result: UserListTrackingJSONResult) => error ? reject(error) : resolve(result)))
 
 export const userListTrackingRpcChannelMap = (configKeys: Array<string>, request: UserListTrackingRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.user.listTracking', request)
 
-export const userListTrackingRpcPromise = (request: UserListTrackingRpcParam): Promise<UserListTrackingResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.user.listTracking', request, (error, result) => error ? reject(error) : resolve(result)))
+export const userListTrackingRpcPromise = (request: UserListTrackingRpcParam): Promise<UserListTrackingResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.user.listTracking', request, (error: RPCError, result: UserListTrackingResult) => error ? reject(error) : resolve(result)))
 
 export const userLoadAllPublicKeysUnverifiedRpcChannelMap = (configKeys: Array<string>, request: UserLoadAllPublicKeysUnverifiedRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.user.loadAllPublicKeysUnverified', request)
 
-export const userLoadAllPublicKeysUnverifiedRpcPromise = (request: UserLoadAllPublicKeysUnverifiedRpcParam): Promise<UserLoadAllPublicKeysUnverifiedResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.user.loadAllPublicKeysUnverified', request, (error, result) => error ? reject(error) : resolve(result)))
+export const userLoadAllPublicKeysUnverifiedRpcPromise = (request: UserLoadAllPublicKeysUnverifiedRpcParam): Promise<UserLoadAllPublicKeysUnverifiedResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.user.loadAllPublicKeysUnverified', request, (error: RPCError, result: UserLoadAllPublicKeysUnverifiedResult) => error ? reject(error) : resolve(result)))
 
 export const userLoadMyPublicKeysRpcChannelMap = (configKeys: Array<string>, request: UserLoadMyPublicKeysRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.user.loadMyPublicKeys', request)
 
-export const userLoadMyPublicKeysRpcPromise = (request: UserLoadMyPublicKeysRpcParam): Promise<UserLoadMyPublicKeysResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.user.loadMyPublicKeys', request, (error, result) => error ? reject(error) : resolve(result)))
+export const userLoadMyPublicKeysRpcPromise = (request: UserLoadMyPublicKeysRpcParam): Promise<UserLoadMyPublicKeysResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.user.loadMyPublicKeys', request, (error: RPCError, result: UserLoadMyPublicKeysResult) => error ? reject(error) : resolve(result)))
 
 export const userLoadMySettingsRpcChannelMap = (configKeys: Array<string>, request: UserLoadMySettingsRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.user.loadMySettings', request)
 
-export const userLoadMySettingsRpcPromise = (request: UserLoadMySettingsRpcParam): Promise<UserLoadMySettingsResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.user.loadMySettings', request, (error, result) => error ? reject(error) : resolve(result)))
+export const userLoadMySettingsRpcPromise = (request: UserLoadMySettingsRpcParam): Promise<UserLoadMySettingsResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.user.loadMySettings', request, (error: RPCError, result: UserLoadMySettingsResult) => error ? reject(error) : resolve(result)))
 
 export const userLoadPublicKeysRpcChannelMap = (configKeys: Array<string>, request: UserLoadPublicKeysRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.user.loadPublicKeys', request)
 
-export const userLoadPublicKeysRpcPromise = (request: UserLoadPublicKeysRpcParam): Promise<UserLoadPublicKeysResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.user.loadPublicKeys', request, (error, result) => error ? reject(error) : resolve(result)))
+export const userLoadPublicKeysRpcPromise = (request: UserLoadPublicKeysRpcParam): Promise<UserLoadPublicKeysResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.user.loadPublicKeys', request, (error: RPCError, result: UserLoadPublicKeysResult) => error ? reject(error) : resolve(result)))
 
 export const userLoadUncheckedUserSummariesRpcChannelMap = (configKeys: Array<string>, request: UserLoadUncheckedUserSummariesRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.user.loadUncheckedUserSummaries', request)
 
-export const userLoadUncheckedUserSummariesRpcPromise = (request: UserLoadUncheckedUserSummariesRpcParam): Promise<UserLoadUncheckedUserSummariesResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.user.loadUncheckedUserSummaries', request, (error, result) => error ? reject(error) : resolve(result)))
+export const userLoadUncheckedUserSummariesRpcPromise = (request: UserLoadUncheckedUserSummariesRpcParam): Promise<UserLoadUncheckedUserSummariesResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.user.loadUncheckedUserSummaries', request, (error: RPCError, result: UserLoadUncheckedUserSummariesResult) => error ? reject(error) : resolve(result)))
 
 export const userLoadUserByNameRpcChannelMap = (configKeys: Array<string>, request: UserLoadUserByNameRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.user.loadUserByName', request)
 
-export const userLoadUserByNameRpcPromise = (request: UserLoadUserByNameRpcParam): Promise<UserLoadUserByNameResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.user.loadUserByName', request, (error, result) => error ? reject(error) : resolve(result)))
+export const userLoadUserByNameRpcPromise = (request: UserLoadUserByNameRpcParam): Promise<UserLoadUserByNameResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.user.loadUserByName', request, (error: RPCError, result: UserLoadUserByNameResult) => error ? reject(error) : resolve(result)))
 
 export const userLoadUserPlusKeysRpcChannelMap = (configKeys: Array<string>, request: UserLoadUserPlusKeysRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.user.loadUserPlusKeys', request)
 
-export const userLoadUserPlusKeysRpcPromise = (request: UserLoadUserPlusKeysRpcParam): Promise<UserLoadUserPlusKeysResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.user.loadUserPlusKeys', request, (error, result) => error ? reject(error) : resolve(result)))
+export const userLoadUserPlusKeysRpcPromise = (request: UserLoadUserPlusKeysRpcParam): Promise<UserLoadUserPlusKeysResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.user.loadUserPlusKeys', request, (error: RPCError, result: UserLoadUserPlusKeysResult) => error ? reject(error) : resolve(result)))
 
 export const userLoadUserRpcChannelMap = (configKeys: Array<string>, request: UserLoadUserRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.user.loadUser', request)
 
-export const userLoadUserRpcPromise = (request: UserLoadUserRpcParam): Promise<UserLoadUserResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.user.loadUser', request, (error, result) => error ? reject(error) : resolve(result)))
+export const userLoadUserRpcPromise = (request: UserLoadUserRpcParam): Promise<UserLoadUserResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.user.loadUser', request, (error: RPCError, result: UserLoadUserResult) => error ? reject(error) : resolve(result)))
 
 export const userProfileEditRpcChannelMap = (configKeys: Array<string>, request: UserProfileEditRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.user.profileEdit', request)
 
-export const userProfileEditRpcPromise = (request: UserProfileEditRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.user.profileEdit', request, (error, result) => error ? reject(error) : resolve(result)))
+export const userProfileEditRpcPromise = (request: UserProfileEditRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.user.profileEdit', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
 
 export const userResetUserRpcChannelMap = (configKeys: Array<string>, request: UserResetUserRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.user.resetUser', request)
 
-export const userResetUserRpcPromise = (request: UserResetUserRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.user.resetUser', request, (error, result) => error ? reject(error) : resolve(result)))
+export const userResetUserRpcPromise = (request: UserResetUserRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.user.resetUser', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
 
 export const userSearchRpcChannelMap = (configKeys: Array<string>, request: UserSearchRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.user.search', request)
 
-export const userSearchRpcPromise = (request: UserSearchRpcParam): Promise<UserSearchResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.user.search', request, (error, result) => error ? reject(error) : resolve(result)))
+export const userSearchRpcPromise = (request: UserSearchRpcParam): Promise<UserSearchResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.user.search', request, (error: RPCError, result: UserSearchResult) => error ? reject(error) : resolve(result)))
 
 export type APIRes = {|status: String,body: String,httpStatus: Int,appStatus: String,|}
 
