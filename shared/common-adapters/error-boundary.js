@@ -89,7 +89,7 @@ class ErrorBoundary extends React.PureComponent<Props, State> {
 
   componentWillReceiveProps(nextProps: Props) {
     if (this.props.children !== nextProps.children) {
-      this.setState({})
+      this.setState({info: null})
     }
   }
 
