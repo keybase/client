@@ -123,8 +123,6 @@ func (e *RevokeEngine) Run(ctx *Context) error {
 			if hasPGP {
 				// even w/ forceLast, you cannot revoke your last device
 				// if you have a pgp key
-
-				// XXX special one for pgp?
 				return libkb.RevokeLastDevicePGPError{}
 			}
 
