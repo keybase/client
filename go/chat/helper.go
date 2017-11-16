@@ -590,7 +590,7 @@ func JoinConversation(ctx context.Context, g *globals.Context, debugger utils.De
 			Uid:    uid,
 			ConvID: convID,
 		},
-	}, nil, nil); err != nil {
+	}, nil, nil, nil); err != nil {
 		debugger.Debug(ctx, "JoinConversation: failed to apply membership update: %s", err.Error())
 	}
 
@@ -638,6 +638,34 @@ func LeaveConversation(ctx context.Context, g *globals.Context, debugger utils.D
 	}
 	if leaveRes.RateLimit != nil {
 		rl = append(rl, *leaveRes.RateLimit)
+	}
+
+	return rl, nil
+}
+
+func PreviewConversation(ctx context.Context, g *globals.Context, debugger utils.DebugLabeler,
+	ri func() chat1.RemoteInterface, uid gregor1.UID, convID chat1.ConversationID) (rl []chat1.RateLimit, err error) {
+	alreadyIn, irl, err := g.InboxSource.IsMember(ctx, uid, convID)
+	if err != nil {
+		debugger.Debug(ctx, "PreviewConversation: IsMember err: %s", err.Error())
+		// Assume we aren't in, server will reject us otherwise.
+		alreadyIn = false
+	}
+	if irl != nil {
+		rl = append(rl, *irl)
+	}
+	if alreadyIn {
+		debugger.Debug(ctx, "PreviewConversation: already in the conversation, no need to preview")
+		return nil, nil
+	}
+
+	previewRes, err := ri().PreviewConversation(ctx, convID)
+	if err != nil {
+		debugger.Debug(ctx, "PreviewConversation: failed to preview conversation: %s", err.Error())
+		return rl, err
+	}
+	if previewRes.RateLimit != nil {
+		rl = append(rl, *previewRes.RateLimit)
 	}
 
 	return rl, nil

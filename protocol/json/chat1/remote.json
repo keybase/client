@@ -908,6 +908,15 @@
       ],
       "response": "JoinLeaveConversationRemoteRes"
     },
+    "previewConversation": {
+      "request": [
+        {
+          "name": "convID",
+          "type": "ConversationID"
+        }
+      ],
+      "response": "JoinLeaveConversationRemoteRes"
+    },
     "deleteConversation": {
       "request": [
         {
