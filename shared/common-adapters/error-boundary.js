@@ -12,14 +12,9 @@ type ErrorInfo = {
 
 // eslint-disable-next-line handle-callback-err
 const Fallback = ({error, info}: *) => {
-  let safeError
-  let safeInfo = (info && info.componentStack) || ''
-
-  try {
-    safeError = error.toString()
-  } catch (_) {
-    safeError = ''
-  }
+  const message = error.message || '(No error message)'
+  const stack = error.stack || '(No error stack)'
+  let componentStack = (info && info.componentStack) || '(No component stack)'
 
   return (
     <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center', flex: 1, justifyContent: 'center'}}>
@@ -42,10 +37,15 @@ const Fallback = ({error, info}: *) => {
             keybase log send
           </Text>
         </Box>}
-      <Text type="BodySmall" style={{marginTop: 20}}>some details...</Text>
+      <Text type="BodySmall" style={{marginTop: 20}}>Error message: </Text>
+      <Text type="BodySmall" style={globalStyles.selectable}>{message}</Text>
+      <Text type="BodySmall" style={{marginTop: 20}}>Error stack: </Text>
       <ScrollView style={{maxHeight: 100, padding: 10}}>
-        <Text type="BodySmall" style={globalStyles.selectable}>{safeError}</Text>
-        <Text type="BodySmall" style={globalStyles.selectable}>{safeInfo}</Text>
+        <Text type="BodySmall" style={globalStyles.selectable}>{stack}</Text>
+      </ScrollView>
+      <Text type="BodySmall" style={{marginTop: 20}}>Component stack: </Text>
+      <ScrollView style={{maxHeight: 100, padding: 10}}>
+        <Text type="BodySmall" style={globalStyles.selectable}>{componentStack}</Text>
       </ScrollView>
     </Box>
   )
