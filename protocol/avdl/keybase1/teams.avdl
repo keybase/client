@@ -294,6 +294,21 @@ protocol teams {
     int score;
   }
 
+  record TeamResetUser {
+    string username;
+    UID uid;
+    @jsonkey("eldest_seqno")
+    Seqno eldestSeqno;
+  }
+
+  // team.member_out_from_reset message body
+  record TeamMemberOutFromReset {
+    @jsonkey("team_name")
+    string teamName;
+    @jsonkey("reset_user")
+    TeamResetUser resetUser;
+  }
+
   record TeamChangeRow {
     TeamID id;
     string name;
@@ -392,7 +407,7 @@ protocol teams {
   record TeamSeitanMsg {
     @jsonkey("team_id")
     TeamID teamID;
-    array<TeamSeitanRequest> seitans; 
+    array<TeamSeitanRequest> seitans;
   }
 
   /**

@@ -174,7 +174,11 @@ func TestTeamReset(t *testing.T) {
 	cam := ctx.installKeybaseForUser("cam", 10)
 	cam.signup()
 	divDebug(ctx, "Signed up cam (%s, %s)", cam.username, cam.uid())
-	users := []*smuUser{ann, bob, cam}
+
+	// Note that ann (the admin) has a UIDMapper that should get pubsub updates
+	// since she is an admin for the team in question. cam won't get those
+	// pubsub updates
+	users := []*smuUser{bob, cam}
 	for _, user := range users {
 		for _, device := range user.devices {
 			device.tctx.G.UIDMapper.SetTestingNoCachingMode(true)
@@ -198,7 +202,10 @@ func TestTeamReset(t *testing.T) {
 	bob.reset()
 	divDebug(ctx, "Reset bob (%s)", bob.username)
 
-	// Fast forward clock to clear out UID map
+	// NOTE(maxtaco): This might be racy! If so, please talk to me.
+	// I couldn't get it to race in my tests, but what does that mean.
+	// The race is that a gregor message is needed to clear out the UIDMap,
+	// and it's not guaranteed to come in before the team gets updated.
 	pollForMembershipUpdate(team, ann, bob, cam)
 	divDebug(ctx, "Polled for rekey")
 

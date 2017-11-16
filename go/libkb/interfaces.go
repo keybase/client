@@ -131,6 +131,7 @@ type LocalDb interface {
 type KVStorer interface {
 	GetInto(obj interface{}, id DbKey) (found bool, err error)
 	PutObj(id DbKey, aliases []DbKey, obj interface{}) (err error)
+	Delete(id DbKey) error
 }
 
 type ConfigReader interface {
@@ -653,6 +654,10 @@ type UIDMapper interface {
 	// SetTestingNoCachingMode puts the UID mapper into a mode where it never serves cached results, *strictly
 	// for use in tests*
 	SetTestingNoCachingMode(enabled bool)
+
+	// ClearUID is called to clear the given UID out of the cache, if the given eldest
+	// seqno doesn't match what's currently cached.
+	ClearUIDAtEldestSeqno(context.Context, UIDMapperContext, keybase1.UID, keybase1.Seqno) error
 }
 
 type ChatHelper interface {

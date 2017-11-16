@@ -374,6 +374,29 @@ func (u *UIDMap) CheckUIDAgainstUsername(uid keybase1.UID, un libkb.NormalizedUs
 	return checkUIDAgainstUsername(uid, un)
 }
 
+func (u *UIDMap) ClearUIDAtEldestSeqno(ctx context.Context, g libkb.UIDMapperContext, uid keybase1.UID, s keybase1.Seqno) error {
+	u.Lock()
+	defer u.Unlock()
+
+	voidp, ok := u.fullNameCache.Get(uid)
+	clearDB := false
+	if ok {
+		tmp, ok := voidp.(keybase1.FullNamePackage)
+		if !ok || tmp.EldestSeqno == s {
+			g.GetLog().CDebugf(ctx, "UIDMap: Clearing %s%%%d", uid, s)
+			u.fullNameCache.Remove(uid)
+			clearDB = true
+		}
+	} else {
+		clearDB = true
+	}
+	if clearDB {
+		key := fullNameDBKey(uid)
+		g.GetKVStore().Delete(key)
+	}
+	return nil
+}
+
 var _ libkb.UIDMapper = (*UIDMap)(nil)
 
 type OfflineUIDMap struct{}
@@ -388,6 +411,10 @@ func (o *OfflineUIDMap) MapUIDsToUsernamePackages(ctx context.Context, g libkb.U
 
 func (o *OfflineUIDMap) SetTestingNoCachingMode(enabled bool) {
 
+}
+
+func (o *OfflineUIDMap) ClearUIDAtEldestSeqno(ctx context.Context, g libkb.UIDMapperContext, uid keybase1.UID, s keybase1.Seqno) error {
+	return nil
 }
 
 var _ libkb.UIDMapper = (*OfflineUIDMap)(nil)
