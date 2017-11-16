@@ -152,6 +152,111 @@ func fillUsernames(ctx context.Context, g *libkb.GlobalContext, res *keybase1.An
 	return nil
 }
 
+func ListTeams(ctx context.Context, g *libkb.GlobalContext, arg keybase1.TeamListArg) (*keybase1.AnnotatedTeamList, error) {
+	tracer := g.CTimeTracer(ctx, "TeamList")
+	defer tracer.Finish()
+
+	var queryUID keybase1.UID
+	if arg.UserAssertion != "" {
+		res := g.Resolver.ResolveFullExpression(ctx, arg.UserAssertion)
+		if res.GetError() != nil {
+			return nil, res.GetError()
+		}
+		queryUID = res.GetUID()
+	}
+
+	meUID := g.ActiveDevice.UID()
+	if meUID.IsNil() {
+		return nil, libkb.LoginRequiredError{}
+	}
+
+	tracer.Stage("Server")
+	teams, err := getTeamsListFromServer(ctx, g, queryUID, arg.All)
+	if err != nil {
+		return nil, err
+	}
+
+	if arg.UserAssertion == "" {
+		queryUID = meUID
+	}
+
+	tracer.Stage("LookupOurUsername")
+	queryUsername, queryFullName, err := getUsernameAndFullName(context.Background(), g, queryUID)
+	if err != nil {
+		return nil, err
+	}
+
+	res := &keybase1.AnnotatedTeamList{
+		Teams: nil,
+		AnnotatedActiveInvites: make(map[keybase1.TeamInviteID]keybase1.AnnotatedTeamInvite),
+	}
+
+	if len(teams) == 0 {
+		return res, nil
+	}
+
+	tracer.Stage("Loads")
+
+	for _, memberInfo := range teams {
+		serverSaysNeedAdmin := memberNeedAdmin(memberInfo, meUID)
+		team, err := getTeamForMember(ctx, g, memberInfo, serverSaysNeedAdmin)
+		if err != nil {
+			g.Log.CDebugf(ctx, "| Error in getTeamForMember ID:%s UID:%s: %v; skipping team", memberInfo.TeamID, memberInfo.UserID, err)
+			continue
+		}
+
+		if memberInfo.UserID != queryUID {
+			g.Log.CDebugf(ctx, "| Expected memberInfo for UID:%s, got UID:%s", queryUID, memberInfo.UserID)
+			continue
+		}
+
+		var anMemberInfo *keybase1.AnnotatedMemberInfo
+
+		anMemberInfo = &keybase1.AnnotatedMemberInfo{
+			TeamID:         team.ID,
+			FqName:         team.Name().String(),
+			UserID:         memberInfo.UserID,
+			Role:           memberInfo.Role, // memberInfo.Role has been verified during getTeamForMember
+			IsImplicitTeam: team.IsImplicit(),
+			Implicit:       memberInfo.Implicit, // This part is still server trust
+			Username:       queryUsername.String(),
+			FullName:       queryFullName,
+			MemberCount:    0,
+		}
+
+		members, err := team.Members()
+		if err != nil {
+			g.Log.CDebugf(ctx, "| Failed to get Members() for team %q: %v", team.ID, err)
+			continue
+		}
+
+		// TODO: Find a way to skip reset members.
+		anMemberInfo.MemberCount = len(members.AllUIDs())
+
+		anInvites, err := AnnotateInvites(ctx, g, team)
+		if err != nil {
+			g.Log.CDebugf(ctx, "| Failed to AnnotateInvites for team %q: %v", team.ID, err)
+			continue
+		}
+
+		res.Teams = append(res.Teams, *anMemberInfo)
+		for teamInviteID, annotatedTeamInvite := range anInvites {
+			res.AnnotatedActiveInvites[teamInviteID] = annotatedTeamInvite
+
+			category, err := annotatedTeamInvite.Type.C()
+			if err == nil && category == keybase1.TeamInviteCategory_KEYBASE {
+				anMemberInfo.MemberCount++
+			}
+		}
+	}
+
+	if len(res.Teams) != len(teams) {
+		return res, fmt.Errorf("multiple errors while loading team list")
+	}
+
+	return res, err
+}
+
 // List info about teams
 // If an error is encountered while loading some teams, the team is skipped and no error is returned.
 // If an error occurs loading all the info, an error is returned.
