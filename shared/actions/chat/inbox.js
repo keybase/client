@@ -376,11 +376,7 @@ function* _unboxMore(): SagaGenerator<any, any> {
   }
 }
 
-function* _chatInboxFailedSubSaga(params: {|
-  sessionID: number,
-  convID: RPCChatTypes.ConversationID,
-  error: RPCChatTypes.ConversationErrorLocal,
-|}) {
+function* _chatInboxFailedSubSaga(params: RPCChatTypes.ChatUiChatInboxFailedRpcParam) {
   const {convID, error} = params
   console.log('chatInboxFailed', params)
   const conversationIDKey = Constants.conversationIDToKey(convID)
