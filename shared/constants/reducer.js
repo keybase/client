@@ -21,34 +21,26 @@ import type {State as Tracker} from '../constants/types/tracker'
 import type {State as UnlockFolders} from '../constants/types/unlock-folders'
 import type {State as Waiting} from '../constants/types/waiting'
 
-// Chat
-// entity
-// favorite
-// profile
-// routetree
-// tracker
-// const a: Waiting= {}
-
-export type TypedState = {
-  config: Config,
-  chat: Chat,
-  dev: Dev,
-  devices: Devices,
-  entities: Entity,
-  engine: Engine,
-  favorite: Favorite,
-  gregor: Gregor,
-  login: Login,
-  notifications: Notification,
-  pgp: Pgp,
-  pinentry: Pinentry,
-  planBilling: Billing,
-  profile: Profile,
-  push: Push,
-  routeTree: RouteTree,
-  settings: Settings,
-  signup: Signup,
-  tracker: Tracker,
-  unlockFolders: UnlockFolders,
-  waiting: Waiting,
-}
+export type TypedState = {|
+  +config: Config,
+  +chat: Chat,
+  +dev: Dev,
+  +devices: Devices,
+  +entities: Entity,
+  +engine: Engine,
+  +favorite: Favorite,
+  +gregor: Gregor,
+  +login: Login,
+  +notifications: Notification,
+  +pgp: Pgp,
+  +pinentry: Pinentry,
+  +planBilling: Billing,
+  +profile: Profile,
+  +push: Push,
+  +routeTree: RouteTree,
+  +settings: Settings,
+  +signup: Signup,
+  +tracker: Tracker,
+  +unlockFolders: UnlockFolders,
+  +waiting: Waiting,
+|}

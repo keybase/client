@@ -2,7 +2,7 @@
 import * as I from 'immutable'
 import * as RPCChatTypes from './flow-types-chat'
 import * as RPCTypes from './flow-types'
-import * as SearchConstants from '../search'
+import * as SearchTypes from './search'
 import HiddenString from '../../util/hidden-string'
 import type {DeviceType} from './devices'
 
@@ -358,9 +358,9 @@ export type _State = {
   rekeyInfos: I.Map<ConversationIDKey, RekeyInfo>,
   searchPending: boolean,
   searchResultTerm: string,
-  searchResults: ?I.List<SearchConstants.SearchResultId>,
+  searchResults: ?I.List<SearchTypes.SearchResultId>,
   searchShowingSuggestions: boolean,
-  selectedUsersInSearch: I.List<SearchConstants.SearchResultId>,
+  selectedUsersInSearch: I.List<SearchTypes.SearchResultId>,
   supersededByState: SupersededByState,
   supersedesState: SupersedesState,
   teamCreationError: string,

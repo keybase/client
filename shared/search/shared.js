@@ -1,8 +1,8 @@
 // @flow
-import * as Constants from '../constants/search'
+import * as Types from '../constants/types/search'
 import {globalColors} from '../styles'
 
-const followingStateToStyle = (followingState: Constants.FollowingState) => {
+const followingStateToStyle = (followingState: Types.FollowingState) => {
   return {
     Following: {
       color: globalColors.green2,

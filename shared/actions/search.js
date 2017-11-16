@@ -1,5 +1,6 @@
 // @flow
 import * as Constants from '../constants/search'
+import * as Types from '../constants/types/search'
 import * as SearchGen from './search-gen'
 import * as EntityAction from './entities'
 import * as I from 'immutable'
@@ -35,7 +36,7 @@ type RawResult = {
   },
 }
 
-function _serviceToApiServiceName(service: Constants.Service): string {
+function _serviceToApiServiceName(service: Types.Service): string {
   return (
     {
       Facebook: 'facebook',
@@ -48,18 +49,18 @@ function _serviceToApiServiceName(service: Constants.Service): string {
   )
 }
 
-function _rawResultToId(serviceName: string, serviceUsername: string): Constants.SearchResultId {
+function _rawResultToId(serviceName: string, serviceUsername: string): Types.SearchResultId {
   if (serviceName.toLowerCase() === 'keybase' || serviceName === '') {
     return serviceUsername
   }
   return `${serviceUsername}@${serviceName}`
 }
 
-function _toSearchQuery(serviceName: string, searchTerm: string): Constants.SearchQuery {
+function _toSearchQuery(serviceName: string, searchTerm: string): Types.SearchQuery {
   return `${serviceName}-${searchTerm}`
 }
 
-function _parseKeybaseRawResult(result: RawResult): Constants.SearchResult {
+function _parseKeybaseRawResult(result: RawResult): Types.SearchResult {
   if (result.keybase && result.service) {
     const {keybase, service} = result
     return {
@@ -93,7 +94,7 @@ function _parseKeybaseRawResult(result: RawResult): Constants.SearchResult {
   throw new SearchError(`Invalid raw result for keybase. Missing result.keybase ${JSON.stringify(result)}`)
 }
 
-function _parseThirdPartyRawResult(result: RawResult): Constants.SearchResult {
+function _parseThirdPartyRawResult(result: RawResult): Types.SearchResult {
   if (result.service && result.keybase) {
     const {service, keybase} = result
     return {
@@ -129,7 +130,8 @@ function _parseThirdPartyRawResult(result: RawResult): Constants.SearchResult {
   )
 }
 
-function _parseRawResultToRow(result: RawResult, service: Constants.Service) {
+function _parseRawResultToRow(result: RawResult, service: Types.Service) {
+  // $FlowIssue shouldn't accept a '' but this logic exists and i don't want to test removing it
   if (service === '' || service === 'Keybase') {
     return _parseKeybaseRawResult(result)
   } else {
@@ -193,7 +195,7 @@ function* search({payload: {term, service, searchKey}}: SearchGen.SearchPayload)
     // Make a version that maps from keybase id to SearchResult.
     // This is in case we want to lookup this data by their keybase id.
     // (like the case of upgrading a 3rd party result to a kb result)
-    const kbRows: Array<Constants.SearchResult> = rows.filter(r => r.rightService === 'Keybase').map(r => ({
+    const kbRows: Array<Types.SearchResult> = rows.filter(r => r.rightService === 'Keybase').map(r => ({
       id: r.rightUsername || '',
       leftService: 'Keybase',
       leftUsername: r.rightUsername,

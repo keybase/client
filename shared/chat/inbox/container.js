@@ -13,9 +13,9 @@ import {
   withHandlers,
   createSelector,
   createImmutableEqualSelector,
-  type TypedState,
 } from '../../util/container'
 import {scoreFilter, passesStringFilter} from './filtering'
+import type {TypedState} from '../../constants/reducer'
 
 const smallTeamsCollapsedMaxShown = 5
 const getAlwaysShow = (state: TypedState) => state.chat.get('inboxAlwaysShow')
@@ -197,6 +197,7 @@ type OwnProps = {
     smallTeamsExpanded?: boolean,
   }) => void,
 }
+
 const mapStateToProps = (state: TypedState, {isActiveRoute, routeState}: OwnProps) => {
   const filter = getFilter(state)
   const smallTeamsExpanded = routeState.get('smallTeamsExpanded')
