@@ -36,7 +36,6 @@ const detailStyle = {
   whiteSpace: 'pre',
 }
 
-// eslint-disable-next-line handle-callback-err
 const Fallback = ({info: {name, message, stack, componentStack}}: {info: AllErrorInfo}) => {
   return (
     <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center', flex: 1, justifyContent: 'center'}}>
