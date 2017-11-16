@@ -1,5 +1,5 @@
 // @flow
-import * as Constants from '../../constants/search'
+import * as Types from '../../constants/types/search'
 import * as React from 'react'
 import {Box, Icon, ClickableBox, Text} from '../../common-adapters/index'
 import {globalColors, globalStyles, globalMargins, hairlineWidth} from '../../styles'
@@ -116,7 +116,7 @@ const Line = () => (
   />
 )
 
-const SearchResultRow = (props: Constants.RowProps) => (
+const SearchResultRow = (props: Types.RowProps) => (
   <ClickableBox
     style={_clickableBoxStyle[(!!props.selected).toString()]}
     underlayColor={globalColors.blue4}

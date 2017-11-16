@@ -1,28 +1,28 @@
 {
   "prelude": [
-    "import * as Constants from '../constants/search'"
+    "import * as Types from '../constants/types/search'"
   ],
   "actions": {
     "search": {
       "term": "string",
-      "service": "Constants.Service",
+      "service": "Types.Service",
       "searchKey": "string"
     },
     "addResultsToUserInput": {
       "searchKey": "string",
-      "searchResults": "Array<Constants.SearchResultId>"
+      "searchResults": "Array<Types.SearchResultId>"
     },
     "removeResultsToUserInput": {
       "searchKey": "string",
-      "searchResults": "Array<Constants.SearchResultId>"
+      "searchResults": "Array<Types.SearchResultId>"
     },
     "setUserInputItems": {
       "searchKey": "string",
-      "searchResults": "Array<Constants.SearchResultId>"
+      "searchResults": "Array<Types.SearchResultId>"
     },
     "userInputItemsUpdated": {
       "searchKey": "string",
-      "userInputItemIds": "Array<Constants.SearchResultId>"
+      "userInputItemIds": "Array<Types.SearchResultId>"
     },
     "addClickedFromUserInput": {
       "searchKey": "string"
@@ -32,16 +32,16 @@
     },
     "updateSelectedSearchResult": {
       "searchKey": "string",
-      "id": "?Constants.SearchResultId"
+      "id": "?Types.SearchResultId"
     },
     "searchSuggestions": {
       "maxUsers?": "number",
       "searchKey": "string"
     },
     "finishedSearch": {
-      "searchResults": "Array<Constants.SearchResultId>",
+      "searchResults": "Array<Types.SearchResultId>",
       "searchResultTerm": "string",
-      "service": "Constants.Service",
+      "service": "Types.Service",
       "searchKey": "string",
       "searchShowingSuggestions?": "boolean"
     }

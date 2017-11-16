@@ -14,7 +14,7 @@ import {
 import {globalStyles, globalMargins, globalColors} from '../../styles'
 import {Linking, StyleSheet, NativeModules} from 'react-native'
 import type {MobileProps, ContactRowProps} from './index'
-import {type TeamRoleType} from '../../constants/teams'
+import {type TeamRoleType} from '../../constants/types/teams'
 import {isAndroid} from '../../constants/platform'
 
 const settingsURL = 'app-settings:'

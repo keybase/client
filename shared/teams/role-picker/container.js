@@ -4,12 +4,12 @@ import * as I from 'immutable'
 import {compose, withState} from 'recompose'
 import RolePicker from '.'
 import * as Creators from '../../actions/teams/creators'
-import * as Constants from '../../constants/teams'
+import * as Types from '../../constants/types/teams'
 
 import type {TypedState} from '../../constants/reducer'
 
 type StateProps = {
-  _memberInfo: I.Set<Constants.MemberInfo>,
+  _memberInfo: I.Set<Types.MemberInfo>,
   you: ?string,
   username: string,
   teamname: string,
@@ -25,12 +25,12 @@ const mapStateToProps = (state: TypedState, {routeProps}): StateProps => ({
 // TODO add stuff for edit membership options
 type DispatchProps = {
   _onAddMember: (
-    teamname: Constants.Teamname,
+    teamname: Types.Teamname,
     username: string,
-    role: Constants.TeamRoleType,
+    role: Types.TeamRoleType,
     sendNotification: boolean
   ) => void,
-  _onEditMember: (teamname: Constants.Teamname, username: string, role: Constants.TeamRoleType) => void,
+  _onEditMember: (teamname: Types.Teamname, username: string, role: Types.TeamRoleType) => void,
   onBack: () => void,
 }
 
@@ -44,7 +44,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp}): DispatchProps => 
 const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps, ownProps) => {
   const yourInfo = stateProps._memberInfo.find(member => member.username === stateProps.you)
   const user = stateProps._memberInfo.find(member => member.username === stateProps.username)
-  const onComplete = (role: Constants.TeamRoleType, sendNotification?: boolean) => {
+  const onComplete = (role: Types.TeamRoleType, sendNotification?: boolean) => {
     if (user) {
       dispatchProps._onEditMember(stateProps.teamname, stateProps.username, role)
     } else {

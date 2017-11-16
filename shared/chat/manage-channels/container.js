@@ -2,7 +2,7 @@
 import pickBy from 'lodash/pickBy'
 import isEqual from 'lodash/isEqual'
 import * as I from 'immutable'
-import * as Constants from '../../constants/teams'
+import * as Types from '../../constants/types/teams'
 import ManageChannels from '.'
 import {withHandlers, withState, withPropsOnChange} from 'recompose'
 import {pausableConnect, compose, lifecycle, type TypedState} from '../../util/container'
@@ -20,7 +20,7 @@ const mapStateToProps = (state: TypedState, {routeProps, routeState}) => {
 
   const channels = convIDs
     .map(convID => {
-      const info: ?Constants.ChannelInfo = state.entities.getIn(['teams', 'convIDToChannelInfo', convID])
+      const info: ?Types.ChannelInfo = state.entities.getIn(['teams', 'convIDToChannelInfo', convID])
 
       return info && info.channelname
         ? {

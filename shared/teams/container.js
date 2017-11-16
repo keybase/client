@@ -7,7 +7,7 @@ import openURL from '../util/open-url'
 import {getTeams} from '../actions/teams/creators'
 import {navigateAppend} from '../actions/route-tree'
 import {compose, lifecycle, type TypedState, pausableConnect} from '../util/container'
-import {type Teamname} from '../constants/teams'
+import {type Teamname} from '../constants/types/teams'
 
 type StateProps = {
   _teamnames: I.Set<Teamname>,
