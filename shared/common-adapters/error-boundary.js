@@ -71,8 +71,9 @@ class ErrorBoundary extends React.PureComponent<any, {error: ?Error, info: ?Erro
 
   componentDidCatch(error: Error, info: ErrorInfo): void {
     console.log('Got boundary error!')
-    console.log(error)
-    console.log(info)
+    console.log('Error message:', error.message)
+    console.log('Error stack:', error.stack)
+    console.log('Component stack:', info.componentStack)
     this.setState({error, info})
   }
 
