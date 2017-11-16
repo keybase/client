@@ -242,6 +242,23 @@ func (u *userPlusDevice) createTeam2() (teamID keybase1.TeamID, teamName keybase
 	return team.ID, team.Name()
 }
 
+func (u *userPlusDevice) teamSetSettings(teamName string, settings keybase1.TeamSettings) {
+	err := u.teamsClient.TeamSetSettings(context.Background(), keybase1.TeamSetSettingsArg{
+		Name:     teamName,
+		Settings: settings,
+	})
+	require.NoError(u.tc.T, err)
+}
+
+func (u *userPlusDevice) teamGetDetails(teamName string) keybase1.TeamDetails {
+	res, err := u.teamsClient.TeamGet(context.Background(), keybase1.TeamGetArg{
+		Name:        teamName,
+		ForceRepoll: true,
+	})
+	require.NoError(u.tc.T, err)
+	return res
+}
+
 func (u *userPlusDevice) addTeamMember(team, username string, role keybase1.TeamRole) {
 	add := client.NewCmdTeamAddMemberRunner(u.tc.G)
 	add.Team = team
@@ -352,7 +369,9 @@ func (u *userPlusDevice) devices() []keybase1.Device {
 }
 
 func (u *userPlusDevice) userVersion() keybase1.UserVersion {
-	return keybase1.UserVersion{Uid: u.uid, EldestSeqno: 1}
+	uv, err := u.device.userClient.MeUserVersion(context.TODO(), 0)
+	require.NoError(u.tc.T, err)
+	return uv
 }
 
 func (u *userPlusDevice) paperKeyID() keybase1.DeviceID {
@@ -534,7 +553,6 @@ func (u *userPlusDevice) provisionNewDevice() *deviceWrapper {
 
 	// ui for provisioning
 	ui := &rekeyProvisionUI{username: u.username, backupKey: u.backupKey}
-	// var loginClient keybase1.LoginClient
 	{
 		_, xp, err := client.GetRPCClientWithContext(g)
 		require.NoError(t, err)
@@ -548,11 +566,7 @@ func (u *userPlusDevice) provisionNewDevice() *deviceWrapper {
 			err = srv.Register(prot)
 			require.NoError(t, err)
 		}
-		// loginClient = keybase1.LoginClient{Cli: cli}
-		// _ = loginClient
 	}
-
-	// g.SetUI(ui)
 
 	cmd := client.NewCmdLoginRunner(g)
 	err := cmd.Run()
@@ -570,6 +584,41 @@ func (u *userPlusDevice) provisionNewDevice() *deviceWrapper {
 	require.True(t, device.deviceKey.KID.Exists())
 
 	return device
+}
+
+func (u *userPlusDevice) reset() {
+	uvBefore := u.userVersion()
+	err := u.device.userClient.ResetUser(context.TODO(), 0)
+	require.NoError(u.tc.T, err)
+	uvAfter := u.userVersion()
+	require.NotEqual(u.tc.T, uvBefore.EldestSeqno, uvAfter.EldestSeqno,
+		"eldest seqno should change as result of reset")
+}
+
+func (u *userPlusDevice) loginAfterReset() {
+	u.loginAfterResetHelper(true)
+}
+
+func (u *userPlusDevice) loginAfterResetPukless() {
+	u.loginAfterResetHelper(false)
+}
+
+func (u *userPlusDevice) loginAfterResetHelper(puk bool) {
+	t := u.device.tctx.T
+	u.device.tctx.Tp.DisableUpgradePerUserKey = !puk
+	g := u.device.tctx.G
+
+	ui := genericUI{
+		g:           g,
+		SecretUI:    signupInfoSecretUI{u.userInfo, u.tc.G.GetLog()},
+		LoginUI:     usernameLoginUI{u.username},
+		ProvisionUI: nullProvisionUI{randomDevice()},
+	}
+	g.SetUI(&ui)
+	loginCmd := client.NewCmdLoginRunner(g)
+	loginCmd.Username = u.username
+	err := loginCmd.Run()
+	require.NoError(t, err, "login after reset")
 }
 
 func kickTeamRekeyd(g *libkb.GlobalContext, t libkb.TestingTB) {
