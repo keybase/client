@@ -24,14 +24,25 @@ const Edit = ({onClick, style}: {onClick: () => void, style: Object}) => (
 )
 
 const Row = (
-  props: RowProps & {selected: boolean, onToggle: () => void, showEdit: boolean, onEdit: () => void}
+  props: RowProps & {
+    selected: boolean,
+    onToggle: () => void,
+    showEdit: boolean,
+    onEdit: () => void,
+    onPreview: () => void,
+  }
 ) => (
   <Box style={_rowBox}>
     <Checkbox style={{alignSelf: 'flex-end'}} checked={props.selected} label="" onCheck={props.onToggle} />
     <Box
       style={{...globalStyles.flexBoxColumn, flex: 1, position: 'relative', paddingLeft: globalMargins.tiny}}
     >
-      <Text type="BodySemibold" style={{color: globalColors.blue, maxWidth: '100%'}} lineClamp={1}>
+      <Text
+        type="BodySemiboldLink"
+        onClick={props.onPreview}
+        style={{color: globalColors.blue, maxWidth: '100%'}}
+        lineClamp={1}
+      >
         #{props.name}
       </Text>
       <Text type="BodySmall" lineClamp={1}>{props.description}</Text>
@@ -72,6 +83,7 @@ const ManageChannels = (props: Props) => (
           onToggle={() => props.onToggle(c.name)}
           showEdit={!props.unsavedSubscriptions}
           onEdit={() => props.onEdit(c.convID)}
+          onPreview={() => props.onPreview(c.convID)}
         />
       ))}
     </ScrollView>
