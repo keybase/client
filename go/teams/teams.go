@@ -1616,9 +1616,9 @@ func AddMembersBestEffort(ctx context.Context, g *libkb.GlobalContext, teamID ke
 			if err != nil {
 				return fmt.Errorf("Unexpected role: %v when adding %s, bailing out", role, uv)
 			}
-		}
 
-		needPostMembership = true
+			needPostMembership = true
+		}
 	}
 
 	if needPostMembership {
