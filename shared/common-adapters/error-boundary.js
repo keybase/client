@@ -6,6 +6,9 @@ import Text from './text'
 import {globalStyles, globalColors} from '../styles'
 import {isMobile} from '../constants/platform'
 
+// NOTE: componentDidCatch doesn't currently work with react-native:
+// https://github.com/facebook/react-native/issues/15571 .
+
 // Although not mentioned in
 // https://reactjs.org/blog/2017/07/26/error-handling-in-react-16.html ,
 // the info parameter to componentDidCatch looks like this.
