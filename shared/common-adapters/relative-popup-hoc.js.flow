@@ -1,0 +1,10 @@
+// @flow
+import * as React from 'react'
+
+export type Props = {
+  onClose: () => void,
+}
+
+declare export default function HeaderHoc<P: {}>(
+  WrappedComponent: React.ComponentType<P>
+): React.ComponentType<P & Props>

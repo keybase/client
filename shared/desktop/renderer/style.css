@@ -132,6 +132,9 @@ body {
     right: 0
 }
 
+#modal-root {
+}
+
 .hover-underline {
     text-decoration: none;
 }
