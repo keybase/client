@@ -105,7 +105,7 @@ func (r *chatConversationResolver) completeAndCanonicalizeTLFName(ctx context.Co
 		})
 		var canonName string
 		if err != nil {
-			r.G.Log.Debug("failed to lookup or create implicit team, not canonicalizing")
+			r.G.Log.Debug("failed to lookup or create implicit team, not canonicalizing: %s", err)
 			canonName = tlfName
 		} else {
 			canonName = impRes.DisplayName.String()
