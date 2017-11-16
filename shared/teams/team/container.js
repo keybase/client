@@ -20,9 +20,11 @@ type StateProps = {
   _implicitAdminUsernames: I.Set<string>,
   _requests: I.Set<Constants.RequestInfo>,
   _newTeamRequests: I.List<string>,
-  isTeamOpen: boolean,
   loading: boolean,
+  openTeam: boolean,
+  openTeamRole: Constants.TeamRoleType,
   name: Constants.Teamname,
+  publicityAnyMember: boolean,
   publicityMember: boolean,
   publicityTeam: boolean,
   selectedTab: string,
@@ -45,19 +47,23 @@ const mapStateToProps = (state: TypedState, {routeProps, routeState}): StateProp
     _requests: state.entities.getIn(['teams', 'teamNameToRequests', teamname], I.Set()),
     _invites: state.entities.getIn(['teams', 'teamNameToInvites', teamname], I.Set()),
     description: state.entities.getIn(['teams', 'teamNameToPublicitySettings', teamname, 'description'], ''),
-    isTeamOpen: state.entities.getIn(['teams', 'teamNameToTeamSettings', teamname], {
-      open: false,
-    }).open,
+    openTeam: state.entities.getIn(['teams', 'teamNameToTeamSettings', teamname, 'open'], false),
     _newTeamRequests: state.entities.getIn(['teams', 'newTeamRequests'], I.List()),
     loading: state.entities.getIn(['teams', 'teamNameToLoading', teamname], true),
     memberCount: state.entities.getIn(['teams', 'teammembercounts', teamname], 0),
     name: teamname,
-    publicityMember: state.entities.getIn(['teams', 'teamNameToPublicitySettings', teamname], {
-      member: false,
-    }).member,
-    publicityTeam: state.entities.getIn(['teams', 'teamNameToPublicitySettings', teamname], {
-      team: false,
-    }).team,
+    openTeamRole: Constants.teamRoleByEnum[
+      state.entities.getIn(['teams', 'teamNameToTeamSettings', teamname, 'joinAs'], 'reader')
+    ],
+    publicityAnyMember: state.entities.getIn(
+      ['teams', 'teamNameToPublicitySettings', teamname, 'anyMemberShowcase'],
+      false
+    ),
+    publicityMember: state.entities.getIn(
+      ['teams', 'teamNameToPublicitySettings', teamname, 'member'],
+      false
+    ),
+    publicityTeam: state.entities.getIn(['teams', 'teamNameToPublicitySettings', teamname, 'team'], false),
     selectedTab: routeState.get('selectedTab') || 'members',
     you: state.config.username,
   }
@@ -73,11 +79,13 @@ type DispatchProps = {
   _onLeaveTeam: (teamname: Constants.Teamname) => void,
   setSelectedTab: (tab: string) => void,
   onBack: () => void,
-  _onClickOpenTeamSetting: () => void,
   _onEditDescription: () => void,
 }
 
-const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, setRouteState, routeProps}): DispatchProps => ({
+const mapDispatchToProps = (
+  dispatch: Dispatch,
+  {navigateUp, openTeamRole, setOpenTeamRole, setRouteState, routeProps}
+): DispatchProps => ({
   _loadTeam: teamname => dispatch(Creators.getDetails(teamname)),
   _onAddPeople: (teamname: Constants.Teamname) =>
     dispatch(navigateAppend([{props: {teamname}, selected: 'addPeople'}])),
@@ -101,26 +109,35 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, setRouteState, rout
     isMobile ? dispatch(showUserProfile(username)) : dispatch(getProfile(username, true, true))
   },
   setSelectedTab: selectedTab => setRouteState({selectedTab}),
+  _setPublicityAnyMember: (teamname: Constants.Teamname, checked: boolean) =>
+    dispatch(Creators.setPublicityAnyMember(teamname, checked)),
   _setPublicityMember: (teamname: Constants.Teamname, checked: boolean) =>
     dispatch(Creators.setPublicityMember(teamname, checked)),
   _setPublicityTeam: (teamname: Constants.Teamname, checked: boolean) =>
     dispatch(Creators.setPublicityTeam(teamname, checked)),
   onBack: () => dispatch(navigateUp()),
-  _onClickOpenTeamSetting: isTeamOpen =>
-    dispatch(
-      navigateAppend([
-        {
-          props: {
-            actualTeamName: routeProps.get('teamname'),
-          },
-          selected: isTeamOpen ? 'openCloseTeamSetting' : 'openTeamSetting',
-        },
-      ])
-    ),
   _onEditDescription: () =>
     dispatch(
       navigateAppend([{props: {teamname: routeProps.get('teamname')}, selected: 'editTeamDescription'}])
     ),
+  _onSetOpenTeamRole: (openTeam: boolean, openTeamRole: string) => {
+    dispatch(
+      navigateAppend([
+        {
+          props: {
+            onComplete: (role: Constants.TeamRoleType) =>
+              dispatch(Creators.makeTeamOpen(routeProps.get('teamname'), openTeam, role)),
+            selectedRole: openTeamRole,
+            allowOwner: false,
+            allowAdmin: false,
+          },
+          selected: 'controlledRolePicker',
+        },
+      ])
+    )
+  },
+  _setOpenTeam: (teamname: Constants.Teamname, enabled: boolean, openTeamRole: Constants.TeamRoleType) =>
+    dispatch(Creators.makeTeamOpen(teamname, enabled, openTeamRole)),
 })
 
 const isExplicitAdmin = (memberInfo: I.Set<Constants.MemberInfo>, user: string): boolean => {
@@ -137,7 +154,6 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
   const onOpenFolder = () => dispatchProps._onOpenFolder(stateProps.name)
   const onManageChat = () => dispatchProps._onManageChat(stateProps.name)
   const onLeaveTeam = () => dispatchProps._onLeaveTeam(stateProps.name)
-  const onClickOpenTeamSetting = () => dispatchProps._onClickOpenTeamSetting(stateProps.isTeamOpen)
   const onEditDescription = () => dispatchProps._onEditDescription()
   const onCreateSubteam = () => dispatchProps._onCreateSubteam(stateProps.name)
 
@@ -157,8 +173,14 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
   const youCanCreateSubteam = youAdmin
 
   const onAddSelf = () => dispatchProps._onAddSelf(stateProps.name, you)
+  const onSetOpenTeamRole = () =>
+    dispatchProps._onSetOpenTeamRole(stateProps.openTeam, stateProps.openTeamRole)
+  const setPublicityAnyMember = (checked: boolean) =>
+    dispatchProps._setPublicityAnyMember(stateProps.name, checked)
   const setPublicityMember = (checked: boolean) => dispatchProps._setPublicityMember(stateProps.name, checked)
   const setPublicityTeam = (checked: boolean) => dispatchProps._setPublicityTeam(stateProps.name, checked)
+  const setOpenTeam = (checked: boolean) =>
+    dispatchProps._setOpenTeam(stateProps.name, checked, stateProps.openTeamRole)
 
   const customComponent = (
     <CustomComponent
@@ -167,6 +189,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
       onShowMenu={() => ownProps.setShowMenu(true)}
     />
   )
+  const youCanShowcase = youAdmin || stateProps.publicityAnyMember
   return {
     ...stateProps,
     ...dispatchProps,
@@ -186,13 +209,16 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     onLeaveTeam,
     onManageChat,
     onOpenFolder,
-    onClickOpenTeamSetting,
     onEditDescription,
+    onSetOpenTeamRole,
+    setOpenTeam,
+    setPublicityAnyMember,
     setPublicityMember,
     setPublicityTeam,
     showAddYourselfBanner,
     youCanAddPeople,
     youCanCreateSubteam,
+    youCanShowcase,
   }
 }
 

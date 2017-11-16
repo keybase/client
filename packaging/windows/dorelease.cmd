@@ -103,7 +103,7 @@ call %GOPATH%\src\github.com\keybase\client\packaging\windows\doinstaller_wix.cm
 ::Publish to S3
 if %UpdateChannel% NEQ "None" (
     echo "Uploading %BUILD_TAG%"
-    s3browser-con upload prerelease.keybase.io  %GOPATH%\src\github.com\keybase\client\packaging\windows\%BUILD_TAG%\*.exe prerelease.keybase.io/windows  || goto:build_error || EXIT /B 1
+    s3browser-con upload prerelease.keybase.io  %GOPATH%\src\github.com\keybase\client\packaging\windows\%BUILD_TAG%\Keybase_%BUILD_TAG%.386.exe prerelease.keybase.io/windows  || goto:build_error || EXIT /B 1
     :: Test channel json
     s3browser-con upload prerelease.keybase.io  %GOPATH%\src\github.com\keybase\client\packaging\windows\%BUILD_TAG%\update-windows-prod-test-v2.json prerelease.keybase.io || goto:build_error || EXIT /B 1
 ) else (

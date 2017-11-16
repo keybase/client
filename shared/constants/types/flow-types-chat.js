@@ -336,6 +336,10 @@ export const localPostTextNonblockRpcChannelMap = (configKeys: Array<string>, re
 
 export const localPostTextNonblockRpcPromise = (request: (RequestCommon & {callback?: ?(err: ?any, response: LocalPostTextNonblockResult) => void} & {param: LocalPostTextNonblockRpcParam})): Promise<LocalPostTextNonblockResult> => new Promise((resolve, reject) => engineRpcOutgoing('chat.1.local.postTextNonblock', request, (error, result) => error ? reject(error) : resolve(result)))
 
+export const localPreviewConversationByIDLocalRpcChannelMap = (configKeys: Array<string>, request: RequestCommon & {callback?: ?(err: ?any, response: LocalPreviewConversationByIDLocalResult) => void} & {param: LocalPreviewConversationByIDLocalRpcParam}): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.local.previewConversationByIDLocal', request)
+
+export const localPreviewConversationByIDLocalRpcPromise = (request: (RequestCommon & {callback?: ?(err: ?any, response: LocalPreviewConversationByIDLocalResult) => void} & {param: LocalPreviewConversationByIDLocalRpcParam})): Promise<LocalPreviewConversationByIDLocalResult> => new Promise((resolve, reject) => engineRpcOutgoing('chat.1.local.previewConversationByIDLocal', request, (error, result) => error ? reject(error) : resolve(result)))
+
 export const localRetryPostRpcChannelMap = (configKeys: Array<string>, request: RequestCommon & RequestErrorCallback & {param: LocalRetryPostRpcParam}): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.local.RetryPost', request)
 
 export const localRetryPostRpcPromise = (request: (RequestCommon & RequestErrorCallback & {param: LocalRetryPostRpcParam})): Promise<void> => new Promise((resolve, reject) => engineRpcOutgoing('chat.1.local.RetryPost', request, (error, result) => error ? reject(error) : resolve(result)))
@@ -452,6 +456,10 @@ export const remoteNewConversationRemoteRpcPromise = (request: (RequestCommon & 
 export const remotePostRemoteRpcChannelMap = (configKeys: Array<string>, request: RequestCommon & {callback?: ?(err: ?any, response: RemotePostRemoteResult) => void} & {param: RemotePostRemoteRpcParam}): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.remote.postRemote', request)
 
 export const remotePostRemoteRpcPromise = (request: (RequestCommon & {callback?: ?(err: ?any, response: RemotePostRemoteResult) => void} & {param: RemotePostRemoteRpcParam})): Promise<RemotePostRemoteResult> => new Promise((resolve, reject) => engineRpcOutgoing('chat.1.remote.postRemote', request, (error, result) => error ? reject(error) : resolve(result)))
+
+export const remotePreviewConversationRpcChannelMap = (configKeys: Array<string>, request: RequestCommon & {callback?: ?(err: ?any, response: RemotePreviewConversationResult) => void} & {param: RemotePreviewConversationRpcParam}): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.remote.previewConversation', request)
+
+export const remotePreviewConversationRpcPromise = (request: (RequestCommon & {callback?: ?(err: ?any, response: RemotePreviewConversationResult) => void} & {param: RemotePreviewConversationRpcParam})): Promise<RemotePreviewConversationResult> => new Promise((resolve, reject) => engineRpcOutgoing('chat.1.remote.previewConversation', request, (error, result) => error ? reject(error) : resolve(result)))
 
 export const remotePublishReadMessageRpcChannelMap = (configKeys: Array<string>, request: RequestCommon & RequestErrorCallback & {param: RemotePublishReadMessageRpcParam}): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.remote.publishReadMessage', request)
 
@@ -949,6 +957,8 @@ export type LocalPostTextNonblockRpcParam = {|  conversationID: ConversationID,
   outboxID?: ?OutboxID,
   identifyBehavior: Keybase1.TLFIdentifyBehavior|}
 
+export type LocalPreviewConversationByIDLocalRpcParam = {|  convID: ConversationID|}
+
 export type LocalRetryPostRpcParam = {|  outboxID: OutboxID|}
 
 export type LocalSetAppNotificationSettingsLocalRpcParam = {|  convID: ConversationID,
@@ -1206,6 +1216,8 @@ export type RemotePostRemoteRpcParam = {|  conversationID: ConversationID,
   channelMention: ChannelMention,
   topicNameState?: ?TopicNameState|}
 
+export type RemotePreviewConversationRpcParam = {|  convID: ConversationID|}
+
 export type RemotePublishReadMessageRpcParam = {|  uid: Gregor1.UID,
   convID: ConversationID,
   msgID: MessageID|}
@@ -1369,7 +1381,7 @@ export type UnverifiedInboxUIItemMetadata = {|channelName: String,headline: Stri
 
 export type UnverifiedInboxUIItems = {|items?: ?Array<UnverifiedInboxUIItem>,pagination?: ?UIPagination,offline: Boolean,|}
 
-export type UpdateConversationMembership = {|inboxVers: InboxVers,joined?: ?Array<ConversationMember>,removed?: ?Array<ConversationMember>,reset?: ?Array<ConversationMember>,unreadUpdate?: ?UnreadUpdate,unreadUpdates?: ?Array<UnreadUpdate>,|}
+export type UpdateConversationMembership = {|inboxVers: InboxVers,joined?: ?Array<ConversationMember>,removed?: ?Array<ConversationMember>,reset?: ?Array<ConversationMember>,previewed?: ?Array<ConversationID>,unreadUpdate?: ?UnreadUpdate,unreadUpdates?: ?Array<UnreadUpdate>,|}
 type ChatUiChatConfirmChannelDeleteResult = Boolean
 type LocalDeleteConversationLocalResult = DeleteConversationLocalRes
 type LocalDownloadAttachmentLocalResult = DownloadAttachmentLocalRes
@@ -1403,6 +1415,7 @@ type LocalPostLocalResult = PostLocalRes
 type LocalPostMetadataNonblockResult = PostLocalNonblockRes
 type LocalPostMetadataResult = PostLocalRes
 type LocalPostTextNonblockResult = PostLocalNonblockRes
+type LocalPreviewConversationByIDLocalResult = JoinLeaveConversationLocalRes
 type LocalSetAppNotificationSettingsLocalResult = SetAppNotificationSettingsLocalRes
 type LocalSetConversationStatusLocalResult = SetConversationStatusLocalRes
 type LocalUnboxMobilePushNotificationResult = String
@@ -1422,6 +1435,7 @@ type RemoteMarkAsReadResult = MarkAsReadRes
 type RemoteNewConversationRemote2Result = NewConversationRemoteRes
 type RemoteNewConversationRemoteResult = NewConversationRemoteRes
 type RemotePostRemoteResult = PostRemoteRes
+type RemotePreviewConversationResult = JoinLeaveConversationRemoteRes
 type RemoteS3SignResult = Bytes
 type RemoteSetAppNotificationSettingsResult = SetAppNotificationSettingsRes
 type RemoteSetConversationStatusResult = SetConversationStatusRes

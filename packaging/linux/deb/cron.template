@@ -308,8 +308,15 @@ if [ -r "$DEFAULTS_FILE" ]; then
   . "$DEFAULTS_FILE"
 fi
 
+# Difference from Chrome here: We unconditionally install the signing key into
+# APT's keyring every time this job runs, rather than only on the first
+# install. The immediate motivation for this change is that we needed to extend
+# the expiration date of our key. We're making it unconditional to avoid
+# needing to parse GPG output. Note that we've only made this change on the
+# Debian side -- it seems RPM isn't bothered as much by expired keys.
+install_key
+
 if [ "$repo_add_once" = "true" ]; then
-  install_key
   create_sources_lists
   RES=$?
   # Sources creation succeeded, so stop trying.

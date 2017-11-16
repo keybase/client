@@ -16,8 +16,18 @@ function createNewTeamFromConversation(conversationIDKey: ConversationIDKey, nam
   return {payload: {conversationIDKey, name}, type: 'teams:createNewTeamFromConversation'}
 }
 
-function createChannel(teamname: string, channelname: string, description: ?string) {
-  return {payload: {channelname, description, teamname}, type: 'teams:createChannel'}
+function createChannel(
+  teamname: string,
+  channelname: string,
+  description: ?string,
+  rootPath: I.List<string>,
+  sourceSubPath: I.List<string>,
+  destSubPath: I.List<string>
+) {
+  return {
+    payload: {channelname, description, teamname, rootPath, sourceSubPath, destSubPath},
+    type: 'teams:createChannel',
+  }
 }
 
 function getChannels(teamname: string): Constants.GetChannels {
@@ -43,8 +53,12 @@ function saveChannelMembership(
   return {payload: {channelState, teamname}, type: 'teams:saveChannelMembership'}
 }
 
-function addPeopleToTeam(teamname: string, role: string): Constants.AddPeopleToTeam {
-  return {payload: {role, teamname}, type: 'teams:addPeopleToTeam'}
+function addPeopleToTeam(
+  teamname: string,
+  role: string,
+  sendChatNotification: boolean
+): Constants.AddPeopleToTeam {
+  return {payload: {role, teamname, sendChatNotification}, type: 'teams:addPeopleToTeam'}
 }
 
 function inviteToTeamByEmail(
@@ -58,9 +72,10 @@ function inviteToTeamByEmail(
 function inviteToTeamByPhone(
   teamname: string,
   role: Constants.TeamRoleType,
-  phoneNumber: string
+  phoneNumber: string,
+  fullName: string
 ): Constants.InviteToTeamByPhone {
-  return {payload: {teamname, role, phoneNumber}, type: 'teams:inviteToTeamByPhone'}
+  return {payload: {teamname, role, phoneNumber, fullName}, type: 'teams:inviteToTeamByPhone'}
 }
 
 function joinTeam(teamname: string): Constants.JoinTeam {
@@ -101,12 +116,21 @@ function editMembership(
   return {payload: {name, username, role}, type: 'teams:editMembership'}
 }
 
-function removeMember(email: string, name: string, username: string): Constants.RemoveMemberOrPendingInvite {
-  return {payload: {email, name, username}, type: 'teams:removeMemberOrPendingInvite'}
+function removeMember(
+  email: string,
+  name: string,
+  username: string,
+  inviteID: string
+): Constants.RemoveMemberOrPendingInvite {
+  return {payload: {email, name, username, inviteID}, type: 'teams:removeMemberOrPendingInvite'}
 }
 
 function ignoreRequest(name: string, username: string): Constants.IgnoreRequest {
   return {payload: {name, username}, type: 'teams:ignoreRequest'}
+}
+
+function setPublicityAnyMember(teamname: string, enabled: boolean) {
+  return {payload: {enabled, teamname}, type: 'teams:setPublicityAnyMember'}
 }
 
 function setPublicityMember(teamname: string, enabled: boolean) {
@@ -115,6 +139,10 @@ function setPublicityMember(teamname: string, enabled: boolean) {
 
 function setPublicityTeam(teamname: string, enabled: boolean) {
   return {payload: {enabled, teamname}, type: 'teams:setPublicityTeam'}
+}
+
+function setChannelCreationError(channelCreationError: string): Constants.SetChannelCreationError {
+  return {payload: {channelCreationError}, type: 'teams:setChannelCreationError'}
 }
 
 function setTeamCreationError(teamCreationError: string): Constants.SetTeamCreationError {
@@ -178,6 +206,8 @@ export {
   makeTeamOpen,
   removeMember,
   saveChannelMembership,
+  setPublicityAnyMember,
+  setChannelCreationError,
   setPublicityMember,
   setPublicityTeam,
   setTeamCreationError,

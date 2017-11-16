@@ -711,3 +711,19 @@ func (p ConversationIDMessageIDPairs) Contains(convID ConversationID) (MessageID
 	}
 	return MessageID(0), false
 }
+
+func (c ConversationMemberStatus) ToGregorDBString() (string, error) {
+	s, ok := ConversationMemberStatusRevMap[c]
+	if !ok {
+		return "", fmt.Errorf("unrecoginzed ConversationMemberStatus: %v", c)
+	}
+	return strings.ToLower(s), nil
+}
+
+func (c ConversationMemberStatus) ToGregorDBStringAssert() string {
+	s, err := c.ToGregorDBString()
+	if err != nil {
+		panic(err)
+	}
+	return s
+}
