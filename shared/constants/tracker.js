@@ -391,21 +391,7 @@ export function overviewStateOfProofs(proofs: Array<Types.Proof>): Types.Overvie
 
 export function deriveSimpleProofState(
   eldestKidChanged: boolean,
-  {
-    allOk,
-    anyWarnings,
-    anyError,
-    anyPending,
-    anyDeletedProofs,
-    anyUnreachableProofs,
-  }: {
-    allOk: boolean,
-    anyWarnings: boolean,
-    anyError: boolean,
-    anyPending: boolean,
-    anyDeletedProofs: boolean,
-    anyUnreachableProofs: boolean,
-  }
+  {allOk, anyWarnings, anyError, anyPending, anyDeletedProofs, anyUnreachableProofs}: Types.OverviewProofState
 ): Types.SimpleProofState {
   if (eldestKidChanged) {
     return error
@@ -427,19 +413,7 @@ export function deriveSimpleProofState(
 function deriveTrackerMessage(
   username: string,
   currentlyFollowing: boolean,
-  {
-    allOk,
-    anyDeletedProofs,
-    anyUnreachableProofs,
-    anyUpgradedProofs,
-    anyNewProofs,
-  }: {
-    allOk: boolean,
-    anyDeletedProofs: boolean,
-    anyUnreachableProofs: boolean,
-    anyUpgradedProofs: boolean,
-    anyNewProofs: boolean,
-  }
+  {allOk, anyDeletedProofs, anyUnreachableProofs, anyUpgradedProofs, anyNewProofs}: Types.OverviewProofState
 ): ?string {
   if (allOk || !currentlyFollowing) {
     return null
