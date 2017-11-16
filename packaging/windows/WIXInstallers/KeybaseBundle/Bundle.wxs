@@ -97,8 +97,7 @@
         Description="Remove previous drivers"
         PerMachine="yes"
         Permanent="yes"
-        Compressed="yes"
-	Cache="yes"
+        Compressed="no"
         DownloadUrl="http://s3.amazonaws.com/prerelease.keybase.io/windows-support/dokan-dev/build84/dokanclean.exe"
         >
         <ExitCode Value="1641" Behavior="forceReboot"/>
