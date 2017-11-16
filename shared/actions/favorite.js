@@ -178,7 +178,7 @@ function* _addSaga(action: FavoriteGen.FavoriteAddPayload): Saga.SagaGenerator<a
   }
 }
 
-function* _ignoreSaga(action: FavoriteGen.FavoriteAddPayload): Saga.SagaGenerator<any, any> {
+function* _ignoreSaga(action: FavoriteGen.FavoriteIgnorePayload): Saga.SagaGenerator<any, any> {
   const folder = Constants.folderRPCFromPath(action.payload.path)
   if (!folder) {
     yield put(FavoriteGen.createFavoriteIgnoredError({errorText: 'No folder specified'}))
