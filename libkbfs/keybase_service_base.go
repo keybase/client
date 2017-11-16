@@ -14,6 +14,7 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/kbfscrypto"
 	"github.com/keybase/kbfs/kbfsmd"
+	"github.com/keybase/kbfs/tlf"
 	"golang.org/x/net/context"
 )
 
@@ -467,6 +468,58 @@ func (k *KeybaseServiceBase) Identify(ctx context.Context, assertion, reason str
 	}
 
 	return name, res.Ul.Id, nil
+}
+
+// ResolveIdentifyImplicitTeam implements the KeybaseService interface
+// for KeybaseServiceBase.
+func (k *KeybaseServiceBase) ResolveIdentifyImplicitTeam(
+	ctx context.Context, assertions, suffix string, tlfType tlf.Type,
+	doIdentifies bool, reason string) (ImplicitTeamInfo, error) {
+	if tlfType != tlf.Private && tlfType != tlf.Public {
+		return ImplicitTeamInfo{}, fmt.Errorf(
+			"Invalid implicit team TLF type: %s", tlfType)
+	}
+
+	arg := keybase1.ResolveIdentifyImplicitTeamArg{
+		Assertions:   assertions,
+		Suffix:       suffix,
+		DoIdentifies: doIdentifies,
+		Reason:       keybase1.IdentifyReason{Reason: reason},
+		// TODO(KBFS-2621): Change this to `true` when we are ready to
+		// turn on implicit team TLFs.
+		Create: false,
+	}
+
+	ei := getExtendedIdentify(ctx)
+	arg.IdentifyBehavior = ei.behavior
+
+	res, err := k.identifyClient.ResolveIdentifyImplicitTeam(ctx, arg)
+	if err != nil {
+		return ImplicitTeamInfo{}, ConvertIdentifyError(assertions, err)
+	}
+	name := libkb.NormalizedUsername(res.DisplayName)
+
+	// This is required for every identify call. The userBreak
+	// function will take care of checking if res.TrackBreaks is nil
+	// or not.
+	for userVer, breaks := range res.TrackBreaks {
+		// TODO: resolve the UID into a username so we don't have to
+		// pass in the full display name here?
+		ei.userBreak(name, userVer.Uid, &breaks)
+	}
+
+	iteamInfo := ImplicitTeamInfo{
+		Name: name,
+		TID:  res.TeamID,
+	}
+	if res.FolderID != "" {
+		iteamInfo.TlfID, err = tlf.ParseID(res.FolderID.String())
+		if err != nil {
+			return ImplicitTeamInfo{}, err
+		}
+	}
+
+	return iteamInfo, nil
 }
 
 // LoadUserPlusKeys implements the KeybaseService interface for

@@ -10,6 +10,7 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/kbfscodec"
+	"github.com/keybase/kbfs/tlf"
 	"golang.org/x/net/context"
 )
 
@@ -34,6 +35,14 @@ func (d *daemonKBPKI) Resolve(ctx context.Context, assertion string) (
 func (d *daemonKBPKI) Identify(ctx context.Context, assertion, reason string) (
 	libkb.NormalizedUsername, keybase1.UserOrTeamID, error) {
 	return d.daemon.Identify(ctx, assertion, reason)
+}
+
+// ResolveImplicitTeam implements the KBPKI interface for KBPKIClient.
+func (d *daemonKBPKI) ResolveImplicitTeam(
+	ctx context.Context, assertions, suffix string, tlfType tlf.Type) (
+	ImplicitTeamInfo, error) {
+	return d.daemon.ResolveIdentifyImplicitTeam(
+		ctx, assertions, suffix, tlfType, false, "")
 }
 
 func (d *daemonKBPKI) GetNormalizedUsername(

@@ -282,7 +282,7 @@ func MakeLocalTLFCryptKeyOrBust(
 }
 
 // MakeLocalUsers is a helper function to generate a list of
-// LocalUsers suitable to use with KBPKILocal.
+// LocalUsers suitable to use with KeybaseDaemonLocal.
 func MakeLocalUsers(users []libkb.NormalizedUsername) []LocalUser {
 	localUsers := make([]LocalUser, len(users))
 	for i := 0; i < len(users); i++ {
@@ -305,35 +305,43 @@ func MakeLocalUsers(users []libkb.NormalizedUsername) []LocalUser {
 	return localUsers
 }
 
-// MakeLocalTeams is a helper function to generate a list of local
-// teams suitable to use with KBPKILocal.  Any subteams must come
-// after their root team names in the `teams` slice.
-func MakeLocalTeams(teams []libkb.NormalizedUsername) []TeamInfo {
-	localTeams := make([]TeamInfo, len(teams))
-	for i := 0; i < len(teams); i++ {
+func makeLocalTeams(
+	teams []libkb.NormalizedUsername, startingIndex int, ty tlf.Type) (
+	localTeams []TeamInfo) {
+	localTeams = make([]TeamInfo, len(teams))
+	for i := startingIndex; i < len(teams)+startingIndex; i++ {
+		index := i - startingIndex
 		cryptKey := MakeLocalTLFCryptKeyOrBust(
-			buildCanonicalPathForTlfType(tlf.SingleTeam, string(teams[i])),
+			buildCanonicalPathForTlfType(
+				tlf.SingleTeam, string(teams[index])),
 			kbfsmd.FirstValidKeyGen)
-		localTeams[i] = TeamInfo{
-			Name: teams[i],
-			TID:  keybase1.MakeTestTeamID(uint32(i+1), false),
+		localTeams[index] = TeamInfo{
+			Name: teams[index],
+			TID:  keybase1.MakeTestTeamID(uint32(i+1), ty == tlf.Public),
 			CryptKeys: map[kbfsmd.KeyGen]kbfscrypto.TLFCryptKey{
 				kbfsmd.FirstValidKeyGen: cryptKey,
 			},
 			LatestKeyGen: kbfsmd.FirstValidKeyGen,
 		}
 		// If this is a subteam, set the root ID.
-		if strings.Contains(string(teams[i]), ".") {
-			parts := strings.SplitN(string(teams[i]), ".", 2)
-			for j := 0; j < i; j++ {
+		if strings.Contains(string(teams[index]), ".") {
+			parts := strings.SplitN(string(teams[index]), ".", 2)
+			for j := 0; j < index; j++ {
 				if parts[0] == string(localTeams[j].Name) {
-					localTeams[i].RootID = localTeams[j].TID
+					localTeams[index].RootID = localTeams[j].TID
 					break
 				}
 			}
 		}
 	}
 	return localTeams
+}
+
+// MakeLocalTeams is a helper function to generate a list of local
+// teams suitable to use with KeybaseDaemonLocal.  Any subteams must come
+// after their root team names in the `teams` slice.
+func MakeLocalTeams(teams []libkb.NormalizedUsername) []TeamInfo {
+	return makeLocalTeams(teams, 0, tlf.Private)
 }
 
 // getDefaultCleanBlockCacheCapacity returns the default clean block

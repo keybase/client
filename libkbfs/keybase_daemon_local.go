@@ -17,6 +17,7 @@ import (
 	"github.com/keybase/kbfs/kbfscodec"
 	"github.com/keybase/kbfs/kbfscrypto"
 	"github.com/keybase/kbfs/kbfsmd"
+	"github.com/keybase/kbfs/tlf"
 	"github.com/syndtr/goleveldb/leveldb"
 	"github.com/syndtr/goleveldb/leveldb/util"
 )
@@ -37,6 +38,17 @@ func (m localTeamMap) getLocalTeam(tid keybase1.TeamID) (TeamInfo, error) {
 	team, ok := m[tid]
 	if !ok {
 		return TeamInfo{}, NoSuchTeamError{tid.String()}
+	}
+	return team, nil
+}
+
+type localImplicitTeamMap map[keybase1.TeamID]ImplicitTeamInfo
+
+func (m localImplicitTeamMap) getLocalImplicitTeam(
+	tid keybase1.TeamID) (ImplicitTeamInfo, error) {
+	team, ok := m[tid]
+	if !ok {
+		return ImplicitTeamInfo{}, NoSuchTeamError{tid.String()}
 	}
 	return team, nil
 }
@@ -141,13 +153,15 @@ type KeybaseDaemonLocal struct {
 	codec kbfscodec.Codec
 
 	// lock protects everything below.
-	lock          sync.Mutex
-	localUsers    localUserMap
-	localTeams    localTeamMap
-	currentUID    keybase1.UID
-	asserts       map[string]keybase1.UserOrTeamID
-	favoriteStore favoriteStore
-	merkleRoot    keybase1.MerkleRootV2
+	lock               sync.Mutex
+	localUsers         localUserMap
+	localTeams         localTeamMap
+	localImplicitTeams localImplicitTeamMap
+	currentUID         keybase1.UID
+	asserts            map[string]keybase1.UserOrTeamID
+	implicitAsserts    map[string]keybase1.TeamID
+	favoriteStore      favoriteStore
+	merkleRoot         keybase1.MerkleRootV2
 }
 
 var _ KeybaseService = &KeybaseDaemonLocal{}
@@ -234,6 +248,139 @@ func (k *KeybaseDaemonLocal) Identify(
 	// The local daemon doesn't need to distinguish resolves from
 	// identifies.
 	return k.Resolve(ctx, assertion)
+}
+
+// ResolveIdentifyImplicitTeam implements the KeybaseService interface
+// for KeybaseDaemonLocal.
+func (k *KeybaseDaemonLocal) ResolveIdentifyImplicitTeam(
+	ctx context.Context, assertions, suffix string, tlfType tlf.Type,
+	doIdentifies bool, reason string) (ImplicitTeamInfo, error) {
+	if err := checkContext(ctx); err != nil {
+		return ImplicitTeamInfo{}, err
+	}
+
+	if tlfType != tlf.Private && tlfType != tlf.Public {
+		return ImplicitTeamInfo{}, fmt.Errorf(
+			"Invalid implicit team TLF type: %s", tlfType)
+	}
+
+	k.lock.Lock()
+	defer k.lock.Unlock()
+
+	// Canonicalize the name.
+	writerNames, readerNames, _, err :=
+		splitAndNormalizeTLFName(assertions, tlfType)
+	if err != nil {
+		return ImplicitTeamInfo{}, err
+	}
+	var writers, readers []libkb.NormalizedUsername
+	var unresolvedWriters, unresolvedReaders []keybase1.SocialAssertion
+	resolve := func(
+		name string, r []libkb.NormalizedUsername,
+		ur []keybase1.SocialAssertion) (
+		[]libkb.NormalizedUsername, []keybase1.SocialAssertion, error) {
+		id, err := k.assertionToIDLocked(ctx, name)
+		if err == nil {
+			u, err := k.localUsers.getLocalUser(id.AsUserOrBust())
+			if err != nil {
+				return nil, nil, err
+			}
+			r = append(r, u.Name)
+		} else {
+			a, ok := externals.NormalizeSocialAssertion(name)
+			if !ok {
+				return nil, nil, fmt.Errorf("Bad assertion: %s", name)
+			}
+			ur = append(ur, a)
+		}
+		return r, ur, nil
+	}
+	for _, w := range writerNames {
+		writers, unresolvedWriters, err = resolve(w, writers, unresolvedWriters)
+		if err != nil {
+			return ImplicitTeamInfo{}, err
+		}
+	}
+	for _, r := range readerNames {
+		readers, unresolvedReaders, err = resolve(r, readers, unresolvedReaders)
+		if err != nil {
+			return ImplicitTeamInfo{}, err
+		}
+	}
+
+	var extensions []tlf.HandleExtension
+	if len(suffix) != 0 {
+		extensions, err = tlf.ParseHandleExtensionSuffix(suffix)
+		if err != nil {
+			return ImplicitTeamInfo{}, err
+		}
+	}
+	name := tlf.MakeCanonicalName(
+		writers, unresolvedWriters, readers, unresolvedReaders, extensions)
+
+	key := fmt.Sprintf("%s:%s", tlfType.String(), name)
+	tid, ok := k.implicitAsserts[key]
+	if ok {
+		return k.localImplicitTeams[tid], nil
+	}
+
+	if !doIdentifies {
+		return ImplicitTeamInfo{}, NoSuchTeamError{assertions}
+	}
+
+	// Need to make the team info as well, so get the list of user
+	// names and resolve them.
+	asUserName := libkb.NormalizedUsername(name)
+	teams := makeLocalTeams(
+		[]libkb.NormalizedUsername{asUserName}, len(k.localTeams), tlfType)
+	info := teams[0]
+	info.Writers = make(map[keybase1.UID]bool, len(writerNames))
+	for _, w := range writerNames {
+		id, err := k.assertionToIDLocked(ctx, w)
+		// TODO: handle SBS assertions here?
+		if err != nil {
+			return ImplicitTeamInfo{}, err
+		}
+		info.Writers[id.AsUserOrBust()] = true
+	}
+	if len(readerNames) > 0 {
+		info.Readers = make(map[keybase1.UID]bool, len(readerNames))
+		for _, r := range readerNames {
+			id, err := k.assertionToIDLocked(ctx, r)
+			// TODO: handle SBS assertions here?
+			if err != nil {
+				return ImplicitTeamInfo{}, err
+			}
+			info.Readers[id.AsUserOrBust()] = true
+		}
+	}
+
+	tid = teams[0].TID
+	k.implicitAsserts[key] = tid
+	k.localTeams[tid] = info
+
+	iteamInfo := ImplicitTeamInfo{
+		// TODO: allow display name to differ?
+		Name: asUserName,
+		TID:  tid,
+	}
+	k.localImplicitTeams[tid] = iteamInfo
+	return iteamInfo, nil
+}
+
+func (k *KeybaseDaemonLocal) addImplicitTeamTlfID(
+	tid keybase1.TeamID, tlfID tlf.ID) error {
+	// TODO: add check to make sure the private/public suffix of the
+	// team ID matches that of the tlf ID.
+	k.lock.Lock()
+	defer k.lock.Unlock()
+	iteamInfo, ok := k.localImplicitTeams[tid]
+	if !ok {
+		return NoSuchTeamError{tid.String()}
+	}
+	iteamInfo.TlfID = tlfID
+	k.localImplicitTeams[tid] = iteamInfo
+	return nil
 }
 
 // LoadUserPlusKeys implements KeybaseDaemon for KeybaseDaemonLocal.
@@ -718,12 +865,14 @@ func newKeybaseDaemonLocal(codec kbfscodec.Codec,
 		asserts[string(u.Name)] = u.UID.AsUserOrTeam()
 	}
 	k := &KeybaseDaemonLocal{
-		codec:         codec,
-		localUsers:    localUserMap,
-		localTeams:    make(localTeamMap),
-		asserts:       asserts,
-		currentUID:    currentUID,
-		favoriteStore: favoriteStore,
+		codec:              codec,
+		localUsers:         localUserMap,
+		localTeams:         make(localTeamMap),
+		localImplicitTeams: make(localImplicitTeamMap),
+		asserts:            asserts,
+		implicitAsserts:    make(map[string]keybase1.TeamID),
+		currentUID:         currentUID,
+		favoriteStore:      favoriteStore,
 		// TODO: let test fill in valid merkle root.
 	}
 	k.addTeamsForTest(teams)

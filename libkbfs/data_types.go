@@ -62,6 +62,15 @@ type TeamInfo struct {
 	// whether a user was a member given some Merkle seqno?
 }
 
+// ImplicitTeamInfo contains information needed after
+// resolving/identifying an implicit team.  TeamInfo is used for
+// anything else.
+type ImplicitTeamInfo struct {
+	Name  libkb.NormalizedUsername
+	TID   keybase1.TeamID
+	TlfID tlf.ID
+}
+
 // SessionInfo contains all the info about the keybase session that
 // kbfs cares about.
 type SessionInfo struct {

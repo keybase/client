@@ -13,6 +13,7 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/kbfscrypto"
 	"github.com/keybase/kbfs/kbfsmd"
+	"github.com/keybase/kbfs/tlf"
 	"golang.org/x/net/context"
 )
 
@@ -54,6 +55,23 @@ func (k *KBPKIClient) Resolve(ctx context.Context, assertion string) (
 func (k *KBPKIClient) Identify(ctx context.Context, assertion, reason string) (
 	libkb.NormalizedUsername, keybase1.UserOrTeamID, error) {
 	return k.serviceOwner.KeybaseService().Identify(ctx, assertion, reason)
+}
+
+// ResolveImplicitTeam implements the KBPKI interface for KBPKIClient.
+func (k *KBPKIClient) ResolveImplicitTeam(
+	ctx context.Context, assertions, suffix string, tlfType tlf.Type) (
+	ImplicitTeamInfo, error) {
+	return k.serviceOwner.KeybaseService().ResolveIdentifyImplicitTeam(
+		ctx, assertions, suffix, tlfType, false, "")
+}
+
+// IdentifyImplicitTeam identifies (and creates if necessary) the
+// given implicit team.
+func (k *KBPKIClient) IdentifyImplicitTeam(
+	ctx context.Context, assertions, suffix string, tlfType tlf.Type,
+	reason string) (ImplicitTeamInfo, error) {
+	return k.serviceOwner.KeybaseService().ResolveIdentifyImplicitTeam(
+		ctx, assertions, suffix, tlfType, true, reason)
 }
 
 // GetNormalizedUsername implements the KBPKI interface for

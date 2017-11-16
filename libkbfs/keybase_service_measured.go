@@ -8,6 +8,7 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/kbfsmd"
+	"github.com/keybase/kbfs/tlf"
 	metrics "github.com/rcrowley/go-metrics"
 	"golang.org/x/net/context"
 )
@@ -15,19 +16,20 @@ import (
 // KeybaseServiceMeasured delegates to another KeybaseService instance
 // but also keeps track of stats.
 type KeybaseServiceMeasured struct {
-	delegate                  KeybaseService
-	resolveTimer              metrics.Timer
-	identifyTimer             metrics.Timer
-	loadUserPlusKeysTimer     metrics.Timer
-	loadTeamPlusKeysTimer     metrics.Timer
-	loadUnverifiedKeysTimer   metrics.Timer
-	getCurrentMerkleRootTimer metrics.Timer
-	currentSessionTimer       metrics.Timer
-	favoriteAddTimer          metrics.Timer
-	favoriteDeleteTimer       metrics.Timer
-	favoriteListTimer         metrics.Timer
-	notifyTimer               metrics.Timer
-	putGitMetadataTimer       metrics.Timer
+	delegate                         KeybaseService
+	resolveTimer                     metrics.Timer
+	identifyTimer                    metrics.Timer
+	resolveIdentifyImplicitTeamTimer metrics.Timer
+	loadUserPlusKeysTimer            metrics.Timer
+	loadTeamPlusKeysTimer            metrics.Timer
+	loadUnverifiedKeysTimer          metrics.Timer
+	getCurrentMerkleRootTimer        metrics.Timer
+	currentSessionTimer              metrics.Timer
+	favoriteAddTimer                 metrics.Timer
+	favoriteDeleteTimer              metrics.Timer
+	favoriteListTimer                metrics.Timer
+	notifyTimer                      metrics.Timer
+	putGitMetadataTimer              metrics.Timer
 }
 
 var _ KeybaseService = KeybaseServiceMeasured{}
@@ -37,6 +39,8 @@ var _ KeybaseService = KeybaseServiceMeasured{}
 func NewKeybaseServiceMeasured(delegate KeybaseService, r metrics.Registry) KeybaseServiceMeasured {
 	resolveTimer := metrics.GetOrRegisterTimer("KeybaseService.Resolve", r)
 	identifyTimer := metrics.GetOrRegisterTimer("KeybaseService.Identify", r)
+	resolveIdentifyImplicitTeamTimer := metrics.GetOrRegisterTimer(
+		"KeybaseService.ResolveIdentifyImplicitTeam", r)
 	loadUserPlusKeysTimer := metrics.GetOrRegisterTimer("KeybaseService.LoadUserPlusKeys", r)
 	loadTeamPlusKeysTimer := metrics.GetOrRegisterTimer("KeybaseService.LoadTeamPlusKeys", r)
 	loadUnverifiedKeysTimer := metrics.GetOrRegisterTimer("KeybaseService.LoadUnverifiedKeys", r)
@@ -49,19 +53,20 @@ func NewKeybaseServiceMeasured(delegate KeybaseService, r metrics.Registry) Keyb
 	putGitMetadataTimer := metrics.GetOrRegisterTimer(
 		"KeybaseService.PutGitMetadata", r)
 	return KeybaseServiceMeasured{
-		delegate:                  delegate,
-		resolveTimer:              resolveTimer,
-		identifyTimer:             identifyTimer,
-		loadUserPlusKeysTimer:     loadUserPlusKeysTimer,
-		loadTeamPlusKeysTimer:     loadTeamPlusKeysTimer,
-		loadUnverifiedKeysTimer:   loadUnverifiedKeysTimer,
-		getCurrentMerkleRootTimer: getCurrentMerkleRootTimer,
-		currentSessionTimer:       currentSessionTimer,
-		favoriteAddTimer:          favoriteAddTimer,
-		favoriteDeleteTimer:       favoriteDeleteTimer,
-		favoriteListTimer:         favoriteListTimer,
-		notifyTimer:               notifyTimer,
-		putGitMetadataTimer:       putGitMetadataTimer,
+		delegate:                         delegate,
+		resolveTimer:                     resolveTimer,
+		identifyTimer:                    identifyTimer,
+		resolveIdentifyImplicitTeamTimer: resolveIdentifyImplicitTeamTimer,
+		loadUserPlusKeysTimer:            loadUserPlusKeysTimer,
+		loadTeamPlusKeysTimer:            loadTeamPlusKeysTimer,
+		loadUnverifiedKeysTimer:          loadUnverifiedKeysTimer,
+		getCurrentMerkleRootTimer:        getCurrentMerkleRootTimer,
+		currentSessionTimer:              currentSessionTimer,
+		favoriteAddTimer:                 favoriteAddTimer,
+		favoriteDeleteTimer:              favoriteDeleteTimer,
+		favoriteListTimer:                favoriteListTimer,
+		notifyTimer:                      notifyTimer,
+		putGitMetadataTimer:              putGitMetadataTimer,
 	}
 }
 
@@ -81,6 +86,18 @@ func (k KeybaseServiceMeasured) Identify(ctx context.Context, assertion, reason 
 		name, id, err = k.delegate.Identify(ctx, assertion, reason)
 	})
 	return name, id, err
+}
+
+// ResolveIdentifyImplicitTeam implements the KeybaseService interface
+// for KeybaseServiceMeasured.
+func (k KeybaseServiceMeasured) ResolveIdentifyImplicitTeam(
+	ctx context.Context, assertions, suffix string, tlfType tlf.Type,
+	doIdentifies bool, reason string) (info ImplicitTeamInfo, err error) {
+	k.resolveIdentifyImplicitTeamTimer.Time(func() {
+		info, err = k.delegate.ResolveIdentifyImplicitTeam(
+			ctx, assertions, suffix, tlfType, doIdentifies, reason)
+	})
+	return info, err
 }
 
 // LoadUserPlusKeys implements the KeybaseService interface for KeybaseServiceMeasured.

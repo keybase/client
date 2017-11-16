@@ -412,6 +412,13 @@ type KeybaseService interface {
 	Identify(ctx context.Context, assertion, reason string) (
 		libkb.NormalizedUsername, keybase1.UserOrTeamID, error)
 
+	// ResolveIdentifyImplicitTeam resolves, and optionally
+	// identifies, an implicit team.  If the implicit team doesn't yet
+	// exist, and doIdentifies is true, one is created.
+	ResolveIdentifyImplicitTeam(
+		ctx context.Context, assertions, suffix string, tlfType tlf.Type,
+		doIdentifies bool, reason string) (ImplicitTeamInfo, error)
+
 	// LoadUserPlusKeys returns a UserInfo struct for a
 	// user with the specified UID.
 	// If you have the UID for a user and don't require Identify to
@@ -521,6 +528,18 @@ type identifier interface {
 		libkb.NormalizedUsername, keybase1.UserOrTeamID, error)
 }
 
+type iteamHandler interface {
+	// ResolveImplicitTeam resolves the given implicit team.
+	ResolveImplicitTeam(
+		ctx context.Context, assertions, suffix string, tlfType tlf.Type) (
+		ImplicitTeamInfo, error)
+	// IdentifyImplicitTeam identifies (and creates if necessary) the
+	// given implicit team.
+	IdentifyImplicitTeam(
+		ctx context.Context, assertions, suffix string, tlfType tlf.Type,
+		reason string) (ImplicitTeamInfo, error)
+}
+
 type normalizedUsernameGetter interface {
 	// GetNormalizedUsername returns the normalized username
 	// corresponding to the given UID.
@@ -578,6 +597,7 @@ type KBPKI interface {
 	teamKeysGetter
 	teamRootIDGetter
 	gitMetadataPutter
+	iteamHandler
 
 	// HasVerifyingKey returns nil if the given user has the given
 	// VerifyingKey, and an error otherwise.
