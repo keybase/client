@@ -3242,9 +3242,14 @@ func TestChatSrvUserReset(t *testing.T) {
 		iboxRes, err = ctc.as(t, users[1]).chatLocalHandler().GetInboxAndUnboxLocal(ctx1,
 			chat1.GetInboxAndUnboxLocalArg{})
 		require.NoError(t, err)
-		require.Equal(t, 1, len(iboxRes.Conversations))
-		require.Equal(t, conv.Id, iboxRes.Conversations[0].GetConvID())
-		require.Equal(t, chat1.ConversationMemberStatus_RESET, iboxRes.Conversations[0].Info.MemberStatus)
+		switch mt {
+		case chat1.ConversationMembersType_TEAM:
+			require.Zero(t, len(iboxRes.Conversations))
+		default:
+			require.Equal(t, 1, len(iboxRes.Conversations))
+			require.Equal(t, conv.Id, iboxRes.Conversations[0].GetConvID())
+			require.Equal(t, chat1.ConversationMemberStatus_RESET, iboxRes.Conversations[0].Info.MemberStatus)
+		}
 
 		_, err = ctc.as(t, users[1]).chatLocalHandler().PostLocal(ctx1, chat1.PostLocalArg{
 			ConversationID: conv.Id,
