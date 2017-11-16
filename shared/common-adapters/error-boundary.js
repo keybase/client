@@ -20,6 +20,17 @@ type AllErrorInfo = {
   componentStack: string,
 }
 
+const detailHeaderStyle = {
+  marginTop: 20,
+  marginBottom: 10,
+}
+
+const detailContainerStyle = {
+  maxHeight: 100,
+  padding: 10,
+  minWidth: '75%',
+}
+
 const detailStyle = {
   ...globalStyles.selectable,
   whiteSpace: 'pre',
@@ -48,14 +59,15 @@ const Fallback = ({info: {name, message, stack, componentStack}}: {info: AllErro
             keybase log send
           </Text>
         </Box>}
-      <Text type="BodySmall" style={{marginTop: 20}}>Error message: </Text>
-      <Text type="BodySmall" style={globalStyles.selectable}>{`${name}: ${message}`}</Text>
-      <Text type="BodySmall" style={{marginTop: 20}}>Error stack: </Text>
-      <ScrollView style={{maxHeight: 100, padding: 10}}>
+      <Text type="BodySmall" style={detailHeaderStyle}>Error details</Text>
+      <Text type="BodySmall" style={{...globalStyles.selectable, margin: 10}}>{`${name}: ${message}`}</Text>
+      <Text type="BodySmall" style={{marginTop: 20}}>Stack trace</Text>
+      <ScrollView style={detailContainerStyle}>
         <Text type="BodySmall" style={detailStyle}>{stack}</Text>
       </ScrollView>
-      <Text type="BodySmall" style={{marginTop: 20}}>Component stack: </Text>
-      <ScrollView style={{maxHeight: 100, padding: 10}}>
+
+      <Text type="BodySmall" style={detailHeaderStyle}>Component stack trace</Text>
+      <ScrollView style={detailContainerStyle}>
         <Text type="BodySmall" style={detailStyle}>{componentStack}</Text>
       </ScrollView>
     </Box>
