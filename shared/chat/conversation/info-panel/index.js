@@ -172,6 +172,11 @@ const _BigTeamInfoPanel = (props: BigTeamInfoPanelProps) => (
       <Button type="Danger" small={true} label="Leave channel" onClick={props.onLeaveConversation} />
     </Box>
 
+    {props.isPreview &&
+      <Text type="BodySmall" style={{textAlign: 'center', marginTop: globalMargins.xtiny}}>
+        Anyone in {props.teamname} can join.
+      </Text>}
+
     <Divider style={styleDivider} />
 
     <Text style={{paddingLeft: globalMargins.small}} type="BodySmallSemibold">
