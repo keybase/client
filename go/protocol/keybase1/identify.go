@@ -95,7 +95,7 @@ type ResolveIdentifyImplicitTeamRes struct {
 	TeamID      TeamID                              `codec:"teamID" json:"teamID"`
 	Writers     []UserVersion                       `codec:"writers" json:"writers"`
 	TrackBreaks map[UserVersion]IdentifyTrackBreaks `codec:"trackBreaks" json:"trackBreaks"`
-	FolderID    string                              `codec:"folderID" json:"folderID"`
+	FolderID    TLFID                               `codec:"folderID" json:"folderID"`
 }
 
 func (o ResolveIdentifyImplicitTeamRes) DeepCopy() ResolveIdentifyImplicitTeamRes {
@@ -125,7 +125,7 @@ func (o ResolveIdentifyImplicitTeamRes) DeepCopy() ResolveIdentifyImplicitTeamRe
 			}
 			return ret
 		})(o.TrackBreaks),
-		FolderID: o.FolderID,
+		FolderID: o.FolderID.DeepCopy(),
 	}
 }
 

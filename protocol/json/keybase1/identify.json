@@ -111,7 +111,7 @@
           "name": "trackBreaks"
         },
         {
-          "type": "string",
+          "type": "TLFID",
           "name": "folderID"
         }
       ]
