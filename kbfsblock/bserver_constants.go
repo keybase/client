@@ -8,5 +8,5 @@ const (
 	// ServerTokenServer is the expected server type for bserver authentication.
 	ServerTokenServer = "kbfs_block"
 	// ServerTokenExpireIn is the TTL to use when constructing an authentication token.
-	ServerTokenExpireIn = 2 * 60 * 60 // 2 hours
+	ServerTokenExpireIn = 24 * 60 * 60 // 24 hours
 )
