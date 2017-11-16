@@ -127,8 +127,8 @@ IF %ERRORLEVEL% NEQ 0 (
 )
 
 :: Sanity check the hash of dokanclean downloaded during installer build
-for /f "usebackq tokens=2*" %%i in (`powershell Get-FileHash -Algorithm sha1 %GOPATH%\src\github.com\keybase\client\packaging\windows\WIXInstallers\KeybaseBundle\Redist\dokanclean.exe`) do set DOKANCLEANHASH=%%i
-if NOT %DOKANCLEANHASH%==9C08677795E8EE35A4BE0F67370CF93256F8E150 exit /B 1
+for /f "usebackq tokens=2*" %%i in (`powershell Get-FileHash -Algorithm sha256 %DOKAN_PATH%\dokanclean.exe`) do set DOKANCLEANHASH=%%i
+if NOT %DOKANCLEANHASH%==8E3BAEC8CDBA77E2DC07554B6AF2632E545E89CF6BDA9ED4819FDCBF8D151C51 exit /B 1
 
 :: Here we rely on the previous steps checking out and building release.exe
 set ReleaseBin=%GOPATH%\src\github.com\keybase\release\release.exe

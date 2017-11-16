@@ -90,11 +90,7 @@ if NOT exist Redist\KB2999226\Windows8.1-KB2999226-x64.msu (
       powershell -command "wget https://download.microsoft.com/download/A/C/1/AC15393F-A6E6-469B-B222-C44B3BB6ECCC/Windows8-RT-KB2999226-x64.msu -OutFile Redist\KB2999226\Windows8-RT-KB2999226-x64.msu"
       powershell -command "wget https://download.microsoft.com/download/E/4/6/E4694323-8290-4A08-82DB-81F2EB9452C2/Windows8.1-KB2999226-x86.msu -OutFile Redist\KB2999226\Windows8.1-KB2999226-x86.msu"
       powershell -command "wget https://download.microsoft.com/download/9/6/F/96FD0525-3DDF-423D-8845-5F92F4A6883E/Windows8.1-KB2999226-x64.msu -OutFile Redist\KB2999226\Windows8.1-KB2999226-x64.msu"
-      )
-
-if NOT exist Redist\dokanclean.exe (
-      powershell -command "wget https://s3.amazonaws.com/prerelease.keybase.io/windows-support/dokan-dev/build84/dokanclean.exe -OutFile Redist\dokanclean.exe"
-)</PreBuildEvent>
+      )</PreBuildEvent>
   </PropertyGroup>
   <!--
 	To modify your build process, add your task inside one of the targets below and uncomment it.
