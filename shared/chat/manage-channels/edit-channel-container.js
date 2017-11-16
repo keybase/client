@@ -56,9 +56,7 @@ const mergeProps = (stateProps, dispatchProps, {routeState}) => {
     topic: stateProps.topic,
     onCancel: dispatchProps.onCancel,
     onDelete: () => dispatchProps._onDelete(stateProps.teamname),
-    showDelete: false,
-    // TODO enable this after we get a better popup story
-    // showDelete: stateProps.canDelete,
+    showDelete: stateProps.canDelete,
     deleteRenameDisabled,
     onSave: (newChannelName: string, newTopic: string) => {
       if (!deleteRenameDisabled) {
