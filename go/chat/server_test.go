@@ -3076,6 +3076,15 @@ func TestChatSrvTeamTypeChanged(t *testing.T) {
 			ctc.as(t, users[1]).user())
 		consumeNewMsg(t, listener0, chat1.MessageType_JOIN)
 		consumeNewMsg(t, listener1, chat1.MessageType_JOIN)
+		inboxRes, err := ctc.as(t, users[0]).chatLocalHandler().GetInboxAndUnboxLocal(ctx,
+			chat1.GetInboxAndUnboxLocalArg{
+				Query: &chat1.GetInboxLocalQuery{
+					ConvIDs: []chat1.ConversationID{conv.Id},
+				},
+			})
+		require.NoError(t, err)
+		require.NotNil(t, inboxRes.Conversations[0].Notifications)
+		require.True(t, inboxRes.Conversations[0].Notifications.Settings[keybase1.DeviceType_DESKTOP][chat1.NotificationKind_GENERIC])
 
 		topicName := "zjoinonsend"
 		channel, err := ctc.as(t, users[0]).chatLocalHandler().NewConversationLocal(ctx,
@@ -3104,7 +3113,15 @@ func TestChatSrvTeamTypeChanged(t *testing.T) {
 			require.Fail(t, "no team type")
 		}
 
-		inboxRes, err := ctc.as(t, users[0]).chatLocalHandler().GetInboxAndUnboxLocal(ctx,
+		// Check remote notifications
+		uconv, _, err := GetUnverifiedConv(ctx, ctc.as(t, users[0]).h.G(), users[0].GetUID().ToBytes(),
+			conv.Id, false)
+		require.NoError(t, err)
+		require.NotNil(t, uconv.Notifications)
+		require.False(t,
+			uconv.Notifications.Settings[keybase1.DeviceType_DESKTOP][chat1.NotificationKind_GENERIC])
+
+		inboxRes, err = ctc.as(t, users[0]).chatLocalHandler().GetInboxAndUnboxLocal(ctx,
 			chat1.GetInboxAndUnboxLocalArg{
 				Query: &chat1.GetInboxLocalQuery{
 					ConvIDs: []chat1.ConversationID{conv.Id},
@@ -3113,6 +3130,8 @@ func TestChatSrvTeamTypeChanged(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, 1, len(inboxRes.Conversations))
 		require.Equal(t, chat1.TeamType_COMPLEX, inboxRes.Conversations[0].Info.TeamType)
+		require.NotNil(t, inboxRes.Conversations[0].Notifications)
+		require.False(t, inboxRes.Conversations[0].Notifications.Settings[keybase1.DeviceType_DESKTOP][chat1.NotificationKind_GENERIC])
 	})
 
 }

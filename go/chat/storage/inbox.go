@@ -946,7 +946,7 @@ func (i *Inbox) SetAppNotificationSettings(ctx context.Context, vers chat1.Inbox
 }
 
 func (i *Inbox) TeamTypeChanged(ctx context.Context, vers chat1.InboxVers,
-	convID chat1.ConversationID, teamType chat1.TeamType) (err Error) {
+	convID chat1.ConversationID, teamType chat1.TeamType, notifInfo *chat1.ConversationNotificationInfo) (err Error) {
 	locks.Inbox.Lock()
 	defer locks.Inbox.Unlock()
 	defer i.Trace(ctx, func() error { return err }, "TeamTypeChanged")()
@@ -972,6 +972,7 @@ func (i *Inbox) TeamTypeChanged(ctx context.Context, vers chat1.InboxVers,
 		i.Debug(ctx, "TeamTypeChanged: no conversation found: convID: %s, clearing", convID)
 		return i.Clear(ctx)
 	}
+	conv.Conv.Notifications = notifInfo
 	conv.Conv.Metadata.TeamType = teamType
 	conv.Conv.Metadata.Version = vers.ToConvVers()
 

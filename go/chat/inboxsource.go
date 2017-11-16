@@ -706,8 +706,16 @@ func (s *HybridInboxSource) SetAppNotificationSettings(ctx context.Context, uid 
 func (s *HybridInboxSource) TeamTypeChanged(ctx context.Context, uid gregor1.UID,
 	vers chat1.InboxVers, convID chat1.ConversationID, teamType chat1.TeamType) (conv *chat1.ConversationLocal, err error) {
 	defer s.Trace(ctx, func() error { return err }, "TeamTypeChanged")()
+
+	// Read the remote conversation so we can get the notification settings changes
+	remoteConv, _, err := GetUnverifiedConv(ctx, s.G(), uid, convID, false)
+	if err != nil {
+		s.Debug(ctx, "TeamTypeChanged: failed to read team type conv: %s", err.Error())
+		return nil, err
+	}
+	s.Debug(ctx, "TeamTypeChanged: desktop generic: %v", remoteConv.Notifications.Settings[keybase1.DeviceType_DESKTOP][chat1.NotificationKind_GENERIC])
 	ib := storage.NewInbox(s.G(), uid)
-	if cerr := ib.TeamTypeChanged(ctx, vers, convID, teamType); cerr != nil {
+	if cerr := ib.TeamTypeChanged(ctx, vers, convID, teamType, remoteConv.Notifications); cerr != nil {
 		err = s.handleInboxError(ctx, cerr, uid)
 		return nil, err
 	}
