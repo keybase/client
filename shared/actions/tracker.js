@@ -460,7 +460,7 @@ function _serverCallMap(
       response.result()
     },
 
-    'keybase.1.identifyUi.dismiss': (_, response) => {
+    'keybase.1.identifyUi.dismiss': ({username}, response) => {
       response.result()
       addToIdleResponseQueue(() => {
         dispatch(TrackerGen.createRemoteDismiss({username}))

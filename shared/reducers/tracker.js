@@ -82,9 +82,9 @@ export default function(
 
     case TrackerGen.showNonUser: {
       const {nonUser} = action.payload
-      return updateNonUserState(state, action.payload.username, state => {
+      return updateNonUserState(state, action.payload.username, s => {
         return {
-          ...state,
+          ...s,
           closed: false,
           hidden: false,
           inviteLink: nonUser.throttled ? null : nonUser.inviteLink,
@@ -99,19 +99,19 @@ export default function(
       const {username} = action.payload
       const isUser = state.userTrackers[username]
       if (isUser) {
-        return updateUserState(state, username, state => ({
-          ...state,
+        return updateUserState(state, username, s => ({
+          ...s,
           closed: true,
           hidden: false,
           lastAction: null,
-          needTrackTokenDismiss: !!state && !state.trackToken, // did we have a track token at this time?
+          needTrackTokenDismiss: !!s && !s.trackToken, // did we have a track token at this time?
           shouldFollow: false, // don't follow if they close x out the window
         }))
       }
       const isNonUser = state.nonUserTrackers[username]
       if (isNonUser) {
-        return updateNonUserState(state, username, state => ({
-          ...state,
+        return updateNonUserState(state, username, s => ({
+          ...s,
           closed: true,
           hidden: false,
         }))
@@ -120,44 +120,44 @@ export default function(
     }
     case TrackerGen.updateUsername: {
       const {username} = action.payload
-      return updateUserState(state, username, state => Constants.initialTrackerState(username))
+      return updateUserState(state, username, s => Constants.initialTrackerState(username))
     }
     case TrackerGen.identifyStarted:
-      return updateUserState(state, action.payload.username, state => ({
-        ...state,
+      return updateUserState(state, action.payload.username, s => ({
+        ...s,
         error: null,
       }))
     case TrackerGen.updateReason:
       // In case the reason is null, let's use our existing reason
-      return updateUserState(state, action.payload.username, state => ({
-        ...state,
-        reason: (action.payload && action.payload.reason) || (state && state.reason),
+      return updateUserState(state, action.payload.username, s => ({
+        ...s,
+        reason: (action.payload && action.payload.reason) || (s && s.reason),
       }))
     case TrackerGen.updateTrackToken: {
       const {trackToken} = action.payload
-      return updateUserState(state, action.payload.username, state => ({
-        ...state,
+      return updateUserState(state, action.payload.username, s => ({
+        ...s,
         trackToken: trackToken,
       }))
     }
     case TrackerGen.setNeedTrackTokenDismiss: {
       const {needTrackTokenDismiss} = action.payload
-      return updateUserState(state, action.payload.username, state => ({
-        ...state,
+      return updateUserState(state, action.payload.username, s => ({
+        ...s,
         needTrackTokenDismiss,
       }))
     }
     case TrackerGen.waiting: {
       const {waiting} = action.payload
-      return updateUserState(state, action.payload.username, state => ({
-        ...state,
+      return updateUserState(state, action.payload.username, s => ({
+        ...s,
         waiting,
       }))
     }
     case TrackerGen.setOnFollow: {
       const {username} = action.payload
-      return updateUserState(state, username, state => ({
-        ...state,
+      return updateUserState(state, username, s => ({
+        ...s,
         currentlyFollowing: true,
         lastAction: 'followed',
         reason: `You have followed ${username}.`,
@@ -165,8 +165,8 @@ export default function(
     }
     case TrackerGen.setOnRefollow: {
       const {username} = action.payload
-      return updateUserState(state, username, state => ({
-        ...state,
+      return updateUserState(state, username, s => ({
+        ...s,
         lastAction: 'refollowed',
         reason: `You have re-followed ${username}.`,
         trackerState: 'normal',
@@ -175,8 +175,8 @@ export default function(
     }
     case TrackerGen.setOnUnfollow: {
       const {username} = action.payload
-      return updateUserState(state, username, state => ({
-        ...state,
+      return updateUserState(state, username, s => ({
+        ...s,
         currentlyFollowing: false,
         lastAction: 'unfollowed',
         reason: `You have unfollowed ${username}.`,
@@ -187,50 +187,50 @@ export default function(
       if (action.payload && action.payload.extraText) {
         error = `There was an error: ${action.payload.extraText}`
       }
-      return updateUserState(state, action.payload.username, state => ({
-        ...state,
+      return updateUserState(state, action.payload.username, s => ({
+        ...s,
         error,
       }))
     }
     case TrackerGen.updateEldestKidChanged: {
-      return updateUserState(state, action.payload.username, state => ({
-        ...state,
+      return updateUserState(state, action.payload.username, s => ({
+        ...s,
         eldestKidChanged: true,
       }))
     }
     case TrackerGen.updateProofState: {
       const {username} = action.payload
-      return updateUserState(state, username, state => {
-        if (!state) {
-          return state
+      return updateUserState(state, username, s => {
+        if (!s) {
+          return s
         }
-        const proofsGeneralState = Constants.overviewStateOfProofs(state.proofs)
+        const proofsGeneralState = Constants.overviewStateOfProofs(s.proofs)
         const trackerMessage = Constants.deriveTrackerMessage(
           username,
-          state.currentlyFollowing,
+          s.currentlyFollowing,
           proofsGeneralState
         )
-        const reason = trackerMessage || state.reason
+        const reason = trackerMessage || s.reason
         return {
-          ...state,
+          ...s,
           changed: proofsGeneralState.anyChanged,
           reason,
           shouldFollow: Constants.deriveShouldFollow(proofsGeneralState),
-          trackerState: Constants.deriveSimpleProofState(state.eldestKidChanged, proofsGeneralState),
+          trackerState: Constants.deriveSimpleProofState(s.eldestKidChanged, proofsGeneralState),
         }
       })
     }
     case TrackerGen.resetProofs:
-      return updateUserState(state, action.payload.username, state => ({
-        ...state,
+      return updateUserState(state, action.payload.username, s => ({
+        ...s,
         proofs: [],
       }))
     case TrackerGen.setProofs: {
       const {identity, username} = action.payload
-      return updateUserState(state, action.payload.username, state => ({
-        ...state,
+      return updateUserState(state, action.payload.username, s => ({
+        ...s,
         proofs: Constants.dedupeProofs([
-          ...(state ? state.proofs : []),
+          ...(s ? s.proofs : []),
           ...(identity.revokedDetails || []).map(rv => Constants.revokedProofToProof(rv)),
           ...(identity.proofs || [])
             .map(rp => Constants.remoteProofToProof(username, Constants.checking, rp.proof)),
@@ -240,14 +240,14 @@ export default function(
     case TrackerGen.updatePGPKey: {
       const {pgpFingerprint, kid} = action.payload
       const fingerPrint = Constants.bufferToNiceHexString(pgpFingerprint)
-      return updateUserState(state, action.payload.username, state => {
-        const url = `https://keybase.io/${state ? state.username : ''}/sigchain`
+      return updateUserState(state, action.payload.username, s => {
+        const url = `https://keybase.io/${s ? s.username : ''}/sigchain`
         const proof = {
           color: 'green',
           // TODO: We don't currently get the sigID so we can't link to the actual sigChain statement. See https://keybase.atlassian.net/browse/CORE-3529
           humanUrl: url,
           id: kid,
-          isTracked: state ? state.currentlyFollowing : false,
+          isTracked: s ? s.currentlyFollowing : false,
           mTime: 0,
           meta: null,
           name: fingerPrint,
@@ -257,20 +257,20 @@ export default function(
         }
 
         return {
-          ...state,
-          proofs: Constants.dedupeProofs(state ? state.proofs.concat([proof]) : [proof]),
+          ...s,
+          proofs: Constants.dedupeProofs(s ? s.proofs.concat([proof]) : [proof]),
         }
       })
     }
     case TrackerGen.updateZcash: {
       const {sigID, address} = action.payload
-      return updateUserState(state, action.payload.username, state => {
-        const url = `https://keybase.io/${state ? state.username : ''}/sigchain#${sigID}`
+      return updateUserState(state, action.payload.username, s => {
+        const url = `https://keybase.io/${s ? s.username : ''}/sigchain#${sigID}`
         const proof = {
           color: 'green',
           humanUrl: url,
           id: sigID,
-          isTracked: state ? state.currentlyFollowing : false,
+          isTracked: s ? s.currentlyFollowing : false,
           mTime: 0,
           meta: null,
           name: address,
@@ -280,20 +280,20 @@ export default function(
         }
 
         return {
-          ...state,
-          proofs: Constants.dedupeProofs(state ? state.proofs.concat([proof]) : [proof]),
+          ...s,
+          proofs: Constants.dedupeProofs(s ? s.proofs.concat([proof]) : [proof]),
         }
       })
     }
     case TrackerGen.updateBTC: {
       const {sigID, address} = action.payload
-      return updateUserState(state, action.payload.username, state => {
-        const url = `https://keybase.io/${state ? state.username : ''}/sigchain#${sigID}`
+      return updateUserState(state, action.payload.username, s => {
+        const url = `https://keybase.io/${s ? s.username : ''}/sigchain#${sigID}`
         const proof = {
           color: 'green',
           humanUrl: url,
           id: sigID,
-          isTracked: state ? state.currentlyFollowing : false,
+          isTracked: s ? s.currentlyFollowing : false,
           mTime: 0,
           meta: null,
           name: address,
@@ -303,16 +303,16 @@ export default function(
         }
 
         return {
-          ...state,
-          proofs: Constants.dedupeProofs(state ? state.proofs.concat([proof]) : [proof]),
+          ...s,
+          proofs: Constants.dedupeProofs(s ? s.proofs.concat([proof]) : [proof]),
         }
       })
     }
     case TrackerGen.updateProof: {
       const {remoteProof, linkCheckResult, username} = action.payload
-      return updateUserState(state, action.payload.username, state => ({
-        ...state,
-        proofs: Constants.updateProof(username, state ? state.proofs : [], remoteProof, linkCheckResult),
+      return updateUserState(state, action.payload.username, s => ({
+        ...s,
+        proofs: Constants.updateProof(username, s ? s.proofs : [], remoteProof, linkCheckResult),
       }))
     }
     case TrackerGen.updateUserInfo: {
@@ -327,46 +327,46 @@ export default function(
         avatar: `https://keybase.io/${username}/picture`,
         location: userCard.location,
       }
-      return updateUserState(state, action.payload.username, state => ({
-        ...state,
+      return updateUserState(state, action.payload.username, s => ({
+        ...s,
         userInfo,
       }))
     }
     case TrackerGen.markActiveIdentifyUi: {
       const {active} = action.payload
-      return updateUserState(state, action.payload.username, state => ({
-        ...state,
+      return updateUserState(state, action.payload.username, s => ({
+        ...s,
         serverActive: active,
       }))
     }
     case TrackerGen.reportLastTrack: {
       const {tracking} = action.payload
-      return updateUserState(state, action.payload.username, state => {
-        const proofs = (state ? state.proofs : []).map(
+      return updateUserState(state, action.payload.username, s => {
+        const proofs = (s ? s.proofs : []).map(
           p => (['btc', 'pgp'].includes(p.type) ? {...p, isTracked: tracking} : p)
         )
         return {
-          ...state,
+          ...s,
           currentlyFollowing: tracking,
           proofs,
         }
       })
     }
     case TrackerGen.showTracker:
-      return updateUserState(state, action.payload.username, state => ({
-        ...state,
+      return updateUserState(state, action.payload.username, s => ({
+        ...s,
         closed: false,
         hidden: false,
       }))
     case TrackerGen.remoteDismiss:
-      return updateUserState(state, action.payload.username, state => ({
-        ...state,
+      return updateUserState(state, action.payload.username, s => ({
+        ...s,
         closed: true,
       }))
     case TrackerGen.setUpdateTrackers: {
       const {trackers, tracking} = action.payload
-      return updateUserState(state, action.payload.username, state => ({
-        ...state,
+      return updateUserState(state, action.payload.username, s => ({
+        ...s,
         trackersLoaded: true,
         trackers,
         tracking,
@@ -374,22 +374,22 @@ export default function(
     }
     case TrackerGen.updateFolders: {
       const {tlfs} = action.payload
-      return updateUserState(state, action.payload.username, state => ({
-        ...state,
+      return updateUserState(state, action.payload.username, s => ({
+        ...s,
         tlfs,
       }))
     }
     case TrackerGen.identifyFinished: {
       if (action.error) {
         const {error} = action.payload
-        return updateUserState(state, action.payload.username, state => ({
-          ...state,
+        return updateUserState(state, action.payload.username, s => ({
+          ...s,
           error,
           serverActive: false,
         }))
       } else {
-        return updateUserState(state, action.payload.username, state => ({
-          ...state,
+        return updateUserState(state, action.payload.username, s => ({
+          ...s,
           error: null,
         }))
       }
