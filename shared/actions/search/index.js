@@ -188,12 +188,14 @@ function* search({payload: {term, service, searchKey}}: Constants.Search) {
     // Make a version that maps from keybase id to SearchResult.
     // This is in case we want to lookup this data by their keybase id.
     // (like the case of upgrading a 3rd party result to a kb result)
-    const kbRows: Array<Constants.SearchResult> = rows.filter(r => r.rightService === 'Keybase').map(r => ({
-      id: r.rightUsername || '',
-      leftService: 'Keybase',
-      leftUsername: r.rightUsername,
-      leftIcon: null,
-    }))
+    const kbRows: Array<Constants.SearchResult> = rows.filter(r => r.rightService === 'Keybase').map(r =>
+      Constants.makeSearchResult({
+        id: r.rightUsername || '',
+        leftService: 'Keybase',
+        leftUsername: r.rightUsername,
+        leftIcon: null,
+      })
+    )
     yield Saga.put(EntityAction.mergeEntity(['search', 'searchResults'], I.Map(keyBy(rows, 'id'))))
     yield Saga.put(EntityAction.mergeEntity(['search', 'searchResults'], I.Map(keyBy(kbRows, 'id'))))
 
