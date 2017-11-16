@@ -100,7 +100,7 @@
       "forInboxSync?": "boolean"
     },
     "selectNext": {
-      "rows": "Array<any>",
+      "rows": "Array<{conversationIDKey: Types.ConversationIDKey}>",
       "direction": "-1 | 1"
     },
     "setInboxFilter": {

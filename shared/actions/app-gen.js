@@ -17,7 +17,7 @@ export const mobileAppState = 'app:mobileAppState'
 export const createChangedActive = (payload: {|+userActive: boolean|}) => ({error: false, payload, type: changedActive})
 export const createChangedFocus = (payload: {|+appFocused: boolean|}) => ({error: false, payload, type: changedFocus})
 export const createLink = (payload: {|+link: string|}) => ({error: false, payload, type: link})
-export const createMobileAppState = (payload: {|+nextAppState: string|}) => ({error: false, payload, type: mobileAppState})
+export const createMobileAppState = (payload: {|+nextAppState: 'active' | 'background' | 'inactive'|}) => ({error: false, payload, type: mobileAppState})
 
 // Action Payloads
 export type ChangedActivePayload = More.ReturnType<typeof createChangedActive>

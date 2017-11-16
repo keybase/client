@@ -40,6 +40,7 @@ const _getInboxQuery = {
 // Update inboxes that have been reset
 function* _updateFinalized(inbox: RPCChatTypes.UnverifiedInboxUIItems): Generator<any, void, any> {
   const finalizedState: Types.FinalizedState = I.Map(
+    // TODO i *think* this typing is totally incorrect. should be .items etc
     (inbox.conversationsUnverified || [])
       .filter(c => c.metadata.finalizeInfo)
       .map(convoUnverified => [
@@ -198,11 +199,11 @@ function _toSupersedeInfo(
   conversationIDKey: Types.ConversationIDKey,
   supersedeData: Array<RPCChatTypes.ConversationMetadata>
 ): ?Types.SupersedeInfo {
-  const toConvert = supersedeData.find(
+  const toConvert: ?RPCChatTypes.ConversationMetadata = supersedeData.find(
     s => s.idTriple.topicType === RPCChatTypes.commonTopicType.chat && s.finalizeInfo
   )
 
-  const finalizeInfo = toConvert && toConvert.finalizeInfo
+  const finalizeInfo = toConvert ? toConvert.finalizeInfo : null
 
   return toConvert && finalizeInfo
     ? {
@@ -348,10 +349,10 @@ function* _processConversation(c: RPCChatTypes.InboxUIItem): Generator<any, void
   }
 }
 
-const _chatInboxToProcess = []
+const _chatInboxToProcess: Array<RPCChatTypes.InboxUIItem> = []
 
-function* _chatInboxConversationSubSaga({conv}) {
-  const pconv = JSON.parse(conv)
+function* _chatInboxConversationSubSaga({conv}: {conv: string}) {
+  const pconv: RPCChatTypes.InboxUIItem = JSON.parse(conv)
   _chatInboxToProcess.push(pconv)
   yield Saga.put(ChatGen.createUnboxMore())
   return EngineRpc.rpcResult()
@@ -375,7 +376,11 @@ function* _unboxMore(): SagaGenerator<any, any> {
   }
 }
 
-function* _chatInboxFailedSubSaga(params) {
+function* _chatInboxFailedSubSaga(params: {|
+  sessionID: number,
+  convID: RPCChatTypes.ConversationID,
+  error: RPCChatTypes.ConversationErrorLocal,
+|}) {
   const {convID, error} = params
   console.log('chatInboxFailed', params)
   const conversationIDKey = Constants.conversationIDToKey(convID)
@@ -387,7 +392,7 @@ function* _chatInboxFailedSubSaga(params) {
       ? I.List([].concat(error.rekeyInfo.writerNames, error.rekeyInfo.readerNames).filter(Boolean))
       : I.List(error.unverifiedTLFName.split(',')),
     status: 'unfiled',
-    time: error.remoteConv.readerInfo.mtime,
+    time: error.remoteConv.readerInfo ? error.remoteConv.readerInfo.mtime : 0,
   })
 
   yield Saga.put(
@@ -403,7 +408,7 @@ function* _chatInboxFailedSubSaga(params) {
 
   // Mark the conversation as read, to avoid a state where there's a
   // badged conversation that can't be unbadged by clicking on it.
-  const {maxMsgid} = error.remoteConv.readerInfo
+  const {maxMsgid} = error.remoteConv.readerInfo || {}
   const state: TypedState = yield Saga.select()
   const selectedConversation = Constants.getSelectedConversation(state)
   if (maxMsgid && selectedConversation === conversationIDKey) {
@@ -423,7 +428,7 @@ function* _chatInboxFailedSubSaga(params) {
       break
     }
     case RPCChatTypes.localConversationErrorType.otherrekeyneeded: {
-      const rekeyers = error.rekeyInfo.rekeyers
+      const rekeyers = (error.rekeyInfo && error.rekeyInfo.rekeyers) || []
       yield Saga.put(ChatGen.createUpdateInboxRekeyOthers({conversationIDKey, rekeyers}))
       break
     }
@@ -436,7 +441,7 @@ function* _chatInboxFailedSubSaga(params) {
       break
     }
     default:
-      yield Saga.put(ConfigGen.createGlobalError({globalError: error}))
+      yield Saga.put(ConfigGen.createGlobalError({globalError: new Error(error.message)}))
   }
 
   return EngineRpc.rpcResult()
@@ -650,7 +655,7 @@ function* _sendNotifications(action: ChatGen.AppendMessagesPayload): Saga.SagaGe
       if (message && message.type === 'Text') {
         console.log('Sending Chat notification')
         const snippet = Constants.makeSnippet(Constants.serverMessageToMessageText(message))
-        yield Saga.put((dispatch: Dispatch) => {
+        yield Saga.put(dispatch => {
           NotifyPopup(message.author, {body: snippet}, -1, message.author, () => {
             dispatch(
               ChatGen.createSelectConversation({

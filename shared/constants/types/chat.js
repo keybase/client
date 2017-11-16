@@ -284,7 +284,7 @@ export type _InboxState = {
 
 export type InboxState = I.RecordOf<_InboxState>
 export type SupersedeInfo = {
-  conversationIDKey: ConversationID,
+  conversationIDKey: ConversationIDKey,
   finalizeInfo: RPCChatTypes.ConversationFinalizeInfo,
 }
 

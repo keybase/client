@@ -138,6 +138,7 @@ function* postMessage(action: ChatGen.PostMessagePayload): SagaGenerator<any, an
     outboxID,
     body: action.payload.text.stringValue(),
     identifyBehavior: yield Saga.call(Shared.getPostingIdentifyBehavior, conversationIDKey),
+    // TODO parseMessageID returns a buffer on outbox id or number otherwise, asking mike if this is expected or...
     clientPrev: lastMessageID ? Constants.parseMessageID(lastMessageID).msgID : 0,
   })
 }
