@@ -10,6 +10,11 @@ type ErrorInfo = {
   componentStack: string,
 }
 
+const detailStyle = {
+  ...globalStyles.selectable,
+  whiteSpace: 'pre',
+}
+
 // eslint-disable-next-line handle-callback-err
 const Fallback = ({error, info}: *) => {
   const message = error.message || '(No error message)'
@@ -41,11 +46,11 @@ const Fallback = ({error, info}: *) => {
       <Text type="BodySmall" style={globalStyles.selectable}>{message}</Text>
       <Text type="BodySmall" style={{marginTop: 20}}>Error stack: </Text>
       <ScrollView style={{maxHeight: 100, padding: 10}}>
-        <Text type="BodySmall" style={globalStyles.selectable}>{stack}</Text>
+        <Text type="BodySmall" style={detailStyle}>{stack}</Text>
       </ScrollView>
       <Text type="BodySmall" style={{marginTop: 20}}>Component stack: </Text>
       <ScrollView style={{maxHeight: 100, padding: 10}}>
-        <Text type="BodySmall" style={globalStyles.selectable}>{componentStack}</Text>
+        <Text type="BodySmall" style={detailStyle}>{componentStack}</Text>
       </ScrollView>
     </Box>
   )
