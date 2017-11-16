@@ -272,7 +272,7 @@ func TestTeamOpenRemoveOldUVAddInvite(t *testing.T) {
 	bob.requestAccess(team)
 
 	kickTeamRekeyd(annCtx, t)
-	ann.pollForTeamSeqnoLink(team, keybase1.Seqno(5))
+	ann.pollForTeamSeqnoLink(team, keybase1.Seqno(6))
 
 	teamObj, err := teams.Load(context.TODO(), annCtx, keybase1.LoadTeamArg{
 		Name:        team.name,
