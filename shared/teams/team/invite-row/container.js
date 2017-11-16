@@ -1,9 +1,10 @@
 // @flow
-import * as React from 'react'
-import {connect} from 'react-redux'
-import * as Constants from '../../../constants/teams'
 import * as I from 'immutable'
+import * as React from 'react'
+import * as Types from '../../../constants/types/teams'
 import {TeamInviteRow} from '.'
+import {amIFollowing} from '../../../constants/selectors'
+import {connect} from 'react-redux'
 import {navigateAppend} from '../../../actions/route-tree'
 
 import type {TypedState} from '../../../constants/reducer'
@@ -14,22 +15,17 @@ type OwnProps = {
   username: string,
 }
 
-const getFollowing = (state, username: string) => {
-  const followingMap = Constants.getFollowingMap(state)
-  return !!followingMap[username]
-}
-
 type StateProps = {
   following: boolean,
   you: ?string,
-  _invites: I.Set<Constants.InviteInfo>,
-  _members: I.Set<Constants.MemberInfo>,
+  _invites: I.Set<Types.InviteInfo>,
+  _members: I.Set<Types.MemberInfo>,
 }
 
 const mapStateToProps = (state: TypedState, {teamname, username}: OwnProps): StateProps => ({
   _invites: state.entities.getIn(['teams', 'teamNameToInvites', teamname], I.Set()),
   _members: state.entities.getIn(['teams', 'teamNameToMembers', teamname], I.Set()),
-  following: getFollowing(state, username),
+  following: amIFollowing(state, username),
   you: state.config.username,
 })
 

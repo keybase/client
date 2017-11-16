@@ -87,7 +87,7 @@ export default function(state: Types.State = Constants.initialState, action: Pro
     case ProfileGen.updatePgpInfo:
       if (action.error) {
         // TODO
-        break
+        return state
       }
 
       const {info} = action.payload
@@ -104,7 +104,30 @@ export default function(state: Types.State = Constants.initialState, action: Pro
         ...state,
         pgpPublicKey,
       }
+    // Saga only actions
+    case ProfileGen.addProof:
+    case ProfileGen.backToProfile:
+    case ProfileGen.cancelAddProof:
+    case ProfileGen.cancelPgpGen:
+    case ProfileGen.checkProof:
+    case ProfileGen.dropPgp:
+    case ProfileGen.editProfile:
+    case ProfileGen.finishRevoking:
+    case ProfileGen.finishedWithKeyGen:
+    case ProfileGen.generatePgp:
+    case ProfileGen.onClickAvatar:
+    case ProfileGen.onClickFollowers:
+    case ProfileGen.onClickFollowing:
+    case ProfileGen.outputInstructionsActionLink:
+    case ProfileGen.showUserProfile:
+    case ProfileGen.submitBTCAddress:
+    case ProfileGen.submitRevokeProof:
+    case ProfileGen.submitUsername:
+    case ProfileGen.submitZcashAddress:
+      return state
+    default:
+      // eslint-disable-next-line no-unused-expressions
+      (action: empty) // if you get a flow error here it means there's an action you claim to handle but didn't
+      return state
   }
-
-  return state
 }

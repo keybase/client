@@ -2,10 +2,10 @@
 // Not use util/container as we have import loops otherwise
 import {createSelector} from 'reselect'
 import {type TypedState} from './reducer'
-import {type SearchQuery} from './search'
+import {type SearchQuery} from './types/search'
 
-const usernameSelector = ({config: {username}}: TypedState) => username
-const loggedInSelector = ({config: {loggedIn}}: TypedState) => loggedIn
+const usernameSelector = (state: TypedState) => state.config.username
+const loggedInSelector = (state: TypedState) => state.config.loggedIn
 
 const cachedSearchResults = (
   {entities: {search: {searchQueryToResult}}}: TypedState,
@@ -18,8 +18,8 @@ const searchResultSelector = ({entities: {search: {searchResults}}}: TypedState,
 
 const previousConversationSelector = ({chat: {previousConversation}}: TypedState) => previousConversation
 
-const amIFollowing = ({config: {following}}: TypedState, otherUser: string) => following[otherUser]
-const amIBeingFollowed = ({config: {followers}}: TypedState, otherUser: string) => followers[otherUser]
+const amIFollowing = (state: TypedState, otherUser: string) => state.config.following.has(otherUser)
+const amIBeingFollowed = (state: TypedState, otherUser: string) => state.config.followers.has(otherUser)
 
 const userIsInTeam = (
   {entities: {teams: {teamNameToMemberUsernames}}}: TypedState,

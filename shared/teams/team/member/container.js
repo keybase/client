@@ -1,5 +1,6 @@
 // @flow
-import * as Constants from '../../../constants/teams'
+import * as Types from '../../../constants/types/teams'
+import {amIBeingFollowed, amIFollowing} from '../../../constants/selectors'
 import * as I from 'immutable'
 import {connect} from 'react-redux'
 import {compose} from 'recompose'
@@ -17,7 +18,7 @@ type StateProps = {
   follower: boolean,
   _you: ?string,
   _username: string,
-  _memberInfo: I.Set<Constants.MemberInfo>,
+  _memberInfo: I.Set<Types.MemberInfo>,
   loading: boolean,
 }
 
@@ -28,8 +29,8 @@ const mapStateToProps = (state: TypedState, {routeProps}): StateProps => {
   return {
     teamname: teamname,
     loading: state.entities.getIn(['teams', 'teamNameToLoading', teamname], true),
-    following: !!Constants.getFollowingMap(state)[username],
-    follower: !!Constants.getFollowerMap(state)[username],
+    following: amIFollowing(state, username),
+    follower: amIBeingFollowed(state, username),
     _username: username,
     _you: state.config.username,
     _memberInfo: state.entities.getIn(['teams', 'teamNameToMembers', teamname], I.Set()),

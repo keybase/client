@@ -24,6 +24,19 @@ if (ipcRenderer) {
   })
 }
 
+const devScripts = __DEV__
+  ? [
+      {
+        async: false,
+        src: resolveRootAsURL('dist', 'dll/dll.vendor.js'),
+      },
+      {
+        async: false,
+        src: hotPath('common-chunks.js'),
+      },
+    ]
+  : []
+
 class RemoteComponent extends Component<any> {
   closed: ?boolean
   remoteWindow: BrowserWindow
@@ -38,12 +51,12 @@ class RemoteComponent extends Component<any> {
 
   componentWillMount() {
     const windowsOpts = {
-      width: 500,
-      height: 300,
-      fullscreen: false,
-      show: false,
-      resizable: false,
       frame: false,
+      fullscreen: false,
+      height: 300,
+      resizable: false,
+      show: false,
+      width: 500,
       ...this.props.windowsOpts,
     }
 
@@ -77,27 +90,16 @@ class RemoteComponent extends Component<any> {
     const webContents = this.remoteWindow.webContents
     webContents.on('did-finish-load', () => {
       webContents.send('load', {
+        component: this.props.component,
         scripts: [
-          ...(__DEV__
-            ? [
-                {
-                  src: resolveRootAsURL('dist', 'dll/dll.vendor.js'),
-                  async: false,
-                },
-                {
-                  src: hotPath('common-chunks.js'),
-                  async: false,
-                },
-              ]
-            : []),
+          ...devScripts,
           {
-            src: hotPath('remote-component-loader.bundle.js'),
             async: false,
+            src: hotPath('remote-component-loader.bundle.js'),
           },
         ],
         selectorParams: this.props.selectorParams,
         title: this.props.title,
-        component: this.props.component,
       })
     })
 
@@ -126,7 +128,7 @@ class RemoteComponent extends Component<any> {
       return false
     }
     try {
-      if (!this.props.ignoreNewProps && this.props !== nextProps) {
+      if (this.props !== nextProps) {
         this.remoteWindow.emit('hasProps', {...this.props})
       }
 
@@ -140,6 +142,7 @@ class RemoteComponent extends Component<any> {
     } catch (_) {}
 
     // Always return false because this isn't a real component
+    return true // TEMP
     return false
   }
 }

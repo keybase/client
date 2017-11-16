@@ -13,7 +13,7 @@ import {
   Checkbox,
 } from '../../common-adapters/index'
 import {isMobile} from '../../constants/platform'
-import {type TeamRoleType} from '../../constants/teams'
+import {type TeamRoleType} from '../../constants/types/teams'
 import {globalColors, globalMargins, globalStyles} from '../../styles'
 import {roleIconMap, roleDescMap, permissionMap} from './index.meta'
 

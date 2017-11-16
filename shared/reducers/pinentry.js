@@ -11,17 +11,7 @@ export default function(
     case PinentryGen.resetStore:
       return {
         ...Constants.initialState,
-        started: state.started,
       }
-    case PinentryGen.registerPinentryListener:
-      const {started} = action.payload
-      if (started) {
-        return {
-          pinentryStates: {},
-          started: true,
-        }
-      }
-      return Constants.initialState
     case PinentryGen.newPinentry:
       const {sessionID} = action.payload
       if (state.started && sessionID != null) {
@@ -50,7 +40,7 @@ export default function(
           },
         }
       }
-      break
+      return state
     case PinentryGen.onCancel: // fallthrough
     case PinentryGen.onSubmit: {
       const {sessionID} = action.payload
@@ -69,9 +59,11 @@ export default function(
           },
         }
       }
-      break
+      return state
     }
+    default:
+      // eslint-disable-next-line no-unused-expressions
+      (action: empty) // if you get a flow error here it means there's an action you claim to handle but didn't
+      return state
   }
-
-  return state
 }

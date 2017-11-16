@@ -1,9 +1,9 @@
 // @flow
 import * as I from 'immutable'
-import * as Teams from '../teams'
+import * as Teams from './teams'
 import * as ChatTypes from './chat'
-import * as SearchConstants from '../search'
-import * as Git from '../git'
+import * as SearchTypes from './search'
+import * as Git from './git'
 import {type NoErrorTypedAction} from './flux'
 import {type DeviceDetail} from './devices'
 
@@ -26,14 +26,14 @@ export type Subtract = NoErrorTypedAction<
 export type Actions = Delete | Merge | Replace | Subtract
 
 export type _SearchSubState = {
-  searchResults: I.Map<SearchConstants.SearchResultId, I.RecordOf<SearchConstants.SearchResult>>,
-  searchQueryToResult: I.Map<SearchConstants.SearchQuery, I.List<SearchConstants.SearchResultId>>,
-  searchKeyToResults: I.Map<string, ?I.List<SearchConstants.SearchResultId>>,
+  searchResults: I.Map<SearchTypes.SearchResultId, I.RecordOf<SearchTypes.SearchResult>>,
+  searchQueryToResult: I.Map<SearchTypes.SearchQuery, I.List<SearchTypes.SearchResultId>>,
+  searchKeyToResults: I.Map<string, ?I.List<SearchTypes.SearchResultId>>,
   searchKeyToPending: I.Map<string, boolean>,
-  searchKeyToSelectedId: I.Map<string, ?SearchConstants.SearchResultId>,
+  searchKeyToSelectedId: I.Map<string, ?SearchTypes.SearchResultId>,
   searchKeyToShowSearchSuggestion: I.Map<string, boolean>,
-  searchKeyToUserInputItemIds: I.Map<string, I.OrderedSet<SearchConstants.SearchResultId>>,
-  searchKeyToSearchResultQuery: I.Map<string, ?{text: string, service: SearchConstants.Service}>,
+  searchKeyToUserInputItemIds: I.Map<string, I.OrderedSet<SearchTypes.SearchResultId>>,
+  searchKeyToSearchResultQuery: I.Map<string, ?{text: string, service: SearchTypes.Service}>,
   searchKeyToClearSearchTextInput: I.Map<string, number>,
 }
 export type SearchSubState = I.RecordOf<_SearchSubState>
@@ -62,8 +62,8 @@ export type _State = {
   messages: I.Map<ChatTypes.MessageKey, ChatTypes.Message>,
   pagination: PaginationState,
   search: SearchSubState,
-  searchQueryToResult: I.Map<SearchConstants.SearchQuery, I.List<SearchConstants.SearchResultId>>,
-  searchResults: I.Map<SearchConstants.SearchResultId, SearchConstants.SearchResult>,
+  searchQueryToResult: I.Map<SearchTypes.SearchQuery, I.List<SearchTypes.SearchResultId>>,
+  searchResults: I.Map<SearchTypes.SearchResultId, SearchTypes.SearchResult>,
   teams: Teams.State,
 }
 
