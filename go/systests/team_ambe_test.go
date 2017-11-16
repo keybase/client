@@ -7,6 +7,7 @@ import (
 
 	"golang.org/x/net/context"
 
+	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/teams"
 	"github.com/stretchr/testify/require"
@@ -58,7 +59,16 @@ func TestAMInvalidEldest(t *testing.T) {
 	ann.pollForMembershipUpdate(team, keybase1.PerTeamKeyGeneration(2))
 
 	t.Logf("Sending one UV, expecing one member to be added and an old version of member to be removed.")
-	uvs = []keybase1.UserVersion{teams.NewUserVersion(bob.uid(), 6)}
+
+	loadUserArg := libkb.NewLoadUserArg(annCtx).
+		WithNetContext(context.TODO()).
+		WithName(bob.username).
+		WithPublicKeyOptional().
+		WithForcePoll(true)
+	upak, _, err := annCtx.GetUPAKLoader().LoadV2(loadUserArg)
+	require.NoError(t, err)
+
+	uvs = []keybase1.UserVersion{teams.NewUserVersion(bob.uid(), upak.Current.EldestSeqno)}
 	err = teams.AddMembersBestEffort(context.TODO(), annCtx, teamObj.ID, keybase1.TeamRole_READER, uvs, false)
 	require.NoError(t, err)
 
