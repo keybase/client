@@ -42,9 +42,12 @@ function* deleteMessage(action: ChatGen.DeleteMessagePayload): SagaGenerator<any
     }
     const tlfName: string = inboxConvo.name
 
+    const parsedMessageID = lastMessageID ? Constants.parseMessageID(lastMessageID) : null
+    const clientPrev = parsedMessageID && parsedMessageID.type === 'rpcMessageID' ? parsedMessageID.msgID : 0
+
     const outboxID = yield Saga.call(RPCChatTypes.localGenerateOutboxIDRpcPromise)
     const param: RPCChatTypes.LocalPostDeleteNonblockRpcParam = {
-      clientPrev: lastMessageID ? Constants.parseMessageID(lastMessageID).msgID : 0,
+      clientPrev,
       conversationID: Constants.keyToConversationID(conversationIDKey),
       identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
       outboxID,
@@ -131,6 +134,9 @@ function* postMessage(action: ChatGen.PostMessagePayload): SagaGenerator<any, an
     })
   )
 
+  const parsedMessageID = lastMessageID ? Constants.parseMessageID(lastMessageID) : null
+  const clientPrev = parsedMessageID && parsedMessageID.type === 'rpcMessageID' ? parsedMessageID.msgID : 0
+
   yield Saga.call(RPCChatTypes.localPostTextNonblockRpcPromise, {
     conversationID: Constants.keyToConversationID(conversationIDKey),
     tlfName: (inboxConvo ? inboxConvo.name : newConvoTlfName) || '',
@@ -138,8 +144,7 @@ function* postMessage(action: ChatGen.PostMessagePayload): SagaGenerator<any, an
     outboxID,
     body: action.payload.text.stringValue(),
     identifyBehavior: yield Saga.call(Shared.getPostingIdentifyBehavior, conversationIDKey),
-    // TODO parseMessageID returns a buffer on outbox id or number otherwise, asking mike if this is expected or...
-    clientPrev: lastMessageID ? Constants.parseMessageID(lastMessageID).msgID : 0,
+    clientPrev,
   })
 }
 
