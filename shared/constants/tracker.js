@@ -4,28 +4,28 @@ import * as Types from './types/tracker'
 import {type PlatformsExpandedType} from '../constants/types/more'
 import uniqBy from 'lodash/uniqBy'
 
-export const cachedIdentifyGoodUntil = 1000 * 60 * 60
-export const profileFromUI = '@@UI-PROFILE'
+const cachedIdentifyGoodUntil = 1000 * 60 * 60
+const profileFromUI = '@@UI-PROFILE'
 
 const trackerType = 'tracker'
 const nonUserType = 'nonUser'
 
 // Constants
-export const normal: Types.SimpleProofState = 'normal'
-export const warning: Types.SimpleProofState = 'warning'
-export const error: Types.SimpleProofState = 'error'
-export const checking: Types.SimpleProofState = 'checking'
-export const revoked: Types.SimpleProofState = 'revoked'
+const normal: Types.SimpleProofState = 'normal'
+const warning: Types.SimpleProofState = 'warning'
+const error: Types.SimpleProofState = 'error'
+const checking: Types.SimpleProofState = 'checking'
+const revoked: Types.SimpleProofState = 'revoked'
 
-export const metaNone: Types.SimpleProofMeta = 'none'
-export const metaUpgraded: Types.SimpleProofMeta = 'upgraded'
-export const metaNew: Types.SimpleProofMeta = 'new'
-export const metaUnreachable: Types.SimpleProofMeta = 'unreachable'
-export const metaPending: Types.SimpleProofMeta = 'pending'
-export const metaDeleted: Types.SimpleProofMeta = 'deleted'
-export const metaIgnored: Types.SimpleProofMeta = 'ignored'
+const metaNone: Types.SimpleProofMeta = 'none'
+const metaUpgraded: Types.SimpleProofMeta = 'upgraded'
+const metaNew: Types.SimpleProofMeta = 'new'
+const metaUnreachable: Types.SimpleProofMeta = 'unreachable'
+const metaPending: Types.SimpleProofMeta = 'pending'
+const metaDeleted: Types.SimpleProofMeta = 'deleted'
+const metaIgnored: Types.SimpleProofMeta = 'ignored'
 
-export const rpcUpdateTimerSeconds = 60 * 1000
+const rpcUpdateTimerSeconds = 60 * 1000
 
 function isLoading(state: ?Types.TrackerState): boolean {
   // TODO (mm) ideally userInfo should be null until we get a response from the server
@@ -362,7 +362,7 @@ function updateProof(
   return updated
 }
 
-export function overviewStateOfProofs(proofs: Array<Types.Proof>): Types.OverviewProofState {
+function overviewStateOfProofs(proofs: Array<Types.Proof>): Types.OverviewProofState {
   const allOk = proofs.every(p => p.state === normal)
   const [anyWarnings, anyError, anyPending] = [warning, error, checking].map(s =>
     proofs.some(p => p.state === s)
@@ -389,7 +389,7 @@ export function overviewStateOfProofs(proofs: Array<Types.Proof>): Types.Overvie
   }
 }
 
-export function deriveSimpleProofState(
+function deriveSimpleProofState(
   eldestKidChanged: boolean,
   {allOk, anyWarnings, anyError, anyPending, anyDeletedProofs, anyUnreachableProofs}: Types.OverviewProofState
 ): Types.SimpleProofState {
@@ -429,16 +429,33 @@ const dedupeProofs = (proofs: Array<Types.Proof>): Array<Types.Proof> => uniqBy(
 
 export {
   bufferToNiceHexString,
+  cachedIdentifyGoodUntil,
+  checking,
   dedupeProofs,
   deriveShouldFollow,
+  deriveSimpleProofState,
   deriveTrackerMessage,
+  error,
   initialNonUserState,
   initialState,
   initialTrackerState,
   isLoading,
-  revokedProofToProof,
-  updateProof,
-  trackerType,
+  metaDeleted,
+  metaIgnored,
+  metaNew,
+  metaNone,
+  metaPending,
+  metaUnreachable,
+  metaUpgraded,
   nonUserType,
+  normal,
+  overviewStateOfProofs,
+  profileFromUI,
   remoteProofToProof,
+  revoked,
+  revokedProofToProof,
+  rpcUpdateTimerSeconds,
+  trackerType,
+  updateProof,
+  warning,
 }
