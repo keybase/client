@@ -103,10 +103,14 @@ func (r *chatConversationResolver) completeAndCanonicalizeTLFName(ctx context.Co
 			Name:   tlfName,
 			Public: req.Visibility == keybase1.TLFVisibility_PUBLIC,
 		})
+		var canonName string
 		if err != nil {
-			return err
+			r.G.Log.Debug("failed to lookup or create implicit team, not canonicalizing")
+			canonName = tlfName
+		} else {
+			canonName = impRes.DisplayName.String()
 		}
-		req.ctx.canonicalizedTlfName = impRes.DisplayName.String()
+		req.ctx.canonicalizedTlfName = canonName
 	case chat1.ConversationMembersType_TEAM:
 		req.ctx.canonicalizedTlfName = tlfName
 	}
