@@ -93,7 +93,7 @@ if NOT exist Redist\KB2999226\Windows8.1-KB2999226-x64.msu (
       )
 
 if NOT exist Redist\dokanclean.exe (
-      powershell -command "wget http://s3.amazonaws.com/prerelease.keybase.io/windows-support/dokan-dev/build84/dokanclean.exe -OutFile Redist\dokanclean.exe"
+      powershell -command "wget https://s3.amazonaws.com/prerelease.keybase.io/windows-support/dokan-dev/build84/dokanclean.exe -OutFile Redist\dokanclean.exe"
 )</PreBuildEvent>
   </PropertyGroup>
   <!--
