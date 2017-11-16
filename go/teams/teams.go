@@ -1536,14 +1536,23 @@ func (t *Team) notify(ctx context.Context, changes keybase1.TeamChangeSet) {
 //   delete will be issued for that UV before adding new one
 //   (or adding a new invite).
 // - If user has a PUK, it will add them normally, unless they
-//   already are in the team with a highest role.
+//   already are in the team with a higher role.
 //
 // This function can be called multiple times with the same UV list
 // with no side effects. Caller is responsible for handling cases when
 // this function races other clients and hits bad sigchain sequence
 // numbers. `RetryOnSigOldSeqnoError` can be used for this. Even if
-// two clients race with adding overlaping UV sets, they should
+// two clients race with adding overlapping UV sets, they should
 // eventually reconcile with all expected members in.
+//
+// This function only returns an error in the following conditions:
+// - Team fails to load.
+// - `role` argument is invalid.
+// - Either ChangeMembership or Invite signature fails to post
+//   (e.g. because of race with other client - see above.)
+//
+// If individual user cannot be processed, errors are only logged,
+// and the process continues.
 func AddMembersBestEffort(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID, role keybase1.TeamRole, uvs []keybase1.UserVersion, forceRepoll bool) (err error) {
 	defer g.CTrace(ctx, fmt.Sprintf("AddMembersBestEffort(TeamID:%s,role:%v)", teamID, role), func() error { return err })()
 
@@ -1575,6 +1584,8 @@ func AddMembersBestEffort(ctx context.Context, g *libkb.GlobalContext, teamID ke
 		}
 
 		if loadedUV.EldestSeqno != uv.EldestSeqno {
+			// TODO: We can skip this one or correct the EldestSeqno
+			// in the request.
 			g.Log.CDebugf(ctx, "Trying to add UID %s with EldestSeqno %d, but servers says EldestSeqno is %d", uv.Uid, uv.EldestSeqno, loadedUV.EldestSeqno)
 			continue
 		}
@@ -1661,6 +1672,7 @@ func AddMembersBestEffort(ctx context.Context, g *libkb.GlobalContext, teamID ke
 			inviteSection.Admins = &invList
 		case keybase1.TeamRole_OWNER:
 			g.Log.CDebugf(ctx, "Cannot add invites as owners, skipping entire invite section")
+			return nil
 		default:
 			return fmt.Errorf("Unexpected role: %v", role)
 		}
