@@ -1087,22 +1087,32 @@ type Crypto interface {
 	Shutdown()
 }
 
+type tlfIDGetter interface {
+	// GetIDForHandle returns the tlf.ID associated with the given
+	// handle, if the logged-in user has read permission on the
+	// folder.  It may or may not create the folder if it doesn't
+	// exist yet, and it may return `tlf.NullID` with a `nil` error if
+	// it doesn't create a missing folder.
+	GetIDForHandle(ctx context.Context, handle *TlfHandle) (tlf.ID, error)
+}
+
 // MDOps gets and puts root metadata to an MDServer.  On a get, it
 // verifies the metadata is signed by the metadata's signing key.
 type MDOps interface {
-	// GetForHandle returns the current metadata object
-	// corresponding to the given top-level folder's handle and
-	// merge status, if the logged-in user has read permission on
-	// the folder.  It creates the folder if one doesn't exist
-	// yet, and the logged-in user has permission to do so.
+	tlfIDGetter
+
+	// GetForHandle returns the current metadata object corresponding
+	// to the given top-level folder's handle and merge status, if the
+	// logged-in user has read permission on the folder.  It may or
+	// may not create the folder if it doesn't exist yet, and it may
+	// return `tlf.NullID` with a `nil` error if it doesn't create a
+	// missing folder.
 	//
 	// If lockBeforeGet is not nil, it causes mdserver to take the lock on the
 	// lock ID before the get.
 	//
-	// If there is no returned error, then the returned ID must
-	// always be non-null. An empty ImmutableRootMetadata may be
-	// returned, but if it is non-empty, then its ID must match
-	// the returned ID.
+	// An empty ImmutableRootMetadata may be returned, but if it is
+	// non-empty, then its ID must match the returned ID.
 	GetForHandle(
 		ctx context.Context, handle *TlfHandle, mStatus kbfsmd.MergeStatus,
 		lockBeforeGet *keybase1.LockID) (tlf.ID, ImmutableRootMetadata, error)

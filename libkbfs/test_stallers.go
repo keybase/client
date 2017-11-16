@@ -422,6 +422,11 @@ func (m *stallingMDOps) GetForHandle(
 	return tlfID, md, err
 }
 
+func (m *stallingMDOps) GetIDForHandle(
+	ctx context.Context, handle *TlfHandle) (tlfID tlf.ID, err error) {
+	return m.delegate.GetIDForHandle(ctx, handle)
+}
+
 func (m *stallingMDOps) GetForTLF(ctx context.Context, id tlf.ID,
 	lockBeforeGet *keybase1.LockID) (md ImmutableRootMetadata, err error) {
 	m.maybeStall(ctx, StallableMDGetForTLF)

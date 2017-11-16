@@ -3658,6 +3658,42 @@ func (mr *MockCryptoMockRecorder) Shutdown() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Shutdown", reflect.TypeOf((*MockCrypto)(nil).Shutdown))
 }
 
+// MocktlfIDGetter is a mock of tlfIDGetter interface
+type MocktlfIDGetter struct {
+	ctrl     *gomock.Controller
+	recorder *MocktlfIDGetterMockRecorder
+}
+
+// MocktlfIDGetterMockRecorder is the mock recorder for MocktlfIDGetter
+type MocktlfIDGetterMockRecorder struct {
+	mock *MocktlfIDGetter
+}
+
+// NewMocktlfIDGetter creates a new mock instance
+func NewMocktlfIDGetter(ctrl *gomock.Controller) *MocktlfIDGetter {
+	mock := &MocktlfIDGetter{ctrl: ctrl}
+	mock.recorder = &MocktlfIDGetterMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use
+func (m *MocktlfIDGetter) EXPECT() *MocktlfIDGetterMockRecorder {
+	return m.recorder
+}
+
+// GetIDForHandle mocks base method
+func (m *MocktlfIDGetter) GetIDForHandle(ctx context.Context, handle *TlfHandle) (tlf.ID, error) {
+	ret := m.ctrl.Call(m, "GetIDForHandle", ctx, handle)
+	ret0, _ := ret[0].(tlf.ID)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetIDForHandle indicates an expected call of GetIDForHandle
+func (mr *MocktlfIDGetterMockRecorder) GetIDForHandle(ctx, handle interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetIDForHandle", reflect.TypeOf((*MocktlfIDGetter)(nil).GetIDForHandle), ctx, handle)
+}
+
 // MockMDOps is a mock of MDOps interface
 type MockMDOps struct {
 	ctrl     *gomock.Controller
@@ -3679,6 +3715,19 @@ func NewMockMDOps(ctrl *gomock.Controller) *MockMDOps {
 // EXPECT returns an object that allows the caller to indicate expected use
 func (m *MockMDOps) EXPECT() *MockMDOpsMockRecorder {
 	return m.recorder
+}
+
+// GetIDForHandle mocks base method
+func (m *MockMDOps) GetIDForHandle(ctx context.Context, handle *TlfHandle) (tlf.ID, error) {
+	ret := m.ctrl.Call(m, "GetIDForHandle", ctx, handle)
+	ret0, _ := ret[0].(tlf.ID)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetIDForHandle indicates an expected call of GetIDForHandle
+func (mr *MockMDOpsMockRecorder) GetIDForHandle(ctx, handle interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetIDForHandle", reflect.TypeOf((*MockMDOps)(nil).GetIDForHandle), ctx, handle)
 }
 
 // GetForHandle mocks base method

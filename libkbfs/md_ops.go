@@ -295,9 +295,7 @@ func (md *MDOpsStandard) processMetadata(ctx context.Context,
 	*rmds = RootMetadataSigned{}
 	irmd := MakeImmutableRootMetadata(rmd, key, mdID, localTimestamp, true)
 
-	// Revisions created locally should always override anything else
-	// in the cache.
-	err = md.config.MDCache().Replace(irmd, irmd.BID())
+	err = md.config.MDCache().Put(irmd)
 	if err != nil {
 		return ImmutableRootMetadata{}, err
 	}
@@ -308,6 +306,27 @@ func (md *MDOpsStandard) processMetadata(ctx context.Context,
 func (md *MDOpsStandard) GetForHandle(ctx context.Context, handle *TlfHandle,
 	mStatus kbfsmd.MergeStatus, lockBeforeGet *keybase1.LockID) (
 	id tlf.ID, rmd ImmutableRootMetadata, err error) {
+	// If we already know the tlf ID, we shouldn't be calling this
+	// function.
+	if handle.tlfID != tlf.NullID {
+		return tlf.ID{}, ImmutableRootMetadata{}, fmt.Errorf(
+			"GetForHandle called for %s with non-nil TLF ID %s",
+			handle.GetCanonicalPath(), handle.tlfID)
+	}
+
+	// Check for handle readership, to give a nice error early.
+	if handle.Type() == tlf.Private {
+		session, err := md.config.KBPKI().GetCurrentSession(ctx)
+		if err != nil {
+			return tlf.ID{}, ImmutableRootMetadata{}, err
+		}
+
+		if !handle.IsReader(session.UID) {
+			return tlf.ID{}, ImmutableRootMetadata{}, NewReadAccessError(
+				handle, session.Name, handle.GetCanonicalPath())
+		}
+	}
+
 	md.log.CDebugf(
 		ctx, "GetForHandle: %s %s", handle.GetCanonicalPath(), mStatus)
 	defer func() {
@@ -376,6 +395,15 @@ func (md *MDOpsStandard) GetForHandle(ctx context.Context, handle *TlfHandle,
 	}
 
 	return id, rmd, nil
+}
+
+// GetIDForHandle implements the MDOps interface for MDOpsStandard.
+func (md *MDOpsStandard) GetIDForHandle(
+	ctx context.Context, handle *TlfHandle) (id tlf.ID, err error) {
+	// TODO: use a local, trusted, on-disk handle->ID cache to avoid
+	// an RTT here?
+	id, _, err = md.GetForHandle(ctx, handle, kbfsmd.Merged, nil)
+	return id, err
 }
 
 func (md *MDOpsStandard) processMetadataWithID(ctx context.Context,

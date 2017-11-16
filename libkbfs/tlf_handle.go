@@ -39,11 +39,24 @@ type TlfHandle struct {
 	// name can be computed from the other fields, but is cached
 	// for speed.
 	name tlf.CanonicalName
+
+	// If we know the TLF ID at the time this handle is constructed
+	// (e.g., because this handle is backed by an implicit team), we
+	// store the TLF ID here so that we can look the TLF up from the
+	// mdserver using the ID, instead of the handle.
+	tlfID tlf.ID
 }
 
 // Type returns the type of the TLF this TlfHandle represents.
 func (h TlfHandle) Type() tlf.Type {
 	return h.tlfType
+}
+
+// TlfID returns the TLF ID corresponding to this handle, if it's
+// known.  If it's wasn't known at the time the handle was
+// constructed, tlf.NullID is returned.
+func (h TlfHandle) TlfID() tlf.ID {
+	return h.tlfID
 }
 
 // IsWriter returns whether or not the given user is a writer for the
@@ -235,7 +248,7 @@ func (h TlfHandle) Extensions() (extensions []tlf.HandleExtension) {
 }
 
 func init() {
-	if reflect.ValueOf(TlfHandle{}).NumField() != 8 {
+	if reflect.ValueOf(TlfHandle{}).NumField() != 9 {
 		panic(errors.New(
 			"Unexpected number of fields in TlfHandle; " +
 				"please update TlfHandle.Equals() for your " +
@@ -247,6 +260,9 @@ func init() {
 func (h TlfHandle) EqualsIgnoreName(
 	codec kbfscodec.Codec, other TlfHandle) (bool, error) {
 	if h.tlfType != other.tlfType {
+		return false, nil
+	}
+	if h.tlfID != other.tlfID {
 		return false, nil
 	}
 
@@ -333,6 +349,7 @@ func (h TlfHandle) deepCopy() *TlfHandle {
 		unresolvedReaders: h.UnresolvedReaders(),
 		conflictInfo:      h.ConflictInfo(),
 		finalizedInfo:     h.FinalizedInfo(),
+		tlfID:             h.tlfID,
 	}
 
 	hCopy.resolvedWriters = make(map[keybase1.UserOrTeamID]libkb.NormalizedUsername, len(h.resolvedWriters))

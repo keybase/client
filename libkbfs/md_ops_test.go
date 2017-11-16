@@ -119,7 +119,7 @@ func verifyMDForPublic(config *ConfigMock, rmds *RootMetadataSigned,
 	config.mockKbpki.EXPECT().HasVerifyingKey(gomock.Any(), gomock.Any(),
 		gomock.Any(), gomock.Any()).AnyTimes().Return(hasVerifyingKeyErr)
 	if hasVerifyingKeyErr == nil {
-		config.mockMdcache.EXPECT().Replace(gomock.Any(), gomock.Any())
+		config.mockMdcache.EXPECT().Put(gomock.Any())
 	}
 }
 
@@ -185,7 +185,7 @@ func verifyMDForPrivateHelper(
 		config.mockKbpki.EXPECT().HasVerifyingKey(gomock.Any(), gomock.Any(),
 			gomock.Any(), gomock.Any()).AnyTimes().Return(nil)
 	}
-	config.mockMdcache.EXPECT().Replace(gomock.Any(), gomock.Any()).AnyTimes()
+	config.mockMdcache.EXPECT().Put(gomock.Any()).AnyTimes()
 }
 
 func verifyMDForPrivate(
