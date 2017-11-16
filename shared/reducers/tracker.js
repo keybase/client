@@ -116,7 +116,7 @@ export default function(
           hidden: false,
         }))
       }
-      break
+      return state
     }
     case TrackerGen.updateUsername: {
       const {username} = action.payload
@@ -394,6 +394,9 @@ export default function(
         }))
       }
     }
+    default:
+      // eslint-disable-next-line no-unused-expressions
+      (action: empty) // if you get a flow error here it means there's an action you claim to handle but didn't
+      return state
   }
-  return state
 }

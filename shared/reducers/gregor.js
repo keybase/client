@@ -24,6 +24,9 @@ export default function(state: Types.State = Constants.initialState, action: Gre
         ...state,
         reachability,
       }
+    default:
+      // eslint-disable-next-line no-unused-expressions
+      (action: empty) // if you get a flow error here it means there's an action you claim to handle but didn't
+      return state
   }
-  return state
 }

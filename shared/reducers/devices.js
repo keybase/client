@@ -16,7 +16,15 @@ export default function(state: Types.State = initialState, action: DevicesGen.Ac
     case DevicesGen.loaded:
       const {deviceIDs} = action.payload
       return state.set('deviceIDs', I.List(deviceIDs))
+    // Saga only actions
+    case DevicesGen.load:
+    case DevicesGen.paperKeyMake:
+    case DevicesGen.revoke:
+    case DevicesGen.showRevokePage:
+      return state
+    default:
+      // eslint-disable-next-line no-unused-expressions
+      (action: empty) // if you get a flow error here it means there's an action you claim to handle but didn't
+      return state
   }
-
-  return state
 }
