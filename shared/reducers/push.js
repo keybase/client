@@ -26,6 +26,16 @@ function reducer(state: Types.State = Constants.initialState, action: PushGen.Ac
         token,
         tokenType,
       }
+    // Saga only actions
+    case PushGen.configurePush:
+    case PushGen.error:
+    case PushGen.notification:
+    case PushGen.permissionsNo:
+    case PushGen.permissionsRequest:
+    case PushGen.pushToken:
+    case PushGen.registrationError:
+    case PushGen.savePushToken:
+      return state
     default:
       // eslint-disable-next-line no-unused-expressions
       (action: empty) // if you get a flow error here it means there's an action you claim to handle but didn't

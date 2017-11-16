@@ -178,6 +178,20 @@ function reducer(state: Types.State = Constants.initialState, action: SettingsGe
         ...state,
         waitingForResponse: waiting,
       }
+    // Saga only actions
+    case SettingsGen.dbNuke:
+    case SettingsGen.deleteAccountForever:
+    case SettingsGen.invitesReclaim:
+    case SettingsGen.invitesReclaimed:
+    case SettingsGen.invitesRefresh:
+    case SettingsGen.invitesSend:
+    case SettingsGen.loadSettings:
+    case SettingsGen.notificationsRefresh:
+    case SettingsGen.onChangeShowPassphrase:
+    case SettingsGen.onSubmitNewEmail:
+    case SettingsGen.onSubmitNewPassphrase:
+    case SettingsGen.onUpdatePGPSettings:
+      return state
     default:
       // eslint-disable-next-line no-unused-expressions
       (action: empty) // if you get a flow error here it means there's an action you claim to handle but didn't

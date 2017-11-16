@@ -394,6 +394,9 @@ export default function(
         }))
       }
     }
+    // Saga only actions
+    case TrackerGen.parseFriendship:
+      return state
     default:
       // eslint-disable-next-line no-unused-expressions
       (action: empty) // if you get a flow error here it means there's an action you claim to handle but didn't

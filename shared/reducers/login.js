@@ -111,6 +111,26 @@ export default function(state: Types.State = Constants.initialState, action: Log
       const {deletedUsername} = action.payload
       return {...state, justDeletedSelf: deletedUsername}
     }
+    // Saga only actions
+    case LoginGen.addNewDevice:
+    case LoginGen.chooseGPGMethod:
+    case LoginGen.loginDone:
+    case LoginGen.logout:
+    case LoginGen.logoutDone:
+    case LoginGen.navBasedOnLoginAndInitialState:
+    case LoginGen.onBack:
+    case LoginGen.onFinish:
+    case LoginGen.onWont:
+    case LoginGen.openAccountResetPage:
+    case LoginGen.provisionTextCodeEntered:
+    case LoginGen.relogin:
+    case LoginGen.selectDeviceId:
+    case LoginGen.someoneElse:
+    case LoginGen.startLogin:
+    case LoginGen.submitDeviceName:
+    case LoginGen.submitPassphrase:
+    case LoginGen.submitUsernameOrEmail:
+      return state
     default:
       // eslint-disable-next-line no-unused-expressions
       (action: empty) // if you get a flow error here it means there's an action you claim to handle but didn't

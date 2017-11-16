@@ -59,6 +59,11 @@ export default function(state: Types.State = initialState, action: Notifications
       let newState = state.update('keyState', ks => ks.set(key, on))
       newState = _updateWidgetBadge(newState)
       return newState
+    // Saga only actions
+    case NotificationsGen.listenForKBFSNotifications:
+    case NotificationsGen.listenForNotifications:
+    case NotificationsGen.log:
+      return state
     default:
       // eslint-disable-next-line no-unused-expressions
       (action: empty) // if you get a flow error here it means there's an action you claim to handle but didn't
