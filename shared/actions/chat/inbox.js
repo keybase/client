@@ -896,6 +896,11 @@ function _joinConversation(action: ChatGen.JoinConversationPayload) {
   return Saga.call(RPCChatTypes.localJoinConversationByIDLocalRpcPromise, {param: {convID}})
 }
 
+function _previewChannel(action: ChatGen.PreviewChannelPayload) {
+  const convID = Constants.keyToConversationID(action.payload.conversationIDKey)
+  return Saga.call(RPCChatTypes.localPreviewConversationByIDLocalRpcPromise, {param: {convID}})
+}
+
 function* registerSagas(): SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(ChatGen.updateSnippet, _updateSnippet)
   yield Saga.safeTakeEvery(ChatGen.getInboxAndUnbox, onGetInboxAndUnbox)
@@ -910,6 +915,7 @@ function* registerSagas(): SagaGenerator<any, any> {
   yield Saga.safeTakeLatest(ChatGen.badgeAppForChat, _badgeAppForChat)
   yield Saga.safeTakeEvery(ChatGen.incomingMessage, _incomingMessage)
   yield Saga.safeTakeEveryPure(ChatGen.joinConversation, _joinConversation)
+  yield Saga.safeTakeEveryPure(ChatGen.previewChannel, _previewChannel)
 }
 
 export {registerSagas}

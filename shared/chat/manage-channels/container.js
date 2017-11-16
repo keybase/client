@@ -3,12 +3,14 @@ import pickBy from 'lodash/pickBy'
 import isEqual from 'lodash/isEqual'
 import * as I from 'immutable'
 import * as Constants from '../../constants/teams'
+import * as ChatGen from '../../actions/chat-gen'
 import ManageChannels from '.'
 import {withHandlers, withState, withPropsOnChange} from 'recompose'
 import {pausableConnect, compose, lifecycle, type TypedState} from '../../util/container'
 import {getChannels, saveChannelMembership} from '../../actions/teams/creators'
 import {navigateTo, navigateAppend} from '../../actions/route-tree'
 import {anyWaiting} from '../../constants/waiting'
+import {chatTab} from '../../constants/tabs'
 
 type ChannelMembershipState = {[channelname: string]: boolean}
 
@@ -61,6 +63,10 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routePath, routePro
         (inChannel: boolean, channelname: string) => inChannel !== oldChannelState[channelname]
       )
       dispatch(saveChannelMembership(teamname, channelsToChange))
+    },
+    onPreview: (conversationIDKey: string) => {
+      dispatch(ChatGen.createPreviewChannel({conversationIDKey}))
+      dispatch(navigateTo([chatTab, conversationIDKey]))
     },
   }
 }
