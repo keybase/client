@@ -106,11 +106,9 @@ const mapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps) => ({
   },
   onLeaveChannel: (selectedConversation: Constants.ConversationIDKey, teamname: string) => {
     dispatch(ChatGen.createLeaveConversation({conversationIDKey: selectedConversation}))
+    dispatch(navigateUp())
     if (ownProps.fromManageChannels) {
-      dispatch(navigateUp())
       dispatch(navigateAppend([{props: {teamname}, selected: 'manageChannels'}]))
-    } else {
-      dispatch(navigateUp())
     }
   },
 })
