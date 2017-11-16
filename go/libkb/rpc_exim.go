@@ -2006,7 +2006,7 @@ func (e ChatClientError) ToStatus() keybase1.Status {
 	return keybase1.Status{
 		Code: SCChatClientError,
 		Name: "SC_CHAT_CLIENT_ERROR",
-		Desc: e.Error(),
+		Desc: e.Msg,
 	}
 }
 
