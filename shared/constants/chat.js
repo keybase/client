@@ -704,7 +704,7 @@ function isPendingConversationIDKey(conversationIDKey: string) {
   return conversationIDKey.startsWith('__PendingConversation__')
 }
 
-function pendingConversationIDKeyToTlfName(conversationIDKey: string) {
+function pendingConversationIDKeyToTlfName(conversationIDKey: string): ?string {
   if (isPendingConversationIDKey(conversationIDKey)) {
     return conversationIDKey.substring('__PendingConversation__'.length)
   }
@@ -821,14 +821,18 @@ const getInbox = (state: TypedState, conversationIDKey: ?ConversationIDKey) =>
 const getSelectedInbox = (state: TypedState) => getInbox(state, getSelectedConversation(state))
 const getEditingMessage = (state: TypedState) => state.chat.get('editingMessage')
 
-const getTLF = createSelector([getSelectedInbox, getSelectedConversation], (selectedInbox, selected) => {
-  if (selected && isPendingConversationIDKey(selected)) {
-    return pendingConversationIDKeyToTlfName(selected) || ''
-  } else if (selected !== nothingSelected && selectedInbox) {
-    return selectedInbox.participants.join(',')
+const getParticipants = createSelector(
+  [getSelectedInbox, getSelectedConversation],
+  (selectedInbox, selectedConversation) => {
+    if (selectedConversation && isPendingConversationIDKey(selectedConversation)) {
+      let tlfName = pendingConversationIDKeyToTlfName(selectedConversation)
+      return (tlfName && tlfName.split(',')) || []
+    } else if (selectedConversation !== nothingSelected && selectedInbox) {
+      return selectedInbox.participants.toArray()
+    }
+    return []
   }
-  return ''
-})
+)
 
 const getParticipantsWithFullNames = createSelector(
   [getSelectedInbox, getSelectedConversation],
@@ -844,6 +848,15 @@ const getParticipantsWithFullNames = createSelector(
     return []
   }
 )
+
+const getTLF = createSelector([getSelectedInbox, getSelectedConversation], (selectedInbox, selected) => {
+  if (selected && isPendingConversationIDKey(selected)) {
+    return pendingConversationIDKeyToTlfName(selected) || ''
+  } else if (selected !== nothingSelected && selectedInbox) {
+    return selectedInbox.participants.join(',')
+  }
+  return ''
+})
 
 const getMuted = createSelector(
   [getSelectedInbox],
@@ -1131,6 +1144,7 @@ export {
   getYou,
   getFollowingMap,
   getMetaDataMap,
+  getParticipants,
   getParticipantsWithFullNames,
   getSelectedInbox,
   getTLF,
