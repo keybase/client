@@ -89,14 +89,22 @@ class EngineRpcCall {
   _subSagaChannel: SagaTypes.Channel<*>
   _engineChannel: EngineChannel
   _cleanedUp: boolean
+  _finishedErrorShouldThrow: boolean
 
-  constructor(sagaMap: SagaTypes.SagaMap, rpc: any, rpcNameKey: string, request: any) {
+  constructor(
+    sagaMap: SagaTypes.SagaMap,
+    rpc: any,
+    rpcNameKey: string,
+    request: any,
+    finishedErrorShouldThrow?: boolean
+  ) {
     this._chanConfig = Saga.singleFixedChannelConfig(Object.keys(sagaMap))
     this._rpcNameKey = rpcNameKey
     this._rpc = rpc
     this._cleanedUp = false
     this._request = request
     this._subSagaChannel = channel(buffers.expanding(10))
+    this._finishedErrorShouldThrow = !!finishedErrorShouldThrow
     // $FlowIssue with this
     this.run = this.run.bind(this) // In case we mess up and forget to do call([ctx, ctx.run])
     const {finished: finishedSaga, ...subSagas} = sagaMap
@@ -152,6 +160,11 @@ class EngineRpcCall {
         }
 
         if (incoming.finished) {
+          // Used just by device add for now. this is to fix a bug and i'm not sure this should apply generally
+          if (incoming.finished.error && this._finishedErrorShouldThrow) {
+            yield call([this, this._cleanup], subSagaTasks)
+            throw incoming.finished.error
+          }
           // Wait for all the subSagas to finish
           if (subSagaTasks.length) {
             yield join(...subSagaTasks)
