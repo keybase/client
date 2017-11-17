@@ -346,28 +346,25 @@ const _getDetails = function*(action: Constants.GetDetails): Saga.SagaGenerator<
 
     const infos = []
     let memberNames = I.Set()
-    if (details) {
-      const types = ['admins', 'owners', 'readers', 'writers']
-      const typeMap = {
-        admins: 'admin',
-        owners: 'owner',
-        readers: 'reader',
-        writers: 'writer',
-      }
-      const detailsMembers = details.members
-      types.forEach(type => {
-        const members = detailsMembers[type] || []
-        members.forEach(({username}) => {
-          infos.push(
-            Constants.makeMemberInfo({
-              type: typeMap[type],
-              username,
-            })
-          )
-          memberNames = memberNames.add(username)
-        })
-      })
+    const types = ['admins', 'owners', 'readers', 'writers']
+    const typeMap = {
+      admins: 'admin',
+      owners: 'owner',
+      readers: 'reader',
+      writers: 'writer',
     }
+    types.forEach(type => {
+      const members = details.members[type] || []
+      members.forEach(({username}) => {
+        infos.push(
+          Constants.makeMemberInfo({
+            type: typeMap[type],
+            username,
+          })
+        )
+        memberNames = memberNames.add(username)
+      })
+    })
 
     const invitesMap = map(details.annotatedActiveInvites, invite =>
       Constants.makeInviteInfo({
