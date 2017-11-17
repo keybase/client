@@ -16,6 +16,11 @@ func IsRunningSystemd() bool {
 	return sdUtil.IsRunningSystemd()
 }
 
+// NOTE: We no longer configure our keybse.service and kbfs.service units to be
+// socket-activated by default. It was causing too much trouble when
+// non-systemd instances deleted the socket files. It's possible this issue
+// will get fixed in future versions of systemd; see
+// https://github.com/systemd/systemd/issues/7274.
 func IsSocketActivated() bool {
 	return (os.Getenv("LISTEN_FDS") != "")
 }

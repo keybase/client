@@ -1,9 +1,0 @@
-[Unit]
-Description=socket for the Keybase Filesystem service
-
-[Socket]
-# %t is the $XDG_RUNTIME_DIR
-ListenStream=%t/keybase/kbfsd.sock
-
-[Install]
-WantedBy=sockets.target

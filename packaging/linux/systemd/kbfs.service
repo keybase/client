@@ -1,8 +1,5 @@
 [Unit]
 Description=Keybase Filesystem service
-# kbfs.socket automatically knows to start kbfs.service, but for the reverse we
-# need this explicit Requires.
-Requires=kbfs.socket
 Wants=keybase.service
 
 [Service]

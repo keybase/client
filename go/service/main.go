@@ -784,6 +784,11 @@ func (d *Service) lockPIDFile() (err error) {
 func (d *Service) ConfigRPCServer() (net.Listener, error) {
 	// First, check to see if we've been launched with socket activation by
 	// systemd. If so, the socket is already open. Otherwise open it ourselves.
+	// NOTE: We no longer configure our keybse.service and kbfs.service units
+	// to be socket-activated by default. It was causing too much trouble when
+	// non-systemd instances deleted the socket files. It's possible this issue
+	// will get fixed in future versions of systemd; see
+	// https://github.com/systemd/systemd/issues/7274.
 	listener, err := systemd.GetListenerFromEnvironment()
 	if err != nil {
 		d.G().Log.Error("unexpected error in GetListenerFromEnvironment: %#v", err)

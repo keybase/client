@@ -64,9 +64,6 @@ start_systemd() {
   # If the services weren't started with systemd, we need to kill them.
   if ! was_started_with_systemd ; then
     kill_all
-    # Our non-systemd services tend to delete systemd's socket files. Make sure
-    # they get recreated.
-    systemctl --user stop keybase.socket kbfs.socket
   fi
   echo Starting via systemd.
   # The GUI needs access to the env var KEYBASE_START_UI. This is set to
