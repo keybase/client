@@ -122,16 +122,17 @@ function computePopupStyle(
   return style
 }
 
-type ModalPositionRelativeProps = {
+type ModalPositionRelativeProps<PP> = {
   targetNode: ?HTMLElement,
   position: Position,
   onClose: () => void,
+  popupProps: PP,
 }
 
-function ModalPositionRelative<P>(
-  WrappedComponent: React.ComponentType<P>
-): React.ComponentType<P & ModalPositionRelativeProps> {
-  class Modal extends React.Component<P & ModalPositionRelativeProps, {style: {}}> {
+function ModalPositionRelative<PP>(
+  WrappedComponent: React.ComponentType<PP>
+): React.ComponentType<ModalPositionRelativeProps<PP>> {
+  class Modal extends React.Component<ModalPositionRelativeProps<PP>, {style: {}}> {
     popupNode: ?HTMLElement
     state: {style: {}}
     constructor() {
@@ -156,7 +157,7 @@ function ModalPositionRelative<P>(
       this.setState({style})
     }
 
-    componentWillReceiveProps(nextProps: P & ModalPositionRelativeProps) {
+    componentWillReceiveProps(nextProps: ModalPositionRelativeProps<PP>) {
       if (!this.props.targetNode && nextProps.targetNode) {
         this._computeStyle(nextProps.targetNode)
       }
@@ -197,7 +198,7 @@ function ModalPositionRelative<P>(
         <Box style={this.state.style}>
           <EscapeHandler onESC={this.props.onClose}>
             <DOMNodeFinder setNode={this._setRef}>
-              <WrappedComponent {...(this.props: P)} />
+              <WrappedComponent {...(this.props.popupProps: PP)} />
             </DOMNodeFinder>
           </EscapeHandler>
         </Box>
@@ -208,32 +209,46 @@ function ModalPositionRelative<P>(
   return Modal
 }
 
-type RelativePopupProps = {open: boolean, onClose: () => void, position: Position}
+type RelativePopupProps<TP, PP> = {
+  open: boolean,
+  onClose: () => void,
+  position: Position,
+  targetProps: TP,
+  popupProps: PP,
+}
 
-function RelativePopupHoc(
-  TargetComponent: React.ComponentType<{||}>,
-  PopupComponent: React.ComponentType<{}>
-): React.ComponentType<RelativePopupProps> {
+function RelativePopupHoc<TP, PP>(
+  TargetComponent: React.ComponentType<TP>,
+  PopupComponent: React.ComponentType<PP>
+): React.ComponentType<RelativePopupProps<TP, PP>> {
   const ModalPopupComponent = ModalHoc(ModalPositionRelative(PopupComponent))
   return withState(
     'targetNode',
     'setTargetNode',
     null
-  )((props: {targetNode: ?HTMLElement, setTargetNode: (node: HTMLElement) => void} & RelativePopupProps) => {
-    return (
-      <Box>
-        <DOMNodeFinder setNode={props.setTargetNode}>
-          <TargetComponent />
-        </DOMNodeFinder>
-        {props.open &&
-          <ModalPopupComponent
-            onClose={props.onClose}
-            position={props.position}
-            targetNode={props.targetNode}
-          />}
-      </Box>
-    )
-  })
+  )(
+    (
+      props: {targetNode: ?HTMLElement, setTargetNode: (node: HTMLElement) => void} & RelativePopupProps<
+        TP,
+        PP
+      >
+    ) => {
+      return (
+        <Box>
+          <DOMNodeFinder setNode={props.setTargetNode}>
+            <TargetComponent {...(props.targetProps: TP)} />
+          </DOMNodeFinder>
+          {props.open &&
+            <ModalPopupComponent
+              onClose={props.onClose}
+              position={props.position}
+              targetNode={props.targetNode}
+              popupProps={props.popupProps}
+            />}
+        </Box>
+      )
+    }
+  )
 }
 
 export default RelativePopupHoc

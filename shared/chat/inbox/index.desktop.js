@@ -1,8 +1,7 @@
 // @flow
 import React, {PureComponent} from 'react'
 import ReactList from 'react-list'
-import {ErrorBoundary, Text} from '../../common-adapters'
-import RelativePopupHoc from '../../common-adapters/relative-popup-hoc.desktop'
+import {ErrorBoundary} from '../../common-adapters'
 import {globalStyles, globalColors} from '../../styles'
 import {makeRow} from './row'
 import FloatingDivider from './row/floating-divider/container'
@@ -50,15 +49,6 @@ class Inbox extends PureComponent<Props, State> {
   }
 
   _itemRenderer = index => {
-    const Popup = RelativePopupHoc(
-      () => <Text type="Body">WOOOOOOOOOOOOOO</Text>,
-      () => <Text type="Body">POPUPPPPPPPPPPP</Text>
-    )
-    if (index === 0) {
-      return (
-        <Popup key={'000'} open={true} position={'bottom left'} onClose={() => console.log('popup closed')} />
-      )
-    }
     const row = this.props.rows[index]
     if (row.type === 'divider') {
       return (
