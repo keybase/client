@@ -170,7 +170,7 @@ const getBootstrapStatus = (): AsyncAction => dispatch =>
   new Promise((resolve, reject) => {
     RPCTypes.configGetBootstrapStatusRpcPromise()
       .then(bootstrapStatus => {
-        dispatch(ConfigGen.createBootstrapStatusLoaded({bootstrapStatus}))
+        dispatch(ConfigGen.createBootstrapStatusLoaded({...bootstrapStatus}))
         resolve(bootstrapStatus)
       })
       .catch(error => {

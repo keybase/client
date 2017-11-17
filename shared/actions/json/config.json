@@ -4,7 +4,14 @@
   ],
   "actions": {
     "bootstrapStatusLoaded": {
-      "bootstrapStatus": "RPCTypes.BootstrapStatus"
+      "deviceID": "string",
+      "deviceName": "string",
+      "followers?": "?Array<string>",
+      "following?": "?Array<string>",
+      "loggedIn": "boolean",
+      "registered": "boolean",
+      "uid": "string",
+      "username": "string"
     },
     "bootstrap": {
       "isReconnect?": "boolean"
