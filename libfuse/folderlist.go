@@ -15,6 +15,7 @@ import (
 	"bazil.org/fuse"
 	"bazil.org/fuse/fs"
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/kbfs/libfs"
 	"github.com/keybase/kbfs/libkbfs"
 	"github.com/keybase/kbfs/tlf"
 	"golang.org/x/net/context"
@@ -182,8 +183,8 @@ func (fl *FolderList) Lookup(ctx context.Context, req *fuse.LookupRequest, resp 
 		return nil, fuse.ENOENT
 	}
 
-	h, err := libkbfs.ParseTlfHandlePreferred(
-		ctx, fl.fs.config.KBPKI(), fl.fs.config.MDOps(), req.Name, fl.tlfType)
+	h, err := libfs.ParseTlfHandlePreferredQuick(
+		ctx, fl.fs.config.KBPKI(), req.Name, fl.tlfType)
 	switch err := err.(type) {
 	case nil:
 		// no error

@@ -196,6 +196,19 @@ func canonicalNameIfNotNil(h *libkbfs.TlfHandle) string {
 }
 
 func (f *Folder) resolve(ctx context.Context) (*libkbfs.TlfHandle, error) {
+	if f.h.TlfID() == tlf.NullID {
+		// If the handle doesn't have a TLF ID yet, fetch it now.
+		handle, err := libkbfs.ParseTlfHandlePreferred(
+			ctx, f.fs.config.KBPKI(), f.fs.config.MDOps(),
+			string(f.hPreferredName), f.h.Type())
+		if err != nil {
+			return nil, err
+		}
+		// Update the handle.
+		f.TlfHandleChange(ctx, handle)
+		return handle, nil
+	}
+
 	// In case there were any unresolved assertions, try them again on
 	// the first load.  Otherwise, since we haven't subscribed to
 	// updates yet for this folder, we might have missed a name

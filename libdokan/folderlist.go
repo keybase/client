@@ -10,6 +10,7 @@ import (
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/kbfs/dokan"
+	"github.com/keybase/kbfs/libfs"
 	"github.com/keybase/kbfs/libkbfs"
 	"github.com/keybase/kbfs/tlf"
 	"golang.org/x/net/context"
@@ -126,8 +127,8 @@ func (fl *FolderList) open(ctx context.Context, oc *openContext, path []string) 
 			continue
 		}
 
-		h, err := libkbfs.ParseTlfHandlePreferred(
-			ctx, fl.fs.config.KBPKI(), fl.fs.config.MDOps(), name, fl.tlfType)
+		h, err := libfs.ParseTlfHandlePreferredQuick(
+			ctx, fl.fs.config.KBPKI(), name, fl.tlfType)
 		fl.fs.log.CDebugf(ctx, "FL Lookup continuing -> %v,%v", h, err)
 		switch err := err.(type) {
 		case nil:
