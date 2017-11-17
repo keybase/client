@@ -24,7 +24,7 @@ type TextState = {
   onChangeTopic: (nextTopic: string) => void,
 }
 
-const DeleteChannel = ({onClick, disabled}: {onClick: () => void, disabled: boolean}) => (
+const DeleteChannel = ({onConfirmedDelete, disabled}: {onConfirmedDelete: () => void, disabled: boolean}) => (
   <Box
     style={{...globalStyles.flexBoxRow, position: 'absolute', left: 0, opacity: disabled ? 0.5 : undefined}}
   >
@@ -35,7 +35,7 @@ const DeleteChannel = ({onClick, disabled}: {onClick: () => void, disabled: bool
     <Text
       type={disabled ? 'Body' : 'BodyPrimaryLink'}
       style={{color: globalColors.red}}
-      onClick={disabled ? undefined : onClick}
+      onClick={disabled ? undefined : onConfirmedDelete}
     >
       Delete Channel
     </Text>
@@ -80,7 +80,8 @@ const EditChannelBare = (props: Props & TextState) => (
       />
     </Box>
     <Box style={_bottomRowStyle}>
-      {props.showDelete && <DeleteChannel onClick={props.onDelete} disabled={props.deleteRenameDisabled} />}
+      {props.showDelete &&
+        <DeleteChannel onConfirmedDelete={props.onDelete} disabled={props.deleteRenameDisabled} />}
       <Box style={globalStyles.flexBoxRow}>
         <Button type="Secondary" label="Cancel" onClick={props.onCancel} />
         <Button
