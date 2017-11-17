@@ -652,9 +652,6 @@ function* _setupTeamHandlers(): Saga.SagaGenerator<any, any> {
       (args: RPCTypes.NotifyTeamTeamChangedRpcParam) => {
         dispatch(Creators.getDetails(args.teamName))
         dispatch(Creators.getTeams())
-        if (args.changes.membershipChanged) {
-          dispatch(ChatGen.createInboxStale({reason: 'Team membership changed'}))
-        }
       }
     )
     engine().setIncomingHandler('keybase.1.NotifyTeam.teamDeleted', () => {
