@@ -754,6 +754,10 @@ func PresentThreadView(ctx context.Context, uid gregor1.UID, tv chat1.ThreadView
 	return res
 }
 
+func computeOutboxOrdinal(obr chat1.OutboxRecord) float64 {
+	return float64(obr.Msg.ClientHeader.OutboxInfo.Prev) + float64(obr.Ordinal)/1000.0
+}
+
 func PresentMessageUnboxed(ctx context.Context, rawMsg chat1.MessageUnboxed, uid gregor1.UID,
 	tcs types.TeamChannelSource) (res chat1.UIMessage) {
 	state, err := rawMsg.State()
@@ -812,6 +816,7 @@ func PresentMessageUnboxed(ctx context.Context, rawMsg chat1.MessageUnboxed, uid
 			MessageType: typ,
 			Body:        body,
 			Ctime:       rawMsg.Outbox().Ctime,
+			Ordinal:     computeOutboxOrdinal(rawMsg.Outbox()),
 		})
 	case chat1.MessageUnboxedState_ERROR:
 		res = chat1.NewUIMessageWithError(rawMsg.Error())

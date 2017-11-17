@@ -1088,6 +1088,7 @@ type OutboxRecord struct {
 	Ctime            gregor1.Time                 `codec:"ctime" json:"ctime"`
 	Msg              MessagePlaintext             `codec:"Msg" json:"Msg"`
 	IdentifyBehavior keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
+	Ordinal          int                          `codec:"ordinal" json:"ordinal"`
 }
 
 func (o OutboxRecord) DeepCopy() OutboxRecord {
@@ -1098,6 +1099,7 @@ func (o OutboxRecord) DeepCopy() OutboxRecord {
 		Ctime:            o.Ctime.DeepCopy(),
 		Msg:              o.Msg.DeepCopy(),
 		IdentifyBehavior: o.IdentifyBehavior.DeepCopy(),
+		Ordinal:          o.Ordinal,
 	}
 }
 
