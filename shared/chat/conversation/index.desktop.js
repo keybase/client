@@ -193,7 +193,7 @@ const dropOverlayStyle = {
 const styleSpinner = {
   alignSelf: 'center',
   marginTop: globalMargins.small,
-  width: globalMargins.large,
+  width: 24,
 }
 
 export default Conversation
