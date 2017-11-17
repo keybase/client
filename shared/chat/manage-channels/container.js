@@ -44,7 +44,7 @@ const mapStateToProps = (state: TypedState, {routeProps, routeState}) => {
     channels,
     teamname: routeProps.get('teamname'),
     waitingForSave,
-    previousPath: previousPath && previousPath.toArray(),
+    previousPath,
   }
 }
 

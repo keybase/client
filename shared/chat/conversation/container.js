@@ -3,6 +3,7 @@ import * as Constants from '../../constants/chat'
 import * as SearchConstants from '../../constants/search'
 import * as Creators from '../../actions/chat/creators'
 import * as ChatGen from '../../actions/chat-gen'
+import {type List} from 'immutable'
 import HiddenString from '../../util/hidden-string'
 import Conversation from './index'
 import NoConversation from './no-conversation'
@@ -36,7 +37,7 @@ type StateProps = {|
   showTeamOffer: boolean,
   inboxFilter: ?string,
   showSearchResults: boolean,
-  previousPath: ?(string[]),
+  previousPath: ?List<string>,
 |}
 
 type DispatchProps = {|
