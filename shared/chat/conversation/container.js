@@ -53,6 +53,8 @@ type DispatchProps = {|
 const mapStateToProps = (state: TypedState, {routePath}): StateProps => {
   const selectedConversationIDKey = Constants.getSelectedConversation(state)
   const routeState = Constants.getSelectedRouteState(state)
+  // $FlowIssue conversationIDKey is totally a string
+  const isPendingConversation = Constants.isPendingConversationIDKey(selectedConversationIDKey)
 
   let finalizeInfo = null
   let rekeyInfo = null
@@ -79,9 +81,7 @@ const mapStateToProps = (state: TypedState, {routePath}): StateProps => {
         conversationIsError = true
         conversationErrorText = Constants.getSnippet(state, selectedConversationIDKey)
       }
-      showLoader =
-        (!Constants.isPendingConversationIDKey(selectedConversationIDKey) && untrustedState !== 'unboxed') ||
-        conversationState.isRequesting
+      showLoader = (!isPendingConversation && untrustedState !== 'unboxed') || conversationState.isRequesting
       threadLoadedOffline = conversationState.loadedOffline
     }
   }
@@ -91,7 +91,12 @@ const mapStateToProps = (state: TypedState, {routePath}): StateProps => {
   const userInputItemIds = SearchConstants.getUserInputItemIds(state, {searchKey: 'chatSearch'})
 
   // If it's a multi-user chat that isn't a team, offer to make a new team.
-  const showTeamOffer = flags.teamChatEnabled && inSearch && userInputItemIds && userInputItemIds.length > 1
+  const showTeamOffer =
+    flags.teamChatEnabled &&
+    inSearch &&
+    userInputItemIds &&
+    userInputItemIds.length > 1 &&
+    isPendingConversation
 
   return {
     showSearchResults: inSearch && !!searchResults,
