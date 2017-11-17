@@ -31,7 +31,8 @@ export function missingProofs(
   let availableProofTypes = without(PlatformsExpanded, 'http', 'https', 'dnsOrGenericWebSite', 'dns')
   const userProofTypes = uniq((userProofs || []).map(p => p.type))
 
-  const missingRegular = difference(availableProofTypes, userProofTypes).map(type => ({
+  // $FlowIssue thinks its just a string
+  const missingRegular = difference(availableProofTypes, userProofTypes).map((type: PlatformsExpanded) => ({
     type,
     message: proveMessage(type),
     onClick,

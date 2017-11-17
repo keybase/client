@@ -1,7 +1,7 @@
 // @flow
 import * as Constants from '../../constants/chat'
 import * as Inbox from '.'
-import * as Creators from '../../actions/chat/creators'
+import * as ChatGen from '../../actions/chat-gen'
 import * as I from 'immutable'
 import {
   pausableConnect,
@@ -13,22 +13,20 @@ import {
   createImmutableEqualSelector,
   type TypedState,
 } from '../../util/container'
-import throttle from 'lodash/throttle'
 import {scoreFilter, passesStringFilter} from './filtering'
 
 const smallTeamsCollapsedMaxShown = 5
-const getAlwaysShow = (state: TypedState) => state.entities.get('inboxAlwaysShow')
+const getAlwaysShow = (state: TypedState) => state.chat.get('inboxAlwaysShow')
 const getFilter = (state: TypedState) => state.chat.get('inboxFilter').toLowerCase()
-const getInbox = (state: TypedState) => state.entities.get('inbox')
-const getInboxBigChannels = (state: TypedState) => state.entities.get('inboxBigChannels')
-const getInboxBigChannelsToTeam = (state: TypedState) => state.entities.get('inboxBigChannelsToTeam')
-const getIsEmpty = (state: TypedState) => state.entities.get('inboxIsEmpty')
+const getInbox = (state: TypedState) => state.chat.get('inbox')
+const getInboxBigChannels = (state: TypedState) => state.chat.get('inboxBigChannels')
+const getInboxBigChannelsToTeam = (state: TypedState) => state.chat.get('inboxBigChannelsToTeam')
+const getIsEmpty = (state: TypedState) => state.chat.get('inboxIsEmpty')
 const getPending = (state: TypedState) => state.chat.get('pendingConversations')
-const getSmallTimestamps = (state: TypedState) => state.entities.getIn(['inboxSmallTimestamps'], I.Map())
-const getSupersededBy = (state: TypedState) => state.entities.get('inboxSupersededBy')
+const getSmallTimestamps = (state: TypedState) => state.chat.getIn(['inboxSmallTimestamps'], I.Map())
+const getSupersededBy = (state: TypedState) => state.chat.get('inboxSupersededBy')
 const _rowsForSelect = (rows: Array<any>) => rows.filter(r => ['small', 'big'].includes(r.type))
 const _smallTeamsPassThrough = (_, smallTeamsExpanded) => smallTeamsExpanded
-const _throttleHelper = throttle(cb => cb(), 60 * 1000)
 
 // This chain of reselects is to optimize not having to redo any work
 // If the timestamps are the same, we didn't change the list
@@ -139,7 +137,7 @@ const getFilteredSmallRowItems = createSelector(
         return {
           conversationIDKey,
           filterScore: i
-            ? scoreFilter(lcFilter, i.teamname || '', i.get('participants').toArray(), lcYou)
+            ? scoreFilter(lcFilter, i.teamname || '', i.get('participants').toArray(), lcYou, i.get('time'))
             : 0,
         }
       })
@@ -198,30 +196,35 @@ const mapStateToProps = (state: TypedState, {isActiveRoute, routeState}) => {
     rowMetadata = getRowsAndMetadata(state, smallTeamsExpanded)
   }
 
+  const inboxGlobalUntrustedState = state.chat.get('inboxGlobalUntrustedState')
+
   return {
     ...rowMetadata,
     filter,
     isActiveRoute,
-    isLoading: state.chat.get('inboxUntrustedState') === 'loading',
+    isLoading: inboxGlobalUntrustedState === 'loading' || state.chat.get('inboxSyncingState') === 'syncing',
+    neverLoaded: inboxGlobalUntrustedState === 'unloaded',
+    user: Constants.getYou(state),
   }
 }
 
 const mapDispatchToProps = (dispatch: Dispatch, {focusFilter, routeState, setRouteState}) => ({
-  loadInbox: () => dispatch(Creators.loadInbox()),
-  _onSelectNext: (rows, direction) => dispatch(Creators.selectNext(rows, direction)),
+  loadInbox: () => dispatch(ChatGen.createLoadInbox()),
+  _onSelectNext: (rows, direction) => dispatch(ChatGen.createSelectNext({rows, direction})),
   onHotkey: cmd => {
     if (cmd.endsWith('+n')) {
-      dispatch(Creators.newChat())
+      dispatch(ChatGen.createNewChat())
     } else {
       focusFilter()
     }
   },
-  onNewChat: () => dispatch(Creators.newChat()),
+  onNewChat: () => dispatch(ChatGen.createNewChat()),
   onSelect: (conversationIDKey: ?Constants.ConversationIDKey) => {
-    dispatch(Creators.selectConversation(conversationIDKey, true))
+    dispatch(ChatGen.createSelectConversation({conversationIDKey, fromUser: true}))
   },
-  onSetFilter: (filter: string) => dispatch(Creators.setInboxFilter(filter)),
-  onUntrustedInboxVisible: converationIDKeys => dispatch(Creators.unboxConversations(converationIDKeys)),
+  onSetFilter: (filter: string) => dispatch(ChatGen.createSetInboxFilter({filter})),
+  onUntrustedInboxVisible: conversationIDKeys =>
+    dispatch(ChatGen.createUnboxConversations({conversationIDKeys, reason: 'untrusted inbox visible'})),
   toggleSmallTeamsExpanded: () => setRouteState({smallTeamsExpanded: !routeState.get('smallTeamsExpanded')}),
 })
 
@@ -231,7 +234,9 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     filter: stateProps.filter,
     isActiveRoute: stateProps.isActiveRoute,
     isLoading: stateProps.isLoading,
+    neverLoaded: stateProps.neverLoaded,
     loadInbox: dispatchProps.loadInbox,
+    user: stateProps.user,
     onHotkey: dispatchProps.onHotkey,
     onNewChat: dispatchProps.onNewChat,
     onSelect: dispatchProps.onSelect,
@@ -245,6 +250,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     smallIDsHidden: stateProps.smallIDsHidden,
     smallTeamsExpanded: stateProps.smallTeamsExpanded,
     toggleSmallTeamsExpanded: dispatchProps.toggleSmallTeamsExpanded,
+    filterFocusCount: ownProps.filterFocusCount,
   }
 }
 
@@ -256,9 +262,9 @@ export default compose(
   pausableConnect(mapStateToProps, mapDispatchToProps, mergeProps),
   lifecycle({
     componentDidMount: function() {
-      _throttleHelper(() => {
+      if (this.props.neverLoaded) {
         this.props.loadInbox()
-      })
+      }
     },
   })
 )(Inbox.default)

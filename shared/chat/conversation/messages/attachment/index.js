@@ -89,7 +89,7 @@ function PreviewImage({
           {!isMobile &&
             (savedPath || (savedPath === false && downloadProgress !== null)) &&
             <ImageIcon
-              style={{position: 'relative', right: 19, top: 3}}
+              style={{position: 'relative', right: 19, top: 4}}
               type={savedPath ? 'Downloaded' : 'Downloading'}
             />}
           {attachmentDurationMs &&
@@ -159,8 +159,11 @@ function ImageIcon({type, style}: ImageIconProps) {
 
   const wrapperStyle = {
     backgroundColor: globalColors.white,
-    borderRadius: 19,
-    padding: 3,
+    borderRadius: 20,
+    paddingTop: 4,
+    paddingLeft: 3,
+    paddingRight: 3,
+    paddingBottom: 3,
   }
 
   return (
@@ -171,7 +174,7 @@ function ImageIcon({type, style}: ImageIconProps) {
 }
 
 const ShowInFileUi = ({onOpenInFileUI}) => (
-  <Text type="BodySmallSecondaryLink" onClick={onOpenInFileUI}>Show in {fileUIName}</Text>
+  <Text type="BodySmallPrimaryLink" onClick={onOpenInFileUI}>Show in {fileUIName}</Text>
 )
 
 function PreviewImageWithInfo({

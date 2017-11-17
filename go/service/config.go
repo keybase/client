@@ -226,6 +226,15 @@ func (h ConfigHandler) GetConfig(_ context.Context, sessionID int) (keybase1.Con
 	dir, err := filepath.Abs(filepath.Dir(os.Args[0]))
 	if err == nil {
 		c.Path = dir
+	} else {
+		h.G().Log.Warning("Failed to get service path: %s", err)
+	}
+
+	realpath, err := libkb.CurrentBinaryRealpath()
+	if err == nil {
+		c.BinaryRealpath = realpath
+	} else {
+		h.G().Log.Warning("Failed to get service realpath: %s", err)
 	}
 
 	c.ConfigPath = h.G().Env.GetConfigFilename()
@@ -294,7 +303,7 @@ func mergeIntoPath(g *libkb.GlobalContext, p2 string) error {
 
 func (h ConfigHandler) HelloIAm(_ context.Context, arg keybase1.ClientDetails) error {
 	tmp := fmt.Sprintf("%v", arg.Argv)
-	re := regexp.MustCompile(`\b(chat|encrypt)\b`)
+	re := regexp.MustCompile(`\b(chat|encrypt|git)\b`)
 	if mtch := re.FindString(tmp); len(mtch) > 0 {
 		arg.Argv = []string{arg.Argv[0], mtch, "(redacted)"}
 	}

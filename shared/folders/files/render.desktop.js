@@ -263,14 +263,23 @@ class FilesRender extends Component<Props> {
               bottom: 16,
             }}
           >
-            {this.props.users.map(u => (
-              <Box key={u.username} style={{height: 32, width: 28}}>
-                <Avatar username={u.username} size={32} borderColor={globalColors.white} />
-              </Box>
-            ))}
+            {!this.props.isTeam &&
+              this.props.users.map(u => (
+                <Box key={u.username} style={{height: 32, width: 28}}>
+                  <Avatar username={u.username} size={32} borderColor={globalColors.white} />
+                </Box>
+              ))}
+            {this.props.isTeam &&
+              <Avatar
+                teamname={this.props.users.length ? this.props.users[0].username : ''}
+                isTeam={true}
+                size={64}
+              />}
           </Box>
           <Box style={styleTLFNameContainer}>
-            <Text type="BodySemibold" style={tlfTextStyle}>{isPrivate ? 'private/' : 'public/'}</Text>
+            <Text type="BodySemibold" style={tlfTextStyle}>
+              {!this.props.isTeam && (isPrivate ? 'private/' : 'public/')}{this.props.isTeam && 'team/'}
+            </Text>
             <Usernames users={this.props.users} type="Header" style={tlfTextStyle} />
           </Box>
         </Box>
@@ -312,7 +321,7 @@ const styleTLFNameContainer = {
   marginTop: 'auto',
   paddingLeft: globalMargins.xlarge,
   paddingRight: globalMargins.xlarge,
-  paddingTop: 22,
+  paddingTop: 64,
   paddingBottom: 20,
 }
 

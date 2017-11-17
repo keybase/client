@@ -1,3 +1,6 @@
+// Copyright 2017 Keybase, Inc. All rights reserved. Use of
+// this source code is governed by the included BSD license.
+
 package rpc
 
 import (
@@ -150,7 +153,7 @@ type ConnectionHandler interface {
 // uses TLS+rpc.
 type ConnectionTransportTLS struct {
 	rootCerts []byte
-	srvAddr   string
+	srvRemote Remote
 	tlsConfig *tls.Config
 
 	// Protects everything below.
@@ -160,6 +163,7 @@ type ConnectionTransportTLS struct {
 	conn            net.Conn
 	logFactory      LogFactory
 	wef             WrapErrorFunc
+	log             connectionLog
 }
 
 // Test that ConnectionTransportTLS fully implements the ConnectionTransport interface.
@@ -170,8 +174,9 @@ func (ct *ConnectionTransportTLS) Dial(ctx context.Context) (
 	Transporter, error) {
 	var conn net.Conn
 	err := runUnlessCanceled(ctx, func() error {
+		addr := ct.srvRemote.GetAddress()
 		config := ct.tlsConfig
-		host, _, err := net.SplitHostPort(ct.srvAddr)
+		host, _, err := net.SplitHostPort(addr)
 		if err != nil {
 			return err
 		}
@@ -196,11 +201,12 @@ func (ct *ConnectionTransportTLS) Dial(ctx context.Context) (
 			config = &tls.Config{ServerName: host}
 		}
 
+		ct.log.Debug("Dialing %s", addr)
 		// connect
 		dialer := net.Dialer{
 			KeepAlive: 10 * time.Second,
 		}
-		baseConn, err := dialer.Dial("tcp", ct.srvAddr)
+		baseConn, err := dialer.Dial("tcp", addr)
 		if err != nil {
 			// If we get a DNS error, it could be because glibc has cached an
 			// old version of /etc/resolv.conf. The res_init() libc function
@@ -249,6 +255,7 @@ func (ct *ConnectionTransportTLS) Finalize() {
 	defer ct.mutex.Unlock()
 	ct.transport = ct.stagedTransport
 	ct.stagedTransport = nil
+	ct.srvRemote.Reset()
 }
 
 // Close is an implementation of the ConnectionTransport interface.
@@ -325,7 +332,7 @@ type ConnectionOpts struct {
 // NewTLSConnection returns a connection that tries to connect to the
 // given server address with TLS.
 func NewTLSConnection(
-	srvAddr string,
+	srvRemote Remote,
 	rootCerts []byte,
 	errorUnwrapper ErrorUnwrapper,
 	handler ConnectionHandler,
@@ -335,9 +342,13 @@ func NewTLSConnection(
 ) *Connection {
 	transport := &ConnectionTransportTLS{
 		rootCerts:  rootCerts,
-		srvAddr:    srvAddr,
+		srvRemote:  srvRemote,
 		logFactory: logFactory,
 		wef:        opts.WrapErrorFunc,
+		log: connectionLog{
+			LogOutput: logOutput,
+			logPrefix: "CONNTSPT",
+		},
 	}
 	return newConnectionWithTransportAndProtocols(handler, transport, errorUnwrapper, logOutput, opts)
 }
@@ -345,7 +356,7 @@ func NewTLSConnection(
 // NewTLSConnectionWithTLSConfig allows you to specify a RootCA pool and also
 // a serverName (if wanted) via the full Go TLS config object.
 func NewTLSConnectionWithTLSConfig(
-	srvAddr string,
+	srvRemote Remote,
 	tlsConfig *tls.Config,
 	errorUnwrapper ErrorUnwrapper,
 	handler ConnectionHandler,
@@ -354,10 +365,14 @@ func NewTLSConnectionWithTLSConfig(
 	opts ConnectionOpts,
 ) *Connection {
 	transport := &ConnectionTransportTLS{
-		srvAddr:    srvAddr,
+		srvRemote:  srvRemote,
 		tlsConfig:  copyTLSConfig(tlsConfig),
 		logFactory: logFactory,
 		wef:        opts.WrapErrorFunc,
+		log: connectionLog{
+			LogOutput: logOutput,
+			logPrefix: "CONNTSPT",
+		},
 	}
 	return newConnectionWithTransportAndProtocols(handler, transport, errorUnwrapper, logOutput, opts)
 }

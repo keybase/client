@@ -275,6 +275,10 @@
           "name": "inboxVers"
         },
         {
+          "type": "SyncInboxResType",
+          "name": "inboxSyncStatus"
+        },
+        {
           "type": {
             "type": "array",
             "items": "UnreadUpdate"
@@ -391,6 +395,14 @@
           "type": "SyncInboxRes",
           "name": "inboxRes"
         }
+      ]
+    },
+    {
+      "type": "enum",
+      "name": "SyncAllProtVers",
+      "symbols": [
+        "V0_0",
+        "V1_1"
       ]
     },
     {
@@ -763,6 +775,14 @@
         {
           "name": "fresh",
           "type": "boolean"
+        },
+        {
+          "name": "protVers",
+          "type": "SyncAllProtVers"
+        },
+        {
+          "name": "hostName",
+          "type": "string"
         }
       ],
       "response": "SyncAllResult"
@@ -888,6 +908,15 @@
       ],
       "response": "JoinLeaveConversationRemoteRes"
     },
+    "previewConversation": {
+      "request": [
+        {
+          "name": "convID",
+          "type": "ConversationID"
+        }
+      ],
+      "response": "JoinLeaveConversationRemoteRes"
+    },
     "deleteConversation": {
       "request": [
         {
@@ -906,10 +935,6 @@
         {
           "name": "topicType",
           "type": "TopicType"
-        },
-        {
-          "name": "membersType",
-          "type": "ConversationMembersType"
         },
         {
           "name": "summarizeMaxMsgs",

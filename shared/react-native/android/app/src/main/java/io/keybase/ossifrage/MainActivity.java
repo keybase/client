@@ -1,6 +1,7 @@
 package io.keybase.ossifrage;
 
 import android.annotation.TargetApi;
+import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
@@ -18,6 +19,8 @@ import com.facebook.react.ReactInstanceManager;
 import com.facebook.react.ReactRootView;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
@@ -33,6 +36,24 @@ import io.keybase.ossifrage.util.DNSNSFetcher;
 public class MainActivity extends ReactActivity {
     private static final String TAG = MainActivity.class.getName();
 
+    private void createDummyFile() {
+        final File dummyFile = new File(this.getFilesDir(), "dummy.txt");
+        try {
+            if (dummyFile.createNewFile()) {
+                dummyFile.setWritable(true);
+                final FileOutputStream stream = new FileOutputStream(dummyFile);
+                try {
+                    stream.write("hi".getBytes());
+                } finally {
+                    stream.close();
+                }
+            } else {
+                Log.d(TAG, "dummy.txt exists");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 
     @Override
     @TargetApi(Build.VERSION_CODES.KITKAT)
@@ -43,6 +64,7 @@ public class MainActivity extends ReactActivity {
             e.printStackTrace();
         }
 
+        createDummyFile();
         initOnce(this.getFilesDir().getPath(), this.getFileStreamPath("service.log").getAbsolutePath(), "prod", false, new DNSNSFetcher());
 
         super.onCreate(savedInstanceState);

@@ -1,20 +1,13 @@
 // @flow
 import * as Constants from '../constants/signup'
+import * as LoginGen from './login-gen'
+import * as SignupGen from './signup-gen'
+import * as RPCTypes from '../constants/types/flow-types'
 import HiddenString from '../util/hidden-string'
 import trim from 'lodash/trim'
-import {
-  CommonDeviceType,
-  signupGetInvitationCodeRpcPromise,
-  signupSignupRpcPromise,
-  signupCheckInvitationCodeRpcPromise,
-  signupCheckUsernameAvailableRpcPromise,
-  signupInviteRequestRpcPromise,
-  deviceCheckDeviceNameFormatRpcPromise,
-} from '../constants/types/flow-types'
 import {isMobile} from '../constants/platform'
 import {isValidEmail, isValidName, isValidUsername} from '../util/simple-validators'
 import {loginTab} from '../constants/tabs'
-import * as Creators from './login/creators'
 import {navigateAppend, navigateTo} from '../actions/route-tree'
 
 import type {
@@ -41,12 +34,12 @@ function startRequestInvite() {
   }
 }
 
-function checkInviteCode(inviteCode: string) {
+function checkInviteCodeThenNextPhase(inviteCode: string) {
   return (dispatch: Dispatch) => {
     const p: Promise<*> = new Promise((resolve, reject) => {
-      dispatch({payload: {inviteCode}, type: Constants.checkInviteCode})
+      dispatch(SignupGen.createCheckInviteCode({inviteCode}))
 
-      signupCheckInvitationCodeRpcPromise({
+      RPCTypes.signupCheckInvitationCodeRpcPromise({
         param: {
           invitationCode: inviteCode,
         },
@@ -55,20 +48,15 @@ function checkInviteCode(inviteCode: string) {
         },
       })
         .then(() => {
-          dispatch({
-            payload: {inviteCode},
-            type: Constants.checkInviteCode,
-          })
+          dispatch(SignupGen.createCheckInviteCode({inviteCode}))
           dispatch(nextPhase())
           resolve()
         })
         .catch(err => {
           console.warn('error in inviteCode:', err)
-          dispatch({
-            error: true,
-            payload: {errorText: "Sorry, that's not a valid invite code."},
-            type: Constants.checkInviteCode,
-          })
+          dispatch(
+            SignupGen.createCheckInviteCodeError({errorText: "Sorry, that's not a valid invite code."})
+          )
           reject(err)
         })
     })
@@ -78,20 +66,19 @@ function checkInviteCode(inviteCode: string) {
 
 function requestAutoInvite() {
   return (dispatch: Dispatch) => {
-    dispatch(Creators.setLoginFromRevokedDevice(''))
-    dispatch(Creators.setRevokedSelf(''))
-    dispatch(Creators.setDeletedSelf(''))
+    dispatch(LoginGen.createSetRevokedSelf({revoked: ''}))
+    dispatch(LoginGen.createSetDeletedSelf({deletedUsername: ''}))
     const p: Promise<*> = new Promise((resolve, reject) => {
       // TODO: It would be better to book-keep having asked for an auto
       // invite code, instead of just acting as if the one we receive
       // here had been typed, using the same store entry as a manual one.
-      signupGetInvitationCodeRpcPromise({
+      RPCTypes.signupGetInvitationCodeRpcPromise({
         waitingHandler: isWaiting => {
           dispatch(waiting(isWaiting))
         },
       })
         .then(inviteCode => {
-          dispatch(checkInviteCode(inviteCode))
+          dispatch(checkInviteCodeThenNextPhase(inviteCode))
           // For navigateAppend to work in nextPhase(), need the right path.
           dispatch(navigateTo([loginTab, 'signup']))
           inviteCode ? resolve() : reject(new Error('No invite code'))
@@ -128,7 +115,7 @@ function requestInvite(email: string, name: string) {
         return
       }
 
-      signupInviteRequestRpcPromise({
+      RPCTypes.signupInviteRequestRpcPromise({
         param: {
           email: email,
           fullname: name,
@@ -197,7 +184,7 @@ function checkUsernameEmail(username: ?string, email: ?string) {
         return
       }
 
-      signupCheckUsernameAvailableRpcPromise({
+      RPCTypes.signupCheckUsernameAvailableRpcPromise({
         param: {username},
         waitingHandler: isWaiting => {
           dispatch(waiting(isWaiting))
@@ -295,7 +282,7 @@ function submitDeviceName(deviceName: string, skipMail?: boolean, onDisplayPaper
           }: SubmitDeviceName)
         )
       } else {
-        deviceCheckDeviceNameFormatRpcPromise({
+        RPCTypes.deviceCheckDeviceNameFormatRpcPromise({
           param: {name: deviceName},
           waitingHandler: isWaiting => {
             dispatch(waiting(isWaiting))
@@ -353,10 +340,10 @@ function signup(skipMail: boolean, onDisplayPaperKey?: () => void) {
     const p: Promise<*> = new Promise((resolve, reject) => {
       const {email, username, inviteCode, passphrase, deviceName} = getState().signup
       paperKeyResponse = null
-      const deviceType = isMobile ? CommonDeviceType.mobile : CommonDeviceType.desktop
+      const deviceType = isMobile ? RPCTypes.commonDeviceType.mobile : RPCTypes.commonDeviceType.desktop
 
       if (email && username && inviteCode && passphrase && deviceName) {
-        signupSignupRpcPromise({
+        RPCTypes.signupSignupRpcPromise({
           incomingCallMap: {
             'keybase.1.gpgUi.wantToAddGPGKey': (params, response) => {
               // Do not add a gpg key for now
@@ -437,7 +424,7 @@ function restartSignup() {
         payload: {},
         type: Constants.restartSignup,
       })
-      dispatch(Creators.navBasedOnLoginAndInitialState())
+      dispatch(LoginGen.createNavBasedOnLoginAndInitialState())
       resolve()
     })
     return p
@@ -463,7 +450,7 @@ function clearDeviceNameError() {
 }
 
 export {
-  checkInviteCode,
+  checkInviteCodeThenNextPhase,
   checkPassphrase,
   checkUsernameEmail,
   clearDeviceNameError,

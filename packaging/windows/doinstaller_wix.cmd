@@ -16,7 +16,7 @@ set CERTISSUER=DigiCert
 set Folder=%GOPATH%\src\github.com\keybase\client\go\keybase\
 set PathName=%Folder%keybase.exe
 
-if NOT DEFINED DOKAN_PATH set DOKAN_PATH=c:\work\bin\dokan-dev\build81
+if NOT DEFINED DOKAN_PATH set DOKAN_PATH=c:\work\bin\dokan-dev\build84
 echo DOKAN_PATH %DOKAN_PATH%
 
 for /F delims^=^"^ tokens^=2 %%x in ('findstr ProductCodeX64 %DOKAN_PATH%\dokan_wix\version.xml') do set DokanProductCodeX64=%%x
@@ -35,6 +35,7 @@ echo %SEMVER%
 set KEYBASE_VERSION=%SEMVER%
 
 echo KEYBASE_VERSION %KEYBASE_VERSION%
+popd
 
 :: dokan source binaries.
 :: There are 8 (4 windows versions times 32/64 bit) but they all seem to have the same version.
@@ -109,7 +110,7 @@ IF %ERRORLEVEL% NEQ 0 (
   EXIT /B 1
 )
 
-if NOT DEFINED BUILD_TAG set BUILD_TAG=%SEMVER%
+set BUILD_TAG=%SEMVER%
 
 pushd %GOPATH%\src\github.com\keybase\client\packaging\windows\WIXInstallers
 
@@ -141,14 +142,19 @@ IF %ERRORLEVEL% NEQ 0 (
   EXIT /B 1
 )
 
-:: Run keybase sign to get signature of update
-set KeybaseBin="%LOCALAPPDATA%\Keybase\keybase.exe"
-set SigFile=sig.txt
-%KeybaseBin% sign -d --saltpack-version=1 -i %KEYBASE_INSTALLER_NAME% -o %SigFile%
+:: Run ssss to get signature of update
+pushd %GOPATH%\src\github.com\keybase\client\go\tools\ssss
+go build
 IF %ERRORLEVEL% NEQ 0 (
   EXIT /B 1
 )
-
+popd
+set SigningBin="%GOPATH%\src\github.com\keybase\client\go\tools\ssss\ssss.exe"
+set SigFile=sig.txt
+%SigningBin% %KEYBASE_INSTALLER_NAME% > %SigFile%
+IF %ERRORLEVEL% NEQ 0 (
+  EXIT /B 1
+)
 
 :: UpdateChannel is a Jenkins select parameter, one of: Smoke, Test, None
 echo UpdateChannel: %UpdateChannel%
@@ -180,6 +186,8 @@ echo %JSON_UPDATE_FILENAME%
 %ReleaseBin% update-json --version=%SEMVER% --src=%KEYBASE_INSTALLER_NAME% --uri=https://prerelease.keybase.io/windows --signature=%SigFile% --description=%GOPATH%\src\github.com\keybase\client\shared\desktop\CHANGELOG.txt --prop=DokanProductCodeX64:%DokanProductCodeX64% --prop=DokanProductCodeX86:%DokanProductCodeX86% > %JSON_UPDATE_FILENAME%
 
 :end_update_json
+
+popd
 
 goto:eof
 

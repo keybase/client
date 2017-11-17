@@ -2163,6 +2163,62 @@ func TestResetAccount(t *testing.T) {
 	testUserHasDeviceKey(tc)
 }
 
+// create a standard user with device keys, reset account (but don't logout), login.
+func TestResetAccountNoLogout(t *testing.T) {
+	tc := SetupEngineTest(t, "login")
+	defer tc.Cleanup()
+
+	u := CreateAndSignupFakeUser(tc, "login")
+	originalDevice := tc.G.Env.GetDeviceID()
+	ResetAccountNoLogout(tc, u)
+
+	// this will reprovision as an eldest device:
+	u.LoginOrBust(tc)
+	if err := AssertProvisioned(tc); err != nil {
+		t.Fatal(err)
+	}
+
+	newDevice := tc.G.Env.GetDeviceID()
+
+	if newDevice == originalDevice {
+		t.Errorf("device id did not change: %s", newDevice)
+	}
+
+	testUserHasDeviceKey(tc)
+}
+
+// create a standard user with device keys, reset account (but don't logout), login.
+// Prime the FullSelfer cache before reset.
+func TestResetAccountNoLogoutSelfCache(t *testing.T) {
+	tc := SetupEngineTest(t, "login")
+	defer tc.Cleanup()
+
+	u := CreateAndSignupFakeUser(tc, "login")
+	originalDevice := tc.G.Env.GetDeviceID()
+
+	// make sure FullSelf is cached
+	tc.G.GetFullSelfer().WithSelf(context.TODO(), func(u *libkb.User) error {
+		t.Logf("full self user: %s", u.GetName())
+		return nil
+	})
+
+	ResetAccountNoLogout(tc, u)
+
+	// this will reprovision as an eldest device:
+	u.LoginOrBust(tc)
+	if err := AssertProvisioned(tc); err != nil {
+		t.Fatal(err)
+	}
+
+	newDevice := tc.G.Env.GetDeviceID()
+
+	if newDevice == originalDevice {
+		t.Errorf("device id did not change: %s", newDevice)
+	}
+
+	testUserHasDeviceKey(tc)
+}
+
 // After resetting account, try provisioning in a clean home dir.
 func TestResetAccountNewHome(t *testing.T) {
 	tc := SetupEngineTest(t, "login")
@@ -3205,6 +3261,39 @@ func TestLoginEmailOnProvisionedDevice(t *testing.T) {
 	}
 }
 
+func TestBeforeResetDeviceName(t *testing.T) {
+	tc := SetupEngineTest(t, "login")
+	defer tc.Cleanup()
+
+	u := CreateAndSignupFakeUser(tc, "login")
+	originalDeviceName := u.DeviceName
+	t.Logf("original device name: %s", originalDeviceName)
+	ResetAccount(tc, u)
+
+	provui := &testProvisionSetNameUI{
+		testProvisionUI: newTestProvisionUI(),
+		DeviceName:      originalDeviceName,
+	}
+	ctx := &Context{
+		ProvisionUI: provui,
+		LoginUI:     &libkb.TestLoginUI{Username: u.Username},
+		LogUI:       tc.G.UI.GetLogUI(),
+		SecretUI:    u.NewSecretUI(),
+		GPGUI:       &gpgtestui{},
+	}
+	eng := NewLogin(tc.G, libkb.DeviceTypeDesktop, "", keybase1.ClientType_CLI)
+	err := RunEngine(eng, ctx)
+	if err == nil {
+		t.Errorf("Login worked with pre-reset device name")
+	}
+	if len(provui.ExistingDevicesFromArg) == 0 {
+		t.Fatalf("no existing devices provided to provision ui, expected 1 (pre reset)")
+	}
+	if provui.ExistingDevicesFromArg[0] != originalDeviceName {
+		t.Errorf("existing device name 0: %q, expected %q", provui.ExistingDevicesFromArg[0], originalDeviceName)
+	}
+}
+
 type testProvisionUI struct {
 	secretCh               chan kex2.Secret
 	method                 keybase1.ProvisionMethod
@@ -3349,6 +3438,18 @@ type testProvisionDupDeviceUI struct {
 // return an existing device name
 func (u *testProvisionDupDeviceUI) PromptNewDeviceName(_ context.Context, arg keybase1.PromptNewDeviceNameArg) (string, error) {
 	return arg.ExistingDevices[0], nil
+}
+
+type testProvisionSetNameUI struct {
+	*testProvisionUI
+	DeviceName             string
+	ExistingDevicesFromArg []string
+}
+
+// return an existing device name
+func (u *testProvisionSetNameUI) PromptNewDeviceName(_ context.Context, arg keybase1.PromptNewDeviceNameArg) (string, error) {
+	u.ExistingDevicesFromArg = arg.ExistingDevices
+	return u.DeviceName, nil
 }
 
 type paperLoginUI struct {

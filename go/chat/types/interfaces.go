@@ -28,6 +28,12 @@ type NameInfoSource interface {
 	Lookup(ctx context.Context, name string, vis keybase1.TLFVisibility) (NameInfo, error)
 }
 
+type UnboxConversationInfo interface {
+	GetConvID() chat1.ConversationID
+	GetMembersType() chat1.ConversationMembersType
+	GetFinalizeInfo() *chat1.ConversationFinalizeInfo
+}
+
 type ConversationSource interface {
 	Offlinable
 
@@ -37,7 +43,7 @@ type ConversationSource interface {
 		pagination *chat1.Pagination) (chat1.ThreadView, []*chat1.RateLimit, error)
 	PullLocalOnly(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID,
 		query *chat1.GetThreadQuery, p *chat1.Pagination) (chat1.ThreadView, error)
-	GetMessages(ctx context.Context, conv chat1.Conversation, uid gregor1.UID, msgIDs []chat1.MessageID) ([]chat1.MessageUnboxed, error)
+	GetMessages(ctx context.Context, conv UnboxConversationInfo, uid gregor1.UID, msgIDs []chat1.MessageID) ([]chat1.MessageUnboxed, error)
 	GetMessagesWithRemotes(ctx context.Context, conv chat1.Conversation, uid gregor1.UID,
 		msgs []chat1.MessageBoxed) ([]chat1.MessageUnboxed, error)
 	Clear(convID chat1.ConversationID, uid gregor1.UID) error
@@ -92,7 +98,7 @@ type InboxSource interface {
 		convIDs []chat1.ConversationID, finalizeInfo chat1.ConversationFinalizeInfo) ([]chat1.ConversationLocal, error)
 	MembershipUpdate(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
 		joined []chat1.ConversationMember, removed []chat1.ConversationMember,
-		resets []chat1.ConversationMember) (MembershipUpdateRes, error)
+		resets []chat1.ConversationMember, previews []chat1.ConversationID) (MembershipUpdateRes, error)
 	TeamTypeChanged(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers, convID chat1.ConversationID,
 		teamType chat1.TeamType) (*chat1.ConversationLocal, error)
 
@@ -158,4 +164,12 @@ type PushHandler interface {
 type AppState interface {
 	State() keybase1.AppState
 	NextUpdate() chan keybase1.AppState
+}
+
+type TeamChannelSource interface {
+	Offlinable
+
+	GetChannelsFull(context.Context, gregor1.UID, chat1.TLFID, chat1.TopicType) ([]chat1.ConversationLocal, []chat1.RateLimit, error)
+	GetChannelsTopicName(context.Context, gregor1.UID, chat1.TLFID, chat1.TopicType) ([]ConvIDAndTopicName, []chat1.RateLimit, error)
+	ChannelsChanged(context.Context, chat1.TLFID)
 }

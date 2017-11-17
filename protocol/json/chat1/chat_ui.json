@@ -115,6 +115,10 @@
           "name": "version"
         },
         {
+          "type": "MessageID",
+          "name": "maxMsgID"
+        },
+        {
           "type": [
             null,
             "UnverifiedInboxUIItemMetadata"
@@ -240,6 +244,10 @@
           "name": "version"
         },
         {
+          "type": "MessageID",
+          "name": "maxMsgID"
+        },
+        {
           "type": [
             null,
             "ConversationFinalizeInfo"
@@ -342,6 +350,13 @@
         {
           "type": "ChannelMention",
           "name": "channelMention"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "channelNameMentions"
         }
       ]
     },

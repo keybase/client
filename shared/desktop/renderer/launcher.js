@@ -51,6 +51,7 @@ function load() {
   if (!_store) {
     _store = new RemoteStore({component: 'menubar'})
   }
+  // $FlowIssue wants this to be non-null
   reactDOM.render(<RemoteMenubar />, document.getElementById('root'))
 }
 

@@ -248,7 +248,7 @@ func (g *PushHandler) TlfFinalize(ctx context.Context, m gregor.OutOfBandMessage
 				conv = nil
 			}
 
-			if conv.GetTopicType() == chat1.TopicType_CHAT {
+			if conv == nil || conv.GetTopicType() == chat1.TopicType_CHAT {
 				if g.shouldSendNotifications() {
 					g.G().NotifyRouter.HandleChatTLFFinalize(ctx, keybase1.UID(uid.String()),
 						convID, update.FinalizeInfo, g.presentUIItem(conv))
@@ -352,7 +352,7 @@ func (g *PushHandler) shouldDisplayDesktopNotification(ctx context.Context,
 		apptype := keybase1.DeviceType_DESKTOP
 		kind := chat1.NotificationKind_GENERIC
 		switch typ {
-		case chat1.MessageType_TEXT:
+		case chat1.MessageType_TEXT, chat1.MessageType_SYSTEM:
 			for _, at := range msg.Valid().AtMentions {
 				if at.Eq(uid) {
 					kind = chat1.NotificationKind_ATMENTION
@@ -461,7 +461,7 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage) (
 				}
 				desktopNotification := g.shouldDisplayDesktopNotification(ctx, uid, conv, decmsg)
 				activity = chat1.NewChatActivityWithIncomingMessage(chat1.IncomingMessage{
-					Message: utils.PresentMessageUnboxed(decmsg),
+					Message: utils.PresentMessageUnboxed(ctx, decmsg, uid, g.G().TeamChannelSource),
 					ConvID:  nm.ConvID,
 					Conv:    g.presentUIItem(conv),
 					DisplayDesktopNotification: desktopNotification,
@@ -789,7 +789,7 @@ func (g *PushHandler) MembershipUpdate(ctx context.Context, m gregor.OutOfBandMe
 
 		// Write out changes to local storage
 		updateRes, err := g.G().InboxSource.MembershipUpdate(ctx, uid, update.InboxVers, update.Joined,
-			update.Removed, update.Reset)
+			update.Removed, update.Reset, update.Previewed)
 		if err != nil {
 			g.Debug(ctx, "MembershipUpdate: failed to update membership on inbox: %s", err.Error())
 			return err
@@ -815,13 +815,40 @@ func (g *PushHandler) MembershipUpdate(ctx context.Context, m gregor.OutOfBandMe
 			g.notifyMembersUpdate(ctx, uid, cm, chat1.ConversationMemberStatus_RESET)
 		}
 
-		// Fire off badger update
-		if g.badger != nil && update.UnreadUpdate != nil {
-			g.badger.PushChatUpdate(*update.UnreadUpdate, update.InboxVers)
+		// Fire off badger updates
+		if g.badger != nil {
+			if update.UnreadUpdate != nil {
+				g.badger.PushChatUpdate(*update.UnreadUpdate, update.InboxVers)
+			}
+			for _, upd := range update.UnreadUpdates {
+				g.badger.PushChatUpdate(upd, update.InboxVers)
+			}
 		}
 
 		return nil
 	}(bctx)
+
+	return nil
+}
+
+func (g *PushHandler) TeamChannels(ctx context.Context, m gregor.OutOfBandMessage) (err error) {
+	var identBreaks []keybase1.TLFIdentifyFailure
+	ctx = Context(ctx, g.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, &identBreaks,
+		g.identNotifier)
+	defer g.Trace(ctx, func() error { return err }, "TeamChannels")()
+	if m.Body() == nil {
+		return errors.New("gregor handler for team channels update: nil message body")
+	}
+
+	var update chat1.TeamChannelUpdate
+	reader := bytes.NewReader(m.Body().Bytes())
+	dec := codec.NewDecoder(reader, &codec.MsgpackHandle{WriteExt: true})
+	err = dec.Decode(&update)
+	if err != nil {
+		return err
+	}
+
+	g.G().TeamChannelSource.ChannelsChanged(ctx, update.TeamID)
 
 	return nil
 }
@@ -842,6 +869,8 @@ func (g *PushHandler) HandleOobm(ctx context.Context, obm gregor.OutOfBandMessag
 		return true, g.Typing(ctx, obm)
 	case types.PushMembershipUpdate:
 		return true, g.MembershipUpdate(ctx, obm)
+	case types.PushTeamChannels:
+		return true, g.TeamChannels(ctx, obm)
 	}
 
 	return false, nil

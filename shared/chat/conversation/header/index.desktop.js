@@ -11,7 +11,14 @@ const ShhIcon = () => (
   </Box>
 )
 
-const ChannelHeader = ({channelName, infoPanelOpen, muted, onToggleInfoPanel, teamName}: Props) => (
+const ChannelHeader = ({
+  channelName,
+  infoPanelOpen,
+  muted,
+  onOpenFolder,
+  onToggleInfoPanel,
+  teamName,
+}: Props) => (
   <Box style={containerStyle}>
     <Box
       style={{
@@ -28,6 +35,7 @@ const ChannelHeader = ({channelName, infoPanelOpen, muted, onToggleInfoPanel, te
       </Text>
       {muted && <ShhIcon />}
     </Box>
+    <Icon type="iconfont-folder-private" style={styleLeft} onClick={onOpenFolder} />
     <Icon
       type={infoPanelOpen ? 'iconfont-close' : 'iconfont-info'}
       style={styleLeft}

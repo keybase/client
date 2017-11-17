@@ -191,6 +191,7 @@ func makeChatCLIConversationFetcher(ctx *cli.Context, tlfName string, markAsRead
 		chat1.MessageType_ATTACHMENT,
 		chat1.MessageType_JOIN,
 		chat1.MessageType_LEAVE,
+		chat1.MessageType_SYSTEM,
 	}
 	fetcher.query.Limit = chat1.UnreadFirstNumLimit{
 		NumRead: 2,

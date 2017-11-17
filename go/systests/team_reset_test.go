@@ -152,6 +152,13 @@ func TestTeamDelete(t *testing.T) {
 
 	divDebug(ctx, "Cam sent a chat")
 	readChats(team, bob, 2)
+
+	// XXX this assertion currently fails
+	// bob.assertMemberInactive(team, ann)
+	bob.assertMemberActive(team, cam)
+	// XXX this assertion currently fails
+	// cam.assertMemberInactive(team, ann)
+	cam.assertMemberActive(team, bob)
 }
 
 func TestTeamReset(t *testing.T) {
@@ -160,16 +167,30 @@ func TestTeamReset(t *testing.T) {
 
 	ann := ctx.installKeybaseForUser("ann", 10)
 	ann.signup()
-	divDebug(ctx, "Signed up ann (%s)", ann.username)
+	divDebug(ctx, "Signed up ann (%s, %s)", ann.username, ann.uid())
 	bob := ctx.installKeybaseForUser("bob", 10)
 	bob.signup()
-	divDebug(ctx, "Signed up bob (%s)", bob.username)
+	divDebug(ctx, "Signed up bob (%s, %s)", bob.username, bob.uid())
 	cam := ctx.installKeybaseForUser("cam", 10)
 	cam.signup()
-	divDebug(ctx, "Signed up cam (%s)", cam.username)
+	divDebug(ctx, "Signed up cam (%s, %s)", cam.username, cam.uid())
+
+	// Note that ann (the admin) has a UIDMapper that should get pubsub updates
+	// since she is an admin for the team in question. cam won't get those
+	// pubsub updates
+	users := []*smuUser{bob, cam}
+	for _, user := range users {
+		for _, device := range user.devices {
+			device.tctx.G.UIDMapper.SetTestingNoCachingMode(true)
+		}
+	}
 
 	team := ann.createTeam([]*smuUser{bob, cam})
 	divDebug(ctx, "team created (%s)", team.name)
+
+	// ensure bob is active according to other users
+	ann.assertMemberActive(team, bob)
+	cam.assertMemberActive(team, bob)
 
 	sendChat(team, ann, "0")
 	divDebug(ctx, "Sent chat '0' (%s via %s)", team.name, ann.username)
@@ -181,11 +202,23 @@ func TestTeamReset(t *testing.T) {
 	bob.reset()
 	divDebug(ctx, "Reset bob (%s)", bob.username)
 
+	// NOTE(maxtaco): This might be racy! If so, please talk to me.
+	// I couldn't get it to race in my tests, but what does that mean.
+	// The race is that a gregor message is needed to clear out the UIDMap,
+	// and it's not guaranteed to come in before the team gets updated.
 	pollForMembershipUpdate(team, ann, bob, cam)
 	divDebug(ctx, "Polled for rekey")
 
+	// bob should be inactive according to other users
+	ann.assertMemberInactive(team, bob)
+	cam.assertMemberInactive(team, bob)
+
 	bob.loginAfterReset(10)
 	divDebug(ctx, "Bob logged in after reset")
+
+	// bob should be inactive according to other users
+	ann.assertMemberInactive(team, bob)
+	cam.assertMemberInactive(team, bob)
 
 	_, err := bob.teamGet(team)
 	require.Error(t, err)
@@ -463,18 +496,34 @@ func TestImplicitTeamUserReset(t *testing.T) {
 	tryLoad := func(teamID keybase1.TeamID) (res *teams.Team) {
 		res, err := teams.Load(context.TODO(), G, keybase1.LoadTeamArg{
 			ID:          teamID,
+			Public:      teamID.IsPublic(),
 			ForceRepoll: true,
 		})
 		require.NoError(t, err)
 		return res
 	}
 
-	resTeam := tryLoad(team.ID)
-	teamName := resTeam.Name().String()
+	tryLoad(team.ID)
+
+	getRole := func(username string) keybase1.TeamRole {
+		g := G
+		loadUserArg := libkb.NewLoadUserArg(g).
+			WithNetContext(context.TODO()).
+			WithName(username).
+			WithPublicKeyOptional().
+			WithForcePoll(true)
+		upak, _, err := g.GetUPAKLoader().LoadV2(loadUserArg)
+		require.NoError(t, err)
+
+		team, err := teams.GetForTeamManagementByTeamID(context.TODO(), g, team.ID, false)
+		require.NoError(t, err)
+		role, err := team.MemberRole(context.TODO(), upak.Current.ToUserVersion())
+		require.NoError(t, err)
+		return role
+	}
 
 	// Bob's role should be NONE since he's still reset.
-	role, err := teams.MemberRole(context.TODO(), G, teamName, bob.username)
-	require.NoError(t, err)
+	role := getRole(bob.username)
 	require.Equal(t, role, keybase1.TeamRole_NONE)
 
 	// Alice re-adds bob.
@@ -485,8 +534,7 @@ func TestImplicitTeamUserReset(t *testing.T) {
 	tryLoad(team.ID)
 
 	// Check if bob is back as OWNER.
-	role, err = teams.MemberRole(context.TODO(), G, teamName, bob.username)
-	require.NoError(t, err)
+	role = getRole(bob.username)
 	require.Equal(t, role, keybase1.TeamRole_OWNER)
 
 	// Reset and re-provision bob again.
@@ -499,8 +547,7 @@ func TestImplicitTeamUserReset(t *testing.T) {
 	// Check if sigchain plays correctly, check if role is NONE.
 	tryLoad(team.ID)
 
-	role, err = teams.MemberRole(context.TODO(), G, teamName, bob.username)
-	require.NoError(t, err)
+	role = getRole(bob.username)
 	require.Equal(t, role, keybase1.TeamRole_NONE)
 
 	// Alice re-adds bob, again.
@@ -513,8 +560,7 @@ func TestImplicitTeamUserReset(t *testing.T) {
 	// with uids and eldest from before and after reset.
 	tryLoad(team.ID)
 
-	role, err = teams.MemberRole(context.TODO(), G, teamName, bob.username)
-	require.NoError(t, err)
+	role = getRole(bob.username)
 	require.Equal(t, role, keybase1.TeamRole_OWNER)
 }
 
@@ -598,4 +644,45 @@ func TestTeamReAddAfterReset(t *testing.T) {
 	require.Equal(t, role, keybase1.TeamRole_READER)
 
 	readChats(team, bob, 1)
+}
+
+func TestTeamOpenReset(t *testing.T) {
+	ctx := newSMUContext(t)
+	defer ctx.cleanup()
+
+	ann := ctx.installKeybaseForUser("ann", 10)
+	ann.signup()
+	divDebug(ctx, "Signed up ann (%s)", ann.username)
+	bob := ctx.installKeybaseForUser("bob", 10)
+	bob.signup()
+	divDebug(ctx, "Signed up bob (%s)", bob.username)
+
+	for _, user := range []*smuUser{ann, bob} {
+		for _, device := range user.devices {
+			device.tctx.G.UIDMapper.SetTestingNoCachingMode(true)
+		}
+	}
+
+	team := ann.createTeam([]*smuUser{bob})
+	divDebug(ctx, "team created (%s)", team.name)
+	ann.openTeam(team, keybase1.TeamRole_WRITER)
+	ann.assertMemberActive(team, bob)
+
+	bob.reset()
+	divDebug(ctx, "Reset bob (%s)", bob.username)
+
+	kickTeamRekeyd(ann.getPrimaryGlobalContext(), t)
+
+	details := ann.pollForMembershipUpdate(team, keybase1.PerTeamKeyGeneration(2))
+	t.Logf("details from poll: %+v", details)
+	ann.assertMemberInactive(team, bob)
+
+	bob.loginAfterReset(10)
+	divDebug(ctx, "Bob logged in after reset")
+
+	bob.requestAccess(team)
+	divDebug(ctx, "Bob requested access to open team after reset")
+
+	ann.pollForMembershipUpdate(team, keybase1.PerTeamKeyGeneration(3))
+	ann.assertMemberActive(team, bob)
 }

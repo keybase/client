@@ -1,6 +1,6 @@
 // @flow
 import * as Constants from '../../../constants/chat'
-import * as Creators from '../../../actions/chat/creators'
+import * as ChatGen from '../../../actions/chat-gen'
 import {List} from 'immutable'
 import {ChannelHeader, UsernameHeader} from '.'
 import {branch, compose, renderComponent, connect, type TypedState} from '../../../util/container'
@@ -10,10 +10,10 @@ import {chatTab} from '../../../constants/tabs'
 import {type OwnProps} from './container'
 
 const getUsers = createSelector(
-  [Constants.getYou, Constants.getTLF, Constants.getFollowingMap, Constants.getMetaDataMap],
-  (you, tlf, followingMap, metaDataMap) =>
+  [Constants.getYou, Constants.getParticipants, Constants.getFollowingMap, Constants.getMetaDataMap],
+  (you, participants, followingMap, metaDataMap) =>
     Constants.usernamesToUserListItem(
-      Constants.participantFilter(List(tlf.split(',')), you).toArray(),
+      Constants.participantFilter(List(participants), you).toArray(),
       you,
       metaDataMap,
       followingMap
@@ -32,7 +32,7 @@ const mapStateToProps = (state: TypedState, {infoPanelOpen}: OwnProps) => ({
 
 const mapDispatchToProps = (dispatch: Dispatch, {onBack, onToggleInfoPanel}: OwnProps) => ({
   onBack,
-  onOpenFolder: () => dispatch(Creators.openFolder()),
+  onOpenFolder: () => dispatch(ChatGen.createOpenFolder()),
   onShowProfile: (username: string) => dispatch(showUserProfile(username)),
   onToggleInfoPanel,
 })

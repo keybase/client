@@ -4,8 +4,11 @@ import * as I from 'immutable'
 import {Box} from '../../../common-adapters'
 import {storiesOf, action} from '../../../stories/storybook'
 import {globalColors} from '../../../styles'
-import {SmallTeamRow, SmallTeamFilteredRow} from './small-team-rows'
-import {BigTeamHeaderRow, BigTeamChannelRow, BigTeamChannelFilteredRow} from './big-team-rows'
+import {SmallTeam} from './small-team'
+import {FilterSmallTeam} from './filter-small-team'
+import {BigTeamHeader} from './big-team-header'
+import {BigTeamChannel} from './big-team-channel'
+import {FilterBigTeamChannel} from './filter-big-team-channel'
 
 const simpleCommon = {
   backgroundColor: globalColors.white,
@@ -68,38 +71,33 @@ const load = () => {
   storiesOf('Chat/Inbox', module)
     .add('Simple', () => (
       <Box style={{width: 240}}>
-        {mocks.map(m => <SmallTeamRow key={m.conversationIDKey} {...m} />)}
+        {mocks.map(m => <SmallTeam key={m.conversationIDKey} {...m} />)}
       </Box>
     ))
     .add('Team', () => (
       <Box style={{borderColor: 'black', borderStyle: 'solid', borderWidth: 1, width: 240}}>
-        <BigTeamHeaderRow teamname="Keybase" onShowMenu={action('onShowHeader')} />
-        <BigTeamChannelRow teamname="Keybase" channelname="#general" {...commonChannel} />
-        <BigTeamChannelRow teamname="Keybase" channelname="#random" showBold={true} {...commonChannel} />
-        <BigTeamChannelRow
+        <BigTeamHeader teamname="Keybase" onShowMenu={action('onShowHeader')} />
+        <BigTeamChannel teamname="Keybase" channelname="#general" {...commonChannel} />
+        <BigTeamChannel teamname="Keybase" channelname="#random" showBold={true} {...commonChannel} />
+        <BigTeamChannel
           teamname="Keybase"
           channelname="#zzz"
           showBold={true}
           hasUnread={true}
           {...commonChannel}
         />
-        <BigTeamChannelRow teamname="Keybase" channelname="#video-games" isMuted={true} {...commonChannel} />
-        <BigTeamHeaderRow teamname="techtonica" onShowMenu={action('onShowHeader')} />
-        <BigTeamChannelRow
-          teamname="techtonica"
-          channelname="#general"
-          isSelected={true}
-          {...commonChannel}
-        />
-        <BigTeamChannelRow teamname="techtonica" channelname="#ignore-selected-below" {...commonChannel} />
-        <BigTeamChannelRow
+        <BigTeamChannel teamname="Keybase" channelname="#video-games" isMuted={true} {...commonChannel} />
+        <BigTeamHeader teamname="techtonica" onShowMenu={action('onShowHeader')} />
+        <BigTeamChannel teamname="techtonica" channelname="#general" isSelected={true} {...commonChannel} />
+        <BigTeamChannel teamname="techtonica" channelname="#ignore-selected-below" {...commonChannel} />
+        <BigTeamChannel
           teamname="techtonica"
           channelname="#random"
           isSelected={true}
           isMuted={true}
           {...commonChannel}
         />
-        <BigTeamChannelRow
+        <BigTeamChannel
           teamname="techtonica"
           channelname="#happy-hour"
           isSelected={true}
@@ -110,17 +108,17 @@ const load = () => {
     ))
     .add('Filtered', () => (
       <Box style={{borderColor: 'black', borderStyle: 'solid', borderWidth: 1, width: 240}}>
-        <SmallTeamFilteredRow {...commonFiltered} />
-        <SmallTeamFilteredRow {...commonFiltered} participants={I.List.of('chris')} />
-        <SmallTeamFilteredRow {...commonFiltered} teamname="pokerpals" />
-        <BigTeamChannelFilteredRow {...commonBigFiltered} channelname="general" />
-        <BigTeamChannelFilteredRow {...commonBigFiltered} channelname="random" />
-        <BigTeamChannelFilteredRow
+        <FilterSmallTeam {...commonFiltered} />
+        <FilterSmallTeam {...commonFiltered} participants={I.List.of('chris')} />
+        <FilterSmallTeam {...commonFiltered} teamname="pokerpals" />
+        <FilterBigTeamChannel {...commonBigFiltered} channelname="general" />
+        <FilterBigTeamChannel {...commonBigFiltered} channelname="random" />
+        <FilterBigTeamChannel
           {...commonBigFiltered}
           teamname="stripe.usa"
           channelname="this-is-a-very-long-channel-name"
         />
-        <BigTeamChannelFilteredRow
+        <FilterBigTeamChannel
           {...commonBigFiltered}
           teamname="this.is.a.very.long.team.name.situation"
           channelname="general"

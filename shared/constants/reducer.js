@@ -19,6 +19,7 @@ import * as Settings from '../constants/settings'
 import * as Signup from '../constants/signup'
 import * as Tracker from '../constants/tracker'
 import * as UnlockFolders from '../constants/unlock-folders'
+import * as Waiting from '../constants/waiting'
 
 export type TypedState = {
   config: Config.State,
@@ -41,6 +42,7 @@ export type TypedState = {
   signup: Signup.State,
   tracker: Tracker.State,
   unlockFolders: UnlockFolders.State,
+  waiting: Waiting.State,
 }
 
 // TODO swap State with TypedState when TypedState includes everything we care about

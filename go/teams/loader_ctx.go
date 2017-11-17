@@ -118,7 +118,7 @@ func (l *LoaderContextG) getMe(ctx context.Context) (res keybase1.UserVersion, e
 	if err != nil {
 		return keybase1.UserVersion{}, err
 	}
-	return NewUserVersion(upak.Current.Uid, upak.Current.EldestSeqno), nil
+	return upak.Current.ToUserVersion(), nil
 }
 
 func (l *LoaderContextG) lookupEldestSeqno(ctx context.Context, uid keybase1.UID) (keybase1.Seqno, error) {

@@ -20,7 +20,7 @@ export type RowItemBig = {
   type: 'big',
   conversationIDKey: ?ConversationIDKey,
   teamname: string,
-  channelname: ?string,
+  channelname: string,
 }
 
 export type RowItemDivider = {

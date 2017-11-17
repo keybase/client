@@ -33,10 +33,13 @@ func TestTeamOpenAutoAddMember(t *testing.T) {
 			JoinAs: keybase1.TeamRole_READER,
 		},
 	})
+	require.NoError(t, err)
 
 	t.Logf("Open team name is %q", teamName)
 
-	roo.teamsClient.TeamRequestAccess(context.TODO(), keybase1.TeamRequestAccessArg{Name: teamName})
+	ret, err := roo.teamsClient.TeamRequestAccess(context.TODO(), keybase1.TeamRequestAccessArg{Name: teamName})
+	require.NoError(t, err)
+	require.Equal(t, true, ret.Open)
 
 	own.kickTeamRekeyd()
 	own.waitForTeamChangedGregor(teamName, keybase1.Seqno(2))
@@ -194,10 +197,8 @@ func TestTeamOpenBans(t *testing.T) {
 	t.Logf("Trying team edit cli...")
 	runner := client.NewCmdTeamSettingsRunner(own.tc.G)
 	runner.Team = teamName
-	runner.Settings = keybase1.TeamSettings{
-		Open:   true,
-		JoinAs: keybase1.TeamRole_READER,
-	}
+	joinAsRole := keybase1.TeamRole_READER
+	runner.JoinAsRole = &joinAsRole
 	err = runner.Run()
 	require.NoError(t, err)
 
@@ -210,7 +211,7 @@ func TestTeamOpenBans(t *testing.T) {
 	err = removeRunner.Run()
 	require.NoError(t, err)
 
-	err = bob.teamsClient.TeamRequestAccess(context.TODO(), keybase1.TeamRequestAccessArg{Name: team})
+	_, err = bob.teamsClient.TeamRequestAccess(context.TODO(), keybase1.TeamRequestAccessArg{Name: team})
 	require.Error(t, err)
 	appErr, ok := err.(libkb.AppStatusError)
 	require.True(t, ok)

@@ -86,9 +86,15 @@ function main() {
     // $FlowIssue
     packagerOpts.electronVersion = require('../package.json').devDependencies.electron
     console.log('Found electron version:', packagerOpts.electronVersion)
-    startPack()
   } catch (err) {
     console.log("Couldn't parse yarn list to find electron:", err)
+    process.exit(1)
+  }
+
+  try {
+    startPack()
+  } catch (err) {
+    console.log('Error startPack: ', err)
     process.exit(1)
   }
 }

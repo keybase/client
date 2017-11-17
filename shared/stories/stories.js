@@ -17,19 +17,21 @@ import roles from '../teams/role-picker/index.stories'
 import search from '../search/search.stories'
 import teams from '../teams/index.stories'
 import text from '../common-adapters/text.stories'
+import editTeamDescription from '../teams/edit-team-description/index.stories'
 
 const stories = {
   avatar,
   box,
+  chatCreateChannel,
+  chatHud,
   chatInboxRow,
   chatInfoPanel,
   chatInfoPanelNotifications,
   chatList,
-  chatCreateChannel,
   chatManageChannels,
-  chatHud,
   checkbox,
   dropdown,
+  editTeamDescription,
   git,
   icon,
   radiobutton,

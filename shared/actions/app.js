@@ -1,6 +1,6 @@
 // @flow
 import * as Constants from '../constants/app'
-import * as Types from '../constants/types/flow-types'
+import * as RPCTypes from '../constants/types/flow-types'
 import * as Saga from '../util/saga'
 import {call, put} from 'redux-saga/effects'
 
@@ -35,12 +35,13 @@ function* _onMobileAppStateChanged(action: Constants.MobileAppState): SagaGenera
 
   const state =
     {
-      active: Types.AppStateAppState.foreground,
-      inactive: Types.AppStateAppState.inactive,
-      background: Types.AppStateAppState.background,
-    }[nextAppState] || Types.AppStateAppState.foreground
+      active: RPCTypes.appStateAppState.foreground,
+      inactive: RPCTypes.appStateAppState.inactive,
+      background: RPCTypes.appStateAppState.background,
+    }[nextAppState] || RPCTypes.appStateAppState.foreground
+  console.log(`setting app state on service to: ${state}`)
 
-  yield call(Types.appStateUpdateAppStateRpcPromise, {param: {state}})
+  yield call(RPCTypes.appStateUpdateAppStateRpcPromise, {param: {state}})
 }
 
 function* appStateSaga(): SagaGenerator<any, any> {

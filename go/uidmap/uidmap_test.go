@@ -177,6 +177,7 @@ func TestRanOutOfTime(t *testing.T) {
 
 	// now success for user t_kb, who has a non-hardcoded username and a fullname on the
 	// server
+	t.Logf("tKB: %s", tKB)
 	uids = []keybase1.UID{tKB}
 	hit = false
 	results, err = uidMap.MapUIDsToUsernamePackages(context.TODO(), tc.G, uids, 0, 0, true)

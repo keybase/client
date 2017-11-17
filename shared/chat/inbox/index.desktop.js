@@ -1,62 +1,18 @@
 // @flow
 import React, {PureComponent} from 'react'
 import ReactList from 'react-list'
-import {Text, Icon, Box, ErrorBoundary} from '../../common-adapters'
-import {globalStyles, globalColors, globalMargins} from '../../styles'
-import Row from './row/container'
-import {Divider, FloatingDivider, BigTeamsLabel} from './row/divider'
+import {ErrorBoundary} from '../../common-adapters'
+import {globalStyles, globalColors} from '../../styles'
+import {makeRow} from './row'
+import FloatingDivider from './row/floating-divider/container'
+import Divider from './row/divider/container'
 import ChatFilterRow from './row/chat-filter-row'
 import debounce from 'lodash/debounce'
 import {isDarwin} from '../../constants/platform'
+import {Owl} from './owl'
+import NewConversation from './row/new-conversation'
 
 import type {Props} from './'
-
-class NewConversation extends PureComponent<{}> {
-  render() {
-    return (
-      <div
-        style={{
-          ...globalStyles.flexBoxRow,
-          alignItems: 'center',
-          backgroundColor: globalColors.blue,
-          flexShrink: 0,
-          minHeight: 48,
-        }}
-      >
-        <div
-          style={{
-            ...globalStyles.flexBoxRow,
-            ...globalStyles.clickable,
-            alignItems: 'center',
-          }}
-        >
-          <div
-            style={{
-              backgroundColor: 'rgba(255, 255, 255, 0.2)',
-              borderRadius: globalMargins.large,
-              height: globalMargins.large,
-              marginLeft: globalMargins.tiny,
-              marginRight: globalMargins.tiny,
-              padding: globalMargins.tiny,
-              width: globalMargins.large,
-            }}
-          >
-            <Icon
-              type="iconfont-chat"
-              style={{
-                color: globalColors.blue,
-                fontSize: 24,
-                marginLeft: 1,
-                marginTop: 1,
-              }}
-            />
-          </div>
-          <Text style={{color: globalColors.white}} type="BodySemibold">New conversation</Text>
-        </div>
-      </div>
-    )
-  }
-}
 
 type State = {
   showFloating: boolean,
@@ -104,30 +60,14 @@ class Inbox extends PureComponent<Props, State> {
       )
     }
 
-    if (row.type === 'bigTeamsLabel') {
-      return (
-        <Box style={_bigTeamLabelStyle} key="bigTeamsLabel">
-          <BigTeamsLabel isFiltered={row.isFiltered} />
-        </Box>
-      )
-    }
-
-    const key =
-      (row.type === 'small' && row.conversationIDKey) ||
-      (row.type === 'bigHeader' && row.teamname) ||
-      (row.type === 'big' && `${row.teamname}:${row.channelname}`) ||
-      'missingkey'
-    return (
-      <Row
-        conversationIDKey={row.conversationIDKey}
-        key={key}
-        filtered={!!this.props.filter}
-        isActiveRoute={true}
-        teamname={row.teamname}
-        channelname={row.channelname}
-        type={row.type}
-      />
-    )
+    return makeRow({
+      channelname: row.channelname,
+      conversationIDKey: row.conversationIDKey,
+      filtered: !!this.props.filter,
+      isActiveRoute: true,
+      teamname: row.teamname,
+      type: row.type,
+    })
   }
 
   _updateShowFloating = () => {
@@ -201,6 +141,7 @@ class Inbox extends PureComponent<Props, State> {
               itemSizeGetter={this._itemSizeGetter}
             />
           </div>
+          {!this.props.rows.length && !!this.props.filter && <Owl />}
           {this.state.showFloating &&
             this.props.showSmallTeamsExpandDivider &&
             <FloatingDivider toggle={this.props.toggleSmallTeamsExpanded} />}
@@ -230,13 +171,6 @@ const _scrollableStyle = {
   flex: 1,
   overflowY: 'auto',
   willChange: 'transform',
-}
-
-const _bigTeamLabelStyle = {
-  ...globalStyles.flexBoxRow,
-  alignItems: 'center',
-  height: 24,
-  marginLeft: globalMargins.tiny,
 }
 
 export default Inbox

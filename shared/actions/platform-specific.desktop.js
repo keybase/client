@@ -33,7 +33,7 @@ function showMainWindow(): AsyncAction {
   }
 }
 
-function displayNewMessageNotification(text: string, convID: string, badgeCount: number) {
+function displayNewMessageNotification(text: string, convID: ?string, badgeCount: ?number, myMsgID: ?number) {
   throw new Error('Display new message notification not available on this platform')
 }
 

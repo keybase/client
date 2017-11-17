@@ -152,6 +152,7 @@ function updateUserState(
         lastAction: 'refollowed',
         reason: `You have re-followed ${state.username}.`,
         trackerState: 'normal',
+        eldestKidChanged: false,
       }
     case Constants.onUnfollow:
       return {
@@ -519,13 +520,13 @@ function proofStateToSimpleProofState(
   if (
     diff &&
     remoteDiff &&
-    diff.type === RPCTypes.IdentifyCommonTrackDiffType.none &&
-    remoteDiff.type === RPCTypes.IdentifyCommonTrackDiffType.none
+    diff.type === RPCTypes.identifyCommonTrackDiffType.none &&
+    remoteDiff.type === RPCTypes.identifyCommonTrackDiffType.none
   ) {
     return Constants.normal
   }
 
-  const statusName: ?string = mapValueToKey(RPCTypes.ProveCommonProofState, proofState)
+  const statusName: ?string = mapValueToKey(RPCTypes.proveCommonProofState, proofState)
   switch (statusName) {
     case 'ok':
       return Constants.normal
@@ -551,7 +552,7 @@ function diffAndStatusMeta(
 ): {diffMeta: ?Constants.SimpleProofMeta, statusMeta: ?Constants.SimpleProofMeta} {
   const {status, state} = proofResult || {}
 
-  if (status && status !== RPCTypes.ProveCommonProofStatus.ok && isTracked) {
+  if (status && status !== RPCTypes.proveCommonProofStatus.ok && isTracked) {
     return {
       diffMeta: Constants.metaIgnored,
       statusMeta: null,
@@ -569,16 +570,16 @@ function diffAndStatusMeta(
     }
 
     return {
-      [RPCTypes.IdentifyCommonTrackDiffType.none]: null,
-      [RPCTypes.IdentifyCommonTrackDiffType.error]: null,
-      [RPCTypes.IdentifyCommonTrackDiffType.clash]: null,
-      [RPCTypes.IdentifyCommonTrackDiffType.revoked]: Constants.metaDeleted,
-      [RPCTypes.IdentifyCommonTrackDiffType.upgraded]: Constants.metaUpgraded,
-      [RPCTypes.IdentifyCommonTrackDiffType.new]: Constants.metaNew,
-      [RPCTypes.IdentifyCommonTrackDiffType.remoteFail]: null,
-      [RPCTypes.IdentifyCommonTrackDiffType.remoteWorking]: null,
-      [RPCTypes.IdentifyCommonTrackDiffType.remoteChanged]: null,
-      [RPCTypes.IdentifyCommonTrackDiffType.newEldest]: null,
+      [RPCTypes.identifyCommonTrackDiffType.none]: null,
+      [RPCTypes.identifyCommonTrackDiffType.error]: null,
+      [RPCTypes.identifyCommonTrackDiffType.clash]: null,
+      [RPCTypes.identifyCommonTrackDiffType.revoked]: Constants.metaDeleted,
+      [RPCTypes.identifyCommonTrackDiffType.upgraded]: Constants.metaUpgraded,
+      [RPCTypes.identifyCommonTrackDiffType.new]: Constants.metaNew,
+      [RPCTypes.identifyCommonTrackDiffType.remoteFail]: null,
+      [RPCTypes.identifyCommonTrackDiffType.remoteWorking]: null,
+      [RPCTypes.identifyCommonTrackDiffType.remoteChanged]: null,
+      [RPCTypes.identifyCommonTrackDiffType.newEldest]: null,
     }[diff]
   }
 
@@ -592,49 +593,49 @@ function diffAndStatusMeta(
 
     // FIXME: uncomment once the backend indicates pending-state failures based
     // on low proof age.
-    // if (state === ProveCommonProofState.tempFailure) {
+    // if (state === proveCommonProofState.tempFailure) {
     //   return metaPending
     // }
 
     // The full mapping between the proof status we get back from the server
     // and a simplified representation that we show the users.
     return {
-      [RPCTypes.ProveCommonProofStatus.none]: null,
-      [RPCTypes.ProveCommonProofStatus.ok]: null,
-      [RPCTypes.ProveCommonProofStatus.local]: null,
-      [RPCTypes.ProveCommonProofStatus.found]: null,
-      [RPCTypes.ProveCommonProofStatus.baseError]: Constants.metaUnreachable,
-      [RPCTypes.ProveCommonProofStatus.hostUnreachable]: Constants.metaUnreachable,
-      [RPCTypes.ProveCommonProofStatus.permissionDenied]: Constants.metaUnreachable,
-      [RPCTypes.ProveCommonProofStatus.failedParse]: Constants.metaUnreachable,
-      [RPCTypes.ProveCommonProofStatus.dnsError]: Constants.metaUnreachable,
-      [RPCTypes.ProveCommonProofStatus.authFailed]: Constants.metaUnreachable,
-      [RPCTypes.ProveCommonProofStatus.http500]: Constants.metaUnreachable,
-      [RPCTypes.ProveCommonProofStatus.timeout]: Constants.metaUnreachable,
-      [RPCTypes.ProveCommonProofStatus.internalError]: Constants.metaUnreachable,
-      [RPCTypes.ProveCommonProofStatus.baseHardError]: Constants.metaUnreachable,
-      [RPCTypes.ProveCommonProofStatus.notFound]: Constants.metaUnreachable,
-      [RPCTypes.ProveCommonProofStatus.contentFailure]: Constants.metaUnreachable,
-      [RPCTypes.ProveCommonProofStatus.badUsername]: Constants.metaUnreachable,
-      [RPCTypes.ProveCommonProofStatus.badRemoteId]: Constants.metaUnreachable,
-      [RPCTypes.ProveCommonProofStatus.textNotFound]: Constants.metaUnreachable,
-      [RPCTypes.ProveCommonProofStatus.badArgs]: Constants.metaUnreachable,
-      [RPCTypes.ProveCommonProofStatus.contentMissing]: Constants.metaUnreachable,
-      [RPCTypes.ProveCommonProofStatus.titleNotFound]: Constants.metaUnreachable,
-      [RPCTypes.ProveCommonProofStatus.serviceError]: Constants.metaUnreachable,
-      [RPCTypes.ProveCommonProofStatus.torSkipped]: null,
-      [RPCTypes.ProveCommonProofStatus.torIncompatible]: null,
-      [RPCTypes.ProveCommonProofStatus.http300]: Constants.metaUnreachable,
-      [RPCTypes.ProveCommonProofStatus.http400]: Constants.metaUnreachable,
-      [RPCTypes.ProveCommonProofStatus.httpOther]: Constants.metaUnreachable,
-      [RPCTypes.ProveCommonProofStatus.emptyJson]: Constants.metaUnreachable,
-      [RPCTypes.ProveCommonProofStatus.deleted]: Constants.metaDeleted,
-      [RPCTypes.ProveCommonProofStatus.serviceDead]: Constants.metaUnreachable,
-      [RPCTypes.ProveCommonProofStatus.badSignature]: Constants.metaUnreachable,
-      [RPCTypes.ProveCommonProofStatus.badApiUrl]: Constants.metaUnreachable,
-      [RPCTypes.ProveCommonProofStatus.unknownType]: Constants.metaUnreachable,
-      [RPCTypes.ProveCommonProofStatus.noHint]: Constants.metaUnreachable,
-      [RPCTypes.ProveCommonProofStatus.badHintText]: Constants.metaUnreachable,
+      [RPCTypes.proveCommonProofStatus.none]: null,
+      [RPCTypes.proveCommonProofStatus.ok]: null,
+      [RPCTypes.proveCommonProofStatus.local]: null,
+      [RPCTypes.proveCommonProofStatus.found]: null,
+      [RPCTypes.proveCommonProofStatus.baseError]: Constants.metaUnreachable,
+      [RPCTypes.proveCommonProofStatus.hostUnreachable]: Constants.metaUnreachable,
+      [RPCTypes.proveCommonProofStatus.permissionDenied]: Constants.metaUnreachable,
+      [RPCTypes.proveCommonProofStatus.failedParse]: Constants.metaUnreachable,
+      [RPCTypes.proveCommonProofStatus.dnsError]: Constants.metaUnreachable,
+      [RPCTypes.proveCommonProofStatus.authFailed]: Constants.metaUnreachable,
+      [RPCTypes.proveCommonProofStatus.http500]: Constants.metaUnreachable,
+      [RPCTypes.proveCommonProofStatus.timeout]: Constants.metaUnreachable,
+      [RPCTypes.proveCommonProofStatus.internalError]: Constants.metaUnreachable,
+      [RPCTypes.proveCommonProofStatus.baseHardError]: Constants.metaUnreachable,
+      [RPCTypes.proveCommonProofStatus.notFound]: Constants.metaUnreachable,
+      [RPCTypes.proveCommonProofStatus.contentFailure]: Constants.metaUnreachable,
+      [RPCTypes.proveCommonProofStatus.badUsername]: Constants.metaUnreachable,
+      [RPCTypes.proveCommonProofStatus.badRemoteId]: Constants.metaUnreachable,
+      [RPCTypes.proveCommonProofStatus.textNotFound]: Constants.metaUnreachable,
+      [RPCTypes.proveCommonProofStatus.badArgs]: Constants.metaUnreachable,
+      [RPCTypes.proveCommonProofStatus.contentMissing]: Constants.metaUnreachable,
+      [RPCTypes.proveCommonProofStatus.titleNotFound]: Constants.metaUnreachable,
+      [RPCTypes.proveCommonProofStatus.serviceError]: Constants.metaUnreachable,
+      [RPCTypes.proveCommonProofStatus.torSkipped]: null,
+      [RPCTypes.proveCommonProofStatus.torIncompatible]: null,
+      [RPCTypes.proveCommonProofStatus.http300]: Constants.metaUnreachable,
+      [RPCTypes.proveCommonProofStatus.http400]: Constants.metaUnreachable,
+      [RPCTypes.proveCommonProofStatus.httpOther]: Constants.metaUnreachable,
+      [RPCTypes.proveCommonProofStatus.emptyJson]: Constants.metaUnreachable,
+      [RPCTypes.proveCommonProofStatus.deleted]: Constants.metaDeleted,
+      [RPCTypes.proveCommonProofStatus.serviceDead]: Constants.metaUnreachable,
+      [RPCTypes.proveCommonProofStatus.badSignature]: Constants.metaUnreachable,
+      [RPCTypes.proveCommonProofStatus.badApiUrl]: Constants.metaUnreachable,
+      [RPCTypes.proveCommonProofStatus.unknownType]: Constants.metaUnreachable,
+      [RPCTypes.proveCommonProofStatus.noHint]: Constants.metaUnreachable,
+      [RPCTypes.proveCommonProofStatus.badHintText]: Constants.metaUnreachable,
     }[status]
   }
 }
@@ -644,19 +645,19 @@ function diffAndStatusMeta(
 function proofUrlToProfileUrl(proofType: number, name: string, key: ?string, humanUrl: ?string): string {
   key = key || ''
   switch (proofType) {
-    case RPCTypes.ProveCommonProofType.dns:
+    case RPCTypes.proveCommonProofType.dns:
       return `http://${name}`
-    case RPCTypes.ProveCommonProofType.genericWebSite:
+    case RPCTypes.proveCommonProofType.genericWebSite:
       return `${key}://${name}`
-    case RPCTypes.ProveCommonProofType.twitter:
+    case RPCTypes.proveCommonProofType.twitter:
       return `https://twitter.com/${name}`
-    case RPCTypes.ProveCommonProofType.facebook:
+    case RPCTypes.proveCommonProofType.facebook:
       return `https://facebook.com/${name}`
-    case RPCTypes.ProveCommonProofType.github:
+    case RPCTypes.proveCommonProofType.github:
       return `https://github.com/${name}`
-    case RPCTypes.ProveCommonProofType.reddit:
+    case RPCTypes.proveCommonProofType.reddit:
       return `https://reddit.com/user/${name}`
-    case RPCTypes.ProveCommonProofType.hackernews:
+    case RPCTypes.proveCommonProofType.hackernews:
       return `https://news.ycombinator.com/user?id=${name}`
     default:
       return humanUrl || ''
@@ -664,11 +665,11 @@ function proofUrlToProfileUrl(proofType: number, name: string, key: ?string, hum
 }
 
 function remoteProofToProofType(rp: RPCTypes.RemoteProof): PlatformsExpandedType {
-  if (rp.proofType === RPCTypes.ProveCommonProofType.genericWebSite) {
+  if (rp.proofType === RPCTypes.proveCommonProofType.genericWebSite) {
     return rp.key === 'http' ? 'http' : 'https'
   } else {
     // $FlowIssue
-    return mapValueToKey(RPCTypes.ProveCommonProofType, rp.proofType)
+    return mapValueToKey(RPCTypes.proveCommonProofType, rp.proofType)
   }
 }
 
@@ -699,7 +700,7 @@ function remoteProofToProof(
     oldProofState
   const isTracked = !!(lcr &&
     lcr.diff &&
-    lcr.diff.type === RPCTypes.IdentifyCommonTrackDiffType.none &&
+    lcr.diff.type === RPCTypes.identifyCommonTrackDiffType.none &&
     !lcr.breaksTracking)
   const {diffMeta, statusMeta} = diffAndStatusMeta(
     lcr && lcr.diff && lcr.diff.type,

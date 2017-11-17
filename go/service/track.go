@@ -63,7 +63,7 @@ func (h *TrackHandler) TrackWithToken(_ context.Context, arg keybase1.TrackWithT
 	return engine.RunEngine(eng, &ctx)
 }
 
-func (h *TrackHandler) DismissWithToken(_ context.Context, arg keybase1.DismissWithTokenArg) error {
+func (h *TrackHandler) DismissWithToken(ctx context.Context, arg keybase1.DismissWithTokenArg) error {
 	outcome, err := h.G().TrackCache.Get(arg.TrackToken)
 	if err != nil {
 		h.G().Log.Error("Failed to get track token", err)
@@ -74,7 +74,7 @@ func (h *TrackHandler) DismissWithToken(_ context.Context, arg keybase1.DismissW
 		return nil
 	}
 
-	return h.G().GregorDismisser.DismissItem(nil, outcome.ResponsibleGregorItem.Metadata().MsgID())
+	return h.G().GregorDismisser.DismissItem(ctx, nil, outcome.ResponsibleGregorItem.Metadata().MsgID())
 }
 
 // Untrack creates an UntrackEngine and runs it.

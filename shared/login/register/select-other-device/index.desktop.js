@@ -4,7 +4,7 @@ import * as React from 'react'
 import {Text, Icon} from '../../../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../../../styles'
 
-import type {DeviceType} from '../../../constants/types/more'
+import type {DeviceType} from '../../../constants/devices'
 import type {IconType} from '../../../common-adapters/icon'
 import type {Props} from '.'
 

@@ -1,0 +1,48 @@
+{
+  "prelude": [
+    "import * as Constants from '../constants/config'",
+    "import * as RPCTypes  from '../constants/types/flow-types'"
+  ],
+  "actions": {
+    "bootstrapStatusLoaded": {
+      "bootstrapStatus": "RPCTypes.BootstrapStatus"
+    },
+    "bootstrap": {
+      "isReconnect?": "boolean"
+    },
+    "bootstrapSuccess": {},
+    "bootstrapRetry": {},
+    "bootstrapAttemptFailed": {},
+    "bootstrapFailed": {},
+    "changeKBFSPath": {
+      "kbfsPath": "string"
+    },
+    "clearRouteState": {},
+    "configLoaded": {
+      "config": "RPCTypes.Config"
+    },
+    "daemonError": {
+      "daemonError": "?Error"
+    },
+    "extendedConfigLoaded": {
+      "extendedConfig": "RPCTypes.ExtendedStatus"
+    },
+    "getExtendedStatus": {},
+    "globalError": {
+      "globalError": "?Error"
+    },
+    "updateFollowing": {
+      "username": "string",
+      "isTracking": "boolean"
+    },
+    "persistRouteState": {},
+    "pushLoaded": {
+      "pushLoaded": "boolean"
+    },
+    "readyForBootstrap": {},
+    "retryBootstrap": {},
+    "setInitialState": {
+      "initialState": "Constants.InitialState"
+    }
+  }
+}

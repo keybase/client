@@ -3,7 +3,7 @@ import Container from '../../forms/container'
 import * as React from 'react'
 import openURL from '../../../util/open-url'
 import {RPCError} from '../../../util/errors'
-import {ConstantsStatusCode} from '../../../constants/types/flow-types'
+import {constantsStatusCode} from '../../../constants/types/flow-types'
 import {Box, Text, Markdown} from '../../../common-adapters'
 import {globalStyles, globalMargins} from '../../../styles'
 import {isMobile} from '../../../constants/platform'
@@ -17,13 +17,13 @@ const renderError = (error: RPCError) => {
     return acc
   }, {})
   switch (error.code) {
-    case ConstantsStatusCode.scdeviceprovisionoffline:
+    case constantsStatusCode.scdeviceprovisionoffline:
       return (
         <Text type="Body">
           Device provisioning failed because this device went offline. Please check your network connection and try again.
         </Text>
       )
-    case ConstantsStatusCode.scdevicenoprovision:
+    case constantsStatusCode.scdevicenoprovision:
       return (
         <Box style={styleContent}>
           <Box style={styleText}>
@@ -38,13 +38,13 @@ const renderError = (error: RPCError) => {
           </Box>
         </Box>
       )
-    case ConstantsStatusCode.scdeviceprevprovisioned:
+    case constantsStatusCode.scdeviceprevprovisioned:
       return (
         <Text type="Body">
           You have already provisioned this device. Please use 'keybase login [username]' to log in.
         </Text>
       )
-    case ConstantsStatusCode.sckeynomatchinggpg:
+    case constantsStatusCode.sckeynomatchinggpg:
       if (fields.has_active_device) {
         return (
           <Box style={styleContent}>
@@ -126,7 +126,7 @@ const renderError = (error: RPCError) => {
           </Box>
         )
       }
-    case ConstantsStatusCode.sckeynotfound:
+    case constantsStatusCode.sckeynotfound:
       return (
         <Box style={styleContent}>
           {error.desc
@@ -142,7 +142,7 @@ const renderError = (error: RPCError) => {
               </Box>}
         </Box>
       )
-    case ConstantsStatusCode.scnotfound:
+    case constantsStatusCode.scnotfound:
       return (
         <Box style={styleContent}>
           <Box style={styleText}>
@@ -152,7 +152,7 @@ const renderError = (error: RPCError) => {
           </Box>
         </Box>
       )
-    case ConstantsStatusCode.scbadloginpassword:
+    case constantsStatusCode.scbadloginpassword:
       return (
         <Box style={styleContent}>
           <Box style={{...globalStyles.flexBoxColumn, ...styleText}}>
@@ -167,9 +167,9 @@ const renderError = (error: RPCError) => {
           </Box>
         </Box>
       )
-    case ConstantsStatusCode.sckeysyncedpgpnotfound:
-    case ConstantsStatusCode.scgpgunavailable:
-    case ConstantsStatusCode.sckeynosecret:
+    case constantsStatusCode.sckeysyncedpgpnotfound:
+    case constantsStatusCode.scgpgunavailable:
+    case constantsStatusCode.sckeynosecret:
       return (
         <Box style={styleContent}>
           <Box style={styleText}>
@@ -183,11 +183,11 @@ const renderError = (error: RPCError) => {
           <Box style={styleList}>
             <Text type="Body">
               {' '}
-              - Use
+              - Run
               {' '}
               <Text type="TerminalInline">keybase login</Text>
               {' '}
-              on the command line to log in
+              on the device with the corresponding PGP private key
             </Text>
             {!isMobile &&
               <Text type="Body">
@@ -199,7 +199,7 @@ const renderError = (error: RPCError) => {
             </Text>
             <Text type="Body">
               {' '}
-              - Or,
+              - Or, if none of the above are possible,
               {' '}
               <Text type="BodyPrimaryLink" onClick={() => openURL('https://keybase.io/#account-reset')}>
                 reset your account and start fresh
@@ -208,13 +208,13 @@ const renderError = (error: RPCError) => {
           </Box>
         </Box>
       )
-    case ConstantsStatusCode.scinputcanceled:
+    case constantsStatusCode.scinputcanceled:
       return (
         <Box style={styleContent}>
           <Text type="Body">Login Cancelled</Text>
         </Box>
       )
-    case ConstantsStatusCode.sckeycorrupted:
+    case constantsStatusCode.sckeycorrupted:
       return (
         <Box style={styleContent}>
           <Text type="Body">{error.message}</Text>

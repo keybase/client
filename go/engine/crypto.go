@@ -16,48 +16,24 @@ import (
 // for this user.
 var getKeyMu sync.Mutex
 
+// GetMySecretKey uses ActiveDevice to get a secret key for the current user.
+//
+// It used to have functionality to load the user and prompt for a passphrase to
+// unlock the keys, but that is outdated now.  Either you are logged in and
+// have your device keys cached, or you aren't.
+//
+// If the key isn't found in the ActiveDevice cache, this will return LoginRequiredError.
 func GetMySecretKey(ctx context.Context, g *libkb.GlobalContext, getSecretUI func() libkb.SecretUI, secretKeyType libkb.SecretKeyType, reason string) (libkb.GenericKey, error) {
-	// check ActiveDevice cache (it has its own lock)
 	key, err := g.ActiveDevice.KeyByType(secretKeyType)
-	if err == nil && key != nil {
-		g.Log.CDebugf(ctx, "found cached device key in ActiveDevice")
-		return key, nil
-	}
-
-	g.Log.CDebugf(ctx, "GetMySecretKey: acquiring lock")
-	getKeyMu.Lock()
-	defer func() {
-		getKeyMu.Unlock()
-		g.Log.CDebugf(ctx, "GetMySecretKey: lock released")
-	}()
-	g.Log.CDebugf(ctx, "GetMySecretKey: lock acquired")
-
-	// after lock, check ActiveDevice cache
-	key, err = g.ActiveDevice.KeyByType(secretKeyType)
-	if err == nil && key != nil {
-		g.Log.CDebugf(ctx, "found cached device key in ActiveDevice")
-		return key, nil
-	}
-
-	var me *libkb.User
-	err = g.GetFullSelfer().WithSelf(ctx, func(tmp *libkb.User) error {
-		me = tmp.PartialCopy()
-		return nil
-	})
 	if err != nil {
+		if _, ok := err.(libkb.NotFoundError); ok {
+			g.Log.CDebugf(ctx, "GetMySecretKey: no device key of type %s in ActiveDevice, returning LoginRequiredError", secretKeyType)
+			return nil, libkb.LoginRequiredError{Context: "GetMySecretKey"}
+		}
+		g.Log.CDebugf(ctx, "GetMySecretKey(%s), unexpected error: %s", secretKeyType, err)
 		return nil, err
 	}
-
-	arg := libkb.SecretKeyPromptArg{
-		Ska: libkb.SecretKeyArg{
-			Me:      me,
-			KeyType: secretKeyType,
-		},
-		SecretUI:       getSecretUI(),
-		Reason:         reason,
-		UseCancelCache: true,
-	}
-	return g.Keyrings.GetSecretKeyWithPrompt(arg)
+	return key, nil
 }
 
 // SignED25519 signs the given message with the current user's private

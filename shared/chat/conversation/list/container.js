@@ -1,6 +1,7 @@
 // @flow
 import * as Constants from '../../../constants/chat'
-import * as Creators from '../../../actions/chat/creators'
+import * as ChatGen from '../../../actions/chat-gen'
+import * as KBFSGen from '../../../actions/kbfs-gen'
 import * as Selectors from '../../../constants/selectors'
 import HiddenString from '../../../util/hidden-string'
 import ListComponent, {type Props} from '.'
@@ -8,7 +9,6 @@ import {List, is, Set} from 'immutable'
 import {compose, connect, type TypedState} from '../../../util/container'
 import {createSelector, createSelectorCreator, defaultMemoize} from 'reselect'
 import {navigateAppend} from '../../../actions/route-tree'
-import {type OpenInFileUI} from '../../../constants/kbfs'
 import {type OwnProps, type StateProps, type DispatchProps} from './container'
 
 const getValidatedState = (state: TypedState) => {
@@ -16,14 +16,14 @@ const getValidatedState = (state: TypedState) => {
   if (!selectedConversationIDKey) {
     return false
   }
-  const untrustedState = state.entities.inboxUntrustedState.get(selectedConversationIDKey)
+  const untrustedState = state.chat.inboxUntrustedState.get(selectedConversationIDKey)
   if (selectedConversationIDKey && Constants.isPendingConversationIDKey(selectedConversationIDKey)) {
     if (Constants.pendingConversationIDKeyToTlfName(selectedConversationIDKey)) {
       // If it's as pending conversation with a tlfname, let's call it valid
       return true
     }
   }
-  return untrustedState === 'unboxed'
+  return ['reUnboxing', 'unboxed'].includes(untrustedState)
 }
 
 const supersedesIfNoMoreToLoadSelector = createSelector(
@@ -71,9 +71,6 @@ const messageKeysSelector = immutableCreateSelector(
   }
 )
 
-const getMessageFromMessageKeyFnSelector = (state: TypedState) => (messageKey: Constants.MessageKey) =>
-  Constants.getMessageFromMessageKey(state, messageKey)
-
 const convStateProps = createSelector(
   [Constants.getSelectedConversation, supersedesIfNoMoreToLoadSelector, getValidatedState],
   (selectedConversation, _supersedes, validated) => ({
@@ -83,40 +80,41 @@ const convStateProps = createSelector(
   })
 )
 
+// TODO this is temp until we can discuss a better solution to this getMessageFromMessageKey thing
+let _stateHack
 const mapStateToProps = createSelector(
-  [
-    ownPropsSelector,
-    Selectors.usernameSelector,
-    convStateProps,
-    messageKeysSelector,
-    getMessageFromMessageKeyFnSelector,
-  ],
-  (ownProps, username, convStateProps, messageKeys, getMessageFromMessageKey) => ({
-    you: username,
-    messageKeys,
-    getMessageFromMessageKey,
-    ...ownProps,
-    ...convStateProps,
-  })
+  [state => state, ownPropsSelector, Selectors.usernameSelector, convStateProps, messageKeysSelector],
+  (state, ownProps, username, convStateProps, messageKeys) => {
+    _stateHack = state
+    return {
+      editLastMessageCounter: ownProps.editLastMessageCounter,
+      listScrollDownCounter: ownProps.listScrollDownCounter,
+      messageKeys,
+      onFocusInput: ownProps.onFocusInput,
+      selectedConversation: convStateProps.selectedConversation,
+      validated: convStateProps.validated,
+      you: username,
+    }
+  }
 )
 
 const mapDispatchToProps = (dispatch: Dispatch): DispatchProps => ({
   _onDownloadAttachment: messageKey => {
-    dispatch(Creators.saveAttachment(messageKey))
+    dispatch(ChatGen.createSaveAttachment({messageKey}))
   },
   _onLoadMoreMessages: (conversationIDKey: Constants.ConversationIDKey) => {
-    dispatch(Creators.loadMoreMessages(conversationIDKey, false))
+    dispatch(ChatGen.createLoadMoreMessages({conversationIDKey, onlyIfUnloaded: false}))
   },
   onDeleteMessage: (message: Constants.Message) => {
-    dispatch(Creators.deleteMessage(message))
+    dispatch(ChatGen.createDeleteMessage({message}))
   },
   onEditMessage: (message: Constants.Message, body: string) => {
-    dispatch(Creators.editMessage(message, new HiddenString(body)))
+    dispatch(ChatGen.createEditMessage({message, text: new HiddenString(body)}))
   },
   onMessageAction: (message: Constants.Message) => {
     dispatch(navigateAppend([{props: {message}, selected: 'messageAction'}]))
   },
-  onOpenInFileUI: (path: string) => dispatch(({payload: {path}, type: 'fs:openInFileUI'}: OpenInFileUI)),
+  onOpenInFileUI: (path: string) => dispatch(KBFSGen.createOpenInFileUI({path})),
 })
 
 const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps): Props => {
@@ -131,9 +129,12 @@ const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps): Props
     })
   }
 
+  const getMessageFromMessageKey = (messageKey: Constants.MessageKey) =>
+    Constants.getMessageFromMessageKey(_stateHack, messageKey)
+
   return {
     editLastMessageCounter: stateProps.editLastMessageCounter,
-    getMessageFromMessageKey: stateProps.getMessageFromMessageKey,
+    getMessageFromMessageKey,
     listScrollDownCounter: stateProps.listScrollDownCounter,
     messageKeys: messageKeysWithHeaders,
     onDeleteMessage: dispatchProps.onDeleteMessage,

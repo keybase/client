@@ -4,6 +4,7 @@ import * as Constants from '../../../constants/teams'
 import {Avatar, Box, ProgressIndicator, Text, Button, Icon, Usernames} from '../../../common-adapters'
 import {globalStyles, globalMargins} from '../../../styles'
 import {isMobile} from '../../../constants/platform'
+import {roleIconMap} from '../../role-picker/index.meta'
 
 export type Props = {
   admin: boolean,
@@ -18,13 +19,6 @@ export type Props = {
   onEditMembership: () => void,
   onRemoveMember: () => void,
   onBack: () => void,
-}
-
-const roleIconMap: any = {
-  reader: 'iconfont-search',
-  writer: 'iconfont-edit',
-  admin: 'iconfont-crown',
-  owner: 'iconfont-crown',
 }
 
 export const TeamMember = (props: Props) => {
@@ -68,7 +62,7 @@ export const TeamMember = (props: Props) => {
             size={64}
           />
           <Icon
-            type={roleIconMap[user.type] || 'iconfont-close'}
+            type={user.type ? roleIconMap[user.type] : 'iconfont-close'}
             style={{
               fontSize: isMobile ? 28 : 28,
               margin: globalMargins.tiny,

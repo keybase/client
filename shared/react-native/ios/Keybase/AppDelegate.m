@@ -14,6 +14,11 @@
 #import "LogSend.h"
 #import "RCTLinkingManager.h"
 
+// Systrace is busted due to the new bridge. Uncomment this to force the old bridge.
+// You'll also have to edit the React.xcodeproj. Intructions here:
+// https://github.com/facebook/react-native/issues/15003#issuecomment-323715121
+//#define SYSTRACING
+
 @interface AppDelegate ()
 @property UIBackgroundTaskIdentifier backgroundTask;
 @end
@@ -97,21 +102,41 @@ const BOOL isDebug = NO;
                                                    } error:&err];
 }
 
+#ifdef SYSTRACING
+- (NSURL *)sourceURLForBridge:(RCTBridge *)bridge {
+  return [NSURL URLWithString:@"http://localhost:8081/index.ios.bundle?platform=ios&dev=true"];
+}
+
+- (BOOL)shouldBridgeUseCxxBridge:(RCTBridge *)bridge {
+  return NO;
+}
+#endif
+
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
   [self setupGo];
 
   NSURL *jsCodeLocation;
 
-  // Uncomment for prod JS in dev mode
+  // Uncomment for prod JS in dev mode (and comment the line after
+  // that). If you're building onto a phone, you'll have to change
+  // localhost:8081 to point to the bundler running on your computer.
+  //
   // jsCodeLocation = [NSURL URLWithString:@"http://localhost:8081/index.ios.bundle?platform=ios&dev=false"];
   jsCodeLocation = [[RCTBundleURLProvider sharedSettings] jsBundleURLForBundleRoot:@"index.ios" fallbackResource:nil];
 
+#ifdef SYSTRACING
+  RCTBridge *bridge = [[RCTBridge alloc] initWithDelegate:self
+                                            launchOptions:launchOptions];
+
+  RCTRootView *rootView = [[RCTRootView alloc] initWithBridge:bridge moduleName:@"Keybase" initialProperties:nil];
+#else
   RCTRootView *rootView = [[RCTRootView alloc] initWithBundleURL:jsCodeLocation
                                                       moduleName:@"Keybase"
                                                initialProperties:nil
                                                    launchOptions:launchOptions];
   rootView.backgroundColor = [UIColor whiteColor];
+#endif
 
   self.window = [[UIWindow alloc] initWithFrame:[UIScreen mainScreen].bounds];
   UIViewController *rootViewController = [UIViewController new];

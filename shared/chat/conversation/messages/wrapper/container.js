@@ -1,6 +1,6 @@
 // @flow
 import * as Constants from '../../../../constants/chat'
-import * as Creators from '../../../../actions/chat/creators'
+import * as ChatGen from '../../../../actions/chat-gen'
 import Wrapper, {type Props} from '.'
 import {compose, withHandlers, lifecycle, connect, type TypedState} from '../../../../util/container'
 import {formatTimeForMessages} from '../../../../util/timestamp'
@@ -25,7 +25,8 @@ const mapStateToProps = (state: TypedState, {messageKey, prevMessageKey}: OwnPro
 
   const {message: _prevMessage} = lookupMessageProps(state, prevMessageKey)
   const isEditing = message === Constants.getEditingMessage(state)
-  const _editedCount: number = Constants.getMessageUpdates(state, message.key).count() + message.editedCount
+  const _editedCount: number =
+    Constants.getMessageUpdateCount(state, message.type, message.key) + message.editedCount
 
   return {
     _conversationState,
@@ -43,9 +44,10 @@ const mapStateToProps = (state: TypedState, {messageKey, prevMessageKey}: OwnPro
 }
 
 const mapDispatchToProps = (dispatch: Dispatch): DispatchProps => ({
-  _onRetryAttachment: (message: Constants.AttachmentMessage) => dispatch(Creators.retryAttachment(message)),
-  _onRetryText: (conversationIDKey: Constants.ConversationIDKey, outboxID: Constants.OutboxIDKey) =>
-    dispatch(Creators.retryMessage(conversationIDKey, outboxID)),
+  _onRetryAttachment: (message: Constants.AttachmentMessage) =>
+    dispatch(ChatGen.createRetryAttachment({message})),
+  _onRetryText: (conversationIDKey: Constants.ConversationIDKey, outboxIDKey: Constants.OutboxIDKey) =>
+    dispatch(ChatGen.createRetryMessage({conversationIDKey, outboxIDKey})),
   _onUsernameClick: (username: string) => {
     isMobile ? dispatch(showUserProfile(username)) : dispatch(getProfile(username, true, true))
   },

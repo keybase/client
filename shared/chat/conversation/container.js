@@ -2,6 +2,7 @@
 import * as Constants from '../../constants/chat'
 import * as SearchConstants from '../../constants/search'
 import * as Creators from '../../actions/chat/creators'
+import * as ChatGen from '../../actions/chat-gen'
 import HiddenString from '../../util/hidden-string'
 import Conversation from './index'
 import NoConversation from './no-conversation'
@@ -71,7 +72,7 @@ const mapStateToProps = (state: TypedState, {routePath}): StateProps => {
     supersededBy = Constants.convSupersededByInfo(selectedConversationIDKey, state.chat)
 
     const conversationState = state.chat.get('conversationStates').get(selectedConversationIDKey)
-    const untrustedState = state.entities.inboxUntrustedState.get(selectedConversationIDKey)
+    const untrustedState = state.chat.inboxUntrustedState.get(selectedConversationIDKey)
     if (conversationState) {
       const selected = Constants.getInbox(state, selectedConversationIDKey)
       if (selected && untrustedState === 'error') {
@@ -86,14 +87,13 @@ const mapStateToProps = (state: TypedState, {routePath}): StateProps => {
   }
 
   const {inSearch, inboxFilter} = state.chat
-  const searchResults = SearchConstants.getSearchResultIdsArray(state, {searchKey: 'chatSearch'})
   const userInputItemIds = SearchConstants.getUserInputItemIds(state, {searchKey: 'chatSearch'})
 
   // If it's a multi-user chat that isn't a team, offer to make a new team.
   const showTeamOffer = flags.teamChatEnabled && inSearch && userInputItemIds && userInputItemIds.length > 1
 
   return {
-    showSearchResults: !!searchResults,
+    showSearchResults: inSearch,
     conversationErrorText,
     conversationIsError,
     finalizeInfo,
@@ -114,7 +114,7 @@ const mapDispatchToProps = (
   dispatch: Dispatch,
   {setRouteState, navigateUp, navigateAppend}
 ): DispatchProps => ({
-  onExitSearch: () => dispatch(Creators.exitSearch(false)),
+  onExitSearch: () => dispatch(ChatGen.createExitSearch({skipSelectPreviousConversation: false})),
   _onAttach: (selectedConversation, inputs: Array<Constants.AttachmentInput>) => {
     dispatch(
       navigateAppend([

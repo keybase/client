@@ -23,7 +23,7 @@ echo KEYBASE_VERSION %KEYBASE_VERSION%
 for /f %%i in ('winresource.exe -cb') do set KEYBASE_BUILD=%%i
 echo KEYBASE_BUILD %KEYBASE_BUILD%
 go build -a -tags "prerelease production" -ldflags="-X github.com/keybase/client/go/libkb.PrereleaseBuild=%KEYBASE_BUILD%"
-
+popd
 
 :: Then build kbfsdokan.
 :: First, sanity-check the hashes
@@ -69,15 +69,6 @@ popd
 :: dokanclean
 pushd %GOPATH%\src\github.com\keybase\client\go\tools\dokanclean
 del dokanclean.exe
-go build
-IF %ERRORLEVEL% NEQ 0 (
-  EXIT /B 1
-)
-popd
-
-:: release
-pushd %GOPATH%\src\github.com\keybase\release
-del release.exe
 go build
 IF %ERRORLEVEL% NEQ 0 (
   EXIT /B 1

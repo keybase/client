@@ -65,8 +65,7 @@ func FileExists(path string) (bool, error) {
 }
 
 func MakeParentDirs(log SkinnyLogger, filename string) error {
-
-	dir, _ := filepath.Split(filename)
+	dir := filepath.Dir(filename)
 	exists, err := FileExists(dir)
 	if err != nil {
 		log.Errorf("Can't see if parent dir %s exists", dir)
@@ -461,22 +460,26 @@ func RandHexString(prefix string, numbytes int) (string, error) {
 }
 
 func Trace(log logger.Logger, msg string, f func() error) func() {
+	log = log.CloneWithAddedDepth(1)
 	log.Debug("+ %s", msg)
 	return func() { log.Debug("- %s -> %s", msg, ErrToOk(f())) }
 }
 
 func TraceTimed(log logger.Logger, msg string, f func() error) func() {
+	log = log.CloneWithAddedDepth(1)
 	log.Debug("+ %s", msg)
 	start := time.Now()
 	return func() { log.Debug("- %s -> %s [time=%s]", msg, ErrToOk(f()), time.Since(start)) }
 }
 
 func CTrace(ctx context.Context, log logger.Logger, msg string, f func() error) func() {
+	log = log.CloneWithAddedDepth(1)
 	log.CDebugf(ctx, "+ %s", msg)
 	return func() { log.CDebugf(ctx, "- %s -> %s", msg, ErrToOk(f())) }
 }
 
 func CTraceTimed(ctx context.Context, log logger.Logger, msg string, f func() error, cl clockwork.Clock) func() {
+	log = log.CloneWithAddedDepth(1)
 	log.CDebugf(ctx, "+ %s", msg)
 	start := cl.Now()
 	return func() {
@@ -485,17 +488,19 @@ func CTraceTimed(ctx context.Context, log logger.Logger, msg string, f func() er
 }
 
 func TraceOK(log logger.Logger, msg string, f func() bool) func() {
+	log = log.CloneWithAddedDepth(1)
 	log.Debug("+ %s", msg)
 	return func() { log.Debug("- %s -> %v", msg, f()) }
 }
 
 func CTraceOK(ctx context.Context, log logger.Logger, msg string, f func() bool) func() {
+	log = log.CloneWithAddedDepth(1)
 	log.CDebugf(ctx, "+ %s", msg)
 	return func() { log.CDebugf(ctx, "- %s -> %v", msg, f()) }
 }
 
 func (g *GlobalContext) Trace(msg string, f func() error) func() {
-	return Trace(g.Log, msg, f)
+	return Trace(g.Log.CloneWithAddedDepth(1), msg, f)
 }
 
 func (g *GlobalContext) ExitTrace(msg string, f func() error) func() {
@@ -503,7 +508,7 @@ func (g *GlobalContext) ExitTrace(msg string, f func() error) func() {
 }
 
 func (g *GlobalContext) CTrace(ctx context.Context, msg string, f func() error) func() {
-	return CTrace(ctx, g.Log, msg, f)
+	return CTrace(ctx, g.Log.CloneWithAddedDepth(1), msg, f)
 }
 
 func (g *GlobalContext) CVTrace(ctx context.Context, lev VDebugLevel, msg string, f func() error) func() {
@@ -512,11 +517,11 @@ func (g *GlobalContext) CVTrace(ctx context.Context, lev VDebugLevel, msg string
 }
 
 func (g *GlobalContext) CTraceTimed(ctx context.Context, msg string, f func() error) func() {
-	return CTraceTimed(ctx, g.Log, msg, f, g.Clock())
+	return CTraceTimed(ctx, g.Log.CloneWithAddedDepth(1), msg, f, g.Clock())
 }
 
 func (g *GlobalContext) CTimeTracer(ctx context.Context, label string) *TimeTracer {
-	return NewTimeTracer(ctx, g.Log, g.Clock(), label)
+	return NewTimeTracer(ctx, g.Log.CloneWithAddedDepth(1), g.Clock(), label)
 }
 
 func (g *GlobalContext) ExitTraceOK(msg string, f func() bool) func() {
@@ -524,11 +529,11 @@ func (g *GlobalContext) ExitTraceOK(msg string, f func() bool) func() {
 }
 
 func (g *GlobalContext) TraceOK(msg string, f func() bool) func() {
-	return TraceOK(g.Log, msg, f)
+	return TraceOK(g.Log.CloneWithAddedDepth(1), msg, f)
 }
 
 func (g *GlobalContext) CTraceOK(ctx context.Context, msg string, f func() bool) func() {
-	return CTraceOK(ctx, g.Log, msg, f)
+	return CTraceOK(ctx, g.Log.CloneWithAddedDepth(1), msg, f)
 }
 
 func (g *GlobalContext) CVTraceOK(ctx context.Context, lev VDebugLevel, msg string, f func() bool) func() {
@@ -682,8 +687,8 @@ func SleepUntilWithContext(ctx context.Context, clock clockwork.Clock, deadline 
 	}
 }
 
-func CITimeMultiplier(g Contextifier) time.Duration {
-	if g.G().GetEnv().RunningInCI() {
+func CITimeMultiplier(g *GlobalContext) time.Duration {
+	if g.GetEnv().RunningInCI() {
 		return time.Duration(3)
 	}
 	return time.Duration(1)
@@ -744,4 +749,43 @@ func IsAppStatusCode(err error, code keybase1.StatusCode) bool {
 		return err.Code == int(code)
 	}
 	return false
+}
+
+func CanExec(p string) error {
+	return canExec(p)
+}
+
+func CurrentBinaryRealpath() (string, error) {
+	absolute, err := filepath.Abs(os.Args[0])
+	if err != nil {
+		return "", err
+	}
+	return filepath.EvalSymlinks(absolute)
+}
+
+var adminFeatureList = map[keybase1.UID]bool{
+	"23260c2ce19420f97b58d7d95b68ca00": true, // Chris Coyne "chris"
+	"dbb165b7879fe7b1174df73bed0b9500": true, // Max Krohn, "max"
+	"ef2e49961eddaa77094b45ed635cfc00": true, // Jeremy Stribling, "strib"
+	"41b1f75fb55046d370608425a3208100": true, // Jack O'Connor, "oconnor663"
+	"9403ede05906b942fd7361f40a679500": true, // Jinyang Li, "jinyang"
+	"1563ec26dc20fd162a4f783551141200": true, // Patrick Crosby, "patrick"
+	"ebbe1d99410ab70123262cf8dfc87900": true, // Fred Akalin, "akalin"
+	"e0b4166c9c839275cf5633ff65c3e819": true, // Chris Nojima, "chrisnojima"
+	"d95f137b3b4a3600bc9e39350adba819": true, // Cécile Boucheron, "cecileb"
+	"4c230ae8d2f922dc2ccc1d2f94890700": true, // Marco Polo, "marcopolo"
+	"237e85db5d939fbd4b84999331638200": true, // Chris Ball, "cjb"
+	"69da56f622a2ac750b8e590c3658a700": true, // John Zila, "jzila"
+	"673a740cd20fb4bd348738b16d228219": true, // Steve Sanders, "zanderz"
+	"95e88f2087e480cae28f08d81554bc00": true, // Mike Maxim, "mikem"
+	"08abe80bd2da8984534b2d8f7b12c700": true, // Song Gao, "songgao"
+	"eb08cb06e608ea41bd893946445d7919": true, // Miles Steele, "mlsteele"
+	"743338e8d5987e0e5077f0fddc763f19": true, // Taru Karttunen, "taruti"
+	"ee71dbc8e4e3e671e29a94caef5e1b19": true, // Michał Zochniak, "zapu"
+	"8c7c57995cd14780e351fc90ca7dc819": true, // Danny Ayoub, "ayoubd"
+}
+
+// IsKeybaseAdmin returns true if uid is a keybase admin.
+func IsKeybaseAdmin(uid keybase1.UID) bool {
+	return adminFeatureList[uid]
 }

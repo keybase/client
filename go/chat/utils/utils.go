@@ -11,6 +11,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/keybase/client/go/chat/pager"
+
 	"regexp"
 
 	"github.com/keybase/client/go/chat/globals"
@@ -293,6 +295,7 @@ func VisibleChatMessageTypes() []chat1.MessageType {
 	return []chat1.MessageType{
 		chat1.MessageType_TEXT,
 		chat1.MessageType_ATTACHMENT,
+		chat1.MessageType_SYSTEM,
 	}
 }
 
@@ -305,6 +308,23 @@ func IsVisibleChatMessageType(messageType chat1.MessageType) bool {
 	return false
 }
 
+func IsNotifiableChatMessageType(messageType chat1.MessageType, atMentions []gregor1.UID, chanMention chat1.ChannelMention) bool {
+	if IsVisibleChatMessageType(messageType) {
+		return true
+	}
+
+	if messageType != chat1.MessageType_EDIT {
+		return false
+	}
+
+	// an edit with atMention or channel mention should generate notifications
+	if len(atMentions) > 0 || chanMention != chat1.ChannelMention_NONE {
+		return true
+	}
+
+	return false
+}
+
 type DebugLabeler struct {
 	log     logger.Logger
 	label   string
@@ -313,7 +333,7 @@ type DebugLabeler struct {
 
 func NewDebugLabeler(log logger.Logger, label string, verbose bool) DebugLabeler {
 	return DebugLabeler{
-		log:     log,
+		log:     log.CloneWithAddedDepth(1),
 		label:   label,
 		verbose: verbose,
 	}
@@ -402,16 +422,44 @@ func GetSupersedes(msg chat1.MessageUnboxed) ([]chat1.MessageID, error) {
 	}
 }
 
-var atMentionRegExp = regexp.MustCompile(`\B@([a-z][a-z0-9_]+)`)
+var chanNameMentionRegExp = regexp.MustCompile(`\B#([0-9a-zA-Z_-]+)`)
 
-func ParseAtMentionsNames(ctx context.Context, body string) (res []string) {
-	matches := atMentionRegExp.FindAllStringSubmatch(body, -1)
+func ParseChannelNameMentions(ctx context.Context, body string, uid gregor1.UID, teamID chat1.TLFID,
+	ts types.TeamChannelSource) (res []string) {
+	names := parseRegexpNames(ctx, body, chanNameMentionRegExp)
+	if len(names) == 0 {
+		return nil
+	}
+	chanResponse, _, err := ts.GetChannelsTopicName(ctx, uid, teamID, chat1.TopicType_CHAT)
+	if err != nil {
+		return nil
+	}
+	validChans := make(map[string]bool)
+	for _, cr := range chanResponse {
+		validChans[cr.TopicName] = true
+	}
+	for _, name := range names {
+		if validChans[name] {
+			res = append(res, name)
+		}
+	}
+	return res
+}
+
+var atMentionRegExp = regexp.MustCompile(`\B@([a-z0-9][a-z0-9_]+)`)
+
+func parseRegexpNames(ctx context.Context, body string, re *regexp.Regexp) (res []string) {
+	matches := re.FindAllStringSubmatch(body, -1)
 	for _, m := range matches {
 		if len(m) >= 2 {
 			res = append(res, m[1])
 		}
 	}
 	return res
+}
+
+func ParseAtMentionsNames(ctx context.Context, body string) (res []string) {
+	return parseRegexpNames(ctx, body, atMentionRegExp)
 }
 
 func ParseAtMentionedUIDs(ctx context.Context, body string, upak libkb.UPAKLoader, debug *DebugLabeler) (atRes []gregor1.UID, chanRes chat1.ChannelMention) {
@@ -466,6 +514,37 @@ func ParseAndDecorateAtMentionedUIDs(ctx context.Context, body string, upak libk
 		return m
 	})
 	return newBody, atRes, chanRes
+}
+
+type SystemMessageUIDSource interface {
+	LookupUID(ctx context.Context, un libkb.NormalizedUsername) (keybase1.UID, error)
+}
+
+func SystemMessageMentions(ctx context.Context, body chat1.MessageSystem, upak SystemMessageUIDSource) (atMentions []gregor1.UID, chanMention chat1.ChannelMention) {
+	typ, err := body.SystemType()
+	if err != nil {
+		return atMentions, chanMention
+	}
+	switch typ {
+	case chat1.MessageSystemType_ADDEDTOTEAM:
+		addeeUID, err := upak.LookupUID(ctx, libkb.NewNormalizedUsername(body.Addedtoteam().Addee))
+		if err == nil {
+			atMentions = append(atMentions, addeeUID.ToBytes())
+		}
+	case chat1.MessageSystemType_INVITEADDEDTOTEAM:
+		inviteeUID, err := upak.LookupUID(ctx, libkb.NewNormalizedUsername(body.Inviteaddedtoteam().Invitee))
+		if err == nil {
+			atMentions = append(atMentions, inviteeUID.ToBytes())
+		}
+		inviterUID, err := upak.LookupUID(ctx, libkb.NewNormalizedUsername(body.Inviteaddedtoteam().Inviter))
+		if err == nil {
+			atMentions = append(atMentions, inviterUID.ToBytes())
+		}
+	case chat1.MessageSystemType_COMPLEXTEAM:
+		chanMention = chat1.ChannelMention_ALL
+	}
+	sort.Sort(chat1.ByUID(atMentions))
+	return atMentions, chanMention
 }
 
 func PluckMessageIDs(msgs []chat1.MessageSummary) []chat1.MessageID {
@@ -602,8 +681,10 @@ func PresentRemoteConversation(rc types.RemoteConversation) (res chat1.Unverifie
 	res.Visibility = rawConv.Metadata.Visibility
 	res.Notifications = rawConv.Notifications
 	res.MembersType = rawConv.GetMembersType()
+	res.MemberStatus = rawConv.ReaderInfo.Status
 	res.TeamType = rawConv.Metadata.TeamType
 	res.Version = rawConv.Metadata.Version
+	res.MaxMsgID = rawConv.ReaderInfo.MaxMsgid
 	if rc.LocalMetadata != nil {
 		res.LocalMetadata = &chat1.UnverifiedInboxUIItemMetadata{
 			ChannelName:       rc.LocalMetadata.TopicName,
@@ -642,6 +723,7 @@ func PresentConversationLocal(rawConv chat1.ConversationLocal) (res chat1.InboxU
 	res.ResetParticipants = rawConv.Info.ResetNames
 	res.Status = rawConv.Info.Status
 	res.MembersType = rawConv.GetMembersType()
+	res.MemberStatus = rawConv.Info.MemberStatus
 	res.Visibility = rawConv.Info.Visibility
 	res.Time = GetConvMtimeLocal(rawConv)
 	res.FinalizeInfo = rawConv.GetFinalizeInfo()
@@ -652,6 +734,7 @@ func PresentConversationLocal(rawConv chat1.ConversationLocal) (res chat1.InboxU
 	res.CreatorInfo = rawConv.CreatorInfo
 	res.TeamType = rawConv.Info.TeamType
 	res.Version = rawConv.Info.Version
+	res.MaxMsgID = rawConv.ReaderInfo.MaxMsgid
 	return res
 }
 
@@ -662,7 +745,17 @@ func PresentConversationLocals(convs []chat1.ConversationLocal) (res []chat1.Inb
 	return res
 }
 
-func PresentMessageUnboxed(rawMsg chat1.MessageUnboxed) (res chat1.UIMessage) {
+func PresentThreadView(ctx context.Context, uid gregor1.UID, tv chat1.ThreadView,
+	tcs types.TeamChannelSource) (res chat1.UIMessages) {
+	res.Pagination = PresentPagination(tv.Pagination)
+	for _, msg := range tv.Messages {
+		res.Messages = append(res.Messages, PresentMessageUnboxed(ctx, msg, uid, tcs))
+	}
+	return res
+}
+
+func PresentMessageUnboxed(ctx context.Context, rawMsg chat1.MessageUnboxed, uid gregor1.UID,
+	tcs types.TeamChannelSource) (res chat1.UIMessage) {
 	state, err := rawMsg.State()
 	if err != nil {
 		res = chat1.NewUIMessageWithError(chat1.MessageUnboxedError{
@@ -672,8 +765,19 @@ func PresentMessageUnboxed(rawMsg chat1.MessageUnboxed) (res chat1.UIMessage) {
 		})
 		return res
 	}
+
 	switch state {
 	case chat1.MessageUnboxedState_VALID:
+		// Get channel name mentions (only frontend really cares about these, so just get it here)
+		var channelNameMentions []string
+		switch rawMsg.GetMessageType() {
+		case chat1.MessageType_TEXT:
+			channelNameMentions = ParseChannelNameMentions(ctx, rawMsg.Valid().MessageBody.Text().Body, uid,
+				rawMsg.Valid().ClientHeader.Conv.Tlfid, tcs)
+		case chat1.MessageType_EDIT:
+			channelNameMentions = ParseChannelNameMentions(ctx, rawMsg.Valid().MessageBody.Edit().Body, uid,
+				rawMsg.Valid().ClientHeader.Conv.Tlfid, tcs)
+		}
 		var strOutboxID *string
 		if rawMsg.Valid().ClientHeader.OutboxID != nil {
 			so := rawMsg.Valid().ClientHeader.OutboxID.String()
@@ -691,6 +795,7 @@ func PresentMessageUnboxed(rawMsg chat1.MessageUnboxed) (res chat1.UIMessage) {
 			Superseded:            rawMsg.Valid().ServerHeader.SupersededBy != 0,
 			AtMentions:            rawMsg.Valid().AtMentionUsernames,
 			ChannelMention:        rawMsg.Valid().ChannelMention,
+			ChannelNameMentions:   channelNameMentions,
 		})
 	case chat1.MessageUnboxedState_OUTBOX:
 		var body string
@@ -874,4 +979,34 @@ func UsernamePackageToParticipant(p libkb.UsernamePackage) chat1.ConversationLoc
 		Username: p.NormalizedUsername.String(),
 		Fullname: fullName,
 	}
+}
+
+type pagerMsg struct {
+	msgID chat1.MessageID
+}
+
+func (p pagerMsg) GetMessageID() chat1.MessageID {
+	return p.msgID
+}
+
+func XlateMessageIDControlToPagination(control *chat1.MessageIDControl) (res *chat1.Pagination) {
+	if control == nil {
+		return res
+	}
+	pag := pager.NewThreadPager()
+	res = new(chat1.Pagination)
+	res.Num = control.Num
+	if control.Pivot != nil {
+		pm := pagerMsg{msgID: *control.Pivot}
+		var err error
+		if control.Recent {
+			res.Previous, err = pag.MakeIndex(pm)
+		} else {
+			res.Next, err = pag.MakeIndex(pm)
+		}
+		if err != nil {
+			return nil
+		}
+	}
+	return res
 }

@@ -3,7 +3,8 @@ import RenderAttachmentInput from './'
 import {connect, type TypedState} from '../../../util/container'
 import {navigateUp} from '../../../actions/route-tree'
 import {type RouteProps} from '../../../route-tree/render-route'
-import {type AttachmentInput, type SelectAttachment} from '../../../constants/chat'
+import {type AttachmentInput} from '../../../constants/chat'
+import {createSelectAttachment} from '../../../actions/chat-gen'
 
 type OwnProps = RouteProps<
   {
@@ -31,7 +32,7 @@ export default connect(
         title,
         type: input.type,
       }
-      dispatch(({payload: {input: newInput}, type: 'chat:selectAttachment'}: SelectAttachment))
+      dispatch(createSelectAttachment({input: newInput}))
     },
   })
 )(RenderAttachmentInput)

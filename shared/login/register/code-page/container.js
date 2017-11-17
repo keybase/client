@@ -3,10 +3,11 @@
  * Screen to scan/show qrcode/text code. Goes into various modes with various options depending on if
  * you're a phone/computer and if you're the existing device or the new device
  */
+import * as LoginGen from '../../../actions/login-gen'
 import React, {Component} from 'react'
 import CodePage, {type Props} from '.'
-import * as Creators from '../../../actions/login/creators'
 import {connect, type TypedState} from '../../../util/container'
+import HiddenString from '../../../util/hidden-string'
 
 // TODO remove this class
 class _CodePage extends Component<Props, {enterText: string}> {
@@ -63,12 +64,13 @@ const mapStateToProps = ({
 })
 
 const mapDispatchToProps = dispatch => ({
-  onBack: () => dispatch(Creators.onBack()),
-  setCodePageMode: requestedMode => dispatch(Creators.setCodePageMode(requestedMode)),
-  setCameraBrokenMode: (broken: boolean) => dispatch(Creators.setCameraBrokenMode(broken)),
-  qrScanned: ({data}) => dispatch(Creators.qrScanned(data)),
-  resetQRCodeScanned: () => dispatch(Creators.resetQRCodeScanned()),
-  textEntered: text => dispatch(Creators.provisionTextCodeEntered(text)),
+  onBack: () => dispatch(LoginGen.createOnBack()),
+  setCodePageMode: mode => dispatch(LoginGen.createSetCodePageMode({mode})),
+  setCameraBrokenMode: (broken: boolean) => dispatch(LoginGen.createSetCameraBrokenMode({broken})),
+  qrScanned: ({data}: {data: string}) => dispatch(LoginGen.createQrScanned({phrase: new HiddenString(data)})),
+  resetQRCodeScanned: () => dispatch(LoginGen.createResetQRCodeScanned()),
+  textEntered: (phrase: string) =>
+    dispatch(LoginGen.createProvisionTextCodeEntered({phrase: new HiddenString(phrase)})),
 })
 
 export default connect(mapStateToProps, mapDispatchToProps)(_CodePage)

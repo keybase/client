@@ -20,7 +20,7 @@ func TestAccessRequestAccept(t *testing.T) {
 	if err := u1.Login(tc.G); err != nil {
 		t.Fatal(err)
 	}
-	if err := RequestAccess(context.Background(), tc.G, teamName); err != nil {
+	if _, err := RequestAccess(context.Background(), tc.G, teamName); err != nil {
 		t.Fatal(err)
 	}
 
@@ -56,7 +56,7 @@ func TestAccessRequestAccept(t *testing.T) {
 	if err := u1.Login(tc.G); err != nil {
 		t.Fatal(err)
 	}
-	err = RequestAccess(context.Background(), tc.G, teamName)
+	_, err = RequestAccess(context.Background(), tc.G, teamName)
 	if err == nil {
 		t.Fatal("second RequestAccess success, expected error")
 	}
@@ -87,7 +87,7 @@ func TestAccessRequestIgnore(t *testing.T) {
 	if err := u1.Login(tc.G); err != nil {
 		t.Fatal(err)
 	}
-	if err := RequestAccess(context.Background(), tc.G, teamName); err != nil {
+	if _, err := RequestAccess(context.Background(), tc.G, teamName); err != nil {
 		t.Fatal(err)
 	}
 
@@ -123,7 +123,7 @@ func TestAccessRequestIgnore(t *testing.T) {
 	if err := u1.Login(tc.G); err != nil {
 		t.Fatal(err)
 	}
-	err = RequestAccess(context.Background(), tc.G, teamName)
+	_, err = RequestAccess(context.Background(), tc.G, teamName)
 	if err == nil {
 		t.Fatal("second RequestAccess success, expected error")
 	}

@@ -4,13 +4,14 @@
 package badges
 
 import (
-	"sync"
-
+	"bytes"
 	"encoding/json"
+	"sync"
 
 	"github.com/keybase/client/go/gregor"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/chat1"
+	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
 	jsonw "github.com/keybase/go-jsonw"
 )
@@ -56,6 +57,24 @@ type problemSetBody struct {
 	Count int `json:"count"`
 }
 
+type newTeamBody struct {
+	TeamID   string `json:"id"`
+	TeamName string `json:"name"`
+}
+
+type memberOutBody struct {
+	TeamName  string `json:"team_name"`
+	ResetUser struct {
+		UID      string `json:"uid"`
+		Username string `json:"username"`
+	} `json:"reset_user"`
+}
+
+type homeStateBody struct {
+	Version    int `json:"version"`
+	BadgeCount int `json:"badge_count"`
+}
+
 // UpdateWithGregor updates the badge state from a gregor state.
 func (b *BadgeState) UpdateWithGregor(gstate gregor.State) error {
 	b.Lock()
@@ -65,6 +84,11 @@ func (b *BadgeState) UpdateWithGregor(gstate gregor.State) error {
 	b.state.NewFollowers = 0
 	b.state.RekeysNeeded = 0
 	b.state.NewGitRepoGlobalUniqueIDs = []string{}
+	b.state.NewTeamNames = nil
+	b.state.NewTeamAccessRequests = nil
+	b.state.HomeTodoItems = 0
+
+	var hsb *homeStateBody
 
 	items, err := gstate.Items()
 	if err != nil {
@@ -77,6 +101,18 @@ func (b *BadgeState) UpdateWithGregor(gstate gregor.State) error {
 		}
 		category := categoryObj.String()
 		switch category {
+		case "home.state":
+			var tmp homeStateBody
+			byt := item.Body().Bytes()
+			dec := json.NewDecoder(bytes.NewReader(byt))
+			if err := dec.Decode(&tmp); err != nil {
+				b.log.Warning("BadgeState got bad home.state object; error: %v; on %q", err, string(byt))
+				continue
+			}
+			if hsb == nil || hsb.Version < tmp.Version {
+				hsb = &tmp
+				b.state.HomeTodoItems = hsb.BadgeCount
+			}
 		case "tlf":
 			jsw, err := jsonw.Unmarshal(item.Body().Bytes())
 			if err != nil {
@@ -113,6 +149,44 @@ func (b *BadgeState) UpdateWithGregor(gstate gregor.State) error {
 				continue
 			}
 			b.state.NewGitRepoGlobalUniqueIDs = append(b.state.NewGitRepoGlobalUniqueIDs, globalUniqueID)
+		case "team.newly_added_to_team":
+			var body []newTeamBody
+			if err := json.Unmarshal(item.Body().Bytes(), &body); err != nil {
+				b.log.Warning("BadgeState unmarshal error for team.newly_added_to_team item: %v", err)
+				continue
+			}
+			for _, x := range body {
+				if x.TeamName == "" {
+					continue
+				}
+				b.state.NewTeamNames = append(b.state.NewTeamNames, x.TeamName)
+			}
+		case "team.request_access":
+			var body []newTeamBody
+			if err := json.Unmarshal(item.Body().Bytes(), &body); err != nil {
+				b.log.Warning("BadgeState unmarshal error for team.request_access item: %v", err)
+				continue
+			}
+			for _, x := range body {
+				if x.TeamName == "" {
+					continue
+				}
+				b.state.NewTeamAccessRequests = append(b.state.NewTeamAccessRequests, x.TeamName)
+			}
+		case "team.member_out_from_reset":
+			var body keybase1.TeamMemberOutFromReset
+			if err := json.Unmarshal(item.Body().Bytes(), &body); err != nil {
+				b.log.Warning("BadgeState unmarshal error for team.member_out_from_reset item: %v", err)
+				continue
+			}
+
+			msgID := item.Metadata().MsgID().(gregor1.MsgID)
+			m := keybase1.TeamMemberOutReset{
+				Teamname: body.TeamName,
+				Username: body.ResetUser.Username,
+				Id:       msgID,
+			}
+			b.state.TeamsWithResetUsers = append(b.state.TeamsWithResetUsers, m)
 		}
 	}
 
@@ -145,7 +219,12 @@ func (b *BadgeState) UpdateWithChatFull(update chat1.UnreadUpdateFull) {
 		return
 	}
 
-	b.chatUnreadMap = make(map[string]keybase1.BadgeConversationInfo)
+	switch update.InboxSyncStatus {
+	case chat1.SyncInboxResType_CURRENT:
+	case chat1.SyncInboxResType_INCREMENTAL:
+	case chat1.SyncInboxResType_CLEAR:
+		b.chatUnreadMap = make(map[string]keybase1.BadgeConversationInfo)
+	}
 
 	for _, upd := range update.Updates {
 		b.updateWithChat(upd)

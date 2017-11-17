@@ -19,12 +19,15 @@ import {roleIconMap, roleDescMap, permissionMap} from './index.meta'
 
 export type RolePickerProps = {
   confirm: boolean,
+  controlled?: boolean,
   currentType: ?TeamRoleType,
   username: string,
   selectedRole: TeamRoleType,
-  allowOwner: boolean,
+  allowAdmin?: boolean,
+  allowOwner?: boolean,
   sendNotification: boolean,
   teamname: string,
+  sendNotificationChecked?: boolean,
   showSendNotification: boolean,
   setConfirm: (confirm: boolean) => void,
   setSelectedRole: (r: TeamRoleType) => void,
@@ -81,13 +84,16 @@ const makeRoleOption = (
 
 // 1. Display roles for user to pick from
 export const RoleOptions = ({
+  controlled,
   currentType,
   username,
   selectedRole,
   setSelectedRole,
-  allowOwner,
+  allowAdmin = true,
+  allowOwner = true,
   setSendNotification,
   sendNotification,
+  sendNotificationChecked,
   setConfirm,
   showSendNotification,
 }: RolePickerProps) => (
@@ -100,11 +106,13 @@ export const RoleOptions = ({
     }}
   >
     <Box style={{marginTop: globalMargins.small, marginBottom: globalMargins.small}}>
-      <Text type="Header">Select a role for {username}</Text>
+      <Text type="Header">
+        {username ? `Select a role for ${username}` : 'Select a role'}
+      </Text>
     </Box>
     {makeRoleOption('reader', selectedRole, setSelectedRole)}
     {makeRoleOption('writer', selectedRole, setSelectedRole)}
-    {makeRoleOption('admin', selectedRole, setSelectedRole)}
+    {allowAdmin && makeRoleOption('admin', selectedRole, setSelectedRole)}
     {allowOwner && makeRoleOption('owner', selectedRole, setSelectedRole)}
     {showSendNotification &&
       <Box style={{marginTop: globalMargins.small, marginBottom: globalMargins.tiny}}>
@@ -112,10 +120,10 @@ export const RoleOptions = ({
       </Box>}
     <Box style={{marginBottom: globalMargins.small, marginTop: globalMargins.tiny}}>
       <Button
-        label="Continue"
+        label={controlled ? 'Select' : 'Continue'}
         type="Primary"
         onClick={() => setConfirm(true)}
-        disabled={selectedRole === currentType}
+        disabled={selectedRole === currentType && sendNotificationChecked === sendNotification}
       />
     </Box>
   </Box>

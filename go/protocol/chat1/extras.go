@@ -702,3 +702,28 @@ func AllConversationExistences() (res []ConversationExistence) {
 func (v InboxVers) ToConvVers() ConversationVers {
 	return ConversationVers(v)
 }
+
+func (p ConversationIDMessageIDPairs) Contains(convID ConversationID) (MessageID, bool) {
+	for _, c := range p.Pairs {
+		if c.ConvID.Eq(convID) {
+			return c.MsgID, true
+		}
+	}
+	return MessageID(0), false
+}
+
+func (c ConversationMemberStatus) ToGregorDBString() (string, error) {
+	s, ok := ConversationMemberStatusRevMap[c]
+	if !ok {
+		return "", fmt.Errorf("unrecoginzed ConversationMemberStatus: %v", c)
+	}
+	return strings.ToLower(s), nil
+}
+
+func (c ConversationMemberStatus) ToGregorDBStringAssert() string {
+	s, err := c.ToGregorDBString()
+	if err != nil {
+		panic(err)
+	}
+	return s
+}

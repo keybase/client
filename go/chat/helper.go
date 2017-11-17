@@ -291,6 +291,10 @@ func (r *recentConversationParticipants) getActiveScore(ctx context.Context, con
 func (r *recentConversationParticipants) get(ctx context.Context, myUID gregor1.UID) (res []gregor1.UID, err error) {
 	_, convs, err := storage.NewInbox(r.G(), myUID).ReadAll(ctx)
 	if err != nil {
+		if _, ok := err.(storage.MissError); ok {
+			r.Debug(ctx, "get: no inbox, returning blank results")
+			return nil, nil
+		}
 		return nil, err
 	}
 
@@ -336,36 +340,6 @@ func GetUnverifiedConv(ctx context.Context, g *globals.Context, uid gregor1.UID,
 		return chat1.Conversation{}, ratelim, errGetUnverifiedConvNotFound
 	}
 	return inbox.ConvsUnverified[0].Conv, ratelim, nil
-}
-
-func GetTLFConversations(ctx context.Context, g *globals.Context, debugger utils.DebugLabeler,
-	ri func() chat1.RemoteInterface, uid gregor1.UID, tlfID chat1.TLFID, topicType chat1.TopicType,
-	membersType chat1.ConversationMembersType) (res []chat1.ConversationLocal, rl []chat1.RateLimit, err error) {
-
-	tlfRes, err := ri().GetTLFConversations(ctx, chat1.GetTLFConversationsArg{
-		TlfID:            tlfID,
-		TopicType:        topicType,
-		MembersType:      membersType,
-		SummarizeMaxMsgs: false,
-	})
-	if err != nil {
-		return res, rl, err
-	}
-	if tlfRes.RateLimit != nil {
-		rl = append(rl, *tlfRes.RateLimit)
-	}
-
-	// Localize the conversations
-	res, err = NewBlockingLocalizer(g).Localize(ctx, uid, types.Inbox{
-		ConvsUnverified: utils.RemoteConvs(tlfRes.Conversations),
-	})
-	if err != nil {
-		debugger.Debug(ctx, "GetTLFConversations: failed to localize conversations: %s", err.Error())
-		return res, rl, err
-	}
-	sort.Sort(utils.ConvLocalByTopicName(res))
-	rl = utils.AggRateLimits(rl)
-	return res, rl, nil
 }
 
 func GetTopicNameState(ctx context.Context, g *globals.Context, debugger utils.DebugLabeler,
@@ -443,8 +417,7 @@ func FindConversations(ctx context.Context, g *globals.Context, debugger utils.D
 				debugger.Debug(ctx, "FindConversations: failed to get TLFID from name: %s", err.Error())
 				return res, rl, err
 			}
-			tlfConvs, irl, err := GetTLFConversations(ctx, g, debugger, ri,
-				uid, nameInfo.ID, topicType, membersType)
+			tlfConvs, irl, err := g.TeamChannelSource.GetChannelsFull(ctx, uid, nameInfo.ID, topicType)
 			if err != nil {
 				debugger.Debug(ctx, "FindConversations: failed to list TLF conversations: %s", err.Error())
 				return res, rl, err
@@ -611,12 +584,13 @@ func JoinConversation(ctx context.Context, g *globals.Context, debugger utils.De
 	if joinRes.RateLimit != nil {
 		rl = append(rl, *joinRes.RateLimit)
 	}
+
 	if _, err = g.InboxSource.MembershipUpdate(ctx, uid, 0, []chat1.ConversationMember{
 		chat1.ConversationMember{
 			Uid:    uid,
 			ConvID: convID,
 		},
-	}, nil, nil); err != nil {
+	}, nil, nil, nil); err != nil {
 		debugger.Debug(ctx, "JoinConversation: failed to apply membership update: %s", err.Error())
 	}
 
@@ -664,6 +638,34 @@ func LeaveConversation(ctx context.Context, g *globals.Context, debugger utils.D
 	}
 	if leaveRes.RateLimit != nil {
 		rl = append(rl, *leaveRes.RateLimit)
+	}
+
+	return rl, nil
+}
+
+func PreviewConversation(ctx context.Context, g *globals.Context, debugger utils.DebugLabeler,
+	ri func() chat1.RemoteInterface, uid gregor1.UID, convID chat1.ConversationID) (rl []chat1.RateLimit, err error) {
+	alreadyIn, irl, err := g.InboxSource.IsMember(ctx, uid, convID)
+	if err != nil {
+		debugger.Debug(ctx, "PreviewConversation: IsMember err: %s", err.Error())
+		// Assume we aren't in, server will reject us otherwise.
+		alreadyIn = false
+	}
+	if irl != nil {
+		rl = append(rl, *irl)
+	}
+	if alreadyIn {
+		debugger.Debug(ctx, "PreviewConversation: already in the conversation, no need to preview")
+		return nil, nil
+	}
+
+	previewRes, err := ri().PreviewConversation(ctx, convID)
+	if err != nil {
+		debugger.Debug(ctx, "PreviewConversation: failed to preview conversation: %s", err.Error())
+		return rl, err
+	}
+	if previewRes.RateLimit != nil {
+		rl = append(rl, *previewRes.RateLimit)
 	}
 
 	return rl, nil
@@ -873,6 +875,9 @@ func (n *newConversationHelper) create(ctx context.Context) (res chat1.Conversat
 			return res, rl, err
 		}
 
+		// Clear team channel source
+		n.G().TeamChannelSource.ChannelsChanged(ctx, updateConv.Conv.Metadata.IdTriple.Tlfid)
+
 		if res.Error != nil {
 			return res, rl, errors.New(res.Error.Message)
 		}
@@ -894,9 +899,13 @@ func (n *newConversationHelper) create(ctx context.Context) (res chat1.Conversat
 		// If we created a complex team in the process of creating this conversation, send a special
 		// message into the general channel letting everyone know about the change.
 		if ncrres.CreatedComplexTeam {
-			if err := n.G().ChatHelper.SendTextByNameNonblock(ctx, n.tlfName, &globals.DefaultTeamTopic,
+			subBody := chat1.NewMessageSystemWithComplexteam(chat1.MessageSystemComplexTeam{
+				Team: n.tlfName,
+			})
+			body := chat1.NewMessageBodyWithSystem(subBody)
+			if err := n.G().ChatHelper.SendMsgByNameNonblock(ctx, n.tlfName, &globals.DefaultTeamTopic,
 				chat1.ConversationMembersType_TEAM, keybase1.TLFIdentifyBehavior_CHAT_GUI,
-				n.complexTeamIntroMessage()); err != nil {
+				body, chat1.MessageType_SYSTEM); err != nil {
 				n.Debug(ctx, "failed to send complex team intro message: %s", err)
 			}
 		}
@@ -905,11 +914,6 @@ func (n *newConversationHelper) create(ctx context.Context) (res chat1.Conversat
 	}
 
 	return res, rl, reserr
-}
-
-func (n *newConversationHelper) complexTeamIntroMessage() string {
-	return fmt.Sprintf("Attention @channel!\n\nI have just created a new channel in team _%s_. Here are some things that are now different:\n\n1.) Notifications will not happen for every message. Click or tap the info icon on the right to configure them.\n2.) The #general channel is now in the \"Big Teams\" section of the inbox.\n3.) You can hit the three dots next to %s in the inbox view to join other channels.\n\nEnjoy!",
-		n.tlfName, n.tlfName)
 }
 
 func (n *newConversationHelper) makeFirstMessage(ctx context.Context, triple chat1.ConversationIDTriple,

@@ -268,7 +268,7 @@ func (u *CachedUPAKLoader) loadWithInfo(arg LoadUserArg, info *CachedUserLoadInf
 		if user != nil && err == nil {
 			// Update the full-self cacher after the lock is released, to avoid
 			// any circular locking.
-			if fs := u.G().GetFullSelfer(); fs != nil {
+			if fs := u.G().GetFullSelfer(); fs != nil && arg.self {
 				fs.Update(ctx, user)
 			}
 		}
@@ -587,7 +587,7 @@ func (u *CachedUPAKLoader) LookupUsername(ctx context.Context, uid keybase1.UID)
 // LookupUsernameUPAK uses the upak loader to find a username for uid.
 func (u *CachedUPAKLoader) LookupUsernameUPAK(ctx context.Context, uid keybase1.UID) (NormalizedUsername, error) {
 	var info CachedUserLoadInfo
-	arg := NewLoadUserByUIDArg(ctx, u.G(), uid).WithStaleOK(true)
+	arg := NewLoadUserByUIDArg(ctx, u.G(), uid).WithStaleOK(true).WithPublicKeyOptional()
 	var ret NormalizedUsername
 	_, _, err := u.loadWithInfo(arg, &info, func(upak *keybase1.UserPlusKeysV2AllIncarnations) error {
 		if upak == nil {

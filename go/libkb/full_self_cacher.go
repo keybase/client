@@ -1,6 +1,7 @@
 package libkb
 
 import (
+	"fmt"
 	"sync"
 	"time"
 
@@ -10,6 +11,7 @@ import (
 
 type FullSelfer interface {
 	WithSelf(ctx context.Context, f func(u *User) error) error
+	WithSelfForcePoll(ctx context.Context, f func(u *User) error) error
 	WithUser(arg LoadUserArg, f func(u *User) error) (err error)
 	HandleUserChanged(u keybase1.UID) error
 	Update(ctx context.Context, u *User) error
@@ -25,6 +27,11 @@ var _ FullSelfer = (*UncachedFullSelf)(nil)
 
 func (n *UncachedFullSelf) WithSelf(ctx context.Context, f func(u *User) error) error {
 	arg := NewLoadUserArg(n.G()).WithPublicKeyOptional().WithSelf(true).WithNetContext(ctx)
+	return n.WithUser(arg, f)
+}
+
+func (n *UncachedFullSelf) WithSelfForcePoll(ctx context.Context, f func(u *User) error) error {
+	arg := NewLoadUserArg(n.G()).WithPublicKeyOptional().WithSelf(true).WithNetContext(ctx).WithForcePoll(true)
 	return n.WithUser(arg, f)
 }
 
@@ -88,14 +95,21 @@ func (m *CachedFullSelf) WithSelf(ctx context.Context, f func(u *User) error) er
 	return m.WithUser(arg, f)
 }
 
+// WithSelfForcePoll is like WithSelf but forces a poll. I.e., it will always go to the server for
+// a merkle check, regardless of when the existing self was cached.
+func (m *CachedFullSelf) WithSelfForcePoll(ctx context.Context, f func(u *User) error) error {
+	arg := NewLoadUserArg(m.G()).WithPublicKeyOptional().WithSelf(true).WithNetContext(ctx).WithForcePoll(true)
+	return m.WithUser(arg, f)
+}
+
 func (m *CachedFullSelf) maybeClearCache(ctx context.Context, arg *LoadUserArg) (err error) {
 	defer m.G().CTrace(ctx, "CachedFullSelf#maybeClearCache", func() error { return err })()
 
 	now := m.G().Clock().Now()
 	diff := now.Sub(m.cachedAt)
 
-	if diff < CachedUserTimeout {
-		m.G().Log.Debug("| was fresh, last loaded %s ago", diff)
+	if diff < CachedUserTimeout && !arg.forcePoll {
+		m.G().Log.CDebugf(ctx, "| was fresh, last loaded %s ago", diff)
 		return nil
 	}
 
@@ -119,11 +133,11 @@ func (m *CachedFullSelf) maybeClearCache(ctx context.Context, arg *LoadUserArg) 
 	}
 
 	if leaf.public != nil && leaf.public.Seqno == m.me.GetSigChainLastKnownSeqno() && leaf.idVersion == idVersion {
-		m.G().Log.Debug("| CachedFullSelf still fresh at seqno=%d, idVersion=%d", leaf.public.Seqno, leaf.idVersion)
+		m.G().Log.CDebugf(ctx, "| CachedFullSelf still fresh at seqno=%d, idVersion=%d", leaf.public.Seqno, leaf.idVersion)
 		return nil
 	}
 
-	m.G().Log.Debug("| CachedFullSelf was out of date")
+	m.G().Log.CDebugf(ctx, "| CachedFullSelf was out of date")
 	m.me = nil
 
 	return nil
@@ -192,11 +206,22 @@ func (m *CachedFullSelf) cacheMe(u *User) {
 // Update updates the CachedFullSelf with a User loaded from someplace else -- let's
 // say the UPAK loader. We throw away objects for other users or that aren't newer than
 // the one we have.
+//
+// CALLER BEWARE! You must only provide this function with a user you know to be "self".
+// This function will not do any checking along those lines (see comment below).
 func (m *CachedFullSelf) Update(ctx context.Context, u *User) (err error) {
-	if !u.GetUID().Equal(m.G().GetMyUID()) {
-		return
-	}
-	defer m.G().CTrace(ctx, "CachedFullSelf#Update", func() error { return err })()
+
+	// NOTE(max) 20171101: We used to do this:
+	//
+	//   if !u.GetUID().Equal(m.G().GetMyUID()) {
+	//   	return
+	//   }
+	//
+	// BUT IT IS DEADLY! The problem is that m.G().GetMyUID() calls into LoginState, but often
+	// we're being called from a LoginState context, so we get a circular locking situation.
+	// So the onus is on the caller to check that we're actually loading self.
+
+	defer m.G().CTrace(ctx, fmt.Sprintf("CachedFullSelf#Update(%s)", u.GetUID()), func() error { return err })()
 	m.Lock()
 	defer m.Unlock()
 

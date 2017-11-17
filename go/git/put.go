@@ -3,6 +3,7 @@ package git
 import (
 	"context"
 	"encoding/base64"
+	"fmt"
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -29,7 +30,7 @@ func PutMetadata(ctx context.Context, g *libkb.GlobalContext, arg keybase1.PutGi
 	enc := codec.NewEncoderBytes(&msgpackLocalMetadata, &mh)
 	err = enc.Encode(localMetadataVersioned)
 	if err != nil {
-		return err
+		return fmt.Errorf("encoding git metadata:%v", err)
 	}
 	encryptedMetadata, err := cryptoer.Box(ctx, msgpackLocalMetadata, teamIDVis)
 	if err != nil {

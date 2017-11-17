@@ -38,7 +38,7 @@ func (v *VDebugLog) Log(lev VDebugLevel, fs string, args ...interface{}) {
 	if lev <= v.lev {
 		prfx := fmt.Sprintf("{VDL:%d} ", int(lev))
 		fs = prfx + fs
-		v.log.Debug(fs, args...)
+		v.log.CloneWithAddedDepth(1).Debug(fs, args...)
 	}
 }
 
@@ -46,7 +46,7 @@ func (v *VDebugLog) CLogf(ctx context.Context, lev VDebugLevel, fs string, args 
 	if lev <= v.lev {
 		prfx := fmt.Sprintf("{VDL:%d} ", int(lev))
 		fs = prfx + fs
-		v.log.CDebugf(ctx, fs, args...)
+		v.log.CloneWithAddedDepth(1).CDebugf(ctx, fs, args...)
 	}
 }
 

@@ -166,6 +166,10 @@ class MainNavStack extends Component<any, any> {
     }
   }
 
+  _switchTab = tab => {
+    this.props.switchTab(tab)
+  }
+
   render() {
     const props = this.props
     const {stackCache} = this.state
@@ -191,7 +195,7 @@ class MainNavStack extends Component<any, any> {
           : null}
         <GlobalError key="globalError" />
         <AnimatedTabBar show={!props.hideNav}>
-          <TabBar onTabClick={props.switchTab} selectedTab={props.routeSelected} />
+          <TabBar onTabClick={this._switchTab} selectedTab={props.routeSelected} />
         </AnimatedTabBar>
       </Box>
     )
@@ -362,7 +366,6 @@ const sceneWrapStyleWithStatusBarPadding = {
 
 const mapStateToProps = (state: TypedState, ownProps: OwnProps) => ({
   _me: state.config.username,
-  dumbFullscreen: state.dev.debugConfig.dumbFullscreen,
   hideNav: ownProps.routeSelected === loginTab,
   reachable: state.gregor.reachability.reachable,
 })

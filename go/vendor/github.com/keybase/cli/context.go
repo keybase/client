@@ -3,6 +3,7 @@ package cli
 import (
 	"errors"
 	"flag"
+	"fmt"
 	"strconv"
 	"strings"
 	"time"
@@ -46,9 +47,10 @@ func (c *Context) Bool(name string) bool {
 	return lookupBool(name, c.flagSet)
 }
 
-// Looks up the value of a local boolT flag, returns false if no bool flag exists
-func (c *Context) BoolT(name string) bool {
-	return lookupBoolT(name, c.flagSet)
+// Looks up the value of a local bool flag, returns an error if it does not exist
+// or is not a bool.
+func (c *Context) BoolStrict(name string) (bool, error) {
+	return lookupBoolStrict(name, c.flagSet)
 }
 
 // Looks up the value of a local string flag, returns "" if no string flag exists
@@ -163,7 +165,7 @@ func (c *Context) GlobalIsSet(name string) bool {
 // Returns a slice of flag names used in this context.
 func (c *Context) FlagNames() (names []string) {
 	for _, flag := range c.Command.Flags {
-		name := strings.Split(flag.getName(), ",")[0]
+		name := strings.Split(flag.GetName(), ",")[0]
 		if name == "help" {
 			continue
 		}
@@ -175,7 +177,7 @@ func (c *Context) FlagNames() (names []string) {
 // Returns a slice of global flag names used by the app.
 func (c *Context) GlobalFlagNames() (names []string) {
 	for _, flag := range c.App.Flags {
-		name := strings.Split(flag.getName(), ",")[0]
+		name := strings.Split(flag.GetName(), ",")[0]
 		if name == "help" || name == "version" {
 			continue
 		}
@@ -323,7 +325,7 @@ func lookupGeneric(name string, set *flag.FlagSet) interface{} {
 func lookupBool(name string, set *flag.FlagSet) bool {
 	f := set.Lookup(name)
 	if f != nil {
-		val, err := strconv.ParseBool(f.Value.String())
+		val, err := ParseBoolFriendly(f.Value.String())
 		if err != nil {
 			return false
 		}
@@ -333,17 +335,23 @@ func lookupBool(name string, set *flag.FlagSet) bool {
 	return false
 }
 
-func lookupBoolT(name string, set *flag.FlagSet) bool {
+func lookupBoolStrict(name string, set *flag.FlagSet) (bool, error) {
 	f := set.Lookup(name)
-	if f != nil {
-		val, err := strconv.ParseBool(f.Value.String())
-		if err != nil {
-			return true
-		}
-		return val
+	if f == nil {
+		return false, fmt.Errorf("missing bool flag: %v", name)
 	}
+	return ParseBoolFriendly(f.Value.String())
+}
 
-	return false
+// ParseBoolFriendly returns the boolean value represented by the string.
+func ParseBoolFriendly(str string) (bool, error) {
+	switch strings.ToLower(str) {
+	case "1", "t", "true", "yes", "on":
+		return true, nil
+	case "0", "f", "false", "no", "off":
+		return false, nil
+	}
+	return false, fmt.Errorf("invalid boolean value: '%v'", str)
 }
 
 func copyFlag(name string, ff *flag.Flag, set *flag.FlagSet) {
@@ -360,7 +368,7 @@ func normalizeFlags(flags []Flag, set *flag.FlagSet) error {
 		visited[f.Name] = true
 	})
 	for _, f := range flags {
-		parts := strings.Split(f.getName(), ",")
+		parts := strings.Split(f.GetName(), ",")
 		if len(parts) == 1 {
 			continue
 		}

@@ -10,15 +10,15 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/keybase/client/go/externals"
+	"github.com/keybase/client/go/externalstest"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 	insecureTriplesec "github.com/keybase/go-triplesec-insecure"
 	"github.com/stretchr/testify/require"
 )
 
-func SetupEngineTest(tb testing.TB, name string) libkb.TestContext {
-	tc := externals.SetupTest(tb, name, 2)
+func SetupEngineTest(tb libkb.TestingTB, name string) libkb.TestContext {
+	tc := externalstest.SetupTest(tb, name, 2)
 
 	// use an insecure triplesec in tests
 	tc.G.NewTriplesec = func(passphrase []byte, salt []byte) (libkb.Triplesec, error) {
@@ -32,8 +32,8 @@ func SetupEngineTest(tb testing.TB, name string) libkb.TestContext {
 	return tc
 }
 
-func SetupEngineTestRealTriplesec(tb testing.TB, name string) libkb.TestContext {
-	tc := externals.SetupTest(tb, name, 2)
+func SetupEngineTestRealTriplesec(tb libkb.TestingTB, name string) libkb.TestContext {
+	tc := externalstest.SetupTest(tb, name, 2)
 	tc.G.NewTriplesec = libkb.NewSecureTriplesec
 	return tc
 }
@@ -44,6 +44,7 @@ type FakeUser struct {
 	Passphrase    string
 	User          *libkb.User
 	EncryptionKey libkb.GenericKey
+	DeviceName    string
 }
 
 func NewFakeUser(prefix string) (fu *FakeUser, err error) {
@@ -71,7 +72,7 @@ func (fu FakeUser) UID() keybase1.UID {
 	return libkb.UsernameToUID(fu.Username)
 }
 
-func NewFakeUserOrBust(tb testing.TB, prefix string) (fu *FakeUser) {
+func NewFakeUserOrBust(tb libkb.TestingTB, prefix string) (fu *FakeUser) {
 	var err error
 	if fu, err = NewFakeUser(prefix); err != nil {
 		tb.Fatal(err)
@@ -122,6 +123,7 @@ func CreateAndSignupFakeUser2(tc libkb.TestContext, prefix string) (*FakeUser, *
 	fu := NewFakeUserOrBust(tc.T, prefix)
 	tc.G.Log.Debug("New test user: %s / %s", fu.Username, fu.Email)
 	arg := MakeTestSignupEngineRunArg(fu)
+	fu.DeviceName = arg.DeviceName
 	eng := SignupFakeUserWithArg(tc, fu, arg)
 	return fu, eng
 }
@@ -407,6 +409,14 @@ func ResetAccount(tc libkb.TestContext, u *FakeUser) {
 	}
 	tc.T.Logf("Account reset for user %s", u.Username)
 	Logout(tc)
+}
+
+func ResetAccountNoLogout(tc libkb.TestContext, u *FakeUser) {
+	err := tc.G.LoginState().ResetAccount(u.Username)
+	if err != nil {
+		tc.T.Fatalf("In account reset: %s", err)
+	}
+	tc.T.Logf("Account reset for user %s", u.Username)
 }
 
 func ForcePUK(tc libkb.TestContext) {

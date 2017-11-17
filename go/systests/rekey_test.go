@@ -341,10 +341,8 @@ func (rkt *rekeyTester) kickRekeyd() {
 	g := rkt.primaryContext()
 
 	apiArg := libkb.APIArg{
-		Endpoint: "test/accelerate_rekeyd",
-		Args: libkb.HTTPArgs{
-			"timeout": libkb.I{Val: 2000},
-		},
+		Endpoint:    "test/accelerate_rekeyd",
+		Args:        libkb.HTTPArgs{},
 		SessionType: libkb.APISessionTypeREQUIRED,
 	}
 

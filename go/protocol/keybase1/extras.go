@@ -511,6 +511,13 @@ func (t TeamID) AsUserOrTeam() UserOrTeamID {
 	return UserOrTeamID(t)
 }
 
+const ptrSize = 4 << (^uintptr(0) >> 63) // stolen from runtime/internal/sys
+
+// Size implements the cache.Measurable interface.
+func (t TeamID) Size() int {
+	return len(t) + ptrSize
+}
+
 func (s SigID) IsNil() bool {
 	return len(s) == 0
 }
@@ -721,6 +728,11 @@ func (u *UID) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
+// Size implements the cache.Measurable interface.
+func (u UID) Size() int {
+	return len(u) + ptrSize
+}
+
 func (k *KID) MarshalJSON() ([]byte, error) {
 	return Quote(k.String()), nil
 }
@@ -730,7 +742,7 @@ func (k *KID) Size() int {
 	if k == nil {
 		return 0
 	}
-	return len(*k)
+	return len(*k) + ptrSize
 }
 
 func (s *SigID) UnmarshalJSON(b []byte) error {
@@ -1273,6 +1285,25 @@ func (u UserPlusKeysV2AllIncarnations) IsOlderThan(v UserPlusKeysV2AllIncarnatio
 	return false
 }
 
+func (u UserPlusKeysV2AllIncarnations) AllDeviceNames() []string {
+	var names []string
+
+	for _, k := range u.Current.DeviceKeys {
+		if k.DeviceDescription != "" && (k.DeviceType == "mobile" || k.DeviceType == "desktop") {
+			names = append(names, k.DeviceDescription)
+		}
+	}
+	for _, v := range u.PastIncarnations {
+		for _, k := range v.DeviceKeys {
+			if k.DeviceDescription != "" && (k.DeviceType == "mobile" || k.DeviceType == "desktop") {
+				names = append(names, k.DeviceDescription)
+			}
+		}
+	}
+
+	return names
+}
+
 func (ut UserOrTeamID) String() string {
 	return string(ut)
 }
@@ -1392,6 +1423,11 @@ func (ut UserOrTeamID) GetShard(shardCount int) (int, error) {
 	// LittleEndian.Uint32 truncates to obtain 4 bytes from the buffer
 	n := binary.LittleEndian.Uint32(bytes)
 	return int(n % uint32(shardCount)), nil
+}
+
+// Size implements the cache.Measurable interface.
+func (ut UserOrTeamID) Size() int {
+	return len(ut) + ptrSize
 }
 
 func (m *MaskB64) UnmarshalJSON(b []byte) error {
@@ -1613,42 +1649,59 @@ func (t TeamName) IsNil() bool {
 }
 
 // underscores allowed, just not first or doubled
-var namePartRxx = regexp.MustCompile(`([a-zA-Z0-9][a-zA-Z0-9_]?)+`)
+var namePartRxx = regexp.MustCompile(`^([a-zA-Z0-9][a-zA-Z0-9_]?)+$`)
 var implicitRxxString = fmt.Sprintf("^%s[0-9a-f]{%d}$", ImplicitTeamPrefix, ImplicitSuffixLengthBytes*2)
 var implicitNameRxx = regexp.MustCompile(implicitRxxString)
 
 const ImplicitTeamPrefix = "__keybase_implicit_team__"
 const ImplicitSuffixLengthBytes = 16
 
+func stringToTeamNamePart(s string) TeamNamePart {
+	return TeamNamePart(strings.ToLower(s))
+}
+
+func rootTeamNameFromString(s string) (TeamName, error) {
+	if implicitNameRxx.MatchString(s) {
+		return TeamName{Parts: []TeamNamePart{stringToTeamNamePart(s)}}, nil
+	}
+	if err := validatePart(s); err != nil {
+		return TeamName{}, err
+	}
+	return TeamName{Parts: []TeamNamePart{stringToTeamNamePart(s)}}, nil
+}
+
+func validatePart(s string) (err error) {
+	if len(s) == 0 {
+		return errors.New("team names cannot be empty")
+	}
+	if !(len(s) >= 2 && len(s) <= 16) {
+		return errors.New("team names must be between 2 and 16 characters long")
+	}
+	if !namePartRxx.MatchString(s) {
+		return errors.New("Keybase team names must be letters (a-z), numbers, and underscores. Also, they can't start with underscores or use double underscores, to avoid confusion.")
+	}
+	return nil
+}
+
 func TeamNameFromString(s string) (TeamName, error) {
 	ret := TeamName{}
-	var regularErr error
 
 	parts := strings.Split(s, ".")
 	if len(parts) == 0 {
-		return ret, errors.New("need >= 1 part, got 0")
+		return ret, errors.New("team names cannot be empty")
 	}
-
-	if len(parts) == 1 && implicitNameRxx.MatchString(s) {
-		return TeamName{Parts: []TeamNamePart{TeamNamePart(strings.ToLower(s))}}, nil
+	if len(parts) == 1 {
+		return rootTeamNameFromString(s)
 	}
-
 	tmp := make([]TeamNamePart, len(parts))
 	for i, part := range parts {
-		if !(len(part) >= 2 && len(part) <= 16) {
-			regularErr = errors.New("team names must be between 2 and 16 characters long")
-			break
+		err := validatePart(part)
+		if err != nil {
+			return TeamName{}, fmt.Errorf("Could not parse name as team; bad name component %q: %s", part, err.Error())
 		}
-		if !namePartRxx.MatchString(part) {
-			regularErr = fmt.Errorf("Bad name component: %s (at pos %d)", part, i)
-			break
-		}
-		tmp[i] = TeamNamePart(strings.ToLower(part))
+		tmp[i] = stringToTeamNamePart(part)
 	}
-	if regularErr == nil {
-		return TeamName{Parts: tmp}, nil
-	}
-	return ret, fmt.Errorf("Could not parse name as team name: %v", regularErr)
+	return TeamName{Parts: tmp}, nil
 }
 
 func (t TeamName) String() string {
@@ -1845,6 +1898,8 @@ func TeamInviteTypeFromString(s string, isDev bool) (TeamInviteType, error) {
 		return NewTeamInviteTypeDefault(TeamInviteCategory_EMAIL), nil
 	case "twitter", "github", "facebook", "reddit", "hackernews", "pgp", "http", "https", "dns":
 		return NewTeamInviteTypeWithSbs(TeamInviteSocialNetwork(s)), nil
+	case "seitan_invite_token":
+		return NewTeamInviteTypeDefault(TeamInviteCategory_SEITAN), nil
 	default:
 		if isDev && s == "rooter" {
 			return NewTeamInviteTypeWithSbs(TeamInviteSocialNetwork(s)), nil
@@ -1867,6 +1922,8 @@ func (t TeamInviteType) String() (string, error) {
 		return "email", nil
 	case TeamInviteCategory_SBS:
 		return string(t.Sbs()), nil
+	case TeamInviteCategory_SEITAN:
+		return "seitan_invite_token", nil
 	case TeamInviteCategory_UNKNOWN:
 		return t.Unknown(), nil
 	}
@@ -2007,4 +2064,18 @@ func (p StringKVPair) IntValue() int {
 		return 0
 	}
 	return i
+}
+
+func (r *GitRepoResult) GetIfOk() (res GitRepoInfo, err error) {
+	state, err := r.State()
+	if err != nil {
+		return res, err
+	}
+	switch state {
+	case GitRepoResultState_ERR:
+		return res, fmt.Errorf(r.Err())
+	case GitRepoResultState_OK:
+		return r.Ok(), nil
+	}
+	return res, fmt.Errorf("git repo unknown error")
 }

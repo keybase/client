@@ -2,12 +2,12 @@
 // ^ Very broken right now
 import {BrokenTrackerBanner, ErrorBanner, InviteBanner, InfoBanner} from './conversation/banner'
 import {UsernameHeader} from './conversation/header'
-import ConversationInput from './conversation/input'
+// import ConversationInput from './conversation/input'
 import ConversationList from './conversation/list'
 import NoConversation from './conversation/no-conversation'
 // import {SmallTeamInfoPanel} from './conversation/info-panel'
 import HiddenString from '../util/hidden-string'
-import Inbox from './inbox/container'
+// import Inbox from './inbox/container'
 import ParticipantRekey from './conversation/rekey/participant-rekey'
 import YouRekey from './conversation/rekey/you-rekey'
 import * as Constants from '../constants/chat'
@@ -15,7 +15,6 @@ import {List, Map} from 'immutable'
 import {globalStyles} from '../styles'
 import {makeRouteStateNode} from '../route-tree'
 import {isMobile} from '../constants/platform'
-import * as EntityConstants from '../constants/entities'
 import * as ChatTypes from '../constants/types/flow-types-chat'
 import type {ConversationIDKey} from '../constants/chat'
 
@@ -123,7 +122,7 @@ const inbox = [
     participants: List(participants),
     conversationIDKey: 'convo1',
     status: 'unfiled',
-    teamType: ChatTypes.CommonTeamType.none,
+    teamType: ChatTypes.commonTeamType.none,
     time: now,
   }),
   Constants.makeInboxState({
@@ -131,7 +130,7 @@ const inbox = [
     participants: List(participants.slice(0, 2)),
     conversationIDKey: 'convo2',
     status: 'unfiled',
-    teamType: ChatTypes.CommonTeamType.none,
+    teamType: ChatTypes.commonTeamType.none,
     time: now - 1000 * 60 * 60 * 3,
   }),
   Constants.makeInboxState({
@@ -139,7 +138,7 @@ const inbox = [
     participants: List(participants.slice(0, 3)),
     conversationIDKey: 'convo3',
     status: 'muted',
-    teamType: ChatTypes.CommonTeamType.none,
+    teamType: ChatTypes.commonTeamType.none,
     time: now - 1000 * 60 * 60 * 24 * 3,
   }),
   Constants.makeInboxState({
@@ -147,7 +146,7 @@ const inbox = [
     participants: List(participants.slice(0, 4)),
     conversationIDKey: 'convo5',
     status: 'unfiled',
-    teamType: ChatTypes.CommonTeamType.none,
+    teamType: ChatTypes.commonTeamType.none,
     time: now - 1000 * 60 * 60 * 24 * 30,
   }),
   Constants.makeInboxState({
@@ -155,7 +154,7 @@ const inbox = [
     participants: List(participants.slice(0, 2)),
     conversationIDKey: 'convo6',
     status: 'unfiled',
-    teamType: ChatTypes.CommonTeamType.none,
+    teamType: ChatTypes.commonTeamType.none,
     time: now - 1000 * 60 * 60 * 3,
   }),
   Constants.makeInboxState({
@@ -163,7 +162,7 @@ const inbox = [
     participants: List(participants.slice(0, 1)),
     conversationIDKey: 'convo7',
     status: 'muted',
-    teamType: ChatTypes.CommonTeamType.none,
+    teamType: ChatTypes.commonTeamType.none,
     time: now - 1000 * 60 * 60 * 5,
   }),
 ]
@@ -186,9 +185,7 @@ const commonConversationsProps = ({selected, inbox: _inbox, rekeyInfos}: any) =>
       pendingConversations: Map(),
       rekeyInfos: rekeyInfos || Map(),
       supersededByState: Map(),
-    }),
-    entities: EntityConstants.makeState({
-      convIDToSnippet: Map(
+      inboxSnippet: Map(
         inbox.reduce((acc, m) => {
           acc[m.conversationIDKey] = `${m.conversationIDKey}`
           return acc
@@ -217,9 +214,9 @@ const commonConversationsProps = ({selected, inbox: _inbox, rekeyInfos}: any) =>
   onSelectConversation: (key: ConversationIDKey) => console.log('selected', key),
 })
 
-const emptyConversationsProps = {
-  ...commonConversationsProps({inbox: List()}),
-}
+// const emptyConversationsProps = {
+// ...commonConversationsProps({inbox: List()}),
+// }
 
 const header = {
   component: UsernameHeader,
@@ -238,21 +235,21 @@ const header = {
   },
 }
 
-const input = {
-  component: ConversationInput,
-  mocks: {
-    Normal: {
-      ...commonConvoProps,
-    },
-    /* FIXME: causes flaky visdiff
-    'Emoji Open': {
-      ...commonConvoProps,
-      emojiPickerOpen: true,
-      parentProps: {style: {height: 370, paddingTop: 330}},
-    },
-    */
-  },
-}
+// const input = {
+// component: ConversationInput,
+// mocks: {
+// Normal: {
+// ...commonConvoProps,
+// },
+// [> FIXME: causes flaky visdiff
+// 'Emoji Open': {
+// ...commonConvoProps,
+// emojiPickerOpen: true,
+// parentProps: {style: {height: 370, paddingTop: 330}},
+// },
+// */
+// },
+// }
 
 const listParentProps = {
   style: {
@@ -368,93 +365,93 @@ const infoPanel = {
   },
 }
 */
-const inboxParentProps = {
-  style: {
-    ...globalStyles.flexBoxColumn,
-    minWidth: 240,
-    height: isMobile ? undefined : 500,
-    ...(isMobile ? {flexGrow: 1} : {}),
-  },
-}
+// const inboxParentProps = {
+// style: {
+// ...globalStyles.flexBoxColumn,
+// minWidth: 240,
+// height: isMobile ? undefined : 500,
+// ...(isMobile ? {flexGrow: 1} : {}),
+// },
+// }
 
-const conversationsList = {
-  component: Inbox,
-  mocks: {
-    Normal: {
-      ...commonConversationsProps({}),
-      parentProps: inboxParentProps,
-    },
-    'Selected Normal': {
-      ...commonConversationsProps({selected: 'convo1'}),
-      parentProps: inboxParentProps,
-    },
-    SelectedMuted: {
-      ...commonConversationsProps({selected: 'convo3'}),
-      parentProps: inboxParentProps,
-    },
-    Empty: {
-      ...emptyConversationsProps,
-      parentProps: inboxParentProps,
-    },
-    PartRekey: {
-      ...rekeyConvo('convo3', false),
-      parentProps: inboxParentProps,
-    },
-    PartRekeySelected: {
-      ...rekeyConvo('convo1', false),
-      parentProps: inboxParentProps,
-    },
-    YouRekey: {
-      ...rekeyConvo('convo3', true),
-      parentProps: inboxParentProps,
-    },
-    YouRekeySelected: {
-      ...rekeyConvo('convo1', true),
-      parentProps: inboxParentProps,
-    },
-    LongTop: {
-      ...commonConversationsProps({
-        inbox: List([
-          Constants.makeInboxState({
-            conversationIDKey: 'convo1',
-            info: null,
-            status: 'unfiled',
-            participants: List([
-              'one',
-              'two',
-              'three',
-              'four',
-              'five',
-              'six',
-              'seven',
-              'eight',
-              'nine',
-              'ten',
-            ]),
-            time: now,
-            unreadCount: 3,
-          }),
-        ]),
-      }),
-      parentProps: inboxParentProps,
-    },
-    LongBottom: {
-      ...commonConversationsProps({
-        inbox: List([
-          Constants.makeInboxState({
-            conversationIDKey: 'convo1',
-            info: null,
-            status: 'unfiled',
-            participants: List(['look down!']),
-            time: now,
-            unreadCount: 3,
-          }),
-        ]),
-      }),
-      parentProps: inboxParentProps,
-    },
-  },
-}
+// const conversationsList = {
+// component: Inbox,
+// mocks: {
+// Normal: {
+// ...commonConversationsProps({}),
+// parentProps: inboxParentProps,
+// },
+// 'Selected Normal': {
+// ...commonConversationsProps({selected: 'convo1'}),
+// parentProps: inboxParentProps,
+// },
+// SelectedMuted: {
+// ...commonConversationsProps({selected: 'convo3'}),
+// parentProps: inboxParentProps,
+// },
+// Empty: {
+// ...emptyConversationsProps,
+// parentProps: inboxParentProps,
+// },
+// PartRekey: {
+// ...rekeyConvo('convo3', false),
+// parentProps: inboxParentProps,
+// },
+// PartRekeySelected: {
+// ...rekeyConvo('convo1', false),
+// parentProps: inboxParentProps,
+// },
+// YouRekey: {
+// ...rekeyConvo('convo3', true),
+// parentProps: inboxParentProps,
+// },
+// YouRekeySelected: {
+// ...rekeyConvo('convo1', true),
+// parentProps: inboxParentProps,
+// },
+// LongTop: {
+// ...commonConversationsProps({
+// inbox: List([
+// Constants.makeInboxState({
+// conversationIDKey: 'convo1',
+// info: null,
+// status: 'unfiled',
+// participants: List([
+// 'one',
+// 'two',
+// 'three',
+// 'four',
+// 'five',
+// 'six',
+// 'seven',
+// 'eight',
+// 'nine',
+// 'ten',
+// ]),
+// time: now,
+// unreadCount: 3,
+// }),
+// ]),
+// }),
+// parentProps: inboxParentProps,
+// },
+// LongBottom: {
+// ...commonConversationsProps({
+// inbox: List([
+// Constants.makeInboxState({
+// conversationIDKey: 'convo1',
+// info: null,
+// status: 'unfiled',
+// participants: List(['look down!']),
+// time: now,
+// unreadCount: 3,
+// }),
+// ]),
+// }),
+// parentProps: inboxParentProps,
+// },
+// },
+// }
 
 const brokenTrackerBanner = {
   component: BrokenTrackerBanner,
@@ -527,9 +524,10 @@ export default {
   ChatBannerError: errorBanner,
   ChatBannerInfo: infoBanner,
   ChatBannerInvite: inviteBanner,
-  ChatInbox: conversationsList,
+  // XXX: Temp disabled, contains a connected component
+  // ChatInbox: conversationsList,
   ChatHeader: header,
-  ChatInput: input,
+  // ChatInput: input,
   ChatList: list,
   ChatParticipantRekey: participantRekey,
   // XXX: Temp disabled, contains a connected component

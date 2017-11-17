@@ -14,6 +14,7 @@ type ChatContext struct {
 	FetchRetrier        types.FetchRetrier        // For retrying failed fetch requests
 	ConvLoader          types.ConvLoader          // background conversation loader
 	PushHandler         types.PushHandler         // for handling push notifications from chat server
+	TeamChannelSource   types.TeamChannelSource   // source of all channels in a team
 }
 
 type Context struct {

@@ -79,7 +79,9 @@ const onChangeSelectedSearchResultHoc = compose(
         props._searchDebounced.flush()
         // See whether the current search result term matches the last one submitted
         if (lastSearchTerm === props.searchResultTerm) {
-          props.selectedSearchId && props.onAddUser(props.selectedSearchId)
+          props.selectedSearchId && props.disableListBuilding
+            ? props.onSelectUser(props.selectedSearchId)
+            : props.onAddUser(props.selectedSearchId)
           props.onChangeSearchText && props.onChangeSearchText('')
         }
       },

@@ -1,54 +1,25 @@
 // @flow
 import uniq from 'lodash/uniq'
-import {runMode} from './platform'
+import {isMobile, runMode} from './platform'
+import {type ConversationIDKey} from './chat'
+import {type Tab} from './tabs'
+import {type Config, type DeviceID, type ExtendedStatus} from './types/flow-types'
 
-import type {ConversationIDKey} from './chat'
-import type {Tab} from './tabs'
-import type {BootstrapStatus, Config, DeviceID, ExtendedStatus} from './types/flow-types'
-import type {NoErrorTypedAction} from './types/flux'
-
-// TODO remove action type constants. Type actions
-const MAX_BOOTSTRAP_TRIES = 3
-const bootstrapAttemptFailed = 'config:bootstrapAttemptFailed'
-const bootstrapFailed = 'config:bootstrapFailed'
-const bootstrapSuccess = 'config:bootstrapSuccess'
-const bootstrapStatusLoaded = 'config:bootstrapStatusLoaded'
-const bootstrapRetry = 'config:bootstrapRetry'
-const bootstrapRetryDelay = 10 * 1000
-const changeKBFSPath = 'config:changeKBFSPath'
-const configLoaded = 'config:configLoaded'
-const daemonError = 'config:daemonError'
-const defaultKBFSPath = runMode === 'prod' ? '/keybase' : `/keybase.${runMode}`
-const defaultPrivatePrefix = '/private/'
-const defaultPublicPrefix = '/public/'
-const extendedConfigLoaded = 'config:extendedConfigLoaded'
-const globalError = 'config:globalError'
-const globalErrorDismiss = 'config:globalErrorDismiss'
-const readAppVersion = 'config:readAppVersion'
-const setFollowers = 'config:setFollowers'
-const setFollowing = 'config:setFollowing'
-const statusLoaded = 'config:statusLoaded'
-const updateFollowing = 'config:updateFollowing'
-
-export type BootstrapStatusLoaded = NoErrorTypedAction<
-  'config:bootstrapStatusLoaded',
-  {bootstrapStatus: BootstrapStatus}
->
-export type DaemonError = NoErrorTypedAction<'config:daemonError', {daemonError: ?Error}>
-export type UpdateFollowing = NoErrorTypedAction<
-  'config:updateFollowing',
-  {username: string, isTracking: boolean}
->
+export const maxBootstrapTries = 3
+export const bootstrapRetryDelay = 10 * 1000
+export const defaultKBFSPath = runMode === 'prod' ? '/keybase' : `/keybase.${runMode}`
+export const defaultPrivatePrefix = '/private/'
+export const defaultPublicPrefix = '/public/'
+const defaultTeamPrefix = '/team/'
+// Mobile is ready for bootstrap automatically, desktop needs to wait for
+// the installer.
+const readyForBootstrap = isMobile
 
 export type InitialState = {|
   conversation?: ConversationIDKey,
   tab?: Tab,
   url?: string,
 |}
-
-export type SetInitialState = NoErrorTypedAction<'config:setInitialState', InitialState>
-
-export type PushLoaded = NoErrorTypedAction<'config:pushLoaded', boolean>
 
 export type BootStatus = 'bootStatusLoading' | 'bootStatusBootstrapped' | 'bootStatusFailure'
 
@@ -60,51 +31,57 @@ export function publicFolderWithUsers(users: Array<string>): string {
   return `${defaultKBFSPath}${defaultPublicPrefix}${uniq(users).join(',')}`
 }
 
+export function teamFolder(team: string): string {
+  return `${defaultKBFSPath}${defaultTeamPrefix}${team}`
+}
+
+// NOTE: All stores which go over the wire to remote windows CANNOT be immutable (yet)
 export type State = {
   appFocused: boolean,
-  userActive: boolean,
   appFocusedCount: number,
   bootStatus: BootStatus,
-  pushLoaded: boolean,
   bootstrapTriesRemaining: number,
   config: ?Config,
   daemonError: ?Error,
+  deviceID: ?DeviceID,
+  deviceName: ?string,
   error: ?any,
   extendedConfig: ?ExtendedStatus,
   followers: {[key: string]: true},
   following: {[key: string]: true},
   globalError: ?Error,
+  initialState: ?InitialState,
   kbfsPath: string,
   loggedIn: boolean,
-  registered: boolean,
+  pushLoaded: boolean,
   readyForBootstrap: boolean,
+  registered: boolean,
   uid: ?string,
+  userActive: boolean,
   username: ?string,
-  initialState: ?InitialState,
-  deviceID: ?DeviceID,
-  deviceName: ?string,
 }
 
-export {
-  MAX_BOOTSTRAP_TRIES,
-  bootstrapAttemptFailed,
-  bootstrapFailed,
-  bootstrapSuccess,
-  bootstrapStatusLoaded,
-  bootstrapRetry,
-  bootstrapRetryDelay,
-  changeKBFSPath,
-  configLoaded,
-  daemonError,
-  defaultKBFSPath,
-  defaultPrivatePrefix,
-  defaultPublicPrefix,
-  extendedConfigLoaded,
-  globalError,
-  globalErrorDismiss,
-  readAppVersion,
-  setFollowers,
-  setFollowing,
-  statusLoaded,
-  updateFollowing,
+export const initialState: State = {
+  appFocused: true,
+  appFocusedCount: 0,
+  bootStatus: 'bootStatusLoading',
+  bootstrapTriesRemaining: maxBootstrapTries,
+  config: null,
+  daemonError: null,
+  deviceID: null,
+  deviceName: null,
+  error: null,
+  extendedConfig: null,
+  followers: {},
+  following: {},
+  globalError: null,
+  initialState: null,
+  kbfsPath: defaultKBFSPath,
+  loggedIn: false,
+  pushLoaded: false,
+  readyForBootstrap,
+  registered: false,
+  uid: null,
+  userActive: true,
+  username: null,
 }

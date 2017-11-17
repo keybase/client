@@ -1,28 +1,28 @@
 // @flow
+import * as ChatGen from '../../actions/chat-gen'
+import * as KBFSGen from '../../actions/kbfs-gen'
 import React, {Component} from 'react'
 import Render from './render'
-import some from 'lodash/some'
-import get from 'lodash/get'
 import flags from '../../util/feature-flags'
+import get from 'lodash/get'
+import some from 'lodash/some'
 import type {Folder} from '../list'
-import {bindActionCreators} from 'redux'
 import {connect} from 'react-redux'
 import {favoriteFolder, ignoreFolder} from '../../actions/favorite'
 import {navigateUp, navigateAppend} from '../../actions/route-tree'
-import {openInKBFS} from '../../actions/kbfs'
-import {openTlfInChat} from '../../actions/chat'
 
 type Props = $Shape<{
   folder: ?Folder,
   path: string,
   username: string,
   allowIgnore: boolean,
+  isTeam: boolean,
   navigateUp: () => void,
   navigateAppend: (route: any) => void,
   ignoreFolder: (path: string) => void,
   favoriteFolder: (path: string) => void,
   openInKBFS: (path: string) => void,
-  openTlfInChat: (tlf: string) => void,
+  openTlfInChat: (tlf: string, isTeam: boolean) => void,
 }>
 
 type State = {
@@ -68,7 +68,7 @@ class Files extends Component<Props, State> {
     }
     const openConversationFromFolder = () => {
       const tlf = this.props && this.props.folder && this.props.folder.sortName
-      tlf && this.props.openTlfInChat(tlf)
+      tlf && this.props.openTlfInChat(tlf, this.props.folder ? this.props.folder.isTeam : false)
     }
     const ignoreCurrentFolder = () => {
       this.props.ignoreFolder(this.props.path)
@@ -97,6 +97,7 @@ class Files extends Component<Props, State> {
         hasReadOnlyUsers={folder.users && some(folder.users, 'readOnly')}
         waitingForParticipantUnlock={folder.waitingForParticipantUnlock}
         youCanUnlock={folder.youCanUnlock}
+        isTeam={folder.isTeam}
         onBack={() => this.props.navigateUp()}
         openCurrentFolder={openCurrentFolder}
         openConversationFromFolder={openConversationFromFolder}
@@ -110,28 +111,32 @@ class Files extends Component<Props, State> {
   }
 }
 
-const ConnectedFiles = connect(
-  (state: any, {routeProps}) => {
-    const folders: Array<Folder> = [].concat(
-      get(state, 'favorite.folderState.private.tlfs', []),
-      get(state, 'favorite.folderState.public.tlfs', []),
-      get(state, 'favorite.folderState.private.ignored', []),
-      get(state, 'favorite.folderState.public.ignored', [])
-    )
+const mapStateToProps = (state: any, {routeProps}) => {
+  const folders: Array<Folder> = [].concat(
+    get(state, 'favorite.folderState.private.tlfs', []),
+    get(state, 'favorite.folderState.public.tlfs', []),
+    get(state, 'favorite.folderState.team.tlfs', []),
+    get(state, 'favorite.folderState.private.ignored', []),
+    get(state, 'favorite.folderState.public.ignored', []),
+    get(state, 'favorite.folderState.team.ignored', [])
+  )
 
-    const folder = folders.find(f => f.path === routeProps.get('path'))
+  const folder = folders.find(f => f.path === routeProps.get('path'))
 
-    return {
-      path: routeProps.get('path'),
-      folder,
-      username: state.config && state.config.username,
-    }
-  },
-  (dispatch: any) =>
-    bindActionCreators(
-      {favoriteFolder, ignoreFolder, navigateAppend, navigateUp, openInKBFS, openTlfInChat},
-      dispatch
-    )
-)(Files)
+  return {
+    path: routeProps.get('path'),
+    folder,
+    username: state.config && state.config.username,
+  }
+}
 
-export default ConnectedFiles
+const mapDispatchToProps = (dispatch: any) => ({
+  favoriteFolder: path => dispatch(favoriteFolder(path)),
+  ignoreFolder: path => dispatch(ignoreFolder(path)),
+  navigateAppend: route => dispatch(navigateAppend(route)),
+  navigateUp: () => dispatch(navigateUp()),
+  openInKBFS: path => dispatch(KBFSGen.createOpen({path})),
+  openTlfInChat: tlf => dispatch(ChatGen.createOpenTlfInChat({tlf})),
+})
+
+export default connect(mapStateToProps, mapDispatchToProps)(Files)

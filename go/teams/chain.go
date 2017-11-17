@@ -281,8 +281,12 @@ func (t TeamSigChainState) HasAnyStubbedLinks() bool {
 	return false
 }
 
-func (t TeamSigChainState) IsLinkFullyPresent(seqno keybase1.Seqno) bool {
+// Whether the link has been processed and is not stubbed.
+func (t TeamSigChainState) IsLinkFilled(seqno keybase1.Seqno) bool {
 	if seqno > t.inner.LastSeqno {
+		return false
+	}
+	if seqno < 0 {
 		return false
 	}
 	return !t.inner.StubbedLinks[seqno]
@@ -1439,9 +1443,26 @@ func (t *TeamSigChainPlayer) addInnerLink(
 		res.newState = prevState.DeepCopy()
 		err = t.parseTeamSettings(team.Settings, &res.newState)
 		return res, err
+	case libkb.LinkTypeDeleteRoot:
+		return res, NewTeamDeletedError()
+	case libkb.LinkTypeDeleteUpPointer:
+		return res, NewTeamDeletedError()
+	case libkb.LinkTypeLegacyTLFUpgrade:
+		// This link type is not really understood but is processed as a no-op for forward compatibility.
+		// When implementing this for real (or deleting it) be sure to:
+		// - Bust the TeamData cache
+		// - Update SigchainV2Type.RequiresAdminPermission
+		// - Add checks here that the signer is an admin and that this is an implicit team. If those are intended.
+		res.newState = prevState.DeepCopy()
+		return res, nil
 	case "":
 		return res, errors.New("empty body type")
 	default:
+		if link.outerLink.IgnoreIfUnsupported {
+			res.newState = prevState.DeepCopy()
+			return res, nil
+		}
+
 		return res, fmt.Errorf("unsupported link type: %s", payload.Body.Type)
 	}
 }
@@ -1653,20 +1674,20 @@ func (t *TeamSigChainPlayer) sanityCheckMembers(members SCTeamMembers, options s
 
 	if options.requireOwners {
 		if members.Owners == nil {
-			return nil, fmt.Errorf("team has no owner list: %+v", members)
+			return nil, fmt.Errorf("team has no owner list")
 		}
 		if len(*members.Owners) < 1 {
-			return nil, fmt.Errorf("team has no owners: %+v", members)
+			return nil, fmt.Errorf("team has no owners")
 		}
 	}
 	if options.disallowOwners {
 		if members.Owners != nil && len(*members.Owners) > 0 {
-			return nil, fmt.Errorf("team has owners: %+v", members)
+			return nil, fmt.Errorf("team has owners")
 		}
 	}
 	if !options.allowRemovals {
 		if members.None != nil && len(*members.None) != 0 {
-			return nil, fmt.Errorf("team has removals in link: %+v", members)
+			return nil, fmt.Errorf("team has removals in link")
 		}
 	}
 

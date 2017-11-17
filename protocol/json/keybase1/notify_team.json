@@ -58,6 +58,16 @@
       ],
       "response": null,
       "oneway": true
+    },
+    "teamExit": {
+      "request": [
+        {
+          "name": "teamID",
+          "type": "TeamID"
+        }
+      ],
+      "response": null,
+      "oneway": true
     }
   },
   "namespace": "keybase.1"

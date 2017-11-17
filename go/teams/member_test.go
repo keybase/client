@@ -1,10 +1,13 @@
 package teams
 
 import (
+	"sort"
 	"testing"
+	"time"
 
 	"golang.org/x/net/context"
 
+	"github.com/davecgh/go-spew/spew"
 	"github.com/keybase/client/go/externals"
 	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/libkb"
@@ -54,6 +57,10 @@ func memberSetupMultiple(t *testing.T) (tc libkb.TestContext, owner, otherA, oth
 // no members in subteam.
 func memberSetupSubteam(t *testing.T) (tc libkb.TestContext, owner, otherA, otherB *kbtest.FakeUser, root, sub string) {
 	tc, owner, otherA, otherB, root = memberSetupMultiple(t)
+
+	t.Logf("mss owner: %v", owner.Username)
+	t.Logf("mss otherA: %v", otherA.Username)
+	t.Logf("mss otherB: %v", otherB.Username)
 
 	// add otherA and otherB as admins to rootName
 	_, err := AddMember(context.TODO(), tc.G, root, otherA.Username, keybase1.TeamRole_ADMIN)
@@ -545,26 +552,44 @@ func TestMemberAddAsImplicitAdmin(t *testing.T) {
 	// owner created a subteam, otherA is implicit admin, otherB is nobody
 	// (all of that tested in memberSetupSubteam)
 
-	// switch to `otherA` user
-	tc.G.Logout()
-	if err := otherA.Login(tc.G); err != nil {
-		t.Fatal(err)
+	switchTo := func(to *kbtest.FakeUser) {
+		tc.G.Logout()
+		err := to.Login(tc.G)
+		require.NoError(t, err)
 	}
+
+	switchTo(otherA)
 
 	// otherA has the power to add otherB to the subteam
 	res, err := AddMember(context.TODO(), tc.G, subteamName, otherB.Username, keybase1.TeamRole_WRITER)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if res.User.Username != otherB.Username {
-		t.Errorf("AddMember result username %q does not match arg username %q", res.User.Username, otherB.Username)
-	}
+	require.NoError(t, err)
+	require.Equal(t, otherB.Username, res.User.Username, "AddMember result username does not match arg")
 	// otherB should now be a writer
 	assertRole(tc, subteamName, otherB.Username, keybase1.TeamRole_WRITER)
 
 	// owner, otherA should still be non-members
 	assertRole(tc, subteamName, owner.Username, keybase1.TeamRole_NONE)
 	assertRole(tc, subteamName, otherA.Username, keybase1.TeamRole_NONE)
+
+	switchTo(otherB)
+	// Test ImplicitAdmins
+	subteamName2, err := keybase1.TeamNameFromString(subteamName)
+	require.NoError(t, err)
+	subteamID, err := ResolveNameToID(context.TODO(), tc.G, subteamName2)
+	require.NoError(t, err)
+	ias, err := ImplicitAdmins(context.TODO(), tc.G, subteamID)
+	require.NoError(t, err)
+	t.Logf("res: %v", spew.Sdump(ias))
+	require.Len(t, ias, 2, "number of implicit admins")
+	sort.Slice(ias, func(i, _ int) bool {
+		return ias[i].Uv.Eq(owner.GetUserVersion())
+	})
+	require.Equal(t, owner.GetUserVersion(), ias[0].Uv)
+	require.Equal(t, owner.Username, ias[0].Username)
+	require.True(t, ias[0].Active)
+	require.Equal(t, otherA.GetUserVersion(), ias[1].Uv)
+	require.Equal(t, otherA.Username, ias[1].Username)
+	require.True(t, ias[1].Active)
 }
 
 func TestLeave(t *testing.T) {
@@ -607,6 +632,95 @@ func TestLeave(t *testing.T) {
 	}
 	if team.IsMember(context.TODO(), otherB.GetUserVersion()) {
 		t.Fatal("Writer user is still member after leave.")
+	}
+}
+
+func TestLeaveSubteamWithImplicitAdminship(t *testing.T) {
+	tc, owner, otherA, otherB, name := memberSetupMultiple(t)
+	defer tc.Cleanup()
+
+	if err := SetRoleAdmin(context.TODO(), tc.G, name, otherA.Username); err != nil {
+		t.Fatal(err)
+	}
+	if err := SetRoleAdmin(context.TODO(), tc.G, name, otherB.Username); err != nil {
+		t.Fatal(err)
+	}
+	teamNameParsed, err := keybase1.TeamNameFromString(name)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	subteamNameParsed, _ := createSubteam(&tc, teamNameParsed, "subteam")
+	subteamName := subteamNameParsed.String()
+
+	if err := SetRoleAdmin(context.TODO(), tc.G, subteamName, otherA.Username); err != nil {
+		t.Fatal(err)
+	}
+	if err := SetRoleAdmin(context.TODO(), tc.G, subteamName, otherB.Username); err != nil {
+		t.Fatal(err)
+	}
+
+	tc.G.Logout()
+
+	if err := otherA.Login(tc.G); err != nil {
+		t.Fatal(err)
+	}
+	if err := Leave(context.TODO(), tc.G, subteamName, false); err != nil {
+		t.Fatal(err)
+	}
+	tc.G.Logout()
+
+	if err := otherB.Login(tc.G); err != nil {
+		t.Fatal(err)
+	}
+	if err := Leave(context.TODO(), tc.G, subteamName, false); err != nil {
+		t.Fatal(err)
+	}
+	tc.G.Logout()
+
+	if err := owner.Login(tc.G); err != nil {
+		t.Fatal(err)
+	}
+	team, err := GetForTestByStringName(context.TODO(), tc.G, subteamName)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if team.IsMember(context.TODO(), otherA.GetUserVersion()) {
+		t.Fatal("Admin user is still member after leave.")
+	}
+	if team.IsMember(context.TODO(), otherB.GetUserVersion()) {
+		t.Fatal("Writer user is still member after leave.")
+	}
+
+	// Try to leave the team again.
+	// They are now an implicit admin and not an explicit member.
+	// So this should fail, but with a reasonable error.
+	t.Logf("try to leave again")
+	tc.G.Logout()
+	err = otherA.Login(tc.G)
+	require.NoError(t, err)
+	err = Leave(context.TODO(), tc.G, subteamName, false)
+	require.Error(t, err)
+	require.IsType(t, &ImplicitAdminCannotLeaveError{}, err, "wrong error type")
+}
+
+// See CORE-6473
+func TestOnlyOwnerLeaveThenUpgradeFriend(t *testing.T) {
+
+	tc, _, otherA, _, name := memberSetupMultiple(t)
+	defer tc.Cleanup()
+
+	if err := SetRoleWriter(context.TODO(), tc.G, name, otherA.Username); err != nil {
+		t.Fatal(err)
+	}
+	if err := Leave(context.TODO(), tc.G, name, false); err == nil {
+		t.Fatal("expected an error when only owner is leaving")
+	}
+	if err := SetRoleOwner(context.TODO(), tc.G, name, otherA.Username); err != nil {
+		t.Fatal(err)
+	}
+	if err := Leave(context.TODO(), tc.G, name, false); err != nil {
+		t.Fatal(err)
 	}
 }
 
@@ -848,4 +962,193 @@ func TestMemberCancelInviteEmail(t *testing.T) {
 	if _, ok := err.(TeamDoesNotExistError); !ok {
 		t.Errorf("expected teams.TeamDoesNotExistError, got %T", err)
 	}
+}
+
+// Test two users racing to post chain links to the same team.
+// In this case, adding different users to the team.
+// The expected behavior is that they both succeed.
+// A rotation is also thrown in some time.
+func TestMemberAddRace(t *testing.T) {
+	fus, tcs, cleanup := setupNTests(t, 4)
+	defer cleanup()
+
+	t.Logf("U0 creates A")
+	rootName, rootID := createTeam2(*tcs[0])
+
+	t.Logf("U0 adds U1")
+	_, err := AddMember(context.TODO(), tcs[0].G, rootName.String(), fus[1].Username, keybase1.TeamRole_ADMIN)
+	require.NoError(t, err, "add member")
+
+	// add or remove a user from the team
+	mod := func(userIndexOperator, userIndexTarget int, add bool) <-chan error {
+		errCh := make(chan error)
+		go func() {
+			ctx := context.Background()
+			ctx = libkb.WithLogTag(ctx, "TEST")
+			var err error
+			desc := "removes"
+			if add {
+				desc = "adds"
+			}
+			t.Logf("U%v %v U%v", userIndexOperator, desc, userIndexTarget)
+			if add {
+				_, err = AddMember(ctx,
+					tcs[userIndexOperator].G, rootName.String(), fus[userIndexTarget].Username, keybase1.TeamRole_READER)
+			} else {
+				err = RemoveMember(ctx,
+					tcs[userIndexOperator].G, rootName.String(), fus[userIndexTarget].Username)
+			}
+			errCh <- err
+		}()
+		return errCh
+	}
+
+	rotate := func(userIndexOperator int) <-chan error {
+		errCh := make(chan error)
+		go func() {
+			err := HandleRotateRequest(context.TODO(), tcs[userIndexOperator].G, rootID, keybase1.PerTeamKeyGeneration(100))
+			errCh <- err
+		}()
+		return errCh
+	}
+
+	assertNoErr := func(errCh <-chan error, msgAndArgs ...interface{}) {
+		select {
+		case err := <-errCh:
+			require.NoError(t, err, msgAndArgs...)
+		case <-time.After(20 * time.Second):
+			require.FailNow(t, "timeout waiting for return channel")
+		}
+	}
+
+	for i := 0; i < 5; i++ {
+		t.Logf("round %v", i)
+		doRotate := i%3 == 1
+
+		t.Logf("parallel start")
+
+		errCh1 := mod(0, 2, true)
+		errCh2 := mod(1, 3, true)
+		var errCh3 <-chan error
+		if doRotate {
+			errCh3 = rotate(0)
+		}
+		assertNoErr(errCh1, "round %v", i)
+		assertNoErr(errCh2, "round %v", i)
+		if doRotate {
+			assertNoErr(errCh3, "round %v", i)
+		}
+
+		t.Logf("parallel end")
+
+		assertNoErr(mod(0, 2, false))
+		assertNoErr(mod(1, 3, false))
+	}
+}
+
+// Test two users racing to post chain links to the same team.
+// In this case, adding the same user to the team.
+// The expected behavior is that one will win and one will fail with a nice error.
+func TestMemberAddRaceConflict(t *testing.T) {
+	fus, tcs, cleanup := setupNTests(t, 4)
+	defer cleanup()
+
+	t.Logf("U0 creates A")
+	rootName, _ := createTeam2(*tcs[0])
+
+	t.Logf("U0 adds U1")
+	_, err := AddMember(context.TODO(), tcs[0].G, rootName.String(), fus[1].Username, keybase1.TeamRole_ADMIN)
+	require.NoError(t, err, "add member")
+
+	// add or remove a user from the team
+	mod := func(userIndexOperator, userIndexTarget int, add bool) <-chan error {
+		errCh := make(chan error)
+		go func() {
+			ctx := context.Background()
+			ctx = libkb.WithLogTag(ctx, "TEST")
+			var err error
+			desc := "removes"
+			if add {
+				desc = "adds"
+			}
+			t.Logf("U%v %v U%v", userIndexOperator, desc, userIndexTarget)
+			if add {
+				_, err = AddMember(ctx,
+					tcs[userIndexOperator].G, rootName.String(), fus[userIndexTarget].Username, keybase1.TeamRole_READER)
+			} else {
+				err = RemoveMember(ctx,
+					tcs[userIndexOperator].G, rootName.String(), fus[userIndexTarget].Username)
+			}
+			errCh <- err
+		}()
+		return errCh
+	}
+
+	assertNoErr := func(errCh <-chan error, msgAndArgs ...interface{}) {
+		select {
+		case err := <-errCh:
+			require.NoError(t, err, msgAndArgs...)
+		case <-time.After(20 * time.Second):
+			require.FailNow(t, "timeout waiting for return channel")
+		}
+	}
+
+	// Exactly one error comes from the list of channels
+	assertOneErr := func(errChs []<-chan error, msgAndArgs ...interface{}) (retErr error) {
+		for i, errCh := range errChs {
+			select {
+			case err := <-errCh:
+				if retErr == nil {
+					retErr = err
+				} else {
+					require.NoError(t, err, msgAndArgs...)
+				}
+			case <-time.After(20 * time.Second):
+				require.FailNow(t, "timeout waiting for return channel: %v", i)
+			}
+		}
+		return retErr
+	}
+
+	for i := 0; i < 5; i++ {
+		t.Logf("round %v", i)
+
+		t.Logf("parallel start")
+
+		errCh1 := mod(0, 2, true)
+		errCh2 := mod(1, 2, true)
+		err := assertOneErr([](<-chan error){errCh1, errCh2})
+		require.Errorf(t, err, "round %v", i)
+		require.IsType(t, libkb.ExistsError{}, err, "user should already be in team (round %v)", i)
+
+		t.Logf("parallel end")
+
+		assertNoErr(mod(0, 2, false))
+	}
+}
+
+// Add user without puk to a team, then change their role.
+func TestMemberInviteChangeRole(t *testing.T) {
+	tc, _, name := memberSetup(t)
+	defer tc.Cleanup()
+
+	username := "t_alice"
+	uid := keybase1.UID("295a7eea607af32040647123732bc819")
+	role := keybase1.TeamRole_READER
+
+	res, err := AddMember(context.TODO(), tc.G, name, username, role)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !res.Invited {
+		t.Fatal("res.Invited should be set")
+	}
+
+	fqUID := string(uid) + "%1"
+	assertInvite(tc, name, fqUID, "keybase", role)
+
+	if err := EditMember(context.TODO(), tc.G, name, username, keybase1.TeamRole_ADMIN); err != nil {
+		t.Fatal(err)
+	}
+	assertInvite(tc, name, fqUID, "keybase", keybase1.TeamRole_ADMIN)
 }

@@ -3,20 +3,23 @@ import mapValues from 'lodash/mapValues'
 import isEqual from 'lodash/isEqual'
 import map from 'lodash/map'
 import forEach from 'lodash/forEach'
-import {buffers, channel} from 'redux-saga'
+import {buffers, channel, delay} from 'redux-saga'
 import {
   actionChannel,
-  take,
+  all,
   call,
+  cancel,
+  cancelled,
+  fork,
   put,
   race,
   select,
-  fork,
+  spawn,
+  take,
   takeEvery,
   takeLatest,
-  cancelled,
 } from 'redux-saga/effects'
-import {globalError} from '../constants/config'
+import * as ConfigGen from '../actions/config-gen'
 import {convertToError} from '../util/errors'
 
 import type {Action} from '../constants/types/flux'
@@ -30,6 +33,7 @@ function createChannelMap<T>(channelConfig: ChannelConfig<T>): ChannelMap<T> {
   return mapValues(channelConfig, (v, k) => {
     const ret = channel(v())
     // to help debug what's going on in dev/user-timings
+    // $FlowIssue doesn't like us setting this on a sealed object
     ret.userTimingName = k
     return ret
   })
@@ -90,12 +94,11 @@ function safeTakeEvery(pattern: string | Array<any> | Function, worker: Function
       yield call(worker, ...args)
     } catch (error) {
       // Convert to global error so we don't kill the takeEvery loop
-      yield put(dispatch => {
-        dispatch({
-          payload: convertToError(error),
-          type: globalError,
+      yield put(
+        ConfigGen.createGlobalError({
+          globalError: convertToError(error),
         })
-      })
+      )
     } finally {
       if (yield cancelled()) {
         console.log('safeTakeEvery cancelled')
@@ -103,6 +106,7 @@ function safeTakeEvery(pattern: string | Array<any> | Function, worker: Function
     }
   }
 
+  // $FlowIssue confused
   return takeEvery(pattern, safeTakeEveryWorker, ...args)
 }
 
@@ -111,19 +115,25 @@ function safeTakeEvery(pattern: string | Array<any> | Function, worker: Function
 // whatever purework returns will be yielded on.
 // i.e. it can return put(someAction). That effectively transforms the input action into another action
 // It can also return all([put(action1), put(action2)]) to dispatch multiple actions
-function safeTakeEveryPure<S, A>(
+function safeTakeEveryPure<A, R, FinalAction>(
   pattern: string | Array<any> | Function,
-  pureWorker: ((action: any) => any) | ((action: any, selectedState: S) => any),
-  selectorFn?: (state: TypedState, action: A) => S
+  pureWorker: ((action: A, state: TypedState) => any) | ((action: A) => any),
+  actionCreatorsWithResult?: (result: R) => FinalAction
 ) {
   return safeTakeEvery(pattern, function* safeTakeEveryPureWorker(action: A) {
-    if (selectorFn) {
-      const selectedState = yield select(selectorFn, action)
-      // $FlowIssue
-      yield pureWorker(action, selectedState)
+    // If the pureWorker fn takes two arguments, let's pass the state
+    let result
+    if (pureWorker.length === 2) {
+      const state: TypedState = yield select()
+      // $FlowIssue - doesn't understand checking for arity
+      result = yield pureWorker(action, state)
     } else {
-      // $FlowIssue
-      yield pureWorker(action)
+      // $FlowIssue - doesn't understand checking for arity
+      result = yield pureWorker(action)
+    }
+
+    if (actionCreatorsWithResult) {
+      yield actionCreatorsWithResult(result)
     }
   })
 }
@@ -139,10 +149,11 @@ function safeTakeLatestWithCatch(
       yield call(worker, ...args)
     } catch (error) {
       // Convert to global error so we don't kill the takeLatest loop
-      yield put({
-        payload: convertToError(error),
-        type: globalError,
-      })
+      yield put(
+        ConfigGen.createGlobalError({
+          globalError: convertToError(error),
+        })
+      )
       yield call(catchHandler, error)
     } finally {
       if (yield cancelled()) {
@@ -151,6 +162,7 @@ function safeTakeLatestWithCatch(
     }
   }
 
+  // $FlowIssue confused
   return takeLatest(pattern, safeTakeLatestWithCatchWorker, ...args)
 }
 
@@ -180,10 +192,11 @@ function safeTakeSerially(pattern: string | Array<any> | Function, worker: Funct
     } catch (error) {
       // Convert to global error so we don't kill the loop
       yield put(dispatch => {
-        dispatch({
-          payload: convertToError(error),
-          type: globalError,
-        })
+        dispatch(
+          ConfigGen.createGlobalError({
+            globalError: convertToError(error),
+          })
+        )
       })
     } finally {
       if (yield cancelled()) {
@@ -192,6 +205,7 @@ function safeTakeSerially(pattern: string | Array<any> | Function, worker: Funct
     }
   }
 
+  // $FlowIssue confused
   return fork(function* safeTakeSeriallyForkWorker() {
     const chan = yield actionChannel(pattern, buffers.expanding(10))
     while (true) {
@@ -201,18 +215,83 @@ function safeTakeSerially(pattern: string | Array<any> | Function, worker: Funct
   })
 }
 
+// If you `yield identity(x)` you get x back
+function identity<X>(x: X) {
+  // $FlowIssue
+  return call(() => x)
+}
+
+// these should be opaue types, but eslint doesn't support that yet
+type Ok<X> = {type: 'ok', payload: X}
+type Err<E> = {type: 'err', payload: E}
+type Result<X, E> = Ok<X> | Err<E>
+
+type Fn0<R> = () => R
+type Fn1<T1, R> = (t1: T1) => R
+type Fn2<T1, T2, R> = (t1: T1, t2: T2) => R
+type Fn3<T1, T2, T3, R> = (t1: T1, t2: T2, t3: T3) => R
+
+type CallAndWrap = (<R, Fn: Fn0<Promise<R>>, WR: Result<R, *>, WFn: Fn0<WR>>(
+  fn: Fn
+) => $Call<call<WR, WFn>>) &
+  (<R, T1, Fn: Fn1<T1, Promise<R>>, WR: Result<R, *>, WFn: Fn1<T1, WR>>(
+    fn: Fn,
+    t1: T1
+  ) => $Call<call<T1, WR, WFn>>) &
+  (<R, T1, T2, Fn: Fn2<T1, T2, Promise<R>>, WR: Result<R, *>, WFn: Fn2<T1, T2, WR>>(
+    fn: Fn,
+    t1: T1,
+    t2: T2
+  ) => $Call<call<T1, T2, WR, WFn>>) &
+  (<R, T1, T2, T3, Fn: Fn3<T1, T2, T3, Promise<R>>, WR: Result<R, *>, WFn: Fn3<T1, T2, T3, WR>>(
+    fn: Fn,
+    t1: T1,
+    t2: T2,
+    t3: T3
+  ) => $Call<call<T1, T2, T3, WR, WFn>>)
+// TODO this doesn't type as well as it could
+const callAndWrap: CallAndWrap = (fn, ...args) => {
+  const wrapper = function*() {
+    try {
+      // $FlowIssue - ignore this part for now
+      const result = yield call(fn, ...args)
+      return {type: 'ok', payload: result}
+    } catch (error) {
+      return {type: 'err', payload: error}
+    }
+  }
+
+  // $FlowIssue
+  return call(wrapper)
+}
+
+export type {SagaGenerator, Ok, Err, Result}
+
 export {
+  all,
+  call,
+  callAndWrap,
+  cancel,
   cancelWhen,
+  cancelled,
   closeChannelMap,
   createChannelMap,
+  delay,
   effectOnChannelMap,
+  fork,
+  identity,
   mapSagasToChanMap,
+  put,
   putOnChannelMap,
+  race,
   safeTakeEvery,
   safeTakeEveryPure,
   safeTakeLatest,
   safeTakeLatestWithCatch,
   safeTakeSerially,
+  select,
   singleFixedChannelConfig,
+  spawn,
+  take,
   takeFromChannelMap,
 }

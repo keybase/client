@@ -4,7 +4,7 @@ import * as React from 'react'
 import {globalColors, glamorous} from '../styles'
 import ClickableBox from './clickable-box'
 import Box from './box'
-import memoize from 'lodash/memoize'
+import {createSelector} from 'reselect'
 
 import type {AvatarSize} from './avatar'
 import type {IconType} from './icon'
@@ -180,8 +180,8 @@ class AvatarRender extends React.PureComponent<Props, State> {
       : this.props.size / 2
 
     return (
-      <ClickableBox onClick={onClick} feedback={false} style={boxStyle(size, style)}>
-        <Box style={boxStyle(size, style)}>
+      <ClickableBox onClick={onClick} feedback={false} style={boxStyle(style, size)}>
+        <Box style={boxStyle(style, size)}>
           {!skipBackground &&
             <Background loaded={this.state.loaded} loadingColor={loadingColor} borderRadius={borderRadius} />}
           {!!url &&
@@ -202,7 +202,7 @@ class AvatarRender extends React.PureComponent<Props, State> {
   }
 }
 
-const _iconStyle = memoize(size => ({
+const _iconStyle = createSelector([a => a], size => ({
   height: size,
   width: size,
 }))
@@ -211,14 +211,14 @@ const iconStyle = (size, style) => {
   return style ? {..._iconStyle(size), ...style} : _iconStyle(size)
 }
 
-const _boxStyle = memoize(size => ({
+const _boxStyle = createSelector([a => a], size => ({
   height: size,
   position: 'relative',
   width: size,
 }))
 
-const boxStyle = (size, style) => {
+const boxStyle = createSelector([a => a, (_, b) => b], (style, size) => {
   return style ? {..._boxStyle(size), ...style} : _boxStyle(size)
-}
+})
 
 export default AvatarRender

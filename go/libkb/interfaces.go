@@ -131,6 +131,7 @@ type LocalDb interface {
 type KVStorer interface {
 	GetInto(obj interface{}, id DbKey) (found bool, err error)
 	PutObj(id DbKey, aliases []DbKey, obj interface{}) (err error)
+	Delete(id DbKey) error
 }
 
 type ConfigReader interface {
@@ -445,7 +446,7 @@ type Clock interface {
 }
 
 type GregorDismisser interface {
-	DismissItem(cli gregor1.IncomingInterface, id gregor.MsgID) error
+	DismissItem(ctx context.Context, cli gregor1.IncomingInterface, id gregor.MsgID) error
 }
 
 type GregorInBandMessageHandler interface {
@@ -599,6 +600,8 @@ type TeamLoader interface {
 	// Delete the cache entry. Does not error if there is no cache entry.
 	Delete(ctx context.Context, teamID keybase1.TeamID) error
 	OnLogout()
+	// Clear the in-memory cache. Does not affect the disk cache.
+	ClearMem()
 }
 
 type KVStoreContext interface {
@@ -610,7 +613,7 @@ type ClockContext interface {
 }
 
 type UIDMapperContext interface {
-	LogContext
+	VLogContext
 	APIContext
 	KVStoreContext
 	ClockContext
@@ -647,6 +650,14 @@ type UIDMapper interface {
 	// *NOTE* that this function can return useful data and an error. In this regard, the error is more
 	// like a warning. But if, for instance, the mapper runs out of time budget, it will return the data
 	MapUIDsToUsernamePackages(ctx context.Context, g UIDMapperContext, uids []keybase1.UID, fullNameFreshness time.Duration, networktimeBudget time.Duration, forceNetworkForFullNames bool) ([]UsernamePackage, error)
+
+	// SetTestingNoCachingMode puts the UID mapper into a mode where it never serves cached results, *strictly
+	// for use in tests*
+	SetTestingNoCachingMode(enabled bool)
+
+	// ClearUID is called to clear the given UID out of the cache, if the given eldest
+	// seqno doesn't match what's currently cached.
+	ClearUIDAtEldestSeqno(context.Context, UIDMapperContext, keybase1.UID, keybase1.Seqno) error
 }
 
 type ChatHelper interface {

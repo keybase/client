@@ -6,11 +6,6 @@
 /packaging
 /protocol
 /pvl-tools
-/shared/common-adapters/icon.constants.js
-/shared/constants/types/flow-types-chat.js
-/shared/constants/types/flow-types-gregor.js
-/shared/constants/types/flow-types.js
-/shared/constants/types/keybase-v1.js
 /shared/coverage
 /shared/desktop/build/**
 /shared/desktop/dist/**
@@ -23,3 +18,4 @@
 /shared/markdown/parser.js
 /shared/node_modules
 /visdiff
+/shared/react-native/react-native-contacts

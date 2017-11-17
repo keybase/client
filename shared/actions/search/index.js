@@ -1,25 +1,19 @@
 // @flow
-import _ from 'lodash'
 import * as Constants from '../../constants/search'
 import * as Creators from './creators'
 import * as EntityAction from '../entities'
-import {
-  apiserverGetWithSessionRpcPromise,
-  userInterestingPeopleRpcPromise,
-} from '../../constants/types/flow-types'
-import trim from 'lodash/trim'
-import keyBy from 'lodash/keyBy'
-import {call, all, put, select} from 'redux-saga/effects'
-import * as Selectors from '../../constants/selectors'
-import * as Saga from '../../util/saga'
-import {serviceIdToIcon, serviceIdToLogo24} from '../../util/platforms'
-import {onIdlePromise} from '../../util/idle-callback'
-import {SearchError} from '../../util/errors'
 import * as I from 'immutable'
+import * as RPCTypes from '../../constants/types/flow-types'
+import * as Saga from '../../util/saga'
+import * as Selectors from '../../constants/selectors'
+import isEqual from 'lodash/isEqual'
+import keyBy from 'lodash/keyBy'
+import trim from 'lodash/trim'
+import {SearchError} from '../../util/errors'
+import {onIdlePromise} from '../../util/idle-callback'
+import {serviceIdToIcon, serviceIdToLogo24} from '../../util/platforms'
 
 import type {ServiceId} from '../../util/platforms'
-import type {SagaGenerator} from '../../constants/types/saga'
-import type {InterestingPerson} from '../../constants/types/flow-types'
 import type {ReturnValue} from '../../constants/types/more'
 
 type RawResult = {
@@ -157,9 +151,9 @@ function _parseSuggestion(username: string) {
   }
 }
 
-function _apiSearch(searchTerm: string, service: string = '', limit: number = 20) {
+function _apiSearch(searchTerm: string, service: string = '', limit: number = 20): Promise<Array<RawResult>> {
   service = service === 'Keybase' ? '' : service
-  return apiserverGetWithSessionRpcPromise({
+  return RPCTypes.apiserverGetWithSessionRpcPromise({
     param: {
       args: [
         {key: 'q', value: trim(searchTerm)},
@@ -173,58 +167,62 @@ function _apiSearch(searchTerm: string, service: string = '', limit: number = 20
 
 function* search({payload: {term, service, searchKey}}: Constants.Search) {
   const searchQuery = _toSearchQuery(service, term)
-  const cachedResults = yield select(Selectors.cachedSearchResults, searchQuery)
+  const cachedResults = yield Saga.select(Selectors.cachedSearchResults, searchQuery)
   if (cachedResults) {
-    yield put(Creators.finishedSearch(searchKey, cachedResults, term, service))
-    yield put(
+    yield Saga.put(Creators.finishedSearch(searchKey, cachedResults, term, service))
+    yield Saga.put(
       EntityAction.replaceEntity(['search', 'searchKeyToResults'], I.Map({[searchKey]: cachedResults}))
     )
     return
   }
 
-  yield put(EntityAction.replaceEntity(['search', 'searchKeyToPending'], I.Map({[searchKey]: true})))
+  yield Saga.put(EntityAction.replaceEntity(['search', 'searchKeyToPending'], I.Map({[searchKey]: true})))
 
   try {
-    yield call(onIdlePromise, 1e3)
-    const searchResults = yield call(_apiSearch, term, _serviceToApiServiceName(service))
-    const rows = searchResults.list.map((result: RawResult) => {
-      return _parseRawResultToRow(result, service || 'Keybase')
-    })
+    yield Saga.call(onIdlePromise, 1e3)
+    const searchResults = yield Saga.call(_apiSearch, term, _serviceToApiServiceName(service))
+    const rows = searchResults.list.map((result: RawResult) =>
+      Constants.makeSearchResult(_parseRawResultToRow(result, service || 'Keybase'))
+    )
 
     // Make a version that maps from keybase id to SearchResult.
     // This is in case we want to lookup this data by their keybase id.
     // (like the case of upgrading a 3rd party result to a kb result)
-    const kbRows: Array<Constants.SearchResult> = rows.filter(r => r.rightService === 'Keybase').map(r => ({
-      id: r.rightUsername || '',
-      leftService: 'Keybase',
-      leftUsername: r.rightUsername,
-      leftIcon: null,
-    }))
-    // $FlowIssue
-    yield put(EntityAction.mergeEntity(['search', 'searchResults'], I.fromJS(keyBy(rows, 'id'))))
-    // $FlowIssue
-    yield put(EntityAction.mergeEntity(['search', 'searchResults'], I.fromJS(keyBy(kbRows, 'id'))))
+    const kbRows: Array<Constants.SearchResult> = rows.filter(r => r.rightService === 'Keybase').map(r =>
+      Constants.makeSearchResult({
+        id: r.rightUsername || '',
+        leftService: 'Keybase',
+        leftUsername: r.rightUsername,
+        leftIcon: null,
+      })
+    )
+    yield Saga.put(EntityAction.mergeEntity(['search', 'searchResults'], I.Map(keyBy(rows, 'id'))))
+    yield Saga.put(EntityAction.mergeEntity(['search', 'searchResults'], I.Map(keyBy(kbRows, 'id'))))
 
     const ids = rows.map(r => r.id)
-    yield put(
+    yield Saga.put(
       EntityAction.mergeEntity(['search', 'searchQueryToResult'], I.Map({[searchQuery]: I.List(ids)}))
     )
-    yield put(Creators.finishedSearch(searchKey, ids, term, service))
-    yield all([
-      put(EntityAction.replaceEntity(['search', 'searchKeyToResults'], I.Map({[searchKey]: I.List(ids)}))),
-      put(
+    yield Saga.put(Creators.finishedSearch(searchKey, ids, term, service))
+    yield Saga.all([
+      Saga.put(
+        EntityAction.replaceEntity(['search', 'searchKeyToResults'], I.Map({[searchKey]: I.List(ids)}))
+      ),
+      Saga.put(
         EntityAction.replaceEntity(['search', 'searchKeyToShowSearchSuggestion'], I.Map({[searchKey]: false}))
       ),
     ])
   } catch (error) {
     console.warn('error in searching', error)
   } finally {
-    yield put(EntityAction.replaceEntity(['search', 'searchKeyToPending'], I.Map({[searchKey]: false})))
+    yield Saga.put(EntityAction.replaceEntity(['search', 'searchKeyToPending'], I.Map({[searchKey]: false})))
   }
 }
 
 function* searchSuggestions({payload: {maxUsers, searchKey}}: Constants.SearchSuggestions) {
-  let suggestions: Array<InterestingPerson> = yield call(userInterestingPeopleRpcPromise, {
+  let suggestions: Array<
+    RPCTypes.InterestingPerson
+  > = yield Saga.call(RPCTypes.userInterestingPeopleRpcPromise, {
     param: {
       maxUsers,
     },
@@ -233,38 +231,36 @@ function* searchSuggestions({payload: {maxUsers, searchKey}}: Constants.SearchSu
   // No search results (e.g. this user doesn't follow/chat anyone)
   suggestions = suggestions || []
 
-  const rows = suggestions.map(person => _parseSuggestion(person.username))
+  const rows = suggestions.map(person => Constants.makeSearchResult(_parseSuggestion(person.username)))
   const ids = rows.map(r => r.id)
 
-  // $FlowIssue
-  yield put(EntityAction.mergeEntity(['search', 'searchResults'], I.Map(I.fromJS(keyBy(rows, 'id')))))
-  yield all([
-    put(EntityAction.replaceEntity(['search', 'searchKeyToResults'], I.Map({[searchKey]: I.List(ids)}))),
-    put(
+  yield Saga.put(EntityAction.mergeEntity(['search', 'searchResults'], I.Map(keyBy(rows, 'id'))))
+  yield Saga.all([
+    Saga.put(EntityAction.replaceEntity(['search', 'searchKeyToResults'], I.Map({[searchKey]: I.List(ids)}))),
+    Saga.put(
       EntityAction.replaceEntity(['search', 'searchKeyToShowSearchSuggestion'], I.Map({[searchKey]: true}))
     ),
   ])
-  yield put(Creators.finishedSearch(searchKey, ids, '', 'Keybase', true))
+  yield Saga.put(Creators.finishedSearch(searchKey, ids, '', 'Keybase', true))
 }
 
 function* updateSelectedSearchResult({payload: {searchKey, id}}: Constants.UpdateSelectedSearchResult) {
-  yield put(EntityAction.replaceEntity(['search', 'searchKeyToSelectedId'], I.Map({[searchKey]: id})))
+  yield Saga.put(EntityAction.replaceEntity(['search', 'searchKeyToSelectedId'], I.Map({[searchKey]: id})))
 }
 
 function* addResultsToUserInput({payload: {searchKey, searchResults}}: Constants.AddResultsToUserInput) {
   const [oldIds, searchResultMap]: [
     ReturnValue<typeof Constants.getUserInputItemIds>,
     ReturnValue<typeof Selectors.searchResultMapSelector>,
-  ] = yield all([
-    select(Constants.getUserInputItemIds, {searchKey}),
-    select(Selectors.searchResultMapSelector),
+  ] = yield Saga.all([
+    Saga.select(Constants.getUserInputItemIds, {searchKey}),
+    Saga.select(Selectors.searchResultMapSelector),
   ])
 
   const maybeUpgradedUsers = searchResults.map(u =>
-    // $FlowIssue not sure yet
     Constants.maybeUpgradeSearchResultIdToKeybaseId(searchResultMap, u)
   )
-  yield put.resolve(
+  yield Saga.put.resolve(
     EntityAction.mergeEntity(
       ['search', 'searchKeyToUserInputItemIds'],
       I.Map({
@@ -272,29 +268,29 @@ function* addResultsToUserInput({payload: {searchKey, searchResults}}: Constants
       })
     )
   )
-  const ids = yield select(Constants.getUserInputItemIds, {searchKey})
-  if (!_.isEqual(oldIds, ids)) {
-    yield put(Creators.userInputItemsUpdated(searchKey, ids))
+  const ids = yield Saga.select(Constants.getUserInputItemIds, {searchKey})
+  if (!isEqual(oldIds, ids)) {
+    yield Saga.put(Creators.userInputItemsUpdated(searchKey, ids))
   }
 }
 
 function* removeResultsToUserInput({
   payload: {searchKey, searchResults},
 }: Constants.RemoveResultsToUserInput) {
-  const oldIds = yield select(Constants.getUserInputItemIds, {searchKey})
-  yield put.resolve(
+  const oldIds = yield Saga.select(Constants.getUserInputItemIds, {searchKey})
+  yield Saga.put.resolve(
     EntityAction.subtractEntity(['search', 'searchKeyToUserInputItemIds', searchKey], I.List(searchResults))
   )
-  const ids = yield select(Constants.getUserInputItemIds, {searchKey})
-  if (!_.isEqual(oldIds, ids)) {
-    yield put(Creators.userInputItemsUpdated(searchKey, ids))
+  const ids = yield Saga.select(Constants.getUserInputItemIds, {searchKey})
+  if (!isEqual(oldIds, ids)) {
+    yield Saga.put(Creators.userInputItemsUpdated(searchKey, ids))
   }
 }
 
 function* setUserInputItems({payload: {searchKey, searchResults}}: Constants.SetUserInputItems) {
-  const ids = yield select(Constants.getUserInputItemIds, {searchKey})
-  if (!_.isEqual(ids, searchResults)) {
-    yield put.resolve(
+  const ids = yield Saga.select(Constants.getUserInputItemIds, {searchKey})
+  if (!isEqual(ids, searchResults)) {
+    yield Saga.put.resolve(
       EntityAction.replaceEntity(
         ['search', 'searchKeyToUserInputItemIds'],
         I.Map({
@@ -302,13 +298,13 @@ function* setUserInputItems({payload: {searchKey, searchResults}}: Constants.Set
         })
       )
     )
-    yield put(Creators.userInputItemsUpdated(searchKey, searchResults))
+    yield Saga.put(Creators.userInputItemsUpdated(searchKey, searchResults))
   }
 }
 
 function* clearSearchResults({payload: {searchKey}}: Constants.ClearSearchResults) {
-  yield put(EntityAction.replaceEntity(['search', 'searchKeyToResults'], I.Map({[searchKey]: null})))
-  yield put(
+  yield Saga.put(EntityAction.replaceEntity(['search', 'searchKeyToResults'], I.Map({[searchKey]: null})))
+  yield Saga.put(
     EntityAction.replaceEntity(
       ['search', 'searchKeyToSearchResultQuery'],
       I.Map({
@@ -319,7 +315,7 @@ function* clearSearchResults({payload: {searchKey}}: Constants.ClearSearchResult
 }
 
 function* finishedSearch({payload: {searchKey, searchResultTerm, service}}) {
-  yield put(
+  yield Saga.put(
     EntityAction.replaceEntity(
       ['search', 'searchKeyToSearchResultQuery'],
       I.Map({
@@ -330,8 +326,8 @@ function* finishedSearch({payload: {searchKey, searchResultTerm, service}}) {
 }
 
 function* clearSearchTextInput({payload: {searchKey}}: Constants.UserInputItemsUpdated) {
-  const clearSearchTextInput = yield select(Constants.getClearSearchTextInput, {searchKey})
-  yield put(
+  const clearSearchTextInput = yield Saga.select(Constants.getClearSearchTextInput, {searchKey})
+  yield Saga.put(
     EntityAction.replaceEntity(
       ['search', 'searchKeyToClearSearchTextInput'],
       I.Map({
@@ -341,7 +337,7 @@ function* clearSearchTextInput({payload: {searchKey}}: Constants.UserInputItemsU
   )
 }
 
-function* searchSaga(): SagaGenerator<any, any> {
+function* searchSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeLatest('search:search', search)
   yield Saga.safeTakeLatest('search:searchSuggestions', searchSuggestions)
   yield Saga.safeTakeLatest('search:updateSelectedSearchResult', updateSelectedSearchResult)

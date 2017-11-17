@@ -13,11 +13,25 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func makeUserStandalone(t *testing.T, pre string) *userPlusDevice {
+type standaloneUserArgs struct {
+	disableGregor            bool
+	suppressTeamChatAnnounce bool
+}
+
+func makeUserStandalone(t *testing.T, pre string, opts standaloneUserArgs) *userPlusDevice {
 	tctx := setupTest(t, pre)
 	var u userPlusDevice
 
+	u.suppressTeamChatAnnounce = opts.suppressTeamChatAnnounce
+
 	g := tctx.G
+	if opts.disableGregor {
+		// Some tests may want to disable gregor loop completely to
+		// simulate user that stays offline when not doing anything.
+		// Useful for teams tests to have a user that can post sigs
+		// but will not respond to any rekeyd messages.
+		g.Env.GetConfigWriter().SetBoolAtPath("push.disabled", true)
+	}
 
 	u.device = &deviceWrapper{tctx: tctx}
 
@@ -62,7 +76,7 @@ func TestStandaloneTeamMemberOps(t *testing.T) {
 	tt := newTeamTester(t)
 	defer tt.cleanup()
 
-	tt.users = append(tt.users, makeUserStandalone(t, "user1"))
+	tt.users = append(tt.users, makeUserStandalone(t, "user1", standaloneUserArgs{}))
 	tt.addUser("user2")
 
 	team := tt.users[0].createTeam()
@@ -78,7 +92,7 @@ func TestStandaloneTeamMemberOps(t *testing.T) {
 	require.NoError(t, err)
 
 	// Check if adding worked
-	t0, err := teams.GetTeamByNameForTest(context.TODO(), t, g, team, false, true)
+	t0, err := teams.GetTeamByNameForTest(context.TODO(), g, team, false, true)
 	require.NoError(t, err)
 	writers, err := t0.UsersWithRole(keybase1.TeamRole_WRITER)
 	require.NoError(t, err)
@@ -106,7 +120,7 @@ func TestStandaloneTeamMemberOps(t *testing.T) {
 	require.NoError(t, err)
 
 	// Check if removal worked
-	t0, err = teams.GetTeamByNameForTest(context.TODO(), t, g, team, false, true)
+	t0, err = teams.GetTeamByNameForTest(context.TODO(), g, team, false, true)
 	require.NoError(t, err)
 	writers, err = t0.UsersWithRole(keybase1.TeamRole_WRITER)
 	require.NoError(t, err)
