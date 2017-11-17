@@ -392,6 +392,7 @@ export type LocalMessageState = {
 }
 
 export type UntrustedState = 'unloaded' | 'loaded' | 'loading'
+export type SyncingState = 'syncing' | 'notSyncing'
 
 export type UnreadCounts = {
   total: number,
@@ -420,6 +421,7 @@ type _State = {
   inboxUnreadCountTotal: I.Map<ConversationIDKey, number>,
   inboxUntrustedState: I.Map<ConversationIDKey, InboxUntrustedState>,
   inboxGlobalUntrustedState: UntrustedState,
+  inboxSyncingState: SyncingState,
   inboxVersion: I.Map<ConversationIDKey, number>,
   initialConversation: ?ConversationIDKey,
   localMessageStates: I.Map<MessageKey, LocalMessageState>,
@@ -465,6 +467,7 @@ export const makeState: I.RecordFactory<_State> = I.Record({
   inboxUnreadCountBadge: I.Map(),
   inboxUnreadCountTotal: I.Map(),
   inboxGlobalUntrustedState: 'unloaded',
+  inboxSyncingState: 'notSyncing',
   inboxUntrustedState: I.Map(),
   inboxVersion: I.Map(),
   initialConversation: null,
