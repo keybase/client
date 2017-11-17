@@ -392,6 +392,7 @@ export type LocalMessageState = {
 }
 
 export type UntrustedState = 'unloaded' | 'loaded' | 'loading'
+export type SyncingState = 'syncing' | 'notSyncing'
 
 export type UnreadCounts = {
   total: number,
@@ -400,6 +401,7 @@ export type UnreadCounts = {
 
 type _State = {
   alwaysShow: I.Set<ConversationIDKey>,
+  channelCreationError: string,
   conversationStates: I.Map<ConversationIDKey, ConversationState>,
   conversationUnreadCounts: I.Map<ConversationIDKey, UnreadCounts>,
   editingMessage: ?Message,
@@ -419,6 +421,7 @@ type _State = {
   inboxUnreadCountTotal: I.Map<ConversationIDKey, number>,
   inboxUntrustedState: I.Map<ConversationIDKey, InboxUntrustedState>,
   inboxGlobalUntrustedState: UntrustedState,
+  inboxSyncingState: SyncingState,
   inboxVersion: I.Map<ConversationIDKey, number>,
   initialConversation: ?ConversationIDKey,
   localMessageStates: I.Map<MessageKey, LocalMessageState>,
@@ -445,6 +448,7 @@ type _State = {
 export type State = I.RecordOf<_State>
 export const makeState: I.RecordFactory<_State> = I.Record({
   alwaysShow: I.Set(),
+  channelCreationError: '',
   conversationStates: I.Map(),
   conversationUnreadCounts: I.Map(),
   editingMessage: null,
@@ -463,6 +467,7 @@ export const makeState: I.RecordFactory<_State> = I.Record({
   inboxUnreadCountBadge: I.Map(),
   inboxUnreadCountTotal: I.Map(),
   inboxGlobalUntrustedState: 'unloaded',
+  inboxSyncingState: 'notSyncing',
   inboxUntrustedState: I.Map(),
   inboxVersion: I.Map(),
   initialConversation: null,
@@ -611,6 +616,8 @@ function serverMessageToMessageText(message: ServerMessage): ?string {
   switch (message.type) {
     case 'Text':
       return message.message.stringValue()
+    case 'System':
+      return message.message.stringValue()
     default:
       return null
   }
@@ -700,7 +707,7 @@ function isPendingConversationIDKey(conversationIDKey: string) {
   return conversationIDKey.startsWith('__PendingConversation__')
 }
 
-function pendingConversationIDKeyToTlfName(conversationIDKey: string) {
+function pendingConversationIDKeyToTlfName(conversationIDKey: string): ?string {
   if (isPendingConversationIDKey(conversationIDKey)) {
     return conversationIDKey.substring('__PendingConversation__'.length)
   }
@@ -818,14 +825,18 @@ const getInbox = (state: TypedState, conversationIDKey: ?ConversationIDKey) =>
 const getSelectedInbox = (state: TypedState) => getInbox(state, getSelectedConversation(state))
 const getEditingMessage = (state: TypedState) => state.chat.get('editingMessage')
 
-const getTLF = createSelector([getSelectedInbox, getSelectedConversation], (selectedInbox, selected) => {
-  if (selected && isPendingConversationIDKey(selected)) {
-    return pendingConversationIDKeyToTlfName(selected) || ''
-  } else if (selected !== nothingSelected && selectedInbox) {
-    return selectedInbox.participants.join(',')
+const getParticipants = createSelector(
+  [getSelectedInbox, getSelectedConversation],
+  (selectedInbox, selectedConversation) => {
+    if (selectedConversation && isPendingConversationIDKey(selectedConversation)) {
+      let tlfName = pendingConversationIDKeyToTlfName(selectedConversation)
+      return (tlfName && tlfName.split(',')) || []
+    } else if (selectedConversation !== nothingSelected && selectedInbox) {
+      return selectedInbox.participants.toArray()
+    }
+    return []
   }
-  return ''
-})
+)
 
 // TOOD(mm) - are these selectors useful? or will they just cache thrash?
 const getParticipantsWithFullNames = createSelector(
@@ -844,6 +855,15 @@ const getParticipantsWithFullNames = createSelector(
     return []
   }
 )
+
+const getTLF = createSelector([getSelectedInbox, getSelectedConversation], (selectedInbox, selected) => {
+  if (selected && isPendingConversationIDKey(selected)) {
+    return pendingConversationIDKeyToTlfName(selected) || ''
+  } else if (selected !== nothingSelected && selectedInbox) {
+    return selectedInbox.participants.join(',')
+  }
+  return ''
+})
 
 const getMuted = createSelector(
   [getSelectedInbox],
@@ -1137,6 +1157,7 @@ export {
   getYou,
   getFollowingMap,
   getMetaDataMap,
+  getParticipants,
   getParticipantsWithFullNames,
   getSelectedInbox,
   getTLF,

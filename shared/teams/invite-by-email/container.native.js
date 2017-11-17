@@ -17,6 +17,16 @@ import {type OwnProps} from './container'
 import {isAndroid} from '../../constants/platform'
 import {getContacts} from './permissions'
 
+const cleanPhoneNumber: string => string = (dirty: string) => {
+  return dirty.replace(/\D/g, '')
+}
+
+// we get invite name as `[name] ([phone number]), this extracts [phone number]
+const extractPhoneNumber: string => ?string = (name: string) => {
+  const matches = /\((.*)\)/.exec(name)
+  return (matches && matches[1] && cleanPhoneNumber(matches[1])) || ''
+}
+
 const mapStateToProps = (state: TypedState, {routeProps}: OwnProps) => {
   const teamname = routeProps.get('teamname')
   return {
@@ -34,12 +44,12 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routeProps}) => ({
     dispatch(Creators.inviteToTeamByEmail(routeProps.get('teamname'), role, invitee))
     dispatch(Creators.getTeams())
   },
-  onInvitePhone: ({invitee, role}) => {
-    dispatch(Creators.inviteToTeamByPhone(routeProps.get('teamname'), role, invitee))
+  onInvitePhone: ({invitee, role, fullName = ''}) => {
+    dispatch(Creators.inviteToTeamByPhone(routeProps.get('teamname'), role, invitee, fullName))
     dispatch(Creators.getTeams())
   },
-  onUninvite: (invitee: string) => {
-    dispatch(Creators.removeMember(invitee, routeProps.get('teamname'), ''))
+  onUninvite: (invitee: string, id?: string) => {
+    dispatch(Creators.removeMember(invitee, routeProps.get('teamname'), '', id || ''))
   },
 
   onOpenRolePicker: (role: string, onComplete: string => void) => {
@@ -89,25 +99,75 @@ export default compose(
     }),
     // Checker for whether address is already in invited array
     withHandlers({
-      isSelected: ({_pendingInvites}) => (addr: string): boolean => {
-        return !!_pendingInvites.find(rec => rec.email === addr) // TODO search phone number
+      isSelected: ({_pendingInvites}) => (addr: string, name?: string): boolean => {
+        return !!_pendingInvites.find(rec => {
+          if (rec.email) {
+            return rec.email === addr
+          } else if (rec.name) {
+            const recPhoneNumber = extractPhoneNumber(rec.name)
+            if (recPhoneNumber) {
+              // Check bare numbers against one another
+              return recPhoneNumber === cleanPhoneNumber(addr)
+            }
+          }
+          return false
+        })
+      },
+      isLoading: ({loadingInvites, _pendingInvites}) => (email: ?string, phoneNo: ?string): boolean => {
+        if (email) {
+          return loadingInvites.get(email)
+        }
+        const relevantInvite = _pendingInvites.find(rec => {
+          if (rec.name) {
+            const recPhoneNumber = extractPhoneNumber(rec.name)
+            if (recPhoneNumber) {
+              // Check bare numbers against one another
+              return recPhoneNumber === cleanPhoneNumber(phoneNo || '')
+            }
+          }
+        })
+        if (relevantInvite) {
+          return loadingInvites.get(relevantInvite.id)
+        }
+        return false
       },
     }),
     // Delegate to add / remove
     withHandlers({
-      onSelectContact: ({isSelected, invited, role, onUninvite, onInviteEmail, onInvitePhone}) => (
-        contact: ContactDisplayProps
-      ) => {
+      onSelectContact: ({
+        _pendingInvites,
+        isSelected,
+        invited,
+        role,
+        onUninvite,
+        onInviteEmail,
+        onInvitePhone,
+      }) => (contact: ContactDisplayProps) => {
         if (!isSelected(contact.email || contact.phoneNo)) {
           if (contact.email) {
             role && onInviteEmail({invitee: contact.email, role})
           } else if (contact.phoneNo) {
-            role && onInvitePhone({invitee: contact.phoneNo, role})
+            role && onInvitePhone({invitee: contact.phoneNo, role, fullName: contact.name})
           }
         } else {
           if (contact.email) {
             onUninvite(contact.email)
-          } // TODO phone number uninvite
+          } else if (contact.phoneNo) {
+            const relevantInvite = _pendingInvites.find(rec => {
+              if (rec.name) {
+                const recPhoneNumber = extractPhoneNumber(rec.name)
+                if (recPhoneNumber) {
+                  // Check bare numbers against one another
+                  return recPhoneNumber === cleanPhoneNumber(contact.phoneNo || '')
+                }
+              }
+            })
+            if (relevantInvite) {
+              onUninvite('', relevantInvite.id)
+            } else {
+              console.warn('Could not find invite to remove in pending invites')
+            }
+          }
         }
       },
     }),
@@ -127,9 +187,9 @@ export default compose(
           }
           res.push({
             id: contact.recordID + (addr.email ? addr.email : addr.number),
-            loading: props.loadingInvites.get(addr.email),
+            loading: props.isLoading(addr.email, addr.number),
             contact: cData,
-            selected: props.isSelected(cData.email || cData.phoneNo),
+            selected: props.isSelected(cData.email || cData.phoneNo, cData.name),
             onClick: () => props.onSelectContact(cData),
           })
         })

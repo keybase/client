@@ -511,6 +511,13 @@ func (t TeamID) AsUserOrTeam() UserOrTeamID {
 	return UserOrTeamID(t)
 }
 
+const ptrSize = 4 << (^uintptr(0) >> 63) // stolen from runtime/internal/sys
+
+// Size implements the cache.Measurable interface.
+func (t TeamID) Size() int {
+	return len(t) + ptrSize
+}
+
 func (s SigID) IsNil() bool {
 	return len(s) == 0
 }
@@ -721,6 +728,11 @@ func (u *UID) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
+// Size implements the cache.Measurable interface.
+func (u UID) Size() int {
+	return len(u) + ptrSize
+}
+
 func (k *KID) MarshalJSON() ([]byte, error) {
 	return Quote(k.String()), nil
 }
@@ -730,7 +742,7 @@ func (k *KID) Size() int {
 	if k == nil {
 		return 0
 	}
-	return len(*k)
+	return len(*k) + ptrSize
 }
 
 func (s *SigID) UnmarshalJSON(b []byte) error {
@@ -1413,6 +1425,11 @@ func (ut UserOrTeamID) GetShard(shardCount int) (int, error) {
 	return int(n % uint32(shardCount)), nil
 }
 
+// Size implements the cache.Measurable interface.
+func (ut UserOrTeamID) Size() int {
+	return len(ut) + ptrSize
+}
+
 func (m *MaskB64) UnmarshalJSON(b []byte) error {
 	unquoted := UnquoteBytes(b)
 	if len(unquoted) == 0 {
@@ -2061,16 +2078,4 @@ func (r *GitRepoResult) GetIfOk() (res GitRepoInfo, err error) {
 		return r.Ok(), nil
 	}
 	return res, fmt.Errorf("git repo unknown error")
-}
-
-func (b MDGetBehavior) ShouldCreateClassicTLF() bool {
-	switch b {
-	case MDGetBehavior_GET_CLASSIC_TLF_NO_CREATE:
-		return false
-	case MDGetBehavior_GET_OR_CREATE_CLASSIC_TLF:
-		return true
-	default:
-		// This shouldn't happen in production as we have TestMDGetBehavior.
-		panic("~>.<~ need to update extras.go after adding MDGetBehavior values")
-	}
 }

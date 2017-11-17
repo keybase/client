@@ -6,18 +6,15 @@ import {isMobile} from '../../../constants/platform'
 import {typeToLabel} from '../../../constants/teams'
 
 export type Props = {
-  email: string,
-  following: boolean,
+  label: string, // email, sbs, or seitan
   onCancelInvite: () => void,
+  following: boolean,
   role: string,
-  teamname: string,
-  username: string,
   you: ?string,
 }
 
 export const TeamInviteRow = (props: Props) => {
-  const {email, following, onCancelInvite, role, username, you} = props
-  const user = email || username
+  const {following, onCancelInvite, role, you, label} = props
   return (
     <ClickableBox
       style={{
@@ -29,13 +26,13 @@ export const TeamInviteRow = (props: Props) => {
         width: '100%',
       }}
     >
-      <Box style={{...globalStyles.flexBoxRow, flexGrow: 1}}>
-        <Avatar username={username} size={isMobile ? 48 : 32} />
+      <Box style={{...globalStyles.flexBoxRow, flexGrow: 1, alignItems: 'center'}}>
+        <Avatar username={label} size={isMobile ? 48 : 32} />
         <Box style={{...globalStyles.flexBoxColumn, marginLeft: globalMargins.small}}>
           <Usernames
             type="BodySemibold"
             colorFollowing={true}
-            users={[{following, username: user, you: you === username}]}
+            users={[{following, username: label, you: you === label}]}
           />
           <Box style={globalStyles.flexBoxRow}>
             <Text type="BodySmall">{role && typeToLabel[role]}</Text>
@@ -43,7 +40,12 @@ export const TeamInviteRow = (props: Props) => {
         </Box>
       </Box>
       <Box style={{...globalStyles.flexBoxRow, flexShrink: 1}}>
-        <Button small={true} label="Cancel invite" onClick={onCancelInvite} type="Danger" />
+        <Button
+          small={true}
+          label={isMobile ? 'Cancel' : 'Cancel invite'}
+          onClick={onCancelInvite}
+          type="Secondary"
+        />
       </Box>
     </ClickableBox>
   )

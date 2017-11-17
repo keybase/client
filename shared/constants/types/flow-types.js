@@ -464,6 +464,7 @@ export const constantsStatusCode = {
   screvokecurrentdevice: 1416,
   screvokelastdevice: 1417,
   scdeviceprovisionoffline: 1418,
+  screvokelastdevicepgp: 1419,
   scstreamexists: 1501,
   scstreamnotfound: 1502,
   scstreamwrongkind: 1503,
@@ -1080,11 +1081,6 @@ export const metadataGetMetadataRpcPromise = (request: (RequestCommon & {callbac
 export const metadataLockRpcChannelMap = (configKeys: Array<string>, request: RequestCommon & RequestErrorCallback & {param: MetadataLockRpcParam}): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.metadata.lock', request)
 
 export const metadataLockRpcPromise = (request: (RequestCommon & RequestErrorCallback & {param: MetadataLockRpcParam})): Promise<void> => new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.metadata.lock', request, (error, result) => error ? reject(error) : resolve(result)))
-
-export const metadataMDGetBehavior = {
-  getOrCreateClassicTlf: 0,
-  getClassicTlfNoCreate: 1,
-}
 
 export const metadataPing2RpcChannelMap = (configKeys: Array<string>, request: RequestCommon & {callback?: ?(err: ?any, response: MetadataPing2Result) => void}): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.metadata.ping2', request)
 
@@ -1813,6 +1809,10 @@ export const userLoadUserRpcChannelMap = (configKeys: Array<string>, request: Re
 
 export const userLoadUserRpcPromise = (request: (RequestCommon & {callback?: ?(err: ?any, response: UserLoadUserResult) => void} & {param: UserLoadUserRpcParam})): Promise<UserLoadUserResult> => new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.user.loadUser', request, (error, result) => error ? reject(error) : resolve(result)))
 
+export const userMeUserVersionRpcChannelMap = (configKeys: Array<string>, request: RequestCommon & {callback?: ?(err: ?any, response: UserMeUserVersionResult) => void}): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.user.meUserVersion', request)
+
+export const userMeUserVersionRpcPromise = (request: ?(RequestCommon & {callback?: ?(err: ?any, response: UserMeUserVersionResult) => void})): Promise<UserMeUserVersionResult> => new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.user.meUserVersion', request, (error, result) => error ? reject(error) : resolve(result)))
+
 export const userProfileEditRpcChannelMap = (configKeys: Array<string>, request: RequestCommon & RequestErrorCallback & {param: UserProfileEditRpcParam}): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.user.profileEdit', request)
 
 export const userProfileEditRpcPromise = (request: (RequestCommon & RequestErrorCallback & {param: UserProfileEditRpcParam})): Promise<void> => new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.user.profileEdit', request, (error, result) => error ? reject(error) : resolve(result)))
@@ -1889,7 +1889,7 @@ export type BTCRegisterBTCRpcParam = {|  address: String,
 
 export type BadgeConversationInfo = {|convID: ChatConversationID,badgeCounts: {[key: string]: Int},unreadMessages: Int,|}
 
-export type BadgeState = {|newTlfs: Int,rekeysNeeded: Int,newFollowers: Int,inboxVers: Int,conversations?: ?Array<BadgeConversationInfo>,newGitRepoGlobalUniqueIDs?: ?Array<String>,newTeamNames?: ?Array<String>,newTeamAccessRequests?: ?Array<String>,teamsWithResetUsers?: ?Array<TeamMemberOutReset>,|}
+export type BadgeState = {|newTlfs: Int,rekeysNeeded: Int,newFollowers: Int,inboxVers: Int,homeTodoItems: Int,conversations?: ?Array<BadgeConversationInfo>,newGitRepoGlobalUniqueIDs?: ?Array<String>,newTeamNames?: ?Array<String>,newTeamAccessRequests?: ?Array<String>,teamsWithResetUsers?: ?Array<TeamMemberOutReset>,|}
 
 export type BinaryKID = Bytes
 
@@ -2608,10 +2608,6 @@ export type LookupImplicitTeamRes = {|teamID: TeamID,name: TeamName,displayName:
 
 export type MDBlock = {|version: Int,timestamp: Time,block: Bytes,|}
 
-export type MDGetBehavior =0 // GET_OR_CREATE_CLASSIC_TLF_0
- | 1 // GET_CLASSIC_TLF_NO_CREATE_1
-
-
 export type MDPriority = Int
 
 export type MaskB64 = Bytes
@@ -2674,8 +2670,7 @@ export type MetadataGetMetadataRpcParam = {|  folderID: String,
   startRevision: Long,
   stopRevision: Long,
   logTags: {[key: string]: String},
-  lockBeforeGet?: ?LockID,
-  getBehavior: MDGetBehavior|}
+  lockBeforeGet?: ?LockID|}
 
 export type MetadataLockRpcParam = {|  folderID: String,
   lockID: LockID|}
@@ -3124,7 +3119,7 @@ export type RemoveArgs = {|opID: OpID,path: Path,|}
 
 export type RepoID = String
 
-export type ResolveIdentifyImplicitTeamRes = {|displayName: String,teamID: TeamID,writers?: ?Array<UserVersion>,trackBreaks: {[key: string]: IdentifyTrackBreaks},|}
+export type ResolveIdentifyImplicitTeamRes = {|displayName: String,teamID: TeamID,writers?: ?Array<UserVersion>,trackBreaks: {[key: string]: IdentifyTrackBreaks},folderID: TLFID,|}
 
 export type RevokeRevokeDeviceRpcParam = {|  deviceID: DeviceID,
   forceSelf: Boolean,
@@ -3412,6 +3407,7 @@ export type StatusCode =0 // SCOk_0
  | 1416 // SCRevokeCurrentDevice_1416
  | 1417 // SCRevokeLastDevice_1417
  | 1418 // SCDeviceProvisionOffline_1418
+ | 1419 // SCRevokeLastDevicePGP_1419
  | 1501 // SCStreamExists_1501
  | 1502 // SCStreamNotFound_1502
  | 1503 // SCStreamWrongKind_1503
@@ -3597,6 +3593,8 @@ export type TeamMember = {|uid: UID,role: TeamRole,eldestSeqno: Seqno,userEldest
 
 export type TeamMemberDetails = {|uv: UserVersion,username: String,active: Boolean,needsPUK: Boolean,|}
 
+export type TeamMemberOutFromReset = {|teamName: String,resetUser: TeamResetUser,|}
+
 export type TeamMemberOutReset = {|teamname: String,username: String,id: Gregor1.MsgID,|}
 
 export type TeamMembers = {|owners?: ?Array<UserVersion>,admins?: ?Array<UserVersion>,writers?: ?Array<UserVersion>,readers?: ?Array<UserVersion>,|}
@@ -3617,6 +3615,8 @@ export type TeamRefreshers = {|needKeyGeneration: PerTeamKeyGeneration,wantMembe
 
 export type TeamRequestAccessResult = {|open: Boolean,|}
 
+export type TeamResetUser = {|username: String,uid: UID,eldestSeqno: Seqno,|}
+
 export type TeamRole =0 // NONE_0
  | 1 // READER_1
  | 2 // WRITER_2
@@ -3632,7 +3632,7 @@ export type TeamSeitanRequest = {|inviteID: TeamInviteID,uid: UID,eldestSeqno: S
 
 export type TeamSettings = {|open: Boolean,joinAs: TeamRole,|}
 
-export type TeamShowcase = {|isShowcased: Boolean,description?: ?String,setByUID?: ?UID,|}
+export type TeamShowcase = {|isShowcased: Boolean,description?: ?String,setByUID?: ?UID,anyMemberShowcase: Boolean,|}
 
 export type TeamSigChainState = {|reader: UserVersion,id: TeamID,implicit: Boolean,public: Boolean,rootAncestor: TeamName,nameDepth: Int,nameLog?: ?Array<TeamNameLogPoint>,lastSeqno: Seqno,lastLinkID: LinkID,parentID?: ?TeamID,userLog: {[key: string]: ?Array<UserLogPoint>},subteamLog: {[key: string]: ?Array<SubteamLogPoint>},perTeamKeys: {[key: string]: PerTeamKey},linkIDs: {[key: string]: LinkID},stubbedLinks: {[key: string]: Boolean},activeInvites: {[key: string]: TeamInvite},open: Boolean,openTeamJoinAs: TeamRole,|}
 
@@ -3666,7 +3666,8 @@ export type TeamsSetTeamMemberShowcaseRpcParam = {|  name: String,
 
 export type TeamsSetTeamShowcaseRpcParam = {|  name: String,
   isShowcased?: ?Boolean,
-  description?: ?String|}
+  description?: ?String,
+  anyMemberShowcase?: ?Boolean|}
 
 export type TeamsTeamAcceptInviteOrRequestAccessRpcParam = {|  tokenOrName: String|}
 
@@ -4087,6 +4088,7 @@ type UserLoadUncheckedUserSummariesResult = ?Array<UserSummary>
 type UserLoadUserByNameResult = User
 type UserLoadUserPlusKeysResult = UserPlusKeys
 type UserLoadUserResult = User
+type UserMeUserVersionResult = UserVersion
 type UserSearchResult = ?Array<SearchResult>
 
 export type IncomingCallMapType = {|  'keybase.1.gpgUi.wantToAddGPGKey'?: (params: {|      sessionID: Int    |},response: {error: RPCErrorHandler, result: (result: GpgUiWantToAddGPGKeyResult) => void}) => void,  'keybase.1.gpgUi.confirmDuplicateKeyChosen'?: (params: {|      sessionID: Int    |},response: {error: RPCErrorHandler, result: (result: GpgUiConfirmDuplicateKeyChosenResult) => void}) => void,  'keybase.1.gpgUi.selectKeyAndPushOption'?: (params: {|      sessionID: Int,

@@ -476,6 +476,10 @@ func NewTestUIDMapper(ul UPAKLoader) TestUIDMapper {
 	}
 }
 
+func (t TestUIDMapper) ClearUIDAtEldestSeqno(_ context.Context, _ UIDMapperContext, _ keybase1.UID, _ keybase1.Seqno) error {
+	return nil
+}
+
 func (t TestUIDMapper) CheckUIDAgainstUsername(uid keybase1.UID, un NormalizedUsername) bool {
 	return true
 }

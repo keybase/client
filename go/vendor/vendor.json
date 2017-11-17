@@ -178,10 +178,10 @@
 			"revisionTime": "2016-05-17T06:10:00Z"
 		},
 		{
-			"checksumSHA1": "spYlTa7zTW8av4Vs4kDdCu/IREI=",
+			"checksumSHA1": "As/C2CDekxCEGyFN5sOcrEt/r0Q=",
 			"path": "github.com/keybase/cli",
-			"revision": "ec1463eaf32381cd4a10218b484023629244c822",
-			"revisionTime": "2017-11-08T19:15:45Z"
+			"revision": "f7d0b25da714078d8c84ac64afe8d88794d587e3",
+			"revisionTime": "2017-11-10T20:24:45Z"
 		},
 		{
 			"path": "github.com/keybase/clockwork",

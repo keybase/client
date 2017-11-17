@@ -264,10 +264,12 @@ func tailSystemdJournal(log logger.Logger, which string, numBytes int) (ret stri
 	guessedLines := numBytes / 150
 	maxBytes := numBytes * 2
 
+	// We intentionally avoid the --user flag to journalctl. That would make us
+	// skip over the system journal, but in e.g. Ubuntu 16.04, that's where
+	// user units write their logs.
 	journalCmd := exec.Command(
 		"journalctl",
-		"--user",
-		"--unit="+which,
+		"--user-unit="+which,
 		"--lines="+strconv.Itoa(guessedLines),
 		"--output=cat",
 	)

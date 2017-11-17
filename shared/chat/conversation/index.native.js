@@ -78,7 +78,7 @@ export default branch(
   compose(
     withPropsOnChange(['onExitSearch'], props => ({
       onCancel: () => props.onExitSearch(),
-      title: 'New Chat',
+      title: 'New chat',
       onBack: null,
     })),
     HeaderHoc

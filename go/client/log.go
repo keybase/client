@@ -25,21 +25,22 @@ func (s LogUIServer) Log(_ context.Context, arg keybase1.LogArg) error {
 	buf := new(bytes.Buffer)
 	RenderText(s.G(), buf, arg.Text)
 	msg := buf.String()
+	logger := s.G().Log.CloneWithAddedDepth(1)
 	switch arg.Level {
 	case keybase1.LogLevel_DEBUG:
-		s.G().Log.Debug("%s", msg)
+		logger.Debug("%s", msg)
 	case keybase1.LogLevel_INFO:
-		s.G().Log.Info("%s", msg)
+		logger.Info("%s", msg)
 	case keybase1.LogLevel_WARN:
-		s.G().Log.Warning("%s", msg)
+		logger.Warning("%s", msg)
 	case keybase1.LogLevel_ERROR:
-		s.G().Log.Errorf("%s", msg)
+		logger.Errorf("%s", msg)
 	case keybase1.LogLevel_NOTICE:
-		s.G().Log.Notice("%s", msg)
+		logger.Notice("%s", msg)
 	case keybase1.LogLevel_CRITICAL:
-		s.G().Log.Critical("%s", msg)
+		logger.Critical("%s", msg)
 	default:
-		s.G().Log.Warning("%s", msg)
+		logger.Warning("%s", msg)
 	}
 	return nil
 }

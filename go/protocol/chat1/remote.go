@@ -840,15 +840,18 @@ type LeaveConversationArg struct {
 	ConvID ConversationID `codec:"convID" json:"convID"`
 }
 
+type PreviewConversationArg struct {
+	ConvID ConversationID `codec:"convID" json:"convID"`
+}
+
 type DeleteConversationArg struct {
 	ConvID ConversationID `codec:"convID" json:"convID"`
 }
 
 type GetTLFConversationsArg struct {
-	TlfID            TLFID                   `codec:"tlfID" json:"tlfID"`
-	TopicType        TopicType               `codec:"topicType" json:"topicType"`
-	MembersType      ConversationMembersType `codec:"membersType" json:"membersType"`
-	SummarizeMaxMsgs bool                    `codec:"summarizeMaxMsgs" json:"summarizeMaxMsgs"`
+	TlfID            TLFID     `codec:"tlfID" json:"tlfID"`
+	TopicType        TopicType `codec:"topicType" json:"topicType"`
+	SummarizeMaxMsgs bool      `codec:"summarizeMaxMsgs" json:"summarizeMaxMsgs"`
 }
 
 type SetAppNotificationSettingsArg struct {
@@ -892,6 +895,7 @@ type RemoteInterface interface {
 	UpdateTypingRemote(context.Context, UpdateTypingRemoteArg) error
 	JoinConversation(context.Context, ConversationID) (JoinLeaveConversationRemoteRes, error)
 	LeaveConversation(context.Context, ConversationID) (JoinLeaveConversationRemoteRes, error)
+	PreviewConversation(context.Context, ConversationID) (JoinLeaveConversationRemoteRes, error)
 	DeleteConversation(context.Context, ConversationID) (DeleteConversationRemoteRes, error)
 	GetTLFConversations(context.Context, GetTLFConversationsArg) (GetTLFConversationsRes, error)
 	SetAppNotificationSettings(context.Context, SetAppNotificationSettingsArg) (SetAppNotificationSettingsRes, error)
@@ -1272,6 +1276,22 @@ func RemoteProtocol(i RemoteInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"previewConversation": {
+				MakeArg: func() interface{} {
+					ret := make([]PreviewConversationArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]PreviewConversationArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]PreviewConversationArg)(nil), args)
+						return
+					}
+					ret, err = i.PreviewConversation(ctx, (*typedArgs)[0].ConvID)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 			"deleteConversation": {
 				MakeArg: func() interface{} {
 					ret := make([]DeleteConversationArg, 1)
@@ -1491,6 +1511,12 @@ func (c RemoteClient) JoinConversation(ctx context.Context, convID ConversationI
 func (c RemoteClient) LeaveConversation(ctx context.Context, convID ConversationID) (res JoinLeaveConversationRemoteRes, err error) {
 	__arg := LeaveConversationArg{ConvID: convID}
 	err = c.Cli.Call(ctx, "chat.1.remote.leaveConversation", []interface{}{__arg}, &res)
+	return
+}
+
+func (c RemoteClient) PreviewConversation(ctx context.Context, convID ConversationID) (res JoinLeaveConversationRemoteRes, err error) {
+	__arg := PreviewConversationArg{ConvID: convID}
+	err = c.Cli.Call(ctx, "chat.1.remote.previewConversation", []interface{}{__arg}, &res)
 	return
 }
 

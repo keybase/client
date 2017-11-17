@@ -10,6 +10,8 @@ import {type NoErrorTypedAction} from './types/flux'
 import {type TypedState} from './reducer'
 
 type _PublicitySettings = {
+  anyMemberShowcase: boolean,
+  description: string,
   member: boolean,
   team: boolean,
 }
@@ -20,6 +22,9 @@ export type CreateNewTeam = NoErrorTypedAction<
   'teams:createNewTeam',
   {
     name: string,
+    rootPath: I.List<string>,
+    sourceSubPath: I.List<string>,
+    destSubPath: I.List<string>,
   }
 >
 
@@ -44,6 +49,7 @@ export type AddToTeam = NoErrorTypedAction<
     sendChatNotification: boolean,
   }
 >
+export type EditDescription = NoErrorTypedAction<'teams:editDescription', {description: string, name: string}>
 export type EditMembership = NoErrorTypedAction<
   'teams:editMembership',
   {name: string, username: string, role: TeamRoleType}
@@ -54,14 +60,16 @@ export type InviteToTeamByPhone = NoErrorTypedAction<
     teamname: string,
     role: string,
     phoneNumber: string,
+    fullName: ?string,
   }
 >
 
 // username -> removeMember
 // email -> removePendingInvite
+// id -> removePendingSeitanInvite
 export type RemoveMemberOrPendingInvite = NoErrorTypedAction<
   'teams:removeMemberOrPendingInvite',
-  {name: string, username: string, email: string}
+  {name: string, username: string, email: string, inviteID: string}
 >
 
 export type IgnoreRequest = NoErrorTypedAction<'teams:ignoreRequest', {name: string, username: string}>
@@ -90,7 +98,14 @@ export type SetupTeamHandlers = NoErrorTypedAction<'teams:setupTeamHandlers', vo
 export type GetDetails = NoErrorTypedAction<'teams:getDetails', {teamname: string}>
 export type CreateChannel = NoErrorTypedAction<
   'teams:createChannel',
-  {channelname: string, description: string, teamname: string}
+  {
+    channelname: string,
+    description: string,
+    teamname: string,
+    rootPath: I.List<string>,
+    sourceSubPath: I.List<string>,
+    destSubPath: I.List<string>,
+  }
 >
 
 export type Teamname = string
@@ -121,15 +136,19 @@ export const makeMemberInfo: I.RecordFactory<_MemberInfo> = I.Record({
 
 type _InviteInfo = {
   email: string,
+  name: string,
   role: TeamRoleType,
   username: string,
+  id: string,
 }
 
 export type InviteInfo = I.RecordOf<_InviteInfo>
 export const makeInviteInfo: I.RecordFactory<_InviteInfo> = I.Record({
   email: '',
+  name: '',
   role: 'writer',
   username: '',
+  id: '',
 })
 
 type _RequestInfo = {
@@ -142,6 +161,11 @@ export const makeRequestInfo: I.RecordFactory<_RequestInfo> = I.Record({
 })
 
 export type TabKey = 'members' | 'requests' | 'pending'
+
+export type SetChannelCreationError = NoErrorTypedAction<
+  'teams:setChannelCreationError',
+  {channelCreationError: string}
+>
 
 export type SetTeamCreationError = NoErrorTypedAction<
   'teams:setTeamCreationError',
@@ -156,11 +180,19 @@ export type SetTeamCreationPending = NoErrorTypedAction<
 export type SetTeamJoinError = NoErrorTypedAction<'teams:setTeamJoinError', {teamJoinError: string}>
 export type SetTeamJoinSuccess = NoErrorTypedAction<'teams:setTeamJoinSuccess', {teamJoinSuccess: boolean}>
 
-export type AddPeopleToTeam = NoErrorTypedAction<'teams:addPeopleToTeam', {role: string, teamname: string}>
+export type AddPeopleToTeam = NoErrorTypedAction<
+  'teams:addPeopleToTeam',
+  {role: string, teamname: string, sendChatNotification: boolean}
+>
 
 export type InviteToTeamByEmail = NoErrorTypedAction<
   'teams:inviteToTeamByEmail',
   {invitees: string, role: string, teamname: string}
+>
+
+export type SetPublicityAnyMember = NoErrorTypedAction<
+  'teams:setPublicityAnyMember',
+  {enabled: boolean, teamname: string}
 >
 
 export type SetPublicityMember = NoErrorTypedAction<
@@ -218,14 +250,17 @@ type _State = {
     I.Set<
       I.RecordOf<{
         email: string,
+        name: string,
         role: TeamRoleType,
         username: string,
+        id: string,
       }>
     >
   >,
   teamNameToLoadingInvites: I.Map<Teamname, I.Map<string, boolean>>,
   teamNameToMembers: I.Map<Teamname, I.Set<MemberInfo>>,
   teamNameToMemberUsernames: I.Map<Teamname, I.Set<string>>,
+  teamNameToImplicitAdminUsernames: I.Map<Teamname, I.Set<string>>,
   teamNameToLoading: I.Map<Teamname, boolean>,
   teamNameToRequests: I.Map<Teamname, I.List<string>>,
   teamNameToTeamSettings: I.Map<Teamname, TeamSettings>,
@@ -246,6 +281,7 @@ export const makeState: I.RecordFactory<_State> = I.Record({
   teamNameToLoadingInvites: I.Map(),
   teamNameToLoading: I.Map(),
   teamNameToMemberUsernames: I.Map(),
+  teamNameToImplicitAdminUsernames: I.Map(),
   teamNameToMembers: I.Map(),
   teamNameToRequests: I.Map(),
   teamNameToTeamSettings: I.Map(),

@@ -98,7 +98,7 @@ type InboxSource interface {
 		convIDs []chat1.ConversationID, finalizeInfo chat1.ConversationFinalizeInfo) ([]chat1.ConversationLocal, error)
 	MembershipUpdate(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
 		joined []chat1.ConversationMember, removed []chat1.ConversationMember,
-		resets []chat1.ConversationMember) (MembershipUpdateRes, error)
+		resets []chat1.ConversationMember, previews []chat1.ConversationID) (MembershipUpdateRes, error)
 	TeamTypeChanged(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers, convID chat1.ConversationID,
 		teamType chat1.TeamType) (*chat1.ConversationLocal, error)
 
@@ -169,9 +169,7 @@ type AppState interface {
 type TeamChannelSource interface {
 	Offlinable
 
-	GetChannelsFull(context.Context, gregor1.UID, chat1.TLFID, chat1.TopicType,
-		chat1.ConversationMembersType) ([]chat1.ConversationLocal, []chat1.RateLimit, error)
-	GetChannelsTopicName(context.Context, gregor1.UID, chat1.TLFID, chat1.TopicType,
-		chat1.ConversationMembersType) ([]ConvIDAndTopicName, []chat1.RateLimit, error)
+	GetChannelsFull(context.Context, gregor1.UID, chat1.TLFID, chat1.TopicType) ([]chat1.ConversationLocal, []chat1.RateLimit, error)
+	GetChannelsTopicName(context.Context, gregor1.UID, chat1.TLFID, chat1.TopicType) ([]ConvIDAndTopicName, []chat1.RateLimit, error)
 	ChannelsChanged(context.Context, chat1.TLFID)
 }

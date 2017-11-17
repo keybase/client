@@ -27,6 +27,7 @@ type CmdTeamListMemberships struct {
 	includeImplicitTeams bool
 	showAll              bool
 	verbose              bool
+	showInviteID         bool
 	tabw                 *tabwriter.Writer
 }
 
@@ -61,12 +62,12 @@ func newCmdTeamListMemberships(cl *libcmdline.CommandLine, g *libkb.GlobalContex
 			Usage: "List memberships for a user assertion",
 		},
 		cli.BoolFlag{
-			Name:  "include-subteams",
-			Usage: "Include any subteam memberships as well",
-		},
-		cli.BoolFlag{
 			Name:  "all",
 			Usage: "Show all members of all teams you belong to",
+		},
+		cli.BoolFlag{
+			Name:  "show-invite-id",
+			Usage: "Show invite IDs",
 		},
 		cli.BoolFlag{
 			Name:  "v, verbose",
@@ -102,6 +103,7 @@ func (c *CmdTeamListMemberships) ParseArgv(ctx *cli.Context) error {
 	c.userAssertion = ctx.String("user")
 	c.includeImplicitTeams = ctx.Bool("include-implicit-teams")
 	c.showAll = ctx.Bool("all")
+	c.showInviteID = ctx.Bool("show-invite-id")
 
 	if c.showAll {
 		if c.team != "" {
@@ -270,9 +272,26 @@ func (c *CmdTeamListMemberships) formatInviteName(invite keybase1.AnnotatedTeamI
 
 func (c *CmdTeamListMemberships) outputInvites(invites map[keybase1.TeamInviteID]keybase1.AnnotatedTeamInvite) {
 	for _, invite := range invites {
-		fmtstring := "%s\t%s*\t%s\t(* added by %s; awaiting acceptance)\n"
+		category, err := invite.Type.C()
+		if err != nil {
+			category = keybase1.TeamInviteCategory_UNKNOWN
+		}
+		trailer := fmt.Sprintf("(* invited by %s, awaiting acceptance)", invite.InviterUsername)
+		switch category {
+		case keybase1.TeamInviteCategory_EMAIL:
+			trailer = fmt.Sprintf("(* invited via email by %s, awaiting acceptance)", invite.InviterUsername)
+		case keybase1.TeamInviteCategory_SEITAN:
+			inviteIDTrailer := ""
+			if c.showInviteID {
+				// Show invite IDs for SEITAN tokens, which can be used to cancel the invite.
+				inviteIDTrailer = fmt.Sprintf(" (Invite ID: %s)", invite.Id)
+			}
+			trailer = fmt.Sprintf("(* invited via secret token by %s, awaiting acceptance)%s",
+				invite.InviterUsername, inviteIDTrailer)
+		}
+		fmtstring := "%s\t%s*\t%s\t%s\n"
 		fmt.Fprintf(c.tabw, fmtstring, invite.TeamName, strings.ToLower(invite.Role.String()),
-			c.formatInviteName(invite), invite.InviterUsername)
+			c.formatInviteName(invite), trailer)
 	}
 }
 

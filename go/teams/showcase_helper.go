@@ -54,7 +54,7 @@ func GetTeamAndMemberShowcase(ctx context.Context, g *libkb.GlobalContext, teamn
 	}
 	ret.TeamShowcase = teamRet.Showcase
 
-	if role.IsOrAbove(keybase1.TeamRole_ADMIN) {
+	if teamRet.Showcase.AnyMemberShowcase || role.IsOrAbove(keybase1.TeamRole_ADMIN) {
 		arg = apiArg(ctx, "team/member_showcase")
 		arg.Args.Add("tid", libkb.S{Val: t.ID.String()})
 
@@ -69,14 +69,14 @@ func GetTeamAndMemberShowcase(ctx context.Context, g *libkb.GlobalContext, teamn
 	return ret, nil
 }
 
-func SetTeamShowcase(ctx context.Context, g *libkb.GlobalContext, teamname string, isShowcased *bool, description *string) error {
+func SetTeamShowcase(ctx context.Context, g *libkb.GlobalContext, teamname string, isShowcased *bool, description *string, anyMemberShowcase *bool) error {
 	t, err := GetForTeamManagementByStringName(ctx, g, teamname, true)
 	if err != nil {
 		return err
 	}
 
-	if isShowcased == nil && description == nil {
-		return errors.New("both isShowcased and description cannot be nil")
+	if isShowcased == nil && description == nil && anyMemberShowcase == nil {
+		return errors.New("at least one argument has to be non-nil")
 	}
 
 	arg := apiArg(ctx, "team/team_showcase")
@@ -91,12 +91,15 @@ func SetTeamShowcase(ctx context.Context, g *libkb.GlobalContext, teamname strin
 			arg.Args.Add("clear_description", libkb.B{Val: true})
 		}
 	}
+	if anyMemberShowcase != nil {
+		arg.Args.Add("any_member_showcase", libkb.B{Val: *anyMemberShowcase})
+	}
 	_, err = g.API.Post(arg)
 	return err
 }
 
 func SetTeamMemberShowcase(ctx context.Context, g *libkb.GlobalContext, teamname string, isShowcased bool) error {
-	t, err := GetForTeamManagementByStringName(ctx, g, teamname, true)
+	t, err := GetForTeamManagementByStringName(ctx, g, teamname, false)
 	if err != nil {
 		return err
 	}

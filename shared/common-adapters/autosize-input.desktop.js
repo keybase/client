@@ -1,6 +1,6 @@
 // @flow
 import React, {Component} from 'react'
-import {globalStyles} from '../styles'
+import {globalStyles, globalColors} from '../styles'
 import {getStyle as getTextStyle} from './text'
 
 import type {Props} from './autosize-input'
@@ -66,6 +66,7 @@ class AutosizeInput extends Component<Props, State> {
       >
         <input
           autoFocus={this.props.autoFocus}
+          className="lighterPlaceholder"
           ref={el => {
             this._inputEl = el
           }}
@@ -80,6 +81,7 @@ class AutosizeInput extends Component<Props, State> {
           onFocus={this.props.onFocus}
           onBlur={this.props.onBlur}
         />
+        <style>{placeholderColorCSS}</style>
         <div
           ref={el => {
             this._measureEl = el
@@ -105,5 +107,11 @@ const resetStyle = {
   padding: 0,
   border: 'none',
 }
+
+const placeholderColorCSS = `
+input.lighterPlaceholder::placeholder { 
+  color: ${globalColors.black_20};
+}
+`
 
 export default AutosizeInput

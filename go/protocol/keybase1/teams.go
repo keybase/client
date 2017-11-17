@@ -943,6 +943,32 @@ func (o TeamCLKRMsg) DeepCopy() TeamCLKRMsg {
 	}
 }
 
+type TeamResetUser struct {
+	Username    string `codec:"username" json:"username"`
+	Uid         UID    `codec:"uid" json:"uid"`
+	EldestSeqno Seqno  `codec:"eldestSeqno" json:"eldest_seqno"`
+}
+
+func (o TeamResetUser) DeepCopy() TeamResetUser {
+	return TeamResetUser{
+		Username:    o.Username,
+		Uid:         o.Uid.DeepCopy(),
+		EldestSeqno: o.EldestSeqno.DeepCopy(),
+	}
+}
+
+type TeamMemberOutFromReset struct {
+	TeamName  string        `codec:"teamName" json:"team_name"`
+	ResetUser TeamResetUser `codec:"resetUser" json:"reset_user"`
+}
+
+func (o TeamMemberOutFromReset) DeepCopy() TeamMemberOutFromReset {
+	return TeamMemberOutFromReset{
+		TeamName:  o.TeamName,
+		ResetUser: o.ResetUser.DeepCopy(),
+	}
+}
+
 type TeamChangeRow struct {
 	Id                TeamID `codec:"id" json:"id"`
 	Name              string `codec:"name" json:"name"`
@@ -1549,9 +1575,10 @@ func (o TeamRequestAccessResult) DeepCopy() TeamRequestAccessResult {
 }
 
 type TeamShowcase struct {
-	IsShowcased bool    `codec:"isShowcased" json:"is_showcased"`
-	Description *string `codec:"description,omitempty" json:"description,omitempty"`
-	SetByUID    *UID    `codec:"setByUID,omitempty" json:"set_by_uid,omitempty"`
+	IsShowcased       bool    `codec:"isShowcased" json:"is_showcased"`
+	Description       *string `codec:"description,omitempty" json:"description,omitempty"`
+	SetByUID          *UID    `codec:"setByUID,omitempty" json:"set_by_uid,omitempty"`
+	AnyMemberShowcase bool    `codec:"anyMemberShowcase" json:"any_member_showcase"`
 }
 
 func (o TeamShowcase) DeepCopy() TeamShowcase {
@@ -1571,6 +1598,7 @@ func (o TeamShowcase) DeepCopy() TeamShowcase {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.SetByUID),
+		AnyMemberShowcase: o.AnyMemberShowcase,
 	}
 }
 
@@ -1881,9 +1909,10 @@ type GetTeamAndMemberShowcaseArg struct {
 }
 
 type SetTeamShowcaseArg struct {
-	Name        string  `codec:"name" json:"name"`
-	IsShowcased *bool   `codec:"isShowcased,omitempty" json:"isShowcased,omitempty"`
-	Description *string `codec:"description,omitempty" json:"description,omitempty"`
+	Name              string  `codec:"name" json:"name"`
+	IsShowcased       *bool   `codec:"isShowcased,omitempty" json:"isShowcased,omitempty"`
+	Description       *string `codec:"description,omitempty" json:"description,omitempty"`
+	AnyMemberShowcase *bool   `codec:"anyMemberShowcase,omitempty" json:"anyMemberShowcase,omitempty"`
 }
 
 type SetTeamMemberShowcaseArg struct {
