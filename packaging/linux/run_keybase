@@ -77,6 +77,8 @@ start_systemd() {
   # to user units automatically. Add them to the env file ourselves.
   echo "DISPLAY=${DISPLAY:-}" >> "$runtime_dir/keybase.gui.env"
   echo "XAUTHORITY=${XAUTHORITY:-}" >> "$runtime_dir/keybase.gui.env"
+  echo "XDG_CURRENT_DESKTOP=${XDG_CURRENT_DESKTOP:-}" >> "$runtime_dir/keybase.gui.env"
+  echo "DBUS_SESSION_BUS_ADDRESS=${DBUS_SESSION_BUS_ADDRESS:-}" >> "$runtime_dir/keybase.gui.env"
   # The keybase.gui.service unit has keybase.service and kbfs.service as
   # dependencies, so we don't have to list them here. But including them lets
   # us report an error if they fail to start.
