@@ -135,6 +135,7 @@ func handleSBSSingle(ctx context.Context, g *libkb.GlobalContext, teamID keybase
 			ForceRepoll: true,
 		})
 		if err != nil {
+			g.Log.CDebugf(ctx, "Load of team failed")
 			return err
 		}
 
@@ -143,8 +144,10 @@ func handleSBSSingle(ctx context.Context, g *libkb.GlobalContext, teamID keybase
 		// find the invite in the team chain
 		invite, found := team.chain().FindActiveInviteByID(untrustedInviteeFromGregor.InviteID)
 		if !found {
+			g.Log.CDebugf(ctx, "FindActiveInviteByID failed for invite %s", untrustedInviteeFromGregor.InviteID)
 			return libkb.NotFoundError{}
 		}
+		g.Log.CDebugf(ctx, "Found invite: %+v", invite)
 		category, err := invite.Type.C()
 		if err != nil {
 			return err
@@ -176,6 +179,7 @@ func handleSBSSingle(ctx context.Context, g *libkb.GlobalContext, teamID keybase
 			// nothing to verify, need to trust the server
 		case keybase1.TeamInviteCategory_KEYBASE:
 			if err := assertCanAcceptKeybaseInvite(ctx, g, untrustedInviteeFromGregor, invite); err != nil {
+				g.Log.CDebugf(ctx, "Failed assertCanAcceptKeybaseInvite")
 				return err
 			}
 		default:
@@ -186,6 +190,7 @@ func handleSBSSingle(ctx context.Context, g *libkb.GlobalContext, teamID keybase
 
 		currentRole, err := team.MemberRole(ctx, uv)
 		if err != nil {
+			g.Log.CDebugf(ctx, "Failed to lookup memberRole for %+v", uv)
 			return err
 		}
 
@@ -196,6 +201,7 @@ func handleSBSSingle(ctx context.Context, g *libkb.GlobalContext, teamID keybase
 
 		req, err := reqFromRole(uv, invite.Role)
 		if err != nil {
+			g.Log.CDebugf(ctx, "Failed to compute reqForRole for %+v, role=%s", uv, invite.Role)
 			return err
 		}
 		req.CompletedInvites = make(map[keybase1.TeamInviteID]keybase1.UserVersionPercentForm)
