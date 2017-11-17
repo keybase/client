@@ -129,6 +129,10 @@ function ignoreRequest(name: string, username: string): Constants.IgnoreRequest 
   return {payload: {name, username}, type: 'teams:ignoreRequest'}
 }
 
+function setPublicityAnyMember(teamname: string, enabled: boolean) {
+  return {payload: {enabled, teamname}, type: 'teams:setPublicityAnyMember'}
+}
+
 function setPublicityMember(teamname: string, enabled: boolean) {
   return {payload: {enabled, teamname}, type: 'teams:setPublicityMember'}
 }
@@ -202,6 +206,7 @@ export {
   makeTeamOpen,
   removeMember,
   saveChannelMembership,
+  setPublicityAnyMember,
   setChannelCreationError,
   setPublicityMember,
   setPublicityTeam,

@@ -547,6 +547,17 @@ func (a *InternalAPIEngine) consumeHeaders(resp *http.Response) (err error) {
 			*g.lastUpgradeWarning = now
 		}
 		g.oodiMu.Unlock()
+	} else {
+		// We might be in a state where the server *used to* think we were out
+		// of date, but now it doesn't. (Maybe a bad config got pushed and then
+		// later fixed.) If so, we need to clear the global outOfDateInfo, so
+		// that the client stops printing warnings.
+		g := a.G()
+		g.oodiMu.Lock()
+		g.outOfDateInfo.UpgradeTo = ""
+		g.outOfDateInfo.UpgradeURI = ""
+		g.outOfDateInfo.CustomMessage = ""
+		g.oodiMu.Unlock()
 	}
 	return
 }

@@ -779,6 +779,7 @@ function _listTrackersOrTracking(
       },
     })
       .then(response => {
+        // response.users is null if the user has no followers/follows.
         resolve((response.users || []).map(_parseFriendship))
       })
       .catch(error => {

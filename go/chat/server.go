@@ -2180,6 +2180,32 @@ func (h *Server) LeaveConversationLocal(ctx context.Context, convID chat1.Conver
 	return res, nil
 }
 
+func (h *Server) PreviewConversationByIDLocal(ctx context.Context, convID chat1.ConversationID) (res chat1.JoinLeaveConversationLocalRes, err error) {
+	var identBreaks []keybase1.TLFIdentifyFailure
+	ctx = Context(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI,
+		&identBreaks, h.identNotifier)
+	defer h.Trace(ctx, func() error { return err }, fmt.Sprintf("PreviewConversation(%s)", convID))()
+	defer func() { err = h.handleOfflineError(ctx, err, &res) }()
+	defer func() {
+		if res.Offline {
+			h.Debug(ctx, "PreviewConversationLocal: result obtained offline")
+		}
+	}()
+	uid, err := h.assertLoggedInUID(ctx)
+	if err != nil {
+		return res, err
+	}
+
+	rl, err := PreviewConversation(ctx, h.G(), h.DebugLabeler, h.remoteClient, uid, convID)
+	if err != nil {
+		return res, err
+	}
+
+	res.RateLimits = utils.AggRateLimits(rl)
+	res.Offline = h.G().InboxSource.IsOffline(ctx)
+	return res, nil
+}
+
 func (h *Server) DeleteConversationLocal(ctx context.Context, arg chat1.DeleteConversationLocalArg) (res chat1.DeleteConversationLocalRes, err error) {
 	var identBreaks []keybase1.TLFIdentifyFailure
 	ctx = Context(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI,

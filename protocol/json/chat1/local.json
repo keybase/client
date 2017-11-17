@@ -2910,6 +2910,15 @@
       ],
       "response": "JoinLeaveConversationLocalRes"
     },
+    "previewConversationByIDLocal": {
+      "request": [
+        {
+          "name": "convID",
+          "type": "ConversationID"
+        }
+      ],
+      "response": "JoinLeaveConversationLocalRes"
+    },
     "leaveConversationLocal": {
       "request": [
         {

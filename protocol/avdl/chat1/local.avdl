@@ -709,6 +709,7 @@ protocol local {
   }
   JoinLeaveConversationLocalRes joinConversationLocal(string tlfName, TopicType topicType, keybase1.TLFVisibility visibility, string topicName);
   JoinLeaveConversationLocalRes joinConversationByIDLocal(ConversationID convID);
+  JoinLeaveConversationLocalRes previewConversationByIDLocal(ConversationID convID);
   JoinLeaveConversationLocalRes leaveConversationLocal(ConversationID convID);
   record DeleteConversationLocalRes {
     boolean offline;
