@@ -647,9 +647,13 @@ function* _setPublicityTeam(action: Constants.SetPublicityTeam) {
 
 function* _setupTeamHandlers(): Saga.SagaGenerator<any, any> {
   yield Saga.put((dispatch: Dispatch) => {
-    engine().setIncomingHandler('keybase.1.NotifyTeam.teamChanged', () => {
-      dispatch(Creators.getTeams())
-    })
+    engine().setIncomingHandler(
+      'keybase.1.NotifyTeam.teamChanged',
+      (args: RPCTypes.NotifyTeamTeamChangedRpcParam) => {
+        dispatch(Creators.getDetails(args.teamName))
+        dispatch(Creators.getTeams())
+      }
+    )
     engine().setIncomingHandler('keybase.1.NotifyTeam.teamDeleted', () => {
       dispatch(Creators.getTeams())
     })
