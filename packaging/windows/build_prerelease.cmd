@@ -66,15 +66,6 @@ IF %ERRORLEVEL% NEQ 0 (
 )
 popd
 
-:: dokanclean
-pushd %GOPATH%\src\github.com\keybase\client\go\tools\dokanclean
-del dokanclean.exe
-go build
-IF %ERRORLEVEL% NEQ 0 (
-  EXIT /B 1
-)
-popd
-
 :: Browser Extension
 pushd %GOPATH%\src\github.com\keybase\client\go\kbnm
 del kbnm.exe

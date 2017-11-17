@@ -984,13 +984,6 @@
         {
           "type": "ChannelMention",
           "name": "channelMention"
-        },
-        {
-          "type": {
-            "type": "array",
-            "items": "string"
-          },
-          "name": "channelNameMentions"
         }
       ]
     },
@@ -2909,6 +2902,15 @@
       "response": "JoinLeaveConversationLocalRes"
     },
     "joinConversationByIDLocal": {
+      "request": [
+        {
+          "name": "convID",
+          "type": "ConversationID"
+        }
+      ],
+      "response": "JoinLeaveConversationLocalRes"
+    },
+    "previewConversationByIDLocal": {
       "request": [
         {
           "name": "convID",

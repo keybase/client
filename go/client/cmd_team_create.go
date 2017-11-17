@@ -12,8 +12,9 @@ import (
 )
 
 type CmdTeamCreate struct {
-	TeamName  keybase1.TeamName
-	SessionID int
+	TeamName                 keybase1.TeamName
+	SuppressTeamChatAnnounce bool
+	SessionID                int
 	libkb.Contextified
 }
 
@@ -38,7 +39,7 @@ func (v *CmdTeamCreate) Run() (err error) {
 	// only send a chat notification if creating a root team.
 	// (if creating a sub team, the creator is not a member of the team
 	// and thus can't send a chat message)
-	sendChatNotification := v.TeamName.IsRootTeam()
+	sendChatNotification := v.TeamName.IsRootTeam() && !v.SuppressTeamChatAnnounce
 
 	createRes, err := cli.TeamCreate(context.TODO(), keybase1.TeamCreateArg{
 		Name:                 v.TeamName.String(),

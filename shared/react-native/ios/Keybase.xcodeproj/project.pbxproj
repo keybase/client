@@ -5,10 +5,10 @@
 	};
 	objectVersion = 46;
 	objects = {
-
 /* Begin PBXBuildFile section */
 		0044E59D1BCD7CEA008EF7EE /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 0044E59C1BCD7CEA008EF7EE /* LaunchScreen.storyboard */; };
 		2746CFFA1E9884BD00E579B0 /* libresolv.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 274AFB721E972F5300615A64 /* libresolv.tbd */; };
+		370EFC8E1FB3BDE1004DB3BB /* MessageUIManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 370EFC8D1FB3BDE1004DB3BB /* MessageUIManager.m */; };
 		39D6D1A57FB3452BA9A3B365 /* libRNFetchBlob.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 51B12F21D54542FC8B7379EC /* libRNFetchBlob.a */; };
 		7608E936D0B84B4FB1849590 /* libRCTCamera.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D4D90F8FFC2D4682850A6803 /* libRCTCamera.a */; };
 		A969A40A1CF65C9C00F273F2 /* LogSend.m in Sources */ = {isa = PBXBuildFile; fileRef = A969A4091CF65C9C00F273F2 /* LogSend.m */; };
@@ -56,6 +56,20 @@
 			proxyType = 2;
 			remoteGlobalIDString = 014A3B5C1C6CF33500B6D375;
 			remoteInfo = RNImagePicker;
+		};
+		27B80F581FB4C0F3008EF78B /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = DB2BD1B21DE7D97900BB7989 /* RCTWebSocket.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 3DBE0D001F3B181A0099AA32;
+			remoteInfo = fishhook;
+		};
+		27B80F5A1FB4C0F3008EF78B /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = DB2BD1B21DE7D97900BB7989 /* RCTWebSocket.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 3DBE0D0D1F3B181C0099AA32;
+			remoteInfo = "fishhook-tvOS";
 		};
 		37D298091F9A48D600D43971 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -326,6 +340,8 @@
 		13B07F961A680F5B00A75B9A /* Keybase.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Keybase.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		274AFB721E972F5300615A64 /* libresolv.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libresolv.tbd; path = usr/lib/libresolv.tbd; sourceTree = SDKROOT; };
 		27DDEEF0AE72483E8BF08ED2 /* RNFetchBlob.xcodeproj */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = "wrapper.pb-project"; name = RNFetchBlob.xcodeproj; path = "../../node_modules/react-native-fetch-blob/ios/RNFetchBlob.xcodeproj"; sourceTree = "<group>"; };
+		370EFC8D1FB3BDE1004DB3BB /* MessageUIManager.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = MessageUIManager.m; sourceTree = "<group>"; };
+		3724B72A1FB491F000A12CE6 /* MessageUIManager.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MessageUIManager.h; sourceTree = "<group>"; };
 		51B12F21D54542FC8B7379EC /* libRNFetchBlob.a */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = archive.ar; path = libRNFetchBlob.a; sourceTree = "<group>"; };
 		6266E16BBFF8461CAF2DDCB9 /* RCTContacts.xcodeproj */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = "wrapper.pb-project"; name = RCTContacts.xcodeproj; path = "../../node_modules/react-native-contacts/ios/RCTContacts.xcodeproj"; sourceTree = "<group>"; };
 		8A6B0997A42F4CC08AE6F28F /* RCTCamera.xcodeproj */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = "wrapper.pb-project"; name = RCTCamera.xcodeproj; path = "../../node_modules/react-native-camera/ios/RCTCamera.xcodeproj"; sourceTree = "<group>"; };
@@ -542,6 +558,7 @@
 				A77BBAD7A94F4A2580CA3B23 /* libRNImagePicker.a */,
 				51B12F21D54542FC8B7379EC /* libRNFetchBlob.a */,
 				8DC2EA7D9170401F8F611036 /* libRCTContacts.a */,
+				717E0727A65E4C5E929B7548 /* libRCTMessageUI.a */,
 			);
 			name = "Recovered References";
 			sourceTree = "<group>";
@@ -648,6 +665,8 @@
 			children = (
 				DB2BD1E21DE7D97900BB7989 /* libRCTWebSocket.a */,
 				DB2BD1E41DE7D97900BB7989 /* libRCTWebSocket-tvOS.a */,
+				27B80F591FB4C0F3008EF78B /* libfishhook.a */,
+				27B80F5B1FB4C0F3008EF78B /* libfishhook-tvOS.a */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -702,6 +721,8 @@
 				DB27DE551D747A6B003DE8BC /* Utils.h */,
 				DB27DE561D747A6C003DE8BC /* Utils.m */,
 				A969A4161CF65CB200F273F2 /* LogSend.h */,
+				370EFC8D1FB3BDE1004DB3BB /* MessageUIManager.m */,
+				3724B72A1FB491F000A12CE6 /* MessageUIManager.h */,
 				A969A4091CF65C9C00F273F2 /* LogSend.m */,
 				DB7539361D777E8400AFA61B /* LogSend-Test.m */,
 				DBDCF3441B8D04FC00BA95D8 /* Keybase-Bridging-Header.h */,
@@ -889,6 +910,20 @@
 			fileType = archive.ar;
 			path = libRNImagePicker.a;
 			remoteRef = 27429B071E64A7A90058A4F9 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		27B80F591FB4C0F3008EF78B /* libfishhook.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = libfishhook.a;
+			remoteRef = 27B80F581FB4C0F3008EF78B /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		27B80F5B1FB4C0F3008EF78B /* libfishhook-tvOS.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = "libfishhook-tvOS.a";
+			remoteRef = 27B80F5A1FB4C0F3008EF78B /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
 		37D2980A1F9A48D600D43971 /* libRCTContacts.a */ = {
@@ -1266,6 +1301,7 @@
 				DB27DE571D747A6C003DE8BC /* Utils.m in Sources */,
 				A969A40A1CF65C9C00F273F2 /* LogSend.m in Sources */,
 				DBBCC6181D9C5C6A00312652 /* main.m in Sources */,
+				370EFC8E1FB3BDE1004DB3BB /* MessageUIManager.m in Sources */,
 				DBCE36251B90F14800ECADDE /* Engine.m in Sources */,
 				DBBCC6131D9C4A8100312652 /* AppDelegate.m in Sources */,
 			);
@@ -1316,16 +1352,13 @@
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
-					"\"$(SRCROOT)/Keybase\"",
-					"\"$(SRCROOT)/Keybase\"",
-					"\"$(SRCROOT)/Keybase\"",
-					"\"$(SRCROOT)/Keybase\"",
-					"\"$(SRCROOT)/Keybase\"",
 				);
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-ObjC",
 					"-lc++",
+					"-Xlinker",
+					"-no_branch_islands",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = keybase.ios;
 				PRODUCT_NAME = Keybase;
@@ -1369,16 +1402,13 @@
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
-					"\"$(SRCROOT)/Keybase\"",
-					"\"$(SRCROOT)/Keybase\"",
-					"\"$(SRCROOT)/Keybase\"",
-					"\"$(SRCROOT)/Keybase\"",
-					"\"$(SRCROOT)/Keybase\"",
 				);
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-ObjC",
 					"-lc++",
+					"-Xlinker",
+					"-no_branch_islands",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = keybase.ios;
 				PRODUCT_NAME = Keybase;

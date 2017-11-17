@@ -455,7 +455,7 @@ type FakeGregorDismisser struct {
 
 var _ GregorDismisser = (*FakeGregorDismisser)(nil)
 
-func (f *FakeGregorDismisser) DismissItem(cli gregor1.IncomingInterface, id gregor.MsgID) error {
+func (f *FakeGregorDismisser) DismissItem(_ context.Context, cli gregor1.IncomingInterface, id gregor.MsgID) error {
 	f.dismissedIDs = append(f.dismissedIDs, id)
 	return nil
 }
@@ -474,6 +474,10 @@ func NewTestUIDMapper(ul UPAKLoader) TestUIDMapper {
 	return TestUIDMapper{
 		ul: ul,
 	}
+}
+
+func (t TestUIDMapper) ClearUIDAtEldestSeqno(_ context.Context, _ UIDMapperContext, _ keybase1.UID, _ keybase1.Seqno) error {
+	return nil
 }
 
 func (t TestUIDMapper) CheckUIDAgainstUsername(uid keybase1.UID, un NormalizedUsername) bool {

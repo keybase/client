@@ -306,7 +306,7 @@ func (t *Team) applicationKeyForMask(mask keybase1.ReaderKeyMask, secret keybase
 	case keybase1.TeamApplication_SEITAN_INVITE_TOKEN:
 		derivationString = libkb.TeamSeitanTokenDerivationString
 	default:
-		return keybase1.TeamApplicationKey{}, errors.New("invalid application id")
+		return keybase1.TeamApplicationKey{}, fmt.Errorf("unrecognized application id: %v", mask.Application)
 	}
 
 	key := keybase1.TeamApplicationKey{

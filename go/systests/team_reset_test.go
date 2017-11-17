@@ -152,6 +152,13 @@ func TestTeamDelete(t *testing.T) {
 
 	divDebug(ctx, "Cam sent a chat")
 	readChats(team, bob, 2)
+
+	// XXX this assertion currently fails
+	// bob.assertMemberInactive(team, ann)
+	bob.assertMemberActive(team, cam)
+	// XXX this assertion currently fails
+	// cam.assertMemberInactive(team, ann)
+	cam.assertMemberActive(team, bob)
 }
 
 func TestTeamReset(t *testing.T) {
@@ -167,7 +174,11 @@ func TestTeamReset(t *testing.T) {
 	cam := ctx.installKeybaseForUser("cam", 10)
 	cam.signup()
 	divDebug(ctx, "Signed up cam (%s, %s)", cam.username, cam.uid())
-	users := []*smuUser{ann, bob, cam}
+
+	// Note that ann (the admin) has a UIDMapper that should get pubsub updates
+	// since she is an admin for the team in question. cam won't get those
+	// pubsub updates
+	users := []*smuUser{bob, cam}
 	for _, user := range users {
 		for _, device := range user.devices {
 			device.tctx.G.UIDMapper.SetTestingNoCachingMode(true)
@@ -176,6 +187,10 @@ func TestTeamReset(t *testing.T) {
 
 	team := ann.createTeam([]*smuUser{bob, cam})
 	divDebug(ctx, "team created (%s)", team.name)
+
+	// ensure bob is active according to other users
+	ann.assertMemberActive(team, bob)
+	cam.assertMemberActive(team, bob)
 
 	sendChat(team, ann, "0")
 	divDebug(ctx, "Sent chat '0' (%s via %s)", team.name, ann.username)
@@ -187,12 +202,23 @@ func TestTeamReset(t *testing.T) {
 	bob.reset()
 	divDebug(ctx, "Reset bob (%s)", bob.username)
 
-	// Fast forward clock to clear out UID map
+	// NOTE(maxtaco): This might be racy! If so, please talk to me.
+	// I couldn't get it to race in my tests, but what does that mean.
+	// The race is that a gregor message is needed to clear out the UIDMap,
+	// and it's not guaranteed to come in before the team gets updated.
 	pollForMembershipUpdate(team, ann, bob, cam)
 	divDebug(ctx, "Polled for rekey")
 
+	// bob should be inactive according to other users
+	ann.assertMemberInactive(team, bob)
+	cam.assertMemberInactive(team, bob)
+
 	bob.loginAfterReset(10)
 	divDebug(ctx, "Bob logged in after reset")
+
+	// bob should be inactive according to other users
+	ann.assertMemberInactive(team, bob)
+	cam.assertMemberInactive(team, bob)
 
 	_, err := bob.teamGet(team)
 	require.Error(t, err)
@@ -618,4 +644,45 @@ func TestTeamReAddAfterReset(t *testing.T) {
 	require.Equal(t, role, keybase1.TeamRole_READER)
 
 	readChats(team, bob, 1)
+}
+
+func TestTeamOpenReset(t *testing.T) {
+	ctx := newSMUContext(t)
+	defer ctx.cleanup()
+
+	ann := ctx.installKeybaseForUser("ann", 10)
+	ann.signup()
+	divDebug(ctx, "Signed up ann (%s)", ann.username)
+	bob := ctx.installKeybaseForUser("bob", 10)
+	bob.signup()
+	divDebug(ctx, "Signed up bob (%s)", bob.username)
+
+	for _, user := range []*smuUser{ann, bob} {
+		for _, device := range user.devices {
+			device.tctx.G.UIDMapper.SetTestingNoCachingMode(true)
+		}
+	}
+
+	team := ann.createTeam([]*smuUser{bob})
+	divDebug(ctx, "team created (%s)", team.name)
+	ann.openTeam(team, keybase1.TeamRole_WRITER)
+	ann.assertMemberActive(team, bob)
+
+	bob.reset()
+	divDebug(ctx, "Reset bob (%s)", bob.username)
+
+	kickTeamRekeyd(ann.getPrimaryGlobalContext(), t)
+
+	details := ann.pollForMembershipUpdate(team, keybase1.PerTeamKeyGeneration(2))
+	t.Logf("details from poll: %+v", details)
+	ann.assertMemberInactive(team, bob)
+
+	bob.loginAfterReset(10)
+	divDebug(ctx, "Bob logged in after reset")
+
+	bob.requestAccess(team)
+	divDebug(ctx, "Bob requested access to open team after reset")
+
+	ann.pollForMembershipUpdate(team, keybase1.PerTeamKeyGeneration(3))
+	ann.assertMemberActive(team, bob)
 }

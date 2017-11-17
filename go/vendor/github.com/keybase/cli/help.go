@@ -44,7 +44,10 @@ USAGE:
    command {{.FullName}}{{if .Flags}} [command options]{{end}} [arguments...]{{if .Description}}
 
 DESCRIPTION:
-   {{.Description}}{{end}}{{if .Flags}}
+   {{.Description}}{{end}}{{if .Examples}}
+
+EXAMPLES:
+{{.ExamplesFormatted}}{{end}}{{if .Flags}}
 
 OPTIONS:
    {{range .Flags}}{{.}}

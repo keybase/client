@@ -50,35 +50,55 @@ func (r *teamHandler) Create(ctx context.Context, cli gregor1.IncomingInterface,
 		return true, r.exitTeam(ctx, cli, item)
 	case "team.seitan":
 		return true, r.seitanCompletion(ctx, cli, item)
+	case "team.member_out_from_reset":
+		return true, r.memberOutFromReset(ctx, cli, item)
 	default:
 		return false, fmt.Errorf("unknown teamHandler category: %q", category)
 	}
 }
 
 func (r *teamHandler) rotateTeam(ctx context.Context, cli gregor1.IncomingInterface, item gregor.Item) error {
-	r.G().Log.Debug("team.clkr received")
+	r.G().Log.CDebugf(ctx, "team.clkr received")
 	var msg keybase1.TeamCLKRMsg
 	if err := json.Unmarshal(item.Body().Bytes(), &msg); err != nil {
-		r.G().Log.Debug("error unmarshaling team.clkr item: %s", err)
+		r.G().Log.CDebugf(ctx, "error unmarshaling team.clkr item: %s", err)
 		return err
 	}
-	r.G().Log.Debug("team.clkr unmarshaled: %+v", msg)
+	r.G().Log.CDebugf(ctx, "team.clkr unmarshaled: %+v", msg)
 
 	if err := teams.HandleRotateRequest(ctx, r.G(), msg.TeamID, keybase1.PerTeamKeyGeneration(msg.Generation)); err != nil {
 		return err
 	}
 
-	r.G().Log.Debug("dismissing team.clkr item since rotate succeeded")
-	return r.G().GregorDismisser.DismissItem(cli, item.Metadata().MsgID())
+	r.G().Log.CDebugf(ctx, "dismissing team.clkr item since rotate succeeded")
+	return r.G().GregorDismisser.DismissItem(ctx, cli, item.Metadata().MsgID())
+}
+
+func (r *teamHandler) memberOutFromReset(ctx context.Context, cli gregor1.IncomingInterface, item gregor.Item) error {
+	nm := "team.member_out_from_reset"
+	r.G().Log.CDebugf(ctx, "%s received", nm)
+	var msg keybase1.TeamMemberOutFromReset
+	if err := json.Unmarshal(item.Body().Bytes(), &msg); err != nil {
+		r.G().Log.CDebugf(ctx, "error unmarshaling %s item: %s", nm, err)
+		return err
+	}
+	r.G().Log.CDebugf(ctx, "%s unmarshaled: %+v", nm, msg)
+
+	if err := r.G().UIDMapper.ClearUIDAtEldestSeqno(ctx, r.G(), msg.ResetUser.Uid, msg.ResetUser.EldestSeqno); err != nil {
+		return err
+	}
+
+	r.G().Log.CDebugf(ctx, "%s: cleared UIDMap cache for %s%%%d", nm, msg.ResetUser.Uid, msg.ResetUser.EldestSeqno)
+	return nil
 }
 
 func (r *teamHandler) changeTeam(ctx context.Context, cli gregor1.IncomingInterface, item gregor.Item, changes keybase1.TeamChangeSet) error {
 	var rows []keybase1.TeamChangeRow
 	if err := json.Unmarshal(item.Body().Bytes(), &rows); err != nil {
-		r.G().Log.Debug("error unmarshaling team.(change|rename) item: %s", err)
+		r.G().Log.CDebugf(ctx, "error unmarshaling team.(change|rename) item: %s", err)
 		return err
 	}
-	r.G().Log.Debug("team.(change|rename) unmarshaled: %+v", rows)
+	r.G().Log.CDebugf(ctx, "team.(change|rename) unmarshaled: %+v", rows)
 
 	return teams.HandleChangeNotification(ctx, r.G(), rows, changes)
 }
@@ -86,84 +106,84 @@ func (r *teamHandler) changeTeam(ctx context.Context, cli gregor1.IncomingInterf
 func (r *teamHandler) deleteTeam(ctx context.Context, cli gregor1.IncomingInterface, item gregor.Item) error {
 	var rows []keybase1.TeamChangeRow
 	if err := json.Unmarshal(item.Body().Bytes(), &rows); err != nil {
-		r.G().Log.Debug("error unmarshaling team.(change|rename) item: %s", err)
+		r.G().Log.CDebugf(ctx, "error unmarshaling team.(change|rename) item: %s", err)
 		return err
 	}
-	r.G().Log.Debug("team.delete unmarshaled: %+v", rows)
+	r.G().Log.CDebugf(ctx, "team.delete unmarshaled: %+v", rows)
 
 	err := teams.HandleDeleteNotification(ctx, r.G(), rows)
 	if err != nil {
 		return err
 	}
 
-	return r.G().GregorDismisser.DismissItem(cli, item.Metadata().MsgID())
+	return r.G().GregorDismisser.DismissItem(ctx, cli, item.Metadata().MsgID())
 }
 
 func (r *teamHandler) exitTeam(ctx context.Context, cli gregor1.IncomingInterface, item gregor.Item) error {
 	var rows []keybase1.TeamExitRow
 	if err := json.Unmarshal(item.Body().Bytes(), &rows); err != nil {
-		r.G().Log.Debug("error unmarshaling team.exit item: %s", err)
+		r.G().Log.CDebugf(ctx, "error unmarshaling team.exit item: %s", err)
 		return err
 	}
-	r.G().Log.Debug("team.exit unmarshaled: %+v", rows)
+	r.G().Log.CDebugf(ctx, "team.exit unmarshaled: %+v", rows)
 	err := teams.HandleExitNotification(ctx, r.G(), rows)
 	if err != nil {
 		return err
 	}
 
 	r.G().Log.Debug("dismissing team.exit: %v", item.Metadata().MsgID().String())
-	return r.G().GregorDismisser.DismissItem(cli, item.Metadata().MsgID())
+	return r.G().GregorDismisser.DismissItem(ctx, cli, item.Metadata().MsgID())
 }
 
 func (r *teamHandler) sharingBeforeSignup(ctx context.Context, cli gregor1.IncomingInterface, item gregor.Item) error {
-	r.G().Log.Debug("team.sbs received")
+	r.G().Log.CDebugf(ctx, "team.sbs received")
 	var msg keybase1.TeamSBSMsg
 	if err := json.Unmarshal(item.Body().Bytes(), &msg); err != nil {
-		r.G().Log.Debug("error unmarshaling team.sbs item: %s", err)
+		r.G().Log.CDebugf(ctx, "error unmarshaling team.sbs item: %s", err)
 		return err
 	}
-	r.G().Log.Debug("team.sbs unmarshaled: %+v", msg)
+	r.G().Log.CDebugf(ctx, "team.sbs unmarshaled: %+v", msg)
 
 	if err := teams.HandleSBSRequest(ctx, r.G(), msg); err != nil {
 		return err
 	}
 
 	r.G().Log.Debug("dismissing team.sbs item since it succeeded")
-	return r.G().GregorDismisser.DismissItem(cli, item.Metadata().MsgID())
+	return r.G().GregorDismisser.DismissItem(ctx, cli, item.Metadata().MsgID())
 }
 
 func (r *teamHandler) openTeamAccessRequest(ctx context.Context, cli gregor1.IncomingInterface, item gregor.Item) error {
-	r.G().Log.Debug("team.openreq received")
+	r.G().Log.CDebugf(ctx, "team.openreq received")
 	var msg keybase1.TeamOpenReqMsg
 	if err := json.Unmarshal(item.Body().Bytes(), &msg); err != nil {
-		r.G().Log.Debug("error unmarshaling team.openreq item: %s", err)
+		r.G().Log.CDebugf(ctx, "error unmarshaling team.openreq item: %s", err)
 		return err
 	}
-	r.G().Log.Debug("team.openreq unmarshaled: %+v", msg)
+	r.G().Log.CDebugf(ctx, "team.openreq unmarshaled: %+v", msg)
 
 	if err := teams.HandleOpenTeamAccessRequest(ctx, r.G(), msg); err != nil {
 		return err
 	}
 
-	r.G().Log.Debug("dismissing team.openreq item since it succeeded")
-	return r.G().GregorDismisser.DismissItem(cli, item.Metadata().MsgID())
+	r.G().Log.CDebugf(ctx, "dismissing team.openreq item since it succeeded")
+	return r.G().GregorDismisser.DismissItem(ctx, cli, item.Metadata().MsgID())
 }
 
 func (r *teamHandler) seitanCompletion(ctx context.Context, cli gregor1.IncomingInterface, item gregor.Item) error {
-	r.G().Log.Debug("team.seitan received")
+	r.G().Log.CDebugf(ctx, "team.seitan received")
 	var msg keybase1.TeamSeitanMsg
 	if err := json.Unmarshal(item.Body().Bytes(), &msg); err != nil {
-		r.G().Log.Debug("error unmarshaling team.seitan item: %s", err)
+		r.G().Log.CDebugf(ctx, "error unmarshaling team.seitan item: %s", err)
 		return err
 	}
-	r.G().Log.Debug("team.seitan unmarshaled: %+v", msg)
+	r.G().Log.CDebugf(ctx, "team.seitan unmarshaled: %+v", msg)
 
 	if err := teams.HandleTeamSeitan(ctx, r.G(), msg); err != nil {
 		return err
 	}
 
-	r.G().Log.Debug("dismissing team.seitan item since it succeeded")
-	return r.G().GregorDismisser.DismissItem(cli, item.Metadata().MsgID())
+	r.G().Log.CDebugf(ctx, "dismissing team.seitan item since it succeeded")
+	return r.G().GregorDismisser.DismissItem(ctx, cli, item.Metadata().MsgID())
 }
 
 func (r *teamHandler) Dismiss(ctx context.Context, cli gregor1.IncomingInterface, category string, item gregor.Item) (bool, error) {

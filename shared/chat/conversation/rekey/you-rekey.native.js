@@ -7,10 +7,16 @@ import type {Props} from './you-rekey'
 
 const YouRekey = ({onEnterPaperkey, onBack}: Props) => {
   const bannerEl = (
-    <Box style={{...globalStyles.flexBoxRow, backgroundColor: globalColors.red, justifyContent: 'center'}}>
+    <Box
+      style={{
+        ...globalStyles.flexBoxRow,
+        backgroundColor: globalColors.red,
+        justifyContent: 'center',
+      }}
+    >
       <Text
         backgroundMode="Terminal"
-        style={{paddingBottom: 8, paddingLeft: 24, paddingRight: 24, paddingTop: 8}}
+        style={{paddingBottom: 8, paddingLeft: 24, paddingRight: 24, paddingTop: 8, textAlign: 'center'}}
         type="BodySemibold"
       >
         This conversation needs to be rekeyed.

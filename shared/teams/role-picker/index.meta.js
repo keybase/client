@@ -1,18 +1,27 @@
 // @flow
 
+import {globalColors} from '../../styles'
+
 export const roleDescMap = {
   null: '',
   reader: 'Can write in chats but read only in folders.',
   writer: 'Can create channels, and write and read in chats and folders.',
-  admin: 'Can manage team members roles, create subteams and channels, and write and read in chats and folders.',
-  owner: 'Gets all the admin rights + can delete team.',
+  admin: 'Can manage team member roles, create subteams and channels, and write and read in chats and folders.',
+  owner: 'Gets all the admin rights + can delete team. (A team can have multiple owners.)',
 }
 
 export const roleIconMap = {
-  reader: 'iconfont-glasses',
-  writer: 'iconfont-pen',
-  admin: 'iconfont-crown',
-  owner: 'iconfont-crown',
+  admin: 'iconfont-crown-admin',
+  owner: 'iconfont-crown-owner',
+  reader: '',
+  writer: '',
+}
+
+export const roleIconColorMap = {
+  admin: globalColors.black_40,
+  owner: globalColors.yellow2,
+  reader: '',
+  writer: '',
 }
 
 const permissions = [

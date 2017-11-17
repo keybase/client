@@ -740,6 +740,41 @@
     },
     {
       "type": "record",
+      "name": "TeamResetUser",
+      "fields": [
+        {
+          "type": "string",
+          "name": "username"
+        },
+        {
+          "type": "UID",
+          "name": "uid"
+        },
+        {
+          "type": "Seqno",
+          "name": "eldestSeqno",
+          "jsonkey": "eldest_seqno"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "TeamMemberOutFromReset",
+      "fields": [
+        {
+          "type": "string",
+          "name": "teamName",
+          "jsonkey": "team_name"
+        },
+        {
+          "type": "TeamResetUser",
+          "name": "resetUser",
+          "jsonkey": "reset_user"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "TeamChangeRow",
       "fields": [
         {
@@ -1339,6 +1374,11 @@
           ],
           "name": "setByUID",
           "jsonkey": "set_by_uid"
+        },
+        {
+          "type": "boolean",
+          "name": "anyMemberShowcase",
+          "jsonkey": "any_member_showcase"
         }
       ]
     },
@@ -1964,6 +2004,13 @@
           "type": [
             null,
             "string"
+          ]
+        },
+        {
+          "name": "anyMemberShowcase",
+          "type": [
+            null,
+            "boolean"
           ]
         }
       ],

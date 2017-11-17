@@ -11,8 +11,8 @@ import (
 )
 
 const (
-	userTimeout  = 5 * time.Minute
-	cacheTimeout = 8 * time.Minute
+	userTimeout  = 3 * time.Hour
+	cacheTimeout = 8 * time.Hour
 )
 
 // CredentialAuthority should be allocated as a singleton object. It validates UID<->Username<->ActiveKey

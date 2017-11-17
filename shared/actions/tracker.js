@@ -779,11 +779,8 @@ function _listTrackersOrTracking(
       },
     })
       .then(response => {
-        if (response.users) {
-          resolve(response.users.map(_parseFriendship))
-        } else {
-          reject(new Error('invalid tracker result'))
-        }
+        // response.users is null if the user has no followers/follows.
+        resolve((response.users || []).map(_parseFriendship))
       })
       .catch(error => {
         console.log('err getting trackers', error)

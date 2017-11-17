@@ -52,15 +52,10 @@ protocol metadata {
     boolean releaseAfterSuccess;
   }
 
-  enum MDGetBehavior {
-    GET_OR_CREATE_CLASSIC_TLF_0,
-    GET_CLASSIC_TLF_NO_CREATE_1
-  }
-
   ChallengeInfo getChallenge();
   int authenticate(string signature);
   void putMetadata(MDBlock mdBlock, KeyBundle readerKeyBundle, KeyBundle writerKeyBundle, map<string> logTags, union{null, LockContext} lockContext, MDPriority priority);
-  MetadataResponse getMetadata(string folderID, bytes folderHandle, string branchID, boolean unmerged, long startRevision, long stopRevision, map<string> logTags, union{null, LockID} lockBeforeGet, MDGetBehavior getBehavior);
+  MetadataResponse getMetadata(string folderID, bytes folderHandle, string branchID, boolean unmerged, long startRevision, long stopRevision, map<string> logTags, union{null, LockID} lockBeforeGet);
   void registerForUpdates(string folderID, long currRevision, map<string> logTags);
   void pruneBranch(string folderID, string branchID, map<string> logTags);
   void putKeys(array<KeyHalf> keyHalves, map<string> logTags);

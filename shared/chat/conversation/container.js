@@ -94,7 +94,7 @@ const mapStateToProps = (state: TypedState, {routePath}): StateProps => {
   const showTeamOffer = flags.teamChatEnabled && inSearch && userInputItemIds && userInputItemIds.length > 1
 
   return {
-    showSearchResults: !!searchResults,
+    showSearchResults: inSearch && !!searchResults,
     conversationErrorText,
     conversationIsError,
     finalizeInfo,

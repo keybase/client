@@ -36,6 +36,7 @@ export const inboxStoreLoaded = 'chat:inboxStoreLoaded'
 export const inboxSynced = 'chat:inboxSynced'
 export const incomingMessage = 'chat:incomingMessage'
 export const incomingTyping = 'chat:incomingTyping'
+export const joinConversation = 'chat:joinConversation'
 export const leaveConversation = 'chat:leaveConversation'
 export const loadAttachment = 'chat:loadAttachment'
 export const loadAttachmentPreview = 'chat:loadAttachmentPreview'
@@ -68,6 +69,7 @@ export const selectConversation = 'chat:selectConversation'
 export const selectNext = 'chat:selectNext'
 export const setInboxFilter = 'chat:setInboxFilter'
 export const setInboxGlobalUntrustedState = 'chat:setInboxGlobalUntrustedState'
+export const setInboxSyncingState = 'chat:setInboxSyncingState'
 export const setLoaded = 'chat:setLoaded'
 export const setNotifications = 'chat:setNotifications'
 export const setPreviousConversation = 'chat:setPreviousConversation'
@@ -121,6 +123,7 @@ export const createInboxStoreLoaded = () => ({error: false, payload: undefined, 
 export const createInboxSynced = (payload: {|convs: Array<ChatTypes.UnverifiedInboxUIItem>|}) => ({error: false, payload, type: inboxSynced})
 export const createIncomingMessage = (payload: {|activity: ChatTypes.ChatActivity|}) => ({error: false, payload, type: incomingMessage})
 export const createIncomingTyping = (payload: {|activity: ChatTypes.TyperInfo|}) => ({error: false, payload, type: incomingTyping})
+export const createJoinConversation = (payload: {|conversationIDKey: Constants.ConversationIDKey|}) => ({error: false, payload, type: joinConversation})
 export const createLeaveConversation = (payload: {|conversationIDKey: Constants.ConversationIDKey|}) => ({error: false, payload, type: leaveConversation})
 export const createLoadAttachment = (payload: {|messageKey: Constants.MessageKey, loadPreview: boolean|}) => ({error: false, payload, type: loadAttachment})
 export const createLoadAttachmentPreview = (payload: {|messageKey: Constants.MessageKey|}) => ({error: false, payload, type: loadAttachmentPreview})
@@ -153,6 +156,7 @@ export const createSelectConversation = (payload: {|conversationIDKey: ?Constant
 export const createSelectNext = (payload: {|rows: Array<any>, direction: -1 | 1|}) => ({error: false, payload, type: selectNext})
 export const createSetInboxFilter = (payload: {|filter: string|}) => ({error: false, payload, type: setInboxFilter})
 export const createSetInboxGlobalUntrustedState = (payload: {|inboxGlobalUntrustedState: Constants.UntrustedState|}) => ({error: false, payload, type: setInboxGlobalUntrustedState})
+export const createSetInboxSyncingState = (payload: {|inboxSyncingState: Constants.SyncingState|}) => ({error: false, payload, type: setInboxSyncingState})
 export const createSetLoaded = (payload: {|conversationIDKey: Constants.ConversationIDKey, isLoaded: boolean|}) => ({error: false, payload, type: setLoaded})
 export const createSetNotifications = (payload: {|conversationIDKey: Constants.ConversationIDKey, deviceType: DeviceType, notifyType: Constants.NotifyType|}) => ({error: false, payload, type: setNotifications})
 export const createSetPreviousConversation = (payload: {|conversationIDKey: ?Constants.ConversationIDKey|}) => ({error: false, payload, type: setPreviousConversation})
@@ -206,6 +210,7 @@ export type InboxStoreLoadedPayload = ReturnType<typeof createInboxStoreLoaded>
 export type InboxSyncedPayload = ReturnType<typeof createInboxSynced>
 export type IncomingMessagePayload = ReturnType<typeof createIncomingMessage>
 export type IncomingTypingPayload = ReturnType<typeof createIncomingTyping>
+export type JoinConversationPayload = ReturnType<typeof createJoinConversation>
 export type LeaveConversationPayload = ReturnType<typeof createLeaveConversation>
 export type LoadAttachmentPayload = ReturnType<typeof createLoadAttachment>
 export type LoadAttachmentPreviewPayload = ReturnType<typeof createLoadAttachmentPreview>
@@ -238,6 +243,7 @@ export type SelectConversationPayload = ReturnType<typeof createSelectConversati
 export type SelectNextPayload = ReturnType<typeof createSelectNext>
 export type SetInboxFilterPayload = ReturnType<typeof createSetInboxFilter>
 export type SetInboxGlobalUntrustedStatePayload = ReturnType<typeof createSetInboxGlobalUntrustedState>
+export type SetInboxSyncingStatePayload = ReturnType<typeof createSetInboxSyncingState>
 export type SetLoadedPayload = ReturnType<typeof createSetLoaded>
 export type SetNotificationsPayload = ReturnType<typeof createSetNotifications>
 export type SetPreviousConversationPayload = ReturnType<typeof createSetPreviousConversation>
@@ -293,6 +299,7 @@ export type Actions =
   | ReturnType<typeof createInboxSynced>
   | ReturnType<typeof createIncomingMessage>
   | ReturnType<typeof createIncomingTyping>
+  | ReturnType<typeof createJoinConversation>
   | ReturnType<typeof createLeaveConversation>
   | ReturnType<typeof createLoadAttachment>
   | ReturnType<typeof createLoadAttachmentPreview>
@@ -325,6 +332,7 @@ export type Actions =
   | ReturnType<typeof createSelectNext>
   | ReturnType<typeof createSetInboxFilter>
   | ReturnType<typeof createSetInboxGlobalUntrustedState>
+  | ReturnType<typeof createSetInboxSyncingState>
   | ReturnType<typeof createSetLoaded>
   | ReturnType<typeof createSetNotifications>
   | ReturnType<typeof createSetPreviousConversation>

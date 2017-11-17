@@ -262,7 +262,6 @@ func (p proof) findLink(ctx context.Context, g *libkb.GlobalContext, world Loade
 			return linkID, err
 		}
 		linkID, ok = lm[seqno]
-		return linkID, nil
 	}
 
 	if !ok {

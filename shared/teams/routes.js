@@ -8,6 +8,7 @@ import NewTeamDialog from './new-team/container'
 import JoinTeamDialog from './join-team/container'
 import ManageChannels from '../chat/manage-channels/container'
 import EditChannel from '../chat/manage-channels/edit-channel-container'
+import EditTeamDescription from './edit-team-description/container'
 import CreateChannel from '../chat/create-channel/container'
 import ReallyLeaveTeam from './really-leave-team/container'
 import RolePicker from './role-picker/container'
@@ -15,7 +16,6 @@ import ControlledRolePicker from './role-picker/controlled-container'
 import Member from './team/member/container'
 import ReallyRemoveMember from './team/really-remove-member/container'
 import Team from './team/container'
-import {ConnectedMakeOpenTeamConfirm, ConnectedMakeTeamClosed} from './open-team/container'
 import {isMobile} from '../constants/platform'
 
 const makeManageChannels = {
@@ -76,16 +76,7 @@ const routeTree = makeRouteDefNode({
     team: {
       children: {
         ...makeManageChannels,
-        openTeamSetting: {
-          children: {controlledRolePicker},
-          component: MaybePopupHoc(true)(ConnectedMakeOpenTeamConfirm),
-          tags: makeLeafTags({layerOnTop: !isMobile}),
-        },
-        openCloseTeamSetting: {
-          children: {},
-          component: MaybePopupHoc(true)(ConnectedMakeTeamClosed),
-          tags: makeLeafTags({layerOnTop: !isMobile}),
-        },
+        controlledRolePicker,
         rolePicker,
         reallyLeaveTeam,
         reallyRemoveMember,
@@ -106,6 +97,11 @@ const routeTree = makeRouteDefNode({
         inviteByEmail: {
           children: {controlledRolePicker},
           component: InviteByEmailDialog,
+          tags: makeLeafTags({layerOnTop: !isMobile}),
+        },
+        editTeamDescription: {
+          children: {},
+          component: MaybePopupHoc(true)(EditTeamDescription),
           tags: makeLeafTags({layerOnTop: !isMobile}),
         },
       },

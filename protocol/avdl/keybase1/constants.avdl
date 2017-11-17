@@ -63,6 +63,7 @@ protocol constants {
     SCRevokeCurrentDevice_1416,
     SCRevokeLastDevice_1417,
     SCDeviceProvisionOffline_1418,
+    SCRevokeLastDevicePGP_1419,
     SCStreamExists_1501,
     SCStreamNotFound_1502,
     SCStreamWrongKind_1503,

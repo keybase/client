@@ -39,6 +39,7 @@ type MessageKeyKind =
   | 'timestamp'
   | 'supersedes'
   | 'system'
+  | 'joinedleft'
 
 // TODO: Ideally, this would be 'Text' | 'Error' | etc.
 export type MessageType = string
@@ -165,6 +166,16 @@ export type ChatSecuredHeaderMessage = {
   type: 'ChatSecuredHeader',
   key: MessageKey,
 }
+
+export type JoinedLeftMessage = {
+  type: 'JoinedLeft',
+  messageID?: MessageID,
+  author: string,
+  timestamp: number,
+  message: HiddenString,
+  key: MessageKey,
+}
+
 export type SystemMessage = {
   type: 'System',
   messageID?: MessageID,
@@ -234,6 +245,7 @@ export type ServerMessage =
   | UpdatingAttachment
   | InvisibleErrorMessage
   | SystemMessage
+  | JoinedLeftMessage
 
 export type Message = ClientMessage | ServerMessage
 
@@ -300,6 +312,7 @@ type _InboxState = {
   channelname: ?string,
   maxMsgID: ?number,
   name: ?string,
+  memberStatus: ChatTypes.ConversationMemberStatus,
   membersType: ChatTypes.ConversationMembersType,
   notifications: ?NotificationsState,
   participants: I.List<string>,
@@ -319,6 +332,7 @@ export const makeInboxState: I.RecordFactory<_InboxState> = I.Record({
   teamname: null,
   channelname: null,
   maxMsgID: null,
+  memberStatus: 0,
   membersType: 0,
   notifications: null,
   participants: I.List(),
@@ -378,6 +392,7 @@ export type LocalMessageState = {
 }
 
 export type UntrustedState = 'unloaded' | 'loaded' | 'loading'
+export type SyncingState = 'syncing' | 'notSyncing'
 
 export type UnreadCounts = {
   total: number,
@@ -386,6 +401,7 @@ export type UnreadCounts = {
 
 type _State = {
   alwaysShow: I.Set<ConversationIDKey>,
+  channelCreationError: string,
   conversationStates: I.Map<ConversationIDKey, ConversationState>,
   conversationUnreadCounts: I.Map<ConversationIDKey, UnreadCounts>,
   editingMessage: ?Message,
@@ -405,6 +421,7 @@ type _State = {
   inboxUnreadCountTotal: I.Map<ConversationIDKey, number>,
   inboxUntrustedState: I.Map<ConversationIDKey, InboxUntrustedState>,
   inboxGlobalUntrustedState: UntrustedState,
+  inboxSyncingState: SyncingState,
   inboxVersion: I.Map<ConversationIDKey, number>,
   initialConversation: ?ConversationIDKey,
   localMessageStates: I.Map<MessageKey, LocalMessageState>,
@@ -431,6 +448,7 @@ type _State = {
 export type State = I.RecordOf<_State>
 export const makeState: I.RecordFactory<_State> = I.Record({
   alwaysShow: I.Set(),
+  channelCreationError: '',
   conversationStates: I.Map(),
   conversationUnreadCounts: I.Map(),
   editingMessage: null,
@@ -449,6 +467,7 @@ export const makeState: I.RecordFactory<_State> = I.Record({
   inboxUnreadCountBadge: I.Map(),
   inboxUnreadCountTotal: I.Map(),
   inboxGlobalUntrustedState: 'unloaded',
+  inboxSyncingState: 'notSyncing',
   inboxUntrustedState: I.Map(),
   inboxVersion: I.Map(),
   initialConversation: null,
@@ -597,6 +616,8 @@ function serverMessageToMessageText(message: ServerMessage): ?string {
   switch (message.type) {
     case 'Text':
       return message.message.stringValue()
+    case 'System':
+      return message.message.stringValue()
     default:
       return null
   }
@@ -686,7 +707,7 @@ function isPendingConversationIDKey(conversationIDKey: string) {
   return conversationIDKey.startsWith('__PendingConversation__')
 }
 
-function pendingConversationIDKeyToTlfName(conversationIDKey: string) {
+function pendingConversationIDKeyToTlfName(conversationIDKey: string): ?string {
   if (isPendingConversationIDKey(conversationIDKey)) {
     return conversationIDKey.substring('__PendingConversation__'.length)
   }
@@ -759,6 +780,8 @@ function messageKeyKindIsMessageID(key: MessageKey): boolean {
 function messageKeyKind(key: MessageKey): MessageKeyKind {
   const [, kind] = key.split(':')
   switch (kind) {
+    case 'joinedleft':
+      return 'joinedleft'
     case 'system':
       return 'system'
     case 'error':
@@ -801,14 +824,18 @@ const getInbox = (state: TypedState, conversationIDKey: ?ConversationIDKey) =>
 const getSelectedInbox = (state: TypedState) => getInbox(state, getSelectedConversation(state))
 const getEditingMessage = (state: TypedState) => state.chat.get('editingMessage')
 
-const getTLF = createSelector([getSelectedInbox, getSelectedConversation], (selectedInbox, selected) => {
-  if (selected && isPendingConversationIDKey(selected)) {
-    return pendingConversationIDKeyToTlfName(selected) || ''
-  } else if (selected !== nothingSelected && selectedInbox) {
-    return selectedInbox.participants.join(',')
+const getParticipants = createSelector(
+  [getSelectedInbox, getSelectedConversation],
+  (selectedInbox, selectedConversation) => {
+    if (selectedConversation && isPendingConversationIDKey(selectedConversation)) {
+      let tlfName = pendingConversationIDKeyToTlfName(selectedConversation)
+      return (tlfName && tlfName.split(',')) || []
+    } else if (selectedConversation !== nothingSelected && selectedInbox) {
+      return selectedInbox.participants.toArray()
+    }
+    return []
   }
-  return ''
-})
+)
 
 const getParticipantsWithFullNames = createSelector(
   [getSelectedInbox, getSelectedConversation],
@@ -824,6 +851,15 @@ const getParticipantsWithFullNames = createSelector(
     return []
   }
 )
+
+const getTLF = createSelector([getSelectedInbox, getSelectedConversation], (selectedInbox, selected) => {
+  if (selected && isPendingConversationIDKey(selected)) {
+    return pendingConversationIDKeyToTlfName(selected) || ''
+  } else if (selected !== nothingSelected && selectedInbox) {
+    return selectedInbox.participants.join(',')
+  }
+  return ''
+})
 
 const getMuted = createSelector(
   [getSelectedInbox],
@@ -1111,6 +1147,7 @@ export {
   getYou,
   getFollowingMap,
   getMetaDataMap,
+  getParticipants,
   getParticipantsWithFullNames,
   getSelectedInbox,
   getTLF,

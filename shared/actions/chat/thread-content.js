@@ -529,23 +529,23 @@ function _unboxedToMessage(
         case ChatTypes.commonMessageType.join: {
           const message = new HiddenString('joined')
           return {
-            type: 'System',
+            type: 'JoinedLeft',
             messageID: common.messageID,
             author: common.author,
             timestamp: common.timestamp,
             message,
-            key: Constants.messageKey(common.conversationIDKey, 'system', common.messageID),
+            key: Constants.messageKey(common.conversationIDKey, 'joinedleft', common.messageID),
           }
         }
         case ChatTypes.commonMessageType.leave: {
           const message = new HiddenString('left')
           return {
-            type: 'System',
+            type: 'JoinedLeft',
             messageID: common.messageID,
             author: common.author,
             timestamp: common.timestamp,
             message,
-            key: Constants.messageKey(common.conversationIDKey, 'system', common.messageID),
+            key: Constants.messageKey(common.conversationIDKey, 'joinedleft', common.messageID),
           }
         }
         case ChatTypes.commonMessageType.system: {
@@ -554,30 +554,34 @@ function _unboxedToMessage(
           if (body) {
             switch (body.systemType) {
               case ChatTypes.localMessageSystemType.addedtoteam: {
-                const user = body.addedtoteam ? `@${body.addedtoteam.addee}` : 'someone'
-                sysMsgText = `Hello! I've just added ${user} to this team.`
+                const addee = body.addedtoteam ? `@${body.addedtoteam.addee}` : 'someone'
+                const adder = body.addedtoteam ? `@${body.addedtoteam.adder}` : 'someone'
+                const team = body.addedtoteam ? `${body.addedtoteam.team}` : '???'
+                sysMsgText = `${adder} just added ${addee} to team ${team}.`
                 break
               }
               case ChatTypes.localMessageSystemType.inviteaddedtoteam: {
                 const invitee = body.inviteaddedtoteam ? `@${body.inviteaddedtoteam.invitee}` : 'someone'
+                const adder = body.inviteaddedtoteam ? `@${body.inviteaddedtoteam.adder}` : 'someone'
                 const inviter = body.inviteaddedtoteam ? `@${body.inviteaddedtoteam.inviter}` : 'someone'
-                sysMsgText = `Hello! I've just added ${invitee} to the team. This user had been invited by ${inviter}`
+                const team = body.inviteaddedtoteam ? `${body.inviteaddedtoteam.team}` : '???'
+                sysMsgText = `${adder} just added ${invitee} to team ${team}. This user had been invited by ${inviter}`
                 break
               }
               case ChatTypes.localMessageSystemType.complexteam: {
                 const team = body.complexteam ? body.complexteam.team : '???'
-                sysMsgText = `Attention @channel!\n\nI have just created a new channel in team ${team}. Here are some things that are now different:\n\n1.) Notifications will not happen for every message. Click or tap the info icon on the right to configure them.\n2.) The #general channel is now in the "Big Teams" section of the inbox.\n3.) You can hit the three dots next to ${team} in the inbox view to join other channels.\n\nEnjoy!`
+                sysMsgText = `A new channel has been created in team ${team}. Here are some things that are now different:\n\n1.) Notifications will not happen for every message. Click or tap the info icon on the right to configure them.\n2.) The #general channel is now in the "Big Teams" section of the inbox.\n3.) You can hit the three dots next to ${team} in the inbox view to join other channels.\n\nEnjoy!`
                 break
               }
             }
           }
           return {
-            type: 'Text',
+            type: 'System',
             ...common,
             editedCount: payload.superseded ? 1 : 0, // mark it as edited if it's been superseded
             message: new HiddenString(sysMsgText),
-            messageState: 'sent', // TODO, distinguish sent/pending once CORE sends it.
-            key: Constants.messageKey(common.conversationIDKey, 'messageIDText', common.messageID),
+            messageState: 'sent',
+            key: Constants.messageKey(common.conversationIDKey, 'system', common.messageID),
           }
         }
         default:

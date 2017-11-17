@@ -908,6 +908,15 @@
       ],
       "response": "JoinLeaveConversationRemoteRes"
     },
+    "previewConversation": {
+      "request": [
+        {
+          "name": "convID",
+          "type": "ConversationID"
+        }
+      ],
+      "response": "JoinLeaveConversationRemoteRes"
+    },
     "deleteConversation": {
       "request": [
         {
@@ -926,10 +935,6 @@
         {
           "name": "topicType",
           "type": "TopicType"
-        },
-        {
-          "name": "membersType",
-          "type": "ConversationMembersType"
         },
         {
           "name": "summarizeMaxMsgs",

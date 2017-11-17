@@ -159,6 +159,7 @@ function makeInboxStateRecords(
         fullNames: I.Map(),
         info: null,
         maxMsgID: c.maxMsgID,
+        memberStatus: c.memberStatus,
         membersType: c.membersType,
         participants: parts,
         status: Constants.ConversationStatusByEnum[c.status || 0],

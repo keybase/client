@@ -1035,6 +1035,23 @@ func TestChatSrvPostLocalAtMention(t *testing.T) {
 		case <-time.After(20 * time.Second):
 			require.Fail(t, "no new message")
 		}
+
+		// Test that system messages do the right thing
+		subBody := chat1.NewMessageSystemWithAddedtoteam(chat1.MessageSystemAddedToTeam{
+			Addee: users[1].Username,
+		})
+		mustPostLocalForTest(t, ctc, users[0], created, chat1.NewMessageBodyWithSystem(subBody))
+		select {
+		case info := <-listener.newMessage:
+			require.True(t, info.Message.IsValid())
+			require.Equal(t, chat1.MessageType_SYSTEM, info.Message.GetMessageType())
+			require.Equal(t, 1, len(info.Message.Valid().AtMentions))
+			require.Equal(t, users[1].Username, info.Message.Valid().AtMentions[0])
+			require.Equal(t, chat1.ChannelMention_NONE, info.Message.Valid().ChannelMention)
+			require.True(t, info.DisplayDesktopNotification)
+		case <-time.After(20 * time.Second):
+			require.Fail(t, "no new message")
+		}
 	})
 }
 
@@ -2367,6 +2384,7 @@ func TestChatSrvTeamChannels(t *testing.T) {
 
 		ctx := ctc.as(t, users[0]).startCtx
 		ctx1 := ctc.as(t, users[1]).startCtx
+		ctx2 := ctc.as(t, users[2]).startCtx
 
 		listener0 := newServerChatListener()
 		ctc.as(t, users[0]).h.G().SetService()
@@ -2506,6 +2524,7 @@ func TestChatSrvTeamChannels(t *testing.T) {
 			Body: fmt.Sprintf("FAIL: @%s", users[2].Username),
 		}))
 		require.NoError(t, err)
+		consumeJoinConv(t, listener2)
 		consumeNewMsg(t, listener0, chat1.MessageType_TEXT)
 		consumeNewMsg(t, listener1, chat1.MessageType_TEXT)
 		consumeNewMsg(t, listener2, chat1.MessageType_TEXT)
@@ -2578,6 +2597,29 @@ func TestChatSrvTeamChannels(t *testing.T) {
 			require.Len(t, tvres.Thread.Messages, 1, "expected number of LEAVE messages")
 		default:
 			t.Fatalf("unknown members type: %v", mt)
+		}
+
+		t.Logf("u2 leaves and explicitly previews channel")
+		_, err = ctc.as(t, users[2]).chatLocalHandler().LeaveConversationLocal(ctx1,
+			ncres.Conv.GetConvID())
+		require.NoError(t, err)
+		consumeNewMsg(t, listener0, chat1.MessageType_LEAVE)
+		consumeNewMsg(t, listener1, chat1.MessageType_LEAVE)
+		consumeNewMsg(t, listener2, chat1.MessageType_LEAVE)
+		consumeLeaveConv(t, listener2)
+		_, err = ctc.as(t, users[2]).chatLocalHandler().PreviewConversationByIDLocal(ctx2, ncres.Conv.Info.Id)
+		require.NoError(t, err)
+		consumeJoinConv(t, listener2)
+		iboxRes, err := ctc.as(t, users[2]).chatLocalHandler().GetInboxAndUnboxLocal(ctx2,
+			chat1.GetInboxAndUnboxLocalArg{})
+		require.NoError(t, err)
+		require.Equal(t, 2, len(iboxRes.Conversations))
+		for _, conv := range iboxRes.Conversations {
+			if conv.GetConvID().Eq(ncres.Conv.Info.Id) {
+				require.Equal(t, chat1.ConversationMemberStatus_PREVIEW, conv.Info.MemberStatus)
+			} else {
+				require.Equal(t, chat1.ConversationMemberStatus_ACTIVE, conv.Info.MemberStatus)
+			}
 		}
 	})
 }
@@ -3034,6 +3076,15 @@ func TestChatSrvTeamTypeChanged(t *testing.T) {
 			ctc.as(t, users[1]).user())
 		consumeNewMsg(t, listener0, chat1.MessageType_JOIN)
 		consumeNewMsg(t, listener1, chat1.MessageType_JOIN)
+		inboxRes, err := ctc.as(t, users[0]).chatLocalHandler().GetInboxAndUnboxLocal(ctx,
+			chat1.GetInboxAndUnboxLocalArg{
+				Query: &chat1.GetInboxLocalQuery{
+					ConvIDs: []chat1.ConversationID{conv.Id},
+				},
+			})
+		require.NoError(t, err)
+		require.NotNil(t, inboxRes.Conversations[0].Notifications)
+		require.True(t, inboxRes.Conversations[0].Notifications.Settings[keybase1.DeviceType_DESKTOP][chat1.NotificationKind_GENERIC])
 
 		topicName := "zjoinonsend"
 		channel, err := ctc.as(t, users[0]).chatLocalHandler().NewConversationLocal(ctx,
@@ -3062,7 +3113,15 @@ func TestChatSrvTeamTypeChanged(t *testing.T) {
 			require.Fail(t, "no team type")
 		}
 
-		inboxRes, err := ctc.as(t, users[0]).chatLocalHandler().GetInboxAndUnboxLocal(ctx,
+		// Check remote notifications
+		uconv, _, err := GetUnverifiedConv(ctx, ctc.as(t, users[0]).h.G(), users[0].GetUID().ToBytes(),
+			conv.Id, false)
+		require.NoError(t, err)
+		require.NotNil(t, uconv.Notifications)
+		require.False(t,
+			uconv.Notifications.Settings[keybase1.DeviceType_DESKTOP][chat1.NotificationKind_GENERIC])
+
+		inboxRes, err = ctc.as(t, users[0]).chatLocalHandler().GetInboxAndUnboxLocal(ctx,
 			chat1.GetInboxAndUnboxLocalArg{
 				Query: &chat1.GetInboxLocalQuery{
 					ConvIDs: []chat1.ConversationID{conv.Id},
@@ -3071,6 +3130,8 @@ func TestChatSrvTeamTypeChanged(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, 1, len(inboxRes.Conversations))
 		require.Equal(t, chat1.TeamType_COMPLEX, inboxRes.Conversations[0].Info.TeamType)
+		require.NotNil(t, inboxRes.Conversations[0].Notifications)
+		require.False(t, inboxRes.Conversations[0].Notifications.Settings[keybase1.DeviceType_DESKTOP][chat1.NotificationKind_GENERIC])
 	})
 
 }
@@ -3225,9 +3286,14 @@ func TestChatSrvUserReset(t *testing.T) {
 		iboxRes, err = ctc.as(t, users[1]).chatLocalHandler().GetInboxAndUnboxLocal(ctx1,
 			chat1.GetInboxAndUnboxLocalArg{})
 		require.NoError(t, err)
-		require.Equal(t, 1, len(iboxRes.Conversations))
-		require.Equal(t, conv.Id, iboxRes.Conversations[0].GetConvID())
-		require.Equal(t, chat1.ConversationMemberStatus_RESET, iboxRes.Conversations[0].Info.MemberStatus)
+		switch mt {
+		case chat1.ConversationMembersType_TEAM:
+			require.Zero(t, len(iboxRes.Conversations))
+		default:
+			require.Equal(t, 1, len(iboxRes.Conversations))
+			require.Equal(t, conv.Id, iboxRes.Conversations[0].GetConvID())
+			require.Equal(t, chat1.ConversationMemberStatus_RESET, iboxRes.Conversations[0].Info.MemberStatus)
+		}
 
 		_, err = ctc.as(t, users[1]).chatLocalHandler().PostLocal(ctx1, chat1.PostLocalArg{
 			ConversationID: conv.Id,
@@ -3364,9 +3430,11 @@ func TestChatSrvTeamChannelNameMentions(t *testing.T) {
 				},
 			})
 			require.NoError(t, err)
-			require.Equal(t, 1, len(tv.Thread.Messages))
-			require.Equal(t, 1, len(tv.Thread.Messages[0].Valid().ChannelNameMentions))
-			require.Equal(t, topicName, tv.Thread.Messages[0].Valid().ChannelNameMentions[0])
+			uid := users[0].User.GetUID().ToBytes()
+			ptv := utils.PresentThreadView(ctx, uid, tv.Thread, ctc.as(t, users[0]).h.G().TeamChannelSource)
+			require.Equal(t, 1, len(ptv.Messages))
+			require.Equal(t, 1, len(ptv.Messages[0].Valid().ChannelNameMentions))
+			require.Equal(t, topicName, ptv.Messages[0].Valid().ChannelNameMentions[0])
 		}
 	})
 }
