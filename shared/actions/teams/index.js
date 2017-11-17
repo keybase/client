@@ -296,7 +296,20 @@ const _getDetails = function*(action: Constants.GetDetails): Saga.SagaGenerator<
   yield Saga.put(createIncrementWaiting(waitingKey))
   yield Saga.put(replaceEntity(['teams', 'teamNameToLoading'], I.Map([[teamname, true]])))
   try {
-    let details: ?RPCTypes.TeamDetails
+    const emptyTeamShowcase: RPCTypes.TeamShowcase = {
+      isShowcased: false,
+      anyMemberShowcase: false,
+    }
+    let details: RPCTypes.TeamDetails = {
+      members: {},
+      keyGeneration: 0,
+      annotatedActiveInvites: {},
+      settings: {
+        open: false,
+        joinAs: 0,
+      },
+      showcase: emptyTeamShowcase,
+    }
     try {
       details = yield Saga.call(RPCTypes.teamsTeamGetRpcPromise, {
         param: {
@@ -356,7 +369,7 @@ const _getDetails = function*(action: Constants.GetDetails): Saga.SagaGenerator<
       })
     }
 
-    const invitesMap = map(details ? details.annotatedActiveInvites : [], invite =>
+    const invitesMap = map(details.annotatedActiveInvites, invite =>
       Constants.makeInviteInfo({
         email: invite.type.c === RPCTypes.teamsTeamInviteCategory.email ? invite.name : '',
         name: invite.type.c === RPCTypes.teamsTeamInviteCategory.seitan ? invite.name : '',
@@ -375,10 +388,7 @@ const _getDetails = function*(action: Constants.GetDetails): Saga.SagaGenerator<
 
     // Get publicity settings for this team.
     let publicity: RPCTypes.TeamAndMemberShowcase = {
-      teamShowcase: {
-        isShowcased: false,
-        anyMemberShowcase: false,
-      },
+      teamShowcase: emptyTeamShowcase,
       isMemberShowcased: false,
     }
     try {
@@ -410,12 +420,7 @@ const _getDetails = function*(action: Constants.GetDetails): Saga.SagaGenerator<
         )
       ),
       Saga.put(replaceEntity(['teams', 'teamNameToRequests'], I.Map(requestMap))),
-      Saga.put(
-        replaceEntity(
-          ['teams', 'teamNameToTeamSettings'],
-          I.Map({[teamname]: details ? details.settings : {}})
-        )
-      ),
+      Saga.put(replaceEntity(['teams', 'teamNameToTeamSettings'], I.Map({[teamname]: details.settings}))),
       Saga.put(replaceEntity(['teams', 'teamNameToInvites'], I.Map([[teamname, I.Set(invitesMap)]]))),
       Saga.put(replaceEntity(['teams', 'teamNameToPublicitySettings'], I.Map({[teamname]: publicityMap}))),
     ])
