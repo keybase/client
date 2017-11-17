@@ -2,9 +2,11 @@
 
 import * as React from 'react'
 import includes from 'lodash/includes'
+import throttle from 'lodash/throttle'
 import Box from './box'
 import ReactDOM, {findDOMNode} from 'react-dom'
 import {withState} from '../util/container'
+import EscapeHandler from '../util/escape-handler'
 
 const modalRoot = document.getElementById('modal-root')
 
@@ -123,6 +125,7 @@ function computePopupStyle(
 type ModalPositionRelativeProps = {
   targetNode: ?HTMLElement,
   position: Position,
+  onClose: () => void,
 }
 
 function ModalPositionRelative<P>(
@@ -159,6 +162,30 @@ function ModalPositionRelative<P>(
       }
     }
 
+    _handleClick = (e: MouseEvent) => {
+      if (this.popupNode && e.target instanceof HTMLElement && !this.popupNode.contains(e.target)) {
+        this.props.onClose()
+      }
+    }
+
+    _handleScroll = throttle(
+      () => {
+        this.props.onClose()
+      },
+      500,
+      {trailing: false}
+    )
+
+    componentDidMount() {
+      document.body && document.body.addEventListener('click', this._handleClick)
+      document.body && document.body.addEventListener('scroll', this._handleScroll, true)
+    }
+
+    componentWillUnmount() {
+      document.body && document.body.removeEventListener('click', this._handleClick)
+      document.body && document.body.removeEventListener('scroll', this._handleScroll, true)
+    }
+
     _setRef = r => {
       if (!r) return
       this.popupNode = r
@@ -168,9 +195,11 @@ function ModalPositionRelative<P>(
     render() {
       return (
         <Box style={this.state.style}>
-          <DOMNodeFinder setNode={this._setRef}>
-            <WrappedComponent {...(this.props: P)} />
-          </DOMNodeFinder>
+          <EscapeHandler onESC={this.props.onClose}>
+            <DOMNodeFinder setNode={this._setRef}>
+              <WrappedComponent {...(this.props: P)} />
+            </DOMNodeFinder>
+          </EscapeHandler>
         </Box>
       )
     }
@@ -196,7 +225,12 @@ function RelativePopupHoc(
         <DOMNodeFinder setNode={props.setTargetNode}>
           <TargetComponent />
         </DOMNodeFinder>
-        {props.open && <ModalPopupComponent position={props.position} targetNode={props.targetNode} />}
+        {props.open &&
+          <ModalPopupComponent
+            onClose={props.onClose}
+            position={props.position}
+            targetNode={props.targetNode}
+          />}
       </Box>
     )
   })
