@@ -8,6 +8,7 @@ import * as AppGen from '../../actions/app-gen'
 import * as DevGen from '../../actions/dev-gen'
 import * as NotificationsGen from '../../actions/notifications-gen'
 import * as React from 'react'
+import Remotes from '../../app/remotes.desktop'
 import * as ConfigGen from '../../actions/config-gen'
 import ReactDOM from 'react-dom'
 import RemoteManager from './remote-manager'
@@ -163,7 +164,8 @@ function render(store, MainComponent) {
     <AppContainer>
       <Root store={store}>
         <div style={{display: 'flex', flex: 1}}>
-          <RemoteManager />
+          <Remotes />
+          {/* <RemoteManager /> */}
           <FontLoader />
           <MainComponent />
         </div>
