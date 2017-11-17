@@ -3587,6 +3587,8 @@ export type TeamMember = {|uid: UID,role: TeamRole,eldestSeqno: Seqno,userEldest
 
 export type TeamMemberDetails = {|uv: UserVersion,username: String,active: Boolean,needsPUK: Boolean,|}
 
+export type TeamMemberOutFromReset = {|teamName: String,resetUser: TeamResetUser,|}
+
 export type TeamMemberOutReset = {|teamname: String,username: String,id: Gregor1.MsgID,|}
 
 export type TeamMembers = {|owners?: ?Array<UserVersion>,admins?: ?Array<UserVersion>,writers?: ?Array<UserVersion>,readers?: ?Array<UserVersion>,|}
@@ -3606,6 +3608,8 @@ export type TeamPlusApplicationKeys = {|id: TeamID,name: String,implicit: Boolea
 export type TeamRefreshers = {|needKeyGeneration: PerTeamKeyGeneration,wantMembers?: ?Array<UserVersion>,wantMembersRole: TeamRole,|}
 
 export type TeamRequestAccessResult = {|open: Boolean,|}
+
+export type TeamResetUser = {|username: String,uid: UID,eldestSeqno: Seqno,|}
 
 export type TeamRole =0 // NONE_0
  | 1 // READER_1

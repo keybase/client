@@ -174,7 +174,7 @@ func (b *BadgeState) UpdateWithGregor(gstate gregor.State) error {
 				b.state.NewTeamAccessRequests = append(b.state.NewTeamAccessRequests, x.TeamName)
 			}
 		case "team.member_out_from_reset":
-			var body memberOutBody
+			var body keybase1.TeamMemberOutFromReset
 			if err := json.Unmarshal(item.Body().Bytes(), &body); err != nil {
 				b.log.Warning("BadgeState unmarshal error for team.member_out_from_reset item: %v", err)
 				continue

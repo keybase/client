@@ -943,6 +943,32 @@ func (o TeamCLKRMsg) DeepCopy() TeamCLKRMsg {
 	}
 }
 
+type TeamResetUser struct {
+	Username    string `codec:"username" json:"username"`
+	Uid         UID    `codec:"uid" json:"uid"`
+	EldestSeqno Seqno  `codec:"eldestSeqno" json:"eldest_seqno"`
+}
+
+func (o TeamResetUser) DeepCopy() TeamResetUser {
+	return TeamResetUser{
+		Username:    o.Username,
+		Uid:         o.Uid.DeepCopy(),
+		EldestSeqno: o.EldestSeqno.DeepCopy(),
+	}
+}
+
+type TeamMemberOutFromReset struct {
+	TeamName  string        `codec:"teamName" json:"team_name"`
+	ResetUser TeamResetUser `codec:"resetUser" json:"reset_user"`
+}
+
+func (o TeamMemberOutFromReset) DeepCopy() TeamMemberOutFromReset {
+	return TeamMemberOutFromReset{
+		TeamName:  o.TeamName,
+		ResetUser: o.ResetUser.DeepCopy(),
+	}
+}
+
 type TeamChangeRow struct {
 	Id                TeamID `codec:"id" json:"id"`
 	Name              string `codec:"name" json:"name"`
