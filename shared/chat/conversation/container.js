@@ -36,7 +36,7 @@ type StateProps = {|
   showTeamOffer: boolean,
   inboxFilter: ?string,
   showSearchResults: boolean,
-  previousPath: ?(*[]),
+  previousPath: ?(string[]),
 |}
 
 type DispatchProps = {|

@@ -11,6 +11,7 @@ import {getChannels, saveChannelMembership} from '../../actions/teams/creators'
 import {navigateTo, navigateAppend, pathSelector} from '../../actions/route-tree'
 import {anyWaiting} from '../../constants/waiting'
 import {chatTab} from '../../constants/tabs'
+import '../../constants/route-tree'
 
 type ChannelMembershipState = {[channelname: string]: boolean}
 
