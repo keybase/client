@@ -6,21 +6,40 @@ import Text from './text'
 import {globalStyles, globalColors} from '../styles'
 import {isMobile} from '../constants/platform'
 
+// NOTE: componentDidCatch doesn't currently work with react-native:
+// https://github.com/facebook/react-native/issues/15571 .
+
+// Although not mentioned in
+// https://reactjs.org/blog/2017/07/26/error-handling-in-react-16.html ,
+// the info parameter to componentDidCatch looks like this.
 type ErrorInfo = {
   componentStack: string,
 }
 
-// eslint-disable-next-line handle-callback-err
-const Fallback = ({error, info}: *) => {
-  let safeError
-  let safeInfo = (info && info.componentStack) || ''
+type AllErrorInfo = {
+  name: string,
+  message: string,
+  stack: string,
+  componentStack: string,
+}
 
-  try {
-    safeError = error.toString()
-  } catch (_) {
-    safeError = ''
-  }
+const detailHeaderStyle = {
+  marginTop: 20,
+  marginBottom: 10,
+}
 
+const detailContainerStyle = {
+  maxHeight: 100,
+  padding: 10,
+  minWidth: '75%',
+}
+
+const detailStyle = {
+  ...globalStyles.selectable,
+  whiteSpace: 'pre',
+}
+
+const Fallback = ({info: {name, message, stack, componentStack}}: {info: AllErrorInfo}) => {
   return (
     <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center', flex: 1, justifyContent: 'center'}}>
       <Text type="Header">Something went wrong...</Text>
@@ -42,43 +61,52 @@ const Fallback = ({error, info}: *) => {
             keybase log send
           </Text>
         </Box>}
-      <Text type="BodySmall" style={{marginTop: 20}}>some details...</Text>
-      <ScrollView style={{maxHeight: 100, padding: 10}}>
-        <Text type="BodySmall" style={globalStyles.selectable}>{safeError}</Text>
-        <Text type="BodySmall" style={globalStyles.selectable}>{safeInfo}</Text>
+      <Text type="BodySmall" style={detailHeaderStyle}>Error details</Text>
+      <Text type="BodySmall" style={{...globalStyles.selectable, margin: 10}}>{`${name}: ${message}`}</Text>
+      <Text type="BodySmall" style={{marginTop: 20}}>Stack trace</Text>
+      <ScrollView style={detailContainerStyle}>
+        <Text type="BodySmall" style={detailStyle}>{stack}</Text>
+      </ScrollView>
+
+      <Text type="BodySmall" style={detailHeaderStyle}>Component stack trace</Text>
+      <ScrollView style={detailContainerStyle}>
+        <Text type="BodySmall" style={detailStyle}>{componentStack}</Text>
       </ScrollView>
     </Box>
   )
 }
 
-class ErrorBoundary extends React.PureComponent<any, {error: ?Error, info: ?ErrorInfo}> {
-  state = {
-    error: null,
-    info: null,
-  }
+type Props = {
+  children: React.Node,
+}
 
-  componentWillReceiveProps(nextProps: any) {
+type State = {
+  info: ?AllErrorInfo,
+}
+
+class ErrorBoundary extends React.PureComponent<Props, State> {
+  state = {info: null}
+
+  componentWillReceiveProps(nextProps: Props) {
     if (this.props.children !== nextProps.children) {
-      if (this.state.error) {
-        this.setState({error: null, info: null})
-      }
+      this.setState({info: null})
     }
   }
 
-  unstable_handleError(error: Error, info: ErrorInfo): void {
-    this.componentDidCatch(error, info)
-  }
-
   componentDidCatch(error: Error, info: ErrorInfo): void {
-    console.log('Got boundary error!')
-    console.log(error)
-    console.log(info)
-    this.setState({error, info})
+    const allInfo: AllErrorInfo = {
+      name: error.name,
+      message: error.message,
+      stack: error.stack,
+      componentStack: info.componentStack,
+    }
+    console.log('Got boundary error:', allInfo)
+    this.setState({info: allInfo})
   }
 
   render() {
-    if (this.state.error) {
-      return <Fallback error={this.state.error} info={this.state.info} />
+    if (this.state.info) {
+      return <Fallback info={this.state.info} />
     }
     return this.props.children
   }
