@@ -4,6 +4,29 @@ import ReactDOM from 'react-dom'
 import {Text, Box, Icon, PopupMenu} from '../../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../../styles'
 
+const PopupHeader = ({channelName}: {channelName: string}) => {
+  return (
+    <Box
+      style={{
+        ...globalStyles.flexBoxColumn,
+        alignItems: 'center',
+        width: '100%',
+      }}
+    >
+      <Box style={globalStyles.flexBoxRow}>
+        <Text type="BodySmall" style={{color: globalColors.black_40}}>
+          {`Are you sure you want to delete ${channelName}?`}
+        </Text>
+      </Box>
+      <Box style={globalStyles.flexBoxRow}>
+        <Text type="BodySmall" style={{color: globalColors.black_40}}>
+          All messages will be lost. This cannot be undone.
+        </Text>
+      </Box>
+    </Box>
+  )
+}
+
 type Props = {
   disabled: boolean,
   onConfirmedDelete: () => void,
@@ -32,10 +55,21 @@ class DeleteChannel extends React.Component<Props, State> {
     if (y < 10) y = 10
     const style = {left: x, position: 'absolute', top: y}
 
+    const header = {
+      title: 'header',
+      view: <PopupHeader channelName="somechannel" />,
+    }
+
     const items = []
-    items.push({title: 'Foo'})
+    items.push({title: 'Yes, delete channel'})
+    items.push({title: 'Cancel'})
     const popupComponent = (
-      <PopupMenu items={items} onHidden={() => this._hidePopup()} style={{...stylePopup, ...style}} />
+      <PopupMenu
+        header={header}
+        items={items}
+        onHidden={() => this._hidePopup()}
+        style={{...stylePopup, ...style}}
+      />
     )
     const container = document.getElementById('popupContainer')
     // FIXME: this is the right way to render portals retaining context for now, though it will change in the future.
