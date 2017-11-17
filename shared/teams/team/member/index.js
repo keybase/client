@@ -61,14 +61,16 @@ export const TeamMember = (props: Props) => {
             followsYou={follower}
             size={64}
           />
-          <Icon
-            type={user.type ? roleIconMap[user.type] : 'iconfont-close'}
-            style={{
-              fontSize: isMobile ? 28 : 28,
-              margin: globalMargins.tiny,
-              alignSelf: 'center',
-            }}
-          />
+          {user.type &&
+            roleIconMap[user.type] &&
+            <Icon
+              type={roleIconMap[user.type]}
+              style={{
+                fontSize: isMobile ? 28 : 28,
+                margin: globalMargins.tiny,
+                alignSelf: 'center',
+              }}
+            />}
           <Avatar
             style={{marginLeft: globalMargins.tiny, alignSelf: 'center'}}
             isTeam={true}

@@ -1,9 +1,10 @@
 // @flow
 import * as React from 'react'
 import {Avatar, Box, ClickableBox, Text, Icon, Usernames} from '../../../common-adapters'
-import {globalStyles, globalMargins, globalColors} from '../../../styles'
+import {globalMargins, globalStyles} from '../../../styles'
 import {isMobile} from '../../../constants/platform'
 import {typeToLabel, type TypeMap} from '../../../constants/teams'
+import {roleIconColorMap} from '../../role-picker/index.meta'
 
 export type Props = {
   username: string,
@@ -46,9 +47,10 @@ export const TeamMemberRow = (props: Props) => {
           {type &&
             !!showCrown[type] &&
             <Icon
-              type="iconfont-crown"
+              // $FlowIssue "some string with unknown value"
+              type={'iconfont-crown-' + type}
               style={{
-                color: globalColors.black_40,
+                color: roleIconColorMap[type],
                 fontSize: isMobile ? 16 : 12,
                 marginRight: globalMargins.xtiny,
               }}
