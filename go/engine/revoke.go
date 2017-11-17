@@ -117,9 +117,18 @@ func (e *RevokeEngine) Run(ctx *Context) error {
 	var deviceID keybase1.DeviceID
 	if e.mode == RevokeDevice {
 		deviceID = e.deviceID
+		hasPGP := len(me.GetComputedKeyFamily().GetActivePGPKeys(false)) > 0
 
-		if len(me.GetComputedKeyFamily().GetAllActiveDevices()) == 1 && !e.forceLast {
-			return libkb.RevokeLastDeviceError{}
+		if len(me.GetComputedKeyFamily().GetAllActiveDevices()) == 1 {
+			if hasPGP {
+				// even w/ forceLast, you cannot revoke your last device
+				// if you have a pgp key
+				return libkb.RevokeLastDevicePGPError{}
+			}
+
+			if !e.forceLast {
+				return libkb.RevokeLastDeviceError{}
+			}
 		}
 
 		if e.deviceID == currentDevice && !(e.forceSelf || e.forceLast) {
