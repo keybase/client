@@ -374,7 +374,13 @@ const _getDetails = function*(action: Constants.GetDetails): Saga.SagaGenerator<
     }
 
     // Get publicity settings for this team.
-    let publicity: ?RPCTypes.TeamAndMemberShowcase
+    let publicity: RPCTypes.TeamAndMemberShowcase = {
+      teamShowcase: {
+        isShowcased: false,
+        anyMemberShowcase: false,
+      },
+      isMemberShowcased: false,
+    }
     try {
       publicity = yield Saga.call(RPCTypes.teamsGetTeamAndMemberShowcaseRpcPromise, {
         param: {
@@ -388,10 +394,10 @@ const _getDetails = function*(action: Constants.GetDetails): Saga.SagaGenerator<
     }
 
     const publicityMap = {
-      anyMemberShowcase: publicity ? publicity.teamShowcase.anyMemberShowcase : false,
-      description: publicity ? publicity.teamShowcase.description : '',
-      member: publicity ? publicity.isMemberShowcased : false,
-      team: publicity ? publicity.teamShowcase.isShowcased : false,
+      anyMemberShowcase: publicity.teamShowcase.anyMemberShowcase,
+      description: publicity.teamShowcase.description || '',
+      member: publicity.isMemberShowcased,
+      team: publicity.teamShowcase.isShowcased,
     }
 
     yield Saga.all([
