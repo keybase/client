@@ -14,6 +14,7 @@ import (
 	service "github.com/keybase/client/go/service"
 	clockwork "github.com/keybase/clockwork"
 	rpc "github.com/keybase/go-framed-msgpack-rpc/rpc"
+	"github.com/stretchr/testify/require"
 	contextOld "golang.org/x/net/context"
 )
 
@@ -118,35 +119,36 @@ func (t smuTerminalUI) PromptYesNo(libkb.PromptDescriptor, string, libkb.PromptD
 func (t smuTerminalUI) Tablify(headings []string, rowfunc func() []string) { return }
 func (t smuTerminalUI) TerminalSize() (width int, height int)              { return }
 
-type smuSecretUI struct {
-	u *smuUser
+type signupInfoSecretUI struct {
+	signupInfo *signupInfo
+	log        logger.Logger
 }
 
-func (s smuSecretUI) GetPassphrase(p keybase1.GUIEntryArg, terminal *keybase1.SecretEntryArg) (res keybase1.GetPassphraseRes, err error) {
+func (s signupInfoSecretUI) GetPassphrase(p keybase1.GUIEntryArg, terminal *keybase1.SecretEntryArg) (res keybase1.GetPassphraseRes, err error) {
 	if p.Type == keybase1.PassphraseType_PAPER_KEY {
-		res.Passphrase = s.u.userInfo.displayedPaperKey
+		res.Passphrase = s.signupInfo.displayedPaperKey
 	} else {
-		res.Passphrase = s.u.userInfo.passphrase
+		res.Passphrase = s.signupInfo.passphrase
 	}
-	s.u.ctx.log.Debug("| GetPassphrase: %v -> %v", p, res)
+	s.log.Debug("| GetPassphrase: %v -> %v", p, res)
 	return res, err
 }
 
-func (s smuLoginUI) GetEmailOrUsername(contextOld.Context, int) (string, error) {
-	return s.u.username, nil
-}
-func (s smuLoginUI) PromptRevokePaperKeys(contextOld.Context, keybase1.PromptRevokePaperKeysArg) (ret bool, err error) {
-	return false, nil
-}
-func (s smuLoginUI) DisplayPaperKeyPhrase(contextOld.Context, keybase1.DisplayPaperKeyPhraseArg) error {
-	return nil
-}
-func (s smuLoginUI) DisplayPrimaryPaperKey(contextOld.Context, keybase1.DisplayPrimaryPaperKeyArg) error {
-	return nil
+type usernameLoginUI struct {
+	username string
 }
 
-type smuLoginUI struct {
-	u *smuUser
+func (s usernameLoginUI) GetEmailOrUsername(contextOld.Context, int) (string, error) {
+	return s.username, nil
+}
+func (s usernameLoginUI) PromptRevokePaperKeys(contextOld.Context, keybase1.PromptRevokePaperKeysArg) (ret bool, err error) {
+	return false, nil
+}
+func (s usernameLoginUI) DisplayPaperKeyPhrase(contextOld.Context, keybase1.DisplayPaperKeyPhraseArg) error {
+	return nil
+}
+func (s usernameLoginUI) DisplayPrimaryPaperKey(contextOld.Context, keybase1.DisplayPrimaryPaperKeyArg) error {
+	return nil
 }
 
 func (d *smuDeviceWrapper) popClone() *libkb.TestContext {
@@ -164,22 +166,16 @@ func (d *smuDeviceWrapper) popClone() *libkb.TestContext {
 }
 
 func (smc *smuContext) setupDevice(u *smuUser) *smuDeviceWrapper {
-	tctx := setupTest(smc.t, u.usernamePrefix)
-	tctx.G.SetClock(smc.fakeClock)
-	ret := &smuDeviceWrapper{ctx: smc, tctx: tctx}
-	u.devices = append(u.devices, ret)
-	if u.primary == nil {
-		u.primary = ret
-	}
-	if smc.log == nil {
-		smc.log = tctx.G.Log
-	}
-	return ret
+	return smc.setupDeviceHelper(u, true)
 }
 
 func (smc *smuContext) setupDeviceNoPUK(u *smuUser) *smuDeviceWrapper {
+	return smc.setupDeviceHelper(u, false)
+}
+
+func (smc *smuContext) setupDeviceHelper(u *smuUser, puk bool) *smuDeviceWrapper {
 	tctx := setupTest(smc.t, u.usernamePrefix)
-	tctx.Tp.DisableUpgradePerUserKey = true
+	tctx.Tp.DisableUpgradePerUserKey = !puk
 	tctx.G.SetClock(smc.fakeClock)
 	ret := &smuDeviceWrapper{ctx: smc, tctx: tctx}
 	u.devices = append(u.devices, ret)
@@ -207,14 +203,15 @@ func (smc *smuContext) installKeybaseForUserNoPUK(usernamePrefix string, numClon
 }
 
 func (smc *smuContext) newDevice(u *smuUser, numClones int) *smuDeviceWrapper {
-	ret := smc.setupDevice(u)
-	ret.startService(numClones)
-	ret.startClient()
-	return ret
+	return smc.newDeviceHelper(u, numClones, true)
 }
 
 func (smc *smuContext) newDeviceNoPUK(u *smuUser, numClones int) *smuDeviceWrapper {
-	ret := smc.setupDeviceNoPUK(u)
+	return smc.newDeviceHelper(u, numClones, false)
+}
+
+func (smc *smuContext) newDeviceHelper(u *smuUser, numClones int, puk bool) *smuDeviceWrapper {
+	ret := smc.setupDeviceHelper(u, puk)
 	ret.startService(numClones)
 	ret.startClient()
 	return ret
@@ -272,53 +269,20 @@ func (d *smuDeviceWrapper) loadEncryptionKIDs() (devices []keybase1.KID, backups
 }
 
 func (u *smuUser) signup() {
-	ctx := u.ctx
-	userInfo := randomUser(u.usernamePrefix)
-	u.userInfo = userInfo
-	dw := u.primaryDevice()
-	tctx := dw.popClone()
-	g := tctx.G
-	signupUI := signupUI{
-		info:         userInfo,
-		Contextified: libkb.NewContextified(g),
-	}
-	g.SetUI(&signupUI)
-	signup := client.NewCmdSignupRunner(g)
-	signup.SetTest()
-	if err := signup.Run(); err != nil {
-		ctx.t.Fatal(err)
-	}
-	ctx.t.Logf("signed up %s", userInfo.username)
-	u.username = userInfo.username
-	var backupKey backupKey
-	devices, backups := dw.loadEncryptionKIDs()
-	if len(devices) != 1 {
-		ctx.t.Fatalf("Expected 1 device back; got %d", len(devices))
-	}
-	if len(backups) != 1 {
-		ctx.t.Fatalf("Expected 1 backup back; got %d", len(backups))
-	}
-	dw.deviceKey.KID = devices[0]
-	backupKey = backups[0]
-	backupKey.secret = signupUI.info.displayedPaperKey
-	u.backupKeys = append(u.backupKeys, backupKey)
-
-	// Reconfigure config subsystem in Primary Global Context and also
-	// in all clones. This has to be done after signup because the
-	// username changes, and so does config filename.
-	dw.tctx.G.ConfigureConfig()
-	for _, clone := range dw.clones {
-		clone.G.ConfigureConfig()
-	}
+	u.signupHelper(true)
 }
 
 func (u *smuUser) signupNoPUK() {
+	u.signupHelper(false)
+}
+
+func (u *smuUser) signupHelper(puk bool) {
 	ctx := u.ctx
 	userInfo := randomUser(u.usernamePrefix)
 	u.userInfo = userInfo
 	dw := u.primaryDevice()
 	tctx := dw.popClone()
-	tctx.Tp.DisableUpgradePerUserKey = true
+	tctx.Tp.DisableUpgradePerUserKey = !puk
 	g := tctx.G
 	signupUI := signupUI{
 		info:         userInfo,
@@ -509,41 +473,32 @@ func (u *smuUser) getPrimaryGlobalContext() *libkb.GlobalContext {
 }
 
 func (u *smuUser) loginAfterReset(numClones int) *smuDeviceWrapper {
-	dev := u.ctx.newDevice(u, numClones)
-	u.primary = dev
-	g := dev.tctx.G
-	ui := genericUI{
-		g:           g,
-		SecretUI:    smuSecretUI{u},
-		LoginUI:     smuLoginUI{u},
-		ProvisionUI: nullProvisionUI{randomDevice()},
-	}
-	g.SetUI(&ui)
-	cmd := client.NewCmdLoginRunner(g)
-	err := cmd.Run()
-	if err != nil {
-		u.ctx.t.Fatal(err)
-	}
-	return dev
+	return u.loginAfterResetHelper(numClones, true)
 }
 
 func (u *smuUser) loginAfterResetNoPUK(numClones int) *smuDeviceWrapper {
-	dev := u.ctx.newDeviceNoPUK(u, numClones)
+	return u.loginAfterResetHelper(numClones, false)
+}
+
+func (u *smuUser) loginAfterResetHelper(numClones int, puk bool) *smuDeviceWrapper {
+	dev := u.ctx.newDeviceHelper(u, numClones, puk)
 	u.primary = dev
 	g := dev.tctx.G
 	ui := genericUI{
 		g:           g,
-		SecretUI:    smuSecretUI{u},
-		LoginUI:     smuLoginUI{u},
+		SecretUI:    u.secretUI(),
+		LoginUI:     usernameLoginUI{u.userInfo.username},
 		ProvisionUI: nullProvisionUI{randomDevice()},
 	}
 	g.SetUI(&ui)
 	cmd := client.NewCmdLoginRunner(g)
 	err := cmd.Run()
-	if err != nil {
-		u.ctx.t.Fatal(err)
-	}
+	require.NoError(u.ctx.t, err, "login after reset")
 	return dev
+}
+
+func (u *smuUser) secretUI() signupInfoSecretUI {
+	return signupInfoSecretUI{u.userInfo, u.ctx.log}
 }
 
 func (u *smuUser) teamGet(team smuTeam) (keybase1.TeamDetails, error) {
