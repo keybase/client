@@ -62,6 +62,11 @@ func (f *JSONFile) Load(warnOnNotFound bool) error {
 		}
 
 		if os.IsPermission(err) {
+			// Let's just panic and die here on mobile, there is no reason to continue, since the user
+			// will either need to enter a password or force kill the app anyway
+			if f.G().GetAppType() == MobileAppType {
+				panic("permission denied on mobile app reading config file, thats it!")
+			}
 			f.G().Log.Warning("Permission denied opening %s file %s", f.which, f.filename)
 			return nil
 		}
