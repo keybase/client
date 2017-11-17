@@ -55,7 +55,9 @@ class Inbox extends PureComponent<Props, State> {
       () => <Text type="Body">POPUPPPPPPPPPPP</Text>
     )
     if (index === 0) {
-      return <Popup key={'000'} />
+      return (
+        <Popup key={'000'} open={true} position={'bottom left'} onClose={() => console.log('popup closed')} />
+      )
     }
     const row = this.props.rows[index]
     if (row.type === 'divider') {
