@@ -148,7 +148,7 @@ func (k *LibKBFS) newContext(u User) (context.Context, context.CancelFunc) {
 	if k.opTimeout > 0 {
 		ctx, cancel = context.WithTimeout(ctx, k.opTimeout)
 	} else {
-		cancel = func() {}
+		ctx, cancel = context.WithCancel(ctx)
 	}
 
 	id, errRandomRequestID := libkbfs.MakeRandomRequestID()

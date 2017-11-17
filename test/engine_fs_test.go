@@ -537,7 +537,8 @@ func (*fsEngine) GetMtime(u User, file Node) (mtime time.Time, err error) {
 func (e *fsEngine) SyncAll(
 	user User, tlfName string, t tlf.Type) (err error) {
 	u := user.(*fsUser)
-	ctx := context.Background()
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 	ctx, err = libkbfs.NewContextWithCancellationDelayer(
 		libkbfs.NewContextReplayable(
 			ctx, func(ctx context.Context) context.Context { return ctx }))
