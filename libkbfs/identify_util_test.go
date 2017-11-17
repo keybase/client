@@ -12,8 +12,8 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/tlf"
+	"github.com/pkg/errors"
 	"github.com/stretchr/testify/require"
-
 	"golang.org/x/net/context"
 )
 
@@ -71,6 +71,12 @@ func (ti *testIdentifier) Identify(
 
 	ei.userBreak(userInfo.Name, userInfo.UID, nil)
 	return userInfo.Name, userInfo.UID.AsUserOrTeam(), nil
+}
+
+func (ti *testIdentifier) IdentifyImplicitTeam(
+	_ context.Context, _, _ string, _ tlf.Type, _ string) (
+	ImplicitTeamInfo, error) {
+	return ImplicitTeamInfo{}, errors.New("Implicit teams not supported")
 }
 
 func makeNugAndTIForTest() (testNormalizedUsernameGetter, *testIdentifier) {

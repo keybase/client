@@ -1669,6 +1669,19 @@ func (mr *MockresolverMockRecorder) Resolve(ctx, assertion interface{}) *gomock.
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Resolve", reflect.TypeOf((*Mockresolver)(nil).Resolve), ctx, assertion)
 }
 
+// ResolveImplicitTeam mocks base method
+func (m *Mockresolver) ResolveImplicitTeam(ctx context.Context, assertions, suffix string, tlfType tlf.Type) (ImplicitTeamInfo, error) {
+	ret := m.ctrl.Call(m, "ResolveImplicitTeam", ctx, assertions, suffix, tlfType)
+	ret0, _ := ret[0].(ImplicitTeamInfo)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ResolveImplicitTeam indicates an expected call of ResolveImplicitTeam
+func (mr *MockresolverMockRecorder) ResolveImplicitTeam(ctx, assertions, suffix, tlfType interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ResolveImplicitTeam", reflect.TypeOf((*Mockresolver)(nil).ResolveImplicitTeam), ctx, assertions, suffix, tlfType)
+}
+
 // Mockidentifier is a mock of identifier interface
 type Mockidentifier struct {
 	ctrl     *gomock.Controller
@@ -1706,44 +1719,8 @@ func (mr *MockidentifierMockRecorder) Identify(ctx, assertion, reason interface{
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Identify", reflect.TypeOf((*Mockidentifier)(nil).Identify), ctx, assertion, reason)
 }
 
-// MockiteamHandler is a mock of iteamHandler interface
-type MockiteamHandler struct {
-	ctrl     *gomock.Controller
-	recorder *MockiteamHandlerMockRecorder
-}
-
-// MockiteamHandlerMockRecorder is the mock recorder for MockiteamHandler
-type MockiteamHandlerMockRecorder struct {
-	mock *MockiteamHandler
-}
-
-// NewMockiteamHandler creates a new mock instance
-func NewMockiteamHandler(ctrl *gomock.Controller) *MockiteamHandler {
-	mock := &MockiteamHandler{ctrl: ctrl}
-	mock.recorder = &MockiteamHandlerMockRecorder{mock}
-	return mock
-}
-
-// EXPECT returns an object that allows the caller to indicate expected use
-func (m *MockiteamHandler) EXPECT() *MockiteamHandlerMockRecorder {
-	return m.recorder
-}
-
-// ResolveImplicitTeam mocks base method
-func (m *MockiteamHandler) ResolveImplicitTeam(ctx context.Context, assertions, suffix string, tlfType tlf.Type) (ImplicitTeamInfo, error) {
-	ret := m.ctrl.Call(m, "ResolveImplicitTeam", ctx, assertions, suffix, tlfType)
-	ret0, _ := ret[0].(ImplicitTeamInfo)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// ResolveImplicitTeam indicates an expected call of ResolveImplicitTeam
-func (mr *MockiteamHandlerMockRecorder) ResolveImplicitTeam(ctx, assertions, suffix, tlfType interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ResolveImplicitTeam", reflect.TypeOf((*MockiteamHandler)(nil).ResolveImplicitTeam), ctx, assertions, suffix, tlfType)
-}
-
 // IdentifyImplicitTeam mocks base method
-func (m *MockiteamHandler) IdentifyImplicitTeam(ctx context.Context, assertions, suffix string, tlfType tlf.Type, reason string) (ImplicitTeamInfo, error) {
+func (m *Mockidentifier) IdentifyImplicitTeam(ctx context.Context, assertions, suffix string, tlfType tlf.Type, reason string) (ImplicitTeamInfo, error) {
 	ret := m.ctrl.Call(m, "IdentifyImplicitTeam", ctx, assertions, suffix, tlfType, reason)
 	ret0, _ := ret[0].(ImplicitTeamInfo)
 	ret1, _ := ret[1].(error)
@@ -1751,8 +1728,8 @@ func (m *MockiteamHandler) IdentifyImplicitTeam(ctx context.Context, assertions,
 }
 
 // IdentifyImplicitTeam indicates an expected call of IdentifyImplicitTeam
-func (mr *MockiteamHandlerMockRecorder) IdentifyImplicitTeam(ctx, assertions, suffix, tlfType, reason interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IdentifyImplicitTeam", reflect.TypeOf((*MockiteamHandler)(nil).IdentifyImplicitTeam), ctx, assertions, suffix, tlfType, reason)
+func (mr *MockidentifierMockRecorder) IdentifyImplicitTeam(ctx, assertions, suffix, tlfType, reason interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IdentifyImplicitTeam", reflect.TypeOf((*Mockidentifier)(nil).IdentifyImplicitTeam), ctx, assertions, suffix, tlfType, reason)
 }
 
 // MocknormalizedUsernameGetter is a mock of normalizedUsernameGetter interface
@@ -1999,6 +1976,19 @@ func (mr *MockKBPKIMockRecorder) Resolve(ctx, assertion interface{}) *gomock.Cal
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Resolve", reflect.TypeOf((*MockKBPKI)(nil).Resolve), ctx, assertion)
 }
 
+// ResolveImplicitTeam mocks base method
+func (m *MockKBPKI) ResolveImplicitTeam(ctx context.Context, assertions, suffix string, tlfType tlf.Type) (ImplicitTeamInfo, error) {
+	ret := m.ctrl.Call(m, "ResolveImplicitTeam", ctx, assertions, suffix, tlfType)
+	ret0, _ := ret[0].(ImplicitTeamInfo)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ResolveImplicitTeam indicates an expected call of ResolveImplicitTeam
+func (mr *MockKBPKIMockRecorder) ResolveImplicitTeam(ctx, assertions, suffix, tlfType interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ResolveImplicitTeam", reflect.TypeOf((*MockKBPKI)(nil).ResolveImplicitTeam), ctx, assertions, suffix, tlfType)
+}
+
 // Identify mocks base method
 func (m *MockKBPKI) Identify(ctx context.Context, assertion, reason string) (libkb.NormalizedUsername, keybase1.UserOrTeamID, error) {
 	ret := m.ctrl.Call(m, "Identify", ctx, assertion, reason)
@@ -2011,6 +2001,19 @@ func (m *MockKBPKI) Identify(ctx context.Context, assertion, reason string) (lib
 // Identify indicates an expected call of Identify
 func (mr *MockKBPKIMockRecorder) Identify(ctx, assertion, reason interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Identify", reflect.TypeOf((*MockKBPKI)(nil).Identify), ctx, assertion, reason)
+}
+
+// IdentifyImplicitTeam mocks base method
+func (m *MockKBPKI) IdentifyImplicitTeam(ctx context.Context, assertions, suffix string, tlfType tlf.Type, reason string) (ImplicitTeamInfo, error) {
+	ret := m.ctrl.Call(m, "IdentifyImplicitTeam", ctx, assertions, suffix, tlfType, reason)
+	ret0, _ := ret[0].(ImplicitTeamInfo)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// IdentifyImplicitTeam indicates an expected call of IdentifyImplicitTeam
+func (mr *MockKBPKIMockRecorder) IdentifyImplicitTeam(ctx, assertions, suffix, tlfType, reason interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IdentifyImplicitTeam", reflect.TypeOf((*MockKBPKI)(nil).IdentifyImplicitTeam), ctx, assertions, suffix, tlfType, reason)
 }
 
 // GetNormalizedUsername mocks base method
@@ -2102,32 +2105,6 @@ func (m *MockKBPKI) PutGitMetadata(ctx context.Context, folder keybase1.Folder, 
 // PutGitMetadata indicates an expected call of PutGitMetadata
 func (mr *MockKBPKIMockRecorder) PutGitMetadata(ctx, folder, repoID, repoName interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PutGitMetadata", reflect.TypeOf((*MockKBPKI)(nil).PutGitMetadata), ctx, folder, repoID, repoName)
-}
-
-// ResolveImplicitTeam mocks base method
-func (m *MockKBPKI) ResolveImplicitTeam(ctx context.Context, assertions, suffix string, tlfType tlf.Type) (ImplicitTeamInfo, error) {
-	ret := m.ctrl.Call(m, "ResolveImplicitTeam", ctx, assertions, suffix, tlfType)
-	ret0, _ := ret[0].(ImplicitTeamInfo)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// ResolveImplicitTeam indicates an expected call of ResolveImplicitTeam
-func (mr *MockKBPKIMockRecorder) ResolveImplicitTeam(ctx, assertions, suffix, tlfType interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ResolveImplicitTeam", reflect.TypeOf((*MockKBPKI)(nil).ResolveImplicitTeam), ctx, assertions, suffix, tlfType)
-}
-
-// IdentifyImplicitTeam mocks base method
-func (m *MockKBPKI) IdentifyImplicitTeam(ctx context.Context, assertions, suffix string, tlfType tlf.Type, reason string) (ImplicitTeamInfo, error) {
-	ret := m.ctrl.Call(m, "IdentifyImplicitTeam", ctx, assertions, suffix, tlfType, reason)
-	ret0, _ := ret[0].(ImplicitTeamInfo)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// IdentifyImplicitTeam indicates an expected call of IdentifyImplicitTeam
-func (mr *MockKBPKIMockRecorder) IdentifyImplicitTeam(ctx, assertions, suffix, tlfType, reason interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IdentifyImplicitTeam", reflect.TypeOf((*MockKBPKI)(nil).IdentifyImplicitTeam), ctx, assertions, suffix, tlfType, reason)
 }
 
 // HasVerifyingKey mocks base method

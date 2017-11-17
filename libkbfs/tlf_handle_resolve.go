@@ -387,8 +387,8 @@ func (h *TlfHandle) ResolveAgain(
 }
 
 type partialResolver struct {
+	resolver
 	unresolvedAssertions map[string]bool
-	delegate             resolver
 }
 
 func (pr partialResolver) Resolve(ctx context.Context, assertion string) (
@@ -398,7 +398,7 @@ func (pr partialResolver) Resolve(ctx context.Context, assertion string) (
 		return libkb.NormalizedUsername(""),
 			keybase1.UserOrTeamID(""), NoSuchUserError{assertion}
 	}
-	return pr.delegate.Resolve(ctx, assertion)
+	return pr.resolver.Resolve(ctx, assertion)
 }
 
 // ResolvesTo returns whether this handle resolves to the given one.
@@ -442,7 +442,7 @@ func (h TlfHandle) ResolvesTo(
 	// TlfHandle, restrict the resolver to use other's assertions
 	// only, so that we don't hit the network at all.
 	partialResolvedH, err = h.ResolveAgain(
-		ctx, partialResolver{unresolvedAssertions, resolver}, idGetter)
+		ctx, partialResolver{resolver, unresolvedAssertions}, idGetter)
 	if err != nil {
 		return false, nil, err
 	}
@@ -591,9 +591,9 @@ func (ra resolvableAssertion) resolve(ctx context.Context) (
 }
 
 type resolvableImplicitTeam struct {
-	handler iteamHandler
-	name    string
-	tlfType tlf.Type
+	resolver resolver
+	name     string
+	tlfType  tlf.Type
 }
 
 func (rit resolvableImplicitTeam) resolve(ctx context.Context) (
@@ -604,7 +604,7 @@ func (rit resolvableImplicitTeam) resolve(ctx context.Context) (
 		return nameIDPair{}, keybase1.SocialAssertion{}, tlf.NullID, err
 	}
 
-	iteamInfo, err := rit.handler.ResolveImplicitTeam(
+	iteamInfo, err := rit.resolver.ResolveImplicitTeam(
 		ctx, assertions, extensionSuffix, rit.tlfType)
 	if err != nil {
 		return nameIDPair{}, keybase1.SocialAssertion{}, tlf.NullID, err

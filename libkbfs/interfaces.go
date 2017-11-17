@@ -517,6 +517,10 @@ type resolver interface {
 	// need updating.
 	Resolve(ctx context.Context, assertion string) (
 		libkb.NormalizedUsername, keybase1.UserOrTeamID, error)
+	// ResolveImplicitTeam resolves the given implicit team.
+	ResolveImplicitTeam(
+		ctx context.Context, assertions, suffix string, tlfType tlf.Type) (
+		ImplicitTeamInfo, error)
 }
 
 type identifier interface {
@@ -526,13 +530,6 @@ type identifier interface {
 	// popups spawned.
 	Identify(ctx context.Context, assertion, reason string) (
 		libkb.NormalizedUsername, keybase1.UserOrTeamID, error)
-}
-
-type iteamHandler interface {
-	// ResolveImplicitTeam resolves the given implicit team.
-	ResolveImplicitTeam(
-		ctx context.Context, assertions, suffix string, tlfType tlf.Type) (
-		ImplicitTeamInfo, error)
 	// IdentifyImplicitTeam identifies (and creates if necessary) the
 	// given implicit team.
 	IdentifyImplicitTeam(
@@ -597,7 +594,6 @@ type KBPKI interface {
 	teamKeysGetter
 	teamRootIDGetter
 	gitMetadataPutter
-	iteamHandler
 
 	// HasVerifyingKey returns nil if the given user has the given
 	// VerifyingKey, and an error otherwise.

@@ -710,7 +710,7 @@ func TestResolveAgainBasic(t *testing.T) {
 
 	// ResolveAgain shouldn't rely on resolving the original names again.
 	daemon.addNewAssertionForTestOrBust("u3", "u3@twitter")
-	newH, err := h.ResolveAgain(ctx, daemon, nil)
+	newH, err := h.ResolveAgain(ctx, kbpki, nil)
 	require.NoError(t, err)
 	assert.Equal(t, tlf.CanonicalName("u1,u2#u3"), newH.GetCanonicalName())
 }
@@ -736,7 +736,7 @@ func TestResolveAgainDoubleAsserts(t *testing.T) {
 	daemon.addNewAssertionForTestOrBust("u1", "u1@github")
 	daemon.addNewAssertionForTestOrBust("u2", "u2@twitter")
 	daemon.addNewAssertionForTestOrBust("u2", "u2@github")
-	newH, err := h.ResolveAgain(ctx, daemon, nil)
+	newH, err := h.ResolveAgain(ctx, kbpki, nil)
 	require.NoError(t, err)
 	assert.Equal(t, tlf.CanonicalName("u1#u2"), newH.GetCanonicalName())
 }
@@ -760,7 +760,7 @@ func TestResolveAgainWriterReader(t *testing.T) {
 
 	daemon.addNewAssertionForTestOrBust("u2", "u2@twitter")
 	daemon.addNewAssertionForTestOrBust("u2", "u2@github")
-	newH, err := h.ResolveAgain(ctx, daemon, nil)
+	newH, err := h.ResolveAgain(ctx, kbpki, nil)
 	require.NoError(t, err)
 	assert.Equal(t, tlf.CanonicalName("u1,u2"), newH.GetCanonicalName())
 }
@@ -788,7 +788,7 @@ func TestResolveAgainConflict(t *testing.T) {
 		t.Fatal(err)
 	}
 	h.conflictInfo = ext
-	newH, err := h.ResolveAgain(ctx, daemon, nil)
+	newH, err := h.ResolveAgain(ctx, kbpki, nil)
 	require.NoError(t, err)
 	assert.Equal(t, tlf.CanonicalName("u1,u2#u3"+
 		tlf.HandleExtensionSep+ext.String()), newH.GetCanonicalName())
