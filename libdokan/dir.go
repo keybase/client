@@ -163,6 +163,7 @@ func (f *Folder) TlfHandleChange(ctx context.Context,
 	// Handle in the background because we shouldn't lock during
 	// the notification
 	f.fs.queueNotification(func() {
+		ctx := context.Background()
 		session, err := libkbfs.GetCurrentSessionIfPossible(ctx, f.fs.config.KBPKI(), f.list.tlfType == tlf.Public)
 		// Here we get an error, but there is little that can be done.
 		// session will be empty in the error case in which case we will default to the

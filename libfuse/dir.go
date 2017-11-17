@@ -312,7 +312,7 @@ func (f *Folder) TlfHandleChange(ctx context.Context,
 	// Handle in the background because we shouldn't lock during the
 	// notification
 	f.fs.queueNotification(func() {
-		f.tlfHandleChangeInvalidate(ctx, newHandle)
+		f.tlfHandleChangeInvalidate(context.Background(), newHandle)
 	})
 }
 
