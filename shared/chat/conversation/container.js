@@ -36,7 +36,7 @@ type StateProps = {|
   showTeamOffer: boolean,
   inboxFilter: ?string,
   showSearchResults: boolean,
-  fromManageChannels: boolean,
+  previousPath: ?(*[]),
 |}
 
 type DispatchProps = {|
@@ -109,7 +109,7 @@ const mapStateToProps = (state: TypedState, {routePath, routeProps}): StateProps
     inSearch,
     defaultChatText,
     showTeamOffer,
-    fromManageChannels: routeProps.get('fromManageChannels'),
+    previousPath: routeProps.get('previousPath'),
   }
 }
 

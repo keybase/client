@@ -8,7 +8,7 @@ import ManageChannels from '.'
 import {withHandlers, withState, withPropsOnChange} from 'recompose'
 import {pausableConnect, compose, lifecycle, type TypedState} from '../../util/container'
 import {getChannels, saveChannelMembership} from '../../actions/teams/creators'
-import {navigateTo, navigateAppend} from '../../actions/route-tree'
+import {navigateTo, navigateAppend, pathSelector} from '../../actions/route-tree'
 import {anyWaiting} from '../../constants/waiting'
 import {chatTab} from '../../constants/tabs'
 
@@ -37,10 +37,13 @@ const mapStateToProps = (state: TypedState, {routeProps, routeState}) => {
     .filter(Boolean)
     .sort((a, b) => a.name.localeCompare(b.name))
 
+  const previousPath = pathSelector(state)
+
   return {
     channels,
     teamname: routeProps.get('teamname'),
     waitingForSave,
+    previousPath: previousPath && previousPath.toArray(),
   }
 }
 
@@ -64,9 +67,11 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routePath, routePro
       )
       dispatch(saveChannelMembership(teamname, channelsToChange))
     },
-    onPreview: (conversationIDKey: string) => {
+    onPreview: (conversationIDKey: string, previousPath?: string[]) => {
       dispatch(ChatGen.createPreviewChannel({conversationIDKey}))
-      dispatch(navigateTo([chatTab, {selected: conversationIDKey, props: {fromManageChannels: true}}]))
+      dispatch(
+        navigateTo([chatTab, {selected: conversationIDKey, props: {previousPath: previousPath || null}}])
+      )
     },
   }
 }
@@ -88,6 +93,8 @@ export default compose(
       })),
     onSaveSubscriptions: props => () =>
       props._saveSubscriptions(props.oldChannelState, props.nextChannelState),
+    onPreview: ({previousPath, onPreview}) => (conversationIDKey: string) =>
+      onPreview(conversationIDKey, previousPath),
   }),
   lifecycle({
     componentWillReceiveProps: function(nextProps) {

@@ -150,7 +150,7 @@ class Conversation extends Component<Props, State> {
                         focusInputCounter={this.props.focusInputCounter}
                         onEditLastMessage={this.props.onEditLastMessage}
                         onScrollDown={this.props.onScrollDown}
-                        fromManageChannels={this.props.fromManageChannels}
+                        previousPath={this.props.previousPath}
                       />}
                   {this.state.infoPanelOpen &&
                     <div

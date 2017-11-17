@@ -16,7 +16,7 @@ import {
   connect,
   type TypedState,
 } from '../../../util/container'
-import {navigateAppend, navigateUp} from '../../../actions/route-tree'
+import {navigateAppend, navigateUp, navigateTo} from '../../../actions/route-tree'
 import throttle from 'lodash/throttle'
 import {createSelector} from 'reselect'
 import {type OwnProps} from './container'
@@ -107,8 +107,8 @@ const mapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps) => ({
   onLeaveChannel: (selectedConversation: Constants.ConversationIDKey, teamname: string) => {
     dispatch(ChatGen.createLeaveConversation({conversationIDKey: selectedConversation}))
     dispatch(navigateUp())
-    if (ownProps.fromManageChannels) {
-      dispatch(navigateAppend([{props: {teamname}, selected: 'manageChannels'}]))
+    if (ownProps.previousPath) {
+      dispatch(navigateTo(ownProps.previousPath))
     }
   },
 })

@@ -5,7 +5,7 @@ export type OwnProps = {
   focusInputCounter: number,
   onEditLastMessage: () => void,
   onScrollDown: () => void,
-  fromManageChannels: ?boolean,
+  previousPath: ?(*[]),
 }
 
 export default class InputContainer extends Component<OwnProps> {}
