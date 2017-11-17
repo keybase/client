@@ -77,8 +77,9 @@ start_systemd() {
   echo "DBUS_SESSION_BUS_ADDRESS=${DBUS_SESSION_BUS_ADDRESS:-}" >> "$runtime_dir/keybase.gui.env"
   # The keybase.gui.service unit has keybase.service and kbfs.service as
   # dependencies, so we don't have to list them here. But including them lets
-  # us report an error if they fail to start.
-  systemctl --user start keybase.service kbfs.service keybase.gui.service
+  # us report an error if they fail to start. Also prefer `restart` to `start`
+  # so that we don't race against the service shutting down.
+  systemctl --user restart keybase.service kbfs.service keybase.gui.service
   write_startup_token "systemd"
 }
 
