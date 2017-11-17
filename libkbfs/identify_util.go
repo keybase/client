@@ -165,25 +165,53 @@ func identifyUser(ctx context.Context, nug normalizedUsernameGetter,
 
 	var reason string
 	nameAssertion := name.String()
+	isImplicit := false
 	switch t {
 	case tlf.Public:
+		if id.IsTeam() {
+			isImplicit = true
+		}
 		reason = "You accessed a public folder."
 	case tlf.Private:
-		reason = fmt.Sprintf(
-			"You accessed a private folder with %s.", nameAssertion)
+		if id.IsTeam() {
+			isImplicit = true
+			reason = fmt.Sprintf(
+				"You accessed a folder for private team %s.", nameAssertion)
+		} else {
+			reason = fmt.Sprintf(
+				"You accessed a private folder with %s.", nameAssertion)
+		}
 	case tlf.SingleTeam:
 		reason = fmt.Sprintf(
 			"You accessed a folder for private team %s.", nameAssertion)
 		nameAssertion = "team:" + nameAssertion
 	}
-	resultName, resultID, err := identifier.Identify(ctx, nameAssertion, reason)
-	if err != nil {
-		// Convert libkb.NoSigChainError into one we can report.  (See
-		// KBFS-1252).
-		if _, ok := err.(libkb.NoSigChainError); ok {
-			return NoSigChainError{name}
+	var resultName libkb.NormalizedUsername
+	var resultID keybase1.UserOrTeamID
+	if isImplicit {
+		assertions, extensionSuffix, err := tlf.SplitExtension(name.String())
+		if err != nil {
+			return err
 		}
-		return err
+		iteamInfo, err := identifier.IdentifyImplicitTeam(
+			ctx, assertions, extensionSuffix, t, reason)
+		if err != nil {
+			return err
+		}
+		resultName = iteamInfo.Name
+		resultID = iteamInfo.TID.AsUserOrTeam()
+	} else {
+		var err error
+		resultName, resultID, err =
+			identifier.Identify(ctx, nameAssertion, reason)
+		if err != nil {
+			// Convert libkb.NoSigChainError into one we can report.  (See
+			// KBFS-1252).
+			if _, ok := err.(libkb.NoSigChainError); ok {
+				return NoSigChainError{name}
+			}
+			return err
+		}
 	}
 	if resultName != name {
 		return fmt.Errorf("Identify returned name=%s, expected %s",

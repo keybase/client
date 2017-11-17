@@ -12,7 +12,6 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/tlf"
-	"github.com/pkg/errors"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/net/context"
 )
@@ -33,6 +32,7 @@ func (g testNormalizedUsernameGetter) GetNormalizedUsername(
 type testIdentifier struct {
 	assertions             map[string]UserInfo
 	assertionsBrokenTracks map[string]UserInfo
+	implicitTeams          map[string]ImplicitTeamInfo
 	identifiedIDsLock      sync.Mutex
 	identifiedIDs          map[keybase1.UserOrTeamID]bool
 }
@@ -74,9 +74,29 @@ func (ti *testIdentifier) Identify(
 }
 
 func (ti *testIdentifier) IdentifyImplicitTeam(
-	_ context.Context, _, _ string, _ tlf.Type, _ string) (
+	_ context.Context, assertions, suffix string, ty tlf.Type, _ string) (
 	ImplicitTeamInfo, error) {
-	return ImplicitTeamInfo{}, errors.New("Implicit teams not supported")
+	// TODO: canonicalize name.
+	name := assertions
+	if suffix != "" {
+		name += " " + suffix
+	}
+
+	iteamInfo, ok := ti.implicitTeams[ty.String()+":"+name]
+	if !ok {
+		return ImplicitTeamInfo{}, NoSuchTeamError{name}
+	}
+
+	func() {
+		ti.identifiedIDsLock.Lock()
+		defer ti.identifiedIDsLock.Unlock()
+		if ti.identifiedIDs == nil {
+			ti.identifiedIDs = make(map[keybase1.UserOrTeamID]bool)
+		}
+		ti.identifiedIDs[iteamInfo.TID.AsUserOrTeam()] = true
+	}()
+
+	return iteamInfo, nil
 }
 
 func makeNugAndTIForTest() (testNormalizedUsernameGetter, *testIdentifier) {
@@ -145,4 +165,52 @@ func TestIdentifyAlternativeBehaviors(t *testing.T) {
 	require.Len(t, tb.Breaks, 1)
 	require.Equal(t, "zebra", tb.Breaks[0].User.Username)
 	require.NotNil(t, tb.Breaks[0].Breaks)
+}
+
+func TestIdentifyImplicitTeams(t *testing.T) {
+	nug, ti := makeNugAndTIForTest()
+
+	// Add implicit teams.
+	pubID := keybase1.MakeTestTeamID(1, true)
+	privID := keybase1.MakeTestTeamID(1, false)
+	suffixID := keybase1.MakeTestTeamID(2, false)
+	ti.implicitTeams = map[string]ImplicitTeamInfo{
+		"public:alice,bob": ImplicitTeamInfo{
+			Name: "alice,bob",
+			TID:  pubID,
+		},
+		"private:alice,bob": ImplicitTeamInfo{
+			Name: "alice,bob",
+			TID:  privID,
+		},
+		"private:alice,bob (conflicted copy 2016-03-14 #3)": ImplicitTeamInfo{
+			Name: "alice,bob (conflicted copy 2016-03-14 #3)",
+			TID:  suffixID,
+		},
+	}
+
+	ids := make(map[keybase1.UserOrTeamID]bool, len(ti.implicitTeams))
+	for _, iteamInfo := range ti.implicitTeams {
+		ids[iteamInfo.TID.AsUserOrTeam()] = true
+	}
+
+	err := identifyUsersForTLF(
+		context.Background(), nug, ti,
+		map[keybase1.UserOrTeamID]libkb.NormalizedUsername{
+			privID.AsUserOrTeam(): "alice,bob",
+		}, tlf.Private)
+	require.NoError(t, err)
+	err = identifyUsersForTLF(
+		context.Background(), nug, ti,
+		map[keybase1.UserOrTeamID]libkb.NormalizedUsername{
+			pubID.AsUserOrTeam(): "alice,bob",
+		}, tlf.Public)
+	require.NoError(t, err)
+	err = identifyUsersForTLF(
+		context.Background(), nug, ti,
+		map[keybase1.UserOrTeamID]libkb.NormalizedUsername{
+			suffixID.AsUserOrTeam(): "alice,bob (conflicted copy 2016-03-14 #3)",
+		}, tlf.Private)
+	require.NoError(t, err)
+	require.Equal(t, ids, ti.identifiedIDs)
 }
