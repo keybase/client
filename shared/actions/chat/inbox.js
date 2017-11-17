@@ -888,6 +888,19 @@ function* _incomingMessage(action: ChatGen.IncomingMessagePayload): Saga.SagaGen
         }
       }
       break
+    case RPCChatTypes.notifyChatChatActivityType.membersUpdate:
+      const info = action.payload.activity && action.payload.activity.membersUpdate
+      const convID = info && info.convID
+      const conversationIDKey = Constants.conversationIDToKey(convID)
+
+      yield Saga.put(
+        ChatGen.createUnboxConversations({
+          conversationIDKeys: [conversationIDKey],
+          reason: 'Membership updated',
+          force: true,
+        })
+      )
+      break
   }
 }
 
