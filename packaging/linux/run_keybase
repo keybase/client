@@ -62,6 +62,9 @@ kill_all() {
 
 start_systemd() {
   echo Starting via systemd.
+  # This script is intended to be run after updates, so we need to reload
+  # potentially changed unit files.
+  systemctl --user daemon-reload
   # The GUI needs access to the env var KEYBASE_START_UI. This is set to
   # "hideWindow" by the autostart file that might be calling us. We need to
   # pass it along.
