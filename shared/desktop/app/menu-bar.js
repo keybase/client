@@ -121,7 +121,7 @@ export default function() {
     })
 
     if (showDevTools && !skipSecondaryDevtools) {
-      webContents.openDevTools('detach')
+      // webContents.openDevTools('detach')
     }
 
     // prevent the menubar's window from dying when we quit

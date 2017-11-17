@@ -11,17 +11,7 @@ export default function(
     case PinentryGen.resetStore:
       return {
         ...Constants.initialState,
-        started: state.started,
       }
-    case PinentryGen.registerPinentryListener:
-      const {started} = action.payload
-      if (started) {
-        return {
-          pinentryStates: {},
-          started: true,
-        }
-      }
-      return Constants.initialState
     case PinentryGen.newPinentry:
       const {sessionID} = action.payload
       if (state.started && sessionID != null) {

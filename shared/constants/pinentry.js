@@ -20,7 +20,6 @@ const initialState: State = {
     },
   },
   // pinentryStates: {},
-  started: false,
 }
 
 export {initialState}

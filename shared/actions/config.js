@@ -11,6 +11,7 @@ import * as SignupGen from '../actions/signup-gen'
 import engine from '../engine'
 import {RouteStateStorage} from '../actions/route-state-storage'
 import {createConfigurePush} from './push-gen'
+import {registerPinentryListener} from '../actions/pinentry'
 import {flushLogFile} from '../util/forward-logs'
 import {isMobile, isSimulator} from '../constants/platform'
 import {loggedInSelector} from '../constants/selectors'
@@ -76,6 +77,7 @@ const registerListeners = (): AsyncAction => dispatch => {
   dispatch(GregorCreators.listenForNativeReachabilityEvents)
   dispatch(GregorCreators.registerGregorListeners())
   dispatch(GregorCreators.registerReachability())
+  dispatch(registerPinentryListener())
 }
 
 const _retryBootstrap = () => {
