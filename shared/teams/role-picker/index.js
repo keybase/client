@@ -13,9 +13,9 @@ import {
   Checkbox,
 } from '../../common-adapters/index'
 import {isMobile} from '../../constants/platform'
-import {type TeamRoleType} from '../../constants/teams'
+import {typeToLabel, type TeamRoleType} from '../../constants/teams'
 import {globalColors, globalMargins, globalStyles} from '../../styles'
-import {roleIconMap, roleDescMap, permissionMap} from './index.meta'
+import {roleIconMap, roleIconColorMap, roleDescMap, permissionMap} from './index.meta'
 
 export type RolePickerProps = {
   confirm: boolean,
@@ -48,36 +48,35 @@ const makeRoleOption = (
     style={{
       ...globalStyles.flexBoxRow,
       alignItems: 'center',
+      backgroundColor: selected === role ? globalColors.blue : globalColors.white,
       padding: globalMargins.tiny,
-      paddingLeft: globalMargins.small,
-      paddingRight: globalMargins.small,
+      paddingLeft: globalMargins.tiny,
+      paddingRight: globalMargins.tiny,
     }}
     onClick={() => setSelected(role)}
   >
-    <Icon
-      type={(role && roleIconMap[role]) || 'iconfont-close'}
-      style={{
-        color: selected === role ? globalColors.blue : globalColors.black_40,
-        fontSize: isMobile ? 32 : 28,
-        marginRight: globalMargins.small,
-      }}
-    />
-    <Box style={{...globalStyles.flexBoxColumn}}>
-      <Text type="Header">{role}</Text>
-      <Text type="BodySmallSemibold" style={{maxWidth: 200}}>
+    <Icon type="iconfont-check" style={{alignSelf: 'center', color: globalColors.white, fontSize: 24}} />
+    <Box style={{...globalStyles.flexBoxColumn, paddingLeft: globalMargins.tiny}}>
+      <Box style={globalStyles.flexBoxRow}>
+        {roleIconMap[role] &&
+          <Icon
+            type={roleIconMap[role]}
+            style={{
+              color: roleIconColorMap[role],
+              fontSize: 16,
+              marginRight: globalMargins.tiny,
+            }}
+          />}
+        <Text style={{color: selected === role ? globalColors.white : globalColors.black}} type="Header">
+          {typeToLabel[role]}
+        </Text>
+      </Box>
+      <Text
+        style={{color: selected === role ? globalColors.white : globalColors.black_40, width: 267}}
+        type="BodySmallSemibold"
+      >
         {role && roleDescMap[role]}
       </Text>
-    </Box>
-    <Box style={{width: isMobile ? 32 : 28, marginLeft: globalMargins.small}}>
-      {selected === role &&
-        <Icon
-          type="iconfont-check"
-          style={{
-            color: globalColors.blue,
-            fontSize: isMobile ? 32 : 28,
-            alignSelf: 'center',
-          }}
-        />}
     </Box>
   </ClickableBox>
 )
@@ -110,10 +109,10 @@ export const RoleOptions = ({
         {username ? `Select a role for ${username}` : 'Select a role'}
       </Text>
     </Box>
-    {makeRoleOption('reader', selectedRole, setSelectedRole)}
-    {makeRoleOption('writer', selectedRole, setSelectedRole)}
-    {allowAdmin && makeRoleOption('admin', selectedRole, setSelectedRole)}
     {allowOwner && makeRoleOption('owner', selectedRole, setSelectedRole)}
+    {allowAdmin && makeRoleOption('admin', selectedRole, setSelectedRole)}
+    {makeRoleOption('writer', selectedRole, setSelectedRole)}
+    {makeRoleOption('reader', selectedRole, setSelectedRole)}
     {showSendNotification &&
       <Box style={{marginTop: globalMargins.small, marginBottom: globalMargins.tiny}}>
         <Checkbox label="Send chat notification" onCheck={setSendNotification} checked={sendNotification} />
