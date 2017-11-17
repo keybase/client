@@ -8,11 +8,15 @@ function updateUserState(
   username: string,
   sub: (state: ?Types.TrackerState) => ?Types.TrackerState
 ): Types.State {
+  if (!username) {
+    return state
+  }
+  const subState = sub(state.userTrackers[username])
   return {
     ...state,
     userTrackers: {
       ...state.userTrackers,
-      [username]: sub(state.userTrackers[username]),
+      [username]: subState,
     },
   }
 }
@@ -22,11 +26,15 @@ function updateNonUserState(
   username: string,
   sub: (state: ?Types.NonUserState) => ?Types.NonUserState
 ): Types.State {
+  if (!username) {
+    return state
+  }
+  const subState = sub(state.nonUserTrackers[username])
   return {
     ...state,
     nonUserTrackers: {
       ...state.nonUserTrackers,
-      [username]: sub(state.nonUserTrackers[username]),
+      [username]: subState,
     },
   }
 }

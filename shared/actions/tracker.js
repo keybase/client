@@ -346,9 +346,9 @@ function _serverCallMap(
       {username: currentUsername, sessionID, reason, forceDisplay},
       response
     ) => {
+      username = currentUsername
       isGetProfile = reason.reason === Constants.profileFromUI
       response.result()
-      username = currentUsername
       sessionIDToUsername[sessionID] = username
       onStart && onStart(username)
 
@@ -544,6 +544,10 @@ function _serverCallMap(
       response.result()
 
       addToIdleResponseQueue(() => {
+        // How username is handled here is very racy and we could do a ton better
+        if (!username) {
+          return
+        }
         // Check if there were any errors in the proofs
         dispatch(TrackerGen.createUpdateProofState({username}))
         dispatch(TrackerGen.createIdentifyFinished({username}))
