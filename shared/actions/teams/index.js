@@ -21,7 +21,7 @@ import {chatTab, teamsTab} from '../../constants/tabs'
 import openSMS from '../../util/sms'
 import {createDecrementWaiting, createIncrementWaiting} from '../../actions/waiting-gen'
 import {createGlobalError} from '../../actions/config-gen'
-import {convertToError} from '../../util/errors'
+import {convertToError, RPCError} from '../../util/errors'
 
 import type {TypedState} from '../../constants/reducer'
 
@@ -283,6 +283,12 @@ const _createNewTeamFromConversation = function*(
   }
 }
 
+const isYouAreNotMemberError = (e: Error) => {
+  // TODO: Can we use a constant here instead?
+  const youAreNotMemberErrorCode = 2711
+  return e instanceof RPCError && e.code === youAreNotMemberErrorCode
+}
+
 const _getDetails = function*(action: Constants.GetDetails): Saga.SagaGenerator<any, any> {
   const teamname = action.payload.teamname
   const waitingKey = {key: `getDetails:${teamname}`}
@@ -298,9 +304,10 @@ const _getDetails = function*(action: Constants.GetDetails): Saga.SagaGenerator<
           forceRepoll: false,
         },
       })
-      console.log('details is ', details)
     } catch (e) {
-      console.log('WHAT', e)
+      if (!isYouAreNotMemberError(e)) {
+        throw e
+      }
     }
 
     const implicitAdminDetails: Array<
@@ -375,7 +382,9 @@ const _getDetails = function*(action: Constants.GetDetails): Saga.SagaGenerator<
         },
       })
     } catch (e) {
-      console.log('what2', e)
+      if (!isYouAreNotMemberError(e)) {
+        throw e
+      }
     }
 
     const publicityMap = {
