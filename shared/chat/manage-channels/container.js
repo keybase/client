@@ -68,7 +68,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routePath, routePro
       )
       dispatch(saveChannelMembership(teamname, channelsToChange))
     },
-    onPreview: (conversationIDKey: string, previousPath?: string[]) => {
+    _onPreview: (conversationIDKey: string, previousPath?: string[]) => {
       dispatch(ChatGen.createPreviewChannel({conversationIDKey}))
       dispatch(
         navigateTo([chatTab, {selected: conversationIDKey, props: {previousPath: previousPath || null}}])
@@ -94,8 +94,8 @@ export default compose(
       })),
     onSaveSubscriptions: props => () =>
       props._saveSubscriptions(props.oldChannelState, props.nextChannelState),
-    onPreview: ({previousPath, onPreview}) => (conversationIDKey: string) =>
-      onPreview(conversationIDKey, previousPath),
+    onPreview: ({previousPath, _onPreview}) => (conversationIDKey: string) =>
+      _onPreview(conversationIDKey, previousPath),
   }),
   lifecycle({
     componentWillReceiveProps: function(nextProps) {
