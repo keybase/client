@@ -717,6 +717,7 @@ function* _deleteChannel({payload: {conversationIDKey}}): Saga.SagaGenerator<any
   const param = {
     convID: ChatConstants.keyToConversationID(conversationIDKey),
     channelName,
+    confirmed: false,
   }
 
   yield Saga.call(ChatTypes.localDeleteConversationLocalRpcPromise, {param})
