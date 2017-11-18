@@ -33,6 +33,7 @@ func TestTeamOpenAutoAddMember(t *testing.T) {
 			JoinAs: keybase1.TeamRole_READER,
 		},
 	})
+	require.NoError(t, err)
 
 	t.Logf("Open team name is %q", teamName)
 
@@ -196,10 +197,8 @@ func TestTeamOpenBans(t *testing.T) {
 	t.Logf("Trying team edit cli...")
 	runner := client.NewCmdTeamSettingsRunner(own.tc.G)
 	runner.Team = teamName
-	runner.Settings = keybase1.TeamSettings{
-		Open:   true,
-		JoinAs: keybase1.TeamRole_READER,
-	}
+	joinAsRole := keybase1.TeamRole_READER
+	runner.JoinAsRole = &joinAsRole
 	err = runner.Run()
 	require.NoError(t, err)
 

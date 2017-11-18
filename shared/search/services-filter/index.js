@@ -3,7 +3,7 @@
 import * as Constants from '../../constants/search'
 import React, {Component} from 'react'
 import {Box, Icon, ClickableBox, Text} from '../../common-adapters'
-import {globalStyles, globalColors, transition} from '../../styles'
+import {globalStyles, globalColors, globalMargins, transition} from '../../styles'
 import {isMobile} from '../../constants/platform'
 
 import type {IconType} from '../../common-adapters/icon'
@@ -78,15 +78,16 @@ const Service = ({service, selected, hovering, onHover, onSelect}) => {
   return (
     <ClickableBox key={service} onClick={() => onSelect(service)} {...boxProps}>
       <Icon type={selected ? selectedIconMap[service] : unselectedIconMap[service]} />
-      <Text
-        type="BodySmall"
+      <Box
         style={{
           ...serviceTooltipStyle,
           opacity: hovering ? 1 : 0,
         }}
       >
-        {service}
-      </Text>
+        <Text type="BodySmall" style={{color: globalColors.white}}>
+          {service}
+        </Text>
+      </Box>
     </ClickableBox>
   )
 }
@@ -135,27 +136,29 @@ const styleServices = {
 
 const serviceTooltipPlatformStyle = isMobile
   ? {
-      borderBottomColor: `${globalColors.white}`,
-      borderBottomWidth: 2,
-      top: -8,
+      height: 26,
+      paddingBottom: globalMargins.xtiny,
+      paddingTop: globalMargins.xtiny,
+      top: -32,
+      width: 100,
     }
   : {
       ...transition('opacity'),
       lineHeight: '22px',
       cursor: 'default',
-      borderBottom: `2px ${globalColors.white}`,
-      top: -24,
+      height: 22,
+      width: 90,
+      top: -28,
     }
 
 const serviceTooltipStyle = {
-  backgroundColor: globalColors.black_40,
+  ...globalStyles.flexBoxColumn,
+  alignItems: 'center',
+  justifyContent: 'center',
+  backgroundColor: globalColors.black_60,
   ...serviceTooltipPlatformStyle,
-  borderRadius: 65,
-  color: globalColors.white,
-  minHeight: 22,
-  minWidth: 86,
+  borderRadius: 20,
   position: 'absolute',
-  textAlign: 'center',
 }
 
 export default Filter

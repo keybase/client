@@ -1,0 +1,4 @@
+// @flow
+declare function openSMS(phonenos: string[], body?: string): Promise<any>
+
+export default openSMS

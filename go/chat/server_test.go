@@ -16,7 +16,6 @@ import (
 
 	"encoding/base64"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/msgchecker"
 	"github.com/keybase/client/go/chat/storage"
@@ -200,8 +199,8 @@ func runWithMemberTypes(t *testing.T, f func(membersType chat1.ConversationMembe
 	t.Logf("Team Stage End: %v", time.Now().Sub(start))
 
 	t.Logf("Implicit Team Stage Begin")
-	os.Setenv("KEYBASE_CHAT_MEMBER_TYPE", "impteam")
-	defer os.Setenv("KEYBASE_CHAT_MEMBER_TYPE", "")
+	os.Setenv("KEYBASE_FEATURES", "admin")
+	defer os.Setenv("KEYBASE_FEATURES", "")
 	start = time.Now()
 	f(chat1.ConversationMembersType_IMPTEAM)
 	t.Logf("Implicit Team Stage End: %v", time.Now().Sub(start))
@@ -312,6 +311,7 @@ func (c *chatTestContext) as(t *testing.T, user *kbtest.FakeUser) *chatTestUserC
 	pushHandler := NewPushHandler(g)
 	pushHandler.SetClock(c.world.Fc)
 	g.PushHandler = pushHandler
+	g.TeamChannelSource = NewCachingTeamChannelSource(g, func() chat1.RemoteInterface { return ri })
 
 	tc.G.ChatHelper = NewHelper(g, func() chat1.RemoteInterface { return ri })
 
@@ -1035,6 +1035,23 @@ func TestChatSrvPostLocalAtMention(t *testing.T) {
 		case <-time.After(20 * time.Second):
 			require.Fail(t, "no new message")
 		}
+
+		// Test that system messages do the right thing
+		subBody := chat1.NewMessageSystemWithAddedtoteam(chat1.MessageSystemAddedToTeam{
+			Addee: users[1].Username,
+		})
+		mustPostLocalForTest(t, ctc, users[0], created, chat1.NewMessageBodyWithSystem(subBody))
+		select {
+		case info := <-listener.newMessage:
+			require.True(t, info.Message.IsValid())
+			require.Equal(t, chat1.MessageType_SYSTEM, info.Message.GetMessageType())
+			require.Equal(t, 1, len(info.Message.Valid().AtMentions))
+			require.Equal(t, users[1].Username, info.Message.Valid().AtMentions[0])
+			require.Equal(t, chat1.ChannelMention_NONE, info.Message.Valid().ChannelMention)
+			require.True(t, info.DisplayDesktopNotification)
+		case <-time.After(20 * time.Second):
+			require.Fail(t, "no new message")
+		}
 	})
 }
 
@@ -1097,26 +1114,77 @@ func TestChatSrvGetThreadLocal(t *testing.T) {
 
 		created := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT,
 			mt, ctc.as(t, users[1]).user())
-		mustPostLocalForTest(t, ctc, users[0], created, chat1.NewMessageBodyWithText(chat1.MessageText{Body: "hello!"}))
+		msgID1, err := postLocalForTest(t, ctc, users[0], created,
+			chat1.NewMessageBodyWithText(chat1.MessageText{Body: "hello!"}))
+		require.NoError(t, err)
+		t.Logf("msgID1: %d", msgID1.MessageID)
 
 		ctx := ctc.as(t, users[0]).startCtx
 		tvres, err := ctc.as(t, users[0]).chatLocalHandler().GetThreadLocal(ctx, chat1.GetThreadLocalArg{
 			ConversationID: created.Id,
+			Query: &chat1.GetThreadQuery{
+				MessageTypes: []chat1.MessageType{chat1.MessageType_TEXT},
+			},
 		})
 		require.NoError(t, err)
 
 		tv := tvres.Thread
-		expectedMessages := 2
-		switch mt {
-		case chat1.ConversationMembersType_KBFS, chat1.ConversationMembersType_IMPTEAM:
-		case chat1.ConversationMembersType_TEAM:
-			expectedMessages++ // the join message
-		default:
-			t.Fatalf("unknown members type: %v", mt)
-		}
+		expectedMessages := 1
 		require.Len(t, tv.Messages, expectedMessages,
 			"unexpected response from GetThreadLocal . number of messages")
 		require.Equal(t, "hello!", tv.Messages[0].Valid().MessageBody.Text().Body)
+
+		// Test message ID control
+		plres, err := postLocalForTest(t, ctc, users[0], created,
+			chat1.NewMessageBodyWithText(chat1.MessageText{Body: "hello!"}))
+		require.NoError(t, err)
+		t.Logf("msgID2: %d", plres.MessageID)
+		msgID3, err := postLocalForTest(t, ctc, users[0], created,
+			chat1.NewMessageBodyWithText(chat1.MessageText{Body: "hello!"}))
+		require.NoError(t, err)
+		t.Logf("msgID3: %d", msgID3.MessageID)
+		tvres, err = ctc.as(t, users[0]).chatLocalHandler().GetThreadLocal(ctx, chat1.GetThreadLocalArg{
+			ConversationID: created.Id,
+			Query: &chat1.GetThreadQuery{
+				MessageTypes: []chat1.MessageType{chat1.MessageType_TEXT},
+				MessageIDControl: &chat1.MessageIDControl{
+					Pivot:  &plres.MessageID,
+					Recent: true,
+					Num:    1,
+				},
+			},
+		})
+		require.NoError(t, err)
+		require.Equal(t, 1, len(tvres.Thread.Messages))
+		require.Equal(t, msgID3.MessageID, tvres.Thread.Messages[0].GetMessageID())
+		tvres, err = ctc.as(t, users[0]).chatLocalHandler().GetThreadLocal(ctx, chat1.GetThreadLocalArg{
+			ConversationID: created.Id,
+			Query: &chat1.GetThreadQuery{
+				MessageTypes: []chat1.MessageType{chat1.MessageType_TEXT},
+				MessageIDControl: &chat1.MessageIDControl{
+					Pivot:  &plres.MessageID,
+					Recent: false,
+					Num:    1,
+				},
+			},
+		})
+		require.NoError(t, err)
+		require.Equal(t, 1, len(tvres.Thread.Messages))
+		require.Equal(t, msgID1.MessageID, tvres.Thread.Messages[0].GetMessageID())
+
+		tvres, err = ctc.as(t, users[0]).chatLocalHandler().GetThreadLocal(ctx, chat1.GetThreadLocalArg{
+			ConversationID: created.Id,
+			Query: &chat1.GetThreadQuery{
+				MessageTypes: []chat1.MessageType{chat1.MessageType_TEXT},
+				MessageIDControl: &chat1.MessageIDControl{
+					Num: 2,
+				},
+			},
+		})
+		require.NoError(t, err)
+		require.Equal(t, 2, len(tvres.Thread.Messages))
+		require.Equal(t, msgID3.MessageID, tvres.Thread.Messages[0].GetMessageID())
+		require.Equal(t, plres.MessageID, tvres.Thread.Messages[1].GetMessageID())
 	})
 }
 
@@ -1673,14 +1741,36 @@ func TestChatSrvPostLocalNonblock(t *testing.T) {
 		defer ctc.cleanup()
 		users := ctc.users()
 
+		tc := ctc.as(t, users[0])
 		listener := newServerChatListener()
 		ctc.as(t, users[0]).h.G().SetService()
 		ctc.as(t, users[0]).h.G().NotifyRouter.SetListener(listener)
 		ctc.world.Tcs[users[0].Username].ChatG.Syncer.(*Syncer).isConnected = true
 
 		var err error
-		created := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT,
-			mt, ctc.as(t, users[1]).user())
+		var created chat1.ConversationInfoLocal
+		switch mt {
+		case chat1.ConversationMembersType_TEAM:
+			first := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT,
+				mt, ctc.as(t, users[1]).user())
+			consumeNewMsg(t, listener, chat1.MessageType_JOIN)
+			topicName := "mike"
+			ncres, err := ctc.as(t, users[0]).chatLocalHandler().NewConversationLocal(tc.startCtx,
+				chat1.NewConversationLocalArg{
+					TlfName:       first.TlfName,
+					TopicName:     &topicName,
+					TopicType:     chat1.TopicType_CHAT,
+					TlfVisibility: keybase1.TLFVisibility_PRIVATE,
+					MembersType:   chat1.ConversationMembersType_TEAM,
+				})
+			require.NoError(t, err)
+			created = ncres.Conv.Info
+			consumeNewMsg(t, listener, chat1.MessageType_JOIN)
+			consumeNewMsg(t, listener, chat1.MessageType_SYSTEM)
+		default:
+			created = mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT,
+				mt, ctc.as(t, users[1]).user())
+		}
 
 		t.Logf("send a text message")
 		arg := chat1.PostTextNonblockArg{
@@ -1690,45 +1780,16 @@ func TestChatSrvPostLocalNonblock(t *testing.T) {
 			Body:             "hi",
 			IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
 		}
-		tc := ctc.as(t, users[0])
 		res, err := ctc.as(t, users[0]).chatLocalHandler().PostTextNonblock(tc.startCtx, arg)
 		require.NoError(t, err)
 		var unboxed chat1.UIMessage
-		switch mt {
-		case chat1.ConversationMembersType_KBFS, chat1.ConversationMembersType_IMPTEAM:
-			// pass
-		case chat1.ConversationMembersType_TEAM:
-			select {
-			case info := <-listener.newMessage:
-				unboxed = info.Message
-				require.True(t, unboxed.IsValid(), "invalid message")
-				if unboxed.GetMessageType() != chat1.MessageType_JOIN {
-					t.Logf("failing.. expected JOIN")
-					select {
-					case info2 := <-listener.newMessage:
-						t.Logf("info (1): %v", spew.Sdump(info))
-						t.Logf("info (2): %v", spew.Sdump(info2))
-					case <-time.After(30 * time.Second):
-						t.Logf("no second message in the pipe")
-					}
-					t.Logf("info (1): %v", spew.Sdump(info))
-					require.Equal(t, chat1.MessageType_JOIN, unboxed.GetMessageType(), "unexpected type")
-				}
-				require.Equal(t, chat1.MessageType_JOIN, unboxed.GetMessageType(), "unexpected type")
-				require.Nil(t, unboxed.Valid().OutboxID, "surprise outbox ID on JOIN")
-			case <-time.After(20 * time.Second):
-				require.Fail(t, "no event received")
-			}
-		default:
-			t.Fatalf("unknown members type: %v", mt)
-		}
 		select {
 		case info := <-listener.newMessage:
 			unboxed = info.Message
 			require.True(t, unboxed.IsValid(), "invalid message")
 			require.NotNil(t, unboxed.Valid().OutboxID, "no outbox ID")
-			require.Equal(t, res.OutboxID.String(), *unboxed.Valid().OutboxID, "mismatch outbox ID")
 			require.Equal(t, chat1.MessageType_TEXT, unboxed.GetMessageType(), "invalid type")
+			require.Equal(t, res.OutboxID.String(), *unboxed.Valid().OutboxID, "mismatch outbox ID")
 		case <-time.After(20 * time.Second):
 			require.Fail(t, "no event received")
 		}
@@ -1822,6 +1883,32 @@ func TestChatSrvPostLocalNonblock(t *testing.T) {
 			switch mt {
 			case chat1.ConversationMembersType_TEAM:
 				require.Equal(t, headline, unboxed.Valid().MessageBody.Headline().Headline)
+			}
+		case <-time.After(20 * time.Second):
+			require.Fail(t, "no event received")
+		}
+
+		t.Logf("change name")
+		topicName := "NEWNAME"
+		marg := chat1.PostMetadataNonblockArg{
+			ConversationID:   created.Id,
+			TlfName:          created.TlfName,
+			TlfPublic:        created.Visibility == keybase1.TLFVisibility_PUBLIC,
+			IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
+			ChannelName:      topicName,
+		}
+		res, err = ctc.as(t, users[0]).chatLocalHandler().PostMetadataNonblock(tc.startCtx, marg)
+		require.NoError(t, err)
+		select {
+		case info := <-listener.newMessage:
+			unboxed = info.Message
+			require.True(t, unboxed.IsValid(), "invalid message")
+			require.NotNil(t, unboxed.Valid().OutboxID, "no outbox ID")
+			require.Equal(t, res.OutboxID.String(), *unboxed.Valid().OutboxID, "mismatch outbox ID")
+			require.Equal(t, chat1.MessageType_METADATA, unboxed.GetMessageType(), "invalid type")
+			switch mt {
+			case chat1.ConversationMembersType_TEAM:
+				require.Equal(t, topicName, unboxed.Valid().MessageBody.Metadata().ConversationTitle)
 			}
 		case <-time.After(20 * time.Second):
 			require.Fail(t, "no event received")
@@ -2262,7 +2349,7 @@ func consumeMembersUpdate(t *testing.T, listener *serverChatListener) {
 	select {
 	case <-listener.membersUpdate:
 	case <-time.After(20 * time.Second):
-		require.Fail(t, "failed to get team type notification")
+		require.Fail(t, "failed to get members update notification")
 	}
 }
 
@@ -2270,7 +2357,7 @@ func consumeJoinConv(t *testing.T, listener *serverChatListener) {
 	select {
 	case <-listener.joinedConv:
 	case <-time.After(20 * time.Second):
-		require.Fail(t, "failed to get team type notification")
+		require.Fail(t, "failed to get join conv notification")
 	}
 }
 
@@ -2278,7 +2365,7 @@ func consumeLeaveConv(t *testing.T, listener *serverChatListener) {
 	select {
 	case <-listener.leftConv:
 	case <-time.After(20 * time.Second):
-		require.Fail(t, "failed to get team type notification")
+		require.Fail(t, "failed to get leave conv notification")
 	}
 }
 
@@ -2297,6 +2384,7 @@ func TestChatSrvTeamChannels(t *testing.T) {
 
 		ctx := ctc.as(t, users[0]).startCtx
 		ctx1 := ctc.as(t, users[1]).startCtx
+		ctx2 := ctc.as(t, users[2]).startCtx
 
 		listener0 := newServerChatListener()
 		ctc.as(t, users[0]).h.G().SetService()
@@ -2329,9 +2417,9 @@ func TestChatSrvTeamChannels(t *testing.T) {
 			})
 		require.NoError(t, err)
 		consumeNewMsg(t, listener0, chat1.MessageType_JOIN)
-		consumeNewMsg(t, listener0, chat1.MessageType_TEXT)
-		consumeNewMsg(t, listener1, chat1.MessageType_TEXT)
-		consumeNewMsg(t, listener2, chat1.MessageType_TEXT)
+		consumeNewMsg(t, listener0, chat1.MessageType_SYSTEM)
+		consumeNewMsg(t, listener1, chat1.MessageType_SYSTEM)
+		consumeNewMsg(t, listener2, chat1.MessageType_SYSTEM)
 		_, err = postLocalForTest(t, ctc, users[1], ncres.Conv.Info, chat1.NewMessageBodyWithText(chat1.MessageText{
 			Body: fmt.Sprintf("JOINME"),
 		}))
@@ -2436,6 +2524,7 @@ func TestChatSrvTeamChannels(t *testing.T) {
 			Body: fmt.Sprintf("FAIL: @%s", users[2].Username),
 		}))
 		require.NoError(t, err)
+		consumeJoinConv(t, listener2)
 		consumeNewMsg(t, listener0, chat1.MessageType_TEXT)
 		consumeNewMsg(t, listener1, chat1.MessageType_TEXT)
 		consumeNewMsg(t, listener2, chat1.MessageType_TEXT)
@@ -2508,6 +2597,29 @@ func TestChatSrvTeamChannels(t *testing.T) {
 			require.Len(t, tvres.Thread.Messages, 1, "expected number of LEAVE messages")
 		default:
 			t.Fatalf("unknown members type: %v", mt)
+		}
+
+		t.Logf("u2 leaves and explicitly previews channel")
+		_, err = ctc.as(t, users[2]).chatLocalHandler().LeaveConversationLocal(ctx1,
+			ncres.Conv.GetConvID())
+		require.NoError(t, err)
+		consumeNewMsg(t, listener0, chat1.MessageType_LEAVE)
+		consumeNewMsg(t, listener1, chat1.MessageType_LEAVE)
+		consumeNewMsg(t, listener2, chat1.MessageType_LEAVE)
+		consumeLeaveConv(t, listener2)
+		_, err = ctc.as(t, users[2]).chatLocalHandler().PreviewConversationByIDLocal(ctx2, ncres.Conv.Info.Id)
+		require.NoError(t, err)
+		consumeJoinConv(t, listener2)
+		iboxRes, err := ctc.as(t, users[2]).chatLocalHandler().GetInboxAndUnboxLocal(ctx2,
+			chat1.GetInboxAndUnboxLocalArg{})
+		require.NoError(t, err)
+		require.Equal(t, 2, len(iboxRes.Conversations))
+		for _, conv := range iboxRes.Conversations {
+			if conv.GetConvID().Eq(ncres.Conv.Info.Id) {
+				require.Equal(t, chat1.ConversationMemberStatus_PREVIEW, conv.Info.MemberStatus)
+			} else {
+				require.Equal(t, chat1.ConversationMemberStatus_ACTIVE, conv.Info.MemberStatus)
+			}
 		}
 	})
 }
@@ -2924,8 +3036,8 @@ func TestChatSrvImplicitConversation(t *testing.T) {
 }
 
 func TestChatSrvImpTeamExistingKBFS(t *testing.T) {
-	os.Setenv("KEYBASE_CHAT_MEMBER_TYPE", "impteam")
-	defer os.Setenv("KEYBASE_CHAT_MEMBER_TYPE", "")
+	os.Setenv("KEYBASE_FEATURES", "admin")
+	defer os.Setenv("KEYBASE_FEATURES", "")
 	ctc := makeChatTestContext(t, "NewConversationLocal", 2)
 	defer ctc.cleanup()
 	users := ctc.users()
@@ -2964,6 +3076,15 @@ func TestChatSrvTeamTypeChanged(t *testing.T) {
 			ctc.as(t, users[1]).user())
 		consumeNewMsg(t, listener0, chat1.MessageType_JOIN)
 		consumeNewMsg(t, listener1, chat1.MessageType_JOIN)
+		inboxRes, err := ctc.as(t, users[0]).chatLocalHandler().GetInboxAndUnboxLocal(ctx,
+			chat1.GetInboxAndUnboxLocalArg{
+				Query: &chat1.GetInboxLocalQuery{
+					ConvIDs: []chat1.ConversationID{conv.Id},
+				},
+			})
+		require.NoError(t, err)
+		require.NotNil(t, inboxRes.Conversations[0].Notifications)
+		require.True(t, inboxRes.Conversations[0].Notifications.Settings[keybase1.DeviceType_DESKTOP][chat1.NotificationKind_GENERIC])
 
 		topicName := "zjoinonsend"
 		channel, err := ctc.as(t, users[0]).chatLocalHandler().NewConversationLocal(ctx,
@@ -2992,7 +3113,15 @@ func TestChatSrvTeamTypeChanged(t *testing.T) {
 			require.Fail(t, "no team type")
 		}
 
-		inboxRes, err := ctc.as(t, users[0]).chatLocalHandler().GetInboxAndUnboxLocal(ctx,
+		// Check remote notifications
+		uconv, _, err := GetUnverifiedConv(ctx, ctc.as(t, users[0]).h.G(), users[0].GetUID().ToBytes(),
+			conv.Id, false)
+		require.NoError(t, err)
+		require.NotNil(t, uconv.Notifications)
+		require.False(t,
+			uconv.Notifications.Settings[keybase1.DeviceType_DESKTOP][chat1.NotificationKind_GENERIC])
+
+		inboxRes, err = ctc.as(t, users[0]).chatLocalHandler().GetInboxAndUnboxLocal(ctx,
 			chat1.GetInboxAndUnboxLocalArg{
 				Query: &chat1.GetInboxLocalQuery{
 					ConvIDs: []chat1.ConversationID{conv.Id},
@@ -3001,6 +3130,8 @@ func TestChatSrvTeamTypeChanged(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, 1, len(inboxRes.Conversations))
 		require.Equal(t, chat1.TeamType_COMPLEX, inboxRes.Conversations[0].Info.TeamType)
+		require.NotNil(t, inboxRes.Conversations[0].Notifications)
+		require.False(t, inboxRes.Conversations[0].Notifications.Settings[keybase1.DeviceType_DESKTOP][chat1.NotificationKind_GENERIC])
 	})
 
 }
@@ -3058,8 +3189,8 @@ func TestChatSrvDeleteConversation(t *testing.T) {
 		consumeNewMsg(t, listener0, chat1.MessageType_JOIN)
 		consumeTeamType(t, listener0)
 		consumeTeamType(t, listener1)
-		consumeNewMsg(t, listener0, chat1.MessageType_TEXT)
-		consumeNewMsg(t, listener1, chat1.MessageType_TEXT)
+		consumeNewMsg(t, listener0, chat1.MessageType_SYSTEM)
+		consumeNewMsg(t, listener1, chat1.MessageType_SYSTEM)
 
 		_, err = ctc.as(t, users[1]).chatLocalHandler().JoinConversationByIDLocal(ctx1,
 			channel.Conv.GetConvID())
@@ -3155,9 +3286,14 @@ func TestChatSrvUserReset(t *testing.T) {
 		iboxRes, err = ctc.as(t, users[1]).chatLocalHandler().GetInboxAndUnboxLocal(ctx1,
 			chat1.GetInboxAndUnboxLocalArg{})
 		require.NoError(t, err)
-		require.Equal(t, 1, len(iboxRes.Conversations))
-		require.Equal(t, conv.Id, iboxRes.Conversations[0].GetConvID())
-		require.Equal(t, chat1.ConversationMemberStatus_RESET, iboxRes.Conversations[0].Info.MemberStatus)
+		switch mt {
+		case chat1.ConversationMembersType_TEAM:
+			require.Zero(t, len(iboxRes.Conversations))
+		default:
+			require.Equal(t, 1, len(iboxRes.Conversations))
+			require.Equal(t, conv.Id, iboxRes.Conversations[0].GetConvID())
+			require.Equal(t, chat1.ConversationMemberStatus_RESET, iboxRes.Conversations[0].Info.MemberStatus)
+		}
 
 		_, err = ctc.as(t, users[1]).chatLocalHandler().PostLocal(ctx1, chat1.PostLocalArg{
 			ConversationID: conv.Id,
@@ -3216,5 +3352,89 @@ func TestChatSrvUserReset(t *testing.T) {
 			},
 		})
 		require.NoError(t, err)
+	})
+}
+
+func TestChatSrvTeamChannelNameMentions(t *testing.T) {
+	runWithMemberTypes(t, func(mt chat1.ConversationMembersType) {
+		ctc := makeChatTestContext(t, "TestChatSrvTeamChannelNameMentions", 2)
+		defer ctc.cleanup()
+		users := ctc.users()
+
+		// Only run this test for teams
+		switch mt {
+		case chat1.ConversationMembersType_TEAM:
+		default:
+			return
+		}
+
+		ctx := ctc.as(t, users[0]).startCtx
+		ctx1 := ctc.as(t, users[1]).startCtx
+		listener0 := newServerChatListener()
+		ctc.as(t, users[0]).h.G().SetService()
+		ctc.as(t, users[0]).h.G().NotifyRouter.SetListener(listener0)
+		listener1 := newServerChatListener()
+		ctc.as(t, users[1]).h.G().SetService()
+		ctc.as(t, users[1]).h.G().NotifyRouter.SetListener(listener1)
+
+		conv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT, mt,
+			ctc.as(t, users[1]).user())
+		consumeNewMsg(t, listener0, chat1.MessageType_JOIN)
+		consumeNewMsg(t, listener1, chat1.MessageType_JOIN)
+
+		topicNames := []string{"miketime", "random", "hi"}
+		for index, topicName := range topicNames {
+			channel, err := ctc.as(t, users[1]).chatLocalHandler().NewConversationLocal(ctx,
+				chat1.NewConversationLocalArg{
+					TlfName:       conv.TlfName,
+					TopicName:     &topicName,
+					TopicType:     chat1.TopicType_CHAT,
+					TlfVisibility: keybase1.TLFVisibility_PRIVATE,
+					MembersType:   chat1.ConversationMembersType_TEAM,
+				})
+			t.Logf("conv: %s chan: %s", conv.Id, channel.Conv.GetConvID())
+			require.NoError(t, err)
+			consumeNewMsg(t, listener1, chat1.MessageType_JOIN)
+			if index == 0 {
+				consumeNewMsg(t, listener0, chat1.MessageType_SYSTEM)
+				consumeNewMsg(t, listener1, chat1.MessageType_SYSTEM)
+			}
+
+			_, err = ctc.as(t, users[0]).chatLocalHandler().JoinConversationByIDLocal(ctx1,
+				channel.Conv.GetConvID())
+			require.NoError(t, err)
+			consumeNewMsg(t, listener0, chat1.MessageType_JOIN)
+			consumeNewMsg(t, listener1, chat1.MessageType_JOIN)
+
+			_, err = ctc.as(t, users[1]).chatLocalHandler().PostLocal(ctx1, chat1.PostLocalArg{
+				ConversationID: channel.Conv.GetConvID(),
+				Msg: chat1.MessagePlaintext{
+					ClientHeader: chat1.MessageClientHeader{
+						Conv:        channel.Conv.Info.Triple,
+						MessageType: chat1.MessageType_TEXT,
+						TlfName:     channel.Conv.Info.TlfName,
+					},
+					MessageBody: chat1.NewMessageBodyWithText(chat1.MessageText{
+						Body: fmt.Sprintf("The worst channel is #%s. #error", topicName),
+					}),
+				},
+			})
+			require.NoError(t, err)
+			consumeNewMsg(t, listener0, chat1.MessageType_TEXT)
+			consumeNewMsg(t, listener1, chat1.MessageType_TEXT)
+
+			tv, err := ctc.as(t, users[0]).chatLocalHandler().GetThreadLocal(ctx, chat1.GetThreadLocalArg{
+				ConversationID: channel.Conv.GetConvID(),
+				Query: &chat1.GetThreadQuery{
+					MessageTypes: []chat1.MessageType{chat1.MessageType_TEXT},
+				},
+			})
+			require.NoError(t, err)
+			uid := users[0].User.GetUID().ToBytes()
+			ptv := utils.PresentThreadView(ctx, uid, tv.Thread, ctc.as(t, users[0]).h.G().TeamChannelSource)
+			require.Equal(t, 1, len(ptv.Messages))
+			require.Equal(t, 1, len(ptv.Messages[0].Valid().ChannelNameMentions))
+			require.Equal(t, topicName, ptv.Messages[0].Valid().ChannelNameMentions[0])
+		}
 	})
 }

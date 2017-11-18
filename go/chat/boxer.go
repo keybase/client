@@ -220,7 +220,7 @@ func (b *Boxer) UnboxMessage(ctx context.Context, boxed chat1.MessageBoxed, conv
 		return chat1.MessageUnboxed{}, NewTransientUnboxingError(err)
 	}
 
-	unboxed, ierr := b.unbox(ctx, boxed, encryptionKey)
+	unboxed, ierr := b.unbox(ctx, boxed, conv.GetMembersType(), encryptionKey)
 	if ierr == nil {
 		ierr = b.checkInvariants(ctx, conv.GetConvID(), boxed, unboxed)
 	}
@@ -298,16 +298,17 @@ func (b *Boxer) checkInvariants(ctx context.Context, convID chat1.ConversationID
 	return nil
 }
 
-func (b *Boxer) unbox(ctx context.Context, boxed chat1.MessageBoxed, encryptionKey types.CryptKey) (*chat1.MessageUnboxedValid, UnboxingError) {
+func (b *Boxer) unbox(ctx context.Context, boxed chat1.MessageBoxed,
+	membersType chat1.ConversationMembersType, encryptionKey types.CryptKey) (*chat1.MessageUnboxedValid, UnboxingError) {
 	switch boxed.Version {
 	case chat1.MessageBoxedVersion_VNONE, chat1.MessageBoxedVersion_V1:
-		res, err := b.unboxV1(ctx, boxed, encryptionKey)
+		res, err := b.unboxV1(ctx, boxed, membersType, encryptionKey)
 		if err != nil {
 			b.Debug(ctx, "error unboxing message version: %v", boxed.Version)
 		}
 		return res, err
 	case chat1.MessageBoxedVersion_V2:
-		res, err := b.unboxV2(ctx, boxed, encryptionKey)
+		res, err := b.unboxV2(ctx, boxed, membersType, encryptionKey)
 		if err != nil {
 			b.Debug(ctx, "error unboxing message version: %v", boxed.Version)
 		}
@@ -382,7 +383,8 @@ func (b *Boxer) bodyUnsupported(ctx context.Context, bodyVersion chat1.BodyPlain
 
 // unboxV1 unboxes a chat1.MessageBoxed into a keybase1.Message given
 // a keybase1.CryptKey.
-func (b *Boxer) unboxV1(ctx context.Context, boxed chat1.MessageBoxed, encryptionKey types.CryptKey) (*chat1.MessageUnboxedValid, UnboxingError) {
+func (b *Boxer) unboxV1(ctx context.Context, boxed chat1.MessageBoxed,
+	membersType chat1.ConversationMembersType, encryptionKey types.CryptKey) (*chat1.MessageUnboxedValid, UnboxingError) {
 	var err error
 	if boxed.ServerHeader == nil {
 		return nil, NewPermanentUnboxingError(errors.New("nil ServerHeader in MessageBoxed"))
@@ -497,7 +499,8 @@ func (b *Boxer) unboxV1(ctx context.Context, boxed chat1.MessageBoxed, encryptio
 	}
 
 	// Get at mention usernames
-	atMentions, atMentionUsernames, chanMention := b.getAtMentionInfo(ctx, body)
+	atMentions, atMentionUsernames, chanMention :=
+		b.getAtMentionInfo(ctx, clientHeader.Conv.Tlfid, membersType, body)
 
 	ierr = b.compareHeadersV1(ctx, boxed.ClientHeader, clientHeader)
 	if ierr != nil {
@@ -523,7 +526,8 @@ func (b *Boxer) unboxV1(ctx context.Context, boxed chat1.MessageBoxed, encryptio
 	}, nil
 }
 
-func (b *Boxer) unboxV2(ctx context.Context, boxed chat1.MessageBoxed, baseEncryptionKey types.CryptKey) (*chat1.MessageUnboxedValid, UnboxingError) {
+func (b *Boxer) unboxV2(ctx context.Context, boxed chat1.MessageBoxed,
+	membersType chat1.ConversationMembersType, baseEncryptionKey types.CryptKey) (*chat1.MessageUnboxedValid, UnboxingError) {
 	if boxed.ServerHeader == nil {
 		return nil, NewPermanentUnboxingError(errors.New("nil ServerHeader in MessageBoxed"))
 	}
@@ -630,7 +634,8 @@ func (b *Boxer) unboxV2(ctx context.Context, boxed chat1.MessageBoxed, baseEncry
 		ctx, clientHeader.Sender, clientHeader.SenderDevice)
 
 	// Get at mention usernames
-	atMentions, atMentionUsernames, chanMention := b.getAtMentionInfo(ctx, body)
+	atMentions, atMentionUsernames, chanMention :=
+		b.getAtMentionInfo(ctx, clientHeader.Conv.Tlfid, membersType, body)
 
 	// create an unboxed message
 	return &chat1.MessageUnboxedValid{
@@ -884,13 +889,13 @@ func (b *Boxer) getSenderInfoLocal(ctx context.Context, uid1 gregor1.UID, device
 	return username, deviceName, deviceType
 }
 
-func (b *Boxer) getAtMentionInfo(ctx context.Context, body chat1.MessageBody) (atMentions []gregor1.UID, atMentionUsernames []string, chanMention chat1.ChannelMention) {
+func (b *Boxer) getAtMentionInfo(ctx context.Context, tlfID chat1.TLFID,
+	membersType chat1.ConversationMembersType, body chat1.MessageBody) (atMentions []gregor1.UID, atMentionUsernames []string, chanMention chat1.ChannelMention) {
 	chanMention = chat1.ChannelMention_NONE
 	typ, err := body.MessageType()
 	if err != nil {
 		return nil, nil, chanMention
 	}
-
 	switch typ {
 	case chat1.MessageType_TEXT:
 		atMentions, chanMention = utils.ParseAtMentionedUIDs(ctx, body.Text().Body, b.G().GetUPAKLoader(),
@@ -898,6 +903,8 @@ func (b *Boxer) getAtMentionInfo(ctx context.Context, body chat1.MessageBody) (a
 	case chat1.MessageType_EDIT:
 		atMentions, chanMention = utils.ParseAtMentionedUIDs(ctx, body.Edit().Body, b.G().GetUPAKLoader(),
 			&b.DebugLabeler)
+	case chat1.MessageType_SYSTEM:
+		atMentions, chanMention = utils.SystemMessageMentions(ctx, body.System(), b.G().GetUPAKLoader())
 	default:
 		return nil, nil, chanMention
 	}

@@ -5,6 +5,7 @@ package service
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/keybase/client/go/git"
 	"github.com/keybase/client/go/libkb"
@@ -20,6 +21,12 @@ type GitHandler struct {
 }
 
 var _ keybase1.GitInterface = (*GitHandler)(nil)
+
+const (
+	gitDefaultMaxLooseRefs         = 50
+	gitDefaultPruneMinLooseObjects = 50
+	gitDefaultPruneExpireAge       = 14 * 24 * time.Hour
+)
 
 func NewGitHandler(xp rpc.Transporter, g *libkb.GlobalContext) *GitHandler {
 	return &GitHandler{
@@ -241,6 +248,83 @@ func (h *GitHandler) DeleteTeamRepo(ctx context.Context, arg keybase1.DeleteTeam
 	// Delete the repo metadata from the Keybase server.
 	err = git.DeleteMetadata(ctx, h.G(), folder, arg.RepoName)
 	return git.HumanizeGitErrors(ctx, h.G(), err)
+}
+
+func (h *GitHandler) GcPersonalRepo(ctx context.Context, arg keybase1.GcPersonalRepoArg) (err error) {
+	ctx = libkb.WithLogTag(ctx, "GIT")
+	defer h.G().CTraceTimed(ctx, "git:GCPersonalRepo",
+		func() error { return err })()
+
+	client, err := h.kbfsClient()
+	if err != nil {
+		return err
+	}
+	folder := keybase1.Folder{
+		Name:       h.G().Env.GetUsername().String(),
+		FolderType: keybase1.FolderType_PRIVATE,
+		Private:    true,
+	}
+	options := keybase1.GcOptions{}
+	if !arg.Force {
+		options.MaxLooseRefs = gitDefaultMaxLooseRefs
+	}
+	gcarg := keybase1.GcArg{
+		Folder:  folder,
+		Name:    arg.RepoName,
+		Options: options,
+	}
+	err = client.Gc(ctx, gcarg)
+	if err != nil {
+		return git.HumanizeGitErrors(ctx, h.G(), err)
+	}
+	return nil
+}
+
+func (h *GitHandler) GcTeamRepo(ctx context.Context, arg keybase1.GcTeamRepoArg) (err error) {
+	ctx = libkb.WithLogTag(ctx, "GIT")
+	defer h.G().CTraceTimed(ctx, fmt.Sprintf(
+		"git:GcTeamRepo(%v)", arg.TeamName),
+		func() error { return err })()
+
+	// Only support private teams
+	public := false
+
+	// First make sure the user is a writer of the team.
+	isWriter, err := isRoleAtLeast(ctx, h.G(), arg.TeamName.String(), public, keybase1.TeamRole_WRITER)
+	if err != nil {
+		return err
+	}
+	if !isWriter {
+		return fmt.Errorf("Only writers may garbage collect git repos.")
+	}
+
+	client, err := h.kbfsClient()
+	if err != nil {
+		return err
+	}
+	folder := keybase1.Folder{
+		Name:       arg.TeamName.String(),
+		FolderType: keybase1.FolderType_TEAM,
+		Private:    !public,
+	}
+	options := keybase1.GcOptions{
+		PruneExpireTime: keybase1.ToTime(
+			time.Now().Add(-gitDefaultPruneExpireAge)),
+	}
+	if !arg.Force {
+		options.MaxLooseRefs = gitDefaultMaxLooseRefs
+		options.PruneMinLooseObjects = gitDefaultPruneMinLooseObjects
+	}
+	gcarg := keybase1.GcArg{
+		Folder:  folder,
+		Name:    arg.RepoName,
+		Options: options,
+	}
+	err = client.Gc(ctx, gcarg)
+	if err != nil {
+		return git.HumanizeGitErrors(ctx, h.G(), err)
+	}
+	return nil
 }
 
 func (h *GitHandler) kbfsClient() (*keybase1.KBFSGitClient, error) {

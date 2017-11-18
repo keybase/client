@@ -12,9 +12,9 @@ import type {IconType} from './icon'
 
 const commonProps = {
   hint: 'hint text',
-  onClick: (event: SyntheticEvent<>) => action('onClick'),
-  onMouseEnter: () => action('onMouseEnter'),
-  onMouseLeave: () => action('onMouseLeave'),
+  onClick: action('onClick'),
+  onMouseEnter: action('onMouseEnter'),
+  onMouseLeave: action('onMouseLeave'),
   style: {
     borderColor: globalColors.black_05,
     borderWidth: 1,
@@ -55,7 +55,9 @@ const load = () => {
             justifyContent: 'flex-start',
           }}
         >
-          {sizes[size].map(type => <Icon key={type} type={type} {...commonProps} />)}
+          {sizes[size].map(type => (
+            <Icon key={type} type={type} {...commonProps} onClick={() => commonProps.onClick(type)} />
+          ))}
         </Box>
       </Box>
     ))

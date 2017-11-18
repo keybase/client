@@ -75,6 +75,128 @@
       ]
     },
     {
+      "type": "enum",
+      "name": "MessageSystemType",
+      "symbols": [
+        "ADDEDTOTEAM_0",
+        "INVITEADDEDTOTEAM_1",
+        "COMPLEXTEAM_2"
+      ]
+    },
+    {
+      "type": "record",
+      "name": "MessageSystemAddedToTeam",
+      "fields": [
+        {
+          "type": "string",
+          "name": "team"
+        },
+        {
+          "type": "string",
+          "name": "adder"
+        },
+        {
+          "type": "string",
+          "name": "addee"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "owners"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "admins"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "writers"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "readers"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "MessageSystemInviteAddedToTeam",
+      "fields": [
+        {
+          "type": "string",
+          "name": "team"
+        },
+        {
+          "type": "string",
+          "name": "inviter"
+        },
+        {
+          "type": "string",
+          "name": "invitee"
+        },
+        {
+          "type": "string",
+          "name": "adder"
+        },
+        {
+          "type": "keybase1.TeamInviteCategory",
+          "name": "inviteType"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "MessageSystemComplexTeam",
+      "fields": [
+        {
+          "type": "string",
+          "name": "team"
+        }
+      ]
+    },
+    {
+      "type": "variant",
+      "name": "MessageSystem",
+      "switch": {
+        "type": "MessageSystemType",
+        "name": "systemType"
+      },
+      "cases": [
+        {
+          "label": {
+            "name": "ADDEDTOTEAM",
+            "def": false
+          },
+          "body": "MessageSystemAddedToTeam"
+        },
+        {
+          "label": {
+            "name": "INVITEADDEDTOTEAM",
+            "def": false
+          },
+          "body": "MessageSystemInviteAddedToTeam"
+        },
+        {
+          "label": {
+            "name": "COMPLEXTEAM",
+            "def": false
+          },
+          "body": "MessageSystemComplexTeam"
+        }
+      ]
+    },
+    {
       "type": "record",
       "name": "AssetMetadataImage",
       "fields": [
@@ -365,6 +487,13 @@
             "def": false
           },
           "body": "MessageLeave"
+        },
+        {
+          "label": {
+            "name": "SYSTEM",
+            "def": false
+          },
+          "body": "MessageSystem"
         }
       ]
     },
@@ -1241,6 +1370,27 @@
     },
     {
       "type": "record",
+      "name": "MessageIDControl",
+      "fields": [
+        {
+          "type": [
+            null,
+            "MessageID"
+          ],
+          "name": "pivot"
+        },
+        {
+          "type": "boolean",
+          "name": "recent"
+        },
+        {
+          "type": "int",
+          "name": "num"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "GetThreadQuery",
       "fields": [
         {
@@ -1271,6 +1421,13 @@
             "gregor1.Time"
           ],
           "name": "after"
+        },
+        {
+          "type": [
+            null,
+            "MessageIDControl"
+          ],
+          "name": "messageIDControl"
         }
       ]
     },
@@ -2318,6 +2475,67 @@
       ],
       "response": "PostLocalRes"
     },
+    "postMetadataNonblock": {
+      "request": [
+        {
+          "name": "conversationID",
+          "type": "ConversationID"
+        },
+        {
+          "name": "tlfName",
+          "type": "string"
+        },
+        {
+          "name": "tlfPublic",
+          "type": "boolean"
+        },
+        {
+          "name": "channelName",
+          "type": "string"
+        },
+        {
+          "name": "outboxID",
+          "type": [
+            null,
+            "OutboxID"
+          ]
+        },
+        {
+          "name": "clientPrev",
+          "type": "MessageID"
+        },
+        {
+          "name": "identifyBehavior",
+          "type": "keybase1.TLFIdentifyBehavior"
+        }
+      ],
+      "response": "PostLocalNonblockRes"
+    },
+    "postMetadata": {
+      "request": [
+        {
+          "name": "conversationID",
+          "type": "ConversationID"
+        },
+        {
+          "name": "tlfName",
+          "type": "string"
+        },
+        {
+          "name": "tlfPublic",
+          "type": "boolean"
+        },
+        {
+          "name": "channelName",
+          "type": "string"
+        },
+        {
+          "name": "identifyBehavior",
+          "type": "keybase1.TLFIdentifyBehavior"
+        }
+      ],
+      "response": "PostLocalRes"
+    },
     "SetConversationStatusLocal": {
       "request": [
         {
@@ -2684,6 +2902,15 @@
       "response": "JoinLeaveConversationLocalRes"
     },
     "joinConversationByIDLocal": {
+      "request": [
+        {
+          "name": "convID",
+          "type": "ConversationID"
+        }
+      ],
+      "response": "JoinLeaveConversationLocalRes"
+    },
+    "previewConversationByIDLocal": {
       "request": [
         {
           "name": "convID",

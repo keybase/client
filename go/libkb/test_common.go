@@ -16,7 +16,6 @@ import (
 	"runtime"
 	"strings"
 	"sync"
-	"testing"
 	"time"
 
 	"golang.org/x/net/context"
@@ -34,13 +33,34 @@ type TestConfig struct {
 
 func (c *TestConfig) GetConfigFileName() string { return c.configFileName }
 
-func MakeThinGlobalContextForTesting(t *testing.T) *GlobalContext {
+// TestingTB is a copy of the exported parts of testing.TB. We define
+// this in order to avoid pulling in the "testing" package in exported
+// code.
+type TestingTB interface {
+	Error(args ...interface{})
+	Errorf(format string, args ...interface{})
+	Fail()
+	FailNow()
+	Failed() bool
+	Fatal(args ...interface{})
+	Fatalf(format string, args ...interface{})
+	Log(args ...interface{})
+	Logf(format string, args ...interface{})
+	Name() string
+	Skip(args ...interface{})
+	SkipNow()
+	Skipf(format string, args ...interface{})
+	Skipped() bool
+	Helper()
+}
+
+func MakeThinGlobalContextForTesting(t TestingTB) *GlobalContext {
 	g := NewGlobalContext().Init()
 	g.Log = logger.NewTestLogger(t)
 	return g
 }
 
-func makeLogGetter(t *testing.T) func() logger.Logger {
+func makeLogGetter(t TestingTB) func() logger.Logger {
 	return func() logger.Logger { return logger.NewTestLogger(t) }
 }
 
@@ -53,11 +73,11 @@ func (c *TestConfig) CleanTest() {
 // TestOutput is a mock interface for capturing and testing output
 type TestOutput struct {
 	expected string
-	t        *testing.T
+	t        TestingTB
 	called   *bool
 }
 
-func NewTestOutput(e string, t *testing.T, c *bool) TestOutput {
+func NewTestOutput(e string, t TestingTB, c *bool) TestOutput {
 	return TestOutput{e, t, c}
 }
 
@@ -75,7 +95,7 @@ type TestContext struct {
 	PrevGlobal *GlobalContext
 	Tp         *TestParameters
 	// TODO: Rename this to TB.
-	T testing.TB
+	T TestingTB
 }
 
 func (tc *TestContext) Cleanup() {
@@ -170,7 +190,7 @@ func (tc TestContext) ClearAllStoredSecrets() error {
 
 var setupTestMu sync.Mutex
 
-func setupTestContext(tb testing.TB, name string, tcPrev *TestContext) (tc TestContext, err error) {
+func setupTestContext(tb TestingTB, name string, tcPrev *TestContext) (tc TestContext, err error) {
 	setupTestMu.Lock()
 	defer setupTestMu.Unlock()
 	tc.Tp = &TestParameters{}
@@ -257,7 +277,7 @@ func setupTestContext(tb testing.TB, name string, tcPrev *TestContext) (tc TestC
 }
 
 // The depth argument is now ignored.
-func SetupTest(tb testing.TB, name string, depth int) (tc TestContext) {
+func SetupTest(tb TestingTB, name string, depth int) (tc TestContext) {
 	var err error
 	tc, err = setupTestContext(tb, name, nil)
 	if err != nil {
@@ -435,7 +455,7 @@ type FakeGregorDismisser struct {
 
 var _ GregorDismisser = (*FakeGregorDismisser)(nil)
 
-func (f *FakeGregorDismisser) DismissItem(cli gregor1.IncomingInterface, id gregor.MsgID) error {
+func (f *FakeGregorDismisser) DismissItem(_ context.Context, cli gregor1.IncomingInterface, id gregor.MsgID) error {
 	f.dismissedIDs = append(f.dismissedIDs, id)
 	return nil
 }
@@ -454,6 +474,10 @@ func NewTestUIDMapper(ul UPAKLoader) TestUIDMapper {
 	return TestUIDMapper{
 		ul: ul,
 	}
+}
+
+func (t TestUIDMapper) ClearUIDAtEldestSeqno(_ context.Context, _ UIDMapperContext, _ keybase1.UID, _ keybase1.Seqno) error {
+	return nil
 }
 
 func (t TestUIDMapper) CheckUIDAgainstUsername(uid keybase1.UID, un NormalizedUsername) bool {

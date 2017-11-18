@@ -87,8 +87,8 @@ func TestCryptoSignED25519NoSigningKey(t *testing.T) {
 		Msg: []byte("test message"),
 	})
 
-	if _, ok := err.(libkb.SelfNotFoundError); !ok {
-		t.Errorf("expected SelfNotFoundError, got %v", err)
+	if _, ok := err.(libkb.LoginRequiredError); !ok {
+		t.Errorf("expected LoginRequiredError, got %v", err)
 	}
 }
 
@@ -216,8 +216,8 @@ func TestCryptoUnboxBytes32NoEncryptionKey(t *testing.T) {
 	}
 	_, err := UnboxBytes32(context.TODO(), tc.G, f, keybase1.UnboxBytes32Arg{})
 
-	if _, ok := err.(libkb.SelfNotFoundError); !ok {
-		t.Errorf("expected SelfNotFoundError, got %v", err)
+	if _, ok := err.(libkb.LoginRequiredError); !ok {
+		t.Errorf("expected LoginRequiredError, got %v", err)
 	}
 }
 

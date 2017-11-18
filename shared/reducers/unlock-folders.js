@@ -1,7 +1,7 @@
 // @flow
 import * as CommonConstants from '../constants/common'
 import * as Constants from '../constants/unlock-folders'
-import {toDeviceType} from '../constants/types/more'
+import {toDeviceType} from '../constants/devices'
 
 const initialState: Constants.State = {
   closed: true,
@@ -13,7 +13,10 @@ const initialState: Constants.State = {
   waiting: false,
 }
 
-export default function(state: Constants.State = initialState, action: Constants.Actions): Constants.State {
+export default function(
+  state: Constants.State = initialState,
+  action: Constants.Actions | {type: 'common:resetStore', payload: void}
+): Constants.State {
   switch (action.type) {
     case CommonConstants.resetStore:
       return {

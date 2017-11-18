@@ -11,7 +11,6 @@ import urlHelper from './url-helper'
 import windowHelper from './window-helper'
 import {BrowserWindow, app, ipcMain, dialog, crashReporter} from 'electron'
 import {setupExecuteActionsListener, executeActionsForContext} from '../../util/quit-helper.desktop'
-import {allowMultipleInstances} from '../../local-debug.desktop'
 import startWinService from './start-win-service'
 import {isWindows, cacheRoot} from '../../constants/platform.desktop'
 
@@ -33,22 +32,20 @@ if (process.env.KEYBASE_CRASH_REPORT) {
 let mainWindow = null
 
 function start() {
-  if (!allowMultipleInstances) {
-    // Only one app per app in osx...
-    const shouldQuit = app.makeSingleInstance(() => {
-      if (mainWindow) {
-        mainWindow.show(true)
-        if (isWindows) {
-          mainWindow.window && mainWindow.window.focus()
-        }
+  // Only one app per app in osx...
+  const shouldQuit = app.makeSingleInstance(() => {
+    if (mainWindow) {
+      mainWindow.show(true)
+      if (isWindows) {
+        mainWindow.window && mainWindow.window.focus()
       }
-    })
-
-    if (shouldQuit) {
-      console.log('Only one instance of keybase GUI allowed, bailing!')
-      app.quit()
-      return
     }
+  })
+
+  if (shouldQuit) {
+    console.log('Only one instance of keybase GUI allowed, bailing!')
+    app.quit()
+    return
   }
 
   // Check supported OS version

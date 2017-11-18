@@ -1,18 +1,12 @@
 // @flow
+import * as ConfigGen from './config-gen'
 import * as Constants from '../constants/gregor'
+import * as GitGen from './git-gen'
+import * as GregorGen from './gregor-gen'
 import * as I from 'immutable'
+import * as RPCTypes from '../constants/types/flow-types'
 import engine from '../engine'
-import {
-  delegateUiCtlRegisterGregorFirehoseRpcPromise,
-  reachabilityCheckReachabilityRpcPromise,
-  reachabilityStartReachabilityRpcPromise,
-  ReachabilityReachable,
-  gregorInjectItemRpcPromise,
-  type PushReason,
-  type Reachability,
-} from '../constants/types/flow-types'
 import {all, call, put, select} from 'redux-saga/effects'
-import {bootstrap} from '../actions/config'
 import {clearErrors} from '../util/pictures'
 import {favoriteList, markTLFCreated} from './favorite'
 import {folderFromPath} from '../constants/favorite.js'
@@ -21,24 +15,15 @@ import {replaceEntity} from './entities'
 import {safeTakeEvery, safeTakeLatest} from '../util/saga'
 import {type Dispatch} from '../constants/types/flux'
 import {type SagaGenerator} from '../constants/types/saga'
-import {
-  type State as GregorState,
-  type ItemAndMetadata as GregorItem,
-  type OutOfBandMessage,
-} from '../constants/types/flow-types-gregor'
+import {type State as GregorState, type OutOfBandMessage} from '../constants/types/flow-types-gregor'
 import {type TypedState} from '../constants/reducer'
 import {usernameSelector, loggedInSelector} from '../constants/selectors'
-import {handleIncomingGregor as gitHandleIncomingGregor} from './git/creators'
-
-function pushState(state: GregorState, reason: PushReason): Constants.PushState {
-  return {type: Constants.pushState, payload: {state, reason}}
-}
 
 function pushOOBM(messages: Array<OutOfBandMessage>): Constants.PushOOBM {
   return {type: Constants.pushOOBM, payload: {messages}}
 }
 
-function updateReachability(reachability: Reachability): Constants.UpdateReachability {
+function updateReachability(reachability: RPCTypes.Reachability): Constants.UpdateReachability {
   return {type: Constants.updateReachability, payload: {reachability}}
 }
 
@@ -54,7 +39,7 @@ function injectItem(category: string, body: string, dtime?: ?Date): Constants.In
   return {type: Constants.injectItem, payload: {category, body, dtime}}
 }
 
-function isTlfItem(gItem: GregorItem): boolean {
+function isTlfItem(gItem: Constants.NonNullGregorItem): boolean {
   return !!(gItem && gItem.item && gItem.item.category && gItem.item.category === 'tlf')
 }
 
@@ -83,11 +68,11 @@ function registerReachability() {
       if (loggedInSelector(getState())) {
         dispatch(updateReachability(reachability))
 
-        if (reachability.reachable === ReachabilityReachable.yes) {
+        if (reachability.reachable === RPCTypes.reachabilityReachable.yes) {
           // TODO: We should be able to recover from connection problems
           // without re-bootstrapping. Originally we used to do this on HTML5
           // 'online' event, but reachability is more precise.
-          dispatch(bootstrap({isReconnect: true}))
+          dispatch(ConfigGen.createBootstrap({isReconnect: true}))
           clearErrors()
         }
       }
@@ -108,7 +93,7 @@ function checkReachabilityOnConnect() {
     // via reachabilityChanged.
     // This should be run on app start and service re-connect in case the
     // service somehow crashed or was restarted manually.
-    reachabilityStartReachabilityRpcPromise()
+    RPCTypes.reachabilityStartReachabilityRpcPromise()
       .then(reachability => {
         dispatch(updateReachability(reachability))
       })
@@ -120,7 +105,7 @@ function checkReachabilityOnConnect() {
 
 function registerGregorListeners() {
   return (dispatch: Dispatch) => {
-    delegateUiCtlRegisterGregorFirehoseRpcPromise()
+    RPCTypes.delegateUiCtlRegisterGregorFirehoseRpcPromise()
       .then(response => {
         console.log('Registered gregor listener')
       })
@@ -130,7 +115,7 @@ function registerGregorListeners() {
 
     // we get this with sessionID == 0 if we call openDialog
     engine().setIncomingHandler('keybase.1.gregorUI.pushState', ({state, reason}, response) => {
-      dispatch(pushState(state, reason))
+      dispatch(GregorGen.createPushState({state, reason}))
       response && response.result()
     })
 
@@ -166,7 +151,7 @@ function* handleChatBanner(items: Array<Constants.NonNullGregorItem>): SagaGener
   }
 }
 
-function* handlePushState(pushAction: Constants.PushState): SagaGenerator<any, any> {
+function* handlePushState(pushAction: GregorGen.PushStatePayload): SagaGenerator<any, any> {
   if (!pushAction.error) {
     const {payload: {state}} = pushAction
     const nonNullItems = toNonNullGregorItems(state)
@@ -181,22 +166,21 @@ function* handlePushState(pushAction: Constants.PushState): SagaGenerator<any, a
   }
 }
 
-function* handleKbfsFavoritesOOBM(kbfsFavoriteMessages: Array<OutOfBandMessage>) {
+function* handleKbfsFavoritesOOBM(kbfsFavoriteMessages: Array<OutOfBandMessage>): Generator<any, void, any> {
   const msgsWithParsedBodies = kbfsFavoriteMessages.map(m => ({...m, body: JSON.parse(m.body.toString())}))
   const createdTLFs = msgsWithParsedBodies.filter(m => m.body.action === 'create')
 
   const username: string = (yield select(usernameSelector): any)
-  yield all(
-    createdTLFs
-      .map(m => {
-        const folder = m.body.tlf ? markTLFCreated(folderFromPath(username, m.body.tlf)) : null
-        if (folder && folder.payload && folder.payload.folder) {
-          return put(folder)
-        }
-        console.warn('Failed to parse tlf for oobm:', m)
-      })
-      .filter(i => !!i)
-  )
+  const folderActions = createdTLFs.reduce((arr, m) => {
+    const folder = m.body.tlf ? markTLFCreated(folderFromPath(username, m.body.tlf)) : null
+    if (folder && folder.payload && folder.payload.folder) {
+      arr.push(put(folder))
+      return arr
+    }
+    console.warn('Failed to parse tlf for oobm:', m)
+    return arr
+  }, [])
+  yield all(folderActions)
 }
 
 function* handlePushOOBM(pushOOBM: Constants.PushOOBM) {
@@ -206,7 +190,7 @@ function* handlePushOOBM(pushOOBM: Constants.PushOOBM) {
     // Filter first so we don't dispatch unnecessary actions
     const gitMessages = messages.filter(i => i.system === 'git')
     if (gitMessages.length > 0) {
-      yield put(gitHandleIncomingGregor(gitMessages))
+      yield put(GitGen.createHandleIncomingGregor({messages: gitMessages}))
     }
 
     yield call(handleKbfsFavoritesOOBM, messages.filter(i => i.system === 'kbfs.favorites'))
@@ -216,23 +200,26 @@ function* handlePushOOBM(pushOOBM: Constants.PushOOBM) {
 }
 
 function* handleCheckReachability(): SagaGenerator<any, any> {
-  const reachability = yield call(reachabilityCheckReachabilityRpcPromise)
+  const reachability = yield call(RPCTypes.reachabilityCheckReachabilityRpcPromise)
   yield put({type: Constants.updateReachability, payload: {reachability}})
 }
 
 function* _injectItem(action: Constants.InjectItem): SagaGenerator<any, any> {
   const {category, body, dtime} = action.payload
-  yield call(gregorInjectItemRpcPromise, {
+  yield call(RPCTypes.gregorInjectItemRpcPromise, {
     param: {
       body,
       cat: category,
-      dtime,
+      dtime: {
+        time: dtime || 0,
+        offset: 0,
+      },
     },
   })
 }
 
 function* gregorSaga(): SagaGenerator<any, any> {
-  yield safeTakeEvery(Constants.pushState, handlePushState)
+  yield safeTakeEvery(GregorGen.pushState, handlePushState)
   yield safeTakeEvery(Constants.pushOOBM, handlePushOOBM)
   yield safeTakeEvery(Constants.injectItem, _injectItem)
   yield safeTakeLatest(Constants.checkReachability, handleCheckReachability)
@@ -241,7 +228,6 @@ function* gregorSaga(): SagaGenerator<any, any> {
 export {
   checkReachability,
   checkReachabilityOnConnect,
-  pushState,
   registerGregorListeners,
   registerReachability,
   listenForNativeReachabilityEvents,

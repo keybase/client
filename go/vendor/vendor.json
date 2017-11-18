@@ -90,6 +90,30 @@
 			"revisionTime": "2015-06-20T10:58:49+02:00"
 		},
 		{
+			"checksumSHA1": "RBwpnMpfQt7Jo7YWrRph0Vwe+f0=",
+			"path": "github.com/coreos/go-systemd/activation",
+			"revision": "d2196463941895ee908e13531a23a39feb9e1243",
+			"revisionTime": "2017-07-31T11:19:25Z"
+		},
+		{
+			"checksumSHA1": "+Zz+leZHHC9C0rx8DoRuffSRPso=",
+			"path": "github.com/coreos/go-systemd/daemon",
+			"revision": "d2196463941895ee908e13531a23a39feb9e1243",
+			"revisionTime": "2017-07-31T11:19:25Z"
+		},
+		{
+			"checksumSHA1": "5GD2mlKEoDM+bU1PfSlx8rAz4oc=",
+			"path": "github.com/coreos/go-systemd/util",
+			"revision": "d2196463941895ee908e13531a23a39feb9e1243",
+			"revisionTime": "2017-07-31T11:19:25Z"
+		},
+		{
+			"checksumSHA1": "O8c/VKtW34XPJNNlyeb/im8vWSI=",
+			"path": "github.com/coreos/pkg/dlopen",
+			"revision": "459346e834d8e97be707cd0ea1236acaaa159ffc",
+			"revisionTime": "2017-09-01T14:55:54Z"
+		},
+		{
 			"checksumSHA1": "dvabztWVQX8f6oMLRyv4dLH+TGY=",
 			"path": "github.com/davecgh/go-spew/spew",
 			"revision": "346938d642f2ec3594ed81d874461961cd0faa76",
@@ -154,9 +178,10 @@
 			"revisionTime": "2016-05-17T06:10:00Z"
 		},
 		{
+			"checksumSHA1": "As/C2CDekxCEGyFN5sOcrEt/r0Q=",
 			"path": "github.com/keybase/cli",
-			"revision": "18b3e3986cf707f059fd443667525dbc664a5716",
-			"revisionTime": "2016-03-08T10:58:20-08:00"
+			"revision": "f7d0b25da714078d8c84ac64afe8d88794d587e3",
+			"revisionTime": "2017-11-10T20:24:45Z"
 		},
 		{
 			"path": "github.com/keybase/clockwork",
@@ -259,10 +284,10 @@
 			"revisionTime": "2017-05-08T13:19:45Z"
 		},
 		{
-			"checksumSHA1": "no9uKY1SikUPABHWdHmgVrooOEw=",
+			"checksumSHA1": "aE/Fj4H1cpMzC2EvjXzKZmBvN4c=",
 			"path": "github.com/keybase/go-framed-msgpack-rpc/rpc",
-			"revision": "69af3d59399422d6ebe1dea19ba6dc3df5d906cb",
-			"revisionTime": "2017-10-09T23:01:07Z"
+			"revision": "955bc46cdcc8f946fba788d1d0c98990943bd3b2",
+			"revisionTime": "2017-11-07T19:26:12Z"
 		},
 		{
 			"checksumSHA1": "RLs8GIV4e+D350pyzZh5RC3mgQg=",
@@ -332,14 +357,14 @@
 		{
 			"checksumSHA1": "2dhlXqY/z//xieGJNGjMjL4X6Jw=",
 			"path": "github.com/keybase/keybase-test-vectors/go",
-			"revision": "2bfb94411295f18596046369f6bcb3a950ceb1b5",
-			"revisionTime": "2017-08-11T14:07:22Z"
+			"revision": "f14ba3a1aa9ffd72209efaed5342fcc17d66693c",
+			"revisionTime": "2017-11-06T21:33:07Z"
 		},
 		{
-			"checksumSHA1": "x3Cnxu6dehCSPc9aTjS1PO6INLU=",
+			"checksumSHA1": "M0LcepSKs6a5TOM7KXaoiuTKVJ0=",
 			"path": "github.com/keybase/keybase-test-vectors/teamchains",
-			"revision": "c6dbadb0aef19380fc20ff29bf54feb1c549d270",
-			"revisionTime": "2017-09-22T19:43:39Z"
+			"revision": "f14ba3a1aa9ffd72209efaed5342fcc17d66693c",
+			"revisionTime": "2017-11-06T21:33:07Z"
 		},
 		{
 			"path": "github.com/keybase/npipe",
@@ -758,6 +783,12 @@
 			"path": "golang.org/x/sync/semaphore",
 			"revision": "f52d1811a62927559de87708c8913c1650ce4f26",
 			"revisionTime": "2017-05-17T20:25:26Z"
+		},
+		{
+			"checksumSHA1": "dDWzJ5h90HfoQsEK12PtN4UpPlo=",
+			"path": "golang.org/x/sys/unix",
+			"revision": "58da1121af381632b48b2843aeb16299f2e1dc50",
+			"revisionTime": "2015-07-30T00:23:51Z"
 		},
 		{
 			"path": "golang.org/x/sys/windows",

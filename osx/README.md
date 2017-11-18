@@ -113,7 +113,7 @@ The KeybaseInstaller.app has options to install native components (via privilege
 For example, to install (or update) Fuse, you can run:
 
 ```sh
-/Applications/Keybase.app/Contents/Resources/KeybaseInstaller.app.app/Contents/MacOS/Keybase \
+/Applications/Keybase.app/Contents/Resources/KeybaseInstaller.app/Contents/MacOS/Keybase \
   --app-path=/Applications/Keybase.app --run-mode=prod --timeout=60 --install-fuse
 ```
 

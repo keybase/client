@@ -1,6 +1,6 @@
 // @flow
 // Handles sending requests to the daemon
-import * as Creators from './creators'
+import * as EngineGen from '../engine-gen'
 import mapValues from 'lodash/mapValues'
 import {RPCTimeoutError} from '../../util/errors'
 import engine, {EngineChannel} from '../../engine'
@@ -41,9 +41,10 @@ type RpcRunResult = Finished | FluxTypes.NoErrorTypedAction<'@@engineRPCCall:bai
 
 function _sagaWaitingDecorator(rpcNameKey, saga) {
   return function* _sagaWaitingDecoratorHelper(...args: any) {
-    yield put(Creators.waitingForRpc(rpcNameKey, false))
+    yield put(EngineGen.createWaitingForRpc({name: rpcNameKey, waiting: false}))
+    // $FlowIssue has no way to type this
     yield call(saga, ...args)
-    yield put(Creators.waitingForRpc(rpcNameKey, true))
+    yield put(EngineGen.createWaitingForRpc({name: rpcNameKey, waiting: true}))
   }
 }
 
@@ -68,6 +69,7 @@ function _handleRPCDecorator(rpcNameKey, saga) {
 // This decorator to put the result on a channel
 function _putReturnOnChan(chan, saga) {
   return function* _putReturnOnChanHelper(...args: any) {
+    // $FlowIssue has no way to type this
     const returnVal = yield call(saga, ...args)
     yield put(chan, _subSagaFinished(returnVal))
   }
@@ -123,7 +125,7 @@ class EngineRpcCall {
       }
       this._engineChannel.close()
       this._subSagaChannel.close()
-      yield put(Creators.waitingForRpc(this._rpcNameKey, false))
+      yield put(EngineGen.createWaitingForRpc({name: this._rpcNameKey, waiting: false}))
     } else {
       console.error('Already cleaned up')
     }
@@ -184,6 +186,7 @@ class EngineRpcCall {
         }
 
         // We could have multiple things told to us!
+        // $FlowIssue has no way to type this
         const subSagaTask = yield fork(this._subSagas[raceWinner], result)
         subSagaTasks.push(subSagaTask)
       } finally {

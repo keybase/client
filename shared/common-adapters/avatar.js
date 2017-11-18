@@ -1,6 +1,5 @@
 // @flow
 // High level avatar class. Handdles converting from usernames to urls. Deals with testing mode.
-import * as I from 'immutable'
 import * as React from 'react'
 import Render from './avatar.render'
 import pickBy from 'lodash/pickBy'
@@ -10,6 +9,7 @@ import {requestIdleCallback} from '../util/idle-callback'
 import {globalStyles} from '../styles'
 
 import type {IconType} from './icon'
+import type {URLType, AvatarSize} from './avatar.render'
 
 export type URLMap = {
   '200': string,
@@ -17,14 +17,12 @@ export type URLMap = {
   '40': string,
 }
 
-export type AvatarSize = 176 | 112 | 80 | 64 | 48 | 40 | 32 | 24 | 16 | 12
 export type UserPictureSize = 360 | 200 | 40
 export type AvatarLookupCallback = (username: string, urlMap: ?URLMap) => void
 export type AvatarLookup = (username: string) => ?URLMap
 export type AvatarLoad = (username: string, callback: AvatarLookupCallback) => void
 export type TeamAvatarLookup = (teamname: string) => ?URLMap
 export type TeamAvatarLoad = (teamname: string, callback: AvatarLookupCallback) => void
-export type URLType = ?(string | Array<{height: number, width: number, uri: string}>)
 export type Props = {
   borderColor?: string,
   children?: any,
@@ -73,51 +71,51 @@ const teamPlaceHolders: {[key: string]: IconType} = {
   '80': 'icon-team-placeholder-avatar-80',
 }
 
-const followStateToType = I.Map({
-  '112': I.fromJS({
+const followStateToType = {
+  '112': {
     theyNo: {youYes: 'icon-following-28'},
     theyYes: {youNo: 'icon-follow-me-28', youYes: 'icon-mutual-follow-28'},
-  }),
-  '176': I.fromJS({
+  },
+  '176': {
     theyNo: {youYes: 'icon-following-32'},
     theyYes: {youNo: 'icon-follow-me-32', youYes: 'icon-mutual-follow-32'},
-  }),
-  '48': I.fromJS({
+  },
+  '48': {
     theyNo: {youYes: 'icon-following-21'},
     theyYes: {youNo: 'icon-follow-me-21', youYes: 'icon-mutual-follow-21'},
-  }),
-  '64': I.fromJS({
+  },
+  '64': {
     theyNo: {youYes: 'icon-following-21'},
     theyYes: {youNo: 'icon-follow-me-21', youYes: 'icon-mutual-follow-21'},
-  }),
-  '80': I.fromJS({
+  },
+  '80': {
     theyNo: {youYes: 'icon-following-21'},
     theyYes: {youNo: 'icon-follow-me-21', youYes: 'icon-mutual-follow-21'},
-  }),
-})
+  },
+}
 
-const followStateToSize = I.Map({
-  '112': I.fromJS({
+const followStateToSize = {
+  '112': {
     theyNo: {youYes: 28},
     theyYes: {youNo: 28, youYes: 28},
-  }),
-  '176': I.fromJS({
+  },
+  '176': {
     theyNo: {youYes: 32},
     theyYes: {youNo: 32, youYes: 32},
-  }),
-  '48': I.fromJS({
+  },
+  '48': {
     theyNo: {youYes: 21},
     theyYes: {youNo: 21, youYes: 21},
-  }),
-  '64': I.fromJS({
+  },
+  '64': {
     theyNo: {youYes: 21},
     theyYes: {youNo: 21, youYes: 21},
-  }),
-  '80': I.fromJS({
+  },
+  '80': {
     theyNo: {youYes: 21},
     theyYes: {youNo: 21, youYes: 21},
-  }),
-})
+  },
+}
 
 const followSizeToStyle = {
   '112': {bottom: 0, left: 80, position: 'absolute'},
@@ -253,19 +251,23 @@ class Avatar extends React.PureComponent<Props, State> {
   }
 
   _followIconType() {
-    return followStateToType.getIn([
-      String(this.props.size),
-      `they${this.props.followsYou ? 'Yes' : 'No'}`,
-      `you${this.props.following ? 'Yes' : 'No'}`,
-    ])
+    const sizeString = String(this.props.size)
+    if (followStateToType.hasOwnProperty(sizeString)) {
+      return followStateToType[sizeString][this.props.followsYou ? 'theyYes' : 'theyNo'][
+        this.props.following ? 'youYes' : 'youNo'
+      ]
+    }
+    return null
   }
 
   _followIconSize() {
-    return followStateToSize.getIn([
-      String(this.props.size),
-      `they${this.props.followsYou ? 'Yes' : 'No'}`,
-      `you${this.props.following ? 'Yes' : 'No'}`,
-    ])
+    const sizeString = String(this.props.size)
+    if (followStateToSize.hasOwnProperty(sizeString)) {
+      return followStateToSize[sizeString][this.props.followsYou ? 'theyYes' : 'theyNo'][
+        this.props.following ? 'youYes' : 'youNo'
+      ]
+    }
+    return 0
   }
 
   render() {
@@ -319,3 +321,4 @@ const initLoad = (loadAvatar: AvatarLoad, loadTeam: TeamAvatarLoad) => {
 
 export default Avatar
 export {initLoad, initLookup}
+export type {AvatarSize}

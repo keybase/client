@@ -207,6 +207,10 @@ func (e *Kex2Provisioner) GetHello2Arg() (arg2 keybase1.Hello2Arg, err error) {
 	defer func() { e.G().Log.Debug("- GetHello2Arg() -> %s", libkb.ErrToOk(err)) }()
 	var arg1 keybase1.HelloArg
 	arg1, err = e.GetHelloArg()
+	if err != nil {
+		return arg2, err
+	}
+
 	arg2 = keybase1.Hello2Arg{
 		Uid:     arg1.Uid,
 		Token:   arg1.Token,

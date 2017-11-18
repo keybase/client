@@ -1,4 +1,63 @@
 // @flow
+import * as React from 'react'
+import Box from './box'
+import PopupDialog from './popup-dialog'
+import {connect} from 'react-redux'
+import {isMobile} from '../constants/platform'
+import {globalColors} from '../styles'
+
+const MaybePopup = isMobile
+  ? (props: {onClose: () => void, children: React.Node}) => (
+      <Box style={{height: '100%', width: '100%'}} children={props.children} />
+    )
+  : (props: {
+      onClose: () => void,
+      children: React.Node,
+      cover?: boolean,
+      styleCover?: any,
+      styleContainer?: any,
+    }) => (
+      <PopupDialog
+        onClose={props.onClose}
+        styleCover={props.cover ? {..._styleCover, ...props.styleCover} : {}}
+        styleContainer={props.cover ? {..._styleContainer, ...props.styleContainer} : {}}
+        children={props.children}
+      />
+    )
+
+// TODO properly type this
+const DispatchNavUpHoc: any = connect(undefined, (dispatch, {navigateUp}) => ({
+  connectedNavigateUp: () => dispatch(navigateUp()),
+}))
+
+// TODO properly type this
+const _MaybePopupHoc: any = (cover: boolean) => {
+  return WrappedComponent => props => {
+    const onClose = props.onClose || props.connectedNavigateUp
+    return (
+      <MaybePopup onClose={onClose} cover={!!cover}>
+        <WrappedComponent onClose={onClose} {...props} />
+      </MaybePopup>
+    )
+  }
+}
+
+type MaybePopupHocType<P> = (
+  cover: boolean
+) => (WrappedComponent: React.ComponentType<P>) => React.ComponentType<P>
+const MaybePopupHoc: MaybePopupHocType<*> = (cover: boolean) => Component =>
+  DispatchNavUpHoc(_MaybePopupHoc(cover)(Component))
+
+const _styleCover = {
+  alignItems: 'stretch',
+  backgroundColor: globalColors.black_75,
+  justifyContent: 'stretch',
+}
+
+const _styleContainer = {
+  height: '100%',
+}
+
 export {initAvatarLookup, initAvatarLoad} from './index.shared'
 export {default as AutosizeInput} from './autosize-input'
 export {default as Avatar} from './avatar'
@@ -29,6 +88,7 @@ export {default as LoadingLine} from './loading-line'
 export {default as LinkWithIcon} from './link-with-icon'
 export {default as ListItem} from './list-item'
 export {default as Markdown} from './markdown'
+export {MaybePopup, MaybePopupHoc}
 export {default as MultiAvatar} from './multi-avatar.js'
 export {default as Meta} from './meta'
 export {default as PlatformIcon} from './platform-icon'

@@ -125,8 +125,11 @@ func (c *CmdDeviceRemove) Run() (err error) {
 		ui.Output("You tried to remove the last device in your account. If you are\n")
 		ui.Output("sure you want to remove it, then run\n\n")
 		ui.Output("\tkeybase device remove --force-last <device id or name>\n\n")
-		// XXX uncomment this when CORE-5364 is done
-		// ui.Output("Your account will be automatically reset afterward.\n\n")
+		ui.Output("Your account will be automatically reset afterward.\n\n")
+	case libkb.RevokeLastDevicePGPError:
+		ui.Output("You tried to remove the last device in your account. Because\n")
+		ui.Output("you also have a PGP key, you cannot do this.\n\n")
+		ui.Output("You can reset your account here:  https://keybase.io/#account-reset\n\n")
 	default:
 		return err
 	}

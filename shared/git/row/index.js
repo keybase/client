@@ -66,8 +66,7 @@ class Row extends React.Component<Props, State> {
           ..._rowStyle,
           ...(this.props.expanded
             ? {
-                backgroundColor: globalColors.blue5,
-                borderColor: globalColors.black_05,
+                backgroundColor: globalColors.blue4,
                 paddingBottom: isMobile ? globalMargins.tiny : 0,
               }
             : {}),
@@ -245,7 +244,7 @@ const _inputStyle = {
 const _bubbleStyle = {
   ...globalStyles.flexBoxCenter,
   backgroundColor: globalColors.white,
-  borderColor: globalColors.black_05,
+  borderColor: globalColors.black_10,
   borderRadius: 200,
   borderStyle: 'solid',
   borderWidth: 1,
@@ -303,6 +302,7 @@ const _rowStyle = {
   borderStyle: 'solid',
   borderTopWidth: 1,
   flexShrink: 0,
+  marginBottom: 1,
   minHeight: globalMargins.large,
   paddingLeft: 0,
   width: '100%',
@@ -319,5 +319,4 @@ const _rowClickStyleExpanded = {
   paddingBottom: 0,
 }
 
-// $FlowIssue we need to fix up timer hoc props
 export default HOCTimers(Row)

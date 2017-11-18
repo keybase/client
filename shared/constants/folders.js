@@ -2,7 +2,7 @@
 // TODO(mm) Everytype in this file should be pure...
 import type {UserList} from '../common-adapters/usernames'
 import type {Props as FileProps} from '../folders/files/file/render'
-import type {DeviceType} from '../constants/types/more'
+import type {DeviceType} from '../constants/devices'
 import type {Folder as FolderRPC} from '../constants/types/flow-types'
 
 export type FileSection = {
@@ -34,6 +34,7 @@ export type Folder = {
     username: string,
   },
   isPublic: boolean,
+  isTeam: boolean,
   ignored: boolean,
   hasData: boolean,
   recentFiles: Array<FileSection>, // TODO make pure
@@ -42,7 +43,8 @@ export type Folder = {
 }
 
 export type FolderRPCWithMeta = {
+  ...FolderRPC,
   meta: MetaType,
   waitingForParticipantUnlock: Array<ParticipantUnlock>,
   youCanUnlock: Array<Device>,
-} & FolderRPC
+}

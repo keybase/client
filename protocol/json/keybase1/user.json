@@ -558,6 +558,15 @@
         }
       ],
       "response": null
+    },
+    "meUserVersion": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        }
+      ],
+      "response": "UserVersion"
     }
   },
   "namespace": "keybase.1"

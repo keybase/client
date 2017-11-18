@@ -6,7 +6,6 @@ import get from 'lodash/get'
 import engine from '../engine'
 import openUrl from '../util/open-url'
 import {requestIdleCallback} from '../util/idle-callback'
-import {showAllTrackers} from '../local-debug'
 import {isMobile} from '../constants/platform'
 import {type Action, type AsyncAction} from '../constants/types/flux'
 import {type State as ConfigState} from '../constants/config'
@@ -124,7 +123,7 @@ function triggerIdentify(
           useDelegateUI: true,
           needProofSet: true,
           reason: {
-            type: RPCTypes.IdentifyCommonIdentifyReasonType.id,
+            type: RPCTypes.identifyCommonIdentifyReasonType.id,
             reason: profileFromUI,
             resource: '',
           },
@@ -433,7 +432,7 @@ function _serverCallMap(
   getState: Function,
   onStart: ?(username: string) => void,
   onFinish: ?() => void
-): RPCTypes.incomingCallMapType {
+): RPCTypes.IncomingCallMapType {
   // if true we already have a pending call so lets skip a ton of work
   let username
   let clearPendingTimeout
@@ -555,7 +554,7 @@ function _serverCallMap(
       addToIdleResponseQueue(() => {
         if (key.breaksTracking) {
           dispatch({type: Constants.updateEldestKidChanged, payload: {username}})
-          if (key.trackDiff.type === RPCTypes.IdentifyCommonTrackDiffType.newEldest) {
+          if (key.trackDiff && key.trackDiff.type === RPCTypes.identifyCommonTrackDiffType.newEldest) {
             dispatch({
               type: Constants.updateReason,
               payload: {username, reason: `${username} has reset their account!`},
@@ -700,11 +699,6 @@ function _serverCallMap(
 
         dispatch({type: Constants.identifyFinished, payload: {username}})
 
-        if (showAllTrackers && !isGetProfile) {
-          console.log('showAllTrackers is on, so showing tracker')
-          dispatch({type: Constants.showTracker, payload: {username}})
-        }
-
         dispatch({
           type: Constants.markActiveIdentifyUi,
           payload: {username, active: false},
@@ -785,11 +779,8 @@ function _listTrackersOrTracking(
       },
     })
       .then(response => {
-        if (response.users) {
-          resolve(response.users.map(_parseFriendship))
-        } else {
-          reject(new Error('invalid tracker result'))
-        }
+        // response.users is null if the user has no followers/follows.
+        resolve((response.users || []).map(_parseFriendship))
       })
       .catch(error => {
         console.log('err getting trackers', error)

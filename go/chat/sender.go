@@ -330,8 +330,8 @@ func (s *BlockingSender) checkTopicNameAndGetState(ctx context.Context, msg chat
 		tlfID := msg.ClientHeader.Conv.Tlfid
 		topicType := msg.ClientHeader.Conv.TopicType
 		newTopicName := msg.MessageBody.Metadata().ConversationTitle
-		convs, _, err := GetTLFConversations(ctx, s.G(), s.DebugLabeler, s.getRi,
-			msg.ClientHeader.Sender, tlfID, topicType, membersType)
+		convs, _, err := s.G().TeamChannelSource.GetChannelsFull(ctx, msg.ClientHeader.Sender, tlfID,
+			topicType)
 		if err != nil {
 			return topicNameState, err
 		}
@@ -408,6 +408,9 @@ func (s *BlockingSender) Prepare(ctx context.Context, plaintext chat1.MessagePla
 	case chat1.MessageType_EDIT:
 		atMentions, chanMention = utils.ParseAtMentionedUIDs(ctx,
 			plaintext.MessageBody.Edit().Body, s.G().GetUPAKLoader(), &s.DebugLabeler)
+	case chat1.MessageType_SYSTEM:
+		atMentions, chanMention = utils.SystemMessageMentions(ctx, plaintext.MessageBody.System(),
+			s.G().GetUPAKLoader())
 	}
 
 	if len(atMentions) > 0 {

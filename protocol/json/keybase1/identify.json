@@ -109,6 +109,10 @@
             "keys": "UserVersion"
           },
           "name": "trackBreaks"
+        },
+        {
+          "type": "TLFID",
+          "name": "folderID"
         }
       ]
     }

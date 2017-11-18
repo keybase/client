@@ -86,6 +86,7 @@ protocol chatUi {
     union {null, gregor1.Time} senderDeviceRevokedAt;
     array<string> atMentions;
     ChannelMention channelMention;
+    array<string> channelNameMentions;
   }
 
   record UIMessageOutbox {

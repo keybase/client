@@ -112,8 +112,12 @@ const makeCommonConfig = () => {
       ? []
       : [
           new UglifyJSPlugin({
-            comments: false,
             sourceMap: true,
+            uglifyOptions: {
+              output: {
+                comments: false,
+              },
+            },
           }),
         ]
 

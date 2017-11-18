@@ -1,9 +1,9 @@
 // @flow
+import * as LoginGen from '../../../actions/login-gen'
 import React, {Component} from 'react'
 import SetPublicName, {type State} from '.'
-import {connect, type TypedState} from '../../../util/container'
-import * as Creators from '../../../actions/login/creators'
 import {clearDeviceNameError} from '../../../actions/signup'
+import {connect, type TypedState} from '../../../util/container'
 import {type RouteProps} from '../../../route-tree/render-route'
 
 const trimDeviceName = (s: ?string): string => {
@@ -90,11 +90,11 @@ const mapStateToProps = (state: TypedState, {routeProps}: OwnProps) => ({
 
 const mapDispatchToProps = (dispatch: Dispatch<*>) => ({
   clearDeviceNameError: () => dispatch(clearDeviceNameError()),
-  onBack: () => dispatch(Creators.onBack()),
-  onSubmit: deviceName => {
+  onBack: () => dispatch(LoginGen.createOnBack()),
+  onSubmit: (deviceName: string) => {
     // map 'smart apostrophes' to ASCII (typewriter apostrophe)
     deviceName = deviceName.replace(/[\u2018\u2019\u0060\u00B4]/g, "'")
-    dispatch(Creators.submitDeviceName(deviceName))
+    dispatch(LoginGen.createSubmitDeviceName({deviceName}))
   },
 })
 

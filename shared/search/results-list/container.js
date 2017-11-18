@@ -1,7 +1,6 @@
 // @flow
 import {connect, type TypedState} from '../../util/container'
 import React from 'react'
-import {isMobile} from '../../constants/platform'
 import {ProgressIndicator} from '../../common-adapters'
 import SearchResultsList from '.'
 import * as Creators from '../../actions/search/creators'
@@ -46,10 +45,8 @@ export default compose(
   branch(props => props.pending, renderComponent(() => <ProgressIndicator style={styleSpinner} />))
 )(SearchResultsList)
 
-const styleSpinner = isMobile
-  ? {width: globalMargins.xlarge}
-  : {
-      alignSelf: 'center',
-      marginTop: globalMargins.small,
-      width: globalMargins.large,
-    }
+const styleSpinner = {
+  alignSelf: 'center',
+  marginTop: globalMargins.small,
+  width: 24,
+}

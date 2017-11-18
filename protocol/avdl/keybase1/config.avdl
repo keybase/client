@@ -76,7 +76,8 @@ protocol config {
     NONE_0,
     AUTO_1,
     WATCHDOG_2,
-    LAUNCHD_3
+    LAUNCHD_3,
+    SYSTEMD_4
   }
 
   record Config {
@@ -88,6 +89,7 @@ protocol config {
     string gpgPath;
     string version;
     string path;
+    string binaryRealpath;
     string configPath;
     string versionShort;
     string versionFull;

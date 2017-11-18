@@ -396,7 +396,7 @@ func doRetry(ctx context.Context, g Contextifier, arg APIArg, cli *Client, req *
 // a canceler, and an error. The canceler ought to be called before the caller (or its caller) is done
 // with this request.
 func doTimeout(origCtx context.Context, g Contextifier, cli *Client, req *http.Request, timeout time.Duration) (*http.Response, func(), error) {
-	ctx, cancel := context.WithTimeout(origCtx, timeout*CITimeMultiplier(g))
+	ctx, cancel := context.WithTimeout(origCtx, timeout*CITimeMultiplier(g.G()))
 	resp, err := ctxhttp.Do(ctx, cli.cli, req)
 	return resp, cancel, err
 }
@@ -546,6 +546,17 @@ func (a *InternalAPIEngine) consumeHeaders(resp *http.Response) (err error) {
 			defer a.G().NotifyRouter.HandleClientOutOfDate(upgradeTo, upgradeURI, customMessage)
 			*g.lastUpgradeWarning = now
 		}
+		g.oodiMu.Unlock()
+	} else {
+		// We might be in a state where the server *used to* think we were out
+		// of date, but now it doesn't. (Maybe a bad config got pushed and then
+		// later fixed.) If so, we need to clear the global outOfDateInfo, so
+		// that the client stops printing warnings.
+		g := a.G()
+		g.oodiMu.Lock()
+		g.outOfDateInfo.UpgradeTo = ""
+		g.outOfDateInfo.UpgradeURI = ""
+		g.outOfDateInfo.CustomMessage = ""
 		g.oodiMu.Unlock()
 	}
 	return

@@ -146,15 +146,7 @@ class UserInput extends Component<Props, State> {
   }
 
   render() {
-    const {
-      autoFocus,
-      placeholder,
-      userItems,
-      usernameText,
-      onClickAddButton,
-      onAddSelectedUser,
-      onClearSearch,
-    } = this.props
+    const {autoFocus, placeholder, userItems, usernameText, onClickAddButton, onAddSelectedUser} = this.props
 
     const {isFocused, selectionStart, selectionEnd} = this.state
 
@@ -170,7 +162,15 @@ class UserInput extends Component<Props, State> {
     const showAddButton = !!userItems.length && !usernameText.length && onClickAddButton
     return (
       <ClickableBox feedback={false} onClick={this.focus}>
-        <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', flexWrap: 'wrap'}}>
+        <Box
+          style={{
+            ...globalStyles.flexBoxRow,
+            alignItems: 'center',
+            flexWrap: 'wrap',
+            minHeight: 40,
+            marginLeft: globalMargins.xtiny,
+          }}
+        >
           {userItems.map(item => <UserItem {...item} onRemoveUser={this._onRemoveUser} key={item.id} />)}
           <Box
             style={{
@@ -215,12 +215,6 @@ class UserInput extends Component<Props, State> {
                 }}
               />}
           </Box>
-          {onClearSearch &&
-            <Icon
-              type="iconfont-remove"
-              style={{height: 16, width: 16, marginRight: 16}}
-              onClick={onClearSearch}
-            />}
         </Box>
       </ClickableBox>
     )
@@ -245,9 +239,9 @@ const _pillTextStyle = {
 }
 
 const _inputStyle = {
-  ...getTextStyle('Body'),
-  fontSize: 14,
+  ...getTextStyle('BodySemibold'),
   color: globalColors.black_75,
+  fontWeight: '600',
   lineHeight: 20,
   height: 22,
   paddingTop: 2,

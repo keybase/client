@@ -1,0 +1,18 @@
+[Unit]
+Description=Keybase GUI
+Wants=keybase.service kbfs.service
+
+[Service]
+Type=simple
+ExecStart=/opt/keybase/Keybase
+# The environment file lets run_keybase pass along KEYBASE_START_UI. The
+# autostart file will set that to suppress showing the main window during boot.
+# %t is the XDG_RUNTIME_DIR, and the leading - means it's ok if the file is
+# missing.
+EnvironmentFile=-%t/keybase/keybase.gui.env
+
+# We don't set Restart=, since a GUI crash is probably visible to the user.
+
+# We don't have an [Install] section, since the app is intended to be started
+# from ~/.config/autostart. Running it in e.g. an SSH session is unlikely to be
+# correct.

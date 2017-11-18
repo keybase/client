@@ -26,7 +26,7 @@ func NewCmdChatCreateChannelRunner(g *libkb.GlobalContext) *CmdChatCreateChannel
 func newCmdChatCreateChannel(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	return cli.Command{
 		Name:         "create-channel",
-		Usage:        "Create a conversation channel",
+		Usage:        "Create a channel",
 		ArgumentHelp: "<team name> <channel name>",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(NewCmdChatCreateChannelRunner(g), "create-channel", c)

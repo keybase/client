@@ -7,7 +7,12 @@ import {storiesOf, action} from '../../stories/storybook'
 import {globalStyles, globalMargins} from '../../styles'
 
 const dummyStore = {
-  getState: () => ({}),
+  getState: () => ({
+    config: {
+      following: {},
+      username: 'chris',
+    },
+  }),
   subscribe: (...args) => {},
   dispatch: (...args) => {},
 }
@@ -73,7 +78,7 @@ const load = () => {
       const Hud = UpDownFilterHoc(({upCounter, downCounter, filter}) => (
         <Box style={{height: 100, width: 240, ...globalStyles.flexBoxColumn}}>
           <MentionHud
-            userIds={['marcopolo', 'trex']}
+            users={[{username: 'marcopolo', fullName: 'Marco Munizaga'}, {username: 'trex', fullName: ''}]}
             onPickUser={action('onPickUser')}
             onSelectUser={action('onSelectUser')}
             selectUpCounter={upCounter}

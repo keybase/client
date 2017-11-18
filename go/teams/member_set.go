@@ -76,10 +76,12 @@ func (m *memberSet) loadMembers(ctx context.Context, g *libkb.GlobalContext, req
 	return err
 }
 
-func (m *memberSet) loadGroup(ctx context.Context, g *libkb.GlobalContext, group []keybase1.UserVersion, storeRecipient, force bool) ([]member, error) {
+func (m *memberSet) loadGroup(ctx context.Context, g *libkb.GlobalContext,
+	group []keybase1.UserVersion, storeRecipient, forcePoll bool) ([]member, error) {
+
 	var members []member
 	for _, uv := range group {
-		mem, err := m.loadMember(ctx, g, uv, storeRecipient, force)
+		mem, err := m.loadMember(ctx, g, uv, storeRecipient, forcePoll)
 		if _, reset := err.(libkb.AccountResetError); reset {
 			if !storeRecipient {
 				// If caller doesn't care about keys, it probably expects
@@ -114,7 +116,6 @@ func loadMember(ctx context.Context, g *libkb.GlobalContext, uv keybase1.UserVer
 	defer g.CTrace(ctx, fmt.Sprintf("loadMember(%s)", uv), func() error { return err })()
 
 	upak, err := loadUPAK2(ctx, g, uv.Uid, forcePoll)
-
 	if upak != nil {
 		nun = libkb.NewNormalizedUsername(upak.Current.Username)
 	}
@@ -133,9 +134,12 @@ func loadMember(ctx context.Context, g *libkb.GlobalContext, uv keybase1.UserVer
 	// find the most recent per-user key
 	var key keybase1.PerUserKey
 	for _, puk := range upak.Current.PerUserKeys {
-		if puk.Seqno > key.Seqno {
+		if puk.Gen >= key.Gen {
 			key = puk
 		}
+	}
+	if key.Gen <= 0 {
+		return member{}, nun, fmt.Errorf("user has no per-user key: %v (%v)", uv.String(), nun.String())
 	}
 
 	// return a member with UserVersion and a PerUserKey
@@ -187,7 +191,7 @@ func (m *memberSet) AddRemainingRecipients(ctx context.Context, g *libkb.GlobalC
 		}
 		if _, err := m.loadMember(ctx, g, uv, true, true); err != nil {
 			if _, reset := err.(libkb.AccountResetError); reset {
-				g.Log.CInfof(ctx, "Skipping user was who reset: %s", uv.String())
+				g.Log.CDebugf(ctx, "Skipping user was who reset: %s", uv.String())
 				continue
 			}
 			return err

@@ -7,13 +7,12 @@ import {writeLogLinesToFile} from '../util/forward-logs'
 import logger from '../logger'
 
 import type {Dispatch} from '../constants/types/flux'
-import type {incomingCallMapType} from '../constants/types/flow-types'
+import type {IncomingCallMapType} from '../constants/types/flow-types'
 
 // TODO(mm) Move these to their own actions
-export default function(dispatch: Dispatch, getState: () => Object, notify: any): incomingCallMapType {
-  const fromShared = shared(dispatch, getState, notify)
-  return {
-    ...fromShared,
+export default function(dispatch: Dispatch, getState: () => Object, notify: any): IncomingCallMapType {
+  const fromShared: IncomingCallMapType = shared(dispatch, getState, notify)
+  const handlers: IncomingCallMapType = {
     'keybase.1.NotifyApp.exit': () => {
       console.log('App exit requested')
       remote.app.exit(0)
@@ -37,4 +36,12 @@ export default function(dispatch: Dispatch, getState: () => Object, notify: any)
       logger.dump().then(writeLogLinesToFile).then(() => response.result())
     },
   }
+
+  // $FlowIssue doesnt' like spreading exact types
+  const combined: IncomingCallMapType = {
+    ...fromShared,
+    ...handlers,
+  }
+
+  return combined
 }

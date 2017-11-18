@@ -27,8 +27,8 @@ func NewCmdChatLeaveChannelRunner(g *libkb.GlobalContext) *CmdChatLeaveChannel {
 func newCmdChatLeaveChannel(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	return cli.Command{
 		Name:         "leave-channel",
-		Usage:        "Leave a conversation channel",
-		ArgumentHelp: "[conversation [channel name]]",
+		Usage:        "Leave a channel",
+		ArgumentHelp: "<team name> <channel name>",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(NewCmdChatLeaveChannelRunner(g), "leave-channel", c)
 		},

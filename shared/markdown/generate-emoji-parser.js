@@ -4,6 +4,7 @@ import path from 'path'
 import peg from 'pegjs'
 import emojiData from 'emoji-datasource'
 import invert from 'lodash/invert'
+import tlds from 'tlds'
 
 // from https://github.com/twitter/twemoji/blob/gh-pages/twemoji-generator.js
 function UTF162JSON(text) {
@@ -54,13 +55,24 @@ function buildParser() {
     .replace('__EMOJI_CHARACTERS__', emojiCharacterClass)
     .replace(
       /__INLINE_MACRO__<([^>]*)>/g,
-      '($1 InlineDelimiter* InlineStart ((InlineDelimiter+ $1 InlineStart) / ($1 InlineCont))*)'
+      '($1 InlineStart ((InlineDelimiter+ $1 InlineStart) / ($1 InlineCont))*)'
     )
 
+  const linkExp = /^(?:(http(s)?):\/\/)?(([a-z0-9-]+\.)+([a-z]{2,63})|(\b(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\b))(((\/)|(\?))[a-z0-9.()\-_~:?#[\]@!$&'%*+,;=]*)*$/i
+  const tldPuncExp = /^(?:(http(s)?):\/\/)?(([a-z0-9-]+\.)+([a-z]{2,63})|(\b(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\b))([)\].,;:"']+$)/i
+  const tldExp = /^(?:(http(s)?):\/\/)?([a-z0-9-]+\.)+([a-z]{2,63})/i
+  const plaintextExp = /^([A-Za-z0-9!?=+#$%^&()[\],'"\s]|\.\B)*$/
+
   // the regexes here get recompiled on every parse if we put it in the initializer, so we force it to run at import time.
+  //
+  // NOTE: Don't use import here ever. We can't mix import and module.exports. You can use require (or inject the output using stringify)
+  //
   // $FlowIssue Unclear why flow isn't accepting String.raw here
   const prependJS = String.raw`
-    const linkExp = /^[(\[{\`"']*(http(s?):\/\/)?(((www\.)?[a-zA-Z0-9\.\-\_]+(\.[a-zA-Z]{2,3})+(?![[{\]()}]+))|(\b(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\b))((\/|\?)[a-zA-Z0-9\_\-\s\.\/\?\(\)~,@\!:\+\%\#\&\?\=]*)?[)\]}"\`"']*$/i
+    const tlds = ${JSON.stringify(tlds)}
+    const linkExp = ${linkExp}
+    const tldPuncExp = ${tldPuncExp}
+    const tldExp = ${tldExp}
     const emojiExp = ${emojiRegex}
     const emojiIndexByChar = ${JSON.stringify(emojiIndexByChar)}
     const emojiIndexByName = ${JSON.stringify(invert(emojiIndexByChar))}
@@ -74,7 +86,7 @@ function buildParser() {
     // quick check to avoid markdown parsing overhead
     // only chars, numbers, whitespace, some common punctuation and periods
     // that end sentences (not domains)
-    const plaintextExp = /^([A-Za-z0-9!?=+#$%^&()[\],'"\s]|\.\B)*$/
+    const plaintextExp = ${plaintextExp}
     module.exports.isPlainText = function isPlainText(markdown) {
       return markdown && markdown.match(plaintextExp) ? markdown.trim() : null
     }

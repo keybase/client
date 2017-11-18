@@ -39,4 +39,11 @@ func (i *inboxMemCacheImpl) Clear(uid gregor1.UID) {
 	delete(i.datMap, uid.String())
 }
 
+func (i *inboxMemCacheImpl) OnLogout() error {
+	i.Lock()
+	defer i.Unlock()
+	i.datMap = make(map[string]*inboxDiskData)
+	return nil
+}
+
 var inboxMemCache = newInboxMemCacheImpl()

@@ -216,6 +216,7 @@ func makeSigAndPostRootTeam(ctx context.Context, g *libkb.GlobalContext, me *lib
 		nil,   /* prevLinkID */
 		false, /* hasRevokes */
 		seqType,
+		false, /* ignoreIfUnsupported */
 	)
 	if err != nil {
 		return err
@@ -257,7 +258,7 @@ func makeSigAndPostRootTeam(ctx context.Context, g *libkb.GlobalContext, me *lib
 }
 
 func CreateRootTeam(ctx context.Context, g *libkb.GlobalContext, nameString string, settings keybase1.TeamSettings) (err error) {
-	defer g.CTrace(ctx, "CreateRootTeam", func() error { return err })()
+	defer g.CTraceTimed(ctx, "CreateRootTeam", func() error { return err })()
 
 	perUserKeyUpgradeSoft(ctx, g, "create-root-team")
 
@@ -428,6 +429,7 @@ func makeSigchainV2OuterSig(
 	prevLinkID libkb.LinkID,
 	hasRevokes bool,
 	seqType keybase1.SeqType,
+	ignoreIfUnsupported bool,
 ) (
 	string,
 	error,
@@ -440,12 +442,13 @@ func makeSigchainV2OuterSig(
 	}
 
 	outerLink := libkb.OuterLinkV2{
-		Version:  2,
-		Seqno:    seqno,
-		Prev:     prevLinkID,
-		Curr:     linkID,
-		LinkType: v2LinkType,
-		SeqType:  seqType,
+		Version:             2,
+		Seqno:               seqno,
+		Prev:                prevLinkID,
+		Curr:                linkID,
+		LinkType:            v2LinkType,
+		SeqType:             seqType,
+		IgnoreIfUnsupported: ignoreIfUnsupported,
 	}
 	encodedOuterLink, err := outerLink.Encode()
 	if err != nil {
@@ -483,6 +486,7 @@ func generateNewSubteamSigForParentChain(g *libkb.GlobalContext, me *libkb.User,
 		prevLinkID,
 		false, /* hasRevokes */
 		seqType,
+		false, /* ignoreIfUnsupported */
 	)
 	if err != nil {
 		return nil, err
@@ -572,6 +576,7 @@ func generateHeadSigForSubteamChain(ctx context.Context, g *libkb.GlobalContext,
 		nil,   /* prevLinkID */
 		false, /* hasRevokes */
 		seqTypeForTeamPublicness(parentTeam.IsPublic()),
+		false, /* ignoreIfUnsupported */
 	)
 	if err != nil {
 		return

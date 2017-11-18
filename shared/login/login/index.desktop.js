@@ -2,6 +2,7 @@
 import React, {Component} from 'react'
 import {Box, UserCard, Text, Button, FormWithCheckbox, Icon, PopupDialog} from '../../common-adapters'
 import {globalStyles, globalColors, globalMargins, glamorous} from '../../styles'
+import {isMobile} from '../../constants/platform'
 
 import type {Props} from '.'
 
@@ -26,7 +27,7 @@ const ButtonBox = glamorous(Box)({
     color: globalColors.blue2,
   },
   alignItems: 'center',
-  color: globalColors.lightGrey2,
+  color: !isMobile ? globalColors.lightGrey2 : undefined,
   border: `solid 1px ${globalColors.lightGrey2}`,
   borderRadius: 100,
   paddingRight: globalMargins.small,
@@ -83,7 +84,9 @@ class Login extends Component<Props, State> {
               type="Primary"
               label={this.props.selectedUser}
               labelStyle={{color: globalColors.orange, fontSize: 16, paddingLeft: 18}}
-              onClick={this._toggleOpen}
+              onClick={() => {
+                /* handled by the ButtonBox */
+              }}
               style={{backgroundColor: globalColors.white, flex: 1}}
             />
             <Icon type="iconfont-caret-down" inheritColor={true} style={{fontSize: 11}} />

@@ -1,10 +1,14 @@
 // @flow
 import TeamsContainer from './container'
-import AddPeopleDialog from './add-people/container'
+import {MaybePopupHoc} from '../common-adapters'
 import {makeRouteDefNode, makeLeafTags} from '../route-tree'
+import AddPeopleDialog from './add-people/container'
+import InviteByEmailDialog from './invite-by-email/container'
 import NewTeamDialog from './new-team/container'
 import JoinTeamDialog from './join-team/container'
 import ManageChannels from '../chat/manage-channels/container'
+import EditChannel from '../chat/manage-channels/edit-channel-container'
+import EditTeamDescription from './edit-team-description/container'
 import CreateChannel from '../chat/create-channel/container'
 import ReallyLeaveTeam from './really-leave-team/container'
 import RolePicker from './role-picker/container'
@@ -16,9 +20,15 @@ import {isMobile} from '../constants/platform'
 
 const makeManageChannels = {
   manageChannels: {
-    children: {},
     component: ManageChannels,
     tags: makeLeafTags({hideStatusBar: true, layerOnTop: !isMobile}),
+    children: {
+      editChannel: {
+        component: MaybePopupHoc(false)(EditChannel),
+        tags: makeLeafTags({hideStatusBar: true, layerOnTop: !isMobile}),
+        children: {},
+      },
+    },
   },
   createChannel: {
     children: {},
@@ -42,15 +52,22 @@ const controlledRolePicker = {
   component: ControlledRolePicker,
   tags: makeLeafTags({layerOnTop: !isMobile}),
 }
+const reallyRemoveMember = {
+  children: {},
+  component: ReallyRemoveMember,
+  tags: makeLeafTags({layerOnTop: !isMobile}),
+}
+
+const showNewTeamDialog = {
+  children: {},
+  component: NewTeamDialog,
+  tags: makeLeafTags({layerOnTop: !isMobile}),
+}
 
 const routeTree = makeRouteDefNode({
   children: {
     ...makeManageChannels,
-    showNewTeamDialog: {
-      children: {},
-      component: NewTeamDialog,
-      tags: makeLeafTags({layerOnTop: !isMobile}),
-    },
+    showNewTeamDialog,
     showJoinTeamDialog: {
       children: {},
       component: JoinTeamDialog,
@@ -59,24 +76,32 @@ const routeTree = makeRouteDefNode({
     team: {
       children: {
         ...makeManageChannels,
+        controlledRolePicker,
         rolePicker,
         reallyLeaveTeam,
+        reallyRemoveMember,
+        showNewTeamDialog,
         member: {
           children: {
             rolePicker,
             reallyLeaveTeam,
-
-            reallyRemoveMember: {
-              children: {},
-              component: ReallyRemoveMember,
-              tags: makeLeafTags({layerOnTop: !isMobile}),
-            },
+            reallyRemoveMember,
           },
           component: Member,
         },
         addPeople: {
           children: {controlledRolePicker},
           component: AddPeopleDialog,
+          tags: makeLeafTags({layerOnTop: !isMobile}),
+        },
+        inviteByEmail: {
+          children: {controlledRolePicker},
+          component: InviteByEmailDialog,
+          tags: makeLeafTags({layerOnTop: !isMobile}),
+        },
+        editTeamDescription: {
+          children: {},
+          component: MaybePopupHoc(true)(EditTeamDescription),
           tags: makeLeafTags({layerOnTop: !isMobile}),
         },
       },

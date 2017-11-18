@@ -9,8 +9,10 @@ import {compose, defaultProps} from 'recompose'
 import type {Props} from '.'
 
 class FoldersRender extends Component<Props> {
-  _makeItem(isPublic: boolean, isSelected: boolean) {
+  _makeItem(folderType: string, isSelected: boolean) {
+    let isPublic = folderType === 'public'
     const icon = isPublic ? 'icon-folder-public-24' : 'icon-folder-private-24'
+    const badgeNumber = this.props[folderType + 'Badge']
     return (
       <TabBarButton
         source={{type: 'icon', icon}}
@@ -29,8 +31,8 @@ class FoldersRender extends Component<Props> {
         }}
         styleBadgeNumber={styleBadgeNumber}
         selected={isSelected}
-        label={isPublic ? 'public/' : 'private/'}
-        badgeNumber={isPublic ? this.props.publicBadge : this.props.privateBadge}
+        label={`${folderType}/`}
+        badgeNumber={badgeNumber}
       />
     )
   }
@@ -52,21 +54,21 @@ class FoldersRender extends Component<Props> {
             marginBottom: globalMargins.xtiny,
           }}
         >
-          {[false, true].map(isPublic => (
+          {['private', 'public', 'team'].map(selected => (
             <TabBarItem
-              key={isPublic ? 'public' : 'private'}
-              selected={this.props.showingPrivate !== isPublic}
+              key={selected}
+              selected={this.props.selected === selected}
               styleContainer={itemContainerStyle}
-              tabBarButton={this._makeItem(isPublic, this.props.showingPrivate !== isPublic)}
+              tabBarButton={this._makeItem(selected, this.props.selected === selected)}
               onClick={() => {
-                this.props.onSwitchTab && this.props.onSwitchTab(!isPublic)
+                this.props.onSwitchTab && this.props.onSwitchTab(selected)
               }}
             >
               <List
-                {...(isPublic ? this.props.public : this.props.private)}
+                {...this.props[selected]}
                 smallMode={this.props.smallMode}
                 onClick={this.props.onClick}
-                isPublic={isPublic}
+                type={selected}
                 showIgnored={this.props.showingIgnored}
                 onToggleShowIgnored={this.props.onToggleShowIgnored}
               />

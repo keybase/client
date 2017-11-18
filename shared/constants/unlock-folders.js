@@ -1,6 +1,6 @@
 // @flow
 import type {DeviceID, Device as ServiceDevice, ProblemSet} from '../constants/types/flow-types'
-import type {DeviceType} from '../constants/types/more'
+import type {DeviceType} from '../constants/devices'
 import type {TypedAction} from '../constants/types/flux'
 
 export type Device = {

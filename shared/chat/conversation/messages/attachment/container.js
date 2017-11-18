@@ -1,6 +1,7 @@
 // @flow
 import * as Constants from '../../../../constants/chat'
-import * as Creators from '../../../../actions/chat/creators'
+import * as ChatGen from '../../../../actions/chat-gen'
+import * as KBFSGen from '../../../../actions/kbfs-gen'
 import Attachment, {type Props} from '.'
 import shallowEqual from 'shallowequal'
 import {List} from 'immutable'
@@ -8,7 +9,6 @@ import {chatTab} from '../../../../constants/tabs'
 import {compose, lifecycle, connect, type TypedState} from '../../../../util/container'
 import {getPath} from '../../../../route-tree'
 import {lookupMessageProps} from '../../../shared'
-import {type OpenInFileUI} from '../../../../constants/kbfs'
 import {type OwnProps} from './container'
 
 const mapStateToProps = (state: TypedState, {messageKey}: OwnProps) => {
@@ -22,13 +22,13 @@ const mapStateToProps = (state: TypedState, {messageKey}: OwnProps) => {
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
   _onDownloadAttachment: messageKey => {
-    messageKey && dispatch(Creators.saveAttachment(messageKey))
+    messageKey && dispatch(ChatGen.createSaveAttachment({messageKey}))
   },
   _onEnsurePreviewLoaded: (messageKey: Constants.MessageKey) =>
-    dispatch(Creators.loadAttachmentPreview(messageKey)),
-  _onOpenInFileUI: (path: string) => dispatch(({payload: {path}, type: 'fs:openInFileUI'}: OpenInFileUI)),
+    dispatch(ChatGen.createLoadAttachmentPreview({messageKey})),
+  _onOpenInFileUI: (path: string) => dispatch(KBFSGen.createOpenInFileUI({path})),
   _onOpenInPopup: (message: Constants.AttachmentMessage, routePath: List<string>) =>
-    dispatch(Creators.openAttachmentPopup(message, routePath)),
+    dispatch(ChatGen.createOpenAttachmentPopup({message, currentPath: routePath})),
 })
 
 const mergeProps = (stateProps, dispatchProps, {measure, onAction}: OwnProps) => ({

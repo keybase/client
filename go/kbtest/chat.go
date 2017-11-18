@@ -15,7 +15,7 @@ import (
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/utils"
-	"github.com/keybase/client/go/externals"
+	"github.com/keybase/client/go/externalstest"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
@@ -70,7 +70,7 @@ func NewChatMockWorld(t *testing.T, name string, numUsers int) (world *ChatMockW
 		Msgs:    make(map[string][]*chat1.MessageBoxed),
 	}
 	for i := 0; i < numUsers; i++ {
-		kbTc := externals.SetupTest(t, "chat_"+name, 0)
+		kbTc := externalstest.SetupTest(t, "chat_"+name, 0)
 		tc := ChatTestContext{
 			TestContext: kbTc,
 			ChatG:       &globals.ChatContext{},
@@ -461,8 +461,30 @@ func (m *ChatRemoteMock) createBogusBody(typ chat1.MessageType) chat1.MessageBod
 		Join__:               &chat1.MessageJoin{},
 		Leave__:              &chat1.MessageLeave{},
 		Headline__:           &chat1.MessageHeadline{},
+		Metadata__:           &chat1.MessageConversationMetadata{},
 	}
 }
+
+type dummyChannelSource struct{}
+
+func (d dummyChannelSource) GetChannelsFull(ctx context.Context, uid gregor1.UID, tlfID chat1.TLFID,
+	topicType chat1.TopicType) ([]chat1.ConversationLocal, []chat1.RateLimit, error) {
+	return nil, nil, nil
+}
+
+func (d dummyChannelSource) GetChannelsTopicName(ctx context.Context, uid gregor1.UID, tlfID chat1.TLFID,
+	topicType chat1.TopicType) ([]types.ConvIDAndTopicName, []chat1.RateLimit, error) {
+	return nil, nil, nil
+}
+
+func (d dummyChannelSource) ChannelsChanged(ctx context.Context, tlfID chat1.TLFID) {}
+
+func (d dummyChannelSource) IsOffline(ctx context.Context) bool {
+	return false
+}
+
+func (d dummyChannelSource) Connected(ctx context.Context)    {}
+func (d dummyChannelSource) Disconnected(ctx context.Context) {}
 
 func (m *ChatRemoteMock) PostRemote(ctx context.Context, arg chat1.PostRemoteArg) (res chat1.PostRemoteRes, err error) {
 	uid := arg.MessageBoxed.ClientHeader.Sender
@@ -486,12 +508,12 @@ func (m *ChatRemoteMock) PostRemote(ctx context.Context, arg chat1.PostRemoteArg
 	// hit notify router with new message
 	if m.world.TcsByID[uid.String()].G.NotifyRouter != nil {
 		activity := chat1.NewChatActivityWithIncomingMessage(chat1.IncomingMessage{
-			Message: utils.PresentMessageUnboxed(
+			Message: utils.PresentMessageUnboxed(ctx,
 				chat1.NewMessageUnboxedWithValid(chat1.MessageUnboxedValid{
 					ClientHeader: m.headerToVerifiedForTesting(inserted.ClientHeader),
 					ServerHeader: *inserted.ServerHeader,
 					MessageBody:  m.createBogusBody(inserted.GetMessageType()),
-				})),
+				}), uid, dummyChannelSource{}),
 		})
 		m.world.TcsByID[uid.String()].G.NotifyRouter.HandleNewChatActivity(context.Background(),
 			keybase1.UID(uid.String()), &activity)
@@ -665,6 +687,10 @@ func (m *ChatRemoteMock) JoinConversation(ctx context.Context, convID chat1.Conv
 }
 
 func (m *ChatRemoteMock) LeaveConversation(ctx context.Context, convID chat1.ConversationID) (chat1.JoinLeaveConversationRemoteRes, error) {
+	return chat1.JoinLeaveConversationRemoteRes{}, nil
+}
+
+func (m *ChatRemoteMock) PreviewConversation(ctx context.Context, convID chat1.ConversationID) (chat1.JoinLeaveConversationRemoteRes, error) {
 	return chat1.JoinLeaveConversationRemoteRes{}, nil
 }
 

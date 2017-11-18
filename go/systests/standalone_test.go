@@ -14,12 +14,15 @@ import (
 )
 
 type standaloneUserArgs struct {
-	disableGregor bool
+	disableGregor            bool
+	suppressTeamChatAnnounce bool
 }
 
 func makeUserStandalone(t *testing.T, pre string, opts standaloneUserArgs) *userPlusDevice {
 	tctx := setupTest(t, pre)
 	var u userPlusDevice
+
+	u.suppressTeamChatAnnounce = opts.suppressTeamChatAnnounce
 
 	g := tctx.G
 	if opts.disableGregor {
@@ -89,7 +92,7 @@ func TestStandaloneTeamMemberOps(t *testing.T) {
 	require.NoError(t, err)
 
 	// Check if adding worked
-	t0, err := teams.GetTeamByNameForTest(context.TODO(), t, g, team, false, true)
+	t0, err := teams.GetTeamByNameForTest(context.TODO(), g, team, false, true)
 	require.NoError(t, err)
 	writers, err := t0.UsersWithRole(keybase1.TeamRole_WRITER)
 	require.NoError(t, err)
@@ -117,7 +120,7 @@ func TestStandaloneTeamMemberOps(t *testing.T) {
 	require.NoError(t, err)
 
 	// Check if removal worked
-	t0, err = teams.GetTeamByNameForTest(context.TODO(), t, g, team, false, true)
+	t0, err = teams.GetTeamByNameForTest(context.TODO(), g, team, false, true)
 	require.NoError(t, err)
 	writers, err = t0.UsersWithRole(keybase1.TeamRole_WRITER)
 	require.NoError(t, err)

@@ -11,7 +11,7 @@ const buildTimeline = (device: DeviceDetail) => {
   const revoked = device.get('revokedAt') && [
     {
       desc: `Revoked ${moment(device.get('revokedAt')).format('MMM D, YYYY')}`,
-      subDesc: device.getIn(['revokedBy', 'name'], ''),
+      subDesc: device.revokedByName || '',
       type: 'Revoked',
     },
   ]
@@ -19,14 +19,14 @@ const buildTimeline = (device: DeviceDetail) => {
   const lastUsed = device.lastUsed && [
     {
       desc: `Last used ${moment(device.get('lastUsed')).format('MMM D, YYYY')}`,
-      subDesc: moment(device.get('lastUsed')).fromNow(),
+      subDesc: moment(device.lastUsed).fromNow(),
       type: 'LastUsed',
     },
   ]
 
   const added = {
     desc: `Added ${moment(device.get('created')).format('MMM D, YYYY')}`,
-    subDesc: device.get('provisionerName') || '',
+    subDesc: device.provisionerName || '',
     type: 'Added',
   }
 

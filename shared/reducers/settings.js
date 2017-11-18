@@ -43,7 +43,10 @@ const initialState: State = {
   waitingForResponse: false,
 }
 
-function reducer(state: State = initialState, action: Actions): State {
+function reducer(
+  state: State = initialState,
+  action: Actions | {type: 'common:resetStore', payload: void}
+): State {
   switch (action.type) {
     case CommonConstants.resetStore:
       return {...initialState}
@@ -125,14 +128,15 @@ function reducer(state: State = initialState, action: Actions): State {
         },
       }
     case Constants.invitesSent:
+      // TODO this doesn't do anything with the actual valid payload
       return {
         ...state,
         invites: {
           ...state.invites,
-          error: action.payload.error,
+          error: action.error ? action.payload.error : undefined,
         },
       }
-    case 'invites:clearError':
+    case Constants.invitesClearError:
       return {
         ...state,
         invites: {

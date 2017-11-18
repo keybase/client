@@ -27,7 +27,7 @@ type StateProps = {
 const mapStateToProps = (state: TypedState, {teamname, username}: OwnProps): StateProps => ({
   following: getFollowing(state, username),
   you: state.config.username,
-  _members: state.entities.getIn(['teams', 'teamNameToMembers', teamname]),
+  _members: state.entities.getIn(['teams', 'teamNameToMembers', teamname], I.Set()),
 })
 
 type DispatchProps = {

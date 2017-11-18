@@ -4,7 +4,7 @@ import Window from './window'
 import getenv from 'getenv'
 import hotPath from '../hot-path'
 import {app, ipcMain} from 'electron'
-import {forceMainWindowPosition, showDevTools} from '../../local-debug.desktop'
+import {showDevTools} from '../../local-debug.desktop'
 import {hideDockIcon} from './dock-icon'
 import {injectReactQueryParams} from '../../util/dev'
 import {resolveRootAsURL} from '../resolve-root'
@@ -61,10 +61,6 @@ export default function() {
 
   appState.manageWindow(mainWindow.window)
 
-  if (__DEV__ && forceMainWindowPosition) {
-    mainWindow.window.setPosition(forceMainWindowPosition.x, forceMainWindowPosition.y)
-  }
-
   const openedAtLogin = app.getLoginItemSettings().wasOpenedAtLogin
   // app.getLoginItemSettings().restoreState is mac only, so consider it always on in Windows
   const isRestore =
@@ -112,7 +108,13 @@ export default function() {
   ipcMain.on('showMain', () => {
     console.log('Show main window (requested)')
     mainWindow.show(true)
-    mainWindow.window && mainWindow.window.focus()
+    const window = mainWindow.window
+    if (window) {
+      window.focus()
+      console.log('...showMain: visible=', window.isVisible(), window.getBounds())
+    } else {
+      console.log('...showMain: no mainWindow!')
+    }
   })
 
   return mainWindow

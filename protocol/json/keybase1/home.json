@@ -1,0 +1,211 @@
+{
+  "protocol": "home",
+  "imports": [],
+  "types": [
+    {
+      "type": "record",
+      "name": "HomeScreenItemID",
+      "fields": [],
+      "typedef": "string"
+    },
+    {
+      "type": "enum",
+      "name": "HomeScreenItemType",
+      "symbols": [
+        "TODO_1",
+        "PEOPLE_2"
+      ]
+    },
+    {
+      "type": "variant",
+      "name": "HomeScreenItemData",
+      "switch": {
+        "type": "HomeScreenItemType",
+        "name": "t"
+      },
+      "cases": [
+        {
+          "label": {
+            "name": "TODO",
+            "def": false
+          },
+          "body": "HomeScreenTodo"
+        },
+        {
+          "label": {
+            "name": "PEOPLE",
+            "def": false
+          },
+          "body": "HomeScreenPeopleNotification"
+        }
+      ]
+    },
+    {
+      "type": "enum",
+      "name": "HomeScreenTodoType",
+      "symbols": [
+        "NONE_0",
+        "BIO_1",
+        "PROOF_2",
+        "DEVICE_3",
+        "FOLLOW_4",
+        "CHAT_5",
+        "PAPERKEY_6",
+        "TEAM_7",
+        "FOLDER_8",
+        "GIT_REPO_9",
+        "TEAM_SHOWCASE_10"
+      ]
+    },
+    {
+      "type": "variant",
+      "name": "HomeScreenTodo",
+      "switch": {
+        "type": "HomeScreenTodoType",
+        "name": "t"
+      },
+      "cases": [
+        {
+          "label": {
+            "def": true
+          },
+          "body": null
+        }
+      ]
+    },
+    {
+      "type": "enum",
+      "name": "HomeScreenPeopleNotificationType",
+      "symbols": [
+        "FOLLOWED_0",
+        "FOLLOWED_MULTI_1"
+      ]
+    },
+    {
+      "type": "record",
+      "name": "HomeScreenPeopleNotificationFollowed",
+      "fields": [
+        {
+          "type": "Time",
+          "name": "followTime"
+        },
+        {
+          "type": "UserSummary",
+          "name": "user"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "HomeScreenPeopleNotificationFollowedMulti",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "HomeScreenPeopleNotificationFollowed"
+          },
+          "name": "followers"
+        },
+        {
+          "type": "int",
+          "name": "numOthers"
+        }
+      ]
+    },
+    {
+      "type": "variant",
+      "name": "HomeScreenPeopleNotification",
+      "switch": {
+        "type": "HomeScreenPeopleNotificationType",
+        "name": "t"
+      },
+      "cases": [
+        {
+          "label": {
+            "name": "FOLLOWED",
+            "def": false
+          },
+          "body": "HomeScreenPeopleNotificationFollowed"
+        },
+        {
+          "label": {
+            "name": "FOLLOWED_MULTI",
+            "def": false
+          },
+          "body": "HomeScreenPeopleNotificationFollowedMulti"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "HomeScreenItem",
+      "fields": [
+        {
+          "type": "boolean",
+          "name": "badged"
+        },
+        {
+          "type": "HomeScreenItemData",
+          "name": "data"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "HomeScreen",
+      "fields": [
+        {
+          "type": "Time",
+          "name": "lastViewed"
+        },
+        {
+          "type": "int",
+          "name": "version"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "HomeScreenItem"
+          },
+          "name": "items"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "UserSummary"
+          },
+          "name": "followSuggestions"
+        }
+      ]
+    }
+  ],
+  "messages": {
+    "homeGetScreen": {
+      "request": [
+        {
+          "name": "markViewed",
+          "type": "boolean"
+        }
+      ],
+      "response": "HomeScreen"
+    },
+    "homeSkipTodoType": {
+      "request": [
+        {
+          "name": "t",
+          "type": "HomeScreenTodoType"
+        }
+      ],
+      "response": null
+    },
+    "homeActionTaken": {
+      "request": [],
+      "response": null
+    },
+    "homeMarkViewed": {
+      "request": [],
+      "response": null
+    }
+  },
+  "namespace": "keybase.1"
+}
