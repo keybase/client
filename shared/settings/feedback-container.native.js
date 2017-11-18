@@ -10,6 +10,8 @@ import {getLogger} from '../util/periodic-logger'
 import {writeStream, exists, cachesDirectoryPath} from '../util/file'
 import {serialPromises} from '../util/promise'
 import {type TimerProps} from '../common-adapters/hoc-timers'
+import logger from '../logger'
+import {type LogLineWithLevel} from '../logger/types'
 
 const FeedbackWrapped = compose(
   withState('sendLogs', 'onChangeSendLogs', true),
@@ -41,29 +43,6 @@ class FeedbackContainer extends Component<{status: string} & TimerProps, State> 
   _dumpLogs = () =>
     new Promise((resolve, reject) => {
       // We don't get the notification from the daemon so we have to do this ourselves
-      const logs = []
-      console.log('Starting log dump')
-
-      const logNames = ['actionLogger', 'storeLogger']
-
-      logNames.forEach(name => {
-        try {
-          const logger = getLogger(name)
-          logger &&
-            logger.dumpAll((...args) => {
-              logs.push(args)
-            })
-        } catch (_) {}
-      })
-
-      logs.push(['=============CONSOLE.LOG START============='])
-      const logger = getLogger('nativeConsoleLog')
-      logger &&
-        logger.dumpAll((...args) => {
-          // Skip the extra prefixes that period-logger uses.
-          logs.push([args[1], ...args.slice(2)])
-        })
-      logs.push(['=============CONSOLE.LOG END============='])
 
       const dir = `${cachesDirectoryPath}/Keybase`
       const path = `${dir}/rn.log`
@@ -76,13 +55,14 @@ class FeedbackContainer extends Component<{status: string} & TimerProps, State> 
         .then(exists => (exists ? Promise.resolve() : RNFetchBlob.fs.createFile(path, '', 'utf8')))
         .then(() => writeStream(path, 'utf8', true))
         .then(stream => {
-          const writeLogsPromises = logs.map((log, idx) => {
-            return () => {
-              return stream.write(JSON.stringify(log, null, 2))
-            }
+          return logger.dump().then((logLines: Array<LogLineWithLevel>) => {
+            const writeLogsPromises = logLines.map((log, idx) => {
+              return () => {
+                return stream.write(JSON.stringify(log))
+              }
+            })
+            return serialPromises(writeLogsPromises).then(() => stream.close())
           })
-
-          return serialPromises(writeLogsPromises).then(() => stream.close())
         })
         .then(success => {
           console.log('Log write done')

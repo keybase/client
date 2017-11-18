@@ -1,5 +1,10 @@
 // @flow
 import type {AggregateLogger, LogLevel, Logger, LogFn, LogLineWithLevel} from './types'
+import ConsoleLogger from './console-logger'
+import TeeLogger from './tee-logger'
+import RingLogger from './ring-logger'
+import NullLogger from './null-logger'
+import {isMobile} from '../constants/platform'
 
 // Function to flatten arrays and preserve their sort order
 // Same as concating all the arrays and calling .sort() but could be faster
@@ -80,4 +85,21 @@ class AggregateLoggerImpl implements AggregateLogger {
   }
 }
 
-export default AggregateLoggerImpl
+// Settings
+const logSetup = __DEV__
+  ? {
+      error: new ConsoleLogger('error'),
+      warn: new ConsoleLogger('warn'),
+      info: new ConsoleLogger('log'),
+      action: new TeeLogger(new RingLogger(100), new ConsoleLogger('log', 'Dispatching Action')),
+      debug: new ConsoleLogger('log', 'DEBUG:'),
+    }
+  : {
+      error: new RingLogger(1000),
+      warn: new RingLogger(1000),
+      info: new NullLogger(),
+      action: new RingLogger(5000),
+      debug: new NullLogger(),
+    }
+
+export default new AggregateLoggerImpl(logSetup)

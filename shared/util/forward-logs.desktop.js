@@ -1,4 +1,6 @@
 // @flow
+import logger from '../logger'
+import type {LogLineWithLevel} from '../logger/types'
 
 const fileDoesNotExist = __STORYBOOK__
   ? _ => true
@@ -133,40 +135,43 @@ const setupTarget = __STORYBOOK__
       })
     }
 
-const setupSource = __STORYBOOK__
-  ? () => {}
-  : () => {
-      const {forwardLogs} = require('../local-debug')
-      if (!forwardLogs) {
-        return
-      }
-
-      const {ipcRenderer} = require('electron')
-      const util = require('util')
-
-      const types = ['log', 'warn', 'error']
-      types.forEach(key => {
-        if (__DEV__ && typeof window !== 'undefined') {
-          window.console[`${key}_original`] = window.console[key]
+const writeLogLinesToFile: (lines: Array<LogLineWithLevel>) => Promise<void> = __STORYBOOK__
+  ? (lines: Array<LogLineWithLevel>) => Promise.resolve()
+  : (lines: Array<LogLineWithLevel>) =>
+      new Promise((resolve, reject) => {
+        const fs = require('fs')
+        const encoding = 'utf8'
+        const logFd = setupFileWritable()
+        console.log('Using logFd = ', logFd)
+        const writer = logFd ? fs.createWriteStream('', {fd: logFd}) : null
+        if (!writer) {
+          logger.warn('Error writing log lines to file')
+          reject(new Error('Error writing log lines to file'))
+          return
         }
-        // $FlowIssue these can no longer be written to
-        console[key] = (...args) => {
-          try {
-            key === 'log' && localLog(...args)
-            key === 'warn' && localWarn(...args)
-            key === 'error' && localError(...args)
-            const toSend = args.map(a => {
-              if (typeof a === 'object') {
-                return util.format('%j', a)
-              } else {
-                return a
-              }
-            })
-            ipcRenderer.send('console.' + key, ...toSend)
-          } catch (_) {}
+        let i = 0
+        // Adapted from the nodejs sample: https://nodejs.org/api/stream.html#stream_class_stream_writable
+        write()
+        function write() {
+          let ok = true
+          while (i < lines.length && ok) {
+            // last time!
+            if (i === lines.length - 1) {
+              writer.write(JSON.stringify(lines[i]) + '\n', encoding, resolve)
+            } else {
+              // see if we should continue, or wait
+              // don't pass the callback, because we're not done yet.
+              ok = writer.write(JSON.stringify(lines[i] + '\n'), encoding)
+            }
+            i++
+          }
+          if (i < lines.length) {
+            // had to stop early!
+            // write some more once it drains
+            writer.once('drain', write)
+          }
         }
       })
-    }
 
 const flushLogFile = __STORYBOOK__
   ? () => {}
@@ -177,4 +182,4 @@ const flushLogFile = __STORYBOOK__
       ipcRenderer.send('console.flushLogFile')
     }
 
-export {setupSource, setupTarget, localLog, localWarn, localError, flushLogFile}
+export {setupTarget, localLog, localWarn, localError, flushLogFile, writeLogLinesToFile}

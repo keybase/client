@@ -11,8 +11,9 @@ class RingLogger implements Logger {
     this._ringSize = ringSize
   }
 
-  log = (...s: Array<string>) => {
-    const singleString = s.join(' ')
+  log = (...s: Array<any>) => {
+    const strings = s.map(s => (typeof s === 'object' ? JSON.stringify(s) : s))
+    const singleString = strings.join(' ')
     this._ringBuffer[this._currentWriteIdx] = [Date.now(), singleString]
     this._currentWriteIdx = (this._currentWriteIdx + 1) % this._ringSize
   }
@@ -20,9 +21,10 @@ class RingLogger implements Logger {
   dump(levelPrefix: LogLevel) {
     const toDump = []
     for (let i = 0; i < this._ringSize; i++) {
-      const s = this._ringBuffer[this._currentWriteIdx]
+      const idxWrapped = (this._currentWriteIdx + i) % this._ringSize
+      const s = this._ringBuffer[idxWrapped]
       if (s) {
-        delete this._ringBuffer[this._currentWriteIdx]
+        delete this._ringBuffer[idxWrapped]
         toDump.push([levelPrefix, s[0], s[1]])
       }
     }

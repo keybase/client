@@ -30,7 +30,6 @@ import {selector as remotePurgeMessageSelector} from '../../pgp/selector'
 import {selector as unlockFoldersSelector} from '../../unlock-folders/selector'
 import {setRouteDef} from '../../actions/route-tree'
 import {setupContextMenu} from '../app/menu-helper'
-import {setupSource} from '../../util/forward-logs'
 import flags from '../../util/feature-flags'
 import {updateDebugConfig} from '../../actions/dev'
 import {updateReloading} from '../../constants/dev'
@@ -55,7 +54,6 @@ function setupAvatar() {
 }
 
 function setupApp(store) {
-  setupSource()
   disableDragDrop()
   const eng = makeEngine(store.dispatch)
   loadPerf()

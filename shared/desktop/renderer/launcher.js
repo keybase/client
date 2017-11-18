@@ -12,9 +12,9 @@ import {initAvatarLookup, initAvatarLoad} from '../../common-adapters'
 import {makeEngine} from '../../engine'
 import {remote} from 'electron'
 import {setupContextMenu} from '../app/menu-helper'
-import {setupSource} from '../../util/forward-logs'
 
-setupSource()
+// TODO Add a logger for the launcher
+
 disableDragDrop()
 makeEngine()
 hello(process.pid, 'Menubar', process.argv, __VERSION__, false) // eslint-disable-line no-undef

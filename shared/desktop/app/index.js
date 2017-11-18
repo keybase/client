@@ -11,7 +11,6 @@ import urlHelper from './url-helper'
 import windowHelper from './window-helper'
 import {BrowserWindow, app, ipcMain, dialog, crashReporter} from 'electron'
 import {setupExecuteActionsListener, executeActionsForContext} from '../../util/quit-helper.desktop'
-import {setupTarget} from '../../util/forward-logs'
 import {allowMultipleInstances} from '../../local-debug.desktop'
 import startWinService from './start-win-service'
 import {isWindows, cacheRoot} from '../../constants/platform.desktop'
@@ -74,8 +73,6 @@ function start() {
   }
 
   hello(process.pid, 'Main Thread', process.argv, __VERSION__, false) // eslint-disable-line no-undef
-
-  setupTarget()
   devTools()
   menuBar()
   urlHelper()

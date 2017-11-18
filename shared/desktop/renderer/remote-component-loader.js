@@ -17,9 +17,9 @@ import {globalColors} from '../../styles'
 import {initAvatarLookup, initAvatarLoad} from '../../common-adapters'
 import {remote, ipcRenderer} from 'electron'
 import {setupContextMenu} from '../app/menu-helper'
-import {setupSource} from '../../util/forward-logs'
 
-setupSource()
+// TODO add a logger for the remote components
+
 disableDragDrop()
 makeEngine()
 
