@@ -606,6 +606,30 @@ function* _createChannel(action: Constants.CreateChannel) {
   }
 }
 
+function* _setPublicity(action: Constants.SetPublicity) {
+  const {payload: {settings, teamname}} = action
+  console.warn('in setPublicity, action', action)
+  const openTeam = yield Saga.select((state: TypedState) =>
+    state.entities.getIn(['teams', 'teamNameToTeamSettings', teamname, 'open'], false)
+  )
+  const openTeamRole = yield Saga.select((state: TypedState) =>
+    state.entities.getIn(['teams', 'teamNameToTeamSettings', teamname, 'joinAs'], 'reader')
+  )
+  const publicityAnyMember = yield Saga.select((state: TypedState) =>
+    state.entities.getIn(['teams', 'teamNameToPublicitySettings', teamname, 'anyMemberShowcase'], false)
+  )
+  const publicityMember = yield Saga.select((state: TypedState) =>
+    state.entities.getIn(['teams', 'teamNameToPublicitySettings', teamname, 'member'], false)
+  )
+  const publicityTeam = yield Saga.select((state: TypedState) =>
+    state.entities.getIn(['teams', 'teamNameToPublicitySettings', teamname, 'team'], false)
+  )
+  const calls = []
+  if (openTeam !== settings.openTeam) {
+    calls.append()
+  }
+}
+
 function* _setPublicityAnyMember(action: Constants.SetPublicityAnyMember) {
   const {payload: {enabled, teamname}} = action
   yield Saga.put(replaceEntity(['teams', 'teamNameToLoading'], I.Map([[teamname, true]])))
@@ -815,6 +839,7 @@ const teamsSaga = function*(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEvery('teams:setPublicityAnyMember', _setPublicityAnyMember)
   yield Saga.safeTakeEvery('teams:setPublicityMember', _setPublicityMember)
   yield Saga.safeTakeEvery('teams:setPublicityTeam', _setPublicityTeam)
+  yield Saga.safeTakeEvery('teams:setPublicity', _setPublicity)
 }
 
 export default teamsSaga

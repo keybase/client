@@ -7,7 +7,7 @@ import * as KBFSGen from '../../actions/kbfs-gen'
 import * as React from 'react'
 import Team, {CustomComponent} from '.'
 import {HeaderHoc} from '../../common-adapters'
-import {compose, lifecycle, withState} from 'recompose'
+import {compose, lifecycle, withHandlers, withPropsOnChange, withState} from 'recompose'
 import {connect, type TypedState} from '../../util/container'
 import {getProfile} from '../../actions/tracker'
 import {isMobile} from '../../constants/platform'
@@ -138,6 +138,8 @@ const mapDispatchToProps = (
   },
   _setOpenTeam: (teamname: Constants.Teamname, enabled: boolean, openTeamRole: Constants.TeamRoleType) =>
     dispatch(Creators.makeTeamOpen(teamname, enabled, openTeamRole)),
+  _savePublicity: (teamname: Constants.Teamname, settings) =>
+    dispatch(Creators.setPublicity(teamname, settings)),
 })
 
 const isExplicitAdmin = (memberInfo: I.Set<Constants.MemberInfo>, user: string): boolean => {
@@ -182,6 +184,15 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
   const setOpenTeam = (checked: boolean) =>
     dispatchProps._setOpenTeam(stateProps.name, checked, stateProps.openTeamRole)
 
+  const savePublicity = settings => dispatchProps._savePublicity(stateProps.name, settings)
+
+  console.warn(
+    stateProps.publicityAnyMember,
+    stateProps.publicityMember,
+    stateProps.publicityTeam,
+    stateProps.openTeam
+  )
+
   const customComponent = (
     <CustomComponent
       onOpenFolder={onOpenFolder}
@@ -211,6 +222,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     onOpenFolder,
     onEditDescription,
     onSetOpenTeamRole,
+    savePublicity,
     setOpenTeam,
     setPublicityAnyMember,
     setPublicityMember,
@@ -225,9 +237,37 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
 export default compose(
   withState('showMenu', 'setShowMenu', false),
   connect(mapStateToProps, mapDispatchToProps, mergeProps),
+  withState('newPublicityAnyMember', 'setPublicityAnyMember', props => props.publicityAnyMember),
+  withState('newPublicityMember', 'setPublicityMember', props => props.publicityMember),
+  withState('newPublicityTeam', 'setPublicityTeam', props => props.publicityTeam),
+  withState('newOpenTeam', 'setOpenTeam', props => props.openTeam),
+  withState('newOpenTeamRole', 'setOpenTeamRole', props => props.openTeamRole),
+  withPropsOnChange(
+    ['publicityAnyMember', 'publicityMember', 'publicityTeam', 'openTeam', 'openTeamRole'],
+    props => {
+      console.warn('in withPropsOnChange', props)
+      props.setPublicityAnyMember(props.publicityAnyMember)
+      props.setPublicityMember(props.publicityMember)
+      props.setPublicityTeam(props.publicityTeam)
+      props.setOpenTeam(props.openTeam)
+      props.setOpenTeamRole(props.openTeamRole)
+    }
+  ),
   lifecycle({
     componentDidMount: function() {
       this.props._loadTeam(this.props.name)
+    },
+  }),
+  withHandlers({
+    onSavePublicity: props => () => {
+      console.warn('in onSavePublicity', props)
+      props.savePublicity({
+        publicityAnyMember: props.newPublicityAnyMember,
+        publicityMember: props.newPublicityMember,
+        publicityTeam: props.newPublicityTeam,
+        openTeam: props.newOpenTeam,
+        openTeamRole: props.newOpenTeamRole,
+      })
     },
   }),
   HeaderHoc

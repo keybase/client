@@ -221,11 +221,12 @@ class Team extends React.PureComponent<Props> {
       loading,
       memberCount,
       onManageChat,
+      onSavePublicity,
       openTeam,
       openTeamRole,
-      publicityAnyMember,
-      publicityMember,
-      publicityTeam,
+      newPublicityAnyMember,
+      newPublicityMember,
+      newPublicityTeam,
       setOpenTeam,
       setPublicityAnyMember,
       setPublicityMember,
@@ -236,6 +237,7 @@ class Team extends React.PureComponent<Props> {
       youCanShowcase,
     } = this.props
 
+    console.warn('props are', this.props)
     const me = members.find(member => member.username === you)
     const admin = me ? me.type === 'admin' || me.type === 'owner' : false
 
@@ -319,7 +321,7 @@ class Team extends React.PureComponent<Props> {
           >
             <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center'}}>
               <Checkbox
-                checked={publicityMember}
+                checked={newPublicityMember}
                 disabled={!youCanShowcase}
                 label=""
                 onCheck={setPublicityMember}
@@ -346,7 +348,7 @@ class Team extends React.PureComponent<Props> {
               <Box style={stylesSettingsTabRow}>
                 <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center'}}>
                   <Checkbox
-                    checked={publicityAnyMember}
+                    checked={newPublicityAnyMember}
                     label=""
                     onCheck={setPublicityAnyMember}
                     style={{paddingRight: globalMargins.xtiny}}
@@ -365,7 +367,7 @@ class Team extends React.PureComponent<Props> {
               <Box style={stylesSettingsTabRow}>
                 <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center'}}>
                   <Checkbox
-                    checked={publicityTeam}
+                    checked={newPublicityTeam}
                     label=""
                     onCheck={setPublicityTeam}
                     style={{paddingRight: globalMargins.xtiny}}
@@ -408,6 +410,10 @@ class Team extends React.PureComponent<Props> {
                     .
                   </Text>
                 </Box>
+              </Box>
+
+              <Box style={{...stylesSettingsTabRow, alignSelf: 'center'}}>
+                <Button type="Primary" label="Save" onClick={onSavePublicity} />
               </Box>
             </Box>}
         </Box>
