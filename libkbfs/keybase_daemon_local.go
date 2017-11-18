@@ -250,6 +250,29 @@ func (k *KeybaseDaemonLocal) Identify(
 	return k.Resolve(ctx, assertion)
 }
 
+func (k *KeybaseDaemonLocal) resolveForImplicitTeam(
+	ctx context.Context, name string, r []libkb.NormalizedUsername,
+	ur []keybase1.SocialAssertion,
+	resolvedIDs map[libkb.NormalizedUsername]keybase1.UserOrTeamID) (
+	[]libkb.NormalizedUsername, []keybase1.SocialAssertion, error) {
+	id, err := k.assertionToIDLocked(ctx, name)
+	if err == nil {
+		u, err := k.localUsers.getLocalUser(id.AsUserOrBust())
+		if err != nil {
+			return nil, nil, err
+		}
+		r = append(r, u.Name)
+		resolvedIDs[u.Name] = id
+	} else {
+		a, ok := externals.NormalizeSocialAssertion(name)
+		if !ok {
+			return nil, nil, fmt.Errorf("Bad assertion: %s", name)
+		}
+		ur = append(ur, a)
+	}
+	return r, ur, nil
+}
+
 // ResolveIdentifyImplicitTeam implements the KeybaseService interface
 // for KeybaseDaemonLocal.
 func (k *KeybaseDaemonLocal) ResolveIdentifyImplicitTeam(
@@ -275,34 +298,17 @@ func (k *KeybaseDaemonLocal) ResolveIdentifyImplicitTeam(
 	}
 	var writers, readers []libkb.NormalizedUsername
 	var unresolvedWriters, unresolvedReaders []keybase1.SocialAssertion
-	resolve := func(
-		name string, r []libkb.NormalizedUsername,
-		ur []keybase1.SocialAssertion) (
-		[]libkb.NormalizedUsername, []keybase1.SocialAssertion, error) {
-		id, err := k.assertionToIDLocked(ctx, name)
-		if err == nil {
-			u, err := k.localUsers.getLocalUser(id.AsUserOrBust())
-			if err != nil {
-				return nil, nil, err
-			}
-			r = append(r, u.Name)
-		} else {
-			a, ok := externals.NormalizeSocialAssertion(name)
-			if !ok {
-				return nil, nil, fmt.Errorf("Bad assertion: %s", name)
-			}
-			ur = append(ur, a)
-		}
-		return r, ur, nil
-	}
+	resolvedIDs := make(map[libkb.NormalizedUsername]keybase1.UserOrTeamID)
 	for _, w := range writerNames {
-		writers, unresolvedWriters, err = resolve(w, writers, unresolvedWriters)
+		writers, unresolvedWriters, err = k.resolveForImplicitTeam(
+			ctx, w, writers, unresolvedWriters, resolvedIDs)
 		if err != nil {
 			return ImplicitTeamInfo{}, err
 		}
 	}
 	for _, r := range readerNames {
-		readers, unresolvedReaders, err = resolve(r, readers, unresolvedReaders)
+		readers, unresolvedReaders, err = k.resolveForImplicitTeam(
+			ctx, r, readers, unresolvedReaders, resolvedIDs)
 		if err != nil {
 			return ImplicitTeamInfo{}, err
 		}
@@ -324,9 +330,7 @@ func (k *KeybaseDaemonLocal) ResolveIdentifyImplicitTeam(
 		return k.localImplicitTeams[tid], nil
 	}
 
-	if !doIdentifies {
-		return ImplicitTeamInfo{}, NoSuchTeamError{assertions}
-	}
+	// If the implicit team doesn't exist, always create it.
 
 	// Need to make the team info as well, so get the list of user
 	// names and resolve them.
@@ -335,25 +339,28 @@ func (k *KeybaseDaemonLocal) ResolveIdentifyImplicitTeam(
 		[]libkb.NormalizedUsername{asUserName}, len(k.localTeams), tlfType)
 	info := teams[0]
 	info.Writers = make(map[keybase1.UID]bool, len(writerNames))
-	for _, w := range writerNames {
-		id, err := k.assertionToIDLocked(ctx, w)
-		// TODO: handle SBS assertions here?
-		if err != nil {
-			return ImplicitTeamInfo{}, err
+	for _, w := range writers {
+		id, ok := resolvedIDs[w]
+		if !ok {
+			return ImplicitTeamInfo{}, fmt.Errorf("No resolved writer %s", w)
 		}
 		info.Writers[id.AsUserOrBust()] = true
 	}
 	if len(readerNames) > 0 {
 		info.Readers = make(map[keybase1.UID]bool, len(readerNames))
-		for _, r := range readerNames {
-			id, err := k.assertionToIDLocked(ctx, r)
-			// TODO: handle SBS assertions here?
-			if err != nil {
-				return ImplicitTeamInfo{}, err
+		for _, r := range readers {
+			id, ok := resolvedIDs[r]
+			if !ok {
+				return ImplicitTeamInfo{}, fmt.Errorf(
+					"No resolved reader %s", r)
+
 			}
 			info.Readers[id.AsUserOrBust()] = true
 		}
 	}
+	// Unresolved users don't need to go in the team info, they're
+	// irrelvant until they're resolved.  TODO: add resolved users
+	// into existing teams they should be on.
 
 	tid = teams[0].TID
 	k.implicitAsserts[key] = tid

@@ -309,8 +309,8 @@ func makeLocalTeams(
 	teams []libkb.NormalizedUsername, startingIndex int, ty tlf.Type) (
 	localTeams []TeamInfo) {
 	localTeams = make([]TeamInfo, len(teams))
-	for i := startingIndex; i < len(teams)+startingIndex; i++ {
-		index := i - startingIndex
+	for index := 0; index < len(teams); index++ {
+		i := index + startingIndex
 		cryptKey := MakeLocalTLFCryptKeyOrBust(
 			buildCanonicalPathForTlfType(
 				tlf.SingleTeam, string(teams[index])),
