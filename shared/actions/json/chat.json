@@ -305,6 +305,9 @@
     },
     "shareAttachment": {
       "messageKey": "Constants.MessageKey"
+    },
+    "previewChannel": {
+      "conversationIDKey": "Constants.ConversationIDKey"
     }
   }
 }
