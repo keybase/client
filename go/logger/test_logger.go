@@ -5,6 +5,7 @@ package logger
 
 import (
 	"fmt"
+	"os"
 	"runtime"
 	"strings"
 	"sync"
@@ -56,6 +57,11 @@ func (log *TestLogger) common(ctx context.Context, lvl logging.Level, useFatal b
 		}
 		log.failReported = true
 		log.Unlock()
+	}
+
+	if os.Getenv("KEYBASE_TEST_DUP_LOG_TO_STDOUT") != "" {
+		fmt.Printf(prepareString(ctx,
+			log.prefixCaller(log.extraDepth, lvl, fmts+"\n")), arg...)
 	}
 
 	if ctx != nil {
