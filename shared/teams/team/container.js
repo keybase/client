@@ -197,9 +197,13 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     customComponent,
     headerStyle: {borderBottomWidth: 0},
     invites: stateProps._invites.toJS(),
-    members: stateProps._memberInfo
-      .toArray()
-      .sort((a: Constants.MemberInfo, b: Constants.MemberInfo) => a.username.localeCompare(b.username)),
+    members: stateProps._memberInfo.toArray().sort((a: Constants.MemberInfo, b: Constants.MemberInfo) => {
+      if (you && !youImplicitAdmin) {
+        if (a.username === you) return -1
+        if (b.username === you) return 1
+      }
+      return a.username.localeCompare(b.username)
+    }),
     requests: stateProps._requests.toJS(),
     newTeamRequests: stateProps._newTeamRequests.toArray(),
     onAddPeople,
