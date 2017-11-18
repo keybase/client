@@ -1,12 +1,12 @@
 // @flow
 import {Component} from 'react'
-import {type List} from 'immutable'
+import {type PropsPath} from '../../../route-tree'
 
 export type OwnProps = {
   focusInputCounter: number,
   onEditLastMessage: () => void,
   onScrollDown: () => void,
-  previousPath: ?List<string>,
+  previousPath: ?PropsPath<*>,
 }
 
 export default class InputContainer extends Component<OwnProps> {}
