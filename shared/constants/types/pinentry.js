@@ -18,7 +18,6 @@ export type PinentryState = {
 }
 
 export type State = {
-  started: boolean,
   pinentryStates: {
     [key: string]: PinentryState,
   },
