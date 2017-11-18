@@ -2223,12 +2223,15 @@ func (h *Server) DeleteConversationLocal(ctx context.Context, arg chat1.DeleteCo
 	}
 
 	ui := h.getChatUI(arg.SessionID)
-	confirmed, err := ui.ChatConfirmChannelDelete(ctx, chat1.ChatConfirmChannelDeleteArg{
-		SessionID: arg.SessionID,
-		Channel:   arg.ChannelName,
-	})
-	if err != nil {
-		return res, err
+	confirmed := arg.Confirmed
+	if !confirmed {
+		confirmed, err = ui.ChatConfirmChannelDelete(ctx, chat1.ChatConfirmChannelDeleteArg{
+			SessionID: arg.SessionID,
+			Channel:   arg.ChannelName,
+		})
+		if err != nil {
+			return res, err
+		}
 	}
 	if !confirmed {
 		return res, errors.New("channel delete unconfirmed")
