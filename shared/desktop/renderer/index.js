@@ -8,7 +8,6 @@ import * as AppGen from '../../actions/app-gen'
 import * as DevGen from '../../actions/dev-gen'
 import * as NotificationsGen from '../../actions/notifications-gen'
 import * as React from 'react'
-// import Remotes from '../../app/remotes.desktop'
 import * as ConfigGen from '../../actions/config-gen'
 import ReactDOM from 'react-dom'
 import RemoteManager from './remote-manager.desktop'
@@ -26,7 +25,6 @@ import {initAvatarLookup, initAvatarLoad} from '../../common-adapters'
 import merge from 'lodash/merge'
 import throttle from 'lodash/throttle'
 import {selector as menubarSelector} from '../../menubar/selector'
-import {selector as pineentrySelector} from '../../pinentry/selector'
 import {selector as remotePurgeMessageSelector} from '../../pgp/selector'
 import {selector as unlockFoldersSelector} from '../../unlock-folders/selector'
 import {setRouteDef} from '../../actions/route-tree'
@@ -66,6 +64,12 @@ function setupApp(store) {
 
   setupContextMenu(electron.remote.getCurrentWindow())
 
+  // Tell the main window some remote window needs its props
+  console.log('aaaa main app starting to listen for remoteWindowWantsProps')
+  ipcRenderer.on('remoteWindowWantsProps', (event, component, selectorParams) => {
+    console.log('dispatching action')
+    store.dispatch({type: 'remote:needProps', payload: {component, selectorParams}})
+  })
   ipcRenderer.on('dispatchAction', (event, action) => {
     // we MUST convert this else we'll run into issues with redux. See https://github.com/rackt/redux/issues/830
     // This is because this is touched due to the remote proxying. We get a __proto__ which causes the _.isPlainObject check to fail. We use
@@ -106,7 +110,6 @@ function setupApp(store) {
 
   const _menubarSelector = menubarSelector()
   const _unlockFoldersSelector = unlockFoldersSelector()
-  const _pineentrySelector = pineentrySelector()
   const _remotePurgeMessageSelector = remotePurgeMessageSelector()
 
   const subsetsRemotesCareAbout = store => {
@@ -114,7 +117,6 @@ function setupApp(store) {
       tracker: store.tracker,
       menubar: _menubarSelector(store),
       unlockFolder: _unlockFoldersSelector(store),
-      pinentry: _pineentrySelector(store),
       pgpPurgeMessage: _remotePurgeMessageSelector(store),
     }
   }
@@ -164,7 +166,6 @@ function render(store, MainComponent) {
     <AppContainer>
       <Root store={store}>
         <div style={{display: 'flex', flex: 1}}>
-          {/* <Remotes /> */}
           <RemoteManager />
           <FontLoader />
           <MainComponent />

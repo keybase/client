@@ -104,10 +104,7 @@ class RemoteComponent extends Component<any> {
     })
 
     if (showDevTools && !skipSecondaryDevtools) {
-      console.log('aaa', this.props.component)
-      if (this.props.component !== 'menubar') {
-        webContents.openDevTools('detach')
-      }
+      webContents.openDevTools('detach')
     }
   }
 

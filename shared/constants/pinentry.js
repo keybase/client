@@ -3,7 +3,7 @@ import type {State} from './types/pinentry'
 
 const initialState: State = {
   pinentryStates: {
-    test1: {
+    123454321: {
       closed: false,
       sessionID: 123,
       features: {
