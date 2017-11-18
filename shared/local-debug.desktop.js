@@ -32,7 +32,7 @@ if (__DEV__) {
   config.filterActionLogs = null // '^chat|entity'
   config.forwardLogs = false
   config.printOutstandingRPCs = true
-  config.printRPC = true
+  config.printRPC = false
   config.reduxSagaLogger = false
   config.reduxSagaLoggerMasked = false
   config.userTimings = true

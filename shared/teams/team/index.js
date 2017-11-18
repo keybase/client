@@ -56,6 +56,7 @@ export type Props = {
   showMenu: boolean,
   setOpenTeam: (checked: boolean) => void,
   setShowMenu: (s: boolean) => void,
+  waitingForSavePublicity: boolean,
   you: string,
   youCanShowcase: boolean,
   youCanAddPeople: boolean,
@@ -224,20 +225,30 @@ class Team extends React.PureComponent<Props> {
       onSavePublicity,
       openTeam,
       openTeamRole,
+      newOpenTeam,
+      newOpenTeamRole,
       newPublicityAnyMember,
       newPublicityMember,
       newPublicityTeam,
+      publicityAnyMember,
+      publicityMember,
+      publicityTeam,
       setOpenTeam,
+      setOpenTeamRole,
       setPublicityAnyMember,
       setPublicityMember,
       setPublicityTeam,
+      waitingForSavePublicity,
       you,
       youCanAddPeople,
       youCanCreateSubteam,
       youCanShowcase,
     } = this.props
 
+    const publicitySettingsChanged = newPublicityAnyMember !== publicityAnyMember || newPublicityMember !== publicityMember || newPublicityTeam !== publicityTeam || newOpenTeam !== openTeam || newOpenTeam && (newOpenTeamRole !== openTeamRole)
+    
     console.warn('props are', this.props)
+    console.warn(publicitySettingsChanged)
     const me = members.find(member => member.username === you)
     const admin = me ? me.type === 'admin' || me.type === 'owner' : false
 
@@ -388,7 +399,7 @@ class Team extends React.PureComponent<Props> {
               <Box style={stylesSettingsTabRow}>
                 <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center'}}>
                   <Checkbox
-                    checked={openTeam}
+                    checked={newOpenTeam}
                     label=""
                     onCheck={setOpenTeam}
                     style={{paddingRight: globalMargins.xtiny}}
@@ -402,10 +413,10 @@ class Team extends React.PureComponent<Props> {
                     Anyone will be able to join immediately.  Users will join as
                     {' '}
                     <Text
-                      type={openTeam ? 'BodySmallPrimaryLink' : 'BodySmall'}
-                      onClick={openTeam ? onSetOpenTeamRole : undefined}
+                      type={newOpenTeam ? 'BodySmallPrimaryLink' : 'BodySmall'}
+                      onClick={newOpenTeam ? onSetOpenTeamRole : undefined}
                     >
-                      {openTeamRole}
+                      {newOpenTeamRole}
                     </Text>
                     .
                   </Text>
@@ -413,7 +424,8 @@ class Team extends React.PureComponent<Props> {
               </Box>
 
               <Box style={{...stylesSettingsTabRow, alignSelf: 'center'}}>
-                <Button type="Primary" label="Save" onClick={onSavePublicity} />
+                <Button type="Primary" label="Save" onClick={onSavePublicity} disabled={!publicitySettingsChanged} waiting={waitingForSavePublicity}
+/>
               </Box>
             </Box>}
         </Box>

@@ -285,6 +285,8 @@ const _createNewTeamFromConversation = function*(
 
 const _getDetails = function*(action: Constants.GetDetails): Saga.SagaGenerator<any, any> {
   const teamname = action.payload.teamname
+  const waitingKey = {key: `getDetails:${teamname}`}
+  yield Saga.put(createIncrementWaiting(waitingKey))
   yield Saga.put(replaceEntity(['teams', 'teamNameToLoading'], I.Map([[teamname, true]])))
   try {
     const details: RPCTypes.TeamDetails = yield Saga.call(RPCTypes.teamsTeamGetRpcPromise, {
@@ -387,6 +389,7 @@ const _getDetails = function*(action: Constants.GetDetails): Saga.SagaGenerator<
     ])
   } finally {
     yield Saga.put(replaceEntity(['teams', 'teamNameToLoading'], I.Map([[teamname, false]])))
+    yield Saga.put(createDecrementWaiting(waitingKey))
   }
 }
 
@@ -545,7 +548,7 @@ const _saveChannelMembership = function(
   ])
 }
 
-const _afterSaveChannelMembership = results => {
+const _afterSaveCalls = results => {
   const after = last(results)
   const [rpcs] = results
 
@@ -606,68 +609,65 @@ function* _createChannel(action: Constants.CreateChannel) {
   }
 }
 
-function* _setPublicity(action: Constants.SetPublicity) {
-  const {payload: {settings, teamname}} = action
-  console.warn('in setPublicity, action', action)
-  const openTeam = yield Saga.select((state: TypedState) =>
-    state.entities.getIn(['teams', 'teamNameToTeamSettings', teamname, 'open'], false)
-  )
-  const openTeamRole = yield Saga.select((state: TypedState) =>
-    state.entities.getIn(['teams', 'teamNameToTeamSettings', teamname, 'joinAs'], 'reader')
-  )
-  const publicityAnyMember = yield Saga.select((state: TypedState) =>
-    state.entities.getIn(['teams', 'teamNameToPublicitySettings', teamname, 'anyMemberShowcase'], false)
-  )
-  const publicityMember = yield Saga.select((state: TypedState) =>
-    state.entities.getIn(['teams', 'teamNameToPublicitySettings', teamname, 'member'], false)
-  )
-  const publicityTeam = yield Saga.select((state: TypedState) =>
-    state.entities.getIn(['teams', 'teamNameToPublicitySettings', teamname, 'team'], false)
-  )
+const _setPublicity = function(
+  {payload: {teamname, settings}}: Constants.SaveChannelMembership,
+  state: TypedState
+) {
+  console.warn('in setPublicity, action', teamname, settings)
+  const waitingKey = {key: `setPublicity:${teamname}`}  
+  console.warn('waiting key is', waitingKey)
+  const openTeam = state.entities.getIn(['teams', 'teamNameToTeamSettings', teamname, 'open'], false)
+  const openTeamRole = state.entities.getIn(['teams', 'teamNameToTeamSettings', teamname, 'joinAs'], 'reader')
+  const publicityAnyMember = state.entities.getIn(['teams', 'teamNameToPublicitySettings', teamname, 'anyMemberShowcase'], false)
+  const publicityMember = state.entities.getIn(['teams', 'teamNameToPublicitySettings', teamname, 'member'], false)
+  const publicityTeam = state.entities.getIn(['teams', 'teamNameToPublicitySettings', teamname, 'team'], false)
+
   const calls = []
   if (openTeam !== settings.openTeam) {
-    calls.append()
+    calls.push(Saga.callAndWrap(RPCTypes.teamsTeamSetSettingsRpcPromise, {
+      param: {
+        name: teamname,
+        settings: {
+          joinAs: RPCTypes.teamsTeamRole[settings.openTeamRole],
+          open: settings.openTeam,
+        },
+      }
+    }))
   }
+  if (publicityAnyMember !== settings.publicityAnyMember) {
+    calls.push(Saga.callAndWrap(RPCTypes.teamsSetTeamShowcaseRpcPromise, {
+      param: {
+        anyMemberShowcase: settings.publicityAnyMember,
+        name: teamname,
+      },
+    }))
+  }
+  if (publicityMember !== settings.publicityMember) {
+    calls.push(Saga.callAndWrap(RPCTypes.teamsSetTeamMemberShowcaseRpcPromise, {
+      param: {
+        isShowcased: settings.publicityMember,
+        name: teamname,
+      },
+    }))
+  }
+  if (publicityTeam !== settings.publicityTeam) {
+    calls.push(Saga.callAndWrap(RPCTypes.teamsSetTeamShowcaseRpcPromise, {
+      param: {
+        isShowcased: settings.publicityTeam,
+        name: teamname,        
+      },
+    }))
+  }
+
+  return Saga.all([
+    Saga.all(calls),
+    Saga.put(createIncrementWaiting(waitingKey)),    
+    Saga.identity(
+      Saga.all([Saga.put(Creators.getDetails(teamname)), Saga.put(createDecrementWaiting(waitingKey))])
+    ),
+  ])
 }
 
-function* _setPublicityAnyMember(action: Constants.SetPublicityAnyMember) {
-  const {payload: {enabled, teamname}} = action
-  yield Saga.put(replaceEntity(['teams', 'teamNameToLoading'], I.Map([[teamname, true]])))
-  yield Saga.call(RPCTypes.teamsSetTeamShowcaseRpcPromise, {
-    param: {
-      anyMemberShowcase: enabled,
-      name: teamname,
-    },
-  })
-  // getDetails will unset loading and update the store with the new value
-  yield Saga.put((dispatch: Dispatch) => dispatch(Creators.getDetails(teamname)))
-}
-
-function* _setPublicityMember(action: Constants.SetPublicityMember) {
-  const {payload: {enabled, teamname}} = action
-  yield Saga.put(replaceEntity(['teams', 'teamNameToLoading'], I.Map([[teamname, true]])))
-  yield Saga.call(RPCTypes.teamsSetTeamMemberShowcaseRpcPromise, {
-    param: {
-      isShowcased: enabled,
-      name: teamname,
-    },
-  })
-  // getDetails will unset loading and update the store with the new value
-  yield Saga.put((dispatch: Dispatch) => dispatch(Creators.getDetails(teamname)))
-}
-
-function* _setPublicityTeam(action: Constants.SetPublicityTeam) {
-  const {payload: {enabled, teamname}} = action
-  yield Saga.put(replaceEntity(['teams', 'teamNameToLoading'], I.Map([[teamname, true]])))
-  yield Saga.call(RPCTypes.teamsSetTeamShowcaseRpcPromise, {
-    param: {
-      isShowcased: enabled,
-      name: teamname,
-    },
-  })
-  // getDetails will unset loading and update the store with the new value
-  yield Saga.put((dispatch: Dispatch) => dispatch(Creators.getDetails(teamname)))
-}
 
 function* _setupTeamHandlers(): Saga.SagaGenerator<any, any> {
   yield Saga.put((dispatch: Dispatch) => {
@@ -819,7 +819,7 @@ const teamsSaga = function*(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(
     'teams:saveChannelMembership',
     _saveChannelMembership,
-    _afterSaveChannelMembership
+    _afterSaveCalls,
   )
   yield Saga.safeTakeEvery('teams:createChannel', _createChannel)
   yield Saga.safeTakeEvery('teams:setupTeamHandlers', _setupTeamHandlers)
@@ -836,10 +836,7 @@ const teamsSaga = function*(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEvery('teams:badgeAppForTeams', _badgeAppForTeams)
   yield Saga.safeTakeEveryPure(RouteTreeConstants.switchTo, _onTabChange)
   yield Saga.safeTakeEvery('teams:inviteToTeamByPhone', _inviteToTeamByPhone)
-  yield Saga.safeTakeEvery('teams:setPublicityAnyMember', _setPublicityAnyMember)
-  yield Saga.safeTakeEvery('teams:setPublicityMember', _setPublicityMember)
-  yield Saga.safeTakeEvery('teams:setPublicityTeam', _setPublicityTeam)
-  yield Saga.safeTakeEvery('teams:setPublicity', _setPublicity)
+  yield Saga.safeTakeEveryPure('teams:setPublicity', _setPublicity, _afterSaveCalls)
 }
 
 export default teamsSaga

@@ -11,6 +11,7 @@ import {compose, lifecycle, withHandlers, withPropsOnChange, withState} from 're
 import {connect, type TypedState} from '../../util/container'
 import {getProfile} from '../../actions/tracker'
 import {isMobile} from '../../constants/platform'
+import {anyWaiting} from '../../constants/waiting'
 import {navigateAppend} from '../../actions/route-tree'
 import {showUserProfile} from '../../actions/profile'
 
@@ -28,6 +29,7 @@ type StateProps = {
   publicityMember: boolean,
   publicityTeam: boolean,
   selectedTab: string,
+  waitingForSave: boolean,
   you: ?string,
 }
 
@@ -65,6 +67,7 @@ const mapStateToProps = (state: TypedState, {routeProps, routeState}): StateProp
     ),
     publicityTeam: state.entities.getIn(['teams', 'teamNameToPublicitySettings', teamname, 'team'], false),
     selectedTab: routeState.get('selectedTab') || 'members',
+    waitingForSavePublicity: anyWaiting(state, `setPublicity:${teamname}`, `getDetails:${teamname}`),
     you: state.config.username,
   }
 }
@@ -109,12 +112,6 @@ const mapDispatchToProps = (
     isMobile ? dispatch(showUserProfile(username)) : dispatch(getProfile(username, true, true))
   },
   setSelectedTab: selectedTab => setRouteState({selectedTab}),
-  _setPublicityAnyMember: (teamname: Constants.Teamname, checked: boolean) =>
-    dispatch(Creators.setPublicityAnyMember(teamname, checked)),
-  _setPublicityMember: (teamname: Constants.Teamname, checked: boolean) =>
-    dispatch(Creators.setPublicityMember(teamname, checked)),
-  _setPublicityTeam: (teamname: Constants.Teamname, checked: boolean) =>
-    dispatch(Creators.setPublicityTeam(teamname, checked)),
   onBack: () => dispatch(navigateUp()),
   _onEditDescription: () =>
     dispatch(
@@ -136,8 +133,6 @@ const mapDispatchToProps = (
       ])
     )
   },
-  _setOpenTeam: (teamname: Constants.Teamname, enabled: boolean, openTeamRole: Constants.TeamRoleType) =>
-    dispatch(Creators.makeTeamOpen(teamname, enabled, openTeamRole)),
   _savePublicity: (teamname: Constants.Teamname, settings) =>
     dispatch(Creators.setPublicity(teamname, settings)),
 })
@@ -177,12 +172,6 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
   const onAddSelf = () => dispatchProps._onAddSelf(stateProps.name, you)
   const onSetOpenTeamRole = () =>
     dispatchProps._onSetOpenTeamRole(stateProps.openTeam, stateProps.openTeamRole)
-  const setPublicityAnyMember = (checked: boolean) =>
-    dispatchProps._setPublicityAnyMember(stateProps.name, checked)
-  const setPublicityMember = (checked: boolean) => dispatchProps._setPublicityMember(stateProps.name, checked)
-  const setPublicityTeam = (checked: boolean) => dispatchProps._setPublicityTeam(stateProps.name, checked)
-  const setOpenTeam = (checked: boolean) =>
-    dispatchProps._setOpenTeam(stateProps.name, checked, stateProps.openTeamRole)
 
   const savePublicity = settings => dispatchProps._savePublicity(stateProps.name, settings)
 
@@ -201,6 +190,8 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     />
   )
   const youCanShowcase = youAdmin || stateProps.publicityAnyMember
+  console.warn('in mergeProps, waitingForSavePublicity is', stateProps.waitingForSavePublicity)
+
   return {
     ...stateProps,
     ...dispatchProps,
@@ -223,10 +214,6 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     onEditDescription,
     onSetOpenTeamRole,
     savePublicity,
-    setOpenTeam,
-    setPublicityAnyMember,
-    setPublicityMember,
-    setPublicityTeam,
     showAddYourselfBanner,
     youCanAddPeople,
     youCanCreateSubteam,
@@ -242,6 +229,7 @@ export default compose(
   withState('newPublicityTeam', 'setPublicityTeam', props => props.publicityTeam),
   withState('newOpenTeam', 'setOpenTeam', props => props.openTeam),
   withState('newOpenTeamRole', 'setOpenTeamRole', props => props.openTeamRole),
+  withState('publicitySettingsChanged', 'setPublicitySettingsChanged', false),
   withPropsOnChange(
     ['publicityAnyMember', 'publicityMember', 'publicityTeam', 'openTeam', 'openTeamRole'],
     props => {
