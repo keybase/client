@@ -33,11 +33,6 @@ export type Props = {
   members: Array<MemberRowProps>,
   memberCount: number,
   name: Constants.Teamname,
-  newOpenTeam: boolean,
-  newOpenTeamRole: Constants.TeamRoleType,
-  newPublicityAnyMember: boolean,
-  newPublicityMember: boolean,
-  newPublicityTeam: boolean,
   onAddPeople: () => void,
   onAddSelf: () => void,
   onInviteByEmail: () => void,
@@ -231,11 +226,6 @@ class Team extends React.PureComponent<Props> {
       onSavePublicity,
       openTeam,
       openTeamRole,
-      newOpenTeam,
-      newOpenTeamRole,
-      newPublicityAnyMember,
-      newPublicityMember,
-      newPublicityTeam,
       publicityAnyMember,
       publicityMember,
       publicitySettingsChanged,
@@ -251,7 +241,7 @@ class Team extends React.PureComponent<Props> {
       youCanShowcase,
     } = this.props
 
-    console.warn('props are', this.props)
+    console.warn('propsssss are', this.props)
     console.warn(publicitySettingsChanged)
     const me = members.find(member => member.username === you)
     const admin = me ? me.type === 'admin' || me.type === 'owner' : false
@@ -336,7 +326,7 @@ class Team extends React.PureComponent<Props> {
           >
             <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center'}}>
               <Checkbox
-                checked={newPublicityMember}
+                checked={publicityMember}
                 disabled={!youCanShowcase}
                 label=""
                 onCheck={setPublicityMember}
@@ -363,7 +353,7 @@ class Team extends React.PureComponent<Props> {
               <Box style={stylesSettingsTabRow}>
                 <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center'}}>
                   <Checkbox
-                    checked={newPublicityAnyMember}
+                    checked={publicityAnyMember}
                     label=""
                     onCheck={setPublicityAnyMember}
                     style={{paddingRight: globalMargins.xtiny}}
@@ -382,7 +372,7 @@ class Team extends React.PureComponent<Props> {
               <Box style={stylesSettingsTabRow}>
                 <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center'}}>
                   <Checkbox
-                    checked={newPublicityTeam}
+                    checked={publicityTeam}
                     label=""
                     onCheck={setPublicityTeam}
                     style={{paddingRight: globalMargins.xtiny}}
@@ -403,7 +393,7 @@ class Team extends React.PureComponent<Props> {
               <Box style={stylesSettingsTabRow}>
                 <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center'}}>
                   <Checkbox
-                    checked={newOpenTeam}
+                    checked={openTeam}
                     label=""
                     onCheck={setOpenTeam}
                     style={{paddingRight: globalMargins.xtiny}}
@@ -417,10 +407,10 @@ class Team extends React.PureComponent<Props> {
                     Anyone will be able to join immediately.  Users will join as
                     {' '}
                     <Text
-                      type={newOpenTeam ? 'BodySmallPrimaryLink' : 'BodySmall'}
-                      onClick={newOpenTeam ? onSetOpenTeamRole : undefined}
+                      type={openTeam ? 'BodySmallPrimaryLink' : 'BodySmall'}
+                      onClick={openTeam ? onSetOpenTeamRole : undefined}
                     >
-                      {newOpenTeamRole}
+                      {openTeamRole}
                     </Text>
                     .
                   </Text>

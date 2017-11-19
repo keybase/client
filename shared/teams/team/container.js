@@ -7,7 +7,7 @@ import * as KBFSGen from '../../actions/kbfs-gen'
 import * as React from 'react'
 import Team, {CustomComponent} from '.'
 import {HeaderHoc} from '../../common-adapters'
-import {compose, lifecycle, withHandlers, withProps, withPropsOnChange, withState} from 'recompose'
+import {compose, lifecycle, renameProps, withHandlers, withProps, withPropsOnChange, withState} from 'recompose'
 import {connect, type TypedState} from '../../util/container'
 import {getProfile} from '../../actions/tracker'
 import {isMobile} from '../../constants/platform'
@@ -193,7 +193,6 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     />
   )
   const youCanShowcase = youAdmin || stateProps.publicityAnyMember
-  console.warn('in mergeProps, waitingForSavePublicity is', stateProps.waitingForSavePublicity)
 
   const publicitySettingsChanged =  ownProps.newPublicityAnyMember !== stateProps.publicityAnyMember ||
       ownProps.newPublicityMember !== stateProps.publicityMember ||
@@ -267,6 +266,15 @@ export default compose(
     componentDidMount: function() {
       this.props._loadTeam(this.props.name)
     },
+  }),
+  // Now that we've calculated old vs. new state (for greying out Save button),
+  // we can present just one set of props to the display component.
+  renameProps({
+    newOpenTeam: 'openTeam',
+    newOpenTeamRole: 'openTeamRole',
+    newPublicityAnyMember: 'publicityAnyMember',
+    newPublicityMember: 'publicityMember',
+    newPublicityTeam: 'publicityTeam',
   }),
   HeaderHoc
 )(Team)
