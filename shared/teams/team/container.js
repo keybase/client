@@ -232,7 +232,7 @@ export default compose(
   withState('newOpenTeam', 'setOpenTeam', props => props.openTeam),
   withState('newOpenTeamRole', 'setOpenTeamRole', props => props.openTeamRole),
   withState('publicitySettingsChanged', 'setPublicitySettingsChanged', false),
-  connect(mapStateToProps, mapDispatchToProps, mergeProps),  
+  connect(mapStateToProps, mapDispatchToProps, mergeProps),
   withPropsOnChange(
     ['publicityAnyMember', 'publicityMember', 'publicityTeam', 'openTeam', 'openTeamRole'],
     props => {

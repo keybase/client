@@ -234,7 +234,6 @@ class Team extends React.PureComponent<Props> {
       publicityMember,
       publicityTeam,
       setOpenTeam,
-      setOpenTeamRole,
       setPublicityAnyMember,
       setPublicityMember,
       setPublicityTeam,
@@ -245,8 +244,13 @@ class Team extends React.PureComponent<Props> {
       youCanShowcase,
     } = this.props
 
-    const publicitySettingsChanged = newPublicityAnyMember !== publicityAnyMember || newPublicityMember !== publicityMember || newPublicityTeam !== publicityTeam || newOpenTeam !== openTeam || newOpenTeam && (newOpenTeamRole !== openTeamRole)
-    
+    const publicitySettingsChanged =
+      newPublicityAnyMember !== publicityAnyMember ||
+      newPublicityMember !== publicityMember ||
+      newPublicityTeam !== publicityTeam ||
+      newOpenTeam !== openTeam ||
+      (newOpenTeam && newOpenTeamRole !== openTeamRole)
+
     console.warn('props are', this.props)
     console.warn(publicitySettingsChanged)
     const me = members.find(member => member.username === you)
@@ -424,8 +428,13 @@ class Team extends React.PureComponent<Props> {
               </Box>
 
               <Box style={{...stylesSettingsTabRow, alignSelf: 'center'}}>
-                <Button type="Primary" label="Save" onClick={onSavePublicity} disabled={!publicitySettingsChanged} waiting={waitingForSavePublicity}
-/>
+                <Button
+                  type="Primary"
+                  label="Save"
+                  onClick={onSavePublicity}
+                  disabled={!publicitySettingsChanged}
+                  waiting={waitingForSavePublicity}
+                />
               </Box>
             </Box>}
         </Box>

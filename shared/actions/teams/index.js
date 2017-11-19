@@ -614,60 +614,76 @@ const _setPublicity = function(
   state: TypedState
 ) {
   console.warn('in setPublicity, action', teamname, settings)
-  const waitingKey = {key: `setPublicity:${teamname}`}  
+  const waitingKey = {key: `setPublicity:${teamname}`}
   console.warn('waiting key is', waitingKey)
   const openTeam = state.entities.getIn(['teams', 'teamNameToTeamSettings', teamname, 'open'], false)
   const openTeamRole = state.entities.getIn(['teams', 'teamNameToTeamSettings', teamname, 'joinAs'], 'reader')
-  const publicityAnyMember = state.entities.getIn(['teams', 'teamNameToPublicitySettings', teamname, 'anyMemberShowcase'], false)
-  const publicityMember = state.entities.getIn(['teams', 'teamNameToPublicitySettings', teamname, 'member'], false)
-  const publicityTeam = state.entities.getIn(['teams', 'teamNameToPublicitySettings', teamname, 'team'], false)
+  const publicityAnyMember = state.entities.getIn(
+    ['teams', 'teamNameToPublicitySettings', teamname, 'anyMemberShowcase'],
+    false
+  )
+  const publicityMember = state.entities.getIn(
+    ['teams', 'teamNameToPublicitySettings', teamname, 'member'],
+    false
+  )
+  const publicityTeam = state.entities.getIn(
+    ['teams', 'teamNameToPublicitySettings', teamname, 'team'],
+    false
+  )
 
   const calls = []
   if (openTeam !== settings.openTeam || (settings.openTeam && openTeamRole !== settings.openTeamRole)) {
-    calls.push(Saga.callAndWrap(RPCTypes.teamsTeamSetSettingsRpcPromise, {
-      param: {
-        name: teamname,
-        settings: {
-          joinAs: RPCTypes.teamsTeamRole[settings.openTeamRole],
-          open: settings.openTeam,
+    calls.push(
+      Saga.callAndWrap(RPCTypes.teamsTeamSetSettingsRpcPromise, {
+        param: {
+          name: teamname,
+          settings: {
+            joinAs: RPCTypes.teamsTeamRole[settings.openTeamRole],
+            open: settings.openTeam,
+          },
         },
-      }
-    }))
+      })
+    )
   }
   if (publicityAnyMember !== settings.publicityAnyMember) {
-    calls.push(Saga.callAndWrap(RPCTypes.teamsSetTeamShowcaseRpcPromise, {
-      param: {
-        anyMemberShowcase: settings.publicityAnyMember,
-        name: teamname,
-      },
-    }))
+    calls.push(
+      Saga.callAndWrap(RPCTypes.teamsSetTeamShowcaseRpcPromise, {
+        param: {
+          anyMemberShowcase: settings.publicityAnyMember,
+          name: teamname,
+        },
+      })
+    )
   }
   if (publicityMember !== settings.publicityMember) {
-    calls.push(Saga.callAndWrap(RPCTypes.teamsSetTeamMemberShowcaseRpcPromise, {
-      param: {
-        isShowcased: settings.publicityMember,
-        name: teamname,
-      },
-    }))
+    calls.push(
+      Saga.callAndWrap(RPCTypes.teamsSetTeamMemberShowcaseRpcPromise, {
+        param: {
+          isShowcased: settings.publicityMember,
+          name: teamname,
+        },
+      })
+    )
   }
   if (publicityTeam !== settings.publicityTeam) {
-    calls.push(Saga.callAndWrap(RPCTypes.teamsSetTeamShowcaseRpcPromise, {
-      param: {
-        isShowcased: settings.publicityTeam,
-        name: teamname,        
-      },
-    }))
+    calls.push(
+      Saga.callAndWrap(RPCTypes.teamsSetTeamShowcaseRpcPromise, {
+        param: {
+          isShowcased: settings.publicityTeam,
+          name: teamname,
+        },
+      })
+    )
   }
 
   return Saga.all([
     Saga.all(calls),
-    Saga.put(createIncrementWaiting(waitingKey)),    
+    Saga.put(createIncrementWaiting(waitingKey)),
     Saga.identity(
       Saga.all([Saga.put(Creators.getDetails(teamname)), Saga.put(createDecrementWaiting(waitingKey))])
     ),
   ])
 }
-
 
 function* _setupTeamHandlers(): Saga.SagaGenerator<any, any> {
   yield Saga.put((dispatch: Dispatch) => {
@@ -816,11 +832,7 @@ const teamsSaga = function*(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure('teams:getChannels', _getChannels, _afterGetChannels)
   yield Saga.safeTakeEvery('teams:getTeams', _getTeams)
   yield Saga.safeTakeEvery('teams:toggleChannelMembership', _toggleChannelMembership)
-  yield Saga.safeTakeEveryPure(
-    'teams:saveChannelMembership',
-    _saveChannelMembership,
-    _afterSaveCalls,
-  )
+  yield Saga.safeTakeEveryPure('teams:saveChannelMembership', _saveChannelMembership, _afterSaveCalls)
   yield Saga.safeTakeEvery('teams:createChannel', _createChannel)
   yield Saga.safeTakeEvery('teams:setupTeamHandlers', _setupTeamHandlers)
   yield Saga.safeTakeEvery('teams:addToTeam', _addToTeam)
