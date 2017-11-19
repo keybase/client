@@ -141,7 +141,7 @@ function setPublicityTeam(teamname: string, enabled: boolean) {
   return {payload: {enabled, teamname}, type: 'teams:setPublicityTeam'}
 }
 
-function setPublicity(teamname: string, settings) {
+function setPublicity(teamname: string, settings: Constants.PublicitySettings) {
   return {payload: {settings, teamname}, type: 'teams:setPublicity'}
 }
 

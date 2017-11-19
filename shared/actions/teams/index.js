@@ -610,7 +610,7 @@ function* _createChannel(action: Constants.CreateChannel) {
 }
 
 const _setPublicity = function(
-  {payload: {teamname, settings}}: Constants.SaveChannelMembership,
+  {payload: {teamname, settings}}: Constants.SetPublicity,
   state: TypedState
 ) {
   console.warn('in setPublicity, action', teamname, settings)

@@ -29,7 +29,7 @@ type StateProps = {
   publicityMember: boolean,
   publicityTeam: boolean,
   selectedTab: string,
-  waitingForSave: boolean,
+  waitingForSavePublicity: boolean,
   you: ?string,
 }
 

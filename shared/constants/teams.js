@@ -339,6 +339,14 @@ const isOwner = (type: TeamRoleType) => type === 'owner'
 export const getFollowingMap = (state: TypedState) => state.config.following
 export const getFollowerMap = (state: TypedState) => state.config.followers
 
+export type PublicitySettings = {
+  openTeam: boolean,
+  openTeamRole: TeamRoleType,
+  publicityAnyMember: boolean,
+  publicityMember: boolean,
+  publicityTeam: boolean,
+}
+
 export {
   getConvIdsFromTeamName,
   getConversationIDKeyFromChannelName,
