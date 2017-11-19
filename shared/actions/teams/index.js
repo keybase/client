@@ -616,22 +616,22 @@ const _setPublicity = function(
   console.warn('in setPublicity, action', teamname, settings)
   const waitingKey = {key: `setPublicity:${teamname}`}
   console.warn('waiting key is', waitingKey)
-  const openTeam = state.entities.getIn(['teams', 'teamNameToTeamSettings', teamname, 'open'], false)
-  const openTeamRole = state.entities.getIn(['teams', 'teamNameToTeamSettings', teamname, 'joinAs'], 'reader')
-  const publicityAnyMember = state.entities.getIn(
-    ['teams', 'teamNameToPublicitySettings', teamname, 'anyMemberShowcase'],
-    false
-  )
-  const publicityMember = state.entities.getIn(
-    ['teams', 'teamNameToPublicitySettings', teamname, 'member'],
-    false
-  )
-  const publicityTeam = state.entities.getIn(
-    ['teams', 'teamNameToPublicitySettings', teamname, 'team'],
-    false
-  )
+  const teamSettings = state.entities.getIn(['teams', 'teamNameToTeamSettings', teamname], {
+    open: false,
+    joinAs: RPCTypes.teamsTeamRole['reader'],
+  })
+  const teamPublicitySettings = state.entities.getIn(['teams', 'teamNameToPublicitySettings', teamname], {
+    anyMemberShowcase: false,
+    member: false,
+    team: false,
+  })
+  const openTeam = teamSettings.open
+  const openTeamRole = teamSettings.joinAs
+  const publicityAnyMember = teamPublicitySettings.anyMemberShowcase
+  const publicityMember = teamPublicitySettings.member
+  const publicityTeam = teamPublicitySettings.team
 
-  const calls = []
+  let calls = []
   if (openTeam !== settings.openTeam || (settings.openTeam && openTeamRole !== settings.openTeamRole)) {
     calls.push(
       Saga.callAndWrap(RPCTypes.teamsTeamSetSettingsRpcPromise, {
@@ -675,7 +675,6 @@ const _setPublicity = function(
       })
     )
   }
-
   return Saga.all([
     Saga.all(calls),
     Saga.put(createIncrementWaiting(waitingKey)),
