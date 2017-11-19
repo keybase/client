@@ -19,6 +19,7 @@ function reducer(state: Constants.State = initialState, action: Waiting.Actions)
       return state.update(key, 0, n => n + 1)
     }
   }
+
   return state
 }
 
