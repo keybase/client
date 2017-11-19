@@ -7,7 +7,7 @@ import * as KBFSGen from '../../actions/kbfs-gen'
 import * as React from 'react'
 import Team, {CustomComponent} from '.'
 import {HeaderHoc} from '../../common-adapters'
-import {compose, lifecycle, renameProps, withHandlers, withProps, withPropsOnChange, withState} from 'recompose'
+import {compose, lifecycle, renameProps, withHandlers, withPropsOnChange, withState} from 'recompose'
 import {connect, type TypedState} from '../../util/container'
 import {getProfile} from '../../actions/tracker'
 import {isMobile} from '../../constants/platform'
@@ -194,12 +194,13 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
   )
   const youCanShowcase = youAdmin || stateProps.publicityAnyMember
 
-  const publicitySettingsChanged =  ownProps.newPublicityAnyMember !== stateProps.publicityAnyMember ||
-      ownProps.newPublicityMember !== stateProps.publicityMember ||
-      ownProps.newPublicityTeam !== stateProps.publicityTeam ||
-      ownProps.newOpenTeam !== stateProps.openTeam ||
-      (ownProps.newOpenTeam && ownProps.newOpenTeamRole !== stateProps.openTeamRole)
-    
+  const publicitySettingsChanged =
+    ownProps.newPublicityAnyMember !== stateProps.publicityAnyMember ||
+    ownProps.newPublicityMember !== stateProps.publicityMember ||
+    ownProps.newPublicityTeam !== stateProps.publicityTeam ||
+    ownProps.newOpenTeam !== stateProps.openTeam ||
+    (ownProps.newOpenTeam && ownProps.newOpenTeamRole !== stateProps.openTeamRole)
+
   return {
     ...stateProps,
     ...dispatchProps,

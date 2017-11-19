@@ -47,6 +47,7 @@ export type Props = {
   openTeamRole: Constants.TeamRoleType,
   publicityAnyMember: boolean,
   publicityMember: boolean,
+  publicitySettingsChanged: boolean,
   publicityTeam: boolean,
   requests: Array<RequestRowProps>,
   selectedTab: Constants.TabKey,

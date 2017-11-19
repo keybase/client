@@ -16,14 +16,6 @@ type _PublicitySettings = {
   team: boolean,
 }
 
-export type PublicitySettings = {
-  openTeam: boolean,
-  openTeamRole: TeamRoleType,
-  publicityAnyMember: boolean,
-  publicityMember: boolean,
-  publicityTeam: boolean,
-}
-
 export type TeamSettings = RPCTypes.TeamSettings
 export type ChannelMembershipState = {[channelname: string]: boolean}
 
@@ -47,6 +39,14 @@ export type CreateNewTeamFromConversation = NoErrorTypedAction<
 
 export const teamRoleTypes = ['reader', 'writer', 'admin', 'owner']
 export type TeamRoleType = 'reader' | 'writer' | 'admin' | 'owner'
+
+export type PublicitySettings = {
+  openTeam: boolean,
+  openTeamRole: TeamRoleType,
+  publicityAnyMember: boolean,
+  publicityMember: boolean,
+  publicityTeam: boolean,
+}
 
 export type AddToTeam = NoErrorTypedAction<
   'teams:addToTeam',
