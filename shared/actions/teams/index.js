@@ -610,9 +610,7 @@ function* _createChannel(action: Constants.CreateChannel) {
 }
 
 const _setPublicity = function({payload: {teamname, settings}}: Constants.SetPublicity, state: TypedState) {
-  console.warn('in setPublicity, action', teamname, settings)
   const waitingKey = {key: `setPublicity:${teamname}`}
-  console.warn('waiting key is', waitingKey)
   const teamSettings = state.entities.getIn(['teams', 'teamNameToTeamSettings', teamname], {
     open: false,
     joinAs: RPCTypes.teamsTeamRole['reader'],
@@ -628,7 +626,7 @@ const _setPublicity = function({payload: {teamname, settings}}: Constants.SetPub
   const publicityMember = teamPublicitySettings.member
   const publicityTeam = teamPublicitySettings.team
 
-  let calls = []
+  const calls = []
   if (openTeam !== settings.openTeam || (settings.openTeam && openTeamRole !== settings.openTeamRole)) {
     calls.push(
       Saga.callAndWrap(RPCTypes.teamsTeamSetSettingsRpcPromise, {

@@ -242,8 +242,6 @@ class Team extends React.PureComponent<Props> {
       youCanShowcase,
     } = this.props
 
-    console.warn('propsssss are', this.props)
-    console.warn(publicitySettingsChanged)
     const me = members.find(member => member.username === you)
     const admin = me ? me.type === 'admin' || me.type === 'owner' : false
 

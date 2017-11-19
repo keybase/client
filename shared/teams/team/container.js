@@ -122,10 +122,7 @@ const mapDispatchToProps = (
       navigateAppend([
         {
           props: {
-            onComplete: (role: Constants.TeamRoleType) => {
-              console.warn('setOpenTeamRole is', setOpenTeamRole)
-              setOpenTeamRole(role)
-            },
+            onComplete: (role: Constants.TeamRoleType) => setOpenTeamRole(role),
             selectedRole: newOpenTeamRole,
             allowOwner: false,
             allowAdmin: false,
@@ -156,7 +153,6 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
   const onEditDescription = () => dispatchProps._onEditDescription()
   const onCreateSubteam = () => dispatchProps._onCreateSubteam(stateProps.name)
 
-  console.warn('in mergeProps', ownProps, stateProps, dispatchProps)
   const you = stateProps.you
   let youExplicitAdmin = false
   let youImplicitAdmin = false
@@ -177,13 +173,6 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     dispatchProps._onSetOpenTeamRole(stateProps.openTeam, stateProps.openTeamRole)
 
   const savePublicity = settings => dispatchProps._savePublicity(stateProps.name, settings)
-
-  console.warn(
-    stateProps.publicityAnyMember,
-    stateProps.publicityMember,
-    stateProps.publicityTeam,
-    stateProps.openTeam
-  )
 
   const customComponent = (
     <CustomComponent
@@ -243,7 +232,6 @@ export default compose(
   withPropsOnChange(
     ['publicityAnyMember', 'publicityMember', 'publicityTeam', 'openTeam', 'openTeamRole'],
     props => {
-      console.warn('in withPropsOnChange', props)
       props.setPublicityAnyMember(props.publicityAnyMember)
       props.setPublicityMember(props.publicityMember)
       props.setPublicityTeam(props.publicityTeam)
@@ -252,16 +240,14 @@ export default compose(
     }
   ),
   withHandlers({
-    onSavePublicity: props => () => {
-      console.warn('in onSavePublicity', props)
+    onSavePublicity: props => () =>
       props.savePublicity({
         publicityAnyMember: props.newPublicityAnyMember,
         publicityMember: props.newPublicityMember,
         publicityTeam: props.newPublicityTeam,
         openTeam: props.newOpenTeam,
         openTeamRole: props.newOpenTeamRole,
-      })
-    },
+      }),
   }),
   lifecycle({
     componentDidMount: function() {
