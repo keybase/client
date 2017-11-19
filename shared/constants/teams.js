@@ -15,6 +15,15 @@ type _PublicitySettings = {
   member: boolean,
   team: boolean,
 }
+
+export type PublicitySettings = {
+  openTeam: boolean,
+  openTeamRole: TeamRoleType,
+  publicityAnyMember: boolean,
+  publicityMember: boolean,
+  publicityTeam: boolean,
+}
+
 export type TeamSettings = RPCTypes.TeamSettings
 export type ChannelMembershipState = {[channelname: string]: boolean}
 
@@ -190,7 +199,10 @@ export type InviteToTeamByEmail = NoErrorTypedAction<
   {invitees: string, role: string, teamname: string}
 >
 
-export type SetPublicity = NoErrorTypedAction<'teams:setPublicity', {settings: PublicitySettings, teamname: string}>
+export type SetPublicity = NoErrorTypedAction<
+  'teams:setPublicity',
+  {settings: PublicitySettings, teamname: string}
+>
 
 export type UpdateChannelName = NoErrorTypedAction<
   'teams:updateChannelName',
@@ -323,14 +335,6 @@ const isOwner = (type: TeamRoleType) => type === 'owner'
 
 export const getFollowingMap = (state: TypedState) => state.config.following
 export const getFollowerMap = (state: TypedState) => state.config.followers
-
-export type PublicitySettings = {
-  openTeam: boolean,
-  openTeamRole: TeamRoleType,
-  publicityAnyMember: boolean,
-  publicityMember: boolean,
-  publicityTeam: boolean,
-}
 
 export {
   getConvIdsFromTeamName,

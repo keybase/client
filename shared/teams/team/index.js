@@ -238,6 +238,7 @@ class Team extends React.PureComponent<Props> {
       newPublicityTeam,
       publicityAnyMember,
       publicityMember,
+      publicitySettingsChanged,
       publicityTeam,
       setOpenTeam,
       setPublicityAnyMember,
@@ -249,13 +250,6 @@ class Team extends React.PureComponent<Props> {
       youCanCreateSubteam,
       youCanShowcase,
     } = this.props
-
-    const publicitySettingsChanged =
-      newPublicityAnyMember !== publicityAnyMember ||
-      newPublicityMember !== publicityMember ||
-      newPublicityTeam !== publicityTeam ||
-      newOpenTeam !== openTeam ||
-      (newOpenTeam && newOpenTeamRole !== openTeamRole)
 
     console.warn('props are', this.props)
     console.warn(publicitySettingsChanged)
