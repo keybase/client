@@ -623,7 +623,7 @@ const _setPublicity = function(
   const publicityTeam = state.entities.getIn(['teams', 'teamNameToPublicitySettings', teamname, 'team'], false)
 
   const calls = []
-  if (openTeam !== settings.openTeam) {
+  if (openTeam !== settings.openTeam || (settings.openTeam && openTeamRole !== settings.openTeamRole)) {
     calls.push(Saga.callAndWrap(RPCTypes.teamsTeamSetSettingsRpcPromise, {
       param: {
         name: teamname,

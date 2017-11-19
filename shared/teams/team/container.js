@@ -87,7 +87,7 @@ type DispatchProps = {
 
 const mapDispatchToProps = (
   dispatch: Dispatch,
-  {navigateUp, openTeamRole, setOpenTeamRole, setRouteState, routeProps}
+  {navigateUp, newOpenTeamRole, setOpenTeamRole, setRouteState, routeProps}
 ): DispatchProps => ({
   _loadTeam: teamname => dispatch(Creators.getDetails(teamname)),
   _onAddPeople: (teamname: Constants.Teamname) =>
@@ -122,9 +122,11 @@ const mapDispatchToProps = (
       navigateAppend([
         {
           props: {
-            onComplete: (role: Constants.TeamRoleType) =>
-              dispatch(Creators.makeTeamOpen(routeProps.get('teamname'), openTeam, role)),
-            selectedRole: openTeamRole,
+            onComplete: (role: Constants.TeamRoleType) => {
+              console.warn('setOpenTeamRole is', setOpenTeamRole)
+              setOpenTeamRole(role)
+            },
+            selectedRole: newOpenTeamRole,
             allowOwner: false,
             allowAdmin: false,
           },
@@ -154,6 +156,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
   const onEditDescription = () => dispatchProps._onEditDescription()
   const onCreateSubteam = () => dispatchProps._onCreateSubteam(stateProps.name)
 
+  console.warn('in mergeProps', ownProps)
   const you = stateProps.you
   let youExplicitAdmin = false
   let youImplicitAdmin = false
@@ -223,13 +226,13 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
 
 export default compose(
   withState('showMenu', 'setShowMenu', false),
-  connect(mapStateToProps, mapDispatchToProps, mergeProps),
   withState('newPublicityAnyMember', 'setPublicityAnyMember', props => props.publicityAnyMember),
   withState('newPublicityMember', 'setPublicityMember', props => props.publicityMember),
   withState('newPublicityTeam', 'setPublicityTeam', props => props.publicityTeam),
   withState('newOpenTeam', 'setOpenTeam', props => props.openTeam),
   withState('newOpenTeamRole', 'setOpenTeamRole', props => props.openTeamRole),
   withState('publicitySettingsChanged', 'setPublicitySettingsChanged', false),
+  connect(mapStateToProps, mapDispatchToProps, mergeProps),  
   withPropsOnChange(
     ['publicityAnyMember', 'publicityMember', 'publicityTeam', 'openTeam', 'openTeamRole'],
     props => {
@@ -241,11 +244,6 @@ export default compose(
       props.setOpenTeamRole(props.openTeamRole)
     }
   ),
-  lifecycle({
-    componentDidMount: function() {
-      this.props._loadTeam(this.props.name)
-    },
-  }),
   withHandlers({
     onSavePublicity: props => () => {
       console.warn('in onSavePublicity', props)
@@ -256,6 +254,11 @@ export default compose(
         openTeam: props.newOpenTeam,
         openTeamRole: props.newOpenTeamRole,
       })
+    },
+  }),
+  lifecycle({
+    componentDidMount: function() {
+      this.props._loadTeam(this.props.name)
     },
   }),
   HeaderHoc
