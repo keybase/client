@@ -129,18 +129,6 @@ function ignoreRequest(name: string, username: string): Constants.IgnoreRequest 
   return {payload: {name, username}, type: 'teams:ignoreRequest'}
 }
 
-function setPublicityAnyMember(teamname: string, enabled: boolean) {
-  return {payload: {enabled, teamname}, type: 'teams:setPublicityAnyMember'}
-}
-
-function setPublicityMember(teamname: string, enabled: boolean) {
-  return {payload: {enabled, teamname}, type: 'teams:setPublicityMember'}
-}
-
-function setPublicityTeam(teamname: string, enabled: boolean) {
-  return {payload: {enabled, teamname}, type: 'teams:setPublicityTeam'}
-}
-
 function setPublicity(teamname: string, settings: Constants.PublicitySettings) {
   return {payload: {settings, teamname}, type: 'teams:setPublicity'}
 }
@@ -210,11 +198,8 @@ export {
   makeTeamOpen,
   removeMember,
   saveChannelMembership,
-  setPublicityAnyMember,
   setChannelCreationError,
   setPublicity,
-  setPublicityMember,
-  setPublicityTeam,
   setTeamCreationError,
   setTeamCreationPending,
   setTeamJoinError,

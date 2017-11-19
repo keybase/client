@@ -192,21 +192,6 @@ export type InviteToTeamByEmail = NoErrorTypedAction<
 
 export type SetPublicity = NoErrorTypedAction<'teams:setPublicity', {settings: PublicitySettings, teamname: string}>
 
-export type SetPublicityAnyMember = NoErrorTypedAction<
-  'teams:setPublicityAnyMember',
-  {enabled: boolean, teamname: string}
->
-
-export type SetPublicityMember = NoErrorTypedAction<
-  'teams:setPublicityMember',
-  {enabled: boolean, teamname: string}
->
-
-export type SetPublicityTeam = NoErrorTypedAction<
-  'teams:setPublicityTeam',
-  {enabled: boolean, teamname: string}
->
-
 export type UpdateChannelName = NoErrorTypedAction<
   'teams:updateChannelName',
   {conversationIDKey: ChatConstants.ConversationIDKey, newChannelName: string}
