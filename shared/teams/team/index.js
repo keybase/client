@@ -13,6 +13,7 @@ import {
   Icon,
   PopupMenu,
   ProgressIndicator,
+  ScrollView,
 } from '../../common-adapters'
 import {globalStyles, globalMargins, globalColors} from '../../styles'
 import {isMobile} from '../../constants/platform'
@@ -315,7 +316,7 @@ class Team extends React.PureComponent<Props> {
     } else if (selectedTab === 'publicity') {
       const teamsLink = 'keybase.io/popular-teams'
       contents = (
-        <Box style={{...globalStyles.flexBoxColumn, alignSelf: 'stretch'}}>
+        <ScrollView style={{...globalStyles.flexBoxColumn, alignSelf: 'stretch'}}>
           <Box
             style={{
               ...globalStyles.flexBoxRow,
@@ -338,7 +339,7 @@ class Team extends React.PureComponent<Props> {
               </Text>
               <Text type="BodySmall">
                 {youCanShowcase
-                  ? 'Team description and number of members will be public.'
+                  ? "Your profile on the Keybase website will mention this team. Description + number of members will be public."
                   : "Admins aren't allowing members to publish this team on their profile."}
               </Text>
             </Box>
@@ -416,7 +417,7 @@ class Team extends React.PureComponent<Props> {
                 </Box>
               </Box>
 
-              <Box style={{...stylesSettingsTabRow, alignSelf: 'center'}}>
+              <Box style={{...stylesSettingsTabRow, alignSelf: 'center', paddingTop: globalMargins.xtiny}}>
                 <Button
                   type="Primary"
                   label="Save"
@@ -426,7 +427,7 @@ class Team extends React.PureComponent<Props> {
                 />
               </Box>
             </Box>}
-        </Box>
+        </ScrollView>
       )
     }
 
