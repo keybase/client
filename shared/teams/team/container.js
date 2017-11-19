@@ -135,7 +135,7 @@ const mapDispatchToProps = (
       ])
     )
   },
-  _savePublicity: (teamname: Constants.Teamname, settings) =>
+  _savePublicity: (teamname: Constants.Teamname, settings: Constants.PublicitySettings) =>
     dispatch(Creators.setPublicity(teamname, settings)),
 })
 

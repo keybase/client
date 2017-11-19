@@ -190,7 +190,7 @@ export type InviteToTeamByEmail = NoErrorTypedAction<
   {invitees: string, role: string, teamname: string}
 >
 
-export type SetPublicity = NoErrorTypedAction<'teams:setPublicity', {settings: any, teamname: string}>
+export type SetPublicity = NoErrorTypedAction<'teams:setPublicity', {settings: PublicitySettings, teamname: string}>
 
 export type SetPublicityAnyMember = NoErrorTypedAction<
   'teams:setPublicityAnyMember',
