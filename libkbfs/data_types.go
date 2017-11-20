@@ -48,7 +48,9 @@ type UserInfo struct {
 // about.
 type TeamInfo struct {
 	// Maybe this should be bare string?  The service doesn't give us
-	// a nice type, unfortunately.
+	// a nice type, unfortunately.  Also note that for implicit teams,
+	// this is an auto-generated name that shouldn't be shown to
+	// users.
 	Name         libkb.NormalizedUsername
 	TID          keybase1.TeamID
 	CryptKeys    map[kbfsmd.KeyGen]kbfscrypto.TLFCryptKey
@@ -66,7 +68,7 @@ type TeamInfo struct {
 // resolving/identifying an implicit team.  TeamInfo is used for
 // anything else.
 type ImplicitTeamInfo struct {
-	Name  libkb.NormalizedUsername
+	Name  libkb.NormalizedUsername // The "display" name for the i-team.
 	TID   keybase1.TeamID
 	TlfID tlf.ID
 }
