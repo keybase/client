@@ -286,6 +286,7 @@ const _createNewTeamFromConversation = function*(
 const _getDetails = function*(action: Constants.GetDetails): Saga.SagaGenerator<any, any> {
   const teamname = action.payload.teamname
   const waitingKey = {key: `getDetails:${teamname}`}
+  // TODO completely replace teamNameToLoading with createIncrementWaiting?
   yield Saga.put(createIncrementWaiting(waitingKey))
   yield Saga.put(replaceEntity(['teams', 'teamNameToLoading'], I.Map([[teamname, true]])))
   try {

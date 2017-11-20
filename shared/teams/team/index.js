@@ -416,17 +416,23 @@ class Team extends React.PureComponent<Props> {
                   </Text>
                 </Box>
               </Box>
-
-              <Box style={{...stylesSettingsTabRow, alignSelf: 'center', paddingTop: globalMargins.xtiny}}>
-                <Button
-                  type="Primary"
-                  label="Save"
-                  onClick={onSavePublicity}
-                  disabled={!publicitySettingsChanged}
-                  waiting={waitingForSavePublicity}
-                />
-              </Box>
             </Box>}
+
+          <Box
+            style={{
+              ...stylesSettingsTabRow,
+              justifyContent: 'center',
+              paddingTop: isMobile ? globalMargins.xtiny : globalMargins.tiny,
+            }}
+          >
+            <Button
+              type="Primary"
+              label="Save"
+              onClick={onSavePublicity}
+              disabled={!publicitySettingsChanged}
+              waiting={waitingForSavePublicity}
+            />
+          </Box>
         </ScrollView>
       )
     }
