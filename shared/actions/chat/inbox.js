@@ -532,7 +532,7 @@ function* unboxConversations(action: ChatGen.UnboxConversationsPayload): SagaGen
     }
   }
   if (forInboxSync) {
-    yield Saga.put(ChatGen.createSetInboxGlobalUntrustedState({inboxGlobalUntrustedState: 'loaded'}))
+    yield Saga.put(ChatGen.createSetInboxSyncingState({inboxSyncingState: 'notSyncing'}))
   }
 }
 
