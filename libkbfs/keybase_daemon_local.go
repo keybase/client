@@ -333,10 +333,11 @@ func (k *KeybaseDaemonLocal) ResolveIdentifyImplicitTeam(
 	// If the implicit team doesn't exist, always create it.
 
 	// Need to make the team info as well, so get the list of user
-	// names and resolve them.
-	asUserName := libkb.NormalizedUsername(name)
+	// names and resolve them.  Auto-generate an implicit team name.
+	implicitName := libkb.NormalizedUsername(
+		"_implicit_" + string(len(k.localTeams)))
 	teams := makeLocalTeams(
-		[]libkb.NormalizedUsername{asUserName}, len(k.localTeams), tlfType)
+		[]libkb.NormalizedUsername{implicitName}, len(k.localTeams), tlfType)
 	info := teams[0]
 	info.Writers = make(map[keybase1.UID]bool, len(writerNames))
 	for _, w := range writers {
@@ -366,8 +367,10 @@ func (k *KeybaseDaemonLocal) ResolveIdentifyImplicitTeam(
 	k.implicitAsserts[key] = tid
 	k.localTeams[tid] = info
 
+	asUserName := libkb.NormalizedUsername(name)
 	iteamInfo := ImplicitTeamInfo{
-		// TODO: allow display name to differ?
+		// TODO: use the "preferred" canonical format here by listing
+		// the logged-in user first?
 		Name: asUserName,
 		TID:  tid,
 	}
