@@ -283,12 +283,6 @@ const _createNewTeamFromConversation = function*(
   }
 }
 
-const isYouAreNotMemberError = (e: Error) => {
-  // TODO: Can we use a constant here instead?
-  const youAreNotMemberErrorCode = 2711
-  return e instanceof RPCError && e.code === youAreNotMemberErrorCode
-}
-
 const _getDetails = function*(action: Constants.GetDetails): Saga.SagaGenerator<any, any> {
   const teamname = action.payload.teamname
   const waitingKey = {key: `getDetails:${teamname}`}
@@ -379,7 +373,9 @@ const _getDetails = function*(action: Constants.GetDetails): Saga.SagaGenerator<
         },
       })
     } catch (e) {
-      if (!isYouAreNotMemberError(e)) {
+      const permDenied =
+        e instanceof RPCError && e.code === RPCTypes.constantsStatusCode.scteamshowcasepermdenied
+      if (!permDenied) {
         throw e
       }
     }

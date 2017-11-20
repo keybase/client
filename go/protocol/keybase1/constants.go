@@ -150,6 +150,7 @@ const (
 	StatusCode_SCTeamKeyMaskNotFound       StatusCode = 2697
 	StatusCode_SCTeamBanned                StatusCode = 2702
 	StatusCode_SCTeamInvalidBan            StatusCode = 2703
+	StatusCode_SCTeamShowcasePermDenied    StatusCode = 2711
 )
 
 func (o StatusCode) DeepCopy() StatusCode { return o }
@@ -295,6 +296,7 @@ var StatusCodeMap = map[string]StatusCode{
 	"SCTeamKeyMaskNotFound":       2697,
 	"SCTeamBanned":                2702,
 	"SCTeamInvalidBan":            2703,
+	"SCTeamShowcasePermDenied":    2711,
 }
 
 var StatusCodeRevMap = map[StatusCode]string{
@@ -438,6 +440,7 @@ var StatusCodeRevMap = map[StatusCode]string{
 	2697: "SCTeamKeyMaskNotFound",
 	2702: "SCTeamBanned",
 	2703: "SCTeamInvalidBan",
+	2711: "SCTeamShowcasePermDenied",
 }
 
 func (e StatusCode) String() string {
