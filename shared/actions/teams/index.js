@@ -296,32 +296,12 @@ const _getDetails = function*(action: Constants.GetDetails): Saga.SagaGenerator<
   yield Saga.put(createIncrementWaiting(waitingKey))
   yield Saga.put(replaceEntity(['teams', 'teamNameToLoading'], I.Map([[teamname, true]])))
   try {
-    const emptyTeamShowcase: RPCTypes.TeamShowcase = {
-      isShowcased: false,
-      anyMemberShowcase: false,
-    }
-    let details: RPCTypes.TeamDetails = {
-      members: {},
-      keyGeneration: 0,
-      annotatedActiveInvites: {},
-      settings: {
-        open: false,
-        joinAs: 0,
+    const details = yield Saga.call(RPCTypes.teamsTeamGetRpcPromise, {
+      param: {
+        name: teamname,
+        forceRepoll: false,
       },
-      showcase: emptyTeamShowcase,
-    }
-    try {
-      details = yield Saga.call(RPCTypes.teamsTeamGetRpcPromise, {
-        param: {
-          name: teamname,
-          forceRepoll: false,
-        },
-      })
-    } catch (e) {
-      if (!isYouAreNotMemberError(e)) {
-        throw e
-      }
-    }
+    })
 
     const implicitAdminDetails: Array<
       RPCTypes.TeamMemberDetails
@@ -383,6 +363,10 @@ const _getDetails = function*(action: Constants.GetDetails): Saga.SagaGenerator<
       yield Saga.put(replaceEntity(['teams', 'teamNameToRequests'], I.Map([[teamname, I.Set()]])))
     }
 
+    const emptyTeamShowcase: RPCTypes.TeamShowcase = {
+      isShowcased: false,
+      anyMemberShowcase: false,
+    }
     // Get publicity settings for this team.
     let publicity: RPCTypes.TeamAndMemberShowcase = {
       teamShowcase: emptyTeamShowcase,
