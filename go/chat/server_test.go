@@ -3227,6 +3227,51 @@ func TestChatSrvDeleteConversation(t *testing.T) {
 	})
 }
 
+type fakeInboxSource struct {
+	types.InboxSource
+}
+
+func (is fakeInboxSource) IsOffline(context.Context) bool {
+	return false
+}
+
+type fakeUISource struct {
+	UISource
+}
+
+func (ui fakeUISource) GetChatUI(sessionID int) libkb.ChatUI {
+	return nil
+}
+
+type fakeRemoteInterface struct {
+	chat1.RemoteInterface
+}
+
+func (ri fakeRemoteInterface) DeleteConversation(context.Context, chat1.ConversationID) (chat1.DeleteConversationRemoteRes, error) {
+	return chat1.DeleteConversationRemoteRes{}, nil
+}
+
+func TestChatSrvDeleteConversationConfirm(t *testing.T) {
+	gc := libkb.NewGlobalContext()
+	gc.Init()
+	var is fakeInboxSource
+	cc := globals.ChatContext{
+		InboxSource: is,
+	}
+	g := globals.NewContext(gc, &cc)
+
+	ui := fakeUISource{}
+	h := NewServer(g, nil, nil, ui)
+
+	var ri fakeRemoteInterface
+	h.setTestRemoteClient(ri)
+	res, err := h.deleteConversationLocal(context.Background(), chat1.DeleteConversationLocalArg{
+		Confirmed: true,
+	})
+	require.NoError(t, err)
+	require.False(t, res.Offline)
+}
+
 func TestChatSrvUserReset(t *testing.T) {
 	runWithMemberTypes(t, func(mt chat1.ConversationMembersType) {
 		ctc := makeChatTestContext(t, "TestChatSrvUserReset", 2)
