@@ -214,7 +214,8 @@ func putMDForPrivate(config *ConfigMock, rmd *RootMetadata) {
 	config.mockMdcache.EXPECT().Replace(gomock.Any(), gomock.Any())
 }
 
-func testMDOpsGetForHandlePublicSuccess(t *testing.T, ver kbfsmd.MetadataVer) {
+func testMDOpsGetIDForHandlePublicSuccess(
+	t *testing.T, ver kbfsmd.MetadataVer) {
 	mockCtrl, config, ctx := mdOpsInit(t, ver)
 	defer mdOpsShutdown(mockCtrl, config)
 
@@ -228,11 +229,8 @@ func testMDOpsGetForHandlePublicSuccess(t *testing.T, ver kbfsmd.MetadataVer) {
 	config.mockMdserv.EXPECT().GetForHandle(ctx, h.ToBareHandleOrBust(),
 		kbfsmd.Merged, nil).Return(id, rmds, nil)
 
-	// Do this first, since rmds is consumed.
-	expectedMD := rmds.MD
-	id2, rmd2, err := config.MDOps().GetForHandle(ctx, h, kbfsmd.Merged, nil)
+	id2, err := config.MDOps().GetIDForHandle(ctx, h)
 	require.NoError(t, err)
-	require.Equal(t, expectedMD, rmd2.bareMd)
 	require.Equal(t, id, id2)
 }
 
@@ -246,7 +244,8 @@ func expectGetKeyBundles(ctx context.Context, config *ConfigMock, extra kbfsmd.E
 	}
 }
 
-func testMDOpsGetForHandlePrivateSuccess(t *testing.T, ver kbfsmd.MetadataVer) {
+func testMDOpsGetIDForHandlePrivateSuccess(
+	t *testing.T, ver kbfsmd.MetadataVer) {
 	mockCtrl, config, ctx := mdOpsInit(t, ver)
 	defer mdOpsShutdown(mockCtrl, config)
 
@@ -261,15 +260,13 @@ func testMDOpsGetForHandlePrivateSuccess(t *testing.T, ver kbfsmd.MetadataVer) {
 		kbfsmd.Merged, nil).Return(id, rmds, nil)
 	expectGetKeyBundles(ctx, config, extra)
 
-	// Do this first, since rmds is consumed.
-	expectedMD := rmds.MD
-	id2, rmd2, err := config.MDOps().GetForHandle(ctx, h, kbfsmd.Merged, nil)
+	id2, err := config.MDOps().GetIDForHandle(ctx, h)
 	require.NoError(t, err)
-	require.Equal(t, expectedMD, rmd2.bareMd)
 	require.Equal(t, id, id2)
 }
 
-func testMDOpsGetForUnresolvedHandlePublicSuccess(t *testing.T, ver kbfsmd.MetadataVer) {
+func testMDOpsGetIDForUnresolvedHandlePublicSuccess(
+	t *testing.T, ver kbfsmd.MetadataVer) {
 	mockCtrl, config, ctx := mdOpsInit(t, ver)
 	defer mdOpsShutdown(mockCtrl, config)
 
@@ -290,7 +287,7 @@ func testMDOpsGetForUnresolvedHandlePublicSuccess(t *testing.T, ver kbfsmd.Metad
 		id, rmds, nil).Times(2)
 
 	// First time should fail.
-	_, _, err = config.MDOps().GetForHandle(ctx, hUnresolved, kbfsmd.Merged, nil)
+	_, err = config.MDOps().GetIDForHandle(ctx, hUnresolved)
 	if _, ok := err.(MDMismatchError); !ok {
 		t.Errorf("Got unexpected error on bad handle check test: %v", err)
 	}
@@ -299,12 +296,13 @@ func testMDOpsGetForUnresolvedHandlePublicSuccess(t *testing.T, ver kbfsmd.Metad
 	daemon.addNewAssertionForTestOrBust("bob", "bob@twitter")
 
 	// Second time should succeed.
-	if _, _, err := config.MDOps().GetForHandle(ctx, hUnresolved, kbfsmd.Merged, nil); err != nil {
+	if _, err := config.MDOps().GetIDForHandle(ctx, hUnresolved); err != nil {
 		t.Errorf("Got error on get: %v", err)
 	}
 }
 
-func testMDOpsGetForUnresolvedMdHandlePublicSuccess(t *testing.T, ver kbfsmd.MetadataVer) {
+func testMDOpsGetIDForUnresolvedMdHandlePublicSuccess(
+	t *testing.T, ver kbfsmd.MetadataVer) {
 	mockCtrl, config, ctx := mdOpsInit(t, ver)
 	defer mdOpsShutdown(mockCtrl, config)
 
@@ -338,7 +336,7 @@ func testMDOpsGetForUnresolvedMdHandlePublicSuccess(t *testing.T, ver kbfsmd.Met
 		kbfsmd.Merged, nil).Return(tlf.NullID, rmds1, nil)
 
 	// First time should fail.
-	_, _, err = config.MDOps().GetForHandle(ctx, h, kbfsmd.Merged, nil)
+	_, err = config.MDOps().GetIDForHandle(ctx, h)
 	if _, ok := err.(MDMismatchError); !ok {
 		t.Errorf("Got unexpected error on bad handle check test: %v", err)
 	}
@@ -351,19 +349,20 @@ func testMDOpsGetForUnresolvedMdHandlePublicSuccess(t *testing.T, ver kbfsmd.Met
 		kbfsmd.Merged, nil).Return(tlf.NullID, rmds2, nil)
 
 	// Second and time should succeed.
-	if _, _, err := config.MDOps().GetForHandle(ctx, h, kbfsmd.Merged, nil); err != nil {
+	if _, err := config.MDOps().GetIDForHandle(ctx, h); err != nil {
 		t.Errorf("Got error on get: %v", err)
 	}
 
 	config.mockMdserv.EXPECT().GetForHandle(ctx, h.ToBareHandleOrBust(),
 		kbfsmd.Merged, nil).Return(tlf.NullID, rmds3, nil)
 
-	if _, _, err := config.MDOps().GetForHandle(ctx, h, kbfsmd.Merged, nil); err != nil {
+	if _, err := config.MDOps().GetIDForHandle(ctx, h); err != nil {
 		t.Errorf("Got error on get: %v", err)
 	}
 }
 
-func testMDOpsGetForUnresolvedHandlePublicFailure(t *testing.T, ver kbfsmd.MetadataVer) {
+func testMDOpsGetIDForUnresolvedHandlePublicFailure(
+	t *testing.T, ver kbfsmd.MetadataVer) {
 	mockCtrl, config, ctx := mdOpsInit(t, ver)
 	defer mdOpsShutdown(mockCtrl, config)
 
@@ -383,13 +382,14 @@ func testMDOpsGetForUnresolvedHandlePublicFailure(t *testing.T, ver kbfsmd.Metad
 		id, rmds, nil)
 
 	// Should still fail.
-	_, _, err = config.MDOps().GetForHandle(ctx, hUnresolved, kbfsmd.Merged, nil)
+	_, err = config.MDOps().GetIDForHandle(ctx, hUnresolved)
 	if _, ok := err.(MDMismatchError); !ok {
 		t.Errorf("Got unexpected error on bad handle check test: %v", err)
 	}
 }
 
-func testMDOpsGetForHandlePublicFailFindKey(t *testing.T, ver kbfsmd.MetadataVer) {
+func testMDOpsGetIDForHandlePublicFailFindKey(
+	t *testing.T, ver kbfsmd.MetadataVer) {
 	mockCtrl, config, ctx := mdOpsInit(t, ver)
 	defer mdOpsShutdown(mockCtrl, config)
 
@@ -404,7 +404,7 @@ func testMDOpsGetForHandlePublicFailFindKey(t *testing.T, ver kbfsmd.MetadataVer
 	config.mockMdserv.EXPECT().GetForHandle(ctx, h.ToBareHandleOrBust(),
 		kbfsmd.Merged, nil).Return(id, rmds, nil)
 
-	_, _, err := config.MDOps().GetForHandle(ctx, h, kbfsmd.Merged, nil)
+	_, err := config.MDOps().GetIDForHandle(ctx, h)
 	if _, ok := err.(UnverifiableTlfUpdateError); !ok {
 		t.Errorf("Got unexpected error on get: %v", err)
 	}
@@ -419,7 +419,8 @@ func (c failVerifyCrypto) Verify(msg []byte, sigInfo kbfscrypto.SignatureInfo) e
 	return c.err
 }
 
-func testMDOpsGetForHandlePublicFailVerify(t *testing.T, ver kbfsmd.MetadataVer) {
+func testMDOpsGetIDForHandlePublicFailVerify(
+	t *testing.T, ver kbfsmd.MetadataVer) {
 	mockCtrl, config, ctx := mdOpsInit(t, ver)
 	defer mdOpsShutdown(mockCtrl, config)
 
@@ -434,11 +435,11 @@ func testMDOpsGetForHandlePublicFailVerify(t *testing.T, ver kbfsmd.MetadataVer)
 	config.mockMdserv.EXPECT().GetForHandle(ctx, h.ToBareHandleOrBust(),
 		kbfsmd.Merged, nil).Return(id, rmds, nil)
 
-	_, _, err := config.MDOps().GetForHandle(ctx, h, kbfsmd.Merged, nil)
+	_, err := config.MDOps().GetIDForHandle(ctx, h)
 	require.IsType(t, MDMismatchError{}, err)
 }
 
-func testMDOpsGetForHandleFailGet(t *testing.T, ver kbfsmd.MetadataVer) {
+func testMDOpsGetIDForHandleFailGet(t *testing.T, ver kbfsmd.MetadataVer) {
 	mockCtrl, config, ctx := mdOpsInit(t, ver)
 	defer mdOpsShutdown(mockCtrl, config)
 
@@ -450,12 +451,13 @@ func testMDOpsGetForHandleFailGet(t *testing.T, ver kbfsmd.MetadataVer) {
 	config.mockMdserv.EXPECT().GetForHandle(ctx, h.ToBareHandleOrBust(),
 		kbfsmd.Merged, nil).Return(tlf.NullID, nil, err)
 
-	if _, _, err2 := config.MDOps().GetForHandle(ctx, h, kbfsmd.Merged, nil); err2 != err {
+	if _, err2 := config.MDOps().GetIDForHandle(ctx, h); err2 != err {
 		t.Errorf("Got bad error on get: %v", err2)
 	}
 }
 
-func testMDOpsGetForHandleFailHandleCheck(t *testing.T, ver kbfsmd.MetadataVer) {
+func testMDOpsGetIDForHandleFailHandleCheck(
+	t *testing.T, ver kbfsmd.MetadataVer) {
 	mockCtrl, config, ctx := mdOpsInit(t, ver)
 	defer mdOpsShutdown(mockCtrl, config)
 
@@ -470,7 +472,7 @@ func testMDOpsGetForHandleFailHandleCheck(t *testing.T, ver kbfsmd.MetadataVer) 
 		kbfsmd.Merged, nil).Return(id, rmds, nil)
 	expectGetKeyBundles(ctx, config, extra)
 
-	_, _, err := config.MDOps().GetForHandle(ctx, otherH, kbfsmd.Merged, nil)
+	_, err := config.MDOps().GetIDForHandle(ctx, otherH)
 	if _, ok := err.(MDMismatchError); !ok {
 		t.Errorf("Got unexpected error on bad handle check test: %v", err)
 	}
@@ -949,15 +951,15 @@ func testMDOpsGetFinalSuccess(t *testing.T, ver kbfsmd.MetadataVer) {
 
 func TestMDOps(t *testing.T) {
 	tests := []func(*testing.T, kbfsmd.MetadataVer){
-		testMDOpsGetForHandlePublicSuccess,
-		testMDOpsGetForHandlePrivateSuccess,
-		testMDOpsGetForUnresolvedHandlePublicSuccess,
-		testMDOpsGetForUnresolvedMdHandlePublicSuccess,
-		testMDOpsGetForUnresolvedHandlePublicFailure,
-		testMDOpsGetForHandlePublicFailFindKey,
-		testMDOpsGetForHandlePublicFailVerify,
-		testMDOpsGetForHandleFailGet,
-		testMDOpsGetForHandleFailHandleCheck,
+		testMDOpsGetIDForHandlePublicSuccess,
+		testMDOpsGetIDForHandlePrivateSuccess,
+		testMDOpsGetIDForUnresolvedHandlePublicSuccess,
+		testMDOpsGetIDForUnresolvedMdHandlePublicSuccess,
+		testMDOpsGetIDForUnresolvedHandlePublicFailure,
+		testMDOpsGetIDForHandlePublicFailFindKey,
+		testMDOpsGetIDForHandlePublicFailVerify,
+		testMDOpsGetIDForHandleFailGet,
+		testMDOpsGetIDForHandleFailHandleCheck,
 		testMDOpsGetSuccess,
 		testMDOpsGetBlankSigFailure,
 		testMDOpsGetFailGet,

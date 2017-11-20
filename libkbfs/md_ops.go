@@ -302,9 +302,7 @@ func (md *MDOpsStandard) processMetadata(ctx context.Context,
 	return irmd, nil
 }
 
-// GetForHandle implements the MDOps interface for MDOpsStandard.
-// TODO: unexport this when no longer part of the MDOps interface.
-func (md *MDOpsStandard) GetForHandle(ctx context.Context, handle *TlfHandle,
+func (md *MDOpsStandard) getForHandle(ctx context.Context, handle *TlfHandle,
 	mStatus kbfsmd.MergeStatus, lockBeforeGet *keybase1.LockID) (
 	id tlf.ID, rmd ImmutableRootMetadata, err error) {
 	// If we already know the tlf ID, we shouldn't be calling this
@@ -406,7 +404,7 @@ func (md *MDOpsStandard) GetIDForHandle(
 	ctx context.Context, handle *TlfHandle) (id tlf.ID, err error) {
 	// TODO: use a local, trusted, on-disk handle->ID cache to avoid
 	// an RTT here?
-	id, _, err = md.GetForHandle(ctx, handle, kbfsmd.Merged, nil)
+	id, _, err = md.getForHandle(ctx, handle, kbfsmd.Merged, nil)
 	return id, err
 }
 

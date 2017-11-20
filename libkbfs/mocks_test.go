@@ -3707,20 +3707,6 @@ func (mr *MockMDOpsMockRecorder) GetIDForHandle(ctx, handle interface{}) *gomock
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetIDForHandle", reflect.TypeOf((*MockMDOps)(nil).GetIDForHandle), ctx, handle)
 }
 
-// GetForHandle mocks base method
-func (m *MockMDOps) GetForHandle(ctx context.Context, handle *TlfHandle, mStatus kbfsmd.MergeStatus, lockBeforeGet *keybase1.LockID) (tlf.ID, ImmutableRootMetadata, error) {
-	ret := m.ctrl.Call(m, "GetForHandle", ctx, handle, mStatus, lockBeforeGet)
-	ret0, _ := ret[0].(tlf.ID)
-	ret1, _ := ret[1].(ImmutableRootMetadata)
-	ret2, _ := ret[2].(error)
-	return ret0, ret1, ret2
-}
-
-// GetForHandle indicates an expected call of GetForHandle
-func (mr *MockMDOpsMockRecorder) GetForHandle(ctx, handle, mStatus, lockBeforeGet interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetForHandle", reflect.TypeOf((*MockMDOps)(nil).GetForHandle), ctx, handle, mStatus, lockBeforeGet)
-}
-
 // GetForTLF mocks base method
 func (m *MockMDOps) GetForTLF(ctx context.Context, id tlf.ID, lockBeforeGet *keybase1.LockID) (ImmutableRootMetadata, error) {
 	ret := m.ctrl.Call(m, "GetForTLF", ctx, id, lockBeforeGet)

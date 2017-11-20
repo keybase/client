@@ -112,9 +112,11 @@ func TestJournalMDOpsBasics(t *testing.T) {
 
 	mdOps := jServer.mdOps()
 
-	id, irmd, err := mdOps.GetForHandle(ctx, h, kbfsmd.Merged, nil)
+	id, err := mdOps.GetIDForHandle(ctx, h)
 	require.NoError(t, err)
 	require.NotEqual(t, tlf.NullID, id)
+	irmd, err := mdOps.GetForTLF(ctx, id, nil)
+	require.NoError(t, err)
 	require.Equal(t, ImmutableRootMetadata{}, irmd)
 	h.tlfID = id
 
@@ -138,13 +140,7 @@ func TestJournalMDOpsBasics(t *testing.T) {
 		prevRoot = irmd.mdID
 	}
 
-	id, head, err := mdOps.GetForHandle(ctx, h, kbfsmd.Merged, nil)
-	require.NoError(t, err)
-	require.NotEqual(t, tlf.NullID, id)
-	require.NotEqual(t, ImmutableRootMetadata{}, head)
-	require.Equal(t, kbfsmd.Revision(7), head.Revision())
-
-	head, err = mdOps.GetForTLF(ctx, id, nil)
+	head, err := mdOps.GetForTLF(ctx, id, nil)
 	require.NoError(t, err)
 	require.NotEqual(t, ImmutableRootMetadata{}, head)
 	require.Equal(t, kbfsmd.Revision(7), head.Revision())
@@ -203,11 +199,6 @@ func TestJournalMDOpsBasics(t *testing.T) {
 	bid := tlfJournal.mdJournal.branchID
 
 	head, err = mdOps.GetUnmergedForTLF(ctx, id, bid)
-	require.NoError(t, err)
-	require.NotEqual(t, ImmutableRootMetadata{}, head)
-	require.Equal(t, kbfsmd.Revision(10), head.Revision())
-
-	_, head, err = mdOps.GetForHandle(ctx, h, kbfsmd.Unmerged, nil)
 	require.NoError(t, err)
 	require.NotEqual(t, ImmutableRootMetadata{}, head)
 	require.Equal(t, kbfsmd.Revision(10), head.Revision())
@@ -297,9 +288,11 @@ func TestJournalMDOpsPutUnmerged(t *testing.T) {
 
 	mdOps := jServer.mdOps()
 
-	id, irmd, err := mdOps.GetForHandle(ctx, h, kbfsmd.Merged, nil)
+	id, err := mdOps.GetIDForHandle(ctx, h)
 	require.NoError(t, err)
 	require.NotEqual(t, tlf.NullID, id)
+	irmd, err := mdOps.GetForTLF(ctx, id, nil)
+	require.NoError(t, err)
 	require.Equal(t, ImmutableRootMetadata{}, irmd)
 
 	err = jServer.Enable(ctx, id, nil, TLFJournalBackgroundWorkPaused)
@@ -329,9 +322,11 @@ func TestJournalMDOpsPutUnmergedError(t *testing.T) {
 
 	mdOps := jServer.mdOps()
 
-	id, irmd, err := mdOps.GetForHandle(ctx, h, kbfsmd.Merged, nil)
+	id, err := mdOps.GetIDForHandle(ctx, h)
 	require.NoError(t, err)
 	require.NotEqual(t, tlf.NullID, id)
+	irmd, err := mdOps.GetForTLF(ctx, id, nil)
+	require.NoError(t, err)
 	require.Equal(t, ImmutableRootMetadata{}, irmd)
 
 	err = jServer.Enable(ctx, id, nil, TLFJournalBackgroundWorkPaused)
@@ -358,7 +353,9 @@ func TestJournalMDOpsLocalSquashBranch(t *testing.T) {
 	require.NoError(t, err)
 
 	mdOps := jServer.mdOps()
-	id, irmd, err := mdOps.GetForHandle(ctx, h, kbfsmd.Merged, nil)
+	id, err := mdOps.GetIDForHandle(ctx, h)
+	require.NoError(t, err)
+	irmd, err := mdOps.GetForTLF(ctx, id, nil)
 	require.NoError(t, err)
 	require.Equal(t, ImmutableRootMetadata{}, irmd)
 	err = jServer.Enable(ctx, id, nil, TLFJournalBackgroundWorkPaused)

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"regexp"
 	"strconv"
@@ -44,18 +45,7 @@ func getTlfID(
 		return tlf.ID{}, err
 	}
 
-	_, irmd, err := config.MDOps().GetForHandle(
-		ctx, handle, kbfsmd.Merged, nil)
-	if err != nil {
-		return tlf.ID{}, err
-	}
-
-	if irmd == (libkbfs.ImmutableRootMetadata{}) {
-		return tlf.ID{}, fmt.Errorf(
-			"Could not get TLF ID for %q", tlfStr)
-	}
-
-	return irmd.TlfID(), nil
+	return config.MDOps().GetIDForHandle(ctx, handle)
 }
 
 func getBranchID(ctx context.Context, config libkbfs.Config,
@@ -188,11 +178,20 @@ func mdGetMergedHeadForWriter(ctx context.Context, config libkbfs.Config,
 
 	fmt.Printf("Looking for unmerged branch...\n")
 
-	_, unmergedIRMD, err := config.MDOps().GetForHandle(
-		ctx, handle, kbfsmd.Unmerged, nil)
+	tlfID, err := config.MDOps().GetIDForHandle(ctx, handle)
 	if err != nil {
 		return libkbfs.ImmutableRootMetadata{}, err
 	}
+	if tlfID == tlf.NullID {
+		return libkbfs.ImmutableRootMetadata{}, errors.New("No TLF ID")
+	}
+
+	unmergedIRMD, err := config.MDOps().GetUnmergedForTLF(
+		ctx, tlfID, kbfsmd.NullBranchID)
+	if err != nil {
+		return libkbfs.ImmutableRootMetadata{}, err
+	}
+
 	if unmergedIRMD != (libkbfs.ImmutableRootMetadata{}) {
 		return libkbfs.ImmutableRootMetadata{}, fmt.Errorf(
 			"%s has unmerged data; try unstaging it first",
@@ -201,8 +200,7 @@ func mdGetMergedHeadForWriter(ctx context.Context, config libkbfs.Config,
 
 	fmt.Printf("Getting latest metadata...\n")
 
-	_, irmd, err := config.MDOps().GetForHandle(
-		ctx, handle, kbfsmd.Merged, nil)
+	irmd, err := config.MDOps().GetForTLF(ctx, tlfID, nil)
 	if err != nil {
 		return libkbfs.ImmutableRootMetadata{}, err
 	}

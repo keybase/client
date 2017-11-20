@@ -1097,24 +1097,6 @@ type tlfIDGetter interface {
 type MDOps interface {
 	tlfIDGetter
 
-	// GetForHandle returns the current metadata object corresponding
-	// to the given top-level folder's handle and merge status, if the
-	// logged-in user has read permission on the folder.  It may or
-	// may not create the folder if it doesn't exist yet, and it may
-	// return `tlf.NullID` with a `nil` error if it doesn't create a
-	// missing folder.
-	//
-	// If lockBeforeGet is not nil, it causes mdserver to take the lock on the
-	// lock ID before the get.
-	//
-	// An empty ImmutableRootMetadata may be returned, but if it is
-	// non-empty, then its ID must match the returned ID.
-	//
-	// TODO: remove this once `GetIDForHandle` is used everywhere.
-	GetForHandle(
-		ctx context.Context, handle *TlfHandle, mStatus kbfsmd.MergeStatus,
-		lockBeforeGet *keybase1.LockID) (tlf.ID, ImmutableRootMetadata, error)
-
 	// GetForTLF returns the current metadata object
 	// corresponding to the given top-level folder, if the logged-in
 	// user has read permission on the folder.

@@ -30,7 +30,6 @@ const (
 	StallableBlockGet StallableBlockOp = "Get"
 	StallableBlockPut StallableBlockOp = "Put"
 
-	StallableMDGetForHandle          StallableMDOp = "GetForHandle"
 	StallableMDGetForTLF             StallableMDOp = "GetForTLF"
 	StallableMDGetLatestHandleForTLF StallableMDOp = "GetLatestHandleForTLF"
 	StallableMDGetUnmergedForTLF     StallableMDOp = "GetUnmergedForTLF"
@@ -406,20 +405,6 @@ var _ MDOps = (*stallingMDOps)(nil)
 func (m *stallingMDOps) maybeStall(ctx context.Context, opName StallableMDOp) {
 	maybeStall(ctx, stallableOp(opName), stallableOp(m.stallOpName),
 		m.stallKey, m.staller)
-}
-
-func (m *stallingMDOps) GetForHandle(
-	ctx context.Context, handle *TlfHandle, mStatus kbfsmd.MergeStatus,
-	lockBeforeGet *keybase1.LockID) (
-	tlfID tlf.ID, md ImmutableRootMetadata, err error) {
-	m.maybeStall(ctx, StallableMDGetForHandle)
-	err = runWithContextCheck(ctx, func(ctx context.Context) error {
-		var errGetForHandle error
-		tlfID, md, errGetForHandle =
-			m.delegate.GetForHandle(ctx, handle, mStatus, lockBeforeGet)
-		return errGetForHandle
-	})
-	return tlfID, md, err
 }
 
 func (m *stallingMDOps) GetIDForHandle(
