@@ -1047,7 +1047,7 @@ func TestParseTlfHandleImplicitTeams(t *testing.T) {
 		require.Equal(t, tlfID, h.tlfID)
 	}
 
-	// Private implicit teams.
+	t.Log("Private implicit teams")
 	tid1, tlfID1 := newITeam("u1", "", tlf.Private)
 	check("u1", tid1, tlfID1, tlf.Private)
 	tid2, tlfID2 := newITeam("u1,u2", "", tlf.Private)
@@ -1055,18 +1055,18 @@ func TestParseTlfHandleImplicitTeams(t *testing.T) {
 	tid3, tlfID3 := newITeam("u1,u2,u3", "", tlf.Private)
 	check("u1,u2,u3", tid3, tlfID3, tlf.Private)
 
-	// Public implicit teams.
+	t.Log("Public implicit teams")
 	tid4, tlfID4 := newITeam("u1", "", tlf.Public)
 	check("u1", tid4, tlfID4, tlf.Public)
 	tid5, tlfID5 := newITeam("u1,u2", "", tlf.Public)
 	check("u1,u2", tid5, tlfID5, tlf.Public)
 
-	// Implicit team with a suffix.
+	t.Log("Implicit team with a suffix")
 	tid6, tlfID6 := newITeam(
 		"u1,u2", "(conflicted copy 2016-03-14 #3)", tlf.Private)
 	check("u1,u2 (conflicted copy 2016-03-14 #3)", tid6, tlfID6, tlf.Private)
 
-	// Implicit team with readers.
+	t.Log("Implicit team with readers")
 	tid7, tlfID7 := newITeam("u1,u2#u3", "", tlf.Private)
 	check("u1,u2#u3", tid7, tlfID7, tlf.Private)
 }

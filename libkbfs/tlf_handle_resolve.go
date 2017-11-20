@@ -57,8 +57,17 @@ func resolveOneUser(
 		return
 	}
 
+	// The ID has to be sent first, to guarantee it's in the channel
+	// before it is closed.
 	if id != tlf.NullID {
-		idResults <- id
+		select {
+		case idResults <- id:
+		default:
+			errCh <- fmt.Errorf(
+				"Sending ID %s failed; one ID has probably already been sent",
+				id)
+			return
+		}
 	}
 
 	if userInfo != (nameIDPair{}) {
@@ -100,7 +109,9 @@ func makeTlfHandleHelper(
 
 	wc := make(chan nameIDPair, len(writers))
 	uwc := make(chan keybase1.SocialAssertion, len(writers))
-	idc := make(chan tlf.ID, len(writers))
+	// We are only expecting at most one ID.  `resolveOneError` should
+	// error if it can't send an ID immediately.
+	idc := make(chan tlf.ID, 1)
 	for _, writer := range writers {
 		go resolveOneUser(ctx, writer, errCh, wc, uwc, idc)
 	}
@@ -133,14 +144,28 @@ func makeTlfHandleHelper(
 			return nil, ctx.Err()
 		}
 	}
+	// It's safe to close the channel now before we receive from it,
+	// since the ID is always sent first, because the usernames and
+	// assertions.
 	close(idc)
 	tlfID := tlf.NullID
-	for id := range idc {
-		if tlfID != tlf.NullID {
-			return nil, fmt.Errorf(
-				"More than one TLF ID returned: %s and %s", tlfID, id)
+	more := false
+	select {
+	case tlfID, more = <-idc:
+	default:
+	}
+
+	if more {
+		// Just make sure a second one didn't slip in (only possible if
+		// `resolveOneUser` has a bug.
+		select {
+		case tlfID2, more := <-idc:
+			if more {
+				return nil, fmt.Errorf(
+					"More than one TLF ID returned: %s and %s", tlfID, tlfID2)
+			}
+		default:
 		}
-		tlfID = id
 	}
 
 	for id := range usedWNames {

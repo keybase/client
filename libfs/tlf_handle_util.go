@@ -24,14 +24,6 @@ func (nitk noImplicitTeamKBPKI) ResolveImplicitTeam(
 		errors.New("Skipping implicit team lookup for quick handle parsing")
 }
 
-type nullIDGetter struct {
-}
-
-func (n nullIDGetter) GetIDForHandle(_ context.Context, _ *libkbfs.TlfHandle) (
-	tlf.ID, error) {
-	return tlf.NullID, nil
-}
-
 // ParseTlfHandlePreferredQuick parses a handle from a name, without
 // doing this time consuming checks needed for implicit-team checking
 // or TLF-ID-fetching.
@@ -41,6 +33,5 @@ func ParseTlfHandlePreferredQuick(
 	// Override the KBPKI with one that doesn't try to resolve
 	// implicit teams.
 	kbpki = noImplicitTeamKBPKI{kbpki}
-	return libkbfs.ParseTlfHandlePreferred(
-		ctx, kbpki, nullIDGetter{}, name, ty)
+	return libkbfs.ParseTlfHandlePreferred(ctx, kbpki, nil, name, ty)
 }
