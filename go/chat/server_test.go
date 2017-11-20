@@ -5,6 +5,7 @@ package chat
 
 import (
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"os"
 	"sort"
@@ -3235,12 +3236,22 @@ func (is fakeInboxSource) IsOffline(context.Context) bool {
 	return false
 }
 
-type fakeUISource struct {
-	UISource
+type fakeChatUI struct {
+	confirmChannelDelete bool
+	libkb.ChatUI
 }
 
-func (ui fakeUISource) GetChatUI(sessionID int) libkb.ChatUI {
-	return nil
+func (fc fakeChatUI) ChatConfirmChannelDelete(ctx context.Context, arg chat1.ChatConfirmChannelDeleteArg) (bool, error) {
+	return fc.confirmChannelDelete, nil
+}
+
+type fakeUISource struct {
+	UISource
+	chatUI libkb.ChatUI
+}
+
+func (ui *fakeUISource) GetChatUI(sessionID int) libkb.ChatUI {
+	return ui.chatUI
 }
 
 type fakeRemoteInterface struct {
@@ -3263,13 +3274,45 @@ func TestChatSrvDeleteConversationConfirmed(t *testing.T) {
 	g := globals.NewContext(gc, &cc)
 
 	ui := fakeUISource{}
-	h := NewServer(g, nil, nil, ui)
+	h := NewServer(g, nil, nil, &ui)
 
 	var ri fakeRemoteInterface
 	h.setTestRemoteClient(&ri)
+
 	_, err := h.deleteConversationLocal(context.Background(), chat1.DeleteConversationLocalArg{
 		Confirmed: true,
 	})
+	require.NoError(t, err)
+	require.True(t, ri.deleteConversationCalled)
+}
+
+func TestChatSrvDeleteConversationUnconfirmed(t *testing.T) {
+	gc := libkb.NewGlobalContext()
+	gc.Init()
+	var is fakeInboxSource
+	cc := globals.ChatContext{
+		InboxSource: is,
+	}
+	g := globals.NewContext(gc, &cc)
+
+	chatUI := fakeChatUI{confirmChannelDelete: false}
+	ui := fakeUISource{
+		chatUI: chatUI,
+	}
+	h := NewServer(g, nil, nil, &ui)
+
+	var ri fakeRemoteInterface
+	h.setTestRemoteClient(&ri)
+
+	ctx := context.Background()
+	var arg chat1.DeleteConversationLocalArg
+
+	_, err := h.deleteConversationLocal(ctx, arg)
+	require.Equal(t, errors.New("channel delete unconfirmed"), err)
+	require.False(t, ri.deleteConversationCalled)
+
+	ui.chatUI = fakeChatUI{confirmChannelDelete: true}
+	_, err = h.deleteConversationLocal(ctx, arg)
 	require.NoError(t, err)
 	require.True(t, ri.deleteConversationCalled)
 }
