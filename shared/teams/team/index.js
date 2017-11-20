@@ -13,6 +13,7 @@ import {
   Icon,
   PopupMenu,
   ProgressIndicator,
+  ScrollView,
 } from '../../common-adapters'
 import {globalStyles, globalMargins, globalColors} from '../../styles'
 import {isMobile} from '../../constants/platform'
@@ -41,11 +42,13 @@ export type Props = {
   onEditDescription: () => void,
   onLeaveTeam: () => void,
   onManageChat: () => void,
+  onSavePublicity: () => void,
   onSetOpenTeamRole: () => void,
   openTeam: boolean,
   openTeamRole: Constants.TeamRoleType,
   publicityAnyMember: boolean,
   publicityMember: boolean,
+  publicitySettingsChanged: boolean,
   publicityTeam: boolean,
   requests: Array<RequestRowProps>,
   selectedTab: Constants.TabKey,
@@ -56,6 +59,7 @@ export type Props = {
   showMenu: boolean,
   setOpenTeam: (checked: boolean) => void,
   setShowMenu: (s: boolean) => void,
+  waitingForSavePublicity: boolean,
   you: string,
   youCanShowcase: boolean,
   youCanAddPeople: boolean,
@@ -221,15 +225,18 @@ class Team extends React.PureComponent<Props> {
       loading,
       memberCount,
       onManageChat,
+      onSavePublicity,
       openTeam,
       openTeamRole,
       publicityAnyMember,
       publicityMember,
+      publicitySettingsChanged,
       publicityTeam,
       setOpenTeam,
       setPublicityAnyMember,
       setPublicityMember,
       setPublicityTeam,
+      waitingForSavePublicity,
       you,
       youCanAddPeople,
       youCanCreateSubteam,
@@ -309,7 +316,7 @@ class Team extends React.PureComponent<Props> {
     } else if (selectedTab === 'publicity') {
       const teamsLink = 'keybase.io/popular-teams'
       contents = (
-        <Box style={{...globalStyles.flexBoxColumn, alignSelf: 'stretch'}}>
+        <ScrollView style={{...globalStyles.flexBoxColumn, alignSelf: 'stretch'}}>
           <Box
             style={{
               ...globalStyles.flexBoxRow,
@@ -332,7 +339,7 @@ class Team extends React.PureComponent<Props> {
               </Text>
               <Text type="BodySmall">
                 {youCanShowcase
-                  ? 'Team description and number of members will be public.'
+                  ? 'Your profile on the Keybase website will mention this team. Description + number of members will be public.'
                   : "Admins aren't allowing members to publish this team on their profile."}
               </Text>
             </Box>
@@ -410,7 +417,23 @@ class Team extends React.PureComponent<Props> {
                 </Box>
               </Box>
             </Box>}
-        </Box>
+
+          <Box
+            style={{
+              ...stylesSettingsTabRow,
+              justifyContent: 'center',
+              paddingTop: isMobile ? globalMargins.xtiny : globalMargins.tiny,
+            }}
+          >
+            <Button
+              type="Primary"
+              label="Save"
+              onClick={onSavePublicity}
+              disabled={!publicitySettingsChanged}
+              waiting={waitingForSavePublicity}
+            />
+          </Box>
+        </ScrollView>
       )
     }
 
