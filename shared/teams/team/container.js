@@ -150,8 +150,7 @@ const isExplicitAdmin = (memberInfo: I.Set<Constants.MemberInfo>, user: string):
 
 const getOrderedMemberArray = (
   memberInfo: I.Set<Constants.MemberInfo>,
-  // $FlowIssue you is a string
-  you: string,
+  you: ?string,
   youImplicitAdmin: boolean
 ): Array<Constants.MemberInfo> => {
   let youInfo
