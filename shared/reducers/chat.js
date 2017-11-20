@@ -254,6 +254,9 @@ function reducer(state: Constants.State = initialState, action: ChatGen.Actions)
     case ChatGen.setInboxGlobalUntrustedState: {
       return state.set('inboxGlobalUntrustedState', action.payload.inboxGlobalUntrustedState)
     }
+    case ChatGen.setInboxSyncingState: {
+      return state.set('inboxSyncingState', action.payload.inboxSyncingState)
+    }
     case ChatGen.setInboxFilter: {
       return state.set('inboxFilter', action.payload.filter)
     }
