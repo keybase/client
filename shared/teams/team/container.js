@@ -144,6 +144,25 @@ const isExplicitAdmin = (memberInfo: I.Set<Constants.MemberInfo>, user: string):
   return info.type === 'owner' || info.type === 'admin'
 }
 
+const getOrderedMemberArray = (
+  memberInfo: I.Set<Constants.MemberInfo>,
+  you: ?string,
+  youImplicitAdmin: boolean
+): Array<Constants.MemberInfo> => {
+  let youInfo
+  if (you && !youImplicitAdmin) {
+    youInfo = memberInfo.find(member => member.username === you)
+    if (youInfo) memberInfo = memberInfo.delete(youInfo)
+  }
+  let returnArray = memberInfo
+    .toArray()
+    .sort((a: Constants.MemberInfo, b: Constants.MemberInfo) => a.username.localeCompare(b.username))
+  if (youInfo) {
+    returnArray.unshift(youInfo)
+  }
+  return returnArray
+}
+
 const mergeProps = (stateProps, dispatchProps, ownProps) => {
   const onAddPeople = () => dispatchProps._onAddPeople(stateProps.name)
   const onInviteByEmail = () => dispatchProps._onInviteByEmail(stateProps.name)
@@ -197,9 +216,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     customComponent,
     headerStyle: {borderBottomWidth: 0},
     invites: stateProps._invites.toJS(),
-    members: stateProps._memberInfo
-      .toArray()
-      .sort((a: Constants.MemberInfo, b: Constants.MemberInfo) => a.username.localeCompare(b.username)),
+    members: getOrderedMemberArray(stateProps._memberInfo, you, youImplicitAdmin),
     requests: stateProps._requests.toJS(),
     newTeamRequests: stateProps._newTeamRequests.toArray(),
     onAddPeople,
