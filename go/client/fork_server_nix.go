@@ -18,11 +18,12 @@ import (
 func spawnServer(g *libkb.GlobalContext, cl libkb.CommandLine, forkType keybase1.ForkType) (pid int, err error) {
 
 	// If we're running under systemd, start the service as a user unit instead
-	// of forking it directly. We do this here instead of higher up, because we
-	// want to handle the case where the service was previously autoforked, and
-	// then the user upgrades their keybase package to a version with systemd
-	// support. The flock-checking code will short-circuit before we get here,
-	// if the service is running, so we don't have to worry about a conflict.
+	// of forking it directly. We do this here in the generic auto-fork branch,
+	// rather than a higher-level systemd branch, because we want to handle the
+	// case where the service was previously autoforked, and then the user
+	// upgrades their keybase package to a version with systemd support. The
+	// flock-checking code will short-circuit before we get here, if the
+	// service is running, so we don't have to worry about a conflict.
 	//
 	// We only do this in prod mode, because keybase.service always starts
 	// /usr/bin/keybase, which is probably not what you want if you're
