@@ -1113,6 +1113,8 @@ type MDOps interface {
 	//
 	// An empty ImmutableRootMetadata may be returned, but if it is
 	// non-empty, then its ID must match the returned ID.
+	//
+	// TODO: remove this once `GetIDForHandle` is used everywhere.
 	GetForHandle(
 		ctx context.Context, handle *TlfHandle, mStatus kbfsmd.MergeStatus,
 		lockBeforeGet *keybase1.LockID) (tlf.ID, ImmutableRootMetadata, error)

@@ -303,6 +303,7 @@ func (md *MDOpsStandard) processMetadata(ctx context.Context,
 }
 
 // GetForHandle implements the MDOps interface for MDOpsStandard.
+// TODO: unexport this when no longer part of the MDOps interface.
 func (md *MDOpsStandard) GetForHandle(ctx context.Context, handle *TlfHandle,
 	mStatus kbfsmd.MergeStatus, lockBeforeGet *keybase1.LockID) (
 	id tlf.ID, rmd ImmutableRootMetadata, err error) {
