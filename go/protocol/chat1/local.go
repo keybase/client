@@ -3752,6 +3752,7 @@ type DeleteConversationLocalArg struct {
 	SessionID   int            `codec:"sessionID" json:"sessionID"`
 	ConvID      ConversationID `codec:"convID" json:"convID"`
 	ChannelName string         `codec:"channelName" json:"channelName"`
+	Confirmed   bool           `codec:"confirmed" json:"confirmed"`
 }
 
 type GetTLFConversationsLocalArg struct {
