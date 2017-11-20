@@ -816,6 +816,7 @@ function messageKeyKind(key: MessageKey): MessageKeyKind {
   throw new Error(`Invalid messageKeyKind passed key: ${key}`)
 }
 
+// TODO(mm) type these properly - they return any
 const getYou = (state: TypedState) => state.config.username || ''
 const getFollowingMap = (state: TypedState) => state.config.following
 const getMetaDataMap = (state: TypedState) => state.chat.get('metaData')
@@ -837,6 +838,7 @@ const getParticipants = createSelector(
   }
 )
 
+// TOOD(mm) - are these selectors useful? or will they just cache thrash?
 const getParticipantsWithFullNames = createSelector(
   [getSelectedInbox, getSelectedConversation],
   (selectedInbox, selected) => {
@@ -844,9 +846,11 @@ const getParticipantsWithFullNames = createSelector(
       return []
     } else if (selected !== nothingSelected && selectedInbox) {
       const s = selectedInbox
-      return s.participants.map(username => {
-        return {username: username, fullname: s.fullNames.get(username)}
-      })
+      return s.participants
+        .map(username => {
+          return {username: username, fullname: s.fullNames.get(username)}
+        })
+        .toArray()
     }
     return []
   }
@@ -874,6 +878,11 @@ const getChannelName = createSelector(
 const getTeamName = createSelector(
   [getSelectedInbox],
   selectedInbox => selectedInbox && selectedInbox.get('teamname')
+)
+
+const getTeamType = createSelector(
+  [getSelectedInbox],
+  selectedInbox => selectedInbox && selectedInbox.get('teamType')
 )
 
 const getSelectedConversationStates = (state: TypedState): ?ConversationState => {
@@ -1119,6 +1128,7 @@ export {
   getUploadProgress,
   getSnippet,
   getTeamName,
+  getTeamType,
   conversationIDToKey,
   convSupersedesInfo,
   convSupersededByInfo,

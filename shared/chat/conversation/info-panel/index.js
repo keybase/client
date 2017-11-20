@@ -5,6 +5,7 @@ import {
   Box,
   Button,
   Checkbox,
+  ClickableBox,
   Divider,
   HeaderHoc,
   Icon,
@@ -82,13 +83,13 @@ type infoPanelProps = {
   }>,
 }
 
-type SmallTeamInfoPanelProps = infoPanelProps & {
+type ConversationInfoPanelProps = infoPanelProps & {
   onShowBlockConversationDialog: () => void,
   onShowNewTeamDialog: () => void,
   showTeamButton: boolean,
 }
 
-const _SmallTeamInfoPanel = (props: SmallTeamInfoPanelProps) => (
+const _ConversationInfoPanel = (props: ConversationInfoPanelProps) => (
   <ScrollView style={scrollViewStyle} contentContainerStyle={contentContainerStyle}>
     <Participants participants={props.participants} onShowProfile={props.onShowProfile} />
 
@@ -130,9 +131,68 @@ const _SmallTeamInfoPanel = (props: SmallTeamInfoPanelProps) => (
   </ScrollView>
 )
 
+type SmallTeamInfoPanelProps = infoPanelProps & {
+  onLeaveTeam: () => void,
+  onViewTeam: () => void,
+  teamname: string,
+}
+
+const headerButtonBoxStyle = {
+  ...globalStyles.flexBoxRow,
+  alignItems: 'center',
+  alignSelf: 'center',
+}
+
+const createIconStyle = {
+  color: globalColors.red,
+  fontSize: isMobile ? 20 : 16,
+}
+
+const _SmallTeamInfoPanel = (props: SmallTeamInfoPanelProps) => (
+  <ScrollView style={{...scrollViewStyle, display: 'flex'}} contentContainerStyle={contentContainerStyle}>
+    <ClickableBox
+      style={{
+        ...globalStyles.flexBoxRow,
+        alignItems: 'center',
+        marginLeft: globalMargins.small,
+        marginTop: globalMargins.small,
+      }}
+      onClick={props.onViewTeam}
+    >
+      <Avatar size={isMobile ? 48 : 32} teamname={props.teamname} isTeam={true} />
+      <Box style={{...globalStyles.flexBoxColumn, flex: 1, marginLeft: globalMargins.small}}>
+        <Text type="BodySemibold">
+          {props.teamname}
+        </Text>
+        <Box style={globalStyles.flexBoxRow}>
+
+          <Text type="BodySmall">
+            {props.participants.length.toString() + ' member' + (props.participants.length !== 1 ? 's' : '')}
+          </Text>
+        </Box>
+      </Box>
+    </ClickableBox>
+
+    <Divider style={{marginBottom: 20, marginTop: 20}} />
+
+    <MuteRow muted={props.muted} onMute={props.onMuteConversation} label="Mute all notifications" />
+
+    <Notifications />
+    <Box style={{...globalStyles.flexBoxColumn, flex: 1, justifyContent: 'flex-end'}}>
+      <Divider style={styleDivider} />
+      <ClickableBox onClick={props.onLeaveTeam} style={headerButtonBoxStyle}>
+        <Icon type="iconfont-team-leave" style={createIconStyle} />
+        <Text type="BodyBigLink" style={{margin: globalMargins.xtiny, color: globalColors.red}}>
+          Leave team
+        </Text>
+      </ClickableBox>
+    </Box>
+  </ScrollView>
+)
+
 type BigTeamInfoPanelProps = infoPanelProps & {
-  channelname: string,
   onLeaveConversation: () => void,
+  channelname: string,
   onJoinChannel: () => void,
   teamname: string,
   isPreview: boolean,
@@ -187,6 +247,7 @@ const _BigTeamInfoPanel = (props: BigTeamInfoPanelProps) => (
 )
 
 const wrap = branch(() => isMobile, HeaderHoc)
+const ConversationInfoPanel = wrap(_ConversationInfoPanel)
 const SmallTeamInfoPanel = wrap(_SmallTeamInfoPanel)
 const BigTeamInfoPanel = wrap(_BigTeamInfoPanel)
 
@@ -195,4 +256,4 @@ const styleDivider = {
   marginTop: globalMargins.small,
 }
 
-export {SmallTeamInfoPanel, BigTeamInfoPanel, MuteRow}
+export {ConversationInfoPanel, SmallTeamInfoPanel, BigTeamInfoPanel, MuteRow}
