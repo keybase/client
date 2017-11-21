@@ -3,7 +3,7 @@ import React, {Component} from 'react'
 import Invites, {type Props, type PendingInvite} from '.'
 import * as Constants from '../../constants/settings'
 import {invitesReclaim, invitesRefresh, invitesSend} from '../../actions/settings'
-import {openURLWithHelper} from '../../util/open-url'
+import {showUserProfile} from '../../actions/profile'
 import {navigateAppend} from '../../actions/route-tree'
 import {connect, type TypedState} from '../../util/container'
 
@@ -33,7 +33,7 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
   onRefresh: () => dispatch(invitesRefresh()),
   onSelectPendingInvite: (invite: PendingInvite) =>
     dispatch(navigateAppend([{props: {email: invite.email, link: invite.url}, selected: 'inviteSent'}])),
-  onSelectUser: (username: string) => openURLWithHelper('user', {username}),
+  onSelectUser: (username: string) => dispatch(showUserProfile(username)),
 })
 
 export default connect(mapStateToProps, mapDispatchToProps)(InvitationsContainer)
