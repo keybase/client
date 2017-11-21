@@ -20,6 +20,8 @@ import (
 type RootMetadata interface {
 	// TlfID returns the ID of the TLF this RootMetadata is for.
 	TlfID() tlf.ID
+	// TypeForKeying returns the keying type for this RootMetadata.
+	TypeForKeying() tlf.KeyingType
 	// KeyGenerationsToUpdate returns a range that has to be
 	// updated when rekeying. start is included, but end is not
 	// included. This range can be empty (i.e., start >= end), in

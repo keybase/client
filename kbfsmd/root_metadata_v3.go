@@ -270,7 +270,7 @@ func (md *RootMetadataV3) KeyGenerationsToUpdate() (KeyGen, KeyGen) {
 // LatestKeyGeneration implements the RootMetadata interface for
 // RootMetadataV3.
 func (md *RootMetadataV3) LatestKeyGeneration() KeyGen {
-	if md.TlfID().Type() == tlf.Public {
+	if md.TypeForKeying() == tlf.PublicKeying {
 		return PublicKeyGen
 	}
 	return md.WriterMetadata.LatestKeyGen
@@ -498,6 +498,10 @@ func (md *RootMetadataV3) IsReader(
 			return false, err
 		}
 
+		if tid.IsPublic() {
+			return true, nil
+		}
+
 		// TODO: Eventually this will have to use a Merkle sequence
 		// number to check historic versions.
 		isReader, err := teamMemChecker.IsTeamReader(ctx, tid, user)
@@ -665,7 +669,7 @@ func (md *RootMetadataV3) isBackedByTeam() bool {
 	return true
 }
 
-// TypeForKeying returns the keying type for md.
+// TypeForKeying implements the RootMetadata interface for RootMetadataV3.
 func (md *RootMetadataV3) TypeForKeying() tlf.KeyingType {
 	if md.isBackedByTeam() {
 		return tlf.TeamKeying

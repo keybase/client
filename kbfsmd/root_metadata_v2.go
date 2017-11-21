@@ -194,6 +194,11 @@ func (md *RootMetadataV2) TlfID() tlf.ID {
 	return md.ID
 }
 
+// TypeForKeying implements the RootMetadata interface for RootMetadataV2.
+func (md *RootMetadataV2) TypeForKeying() tlf.KeyingType {
+	return md.TlfID().Type().ToKeyingType()
+}
+
 // KeyGenerationsToUpdate implements the RootMetadata interface
 // for RootMetadataV2.
 func (md *RootMetadataV2) KeyGenerationsToUpdate() (KeyGen, KeyGen) {
