@@ -63,7 +63,7 @@ export function convertToError(err: Object, method?: string): Error {
 
 export function convertToRPCError(
   err: {code: number, desc: string, fields?: any, name?: string},
-  method?: string
+  method?: ?string
 ): RPCError {
   return new RPCError(err.desc, err.code, err.fields, err.name, method)
 }
