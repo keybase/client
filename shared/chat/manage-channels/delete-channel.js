@@ -50,8 +50,8 @@ class DeleteChannel extends React.Component<Props, State> {
 
     // Position next to button (client rect)
     // TODO: Measure instead of pixel math
-    const x = clientRect.left - 45
-    let y = clientRect.top - 116
+    const x = clientRect.left - 32
+    let y = clientRect.top - 176
     if (y < 10) y = 10
     const style = {left: x, position: 'absolute', top: y}
 
