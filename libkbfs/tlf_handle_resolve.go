@@ -616,6 +616,20 @@ func (rit resolvableImplicitTeam) resolve(ctx context.Context) (
 	}, keybase1.SocialAssertion{}, iteamInfo.TlfID, nil
 }
 
+func doResolveImplicit(ctx context.Context) bool {
+	// Chat calls will never need us to resolve implicit teams for
+	// them.
+	switch getExtendedIdentify(ctx).behavior {
+	case keybase1.TLFIdentifyBehavior_CHAT_CLI,
+		keybase1.TLFIdentifyBehavior_CHAT_GUI,
+		keybase1.TLFIdentifyBehavior_CHAT_GUI_STRICT,
+		keybase1.TLFIdentifyBehavior_CHAT_SKIP:
+		return false
+	default:
+		return true
+	}
+}
+
 // parseTlfHandleLoose parses a TLF handle but leaves some of the canonicality
 // checking to public routines like ParseTlfHandle and ParseTlfHandlePreferred.
 func parseTlfHandleLoose(
@@ -629,17 +643,19 @@ func parseTlfHandleLoose(
 
 	// First try resolving this full name as an implicit team.  If
 	// that doesn't work, fall through to individual name resolution.
-	rit := resolvableImplicitTeam{kbpki, name, t}
-	iteamHandle, err := makeTlfHandleHelper(
-		ctx, t, []resolvableUser{rit}, nil, nil, idGetter)
-	if err == nil && iteamHandle.tlfID != tlf.NullID {
-		// The iteam already has a TLF ID, let's use it.
-		return iteamHandle, nil
+	if doResolveImplicit(ctx) {
+		rit := resolvableImplicitTeam{kbpki, name, t}
+		iteamHandle, err := makeTlfHandleHelper(
+			ctx, t, []resolvableUser{rit}, nil, nil, idGetter)
+		if err == nil && iteamHandle.tlfID != tlf.NullID {
+			// The iteam already has a TLF ID, let's use it.
+			return iteamHandle, nil
+		}
+		// This is not an implicit team, so continue on to check for a
+		// normal team.  TODO: return non-nil errors immediately if they
+		// don't simply indicate the implicit team doesn't exist yet
+		// (i.e., when we start creating them by default).
 	}
-	// This is not an implicit team, so continue on to check for a
-	// normal team.  TODO: return non-nil errors immediately if they
-	// don't simply indicate the implicit team doesn't exist yet
-	// (i.e., when we start creating them by default).
 
 	// Before parsing the tlf handle (which results in identify
 	// calls that cause tracker popups), first see if there's any
