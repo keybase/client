@@ -7,12 +7,26 @@ export class RPCError extends Error {
   name: string
 
   constructor(message: string, code: number, fields: ?any, name: ?string) {
-    super(message || (name && `RPC Error: ${name}`) || 'Unknown RPC Error')
+    super(paramsToErrorMsg(message, code, fields, name))
     this.code = code // Consult type StatusCode in flow-types.js for what this means
     this.fields = fields
     this.desc = message // Don't use! This is for compatibility with RPC error object.
     this.name = name || ''
   }
+}
+
+const paramsToErrorMsg: (string, number, ?any, ?string) => string = (
+  message: string,
+  code: number,
+  fields: ?any,
+  name: ?string
+) => {
+  let msg = ''
+  if (code) {
+    msg += `ERROR CODE ${code} - `
+  }
+  msg += message || (name && `RPC Error: ${name}`) || 'Unknown RPC Error'
+  return msg
 }
 
 export class RPCTimeoutError extends Error {
