@@ -223,6 +223,18 @@ func (j journalMDOps) getRangeFromJournal(
 	return irmds, nil
 }
 
+// GetIDForHandle implements the MDOps interface for journalMDOps.
+func (j journalMDOps) GetIDForHandle(
+	ctx context.Context, handle *TlfHandle) (id tlf.ID, err error) {
+	id, err = j.MDOps.GetIDForHandle(ctx, handle)
+	if err != nil {
+		return tlf.NullID, err
+	}
+	// Create the journal if needed, while we have access to `handle`.
+	_, _ = j.jServer.getTLFJournal(id, handle)
+	return id, nil
+}
+
 // TODO: Combine the two GetForTLF functions in MDOps to avoid the
 // need for this helper function.
 func (j journalMDOps) getForTLF(ctx context.Context, id tlf.ID, bid kbfsmd.BranchID,
