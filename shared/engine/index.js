@@ -329,14 +329,15 @@ class Engine {
       sessionID,
       incomingCallMap,
       waitingHandler,
-      (method, param, cb) =>
-        this._rpcClient.invoke(method, param, (...args) => {
-          // If first argument is set, convert it to an Error type
+      (method, param, cb) => {
+        const callback = method => (...args) => {
           if (args.length > 0 && !!args[0]) {
-            args[0] = convertToError(args[0])
+            args[0] = convertToError(args[0], method)
           }
           cb(...args)
-        }),
+        }
+        this._rpcClient.invoke(method, param, callback(method))
+      },
       (session: Session) => this._sessionEnded(session),
       cancelHandler,
       dangling
