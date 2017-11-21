@@ -29,12 +29,12 @@ export type RowProps = {
   id: SearchResultId,
 
   leftFollowingState: FollowingState,
+  leftFullname: ?string,
   leftIcon: ?IconType, // If service is keybase this can be null
   leftService: Service,
   leftUsername: string,
 
   rightFollowingState: FollowingState,
-  rightFullname: ?string,
   rightIcon: ?IconType,
   rightService: ?Service,
   rightUsername: ?string,
@@ -52,11 +52,11 @@ export type RowProps = {
 export type SearchResult = {
   id: SearchResultId,
 
+  leftFullname: ?string,
   leftIcon: ?IconType, // If service is keybase this can be null
   leftService: Service,
   leftUsername: string,
 
-  rightFullname: ?string,
   rightIcon: ?IconType,
   rightService: ?Service,
   rightUsername: ?string,
@@ -64,12 +64,11 @@ export type SearchResult = {
 
 export const makeSearchResult: I.RecordFactory<SearchResult> = I.Record({
   id: '',
-
+  leftFullname: null,
   leftIcon: null,
   leftService: 'Keybase',
   leftUsername: '',
 
-  rightFullname: null,
   rightIcon: null,
   rightService: null,
   rightUsername: null,
