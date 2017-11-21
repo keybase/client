@@ -71,7 +71,6 @@ const makeRow = (options: MakeRowOptions) => {
           />
         )
       case 'small':
-        // $FlowIssue conversationIDKey is totally a string
         return (
           <SmallTeam
             key={options.conversationIDKey}
