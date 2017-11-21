@@ -28,6 +28,7 @@ const PopupHeader = ({channelName}: {channelName: string}) => {
 }
 
 type Props = {
+  channelName: string,
   disabled: boolean,
   onConfirmedDelete: () => void,
 }
@@ -57,7 +58,7 @@ class DeleteChannel extends React.Component<Props, State> {
 
     const header = {
       title: 'header',
-      view: <PopupHeader channelName="somechannel" />,
+      view: <PopupHeader channelName={this.props.channelName} />,
     }
 
     const items = []

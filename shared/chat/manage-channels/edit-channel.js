@@ -64,7 +64,11 @@ const EditChannelBare = (props: Props & TextState) => (
     </Box>
     <Box style={_bottomRowStyle}>
       {props.showDelete &&
-        <DeleteChannel onConfirmedDelete={props.onDelete} disabled={props.deleteRenameDisabled} />}
+        <DeleteChannel
+          channelName={props.channelName}
+          onConfirmedDelete={props.onDelete}
+          disabled={props.deleteRenameDisabled}
+        />}
       <Box style={globalStyles.flexBoxRow}>
         <Button type="Secondary" label="Cancel" onClick={props.onCancel} />
         <Button
