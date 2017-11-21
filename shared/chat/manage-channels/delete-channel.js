@@ -40,6 +40,10 @@ const stylePopup = {
 }
 
 class DeleteChannel extends React.Component<Props, State> {
+  // The DOM manipulations below implicitly assume that we're on
+  // desktop. We'll probably have to handle mobile differently,
+  // anyway.
+
   _hidePopup = () => {
     ReactDOM.unmountComponentAtNode(document.getElementById('popupContainer'))
   }

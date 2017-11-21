@@ -63,7 +63,8 @@ const EditChannelBare = (props: Props & TextState) => (
       />
     </Box>
     <Box style={_bottomRowStyle}>
-      {props.showDelete &&
+      {!isMobile &&
+        props.showDelete &&
         <DeleteChannel
           channelName={props.channelName}
           onConfirmedDelete={props.onConfirmedDelete}
