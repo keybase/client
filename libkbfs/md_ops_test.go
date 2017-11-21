@@ -74,6 +74,11 @@ func mdOpsInit(t *testing.T, ver kbfsmd.MetadataVer) (mockCtrl *gomock.Controlle
 	config.mockKbpki.EXPECT().ResolveImplicitTeam(
 		gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).AnyTimes().
 		Return(ImplicitTeamInfo{}, errors.New("No such team"))
+	// Don't cache IDs.
+	config.mockMdcache.EXPECT().GetIDForHandle(gomock.Any()).AnyTimes().
+		Return(tlf.NullID, NoSuchTlfIDError{nil})
+	config.mockMdcache.EXPECT().PutIDForHandle(gomock.Any(), gomock.Any()).
+		AnyTimes().Return(nil)
 
 	return mockCtrl, config, ctx
 }

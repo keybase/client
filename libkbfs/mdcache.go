@@ -10,6 +10,7 @@ import (
 	lru "github.com/hashicorp/golang-lru"
 	"github.com/keybase/kbfs/kbfsmd"
 	"github.com/keybase/kbfs/tlf"
+	"github.com/pkg/errors"
 )
 
 // MDCacheStandard implements a simple LRU cache for per-folder
@@ -17,8 +18,9 @@ import (
 type MDCacheStandard struct {
 	// lock protects `lru` from atomic operations that need atomicity
 	// across multiple `lru` calls.
-	lock sync.RWMutex
-	lru  *lru.Cache
+	lock  sync.RWMutex
+	lru   *lru.Cache
+	idLRU *lru.Cache
 }
 
 type mdCacheKey struct {
@@ -32,11 +34,15 @@ const defaultMDCacheCapacity = 5000
 // NewMDCacheStandard constructs a new MDCacheStandard using the given
 // cache capacity.
 func NewMDCacheStandard(capacity int) *MDCacheStandard {
-	tmp, err := lru.New(capacity)
+	mdLRU, err := lru.New(capacity)
 	if err != nil {
 		return nil
 	}
-	return &MDCacheStandard{lru: tmp}
+	idLRU, err := lru.New(capacity)
+	if err != nil {
+		return nil
+	}
+	return &MDCacheStandard{lru: mdLRU, idLRU: idLRU}
 }
 
 // Get implements the MDCache interface for MDCacheStandard.
@@ -110,4 +116,31 @@ func (md *MDCacheStandard) MarkPutToServer(
 	}
 	rmd.putToServer = true
 	md.lru.Add(key, rmd)
+}
+
+// GetIDForHandle implements the MDCache interface for
+// MDCacheStandard.
+func (md *MDCacheStandard) GetIDForHandle(handle *TlfHandle) (tlf.ID, error) {
+	md.lock.RLock()
+	defer md.lock.RUnlock()
+	key := handle.GetCanonicalPath()
+	tmp, ok := md.idLRU.Get(key)
+	if !ok {
+		return tlf.NullID, errors.WithStack(NoSuchTlfIDError{handle})
+	}
+	id, ok := tmp.(tlf.ID)
+	if !ok {
+		return tlf.NullID, errors.Errorf("Bad ID for handle %s", key)
+	}
+	return id, nil
+}
+
+// PutIDForHandle implements the MDCache interface for
+// MDCacheStandard.
+func (md *MDCacheStandard) PutIDForHandle(handle *TlfHandle, id tlf.ID) error {
+	md.lock.RLock()
+	defer md.lock.RUnlock()
+	key := handle.GetCanonicalPath()
+	md.idLRU.Add(key, id)
+	return nil
 }

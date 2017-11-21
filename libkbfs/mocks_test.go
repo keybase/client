@@ -2720,6 +2720,31 @@ func (mr *MockMDCacheMockRecorder) MarkPutToServer(tlf, rev, bid interface{}) *g
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MarkPutToServer", reflect.TypeOf((*MockMDCache)(nil).MarkPutToServer), tlf, rev, bid)
 }
 
+// GetIDForHandle mocks base method
+func (m *MockMDCache) GetIDForHandle(handle *TlfHandle) (tlf.ID, error) {
+	ret := m.ctrl.Call(m, "GetIDForHandle", handle)
+	ret0, _ := ret[0].(tlf.ID)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetIDForHandle indicates an expected call of GetIDForHandle
+func (mr *MockMDCacheMockRecorder) GetIDForHandle(handle interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetIDForHandle", reflect.TypeOf((*MockMDCache)(nil).GetIDForHandle), handle)
+}
+
+// PutIDForHandle mocks base method
+func (m *MockMDCache) PutIDForHandle(handle *TlfHandle, id tlf.ID) error {
+	ret := m.ctrl.Call(m, "PutIDForHandle", handle, id)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// PutIDForHandle indicates an expected call of PutIDForHandle
+func (mr *MockMDCacheMockRecorder) PutIDForHandle(handle, id interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PutIDForHandle", reflect.TypeOf((*MockMDCache)(nil).PutIDForHandle), handle, id)
+}
+
 // MockKeyCache is a mock of KeyCache interface
 type MockKeyCache struct {
 	ctrl     *gomock.Controller

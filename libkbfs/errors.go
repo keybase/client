@@ -916,6 +916,18 @@ func (e NoSuchTlfHandleError) Error() string {
 	return fmt.Sprintf("Folder handle for %s not found", e.ID)
 }
 
+// NoSuchTlfIDError indicates we were unable to resolve a folder
+// handle to a folder ID.
+type NoSuchTlfIDError struct {
+	handle *TlfHandle
+}
+
+// Error implements the error interface for NoSuchTlfIDError
+func (e NoSuchTlfIDError) Error() string {
+	return fmt.Sprintf("Folder ID for %s not found",
+		e.handle.GetCanonicalPath())
+}
+
 // IncompatibleHandleError indicates that somethine tried to update
 // the head of a TLF with a RootMetadata with an incompatible handle.
 type IncompatibleHandleError struct {

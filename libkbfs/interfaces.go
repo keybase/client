@@ -793,6 +793,11 @@ type MDCache interface {
 	// MarkPutToServer sets `PutToServer` to true for the specified
 	// MD, if it already exists in the cache.
 	MarkPutToServer(tlf tlf.ID, rev kbfsmd.Revision, bid kbfsmd.BranchID)
+	// GetIDForHandle retrieves a cached, trusted TLF ID for the given
+	// handle, if one exists.
+	GetIDForHandle(handle *TlfHandle) (tlf.ID, error)
+	// PutIDForHandle caches a trusted TLF ID for the given handle.
+	PutIDForHandle(handle *TlfHandle, id tlf.ID) error
 }
 
 // KeyCache handles caching for both TLFCryptKeys and BlockCryptKeys.

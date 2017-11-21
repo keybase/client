@@ -5,8 +5,6 @@
 package libkbfs
 
 import (
-	"errors"
-	"fmt"
 	"sync"
 	"time"
 
@@ -17,6 +15,7 @@ import (
 	"github.com/keybase/kbfs/kbfscrypto"
 	"github.com/keybase/kbfs/kbfsmd"
 	"github.com/keybase/kbfs/tlf"
+	"github.com/pkg/errors"
 	"golang.org/x/net/context"
 	"golang.org/x/sync/errgroup"
 )
@@ -98,7 +97,7 @@ func (md *MDOpsStandard) verifyWriterKey(ctx context.Context,
 	// finalizations, neither of which should happen while
 	// unmerged.
 	if rmds.MD.MergedStatus() != kbfsmd.Merged {
-		return fmt.Errorf("Revision %d for %s has a copied writer "+
+		return errors.Errorf("Revision %d for %s has a copied writer "+
 			"metadata, but is unexpectedly not merged",
 			rmds.MD.RevisionNumber(), rmds.MD.TlfID())
 	}
@@ -166,7 +165,7 @@ func (md *MDOpsStandard) verifyWriterKey(ctx context.Context,
 				err = kbfscrypto.Verify(
 					buf, rmds.GetWriterMetadataSigInfo())
 				if err != nil {
-					return fmt.Errorf("Could not verify "+
+					return errors.Errorf("Could not verify "+
 						"uncopied writer metadata "+
 						"from revision %d of folder "+
 						"%s with signature from "+
@@ -185,7 +184,7 @@ func (md *MDOpsStandard) verifyWriterKey(ctx context.Context,
 
 		// No more MDs left to process.
 		if len(prevMDs) < maxMDsAtATime {
-			return fmt.Errorf("Couldn't find uncopied MD previous to "+
+			return errors.Errorf("Couldn't find uncopied MD previous to "+
 				"revision %d of folder %s for checking the writer "+
 				"timestamp", rmds.MD.RevisionNumber(), rmds.MD.TlfID())
 		}
@@ -308,7 +307,7 @@ func (md *MDOpsStandard) getForHandle(ctx context.Context, handle *TlfHandle,
 	// If we already know the tlf ID, we shouldn't be calling this
 	// function.
 	if handle.tlfID != tlf.NullID {
-		return tlf.ID{}, ImmutableRootMetadata{}, fmt.Errorf(
+		return tlf.ID{}, ImmutableRootMetadata{}, errors.Errorf(
 			"GetForHandle called for %s with non-nil TLF ID %s",
 			handle.GetCanonicalPath(), handle.tlfID)
 	}
@@ -402,10 +401,25 @@ func (md *MDOpsStandard) getForHandle(ctx context.Context, handle *TlfHandle,
 // GetIDForHandle implements the MDOps interface for MDOpsStandard.
 func (md *MDOpsStandard) GetIDForHandle(
 	ctx context.Context, handle *TlfHandle) (id tlf.ID, err error) {
-	// TODO: use a local, trusted, on-disk handle->ID cache to avoid
-	// an RTT here?
+	mdcache := md.config.MDCache()
+	id, err = mdcache.GetIDForHandle(handle)
+	switch errors.Cause(err).(type) {
+	case NoSuchTlfIDError:
+		// Do the server-based lookup below.
+	case nil:
+		return id, nil
+	default:
+		return tlf.NullID, err
+	}
 	id, _, err = md.getForHandle(ctx, handle, kbfsmd.Merged, nil)
-	return id, err
+	if err != nil {
+		return tlf.NullID, err
+	}
+	err = mdcache.PutIDForHandle(handle, id)
+	if err != nil {
+		return tlf.NullID, err
+	}
+	return id, nil
 }
 
 func (md *MDOpsStandard) processMetadataWithID(ctx context.Context,
@@ -415,7 +429,7 @@ func (md *MDOpsStandard) processMetadataWithID(ctx context.Context,
 	if id != rmds.MD.TlfID() {
 		return ImmutableRootMetadata{}, MDMismatchError{
 			rmds.MD.RevisionNumber(), id.String(), rmds.MD.TlfID(),
-			fmt.Errorf("MD contained unexpected folder id %s, expected %s",
+			errors.Errorf("MD contained unexpected folder id %s, expected %s",
 				rmds.MD.TlfID().String(), id.String()),
 		}
 	}
@@ -423,7 +437,7 @@ func (md *MDOpsStandard) processMetadataWithID(ctx context.Context,
 	if bid != kbfsmd.NullBranchID && bid != rmds.MD.BID() {
 		return ImmutableRootMetadata{}, MDMismatchError{
 			rmds.MD.RevisionNumber(), id.String(), rmds.MD.TlfID(),
-			fmt.Errorf("MD contained unexpected branch id %s, expected %s, "+
+			errors.Errorf("MD contained unexpected branch id %s, expected %s, "+
 				"folder id %s", rmds.MD.BID().String(), bid.String(), id.String()),
 		}
 	}
@@ -555,11 +569,11 @@ func (md *MDOpsStandard) processRange(ctx context.Context, id tlf.ID,
 	for irmd := range irmdChan {
 		i := irmd.Revision() - startRev
 		if i < 0 || i >= numExpected {
-			return nil, fmt.Errorf("Unexpected revision %d; expected "+
+			return nil, errors.Errorf("Unexpected revision %d; expected "+
 				"something between %d and %d inclusive", irmd.Revision(),
 				startRev, startRev+numExpected-1)
 		} else if irmds[i] != (ImmutableRootMetadata{}) {
-			return nil, fmt.Errorf("Got revision %d twice", irmd.Revision())
+			return nil, errors.Errorf("Got revision %d twice", irmd.Revision())
 		}
 		irmds[i] = irmd
 	}
