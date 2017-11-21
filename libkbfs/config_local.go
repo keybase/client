@@ -277,8 +277,10 @@ func MakeLocalUserCryptPublicKeyOrBust(
 // for a TLF.
 func MakeLocalTLFCryptKeyOrBust(
 	name string, keyGen kbfsmd.KeyGen) kbfscrypto.TLFCryptKey {
+	// Put the key gen first to make it more likely to fit into the
+	// 32-character "random" seed.
 	return kbfscrypto.MakeFakeTLFCryptKeyOrBust(
-		string(name) + " crypt key " + string(keyGen))
+		string(name) + " " + string(keyGen) + " crypt key ")
 }
 
 // MakeLocalUsers is a helper function to generate a list of

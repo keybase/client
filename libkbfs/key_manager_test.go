@@ -2392,6 +2392,73 @@ func TestKeyManagerGetTeamTLFCryptKey(t *testing.T) {
 	require.NotEqual(t, key1, key1b)
 }
 
+func testKeyManagerGetImplicitTeamTLFCryptKey(t *testing.T, ty tlf.Type) {
+	var u1, u2 libkb.NormalizedUsername = "u1", "u2"
+	config1, _, ctx, cancel := kbfsOpsConcurInit(t, u1, u2)
+	defer kbfsConcurTestShutdown(t, config1, ctx, cancel)
+
+	config2 := ConfigAsUser(config1, u2)
+	defer CheckConfigAndShutdown(ctx, t, config2)
+
+	// These are deterministic, and should add the same
+	// ImplicitTeamInfos for both user configs.
+	iname := "u1,u2"
+	teamID, tlfID := AddImplicitTeamForTestOrBust(t, config1, iname, "", 1, ty)
+	_, _ = AddImplicitTeamForTestOrBust(t, config2, iname, "", 1, ty)
+
+	asUserName := libkb.NormalizedUsername(iname)
+	h := &TlfHandle{
+		tlfType: ty,
+		resolvedWriters: map[keybase1.UserOrTeamID]libkb.NormalizedUsername{
+			teamID.AsUserOrTeam(): asUserName,
+		},
+		name:  tlf.CanonicalName(asUserName),
+		tlfID: tlfID,
+	}
+
+	_, latestKeyGen, err := config1.KBPKI().GetTeamTLFCryptKeys(
+		ctx, teamID, kbfsmd.UnspecifiedKeyGen)
+
+	rmd, err := makeInitialRootMetadata(
+		kbfsmd.SegregatedKeyBundlesVer, tlfID, h)
+	require.NoError(t, err)
+	rmd.bareMd.SetLatestKeyGenerationForTeamTLF(latestKeyGen)
+	// Make sure the MD looks readable.
+	rmd.data.Dir.BlockPointer = BlockPointer{ID: kbfsblock.FakeID(1)}
+
+	// Both users should see the same key.
+	key1, err := config1.KeyManager().GetTLFCryptKeyForEncryption(ctx, rmd)
+	require.NoError(t, err)
+	key2, err := config2.KeyManager().GetTLFCryptKeyForEncryption(ctx, rmd)
+	require.NoError(t, err)
+	require.Equal(t, key1, key2)
+
+	// Bump the key generation.
+	AddTeamKeyForTestOrBust(t, config1, teamID)
+	AddTeamKeyForTestOrBust(t, config2, teamID)
+	rmd2, err := rmd.MakeSuccessor(context.Background(),
+		config1.MetadataVersion(), config1.Codec(),
+		config1.KeyManager(), config1.KBPKI(), config1.KBPKI(),
+		kbfsmd.FakeID(2), true)
+	require.NoError(t, err)
+
+	// Both users should see the same new key.
+	key1b, err := config1.KeyManager().GetTLFCryptKeyForEncryption(ctx, rmd2)
+	require.NoError(t, err)
+	key2b, err := config2.KeyManager().GetTLFCryptKeyForEncryption(ctx, rmd2)
+	require.NoError(t, err)
+	require.Equal(t, key1b, key2b)
+	require.NotEqual(t, key1, key1b)
+}
+
+func TestKeyManagerGetPrivateImplicitTeamTLFCryptKey(t *testing.T) {
+	testKeyManagerGetImplicitTeamTLFCryptKey(t, tlf.Private)
+}
+
+func TestKeyManagerGetPublicImplicitTeamTLFCryptKey(t *testing.T) {
+	testKeyManagerGetImplicitTeamTLFCryptKey(t, tlf.Public)
+}
+
 func TestKeyManager(t *testing.T) {
 	tests := []func(*testing.T, kbfsmd.MetadataVer){
 		testKeyManagerPublicTLFCryptKey,
