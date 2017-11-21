@@ -163,8 +163,8 @@ function updateTopic(conversationIDKey: ConversationIDKey, newTopic: string): Ty
   return {payload: {conversationIDKey, newTopic}, type: 'teams:updateTopic'}
 }
 
-function deleteChannel(conversationIDKey: ConversationIDKey): Types.DeleteChannel {
-  return {payload: {conversationIDKey}, type: 'teams:deleteChannel'}
+function deleteChannelConfirmed(conversationIDKey: ConversationIDKey): Types.DeleteChannelConfirmed {
+  return {payload: {conversationIDKey}, type: 'teams:deleteChannelConfirmed'}
 }
 
 function badgeAppForTeams(
@@ -180,7 +180,7 @@ export {
   createChannel,
   createNewTeam,
   createNewTeamFromConversation,
-  deleteChannel,
+  deleteChannelConfirmed,
   editMembership,
   editTeamDescription,
   getChannels,

@@ -702,7 +702,7 @@ function _updateChannelname(
   ])
 }
 
-function* _deleteChannel({payload: {conversationIDKey}}): Saga.SagaGenerator<any, any> {
+function* _deleteChannelConfirmed({payload: {conversationIDKey}}): Saga.SagaGenerator<any, any> {
   const state: TypedState = yield Saga.select()
   const channelName = Constants.getChannelNameFromConvID(state, conversationIDKey)
   const teamname = Constants.getTeamNameFromConvID(state, conversationIDKey) || ''
@@ -713,7 +713,7 @@ function* _deleteChannel({payload: {conversationIDKey}}): Saga.SagaGenerator<any
   const param = {
     convID: ChatConstants.keyToConversationID(conversationIDKey),
     channelName,
-    confirmed: false,
+    confirmed: true,
   }
 
   yield Saga.call(RPCChatTypes.localDeleteConversationLocalRpcPromise, param)
@@ -797,7 +797,7 @@ const teamsSaga = function*(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEvery('teams:removeMemberOrPendingInvite', _removeMemberOrPendingInvite)
   yield Saga.safeTakeEveryPure('teams:updateTopic', _updateTopic, last)
   yield Saga.safeTakeEveryPure('teams:updateChannelName', _updateChannelname, last)
-  yield Saga.safeTakeEvery('teams:deleteChannel', _deleteChannel)
+  yield Saga.safeTakeEvery('teams:deleteChannelConfirmed', _deleteChannelConfirmed)
   yield Saga.safeTakeEvery('teams:badgeAppForTeams', _badgeAppForTeams)
   yield Saga.safeTakeEveryPure(RouteConstants.switchTo, _onTabChange)
   yield Saga.safeTakeEvery('teams:inviteToTeamByPhone', _inviteToTeamByPhone)

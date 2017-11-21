@@ -12,7 +12,7 @@ type Props = {
   topic: string,
   onCancel: () => void,
   onSave: (channelName: string, topic: string) => void,
-  onDelete: () => void,
+  onConfirmedDelete: () => void,
   showDelete: boolean,
   deleteRenameDisabled: boolean,
   waitingForSave: boolean,
@@ -66,7 +66,7 @@ const EditChannelBare = (props: Props & TextState) => (
       {props.showDelete &&
         <DeleteChannel
           channelName={props.channelName}
-          onConfirmedDelete={props.onDelete}
+          onConfirmedDelete={props.onConfirmedDelete}
           disabled={props.deleteRenameDisabled}
         />}
       <Box style={globalStyles.flexBoxRow}>
