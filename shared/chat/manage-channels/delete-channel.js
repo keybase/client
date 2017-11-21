@@ -13,7 +13,6 @@ const PopupHeader = ({channelName}: {channelName: string}) => {
         paddingLeft: globalMargins.tiny,
         paddingRight: globalMargins.tiny,
         paddingTop: globalMargins.small,
-        paddingBottom: globalMargins.small,
         width: '100%',
       }}
     >
@@ -62,6 +61,7 @@ class DeleteChannel extends React.Component<Props, State> {
     }
 
     const items = []
+    items.push('Divider')
     items.push({title: 'Yes, delete channel'})
     items.push({title: 'Cancel'})
     const popupComponent = (
