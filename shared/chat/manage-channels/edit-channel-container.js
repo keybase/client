@@ -6,8 +6,6 @@ import {type ConversationIDKey} from '../../constants/types/chat'
 import EditChannel from './edit-channel'
 import {connect, type TypedState} from '../../util/container'
 import {updateChannelName, updateTopic, deleteChannelConfirmed} from '../../actions/teams/creators'
-import {navigateTo} from '../../actions/route-tree'
-import {teamsTab} from '../../constants/tabs'
 import {anyWaiting} from '../../constants/waiting'
 
 const mapStateToProps = (state: TypedState, {navigateUp, routePath, routeProps}) => {
@@ -43,7 +41,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routePath, routePro
     _updateTopic: (newTopic: string) => dispatch(updateTopic(conversationIDKey, newTopic)),
     _onConfirmedDelete: teamname => {
       dispatch(deleteChannelConfirmed(conversationIDKey))
-      dispatch(navigateTo([teamsTab, {props: {teamname}, selected: 'team'}], []))
+      dispatch(navigateUp())
     },
   }
 }
