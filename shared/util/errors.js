@@ -1,15 +1,17 @@
 // @flow
 
 export class RPCError extends Error {
-  code: number
+  code: number // Consult type StatusCode in flow-types.js for what this means
   fields: any
   desc: string // Don't use! This is for compatibility with RPC error object.
+  name: string
 
-  constructor(message: string, code: number, fields: ?any) {
-    super(message || 'Unknown RPC Error')
-    this.code = code
+  constructor(message: string, code: number, fields: ?any, name: ?string) {
+    super(message || (name && `RPC Error: ${name}`) || 'Unknown RPC Error')
+    this.code = code // Consult type StatusCode in flow-types.js for what this means
     this.fields = fields
     this.desc = message // Don't use! This is for compatibility with RPC error object.
+    this.name = name || ''
   }
 }
 
@@ -41,6 +43,6 @@ export function convertToError(err: Object): Error {
   return new Error(`Unknown error: ${JSON.stringify(err)}`)
 }
 
-export function convertToRPCError(err: {code: number, desc: string, fields?: any}): RPCError {
-  return new RPCError(err.desc, err.code, err.fields)
+export function convertToRPCError(err: {code: number, desc: string, fields?: any, name?: string}): RPCError {
+  return new RPCError(err.desc, err.code, err.fields, err.name)
 }
