@@ -21,7 +21,7 @@ import {chatTab, teamsTab} from '../../constants/tabs'
 import openSMS from '../../util/sms'
 import {createDecrementWaiting, createIncrementWaiting} from '../../actions/waiting-gen'
 import {createGlobalError} from '../../actions/config-gen'
-import {convertToError} from '../../util/errors'
+import {convertToError, RPCError} from '../../util/errors'
 
 import type {TypedState} from '../../constants/reducer'
 
@@ -357,19 +357,32 @@ const _getDetails = function*(action: Constants.GetDetails): Saga.SagaGenerator<
       yield Saga.put(replaceEntity(['teams', 'teamNameToRequests'], I.Map([[teamname, I.Set()]])))
     }
 
+    const emptyTeamShowcase: RPCTypes.TeamShowcase = {
+      isShowcased: false,
+      anyMemberShowcase: false,
+    }
     // Get publicity settings for this team.
-    const publicity: RPCTypes.TeamAndMemberShowcase = yield Saga.call(
-      RPCTypes.teamsGetTeamAndMemberShowcaseRpcPromise,
-      {
+    let publicity: RPCTypes.TeamAndMemberShowcase = {
+      teamShowcase: emptyTeamShowcase,
+      isMemberShowcased: false,
+    }
+    try {
+      publicity = yield Saga.call(RPCTypes.teamsGetTeamAndMemberShowcaseRpcPromise, {
         param: {
           name: teamname,
         },
+      })
+    } catch (e) {
+      const permDenied =
+        e instanceof RPCError && e.code === RPCTypes.constantsStatusCode.scteamshowcasepermdenied
+      if (!permDenied) {
+        throw e
       }
-    )
+    }
 
     const publicityMap = {
       anyMemberShowcase: publicity.teamShowcase.anyMemberShowcase,
-      description: publicity.teamShowcase.description,
+      description: publicity.teamShowcase.description || '',
       member: publicity.isMemberShowcased,
       team: publicity.teamShowcase.isShowcased,
     }
