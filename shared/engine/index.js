@@ -331,6 +331,7 @@ class Engine {
       waitingHandler,
       (method, param, cb) => {
         const callback = method => (...args) => {
+          // If first argument is set, convert it to an Error type
           if (args.length > 0 && !!args[0]) {
             args[0] = convertToError(args[0], method)
           }
