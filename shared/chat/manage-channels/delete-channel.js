@@ -10,19 +10,19 @@ const PopupHeader = ({channelName}: {channelName: string}) => {
       style={{
         ...globalStyles.flexBoxColumn,
         alignItems: 'center',
+        paddingLeft: globalMargins.tiny,
+        paddingRight: globalMargins.tiny,
+        paddingTop: globalMargins.small,
+        paddingBottom: globalMargins.small,
         width: '100%',
       }}
     >
-      <Box style={globalStyles.flexBoxRow}>
-        <Text type="BodySmall" style={{color: globalColors.black_40}}>
-          {`Are you sure you want to delete ${channelName}?`}
-        </Text>
-      </Box>
-      <Box style={globalStyles.flexBoxRow}>
-        <Text type="BodySmall" style={{color: globalColors.black_40}}>
-          All messages will be lost. This cannot be undone.
-        </Text>
-      </Box>
+      <Text type="BodySemibold" style={{color: globalColors.black, textAlign: 'center'}}>
+        {`Are you sure you want to delete #${channelName}?`}
+      </Text>
+      <Text type="BodySmall" style={{color: globalColors.black_40, textAlign: 'center'}}>
+        All messages will be lost. This cannot be undone.
+      </Text>
     </Box>
   )
 }
