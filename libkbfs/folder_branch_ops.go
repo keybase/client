@@ -1425,10 +1425,10 @@ func (fbo *folderBranchOps) initMDLocked(
 
 	var expectedKeyGen kbfsmd.KeyGen
 	var tlfCryptKey *kbfscrypto.TLFCryptKey
-	switch md.TlfID().Type() {
-	case tlf.Public:
+	switch md.TypeForKeying() {
+	case tlf.PublicKeying:
 		expectedKeyGen = kbfsmd.PublicKeyGen
-	case tlf.Private:
+	case tlf.PrivateKeying:
 		var rekeyDone bool
 		// create a new set of keys for this metadata
 		rekeyDone, tlfCryptKey, err = fbo.config.KeyManager().Rekey(ctx, md, false)
@@ -1440,7 +1440,7 @@ func (fbo *folderBranchOps) initMDLocked(
 				"private TLF %v", md.TlfID())
 		}
 		expectedKeyGen = kbfsmd.FirstValidKeyGen
-	case tlf.SingleTeam:
+	case tlf.TeamKeying:
 		// Teams get their crypt key from the service, no need to
 		// rekey in KBFS.
 		tid, err := handle.FirstResolvedWriter().AsTeam()

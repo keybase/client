@@ -146,7 +146,7 @@ func (md *RootMetadata) Extra() kbfsmd.ExtraMetadata {
 
 // IsReadable returns true if the private metadata can be read.
 func (md *RootMetadata) IsReadable() bool {
-	return md.TlfID().Type() == tlf.Public || md.data.Dir.IsInitialized()
+	return md.TypeForKeying() == tlf.PublicKeying || md.data.Dir.IsInitialized()
 }
 
 func (md *RootMetadata) clearLastRevision() {
@@ -223,8 +223,7 @@ func (md *RootMetadata) MakeSuccessor(
 		newMd.clearLastRevision()
 		// clear the serialized data.
 		newMd.SetSerializedPrivateMetadata(nil)
-
-		if handleCopy.Type() == tlf.SingleTeam {
+		if newMd.TypeForKeying() == tlf.TeamKeying {
 			tid, err := handleCopy.FirstResolvedWriter().AsTeam()
 			if err != nil {
 				return nil, err
@@ -268,6 +267,11 @@ func (md *RootMetadata) GetTlfHandle() *TlfHandle {
 	return md.tlfHandle
 }
 
+// TypeForKeying returns the keying type for the RootMetadata.
+func (md *RootMetadata) TypeForKeying() tlf.KeyingType {
+	return md.bareMd.TypeForKeying()
+}
+
 // MakeBareTlfHandle makes a BareTlfHandle for this
 // RootMetadata. Should be used only by servers and MDOps.
 func (md *RootMetadata) MakeBareTlfHandle() (tlf.Handle, error) {
@@ -281,7 +285,7 @@ func (md *RootMetadata) MakeBareTlfHandle() (tlf.Handle, error) {
 // IsInitialized returns whether or not this RootMetadata has been initialized
 func (md *RootMetadata) IsInitialized() bool {
 	keyGen := md.LatestKeyGeneration()
-	if md.TlfID().Type() == tlf.Public {
+	if md.TypeForKeying() == tlf.PublicKeying {
 		return keyGen == kbfsmd.PublicKeyGen
 	}
 	// The data is only initialized once we have at least one set of keys
@@ -344,13 +348,35 @@ func (md *RootMetadata) updateFromTlfHandle(newHandle *TlfHandle) error {
 	// TODO: Strengthen check, e.g. make sure every writer/reader
 	// in the old handle is also a writer/reader of the new
 	// handle.
-	if md.TlfID().Type() != newHandle.Type() {
+	valid := true
+	newBareHandle, err := newHandle.ToBareHandle()
+	if err != nil {
+		return err
+	}
+	switch md.TypeForKeying() {
+	case tlf.PrivateKeying:
+		// Private-keyed TLFs can move to team keying, but not to
+		// public keying.
+		valid = newBareHandle.TypeForKeying() != tlf.PublicKeying
+	case tlf.PublicKeying:
+		// Public-keyed TLFs can move to team keying, but not to
+		// private keying.
+		valid = newBareHandle.TypeForKeying() != tlf.PrivateKeying
+	case tlf.TeamKeying:
+		// Team-keyed TLFs must always remain team-keyed.
+		valid = newBareHandle.TypeForKeying() == tlf.TeamKeying
+	default:
+		return fmt.Errorf("Unexpected keying type %s", md.TypeForKeying())
+	}
+	if !valid {
 		return fmt.Errorf(
-			"Trying to update type=%s rmd with type=%s handle",
-			md.TlfID().Type(), newHandle.Type())
+			"Trying to update rmd with id type=%s, keying type=%s with "+
+				"handle of type=%s, keying type=%s",
+			md.TlfID().Type(), md.TypeForKeying(),
+			newHandle.Type(), newBareHandle.TypeForKeying())
 	}
 
-	if newHandle.Type() == tlf.Private {
+	if newBareHandle.TypeForKeying() == tlf.PrivateKeying {
 		md.SetUnresolvedReaders(newHandle.UnresolvedReaders())
 	} else {
 		md.SetWriters(newHandle.ResolvedWriters())
@@ -365,10 +391,6 @@ func (md *RootMetadata) updateFromTlfHandle(newHandle *TlfHandle) error {
 		return err
 	}
 
-	newBareHandle, err := newHandle.ToBareHandle()
-	if err != nil {
-		return err
-	}
 	if !reflect.DeepEqual(bareHandle, newBareHandle) {
 		return fmt.Errorf(
 			"bareHandle=%+v != newBareHandle=%+v",
@@ -825,7 +847,7 @@ func (md *RootMetadata) IsWriter(
 	uid keybase1.UID, verifyingKey kbfscrypto.VerifyingKey) (
 	bool, error) {
 	h := md.GetTlfHandle()
-	if h.Type() != tlf.SingleTeam {
+	if md.TypeForKeying() != tlf.TeamKeying {
 		return h.IsWriter(uid), nil
 	}
 
@@ -845,7 +867,7 @@ func (md *RootMetadata) IsReader(
 	ctx context.Context, checker kbfsmd.TeamMembershipChecker,
 	uid keybase1.UID) (bool, error) {
 	h := md.GetTlfHandle()
-	if h.Type() != tlf.SingleTeam {
+	if md.TypeForKeying() != tlf.TeamKeying {
 		return h.IsReader(uid), nil
 	}
 

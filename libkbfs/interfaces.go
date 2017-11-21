@@ -641,6 +641,9 @@ type KeyMetadata interface {
 	// key info.
 	TlfID() tlf.ID
 
+	// TypeForKeying returns the keying type for this MD.
+	TypeForKeying() tlf.KeyingType
+
 	// LatestKeyGeneration returns the most recent key generation
 	// with key data in this object, or PublicKeyGen if this TLF
 	// is public.

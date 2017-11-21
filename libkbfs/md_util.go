@@ -348,11 +348,12 @@ func encryptMDPrivateData(
 	brmd := rmd.bareMd
 	privateData := rmd.data
 
-	if brmd.TlfID().Type() == tlf.Public || !brmd.IsWriterMetadataCopiedSet() {
+	if brmd.TypeForKeying() == tlf.PublicKeying ||
+		!brmd.IsWriterMetadataCopiedSet() {
 		// Record the last writer to modify this writer metadata
 		brmd.SetLastModifyingWriter(me)
 
-		if brmd.TlfID().Type() == tlf.Public {
+		if brmd.TypeForKeying() == tlf.PublicKeying {
 			// Encode the private metadata
 			encodedPrivateMetadata, err := codec.Encode(privateData)
 			if err != nil {

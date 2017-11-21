@@ -335,7 +335,7 @@ func (k *KeybaseDaemonLocal) ResolveIdentifyImplicitTeam(
 	// Need to make the team info as well, so get the list of user
 	// names and resolve them.  Auto-generate an implicit team name.
 	implicitName := libkb.NormalizedUsername(
-		"_implicit_" + string(len(k.localTeams)))
+		fmt.Sprintf("_implicit_%d", len(k.localTeams)))
 	teams := makeLocalTeams(
 		[]libkb.NormalizedUsername{implicitName}, len(k.localTeams), tlfType)
 	info := teams[0]

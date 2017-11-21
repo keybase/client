@@ -287,7 +287,7 @@ func (k *KBPKIClient) IsTeamReader(
 	if err != nil {
 		return false, err
 	}
-	return teamInfo.Writers[uid] || teamInfo.Readers[uid], nil
+	return tid.IsPublic() || teamInfo.Writers[uid] || teamInfo.Readers[uid], nil
 }
 
 // GetTeamRootID implements the KBPKI interface for KBPKIClient.

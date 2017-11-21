@@ -2228,6 +2228,18 @@ func (mr *MockKeyMetadataMockRecorder) TlfID() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "TlfID", reflect.TypeOf((*MockKeyMetadata)(nil).TlfID))
 }
 
+// TypeForKeying mocks base method
+func (m *MockKeyMetadata) TypeForKeying() tlf.KeyingType {
+	ret := m.ctrl.Call(m, "TypeForKeying")
+	ret0, _ := ret[0].(tlf.KeyingType)
+	return ret0
+}
+
+// TypeForKeying indicates an expected call of TypeForKeying
+func (mr *MockKeyMetadataMockRecorder) TypeForKeying() *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "TypeForKeying", reflect.TypeOf((*MockKeyMetadata)(nil).TypeForKeying))
+}
+
 // LatestKeyGeneration mocks base method
 func (m *MockKeyMetadata) LatestKeyGeneration() kbfsmd.KeyGen {
 	ret := m.ctrl.Call(m, "LatestKeyGeneration")

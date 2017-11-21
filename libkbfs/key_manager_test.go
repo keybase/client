@@ -142,6 +142,10 @@ func (kmd emptyKeyMetadata) TlfID() tlf.ID {
 	return kmd.tlfID
 }
 
+func (kmd emptyKeyMetadata) TypeForKeying() tlf.KeyingType {
+	return kmd.TlfID().Type().ToKeyingType()
+}
+
 // GetTlfHandle just returns nil. This contradicts the requirements
 // for KeyMetadata, but emptyKeyMetadata shouldn't be used in contexts
 // that actually use GetTlfHandle().

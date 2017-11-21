@@ -52,6 +52,27 @@ func (h TlfHandle) Type() tlf.Type {
 	return h.tlfType
 }
 
+// IsBackedByTeam returns true if h represents a TLF backed by a team. It could
+// be either a SingleTeam TLF or a private/public TLF backed by an implicit
+// team.
+func (h TlfHandle) IsBackedByTeam() bool {
+	if len(h.resolvedWriters) != 1 ||
+		len(h.resolvedReaders) != 0 ||
+		len(h.unresolvedReaders) != 0 ||
+		len(h.unresolvedWriters) != 0 {
+		return false
+	}
+	return h.FirstResolvedWriter().IsTeamOrSubteam()
+}
+
+// TypeForKeying returns the keying type for the handle h.
+func (h TlfHandle) TypeForKeying() tlf.KeyingType {
+	if h.IsBackedByTeam() {
+		return tlf.TeamKeying
+	}
+	return h.Type().ToKeyingType()
+}
+
 // TlfID returns the TLF ID corresponding to this handle, if it's
 // known.  If it's wasn't known at the time the handle was
 // constructed, tlf.NullID is returned.
@@ -63,7 +84,7 @@ func (h TlfHandle) TlfID() tlf.ID {
 // top-level folder represented by this TlfHandle.
 func (h TlfHandle) IsWriter(user keybase1.UID) bool {
 	// TODO(KBFS-2185) relax this?
-	if h.tlfType == tlf.SingleTeam {
+	if h.TypeForKeying() == tlf.TeamKeying {
 		panic("Can't check whether a user is a writer on a team TLF")
 	}
 	_, ok := h.resolvedWriters[user.AsUserOrTeam()]
@@ -74,10 +95,10 @@ func (h TlfHandle) IsWriter(user keybase1.UID) bool {
 // top-level folder represented by this TlfHandle.
 func (h TlfHandle) IsReader(user keybase1.UID) bool {
 	// TODO(KBFS-2185) relax this?
-	if h.tlfType == tlf.SingleTeam {
+	if h.TypeForKeying() == tlf.TeamKeying {
 		panic("Can't check whether a user is a reader on a team TLF")
 	}
-	if h.tlfType == tlf.Public || h.IsWriter(user) {
+	if h.TypeForKeying() == tlf.PublicKeying || h.IsWriter(user) {
 		return true
 	}
 	_, ok := h.resolvedReaders[user.AsUserOrTeam()]
@@ -316,11 +337,11 @@ func (h TlfHandle) Equals(
 // ToBareHandle returns a tlf.Handle corresponding to this handle.
 func (h TlfHandle) ToBareHandle() (tlf.Handle, error) {
 	var readers []keybase1.UserOrTeamID
-	switch h.tlfType {
-	case tlf.Public:
+	switch h.TypeForKeying() {
+	case tlf.PublicKeying:
 		readers = []keybase1.UserOrTeamID{
 			keybase1.UserOrTeamID(keybase1.PUBLIC_UID)}
-	case tlf.SingleTeam:
+	case tlf.TeamKeying:
 		// Leave readers blank.
 	default:
 		readers = h.unsortedResolvedReaders()

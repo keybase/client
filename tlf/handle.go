@@ -194,7 +194,7 @@ func (h Handle) findUserInList(user keybase1.UserOrTeamID,
 // IsWriter returns whether or not the given user is a writer for the
 // top-level folder represented by this Handle.
 func (h Handle) IsWriter(user keybase1.UserOrTeamID) bool {
-	if h.Type() == SingleTeam {
+	if h.TypeForKeying() == TeamKeying {
 		panic("Can't call Handle.IsWriter() for a single team TLF")
 	}
 	return h.findUserInList(user, h.Writers)
@@ -203,10 +203,11 @@ func (h Handle) IsWriter(user keybase1.UserOrTeamID) bool {
 // IsReader returns whether or not the given user is a reader for the
 // top-level folder represented by this Handle.
 func (h Handle) IsReader(user keybase1.UserOrTeamID) bool {
-	if h.Type() == SingleTeam {
+	if h.TypeForKeying() == TeamKeying {
 		panic("Can't call Handle.IsReader() for a single team TLF")
 	}
-	return h.Type() == Public || h.findUserInList(user, h.Readers) ||
+	return h.TypeForKeying() == PublicKeying ||
+		h.findUserInList(user, h.Readers) ||
 		h.IsWriter(user)
 }
 
@@ -216,7 +217,7 @@ func (h Handle) IsReader(user keybase1.UserOrTeamID) bool {
 func (h Handle) ResolvedUsers() []keybase1.UserOrTeamID {
 	var resolvedUsers []keybase1.UserOrTeamID
 	resolvedUsers = append(resolvedUsers, h.Writers...)
-	if h.Type() == Private {
+	if h.TypeForKeying() == PrivateKeying {
 		resolvedUsers = append(resolvedUsers, h.Readers...)
 	}
 	return resolvedUsers

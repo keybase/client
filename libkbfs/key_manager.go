@@ -94,7 +94,7 @@ func (km *KeyManagerStandard) getTLFCryptKey(ctx context.Context,
 	kbfscrypto.TLFCryptKey, error) {
 	tlfID := kmd.TlfID()
 
-	if tlfID.Type() == tlf.Public {
+	if kmd.TypeForKeying() == tlf.PublicKeying {
 		return kbfscrypto.PublicTLFCryptKey, nil
 	}
 
@@ -121,7 +121,7 @@ func (km *KeyManagerStandard) getTLFCryptKey(ctx context.Context,
 	}
 
 	// Team TLF keys come from the service.
-	if tlfID.Type() == tlf.SingleTeam {
+	if kmd.TypeForKeying() == tlf.TeamKeying {
 		tid, err := kmd.GetTlfHandle().FirstResolvedWriter().AsTeam()
 		if err != nil {
 			return kbfscrypto.TLFCryptKey{}, err
@@ -481,20 +481,20 @@ func (km *KeyManagerStandard) Rekey(ctx context.Context, md *RootMetadata, promp
 		md.TlfID(), promptPaper)
 	defer func() { km.deferLog.CDebugf(ctx, "Rekey %s done: %+v", md.TlfID(), err) }()
 
-	if md.TlfID().Type() == tlf.SingleTeam {
+	if md.TypeForKeying() == tlf.TeamKeying {
 		return false, nil, errors.New(
 			"Rekeying is not done by KBFS for team TLFs")
 	}
 
 	currKeyGen := md.LatestKeyGeneration()
-	if (md.TlfID().Type() == tlf.Public) != (currKeyGen == kbfsmd.PublicKeyGen) {
+	if (md.TypeForKeying() == tlf.PublicKeying) != (currKeyGen == kbfsmd.PublicKeyGen) {
 		return false, nil, errors.Errorf(
-			"ID %v has type=%s but currKeyGen is %d (isPublic=%t)",
-			md.TlfID(), md.TlfID().Type(), currKeyGen,
+			"ID %v has keying type=%s but currKeyGen is %d (isPublic=%t)",
+			md.TlfID(), md.TypeForKeying(), currKeyGen,
 			currKeyGen == kbfsmd.PublicKeyGen)
 	}
 
-	if promptPaper && md.TlfID().Type() != tlf.Private {
+	if promptPaper && md.TypeForKeying() != tlf.PrivateKeying {
 		return false, nil, errors.Errorf(
 			"promptPaper set for non-private TLF %v", md.TlfID())
 	}
@@ -514,7 +514,7 @@ func (km *KeyManagerStandard) Rekey(ctx context.Context, md *RootMetadata, promp
 	}
 
 	isWriter := resolvedHandle.IsWriter(session.UID)
-	if md.TlfID().Type() == tlf.Private && !isWriter {
+	if md.TypeForKeying() == tlf.PrivateKeying && !isWriter {
 		// If I was already a reader, there's nothing more to do
 		if handle.IsReader(session.UID) {
 			resolvedHandle = handle
@@ -555,11 +555,11 @@ func (km *KeyManagerStandard) Rekey(ctx context.Context, md *RootMetadata, promp
 
 	// For a public or team TLF there's no rekeying to be done, but we
 	// should still update the writer list.
-	if md.TlfID().Type() != tlf.Private {
+	if md.TypeForKeying() != tlf.PrivateKeying {
 		if !handleChanged {
 			km.log.CDebugf(ctx,
 				"Skipping rekeying %s (%s): handle hasn't changed",
-				md.TlfID(), md.TlfID().Type())
+				md.TlfID(), md.TypeForKeying())
 			return false, nil, nil
 		}
 		return true, nil, md.updateFromTlfHandle(resolvedHandle)

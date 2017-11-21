@@ -514,7 +514,7 @@ func (p ptrMatcher) String() string {
 }
 
 func fillInNewMD(t *testing.T, config *ConfigMock, rmd *RootMetadata) {
-	if rmd.TlfID().Type() != tlf.Public {
+	if rmd.TypeForKeying() != tlf.PublicKeying {
 		rmd.fakeInitialRekey()
 	}
 	rootPtr := BlockPointer{

@@ -24,7 +24,7 @@ func IsWriter(ctx context.Context, kbpki libkbfs.KBPKI,
 	if err != nil {
 		return false, err
 	}
-	if h.Type() == tlf.SingleTeam {
+	if h.TypeForKeying() == tlf.TeamKeying {
 		tid, err := h.FirstResolvedWriter().AsTeam()
 		if err != nil {
 			return false, err
