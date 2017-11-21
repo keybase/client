@@ -110,14 +110,6 @@ func (rh *RPCHandler) getHandleAndConfig(
 	ctx context.Context, folder keybase1.Folder) (
 	newCtx context.Context, gitConfig libkbfs.Config,
 	tlfHandle *libkbfs.TlfHandle, tempDir string, err error) {
-	// Make sure we have a legit folder name.
-	tlfHandle, err = libkbfs.GetHandleFromFolderNameAndType(
-		ctx, rh.config.KBPKI(), rh.config.MDOps(), folder.Name,
-		tlf.TypeFromFolderType(folder.FolderType))
-	if err != nil {
-		return nil, nil, nil, "", err
-	}
-
 	// Initialize libgit.
 	params, tempDir, err := Params(rh.kbCtx,
 		rh.config.StorageRoot(), rh.kbfsInitParams)
@@ -141,6 +133,21 @@ func (rh *RPCHandler) getHandleAndConfig(
 
 	newCtx, gitConfig, err = Init(
 		ctx, params, rh.kbCtx, keybaseServicePassthrough{rh.config}, "")
+	if err != nil {
+		return nil, nil, nil, "", err
+	}
+	defer func() {
+		if err != nil {
+			gitConfig.Shutdown(ctx)
+		}
+	}()
+
+	// Make sure we have a legit folder name, and get the TLF handle.
+	// Use `gitConfig`, rather than `rh.config`, to make sure the
+	// journal is created under the right journal server.
+	tlfHandle, err = libkbfs.GetHandleFromFolderNameAndType(
+		ctx, gitConfig.KBPKI(), gitConfig.MDOps(), folder.Name,
+		tlf.TypeFromFolderType(folder.FolderType))
 	if err != nil {
 		return nil, nil, nil, "", err
 	}
