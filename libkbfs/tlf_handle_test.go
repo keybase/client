@@ -1012,6 +1012,8 @@ func TestParseTlfHandleNoncanonicalExtensions(t *testing.T) {
 }
 
 func TestParseTlfHandleImplicitTeams(t *testing.T) {
+	t.Skip("Performance issues")
+
 	ctx := context.Background()
 
 	localUsers := MakeLocalUsers([]libkb.NormalizedUsername{"u1", "u2", "u3"})
