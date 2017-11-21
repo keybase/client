@@ -42,7 +42,7 @@ function* _startConversation(action: ChatGen.StartConversationPayload): Saga.Sag
   if (forceImmediate && existing) {
     const newID = yield Saga.call(Shared.startNewConversation, existing.get('conversationIDKey'))
     yield Saga.put(ChatGen.createSelectConversation({conversationIDKey: newID}))
-  } else if (existing && !temporary) {
+  } else if (existing) {
     // Select existing conversations
     yield Saga.put(
       ChatGen.createSelectConversation({
