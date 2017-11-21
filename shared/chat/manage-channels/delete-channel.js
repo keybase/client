@@ -60,10 +60,7 @@ class DeleteChannel extends React.Component<Props, State> {
       view: <PopupHeader channelName={this.props.channelName} />,
     }
 
-    const items = []
-    items.push('Divider')
-    items.push({title: 'Yes, delete channel'})
-    items.push({title: 'Cancel'})
+    const items = ['Divider', {danger: true, title: 'Yes, delete channel'}, {title: 'Cancel'}]
     const popupComponent = (
       <PopupMenu
         header={header}
