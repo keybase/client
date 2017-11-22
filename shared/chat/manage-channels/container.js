@@ -100,6 +100,10 @@ export default compose(
       props._saveSubscriptions(props.oldChannelState, props.nextChannelState),
     onClickChannel: ({channels, currentPath, _onPreview, _onView}) => (conversationIDKey: string) => {
       const channel = channels.find(c => c.convID === conversationIDKey)
+      if (!channel) {
+        console.warn('Attempted to navigate to a conversation ID that was not found in the channel list')
+        return
+      }
       if (channel.selected) {
         _onView(conversationIDKey)
       } else {
