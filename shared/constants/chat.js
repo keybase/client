@@ -822,6 +822,7 @@ const getFollowingMap = (state: TypedState) => state.config.following
 const getMetaDataMap = (state: TypedState) => state.chat.get('metaData')
 const getInbox = (state: TypedState, conversationIDKey: ?ConversationIDKey) =>
   conversationIDKey ? state.chat.getIn(['inbox', conversationIDKey]) : null
+const getFullInbox = (state: TypedState) => state.chat.inbox
 const getSelectedInbox = (state: TypedState) => getInbox(state, getSelectedConversation(state))
 const getEditingMessage = (state: TypedState) => state.chat.get('editingMessage')
 
@@ -853,6 +854,17 @@ const getParticipantsWithFullNames = createSelector(
         .toArray()
     }
     return []
+  }
+)
+
+const getGeneralChannelOfSelectedInbox = createSelector(
+  [getSelectedInbox, getFullInbox],
+  (selectedInbox, inbox) => {
+    if (!selectedInbox || selectedInbox.membersType !== ChatTypes.commonConversationMembersType.team) {
+      return selectedInbox
+    }
+    const teamName = selectedInbox.teamname
+    return inbox.find(value => value.teamname === teamName && value.channelname === 'general')
   }
 )
 
@@ -1172,4 +1184,5 @@ export {
   messageIDToSelfInventedID,
   parseMessageID,
   lastMessageID,
+  getGeneralChannelOfSelectedInbox,
 }
