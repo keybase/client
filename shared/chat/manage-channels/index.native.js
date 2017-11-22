@@ -29,7 +29,7 @@ const Row = (
     onToggle: () => void,
     showEdit: boolean,
     onEdit: () => void,
-    onPreview: () => void,
+    onClickChannel: () => void,
   }
 ) => (
   <Box style={_rowBox}>
@@ -39,7 +39,7 @@ const Row = (
     >
       <Text
         type="BodySemiboldLink"
-        onClick={props.onPreview}
+        onClick={props.onClickChannel}
         style={{color: globalColors.blue, maxWidth: '100%'}}
         lineClamp={1}
       >
@@ -83,7 +83,7 @@ const ManageChannels = (props: Props) => (
           onToggle={() => props.onToggle(c.name)}
           showEdit={!props.unsavedSubscriptions}
           onEdit={() => props.onEdit(c.convID)}
-          onPreview={() => props.onPreview(c.convID)}
+          onClickChannel={() => props.onClickChannel(c.convID)}
         />
       ))}
     </ScrollView>
