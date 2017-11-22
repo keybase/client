@@ -253,12 +253,18 @@ func makeTlfHandleHelper(
 		h.tlfID = tlfID
 	}
 
+	if h.tlfID != tlf.NullID && h.tlfID.Type() != t {
+		return nil, fmt.Errorf("ID type=%s doesn't match expected type=%s",
+			h.tlfID.Type(), t)
+	}
+
 	return h, nil
 }
 
 type resolvableID struct {
-	nug normalizedUsernameGetter
-	id  keybase1.UserOrTeamID
+	nug      normalizedUsernameGetter
+	id       keybase1.UserOrTeamID
+	idGetter tlfIDGetter
 }
 
 func (ruid resolvableID) resolve(ctx context.Context) (
@@ -268,7 +274,21 @@ func (ruid resolvableID) resolve(ctx context.Context) (
 		return nameIDPair{}, keybase1.SocialAssertion{}, tlf.NullID, err
 	}
 	// TODO(KBFS-2621): get the TLF ID and display name for implicit
-	// teams. Blocked on CORE-6623.
+	// teams properly, using a proper service RPC rather than hacking
+	// the tlfIDGetter like this. Blocked on CORE-6623.
+	if doResolveImplicit(ctx) && ruid.id.IsTeamOrSubteam() &&
+		ruid.idGetter != nil {
+		// Passing in a nil handle will only work if we have a
+		// constIDGetter.  See the above TODO.
+		id, err := ruid.idGetter.GetIDForHandle(ctx, nil)
+		if err == nil {
+			return nameIDPair{
+				name: name,
+				id:   ruid.id,
+			}, keybase1.SocialAssertion{}, id, err
+		}
+	}
+
 	return nameIDPair{
 		name: name,
 		id:   ruid.id,
@@ -283,13 +303,15 @@ func (rsa resolvableSocialAssertion) resolve(ctx context.Context) (
 }
 
 // MakeTlfHandle creates a TlfHandle from the given tlf.Handle and the
-// given normalizedUsernameGetter (which is usually a KBPKI).
+// given normalizedUsernameGetter (which is usually a KBPKI). Note
+// that `t` could be different from `bareHandle.Type()`, if this is an
+// implicit team TLF.
 func MakeTlfHandle(
-	ctx context.Context, bareHandle tlf.Handle,
+	ctx context.Context, bareHandle tlf.Handle, t tlf.Type,
 	nug normalizedUsernameGetter, idGetter tlfIDGetter) (*TlfHandle, error) {
 	writers := make([]resolvableUser, 0, len(bareHandle.Writers)+len(bareHandle.UnresolvedWriters))
 	for _, w := range bareHandle.Writers {
-		writers = append(writers, resolvableID{nug, w})
+		writers = append(writers, resolvableID{nug, w, idGetter})
 	}
 	for _, uw := range bareHandle.UnresolvedWriters {
 		writers = append(writers, resolvableSocialAssertion(uw))
@@ -299,7 +321,7 @@ func MakeTlfHandle(
 	if bareHandle.Type() == tlf.Private {
 		readers = make([]resolvableUser, 0, len(bareHandle.Readers)+len(bareHandle.UnresolvedReaders))
 		for _, r := range bareHandle.Readers {
-			readers = append(readers, resolvableID{nug, r})
+			readers = append(readers, resolvableID{nug, r, idGetter})
 		}
 		for _, ur := range bareHandle.UnresolvedReaders {
 			readers = append(readers, resolvableSocialAssertion(ur))
@@ -307,8 +329,7 @@ func MakeTlfHandle(
 	}
 
 	h, err := makeTlfHandleHelper(
-		ctx, bareHandle.Type(), writers, readers, bareHandle.Extensions(),
-		idGetter)
+		ctx, t, writers, readers, bareHandle.Extensions(), idGetter)
 	if err != nil {
 		return nil, err
 	}

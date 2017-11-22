@@ -488,7 +488,7 @@ func decryptMDPrivateData(ctx context.Context, codec kbfscodec.Codec,
 	handle := rmdToDecrypt.GetTlfHandle()
 
 	var pmd PrivateMetadata
-	if handle.Type() == tlf.Public {
+	if handle.TypeForKeying() == tlf.PublicKeying {
 		if err := codec.Decode(serializedPrivateMetadata,
 			&pmd); err != nil {
 			return PrivateMetadata{}, err

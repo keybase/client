@@ -146,7 +146,7 @@ func (md *RootMetadata) Extra() kbfsmd.ExtraMetadata {
 
 // IsReadable returns true if the private metadata can be read.
 func (md *RootMetadata) IsReadable() bool {
-	return md.TypeForKeying() == tlf.PublicKeying || md.data.Dir.IsInitialized()
+	return md.TlfID().Type() == tlf.Public || md.data.Dir.IsInitialized()
 }
 
 func (md *RootMetadata) clearLastRevision() {

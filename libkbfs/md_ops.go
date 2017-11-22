@@ -252,7 +252,7 @@ func (md *MDOpsStandard) processMetadata(ctx context.Context,
 
 	// Get the UID unless this is a public tlf - then proceed with empty uid.
 	var uid keybase1.UID
-	if handle.Type() != tlf.Public {
+	if handle.TypeForKeying() != tlf.PublicKeying {
 		session, err := md.config.KBPKI().GetCurrentSession(ctx)
 		if err != nil {
 			return ImmutableRootMetadata{}, err
@@ -371,7 +371,8 @@ func (md *MDOpsStandard) getForHandle(ctx context.Context, handle *TlfHandle,
 		return tlf.ID{}, ImmutableRootMetadata{}, err
 	}
 
-	mdHandle, err := MakeTlfHandle(ctx, bareMdHandle, md.config.KBPKI(), nil)
+	mdHandle, err := MakeTlfHandle(
+		ctx, bareMdHandle, id.Type(), md.config.KBPKI(), nil)
 	if err != nil {
 		return tlf.ID{}, ImmutableRootMetadata{}, err
 	}
@@ -475,7 +476,8 @@ func (md *MDOpsStandard) getForTLF(ctx context.Context, id tlf.ID,
 		return ImmutableRootMetadata{}, err
 	}
 	handle, err := MakeTlfHandle(
-		ctx, bareHandle, md.config.KBPKI(), constIDGetter{id})
+		ctx, bareHandle, rmds.MD.TlfID().Type(), md.config.KBPKI(),
+		constIDGetter{id})
 	if err != nil {
 		return ImmutableRootMetadata{}, err
 	}
@@ -525,7 +527,8 @@ func (md *MDOpsStandard) processRange(ctx context.Context, id tlf.ID,
 				return err
 			}
 			handle, err := MakeTlfHandle(
-				groupCtx, bareHandle, md.config.KBPKI(), constIDGetter{id})
+				groupCtx, bareHandle, rmds.MD.TlfID().Type(), md.config.KBPKI(),
+				constIDGetter{id})
 			if err != nil {
 				return err
 			}

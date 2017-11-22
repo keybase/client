@@ -1649,7 +1649,8 @@ func (j *tlfJournal) getUnflushedPathMDInfos(ctx context.Context,
 	}
 
 	handle, err := MakeTlfHandle(
-		ctx, ibrmdBareHandle, j.config.usernameGetter(), j.config.tlfIDGetter())
+		ctx, ibrmdBareHandle, j.tlfID.Type(), j.config.usernameGetter(),
+		j.config.tlfIDGetter())
 	if err != nil {
 		return nil, err
 	}

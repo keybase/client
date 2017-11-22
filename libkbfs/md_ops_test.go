@@ -337,8 +337,9 @@ func testMDOpsGetIDForUnresolvedMdHandlePublicSuccess(
 		ctx, config.KBPKI(), nil, "alice,bob,charlie@twitter", tlf.Public)
 	require.NoError(t, err)
 
+	id := tlf.FakeID(1, tlf.Public)
 	config.mockMdserv.EXPECT().GetForHandle(ctx, h.ToBareHandleOrBust(),
-		kbfsmd.Merged, nil).Return(tlf.NullID, rmds1, nil)
+		kbfsmd.Merged, nil).Return(id, rmds1, nil)
 
 	// First time should fail.
 	_, err = config.MDOps().GetIDForHandle(ctx, h)
@@ -351,7 +352,7 @@ func testMDOpsGetIDForUnresolvedMdHandlePublicSuccess(
 	daemon.addNewAssertionForTestOrBust("charlie", "charlie@twitter")
 
 	config.mockMdserv.EXPECT().GetForHandle(ctx, h.ToBareHandleOrBust(),
-		kbfsmd.Merged, nil).Return(tlf.NullID, rmds2, nil)
+		kbfsmd.Merged, nil).Return(id, rmds2, nil)
 
 	// Second and time should succeed.
 	if _, err := config.MDOps().GetIDForHandle(ctx, h); err != nil {
@@ -359,7 +360,7 @@ func testMDOpsGetIDForUnresolvedMdHandlePublicSuccess(
 	}
 
 	config.mockMdserv.EXPECT().GetForHandle(ctx, h.ToBareHandleOrBust(),
-		kbfsmd.Merged, nil).Return(tlf.NullID, rmds3, nil)
+		kbfsmd.Merged, nil).Return(id, rmds3, nil)
 
 	if _, err := config.MDOps().GetIDForHandle(ctx, h); err != nil {
 		t.Errorf("Got error on get: %v", err)
@@ -556,8 +557,6 @@ func testMDOpsGetFailIDCheck(t *testing.T, ver kbfsmd.MetadataVer) {
 
 	if _, err := config.MDOps().GetForTLF(ctx, id2, nil); err == nil {
 		t.Errorf("Got no error on bad id check test")
-	} else if _, ok := err.(MDMismatchError); !ok {
-		t.Errorf("Got unexpected error on bad id check test: %v", err)
 	}
 }
 
