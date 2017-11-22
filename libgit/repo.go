@@ -27,6 +27,7 @@ import (
 	"gopkg.in/src-d/go-git.v4/plumbing"
 	"gopkg.in/src-d/go-git.v4/plumbing/storer"
 	"gopkg.in/src-d/go-git.v4/storage"
+	"gopkg.in/src-d/go-git.v4/storage/filesystem"
 )
 
 const (
@@ -788,16 +789,20 @@ type GCOptions struct {
 	// Any unreachable objects older than this time are subject to
 	// pruning.
 	PruneExpireTime time.Time
-	// TODO: object re-packing thresholds.
+	// The most object packs we will tolerate; if there are more
+	// object packs, we should re-pack all the objects.  If < 0,
+	// re-packing will not be done.
+	MaxObjectPacks int
 }
 
 // NeedsGC checks the given repo storage layer against the given
 // options to see what kinds of GC are needed on the repo.
 func NeedsGC(storage storage.Storer, options GCOptions) (
-	doPackRefs bool, numLooseRefs int, doPruneLoose bool, err error) {
+	doPackRefs bool, numLooseRefs int, doPruneLoose, doObjectRepack bool,
+	numObjectPacks int, err error) {
 	numLooseRefs, err = storage.CountLooseRefs()
 	if err != nil {
-		return false, 0, false, err
+		return false, 0, false, false, 0, err
 	}
 
 	doPackRefs = numLooseRefs > options.MaxLooseRefs
@@ -820,11 +825,21 @@ func NeedsGC(storage storage.Storer, options GCOptions) (
 			}
 			return nil
 		})
+		if err != nil {
+			return false, 0, false, false, 0, err
+		}
 	}
 
-	// TODO: check object re-packing thresholds.
+	packs, err := storage.ObjectPacks()
+	if err != nil {
+		return false, 0, false, false, 0, err
+	}
+	numObjectPacks = len(packs)
+	doObjectRepack = options.MaxObjectPacks >= 0 &&
+		numObjectPacks > options.MaxObjectPacks
 
-	return doPackRefs, numLooseRefs, doPruneLoose, nil
+	return doPackRefs, numLooseRefs, doPruneLoose,
+		doObjectRepack, numObjectPacks, nil
 }
 
 func markSuccessfulGC(
@@ -872,16 +887,37 @@ func GCRepo(
 		}
 	}()
 
-	storage, err := NewGitConfigWithoutRemotesStorer(fs)
+	fsStorer, err := filesystem.NewStorage(fs)
+	if err != nil {
+		return err
+	}
+	var fsStorage storage.Storer
+	fsStorage = fsStorer
+
+	// Wrap it in an on-demand storer, so we don't try to read all the
+	// objects of big repos into memory at once.
+	var storage storage.Storer
+	storage, err = NewOnDemandStorer(fsStorage)
 	if err != nil {
 		return err
 	}
 
-	doPackRefs, _, doPruneLoose, err := NeedsGC(storage, options)
+	// Wrap it in an "ephemeral" config with a fixed pack window, so
+	// we create packs with delta compression, but don't persist the
+	// pack window setting to disk.
+	storage = &ephemeralGitConfigWithFixedPackWindow{
+		storage,
+		fsStorage.(storer.Initializer),
+		fsStorage.(storer.PackfileWriter),
+		10,
+	}
+
+	doPackRefs, _, doPruneLoose, doObjectRepack, _, err := NeedsGC(
+		storage, options)
 	if err != nil {
 		return err
 	}
-	if !doPackRefs && !doPruneLoose {
+	if !doPackRefs && !doPruneLoose && !doObjectRepack {
 		log.CDebugf(ctx, "Skipping GC")
 		return nil
 	}
@@ -904,11 +940,12 @@ func GCRepo(
 
 	// Check the GC thresholds again since they might have changed
 	// while getting the lock.
-	doPackRefs, numLooseRefs, doPruneLoose, err := NeedsGC(storage, options)
+	doPackRefs, numLooseRefs, doPruneLoose, doObjectRepack,
+		numObjectPacks, err := NeedsGC(storage, options)
 	if err != nil {
 		return err
 	}
-	if !doPackRefs && !doPruneLoose {
+	if !doPackRefs && !doPruneLoose && !doObjectRepack {
 		log.CDebugf(ctx, "GC no longer needed")
 		return nil
 	}
@@ -929,6 +966,20 @@ func GCRepo(
 		err = repo.Prune(gogit.PruneOptions{
 			OnlyObjectsOlderThan: options.PruneExpireTime,
 			Handler:              repo.DeleteObject,
+		})
+		if err != nil {
+			return err
+		}
+	}
+
+	if doObjectRepack {
+		log.CDebugf(ctx, "Re-packing %d object packs", numObjectPacks)
+		repo, err := gogit.Open(storage, nil)
+		if err != nil {
+			return err
+		}
+		err = repo.RepackObjects(&gogit.RepackConfig{
+			OnlyDeletePacksOlderThan: options.PruneExpireTime,
 		})
 		if err != nil {
 			return err

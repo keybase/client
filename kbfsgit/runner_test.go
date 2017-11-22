@@ -532,6 +532,51 @@ func TestPushSomeWithPackedRefs(t *testing.T) {
 	testPush(t, ctx, config, git, "refs/heads/test:refs/heads/test")
 }
 
+func testCloneIntoNewLocalRepo(
+	t *testing.T, ctx context.Context, config libkbfs.Config,
+	tlfName string) string {
+	git, err := ioutil.TempDir(os.TempDir(), "kbfsgittest")
+	require.NoError(t, err)
+	success := false
+	defer func() {
+		if !success {
+			os.RemoveAll(git)
+		}
+	}()
+
+	dotgit := filepath.Join(git, ".git")
+	gitExec(t, dotgit, git, "init")
+
+	heads := testListAndGetHeadsWithName(t, ctx, config, git,
+		[]string{"refs/heads/master", "HEAD"}, tlfName)
+
+	inputReader, inputWriter := io.Pipe()
+	defer inputWriter.Close()
+	go func() {
+		inputWriter.Write([]byte(fmt.Sprintf(
+			"option cloning true\n"+
+				"fetch %s refs/heads/master\n\n\n", heads[0])))
+	}()
+
+	var output bytes.Buffer
+	r2, err := newRunner(ctx, config, "origin",
+		fmt.Sprintf("keybase://private/%s/test", tlfName),
+		dotgit, inputReader, &output, testErrput{t})
+	require.NoError(t, err)
+	err = r2.processCommands(ctx)
+	require.NoError(t, err)
+	// Just one symref, from HEAD to master (and master has no commits yet).
+	require.Equal(t, "ok\n\n", output.String())
+
+	// Checkout the head directly (fetching directly via the runner
+	// doesn't leave any refs, those would normally be created by the
+	// `git` process that invokes the runner).
+	gitExec(t, dotgit, git, "checkout", heads[0])
+
+	success = true
+	return git
+}
+
 func TestRunnerReaderClone(t *testing.T) {
 	ctx, config, tempdir := initConfigForRunner(t)
 	defer libkbfs.CheckConfigAndShutdown(ctx, t, config)
@@ -558,38 +603,8 @@ func TestRunnerReaderClone(t *testing.T) {
 		ctx, tempdir2, libkbfs.TLFJournalSingleOpBackgroundWorkEnabled)
 	require.NoError(t, err)
 
-	git2, err := ioutil.TempDir(os.TempDir(), "kbfsgittest")
-	require.NoError(t, err)
+	git2 := testCloneIntoNewLocalRepo(t, ctx, config2, "user1#user2")
 	defer os.RemoveAll(git2)
-	dotgit2 := filepath.Join(git2, ".git")
-
-	gitExec(t, dotgit2, git2, "init")
-
-	heads := testListAndGetHeadsWithName(t, ctx, config2, git2,
-		[]string{"refs/heads/master", "HEAD"}, "user1#user2")
-
-	inputReader2, inputWriter2 := io.Pipe()
-	defer inputWriter2.Close()
-	go func() {
-		inputWriter2.Write([]byte(fmt.Sprintf(
-			"option cloning true\n"+
-				"fetch %s refs/heads/master\n\n\n", heads[0])))
-	}()
-
-	var output2 bytes.Buffer
-	r2, err := newRunner(ctx, config2, "origin",
-		fmt.Sprintf("keybase://private/user1#user2/test"),
-		dotgit2, inputReader2, &output2, testErrput{t})
-	require.NoError(t, err)
-	err = r2.processCommands(ctx)
-	require.NoError(t, err)
-	// Just one symref, from HEAD to master (and master has no commits yet).
-	require.Equal(t, "ok\n\n", output2.String())
-
-	// Checkout the head directly (fetching directly via the runner
-	// doesn't leave any refs, those would normally be created by the
-	// `git` process that invokes the runner).
-	gitExec(t, dotgit2, git2, "checkout", heads[0])
 
 	data, err := ioutil.ReadFile(filepath.Join(git2, "foo"))
 	require.NoError(t, err)
@@ -722,7 +737,10 @@ func TestPackRefsAndOverwritePackedRef(t *testing.T) {
 	require.NoError(t, err)
 	go func() {
 		packErrCh <- libgit.GCRepo(
-			packCtx, config2, h, "test", libgit.GCOptions{MaxLooseRefs: 0})
+			packCtx, config2, h, "test", libgit.GCOptions{
+				MaxLooseRefs:   0,
+				MaxObjectPacks: -1,
+			})
 	}()
 	select {
 	case <-packOnStalled:
@@ -806,7 +824,10 @@ func TestPackRefsAndDeletePackedRef(t *testing.T) {
 	require.NoError(t, err)
 	go func() {
 		packErrCh <- libgit.GCRepo(
-			packCtx, config2, h, "test", libgit.GCOptions{MaxLooseRefs: 0})
+			packCtx, config2, h, "test", libgit.GCOptions{
+				MaxLooseRefs:   0,
+				MaxObjectPacks: -1,
+			})
 	}()
 	select {
 	case <-packOnStalled:
@@ -868,4 +889,67 @@ func TestPackRefsAndDeletePackedRef(t *testing.T) {
 	require.NoError(t, err)
 	testListAndGetHeadsWithName(t, ctx, config2, git2,
 		[]string{"refs/heads/master", "HEAD"}, "user1,user2")
+}
+
+func TestRepackObjects(t *testing.T) {
+	ctx, config, tempdir := initConfigForRunner(t)
+	defer libkbfs.CheckConfigAndShutdown(ctx, t, config)
+	defer os.RemoveAll(tempdir)
+
+	git, err := ioutil.TempDir(os.TempDir(), "kbfsgittest")
+	require.NoError(t, err)
+	defer os.RemoveAll(git)
+
+	h, err := libkbfs.ParseTlfHandle(
+		ctx, config.KBPKI(), config.MDOps(), "user1", tlf.Private)
+	require.NoError(t, err)
+	_, err = libgit.CreateRepoAndID(ctx, config, h, "test")
+	require.NoError(t, err)
+
+	// Make a few pushes to make a few object pack files.
+	makeLocalRepoWithOneFile(t, git, "foo", "hello", "")
+	testPush(t, ctx, config, git, "refs/heads/master:refs/heads/master")
+	addOneFileToRepo(t, git, "foo2", "hello2")
+	testPush(t, ctx, config, git, "refs/heads/master:refs/heads/master")
+	addOneFileToRepo(t, git, "foo3", "hello3")
+	testPush(t, ctx, config, git, "refs/heads/master:refs/heads/master")
+	addOneFileToRepo(t, git, "foo4", "hello4")
+	testPush(t, ctx, config, git, "refs/heads/master:refs/heads/master")
+
+	fs, _, err := libgit.GetRepoAndID(ctx, config, h, "test", "")
+	require.NoError(t, err)
+
+	storage, err := libgit.NewGitConfigWithoutRemotesStorer(fs)
+	require.NoError(t, err)
+	packs, err := storage.ObjectPacks()
+	require.NoError(t, err)
+	numObjectPacks := len(packs)
+	require.Equal(t, 3, numObjectPacks)
+
+	// Re-pack them all into one.
+	err = libgit.GCRepo(
+		ctx, config, h, "test", libgit.GCOptions{
+			MaxLooseRefs:   100,
+			MaxObjectPacks: 0,
+		})
+	require.NoError(t, err)
+
+	packs, err = storage.ObjectPacks()
+	require.NoError(t, err)
+	numObjectPacks = len(packs)
+	require.Equal(t, 1, numObjectPacks)
+
+	// Check that a second clone looks correct.
+	git2 := testCloneIntoNewLocalRepo(t, ctx, config, "user1")
+	defer os.RemoveAll(git2)
+
+	checkFile := func(name, expectedData string) {
+		data, err := ioutil.ReadFile(filepath.Join(git2, name))
+		require.NoError(t, err)
+		require.Equal(t, expectedData, string(data))
+	}
+	checkFile("foo", "hello")
+	checkFile("foo2", "hello2")
+	checkFile("foo3", "hello3")
+	checkFile("foo4", "hello4")
 }

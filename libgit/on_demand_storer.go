@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD
 // license that can be found in the LICENSE file.
 
-package kbfsgit
+package libgit
 
 import (
 	lru "github.com/hashicorp/golang-lru"
@@ -12,17 +12,20 @@ import (
 	"gopkg.in/src-d/go-git.v4/storage"
 )
 
-// onDemandStorer is a wrapper around a storage.Storer that reads
+// OnDemandStorer is a wrapper around a storage.Storer that reads
 // encoded objects from disk only when the data is needed, to avoid
 // pulling too much data into memory.
-type onDemandStorer struct {
+type OnDemandStorer struct {
 	storage.Storer
 	recentCache *lru.Cache
 }
 
-var _ storage.Storer = (*onDemandStorer)(nil)
+var _ storage.Storer = (*OnDemandStorer)(nil)
+var _ storer.DeltaObjectStorer = (*OnDemandStorer)(nil)
 
-func newOnDemandStorer(s storage.Storer) (*onDemandStorer, error) {
+// NewOnDemandStorer constructs an on-demand storage layer on top of
+// an existing `Storer`.
+func NewOnDemandStorer(s storage.Storer) (*OnDemandStorer, error) {
 	// Track a small number of recent in-memory objects, to improve
 	// performance without impacting memory too much.
 	//
@@ -47,10 +50,11 @@ func newOnDemandStorer(s storage.Storer) (*onDemandStorer, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &onDemandStorer{s, recentCache}, nil
+	return &OnDemandStorer{s, recentCache}, nil
 }
 
-func (ods *onDemandStorer) EncodedObject(
+// EncodedObject implements the storage.Storer interface for OnDemandStorer.
+func (ods *OnDemandStorer) EncodedObject(
 	ot plumbing.ObjectType, hash plumbing.Hash) (
 	plumbing.EncodedObject, error) {
 	o := &onDemandObject{
@@ -73,7 +77,9 @@ func (ods *onDemandStorer) EncodedObject(
 	return o, nil
 }
 
-func (ods *onDemandStorer) DeltaObject(
+// DeltaObject implements the storer.DeltaObjectStorer interface for
+// OnDemandStorer.
+func (ods *OnDemandStorer) DeltaObject(
 	ot plumbing.ObjectType, hash plumbing.Hash) (
 	plumbing.EncodedObject, error) {
 	edos, ok := ods.Storer.(storer.DeltaObjectStorer)

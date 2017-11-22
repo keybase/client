@@ -298,7 +298,7 @@ func (r *runner) initRepoIfNeeded(ctx context.Context, forCmd string) (
 		r.log.CDebugf(ctx, "Using on-demand storer")
 		// Wrap it in an on-demand storer, so we don't try to read all the
 		// objects of big repos into memory at once.
-		storage, err = newOnDemandStorer(storage)
+		storage, err = libgit.NewOnDemandStorer(storage)
 		if err != nil {
 			return nil, nil, err
 		}
@@ -1074,17 +1074,19 @@ func (r *runner) checkGC(ctx context.Context) (err error) {
 		MaxLooseRefs:         defaultMaxLooseRefs,
 		PruneMinLooseObjects: defaultPruneMinLooseObjects,
 		PruneExpireTime:      time.Time{},
+		MaxObjectPacks:       -1, // Turn off re-packing for now.
 	}
-	doPackRefs, _, doPruneLoose, err := libgit.NeedsGC(storage, gco)
+	doPackRefs, _, doPruneLoose, doObjectRepack, _, err := libgit.NeedsGC(
+		storage, gco)
 	if err != nil {
 		return err
 	}
-	if !doPackRefs && !doPruneLoose {
+	if !doPackRefs && !doPruneLoose && !doObjectRepack {
 		r.log.CDebugf(ctx, "No GC needed")
 		return nil
 	}
-	r.log.CDebugf(ctx, "GC needed: doPackRefs=%t, doPruneLoose=%t",
-		doPackRefs, doPruneLoose)
+	r.log.CDebugf(ctx, "GC needed: doPackRefs=%t, doPruneLoose=%t, "+
+		"doObjectRepack=%t", doPackRefs, doPruneLoose, doObjectRepack)
 	command := fmt.Sprintf("keybase git gc %s", r.repo)
 	if r.h.Type() == tlf.SingleTeam {
 		tid := r.h.FirstResolvedWriter()
