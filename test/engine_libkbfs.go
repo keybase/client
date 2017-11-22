@@ -46,8 +46,9 @@ func (k *LibKBFS) Name() string {
 // InitTest implements the Engine interface.
 func (k *LibKBFS) InitTest(ver kbfsmd.MetadataVer,
 	blockSize int64, blockChangeSize int64, batchSize int, bwKBps int,
-	opTimeout time.Duration, users []libkb.NormalizedUsername, teams teamMap,
-	clock libkbfs.Clock, journal bool) map[libkb.NormalizedUsername]User {
+	opTimeout time.Duration, users []libkb.NormalizedUsername,
+	teams, implicitTeams teamMap, clock libkbfs.Clock,
+	journal bool) map[libkb.NormalizedUsername]User {
 	userMap := make(map[libkb.NormalizedUsername]User)
 	// create the first user specially
 	config := libkbfs.MakeTestConfigOrBust(k.tb, users...)
@@ -108,6 +109,7 @@ func (k *LibKBFS) InitTest(ver kbfsmd.MetadataVer,
 	for _, u := range userMap {
 		c := u.(libkbfs.Config)
 		makeTeams(k.tb, c, k, teams, userMap)
+		makeImplicitTeams(k.tb, c, k, implicitTeams, userMap)
 	}
 
 	return userMap

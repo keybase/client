@@ -36,6 +36,7 @@ type opt struct {
 	ver                      kbfsmd.MetadataVer
 	usernames                []libkb.NormalizedUsername
 	teams                    teamMap
+	implicitTeams            teamMap
 	tlfName                  string
 	expectedCanonicalTlfName string
 	tlfType                  tlf.Type
@@ -172,7 +173,7 @@ func (o *opt) runInitOnce() {
 		o.clock.Set(time.Unix(0, 0))
 		o.users = o.engine.InitTest(o.ver, o.blockSize,
 			o.blockChangeSize, o.batchSize, o.bwKBps, o.timeout, o.usernames,
-			o.teams, o.clock, o.journal)
+			o.teams, o.implicitTeams, o.clock, o.journal)
 		o.stallers = o.makeStallers()
 	})
 }
@@ -274,6 +275,39 @@ func team(teamName libkb.NormalizedUsername, writers string,
 			}
 		}
 		o.teams[teamName] = teamMembers{writerNames, readerNames}
+	}
+}
+
+func implicitTeam(writers string, readers string) optionOp {
+	return func(o *opt) {
+		if o.ver == kbfsmd.InitialExtraMetadataVer {
+			o.tb.Skip("mdv2 doesn't support teams")
+		}
+		if o.implicitTeams == nil {
+			o.implicitTeams = make(teamMap)
+		}
+
+		var writerNames, readerNames []libkb.NormalizedUsername
+		for _, w := range strings.Split(writers, ",") {
+			writerNames = append(writerNames, libkb.NormalizedUsername(w))
+		}
+		isPublic := false
+		if readers != "" {
+			for _, r := range strings.Split(readers, ",") {
+				readerNames = append(readerNames, libkb.NormalizedUsername(r))
+			}
+			isPublic = len(readerNames) == 1 && readers == "public"
+		}
+		var teamName tlf.CanonicalName
+		if isPublic {
+			teamName = tlf.MakeCanonicalName(
+				writerNames, nil, nil, nil, nil)
+		} else {
+			teamName = tlf.MakeCanonicalName(
+				writerNames, nil, readerNames, nil, nil)
+		}
+		o.implicitTeams[libkb.NormalizedUsername(teamName)] =
+			teamMembers{writerNames, readerNames}
 	}
 }
 

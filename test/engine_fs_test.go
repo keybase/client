@@ -573,8 +573,9 @@ func fiTypeString(fi os.FileInfo) string {
 
 func (e *fsEngine) InitTest(ver kbfsmd.MetadataVer,
 	blockSize int64, blockChangeSize int64, batchSize int, bwKBps int,
-	opTimeout time.Duration, users []libkb.NormalizedUsername, teams teamMap,
-	clock libkbfs.Clock, journal bool) map[libkb.NormalizedUsername]User {
+	opTimeout time.Duration, users []libkb.NormalizedUsername,
+	teams, implicitTeams teamMap, clock libkbfs.Clock,
+	journal bool) map[libkb.NormalizedUsername]User {
 	res := map[libkb.NormalizedUsername]User{}
 	initSuccess := false
 	defer func() {
@@ -647,6 +648,7 @@ func (e *fsEngine) InitTest(ver kbfsmd.MetadataVer,
 
 	for _, c := range cfgs {
 		makeTeams(e.tb, c, e, teams, res)
+		makeImplicitTeams(e.tb, c, e, implicitTeams, res)
 	}
 
 	initSuccess = true

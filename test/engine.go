@@ -48,7 +48,7 @@ type Engine interface {
 	InitTest(ver kbfsmd.MetadataVer, blockSize int64,
 		blockChangeSize int64, batchSize int, bwKBps int,
 		opTimeout time.Duration, users []libkb.NormalizedUsername,
-		teams teamMap, clock libkbfs.Clock,
+		teams, implicitTeams teamMap, clock libkbfs.Clock,
 		journal bool) map[libkb.NormalizedUsername]User
 	// GetUID is called by the test harness to retrieve a user instance's UID.
 	GetUID(u User) keybase1.UID

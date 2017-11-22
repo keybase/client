@@ -10,6 +10,7 @@ import (
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/kbfs/libkbfs"
+	"github.com/keybase/kbfs/tlf"
 )
 
 func setBlockSizes(t testing.TB, config libkbfs.Config, blockSize, blockChangeSize int64) {
@@ -64,6 +65,33 @@ func makeTeams(t testing.TB, config libkbfs.Config, e Engine, teams teamMap,
 		for _, r := range members.readers {
 			libkbfs.AddTeamReaderForTestOrBust(t, config, tid,
 				e.GetUID(users[r]))
+		}
+	}
+}
+
+func makeImplicitTeams(t testing.TB, config libkbfs.Config, e Engine,
+	implicitTeams teamMap, users map[libkb.NormalizedUsername]User) {
+	counter := byte(1)
+	for name, members := range implicitTeams {
+		ty := tlf.Private
+		if len(members.readers) == 1 &&
+			members.readers[0] == libkb.NormalizedUsername("public") {
+			ty = tlf.Public
+		}
+
+		teamID, _ := libkbfs.AddImplicitTeamForTestOrBust(
+			t, config, name.String(), "", counter, ty)
+		counter++
+
+		for _, w := range members.writers {
+			libkbfs.AddTeamWriterForTestOrBust(t, config, teamID,
+				e.GetUID(users[w]))
+		}
+		if ty == tlf.Private {
+			for _, r := range members.readers {
+				libkbfs.AddTeamReaderForTestOrBust(t, config, teamID,
+					e.GetUID(users[r]))
+			}
 		}
 	}
 }
