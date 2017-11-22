@@ -314,7 +314,7 @@ function* _processConversation(c: RPCChatTypes.InboxUIItem): Generator<any, void
 
   if (inboxState) {
     // We blocked it
-    if (['blocked', 'reported'].includes(inboxState.status)) {
+    if (['ignored', 'blocked', 'reported'].includes(inboxState.status)) {
       yield Saga.put(
         ChatGen.createDeleteEntity({
           keyPath: ['inboxSmallTimestamps'],
