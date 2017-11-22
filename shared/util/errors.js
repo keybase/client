@@ -6,7 +6,7 @@ export class RPCError extends Error {
   desc: string // Don't use! This is for compatibility with RPC error object.
   name: string
 
-  constructor(message: string, code: number, fields: ?any, name: ?string, method: ?string) {
+  constructor(message: string, code: number, fields: any, name: ?string, method: ?string) {
     super(paramsToErrorMsg(message, code, fields, name, method))
     this.code = code // Consult type StatusCode in flow-types.js for what this means
     this.fields = fields
@@ -15,13 +15,13 @@ export class RPCError extends Error {
   }
 }
 
-const paramsToErrorMsg: (string, number, ?any, ?string, ?string) => string = (
+const paramsToErrorMsg = (
   message: string,
   code: number,
-  fields: ?any,
+  fields: any,
   name: ?string,
   method: ?string
-) => {
+): string => {
   let msg = ''
   if (code) {
     msg += `ERROR CODE ${code} - `
