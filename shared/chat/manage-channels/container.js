@@ -75,7 +75,8 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routePath, routePro
       )
     },
     _onView: (conversationIDKey: string) => {
-      dispatch(navigateTo([chatTab, conversationIDKey]))
+      dispatch(ChatGen.createSetInboxFilter({filter: ''}))
+      dispatch(ChatGen.createSelectConversation({conversationIDKey, fromUser: true}))
     },
   }
 }
