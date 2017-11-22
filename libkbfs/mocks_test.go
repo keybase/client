@@ -2745,6 +2745,16 @@ func (mr *MockMDCacheMockRecorder) PutIDForHandle(handle, id interface{}) *gomoc
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PutIDForHandle", reflect.TypeOf((*MockMDCache)(nil).PutIDForHandle), handle, id)
 }
 
+// ChangeHandleForID mocks base method
+func (m *MockMDCache) ChangeHandleForID(oldHandle, newHandle *TlfHandle) {
+	m.ctrl.Call(m, "ChangeHandleForID", oldHandle, newHandle)
+}
+
+// ChangeHandleForID indicates an expected call of ChangeHandleForID
+func (mr *MockMDCacheMockRecorder) ChangeHandleForID(oldHandle, newHandle interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ChangeHandleForID", reflect.TypeOf((*MockMDCache)(nil).ChangeHandleForID), oldHandle, newHandle)
+}
+
 // MockKeyCache is a mock of KeyCache interface
 type MockKeyCache struct {
 	ctrl     *gomock.Controller

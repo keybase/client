@@ -798,6 +798,9 @@ type MDCache interface {
 	GetIDForHandle(handle *TlfHandle) (tlf.ID, error)
 	// PutIDForHandle caches a trusted TLF ID for the given handle.
 	PutIDForHandle(handle *TlfHandle, id tlf.ID) error
+	// ChangeHandleForID moves an ID to be under a new handle, if the
+	// ID is cached already.
+	ChangeHandleForID(oldHandle *TlfHandle, newHandle *TlfHandle)
 }
 
 // KeyCache handles caching for both TLFCryptKeys and BlockCryptKeys.

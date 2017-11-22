@@ -909,6 +909,7 @@ func (fbo *folderBranchOps) setHeadSuccessorLocked(ctx context.Context,
 		fbo.log.CDebugf(ctx, "Handle changed (%s -> %s)",
 			oldName, newName)
 
+		fbo.config.MDCache().ChangeHandleForID(oldHandle, newHandle)
 		// If the handle has changed, send out a notification.
 		fbo.observers.tlfHandleChange(ctx, fbo.head.GetTlfHandle())
 		// Also the folder should be re-identified given the
@@ -6228,6 +6229,7 @@ func (fbo *folderBranchOps) TeamNameChanged(
 		return
 	}
 
+	fbo.config.MDCache().ChangeHandleForID(oldHandle, newHandle)
 	fbo.observers.tlfHandleChange(ctx, newHandle)
 }
 

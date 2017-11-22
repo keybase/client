@@ -144,3 +144,20 @@ func (md *MDCacheStandard) PutIDForHandle(handle *TlfHandle, id tlf.ID) error {
 	md.idLRU.Add(key, id)
 	return nil
 }
+
+// ChangeHandleForID implements the MDCache interface for
+// MDCacheStandard.
+func (md *MDCacheStandard) ChangeHandleForID(
+	oldHandle *TlfHandle, newHandle *TlfHandle) {
+	md.lock.RLock()
+	defer md.lock.RUnlock()
+	oldKey := oldHandle.GetCanonicalPath()
+	tmp, ok := md.idLRU.Get(oldKey)
+	if !ok {
+		return
+	}
+	md.idLRU.Remove(oldKey)
+	newKey := newHandle.GetCanonicalPath()
+	md.idLRU.Add(newKey, tmp)
+	return
+}
