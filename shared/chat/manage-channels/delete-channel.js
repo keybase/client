@@ -17,7 +17,7 @@ const PopupHeader = ({channelName}: {channelName: string}) => {
       }}
     >
       <Text type="BodySemibold" style={{color: globalColors.black, textAlign: 'center'}}>
-        {`Are you sure you want to delete #${channelName}?`}
+        Are you sure you want to delete #{channelName}?
       </Text>
       <Text type="BodySmall" style={{color: globalColors.black_40, textAlign: 'center'}}>
         All messages will be lost. This cannot be undone.

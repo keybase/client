@@ -39,7 +39,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routePath, routePro
     _updateChannelName: (newChannelName: string) =>
       dispatch(updateChannelName(conversationIDKey, newChannelName)),
     _updateTopic: (newTopic: string) => dispatch(updateTopic(conversationIDKey, newTopic)),
-    _onConfirmedDelete: teamname => {
+    onConfirmedDelete: () => {
       dispatch(deleteChannelConfirmed(conversationIDKey))
       dispatch(navigateUp())
     },
@@ -53,7 +53,7 @@ const mergeProps = (stateProps, dispatchProps, {routeState}) => {
     channelName: stateProps.channelName,
     topic: stateProps.topic,
     onCancel: dispatchProps.onCancel,
-    onConfirmedDelete: () => dispatchProps._onConfirmedDelete(stateProps.teamname),
+    onConfirmedDelete: () => dispatchProps.onConfirmedDelete,
     showDelete: stateProps.canDelete,
     deleteRenameDisabled,
     onSave: (newChannelName: string, newTopic: string) => {
