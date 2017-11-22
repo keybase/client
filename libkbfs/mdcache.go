@@ -126,7 +126,7 @@ func (md *MDCacheStandard) GetIDForHandle(handle *TlfHandle) (tlf.ID, error) {
 	key := handle.GetCanonicalPath()
 	tmp, ok := md.idLRU.Get(key)
 	if !ok {
-		return tlf.NullID, errors.WithStack(NoSuchTlfIDError{handle})
+		return tlf.NullID, NoSuchTlfIDError{handle}
 	}
 	id, ok := tmp.(tlf.ID)
 	if !ok {
