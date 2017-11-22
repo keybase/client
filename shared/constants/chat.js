@@ -365,7 +365,7 @@ export type MetaData = I.RecordOf<_MetaData>
 export type MetaDataMap = I.Map<string, MetaData>
 
 export const makeMetaData: I.RecordFactory<_MetaData> = I.Record({
-  fullname: 'Unknown',
+  fullname: '',
   brokenTracker: false,
 })
 

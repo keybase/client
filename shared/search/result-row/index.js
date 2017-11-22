@@ -26,7 +26,7 @@ const Left = ({leftService, leftIcon, leftUsername, leftFollowingState, leftFull
           avatarSize={isMobile ? 40 : 32}
         />
       </Box>
-      <Box style={{...globalStyles.flexBoxColumn, marginLeft: globalMargins.tiny}}>
+      <Box style={{...globalStyles.flexBoxColumn, marginLeft: globalMargins.small}}>
         <Text type="BodySemibold" style={followingStateToStyle(leftFollowingState)}>
           {leftUsername}
         </Text>
@@ -110,7 +110,7 @@ const Line = () => (
     style={{
       ...globalStyles.fillAbsolute,
       backgroundColor: globalColors.black_05,
-      left: 48,
+      left: 56,
       top: undefined,
       maxHeight: hairlineWidth,
       minHeight: hairlineWidth,
