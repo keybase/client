@@ -197,9 +197,19 @@ func ListTeams(ctx context.Context, g *libkb.GlobalContext, arg keybase1.TeamLis
 
 	tracer.Stage("Loads")
 
+	expectEmptyList := true
+
 	for _, memberInfo := range teams {
 		serverSaysNeedAdmin := memberNeedAdmin(memberInfo, meUID)
 		team, err := getTeamForMember(ctx, g, memberInfo, serverSaysNeedAdmin)
+
+		if memberInfo.IsImplicitTeam && !arg.IncludeImplicitTeams {
+			g.Log.CDebugf(subctx, "| TeamList skipping implicit team: server-team:%v server-uid:%v", memberInfo.TeamID, memberInfo.UserID)
+			continue
+		}
+
+		expectEmptyList = false
+
 		if err != nil {
 			g.Log.CDebugf(ctx, "| Error in getTeamForMember ID:%s UID:%s: %v; skipping team", memberInfo.TeamID, memberInfo.UserID, err)
 			continue
@@ -210,9 +220,7 @@ func ListTeams(ctx context.Context, g *libkb.GlobalContext, arg keybase1.TeamLis
 			continue
 		}
 
-		var anMemberInfo *keybase1.AnnotatedMemberInfo
-
-		anMemberInfo = &keybase1.AnnotatedMemberInfo{
+		anMemberInfo := &keybase1.AnnotatedMemberInfo{
 			TeamID:         team.ID,
 			FqName:         team.Name().String(),
 			UserID:         memberInfo.UserID,
@@ -250,7 +258,7 @@ func ListTeams(ctx context.Context, g *libkb.GlobalContext, arg keybase1.TeamLis
 		}
 	}
 
-	if len(res.Teams) != len(teams) {
+	if len(res.Teams) == 0 && !expectEmptyList {
 		return res, fmt.Errorf("multiple errors while loading team list")
 	}
 
@@ -261,6 +269,10 @@ func ListTeams(ctx context.Context, g *libkb.GlobalContext, arg keybase1.TeamLis
 // If an error is encountered while loading some teams, the team is skipped and no error is returned.
 // If an error occurs loading all the info, an error is returned.
 func List(ctx context.Context, g *libkb.GlobalContext, arg keybase1.TeamListArg) (*keybase1.AnnotatedTeamList, error) {
+	if !arg.All {
+		return ListTeams(ctx, g, arg)
+	}
+
 	tracer := g.CTimeTracer(ctx, "TeamList")
 	defer tracer.Finish()
 
