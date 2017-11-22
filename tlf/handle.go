@@ -149,6 +149,19 @@ func MakeHandle(
 	}, nil
 }
 
+// IsBackedByTeam returns true if h represents a TLF backed by a team. It could
+// be either a SingleTeam TLF or a private/public TLF backed by an implicit
+// team.
+func (h Handle) IsBackedByTeam() bool {
+	if len(h.Writers) != 1 ||
+		len(h.Readers) != 0 ||
+		len(h.UnresolvedReaders) != 0 ||
+		len(h.UnresolvedWriters) != 0 {
+		return false
+	}
+	return h.Writers[0].IsTeamOrSubteam()
+}
+
 // Type returns the type of TLF this Handle represents.
 func (h Handle) Type() Type {
 	if len(h.Readers) == 1 &&
@@ -158,6 +171,14 @@ func (h Handle) Type() Type {
 		return SingleTeam
 	}
 	return Private
+}
+
+// TypeForKeying returns the keying type for the handle h.
+func (h Handle) TypeForKeying() KeyingType {
+	if h.IsBackedByTeam() {
+		return TeamKeying
+	}
+	return h.Type().ToKeyingType()
 }
 
 func (h Handle) findUserInList(user keybase1.UserOrTeamID,

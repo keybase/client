@@ -88,6 +88,41 @@ func TypeFromFolderType(ft keybase1.FolderType) Type {
 	}
 }
 
+// KeyingType represents a TLF keying mode. It normally have the same values
+// as Type.
+type KeyingType Type
+
+const (
+	// UnknownKeying is a placeholder type for when TLF keying mode is unknown.
+	UnknownKeying = KeyingType(Unknown)
+	// PrivateKeying specifies the TLF keying mode used in classic private TLFs.
+	PrivateKeying = KeyingType(Private)
+	// PublicKeying specifies the TLF keying mode used in classic public TLFs.
+	PublicKeying = KeyingType(Public)
+	// TeamKeying specifies the TLF keying mode used for SingleTeam or
+	// implicit team backed TLFs.
+	TeamKeying = KeyingType(SingleTeam)
+)
+
+// ToKeyingType converts Type t into a KeyingType.
+func (t Type) ToKeyingType() KeyingType {
+	return KeyingType(t)
+}
+
+// String implements the fmt.Stringer interface.
+func (t KeyingType) String() string {
+	switch t {
+	case PrivateKeying:
+		return "private keying"
+	case PublicKeying:
+		return "public keying"
+	case TeamKeying:
+		return "team keying"
+	default:
+		return fmt.Sprintf("Unknown TLF keying type: %d", t)
+	}
+}
+
 // ID is a top-level folder ID
 type ID struct {
 	id [idByteLen]byte
