@@ -30,7 +30,7 @@ const Participants = ({participants, onShowProfile}: Props) => (
                 marginRight: globalMargins.tiny,
               }}
             >
-              <Avatar size={32} username={username} />
+              <Avatar size={isMobile ? 40 : 32} username={username} />
               <Box style={{...globalStyles.flexBoxColumn, marginLeft: globalMargins.small}}>
                 <Usernames
                   colorFollowing={true}
