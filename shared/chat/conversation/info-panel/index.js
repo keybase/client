@@ -70,10 +70,12 @@ const MuteRow = (props: MuteRowProps) => (
 )
 
 type infoPanelProps = {
+  admin: boolean,
   muted: boolean,
   onMuteConversation: (muted: boolean) => void,
   onShowProfile: (username: string) => void,
   onToggleInfoPanel: () => void,
+  numberParticipants: number,
   participants: Array<{
     username: string,
     following: boolean,
@@ -194,6 +196,7 @@ type BigTeamInfoPanelProps = infoPanelProps & {
   onLeaveConversation: () => void,
   channelname: string,
   onJoinChannel: () => void,
+  onViewTeam: () => void,
   teamname: string,
   isPreview: boolean,
 }
@@ -204,12 +207,15 @@ const _BigTeamInfoPanel = (props: BigTeamInfoPanelProps) => (
       #{props.channelname}
     </Text>
 
-    <Box style={{...globalStyles.flexBoxRow, alignSelf: 'center', alignItems: 'center'}}>
+    <ClickableBox
+      style={{...globalStyles.flexBoxRow, alignSelf: 'center', alignItems: 'center'}}
+      onClick={props.onViewTeam}
+    >
       <Avatar teamname={props.teamname} size={12} />
-      <Text style={{marginLeft: globalMargins.xtiny}} type="BodySmallSemibold">
+      <Text type="BodySmallSemibold" style={{marginLeft: globalMargins.xtiny}}>
         {props.teamname}
       </Text>
-    </Box>
+    </ClickableBox>
 
     {!props.isPreview &&
       <Box>
@@ -238,10 +244,14 @@ const _BigTeamInfoPanel = (props: BigTeamInfoPanelProps) => (
       </Text>}
 
     <Divider style={styleDivider} />
-
-    <Text style={{paddingLeft: globalMargins.small}} type="BodySmallSemibold">
-      Members
-    </Text>
+    <Box style={{...globalStyles.flexBoxRow, marginRight: globalMargins.tiny}}>
+      <Text style={{flex: 1, paddingLeft: globalMargins.small}} type="BodySmallSemibold">
+        Members ({props.participants.length.toString()})
+      </Text>
+      {props.admin &&
+        props.channelname === 'general' &&
+        <Text type="BodySmallPrimaryLink" onClick={props.onViewTeam}>Manage</Text>}
+    </Box>
     <Participants participants={props.participants} onShowProfile={props.onShowProfile} />
   </ScrollView>
 )

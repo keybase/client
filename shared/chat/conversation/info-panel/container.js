@@ -4,7 +4,7 @@ import * as Types from '../../../constants/types/chat'
 import * as TeamTypes from '../../../constants/types/teams'
 import * as ChatGen from '../../../actions/chat-gen'
 import {ConversationInfoPanel, SmallTeamInfoPanel, BigTeamInfoPanel} from '.'
-import {Map} from 'immutable'
+import {Map, Set} from 'immutable'
 import {
   compose,
   renderComponent,
@@ -13,8 +13,10 @@ import {
   connect,
   type TypedState,
 } from '../../../util/container'
+import {getDetails} from '../../../actions/teams/creators'
 import {createSelector} from 'reselect'
 import {navigateAppend, navigateTo} from '../../../actions/route-tree'
+import {lifecycle} from 'recompose'
 import {chatTab, teamsTab} from '../../../constants/tabs'
 import {createShowUserProfile} from '../../../actions/profile-gen'
 import flags from '../../../util/feature-flags'
@@ -59,10 +61,26 @@ const mapStateToProps = (state: TypedState) => {
   const teamname = inbox.get('teamname')
   const showTeamButton = flags.teamChatEnabled
   const smallTeam = Constants.getTeamType(state) === ChatTypes.commonTeamType.simple
+  const myUsername = state.config.username
+  let admin = false
+  let _loaded = false
+
+  if (teamname) {
+    const participants = state.entities.getIn(['teams', 'teamNameToMembers', teamname], Set())
+    if (participants.size) {
+      _loaded = true
+    }
+    const myUserInfo = participants.find(participant => participant.username === myUsername)
+    if (myUserInfo) {
+      admin = myUserInfo.type === 'admin' || myUserInfo.type === 'owner'
+    }
+  }
 
   return {
     ...getPreviewState(state),
+    admin,
     channelname,
+    _loaded,
     muted: Constants.getMuted(state),
     participants: getParticipants(state),
     selectedConversationIDKey,
@@ -107,6 +125,9 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp}) => ({
     dispatch(navigateAppend([{props: {teamname}, selected: 'reallyLeaveTeam'}])),
   _onViewTeam: (teamname: TeamTypes.Teamname) =>
     dispatch(navigateTo([teamsTab, {props: {teamname: teamname}, selected: 'team'}])),
+  _onLoadTeam: (teamname: TeamConstants.Teamname) => {
+    dispatch(getDetails(teamname))
+  },
   // Used by HeaderHoc.
   onBack: () => dispatch(navigateUp()),
   onShowProfile: (username: string) => dispatch(createShowUserProfile({username})),
@@ -143,6 +164,11 @@ const mergeProps = (stateProps, dispatchProps) => ({
 
 const ConnectedInfoPanel = compose(
   connect(mapStateToProps, mapDispatchToProps, mergeProps),
+  lifecycle({
+    componentWillMount() {
+      this.props.teamname && !this.props._loaded && this.props._onLoadTeam(this.props.teamname)
+    },
+  }),
   branch(props => !props.selectedConversationIDKey, renderNothing),
   branch(props => props.channelname && !props.smallTeam, renderComponent(BigTeamInfoPanel)),
   branch(props => !props.channelname && !props.smallTeam, renderComponent(ConversationInfoPanel))
