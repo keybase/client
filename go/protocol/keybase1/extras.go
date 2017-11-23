@@ -1619,25 +1619,20 @@ func (t TeamMembers) AllUIDs() []UID {
 	return all
 }
 
-func (t TeamMembers) AllUserVersions() []UserVersion {
-	m := make(map[UID]UserVersion)
+func (t TeamMembers) AllUserVersions() (res []UserVersion) {
 	for _, u := range t.Owners {
-		m[u.Uid] = u
+		res = append(res, u)
 	}
 	for _, u := range t.Admins {
-		m[u.Uid] = u
+		res = append(res, u)
 	}
 	for _, u := range t.Writers {
-		m[u.Uid] = u
+		res = append(res, u)
 	}
 	for _, u := range t.Readers {
-		m[u.Uid] = u
+		res = append(res, u)
 	}
-	var all []UserVersion
-	for _, uv := range m {
-		all = append(all, uv)
-	}
-	return all
+	return res
 }
 
 func (t TeamMember) IsReset() bool {

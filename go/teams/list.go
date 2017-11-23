@@ -152,8 +152,13 @@ func fillUsernames(ctx context.Context, g *libkb.GlobalContext, res *keybase1.An
 	return nil
 }
 
+type pendingTeamMember struct {
+	team keybase1.TeamID
+	uv   keybase1.UserVersion
+}
+
 func ListTeams(ctx context.Context, g *libkb.GlobalContext, arg keybase1.TeamListArg) (*keybase1.AnnotatedTeamList, error) {
-	tracer := g.CTimeTracer(ctx, "TeamList")
+	tracer := g.CTimeTracer(ctx, "TeamList.ListTeams")
 	defer tracer.Finish()
 
 	var queryUID keybase1.UID
@@ -180,8 +185,145 @@ func ListTeams(ctx context.Context, g *libkb.GlobalContext, arg keybase1.TeamLis
 		queryUID = meUID
 	}
 
-	tracer.Stage("LookupOurUsername")
+	tracer.Stage("LookupQueryUsername")
 	queryUsername, queryFullName, err := getUsernameAndFullName(context.Background(), g, queryUID)
+	if err != nil {
+		return nil, err
+	}
+
+	var membersForTeams []pendingTeamMember
+	teamPositionInList := make(map[keybase1.TeamID]int)
+
+	res := &keybase1.AnnotatedTeamList{
+		Teams: nil,
+		AnnotatedActiveInvites: make(map[keybase1.TeamInviteID]keybase1.AnnotatedTeamInvite),
+	}
+
+	if len(teams) == 0 {
+		return res, nil
+	}
+
+	tracer.Stage("Loads")
+
+	expectEmptyList := true
+
+	for _, memberInfo := range teams {
+		serverSaysNeedAdmin := memberNeedAdmin(memberInfo, meUID)
+		team, err := getTeamForMember(ctx, g, memberInfo, serverSaysNeedAdmin)
+		if err != nil {
+			g.Log.CDebugf(ctx, "| Error in getTeamForMember ID:%s UID:%s: %v; skipping team", memberInfo.TeamID, memberInfo.UserID, err)
+			expectEmptyList = false // so we tell user about errors at the end.
+			continue
+		}
+
+		if memberInfo.IsImplicitTeam && !arg.IncludeImplicitTeams {
+			g.Log.CDebugf(ctx, "| TeamList skipping implicit team: server-team:%v server-uid:%v", memberInfo.TeamID, memberInfo.UserID)
+			continue
+		}
+
+		expectEmptyList = false
+
+		if memberInfo.UserID != queryUID {
+			g.Log.CDebugf(ctx, "| Expected memberInfo for UID:%s, got UID:%s", queryUID, memberInfo.UserID)
+			continue
+		}
+
+		// TODO: collect members into PendingTeamMember list
+		// annotate (using UIDMapper) to get EldestSeqnos
+		// filter through reset members, to get accurate member counts
+
+		// Use UIDMapper with low time budget - trade accuracy for
+		// speed, we will continue to be more right every time user
+		// visits the team card until caches get hot enough and we
+		// are always right in no time.
+
+		anMemberInfo := &keybase1.AnnotatedMemberInfo{
+			TeamID:         team.ID,
+			FqName:         team.Name().String(),
+			UserID:         memberInfo.UserID,
+			Role:           memberInfo.Role, // memberInfo.Role has been verified during getTeamForMember
+			IsImplicitTeam: team.IsImplicit(),
+			Implicit:       memberInfo.Implicit, // This part is still server trust
+			Username:       queryUsername.String(),
+			FullName:       queryFullName,
+			MemberCount:    0,
+		}
+
+		members, err := team.Members()
+		if err != nil {
+			g.Log.CDebugf(ctx, "| Failed to get Members() for team %q: %v", team.ID, err)
+			continue
+		}
+
+		for _, uv := range members.AllUserVersions() {
+			membersForTeams = append(membersForTeams, pendingTeamMember{
+				team: team.ID,
+				uv:   uv,
+			})
+		}
+
+		invites := team.chain().inner.ActiveInvites
+		for invId, invite := range invites {
+			category, err := invite.Type.C()
+			if err != nil {
+				g.Log.CDebugf(ctx, "| Failed parsing invite %q in team %q: %v", invId, team.ID, err)
+				continue
+			}
+
+			if category == keybase1.TeamInviteCategory_KEYBASE {
+				uv, err := invite.KeybaseUserVersion()
+				if err != nil {
+					g.Log.CDebugf(ctx, "| Failed parsing invite %q in team %q: %v", invId, team.ID, err)
+					continue
+				}
+				_ = uv
+
+				membersForTeams = append(membersForTeams, pendingTeamMember{
+					team: team.ID,
+					uv:   uv,
+				})
+			}
+		}
+
+		teamPositionInList[team.ID] = len(res.Teams)
+		res.Teams = append(res.Teams, *anMemberInfo)
+	}
+
+	tracer.Stage("MemberCounts")
+
+	upakLoader := g.GetUPAKLoader()
+	for _, member := range membersForTeams {
+		up, err := upakLoader.LoadUserPlusKeys(context.Background(), member.uv.Uid, "")
+		if err != nil {
+			g.Log.CDebugf(ctx, "| Failed loading member %q for team %q: %v", member.uv, member.team, err)
+			continue
+		}
+
+		if up.EldestSeqno == member.uv.EldestSeqno {
+			if i, ok := teamPositionInList[member.team]; ok {
+				res.Teams[i].MemberCount++
+			}
+		}
+	}
+
+	if len(res.Teams) == 0 && !expectEmptyList {
+		return res, fmt.Errorf("multiple errors while loading team list")
+	}
+
+	return res, nil
+}
+
+func ListAll(ctx context.Context, g *libkb.GlobalContext, arg keybase1.TeamListArg) (*keybase1.AnnotatedTeamList, error) {
+	tracer := g.CTimeTracer(ctx, "TeamList.ListAll")
+	defer tracer.Finish()
+
+	meUID := g.ActiveDevice.UID()
+	if meUID.IsNil() {
+		return nil, libkb.LoginRequiredError{}
+	}
+
+	tracer.Stage("Server")
+	teams, err := getTeamsListFromServer(ctx, g, "", arg.All)
 	if err != nil {
 		return nil, err
 	}
@@ -202,34 +344,15 @@ func ListTeams(ctx context.Context, g *libkb.GlobalContext, arg keybase1.TeamLis
 	for _, memberInfo := range teams {
 		serverSaysNeedAdmin := memberNeedAdmin(memberInfo, meUID)
 		team, err := getTeamForMember(ctx, g, memberInfo, serverSaysNeedAdmin)
-
-		if memberInfo.IsImplicitTeam && !arg.IncludeImplicitTeams {
-			g.Log.CDebugf(subctx, "| TeamList skipping implicit team: server-team:%v server-uid:%v", memberInfo.TeamID, memberInfo.UserID)
-			continue
-		}
-
-		expectEmptyList = false
-
 		if err != nil {
 			g.Log.CDebugf(ctx, "| Error in getTeamForMember ID:%s UID:%s: %v; skipping team", memberInfo.TeamID, memberInfo.UserID, err)
+			expectEmptyList = false // so we tell user about errors at the end.
 			continue
 		}
 
-		if memberInfo.UserID != queryUID {
-			g.Log.CDebugf(ctx, "| Expected memberInfo for UID:%s, got UID:%s", queryUID, memberInfo.UserID)
+		if memberInfo.IsImplicitTeam && !arg.IncludeImplicitTeams {
+			g.Log.CDebugf(ctx, "| TeamList skipping implicit team: server-team:%v server-uid:%v", memberInfo.TeamID, memberInfo.UserID)
 			continue
-		}
-
-		anMemberInfo := &keybase1.AnnotatedMemberInfo{
-			TeamID:         team.ID,
-			FqName:         team.Name().String(),
-			UserID:         memberInfo.UserID,
-			Role:           memberInfo.Role, // memberInfo.Role has been verified during getTeamForMember
-			IsImplicitTeam: team.IsImplicit(),
-			Implicit:       memberInfo.Implicit, // This part is still server trust
-			Username:       queryUsername.String(),
-			FullName:       queryFullName,
-			MemberCount:    0,
 		}
 
 		members, err := team.Members()
@@ -238,31 +361,26 @@ func ListTeams(ctx context.Context, g *libkb.GlobalContext, arg keybase1.TeamLis
 			continue
 		}
 
-		// TODO: Find a way to skip reset members.
-		anMemberInfo.MemberCount = len(members.AllUIDs())
-
-		anInvites, err := AnnotateInvites(ctx, g, team)
-		if err != nil {
-			g.Log.CDebugf(ctx, "| Failed to AnnotateInvites for team %q: %v", team.ID, err)
-			continue
-		}
-
-		res.Teams = append(res.Teams, *anMemberInfo)
-		for teamInviteID, annotatedTeamInvite := range anInvites {
-			res.AnnotatedActiveInvites[teamInviteID] = annotatedTeamInvite
-
-			category, err := annotatedTeamInvite.Type.C()
-			if err == nil && category == keybase1.TeamInviteCategory_KEYBASE {
-				anMemberInfo.MemberCount++
+		for _, uv := range members.AllUserVersions() {
+			anMemberInfo := &keybase1.AnnotatedMemberInfo{
+				TeamID:         team.ID,
+				FqName:         team.Name().String(),
+				UserID:         uv.Uid,
+				Role:           memberInfo.Role, // memberInfo.Role has been verified during getTeamForMember
+				IsImplicitTeam: team.IsImplicit(),
+				Implicit:       memberInfo.Implicit, // This part is still server trust
+				MemberCount:    0,
 			}
+
+			_ = anMemberInfo
 		}
 	}
 
-	if len(res.Teams) == 0 && !expectEmptyList {
-		return res, fmt.Errorf("multiple errors while loading team list")
+	if len(teams) == 0 && !expectEmptyList {
+		return res, fmt.Errorf("Multiple errors during loading listAll")
 	}
 
-	return res, err
+	return res, nil
 }
 
 // List info about teams
@@ -271,6 +389,8 @@ func ListTeams(ctx context.Context, g *libkb.GlobalContext, arg keybase1.TeamLis
 func List(ctx context.Context, g *libkb.GlobalContext, arg keybase1.TeamListArg) (*keybase1.AnnotatedTeamList, error) {
 	if !arg.All {
 		return ListTeams(ctx, g, arg)
+	} else {
+		//return ListAll(ctx, g, arg)
 	}
 
 	tracer := g.CTimeTracer(ctx, "TeamList")
