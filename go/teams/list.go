@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"sort"
 	"sync"
+	"time"
 
 	"golang.org/x/net/context"
 	"golang.org/x/sync/errgroup"
@@ -170,7 +171,7 @@ func ListTeams(ctx context.Context, g *libkb.GlobalContext, arg keybase1.TeamLis
 	}
 
 	tracer.Stage("Server")
-	teams, err := getTeamsListFromServer(ctx, g, queryUID, arg.All)
+	teams, err := getTeamsListFromServer(ctx, g, queryUID, false)
 	if err != nil {
 		return nil, err
 	}
@@ -221,15 +222,6 @@ func ListTeams(ctx context.Context, g *libkb.GlobalContext, arg keybase1.TeamLis
 			g.Log.CDebugf(ctx, "| Expected memberInfo for UID:%s, got UID:%s", queryUID, memberInfo.UserID)
 			continue
 		}
-
-		// TODO: collect members into PendingTeamMember list
-		// annotate (using UIDMapper) to get EldestSeqnos
-		// filter through reset members, to get accurate member counts
-
-		// Use UIDMapper with low time budget - trade accuracy for
-		// speed, we will continue to be more right every time user
-		// visits the team card until caches get hot enough and we
-		// are always right in no time.
 
 		anMemberInfo := &keybase1.AnnotatedMemberInfo{
 			TeamID:         team.ID,
@@ -290,7 +282,7 @@ func ListTeams(ctx context.Context, g *libkb.GlobalContext, arg keybase1.TeamLis
 		uids = append(uids, member.uv.Uid)
 	}
 
-	namePkgs, err := uidmap.MapUIDsReturnMap(g.UIDMapper, ctx, g, uids, 0, 0, true)
+	namePkgs, err := uidmap.MapUIDsReturnMap(g.UIDMapper, ctx, g, uids, 0, 10*time.Second, true)
 	if err != nil {
 		g.Log.CWarningf(ctx, "| Unable to verify team members - member counts were not loaded: %v", err)
 		return res, nil
@@ -327,7 +319,7 @@ func ListAll(ctx context.Context, g *libkb.GlobalContext, arg keybase1.TeamListA
 	}
 
 	tracer.Stage("Server")
-	teams, err := getTeamsListFromServer(ctx, g, "", arg.All)
+	teams, err := getTeamsListFromServer(ctx, g, "", true)
 	if err != nil {
 		return nil, err
 	}
