@@ -257,17 +257,17 @@ func ListTeams(ctx context.Context, g *libkb.GlobalContext, arg keybase1.TeamLis
 		}
 
 		invites := team.chain().inner.ActiveInvites
-		for invId, invite := range invites {
+		for invID, invite := range invites {
 			category, err := invite.Type.C()
 			if err != nil {
-				g.Log.CDebugf(ctx, "| Failed parsing invite %q in team %q: %v", invId, team.ID, err)
+				g.Log.CDebugf(ctx, "| Failed parsing invite %q in team %q: %v", invID, team.ID, err)
 				continue
 			}
 
 			if category == keybase1.TeamInviteCategory_KEYBASE {
 				uv, err := invite.KeybaseUserVersion()
 				if err != nil {
-					g.Log.CDebugf(ctx, "| Failed parsing invite %q in team %q: %v", invId, team.ID, err)
+					g.Log.CDebugf(ctx, "| Failed parsing invite %q in team %q: %v", invID, team.ID, err)
 					continue
 				}
 				_ = uv
@@ -285,15 +285,25 @@ func ListTeams(ctx context.Context, g *libkb.GlobalContext, arg keybase1.TeamLis
 
 	tracer.Stage("MemberCounts")
 
-	upakLoader := g.GetUPAKLoader()
+	var uids []keybase1.UID
 	for _, member := range membersForTeams {
-		up, err := upakLoader.LoadUserPlusKeys(context.Background(), member.uv.Uid, "")
-		if err != nil {
-			g.Log.CDebugf(ctx, "| Failed loading member %q for team %q: %v", member.uv, member.team, err)
-			continue
+		uids = append(uids, member.uv.Uid)
+	}
+
+	namePkgs, err := uidmap.MapUIDsReturnMap(g.UIDMapper, ctx, g, uids, 0, 0, true)
+	if err != nil {
+		g.Log.CWarningf(ctx, "| Unable to verify team members - member counts were not loaded: %v", err)
+		return res, nil
+	}
+
+	for _, member := range membersForTeams {
+		pkg := namePkgs[member.uv.Uid]
+		var memberReset bool
+		if pkg.FullName != nil && pkg.FullName.EldestSeqno != member.uv.EldestSeqno {
+			memberReset = true
 		}
 
-		if up.EldestSeqno == member.uv.EldestSeqno {
+		if !memberReset {
 			if i, ok := teamPositionInList[member.team]; ok {
 				res.Teams[i].MemberCount++
 			}
@@ -383,8 +393,6 @@ func ListAll(ctx context.Context, g *libkb.GlobalContext, arg keybase1.TeamListA
 func List(ctx context.Context, g *libkb.GlobalContext, arg keybase1.TeamListArg) (*keybase1.AnnotatedTeamList, error) {
 	if !arg.All {
 		return ListTeams(ctx, g, arg)
-	} else {
-		//return ListAll(ctx, g, arg)
 	}
 
 	tracer := g.CTimeTracer(ctx, "TeamList")
