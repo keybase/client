@@ -497,6 +497,9 @@ protocol teams {
     boolean needsPUK;
     @jsonkey("member_count")
     int memberCount;
+    @jsonkey("member_eldest_seqno")
+    Seqno eldestSeqno;
+    boolean active;
   }
 
   record AnnotatedTeamList {

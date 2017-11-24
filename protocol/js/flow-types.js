@@ -1799,7 +1799,7 @@ export type AccountPassphrasePromptRpcParam = {|guiArg: GUIEntryArg,incomingCall
 
 export type AccountResetAccountRpcParam = ?{|incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
-export type AnnotatedMemberInfo = {|userID: UID,teamID: TeamID,username: String,fullName: String,fqName: String,isImplicitTeam: Boolean,role: TeamRole,implicit?: ?ImplicitRole,needsPUK: Boolean,memberCount: Int,|}
+export type AnnotatedMemberInfo = {|userID: UID,teamID: TeamID,username: String,fullName: String,fqName: String,isImplicitTeam: Boolean,role: TeamRole,implicit?: ?ImplicitRole,needsPUK: Boolean,memberCount: Int,eldestSeqno: Seqno,active: Boolean,|}
 
 export type AnnotatedTeamInvite = {|role: TeamRole,id: TeamInviteID,type: TeamInviteType,name: TeamInviteName,uv: UserVersion,inviter: UserVersion,inviterUsername: String,teamName: String,|}
 

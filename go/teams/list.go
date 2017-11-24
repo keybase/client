@@ -56,40 +56,40 @@ func memberNeedAdmin(member keybase1.MemberInfo, meUID keybase1.UID) bool {
 // what team chain says. Nothing is checked when MemberInfo's role is
 // NONE, in this context it means that user has implied membership in
 // the team and no role given in sigchain.
-func verifyMemberRoleInTeam(ctx context.Context, userID keybase1.UID, expectedRole keybase1.TeamRole, team *Team) error {
+func verifyMemberRoleInTeam(ctx context.Context, userID keybase1.UID, expectedRole keybase1.TeamRole, team *Team) (res keybase1.UserVersion, err error) {
 	if expectedRole == keybase1.TeamRole_NONE {
-		return nil
+		return res, nil
 	}
 
 	memberUV, err := team.chain().GetLatestUVWithUID(userID)
 	if err != nil {
-		return err
+		return res, err
 	}
 	role, err := team.chain().GetUserRole(memberUV)
 	if err != nil {
-		return err
+		return res, err
 	}
 	if role != expectedRole {
-		return fmt.Errorf("unexpected member role: expected %v but actual role is %v", expectedRole, role)
+		return res, fmt.Errorf("unexpected member role: expected %v but actual role is %v", expectedRole, role)
 	}
-	return nil
+	return memberUV, nil
 }
 
 // getTeamForMember tries to load team in a recent enough state to
 // contain member with correct role as set in MemberInfo. It might
 // trigger a reload with ForceRepoll if cached state does not match.
-func getTeamForMember(ctx context.Context, g *libkb.GlobalContext, member keybase1.MemberInfo, needAdmin bool) (*Team, error) {
-	team, err := Load(ctx, g, keybase1.LoadTeamArg{
+func getTeamForMember(ctx context.Context, g *libkb.GlobalContext, member keybase1.MemberInfo, needAdmin bool) (team *Team, uv keybase1.UserVersion, err error) {
+	team, err = Load(ctx, g, keybase1.LoadTeamArg{
 		ID:          member.TeamID,
 		NeedAdmin:   needAdmin,
 		Public:      member.TeamID.IsPublic(),
 		ForceRepoll: false,
 	})
 	if err != nil {
-		return nil, err
+		return nil, uv, err
 	}
 
-	err = verifyMemberRoleInTeam(ctx, member.UserID, member.Role, team)
+	memberUV, err := verifyMemberRoleInTeam(ctx, member.UserID, member.Role, team)
 	if err != nil {
 		team, err = Load(ctx, g, keybase1.LoadTeamArg{
 			ID:          member.TeamID,
@@ -98,16 +98,16 @@ func getTeamForMember(ctx context.Context, g *libkb.GlobalContext, member keybas
 			ForceRepoll: true,
 		})
 		if err != nil {
-			return nil, err
+			return nil, uv, err
 		}
 
-		err = verifyMemberRoleInTeam(ctx, member.UserID, member.Role, team)
+		memberUV, err = verifyMemberRoleInTeam(ctx, member.UserID, member.Role, team)
 		if err != nil {
-			return nil, fmt.Errorf("server was wrong about role in team : %v", err)
+			return nil, uv, fmt.Errorf("server was wrong about role in team : %v", err)
 		}
 	}
 
-	return team, nil
+	return team, memberUV, nil
 }
 
 func getUsernameAndFullName(ctx context.Context, g *libkb.GlobalContext, uid keybase1.UID) (username libkb.NormalizedUsername, fullName string, err error) {
@@ -123,9 +123,9 @@ func getUsernameAndFullName(ctx context.Context, g *libkb.GlobalContext, uid key
 	return username, fullName, err
 }
 
-func fillUsernames(ctx context.Context, g *libkb.GlobalContext, res *keybase1.AnnotatedTeamList) error {
+func fillUsernames(ctx context.Context, g *libkb.GlobalContext, res []keybase1.AnnotatedMemberInfo) error {
 	var uids []keybase1.UID
-	for _, member := range res.Teams {
+	for _, member := range res {
 		uids = append(uids, member.UserID)
 	}
 
@@ -134,13 +134,16 @@ func fillUsernames(ctx context.Context, g *libkb.GlobalContext, res *keybase1.An
 		return err
 	}
 
-	for id := range res.Teams {
-		member := &res.Teams[id]
+	for id := range res {
+		member := &res[id]
 		pkg := namePkgs[member.UserID]
 
 		member.Username = pkg.NormalizedUsername.String()
 		if pkg.FullName != nil {
 			member.FullName = string(pkg.FullName.FullName)
+			if pkg.FullName.EldestSeqno != member.EldestSeqno {
+				member.Active = false
+			}
 		}
 	}
 
@@ -204,7 +207,7 @@ func ListTeams(ctx context.Context, g *libkb.GlobalContext, arg keybase1.TeamLis
 
 	for _, memberInfo := range teams {
 		serverSaysNeedAdmin := memberNeedAdmin(memberInfo, meUID)
-		team, err := getTeamForMember(ctx, g, memberInfo, serverSaysNeedAdmin)
+		team, _, err := getTeamForMember(ctx, g, memberInfo, serverSaysNeedAdmin)
 		if err != nil {
 			g.Log.CDebugf(ctx, "| Error in getTeamForMember ID:%s UID:%s: %v; skipping team", memberInfo.TeamID, memberInfo.UserID, err)
 			expectEmptyList = false // so we tell user about errors at the end.
@@ -233,6 +236,7 @@ func ListTeams(ctx context.Context, g *libkb.GlobalContext, arg keybase1.TeamLis
 			Username:       queryUsername.String(),
 			FullName:       queryFullName,
 			MemberCount:    0,
+			Active:         true,
 		}
 
 		members, err := team.Members()
@@ -319,7 +323,7 @@ func ListAll(ctx context.Context, g *libkb.GlobalContext, arg keybase1.TeamListA
 	}
 
 	tracer.Stage("Server")
-	teams, err := getTeamsListFromServer(ctx, g, "", true)
+	teams, err := getTeamsListFromServer(ctx, g, "" /*uid*/, true /*all*/)
 	if err != nil {
 		return nil, err
 	}
@@ -337,9 +341,11 @@ func ListAll(ctx context.Context, g *libkb.GlobalContext, arg keybase1.TeamListA
 
 	expectEmptyList := true
 
+	var pendingList []keybase1.AnnotatedMemberInfo
+
 	for _, memberInfo := range teams {
 		serverSaysNeedAdmin := memberNeedAdmin(memberInfo, meUID)
-		team, err := getTeamForMember(ctx, g, memberInfo, serverSaysNeedAdmin)
+		team, memberUV, err := getTeamForMember(ctx, g, memberInfo, serverSaysNeedAdmin)
 		if err != nil {
 			g.Log.CDebugf(ctx, "| Error in getTeamForMember ID:%s UID:%s: %v; skipping team", memberInfo.TeamID, memberInfo.UserID, err)
 			expectEmptyList = false // so we tell user about errors at the end.
@@ -351,24 +357,34 @@ func ListAll(ctx context.Context, g *libkb.GlobalContext, arg keybase1.TeamListA
 			continue
 		}
 
-		members, err := team.Members()
-		if err != nil {
-			g.Log.CDebugf(ctx, "| Failed to get Members() for team %q: %v", team.ID, err)
-			continue
+		anMemberInfo := &keybase1.AnnotatedMemberInfo{
+			TeamID:         team.ID,
+			FqName:         team.Name().String(),
+			UserID:         memberInfo.UserID,
+			EldestSeqno:    memberUV.EldestSeqno,
+			Role:           memberInfo.Role, // memberInfo.Role has been verified during getTeamForMember
+			IsImplicitTeam: team.IsImplicit(),
+			Implicit:       memberInfo.Implicit, // This part is still server trust
+			Active:         true,                // assume member is active, fillUsernames might mutate this to false.
 		}
 
-		for _, uv := range members.AllUserVersions() {
-			anMemberInfo := &keybase1.AnnotatedMemberInfo{
-				TeamID:         team.ID,
-				FqName:         team.Name().String(),
-				UserID:         uv.Uid,
-				Role:           memberInfo.Role, // memberInfo.Role has been verified during getTeamForMember
-				IsImplicitTeam: team.IsImplicit(),
-				Implicit:       memberInfo.Implicit, // This part is still server trust
-				MemberCount:    0,
-			}
+		pendingList = append(pendingList, *anMemberInfo)
 
-			_ = anMemberInfo
+		if anMemberInfo.UserID == meUID {
+			// Go through team invites - only once per TeamID.
+		}
+	}
+
+	tracer.Stage("FillUsernames")
+
+	err = fillUsernames(ctx, g, pendingList)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, member := range pendingList {
+		if member.Active {
+			res.Teams = append(res.Teams, member)
 		}
 	}
 
@@ -468,7 +484,7 @@ func List(ctx context.Context, g *libkb.GlobalContext, arg keybase1.TeamListArg)
 			}
 
 			serverSaysNeedAdmin := memberNeedAdmin(memberInfo, meUID)
-			team, err := getTeamForMember(subctx, g, memberInfo, serverSaysNeedAdmin)
+			team, memberUV, err := getTeamForMember(subctx, g, memberInfo, serverSaysNeedAdmin)
 			if err != nil {
 				g.Log.CDebugf(subctx, "| Error in getTeamForMember %q: %v; skipping member", memberInfo.UserID, err)
 				return nil
@@ -482,6 +498,7 @@ func List(ctx context.Context, g *libkb.GlobalContext, arg keybase1.TeamListArg)
 				TeamID:         team.ID,
 				FqName:         team.Name().String(),
 				UserID:         memberInfo.UserID,
+				EldestSeqno:    memberUV.EldestSeqno,
 				Role:           memberInfo.Role, // memberInfo.Role has been verified during getTeamForMember
 				IsImplicitTeam: team.IsImplicit(),
 				Implicit:       memberInfo.Implicit, // This part is still server trust
@@ -489,6 +506,7 @@ func List(ctx context.Context, g *libkb.GlobalContext, arg keybase1.TeamListArg)
 				// are blank initially and filled by fillUsernames.
 				Username: username.String(),
 				FullName: fullName,
+				Active:   true,
 			}
 
 			if !arg.All {
@@ -527,7 +545,7 @@ func List(ctx context.Context, g *libkb.GlobalContext, arg keybase1.TeamListArg)
 	if arg.All && len(res.Teams) != 0 {
 		tracer.Stage("FillUsernames")
 
-		err := fillUsernames(ctx, g, res)
+		err := fillUsernames(ctx, g, res.Teams)
 		if err != nil {
 			return nil, err
 		}

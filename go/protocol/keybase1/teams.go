@@ -1420,6 +1420,8 @@ type AnnotatedMemberInfo struct {
 	Implicit       *ImplicitRole `codec:"implicit,omitempty" json:"implicit,omitempty"`
 	NeedsPUK       bool          `codec:"needsPUK" json:"needsPUK"`
 	MemberCount    int           `codec:"memberCount" json:"member_count"`
+	EldestSeqno    Seqno         `codec:"eldestSeqno" json:"member_eldest_seqno"`
+	Active         bool          `codec:"active" json:"active"`
 }
 
 func (o AnnotatedMemberInfo) DeepCopy() AnnotatedMemberInfo {
@@ -1440,6 +1442,8 @@ func (o AnnotatedMemberInfo) DeepCopy() AnnotatedMemberInfo {
 		})(o.Implicit),
 		NeedsPUK:    o.NeedsPUK,
 		MemberCount: o.MemberCount,
+		EldestSeqno: o.EldestSeqno.DeepCopy(),
+		Active:      o.Active,
 	}
 }
 
