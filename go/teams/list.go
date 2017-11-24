@@ -12,6 +12,7 @@ import (
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/client/go/uidmap"
 )
 
 type statusList struct {
@@ -122,26 +123,19 @@ func getUsernameAndFullName(ctx context.Context, g *libkb.GlobalContext, uid key
 }
 
 func fillUsernames(ctx context.Context, g *libkb.GlobalContext, res *keybase1.AnnotatedTeamList) error {
-	var userList []keybase1.UID
-	userSet := map[keybase1.UID]int{}
-
+	var uids []keybase1.UID
 	for _, member := range res.Teams {
-		_, found := userSet[member.UserID]
-		if !found {
-			userSet[member.UserID] = len(userList)
-			userList = append(userList, member.UserID)
-		}
+		uids = append(uids, member.UserID)
 	}
 
-	namePkgs, err := g.UIDMapper.MapUIDsToUsernamePackages(ctx, g, userList, 0, 0, true)
+	namePkgs, err := uidmap.MapUIDsReturnMap(g.UIDMapper, ctx, g, uids, 0, 0, true)
 	if err != nil {
 		return err
 	}
 
 	for id := range res.Teams {
 		member := &res.Teams[id]
-		num := userSet[member.UserID]
-		pkg := namePkgs[num]
+		pkg := namePkgs[member.UserID]
 
 		member.Username = pkg.NormalizedUsername.String()
 		if pkg.FullName != nil {
