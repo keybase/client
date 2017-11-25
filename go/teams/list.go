@@ -224,7 +224,10 @@ func ListTeams(ctx context.Context, g *libkb.GlobalContext, arg keybase1.TeamLis
 			}
 		*/
 
-		anMemberInfo.MemberCount = len(members.AllUIDs())
+		memberUIDs := make(map[keybase1.UID]bool)
+		for _, uv := range members.AllUserVersions() {
+			memberUIDs[uv.Uid] = true
+		}
 
 		invites := team.chain().inner.ActiveInvites
 		for invID, invite := range invites {
@@ -235,14 +238,13 @@ func ListTeams(ctx context.Context, g *libkb.GlobalContext, arg keybase1.TeamLis
 			}
 
 			if category == keybase1.TeamInviteCategory_KEYBASE {
-				_, err := invite.KeybaseUserVersion()
+				uv, err := invite.KeybaseUserVersion()
 				if err != nil {
 					g.Log.CDebugf(ctx, "| Failed parsing invite %q in team %q: %v", invID, team.ID, err)
 					continue
 				}
 
-				anMemberInfo.MemberCount++
-
+				memberUIDs[uv.Uid] = true
 				/*
 					membersForTeams = append(membersForTeams, pendingTeamMember{
 						team: team.ID,
@@ -250,7 +252,10 @@ func ListTeams(ctx context.Context, g *libkb.GlobalContext, arg keybase1.TeamLis
 					})
 				*/
 			}
+
 		}
+
+		anMemberInfo.MemberCount = len(memberUIDs)
 
 		teamPositionInList[team.ID] = len(res.Teams)
 		res.Teams = append(res.Teams, *anMemberInfo)
