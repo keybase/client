@@ -515,6 +515,7 @@ func AnnotateInvites(ctx context.Context, g *libkb.GlobalContext, team *Team) (m
 			return nil, err
 		}
 		var uv keybase1.UserVersion
+		var active = true
 		if category == keybase1.TeamInviteCategory_KEYBASE {
 			// "keybase" invites (i.e. pukless users) have user version for name
 			var err error
@@ -527,7 +528,7 @@ func AnnotateInvites(ctx context.Context, g *libkb.GlobalContext, team *Team) (m
 				return nil, err
 			}
 			if uv.EldestSeqno != up.EldestSeqno {
-				continue
+				active = false
 			}
 			name = keybase1.TeamInviteName(up.Username)
 		} else if category == keybase1.TeamInviteCategory_SEITAN {
@@ -546,6 +547,7 @@ func AnnotateInvites(ctx context.Context, g *libkb.GlobalContext, team *Team) (m
 			Inviter:         invite.Inviter,
 			InviterUsername: username.String(),
 			TeamName:        teamName,
+			UserActive:      active,
 		}
 	}
 	return annotatedInvites, nil

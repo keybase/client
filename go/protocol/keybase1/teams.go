@@ -708,6 +708,7 @@ type AnnotatedTeamInvite struct {
 	Inviter         UserVersion    `codec:"inviter" json:"inviter"`
 	InviterUsername string         `codec:"inviterUsername" json:"inviterUsername"`
 	TeamName        string         `codec:"teamName" json:"teamName"`
+	UserActive      bool           `codec:"userActive" json:"userActive"`
 }
 
 func (o AnnotatedTeamInvite) DeepCopy() AnnotatedTeamInvite {
@@ -720,6 +721,7 @@ func (o AnnotatedTeamInvite) DeepCopy() AnnotatedTeamInvite {
 		Inviter:         o.Inviter.DeepCopy(),
 		InviterUsername: o.InviterUsername,
 		TeamName:        o.TeamName,
+		UserActive:      o.UserActive,
 	}
 }
 
