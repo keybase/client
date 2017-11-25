@@ -3,7 +3,6 @@ package teams
 import (
 	"fmt"
 	"sort"
-	"time"
 
 	"golang.org/x/net/context"
 
@@ -215,12 +214,17 @@ func ListTeams(ctx context.Context, g *libkb.GlobalContext, arg keybase1.TeamLis
 			continue
 		}
 
-		for _, uv := range members.AllUserVersions() {
-			membersForTeams = append(membersForTeams, pendingTeamMember{
-				team: team.ID,
-				uv:   uv,
-			})
-		}
+		// See "TODO" after this for-loop.
+		/*
+			for _, uv := range members.AllUserVersions() {
+				membersForTeams = append(membersForTeams, pendingTeamMember{
+					team: team.ID,
+					uv:   uv,
+				})
+			}
+		*/
+
+		anMemberInfo.MemberCount = len(members.AllUIDs())
 
 		invites := team.chain().inner.ActiveInvites
 		for invID, invite := range invites {
@@ -231,16 +235,20 @@ func ListTeams(ctx context.Context, g *libkb.GlobalContext, arg keybase1.TeamLis
 			}
 
 			if category == keybase1.TeamInviteCategory_KEYBASE {
-				uv, err := invite.KeybaseUserVersion()
+				_, err := invite.KeybaseUserVersion()
 				if err != nil {
 					g.Log.CDebugf(ctx, "| Failed parsing invite %q in team %q: %v", invID, team.ID, err)
 					continue
 				}
 
-				membersForTeams = append(membersForTeams, pendingTeamMember{
-					team: team.ID,
-					uv:   uv,
-				})
+				anMemberInfo.MemberCount++
+
+				/*
+					membersForTeams = append(membersForTeams, pendingTeamMember{
+						team: team.ID,
+						uv:   uv,
+					})
+				*/
 			}
 		}
 
@@ -255,25 +263,32 @@ func ListTeams(ctx context.Context, g *libkb.GlobalContext, arg keybase1.TeamLis
 		uids = append(uids, member.uv.Uid)
 	}
 
-	namePkgs, err := uidmap.MapUIDsReturnMap(g.UIDMapper, ctx, g, uids, 0, 10*time.Second, true)
-	if err != nil {
-		g.Log.CWarningf(ctx, "| Unable to verify team members - member counts were not loaded: %v", err)
-		return res, nil
-	}
-
-	for _, member := range membersForTeams {
-		pkg := namePkgs[member.uv.Uid]
-		var memberReset bool
-		if pkg.FullName != nil && pkg.FullName.EldestSeqno != member.uv.EldestSeqno {
-			memberReset = true
+	// TODO: For now, we decided that reset-user members still count
+	// towards final team member count. If we want to change this
+	// decision, commented out is code to check members with UIDMapper
+	// and only count non-reset members as well as non-reset pukless
+	// members.
+	/*
+		namePkgs, err := uidmap.MapUIDsReturnMap(g.UIDMapper, ctx, g, uids, 0, 10*time.Second, true)
+		if err != nil {
+			g.Log.CWarningf(ctx, "| Unable to verify team members - member counts were not loaded: %v", err)
+			return res, nil
 		}
 
-		if !memberReset {
-			if i, ok := teamPositionInList[member.team]; ok {
-				res.Teams[i].MemberCount++
+		for _, member := range membersForTeams {
+			pkg := namePkgs[member.uv.Uid]
+			var memberReset bool
+			if pkg.FullName != nil && pkg.FullName.EldestSeqno != member.uv.EldestSeqno {
+				memberReset = true
+			}
+
+			if !memberReset {
+				if i, ok := teamPositionInList[member.team]; ok {
+					res.Teams[i].MemberCount++
+				}
 			}
 		}
-	}
+	*/
 
 	if len(res.Teams) == 0 && !expectEmptyList {
 		return res, fmt.Errorf("multiple errors while loading team list")
