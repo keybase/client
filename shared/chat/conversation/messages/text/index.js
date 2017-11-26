@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react'
-import * as Constants from '../../../../constants/chat'
+import * as Types from '../../../../constants/types/chat'
 import {Markdown} from '../../../../common-adapters'
 import {globalStyles, globalColors} from '../../../../styles'
 import {isMobile} from '../../../../constants/platform'
@@ -9,8 +9,8 @@ export type Props = {
   text: string,
   type: 'failed' | 'pending' | 'sent',
   isEditing: boolean,
-  mentions: Constants.Mentions,
-  channelMention: Constants.ChannelMention,
+  mentions: Types.Mentions,
+  channelMention: Types.ChannelMention,
 }
 
 const MessageText = ({text, type, isEditing, mentions, channelMention}: Props) => (

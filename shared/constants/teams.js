@@ -1,6 +1,6 @@
 // @flow
 import * as I from 'immutable'
-import * as ChatConstants from './chat'
+import * as Types from './types/chat'
 import {userIsInTeam, usernameSelector} from './selectors'
 import * as RPCTypes from './types/flow-types'
 import invert from 'lodash/invert'
@@ -26,7 +26,7 @@ export type CreateNewTeam = NoErrorTypedAction<
 export type CreateNewTeamFromConversation = NoErrorTypedAction<
   'teams:createNewTeamFromConversation',
   {
-    conversationIDKey: ChatConstants.ConversationIDKey,
+    conversationIDKey: Types.ConversationIDKey,
     name: string,
   }
 >
@@ -175,17 +175,17 @@ export type SetPublicityTeam = NoErrorTypedAction<
 
 export type UpdateChannelName = NoErrorTypedAction<
   'teams:updateChannelName',
-  {conversationIDKey: ChatConstants.ConversationIDKey, newChannelName: string}
+  {conversationIDKey: Types.ConversationIDKey, newChannelName: string}
 >
 
 export type UpdateTopic = NoErrorTypedAction<
   'teams:updateTopic',
-  {conversationIDKey: ChatConstants.ConversationIDKey, newTopic: string}
+  {conversationIDKey: Types.ConversationIDKey, newTopic: string}
 >
 
 export type DeleteChannel = NoErrorTypedAction<
   'teams:deleteChannel',
-  {conversationIDKey: ChatConstants.ConversationIDKey}
+  {conversationIDKey: Types.ConversationIDKey}
 >
 
 export type SaveChannelMembership = NoErrorTypedAction<
@@ -210,9 +210,9 @@ export const typeToLabel: TypeMap = {
 }
 
 type _State = {
-  convIDToChannelInfo: I.Map<ChatConstants.ConversationIDKey, ChannelInfo>,
+  convIDToChannelInfo: I.Map<Types.ConversationIDKey, ChannelInfo>,
   sawChatBanner: boolean,
-  teamNameToConvIDs: I.Map<Teamname, I.Set<ChatConstants.ConversationIDKey>>,
+  teamNameToConvIDs: I.Map<Teamname, I.Set<Types.ConversationIDKey>>,
   teamNameToInvites: I.Map<
     Teamname,
     I.Set<
@@ -228,7 +228,7 @@ type _State = {
   teamNameToMemberUsernames: I.Map<Teamname, I.Set<string>>,
   teamNameToImplicitAdminUsernames: I.Map<Teamname, I.Set<string>>,
   teamNameToLoading: I.Map<Teamname, boolean>,
-  teamNameToRequests: I.Map<Teamname, I.List<string>>,
+  teamNameToRequests: I.Map<Teamname, I.Set<RequestInfo>>,
   teamNameToTeamSettings: I.Map<Teamname, TeamSettings>,
   teamNameToPublicitySettings: I.Map<Teamname, _PublicitySettings>,
   teamnames: I.Set<Teamname>,
@@ -267,19 +267,19 @@ const getConversationIDKeyFromChannelName = (state: TypedState, channelname: str
 const getConvIdsFromTeamName = (state: TypedState, teamname: string) =>
   state.entities.teams.teamNameToConvIDs.get(teamname, I.Set())
 
-const getTeamNameFromConvID = (state: TypedState, conversationIDKey: ChatConstants.ConversationIDKey) =>
+const getTeamNameFromConvID = (state: TypedState, conversationIDKey: Types.ConversationIDKey) =>
   state.entities.teams.teamNameToConvIDs.findKey(i => i.has(conversationIDKey))
 
-const getChannelNameFromConvID = (state: TypedState, conversationIDKey: ChatConstants.ConversationIDKey) =>
+const getChannelNameFromConvID = (state: TypedState, conversationIDKey: Types.ConversationIDKey) =>
   state.entities.teams.convIDToChannelInfo.getIn([conversationIDKey, 'channelname'], null)
 
-const getTopicFromConvID = (state: TypedState, conversationIDKey: ChatConstants.ConversationIDKey) =>
+const getTopicFromConvID = (state: TypedState, conversationIDKey: Types.ConversationIDKey) =>
   state.entities.teams.convIDToChannelInfo.getIn([conversationIDKey, 'description'], null)
 
-const getParticipants = (state: TypedState, conversationIDKey: ChatConstants.ConversationIDKey) =>
+const getParticipants = (state: TypedState, conversationIDKey: Types.ConversationIDKey) =>
   state.entities.getIn(['teams', 'convIDToChannelInfo', conversationIDKey, 'participants'], I.Set())
 
-const getMembersFromConvID = (state: TypedState, conversationIDKey: ChatConstants.ConversationIDKey) => {
+const getMembersFromConvID = (state: TypedState, conversationIDKey: Types.ConversationIDKey) => {
   const teamname = getTeamNameFromConvID(state, conversationIDKey)
   if (teamname) {
     return state.entities.teams.teamNameToMembers.get(teamname, I.Set())
@@ -287,7 +287,7 @@ const getMembersFromConvID = (state: TypedState, conversationIDKey: ChatConstant
   return I.Set()
 }
 
-const getYourRoleFromConvID = (state: TypedState, conversationIDKey: ChatConstants.ConversationIDKey) => {
+const getYourRoleFromConvID = (state: TypedState, conversationIDKey: Types.ConversationIDKey) => {
   const members = getMembersFromConvID(state, conversationIDKey)
   const you = usernameSelector(state)
   const youAsMember = members.find(m => m.username === you)

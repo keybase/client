@@ -1,46 +1,45 @@
 // @flow
-import * as Constants from '../../constants/push'
-import * as Creators from './creators'
-import * as ChatTypes from '../../constants/types/flow-types-chat'
-import * as Saga from '../../util/saga'
-import * as RPCTypes from '../../constants/types/flow-types'
-import {isMobile} from '../../constants/platform'
-import {chatTab} from '../../constants/tabs'
-import {navigateTo} from '../route-tree'
-import {createShowUserProfile} from '../profile-gen'
+import * as PushGen from './push-gen'
+import * as ChatTypes from '../constants/types/flow-types-chat'
+import * as Saga from '../util/saga'
+import * as RPCTypes from '../constants/types/flow-types'
+import {isMobile} from '../constants/platform'
+import {chatTab} from '../constants/tabs'
+import {navigateTo} from './route-tree'
+import {createShowUserProfile} from './profile-gen'
 import {
   requestPushPermissions,
   configurePush,
   displayNewMessageNotification,
   setNoPushPermissions,
-} from '../platform-specific'
+} from './platform-specific'
 
-import type {TypedState} from '../../constants/reducer'
+import type {TypedState} from '../constants/reducer'
 
 const pushSelector = ({push: {token, tokenType}}: TypedState) => ({token, tokenType})
 const deviceIDSelector = ({config: {deviceID}}: TypedState) => deviceID
 
 function* permissionsNoSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.call(setNoPushPermissions)
-  yield Saga.put({type: Constants.permissionsRequesting, payload: false})
-  yield Saga.put({type: Constants.permissionsPrompt, payload: false})
+  yield Saga.put(PushGen.createPermissionsRequesting({requesting: false}))
+  yield Saga.put(PushGen.createPermissionsPrompt({prompt: false}))
 }
 
 function* permissionsRequestSaga(): Saga.SagaGenerator<any, any> {
   try {
-    yield Saga.put({type: Constants.permissionsRequesting, payload: true})
+    yield Saga.put(PushGen.createPermissionsRequesting({requesting: true}))
 
     console.log('Requesting permissions')
     const permissions = yield Saga.call(requestPushPermissions)
     console.log('Permissions:', permissions)
     // TODO(gabriel): Set permissions we have in store, might want it at some point?
   } finally {
-    yield Saga.put({type: Constants.permissionsRequesting, payload: false})
-    yield Saga.put({type: Constants.permissionsPrompt, payload: false})
+    yield Saga.put(PushGen.createPermissionsRequesting({requesting: false}))
+    yield Saga.put(PushGen.createPermissionsPrompt({prompt: false}))
   }
 }
 
-function* pushNotificationSaga(notification: Constants.PushNotification): Saga.SagaGenerator<any, any> {
+function* pushNotificationSaga(notification: PushGen.NotificationPayload): Saga.SagaGenerator<any, any> {
   console.log('Push notification:', notification)
   const payload = notification.payload
   if (payload && payload.userInteraction) {
@@ -48,13 +47,10 @@ function* pushNotificationSaga(notification: Constants.PushNotification): Saga.S
       console.info('Push notification: silent notification received')
       try {
         const unboxRes = yield Saga.call(ChatTypes.localUnboxMobilePushNotificationRpcPromise, {
-          // $FlowIssue wants all these to be non null
-          param: {
-            convID: payload.c,
-            membersType: payload.t,
-            payload: payload.m,
-            pushIDs: payload.p,
-          },
+          convID: payload.c,
+          membersType: payload.t,
+          payload: payload.m,
+          pushIDs: payload.p,
         })
         if (payload.x && payload.x > 0) {
           const num = payload.x
@@ -92,10 +88,10 @@ function* pushNotificationSaga(notification: Constants.PushNotification): Saga.S
   }
 }
 
-function* pushTokenSaga(action: Constants.PushToken): Saga.SagaGenerator<any, any> {
+function* pushTokenSaga(action: PushGen.PushTokenPayload): Saga.SagaGenerator<any, any> {
   const {token, tokenType} = action.payload
-  yield Saga.put(Creators.updatePushToken(token, tokenType))
-  yield Saga.put(Creators.savePushToken())
+  yield Saga.put(PushGen.createUpdatePushToken({token, tokenType}))
+  yield Saga.put(PushGen.createSavePushToken())
 }
 
 function* savePushTokenSaga(): Saga.SagaGenerator<any, any> {
@@ -116,10 +112,8 @@ function* savePushTokenSaga(): Saga.SagaGenerator<any, any> {
     ]
 
     yield Saga.call(RPCTypes.apiserverPostRpcPromise, {
-      param: {
-        endpoint: 'device/push_token',
-        args: args,
-      },
+      endpoint: 'device/push_token',
+      args: args,
     })
   } catch (err) {
     console.warn('Error trying to save push token:', err)
@@ -154,10 +148,8 @@ function* deletePushTokenSaga(): Saga.SagaGenerator<any, any> {
     const args = [{key: 'device_id', value: deviceID}, {key: 'token_type', value: tokenType}]
 
     yield Saga.call(RPCTypes.apiserverDeleteRpcPromise, {
-      param: {
-        endpoint: 'device/push_token',
-        args: args,
-      },
+      endpoint: 'device/push_token',
+      args: args,
     })
   } catch (err) {
     console.warn('Error trying to delete push token:', err)
@@ -165,12 +157,12 @@ function* deletePushTokenSaga(): Saga.SagaGenerator<any, any> {
 }
 
 function* pushSaga(): Saga.SagaGenerator<any, any> {
-  yield Saga.safeTakeLatest(Constants.permissionsRequest, permissionsRequestSaga)
-  yield Saga.safeTakeLatest(Constants.permissionsNo, permissionsNoSaga)
-  yield Saga.safeTakeLatest(Constants.pushToken, pushTokenSaga)
-  yield Saga.safeTakeLatest(Constants.savePushToken, savePushTokenSaga)
-  yield Saga.safeTakeLatest(Constants.configurePush, configurePushSaga)
-  yield Saga.safeTakeEvery(Constants.pushNotification, pushNotificationSaga)
+  yield Saga.safeTakeLatest(PushGen.permissionsRequest, permissionsRequestSaga)
+  yield Saga.safeTakeLatest(PushGen.permissionsNo, permissionsNoSaga)
+  yield Saga.safeTakeLatest(PushGen.pushToken, pushTokenSaga)
+  yield Saga.safeTakeLatest(PushGen.savePushToken, savePushTokenSaga)
+  yield Saga.safeTakeLatest(PushGen.configurePush, configurePushSaga)
+  yield Saga.safeTakeEvery(PushGen.notification, pushNotificationSaga)
 }
 
 export default pushSaga

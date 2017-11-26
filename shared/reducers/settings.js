@@ -1,61 +1,19 @@
 // @flow
-import * as CommonConstants from '../constants/common'
+import * as SettingsGen from '../actions/settings-gen'
+import * as Types from '../constants/types/settings'
 import * as Constants from '../constants/settings'
-import HiddenString from '../util/hidden-string'
 
-import type {Actions, State} from '../constants/settings'
-
-const initialState: State = {
-  allowDeleteAccount: false,
-  email: {
-    emails: [],
-    error: null,
-    newEmail: '',
-  },
-  invites: {
-    acceptedInvites: [],
-    error: null,
-    pendingInvites: [],
-  },
-  notifications: {
-    allowEdit: false,
-    groups: {
-      email: {
-        settings: null,
-        unsubscribedFromAll: false,
-      },
-    },
-  },
-  passphrase: {
-    error: null,
-    hasPGPKeyOnServer: null,
-    newPassphrase: new HiddenString(''),
-    newPassphraseConfirm: new HiddenString(''),
-    newPassphraseConfirmError: null,
-    newPassphraseError: null,
-  },
-  push: {
-    permissionsPrompt: false,
-    permissionsRequesting: false,
-    token: '',
-    tokenType: '',
-  },
-  waitingForResponse: false,
-}
-
-function reducer(
-  state: State = initialState,
-  action: Actions | {type: 'common:resetStore', payload: void}
-): State {
+function reducer(state: Types.State = Constants.initialState, action: SettingsGen.Actions): Types.State {
   switch (action.type) {
-    case CommonConstants.resetStore:
-      return {...initialState}
-    case Constants.setAllowDeleteAccount:
+    case SettingsGen.resetStore:
+      return {...Constants.initialState}
+    case SettingsGen.setAllowDeleteAccount:
+      const {allow} = action.payload
       return {
-        ...initialState,
-        allowDeleteAccount: action.payload,
+        ...Constants.initialState,
+        allowDeleteAccount: allow,
       }
-    case Constants.notificationsToggle:
+    case SettingsGen.notificationsToggle:
       if (!state.notifications.groups.email) {
         console.log('Warning: trying to toggle while not loaded')
         return state
@@ -101,7 +59,7 @@ function reducer(
           },
         },
       }
-    case Constants.notificationsSaved:
+    case SettingsGen.notificationsSaved:
       return {
         ...state,
         notifications: {
@@ -109,25 +67,27 @@ function reducer(
           allowEdit: true,
         },
       }
-    case Constants.notificationsRefreshed:
+    case SettingsGen.notificationsRefreshed:
+      const {notifications} = action.payload
       return {
         ...state,
         notifications: {
           allowEdit: true,
           groups: {
-            ...action.payload,
+            ...notifications,
           },
         },
       }
-    case Constants.invitesRefreshed:
+    case SettingsGen.invitesRefreshed:
+      const {invites} = action.payload
       return {
         ...state,
         invites: {
           ...state.invites,
-          ...action.payload,
+          ...invites,
         },
       }
-    case Constants.invitesSent:
+    case SettingsGen.invitesSent:
       // TODO this doesn't do anything with the actual valid payload
       return {
         ...state,
@@ -136,7 +96,7 @@ function reducer(
           error: action.error ? action.payload.error : undefined,
         },
       }
-    case Constants.invitesClearError:
+    case SettingsGen.invitesClearError:
       return {
         ...state,
         invites: {
@@ -144,69 +104,79 @@ function reducer(
           error: null,
         },
       }
-    case Constants.loadedSettings: {
+    case SettingsGen.loadedSettings: {
+      const {emailState} = action.payload
       return {
         ...state,
         email: {
-          ...action.payload,
+          ...emailState,
         },
       }
     }
-    case Constants.onChangeNewPassphrase:
+    case SettingsGen.onChangeNewPassphrase:
+      const {passphrase} = action.payload
       return {
         ...state,
         passphrase: {
           ...state.passphrase,
           error: null,
-          newPassphrase: action.payload.passphrase,
+          newPassphrase: passphrase,
         },
       }
-    case Constants.onChangeNewPassphraseConfirm:
+    case SettingsGen.onChangeNewPassphraseConfirm: {
+      const {passphrase} = action.payload
       return {
         ...state,
         passphrase: {
           ...state.passphrase,
           error: null,
-          newPassphraseConfirm: action.payload.passphrase,
+          newPassphraseConfirm: passphrase,
         },
       }
-    case Constants.onUpdatedPGPSettings:
+    }
+    case SettingsGen.onUpdatedPGPSettings:
+      const {hasKeys} = action.payload
       return {
         ...state,
         passphrase: {
           ...state.passphrase,
-          hasPGPKeyOnServer: action.payload.hasKeys,
+          hasPGPKeyOnServer: hasKeys,
         },
       }
-    case Constants.onUpdatePassphraseError:
+    case SettingsGen.onUpdatePassphraseError:
+      const {error} = action.payload
       return {
         ...state,
         passphrase: {
           ...state.passphrase,
-          error: action.payload.error,
+          error,
         },
       }
-    case Constants.onChangeNewEmail:
+    case SettingsGen.onChangeNewEmail:
+      const {email} = action.payload
       return {
         ...state,
         email: {
           ...state.email,
           error: null,
-          newEmail: action.payload.email,
+          newEmail: email,
         },
       }
-    case Constants.onUpdateEmailError:
+    case SettingsGen.onUpdateEmailError: {
+      const {error} = action.payload
       return {
         ...state,
         email: {
           ...state.email,
-          error: action.payload.error,
+          error,
         },
       }
-    case Constants.waitingForResponse:
+    }
+    case SettingsGen.waitingForResponse:
+      const {waiting} = action.payload
       return {
         ...state,
-        waitingForResponse: action.payload,
+        waitingForResponse: waiting,
       }
   }
   return state

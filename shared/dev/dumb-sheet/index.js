@@ -1,9 +1,9 @@
 // @flow
 import * as React from 'react'
+import * as DevGen from '../../actions/dev-gen'
 import Render from './render'
 import {connect} from 'react-redux'
 import {navigateUp} from '../../actions/route-tree'
-import {updateDebugConfig} from '../../actions/dev'
 import {isTesting} from '../../local-debug'
 
 function DumbSheet(props) {
@@ -27,6 +27,6 @@ export default connect(
   }),
   (dispatch: any) => ({
     onBack: () => dispatch(navigateUp()),
-    onDebugConfigChange: value => dispatch(updateDebugConfig(value)),
+    onDebugConfigChange: config => dispatch(DevGen.createUpdateDebugConfig({config})),
   })
 )(DumbSheet)

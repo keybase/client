@@ -1,5 +1,6 @@
 // @flow
 import * as ChatConstants from '../../../constants/chat'
+import * as Types from '../../../constants/types/chat'
 import * as ChatGen from '../../../actions/chat-gen'
 import * as React from 'react'
 import MessagePopupHeader from './popup-header'
@@ -39,7 +40,7 @@ function _attachmentMessagePopupHelper({
   onShareAttachment,
   onHidden,
 }: AttachmentProps) {
-  const attachment: ChatConstants.AttachmentMessage = message
+  const attachment: Types.AttachmentMessage = message
   const items = []
   let itemType = 'File'
   if (attachment.filename != null && ChatConstants.isImageFileName(attachment.filename)) itemType = 'Image'
@@ -113,8 +114,8 @@ function MessagePopup(props: TextProps | AttachmentProps) {
 
 type MessagePopupRouteProps = RouteProps<
   {
-    message: ChatConstants.ServerMessage,
-    onShowEditor: (message: ChatConstants.TextMessage) => void,
+    message: Types.ServerMessage,
+    onShowEditor: (message: Types.TextMessage) => void,
   },
   {}
 >
@@ -130,7 +131,7 @@ export default connect(
     }
   },
   (dispatch: Dispatch, {routeProps, navigateUp}: OwnProps) => ({
-    onDeleteMessage: (message: ChatConstants.ServerMessage) => {
+    onDeleteMessage: (message: Types.ServerMessage) => {
       dispatch(ChatGen.createDeleteMessage({message}))
     },
     onHidden: () => dispatch(navigateUp()),

@@ -1,4 +1,6 @@
 // @flow
+import * as AppGen from '../app-gen'
+import * as Types from '../../constants/types/profile'
 import * as Constants from '../../constants/profile'
 import * as ProfileGen from '../profile-gen'
 import * as Saga from '../../util/saga'
@@ -17,12 +19,13 @@ import {pgpSaga} from './pgp'
 import {proofsSaga} from './proofs'
 
 import type {TypedState} from '../../constants/reducer'
-import type {AppLink} from '../../constants/app'
 
 function* _editProfile(action: ProfileGen.EditProfilePayload): Saga.SagaGenerator<any, any> {
   const {bio, fullname, location} = action.payload
   yield Saga.call(RPCTypes.userProfileEditRpcPromise, {
-    param: {bio, fullName: fullname, location},
+    bio,
+    fullName: fullname,
+    location,
   })
   // If the profile tab remained on the edit profile screen, navigate back to the top level.
   yield Saga.put(putActionIfOnPath([peopleTab, 'editProfile'], navigateTo([], [peopleTab]), [peopleTab]))
@@ -125,7 +128,7 @@ function* _onClickFollowing(action: ProfileGen.OnClickFollowingPayload): Saga.Sa
 function* _submitRevokeProof(action: ProfileGen.SubmitRevokeProofPayload): Saga.SagaGenerator<any, any> {
   try {
     yield Saga.put(ProfileGen.createRevokeWaiting({waiting: true}))
-    yield Saga.call(RPCTypes.revokeRevokeSigsRpcPromise, {param: {sigIDQueries: [action.payload.proofId]}})
+    yield Saga.call(RPCTypes.revokeRevokeSigsRpcPromise, {sigIDQueries: [action.payload.proofId]})
     yield Saga.put(ProfileGen.createRevokeWaiting({waiting: false}))
     yield Saga.put(ProfileGen.createFinishRevoking())
   } catch (error) {
@@ -147,7 +150,7 @@ function _openURLIfNotNull(nullableThing, url, metaText): void {
   openURL(url)
 }
 
-function* _onAppLink(action: AppLink): Saga.SagaGenerator<any, any> {
+function* _onAppLink(action: AppGen.LinkPayload): Saga.SagaGenerator<any, any> {
   const link = action.payload.link
   let url
   try {
@@ -165,7 +168,7 @@ function* _onAppLink(action: AppLink): Saga.SagaGenerator<any, any> {
 
 function* _outputInstructionsActionLink(): Saga.SagaGenerator<any, any> {
   const getProfile = (state: TypedState) => state.profile
-  const profile: Constants.State = (yield Saga.select(getProfile): any)
+  const profile: Types.State = (yield Saga.select(getProfile): any)
   switch (profile.platform) {
     case 'twitter':
       yield Saga.call(
@@ -207,7 +210,7 @@ function* _profileSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEvery(ProfileGen.outputInstructionsActionLink, _outputInstructionsActionLink)
   yield Saga.safeTakeEvery(ProfileGen.showUserProfile, _showUserProfile)
   yield Saga.safeTakeEvery(ProfileGen.submitRevokeProof, _submitRevokeProof)
-  yield Saga.safeTakeEvery('app:link', _onAppLink)
+  yield Saga.safeTakeEvery(AppGen.link, _onAppLink)
 }
 
 function* profileSaga(): Saga.SagaGenerator<any, any> {

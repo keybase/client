@@ -1,0 +1,49 @@
+{
+  "prelude": [
+    "import * as Constants from '../constants/search'"
+  ],
+  "actions": {
+    "search": {
+      "term": "string",
+      "service": "Constants.Service",
+      "searchKey": "string"
+    },
+    "addResultsToUserInput": {
+      "searchKey": "string",
+      "searchResults": "Array<Constants.SearchResultId>"
+    },
+    "removeResultsToUserInput": {
+      "searchKey": "string",
+      "searchResults": "Array<Constants.SearchResultId>"
+    },
+    "setUserInputItems": {
+      "searchKey": "string",
+      "searchResults": "Array<Constants.SearchResultId>"
+    },
+    "userInputItemsUpdated": {
+      "searchKey": "string",
+      "userInputItemIds": "Array<Constants.SearchResultId>"
+    },
+    "addClickedFromUserInput": {
+      "searchKey": "string"
+    },
+    "clearSearchResults": {
+      "searchKey": "string"
+    },
+    "updateSelectedSearchResult": {
+      "searchKey": "string",
+      "id": "?Constants.SearchResultId"
+    },
+    "searchSuggestions": {
+      "maxUsers?": "number",
+      "searchKey": "string"
+    },
+    "finishedSearch": {
+      "searchResults": "Array<Constants.SearchResultId>",
+      "searchResultTerm": "string",
+      "service": "Constants.Service",
+      "searchKey": "string",
+      "searchShowingSuggestions?": "boolean"
+    }
+  }
+}

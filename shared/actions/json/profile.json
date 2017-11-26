@@ -1,8 +1,6 @@
 {
   "prelude": [
-    "import * as Constants from '../constants/profile'",
-    "import * as RPCTypes from '../constants/types/flow-types'",
-    "import * as More from '../constants/types/more'"
+    "import * as Types from '../constants/types/profile'"
   ],
   "actions": {
     "addProof": {
@@ -58,9 +56,9 @@
       "errorCode?": "?number"
     },
     "updatePgpInfo": {
-      "info": "$Shape<Constants.PgpInfo>",
+      "info": "$Shape<Types.PgpInfo>",
       "canError": {
-        "error": "Constants.PgpInfoError"
+        "error": "Types.PgpInfoError"
       }
     },
     "updatePgpPublicKey": {

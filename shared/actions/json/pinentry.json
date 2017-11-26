@@ -1,0 +1,26 @@
+{
+  "prelude": [
+    "import * as Constants from '../constants/pinentry'"
+  ],
+  "actions": {
+    "registerPinentryListener": {
+      "started": "boolean"
+    },
+    "newPinentry": {
+      "features": "RPCTypes.GUIEntryFeatures",
+      "type": "RPCTypes.PassphraseType",
+      "sessionID": "number",
+      "prompt": "string",
+      "windowTitle": "string",
+      "submitLabel": "?string",
+      "cancelLabel": "?string",
+      "retryLabel": "?string"
+    },
+    "onSubmit": {
+      "sessionID": "number"
+    },
+    "onCancel": {
+      "sessionID": "number"
+    }
+  }
+}

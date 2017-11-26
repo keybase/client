@@ -8,7 +8,7 @@ import {isWindows} from '../../constants/platform'
 function* _listSaga(action: KBFSGen.ListPayload): Saga.SagaGenerator<any, any> {
   try {
     const result: ?RPCTypes.ListResult = yield Saga.call(RPCTypes.fsListRpcPromise, {
-      param: {path: action.payload.path},
+      path: action.payload.path,
     })
 
     if (result) {

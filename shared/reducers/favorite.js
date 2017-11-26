@@ -1,52 +1,21 @@
 // @flow
 import * as Constants from '../constants/favorite'
+import * as Types from '../constants/types/favorite'
+import * as FavoriteGen from '../actions/favorite-gen'
 import * as KBFSGen from '../actions/kbfs-gen'
 
-const initialState: Constants.State = {
-  folderState: {
-    private: {
-      isPublic: false,
-      tlfs: [],
-    },
-    privateBadge: 0,
-    public: {
-      isPublic: true,
-      tlfs: [],
-    },
-    publicBadge: 0,
-  },
-  fuseInstalling: false,
-  fuseStatus: null,
-  fuseStatusLoading: false,
-  kbfsInstalling: false,
-  kbfsOpening: false,
-  kbfsStatus: {
-    isAsyncWriteHappening: false,
-  },
-  kextPermissionError: false,
-  viewState: {
-    privateIgnoredOpen: false,
-    publicIgnoredOpen: false,
-    showingPrivate: true,
-  },
-}
-
 export default function(
-  state: Constants.State = initialState,
-  action: Constants.FavoriteAction | KBFSGen.Actions | {type: 'common:resetStore', payload: void}
-): Constants.State {
+  state: Types.State = Constants.initialState,
+  action: FavoriteGen.Actions | KBFSGen.Actions
+): Types.State {
   switch (action.type) {
-    case KBFSGen.resetStore:
-      return {...initialState}
+    case FavoriteGen.resetStore:
+      return {...Constants.initialState}
 
-    case Constants.markTLFCreated: {
-      if (action.error) {
-        break
-      }
+    case FavoriteGen.markTLFCreated: {
       const folderCreated = action.payload.folder
       const stripMetaForCreatedFolder = f =>
         f.sortName === folderCreated.sortName && f.meta === 'new' ? {...f, meta: null} : f
-      // TODO(mm) this is ugly. Would be cleaner with immutable
       if (folderCreated.isPublic) {
         return {
           ...state,
@@ -72,19 +41,13 @@ export default function(
       }
     }
 
-    case Constants.favoriteListed:
-      if (action.error) {
-        break
-      }
+    case FavoriteGen.favoriteListed:
       return {
         ...state,
         folderState: action.payload.folders,
       }
 
-    case Constants.favoriteSwitchTab:
-      if (action.error) {
-        break
-      }
+    case FavoriteGen.favoriteSwitchTab:
       return {
         ...state,
         viewState: {
@@ -93,10 +56,7 @@ export default function(
         },
       }
 
-    case Constants.favoriteToggleIgnored:
-      if (action.error) {
-        break
-      }
+    case FavoriteGen.favoriteToggleIgnored:
       return {
         ...state,
         viewState: {
@@ -110,10 +70,11 @@ export default function(
         },
       }
 
-    case Constants.kbfsStatusUpdated:
+    case FavoriteGen.kbfsStatusUpdated:
+      const {status} = action.payload
       return {
         ...state,
-        kbfsStatus: action.payload,
+        kbfsStatus: status,
       }
 
     case KBFSGen.fuseStatus:
