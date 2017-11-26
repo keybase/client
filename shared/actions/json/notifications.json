@@ -1,6 +1,6 @@
 {
   "prelude": [
-    "import * as Constants from '../constants/notifications'"
+    "import * as Types from '../constants/types/notifications'"
   ],
   "actions": {
     "log": {
@@ -8,7 +8,7 @@
       "text": "string"
     },
     "badgeApp": {
-      "key": "Constants.NotificationKeys",
+      "key": "Types.NotificationKeys",
       "on": "boolean",
       "count?": "number"
     },

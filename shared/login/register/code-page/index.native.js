@@ -29,7 +29,7 @@ import {
 import {globalColors, globalMargins, globalStyles} from '../../../styles'
 
 import type {IconType} from '../../../common-adapters/icon'
-import type {Mode} from '../../../constants/login'
+import type {Mode} from '../../../constants/types/login'
 import type {Props} from '.'
 
 class CodePage extends Component<Props> {

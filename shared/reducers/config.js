@@ -1,4 +1,5 @@
 // @flow
+import * as Types from '../constants/types/config'
 import * as Constants from '../constants/config'
 import * as ConfigGen from '../actions/config-gen'
 import * as AppGen from '../actions/app-gen'
@@ -15,9 +16,9 @@ function arrayToObjectSet(arr: ?Array<string>): {[key: string]: true} {
 }
 
 export default function(
-  state: Constants.State = Constants.initialState,
+  state: Types.State = Constants.initialState,
   action: ConfigGen.Actions | AppGen.ChangedFocusPayload | AppGen.ChangedActivePayload
-): Constants.State {
+): Types.State {
   switch (action.type) {
     case ConfigGen.resetStore:
       return {

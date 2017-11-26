@@ -4,7 +4,7 @@ import * as Types from '../../../../constants/types/chat'
 import * as ChatGen from '../../../../actions/chat-gen'
 import Notifications from '.'
 import {compose, branch, renderNothing, connect, type TypedState} from '../../../../util/container'
-import {type DeviceType} from '../../../../constants/devices'
+import {type DeviceType} from '../../../../constants/types/devices'
 import {type StateProps, type DispatchProps} from './container'
 
 const serverStateToProps = (notifications: Types.NotificationsState, type: 'desktop' | 'mobile') => {

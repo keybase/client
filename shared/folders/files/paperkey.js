@@ -1,5 +1,5 @@
 // @flow
-import * as Constants from '../../constants/unlock-folders'
+import * as Types from '../../constants/types/unlock-folders'
 import * as UnlockFoldersGen from '../../actions/unlock-folders-gen'
 import * as Creators from '../../actions/unlock-folders'
 import HiddenString from '../../util/hidden-string'
@@ -14,7 +14,7 @@ type Props = {
   onBack: () => void,
   onBackFromPaperKey: () => void,
   toPaperKeyInput: () => void,
-  phase: $PropertyType<Constants.State, 'phase'>,
+  phase: $PropertyType<Types.State, 'phase'>,
   checkPaperKey: (paperKey: HiddenString) => void,
 }
 

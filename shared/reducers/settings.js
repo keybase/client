@@ -1,11 +1,9 @@
 // @flow
 import * as SettingsGen from '../actions/settings-gen'
+import * as Types from '../constants/types/settings'
 import * as Constants from '../constants/settings'
 
-function reducer(
-  state: Constants.State = Constants.initialState,
-  action: SettingsGen.Actions
-): Constants.State {
+function reducer(state: Types.State = Constants.initialState, action: SettingsGen.Actions): Types.State {
   switch (action.type) {
     case SettingsGen.resetStore:
       return {...Constants.initialState}

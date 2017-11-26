@@ -1,12 +1,13 @@
 // @flow
 import * as UnlockFoldersGen from '../actions/unlock-folders-gen'
 import * as Constants from '../constants/unlock-folders'
+import * as Types from '../constants/types/unlock-folders'
 import {toDeviceType} from '../constants/devices'
 
 export default function(
-  state: Constants.State = Constants.initialState,
+  state: Types.State = Constants.initialState,
   action: UnlockFoldersGen.Actions
-): Constants.State {
+): Types.State {
   switch (action.type) {
     case UnlockFoldersGen.resetStore:
       return {

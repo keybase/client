@@ -11,7 +11,8 @@ import * as RPCChatTypes from '../../constants/types/flow-types-chat'
 import * as RPCTypes from '../../constants/types/flow-types'
 import * as Saga from '../../util/saga'
 import * as Creators from './creators'
-import * as RouteTreeConstants from '../../constants/route-tree'
+import * as RouteTypes from '../../constants/types/route-tree'
+import * as RouteConstants from '../../constants/route-tree'
 import * as ChatGen from '../chat-gen'
 import engine from '../../engine'
 import {replaceEntity} from '../entities'
@@ -650,7 +651,7 @@ function* _badgeAppForTeams(action: Constants.BadgeAppForTeams) {
 }
 
 let _wasOnTeamsTab = false
-const _onTabChange = (action: RouteTreeConstants.SwitchTo) => {
+const _onTabChange = (action: RouteTypes.SwitchTo) => {
   const list = I.List(action.payload.path)
   const root = list.first()
 
@@ -697,7 +698,7 @@ const teamsSaga = function*(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure('teams:updateChannelName', _updateChannelname, last)
   yield Saga.safeTakeEvery('teams:deleteChannel', _deleteChannel)
   yield Saga.safeTakeEvery('teams:badgeAppForTeams', _badgeAppForTeams)
-  yield Saga.safeTakeEveryPure(RouteTreeConstants.switchTo, _onTabChange)
+  yield Saga.safeTakeEveryPure(RouteConstants.switchTo, _onTabChange)
   yield Saga.safeTakeEvery('teams:inviteToTeamByPhone', _inviteToTeamByPhone)
   yield Saga.safeTakeEvery('teams:setPublicityMember', _setPublicityMember)
   yield Saga.safeTakeEvery('teams:setPublicityTeam', _setPublicityTeam)

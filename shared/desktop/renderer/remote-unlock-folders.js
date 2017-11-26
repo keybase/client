@@ -1,8 +1,7 @@
 // @flow
 import React, {Component} from 'react'
 import RemoteComponent from './remote-component'
-import {bindActionCreators} from 'redux'
-import {connect} from 'react-redux'
+import {connect, type TypedState} from '../../util/container'
 import {registerRekeyListener, close} from '../../actions/unlock-folders'
 
 type Props = {
@@ -44,14 +43,9 @@ class RemoteUnlockFolders extends Component<Props> {
   }
 }
 
-export default connect(
-  (state: any) => state.unlockFolders,
-  (dispatch: any) =>
-    bindActionCreators(
-      {
-        registerRekeyListener,
-        close,
-      },
-      dispatch
-    )
-)(RemoteUnlockFolders)
+const mapStateToProps = (state: TypedState) => state.unlockFolders
+const mapDispatchToProps = (dispatch: Dispatch) => ({
+  registerRekeyListener: () => dispatch(registerRekeyListener()),
+  close: () => dispatch(close()),
+})
+export default connect(mapStateToProps, mapDispatchToProps)(RemoteUnlockFolders)

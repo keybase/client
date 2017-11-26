@@ -9,7 +9,7 @@ import * as TeamConstants from '../constants/teams'
 import * as Types from '../constants/types/chat'
 import * as RPCChatTypes from '../constants/types/flow-types-chat'
 import HiddenString from '../util/hidden-string'
-import {type DeviceType} from '../constants/devices'
+import {type DeviceType} from '../constants/types/devices'
 import {type Path} from '../route-tree'
 
 // Constants

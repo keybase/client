@@ -1,5 +1,6 @@
 // @flow
 import * as ChatTypes from '../constants/types/flow-types-chat'
+import * as Types from '../constants/types/settings'
 import * as Constants from '../constants/settings'
 import * as LoginGen from '../actions/login-gen'
 import * as SettingsGen from '../actions/settings-gen'
@@ -161,7 +162,7 @@ function* _refreshInvitesSaga(): Saga.SagaGenerator<any, any> {
   const pendingInvites = []
 
   results.invitations.forEach(i => {
-    const invite: Constants.Invitation = {
+    const invite: Types.Invitation = {
       created: i.ctime,
       email: i.email,
       id: i.invitation_id,

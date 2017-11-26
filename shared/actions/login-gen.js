@@ -5,7 +5,7 @@
 import * as I from 'immutable'
 import * as RPCTypes from '../constants/types/flow-types'
 import * as More from '../constants/types/more'
-import * as Constants from '../constants/login'
+import * as Types from '../constants/types/login'
 import HiddenString from '../util/hidden-string'
 
 // Constants
@@ -44,7 +44,7 @@ export const submitUsernameOrEmail = 'login:submitUsernameOrEmail'
 export const waitingForResponse = 'login:waitingForResponse'
 
 // Action Creators
-export const createAddNewDevice = (payload: {|+role: Constants.DeviceRole|}) => ({error: false, payload, type: addNewDevice})
+export const createAddNewDevice = (payload: {|+role: Types.DeviceRole|}) => ({error: false, payload, type: addNewDevice})
 export const createChooseGPGMethod = (payload: {|+exportKey: boolean|}) => ({error: false, payload, type: chooseGPGMethod})
 export const createClearQRCode = () => ({error: false, payload: undefined, type: clearQRCode})
 export const createConfiguredAccounts = (payload: {|+accounts: ?Array<{|hasStoredSecret: boolean, username: string|}>|}) => ({error: false, payload, type: configuredAccounts})
@@ -65,10 +65,10 @@ export const createReloginError = (payload: {|+error: Error|}) => ({error: true,
 export const createResetQRCodeScanned = () => ({error: false, payload: undefined, type: resetQRCodeScanned})
 export const createSelectDeviceId = (payload: {|+deviceId: string|}) => ({error: false, payload, type: selectDeviceId})
 export const createSetCameraBrokenMode = (payload: {|+broken: boolean|}) => ({error: false, payload, type: setCameraBrokenMode})
-export const createSetCodePageMode = (payload: {|+mode: Constants.Mode|}) => ({error: false, payload, type: setCodePageMode})
+export const createSetCodePageMode = (payload: {|+mode: Types.Mode|}) => ({error: false, payload, type: setCodePageMode})
 export const createSetDeletedSelf = (payload: {|+deletedUsername: string|}) => ({error: false, payload, type: setDeletedSelf})
-export const createSetMyDeviceCodeState = (payload: {|+state: Constants.DeviceRole|}) => ({error: false, payload, type: setMyDeviceCodeState})
-export const createSetOtherDeviceCodeState = (payload: {|+state: Constants.DeviceRole|}) => ({error: false, payload, type: setOtherDeviceCodeState})
+export const createSetMyDeviceCodeState = (payload: {|+state: Types.DeviceRole|}) => ({error: false, payload, type: setMyDeviceCodeState})
+export const createSetOtherDeviceCodeState = (payload: {|+state: Types.DeviceRole|}) => ({error: false, payload, type: setOtherDeviceCodeState})
 export const createSetQRCode = (payload: {|+qrCode: HiddenString|}) => ({error: false, payload, type: setQRCode})
 export const createSetRevokedSelf = (payload: {|+revoked: string|}) => ({error: false, payload, type: setRevokedSelf})
 export const createSetTextCode = (payload: {|+enterCodeErrorText: string, +textCode: HiddenString|}) => ({error: false, payload, type: setTextCode})
