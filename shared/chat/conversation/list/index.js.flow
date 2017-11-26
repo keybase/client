@@ -1,21 +1,21 @@
 // @flow
 import * as React from 'react'
 import {List} from 'immutable'
-import * as Constants from '../../../constants/chat'
+import * as Types from '../../../constants/types/chat'
 
 export type Props = {|
   messageKeys: List<string>,
   editLastMessageCounter: number,
   listScrollDownCounter: number,
-  onDeleteMessage: (message: Constants.Message) => void,
-  onEditMessage: (message: Constants.Message, body: string) => void,
+  onDeleteMessage: (message: Types.Message) => void,
+  onEditMessage: (message: Types.Message, body: string) => void,
   onFocusInput: () => void,
-  onDownloadAttachment: (messageKey: Constants.MessageKey) => void,
+  onDownloadAttachment: (messageKey: Types.MessageKey) => void,
   onLoadMoreMessages: () => void,
-  onMessageAction: (message: Constants.Message) => void,
+  onMessageAction: (message: Types.Message) => void,
   onOpenInFileUI: (filename: string) => void,
-  getMessageFromMessageKey: (messageKey: Constants.MessageKey) => ?Constants.Message,
-  selectedConversation: ?Constants.ConversationIDKey,
+  getMessageFromMessageKey: (messageKey: Types.MessageKey) => ?Types.Message,
+  selectedConversation: ?Types.ConversationIDKey,
   validated: boolean,
   you: string,
 |}

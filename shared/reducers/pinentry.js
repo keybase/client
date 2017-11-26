@@ -1,11 +1,12 @@
 // @flow
+import * as Types from '../constants/types/pinentry'
 import * as Constants from '../constants/pinentry'
 import * as PinentryGen from '../actions/pinentry-gen'
 
 export default function(
-  state: Constants.State = Constants.initialState,
+  state: Types.State = Constants.initialState,
   action: PinentryGen.Actions
-): Constants.State {
+): Types.State {
   switch (action.type) {
     case PinentryGen.resetStore:
       return {
@@ -26,15 +27,15 @@ export default function(
       if (state.started && sessionID != null) {
         const {features} = action.payload
         // Long form function to add annotation to help flow
-        const reducer = function(m: Constants.EnabledFeatures, f: string): Constants.EnabledFeatures {
+        const reducer = function(m: Types.EnabledFeatures, f: string): Types.EnabledFeatures {
           return {...m, [f]: features[f]}
         }
         // $FlowIssue
         const enabledFeatures: RPCTypes.GUIEntryFeatures = Object.keys(features)
           .filter((f: string) => features[f].allow)
-          .reduce(reducer, ({}: Constants.EnabledFeatures))
+          .reduce(reducer, ({}: Types.EnabledFeatures))
 
-        const newPinentryState: Constants.PinentryState = {
+        const newPinentryState: Types.PinentryState = {
           canceled: false,
           closed: false,
           submitted: false,

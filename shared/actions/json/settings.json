@@ -1,0 +1,73 @@
+{
+  "prelude": [
+    "import * as Types from '../constants/types/settings'",
+    "import HiddenString from '../util/hidden-string'"
+  ],
+  "actions": {
+    "dbNuke": {},
+    "deleteAccountForever": {},
+    "invitesClearError": {},
+    "invitesReclaim": {
+      "inviteId": "string"
+    },
+    "invitesReclaimed": {
+      "canError": {
+        "errorText": "string"
+      }
+    },
+    "invitesRefresh": {},
+    "invitesRefreshed": {
+      "invites": "Types.InvitesState"
+    },
+    "invitesSend": {
+      "email": "string",
+      "message": "?string"
+    },
+    "invitesSent": {
+      "canError": {
+        "error": "Error"
+      }
+    },
+    "loadSettings": {},
+    "loadedSettings": {
+      "emailState": "Types.EmailState"
+    },
+    "notificationsRefresh": {},
+    "notificationsRefreshed": {
+      "notifications": "Types.NotificationsState"
+    },
+    "notificationsSaved": {},
+    "notificationsToggle": {
+      "group": "string",
+      "name?": "?string"
+    },
+    "onChangeNewEmail": {
+      "email": "string"
+    },
+    "onChangeNewPassphrase": {
+      "passphrase": "HiddenString"
+    },
+    "onChangeNewPassphraseConfirm": {
+      "passphrase": "HiddenString"
+    },
+    "onChangeShowPassphrase": {},
+    "onSubmitNewEmail": {},
+    "onSubmitNewPassphrase": {},
+    "onUpdateEmailError": {
+      "error": "Error"
+    },
+    "onUpdatePGPSettings": {},
+    "onUpdatePassphraseError": {
+      "error": "Error"
+    },
+    "onUpdatedPGPSettings": {
+      "hasKeys": "boolean"
+    },
+    "setAllowDeleteAccount": {
+      "allow": "boolean"
+    },
+    "waitingForResponse": {
+      "waiting": "boolean"
+    }
+  }
+}

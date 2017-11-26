@@ -4,6 +4,7 @@ import * as I from 'immutable'
 import * as RPCChatTypes from '../../constants/types/flow-types-chat'
 import * as RPCTypes from '../../constants/types/flow-types'
 import * as Constants from '../../constants/chat'
+import * as Types from '../../constants/types/chat'
 import * as ChatGen from '../chat-gen'
 import * as Shared from './shared'
 import * as Saga from '../../util/saga'
@@ -25,11 +26,11 @@ function* deleteMessage(action: ChatGen.DeleteMessagePayload): SagaGenerator<any
   }
 
   const attrs = Constants.splitMessageIDKey(message.key)
-  const conversationIDKey: Constants.ConversationIDKey = attrs.conversationIDKey
-  const messageID: Constants.ParsedMessageID = Constants.parseMessageID(attrs.messageID)
+  const conversationIDKey: Types.ConversationIDKey = attrs.conversationIDKey
+  const messageID: Types.ParsedMessageID = Constants.parseMessageID(attrs.messageID)
   if (messageID.type === 'rpcMessageID') {
     // Deleting a server message.
-    const [inboxConvo, lastMessageID]: [Constants.InboxState, ?Constants.MessageID] = yield Saga.all([
+    const [inboxConvo, lastMessageID]: [Types.InboxState, ?Types.MessageID] = yield Saga.all([
       Saga.select(Constants.getInbox, conversationIDKey),
       Saga.select(Constants.lastMessageID, conversationIDKey),
     ])
@@ -88,7 +89,7 @@ function* postMessage(action: ChatGen.PostMessagePayload): SagaGenerator<any, an
     yield Saga.put(ChatGen.createExitSearch({skipSelectPreviousConversation: false}))
   }
 
-  const [inboxConvo, lastMessageID]: [Constants.InboxState, ?Constants.MessageID] = yield Saga.all([
+  const [inboxConvo, lastMessageID]: [Types.InboxState, ?Types.MessageID] = yield Saga.all([
     Saga.select(Constants.getInbox, conversationIDKey),
     Saga.select(Constants.lastMessageID, conversationIDKey),
   ])
@@ -97,7 +98,7 @@ function* postMessage(action: ChatGen.PostMessagePayload): SagaGenerator<any, an
   const author = yield Saga.select(usernameSelector)
   const outboxIDKey = Constants.outboxIDToKey(outboxID)
 
-  const message: Constants.TextMessage = {
+  const message: Types.TextMessage = {
     author,
     channelMention: 'None',
     conversationIDKey: conversationIDKey,
@@ -147,17 +148,17 @@ function* editMessage(action: ChatGen.EditMessagePayload): SagaGenerator<any, an
     console.warn('Editing non-text message:', message)
     return
   }
-  const textMessage = (message: Constants.TextMessage)
+  const textMessage = (message: Types.TextMessage)
   const attrs = Constants.splitMessageIDKey(textMessage.key)
-  const conversationIDKey: Constants.ConversationIDKey = attrs.conversationIDKey
-  const messageID: Constants.ParsedMessageID = Constants.parseMessageID(attrs.messageID)
+  const conversationIDKey: Types.ConversationIDKey = attrs.conversationIDKey
+  const messageID: Types.ParsedMessageID = Constants.parseMessageID(attrs.messageID)
   if (messageID.type !== 'rpcMessageID') {
     console.warn('Editing message without RPC message ID:', message, messageID)
     return
   }
   let supersedes: RPCChatTypes.MessageID = messageID.msgID
 
-  const [inboxConvo, lastMessageID]: [Constants.InboxState, ?Constants.MessageID] = yield Saga.all([
+  const [inboxConvo, lastMessageID]: [Types.InboxState, ?Types.MessageID] = yield Saga.all([
     Saga.select(Constants.getInbox, conversationIDKey),
     Saga.select(Constants.lastMessageID, conversationIDKey),
   ])

@@ -1,11 +1,11 @@
 // @flow
 import * as React from 'react'
-import * as Constants from '../constants/chat'
+import * as Types from '../constants/types/chat'
 import UserInput from '../search/user-input/container'
 import {compose, withState, lifecycle} from 'recompose'
 
 type OwnProps = {
-  selectedConversationIDKey: ?Constants.ConversationIDKey,
+  selectedConversationIDKey: ?Types.ConversationIDKey,
   onExitSearch: () => void,
 }
 

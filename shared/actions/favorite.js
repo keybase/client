@@ -1,5 +1,6 @@
 // @flow
 import * as Constants from '../constants/favorite'
+import * as Types from '../constants/types/favorite'
 import * as RPCTypes from '../constants/types/flow-types'
 import * as Saga from '../util/saga'
 import * as FavoriteGen from './favorite-gen'
@@ -75,7 +76,7 @@ function _folderSort(username, a, b) {
   return a.sortName.localeCompare(b.sortName)
 }
 
-function _folderToState(txt: string = '', username: string, loggedIn: boolean): Constants.FolderState {
+function _folderToState(txt: string = '', username: string, loggedIn: boolean): Types.FolderState {
   const folders: Array<FolderRPCWithMeta> = _getFavoritesRPCToFolders(txt, username, loggedIn)
 
   const converted = folders
@@ -201,7 +202,7 @@ function* _listSaga(): Saga.SagaGenerator<any, any> {
     })
     const username = yield select((state: TypedState) => state.config && state.config.username)
     const loggedIn = yield select((state: TypedState) => state.config && state.config.loggedIn)
-    const state: Constants.FolderState = _folderToState(
+    const state: Types.FolderState = _folderToState(
       results && results.body,
       username || '',
       loggedIn || false
@@ -217,7 +218,7 @@ function* _listSaga(): Saga.SagaGenerator<any, any> {
 // If the notify data has changed, show a popup
 let previousNotifyState = []
 
-function _notify(state: Constants.FolderState): void {
+function _notify(state: Types.FolderState): void {
   const total = state.publicBadge + state.privateBadge
 
   if (total) {

@@ -1,7 +1,7 @@
 // @flow
+import * as SettingsGen from '../../actions/settings-gen'
 import UpdateEmail from './index'
 import {navigateUp} from '../../actions/route-tree'
-import {onChangeNewEmail, onSubmitNewEmail} from '../../actions/settings'
 import {connect, type TypedState} from '../../util/container'
 
 const mapStateToProps = (state: TypedState) => {
@@ -24,8 +24,8 @@ const mapStateToProps = (state: TypedState) => {
 const mapDispatchToProps = (dispatch: Dispatch) => ({
   onBack: () => dispatch(navigateUp()),
   onSave: email => {
-    dispatch(onChangeNewEmail(email))
-    dispatch(onSubmitNewEmail())
+    dispatch(SettingsGen.createOnChangeNewEmail({email}))
+    dispatch(SettingsGen.createOnSubmitNewEmail())
   },
 })
 

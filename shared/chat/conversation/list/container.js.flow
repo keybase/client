@@ -1,28 +1,26 @@
 // @flow
 import {Component} from 'react'
 import {List} from 'immutable'
-import * as Constants from '../../../constants/chat'
+import * as Types from '../../../constants/types/chat'
 
 export type StateProps = {|
-  _supersedes: ?Constants.SupersedeInfo,
+  _supersedes: ?Types.SupersedeInfo,
   editLastMessageCounter: number,
   listScrollDownCounter: number,
   messageKeys: List<string>,
   onFocusInput: () => void,
-  selectedConversation: ?Constants.ConversationIDKey,
+  selectedConversation: ?Types.ConversationIDKey,
   validated: boolean,
   you: string,
-  getMessageFromMessageKey: (messageKey: Constants.MessageKey) => Constants.Message
+  getMessageFromMessageKey: (messageKey: Types.MessageKey) => Types.Message,
 |}
 
 export type DispatchProps = {|
-  _onDownloadAttachment: (
-    messageKey: Constants.MessageKey
-  ) => void,
-  _onLoadMoreMessages: (conversationIDKey: Constants.ConversationIDKey) => void,
-  onDeleteMessage: (message: Constants.Message) => void,
-  onEditMessage: (message: Constants.Message, body: string) => void,
-  onMessageAction: (message: Constants.Message) => void,
+  _onDownloadAttachment: (messageKey: Types.MessageKey) => void,
+  _onLoadMoreMessages: (conversationIDKey: Types.ConversationIDKey) => void,
+  onDeleteMessage: (message: Types.Message) => void,
+  onEditMessage: (message: Types.Message, body: string) => void,
+  onMessageAction: (message: Types.Message) => void,
   onOpenInFileUI: (path: string) => void,
 |}
 

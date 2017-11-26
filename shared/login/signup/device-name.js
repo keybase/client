@@ -1,9 +1,9 @@
 // @flow
-import * as signupActions from '../../actions/signup'
+import * as SignupGen from '../../actions/signup-gen'
+import * as Creators from '../../actions/signup'
 import React, {Component} from 'react'
 import Render from '../register/set-public-name'
-import {bindActionCreators} from 'redux'
-import {connect} from 'react-redux'
+import {connect, type TypedState} from '../../util/container'
 
 class DeviceName extends Component<any, {deviceName: ?string}> {
   constructor(props) {
@@ -36,11 +36,15 @@ class DeviceName extends Component<any, {deviceName: ?string}> {
   }
 }
 
-export default connect(
-  state => ({
-    deviceNameError: state.signup.deviceNameError,
-    deviceName: state.signup.deviceName,
-    waiting: state.signup.waiting,
-  }),
-  dispatch => bindActionCreators(signupActions, dispatch)
-)(DeviceName)
+const mapStateToProps = (state: TypedState) => ({
+  deviceNameError: state.signup.deviceNameError,
+  deviceName: state.signup.deviceName,
+  waiting: state.signup.waiting,
+})
+const mapDispatchToProps = (dispatch: Dispatch) => ({
+  clearDeviceNameError: () => dispatch(SignupGen.createClearDeviceNameError()),
+  submitDeviceName: (name: string) => dispatch(Creators.submitDeviceName(name)),
+  restartSignup: () => dispatch(Creators.restartSignup()),
+})
+
+export default connect(mapStateToProps, mapDispatchToProps)(DeviceName)

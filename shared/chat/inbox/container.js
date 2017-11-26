@@ -1,5 +1,6 @@
 // @flow
 import * as Constants from '../../constants/chat'
+import * as Types from '../../constants/types/chat'
 import * as Inbox from '.'
 import * as ChatGen from '../../actions/chat-gen'
 import * as I from 'immutable'
@@ -35,7 +36,7 @@ const _smallTeamsPassThrough = (_, smallTeamsExpanded) => smallTeamsExpanded
 
 // IDs by timestamp
 const getSortedSmallRowsIDs = createSelector([getSmallTimestamps], (smallTimestamps): I.Seq.Indexed<
-  Constants.ConversationIDKey
+  Types.ConversationIDKey
 > => {
   return smallTimestamps.sort((a, b) => b - a).keySeq()
 })
@@ -43,7 +44,7 @@ const getSortedSmallRowsIDs = createSelector([getSmallTimestamps], (smallTimesta
 // IDs filtering out empty conversations (unless we always show them) or superseded ones
 const getVisibleSmallIDs = createImmutableEqualSelector(
   [getSortedSmallRowsIDs, getPending, getAlwaysShow, getSupersededBy, getIsEmpty],
-  (sortedSmallRows, pending, alwaysShow, supersededBy, isEmpty): Array<Constants.ConversationIDKey> => {
+  (sortedSmallRows, pending, alwaysShow, supersededBy, isEmpty): Array<Types.ConversationIDKey> => {
     const pendingRows = pending.keySeq().toArray()
     const smallRows = sortedSmallRows.toArray().filter(conversationIDKey => {
       return (
@@ -61,7 +62,7 @@ const getTeamToChannel = createSelector(
   (
     inboxBigChannels,
     inboxBigChannelsToTeam
-  ): {[teamname: string]: {[channelname: string]: Constants.ConversationIDKey}} => {
+  ): {[teamname: string]: {[channelname: string]: Types.ConversationIDKey}} => {
     const teamToChannels = {}
     inboxBigChannelsToTeam.forEach((teamname, id) => {
       if (!teamToChannels[teamname]) {
@@ -216,7 +217,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {focusFilter, routeState, setRou
     }
   },
   onNewChat: () => dispatch(ChatGen.createNewChat()),
-  onSelect: (conversationIDKey: ?Constants.ConversationIDKey) => {
+  onSelect: (conversationIDKey: ?Types.ConversationIDKey) => {
     dispatch(ChatGen.createSelectConversation({conversationIDKey, fromUser: true}))
   },
   onSetFilter: (filter: string) => dispatch(ChatGen.createSetInboxFilter({filter})),

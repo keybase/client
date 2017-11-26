@@ -1,16 +1,15 @@
 // @flow
-import * as signupActions from '../../actions/signup'
+import * as Creators from '../../actions/signup'
 import React, {Component} from 'react'
 import Render, {type Props} from './username-email-form.render'
-import {bindActionCreators} from 'redux'
-import {connect} from 'react-redux'
+import {connect, type TypedState} from '../../util/container'
 
 type State = {
   username: string,
   email: string,
 }
 
-// Todo: type properly
+// Todo: type properly, recompose.withState
 class UsernameEmailForm extends Component<any, State> {
   state: State
 
@@ -40,13 +39,17 @@ class UsernameEmailForm extends Component<any, State> {
   }
 }
 
-export default connect(
-  state => ({
-    usernameErrorText: state.signup.usernameError && state.signup.usernameError.message,
-    emailErrorText: state.signup.emailError && state.signup.emailError.message,
-    username: state.signup.username,
-    email: state.signup.email,
-    waiting: state.signup.waiting,
-  }),
-  dispatch => bindActionCreators(signupActions, dispatch)
-)(UsernameEmailForm)
+const mapStateToProps = (state: TypedState) => ({
+  usernameErrorText: state.signup.usernameError && state.signup.usernameError.message,
+  emailErrorText: state.signup.emailError && state.signup.emailError.message,
+  username: state.signup.username,
+  email: state.signup.email,
+  waiting: state.signup.waiting,
+})
+
+const mapDispatchToProps = (dispatch: Dispatch) => ({
+  checkUsernameEmail: (user: ?string, email: ?string) => dispatch(Creators.checkUsernameEmail(user, email)),
+  restartSignup: () => dispatch(Creators.restartSignup()),
+})
+
+export default connect(mapStateToProps, mapDispatchToProps)(UsernameEmailForm)

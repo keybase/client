@@ -5,7 +5,7 @@
 import * as I from 'immutable'
 import * as RPCTypes from '../constants/types/flow-types'
 import * as More from '../constants/types/more'
-import * as Constants from '../constants/favorite'
+import * as Types from '../constants/types/favorite'
 import * as Folders from '../constants/folders'
 
 // Constants
@@ -30,10 +30,10 @@ export const createFavoriteIgnore = (payload: {|+path: string|}) => ({error: fal
 export const createFavoriteIgnored = () => ({error: false, payload: undefined, type: favoriteIgnored})
 export const createFavoriteIgnoredError = (payload: {|+errorText: string|}) => ({error: true, payload, type: favoriteIgnored})
 export const createFavoriteList = () => ({error: false, payload: undefined, type: favoriteList})
-export const createFavoriteListed = (payload: {|+folders: Constants.FolderState|}) => ({error: false, payload, type: favoriteListed})
+export const createFavoriteListed = (payload: {|+folders: Types.FolderState|}) => ({error: false, payload, type: favoriteListed})
 export const createFavoriteSwitchTab = (payload: {|+showingPrivate: boolean|}) => ({error: false, payload, type: favoriteSwitchTab})
 export const createFavoriteToggleIgnored = (payload: {|+isPrivate: boolean|}) => ({error: false, payload, type: favoriteToggleIgnored})
-export const createKbfsStatusUpdated = (payload: {|+status: Constants.KBFSStatus|}) => ({error: false, payload, type: kbfsStatusUpdated})
+export const createKbfsStatusUpdated = (payload: {|+status: Types.KBFSStatus|}) => ({error: false, payload, type: kbfsStatusUpdated})
 export const createMarkTLFCreated = (payload: {|+folder: Folders.Folder|}) => ({error: false, payload, type: markTLFCreated})
 export const createSetupKBFSChangedHandler = () => ({error: false, payload: undefined, type: setupKBFSChangedHandler})
 
