@@ -1,7 +1,7 @@
 // @flow
 import {Component} from 'react'
 
-import type {KBFSStatus} from '../constants/favorite'
+import type {KBFSStatus} from '../constants/types/favorite'
 import type {Props as FolderProps} from '../folders'
 
 export type Props = {

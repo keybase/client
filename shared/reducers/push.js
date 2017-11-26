@@ -1,8 +1,9 @@
 // @flow
 import * as PushGen from '../actions/push-gen'
+import * as Types from '../constants/types/push'
 import * as Constants from '../constants/push'
 
-function reducer(state: Constants.State = Constants.initialState, action: PushGen.Actions): Constants.State {
+function reducer(state: Types.State = Constants.initialState, action: PushGen.Actions): Types.State {
   switch (action.type) {
     case PushGen.resetStore:
       return {...Constants.initialState}

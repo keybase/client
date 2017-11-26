@@ -1,11 +1,9 @@
 // @flow
+import * as Types from '../constants/types/signup'
 import * as Constants from '../constants/signup'
 import * as SignupGen from '../actions/signup-gen'
 
-export default function(
-  state: Constants.State = Constants.initialState,
-  action: SignupGen.Actions
-): Constants.State {
+export default function(state: Types.State = Constants.initialState, action: SignupGen.Actions): Types.State {
   switch (action.type) {
     case SignupGen.resetStore: // fallthrough
     case SignupGen.resetSignup:

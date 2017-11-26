@@ -1,8 +1,11 @@
 // @flow
 /* eslint-disable no-native-reassign, no-global-assign, no-extend-native */
-import 'core-js/es6/reflect' // required for babel-plugin-transform-builtin-extend in RN iOS and Android
-import '../dev/user-timings'
-import {isStoryBook} from '../constants/platform.native'
+// DO NOT REORDER THIS LIST OF IMPORTS
+require('core-js/es6/reflect') // required for babel-plugin-transform-builtin-extend in RN iOS and Android
+// Needed for purepack
+window.Buffer = require('buffer').Buffer
+require('../dev/user-timings')
+const {isStoryBook} = require('../constants/platform.native')
 
 // __DEV__
 //  set by react-native to true if the app is being run in a simulator, false otherwise
@@ -22,9 +25,6 @@ if (typeof __STORYBOOK__ === 'undefined') {
 if (typeof __SCREENSHOT__ === 'undefined') {
   __SCREENSHOT__ = false
 }
-
-// Needed for purepack
-window.Buffer = require('buffer').Buffer
 
 // Native String.startswith() sometimes incorrectly returns false on Android!
 // See https://github.com/facebook/react-native/issues/11370 for a report.
