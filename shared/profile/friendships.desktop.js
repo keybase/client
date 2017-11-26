@@ -85,7 +85,7 @@ class FriendshipsRender extends Component<Props> {
     if (!this.props.followersLoaded) {
       return (
         <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center', paddingTop: 40}}>
-          <ProgressIndicator style={{width: 48}} />
+          <ProgressIndicator style={{width: 24}} />
         </Box>
       )
     }

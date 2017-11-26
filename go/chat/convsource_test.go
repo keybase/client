@@ -262,6 +262,11 @@ func (f failingRemote) LeaveConversation(ctx context.Context, convID chat1.Conve
 	return chat1.JoinLeaveConversationRemoteRes{}, nil
 }
 
+func (f failingRemote) PreviewConversation(ctx context.Context, convID chat1.ConversationID) (chat1.JoinLeaveConversationRemoteRes, error) {
+	require.Fail(f.t, "PreviewConversation")
+	return chat1.JoinLeaveConversationRemoteRes{}, nil
+}
+
 func (f failingRemote) DeleteConversation(ctx context.Context, convID chat1.ConversationID) (chat1.DeleteConversationRemoteRes, error) {
 	require.Fail(f.t, "DeleteConversation")
 	return chat1.DeleteConversationRemoteRes{}, nil

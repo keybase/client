@@ -78,6 +78,7 @@ export const makeRekeyInfo: I.RecordFactory<Types._RekeyInfo> = I.Record({
 
 export const makeState: I.RecordFactory<Types._State> = I.Record({
   alwaysShow: I.Set(),
+  channelCreationError: '',
   conversationStates: I.Map(),
   conversationUnreadCounts: I.Map(),
   editingMessage: null,
@@ -96,6 +97,7 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   inboxUnreadCountBadge: I.Map(),
   inboxUnreadCountTotal: I.Map(),
   inboxGlobalUntrustedState: 'unloaded',
+  inboxSyncingState: 'notSyncing',
   inboxUntrustedState: I.Map(),
   inboxVersion: I.Map(),
   initialConversation: null,
@@ -226,6 +228,8 @@ function serverMessageToMessageText(message: Types.ServerMessage): ?string {
   switch (message.type) {
     case 'Text':
       return message.message.stringValue()
+    case 'System':
+      return message.message.stringValue()
     default:
       return null
   }
@@ -322,7 +326,7 @@ function isPendingConversationIDKey(conversationIDKey: string) {
   return conversationIDKey.startsWith('__PendingConversation__')
 }
 
-function pendingConversationIDKeyToTlfName(conversationIDKey: string) {
+function pendingConversationIDKeyToTlfName(conversationIDKey: string): ?string {
   if (isPendingConversationIDKey(conversationIDKey)) {
     return conversationIDKey.substring('__PendingConversation__'.length)
   }
@@ -444,13 +448,57 @@ function messageKeyKind(key: Types.MessageKey): Types.MessageKeyKind {
   throw new Error(`Invalid messageKeyKind passed key: ${key}`)
 }
 
+// TODO(mm) type these properly - they return any
 const getYou = (state: TypedState) => state.config.username || ''
 const getFollowingMap = (state: TypedState) => state.config.following
 const getMetaDataMap = (state: TypedState) => state.chat.get('metaData')
 const getInbox = (state: TypedState, conversationIDKey: ?Types.ConversationIDKey) =>
   conversationIDKey ? state.chat.getIn(['inbox', conversationIDKey]) : null
+const getFullInbox = (state: TypedState) => state.chat.inbox
 const getSelectedInbox = (state: TypedState) => getInbox(state, getSelectedConversation(state))
 const getEditingMessage = (state: TypedState) => state.chat.get('editingMessage')
+
+const getParticipants = createSelector(
+  [getSelectedInbox, getSelectedConversation],
+  (selectedInbox, selectedConversation) => {
+    if (selectedConversation && isPendingConversationIDKey(selectedConversation)) {
+      let tlfName = pendingConversationIDKeyToTlfName(selectedConversation)
+      return (tlfName && tlfName.split(',')) || []
+    } else if (selectedConversation !== nothingSelected && selectedInbox) {
+      return selectedInbox.participants.toArray()
+    }
+    return []
+  }
+)
+
+// TOOD(mm) - are these selectors useful? or will they just cache thrash?
+const getParticipantsWithFullNames = createSelector(
+  [getSelectedInbox, getSelectedConversation],
+  (selectedInbox, selected) => {
+    if (selected && isPendingConversationIDKey(selected)) {
+      return []
+    } else if (selected !== nothingSelected && selectedInbox) {
+      const s = selectedInbox
+      return s.participants
+        .map(username => {
+          return {username: username, fullname: s.fullNames.get(username)}
+        })
+        .toArray()
+    }
+    return []
+  }
+)
+
+const getGeneralChannelOfSelectedInbox = createSelector(
+  [getSelectedInbox, getFullInbox],
+  (selectedInbox, inbox) => {
+    if (!selectedInbox || selectedInbox.membersType !== RPCChatTypes.commonConversationMembersType.team) {
+      return selectedInbox
+    }
+    const teamName = selectedInbox.teamname
+    return inbox.find(value => value.teamname === teamName && value.channelname === 'general')
+  }
+)
 
 const getTLF = createSelector([getSelectedInbox, getSelectedConversation], (selectedInbox, selected) => {
   if (selected && isPendingConversationIDKey(selected)) {
@@ -460,21 +508,6 @@ const getTLF = createSelector([getSelectedInbox, getSelectedConversation], (sele
   }
   return ''
 })
-
-const getParticipantsWithFullNames = createSelector(
-  [getSelectedInbox, getSelectedConversation],
-  (selectedInbox, selected) => {
-    if (selected && isPendingConversationIDKey(selected)) {
-      return []
-    } else if (selected !== nothingSelected && selectedInbox) {
-      const s = selectedInbox
-      return s.participants.map(username => {
-        return {username: username, fullname: s.fullNames.get(username)}
-      })
-    }
-    return []
-  }
-)
 
 const getMuted = createSelector(
   [getSelectedInbox],
@@ -489,6 +522,11 @@ const getChannelName = createSelector(
 const getTeamName = createSelector(
   [getSelectedInbox],
   selectedInbox => selectedInbox && selectedInbox.get('teamname')
+)
+
+const getTeamType = createSelector(
+  [getSelectedInbox],
+  selectedInbox => selectedInbox && selectedInbox.get('teamType')
 )
 
 const getSelectedConversationStates = (state: TypedState): ?Types.ConversationState => {
@@ -754,6 +792,7 @@ export {
   getUploadProgress,
   getSnippet,
   getTeamName,
+  getTeamType,
   conversationIDToKey,
   convSupersedesInfo,
   convSupersededByInfo,
@@ -782,6 +821,7 @@ export {
   getYou,
   getFollowingMap,
   getMetaDataMap,
+  getParticipants,
   getParticipantsWithFullNames,
   getSelectedInbox,
   getTLF,
@@ -796,4 +836,5 @@ export {
   messageIDToSelfInventedID,
   parseMessageID,
   lastMessageID,
+  getGeneralChannelOfSelectedInbox,
 }

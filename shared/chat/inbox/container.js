@@ -23,7 +23,6 @@ const getInbox = (state: TypedState) => state.chat.get('inbox')
 const getInboxBigChannels = (state: TypedState) => state.chat.get('inboxBigChannels')
 const getInboxBigChannelsToTeam = (state: TypedState) => state.chat.get('inboxBigChannelsToTeam')
 const getIsEmpty = (state: TypedState) => state.chat.get('inboxIsEmpty')
-const getPending = (state: TypedState) => state.chat.get('pendingConversations')
 const getSmallTimestamps = (state: TypedState) => state.chat.getIn(['inboxSmallTimestamps'], I.Map())
 const getSupersededBy = (state: TypedState) => state.chat.get('inboxSupersededBy')
 const _rowsForSelect = (rows: Array<any>) => rows.filter(r => ['small', 'big'].includes(r.type))
@@ -43,16 +42,14 @@ const getSortedSmallRowsIDs = createSelector([getSmallTimestamps], (smallTimesta
 
 // IDs filtering out empty conversations (unless we always show them) or superseded ones
 const getVisibleSmallIDs = createImmutableEqualSelector(
-  [getSortedSmallRowsIDs, getPending, getAlwaysShow, getSupersededBy, getIsEmpty],
-  (sortedSmallRows, pending, alwaysShow, supersededBy, isEmpty): Array<Types.ConversationIDKey> => {
-    const pendingRows = pending.keySeq().toArray()
-    const smallRows = sortedSmallRows.toArray().filter(conversationIDKey => {
+  [getSortedSmallRowsIDs, getAlwaysShow, getSupersededBy, getIsEmpty],
+  (sortedSmallRows, alwaysShow, supersededBy, isEmpty): Array<Types.ConversationIDKey> => {
+    return sortedSmallRows.toArray().filter(conversationIDKey => {
       return (
         !supersededBy.get(conversationIDKey) &&
         (!isEmpty.get(conversationIDKey) || alwaysShow.get(conversationIDKey))
       )
     })
-    return pendingRows.concat(smallRows)
   }
 )
 
@@ -197,12 +194,16 @@ const mapStateToProps = (state: TypedState, {isActiveRoute, routeState}) => {
     rowMetadata = getRowsAndMetadata(state, smallTeamsExpanded)
   }
 
+  const inboxGlobalUntrustedState = state.chat.get('inboxGlobalUntrustedState')
+
   return {
     ...rowMetadata,
     filter,
     isActiveRoute,
-    isLoading: state.chat.get('inboxGlobalUntrustedState') === 'loading',
+    isLoading: inboxGlobalUntrustedState === 'loading' || state.chat.get('inboxSyncingState') === 'syncing',
+    neverLoaded: inboxGlobalUntrustedState === 'unloaded',
     user: Constants.getYou(state),
+    inSearch: state.chat.get('inSearch'),
   }
 }
 
@@ -232,6 +233,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     filter: stateProps.filter,
     isActiveRoute: stateProps.isActiveRoute,
     isLoading: stateProps.isLoading,
+    neverLoaded: stateProps.neverLoaded,
     loadInbox: dispatchProps.loadInbox,
     user: stateProps.user,
     onHotkey: dispatchProps.onHotkey,
@@ -248,11 +250,9 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     smallTeamsExpanded: stateProps.smallTeamsExpanded,
     toggleSmallTeamsExpanded: dispatchProps.toggleSmallTeamsExpanded,
     filterFocusCount: ownProps.filterFocusCount,
+    inSearch: stateProps.inSearch,
   }
 }
-
-// We want to load inbox once per user so log out works
-let _lastUser: ?string
 
 export default compose(
   withState('filterFocusCount', 'setFilterFocusCount', 0),
@@ -262,8 +262,7 @@ export default compose(
   pausableConnect(mapStateToProps, mapDispatchToProps, mergeProps),
   lifecycle({
     componentDidMount: function() {
-      if (_lastUser !== this.props.user) {
-        _lastUser = this.props.user
+      if (this.props.neverLoaded) {
         this.props.loadInbox()
       }
     },

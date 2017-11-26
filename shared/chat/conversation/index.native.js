@@ -68,6 +68,7 @@ const Conversation = (props: Props) => (
                 focusInputCounter={props.focusInputCounter}
                 onEditLastMessage={props.onEditLastMessage}
                 onScrollDown={props.onScrollDown}
+                previousPath={props.previousPath}
               />}
         </Box>}
   </Box>
@@ -78,7 +79,7 @@ export default branch(
   compose(
     withPropsOnChange(['onExitSearch'], props => ({
       onCancel: () => props.onExitSearch(),
-      title: 'New Chat',
+      title: 'New chat',
       onBack: null,
     })),
     HeaderHoc

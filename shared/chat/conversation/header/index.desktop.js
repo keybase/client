@@ -18,6 +18,7 @@ const ChannelHeader = ({
   onOpenFolder,
   onToggleInfoPanel,
   teamName,
+  smallTeam,
 }: Props) => (
   <Box style={containerStyle}>
     <Box
@@ -29,10 +30,16 @@ const ChannelHeader = ({
         marginLeft: 24,
       }}
     >
-      <Text type="BodySmallSemibold" style={{color: globalColors.black_40}}>{teamName}</Text>
-      <Text type="BodyBig" style={{color: globalColors.black_75, marginLeft: 2}}>
-        #{channelName}
+      <Text
+        type={smallTeam ? 'BodyBig' : 'BodySmallSemibold'}
+        style={smallTeam ? {color: globalColors.black_75} : {color: globalColors.black_40}}
+      >
+        {teamName}
       </Text>
+      {!smallTeam &&
+        <Text type="BodyBig" style={{color: globalColors.black_75, marginLeft: 2}}>
+          #{channelName}
+        </Text>}
       {muted && <ShhIcon />}
     </Box>
     <Icon type="iconfont-folder-private" style={styleLeft} onClick={onOpenFolder} />

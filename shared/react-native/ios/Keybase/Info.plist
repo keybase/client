@@ -2,8 +2,6 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<key>NSContactsUsageDescription</key>
-	<string>Inviting contacts to Keybase</string>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>en</string>
 	<key>CFBundleExecutable</key>
@@ -17,7 +15,7 @@
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
-	<string>1.0.9</string>
+	<string>1.0.11</string>
 	<key>CFBundleSignature</key>
 	<string>????</string>
 	<key>CFBundleVersion</key>
@@ -26,7 +24,7 @@
 	<true/>
 	<key>ITSEncryptionExportComplianceCode</key>
 	<string>aeafaa12-a017-48c8-a29a-bdd3061f93e3</string>
-  <key>LSRequiresIPhoneOS</key>
+	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>NSAppTransportSecurity</key>
 	<dict>
@@ -35,6 +33,8 @@
 	</dict>
 	<key>NSCameraUsageDescription</key>
 	<string>Scanning codes</string>
+	<key>NSContactsUsageDescription</key>
+	<string>Inviting contacts to Keybase</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string></string>
 	<key>NSPhotoLibraryUsageDescription</key>

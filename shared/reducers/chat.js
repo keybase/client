@@ -256,6 +256,9 @@ function reducer(state: Types.State = initialState, action: ChatGen.Actions) {
     case ChatGen.setInboxGlobalUntrustedState: {
       return state.set('inboxGlobalUntrustedState', action.payload.inboxGlobalUntrustedState)
     }
+    case ChatGen.setInboxSyncingState: {
+      return state.set('inboxSyncingState', action.payload.inboxSyncingState)
+    }
     case ChatGen.setInboxFilter: {
       return state.set('inboxFilter', action.payload.filter)
     }
@@ -264,6 +267,10 @@ function reducer(state: Types.State = initialState, action: ChatGen.Actions) {
     }
     case ChatGen.exitSearch: {
       return state.set('inSearch', false)
+    }
+    case 'teams:setChannelCreationError': {
+      const {payload: {channelCreationError}} = action
+      return state.set('channelCreationError', channelCreationError)
     }
     case 'teams:setTeamCreationError': {
       const {payload: {teamCreationError}} = action

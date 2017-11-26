@@ -50,6 +50,7 @@ const styleCatcher = {
 }
 
 const styleSearchRow = {
+  ...globalStyles.flexBoxColumn,
   flexGrow: 1,
 }
 

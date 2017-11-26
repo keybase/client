@@ -106,6 +106,9 @@
     "setInboxFilter": {
       "filter": "string"
     },
+    "setInboxSyncingState": {
+      "inboxSyncingState": "Types.SyncingState"
+    },
     "setInboxGlobalUntrustedState": {
       "inboxGlobalUntrustedState": "Types.UntrustedState"
     },
@@ -300,6 +303,9 @@
     },
     "shareAttachment": {
       "messageKey": "Types.MessageKey"
+    },
+    "previewChannel": {
+      "conversationIDKey": "Types.ConversationIDKey"
     }
   }
 }

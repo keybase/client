@@ -298,6 +298,10 @@ export const localPostTextNonblockRpcChannelMap = (configKeys: Array<string>, re
 
 export const localPostTextNonblockRpcPromise = (request: LocalPostTextNonblockRpcParam): Promise<LocalPostTextNonblockResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.local.postTextNonblock', request, (error, result) => error ? reject(error) : resolve(result)))
 
+export const localPreviewConversationByIDLocalRpcChannelMap = (configKeys: Array<string>, request: LocalPreviewConversationByIDLocalRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.local.previewConversationByIDLocal', request)
+
+export const localPreviewConversationByIDLocalRpcPromise = (request: LocalPreviewConversationByIDLocalRpcParam): Promise<LocalPreviewConversationByIDLocalResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.local.previewConversationByIDLocal', request, (error, result) => error ? reject(error) : resolve(result)))
+
 export const localRetryPostRpcChannelMap = (configKeys: Array<string>, request: LocalRetryPostRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.local.RetryPost', request)
 
 export const localRetryPostRpcPromise = (request: LocalRetryPostRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.local.RetryPost', request, (error, result) => error ? reject(error) : resolve(result)))
@@ -414,6 +418,10 @@ export const remoteNewConversationRemoteRpcPromise = (request: RemoteNewConversa
 export const remotePostRemoteRpcChannelMap = (configKeys: Array<string>, request: RemotePostRemoteRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.remote.postRemote', request)
 
 export const remotePostRemoteRpcPromise = (request: RemotePostRemoteRpcParam): Promise<RemotePostRemoteResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.remote.postRemote', request, (error, result) => error ? reject(error) : resolve(result)))
+
+export const remotePreviewConversationRpcChannelMap = (configKeys: Array<string>, request: RemotePreviewConversationRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.remote.previewConversation', request)
+
+export const remotePreviewConversationRpcPromise = (request: RemotePreviewConversationRpcParam): Promise<RemotePreviewConversationResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.remote.previewConversation', request, (error, result) => error ? reject(error) : resolve(result)))
 
 export const remotePublishReadMessageRpcChannelMap = (configKeys: Array<string>, request: RemotePublishReadMessageRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.remote.publishReadMessage', request)
 
@@ -749,7 +757,7 @@ export type JoinLeaveConversationRemoteRes = {|rateLimit?: ?RateLimit,|}
 
 export type LocalCancelPostRpcParam = {|outboxID: OutboxID,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
-export type LocalDeleteConversationLocalRpcParam = {|convID: ConversationID,channelName: String,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type LocalDeleteConversationLocalRpcParam = {|convID: ConversationID,channelName: String,confirmed: Boolean,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
 export type LocalDownloadAttachmentLocalRpcParam = {|conversationID: ConversationID,messageID: MessageID,sink: Keybase1.Stream,preview: Boolean,identifyBehavior: Keybase1.TLFIdentifyBehavior,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
@@ -814,6 +822,8 @@ export type LocalPostMetadataNonblockRpcParam = {|conversationID: ConversationID
 export type LocalPostMetadataRpcParam = {|conversationID: ConversationID,tlfName: String,tlfPublic: Boolean,channelName: String,identifyBehavior: Keybase1.TLFIdentifyBehavior,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
 export type LocalPostTextNonblockRpcParam = {|conversationID: ConversationID,tlfName: String,tlfPublic: Boolean,body: String,clientPrev: MessageID,outboxID?: ?OutboxID,identifyBehavior: Keybase1.TLFIdentifyBehavior,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+
+export type LocalPreviewConversationByIDLocalRpcParam = {|convID: ConversationID,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
 export type LocalRetryPostRpcParam = {|outboxID: OutboxID,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
@@ -1038,6 +1048,8 @@ export type RemoteNewConversationRemoteRpcParam = {|idTriple: ConversationIDTrip
 
 export type RemotePostRemoteRpcParam = {|conversationID: ConversationID,messageBoxed: MessageBoxed,atMentions?: ?Array<Gregor1.UID>,channelMention: ChannelMention,topicNameState?: ?TopicNameState,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
+export type RemotePreviewConversationRpcParam = {|convID: ConversationID,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+
 export type RemotePublishReadMessageRpcParam = {|uid: Gregor1.UID,convID: ConversationID,msgID: MessageID,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
 export type RemotePublishSetConversationStatusRpcParam = {|uid: Gregor1.UID,convID: ConversationID,status: ConversationStatus,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
@@ -1177,7 +1189,7 @@ export type UnverifiedInboxUIItemMetadata = {|channelName: String,headline: Stri
 
 export type UnverifiedInboxUIItems = {|items?: ?Array<UnverifiedInboxUIItem>,pagination?: ?UIPagination,offline: Boolean,|}
 
-export type UpdateConversationMembership = {|inboxVers: InboxVers,joined?: ?Array<ConversationMember>,removed?: ?Array<ConversationMember>,reset?: ?Array<ConversationMember>,unreadUpdate?: ?UnreadUpdate,unreadUpdates?: ?Array<UnreadUpdate>,|}
+export type UpdateConversationMembership = {|inboxVers: InboxVers,joined?: ?Array<ConversationMember>,removed?: ?Array<ConversationMember>,reset?: ?Array<ConversationMember>,previewed?: ?Array<ConversationID>,unreadUpdate?: ?UnreadUpdate,unreadUpdates?: ?Array<UnreadUpdate>,|}
 type ChatUiChatConfirmChannelDeleteResult = Boolean
 type LocalDeleteConversationLocalResult = DeleteConversationLocalRes
 type LocalDownloadAttachmentLocalResult = DownloadAttachmentLocalRes
@@ -1211,6 +1223,7 @@ type LocalPostLocalResult = PostLocalRes
 type LocalPostMetadataNonblockResult = PostLocalNonblockRes
 type LocalPostMetadataResult = PostLocalRes
 type LocalPostTextNonblockResult = PostLocalNonblockRes
+type LocalPreviewConversationByIDLocalResult = JoinLeaveConversationLocalRes
 type LocalSetAppNotificationSettingsLocalResult = SetAppNotificationSettingsLocalRes
 type LocalSetConversationStatusLocalResult = SetConversationStatusLocalRes
 type LocalUnboxMobilePushNotificationResult = String
@@ -1230,6 +1243,7 @@ type RemoteMarkAsReadResult = MarkAsReadRes
 type RemoteNewConversationRemote2Result = NewConversationRemoteRes
 type RemoteNewConversationRemoteResult = NewConversationRemoteRes
 type RemotePostRemoteResult = PostRemoteRes
+type RemotePreviewConversationResult = JoinLeaveConversationRemoteRes
 type RemoteS3SignResult = Bytes
 type RemoteSetAppNotificationSettingsResult = SetAppNotificationSettingsRes
 type RemoteSetConversationStatusResult = SetConversationStatusRes

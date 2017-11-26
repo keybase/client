@@ -59,7 +59,6 @@ call:dosignexe %PathName%
 call:dosignexe %GOPATH%\src\github.com\keybase\kbfs\kbfsdokan\kbfsdokan.exe
 call:dosignexe %GOPATH%\src\github.com\keybase\kbfs\kbfsgit\git-remote-keybase\git-remote-keybase.exe
 call:dosignexe %GOPATH%\src\github.com\keybase\go-updater\service\upd.exe
-call:dosignexe %GOPATH%\src\github.com\keybase\client\go\tools\dokanclean\dokanclean.exe
 call:dosignexe %GOPATH%\src\github.com\keybase\client\shared\desktop\release\win32-ia32\Keybase-win32-ia32\Keybase.exe
 :: Browser Extension
 call:dosignexe %GOPATH%\src\github.com\keybase\client\go\kbnm\kbnm.exe
@@ -126,6 +125,10 @@ popd
 IF %ERRORLEVEL% NEQ 0 (
   EXIT /B 1
 )
+
+:: Sanity check the hash of dokanclean downloaded during installer build
+for /f "usebackq tokens=2*" %%i in (`powershell Get-FileHash -Algorithm sha256 %DOKAN_PATH%\dokanclean.exe`) do set DOKANCLEANHASH=%%i
+if NOT %DOKANCLEANHASH%==8E3BAEC8CDBA77E2DC07554B6AF2632E545E89CF6BDA9ED4819FDCBF8D151C51 exit /B 1
 
 :: Here we rely on the previous steps checking out and building release.exe
 set ReleaseBin=%GOPATH%\src\github.com\keybase\release\release.exe

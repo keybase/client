@@ -1,7 +1,6 @@
 // @flow
 import * as Constants from '../../../constants/chat'
 import {BrokenTrackerBanner, InviteBanner} from '.'
-import {List} from 'immutable'
 import {
   compose,
   branch,
@@ -17,10 +16,9 @@ import {createShowUserProfile} from '../../../actions/profile-gen'
 import {Box} from '../../../common-adapters'
 
 const getBannerMessage = createSelector(
-  [Constants.getYou, Constants.getTLF, Constants.getFollowingMap, Constants.getMetaDataMap],
-  (you, tlf, followingMap, metaDataMap) => {
-    const participants = List(tlf.split(','))
-    const brokenUsers = Constants.getBrokenUsers(participants.toArray(), you, metaDataMap)
+  [Constants.getYou, Constants.getParticipants, Constants.getFollowingMap, Constants.getMetaDataMap],
+  (you, participants, followingMap, metaDataMap) => {
+    const brokenUsers = Constants.getBrokenUsers(participants, you, metaDataMap)
     if (brokenUsers.length) {
       return {
         type: 'BrokenTracker',
@@ -29,10 +27,10 @@ const getBannerMessage = createSelector(
     }
 
     const sbsUsers = participants.filter(p => p.includes('@'))
-    if (sbsUsers.count()) {
+    if (sbsUsers.length) {
       return {
         type: 'Invite',
-        users: sbsUsers.toArray(),
+        users: sbsUsers,
       }
     }
 

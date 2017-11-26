@@ -58,6 +58,7 @@ export type Props = {
   smallTeamsHiddenBadgeCount: number,
   smallTeamsHiddenRowCount: number,
   toggleSmallTeamsExpanded: () => void,
+  inSearch: boolean,
 }
 
 export default class Inbox extends React.Component<Props> {}

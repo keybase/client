@@ -955,7 +955,7 @@ func (s *LoginState) acctHandle(f acctHandler, name string) error {
 	select {
 	case s.acctReqs <- *req:
 		s.G().Log.Debug("* acctHandle sent: %s", req)
-	case <-time.After(5 * time.Second * CITimeMultiplier(s)):
+	case <-time.After(5 * time.Second * CITimeMultiplier(s.G())):
 		s.G().Log.Debug("- acctHandle timeout: %s, active request: %s", req, s.activeReq)
 		if s.G().Env.GetDebug() {
 			debug.PrintStack()

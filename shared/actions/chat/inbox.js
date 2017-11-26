@@ -313,7 +313,7 @@ function* _processConversation(c: RPCChatTypes.InboxUIItem): Generator<any, void
 
   if (inboxState) {
     // We blocked it
-    if (['blocked', 'reported'].includes(inboxState.status)) {
+    if (['ignored', 'blocked', 'reported'].includes(inboxState.status)) {
       yield Saga.put(
         ChatGen.createDeleteEntity({
           keyPath: ['inboxSmallTimestamps'],
@@ -527,7 +527,7 @@ function* unboxConversations(action: ChatGen.UnboxConversationsPayload): SagaGen
     }
   }
   if (forInboxSync) {
-    yield Saga.put(ChatGen.createSetInboxGlobalUntrustedState({inboxGlobalUntrustedState: 'loaded'}))
+    yield Saga.put(ChatGen.createSetInboxSyncingState({inboxSyncingState: 'notSyncing'}))
   }
 }
 
@@ -642,12 +642,11 @@ function* _sendNotifications(action: ChatGen.AppendMessagesPayload): Saga.SagaGe
   )
   // Only send if you're not looking at it and service wants us to
   if (svcDisplay && (!convoIsSelected || !appFocused || !chatTabSelected)) {
-    const me = Selectors.usernameSelector(state)
-    const message = action.payload.messages.reverse().find(m => m.type === 'Text' && m.author !== me)
+    const message = action.payload.messages.reverse().find(m => m.type === 'Text' || m.type === 'System')
     // Is this message part of a muted conversation? If so don't notify.
     const convo = Constants.getInbox(state, action.payload.conversationIDKey)
     if (convo && convo.get('status') !== 'muted') {
-      if (message && message.type === 'Text') {
+      if (message && (message.type === 'Text' || message.type === 'System')) {
         console.log('Sending Chat notification')
         const snippet = Constants.makeSnippet(Constants.serverMessageToMessageText(message))
         yield Saga.put((dispatch: Dispatch) => {
@@ -698,6 +697,10 @@ function* _inboxSynced(action: ChatGen.InboxSyncedPayload): Saga.SagaGenerator<a
 
   const {convs} = action.payload
   const items = Shared.makeInboxStateRecords(author, convs, I.Map())
+  const latestMaxMsgID = convs.reduce((acc, c) => {
+    acc[c.convID] = c.maxMsgID
+    return acc
+  }, {})
 
   yield Saga.put(
     ChatGen.createReplaceEntity({
@@ -728,35 +731,26 @@ function* _inboxSynced(action: ChatGen.InboxSyncedPayload): Saga.SagaGenerator<a
   const conversation = Constants.getSelectedConversationStates(state)
   if (conversation) {
     const inbox = Constants.getInbox(state, selectedConversation)
+    const lastMessageIDWeAreShowing = Constants.lastMessageID(state, selectedConversation)
 
-    const messageKeys = Constants.getConversationMessages(state, selectedConversation)
-    const lastMessageKey = messageKeys.last()
+    // Check the data we are given first, then our state
+    const knownMaxMessageID: ?number = latestMaxMsgID[selectedConversation] || (inbox ? inbox.maxMsgID : null)
+
     let numberOverride
-    if (lastMessageKey) {
-      const lastMessage = Constants.getMessageFromMessageKey(state, lastMessageKey)
-      // Check to see if we could possibly be asking for too many messages
-      if (
-        lastMessage &&
-        typeof lastMessage.rawMessageID === 'number' &&
-        lastMessage.rawMessageID &&
-        inbox &&
-        inbox.maxMsgID
-      ) {
-        numberOverride = inbox.maxMsgID - lastMessage.rawMessageID
+    if (lastMessageIDWeAreShowing && knownMaxMessageID) {
+      const lastRpcMessageIdWeAreShowing = Constants.messageIDToRpcMessageID(lastMessageIDWeAreShowing)
 
-        if (numberOverride > tooManyMessagesToJustAppendOnStale) {
-          console.log(
-            'Doing a full load due to too many old messages',
-            inbox.maxMsgID - lastMessage.rawMessageID
-          )
-          yield Saga.all([
-            Saga.put(ChatGen.createClearMessages({conversationIDKey: selectedConversation})),
-            yield Saga.put(
-              ChatGen.createLoadMoreMessages({conversationIDKey: selectedConversation, onlyIfUnloaded: false})
-            ),
-          ])
-          return
-        }
+      // Check to see if we could possibly be asking for too many messages
+      numberOverride = knownMaxMessageID - lastRpcMessageIdWeAreShowing
+      if (numberOverride > tooManyMessagesToJustAppendOnStale) {
+        console.log('Doing a full load due to too many old messages', numberOverride)
+        yield Saga.all([
+          Saga.put(ChatGen.createClearMessages({conversationIDKey: selectedConversation})),
+          Saga.put(
+            ChatGen.createLoadMoreMessages({conversationIDKey: selectedConversation, onlyIfUnloaded: false})
+          ),
+        ])
+        return
       }
     }
     // It is VERY important to pass the exact number of things to request here. The pagination system will
@@ -889,12 +883,30 @@ function* _incomingMessage(action: ChatGen.IncomingMessagePayload): Saga.SagaGen
         }
       }
       break
+    case RPCChatTypes.notifyChatChatActivityType.membersUpdate:
+      const info = action.payload.activity && action.payload.activity.membersUpdate
+      const convID = info && info.convID
+      const conversationIDKey = Constants.conversationIDToKey(convID)
+
+      yield Saga.put(
+        ChatGen.createUnboxConversations({
+          conversationIDKeys: [conversationIDKey],
+          reason: 'Membership updated',
+          force: true,
+        })
+      )
+      break
   }
 }
 
 function _joinConversation(action: ChatGen.JoinConversationPayload) {
   const convID = Constants.keyToConversationID(action.payload.conversationIDKey)
   return Saga.call(RPCChatTypes.localJoinConversationByIDLocalRpcPromise, {convID})
+}
+
+function _previewChannel(action: ChatGen.PreviewChannelPayload) {
+  const convID = Constants.keyToConversationID(action.payload.conversationIDKey)
+  return Saga.call(RPCChatTypes.localPreviewConversationByIDLocalRpcPromise, {convID})
 }
 
 function* registerSagas(): SagaGenerator<any, any> {
@@ -911,6 +923,7 @@ function* registerSagas(): SagaGenerator<any, any> {
   yield Saga.safeTakeLatest(ChatGen.badgeAppForChat, _badgeAppForChat)
   yield Saga.safeTakeEvery(ChatGen.incomingMessage, _incomingMessage)
   yield Saga.safeTakeEveryPure(ChatGen.joinConversation, _joinConversation)
+  yield Saga.safeTakeEveryPure(ChatGen.previewChannel, _previewChannel)
 }
 
 export {registerSagas}

@@ -125,7 +125,14 @@ class UserInput extends Component<Props, State> {
       ? globalMargins.xtiny
       : 0
     return (
-      <Box style={{...globalStyles.flexBoxRow, minHeight: 48, alignItems: 'center'}}>
+      <Box
+        style={{
+          ...globalStyles.flexBoxRow,
+          minHeight: 48,
+          alignItems: 'center',
+          marginLeft: globalMargins.tiny,
+        }}
+      >
         <Box
           style={{...globalStyles.flexBoxRow, flex: 1, alignItems: 'center', flexWrap: 'wrap'}}
           onClick={this.focus}
@@ -163,7 +170,7 @@ class UserInput extends Component<Props, State> {
         {onClearSearch &&
           <Icon
             type="iconfont-remove"
-            style={{height: 16, width: 16, marginRight: 10}}
+            style={{height: 16, width: 16, marginRight: globalMargins.tiny}}
             onClick={onClearSearch}
           />}
       </Box>
@@ -198,7 +205,7 @@ const _inputLineStyle = {
 }
 
 const _inputStyle = {
-  ...getTextStyle('Body'),
+  ...getTextStyle('BodySemibold'),
   flex: 1,
   color: globalColors.black_75,
   border: 'none',

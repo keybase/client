@@ -65,6 +65,7 @@ const load = () => {
           onCreate={action('onCreate')}
           unsavedSubscriptions={false}
           onSaveSubscriptions={action('onSaveSubscriptions')}
+          onPreview={action('onPreview')}
           waitingForSave={false}
           nextChannelState={channels.reduce((acc, c) => {
             acc[c.name] = c.selected
@@ -85,6 +86,7 @@ const load = () => {
           onCreate={action('onCreate')}
           unsavedSubscriptions={true}
           onSaveSubscriptions={action('onSaveSubscriptions')}
+          onPreview={action('onPreview')}
           waitingForSave={false}
           nextChannelState={channels.reduce((acc, c) => {
             acc[c.name] = c.selected

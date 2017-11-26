@@ -19,6 +19,6 @@ const getDetails = createCachedSelector(
 
 const mapStateToProps = (state: TypedState, {messageKey}: OwnProps) => getDetails(state, messageKey)
 
-const mapDispatchToProps = () => {}
+const mapDispatchToProps = () => ({})
 
 export default connect(mapStateToProps, mapDispatchToProps)(SystemNotice)

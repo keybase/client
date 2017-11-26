@@ -9,9 +9,7 @@ import {BigTeamsLabel} from './big-teams-label'
 import {Box} from '../../../common-adapters'
 import {globalStyles, globalMargins} from '../../../styles'
 import {isMobile} from '../../../constants/platform'
-import * as Constants from '../../../constants/chat'
 import * as Types from '../../../constants/types/chat'
-import NewConversation from './new-conversation'
 
 type MakeRowOptions = {
   channelname: string,
@@ -73,16 +71,15 @@ const makeRow = (options: MakeRowOptions) => {
           />
         )
       case 'small':
-        // $FlowIssue conversationIDKey is totally a string
-        return Constants.isPendingConversationIDKey(options.conversationIDKey) && !isMobile
-          ? <NewConversation />
-          : <SmallTeam
-              key={options.conversationIDKey}
-              conversationIDKey={options.conversationIDKey}
-              channelname={options.channelname}
-              isActiveRoute={options.isActiveRoute}
-              teamname={options.teamname}
-            />
+        return (
+          <SmallTeam
+            key={options.conversationIDKey}
+            conversationIDKey={options.conversationIDKey}
+            channelname={options.channelname}
+            isActiveRoute={options.isActiveRoute}
+            teamname={options.teamname}
+          />
+        )
     }
   }
   return new Error(`Unhandled row type ${options.type}`)

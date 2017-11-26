@@ -35,10 +35,12 @@ type Props = {
   onAddPeople: () => void,
   onClose: () => void,
   onLeave: () => void,
-  onOpenRolePicker: (currentSelectedRole: TeamRoleType, selectedRoleCallback: (TeamRoleType) => void) => void,
+  onOpenRolePicker: () => void,
   onRoleChange: (role: TeamRoleType) => void,
   name: string,
   role: TeamRoleType,
+  sendNotification: boolean,
+  setSendNotification: (sendNotification: boolean) => void,
 }
 
 const _makeDropdownItem = (item: string) => (
@@ -70,12 +72,7 @@ const AddPeople = (props: Props) => (
         <Text style={{margin: globalMargins.tiny}} type="Body">
           Add these team members to {props.name} as:
         </Text>
-        <ClickableBox
-          onClick={() =>
-            props.onOpenRolePicker(props.role, (selectedRole: TeamRoleType) =>
-              props.onRoleChange(selectedRole)
-            )}
-        >
+        <ClickableBox onClick={() => props.onOpenRolePicker()}>
           <Dropdown
             items={_makeDropdownItems()}
             selected={_makeDropdownItem(props.role)}
@@ -114,7 +111,7 @@ const AddPeople = (props: Props) => (
       </Box>
       <Box style={{...globalStyles.scrollable, flex: 1, height: 500}}>
         {props.showSearchPending
-          ? <ProgressIndicator style={{width: globalMargins.large}} />
+          ? <ProgressIndicator style={{width: 24}} />
           : <SearchResultsList
               searchKey={'addToTeamSearch'}
               disableIfInTeamName={props.name}

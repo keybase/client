@@ -294,6 +294,21 @@ protocol teams {
     int score;
   }
 
+  record TeamResetUser {
+    string username;
+    UID uid;
+    @jsonkey("eldest_seqno")
+    Seqno eldestSeqno;
+  }
+
+  // team.member_out_from_reset message body
+  record TeamMemberOutFromReset {
+    @jsonkey("team_name")
+    string teamName;
+    @jsonkey("reset_user")
+    TeamResetUser resetUser;
+  }
+
   record TeamChangeRow {
     TeamID id;
     string name;
@@ -392,7 +407,7 @@ protocol teams {
   record TeamSeitanMsg {
     @jsonkey("team_id")
     TeamID teamID;
-    array<TeamSeitanRequest> seitans; 
+    array<TeamSeitanRequest> seitans;
   }
 
   /**
@@ -526,6 +541,8 @@ protocol teams {
     union { null, string } description;
     @jsonkey("set_by_uid")
     union { null, UID } setByUID;
+    @jsonkey("any_member_showcase")
+    boolean anyMemberShowcase;
   }
 
   record TeamAndMemberShowcase {
@@ -537,6 +554,7 @@ protocol teams {
 
   TeamCreateResult teamCreateWithSettings(int sessionID, string name, boolean sendChatNotification, TeamSettings settings);
 
+  // A user can hope for success if and only if they are a member of the team or an admin of any of its ancestors.
   TeamDetails teamGet(int sessionID, string name, boolean forceRepoll);
 
   // List all the admins of ancestor teams.
@@ -634,6 +652,6 @@ protocol teams {
 
   TeamShowcase getTeamShowcase(string name);
   TeamAndMemberShowcase getTeamAndMemberShowcase(string name);
-  void setTeamShowcase(string name, union { null, boolean } isShowcased, union { null, string } description);
+  void setTeamShowcase(string name, union { null, boolean } isShowcased, union { null, string } description, union { null, boolean } anyMemberShowcase);
   void setTeamMemberShowcase(string name, boolean isShowcased);
 }

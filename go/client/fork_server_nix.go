@@ -18,11 +18,12 @@ import (
 func spawnServer(g *libkb.GlobalContext, cl libkb.CommandLine, forkType keybase1.ForkType) (pid int, err error) {
 
 	// If we're running under systemd, start the service as a user unit instead
-	// of forking it directly. We do this here instead of higher up, because we
-	// want to handle the case where the service was previously autoforked, and
-	// then the user upgrades their keybase package to a version with systemd
-	// support. The flock-checking code will short-circuit before we get here,
-	// if the service is running, so we don't have to worry about a conflict.
+	// of forking it directly. We do this here in the generic auto-fork branch,
+	// rather than a higher-level systemd branch, because we want to handle the
+	// case where the service was previously autoforked, and then the user
+	// upgrades their keybase package to a version with systemd support. The
+	// flock-checking code will short-circuit before we get here, if the
+	// service is running, so we don't have to worry about a conflict.
 	//
 	// We only do this in prod mode, because keybase.service always starts
 	// /usr/bin/keybase, which is probably not what you want if you're
@@ -31,10 +32,8 @@ func spawnServer(g *libkb.GlobalContext, cl libkb.CommandLine, forkType keybase1
 	// add a systemd override file (see https://askubuntu.com/q/659267/73244).
 	if g.Env.WantsSystemd() {
 		g.Log.Info("Starting keybase.service.")
-		// Explicitly restarting the socket ensures it gets recreated, in case
-		// a non-systemd invocation of the service deleted it in the meantime
-		// without telling systemd it was "stopped".
-		startCmd := exec.Command("systemctl", "--user", "restart", "keybase.socket", "keybase.service")
+		// Prefer "restart" to "start" so that we don't race against shutdown.
+		startCmd := exec.Command("systemctl", "--user", "restart", "keybase.service")
 		startCmd.Stdout = os.Stderr
 		startCmd.Stderr = os.Stderr
 		err = startCmd.Run()

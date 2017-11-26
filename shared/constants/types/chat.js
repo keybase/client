@@ -320,6 +320,7 @@ export type LocalMessageState = {
 }
 
 export type UntrustedState = 'unloaded' | 'loaded' | 'loading'
+export type SyncingState = 'syncing' | 'notSyncing'
 
 export type UnreadCounts = {
   total: number,
@@ -328,6 +329,7 @@ export type UnreadCounts = {
 
 export type _State = {
   alwaysShow: I.Set<ConversationIDKey>,
+  channelCreationError: string,
   conversationStates: I.Map<ConversationIDKey, ConversationState>,
   conversationUnreadCounts: I.Map<ConversationIDKey, UnreadCounts>,
   editingMessage: ?Message,
@@ -347,6 +349,7 @@ export type _State = {
   inboxUnreadCountTotal: I.Map<ConversationIDKey, number>,
   inboxUntrustedState: I.Map<ConversationIDKey, InboxUntrustedState>,
   inboxGlobalUntrustedState: UntrustedState,
+  inboxSyncingState: SyncingState,
   inboxVersion: I.Map<ConversationIDKey, number>,
   initialConversation: ?ConversationIDKey,
   localMessageStates: I.Map<MessageKey, LocalMessageState>,

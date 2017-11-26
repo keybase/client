@@ -21,12 +21,10 @@ func TestLookupImplicitTeams(t *testing.T) {
 	defer tc.Cleanup()
 
 	numKBUsers := 3
-	var users []*kbtest.FakeUser
 	var usernames []string
 	for i := 0; i < numKBUsers; i++ {
 		u, err := kbtest.CreateAndSignupFakeUser("t", tc.G)
 		require.NoError(t, err)
-		users = append(users, u)
 		usernames = append(usernames, u.Username)
 	}
 

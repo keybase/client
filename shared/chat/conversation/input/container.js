@@ -17,7 +17,7 @@ import {
   connect,
   type TypedState,
 } from '../../../util/container'
-import {navigateAppend} from '../../../actions/route-tree'
+import {navigateAppend, navigateUp, navigateTo} from '../../../actions/route-tree'
 import throttle from 'lodash/throttle'
 import {createSelector} from 'reselect'
 import {type OwnProps} from './container'
@@ -68,6 +68,7 @@ const stateDependentProps = createSelector(
       defaultText: (routeState && routeState.get('inputText', new HiddenString('')).stringValue()) || '',
       selectedConversationIDKey,
       typing,
+      teamname: inbox && inbox.teamname,
     }
   }
 )
@@ -77,7 +78,7 @@ const mapStateToProps = createSelector([stateDependentProps, ownPropsSelector], 
   ...ownProps,
 }))
 
-const mapDispatchToProps = (dispatch: Dispatch) => ({
+const mapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps) => ({
   onAttach: (selectedConversation, inputs: Array<Types.AttachmentInput>) => {
     dispatch(
       navigateAppend([
@@ -104,9 +105,12 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
   onJoinChannel: (selectedConversation: Types.ConversationIDKey) => {
     dispatch(ChatGen.createJoinConversation({conversationIDKey: selectedConversation}))
   },
-  onLeaveChannel: (selectedConversation: Types.ConversationIDKey) => {
+  onLeaveChannel: (selectedConversation: Types.ConversationIDKey, teamname: string) => {
     dispatch(ChatGen.createLeaveConversation({conversationIDKey: selectedConversation}))
-    dispatch(ChatGen.createSelectConversation({conversationIDKey: null}))
+    dispatch(navigateUp())
+    if (ownProps.previousPath) {
+      dispatch(navigateTo(ownProps.previousPath))
+    }
   },
 })
 
@@ -146,7 +150,8 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
       }
     },
     onJoinChannel: () => dispatchProps.onJoinChannel(stateProps.selectedConversationIDKey),
-    onLeaveChannel: () => dispatchProps.onLeaveChannel(stateProps.selectedConversationIDKey),
+    onLeaveChannel: () =>
+      dispatchProps.onLeaveChannel(stateProps.selectedConversationIDKey, stateProps.teamname),
   }
 }
 

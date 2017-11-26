@@ -3740,6 +3740,10 @@ type JoinConversationByIDLocalArg struct {
 	ConvID ConversationID `codec:"convID" json:"convID"`
 }
 
+type PreviewConversationByIDLocalArg struct {
+	ConvID ConversationID `codec:"convID" json:"convID"`
+}
+
 type LeaveConversationLocalArg struct {
 	ConvID ConversationID `codec:"convID" json:"convID"`
 }
@@ -3748,6 +3752,7 @@ type DeleteConversationLocalArg struct {
 	SessionID   int            `codec:"sessionID" json:"sessionID"`
 	ConvID      ConversationID `codec:"convID" json:"convID"`
 	ChannelName string         `codec:"channelName" json:"channelName"`
+	Confirmed   bool           `codec:"confirmed" json:"confirmed"`
 }
 
 type GetTLFConversationsLocalArg struct {
@@ -3809,6 +3814,7 @@ type LocalInterface interface {
 	UpdateTyping(context.Context, UpdateTypingArg) error
 	JoinConversationLocal(context.Context, JoinConversationLocalArg) (JoinLeaveConversationLocalRes, error)
 	JoinConversationByIDLocal(context.Context, ConversationID) (JoinLeaveConversationLocalRes, error)
+	PreviewConversationByIDLocal(context.Context, ConversationID) (JoinLeaveConversationLocalRes, error)
 	LeaveConversationLocal(context.Context, ConversationID) (JoinLeaveConversationLocalRes, error)
 	DeleteConversationLocal(context.Context, DeleteConversationLocalArg) (DeleteConversationLocalRes, error)
 	GetTLFConversationsLocal(context.Context, GetTLFConversationsLocalArg) (GetTLFConversationsLocalRes, error)
@@ -4329,6 +4335,22 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"previewConversationByIDLocal": {
+				MakeArg: func() interface{} {
+					ret := make([]PreviewConversationByIDLocalArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]PreviewConversationByIDLocalArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]PreviewConversationByIDLocalArg)(nil), args)
+						return
+					}
+					ret, err = i.PreviewConversationByIDLocal(ctx, (*typedArgs)[0].ConvID)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 			"leaveConversationLocal": {
 				MakeArg: func() interface{} {
 					ret := make([]LeaveConversationLocalArg, 1)
@@ -4606,6 +4628,12 @@ func (c LocalClient) JoinConversationLocal(ctx context.Context, __arg JoinConver
 func (c LocalClient) JoinConversationByIDLocal(ctx context.Context, convID ConversationID) (res JoinLeaveConversationLocalRes, err error) {
 	__arg := JoinConversationByIDLocalArg{ConvID: convID}
 	err = c.Cli.Call(ctx, "chat.1.local.joinConversationByIDLocal", []interface{}{__arg}, &res)
+	return
+}
+
+func (c LocalClient) PreviewConversationByIDLocal(ctx context.Context, convID ConversationID) (res JoinLeaveConversationLocalRes, err error) {
+	__arg := PreviewConversationByIDLocalArg{ConvID: convID}
+	err = c.Cli.Call(ctx, "chat.1.local.previewConversationByIDLocal", []interface{}{__arg}, &res)
 	return
 }
 

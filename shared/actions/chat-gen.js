@@ -56,6 +56,7 @@ export const outboxMessageBecameReal = 'chat:outboxMessageBecameReal'
 export const pendingToRealConversation = 'chat:pendingToRealConversation'
 export const postMessage = 'chat:postMessage'
 export const prependMessages = 'chat:prependMessages'
+export const previewChannel = 'chat:previewChannel'
 export const removeOutboxMessage = 'chat:removeOutboxMessage'
 export const removeTempPendingConversations = 'chat:removeTempPendingConversations'
 export const replaceEntity = 'chat:replaceEntity'
@@ -68,6 +69,7 @@ export const selectConversation = 'chat:selectConversation'
 export const selectNext = 'chat:selectNext'
 export const setInboxFilter = 'chat:setInboxFilter'
 export const setInboxGlobalUntrustedState = 'chat:setInboxGlobalUntrustedState'
+export const setInboxSyncingState = 'chat:setInboxSyncingState'
 export const setLoaded = 'chat:setLoaded'
 export const setNotifications = 'chat:setNotifications'
 export const setPreviousConversation = 'chat:setPreviousConversation'
@@ -142,6 +144,7 @@ export const createOutboxMessageBecameReal = (payload: {|+oldMessageKey: Types.M
 export const createPendingToRealConversation = (payload: {|+oldKey: Types.ConversationIDKey, +newKey: Types.ConversationIDKey|}) => ({error: false, payload, type: pendingToRealConversation})
 export const createPostMessage = (payload: {|+conversationIDKey: Types.ConversationIDKey, +text: HiddenString|}) => ({error: false, payload, type: postMessage})
 export const createPrependMessages = (payload: {|+conversationIDKey: Types.ConversationIDKey, +messages: Array<Types.ServerMessage>, +moreToLoad: boolean|}) => ({error: false, payload, type: prependMessages})
+export const createPreviewChannel = (payload: {|+conversationIDKey: Types.ConversationIDKey|}) => ({error: false, payload, type: previewChannel})
 export const createRemoveOutboxMessage = (payload: {|+conversationIDKey: Types.ConversationIDKey, +outboxID: Types.OutboxIDKey|}) => ({error: false, payload, type: removeOutboxMessage})
 export const createRemoveTempPendingConversations = () => ({error: false, payload: undefined, type: removeTempPendingConversations})
 export const createReplaceEntity = (payload: {|+keyPath: Array<string>, +entities: I.Map<any, any> | I.List<any>|}) => ({error: false, payload, type: replaceEntity})
@@ -154,6 +157,7 @@ export const createSelectConversation = (payload: {|+conversationIDKey: ?Types.C
 export const createSelectNext = (payload: {|+rows: Array<any>, +direction: -1 | 1|}) => ({error: false, payload, type: selectNext})
 export const createSetInboxFilter = (payload: {|+filter: string|}) => ({error: false, payload, type: setInboxFilter})
 export const createSetInboxGlobalUntrustedState = (payload: {|+inboxGlobalUntrustedState: Types.UntrustedState|}) => ({error: false, payload, type: setInboxGlobalUntrustedState})
+export const createSetInboxSyncingState = (payload: {|+inboxSyncingState: Types.SyncingState|}) => ({error: false, payload, type: setInboxSyncingState})
 export const createSetLoaded = (payload: {|+conversationIDKey: Types.ConversationIDKey, +isLoaded: boolean|}) => ({error: false, payload, type: setLoaded})
 export const createSetNotifications = (payload: {|+conversationIDKey: Types.ConversationIDKey, +deviceType: DeviceType, +notifyType: Types.NotifyType|}) => ({error: false, payload, type: setNotifications})
 export const createSetPreviousConversation = (payload: {|+conversationIDKey: ?Types.ConversationIDKey|}) => ({error: false, payload, type: setPreviousConversation})
@@ -228,6 +232,7 @@ export type OutboxMessageBecameRealPayload = More.ReturnType<typeof createOutbox
 export type PendingToRealConversationPayload = More.ReturnType<typeof createPendingToRealConversation>
 export type PostMessagePayload = More.ReturnType<typeof createPostMessage>
 export type PrependMessagesPayload = More.ReturnType<typeof createPrependMessages>
+export type PreviewChannelPayload = More.ReturnType<typeof createPreviewChannel>
 export type RemoveOutboxMessagePayload = More.ReturnType<typeof createRemoveOutboxMessage>
 export type RemoveTempPendingConversationsPayload = More.ReturnType<typeof createRemoveTempPendingConversations>
 export type ReplaceEntityPayload = More.ReturnType<typeof createReplaceEntity>
@@ -240,6 +245,7 @@ export type SelectConversationPayload = More.ReturnType<typeof createSelectConve
 export type SelectNextPayload = More.ReturnType<typeof createSelectNext>
 export type SetInboxFilterPayload = More.ReturnType<typeof createSetInboxFilter>
 export type SetInboxGlobalUntrustedStatePayload = More.ReturnType<typeof createSetInboxGlobalUntrustedState>
+export type SetInboxSyncingStatePayload = More.ReturnType<typeof createSetInboxSyncingState>
 export type SetLoadedPayload = More.ReturnType<typeof createSetLoaded>
 export type SetNotificationsPayload = More.ReturnType<typeof createSetNotifications>
 export type SetPreviousConversationPayload = More.ReturnType<typeof createSetPreviousConversation>
@@ -316,6 +322,7 @@ export type Actions =
   | More.ReturnType<typeof createPendingToRealConversation>
   | More.ReturnType<typeof createPostMessage>
   | More.ReturnType<typeof createPrependMessages>
+  | More.ReturnType<typeof createPreviewChannel>
   | More.ReturnType<typeof createRemoveOutboxMessage>
   | More.ReturnType<typeof createRemoveTempPendingConversations>
   | More.ReturnType<typeof createReplaceEntity>
@@ -328,6 +335,7 @@ export type Actions =
   | More.ReturnType<typeof createSelectNext>
   | More.ReturnType<typeof createSetInboxFilter>
   | More.ReturnType<typeof createSetInboxGlobalUntrustedState>
+  | More.ReturnType<typeof createSetInboxSyncingState>
   | More.ReturnType<typeof createSetLoaded>
   | More.ReturnType<typeof createSetNotifications>
   | More.ReturnType<typeof createSetPreviousConversation>

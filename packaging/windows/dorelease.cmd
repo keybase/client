@@ -11,11 +11,11 @@ echo DOKAN_PATH %DOKAN_PATH%
 
 if NOT DEFINED DevEnvDir call "%ProgramFiles(x86)%\\Microsoft Visual Studio 14.0\\vc\\bin\\vcvars32.bat"
 
-IF [%UpdateChannel%] == [] goto:donechecking
+IF [%UpdateChannel%] == [] goto:donecheckingdrivers
 
-IF [%UpdateChannel%] == [None] goto:donechecking
+IF [%UpdateChannel%] == [None] goto:donecheckingdrivers
 
-IF [%UpdateChannel%] == [Test] goto:donechecking
+IF [%UpdateChannel%] == [Test] goto:donecheckingdrivers
 
 :: don't bother with ci or checking out source, etc. for smoke2 build
 IF [%UpdateChannel%] == [Smoke2] goto:done_ci
@@ -37,24 +37,16 @@ IF %ERRORLEVEL% NEQ 0 goto:build_error || EXIT /B 1
 signtool verify /all /kp /v Win10_Sys | find "Issued to: Microsoft Windows Hardware Compatibility Publisher"
 IF %ERRORLEVEL% NEQ 0 goto:build_error || EXIT /B 1
 
-:donechecking
+:donecheckingdrivers 
 
-call:checkout_keybase client, %ClientRevision% || goto:build_error || EXIT /B 1
+:: NOTE: We depend on the bot or caller to checkout client first
+:: call:checkout_keybase client, %ClientRevision% || goto:build_error || EXIT /B 1
 call:checkout_keybase kbfs, %KBFSRevision% || goto:build_error || EXIT /B 1
 call:checkout_keybase go-updater, %UpdaterRevision% || goto:build_error || EXIT /B 1
 call:checkout_keybase release, %ReleaseRevision% || goto:build_error || EXIT /B 1
 
 ::wait for CI
-if [%UpdateChannel%] == [SmokeCI] (
-    for /f %%i in ('git -C %GOPATH%\src\github.com\keybase\client rev-parse --short HEAD') do set clientCommit=%%i
-    for /f %%i in ('git -C %GOPATH%\src\github.com\keybase\kbfs rev-parse --short HEAD') do set kbfsCommit=%%i
-    :: need GITHUB_TOKEN
-    pushd %GOPATH%\src\github.com\keybase\release
-    go build || goto:build_error || EXIT /B 1
-    release wait-ci --repo="client" --commit="%clientCommit%" --context="continuous-integration/jenkins/branch" --context="ci/circleci"  || goto:build_error || EXIT /B 1
-    release wait-ci --repo="kbfs" --commit="%kbfsCommit%" --context="continuous-integration/jenkins/branch" --context="ci/circleci"  || goto:build_error || EXIT /B 1
-    popd
-)
+if [%UpdateChannel%] == [SmokeCI] call:check_ci  || EXIT /B 1
 
 :done_ci
 
@@ -112,7 +104,7 @@ call %GOPATH%\src\github.com\keybase\client\packaging\windows\doinstaller_wix.cm
 ::Publish to S3
 if %UpdateChannel% NEQ "None" (
     echo "Uploading %BUILD_TAG%"
-    s3browser-con upload prerelease.keybase.io  %GOPATH%\src\github.com\keybase\client\packaging\windows\%BUILD_TAG%\*.exe prerelease.keybase.io/windows  || goto:build_error || EXIT /B 1
+    s3browser-con upload prerelease.keybase.io  %GOPATH%\src\github.com\keybase\client\packaging\windows\%BUILD_TAG%\Keybase_%BUILD_TAG%.386.exe prerelease.keybase.io/windows  || goto:build_error || EXIT /B 1
     :: Test channel json
     s3browser-con upload prerelease.keybase.io  %GOPATH%\src\github.com\keybase\client\packaging\windows\%BUILD_TAG%\update-windows-prod-test-v2.json prerelease.keybase.io || goto:build_error || EXIT /B 1
 ) else (
@@ -171,13 +163,30 @@ popd
 :repoexists 
 
 pushd %GOPATH%\src\github.com\keybase\%~1
-git pull origin %~2 || EXIT /B 1
+git checkout master || EXIT /B 1
+git pull || EXIT /B 1
 git checkout %~2 || EXIT /B 1
 popd
 EXIT /B 0
 
 goto:eof
 
-:build_error
+:build_error 
 %OUTPUT% "Error building Windows"
+EXIT /B 1
+
+:check_ci 
+for /f %%i in ('git -C %GOPATH%\src\github.com\keybase\client rev-parse --short HEAD') do set clientCommit=%%i
+for /f %%i in ('git -C %GOPATH%\src\github.com\keybase\kbfs rev-parse --short HEAD') do set kbfsCommit=%%i
+echo [%clientCommit%] [%kbfsCommit%]
+:: need GITHUB_TOKEN
+pushd %GOPATH%\src\github.com\keybase\release
+go build || goto:build_error || EXIT /B 1
+release wait-ci --repo="client" --commit="%clientCommit%" --context="continuous-integration/jenkins/branch" --context="ci/circleci"  || goto:ci_error
+release wait-ci --repo="kbfs" --commit="%kbfsCommit%" --context="continuous-integration/jenkins/branch" --context="ci/circleci"  || goto:ci_error
+popd
+EXIT /B 0
+
+:ci_error 
+%OUTPUT% "CI Failure building Windows"
 EXIT /B 1
