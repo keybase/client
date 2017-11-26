@@ -1,34 +1,11 @@
 // @flow
 import * as I from 'immutable'
-import * as RPCTypes from './types/flow-types'
-import type {NoErrorTypedAction} from './types/flux'
+import * as SettingsConstants from './settings'
+import * as Tabs from './tabs'
+import * as Types from './types/devices'
+import {isMobile} from './platform'
 
-export type Load = NoErrorTypedAction<'devices:load', void>
-export type Loaded = NoErrorTypedAction<'devices:loaded', {deviceIDs: Array<string>}>
-export type PaperKeyMake = NoErrorTypedAction<'devices:paperKeyMake', void>
-export type Revoke = NoErrorTypedAction<'devices:revoke', {deviceID: string}>
-export type ShowRevokePage = NoErrorTypedAction<'devices:showRevokePage', {deviceID: string}>
-export type Waiting = NoErrorTypedAction<'devices:waiting', {waiting: boolean}>
-
-export type Actions = Load | Loaded | PaperKeyMake | Revoke | ShowRevokePage | Waiting
-
-// TODO could potentially use entities for devices provisioned by other devices but we still have
-// to support pgp
-
-type _DeviceDetail = {
-  created: number,
-  currentDevice: boolean,
-  deviceID: string,
-  lastUsed: number,
-  name: string,
-  provisionedAt: ?number,
-  provisionerName: ?string,
-  revokedAt: ?number,
-  revokedByName: ?string,
-  type: string,
-}
-export type DeviceDetail = I.RecordOf<_DeviceDetail>
-const makeDeviceDetail: I.RecordFactory<_DeviceDetail> = I.Record({
+const makeDeviceDetail: I.RecordFactory<Types._DeviceDetail> = I.Record({
   created: 0,
   currentDevice: false,
   deviceID: '',
@@ -41,31 +18,13 @@ const makeDeviceDetail: I.RecordFactory<_DeviceDetail> = I.Record({
   type: '',
 })
 
-type _State = {
-  deviceIDs: I.List<string>,
-  waitingForServer: boolean,
-}
-export type State = I.RecordOf<_State>
-const makeState: I.RecordFactory<_State> = I.Record({
+const makeState: I.RecordFactory<Types._State> = I.Record({
   deviceIDs: I.List(),
   waitingForServer: false,
 })
 
-export type DeviceType = 'mobile' | 'desktop' | 'backup'
-export type Device = {
-  name: string,
-  deviceID: RPCTypes.DeviceID,
-  type: DeviceType,
-  created: RPCTypes.Time,
-  currentDevice: boolean,
-  provisioner: ?RPCTypes.Device,
-  provisionedAt: ?RPCTypes.Time,
-  revokedAt: ?RPCTypes.Time,
-  lastUsed: ?RPCTypes.Time,
-}
-
 // Converts a string to the DeviceType enum, logging an error if it doesn't match
-function toDeviceType(s: string): DeviceType {
+function toDeviceType(s: string): Types.DeviceType {
   switch (s) {
     case 'mobile':
     case 'desktop':
@@ -77,4 +36,6 @@ function toDeviceType(s: string): DeviceType {
   }
 }
 
-export {makeState, makeDeviceDetail, toDeviceType}
+const devicesTabLocation = isMobile ? [Tabs.settingsTab, SettingsConstants.devicesTab] : [Tabs.devicesTab]
+
+export {devicesTabLocation, makeState, makeDeviceDetail, toDeviceType}

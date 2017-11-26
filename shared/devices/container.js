@@ -1,5 +1,6 @@
 // @flow
 import Devices from '.'
+import * as DevicesGen from '../actions/devices-gen'
 import * as I from 'immutable'
 import * as LoginGen from '../actions/login-gen'
 import * as LoginConstants from '../constants/login'
@@ -13,7 +14,6 @@ import {
   createSelector,
   type TypedState,
 } from '../util/container'
-import {load, paperKeyMake} from '../actions/devices'
 
 const getAllDevicesSelector = (state: TypedState) => state.devices.get('deviceIDs')
 const getDeviceEntitiesSelector = (state: TypedState) => state.entities.get('devices')
@@ -49,9 +49,9 @@ const mapStateToProps = (state: TypedState, {routeState}) => {
 const mapDispatchToProps = (dispatch: any, {routeState, setRouteState, navigateUp}) => ({
   addNewComputer: () =>
     dispatch(LoginGen.createAddNewDevice({role: LoginConstants.codePageDeviceRoleNewComputer})),
-  addNewPaperKey: () => dispatch(paperKeyMake()),
+  addNewPaperKey: () => dispatch(DevicesGen.createPaperKeyMake()),
   addNewPhone: () => dispatch(LoginGen.createAddNewDevice({role: LoginConstants.codePageDeviceRoleNewPhone})),
-  loadDevices: () => dispatch(load()),
+  loadDevices: () => dispatch(DevicesGen.createLoad()),
   onBack: () => dispatch(navigateUp()),
   onToggleShowRevoked: () => {
     setRouteState({showingRevoked: !routeState.get('showingRevoked')})

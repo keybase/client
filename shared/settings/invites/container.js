@@ -1,22 +1,9 @@
 // @flow
-import React, {Component} from 'react'
-import Invites, {type Props, type PendingInvite} from '.'
-import * as Constants from '../../constants/settings'
-import {invitesReclaim, invitesRefresh, invitesSend} from '../../actions/settings'
+import * as SettingsGen from '../../actions/settings-gen'
+import Invites, {type PendingInvite} from '.'
 import {openURLWithHelper} from '../../util/open-url'
 import {navigateAppend} from '../../actions/route-tree'
-import {connect, type TypedState} from '../../util/container'
-
-// TODO recompose this
-class InvitationsContainer extends Component<Props> {
-  componentWillMount() {
-    this.props.onRefresh()
-  }
-
-  render() {
-    return <Invites {...this.props} />
-  }
-}
+import {connect, type TypedState, lifecycle, compose} from '../../util/container'
 
 const mapStateToProps = (state: TypedState) => ({
   ...state.settings.invites,
@@ -27,13 +14,21 @@ const mapStateToProps = (state: TypedState) => ({
 })
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
-  onClearError: () => dispatch({type: Constants.invitesClearError}),
-  onGenerateInvitation: (email: string, message: string) => dispatch(invitesSend(email, message)),
-  onReclaimInvitation: (inviteId: string) => dispatch(invitesReclaim(inviteId)),
-  onRefresh: () => dispatch(invitesRefresh()),
+  onClearError: () => dispatch(SettingsGen.createInvitesClearError()),
+  onGenerateInvitation: (email: string, message: string) =>
+    dispatch(SettingsGen.createInvitesSend({email, message})),
+  onReclaimInvitation: (inviteId: string) => dispatch(SettingsGen.createInvitesReclaim({inviteId})),
+  onRefresh: () => dispatch(SettingsGen.createInvitesRefresh()),
   onSelectPendingInvite: (invite: PendingInvite) =>
     dispatch(navigateAppend([{props: {email: invite.email, link: invite.url}, selected: 'inviteSent'}])),
   onSelectUser: (username: string) => openURLWithHelper('user', {username}),
 })
 
-export default connect(mapStateToProps, mapDispatchToProps)(InvitationsContainer)
+export default compose(
+  connect(mapStateToProps, mapDispatchToProps),
+  lifecycle({
+    componentWillMount: function() {
+      this.props.onRefresh()
+    },
+  })
+)(Invites)

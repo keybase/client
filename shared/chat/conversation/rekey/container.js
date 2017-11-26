@@ -1,5 +1,6 @@
 // @flow
 import * as Constants from '../../../constants/chat'
+import * as Types from '../../../constants/types/chat'
 import ParticipantRekey, {type Props as ParticipantRekeyProps} from './participant-rekey'
 import YouRekey, {type Props as YouRekeyProps} from './you-rekey'
 import {
@@ -17,12 +18,12 @@ import {openDialog as openRekeyDialog} from '../../../actions/unlock-folders'
 type Props = ParticipantRekeyProps & YouRekeyProps
 
 type OwnProps = {
-  selectedConversationIDKey: ?Constants.ConversationIDKey,
+  selectedConversationIDKey: ?Types.ConversationIDKey,
 }
 
 type StateProps = {
-  rekeyInfo: ?Constants.RekeyInfo,
-  selectedConversationIDKey: ?Constants.ConversationIDKey,
+  rekeyInfo: ?Types.RekeyInfo,
+  selectedConversationIDKey: ?Types.ConversationIDKey,
 }
 
 type DispatchProps = {

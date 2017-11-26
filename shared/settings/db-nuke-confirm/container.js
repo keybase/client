@@ -1,8 +1,8 @@
 // @flow
 import {navigateUp} from '../../actions/route-tree'
 import DBNukeConfirm from './index'
-import {dbNuke} from '../../actions/settings'
-import {connect} from 'react-redux'
+import {createDbNuke} from '../../actions/settings-gen'
+import {connect} from '../../util/container'
 
 const mapStateToProps = () => ({})
 const mapDispatchToProps = (dispatch: Dispatch) => ({
@@ -11,7 +11,7 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
   },
   onDBNuke: () => {
     dispatch(navigateUp())
-    dispatch(dbNuke())
+    dispatch(createDbNuke())
   },
 })
 

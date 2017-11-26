@@ -1,0 +1,14 @@
+{
+  "prelude": [
+    "import * as Types from '../constants/types/dev'"
+  ],
+  "actions": {
+    "updateDebugConfig": {
+      "config": "Types.DebugConfig"
+    },
+    "updatehmrReloading": {
+      "reloading": "boolean"
+    },
+    "debugCount": {}
+  }
+}

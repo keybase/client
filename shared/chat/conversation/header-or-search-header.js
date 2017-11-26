@@ -2,11 +2,11 @@
 import * as React from 'react'
 import Header from './header/container'
 import SearchHeader from '../search-header'
-import * as ChatConstants from '../../constants/chat'
+import * as Types from '../../constants/types/chat'
 
 type Props = {
   inSearch: boolean,
-  selectedConversationIDKey: ?ChatConstants.ConversationIDKey,
+  selectedConversationIDKey: ?Types.ConversationIDKey,
   infoPanelOpen: boolean,
   onToggleInfoPanel: () => void,
   onBack: () => void,

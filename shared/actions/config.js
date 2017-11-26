@@ -4,16 +4,16 @@ import * as ConfigGen from './config-gen'
 import * as LoginGen from './login-gen'
 import * as Constants from '../constants/config'
 import * as GregorCreators from '../actions/gregor'
+import * as NotificationsGen from '../actions/notifications-gen'
 import * as RPCTypes from '../constants/types/flow-types'
 import * as Saga from '../util/saga'
+import * as SignupGen from '../actions/signup-gen'
 import engine from '../engine'
 import {RouteStateStorage} from '../actions/route-state-storage'
 import {createConfigurePush} from './push-gen'
 import {flushLogFile} from '../util/forward-logs'
 import {isMobile, isSimulator} from '../constants/platform'
-import {listenForKBFSNotifications} from '../actions/notifications'
 import {loggedInSelector} from '../constants/selectors'
-import {resetSignup} from '../actions/signup'
 import {type AsyncAction} from '../constants/types/flux'
 import {type TypedState} from '../constants/reducer'
 
@@ -125,7 +125,7 @@ const bootstrap = (opts: $PropertyType<ConfigGen.BootstrapPayload, 'payload'>): 
           dispatch(ConfigGen.createDaemonError({daemonError: new Error('Disconnected')}))
           flushLogFile()
         })
-        dispatch(listenForKBFSNotifications())
+        dispatch(NotificationsGen.createListenForKBFSNotifications())
         if (!opts.isReconnect) {
           dispatch(async (): Promise<*> => {
             await dispatch(LoginGen.createNavBasedOnLoginAndInitialState())
@@ -136,7 +136,7 @@ const bootstrap = (opts: $PropertyType<ConfigGen.BootstrapPayload, 'payload'>): 
               await dispatch(LoginGen.createNavBasedOnLoginAndInitialState())
             }
           })
-          dispatch(resetSignup())
+          dispatch(SignupGen.createResetSignup())
         }
       })
       .catch(error => {

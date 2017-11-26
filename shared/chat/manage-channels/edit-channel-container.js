@@ -2,7 +2,7 @@
 import * as React from 'react'
 import * as I from 'immutable'
 import * as Constants from '../../constants/teams'
-import {type ConversationIDKey} from '../../constants/chat'
+import {type ConversationIDKey} from '../../constants/types/chat'
 import EditChannel from './edit-channel'
 import {connect, type TypedState} from '../../util/container'
 import {updateChannelName, updateTopic, deleteChannel} from '../../actions/teams/creators'

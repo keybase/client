@@ -2,7 +2,7 @@
 import {requestInvite, restartSignup} from '../../actions/signup'
 import React, {Component} from 'react'
 import Render from './request-invite.render'
-import {connect} from 'react-redux'
+import {connect, type TypedState} from '../../util/container'
 
 type ContainerProps = {
   restartSignup: () => void,
@@ -48,14 +48,14 @@ class RequestInvite extends Component<ContainerProps, State> {
   }
 }
 
-export default connect(
-  state => ({
-    emailErrorText: state.signup.emailError,
-    nameErrorText: state.signup.nameError,
-    waiting: state.signup.waiting,
-  }),
-  (dispatch: Dispatch<*>) => ({
-    requestInvite: (email, name) => dispatch(requestInvite(email, name)),
-    restartSignup: () => dispatch(restartSignup()),
-  })
-)(RequestInvite)
+const mapStateToProps = (state: TypedState) => ({
+  emailErrorText: state.signup.emailError,
+  nameErrorText: state.signup.nameError,
+  waiting: state.signup.waiting,
+})
+
+const mapDispatchToProps = (dispatch: Dispatch<*>) => ({
+  requestInvite: (email, name) => dispatch(requestInvite(email, name)),
+  restartSignup: () => dispatch(restartSignup()),
+})
+export default connect(mapStateToProps, mapDispatchToProps)(RequestInvite)
