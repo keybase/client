@@ -3,7 +3,8 @@ import * as React from 'react'
 import {Avatar, Box, ClickableBox, Text, Icon, Usernames} from '../../../common-adapters'
 import {globalStyles, globalMargins, globalColors} from '../../../styles'
 import {isMobile} from '../../../constants/platform'
-import {typeToLabel, type TypeMap} from '../../../constants/teams'
+import {typeToLabel} from '../../../constants/teams'
+import {type TypeMap} from '../../../constants/types/teams'
 
 export type Props = {
   username: string,

@@ -1,6 +1,6 @@
 // @flow
 // The filter bar for search. Lets you select a search provider
-import * as Constants from '../../constants/search'
+import * as Types from '../../constants/types/search'
 import React, {Component} from 'react'
 import {Box, Icon, ClickableBox, Text} from '../../common-adapters'
 import {globalStyles, globalColors, transition} from '../../styles'
@@ -9,8 +9,8 @@ import {isMobile} from '../../constants/platform'
 import type {IconType} from '../../common-adapters/icon'
 
 type Props = {
-  selectedService: Constants.Service,
-  onSelectService: (service: Constants.Service) => void,
+  selectedService: Types.Service,
+  onSelectService: (service: Types.Service) => void,
 }
 
 const bubbleColors = {
@@ -24,7 +24,7 @@ const bubbleColors = {
 
 const servicesOrder = ['Keybase', 'Twitter', 'Facebook', 'GitHub', 'Reddit', 'Hacker News']
 
-const selectedIconMap: {[service: Constants.Service]: IconType} = {
+const selectedIconMap: {[service: Types.Service]: IconType} = {
   Facebook: isMobile ? 'icon-search-facebook-active-40' : 'icon-search-facebook-active-32',
   GitHub: isMobile ? 'icon-search-github-active-40' : 'icon-search-github-active-32',
   'Hacker News': isMobile ? 'icon-search-hacker-news-active-40' : 'icon-search-hacker-news-active-32',
@@ -33,7 +33,7 @@ const selectedIconMap: {[service: Constants.Service]: IconType} = {
   Twitter: isMobile ? 'icon-search-twitter-active-40' : 'icon-search-twitter-active-32',
 }
 
-const unselectedIconMap: {[service: Constants.Service]: IconType} = {
+const unselectedIconMap: {[service: Types.Service]: IconType} = {
   Facebook: isMobile ? 'icon-search-facebook-inactive-40' : 'icon-search-facebook-inactive-32',
   GitHub: isMobile ? 'icon-search-github-inactive-40' : 'icon-search-github-inactive-32',
   'Hacker News': isMobile ? 'icon-search-hacker-news-inactive-40' : 'icon-search-hacker-news-inactive-32',
@@ -92,12 +92,12 @@ const Service = ({service, selected, hovering, onHover, onSelect}) => {
 }
 
 // Holds all the services and keeps track of which one is hovered
-class Filter extends Component<Props, {hoveredService: ?Constants.Service}> {
+class Filter extends Component<Props, {hoveredService: ?Types.Service}> {
   state = {
     hoveredService: null,
   }
 
-  _hoverChanged = (service: Constants.Service, hovering: boolean) => {
+  _hoverChanged = (service: Types.Service, hovering: boolean) => {
     if (hovering) {
       this.setState({hoveredService: service})
     } else if (this.state.hoveredService === service) {
@@ -105,14 +105,14 @@ class Filter extends Component<Props, {hoveredService: ?Constants.Service}> {
     }
   }
 
-  _selectService = (service: Constants.Service) => {
+  _selectService = (service: Types.Service) => {
     this.props.onSelectService(service)
   }
 
   render() {
     return (
       <Box style={styleServices}>
-        {servicesOrder.map((service: Constants.Service) => (
+        {servicesOrder.map((service: Types.Service) => (
           <Service
             key={service}
             service={service}

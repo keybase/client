@@ -1,8 +1,8 @@
 // @flow
 import * as React from 'react'
-import {type FolderType} from '.'
 import * as Constants from '../constants/folders'
 
+export type FolderType = 'public' | 'private' | 'team'
 export type Folder = Constants.Folder
 
 export type Props = {

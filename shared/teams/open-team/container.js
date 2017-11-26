@@ -6,7 +6,7 @@ import {MakeOpenTeamConfirm, MakeTeamClosed, type OpenTeamConfirmProps} from '.'
 import {connect} from 'react-redux'
 import {compose, withState, withPropsOnChange} from 'recompose'
 import * as Creators from '../../actions/teams/creators'
-import * as Constants from '../../constants/teams'
+import * as Constants from '../../constants/types/teams'
 
 type OpenTeamSettingProps = {
   navigateUp: Function,

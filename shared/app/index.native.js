@@ -63,7 +63,7 @@ class Keybase extends Component<any> {
     this.store.dispatch(AppGen.createLink({link: event.url}))
   }
 
-  _handleAppStateChange = (nextAppState: string) => {
+  _handleAppStateChange = (nextAppState: 'active' | 'background' | 'inactive') => {
     this.store.dispatch(AppGen.createMobileAppState({nextAppState}))
   }
 
