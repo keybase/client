@@ -1,10 +1,11 @@
 // @flow
 import * as Constants from '../constants/engine'
+import * as Types from '../constants/types/engine'
 import * as EngineGen from '../actions/engine-gen'
 
-const initialState: Constants.State = Constants.makeState()
+const initialState: Types.State = Constants.makeState()
 
-export default function(state: Constants.State = initialState, action: EngineGen.Actions) {
+export default function(state: Types.State = initialState, action: EngineGen.Actions) {
   switch (action.type) {
     case EngineGen.resetStore:
       return initialState

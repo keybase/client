@@ -1,5 +1,6 @@
 // @flow
 import * as Constants from '../constants/devices'
+import * as Types from '../constants/types/devices'
 import * as I from 'immutable'
 import * as LoginGen from './login-gen'
 import * as DevicesGen from './devices-gen'
@@ -43,7 +44,7 @@ function* _deviceShowRevokePageSaga(action: DevicesGen.ShowRevokePagePayload): S
   )
 }
 
-function _sortRecords(a: Constants.DeviceDetail, b: Constants.DeviceDetail) {
+function _sortRecords(a: Types.DeviceDetail, b: Types.DeviceDetail) {
   if (a.currentDevice) return -1
   if (b.currentDevice) return 1
   return a.name.localeCompare(b.name)

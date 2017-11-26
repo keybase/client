@@ -1,7 +1,6 @@
 // @flow
 import {Component} from 'react'
-
-import type {Tab} from '../../constants/settings'
+import type {Tab} from '../../constants/types/settings'
 import * as TabConstants from '../../constants/tabs'
 
 export type SettingsItem = {

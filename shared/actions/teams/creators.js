@@ -1,6 +1,6 @@
 // @flow
 import * as Constants from '../../constants/teams'
-import type {ConversationIDKey} from '../../constants/chat'
+import type {ConversationIDKey} from '../../constants/types/chat'
 
 function createNewTeam(name: string) {
   return {payload: {name}, type: 'teams:createNewTeam'}

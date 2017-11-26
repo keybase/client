@@ -1,5 +1,6 @@
 // @flow
 import * as Constants from '../../../../constants/chat'
+import * as Types from '../../../../constants/types/chat'
 import Error from '.'
 import createCachedSelector from 're-reselect'
 import {compose, connect, type TypedState} from '../../../../util/container'
@@ -7,7 +8,7 @@ import {type OwnProps} from './container'
 
 const getReason = createCachedSelector(
   [Constants.getMessageFromMessageKey],
-  (message: Constants.ErrorMessage) => message.reason
+  (message: Types.ErrorMessage) => message.reason
 )((state, messageKey) => messageKey)
 
 const mapStateToProps = (state: TypedState, {messageKey}: OwnProps) => {

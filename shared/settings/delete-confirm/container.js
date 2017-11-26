@@ -1,9 +1,9 @@
 // @flow
+import * as SettingsGen from '../../actions/settings-gen'
 import DeleteConfirm, {type Props} from '.'
 import React, {Component} from 'react'
 import {HOCTimers} from '../../common-adapters'
 import {navigateUp} from '../../actions/route-tree'
-import {setAllowDeleteAccount, deleteAccountForever} from '../../actions/settings'
 import {type TimerProps} from '../../common-adapters/hoc-timers'
 import {connect, type TypedState} from '../../util/container'
 
@@ -40,8 +40,8 @@ const mapStateToProps = (state: TypedState) => {
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
   onCancel: () => dispatch(navigateUp()),
-  onDeleteForever: () => dispatch(deleteAccountForever()),
-  setAllowDeleteAccount: allow => dispatch(setAllowDeleteAccount(allow)),
+  onDeleteForever: () => dispatch(SettingsGen.createDeleteAccountForever()),
+  setAllowDeleteAccount: allow => dispatch(SettingsGen.createSetAllowDeleteAccount({allow})),
 })
 
 export default connect(mapStateToProps, mapDispatchToProps)(HOCTimers(DeleteConfirmContainer))

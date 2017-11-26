@@ -1,5 +1,5 @@
 // @flow
-import * as Constants from '../../../constants/chat'
+import * as Types from '../../../constants/types/chat'
 import React, {Component} from 'react'
 import {withPropsOnChange} from 'recompose'
 import messageFactory from '../messages'
@@ -17,7 +17,7 @@ import type {Props} from '.'
 class ConversationList extends Component<Props> {
   _scrollRef: ?any
 
-  _onAction = (message: Constants.ServerMessage) => {
+  _onAction = (message: Types.ServerMessage) => {
     NativeKeyboard.dismiss()
     this.props.onMessageAction(message)
   }

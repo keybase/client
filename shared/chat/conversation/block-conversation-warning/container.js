@@ -5,7 +5,7 @@ import {connect, type TypedState} from '../../../util/container'
 import {navigateTo, navigateUp} from '../../../actions/route-tree'
 import {chatTab} from '../../../constants/tabs'
 import {type RouteProps} from '../../../route-tree/render-route'
-import {type ConversationIDKey} from '../../../constants/chat'
+import {type ConversationIDKey} from '../../../constants/types/chat'
 
 type RenderBlockConversationWarningRouteProps = RouteProps<
   {

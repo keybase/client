@@ -5,7 +5,7 @@
 import * as I from 'immutable'
 import * as RPCTypes from '../constants/types/flow-types'
 import * as More from '../constants/types/more'
-import * as Constants from '../constants/gregor'
+import * as Types from '../constants/types/gregor'
 import * as RPCTypesGregor from '../constants/types/flow-types-gregor'
 
 // Constants
@@ -23,7 +23,7 @@ export const createInjectItem = (payload: {|+category: string, +body: string, +d
 export const createPushOOBM = (payload: {|+messages: Array<RPCTypesGregor.OutOfBandMessage>|}) => ({error: false, payload, type: pushOOBM})
 export const createPushState = (payload: {|+state: RPCTypesGregor.State, +reason: RPCTypes.PushReason|}) => ({error: false, payload, type: pushState})
 export const createUpdateReachability = (payload: {|+reachability: RPCTypes.Reachability|}) => ({error: false, payload, type: updateReachability})
-export const createUpdateSeenMsgs = (payload: {|+seenMsgs: Array<Constants.NonNullGregorItem>|}) => ({error: false, payload, type: updateSeenMsgs})
+export const createUpdateSeenMsgs = (payload: {|+seenMsgs: Array<Types.NonNullGregorItem>|}) => ({error: false, payload, type: updateSeenMsgs})
 
 // Action Payloads
 export type CheckReachabilityPayload = More.ReturnType<typeof createCheckReachability>

@@ -1,15 +1,5 @@
 // @flow
-export type DebugConfig = {|
-  dumbFilter: string,
-  dumbFullscreen: boolean,
-  dumbIndex: number,
-|}
-
-export type State = {
-  debugConfig: DebugConfig,
-  debugCount: number,
-  hmrReloading: boolean,
-}
+import type {State} from './types/dev'
 
 export const initialState: State = {
   debugConfig: {

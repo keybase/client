@@ -1,12 +1,13 @@
 // @flow
 import * as Constants from '../constants/favorite'
+import * as Types from '../constants/types/favorite'
 import * as FavoriteGen from '../actions/favorite-gen'
 import * as KBFSGen from '../actions/kbfs-gen'
 
 export default function(
-  state: Constants.State = Constants.initialState,
+  state: Types.State = Constants.initialState,
   action: FavoriteGen.Actions | KBFSGen.Actions
-): Constants.State {
+): Types.State {
   switch (action.type) {
     case FavoriteGen.resetStore:
       return {...Constants.initialState}

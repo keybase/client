@@ -1,6 +1,6 @@
 // @flow
 import * as ConfigGen from './config-gen'
-import * as Constants from '../constants/gregor'
+import * as Types from '../constants/types/gregor'
 import * as FavoriteGen from './favorite-gen'
 import * as GitGen from './git-gen'
 import * as GregorGen from './gregor-gen'
@@ -18,11 +18,11 @@ import {type State as GregorState, type OutOfBandMessage} from '../constants/typ
 import {type TypedState} from '../constants/reducer'
 import {usernameSelector, loggedInSelector} from '../constants/selectors'
 
-function isTlfItem(gItem: Constants.NonNullGregorItem): boolean {
+function isTlfItem(gItem: Types.NonNullGregorItem): boolean {
   return !!(gItem && gItem.item && gItem.item.category && gItem.item.category === 'tlf')
 }
 
-function toNonNullGregorItems(state: GregorState): Array<Constants.NonNullGregorItem> {
+function toNonNullGregorItems(state: GregorState): Array<Types.NonNullGregorItem> {
   if (!state.items) {
     return []
   }
@@ -110,8 +110,8 @@ function registerGregorListeners() {
   }
 }
 
-function* handleTLFUpdate(items: Array<Constants.NonNullGregorItem>): SagaGenerator<any, any> {
-  const seenMsgs: Constants.MsgMap = yield Saga.select((state: TypedState) => state.gregor.seenMsgs)
+function* handleTLFUpdate(items: Array<Types.NonNullGregorItem>): SagaGenerator<any, any> {
+  const seenMsgs: Types.MsgMap = yield Saga.select((state: TypedState) => state.gregor.seenMsgs)
 
   // Check if any are a tlf items
   const tlfUpdates = items.filter(isTlfItem)
@@ -122,7 +122,7 @@ function* handleTLFUpdate(items: Array<Constants.NonNullGregorItem>): SagaGenera
   }
 }
 
-function* handleChatBanner(items: Array<Constants.NonNullGregorItem>): SagaGenerator<any, any> {
+function* handleChatBanner(items: Array<Types.NonNullGregorItem>): SagaGenerator<any, any> {
   const sawChatBanner = items.find(i => i.item && i.item.category === 'sawChatBanner')
   if (sawChatBanner) {
     // TODO move this to teams eventually

@@ -6,7 +6,7 @@ import engine, {Engine} from '../../engine'
 import {navigateTo, navigateAppend} from '../route-tree'
 import {peopleTab} from '../../constants/tabs'
 
-import type {NavigateTo} from '../../constants/route-tree'
+import type {NavigateTo} from '../../constants/types/route-tree'
 import type {ProvablePlatformsType} from '../../constants/types/more'
 import type {TypedState} from '../../constants/reducer'
 
