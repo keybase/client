@@ -5,7 +5,7 @@
 import * as I from 'immutable'
 import * as RPCTypes from '../constants/types/flow-types'
 import * as More from '../constants/types/more'
-import * as Constants from '../constants/settings'
+import * as Types from '../constants/types/settings'
 import HiddenString from '../util/hidden-string'
 
 // Constants
@@ -46,14 +46,14 @@ export const createInvitesReclaim = (payload: {|+inviteId: string|}) => ({error:
 export const createInvitesReclaimed = () => ({error: false, payload: undefined, type: invitesReclaimed})
 export const createInvitesReclaimedError = (payload: {|+errorText: string|}) => ({error: true, payload, type: invitesReclaimed})
 export const createInvitesRefresh = () => ({error: false, payload: undefined, type: invitesRefresh})
-export const createInvitesRefreshed = (payload: {|+invites: Constants.InvitesState|}) => ({error: false, payload, type: invitesRefreshed})
+export const createInvitesRefreshed = (payload: {|+invites: Types.InvitesState|}) => ({error: false, payload, type: invitesRefreshed})
 export const createInvitesSend = (payload: {|+email: string, +message: ?string|}) => ({error: false, payload, type: invitesSend})
 export const createInvitesSent = () => ({error: false, payload: undefined, type: invitesSent})
 export const createInvitesSentError = (payload: {|+error: Error|}) => ({error: true, payload, type: invitesSent})
 export const createLoadSettings = () => ({error: false, payload: undefined, type: loadSettings})
-export const createLoadedSettings = (payload: {|+emailState: Constants.EmailState|}) => ({error: false, payload, type: loadedSettings})
+export const createLoadedSettings = (payload: {|+emailState: Types.EmailState|}) => ({error: false, payload, type: loadedSettings})
 export const createNotificationsRefresh = () => ({error: false, payload: undefined, type: notificationsRefresh})
-export const createNotificationsRefreshed = (payload: {|+notifications: Constants.NotificationsState|}) => ({error: false, payload, type: notificationsRefreshed})
+export const createNotificationsRefreshed = (payload: {|+notifications: Types.NotificationsState|}) => ({error: false, payload, type: notificationsRefreshed})
 export const createNotificationsSaved = () => ({error: false, payload: undefined, type: notificationsSaved})
 export const createNotificationsToggle = (payload: {|+group: string, +name?: ?string|}) => ({error: false, payload, type: notificationsToggle})
 export const createOnChangeNewEmail = (payload: {|+email: string|}) => ({error: false, payload, type: onChangeNewEmail})

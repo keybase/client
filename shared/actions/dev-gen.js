@@ -5,7 +5,7 @@
 import * as I from 'immutable'
 import * as RPCTypes from '../constants/types/flow-types'
 import * as More from '../constants/types/more'
-import * as Constants from '../constants/dev'
+import * as Types from '../constants/types/dev'
 
 // Constants
 export const resetStore = 'common:resetStore' // not a part of dev but is handled by every reducer
@@ -15,7 +15,7 @@ export const updatehmrReloading = 'dev:updatehmrReloading'
 
 // Action Creators
 export const createDebugCount = () => ({error: false, payload: undefined, type: debugCount})
-export const createUpdateDebugConfig = (payload: {|+config: Constants.DebugConfig|}) => ({error: false, payload, type: updateDebugConfig})
+export const createUpdateDebugConfig = (payload: {|+config: Types.DebugConfig|}) => ({error: false, payload, type: updateDebugConfig})
 export const createUpdatehmrReloading = (payload: {|+reloading: boolean|}) => ({error: false, payload, type: updatehmrReloading})
 
 // Action Payloads

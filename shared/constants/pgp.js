@@ -1,7 +1,5 @@
 // @flow
-export type State = {
-  open: boolean,
-}
+import type {State} from './types/pgp'
 
 const initialState: State = {
   open: false,
