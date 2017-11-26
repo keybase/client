@@ -6,6 +6,7 @@ import '../../dev/user-timings'
 import Main from '../../app/main.desktop'
 import * as AppGen from '../../actions/app-gen'
 import * as DevGen from '../../actions/dev-gen'
+import * as NotificationsGen from '../../actions/notifications-gen'
 import * as React from 'react'
 import * as ConfigGen from '../../actions/config-gen'
 import ReactDOM from 'react-dom'
@@ -21,7 +22,6 @@ import {AppContainer} from 'react-hot-loader'
 import {disable as disableDragDrop} from '../../util/drag-drop'
 import {getUserImageMap, loadUserImageMap, getTeamImageMap, loadTeamImageMap} from '../../util/pictures'
 import {initAvatarLookup, initAvatarLoad} from '../../common-adapters'
-import {listenForNotifications} from '../../actions/notifications'
 import merge from 'lodash/merge'
 import throttle from 'lodash/throttle'
 import {selector as menubarSelector} from '../../menubar/selector'
@@ -136,7 +136,7 @@ function setupApp(store) {
   )
 
   // Handle notifications from the service
-  store.dispatch(listenForNotifications())
+  store.dispatch(NotificationsGen.createListenForNotifications())
 
   // Introduce ourselves to the service
   hello(process.pid, 'Main Renderer', process.argv, __VERSION__, true) // eslint-disable-line no-undef

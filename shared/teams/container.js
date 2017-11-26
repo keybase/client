@@ -1,12 +1,12 @@
 // @flow
 import * as I from 'immutable'
 import * as KBFSGen from '../actions/kbfs-gen'
+import * as GregorGen from '../actions/gregor-gen'
 import Teams from './main'
 import openURL from '../util/open-url'
 import {getTeams} from '../actions/teams/creators'
 import {navigateAppend} from '../actions/route-tree'
 import {compose, lifecycle, type TypedState, pausableConnect} from '../util/container'
-import {injectItem} from '../actions/gregor'
 import {type Teamname} from '../constants/teams'
 
 type StateProps = {
@@ -56,7 +56,7 @@ const mapDispatchToProps = (dispatch: Dispatch): DispatchProps => ({
       ])
     )
   },
-  onHideBanner: () => dispatch(injectItem('sawChatBanner', 'true')),
+  onHideBanner: () => dispatch(GregorGen.createInjectItem({category: 'sawChatBanner', body: 'true'})),
   onJoinTeam: () => {
     dispatch(navigateAppend(['showJoinTeamDialog']))
   },

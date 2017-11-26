@@ -1,7 +1,7 @@
 // @flow
 import {Component} from 'react'
 
-import type {SimpleProofState} from '../constants/tracker'
+import type {SimpleProofState} from '../constants/types/tracker'
 
 export type ActionProps = {
   loggedIn: boolean,

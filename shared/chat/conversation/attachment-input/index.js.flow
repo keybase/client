@@ -1,7 +1,6 @@
 // @flow
 import {Component} from 'react'
-
-import type {AttachmentInput} from '../../../constants/chat'
+import type {AttachmentInput} from '../../../constants/types/chat'
 
 export type Props = {
   inputs: Array<AttachmentInput>,

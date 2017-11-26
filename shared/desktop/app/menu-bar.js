@@ -7,7 +7,7 @@ import {isDarwin, isWindows, isLinux} from '../../constants/platform'
 import {resolveImage, resolveRootAsURL} from '../resolve-root'
 import {showDevTools, skipSecondaryDevtools} from '../../local-debug.desktop'
 
-import type {BadgeType} from '../../constants/notifications'
+import type {BadgeType} from '../../constants/types/notifications'
 
 let iconType: BadgeType = 'regular'
 

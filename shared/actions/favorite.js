@@ -1,8 +1,10 @@
 // @flow
 import * as Constants from '../constants/favorite'
+import * as Types from '../constants/types/favorite'
 import * as RPCTypes from '../constants/types/flow-types'
 import * as Saga from '../util/saga'
 import * as FavoriteGen from './favorite-gen'
+import * as NotificationsGen from './notifications-gen'
 import flatten from 'lodash/flatten'
 import partition from 'lodash/partition'
 import difference from 'lodash/difference'
@@ -10,7 +12,6 @@ import debounce from 'lodash/debounce'
 import findKey from 'lodash/findKey'
 import engine from '../engine'
 import {NotifyPopup} from '../native/notifications'
-import {badgeApp} from './notifications'
 import {call, put, select} from 'redux-saga/effects'
 import {isMobile} from '../constants/platform'
 
@@ -75,7 +76,7 @@ function _folderSort(username, a, b) {
   return a.sortName.localeCompare(b.sortName)
 }
 
-function _folderToState(txt: string = '', username: string, loggedIn: boolean): Constants.FolderState {
+function _folderToState(txt: string = '', username: string, loggedIn: boolean): Types.FolderState {
   const folders: Array<FolderRPCWithMeta> = _getFavoritesRPCToFolders(txt, username, loggedIn)
 
   const converted = folders
@@ -201,7 +202,7 @@ function* _listSaga(): Saga.SagaGenerator<any, any> {
     })
     const username = yield select((state: TypedState) => state.config && state.config.username)
     const loggedIn = yield select((state: TypedState) => state.config && state.config.loggedIn)
-    const state: Constants.FolderState = _folderToState(
+    const state: Types.FolderState = _folderToState(
       results && results.body,
       username || '',
       loggedIn || false
@@ -217,7 +218,7 @@ function* _listSaga(): Saga.SagaGenerator<any, any> {
 // If the notify data has changed, show a popup
 let previousNotifyState = []
 
-function _notify(state: Constants.FolderState): void {
+function _notify(state: Types.FolderState): void {
   const total = state.publicBadge + state.privateBadge
 
   if (total) {
@@ -250,7 +251,7 @@ function* _setupKBFSChangedHandler(): Saga.SagaGenerator<any, any> {
     const debouncedKBFSStopped = debounce(() => {
       if (_kbfsUploadingState === true) {
         _kbfsUploadingState = false
-        const badgeAction: Action = badgeApp('kbfsUploading', false)
+        const badgeAction: Action = NotificationsGen.createBadgeApp({key: 'kbfsUploading', on: false})
         dispatch(badgeAction)
         dispatch(FavoriteGen.createKbfsStatusUpdated({status: {isAsyncWriteHappening: false}}))
       }
@@ -262,7 +263,7 @@ function* _setupKBFSChangedHandler(): Saga.SagaGenerator<any, any> {
         // ie. we don't get the syncingBytes or ops correctly (always zero)
         if (_kbfsUploadingState === false) {
           _kbfsUploadingState = true
-          const badgeAction: Action = badgeApp('kbfsUploading', true)
+          const badgeAction: Action = NotificationsGen.createBadgeApp({key: 'kbfsUploading', on: true})
           dispatch(badgeAction)
           dispatch(FavoriteGen.createKbfsStatusUpdated({status: {isAsyncWriteHappening: true}}))
         }

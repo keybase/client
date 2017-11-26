@@ -16,8 +16,8 @@ const mapStateToProps = (state: TypedState) => {
   if (!state.config.username) {
     throw new Error("Didn't get username")
   }
-  const trackerInfo = state.tracker.trackers[state.config.username]
-  if (!trackerInfo || trackerInfo.type !== 'tracker') {
+  const trackerInfo = state.tracker.userTrackers[state.config.username]
+  if (!trackerInfo) {
     throw new Error("Didn't get trackerinfo")
   }
   const userInfo = trackerInfo.userInfo
