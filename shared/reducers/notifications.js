@@ -1,13 +1,14 @@
 // @flow
+import * as Types from '../constants/types/notifications'
 import * as Constants from '../constants/notifications'
 import * as NotificationsGen from '../actions/notifications-gen'
 import * as Tabs from '../constants/tabs'
 import * as RPCTypes from '../constants/types/flow-types'
 import {isMobile} from '../constants/platform'
 
-const initialState: Constants.State = Constants.makeState()
+const initialState: Types.State = Constants.makeState()
 
-const _updateWidgetBadge = (s: Constants.State): Constants.State => {
+const _updateWidgetBadge = (s: Types.State): Types.State => {
   let widgetBadge = 'regular'
   if (s.getIn(['keyState', 'kbfsUploading'])) {
     widgetBadge = 'uploading'
@@ -18,10 +19,7 @@ const _updateWidgetBadge = (s: Constants.State): Constants.State => {
   return s.set('widgetBadge', widgetBadge)
 }
 
-export default function(
-  state: Constants.State = initialState,
-  action: NotificationsGen.Actions
-): Constants.State {
+export default function(state: Types.State = initialState, action: NotificationsGen.Actions): Types.State {
   switch (action.type) {
     case NotificationsGen.resetStore:
       return initialState

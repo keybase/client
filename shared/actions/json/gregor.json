@@ -1,6 +1,6 @@
 {
   "prelude": [
-    "import * as Constants from '../constants/gregor'",
+    "import * as Types from '../constants/types/gregor'",
     "import * as RPCTypesGregor from '../constants/types/flow-types-gregor'"
   ],
   "actions": {
@@ -16,7 +16,7 @@
       "reachability": "RPCTypes.Reachability"
     },
     "updateSeenMsgs": {
-      "seenMsgs": "Array<Constants.NonNullGregorItem>"
+      "seenMsgs": "Array<Types.NonNullGregorItem>"
     },
     "injectItem": {
       "category": "string",

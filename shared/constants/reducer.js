@@ -1,50 +1,46 @@
 // @flow
-import * as Billing from '../constants/plan-billing'
-import * as Chat from '../constants/chat'
-import * as Config from '../constants/config'
-import * as Dev from '../constants/dev'
-import * as Devices from '../constants/devices'
-import * as Entity from '../constants/entities'
-import * as Engine from '../constants/engine'
-import * as Favorite from '../constants/favorite'
-import * as Gregor from '../constants/gregor'
-import * as Login from '../constants/login'
-import * as Notification from '../constants/notifications'
-import * as Pgp from '../constants/pgp'
-import * as Pinentry from '../constants/pinentry'
-import * as Profile from '../constants/profile'
-import * as Push from '../constants/push'
-import * as RouteTree from '../constants/route-tree'
-import * as Settings from '../constants/settings'
-import * as Signup from '../constants/signup'
-import * as Tracker from '../constants/types/tracker'
-import * as UnlockFolders from '../constants/unlock-folders'
-import * as Waiting from '../constants/waiting'
+import type {State as Billing} from '../constants/types/plan-billing'
+import type {State as Chat} from '../constants/types/chat'
+import type {State as Config} from '../constants/types/config'
+import type {State as Dev} from '../constants/types/dev'
+import type {State as Devices} from '../constants/types/devices'
+import type {State as Entity} from '../constants/types/entities'
+import type {State as Engine} from '../constants/types/engine'
+import type {State as Favorite} from '../constants/types/favorite'
+import type {State as Gregor} from '../constants/types/gregor'
+import type {State as Login} from '../constants/types/login'
+import type {State as Notification} from '../constants/types/notifications'
+import type {State as Pgp} from '../constants/types/pgp'
+import type {State as Pinentry} from '../constants/types/pinentry'
+import type {State as Profile} from '../constants/types/profile'
+import type {State as Push} from '../constants/types/push'
+import type {State as RouteTree} from '../constants/types/route-tree'
+import type {State as Settings} from '../constants/types/settings'
+import type {State as Signup} from '../constants/types/signup'
+import type {State as Tracker} from '../constants/types/tracker'
+import type {State as UnlockFolders} from '../constants/types/unlock-folders'
+import type {State as Waiting} from '../constants/types/waiting'
 
 export type TypedState = {
-  config: Config.State,
-  chat: Chat.State,
-  dev: Dev.State,
-  devices: Devices.State,
-  entities: Entity.State,
-  engine: Engine.State,
-  favorite: Favorite.State,
-  gregor: Gregor.State,
-  login: Login.State,
-  notifications: Notification.State,
-  pgp: Pgp.State,
-  pinentry: Pinentry.State,
-  planBilling: Billing.State,
-  profile: Profile.State,
-  push: Push.State,
-  routeTree: RouteTree.State,
-  settings: Settings.State,
-  signup: Signup.State,
-  tracker: Tracker.State,
-  unlockFolders: UnlockFolders.State,
-  waiting: Waiting.State,
+  config: Config,
+  chat: Chat,
+  dev: Dev,
+  devices: Devices,
+  entities: Entity,
+  engine: Engine,
+  favorite: Favorite,
+  gregor: Gregor,
+  login: Login,
+  notifications: Notification,
+  pgp: Pgp,
+  pinentry: Pinentry,
+  planBilling: Billing,
+  profile: Profile,
+  push: Push,
+  routeTree: RouteTree,
+  settings: Settings,
+  signup: Signup,
+  tracker: Tracker,
+  unlockFolders: UnlockFolders,
+  waiting: Waiting,
 }
-
-// TODO swap State with TypedState when TypedState includes everything we care about
-export type State = {[key: string]: any}
-export const stateKey = 'reducer:stateKey'

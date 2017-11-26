@@ -1,5 +1,5 @@
 // @flow
-import * as Constants from '../constants/unlock-folders'
+import * as Types from '../constants/types/unlock-folders'
 import * as Creators from '../actions/unlock-folders'
 import * as UnlockFoldersGen from '../actions/unlock-folders-gen'
 import HiddenString from '../util/hidden-string'
@@ -8,8 +8,8 @@ import Render from './render'
 import {connect, type TypedState} from '../util/container'
 
 export type Props = {
-  devices: ?Array<Constants.Device>,
-  phase: $PropertyType<Constants.State, 'phase'>,
+  devices: ?Array<Types.Device>,
+  phase: $PropertyType<Types.State, 'phase'>,
   close: () => void,
   toPaperKeyInput: () => void,
   onBackFromPaperKey: () => void,

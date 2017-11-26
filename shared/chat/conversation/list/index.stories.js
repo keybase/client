@@ -2,6 +2,7 @@
 import * as React from 'react'
 import * as I from 'immutable'
 import * as Constants from '../../../constants/chat'
+import * as Types from '../../../constants/types/chat'
 import {Box} from '../../../common-adapters'
 import {dataToRouteState} from '../../../route-tree'
 import {storiesOf, action} from '../../../stories/storybook'
@@ -57,7 +58,7 @@ function makeMessage(
   author: string,
   timestamp: number,
   message: string
-): Constants.Message {
+): Types.Message {
   const key = Constants.messageKey(conversationIDKey, 'messageIDText', messageID)
   return {
     type: 'Text',
@@ -99,7 +100,7 @@ const propCommon = messageMap => ({
   onLoadMoreMessages: action('onLoadMoreMessages'),
   onMessageAction: action('onMessageAction'),
   onOpenInFileUI: action('onOpenInFileUI'),
-  getMessageFromMessageKey: (messageKey: Constants.MessageKey) => messageMap[messageKey],
+  getMessageFromMessageKey: (messageKey: Types.MessageKey) => messageMap[messageKey],
   selectedConversation: conversationIDKey,
   validated: true,
   you: 'trex',
@@ -111,7 +112,7 @@ const mockFn = messageMap => ({
   },
 })
 
-const storeFn = (messageMap: {[key: string]: Constants.Message}) => ({
+const storeFn = (messageMap: {[key: string]: Types.Message}) => ({
   config: {
     following: {},
     username: 'tester',

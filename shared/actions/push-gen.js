@@ -5,7 +5,7 @@
 import * as I from 'immutable'
 import * as RPCTypes from '../constants/types/flow-types'
 import * as More from '../constants/types/more'
-import * as Constants from '../constants/push'
+import * as Types from '../constants/types/push'
 
 // Constants
 export const resetStore = 'common:resetStore' // not a part of push but is handled by every reducer
@@ -24,15 +24,15 @@ export const updatePushToken = 'push:updatePushToken'
 // Action Creators
 export const createConfigurePush = () => ({error: false, payload: undefined, type: configurePush})
 export const createError = (payload: {|+error: Error|}) => ({error: false, payload, type: error})
-export const createNotification = (payload: {|+notification: Constants.PushNotification|}) => ({error: false, payload, type: notification})
+export const createNotification = (payload: {|+notification: Types.PushNotification|}) => ({error: false, payload, type: notification})
 export const createPermissionsNo = () => ({error: false, payload: undefined, type: permissionsNo})
 export const createPermissionsPrompt = (payload: {|+prompt: boolean|}) => ({error: false, payload, type: permissionsPrompt})
 export const createPermissionsRequest = () => ({error: false, payload: undefined, type: permissionsRequest})
 export const createPermissionsRequesting = (payload: {|+requesting: boolean|}) => ({error: false, payload, type: permissionsRequesting})
-export const createPushToken = (payload: {|+token: string, +tokenType: Constants.TokenType|}) => ({error: false, payload, type: pushToken})
+export const createPushToken = (payload: {|+token: string, +tokenType: Types.TokenType|}) => ({error: false, payload, type: pushToken})
 export const createRegistrationError = (payload: {|+error: Error|}) => ({error: false, payload, type: registrationError})
 export const createSavePushToken = () => ({error: false, payload: undefined, type: savePushToken})
-export const createUpdatePushToken = (payload: {|+token: string, +tokenType: Constants.TokenType|}) => ({error: false, payload, type: updatePushToken})
+export const createUpdatePushToken = (payload: {|+token: string, +tokenType: Types.TokenType|}) => ({error: false, payload, type: updatePushToken})
 
 // Action Payloads
 export type ConfigurePushPayload = More.ReturnType<typeof createConfigurePush>

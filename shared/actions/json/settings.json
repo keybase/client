@@ -1,6 +1,6 @@
 {
   "prelude": [
-    "import * as Constants from '../constants/settings'",
+    "import * as Types from '../constants/types/settings'",
     "import HiddenString from '../util/hidden-string'"
   ],
   "actions": {
@@ -17,7 +17,7 @@
     },
     "invitesRefresh": {},
     "invitesRefreshed": {
-      "invites": "Constants.InvitesState"
+      "invites": "Types.InvitesState"
     },
     "invitesSend": {
       "email": "string",
@@ -30,11 +30,11 @@
     },
     "loadSettings": {},
     "loadedSettings": {
-      "emailState": "Constants.EmailState"
+      "emailState": "Types.EmailState"
     },
     "notificationsRefresh": {},
     "notificationsRefreshed": {
-      "notifications": "Constants.NotificationsState"
+      "notifications": "Types.NotificationsState"
     },
     "notificationsSaved": {},
     "notificationsToggle": {
