@@ -1,7 +1,7 @@
 // @flow
 import {Component} from 'react'
 
-import type {Device, DeviceType} from '../../constants/devices'
+import type {Device, DeviceType} from '../../constants/types/devices'
 import type {IconType} from '../../common-adapters/icon'
 
 export type Props = {

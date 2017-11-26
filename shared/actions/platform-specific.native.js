@@ -1,4 +1,5 @@
 // @flow
+import * as PushTypes from '../constants/types/push'
 import * as PushConstants from '../constants/push'
 import * as PushGen from './push-gen'
 import * as PushNotifications from 'react-native-push-notification'
@@ -77,7 +78,7 @@ function configurePush() {
   return eventChannel(dispatch => {
     PushNotifications.configure({
       onRegister: token => {
-        let tokenType: ?PushConstants.TokenType
+        let tokenType: ?PushTypes.TokenType
         switch (token.os) {
           case 'ios':
             tokenType = isDevApplePushToken ? PushConstants.tokenTypeAppleDev : PushConstants.tokenTypeApple

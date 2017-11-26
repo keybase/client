@@ -1,6 +1,7 @@
 // @flow
 import * as I from 'immutable'
 import * as CommonConstants from '../constants/common'
+import * as Types from '../constants/types/route-tree'
 import * as Constants from '../constants/route-tree'
 import {
   InvalidRouteError,
@@ -19,7 +20,7 @@ const initialState = Constants.makeState()
 // So lets actually use the initial routeDef we get
 let firstRouteDef
 
-function computeLoggedInUserNavigated(navigationSource: Constants.NavigationSource, newSelectedTab: ?string) {
+function computeLoggedInUserNavigated(navigationSource: Types.NavigationSource, newSelectedTab: ?string) {
   const validNavigationSource = navigationSource === 'user' || navigationSource === 'initial-restore'
   if (!validNavigationSource) {
     return false
@@ -128,10 +129,7 @@ function routeStateReducer(routeDef, routeState, action) {
   }
 }
 
-export default function routeTreeReducer(
-  state: Constants.State = initialState,
-  action: any
-): Constants.State {
+export default function routeTreeReducer(state: Types.State = initialState, action: any): Types.State {
   let {loggedInUserNavigated, routeDef, routeState} = state
   if (action.type === CommonConstants.resetStore) {
     routeDef = firstRouteDef || initialState

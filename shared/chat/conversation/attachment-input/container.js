@@ -3,7 +3,7 @@ import RenderAttachmentInput from './'
 import {connect, type TypedState} from '../../../util/container'
 import {navigateUp} from '../../../actions/route-tree'
 import {type RouteProps} from '../../../route-tree/render-route'
-import {type AttachmentInput} from '../../../constants/chat'
+import {type AttachmentInput} from '../../../constants/types/chat'
 import {createSelectAttachment} from '../../../actions/chat-gen'
 
 type OwnProps = RouteProps<

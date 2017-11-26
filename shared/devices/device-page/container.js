@@ -5,7 +5,7 @@ import moment from 'moment'
 import {compose, mapProps, connect, type TypedState} from '../../util/container'
 import {globalColors} from '../../styles'
 import {navigateUp} from '../../actions/route-tree'
-import {type DeviceDetail} from '../../constants/devices'
+import {type DeviceDetail} from '../../constants/types/devices'
 
 const buildTimeline = (device: DeviceDetail) => {
   const revoked = device.get('revokedAt') && [

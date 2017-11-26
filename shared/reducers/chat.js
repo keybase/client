@@ -1,23 +1,25 @@
 // @flow
 import * as Constants from '../constants/chat'
+import * as Types from '../constants/types/chat'
 import * as ChatGen from '../actions/chat-gen'
+import * as GregorGen from '../actions/gregor-gen'
 import {Set, List, Map} from 'immutable'
 import {reachabilityReachable} from '../constants/types/flow-types'
 
-const initialState: Constants.State = Constants.makeState()
-const initialConversation: Constants.ConversationState = Constants.makeConversationState()
+const initialState: Types.State = Constants.makeState()
+const initialConversation: Types.ConversationState = Constants.makeConversationState()
 
-type ConversationsStates = Map<Constants.ConversationIDKey, Constants.ConversationState>
-type ConversationUpdateFn = (c: Constants.ConversationState) => Constants.ConversationState
+type ConversationsStates = Map<Types.ConversationIDKey, Types.ConversationState>
+type ConversationUpdateFn = (c: Types.ConversationState) => Types.ConversationState
 function updateConversation(
   conversationStates: ConversationsStates,
-  conversationIDKey: Constants.ConversationIDKey,
+  conversationIDKey: Types.ConversationIDKey,
   conversationUpdateFn: ConversationUpdateFn
 ): ConversationsStates {
   return conversationStates.update(conversationIDKey, initialConversation, conversationUpdateFn)
 }
 
-function reducer(state: Constants.State = initialState, action: ChatGen.Actions) {
+function reducer(state: Types.State = initialState, action: ChatGen.Actions) {
   switch (action.type) {
     case ChatGen.resetStore:
       return Constants.makeState()
@@ -241,7 +243,7 @@ function reducer(state: Constants.State = initialState, action: ChatGen.Actions)
         )
       return state.set('conversationStates', newConversationStates)
     }
-    case 'gregor:updateReachability': {
+    case GregorGen.updateReachability: {
       // reset this when we go online
       if (action.payload.reachability.reachable === reachabilityReachable.yes) {
         const newConversationStates = state

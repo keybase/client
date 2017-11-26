@@ -1,9 +1,9 @@
 // @flow
 // Handles sending requests to the daemon
 import * as EngineGen from '../actions/engine-gen'
-import * as FluxTypes from './types/flux'
 import * as I from 'immutable'
 import * as Saga from '../util/saga'
+import * as Types from './types/engine'
 import * as SagaTypes from './types/saga'
 import {getEngine, EngineChannel} from '../engine'
 import mapValues from 'lodash/mapValues'
@@ -23,18 +23,8 @@ const _isResult = ({type} = {}) => type === '@@engineRPCCall:respondResult'
 const _isError = ({type} = {}) => type === '@@engineRPCCall:respondError'
 const _isCancel = ({type} = {}) => type === '@@engineRPCCall:respondCancel'
 
-type Finished = FluxTypes.NoErrorTypedAction<
-  '@@engineRPCCall:finished',
-  {
-    error: ?any,
-    params: ?any,
-  }
->
-
 const finished = ({error, params}) => ({type: '@@engineRPCCall:finished', payload: {error, params}})
 const isFinished = (a: any) => a.type === '@@engineRPCCall:finished'
-
-type RpcRunResult = Finished | FluxTypes.NoErrorTypedAction<'@@engineRPCCall:bailedEarly', void>
 
 function _sagaWaitingDecorator(rpcNameKey, saga) {
   return function* _sagaWaitingDecoratorHelper(...args: any) {
@@ -128,7 +118,7 @@ class EngineRpcCall {
     }
   }
 
-  *run(timeout: ?number): Generator<any, RpcRunResult, any> {
+  *run(timeout: ?number): Generator<any, Types.RpcRunResult, any> {
     this._engineChannel = yield Saga.call(
       this._rpc,
       [...Object.keys(this._subSagas), 'finished'],
@@ -204,11 +194,7 @@ class EngineRpcCall {
   }
 }
 
-type _State = {
-  rpcWaitingStates: I.Map<string, boolean>,
-}
-export type State = I.RecordOf<_State>
-export const makeState: I.RecordFactory<_State> = I.Record({
+export const makeState: I.RecordFactory<Types._State> = I.Record({
   rpcWaitingStates: I.Map(),
 })
 

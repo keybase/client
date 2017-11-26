@@ -1,6 +1,6 @@
 {
   "prelude": [
-    "import * as Constants from '../constants/login'",
+    "import * as Types from '../constants/types/login'",
     "import HiddenString from '../util/hidden-string'"
   ],
   "actions": {
@@ -40,7 +40,7 @@
       "deviceName": "string"
     },
     "setCodePageMode": {
-      "mode": "Constants.Mode"
+      "mode": "Types.Mode"
     },
     "openAccountResetPage": {},
     "setTextCode": {
@@ -52,10 +52,10 @@
     },
     "clearQRCode": {},
     "setMyDeviceCodeState": {
-      "state": "Constants.DeviceRole"
+      "state": "Types.DeviceRole"
     },
     "setOtherDeviceCodeState": {
-      "state": "Constants.DeviceRole"
+      "state": "Types.DeviceRole"
     },
     "provisioningError": {
       "error": "Error"
@@ -63,7 +63,7 @@
     "resetQRCodeScanned": {},
     "logout": {},
     "addNewDevice": {
-      "role": "Constants.DeviceRole"
+      "role": "Types.DeviceRole"
     },
     "logoutDone": {},
     "setCameraBrokenMode": {
