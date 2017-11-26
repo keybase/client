@@ -1,43 +1,14 @@
 // @flow
 import * as Constants from '../constants/login'
+import * as Types from '../constants/types/login'
 import * as LoginGen from '../actions/login-gen'
 
-const initialState: Constants.State = {
-  codePage: {
-    cameraBrokenMode: false,
-    codeCountDown: 0,
-    enterCodeErrorText: '',
-    mode: null,
-    myDeviceRole: null,
-    otherDeviceRole: null,
-    qrCode: null,
-    qrCodeScanned: false,
-    qrScanned: null,
-    textCode: null,
-  },
-  configuredAccounts: null,
-  deviceName: {
-    deviceName: '',
-    existingDevices: [],
-    onSubmit: () => {},
-  },
-  forgotPasswordError: null,
-  forgotPasswordSubmitting: false,
-  forgotPasswordSuccess: false,
-  justDeletedSelf: null,
-  justRevokedSelf: null,
-  loginError: null,
-  registerUserPassError: null,
-  registerUserPassLoading: false,
-  waitingForResponse: false,
-}
-
-export default function(state: Constants.State = initialState, action: LoginGen.Actions): Constants.State {
+export default function(state: Types.State = Constants.initialState, action: LoginGen.Actions): Types.State {
   switch (action.type) {
     case LoginGen.resetStore:
-      return {...initialState}
+      return {...Constants.initialState}
 
-    case LoginGen.setMyDeviceCodeState:
+    case LoginGen.setMyDeviceCodeState: {
       const {state: myDeviceRole} = action.payload
       return {
         ...state,
@@ -46,7 +17,8 @@ export default function(state: Constants.State = initialState, action: LoginGen.
           myDeviceRole,
         },
       }
-    case LoginGen.setOtherDeviceCodeState:
+    }
+    case LoginGen.setOtherDeviceCodeState: {
       const {state: otherDeviceRole} = action.payload
       return {
         ...state,
@@ -55,7 +27,8 @@ export default function(state: Constants.State = initialState, action: LoginGen.
           otherDeviceRole,
         },
       }
-    case LoginGen.setCodePageMode:
+    }
+    case LoginGen.setCodePageMode: {
       const {mode} = action.payload
       return {
         ...state,
@@ -64,7 +37,8 @@ export default function(state: Constants.State = initialState, action: LoginGen.
           mode,
         },
       }
-    case LoginGen.setTextCode:
+    }
+    case LoginGen.setTextCode: {
       const {enterCodeErrorText, textCode} = action.payload
       return {
         ...state,
@@ -74,7 +48,8 @@ export default function(state: Constants.State = initialState, action: LoginGen.
           textCode,
         },
       }
-    case LoginGen.setQRCode:
+    }
+    case LoginGen.setQRCode: {
       const {qrCode} = action.payload
       return {
         ...state,
@@ -83,6 +58,7 @@ export default function(state: Constants.State = initialState, action: LoginGen.
           qrCode,
         },
       }
+    }
     case LoginGen.clearQRCode:
       return {
         ...state,
@@ -91,7 +67,7 @@ export default function(state: Constants.State = initialState, action: LoginGen.
           qrCode: null,
         },
       }
-    case LoginGen.qrScanned:
+    case LoginGen.qrScanned: {
       const {phrase} = action.payload
       return {
         ...state,
@@ -101,7 +77,8 @@ export default function(state: Constants.State = initialState, action: LoginGen.
           qrScanned: phrase,
         },
       }
-    case LoginGen.setCameraBrokenMode:
+    }
+    case LoginGen.setCameraBrokenMode: {
       const {broken} = action.payload
       return {
         ...state,
@@ -110,6 +87,7 @@ export default function(state: Constants.State = initialState, action: LoginGen.
           cameraBrokenMode: broken,
         },
       }
+    }
     case LoginGen.configuredAccounts:
       if (action.payload.error) {
         return {...state, configuredAccounts: []}
@@ -117,19 +95,22 @@ export default function(state: Constants.State = initialState, action: LoginGen.
         const {accounts} = action.payload
         return {...state, configuredAccounts: accounts}
       }
-    case LoginGen.waitingForResponse:
+    case LoginGen.waitingForResponse: {
       const {waiting} = action.payload
       return {...state, waitingForResponse: waiting}
+    }
     case LoginGen.provisioningError:
       return {...state, codePage: {...state.codePage, qrCodeScanned: false}}
     case LoginGen.resetQRCodeScanned:
       return {...state, codePage: {...state.codePage, qrCodeScanned: false}}
-    case LoginGen.setRevokedSelf:
+    case LoginGen.setRevokedSelf: {
       const {revoked} = action.payload
       return {...state, justRevokedSelf: revoked}
-    case LoginGen.setDeletedSelf:
+    }
+    case LoginGen.setDeletedSelf: {
       const {deletedUsername} = action.payload
       return {...state, justDeletedSelf: deletedUsername}
+    }
     default:
       return state
   }

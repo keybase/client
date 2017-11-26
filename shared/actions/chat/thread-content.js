@@ -1,4 +1,6 @@
 // @flow
+import * as AppGen from '../app-gen'
+import * as Types from '../../constants/types/chat'
 import * as ChatTypes from '../../constants/types/flow-types-chat'
 import * as Constants from '../../constants/chat'
 import * as ChatGen from '../chat-gen'
@@ -16,7 +18,6 @@ import {enableActionLogging} from '../../local-debug'
 import {toDeviceType} from '../../constants/devices'
 import {type Action} from '../../constants/types/flux'
 import {type TypedState} from '../../constants/reducer'
-import {type ChangedFocus, type ChangedActive} from '../../constants/app'
 
 function* _clearConversationMessages({payload: {conversationIDKey}}: ChatGen.ClearMessagesPayload) {
   yield Saga.put(
@@ -49,7 +50,7 @@ function* _findMessagesToDelete(action: ChatGen.AppendMessagesPayload | ChatGen.
 function* _findMessageUpdates(action: ChatGen.AppendMessagesPayload | ChatGen.PrependMessagesPayload) {
   const newMessages = action.payload.messages
   type TargetMessageID = string
-  const updateIDs: {[key: TargetMessageID]: I.OrderedSet<Constants.MessageKey>} = {}
+  const updateIDs: {[key: TargetMessageID]: I.OrderedSet<Types.MessageKey>} = {}
   const conversationIDKey = action.payload.conversationIDKey
   newMessages.forEach(message => {
     if (message.type === 'Edit' || message.type === 'UpdateAttachment') {
@@ -84,7 +85,7 @@ function* _loadMoreMessages(action: ChatGen.LoadMoreMessagesPayload): Saga.SagaG
       return
     }
 
-    const rekeyInfoSelector = (state: TypedState, conversationIDKey: Constants.ConversationIDKey) => {
+    const rekeyInfoSelector = (state: TypedState, conversationIDKey: Types.ConversationIDKey) => {
       return state.chat.get('rekeyInfos').get(conversationIDKey)
     }
     const rekeyInfo = yield Saga.select(rekeyInfoSelector, conversationIDKey)
@@ -271,7 +272,7 @@ function* _incomingMessage(action: ChatGen.IncomingMessagePayload): Saga.SagaGen
         const messageUnboxed: ChatTypes.UIMessage = incomingMessage.message
         const yourName = yield Saga.select(Selectors.usernameSelector)
         const yourDeviceName = yield Saga.select(Shared.devicenameSelector)
-        const message: Constants.ServerMessage = _unboxedToMessage(
+        const message: Types.ServerMessage = _unboxedToMessage(
           messageUnboxed,
           yourName,
           yourDeviceName,
@@ -312,7 +313,7 @@ function* _incomingMessage(action: ChatGen.IncomingMessagePayload): Saga.SagaGen
           messageFromYou &&
           message.outboxID
         ) {
-          const outboxID: Constants.OutboxIDKey = message.outboxID
+          const outboxID: Types.OutboxIDKey = message.outboxID
           const state = yield Saga.select()
           const pendingMessage = Shared.messageOutboxIDSelector(state, conversationIDKey, outboxID)
 
@@ -367,13 +368,13 @@ function _unboxedToMessage(
   message: ChatTypes.UIMessage,
   yourName,
   yourDeviceName,
-  conversationIDKey: Constants.ConversationIDKey
-): Constants.ServerMessage {
+  conversationIDKey: Types.ConversationIDKey
+): Types.ServerMessage {
   if (message && message.state === ChatTypes.chatUiMessageUnboxedState.outbox && message.outbox) {
     // Outbox messages are always text, not attachments.
     const payload: ChatTypes.UIMessageOutbox = message.outbox
     // prettier-ignore
-    const messageState: Constants.MessageState = payload &&
+    const messageState: Types.MessageState = payload &&
       payload.state &&
       payload.state.state === ChatTypes.localOutboxStateType.error
       ? 'failed'
@@ -579,7 +580,7 @@ function _unboxedToMessage(
           }
         }
         default:
-          const unhandled: Constants.UnhandledMessage = {
+          const unhandled: Types.UnhandledMessage = {
             ...common,
             key: Constants.messageKey(common.conversationIDKey, 'messageIDUnhandled', common.messageID),
             type: 'Unhandled',
@@ -645,8 +646,8 @@ function _unboxedToMessage(
 // Avoid sending mark as read over and over
 const _lastMarkedAsRead = {}
 function* _markAsRead(
-  conversationIDKey: Constants.ConversationIDKey,
-  messageID: Constants.MessageID
+  conversationIDKey: Types.ConversationIDKey,
+  messageID: Types.MessageID
 ): Saga.SagaGenerator<any, any> {
   if (_lastMarkedAsRead[conversationIDKey] === messageID) {
     return
@@ -668,14 +669,14 @@ function* _markAsRead(
 }
 
 function _updateBadging({payload: {conversationIDKey}}: ChatGen.UpdateBadgingPayload, state: TypedState) {
-  const lastMessageID: ?Constants.MessageID = Constants.lastMessageID(state, conversationIDKey)
+  const lastMessageID: ?Types.MessageID = Constants.lastMessageID(state, conversationIDKey)
   // Update gregor's view of the latest message we've read.
   if (conversationIDKey && lastMessageID) {
     return Saga.call(_markAsRead, conversationIDKey, lastMessageID)
   }
 }
 
-function _parseChannelMention(channelMention: ChatTypes.ChannelMention): Constants.ChannelMention {
+function _parseChannelMention(channelMention: ChatTypes.ChannelMention): Types.ChannelMention {
   switch (channelMention) {
     case ChatTypes.remoteChannelMention.all:
       return 'All'
@@ -692,7 +693,7 @@ function* _updateThread({
   let newMessages = []
   const newUnboxeds = (thread && thread.messages) || []
   for (const unboxed of newUnboxeds) {
-    const message: Constants.ServerMessage = _unboxedToMessage(
+    const message: Types.ServerMessage = _unboxedToMessage(
       unboxed,
       yourName,
       yourDeviceName,
@@ -702,7 +703,7 @@ function* _updateThread({
       message.deviceName === yourDeviceName && message.author && yourName === message.author
 
     if ((message.type === 'Text' || message.type === 'Attachment') && messageFromYou && message.outboxID) {
-      const outboxID: Constants.OutboxIDKey = message.outboxID
+      const outboxID: Types.OutboxIDKey = message.outboxID
       const state = yield Saga.select()
       const pendingMessage = Shared.messageOutboxIDSelector(state, conversationIDKey, outboxID)
       if (pendingMessage) {
@@ -780,7 +781,7 @@ function _removeOutboxMessage(
   {payload: {conversationIDKey, outboxID}}: ChatGen.RemoveOutboxMessagePayload,
   s: TypedState
 ) {
-  const msgKeys: I.OrderedSet<Constants.MessageKey> = Constants.getConversationMessages(s, conversationIDKey)
+  const msgKeys: I.OrderedSet<Types.MessageKey> = Constants.getConversationMessages(s, conversationIDKey)
   const nextMessages = msgKeys.filter(k => {
     const {messageID} = Constants.splitMessageIDKey(k)
     return messageID !== outboxID
@@ -855,7 +856,7 @@ function* _updateMetadata(action: ChatGen.UpdateMetadataPayload): Saga.SagaGener
   }
 }
 
-function* _changedActive(action: ChangedActive): Saga.SagaGenerator<any, any> {
+function* _changedActive(action: AppGen.ChangedActivePayload): Saga.SagaGenerator<any, any> {
   // Update badging and the latest message due to changing active state.
   const {userActive} = action.payload
   const state: TypedState = yield Saga.select()
@@ -887,7 +888,7 @@ function* _updateTyping({
   }
 }
 
-function* _changedFocus(action: ChangedFocus): Saga.SagaGenerator<any, any> {
+function* _changedFocus(action: AppGen.ChangedFocusPayload): Saga.SagaGenerator<any, any> {
   // Update badging and the latest message due to the refocus.
   const {appFocused} = action.payload
   const state: TypedState = yield Saga.select()
@@ -945,7 +946,7 @@ function* _logUpdateTempMessage(action: ChatGen.UpdateTempMessagePayload): Saga.
 }
 
 function* registerSagas(): Saga.SagaGenerator<any, any> {
-  yield Saga.safeTakeEvery('app:changedActive', _changedActive)
+  yield Saga.safeTakeEvery(AppGen.changedActive, _changedActive)
   yield Saga.safeTakeEvery(ChatGen.clearMessages, _clearConversationMessages)
   yield Saga.safeTakeEvery([ChatGen.appendMessages, ChatGen.prependMessages], _storeMessageToEntity)
   yield Saga.safeTakeEvery([ChatGen.appendMessages, ChatGen.prependMessages], _findMessagesToDelete)
@@ -962,7 +963,7 @@ function* registerSagas(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEvery(ChatGen.openConversation, _openConversation)
   yield Saga.safeTakeEvery(ChatGen.updateMetadata, _updateMetadata)
   yield Saga.safeTakeEvery(ChatGen.updateTyping, _updateTyping)
-  yield Saga.safeTakeEvery('app:changedFocus', _changedFocus)
+  yield Saga.safeTakeEvery(AppGen.changedFocus, _changedFocus)
 
   if (enableActionLogging) {
     yield Saga.safeTakeEvery(ChatGen.appendMessages, _logAppendMessages)

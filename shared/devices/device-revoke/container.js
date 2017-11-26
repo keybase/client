@@ -3,7 +3,7 @@ import DeviceRevoke from './'
 import {compose, mapProps, connect, type TypedState} from '../../util/container'
 import {isMobile} from '../../constants/platform'
 import {navigateUp} from '../../actions/route-tree'
-import {revoke} from '../../actions/devices'
+import {createRevoke} from '../../actions/devices-gen'
 
 const mapStateToProps = (state: TypedState, {routeProps}) => ({
   device: state.entities.getIn(['devices', routeProps.get('deviceID')]),
@@ -12,7 +12,7 @@ const mapStateToProps = (state: TypedState, {routeProps}) => ({
 
 const mapDispatchToProps = (dispatch: Dispatch, {routeProps}) => ({
   onCancel: () => dispatch(navigateUp()),
-  onSubmit: () => dispatch(revoke(routeProps.get('deviceID'))),
+  onSubmit: () => dispatch(createRevoke({deviceID: routeProps.get('deviceID')})),
 })
 
 const icon = props =>

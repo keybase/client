@@ -1,7 +1,7 @@
 // @flow
 import * as I from 'immutable'
+import * as SearchGen from '../actions/search-gen'
 import {amIFollowing, usernameSelector} from './selectors'
-import {type NoErrorTypedAction} from '../constants/types/flux'
 import {type IconType} from '../common-adapters/icon'
 import {createSelector} from 'reselect'
 import {type TypedState} from './reducer'
@@ -74,74 +74,6 @@ export const makeSearchResult: I.RecordFactory<SearchResult> = I.Record({
   rightService: null,
   rightUsername: null,
 })
-
-// Actions
-export type Search = NoErrorTypedAction<
-  'search:search',
-  {
-    term: string,
-    service: Service,
-    searchKey: string,
-  }
->
-
-export type AddResultsToUserInput = NoErrorTypedAction<
-  'search:addResultsToUserInput',
-  {
-    searchKey: string,
-    searchResults: Array<SearchResultId>,
-  }
->
-
-export type RemoveResultsToUserInput = NoErrorTypedAction<
-  'search:removeResultsToUserInput',
-  {
-    searchKey: string,
-    searchResults: Array<SearchResultId>,
-  }
->
-
-export type SetUserInputItems = NoErrorTypedAction<
-  'search:setUserInputItems',
-  {searchKey: string, searchResults: Array<SearchResultId>}
->
-
-export type UserInputItemsUpdated = NoErrorTypedAction<
-  'search:userInputItemsUpdated',
-  {searchKey: string, userInputItemIds: Array<SearchResultId>}
->
-
-export type AddClickedFromUserInput = NoErrorTypedAction<
-  'search:addClickedFromUserInput',
-  {
-    searchKey: string,
-  }
->
-
-export type ClearSearchResults = NoErrorTypedAction<
-  'search:clearSearchResults',
-  {
-    searchKey: string,
-  }
->
-
-export type UpdateSelectedSearchResult = NoErrorTypedAction<
-  'search:updateSelectedSearchResult',
-  {
-    searchKey: string,
-    id: ?SearchResultId,
-  }
->
-
-export type SearchSuggestions = NoErrorTypedAction<
-  'search:searchSuggestions',
-  {maxUsers: number, searchKey: string}
->
-
-export type FinishedSearch = NoErrorTypedAction<
-  'search:finishedSearch',
-  {searchResults: Array<SearchResultId>, searchResultTerm: string, service: Service, searchKey: string}
->
 
 function serviceIdToService(serviceId: string): Service {
   return {
@@ -231,7 +163,7 @@ function platformToLogo16(service: Service): IconType {
 }
 
 const isUserInputItemsUpdated = (searchKey: string) => (action: any) =>
-  action.type === 'search:userInputItemsUpdated' && action.payload && action.payload.searchKey === searchKey
+  action.type === SearchGen.userInputItemsUpdated && action.payload && action.payload.searchKey === searchKey
 
 const _getSearchResultIds = ({entities}: TypedState, {searchKey}: {searchKey: string}) =>
   entities.getIn(['search', 'searchKeyToResults', searchKey])

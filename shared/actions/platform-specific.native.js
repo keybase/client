@@ -1,10 +1,12 @@
 // @flow
+import * as PushTypes from '../constants/types/push'
+import * as PushConstants from '../constants/push'
+import * as PushGen from './push-gen'
 import * as PushNotifications from 'react-native-push-notification'
 import {PushNotificationIOS, CameraRoll, ActionSheetIOS, AsyncStorage} from 'react-native'
-import * as PushConstants from '../constants/push'
 import {eventChannel} from 'redux-saga'
-import {isIOS} from '../constants/platform'
 import {isDevApplePushToken} from '../local-debug'
+import {isIOS} from '../constants/platform'
 import {isImageFileName} from '../constants/chat'
 
 function requestPushPermissions(): Promise<*> {
@@ -73,10 +75,10 @@ function displayNewMessageNotification(text: string, convID: ?string, badgeCount
 }
 
 function configurePush() {
-  return eventChannel(emitter => {
+  return eventChannel(dispatch => {
     PushNotifications.configure({
       onRegister: token => {
-        let tokenType: ?PushConstants.TokenType
+        let tokenType: ?PushTypes.TokenType
         switch (token.os) {
           case 'ios':
             tokenType = isDevApplePushToken ? PushConstants.tokenTypeAppleDev : PushConstants.tokenTypeApple
@@ -86,23 +88,17 @@ function configurePush() {
             break
         }
         if (tokenType) {
-          emitter(
-            ({
-              payload: {
-                token: token.token,
-                tokenType,
-              },
-              type: 'push:pushToken',
-            }: PushConstants.PushToken)
+          dispatch(
+            PushGen.createPushToken({
+              token: token.token,
+              tokenType,
+            })
           )
         } else {
-          emitter(
-            ({
-              payload: {
-                error: new Error(`Unrecognized os for token: ${token}`),
-              },
-              type: 'push:registrationError',
-            }: PushConstants.PushRegistrationError)
+          dispatch(
+            PushGen.createRegistrationError({
+              error: new Error(`Unrecognized os for token: ${token}`),
+            })
           )
         }
       },
@@ -113,19 +109,17 @@ function configurePush() {
           ...(notification.data || {}),
           data: undefined,
         }
-        emitter(
-          ({
-            payload: merged,
-            type: 'push:notification',
-          }: PushConstants.PushNotificationAction)
+        dispatch(
+          PushGen.createNotification({
+            notification: merged,
+          })
         )
       },
       onError: error => {
-        emitter(
-          ({
-            payload: {error},
-            type: 'push:error',
-          }: PushConstants.PushError)
+        dispatch(
+          PushGen.createError({
+            error,
+          })
         )
       },
       // Don't request permissions for ios, we'll ask later, after showing UI
@@ -134,11 +128,10 @@ function configurePush() {
     // It doesn't look like there is a registrationError being set for iOS.
     // https://github.com/zo0r/react-native-push-notification/issues/261
     PushNotificationIOS.addEventListener('registrationError', error => {
-      emitter(
-        ({
-          payload: {error},
-          type: 'push:registrationError',
-        }: PushConstants.PushRegistrationError)
+      dispatch(
+        PushGen.createRegistrationError({
+          error,
+        })
       )
     })
 
@@ -152,25 +145,15 @@ function configurePush() {
               // TODO(gabriel): Detect if we already showed permissions prompt and were denied,
               // in which case we should not show prompt or show different prompt about enabling
               // in Settings (for iOS)
-              emitter(
-                ({
-                  payload: true,
-                  type: 'push:permissionsPrompt',
-                  logTransformer: action => ({
-                    payload: action.payload,
-                    type: action.type,
-                  }),
-                }: PushConstants.PushPermissionsPrompt)
+              dispatch(
+                PushGen.createPermissionsPrompt({
+                  prompt: true,
+                })
               )
             } else {
               // We have permissions, this triggers a token registration in
               // case it changed.
-              emitter(
-                ({
-                  payload: undefined,
-                  type: 'push:permissionsRequest',
-                }: PushConstants.PushPermissionsRequest)
-              )
+              dispatch(PushGen.createPermissionsRequest())
             }
           })
         }

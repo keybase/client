@@ -1,5 +1,6 @@
 // @flow
 import * as Constants from '../../../../constants/chat'
+import * as Types from '../../../../constants/types/chat'
 import CreateTeamNotice from '.'
 import {connect, type TypedState} from '../../../../util/container'
 import {navigateAppend} from '../../../../actions/route-tree'
@@ -17,7 +18,7 @@ const mapStateToProps = (state: TypedState) => {
 }
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
-  _onShowNewTeamDialog: (conversationIDKey: Constants.ConversationIDKey) => {
+  _onShowNewTeamDialog: (conversationIDKey: Types.ConversationIDKey) => {
     dispatch(
       navigateAppend([
         {

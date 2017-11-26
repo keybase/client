@@ -1,6 +1,6 @@
 {
   "prelude": [
-    "import * as Constants from '../constants/config'"
+    "import * as Types from '../constants/types/config'"
   ],
   "actions": {
     "bootstrapStatusLoaded": {
@@ -41,7 +41,7 @@
     "readyForBootstrap": {},
     "retryBootstrap": {},
     "setInitialState": {
-      "initialState": "Constants.InitialState"
+      "initialState": "Types.InitialState"
     }
   }
 }
