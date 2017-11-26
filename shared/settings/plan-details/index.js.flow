@@ -1,6 +1,6 @@
 // @flow
 import {Component} from 'react'
-import type {PlanLevel} from '../../constants/settings'
+import type {PlanLevel} from '../../constants/types/settings'
 
 export type PaymentVariants =
   | {

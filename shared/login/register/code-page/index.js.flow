@@ -1,7 +1,7 @@
 // @flow
 
 import {Component} from 'react'
-import type {Mode, DeviceRole} from '../../../constants/login'
+import type {Mode, DeviceRole} from '../../../constants/types/login'
 
 export type Props = {
   mode: Mode,

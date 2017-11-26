@@ -7,7 +7,7 @@ import * as ChatGen from '../../actions/chat-gen'
 import * as I from 'immutable'
 import * as RPCTypes from '../../constants/types/flow-types'
 import * as Saga from '../../util/saga'
-import * as SearchCreators from '../search/creators'
+import * as SearchGen from '../search-gen'
 import * as Selectors from '../../constants/selectors'
 import * as Shared from './shared'
 import uniq from 'lodash/uniq'
@@ -94,7 +94,12 @@ function* _selectConversation(action: ChatGen.SelectConversationPayload): Saga.S
     // Update search but don't update the filter
     if (inSearch) {
       const me = yield Saga.select(Selectors.usernameSelector)
-      yield Saga.put(SearchCreators.setUserInputItems('chatSearch', participants.filter(u => u !== me)))
+      yield Saga.put(
+        SearchGen.createSetUserInputItems({
+          searchKey: 'chatSearch',
+          searchResults: participants.filter(u => u !== me),
+        })
+      )
     }
   }
 

@@ -1,5 +1,6 @@
 // @flow
 import * as Constants from '../../../../constants/chat'
+import * as Types from '../../../../constants/types/chat'
 import SystemNotice from '.'
 import createCachedSelector from 're-reselect'
 import {connect} from 'react-redux'
@@ -9,7 +10,7 @@ import type {OwnProps} from './container'
 
 const getDetails = createCachedSelector(
   [Constants.getMessageFromMessageKey, Constants.getYou, Constants.getFollowingMap],
-  (message: Constants.SystemMessage, you: string, following: {[key: string]: ?boolean}) => ({
+  (message: Types.SystemMessage, you: string, following: {[key: string]: ?boolean}) => ({
     following: !!following[message.author],
     message,
     you,

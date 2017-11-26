@@ -1,0 +1,21 @@
+{
+  "prelude": [
+    "import * as Constants from '../constants/devices'"
+  ],
+  "actions": {
+    "load": {},
+    "loaded": {
+      "deviceIDs": "Array<string>"
+    },
+    "paperKeyMake": {},
+    "revoke": {
+      "deviceID": "string"
+    },
+    "showRevokePage": {
+      "deviceID": "string"
+    },
+    "setWaiting": {
+      "waiting": "boolean"
+    }
+  }
+}

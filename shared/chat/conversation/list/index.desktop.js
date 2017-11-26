@@ -1,6 +1,7 @@
 // @flow
 // An infinite scrolling chat list. Using react-virtualized which doesn't really handle this case out of the box.
 import * as Constants from '../../../constants/chat'
+import * as Types from '../../../constants/types/chat'
 import * as Virtualized from 'react-virtualized'
 import EditPopup from '../edit-popup.desktop'
 import * as React from 'react'
@@ -18,7 +19,7 @@ import type {Props} from '.'
 type State = {
   isLockedToBottom: boolean,
   listRerender: number,
-  selectedMessageKey: ?Constants.MessageKey,
+  selectedMessageKey: ?Types.MessageKey,
 }
 
 const lockedToBottomSlop = 20
@@ -264,7 +265,7 @@ class PopupEnabledList extends BaseList {
 
   // How this works is kinda crappy. We have to plumb through this key => message helper and all this DOM stuff just to support this
   _onEditLastMessage = () => {
-    let tuple: ?[number, Constants.MessageKey, Constants.TextMessage]
+    let tuple: ?[number, Types.MessageKey, Types.TextMessage]
     this.props.messageKeys.findLastEntry((v, k) => {
       const m = this.props.getMessageFromMessageKey(v)
       if (m && m.type === 'Text' && m.author === this.props.you) {
@@ -305,8 +306,8 @@ class PopupEnabledList extends BaseList {
   }
 
   _renderPopup(
-    message: Constants.Message,
-    localMessageState: Constants.LocalMessageState,
+    message: Types.Message,
+    localMessageState: Types.LocalMessageState,
     style: Object,
     messageRect: any
   ): ?React.Node {
@@ -316,7 +317,7 @@ class PopupEnabledList extends BaseList {
           <TextPopupMenu
             you={this.props.you}
             message={message}
-            onShowEditor={(message: Constants.TextMessage) => this._showEditor(message, messageRect)}
+            onShowEditor={(message: Types.TextMessage) => this._showEditor(message, messageRect)}
             onDeleteMessage={this.props.onDeleteMessage}
             onDownloadAttachment={this.props.onDownloadAttachment}
             onOpenInFileUI={this.props.onOpenInFileUI}
@@ -346,7 +347,7 @@ class PopupEnabledList extends BaseList {
     }
   }
 
-  _showEditor = (message: Constants.TextMessage, messageRect: any) => {
+  _showEditor = (message: Types.TextMessage, messageRect: any) => {
     const popupComponent = (
       <EditPopup
         messageRect={messageRect}
@@ -380,8 +381,8 @@ class PopupEnabledList extends BaseList {
   }
 
   _showPopup(
-    message: Constants.TextMessage | Constants.AttachmentMessage,
-    localMessageState: Constants.LocalMessageState,
+    message: Types.TextMessage | Types.AttachmentMessage,
+    localMessageState: Types.LocalMessageState,
     event: SyntheticEvent<>
   ) {
     const target = (event.target: any)
@@ -412,8 +413,8 @@ class PopupEnabledList extends BaseList {
   }
 
   _onAction = (
-    message: Constants.ServerMessage,
-    localMessageState: Constants.LocalMessageState,
+    message: Types.ServerMessage,
+    localMessageState: Types.LocalMessageState,
     event: SyntheticEvent<>
   ) => {
     if (message.type === 'Text' || message.type === 'Attachment') {
@@ -421,7 +422,7 @@ class PopupEnabledList extends BaseList {
     }
   }
 
-  _onShowEditor = (message: Constants.Message, event: SyntheticEvent<>) => {
+  _onShowEditor = (message: Types.Message, event: SyntheticEvent<>) => {
     if (message.type === 'Text') {
       const messageNode = this._findMessageFromDOMNode(event.target)
       const messageRect = messageNode && this._domNodeToRect(messageNode)

@@ -1,7 +1,10 @@
 // @flow
 import * as Constants from '../constants/favorite'
+import * as Types from '../constants/types/favorite'
 import * as RPCTypes from '../constants/types/flow-types'
 import * as Saga from '../util/saga'
+import * as FavoriteGen from './favorite-gen'
+import * as NotificationsGen from './notifications-gen'
 import flatten from 'lodash/flatten'
 import partition from 'lodash/partition'
 import difference from 'lodash/difference'
@@ -9,38 +12,12 @@ import debounce from 'lodash/debounce'
 import findKey from 'lodash/findKey'
 import engine from '../engine'
 import {NotifyPopup} from '../native/notifications'
-import {badgeApp} from './notifications'
 import {call, put, select} from 'redux-saga/effects'
 import {isMobile} from '../constants/platform'
 
 import type {Action} from '../constants/types/flux'
 import type {TypedState} from '../constants/reducer'
 import type {FolderRPCWithMeta} from '../constants/folders'
-
-function favoriteSwitchTab(showingPrivate: boolean): Constants.FavoriteSwitchTab {
-  return {type: Constants.favoriteSwitchTab, payload: {showingPrivate}, error: false}
-}
-
-function toggleShowIgnored(isPrivate: boolean): Constants.FavoriteToggleIgnored {
-  return {type: Constants.favoriteToggleIgnored, payload: {isPrivate}, error: false}
-}
-
-function favoriteList(): Constants.FavoriteList {
-  return {type: Constants.favoriteList, payload: undefined}
-}
-
-function favoriteFolder(path: string): Constants.FavoriteAdd {
-  return {type: Constants.favoriteAdd, payload: {path}}
-}
-
-function ignoreFolder(path: string): Constants.FavoriteIgnore {
-  return {type: Constants.favoriteIgnore, payload: {path}}
-}
-
-// TODO(mm) type properly
-function markTLFCreated(folder: any): Constants.MarkTLFCreated {
-  return {type: Constants.markTLFCreated, payload: {folder}}
-}
 
 const injectMeta = type => f => {
   f.meta = type
@@ -99,7 +76,7 @@ function _folderSort(username, a, b) {
   return a.sortName.localeCompare(b.sortName)
 }
 
-function _folderToState(txt: string = '', username: string, loggedIn: boolean): Constants.FolderState {
+function _folderToState(txt: string = '', username: string, loggedIn: boolean): Types.FolderState {
   const folders: Array<FolderRPCWithMeta> = _getFavoritesRPCToFolders(txt, username, loggedIn)
 
   const converted = folders
@@ -187,42 +164,30 @@ function _getFavoritesRPCToFolders(
   return folders
 }
 
-function* _addSaga(action: Constants.FavoriteAdd): Saga.SagaGenerator<any, any> {
+function* _addSaga(action: FavoriteGen.FavoriteAddPayload): Saga.SagaGenerator<any, any> {
   const folder = Constants.folderRPCFromPath(action.payload.path)
   if (!folder) {
-    const action: Constants.FavoriteAdded = {
-      type: Constants.favoriteAdded,
-      error: true,
-      payload: {errorText: 'No folder specified'},
-    }
-    yield put(action)
+    yield put(FavoriteGen.createFavoriteAddedError({errorText: 'No folder specified'}))
   } else {
     try {
       yield call(RPCTypes.favoriteFavoriteAddRpcPromise, {folder})
-      const action: Constants.FavoriteAdded = {type: Constants.favoriteAdded, payload: undefined}
-      yield put(action)
-      yield put(favoriteList())
+      yield put(FavoriteGen.createFavoriteAdded())
+      yield put(FavoriteGen.createFavoriteList())
     } catch (error) {
       console.warn('Err in favorite.favoriteAdd', error)
     }
   }
 }
 
-function* _ignoreSaga(action: Constants.FavoriteAdd): Saga.SagaGenerator<any, any> {
+function* _ignoreSaga(action: FavoriteGen.FavoriteIgnorePayload): Saga.SagaGenerator<any, any> {
   const folder = Constants.folderRPCFromPath(action.payload.path)
   if (!folder) {
-    const action: Constants.FavoriteIgnored = {
-      type: Constants.favoriteIgnored,
-      error: true,
-      payload: {errorText: 'No folder specified'},
-    }
-    yield put(action)
+    yield put(FavoriteGen.createFavoriteIgnoredError({errorText: 'No folder specified'}))
   } else {
     try {
       yield call(RPCTypes.favoriteFavoriteIgnoreRpcPromise, {folder})
-      const action: Constants.FavoriteIgnored = {type: Constants.favoriteIgnored, payload: undefined}
-      yield put(action)
-      yield put(favoriteList())
+      yield put(FavoriteGen.createFavoriteIgnored())
+      yield put(FavoriteGen.createFavoriteList())
     } catch (error) {
       console.warn('Err in favorite.favoriteIgnore', error)
     }
@@ -237,14 +202,13 @@ function* _listSaga(): Saga.SagaGenerator<any, any> {
     })
     const username = yield select((state: TypedState) => state.config && state.config.username)
     const loggedIn = yield select((state: TypedState) => state.config && state.config.loggedIn)
-    const state: Constants.FolderState = _folderToState(
+    const state: Types.FolderState = _folderToState(
       results && results.body,
       username || '',
       loggedIn || false
     )
 
-    const listedAction: Constants.FavoriteListed = {type: Constants.favoriteListed, payload: {folders: state}}
-    yield put(listedAction)
+    yield put(FavoriteGen.createFavoriteListed({folders: state}))
     yield call(_notify, state)
   } catch (e) {
     console.warn('Error listing favorites:', e)
@@ -254,7 +218,7 @@ function* _listSaga(): Saga.SagaGenerator<any, any> {
 // If the notify data has changed, show a popup
 let previousNotifyState = []
 
-function _notify(state: Constants.FolderState): void {
+function _notify(state: Types.FolderState): void {
   const total = state.publicBadge + state.privateBadge
 
   if (total) {
@@ -287,9 +251,9 @@ function* _setupKBFSChangedHandler(): Saga.SagaGenerator<any, any> {
     const debouncedKBFSStopped = debounce(() => {
       if (_kbfsUploadingState === true) {
         _kbfsUploadingState = false
-        const badgeAction: Action = badgeApp('kbfsUploading', false)
+        const badgeAction: Action = NotificationsGen.createBadgeApp({key: 'kbfsUploading', on: false})
         dispatch(badgeAction)
-        dispatch({type: Constants.kbfsStatusUpdated, payload: {isAsyncWriteHappening: false}})
+        dispatch(FavoriteGen.createKbfsStatusUpdated({status: {isAsyncWriteHappening: false}}))
       }
     }, 2000)
 
@@ -299,9 +263,9 @@ function* _setupKBFSChangedHandler(): Saga.SagaGenerator<any, any> {
         // ie. we don't get the syncingBytes or ops correctly (always zero)
         if (_kbfsUploadingState === false) {
           _kbfsUploadingState = true
-          const badgeAction: Action = badgeApp('kbfsUploading', true)
+          const badgeAction: Action = NotificationsGen.createBadgeApp({key: 'kbfsUploading', on: true})
           dispatch(badgeAction)
-          dispatch({type: Constants.kbfsStatusUpdated, payload: {isAsyncWriteHappening: true}})
+          dispatch(FavoriteGen.createKbfsStatusUpdated({status: {isAsyncWriteHappening: true}}))
         }
         // We have to debounce while the events are still happening no matter what
         debouncedKBFSStopped()
@@ -313,12 +277,10 @@ function* _setupKBFSChangedHandler(): Saga.SagaGenerator<any, any> {
 }
 
 function* favoriteSaga(): Saga.SagaGenerator<any, any> {
-  yield Saga.safeTakeLatest(Constants.favoriteList, _listSaga)
-  yield Saga.safeTakeEvery(Constants.favoriteAdd, _addSaga)
-  yield Saga.safeTakeEvery(Constants.favoriteIgnore, _ignoreSaga)
-  yield Saga.safeTakeEvery(Constants.setupKBFSChangedHandler, _setupKBFSChangedHandler)
+  yield Saga.safeTakeLatest(FavoriteGen.favoriteList, _listSaga)
+  yield Saga.safeTakeEvery(FavoriteGen.favoriteAdd, _addSaga)
+  yield Saga.safeTakeEvery(FavoriteGen.favoriteIgnore, _ignoreSaga)
+  yield Saga.safeTakeEvery(FavoriteGen.setupKBFSChangedHandler, _setupKBFSChangedHandler)
 }
-
-export {favoriteFolder, favoriteList, ignoreFolder, markTLFCreated, favoriteSwitchTab, toggleShowIgnored}
 
 export default favoriteSaga

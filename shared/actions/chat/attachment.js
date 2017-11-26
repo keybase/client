@@ -1,5 +1,6 @@
 // @flow
-import * as ChatTypes from '../../constants/types/flow-types-chat'
+import * as RPCChatTypes from '../../constants/types/flow-types-chat'
+import * as Types from '../../constants/types/chat'
 import * as Constants from '../../constants/chat'
 import * as ChatGen from '../chat-gen'
 import * as I from 'immutable'
@@ -189,7 +190,7 @@ function* onLoadAttachment({
 
     const downloadFileRpc = new EngineRpc.EngineRpcCall(
       loadAttachmentSagaMap(messageKey, loadPreview),
-      ChatTypes.localDownloadFileAttachmentLocalRpcChannelMap,
+      RPCChatTypes.localDownloadFileAttachmentLocalRpcChannelMap,
       `localDownloadFileAttachmentLocal-${conversationIDKey}-${messageID}`,
       param
     )
@@ -210,14 +211,14 @@ function* onLoadAttachment({
 }
 
 function* _appendAttachmentPlaceholder(
-  conversationIDKey: Constants.ConversationIDKey,
-  outboxIDKey: Constants.OutboxIDKey,
-  preview: ChatTypes.MakePreviewRes,
+  conversationIDKey: Types.ConversationIDKey,
+  outboxIDKey: Types.OutboxIDKey,
+  preview: RPCChatTypes.MakePreviewRes,
   title: string,
   uploadPath: string
-): Generator<any, Constants.AttachmentMessage, any> {
+): Generator<any, Types.AttachmentMessage, any> {
   const author = yield Saga.select(usernameSelector)
-  const message: Constants.AttachmentMessage = {
+  const message: Types.AttachmentMessage = {
     author,
     conversationIDKey,
     deviceName: '',
@@ -254,7 +255,7 @@ function* _appendAttachmentPlaceholder(
   return message
 }
 
-function uploadProgressSubSaga(getCurKey: () => ?Constants.MessageKey) {
+function uploadProgressSubSaga(getCurKey: () => ?Types.MessageKey) {
   return function*({bytesComplete, bytesTotal}) {
     const curKey = yield Saga.call(getCurKey)
     if (curKey) {
@@ -265,11 +266,11 @@ function uploadProgressSubSaga(getCurKey: () => ?Constants.MessageKey) {
 }
 
 function uploadOutboxIDSubSaga(
-  conversationIDKey: Constants.ConversationIDKey,
-  preview: ChatTypes.MakePreviewRes,
+  conversationIDKey: Types.ConversationIDKey,
+  preview: RPCChatTypes.MakePreviewRes,
   title: string,
   filename: string,
-  setCurKey: (key: Constants.MessageKey) => void,
+  setCurKey: (key: Types.MessageKey) => void,
   setOutboxId: Function
 ) {
   return function*({outboxID}) {
@@ -290,12 +291,12 @@ function uploadOutboxIDSubSaga(
 
 // Hacky since curKey can change on us
 const postAttachmentSagaMap = (
-  conversationIDKey: Constants.ConversationIDKey,
-  preview: ChatTypes.MakePreviewRes,
+  conversationIDKey: Types.ConversationIDKey,
+  preview: RPCChatTypes.MakePreviewRes,
   title: string,
   filename: string,
-  getCurKey: () => ?Constants.MessageKey,
-  setCurKey: (key: Constants.MessageKey) => void,
+  getCurKey: () => ?Types.MessageKey,
+  setCurKey: (key: Types.MessageKey) => void,
   setOutboxId: Function
 ) => ({
   'chat.1.chatUi.chatAttachmentUploadOutboxID': uploadOutboxIDSubSaga(
@@ -326,7 +327,7 @@ function* onSelectAttachment({payload: {input}}: ChatGen.SelectAttachmentPayload
     }
   }
 
-  const preview = yield Saga.call(ChatTypes.localMakePreviewRpcPromise, {
+  const preview = yield Saga.call(RPCChatTypes.localMakePreviewRpcPromise, {
     attachment: {filename},
     outputDir: tmpDir(),
   })
@@ -344,15 +345,15 @@ function* onSelectAttachment({payload: {input}}: ChatGen.SelectAttachmentPayload
   }
 
   // TODO This is really hacky, should get reworked
-  let curKey: ?Constants.MessageKey = null
+  let curKey: ?Types.MessageKey = null
   let outboxID = null
 
   // When we receive the attachment placeholder message from the server, the
   // local message key basis will change from the outboxID to the messageID.
   // We need to watch for this so that the uploadProgress gets set on the
   // right message key.
-  const getCurKey = (): ?Constants.MessageKey => curKey
-  const getOutboxIdKey = (): ?Constants.OutboxIDKey => outboxID
+  const getCurKey = (): ?Types.MessageKey => curKey
+  const getOutboxIdKey = (): ?Types.OutboxIDKey => outboxID
 
   const setCurKey = nextCurKey => {
     curKey = nextCurKey
@@ -361,7 +362,7 @@ function* onSelectAttachment({payload: {input}}: ChatGen.SelectAttachmentPayload
 
   const postAttachment = new EngineRpc.EngineRpcCall(
     postAttachmentSagaMap(conversationIDKey, preview, title, filename, getCurKey, setCurKey, setOutboxIdKey),
-    ChatTypes.localPostFileAttachmentLocalRpcChannelMap,
+    RPCChatTypes.localPostFileAttachmentLocalRpcChannelMap,
     `localPostFileAttachmentLocal-${conversationIDKey}-${title}-${filename}`,
     {param}
   )

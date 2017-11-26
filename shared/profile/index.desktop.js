@@ -1,5 +1,6 @@
 // @flow
 import * as shared from './index.shared'
+import * as Constants from '../constants/tracker'
 import Friendships from './friendships'
 import React, {PureComponent} from 'react'
 import orderBy from 'lodash/orderBy'
@@ -19,15 +20,9 @@ import {
 import {PopupHeaderText} from '../common-adapters/popup-menu'
 import {findDOMNode} from 'react-dom'
 import {globalStyles, globalColors, globalMargins} from '../styles'
-import {
-  normal as proofNormal,
-  checking as proofChecking,
-  metaUnreachable,
-  metaPending,
-} from '../constants/tracker'
 import {stateColors} from '../util/tracker'
 
-import type {Proof} from '../constants/tracker'
+import type {Proof} from '../constants/types/tracker'
 import type {Props} from './index'
 
 export const AVATAR_SIZE = 112
@@ -70,7 +65,7 @@ class ProfileRender extends PureComponent<Props, State> {
       return
     }
 
-    if (proof.meta === metaUnreachable) {
+    if (proof.meta === Constants.metaUnreachable) {
       return {
         header: {
           title: 'header',
@@ -90,7 +85,7 @@ class ProfileRender extends PureComponent<Props, State> {
           },
         ],
       }
-    } else if (proof.meta === metaPending) {
+    } else if (proof.meta === Constants.metaPending) {
       let pendingMessage
       if (proof.type === 'hackernews') {
         pendingMessage =
@@ -210,9 +205,13 @@ class ProfileRender extends PureComponent<Props, State> {
     const trackerStateColors = stateColors(this.props.currentlyFollowing, this.props.trackerState)
 
     let proofNotice
-    if (this.props.trackerState !== proofNormal && this.props.trackerState !== proofChecking && !loading) {
+    if (
+      this.props.trackerState !== Constants.normal &&
+      this.props.trackerState !== Constants.checking &&
+      !loading
+    ) {
       if (this.props.isYou) {
-        if (this.props.proofs.some(proof => proof.meta === metaUnreachable)) {
+        if (this.props.proofs.some(proof => proof.meta === Constants.metaUnreachable)) {
           proofNotice = 'Some of your proofs are unreachable.'
         }
       } else {

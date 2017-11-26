@@ -1,5 +1,5 @@
 // @flow
-import * as Constants from '../../constants/profile'
+import * as Types from '../../constants/types/profile'
 import * as ProfileGen from '../profile-gen'
 import * as RPCTypes from '../../constants/types/flow-types'
 import * as Saga from '../../util/saga'
@@ -16,7 +16,7 @@ type PgpInfoError = {
 }
 
 // This can be replaced with something that makes a call to service to validate
-function _checkPgpInfoForErrors(info: Constants.PgpInfo): PgpInfoError {
+function _checkPgpInfoForErrors(info: Types.PgpInfo): PgpInfoError {
   const errorEmail1 = info.email1 && isValidEmail(info.email1)
   const errorEmail2 = info.email2 && isValidEmail(info.email2)
   const errorEmail3 = info.email3 && isValidEmail(info.email3)

@@ -1,5 +1,6 @@
 // @flow
 import * as Constants from '../../../../constants/chat'
+import * as Types from '../../../../constants/types/chat'
 import TextMessage, {type Props} from '.'
 import createCachedSelector from 're-reselect'
 import {Set} from 'immutable'
@@ -8,7 +9,7 @@ import {type OwnProps} from './container'
 
 const getProps = createCachedSelector(
   [Constants.getMessageFromMessageKey, Constants.getEditingMessage],
-  (message: ?Constants.TextMessage, editingMessage) => {
+  (message: ?Types.TextMessage, editingMessage) => {
     return {
       isEditing: message === editingMessage,
       text: message ? message.message.stringValue() : null,

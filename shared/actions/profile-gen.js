@@ -5,7 +5,7 @@
 import * as I from 'immutable'
 import * as RPCTypes from '../constants/types/flow-types'
 import * as More from '../constants/types/more'
-import * as Constants from '../constants/profile'
+import * as Types from '../constants/types/profile'
 
 // Constants
 export const resetStore = 'common:resetStore' // not a part of profile but is handled by every reducer
@@ -66,8 +66,8 @@ export const createSubmitRevokeProof = (payload: {|+proofId: string|}) => ({erro
 export const createSubmitUsername = () => ({error: false, payload: undefined, type: submitUsername})
 export const createSubmitZcashAddress = () => ({error: false, payload: undefined, type: submitZcashAddress})
 export const createUpdateErrorText = (payload: {|+errorText?: ?string, +errorCode?: ?number|}) => ({error: false, payload, type: updateErrorText})
-export const createUpdatePgpInfo = (payload: {|+info: $Shape<Constants.PgpInfo>|}) => ({error: false, payload, type: updatePgpInfo})
-export const createUpdatePgpInfoError = (payload: {|+error: Constants.PgpInfoError|}) => ({error: true, payload, type: updatePgpInfo})
+export const createUpdatePgpInfo = (payload: {|+info: $Shape<Types.PgpInfo>|}) => ({error: false, payload, type: updatePgpInfo})
+export const createUpdatePgpInfoError = (payload: {|+error: Types.PgpInfoError|}) => ({error: true, payload, type: updatePgpInfo})
 export const createUpdatePgpPublicKey = (payload: {|+publicKey: string|}) => ({error: false, payload, type: updatePgpPublicKey})
 export const createUpdatePlatform = (payload: {|+platform: More.PlatformsExpandedType|}) => ({error: false, payload, type: updatePlatform})
 export const createUpdateProofStatus = (payload: {|+found: boolean, +status: RPCTypes.ProofStatus|}) => ({error: false, payload, type: updateProofStatus})

@@ -1,11 +1,10 @@
 // @flow
-
-import * as Constants from '../constants/gregor'
+import * as GregorGen from '../actions/gregor-gen'
 import type {Dispatch} from '../constants/types/flux'
 
 function nativeReachabilityEvents(dispatch: Dispatch) {
-  window.addEventListener('online', () => dispatch({type: Constants.checkReachability, payload: undefined}))
-  window.addEventListener('offline', () => dispatch({type: Constants.checkReachability, payload: undefined}))
+  window.addEventListener('online', () => dispatch(GregorGen.createCheckReachability()))
+  window.addEventListener('offline', () => dispatch(GregorGen.createCheckReachability()))
 }
 
 export {nativeReachabilityEvents}

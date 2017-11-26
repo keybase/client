@@ -1,6 +1,6 @@
 // @flow
 import * as Creators from '../../actions/teams/creators'
-import * as SearchCreators from '../../actions/search/creators'
+import * as SearchGen from '../../actions/search-gen'
 import * as SearchConstants from '../../constants/search'
 import AddPeople from '.'
 import {HeaderHoc} from '../../common-adapters'
@@ -24,13 +24,13 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routeProps}) => ({
     dispatch(Creators.addPeopleToTeam(routeProps.get('teamname'), role))
     dispatch(navigateUp())
     dispatch(Creators.getTeams())
-    dispatch(SearchCreators.clearSearchResults('addToTeamSearch'))
-    dispatch(SearchCreators.setUserInputItems('addToTeamSearch', []))
+    dispatch(SearchGen.createClearSearchResults({searchKey: 'addToTeamSearch'}))
+    dispatch(SearchGen.createSetUserInputItems({searchKey: 'addToTeamSearch', searchResults: []}))
   },
   onClose: () => {
     dispatch(navigateUp())
-    dispatch(SearchCreators.clearSearchResults('addToTeamSearch'))
-    dispatch(SearchCreators.setUserInputItems('addToTeamSearch', []))
+    dispatch(SearchGen.createClearSearchResults({searchKey: 'addToTeamSearch'}))
+    dispatch(SearchGen.createSetUserInputItems({searchKey: 'addToTeamSearch', searchResults: []}))
   },
   onOpenRolePicker: (role: string, onComplete: string => void) => {
     dispatch(

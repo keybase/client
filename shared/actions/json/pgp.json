@@ -1,0 +1,11 @@
+{
+  "prelude": [
+    "import * as Constants from '../constants/pgp'"
+  ],
+  "actions": {
+    "pgpKeyInSecretStoreFile": {},
+    "pgpAckedMessage": {
+      "hitOk": "boolean"
+    }
+  }
+}
