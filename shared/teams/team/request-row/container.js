@@ -5,7 +5,7 @@ import {connect} from 'react-redux'
 import {TeamRequestRow} from '.'
 import {ignoreRequest} from '../../../actions/teams/creators'
 import {navigateAppend} from '../../../actions/route-tree'
-import {showUserProfile} from '../../../actions/profile'
+import {createShowUserProfile} from '../../../actions/profile-gen'
 import {getProfile} from '../../../actions/tracker'
 import {createStartConversation} from '../../../actions/chat-gen'
 import {isMobile} from '../../../constants/platform'
@@ -41,7 +41,7 @@ type DispatchProps = {
 
 const mapDispatchToProps = (dispatch: Dispatch): DispatchProps => ({
   onOpenProfile: (username: string) => {
-    isMobile ? dispatch(showUserProfile(username)) : dispatch(getProfile(username, true, true))
+    isMobile ? dispatch(createShowUserProfile({username})) : dispatch(getProfile(username, true, true))
   },
   _onAccept: (name: string, username: string) =>
     dispatch(

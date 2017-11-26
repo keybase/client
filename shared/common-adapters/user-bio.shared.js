@@ -1,5 +1,5 @@
 // @flow
-import type {UserInfo} from '../constants/tracker'
+import type {UserInfo} from '../constants/types/tracker'
 
 function followLabel(userInfo: UserInfo, currentlyFollowing: boolean): ?string {
   if (userInfo.followsYou && currentlyFollowing) {

@@ -1,15 +1,15 @@
 // @flow
+import * as ConfigGen from '../actions/config-gen'
+import * as NotificationsGen from '../actions/notifications-gen'
 import Push from './push/push.native'
 import React, {Component} from 'react'
 import RenderRoute from '../route-tree/render-route'
-import * as ConfigGen from '../actions/config-gen'
 import loadPerf from '../util/load-perf'
 import hello from '../util/hello'
 import {connect, type TypedState} from '../util/container'
 import debounce from 'lodash/debounce'
 import {getUserImageMap, loadUserImageMap, getTeamImageMap, loadTeamImageMap} from '../util/pictures'
 import {initAvatarLookup, initAvatarLoad} from '../common-adapters/index.native'
-import {listenForNotifications} from '../actions/notifications'
 import {navigateUp, setRouteState} from '../actions/route-tree'
 
 type Props = {
@@ -83,7 +83,7 @@ const mapStateToProps = (state: TypedState) => ({
 const mapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps) => ({
   bootstrap: () => dispatch(ConfigGen.createBootstrap({})),
   hello: () => hello(0, ownProps.platform, [], ownProps.version, true), // TODO real version
-  listenForNotifications: () => dispatch(listenForNotifications()),
+  listenForNotifications: () => dispatch(NotificationsGen.createListenForNotifications()),
   navigateUp: () => {
     dispatch(navigateUp())
   },

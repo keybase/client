@@ -1,7 +1,7 @@
 // @flow
 import * as Constants from '../../constants/teams'
 import * as Creators from '../../actions/teams/creators'
-import * as Search from '../../actions/search/creators'
+import * as SearchGen from '../../actions/search-gen'
 import * as I from 'immutable'
 import * as KBFSGen from '../../actions/kbfs-gen'
 import * as React from 'react'
@@ -12,7 +12,7 @@ import {connect, type TypedState} from '../../util/container'
 import {getProfile} from '../../actions/tracker'
 import {isMobile} from '../../constants/platform'
 import {navigateAppend} from '../../actions/route-tree'
-import {showUserProfile} from '../../actions/profile'
+import {createShowUserProfile} from '../../actions/profile-gen'
 
 type StateProps = {
   _invites: I.Set<Constants.InviteInfo>,
@@ -81,7 +81,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, setRouteState, rout
   _onAddSelf: (teamname: Constants.Teamname, you: ?string) => {
     if (you) {
       dispatch(navigateAppend([{props: {teamname}, selected: 'addPeople'}]))
-      dispatch(Search.addResultsToUserInput('addToTeamSearch', [you]))
+      dispatch(SearchGen.createAddResultsToUserInput({searchKey: 'addToTeamSearch', searchResults: [you]}))
     }
   },
   _onCreateSubteam: (teamname: Constants.Teamname) =>
@@ -95,7 +95,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, setRouteState, rout
   _onOpenFolder: (teamname: Constants.Teamname) =>
     dispatch(KBFSGen.createOpen({path: `/keybase/team/${teamname}`})),
   onUsernameClick: (username: string) => {
-    isMobile ? dispatch(showUserProfile(username)) : dispatch(getProfile(username, true, true))
+    isMobile ? dispatch(createShowUserProfile({username})) : dispatch(getProfile(username, true, true))
   },
   setSelectedTab: selectedTab => setRouteState({selectedTab}),
   _setPublicityMember: (teamname: Constants.Teamname, checked: boolean) =>

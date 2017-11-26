@@ -3,6 +3,7 @@
 // Loading, unboxing, filtering, stale, out of sync, badging
 import * as RPCChatTypes from '../../constants/types/flow-types-chat'
 import * as Constants from '../../constants/chat'
+import * as Types from '../../constants/types/chat'
 import * as ChatGen from '../chat-gen'
 import * as ConfigGen from '../config-gen'
 import * as EngineRpc from '../../constants/engine'
@@ -38,7 +39,7 @@ const _getInboxQuery = {
 
 // Update inboxes that have been reset
 function* _updateFinalized(inbox: RPCChatTypes.UnverifiedInboxUIItems): Generator<any, void, any> {
-  const finalizedState: Constants.FinalizedState = I.Map(
+  const finalizedState: Types.FinalizedState = I.Map(
     (inbox.conversationsUnverified || [])
       .filter(c => c.metadata.finalizeInfo)
       .map(convoUnverified => [
@@ -71,12 +72,10 @@ function* onInboxStale(action: ChatGen.InboxStalePayload): SagaGenerator<any, an
     const loadInboxChanMap = RPCChatTypes.localGetInboxNonblockLocalRpcChannelMap(
       ['chat.1.chatUi.chatInboxUnverified', 'finished'],
       {
-        param: {
-          identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
-          maxUnbox: 0,
-          query: _getInboxQuery,
-          skipUnverified: false,
-        },
+        identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
+        maxUnbox: 0,
+        query: _getInboxQuery,
+        skipUnverified: false,
       }
     )
 
@@ -196,9 +195,9 @@ function* onGetInboxAndUnbox({
 }
 
 function _toSupersedeInfo(
-  conversationIDKey: Constants.ConversationIDKey,
+  conversationIDKey: Types.ConversationIDKey,
   supersedeData: Array<RPCChatTypes.ConversationMetadata>
-): ?Constants.SupersedeInfo {
+): ?Types.SupersedeInfo {
   const toConvert = supersedeData.find(
     s => s.idTriple.topicType === RPCChatTypes.commonTopicType.chat && s.finalizeInfo
   )
@@ -410,10 +409,8 @@ function* _chatInboxFailedSubSaga(params) {
   if (maxMsgid && selectedConversation === conversationIDKey) {
     try {
       yield Saga.call(RPCChatTypes.localMarkAsReadLocalRpcPromise, {
-        param: {
-          conversationID: convID,
-          msgID: maxMsgid,
-        },
+        conversationID: convID,
+        msgID: maxMsgid,
       })
     } catch (err) {
       console.log(`Couldn't mark as read ${conversationIDKey} ${err}`)
@@ -505,13 +502,11 @@ function* unboxConversations(action: ChatGen.UnboxConversationsPayload): SagaGen
     RPCChatTypes.localGetInboxNonblockLocalRpcChannelMap,
     'unboxConversations',
     {
-      param: {
-        identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
-        skipUnverified: forInboxSync,
-        query: {
-          ..._getInboxQuery,
-          convIDs: conversationIDKeys.map(Constants.keyToConversationID),
-        },
+      identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
+      skipUnverified: forInboxSync,
+      query: {
+        ..._getInboxQuery,
+        convIDs: conversationIDKeys.map(Constants.keyToConversationID),
       },
     }
   )
@@ -538,7 +533,7 @@ function* unboxConversations(action: ChatGen.UnboxConversationsPayload): SagaGen
 
 const parseNotifications = (
   notifications: RPCChatTypes.ConversationNotificationInfo
-): ?Constants.NotificationsState => {
+): ?Types.NotificationsState => {
   if (!notifications || !notifications.settings) {
     return null
   }
@@ -565,7 +560,7 @@ const parseNotifications = (
 }
 
 // Convert server to our data type
-function _conversationLocalToInboxState(c: ?RPCChatTypes.InboxUIItem): ?Constants.InboxState {
+function _conversationLocalToInboxState(c: ?RPCChatTypes.InboxUIItem): ?Types.InboxState {
   if (
     !c ||
     c.visibility !== RPCTypes.commonTLFVisibility.private || // private chats only
@@ -899,7 +894,7 @@ function* _incomingMessage(action: ChatGen.IncomingMessagePayload): Saga.SagaGen
 
 function _joinConversation(action: ChatGen.JoinConversationPayload) {
   const convID = Constants.keyToConversationID(action.payload.conversationIDKey)
-  return Saga.call(RPCChatTypes.localJoinConversationByIDLocalRpcPromise, {param: {convID}})
+  return Saga.call(RPCChatTypes.localJoinConversationByIDLocalRpcPromise, {convID})
 }
 
 function* registerSagas(): SagaGenerator<any, any> {

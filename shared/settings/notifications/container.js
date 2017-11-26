@@ -1,30 +1,26 @@
 // @flow
-import React, {Component} from 'react'
-import {connect, type TypedState} from '../../util/container'
+import * as SettingsGen from '../../actions/settings-gen'
+import {connect, type TypedState, lifecycle, compose} from '../../util/container'
 import Notifications from './index'
 import {navigateUp} from '../../actions/route-tree'
-import {notificationsRefresh, notificationsToggle} from '../../actions/settings'
 
-class NotificationsContainer extends Component<any> {
-  componentWillMount() {
-    this.props.onRefresh()
-  }
+const mapStateToProps = (state: TypedState, ownProps: {}) => ({
+  ...state.settings.notifications,
+  waitingForResponse: state.settings.waitingForResponse,
+})
 
-  render() {
-    return <Notifications {...this.props} />
-  }
-}
-
-export default connect(
-  (state: TypedState, ownProps: {}) => ({
-    ...state.settings.notifications,
-    waitingForResponse: state.settings.waitingForResponse,
-  }),
-  (dispatch: any, ownProps: {}) => ({
-    onBack: () => dispatch(navigateUp()),
-    onToggle: (group: string, name?: string) => dispatch(notificationsToggle(group, name)),
-    onToggleUnsubscribeAll: (group: string) => dispatch(notificationsToggle(group)),
-    onRefresh: () => dispatch(notificationsRefresh()),
-    title: 'Notifications',
+const mapDispatchToProps = (dispatch: any, ownProps: {}) => ({
+  onBack: () => dispatch(navigateUp()),
+  onToggle: (group: string, name?: string) => dispatch(SettingsGen.createNotificationsToggle({group, name})),
+  onToggleUnsubscribeAll: (group: string) => dispatch(SettingsGen.createNotificationsToggle({group})),
+  onRefresh: () => dispatch(SettingsGen.createNotificationsRefresh()),
+  title: 'Notifications',
+})
+export default compose(
+  connect(mapStateToProps, mapDispatchToProps),
+  lifecycle({
+    componentWillMount: function() {
+      this.props.onRefresh()
+    },
   })
-)(NotificationsContainer)
+)(Notifications)

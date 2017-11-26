@@ -5,45 +5,7 @@
 import * as Gregor1 from './flow-types-gregor'
 import * as Keybase1 from './flow-types'
 import engine, {EngineChannel} from '../../engine'
-import {RPCError} from '../../util/errors'
-import {putOnChannelMap, createChannelMap, closeChannelMap} from '../../util/saga'
-import {Buffer} from 'buffer'
-import type {ChannelConfig, ChannelMap} from './saga'
-
-type Bool = boolean;
-type Boolean = boolean
-type Bytes = Buffer
-type Double = number
-type Int = number
-type Int64 = number
-type Long = number
-type String = string
-type Uint = number
-type Uint64 = number
-type WaitingHandlerType = (waiting: boolean) => void
-
-const engineRpcOutgoing = (method: string, params: any, callbackOverride: any, incomingCallMapOverride: any) => engine()._rpcOutgoing(method, params, callbackOverride, incomingCallMapOverride)
-
-type RequestCommon = { waitingHandler?: WaitingHandlerType, incomingCallMap?: IncomingCallMapType }
-type RequestErrorCallback = { callback?: ?(err: ?RPCError) => void }
-type RPCErrorHandler = (err: RPCError) => void
-type CommonResponseHandler = { error: RPCErrorHandler, result: (...rest: Array<void>) => void }
-
-function _channelMapRpcHelper(channelConfig: ChannelConfig<*>, partialRpcCall: (incomingCallMap: any, callback: Function) => void): ChannelMap<*> {
-  const channelMap = createChannelMap(channelConfig)
-  const incomingCallMap = Object.keys(channelMap).reduce((acc, k) => {
-    acc[k] = (params, response) => {
-      putOnChannelMap(channelMap, k, {params, response})
-    }
-    return acc
-  }, {})
-  const callback = (error, params) => {
-    channelMap['finished'] && putOnChannelMap(channelMap, 'finished', {error, params})
-    closeChannelMap(channelMap)
-  }
-  partialRpcCall(incomingCallMap, callback)
-  return channelMap
-}
+import type {Boolean, Bool, Bytes, Double, Int, Int64, Long, String, Uint, Uint64, WaitingHandlerType, RPCErrorHandler, CommonResponseHandler} from '../../engine/types'
 
 
 export const chatUiMessageUnboxedState = {
@@ -155,9 +117,9 @@ export const localBodyPlaintextVersion = {
   v10: 10,
 }
 
-export const localCancelPostRpcChannelMap = (configKeys: Array<string>, request: RequestCommon & RequestErrorCallback & {param: LocalCancelPostRpcParam}): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.local.CancelPost', request)
+export const localCancelPostRpcChannelMap = (configKeys: Array<string>, request: LocalCancelPostRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.local.CancelPost', request)
 
-export const localCancelPostRpcPromise = (request: (RequestCommon & RequestErrorCallback & {param: LocalCancelPostRpcParam})): Promise<void> => new Promise((resolve, reject) => engineRpcOutgoing('chat.1.local.CancelPost', request, (error, result) => error ? reject(error) : resolve(result)))
+export const localCancelPostRpcPromise = (request: LocalCancelPostRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.local.CancelPost', request, (error, result) => error ? reject(error) : resolve(result)))
 
 export const localConversationErrorType = {
   permanent: 0,
@@ -169,65 +131,65 @@ export const localConversationErrorType = {
   none: 6,
 }
 
-export const localDeleteConversationLocalRpcChannelMap = (configKeys: Array<string>, request: RequestCommon & {callback?: ?(err: ?any, response: LocalDeleteConversationLocalResult) => void} & {param: LocalDeleteConversationLocalRpcParam}): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.local.deleteConversationLocal', request)
+export const localDeleteConversationLocalRpcChannelMap = (configKeys: Array<string>, request: LocalDeleteConversationLocalRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.local.deleteConversationLocal', request)
 
-export const localDeleteConversationLocalRpcPromise = (request: (RequestCommon & {callback?: ?(err: ?any, response: LocalDeleteConversationLocalResult) => void} & {param: LocalDeleteConversationLocalRpcParam})): Promise<LocalDeleteConversationLocalResult> => new Promise((resolve, reject) => engineRpcOutgoing('chat.1.local.deleteConversationLocal', request, (error, result) => error ? reject(error) : resolve(result)))
+export const localDeleteConversationLocalRpcPromise = (request: LocalDeleteConversationLocalRpcParam): Promise<LocalDeleteConversationLocalResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.local.deleteConversationLocal', request, (error, result) => error ? reject(error) : resolve(result)))
 
-export const localDownloadAttachmentLocalRpcChannelMap = (configKeys: Array<string>, request: RequestCommon & {callback?: ?(err: ?any, response: LocalDownloadAttachmentLocalResult) => void} & {param: LocalDownloadAttachmentLocalRpcParam}): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.local.DownloadAttachmentLocal', request)
+export const localDownloadAttachmentLocalRpcChannelMap = (configKeys: Array<string>, request: LocalDownloadAttachmentLocalRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.local.DownloadAttachmentLocal', request)
 
-export const localDownloadAttachmentLocalRpcPromise = (request: (RequestCommon & {callback?: ?(err: ?any, response: LocalDownloadAttachmentLocalResult) => void} & {param: LocalDownloadAttachmentLocalRpcParam})): Promise<LocalDownloadAttachmentLocalResult> => new Promise((resolve, reject) => engineRpcOutgoing('chat.1.local.DownloadAttachmentLocal', request, (error, result) => error ? reject(error) : resolve(result)))
+export const localDownloadAttachmentLocalRpcPromise = (request: LocalDownloadAttachmentLocalRpcParam): Promise<LocalDownloadAttachmentLocalResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.local.DownloadAttachmentLocal', request, (error, result) => error ? reject(error) : resolve(result)))
 
-export const localDownloadFileAttachmentLocalRpcChannelMap = (configKeys: Array<string>, request: RequestCommon & {callback?: ?(err: ?any, response: LocalDownloadFileAttachmentLocalResult) => void} & {param: LocalDownloadFileAttachmentLocalRpcParam}): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.local.DownloadFileAttachmentLocal', request)
+export const localDownloadFileAttachmentLocalRpcChannelMap = (configKeys: Array<string>, request: LocalDownloadFileAttachmentLocalRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.local.DownloadFileAttachmentLocal', request)
 
-export const localDownloadFileAttachmentLocalRpcPromise = (request: (RequestCommon & {callback?: ?(err: ?any, response: LocalDownloadFileAttachmentLocalResult) => void} & {param: LocalDownloadFileAttachmentLocalRpcParam})): Promise<LocalDownloadFileAttachmentLocalResult> => new Promise((resolve, reject) => engineRpcOutgoing('chat.1.local.DownloadFileAttachmentLocal', request, (error, result) => error ? reject(error) : resolve(result)))
+export const localDownloadFileAttachmentLocalRpcPromise = (request: LocalDownloadFileAttachmentLocalRpcParam): Promise<LocalDownloadFileAttachmentLocalResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.local.DownloadFileAttachmentLocal', request, (error, result) => error ? reject(error) : resolve(result)))
 
-export const localFindConversationsLocalRpcChannelMap = (configKeys: Array<string>, request: RequestCommon & {callback?: ?(err: ?any, response: LocalFindConversationsLocalResult) => void} & {param: LocalFindConversationsLocalRpcParam}): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.local.findConversationsLocal', request)
+export const localFindConversationsLocalRpcChannelMap = (configKeys: Array<string>, request: LocalFindConversationsLocalRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.local.findConversationsLocal', request)
 
-export const localFindConversationsLocalRpcPromise = (request: (RequestCommon & {callback?: ?(err: ?any, response: LocalFindConversationsLocalResult) => void} & {param: LocalFindConversationsLocalRpcParam})): Promise<LocalFindConversationsLocalResult> => new Promise((resolve, reject) => engineRpcOutgoing('chat.1.local.findConversationsLocal', request, (error, result) => error ? reject(error) : resolve(result)))
+export const localFindConversationsLocalRpcPromise = (request: LocalFindConversationsLocalRpcParam): Promise<LocalFindConversationsLocalResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.local.findConversationsLocal', request, (error, result) => error ? reject(error) : resolve(result)))
 
-export const localGenerateOutboxIDRpcChannelMap = (configKeys: Array<string>, request: RequestCommon & {callback?: ?(err: ?any, response: LocalGenerateOutboxIDResult) => void}): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.local.generateOutboxID', request)
+export const localGenerateOutboxIDRpcChannelMap = (configKeys: Array<string>, request: LocalGenerateOutboxIDRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.local.generateOutboxID', request)
 
-export const localGenerateOutboxIDRpcPromise = (request: ?(RequestCommon & {callback?: ?(err: ?any, response: LocalGenerateOutboxIDResult) => void})): Promise<LocalGenerateOutboxIDResult> => new Promise((resolve, reject) => engineRpcOutgoing('chat.1.local.generateOutboxID', request, (error, result) => error ? reject(error) : resolve(result)))
+export const localGenerateOutboxIDRpcPromise = (request: LocalGenerateOutboxIDRpcParam): Promise<LocalGenerateOutboxIDResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.local.generateOutboxID', request, (error, result) => error ? reject(error) : resolve(result)))
 
-export const localGetCachedThreadRpcChannelMap = (configKeys: Array<string>, request: RequestCommon & {callback?: ?(err: ?any, response: LocalGetCachedThreadResult) => void} & {param: LocalGetCachedThreadRpcParam}): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.local.getCachedThread', request)
+export const localGetCachedThreadRpcChannelMap = (configKeys: Array<string>, request: LocalGetCachedThreadRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.local.getCachedThread', request)
 
-export const localGetCachedThreadRpcPromise = (request: (RequestCommon & {callback?: ?(err: ?any, response: LocalGetCachedThreadResult) => void} & {param: LocalGetCachedThreadRpcParam})): Promise<LocalGetCachedThreadResult> => new Promise((resolve, reject) => engineRpcOutgoing('chat.1.local.getCachedThread', request, (error, result) => error ? reject(error) : resolve(result)))
+export const localGetCachedThreadRpcPromise = (request: LocalGetCachedThreadRpcParam): Promise<LocalGetCachedThreadResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.local.getCachedThread', request, (error, result) => error ? reject(error) : resolve(result)))
 
-export const localGetConversationForCLILocalRpcChannelMap = (configKeys: Array<string>, request: RequestCommon & {callback?: ?(err: ?any, response: LocalGetConversationForCLILocalResult) => void} & {param: LocalGetConversationForCLILocalRpcParam}): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.local.getConversationForCLILocal', request)
+export const localGetConversationForCLILocalRpcChannelMap = (configKeys: Array<string>, request: LocalGetConversationForCLILocalRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.local.getConversationForCLILocal', request)
 
-export const localGetConversationForCLILocalRpcPromise = (request: (RequestCommon & {callback?: ?(err: ?any, response: LocalGetConversationForCLILocalResult) => void} & {param: LocalGetConversationForCLILocalRpcParam})): Promise<LocalGetConversationForCLILocalResult> => new Promise((resolve, reject) => engineRpcOutgoing('chat.1.local.getConversationForCLILocal', request, (error, result) => error ? reject(error) : resolve(result)))
+export const localGetConversationForCLILocalRpcPromise = (request: LocalGetConversationForCLILocalRpcParam): Promise<LocalGetConversationForCLILocalResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.local.getConversationForCLILocal', request, (error, result) => error ? reject(error) : resolve(result)))
 
-export const localGetGlobalAppNotificationSettingsLocalRpcChannelMap = (configKeys: Array<string>, request: RequestCommon & {callback?: ?(err: ?any, response: LocalGetGlobalAppNotificationSettingsLocalResult) => void}): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.local.getGlobalAppNotificationSettingsLocal', request)
+export const localGetGlobalAppNotificationSettingsLocalRpcChannelMap = (configKeys: Array<string>, request: LocalGetGlobalAppNotificationSettingsLocalRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.local.getGlobalAppNotificationSettingsLocal', request)
 
-export const localGetGlobalAppNotificationSettingsLocalRpcPromise = (request: ?(RequestCommon & {callback?: ?(err: ?any, response: LocalGetGlobalAppNotificationSettingsLocalResult) => void})): Promise<LocalGetGlobalAppNotificationSettingsLocalResult> => new Promise((resolve, reject) => engineRpcOutgoing('chat.1.local.getGlobalAppNotificationSettingsLocal', request, (error, result) => error ? reject(error) : resolve(result)))
+export const localGetGlobalAppNotificationSettingsLocalRpcPromise = (request: LocalGetGlobalAppNotificationSettingsLocalRpcParam): Promise<LocalGetGlobalAppNotificationSettingsLocalResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.local.getGlobalAppNotificationSettingsLocal', request, (error, result) => error ? reject(error) : resolve(result)))
 
-export const localGetInboxAndUnboxLocalRpcChannelMap = (configKeys: Array<string>, request: RequestCommon & {callback?: ?(err: ?any, response: LocalGetInboxAndUnboxLocalResult) => void} & {param: LocalGetInboxAndUnboxLocalRpcParam}): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.local.getInboxAndUnboxLocal', request)
+export const localGetInboxAndUnboxLocalRpcChannelMap = (configKeys: Array<string>, request: LocalGetInboxAndUnboxLocalRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.local.getInboxAndUnboxLocal', request)
 
-export const localGetInboxAndUnboxLocalRpcPromise = (request: (RequestCommon & {callback?: ?(err: ?any, response: LocalGetInboxAndUnboxLocalResult) => void} & {param: LocalGetInboxAndUnboxLocalRpcParam})): Promise<LocalGetInboxAndUnboxLocalResult> => new Promise((resolve, reject) => engineRpcOutgoing('chat.1.local.getInboxAndUnboxLocal', request, (error, result) => error ? reject(error) : resolve(result)))
+export const localGetInboxAndUnboxLocalRpcPromise = (request: LocalGetInboxAndUnboxLocalRpcParam): Promise<LocalGetInboxAndUnboxLocalResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.local.getInboxAndUnboxLocal', request, (error, result) => error ? reject(error) : resolve(result)))
 
-export const localGetInboxNonblockLocalRpcChannelMap = (configKeys: Array<string>, request: RequestCommon & {callback?: ?(err: ?any, response: LocalGetInboxNonblockLocalResult) => void} & {param: LocalGetInboxNonblockLocalRpcParam}): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.local.getInboxNonblockLocal', request)
+export const localGetInboxNonblockLocalRpcChannelMap = (configKeys: Array<string>, request: LocalGetInboxNonblockLocalRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.local.getInboxNonblockLocal', request)
 
-export const localGetInboxNonblockLocalRpcPromise = (request: (RequestCommon & {callback?: ?(err: ?any, response: LocalGetInboxNonblockLocalResult) => void} & {param: LocalGetInboxNonblockLocalRpcParam})): Promise<LocalGetInboxNonblockLocalResult> => new Promise((resolve, reject) => engineRpcOutgoing('chat.1.local.getInboxNonblockLocal', request, (error, result) => error ? reject(error) : resolve(result)))
+export const localGetInboxNonblockLocalRpcPromise = (request: LocalGetInboxNonblockLocalRpcParam): Promise<LocalGetInboxNonblockLocalResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.local.getInboxNonblockLocal', request, (error, result) => error ? reject(error) : resolve(result)))
 
-export const localGetInboxSummaryForCLILocalRpcChannelMap = (configKeys: Array<string>, request: RequestCommon & {callback?: ?(err: ?any, response: LocalGetInboxSummaryForCLILocalResult) => void} & {param: LocalGetInboxSummaryForCLILocalRpcParam}): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.local.getInboxSummaryForCLILocal', request)
+export const localGetInboxSummaryForCLILocalRpcChannelMap = (configKeys: Array<string>, request: LocalGetInboxSummaryForCLILocalRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.local.getInboxSummaryForCLILocal', request)
 
-export const localGetInboxSummaryForCLILocalRpcPromise = (request: (RequestCommon & {callback?: ?(err: ?any, response: LocalGetInboxSummaryForCLILocalResult) => void} & {param: LocalGetInboxSummaryForCLILocalRpcParam})): Promise<LocalGetInboxSummaryForCLILocalResult> => new Promise((resolve, reject) => engineRpcOutgoing('chat.1.local.getInboxSummaryForCLILocal', request, (error, result) => error ? reject(error) : resolve(result)))
+export const localGetInboxSummaryForCLILocalRpcPromise = (request: LocalGetInboxSummaryForCLILocalRpcParam): Promise<LocalGetInboxSummaryForCLILocalResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.local.getInboxSummaryForCLILocal', request, (error, result) => error ? reject(error) : resolve(result)))
 
-export const localGetMessagesLocalRpcChannelMap = (configKeys: Array<string>, request: RequestCommon & {callback?: ?(err: ?any, response: LocalGetMessagesLocalResult) => void} & {param: LocalGetMessagesLocalRpcParam}): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.local.GetMessagesLocal', request)
+export const localGetMessagesLocalRpcChannelMap = (configKeys: Array<string>, request: LocalGetMessagesLocalRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.local.GetMessagesLocal', request)
 
-export const localGetMessagesLocalRpcPromise = (request: (RequestCommon & {callback?: ?(err: ?any, response: LocalGetMessagesLocalResult) => void} & {param: LocalGetMessagesLocalRpcParam})): Promise<LocalGetMessagesLocalResult> => new Promise((resolve, reject) => engineRpcOutgoing('chat.1.local.GetMessagesLocal', request, (error, result) => error ? reject(error) : resolve(result)))
+export const localGetMessagesLocalRpcPromise = (request: LocalGetMessagesLocalRpcParam): Promise<LocalGetMessagesLocalResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.local.GetMessagesLocal', request, (error, result) => error ? reject(error) : resolve(result)))
 
-export const localGetTLFConversationsLocalRpcChannelMap = (configKeys: Array<string>, request: RequestCommon & {callback?: ?(err: ?any, response: LocalGetTLFConversationsLocalResult) => void} & {param: LocalGetTLFConversationsLocalRpcParam}): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.local.getTLFConversationsLocal', request)
+export const localGetTLFConversationsLocalRpcChannelMap = (configKeys: Array<string>, request: LocalGetTLFConversationsLocalRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.local.getTLFConversationsLocal', request)
 
-export const localGetTLFConversationsLocalRpcPromise = (request: (RequestCommon & {callback?: ?(err: ?any, response: LocalGetTLFConversationsLocalResult) => void} & {param: LocalGetTLFConversationsLocalRpcParam})): Promise<LocalGetTLFConversationsLocalResult> => new Promise((resolve, reject) => engineRpcOutgoing('chat.1.local.getTLFConversationsLocal', request, (error, result) => error ? reject(error) : resolve(result)))
+export const localGetTLFConversationsLocalRpcPromise = (request: LocalGetTLFConversationsLocalRpcParam): Promise<LocalGetTLFConversationsLocalResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.local.getTLFConversationsLocal', request, (error, result) => error ? reject(error) : resolve(result)))
 
-export const localGetThreadLocalRpcChannelMap = (configKeys: Array<string>, request: RequestCommon & {callback?: ?(err: ?any, response: LocalGetThreadLocalResult) => void} & {param: LocalGetThreadLocalRpcParam}): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.local.getThreadLocal', request)
+export const localGetThreadLocalRpcChannelMap = (configKeys: Array<string>, request: LocalGetThreadLocalRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.local.getThreadLocal', request)
 
-export const localGetThreadLocalRpcPromise = (request: (RequestCommon & {callback?: ?(err: ?any, response: LocalGetThreadLocalResult) => void} & {param: LocalGetThreadLocalRpcParam})): Promise<LocalGetThreadLocalResult> => new Promise((resolve, reject) => engineRpcOutgoing('chat.1.local.getThreadLocal', request, (error, result) => error ? reject(error) : resolve(result)))
+export const localGetThreadLocalRpcPromise = (request: LocalGetThreadLocalRpcParam): Promise<LocalGetThreadLocalResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.local.getThreadLocal', request, (error, result) => error ? reject(error) : resolve(result)))
 
-export const localGetThreadNonblockRpcChannelMap = (configKeys: Array<string>, request: RequestCommon & {callback?: ?(err: ?any, response: LocalGetThreadNonblockResult) => void} & {param: LocalGetThreadNonblockRpcParam}): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.local.getThreadNonblock', request)
+export const localGetThreadNonblockRpcChannelMap = (configKeys: Array<string>, request: LocalGetThreadNonblockRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.local.getThreadNonblock', request)
 
-export const localGetThreadNonblockRpcPromise = (request: (RequestCommon & {callback?: ?(err: ?any, response: LocalGetThreadNonblockResult) => void} & {param: LocalGetThreadNonblockRpcParam})): Promise<LocalGetThreadNonblockResult> => new Promise((resolve, reject) => engineRpcOutgoing('chat.1.local.getThreadNonblock', request, (error, result) => error ? reject(error) : resolve(result)))
+export const localGetThreadNonblockRpcPromise = (request: LocalGetThreadNonblockRpcParam): Promise<LocalGetThreadNonblockResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.local.getThreadNonblock', request, (error, result) => error ? reject(error) : resolve(result)))
 
 export const localHeaderPlaintextVersion = {
   v1: 1,
@@ -242,25 +204,25 @@ export const localHeaderPlaintextVersion = {
   v10: 10,
 }
 
-export const localJoinConversationByIDLocalRpcChannelMap = (configKeys: Array<string>, request: RequestCommon & {callback?: ?(err: ?any, response: LocalJoinConversationByIDLocalResult) => void} & {param: LocalJoinConversationByIDLocalRpcParam}): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.local.joinConversationByIDLocal', request)
+export const localJoinConversationByIDLocalRpcChannelMap = (configKeys: Array<string>, request: LocalJoinConversationByIDLocalRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.local.joinConversationByIDLocal', request)
 
-export const localJoinConversationByIDLocalRpcPromise = (request: (RequestCommon & {callback?: ?(err: ?any, response: LocalJoinConversationByIDLocalResult) => void} & {param: LocalJoinConversationByIDLocalRpcParam})): Promise<LocalJoinConversationByIDLocalResult> => new Promise((resolve, reject) => engineRpcOutgoing('chat.1.local.joinConversationByIDLocal', request, (error, result) => error ? reject(error) : resolve(result)))
+export const localJoinConversationByIDLocalRpcPromise = (request: LocalJoinConversationByIDLocalRpcParam): Promise<LocalJoinConversationByIDLocalResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.local.joinConversationByIDLocal', request, (error, result) => error ? reject(error) : resolve(result)))
 
-export const localJoinConversationLocalRpcChannelMap = (configKeys: Array<string>, request: RequestCommon & {callback?: ?(err: ?any, response: LocalJoinConversationLocalResult) => void} & {param: LocalJoinConversationLocalRpcParam}): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.local.joinConversationLocal', request)
+export const localJoinConversationLocalRpcChannelMap = (configKeys: Array<string>, request: LocalJoinConversationLocalRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.local.joinConversationLocal', request)
 
-export const localJoinConversationLocalRpcPromise = (request: (RequestCommon & {callback?: ?(err: ?any, response: LocalJoinConversationLocalResult) => void} & {param: LocalJoinConversationLocalRpcParam})): Promise<LocalJoinConversationLocalResult> => new Promise((resolve, reject) => engineRpcOutgoing('chat.1.local.joinConversationLocal', request, (error, result) => error ? reject(error) : resolve(result)))
+export const localJoinConversationLocalRpcPromise = (request: LocalJoinConversationLocalRpcParam): Promise<LocalJoinConversationLocalResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.local.joinConversationLocal', request, (error, result) => error ? reject(error) : resolve(result)))
 
-export const localLeaveConversationLocalRpcChannelMap = (configKeys: Array<string>, request: RequestCommon & {callback?: ?(err: ?any, response: LocalLeaveConversationLocalResult) => void} & {param: LocalLeaveConversationLocalRpcParam}): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.local.leaveConversationLocal', request)
+export const localLeaveConversationLocalRpcChannelMap = (configKeys: Array<string>, request: LocalLeaveConversationLocalRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.local.leaveConversationLocal', request)
 
-export const localLeaveConversationLocalRpcPromise = (request: (RequestCommon & {callback?: ?(err: ?any, response: LocalLeaveConversationLocalResult) => void} & {param: LocalLeaveConversationLocalRpcParam})): Promise<LocalLeaveConversationLocalResult> => new Promise((resolve, reject) => engineRpcOutgoing('chat.1.local.leaveConversationLocal', request, (error, result) => error ? reject(error) : resolve(result)))
+export const localLeaveConversationLocalRpcPromise = (request: LocalLeaveConversationLocalRpcParam): Promise<LocalLeaveConversationLocalResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.local.leaveConversationLocal', request, (error, result) => error ? reject(error) : resolve(result)))
 
-export const localMakePreviewRpcChannelMap = (configKeys: Array<string>, request: RequestCommon & {callback?: ?(err: ?any, response: LocalMakePreviewResult) => void} & {param: LocalMakePreviewRpcParam}): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.local.makePreview', request)
+export const localMakePreviewRpcChannelMap = (configKeys: Array<string>, request: LocalMakePreviewRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.local.makePreview', request)
 
-export const localMakePreviewRpcPromise = (request: (RequestCommon & {callback?: ?(err: ?any, response: LocalMakePreviewResult) => void} & {param: LocalMakePreviewRpcParam})): Promise<LocalMakePreviewResult> => new Promise((resolve, reject) => engineRpcOutgoing('chat.1.local.makePreview', request, (error, result) => error ? reject(error) : resolve(result)))
+export const localMakePreviewRpcPromise = (request: LocalMakePreviewRpcParam): Promise<LocalMakePreviewResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.local.makePreview', request, (error, result) => error ? reject(error) : resolve(result)))
 
-export const localMarkAsReadLocalRpcChannelMap = (configKeys: Array<string>, request: RequestCommon & {callback?: ?(err: ?any, response: LocalMarkAsReadLocalResult) => void} & {param: LocalMarkAsReadLocalRpcParam}): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.local.markAsReadLocal', request)
+export const localMarkAsReadLocalRpcChannelMap = (configKeys: Array<string>, request: LocalMarkAsReadLocalRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.local.markAsReadLocal', request)
 
-export const localMarkAsReadLocalRpcPromise = (request: (RequestCommon & {callback?: ?(err: ?any, response: LocalMarkAsReadLocalResult) => void} & {param: LocalMarkAsReadLocalRpcParam})): Promise<LocalMarkAsReadLocalResult> => new Promise((resolve, reject) => engineRpcOutgoing('chat.1.local.markAsReadLocal', request, (error, result) => error ? reject(error) : resolve(result)))
+export const localMarkAsReadLocalRpcPromise = (request: LocalMarkAsReadLocalRpcParam): Promise<LocalMarkAsReadLocalResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.local.markAsReadLocal', request, (error, result) => error ? reject(error) : resolve(result)))
 
 export const localMessageSystemType = {
   addedtoteam: 0,
@@ -275,9 +237,9 @@ export const localMessageUnboxedErrorType = {
   identify: 3,
 }
 
-export const localNewConversationLocalRpcChannelMap = (configKeys: Array<string>, request: RequestCommon & {callback?: ?(err: ?any, response: LocalNewConversationLocalResult) => void} & {param: LocalNewConversationLocalRpcParam}): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.local.newConversationLocal', request)
+export const localNewConversationLocalRpcChannelMap = (configKeys: Array<string>, request: LocalNewConversationLocalRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.local.newConversationLocal', request)
 
-export const localNewConversationLocalRpcPromise = (request: (RequestCommon & {callback?: ?(err: ?any, response: LocalNewConversationLocalResult) => void} & {param: LocalNewConversationLocalRpcParam})): Promise<LocalNewConversationLocalResult> => new Promise((resolve, reject) => engineRpcOutgoing('chat.1.local.newConversationLocal', request, (error, result) => error ? reject(error) : resolve(result)))
+export const localNewConversationLocalRpcPromise = (request: LocalNewConversationLocalRpcParam): Promise<LocalNewConversationLocalResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.local.newConversationLocal', request, (error, result) => error ? reject(error) : resolve(result)))
 
 export const localOutboxErrorType = {
   misc: 0,
@@ -292,73 +254,73 @@ export const localOutboxStateType = {
   error: 1,
 }
 
-export const localPostAttachmentLocalRpcChannelMap = (configKeys: Array<string>, request: RequestCommon & {callback?: ?(err: ?any, response: LocalPostAttachmentLocalResult) => void} & {param: LocalPostAttachmentLocalRpcParam}): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.local.postAttachmentLocal', request)
+export const localPostAttachmentLocalRpcChannelMap = (configKeys: Array<string>, request: LocalPostAttachmentLocalRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.local.postAttachmentLocal', request)
 
-export const localPostAttachmentLocalRpcPromise = (request: (RequestCommon & {callback?: ?(err: ?any, response: LocalPostAttachmentLocalResult) => void} & {param: LocalPostAttachmentLocalRpcParam})): Promise<LocalPostAttachmentLocalResult> => new Promise((resolve, reject) => engineRpcOutgoing('chat.1.local.postAttachmentLocal', request, (error, result) => error ? reject(error) : resolve(result)))
+export const localPostAttachmentLocalRpcPromise = (request: LocalPostAttachmentLocalRpcParam): Promise<LocalPostAttachmentLocalResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.local.postAttachmentLocal', request, (error, result) => error ? reject(error) : resolve(result)))
 
-export const localPostDeleteNonblockRpcChannelMap = (configKeys: Array<string>, request: RequestCommon & {callback?: ?(err: ?any, response: LocalPostDeleteNonblockResult) => void} & {param: LocalPostDeleteNonblockRpcParam}): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.local.postDeleteNonblock', request)
+export const localPostDeleteNonblockRpcChannelMap = (configKeys: Array<string>, request: LocalPostDeleteNonblockRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.local.postDeleteNonblock', request)
 
-export const localPostDeleteNonblockRpcPromise = (request: (RequestCommon & {callback?: ?(err: ?any, response: LocalPostDeleteNonblockResult) => void} & {param: LocalPostDeleteNonblockRpcParam})): Promise<LocalPostDeleteNonblockResult> => new Promise((resolve, reject) => engineRpcOutgoing('chat.1.local.postDeleteNonblock', request, (error, result) => error ? reject(error) : resolve(result)))
+export const localPostDeleteNonblockRpcPromise = (request: LocalPostDeleteNonblockRpcParam): Promise<LocalPostDeleteNonblockResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.local.postDeleteNonblock', request, (error, result) => error ? reject(error) : resolve(result)))
 
-export const localPostEditNonblockRpcChannelMap = (configKeys: Array<string>, request: RequestCommon & {callback?: ?(err: ?any, response: LocalPostEditNonblockResult) => void} & {param: LocalPostEditNonblockRpcParam}): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.local.postEditNonblock', request)
+export const localPostEditNonblockRpcChannelMap = (configKeys: Array<string>, request: LocalPostEditNonblockRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.local.postEditNonblock', request)
 
-export const localPostEditNonblockRpcPromise = (request: (RequestCommon & {callback?: ?(err: ?any, response: LocalPostEditNonblockResult) => void} & {param: LocalPostEditNonblockRpcParam})): Promise<LocalPostEditNonblockResult> => new Promise((resolve, reject) => engineRpcOutgoing('chat.1.local.postEditNonblock', request, (error, result) => error ? reject(error) : resolve(result)))
+export const localPostEditNonblockRpcPromise = (request: LocalPostEditNonblockRpcParam): Promise<LocalPostEditNonblockResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.local.postEditNonblock', request, (error, result) => error ? reject(error) : resolve(result)))
 
-export const localPostFileAttachmentLocalRpcChannelMap = (configKeys: Array<string>, request: RequestCommon & {callback?: ?(err: ?any, response: LocalPostFileAttachmentLocalResult) => void} & {param: LocalPostFileAttachmentLocalRpcParam}): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.local.postFileAttachmentLocal', request)
+export const localPostFileAttachmentLocalRpcChannelMap = (configKeys: Array<string>, request: LocalPostFileAttachmentLocalRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.local.postFileAttachmentLocal', request)
 
-export const localPostFileAttachmentLocalRpcPromise = (request: (RequestCommon & {callback?: ?(err: ?any, response: LocalPostFileAttachmentLocalResult) => void} & {param: LocalPostFileAttachmentLocalRpcParam})): Promise<LocalPostFileAttachmentLocalResult> => new Promise((resolve, reject) => engineRpcOutgoing('chat.1.local.postFileAttachmentLocal', request, (error, result) => error ? reject(error) : resolve(result)))
+export const localPostFileAttachmentLocalRpcPromise = (request: LocalPostFileAttachmentLocalRpcParam): Promise<LocalPostFileAttachmentLocalResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.local.postFileAttachmentLocal', request, (error, result) => error ? reject(error) : resolve(result)))
 
-export const localPostHeadlineNonblockRpcChannelMap = (configKeys: Array<string>, request: RequestCommon & {callback?: ?(err: ?any, response: LocalPostHeadlineNonblockResult) => void} & {param: LocalPostHeadlineNonblockRpcParam}): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.local.postHeadlineNonblock', request)
+export const localPostHeadlineNonblockRpcChannelMap = (configKeys: Array<string>, request: LocalPostHeadlineNonblockRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.local.postHeadlineNonblock', request)
 
-export const localPostHeadlineNonblockRpcPromise = (request: (RequestCommon & {callback?: ?(err: ?any, response: LocalPostHeadlineNonblockResult) => void} & {param: LocalPostHeadlineNonblockRpcParam})): Promise<LocalPostHeadlineNonblockResult> => new Promise((resolve, reject) => engineRpcOutgoing('chat.1.local.postHeadlineNonblock', request, (error, result) => error ? reject(error) : resolve(result)))
+export const localPostHeadlineNonblockRpcPromise = (request: LocalPostHeadlineNonblockRpcParam): Promise<LocalPostHeadlineNonblockResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.local.postHeadlineNonblock', request, (error, result) => error ? reject(error) : resolve(result)))
 
-export const localPostHeadlineRpcChannelMap = (configKeys: Array<string>, request: RequestCommon & {callback?: ?(err: ?any, response: LocalPostHeadlineResult) => void} & {param: LocalPostHeadlineRpcParam}): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.local.postHeadline', request)
+export const localPostHeadlineRpcChannelMap = (configKeys: Array<string>, request: LocalPostHeadlineRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.local.postHeadline', request)
 
-export const localPostHeadlineRpcPromise = (request: (RequestCommon & {callback?: ?(err: ?any, response: LocalPostHeadlineResult) => void} & {param: LocalPostHeadlineRpcParam})): Promise<LocalPostHeadlineResult> => new Promise((resolve, reject) => engineRpcOutgoing('chat.1.local.postHeadline', request, (error, result) => error ? reject(error) : resolve(result)))
+export const localPostHeadlineRpcPromise = (request: LocalPostHeadlineRpcParam): Promise<LocalPostHeadlineResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.local.postHeadline', request, (error, result) => error ? reject(error) : resolve(result)))
 
-export const localPostLocalNonblockRpcChannelMap = (configKeys: Array<string>, request: RequestCommon & {callback?: ?(err: ?any, response: LocalPostLocalNonblockResult) => void} & {param: LocalPostLocalNonblockRpcParam}): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.local.postLocalNonblock', request)
+export const localPostLocalNonblockRpcChannelMap = (configKeys: Array<string>, request: LocalPostLocalNonblockRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.local.postLocalNonblock', request)
 
-export const localPostLocalNonblockRpcPromise = (request: (RequestCommon & {callback?: ?(err: ?any, response: LocalPostLocalNonblockResult) => void} & {param: LocalPostLocalNonblockRpcParam})): Promise<LocalPostLocalNonblockResult> => new Promise((resolve, reject) => engineRpcOutgoing('chat.1.local.postLocalNonblock', request, (error, result) => error ? reject(error) : resolve(result)))
+export const localPostLocalNonblockRpcPromise = (request: LocalPostLocalNonblockRpcParam): Promise<LocalPostLocalNonblockResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.local.postLocalNonblock', request, (error, result) => error ? reject(error) : resolve(result)))
 
-export const localPostLocalRpcChannelMap = (configKeys: Array<string>, request: RequestCommon & {callback?: ?(err: ?any, response: LocalPostLocalResult) => void} & {param: LocalPostLocalRpcParam}): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.local.postLocal', request)
+export const localPostLocalRpcChannelMap = (configKeys: Array<string>, request: LocalPostLocalRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.local.postLocal', request)
 
-export const localPostLocalRpcPromise = (request: (RequestCommon & {callback?: ?(err: ?any, response: LocalPostLocalResult) => void} & {param: LocalPostLocalRpcParam})): Promise<LocalPostLocalResult> => new Promise((resolve, reject) => engineRpcOutgoing('chat.1.local.postLocal', request, (error, result) => error ? reject(error) : resolve(result)))
+export const localPostLocalRpcPromise = (request: LocalPostLocalRpcParam): Promise<LocalPostLocalResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.local.postLocal', request, (error, result) => error ? reject(error) : resolve(result)))
 
-export const localPostMetadataNonblockRpcChannelMap = (configKeys: Array<string>, request: RequestCommon & {callback?: ?(err: ?any, response: LocalPostMetadataNonblockResult) => void} & {param: LocalPostMetadataNonblockRpcParam}): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.local.postMetadataNonblock', request)
+export const localPostMetadataNonblockRpcChannelMap = (configKeys: Array<string>, request: LocalPostMetadataNonblockRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.local.postMetadataNonblock', request)
 
-export const localPostMetadataNonblockRpcPromise = (request: (RequestCommon & {callback?: ?(err: ?any, response: LocalPostMetadataNonblockResult) => void} & {param: LocalPostMetadataNonblockRpcParam})): Promise<LocalPostMetadataNonblockResult> => new Promise((resolve, reject) => engineRpcOutgoing('chat.1.local.postMetadataNonblock', request, (error, result) => error ? reject(error) : resolve(result)))
+export const localPostMetadataNonblockRpcPromise = (request: LocalPostMetadataNonblockRpcParam): Promise<LocalPostMetadataNonblockResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.local.postMetadataNonblock', request, (error, result) => error ? reject(error) : resolve(result)))
 
-export const localPostMetadataRpcChannelMap = (configKeys: Array<string>, request: RequestCommon & {callback?: ?(err: ?any, response: LocalPostMetadataResult) => void} & {param: LocalPostMetadataRpcParam}): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.local.postMetadata', request)
+export const localPostMetadataRpcChannelMap = (configKeys: Array<string>, request: LocalPostMetadataRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.local.postMetadata', request)
 
-export const localPostMetadataRpcPromise = (request: (RequestCommon & {callback?: ?(err: ?any, response: LocalPostMetadataResult) => void} & {param: LocalPostMetadataRpcParam})): Promise<LocalPostMetadataResult> => new Promise((resolve, reject) => engineRpcOutgoing('chat.1.local.postMetadata', request, (error, result) => error ? reject(error) : resolve(result)))
+export const localPostMetadataRpcPromise = (request: LocalPostMetadataRpcParam): Promise<LocalPostMetadataResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.local.postMetadata', request, (error, result) => error ? reject(error) : resolve(result)))
 
-export const localPostTextNonblockRpcChannelMap = (configKeys: Array<string>, request: RequestCommon & {callback?: ?(err: ?any, response: LocalPostTextNonblockResult) => void} & {param: LocalPostTextNonblockRpcParam}): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.local.postTextNonblock', request)
+export const localPostTextNonblockRpcChannelMap = (configKeys: Array<string>, request: LocalPostTextNonblockRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.local.postTextNonblock', request)
 
-export const localPostTextNonblockRpcPromise = (request: (RequestCommon & {callback?: ?(err: ?any, response: LocalPostTextNonblockResult) => void} & {param: LocalPostTextNonblockRpcParam})): Promise<LocalPostTextNonblockResult> => new Promise((resolve, reject) => engineRpcOutgoing('chat.1.local.postTextNonblock', request, (error, result) => error ? reject(error) : resolve(result)))
+export const localPostTextNonblockRpcPromise = (request: LocalPostTextNonblockRpcParam): Promise<LocalPostTextNonblockResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.local.postTextNonblock', request, (error, result) => error ? reject(error) : resolve(result)))
 
-export const localRetryPostRpcChannelMap = (configKeys: Array<string>, request: RequestCommon & RequestErrorCallback & {param: LocalRetryPostRpcParam}): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.local.RetryPost', request)
+export const localRetryPostRpcChannelMap = (configKeys: Array<string>, request: LocalRetryPostRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.local.RetryPost', request)
 
-export const localRetryPostRpcPromise = (request: (RequestCommon & RequestErrorCallback & {param: LocalRetryPostRpcParam})): Promise<void> => new Promise((resolve, reject) => engineRpcOutgoing('chat.1.local.RetryPost', request, (error, result) => error ? reject(error) : resolve(result)))
+export const localRetryPostRpcPromise = (request: LocalRetryPostRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.local.RetryPost', request, (error, result) => error ? reject(error) : resolve(result)))
 
-export const localSetAppNotificationSettingsLocalRpcChannelMap = (configKeys: Array<string>, request: RequestCommon & {callback?: ?(err: ?any, response: LocalSetAppNotificationSettingsLocalResult) => void} & {param: LocalSetAppNotificationSettingsLocalRpcParam}): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.local.setAppNotificationSettingsLocal', request)
+export const localSetAppNotificationSettingsLocalRpcChannelMap = (configKeys: Array<string>, request: LocalSetAppNotificationSettingsLocalRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.local.setAppNotificationSettingsLocal', request)
 
-export const localSetAppNotificationSettingsLocalRpcPromise = (request: (RequestCommon & {callback?: ?(err: ?any, response: LocalSetAppNotificationSettingsLocalResult) => void} & {param: LocalSetAppNotificationSettingsLocalRpcParam})): Promise<LocalSetAppNotificationSettingsLocalResult> => new Promise((resolve, reject) => engineRpcOutgoing('chat.1.local.setAppNotificationSettingsLocal', request, (error, result) => error ? reject(error) : resolve(result)))
+export const localSetAppNotificationSettingsLocalRpcPromise = (request: LocalSetAppNotificationSettingsLocalRpcParam): Promise<LocalSetAppNotificationSettingsLocalResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.local.setAppNotificationSettingsLocal', request, (error, result) => error ? reject(error) : resolve(result)))
 
-export const localSetConversationStatusLocalRpcChannelMap = (configKeys: Array<string>, request: RequestCommon & {callback?: ?(err: ?any, response: LocalSetConversationStatusLocalResult) => void} & {param: LocalSetConversationStatusLocalRpcParam}): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.local.SetConversationStatusLocal', request)
+export const localSetConversationStatusLocalRpcChannelMap = (configKeys: Array<string>, request: LocalSetConversationStatusLocalRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.local.SetConversationStatusLocal', request)
 
-export const localSetConversationStatusLocalRpcPromise = (request: (RequestCommon & {callback?: ?(err: ?any, response: LocalSetConversationStatusLocalResult) => void} & {param: LocalSetConversationStatusLocalRpcParam})): Promise<LocalSetConversationStatusLocalResult> => new Promise((resolve, reject) => engineRpcOutgoing('chat.1.local.SetConversationStatusLocal', request, (error, result) => error ? reject(error) : resolve(result)))
+export const localSetConversationStatusLocalRpcPromise = (request: LocalSetConversationStatusLocalRpcParam): Promise<LocalSetConversationStatusLocalResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.local.SetConversationStatusLocal', request, (error, result) => error ? reject(error) : resolve(result)))
 
-export const localSetGlobalAppNotificationSettingsLocalRpcChannelMap = (configKeys: Array<string>, request: RequestCommon & RequestErrorCallback & {param: LocalSetGlobalAppNotificationSettingsLocalRpcParam}): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.local.setGlobalAppNotificationSettingsLocal', request)
+export const localSetGlobalAppNotificationSettingsLocalRpcChannelMap = (configKeys: Array<string>, request: LocalSetGlobalAppNotificationSettingsLocalRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.local.setGlobalAppNotificationSettingsLocal', request)
 
-export const localSetGlobalAppNotificationSettingsLocalRpcPromise = (request: (RequestCommon & RequestErrorCallback & {param: LocalSetGlobalAppNotificationSettingsLocalRpcParam})): Promise<void> => new Promise((resolve, reject) => engineRpcOutgoing('chat.1.local.setGlobalAppNotificationSettingsLocal', request, (error, result) => error ? reject(error) : resolve(result)))
+export const localSetGlobalAppNotificationSettingsLocalRpcPromise = (request: LocalSetGlobalAppNotificationSettingsLocalRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.local.setGlobalAppNotificationSettingsLocal', request, (error, result) => error ? reject(error) : resolve(result)))
 
-export const localUnboxMobilePushNotificationRpcChannelMap = (configKeys: Array<string>, request: RequestCommon & {callback?: ?(err: ?any, response: LocalUnboxMobilePushNotificationResult) => void} & {param: LocalUnboxMobilePushNotificationRpcParam}): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.local.unboxMobilePushNotification', request)
+export const localUnboxMobilePushNotificationRpcChannelMap = (configKeys: Array<string>, request: LocalUnboxMobilePushNotificationRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.local.unboxMobilePushNotification', request)
 
-export const localUnboxMobilePushNotificationRpcPromise = (request: (RequestCommon & {callback?: ?(err: ?any, response: LocalUnboxMobilePushNotificationResult) => void} & {param: LocalUnboxMobilePushNotificationRpcParam})): Promise<LocalUnboxMobilePushNotificationResult> => new Promise((resolve, reject) => engineRpcOutgoing('chat.1.local.unboxMobilePushNotification', request, (error, result) => error ? reject(error) : resolve(result)))
+export const localUnboxMobilePushNotificationRpcPromise = (request: LocalUnboxMobilePushNotificationRpcParam): Promise<LocalUnboxMobilePushNotificationResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.local.unboxMobilePushNotification', request, (error, result) => error ? reject(error) : resolve(result)))
 
-export const localUpdateTypingRpcChannelMap = (configKeys: Array<string>, request: RequestCommon & RequestErrorCallback & {param: LocalUpdateTypingRpcParam}): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.local.updateTyping', request)
+export const localUpdateTypingRpcChannelMap = (configKeys: Array<string>, request: LocalUpdateTypingRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.local.updateTyping', request)
 
-export const localUpdateTypingRpcPromise = (request: (RequestCommon & RequestErrorCallback & {param: LocalUpdateTypingRpcParam})): Promise<void> => new Promise((resolve, reject) => engineRpcOutgoing('chat.1.local.updateTyping', request, (error, result) => error ? reject(error) : resolve(result)))
+export const localUpdateTypingRpcPromise = (request: LocalUpdateTypingRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.local.updateTyping', request, (error, result) => error ? reject(error) : resolve(result)))
 
 export const notifyChatChatActivityType = {
   reserved: 0,
@@ -383,57 +345,57 @@ export const remoteChannelMention = {
   here: 2,
 }
 
-export const remoteDeleteConversationRpcChannelMap = (configKeys: Array<string>, request: RequestCommon & {callback?: ?(err: ?any, response: RemoteDeleteConversationResult) => void} & {param: RemoteDeleteConversationRpcParam}): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.remote.deleteConversation', request)
+export const remoteDeleteConversationRpcChannelMap = (configKeys: Array<string>, request: RemoteDeleteConversationRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.remote.deleteConversation', request)
 
-export const remoteDeleteConversationRpcPromise = (request: (RequestCommon & {callback?: ?(err: ?any, response: RemoteDeleteConversationResult) => void} & {param: RemoteDeleteConversationRpcParam})): Promise<RemoteDeleteConversationResult> => new Promise((resolve, reject) => engineRpcOutgoing('chat.1.remote.deleteConversation', request, (error, result) => error ? reject(error) : resolve(result)))
+export const remoteDeleteConversationRpcPromise = (request: RemoteDeleteConversationRpcParam): Promise<RemoteDeleteConversationResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.remote.deleteConversation', request, (error, result) => error ? reject(error) : resolve(result)))
 
-export const remoteGetGlobalAppNotificationSettingsRpcChannelMap = (configKeys: Array<string>, request: RequestCommon & {callback?: ?(err: ?any, response: RemoteGetGlobalAppNotificationSettingsResult) => void}): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.remote.getGlobalAppNotificationSettings', request)
+export const remoteGetGlobalAppNotificationSettingsRpcChannelMap = (configKeys: Array<string>, request: RemoteGetGlobalAppNotificationSettingsRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.remote.getGlobalAppNotificationSettings', request)
 
-export const remoteGetGlobalAppNotificationSettingsRpcPromise = (request: ?(RequestCommon & {callback?: ?(err: ?any, response: RemoteGetGlobalAppNotificationSettingsResult) => void})): Promise<RemoteGetGlobalAppNotificationSettingsResult> => new Promise((resolve, reject) => engineRpcOutgoing('chat.1.remote.getGlobalAppNotificationSettings', request, (error, result) => error ? reject(error) : resolve(result)))
+export const remoteGetGlobalAppNotificationSettingsRpcPromise = (request: RemoteGetGlobalAppNotificationSettingsRpcParam): Promise<RemoteGetGlobalAppNotificationSettingsResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.remote.getGlobalAppNotificationSettings', request, (error, result) => error ? reject(error) : resolve(result)))
 
-export const remoteGetInboxRemoteRpcChannelMap = (configKeys: Array<string>, request: RequestCommon & {callback?: ?(err: ?any, response: RemoteGetInboxRemoteResult) => void} & {param: RemoteGetInboxRemoteRpcParam}): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.remote.getInboxRemote', request)
+export const remoteGetInboxRemoteRpcChannelMap = (configKeys: Array<string>, request: RemoteGetInboxRemoteRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.remote.getInboxRemote', request)
 
-export const remoteGetInboxRemoteRpcPromise = (request: (RequestCommon & {callback?: ?(err: ?any, response: RemoteGetInboxRemoteResult) => void} & {param: RemoteGetInboxRemoteRpcParam})): Promise<RemoteGetInboxRemoteResult> => new Promise((resolve, reject) => engineRpcOutgoing('chat.1.remote.getInboxRemote', request, (error, result) => error ? reject(error) : resolve(result)))
+export const remoteGetInboxRemoteRpcPromise = (request: RemoteGetInboxRemoteRpcParam): Promise<RemoteGetInboxRemoteResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.remote.getInboxRemote', request, (error, result) => error ? reject(error) : resolve(result)))
 
-export const remoteGetInboxVersionRpcChannelMap = (configKeys: Array<string>, request: RequestCommon & {callback?: ?(err: ?any, response: RemoteGetInboxVersionResult) => void} & {param: RemoteGetInboxVersionRpcParam}): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.remote.getInboxVersion', request)
+export const remoteGetInboxVersionRpcChannelMap = (configKeys: Array<string>, request: RemoteGetInboxVersionRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.remote.getInboxVersion', request)
 
-export const remoteGetInboxVersionRpcPromise = (request: (RequestCommon & {callback?: ?(err: ?any, response: RemoteGetInboxVersionResult) => void} & {param: RemoteGetInboxVersionRpcParam})): Promise<RemoteGetInboxVersionResult> => new Promise((resolve, reject) => engineRpcOutgoing('chat.1.remote.getInboxVersion', request, (error, result) => error ? reject(error) : resolve(result)))
+export const remoteGetInboxVersionRpcPromise = (request: RemoteGetInboxVersionRpcParam): Promise<RemoteGetInboxVersionResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.remote.getInboxVersion', request, (error, result) => error ? reject(error) : resolve(result)))
 
-export const remoteGetMessagesRemoteRpcChannelMap = (configKeys: Array<string>, request: RequestCommon & {callback?: ?(err: ?any, response: RemoteGetMessagesRemoteResult) => void} & {param: RemoteGetMessagesRemoteRpcParam}): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.remote.getMessagesRemote', request)
+export const remoteGetMessagesRemoteRpcChannelMap = (configKeys: Array<string>, request: RemoteGetMessagesRemoteRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.remote.getMessagesRemote', request)
 
-export const remoteGetMessagesRemoteRpcPromise = (request: (RequestCommon & {callback?: ?(err: ?any, response: RemoteGetMessagesRemoteResult) => void} & {param: RemoteGetMessagesRemoteRpcParam})): Promise<RemoteGetMessagesRemoteResult> => new Promise((resolve, reject) => engineRpcOutgoing('chat.1.remote.getMessagesRemote', request, (error, result) => error ? reject(error) : resolve(result)))
+export const remoteGetMessagesRemoteRpcPromise = (request: RemoteGetMessagesRemoteRpcParam): Promise<RemoteGetMessagesRemoteResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.remote.getMessagesRemote', request, (error, result) => error ? reject(error) : resolve(result)))
 
-export const remoteGetPublicConversationsRpcChannelMap = (configKeys: Array<string>, request: RequestCommon & {callback?: ?(err: ?any, response: RemoteGetPublicConversationsResult) => void} & {param: RemoteGetPublicConversationsRpcParam}): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.remote.getPublicConversations', request)
+export const remoteGetPublicConversationsRpcChannelMap = (configKeys: Array<string>, request: RemoteGetPublicConversationsRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.remote.getPublicConversations', request)
 
-export const remoteGetPublicConversationsRpcPromise = (request: (RequestCommon & {callback?: ?(err: ?any, response: RemoteGetPublicConversationsResult) => void} & {param: RemoteGetPublicConversationsRpcParam})): Promise<RemoteGetPublicConversationsResult> => new Promise((resolve, reject) => engineRpcOutgoing('chat.1.remote.getPublicConversations', request, (error, result) => error ? reject(error) : resolve(result)))
+export const remoteGetPublicConversationsRpcPromise = (request: RemoteGetPublicConversationsRpcParam): Promise<RemoteGetPublicConversationsResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.remote.getPublicConversations', request, (error, result) => error ? reject(error) : resolve(result)))
 
-export const remoteGetS3ParamsRpcChannelMap = (configKeys: Array<string>, request: RequestCommon & {callback?: ?(err: ?any, response: RemoteGetS3ParamsResult) => void} & {param: RemoteGetS3ParamsRpcParam}): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.remote.getS3Params', request)
+export const remoteGetS3ParamsRpcChannelMap = (configKeys: Array<string>, request: RemoteGetS3ParamsRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.remote.getS3Params', request)
 
-export const remoteGetS3ParamsRpcPromise = (request: (RequestCommon & {callback?: ?(err: ?any, response: RemoteGetS3ParamsResult) => void} & {param: RemoteGetS3ParamsRpcParam})): Promise<RemoteGetS3ParamsResult> => new Promise((resolve, reject) => engineRpcOutgoing('chat.1.remote.getS3Params', request, (error, result) => error ? reject(error) : resolve(result)))
+export const remoteGetS3ParamsRpcPromise = (request: RemoteGetS3ParamsRpcParam): Promise<RemoteGetS3ParamsResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.remote.getS3Params', request, (error, result) => error ? reject(error) : resolve(result)))
 
-export const remoteGetTLFConversationsRpcChannelMap = (configKeys: Array<string>, request: RequestCommon & {callback?: ?(err: ?any, response: RemoteGetTLFConversationsResult) => void} & {param: RemoteGetTLFConversationsRpcParam}): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.remote.getTLFConversations', request)
+export const remoteGetTLFConversationsRpcChannelMap = (configKeys: Array<string>, request: RemoteGetTLFConversationsRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.remote.getTLFConversations', request)
 
-export const remoteGetTLFConversationsRpcPromise = (request: (RequestCommon & {callback?: ?(err: ?any, response: RemoteGetTLFConversationsResult) => void} & {param: RemoteGetTLFConversationsRpcParam})): Promise<RemoteGetTLFConversationsResult> => new Promise((resolve, reject) => engineRpcOutgoing('chat.1.remote.getTLFConversations', request, (error, result) => error ? reject(error) : resolve(result)))
+export const remoteGetTLFConversationsRpcPromise = (request: RemoteGetTLFConversationsRpcParam): Promise<RemoteGetTLFConversationsResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.remote.getTLFConversations', request, (error, result) => error ? reject(error) : resolve(result)))
 
-export const remoteGetThreadRemoteRpcChannelMap = (configKeys: Array<string>, request: RequestCommon & {callback?: ?(err: ?any, response: RemoteGetThreadRemoteResult) => void} & {param: RemoteGetThreadRemoteRpcParam}): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.remote.getThreadRemote', request)
+export const remoteGetThreadRemoteRpcChannelMap = (configKeys: Array<string>, request: RemoteGetThreadRemoteRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.remote.getThreadRemote', request)
 
-export const remoteGetThreadRemoteRpcPromise = (request: (RequestCommon & {callback?: ?(err: ?any, response: RemoteGetThreadRemoteResult) => void} & {param: RemoteGetThreadRemoteRpcParam})): Promise<RemoteGetThreadRemoteResult> => new Promise((resolve, reject) => engineRpcOutgoing('chat.1.remote.getThreadRemote', request, (error, result) => error ? reject(error) : resolve(result)))
+export const remoteGetThreadRemoteRpcPromise = (request: RemoteGetThreadRemoteRpcParam): Promise<RemoteGetThreadRemoteResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.remote.getThreadRemote', request, (error, result) => error ? reject(error) : resolve(result)))
 
-export const remoteGetUnreadUpdateFullRpcChannelMap = (configKeys: Array<string>, request: RequestCommon & {callback?: ?(err: ?any, response: RemoteGetUnreadUpdateFullResult) => void} & {param: RemoteGetUnreadUpdateFullRpcParam}): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.remote.GetUnreadUpdateFull', request)
+export const remoteGetUnreadUpdateFullRpcChannelMap = (configKeys: Array<string>, request: RemoteGetUnreadUpdateFullRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.remote.GetUnreadUpdateFull', request)
 
-export const remoteGetUnreadUpdateFullRpcPromise = (request: (RequestCommon & {callback?: ?(err: ?any, response: RemoteGetUnreadUpdateFullResult) => void} & {param: RemoteGetUnreadUpdateFullRpcParam})): Promise<RemoteGetUnreadUpdateFullResult> => new Promise((resolve, reject) => engineRpcOutgoing('chat.1.remote.GetUnreadUpdateFull', request, (error, result) => error ? reject(error) : resolve(result)))
+export const remoteGetUnreadUpdateFullRpcPromise = (request: RemoteGetUnreadUpdateFullRpcParam): Promise<RemoteGetUnreadUpdateFullResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.remote.GetUnreadUpdateFull', request, (error, result) => error ? reject(error) : resolve(result)))
 
-export const remoteJoinConversationRpcChannelMap = (configKeys: Array<string>, request: RequestCommon & {callback?: ?(err: ?any, response: RemoteJoinConversationResult) => void} & {param: RemoteJoinConversationRpcParam}): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.remote.joinConversation', request)
+export const remoteJoinConversationRpcChannelMap = (configKeys: Array<string>, request: RemoteJoinConversationRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.remote.joinConversation', request)
 
-export const remoteJoinConversationRpcPromise = (request: (RequestCommon & {callback?: ?(err: ?any, response: RemoteJoinConversationResult) => void} & {param: RemoteJoinConversationRpcParam})): Promise<RemoteJoinConversationResult> => new Promise((resolve, reject) => engineRpcOutgoing('chat.1.remote.joinConversation', request, (error, result) => error ? reject(error) : resolve(result)))
+export const remoteJoinConversationRpcPromise = (request: RemoteJoinConversationRpcParam): Promise<RemoteJoinConversationResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.remote.joinConversation', request, (error, result) => error ? reject(error) : resolve(result)))
 
-export const remoteLeaveConversationRpcChannelMap = (configKeys: Array<string>, request: RequestCommon & {callback?: ?(err: ?any, response: RemoteLeaveConversationResult) => void} & {param: RemoteLeaveConversationRpcParam}): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.remote.leaveConversation', request)
+export const remoteLeaveConversationRpcChannelMap = (configKeys: Array<string>, request: RemoteLeaveConversationRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.remote.leaveConversation', request)
 
-export const remoteLeaveConversationRpcPromise = (request: (RequestCommon & {callback?: ?(err: ?any, response: RemoteLeaveConversationResult) => void} & {param: RemoteLeaveConversationRpcParam})): Promise<RemoteLeaveConversationResult> => new Promise((resolve, reject) => engineRpcOutgoing('chat.1.remote.leaveConversation', request, (error, result) => error ? reject(error) : resolve(result)))
+export const remoteLeaveConversationRpcPromise = (request: RemoteLeaveConversationRpcParam): Promise<RemoteLeaveConversationResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.remote.leaveConversation', request, (error, result) => error ? reject(error) : resolve(result)))
 
-export const remoteMarkAsReadRpcChannelMap = (configKeys: Array<string>, request: RequestCommon & {callback?: ?(err: ?any, response: RemoteMarkAsReadResult) => void} & {param: RemoteMarkAsReadRpcParam}): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.remote.markAsRead', request)
+export const remoteMarkAsReadRpcChannelMap = (configKeys: Array<string>, request: RemoteMarkAsReadRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.remote.markAsRead', request)
 
-export const remoteMarkAsReadRpcPromise = (request: (RequestCommon & {callback?: ?(err: ?any, response: RemoteMarkAsReadResult) => void} & {param: RemoteMarkAsReadRpcParam})): Promise<RemoteMarkAsReadResult> => new Promise((resolve, reject) => engineRpcOutgoing('chat.1.remote.markAsRead', request, (error, result) => error ? reject(error) : resolve(result)))
+export const remoteMarkAsReadRpcPromise = (request: RemoteMarkAsReadRpcParam): Promise<RemoteMarkAsReadResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.remote.markAsRead', request, (error, result) => error ? reject(error) : resolve(result)))
 
 export const remoteMessageBoxedVersion = {
   vnone: 0,
@@ -441,45 +403,45 @@ export const remoteMessageBoxedVersion = {
   v2: 2,
 }
 
-export const remoteNewConversationRemote2RpcChannelMap = (configKeys: Array<string>, request: RequestCommon & {callback?: ?(err: ?any, response: RemoteNewConversationRemote2Result) => void} & {param: RemoteNewConversationRemote2RpcParam}): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.remote.newConversationRemote2', request)
+export const remoteNewConversationRemote2RpcChannelMap = (configKeys: Array<string>, request: RemoteNewConversationRemote2RpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.remote.newConversationRemote2', request)
 
-export const remoteNewConversationRemote2RpcPromise = (request: (RequestCommon & {callback?: ?(err: ?any, response: RemoteNewConversationRemote2Result) => void} & {param: RemoteNewConversationRemote2RpcParam})): Promise<RemoteNewConversationRemote2Result> => new Promise((resolve, reject) => engineRpcOutgoing('chat.1.remote.newConversationRemote2', request, (error, result) => error ? reject(error) : resolve(result)))
+export const remoteNewConversationRemote2RpcPromise = (request: RemoteNewConversationRemote2RpcParam): Promise<RemoteNewConversationRemote2Result> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.remote.newConversationRemote2', request, (error, result) => error ? reject(error) : resolve(result)))
 
-export const remoteNewConversationRemoteRpcChannelMap = (configKeys: Array<string>, request: RequestCommon & {callback?: ?(err: ?any, response: RemoteNewConversationRemoteResult) => void} & {param: RemoteNewConversationRemoteRpcParam}): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.remote.newConversationRemote', request)
+export const remoteNewConversationRemoteRpcChannelMap = (configKeys: Array<string>, request: RemoteNewConversationRemoteRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.remote.newConversationRemote', request)
 
-export const remoteNewConversationRemoteRpcPromise = (request: (RequestCommon & {callback?: ?(err: ?any, response: RemoteNewConversationRemoteResult) => void} & {param: RemoteNewConversationRemoteRpcParam})): Promise<RemoteNewConversationRemoteResult> => new Promise((resolve, reject) => engineRpcOutgoing('chat.1.remote.newConversationRemote', request, (error, result) => error ? reject(error) : resolve(result)))
+export const remoteNewConversationRemoteRpcPromise = (request: RemoteNewConversationRemoteRpcParam): Promise<RemoteNewConversationRemoteResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.remote.newConversationRemote', request, (error, result) => error ? reject(error) : resolve(result)))
 
-export const remotePostRemoteRpcChannelMap = (configKeys: Array<string>, request: RequestCommon & {callback?: ?(err: ?any, response: RemotePostRemoteResult) => void} & {param: RemotePostRemoteRpcParam}): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.remote.postRemote', request)
+export const remotePostRemoteRpcChannelMap = (configKeys: Array<string>, request: RemotePostRemoteRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.remote.postRemote', request)
 
-export const remotePostRemoteRpcPromise = (request: (RequestCommon & {callback?: ?(err: ?any, response: RemotePostRemoteResult) => void} & {param: RemotePostRemoteRpcParam})): Promise<RemotePostRemoteResult> => new Promise((resolve, reject) => engineRpcOutgoing('chat.1.remote.postRemote', request, (error, result) => error ? reject(error) : resolve(result)))
+export const remotePostRemoteRpcPromise = (request: RemotePostRemoteRpcParam): Promise<RemotePostRemoteResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.remote.postRemote', request, (error, result) => error ? reject(error) : resolve(result)))
 
-export const remotePublishReadMessageRpcChannelMap = (configKeys: Array<string>, request: RequestCommon & RequestErrorCallback & {param: RemotePublishReadMessageRpcParam}): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.remote.publishReadMessage', request)
+export const remotePublishReadMessageRpcChannelMap = (configKeys: Array<string>, request: RemotePublishReadMessageRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.remote.publishReadMessage', request)
 
-export const remotePublishReadMessageRpcPromise = (request: (RequestCommon & RequestErrorCallback & {param: RemotePublishReadMessageRpcParam})): Promise<void> => new Promise((resolve, reject) => engineRpcOutgoing('chat.1.remote.publishReadMessage', request, (error, result) => error ? reject(error) : resolve(result)))
+export const remotePublishReadMessageRpcPromise = (request: RemotePublishReadMessageRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.remote.publishReadMessage', request, (error, result) => error ? reject(error) : resolve(result)))
 
-export const remotePublishSetConversationStatusRpcChannelMap = (configKeys: Array<string>, request: RequestCommon & RequestErrorCallback & {param: RemotePublishSetConversationStatusRpcParam}): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.remote.publishSetConversationStatus', request)
+export const remotePublishSetConversationStatusRpcChannelMap = (configKeys: Array<string>, request: RemotePublishSetConversationStatusRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.remote.publishSetConversationStatus', request)
 
-export const remotePublishSetConversationStatusRpcPromise = (request: (RequestCommon & RequestErrorCallback & {param: RemotePublishSetConversationStatusRpcParam})): Promise<void> => new Promise((resolve, reject) => engineRpcOutgoing('chat.1.remote.publishSetConversationStatus', request, (error, result) => error ? reject(error) : resolve(result)))
+export const remotePublishSetConversationStatusRpcPromise = (request: RemotePublishSetConversationStatusRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.remote.publishSetConversationStatus', request, (error, result) => error ? reject(error) : resolve(result)))
 
-export const remoteRemoteNotificationSuccessfulRpcChannelMap = (configKeys: Array<string>, request: RequestCommon & RequestErrorCallback & {param: RemoteRemoteNotificationSuccessfulRpcParam}): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.remote.remoteNotificationSuccessful', request)
+export const remoteRemoteNotificationSuccessfulRpcChannelMap = (configKeys: Array<string>, request: RemoteRemoteNotificationSuccessfulRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.remote.remoteNotificationSuccessful', request)
 
-export const remoteRemoteNotificationSuccessfulRpcPromise = (request: (RequestCommon & RequestErrorCallback & {param: RemoteRemoteNotificationSuccessfulRpcParam})): Promise<void> => new Promise((resolve, reject) => engineRpcOutgoing('chat.1.remote.remoteNotificationSuccessful', request, (error, result) => error ? reject(error) : resolve(result)))
+export const remoteRemoteNotificationSuccessfulRpcPromise = (request: RemoteRemoteNotificationSuccessfulRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.remote.remoteNotificationSuccessful', request, (error, result) => error ? reject(error) : resolve(result)))
 
-export const remoteS3SignRpcChannelMap = (configKeys: Array<string>, request: RequestCommon & {callback?: ?(err: ?any, response: RemoteS3SignResult) => void} & {param: RemoteS3SignRpcParam}): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.remote.s3Sign', request)
+export const remoteS3SignRpcChannelMap = (configKeys: Array<string>, request: RemoteS3SignRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.remote.s3Sign', request)
 
-export const remoteS3SignRpcPromise = (request: (RequestCommon & {callback?: ?(err: ?any, response: RemoteS3SignResult) => void} & {param: RemoteS3SignRpcParam})): Promise<RemoteS3SignResult> => new Promise((resolve, reject) => engineRpcOutgoing('chat.1.remote.s3Sign', request, (error, result) => error ? reject(error) : resolve(result)))
+export const remoteS3SignRpcPromise = (request: RemoteS3SignRpcParam): Promise<RemoteS3SignResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.remote.s3Sign', request, (error, result) => error ? reject(error) : resolve(result)))
 
-export const remoteSetAppNotificationSettingsRpcChannelMap = (configKeys: Array<string>, request: RequestCommon & {callback?: ?(err: ?any, response: RemoteSetAppNotificationSettingsResult) => void} & {param: RemoteSetAppNotificationSettingsRpcParam}): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.remote.setAppNotificationSettings', request)
+export const remoteSetAppNotificationSettingsRpcChannelMap = (configKeys: Array<string>, request: RemoteSetAppNotificationSettingsRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.remote.setAppNotificationSettings', request)
 
-export const remoteSetAppNotificationSettingsRpcPromise = (request: (RequestCommon & {callback?: ?(err: ?any, response: RemoteSetAppNotificationSettingsResult) => void} & {param: RemoteSetAppNotificationSettingsRpcParam})): Promise<RemoteSetAppNotificationSettingsResult> => new Promise((resolve, reject) => engineRpcOutgoing('chat.1.remote.setAppNotificationSettings', request, (error, result) => error ? reject(error) : resolve(result)))
+export const remoteSetAppNotificationSettingsRpcPromise = (request: RemoteSetAppNotificationSettingsRpcParam): Promise<RemoteSetAppNotificationSettingsResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.remote.setAppNotificationSettings', request, (error, result) => error ? reject(error) : resolve(result)))
 
-export const remoteSetConversationStatusRpcChannelMap = (configKeys: Array<string>, request: RequestCommon & {callback?: ?(err: ?any, response: RemoteSetConversationStatusResult) => void} & {param: RemoteSetConversationStatusRpcParam}): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.remote.SetConversationStatus', request)
+export const remoteSetConversationStatusRpcChannelMap = (configKeys: Array<string>, request: RemoteSetConversationStatusRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.remote.SetConversationStatus', request)
 
-export const remoteSetConversationStatusRpcPromise = (request: (RequestCommon & {callback?: ?(err: ?any, response: RemoteSetConversationStatusResult) => void} & {param: RemoteSetConversationStatusRpcParam})): Promise<RemoteSetConversationStatusResult> => new Promise((resolve, reject) => engineRpcOutgoing('chat.1.remote.SetConversationStatus', request, (error, result) => error ? reject(error) : resolve(result)))
+export const remoteSetConversationStatusRpcPromise = (request: RemoteSetConversationStatusRpcParam): Promise<RemoteSetConversationStatusResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.remote.SetConversationStatus', request, (error, result) => error ? reject(error) : resolve(result)))
 
-export const remoteSetGlobalAppNotificationSettingsRpcChannelMap = (configKeys: Array<string>, request: RequestCommon & RequestErrorCallback & {param: RemoteSetGlobalAppNotificationSettingsRpcParam}): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.remote.setGlobalAppNotificationSettings', request)
+export const remoteSetGlobalAppNotificationSettingsRpcChannelMap = (configKeys: Array<string>, request: RemoteSetGlobalAppNotificationSettingsRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.remote.setGlobalAppNotificationSettings', request)
 
-export const remoteSetGlobalAppNotificationSettingsRpcPromise = (request: (RequestCommon & RequestErrorCallback & {param: RemoteSetGlobalAppNotificationSettingsRpcParam})): Promise<void> => new Promise((resolve, reject) => engineRpcOutgoing('chat.1.remote.setGlobalAppNotificationSettings', request, (error, result) => error ? reject(error) : resolve(result)))
+export const remoteSetGlobalAppNotificationSettingsRpcPromise = (request: RemoteSetGlobalAppNotificationSettingsRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.remote.setGlobalAppNotificationSettings', request, (error, result) => error ? reject(error) : resolve(result)))
 
 export const remoteSyncAllNotificationType = {
   state: 0,
@@ -491,29 +453,29 @@ export const remoteSyncAllProtVers = {
   v1: 1,
 }
 
-export const remoteSyncAllRpcChannelMap = (configKeys: Array<string>, request: RequestCommon & {callback?: ?(err: ?any, response: RemoteSyncAllResult) => void} & {param: RemoteSyncAllRpcParam}): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.remote.syncAll', request)
+export const remoteSyncAllRpcChannelMap = (configKeys: Array<string>, request: RemoteSyncAllRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.remote.syncAll', request)
 
-export const remoteSyncAllRpcPromise = (request: (RequestCommon & {callback?: ?(err: ?any, response: RemoteSyncAllResult) => void} & {param: RemoteSyncAllRpcParam})): Promise<RemoteSyncAllResult> => new Promise((resolve, reject) => engineRpcOutgoing('chat.1.remote.syncAll', request, (error, result) => error ? reject(error) : resolve(result)))
+export const remoteSyncAllRpcPromise = (request: RemoteSyncAllRpcParam): Promise<RemoteSyncAllResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.remote.syncAll', request, (error, result) => error ? reject(error) : resolve(result)))
 
-export const remoteSyncChatRpcChannelMap = (configKeys: Array<string>, request: RequestCommon & {callback?: ?(err: ?any, response: RemoteSyncChatResult) => void} & {param: RemoteSyncChatRpcParam}): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.remote.syncChat', request)
+export const remoteSyncChatRpcChannelMap = (configKeys: Array<string>, request: RemoteSyncChatRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.remote.syncChat', request)
 
-export const remoteSyncChatRpcPromise = (request: (RequestCommon & {callback?: ?(err: ?any, response: RemoteSyncChatResult) => void} & {param: RemoteSyncChatRpcParam})): Promise<RemoteSyncChatResult> => new Promise((resolve, reject) => engineRpcOutgoing('chat.1.remote.syncChat', request, (error, result) => error ? reject(error) : resolve(result)))
+export const remoteSyncChatRpcPromise = (request: RemoteSyncChatRpcParam): Promise<RemoteSyncChatResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.remote.syncChat', request, (error, result) => error ? reject(error) : resolve(result)))
 
-export const remoteSyncInboxRpcChannelMap = (configKeys: Array<string>, request: RequestCommon & {callback?: ?(err: ?any, response: RemoteSyncInboxResult) => void} & {param: RemoteSyncInboxRpcParam}): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.remote.syncInbox', request)
+export const remoteSyncInboxRpcChannelMap = (configKeys: Array<string>, request: RemoteSyncInboxRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.remote.syncInbox', request)
 
-export const remoteSyncInboxRpcPromise = (request: (RequestCommon & {callback?: ?(err: ?any, response: RemoteSyncInboxResult) => void} & {param: RemoteSyncInboxRpcParam})): Promise<RemoteSyncInboxResult> => new Promise((resolve, reject) => engineRpcOutgoing('chat.1.remote.syncInbox', request, (error, result) => error ? reject(error) : resolve(result)))
+export const remoteSyncInboxRpcPromise = (request: RemoteSyncInboxRpcParam): Promise<RemoteSyncInboxResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.remote.syncInbox', request, (error, result) => error ? reject(error) : resolve(result)))
 
-export const remoteTlfFinalizeRpcChannelMap = (configKeys: Array<string>, request: RequestCommon & RequestErrorCallback & {param: RemoteTlfFinalizeRpcParam}): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.remote.tlfFinalize', request)
+export const remoteTlfFinalizeRpcChannelMap = (configKeys: Array<string>, request: RemoteTlfFinalizeRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.remote.tlfFinalize', request)
 
-export const remoteTlfFinalizeRpcPromise = (request: (RequestCommon & RequestErrorCallback & {param: RemoteTlfFinalizeRpcParam})): Promise<void> => new Promise((resolve, reject) => engineRpcOutgoing('chat.1.remote.tlfFinalize', request, (error, result) => error ? reject(error) : resolve(result)))
+export const remoteTlfFinalizeRpcPromise = (request: RemoteTlfFinalizeRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.remote.tlfFinalize', request, (error, result) => error ? reject(error) : resolve(result)))
 
-export const remoteTlfResolveRpcChannelMap = (configKeys: Array<string>, request: RequestCommon & RequestErrorCallback & {param: RemoteTlfResolveRpcParam}): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.remote.tlfResolve', request)
+export const remoteTlfResolveRpcChannelMap = (configKeys: Array<string>, request: RemoteTlfResolveRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.remote.tlfResolve', request)
 
-export const remoteTlfResolveRpcPromise = (request: (RequestCommon & RequestErrorCallback & {param: RemoteTlfResolveRpcParam})): Promise<void> => new Promise((resolve, reject) => engineRpcOutgoing('chat.1.remote.tlfResolve', request, (error, result) => error ? reject(error) : resolve(result)))
+export const remoteTlfResolveRpcPromise = (request: RemoteTlfResolveRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.remote.tlfResolve', request, (error, result) => error ? reject(error) : resolve(result)))
 
-export const remoteUpdateTypingRemoteRpcChannelMap = (configKeys: Array<string>, request: RequestCommon & RequestErrorCallback & {param: RemoteUpdateTypingRemoteRpcParam}): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.remote.updateTypingRemote', request)
+export const remoteUpdateTypingRemoteRpcChannelMap = (configKeys: Array<string>, request: RemoteUpdateTypingRemoteRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.remote.updateTypingRemote', request)
 
-export const remoteUpdateTypingRemoteRpcPromise = (request: (RequestCommon & RequestErrorCallback & {param: RemoteUpdateTypingRemoteRpcParam})): Promise<void> => new Promise((resolve, reject) => engineRpcOutgoing('chat.1.remote.updateTypingRemote', request, (error, result) => error ? reject(error) : resolve(result)))
+export const remoteUpdateTypingRemoteRpcPromise = (request: RemoteUpdateTypingRemoteRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.remote.updateTypingRemote', request, (error, result) => error ? reject(error) : resolve(result)))
 
 export type AppNotificationSettingLocal = {|deviceType: Keybase1.DeviceType,kind: NotificationKind,enabled: Boolean,|}
 
@@ -578,31 +540,35 @@ export type ChatSyncIncrementalInfo = {|items?: ?Array<UnverifiedInboxUIItem>,|}
 
 export type ChatSyncResult ={ syncType: 0 } | { syncType: 2 } | { syncType: 1, incremental: ?ChatSyncIncrementalInfo }
 
-export type ChatUiChatAttachmentDownloadProgressRpcParam = {|  bytesComplete: Long,
-  bytesTotal: Long|}
+export type ChatUiChatAttachmentDownloadDoneRpcParam = ?{|incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
-export type ChatUiChatAttachmentPreviewUploadStartRpcParam = {|  metadata: AssetMetadata|}
+export type ChatUiChatAttachmentDownloadProgressRpcParam = {|bytesComplete: Long,bytesTotal: Long,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
-export type ChatUiChatAttachmentUploadOutboxIDRpcParam = {|  outboxID: OutboxID|}
+export type ChatUiChatAttachmentDownloadStartRpcParam = ?{|incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
-export type ChatUiChatAttachmentUploadProgressRpcParam = {|  bytesComplete: Long,
-  bytesTotal: Long|}
+export type ChatUiChatAttachmentPreviewUploadDoneRpcParam = ?{|incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
-export type ChatUiChatAttachmentUploadStartRpcParam = {|  metadata: AssetMetadata,
-  placeholderMsgID: MessageID|}
+export type ChatUiChatAttachmentPreviewUploadStartRpcParam = {|metadata: AssetMetadata,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
-export type ChatUiChatConfirmChannelDeleteRpcParam = {|  channel: String|}
+export type ChatUiChatAttachmentUploadDoneRpcParam = ?{|incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
-export type ChatUiChatInboxConversationRpcParam = {|  conv: String|}
+export type ChatUiChatAttachmentUploadOutboxIDRpcParam = {|outboxID: OutboxID,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
-export type ChatUiChatInboxFailedRpcParam = {|  convID: ConversationID,
-  error: ConversationErrorLocal|}
+export type ChatUiChatAttachmentUploadProgressRpcParam = {|bytesComplete: Long,bytesTotal: Long,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
-export type ChatUiChatInboxUnverifiedRpcParam = {|  inbox: String|}
+export type ChatUiChatAttachmentUploadStartRpcParam = {|metadata: AssetMetadata,placeholderMsgID: MessageID,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
-export type ChatUiChatThreadCachedRpcParam = {|  thread?: ?String|}
+export type ChatUiChatConfirmChannelDeleteRpcParam = {|channel: String,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
-export type ChatUiChatThreadFullRpcParam = {|  thread: String|}
+export type ChatUiChatInboxConversationRpcParam = {|conv: String,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+
+export type ChatUiChatInboxFailedRpcParam = {|convID: ConversationID,error: ConversationErrorLocal,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+
+export type ChatUiChatInboxUnverifiedRpcParam = {|inbox: String,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+
+export type ChatUiChatThreadCachedRpcParam = {|thread?: ?String,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+
+export type ChatUiChatThreadFullRpcParam = {|thread: String,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
 export type ConvTypingUpdate = {|convID: ConversationID,typers?: ?Array<TyperInfo>,|}
 
@@ -781,195 +747,87 @@ export type JoinLeaveConversationLocalRes = {|offline: Boolean,rateLimits?: ?Arr
 
 export type JoinLeaveConversationRemoteRes = {|rateLimit?: ?RateLimit,|}
 
-export type LocalCancelPostRpcParam = {|  outboxID: OutboxID|}
+export type LocalCancelPostRpcParam = {|outboxID: OutboxID,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
-export type LocalDeleteConversationLocalRpcParam = {|  convID: ConversationID,
-  channelName: String|}
+export type LocalDeleteConversationLocalRpcParam = {|convID: ConversationID,channelName: String,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
-export type LocalDownloadAttachmentLocalRpcParam = {|  conversationID: ConversationID,
-  messageID: MessageID,
-  sink: Keybase1.Stream,
-  preview: Boolean,
-  identifyBehavior: Keybase1.TLFIdentifyBehavior|}
+export type LocalDownloadAttachmentLocalRpcParam = {|conversationID: ConversationID,messageID: MessageID,sink: Keybase1.Stream,preview: Boolean,identifyBehavior: Keybase1.TLFIdentifyBehavior,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
-export type LocalDownloadFileAttachmentLocalRpcParam = {|  conversationID: ConversationID,
-  messageID: MessageID,
-  filename: String,
-  preview: Boolean,
-  identifyBehavior: Keybase1.TLFIdentifyBehavior|}
+export type LocalDownloadFileAttachmentLocalRpcParam = {|conversationID: ConversationID,messageID: MessageID,filename: String,preview: Boolean,identifyBehavior: Keybase1.TLFIdentifyBehavior,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
 export type LocalFileSource = {|filename: String,|}
 
-export type LocalFindConversationsLocalRpcParam = {|  tlfName: String,
-  membersType: ConversationMembersType,
-  visibility: Keybase1.TLFVisibility,
-  topicType: TopicType,
-  topicName: String,
-  oneChatPerTLF?: ?Boolean,
-  identifyBehavior: Keybase1.TLFIdentifyBehavior|}
+export type LocalFindConversationsLocalRpcParam = {|tlfName: String,membersType: ConversationMembersType,visibility: Keybase1.TLFVisibility,topicType: TopicType,topicName: String,oneChatPerTLF?: ?Boolean,identifyBehavior: Keybase1.TLFIdentifyBehavior,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
-export type LocalGetCachedThreadRpcParam = {|  conversationID: ConversationID,
-  query?: ?GetThreadQuery,
-  pagination?: ?Pagination,
-  identifyBehavior: Keybase1.TLFIdentifyBehavior|}
+export type LocalGenerateOutboxIDRpcParam = ?{|incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
-export type LocalGetConversationForCLILocalRpcParam = {|  query: GetConversationForCLILocalQuery|}
+export type LocalGetCachedThreadRpcParam = {|conversationID: ConversationID,query?: ?GetThreadQuery,pagination?: ?Pagination,identifyBehavior: Keybase1.TLFIdentifyBehavior,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
-export type LocalGetInboxAndUnboxLocalRpcParam = {|  query?: ?GetInboxLocalQuery,
-  pagination?: ?Pagination,
-  identifyBehavior: Keybase1.TLFIdentifyBehavior|}
+export type LocalGetConversationForCLILocalRpcParam = {|query: GetConversationForCLILocalQuery,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
-export type LocalGetInboxNonblockLocalRpcParam = {|  maxUnbox?: ?Int,
-  skipUnverified: Boolean,
-  query?: ?GetInboxLocalQuery,
-  pagination?: ?Pagination,
-  identifyBehavior: Keybase1.TLFIdentifyBehavior|}
+export type LocalGetGlobalAppNotificationSettingsLocalRpcParam = ?{|incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
-export type LocalGetInboxSummaryForCLILocalRpcParam = {|  query: GetInboxSummaryForCLILocalQuery|}
+export type LocalGetInboxAndUnboxLocalRpcParam = {|query?: ?GetInboxLocalQuery,pagination?: ?Pagination,identifyBehavior: Keybase1.TLFIdentifyBehavior,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
-export type LocalGetMessagesLocalRpcParam = {|  conversationID: ConversationID,
-  messageIDs?: ?Array<MessageID>,
-  disableResolveSupersedes: Boolean,
-  identifyBehavior: Keybase1.TLFIdentifyBehavior|}
+export type LocalGetInboxNonblockLocalRpcParam = {|maxUnbox?: ?Int,skipUnverified: Boolean,query?: ?GetInboxLocalQuery,pagination?: ?Pagination,identifyBehavior: Keybase1.TLFIdentifyBehavior,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
-export type LocalGetTLFConversationsLocalRpcParam = {|  tlfName: String,
-  topicType: TopicType,
-  membersType: ConversationMembersType|}
+export type LocalGetInboxSummaryForCLILocalRpcParam = {|query: GetInboxSummaryForCLILocalQuery,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
-export type LocalGetThreadLocalRpcParam = {|  conversationID: ConversationID,
-  query?: ?GetThreadQuery,
-  pagination?: ?Pagination,
-  identifyBehavior: Keybase1.TLFIdentifyBehavior|}
+export type LocalGetMessagesLocalRpcParam = {|conversationID: ConversationID,messageIDs?: ?Array<MessageID>,disableResolveSupersedes: Boolean,identifyBehavior: Keybase1.TLFIdentifyBehavior,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
-export type LocalGetThreadNonblockRpcParam = {|  conversationID: ConversationID,
-  query?: ?GetThreadQuery,
-  pagination?: ?UIPagination,
-  identifyBehavior: Keybase1.TLFIdentifyBehavior|}
+export type LocalGetTLFConversationsLocalRpcParam = {|tlfName: String,topicType: TopicType,membersType: ConversationMembersType,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
-export type LocalJoinConversationByIDLocalRpcParam = {|  convID: ConversationID|}
+export type LocalGetThreadLocalRpcParam = {|conversationID: ConversationID,query?: ?GetThreadQuery,pagination?: ?Pagination,identifyBehavior: Keybase1.TLFIdentifyBehavior,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
-export type LocalJoinConversationLocalRpcParam = {|  tlfName: String,
-  topicType: TopicType,
-  visibility: Keybase1.TLFVisibility,
-  topicName: String|}
+export type LocalGetThreadNonblockRpcParam = {|conversationID: ConversationID,query?: ?GetThreadQuery,pagination?: ?UIPagination,identifyBehavior: Keybase1.TLFIdentifyBehavior,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
-export type LocalLeaveConversationLocalRpcParam = {|  convID: ConversationID|}
+export type LocalJoinConversationByIDLocalRpcParam = {|convID: ConversationID,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
-export type LocalMakePreviewRpcParam = {|  attachment: LocalFileSource,
-  outputDir: String|}
+export type LocalJoinConversationLocalRpcParam = {|tlfName: String,topicType: TopicType,visibility: Keybase1.TLFVisibility,topicName: String,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
-export type LocalMarkAsReadLocalRpcParam = {|  conversationID: ConversationID,
-  msgID: MessageID|}
+export type LocalLeaveConversationLocalRpcParam = {|convID: ConversationID,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
-export type LocalNewConversationLocalRpcParam = {|  tlfName: String,
-  topicType: TopicType,
-  tlfVisibility: Keybase1.TLFVisibility,
-  topicName?: ?String,
-  membersType: ConversationMembersType,
-  identifyBehavior: Keybase1.TLFIdentifyBehavior|}
+export type LocalMakePreviewRpcParam = {|attachment: LocalFileSource,outputDir: String,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
-export type LocalPostAttachmentLocalRpcParam = {|  conversationID: ConversationID,
-  tlfName: String,
-  visibility: Keybase1.TLFVisibility,
-  attachment: LocalSource,
-  preview?: ?MakePreviewRes,
-  title: String,
-  metadata: Bytes,
-  identifyBehavior: Keybase1.TLFIdentifyBehavior|}
+export type LocalMarkAsReadLocalRpcParam = {|conversationID: ConversationID,msgID: MessageID,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
-export type LocalPostDeleteNonblockRpcParam = {|  conversationID: ConversationID,
-  tlfName: String,
-  tlfPublic: Boolean,
-  supersedes: MessageID,
-  clientPrev: MessageID,
-  outboxID?: ?OutboxID,
-  identifyBehavior: Keybase1.TLFIdentifyBehavior|}
+export type LocalNewConversationLocalRpcParam = {|tlfName: String,topicType: TopicType,tlfVisibility: Keybase1.TLFVisibility,topicName?: ?String,membersType: ConversationMembersType,identifyBehavior: Keybase1.TLFIdentifyBehavior,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
-export type LocalPostEditNonblockRpcParam = {|  conversationID: ConversationID,
-  tlfName: String,
-  tlfPublic: Boolean,
-  supersedes: MessageID,
-  body: String,
-  outboxID?: ?OutboxID,
-  clientPrev: MessageID,
-  identifyBehavior: Keybase1.TLFIdentifyBehavior|}
+export type LocalPostAttachmentLocalRpcParam = {|conversationID: ConversationID,tlfName: String,visibility: Keybase1.TLFVisibility,attachment: LocalSource,preview?: ?MakePreviewRes,title: String,metadata: Bytes,identifyBehavior: Keybase1.TLFIdentifyBehavior,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
-export type LocalPostFileAttachmentLocalRpcParam = {|  conversationID: ConversationID,
-  tlfName: String,
-  visibility: Keybase1.TLFVisibility,
-  attachment: LocalFileSource,
-  preview?: ?MakePreviewRes,
-  title: String,
-  metadata: Bytes,
-  identifyBehavior: Keybase1.TLFIdentifyBehavior|}
+export type LocalPostDeleteNonblockRpcParam = {|conversationID: ConversationID,tlfName: String,tlfPublic: Boolean,supersedes: MessageID,clientPrev: MessageID,outboxID?: ?OutboxID,identifyBehavior: Keybase1.TLFIdentifyBehavior,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
-export type LocalPostHeadlineNonblockRpcParam = {|  conversationID: ConversationID,
-  tlfName: String,
-  tlfPublic: Boolean,
-  headline: String,
-  outboxID?: ?OutboxID,
-  clientPrev: MessageID,
-  identifyBehavior: Keybase1.TLFIdentifyBehavior|}
+export type LocalPostEditNonblockRpcParam = {|conversationID: ConversationID,tlfName: String,tlfPublic: Boolean,supersedes: MessageID,body: String,outboxID?: ?OutboxID,clientPrev: MessageID,identifyBehavior: Keybase1.TLFIdentifyBehavior,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
-export type LocalPostHeadlineRpcParam = {|  conversationID: ConversationID,
-  tlfName: String,
-  tlfPublic: Boolean,
-  headline: String,
-  identifyBehavior: Keybase1.TLFIdentifyBehavior|}
+export type LocalPostFileAttachmentLocalRpcParam = {|conversationID: ConversationID,tlfName: String,visibility: Keybase1.TLFVisibility,attachment: LocalFileSource,preview?: ?MakePreviewRes,title: String,metadata: Bytes,identifyBehavior: Keybase1.TLFIdentifyBehavior,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
-export type LocalPostLocalNonblockRpcParam = {|  conversationID: ConversationID,
-  msg: MessagePlaintext,
-  clientPrev: MessageID,
-  outboxID?: ?OutboxID,
-  identifyBehavior: Keybase1.TLFIdentifyBehavior|}
+export type LocalPostHeadlineNonblockRpcParam = {|conversationID: ConversationID,tlfName: String,tlfPublic: Boolean,headline: String,outboxID?: ?OutboxID,clientPrev: MessageID,identifyBehavior: Keybase1.TLFIdentifyBehavior,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
-export type LocalPostLocalRpcParam = {|  conversationID: ConversationID,
-  msg: MessagePlaintext,
-  identifyBehavior: Keybase1.TLFIdentifyBehavior|}
+export type LocalPostHeadlineRpcParam = {|conversationID: ConversationID,tlfName: String,tlfPublic: Boolean,headline: String,identifyBehavior: Keybase1.TLFIdentifyBehavior,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
-export type LocalPostMetadataNonblockRpcParam = {|  conversationID: ConversationID,
-  tlfName: String,
-  tlfPublic: Boolean,
-  channelName: String,
-  outboxID?: ?OutboxID,
-  clientPrev: MessageID,
-  identifyBehavior: Keybase1.TLFIdentifyBehavior|}
+export type LocalPostLocalNonblockRpcParam = {|conversationID: ConversationID,msg: MessagePlaintext,clientPrev: MessageID,outboxID?: ?OutboxID,identifyBehavior: Keybase1.TLFIdentifyBehavior,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
-export type LocalPostMetadataRpcParam = {|  conversationID: ConversationID,
-  tlfName: String,
-  tlfPublic: Boolean,
-  channelName: String,
-  identifyBehavior: Keybase1.TLFIdentifyBehavior|}
+export type LocalPostLocalRpcParam = {|conversationID: ConversationID,msg: MessagePlaintext,identifyBehavior: Keybase1.TLFIdentifyBehavior,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
-export type LocalPostTextNonblockRpcParam = {|  conversationID: ConversationID,
-  tlfName: String,
-  tlfPublic: Boolean,
-  body: String,
-  clientPrev: MessageID,
-  outboxID?: ?OutboxID,
-  identifyBehavior: Keybase1.TLFIdentifyBehavior|}
+export type LocalPostMetadataNonblockRpcParam = {|conversationID: ConversationID,tlfName: String,tlfPublic: Boolean,channelName: String,outboxID?: ?OutboxID,clientPrev: MessageID,identifyBehavior: Keybase1.TLFIdentifyBehavior,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
-export type LocalRetryPostRpcParam = {|  outboxID: OutboxID|}
+export type LocalPostMetadataRpcParam = {|conversationID: ConversationID,tlfName: String,tlfPublic: Boolean,channelName: String,identifyBehavior: Keybase1.TLFIdentifyBehavior,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
-export type LocalSetAppNotificationSettingsLocalRpcParam = {|  convID: ConversationID,
-  channelWide: Boolean,
-  settings?: ?Array<AppNotificationSettingLocal>|}
+export type LocalPostTextNonblockRpcParam = {|conversationID: ConversationID,tlfName: String,tlfPublic: Boolean,body: String,clientPrev: MessageID,outboxID?: ?OutboxID,identifyBehavior: Keybase1.TLFIdentifyBehavior,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
-export type LocalSetConversationStatusLocalRpcParam = {|  conversationID: ConversationID,
-  status: ConversationStatus,
-  identifyBehavior: Keybase1.TLFIdentifyBehavior|}
+export type LocalRetryPostRpcParam = {|outboxID: OutboxID,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
-export type LocalSetGlobalAppNotificationSettingsLocalRpcParam = {|  settings: {[key: string]: Bool}|}
+export type LocalSetAppNotificationSettingsLocalRpcParam = {|convID: ConversationID,channelWide: Boolean,settings?: ?Array<AppNotificationSettingLocal>,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+
+export type LocalSetConversationStatusLocalRpcParam = {|conversationID: ConversationID,status: ConversationStatus,identifyBehavior: Keybase1.TLFIdentifyBehavior,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+
+export type LocalSetGlobalAppNotificationSettingsLocalRpcParam = {|settings: {[key: string]: Bool},incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
 export type LocalSource = {|source: Keybase1.Stream,filename: String,size: Int,|}
 
-export type LocalUnboxMobilePushNotificationRpcParam = {|  payload: String,
-  convID: String,
-  membersType: ConversationMembersType,
-  pushIDs?: ?Array<String>|}
+export type LocalUnboxMobilePushNotificationRpcParam = {|payload: String,convID: String,membersType: ConversationMembersType,pushIDs?: ?Array<String>,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
-export type LocalUpdateTypingRpcParam = {|  conversationID: ConversationID,
-  typing: Boolean|}
+export type LocalUpdateTypingRpcParam = {|conversationID: ConversationID,typing: Boolean,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
 export type MakePreviewRes = {|mimeType: String,filename?: ?String,metadata?: ?AssetMetadata,baseMetadata?: ?AssetMetadata,|}
 
@@ -1089,40 +947,29 @@ export type NotificationKind =0 // GENERIC_0
  | 1 // ATMENTION_1
 
 
-export type NotifyChatChatIdentifyUpdateRpcParam = {|  update: Keybase1.CanonicalTLFNameAndIDWithBreaks|}
+export type NotifyChatChatIdentifyUpdateRpcParam = {|update: Keybase1.CanonicalTLFNameAndIDWithBreaks,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
-export type NotifyChatChatInboxStaleRpcParam = {|  uid: Keybase1.UID|}
+export type NotifyChatChatInboxStaleRpcParam = {|uid: Keybase1.UID,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
-export type NotifyChatChatInboxSyncStartedRpcParam = {|  uid: Keybase1.UID|}
+export type NotifyChatChatInboxSyncStartedRpcParam = {|uid: Keybase1.UID,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
-export type NotifyChatChatInboxSyncedRpcParam = {|  uid: Keybase1.UID,
-  syncRes: ChatSyncResult|}
+export type NotifyChatChatInboxSyncedRpcParam = {|uid: Keybase1.UID,syncRes: ChatSyncResult,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
-export type NotifyChatChatJoinedConversationRpcParam = {|  uid: Keybase1.UID,
-  conv: InboxUIItem|}
+export type NotifyChatChatJoinedConversationRpcParam = {|uid: Keybase1.UID,conv: InboxUIItem,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
-export type NotifyChatChatLeftConversationRpcParam = {|  uid: Keybase1.UID,
-  convID: ConversationID|}
+export type NotifyChatChatLeftConversationRpcParam = {|uid: Keybase1.UID,convID: ConversationID,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
-export type NotifyChatChatResetConversationRpcParam = {|  uid: Keybase1.UID,
-  convID: ConversationID|}
+export type NotifyChatChatResetConversationRpcParam = {|uid: Keybase1.UID,convID: ConversationID,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
-export type NotifyChatChatTLFFinalizeRpcParam = {|  uid: Keybase1.UID,
-  convID: ConversationID,
-  finalizeInfo: ConversationFinalizeInfo,
-  conv?: ?InboxUIItem|}
+export type NotifyChatChatTLFFinalizeRpcParam = {|uid: Keybase1.UID,convID: ConversationID,finalizeInfo: ConversationFinalizeInfo,conv?: ?InboxUIItem,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
-export type NotifyChatChatTLFResolveRpcParam = {|  uid: Keybase1.UID,
-  convID: ConversationID,
-  resolveInfo: ConversationResolveInfo|}
+export type NotifyChatChatTLFResolveRpcParam = {|uid: Keybase1.UID,convID: ConversationID,resolveInfo: ConversationResolveInfo,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
-export type NotifyChatChatThreadsStaleRpcParam = {|  uid: Keybase1.UID,
-  updates?: ?Array<ConversationStaleUpdate>|}
+export type NotifyChatChatThreadsStaleRpcParam = {|uid: Keybase1.UID,updates?: ?Array<ConversationStaleUpdate>,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
-export type NotifyChatChatTypingUpdateRpcParam = {|  typingUpdates?: ?Array<ConvTypingUpdate>|}
+export type NotifyChatChatTypingUpdateRpcParam = {|typingUpdates?: ?Array<ConvTypingUpdate>,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
-export type NotifyChatNewChatActivityRpcParam = {|  uid: Keybase1.UID,
-  activity: ChatActivity|}
+export type NotifyChatNewChatActivityRpcParam = {|uid: Keybase1.UID,activity: ChatActivity,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
 export type OutboxErrorType =0 // MISC_0
  | 1 // OFFLINE_1
@@ -1159,102 +1006,63 @@ export type ReadMessageInfo = {|convID: ConversationID,msgID: MessageID,conv?: ?
 
 export type ReadMessagePayload = {|Action: String,convID: ConversationID,msgID: MessageID,inboxVers: InboxVers,unreadUpdate?: ?UnreadUpdate,|}
 
-export type RemoteDeleteConversationRpcParam = {|  convID: ConversationID|}
+export type RemoteDeleteConversationRpcParam = {|convID: ConversationID,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
-export type RemoteGetInboxRemoteRpcParam = {|  vers: InboxVers,
-  query?: ?GetInboxQuery,
-  pagination?: ?Pagination|}
+export type RemoteGetGlobalAppNotificationSettingsRpcParam = ?{|incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
-export type RemoteGetInboxVersionRpcParam = {|  uid: Gregor1.UID|}
+export type RemoteGetInboxRemoteRpcParam = {|vers: InboxVers,query?: ?GetInboxQuery,pagination?: ?Pagination,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
-export type RemoteGetMessagesRemoteRpcParam = {|  conversationID: ConversationID,
-  messageIDs?: ?Array<MessageID>|}
+export type RemoteGetInboxVersionRpcParam = {|uid: Gregor1.UID,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
-export type RemoteGetPublicConversationsRpcParam = {|  tlfID: TLFID,
-  topicType: TopicType,
-  summarizeMaxMsgs: Boolean|}
+export type RemoteGetMessagesRemoteRpcParam = {|conversationID: ConversationID,messageIDs?: ?Array<MessageID>,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
-export type RemoteGetS3ParamsRpcParam = {|  conversationID: ConversationID|}
+export type RemoteGetPublicConversationsRpcParam = {|tlfID: TLFID,topicType: TopicType,summarizeMaxMsgs: Boolean,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
-export type RemoteGetTLFConversationsRpcParam = {|  tlfID: TLFID,
-  topicType: TopicType,
-  summarizeMaxMsgs: Boolean|}
+export type RemoteGetS3ParamsRpcParam = {|conversationID: ConversationID,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
-export type RemoteGetThreadRemoteRpcParam = {|  conversationID: ConversationID,
-  query?: ?GetThreadQuery,
-  pagination?: ?Pagination|}
+export type RemoteGetTLFConversationsRpcParam = {|tlfID: TLFID,topicType: TopicType,summarizeMaxMsgs: Boolean,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
-export type RemoteGetUnreadUpdateFullRpcParam = {|  inboxVers: InboxVers|}
+export type RemoteGetThreadRemoteRpcParam = {|conversationID: ConversationID,query?: ?GetThreadQuery,pagination?: ?Pagination,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
-export type RemoteJoinConversationRpcParam = {|  convID: ConversationID|}
+export type RemoteGetUnreadUpdateFullRpcParam = {|inboxVers: InboxVers,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
-export type RemoteLeaveConversationRpcParam = {|  convID: ConversationID|}
+export type RemoteJoinConversationRpcParam = {|convID: ConversationID,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
-export type RemoteMarkAsReadRpcParam = {|  conversationID: ConversationID,
-  msgID: MessageID|}
+export type RemoteLeaveConversationRpcParam = {|convID: ConversationID,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
-export type RemoteNewConversationRemote2RpcParam = {|  idTriple: ConversationIDTriple,
-  TLFMessage: MessageBoxed,
-  membersType: ConversationMembersType,
-  topicNameState?: ?TopicNameState|}
+export type RemoteMarkAsReadRpcParam = {|conversationID: ConversationID,msgID: MessageID,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
-export type RemoteNewConversationRemoteRpcParam = {|  idTriple: ConversationIDTriple|}
+export type RemoteNewConversationRemote2RpcParam = {|idTriple: ConversationIDTriple,TLFMessage: MessageBoxed,membersType: ConversationMembersType,topicNameState?: ?TopicNameState,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
-export type RemotePostRemoteRpcParam = {|  conversationID: ConversationID,
-  messageBoxed: MessageBoxed,
-  atMentions?: ?Array<Gregor1.UID>,
-  channelMention: ChannelMention,
-  topicNameState?: ?TopicNameState|}
+export type RemoteNewConversationRemoteRpcParam = {|idTriple: ConversationIDTriple,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
-export type RemotePublishReadMessageRpcParam = {|  uid: Gregor1.UID,
-  convID: ConversationID,
-  msgID: MessageID|}
+export type RemotePostRemoteRpcParam = {|conversationID: ConversationID,messageBoxed: MessageBoxed,atMentions?: ?Array<Gregor1.UID>,channelMention: ChannelMention,topicNameState?: ?TopicNameState,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
-export type RemotePublishSetConversationStatusRpcParam = {|  uid: Gregor1.UID,
-  convID: ConversationID,
-  status: ConversationStatus|}
+export type RemotePublishReadMessageRpcParam = {|uid: Gregor1.UID,convID: ConversationID,msgID: MessageID,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
-export type RemoteRemoteNotificationSuccessfulRpcParam = {|  authToken: Gregor1.SessionToken,
-  companionPushIDs?: ?Array<String>|}
+export type RemotePublishSetConversationStatusRpcParam = {|uid: Gregor1.UID,convID: ConversationID,status: ConversationStatus,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
-export type RemoteS3SignRpcParam = {|  version: Int,
-  payload: Bytes|}
+export type RemoteRemoteNotificationSuccessfulRpcParam = {|authToken: Gregor1.SessionToken,companionPushIDs?: ?Array<String>,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
-export type RemoteSetAppNotificationSettingsRpcParam = {|  convID: ConversationID,
-  settings: ConversationNotificationInfo|}
+export type RemoteS3SignRpcParam = {|version: Int,payload: Bytes,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
-export type RemoteSetConversationStatusRpcParam = {|  conversationID: ConversationID,
-  status: ConversationStatus|}
+export type RemoteSetAppNotificationSettingsRpcParam = {|convID: ConversationID,settings: ConversationNotificationInfo,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
-export type RemoteSetGlobalAppNotificationSettingsRpcParam = {|  settings: GlobalAppNotificationSettings|}
+export type RemoteSetConversationStatusRpcParam = {|conversationID: ConversationID,status: ConversationStatus,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
-export type RemoteSyncAllRpcParam = {|  uid: Gregor1.UID,
-  deviceID: Gregor1.DeviceID,
-  session: Gregor1.SessionToken,
-  inboxVers: InboxVers,
-  ctime: Gregor1.Time,
-  fresh: Boolean,
-  protVers: SyncAllProtVers,
-  hostName: String|}
+export type RemoteSetGlobalAppNotificationSettingsRpcParam = {|settings: GlobalAppNotificationSettings,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
-export type RemoteSyncChatRpcParam = {|  vers: InboxVers|}
+export type RemoteSyncAllRpcParam = {|uid: Gregor1.UID,deviceID: Gregor1.DeviceID,session: Gregor1.SessionToken,inboxVers: InboxVers,ctime: Gregor1.Time,fresh: Boolean,protVers: SyncAllProtVers,hostName: String,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
-export type RemoteSyncInboxRpcParam = {|  vers: InboxVers|}
+export type RemoteSyncChatRpcParam = {|vers: InboxVers,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
-export type RemoteTlfFinalizeRpcParam = {|  tlfID: TLFID,
-  resetUser: String,
-  resetDate: String,
-  resetTimestamp: Gregor1.Time,
-  resetFull: String|}
+export type RemoteSyncInboxRpcParam = {|vers: InboxVers,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
-export type RemoteTlfResolveRpcParam = {|  tlfID: TLFID,
-  resolvedWriters?: ?Array<Gregor1.UID>,
-  resolvedReaders?: ?Array<Gregor1.UID>|}
+export type RemoteTlfFinalizeRpcParam = {|tlfID: TLFID,resetUser: String,resetDate: String,resetTimestamp: Gregor1.Time,resetFull: String,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
-export type RemoteUpdateTypingRemoteRpcParam = {|  uid: Gregor1.UID,
-  deviceID: Gregor1.DeviceID,
-  convID: ConversationID,
-  typing: Boolean|}
+export type RemoteTlfResolveRpcParam = {|tlfID: TLFID,resolvedWriters?: ?Array<Gregor1.UID>,resolvedReaders?: ?Array<Gregor1.UID>,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+
+export type RemoteUpdateTypingRemoteRpcParam = {|uid: Gregor1.UID,deviceID: Gregor1.DeviceID,convID: ConversationID,typing: Boolean,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
 export type RemoteUserTypingUpdate = {|uid: Gregor1.UID,deviceID: Gregor1.DeviceID,convID: ConversationID,typing: Boolean,|}
 
@@ -1429,42 +1237,4 @@ type RemoteSyncAllResult = SyncAllResult
 type RemoteSyncChatResult = SyncChatRes
 type RemoteSyncInboxResult = SyncInboxRes
 
-export type IncomingCallMapType = {|  'keybase.1.chatUi.chatAttachmentUploadOutboxID'?: (params: {|      sessionID: Int,
-      outboxID: OutboxID    |},response: CommonResponseHandler) => void,  'keybase.1.chatUi.chatAttachmentUploadStart'?: (params: {|      sessionID: Int,
-      metadata: AssetMetadata,
-      placeholderMsgID: MessageID    |},response: CommonResponseHandler) => void,  'keybase.1.chatUi.chatAttachmentUploadProgress'?: (params: {|      sessionID: Int,
-      bytesComplete: Long,
-      bytesTotal: Long    |},response: CommonResponseHandler) => void,  'keybase.1.chatUi.chatAttachmentUploadDone'?: (params: {|      sessionID: Int    |},response: CommonResponseHandler) => void,  'keybase.1.chatUi.chatAttachmentPreviewUploadStart'?: (params: {|      sessionID: Int,
-      metadata: AssetMetadata    |},response: CommonResponseHandler) => void,  'keybase.1.chatUi.chatAttachmentPreviewUploadDone'?: (params: {|      sessionID: Int    |},response: CommonResponseHandler) => void,  'keybase.1.chatUi.chatAttachmentDownloadStart'?: (params: {|      sessionID: Int    |},response: CommonResponseHandler) => void,  'keybase.1.chatUi.chatAttachmentDownloadProgress'?: (params: {|      sessionID: Int,
-      bytesComplete: Long,
-      bytesTotal: Long    |},response: CommonResponseHandler) => void,  'keybase.1.chatUi.chatAttachmentDownloadDone'?: (params: {|      sessionID: Int    |},response: CommonResponseHandler) => void,  'keybase.1.chatUi.chatInboxUnverified'?: (params: {|      sessionID: Int,
-      inbox: String    |},response: CommonResponseHandler) => void,  'keybase.1.chatUi.chatInboxConversation'?: (params: {|      sessionID: Int,
-      conv: String    |},response: CommonResponseHandler) => void,  'keybase.1.chatUi.chatInboxFailed'?: (params: {|      sessionID: Int,
-      convID: ConversationID,
-      error: ConversationErrorLocal    |},response: CommonResponseHandler) => void,  'keybase.1.chatUi.chatThreadCached'?: (params: {|      sessionID: Int,
-      thread?: ?String    |},response: CommonResponseHandler) => void,  'keybase.1.chatUi.chatThreadFull'?: (params: {|      sessionID: Int,
-      thread: String    |},response: CommonResponseHandler) => void,  'keybase.1.chatUi.chatConfirmChannelDelete'?: (params: {|      sessionID: Int,
-      channel: String    |},response: {error: RPCErrorHandler, result: (result: ChatUiChatConfirmChannelDeleteResult) => void}) => void,  'keybase.1.NotifyChat.NewChatActivity'?: (params: {|      uid: Keybase1.UID,
-      activity: ChatActivity    |} /* , response: {} // Notify call
-    */) => void,  'keybase.1.NotifyChat.ChatIdentifyUpdate'?: (params: {|      update: Keybase1.CanonicalTLFNameAndIDWithBreaks    |} /* , response: {} // Notify call
-    */) => void,  'keybase.1.NotifyChat.ChatTLFFinalize'?: (params: {|      uid: Keybase1.UID,
-      convID: ConversationID,
-      finalizeInfo: ConversationFinalizeInfo,
-      conv?: ?InboxUIItem    |} /* , response: {} // Notify call
-    */) => void,  'keybase.1.NotifyChat.ChatTLFResolve'?: (params: {|      uid: Keybase1.UID,
-      convID: ConversationID,
-      resolveInfo: ConversationResolveInfo    |} /* , response: {} // Notify call
-    */) => void,  'keybase.1.NotifyChat.ChatInboxStale'?: (params: {|      uid: Keybase1.UID    |} /* , response: {} // Notify call
-    */) => void,  'keybase.1.NotifyChat.ChatThreadsStale'?: (params: {|      uid: Keybase1.UID,
-      updates?: ?Array<ConversationStaleUpdate>    |} /* , response: {} // Notify call
-    */) => void,  'keybase.1.NotifyChat.ChatTypingUpdate'?: (params: {|      typingUpdates?: ?Array<ConvTypingUpdate>    |} /* , response: {} // Notify call
-    */) => void,  'keybase.1.NotifyChat.ChatJoinedConversation'?: (params: {|      uid: Keybase1.UID,
-      conv: InboxUIItem    |} /* , response: {} // Notify call
-    */) => void,  'keybase.1.NotifyChat.ChatLeftConversation'?: (params: {|      uid: Keybase1.UID,
-      convID: ConversationID    |} /* , response: {} // Notify call
-    */) => void,  'keybase.1.NotifyChat.ChatResetConversation'?: (params: {|      uid: Keybase1.UID,
-      convID: ConversationID    |} /* , response: {} // Notify call
-    */) => void,  'keybase.1.NotifyChat.ChatInboxSyncStarted'?: (params: {|      uid: Keybase1.UID    |} /* , response: {} // Notify call
-    */) => void,  'keybase.1.NotifyChat.ChatInboxSynced'?: (params: {|      uid: Keybase1.UID,
-      syncRes: ChatSyncResult    |} /* , response: {} // Notify call
-    */) => void|}
+export type IncomingCallMapType = {|  'keybase.1.chatUi.chatAttachmentUploadOutboxID'?: (params: {|sessionID: Int,outboxID: OutboxID|},response: CommonResponseHandler) => void,  'keybase.1.chatUi.chatAttachmentUploadStart'?: (params: {|sessionID: Int,metadata: AssetMetadata,placeholderMsgID: MessageID|},response: CommonResponseHandler) => void,  'keybase.1.chatUi.chatAttachmentUploadProgress'?: (params: {|sessionID: Int,bytesComplete: Long,bytesTotal: Long|},response: CommonResponseHandler) => void,  'keybase.1.chatUi.chatAttachmentUploadDone'?: (params: {|sessionID: Int|},response: CommonResponseHandler) => void,  'keybase.1.chatUi.chatAttachmentPreviewUploadStart'?: (params: {|sessionID: Int,metadata: AssetMetadata|},response: CommonResponseHandler) => void,  'keybase.1.chatUi.chatAttachmentPreviewUploadDone'?: (params: {|sessionID: Int|},response: CommonResponseHandler) => void,  'keybase.1.chatUi.chatAttachmentDownloadStart'?: (params: {|sessionID: Int|},response: CommonResponseHandler) => void,  'keybase.1.chatUi.chatAttachmentDownloadProgress'?: (params: {|sessionID: Int,bytesComplete: Long,bytesTotal: Long|},response: CommonResponseHandler) => void,  'keybase.1.chatUi.chatAttachmentDownloadDone'?: (params: {|sessionID: Int|},response: CommonResponseHandler) => void,  'keybase.1.chatUi.chatInboxUnverified'?: (params: {|sessionID: Int,inbox: String|},response: CommonResponseHandler) => void,  'keybase.1.chatUi.chatInboxConversation'?: (params: {|sessionID: Int,conv: String|},response: CommonResponseHandler) => void,  'keybase.1.chatUi.chatInboxFailed'?: (params: {|sessionID: Int,convID: ConversationID,error: ConversationErrorLocal|},response: CommonResponseHandler) => void,  'keybase.1.chatUi.chatThreadCached'?: (params: {|sessionID: Int,thread?: ?String|},response: CommonResponseHandler) => void,  'keybase.1.chatUi.chatThreadFull'?: (params: {|sessionID: Int,thread: String|},response: CommonResponseHandler) => void,  'keybase.1.chatUi.chatConfirmChannelDelete'?: (params: {|sessionID: Int,channel: String|},response: {error: RPCErrorHandler, result: (result: ChatUiChatConfirmChannelDeleteResult) => void}) => void,  'keybase.1.NotifyChat.NewChatActivity'?: (params: {|uid: Keybase1.UID,activity: ChatActivity|}) => void,  'keybase.1.NotifyChat.ChatIdentifyUpdate'?: (params: {|update: Keybase1.CanonicalTLFNameAndIDWithBreaks|}) => void,  'keybase.1.NotifyChat.ChatTLFFinalize'?: (params: {|uid: Keybase1.UID,convID: ConversationID,finalizeInfo: ConversationFinalizeInfo,conv?: ?InboxUIItem|}) => void,  'keybase.1.NotifyChat.ChatTLFResolve'?: (params: {|uid: Keybase1.UID,convID: ConversationID,resolveInfo: ConversationResolveInfo|}) => void,  'keybase.1.NotifyChat.ChatInboxStale'?: (params: {|uid: Keybase1.UID|}) => void,  'keybase.1.NotifyChat.ChatThreadsStale'?: (params: {|uid: Keybase1.UID,updates?: ?Array<ConversationStaleUpdate>|}) => void,  'keybase.1.NotifyChat.ChatTypingUpdate'?: (params: {|typingUpdates?: ?Array<ConvTypingUpdate>|}) => void,  'keybase.1.NotifyChat.ChatJoinedConversation'?: (params: {|uid: Keybase1.UID,conv: InboxUIItem|}) => void,  'keybase.1.NotifyChat.ChatLeftConversation'?: (params: {|uid: Keybase1.UID,convID: ConversationID|}) => void,  'keybase.1.NotifyChat.ChatResetConversation'?: (params: {|uid: Keybase1.UID,convID: ConversationID|}) => void,  'keybase.1.NotifyChat.ChatInboxSyncStarted'?: (params: {|uid: Keybase1.UID|}) => void,  'keybase.1.NotifyChat.ChatInboxSynced'?: (params: {|uid: Keybase1.UID,syncRes: ChatSyncResult|}) => void|}
