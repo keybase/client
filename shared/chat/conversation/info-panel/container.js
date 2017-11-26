@@ -1,5 +1,6 @@
 // @flow
 import * as Constants from '../../../constants/chat'
+import * as Types from '../../../constants/types/chat'
 import * as ChatGen from '../../../actions/chat-gen'
 import {SmallTeamInfoPanel, BigTeamInfoPanel} from '.'
 import {Map} from 'immutable'
@@ -70,13 +71,13 @@ const mapStateToProps = (state: TypedState) => {
 
 const mapDispatchToProps = (dispatch: Dispatch, {navigateUp}) => ({
   _navToRootChat: () => dispatch(navigateTo([chatTab])),
-  _onLeaveConversation: (conversationIDKey: Constants.ConversationIDKey) => {
+  _onLeaveConversation: (conversationIDKey: Types.ConversationIDKey) => {
     dispatch(ChatGen.createLeaveConversation({conversationIDKey}))
   },
-  _onJoinChannel: (selectedConversation: Constants.ConversationIDKey) => {
+  _onJoinChannel: (selectedConversation: Types.ConversationIDKey) => {
     dispatch(ChatGen.createJoinConversation({conversationIDKey: selectedConversation}))
   },
-  _onMuteConversation: (conversationIDKey: Constants.ConversationIDKey, muted: boolean) => {
+  _onMuteConversation: (conversationIDKey: Types.ConversationIDKey, muted: boolean) => {
     dispatch(ChatGen.createMuteConversation({conversationIDKey, muted}))
   },
   _onShowBlockConversationDialog: (selectedConversation, participants) => {
@@ -89,7 +90,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp}) => ({
       ])
     )
   },
-  _onShowNewTeamDialog: (conversationIDKey: Constants.ConversationIDKey) => {
+  _onShowNewTeamDialog: (conversationIDKey: Types.ConversationIDKey) => {
     dispatch(
       navigateAppend([
         {

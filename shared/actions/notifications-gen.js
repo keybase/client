@@ -5,7 +5,7 @@
 import * as I from 'immutable'
 import * as RPCTypes from '../constants/types/flow-types'
 import * as More from '../constants/types/more'
-import * as Constants from '../constants/notifications'
+import * as Types from '../constants/types/notifications'
 
 // Constants
 export const resetStore = 'common:resetStore' // not a part of notifications but is handled by every reducer
@@ -16,7 +16,7 @@ export const log = 'notifications:log'
 export const receivedBadgeState = 'notifications:receivedBadgeState'
 
 // Action Creators
-export const createBadgeApp = (payload: {|+key: Constants.NotificationKeys, +on: boolean, +count?: number|}) => ({error: false, payload, type: badgeApp})
+export const createBadgeApp = (payload: {|+key: Types.NotificationKeys, +on: boolean, +count?: number|}) => ({error: false, payload, type: badgeApp})
 export const createListenForKBFSNotifications = () => ({error: false, payload: undefined, type: listenForKBFSNotifications})
 export const createListenForNotifications = () => ({error: false, payload: undefined, type: listenForNotifications})
 export const createLog = (payload: {|+level: RPCTypes.LogLevel, +text: string|}) => ({error: false, payload, type: log})

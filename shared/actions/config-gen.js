@@ -5,7 +5,7 @@
 import * as I from 'immutable'
 import * as RPCTypes from '../constants/types/flow-types'
 import * as More from '../constants/types/more'
-import * as Constants from '../constants/config'
+import * as Types from '../constants/types/config'
 
 // Constants
 export const resetStore = 'common:resetStore' // not a part of config but is handled by every reducer
@@ -47,7 +47,7 @@ export const createPersistRouteState = () => ({error: false, payload: undefined,
 export const createPushLoaded = (payload: {|+pushLoaded: boolean|}) => ({error: false, payload, type: pushLoaded})
 export const createReadyForBootstrap = () => ({error: false, payload: undefined, type: readyForBootstrap})
 export const createRetryBootstrap = () => ({error: false, payload: undefined, type: retryBootstrap})
-export const createSetInitialState = (payload: {|+initialState: Constants.InitialState|}) => ({error: false, payload, type: setInitialState})
+export const createSetInitialState = (payload: {|+initialState: Types.InitialState|}) => ({error: false, payload, type: setInitialState})
 export const createUpdateFollowing = (payload: {|+username: string, +isTracking: boolean|}) => ({error: false, payload, type: updateFollowing})
 
 // Action Payloads

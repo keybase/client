@@ -5,7 +5,6 @@
 import * as I from 'immutable'
 import * as RPCTypes from '../constants/types/flow-types'
 import * as More from '../constants/types/more'
-import * as Constants from '../constants/signup'
 import HiddenString from '../util/hidden-string'
 
 // Constants

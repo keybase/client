@@ -1,16 +1,16 @@
 // @flow
-import * as Constants from '../../../../constants/chat'
+import * as Types from '../../../../constants/types/chat'
 import {Component} from 'react'
 import {List} from 'immutable'
 
 export type StateProps = {|
   _participants: List<string>,
-  _supersededBy: ?Constants.SupersedeInfo,
+  _supersededBy: ?Types.SupersedeInfo,
   username: string,
 |}
 
 export type DispatchProps = {|
-  onOpenConversation: (conversationIDKey: Constants.ConversationIDKey) => void,
+  onOpenConversation: (conversationIDKey: Types.ConversationIDKey) => void,
   startConversation: (users: Array<string>) => void,
 |}
 

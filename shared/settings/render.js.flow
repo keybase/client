@@ -1,8 +1,7 @@
 // @flow
 import * as React from 'react'
-
 import * as TabConstants from '../constants/tabs'
-import type {Tab} from '../constants/settings'
+import type {Tab} from '../constants/types/settings'
 
 export type Props = {
   children: React.Node,

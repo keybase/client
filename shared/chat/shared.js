@@ -1,10 +1,11 @@
 // @flow
 import * as Constants from '../constants/chat'
+import * as Types from '../constants/types/chat'
 import createCachedSelector from 're-reselect'
 
 const lookupMessageProps = createCachedSelector(
   [Constants.getMessageFromMessageKey, Constants.getLocalMessageStateFromMessageKey],
-  (message: Constants.TextMessage, localMessageState: Constants.LocalMessageState) => ({
+  (message: Types.TextMessage, localMessageState: Types.LocalMessageState) => ({
     message,
     localMessageState,
   })

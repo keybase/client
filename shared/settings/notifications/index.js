@@ -3,7 +3,7 @@ import * as React from 'react'
 import {Box, Checkbox, ProgressIndicator, Text} from '../../common-adapters'
 import {globalStyles, globalMargins} from '../../styles'
 
-import type {NotificationsSettingsState} from '../../constants/settings'
+import type {NotificationsSettingsState} from '../../constants/types/settings'
 import type {Props} from './index'
 
 const SubscriptionCheckbox = (props: {

@@ -1,9 +1,9 @@
 // @flow
 import * as I from 'immutable'
-import * as ChatTypes from './types/flow-types-chat'
+import * as RPCChatTypes from './types/flow-types-chat'
+import * as Types from './types/chat'
 import * as SearchConstants from './search'
 import * as RPCTypes from './types/flow-types'
-import HiddenString from '../util/hidden-string'
 import clamp from 'lodash/clamp'
 import invert from 'lodash/invert'
 import {Buffer} from 'buffer'
@@ -12,259 +12,23 @@ import {createSelector, createSelectorCreator, defaultMemoize} from 'reselect'
 import isEqualWith from 'lodash/isEqualWith'
 import {getPath, getPathState} from '../route-tree'
 import {parseUserId, serviceIdToIcon} from '../util/platforms'
-import {type DeviceType} from './devices'
-import {type TypedState} from './reducer'
-import {type UserListItem} from '../common-adapters/usernames'
+import type {TypedState} from './reducer'
+import type {UserListItem} from '../common-adapters/usernames'
 
 const createShallowEqualSelector = createSelectorCreator(defaultMemoize, (a, b) =>
   isEqualWith(a, b, (a, b, indexOrKey, object, other, stack) => (stack ? a === b : undefined))
 )
 
-export type Username = string
-export type MessageKey = string
-type MessageKeyKind =
-  | 'chatSecured'
-  | 'error'
-  | 'errorInvisible'
-  | 'header'
-  | 'messageIDAttachment'
-  | 'messageIDDeleted'
-  | 'messageIDEdit'
-  | 'messageIDAttachmentUpdate'
-  | 'messageIDError'
-  | 'messageIDText'
-  | 'messageIDUnhandled'
-  | 'outboxIDAttachment'
-  | 'outboxIDText'
-  | 'timestamp'
-  | 'supersedes'
-  | 'system'
-  | 'joinedleft'
+export const messageStates: Array<Types.MessageState> = ['pending', 'failed', 'sent']
 
-// TODO: Ideally, this would be 'Text' | 'Error' | etc.
-export type MessageType = string
-export type FollowingMap = {[key: string]: true}
-
-export type MessageState = 'pending' | 'failed' | 'sent'
-export const messageStates: Array<MessageState> = ['pending', 'failed', 'sent']
-
-export type AttachmentMessageState = MessageState | 'placeholder' | 'uploading'
-export type AttachmentType = 'Image' | 'Video' | 'Other'
-
-export type ConversationID = ChatTypes.ConversationID
-export type ConversationIDKey = string
-
-export type OutboxID = ChatTypes.OutboxID
-export type OutboxIDKey = string
-
-export type MessageID = string
-
-export type NotifyType = 'atmention' | 'generic' | 'never'
-export type Mentions = I.Set<string>
-export type ChannelMention = 'None' | 'All' | 'Here'
-
-export type TextMessage = {
-  type: 'Text',
-  message: HiddenString,
-  author: string,
-  deviceName: string,
-  deviceType: DeviceType,
-  timestamp: number,
-  conversationIDKey: ConversationIDKey,
-  messageID?: MessageID,
-  you: string,
-  messageState: MessageState,
-  rawMessageID: number,
-  failureDescription: ?string,
-  outboxID?: ?OutboxIDKey,
-  senderDeviceRevokedAt: ?number,
-  key: MessageKey,
-  editedCount: number, // increase as we edit it
-  mentions: Mentions,
-  channelMention: ChannelMention,
-}
-export function textMessageEditable(message: TextMessage): boolean {
+export function textMessageEditable(message: Types.TextMessage): boolean {
   // For now, disallow editing of non-sent messages. In the future, we
   // may want to do something more intelligent.
   return message.messageState === 'sent'
 }
 
-export type ErrorMessage = {
-  type: 'Error',
-  reason: string,
-  timestamp?: number,
-  conversationIDKey: ConversationIDKey,
-  messageID?: MessageID,
-  key: MessageKey,
-}
-
-export type InvisibleErrorMessage = {
-  type: 'InvisibleError',
-  timestamp: number,
-  conversationIDKey: ConversationIDKey,
-  messageID: MessageID,
-  key: MessageKey,
-  data: any,
-}
-
-export type UnhandledMessage = {
-  type: 'Unhandled',
-  timestamp: number,
-  conversationIDKey: ConversationIDKey,
-  messageID: MessageID,
-  key: MessageKey,
-}
-
-export type AttachmentSize = {
-  width: number,
-  height: number,
-}
-
-export type AttachmentInput = {
-  conversationIDKey: ConversationIDKey,
-  filename: string,
-  title: string,
-  type: AttachmentType,
-}
-
-export type AttachmentMessage = {
-  type: 'Attachment',
-  timestamp: number,
-  conversationIDKey: ConversationIDKey,
-  you: string,
-  author: string,
-  deviceName: string,
-  deviceType: DeviceType,
-  messageID?: MessageID,
-  rawMessageID: number,
-  filename: ?string,
-  title: ?string,
-  attachmentDurationMs: ?number,
-  previewType: ?AttachmentType,
-  previewSize: ?AttachmentSize,
-  previewDurationMs: ?number,
-  uploadPath?: string,
-  outboxID?: ?OutboxIDKey,
-  messageState: AttachmentMessageState,
-  senderDeviceRevokedAt: ?number,
-  key: MessageKey,
-  failureDescription?: ?string,
-}
-
-export type TimestampMessage = {
-  type: 'Timestamp',
-  timestamp: number,
-  key: MessageKey,
-}
-
-export type LoadingMoreMessage = {
-  type: 'LoadingMore',
-  key: MessageKey,
-}
-
-export type ChatSecuredHeaderMessage = {
-  type: 'ChatSecuredHeader',
-  key: MessageKey,
-}
-
-export type JoinedLeftMessage = {
-  type: 'JoinedLeft',
-  messageID?: MessageID,
-  author: string,
-  timestamp: number,
-  message: HiddenString,
-  key: MessageKey,
-}
-
-export type SystemMessage = {
-  type: 'System',
-  messageID?: MessageID,
-  author: string,
-  timestamp: number,
-  message: HiddenString,
-  key: MessageKey,
-}
-
-export type SupersedesMessage = {
-  type: 'Supersedes',
-  username: string,
-  timestamp: number,
-  supersedes: ConversationIDKey,
-  key: any,
-}
-
-export type DeletedMessage = {
-  type: 'Deleted',
-  timestamp: number,
-  key: MessageKey,
-  messageID: MessageID,
-  deletedIDs: Array<MessageID>,
-}
-
-export type EditingMessage = {
-  type: 'Edit',
-  key: MessageKey,
-  message: HiddenString,
-  messageID: MessageID,
-  outboxID?: ?OutboxIDKey,
-  targetMessageID: MessageID,
-  timestamp: number,
-  mentions: Mentions,
-  channelMention: ChannelMention,
-}
-
-export type UpdatingAttachment = {
-  type: 'UpdateAttachment',
-  key: MessageKey,
-  messageID: MessageID,
-  targetMessageID: MessageID,
-  timestamp: number,
-  updates: {
-    attachmentDurationMs: ?number,
-    filename: ?string,
-    messageState: 'sent',
-    previewType: ?AttachmentType,
-    previewSize: ?AttachmentSize,
-    previewDurationMs: ?number,
-    title: ?string,
-  },
-}
-
-export type ClientMessage =
-  | TimestampMessage
-  | SupersedesMessage
-  | LoadingMoreMessage
-  | ChatSecuredHeaderMessage
-export type ServerMessage =
-  | TextMessage
-  | ErrorMessage
-  | AttachmentMessage
-  | DeletedMessage
-  | UnhandledMessage
-  | EditingMessage
-  | UpdatingAttachment
-  | InvisibleErrorMessage
-  | SystemMessage
-  | JoinedLeftMessage
-
-export type Message = ClientMessage | ServerMessage
-
-export type MaybeTimestamp = TimestampMessage | null
-
-export const ConversationStatusByEnum = invert(ChatTypes.commonConversationStatus)
-type _ConversationState = {
-  moreToLoad: ?boolean,
-  isLoaded: boolean,
-  isRequesting: boolean,
-  isStale: boolean,
-  loadedOffline: boolean,
-  paginationNext: ?string,
-  paginationPrevious: ?string,
-  firstNewMessageID: ?MessageID,
-  typing: I.Set<Username>,
-}
-export type ConversationState = I.RecordOf<_ConversationState>
-export const makeConversationState: I.RecordFactory<_ConversationState> = I.Record({
+export const ConversationStatusByEnum = invert(RPCChatTypes.commonConversationStatus)
+export const makeConversationState: I.RecordFactory<Types._ConversationState> = I.Record({
   moreToLoad: undefined,
   isLoaded: false,
   isRequesting: false,
@@ -276,56 +40,13 @@ export const makeConversationState: I.RecordFactory<_ConversationState> = I.Reco
   typing: I.Set(),
 })
 
-type _ConversationBadgeState = {
-  convID: ConversationID,
-  unreadMessages: number,
-  badgeCounts: {[key: string]: number},
-}
-export type ConversationBadgeState = I.RecordOf<_ConversationBadgeState>
-export const ConversationBadgeStateRecord: I.RecordFactory<_ConversationBadgeState> = I.Record({
+export const ConversationBadgeStateRecord: I.RecordFactory<Types._ConversationBadgeState> = I.Record({
   convID: undefined,
   unreadMessages: 0,
   badgeCounts: {},
 })
 
-export type ConversationStateEnum = $Keys<typeof ChatTypes.commonConversationStatus>
-
-export type NotificationsKindState = {
-  generic: boolean,
-  atmention: boolean,
-}
-
-export type NotificationsState = {
-  channelWide: boolean,
-  desktop: NotificationsKindState,
-  mobile: NotificationsKindState,
-}
-
-// firstUnboxing is when its going from untrusted to unboxing vs unboxed to reUnboxing
-export type InboxUntrustedState = 'untrusted' | 'unboxed' | 'error' | 'firstUnboxing' | 'reUnboxing'
-
-type _InboxState = {
-  conversationIDKey: ConversationIDKey,
-  info: ?ChatTypes.ConversationInfoLocal,
-  isEmpty: boolean,
-  teamname: ?string,
-  channelname: ?string,
-  maxMsgID: ?number,
-  name: ?string,
-  memberStatus: ChatTypes.ConversationMemberStatus,
-  membersType: ChatTypes.ConversationMembersType,
-  notifications: ?NotificationsState,
-  participants: I.List<string>,
-  fullNames: I.Map<string, string>,
-  status: ConversationStateEnum,
-  time: number,
-  teamType: ChatTypes.TeamType,
-  version: ChatTypes.ConversationVers,
-  visibility: RPCTypes.TLFVisibility,
-}
-
-export type InboxState = I.RecordOf<_InboxState>
-export const makeInboxState: I.RecordFactory<_InboxState> = I.Record({
+export const makeInboxState: I.RecordFactory<Types._InboxState> = I.Record({
   conversationIDKey: '',
   info: null,
   isEmpty: false,
@@ -341,109 +62,21 @@ export const makeInboxState: I.RecordFactory<_InboxState> = I.Record({
   time: 0,
   name: '',
   visibility: RPCTypes.commonTLFVisibility.private,
-  teamType: ChatTypes.commonTeamType.none,
+  teamType: RPCChatTypes.commonTeamType.none,
   version: 0,
 })
 
-export type SupersedeInfo = {
-  conversationIDKey: ConversationID,
-  finalizeInfo: ChatTypes.ConversationFinalizeInfo,
-}
-
-export type FinalizeInfo = ChatTypes.ConversationFinalizeInfo
-
-export type FinalizedState = I.Map<ConversationIDKey, ChatTypes.ConversationFinalizeInfo>
-
-export type SupersedesState = I.Map<ConversationIDKey, SupersedeInfo>
-export type SupersededByState = I.Map<ConversationIDKey, SupersedeInfo>
-
-export type _MetaData = {
-  fullname: string,
-  brokenTracker: boolean,
-}
-export type MetaData = I.RecordOf<_MetaData>
-export type MetaDataMap = I.Map<string, MetaData>
-
-export const makeMetaData: I.RecordFactory<_MetaData> = I.Record({
+export const makeMetaData: I.RecordFactory<Types._MetaData> = I.Record({
   fullname: 'Unknown',
   brokenTracker: false,
 })
 
-export type Participants = I.List<string>
-
-export type _RekeyInfo = {
-  rekeyParticipants: Participants,
-  youCanRekey: boolean,
-}
-
-export type RekeyInfo = I.RecordOf<_RekeyInfo>
-export const makeRekeyInfo: I.RecordFactory<_RekeyInfo> = I.Record({
+export const makeRekeyInfo: I.RecordFactory<Types._RekeyInfo> = I.Record({
   rekeyParticipants: I.List(),
   youCanRekey: false,
 })
 
-export type LocalMessageState = {
-  previewProgress: number | null /* between 0 - 1 */,
-  downloadProgress: number | null /* between 0 - 1 */,
-  uploadProgress: number | null /* between 0 - 1 */,
-  previewPath: ?string,
-  downloadedPath: ?string,
-  savedPath: string | null | false,
-}
-
-export type UntrustedState = 'unloaded' | 'loaded' | 'loading'
-
-export type UnreadCounts = {
-  total: number,
-  badged: number,
-}
-
-type _State = {
-  alwaysShow: I.Set<ConversationIDKey>,
-  conversationStates: I.Map<ConversationIDKey, ConversationState>,
-  conversationUnreadCounts: I.Map<ConversationIDKey, UnreadCounts>,
-  editingMessage: ?Message,
-  finalizedState: FinalizedState,
-  inSearch: boolean,
-  inbox: I.Map<ConversationIDKey, InboxState>,
-  inboxAlwaysShow: I.Map<ConversationIDKey, boolean>,
-  inboxBigChannels: I.Map<ConversationIDKey, string>,
-  inboxBigChannelsToTeam: I.Map<ConversationIDKey, string>,
-  inboxFilter: string,
-  inboxIsEmpty: I.Map<ConversationIDKey, boolean>,
-  inboxSearch: I.List<string>,
-  inboxSmallTimestamps: I.Map<ConversationIDKey, number>,
-  inboxSnippet: I.Map<ConversationIDKey, ?HiddenString>,
-  inboxSupersededBy: I.Map<ConversationIDKey, boolean>,
-  inboxUnreadCountBadge: I.Map<ConversationIDKey, number>,
-  inboxUnreadCountTotal: I.Map<ConversationIDKey, number>,
-  inboxUntrustedState: I.Map<ConversationIDKey, InboxUntrustedState>,
-  inboxGlobalUntrustedState: UntrustedState,
-  inboxVersion: I.Map<ConversationIDKey, number>,
-  initialConversation: ?ConversationIDKey,
-  localMessageStates: I.Map<MessageKey, LocalMessageState>,
-  messageMap: I.Map<MessageKey, Message>,
-  metaData: MetaDataMap,
-  nowOverride: ?Date,
-  pendingConversations: I.Map<ConversationIDKey, Participants>,
-  previousConversation: ?ConversationIDKey,
-  rekeyInfos: I.Map<ConversationIDKey, RekeyInfo>,
-  searchPending: boolean,
-  searchResultTerm: string,
-  searchResults: ?I.List<SearchConstants.SearchResultId>,
-  searchShowingSuggestions: boolean,
-  selectedUsersInSearch: I.List<SearchConstants.SearchResultId>,
-  supersededByState: SupersededByState,
-  supersedesState: SupersedesState,
-  teamCreationError: string,
-  teamCreationPending: boolean,
-  teamJoinError: string,
-  teamJoinSuccess: boolean,
-  tempPendingConversations: I.Map<ConversationIDKey, boolean>,
-}
-
-export type State = I.RecordOf<_State>
-export const makeState: I.RecordFactory<_State> = I.Record({
+export const makeState: I.RecordFactory<Types._State> = I.Record({
   alwaysShow: I.Set(),
   conversationStates: I.Map(),
   conversationUnreadCounts: I.Map(),
@@ -495,31 +128,31 @@ export const maxMessagesToLoadAtATime = 50
 export const nothingSelected = 'chat:noneSelected'
 export const blankChat = 'chat:blankChat'
 
-function conversationIDToKey(conversationID: ConversationID): ConversationIDKey {
+function conversationIDToKey(conversationID: Types.ConversationID): Types.ConversationIDKey {
   return conversationID.toString('hex')
 }
 
-function keyToConversationID(key: ConversationIDKey): ConversationID {
+function keyToConversationID(key: Types.ConversationIDKey): Types.ConversationID {
   return Buffer.from(key, 'hex')
 }
 
 const _outboxPrefix = 'OUTBOXID-'
 const _outboxPrefixReg = new RegExp('^' + _outboxPrefix)
-function outboxIDToKey(outboxID: OutboxID): OutboxIDKey {
+function outboxIDToKey(outboxID: Types.OutboxID): Types.OutboxIDKey {
   return `${_outboxPrefix}${outboxID.toString('hex')}`
 }
 
-function keyToOutboxID(key: OutboxIDKey): OutboxID {
+function keyToOutboxID(key: Types.OutboxIDKey): Types.OutboxID {
   return Buffer.from(key.substring(_outboxPrefix.length), 'hex')
 }
 
 const _messageIDPrefix = 'MSGID-'
 const _messageIDPrefixReg = new RegExp('^' + _messageIDPrefix)
-function rpcMessageIDToMessageID(rpcMessageID: ChatTypes.MessageID): MessageID {
+function rpcMessageIDToMessageID(rpcMessageID: RPCChatTypes.MessageID): Types.MessageID {
   return `${_messageIDPrefix}${rpcMessageID.toString(16)}`
 }
 
-function messageIDToRpcMessageID(msgID: MessageID): ChatTypes.MessageID {
+function messageIDToRpcMessageID(msgID: Types.MessageID): RPCChatTypes.MessageID {
   return parseInt(msgID.substring(_messageIDPrefix.length), 16)
 }
 
@@ -529,29 +162,11 @@ function selfInventedIDToMessageID(selfInventedID: number /* < 0 */) {
   return `${_selfInventedID}${selfInventedID.toString(16)}`
 }
 
-function messageIDToSelfInventedID(msgID: MessageID) {
+function messageIDToSelfInventedID(msgID: Types.MessageID) {
   return parseInt(msgID.substring(_selfInventedID.length), 16)
 }
 
-export type ParsedMessageID =
-  | {
-      type: 'rpcMessageID',
-      msgID: ChatTypes.MessageID,
-    }
-  | {
-      type: 'outboxID',
-      msgID: OutboxID,
-    }
-  | {
-      type: 'selfInventedID',
-      msgID: number,
-    }
-  | {
-      type: 'invalid',
-      msgID: number,
-    }
-
-function parseMessageID(msgID: MessageID): ParsedMessageID {
+function parseMessageID(msgID: Types.MessageID): Types.ParsedMessageID {
   if (msgID.match(_messageIDPrefixReg)) {
     return {
       msgID: messageIDToRpcMessageID(msgID),
@@ -580,12 +195,12 @@ function makeSnippet(messageBody: ?string): ?string {
   return textSnippet(messageBody || '', 100)
 }
 
-function makeTeamTitle(messageBody: ?ChatTypes.MessageBody): ?string {
+function makeTeamTitle(messageBody: ?RPCChatTypes.MessageBody): ?string {
   if (!messageBody) {
     return null
   }
   switch (messageBody.messageType) {
-    case ChatTypes.commonMessageType.metadata:
+    case RPCChatTypes.commonMessageType.metadata:
       return messageBody.metadata ? `#${messageBody.metadata.conversationTitle}` : '<none>'
     default:
       return null
@@ -607,7 +222,7 @@ function participantFilter(participants: I.List<string>, you: string): I.List<st
   return withoutYou
 }
 
-function serverMessageToMessageText(message: ServerMessage): ?string {
+function serverMessageToMessageText(message: Types.ServerMessage): ?string {
   switch (message.type) {
     case 'Text':
       return message.message.stringValue()
@@ -619,8 +234,8 @@ function serverMessageToMessageText(message: ServerMessage): ?string {
 function usernamesToUserListItem(
   usernames: Array<string>,
   you: string,
-  metaDataMap: MetaDataMap,
-  followingMap: FollowingMap
+  metaDataMap: Types.MetaDataMap,
+  followingMap: Types.FollowingMap
 ): Array<UserListItem> {
   return usernames.map(username => ({
     username,
@@ -630,11 +245,15 @@ function usernamesToUserListItem(
   }))
 }
 
-function getBrokenUsers(participants: Array<string>, you: string, metaDataMap: MetaDataMap): Array<string> {
+function getBrokenUsers(
+  participants: Array<string>,
+  you: string,
+  metaDataMap: Types.MetaDataMap
+): Array<string> {
   return participants.filter(user => user !== you && metaDataMap.getIn([user, 'brokenTracker'], false))
 }
 
-function clampAttachmentPreviewSize({width, height}: AttachmentSize) {
+function clampAttachmentPreviewSize({width, height}: Types.AttachmentSize) {
   if (height > width) {
     return {
       height: clamp(height || 0, 0, maxAttachmentPreviewSize),
@@ -648,27 +267,30 @@ function clampAttachmentPreviewSize({width, height}: AttachmentSize) {
   }
 }
 
-function parseMetadataPreviewSize(metadata: ChatTypes.AssetMetadata): ?AttachmentSize {
-  if (metadata.assetType === ChatTypes.localAssetMetadataType.image && metadata.image) {
+function parseMetadataPreviewSize(metadata: RPCChatTypes.AssetMetadata): ?Types.AttachmentSize {
+  if (metadata.assetType === RPCChatTypes.localAssetMetadataType.image && metadata.image) {
     return clampAttachmentPreviewSize(metadata.image)
-  } else if (metadata.assetType === ChatTypes.localAssetMetadataType.video && metadata.video) {
+  } else if (metadata.assetType === RPCChatTypes.localAssetMetadataType.video && metadata.video) {
     return clampAttachmentPreviewSize(metadata.video)
   }
 }
 
-function getAssetDuration(assetMetadata: ?ChatTypes.AssetMetadata): ?number {
-  const assetIsVideo = assetMetadata && assetMetadata.assetType === ChatTypes.localAssetMetadataType.video
+function getAssetDuration(assetMetadata: ?RPCChatTypes.AssetMetadata): ?number {
+  const assetIsVideo = assetMetadata && assetMetadata.assetType === RPCChatTypes.localAssetMetadataType.video
   if (assetIsVideo) {
     const assetVideoMetadata =
       assetMetadata &&
-      assetMetadata.assetType === ChatTypes.localAssetMetadataType.video &&
+      assetMetadata.assetType === RPCChatTypes.localAssetMetadataType.video &&
       assetMetadata.video
     return assetVideoMetadata ? assetVideoMetadata.durationMs : null
   }
   return null
 }
 
-function getAttachmentInfo(preview: ?(ChatTypes.Asset | ChatTypes.MakePreviewRes), object: ?ChatTypes.Asset) {
+function getAttachmentInfo(
+  preview: ?(RPCChatTypes.Asset | RPCChatTypes.MakePreviewRes),
+  object: ?RPCChatTypes.Asset
+) {
   const filename = object && object.filename
   const title = object && object.title
 
@@ -708,15 +330,24 @@ function pendingConversationIDKeyToTlfName(conversationIDKey: string) {
   return null
 }
 
-function convSupersedesInfo(conversationID: ConversationIDKey, chat: State): ?SupersedeInfo {
+function convSupersedesInfo(
+  conversationID: Types.ConversationIDKey,
+  chat: Types.State
+): ?Types.SupersedeInfo {
   return chat.getIn(['supersedesState', conversationID])
 }
 
-function convSupersededByInfo(conversationID: ConversationIDKey, chat: State): ?SupersedeInfo {
+function convSupersededByInfo(
+  conversationID: Types.ConversationIDKey,
+  chat: Types.State
+): ?Types.SupersedeInfo {
   return chat.getIn(['supersededByState', conversationID])
 }
 
-function newestConversationIDKey(conversationIDKey: ?ConversationIDKey, chat: State): ?ConversationIDKey {
+function newestConversationIDKey(
+  conversationIDKey: ?Types.ConversationIDKey,
+  chat: Types.State
+): ?Types.ConversationIDKey {
   const supersededBy = conversationIDKey ? chat.getIn(['supersededByState', conversationIDKey]) : null
   if (!supersededBy) {
     return conversationIDKey
@@ -743,34 +374,38 @@ const getSelectedRouteState = (state: TypedState) => {
   return getPathState(state.routeTree.routeState, [chatTab, selected])
 }
 
-function messageKey(conversationIDKey: ConversationIDKey, kind: MessageKeyKind, value: string): MessageKey {
+function messageKey(
+  conversationIDKey: Types.ConversationIDKey,
+  kind: Types.MessageKeyKind,
+  value: string
+): Types.MessageKey {
   return `${conversationIDKey}:${kind}:${value}`
 }
 
 function splitMessageIDKey(
-  key: MessageKey
+  key: Types.MessageKey
 ): {
-  conversationIDKey: ConversationIDKey,
+  conversationIDKey: Types.ConversationIDKey,
   keyKind: string,
-  messageID: MessageID,
+  messageID: Types.MessageID,
 } {
   const [conversationIDKey, keyKind, messageID] = key.split(':')
   return {conversationIDKey, keyKind, messageID}
 }
 
-function messageKeyValue(key: MessageKey): string {
+function messageKeyValue(key: Types.MessageKey): string {
   return key.split(':')[2]
 }
 
-function messageKeyConversationIDKey(key: MessageKey): ConversationIDKey {
+function messageKeyConversationIDKey(key: Types.MessageKey): Types.ConversationIDKey {
   return key.split(':')[0]
 }
 
-function messageKeyKindIsMessageID(key: MessageKey): boolean {
+function messageKeyKindIsMessageID(key: Types.MessageKey): boolean {
   return messageKeyKind(key).startsWith('messageID')
 }
 
-function messageKeyKind(key: MessageKey): MessageKeyKind {
+function messageKeyKind(key: Types.MessageKey): Types.MessageKeyKind {
   const [, kind] = key.split(':')
   switch (kind) {
     case 'joinedleft':
@@ -812,7 +447,7 @@ function messageKeyKind(key: MessageKey): MessageKeyKind {
 const getYou = (state: TypedState) => state.config.username || ''
 const getFollowingMap = (state: TypedState) => state.config.following
 const getMetaDataMap = (state: TypedState) => state.chat.get('metaData')
-const getInbox = (state: TypedState, conversationIDKey: ?ConversationIDKey) =>
+const getInbox = (state: TypedState, conversationIDKey: ?Types.ConversationIDKey) =>
   conversationIDKey ? state.chat.getIn(['inbox', conversationIDKey]) : null
 const getSelectedInbox = (state: TypedState) => getInbox(state, getSelectedConversation(state))
 const getEditingMessage = (state: TypedState) => state.chat.get('editingMessage')
@@ -856,14 +491,14 @@ const getTeamName = createSelector(
   selectedInbox => selectedInbox && selectedInbox.get('teamname')
 )
 
-const getSelectedConversationStates = (state: TypedState): ?ConversationState => {
+const getSelectedConversationStates = (state: TypedState): ?Types.ConversationState => {
   const selectedConversationIDKey = getSelectedConversation(state)
   return selectedConversationIDKey
     ? state.chat.getIn(['conversationStates', selectedConversationIDKey])
     : null
 }
 
-const getSupersedes = (state: TypedState): ?SupersedeInfo => {
+const getSupersedes = (state: TypedState): ?Types.SupersedeInfo => {
   const selectedConversationIDKey = getSelectedConversation(state)
   return selectedConversationIDKey ? convSupersedesInfo(selectedConversationIDKey, state.chat) : null
 }
@@ -901,15 +536,21 @@ const getUserItems = createShallowEqualSelector(
     })
 )
 
-function getConversationMessages(state: TypedState, convIDKey: ConversationIDKey): I.OrderedSet<MessageKey> {
+function getConversationMessages(
+  state: TypedState,
+  convIDKey: Types.ConversationIDKey
+): I.OrderedSet<Types.MessageKey> {
   return state.entities.conversationMessages.get(convIDKey, I.OrderedSet())
 }
 
-function getDeletedMessageIDs(state: TypedState, convIDKey: ConversationIDKey): I.Set<MessageID> {
+function getDeletedMessageIDs(state: TypedState, convIDKey: Types.ConversationIDKey): I.Set<Types.MessageID> {
   return state.entities.deletedIDs.get(convIDKey, I.Set())
 }
 
-function getMessageUpdateKeys(state: TypedState, messageKey: MessageKey): I.OrderedSet<MessageKey> {
+function getMessageUpdateKeys(
+  state: TypedState,
+  messageKey: Types.MessageKey
+): I.OrderedSet<Types.MessageKey> {
   const {conversationIDKey, messageID} = splitMessageIDKey(messageKey)
   return conversationIDKey
     ? state.entities.messageUpdates.getIn([conversationIDKey, String(messageID)], I.OrderedSet())
@@ -918,8 +559,8 @@ function getMessageUpdateKeys(state: TypedState, messageKey: MessageKey): I.Orde
 
 function getTextMessageUpdates(
   state: TypedState,
-  messageKey: MessageKey
-): {last: ?EditingMessage, count: number} {
+  messageKey: Types.MessageKey
+): {last: ?Types.EditingMessage, count: number} {
   const updateKeys = getMessageUpdateKeys(state, messageKey)
   return updateKeys.reduce(
     (ret, k) => {
@@ -936,8 +577,8 @@ function getTextMessageUpdates(
 
 function getAttachmentMessageUpdates(
   state: TypedState,
-  messageKey: MessageKey
-): {last: ?UpdatingAttachment, count: number} {
+  messageKey: Types.MessageKey
+): {last: ?Types.UpdatingAttachment, count: number} {
   const updateKeys = getMessageUpdateKeys(state, messageKey)
   return updateKeys.reduce(
     (ret, k) => {
@@ -952,7 +593,11 @@ function getAttachmentMessageUpdates(
   )
 }
 
-function getMessageUpdateCount(state: TypedState, messageType: MessageType, messageKey: MessageKey): number {
+function getMessageUpdateCount(
+  state: TypedState,
+  messageType: Types.MessageType,
+  messageKey: Types.MessageKey
+): number {
   if (messageType === 'Text') {
     return getTextMessageUpdates(state, messageKey).count
   } else if (messageType === 'Attachment') {
@@ -962,7 +607,7 @@ function getMessageUpdateCount(state: TypedState, messageType: MessageType, mess
   }
 }
 
-function getMessageFromMessageKey(state: TypedState, messageKey: MessageKey): ?Message {
+function getMessageFromMessageKey(state: TypedState, messageKey: Types.MessageKey): ?Types.Message {
   const message = state.entities.messages.get(messageKey)
   if (!message) {
     return null
@@ -976,7 +621,7 @@ function getMessageFromMessageKey(state: TypedState, messageKey: MessageKey): ?M
         message: last.message,
         mentions: last.mentions,
         channelMention: last.channelMention,
-      }: TextMessage)
+      }: Types.TextMessage)
     }
   } else if (message.type === 'Attachment') {
     const {last} = getAttachmentMessageUpdates(state, messageKey)
@@ -984,7 +629,7 @@ function getMessageFromMessageKey(state: TypedState, messageKey: MessageKey): ?M
       return ({
         ...message,
         ...last.updates,
-      }: AttachmentMessage)
+      }: Types.AttachmentMessage)
     }
   }
 
@@ -994,8 +639,8 @@ function getMessageFromMessageKey(state: TypedState, messageKey: MessageKey): ?M
 // Sometimes we only have the conv id and msg id. Like when the service tells us something
 function getMessageKeyFromConvKeyMessageID(
   state: TypedState,
-  conversationIDKey: ConversationIDKey,
-  messageID: MessageID | OutboxIDKey // Works for outbox id too since it uses the message key
+  conversationIDKey: Types.ConversationIDKey,
+  messageID: Types.MessageID | Types.OutboxIDKey // Works for outbox id too since it uses the message key
 ) {
   const convMsgs = getConversationMessages(state, conversationIDKey)
   return convMsgs.find(k => {
@@ -1006,14 +651,14 @@ function getMessageKeyFromConvKeyMessageID(
 
 function getMessageFromConvKeyMessageID(
   state: TypedState,
-  conversationIDKey: ConversationIDKey,
-  messageID: MessageID
-): ?Message {
+  conversationIDKey: Types.ConversationIDKey,
+  messageID: Types.MessageID
+): ?Types.Message {
   const key = getMessageKeyFromConvKeyMessageID(state, conversationIDKey, messageID)
   return key ? getMessageFromMessageKey(state, key) : null
 }
 
-function lastMessageID(state: TypedState, conversationIDKey: ConversationIDKey): ?MessageID {
+function lastMessageID(state: TypedState, conversationIDKey: Types.ConversationIDKey): ?Types.MessageID {
   const messageKeys = getConversationMessages(state, conversationIDKey)
   const lastMessageKey = messageKeys.findLast(m => {
     if (m) {
@@ -1025,25 +670,35 @@ function lastMessageID(state: TypedState, conversationIDKey: ConversationIDKey):
   return lastMessageKey ? messageKeyValue(lastMessageKey) : null
 }
 
-const getDownloadProgress = ({entities: {attachmentDownloadProgress}}: TypedState, messageKey: MessageKey) =>
-  attachmentDownloadProgress.get(messageKey, null)
+const getDownloadProgress = (
+  {entities: {attachmentDownloadProgress}}: TypedState,
+  messageKey: Types.MessageKey
+) => attachmentDownloadProgress.get(messageKey, null)
 
-const getUploadProgress = ({entities: {attachmentUploadProgress}}: TypedState, messageKey: MessageKey) =>
-  attachmentUploadProgress.get(messageKey, null)
+const getUploadProgress = (
+  {entities: {attachmentUploadProgress}}: TypedState,
+  messageKey: Types.MessageKey
+) => attachmentUploadProgress.get(messageKey, null)
 
-const getPreviewProgress = ({entities: {attachmentPreviewProgress}}: TypedState, messageKey: MessageKey) =>
-  attachmentPreviewProgress.get(messageKey, null)
+const getPreviewProgress = (
+  {entities: {attachmentPreviewProgress}}: TypedState,
+  messageKey: Types.MessageKey
+) => attachmentPreviewProgress.get(messageKey, null)
 
-const getAttachmentSavedPath = ({entities: {attachmentSavedPath}}: TypedState, messageKey: MessageKey) =>
-  attachmentSavedPath.get(messageKey, null)
+const getAttachmentSavedPath = (
+  {entities: {attachmentSavedPath}}: TypedState,
+  messageKey: Types.MessageKey
+) => attachmentSavedPath.get(messageKey, null)
 
 const getAttachmentDownloadedPath = (
   {entities: {attachmentDownloadedPath}}: TypedState,
-  messageKey: MessageKey
+  messageKey: Types.MessageKey
 ) => attachmentDownloadedPath.get(messageKey, null)
 
-const getAttachmentPreviewPath = ({entities: {attachmentPreviewPath}}: TypedState, messageKey: MessageKey) =>
-  attachmentPreviewPath.get(messageKey, null)
+const getAttachmentPreviewPath = (
+  {entities: {attachmentPreviewPath}}: TypedState,
+  messageKey: Types.MessageKey
+) => attachmentPreviewPath.get(messageKey, null)
 
 const getLocalMessageStateFromMessageKey = createSelector(
   [
@@ -1064,16 +719,16 @@ const getLocalMessageStateFromMessageKey = createSelector(
   })
 )
 
-function getSnippet(state: TypedState, conversationIDKey: ConversationIDKey): string {
+function getSnippet(state: TypedState, conversationIDKey: Types.ConversationIDKey): string {
   const snippet = state.chat.inboxSnippet.get(conversationIDKey, null)
   return snippet ? snippet.stringValue() : ''
 }
 
-function getPaginationNext(state: TypedState, conversationIDKey: ConversationIDKey): ?string {
+function getPaginationNext(state: TypedState, conversationIDKey: Types.ConversationIDKey): ?string {
   return state.entities.pagination.next.get(conversationIDKey, null)
 }
 
-function getPaginationPrev(state: TypedState, conversationIDKey: ConversationIDKey): ?string {
+function getPaginationPrev(state: TypedState, conversationIDKey: Types.ConversationIDKey): ?string {
   return state.entities.pagination.prev.get(conversationIDKey, null)
 }
 

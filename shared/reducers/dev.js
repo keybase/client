@@ -1,8 +1,9 @@
 // @flow
 import * as DevGen from '../actions/dev-gen'
 import * as Constants from '../constants/dev'
+import * as Types from '../constants/types/dev'
 
-export default function(state: Constants.State = Constants.initialState, action: DevGen.Actions) {
+export default function(state: Types.State = Constants.initialState, action: DevGen.Actions) {
   switch (action.type) {
     case DevGen.resetStore:
       return {...Constants.initialState}
