@@ -1,6 +1,6 @@
 // @flow
 import HiddenString from '../../util/hidden-string'
-import type {PlanLevel} from '../settings'
+import type {PlanLevel} from './settings'
 import type {TypedAction, NoErrorTypedAction} from './flux'
 
 export type UpdateBillingArgs = {
