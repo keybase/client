@@ -1,6 +1,6 @@
 // @flow
 import {Component} from 'react'
-import * as Constants from '../../../../constants/chat'
+import * as Types from '../../../../constants/types/chat'
 
 export type ProgressBarProps = {
   text: string,
@@ -18,8 +18,8 @@ export type ImageIconProps = {
 export class ImageIcon extends Component<ImageIconProps> {}
 
 export type Props = {
-  message: Constants.AttachmentMessage,
-  localMessageState: Constants.LocalMessageState,
+  message: Types.AttachmentMessage,
+  localMessageState: Types.LocalMessageState,
   includeHeader: boolean,
   isFirstNewMessage: boolean,
   onDownloadAttachment: () => void,

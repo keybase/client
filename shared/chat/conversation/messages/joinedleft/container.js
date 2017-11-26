@@ -1,5 +1,6 @@
 // @flow
 import * as Constants from '../../../../constants/chat'
+import * as Types from '../../../../constants/types/chat'
 import JoinedLeftNotice from '.'
 import createCachedSelector from 're-reselect'
 import {compose} from 'recompose'
@@ -15,7 +16,7 @@ import type {OwnProps} from './container'
 
 type StateProps = {
   channelname: string,
-  message: Constants.TextMessage,
+  message: Types.TextMessage,
   teamname: string,
   you: string,
 }
@@ -34,7 +35,7 @@ const getDetails = createCachedSelector(
     Constants.getFollowingMap,
   ],
   (
-    message: Constants.JoinedLeftMessage,
+    message: Types.JoinedLeftMessage,
     you: string,
     channelname: string,
     teamname: string,

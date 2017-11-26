@@ -1,18 +1,24 @@
 // @flow
-export function selector(username: string): (store: Object) => ?Object {
+import {type TypedState} from '../constants/reducer'
+export function selector(username: string): (store: TypedState) => ?Object {
   return store => {
-    if (store.tracker.trackers[username]) {
+    if (store.tracker.userTrackers[username] || store.tracker.nonUserTrackers[username]) {
       return {
         config: {
           loggedIn: store.config.loggedIn,
           username: store.config.username,
         },
         tracker: {
-          trackers: {
+          userTrackers: {
             [username]: {
-              ...store.tracker.trackers[username],
+              ...store.tracker.userTrackers[username],
               trackers: [],
               tracking: [],
+            },
+          },
+          nonUserTrackers: {
+            [username]: {
+              ...store.tracker.nonUserTrackers[username],
             },
           },
         },

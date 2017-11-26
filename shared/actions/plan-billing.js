@@ -1,38 +1,39 @@
 // @flow
 import * as Saga from '../util/saga'
 import * as Constants from '../constants/plan-billing'
+import * as Types from '../constants/types/plan-billing'
 import * as RPCTypes from '../constants/types/flow-types'
 import {type TypedState} from '../constants/reducer'
 
-function updateBilling(updateBillingArgs: Constants.UpdateBillingArgs): Constants.UpdateBilling {
+function updateBilling(updateBillingArgs: Types.UpdateBillingArgs): Types.UpdateBilling {
   return {
     type: Constants.updateBilling,
     payload: updateBillingArgs,
   }
 }
 
-function clearBillingError(): Constants.BillingError {
+function clearBillingError(): Types.BillingError {
   return {
     type: Constants.billingError,
     payload: undefined,
   }
 }
 
-function fetchBillingAndQuota(): Constants.FetchBillingAndQuota {
+function fetchBillingAndQuota(): Types.FetchBillingAndQuota {
   return {
     type: Constants.fetchBillingAndQuota,
     payload: undefined,
   }
 }
 
-function fetchBillingOverview(): Constants.FetchBillingOverview {
+function fetchBillingOverview(): Types.FetchBillingOverview {
   return {
     type: Constants.fetchBillingOverview,
     payload: undefined,
   }
 }
 
-function bootstrapData(): Constants.BootstrapData {
+function bootstrapData(): Types.BootstrapData {
   return {
     type: Constants.bootstrapData,
     payload: undefined,
@@ -52,7 +53,7 @@ function updateBillingArgsToApiArgs({
   securityCode,
   cardExpMonth,
   cardExpYear,
-}: Constants.UpdateBillingArgs): Object {
+}: Types.UpdateBillingArgs): Object {
   return {
     plan_id: planId,
     cc_number: cardNumber.stringValue(),
@@ -63,7 +64,7 @@ function updateBillingArgsToApiArgs({
   }
 }
 
-function* updateBillingSaga({payload}: Constants.UpdateBilling): Saga.SagaGenerator<any, any> {
+function* updateBillingSaga({payload}: Types.UpdateBilling): Saga.SagaGenerator<any, any> {
   let planId = payload.planId
   if (planId == null) {
     const currentPlanIdSelector = ({planBilling: {plan}}: TypedState) => plan && plan.planId
@@ -100,7 +101,7 @@ function* fetchBillingOverviewSaga(): Saga.SagaGenerator<any, any> {
 
     const parsed = JSON.parse(results.body)
 
-    const action: Constants.UpdateAvailablePlans = {
+    const action: Types.UpdateAvailablePlans = {
       type: Constants.updateAvailablePlans,
       payload: {
         availablePlans: parsed.available_plans.map(Constants.parseAvailablePlan).sort((a, b) => {
@@ -112,13 +113,13 @@ function* fetchBillingOverviewSaga(): Saga.SagaGenerator<any, any> {
 
     yield Saga.put(action)
 
-    const billingAndQuotaAction: Constants.UpdateBillingAndQuota = {
+    const billingAndQuotaAction: Types.UpdateBillingAndQuota = {
       type: Constants.updateBillingAndQuota,
       payload: Constants.billingAndQuotaAPIToOurBillingAndQuota(parsed),
     }
 
     if (parsed.payment && parsed.payment.stripe_card_info) {
-      const paymentInfoAction: Constants.UpdatePaymentInfo = {
+      const paymentInfoAction: Types.UpdatePaymentInfo = {
         type: Constants.updatePaymentInfo,
         payload: {paymentInfo: Constants.parsePaymentInfo(parsed.payment.stripe_card_info)},
       }
@@ -144,7 +145,7 @@ function* fetchBillingAndQuotaSaga(): Saga.SagaGenerator<any, any> {
 
     const parsed = JSON.parse(results.body)
 
-    const action: Constants.UpdateBillingAndQuota = {
+    const action: Types.UpdateBillingAndQuota = {
       type: Constants.updateBillingAndQuota,
       payload: Constants.billingAndQuotaAPIToOurBillingAndQuota(parsed.them.billing_and_quotas),
     }
@@ -158,7 +159,7 @@ function* fetchBillingAndQuotaSaga(): Saga.SagaGenerator<any, any> {
 function* bootstrapDataSaga(): Saga.SagaGenerator<any, any> {
   const billingStateSelector = ({planBilling}: TypedState) => planBilling
 
-  const planBilling: Constants.State = (yield Saga.select(billingStateSelector): any)
+  const planBilling: Types.State = (yield Saga.select(billingStateSelector): any)
   if (planBilling.availablePlans == null || planBilling.usage == null || planBilling.plan == null) {
     yield Saga.put(fetchBillingOverview())
   }
