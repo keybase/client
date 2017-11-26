@@ -15,7 +15,7 @@ import {
 } from '../constants/tracker'
 import type {IconType} from '../common-adapters/icon'
 import type {PlatformsExpandedType} from '../constants/types/more.js'
-import type {Proof} from '../constants/tracker'
+import type {Proof} from '../constants/types/tracker'
 
 function metaColor(proof: Proof): string {
   switch (proof.meta) {

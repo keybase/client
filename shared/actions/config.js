@@ -7,13 +7,13 @@ import * as GregorCreators from '../actions/gregor'
 import * as NotificationsGen from '../actions/notifications-gen'
 import * as RPCTypes from '../constants/types/flow-types'
 import * as Saga from '../util/saga'
+import * as SignupGen from '../actions/signup-gen'
 import engine from '../engine'
 import {RouteStateStorage} from '../actions/route-state-storage'
 import {createConfigurePush} from './push-gen'
 import {flushLogFile} from '../util/forward-logs'
 import {isMobile, isSimulator} from '../constants/platform'
 import {loggedInSelector} from '../constants/selectors'
-import {resetSignup} from '../actions/signup'
 import {type AsyncAction} from '../constants/types/flux'
 import {type TypedState} from '../constants/reducer'
 
@@ -136,7 +136,7 @@ const bootstrap = (opts: $PropertyType<ConfigGen.BootstrapPayload, 'payload'>): 
               await dispatch(LoginGen.createNavBasedOnLoginAndInitialState())
             }
           })
-          dispatch(resetSignup())
+          dispatch(SignupGen.createResetSignup())
         }
       })
       .catch(error => {

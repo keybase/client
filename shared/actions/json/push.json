@@ -1,6 +1,6 @@
 {
   "prelude": [
-    "import * as Constants from '../constants/push'"
+    "import * as Types from '../constants/types/push'"
   ],
   "actions": {
     "configurePush": {},
@@ -14,7 +14,7 @@
     },
     "pushToken": {
       "token": "string",
-      "tokenType": "Constants.TokenType"
+      "tokenType": "Types.TokenType"
     },
     "registrationError": {
       "error": "Error"
@@ -24,11 +24,11 @@
     },
     "updatePushToken": {
       "token": "string",
-      "tokenType": "Constants.TokenType"
+      "tokenType": "Types.TokenType"
     },
     "savePushToken": {},
     "notification": {
-      "notification": "Constants.PushNotification"
+      "notification": "Types.PushNotification"
     }
   }
 }

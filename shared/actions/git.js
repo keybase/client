@@ -5,6 +5,7 @@ import * as GitGen from './git-gen'
 import * as Entities from './entities'
 import * as I from 'immutable'
 import * as RPCTypes from '../constants/types/flow-types'
+import * as RouteTreeTypes from '../constants/types/route-tree'
 import * as RouteTreeConstants from '../constants/route-tree'
 import * as Saga from '../util/saga'
 import * as SettingsConstants from '../constants/settings'
@@ -136,7 +137,7 @@ const _badgeAppForGit = (action: GitGen.BadgeAppForGitPayload) =>
   Saga.put(Entities.replaceEntity(['git'], I.Map([['isNew', I.Set(action.payload.ids)]])))
 
 let _wasOnGitTab = false
-const _onTabChange = (action: RouteTreeConstants.SwitchTo) => {
+const _onTabChange = (action: RouteTreeTypes.SwitchTo) => {
   // on the git tab?
   const list = I.List(action.payload.path)
   const root = list.first()
