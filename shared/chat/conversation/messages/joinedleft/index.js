@@ -5,7 +5,7 @@ import UserNotice from '../../notices/user-notice'
 import {globalColors, globalMargins} from '../../../../styles'
 import {formatTimeForMessages} from '../../../../util/timestamp'
 
-import type {TextMessage} from '../../../../constants/chat'
+import type {TextMessage} from '../../../../constants/types/chat'
 
 type Props = {
   channelname: string,

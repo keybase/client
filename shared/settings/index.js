@@ -4,7 +4,7 @@ import SettingsContainer from './render'
 import {pausableConnect, type TypedState} from '../util/container'
 import {switchTo} from '../actions/route-tree'
 import {type RouteProps} from '../route-tree/render-route'
-import {type Tab} from '../constants/settings'
+import {type Tab} from '../constants/types/settings'
 
 const getNavBadges = (state: TypedState) => state.notifications.get('navBadges')
 
