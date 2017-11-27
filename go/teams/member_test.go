@@ -1152,3 +1152,30 @@ func TestMemberInviteChangeRole(t *testing.T) {
 	}
 	assertInvite(tc, name, fqUID, "keybase", keybase1.TeamRole_ADMIN)
 }
+
+// Add user without puk to a team, then try to change their role to owner,
+// which will fail, but the invite should still exist (CORE-6618).
+func TestMemberInviteChangeRoleOwner(t *testing.T) {
+	tc, _, name := memberSetup(t)
+	defer tc.Cleanup()
+
+	username := "t_alice"
+	uid := keybase1.UID("295a7eea607af32040647123732bc819")
+	role := keybase1.TeamRole_READER
+
+	res, err := AddMember(context.TODO(), tc.G, name, username, role)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !res.Invited {
+		t.Fatal("res.Invited should be set")
+	}
+
+	fqUID := string(uid) + "%1"
+	assertInvite(tc, name, fqUID, "keybase", role)
+
+	if err := EditMember(context.TODO(), tc.G, name, username, keybase1.TeamRole_OWNER); err == nil {
+		t.Fatal("EditMember worked to change invite role to owner")
+	}
+	assertInvite(tc, name, fqUID, "keybase", keybase1.TeamRole_READER)
+}
