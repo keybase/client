@@ -2,6 +2,7 @@
 import Git from '.'
 import * as I from 'immutable'
 import * as GitGen from '../actions/git-gen'
+import * as Types from '../constants/types/git'
 import * as Constants from '../constants/git'
 import {compose, lifecycle, connect, type TypedState} from '../util/container'
 import {createSelector} from 'reselect'
@@ -10,7 +11,7 @@ import sortBy from 'lodash/sortBy'
 
 const sortRepos = git => sortBy(git, ['teamname', 'name'])
 
-const getRepos = createSelector([Constants.getIdToGit], (git: ?I.Map<string, Constants.GitInfo>) => {
+const getRepos = createSelector([Constants.getIdToGit], (git: ?I.Map<string, Types.GitInfo>) => {
   if (!git) {
     return {
       personals: [],

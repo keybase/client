@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react'
-import {type ChannelMembershipState} from '../../constants/teams'
+import {type ChannelMembershipState} from '../../constants/types/teams'
 import {type ConversationIDKey} from '../../constants/types/chat'
 
 export type RowProps = {

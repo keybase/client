@@ -143,7 +143,16 @@ export default function(
         ...state,
         userActive,
       }
+    // Saga only actions
+    case ConfigGen.bootstrap:
+    case ConfigGen.clearRouteState:
+    case ConfigGen.getExtendedStatus:
+    case ConfigGen.persistRouteState:
+    case ConfigGen.retryBootstrap:
+      return state
     default:
+      // eslint-disable-next-line no-unused-expressions
+      (action: empty) // if you get a flow error here it means there's an action you claim to handle but didn't
       return state
   }
 }

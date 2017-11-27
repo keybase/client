@@ -1,19 +1,9 @@
 // @flow
 import * as I from 'immutable'
-import {type TypedState} from './reducer'
+import * as Types from './types/git'
+import type {TypedState} from './reducer'
 
-type _GitInfo = {
-  canDelete: boolean,
-  devicename: string,
-  id: string,
-  lastEditTime: string,
-  lastEditUser: string,
-  name: string,
-  teamname: ?string,
-  url: string,
-}
-export type GitInfo = I.RecordOf<_GitInfo>
-export const makeGitInfo: I.RecordFactory<_GitInfo> = I.Record({
+export const makeGitInfo: I.RecordFactory<Types._GitInfo> = I.Record({
   canDelete: false,
   devicename: '',
   id: '',
@@ -24,14 +14,7 @@ export const makeGitInfo: I.RecordFactory<_GitInfo> = I.Record({
   url: '',
 })
 
-type _State = {
-  error: ?Error,
-  idToInfo: I.Map<string, GitInfo>,
-  isNew: I.Set<string>,
-  loading: boolean,
-}
-export type State = I.RecordOf<_State>
-export const makeState: I.RecordFactory<_State> = I.Record({
+export const makeState: I.RecordFactory<Types._State> = I.Record({
   error: null,
   idToInfo: I.Map(),
   isNew: I.Set(),
