@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 
-set -e -u -o pipefail # Fail on error
+set -eE -u -o pipefail # Fail on error, call ERR trap
 
+automated_build=${AUTOMATED_BUILD:-}
 gopath=${GOPATH:-}
 client_dir="$gopath/src/github.com/keybase/client"
 shared_dir="$gopath/src/github.com/keybase/client/shared"
@@ -11,6 +12,14 @@ cache_npm=${CACHE_NPM:-}
 cache_go_lib=${CACHE_GO_LIB:-}
 client_commit=${CLIENT_COMMIT:-}
 check_ci=${CHECK_CI:-1}
+
+# Notify Slack on failure
+function notify_slack {
+  if [ -n "$automated_build" ]; then
+    "$client_dir/packaging/slack/send.sh" "<!channel> Automated iOS build failed, please check out the log."
+  fi
+}
+trap notify_slack ERR
 
 "$client_dir/packaging/check_status_and_pull.sh" "$client_dir"
 
