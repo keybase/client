@@ -21,7 +21,6 @@ let config = {
   featureFlagsOverride: null, // Override feature flags
   filterActionLogs: null, // Filter actions in log
   forceImmediateLogging: false, // Don't wait for idle to log
-  forwardLogs: true, // Send logs to remote console
   immediateStateLogging: false, // Don't wait for idle to log state
   isDevApplePushToken: false, // Use a dev push token
   isTesting: nativeBridge.test === '1', // Is running a unit test
@@ -38,7 +37,6 @@ let config = {
 if (__DEV__) {
   config.enableActionLogging = true
   config.enableStoreLogging = false
-  config.forwardLogs = false
   config.immediateStateLogging = false
   // Move this outside the if statement to get notifications working
   // with a "Profile" build on a phone.
@@ -66,7 +64,6 @@ if (PERF) {
   config.enableStoreLogging = false
   config.filterActionLogs = null
   config.forceImmediateLogging = false
-  config.forwardLogs = false
   config.immediateStateLogging = false
   config.printOutstandingRPCs = false
   config.printRPC = false
@@ -81,7 +78,6 @@ export const {
   featureFlagsOverride,
   filterActionLogs,
   forceImmediateLogging,
-  forwardLogs,
   immediateStateLogging,
   isDevApplePushToken,
   isTesting,

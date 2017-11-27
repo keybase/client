@@ -1,7 +1,5 @@
 // @flow
-import {forwardLogs, enableActionLogging, immediateStateLogging} from '../local-debug'
 import {noPayloadTransformer} from '../constants/types/flux'
-import {setupLogger, immutableToJS} from '../util/periodic-logger'
 import logger from '../logger'
 
 function makeActionToLog(action, oldState) {
@@ -14,14 +12,6 @@ function makeActionToLog(action, oldState) {
   }
   return noPayloadTransformer(action, oldState)
 }
-
-const transform = (o: Array<any>) => {
-  return [JSON.stringify(immutableToJS(o), null, 2)]
-}
-
-// const logger = enableActionLogging
-//   ? setupLogger('actionLogger', 100, immediateStateLogging, transform, 50, true)
-//   : {log: (...args: any) => {}}
 
 export const actionLogger = (store: any) => (next: any) => (action: any) => {
   const oldState = store.getState()
