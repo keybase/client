@@ -7,7 +7,9 @@ import * as React from 'react'
 import * as Types from '../../constants/types/pinentry'
 import RemoteConnector from './remote-connector.desktop'
 import RemoteWindow from './remote-window.desktop'
-import {connect, type TypedState, compose, type Dispatch} from '../../util/container'
+import {connect, type TypedState, compose} from '../../util/container'
+
+const PrintDebug = props => <div style={{wordWrap: 'break-word'}}>{JSON.stringify(props)}</div>
 
 const windowOpts = {height: 210, width: 440}
 
@@ -31,16 +33,10 @@ const pinentryMapStateToProps = (state: TypedState, {id}) => {
     windowTitle: p.windowTitle,
   }
 }
-const pinentryMapDispatchToProps = (dispatch: Dispatch, {id}) => ({})
 
-// TODO remoteconnector sends all props over the wire and handles the callbacks
-// connect above ha to set some remot eid or osmething
-const PrintDebug = props => <div style={{wordWrap: 'break-word'}}>{JSON.stringify(props)}</div>
-const RemotePinentry = compose(
-  connect(pinentryMapStateToProps, pinentryMapDispatchToProps),
-  RemoteWindow,
-  RemoteConnector
-)(PrintDebug)
+const RemotePinentry = compose(connect(pinentryMapStateToProps, () => ({})), RemoteWindow, RemoteConnector)(
+  PrintDebug
+)
 
 type Props = {
   pinentryIDs: I.Map<number, Types.PinentryState>,

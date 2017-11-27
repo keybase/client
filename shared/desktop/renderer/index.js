@@ -65,9 +65,7 @@ function setupApp(store) {
   setupContextMenu(electron.remote.getCurrentWindow())
 
   // Tell the main window some remote window needs its props
-  console.log('aaaa main app starting to listen for remoteWindowWantsProps')
   ipcRenderer.on('remoteWindowWantsProps', (event, component, selectorParams) => {
-    console.log('dispatching action')
     store.dispatch({type: 'remote:needProps', payload: {component, selectorParams}})
   })
   ipcRenderer.on('dispatchAction', (event, action) => {

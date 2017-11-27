@@ -5,8 +5,6 @@ import {selector as remotePurgeMessageSelector} from '../../pgp/selector'
 import {selector as trackerSelector} from '../../tracker/selector'
 import {selector as unlockFoldersSelector} from '../../unlock-folders/selector'
 
-// import type {Components} from '../renderer/remote-component.desktop'
-
 const componentToSelector: {[key: any]: Function} = {
   tracker: trackerSelector,
   menubar: menubarSelector,
