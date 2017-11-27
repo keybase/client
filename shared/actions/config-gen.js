@@ -34,7 +34,7 @@ export const createBootstrap = (payload: {|+isReconnect?: boolean|}) => ({error:
 export const createBootstrapAttemptFailed = () => ({error: false, payload: undefined, type: bootstrapAttemptFailed})
 export const createBootstrapFailed = () => ({error: false, payload: undefined, type: bootstrapFailed})
 export const createBootstrapRetry = () => ({error: false, payload: undefined, type: bootstrapRetry})
-export const createBootstrapStatusLoaded = (payload: {|+bootstrapStatus: RPCTypes.BootstrapStatus|}) => ({error: false, payload, type: bootstrapStatusLoaded})
+export const createBootstrapStatusLoaded = (payload: {|+deviceID: string, +deviceName: string, +followers?: ?Array<string>, +following?: ?Array<string>, +loggedIn: boolean, +registered: boolean, +uid: string, +username: string|}) => ({error: false, payload, type: bootstrapStatusLoaded})
 export const createBootstrapSuccess = () => ({error: false, payload: undefined, type: bootstrapSuccess})
 export const createChangeKBFSPath = (payload: {|+kbfsPath: string|}) => ({error: false, payload, type: changeKBFSPath})
 export const createClearRouteState = () => ({error: false, payload: undefined, type: clearRouteState})

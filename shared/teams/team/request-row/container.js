@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react'
-import * as Constants from '../../../constants/teams'
+import {amIFollowing} from '../../../constants/selectors'
 import {connect} from 'react-redux'
 import {TeamRequestRow} from '.'
 import {ignoreRequest} from '../../../actions/teams/creators'
@@ -17,18 +17,13 @@ type OwnProps = {
   teamname: string,
 }
 
-const getFollowing = (state, username: string) => {
-  const followingMap = Constants.getFollowingMap(state)
-  return !!followingMap[username]
-}
-
 type StateProps = {
   you: ?string,
   following: boolean,
 }
 
 const mapStateToProps = (state: TypedState, {username}: OwnProps): StateProps => ({
-  following: getFollowing(state, username),
+  following: amIFollowing(state, username),
   you: state.config.username,
 })
 

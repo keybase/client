@@ -1,7 +1,8 @@
 // @flow
+import * as I from 'immutable'
+import * as Types from './types/config'
 import uniq from 'lodash/uniq'
 import {isMobile, runMode} from './platform'
-import type {State} from './types/config'
 
 export const maxBootstrapTries = 3
 export const bootstrapRetryDelay = 10 * 1000
@@ -19,7 +20,7 @@ export const publicFolderWithUsers = (users: Array<string>) =>
   `${defaultKBFSPath}${defaultPublicPrefix}${uniq(users).join(',')}`
 export const teamFolder = (team: string) => `${defaultKBFSPath}${defaultTeamPrefix}${team}`
 
-export const initialState: State = {
+export const makeState: I.RecordFactory<Types._State> = I.Record({
   appFocused: true,
   appFocusedCount: 0,
   bootStatus: 'bootStatusLoading',
@@ -30,8 +31,8 @@ export const initialState: State = {
   deviceName: null,
   error: null,
   extendedConfig: null,
-  followers: {},
-  following: {},
+  followers: I.Set(),
+  following: I.Set(),
   globalError: null,
   initialState: null,
   kbfsPath: defaultKBFSPath,
@@ -42,4 +43,4 @@ export const initialState: State = {
   uid: null,
   userActive: true,
   username: null,
-}
+})
