@@ -21,7 +21,10 @@ class ConsoleLogger implements Logger {
     return p
   }
 
-  flush() {}
+  flush() {
+    const p: Promise<void> = Promise.resolve()
+    return p
+  }
 }
 
 export default ConsoleLogger

@@ -1,5 +1,4 @@
 // @flow
-import logger from '../logger'
 import type {LogLineWithLevel} from '../logger/types'
 
 const fileDoesNotExist = __STORYBOOK__
@@ -139,13 +138,17 @@ const writeLogLinesToFile: (lines: Array<LogLineWithLevel>) => Promise<void> = _
   ? (lines: Array<LogLineWithLevel>) => Promise.resolve()
   : (lines: Array<LogLineWithLevel>) =>
       new Promise((resolve, reject) => {
+        if (lines.length === 0) {
+          resolve()
+          return
+        }
         const fs = require('fs')
         const encoding = 'utf8'
         const logFd = setupFileWritable()
         console.log('Using logFd = ', logFd)
         const writer = logFd ? fs.createWriteStream('', {fd: logFd}) : null
         if (!writer) {
-          logger.warn('Error writing log lines to file')
+          console.warn('Error writing log lines to file')
           reject(new Error('Error writing log lines to file'))
           return
         }
@@ -161,7 +164,7 @@ const writeLogLinesToFile: (lines: Array<LogLineWithLevel>) => Promise<void> = _
             } else {
               // see if we should continue, or wait
               // don't pass the callback, because we're not done yet.
-              ok = writer.write(JSON.stringify(lines[i] + '\n'), encoding)
+              ok = writer.write(JSON.stringify(lines[i]) + '\n', encoding)
             }
             i++
           }

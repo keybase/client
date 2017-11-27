@@ -36,7 +36,7 @@ let config = {
 
 // Developer settings
 if (__DEV__) {
-  config.enableActionLogging = false
+  config.enableActionLogging = true
   config.enableStoreLogging = false
   config.forwardLogs = false
   config.immediateStateLogging = false

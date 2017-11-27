@@ -121,12 +121,12 @@ function findCacheRoot(): string {
   throw new Error(`Unknown platform ${process.platform}`)
 }
 
-function logFileName(): ?string {
+function logFileName(): string {
   switch (process.platform) {
     case 'darwin':
       return `${getenv('HOME', '')}/Library/Logs/${envedPathOSX[runMode]}.app.log`
     case 'linux':
-      return null // linux is null because we can redirect stdout
+      return '' // linux is '' because we can redirect stdout
     case 'win32':
       return `${getenv('LOCALAPPDATA', '')}\\${envedPathWin32[runMode]}\\keybase.app.log`
   }

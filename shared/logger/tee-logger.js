@@ -21,7 +21,7 @@ class TeeLogger implements Logger {
   }
 
   flush = () => {
-    this._loggerToDumpFrom.flush()
+    return this._loggerToDumpFrom.flush()
   }
 }
 

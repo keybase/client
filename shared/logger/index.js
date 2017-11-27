@@ -4,7 +4,8 @@ import ConsoleLogger from './console-logger'
 import TeeLogger from './tee-logger'
 import RingLogger from './ring-logger'
 import NullLogger from './null-logger'
-import {isMobile} from '../constants/platform'
+import DumpPeriodicallyLogger from './dump-periodically-logger'
+import {writeLogLinesToFile} from '../util/forward-logs'
 
 // Function to flatten arrays and preserve their sort order
 // Same as concating all the arrays and calling .sort() but could be faster
@@ -81,7 +82,9 @@ class AggregateLoggerImpl implements AggregateLogger {
   flush() {
     // $FlowIssue with Object.keys just returning Array<string>
     const allKeys: Array<LogLevel> = Object.keys(this._allLoggers)
-    allKeys.forEach(level => this._allLoggers[level].flush())
+    allKeys.map(level => this._allLoggers[level].flush())
+    const p: Promise<void> = Promise.all(allKeys).then(() => {})
+    return p
   }
 }
 
@@ -98,7 +101,7 @@ const logSetup = __DEV__
       error: new RingLogger(1000),
       warn: new RingLogger(1000),
       info: new NullLogger(),
-      action: new RingLogger(5000),
+      action: new DumpPeriodicallyLogger(new RingLogger(5000), 10 * 60e3, writeLogLinesToFile, 'Action'),
       debug: new NullLogger(),
     }
 

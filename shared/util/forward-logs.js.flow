@@ -1,4 +1,5 @@
 // @flow
+import type {LogLineWithLevel} from '../logger/types'
 export const setupSource = () => {}
 export const setupTarget = () => {}
 
@@ -6,3 +7,4 @@ export const localLog = (...args: any) => {}
 export const localWarn = (...args: any) => {}
 export const localError = (...args: any) => {}
 declare export function flushLogFile(): void
+declare export var writeLogLinesToFile: (lines: Array<LogLineWithLevel>) => Promise<void>
