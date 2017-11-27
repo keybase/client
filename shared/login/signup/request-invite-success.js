@@ -1,16 +1,10 @@
 // @flow
-import * as signupActions from '../../actions/signup'
-import React, {Component} from 'react'
+import * as Creators from '../../actions/signup'
 import Render from './request-invite-success.render'
-import {bindActionCreators} from 'redux'
-import {connect} from 'react-redux'
+import {connect} from '../../util/container'
 
-class RequestInviteSuccess extends Component<any> {
-  render() {
-    return <Render onBack={this.props.restartSignup} />
-  }
-}
-
-export default connect(state => ({}), dispatch => bindActionCreators(signupActions, dispatch))(
-  RequestInviteSuccess
-)
+const mapStateToProps = state => ({})
+const mapDispatchToProps = (dispatch: Dispatch) => ({
+  onBack: () => dispatch(Creators.restartSignup()),
+})
+export default connect(mapStateToProps, mapDispatchToProps)(Render)

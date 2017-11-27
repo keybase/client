@@ -1,13 +1,13 @@
 // @flow
 import {Component} from 'react'
-import * as Constants from '../../constants/search'
+import * as Types from '../../constants/types/search'
 import type {IconType} from '../../common-adapters/icon'
 
 export type UserDetails = {
   id: string,
-  followingState: Constants.FollowingState,
+  followingState: Types.FollowingState,
   icon: ?IconType,
-  service: Constants.Service,
+  service: Types.Service,
   username: string,
 }
 
@@ -18,7 +18,7 @@ export type Props = {
   usernameText: string,
   onChangeText: (usernameText: string) => void,
   onRemoveUser: (id: string) => void,
-  onClickAddButton: ?(() => void),
+  onClickAddButton: ?() => void,
   onMoveSelectUp: () => void,
   onMoveSelectDown: () => void,
   onCancel?: () => void,

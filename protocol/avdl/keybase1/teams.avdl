@@ -554,6 +554,7 @@ protocol teams {
 
   TeamCreateResult teamCreateWithSettings(int sessionID, string name, boolean sendChatNotification, TeamSettings settings);
 
+  // A user can hope for success if and only if they are a member of the team or an admin of any of its ancestors.
   TeamDetails teamGet(int sessionID, string name, boolean forceRepoll);
 
   // List all the admins of ancestor teams.

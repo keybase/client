@@ -715,7 +715,7 @@ protocol local {
     boolean offline;
     array<RateLimit> rateLimits;
   }
-  DeleteConversationLocalRes deleteConversationLocal(int sessionID, ConversationID convID, string channelName);
+  DeleteConversationLocalRes deleteConversationLocal(int sessionID, ConversationID convID, string channelName, boolean confirmed);
 
   record GetTLFConversationsLocalRes {
     array<InboxUIItem> convs;

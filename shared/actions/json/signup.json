@@ -1,12 +1,63 @@
 {
   "prelude": [
-    "import * as Constants from '../constants/signup'"
+    "import HiddenString from '../util/hidden-string'"
   ],
   "actions": {
     "checkInviteCode": {
       "inviteCode": "string",
       "canError": {
         "errorText": "string"
+      }
+    },
+    "checkPassphrase": {
+      "passphrase": "HiddenString",
+      "canError": {
+        "passphraseError": "HiddenString"
+      }
+    },
+    "checkUsernameEmail": {
+      "username": "string",
+      "email": "string",
+      "canError": {
+        "emailError": "?Error",
+        "usernameError": "?Error",
+        "email": "?string",
+        "username": "?string"
+      }
+    },
+    "clearDeviceNameError": {},
+    "requestInvite": {
+      "email": "string",
+      "name": "string",
+      "canError": {
+        "emailError": "?Error",
+        "nameError": "?Error",
+        "email": "?string",
+        "name": "?string"
+      }
+    },
+    "resetSignup": {},
+    "restartSignup": {},
+    "setDeviceNameError": {
+      "deviceNameError": "string"
+    },
+    "showPaperKey": {
+      "paperkey": "HiddenString"
+    },
+    "showSuccess": {},
+    "signup": {
+      "canError": {
+        "signupError": "HiddenString"
+      }
+    },
+    "waiting": {
+      "waiting": "boolean"
+    },
+    "startRequestInvite": {},
+    "submitDeviceName": {
+      "deviceName": "string",
+      "canError": {
+        "deviceNameError": "string"
       }
     }
   }

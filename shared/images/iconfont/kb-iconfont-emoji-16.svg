@@ -1,8 +1,8 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
-    <g fill="none" fill-rule="evenodd" transform="rotate(90 8 8)">
-        <circle cx="8" cy="8" r="7.25" stroke="#000" stroke-width="1.5"/>
-        <path fill="#000" fill-rule="nonzero" d="M11.2 8a3.202 3.202 0 0 1-1.662 2.808s.943 1.333 1.352 1.025A4.793 4.793 0 0 0 12.8 8c0-1.627-.81-3.065-2.048-3.933-.356-.25-1.176 1.147-1.176 1.147A3.202 3.202 0 0 1 11.2 8z"/>
-        <ellipse cx="6.4" cy="9.6" fill="#000" rx="1" ry="1.6" transform="rotate(90 6.4 9.6)"/>
-        <ellipse cx="6.4" cy="6.4" fill="#000" rx="1" ry="1.6" transform="rotate(90 6.4 6.4)"/>
+    <g fill="#000" fill-rule="evenodd" transform="rotate(90 8 8)">
+        <path fill-rule="nonzero" d="M8 14.5a6.5 6.5 0 1 0 0-13 6.5 6.5 0 0 0 0 13zM8 16A8 8 0 1 1 8 0a8 8 0 0 1 0 16z"/>
+        <path fill-rule="nonzero" d="M11.2 8a3.202 3.202 0 0 1-1.662 2.808s.943 1.333 1.352 1.025A4.793 4.793 0 0 0 12.8 8c0-1.627-.81-3.065-2.048-3.933-.356-.25-1.176 1.147-1.176 1.147A3.202 3.202 0 0 1 11.2 8z"/>
+        <ellipse cx="6.4" cy="9.6" rx="1" ry="1.6" transform="rotate(90 6.4 9.6)"/>
+        <ellipse cx="6.4" cy="6.4" rx="1" ry="1.6" transform="rotate(90 6.4 6.4)"/>
     </g>
 </svg>

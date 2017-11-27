@@ -11,6 +11,7 @@ import EditChannel from './manage-channels/edit-channel-container'
 import CreateChannel from './create-channel/container'
 import {nothingSelected} from '../constants/chat'
 import Render from './render.desktop'
+import ReallyLeaveTeam from '../teams/really-leave-team/container-chat'
 import {isMobile} from '../constants/platform'
 
 const conversationRoute = makeRouteDefNode({
@@ -51,6 +52,11 @@ const conversationRoute = makeRouteDefNode({
       component: CreateChannel,
       tags: makeLeafTags({layerOnTop: true}),
       children: {},
+    },
+    reallyLeaveTeam: {
+      children: {},
+      component: ReallyLeaveTeam,
+      tags: makeLeafTags({layerOnTop: !isMobile}),
     },
   },
 })

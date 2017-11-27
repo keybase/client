@@ -39,7 +39,8 @@ IF %ERRORLEVEL% NEQ 0 goto:build_error || EXIT /B 1
 
 :donecheckingdrivers 
 
-call:checkout_keybase client, %ClientRevision% || goto:build_error || EXIT /B 1
+:: NOTE: We depend on the bot or caller to checkout client first
+:: call:checkout_keybase client, %ClientRevision% || goto:build_error || EXIT /B 1
 call:checkout_keybase kbfs, %KBFSRevision% || goto:build_error || EXIT /B 1
 call:checkout_keybase go-updater, %UpdaterRevision% || goto:build_error || EXIT /B 1
 call:checkout_keybase release, %ReleaseRevision% || goto:build_error || EXIT /B 1
@@ -162,7 +163,8 @@ popd
 :repoexists 
 
 pushd %GOPATH%\src\github.com\keybase\%~1
-git pull origin %~2 || EXIT /B 1
+git checkout master || EXIT /B 1
+git pull || EXIT /B 1
 git checkout %~2 || EXIT /B 1
 popd
 EXIT /B 0

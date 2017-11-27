@@ -1,5 +1,6 @@
 // @flow
 import * as Constants from '../../../constants/chat'
+import * as Types from '../../../constants/types/chat'
 import * as I from 'immutable'
 import {createCachedSelector, type TypedState} from '../../../util/container'
 import {formatTimeForConversationList} from '../../../util/timestamp'
@@ -7,23 +8,24 @@ import {globalColors} from '../../../styles'
 import {isMobile} from '../../../constants/platform'
 
 const getSelected = (state: TypedState) => Constants.getSelectedConversation(state)
-const getInbox = (state: TypedState, conversationIDKey: Constants.ConversationIDKey) =>
+const getInbox = (state: TypedState, conversationIDKey: Types.ConversationIDKey) =>
   Constants.getInbox(state, conversationIDKey)
-const passConversationIDKey = (state: TypedState, conversationIDKey: Constants.ConversationIDKey) =>
+const passConversationIDKey = (state: TypedState, conversationIDKey: Types.ConversationIDKey) =>
   conversationIDKey
-const getFinalizedInfo = (state: TypedState, conversationIDKey: Constants.ConversationIDKey) =>
+const getFinalizedInfo = (state: TypedState, conversationIDKey: Types.ConversationIDKey) =>
   state.chat.getIn(['finalizedState', conversationIDKey])
-const getRekeyInfo = (state: TypedState, conversationIDKey: Constants.ConversationIDKey) =>
+const getRekeyInfo = (state: TypedState, conversationIDKey: Types.ConversationIDKey) =>
   state.chat.getIn(['rekeyInfos', conversationIDKey])
-const getUnreadTotals = (state: TypedState, conversationIDKey: Constants.ConversationIDKey) =>
+const getUnreadTotals = (state: TypedState, conversationIDKey: Types.ConversationIDKey) =>
   state.chat.getIn(['inboxUnreadCountTotal', conversationIDKey], 0)
-const getUnreadBadges = (state: TypedState, conversationIDKey: Constants.ConversationIDKey) =>
+const getUnreadBadges = (state: TypedState, conversationIDKey: Types.ConversationIDKey) =>
   state.chat.getIn(['inboxUnreadCountBadge', conversationIDKey], 0)
 const getYou = (state: TypedState) => state.config.username || ''
 const getNowOverride = (state: TypedState) => state.chat.nowOverride
 const getUntrustedState = (state: TypedState) => state.chat.inboxUntrustedState
-const getPendingParticipants = (state: TypedState, conversationIDKey: Constants.ConversationIDKey) =>
+const getPendingParticipants = (state: TypedState, conversationIDKey: Types.ConversationIDKey) =>
   state.chat.get('pendingConversations').get(conversationIDKey) || I.List()
+const getInSearch = (state: TypedState) => state.chat.get('inSearch')
 
 function _commonDerivedProps(
   rekeyInfo,
@@ -73,6 +75,7 @@ const snippetRowSelector = createCachedSelector(
     getYou,
     getNowOverride,
     getUntrustedState,
+    getInSearch,
   ],
   (
     inbox,
@@ -84,9 +87,10 @@ const snippetRowSelector = createCachedSelector(
     unreadBadge,
     you,
     nowOverride,
-    untrustedState
+    untrustedState,
+    inSearch
   ) => {
-    const isSelected = selected === conversationIDKey
+    const isSelected = !inSearch && selected === conversationIDKey
     const isMuted = inbox && inbox.get('status') === 'muted'
     const isError = untrustedState.get(conversationIDKey) === 'error'
     const participants = inbox ? Constants.participantFilter(inbox.get('participants'), you) : I.List()
@@ -113,9 +117,9 @@ const snippetRowSelector = createCachedSelector(
 )(passConversationIDKey)
 
 const pendingSnippetRowSelector = createCachedSelector(
-  [getSelected, getPendingParticipants, getNowOverride, passConversationIDKey, getYou],
-  (selected, participants, nowOverride, conversationIDKey, you) => {
-    const isSelected = selected === conversationIDKey
+  [getSelected, getPendingParticipants, getNowOverride, passConversationIDKey, getYou, getInSearch],
+  (selected, participants, nowOverride, conversationIDKey, you, inSearch) => {
+    const isSelected = !inSearch && selected === conversationIDKey
     const isMuted = false
     const isError = false
     const timestamp = formatTimeForConversationList(Date.now(), nowOverride)

@@ -2,7 +2,7 @@
 import {Component} from 'react'
 import HiddenString from '../util/hidden-string'
 
-import type {State, Device} from '../constants/unlock-folders'
+import type {State, Device} from '../constants/types/unlock-folders'
 
 export type Props = {
   phase: $PropertyType<State, 'phase'>,

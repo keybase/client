@@ -2,9 +2,9 @@
 import Folders, {type FolderType} from '.'
 import * as ChatGen from '../actions/chat-gen'
 import * as KBFSGen from '../actions/kbfs-gen'
+import * as FavoriteGen from '../actions/favorite-gen'
 import flags from '../util/feature-flags'
 import {pausableConnect, compose, lifecycle, withProps, type TypedState} from '../util/container'
-import {favoriteList} from '../actions/favorite'
 import {settingsTab} from '../constants/tabs'
 import {switchTo, navigateAppend, navigateTo} from '../actions/route-tree'
 import {type RouteProps} from '../route-tree/render-route'
@@ -20,7 +20,7 @@ const mapStateToProps = (state: TypedState, {routeState, selected}: OwnProps) =>
 })
 
 const mapDispatchToProps = (dispatch: any, {routePath, routeState, setRouteState, isTeam}: OwnProps) => ({
-  favoriteList: () => dispatch(favoriteList()),
+  favoriteList: () => dispatch(FavoriteGen.createFavoriteList()),
   onChat: (tlf, isTeam?) => dispatch(ChatGen.createOpenTlfInChat({tlf, isTeam})),
   onClick: path => dispatch(navigateAppend([{props: {path}, selected: 'files'}])),
   onOpen: path => dispatch(KBFSGen.createOpen({path})),

@@ -2941,6 +2941,10 @@
         {
           "name": "channelName",
           "type": "string"
+        },
+        {
+          "name": "confirmed",
+          "type": "boolean"
         }
       ],
       "response": "DeleteConversationLocalRes"

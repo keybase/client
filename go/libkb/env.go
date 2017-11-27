@@ -1260,6 +1260,11 @@ func (e *Env) WantsSystemd() bool {
 		os.Getenv("KEYBASE_SYSTEMD") == "1")
 }
 
+func (e *Env) DarwinForceSecretStoreFile() bool {
+	return (e.GetRunMode() == DevelRunMode &&
+		os.Getenv("KEYBASE_SECRET_STORE_FILE") == "1")
+}
+
 func GetPlatformString() string {
 	if isIOS {
 		return "ios"

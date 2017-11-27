@@ -11,7 +11,15 @@ const ShhIcon = () => (
   </Box>
 )
 
-const ChannelHeader = ({badgeNumber, channelName, muted, onBack, onToggleInfoPanel, teamName}: Props) => (
+const ChannelHeader = ({
+  badgeNumber,
+  channelName,
+  muted,
+  onBack,
+  onToggleInfoPanel,
+  teamName,
+  smallTeam,
+}: Props) => (
   <Box style={containerStyle}>
     <BackButton
       badgeNumber={badgeNumber}
@@ -30,12 +38,16 @@ const ChannelHeader = ({badgeNumber, channelName, muted, onBack, onToggleInfoPan
       <Box style={{...globalStyles.flexBoxColumn}}>
         <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', alignSelf: 'center'}}>
           <Avatar teamname={teamName} size={12} />
-          <Text type="BodySmallSemibold" style={{color: globalColors.black_40}}>&nbsp;{teamName}</Text>
+          {!smallTeam &&
+            <Text type="BodySmallSemibold" style={{color: globalColors.black_40}}>&nbsp;{teamName}</Text>}
+          {smallTeam && <Text type="BodyBig" style={{color: globalColors.black_75}}>&nbsp;{teamName}</Text>}
+          {smallTeam && muted && <ShhIcon />}
         </Box>
-        <Box style={{...globalStyles.flexBoxRow, alignSelf: 'center'}}>
-          <Text type="BodyBig" style={{color: globalColors.black_75}}>#{channelName}</Text>
-          {muted && <ShhIcon />}
-        </Box>
+        {!smallTeam &&
+          <Box style={{...globalStyles.flexBoxRow, alignSelf: 'center'}}>
+            <Text type="BodyBig" style={{color: globalColors.black_75}}>#{channelName}</Text>
+            {muted && <ShhIcon />}
+          </Box>}
       </Box>
 
     </Box>

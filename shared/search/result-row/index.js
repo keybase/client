@@ -1,5 +1,5 @@
 // @flow
-import * as Constants from '../../constants/search'
+import * as Types from '../../constants/types/search'
 import * as React from 'react'
 import {Box, Icon, ClickableBox, Text} from '../../common-adapters/index'
 import {globalColors, globalStyles, globalMargins, hairlineWidth} from '../../styles'
@@ -7,15 +7,15 @@ import IconOrAvatar from '../icon-or-avatar'
 import {followingStateToStyle} from '../shared'
 import {isMobile} from '../../constants/platform'
 
-const Left = ({leftService, leftIcon, leftUsername, leftFollowingState}) => {
+const Left = ({leftService, leftIcon, leftUsername, leftFollowingState, leftFullname}) => {
   return (
     <Box
       style={{
         ...globalStyles.flexBoxRow,
         alignItems: 'center',
+        flex: 1,
         height: '100%',
         paddingLeft: globalMargins.tiny,
-        width: isMobile ? 170 : 215,
       }}
     >
       <Box style={{...globalStyles.flexBoxCenter, width: isMobile ? 40 : 32}}>
@@ -26,51 +26,55 @@ const Left = ({leftService, leftIcon, leftUsername, leftFollowingState}) => {
           avatarSize={isMobile ? 40 : 32}
         />
       </Box>
-      <Text
-        type="BodySemibold"
-        style={{
-          ...followingStateToStyle(leftFollowingState),
-          marginLeft: globalMargins.small,
-        }}
-      >
-        {leftUsername}
-      </Text>
+      <Box style={{...globalStyles.flexBoxColumn, marginLeft: globalMargins.tiny}}>
+        <Text type="BodySemibold" style={followingStateToStyle(leftFollowingState)}>
+          {leftUsername}
+        </Text>
+        {!!leftFullname && <Text type="BodySmall">{leftFullname}</Text>}
+      </Box>
     </Box>
   )
 }
 
-const Middle = ({rightService, rightIcon, rightUsername, rightFullname, rightFollowingState}) => {
+const Middle = ({rightService, rightIcon, rightUsername, rightFollowingState}) => {
   return (
     <Box
       style={{
         ...globalStyles.flexBoxColumn,
-        flex: 1,
         height: '100%',
         justifyContent: 'center',
+        width: isMobile ? 100 : 120,
       }}
     >
-      <Box style={{...globalStyles.flexBoxRow, alignItems: 'center'}}>
+      <Box style={{...globalStyles.flexBoxRow, alignItems: 'flex-start'}}>
         <IconOrAvatar
           service={rightService}
           username={rightUsername}
           icon={rightIcon}
-          avatarSize={12}
+          avatarSize={isMobile ? 16 : 12}
           style={{
-            fontSize: 12,
-            height: 12,
+            ...globalStyles.flexBoxColumn,
+            fontSize: isMobile ? 16 : 12,
+            height: isMobile ? 16 : 12,
             marginRight: globalMargins.xtiny,
-            width: 12,
+            marginTop: isMobile ? 1 : 3,
+            width: isMobile ? 16 : 12,
           }}
         />
         {!!rightUsername &&
-          <Text type="BodySmallSemibold" style={followingStateToStyle(rightFollowingState)}>
+          <Text
+            type="BodySmallSemibold"
+            style={{
+              ...followingStateToStyle(rightFollowingState),
+              overflow: 'hidden',
+              whiteSpace: 'pre-wrap',
+              wordWrap: 'break-word',
+              flex: 1,
+            }}
+          >
             {rightUsername}
           </Text>}
       </Box>
-      {!!rightFullname &&
-        <Box style={globalStyles.flexBoxRow}>
-          <Text type="BodySmall">{rightFullname}</Text>
-        </Box>}
     </Box>
   )
 }
@@ -106,7 +110,7 @@ const Line = () => (
     style={{
       ...globalStyles.fillAbsolute,
       backgroundColor: globalColors.black_05,
-      left: 54,
+      left: 48,
       top: undefined,
       maxHeight: hairlineWidth,
       minHeight: hairlineWidth,
@@ -114,7 +118,7 @@ const Line = () => (
   />
 )
 
-const SearchResultRow = (props: Constants.RowProps) => (
+const SearchResultRow = (props: Types.RowProps) => (
   <ClickableBox
     style={_clickableBoxStyle[(!!props.selected).toString()]}
     underlayColor={globalColors.blue4}
@@ -127,10 +131,10 @@ const SearchResultRow = (props: Constants.RowProps) => (
         leftIcon={props.leftIcon}
         leftService={props.leftService}
         leftUsername={props.leftUsername}
+        leftFullname={props.leftFullname}
       />
       <Middle
         rightFollowingState={props.rightFollowingState}
-        rightFullname={props.rightFullname}
         rightIcon={props.rightIcon}
         rightService={props.rightService}
         rightUsername={props.rightUsername}
@@ -152,8 +156,8 @@ const _clickableBoxStyleCommon = {
         maxHeight: 56,
       }
     : {
-        maxHeight: globalMargins.large,
-        minHeight: globalMargins.large,
+        maxHeight: 48,
+        minHeight: 48,
       }),
 }
 

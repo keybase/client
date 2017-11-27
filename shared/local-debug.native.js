@@ -4,7 +4,7 @@
  */
 
 import {NativeModules} from 'react-native'
-import {updateDebugConfig} from './actions/dev'
+import * as DevGen from './actions/dev-gen'
 import noop from 'lodash/noop'
 
 const nativeBridge = NativeModules.KeybaseEngine || {test: 'fallback'}
@@ -91,7 +91,9 @@ export const {
 } = config
 
 export function setup(store: any) {
-  const updateLiveConfig = () => store.dispatch(updateDebugConfig(require('./local-debug-live')))
+  const updateLiveConfig = () =>
+    // $FlowIssue doesn't like the require
+    store.dispatch(DevGen.createUpdateDebugConfig({config: require('./local-debug-live')}))
 
   if (module.hot) {
     module.hot.accept(() => updateLiveConfig())

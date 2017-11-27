@@ -1,185 +1,133 @@
 // @flow
-import * as CommonConstants from '../constants/common'
+import * as ProfileGen from '../actions/profile-gen'
+import * as Types from '../constants/types/profile'
 import * as Constants from '../constants/profile'
-import type {Actions, State} from '../constants/profile'
 
-const initialState: State = {
-  errorCode: null,
-  errorText: null,
-  pgpInfo: {
-    email1: null,
-    email2: null,
-    email3: null,
-    errorEmail1: false,
-    errorEmail2: false,
-    errorEmail3: false,
-    errorText: null,
-    fullName: null,
-  },
-  pgpPublicKey: null,
-  platform: null,
-  proofFound: false,
-  proofStatus: null,
-  proofText: null,
-  revoke: {},
-  sigID: null,
-  username: '',
-  usernameValid: true,
-  waiting: false,
-  searchResults: null,
-  searchShowingSuggestions: false,
-}
-
-// A simple check, the server does a fuller check
-function checkBTC(address: string): boolean {
-  return !!address.match(/^[13][a-km-zA-HJ-NP-Z1-9]{25,34}$/)
-}
-
-// A simple check, the server does a fuller check
-function checkZcash(address: string): boolean {
-  return true // !!address.match(/^[13][a-km-zA-HJ-NP-Z1-9]{25,34}$/)
-}
-
-function checkUsernameValid(platform, username): boolean {
-  if (platform === 'btc') {
-    return checkBTC(username)
-  } else if (platform === 'zcash') {
-    return checkZcash(username)
-  } else {
-    return true
-  }
-}
-
-function cleanupUsername(platform, username): string {
-  if (['http', 'https'].includes(platform)) {
-    // Ensure that only the hostname is getting returned, with no
-    // protocal, port, or path information
-    return (
-      username &&
-      username
-        .replace(/^.*?:\/\//, '') // Remove protocal information (if present)
-        .replace(/:.*/, '') // Remove port information (if present)
-        .replace(/\/.*/, '')
-    ) // Remove path information (if present)
-  }
-  return username
-}
-
-export default function(
-  state: State = initialState,
-  action: Actions | {type: 'common:resetStore', payload: void}
-) {
+export default function(state: Types.State = Constants.initialState, action: ProfileGen.Actions) {
   switch (action.type) {
-    case CommonConstants.resetStore:
-      return {...initialState}
-    case Constants.waiting:
-      if (action.error) {
-        break
-      }
+    case ProfileGen.resetStore:
+      return {...Constants.initialState}
+    case ProfileGen.waiting:
+      const {waiting} = action.payload
       return {
         ...state,
-        waiting: action.payload.waiting,
+        waiting,
       }
-    case Constants.updatePlatform: {
-      if (action.error) {
-        break
-      }
-      const usernameValid = checkUsernameValid(action.payload.platform, state.username)
+    case ProfileGen.updatePlatform: {
+      const {platform} = action.payload
+      const usernameValid = Constants.checkUsernameValid(platform, state.username)
       return {
         ...state,
-        platform: action.payload.platform,
+        platform,
         usernameValid,
       }
     }
 
-    case Constants.updateUsername: {
-      if (action.error) {
-        break
-      }
-      const usernameValid = checkUsernameValid(state.platform, action.payload.username)
+    case ProfileGen.updateUsername: {
+      const {username} = action.payload
+      const usernameValid = Constants.checkUsernameValid(state.platform, username)
       return {
         ...state,
-        username: action.payload.username,
+        username,
         usernameValid,
       }
     }
-    case Constants.cleanupUsername: {
-      if (action.error) {
-        break
-      }
-      const username = cleanupUsername(state.platform, state.username)
+    case ProfileGen.cleanupUsername: {
+      const username = Constants.cleanupUsername(state.platform, state.username)
       return {
         ...state,
         username,
       }
     }
-    case Constants.waitingRevokeProof:
-      if (action.error) {
-        break
-      }
+    case ProfileGen.revokeWaiting: {
+      const {waiting} = action.payload
       return {
         ...state,
         revoke: {
           ...state.revoke,
-          waiting: action.payload.waiting,
+          waiting,
         },
       }
-    case Constants.finishRevokeProof:
+    }
+    case ProfileGen.revokeFinish:
       return {
         ...state,
-        revoke: action.error ? {error: action.payload.error} : {},
+        revoke: {
+          ...state.revoke,
+          error: action.error ? action.payload.error : null,
+          waiting: false,
+        },
       }
-    case Constants.updateProofText:
+    case ProfileGen.updateProofText:
+      const {proof: proofText} = action.payload
+      return {
+        ...state,
+        proofText,
+      }
+    case ProfileGen.updateProofStatus:
+      const {found: proofFound, status: proofStatus} = action.payload
+      return {
+        ...state,
+        proofFound,
+        proofStatus,
+      }
+    case ProfileGen.updateErrorText:
+      const {errorCode, errorText} = action.payload
+      return {
+        ...state,
+        errorCode,
+        errorText,
+      }
+    case ProfileGen.updateSigID:
+      const {sigID} = action.payload
+      return {
+        ...state,
+        sigID,
+      }
+    case ProfileGen.updatePgpInfo:
       if (action.error) {
-        break
+        // TODO
+        return state
       }
-      return {
-        ...state,
-        proofText: action.payload.proof,
-      }
-    case Constants.updateProofStatus:
-      if (action.error) {
-        break
-      }
-      return {
-        ...state,
-        proofFound: action.payload.found,
-        proofStatus: action.payload.status,
-      }
-    case Constants.updateErrorText:
-      if (action.error) {
-        break
-      }
-      return {
-        ...state,
-        errorCode: action.payload.errorCode,
-        errorText: action.payload.errorText,
-      }
-    case Constants.updateSigID:
-      if (action.error) {
-        break
-      }
-      return {
-        ...state,
-        sigID: action.payload.sigID,
-      }
-    case Constants.updatePgpInfo:
+
+      const {info} = action.payload
       return {
         ...state,
         pgpInfo: {
           ...state.pgpInfo,
-          ...action.payload,
+          ...info,
         },
       }
-    case Constants.updatePgpPublicKey:
-      if (action.error) {
-        break
-      }
+    case ProfileGen.updatePgpPublicKey:
+      const {publicKey: pgpPublicKey} = action.payload
       return {
         ...state,
-        pgpPublicKey: action.payload.publicKey,
+        pgpPublicKey,
       }
+    // Saga only actions
+    case ProfileGen.addProof:
+    case ProfileGen.backToProfile:
+    case ProfileGen.cancelAddProof:
+    case ProfileGen.cancelPgpGen:
+    case ProfileGen.checkProof:
+    case ProfileGen.dropPgp:
+    case ProfileGen.editProfile:
+    case ProfileGen.finishRevoking:
+    case ProfileGen.finishedWithKeyGen:
+    case ProfileGen.generatePgp:
+    case ProfileGen.onClickAvatar:
+    case ProfileGen.onClickFollowers:
+    case ProfileGen.onClickFollowing:
+    case ProfileGen.outputInstructionsActionLink:
+    case ProfileGen.showUserProfile:
+    case ProfileGen.submitBTCAddress:
+    case ProfileGen.submitRevokeProof:
+    case ProfileGen.submitUsername:
+    case ProfileGen.submitZcashAddress:
+      return state
+    default:
+      // eslint-disable-next-line no-unused-expressions
+      (action: empty) // if you get a flow error here it means there's an action you claim to handle but didn't
+      return state
   }
-
-  return state
 }

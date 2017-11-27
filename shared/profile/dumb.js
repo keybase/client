@@ -24,7 +24,7 @@ import {
 } from '../constants/tracker'
 
 import type {DumbComponentMap} from '../constants/types/more'
-import type {Proof, UserInfo} from '../constants/tracker'
+import type {Proof, UserInfo} from '../constants/types/tracker'
 import type {Props as RenderProps} from './index'
 
 export const proofsDefault: Array<Proof> = [

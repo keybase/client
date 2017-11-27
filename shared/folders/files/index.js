@@ -1,6 +1,7 @@
 // @flow
 import * as ChatGen from '../../actions/chat-gen'
 import * as KBFSGen from '../../actions/kbfs-gen'
+import * as FavoriteGen from '../../actions/favorite-gen'
 import React, {Component} from 'react'
 import Render from './render'
 import flags from '../../util/feature-flags'
@@ -8,7 +9,6 @@ import get from 'lodash/get'
 import some from 'lodash/some'
 import type {Folder} from '../list'
 import {connect} from 'react-redux'
-import {favoriteFolder, ignoreFolder} from '../../actions/favorite'
 import {navigateUp, navigateAppend} from '../../actions/route-tree'
 
 type Props = $Shape<{
@@ -131,8 +131,8 @@ const mapStateToProps = (state: any, {routeProps}) => {
 }
 
 const mapDispatchToProps = (dispatch: any) => ({
-  favoriteFolder: path => dispatch(favoriteFolder(path)),
-  ignoreFolder: path => dispatch(ignoreFolder(path)),
+  favoriteFolder: path => dispatch(FavoriteGen.createFavoriteAdd({path})),
+  ignoreFolder: path => dispatch(FavoriteGen.createFavoriteIgnore({path})),
   navigateAppend: route => dispatch(navigateAppend(route)),
   navigateUp: () => dispatch(navigateUp()),
   openInKBFS: path => dispatch(KBFSGen.createOpen({path})),

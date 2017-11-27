@@ -112,11 +112,11 @@ const commonRow = {
 const kbRow = {
   ...commonRow,
   leftFollowingState: 'NoState',
+  leftFullname: 'John Zila',
   leftIcon: null,
   leftService: 'Keybase',
   leftUsername: 'jzila',
   rightFollowingState: 'NoState',
-  rightFullname: 'John Zila',
   rightIcon: null,
   rightService: null,
   rightUsername: null,
@@ -125,9 +125,9 @@ const kbRow = {
 const serviceRow = {
   ...commonRow,
   leftFollowingState: 'NoState',
+  leftFullname: 'John Zila',
   leftUsername: 'jzila',
   rightFollowingState: 'NoState',
-  rightFullname: 'John Zila',
   rightIcon: null,
   rightService: null,
   rightUsername: null,
@@ -217,7 +217,7 @@ const load = () => {
           <ResultRow {...kbRow} showTrackerButton={true} />
           <ResultRow
             {...kbRow}
-            rightFullname="John Zila on GitHub"
+            leftFullname="John Zila on GitHub"
             rightIcon="iconfont-identity-github"
             rightService="GitHub"
             rightUsername="jzilagithub"
@@ -281,8 +281,8 @@ const load = () => {
         chris: {
           ...kbRow,
           leftFollowingState: 'Following',
+          leftFullname: 'chris on GitHub',
           leftUsername: 'chris',
-          rightFullname: 'chris on GitHub',
           rightIcon: 'iconfont-identity-github',
           rightService: 'GitHub',
           rightUsername: 'chrisname',
@@ -290,8 +290,8 @@ const load = () => {
         cjb: {
           ...kbRow,
           leftFollowingState: 'NotFollowing',
+          leftFullname: 'cjb on facebook',
           leftUsername: 'cjb',
-          rightFullname: 'cjb on facebook',
           rightIcon: 'iconfont-identity-facebook',
           rightService: 'Facebook',
           rightUsername: 'cjbname',
@@ -299,8 +299,8 @@ const load = () => {
         jzila: {
           ...kbRow,
           leftFollowingState: 'NoState',
+          leftFullname: 'jzila on twitter',
           leftUsername: 'jzila',
-          rightFullname: 'jzila on twitter',
           rightIcon: 'iconfont-identity-twitter',
           rightService: 'Twitter',
           rightUsername: 'jzilatwit',

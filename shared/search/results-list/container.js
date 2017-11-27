@@ -3,7 +3,7 @@ import {connect, type TypedState} from '../../util/container'
 import React from 'react'
 import {ProgressIndicator} from '../../common-adapters'
 import SearchResultsList from '.'
-import * as Creators from '../../actions/search/creators'
+import * as SearchGen from '../../actions/search-gen'
 import {branch, compose, renderComponent} from 'recompose'
 import {globalMargins} from '../../styles'
 
@@ -33,11 +33,11 @@ const mapStateToProps = ({entities}: TypedState, {disableIfInTeamName, searchKey
 }
 
 const mapDispatchToProps = (dispatch: Dispatch, {searchKey, onClick, disableListBuilding}: OwnProps) => ({
-  onClick: id => {
-    !disableListBuilding && dispatch(Creators.addResultsToUserInput(searchKey, [id]))
+  onClick: (id: string) => {
+    !disableListBuilding && dispatch(SearchGen.createAddResultsToUserInput({searchKey, searchResults: [id]}))
     onClick && onClick(id)
   },
-  onMouseOver: id => dispatch(Creators.updateSelectedSearchResult(searchKey, id)),
+  onMouseOver: id => dispatch(SearchGen.createUpdateSelectedSearchResult({searchKey, id})),
 })
 
 export default compose(
@@ -47,6 +47,7 @@ export default compose(
 
 const styleSpinner = {
   alignSelf: 'center',
-  marginTop: globalMargins.small,
+  marginTop: globalMargins.medium,
+  marginBottom: globalMargins.medium,
   width: 24,
 }

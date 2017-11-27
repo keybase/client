@@ -3,7 +3,7 @@
 import {Set} from 'immutable'
 import {createSelector} from 'reselect'
 import {type TypedState} from './reducer'
-import {type SearchQuery} from './search'
+import {type SearchQuery} from './types/search'
 
 const usernameSelector = ({config: {username}}: TypedState) => username
 const loggedInSelector = ({config: {loggedIn}}: TypedState) => loggedIn

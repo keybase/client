@@ -6,7 +6,7 @@ import {globalStyles, globalMargins, globalColors} from '../../../styles'
 import {formatTimeForPopup, formatTimeForRevoked} from '../../../util/timestamp'
 import {isMobile} from '../../../constants/platform'
 
-import type {TextMessage, AttachmentMessage} from '../../../constants/chat'
+import type {TextMessage, AttachmentMessage} from '../../../constants/types/chat'
 import type {IconType} from '../../../common-adapters/icon'
 
 function iconNameForDeviceType(deviceType: string, isRevoked: boolean): IconType {

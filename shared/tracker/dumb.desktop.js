@@ -1,29 +1,18 @@
 // @flow
 import Tracker from './render'
 import {trackerPropsToRenderProps} from './index'
-import {
-  normal,
-  checking,
-  revoked,
-  error,
-  metaUpgraded,
-  metaUnreachable,
-  metaPending,
-  metaDeleted,
-  metaNone,
-  metaIgnored,
-} from '../constants/tracker'
+import * as Constants from '../constants/tracker'
 import {globalStyles} from '../styles'
 import type {TrackerProps} from '../tracker'
-import type {Proof} from '../constants/tracker'
+import type {Proof} from '../constants/types/tracker'
 import type {DumbComponentMap} from '../constants/types/more'
 
 const proofMaker = (type, id = 'id-') => ({
   name: type + 'user',
   type,
   id: String(id),
-  state: normal,
-  meta: metaNone,
+  state: Constants.normal,
+  meta: Constants.metaNone,
   humanUrl: '',
   profileUrl: '',
   isTracked: false,
@@ -38,7 +27,7 @@ const proofWeb: Proof = {
 const proofWeb1: Proof = {
   ...proofMaker('http', '1'),
   name: 'thelongestdomainnameintheworldandthensomeandthensomemoreandmor.com',
-  meta: metaNone,
+  meta: Constants.metaNone,
   humanUrl: 'thelongestdomainnameintheworldandthensomeandthensomemoreandmore.com',
 }
 const proofWeb2: Proof = {
@@ -94,8 +83,8 @@ const proofsChanged: Array<Proof> = [
     name: 'deleted',
     type: 'github',
     id: 'warningId',
-    state: revoked,
-    meta: metaDeleted,
+    state: Constants.revoked,
+    meta: Constants.metaDeleted,
     humanUrl: '',
     profileUrl: '',
     isTracked: false,
@@ -105,8 +94,8 @@ const proofsChanged: Array<Proof> = [
     name: 'unreachable',
     type: 'twitter',
     id: 'unreachableId',
-    state: error,
-    meta: metaUnreachable,
+    state: Constants.error,
+    meta: Constants.metaUnreachable,
     humanUrl: '',
     profileUrl: '',
     isTracked: false,
@@ -116,8 +105,8 @@ const proofsChanged: Array<Proof> = [
     name: 'checking',
     type: 'twitter',
     id: 'checkingId',
-    state: checking,
-    meta: metaNone,
+    state: Constants.checking,
+    meta: Constants.metaNone,
     humanUrl: '',
     profileUrl: '',
     isTracked: false,
@@ -127,8 +116,8 @@ const proofsChanged: Array<Proof> = [
     name: 'pending',
     type: 'https',
     id: 'pendingId',
-    state: checking,
-    meta: metaPending,
+    state: Constants.checking,
+    meta: Constants.metaPending,
     humanUrl: '',
     profileUrl: '',
     isTracked: false,
@@ -138,8 +127,8 @@ const proofsChanged: Array<Proof> = [
     name: 'upgraded',
     type: 'rooter',
     id: 'upgradedId',
-    state: normal,
-    meta: metaUpgraded,
+    state: Constants.normal,
+    meta: Constants.metaUpgraded,
     humanUrl: '',
     profileUrl: '',
     isTracked: false,
@@ -186,7 +175,7 @@ const propsDefault: TrackerProps = {
     avatar: 'https://keybase.io/darksim905/picture',
     followsYou: false,
   },
-  trackerState: normal,
+  trackerState: Constants.normal,
   proofs: proofsDefault,
 
   // For hover
@@ -261,7 +250,7 @@ const propsWhatevz: TrackerProps = setFollow(
   {
     ...propsFollowing,
     reason: 'You have followed gabrielh',
-    proofs: [proofGithub, {...proofTwitter, meta: metaIgnored}],
+    proofs: [proofGithub, {...proofTwitter, meta: Constants.metaIgnored}],
   },
   () => true
 )
@@ -274,7 +263,7 @@ const propsChangedProofs: TrackerProps = {
     ...propsNewUser.userInfo,
     followsYou: true,
   },
-  trackerState: error,
+  trackerState: Constants.error,
   proofs: proofsChanged,
 }
 
@@ -304,7 +293,7 @@ const propsLessData: TrackerProps = {
     location: '',
   },
   currentlyFollowing: false,
-  trackerState: normal,
+  trackerState: Constants.normal,
   proofs: [proofGithub],
 }
 

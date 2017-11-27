@@ -1,7 +1,7 @@
 // @flow
 import {Component} from 'react'
 
-import type {SearchResultId} from '../../constants/search'
+import type {SearchResultId} from '../../constants/types/search'
 
 export type Props = {
   style?: any,

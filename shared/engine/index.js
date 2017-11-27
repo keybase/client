@@ -261,7 +261,14 @@ class Engine {
       channelMap['finished'] && Saga.putOnChannelMap(channelMap, 'finished', {error, params})
       Saga.closeChannelMap(channelMap)
     }
-    const sid = this._rpcOutgoing(method, params, callback, incomingCallMap)
+
+    if (!params) {
+      params = {}
+    }
+
+    params.incomingCallMap = incomingCallMap
+
+    const sid = this._rpcOutgoing(method, params, callback)
     return new EngineChannel(channelMap, sid, configKeys)
   }
 
@@ -269,41 +276,20 @@ class Engine {
   _rpcOutgoing(
     method: string,
     params: ?{
-      param?: ?Object,
-      incomingCallMap?: IncomingCallMapType,
-      callback?: ?(...args: Array<any>) => void,
+      incomingCallMap?: any, // IncomingCallMapType, actually a mix of all the incomingcallmap types, which we don't handle yet TODO we could mix them all
       waitingHandler?: WaitingHandlerType,
     },
-    callbackOverride?: ?(...args: Array<any>) => void,
-    incomingCallMapOverride?: IncomingCallMapType
+    callback: (...args: Array<any>) => void
   ) {
     if (!params) {
       params = {}
     }
 
-    let {param, incomingCallMap, callback, waitingHandler} = params
+    let {incomingCallMap, waitingHandler, ...param} = params
 
     // Ensure a non-null param
     if (!param) {
       param = {}
-    }
-
-    // Allow overrides from helpers
-    if (callbackOverride) {
-      if (callback) {
-        throw new Error(
-          'RPC callback overridden over real callback! You likely passed a callback to a RpcPromise'
-        )
-      }
-      callback = callbackOverride
-    }
-    if (incomingCallMapOverride) {
-      if (incomingCallMap) {
-        throw new Error(
-          'RPC incomingCallMap overriden over real incomingCallMap! You likely passed an incoming callmap to a RpcChannelMap'
-        )
-      }
-      incomingCallMap = incomingCallMapOverride
     }
 
     // Make a new session and start the request
@@ -329,14 +315,16 @@ class Engine {
       sessionID,
       incomingCallMap,
       waitingHandler,
-      (method, param, cb) =>
-        this._rpcClient.invoke(method, param, (...args) => {
+      (method, param, cb) => {
+        const callback = method => (...args) => {
           // If first argument is set, convert it to an Error type
           if (args.length > 0 && !!args[0]) {
-            args[0] = convertToError(args[0])
+            args[0] = convertToError(args[0], method)
           }
           cb(...args)
-        }),
+        }
+        this._rpcClient.invoke(method, param, callback(method))
+      },
       (session: Session) => this._sessionEnded(session),
       cancelHandler,
       dangling
@@ -488,14 +476,11 @@ class FakeEngine {
   }
   _rpcOutgoing(
     method: string,
-    params: {
-      param?: ?Object,
-      incomingCallMap?: IncomingCallMapType,
-      callback?: ?(...args: Array<any>) => void,
+    params: ?{
+      incomingCallMap?: any, // IncomingCallMapType, actually a mix of all the incomingcallmap types, which we don't handle yet TODO we could mix them all
       waitingHandler?: WaitingHandlerType,
     },
-    callbackOverride?: ?(...args: Array<any>) => void,
-    incomingCallMapOverride?: IncomingCallMapType
+    callback: (...args: Array<any>) => void
   ) {}
 }
 
@@ -511,7 +496,7 @@ const makeEngine = (dispatch: Dispatch) => {
   return engine
 }
 
-const getEngine = () => {
+const getEngine = (): Engine | FakeEngine => {
   if (__DEV__ && !engine) {
     throw new Error('Engine needs to be initialized first')
   }

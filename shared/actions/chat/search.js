@@ -3,7 +3,7 @@ import * as ChatGen from '../chat-gen'
 import * as Constants from '../../constants/chat'
 import * as Selectors from '../../constants/selectors'
 import * as SearchConstants from '../../constants/search'
-import * as SearchCreators from '../search/creators'
+import * as SearchGen from '../search-gen'
 import * as Saga from '../../util/saga'
 import type {ReturnValue} from '../../constants/types/more'
 import type {TypedState} from '../../constants/reducer'
@@ -23,7 +23,7 @@ function* _newChat(action: ChatGen.NewChatPayload): Saga.SagaGenerator<any, any>
     })
   )
   yield Saga.put(ChatGen.createSelectConversation({conversationIDKey: null}))
-  yield Saga.put(SearchCreators.searchSuggestions('chatSearch'))
+  yield Saga.put(SearchGen.createSearchSuggestions({searchKey: 'chatSearch'}))
 }
 
 function _exitSearch({payload: {skipSelectPreviousConversation}}: ChatGen.ExitSearchPayload, s: TypedState) {
@@ -36,8 +36,8 @@ function _exitSearch({payload: {skipSelectPreviousConversation}}: ChatGen.ExitSe
 
   return Saga.all(
     [
-      Saga.put(SearchCreators.clearSearchResults('chatSearch')),
-      Saga.put(SearchCreators.setUserInputItems('chatSearch', [])),
+      Saga.put(SearchGen.createClearSearchResults({searchKey: 'chatSearch'})),
+      Saga.put(SearchGen.createSetUserInputItems({searchKey: 'chatSearch', searchResults: []})),
       Saga.put(ChatGen.createRemoveTempPendingConversations()),
       userInputItemIds.length === 0 && !skipSelectPreviousConversation
         ? Saga.put(ChatGen.createSelectConversation({conversationIDKey: previousConversation}))
@@ -47,7 +47,7 @@ function _exitSearch({payload: {skipSelectPreviousConversation}}: ChatGen.ExitSe
 }
 
 // TODO this is kinda confusing. I think there is duplicated state...
-function* _updateTempSearchConversation(action: SearchConstants.UserInputItemsUpdated) {
+function* _updateTempSearchConversation(action: SearchGen.UserInputItemsUpdatedPayload) {
   const {payload: {userInputItemIds}} = action
   const [me, inSearch] = yield Saga.all([
     Saga.select(Selectors.usernameSelector),
@@ -65,11 +65,11 @@ function* _updateTempSearchConversation(action: SearchConstants.UserInputItemsUp
     )
   } else {
     actionsToPut.push(Saga.put(ChatGen.createSelectConversation({conversationIDKey: null, fromUser: false})))
-    actionsToPut.push(Saga.put(SearchCreators.searchSuggestions('chatSearch')))
+    actionsToPut.push(Saga.put(SearchGen.createSearchSuggestions({searchKey: 'chatSearch'})))
   }
 
   // Always clear the search results when you select/unselect
-  actionsToPut.push(Saga.put(SearchCreators.clearSearchResults('chatSearch')))
+  actionsToPut.push(Saga.put(SearchGen.createClearSearchResults({searchKey: 'chatSearch'})))
   yield Saga.all(actionsToPut)
 }
 
