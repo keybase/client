@@ -1,11 +1,10 @@
 // @flow
 import {Component} from 'react'
 
-import type {SimpleProofState, UserInfo} from '../constants/tracker'
+import type {SimpleProofState, UserInfo, Proof} from '../constants/types/tracker'
 import type {BioEditFns} from '../common-adapters/user-bio'
 import type {Tab as FriendshipsTab, FriendshipUserInfo} from './friendships'
 import type {MissingProof} from '../common-adapters/user-proofs'
-import type {Proof} from '../constants/tracker'
 import type {Folder} from '../folders/list'
 
 export type Props = {

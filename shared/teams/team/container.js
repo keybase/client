@@ -1,7 +1,8 @@
 // @flow
 import * as Constants from '../../constants/teams'
+import * as Types from '../../constants/types/teams'
 import * as Creators from '../../actions/teams/creators'
-import * as Search from '../../actions/search/creators'
+import * as SearchGen from '../../actions/search-gen'
 import * as I from 'immutable'
 import * as KBFSGen from '../../actions/kbfs-gen'
 import * as React from 'react'
@@ -13,18 +14,18 @@ import {getProfile} from '../../actions/tracker'
 import {isMobile} from '../../constants/platform'
 import {anyWaiting} from '../../constants/waiting'
 import {navigateAppend} from '../../actions/route-tree'
-import {showUserProfile} from '../../actions/profile'
+import {createShowUserProfile} from '../../actions/profile-gen'
 
 type StateProps = {
-  _invites: I.Set<Constants.InviteInfo>,
-  _memberInfo: I.Set<Constants.MemberInfo>,
+  _invites: I.Set<Types.InviteInfo>,
+  _memberInfo: I.Set<Types.MemberInfo>,
   _implicitAdminUsernames: I.Set<string>,
-  _requests: I.Set<Constants.RequestInfo>,
+  _requests: I.Set<Types.RequestInfo>,
   _newTeamRequests: I.List<string>,
   loading: boolean,
   openTeam: boolean,
-  openTeamRole: Constants.TeamRoleType,
-  name: Constants.Teamname,
+  openTeamRole: Types.TeamRoleType,
+  name: Types.Teamname,
   publicityAnyMember: boolean,
   publicityMember: boolean,
   publicityTeam: boolean,
@@ -49,13 +50,13 @@ const mapStateToProps = (state: TypedState, {routeProps, routeState}): StateProp
     _requests: state.entities.getIn(['teams', 'teamNameToRequests', teamname], I.Set()),
     _invites: state.entities.getIn(['teams', 'teamNameToInvites', teamname], I.Set()),
     description: state.entities.getIn(['teams', 'teamNameToPublicitySettings', teamname, 'description'], ''),
-    openTeam: state.entities.getIn(['teams', 'teamNameToTeamSettings', teamname, 'open'], false),
+    openTeam: state.entities.getIn(['teams', 'teamNameToTeamSettings', teamname], {open: false}).open,
     _newTeamRequests: state.entities.getIn(['teams', 'newTeamRequests'], I.List()),
     loading: state.entities.getIn(['teams', 'teamNameToLoading', teamname], true),
     memberCount: state.entities.getIn(['teams', 'teammembercounts', teamname], 0),
     name: teamname,
     openTeamRole: Constants.teamRoleByEnum[
-      state.entities.getIn(['teams', 'teamNameToTeamSettings', teamname, 'joinAs'], 'reader')
+      state.entities.getIn(['teams', 'teamNameToTeamSettings', teamname], {joinAs: 'reader'}).joinAs
     ],
     publicityAnyMember: state.entities.getIn(
       ['teams', 'teamNameToPublicitySettings', teamname, 'anyMemberShowcase'],
@@ -73,13 +74,13 @@ const mapStateToProps = (state: TypedState, {routeProps, routeState}): StateProp
 }
 
 type DispatchProps = {
-  _loadTeam: (teamname: Constants.Teamname) => void,
-  _onOpenFolder: (teamname: Constants.Teamname) => void,
-  _onAddPeople: (teamname: Constants.Teamname) => void,
-  _onAddSelf: (teamname: Constants.Teamname, you: string) => void,
-  _onInviteByEmail: (teamname: Constants.Teamname) => void,
-  _onManageChat: (teamname: Constants.Teamname) => void,
-  _onLeaveTeam: (teamname: Constants.Teamname) => void,
+  _loadTeam: (teamname: Types.Teamname) => void,
+  _onOpenFolder: (teamname: Types.Teamname) => void,
+  _onAddPeople: (teamname: Types.Teamname) => void,
+  _onAddSelf: (teamname: Types.Teamname, you: string) => void,
+  _onInviteByEmail: (teamname: Types.Teamname) => void,
+  _onManageChat: (teamname: Types.Teamname) => void,
+  _onLeaveTeam: (teamname: Types.Teamname) => void,
   setSelectedTab: (tab: string) => void,
   onBack: () => void,
   _onEditDescription: () => void,
@@ -90,26 +91,26 @@ const mapDispatchToProps = (
   {navigateUp, newOpenTeamRole, setOpenTeamRole, setRouteState, routeProps}
 ): DispatchProps => ({
   _loadTeam: teamname => dispatch(Creators.getDetails(teamname)),
-  _onAddPeople: (teamname: Constants.Teamname) =>
+  _onAddPeople: (teamname: Types.Teamname) =>
     dispatch(navigateAppend([{props: {teamname}, selected: 'addPeople'}])),
-  _onAddSelf: (teamname: Constants.Teamname, you: ?string) => {
+  _onAddSelf: (teamname: Types.Teamname, you: ?string) => {
     if (you) {
       dispatch(navigateAppend([{props: {teamname}, selected: 'addPeople'}]))
-      dispatch(Search.addResultsToUserInput('addToTeamSearch', [you]))
+      dispatch(SearchGen.createAddResultsToUserInput({searchKey: 'addToTeamSearch', searchResults: [you]}))
     }
   },
-  _onCreateSubteam: (teamname: Constants.Teamname) =>
+  _onCreateSubteam: (teamname: Types.Teamname) =>
     dispatch(navigateAppend([{props: {name: `${teamname}.`}, selected: 'showNewTeamDialog'}])),
-  _onInviteByEmail: (teamname: Constants.Teamname) =>
+  _onInviteByEmail: (teamname: Types.Teamname) =>
     dispatch(navigateAppend([{props: {teamname}, selected: 'inviteByEmail'}])),
-  _onLeaveTeam: (teamname: Constants.Teamname) =>
+  _onLeaveTeam: (teamname: Types.Teamname) =>
     dispatch(navigateAppend([{props: {teamname}, selected: 'reallyLeaveTeam'}])),
-  _onManageChat: (teamname: Constants.Teamname) =>
+  _onManageChat: (teamname: Types.Teamname) =>
     dispatch(navigateAppend([{props: {teamname}, selected: 'manageChannels'}])),
-  _onOpenFolder: (teamname: Constants.Teamname) =>
+  _onOpenFolder: (teamname: Types.Teamname) =>
     dispatch(KBFSGen.createOpen({path: `/keybase/team/${teamname}`})),
   onUsernameClick: (username: string) => {
-    isMobile ? dispatch(showUserProfile(username)) : dispatch(getProfile(username, true, true))
+    isMobile ? dispatch(createShowUserProfile({username})) : dispatch(getProfile(username, true, true))
   },
   setSelectedTab: selectedTab => setRouteState({selectedTab}),
   onBack: () => dispatch(navigateUp()),
@@ -122,7 +123,7 @@ const mapDispatchToProps = (
       navigateAppend([
         {
           props: {
-            onComplete: (role: Constants.TeamRoleType) => setOpenTeamRole(role),
+            onComplete: (role: Types.TeamRoleType) => setOpenTeamRole(role),
             selectedRole: newOpenTeamRole,
             allowOwner: false,
             allowAdmin: false,
@@ -132,11 +133,11 @@ const mapDispatchToProps = (
       ])
     )
   },
-  _savePublicity: (teamname: Constants.Teamname, settings: Constants.PublicitySettings) =>
+  _savePublicity: (teamname: Types.Teamname, settings: Types.PublicitySettings) =>
     dispatch(Creators.setPublicity(teamname, settings)),
 })
 
-const isExplicitAdmin = (memberInfo: I.Set<Constants.MemberInfo>, user: string): boolean => {
+const isExplicitAdmin = (memberInfo: I.Set<Types.MemberInfo>, user: string): boolean => {
   const info = memberInfo.find(member => member.username === user)
   if (!info) {
     return false
@@ -145,10 +146,10 @@ const isExplicitAdmin = (memberInfo: I.Set<Constants.MemberInfo>, user: string):
 }
 
 const getOrderedMemberArray = (
-  memberInfo: I.Set<Constants.MemberInfo>,
+  memberInfo: I.Set<Types.MemberInfo>,
   you: ?string,
   youImplicitAdmin: boolean
-): Array<Constants.MemberInfo> => {
+): Array<Types.MemberInfo> => {
   let youInfo
   if (you && !youImplicitAdmin) {
     youInfo = memberInfo.find(member => member.username === you)
@@ -156,7 +157,7 @@ const getOrderedMemberArray = (
   }
   let returnArray = memberInfo
     .toArray()
-    .sort((a: Constants.MemberInfo, b: Constants.MemberInfo) => a.username.localeCompare(b.username))
+    .sort((a: Types.MemberInfo, b: Types.MemberInfo) => a.username.localeCompare(b.username))
   if (youInfo) {
     returnArray.unshift(youInfo)
   }

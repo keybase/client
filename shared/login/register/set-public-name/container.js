@@ -1,8 +1,8 @@
 // @flow
 import * as LoginGen from '../../../actions/login-gen'
+import * as SignupGen from '../../../actions/signup-gen'
 import React, {Component} from 'react'
 import SetPublicName, {type State} from '.'
-import {clearDeviceNameError} from '../../../actions/signup'
 import {connect, type TypedState} from '../../../util/container'
 import {type RouteProps} from '../../../route-tree/render-route'
 
@@ -61,6 +61,7 @@ class _SetPublicName extends Component<ContainerProps, State> {
 
     return (
       <SetPublicName
+        clearDeviceNameError={this.props.clearDeviceNameError}
         deviceName={this.state.deviceName}
         onChange={this._onChange}
         onSubmit={() => this.props.onSubmit(this.state.deviceName)}
@@ -89,7 +90,7 @@ const mapStateToProps = (state: TypedState, {routeProps}: OwnProps) => ({
 })
 
 const mapDispatchToProps = (dispatch: Dispatch<*>) => ({
-  clearDeviceNameError: () => dispatch(clearDeviceNameError()),
+  clearDeviceNameError: () => dispatch(SignupGen.createClearDeviceNameError()),
   onBack: () => dispatch(LoginGen.createOnBack()),
   onSubmit: (deviceName: string) => {
     // map 'smart apostrophes' to ASCII (typewriter apostrophe)

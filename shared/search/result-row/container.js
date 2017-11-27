@@ -2,7 +2,8 @@
 import SearchResultRow from '.'
 import {Map} from 'immutable'
 import {userIsInTeamHelper} from '../../constants/teams'
-import {followStateHelper, type SearchResultId} from '../../constants/search'
+import {followStateHelper} from '../../constants/search'
+import {type SearchResultId} from '../../constants/types/search'
 import {connect, type MapStateToProps, type TypedState} from '../../util/container'
 
 const mapStateToProps: MapStateToProps<*, *, *> = (

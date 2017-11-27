@@ -1,6 +1,6 @@
 // @flow
+import * as ProfileGen from '../actions/profile-gen'
 import PostProof from './post-proof'
-import {cancelAddProof, checkProof, outputInstructionsActionLink} from '../actions/profile'
 import {connect, type TypedState} from '../util/container'
 import {type ProvablePlatformsType} from '../constants/types/more'
 
@@ -31,9 +31,9 @@ const mapStateToProps = (state: TypedState) => {
 }
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
-  onCancel: () => dispatch(cancelAddProof()),
-  onComplete: () => dispatch(checkProof()),
-  proofAction: () => dispatch(outputInstructionsActionLink()),
+  onCancel: () => dispatch(ProfileGen.createCancelAddProof()),
+  onComplete: () => dispatch(ProfileGen.createCheckProof()),
+  proofAction: () => dispatch(ProfileGen.createOutputInstructionsActionLink()),
 })
 
 export default connect(mapStateToProps, mapDispatchToProps)(PostProof)

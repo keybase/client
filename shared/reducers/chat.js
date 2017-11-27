@@ -1,23 +1,25 @@
 // @flow
 import * as Constants from '../constants/chat'
+import * as Types from '../constants/types/chat'
 import * as ChatGen from '../actions/chat-gen'
+import * as GregorGen from '../actions/gregor-gen'
 import {Set, List, Map} from 'immutable'
 import {reachabilityReachable} from '../constants/types/flow-types'
 
-const initialState: Constants.State = Constants.makeState()
-const initialConversation: Constants.ConversationState = Constants.makeConversationState()
+const initialState: Types.State = Constants.makeState()
+const initialConversation: Types.ConversationState = Constants.makeConversationState()
 
-type ConversationsStates = Map<Constants.ConversationIDKey, Constants.ConversationState>
-type ConversationUpdateFn = (c: Constants.ConversationState) => Constants.ConversationState
+type ConversationsStates = Map<Types.ConversationIDKey, Types.ConversationState>
+type ConversationUpdateFn = (c: Types.ConversationState) => Types.ConversationState
 function updateConversation(
   conversationStates: ConversationsStates,
-  conversationIDKey: Constants.ConversationIDKey,
+  conversationIDKey: Types.ConversationIDKey,
   conversationUpdateFn: ConversationUpdateFn
 ): ConversationsStates {
   return conversationStates.update(conversationIDKey, initialConversation, conversationUpdateFn)
 }
 
-function reducer(state: Constants.State = initialState, action: ChatGen.Actions) {
+function reducer(state: Types.State = initialState, action: ChatGen.Actions) {
   switch (action.type) {
     case ChatGen.resetStore:
       return Constants.makeState()
@@ -212,7 +214,7 @@ function reducer(state: Constants.State = initialState, action: ChatGen.Actions)
       } else {
         console.warn("couldn't find pending to upgrade", oldKey)
       }
-      break
+      return state
     }
     case ChatGen.updateFinalizedState: {
       const fs = action.payload.finalizedState
@@ -241,7 +243,7 @@ function reducer(state: Constants.State = initialState, action: ChatGen.Actions)
         )
       return state.set('conversationStates', newConversationStates)
     }
-    case 'gregor:updateReachability': {
+    case GregorGen.updateReachability: {
       // reset this when we go online
       if (action.payload.reachability.reachable === reachabilityReachable.yes) {
         const newConversationStates = state
@@ -249,7 +251,7 @@ function reducer(state: Constants.State = initialState, action: ChatGen.Actions)
           .map(conversation => conversation.set('loadedOffline', false))
         return state.set('conversationStates', newConversationStates)
       }
-      break
+      return state
     }
     case ChatGen.setInboxGlobalUntrustedState: {
       return state.set('inboxGlobalUntrustedState', action.payload.inboxGlobalUntrustedState)
@@ -286,9 +288,68 @@ function reducer(state: Constants.State = initialState, action: ChatGen.Actions)
       const {payload: {teamJoinSuccess}} = action
       return state.set('teamJoinSuccess', teamJoinSuccess)
     }
-  }
+    // Saga only actions
+    case ChatGen.updateBadging:
+    case ChatGen.attachmentLoaded:
+    case ChatGen.attachmentSaveFailed:
+    case ChatGen.attachmentSaveStart:
+    case ChatGen.attachmentSaved:
+    case ChatGen.badgeAppForChat:
+    case ChatGen.blockConversation:
+    case ChatGen.deleteMessage:
+    case ChatGen.downloadProgress:
+    case ChatGen.editMessage:
+    case ChatGen.getInboxAndUnbox:
+    case ChatGen.inboxStale:
+    case ChatGen.inboxStoreLoaded:
+    case ChatGen.incomingMessage:
+    case ChatGen.incomingTyping:
+    case ChatGen.joinConversation:
+    case ChatGen.leaveConversation:
+    case ChatGen.loadAttachment:
+    case ChatGen.loadAttachmentPreview:
+    case ChatGen.loadInbox:
+    case ChatGen.loadMoreMessages:
+    case ChatGen.markSeenMessage:
+    case ChatGen.muteConversation:
+    case ChatGen.openAttachmentPopup:
+    case ChatGen.openConversation:
+    case ChatGen.openFolder:
+    case ChatGen.openTeamConversation:
+    case ChatGen.openTlfInChat:
+    case ChatGen.outboxMessageBecameReal:
+    case ChatGen.previewChannel:
+    case ChatGen.postMessage:
+    case ChatGen.removeOutboxMessage:
+    case ChatGen.retryAttachment:
+    case ChatGen.retryMessage:
+    case ChatGen.saveAttachment:
+    case ChatGen.saveAttachmentNative:
+    case ChatGen.selectAttachment:
+    case ChatGen.selectConversation:
+    case ChatGen.selectNext:
+    case ChatGen.setNotifications:
+    case ChatGen.setupChatHandlers:
+    case ChatGen.shareAttachment:
+    case ChatGen.startConversation:
+    case ChatGen.toggleChannelWideNotifications:
+    case ChatGen.unboxConversations:
+    case ChatGen.unboxMore:
+    case ChatGen.updateInboxComplete:
+    case ChatGen.updateMetadata:
+    case ChatGen.updateSnippet:
+    case ChatGen.updateTempMessage:
+    case ChatGen.updateThread:
+    case ChatGen.updateTyping:
+    case ChatGen.updatedNotifications:
+    case ChatGen.uploadProgress:
+      return state
 
-  return state
+    default:
+      // eslint-disable-next-line no-unused-expressions
+      (action: empty) // if you get a flow error here it means there's an action you claim to handle but didn't
+      return state
+  }
 }
 
 export default reducer

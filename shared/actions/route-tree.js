@@ -1,4 +1,5 @@
 // @flow
+import * as Types from '../constants/types/route-tree'
 import * as Constants from '../constants/route-tree'
 import * as I from 'immutable'
 import {getPath} from '../route-tree'
@@ -8,16 +9,6 @@ import {safeTakeEvery} from '../util/saga'
 import type {RouteDefParams, Path, PropsPath} from '../route-tree'
 import type {TypedAction} from '../constants/types/flux'
 import type {TypedState} from '../constants/reducer'
-import type {
-  SetRouteDef,
-  SwitchTo,
-  NavigateTo,
-  NavigateAppend,
-  NavigateUp,
-  NavigationSource,
-  SetRouteState,
-  ResetRoute,
-} from '../constants/route-tree'
 
 const pathActionTransformer = (action, oldState) => {
   const prevPath = oldState.routeTree ? getPath(oldState.routeTree.routeState) : I.List()
@@ -39,7 +30,7 @@ export function pathSelector(state: TypedState, parentPath?: Path): I.List<strin
 
 // Set (or update) the tree of route definitions. Dispatched at initialization
 // time and when route definitions update through HMR.
-export function setRouteDef(routeDef: RouteDefParams): SetRouteDef {
+export function setRouteDef(routeDef: RouteDefParams): Types.SetRouteDef {
   return {
     type: Constants.setRouteDef,
     payload: {routeDef},
@@ -56,7 +47,7 @@ export function setRouteDef(routeDef: RouteDefParams): SetRouteDef {
 //
 // If parentPath is provided, the path will be switched to relative to
 // parentPath without navigating to it.
-export function switchTo(path: Path, parentPath?: Path): SwitchTo {
+export function switchTo(path: Path, parentPath?: Path): Types.SwitchTo {
   return {
     type: Constants.switchTo,
     payload: {path, parentPath},
@@ -81,8 +72,8 @@ export function switchTo(path: Path, parentPath?: Path): SwitchTo {
 export function navigateTo(
   path: PropsPath<*>,
   parentPath?: ?Path,
-  navigationSource: NavigationSource = 'user'
-): NavigateTo {
+  navigationSource: Types.NavigationSource = 'user'
+): Types.NavigateTo {
   return {
     type: Constants.navigateTo,
     payload: {path, parentPath, navigationSource},
@@ -93,7 +84,7 @@ export function navigateTo(
 // Navigate to a path relative to the current path.
 // If parentPath is provided, the path will be appended relative to parentPath
 // without navigating to it.
-export function navigateAppend(path: PropsPath<*>, parentPath?: Path): NavigateAppend {
+export function navigateAppend(path: PropsPath<*>, parentPath?: Path): Types.NavigateAppend {
   return {
     type: Constants.navigateAppend,
     payload: {path, parentPath},
@@ -102,7 +93,7 @@ export function navigateAppend(path: PropsPath<*>, parentPath?: Path): NavigateA
 }
 
 // Navigate one step up from the current path.
-export function navigateUp(): NavigateUp {
+export function navigateUp(): Types.NavigateUp {
   return {
     type: Constants.navigateUp,
     payload: null,
@@ -114,7 +105,7 @@ export function putActionIfOnPath<T: TypedAction<*, *, *>>(
   expectedPath: Path,
   otherAction: T,
   parentPath?: Path
-): Constants.PutActionIfOnPath<T> {
+): Types.PutActionIfOnPath<T> {
   return {
     type: Constants.putActionIfOnPath,
     payload: {expectedPath, otherAction, parentPath},
@@ -125,7 +116,7 @@ export function putActionIfOnPath<T: TypedAction<*, *, *>>(
 export function setRouteState(
   path: Path,
   partialState: {} | ((oldState: I.Map<string, any>) => I.Map<string, any>)
-): SetRouteState {
+): Types.SetRouteState {
   return {
     type: Constants.setRouteState,
     payload: {path, partialState},
@@ -134,7 +125,7 @@ export function setRouteState(
 }
 
 // Reset the props and state for a subtree.
-export function resetRoute(path: Path): ResetRoute {
+export function resetRoute(path: Path): Types.ResetRoute {
   return {
     type: Constants.resetRoute,
     payload: {path},
@@ -142,9 +133,7 @@ export function resetRoute(path: Path): ResetRoute {
   }
 }
 
-function* _putActionIfOnPath({
-  payload: {otherAction, expectedPath, parentPath},
-}: Constants.PutActionIfOnPath<*>) {
+function* _putActionIfOnPath({payload: {otherAction, expectedPath, parentPath}}: Types.PutActionIfOnPath<*>) {
   const currentPath = yield select(pathSelector, parentPath)
   if (I.is(I.List(expectedPath), currentPath)) {
     yield put(otherAction)

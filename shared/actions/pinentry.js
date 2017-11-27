@@ -1,17 +1,15 @@
 // @flow
-import * as Constants from '../constants/pinentry'
+import * as PinentryGen from '../actions/pinentry-gen'
+import * as RPCTypes from '../constants/types/flow-types'
 import engine from '../engine'
 import type {AsyncAction} from '../constants/types/flux'
-import type {GUIEntryFeatures} from '../constants/types/flow-types'
-import type {NewPinentryAction, RegisterPinentryListenerAction} from '../constants/pinentry'
-import {constantsStatusCode, delegateUiCtlRegisterSecretUIRpcPromise} from '../constants/types/flow-types'
 
 const uglySessionIDResponseMapper: {[key: number]: any} = {}
 
 export function registerPinentryListener(): AsyncAction {
   return dispatch => {
     engine().listenOnConnect('registerSecretUI', () => {
-      delegateUiCtlRegisterSecretUIRpcPromise()
+      RPCTypes.delegateUiCtlRegisterSecretUIRpcPromise()
         .then(response => {
           console.log('Registered secret ui')
         })
@@ -20,12 +18,7 @@ export function registerPinentryListener(): AsyncAction {
         })
     })
 
-    dispatch(
-      ({
-        type: Constants.registerPinentryListener,
-        payload: {started: true},
-      }: RegisterPinentryListenerAction)
-    )
+    dispatch(PinentryGen.createRegisterPinentryListener({started: true}))
 
     engine().setIncomingHandler('keybase.1.secretUi.getPassphrase', (payload, response) => {
       console.log('Asked for passphrase')
@@ -34,19 +27,16 @@ export function registerPinentryListener(): AsyncAction {
       const sessionID = payload.sessionID
 
       dispatch(
-        ({
-          type: Constants.newPinentry,
-          payload: {
-            type,
-            sessionID,
-            features,
-            prompt,
-            submitLabel,
-            cancelLabel,
-            windowTitle,
-            retryLabel,
-          },
-        }: NewPinentryAction)
+        PinentryGen.createNewPinentry({
+          cancelLabel,
+          features,
+          prompt,
+          retryLabel,
+          sessionID,
+          submitLabel,
+          type,
+          windowTitle,
+        })
       )
 
       uglySessionIDResponseMapper[sessionID] = response
@@ -54,22 +44,26 @@ export function registerPinentryListener(): AsyncAction {
   }
 }
 
-export function onSubmit(sessionID: number, passphrase: string, features: GUIEntryFeatures): AsyncAction {
+export function onSubmit(
+  sessionID: number,
+  passphrase: string,
+  features: RPCTypes.GUIEntryFeatures
+): AsyncAction {
   let result = {passphrase: passphrase}
   for (const feature in features) {
     result[feature] = features[feature]
   }
   return dispatch => {
-    dispatch({type: Constants.onSubmit, payload: {sessionID}})
+    dispatch(PinentryGen.createOnSubmit({sessionID}))
     uglyResponse(sessionID, result)
   }
 }
 
 export function onCancel(sessionID: number): AsyncAction {
   return dispatch => {
-    dispatch({type: Constants.onCancel, payload: {sessionID}})
+    dispatch(PinentryGen.createOnCancel({sessionID}))
     uglyResponse(sessionID, null, {
-      code: constantsStatusCode.scinputcanceled,
+      code: RPCTypes.constantsStatusCode.scinputcanceled,
       desc: 'Input canceled',
     })
   }

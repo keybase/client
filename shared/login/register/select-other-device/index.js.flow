@@ -1,6 +1,6 @@
 // @flow
 import {Component} from 'react'
-import type {Device} from '../../../constants/devices'
+import type {Device} from '../../../constants/types/devices'
 
 export type Props = {
   canSelectNoDevice: boolean,

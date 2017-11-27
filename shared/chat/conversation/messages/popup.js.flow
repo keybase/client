@@ -1,7 +1,6 @@
 // @flow
 import {Component} from 'react'
-
-import type {AttachmentMessage, TextMessage, LocalMessageState} from '../../../constants/chat'
+import type {AttachmentMessage, TextMessage, LocalMessageState} from '../../../constants/types/chat'
 
 type BaseProps = {
   onHidden: () => void,

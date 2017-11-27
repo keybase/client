@@ -1,11 +1,11 @@
 // @flow
+import * as DevicesGen from '../../actions/devices-gen'
 import DevicePage from '.'
 import moment from 'moment'
 import {compose, mapProps, connect, type TypedState} from '../../util/container'
 import {globalColors} from '../../styles'
 import {navigateUp} from '../../actions/route-tree'
-import {showRevokePage} from '../../actions/devices'
-import {type DeviceDetail} from '../../constants/devices'
+import {type DeviceDetail} from '../../constants/types/devices'
 
 const buildTimeline = (device: DeviceDetail) => {
   const revoked = device.get('revokedAt') && [
@@ -39,7 +39,8 @@ const mapStateToProps = (state: TypedState, {routeProps}) => ({
 
 const mapDispatchToProps = (dispatch: Dispatch, {routeProps}) => ({
   onBack: () => dispatch(navigateUp()),
-  showRevokeDevicePage: () => dispatch(showRevokePage(routeProps.get('deviceID'))),
+  showRevokeDevicePage: () =>
+    dispatch(DevicesGen.createShowRevokePage({deviceID: routeProps.get('deviceID')})),
 })
 
 const bannerColor = props =>

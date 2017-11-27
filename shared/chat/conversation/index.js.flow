@@ -1,22 +1,22 @@
 // @flow
 import {Component} from 'react'
-import * as Constants from '../../constants/chat'
+import * as Types from '../../constants/types/chat'
 import {type PropsPath} from '../../route-tree'
 
 export type Props = {|
   editLastMessageCounter: number,
   showLoader: boolean,
-  finalizeInfo: ?Constants.FinalizeInfo,
+  finalizeInfo: ?Types.FinalizeInfo,
   focusInputCounter: number,
   listScrollDownCounter: number,
-  onAttach: (inputs: Array<Constants.AttachmentInput>) => void,
+  onAttach: (inputs: Array<Types.AttachmentInput>) => void,
   onBack: () => void,
   onEditLastMessage: () => void,
   onFocusInput: () => void,
   onScrollDown: () => void,
   onOpenInfoPanelMobile: () => void,
-  rekeyInfo: ?Constants.RekeyInfo,
-  selectedConversationIDKey: ?Constants.ConversationIDKey,
+  rekeyInfo: ?Types.RekeyInfo,
+  selectedConversationIDKey: ?Types.ConversationIDKey,
   threadLoadedOffline: boolean,
   inSearch: boolean,
   onExitSearch: () => void,

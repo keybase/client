@@ -1,5 +1,6 @@
 // @flow
 import * as Constants from '../../../constants/chat'
+import * as Types from '../../../constants/types/chat'
 import Attachment from './attachment/container'
 import ErrorMessage from './error/container'
 import Header from './header/container'
@@ -13,14 +14,14 @@ import Wrapper from './wrapper/container'
 import {Box} from '../../../common-adapters'
 
 const factory = (
-  messageKey: Constants.MessageKey,
-  prevMessageKey: ?Constants.MessageKey,
+  messageKey: Types.MessageKey,
+  prevMessageKey: ?Types.MessageKey,
   onAction: (
-    message: Constants.ServerMessage,
-    localMessageState: Constants.LocalMessageState,
+    message: Types.ServerMessage,
+    localMessageState: Types.LocalMessageState,
     event: SyntheticEvent<>
   ) => void,
-  onShowEditor: (message: Constants.ServerMessage, event: SyntheticEvent<>) => void,
+  onShowEditor: (message: Types.ServerMessage, event: SyntheticEvent<>) => void,
   isSelected: boolean,
   measure: () => void
 ) => {

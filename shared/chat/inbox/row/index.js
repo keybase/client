@@ -9,11 +9,11 @@ import {BigTeamsLabel} from './big-teams-label'
 import {Box} from '../../../common-adapters'
 import {globalStyles, globalMargins} from '../../../styles'
 import {isMobile} from '../../../constants/platform'
-import * as Constants from '../../../constants/chat'
+import * as Types from '../../../constants/types/chat'
 
 type MakeRowOptions = {
   channelname: string,
-  conversationIDKey: ?Constants.ConversationIDKey,
+  conversationIDKey: ?Types.ConversationIDKey,
   filtered: boolean,
   isActiveRoute: boolean,
   teamname: string,
