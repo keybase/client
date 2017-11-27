@@ -14,7 +14,7 @@ import (
 	"github.com/keybase/kbfs/kbfsmd"
 	"github.com/keybase/kbfs/libkbfs"
 	"github.com/pkg/errors"
-	billy "gopkg.in/src-d/go-billy.v3"
+	billy "gopkg.in/src-d/go-billy.v4"
 )
 
 // File is a wrapper around a libkbfs.Node that implements the

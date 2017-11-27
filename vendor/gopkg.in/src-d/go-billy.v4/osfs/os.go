@@ -1,13 +1,14 @@
 // Package osfs provides a billy filesystem for the OS.
-package osfs // import "gopkg.in/src-d/go-billy.v3/osfs"
+package osfs // import "gopkg.in/src-d/go-billy.v4/osfs"
 
 import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"sync"
 
-	"gopkg.in/src-d/go-billy.v3"
-	"gopkg.in/src-d/go-billy.v3/helper/chroot"
+	"gopkg.in/src-d/go-billy.v4"
+	"gopkg.in/src-d/go-billy.v4/helper/chroot"
 )
 
 const (
@@ -21,11 +22,6 @@ type OS struct{}
 // New returns a new OS filesystem.
 func New(baseDir string) billy.Filesystem {
 	return chroot.New(&OS{}, baseDir)
-}
-
-// file is a wrapper for an os.File which adds support for file locking.
-type file struct {
-	*os.File
 }
 
 func (fs *OS) Create(filename string) (billy.File, error) {
@@ -43,7 +39,7 @@ func (fs *OS) OpenFile(filename string, flag int, perm os.FileMode) (billy.File,
 	if err != nil {
 		return nil, err
 	}
-	return file{f}, err
+	return &file{File: f}, err
 }
 
 func (fs *OS) createDir(fullpath string) error {
@@ -87,6 +83,10 @@ func (fs *OS) Open(filename string) (billy.File, error) {
 	return fs.OpenFile(filename, os.O_RDONLY, 0)
 }
 
+func (fs *OS) Stat(filename string) (os.FileInfo, error) {
+	return os.Stat(filename)
+}
+
 func (fs *OS) Remove(filename string) error {
 	return os.Remove(filename)
 }
@@ -100,7 +100,7 @@ func (fs *OS) TempFile(dir, prefix string) (billy.File, error) {
 	if err != nil {
 		return nil, err
 	}
-	return file{f}, nil
+	return &file{File: f}, nil
 }
 
 func (fs *OS) Join(elem ...string) string {
@@ -125,4 +125,10 @@ func (fs *OS) Symlink(target, link string) error {
 
 func (fs *OS) Readlink(link string) (string, error) {
 	return os.Readlink(link)
+}
+
+// file is a wrapper for an os.File which adds support for file locking.
+type file struct {
+	*os.File
+	m sync.Mutex
 }

@@ -352,7 +352,7 @@ func newSendPackSession(url string, auth transport.AuthMethod) (transport.Receiv
 	return c.NewReceivePackSession(ep, auth)
 }
 
-func newClient(url string) (transport.Transport, transport.Endpoint, error) {
+func newClient(url string) (transport.Transport, *transport.Endpoint, error) {
 	ep, err := transport.NewEndpoint(url)
 	if err != nil {
 		return nil, nil, err
@@ -728,7 +728,7 @@ func isFastForward(s storer.EncodedObjectStorer, old, new plumbing.Hash) (bool, 
 
 	found := false
 	iter := object.NewCommitPreorderIter(c, nil, nil)
-	return found, iter.ForEach(func(c *object.Commit) error {
+	err = iter.ForEach(func(c *object.Commit) error {
 		if c.Hash != old {
 			return nil
 		}
@@ -736,6 +736,7 @@ func isFastForward(s storer.EncodedObjectStorer, old, new plumbing.Hash) (bool, 
 		found = true
 		return storer.ErrStop
 	})
+	return found, err
 }
 
 func (r *Remote) newUploadPackRequest(o *FetchOptions,
@@ -760,6 +761,7 @@ func (r *Remote) newUploadPackRequest(o *FetchOptions,
 	for _, s := range o.RefSpecs {
 		if !s.IsWildcard() {
 			isWildcard = false
+			break
 		}
 	}
 

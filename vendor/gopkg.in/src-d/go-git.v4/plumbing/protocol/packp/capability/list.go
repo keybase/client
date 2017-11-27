@@ -108,7 +108,7 @@ func (l *List) Add(c Capability, values ...string) error {
 		return nil
 	}
 
-	if !multipleArgument[c] && len(l.m[c].Values) > 0 {
+	if known[c] && !multipleArgument[c] && len(l.m[c].Values) > 0 {
 		return ErrMultipleArguments
 	}
 
@@ -116,7 +116,19 @@ func (l *List) Add(c Capability, values ...string) error {
 	return nil
 }
 
+func (l *List) validateNoEmptyArgs(values []string) error {
+	for _, v := range values {
+		if v == "" {
+			return ErrEmtpyArgument
+		}
+	}
+	return nil
+}
+
 func (l *List) validate(c Capability, values []string) error {
+	if !known[c] {
+		return l.validateNoEmptyArgs(values)
+	}
 	if requiresArgument[c] && len(values) == 0 {
 		return ErrArgumentsRequired
 	}
@@ -128,14 +140,7 @@ func (l *List) validate(c Capability, values []string) error {
 	if !multipleArgument[c] && len(values) > 1 {
 		return ErrMultipleArguments
 	}
-
-	for _, v := range values {
-		if v == "" {
-			return ErrEmtpyArgument
-		}
-	}
-
-	return nil
+	return l.validateNoEmptyArgs(values)
 }
 
 // Supports returns true if capability is present

@@ -234,7 +234,7 @@ const (
 
 const DefaultAgent = "go-git/4.x"
 
-var valid = map[Capability]bool{
+var known = map[Capability]bool{
 	MultiACK: true, MultiACKDetailed: true, NoDone: true, ThinPack: true,
 	Sideband: true, Sideband64k: true, OFSDelta: true, Agent: true,
 	Shallow: true, DeepenSince: true, DeepenNot: true, DeepenRelative: true,

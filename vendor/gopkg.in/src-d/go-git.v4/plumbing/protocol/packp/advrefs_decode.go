@@ -169,7 +169,7 @@ func decodeSkipNoRefs(p *advRefsDecoder) decoderStateFn {
 	return decodeCaps
 }
 
-// decode the refname, expectes SP refname NULL
+// decode the refname, expects SP refname NULL
 func decodeFirstRef(l *advRefsDecoder) decoderStateFn {
 	if len(l.line) < 3 {
 		l.error("line too short after hash")

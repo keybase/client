@@ -35,8 +35,8 @@ func (r *ServerResponse) Decode(reader *bufio.Reader, isMultiACK bool) error {
 			return err
 		}
 
-		// we need to detect when the end of a response header and the begining
-		// of a packfile header happend, some requests to the git daemon
+		// we need to detect when the end of a response header and the beginning
+		// of a packfile header happened, some requests to the git daemon
 		// produces a duplicate ACK header even when multi_ack is not supported.
 		stop, err := r.stopReading(reader)
 		if err != nil {

@@ -8,7 +8,7 @@ import (
 	"gopkg.in/src-d/go-git.v4/utils/merkletrie/noder"
 )
 
-// The folowing functions transform changes types form the merkletrie
+// The following functions transform changes types form the merkletrie
 // package to changes types from this package.
 
 func newChange(c merkletrie.Change) (*Change, error) {

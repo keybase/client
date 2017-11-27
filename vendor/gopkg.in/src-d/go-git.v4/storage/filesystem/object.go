@@ -15,7 +15,7 @@ import (
 	"gopkg.in/src-d/go-git.v4/storage/memory"
 	"gopkg.in/src-d/go-git.v4/utils/ioutil"
 
-	"gopkg.in/src-d/go-billy.v3"
+	"gopkg.in/src-d/go-billy.v4"
 )
 
 const DefaultMaxDeltaBaseCacheSize = 92 * cache.MiByte
@@ -528,4 +528,12 @@ func (s *ObjectStorage) LooseObjectTime(hash plumbing.Hash) (time.Time, error) {
 
 func (s *ObjectStorage) DeleteLooseObject(hash plumbing.Hash) error {
 	return s.dir.ObjectDelete(hash)
+}
+
+func (s *ObjectStorage) ObjectPacks() ([]plumbing.Hash, error) {
+	return s.dir.ObjectPacks()
+}
+
+func (s *ObjectStorage) DeleteOldObjectPackAndIndex(h plumbing.Hash, t time.Time) error {
+	return s.dir.DeleteOldObjectPackAndIndex(h, t)
 }

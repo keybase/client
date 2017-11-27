@@ -52,6 +52,12 @@ type EncodedObjectStorer interface {
 	LooseObjectTime(plumbing.Hash) (time.Time, error)
 	// DeleteLooseObject deletes a loose object if it exists.
 	DeleteLooseObject(plumbing.Hash) error
+	// ObjectPacks returns hashes of object packs if the underlying
+	// implementation has pack files.
+	ObjectPacks() ([]plumbing.Hash, error)
+	// DeleteOldObjectPackAndIndex deletes an object pack and the corresponding index file if they exist.
+	// Deletion is only performed if the pack is older than the supplied time (or the time is zero).
+	DeleteOldObjectPackAndIndex(plumbing.Hash, time.Time) error
 }
 
 // DeltaObjectStorer is an EncodedObjectStorer that can return delta
@@ -139,7 +145,7 @@ func (iter *EncodedObjectLookupIter) Next() (plumbing.EncodedObject, error) {
 }
 
 // ForEach call the cb function for each object contained on this iter until
-// an error happends or the end of the iter is reached. If ErrStop is sent
+// an error happens or the end of the iter is reached. If ErrStop is sent
 // the iteration is stop but no error is returned. The iterator is closed.
 func (iter *EncodedObjectLookupIter) ForEach(cb func(plumbing.EncodedObject) error) error {
 	return ForEachIterator(iter, cb)
@@ -184,7 +190,7 @@ func (iter *EncodedObjectSliceIter) Next() (plumbing.EncodedObject, error) {
 }
 
 // ForEach call the cb function for each object contained on this iter until
-// an error happends or the end of the iter is reached. If ErrStop is sent
+// an error happens or the end of the iter is reached. If ErrStop is sent
 // the iteration is stop but no error is returned. The iterator is closed.
 func (iter *EncodedObjectSliceIter) ForEach(cb func(plumbing.EncodedObject) error) error {
 	return ForEachIterator(iter, cb)
@@ -229,7 +235,7 @@ func (iter *MultiEncodedObjectIter) Next() (plumbing.EncodedObject, error) {
 }
 
 // ForEach call the cb function for each object contained on this iter until
-// an error happends or the end of the iter is reached. If ErrStop is sent
+// an error happens or the end of the iter is reached. If ErrStop is sent
 // the iteration is stop but no error is returned. The iterator is closed.
 func (iter *MultiEncodedObjectIter) ForEach(cb func(plumbing.EncodedObject) error) error {
 	return ForEachIterator(iter, cb)

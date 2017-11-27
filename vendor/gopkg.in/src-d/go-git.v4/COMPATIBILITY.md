@@ -75,8 +75,8 @@ is supported by go-git.
 | worktree                              | ✖ |
 | annotate                              | (see blame) |
 | **gpg** |
-| git-verify-commit                     | ✖ |
-| git-verify-tag                        | ✖ |
+| git-verify-commit                     | ✔ |
+| git-verify-tag                        | ✔ |
 | **plumbing commands** |
 | cat-file                              | ✔ |
 | check-ignore                          | |

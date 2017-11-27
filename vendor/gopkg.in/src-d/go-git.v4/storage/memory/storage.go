@@ -178,6 +178,13 @@ func (o *ObjectStorage) ForEachObjectHash(fun func(plumbing.Hash) error) error {
 	return nil
 }
 
+func (o *ObjectStorage) ObjectPacks() ([]plumbing.Hash, error) {
+	return nil, nil
+}
+func (o *ObjectStorage) DeleteOldObjectPackAndIndex(plumbing.Hash, time.Time) error {
+	return nil
+}
+
 var errNotSupported = fmt.Errorf("Not supported")
 
 func (s *ObjectStorage) LooseObjectTime(hash plumbing.Hash) (time.Time, error) {

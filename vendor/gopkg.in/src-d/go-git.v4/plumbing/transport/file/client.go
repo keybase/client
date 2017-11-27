@@ -73,7 +73,7 @@ func prefixExecPath(cmd string) (string, error) {
 	return cmd, nil
 }
 
-func (r *runner) Command(cmd string, ep transport.Endpoint, auth transport.AuthMethod,
+func (r *runner) Command(cmd string, ep *transport.Endpoint, auth transport.AuthMethod,
 ) (common.Command, error) {
 
 	switch cmd {
@@ -95,7 +95,7 @@ func (r *runner) Command(cmd string, ep transport.Endpoint, auth transport.AuthM
 		}
 	}
 
-	return &command{cmd: exec.Command(cmd, ep.Path())}, nil
+	return &command{cmd: exec.Command(cmd, ep.Path)}, nil
 }
 
 type command struct {

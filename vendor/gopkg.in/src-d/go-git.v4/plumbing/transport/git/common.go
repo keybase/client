@@ -20,7 +20,7 @@ const DefaultPort = 9418
 type runner struct{}
 
 // Command returns a new Command for the given cmd in the given Endpoint
-func (r *runner) Command(cmd string, ep transport.Endpoint, auth transport.AuthMethod) (common.Command, error) {
+func (r *runner) Command(cmd string, ep *transport.Endpoint, auth transport.AuthMethod) (common.Command, error) {
 	// auth not allowed since git protocol doesn't support authentication
 	if auth != nil {
 		return nil, transport.ErrInvalidAuthMethod
@@ -36,7 +36,7 @@ type command struct {
 	conn      net.Conn
 	connected bool
 	command   string
-	endpoint  transport.Endpoint
+	endpoint  *transport.Endpoint
 }
 
 // Start executes the command sending the required message to the TCP connection
@@ -63,8 +63,8 @@ func (c *command) connect() error {
 }
 
 func (c *command) getHostWithPort() string {
-	host := c.endpoint.Host()
-	port := c.endpoint.Port()
+	host := c.endpoint.Host
+	port := c.endpoint.Port
 	if port <= 0 {
 		port = DefaultPort
 	}
@@ -89,13 +89,13 @@ func (c *command) StdoutPipe() (io.Reader, error) {
 	return c.conn, nil
 }
 
-func endpointToCommand(cmd string, ep transport.Endpoint) string {
-	host := ep.Host()
-	if ep.Port() != DefaultPort {
-		host = fmt.Sprintf("%s:%d", ep.Host(), ep.Port())
+func endpointToCommand(cmd string, ep *transport.Endpoint) string {
+	host := ep.Host
+	if ep.Port != DefaultPort {
+		host = fmt.Sprintf("%s:%d", ep.Host, ep.Port)
 	}
 
-	return fmt.Sprintf("%s %s%chost=%s%c", cmd, ep.Path(), 0, host, 0)
+	return fmt.Sprintf("%s %s%chost=%s%c", cmd, ep.Path, 0, host, 0)
 }
 
 // Close closes the TCP connection and connection.

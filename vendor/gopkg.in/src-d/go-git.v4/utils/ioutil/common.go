@@ -123,13 +123,13 @@ type readerOnError struct {
 }
 
 // NewReaderOnError returns a io.Reader that call the notify function when an
-// unexpected (!io.EOF) error happends, after call Read function.
+// unexpected (!io.EOF) error happens, after call Read function.
 func NewReaderOnError(r io.Reader, notify func(error)) io.Reader {
 	return &readerOnError{r, notify}
 }
 
 // NewReadCloserOnError returns a io.ReadCloser that call the notify function
-// when an unexpected (!io.EOF) error happends, after call Read function.
+// when an unexpected (!io.EOF) error happens, after call Read function.
 func NewReadCloserOnError(r io.ReadCloser, notify func(error)) io.ReadCloser {
 	return NewReadCloser(NewReaderOnError(r, notify), r)
 }
@@ -149,13 +149,13 @@ type writerOnError struct {
 }
 
 // NewWriterOnError returns a io.Writer that call the notify function when an
-// unexpected (!io.EOF) error happends, after call Write function.
+// unexpected (!io.EOF) error happens, after call Write function.
 func NewWriterOnError(w io.Writer, notify func(error)) io.Writer {
 	return &writerOnError{w, notify}
 }
 
 // NewWriteCloserOnError returns a io.WriteCloser that call the notify function
-//when an unexpected (!io.EOF) error happends, after call Write function.
+//when an unexpected (!io.EOF) error happens, after call Write function.
 func NewWriteCloserOnError(w io.WriteCloser, notify func(error)) io.WriteCloser {
 	return NewWriteCloser(NewWriterOnError(w, notify), w)
 }

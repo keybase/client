@@ -13,6 +13,7 @@
 package transport
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"fmt"
@@ -20,6 +21,7 @@ import (
 	"net/url"
 	"regexp"
 	"strconv"
+	"strings"
 
 	"gopkg.in/src-d/go-git.v4/plumbing"
 	"gopkg.in/src-d/go-git.v4/plumbing/protocol/packp"
@@ -45,9 +47,9 @@ const (
 // It is implemented both by the client and the server, making this a RPC.
 type Transport interface {
 	// NewUploadPackSession starts a git-upload-pack session for an endpoint.
-	NewUploadPackSession(Endpoint, AuthMethod) (UploadPackSession, error)
+	NewUploadPackSession(*Endpoint, AuthMethod) (UploadPackSession, error)
 	// NewReceivePackSession starts a git-receive-pack session for an endpoint.
-	NewReceivePackSession(Endpoint, AuthMethod) (ReceivePackSession, error)
+	NewReceivePackSession(*Endpoint, AuthMethod) (ReceivePackSession, error)
 }
 
 type Session interface {
@@ -91,26 +93,71 @@ type ReceivePackSession interface {
 }
 
 // Endpoint represents a Git URL in any supported protocol.
-type Endpoint interface {
-	// Protocol returns the protocol (e.g. git, https, file). It should never
-	// return the empty string.
-	Protocol() string
-	// User returns the user or an empty string if none is given.
-	User() string
-	// Password returns the password or an empty string if none is given.
-	Password() string
-	// Host returns the host or an empty string if none is given.
-	Host() string
-	// Port returns the port or 0 if there is no port or a default should be
-	// used.
-	Port() int
-	// Path returns the repository path.
-	Path() string
-	// String returns a string representation of the Git URL.
-	String() string
+type Endpoint struct {
+	// Protocol is the protocol of the endpoint (e.g. git, https, file).
+	Protocol string
+	// User is the user.
+	User string
+	// Password is the password.
+	Password string
+	// Host is the host.
+	Host string
+	// Port is the port to connect, if 0 the default port for the given protocol
+	// wil be used.
+	Port int
+	// Path is the repository path.
+	Path string
 }
 
-func NewEndpoint(endpoint string) (Endpoint, error) {
+var defaultPorts = map[string]int{
+	"http":  80,
+	"https": 443,
+	"git":   9418,
+	"ssh":   22,
+}
+
+// String returns a string representation of the Git URL.
+func (u *Endpoint) String() string {
+	var buf bytes.Buffer
+	if u.Protocol != "" {
+		buf.WriteString(u.Protocol)
+		buf.WriteByte(':')
+	}
+
+	if u.Protocol != "" || u.Host != "" || u.User != "" || u.Password != "" {
+		buf.WriteString("//")
+
+		if u.User != "" || u.Password != "" {
+			buf.WriteString(u.User)
+			if u.Password != "" {
+				buf.WriteByte(':')
+				buf.WriteString(u.Password)
+			}
+
+			buf.WriteByte('@')
+		}
+
+		if u.Host != "" {
+			buf.WriteString(u.Host)
+
+			if u.Port != 0 {
+				port, ok := defaultPorts[strings.ToLower(u.Protocol)]
+				if !ok || ok && port != u.Port {
+					fmt.Fprintf(&buf, ":%d", u.Port)
+				}
+			}
+		}
+	}
+
+	if u.Path != "" && u.Path[0] != '/' && u.Host != "" {
+		buf.WriteByte('/')
+	}
+
+	buf.WriteString(u.Path)
+	return buf.String()
+}
+
+func NewEndpoint(endpoint string) (*Endpoint, error) {
 	if e, ok := parseSCPLike(endpoint); ok {
 		return e, nil
 	}
@@ -119,9 +166,13 @@ func NewEndpoint(endpoint string) (Endpoint, error) {
 		return e, nil
 	}
 
+	return parseURL(endpoint)
+}
+
+func parseURL(endpoint string) (*Endpoint, error) {
 	u, err := url.Parse(endpoint)
 	if err != nil {
-		return nil, plumbing.NewPermanentError(err)
+		return nil, err
 	}
 
 	if !u.IsAbs() {
@@ -130,40 +181,29 @@ func NewEndpoint(endpoint string) (Endpoint, error) {
 		))
 	}
 
-	return urlEndpoint{u}, nil
-}
-
-type urlEndpoint struct {
-	*url.URL
-}
-
-func (e urlEndpoint) Protocol() string { return e.URL.Scheme }
-func (e urlEndpoint) Host() string     { return e.URL.Hostname() }
-
-func (e urlEndpoint) User() string {
-	if e.URL.User == nil {
-		return ""
+	var user, pass string
+	if u.User != nil {
+		user = u.User.Username()
+		pass, _ = u.User.Password()
 	}
 
-	return e.URL.User.Username()
+	return &Endpoint{
+		Protocol: u.Scheme,
+		User:     user,
+		Password: pass,
+		Host:     u.Hostname(),
+		Port:     getPort(u),
+		Path:     getPath(u),
+	}, nil
 }
 
-func (e urlEndpoint) Password() string {
-	if e.URL.User == nil {
-		return ""
-	}
-
-	p, _ := e.URL.User.Password()
-	return p
-}
-
-func (e urlEndpoint) Port() int {
-	p := e.URL.Port()
+func getPort(u *url.URL) int {
+	p := u.Port()
 	if p == "" {
 		return 0
 	}
 
-	i, err := strconv.Atoi(e.URL.Port())
+	i, err := strconv.Atoi(p)
 	if err != nil {
 		return 0
 	}
@@ -171,86 +211,55 @@ func (e urlEndpoint) Port() int {
 	return i
 }
 
-func (e urlEndpoint) Path() string {
-	var res string = e.URL.Path
-	if e.URL.RawQuery != "" {
-		res += "?" + e.URL.RawQuery
+func getPath(u *url.URL) string {
+	var res string = u.Path
+	if u.RawQuery != "" {
+		res += "?" + u.RawQuery
 	}
 
-	if e.URL.Fragment != "" {
-		res += "#" + e.URL.Fragment
+	if u.Fragment != "" {
+		res += "#" + u.Fragment
 	}
 
 	return res
 }
-
-type scpEndpoint struct {
-	user string
-	host string
-	port string
-	path string
-}
-
-func (e *scpEndpoint) Protocol() string { return "ssh" }
-func (e *scpEndpoint) User() string     { return e.user }
-func (e *scpEndpoint) Password() string { return "" }
-func (e *scpEndpoint) Host() string     { return e.host }
-func (e *scpEndpoint) Path() string     { return e.path }
-func (e *scpEndpoint) Port() int {
-	i, err := strconv.Atoi(e.port)
-	if err != nil {
-		return 22
-	}
-	return i
-}
-
-func (e *scpEndpoint) String() string {
-	var user string
-	if e.user != "" {
-		user = fmt.Sprintf("%s@", e.user)
-	}
-
-	return fmt.Sprintf("%s%s:%s", user, e.host, e.path)
-}
-
-type fileEndpoint struct {
-	path string
-}
-
-func (e *fileEndpoint) Protocol() string { return "file" }
-func (e *fileEndpoint) User() string     { return "" }
-func (e *fileEndpoint) Password() string { return "" }
-func (e *fileEndpoint) Host() string     { return "" }
-func (e *fileEndpoint) Port() int        { return 0 }
-func (e *fileEndpoint) Path() string     { return e.path }
-func (e *fileEndpoint) String() string   { return e.path }
 
 var (
 	isSchemeRegExp   = regexp.MustCompile(`^[^:]+://`)
 	scpLikeUrlRegExp = regexp.MustCompile(`^(?:(?P<user>[^@]+)@)?(?P<host>[^:\s]+):(?:(?P<port>[0-9]{1,5})/)?(?P<path>[^\\].*)$`)
 )
 
-func parseSCPLike(endpoint string) (Endpoint, bool) {
+func parseSCPLike(endpoint string) (*Endpoint, bool) {
 	if isSchemeRegExp.MatchString(endpoint) || !scpLikeUrlRegExp.MatchString(endpoint) {
 		return nil, false
 	}
 
 	m := scpLikeUrlRegExp.FindStringSubmatch(endpoint)
-	return &scpEndpoint{
-		user: m[1],
-		host: m[2],
-		port: m[3],
-		path: m[4],
+
+	port, err := strconv.Atoi(m[3])
+	if err != nil {
+		port = 22
+	}
+
+	return &Endpoint{
+		Protocol: "ssh",
+		User:     m[1],
+		Host:     m[2],
+		Port:     port,
+		Path:     m[4],
 	}, true
 }
 
-func parseFile(endpoint string) (Endpoint, bool) {
+func parseFile(endpoint string) (*Endpoint, bool) {
 	if isSchemeRegExp.MatchString(endpoint) {
 		return nil, false
 	}
 
 	path := endpoint
-	return &fileEndpoint{path}, true
+	return &Endpoint{
+		Protocol: "file",
+		Path:     path,
+	}, true
 }
 
 // UnsupportedCapabilities are the capabilities not supported by any client

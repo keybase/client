@@ -8,7 +8,7 @@ import (
 )
 
 // Path values represent a noder and its ancestors.  The root goes first
-// and the actual final noder the path is refering to will be the last.
+// and the actual final noder the path is referring to will be the last.
 //
 // A path implements the Noder interface, redirecting all the interface
 // calls to its final noder.

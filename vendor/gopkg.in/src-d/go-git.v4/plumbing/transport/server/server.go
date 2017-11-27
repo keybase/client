@@ -43,7 +43,7 @@ func NewClient(loader Loader) transport.Transport {
 	}
 }
 
-func (s *server) NewUploadPackSession(ep transport.Endpoint, auth transport.AuthMethod) (transport.UploadPackSession, error) {
+func (s *server) NewUploadPackSession(ep *transport.Endpoint, auth transport.AuthMethod) (transport.UploadPackSession, error) {
 	sto, err := s.loader.Load(ep)
 	if err != nil {
 		return nil, err
@@ -52,7 +52,7 @@ func (s *server) NewUploadPackSession(ep transport.Endpoint, auth transport.Auth
 	return s.handler.NewUploadPackSession(sto)
 }
 
-func (s *server) NewReceivePackSession(ep transport.Endpoint, auth transport.AuthMethod) (transport.ReceivePackSession, error) {
+func (s *server) NewReceivePackSession(ep *transport.Endpoint, auth transport.AuthMethod) (transport.ReceivePackSession, error) {
 	sto, err := s.loader.Load(ep)
 	if err != nil {
 		return nil, err

@@ -39,7 +39,7 @@ type Commander interface {
 	// error should be returned if the endpoint is not supported or the
 	// command cannot be created (e.g. binary does not exist, connection
 	// cannot be established).
-	Command(cmd string, ep transport.Endpoint, auth transport.AuthMethod) (Command, error)
+	Command(cmd string, ep *transport.Endpoint, auth transport.AuthMethod) (Command, error)
 }
 
 // Command is used for a single command execution.
@@ -83,14 +83,14 @@ func NewClient(runner Commander) transport.Transport {
 }
 
 // NewUploadPackSession creates a new UploadPackSession.
-func (c *client) NewUploadPackSession(ep transport.Endpoint, auth transport.AuthMethod) (
+func (c *client) NewUploadPackSession(ep *transport.Endpoint, auth transport.AuthMethod) (
 	transport.UploadPackSession, error) {
 
 	return c.newSession(transport.UploadPackServiceName, ep, auth)
 }
 
 // NewReceivePackSession creates a new ReceivePackSession.
-func (c *client) NewReceivePackSession(ep transport.Endpoint, auth transport.AuthMethod) (
+func (c *client) NewReceivePackSession(ep *transport.Endpoint, auth transport.AuthMethod) (
 	transport.ReceivePackSession, error) {
 
 	return c.newSession(transport.ReceivePackServiceName, ep, auth)
@@ -108,7 +108,7 @@ type session struct {
 	firstErrLine  chan string
 }
 
-func (c *client) newSession(s string, ep transport.Endpoint, auth transport.AuthMethod) (*session, error) {
+func (c *client) newSession(s string, ep *transport.Endpoint, auth transport.AuthMethod) (*session, error) {
 	cmd, err := c.cmdr.Command(s, ep, auth)
 	if err != nil {
 		return nil, err

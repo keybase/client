@@ -125,7 +125,7 @@ func (iter *ReferenceSliceIter) Next() (*plumbing.Reference, error) {
 }
 
 // ForEach call the cb function for each reference contained on this iter until
-// an error happends or the end of the iter is reached. If ErrStop is sent
+// an error happens or the end of the iter is reached. If ErrStop is sent
 // the iteration is stop but no error is returned. The iterator is closed.
 func (iter *ReferenceSliceIter) ForEach(cb func(*plumbing.Reference) error) error {
 	defer iter.Close()

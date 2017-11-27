@@ -120,7 +120,7 @@ table of git with go-git.
 Contribute
 ----------
 
-If you are interested on contributing to go-git, open an [issue](https://github.com/src-d/go-git/issues) explaining which missing functionality you want to work in, and we will guide you through the implementation.
+If you are interested in contributing to go-git, open an [issue](https://github.com/src-d/go-git/issues) explaining which missing functionality you want to work on, and we will guide you through the implementation.
 
 License
 -------

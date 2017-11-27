@@ -34,14 +34,14 @@ func InstallProtocol(scheme string, c transport.Transport) {
 // NewClient returns the appropriate client among of the set of known protocols:
 // http://, https://, ssh:// and file://.
 // See `InstallProtocol` to add or modify protocols.
-func NewClient(endpoint transport.Endpoint) (transport.Transport, error) {
-	f, ok := Protocols[endpoint.Protocol()]
+func NewClient(endpoint *transport.Endpoint) (transport.Transport, error) {
+	f, ok := Protocols[endpoint.Protocol]
 	if !ok {
-		return nil, fmt.Errorf("unsupported scheme %q", endpoint.Protocol())
+		return nil, fmt.Errorf("unsupported scheme %q", endpoint.Protocol)
 	}
 
 	if f == nil {
-		return nil, fmt.Errorf("malformed client for scheme %q, client is defined as nil", endpoint.Protocol())
+		return nil, fmt.Errorf("malformed client for scheme %q, client is defined as nil", endpoint.Protocol)
 	}
 
 	return f, nil

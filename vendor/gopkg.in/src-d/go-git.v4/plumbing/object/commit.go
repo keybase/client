@@ -3,13 +3,21 @@ package object
 import (
 	"bufio"
 	"bytes"
+	"errors"
 	"fmt"
 	"io"
 	"strings"
 
+	"golang.org/x/crypto/openpgp"
+
 	"gopkg.in/src-d/go-git.v4/plumbing"
 	"gopkg.in/src-d/go-git.v4/plumbing/storer"
 	"gopkg.in/src-d/go-git.v4/utils/ioutil"
+)
+
+const (
+	beginpgp string = "-----BEGIN PGP SIGNATURE-----"
+	endpgp   string = "-----END PGP SIGNATURE-----"
 )
 
 // Hash represents the hash of an object
@@ -19,7 +27,7 @@ type Hash plumbing.Hash
 // at a certain point in time. It contains meta-information about that point
 // in time, such as a timestamp, the author of the changes since the last
 // commit, a pointer to the previous commit(s), etc.
-// http://schacon.github.io/gitbook/1_the_git_object_model.html
+// http://shafiulazam.com/gitbook/1_the_git_object_model.html
 type Commit struct {
 	// Hash of the commit object.
 	Hash plumbing.Hash
@@ -28,6 +36,8 @@ type Commit struct {
 	// Committer is the one performing the commit, might be different from
 	// Author.
 	Committer Signature
+	// PGPSignature is the PGP signature of the commit.
+	PGPSignature string
 	// Message is the commit message, contains arbitrary text.
 	Message string
 	// TreeHash is the hash of the root tree of the commit.
@@ -91,6 +101,17 @@ func (c *Commit) NumParents() int {
 	return len(c.ParentHashes)
 }
 
+var ErrParentNotFound = errors.New("commit parent not found")
+
+// Parent returns the ith parent of a commit.
+func (c *Commit) Parent(i int) (*Commit, error) {
+	if len(c.ParentHashes) == 0 || i > len(c.ParentHashes)-1 {
+		return nil, ErrParentNotFound
+	}
+
+	return GetCommit(c.s, c.ParentHashes[i])
+}
+
 // File returns the file with the specified "path" in the commit and a
 // nil error if the file exists. If the file does not exist, it returns
 // a nil file and the ErrFileNotFound error.
@@ -145,10 +166,31 @@ func (c *Commit) Decode(o plumbing.EncodedObject) (err error) {
 	r := bufio.NewReader(reader)
 
 	var message bool
+	var pgpsig bool
 	for {
 		line, err := r.ReadBytes('\n')
 		if err != nil && err != io.EOF {
 			return err
+		}
+
+		if pgpsig {
+			// Check if it's the end of a PGP signature.
+			if bytes.Contains(line, []byte(endpgp)) {
+				c.PGPSignature += endpgp + "\n"
+				pgpsig = false
+			} else {
+				// Trim the left padding.
+				line = bytes.TrimLeft(line, " ")
+				c.PGPSignature += string(line)
+			}
+			continue
+		}
+
+		// Check if it's the beginning of a PGP signature.
+		if bytes.Contains(line, []byte(beginpgp)) {
+			c.PGPSignature += beginpgp + "\n"
+			pgpsig = true
+			continue
 		}
 
 		if !message {
@@ -181,6 +223,10 @@ func (c *Commit) Decode(o plumbing.EncodedObject) (err error) {
 
 // Encode transforms a Commit into a plumbing.EncodedObject.
 func (b *Commit) Encode(o plumbing.EncodedObject) error {
+	return b.encode(o, true)
+}
+
+func (b *Commit) encode(o plumbing.EncodedObject, includeSig bool) error {
 	o.SetType(plumbing.CommitObject)
 	w, err := o.Writer()
 	if err != nil {
@@ -215,11 +261,52 @@ func (b *Commit) Encode(o plumbing.EncodedObject) error {
 		return err
 	}
 
+	if b.PGPSignature != "" && includeSig {
+		if _, err = fmt.Fprint(w, "pgpsig"); err != nil {
+			return err
+		}
+
+		// Split all the signature lines and write with a left padding and
+		// newline at the end.
+		lines := strings.Split(b.PGPSignature, "\n")
+		for _, line := range lines {
+			if _, err = fmt.Fprintf(w, " %s\n", line); err != nil {
+				return err
+			}
+		}
+	}
+
 	if _, err = fmt.Fprintf(w, "\n\n%s", b.Message); err != nil {
 		return err
 	}
 
 	return err
+}
+
+// Stats shows the status of commit.
+func (c *Commit) Stats() (FileStats, error) {
+	// Get the previous commit.
+	ci := c.Parents()
+	parentCommit, err := ci.Next()
+	if err != nil {
+		if err == io.EOF {
+			emptyNoder := treeNoder{}
+			parentCommit = &Commit{
+				Hash: emptyNoder.hash,
+				// TreeHash: emptyNoder.parent.Hash,
+				s: c.s,
+			}
+		} else {
+			return nil, err
+		}
+	}
+
+	patch, err := parentCommit.Patch(c)
+	if err != nil {
+		return nil, err
+	}
+
+	return getFileStatsFromFilePatches(patch.FilePatches()), nil
 }
 
 func (c *Commit) String() string {
@@ -228,6 +315,31 @@ func (c *Commit) String() string {
 		plumbing.CommitObject, c.Hash, c.Author.String(),
 		c.Author.When.Format(DateFormat), indent(c.Message),
 	)
+}
+
+// Verify performs PGP verification of the commit with a provided armored
+// keyring and returns openpgp.Entity associated with verifying key on success.
+func (c *Commit) Verify(armoredKeyRing string) (*openpgp.Entity, error) {
+	keyRingReader := strings.NewReader(armoredKeyRing)
+	keyring, err := openpgp.ReadArmoredKeyRing(keyRingReader)
+	if err != nil {
+		return nil, err
+	}
+
+	// Extract signature.
+	signature := strings.NewReader(c.PGPSignature)
+
+	encoded := &plumbing.MemoryObject{}
+	// Encode commit components, excluding signature and get a reader object.
+	if err := c.encode(encoded, false); err != nil {
+		return nil, err
+	}
+	er, err := encoded.Reader()
+	if err != nil {
+		return nil, err
+	}
+
+	return openpgp.CheckArmoredDetachedSignature(keyring, er, signature)
 }
 
 func indent(t string) string {

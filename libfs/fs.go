@@ -19,7 +19,7 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/libkbfs"
 	"github.com/pkg/errors"
-	billy "gopkg.in/src-d/go-billy.v3"
+	billy "gopkg.in/src-d/go-billy.v4"
 )
 
 // FSEventType is FS event type.
