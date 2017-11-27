@@ -300,7 +300,7 @@ export const localPostTextNonblockRpcPromise = (request: LocalPostTextNonblockRp
 
 export const localPreviewConversationByIDLocalRpcChannelMap = (configKeys: Array<string>, request: LocalPreviewConversationByIDLocalRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.local.previewConversationByIDLocal', request)
 
-export const localPreviewConversationByIDLocalRpcPromise = (request: LocalPreviewConversationByIDLocalRpcParam): Promise<LocalPreviewConversationByIDLocalResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.local.previewConversationByIDLocal', request, (error, result) => error ? reject(error) : resolve(result)))
+export const localPreviewConversationByIDLocalRpcPromise = (request: LocalPreviewConversationByIDLocalRpcParam): Promise<LocalPreviewConversationByIDLocalResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.local.previewConversationByIDLocal', request, (error: RPCError, result: LocalPreviewConversationByIDLocalResult) => error ? reject(error) : resolve(result)))
 
 export const localRetryPostRpcChannelMap = (configKeys: Array<string>, request: LocalRetryPostRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.local.RetryPost', request)
 
@@ -421,7 +421,7 @@ export const remotePostRemoteRpcPromise = (request: RemotePostRemoteRpcParam): P
 
 export const remotePreviewConversationRpcChannelMap = (configKeys: Array<string>, request: RemotePreviewConversationRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.remote.previewConversation', request)
 
-export const remotePreviewConversationRpcPromise = (request: RemotePreviewConversationRpcParam): Promise<RemotePreviewConversationResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.remote.previewConversation', request, (error, result) => error ? reject(error) : resolve(result)))
+export const remotePreviewConversationRpcPromise = (request: RemotePreviewConversationRpcParam): Promise<RemotePreviewConversationResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.remote.previewConversation', request, (error: RPCError, result: RemotePreviewConversationResult) => error ? reject(error) : resolve(result)))
 
 export const remotePublishReadMessageRpcChannelMap = (configKeys: Array<string>, request: RemotePublishReadMessageRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.remote.publishReadMessage', request)
 

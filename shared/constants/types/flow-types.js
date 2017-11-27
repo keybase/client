@@ -1773,7 +1773,7 @@ export const userLoadUserRpcPromise = (request: UserLoadUserRpcParam): Promise<U
 
 export const userMeUserVersionRpcChannelMap = (configKeys: Array<string>, request: UserMeUserVersionRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.user.meUserVersion', request)
 
-export const userMeUserVersionRpcPromise = (request: UserMeUserVersionRpcParam): Promise<UserMeUserVersionResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.user.meUserVersion', request, (error, result) => error ? reject(error) : resolve(result)))
+export const userMeUserVersionRpcPromise = (request: UserMeUserVersionRpcParam): Promise<UserMeUserVersionResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.user.meUserVersion', request, (error: RPCError, result: UserMeUserVersionResult) => error ? reject(error) : resolve(result)))
 
 export const userProfileEditRpcChannelMap = (configKeys: Array<string>, request: UserProfileEditRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.user.profileEdit', request)
 
