@@ -4,8 +4,8 @@ import {Box, Button, ClickableBox, Dropdown, Input, PopupDialog, Text} from '../
 import {globalStyles, globalMargins, globalColors} from '../../styles'
 import capitalize from 'lodash/capitalize'
 import {isMobile} from '../../constants/platform'
-
-import {teamRoleTypes, type TeamRoleType} from '../../constants/teams'
+import {teamRoleTypes} from '../../constants/teams'
+import {type TeamRoleType} from '../../constants/types/teams'
 
 const MaybePopup = isMobile
   ? (props: {onClose: () => void, children: React.Node}) => (

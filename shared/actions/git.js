@@ -156,7 +156,7 @@ const _onTabChange = (action: RouteTreeTypes.SwitchTo) => {
 }
 
 function* _handleIncomingGregor(action: GitGen.HandleIncomingGregorPayload): Saga.SagaGenerator<any, any> {
-  const msgs = action.payload.messages.map(msg => JSON.parse(msg.body))
+  const msgs = action.payload.messages.map(msg => JSON.parse(msg.body.toString()))
   for (let body of msgs) {
     const needsLoad = ['delete', 'create', 'update'].includes(body.action)
     if (needsLoad) {

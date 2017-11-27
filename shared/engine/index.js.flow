@@ -1,0 +1,37 @@
+// @flow
+// Sep. engine file so we can avoid import cycles w/ flow-types.js
+// A lot of weak typing here as we're usually interfacing with this through helpers, could make it more accurate later
+
+declare export class EngineChannel {
+  map: () => any,
+  close(): void,
+  take(key: string): Generator<any, any, any>,
+  race(options: ?{timeout?: number, racers?: Object}): Generator<any, any, any>,
+}
+
+declare export class Engine {
+  reset(): void,
+  cancelRPC(): void,
+  cancelSession(sessionID: any): void,
+  rpc(): void,
+  setFailOnError(): void,
+  listenOnConnect(key: string, f: () => void): void,
+  listenOnDisconnect(key: string, f: () => void): void,
+  hasEverConnected(): void,
+  setIncomingHandler(name: string, callback: Function): void,
+  setIncomingActionCreator(method: string, actionCreator: (param: Object, response: ?Object) => ?any): void,
+  createSession(incomingCallMap: ?any, waitingHandler: ?any, cancelHandler: ?any, dangling?: boolean): any,
+  _channelMapRpcHelper(configKeys: Array<string>, method: string, params: any): EngineChannel,
+  _rpcOutgoing(
+    method: string,
+    params: ?{
+      incomingCallMap?: any, // IncomingCallMapType, actually a mix of all the incomingcallmap types, which we don't handle yet TODO we could mix them all
+      waitingHandler?: any,
+    },
+    callback: (...args: Array<any>) => void
+  ): void,
+}
+
+declare export function getEngine(): Engine
+declare export function makeEngine(any): Engine
+export default getEngine

@@ -386,7 +386,7 @@ function _unboxedToMessage(
       : null
     // $FlowIssue
     const messageText: ChatTypes.MessageText = message.outbox.body
-    const outboxIDKey = payload.outboxID && Constants.outboxIDToKey(payload.outboxID)
+    const outboxIDKey = payload.outboxID
 
     return {
       author: yourName,
@@ -422,7 +422,7 @@ function _unboxedToMessage(
         mentions: I.Set(payload.atMentions || []),
         messageID: Constants.rpcMessageIDToMessageID(payload.messageID),
         rawMessageID: payload.messageID,
-        outboxID: payload.outboxID && Constants.outboxIDToKey(payload.outboxID),
+        outboxID: payload.outboxID,
         senderDeviceRevokedAt: payload.senderDeviceRevokedAt,
         timestamp: payload.ctime,
         you: yourName,
@@ -658,17 +658,20 @@ function* _markAsRead(
   }
 
   const conversationID = Constants.keyToConversationID(conversationIDKey)
-  const {msgID} = Constants.parseMessageID(messageID)
+  const parsed = Constants.parseMessageID(messageID)
 
-  try {
-    yield Saga.call(ChatTypes.localMarkAsReadLocalRpcPromise, {
-      conversationID,
-      msgID,
-    })
+  // only mark real messages read
+  if (parsed.type === 'rpcMessageID') {
+    try {
+      yield Saga.call(ChatTypes.localMarkAsReadLocalRpcPromise, {
+        conversationID,
+        msgID: parsed.msgID,
+      })
 
-    _lastMarkedAsRead[conversationIDKey] = messageID
-  } catch (err) {
-    console.log(`Couldn't mark as read ${conversationIDKey} ${err}`)
+      _lastMarkedAsRead[conversationIDKey] = messageID
+    } catch (err) {
+      console.log(`Couldn't mark as read ${conversationIDKey} ${err}`)
+    }
   }
 }
 

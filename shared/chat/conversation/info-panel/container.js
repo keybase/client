@@ -1,7 +1,7 @@
 // @flow
 import * as Constants from '../../../constants/chat'
 import * as Types from '../../../constants/types/chat'
-import * as TeamConstants from '../../../constants/teams'
+import * as TeamTypes from '../../../constants/types/teams'
 import * as ChatGen from '../../../actions/chat-gen'
 import {ConversationInfoPanel, SmallTeamInfoPanel, BigTeamInfoPanel} from '.'
 import {Map} from 'immutable'
@@ -103,9 +103,9 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp}) => ({
       ])
     )
   },
-  _onLeaveTeam: (teamname: TeamConstants.Teamname) =>
+  _onLeaveTeam: (teamname: TeamTypes.Teamname) =>
     dispatch(navigateAppend([{props: {teamname}, selected: 'reallyLeaveTeam'}])),
-  _onViewTeam: (teamname: TeamConstants.Teamname) =>
+  _onViewTeam: (teamname: TeamTypes.Teamname) =>
     dispatch(navigateTo([teamsTab, {props: {teamname: teamname}, selected: 'team'}])),
   // Used by HeaderHoc.
   onBack: () => dispatch(navigateUp()),

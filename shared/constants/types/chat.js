@@ -2,7 +2,7 @@
 import * as I from 'immutable'
 import * as RPCChatTypes from './flow-types-chat'
 import * as RPCTypes from './flow-types'
-import * as SearchConstants from '../search'
+import * as SearchTypes from './search'
 import HiddenString from '../../util/hidden-string'
 import type {DeviceType} from './devices'
 
@@ -240,7 +240,7 @@ export type _ConversationState = {
   typing: I.Set<Username>,
 }
 export type _ConversationBadgeState = {
-  convID: ConversationID,
+  convID: ?ConversationID,
   unreadMessages: number,
   badgeCounts: {[key: string]: number},
 }
@@ -284,7 +284,7 @@ export type _InboxState = {
 
 export type InboxState = I.RecordOf<_InboxState>
 export type SupersedeInfo = {
-  conversationIDKey: ConversationID,
+  conversationIDKey: ConversationIDKey,
   finalizeInfo: RPCChatTypes.ConversationFinalizeInfo,
 }
 
@@ -361,9 +361,9 @@ export type _State = {
   rekeyInfos: I.Map<ConversationIDKey, RekeyInfo>,
   searchPending: boolean,
   searchResultTerm: string,
-  searchResults: ?I.List<SearchConstants.SearchResultId>,
+  searchResults: ?I.List<SearchTypes.SearchResultId>,
   searchShowingSuggestions: boolean,
-  selectedUsersInSearch: I.List<SearchConstants.SearchResultId>,
+  selectedUsersInSearch: I.List<SearchTypes.SearchResultId>,
   supersededByState: SupersededByState,
   supersedesState: SupersedesState,
   teamCreationError: string,
