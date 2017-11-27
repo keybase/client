@@ -198,12 +198,19 @@ function _bootstrapSuccess(action: ConfigGen.BootstrapSuccessPayload, state: Typ
   return Saga.all(actions)
 }
 
+function _pgpSecurityModelChangeMessageSaga() {
+  RPCTypes.pgpPgpStorageDismissRpcPromise().catch(err => {
+    console.warn('Error in sending pgpPgpStorageDismissRpc:', err)
+  })
+}
+
 function* configSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(ConfigGen.bootstrapSuccess, _bootstrapSuccess)
   yield Saga.safeTakeEvery(ConfigGen.bootstrap, _bootstrap)
   yield Saga.safeTakeEveryPure(ConfigGen.clearRouteState, _clearRouteState)
   yield Saga.safeTakeEvery(ConfigGen.persistRouteState, _persistRouteState)
   yield Saga.safeTakeEvery(ConfigGen.retryBootstrap, _retryBootstrap)
+  yield Saga.safeTakeEveryPure(ConfigGen.pgpAckedMessage, _pgpSecurityModelChangeMessageSaga)
 }
 
 export {getExtendedStatus}

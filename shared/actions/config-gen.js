@@ -23,6 +23,8 @@ export const extendedConfigLoaded = 'config:extendedConfigLoaded'
 export const getExtendedStatus = 'config:getExtendedStatus'
 export const globalError = 'config:globalError'
 export const persistRouteState = 'config:persistRouteState'
+export const pgpAckedMessage = 'config:pgpAckedMessage'
+export const pgpKeyInSecretStoreFile = 'config:pgpKeyInSecretStoreFile'
 export const pushLoaded = 'config:pushLoaded'
 export const readyForBootstrap = 'config:readyForBootstrap'
 export const retryBootstrap = 'config:retryBootstrap'
@@ -44,6 +46,8 @@ export const createExtendedConfigLoaded = (payload: {|+extendedConfig: RPCTypes.
 export const createGetExtendedStatus = () => ({error: false, payload: undefined, type: getExtendedStatus})
 export const createGlobalError = (payload: {|+globalError: ?Error|}) => ({error: false, payload, type: globalError})
 export const createPersistRouteState = () => ({error: false, payload: undefined, type: persistRouteState})
+export const createPgpAckedMessage = () => ({error: false, payload: undefined, type: pgpAckedMessage})
+export const createPgpKeyInSecretStoreFile = () => ({error: false, payload: undefined, type: pgpKeyInSecretStoreFile})
 export const createPushLoaded = (payload: {|+pushLoaded: boolean|}) => ({error: false, payload, type: pushLoaded})
 export const createReadyForBootstrap = () => ({error: false, payload: undefined, type: readyForBootstrap})
 export const createRetryBootstrap = () => ({error: false, payload: undefined, type: retryBootstrap})
@@ -65,6 +69,8 @@ export type ExtendedConfigLoadedPayload = More.ReturnType<typeof createExtendedC
 export type GetExtendedStatusPayload = More.ReturnType<typeof createGetExtendedStatus>
 export type GlobalErrorPayload = More.ReturnType<typeof createGlobalError>
 export type PersistRouteStatePayload = More.ReturnType<typeof createPersistRouteState>
+export type PgpAckedMessagePayload = More.ReturnType<typeof createPgpAckedMessage>
+export type PgpKeyInSecretStoreFilePayload = More.ReturnType<typeof createPgpKeyInSecretStoreFile>
 export type PushLoadedPayload = More.ReturnType<typeof createPushLoaded>
 export type ReadyForBootstrapPayload = More.ReturnType<typeof createReadyForBootstrap>
 export type RetryBootstrapPayload = More.ReturnType<typeof createRetryBootstrap>
@@ -88,6 +94,8 @@ export type Actions =
   | More.ReturnType<typeof createGetExtendedStatus>
   | More.ReturnType<typeof createGlobalError>
   | More.ReturnType<typeof createPersistRouteState>
+  | More.ReturnType<typeof createPgpAckedMessage>
+  | More.ReturnType<typeof createPgpKeyInSecretStoreFile>
   | More.ReturnType<typeof createPushLoaded>
   | More.ReturnType<typeof createReadyForBootstrap>
   | More.ReturnType<typeof createRetryBootstrap>

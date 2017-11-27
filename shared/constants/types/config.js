@@ -29,6 +29,7 @@ export type _State = {
   initialState: ?InitialState,
   kbfsPath: string,
   loggedIn: boolean,
+  pgpPopupOpen: boolean,
   pushLoaded: boolean,
   readyForBootstrap: boolean,
   registered: boolean,

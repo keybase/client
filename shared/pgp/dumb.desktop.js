@@ -1,13 +1,12 @@
 // @flow
 import type {DumbComponentMap} from '../constants/types/more'
-import PurgeMessage from './purge-message.desktop'
+import PurgeMessage from './index.desktop'
 
 const dumbPurgeMessage: DumbComponentMap<PurgeMessage> = {
   component: PurgeMessage,
   mocks: {
     'Purge Message': {
       onClose: () => console.log('onClose'),
-      onOk: () => console.log('onOk'),
     },
   },
 }

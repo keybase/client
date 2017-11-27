@@ -9,7 +9,6 @@ import kbfsSaga from '../actions/kbfs'
 import loginSaga from '../actions/login'
 import notificationsSaga from '../actions/notifications'
 import pinentrySaga from '../actions/pinentry'
-import pgpSaga from '../actions/pgp'
 import gitSaga from '../actions/git'
 import planBillingSaga from '../actions/plan-billing'
 import profileSaga from '../actions/profile'
@@ -36,7 +35,6 @@ function* mainSaga(): SagaGenerator<any, any> {
   yield fork(loginSaga)
   yield fork(notificationsSaga)
   yield fork(pinentrySaga)
-  yield fork(pgpSaga)
   yield fork(planBillingSaga)
   yield fork(profileSaga)
   yield fork(pushSaga)

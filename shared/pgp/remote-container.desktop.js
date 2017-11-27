@@ -1,0 +1,11 @@
+// @flow
+import PurgeMessage from './index.desktop'
+import {connect, type Dispatch} from '../util/container'
+import * as ConfigGen from '../actions/config-gen'
+
+// Props are handled by remote-pgp.desktop.js
+const mapStateToProps = state => state
+const mapDispatchToProps = (dispatch: Dispatch) => ({
+  onClose: () => dispatch(ConfigGen.createPgpAckedMessage()),
+})
+export default connect(mapStateToProps, mapDispatchToProps)(PurgeMessage)

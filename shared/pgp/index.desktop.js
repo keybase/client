@@ -5,7 +5,6 @@ import {globalStyles, globalMargins} from '../styles'
 
 export type Props = {
   onClose: () => void,
-  onOk: () => void,
 }
 
 class PgpPurgeMessage extends Component<Props> {
@@ -17,7 +16,7 @@ class PgpPurgeMessage extends Component<Props> {
     return (
       <Box style={globalStyles.flexBoxColumn}>
         <Box>
-          <Header icon={true} type="Default" title="" onClose={this.props.onClose || (() => {})} />
+          <Header icon={true} type="Default" title="" onClose={this.props.onClose} />
         </Box>
         <Box
           style={{...globalStyles.flexBoxColumn, margin: globalMargins.medium, marginTop: globalMargins.tiny}}
@@ -55,7 +54,7 @@ class PgpPurgeMessage extends Component<Props> {
             alignSelf: 'flex-end',
           }}
           type="Primary"
-          onClick={this.props.onOk}
+          onClick={this.props.onClose}
           label="Ok, got it!"
         />
       </Box>

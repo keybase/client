@@ -25,7 +25,6 @@ import {initAvatarLookup, initAvatarLoad} from '../../common-adapters'
 import merge from 'lodash/merge'
 import throttle from 'lodash/throttle'
 import {selector as menubarSelector} from '../../menubar/selector'
-import {selector as remotePurgeMessageSelector} from '../../pgp/selector'
 import {selector as unlockFoldersSelector} from '../../unlock-folders/selector'
 import {setRouteDef} from '../../actions/route-tree'
 import {setupContextMenu} from '../app/menu-helper'
@@ -108,14 +107,12 @@ function setupApp(store) {
 
   const _menubarSelector = menubarSelector()
   const _unlockFoldersSelector = unlockFoldersSelector()
-  const _remotePurgeMessageSelector = remotePurgeMessageSelector()
 
   const subsetsRemotesCareAbout = store => {
     return {
       tracker: store.tracker,
       menubar: _menubarSelector(store),
       unlockFolder: _unlockFoldersSelector(store),
-      pgpPurgeMessage: _remotePurgeMessageSelector(store),
     }
   }
 

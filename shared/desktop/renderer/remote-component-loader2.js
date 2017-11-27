@@ -5,8 +5,8 @@ import ReactDOM from 'react-dom'
 // $FlowIssue
 import RemoteStore from './remote-store2'
 import Root from './container'
-import pinentry from '../../pinentry/remote-container'
-// import purgeMessage from '../../pgp/container.desktop'
+import pinentry from '../../pinentry/remote-container.desktop'
+import purgeMessage from '../../pgp/remote-container.desktop'
 // import tracker from '../../tracker'
 // import unlockFolders from '../../unlock-folders'
 import {disable as disableDragDrop} from '../../util/drag-drop'
@@ -41,8 +41,8 @@ class RemoteComponentLoader extends Component<any> {
   componentWillMount() {
     const component = this.props.component
     const selectorParams = this.props.selectorParams
-    const components = {pinentry}
-    // const components = {tracker, pinentry, unlockFolders, purgeMessage}
+    const components = {pinentry, purgeMessage}
+    // const components = {tracker, unlockFolders, }
 
     if (!component || !components[component]) {
       throw new TypeError('Invalid Remote Component passed through')

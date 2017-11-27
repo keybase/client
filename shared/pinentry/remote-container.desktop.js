@@ -1,13 +1,14 @@
 // @flow
 import {connect, compose, renderNothing, branch, type Dispatch} from '../util/container'
-import {createOnCancel, createOnSubmit} from '../actions/pinentry-gen'
+import * as PinentryGen from '../actions/pinentry-gen'
 import Pinentry from './index.desktop'
 
 // Props are handled by remote-pinentry.desktop.js
 const mapStateToProps = state => state
 const mapDispatchToprops = (dispatch: Dispatch) => ({
-  _onCancel: (sessionID: number) => dispatch(createOnCancel({sessionID})),
-  _onSubmit: (passphrase: string, sessionID: number) => dispatch(createOnSubmit({passphrase, sessionID})),
+  _onCancel: (sessionID: number) => dispatch(PinentryGen.createOnCancel({sessionID})),
+  _onSubmit: (passphrase: string, sessionID: number) =>
+    dispatch(PinentryGen.createOnSubmit({passphrase, sessionID})),
 })
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   ...stateProps,

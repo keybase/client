@@ -7,7 +7,6 @@ import Root from './container'
 import engine, {makeEngine} from '../../engine'
 import hello from '../../util/hello'
 import loadPerf from '../../util/load-perf'
-import purgeMessage from '../../pgp/container.desktop'
 import tracker from '../../tracker'
 import unlockFolders from '../../unlock-folders'
 import {disable as disableDragDrop} from '../../util/drag-drop'
@@ -84,7 +83,7 @@ class RemoteComponentLoader extends Component<any, State> {
   componentWillMount() {
     const component = this.props.component
     const selectorParams = this.props.selectorParams
-    const components = {tracker, unlockFolders, purgeMessage}
+    const components = {tracker, unlockFolders}
 
     if (!component || !components[component]) {
       throw new TypeError('Invalid Remote Component passed through')

@@ -1,51 +1,37 @@
 // @flow
-import * as PgpGen from '../../actions/pgp-gen'
-import React, {Component} from 'react'
-import RemoteComponent from './remote-component.desktop'
-import {connect, type TypedState} from '../../util/container'
+import * as React from 'react'
+import RemoteConnector from './remote-connector.desktop'
+import RemoteWindow from './remote-window.desktop'
+import {connect, type TypedState, compose} from '../../util/container'
 
-type Props = {
-  onClose: () => void,
-  open: boolean,
+const PrintDebug = props => <div style={{wordWrap: 'break-word'}}>{JSON.stringify(props)}</div>
+
+const windowOpts = {height: 450, width: 600}
+
+const purgeMapPropsToState = (state: TypedState) => {
+  return {
+    component: 'purgeMessage',
+    selectorParams: '',
+    windowOpts,
+    windowTitle: 'PgpPurgeMessage',
+  }
 }
 
-class RemotePurgeMessage extends Component<Props> {
-  shouldComponentUpdate(nextProps, nextState) {
-    return nextProps !== this.props
-  }
+const RemotePurge = compose(connect(purgeMapPropsToState, () => ({})), RemoteWindow, RemoteConnector)(
+  PrintDebug
+)
 
+type Props = {
+  show: boolean,
+}
+class RemotePurges extends React.PureComponent<Props> {
   render() {
-    const {open} = this.props
-    if (!open) {
-      return null
-    }
-
-    const windowsOpts = {width: 600, height: 450}
-    return (
-      <div>
-        <RemoteComponent
-          title="PgpPurgeMessage"
-          windowsOpts={windowsOpts}
-          waitForState={false}
-          onRemoteClose={() => this.props.onClose()}
-          component="purgeMessage"
-          onSubmit={() => {}}
-          onCancel={() => this.props.onClose()}
-          sessionID={0}
-        />
-      </div>
-    )
+    return this.props.show ? <RemotePurge /> : null
   }
 }
 
 const mapStateToProps = (state: TypedState) => ({
-  open: state.pgp.open,
+  show: state.config.pgpPopupOpen,
 })
 
-const mapDispatchToProps = (dispatch: Dispatch) => ({
-  onClose: () => {
-    dispatch(PgpGen.createPgpAckedMessage({hitOk: false}))
-  },
-})
-
-export default connect(mapStateToProps, mapDispatchToProps)(RemotePurgeMessage)
+export default connect(mapStateToProps, () => ({}))(RemotePurges)

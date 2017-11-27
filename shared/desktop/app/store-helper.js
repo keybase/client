@@ -1,7 +1,6 @@
 // @flow
 import {ipcMain} from 'electron'
 import {selector as menubarSelector} from '../../menubar/selector'
-import {selector as remotePurgeMessageSelector} from '../../pgp/selector'
 import {selector as trackerSelector} from '../../tracker/selector'
 import {selector as unlockFoldersSelector} from '../../unlock-folders/selector'
 
@@ -9,7 +8,6 @@ const componentToSelector: {[key: any]: Function} = {
   tracker: trackerSelector,
   menubar: menubarSelector,
   unlockFolders: unlockFoldersSelector,
-  purgeMessage: remotePurgeMessageSelector,
 }
 
 export default function(mainWindow: any) {
