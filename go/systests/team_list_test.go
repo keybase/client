@@ -22,6 +22,9 @@ func TestTeamList(t *testing.T) {
 	ctx := newSMUContext(t)
 	defer ctx.cleanup()
 
+	// Step 1 - create the initial team with mix of normal members,
+	// reset members, pukless users, social invites etc.
+
 	ann := ctx.installKeybaseForUser("ann", 10)
 	ann.signup()
 	t.Logf("Signed up ann (%s)", ann.username)
@@ -68,6 +71,8 @@ func TestTeamList(t *testing.T) {
 
 	t.Logf("Added rooter (%s@rooter)", rootername)
 
+	// Examine results from TeamGet
+
 	details, err := teamCli.TeamGet(context.TODO(), keybase1.TeamGetArg{
 		Name:        team.name,
 		ForceRepoll: true,
@@ -109,6 +114,8 @@ func TestTeamList(t *testing.T) {
 		// There should be only one invite
 		require.EqualValues(t, rootername, invite.Name)
 	}
+
+	// Examine results from TeamList (mostly MemberCount)
 
 	list, err := teamCli.TeamList(context.TODO(), keybase1.TeamListArg{})
 	require.NoError(t, err)
