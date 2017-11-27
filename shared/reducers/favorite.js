@@ -128,7 +128,23 @@ export default function(
         ...state,
         kbfsOpening: opening,
       }
+    // Saga only actions
+    case FavoriteGen.favoriteAdd:
+    case FavoriteGen.favoriteAdded:
+    case FavoriteGen.favoriteIgnore:
+    case FavoriteGen.favoriteIgnored:
+    case FavoriteGen.favoriteList:
+    case FavoriteGen.setupKBFSChangedHandler:
+    case KBFSGen.installKBFSResult:
+    case KBFSGen.list:
+    case KBFSGen.listed:
+    case KBFSGen.open:
+    case KBFSGen.openInFileUI:
+    case KBFSGen.uninstallKBFS:
+      return state
+    default:
+      // eslint-disable-next-line no-unused-expressions
+      (action: empty) // if you get a flow error here it means there's an action you claim to handle but didn't
+      return state
   }
-
-  return state
 }

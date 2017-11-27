@@ -13,9 +13,10 @@ import {
   withHandlers,
   createSelector,
   createImmutableEqualSelector,
+  type TypedState,
+  type Dispatch,
 } from '../../util/container'
 import {scoreFilter, passesStringFilter} from './filtering'
-import type {TypedState} from '../../constants/reducer'
 
 const smallTeamsCollapsedMaxShown = 5
 const getAlwaysShow = (state: TypedState) => state.chat.get('inboxAlwaysShow')
@@ -225,7 +226,7 @@ const mapStateToProps = (state: TypedState, {isActiveRoute, routeState}: OwnProp
   }
 }
 
-const mapDispatchToProps = (dispatch: any => void, {focusFilter, routeState, setRouteState}: OwnProps) => ({
+const mapDispatchToProps = (dispatch: Dispatch, {focusFilter, routeState, setRouteState}: OwnProps) => ({
   loadInbox: () => dispatch(ChatGen.createLoadInbox()),
   _onSelectNext: (rows: Array<Inbox.RowItemSmall | Inbox.RowItemBig>, direction: -1 | 1) =>
     dispatch(

@@ -536,7 +536,6 @@ const _afterSaveCalls = results => {
 
 function* _createChannel(action: Types.CreateChannel) {
   const {payload: {channelname, description, teamname, rootPath, sourceSubPath, destSubPath}} = action
-
   yield Saga.put(Creators.setChannelCreationError(''))
   try {
     const result = yield Saga.call(RPCChatTypes.localNewConversationLocalRpcPromise, {
