@@ -127,3 +127,70 @@ func TestTeamList(t *testing.T) {
 	require.Equal(t, team.name, teamInfo.FqName)
 	require.Equal(t, 5, teamInfo.MemberCount)
 }
+
+func TestTeamDuplicateUIDList(t *testing.T) {
+	tt := newTeamTester(t)
+	defer tt.cleanup()
+	ctx := newSMUContext(t)
+	defer ctx.cleanup()
+
+	ann := makeUserStandalone(t, "ann", standaloneUserArgs{
+		disableGregor:            true,
+		suppressTeamChatAnnounce: true,
+	})
+	tt.users = append(tt.users, ann)
+	t.Logf("Signed up ann (%s)", ann.username)
+
+	bob := tt.addPuklessUser("bob")
+	t.Logf("Signed up PUK-less user bob (%s)", bob.username)
+
+	team := ann.createTeam()
+	t.Logf("Team created (%s)", team)
+
+	ann.addTeamMember(team, bob.username, keybase1.TeamRole_WRITER)
+
+	uvBefore := bob.userVersion()
+
+	bob.reset()
+	bob.loginAfterReset()
+
+	uvAfter := bob.userVersion()
+
+	t.Logf("Bob (%s) resets and reprovisions", bob.username)
+
+	ann.addTeamMember(team, bob.username, keybase1.TeamRole_WRITER)
+
+	teamCli := ann.teamsClient
+	t.Logf("teamcli is %v", teamCli)
+	details, err := teamCli.TeamGet(context.TODO(), keybase1.TeamGetArg{
+		Name:        team,
+		ForceRepoll: true,
+	})
+	require.NoError(t, err)
+
+	require.Equal(t, 2, len(details.Members.Writers))
+	for _, member := range details.Members.Writers {
+		require.Equal(t, bob.username, member.Username)
+		if member.Uv == uvBefore {
+			require.False(t, member.Active)
+			require.True(t, member.NeedsPUK)
+		} else if member.Uv == uvAfter {
+			require.True(t, member.Active)
+			require.False(t, member.NeedsPUK)
+		} else {
+			t.Fatalf("Unexpected UV for member: %v", member.Uv)
+		}
+	}
+
+	// TeamList reports memberCount of two: ann and bob. Second bob is
+	// ignored, because memberCount is set to number of unique UIDs.
+	list, err := teamCli.TeamList(context.TODO(), keybase1.TeamListArg{})
+	require.NoError(t, err)
+
+	require.Equal(t, 1, len(list.Teams))
+	require.Equal(t, 0, len(list.AnnotatedActiveInvites))
+
+	teamInfo := list.Teams[0]
+	require.Equal(t, team, teamInfo.FqName)
+	require.Equal(t, 2, teamInfo.MemberCount)
+}
