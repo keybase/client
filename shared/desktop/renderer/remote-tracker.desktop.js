@@ -46,7 +46,6 @@ class RemoteTracker extends Component<Props> {
             windowsOpts={windowsOpts}
             title={`tracker - ${item.username}`}
             waitForState={true}
-            ignoreNewProps={true}
             hidden={item.hidden}
             onRemoteClose={() => this.props.onClose(item.username)}
             component="tracker"

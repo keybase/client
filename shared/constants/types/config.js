@@ -1,4 +1,5 @@
 // @flow
+import * as I from 'immutable'
 import {type ConversationIDKey} from './chat'
 import {type Tab} from '../tabs'
 import {type Config, type DeviceID, type ExtendedStatus} from './flow-types'
@@ -10,8 +11,8 @@ export type InitialState = {|
 |}
 
 export type BootStatus = 'bootStatusLoading' | 'bootStatusBootstrapped' | 'bootStatusFailure'
-// NOTE: All stores which go over the wire to remote windows CANNOT be immutable (yet)
-export type State = {
+
+export type _State = {
   appFocused: boolean,
   appFocusedCount: number,
   bootStatus: BootStatus,
@@ -22,8 +23,8 @@ export type State = {
   deviceName: ?string,
   error: ?any,
   extendedConfig: ?ExtendedStatus,
-  followers: {[key: string]: true},
-  following: {[key: string]: true},
+  followers: I.Set<string>,
+  following: I.Set<string>,
   globalError: ?Error,
   initialState: ?InitialState,
   kbfsPath: string,
@@ -35,3 +36,4 @@ export type State = {
   userActive: boolean,
   username: ?string,
 }
+export type State = I.RecordOf<_State>
