@@ -1,7 +1,7 @@
 // @flow
 import {Component} from 'react'
 
-import type {AttachmentMessage, LocalMessageState} from '../../../constants/chat'
+import type {AttachmentMessage, LocalMessageState} from '../../../constants/types/chat'
 
 export type Props = {
   you: string,

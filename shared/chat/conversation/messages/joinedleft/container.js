@@ -1,5 +1,6 @@
 // @flow
 import * as Constants from '../../../../constants/chat'
+import * as Types from '../../../../constants/types/chat'
 import JoinedLeftNotice from '.'
 import createCachedSelector from 're-reselect'
 import {compose} from 'recompose'
@@ -7,7 +8,7 @@ import {connect} from 'react-redux'
 import {navigateTo, switchTo} from '../../../../actions/route-tree'
 import {teamsTab} from '../../../../constants/tabs'
 import {isMobile} from '../../../../constants/platform'
-import {showUserProfile} from '../../../../actions/profile'
+import {createShowUserProfile} from '../../../../actions/profile-gen'
 import {getProfile} from '../../../../actions/tracker'
 
 import type {TypedState} from '../../../../constants/reducer'
@@ -15,7 +16,7 @@ import type {OwnProps} from './container'
 
 type StateProps = {
   channelname: string,
-  message: Constants.TextMessage,
+  message: Types.TextMessage,
   teamname: string,
   you: string,
 }
@@ -34,7 +35,7 @@ const getDetails = createCachedSelector(
     Constants.getFollowingMap,
   ],
   (
-    message: Constants.JoinedLeftMessage,
+    message: Types.JoinedLeftMessage,
     you: string,
     channelname: string,
     teamname: string,
@@ -56,7 +57,7 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
     dispatch(switchTo([teamsTab]))
   },
   onUsernameClicked: (username: string) => {
-    isMobile ? dispatch(showUserProfile(username)) : dispatch(getProfile(username, true, true))
+    isMobile ? dispatch(createShowUserProfile({username})) : dispatch(getProfile(username, true, true))
   },
 })
 

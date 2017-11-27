@@ -9,8 +9,8 @@ const mapStateToProps = (state: TypedState) => {
     throw new Error('Not logged in')
   }
 
-  const trackerState = username && state.tracker.trackers[username]
-  const userProofs = trackerState && trackerState.type === 'tracker' && trackerState.proofs
+  const trackerState = username && state.tracker.userTrackers[username]
+  const userProofs = trackerState && trackerState.proofs
   const hasAvatarProof = userProofs && userProofs.some(p => p.type === 'github' || p.type === 'twitter')
   return {
     keybaseUsername: username,

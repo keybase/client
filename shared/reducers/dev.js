@@ -1,41 +1,32 @@
 // @flow
-import * as CommonConstants from '../constants/common'
+import * as DevGen from '../actions/dev-gen'
 import * as Constants from '../constants/dev'
+import * as Types from '../constants/types/dev'
 
-const initialState: Constants.State = {
-  debugConfig: {
-    dumbFilter: '',
-    dumbFullscreen: false,
-    dumbIndex: 0,
-  },
-  hmrReloading: false,
-  debugCount: 0,
-}
-
-export default function(state: Constants.State = initialState, action: Constants.Actions) {
-  if (action.type === CommonConstants.resetStore) {
-    return {...initialState}
+export default function(state: Types.State = Constants.initialState, action: DevGen.Actions) {
+  switch (action.type) {
+    case DevGen.resetStore:
+      return {...Constants.initialState}
+    case DevGen.updateDebugConfig:
+      const {config} = action.payload
+      return {
+        ...state,
+        debugConfig: {...state.debugConfig, ...config},
+      }
+    case DevGen.updatehmrReloading:
+      const {reloading} = action.payload
+      return {
+        ...state,
+        reloading,
+      }
+    case DevGen.debugCount:
+      return {
+        ...state,
+        debugCount: state.debugCount + 1,
+      }
+    default:
+      // eslint-disable-next-line no-unused-expressions
+      (action: empty) // if you get a flow error here it means there's an action you claim to handle but didn't
+      return state
   }
-
-  if (action.type === Constants.updateDebugConfig) {
-    return {
-      ...state,
-      debugConfig: {...state.debugConfig, ...action.payload},
-    }
-  }
-
-  if (action.type === Constants.updateReloading && !action.error) {
-    return {
-      ...state,
-      reloading: action.payload.reloading,
-    }
-  }
-
-  if (action.type === 'dev:debugCount') {
-    return {
-      ...state,
-      debugCount: state.debugCount + 1,
-    }
-  }
-  return state
 }

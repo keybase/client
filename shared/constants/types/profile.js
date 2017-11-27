@@ -1,0 +1,38 @@
+// @flow
+import * as RPCTypes from './flow-types'
+import type {PlatformsExpandedType} from './more'
+
+export type PgpInfo = {
+  email1: ?string,
+  email2: ?string,
+  email3: ?string,
+  errorText: ?string,
+  fullName: ?string,
+}
+
+export type PgpInfoError = {
+  errorText: ?string,
+  errorEmail1: boolean,
+  errorEmail2: boolean,
+  errorEmail3: boolean,
+}
+
+export type State = {
+  errorCode: ?number,
+  errorText: ?string,
+  pgpInfo: PgpInfo & PgpInfoError,
+  pgpPublicKey: ?string,
+  platform: ?PlatformsExpandedType,
+  proofFound: boolean,
+  proofStatus: ?RPCTypes.ProofStatus,
+  proofText: ?string,
+  revoke: {
+    error: ?string,
+    waiting: ?boolean,
+  },
+  sigID: ?RPCTypes.SigID,
+  username: string,
+  usernameValid: boolean,
+  waiting: boolean,
+  searchShowingSuggestions: boolean,
+}

@@ -3,7 +3,7 @@ import React, {Component} from 'react'
 import RemoteComponent from './remote-component'
 import {connect, type TypedState} from '../../util/container'
 import {registerPinentryListener, onCancel, onSubmit} from '../../actions/pinentry'
-import {type PinentryState} from '../../constants/pinentry'
+import {type PinentryState} from '../../constants/types/pinentry'
 import {type GUIEntryFeatures} from '../../constants/types/flow-types'
 
 type Props = {

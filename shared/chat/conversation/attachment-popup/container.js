@@ -1,5 +1,5 @@
 // @flow
-import * as Constants from '../../../constants/chat'
+import * as Types from '../../../constants/types/chat'
 import * as ChatGen from '../../../actions/chat-gen'
 import * as KBFSGen from '../../../actions/kbfs-gen'
 import RenderAttachmentPopup from './'
@@ -9,7 +9,7 @@ import {type RouteProps} from '../../../route-tree/render-route'
 
 type AttachmentPopupRouteProps = RouteProps<
   {
-    messageKey: Constants.MessageKey,
+    messageKey: Types.MessageKey,
   },
   {}
 >
@@ -32,11 +32,11 @@ const mapStateToProps = (state: TypedState, {routeProps, ...ownProps}: OwnProps)
 }
 
 const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, navigateAppend}) => ({
-  _onMessageAction: (message: Constants.ServerMessage) =>
+  _onMessageAction: (message: Types.ServerMessage) =>
     dispatch(navigateAppend([{props: {message}, selected: 'messageAction'}])),
   deleteMessage: message => dispatch(ChatGen.createDeleteMessage({message})),
   onClose: () => dispatch(navigateUp()),
-  onDownloadAttachment: (message: Constants.AttachmentMessage) => {
+  onDownloadAttachment: (message: Types.AttachmentMessage) => {
     if (!message.messageID || !message.filename) {
       throw new Error('Cannot download attachment with missing messageID or filename')
     }

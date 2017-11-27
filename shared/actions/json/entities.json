@@ -1,7 +1,6 @@
 {
   "prelude": [
-    "import * as Constants from '../constants/entities'",
-    "import * as I from 'immutable'"
+    "import * as Constants from '../constants/entities'"
   ],
   "actions": {
     "deleteEntity": {

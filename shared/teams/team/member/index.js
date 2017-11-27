@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react'
-import * as Constants from '../../../constants/teams'
+import * as Types from '../../../constants/types/teams'
 import {Avatar, Box, ProgressIndicator, Text, Button, Icon, Usernames} from '../../../common-adapters'
 import {globalStyles, globalMargins} from '../../../styles'
 import {isMobile} from '../../../constants/platform'
@@ -11,9 +11,9 @@ export type Props = {
   follower: boolean,
   following: boolean,
   loading: boolean,
-  user: Constants.MemberInfo,
+  user: Types.MemberInfo,
   teamname: string,
-  you: ?Constants.MemberInfo,
+  you: ?Types.MemberInfo,
   onOpenProfile: () => void,
   onChat: () => void,
   onEditMembership: () => void,

@@ -3,7 +3,7 @@ import React from 'react'
 import {MentionHud} from '.'
 import {createSelector} from 'reselect'
 import {connect, type MapStateToProps} from 'react-redux'
-import {getSelectedInbox} from '../../constants/chat'
+import {getGeneralChannelOfSelectedInbox} from '../../constants/chat'
 
 type ConnectedMentionHudProps = {
   onPickUser: (user: string) => void,
@@ -15,9 +15,12 @@ type ConnectedMentionHudProps = {
   style?: Object,
 }
 
-const fullNameSelector = createSelector(getSelectedInbox, inbox => (inbox ? inbox.get('fullNames') : null))
+const fullNameSelector = createSelector(
+  getGeneralChannelOfSelectedInbox,
+  inbox => (inbox ? inbox.get('fullNames') : null)
+)
 const participantsSelector = createSelector(
-  getSelectedInbox,
+  getGeneralChannelOfSelectedInbox,
   inbox => (inbox ? inbox.get('participants') : null)
 )
 

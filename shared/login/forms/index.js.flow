@@ -1,6 +1,6 @@
 // @flow
 import {Component} from 'react'
-import type {BootStatus} from '../../constants/config'
+import type {BootStatus} from '../../constants/types/config'
 
 export type Props = {
   bootStatus: BootStatus,

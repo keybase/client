@@ -1,7 +1,10 @@
 // @flow
 import Render from '.'
-import {qrGenerate} from '../../../actions/login/provision-helpers'
-import {codePageDeviceRoleExistingPhone, codePageDeviceRoleExistingComputer} from '../../../constants/login'
+import {
+  qrGenerate,
+  codePageDeviceRoleExistingPhone,
+  codePageDeviceRoleExistingComputer,
+} from '../../../constants/login'
 
 import type {DumbComponentMap} from '../../../constants/types/more'
 

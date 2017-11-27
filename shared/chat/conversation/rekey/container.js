@@ -1,5 +1,6 @@
 // @flow
 import * as Constants from '../../../constants/chat'
+import * as Types from '../../../constants/types/chat'
 import ParticipantRekey, {type Props as ParticipantRekeyProps} from './participant-rekey'
 import YouRekey, {type Props as YouRekeyProps} from './you-rekey'
 import {
@@ -11,18 +12,18 @@ import {
   type TypedState,
 } from '../../../util/container'
 import {navigateAppend, navigateUp} from '../../../actions/route-tree'
-import {showUserProfile} from '../../../actions/profile'
+import {createShowUserProfile} from '../../../actions/profile-gen'
 import {openDialog as openRekeyDialog} from '../../../actions/unlock-folders'
 
 type Props = ParticipantRekeyProps & YouRekeyProps
 
 type OwnProps = {
-  selectedConversationIDKey: ?Constants.ConversationIDKey,
+  selectedConversationIDKey: ?Types.ConversationIDKey,
 }
 
 type StateProps = {
-  rekeyInfo: ?Constants.RekeyInfo,
-  selectedConversationIDKey: ?Constants.ConversationIDKey,
+  rekeyInfo: ?Types.RekeyInfo,
+  selectedConversationIDKey: ?Types.ConversationIDKey,
 }
 
 type DispatchProps = {
@@ -49,7 +50,7 @@ const mapDispatchToProps = (dispatch: Dispatch): DispatchProps => ({
   onBack: () => dispatch(navigateUp()),
   onEnterPaperkey: () => dispatch(navigateAppend(['enterPaperkey'])),
   onRekey: () => dispatch(openRekeyDialog()),
-  onShowProfile: (username: string) => dispatch(showUserProfile(username)),
+  onShowProfile: (username: string) => dispatch(createShowUserProfile({username})),
 })
 
 const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps): Props => ({

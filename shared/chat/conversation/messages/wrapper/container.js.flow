@@ -1,27 +1,27 @@
 // @flow
-import * as React  from 'react'
-import * as Constants from '../../../../constants/chat'
+import * as React from 'react'
+import * as Types from '../../../../constants/types/chat'
 
 export type OwnProps = {|
-  messageKey: Constants.MessageKey,
-  prevMessageKey: ?Constants.MessageKey,
+  messageKey: Types.MessageKey,
+  prevMessageKey: ?Types.MessageKey,
   onAction: (
-    message: Constants.ServerMessage,
-    localMessageState: Constants.LocalMessageState,
+    message: Types.ServerMessage,
+    localMessageState: Types.LocalMessageState,
     event: SyntheticEvent<>
   ) => void,
-  onShowEditor: (message: Constants.ServerMessage, event: SyntheticEvent<>) => void,
+  onShowEditor: (message: Types.ServerMessage, event: SyntheticEvent<>) => void,
   isSelected: boolean,
   innerClass: any,
   measure: ?() => void,
 |}
 
 export type StateProps = {|
-  _conversationState: ?Constants.ConversationState,
-  _localMessageState: Constants.LocalMessageState,
-  _message: Constants.AttachmentMessage | Constants.TextMessage,
-  _prevMessage: Constants.AttachmentMessage | Constants.TextMessage | null,
-  _selectedConversationIDKey: ?Constants.ConversationIDKey,
+  _conversationState: ?Types.ConversationState,
+  _localMessageState: Types.LocalMessageState,
+  _message: Types.AttachmentMessage | Types.TextMessage,
+  _prevMessage: Types.AttachmentMessage | Types.TextMessage | null,
+  _selectedConversationIDKey: ?Types.ConversationIDKey,
   _editedCount: number,
   author: string,
   isBroken: boolean,
@@ -31,8 +31,8 @@ export type StateProps = {|
 |}
 
 export type DispatchProps = {|
-  _onRetryText: (conversationIDKey: Constants.ConversationIDKey, outboxID: Constants.OutboxIDKey) => void,
-  _onRetryAttachment: (message: Constants.AttachmentMessage) => void,
+  _onRetryText: (conversationIDKey: Types.ConversationIDKey, outboxID: Types.OutboxIDKey) => void,
+  _onRetryAttachment: (message: Types.AttachmentMessage) => void,
   _onUsernameClick: (username: string) => void,
 |}
 

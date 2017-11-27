@@ -8,7 +8,7 @@ import {
   connect,
   type TypedState,
 } from '../../util/container'
-import {editProfile} from '../../actions/profile'
+import {createEditProfile} from '../../actions/profile-gen'
 import {maxProfileBioChars} from '../../constants/profile'
 import {navigateUp} from '../../actions/route-tree'
 
@@ -16,8 +16,8 @@ const mapStateToProps = (state: TypedState) => {
   if (!state.config.username) {
     throw new Error("Didn't get username")
   }
-  const trackerInfo = state.tracker.trackers[state.config.username]
-  if (!trackerInfo || trackerInfo.type !== 'tracker') {
+  const trackerInfo = state.tracker.userTrackers[state.config.username]
+  if (!trackerInfo) {
     throw new Error("Didn't get trackerinfo")
   }
   const userInfo = trackerInfo.userInfo
@@ -27,7 +27,7 @@ const mapStateToProps = (state: TypedState) => {
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
   onBack: () => dispatch(navigateUp()),
-  onEditProfile: ({bio, fullname, location}) => dispatch(editProfile(bio, fullname, location)),
+  onEditProfile: ({bio, fullname, location}) => dispatch(createEditProfile({bio, fullname, location})),
 })
 
 export default compose(

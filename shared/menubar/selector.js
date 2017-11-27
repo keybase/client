@@ -1,5 +1,6 @@
 // @flow
-export function selector(): (store: Object) => Object {
+import {type TypedState} from '../constants/reducer'
+export function selector(): (store: TypedState) => Object {
   return store => {
     return {
       config: {
@@ -17,7 +18,7 @@ export function selector(): (store: Object) => Object {
       },
       favorite: store.favorite,
       dev: {
-        reloading: store.dev.reloading,
+        reloading: store.dev.hmrReloading,
       },
     }
   }

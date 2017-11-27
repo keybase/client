@@ -4,7 +4,7 @@ import * as React from 'react'
 import {Box, Text, Icon, ClickableBox, NativeScrollView, Button} from '../../../common-adapters/index.native'
 import {globalColors, globalMargins, globalStyles} from '../../../styles'
 
-import type {DeviceType} from '../../../constants/devices'
+import type {DeviceType} from '../../../constants/types/devices'
 import type {IconType} from '../../../common-adapters/icon'
 import type {Props} from '.'
 
