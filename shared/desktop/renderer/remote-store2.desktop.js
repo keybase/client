@@ -3,9 +3,10 @@
 // This acts as a fake store for remote windows
 // On the main window we plumb through our props and we 'mirror' the props using this helper
 // We start up and send a 'remoteWindowWantsProps' to the main window which then sends us 'props'
-import {ipcRenderer, remote} from 'electron'
+import {ipcRenderer, remote, BrowserWindow} from 'electron'
 
 class RemoteStore {
+  _window: ?BrowserWindow
   _subscribers: Array<Function> = []
   _internalState: any = {}
   _gotPropsCallback: ?() => void // let component know it loaded once so it can show itself. Set to null after calling once

@@ -1,11 +1,12 @@
 // @flow
+import * as I from 'immutable'
 import * as RPCTypes from './flow-types'
 
 export type EnabledFeatures = {[key: string]: RPCTypes.Feature}
 
 type _PinentryState = {
   sessionID: number,
-  features: RPCTypes.GUIEntryFeatures,
+  showTyping: ?RPCTypes.Feature,
   type: RPCTypes.PassphraseType,
   prompt: string,
   windowTitle: string,
@@ -17,7 +18,7 @@ type _PinentryState = {
 
 export type PinentryState = I.RecordOf<_PinentryState>
 
-type _State = {
+export type _State = {
   sessionIDToPinentry: I.Map<number, PinentryState>,
 }
 

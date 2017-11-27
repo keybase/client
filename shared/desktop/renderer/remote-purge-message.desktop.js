@@ -1,7 +1,7 @@
 // @flow
 import * as PgpGen from '../../actions/pgp-gen'
 import React, {Component} from 'react'
-import RemoteComponent from './remote-component'
+import RemoteComponent from './remote-component.desktop'
 import {connect, type TypedState} from '../../util/container'
 
 type Props = {

@@ -5,7 +5,7 @@
   "actions": {
     "deleteEntity": {
       "keyPath": "Array<string>",
-      "ids": "Iterable<string>"
+      "ids": "Iterable<any>"
     },
     "mergeEntity": {
       "keyPath": "Array<string>",
@@ -21,7 +21,7 @@
     },
     "registerPinentryListener": {},
     "newPinentry": {
-      "features": "RPCTypes.GUIEntryFeatures",
+      "showTyping": "RPCTypes.Feature",
       "type": "RPCTypes.PassphraseType",
       "sessionID": "number",
       "prompt": "string",
@@ -32,8 +32,7 @@
     },
     "onSubmit": {
       "sessionID": "number",
-      "passphrase": "string",
-      "features": "RPCTypes.GUIEntryFeatures"
+      "passphrase": "string"
     },
     "onCancel": {
       "sessionID": "number"

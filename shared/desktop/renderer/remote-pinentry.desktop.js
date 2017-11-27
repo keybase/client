@@ -1,18 +1,13 @@
 // @flow
+// A mirror of the remote pinentry windows.
+// RemotePinentrys renders all of them (usually only one)
+// RemotePinentry is a single remote window
+import * as I from 'immutable'
 import * as React from 'react'
-import RemoteConnector from './remote-connector'
-import RemoteWindow from './remote-window'
+import * as Types from '../../constants/types/pinentry'
+import RemoteConnector from './remote-connector.desktop'
+import RemoteWindow from './remote-window.desktop'
 import {connect, type TypedState, compose, type Dispatch} from '../../util/container'
-// import {onCancel, onSubmit} from '../../actions/pinentry'
-import {type PinentryState} from '../../constants/types/pinentry'
-import {type GUIEntryFeatures} from '../../constants/types/flow-types'
-
-type Props = {
-  registerPinentryListener: () => void,
-  onCancel: (sessionID: number) => void,
-  onSubmit: (sessionID: number, passphrase: string, features: GUIEntryFeatures) => void,
-  pinentryStates: {[key: string]: PinentryState},
-}
 
 const windowOpts = {height: 210, width: 440}
 
@@ -23,7 +18,7 @@ const pinentryMapStateToProps = (state: TypedState, {id}) => {
   return {
     cancelLabel: p.cancelLabel,
     component: 'pinentry',
-    features: p.features,
+    showTyping: p.showTyping,
     prompt: p.prompt,
     retryLabel: p.retryLabel,
     selectorParams: String(id),
@@ -47,6 +42,9 @@ const RemotePinentry = compose(
   RemoteConnector
 )(PrintDebug)
 
+type Props = {
+  pinentryIDs: I.Map<number, Types.PinentryState>,
+}
 class RemotePinentrys extends React.PureComponent<Props> {
   render() {
     return this.props.pinentryIDs.map(id => <RemotePinentry id={id} key={String(id)} />)
@@ -57,10 +55,4 @@ const mapStateToProps = (state: TypedState) => ({
   pinentryIDs: state.pinentry.sessionIDToPinentry.keySeq().toArray(),
 })
 
-const mapDispatchToprops = (dispatch: any, ownProps: {}) => ({
-  // onCancel: (sid: number) => dispatch(onCancel(sid)),
-  // onSubmit: (sid: number, passphrase: string, features: GUIEntryFeatures) =>
-  // dispatch(onSubmit(sid, passphrase, features)),
-})
-
-export default connect(mapStateToProps, mapDispatchToprops)(RemotePinentrys)
+export default connect(mapStateToProps, () => ({}))(RemotePinentrys)

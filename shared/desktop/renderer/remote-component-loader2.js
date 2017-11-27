@@ -13,7 +13,7 @@ import {disable as disableDragDrop} from '../../util/drag-drop'
 import {getUserImageMap, loadUserImageMap, getTeamImageMap, loadTeamImageMap} from '../../util/pictures'
 import {globalColors} from '../../styles'
 import {initAvatarLookup, initAvatarLoad} from '../../common-adapters'
-import {remote, ipcRenderer} from 'electron'
+import {remote, BrowserWindow} from 'electron'
 import {setupContextMenu} from '../app/menu-helper'
 import {setupSource} from '../../util/forward-logs'
 

@@ -31,50 +31,8 @@ export default function(state: Types.State = initialState, action: PinentryGen.A
     case PinentryGen.newPinentry:
     case PinentryGen.onCancel:
     case PinentryGen.onSubmit:
+    case PinentryGen.registerPinentryListener:
       return state
-    // case PinentryGen.newPinentry:
-    // const {sessionID} = action.payload
-    // const {features} = action.payload
-    // // Long form function to add annotation to help flow
-    // const reducer = function(m: Types.EnabledFeatures, f: string): Types.EnabledFeatures {
-    // return {...m, [f]: features[f]}
-    // }
-    // // $FlowIssue
-    // const enabledFeatures: RPCTypes.GUIEntryFeatures = Object.keys(features)
-    // .filter((f: string) => features[f].allow)
-    // .reduce(reducer, ({}: Types.EnabledFeatures))
-
-    // const newPinentryState: Types.PinentryState = {
-    // canceled: false,
-    // closed: false,
-    // submitted: false,
-    // ...action.payload,
-    // features: enabledFeatures,
-    // }
-    // return {
-    // ...state,
-    // pinentryStates: {
-    // ...state.pinentryStates,
-    // [sessionID]: newPinentryState,
-    // },
-    // }
-    // case PinentryGen.onCancel: // fallthrough
-    // case PinentryGen.onSubmit: {
-    // const {sessionID} = action.payload
-    // const nextState = {
-    // ...(state.pinentryStates[sessionID + ''] || {}),
-    // ...(action.type === PinentryGen.onCancel
-    // ? {canceled: true, closed: true}
-    // : {closed: true, submitted: true}),
-    // }
-    // return {
-    // ...state,
-    // pinentryStates: {
-    // ...state.pinentryStates,
-    // [sessionID]: nextState,
-    // },
-    // }
-    // }
     default:
       // eslint-disable-next-line no-unused-expressions
       (action: empty) // if you get a flow error here it means there's an action you claim to handle but didn't

@@ -2,7 +2,7 @@
 import * as Creators from '../../actions/tracker'
 import * as TrackerGen from '../../actions/tracker-gen'
 import React, {Component} from 'react'
-import RemoteComponent from './remote-component'
+import RemoteComponent from './remote-component.desktop'
 import {connect, type TypedState} from '../../util/container'
 import {type TrackerState, type NonUserState} from '../../constants/types/tracker'
 

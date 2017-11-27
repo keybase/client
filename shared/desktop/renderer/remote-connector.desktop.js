@@ -21,7 +21,7 @@ export default function RemoteConnector(ComposedComponent: any) {
         try {
           const props = this._propsToSend()
           console.log('aaa RemoteConnector sending props', JSON.stringify(props, null, 2))
-          this.props.remoteWindow.emit('props', props)
+          this.props.remoteWindow && this.props.remoteWindow.emit('props', props)
         } catch (e) {
           console.error(e)
         }

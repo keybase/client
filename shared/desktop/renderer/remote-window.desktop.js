@@ -29,6 +29,7 @@ type Props = {
   positionBottomRight?: boolean,
   component: string,
   title: string,
+  selectorParams: string,
 }
 
 const defaultWindowOpts = {
@@ -55,7 +56,7 @@ export default function RemoteWindow(ComposedComponent: any) {
       remoteWindow: null,
     }
 
-    _makeBrowserWindow = () => {
+    _makeBrowserWindow = (): BrowserWindow => {
       const windowOpts = {
         ...defaultWindowOpts,
         ...this.props.windowOpts,
@@ -65,20 +66,25 @@ export default function RemoteWindow(ComposedComponent: any) {
         this.setState({remoteWindow: this._remoteWindow})
       }
       this._positionBrowserWindow(windowOpts)
+      return this._remoteWindow
     }
 
     _positionBrowserWindow = (windowOpts: {width: number, height: number}) => {
       if (this.props.positionBottomRight && electron.screen.getPrimaryDisplay()) {
         const {width, height} = electron.screen.getPrimaryDisplay().workAreaSize
-        this._remoteWindow.setPosition(
-          width - windowOpts.width - 100,
-          height - windowOpts.height - 100,
-          false
-        )
+        this._remoteWindow &&
+          this._remoteWindow.setPosition(
+            width - windowOpts.width - 100,
+            height - windowOpts.height - 100,
+            false
+          )
       }
     }
 
     _setupWebContents = () => {
+      if (!this._remoteWindow) {
+        return
+      }
       const webContents = this._remoteWindow.webContents
       webContents.on('did-finish-load', () => {
         webContents.send('load', {
@@ -116,21 +122,21 @@ export default function RemoteWindow(ComposedComponent: any) {
     }
 
     componentWillMount() {
-      this._makeBrowserWindow()
+      const remoteWindow = this._makeBrowserWindow()
 
       // Keep remoteWindowId since remoteWindow properties are not accessible if destroyed
-      this._remoteWindowId = this._remoteWindow.id
+      this._remoteWindowId = remoteWindow.id
 
-      menuHelper(this._remoteWindow)
+      menuHelper(remoteWindow)
 
       ipcRenderer.send('showDockIconForRemoteWindow', this._remoteWindowId)
 
-      this._remoteWindow.loadURL(
+      remoteWindow.loadURL(
         resolveRootAsURL('renderer', injectReactQueryParams(`renderer.html?${this.props.component || ''}`))
       )
 
       this._setupWebContents()
-      this._remoteWindow.on('close', this._onWindowClosed)
+      remoteWindow.on('close', this._onWindowClosed)
     }
 
     componentWillUnmount() {

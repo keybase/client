@@ -27,21 +27,12 @@ function _setupPinentryHandlers() {
     // Stash response
     sessionIDToResponse[String(sessionID)] = response
 
-    // Long form function to add annotation to help flow
-    const reducer = function(m: Types.EnabledFeatures, f: string): Types.EnabledFeatures {
-      return {...m, [f]: features[f]}
-    }
-    // $FlowIssue
-    const enabledFeatures: RPCTypes.GUIEntryFeatures = Object.keys(features)
-      .filter((f: string) => features[f].allow)
-      .reduce(reducer, ({}: Types.EnabledFeatures))
-
     return PinentryGen.createNewPinentry({
       cancelLabel,
-      features: enabledFeatures,
       prompt,
       retryLabel,
       sessionID,
+      showTyping: features.showTyping,
       submitLabel,
       type,
       windowTitle,
@@ -49,7 +40,7 @@ function _setupPinentryHandlers() {
   })
 }
 
-function _onNewPinentry(action: PinenetryGen.NewPinentryPayload) {
+function _onNewPinentry(action: PinentryGen.NewPinentryPayload) {
   return Saga.put(
     PinentryGen.createReplaceEntity({
       entities: I.Map([[String(action.payload.sessionID), action.payload]]),
@@ -59,13 +50,8 @@ function _onNewPinentry(action: PinenetryGen.NewPinentryPayload) {
 }
 
 function _onSubmit(action: PinentryGen.OnSubmitPayload) {
-  const {sessionID, passphrase, features} = action.payload
-  const result = {passphrase}
-  for (const feature in features) {
-    result[feature] = features[feature]
-  }
-
-  _respond(sessionID, result)
+  const {sessionID, passphrase} = action.payload
+  _respond(sessionID, {passphrase, storeSecret: false})
   return Saga.put(
     PinentryGen.createDeleteEntity({
       ids: [action.payload.sessionID],
