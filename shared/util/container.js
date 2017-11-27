@@ -33,3 +33,4 @@ export {
   createSelectorCreator,
   defaultMemoize,
 }
+export {Dispatch} from '../constants/types/flux'
