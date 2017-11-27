@@ -27,8 +27,8 @@ let config = {
 
 // Developer settings
 if (__DEV__) {
-  config.enableActionLogging = false
-  config.enableStoreLogging = true
+  config.enableActionLogging = true
+  config.enableStoreLogging = false
   config.filterActionLogs = null // '^chat|entity'
   config.forwardLogs = false
   config.printOutstandingRPCs = true

@@ -68,71 +68,9 @@ const setupFileWritable = __STORYBOOK__
 
 type Log = (...args: Array<any>) => void
 
-// $FlowIssue
-const localLog: Log = console._log || console.log.bind(console)
-// $FlowIssue
-const localWarn: Log = console._warn || console.warn.bind(console)
-// $FlowIssue
-const localError: Log = console._error || console.error.bind(console)
-
-function tee(...writeFns) {
-  return t => writeFns.forEach(w => w(t))
-}
-
-const setupTarget = __STORYBOOK__
-  ? () => {}
-  : () => {
-      const fs = require('fs')
-      const {forwardLogs} = require('../local-debug')
-      if (!forwardLogs) {
-        return
-      }
-      const {ipcMain} = require('electron')
-      const util = require('util')
-      const {isWindows} = require('../constants/platform.desktop')
-
-      const logFd = setupFileWritable()
-      console.log('Using logFd = ', logFd)
-      const fileWritable = logFd ? fs.createWriteStream('', {fd: logFd}) : null
-
-      const stdOutWriter = t => {
-        !isWindows && process.stdout.write(t)
-      }
-      const stdErrWriter = t => {
-        !isWindows && process.stderr.write(t)
-      }
-      const logFileWriter = t => {
-        fileWritable && fileWritable.write(t)
-      }
-
-      const output = {
-        error: tee(stdErrWriter, logFileWriter),
-        log: tee(stdOutWriter, logFileWriter),
-        warn: tee(stdOutWriter, logFileWriter),
-      }
-
-      const keys = ['log', 'warn', 'error']
-      keys.forEach(key => {
-        const override = (...args) => {
-          if (args.length) {
-            output[key](`${key}: ${Date()} (${Date.now()}): ${util.format('%s', ...args)}\n`)
-          }
-        }
-
-        // $FlowIssue these can no longer be written to
-        console[key] = override
-        ipcMain.on(`console.${key}`, (event, ...args) => {
-          const prologue = `From ${event.sender.getTitle()}: `
-          output[key](prologue)
-          override(...args)
-        })
-      })
-      ipcMain.on('console.flushLogFile', (event, ...args) => {
-        console.log('Flushing log file', logFd)
-        // $FlowIssue flow doesn't know about this function for some reason
-        logFd && fs.fdatasyncSync(logFd)
-      })
-    }
+const localLog: Log = console.log.bind(console)
+const localWarn: Log = console.warn.bind(console)
+const localError: Log = console.error.bind(console)
 
 const writeLogLinesToFile: (lines: Array<LogLineWithLevel>) => Promise<void> = __STORYBOOK__
   ? (lines: Array<LogLineWithLevel>) => Promise.resolve()
@@ -176,13 +114,4 @@ const writeLogLinesToFile: (lines: Array<LogLineWithLevel>) => Promise<void> = _
         }
       })
 
-const flushLogFile = __STORYBOOK__
-  ? () => {}
-  : () => {
-      const {ipcRenderer} = require('electron')
-      const {dumpLoggers} = require('./periodic-logger')
-      dumpLoggers()
-      ipcRenderer.send('console.flushLogFile')
-    }
-
-export {setupTarget, localLog, localWarn, localError, flushLogFile, writeLogLinesToFile}
+export {localLog, localWarn, localError, writeLogLinesToFile}
