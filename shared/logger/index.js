@@ -98,7 +98,7 @@ const logSetup = __DEV__
       debug: new ConsoleLogger('log', 'DEBUG:'),
     }
   : {
-      error: new RingLogger(1000),
+      error: new DumpPeriodicallyLogger(new RingLogger(1000), 1 * 60e3, writeLogLinesToFile, 'Error'),
       warn: new RingLogger(1000),
       info: new NullLogger(),
       action: new DumpPeriodicallyLogger(new RingLogger(5000), 10 * 60e3, writeLogLinesToFile, 'Action'),
