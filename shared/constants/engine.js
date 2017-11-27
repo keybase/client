@@ -76,8 +76,15 @@ class EngineRpcCall {
   _subSagaChannel: SagaTypes.Channel<*>
   _engineChannel: EngineChannel
   _cleanedUp: boolean
+  _finishedErrorShouldCancel: boolean
 
-  constructor(sagaMap: SagaTypes.SagaMap, rpc: any, rpcNameKey: string, request: any) {
+  constructor(
+    sagaMap: SagaTypes.SagaMap,
+    rpc: any,
+    rpcNameKey: string,
+    request: any,
+    finishedErrorShouldCancel?: boolean
+  ) {
     this._chanConfig = Saga.singleFixedChannelConfig(Object.keys(sagaMap))
     this._rpcNameKey = rpcNameKey
     this._rpc = rpc
@@ -143,6 +150,12 @@ class EngineRpcCall {
         }
 
         if (incoming.finished) {
+          // Used just by device add for now. this is to fix a bug and i'm not sure this should apply generally
+          if (incoming.finished.error && this._finishedErrorShouldCancel) {
+            yield Saga.call([this, this._cleanup], subSagaTasks)
+            const {error, params} = incoming.finished
+            return finished({error, params})
+          }
           // Wait for all the subSagas to finish
           if (subSagaTasks.length) {
             yield Saga.join(...subSagaTasks)
