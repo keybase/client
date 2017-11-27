@@ -184,7 +184,9 @@ function postPack(plat, arch) {
     }
     const subdir = plat === 'darwin' ? 'Keybase.app/Contents/Resources' : 'resources'
     const dir = path.join(filepath[0], subdir, 'app/desktop/dist')
-    const files = ['index', 'launcher', 'main', 'remote-component-loader'].map(p => p + '.bundle.js')
+    const files = ['index', 'launcher', 'main', 'remote-component-loader', 'remote-component-loader2'].map(
+      p => p + '.bundle.js'
+    )
     files.forEach(file => {
       try {
         const stats = fs.statSync(path.join(dir, file))

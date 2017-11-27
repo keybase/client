@@ -7,6 +7,7 @@ import * as GregorCreators from '../actions/gregor'
 import * as NotificationsGen from '../actions/notifications-gen'
 import * as RPCTypes from '../constants/types/flow-types'
 import * as Saga from '../util/saga'
+import * as PinentryGen from '../actions/pinentry-gen'
 import * as SignupGen from '../actions/signup-gen'
 import engine from '../engine'
 import {RouteStateStorage} from '../actions/route-state-storage'
@@ -76,6 +77,7 @@ const registerListeners = (): AsyncAction => dispatch => {
   dispatch(GregorCreators.listenForNativeReachabilityEvents)
   dispatch(GregorCreators.registerGregorListeners())
   dispatch(GregorCreators.registerReachability())
+  dispatch(PinentryGen.createRegisterPinentryListener())
 }
 
 const _retryBootstrap = () => {
@@ -170,7 +172,7 @@ const getBootstrapStatus = (): AsyncAction => dispatch =>
   new Promise((resolve, reject) => {
     RPCTypes.configGetBootstrapStatusRpcPromise()
       .then(bootstrapStatus => {
-        dispatch(ConfigGen.createBootstrapStatusLoaded({bootstrapStatus}))
+        dispatch(ConfigGen.createBootstrapStatusLoaded({...bootstrapStatus}))
         resolve(bootstrapStatus)
       })
       .catch(error => {

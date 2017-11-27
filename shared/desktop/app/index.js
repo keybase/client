@@ -83,6 +83,10 @@ function start() {
   app.once('ready', () => {
     mainWindow = MainWindow()
     storeHelper(mainWindow)
+    ipcMain.on('remoteWindowWantsProps', (_, component, selectorParams) => {
+      console.log(`\n\n\naaaaaaa main process GOT need remoteWindowWantsProps ${component} ${selectorParams}`)
+      mainWindow && mainWindow.window.webContents.send('remoteWindowWantsProps', component, selectorParams)
+    })
   })
 
   ipcMain.on('install-check', (event, arg) => {
