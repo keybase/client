@@ -644,17 +644,12 @@ function* addNewDeviceSaga({payload: {role}}: LoginGen.AddNewDevicePayload) {
     Types.deviceDeviceAddRpcChannelMap,
     'addDeviceRpc',
     {},
-    true // should throw on finished+error
+    true // should cancel on finished+error
   )
 
-  try {
-    yield Saga.call(addDeviceRpc.run)
-  } catch (e) {
-    console.log(e)
-  } finally {
-    yield Saga.call(onBackSaga)
-    yield Saga.put(setDevicesWaiting(false))
-  }
+  yield Saga.call(addDeviceRpc.run)
+  yield Saga.call(onBackSaga)
+  yield Saga.put(setDevicesWaiting(false))
 }
 
 function* openAccountResetPageSaga() {
