@@ -352,52 +352,16 @@ func ListAll(ctx context.Context, g *libkb.GlobalContext, arg keybase1.TeamListA
 			Role:           memberInfo.Role, // memberInfo.Role has been verified during getTeamForMember
 			IsImplicitTeam: team.IsImplicit(),
 			Implicit:       memberInfo.Implicit, // This part is still server trust
-			Active:         true,                // assume member is active, fillUsernames might mutate this to false.
+			// Assume member is active, later this field might be
+			// mutated to false after consulting UIDMapper.
+			Active: true,
 		}
 
 		res.Teams = append(res.Teams, *anMemberInfo)
 
 		if anMemberInfo.UserID == meUID {
 			// Go through team invites - only once per TeamID.
-			invites := team.chain().inner.ActiveInvites
-			for invID, invite := range invites {
-				category, err := invite.Type.C()
-				if err != nil {
-					continue
-				}
-
-				if category == keybase1.TeamInviteCategory_KEYBASE {
-					// Treat KEYBASE invites (for PUK-less users) as
-					// team members.
-					uv, err := invite.KeybaseUserVersion()
-					if err != nil {
-						continue
-					}
-
-					res.Teams = append(res.Teams, keybase1.AnnotatedMemberInfo{
-						TeamID:         team.ID,
-						FqName:         team.Name().String(),
-						UserID:         uv.Uid,
-						EldestSeqno:    uv.EldestSeqno,
-						Role:           invite.Role,
-						IsImplicitTeam: team.IsImplicit(),
-						Implicit:       nil,
-						Active:         true,
-					})
-				} else if category == keybase1.TeamInviteCategory_SEITAN {
-					// no-op - do not parse seitans. We shouldn't even
-					// see them - they should all be stubbed out.
-				} else {
-					res.AnnotatedActiveInvites[invID] = keybase1.AnnotatedTeamInvite{
-						Role:     invite.Role,
-						Id:       invite.Id,
-						Type:     invite.Type,
-						Name:     invite.Name,
-						Inviter:  invite.Inviter,
-						TeamName: team.Name().String(),
-					}
-				}
-			}
+			parseInvitesNoAnnotate(ctx, g, team, res)
 		}
 	}
 
@@ -571,6 +535,50 @@ func AnnotateInvites(ctx context.Context, g *libkb.GlobalContext, team *Team) (m
 		}
 	}
 	return annotatedInvites, nil
+}
+
+func parseInvitesNoAnnotate(ctx context.Context, g *libkb.GlobalContext, team *Team, res *keybase1.AnnotatedTeamList) {
+	invites := team.chain().inner.ActiveInvites
+	for invID, invite := range invites {
+		category, err := invite.Type.C()
+		if err != nil {
+			g.Log.CDebugf(ctx, "| parseInvitesNoAnnotate failed to parse invite %q for team %q: %v", invID, team.ID, err)
+			continue
+		}
+
+		if category == keybase1.TeamInviteCategory_KEYBASE {
+			// Treat KEYBASE invites (for PUK-less users) as
+			// team members.
+			uv, err := invite.KeybaseUserVersion()
+			if err != nil {
+				g.Log.CDebugf(ctx, "| parseInvitesNoAnnotate failed to parse invite %q for team %q (name is not proper UV): %v", invID, team.ID, err)
+				continue
+			}
+
+			res.Teams = append(res.Teams, keybase1.AnnotatedMemberInfo{
+				TeamID:         team.ID,
+				FqName:         team.Name().String(),
+				UserID:         uv.Uid,
+				EldestSeqno:    uv.EldestSeqno,
+				Role:           invite.Role,
+				IsImplicitTeam: team.IsImplicit(),
+				Implicit:       nil,
+				Active:         true,
+			})
+		} else if category == keybase1.TeamInviteCategory_SEITAN {
+			// no-op - do not parse seitans. We shouldn't even
+			// see them - they should all be stubbed out.
+		} else {
+			res.AnnotatedActiveInvites[invID] = keybase1.AnnotatedTeamInvite{
+				Role:     invite.Role,
+				Id:       invite.Id,
+				Type:     invite.Type,
+				Name:     invite.Name,
+				Inviter:  invite.Inviter,
+				TeamName: team.Name().String(),
+			}
+		}
+	}
 }
 
 func TeamTree(ctx context.Context, g *libkb.GlobalContext, arg keybase1.TeamTreeArg) (res keybase1.TeamTreeResult, err error) {

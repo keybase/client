@@ -83,7 +83,6 @@ func TestTeamList(t *testing.T) {
 	require.Equal(t, 0, len(details.Members.Admins))
 	require.Equal(t, 4, len(details.Members.Writers))
 	require.Equal(t, 0, len(details.Members.Readers))
-	require.Equal(t, 1, len(details.AnnotatedActiveInvites))
 
 	annMember := findMember(ann, details.Members.Owners)
 	require.NotNil(t, annMember)
@@ -110,6 +109,7 @@ func TestTeamList(t *testing.T) {
 	require.True(t, edMember.Active)
 	require.True(t, edMember.NeedsPUK)
 
+	require.Equal(t, 1, len(details.AnnotatedActiveInvites))
 	for _, invite := range details.AnnotatedActiveInvites {
 		// There should be only one invite
 		require.EqualValues(t, rootername, invite.Name)
