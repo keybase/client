@@ -40,7 +40,7 @@ func NewCmdLogin(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command
 
 type CmdLogin struct {
 	libkb.Contextified
-	username   string
+	Username   string
 	clientType keybase1.ClientType
 	cancel     func()
 	done       chan struct{}
@@ -82,7 +82,7 @@ func (c *CmdLogin) Run() error {
 
 	err = client.Login(ctx,
 		keybase1.LoginArg{
-			UsernameOrEmail: c.username,
+			UsernameOrEmail: c.Username,
 			DeviceType:      libkb.DeviceTypeDesktop,
 			ClientType:      c.clientType,
 			SessionID:       c.SessionID,
@@ -115,8 +115,8 @@ func (c *CmdLogin) ParseArgv(ctx *cli.Context) error {
 	}
 
 	if nargs == 1 {
-		c.username = ctx.Args()[0]
-		if !libkb.CheckEmailOrUsername.F(c.username) {
+		c.Username = ctx.Args()[0]
+		if !libkb.CheckEmailOrUsername.F(c.Username) {
 			return errors.New("Invalid username or email address format. Please login again via `keybase login [username or email]`")
 		}
 	}

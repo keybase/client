@@ -47,6 +47,7 @@ export default compose(
 
 const styleSpinner = {
   alignSelf: 'center',
-  marginTop: globalMargins.small,
+  marginTop: globalMargins.medium,
+  marginBottom: globalMargins.medium,
   width: 24,
 }

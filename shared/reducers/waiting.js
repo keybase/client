@@ -12,11 +12,11 @@ function reducer(state: Constants.State = initialState, action: Waiting.Actions)
     }
     case Waiting.decrementWaiting: {
       const {payload: {key}} = action
-      return initialState.update(key, 1, n => n - 1)
+      return state.update(key, 1, n => n - 1)
     }
     case Waiting.incrementWaiting: {
       const {payload: {key}} = action
-      return initialState.update(key, 0, n => n + 1)
+      return state.update(key, 0, n => n + 1)
     }
   }
 

@@ -816,11 +816,13 @@ function messageKeyKind(key: MessageKey): MessageKeyKind {
   throw new Error(`Invalid messageKeyKind passed key: ${key}`)
 }
 
+// TODO(mm) type these properly - they return any
 const getYou = (state: TypedState) => state.config.username || ''
 const getFollowingMap = (state: TypedState) => state.config.following
 const getMetaDataMap = (state: TypedState) => state.chat.get('metaData')
 const getInbox = (state: TypedState, conversationIDKey: ?ConversationIDKey) =>
   conversationIDKey ? state.chat.getIn(['inbox', conversationIDKey]) : null
+const getFullInbox = (state: TypedState) => state.chat.inbox
 const getSelectedInbox = (state: TypedState) => getInbox(state, getSelectedConversation(state))
 const getEditingMessage = (state: TypedState) => state.chat.get('editingMessage')
 
@@ -837,6 +839,7 @@ const getParticipants = createSelector(
   }
 )
 
+// TOOD(mm) - are these selectors useful? or will they just cache thrash?
 const getParticipantsWithFullNames = createSelector(
   [getSelectedInbox, getSelectedConversation],
   (selectedInbox, selected) => {
@@ -844,11 +847,24 @@ const getParticipantsWithFullNames = createSelector(
       return []
     } else if (selected !== nothingSelected && selectedInbox) {
       const s = selectedInbox
-      return s.participants.map(username => {
-        return {username: username, fullname: s.fullNames.get(username)}
-      })
+      return s.participants
+        .map(username => {
+          return {username: username, fullname: s.fullNames.get(username)}
+        })
+        .toArray()
     }
     return []
+  }
+)
+
+const getGeneralChannelOfSelectedInbox = createSelector(
+  [getSelectedInbox, getFullInbox],
+  (selectedInbox, inbox) => {
+    if (!selectedInbox || selectedInbox.membersType !== ChatTypes.commonConversationMembersType.team) {
+      return selectedInbox
+    }
+    const teamName = selectedInbox.teamname
+    return inbox.find(value => value.teamname === teamName && value.channelname === 'general')
   }
 )
 
@@ -874,6 +890,11 @@ const getChannelName = createSelector(
 const getTeamName = createSelector(
   [getSelectedInbox],
   selectedInbox => selectedInbox && selectedInbox.get('teamname')
+)
+
+const getTeamType = createSelector(
+  [getSelectedInbox],
+  selectedInbox => selectedInbox && selectedInbox.get('teamType')
 )
 
 const getSelectedConversationStates = (state: TypedState): ?ConversationState => {
@@ -1119,6 +1140,7 @@ export {
   getUploadProgress,
   getSnippet,
   getTeamName,
+  getTeamType,
   conversationIDToKey,
   convSupersedesInfo,
   convSupersededByInfo,
@@ -1162,4 +1184,5 @@ export {
   messageIDToSelfInventedID,
   parseMessageID,
   lastMessageID,
+  getGeneralChannelOfSelectedInbox,
 }

@@ -314,7 +314,7 @@ function* _processConversation(c: RPCChatTypes.InboxUIItem): Generator<any, void
 
   if (inboxState) {
     // We blocked it
-    if (['blocked', 'reported'].includes(inboxState.status)) {
+    if (['ignored', 'blocked', 'reported'].includes(inboxState.status)) {
       yield Saga.put(
         ChatGen.createDeleteEntity({
           keyPath: ['inboxSmallTimestamps'],
@@ -532,7 +532,7 @@ function* unboxConversations(action: ChatGen.UnboxConversationsPayload): SagaGen
     }
   }
   if (forInboxSync) {
-    yield Saga.put(ChatGen.createSetInboxGlobalUntrustedState({inboxGlobalUntrustedState: 'loaded'}))
+    yield Saga.put(ChatGen.createSetInboxSyncingState({inboxSyncingState: 'notSyncing'}))
   }
 }
 
@@ -888,12 +888,30 @@ function* _incomingMessage(action: ChatGen.IncomingMessagePayload): Saga.SagaGen
         }
       }
       break
+    case RPCChatTypes.notifyChatChatActivityType.membersUpdate:
+      const info = action.payload.activity && action.payload.activity.membersUpdate
+      const convID = info && info.convID
+      const conversationIDKey = Constants.conversationIDToKey(convID)
+
+      yield Saga.put(
+        ChatGen.createUnboxConversations({
+          conversationIDKeys: [conversationIDKey],
+          reason: 'Membership updated',
+          force: true,
+        })
+      )
+      break
   }
 }
 
 function _joinConversation(action: ChatGen.JoinConversationPayload) {
   const convID = Constants.keyToConversationID(action.payload.conversationIDKey)
   return Saga.call(RPCChatTypes.localJoinConversationByIDLocalRpcPromise, {param: {convID}})
+}
+
+function _previewChannel(action: ChatGen.PreviewChannelPayload) {
+  const convID = Constants.keyToConversationID(action.payload.conversationIDKey)
+  return Saga.call(RPCChatTypes.localPreviewConversationByIDLocalRpcPromise, {param: {convID}})
 }
 
 function* registerSagas(): SagaGenerator<any, any> {
@@ -910,6 +928,7 @@ function* registerSagas(): SagaGenerator<any, any> {
   yield Saga.safeTakeLatest(ChatGen.badgeAppForChat, _badgeAppForChat)
   yield Saga.safeTakeEvery(ChatGen.incomingMessage, _incomingMessage)
   yield Saga.safeTakeEveryPure(ChatGen.joinConversation, _joinConversation)
+  yield Saga.safeTakeEveryPure(ChatGen.previewChannel, _previewChannel)
 }
 
 export {registerSagas}

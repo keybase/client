@@ -68,7 +68,7 @@ function _parseKeybaseRawResult(result: RawResult): Constants.SearchResult {
       leftUsername: keybase.username,
       leftService: 'Keybase',
 
-      rightFullname: keybase.full_name,
+      leftFullname: keybase.full_name,
       rightIcon: serviceIdToIcon(service.service_name),
       rightService: Constants.serviceIdToService(service.service_name),
       rightUsername: service.username,
@@ -83,7 +83,7 @@ function _parseKeybaseRawResult(result: RawResult): Constants.SearchResult {
       leftUsername: keybase.username,
       leftService: 'Keybase',
 
-      rightFullname: keybase.full_name,
+      leftFullname: keybase.full_name,
       rightIcon: null,
       rightService: null,
       rightUsername: null,
@@ -102,7 +102,7 @@ function _parseThirdPartyRawResult(result: RawResult): Constants.SearchResult {
       leftUsername: service.username,
       leftService: Constants.serviceIdToService(service.service_name),
 
-      rightFullname: keybase.full_name,
+      leftFullname: keybase.full_name,
       rightIcon: null,
       rightService: 'Keybase',
       rightUsername: keybase.username,
@@ -117,7 +117,7 @@ function _parseThirdPartyRawResult(result: RawResult): Constants.SearchResult {
       leftUsername: service.username,
       leftService: Constants.serviceIdToService(service.service_name),
 
-      rightFullname: service.full_name,
+      leftFullname: service.full_name,
       rightIcon: null,
       rightService: null,
       rightUsername: null,
@@ -140,11 +140,11 @@ function _parseRawResultToRow(result: RawResult, service: Constants.Service) {
 function _parseSuggestion(username: string) {
   return {
     id: _rawResultToId('keybase', username),
-    leftIcon: serviceIdToLogo24('keybase'),
-    leftUsername: username,
-    leftService: Constants.serviceIdToService('keybase'),
     // TODO get this from the service
-    rightFullname: '',
+    leftFullname: '',
+    leftIcon: serviceIdToLogo24('keybase'),
+    leftService: Constants.serviceIdToService('keybase'),
+    leftUsername: username,
     rightIcon: null,
     rightService: null,
     rightUsername: null,

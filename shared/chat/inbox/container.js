@@ -22,7 +22,6 @@ const getInbox = (state: TypedState) => state.chat.get('inbox')
 const getInboxBigChannels = (state: TypedState) => state.chat.get('inboxBigChannels')
 const getInboxBigChannelsToTeam = (state: TypedState) => state.chat.get('inboxBigChannelsToTeam')
 const getIsEmpty = (state: TypedState) => state.chat.get('inboxIsEmpty')
-const getPending = (state: TypedState) => state.chat.get('pendingConversations')
 const getSmallTimestamps = (state: TypedState) => state.chat.getIn(['inboxSmallTimestamps'], I.Map())
 const getSupersededBy = (state: TypedState) => state.chat.get('inboxSupersededBy')
 const _rowsForSelect = (rows: Array<any>) => rows.filter(r => ['small', 'big'].includes(r.type))
@@ -42,16 +41,14 @@ const getSortedSmallRowsIDs = createSelector([getSmallTimestamps], (smallTimesta
 
 // IDs filtering out empty conversations (unless we always show them) or superseded ones
 const getVisibleSmallIDs = createImmutableEqualSelector(
-  [getSortedSmallRowsIDs, getPending, getAlwaysShow, getSupersededBy, getIsEmpty],
-  (sortedSmallRows, pending, alwaysShow, supersededBy, isEmpty): Array<Constants.ConversationIDKey> => {
-    const pendingRows = pending.keySeq().toArray()
-    const smallRows = sortedSmallRows.toArray().filter(conversationIDKey => {
+  [getSortedSmallRowsIDs, getAlwaysShow, getSupersededBy, getIsEmpty],
+  (sortedSmallRows, alwaysShow, supersededBy, isEmpty): Array<Constants.ConversationIDKey> => {
+    return sortedSmallRows.toArray().filter(conversationIDKey => {
       return (
         !supersededBy.get(conversationIDKey) &&
         (!isEmpty.get(conversationIDKey) || alwaysShow.get(conversationIDKey))
       )
     })
-    return pendingRows.concat(smallRows)
   }
 )
 
@@ -205,6 +202,7 @@ const mapStateToProps = (state: TypedState, {isActiveRoute, routeState}) => {
     isLoading: inboxGlobalUntrustedState === 'loading' || state.chat.get('inboxSyncingState') === 'syncing',
     neverLoaded: inboxGlobalUntrustedState === 'unloaded',
     user: Constants.getYou(state),
+    inSearch: state.chat.get('inSearch'),
   }
 }
 
@@ -251,6 +249,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     smallTeamsExpanded: stateProps.smallTeamsExpanded,
     toggleSmallTeamsExpanded: dispatchProps.toggleSmallTeamsExpanded,
     filterFocusCount: ownProps.filterFocusCount,
+    inSearch: stateProps.inSearch,
   }
 }
 

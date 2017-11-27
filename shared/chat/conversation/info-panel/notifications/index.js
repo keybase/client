@@ -22,8 +22,8 @@ const Notifications = ({
   >
 
     <Checkbox
-      checked={channelWide}
-      label="Receive notifications for @channel messages"
+      checked={!channelWide}
+      label="Ignore @here and @channel mentions"
       onCheck={onToggleChannelWide}
     />
 
@@ -48,7 +48,7 @@ const Notifications = ({
         style={{marginTop: globalMargins.xtiny}}
         onSelect={() => onSetDesktop('atmention')}
         selected={desktop === 'atmention'}
-        label={'When @mentioned'}
+        label={'Only when @mentioned'}
       />
     </Box>
     <Box style={styleRadioButton}>
@@ -81,7 +81,7 @@ const Notifications = ({
         style={{marginTop: globalMargins.xtiny}}
         onSelect={() => onSetMobile('atmention')}
         selected={mobile === 'atmention'}
-        label={'When @mentioned'}
+        label={'Only when @mentioned'}
       />
     </Box>
     <Box style={styleRadioButton}>

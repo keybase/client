@@ -7,10 +7,11 @@ import * as KBFSGen from '../../actions/kbfs-gen'
 import * as React from 'react'
 import Team, {CustomComponent} from '.'
 import {HeaderHoc} from '../../common-adapters'
-import {compose, lifecycle, withState} from 'recompose'
+import {compose, lifecycle, renameProps, withHandlers, withPropsOnChange, withState} from 'recompose'
 import {connect, type TypedState} from '../../util/container'
 import {getProfile} from '../../actions/tracker'
 import {isMobile} from '../../constants/platform'
+import {anyWaiting} from '../../constants/waiting'
 import {navigateAppend} from '../../actions/route-tree'
 import {showUserProfile} from '../../actions/profile'
 
@@ -28,6 +29,7 @@ type StateProps = {
   publicityMember: boolean,
   publicityTeam: boolean,
   selectedTab: string,
+  waitingForSavePublicity: boolean,
   you: ?string,
 }
 
@@ -65,6 +67,7 @@ const mapStateToProps = (state: TypedState, {routeProps, routeState}): StateProp
     ),
     publicityTeam: state.entities.getIn(['teams', 'teamNameToPublicitySettings', teamname, 'team'], false),
     selectedTab: routeState.get('selectedTab') || 'members',
+    waitingForSavePublicity: anyWaiting(state, `setPublicity:${teamname}`, `getDetails:${teamname}`),
     you: state.config.username,
   }
 }
@@ -84,7 +87,7 @@ type DispatchProps = {
 
 const mapDispatchToProps = (
   dispatch: Dispatch,
-  {navigateUp, openTeamRole, setOpenTeamRole, setRouteState, routeProps}
+  {navigateUp, newOpenTeamRole, setOpenTeamRole, setRouteState, routeProps}
 ): DispatchProps => ({
   _loadTeam: teamname => dispatch(Creators.getDetails(teamname)),
   _onAddPeople: (teamname: Constants.Teamname) =>
@@ -109,12 +112,6 @@ const mapDispatchToProps = (
     isMobile ? dispatch(showUserProfile(username)) : dispatch(getProfile(username, true, true))
   },
   setSelectedTab: selectedTab => setRouteState({selectedTab}),
-  _setPublicityAnyMember: (teamname: Constants.Teamname, checked: boolean) =>
-    dispatch(Creators.setPublicityAnyMember(teamname, checked)),
-  _setPublicityMember: (teamname: Constants.Teamname, checked: boolean) =>
-    dispatch(Creators.setPublicityMember(teamname, checked)),
-  _setPublicityTeam: (teamname: Constants.Teamname, checked: boolean) =>
-    dispatch(Creators.setPublicityTeam(teamname, checked)),
   onBack: () => dispatch(navigateUp()),
   _onEditDescription: () =>
     dispatch(
@@ -125,9 +122,8 @@ const mapDispatchToProps = (
       navigateAppend([
         {
           props: {
-            onComplete: (role: Constants.TeamRoleType) =>
-              dispatch(Creators.makeTeamOpen(routeProps.get('teamname'), openTeam, role)),
-            selectedRole: openTeamRole,
+            onComplete: (role: Constants.TeamRoleType) => setOpenTeamRole(role),
+            selectedRole: newOpenTeamRole,
             allowOwner: false,
             allowAdmin: false,
           },
@@ -136,8 +132,8 @@ const mapDispatchToProps = (
       ])
     )
   },
-  _setOpenTeam: (teamname: Constants.Teamname, enabled: boolean, openTeamRole: Constants.TeamRoleType) =>
-    dispatch(Creators.makeTeamOpen(teamname, enabled, openTeamRole)),
+  _savePublicity: (teamname: Constants.Teamname, settings: Constants.PublicitySettings) =>
+    dispatch(Creators.setPublicity(teamname, settings)),
 })
 
 const isExplicitAdmin = (memberInfo: I.Set<Constants.MemberInfo>, user: string): boolean => {
@@ -146,6 +142,25 @@ const isExplicitAdmin = (memberInfo: I.Set<Constants.MemberInfo>, user: string):
     return false
   }
   return info.type === 'owner' || info.type === 'admin'
+}
+
+const getOrderedMemberArray = (
+  memberInfo: I.Set<Constants.MemberInfo>,
+  you: ?string,
+  youImplicitAdmin: boolean
+): Array<Constants.MemberInfo> => {
+  let youInfo
+  if (you && !youImplicitAdmin) {
+    youInfo = memberInfo.find(member => member.username === you)
+    if (youInfo) memberInfo = memberInfo.delete(youInfo)
+  }
+  let returnArray = memberInfo
+    .toArray()
+    .sort((a: Constants.MemberInfo, b: Constants.MemberInfo) => a.username.localeCompare(b.username))
+  if (youInfo) {
+    returnArray.unshift(youInfo)
+  }
+  return returnArray
 }
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => {
@@ -175,12 +190,8 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
   const onAddSelf = () => dispatchProps._onAddSelf(stateProps.name, you)
   const onSetOpenTeamRole = () =>
     dispatchProps._onSetOpenTeamRole(stateProps.openTeam, stateProps.openTeamRole)
-  const setPublicityAnyMember = (checked: boolean) =>
-    dispatchProps._setPublicityAnyMember(stateProps.name, checked)
-  const setPublicityMember = (checked: boolean) => dispatchProps._setPublicityMember(stateProps.name, checked)
-  const setPublicityTeam = (checked: boolean) => dispatchProps._setPublicityTeam(stateProps.name, checked)
-  const setOpenTeam = (checked: boolean) =>
-    dispatchProps._setOpenTeam(stateProps.name, checked, stateProps.openTeamRole)
+
+  const savePublicity = settings => dispatchProps._savePublicity(stateProps.name, settings)
 
   const customComponent = (
     <CustomComponent
@@ -190,6 +201,14 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     />
   )
   const youCanShowcase = youAdmin || stateProps.publicityAnyMember
+
+  const publicitySettingsChanged =
+    ownProps.newPublicityAnyMember !== stateProps.publicityAnyMember ||
+    ownProps.newPublicityMember !== stateProps.publicityMember ||
+    ownProps.newPublicityTeam !== stateProps.publicityTeam ||
+    ownProps.newOpenTeam !== stateProps.openTeam ||
+    (ownProps.newOpenTeam && ownProps.newOpenTeamRole !== stateProps.openTeamRole)
+
   return {
     ...stateProps,
     ...dispatchProps,
@@ -197,9 +216,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     customComponent,
     headerStyle: {borderBottomWidth: 0},
     invites: stateProps._invites.toJS(),
-    members: stateProps._memberInfo
-      .toArray()
-      .sort((a: Constants.MemberInfo, b: Constants.MemberInfo) => a.username.localeCompare(b.username)),
+    members: getOrderedMemberArray(stateProps._memberInfo, you, youImplicitAdmin),
     requests: stateProps._requests.toJS(),
     newTeamRequests: stateProps._newTeamRequests.toArray(),
     onAddPeople,
@@ -211,10 +228,8 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     onOpenFolder,
     onEditDescription,
     onSetOpenTeamRole,
-    setOpenTeam,
-    setPublicityAnyMember,
-    setPublicityMember,
-    setPublicityTeam,
+    publicitySettingsChanged,
+    savePublicity,
     showAddYourselfBanner,
     youCanAddPeople,
     youCanCreateSubteam,
@@ -224,11 +239,46 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
 
 export default compose(
   withState('showMenu', 'setShowMenu', false),
+  withState('newPublicityAnyMember', 'setPublicityAnyMember', props => props.publicityAnyMember),
+  withState('newPublicityMember', 'setPublicityMember', props => props.publicityMember),
+  withState('newPublicityTeam', 'setPublicityTeam', props => props.publicityTeam),
+  withState('newOpenTeam', 'setOpenTeam', props => props.openTeam),
+  withState('newOpenTeamRole', 'setOpenTeamRole', props => props.openTeamRole),
+  withState('publicitySettingsChanged', 'setPublicitySettingsChanged', false),
   connect(mapStateToProps, mapDispatchToProps, mergeProps),
+  withPropsOnChange(
+    ['publicityAnyMember', 'publicityMember', 'publicityTeam', 'openTeam', 'openTeamRole'],
+    props => {
+      props.setPublicityAnyMember(props.publicityAnyMember)
+      props.setPublicityMember(props.publicityMember)
+      props.setPublicityTeam(props.publicityTeam)
+      props.setOpenTeam(props.openTeam)
+      props.setOpenTeamRole(props.openTeamRole)
+    }
+  ),
+  withHandlers({
+    onSavePublicity: props => () =>
+      props.savePublicity({
+        publicityAnyMember: props.newPublicityAnyMember,
+        publicityMember: props.newPublicityMember,
+        publicityTeam: props.newPublicityTeam,
+        openTeam: props.newOpenTeam,
+        openTeamRole: props.newOpenTeamRole,
+      }),
+  }),
   lifecycle({
     componentDidMount: function() {
       this.props._loadTeam(this.props.name)
     },
+  }),
+  // Now that we've calculated old vs. new state (for greying out Save button),
+  // we can present just one set of props to the display component.
+  renameProps({
+    newOpenTeam: 'openTeam',
+    newOpenTeamRole: 'openTeamRole',
+    newPublicityAnyMember: 'publicityAnyMember',
+    newPublicityMember: 'publicityMember',
+    newPublicityTeam: 'publicityTeam',
   }),
   HeaderHoc
 )(Team)

@@ -3,6 +3,7 @@ import * as Constants from '../../constants/chat'
 import * as SearchConstants from '../../constants/search'
 import * as Creators from '../../actions/chat/creators'
 import * as ChatGen from '../../actions/chat-gen'
+import {type List} from 'immutable'
 import HiddenString from '../../util/hidden-string'
 import Conversation from './index'
 import NoConversation from './no-conversation'
@@ -36,6 +37,7 @@ type StateProps = {|
   showTeamOffer: boolean,
   inboxFilter: ?string,
   showSearchResults: boolean,
+  previousPath: ?List<string>,
 |}
 
 type DispatchProps = {|
@@ -50,7 +52,7 @@ type DispatchProps = {|
   onShowTrackerInSearch: (id: string) => void,
 |}
 
-const mapStateToProps = (state: TypedState, {routePath}): StateProps => {
+const mapStateToProps = (state: TypedState, {routePath, routeProps}): StateProps => {
   const selectedConversationIDKey = Constants.getSelectedConversation(state)
   const routeState = Constants.getSelectedRouteState(state)
 
@@ -87,13 +89,14 @@ const mapStateToProps = (state: TypedState, {routePath}): StateProps => {
   }
 
   const {inSearch, inboxFilter} = state.chat
+  const searchResults = SearchConstants.getSearchResultIdsArray(state, {searchKey: 'chatSearch'})
   const userInputItemIds = SearchConstants.getUserInputItemIds(state, {searchKey: 'chatSearch'})
 
   // If it's a multi-user chat that isn't a team, offer to make a new team.
   const showTeamOffer = flags.teamChatEnabled && inSearch && userInputItemIds && userInputItemIds.length > 1
 
   return {
-    showSearchResults: inSearch,
+    showSearchResults: inSearch && !!searchResults,
     conversationErrorText,
     conversationIsError,
     finalizeInfo,
@@ -107,6 +110,7 @@ const mapStateToProps = (state: TypedState, {routePath}): StateProps => {
     inSearch,
     defaultChatText,
     showTeamOffer,
+    previousPath: routeProps.get('previousPath'),
   }
 }
 

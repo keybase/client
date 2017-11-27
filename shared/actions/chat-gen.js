@@ -57,6 +57,7 @@ export const outboxMessageBecameReal = 'chat:outboxMessageBecameReal'
 export const pendingToRealConversation = 'chat:pendingToRealConversation'
 export const postMessage = 'chat:postMessage'
 export const prependMessages = 'chat:prependMessages'
+export const previewChannel = 'chat:previewChannel'
 export const removeOutboxMessage = 'chat:removeOutboxMessage'
 export const removeTempPendingConversations = 'chat:removeTempPendingConversations'
 export const replaceEntity = 'chat:replaceEntity'
@@ -144,6 +145,7 @@ export const createOutboxMessageBecameReal = (payload: {|oldMessageKey: Constant
 export const createPendingToRealConversation = (payload: {|oldKey: Constants.ConversationIDKey, newKey: Constants.ConversationIDKey|}) => ({error: false, payload, type: pendingToRealConversation})
 export const createPostMessage = (payload: {|conversationIDKey: Constants.ConversationIDKey, text: HiddenString|}) => ({error: false, payload, type: postMessage})
 export const createPrependMessages = (payload: {|conversationIDKey: Constants.ConversationIDKey, messages: Array<Constants.ServerMessage>, moreToLoad: boolean|}) => ({error: false, payload, type: prependMessages})
+export const createPreviewChannel = (payload: {|conversationIDKey: Constants.ConversationIDKey|}) => ({error: false, payload, type: previewChannel})
 export const createRemoveOutboxMessage = (payload: {|conversationIDKey: Constants.ConversationIDKey, outboxID: Constants.OutboxIDKey|}) => ({error: false, payload, type: removeOutboxMessage})
 export const createRemoveTempPendingConversations = () => ({error: false, payload: undefined, type: removeTempPendingConversations})
 export const createReplaceEntity = (payload: {|keyPath: Array<string>, entities: I.Map<any, any> | I.List<any>|}) => ({error: false, payload, type: replaceEntity})
@@ -231,6 +233,7 @@ export type OutboxMessageBecameRealPayload = ReturnType<typeof createOutboxMessa
 export type PendingToRealConversationPayload = ReturnType<typeof createPendingToRealConversation>
 export type PostMessagePayload = ReturnType<typeof createPostMessage>
 export type PrependMessagesPayload = ReturnType<typeof createPrependMessages>
+export type PreviewChannelPayload = ReturnType<typeof createPreviewChannel>
 export type RemoveOutboxMessagePayload = ReturnType<typeof createRemoveOutboxMessage>
 export type RemoveTempPendingConversationsPayload = ReturnType<typeof createRemoveTempPendingConversations>
 export type ReplaceEntityPayload = ReturnType<typeof createReplaceEntity>
@@ -320,6 +323,7 @@ export type Actions =
   | ReturnType<typeof createPendingToRealConversation>
   | ReturnType<typeof createPostMessage>
   | ReturnType<typeof createPrependMessages>
+  | ReturnType<typeof createPreviewChannel>
   | ReturnType<typeof createRemoveOutboxMessage>
   | ReturnType<typeof createRemoveTempPendingConversations>
   | ReturnType<typeof createReplaceEntity>

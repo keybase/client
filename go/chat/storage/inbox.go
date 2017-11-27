@@ -6,6 +6,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"sort"
+	"sync"
 	"time"
 
 	"github.com/keybase/client/go/chat/globals"
@@ -80,10 +81,18 @@ type Inbox struct {
 	uid gregor1.UID
 }
 
+var addHookOnce sync.Once
+
 func NewInbox(g *globals.Context, uid gregor1.UID) *Inbox {
 	if len(uid) == 0 {
 		panic("Inbox: empty userid")
 	}
+
+	// add a logout hook to clear the in-memory inbox cache, but only add it once:
+	addHookOnce.Do(func() {
+		g.ExternalG().AddLogoutHook(inboxMemCache)
+	})
+
 	return &Inbox{
 		Contextified: globals.NewContextified(g),
 		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "Inbox", false),

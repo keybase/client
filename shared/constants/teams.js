@@ -39,6 +39,14 @@ export type CreateNewTeamFromConversation = NoErrorTypedAction<
 export const teamRoleTypes = ['reader', 'writer', 'admin', 'owner']
 export type TeamRoleType = 'reader' | 'writer' | 'admin' | 'owner'
 
+export type PublicitySettings = {
+  openTeam: boolean,
+  openTeamRole: TeamRoleType,
+  publicityAnyMember: boolean,
+  publicityMember: boolean,
+  publicityTeam: boolean,
+}
+
 export type AddToTeam = NoErrorTypedAction<
   'teams:addToTeam',
   {
@@ -190,19 +198,9 @@ export type InviteToTeamByEmail = NoErrorTypedAction<
   {invitees: string, role: string, teamname: string}
 >
 
-export type SetPublicityAnyMember = NoErrorTypedAction<
-  'teams:setPublicityAnyMember',
-  {enabled: boolean, teamname: string}
->
-
-export type SetPublicityMember = NoErrorTypedAction<
-  'teams:setPublicityMember',
-  {enabled: boolean, teamname: string}
->
-
-export type SetPublicityTeam = NoErrorTypedAction<
-  'teams:setPublicityTeam',
-  {enabled: boolean, teamname: string}
+export type SetPublicity = NoErrorTypedAction<
+  'teams:setPublicity',
+  {settings: PublicitySettings, teamname: string}
 >
 
 export type UpdateChannelName = NoErrorTypedAction<

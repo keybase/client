@@ -2222,13 +2222,22 @@ func (h *Server) DeleteConversationLocal(ctx context.Context, arg chat1.DeleteCo
 		return res, err
 	}
 
+	return h.deleteConversationLocal(ctx, arg)
+}
+
+// deleteConversationLocal contains the functionality of
+// DeleteConversationLocal split off for easier testing.
+func (h *Server) deleteConversationLocal(ctx context.Context, arg chat1.DeleteConversationLocalArg) (res chat1.DeleteConversationLocalRes, err error) {
 	ui := h.getChatUI(arg.SessionID)
-	confirmed, err := ui.ChatConfirmChannelDelete(ctx, chat1.ChatConfirmChannelDeleteArg{
-		SessionID: arg.SessionID,
-		Channel:   arg.ChannelName,
-	})
-	if err != nil {
-		return res, err
+	confirmed := arg.Confirmed
+	if !confirmed {
+		confirmed, err = ui.ChatConfirmChannelDelete(ctx, chat1.ChatConfirmChannelDeleteArg{
+			SessionID: arg.SessionID,
+			Channel:   arg.ChannelName,
+		})
+		if err != nil {
+			return res, err
+		}
 	}
 	if !confirmed {
 		return res, errors.New("channel delete unconfirmed")

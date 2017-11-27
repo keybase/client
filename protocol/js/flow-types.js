@@ -464,6 +464,7 @@ export const constantsStatusCode = {
   screvokecurrentdevice: 1416,
   screvokelastdevice: 1417,
   scdeviceprovisionoffline: 1418,
+  screvokelastdevicepgp: 1419,
   scstreamexists: 1501,
   scstreamnotfound: 1502,
   scstreamwrongkind: 1503,
@@ -1807,6 +1808,10 @@ export const userLoadUserPlusKeysRpcPromise = (request: (RequestCommon & {callba
 export const userLoadUserRpcChannelMap = (configKeys: Array<string>, request: RequestCommon & {callback?: ?(err: ?any, response: UserLoadUserResult) => void} & {param: UserLoadUserRpcParam}): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.user.loadUser', request)
 
 export const userLoadUserRpcPromise = (request: (RequestCommon & {callback?: ?(err: ?any, response: UserLoadUserResult) => void} & {param: UserLoadUserRpcParam})): Promise<UserLoadUserResult> => new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.user.loadUser', request, (error, result) => error ? reject(error) : resolve(result)))
+
+export const userMeUserVersionRpcChannelMap = (configKeys: Array<string>, request: RequestCommon & {callback?: ?(err: ?any, response: UserMeUserVersionResult) => void}): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.user.meUserVersion', request)
+
+export const userMeUserVersionRpcPromise = (request: ?(RequestCommon & {callback?: ?(err: ?any, response: UserMeUserVersionResult) => void})): Promise<UserMeUserVersionResult> => new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.user.meUserVersion', request, (error, result) => error ? reject(error) : resolve(result)))
 
 export const userProfileEditRpcChannelMap = (configKeys: Array<string>, request: RequestCommon & RequestErrorCallback & {param: UserProfileEditRpcParam}): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.user.profileEdit', request)
 
@@ -3402,6 +3407,7 @@ export type StatusCode =0 // SCOk_0
  | 1416 // SCRevokeCurrentDevice_1416
  | 1417 // SCRevokeLastDevice_1417
  | 1418 // SCDeviceProvisionOffline_1418
+ | 1419 // SCRevokeLastDevicePGP_1419
  | 1501 // SCStreamExists_1501
  | 1502 // SCStreamNotFound_1502
  | 1503 // SCStreamWrongKind_1503
@@ -4082,6 +4088,7 @@ type UserLoadUncheckedUserSummariesResult = ?Array<UserSummary>
 type UserLoadUserByNameResult = User
 type UserLoadUserPlusKeysResult = UserPlusKeys
 type UserLoadUserResult = User
+type UserMeUserVersionResult = UserVersion
 type UserSearchResult = ?Array<SearchResult>
 
 export type IncomingCallMapType = {|  'keybase.1.gpgUi.wantToAddGPGKey'?: (params: {|      sessionID: Int    |},response: {error: RPCErrorHandler, result: (result: GpgUiWantToAddGPGKeyResult) => void}) => void,  'keybase.1.gpgUi.confirmDuplicateKeyChosen'?: (params: {|      sessionID: Int    |},response: {error: RPCErrorHandler, result: (result: GpgUiConfirmDuplicateKeyChosenResult) => void}) => void,  'keybase.1.gpgUi.selectKeyAndPushOption'?: (params: {|      sessionID: Int,

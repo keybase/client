@@ -792,7 +792,8 @@ export type JoinLeaveConversationRemoteRes = {|rateLimit?: ?RateLimit,|}
 export type LocalCancelPostRpcParam = {|  outboxID: OutboxID|}
 
 export type LocalDeleteConversationLocalRpcParam = {|  convID: ConversationID,
-  channelName: String|}
+  channelName: String,
+  confirmed: Boolean|}
 
 export type LocalDownloadAttachmentLocalRpcParam = {|  conversationID: ConversationID,
   messageID: MessageID,

@@ -5,6 +5,7 @@ package logger
 
 import (
 	"fmt"
+	"os"
 	"runtime"
 	"strings"
 	"sync"
@@ -58,6 +59,11 @@ func (log *TestLogger) common(ctx context.Context, lvl logging.Level, useFatal b
 		log.Unlock()
 	}
 
+	if os.Getenv("KEYBASE_TEST_DUP_LOG_TO_STDOUT") != "" {
+		fmt.Printf(prepareString(ctx,
+			log.prefixCaller(log.extraDepth, lvl, fmts+"\n")), arg...)
+	}
+
 	if ctx != nil {
 		if useFatal {
 			log.log.Fatalf(prepareString(ctx,
@@ -86,8 +92,9 @@ func (log *TestLogger) prefixCaller(extraDepth int, lvl logging.Level, fmts stri
 		failed = "[X] "
 	}
 
-	return fmt.Sprintf("\r%s %s%s:%d: [%.1s] %s", time.Now().Format("2006-01-02 15:04:05.00000"),
-		failed, elements[len(elements)-1], line, lvl, fmts)
+	fileLine := fmt.Sprintf("%s:%d", elements[len(elements)-1], line)
+	return fmt.Sprintf("\r%s %s%-23s: [%.1s] %s", time.Now().Format("2006-01-02 15:04:05.00000"),
+		failed, fileLine, lvl, fmts)
 }
 
 func (log *TestLogger) Debug(fmts string, arg ...interface{}) {
