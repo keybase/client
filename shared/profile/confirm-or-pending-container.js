@@ -1,7 +1,7 @@
 // @flow
+import * as ProfileGen from '../actions/profile-gen'
 import ConfirmOrPending from './confirm-or-pending'
 import {proveCommonProofStatus} from '../constants/types/flow-types'
-import {cancelAddProof, backToProfile} from '../actions/profile'
 import {globalColors} from '../styles'
 import {connect} from 'react-redux'
 import {type TypedState} from '../constants/reducer'
@@ -29,8 +29,8 @@ const mapStateToProps = (state: TypedState) => {
 }
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
-  onCancel: () => dispatch(cancelAddProof()),
-  onReloadProfile: () => dispatch(backToProfile()),
+  onCancel: () => dispatch(ProfileGen.createCancelAddProof()),
+  onReloadProfile: () => dispatch(ProfileGen.createBackToProfile()),
 })
 
 export default connect(mapStateToProps, mapDispatchToProps)(ConfirmOrPending)

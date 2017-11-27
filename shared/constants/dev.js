@@ -1,29 +1,12 @@
 // @flow
-import type {TypedAction} from './types/flux'
-import type {Exact} from './types/more'
+import type {State} from './types/dev'
 
-export const serializeRestore = 'dev:restoreState'
-export const serializeSave = 'dev:saveState'
-export const timeTravel = 'dev:timetravel'
-export const timeTravelBack = 'dev:back'
-export const timeTravelForward = 'dev:forward'
-
-export type DebugConfig = {
-  dumbFilter: string,
-  dumbIndex: number,
-}
-
-export const updateDebugConfig = 'dev:updateDebugConfig'
-export type UpdateDebugConfig = TypedAction<'dev:updateDebugConfig', Exact<DebugConfig>, void>
-
-export const updateReloading = 'dev:updatehmrReloading'
-export type UpdateReloading = TypedAction<'dev:updatehmrReloading', {reloading: boolean}, void>
-export type DebugCount = TypedAction<'dev:debugCount', void, void>
-
-export type Actions = UpdateDebugConfig | UpdateReloading | DebugCount
-
-export type State = {
-  debugConfig: DebugConfig,
-  hmrReloading: boolean,
-  debugCount: number,
+export const initialState: State = {
+  debugConfig: {
+    dumbFilter: '',
+    dumbFullscreen: false,
+    dumbIndex: 0,
+  },
+  debugCount: 0,
+  hmrReloading: false,
 }

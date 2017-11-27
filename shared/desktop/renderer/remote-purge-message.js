@@ -1,5 +1,5 @@
 // @flow
-import * as Constants from '../../constants/pgp'
+import * as PgpGen from '../../actions/pgp-gen'
 import React, {Component} from 'react'
 import RemoteComponent from './remote-component'
 import {connect, type TypedState} from '../../util/container'
@@ -38,13 +38,14 @@ class RemotePurgeMessage extends Component<Props> {
   }
 }
 
-export default connect(
-  (state: TypedState) => ({
-    open: state.pgp.open,
-  }),
-  (dispatch: any) => ({
-    onClose: () => {
-      dispatch({type: Constants.pgpAckedMessage, payload: {hitOk: false}})
-    },
-  })
-)(RemotePurgeMessage)
+const mapStateToProps = (state: TypedState) => ({
+  open: state.pgp.open,
+})
+
+const mapDispatchToProps = (dispatch: Dispatch) => ({
+  onClose: () => {
+    dispatch(PgpGen.createPgpAckedMessage({hitOk: false}))
+  },
+})
+
+export default connect(mapStateToProps, mapDispatchToProps)(RemotePurgeMessage)

@@ -1,5 +1,5 @@
 // @flow
-import * as Constants from '../../../../constants/chat'
+import * as Types from '../../../../constants/types/chat'
 import moment from 'moment'
 import * as React from 'react'
 import {Box, Icon, ProgressIndicator, Text, ClickableBox} from '../../../../common-adapters'
@@ -15,7 +15,7 @@ const AttachmentTitle = ({
   title,
   onOpenInPopup,
 }: {
-  messageState: Constants.AttachmentMessageState,
+  messageState: Types.AttachmentMessageState,
   filename: ?string,
   title: ?string,
   onOpenInPopup: ?() => void,
@@ -40,8 +40,8 @@ function PreviewImage({
   onMessageAction,
   onOpenInPopup,
 }: {
-  message: Constants.AttachmentMessage,
-  localMessageState: Constants.LocalMessageState,
+  message: Types.AttachmentMessage,
+  localMessageState: Types.LocalMessageState,
   onMessageAction: ?() => void,
   onOpenInPopup: ?() => void,
 }) {
@@ -184,8 +184,8 @@ function PreviewImageWithInfo({
   onOpenInFileUI,
   onOpenInPopup,
 }: {
-  message: Constants.AttachmentMessage,
-  localMessageState: Constants.LocalMessageState,
+  message: Types.AttachmentMessage,
+  localMessageState: Types.LocalMessageState,
   onMessageAction: ?() => void,
   onOpenInFileUI: () => void,
   onOpenInPopup: ?() => void,
@@ -233,8 +233,8 @@ function AttachmentIcon({
   message: {messageState},
   localMessageState: {downloadProgress, downloadedPath},
 }: {
-  message: Constants.AttachmentMessage,
-  localMessageState: Constants.LocalMessageState,
+  message: Types.AttachmentMessage,
+  localMessageState: Types.LocalMessageState,
 }) {
   let iconType = 'icon-file-24'
   let style = {backgroundColor: globalColors.white, height: 24, marginBottom: 8, marginTop: 8}
@@ -261,8 +261,8 @@ function AttachmentMessageGeneric({
   onDownloadAttachment,
   onOpenInPopup,
 }: {
-  message: Constants.AttachmentMessage,
-  localMessageState: Constants.LocalMessageState,
+  message: Types.AttachmentMessage,
+  localMessageState: Types.LocalMessageState,
   onMessageAction: () => void,
   onOpenInFileUI: () => void,
   onDownloadAttachment: () => void,
@@ -305,8 +305,8 @@ function AttachmentMessagePreviewImage({
   onOpenInFileUI,
   onOpenInPopup,
 }: {
-  message: Constants.AttachmentMessage,
-  localMessageState: Constants.LocalMessageState,
+  message: Types.AttachmentMessage,
+  localMessageState: Types.LocalMessageState,
   onMessageAction: () => void,
   onOpenInFileUI: () => void,
   onOpenInPopup: ?() => void,

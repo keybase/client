@@ -1,32 +1,28 @@
 // @flow
 import * as React from 'react'
+import type {ConversationIDKey} from '../../constants/types/chat'
 
-import type {ConversationIDKey} from '../../constants/chat'
-
-export type RowItemSmall = {
+export type RowItemSmall = {|
   type: 'small',
   conversationIDKey: ConversationIDKey,
-}
-
-export type RowItemBigTeamsLabel = {
+|}
+export type RowItemBigTeamsLabel = {|
   type: 'bigTeamsLabel',
   isFiltered: boolean,
-}
-export type RowItemBigHeader = {
+|}
+export type RowItemBigHeader = {|
   type: 'bigHeader',
   teamname: string,
-}
-export type RowItemBig = {
+|}
+export type RowItemBig = {|
   type: 'big',
-  conversationIDKey: ?ConversationIDKey,
+  conversationIDKey: ConversationIDKey,
   teamname: string,
   channelname: string,
-}
-
-export type RowItemDivider = {
+|}
+export type RowItemDivider = {|
   type: 'divider',
-  isBadged: boolean,
-}
+|}
 
 export type RowItem = RowItemSmall | RowItemBigTeamsLabel | RowItemBigHeader | RowItemBig | RowItemDivider
 

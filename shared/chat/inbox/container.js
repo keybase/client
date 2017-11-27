@@ -1,5 +1,7 @@
 // @flow
 import * as Constants from '../../constants/chat'
+import * as More from '../../constants/types/more'
+import * as Types from '../../constants/types/chat'
 import * as Inbox from '.'
 import * as ChatGen from '../../actions/chat-gen'
 import * as I from 'immutable'
@@ -12,6 +14,7 @@ import {
   createSelector,
   createImmutableEqualSelector,
   type TypedState,
+  type Dispatch,
 } from '../../util/container'
 import {scoreFilter, passesStringFilter} from './filtering'
 
@@ -24,7 +27,9 @@ const getInboxBigChannelsToTeam = (state: TypedState) => state.chat.get('inboxBi
 const getIsEmpty = (state: TypedState) => state.chat.get('inboxIsEmpty')
 const getSmallTimestamps = (state: TypedState) => state.chat.getIn(['inboxSmallTimestamps'], I.Map())
 const getSupersededBy = (state: TypedState) => state.chat.get('inboxSupersededBy')
-const _rowsForSelect = (rows: Array<any>) => rows.filter(r => ['small', 'big'].includes(r.type))
+const _rowsForSelect = (rows: Array<Inbox.RowItem>): Array<Inbox.RowItemSmall | Inbox.RowItemBig> =>
+  // $FlowIssue doesn't underestand filter refinement sadly
+  rows.filter(r => r.type === 'small' || r.type === 'big')
 const _smallTeamsPassThrough = (_, smallTeamsExpanded) => smallTeamsExpanded
 
 // This chain of reselects is to optimize not having to redo any work
@@ -34,7 +39,7 @@ const _smallTeamsPassThrough = (_, smallTeamsExpanded) => smallTeamsExpanded
 
 // IDs by timestamp
 const getSortedSmallRowsIDs = createSelector([getSmallTimestamps], (smallTimestamps): I.Seq.Indexed<
-  Constants.ConversationIDKey
+  Types.ConversationIDKey
 > => {
   return smallTimestamps.sort((a, b) => b - a).keySeq()
 })
@@ -42,7 +47,7 @@ const getSortedSmallRowsIDs = createSelector([getSmallTimestamps], (smallTimesta
 // IDs filtering out empty conversations (unless we always show them) or superseded ones
 const getVisibleSmallIDs = createImmutableEqualSelector(
   [getSortedSmallRowsIDs, getAlwaysShow, getSupersededBy, getIsEmpty],
-  (sortedSmallRows, alwaysShow, supersededBy, isEmpty): Array<Constants.ConversationIDKey> => {
+  (sortedSmallRows, alwaysShow, supersededBy, isEmpty): Array<Types.ConversationIDKey> => {
     return sortedSmallRows.toArray().filter(conversationIDKey => {
       return (
         !supersededBy.get(conversationIDKey) &&
@@ -58,13 +63,16 @@ const getTeamToChannel = createSelector(
   (
     inboxBigChannels,
     inboxBigChannelsToTeam
-  ): {[teamname: string]: {[channelname: string]: Constants.ConversationIDKey}} => {
-    const teamToChannels = {}
+  ): {[teamname: string]: {[channelname: string]: Types.ConversationIDKey}} => {
+    const teamToChannels: {[teamname: string]: {[channelname: string]: Types.ConversationIDKey}} = {}
     inboxBigChannelsToTeam.forEach((teamname, id) => {
       if (!teamToChannels[teamname]) {
         teamToChannels[teamname] = {}
       }
-      teamToChannels[teamname][inboxBigChannels.get(id)] = id
+      const channelname = inboxBigChannels.get(id)
+      if (channelname) {
+        teamToChannels[teamname][channelname] = id
+      }
     })
     return teamToChannels
   }
@@ -176,7 +184,19 @@ const getFilteredRows = createSelector(
   }
 )
 
-const mapStateToProps = (state: TypedState, {isActiveRoute, routeState}) => {
+type OwnProps = {
+  isActiveRoute: boolean,
+  filterFocusCount: number,
+  routeState: I.RecordOf<{
+    smallTeamsExpanded: boolean,
+  }>,
+  focusFilter: () => void,
+  setRouteState: ({
+    smallTeamsExpanded?: boolean,
+  }) => void,
+}
+
+const mapStateToProps = (state: TypedState, {isActiveRoute, routeState}: OwnProps) => {
   const filter = getFilter(state)
   const smallTeamsExpanded = routeState.get('smallTeamsExpanded')
 
@@ -201,15 +221,18 @@ const mapStateToProps = (state: TypedState, {isActiveRoute, routeState}) => {
     isActiveRoute,
     isLoading: inboxGlobalUntrustedState === 'loading' || state.chat.get('inboxSyncingState') === 'syncing',
     neverLoaded: inboxGlobalUntrustedState === 'unloaded',
-    user: Constants.getYou(state),
+    _user: Constants.getYou(state),
     inSearch: state.chat.get('inSearch'),
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch, {focusFilter, routeState, setRouteState}) => ({
+const mapDispatchToProps = (dispatch: Dispatch, {focusFilter, routeState, setRouteState}: OwnProps) => ({
   loadInbox: () => dispatch(ChatGen.createLoadInbox()),
-  _onSelectNext: (rows, direction) => dispatch(ChatGen.createSelectNext({rows, direction})),
-  onHotkey: cmd => {
+  _onSelectNext: (rows: Array<Inbox.RowItemSmall | Inbox.RowItemBig>, direction: -1 | 1) =>
+    dispatch(
+      ChatGen.createSelectNext({rows: rows.map(r => ({conversationIDKey: r.conversationIDKey})), direction})
+    ),
+  onHotkey: (cmd: string) => {
     if (cmd.endsWith('+n')) {
       dispatch(ChatGen.createNewChat())
     } else {
@@ -217,24 +240,28 @@ const mapDispatchToProps = (dispatch: Dispatch, {focusFilter, routeState, setRou
     }
   },
   onNewChat: () => dispatch(ChatGen.createNewChat()),
-  onSelect: (conversationIDKey: ?Constants.ConversationIDKey) => {
+  onSelect: (conversationIDKey: ?Types.ConversationIDKey) => {
     dispatch(ChatGen.createSelectConversation({conversationIDKey, fromUser: true}))
   },
   onSetFilter: (filter: string) => dispatch(ChatGen.createSetInboxFilter({filter})),
-  onUntrustedInboxVisible: conversationIDKeys =>
+  onUntrustedInboxVisible: (conversationIDKeys: Array<Types.ConversationIDKey>) =>
     dispatch(ChatGen.createUnboxConversations({conversationIDKeys, reason: 'untrusted inbox visible'})),
   toggleSmallTeamsExpanded: () => setRouteState({smallTeamsExpanded: !routeState.get('smallTeamsExpanded')}),
 })
 
 // This merge props is not spreading on purpose so we never have any random props that might mutate and force a re-render
-const mergeProps = (stateProps, dispatchProps, ownProps) => {
+const mergeProps = (
+  stateProps: More.ReturnType<typeof mapStateToProps>,
+  dispatchProps: More.ReturnType<typeof mapDispatchToProps>,
+  ownProps: OwnProps
+) => {
   return {
     filter: stateProps.filter,
     isActiveRoute: stateProps.isActiveRoute,
     isLoading: stateProps.isLoading,
     neverLoaded: stateProps.neverLoaded,
     loadInbox: dispatchProps.loadInbox,
-    user: stateProps.user,
+    _user: stateProps._user,
     onHotkey: dispatchProps.onHotkey,
     onNewChat: dispatchProps.onNewChat,
     onSelect: dispatchProps.onSelect,

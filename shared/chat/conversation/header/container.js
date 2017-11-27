@@ -5,7 +5,7 @@ import {List} from 'immutable'
 import {ChannelHeader, UsernameHeader} from '.'
 import {branch, compose, renderComponent, connect, type TypedState} from '../../../util/container'
 import {createSelector} from 'reselect'
-import {showUserProfile} from '../../../actions/profile'
+import {createShowUserProfile} from '../../../actions/profile-gen'
 import {chatTab} from '../../../constants/tabs'
 import {type OwnProps} from './container'
 import * as ChatTypes from '../../../constants/types/flow-types-chat'
@@ -35,7 +35,7 @@ const mapStateToProps = (state: TypedState, {infoPanelOpen}: OwnProps) => ({
 const mapDispatchToProps = (dispatch: Dispatch, {onBack, onToggleInfoPanel}: OwnProps) => ({
   onBack,
   onOpenFolder: () => dispatch(ChatGen.createOpenFolder()),
-  onShowProfile: (username: string) => dispatch(showUserProfile(username)),
+  onShowProfile: (username: string) => dispatch(createShowUserProfile({username})),
   onToggleInfoPanel,
 })
 

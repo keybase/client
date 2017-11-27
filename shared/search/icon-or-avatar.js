@@ -1,5 +1,5 @@
 // @flow
-import * as Constants from '../constants/search'
+import * as Types from '../constants/types/search'
 import * as React from 'react'
 import {Avatar, Icon} from '../common-adapters'
 
@@ -7,7 +7,7 @@ import type {AvatarSize} from '../common-adapters/avatar'
 import type {IconType} from '../common-adapters/icon'
 
 type Props = {|
-  service: ?Constants.Service,
+  service: ?Types.Service,
   username: ?string,
   icon: ?IconType,
   avatarSize: AvatarSize,

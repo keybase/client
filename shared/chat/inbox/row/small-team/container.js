@@ -1,11 +1,12 @@
 // @flow
 import * as Selectors from '../selectors'
 import * as Constants from '../../../../constants/chat'
+import * as Types from '../../../../constants/types/chat'
 import * as ChatGen from '../../../../actions/chat-gen'
 import {SmallTeam} from '.'
 import {pausableConnect, type TypedState} from '../../../../util/container'
 
-const getSnippet = (state: TypedState, conversationIDKey: Constants.ConversationIDKey) =>
+const getSnippet = (state: TypedState, conversationIDKey: Types.ConversationIDKey) =>
   Constants.getSnippet(state, conversationIDKey)
 
 const mapStateToProps = (state: TypedState, {conversationIDKey, isActiveRoute}) => {

@@ -1,6 +1,7 @@
 // @flow
 import * as CommonConstants from '../constants/common'
-import {makeState, type Actions, type State} from '../constants/entities'
+import {makeState} from '../constants/entities'
+import {type Actions, type State} from '../constants/types/entities'
 
 const initialState: State = makeState()
 
@@ -28,8 +29,8 @@ export default function(state: State = initialState, action: Actions): State {
       return state.updateIn(keyPath, set => set.subtract(entities))
     }
     default:
-      break
+      // eslint-disable-next-line no-unused-expressions
+      (action: empty) // if you get a flow error here it means there's an action you claim to handle but didn't
+      return state
   }
-
-  return state
 }
