@@ -1,17 +1,15 @@
 {
   "prelude": [
-    "import * as Constants from '../constants/chat'",
-    "import * as TeamConstants from '../constants/teams'",
-    "import * as RPCTypes from '../constants/types/flow-types'",
-    "import * as ChatTypes from '../constants/types/flow-types-chat'",
-    "import * as I from 'immutable'",
+    "import * as TeamTypes from '../constants/types/teams'",
+    "import * as Types from '../constants/types/chat'",
+    "import * as RPCChatTypes from '../constants/types/flow-types-chat'",
     "import HiddenString from '../util/hidden-string'",
-    "import {type DeviceType} from '../constants/devices'",
+    "import {type DeviceType} from '../constants/types/devices'",
     "import {type Path} from '../route-tree'"
   ],
   "actions": {
     "updateBadging": {
-      "conversationIDKey": "Constants.ConversationIDKey"
+      "conversationIDKey": "Types.ConversationIDKey"
     },
     "deleteEntity": {
       "keyPath": "Array<string>",
@@ -34,11 +32,11 @@
       "skipSelectPreviousConversation": "boolean"
     },
     "pendingToRealConversation": {
-      "oldKey": "Constants.ConversationIDKey",
-      "newKey": "Constants.ConversationIDKey"
+      "oldKey": "Types.ConversationIDKey",
+      "newKey": "Types.ConversationIDKey"
     },
     "updateLatestMessage": {
-      "conversationIDKey": "Constants.ConversationIDKey"
+      "conversationIDKey": "Types.ConversationIDKey"
     },
     "openFolder": {},
     "openTlfInChat": {
@@ -49,33 +47,33 @@
     "setupChatHandlers": {},
     "loadInbox": {},
     "loadMoreMessages": {
-      "conversationIDKey": "Constants.ConversationIDKey",
+      "conversationIDKey": "Types.ConversationIDKey",
       "onlyIfUnloaded": "boolean",
       "fromUser?": "boolean",
       "wantNewer?": "boolean",
       "numberOverride?": "?number"
     },
     "showEditor": {
-      "message": "?Constants.Message"
+      "message": "?Types.Message"
     },
     "muteConversation": {
-      "conversationIDKey": "Constants.ConversationIDKey",
+      "conversationIDKey": "Types.ConversationIDKey",
       "muted": "boolean"
     },
     "blockConversation": {
       "blocked": "boolean",
-      "conversationIDKey": "Constants.ConversationIDKey",
+      "conversationIDKey": "Types.ConversationIDKey",
       "reportUser": "boolean"
     },
     "editMessage": {
-      "message": "Constants.Message",
+      "message": "Types.Message",
       "text": "HiddenString"
     },
     "leaveConversation": {
-      "conversationIDKey": "Constants.ConversationIDKey"
+      "conversationIDKey": "Types.ConversationIDKey"
     },
     "deleteMessage": {
-      "message": "Constants.Message"
+      "message": "Types.Message"
     },
     "addPending": {
       "participants": "Array<string>",
@@ -83,133 +81,133 @@
     },
     "removeTempPendingConversations": {},
     "updateFinalizedState": {
-      "finalizedState": "Constants.FinalizedState"
+      "finalizedState": "Types.FinalizedState"
     },
     "updateSupersedesState": {
-      "supersedesState": "Constants.SupersedesState"
+      "supersedesState": "Types.SupersedesState"
     },
     "updateSupersededByState": {
-      "supersededByState": "Constants.SupersededByState"
+      "supersededByState": "Types.SupersededByState"
     },
     "markSeenMessage": {
-      "conversationIDKey": "Constants.ConversationIDKey",
-      "messageKey": "Constants.MessageKey"
+      "conversationIDKey": "Types.ConversationIDKey",
+      "messageKey": "Types.MessageKey"
     },
     "unboxConversations": {
-      "conversationIDKeys": "Array<Constants.ConversationIDKey>",
+      "conversationIDKeys": "Array<Types.ConversationIDKey>",
       "reason": "string",
       "force?": "boolean",
       "forInboxSync?": "boolean"
     },
     "selectNext": {
-      "rows": "Array<any>",
+      "rows": "Array<{conversationIDKey: Types.ConversationIDKey}>",
       "direction": "-1 | 1"
     },
     "setInboxFilter": {
       "filter": "string"
     },
     "setInboxSyncingState": {
-      "inboxSyncingState": "Constants.SyncingState"
+      "inboxSyncingState": "Types.SyncingState"
     },
     "setInboxGlobalUntrustedState": {
-      "inboxGlobalUntrustedState": "Constants.UntrustedState"
+      "inboxGlobalUntrustedState": "Types.UntrustedState"
     },
     "inboxStoreLoaded": {},
     "updateThread": {
-      "thread": "ChatTypes.UIMessages",
+      "thread": "RPCChatTypes.UIMessages",
       "yourName": "string",
       "yourDeviceName": "string",
       "conversationIDKey": "string",
       "append": "boolean"
     },
     "updatedNotifications": {
-      "conversationIDKey": "Constants.ConversationIDKey",
-      "notifications": "Constants.NotificationsState"
+      "conversationIDKey": "Types.ConversationIDKey",
+      "notifications": "Types.NotificationsState"
     },
     "updateSnippet": {
-      "conversationIDKey": "Constants.ConversationIDKey",
+      "conversationIDKey": "Types.ConversationIDKey",
       "snippet": "HiddenString"
     },
     "outboxMessageBecameReal": {
-      "oldMessageKey": "Constants.MessageKey",
-      "newMessageKey": "Constants.MessageKey"
+      "oldMessageKey": "Types.MessageKey",
+      "newMessageKey": "Types.MessageKey"
     },
     "clearRekey": {
-      "conversationIDKey": "Constants.ConversationIDKey"
+      "conversationIDKey": "Types.ConversationIDKey"
     },
     "updateInboxRekeySelf": {
-      "conversationIDKey": "Constants.ConversationIDKey"
+      "conversationIDKey": "Types.ConversationIDKey"
     },
     "updateInboxRekeyOthers": {
-      "conversationIDKey": "Constants.ConversationIDKey",
+      "conversationIDKey": "Types.ConversationIDKey",
       "rekeyers": "Array<string>"
     },
     "updateInboxComplete": {},
     "removeOutboxMessage": {
-      "conversationIDKey": "Constants.ConversationIDKey",
-      "outboxID": "Constants.OutboxIDKey"
+      "conversationIDKey": "Types.ConversationIDKey",
+      "outboxID": "Types.OutboxIDKey"
     },
     "openConversation": {
-      "conversationIDKey": "Constants.ConversationIDKey"
+      "conversationIDKey": "Types.ConversationIDKey"
     },
     "openTeamConversation": {
-      "teamname": "TeamConstants.Teamname",
+      "teamname": "TeamTypes.Teamname",
       "channelname": "string"
     },
     "openAttachmentPopup": {
-      "message": "Constants.AttachmentMessage",
+      "message": "Types.AttachmentMessage",
       "currentPath": "Path"
     },
     "setPreviousConversation": {
-      "conversationIDKey": "?Constants.ConversationIDKey"
+      "conversationIDKey": "?Types.ConversationIDKey"
     },
     "threadLoadedOffline": {
-      "conversationIDKey": "Constants.ConversationIDKey"
+      "conversationIDKey": "Types.ConversationIDKey"
     },
     "uploadProgress": {
-      "messageKey": "Constants.MessageKey",
+      "messageKey": "Types.MessageKey",
       "progress": "?number"
     },
     "selectConversation": {
-      "conversationIDKey": "?Constants.ConversationIDKey",
+      "conversationIDKey": "?Types.ConversationIDKey",
       "fromUser?": "boolean"
     },
     "attachmentSaved": {
-      "messageKey": "Constants.MessageKey",
+      "messageKey": "Types.MessageKey",
       "path": "?string"
     },
     "saveAttachment": {
-      "messageKey": "Constants.MessageKey"
+      "messageKey": "Types.MessageKey"
     },
     "attachmentSaveStart": {
-      "messageKey": "Constants.MessageKey"
+      "messageKey": "Types.MessageKey"
     },
     "attachmentSaveFailed": {
-      "messageKey": "Constants.MessageKey"
+      "messageKey": "Types.MessageKey"
     },
     "selectAttachment": {
-      "input": "Constants.AttachmentInput"
+      "input": "Types.AttachmentInput"
     },
     "loadAttachment": {
-      "messageKey": "Constants.MessageKey",
+      "messageKey": "Types.MessageKey",
       "loadPreview": "boolean"
     },
     "loadingMessages": {
-      "conversationIDKey": "Constants.ConversationIDKey",
+      "conversationIDKey": "Types.ConversationIDKey",
       "isRequesting": "boolean"
     },
     "incomingMessage": {
-      "activity": "ChatTypes.ChatActivity"
+      "activity": "RPCChatTypes.ChatActivity"
     },
     "incomingTyping": {
-      "activity": "ChatTypes.TyperInfo"
+      "activity": "RPCChatTypes.TyperInfo"
     },
     "updateTyping": {
-      "conversationIDKey": "Constants.ConversationIDKey",
+      "conversationIDKey": "Types.ConversationIDKey",
       "typing": "boolean"
     },
     "setTypers": {
-      "conversationIDKey": "Constants.ConversationIDKey",
+      "conversationIDKey": "Types.ConversationIDKey",
       "typing": "Array<string>"
     },
     "updateBrokenTracker": {
@@ -219,48 +217,48 @@
       "reason": "string"
     },
     "markThreadsStale": {
-      "updates": "Array<ChatTypes.ConversationStaleUpdate>"
+      "updates": "Array<RPCChatTypes.ConversationStaleUpdate>"
     },
     "inboxSynced": {
-      "convs": "Array<ChatTypes.UnverifiedInboxUIItem>"
+      "convs": "Array<RPCChatTypes.UnverifiedInboxUIItem>"
     },
     "getInboxAndUnbox": {
-      "conversationIDKeys": "Array<Constants.ConversationIDKey>"
+      "conversationIDKeys": "Array<Types.ConversationIDKey>"
     },
     "clearMessages": {
-      "conversationIDKey": "Constants.ConversationIDKey"
+      "conversationIDKey": "Types.ConversationIDKey"
     },
     "setNotifications": {
-      "conversationIDKey": "Constants.ConversationIDKey",
+      "conversationIDKey": "Types.ConversationIDKey",
       "deviceType": "DeviceType",
-      "notifyType": "Constants.NotifyType"
+      "notifyType": "Types.NotifyType"
     },
     "toggleChannelWideNotifications": {
-      "conversationIDKey": "Constants.ConversationIDKey"
+      "conversationIDKey": "Types.ConversationIDKey"
     },
     "updateMetadata": {
       "users": "Array<string>"
     },
     "updatedMetadata": {
-      "updated": "{[key: string]: Constants.MetaData}"
+      "updated": "{[key: string]: Types.MetaData}"
     },
     "setLoaded": {
-      "conversationIDKey": "Constants.ConversationIDKey",
+      "conversationIDKey": "Types.ConversationIDKey",
       "isLoaded": "boolean"
     },
     "joinConversation": {
-      "conversationIDKey": "Constants.ConversationIDKey"
+      "conversationIDKey": "Types.ConversationIDKey"
     },
     "appendMessages": {
-      "conversationIDKey": "Constants.ConversationIDKey",
+      "conversationIDKey": "Types.ConversationIDKey",
       "isSelected": "boolean",
       "isAppFocused": "boolean",
-      "messages": "Array<Constants.ServerMessage>",
+      "messages": "Array<Types.ServerMessage>",
       "svcShouldDisplayNotification": "boolean"
     },
     "prependMessages": {
-      "conversationIDKey": "Constants.ConversationIDKey",
-      "messages": "Array<Constants.ServerMessage>",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "messages": "Array<Types.ServerMessage>",
       "moreToLoad": "boolean"
     },
     "startConversation": {
@@ -272,42 +270,42 @@
       "conversations": "Array<RPCTypes.BadgeConversationInfo>"
     },
     "postMessage": {
-      "conversationIDKey": "Constants.ConversationIDKey",
+      "conversationIDKey": "Types.ConversationIDKey",
       "text": "HiddenString"
     },
     "retryMessage": {
-      "conversationIDKey": "Constants.ConversationIDKey",
+      "conversationIDKey": "Types.ConversationIDKey",
       "outboxIDKey": "string"
     },
     "loadAttachmentPreview": {
-      "messageKey": "Constants.MessageKey"
+      "messageKey": "Types.MessageKey"
     },
     "attachmentLoaded": {
-      "messageKey": "Constants.MessageKey",
+      "messageKey": "Types.MessageKey",
       "path": "?string",
       "isPreview": "boolean"
     },
     "downloadProgress": {
-      "messageKey": "Constants.MessageKey",
+      "messageKey": "Types.MessageKey",
       "isPreview": "boolean",
       "progress": "?number"
     },
     "updateTempMessage": {
-      "conversationIDKey": "Constants.ConversationIDKey",
-      "message": "$Shape<Constants.AttachmentMessage> | $Shape<Constants.TextMessage>",
-      "outboxIDKey": "Constants.OutboxIDKey"
+      "conversationIDKey": "Types.ConversationIDKey",
+      "message": "$Shape<Types.AttachmentMessage> | $Shape<Types.TextMessage>",
+      "outboxIDKey": "Types.OutboxIDKey"
     },
     "retryAttachment": {
-      "message": "Constants.AttachmentMessage"
+      "message": "Types.AttachmentMessage"
     },
     "saveAttachmentNative": {
-      "messageKey": "Constants.MessageKey"
+      "messageKey": "Types.MessageKey"
     },
     "shareAttachment": {
-      "messageKey": "Constants.MessageKey"
+      "messageKey": "Types.MessageKey"
     },
     "previewChannel": {
-      "conversationIDKey": "Constants.ConversationIDKey"
+      "conversationIDKey": "Types.ConversationIDKey"
     }
   }
 }

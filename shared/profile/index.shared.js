@@ -7,7 +7,7 @@ import {proveMessage} from '../util/platforms.js'
 import {PlatformsExpanded} from '../constants/types/more'
 
 import type {MissingProof} from '../common-adapters/user-proofs'
-import type {Proof} from '../constants/tracker'
+import type {Proof} from '../constants/types/tracker'
 import type {PlatformsExpandedType} from '../constants/types/more'
 import type {Folder} from '../constants/folders'
 

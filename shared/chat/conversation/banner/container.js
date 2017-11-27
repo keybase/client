@@ -12,7 +12,7 @@ import {
 import {createSelector} from 'reselect'
 import {getProfile} from '../../../actions/tracker'
 import {isMobile} from '../../../constants/platform'
-import {showUserProfile} from '../../../actions/profile'
+import {createShowUserProfile} from '../../../actions/profile-gen'
 import {Box} from '../../../common-adapters'
 
 const getBannerMessage = createSelector(
@@ -44,7 +44,7 @@ const mapStateToProps = (state: TypedState) => ({
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
   onClick: (username: string) => {
-    isMobile ? dispatch(showUserProfile(username)) : dispatch(getProfile(username, true, true))
+    isMobile ? dispatch(createShowUserProfile({username})) : dispatch(getProfile(username, true, true))
   },
 })
 

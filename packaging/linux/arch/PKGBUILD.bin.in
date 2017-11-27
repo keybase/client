@@ -43,5 +43,8 @@ package() {
   rm -rf "$pkgdir/etc/cron.daily"
 }
 
+# You can cross reference these hashes with Keybase Debian repo metadata:
+# https://prerelease.keybase.io/deb/dists/stable/main/binary-amd64/Packages
+# https://prerelease.keybase.io/deb/dists/stable/main/binary-i386/Packages
 sha256sums_i686=(@@SUM_i686@@)
 sha256sums_x86_64=(@@SUM_x86_64@@)

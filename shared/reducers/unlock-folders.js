@@ -1,57 +1,42 @@
 // @flow
-import * as CommonConstants from '../constants/common'
+import * as UnlockFoldersGen from '../actions/unlock-folders-gen'
 import * as Constants from '../constants/unlock-folders'
+import * as Types from '../constants/types/unlock-folders'
 import {toDeviceType} from '../constants/devices'
 
-const initialState: Constants.State = {
-  closed: true,
-  devices: null,
-  paperkeyError: null,
-  phase: 'dead',
-  sessionID: null,
-  started: false,
-  waiting: false,
-}
-
 export default function(
-  state: Constants.State = initialState,
-  action: Constants.Actions | {type: 'common:resetStore', payload: void}
-): Constants.State {
+  state: Types.State = Constants.initialState,
+  action: UnlockFoldersGen.Actions
+): Types.State {
   switch (action.type) {
-    case CommonConstants.resetStore:
+    case UnlockFoldersGen.resetStore:
       return {
-        ...initialState,
-        started: state.started,
+        ...Constants.initialState,
       }
-
-    case Constants.close:
+    case UnlockFoldersGen.closeDone:
       return {
         ...state,
         closed: true,
       }
-    case Constants.waiting:
-      if (action.error) {
-        return state
-      }
-
+    case UnlockFoldersGen.waiting: {
+      const {waiting} = action.payload
       return {
         ...state,
-        waiting: action.payload,
+        waiting,
       }
-
-    case Constants.onBackFromPaperKey:
+    }
+    case UnlockFoldersGen.onBackFromPaperKey:
       return {
         ...state,
         paperkeyError: '',
         phase: 'promptOtherDevice',
       }
-
-    case Constants.toPaperKeyInput:
+    case UnlockFoldersGen.toPaperKeyInput:
       return {
         ...state,
         phase: 'paperKeyInput',
       }
-    case Constants.checkPaperKey:
+    case UnlockFoldersGen.checkPaperKeyDone:
       if (action.error) {
         return {
           ...state,
@@ -63,40 +48,32 @@ export default function(
           phase: 'success',
         }
       }
-    case Constants.finish:
+    case UnlockFoldersGen.finish:
       return {
         ...state,
         closed: true,
         phase: 'dead',
       }
+    case UnlockFoldersGen.newRekeyPopup: {
+      const devices = action.payload.devices.map(({name, type, deviceID}) => ({
+        deviceID,
+        name,
+        type: toDeviceType(type),
+      }))
 
-    case Constants.registerRekeyListener:
-      if (action.payload && action.payload.started) {
-        return {
-          ...state,
-          started: true,
-        }
-      } else {
-        return state
+      return {
+        ...state,
+        closed: !devices.length,
+        devices,
+        sessionID: action.payload.sessionID,
       }
-    case Constants.newRekeyPopup:
-      if (state.started && action.payload) {
-        const devices = action.payload.devices.map(({name, type, deviceID}) => ({
-          deviceID,
-          name,
-          type: toDeviceType(type),
-        }))
-
-        return {
-          ...state,
-          closed: !devices.length,
-          devices,
-          sessionID: action.payload.sessionID,
-        }
-      }
+    }
+    // Saga only actions
+    case UnlockFoldersGen.registerRekeyListener:
       return state
-
     default:
+      // eslint-disable-next-line no-unused-expressions
+      (action: empty) // if you get a flow error here it means there's an action you claim to handle but didn't
       return state
   }
 }

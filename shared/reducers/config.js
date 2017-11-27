@@ -1,7 +1,8 @@
 // @flow
+import * as Types from '../constants/types/config'
 import * as Constants from '../constants/config'
 import * as ConfigGen from '../actions/config-gen'
-import * as CommonConstants from '../constants/common'
+import * as AppGen from '../actions/app-gen'
 
 function arrayToObjectSet(arr: ?Array<string>): {[key: string]: true} {
   if (!arr) {
@@ -15,11 +16,11 @@ function arrayToObjectSet(arr: ?Array<string>): {[key: string]: true} {
 }
 
 export default function(
-  state: Constants.State = Constants.initialState,
-  action: ConfigGen.Actions
-): Constants.State {
+  state: Types.State = Constants.initialState,
+  action: ConfigGen.Actions | AppGen.ChangedFocusPayload | AppGen.ChangedActivePayload
+): Types.State {
   switch (action.type) {
-    case CommonConstants.resetStore:
+    case ConfigGen.resetStore:
       return {
         ...Constants.initialState,
         readyForBootstrap: state.readyForBootstrap,
@@ -129,20 +130,29 @@ export default function(
         initialState,
       }
     }
-    case 'app:changedFocus':
+    case AppGen.changedFocus:
       const {appFocused} = action.payload
       return {
         ...state,
         appFocused,
         appFocusedCount: state.appFocusedCount + 1,
       }
-    case 'app:changedActive':
+    case AppGen.changedActive:
       const {userActive} = action.payload
       return {
         ...state,
         userActive,
       }
+    // Saga only actions
+    case ConfigGen.bootstrap:
+    case ConfigGen.clearRouteState:
+    case ConfigGen.getExtendedStatus:
+    case ConfigGen.persistRouteState:
+    case ConfigGen.retryBootstrap:
+      return state
     default:
+      // eslint-disable-next-line no-unused-expressions
+      (action: empty) // if you get a flow error here it means there's an action you claim to handle but didn't
       return state
   }
 }

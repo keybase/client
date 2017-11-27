@@ -1,16 +1,16 @@
 // @flow
-import UserInput from '.'
-import ServiceFilter from '../services-filter'
-import React from 'react'
-import {connect} from 'react-redux'
 import * as Constants from '../../constants/search'
-import * as Creators from '../../actions/search/creators'
+import * as HocHelpers from '../helpers'
+import * as SearchGen from '../../actions/search-gen'
+import React from 'react'
+import ServiceFilter from '../services-filter'
+import UserInput from '.'
+import {Box, Text} from '../../common-adapters'
+import {connect} from 'react-redux'
 import {createShallowEqualSelector} from '../../util/container'
+import {globalStyles, globalMargins, globalColors} from '../../styles'
 import {parseUserId, serviceIdToIcon} from '../../util/platforms'
 import {withState, withHandlers, compose, lifecycle} from 'recompose'
-import * as HocHelpers from '../helpers'
-import {Box, Text} from '../../common-adapters'
-import {globalStyles, globalMargins, globalColors} from '../../styles'
 
 import type {TypedState} from '../../constants/reducer'
 
@@ -114,18 +114,18 @@ const mapStateToProps = (state: TypedState, {searchKey}: OwnProps) => {
 }
 
 const mapDispatchToProps = (dispatch: Dispatch, {searchKey}) => ({
-  onRemoveUser: id => dispatch(Creators.removeResultsToUserInput(searchKey, [id])),
+  onRemoveUser: id => dispatch(SearchGen.createRemoveResultsToUserInput({searchKey, searchResults: [id]})),
   search: (term: string, service) => {
     if (term) {
-      dispatch(Creators.search(term, searchKey, service))
+      dispatch(SearchGen.createSearch({term, searchKey, service}))
     } else {
-      dispatch(Creators.searchSuggestions(searchKey))
+      dispatch(SearchGen.createSearchSuggestions({searchKey}))
     }
   },
-  onAddUser: id => dispatch(Creators.addResultsToUserInput(searchKey, [id])),
-  clearSearchResults: () => dispatch(Creators.clearSearchResults(searchKey)),
+  onAddUser: id => dispatch(SearchGen.createAddResultsToUserInput({searchKey, searchResults: [id]})),
+  clearSearchResults: () => dispatch(SearchGen.createClearSearchResults({searchKey})),
   onUpdateSelectedSearchResult: id => {
-    dispatch(Creators.updateSelectedSearchResult(searchKey, id))
+    dispatch(SearchGen.createUpdateSelectedSearchResult({searchKey, id}))
   },
 })
 

@@ -1,5 +1,5 @@
 // @flow
-import * as Constants from '../../../../constants/chat'
+import * as Types from '../../../../constants/types/chat'
 import * as ChatGen from '../../../../actions/chat-gen'
 import * as KBFSGen from '../../../../actions/kbfs-gen'
 import Attachment, {type Props} from '.'
@@ -24,10 +24,10 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
   _onDownloadAttachment: messageKey => {
     messageKey && dispatch(ChatGen.createSaveAttachment({messageKey}))
   },
-  _onEnsurePreviewLoaded: (messageKey: Constants.MessageKey) =>
+  _onEnsurePreviewLoaded: (messageKey: Types.MessageKey) =>
     dispatch(ChatGen.createLoadAttachmentPreview({messageKey})),
   _onOpenInFileUI: (path: string) => dispatch(KBFSGen.createOpenInFileUI({path})),
-  _onOpenInPopup: (message: Constants.AttachmentMessage, routePath: List<string>) =>
+  _onOpenInPopup: (message: Types.AttachmentMessage, routePath: List<string>) =>
     dispatch(ChatGen.createOpenAttachmentPopup({message, currentPath: routePath})),
 })
 

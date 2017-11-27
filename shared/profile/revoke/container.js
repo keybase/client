@@ -1,6 +1,6 @@
 // @flow
-import Revoke from './index'
-import {submitRevokeProof, finishRevoking, dropPgp} from '../../actions/profile'
+import * as ProfileGen from '../../actions/profile-gen'
+import Revoke from '.'
 import {connect, type TypedState} from '../../util/container'
 
 const mapStateToProps = (state: TypedState, {routeProps}) => ({
@@ -11,12 +11,12 @@ const mapStateToProps = (state: TypedState, {routeProps}) => ({
 })
 
 const mapDispatchToProps = (dispatch: Dispatch, {routeProps}) => ({
-  onCancel: () => dispatch(finishRevoking()),
+  onCancel: () => dispatch(ProfileGen.createFinishRevoking()),
   onRevoke: () => {
     if (routeProps.get('platform') === 'pgp') {
-      dispatch(dropPgp(routeProps.get('proofId')))
+      dispatch(ProfileGen.createDropPgp({kid: routeProps.get('proofId')}))
     } else {
-      dispatch(submitRevokeProof(routeProps.get('proofId')))
+      dispatch(ProfileGen.createSubmitRevokeProof({proofId: routeProps.get('proofId')}))
     }
   },
 })

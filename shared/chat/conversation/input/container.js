@@ -1,5 +1,6 @@
 // @flow
 import * as Constants from '../../../constants/chat'
+import * as Types from '../../../constants/types/chat'
 import * as Creators from '../../../actions/chat/creators'
 import * as ChatGen from '../../../actions/chat-gen'
 import {commonConversationMemberStatus} from '../../../constants/types/flow-types-chat'
@@ -78,14 +79,14 @@ const mapStateToProps = createSelector([stateDependentProps, ownPropsSelector], 
 }))
 
 const mapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps) => ({
-  onAttach: (selectedConversation, inputs: Array<Constants.AttachmentInput>) => {
+  onAttach: (selectedConversation, inputs: Array<Types.AttachmentInput>) => {
     dispatch(
       navigateAppend([
         {props: {conversationIDKey: selectedConversation, inputs}, selected: 'attachmentInput'},
       ])
     )
   },
-  onEditMessage: (message: Constants.Message, body: string) => {
+  onEditMessage: (message: Types.Message, body: string) => {
     dispatch(ChatGen.createEditMessage({message, text: new HiddenString(body)}))
   },
   onPostMessage: (selectedConversation, text) =>
@@ -93,18 +94,18 @@ const mapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps) => ({
     dispatch(
       ChatGen.createPostMessage({conversationIDKey: selectedConversation, text: new HiddenString(text)})
     ),
-  onShowEditor: (message: Constants.Message) => {
+  onShowEditor: (message: Types.Message) => {
     dispatch(ChatGen.createShowEditor({message}))
   },
-  onStoreInputText: (selectedConversation: Constants.ConversationIDKey, inputText: string) =>
+  onStoreInputText: (selectedConversation: Types.ConversationIDKey, inputText: string) =>
     dispatch(Creators.setSelectedRouteState(selectedConversation, {inputText: new HiddenString(inputText)})),
-  onUpdateTyping: (selectedConversation: Constants.ConversationIDKey, typing: boolean) => {
+  onUpdateTyping: (selectedConversation: Types.ConversationIDKey, typing: boolean) => {
     dispatch(ChatGen.createUpdateTyping({conversationIDKey: selectedConversation, typing}))
   },
-  onJoinChannel: (selectedConversation: Constants.ConversationIDKey) => {
+  onJoinChannel: (selectedConversation: Types.ConversationIDKey) => {
     dispatch(ChatGen.createJoinConversation({conversationIDKey: selectedConversation}))
   },
-  onLeaveChannel: (selectedConversation: Constants.ConversationIDKey, teamname: string) => {
+  onLeaveChannel: (selectedConversation: Types.ConversationIDKey, teamname: string) => {
     dispatch(ChatGen.createLeaveConversation({conversationIDKey: selectedConversation}))
     dispatch(navigateUp())
     if (ownProps.previousPath) {
@@ -126,7 +127,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
     ...stateProps,
     ...dispatchProps,
     ...ownProps,
-    onAttach: (inputs: Array<Constants.AttachmentInput>) =>
+    onAttach: (inputs: Array<Types.AttachmentInput>) =>
       dispatchProps.onAttach(stateProps.selectedConversationIDKey, inputs),
     onEditLastMessage: ownProps.onEditLastMessage,
     onPostMessage: text => {

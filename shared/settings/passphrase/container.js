@@ -1,6 +1,6 @@
 // @flow
+import * as SettingsGen from '../../actions/settings-gen'
 import UpdatePassphrase from '.'
-import * as Creators from '../../actions/settings'
 import {compose, lifecycle, connect, type TypedState} from '../../util/container'
 
 const mapStateToProps = (state: TypedState) => ({
@@ -17,13 +17,13 @@ const mapStateToProps = (state: TypedState) => ({
 
 const mapDispatchToProps = (dispatch: Dispatch, {navigateUp}) => ({
   onBack: () => dispatch(navigateUp()),
-  onChangeShowPassphrase: () => dispatch(Creators.onChangeShowPassphrase()),
+  onChangeShowPassphrase: () => dispatch(SettingsGen.createOnChangeShowPassphrase()),
   onSave: (passphrase, passphraseConfirm) => {
-    dispatch(Creators.onChangeNewPassphrase(passphrase))
-    dispatch(Creators.onChangeNewPassphraseConfirm(passphraseConfirm))
-    dispatch(Creators.onSubmitNewPassphrase())
+    dispatch(SettingsGen.createOnChangeNewPassphrase({passphrase}))
+    dispatch(SettingsGen.createOnChangeNewPassphraseConfirm({passphrase: passphraseConfirm}))
+    dispatch(SettingsGen.createOnSubmitNewPassphrase())
   },
-  onUpdatePGPSettings: () => dispatch(Creators.onUpdatePGPSettings()),
+  onUpdatePGPSettings: () => dispatch(SettingsGen.createOnUpdatePGPSettings()),
 })
 
 export default compose(

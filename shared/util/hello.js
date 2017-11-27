@@ -21,9 +21,7 @@ export default function(
 
   return new Promise((resolve, reject) => {
     engine().listenOnConnect('hello', () => {
-      configHelloIAmRpcPromise({
-        param: {details},
-      })
+      configHelloIAmRpcPromise({details})
         .then(reps => {
           resolve()
         })
