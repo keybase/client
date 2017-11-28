@@ -40,8 +40,10 @@ class BigTeamHeader extends React.PureComponent<Props, State> {
             if (!isMobile) {
               const {top} = e.currentTarget.getBoundingClientRect()
               this.setState({popTop: top})
+              props.onSetShowMenu(true)
+            } else {
+              props.onManageChannels(props.teamname)
             }
-            props.onSetShowMenu(true)
           }}
           style={iconStyle}
         />
