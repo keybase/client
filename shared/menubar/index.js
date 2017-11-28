@@ -9,7 +9,7 @@ import {defaultKBFSPath} from '../constants/config'
 import {executeActionsForContext} from '../util/quit-helper.desktop'
 import {loginTab, type Tab} from '../constants/tabs'
 import {navigateTo, switchTo} from '../actions/route-tree'
-import {openDialog as openRekeyDialog} from '../actions/unlock-folders'
+import {createOpenPopup as createOpenRekeyPopup} from '../actions/unlock-folders-gen'
 import {shell, ipcRenderer} from 'electron'
 import {type KBFSStatus} from '../constants/types/favorite'
 import {type Props as FolderProps} from '../folders'
@@ -191,7 +191,7 @@ const mapStateToProps = state => ({
 
 const mapDispatchToProps = dispatch => ({
   favoriteList: () => dispatch(FavoriteGen.createFavoriteList()),
-  openRekeyDialog: () => dispatch(openRekeyDialog()),
+  openRekeyDialog: () => dispatch(createOpenRekeyPopup()),
   openInKBFS: path => dispatch(KBFSGen.createOpen({path})),
   onShowLoginTab: () => dispatch(navigateTo([loginTab])),
   switchTab: tab => dispatch(switchTo([tab])),

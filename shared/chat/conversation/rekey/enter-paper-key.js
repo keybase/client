@@ -1,7 +1,6 @@
 // @flow
 import EnterPaperkey from '../../../login/register/paper-key'
-import HiddenString from '../../../util/hidden-string'
-import {checkPaperKey} from '../../../actions/unlock-folders'
+import {createCheckPaperKey} from '../../../actions/unlock-folders-gen'
 import {connect} from 'react-redux'
 import {navigateUp} from '../../../actions/route-tree'
 import {compose, withState, withHandlers} from 'recompose'
@@ -13,8 +12,8 @@ const mapStateToProps = () => ({
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
   onBack: () => dispatch(navigateUp()),
-  onEnterPaperkey: (key: string) => {
-    dispatch(checkPaperKey(new HiddenString(key)))
+  onEnterPaperkey: (paperKey: string) => {
+    dispatch(createCheckPaperKey({paperKey}))
     dispatch(navigateUp())
     dispatch(navigateUp())
   },

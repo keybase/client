@@ -1,51 +1,55 @@
 // @flow
-import React, {Component} from 'react'
-import RemoteComponent from './remote-component.desktop'
-import {connect, type TypedState} from '../../util/container'
-import {registerRekeyListener, close} from '../../actions/unlock-folders'
+import * as React from 'react'
+import RemoteConnector from './remote-connector.desktop'
+import RemoteWindow from './remote-window.desktop'
+import {connect, type TypedState, compose} from '../../util/container'
+
+const PrintDebug = props => <div style={{wordWrap: 'break-word'}}>{JSON.stringify(props)}</div>
+
+const windowOpts = {height: 300, width: 500}
+
+const unlockFolderMapPropsToState = (state: TypedState) => {
+  const {devices, phase, paperkeyError, waiting} = state.unlockFolders
+  return {
+    component: 'unlockFolders',
+    devices,
+    paperkeyError,
+    phase,
+    selectorParams: '',
+    waiting,
+    windowOpts,
+    windowTitle: 'UnlockFolders',
+  }
+}
+
+const mergeProps = (stateProps, dispatchProps, ownProps) => ({
+  component: stateProps.component,
+  devices: stateProps.devices.toJS(), // Never send immutable over the wire
+  paperkeyError: stateProps.paperkeyError,
+  phase: stateProps.phase,
+  selectorParams: stateProps.selectorParams,
+  waiting: stateProps.waiting,
+  windowOpts: stateProps.windowOpts,
+  windowTitle: stateProps.windowTitle,
+})
+
+const UnlockFolder = compose(
+  connect(unlockFolderMapPropsToState, () => ({}), mergeProps),
+  RemoteWindow,
+  RemoteConnector
+)(PrintDebug)
 
 type Props = {
-  close: () => void,
-  closed: boolean,
-  registerRekeyListener: () => void,
+  show: boolean,
 }
-
-class RemoteUnlockFolders extends Component<Props> {
-  componentWillMount() {
-    this.props.registerRekeyListener()
-  }
-
-  shouldComponentUpdate(nextProps, nextState) {
-    return nextProps !== this.props
-  }
-
+class UnlockFolders extends React.PureComponent<Props> {
   render() {
-    const {closed} = this.props
-    if (closed) {
-      return null
-    }
-
-    const windowsOpts = {width: 500, height: 300}
-    return (
-      <div>
-        <RemoteComponent
-          title="UnlockFolders"
-          windowsOpts={windowsOpts}
-          waitForState={true}
-          onRemoteClose={() => this.props.close()}
-          component="unlockFolders"
-          onSubmit={() => {}}
-          onCancel={() => this.props.close()}
-          sessionID={0}
-        />
-      </div>
-    )
+    return this.props.show ? <UnlockFolder /> : null
   }
 }
 
-const mapStateToProps = (state: TypedState) => state.unlockFolders
-const mapDispatchToProps = (dispatch: Dispatch) => ({
-  registerRekeyListener: () => dispatch(registerRekeyListener()),
-  close: () => dispatch(close()),
+const mapStateToProps = (state: TypedState) => ({
+  show: state.unlockFolders.popupOpen,
 })
-export default connect(mapStateToProps, mapDispatchToProps)(RemoteUnlockFolders)
+
+export default connect(mapStateToProps, () => ({}))(UnlockFolders)

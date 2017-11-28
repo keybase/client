@@ -25,7 +25,6 @@ import {initAvatarLookup, initAvatarLoad} from '../../common-adapters'
 import merge from 'lodash/merge'
 import throttle from 'lodash/throttle'
 import {selector as menubarSelector} from '../../menubar/selector'
-import {selector as unlockFoldersSelector} from '../../unlock-folders/selector'
 import {setRouteDef} from '../../actions/route-tree'
 import {setupContextMenu} from '../app/menu-helper'
 import {setupSource} from '../../util/forward-logs'
@@ -106,13 +105,11 @@ function setupApp(store) {
   })
 
   const _menubarSelector = menubarSelector()
-  const _unlockFoldersSelector = unlockFoldersSelector()
 
   const subsetsRemotesCareAbout = store => {
     return {
       tracker: store.tracker,
       menubar: _menubarSelector(store),
-      unlockFolder: _unlockFoldersSelector(store),
     }
   }
 

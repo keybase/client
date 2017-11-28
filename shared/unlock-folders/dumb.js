@@ -1,7 +1,5 @@
 // @flow
-
-import UnlockFolders from './render.desktop'
-import HiddenString from '../util/hidden-string'
+import UnlockFolders from './index.desktop'
 import type {DumbComponentMap} from '../constants/types/more'
 
 const devices = [
@@ -26,7 +24,7 @@ const common = {
   onBackFromPaperKey: () => {
     console.log('onBackFromPaperKey')
   },
-  onContinueFromPaperKey: (paperkey: HiddenString) => {
+  onContinueFromPaperKey: (paperkey: string) => {
     console.log('onContinueFromPaperKey')
   },
   paperkeyError: null,

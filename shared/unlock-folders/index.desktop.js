@@ -6,8 +6,19 @@ import DeviceList from './device-list.desktop'
 import PaperKeyInput from './paper-key-input.desktop'
 import Success from './success.desktop'
 import {Header} from '../common-adapters'
+import type {State, _Device} from '../constants/types/unlock-folders'
 
-import type {Props} from './render'
+export type Props = {
+  phase: $PropertyType<State, 'phase'>,
+  devices: Array<_Device>,
+  onClose: () => void,
+  toPaperKeyInput: () => void,
+  onBackFromPaperKey: () => void,
+  onContinueFromPaperKey: (paperkey: string) => void,
+  paperkeyError: ?string,
+  waiting: boolean,
+  onFinish: () => void,
+}
 
 export default class UnlockFoldersRender extends Component<Props> {
   render() {

@@ -8,7 +8,6 @@ import engine, {makeEngine} from '../../engine'
 import hello from '../../util/hello'
 import loadPerf from '../../util/load-perf'
 import tracker from '../../tracker'
-import unlockFolders from '../../unlock-folders'
 import {disable as disableDragDrop} from '../../util/drag-drop'
 import {getUserImageMap, loadUserImageMap, getTeamImageMap, loadTeamImageMap} from '../../util/pictures'
 import {globalColors} from '../../styles'
@@ -83,7 +82,7 @@ class RemoteComponentLoader extends Component<any, State> {
   componentWillMount() {
     const component = this.props.component
     const selectorParams = this.props.selectorParams
-    const components = {tracker, unlockFolders}
+    const components = {tracker}
 
     if (!component || !components[component]) {
       throw new TypeError('Invalid Remote Component passed through')

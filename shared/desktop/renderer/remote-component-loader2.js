@@ -8,7 +8,7 @@ import Root from './container'
 import pinentry from '../../pinentry/remote-container.desktop'
 import purgeMessage from '../../pgp/remote-container.desktop'
 // import tracker from '../../tracker'
-// import unlockFolders from '../../unlock-folders'
+import unlockFolders from '../../unlock-folders/remote-container.desktop'
 import {disable as disableDragDrop} from '../../util/drag-drop'
 import {getUserImageMap, loadUserImageMap, getTeamImageMap, loadTeamImageMap} from '../../util/pictures'
 import {globalColors} from '../../styles'
@@ -41,7 +41,7 @@ class RemoteComponentLoader extends Component<any> {
   componentWillMount() {
     const component = this.props.component
     const selectorParams = this.props.selectorParams
-    const components = {pinentry, purgeMessage}
+    const components = {pinentry, purgeMessage, unlockFolders}
     // const components = {tracker, unlockFolders, }
 
     if (!component || !components[component]) {

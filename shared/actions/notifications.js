@@ -11,6 +11,7 @@ import {call, put, take, fork} from 'redux-saga/effects'
 import {isMobile} from '../constants/platform'
 import {registerIdentifyUi, setupUserChangedHandler} from './tracker'
 import {createBadgeAppForChat, createSetupChatHandlers} from './chat-gen'
+import {createRegisterRekeyListener} from './unlock-folders-gen'
 import {setupTeamHandlers, badgeAppForTeams} from './teams/creators'
 
 function* _listenSaga(): Saga.SagaGenerator<any, any> {
@@ -57,6 +58,7 @@ function* _listenKBFSSaga(): Saga.SagaGenerator<any, any> {
   yield put(FavoriteGen.createSetupKBFSChangedHandler())
   yield put(createSetupChatHandlers())
   yield put(setupTeamHandlers())
+  yield put(createRegisterRekeyListener())
 }
 
 function* _onRecievedBadgeState(
