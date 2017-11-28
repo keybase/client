@@ -420,6 +420,10 @@
           "name": "readerKeyMasks"
         },
         {
+          "type": "Seqno",
+          "name": "latestSeqnoHint"
+        },
+        {
           "type": "Time",
           "name": "cachedAt"
         }

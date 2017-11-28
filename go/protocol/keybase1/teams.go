@@ -500,6 +500,7 @@ type TeamData struct {
 	Chain           TeamSigChainState                                    `codec:"chain" json:"chain"`
 	PerTeamKeySeeds map[PerTeamKeyGeneration]PerTeamKeySeedItem          `codec:"perTeamKeySeeds" json:"perTeamKeySeeds"`
 	ReaderKeyMasks  map[TeamApplication]map[PerTeamKeyGeneration]MaskB64 `codec:"readerKeyMasks" json:"readerKeyMasks"`
+	LatestSeqnoHint Seqno                                                `codec:"latestSeqnoHint" json:"latestSeqnoHint"`
 	CachedAt        Time                                                 `codec:"cachedAt" json:"cachedAt"`
 }
 
@@ -543,7 +544,8 @@ func (o TeamData) DeepCopy() TeamData {
 			}
 			return ret
 		})(o.ReaderKeyMasks),
-		CachedAt: o.CachedAt.DeepCopy(),
+		LatestSeqnoHint: o.LatestSeqnoHint.DeepCopy(),
+		CachedAt:        o.CachedAt.DeepCopy(),
 	}
 }
 

@@ -152,6 +152,10 @@ protocol teams {
     // in each slot generations _must_ start from 1 with no gaps
     map<TeamApplication,map<PerTeamKeyGeneration,MaskB64>> readerKeyMasks;
 
+    // The latest seqno given by the server out of band.
+    // Used for caching.
+    Seqno latestSeqnoHint;
+
     // Should only be used by TeamLoader
     // because it is the only mutated field, and thus is not threadsafe to read.
     Time cachedAt;
