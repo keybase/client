@@ -24,6 +24,7 @@ export type HeaderTextProps = {
   backgroundColor: string,
   style?: Object,
   children?: React.Node,
+  styleCatcher?: ?Object
 }
 
 class PopupHeaderText extends React.Component<HeaderTextProps> {}
