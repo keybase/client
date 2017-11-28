@@ -1543,12 +1543,14 @@ func (o TeamTreeEntry) DeepCopy() TeamTreeEntry {
 }
 
 type TeamCreateResult struct {
-	ChatSent     bool `codec:"chatSent" json:"chatSent"`
-	CreatorAdded bool `codec:"creatorAdded" json:"creatorAdded"`
+	TeamID       TeamID `codec:"teamID" json:"teamID"`
+	ChatSent     bool   `codec:"chatSent" json:"chatSent"`
+	CreatorAdded bool   `codec:"creatorAdded" json:"creatorAdded"`
 }
 
 func (o TeamCreateResult) DeepCopy() TeamCreateResult {
 	return TeamCreateResult{
+		TeamID:       o.TeamID.DeepCopy(),
 		ChatSent:     o.ChatSent,
 		CreatorAdded: o.CreatorAdded,
 	}

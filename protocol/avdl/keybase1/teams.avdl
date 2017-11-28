@@ -526,6 +526,7 @@ protocol teams {
   }
 
   record TeamCreateResult {
+    TeamID teamID;
     boolean chatSent;
     boolean creatorAdded;
   }

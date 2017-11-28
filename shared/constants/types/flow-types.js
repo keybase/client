@@ -3402,7 +3402,7 @@ export type TeamChangeRow = {|id: TeamID,name: String,keyRotated: Boolean,member
 
 export type TeamChangeSet = {|membershipChanged: Boolean,keyRotated: Boolean,renamed: Boolean,|}
 
-export type TeamCreateResult = {|chatSent: Boolean,creatorAdded: Boolean,|}
+export type TeamCreateResult = {|teamID: TeamID,chatSent: Boolean,creatorAdded: Boolean,|}
 
 export type TeamData = {|secretless: Boolean,name: TeamName,chain: TeamSigChainState,perTeamKeySeeds: {[key: string]: PerTeamKeySeedItem},readerKeyMasks: {[key: string]: {[key: string]: MaskB64}},latestSeqnoHint: Seqno,cachedAt: Time,|}
 

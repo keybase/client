@@ -1322,6 +1322,10 @@
       "name": "TeamCreateResult",
       "fields": [
         {
+          "type": "TeamID",
+          "name": "teamID"
+        },
+        {
           "type": "boolean",
           "name": "chatSent"
         },
