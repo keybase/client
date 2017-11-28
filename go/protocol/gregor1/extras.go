@@ -8,8 +8,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/keybase/client/go/protocol/gregor1"
-
 	"bytes"
 
 	"github.com/keybase/client/go/gregor"
@@ -185,7 +183,7 @@ func (i InBandMessage) Merge(i2 gregor.InBandMessage) (res gregor.InBandMessage,
 	if err != nil {
 		return res, err
 	}
-	return gregor1.InBandMessage{StateUpdate_: st}
+	return InBandMessage{StateUpdate_: &st}, nil
 }
 
 func (s StateUpdateMessage) Merge(s2 *StateUpdateMessage) (res StateUpdateMessage, err error) {
