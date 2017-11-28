@@ -49,6 +49,10 @@ func (n nullTeamLoader) Delete(context.Context, keybase1.TeamID) error {
 	return nil
 }
 
+func (l *nullTeamLoader) HintLatestSeqno(ctx context.Context, id keybase1.TeamID, seqno keybase1.Seqno) error {
+	return nil
+}
+
 func (n nullTeamLoader) OnLogout() {}
 
 func (n nullTeamLoader) ClearMem() {}
