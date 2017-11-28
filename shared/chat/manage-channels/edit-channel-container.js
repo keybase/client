@@ -56,6 +56,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routePath, routePro
 const mergeProps = (stateProps, dispatchProps, {routeState}) => {
   const deleteRenameDisabled = stateProps.channelName === 'general'
   return {
+    _loadTeam: () => dispatchProps._loadTeam(stateProps.teamname),
     teamname: stateProps.teamname,
     channelName: stateProps.channelName,
     topic: stateProps.topic,
@@ -86,7 +87,7 @@ const ConnectedEditChannel: React.ComponentType<{
   lifecycle({
     componentDidMount: function() {
       // Need to load team details to be able to compute canDelete.
-      this.props._loadTeam(this.props.teamname)
+      this.props._loadTeam()
     },
   })
 )(EditChannel)
