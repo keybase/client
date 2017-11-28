@@ -4,8 +4,7 @@ import * as PinentryGen from '../actions/pinentry-gen'
 import Pinentry from './index.desktop'
 
 // Props are handled by remote-pinentry.desktop.js
-const mapStateToProps = state => state
-const mapDispatchToprops = (dispatch: Dispatch) => ({
+const mapDispatchToProps = (dispatch: Dispatch) => ({
   _onCancel: (sessionID: number) => dispatch(PinentryGen.createOnCancel({sessionID})),
   _onSubmit: (passphrase: string, sessionID: number) =>
     dispatch(PinentryGen.createOnSubmit({passphrase, sessionID})),
@@ -18,6 +17,6 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   ...ownProps,
 })
 export default compose(
-  connect(mapStateToProps, mapDispatchToprops, mergeProps),
+  connect(state => state, mapDispatchToProps, mergeProps),
   branch(props => !props.type, renderNothing)
 )(Pinentry)

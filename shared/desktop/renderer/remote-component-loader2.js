@@ -5,10 +5,11 @@ import ReactDOM from 'react-dom'
 // $FlowIssue
 import RemoteStore from './remote-store2'
 import Root from './container'
-import pinentry from '../../pinentry/remote-container.desktop'
-import purgeMessage from '../../pgp/remote-container.desktop'
-// import tracker from '../../tracker'
-import unlockFolders from '../../unlock-folders/remote-container.desktop'
+import Menubar from '../../menubar/remote-container.desktop'
+import Pinentry from '../../pinentry/remote-container.desktop'
+import PurgeMessage from '../../pgp/remote-container.desktop'
+// import Tracker from '../../tracker'
+import UnlockFolders from '../../unlock-folders/remote-container.desktop'
 import {disable as disableDragDrop} from '../../util/drag-drop'
 import {getUserImageMap, loadUserImageMap, getTeamImageMap, loadTeamImageMap} from '../../util/pictures'
 import {globalColors} from '../../styles'
@@ -33,24 +34,35 @@ class RemoteComponentLoader extends Component<any> {
   _window: ?BrowserWindow
 
   _onGotProps = () => {
-    if (this._window) {
+    // Show when we get props, unless its the menubar
+    if (this._window && this.props.component !== 'menubar') {
       this._window.show()
     }
   }
 
-  componentWillMount() {
-    const component = this.props.component
-    const selectorParams = this.props.selectorParams
-    const components = {pinentry, purgeMessage, unlockFolders}
-    // const components = {tracker, unlockFolders, }
-
-    if (!component || !components[component]) {
-      throw new TypeError('Invalid Remote Component passed through')
+  _getComponent = (key: string) => {
+    switch (key) {
+      case 'puregeMessage':
+        return PurgeMessage
+      case 'unlockFolders':
+        return UnlockFolders
+      case 'menubar':
+        return Menubar
+      case 'pinentry':
+        return Pinentry
+      default:
+        throw new TypeError('Invalid Remote Component passed through')
     }
+  }
 
+  componentWillMount() {
     this._window = remote.getCurrentWindow()
-    this._store = new RemoteStore({component, gotPropsCallback: this._onGotProps, selectorParams})
-    this._ComponentClass = components[component]
+    this._store = new RemoteStore({
+      component: this.props.component,
+      gotPropsCallback: this._onGotProps,
+      selectorParams: this.props.selectorParams,
+    })
+    this._ComponentClass = this._getComponent(this.props.component)
 
     setupContextMenu(this._window)
   }

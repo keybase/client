@@ -2,6 +2,7 @@
 import {remote} from 'electron'
 
 export function autoResize() {
+  console.log('aaa autoresize')
   let previousHeight = 0
 
   // This only works when I delay a frame, unclear what the solution is but this seems fine for now

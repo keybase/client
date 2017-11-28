@@ -241,7 +241,6 @@ const makeRenderThreadConfig = () => {
     } else
       return {
         index: [...HMREntries, path.resolve(__dirname, 'renderer/index.js')],
-        launcher: [...HMREntries, path.resolve(__dirname, 'renderer/launcher.js')],
         'remote-component-loader': [
           ...HMREntries,
           path.resolve(__dirname, 'renderer/remote-component-loader.js'),

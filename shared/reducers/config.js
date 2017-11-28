@@ -13,7 +13,9 @@ export default function(
 ): Types.State {
   switch (action.type) {
     case ConfigGen.resetStore:
-      return initialState.set('readyForBootstrap', state.readyForBootstrap)
+      return initialState
+        .set('readyForBootstrap', state.readyForBootstrap)
+        .set('menubarWindowID', state.menubarWindowID)
     case ConfigGen.pushLoaded:
       return state.set('pushLoaded', action.payload.pushLoaded)
     case ConfigGen.configLoaded:
@@ -77,6 +79,8 @@ export default function(
       return state.set('pgpPopupOpen', true)
     case ConfigGen.pgpAckedMessage:
       return state.set('pgpPopupOpen', false)
+    case 'remote:updateMenubarWindowID':
+      return state.set('menubarWindowID', action.payload.id)
     // Saga only actions
     case ConfigGen.bootstrap:
     case ConfigGen.clearRouteState:

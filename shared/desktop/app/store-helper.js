@@ -1,11 +1,9 @@
 // @flow
 import {ipcMain} from 'electron'
-import {selector as menubarSelector} from '../../menubar/selector'
 import {selector as trackerSelector} from '../../tracker/selector'
 
 const componentToSelector: {[key: any]: Function} = {
   tracker: trackerSelector,
-  menubar: menubarSelector,
 }
 
 export default function(mainWindow: any) {

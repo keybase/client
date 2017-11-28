@@ -8,5 +8,4 @@ export const initialState: State = {
     dumbIndex: 0,
   },
   debugCount: 0,
-  hmrReloading: false,
 }

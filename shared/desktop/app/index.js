@@ -31,6 +31,13 @@ if (process.env.KEYBASE_CRASH_REPORT) {
 }
 
 let mainWindow = null
+let _menubarWindowID = 0
+
+const _maybeTellMainWindowAboutMenubar = () => {
+  if (mainWindow && _menubarWindowID) {
+    mainWindow.window.webContents.send('updateMenubarWindowID', _menubarWindowID)
+  }
+}
 
 function start() {
   // Only one app per app in osx...
@@ -74,7 +81,10 @@ function start() {
 
   setupTarget()
   devTools()
-  menuBar()
+  // Load menubar and get its browser window id so we can tell the main window
+  menuBar(id => {
+    _menubarWindowID = id
+  })
   urlHelper()
   windowHelper(app)
 
@@ -82,7 +92,12 @@ function start() {
 
   app.once('ready', () => {
     mainWindow = MainWindow()
+    _maybeTellMainWindowAboutMenubar()
     storeHelper(mainWindow)
+    ipcMain.on('mainWindowWantsMenubarWindowID', () => {
+      _maybeTellMainWindowAboutMenubar()
+    })
+
     ipcMain.on('remoteWindowWantsProps', (_, component, selectorParams) => {
       mainWindow && mainWindow.window.webContents.send('remoteWindowWantsProps', component, selectorParams)
     })

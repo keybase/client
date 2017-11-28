@@ -13,12 +13,6 @@ export default function(state: Types.State = Constants.initialState, action: Dev
         ...state,
         debugConfig: {...state.debugConfig, ...config},
       }
-    case DevGen.updatehmrReloading:
-      const {reloading} = action.payload
-      return {
-        ...state,
-        reloading,
-      }
     case DevGen.debugCount:
       return {
         ...state,

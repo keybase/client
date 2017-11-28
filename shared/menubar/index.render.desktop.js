@@ -7,30 +7,36 @@ import {folderTab, peopleTab, chatTab, devicesTab} from '../constants/tabs'
 import {globalStyles, globalColors} from '../styles'
 import {isDarwin} from '../constants/platform'
 
-import type {Props} from './index.render'
 import type {Tab} from '../constants/tabs'
+import type {KBFSStatus} from '../constants/types/favorite'
+import type {Props as FolderProps} from '../folders'
+
+export type Props = {
+  folderProps: ?FolderProps,
+  kbfsStatus: ?KBFSStatus,
+  logIn: () => void,
+  loggedIn: boolean,
+  onFolderClick: (path: string) => void,
+  onRekey: (path: string) => void,
+  openApp: () => void,
+  quit: () => void,
+  refresh: () => void,
+  showBug: () => void,
+  showHelp: () => void,
+  showUser: (username: ?string) => void,
+  username: ?string,
+  badgeInfo: Object,
+}
 
 type State = {
   selected: FolderType,
   showingMenu: boolean,
 }
 
-type DefaultProps = {
-  openToPrivate: boolean,
-  openWithMenuShowing: boolean,
-}
-
 class MenubarRender extends Component<Props, State> {
-  static defaultProps: DefaultProps
-  state: State
-
-  constructor(props: Props & DefaultProps) {
-    super(props)
-
-    this.state = {
-      selected: props.openToPrivate ? 'private' : 'public',
-      showingMenu: props.openWithMenuShowing,
-    }
+  state: State = {
+    selected: 'private',
+    showingMenu: false,
   }
 
   render() {
@@ -79,7 +85,7 @@ class MenubarRender extends Component<Props, State> {
   _menuItems() {
     return [
       ...(this.props.loggedIn ? [{title: 'Open Keybase', onClick: () => this.props.openApp()}] : []),
-      {title: 'Open folders', onClick: this.props.showKBFS},
+      {title: 'Open folders', onClick: () => this.props.onFolderClick()},
       {title: 'Keybase.io', onClick: this.props.showUser},
       {title: 'Report a bug', onClick: this.props.showBug},
       {title: 'Help/Doc', onClick: this.props.showHelp},
@@ -93,6 +99,7 @@ class MenubarRender extends Component<Props, State> {
   }
 
   _renderFolders() {
+    return <div>folders TODO connect</div>
     const newPrivate = {
       ...(this.props.folderProps && this.props.folderProps.private),
       ignored: [],
@@ -254,11 +261,6 @@ const BadgeIcon = ({
         />}
     </Box>
   )
-}
-
-MenubarRender.defaultProps = {
-  openToPrivate: true,
-  openWithMenuShowing: false,
 }
 
 const borderRadius = 4

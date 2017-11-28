@@ -9,5 +9,4 @@ export type DebugConfig = {|
 export type State = {
   debugConfig: DebugConfig,
   debugCount: number,
-  hmrReloading: boolean,
 }

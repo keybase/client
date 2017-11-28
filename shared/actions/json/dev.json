@@ -6,9 +6,6 @@
     "updateDebugConfig": {
       "config": "Types.DebugConfig"
     },
-    "updatehmrReloading": {
-      "reloading": "boolean"
-    },
     "debugCount": {}
   }
 }

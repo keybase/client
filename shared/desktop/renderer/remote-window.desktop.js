@@ -45,7 +45,22 @@ type State = {
   remoteWindow: ?BrowserWindow,
 }
 
-export default function RemoteWindow(ComposedComponent: any) {
+const sendLoad = (webContents, selectorParams, component, title) => {
+  webContents.send('load', {
+    component,
+    scripts: [
+      ...devScripts,
+      {
+        async: false,
+        src: hotPath('remote-component-loader2.bundle.js'),
+      },
+    ],
+    selectorParams,
+    title,
+  })
+}
+
+function RemoteWindow(ComposedComponent: any) {
   class RemoteWindowComponent extends React.PureComponent<Props, State> {
     _remoteWindow: ?BrowserWindow = null
     _remoteWindowId: ?string = null
@@ -87,18 +102,7 @@ export default function RemoteWindow(ComposedComponent: any) {
       }
       const webContents = this._remoteWindow.webContents
       webContents.on('did-finish-load', () => {
-        webContents.send('load', {
-          selectorParams: this.props.selectorParams,
-          component: this.props.component,
-          scripts: [
-            ...devScripts,
-            {
-              async: false,
-              src: hotPath('remote-component-loader2.bundle.js'),
-            },
-          ],
-          title: this.props.title,
-        })
+        sendLoad(webContents, this.props.selectorParams, this.props.component, this.props.title)
       })
 
       if (showDevTools && !skipSecondaryDevtools) {
@@ -152,3 +156,6 @@ export default function RemoteWindow(ComposedComponent: any) {
 
   return RemoteWindowComponent
 }
+
+export default RemoteWindow
+export {devScripts, sendLoad}

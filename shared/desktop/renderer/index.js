@@ -24,7 +24,6 @@ import {getUserImageMap, loadUserImageMap, getTeamImageMap, loadTeamImageMap} fr
 import {initAvatarLookup, initAvatarLoad} from '../../common-adapters'
 import merge from 'lodash/merge'
 import throttle from 'lodash/throttle'
-import {selector as menubarSelector} from '../../menubar/selector'
 import {setRouteDef} from '../../actions/route-tree'
 import {setupContextMenu} from '../app/menu-helper'
 import {setupSource} from '../../util/forward-logs'
@@ -66,6 +65,12 @@ function setupApp(store) {
   ipcRenderer.on('remoteWindowWantsProps', (event, component, selectorParams) => {
     store.dispatch({type: 'remote:needProps', payload: {component, selectorParams}})
   })
+
+  // Listen for the menubarWindowID
+  ipcRenderer.on('updateMenubarWindowID', (event, id) => {
+    store.dispatch({type: 'remote:updateMenubarWindowID', payload: {id}})
+  })
+
   ipcRenderer.on('dispatchAction', (event, action) => {
     // we MUST convert this else we'll run into issues with redux. See https://github.com/rackt/redux/issues/830
     // This is because this is touched due to the remote proxying. We get a __proto__ which causes the _.isPlainObject check to fail. We use
@@ -76,6 +81,8 @@ function setupApp(store) {
       } catch (_) {}
     })
   })
+
+  ipcRenderer.send('mainWindowWantsMenubarWindowID')
 
   // After a delay, see if we're connected, and try starting keybase if not
   setTimeout(() => {
@@ -104,12 +111,9 @@ function setupApp(store) {
     store.dispatch(AppGen.createChangedFocus({appFocused: false}))
   })
 
-  const _menubarSelector = menubarSelector()
-
   const subsetsRemotesCareAbout = store => {
     return {
       tracker: store.tracker,
-      menubar: _menubarSelector(store),
     }
   }
 
@@ -120,12 +124,7 @@ function setupApp(store) {
       _currentStore = subsetsRemotesCareAbout(store.getState())
 
       if (JSON.stringify(previousStore) !== JSON.stringify(_currentStore)) {
-        ipcRenderer.send('stateChange', {
-          ...store.getState(),
-          // this is a HACK workaround where we can't send immutable over the wire to the main thread (and out again).
-          // I have a much better way to handle this we can prioritize post-mobile launch (CN)
-          notifications: _currentStore.menubar.notifications,
-        })
+        ipcRenderer.send('stateChange', store.getState())
       }
     }, 1000)
   )
@@ -182,11 +181,9 @@ function setupHMR(store) {
     module.hot.accept(['../../app/main.desktop', '../../app/routes'], () => {
       store.dispatch(setRouteDef(require('../../app/routes').default))
       try {
-        store.dispatch(DevGen.createUpdatehmrReloading({reloading: true}))
         const NewMain = require('../../app/main.desktop').default
         render(store, NewMain)
-      } finally {
-        setTimeout(() => store.dispatch(DevGen.createUpdatehmrReloading({reloading: false})), 10e3)
+      } catch (_) {
       }
     })
 
