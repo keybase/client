@@ -927,14 +927,14 @@ func (fs *KBFSOpsStandard) TeamNameChanged(
 	// We have to search for the tid since we don't know the old name
 	// of the team here.  Should we add an index for this?
 	for fb, fbo := range ops {
-		if fb.Tlf.Type() != tlf.SingleTeam {
-			continue
-		}
-
 		_, _, handle, err := fbo.getRootNode(ctx)
 		if err != nil {
 			fs.log.CDebugf(
 				ctx, "Error getting root node for %s: %+v", fb.Tlf, err)
+			continue
+		}
+
+		if handle.TypeForKeying() != tlf.TeamKeying {
 			continue
 		}
 
