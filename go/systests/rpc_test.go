@@ -538,14 +538,6 @@ func TestResolveIdentifyImplicitTeamWithConflict(t *testing.T) {
 	t.Logf("t1: %v", iTeamID1)
 	t.Logf("t2: %v", iTeamID2)
 
-	getTeamName := func(teamID keybase1.TeamID) keybase1.TeamName {
-		team, err := teams.Load(context.Background(), g, keybase1.LoadTeamArg{
-			ID: teamID,
-		})
-		require.NoError(t, err)
-		return team.Name()
-	}
-
 	getTeamSeqno := func(teamID keybase1.TeamID) keybase1.Seqno {
 		team, err := teams.Load(context.Background(), g, keybase1.LoadTeamArg{
 			ID: teamID,
@@ -559,7 +551,7 @@ func TestResolveIdentifyImplicitTeamWithConflict(t *testing.T) {
 	t.Logf("prove to create the conflict")
 	wong.proveRooter()
 
-	tt.users[0].waitForTeamChangedGregor(getTeamName(iTeamID2).String(), expectedSeqno)
+	tt.users[0].waitForTeamChangedGregor(iTeamID2, expectedSeqno)
 
 	cli, err := client.GetIdentifyClient(g)
 	require.NoError(t, err, "failed to get new identifyclient")

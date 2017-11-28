@@ -21,12 +21,12 @@ func TestTeamInviteSeitanHappy(t *testing.T) {
 	own := tt.addUser("own")
 	roo := tt.addUser("roo")
 
-	team := own.createTeam()
+	teamID, teamName := own.createTeam2()
 
-	t.Logf("Created team %q", team)
+	t.Logf("Created team %q", teamName.String())
 
 	token, err := own.teamsClient.TeamCreateSeitanToken(context.TODO(), keybase1.TeamCreateSeitanTokenArg{
-		Name: team,
+		Name: teamName.String(),
 		Role: keybase1.TeamRole_WRITER,
 	})
 	require.NoError(t, err)
@@ -41,9 +41,9 @@ func TestTeamInviteSeitanHappy(t *testing.T) {
 	t.Logf("User used token, waiting for rekeyd")
 
 	own.kickTeamRekeyd()
-	own.waitForTeamChangedGregor(team, keybase1.Seqno(3))
+	own.waitForTeamChangedGregor(teamID, keybase1.Seqno(3))
 
-	t0, err := teams.GetTeamByNameForTest(context.TODO(), own.tc.G, team, false /* public */, true /* needAdmin */)
+	t0, err := teams.GetTeamByNameForTest(context.TODO(), own.tc.G, teamName.String(), false /* public */, true /* needAdmin */)
 	require.NoError(t, err)
 
 	role, err := t0.MemberRole(context.TODO(), teams.NewUserVersion(roo.uid, 1))
@@ -58,12 +58,12 @@ func TestTeamInviteSeitanFailures(t *testing.T) {
 	own := tt.addUser("own")
 	roo := tt.addUser("roo")
 
-	team := own.createTeam()
+	_, teamName := own.createTeam2()
 
-	t.Logf("Created team %q", team)
+	t.Logf("Created team %q", teamName.String())
 
 	token, err := own.teamsClient.TeamCreateSeitanToken(context.TODO(), keybase1.TeamCreateSeitanTokenArg{
-		Name: team,
+		Name: teamName.String(),
 		Role: keybase1.TeamRole_WRITER,
 	})
 	require.NoError(t, err)
@@ -102,7 +102,7 @@ func TestTeamInviteSeitanFailures(t *testing.T) {
 	pollingFound := false
 	for i := 0; i < 20; i++ {
 		after, err := teams.Load(context.TODO(), own.tc.G, keybase1.LoadTeamArg{
-			Name:        team,
+			Name:        teamName.String(),
 			ForceRepoll: true,
 			NeedAdmin:   true,
 		})
@@ -117,7 +117,7 @@ func TestTeamInviteSeitanFailures(t *testing.T) {
 
 	require.True(t, pollingFound)
 
-	t0, err := teams.GetTeamByNameForTest(context.TODO(), own.tc.G, team, false /* public */, true /* needAdmin */)
+	t0, err := teams.GetTeamByNameForTest(context.TODO(), own.tc.G, teamName.String(), false /* public */, true /* needAdmin */)
 	require.NoError(t, err)
 	require.EqualValues(t, t0.CurrentSeqno(), 3)
 
@@ -132,16 +132,16 @@ func TestTeamCreateSeitanAndCancel(t *testing.T) {
 
 	own := tt.addUser("own")
 
-	team := own.createTeam()
+	_, teamName := own.createTeam2()
 
-	t.Logf("Created team %q", team)
+	t.Logf("Created team %q", teamName.String())
 
 	var labelSms keybase1.SeitanIKeyLabelSms
 	labelSms.F = "Patricia S. Goldman-Rakic"
 	labelSms.N = "+481II222333"
 
 	_, err := own.teamsClient.TeamCreateSeitanToken(context.TODO(), keybase1.TeamCreateSeitanTokenArg{
-		Name:  team,
+		Name:  teamName.String(),
 		Role:  keybase1.TeamRole_WRITER,
 		Label: keybase1.NewSeitanIKeyLabelWithSms(labelSms),
 	})
@@ -150,7 +150,7 @@ func TestTeamCreateSeitanAndCancel(t *testing.T) {
 	t.Logf("Created Seitan token")
 
 	details, err := own.teamsClient.TeamGet(context.TODO(), keybase1.TeamGetArg{
-		Name:        team,
+		Name:        teamName.String(),
 		ForceRepoll: true,
 	})
 	require.NoError(t, err)
@@ -171,7 +171,7 @@ func TestTeamCreateSeitanAndCancel(t *testing.T) {
 		require.Equal(t, keybase1.UserVersion{}, invite.Uv)
 		require.Equal(t, keybase1.UserVersion{Uid: own.uid, EldestSeqno: 1}, invite.Inviter)
 		require.Equal(t, own.username, invite.InviterUsername)
-		require.Equal(t, team, invite.TeamName)
+		require.Equal(t, teamName.String(), invite.TeamName)
 
 		inviteID = invite.Id
 	}
@@ -179,14 +179,14 @@ func TestTeamCreateSeitanAndCancel(t *testing.T) {
 	t.Logf("Checked that invite was added correctly, removing invite by id")
 
 	err = own.teamsClient.TeamRemoveMember(context.TODO(), keybase1.TeamRemoveMemberArg{
-		Name:     team,
+		Name:     teamName.String(),
 		InviteID: inviteID,
 	})
 	require.NoError(t, err)
 
 	t.Logf("Removed, checking if there are no active invites")
 
-	t0, err := teams.GetTeamByNameForTest(context.TODO(), own.tc.G, team, false /* public */, true /* needAdmin */)
+	t0, err := teams.GetTeamByNameForTest(context.TODO(), own.tc.G, teamName.String(), false /* public */, true /* needAdmin */)
 	require.NoError(t, err)
 	require.Equal(t, 0, t0.NumActiveInvites())
 }

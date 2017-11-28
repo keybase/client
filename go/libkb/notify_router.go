@@ -99,7 +99,9 @@ func (n *NoopNotifyListener) ChatResetConversation(uid keybase1.UID, convID chat
 func (n *NoopNotifyListener) PGPKeyInSecretStoreFile()                                            {}
 func (n *NoopNotifyListener) BadgeState(badgeState keybase1.BadgeState)                           {}
 func (n *NoopNotifyListener) ReachabilityChanged(r keybase1.Reachability)                         {}
-func (n *NoopNotifyListener) TeamChanged(teamID keybase1.TeamID, teamName string, latestSeqno keybase1.Seqno, changes keybase1.TeamChangeSet) {
+func (n *NoopNotifyListener) TeamChangedByID(teamID keybase1.TeamID, latestSeqno keybase1.Seqno, changes keybase1.TeamChangeSet) {
+}
+func (n *NoopNotifyListener) TeamChangedByName(teamName string, latestSeqno keybase1.Seqno, changes keybase1.TeamChangeSet) {
 }
 func (n *NoopNotifyListener) TeamDeleted(teamID keybase1.TeamID) {}
 func (n *NoopNotifyListener) TeamExit(teamID keybase1.TeamID)    {}
