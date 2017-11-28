@@ -53,7 +53,7 @@ const mergeProps = (stateProps, dispatchProps, {routeState}) => {
     channelName: stateProps.channelName,
     topic: stateProps.topic,
     onCancel: dispatchProps.onCancel,
-    onConfirmedDelete: () => dispatchProps.onConfirmedDelete,
+    onConfirmedDelete: dispatchProps.onConfirmedDelete,
     showDelete: stateProps.canDelete,
     deleteRenameDisabled,
     onSave: (newChannelName: string, newTopic: string) => {
