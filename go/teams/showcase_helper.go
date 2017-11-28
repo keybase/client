@@ -54,7 +54,10 @@ func GetTeamAndMemberShowcase(ctx context.Context, g *libkb.GlobalContext, teamn
 	}
 	ret.TeamShowcase = teamRet.Showcase
 
-	if teamRet.Showcase.AnyMemberShowcase || role.IsOrAbove(keybase1.TeamRole_ADMIN) {
+	// team/member_showcase endpoint is available either for
+	// admins/owners, or for everyone if AnyMemberShowcase is set,
+	// but this does not include implicit admins.
+	if (teamRet.Showcase.AnyMemberShowcase && role != keybase1.TeamRole_NONE) || role.IsOrAbove(keybase1.TeamRole_ADMIN) {
 		arg = apiArg(ctx, "team/member_showcase")
 		arg.Args.Add("tid", libkb.S{Val: t.ID.String()})
 
