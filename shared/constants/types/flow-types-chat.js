@@ -1179,7 +1179,7 @@ export type UIPagination = {|next: String,previous: String,num: Int,last: Boolea
 
 export type UnreadFirstNumLimit = {|NumRead: Int,AtLeast: Int,AtMost: Int,|}
 
-export type UnreadUpdate = {|convID: ConversationID,unreadMessages: Int,unreadNotifyingMessages: {[key: string]: Int},|}
+export type UnreadUpdate = {|convID: ConversationID,unreadMessages: Int,unreadNotifyingMessages: {[key: string]: Int},compatUnreadMessages: Int,|}
 
 export type UnreadUpdateFull = {|ignore: Boolean,inboxVers: InboxVers,inboxSyncStatus: SyncInboxResType,updates?: ?Array<UnreadUpdate>,|}
 
