@@ -148,6 +148,10 @@ function keyToOutboxID(key: Types.OutboxIDKey): Types.OutboxID {
   return Buffer.from(key.substring(_outboxPrefix.length), 'hex')
 }
 
+function stringOutboxIDToKey(outboxID: string): Types.OutboxIDKey {
+  return `${_outboxPrefix}${outboxID}`
+}
+
 const _messageIDPrefix = 'MSGID-'
 const _messageIDPrefixReg = new RegExp('^' + _messageIDPrefix)
 function rpcMessageIDToMessageID(rpcMessageID: RPCChatTypes.MessageID): Types.MessageID {
@@ -807,6 +811,7 @@ export {
   messageKeyConversationIDKey,
   splitMessageIDKey,
   outboxIDToKey,
+  stringOutboxIDToKey,
   participantFilter,
   serverMessageToMessageText,
   usernamesToUserListItem,

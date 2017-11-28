@@ -316,7 +316,6 @@ function* _incomingMessage(action: ChatGen.IncomingMessagePayload): Saga.SagaGen
           const outboxID: Types.OutboxIDKey = message.outboxID
           const state = yield Saga.select()
           const pendingMessage = Shared.messageOutboxIDSelector(state, conversationIDKey, outboxID)
-
           if (pendingMessage) {
             yield Saga.all([
               // If the message has an outboxID and came from our device, then we
@@ -386,7 +385,7 @@ function _unboxedToMessage(
       : null
     // $FlowIssue
     const messageText: ChatTypes.MessageText = message.outbox.body
-    const outboxIDKey = payload.outboxID
+    const outboxIDKey = payload.outboxID && Constants.stringOutboxIDToKey(payload.outboxID)
 
     return {
       author: yourName,
@@ -422,7 +421,7 @@ function _unboxedToMessage(
         mentions: I.Set(payload.atMentions || []),
         messageID: Constants.rpcMessageIDToMessageID(payload.messageID),
         rawMessageID: payload.messageID,
-        outboxID: payload.outboxID,
+        outboxID: payload.outboxID && Constants.stringOutboxIDToKey(payload.outboxID),
         senderDeviceRevokedAt: payload.senderDeviceRevokedAt,
         timestamp: payload.ctime,
         you: yourName,
