@@ -82,13 +82,12 @@ const ConnectedEditChannel: React.ComponentType<{
   routeProps: I.RecordOf<{conversationIDKey: ConversationIDKey}>,
   routeState: I.RecordOf<{waitingForSave: number}>,
 }> = compose(
+  connect(mapStateToProps, mapDispatchToProps, mergeProps),
   lifecycle({
     componentDidMount: function() {
       // Need to load team details to be able to compute canDelete.
       this.props._loadTeam(this.props.teamname)
     },
-  }),
-  connect(mapStateToProps, mapDispatchToProps, mergeProps),
-  EditChannel
-)
+  })
+)(EditChannel)
 export default ConnectedEditChannel
