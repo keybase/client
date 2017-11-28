@@ -197,7 +197,7 @@ func (s StateUpdateMessage) Merge(s2 *StateUpdateMessage) (res StateUpdateMessag
 	res.Dismissal_ = s.Dismissal_
 	if res.Dismissal_ == nil {
 		res.Dismissal_ = s2.Dismissal_
-	} else if res.Dismissal_ != nil {
+	} else if res.Dismissal_ != nil && s2.Dismissal_ != nil {
 		res.Dismissal_.MsgIDs_ = append(res.Dismissal_.MsgIDs_, s2.Dismissal_.MsgIDs_...)
 		res.Dismissal_.Ranges_ = append(res.Dismissal_.Ranges_, s2.Dismissal_.Ranges_...)
 	}
