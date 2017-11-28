@@ -4,8 +4,10 @@ import ConsoleLogger from './console-logger'
 import TeeLogger from './tee-logger'
 import RingLogger from './ring-logger'
 import NullLogger from './null-logger'
+import NativeLogger from './native-logger'
 import DumpPeriodicallyLogger from './dump-periodically-logger'
 import {writeLogLinesToFile} from '../util/forward-logs'
+import {isMobile} from '../constants/platform'
 
 // Function to flatten arrays and preserve their sort order
 // Same as concating all the arrays and calling .sort() but could be faster
@@ -101,7 +103,9 @@ const logSetup = __DEV__
       error: new DumpPeriodicallyLogger(new RingLogger(1000), 1 * 60e3, writeLogLinesToFile, 'Error'),
       warn: new RingLogger(1000),
       info: new NullLogger(),
-      action: new DumpPeriodicallyLogger(new RingLogger(5000), 10 * 60e3, writeLogLinesToFile, 'Action'),
+      action: isMobile
+        ? new NativeLogger()
+        : new DumpPeriodicallyLogger(new RingLogger(5000), 10 * 60e3, writeLogLinesToFile, 'Action'),
       debug: new NullLogger(),
     }
 

@@ -1,5 +1,6 @@
 // @flow
 import type {LogLine, Logger, LogLevel, LogLineWithLevel} from './types'
+import {toStringForLog} from '../util/string'
 
 // Simple in memory ring Logger
 class RingLogger implements Logger {
@@ -12,8 +13,7 @@ class RingLogger implements Logger {
   }
 
   log = (...s: Array<any>) => {
-    const strings = s.map(s => (typeof s === 'object' ? JSON.stringify(s) : s))
-    const singleString = strings.join(' ')
+    const singleString = s.map(toStringForLog).join(' ')
     this._ringBuffer[this._currentWriteIdx] = [Date.now(), singleString]
     this._currentWriteIdx = (this._currentWriteIdx + 1) % this._ringSize
   }
