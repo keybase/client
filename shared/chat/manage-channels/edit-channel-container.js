@@ -88,6 +88,7 @@ const ConnectedEditChannel: React.ComponentType<{
       this.props._loadTeam(this.props.teamname)
     },
   }),
-  connect(mapStateToProps, mapDispatchToProps, mergeProps)(EditChannel)
+  connect(mapStateToProps, mapDispatchToProps, mergeProps),
+  EditChannel
 )
 export default ConnectedEditChannel
