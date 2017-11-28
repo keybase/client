@@ -578,7 +578,7 @@ const getUserItems = createShallowEqualSelector(
     })
 )
 
-function emptyConversationMessages(): ConversationMessages {
+function emptyConversationMessages(): Types.ConversationMessages {
   return makeConversationMessages({high: -1, low: -1, messages: I.List()})
 }
 
@@ -718,7 +718,7 @@ function lastMessageID(state: TypedState, conversationIDKey: Types.ConversationI
   return lastMessageKey ? messageKeyValue(lastMessageKey) : null
 }
 
-function lastOrdinal(state: TypedState, conversationIDKey: ConversationIDKey): number {
+function lastOrdinal(state: TypedState, conversationIDKey: Types.ConversationIDKey): number {
   const convMsgs = getConversationMessages(state, conversationIDKey)
   return convMsgs.high
 }

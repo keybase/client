@@ -771,7 +771,7 @@ function* _updateThread({
   }
 }
 
-function _getMessageOrdinal(m: Constants.ServerMessage): number {
+function _getMessageOrdinal(m: Types.ServerMessage): number {
   switch (m.type) {
     case 'Attachment':
     case 'Text':
@@ -788,16 +788,16 @@ function _getMessageOrdinal(m: Constants.ServerMessage): number {
 
 function addMessagesToConversation(
   state: TypedState,
-  conversationIDKey: Constants.ConversationIDKey,
-  messages: Array<Constants.ServerMessage>
-): Constants.ConversationMessages {
+  conversationIDKey: Types.ConversationIDKey,
+  messages: Array<Types.ServerMessage>
+): Types.ConversationMessages {
   const currentMessages = Constants.getConversationMessages(state, conversationIDKey)
   // Find all those messages that will grow the current set of messages in either direction. This process
   // both orders the messages correctly, as well as de-dupes.
-  const lowMessages = messages.filter((m: Constants.ServerMessage) => {
+  const lowMessages = messages.filter((m: Types.ServerMessage) => {
     return _getMessageOrdinal(m) < currentMessages.low
   })
-  const highMessages = messages.filter((m: Constants.ServerMessage) => {
+  const highMessages = messages.filter((m: Types.ServerMessage) => {
     return _getMessageOrdinal(m) > currentMessages.high
   })
   const incrMessages = lowMessages.concat(highMessages)
