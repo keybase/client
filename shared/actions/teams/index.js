@@ -728,28 +728,32 @@ function* _badgeAppForTeams(action: Types.BadgeAppForTeams) {
   }
   const newTeams = I.Set(action.payload.newTeamNames || [])
   const newTeamRequests = I.List(action.payload.newTeamAccessRequests || [])
-  // Call getTeams if new teams come in.
-  // Covers the case when we're staring at the teams page so
-  // we don't miss a notification we clear when we tab away
-  const existingNewTeams = yield Saga.select((state: TypedState) =>
-    state.entities.getIn(['teams', 'newTeams'], I.Set())
-  )
-  const existingNewTeamRequests = yield Saga.select((state: TypedState) =>
-    state.entities.getIn(['teams', 'newTeamRequests'], I.List())
-  )
-  if (!newTeams.equals(existingNewTeams)) {
-    yield Saga.put(Creators.getTeams())
+
+  if (_wasOnTeamsTab) {
+    // Call getTeams if new teams come in.
+    // Covers the case when we're staring at the teams page so
+    // we don't miss a notification we clear when we tab away
+    const existingNewTeams = yield Saga.select((state: TypedState) =>
+      state.entities.getIn(['teams', 'newTeams'], I.Set())
+    )
+    const existingNewTeamRequests = yield Saga.select((state: TypedState) =>
+      state.entities.getIn(['teams', 'newTeamRequests'], I.List())
+    )
+    if (!newTeams.equals(existingNewTeams)) {
+      yield Saga.put(Creators.getTeams())
+    }
+
+    // getDetails for teams that have new access requests
+    // Covers case where we have a badge appear on the requests
+    // tab with no rows showing up
+    const newTeamRequestsSet = I.Set(newTeamRequests)
+    const existingNewTeamRequestsSet = I.Set(existingNewTeamRequests)
+    const toLoad = newTeamRequestsSet.subtract(existingNewTeamRequestsSet)
+    const loadingCalls = toLoad.map(teamname => Saga.put(Creators.getDetails(teamname)))
+    yield Saga.all(loadingCalls.toArray())
   }
 
-  // getDetails for teams that have new access requests
-  // Covers case where we have a badge appear on the requests
-  // tab with no rows showing up
-  const newTeamRequestsSet = I.Set(newTeamRequests)
-  const existingNewTeamRequestsSet = I.Set(existingNewTeamRequests)
-  const toLoad = newTeamRequestsSet.subtract(existingNewTeamRequestsSet)
-  const loadingCalls = toLoad.map(teamname => Saga.put(Creators.getDetails(teamname)))
-  yield Saga.all(loadingCalls.toArray())
-
+  // if the user wasn't on the teams tab, loads will be triggered by navigation around the app
   yield Saga.put(replaceEntity(['teams'], I.Map([['newTeams', newTeams]])))
   yield Saga.put(replaceEntity(['teams'], I.Map([['newTeamRequests', newTeamRequests]])))
 }
