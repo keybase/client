@@ -383,6 +383,10 @@
         {
           "type": "gregor1.Time",
           "name": "ctime"
+        },
+        {
+          "type": "double",
+          "name": "ordinal"
         }
       ]
     },

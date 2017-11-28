@@ -360,6 +360,7 @@ type UIMessageOutbox struct {
 	MessageType MessageType  `codec:"messageType" json:"messageType"`
 	Body        string       `codec:"body" json:"body"`
 	Ctime       gregor1.Time `codec:"ctime" json:"ctime"`
+	Ordinal     float64      `codec:"ordinal" json:"ordinal"`
 }
 
 func (o UIMessageOutbox) DeepCopy() UIMessageOutbox {
@@ -369,6 +370,7 @@ func (o UIMessageOutbox) DeepCopy() UIMessageOutbox {
 		MessageType: o.MessageType.DeepCopy(),
 		Body:        o.Body,
 		Ctime:       o.Ctime.DeepCopy(),
+		Ordinal:     o.Ordinal,
 	}
 }
 

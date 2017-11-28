@@ -218,6 +218,7 @@ function* _appendAttachmentPlaceholder(
   uploadPath: string
 ): Generator<any, Types.AttachmentMessage, any> {
   const author = yield Saga.select(usernameSelector)
+  const lastOrd = yield Saga.select(Constants.lastOrdinal, conversationIDKey)
   const message: Types.AttachmentMessage = {
     author,
     conversationIDKey,
@@ -235,6 +236,7 @@ function* _appendAttachmentPlaceholder(
     ...Constants.getAttachmentInfo(preview),
     title,
     uploadPath,
+    ordinal: Constants.nextFractionalOrdinal(lastOrd), // Add an ordinal here to keep in correct order
   }
 
   const selectedConversation = yield Saga.select(Constants.getSelectedConversation)
