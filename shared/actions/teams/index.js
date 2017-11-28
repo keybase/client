@@ -646,17 +646,30 @@ function* _setupTeamHandlers(): Saga.SagaGenerator<any, any> {
     engine().setIncomingHandler(
       'keybase.1.NotifyTeam.teamChanged',
       (args: RPCTypes.NotifyTeamTeamChangedRpcParam) => {
-        dispatch(Creators.getDetails(args.teamName))
-        dispatch(Creators.getTeams())
+        const actions = getLoadCalls(args.teamName)
+        actions.forEach(action => dispatch(action))
       }
     )
     engine().setIncomingHandler('keybase.1.NotifyTeam.teamDeleted', () => {
-      dispatch(Creators.getTeams())
+      const actions = getLoadCalls()
+      actions.forEach(action => dispatch(action))
     })
     engine().setIncomingHandler('keybase.1.NotifyTeam.teamExit', () => {
-      dispatch(Creators.getTeams())
+      const actions = getLoadCalls()
+      actions.forEach(action => dispatch(action))
     })
   })
+}
+
+function getLoadCalls(teamname?: string) {
+  const actions = []
+  if (_wasOnTeamsTab) {
+    actions.push(Creators.getTeams())
+    if (teamname) {
+      actions.push(Creators.getDetails(teamname))
+    }
+  }
+  return actions
 }
 
 function _updateTopic({payload: {conversationIDKey, newTopic}}: Types.UpdateTopic, state: TypedState) {
