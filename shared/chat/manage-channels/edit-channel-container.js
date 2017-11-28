@@ -4,8 +4,14 @@ import * as I from 'immutable'
 import * as Constants from '../../constants/teams'
 import {type ConversationIDKey} from '../../constants/types/chat'
 import EditChannel from './edit-channel'
+import {compose, lifecycle} from 'recompose'
 import {connect, type TypedState} from '../../util/container'
-import {updateChannelName, updateTopic, deleteChannelConfirmed} from '../../actions/teams/creators'
+import {
+  getDetails,
+  updateChannelName,
+  updateTopic,
+  deleteChannelConfirmed,
+} from '../../actions/teams/creators'
 import {anyWaiting} from '../../constants/waiting'
 
 const mapStateToProps = (state: TypedState, {navigateUp, routePath, routeProps}) => {
@@ -36,6 +42,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routePath, routePro
 
   return {
     onCancel: () => dispatch(navigateUp()),
+    _loadTeam: teamname => dispatch(getDetails(teamname)),
     _updateChannelName: (newChannelName: string) =>
       dispatch(updateChannelName(conversationIDKey, newChannelName)),
     _updateTopic: (newTopic: string) => dispatch(updateTopic(conversationIDKey, newTopic)),
@@ -74,5 +81,13 @@ const ConnectedEditChannel: React.ComponentType<{
   navigateUp: Function,
   routeProps: I.RecordOf<{conversationIDKey: ConversationIDKey}>,
   routeState: I.RecordOf<{waitingForSave: number}>,
-}> = connect(mapStateToProps, mapDispatchToProps, mergeProps)(EditChannel)
+}> = compose(
+  lifecycle({
+    componentDidMount: function() {
+      // Need to load team details to be able to compute canDelete.
+      this.props._loadTeam(this.props.teamname)
+    },
+  }),
+  connect(mapStateToProps, mapDispatchToProps, mergeProps)(EditChannel)
+)
 export default ConnectedEditChannel
