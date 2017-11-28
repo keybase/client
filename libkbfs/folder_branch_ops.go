@@ -6177,6 +6177,7 @@ func (fbo *folderBranchOps) TeamNameChanged(
 	defer cancelFunc()
 	fbo.log.CDebugf(ctx, "Starting name change for team %s", tid)
 
+	// TODO(KBFS-2621): resolve the i-team display name correctly.
 	newName, err := fbo.config.KBPKI().GetNormalizedUsername(
 		ctx, tid.AsUserOrTeam())
 	if err != nil {
