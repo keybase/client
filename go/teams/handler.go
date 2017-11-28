@@ -53,8 +53,8 @@ func handleChangeSingle(ctx context.Context, g *libkb.GlobalContext, row keybase
 		g.Log.CWarningf(ctx, "error in HintLatestSeqno: %v", err)
 		return nil
 	}
-	// TODO CORE-6689 this notification cannot be sent. No trusted team name.
-	// g.NotifyRouter.HandleTeamChanged(ctx, team.ID, team.Name().String(), team.chain().GetLatestSeqno(), change)
+	// Send teamID and teamName in two separate notifications. It is server-trust that they are the same team.
+	g.NotifyRouter.HandleTeamChangedByBothKeys(ctx, row.Id, row.Name, row.LatestSeqno, change)
 	return nil
 }
 

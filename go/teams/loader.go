@@ -542,11 +542,10 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 	if cachedName != nil && !cachedName.Eq(newName) {
 		chain := TeamSigChainState{inner: ret.Chain}
 		// Send a notification if we used to have the name cached and it has changed at all.
-		// TODO CORE-6689 this notification is now delayed. Team change gregor notifications do not trigger it.
-		go l.G().NotifyRouter.HandleTeamChanged(context.Background(), chain.GetID(), newName.String(), chain.GetLatestSeqno(),
-			keybase1.TeamChangeSet{
-				Renamed: true,
-			})
+		changeSet := keybase1.TeamChangeSet{Renamed: true}
+		go l.G().NotifyRouter.HandleTeamChangedByID(context.Background(), chain.GetID(), chain.GetLatestSeqno(), changeSet)
+		go l.G().NotifyRouter.HandleTeamChangedByName(context.Background(), cachedName.String(), chain.GetLatestSeqno(), changeSet)
+		go l.G().NotifyRouter.HandleTeamChangedByName(context.Background(), newName.String(), chain.GetLatestSeqno(), changeSet)
 	}
 
 	// Check request constraints

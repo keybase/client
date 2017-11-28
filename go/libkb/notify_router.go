@@ -57,7 +57,8 @@ type NotifyListener interface {
 	PGPKeyInSecretStoreFile()
 	BadgeState(badgeState keybase1.BadgeState)
 	ReachabilityChanged(r keybase1.Reachability)
-	TeamChanged(teamID keybase1.TeamID, teamName string, latestSeqno keybase1.Seqno, changes keybase1.TeamChangeSet)
+	TeamChangedByID(teamID keybase1.TeamID, latestSeqno keybase1.Seqno, changes keybase1.TeamChangeSet)
+	TeamChangedByName(teamName string, latestSeqno keybase1.Seqno, changes keybase1.TeamChangeSet)
 	TeamDeleted(teamID keybase1.TeamID)
 	TeamExit(teamID keybase1.TeamID)
 }
@@ -1018,27 +1019,32 @@ func (n *NotifyRouter) HandleReachability(r keybase1.Reachability) {
 	n.G().Log.Debug("- Sent reachability")
 }
 
-func (n *NotifyRouter) HandleTeamChanged(ctx context.Context, teamID keybase1.TeamID, teamName string, latestSeqno keybase1.Seqno, changes keybase1.TeamChangeSet) {
+// teamID and teamName are not necessarily the same team
+func (n *NotifyRouter) HandleTeamChangedByBothKeys(ctx context.Context, teamID keybase1.TeamID, teamName string, latestSeqno keybase1.Seqno, changes keybase1.TeamChangeSet) {
+	n.HandleTeamChangedByID(ctx, teamID, latestSeqno, changes)
+	n.HandleTeamChangedByName(ctx, teamName, latestSeqno, changes)
+}
+
+func (n *NotifyRouter) HandleTeamChangedByID(ctx context.Context, teamID keybase1.TeamID, latestSeqno keybase1.Seqno, changes keybase1.TeamChangeSet) {
 	if n == nil {
 		return
 	}
 
-	arg := keybase1.TeamChangedArg{
+	arg := keybase1.TeamChangedByIDArg{
 		TeamID:      teamID,
-		TeamName:    teamName,
 		Changes:     changes,
 		LatestSeqno: latestSeqno,
 	}
 
 	var wg sync.WaitGroup
-	n.G().Log.CDebugf(ctx, "+ Sending TeamChanged notification (team:%v)", teamID)
+	n.G().Log.CDebugf(ctx, "+ Sending TeamChangedByID notification (team:%v)", teamID)
 	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
 		if n.getNotificationChannels(id).Team {
 			wg.Add(1)
 			go func() {
 				(keybase1.NotifyTeamClient{
 					Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
-				}).TeamChanged(context.Background(), arg)
+				}).TeamChangedByID(context.Background(), arg)
 				wg.Done()
 			}()
 		}
@@ -1046,7 +1052,39 @@ func (n *NotifyRouter) HandleTeamChanged(ctx context.Context, teamID keybase1.Te
 	})
 	wg.Wait()
 	if n.listener != nil {
-		n.listener.TeamChanged(teamID, teamName, latestSeqno, changes)
+		n.listener.TeamChangedByID(teamID, latestSeqno, changes)
+	}
+	n.G().Log.CDebugf(ctx, "- Sent TeamChangedByID notification")
+}
+
+func (n *NotifyRouter) HandleTeamChangedByName(ctx context.Context, teamName string, latestSeqno keybase1.Seqno, changes keybase1.TeamChangeSet) {
+	if n == nil {
+		return
+	}
+
+	arg := keybase1.TeamChangedByNameArg{
+		TeamName:    teamName,
+		Changes:     changes,
+		LatestSeqno: latestSeqno,
+	}
+
+	var wg sync.WaitGroup
+	n.G().Log.CDebugf(ctx, "+ Sending TeamChangedByName notification (team:%v)", teamName)
+	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
+		if n.getNotificationChannels(id).Team {
+			wg.Add(1)
+			go func() {
+				(keybase1.NotifyTeamClient{
+					Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
+				}).TeamChangedByName(context.Background(), arg)
+				wg.Done()
+			}()
+		}
+		return true
+	})
+	wg.Wait()
+	if n.listener != nil {
+		n.listener.TeamChangedByName(teamName, latestSeqno, changes)
 	}
 	n.G().Log.CDebugf(ctx, "- Sent TeamChanged notification")
 }
