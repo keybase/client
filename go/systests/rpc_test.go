@@ -517,6 +517,7 @@ func TestResolveIdentifyImplicitTeamWithDuplicates(t *testing.T) {
 }
 
 func TestResolveIdentifyImplicitTeamWithConflict(t *testing.T) {
+	t.Skip()
 	tt := newTeamTester(t)
 	defer tt.cleanup()
 
