@@ -737,7 +737,7 @@ function* _badgeAppForTeams(action: Types.BadgeAppForTeams) {
   const existingNewTeamRequests = yield Saga.select((state: TypedState) =>
     state.entities.getIn(['teams', 'newTeamRequests'], I.List())
   )
-  if (!newTeams.equals(existingNewTeams) || !newTeams.equals(existingNewTeamRequests)) {
+  if (!newTeams.equals(existingNewTeams)) {
     yield Saga.put(Creators.getTeams())
   }
 
