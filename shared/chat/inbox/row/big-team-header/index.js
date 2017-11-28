@@ -38,11 +38,12 @@ class BigTeamHeader extends React.PureComponent<Props, State> {
           type="iconfont-gear"
           onClick={e => {
             if (!isMobile) {
+              // $FlowIssue doesn't know about getBoundingClientRect
               const {top} = e.currentTarget.getBoundingClientRect()
               this.setState({popTop: top})
               props.onSetShowMenu(true)
             } else {
-              props.onManageChannels(props.teamname)
+              props.onManageChannels()
             }
           }}
           style={iconStyle}

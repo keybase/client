@@ -17,6 +17,7 @@ export type Props = {
   header?: ?MenuItem,
   onHidden: () => void,
   style?: Object,
+  styleCatcher?: ?Object,
 }
 
 export type HeaderTextProps = {
@@ -24,7 +25,6 @@ export type HeaderTextProps = {
   backgroundColor: string,
   style?: Object,
   children?: React.Node,
-  styleCatcher?: ?Object
 }
 
 class PopupHeaderText extends React.Component<HeaderTextProps> {}
