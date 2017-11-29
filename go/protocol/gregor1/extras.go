@@ -190,6 +190,7 @@ func (s StateUpdateMessage) Merge(s2 *StateUpdateMessage) (res StateUpdateMessag
 	if s.Creation_ != nil && s2.Creation_ != nil {
 		return res, errors.New("cannot merge two creation messages")
 	}
+	res.Md_ = s.Md_
 	res.Creation_ = s.Creation_
 	if res.Creation_ == nil {
 		res.Creation_ = s2.Creation_
