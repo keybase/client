@@ -6,6 +6,7 @@ package libkbfs
 
 import (
 	"context"
+	"runtime"
 	"testing"
 	"time"
 
@@ -60,6 +61,7 @@ func makeFakeDirBlock(t *testing.T, name string) *DirBlock {
 
 func initPrefetcherTestWithDiskCache(t *testing.T, dbc DiskBlockCache) (
 	*blockRetrievalQueue, *fakeBlockGetter, *testBlockRetrievalConfig) {
+	t.Helper()
 	// We don't want the block getter to respect cancelation, because we need
 	// <-q.Prefetcher().Shutdown() to represent whether the retrieval requests
 	// _actually_ completed.
@@ -90,12 +92,42 @@ func testPrefetcherCheckGet(t *testing.T, bcache BlockCache, ptr BlockPointer,
 	require.Equal(t, expectedLifetime.String(), lifetime.String())
 }
 
+func getStack() string {
+	stacktrace := make([]byte, 16384)
+	length := runtime.Stack(stacktrace, true)
+	return string(stacktrace[:length])
+}
+
 func waitForPrefetchOrBust(t *testing.T, ch <-chan struct{}) {
-	// TODO: add t.Helper() once we're on Go 1.9
+	t.Helper()
 	select {
 	case <-ch:
 	case <-time.After(time.Second):
-		t.Fatal("Failed to wait for prefetch.")
+		t.Fatal("Failed to wait for prefetch. Stack:\n" + getStack())
+	}
+}
+
+func notifyContinueCh(ch chan<- error) {
+	go func() {
+		ch <- nil
+	}()
+}
+
+func notifySyncCh(t *testing.T, ch chan<- struct{}) {
+	t.Helper()
+	select {
+	case ch <- struct{}{}:
+	case <-time.After(time.Second):
+		t.Fatal("Error notifying sync channel. Stack:\n" + getStack())
+	}
+}
+
+func notifyContinueChOrBust(t *testing.T, ch chan<- error, err error) {
+	t.Helper()
+	select {
+	case ch <- err:
+	case <-time.After(time.Second):
+		t.Fatal("Error notifying continue channel. Stack:\n" + getStack())
 	}
 }
 
@@ -135,7 +167,7 @@ func TestPrefetcherIndirectFileBlock(t *testing.T) {
 	continueChIndBlock2 <- nil
 
 	t.Log("Wait for the prefetch to finish.")
-	<-q.Prefetcher().Shutdown()
+	waitForPrefetchOrBust(t, q.Prefetcher().Shutdown())
 
 	t.Log("Ensure that the prefetched blocks are in the cache.")
 	testPrefetcherCheckGet(t, config.BlockCache(), rootPtr, rootBlock,
@@ -182,7 +214,7 @@ func TestPrefetcherIndirectDirBlock(t *testing.T) {
 	continueChIndBlock2 <- nil
 
 	t.Log("Wait for the prefetch to finish.")
-	<-q.Prefetcher().Shutdown()
+	waitForPrefetchOrBust(t, q.Prefetcher().Shutdown())
 
 	t.Log("Ensure that the prefetched blocks are in the cache.")
 	testPrefetcherCheckGet(t, config.BlockCache(), rootPtr, rootBlock,
@@ -236,7 +268,7 @@ func TestPrefetcherDirectDirBlock(t *testing.T) {
 	continueChDirB <- nil
 	continueChFileA <- context.Canceled
 	t.Log("Wait for the prefetch to finish.")
-	<-q.Prefetcher().Shutdown()
+	waitForPrefetchOrBust(t, q.Prefetcher().Shutdown())
 
 	t.Log("Ensure that the prefetched blocks are in the cache.")
 	testPrefetcherCheckGet(t, config.BlockCache(), rootPtr, rootDir,
@@ -292,7 +324,7 @@ func TestPrefetcherAlreadyCached(t *testing.T) {
 	t.Log("Release the prefetch for dirA.")
 	continueChDirA <- nil
 	t.Log("Wait for the prefetch to finish.")
-	<-q.Prefetcher().Shutdown()
+	waitForPrefetchOrBust(t, q.Prefetcher().Shutdown())
 	q.TogglePrefetcher(true, nil)
 
 	t.Log("Ensure that the prefetched block is in the cache.")
@@ -317,7 +349,7 @@ func TestPrefetcherAlreadyCached(t *testing.T) {
 	t.Log("Release the prefetch for fileB.")
 	continueChFileB <- nil
 	t.Log("Wait for the prefetch to finish.")
-	<-q.Prefetcher().Shutdown()
+	waitForPrefetchOrBust(t, q.Prefetcher().Shutdown())
 	q.TogglePrefetcher(true, nil)
 
 	testPrefetcherCheckGet(t, cache, dirA.Children["b"].BlockPointer, fileB,
@@ -343,7 +375,7 @@ func TestPrefetcherAlreadyCached(t *testing.T) {
 	require.Equal(t, dirA, block)
 
 	t.Log("Wait for the prefetch to finish.")
-	<-q.Prefetcher().Shutdown()
+	waitForPrefetchOrBust(t, q.Prefetcher().Shutdown())
 }
 
 func TestPrefetcherNoRepeatedPrefetch(t *testing.T) {
@@ -378,7 +410,7 @@ func TestPrefetcherNoRepeatedPrefetch(t *testing.T) {
 
 	t.Log("Wait for the prefetch to finish, then verify that the prefetched " +
 		"block is in the cache.")
-	<-q.Prefetcher().Shutdown()
+	waitForPrefetchOrBust(t, q.Prefetcher().Shutdown())
 	q.TogglePrefetcher(true, nil)
 	testPrefetcherCheckGet(t, config.BlockCache(), ptrA, fileA, NoPrefetch,
 		TransientEntry)
@@ -401,7 +433,7 @@ func TestPrefetcherNoRepeatedPrefetch(t *testing.T) {
 		"block is still not in the cache.")
 	_, err = cache.Get(ptrA)
 	require.EqualError(t, err, NoSuchBlockError{ptrA.ID}.Error())
-	<-q.Prefetcher().Shutdown()
+	waitForPrefetchOrBust(t, q.Prefetcher().Shutdown())
 }
 
 func TestPrefetcherEmptyDirectDirBlock(t *testing.T) {
@@ -425,35 +457,11 @@ func TestPrefetcherEmptyDirectDirBlock(t *testing.T) {
 	require.Equal(t, rootDir, block)
 
 	t.Log("Wait for prefetching to complete.")
-	<-q.Prefetcher().Shutdown()
+	waitForPrefetchOrBust(t, q.Prefetcher().Shutdown())
 
 	t.Log("Ensure that the directory block is in the cache.")
 	testPrefetcherCheckGet(t, config.BlockCache(), rootPtr, rootDir,
 		FinishedPrefetch, TransientEntry)
-}
-
-func notifyContinueCh(ch chan<- error) {
-	go func() {
-		ch <- nil
-	}()
-}
-
-func notifySyncCh(t *testing.T, ch chan<- struct{}) {
-	t.Helper()
-	select {
-	case ch <- struct{}{}:
-	case <-time.After(time.Second):
-		panic("Error notifying sync channel.")
-	}
-}
-
-func notifyContinueChOrBust(t *testing.T, ch chan<- error, err error) {
-	t.Helper()
-	select {
-	case ch <- err:
-	case <-time.After(time.Second):
-		panic("Error notifying continue channel.")
-	}
 }
 
 func TestPrefetcherForSyncedTLF(t *testing.T) {
@@ -542,7 +550,7 @@ func TestPrefetcherForSyncedTLF(t *testing.T) {
 	// Release after prefetching dirBfileDblock2
 	notifySyncCh(t, prefetchSyncCh)
 	// Then we wait for the pending prefetches to complete.
-	<-q.Prefetcher().Shutdown()
+	waitForPrefetchOrBust(t, q.Prefetcher().Shutdown())
 	q.TogglePrefetcher(true, prefetchSyncCh)
 	notifySyncCh(t, prefetchSyncCh)
 
@@ -579,11 +587,7 @@ func TestPrefetcherForSyncedTLF(t *testing.T) {
 
 	notifySyncCh(t, prefetchSyncCh)
 	t.Log("Wait for prefetching to complete. This shouldn't hang.")
-	select {
-	case <-q.Prefetcher().Shutdown():
-	case <-time.After(time.Second):
-		t.Fatal("Prefetching hung.")
-	}
+	waitForPrefetchOrBust(t, q.Prefetcher().Shutdown())
 
 	testPrefetcherCheckGet(t, config.BlockCache(), rootPtr, rootDir,
 		FinishedPrefetch, TransientEntry)
@@ -653,7 +657,7 @@ func TestPrefetcherMultiLevelIndirectFile(t *testing.T) {
 	notifySyncCh(t, prefetchSyncCh)
 
 	t.Log("Wait for the prefetch to finish.")
-	<-q.Prefetcher().Shutdown()
+	waitForPrefetchOrBust(t, q.Prefetcher().Shutdown())
 	q.TogglePrefetcher(true, prefetchSyncCh)
 	notifySyncCh(t, prefetchSyncCh)
 
@@ -708,7 +712,7 @@ func TestPrefetcherMultiLevelIndirectFile(t *testing.T) {
 	err = <-ch
 
 	t.Log("Wait for the prefetch to finish.")
-	<-q.Prefetcher().Shutdown()
+	waitForPrefetchOrBust(t, q.Prefetcher().Shutdown())
 
 	t.Log("Ensure that the prefetched blocks are in the cache, " +
 		"and the prefetch statuses are correct.")
@@ -840,11 +844,7 @@ func TestPrefetcherBackwardPrefetch(t *testing.T) {
 	notifySyncCh(t, prefetchSyncCh)
 
 	t.Log("Wait for the prefetch to finish.")
-	select {
-	case <-q.Prefetcher().Shutdown():
-	case <-time.After(time.Second):
-		panic("Error shutting down prefetcher due to hang.")
-	}
+	waitForPrefetchOrBust(t, q.Prefetcher().Shutdown())
 
 	t.Log("Ensure that the prefetched blocks are in the cache, " +
 		"and the prefetch statuses are correct.")
@@ -968,7 +968,7 @@ func TestPrefetcherUnsyncedThenSyncedPrefetch(t *testing.T) {
 	// Release after prefetching aab
 	notifySyncCh(t, prefetchSyncCh)
 	// Then we wait for the pending prefetches to complete.
-	<-q.Prefetcher().Shutdown()
+	waitForPrefetchOrBust(t, q.Prefetcher().Shutdown())
 
 	t.Log("Ensure that the prefetched blocks are in the cache, " +
 		"and the prefetch statuses are correct.")
@@ -1072,15 +1072,11 @@ func TestSyncBlockCacheWithPrefetcher(t *testing.T) {
 	notifySyncCh(t, prefetchSyncCh)
 
 	t.Log("Prefetching shouldn't happen because the disk caches are full.")
-	select {
-	case <-q.Prefetcher().Shutdown():
-	case <-time.After(time.Second):
-		t.Fatal("Prefetching hung.")
-	}
+	waitForPrefetchOrBust(t, q.Prefetcher().Shutdown())
 }
 
 func TestPrefetcherBasicUnsyncedPrefetch(t *testing.T) {
-	t.Log("Test synced TLF prefetching in a more complex fetch order.")
+	t.Log("Test basic unsynced prefetching with only 2 blocks.")
 	q, bg, config := initPrefetcherTest(t)
 	defer shutdownPrefetcherTest(q)
 	kmd := makeKMD()
@@ -1125,5 +1121,59 @@ func TestPrefetcherBasicUnsyncedPrefetch(t *testing.T) {
 		TransientEntry)
 
 	// Then we wait for the pending prefetches to complete.
-	<-q.Prefetcher().Shutdown()
+	waitForPrefetchOrBust(t, q.Prefetcher().Shutdown())
+}
+
+func TestPrefetcherBasicUnsyncedBackwardPrefetch(t *testing.T) {
+	t.Skip("Not working yet, sometimes fails to shutdown cleanly.")
+	t.Log("Test basic unsynced prefetching with only 2 blocks fetched " +
+		"in reverse.")
+	q, bg, config := initPrefetcherTest(t)
+	defer shutdownPrefetcherTest(q)
+	kmd := makeKMD()
+	prefetchSyncCh := make(chan struct{})
+	q.TogglePrefetcher(true, prefetchSyncCh)
+	notifySyncCh(t, prefetchSyncCh)
+
+	t.Log("Initialize a folder tree with structure: " +
+		"root -> {a}")
+	rootPtr := makeRandomBlockPointer(t)
+	root := &DirBlock{Children: map[string]DirEntry{
+		"a": makeRandomDirEntry(t, File, 10, "a"),
+	}}
+	aPtr := root.Children["a"].BlockPointer
+	a := makeFakeFileBlock(t, true)
+
+	_, contChRoot := bg.setBlockToReturn(rootPtr, root)
+	_, contChA := bg.setBlockToReturn(aPtr, a)
+
+	t.Log("Fetch child block \"a\" on demand.")
+	var block Block = &FileBlock{}
+	ch := q.Request(context.Background(), defaultOnDemandRequestPriority, kmd,
+		aPtr, block, TransientEntry)
+	t.Log("Release child block \"a\".")
+	contChA <- nil
+	notifySyncCh(t, prefetchSyncCh)
+	err := <-ch
+	require.NoError(t, err)
+	testPrefetcherCheckGet(t, config.BlockCache(), aPtr, a, FinishedPrefetch,
+		TransientEntry)
+
+	t.Log("Fetch dir root.")
+	block = &DirBlock{}
+	ch = q.Request(context.Background(), defaultOnDemandRequestPriority, kmd,
+		rootPtr, block, TransientEntry)
+	contChRoot <- nil
+	notifySyncCh(t, prefetchSyncCh)
+	err = <-ch
+	require.NoError(t, err)
+	notifySyncCh(t, prefetchSyncCh)
+
+	testPrefetcherCheckGet(t, config.BlockCache(), rootPtr, root,
+		FinishedPrefetch, TransientEntry)
+	testPrefetcherCheckGet(t, config.BlockCache(), aPtr, a, FinishedPrefetch,
+		TransientEntry)
+
+	// Then we wait for the pending prefetches to complete.
+	waitForPrefetchOrBust(t, q.Prefetcher().Shutdown())
 }
