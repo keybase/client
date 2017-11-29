@@ -1,6 +1,7 @@
 package systests
 
 import (
+	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -9,6 +10,7 @@ import (
 
 	"github.com/keybase/client/go/client"
 	"github.com/keybase/client/go/libkb"
+	"github.com/stretchr/testify/require"
 )
 
 func TestTeamAPI(t *testing.T) {
@@ -58,7 +60,7 @@ func assertTeamAPIOutput(t *testing.T, u *userPlusDevice, in, expectedOut string
 	}
 	out = strings.TrimSpace(out)
 	if out != expectedOut {
-		t.Errorf("json command:\n\n%s\n\noutput:\n\n%s\n\nexpected:\n\n%s\n\n", in, out, expectedOut)
+		require.FailNow(t, fmt.Sprintf("json command:\n\n%s\n\noutput:\n\n%s\n\nexpected:\n\n%s\n\n", in, out, expectedOut))
 	}
 }
 
