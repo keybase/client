@@ -339,6 +339,12 @@ func (t *TeamSigChainState) getLastSubteamPoint(id keybase1.TeamID) *keybase1.Su
 	return nil
 }
 
+func (t *TeamSigChainState) informKBFSSettings(s SCTeamKBFS) {
+	if s.TLF != nil {
+		t.inner.TlfID = &s.TLF.ID
+	}
+}
+
 // Inform the SubteamLog of a subteam name change.
 // Links must be added in order by seqno for each subteam (asserted here).
 // Links for different subteams can interleave.
@@ -750,11 +756,30 @@ func (t *TeamSigChainPlayer) addInnerLink(
 	hasSettings := func(has bool) error {
 		return hasGeneric(has, team.Settings != nil, "settings")
 	}
+	hasKBFSSettings := func(has bool) error {
+		return hasGeneric(has, team.KBFS != nil, "KBFS settings")
+	}
 	allowInflate := func(allow bool) error {
 		if isInflate && !allow {
 			return fmt.Errorf("inflating link type not supported: %v", payload.Body.Type)
 		}
 		return nil
+	}
+
+	checkAdmin := func(op string) (signerIsExplicitOwner bool, err error) {
+		if !signer.implicitAdmin {
+			signerRole, err := prevState.GetUserRole(signer.signer)
+			if err != nil {
+				return false, err
+			}
+			if !signerRole.IsAdminOrAbove() {
+				return false, fmt.Errorf("link signer does not have permission to %s: %v is a %v", op, signer, signerRole)
+			}
+			if signerRole == keybase1.TeamRole_OWNER {
+				signerIsExplicitOwner = true
+			}
+		}
+		return signerIsExplicitOwner, nil
 	}
 
 	switch libkb.LinkType(payload.Body.Type) {
@@ -884,18 +909,9 @@ func (t *TeamSigChainPlayer) addInnerLink(
 
 		// Check that the signer is at least an ADMIN or is an IMPLICIT ADMIN to have permission to make this link.
 		var signerIsExplicitOwner bool
-		if !signer.implicitAdmin {
-			signerRole, err := prevState.GetUserRole(signer.signer)
-			if err != nil {
-				return res, err
-			}
-			if !signerRole.IsAdminOrAbove() {
-				return res, fmt.Errorf("link signer does not have permission to change membership: %v is a %v",
-					signer, signerRole)
-			}
-			if signerRole == keybase1.TeamRole_OWNER {
-				signerIsExplicitOwner = true
-			}
+		signerIsExplicitOwner, err = checkAdmin("change membership")
+		if err != nil {
+			return res, err
 		}
 
 		roleUpdates, err := t.sanityCheckMembers(*team.Members, sanityCheckMembersOptions{
@@ -1120,6 +1136,11 @@ func (t *TeamSigChainPlayer) addInnerLink(
 
 		// Check the subteam name
 		subteamName, err := t.assertSubteamName(prevState, link.Seqno(), string(team.Subteam.Name))
+		if err != nil {
+			return res, err
+		}
+
+		_, err = checkAdmin("make subteam")
 		if err != nil {
 			return res, err
 		}
@@ -1447,13 +1468,30 @@ func (t *TeamSigChainPlayer) addInnerLink(
 		return res, NewTeamDeletedError()
 	case libkb.LinkTypeDeleteUpPointer:
 		return res, NewTeamDeletedError()
-	case libkb.LinkTypeLegacyTLFUpgrade:
-		// This link type is not really understood but is processed as a no-op for forward compatibility.
-		// When implementing this for real (or deleting it) be sure to:
-		// - Bust the TeamData cache
-		// - Update SigchainV2Type.RequiresAdminPermission
-		// - Add checks here that the signer is an admin and that this is an implicit team. If those are intended.
+	case libkb.LinkTypeKBFSSettings:
+		err = libkb.PickFirstError(
+			hasKBFSSettings(true),
+			allowInflate(false),
+			hasPrevState(true),
+			hasName(false),
+			hasMembers(false),
+			hasParent(false),
+			hasSubteam(false),
+			hasInvites(false),
+			hasPerTeamKey(false),
+			hasCompletedInvites(false))
+		if err != nil {
+			return res, err
+		}
+
+		_, err = checkAdmin("change KBFS settings")
+		if err != nil {
+			return res, err
+		}
+
 		res.newState = prevState.DeepCopy()
+		res.newState.informKBFSSettings(*team.KBFS)
+
 		return res, nil
 	case "":
 		return res, errors.New("empty body type")

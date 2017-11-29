@@ -742,6 +742,7 @@ type TeamSigChainState struct {
 	ActiveInvites  map[TeamInviteID]TeamInvite         `codec:"activeInvites" json:"activeInvites"`
 	Open           bool                                `codec:"open" json:"open"`
 	OpenTeamJoinAs TeamRole                            `codec:"openTeamJoinAs" json:"openTeamJoinAs"`
+	TlfID          *TLFID                              `codec:"tlfID,omitempty" json:"tlfID,omitempty"`
 }
 
 func (o TeamSigChainState) DeepCopy() TeamSigChainState {
@@ -866,6 +867,13 @@ func (o TeamSigChainState) DeepCopy() TeamSigChainState {
 		})(o.ActiveInvites),
 		Open:           o.Open,
 		OpenTeamJoinAs: o.OpenTeamJoinAs.DeepCopy(),
+		TlfID: (func(x *TLFID) *TLFID {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.TlfID),
 	}
 }
 
@@ -1733,6 +1741,7 @@ type LookupImplicitTeamRes struct {
 	TeamID      TeamID                  `codec:"teamID" json:"teamID"`
 	Name        TeamName                `codec:"name" json:"name"`
 	DisplayName ImplicitTeamDisplayName `codec:"displayName" json:"displayName"`
+	TlfID       *TLFID                  `codec:"tlfID,omitempty" json:"tlfID,omitempty"`
 }
 
 func (o LookupImplicitTeamRes) DeepCopy() LookupImplicitTeamRes {
@@ -1740,6 +1749,13 @@ func (o LookupImplicitTeamRes) DeepCopy() LookupImplicitTeamRes {
 		TeamID:      o.TeamID.DeepCopy(),
 		Name:        o.Name.DeepCopy(),
 		DisplayName: o.DisplayName.DeepCopy(),
+		TlfID: (func(x *TLFID) *TLFID {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.TlfID),
 	}
 }
 

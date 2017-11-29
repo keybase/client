@@ -658,6 +658,13 @@
         {
           "type": "TeamRole",
           "name": "openTeamJoinAs"
+        },
+        {
+          "type": [
+            null,
+            "TLFID"
+          ],
+          "name": "tlfID"
         }
       ]
     },
@@ -1506,6 +1513,13 @@
         {
           "type": "ImplicitTeamDisplayName",
           "name": "displayName"
+        },
+        {
+          "type": [
+            null,
+            "TLFID"
+          ],
+          "name": "tlfID"
         }
       ]
     }

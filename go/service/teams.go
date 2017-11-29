@@ -332,7 +332,7 @@ func (h *TeamsHandler) GetTeamRootID(ctx context.Context, id keybase1.TeamID) (k
 func (h *TeamsHandler) LookupImplicitTeam(ctx context.Context, arg keybase1.LookupImplicitTeamArg) (res keybase1.LookupImplicitTeamRes, err error) {
 	ctx = libkb.WithLogTag(ctx, "TM")
 	defer h.G().CTraceTimed(ctx, fmt.Sprintf("LookupImplicitTeam(%s)", arg.Name), func() error { return err })()
-	res.TeamID, res.Name, res.DisplayName, err = teams.LookupImplicitTeam(ctx, h.G().ExternalG(), arg.Name,
+	res.TeamID, res.Name, res.DisplayName, res.TlfID, err = teams.LookupImplicitTeam(ctx, h.G().ExternalG(), arg.Name,
 		arg.Public)
 	return res, err
 }
@@ -344,7 +344,7 @@ func (h *TeamsHandler) LookupOrCreateImplicitTeam(ctx context.Context, arg keyba
 	if err := h.assertLoggedIn(ctx); err != nil {
 		return res, err
 	}
-	res.TeamID, res.Name, res.DisplayName, err = teams.LookupOrCreateImplicitTeam(ctx, h.G().ExternalG(),
+	res.TeamID, res.Name, res.DisplayName, res.TlfID, err = teams.LookupOrCreateImplicitTeam(ctx, h.G().ExternalG(),
 		arg.Name, arg.Public)
 	return res, err
 }

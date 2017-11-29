@@ -896,6 +896,10 @@ export const kbfsCommonFSStatusCode = {
   error: 2,
 }
 
+export const kbfsCreateTLFRpcChannelMap = (configKeys: Array<string>, request: KbfsCreateTLFRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.kbfs.createTLF', request)
+
+export const kbfsCreateTLFRpcPromise = (request: KbfsCreateTLFRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.kbfs.createTLF', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
+
 export const kbfsFSEditListRpcChannelMap = (configKeys: Array<string>, request: KbfsFSEditListRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.kbfs.FSEditList', request)
 
 export const kbfsFSEditListRpcPromise = (request: KbfsFSEditListRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.kbfs.FSEditList', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
@@ -2430,6 +2434,8 @@ export type KBFSGitGcRpcParam = {|folder: Folder,name: GitRepoName,options: GcOp
 
 export type KID = String
 
+export type KbfsCreateTLFRpcParam = {|teamID: TeamID,tlfID: TLFID,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+
 export type KbfsFSEditListRpcParam = {|edits?: ?Array<FSNotification>,requestID: Int,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
 export type KbfsFSEventRpcParam = {|event: FSNotification,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
@@ -2539,7 +2545,7 @@ export type LoginUnlockWithPassphraseRpcParam = {|passphrase: String,incomingCal
 
 export type LogsendPrepareLogsendRpcParam = ?{|incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
-export type LookupImplicitTeamRes = {|teamID: TeamID,name: TeamName,displayName: ImplicitTeamDisplayName,|}
+export type LookupImplicitTeamRes = {|teamID: TeamID,name: TeamName,displayName: ImplicitTeamDisplayName,tlfID?: ?TLFID,|}
 
 export type MDBlock = {|version: Int,timestamp: Time,block: Bytes,|}
 
@@ -3485,7 +3491,7 @@ export type TeamSettings = {|open: Boolean,joinAs: TeamRole,|}
 
 export type TeamShowcase = {|isShowcased: Boolean,description?: ?String,setByUID?: ?UID,anyMemberShowcase: Boolean,|}
 
-export type TeamSigChainState = {|reader: UserVersion,id: TeamID,implicit: Boolean,public: Boolean,rootAncestor: TeamName,nameDepth: Int,nameLog?: ?Array<TeamNameLogPoint>,lastSeqno: Seqno,lastLinkID: LinkID,parentID?: ?TeamID,userLog: {[key: string]: ?Array<UserLogPoint>},subteamLog: {[key: string]: ?Array<SubteamLogPoint>},perTeamKeys: {[key: string]: PerTeamKey},linkIDs: {[key: string]: LinkID},stubbedLinks: {[key: string]: Boolean},activeInvites: {[key: string]: TeamInvite},open: Boolean,openTeamJoinAs: TeamRole,|}
+export type TeamSigChainState = {|reader: UserVersion,id: TeamID,implicit: Boolean,public: Boolean,rootAncestor: TeamName,nameDepth: Int,nameLog?: ?Array<TeamNameLogPoint>,lastSeqno: Seqno,lastLinkID: LinkID,parentID?: ?TeamID,userLog: {[key: string]: ?Array<UserLogPoint>},subteamLog: {[key: string]: ?Array<SubteamLogPoint>},perTeamKeys: {[key: string]: PerTeamKey},linkIDs: {[key: string]: LinkID},stubbedLinks: {[key: string]: Boolean},activeInvites: {[key: string]: TeamInvite},open: Boolean,openTeamJoinAs: TeamRole,tlfID?: ?TLFID,|}
 
 export type TeamTreeEntry = {|name: TeamName,admin: Boolean,|}
 
