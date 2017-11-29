@@ -131,6 +131,7 @@ type LocalDb interface {
 type KVStorer interface {
 	GetInto(obj interface{}, id DbKey) (found bool, err error)
 	PutObj(id DbKey, aliases []DbKey, obj interface{}) (err error)
+	Delete(id DbKey) error
 }
 
 type ConfigReader interface {
@@ -598,6 +599,8 @@ type TeamLoader interface {
 	Load(context.Context, keybase1.LoadTeamArg) (*keybase1.TeamData, error)
 	// Delete the cache entry. Does not error if there is no cache entry.
 	Delete(ctx context.Context, teamID keybase1.TeamID) error
+	// Untrusted hint of what a team's latest seqno is
+	HintLatestSeqno(ctx context.Context, id keybase1.TeamID, seqno keybase1.Seqno) error
 	OnLogout()
 	// Clear the in-memory cache. Does not affect the disk cache.
 	ClearMem()
@@ -653,6 +656,10 @@ type UIDMapper interface {
 	// SetTestingNoCachingMode puts the UID mapper into a mode where it never serves cached results, *strictly
 	// for use in tests*
 	SetTestingNoCachingMode(enabled bool)
+
+	// ClearUID is called to clear the given UID out of the cache, if the given eldest
+	// seqno doesn't match what's currently cached.
+	ClearUIDAtEldestSeqno(context.Context, UIDMapperContext, keybase1.UID, keybase1.Seqno) error
 }
 
 type ChatHelper interface {

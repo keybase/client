@@ -201,10 +201,10 @@
 			"revisionTime": "2017-11-03T20:00:56Z"
 		},
 		{
-			"checksumSHA1": "JGdpoPc7FZa84QCj39k0RQ0fqJ8=",
+			"checksumSHA1": "oXqmd1jisrEbLi8ddHjWSbC0Q4Y=",
 			"path": "github.com/keybase/client/go/libkb",
-			"revision": "a187a18a7b93d0c3a2063c5e72475406008935ec",
-			"revisionTime": "2017-11-11T00:45:42Z"
+			"revision": "f35826eefd55d682452d5ffaf8d358dbca9244bd",
+			"revisionTime": "2017-11-29T22:38:30Z"
 		},
 		{
 			"checksumSHA1": "7hmQDQK0qYzI18c7+7n7eWl9JPQ=",
