@@ -171,31 +171,38 @@ func (s StateUpdateMessage) Dismissal() gregor.Dismissal {
 	return s.Dismissal_
 }
 
-func (i InBandMessage) Merge(i2 gregor.InBandMessage) error {
+func (i InBandMessage) Merge(i2 gregor.InBandMessage) (res gregor.InBandMessage, err error) {
 	t2, ok := i2.(InBandMessage)
 	if !ok {
-		return fmt.Errorf("bad merge; wrong type: %T", i2)
+		return res, fmt.Errorf("bad merge; wrong type: %T", i2)
 	}
 	if i.StateSync_ != nil || t2.StateSync_ != nil {
-		return errors.New("Cannot merge sync messages")
+		return res, errors.New("Cannot merge sync messages")
 	}
-	return i.StateUpdate_.Merge(t2.StateUpdate_)
+	st, err := i.StateUpdate_.Merge(t2.StateUpdate_)
+	if err != nil {
+		return res, err
+	}
+	return InBandMessage{StateUpdate_: &st}, nil
 }
 
-func (s StateUpdateMessage) Merge(s2 *StateUpdateMessage) error {
+func (s StateUpdateMessage) Merge(s2 *StateUpdateMessage) (res StateUpdateMessage, err error) {
 	if s.Creation_ != nil && s2.Creation_ != nil {
-		return errors.New("clash of creations")
+		return res, errors.New("cannot merge two creation messages")
 	}
-	if s.Creation_ == nil {
-		s.Creation_ = s2.Creation_
+	res.Md_ = s.Md_
+	res.Creation_ = s.Creation_
+	if res.Creation_ == nil {
+		res.Creation_ = s2.Creation_
 	}
-	if s.Dismissal_ == nil {
-		s.Dismissal_ = s2.Dismissal_
-	} else if s.Dismissal_ != nil {
-		s.Dismissal_.MsgIDs_ = append(s.Dismissal_.MsgIDs_, s2.Dismissal_.MsgIDs_...)
-		s.Dismissal_.Ranges_ = append(s.Dismissal_.Ranges_, s2.Dismissal_.Ranges_...)
+	res.Dismissal_ = s.Dismissal_
+	if res.Dismissal_ == nil {
+		res.Dismissal_ = s2.Dismissal_
+	} else if res.Dismissal_ != nil && s2.Dismissal_ != nil {
+		res.Dismissal_.MsgIDs_ = append(res.Dismissal_.MsgIDs_, s2.Dismissal_.MsgIDs_...)
+		res.Dismissal_.Ranges_ = append(res.Dismissal_.Ranges_, s2.Dismissal_.Ranges_...)
 	}
-	return nil
+	return res, nil
 }
 
 func (i InBandMessage) Metadata() gregor.Metadata {

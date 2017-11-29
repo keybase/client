@@ -476,16 +476,18 @@ class Team extends React.PureComponent<Props> {
           {' '}
           {me && me.type && Constants.typeToLabel[me.type]}
         </Text>
-        <Text
-          style={{
-            paddingTop: globalMargins.tiny,
-            color: description ? globalColors.black : globalColors.black_20,
-          }}
-          onClick={onEditDescription}
-          type={'BodySecondaryLink'}
-        >
-          {description || 'Write a brief description'}
-        </Text>
+        {!loading &&
+          (admin || description) &&
+          <Text
+            style={{
+              paddingTop: globalMargins.tiny,
+              color: description ? globalColors.black : globalColors.black_20,
+            }}
+            onClick={admin ? onEditDescription : null}
+            type={admin ? 'BodySecondaryLink' : 'Body'}
+          >
+            {description || (admin && 'Write a brief description')}
+          </Text>}
 
         {youCanAddPeople &&
           <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', marginTop: globalMargins.small}}>

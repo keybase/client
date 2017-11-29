@@ -54,6 +54,7 @@ function textMessageMock(
   return {
     type: 'Text',
     editedCount: 0,
+    ordinal: 0,
     ...messageMock(messageState, author, you, extraProps),
   }
 }
@@ -435,7 +436,13 @@ const mockStore = {
         return acc
       }, {})
     ),
-    conversationMessages: I.Map({[convID]: I.OrderedSet(msgs.map(m => m.key))}),
+    conversationMessages: I.Map({
+      [convID]: ChatConstants.makeConversationMessages({
+        low: -1,
+        high: 0,
+        messages: I.List(msgs.map(m => m.key)),
+      }),
+    }),
   }),
 }
 

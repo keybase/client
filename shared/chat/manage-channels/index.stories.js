@@ -104,7 +104,7 @@ const load = () => {
           topic={''}
           onCancel={action('onCancel')}
           onSave={action('onSave')}
-          onDelete={action('onDelete')}
+          onConfirmedDelete={action('onConfirmedDelete')}
           showDelete={true}
           deleteRenameDisabled={false}
           waitingForSave={false}
@@ -120,7 +120,7 @@ const load = () => {
           topic={''}
           onCancel={action('onCancel')}
           onSave={action('onSave')}
-          onDelete={action('onDelete')}
+          onConfirmedDelete={action('onConfirmedDelete')}
           showDelete={true}
           deleteRenameDisabled={true}
           waitingForSave={false}
