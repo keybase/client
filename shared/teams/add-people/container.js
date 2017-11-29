@@ -2,7 +2,7 @@
 import * as Creators from '../../actions/teams/creators'
 import * as SearchGen from '../../actions/search-gen'
 import * as SearchConstants from '../../constants/search'
-import {getRole} from '../../constants/teams'
+import {getRole, isOwner} from '../../constants/teams'
 import AddPeople from '.'
 import {HeaderHoc} from '../../common-adapters'
 import {navigateAppend} from '../../actions/route-tree'
@@ -80,7 +80,7 @@ export default compose(
         setSendNotification,
         _yourRole,
       }) => () => {
-        onOpenRolePicker(role, sendNotification, _yourRole === 'owner', (role, sendNotification) => {
+        onOpenRolePicker(role, sendNotification, isOwner(_yourRole), (role, sendNotification) => {
           onRoleChange(role)
           setSendNotification(sendNotification)
         })

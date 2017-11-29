@@ -142,7 +142,7 @@ const isExplicitAdmin = (memberInfo: I.Set<Types.MemberInfo>, user: string): boo
   if (!info) {
     return false
   }
-  return info.type === 'owner' || info.type === 'admin'
+  return Constants.isOwner(info.type || '') || Constants.isAdmin(info.type || '')
 }
 
 const getOrderedMemberArray = (
