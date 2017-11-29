@@ -67,22 +67,26 @@ func (h *TeamsHandler) TeamCreateWithSettings(ctx context.Context, arg keybase1.
 	if err != nil {
 		return res, err
 	}
+	if teamName.Depth() == 0 {
+		return res, fmt.Errorf("empty team name")
+	}
 	if !teamName.IsRootTeam() {
 		h.G().Log.CDebugf(ctx, "TeamCreate: creating a new subteam: %s", arg.Name)
-		if teamName.Depth() == 0 {
-			return res, fmt.Errorf("empty team name")
-		}
 		parentName, err := teamName.Parent()
 		if err != nil {
 			return res, err
 		}
-		if _, err = teams.CreateSubteam(ctx, h.G().ExternalG(), string(teamName.LastPart()), parentName); err != nil {
+		teamID, err := teams.CreateSubteam(ctx, h.G().ExternalG(), string(teamName.LastPart()), parentName)
+		if err != nil {
 			return res, err
 		}
+		res.TeamID = *teamID
 	} else {
-		if err := teams.CreateRootTeam(ctx, h.G().ExternalG(), teamName.String(), arg.Settings); err != nil {
+		teamID, err := teams.CreateRootTeam(ctx, h.G().ExternalG(), teamName.String(), arg.Settings)
+		if err != nil {
 			return res, err
 		}
+		res.TeamID = *teamID
 		res.CreatorAdded = true
 	}
 

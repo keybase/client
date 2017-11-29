@@ -644,10 +644,16 @@ const _setPublicity = function({payload: {teamname, settings}}: Types.SetPublici
 function* _setupTeamHandlers(): Saga.SagaGenerator<any, any> {
   yield Saga.put((dispatch: Dispatch) => {
     engine().setIncomingHandler(
-      'keybase.1.NotifyTeam.teamChanged',
-      (args: RPCTypes.NotifyTeamTeamChangedRpcParam) => {
+      'keybase.1.NotifyTeam.teamChangedByName',
+      (args: RPCTypes.NotifyTeamTeamChangedByNameRpcParam) => {
         const actions = getLoadCalls(args.teamName)
         actions.forEach(dispatch)
+      }
+    )
+    engine().setIncomingHandler(
+      'keybase.1.NotifyTeam.teamChangedByID',
+      (args: RPCTypes.NotifyTeamTeamChangedByIDRpcParam) => {
+        // ignore
       }
     )
     engine().setIncomingHandler('keybase.1.NotifyTeam.teamDeleted', () => {

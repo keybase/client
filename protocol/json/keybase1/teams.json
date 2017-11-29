@@ -420,6 +420,10 @@
           "name": "readerKeyMasks"
         },
         {
+          "type": "Seqno",
+          "name": "latestSeqnoHint"
+        },
+        {
           "type": "Time",
           "name": "cachedAt"
         }
@@ -1317,6 +1321,10 @@
       "type": "record",
       "name": "TeamCreateResult",
       "fields": [
+        {
+          "type": "TeamID",
+          "name": "teamID"
+        },
         {
           "type": "boolean",
           "name": "chatSent"
