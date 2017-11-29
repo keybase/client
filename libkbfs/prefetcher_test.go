@@ -117,6 +117,7 @@ func notifySyncCh(t *testing.T, ch chan<- struct{}) {
 	t.Helper()
 	select {
 	case ch <- struct{}{}:
+		t.Log("Notified sync channel.")
 	case <-time.After(time.Second):
 		t.Fatal("Error notifying sync channel. Stack:\n" + getStack())
 	}
@@ -440,6 +441,9 @@ func TestPrefetcherEmptyDirectDirBlock(t *testing.T) {
 	t.Log("Test empty direct dir block prefetching.")
 	q, bg, config := initPrefetcherTest(t)
 	defer shutdownPrefetcherTest(q)
+	prefetchSyncCh := make(chan struct{})
+	q.TogglePrefetcher(true, prefetchSyncCh)
+	notifySyncCh(t, prefetchSyncCh)
 
 	t.Log("Initialize an empty direct dir block.")
 	rootPtr := makeRandomBlockPointer(t)
@@ -457,6 +461,7 @@ func TestPrefetcherEmptyDirectDirBlock(t *testing.T) {
 	require.Equal(t, rootDir, block)
 
 	t.Log("Wait for prefetching to complete.")
+	notifySyncCh(t, prefetchSyncCh)
 	waitForPrefetchOrBust(t, q.Prefetcher().Shutdown())
 
 	t.Log("Ensure that the directory block is in the cache.")
@@ -1125,7 +1130,6 @@ func TestPrefetcherBasicUnsyncedPrefetch(t *testing.T) {
 }
 
 func TestPrefetcherBasicUnsyncedBackwardPrefetch(t *testing.T) {
-	t.Skip("Not working yet, sometimes fails to shutdown cleanly.")
 	t.Log("Test basic unsynced prefetching with only 2 blocks fetched " +
 		"in reverse.")
 	q, bg, config := initPrefetcherTest(t)

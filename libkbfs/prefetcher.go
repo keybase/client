@@ -440,21 +440,26 @@ func (p *blockPrefetcher) run(testSyncCh <-chan struct{}) {
 	isShuttingDown := false
 	var shuttingDownCh <-chan interface{}
 	for {
-		if isShuttingDown && p.inFlightFetches.Len() == 0 &&
-			p.prefetchRequestCh.Len() == 0 && p.prefetchCancelCh.Len() == 0 {
-			return
-		}
-		if testSyncCh != nil {
+		if isShuttingDown {
+			if p.inFlightFetches.Len() == 0 &&
+				p.prefetchRequestCh.Len() == 0 &&
+				p.prefetchCancelCh.Len() == 0 {
+				return
+			}
+		} else if testSyncCh != nil {
+			// Only sync if we aren't shutting down.
 			<-testSyncCh
 		}
 		select {
 		case chInterface := <-shuttingDownCh:
+			p.log.Debug("shutting down")
 			ch := chInterface.(<-chan error)
 			<-ch
 		case bid := <-p.prefetchCancelCh.Out():
 			blockID := bid.(kbfsblock.ID)
 			pre, ok := p.prefetches[blockID]
 			if !ok {
+				p.log.Debug("nothing to cancel for block %s", blockID)
 				continue
 			}
 			p.log.Debug("canceling prefetch for block %s", blockID)
@@ -553,6 +558,7 @@ func (p *blockPrefetcher) run(testSyncCh <-chan struct{}) {
 				// If the prefetch is to be tracked, then the 0
 				// `subtreeBlockCount` will be incremented by `numBlocks`
 				// below, once we've ensured that `numBlocks` is not 0.
+				// TODO (KBFS-2588): potential bug here?
 				pre = p.newPrefetch(0, true, req)
 				p.prefetches[req.ptr.ID] = pre
 				ctx = pre.ctx
@@ -624,6 +630,7 @@ func (p *blockPrefetcher) run(testSyncCh <-chan struct{}) {
 				pp.subtreeBlockCount += numBlocks
 			}, req.ptr.ID, pre)
 		case <-p.almostDoneCh:
+			p.log.CDebugf(p.ctx, "starting shutdown")
 			isShuttingDown = true
 			shuttingDownCh = p.inFlightFetches.Out()
 		}
