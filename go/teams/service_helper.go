@@ -487,17 +487,18 @@ func EditMember(ctx context.Context, g *libkb.GlobalContext, teamname, username 
 }
 
 func editMemberInvite(ctx context.Context, g *libkb.GlobalContext, teamname, username string, role keybase1.TeamRole, uv keybase1.UserVersion) error {
-	/*
-		t, err := GetForTeamManagementByStringName(ctx, g, teamname, true)
-		if err != nil {
-			return err
-		}
+	t, err := GetForTeamManagementByStringName(ctx, g, teamname, true)
+	if err != nil {
+		return err
+	}
 
-			if err := removeMemberInvite(ctx, g, t, username, uv); err != nil {
-				g.Log.CDebugf(ctx, "editMemberInvite error in removeMemberInvite: %s", err)
-				return err
-			}
-	*/
+	// Note that there could be a problem if removeMemberInvite works but AddMember doesn't
+	// as the original invite will be lost.  But the user will get an error and can try
+	// again.
+	if err := removeMemberInvite(ctx, g, t, username, uv); err != nil {
+		g.Log.CDebugf(ctx, "editMemberInvite error in removeMemberInvite: %s", err)
+		return err
+	}
 	// use AddMember in case it's possible to add them directly now
 	if _, err := AddMember(ctx, g, teamname, username, role); err != nil {
 		g.Log.CDebugf(ctx, "editMemberInvite error in AddMember: %s", err)
