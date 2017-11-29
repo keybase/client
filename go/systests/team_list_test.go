@@ -134,12 +134,13 @@ func TestTeamDuplicateUIDList(t *testing.T) {
 	ctx := newSMUContext(t)
 	defer ctx.cleanup()
 
-	ann := makeUserStandalone(t, "ann", standaloneUserArgs{
-		disableGregor:            true,
-		suppressTeamChatAnnounce: true,
-	})
-	tt.users = append(tt.users, ann)
+	ann := tt.addUser("ann")
 	t.Logf("Signed up ann (%s)", ann.username)
+
+	// We have to disable caching in UIDMapper because after bob
+	// resets and provisions, we have no way to be aware of that, and
+	// we might see cached bob in subsequent teamList calls.
+	ann.tc.G.UIDMapper.SetTestingNoCachingMode(true)
 
 	bob := tt.addPuklessUser("bob")
 	t.Logf("Signed up PUK-less user bob (%s)", bob.username)
