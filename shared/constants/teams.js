@@ -2,7 +2,7 @@
 import * as I from 'immutable'
 import * as ChatTypes from './types/chat'
 import * as Types from './types/teams'
-import {userIsInTeam, usernameSelector} from './selectors'
+import {userIsInTeam} from './selectors'
 import * as RPCTypes from './types/flow-types'
 import invert from 'lodash/invert'
 
@@ -88,24 +88,6 @@ const getParticipants = (state: TypedState, conversationIDKey: ChatTypes.Convers
 const getRole = (state: TypedState, teamname: Types.Teamname) =>
   state.entities.getIn(['teams', 'teamNameToRole', teamname], 'none')
 
-const getMembersFromConvID = (state: TypedState, conversationIDKey: ChatTypes.ConversationIDKey) => {
-  const teamname = getTeamNameFromConvID(state, conversationIDKey)
-  if (teamname) {
-    return state.entities.teams.teamNameToMembers.get(teamname, I.Set())
-  }
-  return I.Set()
-}
-
-const getYourRoleFromConvID = (state: TypedState, conversationIDKey: ChatTypes.ConversationIDKey) => {
-  const members = getMembersFromConvID(state, conversationIDKey)
-  const you = usernameSelector(state)
-  const youAsMember = members.find(m => m.username === you)
-  if (youAsMember) {
-    return youAsMember.type
-  }
-  return null
-}
-
 const isAdmin = (type: ?string) => type === 'admin'
 const isOwner = (type: ?string) => type === 'owner'
 
@@ -121,7 +103,6 @@ export {
   getTeamNameFromConvID,
   getChannelNameFromConvID,
   getTopicFromConvID,
-  getYourRoleFromConvID,
   isAdmin,
   isOwner,
 }
