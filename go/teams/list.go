@@ -274,7 +274,7 @@ func ListTeams(ctx context.Context, g *libkb.GlobalContext, arg keybase1.TeamLis
 	// and only count non-reset members as well as non-reset pukless
 	// members.
 	/*
-		namePkgs, err := uidmap.MapUIDsReturnMap(g.UIDMapper, ctx, g, uids, 0, 10*time.Second, true)
+		namePkgs, err := uidmap.MapUIDsReturnMap(ctx, g.UIDMapper, g, uids, 0, 10*time.Second, true)
 		if err != nil {
 			g.Log.CWarningf(ctx, "| Unable to verify team members - member counts were not loaded: %v", err)
 			return res, nil
@@ -379,7 +379,7 @@ func ListAll(ctx context.Context, g *libkb.GlobalContext, arg keybase1.TeamListA
 		uids = append(uids, invite.Inviter.Uid)
 	}
 
-	namePkgs, err := uidmap.MapUIDsReturnMap(g.UIDMapper, ctx, g, uids, 0, 0, true)
+	namePkgs, err := uidmap.MapUIDsReturnMap(ctx, g.UIDMapper, g, uids, 0, 0, true)
 	if err != nil {
 		g.Log.CWarningf(ctx, "| Unable to load team members, uidmap returned: %v", err)
 		return res, nil

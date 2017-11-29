@@ -397,14 +397,14 @@ func (u *UIDMap) ClearUIDAtEldestSeqno(ctx context.Context, g libkb.UIDMapperCon
 	return nil
 }
 
-func MapUIDsReturnMap(u libkb.UIDMapper, ctx context.Context, g libkb.UIDMapperContext, uids []keybase1.UID, fullNameFreshness time.Duration, networkTimeBudget time.Duration, forceNetworkForFullNames bool) (res map[keybase1.UID]libkb.UsernamePackage, err error) {
+func MapUIDsReturnMap(ctx context.Context, u libkb.UIDMapper, g libkb.UIDMapperContext, uids []keybase1.UID, fullNameFreshness time.Duration, networkTimeBudget time.Duration, forceNetworkForFullNames bool) (res map[keybase1.UID]libkb.UsernamePackage, err error) {
 	var uidList []keybase1.UID
-	uidSet := map[keybase1.UID]int{}
+	uidSet := map[keybase1.UID]bool{}
 
 	for _, uid := range uids {
 		_, found := uidSet[uid]
 		if !found {
-			uidSet[uid] = len(uidList)
+			uidSet[uid] = true
 			uidList = append(uidList, uid)
 		}
 	}
