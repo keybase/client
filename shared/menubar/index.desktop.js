@@ -7,6 +7,7 @@ import {folderTab, peopleTab, chatTab, devicesTab, type Tab} from '../constants/
 import {globalStyles, globalColors} from '../styles'
 import {isDarwin} from '../constants/platform'
 import {type KBFSStatus} from '../constants/types/favorite'
+import {remote} from 'electron'
 
 export type Props = {
   folderProps: ?FolderProps,
@@ -34,6 +35,15 @@ class MenubarRender extends Component<Props, State> {
   state: State = {
     selected: 'private',
     showingMenu: false,
+  }
+
+  _onShow = () => {
+    this.props.refresh()
+  }
+
+  constructor(props) {
+    super(props)
+    remote.getCurrentWindow().on('show', this._onShow)
   }
 
   render() {

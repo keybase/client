@@ -2,7 +2,7 @@
 import * as AppGen from '../actions/app-gen'
 import * as FavoriteGen from '../actions/favorite-gen'
 import * as KBFSGen from '../actions/kbfs-gen'
-import Menubar from './index.render.desktop'
+import Menubar from './index.desktop'
 import openUrl from '../util/open-url'
 import {connect, compose, type Dispatch} from '../util/container'
 import {createOpenPopup as createOpenRekeyPopup} from '../actions/unlock-folders-gen'

@@ -17,9 +17,11 @@ import {initAvatarLookup, initAvatarLoad} from '../../common-adapters'
 import {remote, BrowserWindow} from 'electron'
 import {setupContextMenu} from '../app/menu-helper'
 import {setupSource} from '../../util/forward-logs'
+import {makeEngine} from '../../engine'
 
 setupSource()
 disableDragDrop()
+makeEngine() // TODO remove when the avatar dep on engine is fixed
 
 function setupAvatar() {
   initAvatarLookup(getUserImageMap, getTeamImageMap)

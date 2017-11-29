@@ -1,5 +1,5 @@
 // @flow
-import Menubar from './index.render.desktop'
+import Menubar from './index.desktop'
 import {type DumbComponentMap} from '../constants/types/more'
 import {map} from '../folders/dumb'
 import {globalStyles} from '../styles'
