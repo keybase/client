@@ -4,19 +4,17 @@ export type TokenType = 'apple' | 'appledev' | 'androidplay'
 // future it would be nice to make the Android push notification data structure
 // resemble iOS more closely.
 export type PushNotification = {
-  payload?: {
-    b?: number,
-    c?: string,
-    convID?: string,
-    m?: string,
-    p?: Array<string>,
-    t?: number,
-    d?: number,
-    x?: number,
-    type?: string,
-    userInteraction: boolean,
-    username?: string,
-  },
+  b?: number,
+  c?: string,
+  convID?: string,
+  m?: string,
+  p?: Array<string>,
+  t?: number,
+  d?: number,
+  x?: number,
+  type?: string,
+  userInteraction: boolean,
+  username?: string,
 }
 
 export type State = {
