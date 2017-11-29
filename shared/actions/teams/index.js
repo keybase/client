@@ -646,17 +646,30 @@ function* _setupTeamHandlers(): Saga.SagaGenerator<any, any> {
     engine().setIncomingHandler(
       'keybase.1.NotifyTeam.teamChanged',
       (args: RPCTypes.NotifyTeamTeamChangedRpcParam) => {
-        dispatch(Creators.getDetails(args.teamName))
-        dispatch(Creators.getTeams())
+        const actions = getLoadCalls(args.teamName)
+        actions.forEach(dispatch)
       }
     )
     engine().setIncomingHandler('keybase.1.NotifyTeam.teamDeleted', () => {
-      dispatch(Creators.getTeams())
+      const actions = getLoadCalls()
+      actions.forEach(dispatch)
     })
     engine().setIncomingHandler('keybase.1.NotifyTeam.teamExit', () => {
-      dispatch(Creators.getTeams())
+      const actions = getLoadCalls()
+      actions.forEach(dispatch)
     })
   })
+}
+
+function getLoadCalls(teamname?: string) {
+  const actions = []
+  if (_wasOnTeamsTab) {
+    actions.push(Creators.getTeams())
+    if (teamname) {
+      actions.push(Creators.getDetails(teamname))
+    }
+  }
+  return actions
 }
 
 function _updateTopic({payload: {conversationIDKey, newTopic}}: Types.UpdateTopic, state: TypedState) {
@@ -721,35 +734,40 @@ function* _deleteChannel({payload: {conversationIDKey}}): Saga.SagaGenerator<any
 }
 
 function* _badgeAppForTeams(action: Types.BadgeAppForTeams) {
-  const username = yield Saga.select((state: TypedState) => state.config.username)
-  if (!username) {
+  const loggedIn = yield Saga.select((state: TypedState) => state.config.loggedIn)
+  if (!loggedIn) {
     // Don't make any calls we don't have permission to.
     return
   }
   const newTeams = I.Set(action.payload.newTeamNames || [])
   const newTeamRequests = I.List(action.payload.newTeamAccessRequests || [])
-  // Call getTeams if new teams come in.
-  // Covers the case when we're staring at the teams page so
-  // we don't miss a notification we clear when we tab away
-  const existingNewTeams = yield Saga.select((state: TypedState) =>
-    state.entities.getIn(['teams', 'newTeams'], I.Set())
-  )
-  const existingNewTeamRequests = yield Saga.select((state: TypedState) =>
-    state.entities.getIn(['teams', 'newTeamRequests'], I.List())
-  )
-  if (!newTeams.equals(existingNewTeams) || !newTeams.equals(existingNewTeamRequests)) {
-    yield Saga.put(Creators.getTeams())
+
+  if (_wasOnTeamsTab && (newTeams.size > 0 || newTeamRequests.size > 0)) {
+    // Call getTeams if new teams come in.
+    // Covers the case when we're staring at the teams page so
+    // we don't miss a notification we clear when we tab away
+    const existingNewTeams = yield Saga.select((state: TypedState) =>
+      state.entities.getIn(['teams', 'newTeams'], I.Set())
+    )
+    const existingNewTeamRequests = yield Saga.select((state: TypedState) =>
+      state.entities.getIn(['teams', 'newTeamRequests'], I.List())
+    )
+    if (!newTeams.equals(existingNewTeams) && newTeams.size > 0) {
+      // We have been added to a new team & we need to refresh the list
+      yield Saga.put(Creators.getTeams())
+    }
+
+    // getDetails for teams that have new access requests
+    // Covers case where we have a badge appear on the requests
+    // tab with no rows showing up
+    const newTeamRequestsSet = I.Set(newTeamRequests)
+    const existingNewTeamRequestsSet = I.Set(existingNewTeamRequests)
+    const toLoad = newTeamRequestsSet.subtract(existingNewTeamRequestsSet)
+    const loadingCalls = toLoad.map(teamname => Saga.put(Creators.getDetails(teamname)))
+    yield Saga.all(loadingCalls.toArray())
   }
 
-  // getDetails for teams that have new access requests
-  // Covers case where we have a badge appear on the requests
-  // tab with no rows showing up
-  const newTeamRequestsSet = I.Set(newTeamRequests)
-  const existingNewTeamRequestsSet = I.Set(existingNewTeamRequests)
-  const toLoad = newTeamRequestsSet.subtract(existingNewTeamRequestsSet)
-  const loadingCalls = toLoad.map(teamname => Saga.put(Creators.getDetails(teamname)))
-  yield Saga.all(loadingCalls.toArray())
-
+  // if the user wasn't on the teams tab, loads will be triggered by navigation around the app
   yield Saga.put(replaceEntity(['teams'], I.Map([['newTeams', newTeams]])))
   yield Saga.put(replaceEntity(['teams'], I.Map([['newTeamRequests', newTeamRequests]])))
 }
