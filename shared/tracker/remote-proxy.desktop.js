@@ -1,78 +1,77 @@
 // @flow
-import * as Creators from '../actions/tracker'
-import * as TrackerGen from '../actions/tracker-gen'
-import React, {Component} from 'react'
-import RemoteComponent from '../desktop/renderer/remote-component.desktop'
-import {connect, type TypedState} from '../util/container'
-import {type TrackerState, type NonUserState} from '../constants/types/tracker'
-
-type Props = {
-  onClose: (username: string) => void,
-  started: boolean,
-  errorRetry: (username: string) => void,
-  startTimer: () => void,
-  stopTimer: () => void,
-  trackers: {[key: string]: TrackerState},
-  nonUserTrackers: {[key: string]: NonUserState},
-}
+// A mirror of the remote tracker windows.
+// RemoteTrackers renders up to MAX_TRACKERS
+// RemoteTrackere is a single tracker popup
+// import * as I from 'immutable'
+import * as React from 'react'
+import * as Constants from '../constants/tracker'
+import SyncProps from '../desktop/remote/sync-props.desktop'
+import SyncBrowserWindow from '../desktop/remote/sync-browser-window.desktop'
+import {connect, type TypedState, compose} from '../util/container'
 
 const MAX_TRACKERS = 5
+const PrintDebug = props => <div style={{wordWrap: 'break-word'}}>{JSON.stringify(props)}</div>
 
-class RemoteTracker extends Component<Props> {
-  shouldComponentUpdate(nextProps, nextState) {
-    return nextProps.trackers !== this.props.trackers
+const windowOpts = {height: 470, width: 320}
+
+const trackerMapStateToProps = (state: TypedState, {name}) => {
+  return {
+    _trackerState: state.tracker.userTrackers[name] || state.tracker.nonUserTrackers[name],
+    loggedIn: state.config.loggedIn,
+    myUsername: state.config.username,
   }
+}
 
+const trackerMergeProps = (stateProps, dispatchProps, {name}) => {
+  const t = stateProps._trackerState
+  return {
+    ...t,
+    actionBarReady: !t.serverActive && !t.error,
+    component: 'tracker',
+    errorMessage: t.error,
+    loading: Constants.isLoading(t),
+    loggedIn: stateProps.loggedIn,
+    myUsername: stateProps.myUsername,
+    nonUser: t && t.type === 'nonUser',
+    positionBottomRight: true,
+    selectorParams: name,
+    sessionID: name,
+    title: `Tracker - ${name}`,
+    windowOpts,
+    windowTitle: '',
+  }
+}
+
+// Actions are handled by remote-container
+const RemoteTracker = compose(
+  connect(trackerMapStateToProps, () => ({}), trackerMergeProps),
+  SyncBrowserWindow,
+  SyncProps
+)(PrintDebug)
+
+type Props = {
+  names: Array<string>,
+}
+class RemoteTrackers extends React.PureComponent<Props> {
   render() {
-    const {trackers, nonUserTrackers} = this.props
-    const windowsOpts = {height: 470, width: 320}
-
-    const items = [
-      ...Object.keys(trackers).filter(t => !trackers[t].closed).map(t => ({
-        username: trackers[t].username,
-        hidden: trackers[t].hidden,
-      })),
-      ...Object.keys(nonUserTrackers).filter(n => !nonUserTrackers[n].closed).map(n => ({
-        username: nonUserTrackers[n].name,
-        hidden: nonUserTrackers[n].hidden,
-      })),
-    ].slice(0, MAX_TRACKERS)
-
-    return (
-      <div>
-        {items.map(item => (
-          <RemoteComponent
-            positionBottomRight={true}
-            windowsOpts={windowsOpts}
-            title={`tracker - ${item.username}`}
-            waitForState={true}
-            hidden={item.hidden}
-            onRemoteClose={() => this.props.onClose(item.username)}
-            component="tracker"
-            username={item.username}
-            startTimer={this.props.startTimer}
-            errorRetry={() => this.props.errorRetry(item.username)}
-            stopTimer={this.props.stopTimer}
-            selectorParams={item.username}
-            key={item.username}
-          />
-        ))}
-      </div>
-    )
+    return this.props.names.map(name => <RemoteTracker name={name} key={name} />)
   }
 }
 
 const mapStateToProps = (state: TypedState) => ({
-  started: state.tracker.serverStarted,
-  trackers: state.tracker.userTrackers,
-  nonUserTrackers: state.tracker.nonUserTrackers,
+  _nonUserTrackers: state.tracker.nonUserTrackers,
+  _trackers: state.tracker.userTrackers,
 })
 
-const mapDispatchToProps = (dispatch: any) => ({
-  startTimer: () => dispatch(Creators.startTimer()),
-  stopTimer: () => dispatch(TrackerGen.createStopTimer()),
-  errorRetry: (username: string) => dispatch(Creators.getProfile(username, true)),
-  onClose: (username: string) => dispatch(Creators.onClose(username)),
+const mergeProps = (stateProps, dispatchProps, ownProps) => ({
+  names: [
+    ...Object.keys(stateProps._trackers).filter(
+      t => !stateProps._trackers[t].closed && !stateProps._trackers[t].hidden
+    ),
+    ...Object.keys(stateProps._nonUserTrackers).filter(
+      n => !stateProps._nonUserTrackers[n].closed && !stateProps._nonUserTrackers[n].hidden
+    ),
+  ].slice(0, MAX_TRACKERS),
 })
 
-export default connect(mapStateToProps, mapDispatchToProps)(RemoteTracker)
+export default connect(mapStateToProps, () => ({}), mergeProps)(RemoteTrackers)

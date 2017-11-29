@@ -1,5 +1,5 @@
 // @flow
-import {getMainWindow} from '../desktop/remote/component-helper'
+import {getMainWindow} from '../desktop/remote/util'
 
 function showShareActionSheet(options: {
   url?: ?any,

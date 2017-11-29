@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
-import RemoteConnector from '../desktop/remote/connector.desktop'
-import RemoteWindow from '../desktop/remote/window.desktop'
+import SyncProps from '../desktop/remote/sync-props.desktop'
+import SyncBrowserWindow from '../desktop/remote/sync-browser-window.desktop'
 import {connect, type TypedState, compose} from '../util/container'
 
 const PrintDebug = props => <div style={{wordWrap: 'break-word'}}>{JSON.stringify(props)}</div>
@@ -33,10 +33,11 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   windowTitle: stateProps.windowTitle,
 })
 
+// Actions are handled by remote-container
 const UnlockFolder = compose(
   connect(unlockFolderMapPropsToState, () => ({}), mergeProps),
-  RemoteWindow,
-  RemoteConnector
+  SyncBrowserWindow,
+  SyncProps
 )(PrintDebug)
 
 type Props = {

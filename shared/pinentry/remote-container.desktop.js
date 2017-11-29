@@ -3,7 +3,7 @@ import {connect, compose, renderNothing, branch, type Dispatch} from '../util/co
 import * as PinentryGen from '../actions/pinentry-gen'
 import Pinentry from './index.desktop'
 
-// Props are handled by remote-pinentry.desktop.js
+// Props are handled by remote-proxy.desktop.js
 const mapDispatchToProps = (dispatch: Dispatch) => ({
   _onCancel: (sessionID: number) => dispatch(PinentryGen.createOnCancel({sessionID})),
   _onSubmit: (passphrase: string, sessionID: number) =>

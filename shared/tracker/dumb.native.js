@@ -1,10 +1,9 @@
 // @flow
-import Tracker from './render'
-import {trackerPropsToRenderProps} from './index'
+import Tracker from '.'
+import {trackerPropsToRenderProps, type TrackerProps} from './container'
 import * as Constants from '../constants/tracker'
-import type {TrackerProps} from '../tracker'
-import type {Proof} from '../constants/types/tracker'
-import type {DumbComponentMap} from '../constants/types/more'
+import {type Proof} from '../constants/types/tracker'
+import {type DumbComponentMap} from '../constants/types/more'
 
 function proofGithubMaker(name): Proof {
   return {
@@ -158,7 +157,8 @@ const propsBase = {
   onClickAvatar: console.log('on click avatar'),
   onClickFollowers: console.log('on click followers'),
   onClickFollowing: console.log('on click following'),
-  error: null,
+  errorMessage: null,
+  onRetry: null,
   myUsername: 'bob',
 }
 

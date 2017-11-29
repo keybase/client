@@ -5,10 +5,10 @@ import Action, {calcFooterHeight} from './action.render.desktop'
 import {UserProofs, UserBio} from '../common-adapters'
 import {globalStyles} from '../styles'
 import NonUser from './non-user'
-import {autoResize} from '../desktop/remote/component-helper'
+import {autoResize} from '../desktop/remote/util'
 import TrackerError from './error'
 
-import type {RenderProps} from './render'
+import type {RenderProps} from '.'
 
 export default class TrackerRender extends PureComponent<RenderProps> {
   componentDidMount() {
@@ -29,12 +29,12 @@ export default class TrackerRender extends PureComponent<RenderProps> {
       )
     }
 
-    if (this.props.error != null) {
+    if (this.props.errorMessage != null) {
       return (
         <div style={styles.container}>
           <TrackerError
-            errorMessage={this.props.error.errorMessage}
-            onRetry={this.props.error.onRetry}
+            errorMessage={this.props.errorMessage}
+            onRetry={this.props.onRetry}
             onClose={this.props.onClose}
           />
         </div>

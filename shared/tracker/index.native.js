@@ -5,7 +5,7 @@ import Header from './header.render'
 import Action from './action.render'
 import {globalColors, globalMargins} from '../styles'
 
-import type {RenderProps} from './render'
+import type {RenderProps} from '.'
 
 export default class TrackerRender extends Component<RenderProps> {
   props: RenderProps

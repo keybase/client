@@ -5,15 +5,14 @@
 import * as I from 'immutable'
 import * as React from 'react'
 import * as Types from '../constants/types/pinentry'
-import RemoteConnector from '../desktop/remote/connector.desktop'
-import RemoteWindow from '../desktop/remote/window.desktop'
+import SyncProps from '../desktop/remote/sync-props.desktop'
+import SyncBrowserWindow from '../desktop/remote/sync-browser-window.desktop'
 import {connect, type TypedState, compose} from '../util/container'
 
 const PrintDebug = props => <div style={{wordWrap: 'break-word'}}>{JSON.stringify(props)}</div>
 
 const windowOpts = {height: 210, width: 440}
 
-// Actions are handled by pinenetry/remote-container
 const pinentryMapStateToProps = (state: TypedState, {id}) => {
   const p = state.pinentry.sessionIDToPinentry.get(id)
 
@@ -34,7 +33,8 @@ const pinentryMapStateToProps = (state: TypedState, {id}) => {
   }
 }
 
-const RemotePinentry = compose(connect(pinentryMapStateToProps, () => ({})), RemoteWindow, RemoteConnector)(
+// Actions are handled by remote-container
+const RemotePinentry = compose(connect(pinentryMapStateToProps, () => ({})), SyncBrowserWindow, SyncProps)(
   PrintDebug
 )
 

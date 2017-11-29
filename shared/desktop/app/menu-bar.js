@@ -1,11 +1,9 @@
 // @flow
-// import hotPath from '../hot-path'
 import menubar from 'menubar'
 import {injectReactQueryParams} from '../../util/dev'
 import {screen as electronScreen, ipcMain, systemPreferences, app} from 'electron'
 import {isDarwin, isWindows, isLinux} from '../../constants/platform'
 import {resolveImage, resolveRootAsURL} from '../resolve-root'
-// import {showDevTools, skipSecondaryDevtools} from '../../local-debug.desktop'
 
 import type {BadgeType} from '../../constants/types/notifications'
 
@@ -69,24 +67,6 @@ export default function(menubarWindowIDCallback: (id: number) => void) {
     }
   })
 
-  // We keep the listeners so we can cleanup on hot-reload
-  const menubarListeners = []
-
-  ipcMain.on('unsubscribeMenubar', event => {
-    const index = menubarListeners.indexOf(event.sender)
-    if (index !== -1) {
-      menubarListeners.splice(index, 1)
-    }
-  })
-
-  ipcMain.on('subscribeMenubar', event => {
-    menubarListeners.push(event.sender)
-  })
-
-  ipcMain.on('closeMenubar', () => {
-    mb.hideWindow()
-  })
-
   mb.on('ready', () => {
     menubarWindowIDCallback(mb.window.id)
     // Hack: open widget when left/right/double clicked
@@ -128,11 +108,9 @@ export default function(menubarWindowIDCallback: (id: number) => void) {
         }
       }
 
-      menubarListeners.forEach(l => l.send('menubarShow'))
       isDarwin && updateIcon(!isDarkMode())
     })
     mb.on('hide', () => {
-      menubarListeners.forEach(l => l.send('menubarHide'))
       isDarwin && updateIcon(false)
     })
     mb.on('after-show', () => {

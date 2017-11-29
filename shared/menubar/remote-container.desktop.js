@@ -17,7 +17,7 @@ const closeWindow = () => {
   remote.getCurrentWindow().hide()
 }
 
-// Props are handled by remote-menubar.desktop.js
+// Props are handled by remote-proxy.desktop.js
 const mapDispatchToProps = (dispatch: Dispatch) => ({
   _showUser: (username: string) => {
     const link = urlHelper('user', {username})

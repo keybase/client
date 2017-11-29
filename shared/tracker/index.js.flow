@@ -3,7 +3,6 @@ import {Component} from 'react'
 
 import type {SimpleProofState, UserInfo, Proof} from '../constants/types/tracker'
 import type {Exact} from '../constants/types/more'
-import type {ErrorProps} from './error'
 
 export type RenderPropsUnshaped = {
   loading: boolean,
@@ -34,7 +33,8 @@ export type RenderPropsUnshaped = {
   onClickAvatar: () => void,
   onClickFollowers: () => void,
   onClickFollowing: () => void,
-  error: ?ErrorProps,
+  errorMessage: ?string,
+  onRetry: ?() => void,
 }
 
 export type RenderProps = Exact<RenderPropsUnshaped>

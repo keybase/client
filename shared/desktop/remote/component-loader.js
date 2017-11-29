@@ -8,7 +8,7 @@ import Root from '../renderer/container'
 import Menubar from '../../menubar/remote-container.desktop'
 import Pinentry from '../../pinentry/remote-container.desktop'
 import PurgeMessage from '../../pgp/remote-container.desktop'
-// import Tracker from '../../tracker'
+import Tracker from '../../tracker/remote-container.desktop'
 import UnlockFolders from '../../unlock-folders/remote-container.desktop'
 import {disable as disableDragDrop} from '../../util/drag-drop'
 import {getUserImageMap, loadUserImageMap, getTeamImageMap, loadTeamImageMap} from '../../util/pictures'
@@ -50,6 +50,8 @@ class RemoteComponentLoader extends Component<any> {
         return Menubar
       case 'pinentry':
         return Pinentry
+      case 'tracker':
+        return Tracker
       default:
         throw new TypeError('Invalid Remote Component passed through')
     }

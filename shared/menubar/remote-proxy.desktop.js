@@ -1,10 +1,8 @@
 // @flow
 // A mirror of the remote menubar windows.
-// import * as I from 'immutable'
 import * as React from 'react'
-// import * as Types from '../../constants/types/pinentry'
-import RemoteConnector from '../desktop/remote/connector.desktop'
-import {sendLoad} from '../desktop/remote/window.desktop'
+import SyncProps from '../desktop/remote/sync-props.desktop'
+import {sendLoad} from '../desktop/remote/sync-browser-window.desktop'
 import {connect, type TypedState, compose, renderNothing, branch} from '../util/container'
 import {remote} from 'electron'
 
@@ -68,9 +66,10 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   windowOpts,
 })
 
+// Actions are handled by remote-container
 export default compose(
   connect(mapStateToProps, () => ({}), mergeProps),
   branch(props => !props.externalRemoteWindow, renderNothing),
   RemoteMenubarWindow,
-  RemoteConnector
+  SyncProps
 )(PrintDebug)

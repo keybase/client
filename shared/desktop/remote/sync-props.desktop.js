@@ -13,8 +13,7 @@ type Props = {
   remoteWindow: ?BrowserWindow,
 }
 
-// export default RemoteComponent
-export default function RemoteConnector(ComposedComponent: any) {
+function SyncProps(ComposedComponent: any) {
   class RemoteConnected extends React.PureComponent<Props> {
     _sendProps = () => {
       if (this.props.remoteWindow) {
@@ -54,3 +53,5 @@ export default function RemoteConnector(ComposedComponent: any) {
 
   return RemoteConnected
 }
+
+export default SyncProps

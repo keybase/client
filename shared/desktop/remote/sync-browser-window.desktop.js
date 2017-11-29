@@ -60,7 +60,7 @@ const sendLoad = (webContents: any, selectorParams: string, component: string, t
   })
 }
 
-function RemoteWindow(ComposedComponent: any) {
+function BrowserWindowSync(ComposedComponent: any) {
   class RemoteWindowComponent extends React.PureComponent<Props, State> {
     _remoteWindow: ?BrowserWindow = null
     _remoteWindowId: ?string = null
@@ -157,5 +157,5 @@ function RemoteWindow(ComposedComponent: any) {
   return RemoteWindowComponent
 }
 
-export default RemoteWindow
+export default BrowserWindowSync
 export {devScripts, sendLoad}

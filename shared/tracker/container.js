@@ -2,12 +2,11 @@
 import * as Creators from '../actions/tracker'
 import * as ProfileGen from '../actions/profile-gen'
 import React, {Component} from 'react'
-import Render, {type RenderPropsUnshaped} from './render'
+import Render, {type RenderPropsUnshaped} from '.'
 import {connect, type TypedState} from '../util/container'
 import {isLoading} from '../constants/tracker'
 import {type Proof, type SimpleProofState, type UserInfo} from '../constants/types/tracker'
 import {createStartConversation} from '../actions/chat-gen'
-import {type ErrorProps} from './error'
 
 export type TrackerProps = {
   actionBarReady: boolean,
@@ -40,7 +39,8 @@ export type TrackerProps = {
   onClickAvatar: () => void,
   onClickFollowers: () => void,
   onClickFollowing: () => void,
-  error: ?ErrorProps,
+  errorMessage: ?string,
+  onRetry: ?() => void,
 }
 
 export function trackerPropsToRenderProps(tprops: TrackerProps): RenderPropsUnshaped {
@@ -112,12 +112,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     ...ownProps,
     ...stateProps,
     ...dispatchProps,
-    error: stateProps.errorMessage
-      ? {
-          errorMessage: stateProps.errorMessage,
-          onRetry: dispatchProps.errorRetry,
-        }
-      : null,
+    onRetry: stateProps.errorMessage ? dispatchProps.errorRetry : null,
     onChat: () => dispatchProps.onChat(username, myUsername),
     onClickAvatar: () => dispatchProps.onClickAvatar(username),
     onClickFollowers: () => dispatchProps.onClickFollowers(username),
