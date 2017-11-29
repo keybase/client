@@ -985,19 +985,27 @@ func (k *KeybaseServiceBase) FSSyncStatusRequest(ctx context.Context,
 	return k.kbfsClient.FSSyncStatus(ctx, resp)
 }
 
-// TeamChanged implements keybase1.NotifyTeamInterface for
+// TeamChangedByID implements keybase1.NotifyTeamInterface for
 // KeybaseServiceBase.
-func (k *KeybaseServiceBase) TeamChanged(
-	ctx context.Context, arg keybase1.TeamChangedArg) error {
-	k.log.CDebugf(ctx, "Flushing cache for team %s/%s "+
+func (k *KeybaseServiceBase) TeamChangedByID(ctx context.Context,
+	arg keybase1.TeamChangedByIDArg) error {
+	k.log.CDebugf(ctx, "Flushing cache for team %s "+
 		"(membershipChange=%t, keyRotated=%t, renamed=%t)",
-		arg.TeamName, arg.TeamID, arg.Changes.MembershipChanged,
+		arg.TeamID, arg.Changes.MembershipChanged,
 		arg.Changes.KeyRotated, arg.Changes.Renamed)
 	k.setCachedTeamInfo(arg.TeamID, TeamInfo{})
 
 	if arg.Changes.Renamed {
 		k.config.KBFSOps().TeamNameChanged(ctx, arg.TeamID)
 	}
+	return nil
+}
+
+// TeamChangedByName implements keybase1.NotifyTeamInterface for
+// KeybaseServiceBase.
+func (k *KeybaseServiceBase) TeamChangedByName(ctx context.Context,
+	arg keybase1.TeamChangedByNameArg) error {
+	// ignore
 	return nil
 }
 

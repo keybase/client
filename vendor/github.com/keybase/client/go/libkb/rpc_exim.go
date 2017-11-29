@@ -605,6 +605,8 @@ func ImportStatusAsError(g *GlobalContext, s *keybase1.Status) error {
 		return RevokeCurrentDeviceError{}
 	case SCRevokeLastDevice:
 		return RevokeLastDeviceError{}
+	case SCRevokeLastDevicePGP:
+		return RevokeLastDevicePGPError{}
 	case SCTeamKeyMaskNotFound:
 		e := KeyMaskNotFoundError{}
 		for _, field := range s.Fields {
@@ -2006,7 +2008,7 @@ func (e ChatClientError) ToStatus() keybase1.Status {
 	return keybase1.Status{
 		Code: SCChatClientError,
 		Name: "SC_CHAT_CLIENT_ERROR",
-		Desc: e.Error(),
+		Desc: e.Msg,
 	}
 }
 
@@ -2095,6 +2097,14 @@ func (e RevokeLastDeviceError) ToStatus() keybase1.Status {
 	return keybase1.Status{
 		Code: SCRevokeLastDevice,
 		Name: "SC_DEVICE_REVOKE_LAST",
+		Desc: e.Error(),
+	}
+}
+
+func (e RevokeLastDevicePGPError) ToStatus() keybase1.Status {
+	return keybase1.Status{
+		Code: SCRevokeLastDevicePGP,
+		Name: "SC_DEVICE_REVOKE_LAST_PGP",
 		Desc: e.Error(),
 	}
 }

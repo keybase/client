@@ -687,8 +687,8 @@ func SleepUntilWithContext(ctx context.Context, clock clockwork.Clock, deadline 
 	}
 }
 
-func CITimeMultiplier(g Contextifier) time.Duration {
-	if g.G().GetEnv().RunningInCI() {
+func CITimeMultiplier(g *GlobalContext) time.Duration {
+	if g.GetEnv().RunningInCI() {
 		return time.Duration(3)
 	}
 	return time.Duration(1)
@@ -756,11 +756,11 @@ func CanExec(p string) error {
 }
 
 func CurrentBinaryRealpath() (string, error) {
-	absolute, err := filepath.Abs(os.Args[0])
+	executable, err := os.Executable()
 	if err != nil {
 		return "", err
 	}
-	return filepath.EvalSymlinks(absolute)
+	return filepath.EvalSymlinks(executable)
 }
 
 var adminFeatureList = map[keybase1.UID]bool{
