@@ -100,7 +100,9 @@ const logSetup = __DEV__
       debug: new ConsoleLogger('log', 'DEBUG:'),
     }
   : {
-      error: new DumpPeriodicallyLogger(new RingLogger(1000), 1 * 60e3, writeLogLinesToFile, 'Error'),
+      error: isMobile
+        ? new NativeLogger()
+        : new DumpPeriodicallyLogger(new RingLogger(1000), 1 * 60e3, writeLogLinesToFile, 'Error'),
       warn: new RingLogger(1000),
       info: new NullLogger(),
       action: isMobile
