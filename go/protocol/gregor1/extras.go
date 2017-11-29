@@ -188,7 +188,7 @@ func (i InBandMessage) Merge(i2 gregor.InBandMessage) (res gregor.InBandMessage,
 
 func (s StateUpdateMessage) Merge(s2 *StateUpdateMessage) (res StateUpdateMessage, err error) {
 	if s.Creation_ != nil && s2.Creation_ != nil {
-		return res, errors.New("clash of creations")
+		return res, errors.New("cannot merge two creation messages")
 	}
 	res.Creation_ = s.Creation_
 	if res.Creation_ == nil {
