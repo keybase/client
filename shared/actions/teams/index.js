@@ -444,15 +444,21 @@ const _getTeams = function*(action: Types.GetTeams): Saga.SagaGenerator<any, any
     const teams = results.teams || []
     const teamnames = []
     const teammembercounts = {}
+    const teamNameToRole = {}
     teams.forEach(team => {
       teamnames.push(team.fqName)
       teammembercounts[team.fqName] = team.memberCount
+      teamNameToRole[team.fqName] = Constants.teamRoleByEnum[team.role]
     })
 
     yield Saga.put(
       replaceEntity(
         ['teams'],
-        I.Map({teamnames: I.Set(teamnames), teammembercounts: I.Map(teammembercounts)})
+        I.Map({
+          teamnames: I.Set(teamnames),
+          teammembercounts: I.Map(teammembercounts),
+          teamNameToRole: I.Map(teamNameToRole),
+        })
       )
     )
   } finally {

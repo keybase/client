@@ -55,6 +55,7 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   teamNameToImplicitAdminUsernames: I.Map(),
   teamNameToMembers: I.Map(),
   teamNameToRequests: I.Map(),
+  teamNameToRole: I.Map(),
   teamNameToTeamSettings: I.Map(),
   teamNameToPublicitySettings: I.Map(),
   teammembercounts: I.Map(),
