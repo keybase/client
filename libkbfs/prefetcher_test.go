@@ -880,26 +880,32 @@ func TestPrefetcherUnsyncedThenSyncedPrefetch(t *testing.T) {
 		"a": makeRandomDirEntry(t, Dir, 10, "a"),
 		"b": makeRandomDirEntry(t, File, 20, "b"),
 	}}
+	aPtr := root.Children["a"].BlockPointer
 	a := &DirBlock{Children: map[string]DirEntry{
 		"aa": makeRandomDirEntry(t, Dir, 30, "aa"),
 		"ab": makeRandomDirEntry(t, File, 40, "ab"),
 	}}
+	bPtr := root.Children["b"].BlockPointer
 	b := makeFakeFileBlock(t, true)
+	aaPtr := a.Children["aa"].BlockPointer
 	aa := &DirBlock{Children: map[string]DirEntry{
 		"aaa": makeRandomDirEntry(t, File, 50, "aaa"),
 		"aab": makeRandomDirEntry(t, File, 60, "aab"),
 	}}
+	abPtr := a.Children["ab"].BlockPointer
 	ab := makeFakeFileBlock(t, true)
+	aaaPtr := aa.Children["aaa"].BlockPointer
 	aaa := makeFakeFileBlock(t, true)
+	aabPtr := aa.Children["aab"].BlockPointer
 	aab := makeFakeFileBlock(t, true)
 
 	_, contChRoot := bg.setBlockToReturn(rootPtr, root)
-	_, contChA := bg.setBlockToReturn(root.Children["a"].BlockPointer, a)
-	_, contChB := bg.setBlockToReturn(root.Children["b"].BlockPointer, b)
-	_, contChAA := bg.setBlockToReturn(a.Children["aa"].BlockPointer, aa)
-	_, contChAB := bg.setBlockToReturn(a.Children["ab"].BlockPointer, ab)
-	_, contChAAA := bg.setBlockToReturn(aa.Children["aaa"].BlockPointer, aaa)
-	_, contChAAB := bg.setBlockToReturn(aa.Children["aab"].BlockPointer, aab)
+	_, contChA := bg.setBlockToReturn(aPtr, a)
+	_, contChB := bg.setBlockToReturn(bPtr, b)
+	_, contChAA := bg.setBlockToReturn(aaPtr, aa)
+	_, contChAB := bg.setBlockToReturn(abPtr, ab)
+	_, contChAAA := bg.setBlockToReturn(aaaPtr, aaa)
+	_, contChAAB := bg.setBlockToReturn(aabPtr, aab)
 
 	t.Log("Fetch dir root.")
 	block := &DirBlock{}
@@ -923,10 +929,10 @@ func TestPrefetcherUnsyncedThenSyncedPrefetch(t *testing.T) {
 
 	testPrefetcherCheckGet(t, config.BlockCache(), rootPtr, root,
 		TriggeredPrefetch, TransientEntry)
-	testPrefetcherCheckGet(t, config.BlockCache(),
-		root.Children["a"].BlockPointer, a, NoPrefetch, TransientEntry)
-	testPrefetcherCheckGet(t, config.BlockCache(),
-		root.Children["b"].BlockPointer, b, NoPrefetch, TransientEntry)
+	testPrefetcherCheckGet(t, config.BlockCache(), aPtr, a, NoPrefetch,
+		TransientEntry)
+	testPrefetcherCheckGet(t, config.BlockCache(), bPtr, b, NoPrefetch,
+		TransientEntry)
 
 	t.Log("Fetch dir root again.")
 	block = &DirBlock{}
@@ -968,18 +974,18 @@ func TestPrefetcherUnsyncedThenSyncedPrefetch(t *testing.T) {
 		"and the prefetch statuses are correct.")
 	testPrefetcherCheckGet(t, config.BlockCache(), rootPtr, root,
 		FinishedPrefetch, TransientEntry)
-	testPrefetcherCheckGet(t, config.BlockCache(),
-		root.Children["a"].BlockPointer, a, FinishedPrefetch, TransientEntry)
-	testPrefetcherCheckGet(t, config.BlockCache(),
-		root.Children["b"].BlockPointer, b, FinishedPrefetch, TransientEntry)
-	testPrefetcherCheckGet(t, config.BlockCache(),
-		a.Children["aa"].BlockPointer, aa, FinishedPrefetch, TransientEntry)
-	testPrefetcherCheckGet(t, config.BlockCache(),
-		a.Children["ab"].BlockPointer, ab, FinishedPrefetch, TransientEntry)
-	testPrefetcherCheckGet(t, config.BlockCache(),
-		aa.Children["aaa"].BlockPointer, aaa, FinishedPrefetch, TransientEntry)
-	testPrefetcherCheckGet(t, config.BlockCache(),
-		aa.Children["aab"].BlockPointer, aab, FinishedPrefetch, TransientEntry)
+	testPrefetcherCheckGet(t, config.BlockCache(), aPtr, a,
+		FinishedPrefetch, TransientEntry)
+	testPrefetcherCheckGet(t, config.BlockCache(), bPtr, b,
+		FinishedPrefetch, TransientEntry)
+	testPrefetcherCheckGet(t, config.BlockCache(), aaPtr, aa,
+		FinishedPrefetch, TransientEntry)
+	testPrefetcherCheckGet(t, config.BlockCache(), abPtr, ab,
+		FinishedPrefetch, TransientEntry)
+	testPrefetcherCheckGet(t, config.BlockCache(), aaaPtr, aaa,
+		FinishedPrefetch, TransientEntry)
+	testPrefetcherCheckGet(t, config.BlockCache(), aabPtr, aab,
+		FinishedPrefetch, TransientEntry)
 }
 
 func TestSyncBlockCacheWithPrefetcher(t *testing.T) {
@@ -1071,4 +1077,53 @@ func TestSyncBlockCacheWithPrefetcher(t *testing.T) {
 	case <-time.After(time.Second):
 		t.Fatal("Prefetching hung.")
 	}
+}
+
+func TestPrefetcherBasicUnsyncedPrefetch(t *testing.T) {
+	t.Log("Test synced TLF prefetching in a more complex fetch order.")
+	q, bg, config := initPrefetcherTest(t)
+	defer shutdownPrefetcherTest(q)
+	kmd := makeKMD()
+	prefetchSyncCh := make(chan struct{})
+	q.TogglePrefetcher(true, prefetchSyncCh)
+	notifySyncCh(t, prefetchSyncCh)
+
+	t.Log("Initialize a folder tree with structure: " +
+		"root -> {a}")
+	rootPtr := makeRandomBlockPointer(t)
+	root := &DirBlock{Children: map[string]DirEntry{
+		"a": makeRandomDirEntry(t, File, 10, "a"),
+	}}
+	aPtr := root.Children["a"].BlockPointer
+	a := makeFakeFileBlock(t, true)
+
+	_, contChRoot := bg.setBlockToReturn(rootPtr, root)
+	_, contChA := bg.setBlockToReturn(aPtr, a)
+
+	t.Log("Fetch dir root.")
+	var block Block = &DirBlock{}
+	ch := q.Request(context.Background(), defaultOnDemandRequestPriority, kmd,
+		rootPtr, block, TransientEntry)
+	contChRoot <- nil
+	notifySyncCh(t, prefetchSyncCh)
+	err := <-ch
+	require.NoError(t, err)
+
+	t.Log("Fetch child block \"a\" on demand.")
+	block = &FileBlock{}
+	ch = q.Request(context.Background(), defaultOnDemandRequestPriority, kmd,
+		aPtr, block, TransientEntry)
+	t.Log("Release child block \"a\".")
+	contChA <- nil
+	notifySyncCh(t, prefetchSyncCh)
+	err = <-ch
+	require.NoError(t, err)
+
+	testPrefetcherCheckGet(t, config.BlockCache(), rootPtr, root,
+		FinishedPrefetch, TransientEntry)
+	testPrefetcherCheckGet(t, config.BlockCache(), aPtr, a, FinishedPrefetch,
+		TransientEntry)
+
+	// Then we wait for the pending prefetches to complete.
+	<-q.Prefetcher().Shutdown()
 }

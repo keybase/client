@@ -277,7 +277,10 @@ func (p *blockPrefetcher) recordPrefetchParent(childBlockID kbfsblock.ID,
 		pre.parents[parentBlockID] = true
 		return pre.subtreeBlockCount, needNewFetch
 	}
-	return 0, needNewFetch
+	// If we return 0, then a prefetch was waiting, and the parent->child
+	// relationship was already known. Thus `needNewFetch` is necessarily
+	// false.
+	return 0, false
 }
 
 func (p *blockPrefetcher) prefetchIndirectFileBlock(ctx context.Context,
@@ -336,6 +339,9 @@ func (p *blockPrefetcher) prefetchDirectDirBlock(ctx context.Context,
 			block = &FileBlock{}
 		case Exec:
 			block = &FileBlock{}
+		case Sym:
+			// Skip symbolic links because there's nothing to prefetch.
+			continue
 		default:
 			p.log.CDebugf(ctx, "Skipping prefetch for entry of "+
 				"unknown type %d", entry.Type)

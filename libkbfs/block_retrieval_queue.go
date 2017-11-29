@@ -351,6 +351,7 @@ func (brq *blockRetrievalQueue) Request(ctx context.Context,
 			}
 		}
 		br.reqMtx.Lock()
+		defer br.reqMtx.Unlock()
 		br.requests = append(br.requests, &blockRetrievalRequest{
 			block:  block,
 			doneCh: ch,
@@ -358,22 +359,23 @@ func (brq *blockRetrievalQueue) Request(ctx context.Context,
 		if lifetime > br.cacheLifetime {
 			br.cacheLifetime = lifetime
 		}
-		br.reqMtx.Unlock()
-		// If the new request priority is higher, elevate the retrieval in the
-		// queue.  Skip this if the request is no longer in the queue (which
-		// means it's actively being processed).
 		oldPriority := br.priority
-		if br.index != -1 && priority > oldPriority {
+		if priority > oldPriority {
 			br.priority = priority
-			heap.Fix(brq.heap, br.index)
-			if oldPriority < defaultOnDemandRequestPriority &&
-				priority >= defaultOnDemandRequestPriority {
-				// We've crossed the priority threshold for prefetch workers,
-				// so we now need an on-demand worker to pick up the request.
-				// This means that we might have up to two workers "activated"
-				// per request. However, they won't leak because if a worker
-				// sees an empty queue, it continues merrily along.
-				brq.notifyWorker(priority)
+			// If the new request priority is higher, elevate the retrieval in the
+			// queue.  Skip this if the request is no longer in the queue (which
+			// means it's actively being processed).
+			if br.index != -1 {
+				heap.Fix(brq.heap, br.index)
+				if oldPriority < defaultOnDemandRequestPriority &&
+					priority >= defaultOnDemandRequestPriority {
+					// We've crossed the priority threshold for prefetch workers,
+					// so we now need an on-demand worker to pick up the request.
+					// This means that we might have up to two workers "activated"
+					// per request. However, they won't leak because if a worker
+					// sees an empty queue, it continues merrily along.
+					brq.notifyWorker(priority)
+				}
 			}
 		}
 		return ch
