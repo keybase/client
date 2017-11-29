@@ -734,15 +734,15 @@ function* _deleteChannel({payload: {conversationIDKey}}): Saga.SagaGenerator<any
 }
 
 function* _badgeAppForTeams(action: Types.BadgeAppForTeams) {
-  const username = yield Saga.select((state: TypedState) => state.config.username)
-  if (!username) {
+  const loggedIn = yield Saga.select((state: TypedState) => state.config.loggedIn)
+  if (!loggedIn) {
     // Don't make any calls we don't have permission to.
     return
   }
   const newTeams = I.Set(action.payload.newTeamNames || [])
   const newTeamRequests = I.List(action.payload.newTeamAccessRequests || [])
 
-  if (_wasOnTeamsTab) {
+  if (_wasOnTeamsTab && (newTeams.size > 0 || newTeamRequests.size > 0)) {
     // Call getTeams if new teams come in.
     // Covers the case when we're staring at the teams page so
     // we don't miss a notification we clear when we tab away
@@ -752,7 +752,8 @@ function* _badgeAppForTeams(action: Types.BadgeAppForTeams) {
     const existingNewTeamRequests = yield Saga.select((state: TypedState) =>
       state.entities.getIn(['teams', 'newTeamRequests'], I.List())
     )
-    if (!newTeams.equals(existingNewTeams)) {
+    if (!newTeams.equals(existingNewTeams) && newTeams.size > 0) {
+      // We have been added to a new team & we need to refresh the list
       yield Saga.put(Creators.getTeams())
     }
 
