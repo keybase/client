@@ -106,8 +106,8 @@ const getYourRoleFromConvID = (state: TypedState, conversationIDKey: ChatTypes.C
   return null
 }
 
-const isAdmin = (type: string) => type === 'admin'
-const isOwner = (type: string) => type === 'owner'
+const isAdmin = (type: ?string) => type === 'admin'
+const isOwner = (type: ?string) => type === 'owner'
 
 export const getFollowingMap = (state: TypedState) => state.config.following
 export const getFollowerMap = (state: TypedState) => state.config.followers

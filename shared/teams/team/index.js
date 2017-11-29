@@ -62,6 +62,7 @@ export type Props = {
   setShowMenu: (s: boolean) => void,
   waitingForSavePublicity: boolean,
   you: string,
+  yourRole: ?string,
   youCanShowcase: boolean,
   youCanAddPeople: boolean,
   youCanCreateSubteam: boolean,
@@ -238,14 +239,13 @@ class Team extends React.PureComponent<Props> {
       setPublicityMember,
       setPublicityTeam,
       waitingForSavePublicity,
-      you,
+      yourRole,
       youCanAddPeople,
       youCanCreateSubteam,
       youCanShowcase,
     } = this.props
 
-    const me = members.find(member => member.username === you)
-    const admin = me ? me.type === 'admin' || me.type === 'owner' : false
+    const admin = Constants.isAdmin(yourRole) || Constants.isOwner(yourRole)
 
     // massage data for rowrenderers
     const memberProps = members.map(member => ({username: member.username, teamname: name}))
@@ -474,7 +474,7 @@ class Team extends React.PureComponent<Props> {
           {' '}
           •
           {' '}
-          {me && me.type && Constants.typeToLabel[me.type]}
+          {yourRole && Constants.typeToLabel[yourRole]}
         </Text>
         {!loading &&
           (admin || description) &&
