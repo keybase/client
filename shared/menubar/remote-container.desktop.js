@@ -1,28 +1,30 @@
 // @flow
-import {connect, compose, type Dispatch} from '../util/container'
-import * as KBFSGen from '../actions/kbfs-gen'
+import * as AppGen from '../actions/app-gen'
 import * as FavoriteGen from '../actions/favorite-gen'
+import * as KBFSGen from '../actions/kbfs-gen'
 import Menubar from './index.render.desktop'
+import openUrl from '../util/open-url'
+import {connect, compose, type Dispatch} from '../util/container'
+import {createOpenPopup as createOpenRekeyPopup} from '../actions/unlock-folders-gen'
 import {defaultKBFSPath} from '../constants/config'
 import {executeActionsForContext} from '../util/quit-helper.desktop'
 import {loginTab, type Tab} from '../constants/tabs'
 import {navigateTo, switchTo} from '../actions/route-tree'
-import {createOpenPopup as createOpenRekeyPopup} from '../actions/unlock-folders-gen'
-import {shell, ipcRenderer, remote} from 'electron'
-
-const BrowserWindow = remote.BrowserWindow
+import {shell, remote} from 'electron'
+import {urlHelper} from '../util/url-helper'
 
 const closeWindow = () => {
-  BrowserWindow.getCurrentWindow().hide()
+  remote.getCurrentWindow().hide()
 }
 
 // Props are handled by remote-menubar.desktop.js
 const mapDispatchToProps = (dispatch: Dispatch) => ({
   _showUser: (username: string) => {
-    ipcRenderer.send('openURL', 'user', {username}) // TODO regular action
+    const link = urlHelper('user', {username})
+    link && openUrl(link)
   },
   logIn: () => {
-    ipcRenderer.send('showMain')
+    dispatch(AppGen.createShowMain())
     dispatch(navigateTo([loginTab]))
   },
   onFolderClick: (path: ?string) => {
@@ -34,7 +36,7 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
     closeWindow()
   },
   openApp: (tab?: Tab) => {
-    ipcRenderer.send('showMain')
+    dispatch(AppGen.createShowMain())
     tab && dispatch(switchTo([tab]))
   },
   quit: () => {
@@ -50,7 +52,8 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
     )
   },
   showHelp: () => {
-    ipcRenderer.send('openURL', 'help') // TODO regular action
+    const link = urlHelper('help')
+    link && openUrl(link)
     closeWindow()
   },
 })

@@ -7,7 +7,6 @@ import menuBar from './menu-bar'
 import os from 'os'
 import semver from 'semver'
 import storeHelper from './store-helper'
-import urlHelper from './url-helper'
 import windowHelper from './window-helper'
 import {BrowserWindow, app, ipcMain, dialog, crashReporter} from 'electron'
 import {setupExecuteActionsListener, executeActionsForContext} from '../../util/quit-helper.desktop'
@@ -85,7 +84,6 @@ function start() {
   menuBar(id => {
     _menubarWindowID = id
   })
-  urlHelper()
   windowHelper(app)
 
   console.log('Version:', app.getVersion())

@@ -1,3 +1,2 @@
 // @flow
 export default function openURL(url: ?string): void {}
-export function openURLWithHelper(type: string, params: ?any): void {}

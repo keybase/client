@@ -1,8 +1,8 @@
 // @flow
 import {remote} from 'electron'
+const BrowserWindow = remote.BrowserWindow
 
-export function autoResize() {
-  console.log('aaa autoresize')
+function autoResize() {
   let previousHeight = 0
 
   // This only works when I delay a frame, unclear what the solution is but this seems fine for now
@@ -50,3 +50,19 @@ export function autoResize() {
     }
   }, 1)
 }
+
+const getMainWindow = (): ?BrowserWindow => {
+  const w = BrowserWindow.getAllWindows().find(w => w.webContents.getURL().indexOf('mainWindow') !== -1)
+  return w
+}
+
+const sendToMainWindow = (...args: Array<any>): boolean => {
+  const mw = getMainWindow()
+  if (mw) {
+    mw.webContents.send(...args)
+    return true
+  }
+  return false
+}
+
+export {autoResize, getMainWindow, sendToMainWindow}

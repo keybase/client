@@ -4,6 +4,7 @@
 // On the main window we plumb through our props and we 'mirror' the props using this helper
 // We start up and send a 'remoteWindowWantsProps' to the main window which then sends us 'props'
 import {ipcRenderer, remote, BrowserWindow} from 'electron'
+import {sendToMainWindow} from './component-helper'
 
 class RemoteStore {
   _window: ?BrowserWindow
@@ -27,13 +28,7 @@ class RemoteStore {
 
   // Search for the main window and ask it directly for our props
   _askMainWindowForOurProps = props => {
-    const wcs = remote.BrowserWindow
-      .getAllWindows()
-      .map(w => w.webContents)
-      .filter(wc => wc.getURL().indexOf('mainWindow') !== -1)
-    if (wcs && wcs.length > 0) {
-      wcs[0].send('remoteWindowWantsProps', props.component, props.selectorParams)
-    }
+    sendToMainWindow('remoteWindowWantsProps', props.component, props.selectorParams)
   }
 
   constructor(props: {component: string, selectorParams?: ?string, gotPropsCallback: () => void}) {

@@ -96,35 +96,6 @@ export default function(menubarWindowIDCallback: (id: number) => void) {
     })
     mb.tray.on('double-click', e => e.preventDefault())
 
-    // const webContents = mb.window.webContents
-    // webContents.on('did-finish-load', () => {
-    // webContents.send('load', {
-    // scripts: [
-    // ...(__DEV__
-    // ? [
-    // {
-    // src: resolveRootAsURL('dist', 'dll/dll.vendor.js'),
-    // async: false,
-    // },
-    // {
-    // src: hotPath('common-chunks.js'),
-    // async: false,
-    // },
-    // ]
-    // : []),
-    // {
-    // src: hotPath('launcher.bundle.js'),
-    // async: false,
-    // },
-    // ],
-    // selectorParams: 'menubar',
-    // })
-    // })
-
-    // if (showDevTools && !skipSecondaryDevtools) {
-    // // webContents.openDevTools('detach')
-    // }
-
     // prevent the menubar's window from dying when we quit
     // We remove any existing listeners to close because menubar has one that deletes the reference to mb.window
     mb.window.removeAllListeners('close')
