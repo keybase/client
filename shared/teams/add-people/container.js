@@ -2,7 +2,7 @@
 import * as Creators from '../../actions/teams/creators'
 import * as SearchGen from '../../actions/search-gen'
 import * as SearchConstants from '../../constants/search'
-import {teamMemberRecordSelector} from '../../constants/selectors'
+import {getRole} from '../../constants/teams'
 import AddPeople from '.'
 import {HeaderHoc} from '../../common-adapters'
 import {navigateAppend} from '../../actions/route-tree'
@@ -20,7 +20,7 @@ const mapStateToProps = (state: TypedState, {routeProps}) => {
   return {
     isEmpty: SearchConstants.getUserInputItemIds(state, {searchKey: 'addToTeamSearch'}).length === 0,
     name: teamname,
-    _yourMember: teamMemberRecordSelector(state, {teamname: teamname}),
+    _yourRole: getRole(state, teamname),
   }
 }
 
@@ -78,9 +78,9 @@ export default compose(
         onRoleChange,
         sendNotification,
         setSendNotification,
-        _yourMember,
+        _yourRole,
       }) => () => {
-        onOpenRolePicker(role, sendNotification, _yourMember.type === 'owner', (role, sendNotification) => {
+        onOpenRolePicker(role, sendNotification, _yourRole === 'owner', (role, sendNotification) => {
           onRoleChange(role)
           setSendNotification(sendNotification)
         })

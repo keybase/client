@@ -85,6 +85,9 @@ const getTopicFromConvID = (state: TypedState, conversationIDKey: ChatTypes.Conv
 const getParticipants = (state: TypedState, conversationIDKey: ChatTypes.ConversationIDKey) =>
   state.entities.getIn(['teams', 'convIDToChannelInfo', conversationIDKey, 'participants'], I.Set())
 
+const getRole = (state: TypedState, teamname: Types.Teamname) =>
+  state.entities.getIn(['teams', 'teamNameToRole', teamname], 'none')
+
 const getMembersFromConvID = (state: TypedState, conversationIDKey: ChatTypes.ConversationIDKey) => {
   const teamname = getTeamNameFromConvID(state, conversationIDKey)
   if (teamname) {
@@ -113,6 +116,7 @@ export {
   getConvIdsFromTeamName,
   getConversationIDKeyFromChannelName,
   getParticipants,
+  getRole,
   userIsInTeamHelper,
   getTeamNameFromConvID,
   getChannelNameFromConvID,
