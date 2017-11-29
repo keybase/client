@@ -13,6 +13,7 @@ import (
 	"github.com/keybase/kbfs/kbfscodec"
 	"github.com/keybase/kbfs/kbfscrypto"
 	"github.com/keybase/kbfs/tlf"
+	"github.com/pkg/errors"
 )
 
 // RootMetadata is a read-only interface to the bare serializeable MD that
@@ -315,14 +316,21 @@ func MakeInitialRootMetadata(
 	if ver < FirstValidMetadataVer {
 		return nil, InvalidMetadataVersionError{tlfID, ver}
 	}
-	if ver > SegregatedKeyBundlesVer {
+	if ver > ImplicitTeamsVer {
 		// Shouldn't be possible at the moment.
 		panic("Invalid metadata version")
 	}
+	if ver < ImplicitTeamsVer && tlfID.Type() != tlf.SingleTeam &&
+		h.TypeForKeying() == tlf.TeamKeying {
+		return nil, errors.Errorf(
+			"Can't make an implicit teams TLF with version %s", ver)
+	}
+
 	if ver < SegregatedKeyBundlesVer {
 		return MakeInitialRootMetadataV2(tlfID, h)
 	}
 
+	// V3 and V4 MDs are data-compatible.
 	return MakeInitialRootMetadataV3(tlfID, h)
 }
 
@@ -333,7 +341,7 @@ func makeMutableRootMetadataForDecode(codec kbfscodec.Codec, tlf tlf.ID,
 	} else if ver > max {
 		return nil, NewMetadataVersionError{tlf, ver}
 	}
-	if ver > SegregatedKeyBundlesVer {
+	if ver > ImplicitTeamsVer {
 		// Shouldn't be possible at the moment.
 		panic("Invalid metadata version")
 	}
@@ -345,14 +353,19 @@ func makeMutableRootMetadataForDecode(codec kbfscodec.Codec, tlf tlf.ID,
 
 // DecodeRootMetadata deserializes a metadata block into the specified
 // versioned structure.
-func DecodeRootMetadata(codec kbfscodec.Codec, tlf tlf.ID,
+func DecodeRootMetadata(codec kbfscodec.Codec, tlfID tlf.ID,
 	ver, max MetadataVer, buf []byte) (MutableRootMetadata, error) {
-	rmd, err := makeMutableRootMetadataForDecode(codec, tlf, ver, max, buf)
+	rmd, err := makeMutableRootMetadataForDecode(codec, tlfID, ver, max, buf)
 	if err != nil {
 		return nil, err
 	}
 	if err := codec.Decode(buf, rmd); err != nil {
 		return nil, err
+	}
+	if ver < ImplicitTeamsVer && tlfID.Type() != tlf.SingleTeam &&
+		rmd.TypeForKeying() == tlf.TeamKeying {
+		return nil, errors.Errorf(
+			"Can't make an implicit teams TLF with version %s", ver)
 	}
 	return rmd, nil
 }

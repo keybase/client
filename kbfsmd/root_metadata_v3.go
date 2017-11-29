@@ -202,10 +202,11 @@ func (extra ExtraMetadataV3) IsReaderKeyBundleNew() bool {
 	return extra.rkbNew
 }
 
-// MakeInitialRootMetadataV3 creates a new RootMetadataV3
-// object with revision RevisionInitial, and the given TLF ID
-// and handle. Note that if the given ID/handle are private, rekeying
-// must be done separately.
+// MakeInitialRootMetadataV3 creates a new RootMetadataV3 object with
+// revision RevisionInitial, and the given TLF ID and handle. Note
+// that if the given ID/handle are private, rekeying must be done
+// separately.  Since they are data-compatible, this also creates V4
+// MD objects.
 func MakeInitialRootMetadataV3(tlfID tlf.ID, h tlf.Handle) (
 	*RootMetadataV3, error) {
 	switch {
@@ -1437,6 +1438,10 @@ func (md *RootMetadataV3) ClearFinalBit() {
 
 // Version implements the MutableRootMetadata interface for RootMetadataV3.
 func (md *RootMetadataV3) Version() MetadataVer {
+	if md.TlfID().Type() != tlf.SingleTeam &&
+		md.TypeForKeying() == tlf.TeamKeying {
+		return ImplicitTeamsVer
+	}
 	return SegregatedKeyBundlesVer
 }
 

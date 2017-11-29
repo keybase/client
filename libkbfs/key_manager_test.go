@@ -2419,8 +2419,7 @@ func testKeyManagerGetImplicitTeamTLFCryptKey(t *testing.T, ty tlf.Type) {
 	_, latestKeyGen, err := config1.KBPKI().GetTeamTLFCryptKeys(
 		ctx, teamID, kbfsmd.UnspecifiedKeyGen)
 
-	rmd, err := makeInitialRootMetadata(
-		kbfsmd.SegregatedKeyBundlesVer, tlfID, h)
+	rmd, err := makeInitialRootMetadata(config1.MetadataVersion(), tlfID, h)
 	require.NoError(t, err)
 	rmd.bareMd.SetLatestKeyGenerationForTeamTLF(latestKeyGen)
 	// Make sure the MD looks readable.

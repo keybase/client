@@ -24,6 +24,15 @@ const (
 	// SegregatedKeyBundlesVer is the first metadata version to allow separate
 	// storage of key bundles.
 	SegregatedKeyBundlesVer MetadataVer = 3
+	// ImplicitTeamsVer is the first metadata version to allow private
+	// and public TLFs to be backed by implicit teams (and thus use
+	// service-provided encryption keys).  An MD of this version is
+	// data-compatible with `SegregatedKeyBundlesVer`, it's just the
+	// keys-getting process that's different.  This version bump is
+	// more intended to provide older clients with a nice "you need to
+	// upgrade" message, rather than to represent any underlying
+	// incompatibility.
+	ImplicitTeamsVer MetadataVer = 4
 )
 
 func (v MetadataVer) String() string {
@@ -36,6 +45,8 @@ func (v MetadataVer) String() string {
 		return "MDVer(InitialExtra)"
 	case SegregatedKeyBundlesVer:
 		return "MDVer(SegregatedKeyBundles)"
+	case ImplicitTeamsVer:
+		return "MDVer(ImplicitTeams)"
 	default:
 		return fmt.Sprintf("MDVer(%d)", v)
 	}

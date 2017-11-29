@@ -94,7 +94,7 @@ type EncryptedTLFCryptKeyClientAndEphemeral struct {
 }
 
 const (
-	defaultClientMetadataVer kbfsmd.MetadataVer = kbfsmd.SegregatedKeyBundlesVer
+	defaultClientMetadataVer kbfsmd.MetadataVer = kbfsmd.ImplicitTeamsVer
 )
 
 // DataVer is the type of a version for marshalled KBFS data

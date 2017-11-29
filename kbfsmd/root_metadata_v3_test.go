@@ -15,19 +15,41 @@ import (
 )
 
 func TestRootMetadataVersionV3(t *testing.T) {
-	tlfID := tlf.FakeID(1, tlf.Private)
 
-	// All V3 objects should have SegregatedKeyBundlesVer.
+	counter := uint32(1)
+	check := func(ty tlf.Type, keyType tlf.KeyingType, ver MetadataVer) {
+		tlfID := tlf.FakeID(byte(counter), ty)
+		var id keybase1.UserOrTeamID
+		var readers []keybase1.UserOrTeamID
+		if keyType == tlf.TeamKeying {
+			id = keybase1.MakeTestTeamID(
+				counter, ty == tlf.Public).AsUserOrTeam()
+		} else {
+			id = keybase1.MakeTestUID(counter).AsUserOrTeam()
+			if ty == tlf.Public {
+				readers = append(readers, keybase1.PublicUID.AsUserOrTeam())
+			}
+		}
+		bh, err := tlf.MakeHandle(
+			[]keybase1.UserOrTeamID{id}, readers, nil, nil, nil)
+		require.NoError(t, err)
 
-	uid := keybase1.MakeTestUID(1)
-	bh, err := tlf.MakeHandle(
-		[]keybase1.UserOrTeamID{uid.AsUserOrTeam()}, nil, nil, nil, nil)
-	require.NoError(t, err)
+		rmd, err := MakeInitialRootMetadataV3(tlfID, bh)
+		require.NoError(t, err)
 
-	rmd, err := MakeInitialRootMetadataV3(tlfID, bh)
-	require.NoError(t, err)
+		require.Equal(t, ver, rmd.Version())
+		counter++
+	}
 
-	require.Equal(t, SegregatedKeyBundlesVer, rmd.Version())
+	// Classically-keyed V3 MDs, and single team MDs, should have
+	// SegregatedKeyBundlesVer.
+	check(tlf.Private, tlf.PrivateKeying, SegregatedKeyBundlesVer)
+	check(tlf.Public, tlf.PublicKeying, SegregatedKeyBundlesVer)
+	check(tlf.SingleTeam, tlf.TeamKeying, SegregatedKeyBundlesVer)
+
+	// Non-single-team MDs should have ImplicitTeamsVer.
+	check(tlf.Private, tlf.TeamKeying, ImplicitTeamsVer)
+	check(tlf.Public, tlf.TeamKeying, ImplicitTeamsVer)
 }
 
 func TestRootMetadataV3ExtraNew(t *testing.T) {

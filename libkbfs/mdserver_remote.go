@@ -643,7 +643,7 @@ func (md *MDServerRemote) Put(ctx context.Context, rmds *RootMetadataSigned,
 		arg.LockContext = &copied
 	}
 
-	if rmds.Version() < kbfsmd.SegregatedKeyBundlesVer {
+	if rmds.Version() != kbfsmd.SegregatedKeyBundlesVer {
 		if extra != nil {
 			return fmt.Errorf("Unexpected non-nil extra: %+v", extra)
 		}

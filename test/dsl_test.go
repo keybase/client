@@ -62,7 +62,7 @@ type opt struct {
 // Also copy testMetadataVers, so that we can set it independently
 // from libkbfs tests.
 var testMetadataVers = []kbfsmd.MetadataVer{
-	kbfsmd.InitialExtraMetadataVer, kbfsmd.SegregatedKeyBundlesVer,
+	kbfsmd.InitialExtraMetadataVer, kbfsmd.ImplicitTeamsVer,
 }
 
 // runTestOverMetadataVers runs the given test function over all
@@ -259,7 +259,7 @@ func users(ns ...username) optionOp {
 func team(teamName libkb.NormalizedUsername, writers string,
 	readers string) optionOp {
 	return func(o *opt) {
-		if o.ver == kbfsmd.InitialExtraMetadataVer {
+		if o.ver < kbfsmd.SegregatedKeyBundlesVer {
 			o.tb.Skip("mdv2 doesn't support teams")
 		}
 		if o.teams == nil {
@@ -280,7 +280,7 @@ func team(teamName libkb.NormalizedUsername, writers string,
 
 func implicitTeam(writers string, readers string) optionOp {
 	return func(o *opt) {
-		if o.ver == kbfsmd.InitialExtraMetadataVer {
+		if o.ver < kbfsmd.ImplicitTeamsVer {
 			o.tb.Skip("mdv2 doesn't support teams")
 		}
 		if o.implicitTeams == nil {

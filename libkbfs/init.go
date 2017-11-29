@@ -152,13 +152,14 @@ func defaultMDServer(ctx Context) string {
 func defaultMetadataVersion(ctx Context) kbfsmd.MetadataVer {
 	switch ctx.GetRunMode() {
 	case libkb.DevelRunMode:
-		return kbfsmd.SegregatedKeyBundlesVer
+		return kbfsmd.ImplicitTeamsVer
 	case libkb.StagingRunMode:
-		return kbfsmd.SegregatedKeyBundlesVer
+		return kbfsmd.ImplicitTeamsVer
 	case libkb.ProductionRunMode:
+		// TODO(KBFS-2621): flip this.
 		return kbfsmd.SegregatedKeyBundlesVer
 	default:
-		return kbfsmd.SegregatedKeyBundlesVer
+		return kbfsmd.ImplicitTeamsVer
 	}
 }
 

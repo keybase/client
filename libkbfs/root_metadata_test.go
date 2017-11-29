@@ -27,7 +27,7 @@ import (
 )
 
 var testMetadataVers = []kbfsmd.MetadataVer{
-	kbfsmd.InitialExtraMetadataVer, kbfsmd.SegregatedKeyBundlesVer,
+	kbfsmd.InitialExtraMetadataVer, kbfsmd.ImplicitTeamsVer,
 }
 
 // runTestOverMetadataVers runs the given test function over all
