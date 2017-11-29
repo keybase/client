@@ -647,16 +647,16 @@ function* _setupTeamHandlers(): Saga.SagaGenerator<any, any> {
       'keybase.1.NotifyTeam.teamChanged',
       (args: RPCTypes.NotifyTeamTeamChangedRpcParam) => {
         const actions = getLoadCalls(args.teamName)
-        actions.forEach(action => dispatch(action))
+        actions.forEach(dispatch)
       }
     )
     engine().setIncomingHandler('keybase.1.NotifyTeam.teamDeleted', () => {
       const actions = getLoadCalls()
-      actions.forEach(action => dispatch(action))
+      actions.forEach(dispatch)
     })
     engine().setIncomingHandler('keybase.1.NotifyTeam.teamExit', () => {
       const actions = getLoadCalls()
-      actions.forEach(action => dispatch(action))
+      actions.forEach(dispatch)
     })
   })
 }
