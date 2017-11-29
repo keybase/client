@@ -1,8 +1,8 @@
 // @flow
 import * as React from 'react'
-import RemoteConnector from './remote-connector.desktop'
-import RemoteWindow from './remote-window.desktop'
-import {connect, type TypedState, compose} from '../../util/container'
+import RemoteConnector from '../desktop/remote/connector.desktop'
+import RemoteWindow from '../desktop/remote/window.desktop'
+import {connect, type TypedState, compose} from '../util/container'
 
 const PrintDebug = props => <div style={{wordWrap: 'break-word'}}>{JSON.stringify(props)}</div>
 

@@ -245,10 +245,7 @@ const makeRenderThreadConfig = () => {
           ...HMREntries,
           path.resolve(__dirname, 'renderer/remote-component-loader.js'),
         ],
-        'remote-component-loader2': [
-          ...HMREntries,
-          path.resolve(__dirname, 'renderer/remote-component-loader2.js'),
-        ],
+        'component-loader': [...HMREntries, path.resolve(__dirname, 'remote/component-loader.js')],
       }
   }
 

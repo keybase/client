@@ -3,17 +3,26 @@
 // import * as I from 'immutable'
 import * as React from 'react'
 // import * as Types from '../../constants/types/pinentry'
-import RemoteConnector from './remote-connector.desktop'
-import {sendLoad} from './remote-window.desktop'
-import {connect, type TypedState, compose, renderNothing, branch} from '../../util/container'
+import RemoteConnector from '../desktop/remote/connector.desktop'
+import {sendLoad} from '../desktop/remote/window.desktop'
+import {connect, type TypedState, compose, renderNothing, branch} from '../util/container'
 import {remote} from 'electron'
 
 const PrintDebug = props => <div style={{wordWrap: 'break-word'}}>{JSON.stringify(props)}</div>
 const windowOpts = {}
 
+type Props = {
+  externalRemoteWindow: any,
+  windowOpts?: Object,
+  positionBottomRight?: boolean,
+  component: string,
+  title: string,
+  selectorParams: string,
+}
+
 // Like RemoteWindow but the browserWindow is handled by the 3rd party menubar class and mostly lets it handle things
 function RemoteMenubarWindow(ComposedComponent: any) {
-  class RemoteWindowComponent extends React.PureComponent<Props, State> {
+  class RemoteWindowComponent extends React.PureComponent<Props> {
     componentWillMount() {
       sendLoad(
         this.props.externalRemoteWindow.webContents,
@@ -50,7 +59,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   externalRemoteWindow: stateProps._externalRemoteWindowID
     ? remote.BrowserWindow.fromId(stateProps._externalRemoteWindowID)
     : null,
-  folderProps: stateProps.folderState,
+  folderProps: stateProps.folderProps,
   kbfsStatus: stateProps.kbfsStatus,
   loggedIn: stateProps.loggedIn,
   selectorParams: '',

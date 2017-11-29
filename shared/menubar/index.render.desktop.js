@@ -1,22 +1,19 @@
 // @flow
-import Folders, {type FolderType} from '../folders'
+import Folders, {type FolderType, type Props as FolderProps} from '../folders'
 import React, {Component} from 'react'
-import UserAdd from './user-add'
+import UserAdd from './user-add.desktop'
 import {Box, Icon, Text, Button, PopupMenu, Badge} from '../common-adapters/index'
-import {folderTab, peopleTab, chatTab, devicesTab} from '../constants/tabs'
+import {folderTab, peopleTab, chatTab, devicesTab, type Tab} from '../constants/tabs'
 import {globalStyles, globalColors} from '../styles'
 import {isDarwin} from '../constants/platform'
-
-import type {Tab} from '../constants/tabs'
-import type {KBFSStatus} from '../constants/types/favorite'
-import type {Props as FolderProps} from '../folders'
+import {type KBFSStatus} from '../constants/types/favorite'
 
 export type Props = {
   folderProps: ?FolderProps,
   kbfsStatus: ?KBFSStatus,
   logIn: () => void,
   loggedIn: boolean,
-  onFolderClick: (path: string) => void,
+  onFolderClick: (path: ?string) => void,
   onRekey: (path: string) => void,
   openApp: () => void,
   quit: () => void,
@@ -99,7 +96,6 @@ class MenubarRender extends Component<Props, State> {
   }
 
   _renderFolders() {
-    return <div>folders TODO connect</div>
     const newPrivate = {
       ...(this.props.folderProps && this.props.folderProps.private),
       ignored: [],
@@ -267,6 +263,8 @@ const borderRadius = 4
 
 const stylesContainer = {
   ...globalStyles.flexBoxColumn,
+  width: '100%',
+  height: '100%',
   flex: 1,
   position: 'relative',
   marginTop: 13,

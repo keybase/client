@@ -45,14 +45,14 @@ type State = {
   remoteWindow: ?BrowserWindow,
 }
 
-const sendLoad = (webContents, selectorParams, component, title) => {
+const sendLoad = (webContents: any, selectorParams: string, component: string, title: ?string) => {
   webContents.send('load', {
     component,
     scripts: [
       ...devScripts,
       {
         async: false,
-        src: hotPath('remote-component-loader2.bundle.js'),
+        src: hotPath('component-loader.bundle.js'),
       },
     ],
     selectorParams,

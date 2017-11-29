@@ -10,7 +10,7 @@ import * as NotificationsGen from '../../actions/notifications-gen'
 import * as React from 'react'
 import * as ConfigGen from '../../actions/config-gen'
 import ReactDOM from 'react-dom'
-import RemoteManager from './remote-manager.desktop'
+import RemoteProxies from '../remote/proxies.desktop'
 import Root from './container'
 import configureStore from '../../store/configure-store'
 import electron, {ipcRenderer} from 'electron'
@@ -28,7 +28,7 @@ import {setRouteDef} from '../../actions/route-tree'
 import {setupContextMenu} from '../app/menu-helper'
 import {setupSource} from '../../util/forward-logs'
 import flags from '../../util/feature-flags'
-import InputMonitor from './inputmonitor'
+import InputMonitor from './input-monitor'
 
 let _store
 function setupStore() {
@@ -157,7 +157,7 @@ function render(store, MainComponent) {
     <AppContainer>
       <Root store={store}>
         <div style={{display: 'flex', flex: 1}}>
-          <RemoteManager />
+          <RemoteProxies />
           <FontLoader />
           <MainComponent />
         </div>
@@ -183,8 +183,7 @@ function setupHMR(store) {
       try {
         const NewMain = require('../../app/main.desktop').default
         render(store, NewMain)
-      } catch (_) {
-      }
+      } catch (_) {}
     })
 
   module.hot &&

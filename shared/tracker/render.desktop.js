@@ -5,7 +5,7 @@ import Action, {calcFooterHeight} from './action.render.desktop'
 import {UserProofs, UserBio} from '../common-adapters'
 import {globalStyles} from '../styles'
 import NonUser from './non-user'
-import {autoResize} from '../desktop/renderer/remote-component-helper'
+import {autoResize} from '../desktop/remote/component-helper'
 import TrackerError from './error'
 
 import type {RenderProps} from './render'

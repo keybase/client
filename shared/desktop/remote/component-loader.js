@@ -3,8 +3,8 @@
 import React, {Component} from 'react'
 import ReactDOM from 'react-dom'
 // $FlowIssue
-import RemoteStore from './remote-store2'
-import Root from './container'
+import RemoteStore from './store'
+import Root from '../renderer/container'
 import Menubar from '../../menubar/remote-container.desktop'
 import Pinentry from '../../pinentry/remote-container.desktop'
 import PurgeMessage from '../../pgp/remote-container.desktop'
@@ -83,7 +83,9 @@ const styles = {
   container: {
     backgroundColor: globalColors.white,
     display: 'block',
+    height: '100%',
     overflow: 'hidden',
+    width: '100%',
   },
   loading: {
     backgroundColor: globalColors.grey,

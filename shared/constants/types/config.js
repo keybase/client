@@ -29,6 +29,7 @@ export type _State = {
   initialState: ?InitialState,
   kbfsPath: string,
   loggedIn: boolean,
+  menubarWindowID: number,
   pgpPopupOpen: boolean,
   pushLoaded: boolean,
   readyForBootstrap: boolean,
