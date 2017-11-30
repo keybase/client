@@ -61,7 +61,7 @@ const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps, ownPro
 
   const isEdited = message.type === 'Text' && stateProps._editedCount > 0
   const isRevoked = !!message.senderDeviceRevokedAt
-  const failureDescription = message.messageState === 'failed' ? message.failureDescription : null
+  const failureDescription = message.messageState === 'failed' ? message.failureDescription : ''
 
   const isFirstNewMessage = !!(conversationState &&
     message &&
@@ -127,7 +127,8 @@ export default compose(
       if (
         this.props._editedCount !== prevProps._editedCount ||
         this.props.isFirstNewMessage !== prevProps.isFirstNewMessage ||
-        this.props.timestamp !== prevProps.timestamp
+        this.props.timestamp !== prevProps.timestamp ||
+        this.props.failureDescription !== prevProps.failureDescription
       ) {
         this.props.measure && this.props.measure()
       }
