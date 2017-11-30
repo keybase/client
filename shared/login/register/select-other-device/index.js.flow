@@ -8,6 +8,7 @@ export type Props = {
   onSelect: (id: string) => void,
   onWont: () => void,
   onBack: () => void,
+  onReset: () => void,
   showResetLink: boolean,
   setShowResetLink: (show: boolean) => void,
 }

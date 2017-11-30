@@ -5,6 +5,9 @@ import {connect, type TypedState} from '../../../util/container'
 import {compose, withState} from 'recompose'
 import {type Device} from '../../../constants/types/devices'
 import {type RouteProps} from '../../../route-tree/render-route'
+import openURL from '../../../util/open-url'
+
+const ACCOUNT_RESET_URL = 'https://keybase.io/#account-reset'
 
 type OwnProps = RouteProps<
   {
@@ -22,6 +25,10 @@ const mapDispatchToProps = dispatch => ({
   onBack: () => dispatch(LoginGen.createOnBack()),
   onWont: () => dispatch(LoginGen.createOnWont()),
   onSelect: deviceId => dispatch(LoginGen.createSelectDeviceId({deviceId})),
+  onReset: () => {
+    openURL(ACCOUNT_RESET_URL)
+    dispatch(LoginGen.createOnBack())
+  },
 })
 
 export default compose(

@@ -50,6 +50,7 @@ const selectOtherMock = {
   onSelect: log('onSelect'),
   onWont: log('onWont'),
   onBack: log('onBack'),
+  onReset: log('onReset'),
   showResetLink: false,
   setShowResetLink: log('setShowResetLink'),
 }

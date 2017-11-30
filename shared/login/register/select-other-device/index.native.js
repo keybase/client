@@ -3,7 +3,6 @@ import Container from '../../forms/container'
 import * as React from 'react'
 import {Box, Text, Icon, ClickableBox, NativeScrollView, Button} from '../../../common-adapters/index.native'
 import {globalColors, globalMargins, globalStyles} from '../../../styles'
-import openURL from '../../../util/open-url'
 
 import type {DeviceType} from '../../../constants/types/devices'
 import type {IconType} from '../../../common-adapters/icon'
@@ -37,7 +36,7 @@ const Row = ({deviceID, name, type, onSelect}) => {
   )
 }
 
-const ResetOption = ({showResetLink, setShowResetLink}) => (
+const ResetOption = ({showResetLink, setShowResetLink, onReset}) => (
   <Box>
     <ClickableBox style={stylesRow} className="deviceRow" onClick={() => setShowResetLink(true)}>
       <Box style={stylesIconName}>
@@ -54,11 +53,7 @@ const ResetOption = ({showResetLink, setShowResetLink}) => (
     {showResetLink &&
       <Box style={{...stylesRow, justifyContent: 'center', borderBottomWidth: 0}}>
         <Box style={{...stylesIconName, justifyContent: 'center'}}>
-          <Button
-            type="Danger"
-            label="RESET MY ACCOUNT"
-            onClick={() => openURL('https://keybase.io/#account-reset')}
-          />
+          <Button type="Danger" label="RESET MY ACCOUNT" onClick={onReset} />
         </Box>
       </Box>}
   </Box>
@@ -72,6 +67,7 @@ const SelectOtherDevice = ({
   canSelectNoDevice,
   showResetLink,
   setShowResetLink,
+  onReset,
 }: Props) => (
   <Container style={stylesContainer} onBack={onBack} outerStyle={{paddingLeft: 0, paddingRight: 0}}>
     <Box style={globalStyles.flexBoxColumn}>
@@ -82,7 +78,7 @@ const SelectOtherDevice = ({
     </Box>
     <NativeScrollView style={stylesDevicesContainer}>
       {devices.map(d => <Row onSelect={onSelect} {...d} key={d.deviceID} />)}
-      <ResetOption showResetLink={showResetLink} setShowResetLink={setShowResetLink} />
+      <ResetOption showResetLink={showResetLink} setShowResetLink={setShowResetLink} onReset={onReset} />
     </NativeScrollView>
     {canSelectNoDevice &&
       <Text style={stylesWont} type="BodySmallSecondaryLink" onClick={onWont}>

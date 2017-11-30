@@ -3,7 +3,6 @@ import Container from '../../forms/container.desktop'
 import * as React from 'react'
 import {Text, Icon} from '../../../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../../../styles'
-import openURL from '../../../util/open-url'
 
 import type {DeviceType} from '../../../constants/types/devices'
 import type {IconType} from '../../../common-adapters/icon'
@@ -35,7 +34,7 @@ const Row = ({deviceID, name, type, onSelect}) => {
   )
 }
 
-const ResetOption = ({showResetLink, setShowResetLink}) => (
+const ResetOption = ({showResetLink, setShowResetLink, onReset}) => (
   <div>
     <div style={stylesRow} className="deviceRow" onClick={() => setShowResetLink(true)}>
       <div style={stylesIconName}>
@@ -53,7 +52,7 @@ const ResetOption = ({showResetLink, setShowResetLink}) => (
     {showResetLink &&
       <div style={{...stylesRow, alignItems: 'center', cursor: 'normal'}}>
         <div style={stylesIconName}>
-          <Text type="BodyPrimaryLink" onClick={() => openURL('https://keybase.io/#account-reset')}>
+          <Text type="BodyPrimaryLink" onClick={onReset}>
             RESET MY ACCOUNT & START FROM SCRATCH
           </Text>
         </div>
@@ -69,13 +68,14 @@ const SelectOtherDevice = ({
   canSelectNoDevice,
   showResetLink,
   setShowResetLink,
+  onReset,
 }: Props) => (
   <Container style={stylesContainer} onBack={onBack}>
     <style>{realCSS}</style>
     <Text type="Header" style={stylesHeader}>Which Keybase install would you like to connect with?</Text>
     <div style={stylesDevicesContainer}>
       {devices.map(d => <Row onSelect={onSelect} {...d} key={d.deviceID} />)}
-      <ResetOption showResetLink={showResetLink} setShowResetLink={setShowResetLink} />
+      <ResetOption showResetLink={showResetLink} setShowResetLink={setShowResetLink} onReset={onReset} />
     </div>
     {canSelectNoDevice &&
       <Text style={stylesWont} type="BodySmallSecondaryLink" onClick={onWont}>
