@@ -12,9 +12,16 @@ export type InitialState = {|
 
 export type BootStatus = 'bootStatusLoading' | 'bootStatusBootstrapped' | 'bootStatusFailure'
 
+export type AvatarSizes = {
+  '200': string,
+  '360': string,
+  '40': string,
+}
+
 export type _State = {
   appFocused: boolean,
   appFocusedCount: number,
+  avatars: {[username: string]: AvatarSizes},
   bootStatus: BootStatus,
   bootstrapTriesRemaining: number,
   config: ?Config,

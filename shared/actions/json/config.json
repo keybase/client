@@ -3,6 +3,21 @@
     "import * as Types from '../constants/types/config'"
   ],
   "actions": {
+    "clearAvatarCache": {},
+    "loadAvatar": {
+      "username": "string"
+    },
+    "loadedAvatar": {
+      "username": "string",
+      "urlMap": "?Object"
+    },
+    "loadTeamAvatar": {
+      "teamname": "string"
+    },
+    "loadedTeamAvatar": {
+      "teamname": "string",
+      "urlMap": "?Object"
+    },
     "bootstrapStatusLoaded": {
       "deviceID": "string",
       "deviceName": "string",

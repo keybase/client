@@ -416,7 +416,7 @@ class Profile extends Component<Props, State> {
   }
 }
 
-const UserEntry = ({onClick, username, followsYou, following, thumbnailUrl}) => (
+const UserEntry = ({onClick, username, followsYou, following}) => (
   <ClickableBox
     onClick={() => {
       onClick && onClick(username)
@@ -427,7 +427,7 @@ const UserEntry = ({onClick, username, followsYou, following, thumbnailUrl}) => 
       <Avatar
         style={userEntryAvatarStyle}
         size={64}
-        url={thumbnailUrl}
+        username={username}
         followsYou={followsYou}
         following={following}
       />

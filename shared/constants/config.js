@@ -23,6 +23,7 @@ export const teamFolder = (team: string) => `${defaultKBFSPath}${defaultTeamPref
 export const makeState: I.RecordFactory<Types._State> = I.Record({
   appFocused: true,
   appFocusedCount: 0,
+  avatars: {}, // Can't be an I.Map since its used by remotes
   bootStatus: 'bootStatusLoading',
   bootstrapTriesRemaining: maxBootstrapTries,
   config: null,

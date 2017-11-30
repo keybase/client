@@ -168,9 +168,6 @@ const folders = [
   }),
 ]
 
-const thumbnailUrl =
-  'https://s3.amazonaws.com/keybase_processed_uploads/40f1d7cce021744333f4ed77c08df905_360_360_square_360.jpeg'
-
 const followers = [
   {
     username: 'awendland',
@@ -178,7 +175,6 @@ const followers = [
     fullname: 'Alex Wendland',
     followsYou: true,
     following: false,
-    thumbnailUrl,
   },
   {
     username: 'marcopolo',
@@ -186,7 +182,6 @@ const followers = [
     fullname: 'Marco Munizaga',
     followsYou: false,
     following: false,
-    thumbnailUrl,
   },
   {
     username: 'chromakode',
@@ -194,7 +189,6 @@ const followers = [
     fullname: 'Max Goodman',
     followsYou: true,
     following: true,
-    thumbnailUrl,
   },
   {
     username: 'strib',
@@ -202,19 +196,17 @@ const followers = [
     fullname: 'Jeremy Stribling',
     followsYou: false,
     following: true,
-    thumbnailUrl,
   },
-  {username: 'chris', uid: '0', fullname: 'Chris Vendle', followsYou: false, following: false, thumbnailUrl},
-  {username: 'thor', uid: '0', fullname: 'Thor Asgard', followsYou: false, following: true, thumbnailUrl},
+  {username: 'chris', uid: '0', fullname: 'Chris Vendle', followsYou: false, following: false},
+  {username: 'thor', uid: '0', fullname: 'Thor Asgard', followsYou: false, following: true},
   {
     username: 'alex',
     uid: '0',
     fullname: 'Alexander The-Gret',
     followsYou: true,
     following: false,
-    thumbnailUrl,
   },
-  {username: 'daniel', uid: '0', fullname: 'Daniel Steven', followsYou: true, following: true, thumbnailUrl},
+  {username: 'daniel', uid: '0', fullname: 'Daniel Steven', followsYou: true, following: true},
 ]
 
 const following = [
@@ -224,7 +216,6 @@ const following = [
     fullname: 'Steve Sanders',
     followsYou: false,
     following: false,
-    thumbnailUrl,
   },
   {
     username: 'awendland',
@@ -232,7 +223,6 @@ const following = [
     fullname: 'Alex Wendland',
     followsYou: true,
     following: false,
-    thumbnailUrl,
   },
   {
     username: 'strib',
@@ -240,7 +230,6 @@ const following = [
     fullname: 'Jeremy Stribling',
     followsYou: false,
     following: true,
-    thumbnailUrl,
   },
 ]
 

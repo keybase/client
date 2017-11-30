@@ -41,7 +41,7 @@ class MenubarRender extends Component<Props, State> {
     this.props.refresh()
   }
 
-  constructor(props) {
+  constructor(props: Props) {
     super(props)
     remote.getCurrentWindow().on('show', this._onShow)
   }

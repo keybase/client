@@ -591,7 +591,6 @@ const _listTrackersOrTracking = (
         resolve(
           (response.users || []).map(f => ({
             username: f.username,
-            thumbnailUrl: f.thumbnail,
             uid: f.uid,
             fullname: f.fullName,
             followsYou: f.isFollower,

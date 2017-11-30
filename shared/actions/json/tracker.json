@@ -76,7 +76,6 @@
     },
     "parseFriendship": {
       "username": "string",
-      "thumbnailUrl": "string",
       "uid": "string",
       "fullname": "string",
       "followsYou": "string",
@@ -130,8 +129,8 @@
     },
     "setUpdateTrackers": {
       "username": "string",
-      "trackers": "Array<{|username: string, thumbnailUrl: ?string, uid: string, fullname: string, followsYou: boolean, following: boolean|}>",
-      "tracking": "Array<{|username: string, thumbnailUrl: ?string, uid: string, fullname: string, followsYou: boolean, following: boolean|}>"
+      "trackers": "Array<{|username: string, uid: string, fullname: string, followsYou: boolean, following: boolean|}>",
+      "tracking": "Array<{|username: string, uid: string, fullname: string, followsYou: boolean, following: boolean|}>"
     }
   }
 }

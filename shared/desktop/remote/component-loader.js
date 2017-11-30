@@ -11,9 +11,7 @@ import PurgeMessage from '../../pgp/remote-container.desktop'
 import Tracker from '../../tracker/remote-container.desktop'
 import UnlockFolders from '../../unlock-folders/remote-container.desktop'
 import {disable as disableDragDrop} from '../../util/drag-drop'
-import {getUserImageMap, loadUserImageMap, getTeamImageMap, loadTeamImageMap} from '../../util/pictures'
 import {globalColors} from '../../styles'
-import {initAvatarLookup, initAvatarLoad} from '../../common-adapters'
 import {remote, BrowserWindow} from 'electron'
 import {setupContextMenu} from '../app/menu-helper'
 import {setupSource} from '../../util/forward-logs'
@@ -22,11 +20,6 @@ import {makeEngine} from '../../engine'
 setupSource()
 disableDragDrop()
 makeEngine() // TODO remove when the avatar dep on engine is fixed
-
-function setupAvatar() {
-  initAvatarLookup(getUserImageMap, getTeamImageMap)
-  initAvatarLoad(loadUserImageMap, loadTeamImageMap)
-}
 
 module.hot && module.hot.accept()
 
@@ -97,7 +90,6 @@ const styles = {
 }
 
 function load(options) {
-  setupAvatar()
   const node = document.getElementById('root')
   if (node) {
     ReactDOM.render(

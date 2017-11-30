@@ -20,8 +20,6 @@ import loadPerf from '../../util/load-perf'
 import routeDefs from '../../app/routes'
 import {AppContainer} from 'react-hot-loader'
 import {disable as disableDragDrop} from '../../util/drag-drop'
-import {getUserImageMap, loadUserImageMap, getTeamImageMap, loadTeamImageMap} from '../../util/pictures'
-import {initAvatarLookup, initAvatarLoad} from '../../common-adapters'
 import merge from 'lodash/merge'
 import throttle from 'lodash/throttle'
 import {setRouteDef} from '../../actions/route-tree'
@@ -43,17 +41,11 @@ function setupStore() {
   return _store
 }
 
-function setupAvatar() {
-  initAvatarLookup(getUserImageMap, getTeamImageMap)
-  initAvatarLoad(loadUserImageMap, loadTeamImageMap)
-}
-
 function setupApp(store) {
   setupSource()
   disableDragDrop()
   const eng = makeEngine(store.dispatch)
   loadPerf()
-  setupAvatar()
 
   if (__DEV__ && process.env.KEYBASE_LOCAL_DEBUG) {
     require('devtron').install()

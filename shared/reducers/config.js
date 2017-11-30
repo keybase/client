@@ -4,12 +4,18 @@ import * as Types from '../constants/types/config'
 import * as Constants from '../constants/config'
 import * as ConfigGen from '../actions/config-gen'
 import * as AppGen from '../actions/app-gen'
+import isEmpty from 'lodash/isEmpty'
+import pickBy from 'lodash/pickBy'
 
 const initialState = Constants.makeState()
 
 export default function(
   state: Types.State = initialState,
-  action: ConfigGen.Actions | AppGen.ChangedFocusPayload | AppGen.ChangedActivePayload
+  action:
+    | ConfigGen.Actions
+    | AppGen.ChangedFocusPayload
+    | AppGen.ChangedActivePayload
+    | {type: 'remote:updateMenubarWindowID', payload: {id: number}}
 ): Types.State {
   switch (action.type) {
     case ConfigGen.resetStore:
@@ -79,9 +85,33 @@ export default function(
       return state.set('pgpPopupOpen', true)
     case ConfigGen.pgpAckedMessage:
       return state.set('pgpPopupOpen', false)
+    case ConfigGen.clearAvatarCache: {
+      const old = state.avatars
+      const goodAvatars = pickBy(old, value => !isEmpty(value))
+
+      if (Object.keys(old).length === Object.keys(goodAvatars).length) {
+        return state
+      } else {
+        // Something errored?
+        return state.set('avatars', goodAvatars)
+      }
+    }
+    case ConfigGen.loadedAvatar: {
+      const {username, urlMap} = action.payload
+      return state.set('avatars', {
+        ...state.avatars,
+        [username]: urlMap,
+      })
+    }
+    case ConfigGen.loadedTeamAvatar: {
+      // TODO
+      return state
+    }
     case 'remote:updateMenubarWindowID':
       return state.set('menubarWindowID', action.payload.id)
     // Saga only actions
+    case ConfigGen.loadTeamAvatar:
+    case ConfigGen.loadAvatar:
     case ConfigGen.bootstrap:
     case ConfigGen.clearRouteState:
     case ConfigGen.getExtendedStatus:

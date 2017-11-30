@@ -204,6 +204,64 @@ function _pgpSecurityModelChangeMessageSaga() {
   })
 }
 
+// Bundle up avatars to load
+let _avatarsToLoad = {}
+function* _loadAvatar(action: ConfigGen.LoadAvatarPayload) {
+  const {username} = action.payload
+  // store it and wait, once our timer is up we pull any and run it
+  _avatarsToLoad[username] = true
+  yield Saga.call(Saga.delay, 200)
+
+  const names = Object.keys(_avatarsToLoad)
+  _avatarsToLoad = {}
+
+  if (!names.length) {
+    return
+  }
+
+  try {
+    const response = yield Saga.call(RPCTypes.apiserverGetRpcPromise, {
+      args: [
+        {key: 'usernames', value: names.join(',')},
+        {key: 'formats', value: 'square_360,square_200,square_40'},
+      ],
+      endpoint: 'image/username_pic_lookups',
+    })
+
+    const actions = JSON.parse(response.body).pictures.map((picMap, idx) =>
+      Saga.put(
+        ConfigGen.createLoadedAvatar({
+          urlMap: {
+            ...(picMap['square_200'] ? {'200': picMap['square_200']} : null),
+            ...(picMap['square_360'] ? {'360': picMap['square_360']} : null),
+            ...(picMap['square_40'] ? {'40': picMap['square_40']} : null),
+          },
+          username: names[idx],
+        })
+      )
+    )
+    yield Saga.all(actions)
+  } catch (e) {
+    const actions = names.map(username =>
+      Saga.put(
+        ConfigGen.createLoadedAvatar({
+          urlMap: null,
+          username,
+        })
+      )
+    )
+    yield Saga.all(actions)
+  }
+}
+
+// Every minute we clear out any avatars that might have errored out
+function* _periodicAvatarCacheClear() {
+  while (true) {
+    yield Saga.call(Saga.delay, 1000 * 60)
+    yield Saga.put(ConfigGen.createClearAvatarCache())
+  }
+}
+
 function* configSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(ConfigGen.bootstrapSuccess, _bootstrapSuccess)
   yield Saga.safeTakeEvery(ConfigGen.bootstrap, _bootstrap)
@@ -211,6 +269,9 @@ function* configSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEvery(ConfigGen.persistRouteState, _persistRouteState)
   yield Saga.safeTakeEvery(ConfigGen.retryBootstrap, _retryBootstrap)
   yield Saga.safeTakeEveryPure(ConfigGen.pgpAckedMessage, _pgpSecurityModelChangeMessageSaga)
+  yield Saga.safeTakeEvery(ConfigGen.loadAvatar, _loadAvatar)
+  // TODO put back
+  // yield Saga.fork(_periodicAvatarCacheClear)
 }
 
 export {getExtendedStatus}
