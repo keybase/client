@@ -54,7 +54,7 @@ const ResetOption = ({showResetLink, setShowResetLink}) => (
       <div style={{...stylesRow, alignItems: 'center', cursor: 'normal'}}>
         <div style={stylesIconName}>
           <Text type="BodyPrimaryLink" onClick={() => openURL('https://keybase.io/#account-reset')}>
-            RESET MY ACCOUNT
+            RESET MY ACCOUNT & START FROM SCRATCH
           </Text>
         </div>
       </div>}
