@@ -33,7 +33,7 @@ class UserEntry extends PureComponent<UserEntryProps> {
   }
 
   render() {
-    const {username, followsYou, following, thumbnailUrl} = this.props
+    const {username, fullname, followsYou, following, thumbnailUrl} = this.props
 
     return (
       <Box style={userEntryContainerStyle} onClick={this._onClick}>
@@ -45,6 +45,7 @@ class UserEntry extends PureComponent<UserEntryProps> {
           following={following}
         />
         <Text type="BodySemibold" style={userEntryUsernameStyle(following)}>{username}</Text>
+        <Text type="BodySmall" style={userEntryFullnameStyle}>{fullname}</Text>
       </Box>
     )
   }
@@ -69,6 +70,11 @@ const userEntryUsernameStyle = following => ({
   color: following ? globalColors.green : globalColors.blue,
   textAlign: 'center',
 })
+
+const userEntryFullnameStyle = {
+  color: globalColors.black_40,
+  textAlign: 'center',
+}
 
 class FriendshipsRender extends Component<Props> {
   _itemRenderer(followers: boolean, index: number) {
