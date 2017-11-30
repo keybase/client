@@ -94,8 +94,7 @@ func (t SigchainV2Type) RequiresAdminPermission() bool {
 	switch t {
 	case SigchainV2TypeTeamRoot,
 		SigchainV2TypeTeamRotateKey,
-		SigchainV2TypeTeamLeave,
-		SigchainV2TypeTeamKBFSSettings:
+		SigchainV2TypeTeamLeave:
 		return false
 	default:
 		return true

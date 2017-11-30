@@ -767,19 +767,15 @@ func (t *TeamSigChainPlayer) addInnerLink(
 	}
 
 	checkAdmin := func(op string) (signerIsExplicitOwner bool, err error) {
-		if !signer.implicitAdmin {
-			signerRole, err := prevState.GetUserRole(signer.signer)
-			if err != nil {
-				return false, err
-			}
-			if !signerRole.IsAdminOrAbove() {
-				return false, fmt.Errorf("link signer does not have permission to %s: %v is a %v", op, signer, signerRole)
-			}
-			if signerRole == keybase1.TeamRole_OWNER {
-				signerIsExplicitOwner = true
-			}
+		signerRole, err := prevState.GetUserRole(signer.signer)
+		if err != nil {
+			signerRole = keybase1.TeamRole_NONE
 		}
-		return signerIsExplicitOwner, nil
+		signerIsExplicitOwner = signerRole == keybase1.TeamRole_OWNER
+		if signerRole.IsAdminOrAbove() || signer.implicitAdmin {
+			return signerIsExplicitOwner, nil
+		}
+		return signerIsExplicitOwner, fmt.Errorf("link signer does not have permission to %s: %v is a %v", op, signer, signerRole)
 	}
 
 	switch libkb.LinkType(payload.Body.Type) {
@@ -793,6 +789,7 @@ func (t *TeamSigChainPlayer) addInnerLink(
 			hasSubteam(false),
 			hasPerTeamKey(true),
 			hasAdmin(false),
+			hasKBFSSettings(false),
 			hasCompletedInvites(false))
 		if err != nil {
 			return res, err
@@ -902,6 +899,7 @@ func (t *TeamSigChainPlayer) addInnerLink(
 			hasParent(false),
 			hasInvites(false),
 			hasSubteam(false),
+			hasKBFSSettings(false),
 			hasSettings(false))
 		if err != nil {
 			return res, err
@@ -1034,6 +1032,7 @@ func (t *TeamSigChainPlayer) addInnerLink(
 			hasPerTeamKey(true),
 			hasInvites(false),
 			hasCompletedInvites(false),
+			hasKBFSSettings(false),
 			hasSettings(false))
 		if err != nil {
 			return res, err
@@ -1079,6 +1078,7 @@ func (t *TeamSigChainPlayer) addInnerLink(
 			hasAdmin(false),
 			hasInvites(false),
 			hasCompletedInvites(false),
+			hasKBFSSettings(false),
 			hasSettings(false))
 		if err != nil {
 			return res, err
@@ -1119,6 +1119,7 @@ func (t *TeamSigChainPlayer) addInnerLink(
 			hasPerTeamKey(false),
 			hasInvites(false),
 			hasCompletedInvites(false),
+			hasKBFSSettings(false),
 			hasSettings(false))
 		if err != nil {
 			return res, err
@@ -1165,6 +1166,7 @@ func (t *TeamSigChainPlayer) addInnerLink(
 			hasSubteam(false),
 			hasPerTeamKey(true),
 			hasInvites(false),
+			hasKBFSSettings(false),
 			hasCompletedInvites(false))
 		if err != nil {
 			return res, err
@@ -1256,6 +1258,7 @@ func (t *TeamSigChainPlayer) addInnerLink(
 			hasPerTeamKey(false),
 			hasInvites(false),
 			hasCompletedInvites(false),
+			hasKBFSSettings(false),
 			hasSettings(false))
 		if err != nil {
 			return res, err
@@ -1298,6 +1301,7 @@ func (t *TeamSigChainPlayer) addInnerLink(
 			hasPerTeamKey(false),
 			hasInvites(false),
 			hasCompletedInvites(false),
+			hasKBFSSettings(false),
 			hasSettings(false))
 		if err != nil {
 			return res, err
@@ -1359,6 +1363,7 @@ func (t *TeamSigChainPlayer) addInnerLink(
 			hasPerTeamKey(false),
 			hasInvites(false),
 			hasCompletedInvites(false),
+			hasKBFSSettings(false),
 			hasSettings(false))
 		if err != nil {
 			return res, err
@@ -1398,6 +1403,7 @@ func (t *TeamSigChainPlayer) addInnerLink(
 			hasSubteam(false),
 			hasPerTeamKey(false),
 			hasInvites(true),
+			hasKBFSSettings(false),
 			hasSettings(false))
 		if err != nil {
 			return res, err
@@ -1442,6 +1448,7 @@ func (t *TeamSigChainPlayer) addInnerLink(
 			hasSubteam(false),
 			hasPerTeamKey(false),
 			hasCompletedInvites(false),
+			hasKBFSSettings(false),
 			hasSettings(true))
 		if err != nil {
 			return res, err
