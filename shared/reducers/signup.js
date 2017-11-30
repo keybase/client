@@ -1,59 +1,36 @@
 // @flow
-import * as CommonConstants from '../constants/common'
+import * as Types from '../constants/types/signup'
 import * as Constants from '../constants/signup'
 import * as SignupGen from '../actions/signup-gen'
-import {isMobile} from '../constants/platform'
 
-const initialState: Constants.State = {
-  deviceName: isMobile ? 'Mobile Device' : 'Home Computer',
-  deviceNameError: null,
-  email: null,
-  emailError: null,
-  inviteCode: null,
-  inviteCodeError: null,
-  nameError: null,
-  paperkey: null,
-  passphrase: null,
-  passphraseError: null,
-  phase: 'inviteCode',
-  signupError: null,
-  username: null,
-  usernameError: null,
-  waiting: false,
-}
-
-/* eslint-disable no-fallthrough */
-export default function(
-  state: Constants.State = initialState,
-  action: Constants.Actions | SignupGen.Actions
-): Constants.State {
+export default function(state: Types.State = Constants.initialState, action: SignupGen.Actions): Types.State {
   switch (action.type) {
-    case CommonConstants.resetStore:
-    case Constants.resetSignup: // fallthrough
-      return {...initialState}
+    case SignupGen.resetStore: // fallthrough
+    case SignupGen.resetSignup:
+      return {...Constants.initialState}
 
-    case Constants.signupWaiting:
-      if (action.error) {
-        return state
-      }
-      return {...state, waiting: action.payload}
+    case SignupGen.waiting:
+      const {waiting} = action.payload
+      return {...state, waiting}
 
     case SignupGen.checkInviteCode:
       if (action.error) {
+        const {errorText} = action.payload
         return {
           ...state,
-          inviteCodeError: action.payload.errorText,
+          inviteCodeError: errorText,
         }
       } else {
+        const {inviteCode} = action.payload
         return {
           ...state,
-          inviteCode: action.payload.inviteCode,
+          inviteCode,
           inviteCodeError: null,
           phase: 'usernameAndEmail',
         }
       }
 
-    case Constants.checkUsernameEmail:
+    case SignupGen.checkUsernameEmail:
       const {username, email} = action.payload
       if (action.error) {
         const {emailError, usernameError} = action.payload
@@ -75,13 +52,13 @@ export default function(
         }
       }
 
-    case Constants.startRequestInvite:
+    case SignupGen.startRequestInvite:
       return {
         ...state,
         phase: 'requestInvite',
       }
 
-    case Constants.requestInvite:
+    case SignupGen.requestInvite:
       if (action.error) {
         const {emailError, nameError, email, name} = action.payload
         return {
@@ -101,7 +78,7 @@ export default function(
         }
       }
 
-    case Constants.checkPassphrase:
+    case SignupGen.checkPassphrase:
       if (action.error) {
         const {passphraseError} = action.payload
         return {
@@ -117,18 +94,18 @@ export default function(
           phase: 'deviceName',
         }
       }
-    case Constants.setDeviceNameError:
+    case SignupGen.setDeviceNameError:
       const {deviceNameError} = action.payload
       return {
         ...state,
         deviceNameError,
       }
-    case Constants.clearDeviceNameError:
+    case SignupGen.clearDeviceNameError:
       return {
         ...state,
         deviceNameError: null,
       }
-    case Constants.submitDeviceName:
+    case SignupGen.submitDeviceName:
       if (action.error) {
         const {deviceNameError} = action.payload
         return {
@@ -145,7 +122,7 @@ export default function(
         }
       }
 
-    case Constants.showPaperKey:
+    case SignupGen.showPaperKey:
       if (action.error) {
         console.warn('Should not get an error from showing paper key')
         return state
@@ -158,7 +135,7 @@ export default function(
         }
       }
 
-    case Constants.showSuccess:
+    case SignupGen.showSuccess:
       if (action.error) {
         console.warn('Should not get an error from showing success')
         return state
@@ -169,7 +146,7 @@ export default function(
         }
       }
 
-    case Constants.signup:
+    case SignupGen.signup:
       if (action.error) {
         return {
           ...state,
@@ -180,16 +157,16 @@ export default function(
         return state
       }
 
-    case Constants.restartSignup:
+    case SignupGen.restartSignup:
       return {
         ...state,
         inviteCodeError: null,
         passphraseError: null,
         phase: 'inviteCode',
       }
-
     default:
+      // eslint-disable-next-line no-unused-expressions
+      (action: empty) // if you get a flow error here it means there's an action you claim to handle but didn't
       return state
   }
 }
-/* eslint-enable no-fallthrough */

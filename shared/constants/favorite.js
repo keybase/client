@@ -1,12 +1,9 @@
 // @flow
+import * as RPCTypes from './types/flow-types'
+import * as Types from './types/favorite'
 import {defaultKBFSPath} from './config'
-import {favoriteFolderType} from '../constants/types/flow-types'
 import {parseFolderNameToUsers, sortUserList} from '../util/kbfs'
-
-import type {Exact} from '../constants/types/more'
-import type {Folder as FolderRPC, FuseStatus} from '../constants/types/flow-types'
 import type {Folder, MetaType, FolderRPCWithMeta} from './folders'
-import type {TypedAction, NoErrorTypedAction} from './types/flux'
 import type {UserList} from '../common-adapters/usernames'
 
 // See KBDefines.h: KBExitFuseKextError
@@ -14,93 +11,34 @@ export const ExitCodeFuseKextError = 4
 // See KBDefines.h: KBExitFuseKextPermissionError
 export const ExitCodeFuseKextPermissionError = 5
 
-type ListState = any
-// TODO this is super messy and there some entangled flow error. let's revisit this soon
-/* {
-  tlfs?: Array<Folder>,
-  ignored?: Array<Folder>,
-  isPublic: boolean,
-  style?: any,
-  smallMode?: boolean,
-  onClick?: (path: string) => void,
-  onRekey?: (path: string) => void,
-  onOpen?: (path: string) => void,
-  onChat?: (tlf: string) => void,
-  onToggleShowIgnored?: ?() => void,
-  showIgnored?: boolean,
-  extraRows?: Array<React.Node>,
-} */
-
-export type FolderState = {
-  privateBadge: number,
-  private: ListState,
-  publicBadge: number,
-  public: ListState,
+const initialState: Types.State = {
+  folderState: {
+    private: {
+      isPublic: false,
+      tlfs: [],
+    },
+    privateBadge: 0,
+    public: {
+      isPublic: true,
+      tlfs: [],
+    },
+    publicBadge: 0,
+  },
+  fuseInstalling: false,
+  fuseStatus: null,
+  fuseStatusLoading: false,
+  kbfsInstalling: false,
+  kbfsOpening: false,
+  kbfsStatus: {
+    isAsyncWriteHappening: false,
+  },
+  kextPermissionError: false,
+  viewState: {
+    privateIgnoredOpen: false,
+    publicIgnoredOpen: false,
+    showingPrivate: true,
+  },
 }
-
-export type ViewState = Exact<{
-  showingPrivate: boolean,
-  publicIgnoredOpen: boolean,
-  privateIgnoredOpen: boolean,
-}>
-
-export type KBFSStatus = {
-  isAsyncWriteHappening: boolean,
-}
-
-export type State = Exact<{
-  folderState: FolderState,
-  fuseInstalling: boolean,
-  fuseStatus: ?FuseStatus,
-  fuseStatusLoading: boolean,
-  kbfsInstalling: boolean,
-  kbfsOpening: boolean,
-  kbfsStatus: KBFSStatus,
-  kextPermissionError: boolean,
-  viewState: ViewState,
-}>
-
-export const favoriteAdd = 'favorite:favoriteAdd'
-export type FavoriteAdd = NoErrorTypedAction<'favorite:favoriteAdd', {path: string}>
-export const favoriteAdded = 'favorite:favoriteAdded'
-export type FavoriteAdded = TypedAction<'favorite:favoriteAdded', void, {errorText: string}>
-
-export const favoriteList = 'favorite:favoriteList'
-export type FavoriteList = NoErrorTypedAction<'favorite:favoriteList', void>
-export const favoriteListed = 'favorite:favoriteListed'
-export type FavoriteListed = TypedAction<'favorite:favoriteListed', {folders: FolderState}, void>
-
-export const favoriteIgnore = 'favorite:favoriteIgnore'
-export type FavoriteIgnore = NoErrorTypedAction<'favorite:favoriteIgnore', {path: string}>
-export const favoriteIgnored = 'favorite:favoriteIgnored'
-export type FavoriteIgnored = TypedAction<'favorite:favoriteIgnored', void, {errorText: string}>
-
-export const favoriteSwitchTab = 'favorite:favoriteSwitchTab'
-export type FavoriteSwitchTab = TypedAction<'favorite:favoriteSwitchTab', {showingPrivate: boolean}, void>
-
-export const favoriteToggleIgnored = 'favorite:favoriteToggleIgnored'
-export type FavoriteToggleIgnored = TypedAction<'favorite:favoriteToggleIgnored', {isPrivate: boolean}, void>
-
-export const kbfsStatusUpdated = 'favorite:kbfsStatusUpdated'
-export type KbfsStatusUpdated = TypedAction<'favorite:kbfsStatusUpdated', KBFSStatus, void>
-
-export const markTLFCreated = 'favorite:markTLFCreated'
-export type MarkTLFCreated = TypedAction<'favorite:markTLFCreated', {folder: Folder}, void>
-
-export const setupKBFSChangedHandler = 'favorite:setupKBFSChangedHandler'
-export type SetupKBFSChangedHandler = NoErrorTypedAction<'favorite:setupKBFSChangedHandler', void>
-
-export type FavoriteAction =
-  | FavoriteAdd
-  | FavoriteAdded
-  | FavoriteList
-  | FavoriteListed
-  | FavoriteIgnore
-  | FavoriteIgnored
-  | FavoriteSwitchTab
-  | FavoriteToggleIgnored
-  | KbfsStatusUpdated
-  | MarkTLFCreated
 
 // Sometimes we have paths that are just private/foo instead of /keybase/private/foo
 function canonicalizeTLF(tlf: string): string {
@@ -136,14 +74,14 @@ function pathFromFolder({
   return {sortName, path}
 }
 
-function folderRPCFromPath(path: string): ?FolderRPC {
+function folderRPCFromPath(path: string): ?RPCTypes.Folder {
   if (path.startsWith(`${defaultKBFSPath}/private/`)) {
     return {
       name: path.replace(`${defaultKBFSPath}/private/`, ''),
       private: true,
       notificationsOn: false,
       created: false,
-      folderType: favoriteFolderType.private,
+      folderType: RPCTypes.favoriteFolderType.private,
     }
   } else if (path.startsWith(`${defaultKBFSPath}/public/`)) {
     return {
@@ -151,7 +89,7 @@ function folderRPCFromPath(path: string): ?FolderRPC {
       private: false,
       notificationsOn: false,
       created: false,
-      folderType: favoriteFolderType.public,
+      folderType: RPCTypes.favoriteFolderType.public,
     }
   } else if (path.startsWith(`${defaultKBFSPath}/team/`)) {
     return {
@@ -159,7 +97,7 @@ function folderRPCFromPath(path: string): ?FolderRPC {
       private: true,
       notificationsOn: false,
       created: false,
-      folderType: favoriteFolderType.team,
+      folderType: RPCTypes.favoriteFolderType.team,
     }
   } else {
     return null
@@ -172,7 +110,7 @@ function folderFromFolderRPCWithMeta(username: string, f: FolderRPCWithMeta): Fo
   const {sortName, path} = pathFromFolder({
     users,
     isPublic: !f.private,
-    isTeam: f.folderType === favoriteFolderType.team,
+    isTeam: f.folderType === RPCTypes.favoriteFolderType.team,
   })
   const meta: MetaType = f.meta
   const ignored = f.meta === 'ignored'
@@ -183,7 +121,7 @@ function folderFromFolderRPCWithMeta(username: string, f: FolderRPCWithMeta): Fo
     sortName,
     hasData: false, // TODO don't have this info
     isPublic: !f.private,
-    isTeam: f.folderType === favoriteFolderType.team,
+    isTeam: f.folderType === RPCTypes.favoriteFolderType.team,
     ignored,
     meta,
     recentFiles: [],
@@ -192,7 +130,7 @@ function folderFromFolderRPCWithMeta(username: string, f: FolderRPCWithMeta): Fo
   }
 }
 
-function folderFromFolderRPC(username: string, f: FolderRPC): Folder {
+function folderFromFolderRPC(username: string, f: RPCTypes.Folder): Folder {
   return folderFromFolderRPCWithMeta(username, {
     ...f,
     waitingForParticipantUnlock: [],
@@ -210,10 +148,9 @@ function folderFromPath(username: string, path: string): ?Folder {
   }
 }
 
-export type {Folder as FolderRPC} from '../constants/types/flow-types'
-
 export {
   canonicalizeTLF,
+  initialState,
   folderFromFolderRPCWithMeta,
   folderFromFolderRPC,
   folderFromPath,

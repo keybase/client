@@ -8,7 +8,7 @@ import {chatTab, loginTab, peopleTab, profileTab, type Tab} from '../constants/t
 import {connect, type TypedState} from '../util/container'
 import {globalStyles} from '../styles'
 import {navigateTo, switchTo} from '../actions/route-tree'
-import {showUserProfile} from '../actions/profile'
+import {createShowUserProfile} from '../actions/profile-gen'
 import {type Props, type StateProps, type DispatchProps, type OwnProps} from './nav'
 
 class Nav extends React.Component<Props> {
@@ -78,7 +78,7 @@ const mapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps) => ({
     // profileTab = self avatar in bottom left corner
     // On click switch to people tab and push current user onto people route stack
     if (tab === profileTab) {
-      me && dispatch(showUserProfile(me))
+      me && dispatch(createShowUserProfile({username: me}))
       dispatch(switchTo([peopleTab]))
       return
     }

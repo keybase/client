@@ -20,12 +20,12 @@ func TestTeamInviteRooter(t *testing.T) {
 	tt.addUser("roo")
 
 	// user 0 creates a team
-	team := tt.users[0].createTeam()
+	teamID, teamName := tt.users[0].createTeam2()
 
 	// user 0 adds a rooter user before the rooter user has proved their
 	// keybase account
 	rooterUser := tt.users[1].username + "@rooter"
-	tt.users[0].addTeamMember(team, rooterUser, keybase1.TeamRole_WRITER)
+	tt.users[0].addTeamMember(teamName.String(), rooterUser, keybase1.TeamRole_WRITER)
 
 	// user 1 proves rooter
 	tt.users[1].proveRooter()
@@ -34,13 +34,13 @@ func TestTeamInviteRooter(t *testing.T) {
 	tt.users[0].kickTeamRekeyd()
 
 	// user 0 should get gregor notification that the team changed
-	tt.users[0].waitForTeamChangedGregor(team, keybase1.Seqno(3))
+	tt.users[0].waitForTeamChangedGregor(teamID, keybase1.Seqno(3))
 
 	// user 1 should also get gregor notification that the team changed
-	tt.users[1].waitForTeamChangedGregor(team, keybase1.Seqno(3))
+	tt.users[1].waitForTeamChangedGregor(teamID, keybase1.Seqno(3))
 
 	// the team should have user 1 in it now as a writer
-	t0, err := teams.GetTeamByNameForTest(context.TODO(), tt.users[0].tc.G, team, false, true)
+	t0, err := teams.GetTeamByNameForTest(context.TODO(), tt.users[0].tc.G, teamName.String(), false, true)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -74,11 +74,11 @@ func TestTeamInviteEmail(t *testing.T) {
 	tt.addUser("eml")
 
 	// user 0 creates a team
-	team := tt.users[0].createTeam()
+	teamID, teamName := tt.users[0].createTeam2()
 
 	// user 0 adds a user by email
 	email := tt.users[1].username + "@keybase.io"
-	tt.users[0].addTeamMemberEmail(team, email, keybase1.TeamRole_WRITER)
+	tt.users[0].addTeamMemberEmail(teamName.String(), email, keybase1.TeamRole_WRITER)
 
 	// user 1 gets the email
 	tokens := tt.users[1].readInviteEmails(email)
@@ -92,13 +92,13 @@ func TestTeamInviteEmail(t *testing.T) {
 	tt.users[0].kickTeamRekeyd()
 
 	// user 0 should get gregor notification that the team changed
-	tt.users[0].waitForTeamChangedGregor(team, keybase1.Seqno(3))
+	tt.users[0].waitForTeamChangedGregor(teamID, keybase1.Seqno(3))
 
 	// user 1 should also get gregor notification that the team changed
-	tt.users[1].waitForTeamChangedGregor(team, keybase1.Seqno(3))
+	tt.users[1].waitForTeamChangedGregor(teamID, keybase1.Seqno(3))
 
 	// the team should have user 1 in it now as a writer
-	t0, err := teams.GetTeamByNameForTest(context.TODO(), tt.users[0].tc.G, team, false, true)
+	t0, err := teams.GetTeamByNameForTest(context.TODO(), tt.users[0].tc.G, teamName.String(), false, true)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -131,14 +131,14 @@ func TestTeamInviteAcceptOrRequest(t *testing.T) {
 	tt.addUser("eml")
 
 	// user 0 creates a team
-	team := tt.users[0].createTeam()
+	teamID, teamName := tt.users[0].createTeam2()
 
 	// user 1 requests access
-	tt.users[1].acceptInviteOrRequestAccess(team)
+	tt.users[1].acceptInviteOrRequestAccess(teamName.String())
 
 	// user 0 adds a user by email
 	email := tt.users[1].username + "@keybase.io"
-	tt.users[0].addTeamMemberEmail(team, email, keybase1.TeamRole_WRITER)
+	tt.users[0].addTeamMemberEmail(teamName.String(), email, keybase1.TeamRole_WRITER)
 
 	// user 1 gets the email
 	tokens := tt.users[1].readInviteEmails(email)
@@ -151,13 +151,13 @@ func TestTeamInviteAcceptOrRequest(t *testing.T) {
 	tt.users[0].kickTeamRekeyd()
 
 	// user 0 should get gregor notification that the team changed
-	tt.users[0].waitForTeamChangedGregor(team, keybase1.Seqno(3))
+	tt.users[0].waitForTeamChangedGregor(teamID, keybase1.Seqno(3))
 
 	// user 1 should also get gregor notification that the team changed
-	tt.users[1].waitForTeamChangedGregor(team, keybase1.Seqno(3))
+	tt.users[1].waitForTeamChangedGregor(teamID, keybase1.Seqno(3))
 
 	// the team should have user 1 in it now as a writer
-	t0, err := teams.GetTeamByNameForTest(context.TODO(), tt.users[0].tc.G, team, false, true)
+	t0, err := teams.GetTeamByNameForTest(context.TODO(), tt.users[0].tc.G, teamName.String(), false, true)
 	require.NoError(t, err)
 	writers, err := t0.UsersWithRole(keybase1.TeamRole_WRITER)
 	require.NoError(t, err)
@@ -178,10 +178,10 @@ func TestTeamInviteResetNoKeys(t *testing.T) {
 	tt.addUser("own")
 
 	// user 0 creates a team
-	team := tt.users[0].createTeam()
+	teamID, teamName := tt.users[0].createTeam2()
 
 	// user 0 should get gregor notification that the team changed and rotated key
-	tt.users[0].waitForTeamChangedAndRotated(team, keybase1.Seqno(1))
+	tt.users[0].waitForTeamChangedAndRotated(teamID, keybase1.Seqno(1))
 
 	bob := ctx.installKeybaseForUser("bob", 10)
 	bob.signup()
@@ -189,7 +189,7 @@ func TestTeamInviteResetNoKeys(t *testing.T) {
 	bob.reset()
 	divDebug(ctx, "Reset bob (%s)", bob.username)
 
-	tt.users[0].addTeamMember(team, bob.username, keybase1.TeamRole_WRITER)
+	tt.users[0].addTeamMember(teamName.String(), bob.username, keybase1.TeamRole_WRITER)
 	divDebug(ctx, "Added bob as a writer")
 
 	// user 0 kicks rekeyd so it notices the puk
@@ -199,7 +199,7 @@ func TestTeamInviteResetNoKeys(t *testing.T) {
 	divDebug(ctx, "Bob logged in after reset")
 
 	// user 0 should get gregor notification that the team changed
-	tt.users[0].waitForTeamChangedGregor(team, keybase1.Seqno(3))
+	tt.users[0].waitForTeamChangedGregor(teamID, keybase1.Seqno(3))
 }
 
 // See if we can re-invite user after they reset and thus make their
@@ -213,24 +213,24 @@ func TestTeamReInviteAfterReset(t *testing.T) {
 	ann := tt.addUser("ann")
 
 	// Ann creates a team.
-	team := ann.createTeam()
-	t.Logf("Created team %q", team)
+	teamID, teamName := ann.createTeam2()
+	t.Logf("Created team %q", teamName.String())
 
-	ann.waitForTeamChangedAndRotated(team, keybase1.Seqno(1))
+	ann.waitForTeamChangedAndRotated(teamID, keybase1.Seqno(1))
 
 	bob := ctx.installKeybaseForUserNoPUK("bob", 10)
 	bob.signupNoPUK()
 	divDebug(ctx, "Signed up bob (%s)", bob.username)
 
 	// Try to add bob to team, should add an invitation because bob is PUK-less.
-	ann.addTeamMember(team, bob.username, keybase1.TeamRole_WRITER) // Invitation 1
+	ann.addTeamMember(teamName.String(), bob.username, keybase1.TeamRole_WRITER) // Invitation 1
 
 	// Reset, invalidates invitation 1.
 	bob.reset()
 	bob.loginAfterResetNoPUK(10)
 
 	// Try to add again (bob still doesn't have a PUK).
-	ann.addTeamMember(team, bob.username, keybase1.TeamRole_ADMIN) // Invitation 2
+	ann.addTeamMember(teamName.String(), bob.username, keybase1.TeamRole_ADMIN) // Invitation 2
 
 	t.Logf("Trying to get a PUK")
 
@@ -242,9 +242,9 @@ func TestTeamReInviteAfterReset(t *testing.T) {
 	t.Logf("Bob got a PUK, now let's see if Ann's client adds him to team")
 
 	ann.kickTeamRekeyd()
-	ann.waitForTeamChangedGregor(team, keybase1.Seqno(4))
+	ann.waitForTeamChangedGregor(teamID, keybase1.Seqno(4))
 
-	details, err := ann.teamsClient.TeamGet(context.TODO(), keybase1.TeamGetArg{Name: team, ForceRepoll: true})
+	details, err := ann.teamsClient.TeamGet(context.TODO(), keybase1.TeamGetArg{Name: teamName.String(), ForceRepoll: true})
 	require.NoError(t, err)
 
 	// Bob should have became an admin, because the second invitations
@@ -274,7 +274,7 @@ func TestImpTeamWithRooter(t *testing.T) {
 
 	alice.kickTeamRekeyd()
 
-	alice.waitForTeamIDChangedGregor(team, keybase1.Seqno(2))
+	alice.waitForTeamChangedGregor(team, keybase1.Seqno(2))
 
 	// Poll for new team name, without the "@rooter"
 	newDisplayName := strings.Join([]string{alice.username, bob.username}, ",")
@@ -315,7 +315,7 @@ func TestImpTeamWithRooterConflict(t *testing.T) {
 
 	alice.kickTeamRekeyd()
 
-	alice.waitForTeamIDChangedGregor(team, keybase1.Seqno(2))
+	alice.waitForTeamChangedGregor(team, keybase1.Seqno(2))
 
 	// Display name with rooter name now points to the conflict winner.
 	team3, err := alice.lookupImplicitTeam(false /*create*/, displayNameRooter, false /*isPublic*/)
@@ -362,7 +362,7 @@ func TestImpTeamWithMultipleRooters(t *testing.T) {
 	var winningTeam keybase1.TeamID
 	for i := 0; i < 10; i++ {
 		select {
-		case arg := <-alice.notifications.rotateCh:
+		case arg := <-alice.notifications.changeCh:
 			t.Logf("membership change received: %+v", arg)
 			if (arg.TeamID.Eq(team1) || arg.TeamID.Eq(team2)) && arg.Changes.MembershipChanged && !arg.Changes.KeyRotated && !arg.Changes.Renamed && arg.LatestSeqno == toSeqno {
 				t.Logf("change matched with %q", arg.TeamID)

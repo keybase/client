@@ -1,10 +1,11 @@
 // @flow
+import * as Types from '../../../constants/types/teams'
 import * as Constants from '../../../constants/teams'
 import * as I from 'immutable'
 import {connect} from 'react-redux'
 import {compose} from 'recompose'
 import {HeaderHoc} from '../../../common-adapters'
-import {showUserProfile} from '../../../actions/profile'
+import {createShowUserProfile} from '../../../actions/profile-gen'
 import {getProfile} from '../../../actions/tracker'
 import {createStartConversation} from '../../../actions/chat-gen'
 import {isMobile} from '../../../constants/platform'
@@ -17,7 +18,7 @@ type StateProps = {
   follower: boolean,
   _you: ?string,
   _username: string,
-  _memberInfo: I.Set<Constants.MemberInfo>,
+  _memberInfo: I.Set<Types.MemberInfo>,
   loading: boolean,
 }
 
@@ -49,7 +50,7 @@ type DispatchProps = {
 const mapDispatchToProps = (dispatch: Dispatch, {routeProps, navigateAppend, navigateUp}): DispatchProps => ({
   onOpenProfile: () => {
     isMobile
-      ? dispatch(showUserProfile(routeProps.get('username')))
+      ? dispatch(createShowUserProfile({username: routeProps.get('username')}))
       : dispatch(getProfile(routeProps.get('username'), true, true))
   },
   _onEditMembership: (name: string, username: string) =>

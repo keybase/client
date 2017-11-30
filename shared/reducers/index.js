@@ -1,5 +1,4 @@
 // @flow
-// import * as Constants from '../constants/dev'
 import chat from './chat'
 import config from './config'
 import dev from './dev'
@@ -25,7 +24,7 @@ import {combineReducers} from 'redux'
 import {resetStore} from '../constants/common.js'
 import {reducerTimer} from '../dev/user-timings'
 
-import type {State} from '../constants/reducer'
+import type {TypedState} from '../constants/reducer'
 
 const reducers = {
   chat,
@@ -53,7 +52,7 @@ const reducers = {
 
 const reducer = reducerTimer ? reducerTimer(reducers) : combineReducers(reducers)
 
-export default function(state: State, action: any): State {
+export default function(state: TypedState, action: any): TypedState {
   // Warn if any keys did not change after a resetStore action
   if (__DEV__ && action.type === resetStore) {
     // Don't give a false warning if the state is the same cause its the initial state

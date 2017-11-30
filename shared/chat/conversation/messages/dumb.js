@@ -7,6 +7,7 @@ import * as React from 'react'
 import TextContainer from './text/container'
 import Wrapper from './wrapper'
 import {Box} from '../../../common-adapters'
+import * as Types from '../../../constants/types/chat'
 import * as ChatConstants from '../../../constants/chat'
 import * as EntityConstants from '../../../constants/entities'
 import * as ChatGen from '../../../actions/chat-gen'
@@ -19,7 +20,7 @@ const convID = 'convID-0'
 
 let mockKey = 1
 function messageMock(
-  messageState: ChatConstants.MessageState,
+  messageState: Types.MessageState,
   author: string,
   you: string,
   extraProps?: Object = {}
@@ -45,14 +46,15 @@ function messageMock(
 }
 
 function textMessageMock(
-  messageState: ChatConstants.MessageState,
+  messageState: Types.MessageState,
   author: string,
   you: string,
   extraProps?: Object
-): ChatConstants.TextMessage {
+): Types.TextMessage {
   return {
     type: 'Text',
     editedCount: 0,
+    ordinal: 0,
     ...messageMock(messageState, author, you, extraProps),
   }
 }
@@ -434,7 +436,13 @@ const mockStore = {
         return acc
       }, {})
     ),
-    conversationMessages: I.Map({[convID]: I.OrderedSet(msgs.map(m => m.key))}),
+    conversationMessages: I.Map({
+      [convID]: ChatConstants.makeConversationMessages({
+        low: -1,
+        high: 0,
+        messages: I.List(msgs.map(m => m.key)),
+      }),
+    }),
   }),
 }
 

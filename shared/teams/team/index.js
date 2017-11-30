@@ -1,6 +1,7 @@
 // @flow
 import * as React from 'react'
 import * as Constants from '../../constants/teams'
+import * as Types from '../../constants/types/teams'
 import {
   Avatar,
   Badge,
@@ -21,23 +22,23 @@ import TeamInviteRow from './invite-row/container'
 import TeamMemberRow from './member-row/container'
 import TeamRequestRow from './request-row/container'
 
-export type MemberRowProps = Constants.MemberInfo
-type InviteRowProps = Constants.InviteInfo
-type RequestRowProps = Constants.RequestInfo
+export type MemberRowProps = Types.MemberInfo
+type InviteRowProps = Types.InviteInfo
+type RequestRowProps = Types.RequestInfo
 
 export type Props = {
   description: string,
   invites: Array<InviteRowProps>,
   isTeamOpen: boolean,
-  newTeamRequests: Array<Constants.Teamname>,
+  newTeamRequests: Array<Types.Teamname>,
   loading: boolean,
   members: Array<MemberRowProps>,
   memberCount: number,
-  name: Constants.Teamname,
+  name: Types.Teamname,
   onAddPeople: () => void,
   onAddSelf: () => void,
   onInviteByEmail: () => void,
-  setSelectedTab: (t: ?Constants.TabKey) => void,
+  setSelectedTab: (t: ?Types.TabKey) => void,
   onCreateSubteam: () => void,
   onEditDescription: () => void,
   onLeaveTeam: () => void,
@@ -45,13 +46,13 @@ export type Props = {
   onSavePublicity: () => void,
   onSetOpenTeamRole: () => void,
   openTeam: boolean,
-  openTeamRole: Constants.TeamRoleType,
+  openTeamRole: Types.TeamRoleType,
   publicityAnyMember: boolean,
   publicityMember: boolean,
   publicitySettingsChanged: boolean,
   publicityTeam: boolean,
   requests: Array<RequestRowProps>,
-  selectedTab: Constants.TabKey,
+  selectedTab: Types.TabKey,
   showAddYourselfBanner: boolean,
   setPublicityAnyMember: (checked: boolean) => void,
   setPublicityMember: (checked: boolean) => void,
@@ -85,7 +86,7 @@ const TeamDividerRow = (index, {key}) => (
 
 const Help = isMobile
   ? () => null
-  : ({name}: {name: Constants.Teamname}) => (
+  : ({name}: {name: Types.Teamname}) => (
       <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center', margin: 20}}>
         <Text type="Body" style={{textAlign: 'center'}}>
           You can also manage teams from the terminal:
@@ -100,12 +101,12 @@ type TeamTabsProps = {
   admin: boolean,
   invites: Array<InviteRowProps>,
   members: Array<MemberRowProps>,
-  name: Constants.Teamname,
-  newTeamRequests: Array<Constants.Teamname>,
+  name: Types.Teamname,
+  newTeamRequests: Array<Types.Teamname>,
   requests: Array<RequestRowProps>,
   loading?: boolean,
   selectedTab?: string,
-  setSelectedTab: (?Constants.TabKey) => void,
+  setSelectedTab: (?Types.TabKey) => void,
 }
 
 const TeamRequestOrDividerOrInviteRow = (index, row) => {
@@ -475,16 +476,18 @@ class Team extends React.PureComponent<Props> {
           {' '}
           {me && me.type && Constants.typeToLabel[me.type]}
         </Text>
-        <Text
-          style={{
-            paddingTop: globalMargins.tiny,
-            color: description ? globalColors.black : globalColors.black_20,
-          }}
-          onClick={onEditDescription}
-          type={'BodySecondaryLink'}
-        >
-          {description || 'Write a brief description'}
-        </Text>
+        {!loading &&
+          (admin || description) &&
+          <Text
+            style={{
+              paddingTop: globalMargins.tiny,
+              color: description ? globalColors.black : globalColors.black_20,
+            }}
+            onClick={admin ? onEditDescription : null}
+            type={admin ? 'BodySecondaryLink' : 'Body'}
+          >
+            {description || (admin && 'Write a brief description')}
+          </Text>}
 
         {youCanAddPeople &&
           <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', marginTop: globalMargins.small}}>

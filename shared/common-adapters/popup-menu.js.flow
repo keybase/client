@@ -14,9 +14,10 @@ export type MenuItem = {
 
 export type Props = {
   items: Array<MenuItem | 'Divider' | null>, // Divider is not used on native
-  header?: MenuItem,
+  header?: ?MenuItem,
   onHidden: () => void,
   style?: Object,
+  styleCatcher?: ?Object,
 }
 
 export type HeaderTextProps = {

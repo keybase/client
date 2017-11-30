@@ -1,7 +1,7 @@
 // @flow
 import * as ConfigGen from '../actions/config-gen'
 import * as LoginGen from '../actions/login-gen'
-import {receivedBadgeState} from '../actions/notifications'
+import * as NotificationsGen from '../actions/notifications-gen'
 import throttle from 'lodash/throttle'
 
 import type {Dispatch} from '../constants/types/flux'
@@ -31,7 +31,7 @@ export default function(dispatch: Dispatch, getState: () => Object, notify: any)
 
       const conversations = badgeState.conversations
       const totalChats = (conversations || []).reduce((total, c) => total + c.unreadMessages, 0)
-      const action = receivedBadgeState(badgeState)
+      const action = NotificationsGen.createReceivedBadgeState({badgeState})
       if (totalChats > 0) {
         // Defer this slightly so we don't get flashing if we're quickly receiving and reading
         throttledDispatch(action)

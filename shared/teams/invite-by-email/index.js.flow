@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react'
-import {type TeamRoleType} from '../../constants/teams'
+import {type TeamRoleType} from '../../constants/types/teams'
 import {isMobile} from '../../constants/platform'
 
 // Note: 'on Android the entire display name is passed in the givenName field. middleName and familyName will be empty strings.'

@@ -1,7 +1,7 @@
 // @noflow
 /* eslint-env jest */
 import URL from 'url-parse'
-import {urlToUsername} from '../app-link'
+import {urlToUsername} from '../../../constants/profile'
 
 describe('urlToUsername', () => {
   function check(link, expectedUsername) {

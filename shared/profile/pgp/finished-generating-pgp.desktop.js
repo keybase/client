@@ -33,7 +33,7 @@ class FinishedGeneratedPgp extends Component<Props, State> {
         <PlatformIcon style={styleIcon} platform="pgp" overlay="icon-proof-success" />
         <Text style={styleTitle} type="Header">Here is your unique public key!</Text>
         <Box style={{...globalStyles.flexBoxRow, alignSelf: 'stretch'}}>
-          <textInput style={stylePgpKeyString} readOnly={true}>{this.props.pgpKeyString}</textInput>
+          <textinput style={stylePgpKeyString} readOnly={true}>{this.props.pgpKeyString}</textinput>
         </Box>
         <Box style={styleUploadContainer}>
           <Checkbox

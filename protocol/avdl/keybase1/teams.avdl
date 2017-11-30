@@ -152,8 +152,12 @@ protocol teams {
     // in each slot generations _must_ start from 1 with no gaps
     map<TeamApplication,map<PerTeamKeyGeneration,MaskB64>> readerKeyMasks;
 
-    // Should only be used by TeamLoader
-    // because it is the only mutated field, and thus is not threadsafe to read.
+    // Should only be used by TeamLoader (because it is mutable, not threadsafe to read)
+    // The latest seqno of the remote team. Given by the server out of band.
+    // Used for caching.
+    Seqno latestSeqnoHint;
+
+    // Should only be used by TeamLoader (because it is mutable, not threadsafe to read)
     Time cachedAt;
   }
 
@@ -522,6 +526,7 @@ protocol teams {
   }
 
   record TeamCreateResult {
+    TeamID teamID;
     boolean chatSent;
     boolean creatorAdded;
   }

@@ -582,6 +582,10 @@
         {
           "type": "keybase1.TLFIdentifyBehavior",
           "name": "identifyBehavior"
+        },
+        {
+          "type": "int",
+          "name": "ordinal"
         }
       ]
     },

@@ -1,6 +1,7 @@
 // @flow
 import * as Constants from '../../../constants/chat'
-import * as TeamConstants from '../../../constants/teams'
+import * as Types from '../../../constants/types/chat'
+import * as TeamTypes from '../../../constants/types/teams'
 import * as ChatGen from '../../../actions/chat-gen'
 import {ConversationInfoPanel, SmallTeamInfoPanel, BigTeamInfoPanel} from '.'
 import {Map} from 'immutable'
@@ -15,7 +16,7 @@ import {
 import {createSelector} from 'reselect'
 import {navigateAppend, navigateTo} from '../../../actions/route-tree'
 import {chatTab, teamsTab} from '../../../constants/tabs'
-import {showUserProfile} from '../../../actions/profile'
+import {createShowUserProfile} from '../../../actions/profile-gen'
 import flags from '../../../util/feature-flags'
 import * as ChatTypes from '../../../constants/types/flow-types-chat'
 
@@ -73,13 +74,13 @@ const mapStateToProps = (state: TypedState) => {
 
 const mapDispatchToProps = (dispatch: Dispatch, {navigateUp}) => ({
   _navToRootChat: () => dispatch(navigateTo([chatTab])),
-  _onLeaveConversation: (conversationIDKey: Constants.ConversationIDKey) => {
+  _onLeaveConversation: (conversationIDKey: Types.ConversationIDKey) => {
     dispatch(ChatGen.createLeaveConversation({conversationIDKey}))
   },
-  _onJoinChannel: (selectedConversation: Constants.ConversationIDKey) => {
+  _onJoinChannel: (selectedConversation: Types.ConversationIDKey) => {
     dispatch(ChatGen.createJoinConversation({conversationIDKey: selectedConversation}))
   },
-  _onMuteConversation: (conversationIDKey: Constants.ConversationIDKey, muted: boolean) => {
+  _onMuteConversation: (conversationIDKey: Types.ConversationIDKey, muted: boolean) => {
     dispatch(ChatGen.createMuteConversation({conversationIDKey, muted}))
   },
   _onShowBlockConversationDialog: (selectedConversation, participants) => {
@@ -92,7 +93,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp}) => ({
       ])
     )
   },
-  _onShowNewTeamDialog: (conversationIDKey: Constants.ConversationIDKey) => {
+  _onShowNewTeamDialog: (conversationIDKey: Types.ConversationIDKey) => {
     dispatch(
       navigateAppend([
         {
@@ -102,13 +103,13 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp}) => ({
       ])
     )
   },
-  _onLeaveTeam: (teamname: TeamConstants.Teamname) =>
+  _onLeaveTeam: (teamname: TeamTypes.Teamname) =>
     dispatch(navigateAppend([{props: {teamname}, selected: 'reallyLeaveTeam'}])),
-  _onViewTeam: (teamname: TeamConstants.Teamname) =>
+  _onViewTeam: (teamname: TeamTypes.Teamname) =>
     dispatch(navigateTo([teamsTab, {props: {teamname: teamname}, selected: 'team'}])),
   // Used by HeaderHoc.
   onBack: () => dispatch(navigateUp()),
-  onShowProfile: (username: string) => dispatch(showUserProfile(username)),
+  onShowProfile: (username: string) => dispatch(createShowUserProfile({username})),
 })
 
 const mergeProps = (stateProps, dispatchProps) => ({

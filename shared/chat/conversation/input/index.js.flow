@@ -1,10 +1,10 @@
 // @flow
 import {Component} from 'react'
-import * as Constants from '../../../constants/chat'
+import * as Types from '../../../constants/types/chat'
 
 export type Props = {
   channelName: ?string,
-  editingMessage: ?Constants.Message,
+  editingMessage: ?Types.Message,
   focusInputCounter: number,
   inputBlur: () => void,
   inputClear: () => void,
@@ -13,19 +13,19 @@ export type Props = {
   inputValue: () => string,
   isLoading: boolean,
   isPreview: boolean,
-  onAttach: (inputs: Array<Constants.AttachmentInput>) => void,
+  onAttach: (inputs: Array<Types.AttachmentInput>) => void,
   onEditLastMessage: () => void,
-  onEditMessage: (message: ?Constants.Message, text: string) => void,
+  onEditMessage: (message: ?Types.Message, text: string) => void,
   onJoinChannel: () => void,
   onLeaveChannel: () => void,
   onPostMessage: (text: string) => void,
-  onShowEditor: (message: ?Constants.Message) => void,
+  onShowEditor: (message: ?Types.Message) => void,
   onStoreInputText: (text: string) => void,
   onUpdateTyping: (typing: boolean) => void,
-  selectedConversationIDKey: ?Constants.ConversationIDKey,
+  selectedConversationIDKey: ?Types.ConversationIDKey,
   setText: (text: string) => void,
   text: string,
-  typing: Array<Constants.Username>,
+  typing: Array<Types.Username>,
 }
 
 export default class Input extends Component<Props> {}

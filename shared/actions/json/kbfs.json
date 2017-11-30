@@ -1,7 +1,5 @@
 {
-  "prelude": [
-    "import * as RPCTypes from '../constants/types/flow-types'"
-  ],
+  "prelude": [],
   "actions": {
     "list": {
       "path": "string"

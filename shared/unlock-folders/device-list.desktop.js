@@ -1,10 +1,9 @@
 // @flow
-
 import React, {Component} from 'react'
 import {globalColors, globalMargins, globalStyles} from '../styles'
 import {Text, Button, Icon} from '../common-adapters'
 
-import type {Device} from '../constants/unlock-folders'
+import type {Device} from '../constants/types/unlock-folders'
 
 export type Props = {
   devices: ?Array<Device>,

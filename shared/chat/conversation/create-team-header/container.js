@@ -3,6 +3,7 @@ import CreateTeamHeader from '.'
 import {connect} from 'react-redux'
 import {navigateAppend} from '../../../actions/route-tree'
 import * as Constants from '../../../constants/chat'
+import * as Types from '../../../constants/types/chat'
 import type {TypedState} from '../../../constants/reducer'
 
 import type {StateProps, DispatchProps} from './container'
@@ -19,7 +20,7 @@ const mapStateToProps = (state: TypedState) => {
 }
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
-  _onShowNewTeamDialog: (conversationIDKey: Constants.ConversationIDKey) => {
+  _onShowNewTeamDialog: (conversationIDKey: Types.ConversationIDKey) => {
     dispatch(
       navigateAppend([
         {

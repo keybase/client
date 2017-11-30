@@ -95,6 +95,7 @@ protocol chatUi {
     MessageType messageType;
     string body;
     gregor1.Time ctime;
+    double ordinal;
   }
 
   enum MessageUnboxedState {

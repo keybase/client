@@ -1,19 +1,19 @@
 // @flow
 
 import {compose, withHandlers, withPropsOnChange, withState, lifecycle} from 'recompose'
-import * as Constants from '../constants/search'
+import * as Types from '../constants/types/search'
 import debounce from 'lodash/debounce'
 
 const debounceTimeout = 1e3
 
 type OwnProps = {
   onChangeSearchText: ?(s: string) => void,
-  search: (term: string, service: Constants.Service) => void,
-  selectedService: Constants.Service,
-  searchResultIds: Array<Constants.SearchResultId>,
-  selectedSearchId: ?Constants.SearchResultId,
-  onUpdateSelectedSearchResult: (id: ?Constants.SearchResultId) => void,
-  onAddUser: (id: Constants.SearchResultId) => void,
+  search: (term: string, service: Types.Service) => void,
+  selectedService: Types.Service,
+  searchResultIds: Array<Types.SearchResultId>,
+  selectedSearchId: ?Types.SearchResultId,
+  onUpdateSelectedSearchResult: (id: ?Types.SearchResultId) => void,
+  onAddUser: (id: Types.SearchResultId) => void,
   searchResultTerm: string,
 }
 
@@ -34,13 +34,13 @@ const selectedSearchIdHoc = compose(
 // TODO hook up this type
 /*
 type InProps = {
-  onRemoveUser: (id: Constants.SearchResultId) => void,
+  onRemoveUser: (id: Types.SearchResultId) => void,
   onExitSearch: () => void,
-  userItems: Array<{id: Constants.SearchResultId}>,
+  userItems: Array<{id: Types.SearchResultId}>,
   searchText: string,
   onChangeSearchText: (nextText: string) => void,
   clearSearchResults: () => void,
-  search: (search: string, service: Constants.Service) => void,
+  search: (search: string, service: Types.Service) => void,
 }
 
 type OutProps = {

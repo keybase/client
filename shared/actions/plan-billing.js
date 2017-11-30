@@ -1,46 +1,39 @@
 // @flow
-
-import {call, put, select} from 'redux-saga/effects'
-import {safeTakeLatest} from '../util/saga'
+import * as Saga from '../util/saga'
 import * as Constants from '../constants/plan-billing'
-import {
-  apiserverGetRpcPromise,
-  apiserverGetWithSessionRpcPromise,
-  apiserverPostRpcPromise,
-} from '../constants/types/flow-types'
-
-import {type SagaGenerator} from '../constants/types/saga'
+import * as Types from '../constants/types/plan-billing'
+import * as RPCTypes from '../constants/types/flow-types'
 import {type TypedState} from '../constants/reducer'
 
-function updateBilling(updateBillingArgs: Constants.UpdateBillingArgs): Constants.UpdateBilling {
+function updateBilling(updateBillingArgs: Types.UpdateBillingArgs): Types.UpdateBilling {
   return {
     type: Constants.updateBilling,
     payload: updateBillingArgs,
   }
 }
 
-function clearBillingError(): Constants.BillingError {
+function clearBillingError(): Types.BillingError {
   return {
     type: Constants.billingError,
     payload: undefined,
   }
 }
 
-function fetchBillingAndQuota(): Constants.FetchBillingAndQuota {
+function fetchBillingAndQuota(): Types.FetchBillingAndQuota {
   return {
     type: Constants.fetchBillingAndQuota,
     payload: undefined,
   }
 }
 
-function fetchBillingOverview(): Constants.FetchBillingOverview {
+function fetchBillingOverview(): Types.FetchBillingOverview {
   return {
     type: Constants.fetchBillingOverview,
     payload: undefined,
   }
 }
 
-function bootstrapData(): Constants.BootstrapData {
+function bootstrapData(): Types.BootstrapData {
   return {
     type: Constants.bootstrapData,
     payload: undefined,
@@ -60,7 +53,7 @@ function updateBillingArgsToApiArgs({
   securityCode,
   cardExpMonth,
   cardExpYear,
-}: Constants.UpdateBillingArgs): Object {
+}: Types.UpdateBillingArgs): Object {
   return {
     plan_id: planId,
     cc_number: cardNumber.stringValue(),
@@ -71,26 +64,24 @@ function updateBillingArgsToApiArgs({
   }
 }
 
-function* updateBillingSaga({payload}: Constants.UpdateBilling): SagaGenerator<any, any> {
+function* updateBillingSaga({payload}: Types.UpdateBilling): Saga.SagaGenerator<any, any> {
   let planId = payload.planId
   if (planId == null) {
     const currentPlanIdSelector = ({planBilling: {plan}}: TypedState) => plan && plan.planId
-    planId = (yield select(currentPlanIdSelector): any)
+    planId = (yield Saga.select(currentPlanIdSelector): any)
   }
 
   // TODO (MM) some loading indicator: true
   try {
-    yield call(apiserverPostRpcPromise, {
-      param: {
-        endpoint: 'account/billing_update',
-        args: apiArgsFormatter(updateBillingArgsToApiArgs({...payload, planId})),
-      },
+    yield Saga.call(RPCTypes.apiserverPostRpcPromise, {
+      endpoint: 'account/billing_update',
+      args: apiArgsFormatter(updateBillingArgsToApiArgs({...payload, planId})),
     })
 
-    yield put(fetchBillingOverview())
-    yield put(clearBillingError())
+    yield Saga.put(fetchBillingOverview())
+    yield Saga.put(clearBillingError())
   } catch (e) {
-    yield put({
+    yield Saga.put({
       type: Constants.billingError,
       error: true,
       payload: {
@@ -102,17 +93,15 @@ function* updateBillingSaga({payload}: Constants.UpdateBilling): SagaGenerator<a
   // TODO (MM) some loading indicator: false
 }
 
-function* fetchBillingOverviewSaga(): SagaGenerator<any, any> {
+function* fetchBillingOverviewSaga(): Saga.SagaGenerator<any, any> {
   try {
-    const results: any = yield call(apiserverGetWithSessionRpcPromise, {
-      param: {
-        endpoint: 'account/billing_overview',
-      },
+    const results: any = yield Saga.call(RPCTypes.apiserverGetWithSessionRpcPromise, {
+      endpoint: 'account/billing_overview',
     })
 
     const parsed = JSON.parse(results.body)
 
-    const action: Constants.UpdateAvailablePlans = {
+    const action: Types.UpdateAvailablePlans = {
       type: Constants.updateAvailablePlans,
       payload: {
         availablePlans: parsed.available_plans.map(Constants.parseAvailablePlan).sort((a, b) => {
@@ -122,67 +111,65 @@ function* fetchBillingOverviewSaga(): SagaGenerator<any, any> {
       },
     }
 
-    yield put(action)
+    yield Saga.put(action)
 
-    const billingAndQuotaAction: Constants.UpdateBillingAndQuota = {
+    const billingAndQuotaAction: Types.UpdateBillingAndQuota = {
       type: Constants.updateBillingAndQuota,
       payload: Constants.billingAndQuotaAPIToOurBillingAndQuota(parsed),
     }
 
     if (parsed.payment && parsed.payment.stripe_card_info) {
-      const paymentInfoAction: Constants.UpdatePaymentInfo = {
+      const paymentInfoAction: Types.UpdatePaymentInfo = {
         type: Constants.updatePaymentInfo,
         payload: {paymentInfo: Constants.parsePaymentInfo(parsed.payment.stripe_card_info)},
       }
 
-      yield put(paymentInfoAction)
+      yield Saga.put(paymentInfoAction)
     }
 
-    yield put(billingAndQuotaAction)
+    yield Saga.put(billingAndQuotaAction)
   } catch (e) {
     console.warn('error in fetchBillingAndQuotaSaga', e)
   }
 }
 
-function* fetchBillingAndQuotaSaga(): SagaGenerator<any, any> {
+function* fetchBillingAndQuotaSaga(): Saga.SagaGenerator<any, any> {
   try {
     const usernameSelector = ({config: {username}}: TypedState) => username
-    const username = yield select(usernameSelector)
+    const username = yield Saga.select(usernameSelector)
 
-    const results: any = yield call(apiserverGetRpcPromise, {
-      param: {
-        endpoint: 'user/lookup',
-        args: apiArgsFormatter({username, fields: 'billing_and_quotas'}),
-      },
+    const results: any = yield Saga.call(RPCTypes.apiserverGetRpcPromise, {
+      endpoint: 'user/lookup',
+      args: apiArgsFormatter({username, fields: 'billing_and_quotas'}),
     })
 
     const parsed = JSON.parse(results.body)
 
-    const action: Constants.UpdateBillingAndQuota = {
+    const action: Types.UpdateBillingAndQuota = {
       type: Constants.updateBillingAndQuota,
       payload: Constants.billingAndQuotaAPIToOurBillingAndQuota(parsed.them.billing_and_quotas),
     }
 
-    yield put(action)
+    yield Saga.put(action)
   } catch (e) {
     console.warn('error in fetchBillingAndQuotaSaga', e)
   }
 }
 
-function* bootstrapDataSaga(): SagaGenerator<any, any> {
+function* bootstrapDataSaga(): Saga.SagaGenerator<any, any> {
   const billingStateSelector = ({planBilling}: TypedState) => planBilling
 
-  const planBilling: Constants.State = (yield select(billingStateSelector): any)
+  const planBilling: Types.State = (yield Saga.select(billingStateSelector): any)
   if (planBilling.availablePlans == null || planBilling.usage == null || planBilling.plan == null) {
-    yield put(fetchBillingOverview())
+    yield Saga.put(fetchBillingOverview())
   }
 }
 
-function* billingSaga(): SagaGenerator<any, any> {
-  yield safeTakeLatest(Constants.updateBilling, updateBillingSaga)
-  yield safeTakeLatest(Constants.fetchBillingAndQuota, fetchBillingAndQuotaSaga)
-  yield safeTakeLatest(Constants.fetchBillingOverview, fetchBillingOverviewSaga)
-  yield safeTakeLatest(Constants.bootstrapData, bootstrapDataSaga)
+function* billingSaga(): Saga.SagaGenerator<any, any> {
+  yield Saga.safeTakeLatest(Constants.updateBilling, updateBillingSaga)
+  yield Saga.safeTakeLatest(Constants.fetchBillingAndQuota, fetchBillingAndQuotaSaga)
+  yield Saga.safeTakeLatest(Constants.fetchBillingOverview, fetchBillingOverviewSaga)
+  yield Saga.safeTakeLatest(Constants.bootstrapData, bootstrapDataSaga)
 }
 
 export {bootstrapData, clearBillingError, fetchBillingAndQuota, fetchBillingOverview, updateBilling}

@@ -756,11 +756,11 @@ func CanExec(p string) error {
 }
 
 func CurrentBinaryRealpath() (string, error) {
-	absolute, err := filepath.Abs(os.Args[0])
+	executable, err := os.Executable()
 	if err != nil {
 		return "", err
 	}
-	return filepath.EvalSymlinks(absolute)
+	return filepath.EvalSymlinks(executable)
 }
 
 var adminFeatureList = map[keybase1.UID]bool{

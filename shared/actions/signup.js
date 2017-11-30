@@ -1,5 +1,4 @@
 // @flow
-import * as Constants from '../constants/signup'
 import * as LoginGen from './login-gen'
 import * as SignupGen from './signup-gen'
 import * as RPCTypes from '../constants/types/flow-types'
@@ -9,15 +8,6 @@ import {isMobile} from '../constants/platform'
 import {isValidEmail, isValidName, isValidUsername} from '../util/simple-validators'
 import {loginTab} from '../constants/tabs'
 import {navigateAppend, navigateTo} from '../actions/route-tree'
-
-import type {
-  CheckUsernameEmail,
-  CheckPassphrase,
-  SubmitDeviceName,
-  Signup,
-  ShowPaperKey,
-  RequestInvite,
-} from '../constants/signup'
 
 function nextPhase() {
   return (dispatch, getState) => {
@@ -29,7 +19,7 @@ function nextPhase() {
 
 function startRequestInvite() {
   return (dispatch: Dispatch) => {
-    dispatch({payload: {}, type: Constants.startRequestInvite})
+    dispatch(SignupGen.createStartRequestInvite())
     dispatch(nextPhase())
   }
 }
@@ -40,11 +30,9 @@ function checkInviteCodeThenNextPhase(inviteCode: string) {
       dispatch(SignupGen.createCheckInviteCode({inviteCode}))
 
       RPCTypes.signupCheckInvitationCodeRpcPromise({
-        param: {
-          invitationCode: inviteCode,
-        },
+        invitationCode: inviteCode,
         waitingHandler: isWaiting => {
-          dispatch(waiting(isWaiting))
+          dispatch(SignupGen.createWaiting({waiting: isWaiting}))
         },
       })
         .then(() => {
@@ -74,7 +62,7 @@ function requestAutoInvite() {
       // here had been typed, using the same store entry as a manual one.
       RPCTypes.signupGetInvitationCodeRpcPromise({
         waitingHandler: isWaiting => {
-          dispatch(waiting(isWaiting))
+          dispatch(SignupGen.createWaiting({waiting: isWaiting}))
         },
       })
         .then(inviteCode => {
@@ -100,41 +88,33 @@ function requestInvite(email: string, name: string) {
       const nameError = isValidName(name)
       if (emailError || nameError || !email || !name) {
         dispatch(
-          ({
-            error: true,
-            payload: {
-              email,
-              emailError,
-              name,
-              nameError,
-            },
-            type: Constants.requestInvite,
-          }: RequestInvite)
+          SignupGen.createRequestInviteError({
+            email,
+            emailError,
+            name,
+            nameError,
+          })
         )
         resolve()
         return
       }
 
       RPCTypes.signupInviteRequestRpcPromise({
-        param: {
-          email: email,
-          fullname: name,
-          notes: 'Requested through GUI app',
-        },
+        email: email,
+        fullname: name,
+        notes: 'Requested through GUI app',
         waitingHandler: isWaiting => {
-          dispatch(waiting(isWaiting))
+          dispatch(SignupGen.createWaiting({waiting: isWaiting}))
         },
       })
         .then(() => {
           if (email && name) {
-            dispatch({
-              payload: {
+            dispatch(
+              SignupGen.createRequestInvite({
                 email,
-                error: null,
                 name,
-              },
-              type: Constants.requestInvite,
-            })
+              })
+            )
             dispatch(nextPhase())
             resolve()
           } else {
@@ -143,16 +123,12 @@ function requestInvite(email: string, name: string) {
         })
         .catch(err => {
           dispatch(
-            ({
-              error: true,
-              payload: {
-                email,
-                emailError: err,
-                name,
-                nameError: null,
-              },
-              type: Constants.requestInvite,
-            }: RequestInvite)
+            SignupGen.createRequestInviteError({
+              email,
+              emailError: err,
+              name,
+              nameError: null,
+            })
           )
           reject(err)
         })
@@ -169,37 +145,32 @@ function checkUsernameEmail(username: ?string, email: ?string) {
 
       if (emailError || usernameError || !username || !email) {
         dispatch(
-          ({
-            error: true,
-            payload: {
-              email,
-              emailError,
-              username,
-              usernameError,
-            },
-            type: Constants.checkUsernameEmail,
-          }: CheckUsernameEmail)
+          SignupGen.createCheckUsernameEmailError({
+            email,
+            emailError,
+            username,
+            usernameError,
+          })
         )
         resolve()
         return
       }
 
       RPCTypes.signupCheckUsernameAvailableRpcPromise({
-        param: {username},
+        username,
         waitingHandler: isWaiting => {
-          dispatch(waiting(isWaiting))
+          dispatch(SignupGen.createWaiting({waiting: isWaiting}))
         },
       })
         .then(() => {
           // We need this check to make flow happy. This should never be null
           if (username && email) {
-            dispatch({
-              payload: {
+            dispatch(
+              SignupGen.createCheckUsernameEmail({
                 email,
                 username,
-              },
-              type: Constants.checkUsernameEmail,
-            })
+              })
+            )
             dispatch(nextPhase())
             resolve()
           } else {
@@ -209,16 +180,12 @@ function checkUsernameEmail(username: ?string, email: ?string) {
         .catch(err => {
           console.warn("username isn't available:", err)
           dispatch(
-            ({
-              error: true,
-              payload: {
-                email,
-                emailError,
-                username,
-                usernameError: err,
-              },
-              type: Constants.checkUsernameEmail,
-            }: CheckUsernameEmail)
+            SignupGen.createCheckUsernameEmailError({
+              email,
+              emailError,
+              username,
+              usernameError: err,
+            })
           )
           resolve()
         })
@@ -241,17 +208,16 @@ function checkPassphrase(passphrase1: string, passphrase2: string) {
 
       if (passphraseError) {
         dispatch(
-          ({
-            error: true,
-            payload: {passphraseError},
-            type: Constants.checkPassphrase,
-          }: CheckPassphrase)
+          SignupGen.createCheckPassphraseError({
+            passphraseError,
+          })
         )
       } else {
-        dispatch({
-          payload: {passphrase: new HiddenString(passphrase1)},
-          type: Constants.checkPassphrase,
-        })
+        dispatch(
+          SignupGen.createCheckPassphrase({
+            passphrase: new HiddenString(passphrase1),
+          })
+        )
         dispatch(nextPhase())
       }
 
@@ -272,30 +238,20 @@ function submitDeviceName(deviceName: string, skipMail?: boolean, onDisplayPaper
 
       if (deviceNameError) {
         dispatch(
-          ({
-            error: true,
-            payload: {
-              deviceName,
-              deviceNameError: deviceNameError || '',
-            },
-            type: Constants.submitDeviceName,
-          }: SubmitDeviceName)
+          SignupGen.createSubmitDeviceNameError({
+            deviceNameError: deviceNameError || '',
+          })
         )
       } else {
         RPCTypes.deviceCheckDeviceNameFormatRpcPromise({
-          param: {name: deviceName},
+          name: deviceName,
           waitingHandler: isWaiting => {
-            dispatch(waiting(isWaiting))
+            dispatch(SignupGen.createWaiting({waiting: isWaiting}))
           },
         })
           .then(() => {
             if (deviceName) {
-              dispatch(
-                ({
-                  payload: {deviceName},
-                  type: Constants.submitDeviceName,
-                }: SubmitDeviceName)
-              )
+              dispatch(SignupGen.createSubmitDeviceName({deviceName}))
 
               const signupPromise = dispatch(signup(skipMail || false, onDisplayPaperKey))
               if (signupPromise) {
@@ -308,14 +264,9 @@ function submitDeviceName(deviceName: string, skipMail?: boolean, onDisplayPaper
           .catch(err => {
             console.warn('device name is invalid: ', err)
             dispatch(
-              ({
-                error: true,
-                payload: {
-                  deviceName,
-                  deviceNameError: `Device name is invalid: ${err.desc}.`,
-                },
-                type: Constants.submitDeviceName,
-              }: SubmitDeviceName)
+              SignupGen.createSubmitDeviceNameError({
+                deviceNameError: `Device name is invalid: ${err.desc}.`,
+              })
             )
             resolve()
           })
@@ -351,46 +302,33 @@ function signup(skipMail: boolean, onDisplayPaperKey?: () => void) {
             },
             'keybase.1.loginUi.displayPrimaryPaperKey': ({sessionID, phrase}, response) => {
               paperKeyResponse = response
-              dispatch(
-                ({
-                  payload: {paperkey: new HiddenString(phrase)},
-                  type: Constants.showPaperKey,
-                }: ShowPaperKey)
-              )
+              dispatch(SignupGen.createShowPaperKey({paperkey: new HiddenString(phrase)}))
               onDisplayPaperKey && onDisplayPaperKey()
               dispatch(nextPhase())
             },
           },
-          param: {
-            deviceName,
-            deviceType,
-            email,
-            genPGPBatch: false,
-            genPaper: false,
-            inviteCode,
-            passphrase: passphrase.stringValue(),
-            skipMail,
-            storeSecret: true,
-            username,
-          },
+          deviceName,
+          deviceType,
+          email,
+          genPGPBatch: false,
+          genPaper: false,
+          inviteCode,
+          passphrase: passphrase.stringValue(),
+          skipMail,
+          storeSecret: true,
+          username,
           waitingHandler: isWaiting => {
-            dispatch(waiting(isWaiting))
+            dispatch(SignupGen.createWaiting({waiting: isWaiting}))
           },
         })
           .then(({passphraseOk, postOk, writeOk}) => {
             console.log('Successful signup', passphraseOk, postOk, writeOk)
-            dispatch(waiting(true))
+            dispatch(SignupGen.createWaiting({waiting: true}))
             resolve()
           })
           .catch(err => {
             console.warn('error in signup:', err)
-            dispatch(
-              ({
-                error: true,
-                payload: {signupError: new HiddenString(err.desc)},
-                type: Constants.signup,
-              }: Signup)
-            )
+            dispatch(SignupGen.createSignupError({signupError: new HiddenString(err.desc)}))
             dispatch(nextPhase())
             reject(new Error(err))
           })
@@ -403,27 +341,10 @@ function signup(skipMail: boolean, onDisplayPaperKey?: () => void) {
   }
 }
 
-function waiting(isWaiting: boolean) {
-  return {
-    payload: isWaiting,
-    type: Constants.signupWaiting,
-  }
-}
-
-function resetSignup() {
-  return {
-    payload: undefined,
-    type: Constants.resetSignup,
-  }
-}
-
 function restartSignup() {
   return (dispatch: Dispatch) => {
     const p: Promise<*> = new Promise((resolve, reject) => {
-      dispatch({
-        payload: {},
-        type: Constants.restartSignup,
-      })
+      dispatch(SignupGen.createRestartSignup())
       dispatch(LoginGen.createNavBasedOnLoginAndInitialState())
       resolve()
     })
@@ -431,36 +352,14 @@ function restartSignup() {
   }
 }
 
-function showSuccess() {
-  return {
-    payload: {},
-    type: Constants.showSuccess,
-  }
-}
-
-function setDeviceNameError(deviceNameError: string) {
-  return {
-    payload: {deviceNameError},
-    type: Constants.setDeviceNameError,
-  }
-}
-
-function clearDeviceNameError() {
-  return {payload: {}, type: Constants.clearDeviceNameError}
-}
-
 export {
   checkInviteCodeThenNextPhase,
   checkPassphrase,
   checkUsernameEmail,
-  clearDeviceNameError,
   requestAutoInvite,
   requestInvite,
-  resetSignup,
   restartSignup,
   sawPaperKey,
-  setDeviceNameError,
-  showSuccess,
   startRequestInvite,
   submitDeviceName,
 }

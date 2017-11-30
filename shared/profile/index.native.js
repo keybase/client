@@ -1,5 +1,6 @@
 // @flow
 import * as shared from './index.shared'
+import * as Constants from '../constants/tracker'
 import ErrorComponent from '../common-adapters/error-profile'
 import LoadingWrapper from '../common-adapters/loading-wrapper.native'
 import React, {Component} from 'react'
@@ -22,17 +23,11 @@ import {
   UserProofs,
 } from '../common-adapters/index.native'
 import {globalStyles, globalColors, globalMargins, statusBarHeight} from '../styles'
-import {
-  normal as proofNormal,
-  checking as proofChecking,
-  metaPending,
-  metaUnreachable,
-} from '../constants/tracker'
 import {stateColors} from '../util/tracker'
 import {usernameText} from '../common-adapters/usernames'
 
-import type {Proof} from '../constants/tracker'
-import type {Props} from './index'
+import type {Proof} from '../constants/types/tracker'
+import type {Props} from '.'
 import type {Tab as FriendshipsTab} from './friendships'
 
 export const AVATAR_SIZE = 112
@@ -95,7 +90,7 @@ class Profile extends Component<Props, State> {
   }
 
   _proofMenuContent(proof: Proof) {
-    if (proof.meta === metaUnreachable) {
+    if (proof.meta === Constants.metaUnreachable) {
       return {
         header: {
           title: 'Your proof could not be found, and Keybase has stopped checking. How would you like to proceed?',
@@ -108,7 +103,7 @@ class Profile extends Component<Props, State> {
         ],
       }
     }
-    if (proof.meta === metaPending) {
+    if (proof.meta === Constants.metaPending) {
       let pendingMessage
       if (proof.type === 'hackernews') {
         pendingMessage =
@@ -117,7 +112,7 @@ class Profile extends Component<Props, State> {
         pendingMessage = 'Your proof is pending. DNS proofs can take a few hours to recognize.'
       }
       return {
-        header: pendingMessage && {title: pendingMessage},
+        header: pendingMessage ? {title: pendingMessage} : null,
         items: [{title: 'Revoke', danger: true, onClick: () => this.props.onRevokeProof(proof)}],
       }
     }
@@ -164,8 +159,8 @@ class Profile extends Component<Props, State> {
     let proofNotice
     if (
       !this.props.loading &&
-      this.props.trackerState !== proofChecking &&
-      this.props.trackerState !== proofNormal &&
+      this.props.trackerState !== Constants.checking &&
+      this.props.trackerState !== Constants.normal &&
       this.props.currentlyFollowing
     ) {
       proofNotice = `Some of ${this.props.isYou ? 'your' : this.props.username + "'s"} proofs are broken.`
@@ -253,7 +248,7 @@ class Profile extends Component<Props, State> {
         style={{
           ...globalStyles.flexBoxRow,
           flex: 1,
-          height: 108,
+          minHeight: userEntryMinHeight,
           justifyContent: 'space-around',
           backgroundColor: globalColors.white,
         }}
@@ -421,7 +416,7 @@ class Profile extends Component<Props, State> {
   }
 }
 
-const UserEntry = ({onClick, username, followsYou, following, thumbnailUrl}) => (
+const UserEntry = ({onClick, username, fullname, followsYou, following, thumbnailUrl}) => (
   <ClickableBox
     onClick={() => {
       onClick && onClick(username)
@@ -437,6 +432,7 @@ const UserEntry = ({onClick, username, followsYou, following, thumbnailUrl}) => 
         following={following}
       />
       <Text type="BodySemibold" style={userEntryUsernameStyle(following)}>{username}</Text>
+      <Text type="BodySmall" style={userEntryFullnameStyle}>{fullname}</Text>
     </Box>
   </ClickableBox>
 )
@@ -450,10 +446,12 @@ const userEntryContainerStyle = {
   width: 105,
 }
 
+const userEntryMinHeight = 108
+
 const userEntryInnerContainerStyle = {
   ...globalStyles.flexBoxColumn,
   alignItems: 'center',
-  height: 108,
+  minHeight: userEntryMinHeight,
   justifyContent: 'flex-start',
 }
 
@@ -466,6 +464,12 @@ const userEntryUsernameStyle = following => ({
   color: following ? globalColors.green : globalColors.blue,
   textAlign: 'center',
 })
+
+const userEntryFullnameStyle = {
+  color: globalColors.black_40,
+  textAlign: 'center',
+}
+
 const styleBack = {
   left: globalMargins.tiny,
   position: 'absolute',
