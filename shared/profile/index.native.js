@@ -416,7 +416,7 @@ class Profile extends Component<Props, State> {
   }
 }
 
-const UserEntry = ({onClick, username, followsYou, following, thumbnailUrl}) => (
+const UserEntry = ({onClick, username, fullname, followsYou, following, thumbnailUrl}) => (
   <ClickableBox
     onClick={() => {
       onClick && onClick(username)
@@ -432,6 +432,7 @@ const UserEntry = ({onClick, username, followsYou, following, thumbnailUrl}) => 
         following={following}
       />
       <Text type="BodySemibold" style={userEntryUsernameStyle(following)}>{username}</Text>
+      <Text type="BodySmall" style={userEntryFullnameStyle}>{fullname}</Text>
     </Box>
   </ClickableBox>
 )
@@ -461,6 +462,12 @@ const userEntryUsernameStyle = following => ({
   color: following ? globalColors.green : globalColors.blue,
   textAlign: 'center',
 })
+
+const userEntryFullnameStyle = {
+  color: globalColors.black_40,
+  textAlign: 'center',
+}
+
 const styleBack = {
   left: globalMargins.tiny,
   position: 'absolute',
