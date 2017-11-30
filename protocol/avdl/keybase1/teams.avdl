@@ -255,6 +255,11 @@ protocol teams {
     // Whether this is an open team.
     boolean open;
     TeamRole openTeamJoinAs;
+
+    // If there is a TLF associated, it shows up here. The last writer wins
+    // here, and we are not concerned about historical associations that have been
+    // overwritten (for now). An empty TLFID is given by an empty string.
+    TLFID tlfID;
   }
 
   // The team got this name at this point in time.
@@ -640,6 +645,7 @@ protocol teams {
     TeamID teamID;
     TeamName name;
     ImplicitTeamDisplayName displayName;
+    TLFID tlfID;
   }
 
   LookupImplicitTeamRes lookupImplicitTeam(string name, boolean public);
