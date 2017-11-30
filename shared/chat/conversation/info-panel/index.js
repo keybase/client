@@ -203,7 +203,7 @@ type BigTeamInfoPanelProps = infoPanelProps & {
 
 const _BigTeamInfoPanel = (props: BigTeamInfoPanelProps) => (
   <ScrollView style={scrollViewStyle} contentContainerStyle={contentContainerStyle}>
-    <Text style={{alignSelf: 'center', marginTop: 20}} type="BodyBig">
+    <Text style={{alignSelf: 'center', marginTop: globalMargins.medium}} type="BodyBig">
       #{props.channelname}
     </Text>
 
@@ -244,7 +244,7 @@ const _BigTeamInfoPanel = (props: BigTeamInfoPanelProps) => (
       </Text>}
 
     <Divider style={styleDivider} />
-    <Box style={{...globalStyles.flexBoxRow, marginRight: globalMargins.tiny}}>
+    <Box style={{...globalStyles.flexBoxRow, marginRight: globalMargins.small}}>
       <Text style={{flex: 1, paddingLeft: globalMargins.small}} type="BodySmallSemibold">
         Members ({props.participants.length.toString()})
       </Text>
