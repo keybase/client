@@ -33,7 +33,7 @@ const waitForKBFS = (): AsyncAction => dispatch =>
     // TODO clean this up with sagas!
     let timer = setTimeout(() => {
       timedOut = true
-      reject(new Error("Waited for KBFS client, but it wasn't not found"))
+      reject(new Error("Waited for KBFS client, but it wasn't found"))
     }, 10 * 1000)
 
     RPCTypes.configWaitForClientRpcPromise({
