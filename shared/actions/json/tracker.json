@@ -88,6 +88,9 @@
     "setRegisterIdentifyUi": {
       "started": "boolean"
     },
+    "unfollow": {
+      "username": "string"
+    },
     "setOnUnfollow": {
       "username": "string"
     },
@@ -103,6 +106,10 @@
     },
     "showTracker": {
       "username": "string"
+    },
+    "follow": {
+      "username": "string",
+      "localIgnore?": "boolean"
     },
     "setOnFollow": {
       "username": "string"

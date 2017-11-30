@@ -10,6 +10,7 @@ import * as FolderConstants from '../constants/folders'
 // Constants
 export const resetStore = 'common:resetStore' // not a part of tracker but is handled by every reducer
 export const cacheIdentify = 'tracker:cacheIdentify'
+export const follow = 'tracker:follow'
 export const identifyFinished = 'tracker:identifyFinished'
 export const identifyStarted = 'tracker:identifyStarted'
 export const markActiveIdentifyUi = 'tracker:markActiveIdentifyUi'
@@ -31,6 +32,7 @@ export const setUpdateTrackers = 'tracker:setUpdateTrackers'
 export const showNonUser = 'tracker:showNonUser'
 export const showTracker = 'tracker:showTracker'
 export const stopTimer = 'tracker:stopTimer'
+export const unfollow = 'tracker:unfollow'
 export const updateBTC = 'tracker:updateBTC'
 export const updateEldestKidChanged = 'tracker:updateEldestKidChanged'
 export const updateFolders = 'tracker:updateFolders'
@@ -46,6 +48,7 @@ export const waiting = 'tracker:waiting'
 
 // Action Creators
 export const createCacheIdentify = (payload: {|+uid: string, +goodTill: number|}) => ({error: false, payload, type: cacheIdentify})
+export const createFollow = (payload: {|+username: string, +localIgnore?: boolean|}) => ({error: false, payload, type: follow})
 export const createIdentifyFinished = (payload: {|+username: string|}) => ({error: false, payload, type: identifyFinished})
 export const createIdentifyFinishedError = (payload: {|+username: string, +error: string|}) => ({error: true, payload, type: identifyFinished})
 export const createIdentifyStarted = (payload: {|+username: string|}) => ({error: false, payload, type: identifyStarted})
@@ -68,6 +71,7 @@ export const createSetUpdateTrackers = (payload: {|+username: string, +trackers:
 export const createShowNonUser = (payload: {|+username: string, +nonUser: RPCTypes.IdentifyUiDisplayTLFCreateWithInviteRpcParam|}) => ({error: false, payload, type: showNonUser})
 export const createShowTracker = (payload: {|+username: string|}) => ({error: false, payload, type: showTracker})
 export const createStopTimer = () => ({error: false, payload: undefined, type: stopTimer})
+export const createUnfollow = (payload: {|+username: string|}) => ({error: false, payload, type: unfollow})
 export const createUpdateBTC = (payload: {|+username: string, +address: string, +sigID: string|}) => ({error: false, payload, type: updateBTC})
 export const createUpdateEldestKidChanged = (payload: {|+username: string|}) => ({error: false, payload, type: updateEldestKidChanged})
 export const createUpdateFolders = (payload: {|+username: string, +tlfs: Array<FolderConstants.Folder>|}) => ({error: false, payload, type: updateFolders})
@@ -83,6 +87,7 @@ export const createWaiting = (payload: {|+username: string, +waiting: boolean|})
 
 // Action Payloads
 export type CacheIdentifyPayload = More.ReturnType<typeof createCacheIdentify>
+export type FollowPayload = More.ReturnType<typeof createFollow>
 export type IdentifyFinishedPayload = More.ReturnType<typeof createIdentifyFinished>
 export type IdentifyStartedPayload = More.ReturnType<typeof createIdentifyStarted>
 export type MarkActiveIdentifyUiPayload = More.ReturnType<typeof createMarkActiveIdentifyUi>
@@ -104,6 +109,7 @@ export type SetUpdateTrackersPayload = More.ReturnType<typeof createSetUpdateTra
 export type ShowNonUserPayload = More.ReturnType<typeof createShowNonUser>
 export type ShowTrackerPayload = More.ReturnType<typeof createShowTracker>
 export type StopTimerPayload = More.ReturnType<typeof createStopTimer>
+export type UnfollowPayload = More.ReturnType<typeof createUnfollow>
 export type UpdateBTCPayload = More.ReturnType<typeof createUpdateBTC>
 export type UpdateEldestKidChangedPayload = More.ReturnType<typeof createUpdateEldestKidChanged>
 export type UpdateFoldersPayload = More.ReturnType<typeof createUpdateFolders>
@@ -121,6 +127,7 @@ export type WaitingPayload = More.ReturnType<typeof createWaiting>
 // prettier-ignore
 export type Actions =
   | More.ReturnType<typeof createCacheIdentify>
+  | More.ReturnType<typeof createFollow>
   | More.ReturnType<typeof createIdentifyFinished>
   | More.ReturnType<typeof createIdentifyFinishedError>
   | More.ReturnType<typeof createIdentifyStarted>
@@ -143,6 +150,7 @@ export type Actions =
   | More.ReturnType<typeof createShowNonUser>
   | More.ReturnType<typeof createShowTracker>
   | More.ReturnType<typeof createStopTimer>
+  | More.ReturnType<typeof createUnfollow>
   | More.ReturnType<typeof createUpdateBTC>
   | More.ReturnType<typeof createUpdateEldestKidChanged>
   | More.ReturnType<typeof createUpdateFolders>

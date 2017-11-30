@@ -403,6 +403,8 @@ export default function(
       }
     }
     // Saga only actions
+    case TrackerGen.follow:
+    case TrackerGen.unfollow:
     case TrackerGen.parseFriendship:
       return state
     default:
