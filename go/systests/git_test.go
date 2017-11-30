@@ -78,7 +78,7 @@ func TestGitTeamer(t *testing.T) {
 			FolderType: folderType,
 		})
 		require.NoError(t, err)
-		expectedTeamID, _, _, err := teams.LookupImplicitTeam(context.Background(), alice.tc.G, frag, public)
+		expectedTeamID, _, _, _, err := teams.LookupImplicitTeam(context.Background(), alice.tc.G, frag, public)
 		require.NoError(t, err)
 		require.Equal(t, public, expectedTeamID.IsPublic())
 		require.Equal(t, expectedTeamID, res.TeamID, "teamer should have created a team that was then looked up")
@@ -88,7 +88,7 @@ func TestGitTeamer(t *testing.T) {
 		bob = tt.addUser("bob")
 		gil = tt.addUser("gil")
 		frag = fmt.Sprintf("%v,%v#%v", alice.username, bob.username, gil.username)
-		teamID, _, _, err = teams.LookupOrCreateImplicitTeam(context.Background(), alice.tc.G, frag, public)
+		teamID, _, _, _, err = teams.LookupOrCreateImplicitTeam(context.Background(), alice.tc.G, frag, public)
 		require.NoError(t, err)
 		require.Equal(t, public, teamID.IsPublic())
 		res, err = aliceTeamer.LookupOrCreate(context.Background(), keybase1.Folder{
@@ -105,9 +105,9 @@ func TestGitTeamer(t *testing.T) {
 		bob = tt.addUser("bob")
 		iTeamNameCreate1 := strings.Join([]string{alice.username, bob.username}, ",")
 		iTeamNameCreate2 := strings.Join([]string{alice.username, bob.username + "@rooter"}, ",")
-		_, _, _, err = teams.LookupOrCreateImplicitTeam(context.Background(), alice.tc.G, iTeamNameCreate1, public)
+		_, _, _, _, err = teams.LookupOrCreateImplicitTeam(context.Background(), alice.tc.G, iTeamNameCreate1, public)
 		require.NoError(t, err)
-		iTeamID2, _, _, err := teams.LookupOrCreateImplicitTeam(context.Background(), alice.tc.G, iTeamNameCreate2, public)
+		iTeamID2, _, _, _, err := teams.LookupOrCreateImplicitTeam(context.Background(), alice.tc.G, iTeamNameCreate2, public)
 		require.NoError(t, err)
 		require.Equal(t, public, iTeamID2.IsPublic())
 
@@ -128,7 +128,7 @@ func TestGitTeamer(t *testing.T) {
 		})
 
 		t.Logf("find out the conflict suffix")
-		_, _, _, conflicts, err := teams.LookupImplicitTeamAndConflicts(context.Background(), alice.tc.G, iTeamNameCreate1, public)
+		_, _, _, _, conflicts, err := teams.LookupImplicitTeamAndConflicts(context.Background(), alice.tc.G, iTeamNameCreate1, public)
 		require.NoError(t, err)
 		require.Len(t, conflicts, 1)
 		t.Logf("check")
