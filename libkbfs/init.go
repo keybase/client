@@ -169,7 +169,7 @@ func defaultLogPath(ctx Context) string {
 
 // DefaultInitParams returns default init params
 func DefaultInitParams(ctx Context) InitParams {
-	journalEnv := os.Getenv("KBFS_ENABLE_JOURNAL")
+	journalEnv := os.Getenv("KBFS_DEFAULT_ENABLE_JOURNAL_VALUE")
 	if journalEnv == "" {
 		journalEnv = "true"
 	}
