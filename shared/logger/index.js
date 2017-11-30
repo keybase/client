@@ -7,7 +7,8 @@ import NullLogger from './null-logger'
 import NativeLogger from './native-logger'
 import DumpPeriodicallyLogger from './dump-periodically-logger'
 import {writeLogLinesToFile} from '../util/forward-logs'
-import {isMobile} from '../constants/platform'
+import {isMobile, logFileName} from '../constants/platform'
+import {stat, unlink} from '../util/file'
 
 // Function to flatten arrays and preserve their sort order
 // Same as concating all the arrays and calling .sort() but could be faster
@@ -15,6 +16,14 @@ import {isMobile} from '../constants/platform'
 function _mergeSortedArraysHelper<A>(sortFn: (a: A, b: A) => number, ...arrays: Array<Array<A>>): Array<A> {
   // TODO make a more effecient version - doing simple thing for now
   return [].concat(...arrays).sort(sortFn)
+}
+
+function deleteFileIfOlderThanMs(olderThanMs: number, filepath: string): Promise<void> {
+  return stat(filepath).then(({lastModified}) => {
+    if (Date.now() - lastModified > olderThanMs) {
+      return unlink(filepath)
+    }
+  })
 }
 
 class AggregateLoggerImpl implements AggregateLogger {
@@ -62,6 +71,9 @@ class AggregateLoggerImpl implements AggregateLogger {
     this.info = info.log
     this.action = action.log
     this.debug = debug.log
+
+    const olderThanMs = 1e3 * 60 * 60 * 24 // 24 hours
+    deleteFileIfOlderThanMs(olderThanMs, logFileName())
   }
 
   dump(filter?: Array<LogLevel>) {
