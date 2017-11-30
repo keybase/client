@@ -26,14 +26,14 @@ func createRootTeam(tc libkb.TestContext) keybase1.TeamID {
 	require.NoError(tc.T, err)
 	teamName, err := keybase1.TeamNameFromString("T" + u.Username + "T")
 	require.NoError(tc.T, err)
-	err = teams.CreateRootTeam(context.Background(), tc.G, teamName.String(), keybase1.TeamSettings{})
+	_, err = teams.CreateRootTeam(context.Background(), tc.G, teamName.String(), keybase1.TeamSettings{})
 	require.NoError(tc.T, err)
 	return teamName.ToPrivateTeamID()
 }
 
 func createImplicitTeam(tc libkb.TestContext, public bool) keybase1.TeamID {
 	u, err := kbtest.CreateAndSignupFakeUser("c", tc.G)
-	teamID, _, _, err := teams.LookupOrCreateImplicitTeam(context.TODO(), tc.G, u.Username, public)
+	teamID, _, _, _, err := teams.LookupOrCreateImplicitTeam(context.TODO(), tc.G, u.Username, public)
 	require.NoError(tc.T, err)
 	require.Equal(tc.T, public, teamID.IsPublic())
 	return teamID

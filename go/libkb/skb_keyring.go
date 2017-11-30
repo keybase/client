@@ -82,8 +82,9 @@ func (k *SKBKeyringFile) loadLocked() (err error) {
 			k.G().Log.Debug("| Keybase secret keyring doesn't exist: %s", k.filename)
 		} else {
 			k.G().Log.Warning("Error opening %s: %s", k.filename, err)
-		}
 
+			MobilePermissionDeniedCheck(k.G(), err, fmt.Sprintf("skb keyring: %s", k.filename))
+		}
 	} else if err == nil {
 		k.Blocks, err = packets.ToListOfSKBs(k.G())
 	}

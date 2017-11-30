@@ -22,8 +22,13 @@ func (o TeamChangeSet) DeepCopy() TeamChangeSet {
 	}
 }
 
-type TeamChangedArg struct {
+type TeamChangedByIDArg struct {
 	TeamID      TeamID        `codec:"teamID" json:"teamID"`
+	LatestSeqno Seqno         `codec:"latestSeqno" json:"latestSeqno"`
+	Changes     TeamChangeSet `codec:"changes" json:"changes"`
+}
+
+type TeamChangedByNameArg struct {
 	TeamName    string        `codec:"teamName" json:"teamName"`
 	LatestSeqno Seqno         `codec:"latestSeqno" json:"latestSeqno"`
 	Changes     TeamChangeSet `codec:"changes" json:"changes"`
@@ -38,7 +43,8 @@ type TeamExitArg struct {
 }
 
 type NotifyTeamInterface interface {
-	TeamChanged(context.Context, TeamChangedArg) error
+	TeamChangedByID(context.Context, TeamChangedByIDArg) error
+	TeamChangedByName(context.Context, TeamChangedByNameArg) error
 	TeamDeleted(context.Context, TeamID) error
 	TeamExit(context.Context, TeamID) error
 }
@@ -47,18 +53,34 @@ func NotifyTeamProtocol(i NotifyTeamInterface) rpc.Protocol {
 	return rpc.Protocol{
 		Name: "keybase.1.NotifyTeam",
 		Methods: map[string]rpc.ServeHandlerDescription{
-			"teamChanged": {
+			"teamChangedByID": {
 				MakeArg: func() interface{} {
-					ret := make([]TeamChangedArg, 1)
+					ret := make([]TeamChangedByIDArg, 1)
 					return &ret
 				},
 				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[]TeamChangedArg)
+					typedArgs, ok := args.(*[]TeamChangedByIDArg)
 					if !ok {
-						err = rpc.NewTypeError((*[]TeamChangedArg)(nil), args)
+						err = rpc.NewTypeError((*[]TeamChangedByIDArg)(nil), args)
 						return
 					}
-					err = i.TeamChanged(ctx, (*typedArgs)[0])
+					err = i.TeamChangedByID(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodNotify,
+			},
+			"teamChangedByName": {
+				MakeArg: func() interface{} {
+					ret := make([]TeamChangedByNameArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]TeamChangedByNameArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]TeamChangedByNameArg)(nil), args)
+						return
+					}
+					err = i.TeamChangedByName(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodNotify,
@@ -103,8 +125,13 @@ type NotifyTeamClient struct {
 	Cli rpc.GenericClient
 }
 
-func (c NotifyTeamClient) TeamChanged(ctx context.Context, __arg TeamChangedArg) (err error) {
-	err = c.Cli.Notify(ctx, "keybase.1.NotifyTeam.teamChanged", []interface{}{__arg})
+func (c NotifyTeamClient) TeamChangedByID(ctx context.Context, __arg TeamChangedByIDArg) (err error) {
+	err = c.Cli.Notify(ctx, "keybase.1.NotifyTeam.teamChangedByID", []interface{}{__arg})
+	return
+}
+
+func (c NotifyTeamClient) TeamChangedByName(ctx context.Context, __arg TeamChangedByNameArg) (err error) {
+	err = c.Cli.Notify(ctx, "keybase.1.NotifyTeam.teamChangedByName", []interface{}{__arg})
 	return
 }
 

@@ -38,6 +38,7 @@ type SCTeamSection struct {
 	Public           bool                                                      `json:"is_public,omitempty"`
 	Entropy          SCTeamEntropy                                             `json:"entropy,omitempty"`
 	Settings         *SCTeamSettings                                           `json:"settings,omitempty"`
+	KBFS             *SCTeamKBFS                                               `json:"kbfs,omitempty"`
 }
 
 type SCTeamMembers struct {
@@ -97,6 +98,14 @@ type SCTeamSettingsOpenOptions struct {
 type SCTeamSettingsOpen struct {
 	Enabled bool                       `json:"enabled"`
 	Options *SCTeamSettingsOpenOptions `json:"options,omitempty"`
+}
+
+type SCTeamKBFS struct {
+	TLF *SCTeamKBFSTLF `json:"tlf,omitempty"`
+}
+
+type SCTeamKBFSTLF struct {
+	ID keybase1.TLFID `json:"id"`
 }
 
 func (a SCTeamAdmin) SigChainLocation() keybase1.SigChainLocation {

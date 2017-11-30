@@ -26,6 +26,11 @@ type FSSyncEventArg struct {
 	Event FSPathSyncStatus `codec:"event" json:"event"`
 }
 
+type CreateTLFArg struct {
+	TeamID TeamID `codec:"teamID" json:"teamID"`
+	TlfID  TLFID  `codec:"tlfID" json:"tlfID"`
+}
+
 type KbfsInterface interface {
 	// Idea is that kbfs would call the function below whenever these actions are
 	// performed on a file.
@@ -45,6 +50,7 @@ type KbfsInterface interface {
 	// FSSyncEvent is called by KBFS when the sync status of an individual path
 	// changes.
 	FSSyncEvent(context.Context, FSPathSyncStatus) error
+	CreateTLF(context.Context, CreateTLFArg) error
 }
 
 func KbfsProtocol(i KbfsInterface) rpc.Protocol {
@@ -115,6 +121,22 @@ func KbfsProtocol(i KbfsInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"createTLF": {
+				MakeArg: func() interface{} {
+					ret := make([]CreateTLFArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]CreateTLFArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]CreateTLFArg)(nil), args)
+						return
+					}
+					err = i.CreateTLF(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 		},
 	}
 }
@@ -156,5 +178,10 @@ func (c KbfsClient) FSSyncStatus(ctx context.Context, __arg FSSyncStatusArg) (er
 func (c KbfsClient) FSSyncEvent(ctx context.Context, event FSPathSyncStatus) (err error) {
 	__arg := FSSyncEventArg{Event: event}
 	err = c.Cli.Call(ctx, "keybase.1.kbfs.FSSyncEvent", []interface{}{__arg}, nil)
+	return
+}
+
+func (c KbfsClient) CreateTLF(ctx context.Context, __arg CreateTLFArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.kbfs.createTLF", []interface{}{__arg}, nil)
 	return
 }

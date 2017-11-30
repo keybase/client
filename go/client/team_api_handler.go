@@ -212,6 +212,10 @@ func (t *teamAPIHandler) createTeam(ctx context.Context, c Call, w io.Writer) er
 	}
 	sendChatNotification := name.IsRootTeam()
 
+	type createResExportT struct {
+		ChatSent     bool `codec:"chatSent" json:"chatSent"`
+		CreatorAdded bool `codec:"creatorAdded" json:"creatorAdded"`
+	}
 	createRes, err := t.cli.TeamCreate(context.TODO(), keybase1.TeamCreateArg{
 		Name:                 name.String(),
 		SendChatNotification: sendChatNotification,
@@ -219,8 +223,12 @@ func (t *teamAPIHandler) createTeam(ctx context.Context, c Call, w io.Writer) er
 	if err != nil {
 		return t.encodeErr(c, err, w)
 	}
+	createResExport := createResExportT{
+		ChatSent:     createRes.ChatSent,
+		CreatorAdded: createRes.CreatorAdded,
+	}
 
-	return t.encodeResult(c, createRes, w)
+	return t.encodeResult(c, createResExport, w)
 }
 
 type editMemberOptions struct {

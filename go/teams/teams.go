@@ -68,6 +68,10 @@ func (t *Team) OpenTeamJoinAs() keybase1.TeamRole {
 	return t.chain().inner.OpenTeamJoinAs
 }
 
+func (t *Team) KBFSTLFID() keybase1.TLFID {
+	return t.chain().inner.TlfID
+}
+
 func (t *Team) SharedSecret(ctx context.Context) (ret keybase1.PerTeamKeySeed, err error) {
 	defer t.G().CTrace(ctx, "Team#SharedSecret", func() error { return err })()
 	gen := t.chain().GetLatestGeneration()
@@ -394,7 +398,8 @@ func (t *Team) Rotate(ctx context.Context) error {
 	// result of this work, so use `NextSeqno()` and not `CurrentSeqno()`. Note that we're going
 	// to be getting this same notification a second time, since it will bounce off a gregor and
 	// back to us. But they are idempotent, so it should be fine to be double-notified.
-	t.G().NotifyRouter.HandleTeamChanged(ctx, t.chain().GetID(), t.Name().String(), t.NextSeqno(), keybase1.TeamChangeSet{KeyRotated: true})
+	t.G().NotifyRouter.HandleTeamChangedByBothKeys(ctx,
+		t.chain().GetID(), t.Name().String(), t.NextSeqno(), keybase1.TeamChangeSet{KeyRotated: true})
 
 	return nil
 }
@@ -498,7 +503,7 @@ func (t *Team) ChangeMembershipPermanent(ctx context.Context, req keybase1.TeamC
 
 	// send notification that team key rotated
 	changes := keybase1.TeamChangeSet{MembershipChanged: true, KeyRotated: t.rotated}
-	t.G().NotifyRouter.HandleTeamChanged(ctx, t.chain().GetID(), t.Name().String(), t.NextSeqno(), changes)
+	t.G().NotifyRouter.HandleTeamChangedByBothKeys(ctx, t.chain().GetID(), t.Name().String(), t.NextSeqno(), changes)
 	return nil
 }
 
@@ -1046,6 +1051,8 @@ func usesPerTeamKeys(linkType libkb.LinkType) bool {
 		return false
 	case libkb.LinkTypeDeleteUpPointer:
 		return false
+	case libkb.LinkTypeKBFSSettings:
+		return false
 	}
 
 	return true
@@ -1427,4 +1434,39 @@ func isSigOldSeqnoError(err error) bool {
 		}
 	}
 	return false
+}
+
+func (t *Team) associateTLFID(ctx context.Context, tlfID keybase1.TLFID) (err error) {
+	defer t.G().CTrace(ctx, "Team.associateTLFID", func() error { return err })()
+
+	if !t.IsImplicit() {
+		return NewExplicitTeamOperationError("associateTLFID")
+	}
+
+	teamSection := SCTeamSection{
+		ID:       SCTeamID(t.ID),
+		Implicit: t.IsImplicit(),
+		Public:   t.IsPublic(),
+		KBFS: &SCTeamKBFS{
+			TLF: &SCTeamKBFSTLF{
+				ID: tlfID,
+			},
+		},
+	}
+
+	mr, err := t.G().MerkleClient.FetchRootFromServer(ctx, libkb.TeamMerkleFreshnessForAdmin)
+	if err != nil {
+		return err
+	}
+	if mr == nil {
+		return errors.New("No merkle root available for KBFS settings update")
+	}
+
+	sigMultiItem, err := t.sigTeamItem(ctx, teamSection, libkb.LinkTypeKBFSSettings, mr)
+	if err != nil {
+		return err
+	}
+
+	payload := t.sigPayload(sigMultiItem, sigPayloadArgs{})
+	return t.postMulti(payload)
 }

@@ -500,6 +500,7 @@ type TeamData struct {
 	Chain           TeamSigChainState                                    `codec:"chain" json:"chain"`
 	PerTeamKeySeeds map[PerTeamKeyGeneration]PerTeamKeySeedItem          `codec:"perTeamKeySeeds" json:"perTeamKeySeeds"`
 	ReaderKeyMasks  map[TeamApplication]map[PerTeamKeyGeneration]MaskB64 `codec:"readerKeyMasks" json:"readerKeyMasks"`
+	LatestSeqnoHint Seqno                                                `codec:"latestSeqnoHint" json:"latestSeqnoHint"`
 	CachedAt        Time                                                 `codec:"cachedAt" json:"cachedAt"`
 }
 
@@ -543,7 +544,8 @@ func (o TeamData) DeepCopy() TeamData {
 			}
 			return ret
 		})(o.ReaderKeyMasks),
-		CachedAt: o.CachedAt.DeepCopy(),
+		LatestSeqnoHint: o.LatestSeqnoHint.DeepCopy(),
+		CachedAt:        o.CachedAt.DeepCopy(),
 	}
 }
 
@@ -740,6 +742,7 @@ type TeamSigChainState struct {
 	ActiveInvites  map[TeamInviteID]TeamInvite         `codec:"activeInvites" json:"activeInvites"`
 	Open           bool                                `codec:"open" json:"open"`
 	OpenTeamJoinAs TeamRole                            `codec:"openTeamJoinAs" json:"openTeamJoinAs"`
+	TlfID          TLFID                               `codec:"tlfID" json:"tlfID"`
 }
 
 func (o TeamSigChainState) DeepCopy() TeamSigChainState {
@@ -864,6 +867,7 @@ func (o TeamSigChainState) DeepCopy() TeamSigChainState {
 		})(o.ActiveInvites),
 		Open:           o.Open,
 		OpenTeamJoinAs: o.OpenTeamJoinAs.DeepCopy(),
+		TlfID:          o.TlfID.DeepCopy(),
 	}
 }
 
@@ -1541,12 +1545,14 @@ func (o TeamTreeEntry) DeepCopy() TeamTreeEntry {
 }
 
 type TeamCreateResult struct {
-	ChatSent     bool `codec:"chatSent" json:"chatSent"`
-	CreatorAdded bool `codec:"creatorAdded" json:"creatorAdded"`
+	TeamID       TeamID `codec:"teamID" json:"teamID"`
+	ChatSent     bool   `codec:"chatSent" json:"chatSent"`
+	CreatorAdded bool   `codec:"creatorAdded" json:"creatorAdded"`
 }
 
 func (o TeamCreateResult) DeepCopy() TeamCreateResult {
 	return TeamCreateResult{
+		TeamID:       o.TeamID.DeepCopy(),
 		ChatSent:     o.ChatSent,
 		CreatorAdded: o.CreatorAdded,
 	}
@@ -1729,6 +1735,7 @@ type LookupImplicitTeamRes struct {
 	TeamID      TeamID                  `codec:"teamID" json:"teamID"`
 	Name        TeamName                `codec:"name" json:"name"`
 	DisplayName ImplicitTeamDisplayName `codec:"displayName" json:"displayName"`
+	TlfID       TLFID                   `codec:"tlfID" json:"tlfID"`
 }
 
 func (o LookupImplicitTeamRes) DeepCopy() LookupImplicitTeamRes {
@@ -1736,6 +1743,7 @@ func (o LookupImplicitTeamRes) DeepCopy() LookupImplicitTeamRes {
 		TeamID:      o.TeamID.DeepCopy(),
 		Name:        o.Name.DeepCopy(),
 		DisplayName: o.DisplayName.DeepCopy(),
+		TlfID:       o.TlfID.DeepCopy(),
 	}
 }
 

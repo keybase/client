@@ -420,6 +420,10 @@
           "name": "readerKeyMasks"
         },
         {
+          "type": "Seqno",
+          "name": "latestSeqnoHint"
+        },
+        {
           "type": "Time",
           "name": "cachedAt"
         }
@@ -654,6 +658,10 @@
         {
           "type": "TeamRole",
           "name": "openTeamJoinAs"
+        },
+        {
+          "type": "TLFID",
+          "name": "tlfID"
         }
       ]
     },
@@ -1318,6 +1326,10 @@
       "name": "TeamCreateResult",
       "fields": [
         {
+          "type": "TeamID",
+          "name": "teamID"
+        },
+        {
           "type": "boolean",
           "name": "chatSent"
         },
@@ -1498,6 +1510,10 @@
         {
           "type": "ImplicitTeamDisplayName",
           "name": "displayName"
+        },
+        {
+          "type": "TLFID",
+          "name": "tlfID"
         }
       ]
     }

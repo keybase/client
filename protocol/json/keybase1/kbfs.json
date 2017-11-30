@@ -62,6 +62,19 @@
       "response": null,
       "doc": "FSSyncEvent is called by KBFS when the sync status of an individual path\n    changes.",
       "lint": "ignore"
+    },
+    "createTLF": {
+      "request": [
+        {
+          "name": "teamID",
+          "type": "TeamID"
+        },
+        {
+          "name": "tlfID",
+          "type": "TLFID"
+        }
+      ],
+      "response": null
     }
   },
   "namespace": "keybase.1"
