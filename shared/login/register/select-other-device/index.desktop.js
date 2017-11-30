@@ -3,6 +3,7 @@ import Container from '../../forms/container.desktop'
 import * as React from 'react'
 import {Text, Icon} from '../../../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../../../styles'
+import openURL from '../../../util/open-url'
 
 import type {DeviceType} from '../../../constants/types/devices'
 import type {IconType} from '../../../common-adapters/icon'
@@ -20,14 +21,8 @@ const Row = ({deviceID, name, type, onSelect}) => {
     e && e.preventDefault()
   }
 
-  const realCSS = `
-  .deviceRow { border-bottom: 1px solid ${globalColors.black_05} }
-  .deviceRow:hover { background: ${globalColors.blue4}; border-bottom: 1px solid ${globalColors.blue4} }
-  `
-
   return (
     <div>
-      <style>{realCSS}</style>
       <div style={stylesRow} className="deviceRow" onClick={onClick}>
         <div style={stylesIconName}>
           <div style={stylesIconContainer}>
@@ -40,11 +35,47 @@ const Row = ({deviceID, name, type, onSelect}) => {
   )
 }
 
-const SelectOtherDevice = ({onBack, devices, onWont, onSelect, canSelectNoDevice}: Props) => (
+const ResetOption = ({showResetLink, setShowResetLink}) => (
+  <div>
+    <div style={stylesRow} className="deviceRow" onClick={() => setShowResetLink(true)}>
+      <div style={stylesIconName}>
+        <div style={stylesIconContainer}>
+          <Icon
+            style={{...stylesIcon, fontSize: 28, color: globalColors.black_40, marginLeft: 34}}
+            type="iconfont-close"
+          />
+        </div>
+        <Text type="Body">
+          Uh oh - I don't have any of these devices anymore, or I've uninstalled Keybase from all of them.
+        </Text>
+      </div>
+    </div>
+    {showResetLink &&
+      <div style={{...stylesRow, alignItems: 'center'}}>
+        <div style={stylesIconName}>
+          <Text type="BodyPrimaryLink" onClick={() => openURL('https://keybase.io/#account-reset')}>
+            RESET MY ACCOUNT
+          </Text>
+        </div>
+      </div>}
+  </div>
+)
+
+const SelectOtherDevice = ({
+  onBack,
+  devices,
+  onWont,
+  onSelect,
+  canSelectNoDevice,
+  showResetLink,
+  setShowResetLink,
+}: Props) => (
   <Container style={stylesContainer} onBack={onBack}>
-    <Text type="Header" style={stylesHeader}>Which device would you like to connect with?</Text>
+    <style>{realCSS}</style>
+    <Text type="Header" style={stylesHeader}>Which Keybase install would you like to connect with?</Text>
     <div style={stylesDevicesContainer}>
       {devices.map(d => <Row onSelect={onSelect} {...d} key={d.deviceID} />)}
+      <ResetOption showResetLink={showResetLink} setShowResetLink={setShowResetLink} />
     </div>
     {canSelectNoDevice &&
       <Text style={stylesWont} type="BodySmallSecondaryLink" onClick={onWont}>
@@ -93,5 +124,10 @@ const stylesWont = {
   marginTop: globalMargins.medium,
   alignSelf: 'center',
 }
+
+const realCSS = `
+  .deviceRow { border-bottom: 1px solid ${globalColors.black_05} }
+  .deviceRow:hover { background: ${globalColors.blue4}; border-bottom: 1px solid ${globalColors.blue4} }
+  `
 
 export default SelectOtherDevice

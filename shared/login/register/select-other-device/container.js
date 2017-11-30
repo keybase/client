@@ -2,6 +2,7 @@
 import * as LoginGen from '../../../actions/login-gen'
 import SelectOtherDevice from '.'
 import {connect, type TypedState} from '../../../util/container'
+import {compose, withState} from 'recompose'
 import {type Device} from '../../../constants/types/devices'
 import {type RouteProps} from '../../../route-tree/render-route'
 
@@ -23,4 +24,7 @@ const mapDispatchToProps = dispatch => ({
   onSelect: deviceId => dispatch(LoginGen.createSelectDeviceId({deviceId})),
 })
 
-export default connect(mapStateToProps, mapDispatchToProps)(SelectOtherDevice)
+export default compose(
+  connect(mapStateToProps, mapDispatchToProps),
+  withState('showResetLink', 'setShowResetLink', false)
+)(SelectOtherDevice)
