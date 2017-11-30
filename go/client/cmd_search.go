@@ -92,7 +92,7 @@ func (c *CmdSearch) showRegularResults(results []keybase1.UserSummary) error {
 	for _, user := range results {
 		GlobUI.Printf("%s", user.Username)
 		for _, social := range user.Proofs.Social {
-			GlobUI.Printf(" %s:%s", social.ProofType, social.ProofName)
+			GlobUI.Printf(" %s@%s", social.ProofName, social.ProofType)
 		}
 		for _, web := range user.Proofs.Web {
 			for _, protocol := range web.Protocols {
