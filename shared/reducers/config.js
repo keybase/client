@@ -96,22 +96,18 @@ export default function(
         return state.set('avatars', goodAvatars)
       }
     }
-    case ConfigGen.loadedAvatar: {
-      const {username, urlMap} = action.payload
+    case ConfigGen.loadedAvatars: {
+      const {nameToUrlMap} = action.payload
       return state.set('avatars', {
         ...state.avatars,
-        [username]: urlMap,
+        ...nameToUrlMap,
       })
-    }
-    case ConfigGen.loadedTeamAvatar: {
-      // TODO
-      return state
     }
     case 'remote:updateMenubarWindowID':
       return state.set('menubarWindowID', action.payload.id)
     // Saga only actions
-    case ConfigGen.loadTeamAvatar:
-    case ConfigGen.loadAvatar:
+    case ConfigGen.loadTeamAvatars:
+    case ConfigGen.loadAvatars:
     case ConfigGen.bootstrap:
     case ConfigGen.clearRouteState:
     case ConfigGen.getExtendedStatus:

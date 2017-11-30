@@ -216,26 +216,27 @@ function _loadAvatarHelper(action: {payload: {names: Array<string>, endpoint: st
 }
 
 function _afterLoadAvatarHelper([response: {body: string}, names]) {
-  const actions = JSON.parse(response.body).pictures.map((picMap, idx) =>
-    Saga.put(
-      ConfigGen.createLoadedAvatar({
-        urlMap: {
-          ...(picMap['square_200'] ? {'200': picMap['square_200']} : null),
-          ...(picMap['square_360'] ? {'360': picMap['square_360']} : null),
-          ...(picMap['square_40'] ? {'40': picMap['square_40']} : null),
-        },
-        username: names[idx],
-      })
-    )
-  )
-  return Saga.all(actions)
+  const nameToUrlMap = JSON.parse(response.body).pictures.reduce((map, picMap, idx) => {
+    const name = names[idx]
+    const urlMap = {
+      ...(picMap['square_200'] ? {'200': picMap['square_200']} : null),
+      ...(picMap['square_360'] ? {'360': picMap['square_360']} : null),
+      ...(picMap['square_40'] ? {'40': picMap['square_40']} : null),
+    }
+    map[name] = urlMap
+    return map
+  }, {})
+
+  return Saga.put(ConfigGen.createLoadedAvatars({nameToUrlMap}))
 }
 
 let _avatarsToLoad = {}
-function* _loadAvatar(action: ConfigGen.LoadAvatarPayload) {
-  const {username} = action.payload
+function* _loadAvatars(action: ConfigGen.LoadAvatarsPayload) {
+  const {usernames} = action.payload
   // store it and wait, once our timer is up we pull any and run it
-  _avatarsToLoad[username] = true
+  usernames.forEach(username => {
+    _avatarsToLoad[username] = true
+  })
   yield Saga.call(Saga.delay, 200)
 
   const names = Object.keys(_avatarsToLoad)
@@ -250,10 +251,12 @@ function* _loadAvatar(action: ConfigGen.LoadAvatarPayload) {
 }
 
 let _teamAvatarsToLoad = {}
-function* _loadTeamAvatar(action: ConfigGen.LoadTeamAvatarPayload) {
-  const {teamname} = action.payload
+function* _loadTeamAvatars(action: ConfigGen.LoadTeamAvatarsPayload) {
+  const {teamnames} = action.payload
+  teamnames.forEach(teamname => {
+    _teamAvatarsToLoad[teamname] = true
+  })
   // store it and wait, once our timer is up we pull any and run it
-  _teamAvatarsToLoad[teamname] = true
   yield Saga.call(Saga.delay, 200)
 
   const names = Object.keys(_teamAvatarsToLoad)
@@ -268,7 +271,7 @@ function* _loadTeamAvatar(action: ConfigGen.LoadTeamAvatarPayload) {
 }
 
 // Every minute we clear out any avatars that might have errored out
-function* _periodicAvatarCacheClear() {
+function* _periodicAvatarCacheClear(): Generator<any, void, any> {
   while (true) {
     yield Saga.call(Saga.delay, 1000 * 60)
     yield Saga.put(ConfigGen.createClearAvatarCache())
@@ -282,8 +285,8 @@ function* configSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEvery(ConfigGen.persistRouteState, _persistRouteState)
   yield Saga.safeTakeEvery(ConfigGen.retryBootstrap, _retryBootstrap)
   yield Saga.safeTakeEveryPure(ConfigGen.pgpAckedMessage, _pgpSecurityModelChangeMessageSaga)
-  yield Saga.safeTakeEvery(ConfigGen.loadAvatar, _loadAvatar)
-  yield Saga.safeTakeEvery(ConfigGen.loadTeamAvatar, _loadTeamAvatar)
+  yield Saga.safeTakeEvery(ConfigGen.loadAvatars, _loadAvatars)
+  yield Saga.safeTakeEvery(ConfigGen.loadTeamAvatars, _loadTeamAvatars)
   yield Saga.safeTakeEveryPure('_loadAvatarHelper', _loadAvatarHelper, _afterLoadAvatarHelper)
   yield Saga.fork(_periodicAvatarCacheClear)
 }

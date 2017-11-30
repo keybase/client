@@ -23,10 +23,9 @@ export const daemonError = 'config:daemonError'
 export const extendedConfigLoaded = 'config:extendedConfigLoaded'
 export const getExtendedStatus = 'config:getExtendedStatus'
 export const globalError = 'config:globalError'
-export const loadAvatar = 'config:loadAvatar'
-export const loadTeamAvatar = 'config:loadTeamAvatar'
-export const loadedAvatar = 'config:loadedAvatar'
-export const loadedTeamAvatar = 'config:loadedTeamAvatar'
+export const loadAvatars = 'config:loadAvatars'
+export const loadTeamAvatars = 'config:loadTeamAvatars'
+export const loadedAvatars = 'config:loadedAvatars'
 export const persistRouteState = 'config:persistRouteState'
 export const pgpAckedMessage = 'config:pgpAckedMessage'
 export const pgpKeyInSecretStoreFile = 'config:pgpKeyInSecretStoreFile'
@@ -51,10 +50,9 @@ export const createDaemonError = (payload: {|+daemonError: ?Error|}) => ({error:
 export const createExtendedConfigLoaded = (payload: {|+extendedConfig: RPCTypes.ExtendedStatus|}) => ({error: false, payload, type: extendedConfigLoaded})
 export const createGetExtendedStatus = () => ({error: false, payload: undefined, type: getExtendedStatus})
 export const createGlobalError = (payload: {|+globalError: ?Error|}) => ({error: false, payload, type: globalError})
-export const createLoadAvatar = (payload: {|+username: string|}) => ({error: false, payload, type: loadAvatar})
-export const createLoadTeamAvatar = (payload: {|+teamname: string|}) => ({error: false, payload, type: loadTeamAvatar})
-export const createLoadedAvatar = (payload: {|+username: string, +urlMap: ?Object|}) => ({error: false, payload, type: loadedAvatar})
-export const createLoadedTeamAvatar = (payload: {|+teamname: string, +urlMap: ?Object|}) => ({error: false, payload, type: loadedTeamAvatar})
+export const createLoadAvatars = (payload: {|+usernames: Array<string>|}) => ({error: false, payload, type: loadAvatars})
+export const createLoadTeamAvatars = (payload: {|+teamnames: Array<string>|}) => ({error: false, payload, type: loadTeamAvatars})
+export const createLoadedAvatars = (payload: {|+nameToUrlMap: {[name: string]: ?Object}|}) => ({error: false, payload, type: loadedAvatars})
 export const createPersistRouteState = () => ({error: false, payload: undefined, type: persistRouteState})
 export const createPgpAckedMessage = () => ({error: false, payload: undefined, type: pgpAckedMessage})
 export const createPgpKeyInSecretStoreFile = () => ({error: false, payload: undefined, type: pgpKeyInSecretStoreFile})
@@ -79,10 +77,9 @@ export type DaemonErrorPayload = More.ReturnType<typeof createDaemonError>
 export type ExtendedConfigLoadedPayload = More.ReturnType<typeof createExtendedConfigLoaded>
 export type GetExtendedStatusPayload = More.ReturnType<typeof createGetExtendedStatus>
 export type GlobalErrorPayload = More.ReturnType<typeof createGlobalError>
-export type LoadAvatarPayload = More.ReturnType<typeof createLoadAvatar>
-export type LoadTeamAvatarPayload = More.ReturnType<typeof createLoadTeamAvatar>
-export type LoadedAvatarPayload = More.ReturnType<typeof createLoadedAvatar>
-export type LoadedTeamAvatarPayload = More.ReturnType<typeof createLoadedTeamAvatar>
+export type LoadAvatarsPayload = More.ReturnType<typeof createLoadAvatars>
+export type LoadTeamAvatarsPayload = More.ReturnType<typeof createLoadTeamAvatars>
+export type LoadedAvatarsPayload = More.ReturnType<typeof createLoadedAvatars>
 export type PersistRouteStatePayload = More.ReturnType<typeof createPersistRouteState>
 export type PgpAckedMessagePayload = More.ReturnType<typeof createPgpAckedMessage>
 export type PgpKeyInSecretStoreFilePayload = More.ReturnType<typeof createPgpKeyInSecretStoreFile>
@@ -109,10 +106,9 @@ export type Actions =
   | More.ReturnType<typeof createExtendedConfigLoaded>
   | More.ReturnType<typeof createGetExtendedStatus>
   | More.ReturnType<typeof createGlobalError>
-  | More.ReturnType<typeof createLoadAvatar>
-  | More.ReturnType<typeof createLoadTeamAvatar>
-  | More.ReturnType<typeof createLoadedAvatar>
-  | More.ReturnType<typeof createLoadedTeamAvatar>
+  | More.ReturnType<typeof createLoadAvatars>
+  | More.ReturnType<typeof createLoadTeamAvatars>
+  | More.ReturnType<typeof createLoadedAvatars>
   | More.ReturnType<typeof createPersistRouteState>
   | More.ReturnType<typeof createPgpAckedMessage>
   | More.ReturnType<typeof createPgpKeyInSecretStoreFile>

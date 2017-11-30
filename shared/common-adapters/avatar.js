@@ -156,8 +156,9 @@ function _followIconSize(size: number, followsYou: boolean, following: boolean) 
 }
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
-  _askForTeamUserData: (teamname: string) => dispatch(ConfigGen.createLoadTeamAvatar({teamname})),
-  _askForUserData: (username: string) => dispatch(ConfigGen.createLoadAvatar({username})),
+  _askForTeamUserData: (teamname: string) =>
+    dispatch(ConfigGen.createLoadTeamAvatars({teamnames: [teamname]})),
+  _askForUserData: (username: string) => dispatch(ConfigGen.createLoadAvatars({usernames: [username]})),
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => {

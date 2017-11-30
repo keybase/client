@@ -4,19 +4,14 @@
   ],
   "actions": {
     "clearAvatarCache": {},
-    "loadAvatar": {
-      "username": "string"
+    "loadAvatars": {
+      "usernames": "Array<string>"
     },
-    "loadedAvatar": {
-      "username": "string",
-      "urlMap": "?Object"
+    "loadedAvatars": {
+      "nameToUrlMap": "{[name: string]: ?Object}"
     },
-    "loadTeamAvatar": {
-      "teamname": "string"
-    },
-    "loadedTeamAvatar": {
-      "teamname": "string",
-      "urlMap": "?Object"
+    "loadTeamAvatars": {
+      "teamnames": "Array<string>"
     },
     "bootstrapStatusLoaded": {
       "deviceID": "string",
