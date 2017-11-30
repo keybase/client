@@ -789,3 +789,18 @@ var adminFeatureList = map[keybase1.UID]bool{
 func IsKeybaseAdmin(uid keybase1.UID) bool {
 	return adminFeatureList[uid]
 }
+
+// MobilePermissionDeniedCheck panics if err is a permission denied error
+// and if app is a mobile app. This has caused issues opening config.json
+// and secretkeys files, where it seems to be stuck in a permission
+// denied state and force-killing the app is the only option.
+func MobilePermissionDeniedCheck(g *GlobalContext, err error, msg string) {
+	if !os.IsPermission(err) {
+		return
+	}
+	if g.GetAppType() != MobileAppType {
+		return
+	}
+	g.Log.Warning("file open permission denied on mobile (%s): %s", msg, err)
+	panic(fmt.Sprintf("panic due to file open permission denied on mobile (%s)", msg))
+}
