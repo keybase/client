@@ -50,8 +50,9 @@ const (
 	SigchainV2TypeTeamDeleteRoot       SigchainV2Type = 42
 	SigchainV2TypeTeamDeleteSubteam    SigchainV2Type = 43
 	SigchainV2TypeTeamDeleteUpPointer  SigchainV2Type = 44
-	SigchainV2TypeTeamKBFSSettings     SigchainV2Type = 45
-	SigchainV2TypeTeamSettings         SigchainV2Type = 46
+	// Note that 45 is skipped, since it's retired; used to be LegacyTLFUpgrade
+	SigchainV2TypeTeamSettings     SigchainV2Type = 46
+	SigchainV2TypeTeamKBFSSettings SigchainV2Type = 47
 )
 
 func (t SigchainV2Type) NeedsSignature() bool {
