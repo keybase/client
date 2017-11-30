@@ -257,28 +257,28 @@ func makeSigAndPostRootTeam(ctx context.Context, g *libkb.GlobalContext, me *lib
 	return nil
 }
 
-func CreateRootTeam(ctx context.Context, g *libkb.GlobalContext, nameString string, settings keybase1.TeamSettings) (err error) {
+func CreateRootTeam(ctx context.Context, g *libkb.GlobalContext, nameString string, settings keybase1.TeamSettings) (res *keybase1.TeamID, err error) {
 	defer g.CTraceTimed(ctx, "CreateRootTeam", func() error { return err })()
 
 	perUserKeyUpgradeSoft(ctx, g, "create-root-team")
 
 	name, err := keybase1.TeamNameFromString(nameString)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	if !name.IsRootTeam() {
-		return fmt.Errorf("cannot create root team with subteam name: %v", nameString)
+		return nil, fmt.Errorf("cannot create root team with subteam name: %v", nameString)
 	}
 
 	g.Log.CDebugf(ctx, "CreateRootTeam load me")
 	me, err := libkb.LoadMe(libkb.NewLoadUserArg(g))
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	ownerLatest := me.GetComputedKeyFamily().GetLatestPerUserKey()
 	if ownerLatest == nil {
-		return errors.New("can't create a new team without having provisioned a per-user key")
+		return nil, errors.New("can't create a new team without having provisioned a per-user key")
 	}
 	secretboxRecipients := map[keybase1.UserVersion]keybase1.PerUserKey{
 		me.ToUserVersion(): *ownerLatest,
@@ -295,15 +295,16 @@ func CreateRootTeam(ctx context.Context, g *libkb.GlobalContext, nameString stri
 	if settings.Open {
 		settingsTemp, err := CreateTeamSettings(settings.Open, settings.JoinAs)
 		if err != nil {
-			return err
+			return nil, err
 		}
 		scSettings = &settingsTemp
 	}
 
 	teamID := name.ToPrivateTeamID()
 
-	return makeSigAndPostRootTeam(ctx, g, me, members, nil,
+	err = makeSigAndPostRootTeam(ctx, g, me, members, nil,
 		secretboxRecipients, name.String(), teamID, false, false, scSettings)
+	return &teamID, err
 }
 
 func CreateSubteam(ctx context.Context, g *libkb.GlobalContext, subteamBasename string, parentName keybase1.TeamName) (ret *keybase1.TeamID, err error) {

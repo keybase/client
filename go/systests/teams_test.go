@@ -72,11 +72,11 @@ func TestTeamRotateOnRevoke(t *testing.T) {
 	tt.addUser("onr")
 	tt.addUser("wtr")
 
-	team := tt.users[0].createTeam()
-	tt.users[0].addTeamMember(team, tt.users[1].username, keybase1.TeamRole_WRITER)
+	teamID, teamName := tt.users[0].createTeam2()
+	tt.users[0].addTeamMember(teamName.String(), tt.users[1].username, keybase1.TeamRole_WRITER)
 
 	// get the before state of the team
-	before, err := GetTeamForTestByStringName(context.TODO(), tt.users[0].tc.G, team)
+	before, err := GetTeamForTestByStringName(context.TODO(), tt.users[0].tc.G, teamName.String())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -86,16 +86,16 @@ func TestTeamRotateOnRevoke(t *testing.T) {
 	secretBefore := before.Data.PerTeamKeySeeds[before.Generation()].Seed.ToBytes()
 
 	// User1 should get a gregor that the team he was just added to changed.
-	tt.users[1].waitForTeamChangedGregor(team, keybase1.Seqno(2))
+	tt.users[1].waitForTeamChangedGregor(teamID, keybase1.Seqno(2))
 	// User0 should get a (redundant) gregor notification that
 	// he just changed the team.
-	tt.users[0].waitForTeamChangedGregor(team, keybase1.Seqno(2))
+	tt.users[0].waitForTeamChangedGregor(teamID, keybase1.Seqno(2))
 
 	tt.users[1].revokePaperKey()
-	tt.users[0].waitForRotate(team, keybase1.Seqno(3))
+	tt.users[0].waitForRotateByID(teamID, keybase1.Seqno(3))
 
 	// check that key was rotated for team
-	after, err := GetTeamForTestByStringName(context.TODO(), tt.users[0].tc.G, team)
+	after, err := GetTeamForTestByStringName(context.TODO(), tt.users[0].tc.G, teamName.String())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -384,28 +384,11 @@ func (u *userPlusDevice) paperKeyID() keybase1.DeviceID {
 	return keybase1.DeviceID("")
 }
 
-func (u *userPlusDevice) waitForTeamChangedGregor(team string, toSeqno keybase1.Seqno) {
+func (u *userPlusDevice) waitForTeamChangedGregor(teamID keybase1.TeamID, toSeqno keybase1.Seqno) {
 	// process 10 team rotations or 10s worth of time
 	for i := 0; i < 10; i++ {
 		select {
-		case arg := <-u.notifications.rotateCh:
-			u.tc.T.Logf("membership change received: %+v", arg)
-			if arg.TeamName == team && arg.Changes.MembershipChanged && !arg.Changes.KeyRotated && !arg.Changes.Renamed && arg.LatestSeqno == toSeqno {
-				u.tc.T.Logf("change matched!")
-				return
-			}
-			u.tc.T.Logf("ignoring change message for team %q seqno %d %+v (expected team = %q, seqno = %d)", arg.TeamName, arg.LatestSeqno, arg.Changes, team, toSeqno)
-		case <-time.After(1 * time.Second * libkb.CITimeMultiplier(u.tc.G)):
-		}
-	}
-	u.tc.T.Fatalf("timed out waiting for team rotate %s", team)
-}
-
-func (u *userPlusDevice) waitForTeamIDChangedGregor(teamID keybase1.TeamID, toSeqno keybase1.Seqno) {
-	// process 10 team rotations or 10s worth of time
-	for i := 0; i < 10; i++ {
-		select {
-		case arg := <-u.notifications.rotateCh:
+		case arg := <-u.notifications.changeCh:
 			u.tc.T.Logf("membership change received: %+v", arg)
 			if arg.TeamID.Eq(teamID) && arg.Changes.MembershipChanged && !arg.Changes.KeyRotated && !arg.Changes.Renamed && arg.LatestSeqno == toSeqno {
 				u.tc.T.Logf("change matched!")
@@ -421,7 +404,7 @@ func (u *userPlusDevice) waitForTeamIDChangedGregor(teamID keybase1.TeamID, toSe
 func (u *userPlusDevice) drainGregor() {
 	for i := 0; i < 1000; i++ {
 		select {
-		case <-u.notifications.rotateCh:
+		case <-u.notifications.changeCh:
 			u.tc.T.Logf("dropped notification")
 			// drop
 		case <-time.After(500 * time.Millisecond * libkb.CITimeMultiplier(u.tc.G)):
@@ -429,29 +412,6 @@ func (u *userPlusDevice) drainGregor() {
 			return
 		}
 	}
-}
-
-// TODO this should use ID instead
-func (u *userPlusDevice) waitForRotate(team string, toSeqno keybase1.Seqno) {
-	u.tc.T.Logf("waiting for team rotate %s", team)
-
-	// jump start the clkr queue processing loop
-	u.kickTeamRekeyd()
-
-	// process 10 team rotations or 10s worth of time
-	for i := 0; i < 10; i++ {
-		select {
-		case arg := <-u.notifications.rotateCh:
-			u.tc.T.Logf("rotate received: %+v", arg)
-			if arg.TeamName == team && arg.Changes.KeyRotated && arg.LatestSeqno == toSeqno {
-				u.tc.T.Logf("rotate matched!")
-				return
-			}
-			u.tc.T.Logf("ignoring rotate message")
-		case <-time.After(1 * time.Second * libkb.CITimeMultiplier(u.tc.G)):
-		}
-	}
-	u.tc.T.Fatalf("timed out waiting for team rotate %s", team)
 }
 
 func (u *userPlusDevice) waitForRotateByID(teamID keybase1.TeamID, toSeqno keybase1.Seqno) {
@@ -463,7 +423,7 @@ func (u *userPlusDevice) waitForRotateByID(teamID keybase1.TeamID, toSeqno keyba
 	// process 10 team rotations or 10s worth of time
 	for i := 0; i < 10; i++ {
 		select {
-		case arg := <-u.notifications.rotateCh:
+		case arg := <-u.notifications.changeCh:
 			u.tc.T.Logf("rotate received: %+v", arg)
 			if arg.TeamID.Eq(teamID) && arg.Changes.KeyRotated && arg.LatestSeqno == toSeqno {
 				u.tc.T.Logf("rotate matched!")
@@ -476,21 +436,21 @@ func (u *userPlusDevice) waitForRotateByID(teamID keybase1.TeamID, toSeqno keyba
 	u.tc.T.Fatalf("timed out waiting for team rotate %s", teamID)
 }
 
-func (u *userPlusDevice) waitForTeamChangedAndRotated(team string, toSeqno keybase1.Seqno) {
+func (u *userPlusDevice) waitForTeamChangedAndRotated(teamID keybase1.TeamID, toSeqno keybase1.Seqno) {
 	// process 10 team rotations or 10s worth of time
 	for i := 0; i < 10; i++ {
 		select {
-		case arg := <-u.notifications.rotateCh:
+		case arg := <-u.notifications.changeCh:
 			u.tc.T.Logf("membership change received: %+v", arg)
-			if arg.TeamName == team && arg.Changes.MembershipChanged && arg.Changes.KeyRotated && !arg.Changes.Renamed && arg.LatestSeqno == toSeqno {
+			if arg.TeamID.Eq(teamID) && arg.Changes.MembershipChanged && arg.Changes.KeyRotated && !arg.Changes.Renamed && arg.LatestSeqno == toSeqno {
 				u.tc.T.Logf("change matched!")
 				return
 			}
-			u.tc.T.Logf("ignoring change message (expected team = %q, seqno = %d)", team, toSeqno)
+			u.tc.T.Logf("ignoring change message (expected team = %v, seqno = %d)", teamID, toSeqno)
 		case <-time.After(1 * time.Second * libkb.CITimeMultiplier(u.tc.G)):
 		}
 	}
-	u.tc.T.Fatalf("timed out waiting for team rotate %s", team)
+	u.tc.T.Fatalf("timed out waiting for team rotate %s", teamID)
 }
 
 func (u *userPlusDevice) proveRooter() {
@@ -650,17 +610,21 @@ func GetTeamForTestByID(ctx context.Context, g *libkb.GlobalContext, id keybase1
 }
 
 type teamNotifyHandler struct {
-	rotateCh chan keybase1.TeamChangedArg
+	changeCh chan keybase1.TeamChangedByIDArg
 }
 
 func newTeamNotifyHandler() *teamNotifyHandler {
 	return &teamNotifyHandler{
-		rotateCh: make(chan keybase1.TeamChangedArg, 1),
+		changeCh: make(chan keybase1.TeamChangedByIDArg, 1),
 	}
 }
 
-func (n *teamNotifyHandler) TeamChanged(ctx context.Context, arg keybase1.TeamChangedArg) error {
-	n.rotateCh <- arg
+func (n *teamNotifyHandler) TeamChangedByID(ctx context.Context, arg keybase1.TeamChangedByIDArg) error {
+	n.changeCh <- arg
+	return nil
+}
+
+func (n *teamNotifyHandler) TeamChangedByName(ctx context.Context, arg keybase1.TeamChangedByNameArg) error {
 	return nil
 }
 

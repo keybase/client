@@ -394,7 +394,8 @@ func (t *Team) Rotate(ctx context.Context) error {
 	// result of this work, so use `NextSeqno()` and not `CurrentSeqno()`. Note that we're going
 	// to be getting this same notification a second time, since it will bounce off a gregor and
 	// back to us. But they are idempotent, so it should be fine to be double-notified.
-	t.G().NotifyRouter.HandleTeamChanged(ctx, t.chain().GetID(), t.Name().String(), t.NextSeqno(), keybase1.TeamChangeSet{KeyRotated: true})
+	t.G().NotifyRouter.HandleTeamChangedByBothKeys(ctx,
+		t.chain().GetID(), t.Name().String(), t.NextSeqno(), keybase1.TeamChangeSet{KeyRotated: true})
 
 	return nil
 }
@@ -498,7 +499,7 @@ func (t *Team) ChangeMembershipPermanent(ctx context.Context, req keybase1.TeamC
 
 	// send notification that team key rotated
 	changes := keybase1.TeamChangeSet{MembershipChanged: true, KeyRotated: t.rotated}
-	t.G().NotifyRouter.HandleTeamChanged(ctx, t.chain().GetID(), t.Name().String(), t.NextSeqno(), changes)
+	t.G().NotifyRouter.HandleTeamChangedByBothKeys(ctx, t.chain().GetID(), t.Name().String(), t.NextSeqno(), changes)
 	return nil
 }
 
@@ -725,16 +726,8 @@ func (t *Team) HasActiveInvite(name keybase1.TeamInviteName, typ string) (bool, 
 // Otherwise resolvedUsername and uv are ignored.
 func (t *Team) InviteMember(ctx context.Context, username string, role keybase1.TeamRole, resolvedUsername libkb.NormalizedUsername, uv keybase1.UserVersion) (keybase1.TeamAddMemberResult, error) {
 	// if a user version was previously loaded, then there is a keybase user for username, but
-	// without a PUK or without any keys. Note that we are allowed to invites Owners in this
-	// manner. But if we're inviting for anything else, then no owner invites are allowed.
+	// without a PUK or without any keys.
 	if uv.Uid.Exists() {
-		if role == keybase1.TeamRole_OWNER {
-			txt := "We are sorry, you have hit a bug! The user you are inviting (" + username + ") hasn't logged into\n" +
-				"Keybase for a while and needs to upgrade their account. Until they do, you can only add them to this team\n" +
-				"as an admin, reader or writer. So you have three options: (1) wait until " + username + " upgrades;\n" +
-				"(2) wait until all Keybase users get the fixed app (by 2017-11-07); or (3) add " + username + " as an admin (or reader or writer)"
-			return keybase1.TeamAddMemberResult{}, errors.New(txt)
-		}
 		return t.inviteKeybaseMember(ctx, uv, role, resolvedUsername)
 	}
 
@@ -842,6 +835,7 @@ func (t *Team) postInvite(ctx context.Context, invite SCTeamInvite, role keybase
 	if err != nil {
 		return err
 	}
+
 	if existing {
 		return libkb.ExistsError{Msg: "An invite for this user already exists."}
 	}
@@ -910,7 +904,6 @@ func (t *Team) postTeamInvites(ctx context.Context, invites SCTeamInvites) error
 
 	payload := t.sigPayload(sigMultiItem, sigPayloadArgs{})
 	return t.postMulti(payload)
-
 }
 
 func (t *Team) traverseUpUntil(ctx context.Context, validator func(t *Team) bool) (targetTeam *Team, err error) {

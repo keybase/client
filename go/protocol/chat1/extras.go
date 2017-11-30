@@ -49,7 +49,7 @@ func (cid ConversationID) String() string {
 }
 
 func (cid ConversationID) IsNil() bool {
-	return len(cid) == 0
+	return len(cid) < DbShortFormLen
 }
 
 func (cid ConversationID) Eq(c ConversationID) bool {

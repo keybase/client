@@ -25,7 +25,7 @@ const Row = (
     onToggle: () => void,
     showEdit: boolean,
     onEdit: () => void,
-    onPreview: () => void,
+    onClickChannel: () => void,
   }
 ) => (
   <Box
@@ -47,7 +47,7 @@ const Row = (
           />
         </Box>
         <Box style={{...globalStyles.flexBoxColumn, marginLeft: globalMargins.tiny, minHeight: 32}}>
-          <Text type="BodySemiboldLink" onClick={props.onPreview} style={{color: globalColors.blue}}>
+          <Text type="BodySemiboldLink" onClick={props.onClickChannel} style={{color: globalColors.blue}}>
             #{props.name}
           </Text>
           <Text type="BodySmall">{props.description}</Text>
@@ -94,7 +94,7 @@ const ManageChannels = (props: Props) => (
             onToggle={() => props.onToggle(c.name)}
             showEdit={!props.unsavedSubscriptions}
             onEdit={() => props.onEdit(c.convID)}
-            onPreview={() => props.onPreview(c.convID)}
+            onClickChannel={() => props.onClickChannel(c.convID)}
           />
         ))}
       </ScrollView>

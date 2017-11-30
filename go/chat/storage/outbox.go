@@ -24,7 +24,7 @@ type Outbox struct {
 	uid   gregor1.UID
 }
 
-const outboxVersion = 3
+const outboxVersion = 4
 
 type diskOutbox struct {
 	Version int                  `codec:"V"`
@@ -133,6 +133,15 @@ func (o *Outbox) PushMessage(ctx context.Context, convID chat1.ConversationID,
 		outboxID = *suppliedOutboxID
 	}
 
+	// Compute prev ordinal
+	prevOrdinal := 1
+	for _, obr := range obox.Records {
+		if obr.Msg.ClientHeader.OutboxInfo.Prev == msg.ClientHeader.OutboxInfo.Prev &&
+			obr.Ordinal >= prevOrdinal {
+			prevOrdinal = obr.Ordinal + 1
+		}
+	}
+
 	// Append record
 	msg.ClientHeader.OutboxID = &outboxID
 	rec = chat1.OutboxRecord{
@@ -142,6 +151,7 @@ func (o *Outbox) PushMessage(ctx context.Context, convID chat1.ConversationID,
 		ConvID:           convID,
 		OutboxID:         outboxID,
 		IdentifyBehavior: identifyBehavior,
+		Ordinal:          prevOrdinal,
 	}
 	obox.Records = append(obox.Records, rec)
 

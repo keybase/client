@@ -46,7 +46,8 @@ const getMessageKeysForSelectedConv = (state: TypedState) => {
   if (!conversationIDKey) {
     return List()
   }
-  return Constants.getConversationMessages(state, conversationIDKey)
+  const convMsgs = Constants.getConversationMessages(state, conversationIDKey)
+  return convMsgs.messages
 }
 
 const getDeletedIDsForSelectedConv = (state: TypedState) => {

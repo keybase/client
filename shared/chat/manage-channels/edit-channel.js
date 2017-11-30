@@ -1,7 +1,8 @@
 // @flow
 import * as React from 'react'
 import {compose, withState} from 'recompose'
-import {Avatar, Text, Box, Button, Input, Icon, StandardScreen} from '../../common-adapters'
+import DeleteChannel from './delete-channel'
+import {Avatar, Text, Box, Button, Input, StandardScreen} from '../../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../../styles'
 import {isMobile} from '../../constants/platform'
 
@@ -11,7 +12,7 @@ type Props = {
   topic: string,
   onCancel: () => void,
   onSave: (channelName: string, topic: string) => void,
-  onDelete: () => void,
+  onConfirmedDelete: () => void,
   showDelete: boolean,
   deleteRenameDisabled: boolean,
   waitingForSave: boolean,
@@ -23,24 +24,6 @@ type TextState = {
   newTopic: string,
   onChangeTopic: (nextTopic: string) => void,
 }
-
-const DeleteChannel = ({onClick, disabled}: {onClick: () => void, disabled: boolean}) => (
-  <Box
-    style={{...globalStyles.flexBoxRow, position: 'absolute', left: 0, opacity: disabled ? 0.5 : undefined}}
-  >
-    <Icon
-      type="iconfont-trash"
-      style={{height: 14, color: globalColors.red, marginRight: globalMargins.tiny}}
-    />
-    <Text
-      type={disabled ? 'Body' : 'BodyPrimaryLink'}
-      style={{color: globalColors.red}}
-      onClick={disabled ? undefined : onClick}
-    >
-      Delete Channel
-    </Text>
-  </Box>
-)
 
 const EditChannelBare = (props: Props & TextState) => (
   <Box style={_boxStyle}>
@@ -80,7 +63,13 @@ const EditChannelBare = (props: Props & TextState) => (
       />
     </Box>
     <Box style={_bottomRowStyle}>
-      {props.showDelete && <DeleteChannel onClick={props.onDelete} disabled={props.deleteRenameDisabled} />}
+      {!isMobile &&
+        props.showDelete &&
+        <DeleteChannel
+          channelName={props.channelName}
+          onConfirmedDelete={props.onConfirmedDelete}
+          disabled={props.deleteRenameDisabled}
+        />}
       <Box style={globalStyles.flexBoxRow}>
         <Button type="Secondary" label="Cancel" onClick={props.onCancel} />
         <Button

@@ -75,6 +75,28 @@ func (l *TeamLoader) Delete(ctx context.Context, teamID keybase1.TeamID) (err er
 	return l.storage.Delete(ctx, teamID, teamID.IsPublic())
 }
 
+func (l *TeamLoader) HintLatestSeqno(ctx context.Context, teamID keybase1.TeamID, seqno keybase1.Seqno) error {
+	// Single-flight lock by team ID.
+	lock := l.locktab.AcquireOnName(ctx, l.G(), teamID.String())
+	defer lock.Release(ctx)
+
+	// Load from the cache
+	td := l.storage.Get(ctx, teamID, teamID.IsPublic())
+	if td == nil {
+		// Nothing to store the hint on.
+		return nil
+	}
+
+	if seqno < td.LatestSeqnoHint {
+		// The hint is behind the times, ignore.
+		return nil
+	}
+
+	td.LatestSeqnoHint = seqno
+	l.storage.Put(ctx, td)
+	return nil
+}
+
 // Load1 unpacks the loadArg, calls load2, and does some final checks.
 // The key difference between load1 and load2 is that load2 is recursive (for subteams).
 func (l *TeamLoader) load1(ctx context.Context, me keybase1.UserVersion, lArg keybase1.LoadTeamArg) (*keybase1.TeamData, error) {
@@ -141,7 +163,7 @@ func (l *TeamLoader) load1(ctx context.Context, me keybase1.UserVersion, lArg ke
 	// This is allowed because you can load a public team you're not in.
 	if !l.hasSyncedSecrets(&ret.team) && !ret.team.Chain.Public {
 		// this should not happen
-		return nil, fmt.Errorf("team is missing secrets")
+		return nil, fmt.Errorf("missing secrets for team")
 	}
 
 	// Check team name on the way out
@@ -505,19 +527,25 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 
 	l.logIfUnsyncedSecrets(ctx, ret)
 
-	// Cache the validated result
 	// Mutating this field is safe because only TeamLoader
 	// while holding the single-flight lock reads or writes this field.
 	ret.CachedAt = keybase1.ToTime(l.G().Clock().Now())
+
+	// Clear the untrusted seqno hint.
+	// Mutating this field is safe because only TeamLoader
+	// while holding the single-flight lock reads or writes this field.
+	ret.LatestSeqnoHint = 0
+
+	// Cache the validated result
 	l.storage.Put(ctx, ret)
 
 	if cachedName != nil && !cachedName.Eq(newName) {
 		chain := TeamSigChainState{inner: ret.Chain}
 		// Send a notification if we used to have the name cached and it has changed at all.
-		go l.G().NotifyRouter.HandleTeamChanged(context.Background(), chain.GetID(), newName.String(), chain.GetLatestSeqno(),
-			keybase1.TeamChangeSet{
-				Renamed: true,
-			})
+		changeSet := keybase1.TeamChangeSet{Renamed: true}
+		go l.G().NotifyRouter.HandleTeamChangedByID(context.Background(), chain.GetID(), chain.GetLatestSeqno(), changeSet)
+		go l.G().NotifyRouter.HandleTeamChangedByName(context.Background(), cachedName.String(), chain.GetLatestSeqno(), changeSet)
+		go l.G().NotifyRouter.HandleTeamChangedByName(context.Background(), newName.String(), chain.GetLatestSeqno(), changeSet)
 	}
 
 	// Check request constraints
@@ -557,6 +585,11 @@ func (l *TeamLoader) load2DecideRepoll(ctx context.Context, arg load2ArgT, fromC
 	repoll := false
 
 	if arg.forceRepoll {
+		repoll = true
+	}
+
+	// Repoll if the server has previously hinted that the team has new links.
+	if fromCache != nil && fromCache.Chain.LastSeqno < fromCache.LatestSeqnoHint {
 		repoll = true
 	}
 
@@ -601,7 +634,7 @@ func (l *TeamLoader) load2DecideRepoll(ctx context.Context, arg load2ArgT, fromC
 }
 
 // Check whether the load produced a snapshot that can be returned to the caller.
-// This should not check anything that is critical to validity of the snapshot
+// This should not check anything that is critical to the validity of the snapshot
 // because the snapshot is put into the cache before this check.
 // Considers:
 // - NeedAdmin

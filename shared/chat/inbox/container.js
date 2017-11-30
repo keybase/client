@@ -4,6 +4,7 @@ import * as More from '../../constants/types/more'
 import * as Types from '../../constants/types/chat'
 import * as Inbox from '.'
 import * as ChatGen from '../../actions/chat-gen'
+import {getTeams} from '../../actions/teams/creators'
 import * as I from 'immutable'
 import {
   pausableConnect,
@@ -227,6 +228,7 @@ const mapStateToProps = (state: TypedState, {isActiveRoute, routeState}: OwnProp
 }
 
 const mapDispatchToProps = (dispatch: Dispatch, {focusFilter, routeState, setRouteState}: OwnProps) => ({
+  getTeams: () => dispatch(getTeams()),
   loadInbox: () => dispatch(ChatGen.createLoadInbox()),
   _onSelectNext: (rows: Array<Inbox.RowItemSmall | Inbox.RowItemBig>, direction: -1 | 1) =>
     dispatch(
@@ -257,10 +259,11 @@ const mergeProps = (
 ) => {
   return {
     filter: stateProps.filter,
+    getTeams: dispatchProps.getTeams,
     isActiveRoute: stateProps.isActiveRoute,
     isLoading: stateProps.isLoading,
-    neverLoaded: stateProps.neverLoaded,
     loadInbox: dispatchProps.loadInbox,
+    neverLoaded: stateProps.neverLoaded,
     _user: stateProps._user,
     onHotkey: dispatchProps.onHotkey,
     onNewChat: dispatchProps.onNewChat,
@@ -290,6 +293,8 @@ export default compose(
     componentDidMount: function() {
       if (this.props.neverLoaded) {
         this.props.loadInbox()
+        // Get team counts for team headers in the inbox
+        this.props.getTeams()
       }
     },
   })
