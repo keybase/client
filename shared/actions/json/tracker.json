@@ -20,7 +20,7 @@
     "updateEldestKidChanged": {
       "username": "string"
     },
-    "setOnClose": {
+    "onClose": {
       "username": "string"
     },
     "pendingIdentify": {

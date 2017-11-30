@@ -4,6 +4,42 @@ import {Component} from 'react'
 import type {SimpleProofState, UserInfo, Proof} from '../constants/types/tracker'
 import type {Exact} from '../constants/types/more'
 
+// TODO we don't need both of these props
+export type TrackerProps = {
+  actionBarReady: boolean,
+  closed: boolean,
+  currentlyFollowing: boolean,
+  inviteLink?: ?string,
+  isPrivate?: boolean,
+  lastAction: ?('followed' | 'refollowed' | 'unfollowed' | 'error'),
+  loading: boolean,
+  loggedIn: boolean,
+  myUsername: string,
+  name?: string,
+  nonUser: ?boolean,
+  onChat: () => void,
+  onClose: () => void,
+  onFollow: () => void,
+  onIgnore: () => void,
+  onRefollow: () => void,
+  onUnfollow: () => void,
+  parentProps?: Object,
+  proofs: Array<Proof>,
+  reason: string,
+  serviceName?: string,
+  startTimer: () => void,
+  stopTimer: () => void,
+  trackerState: SimpleProofState,
+  userInfo: ?UserInfo,
+  username: string,
+  waiting: boolean,
+  onClickAvatar: () => void,
+  onClickFollowers: () => void,
+  onClickFollowing: () => void,
+  errorMessage: ?string,
+  onRetry: ?() => void,
+}
+
 export type RenderPropsUnshaped = {
   loading: boolean,
   currentlyFollowing: boolean,

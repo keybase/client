@@ -103,7 +103,7 @@ export default function(
         }
       })
     }
-    case TrackerGen.setOnClose: {
+    case TrackerGen.onClose: {
       const {username} = action.payload
       const isUser = state.userTrackers[username]
       if (isUser) {

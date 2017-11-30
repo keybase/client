@@ -15,11 +15,9 @@ import {globalColors} from '../../styles'
 import {remote, BrowserWindow} from 'electron'
 import {setupContextMenu} from '../app/menu-helper'
 import {setupSource} from '../../util/forward-logs'
-import {makeEngine} from '../../engine'
 
 setupSource()
 disableDragDrop()
-makeEngine() // TODO remove when the avatar dep on engine is fixed
 
 module.hot && module.hot.accept()
 

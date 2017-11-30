@@ -13,6 +13,7 @@ export const cacheIdentify = 'tracker:cacheIdentify'
 export const identifyFinished = 'tracker:identifyFinished'
 export const identifyStarted = 'tracker:identifyStarted'
 export const markActiveIdentifyUi = 'tracker:markActiveIdentifyUi'
+export const onClose = 'tracker:onClose'
 export const onError = 'tracker:onError'
 export const parseFriendship = 'tracker:parseFriendship'
 export const pendingIdentify = 'tracker:pendingIdentify'
@@ -20,7 +21,6 @@ export const remoteDismiss = 'tracker:remoteDismiss'
 export const reportLastTrack = 'tracker:reportLastTrack'
 export const resetProofs = 'tracker:resetProofs'
 export const setNeedTrackTokenDismiss = 'tracker:setNeedTrackTokenDismiss'
-export const setOnClose = 'tracker:setOnClose'
 export const setOnFollow = 'tracker:setOnFollow'
 export const setOnRefollow = 'tracker:setOnRefollow'
 export const setOnUnfollow = 'tracker:setOnUnfollow'
@@ -50,6 +50,7 @@ export const createIdentifyFinished = (payload: {|+username: string|}) => ({erro
 export const createIdentifyFinishedError = (payload: {|+username: string, +error: string|}) => ({error: true, payload, type: identifyFinished})
 export const createIdentifyStarted = (payload: {|+username: string|}) => ({error: false, payload, type: identifyStarted})
 export const createMarkActiveIdentifyUi = (payload: {|+username: string, +active: boolean|}) => ({error: false, payload, type: markActiveIdentifyUi})
+export const createOnClose = (payload: {|+username: string|}) => ({error: false, payload, type: onClose})
 export const createOnError = (payload: {|+username: string, +extraText: string|}) => ({error: false, payload, type: onError})
 export const createParseFriendship = (payload: {|+username: string, +uid: string, +fullname: string, +followsYou: string, +following: string|}) => ({error: false, payload, type: parseFriendship})
 export const createPendingIdentify = (payload: {|+username: string, +pending: boolean|}) => ({error: false, payload, type: pendingIdentify})
@@ -57,7 +58,6 @@ export const createRemoteDismiss = (payload: {|+username: string|}) => ({error: 
 export const createReportLastTrack = (payload: {|+username: string, +tracking?: boolean|}) => ({error: false, payload, type: reportLastTrack})
 export const createResetProofs = (payload: {|+username: string|}) => ({error: false, payload, type: resetProofs})
 export const createSetNeedTrackTokenDismiss = (payload: {|+username: string, +needTrackTokenDismiss: boolean|}) => ({error: false, payload, type: setNeedTrackTokenDismiss})
-export const createSetOnClose = (payload: {|+username: string|}) => ({error: false, payload, type: setOnClose})
 export const createSetOnFollow = (payload: {|+username: string|}) => ({error: false, payload, type: setOnFollow})
 export const createSetOnRefollow = (payload: {|+username: string|}) => ({error: false, payload, type: setOnRefollow})
 export const createSetOnUnfollow = (payload: {|+username: string|}) => ({error: false, payload, type: setOnUnfollow})
@@ -86,6 +86,7 @@ export type CacheIdentifyPayload = More.ReturnType<typeof createCacheIdentify>
 export type IdentifyFinishedPayload = More.ReturnType<typeof createIdentifyFinished>
 export type IdentifyStartedPayload = More.ReturnType<typeof createIdentifyStarted>
 export type MarkActiveIdentifyUiPayload = More.ReturnType<typeof createMarkActiveIdentifyUi>
+export type OnClosePayload = More.ReturnType<typeof createOnClose>
 export type OnErrorPayload = More.ReturnType<typeof createOnError>
 export type ParseFriendshipPayload = More.ReturnType<typeof createParseFriendship>
 export type PendingIdentifyPayload = More.ReturnType<typeof createPendingIdentify>
@@ -93,7 +94,6 @@ export type RemoteDismissPayload = More.ReturnType<typeof createRemoteDismiss>
 export type ReportLastTrackPayload = More.ReturnType<typeof createReportLastTrack>
 export type ResetProofsPayload = More.ReturnType<typeof createResetProofs>
 export type SetNeedTrackTokenDismissPayload = More.ReturnType<typeof createSetNeedTrackTokenDismiss>
-export type SetOnClosePayload = More.ReturnType<typeof createSetOnClose>
 export type SetOnFollowPayload = More.ReturnType<typeof createSetOnFollow>
 export type SetOnRefollowPayload = More.ReturnType<typeof createSetOnRefollow>
 export type SetOnUnfollowPayload = More.ReturnType<typeof createSetOnUnfollow>
@@ -125,6 +125,7 @@ export type Actions =
   | More.ReturnType<typeof createIdentifyFinishedError>
   | More.ReturnType<typeof createIdentifyStarted>
   | More.ReturnType<typeof createMarkActiveIdentifyUi>
+  | More.ReturnType<typeof createOnClose>
   | More.ReturnType<typeof createOnError>
   | More.ReturnType<typeof createParseFriendship>
   | More.ReturnType<typeof createPendingIdentify>
@@ -132,7 +133,6 @@ export type Actions =
   | More.ReturnType<typeof createReportLastTrack>
   | More.ReturnType<typeof createResetProofs>
   | More.ReturnType<typeof createSetNeedTrackTokenDismiss>
-  | More.ReturnType<typeof createSetOnClose>
   | More.ReturnType<typeof createSetOnFollow>
   | More.ReturnType<typeof createSetOnRefollow>
   | More.ReturnType<typeof createSetOnUnfollow>

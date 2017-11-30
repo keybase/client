@@ -1,32 +1,38 @@
 // @flow
 import {connect, compose, renderNothing, branch, type Dispatch} from '../util/container'
-// import * as PinentryGen from '../actions/pinentry-gen'
+import * as TrackerGen from '../actions/tracker-gen'
+import * as ChatGen from '../actions/chat-gen'
 import Tracker from './index.desktop'
 
 // Props are handled by remote-proxy.desktop.js
-// // TODO
 const mapDispatchToProps = (dispatch: Dispatch) => ({
-  errorRetry: () => {}, // dispatch(Creators.getProfile(ownProps.username, true)),
-  onChat: (username: string, myUsername: string) => {},
-  // username && myUsername && dispatch(createStartConversation({users: [username, myUsername]})),
-  onClickAvatar: (username: string) => {},
-  // dispatch(ProfileGen.createOnClickAvatar({username, openWebsite: true})),
-  onClickFollowers: (username: string) => {},
-  // dispatch(ProfileGen.createOnClickFollowers({username, openWebsite: true})),
-  onClickFollowing: (username: string) => {},
-  // dispatch(ProfileGen.createOnClickFollowing({username, openWebsite: true})),
-  onClose: () => {}, // dispatch(Creators.onClose(ownProps.username)),
-  onFollow: () => {}, // dispatch(Creators.onFollow(ownProps.username)),
-  onIgnore: () => {}, // dispatch(Creators.onIgnore(ownProps.username)),
-  onRefollow: () => {}, // dispatch(Creators.onRefollow(ownProps.username)),
-  onUnfollow: () => {}, // dispatch(Creators.onUnfollow(ownProps.username)),
-  startTimer: () => {}, // dispatch(Creators.startTimer()),
+  _onChat: (username: string, myUsername: string) =>
+    dispatch(ChatGen.createStartConversation({users: [username, myUsername]})),
+  _onClickAvatar: (username: string) => {}, // dispatch(ProfileGen.createOnClickAvatar({username, openWebsite: true})),
+  _onClickFollowers: (username: string) => {}, // dispatch(ProfileGen.createOnClickFollowers({username, openWebsite: true})),
+  _onClickFollowing: (username: string) => {}, // dispatch(ProfileGen.createOnClickFollowing({username, openWebsite: true})),
+  _onClose: (username: string) => dispatch(TrackerGen.createOnClose({username})),
+  _onFollow: () => {}, // dispatch(Creators.onFollow(ownProps.username)),
+  _onIgnore: () => {}, // dispatch(Creators.onIgnore(ownProps.username)),
+  _onRefollow: () => {}, // dispatch(Creators.onRefollow(ownProps.username)),
+  _onRetry: (username: string) => {}, // dispatch(Creators.getProfile(ownProps.username, true)),
+  _onUnfollow: () => {}, // dispatch(Creators.onUnfollow(ownProps.username)),
+  _startTimer: () => {}, // dispatch(Creators.startTimer()),
 })
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   ...stateProps,
   ...dispatchProps,
   ...ownProps,
-  onRetry: stateProps.errorMessage ? dispatchProps.errorRetry : null,
+  onChat: () => dispatchProps._onChat(stateProps.username, stateProps.myUsername),
+  onClickAvatar: () => {}, // dispatchProps._onClickAvatar(stateProps.username),
+  onClickFollowers: () => {}, // dispatchProps._onClickFollowers(stateProps.username),
+  onClickFollowing: () => {}, // dispatchProps._onClickFollowing(stateProps.username),
+  onClose: () => dispatchProps._onClose(stateProps.username),
+  onFollow: () => {}, // dispatchProps._onFollow(stateProps.username),
+  onIgnore: () => {}, // dispatchProps._onIgnore(stateProps.username),
+  onRefollow: () => {}, // dispatchProps._onRefollow(stateProps.username),
+  onRetry: stateProps.errorMessage ? () => dispatchProps._onRetry(stateProps.username) : null,
+  onUnfollow: () => {}, // dispatchProps._onUnfollow(stateProps.username),
 })
 export default compose(
   connect(state => state, mapDispatchToProps, mergeProps),

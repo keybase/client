@@ -1,6 +1,5 @@
-// @flow
+// @noflow
 import Tracker from '.'
-import {trackerPropsToRenderProps, type TrackerProps} from './container'
 import * as Constants from '../constants/tracker'
 import {globalStyles} from '../styles'
 import {type Proof} from '../constants/types/tracker'
@@ -316,48 +315,48 @@ const propsFiveProof: TrackerProps = {
 const dumbMap: DumbComponentMap<Tracker> = {
   component: Tracker,
   mocks: {
-    NonuserNoLinkPrivate: trackerPropsToRenderProps({...propsNonUser, inviteLink: null, isPrivate: true}),
-    NonuserLink: trackerPropsToRenderProps(propsNonUser),
-    NonuserNoLinkPublic: trackerPropsToRenderProps({...propsNonUser, inviteLink: null}),
-    'Logged out': trackerPropsToRenderProps(propsLoggedOut),
-    'Only one proof, action bar not ready': trackerPropsToRenderProps({
+    NonuserNoLinkPrivate: {...propsNonUser, inviteLink: null, isPrivate: true},
+    NonuserLink: propsNonUser,
+    NonuserNoLinkPublic: {...propsNonUser, inviteLink: null},
+    'Logged out': propsLoggedOut,
+    'Only one proof, action bar not ready': {
       ...propsOneProof,
       actionBarReady: false,
-    }),
-    'Only one proof': trackerPropsToRenderProps(propsOneProof),
-    '5 proofs': trackerPropsToRenderProps(propsFiveProof),
-    'New user': trackerPropsToRenderProps(propsNewUser),
+    },
+    'Only one proof': propsOneProof,
+    '5 proofs': propsFiveProof,
+    'New user': propsNewUser,
     // Lots of visdiff flakes
     // 'New user Scroll1': {
-    // ...trackerPropsToRenderProps(propsNewUser),
+    // ...(propsNewUser),
     // afterMount: (c, node) => {
     // node.querySelector('.scroll-container').scrollTop = 380
     // },
     // },
     'New user Scroll2': {
-      ...trackerPropsToRenderProps(propsNewUser),
+      ...propsNewUser,
       afterMount: (c, node) => {
         node.querySelector('.scroll-container').scrollTop = 620
       },
     },
-    'New user, follows me': trackerPropsToRenderProps(propsNewUserFollowsYou),
-    Followed: trackerPropsToRenderProps(propsFollowing),
-    "Changed/Broken proofs user you don't follow": trackerPropsToRenderProps({
+    'New user, follows me': propsNewUserFollowsYou,
+    Followed: propsFollowing,
+    "Changed/Broken proofs user you don't follow": {
       ...propsNewUserFollowsYou,
       proofs: proofsChanged,
-    }),
-    'Changed/Broken proofs': trackerPropsToRenderProps(propsChangedProofs),
-    'You follow them': trackerPropsToRenderProps({
+    },
+    'Changed/Broken proofs': propsChangedProofs,
+    'You follow them': {
       ...propsFollowing,
       userInfo: {...propsNewUser.userInfo, followsYou: false},
-    }),
-    Unfollowed: trackerPropsToRenderProps(propsUnfollowed),
-    'Barely there': trackerPropsToRenderProps(propsLessData),
-    'Tracker - Loading': trackerPropsToRenderProps({...propsLessData, loading: true}),
-    Whatevz: trackerPropsToRenderProps(propsWhatevz),
-    Platforms: trackerPropsToRenderProps(propsWhatevz),
+    },
+    Unfollowed: propsUnfollowed,
+    'Barely there': propsLessData,
+    'Tracker - Loading': {...propsLessData, loading: true},
+    Whatevz: propsWhatevz,
+    Platforms: propsWhatevz,
     'Tracker Error': {
-      ...trackerPropsToRenderProps(propsWhatevz),
+      ...propsWhatevz,
       errorMessage: 'Failed to hit API Server',
       onRetry: () => console.log('hit retry'),
     },

@@ -2,6 +2,7 @@
 import * as Constants from '../constants/tracker'
 import * as Types from '../constants/types/tracker'
 import * as TrackerGen from '../actions/tracker-gen'
+import * as Saga from '../util/saga'
 import * as RPCTypes from '../constants/types/flow-types'
 import Session, {type CancelHandlerType} from '../engine/session'
 import get from 'lodash/get'
@@ -241,7 +242,7 @@ const _trackUser = (trackToken: ?string, localIgnore: boolean): Promise<boolean>
 
 const onIgnore = (username: string): ((dispatch: Dispatch) => void) => dispatch => {
   dispatch(onFollow(username, true))
-  dispatch(onClose(username))
+  dispatch(TrackerGen.createOnClose({username}))
 }
 
 function _getTrackToken(state, username) {
@@ -282,16 +283,16 @@ function _dismissWithToken(trackToken) {
   })
 }
 
-const onClose = (username: string) => (dispatch: Dispatch, getState: () => TypedState) => {
-  const trackToken = _getTrackToken(getState(), username)
+function* _onClose(action: TrackerGen.OnClosePayload) {
+  const {username} = action.payload
+  const state: TypedState = yield Saga.select()
+  const trackToken = _getTrackToken(state, username)
 
   if (trackToken) {
     _dismissWithToken(trackToken)
   } else {
     console.log(`Missing trackToken for ${username}, waiting...`)
   }
-
-  dispatch(TrackerGen.createSetOnClose({username}))
 }
 
 const sessionIDToUsername: {[key: number]: string} = {}
@@ -639,10 +640,13 @@ const openProofUrl = (proof: Types.Proof) => (dispatch: Dispatch) => {
   openUrl(proof.humanUrl)
 }
 
+function* trackerSaga(): Saga.SagaGenerator<any, any> {
+  yield Saga.safeTakeEvery(TrackerGen.onClose, _onClose)
+}
+
 export {
   getMyProfile,
   getProfile,
-  onClose,
   onFollow,
   onIgnore,
   onRefollow,
@@ -654,3 +658,5 @@ export {
   triggerIdentify,
   updateTrackers,
 }
+
+export default trackerSaga

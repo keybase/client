@@ -1,6 +1,5 @@
-// @flow
-import Tracker from '.'
-import {trackerPropsToRenderProps, type TrackerProps} from './container'
+// @noflow
+import Tracker, {type TrackerProps} from '.'
 import * as Constants from '../constants/tracker'
 import {type Proof} from '../constants/types/tracker'
 import {type DumbComponentMap} from '../constants/types/more'
@@ -311,31 +310,31 @@ const propsFiveProof: TrackerProps = {
 const dumbMap: DumbComponentMap<Tracker> = {
   component: Tracker,
   mocks: {
-    'New user': trackerPropsToRenderProps(propsNewUser),
-    'New user, follows me': trackerPropsToRenderProps(propsNewUserFollowsYou),
-    'Only one proof - action bar not ready': trackerPropsToRenderProps({
+    'New user': propsNewUser,
+    'New user, follows me': propsNewUserFollowsYou,
+    'Only one proof - action bar not ready': {
       ...propsOneProof,
       actionBarReady: false,
-    }),
-    'Only one proof': trackerPropsToRenderProps(propsOneProof),
-    '5 proofs': trackerPropsToRenderProps(propsFiveProof),
-    Followed: trackerPropsToRenderProps(propsFollowing),
-    'Changed/Broken proofs user you dont follow': trackerPropsToRenderProps({
+    },
+    'Only one proof': propsOneProof,
+    '5 proofs': propsFiveProof,
+    Followed: propsFollowing,
+    'Changed/Broken proofs user you dont follow': {
       ...propsChangedProofs,
       currentlyFollowing: false,
-    }),
-    'Changed/Broken proofs': trackerPropsToRenderProps(propsChangedProofs),
-    'You track them': trackerPropsToRenderProps({
+    },
+    'Changed/Broken proofs': propsChangedProofs,
+    'You track them': {
       ...propsFollowing,
       userInfo: {...propsNewUser.userInfo, followsYou: false},
-    }),
-    Unfollowed: trackerPropsToRenderProps(propsUnfollowed),
-    'Barely there': trackerPropsToRenderProps(propsLessData),
-    Whatevz: trackerPropsToRenderProps(propsWhatevz),
-    NonuserNoLinkPrivate: trackerPropsToRenderProps({...propsNonUser, inviteLink: null, isPrivate: true}),
-    NonuserLink: trackerPropsToRenderProps(propsNonUser),
-    NonuserNoLinkPublic: trackerPropsToRenderProps({...propsNonUser, inviteLink: null}),
-    'Logged out': trackerPropsToRenderProps(propsLoggedOut),
+    },
+    Unfollowed: propsUnfollowed,
+    'Barely there': propsLessData,
+    Whatevz: propsWhatevz,
+    NonuserNoLinkPrivate: {...propsNonUser, inviteLink: null, isPrivate: true},
+    NonuserLink: propsNonUser,
+    NonuserNoLinkPublic: {...propsNonUser, inviteLink: null},
+    'Logged out': propsLoggedOut,
   },
 }
 
