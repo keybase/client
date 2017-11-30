@@ -82,8 +82,15 @@ func (k *SKBKeyringFile) loadLocked() (err error) {
 			k.G().Log.Debug("| Keybase secret keyring doesn't exist: %s", k.filename)
 		} else {
 			k.G().Log.Warning("Error opening %s: %s", k.filename, err)
+			if os.IsPermission(err) {
+				// Let's just panic and die here on mobile, there is no reason to continue.
+				// For some reason when this happens, the GUI switches to a logged out
+				// state and the app needs to be force killed.
+				if k.G().GetAppType() == MobileAppType {
+					panic("permission denied on mobile app reading skb keyring file, thats it!")
+				}
+			}
 		}
-
 	} else if err == nil {
 		k.Blocks, err = packets.ToListOfSKBs(k.G())
 	}
