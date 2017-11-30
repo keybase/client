@@ -51,7 +51,7 @@ const selectOtherMock = {
   onWont: log('onWont'),
   onBack: log('onBack'),
   showResetLink: false,
-  setShowResetLink: log('showResetLink'),
+  setShowResetLink: log('setShowResetLink'),
 }
 
 const selectOtherDeviceMap: DumbComponentMap<SelectOtherDevice> = {
