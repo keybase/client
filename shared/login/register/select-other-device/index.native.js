@@ -58,9 +58,7 @@ const ResetOption = ({showResetLink, setShowResetLink}) => (
             type="Primary"
             label="RESET MY ACCOUNT"
             onClick={() => openURL('https://keybase.io/#account-reset')}
-          >
-            RESET MY ACCOUNT
-          </Button>
+          />
         </Box>
       </Box>}
   </Box>
