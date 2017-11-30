@@ -3,6 +3,7 @@ import Container from '../../forms/container'
 import * as React from 'react'
 import {Box, Text, Icon, ClickableBox, NativeScrollView, Button} from '../../../common-adapters/index.native'
 import {globalColors, globalMargins, globalStyles} from '../../../styles'
+import openURL from '../../../util/open-url'
 
 import type {DeviceType} from '../../../constants/types/devices'
 import type {IconType} from '../../../common-adapters/icon'
@@ -36,7 +37,44 @@ const Row = ({deviceID, name, type, onSelect}) => {
   )
 }
 
-const SelectOtherDevice = ({onBack, devices, onWont, onSelect, canSelectNoDevice}: Props) => (
+const ResetOption = ({showResetLink, setShowResetLink}) => (
+  <Box>
+    <ClickableBox style={stylesRow} className="deviceRow" onClick={() => setShowResetLink(true)}>
+      <Box style={stylesIconName}>
+        <Box style={stylesIconContainer}>
+          <Icon style={{...stylesIcon, fontSize: 40, color: globalColors.black_40}} type="iconfont-close" />
+        </Box>
+        <Box style={{...globalStyles.flexBoxColumn, flex: 1}}>
+          <Text type="Body">
+            Uh oh - I don't have any of these devices anymore, or I've uninstalled Keybase from all of them.
+          </Text>
+        </Box>
+      </Box>
+    </ClickableBox>
+    {showResetLink &&
+      <Box style={{...stylesRow, justifyContent: 'center', borderBottomWidth: 0}}>
+        <Box style={{...stylesIconName, justifyContent: 'center'}}>
+          <Button
+            type="Primary"
+            label="RESET MY ACCOUNT"
+            onClick={() => openURL('https://keybase.io/#account-reset')}
+          >
+            RESET MY ACCOUNT
+          </Button>
+        </Box>
+      </Box>}
+  </Box>
+)
+
+const SelectOtherDevice = ({
+  onBack,
+  devices,
+  onWont,
+  onSelect,
+  canSelectNoDevice,
+  showResetLink,
+  setShowResetLink,
+}: Props) => (
   <Container style={stylesContainer} onBack={onBack} outerStyle={{paddingLeft: 0, paddingRight: 0}}>
     <Box style={globalStyles.flexBoxColumn}>
       <Text type="Header" style={stylesInstructions}>Please prove you're you</Text>
@@ -46,6 +84,7 @@ const SelectOtherDevice = ({onBack, devices, onWont, onSelect, canSelectNoDevice
     </Box>
     <NativeScrollView style={stylesDevicesContainer}>
       {devices.map(d => <Row onSelect={onSelect} {...d} key={d.deviceID} />)}
+      <ResetOption showResetLink={showResetLink} setShowResetLink={setShowResetLink} />
     </NativeScrollView>
     {canSelectNoDevice &&
       <Text style={stylesWont} type="BodySmallSecondaryLink" onClick={onWont}>
