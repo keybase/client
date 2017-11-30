@@ -61,7 +61,7 @@ const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps, ownPro
 
   const isEdited = message.type === 'Text' && stateProps._editedCount > 0
   const isRevoked = !!message.senderDeviceRevokedAt
-  const failureDescription = message.messageState === 'failed' ? message.failureDescription : ''
+  const failureDescription = message.messageState === 'failed' ? message.failureDescription : null
 
   const isFirstNewMessage = !!(conversationState &&
     message &&
