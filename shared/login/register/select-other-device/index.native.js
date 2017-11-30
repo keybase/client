@@ -55,7 +55,7 @@ const ResetOption = ({showResetLink, setShowResetLink}) => (
       <Box style={{...stylesRow, justifyContent: 'center', borderBottomWidth: 0}}>
         <Box style={{...stylesIconName, justifyContent: 'center'}}>
           <Button
-            type="Primary"
+            type="Danger"
             label="RESET MY ACCOUNT"
             onClick={() => openURL('https://keybase.io/#account-reset')}
           />
