@@ -59,7 +59,7 @@ type InBandMessage interface {
 	MessageWithMetadata
 	ToStateUpdateMessage() StateUpdateMessage
 	ToStateSyncMessage() StateSyncMessage
-	Merge(m1 InBandMessage) error
+	Merge(m1 InBandMessage) (InBandMessage, error)
 }
 
 type StateUpdateMessage interface {

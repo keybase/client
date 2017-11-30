@@ -7,7 +7,7 @@ import * as ChatGen from '../../actions/chat-gen'
 import * as I from 'immutable'
 import * as RPCTypes from '../../constants/types/flow-types'
 import * as Saga from '../../util/saga'
-import * as SearchCreators from '../search/creators'
+import * as SearchGen from '../search-gen'
 import * as Selectors from '../../constants/selectors'
 import * as Shared from './shared'
 import uniq from 'lodash/uniq'
@@ -41,8 +41,11 @@ function* _startConversation(action: ChatGen.StartConversationPayload): Saga.Sag
 
   if (forceImmediate && existing) {
     const newID = yield Saga.call(Shared.startNewConversation, existing.get('conversationIDKey'))
-    yield Saga.put(ChatGen.createSelectConversation({conversationIDKey: newID}))
-  } else if (existing && !temporary) {
+    if (!newID[0]) {
+      throw new Error('Unable to get new conversation ID')
+    }
+    yield Saga.put(ChatGen.createSelectConversation({conversationIDKey: newID[0]}))
+  } else if (existing) {
     // Select existing conversations
     yield Saga.put(
       ChatGen.createSelectConversation({
@@ -94,7 +97,12 @@ function* _selectConversation(action: ChatGen.SelectConversationPayload): Saga.S
     // Update search but don't update the filter
     if (inSearch) {
       const me = yield Saga.select(Selectors.usernameSelector)
-      yield Saga.put(SearchCreators.setUserInputItems('chatSearch', participants.filter(u => u !== me)))
+      yield Saga.put(
+        SearchGen.createSetUserInputItems({
+          searchKey: 'chatSearch',
+          searchResults: participants.filter(u => u !== me),
+        })
+      )
     }
   }
 
@@ -216,7 +224,7 @@ const _setNotifications = function*(
           },
         ],
       }
-      yield Saga.call(ChatTypes.localSetAppNotificationSettingsLocalRpcPromise, {param})
+      yield Saga.call(ChatTypes.localSetAppNotificationSettingsLocalRpcPromise, param)
     }
   }
 }
@@ -230,7 +238,9 @@ function* _blockConversation(action: ChatGen.BlockConversationPayload): Saga.Sag
       : ChatTypes.commonConversationStatus.blocked
     const identifyBehavior: RPCTypes.TLFIdentifyBehavior = RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui
     yield Saga.call(ChatTypes.localSetConversationStatusLocalRpcPromise, {
-      param: {conversationID, identifyBehavior, status},
+      conversationID,
+      identifyBehavior,
+      status,
     })
   }
 }
@@ -239,7 +249,7 @@ function* _leaveConversation(action: ChatGen.LeaveConversationPayload): Saga.Sag
   const {conversationIDKey} = action.payload
   const conversationID = Constants.keyToConversationID(conversationIDKey)
   yield Saga.call(ChatTypes.localLeaveConversationLocalRpcPromise, {
-    param: {convID: conversationID},
+    convID: conversationID,
   })
 }
 
@@ -249,7 +259,9 @@ function* _muteConversation(action: ChatGen.MuteConversationPayload): Saga.SagaG
   const status = muted ? ChatTypes.commonConversationStatus.muted : ChatTypes.commonConversationStatus.unfiled
   const identifyBehavior: RPCTypes.TLFIdentifyBehavior = RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui
   yield Saga.call(ChatTypes.localSetConversationStatusLocalRpcPromise, {
-    param: {conversationID, identifyBehavior, status},
+    conversationID,
+    identifyBehavior,
+    status,
   })
 }
 

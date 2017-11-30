@@ -1,5 +1,6 @@
 // @flow
 import * as Constants from '../../../constants/chat'
+import * as Types from '../../../constants/types/chat'
 import * as ChatGen from '../../../actions/chat-gen'
 import * as KBFSGen from '../../../actions/kbfs-gen'
 import * as Selectors from '../../../constants/selectors'
@@ -45,7 +46,8 @@ const getMessageKeysForSelectedConv = (state: TypedState) => {
   if (!conversationIDKey) {
     return List()
   }
-  return Constants.getConversationMessages(state, conversationIDKey)
+  const convMsgs = Constants.getConversationMessages(state, conversationIDKey)
+  return convMsgs.messages
 }
 
 const getDeletedIDsForSelectedConv = (state: TypedState) => {
@@ -102,16 +104,16 @@ const mapDispatchToProps = (dispatch: Dispatch): DispatchProps => ({
   _onDownloadAttachment: messageKey => {
     dispatch(ChatGen.createSaveAttachment({messageKey}))
   },
-  _onLoadMoreMessages: (conversationIDKey: Constants.ConversationIDKey) => {
+  _onLoadMoreMessages: (conversationIDKey: Types.ConversationIDKey) => {
     dispatch(ChatGen.createLoadMoreMessages({conversationIDKey, onlyIfUnloaded: false}))
   },
-  onDeleteMessage: (message: Constants.Message) => {
+  onDeleteMessage: (message: Types.Message) => {
     dispatch(ChatGen.createDeleteMessage({message}))
   },
-  onEditMessage: (message: Constants.Message, body: string) => {
+  onEditMessage: (message: Types.Message, body: string) => {
     dispatch(ChatGen.createEditMessage({message, text: new HiddenString(body)}))
   },
-  onMessageAction: (message: Constants.Message) => {
+  onMessageAction: (message: Types.Message) => {
     dispatch(navigateAppend([{props: {message}, selected: 'messageAction'}]))
   },
   onOpenInFileUI: (path: string) => dispatch(KBFSGen.createOpenInFileUI({path})),
@@ -129,7 +131,7 @@ const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps): Props
     })
   }
 
-  const getMessageFromMessageKey = (messageKey: Constants.MessageKey) =>
+  const getMessageFromMessageKey = (messageKey: Types.MessageKey) =>
     Constants.getMessageFromMessageKey(_stateHack, messageKey)
 
   return {

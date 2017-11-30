@@ -1,9 +1,9 @@
 // @flow
 import * as React from 'react'
+import * as PushGen from '../../actions/push-gen'
 import {connect, type TypedState} from '../../util/container'
 import {Box, Button, Text, NativeScrollView, NativeImage} from '../../common-adapters/index.native'
 import {globalStyles, globalColors, globalMargins} from '../../styles'
-import {permissionsRequest, permissionsNo} from '../../actions/push/creators'
 
 type Props = {
   permissionsRequesting: boolean,
@@ -86,8 +86,8 @@ export default connect(
   },
   (dispatch: any) => {
     return {
-      onRequestPermissions: () => dispatch(permissionsRequest()),
-      onNoPermissions: () => dispatch(permissionsNo()),
+      onRequestPermissions: () => dispatch(PushGen.createPermissionsRequest()),
+      onNoPermissions: () => dispatch(PushGen.createPermissionsNo()),
     }
   }
 )(Push)

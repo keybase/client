@@ -3,6 +3,7 @@ import * as React from 'react'
 import {connect} from 'react-redux'
 import * as Creators from '../../../actions/teams/creators'
 import * as Constants from '../../../constants/teams'
+import * as Types from '../../../constants/types/teams'
 import * as I from 'immutable'
 import {TeamInviteRow} from '.'
 
@@ -24,8 +25,8 @@ const getFollowing = (state, username: string) => {
 type StateProps = {
   following: boolean,
   you: ?string,
-  _invites: I.Set<Constants.InviteInfo>,
-  _members: I.Set<Constants.MemberInfo>,
+  _invites: I.Set<Types.InviteInfo>,
+  _members: I.Set<Types.MemberInfo>,
 }
 
 const mapStateToProps = (state: TypedState, {teamname, username}: OwnProps): StateProps => ({

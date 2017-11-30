@@ -582,6 +582,10 @@
         {
           "type": "keybase1.TLFIdentifyBehavior",
           "name": "identifyBehavior"
+        },
+        {
+          "type": "int",
+          "name": "ordinal"
         }
       ]
     },
@@ -2941,6 +2945,10 @@
         {
           "name": "channelName",
           "type": "string"
+        },
+        {
+          "name": "confirmed",
+          "type": "boolean"
         }
       ],
       "response": "DeleteConversationLocalRes"

@@ -61,14 +61,10 @@ kill_all() {
 }
 
 start_systemd() {
-  # If the services weren't started with systemd, we need to kill them.
-  if ! was_started_with_systemd ; then
-    kill_all
-    # Our non-systemd services tend to delete systemd's socket files. Make sure
-    # they get recreated.
-    systemctl --user stop keybase.socket kbfs.socket
-  fi
   echo Starting via systemd.
+  # This script is intended to be run after updates, so we need to reload
+  # potentially changed unit files.
+  systemctl --user daemon-reload
   # The GUI needs access to the env var KEYBASE_START_UI. This is set to
   # "hideWindow" by the autostart file that might be calling us. We need to
   # pass it along.
@@ -77,18 +73,17 @@ start_systemd() {
   # to user units automatically. Add them to the env file ourselves.
   echo "DISPLAY=${DISPLAY:-}" >> "$runtime_dir/keybase.gui.env"
   echo "XAUTHORITY=${XAUTHORITY:-}" >> "$runtime_dir/keybase.gui.env"
+  echo "XDG_CURRENT_DESKTOP=${XDG_CURRENT_DESKTOP:-}" >> "$runtime_dir/keybase.gui.env"
+  echo "DBUS_SESSION_BUS_ADDRESS=${DBUS_SESSION_BUS_ADDRESS:-}" >> "$runtime_dir/keybase.gui.env"
   # The keybase.gui.service unit has keybase.service and kbfs.service as
   # dependencies, so we don't have to list them here. But including them lets
-  # us report an error if they fail to start.
-  systemctl --user start keybase.service kbfs.service keybase.gui.service
+  # us report an error if they fail to start. Also prefer `restart` to `start`
+  # so that we don't race against the service shutting down.
+  systemctl --user restart keybase.service kbfs.service keybase.gui.service
   write_startup_token "systemd"
 }
 
 start_background() {
-  # Always restart any running services. (Reliably detecting whether services
-  # are running is tricky. Leave it to systemd.)
-  kill_all
-
   export KEYBASE_RUN_MODE="${KEYBASE_RUN_MODE:-prod}"
   export KEYBASE_DEBUG=1
   logdir="${XDG_CACHE_HOME:-$HOME/.cache}/keybase"
@@ -106,11 +101,20 @@ start_background() {
 }
 
 main() {
+  # Always stop any running services. With systemd, we could've decided to just
+  # `start` services and no-op if they're already running, however:
+  # 1) We still need to handle the case where services started outside systemd
+  #    are currently running, and making that totally reliable is tricky.
+  # 2) Users have come to expect that run_keybase will restart everything, and
+  #    we tell them to do it after updates.
+  kill_all
+
   if wants_systemd ; then
       start_systemd
   else
       start_background
   fi
+
   echo 'Success!'
   # Magical squirrel produced by https://github.com/erkin/ponysay
   cat /opt/keybase/crypto_squirrel.txt

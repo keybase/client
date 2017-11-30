@@ -150,6 +150,7 @@ class Conversation extends Component<Props, State> {
                         focusInputCounter={this.props.focusInputCounter}
                         onEditLastMessage={this.props.onEditLastMessage}
                         onScrollDown={this.props.onScrollDown}
+                        previousPath={this.props.previousPath}
                       />}
                   {this.state.infoPanelOpen &&
                     <div
@@ -193,7 +194,7 @@ const dropOverlayStyle = {
 const styleSpinner = {
   alignSelf: 'center',
   marginTop: globalMargins.small,
-  width: globalMargins.large,
+  width: 24,
 }
 
 export default Conversation

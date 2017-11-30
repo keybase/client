@@ -1,11 +1,11 @@
 // @flow
+import * as AppGen from '../actions/app-gen'
 import Main from './main'
 import React, {Component} from 'react'
 import configureStore from '../store/configure-store'
 import routeDefs from './routes'
 import {AppRegistry, AppState, Linking, Text} from 'react-native'
 import {Provider} from 'react-redux'
-import {appLink, mobileAppStateChanged} from '../actions/app'
 import {makeEngine} from '../engine'
 import {setRouteDef} from '../actions/route-tree'
 import {setup as setupLocalDebug} from '../local-debug'
@@ -60,11 +60,11 @@ class Keybase extends Component<any> {
   }
 
   _handleOpenURL(event: {url: string}) {
-    this.store.dispatch(appLink(event.url))
+    this.store.dispatch(AppGen.createLink({link: event.url}))
   }
 
-  _handleAppStateChange = (nextAppState: string) => {
-    this.store.dispatch(mobileAppStateChanged(nextAppState))
+  _handleAppStateChange = (nextAppState: 'active' | 'background' | 'inactive') => {
+    this.store.dispatch(AppGen.createMobileAppState({nextAppState}))
   }
 
   render() {

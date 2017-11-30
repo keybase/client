@@ -1,18 +1,16 @@
 // @flow
+import * as ProfileGen from '../actions/profile-gen'
 import React, {Component} from 'react'
 import ProveEnterUsername from './prove-enter-username'
 import {connect, type TypedState} from '../util/container'
-import * as Creators from '../actions/profile'
 
 type State = {
   username: ?string,
 }
 
 class ProveEnterUsernameContainer extends Component<any, State> {
-  state: State
-  constructor() {
-    super()
-    this.state = {username: null}
+  state = {
+    username: null,
   }
 
   render() {
@@ -46,17 +44,17 @@ const mapStateToProps = (state: TypedState) => {
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
   _onContinue: (username: string, platform: ?string) => {
-    dispatch(Creators.updateUsername(username))
+    dispatch(ProfileGen.createUpdateUsername({username}))
 
     if (platform === 'btc') {
-      dispatch(Creators.submitBTCAddress())
+      dispatch(ProfileGen.createSubmitBTCAddress())
     } else if (platform === 'zcash') {
-      dispatch(Creators.submitZcashAddress())
+      dispatch(ProfileGen.createSubmitZcashAddress())
     } else {
-      dispatch(Creators.submitUsername())
+      dispatch(ProfileGen.createSubmitUsername())
     }
   },
-  onCancel: () => dispatch(Creators.cancelAddProof()),
+  onCancel: () => dispatch(ProfileGen.createCancelAddProof()),
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({

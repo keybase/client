@@ -492,6 +492,9 @@ func editMemberInvite(ctx context.Context, g *libkb.GlobalContext, teamname, use
 		return err
 	}
 
+	// Note that there could be a problem if removeMemberInvite works but AddMember doesn't
+	// as the original invite will be lost.  But the user will get an error and can try
+	// again.
 	if err := removeMemberInvite(ctx, g, t, username, uv); err != nil {
 		g.Log.CDebugf(ctx, "editMemberInvite error in removeMemberInvite: %s", err)
 		return err

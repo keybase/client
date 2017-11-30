@@ -1,18 +1,19 @@
 // @flow
+import * as Creators from '../../actions/tracker'
+import * as TrackerGen from '../../actions/tracker-gen'
 import React, {Component} from 'react'
 import RemoteComponent from './remote-component'
 import {connect, type TypedState} from '../../util/container'
-import {onClose, startTimer, stopTimer, getProfile} from '../../actions/tracker'
-import {type TrackerOrNonUserState} from '../../constants/tracker'
-import {type Action} from '../../constants/types/flux'
+import {type TrackerState, type NonUserState} from '../../constants/types/tracker'
 
 type Props = {
   onClose: (username: string) => void,
   started: boolean,
   errorRetry: (username: string) => void,
   startTimer: () => void,
-  stopTimer: () => Action,
-  trackers: {[key: string]: TrackerOrNonUserState},
+  stopTimer: () => void,
+  trackers: {[key: string]: TrackerState},
+  nonUserTrackers: {[key: string]: NonUserState},
 }
 
 const MAX_TRACKERS = 5
@@ -23,52 +24,56 @@ class RemoteTracker extends Component<Props> {
   }
 
   render() {
-    const {trackers} = this.props
+    const {trackers, nonUserTrackers} = this.props
     const windowsOpts = {height: 470, width: 320}
+
+    const items = [
+      ...Object.keys(trackers).filter(t => !trackers[t].closed).map(t => ({
+        username: trackers[t].username,
+        hidden: trackers[t].hidden,
+      })),
+      ...Object.keys(nonUserTrackers).filter(n => !nonUserTrackers[n].closed).map(n => ({
+        username: nonUserTrackers[n].name,
+        hidden: nonUserTrackers[n].hidden,
+      })),
+    ].slice(0, MAX_TRACKERS)
 
     return (
       <div>
-        {Object.keys(trackers)
-          .filter(username => !trackers[username].closed)
-          .slice(0, MAX_TRACKERS)
-          .map(username => (
-            <RemoteComponent
-              positionBottomRight={true}
-              windowsOpts={windowsOpts}
-              title={`tracker - ${username}`}
-              waitForState={true}
-              ignoreNewProps={true}
-              hidden={trackers[username].hidden}
-              onRemoteClose={() => this.props.onClose(username)}
-              component="tracker"
-              username={username}
-              startTimer={this.props.startTimer}
-              errorRetry={() => this.props.errorRetry(username)}
-              stopTimer={this.props.stopTimer}
-              selectorParams={username}
-              key={username}
-            />
-          ))}
+        {items.map(item => (
+          <RemoteComponent
+            positionBottomRight={true}
+            windowsOpts={windowsOpts}
+            title={`tracker - ${item.username}`}
+            waitForState={true}
+            ignoreNewProps={true}
+            hidden={item.hidden}
+            onRemoteClose={() => this.props.onClose(item.username)}
+            component="tracker"
+            username={item.username}
+            startTimer={this.props.startTimer}
+            errorRetry={() => this.props.errorRetry(item.username)}
+            stopTimer={this.props.stopTimer}
+            selectorParams={item.username}
+            key={item.username}
+          />
+        ))}
       </div>
     )
   }
 }
 
-type OwnProps = {}
+const mapStateToProps = (state: TypedState) => ({
+  started: state.tracker.serverStarted,
+  trackers: state.tracker.userTrackers,
+  nonUserTrackers: state.tracker.nonUserTrackers,
+})
 
-export default connect(
-  (state: TypedState, op: OwnProps) => ({
-    started: state.tracker.serverStarted,
-    trackers: state.tracker.trackers,
-  }),
-  (dispatch: any, op: OwnProps) => ({
-    startTimer: () => dispatch(startTimer()),
-    stopTimer: () => dispatch(stopTimer()),
-    errorRetry: (username: string) => {
-      dispatch(getProfile(username, true))
-    },
-    onClose: (username: string) => {
-      dispatch(onClose(username))
-    },
-  })
-)(RemoteTracker)
+const mapDispatchToProps = (dispatch: any) => ({
+  startTimer: () => dispatch(Creators.startTimer()),
+  stopTimer: () => dispatch(TrackerGen.createStopTimer()),
+  errorRetry: (username: string) => dispatch(Creators.getProfile(username, true)),
+  onClose: (username: string) => dispatch(Creators.onClose(username)),
+})
+
+export default connect(mapStateToProps, mapDispatchToProps)(RemoteTracker)

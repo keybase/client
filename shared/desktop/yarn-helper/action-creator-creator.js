@@ -25,11 +25,12 @@ type CompileActionFn = (ns: ActionNS, actionName: ActionName, desc: ActionDesc) 
 
 function compile(ns: ActionNS, {prelude, actions}: FileDesc): string {
   return `// @flow
-/* eslint-disable */
-
 // NOTE: This file is GENERATED from json files in actions/json. Run 'yarn build-actions' to regenerate
+/* eslint-disable no-unused-vars,prettier/prettier */
 
-import {type PayloadType, type ReturnType} from '../constants/types/more'
+import * as I from 'immutable'
+import * as RPCTypes from '../constants/types/flow-types'
+import * as More from '../constants/types/more'
 ${prelude.join('\n')}
 
 // Constants
@@ -51,8 +52,8 @@ function compileAllActionsType(ns: ActionNS, actions: Actions): string {
   const actionsTypes = Object.keys(actions)
     .map(
       (name: ActionName) =>
-        `ReturnType<typeof create${capitalize(name)}>` +
-        (actions[name].canError ? `\n  | ReturnType<typeof create${capitalize(name)}Error>` : '')
+        `More.ReturnType<typeof create${capitalize(name)}>` +
+        (actions[name].canError ? `\n  | More.ReturnType<typeof create${capitalize(name)}Error>` : '')
     )
     .sort()
     .join('\n  | ')
@@ -79,12 +80,12 @@ function actionReduxTypeName(ns: ActionNS, actionName: ActionName): string {
 
 function printPayload(p: Object) {
   return Object.keys(p).length
-    ? '(payload: {|' + Object.keys(p).map(key => `${key}: ${p[key]}`).join(',\n') + '|})'
+    ? '(payload: {|' + Object.keys(p).map(key => `+${key}: ${p[key]}`).join(',\n') + '|})'
     : '()'
 }
 
 function compileActionPayloads(ns: ActionNS, actionName: ActionName, desc: ActionDesc) {
-  return `export type ${capitalize(actionName)}Payload = ReturnType<typeof create${capitalize(actionName)}>`
+  return `export type ${capitalize(actionName)}Payload = More.ReturnType<typeof create${capitalize(actionName)}>`
 }
 
 function compileActionCreator(ns: ActionNS, actionName: ActionName, desc: ActionDesc) {

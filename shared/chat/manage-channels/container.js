@@ -2,13 +2,16 @@
 import pickBy from 'lodash/pickBy'
 import isEqual from 'lodash/isEqual'
 import * as I from 'immutable'
-import * as Constants from '../../constants/teams'
+import * as Types from '../../constants/types/teams'
+import * as ChatGen from '../../actions/chat-gen'
 import ManageChannels from '.'
 import {withHandlers, withState, withPropsOnChange} from 'recompose'
 import {pausableConnect, compose, lifecycle, type TypedState} from '../../util/container'
 import {getChannels, saveChannelMembership} from '../../actions/teams/creators'
-import {navigateTo, navigateAppend} from '../../actions/route-tree'
+import {navigateTo, navigateAppend, pathSelector} from '../../actions/route-tree'
 import {anyWaiting} from '../../constants/waiting'
+import {chatTab} from '../../constants/tabs'
+import '../../constants/route-tree'
 
 type ChannelMembershipState = {[channelname: string]: boolean}
 
@@ -20,7 +23,7 @@ const mapStateToProps = (state: TypedState, {routeProps, routeState}) => {
 
   const channels = convIDs
     .map(convID => {
-      const info: ?Constants.ChannelInfo = state.entities.getIn(['teams', 'convIDToChannelInfo', convID])
+      const info: ?Types.ChannelInfo = state.entities.getIn(['teams', 'convIDToChannelInfo', convID])
 
       return info && info.channelname
         ? {
@@ -35,10 +38,13 @@ const mapStateToProps = (state: TypedState, {routeProps, routeState}) => {
     .filter(Boolean)
     .sort((a, b) => a.name.localeCompare(b.name))
 
+  const previousPath = pathSelector(state)
+
   return {
     channels,
     teamname: routeProps.get('teamname'),
     waitingForSave,
+    previousPath,
   }
 }
 
@@ -62,6 +68,12 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routePath, routePro
       )
       dispatch(saveChannelMembership(teamname, channelsToChange))
     },
+    _onPreview: (conversationIDKey: string, previousPath?: string[]) => {
+      dispatch(ChatGen.createPreviewChannel({conversationIDKey}))
+      dispatch(
+        navigateTo([chatTab, {selected: conversationIDKey, props: {previousPath: previousPath || null}}])
+      )
+    },
   }
 }
 
@@ -82,6 +94,8 @@ export default compose(
       })),
     onSaveSubscriptions: props => () =>
       props._saveSubscriptions(props.oldChannelState, props.nextChannelState),
+    onPreview: ({previousPath, _onPreview}) => (conversationIDKey: string) =>
+      _onPreview(conversationIDKey, previousPath),
   }),
   lifecycle({
     componentWillReceiveProps: function(nextProps) {

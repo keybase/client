@@ -5,6 +5,7 @@ package chat
 
 import (
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"os"
 	"sort"
@@ -146,7 +147,7 @@ func createTeam(tc libkb.TestContext) string {
 		tc.T.Fatal(err)
 	}
 	name := hex.EncodeToString(b)
-	err = teams.CreateRootTeam(context.TODO(), tc.G, name, keybase1.TeamSettings{})
+	_, err = teams.CreateRootTeam(context.TODO(), tc.G, name, keybase1.TeamSettings{})
 	if err != nil {
 		tc.T.Fatal(err)
 	}
@@ -3225,6 +3226,95 @@ func TestChatSrvDeleteConversation(t *testing.T) {
 		require.Equal(t, 1, len(iboxRes.Conversations))
 		require.Equal(t, conv.Id, iboxRes.Conversations[0].GetConvID())
 	})
+}
+
+type fakeInboxSource struct {
+	types.InboxSource
+}
+
+func (is fakeInboxSource) IsOffline(context.Context) bool {
+	return false
+}
+
+type fakeChatUI struct {
+	confirmChannelDelete bool
+	libkb.ChatUI
+}
+
+func (fc fakeChatUI) ChatConfirmChannelDelete(ctx context.Context, arg chat1.ChatConfirmChannelDeleteArg) (bool, error) {
+	return fc.confirmChannelDelete, nil
+}
+
+type fakeUISource struct {
+	UISource
+	chatUI libkb.ChatUI
+}
+
+func (ui *fakeUISource) GetChatUI(sessionID int) libkb.ChatUI {
+	return ui.chatUI
+}
+
+type fakeRemoteInterface struct {
+	chat1.RemoteInterface
+	deleteConversationCalled bool
+}
+
+func (ri *fakeRemoteInterface) DeleteConversation(context.Context, chat1.ConversationID) (chat1.DeleteConversationRemoteRes, error) {
+	ri.deleteConversationCalled = true
+	return chat1.DeleteConversationRemoteRes{}, nil
+}
+
+func TestChatSrvDeleteConversationConfirmed(t *testing.T) {
+	gc := libkb.NewGlobalContext()
+	gc.Init()
+	var is fakeInboxSource
+	cc := globals.ChatContext{
+		InboxSource: is,
+	}
+	g := globals.NewContext(gc, &cc)
+
+	ui := fakeUISource{}
+	h := NewServer(g, nil, nil, &ui)
+
+	var ri fakeRemoteInterface
+	h.setTestRemoteClient(&ri)
+
+	_, err := h.deleteConversationLocal(context.Background(), chat1.DeleteConversationLocalArg{
+		Confirmed: true,
+	})
+	require.NoError(t, err)
+	require.True(t, ri.deleteConversationCalled)
+}
+
+func TestChatSrvDeleteConversationUnconfirmed(t *testing.T) {
+	gc := libkb.NewGlobalContext()
+	gc.Init()
+	var is fakeInboxSource
+	cc := globals.ChatContext{
+		InboxSource: is,
+	}
+	g := globals.NewContext(gc, &cc)
+
+	chatUI := fakeChatUI{confirmChannelDelete: false}
+	ui := fakeUISource{
+		chatUI: chatUI,
+	}
+	h := NewServer(g, nil, nil, &ui)
+
+	var ri fakeRemoteInterface
+	h.setTestRemoteClient(&ri)
+
+	ctx := context.Background()
+	var arg chat1.DeleteConversationLocalArg
+
+	_, err := h.deleteConversationLocal(ctx, arg)
+	require.Equal(t, errors.New("channel delete unconfirmed"), err)
+	require.False(t, ri.deleteConversationCalled)
+
+	ui.chatUI = fakeChatUI{confirmChannelDelete: true}
+	_, err = h.deleteConversationLocal(ctx, arg)
+	require.NoError(t, err)
+	require.True(t, ri.deleteConversationCalled)
 }
 
 func TestChatSrvUserReset(t *testing.T) {

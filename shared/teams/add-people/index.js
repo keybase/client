@@ -15,7 +15,8 @@ import {isMobile} from '../../constants/platform'
 import UserInput from '../../search/user-input/container'
 import SearchResultsList from '../../search/results-list/container'
 
-import {teamRoleTypes, type TeamRoleType} from '../../constants/teams'
+import {teamRoleTypes} from '../../constants/teams'
+import {type TeamRoleType} from '../../constants/types/teams'
 
 const MaybePopup = isMobile
   ? (props: {onClose: () => void, children: React.Node}) => (
@@ -111,7 +112,7 @@ const AddPeople = (props: Props) => (
       </Box>
       <Box style={{...globalStyles.scrollable, flex: 1, height: 500}}>
         {props.showSearchPending
-          ? <ProgressIndicator style={{width: globalMargins.large}} />
+          ? <ProgressIndicator style={{width: 24}} />
           : <SearchResultsList
               searchKey={'addToTeamSearch'}
               disableIfInTeamName={props.name}

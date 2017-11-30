@@ -6,7 +6,7 @@ import {compose, withHandlers, withState} from 'recompose'
 import {PopupDialog, HeaderHoc, ScrollView} from '../../common-adapters/index'
 import {isMobile} from '../../constants/platform'
 import {type TypedState} from '../../constants/reducer'
-import {type TeamRoleType} from '../../constants/teams'
+import {type TeamRoleType} from '../../constants/types/teams'
 
 /*
   Pass through via routeprops

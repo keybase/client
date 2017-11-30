@@ -6,8 +6,8 @@ import {ProgressBar as AttachmentProgressBar, ImageIcon as AttachmentStatusIcon}
 import {globalColors, globalMargins, globalStyles} from '../../../styles'
 import {fileUIName} from '../../../constants/platform'
 
-import type {Props} from './'
-import type {LocalMessageState} from '../../../constants/chat'
+import type {Props} from '.'
+import type {LocalMessageState} from '../../../constants/types/chat'
 
 const AttachmentStatusFooter = ({
   localMessageState,

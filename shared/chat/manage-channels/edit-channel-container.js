@@ -2,12 +2,16 @@
 import * as React from 'react'
 import * as I from 'immutable'
 import * as Constants from '../../constants/teams'
-import {type ConversationIDKey} from '../../constants/chat'
+import {type ConversationIDKey} from '../../constants/types/chat'
 import EditChannel from './edit-channel'
+import {compose, lifecycle} from 'recompose'
 import {connect, type TypedState} from '../../util/container'
-import {updateChannelName, updateTopic, deleteChannel} from '../../actions/teams/creators'
-import {navigateTo} from '../../actions/route-tree'
-import {teamsTab} from '../../constants/tabs'
+import {
+  getDetails,
+  updateChannelName,
+  updateTopic,
+  deleteChannelConfirmed,
+} from '../../actions/teams/creators'
 import {anyWaiting} from '../../constants/waiting'
 
 const mapStateToProps = (state: TypedState, {navigateUp, routePath, routeProps}) => {
@@ -38,12 +42,13 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routePath, routePro
 
   return {
     onCancel: () => dispatch(navigateUp()),
+    _loadTeam: teamname => dispatch(getDetails(teamname)),
     _updateChannelName: (newChannelName: string) =>
       dispatch(updateChannelName(conversationIDKey, newChannelName)),
     _updateTopic: (newTopic: string) => dispatch(updateTopic(conversationIDKey, newTopic)),
-    _onDelete: teamname => {
-      dispatch(deleteChannel(conversationIDKey))
-      dispatch(navigateTo([teamsTab, {props: {teamname}, selected: 'team'}], []))
+    onConfirmedDelete: () => {
+      dispatch(deleteChannelConfirmed(conversationIDKey))
+      dispatch(navigateUp())
     },
   }
 }
@@ -51,14 +56,13 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routePath, routePro
 const mergeProps = (stateProps, dispatchProps, {routeState}) => {
   const deleteRenameDisabled = stateProps.channelName === 'general'
   return {
+    _loadTeam: () => dispatchProps._loadTeam(stateProps.teamname),
     teamname: stateProps.teamname,
     channelName: stateProps.channelName,
     topic: stateProps.topic,
     onCancel: dispatchProps.onCancel,
-    onDelete: () => dispatchProps._onDelete(stateProps.teamname),
-    showDelete: false,
-    // TODO enable this after we get a better popup story
-    // showDelete: stateProps.canDelete,
+    onConfirmedDelete: dispatchProps.onConfirmedDelete,
+    showDelete: stateProps.canDelete,
     deleteRenameDisabled,
     onSave: (newChannelName: string, newTopic: string) => {
       if (!deleteRenameDisabled) {
@@ -78,5 +82,13 @@ const ConnectedEditChannel: React.ComponentType<{
   navigateUp: Function,
   routeProps: I.RecordOf<{conversationIDKey: ConversationIDKey}>,
   routeState: I.RecordOf<{waitingForSave: number}>,
-}> = connect(mapStateToProps, mapDispatchToProps, mergeProps)(EditChannel)
+}> = compose(
+  connect(mapStateToProps, mapDispatchToProps, mergeProps),
+  lifecycle({
+    componentDidMount: function() {
+      // Need to load team details to be able to compute canDelete.
+      this.props._loadTeam()
+    },
+  })
+)(EditChannel)
 export default ConnectedEditChannel

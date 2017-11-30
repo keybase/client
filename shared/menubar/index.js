@@ -1,10 +1,9 @@
 // @flow
-import * as favoriteAction from '../actions/favorite'
 import * as KBFSGen from '../actions/kbfs-gen'
+import * as FavoriteGen from '../actions/favorite-gen'
 import React, {Component} from 'react'
 import Render from './index.render'
 import engine from '../engine'
-import {bindActionCreators} from 'redux'
 import {connect} from 'react-redux'
 import {defaultKBFSPath} from '../constants/config'
 import {executeActionsForContext} from '../util/quit-helper.desktop'
@@ -12,7 +11,7 @@ import {loginTab, type Tab} from '../constants/tabs'
 import {navigateTo, switchTo} from '../actions/route-tree'
 import {openDialog as openRekeyDialog} from '../actions/unlock-folders'
 import {shell, ipcRenderer} from 'electron'
-import {type KBFSStatus} from '../constants/favorite'
+import {type KBFSStatus} from '../constants/types/favorite'
 import {type Props as FolderProps} from '../folders'
 
 export type Props = $Shape<{
@@ -182,22 +181,20 @@ class Menubar extends Component<Props> {
   }
 }
 
-export default connect(
-  state => ({
-    username: state.config && state.config.username,
-    loggedIn: state.config && state.config.loggedIn,
-    folderProps: state.favorite && state.favorite.folderState,
-    kbfsStatus: state.favorite && state.favorite.kbfsStatus,
-    badgeInfo: (state.notifications && state.notifications.navBadges) || {},
-  }),
-  dispatch => ({
-    ...bindActionCreators({...favoriteAction, openRekeyDialog}, dispatch),
-    openInKBFS: path => dispatch(KBFSGen.createOpen({path})),
-    onShowLoginTab: () => {
-      dispatch(navigateTo([loginTab]))
-    },
-    switchTab: tab => {
-      dispatch(switchTo([tab]))
-    },
-  })
-)(Menubar)
+const mapStateToProps = state => ({
+  username: state.config && state.config.username,
+  loggedIn: state.config && state.config.loggedIn,
+  folderProps: state.favorite && state.favorite.folderState,
+  kbfsStatus: state.favorite && state.favorite.kbfsStatus,
+  badgeInfo: (state.notifications && state.notifications.navBadges) || {},
+})
+
+const mapDispatchToProps = dispatch => ({
+  favoriteList: () => dispatch(FavoriteGen.createFavoriteList()),
+  openRekeyDialog: () => dispatch(openRekeyDialog()),
+  openInKBFS: path => dispatch(KBFSGen.createOpen({path})),
+  onShowLoginTab: () => dispatch(navigateTo([loginTab])),
+  switchTab: tab => dispatch(switchTo([tab])),
+})
+
+export default connect(mapStateToProps, mapDispatchToProps)(Menubar)

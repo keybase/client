@@ -68,6 +68,7 @@ const Conversation = (props: Props) => (
                 focusInputCounter={props.focusInputCounter}
                 onEditLastMessage={props.onEditLastMessage}
                 onScrollDown={props.onScrollDown}
+                previousPath={props.previousPath}
               />}
         </Box>}
   </Box>

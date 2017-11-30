@@ -65,6 +65,7 @@ const load = () => {
           onCreate={action('onCreate')}
           unsavedSubscriptions={false}
           onSaveSubscriptions={action('onSaveSubscriptions')}
+          onPreview={action('onPreview')}
           waitingForSave={false}
           nextChannelState={channels.reduce((acc, c) => {
             acc[c.name] = c.selected
@@ -85,6 +86,7 @@ const load = () => {
           onCreate={action('onCreate')}
           unsavedSubscriptions={true}
           onSaveSubscriptions={action('onSaveSubscriptions')}
+          onPreview={action('onPreview')}
           waitingForSave={false}
           nextChannelState={channels.reduce((acc, c) => {
             acc[c.name] = c.selected
@@ -102,7 +104,7 @@ const load = () => {
           topic={''}
           onCancel={action('onCancel')}
           onSave={action('onSave')}
-          onDelete={action('onDelete')}
+          onConfirmedDelete={action('onConfirmedDelete')}
           showDelete={true}
           deleteRenameDisabled={false}
           waitingForSave={false}
@@ -118,7 +120,7 @@ const load = () => {
           topic={''}
           onCancel={action('onCancel')}
           onSave={action('onSave')}
-          onDelete={action('onDelete')}
+          onConfirmedDelete={action('onConfirmedDelete')}
           showDelete={true}
           deleteRenameDisabled={true}
           waitingForSave={false}

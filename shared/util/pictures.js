@@ -28,13 +28,11 @@ const _getPictures = (names: Array<string>, endpoint: string, paramName: string)
   })
 
   apiserverGetRpcPromise({
-    param: {
-      args: [
-        {key: paramName, value: names.join(',')},
-        {key: 'formats', value: 'square_360,square_200,square_40'},
-      ],
-      endpoint,
-    },
+    args: [
+      {key: paramName, value: names.join(',')},
+      {key: 'formats', value: 'square_360,square_200,square_40'},
+    ],
+    endpoint,
   })
     .then(response => {
       JSON.parse(response.body).pictures.forEach((picMap, idx) => {

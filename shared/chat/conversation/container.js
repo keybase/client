@@ -1,8 +1,10 @@
 // @flow
 import * as Constants from '../../constants/chat'
+import * as Types from '../../constants/types/chat'
 import * as SearchConstants from '../../constants/search'
 import * as Creators from '../../actions/chat/creators'
 import * as ChatGen from '../../actions/chat-gen'
+import {type List} from 'immutable'
 import HiddenString from '../../util/hidden-string'
 import Conversation from './index'
 import NoConversation from './no-conversation'
@@ -22,12 +24,12 @@ import {type Props} from '.'
 import flags from '../../util/feature-flags'
 
 type StateProps = {|
-  finalizeInfo: ?Constants.FinalizeInfo,
-  rekeyInfo: ?Constants.RekeyInfo,
-  selectedConversationIDKey: ?Constants.ConversationIDKey,
+  finalizeInfo: ?Types.FinalizeInfo,
+  rekeyInfo: ?Types.RekeyInfo,
+  selectedConversationIDKey: ?Types.ConversationIDKey,
   showLoader: boolean,
-  supersededBy: ?Constants.SupersedeInfo,
-  supersedes: ?Constants.SupersedeInfo,
+  supersededBy: ?Types.SupersedeInfo,
+  supersedes: ?Types.SupersedeInfo,
   threadLoadedOffline: boolean,
   inSearch: boolean,
   conversationIsError: boolean,
@@ -36,21 +38,19 @@ type StateProps = {|
   showTeamOffer: boolean,
   inboxFilter: ?string,
   showSearchResults: boolean,
+  previousPath: ?List<string>,
 |}
 
 type DispatchProps = {|
-  _onAttach: (
-    conversationIDKey: Constants.ConversationIDKey,
-    inputs: Array<Constants.AttachmentInput>
-  ) => void,
+  _onAttach: (conversationIDKey: Types.ConversationIDKey, inputs: Array<Types.AttachmentInput>) => void,
   onOpenInfoPanelMobile: () => void,
   onExitSearch: () => void,
   onBack: () => void,
-  _onStoreInputText: (selectedConversation: Constants.ConversationIDKey, inputText: string) => void,
+  _onStoreInputText: (selectedConversation: Types.ConversationIDKey, inputText: string) => void,
   onShowTrackerInSearch: (id: string) => void,
 |}
 
-const mapStateToProps = (state: TypedState, {routePath}): StateProps => {
+const mapStateToProps = (state: TypedState, {routePath, routeProps}): StateProps => {
   const selectedConversationIDKey = Constants.getSelectedConversation(state)
   const routeState = Constants.getSelectedRouteState(state)
 
@@ -108,6 +108,7 @@ const mapStateToProps = (state: TypedState, {routePath}): StateProps => {
     inSearch,
     defaultChatText,
     showTeamOffer,
+    previousPath: routeProps.get('previousPath'),
   }
 }
 
@@ -116,7 +117,7 @@ const mapDispatchToProps = (
   {setRouteState, navigateUp, navigateAppend}
 ): DispatchProps => ({
   onExitSearch: () => dispatch(ChatGen.createExitSearch({skipSelectPreviousConversation: false})),
-  _onAttach: (selectedConversation, inputs: Array<Constants.AttachmentInput>) => {
+  _onAttach: (selectedConversation, inputs: Array<Types.AttachmentInput>) => {
     dispatch(
       navigateAppend([
         {props: {conversationIDKey: selectedConversation, inputs}, selected: 'attachmentInput'},
@@ -126,7 +127,7 @@ const mapDispatchToProps = (
   onOpenInfoPanelMobile: () => dispatch(navigateAppend(['infoPanel'])),
   onBack: () => dispatch(navigateUp()),
   onShowTrackerInSearch: id => dispatch(getProfile(id, false, true)),
-  _onStoreInputText: (selectedConversation: Constants.ConversationIDKey, inputText: string) =>
+  _onStoreInputText: (selectedConversation: Types.ConversationIDKey, inputText: string) =>
     dispatch(Creators.setSelectedRouteState(selectedConversation, {inputText: new HiddenString(inputText)})),
 })
 
@@ -140,7 +141,7 @@ const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps) => {
         dispatchProps._onStoreInputText(stateProps.selectedConversationIDKey, chatText)
       }
     },
-    onAttach: (inputs: Array<Constants.AttachmentInput>) => {
+    onAttach: (inputs: Array<Types.AttachmentInput>) => {
       stateProps.selectedConversationIDKey &&
         dispatchProps._onAttach(stateProps.selectedConversationIDKey, inputs)
     },
