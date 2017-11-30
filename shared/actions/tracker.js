@@ -374,6 +374,7 @@ function _updateUserInfo(
   username: string,
   getState: () => {tracker: Constants.State, config: ConfigState}
 ): Action {
+  console.warn('in updateUserInfo', userCard)
   return {
     type: Constants.updateUserInfo,
     payload: {
@@ -386,6 +387,7 @@ function _updateUserInfo(
         bio: userCard.bio,
         avatar: `https://keybase.io/${username}/picture`,
         location: userCard.location,
+        showcasedTeams: userCard.teamShowcase ? userCard.teamShowcase.map(showcase => showcase.fqName) : [],
       },
       username,
     },

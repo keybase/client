@@ -5,6 +5,7 @@ import React, {PureComponent} from 'react'
 import orderBy from 'lodash/orderBy'
 import moment from 'moment'
 import {
+  Avatar,
   Box,
   Icon,
   PlatformIcon,
@@ -329,6 +330,39 @@ class ProfileRender extends PureComponent<Props, State> {
                   <Text type="BodySemibold" style={{color: globalColors.white}}>{proofNotice}</Text>}
               </Box>
               <Box style={styleProofs}>
+                {!loading && this.props.userInfo.showcasedTeams.length > 0 &&
+                  <Box style={{...globalStyles.flexBoxColumn, paddingBottom: globalMargins.small}}>
+                    <Box style={globalStyles.flexBoxRow}>
+                      <Text type="BodySmallSemibold">Teams</Text>
+                    </Box>
+                    {this.props.userInfo.showcasedTeams.map(teamname => <Box key={teamname} style={{  ...globalStyles.flexBoxRow,
+                      alignItems: 'flex-start',
+                      justifyContent: 'flex-start',
+                      minHeight: 32,
+                    }}>
+                      <Box style={{
+                          ...globalStyles.flexBoxRow,
+                          alignItems: 'center',
+                          alignSelf: 'center',
+                          height: 24,
+                          minHeight: 24,
+                          minWidth: 24,
+                          width: 24,
+                      }}>
+                        <Avatar teamname={teamname} size={24} />
+                      </Box>
+                      <Box style={{
+                        ...globalStyles.flexBoxRow,
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        alignSelf: 'center',
+                        paddingLeft: globalMargins.tiny,
+                      }}>
+                        <Text style={{color: globalColors.black_75}} type="BodySemibold">{teamname}</Text>
+                      </Box>
+                    </Box>)}
+                  </Box>
+                }
                 {(loading || this.props.proofs.length > 0) &&
                   <UserProofs
                     type={'proofs'}
