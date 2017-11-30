@@ -5,17 +5,18 @@ import {globalStyles, globalMargins} from '../../../styles'
 
 export type Props = {
   bgColor: string,
-  username: string,
+  username?: string,
+  teamname?: string,
   children?: React.Node,
   style?: ?Object,
 }
 
 const AVATAR_SIZE = 24
 
-const UserNotice = ({bgColor, username, children, style}: Props) => (
+const UserNotice = ({bgColor, username, teamname, children, style}: Props) => (
   <Box style={{...styleOuterBox, ...style}}>
     <Box style={stylesAvatarWrapper(AVATAR_SIZE)}>
-      <Avatar size={AVATAR_SIZE} username={username} style={stylesAvatar} />
+      <Avatar size={AVATAR_SIZE} {...(username ? {username} : {teamname})} style={stylesAvatar} />
     </Box>
     <Box style={{...styleBox, backgroundColor: bgColor}}>
       {children}
