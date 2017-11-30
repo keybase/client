@@ -94,7 +94,8 @@ func (km *KeyManagerStandard) getTLFCryptKey(ctx context.Context,
 	kbfscrypto.TLFCryptKey, error) {
 	tlfID := kmd.TlfID()
 
-	if kmd.TypeForKeying() == tlf.PublicKeying {
+	// Classic public TLFs and public implicit teams use a dummy crypt key.
+	if kmd.TypeForKeying() == tlf.PublicKeying || tlfID.Type() == tlf.Public {
 		return kbfscrypto.PublicTLFCryptKey, nil
 	}
 

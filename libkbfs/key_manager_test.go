@@ -2447,7 +2447,12 @@ func testKeyManagerGetImplicitTeamTLFCryptKey(t *testing.T, ty tlf.Type) {
 	key2b, err := config2.KeyManager().GetTLFCryptKeyForEncryption(ctx, rmd2)
 	require.NoError(t, err)
 	require.Equal(t, key1b, key2b)
-	require.NotEqual(t, key1, key1b)
+	if ty == tlf.Public {
+		// Bumping the key generation shouldn't do anything for public TLFs.
+		require.Equal(t, key1, key1b)
+	} else {
+		require.NotEqual(t, key1, key1b)
+	}
 }
 
 func TestKeyManagerGetPrivateImplicitTeamTLFCryptKey(t *testing.T) {
