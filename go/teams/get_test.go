@@ -115,6 +115,27 @@ func TestTeamGetConcurrent(t *testing.T) {
 	}
 }
 
+// Test TeamGet on a team that you implicitly admin but
+// are not an explicit member of.
+func TestTeamDetailsAsImplicitAdmin(t *testing.T) {
+	_, tcs, cleanup := setupNTests(t, 1)
+	defer cleanup()
+
+	t.Logf("creates a team")
+	teamName, _ := createTeam2(*tcs[0])
+
+	t.Logf("creates a subteam")
+	_, err := CreateSubteam(context.Background(), tcs[0].G, "bbb", teamName)
+	require.NoError(t, err)
+
+	t.Logf("loads the subteam")
+	team, err := Details(context.Background(), tcs[0].G, teamName.String()+".bbb", true /* forceRepoll */)
+	require.Len(t, team.Members.Owners, 0, "should be no team members in subteam")
+	require.Len(t, team.Members.Admins, 0, "should be no team members in subteam")
+	require.Len(t, team.Members.Writers, 0, "should be no team members in subteam")
+	require.Len(t, team.Members.Readers, 0, "should be no team members in subteam")
+}
+
 // Test loading when you have become an admin after
 // having already cached the team as a non-admin.
 func TestGetMaybeAdminByStringName(t *testing.T) {

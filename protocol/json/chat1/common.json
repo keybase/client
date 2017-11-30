@@ -125,7 +125,8 @@
         "ATTACHMENTUPLOADED_8",
         "JOIN_9",
         "LEAVE_10",
-        "SYSTEM_11"
+        "SYSTEM_11",
+        "DELETEHISTORY_12"
       ],
       "go": "nostring"
     },
@@ -744,6 +745,13 @@
             "items": "MessagePreviousPointer"
           },
           "name": "prev"
+        },
+        {
+          "type": [
+            null,
+            "MessageDeleteHistory"
+          ],
+          "name": "deleteHistory"
         },
         {
           "type": "gregor1.UID",
