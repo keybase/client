@@ -5,6 +5,7 @@
 // import * as I from 'immutable'
 import * as React from 'react'
 import * as Constants from '../constants/tracker'
+import SyncAvatarProps from '../desktop/remote/sync-avatar-props.desktop'
 import SyncProps from '../desktop/remote/sync-props.desktop'
 import SyncBrowserWindow from '../desktop/remote/sync-browser-window.desktop'
 import {connect, type TypedState, compose} from '../util/container'
@@ -46,6 +47,7 @@ const trackerMergeProps = (stateProps, dispatchProps, {name}) => {
 const RemoteTracker = compose(
   connect(trackerMapStateToProps, () => ({}), trackerMergeProps),
   SyncBrowserWindow,
+  SyncAvatarProps,
   SyncProps
 )(PrintDebug)
 

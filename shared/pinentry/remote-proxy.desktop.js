@@ -9,8 +9,6 @@ import SyncProps from '../desktop/remote/sync-props.desktop'
 import SyncBrowserWindow from '../desktop/remote/sync-browser-window.desktop'
 import {connect, type TypedState, compose} from '../util/container'
 
-const PrintDebug = props => <div style={{wordWrap: 'break-word'}}>{JSON.stringify(props)}</div>
-
 const windowOpts = {height: 210, width: 440}
 
 const pinentryMapStateToProps = (state: TypedState, {id}) => {
@@ -35,7 +33,7 @@ const pinentryMapStateToProps = (state: TypedState, {id}) => {
 
 // Actions are handled by remote-container
 const RemotePinentry = compose(connect(pinentryMapStateToProps, () => ({})), SyncBrowserWindow, SyncProps)(
-  PrintDebug
+  <div />
 )
 
 type Props = {

@@ -1,6 +1,7 @@
 // @flow
 // A mirror of the remote menubar windows.
 import * as React from 'react'
+import SyncAvatarProps from '../desktop/remote/sync-avatar-props.desktop'
 import SyncProps from '../desktop/remote/sync-props.desktop'
 import {sendLoad} from '../desktop/remote/sync-browser-window.desktop'
 import {connect, type TypedState, compose, renderNothing, branch} from '../util/container'
@@ -72,5 +73,6 @@ export default compose(
   connect(mapStateToProps, () => ({}), mergeProps),
   branch(props => !props.externalRemoteWindow, renderNothing),
   RemoteMenubarWindow,
+  SyncAvatarProps,
   SyncProps
 )(PrintDebug)

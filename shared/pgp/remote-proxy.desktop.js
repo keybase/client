@@ -4,8 +4,6 @@ import SyncProps from '../desktop/remote/sync-props.desktop'
 import SyncBrowserWindow from '../desktop/remote/sync-browser-window.desktop'
 import {connect, type TypedState, compose} from '../util/container'
 
-const PrintDebug = props => <div style={{wordWrap: 'break-word'}}>{JSON.stringify(props)}</div>
-
 const windowOpts = {height: 450, width: 600}
 
 const purgeMapPropsToState = (state: TypedState) => {
@@ -18,9 +16,7 @@ const purgeMapPropsToState = (state: TypedState) => {
 }
 
 // Actions are handled by remote-container
-const RemotePurge = compose(connect(purgeMapPropsToState, () => ({})), SyncBrowserWindow, SyncProps)(
-  PrintDebug
-)
+const RemotePurge = compose(connect(purgeMapPropsToState, () => ({})), SyncBrowserWindow, SyncProps)(<div />)
 
 type Props = {
   show: boolean,

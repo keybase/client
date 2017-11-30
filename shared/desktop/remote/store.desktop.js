@@ -3,7 +3,7 @@
 // This acts as a fake store for remote windows
 // On the main window we plumb through our props and we 'mirror' the props using this helper
 // We start up and send a 'remoteWindowWantsProps' to the main window which then sends us 'props'
-import {ipcRenderer, remote, BrowserWindow} from 'electron'
+import {remote, BrowserWindow} from 'electron'
 import {sendToMainWindow} from './util'
 
 class RemoteStore {
@@ -13,7 +13,11 @@ class RemoteStore {
   _gotPropsCallback: ?() => void // let component know it loaded once so it can show itself. Set to null after calling once
 
   _onPropsUpdated = props => {
-    this._internalState = props
+    // We get diffs of the top level props so we always overwrite
+    this._internalState = {
+      ...this._internalState,
+      ...props,
+    }
     this._publishChange()
     if (this._gotPropsCallback) {
       this._gotPropsCallback()
@@ -46,7 +50,12 @@ class RemoteStore {
     if (action.constructor === Function) {
       throw new Error('pure actions only allowed in remote store2')
     } else {
-      ipcRenderer.send('dispatchAction', action)
+      sendToMainWindow(
+        'dispatchAction',
+        action,
+        this._internalState.component,
+        this._internalState.selectorParams
+      )
     }
   }
 

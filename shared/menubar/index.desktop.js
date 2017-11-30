@@ -8,6 +8,7 @@ import {globalStyles, globalColors} from '../styles'
 import {isDarwin} from '../constants/platform'
 import {type KBFSStatus} from '../constants/types/favorite'
 import {remote} from 'electron'
+import throttle from 'lodash/throttle'
 
 export type Props = {
   folderProps: ?FolderProps,
@@ -37,9 +38,9 @@ class MenubarRender extends Component<Props, State> {
     showingMenu: false,
   }
 
-  _onShow = () => {
+  _onShow = throttle(() => {
     this.props.refresh()
-  }
+  }, 1000 * 5)
 
   constructor(props: Props) {
     super(props)

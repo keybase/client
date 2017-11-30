@@ -4,8 +4,6 @@ import SyncProps from '../desktop/remote/sync-props.desktop'
 import SyncBrowserWindow from '../desktop/remote/sync-browser-window.desktop'
 import {connect, type TypedState, compose} from '../util/container'
 
-const PrintDebug = props => <div style={{wordWrap: 'break-word'}}>{JSON.stringify(props)}</div>
-
 const windowOpts = {height: 300, width: 500}
 
 const unlockFolderMapPropsToState = (state: TypedState) => {
@@ -38,7 +36,7 @@ const UnlockFolder = compose(
   connect(unlockFolderMapPropsToState, () => ({}), mergeProps),
   SyncBrowserWindow,
   SyncProps
-)(PrintDebug)
+)(<div />)
 
 type Props = {
   show: boolean,
