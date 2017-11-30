@@ -1,8 +1,8 @@
 // @flow
 import * as React from 'react'
-import {Text} from '../../../../common-adapters'
+import {Box, Text} from '../../../../common-adapters'
 import UserNotice from '../../notices/user-notice'
-import {globalColors, globalMargins} from '../../../../styles'
+import {globalStyles, globalColors, globalMargins} from '../../../../styles'
 import {formatTimeForMessages} from '../../../../util/timestamp'
 
 import type {TextMessage} from '../../../../constants/types/chat'
@@ -22,16 +22,18 @@ const SystemNotice = ({channelname, message, onManageChannels, you, following, o
     <Text type="BodySmallSemibold" backgroundMode="Announcements" style={{color: globalColors.black_40}}>
       {formatTimeForMessages(message.timestamp)}
     </Text>
-    {message.message.stringValue().split('\n').map((line, index) => (
-      <Text
-        key={index}
-        type="BodySmallSemibold"
-        backgroundMode="Announcements"
-        style={{color: globalColors.black_40}}
-      >
-        {line}
-      </Text>
-    ))}
+    <Box style={globalStyles.flexBoxColumn}>
+      {message.message.stringValue().split('\n').map((line, index) => (
+        <Text
+          key={index}
+          type="BodySmallSemibold"
+          backgroundMode="Announcements"
+          style={{color: globalColors.black_40}}
+        >
+          {line}
+        </Text>
+      ))}
+    </Box>
   </UserNotice>
 )
 

@@ -170,6 +170,7 @@ export type SystemMessage = {
   message: HiddenString,
   key: MessageKey,
   ordinal: number,
+  meta: RPCChatTypes.MessageSystem | {systemType: -1},
 }
 
 export type SupersedesMessage = {

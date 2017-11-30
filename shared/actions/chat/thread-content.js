@@ -563,6 +563,7 @@ function _unboxedToMessage(
         case ChatTypes.commonMessageType.system: {
           let sysMsgText = '<unknown system message>'
           const body = payload.messageBody.system
+          const meta = body || {systemType: -1}
           if (body) {
             switch (body.systemType) {
               case ChatTypes.localMessageSystemType.addedtoteam: {
@@ -593,6 +594,7 @@ function _unboxedToMessage(
             editedCount: payload.superseded ? 1 : 0, // mark it as edited if it's been superseded
             message: new HiddenString(sysMsgText),
             messageState: 'sent',
+            meta,
             key: Constants.messageKey(common.conversationIDKey, 'system', common.messageID),
           }
         }
