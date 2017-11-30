@@ -169,6 +169,10 @@ func defaultLogPath(ctx Context) string {
 
 // DefaultInitParams returns default init params
 func DefaultInitParams(ctx Context) InitParams {
+	journalEnv := os.Getenv("KBFS_DEFAULT_ENABLE_JOURNAL_VALUE")
+	if journalEnv == "" {
+		journalEnv = "true"
+	}
 	return InitParams{
 		Debug:            BoolForString(os.Getenv("KBFS_DEBUG")),
 		BServerAddr:      defaultBServer(ctx),
@@ -184,7 +188,7 @@ func DefaultInitParams(ctx Context) InitParams {
 		StorageRoot:                    ctx.GetDataDir(),
 		BGFlushPeriod:                  bgFlushPeriodDefault,
 		BGFlushDirOpBatchSize:          bgFlushDirOpBatchSizeDefault,
-		EnableJournal:                  true,
+		EnableJournal:                  BoolForString(journalEnv),
 		DiskCacheMode:                  DiskCacheModeLocal,
 		Mode:                           InitDefaultString,
 	}
