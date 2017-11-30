@@ -7,10 +7,10 @@ import {globalStyles, globalColors, globalMargins} from '../styles'
 
 import type {Props, FriendshipUserInfo} from './friendships'
 
-type UserEntryProps = {|
+type UserEntryProps = {
   onClick: (username: string, uid: ?string) => void,
   ...FriendshipUserInfo,
-|}
+}
 
 class UserEntry extends PureComponent<UserEntryProps> {
   _onClick: () => void
@@ -79,7 +79,6 @@ const userEntryFullnameStyle = {
 class FriendshipsRender extends Component<Props> {
   _itemRenderer(followers: boolean, index: number) {
     const user = followers ? this.props.followers[index] : this.props.following[index]
-    // $FlowIssue todo
     return <UserEntry key={user.username} {...user} onClick={this.props.onUserClick} />
   }
 
