@@ -28,6 +28,9 @@ function SyncAvatarProps(ComposedComponent: any) {
         if (action.type === ConfigGen.loadAvatar) {
           const {username} = action.payload
           this.props.setUsernames(this.props.usernames.add(username))
+        } else if (action.type === ConfigGen.loadTeamAvatar) {
+          const {teamname} = action.payload
+          this.props.setUsernames(this.props.usernames.add(teamname))
         }
       }
     }

@@ -128,12 +128,13 @@ const followSizeToStyle = {
 const mapStateToProps = (state: TypedState, ownProps: Props) => {
   let _urlMap
 
-  if (ownProps.username) {
-    _urlMap = state.config.avatars[ownProps.username]
+  const name = ownProps.username || ownProps.teamname
+  if (!isTesting && name) {
+    _urlMap = state.config.avatars[name]
   }
 
   return {
-    _needAskForData: !state.config.avatars.hasOwnProperty(ownProps.username),
+    _needAskForData: !isTesting && !state.config.avatars.hasOwnProperty(name),
     _urlMap,
   }
 }
@@ -155,6 +156,7 @@ function _followIconSize(size: number, followsYou: boolean, following: boolean) 
 }
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
+  _askForTeamUserData: (teamname: string) => dispatch(ConfigGen.createLoadTeamAvatar({teamname})),
   _askForUserData: (username: string) => dispatch(ConfigGen.createLoadAvatar({username})),
 })
 
@@ -173,7 +175,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
   let url
   let isPlaceholder
 
-  if (stateProps._urlMap) {
+  if (!isTesting && stateProps._urlMap) {
     url = urlsToImgSet(pickBy(stateProps._urlMap, value => value), ownProps.size)
     isPlaceholder = false
   }
@@ -183,17 +185,26 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     isPlaceholder = true
   }
 
+  const isTeam = !!ownProps.teamname
+
+  let _askForUserData = null
+  if (stateProps._needAskForData) {
+    if (isTeam) {
+      _askForUserData = () => dispatchProps._askForTeamUserData(ownProps.teamname)
+    } else {
+      _askForUserData = () => dispatchProps._askForUserData(ownProps.username)
+    }
+  }
+
   return {
-    _askForUserData: stateProps._needAskForData
-      ? () => dispatchProps._askForUserData(ownProps.username)
-      : null,
+    _askForUserData,
     borderColor: ownProps.borderColor,
     children: ownProps.children,
     followIconSize: _followIconSize(ownProps.size, ownProps.followsYou, ownProps.following),
     followIconStyle: followSizeToStyle[ownProps.size],
     followIconType: _followIconType(ownProps.size, ownProps.followsYou, ownProps.following),
     isPlaceholder,
-    isTeam: !!ownProps.teamname,
+    isTeam,
     loadingColor: ownProps.loadingColor,
     onClick: ownProps.onClick,
     opacity: ownProps.opacity,

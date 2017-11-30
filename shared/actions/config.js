@@ -204,7 +204,33 @@ function _pgpSecurityModelChangeMessageSaga() {
   })
 }
 
-// Bundle up avatars to load
+function _loadAvatarHelper(action: {payload: {names: Array<string>, endpoint: string, key: string}}) {
+  const {names, endpoint, key} = action.payload
+  return Saga.all([
+    Saga.call(RPCTypes.apiserverGetRpcPromise, {
+      args: [{key, value: names.join(',')}, {key: 'formats', value: 'square_360,square_200,square_40'}],
+      endpoint,
+    }),
+    Promise.resolve(names),
+  ])
+}
+
+function _afterLoadAvatarHelper([response: {body: string}, names]) {
+  const actions = JSON.parse(response.body).pictures.map((picMap, idx) =>
+    Saga.put(
+      ConfigGen.createLoadedAvatar({
+        urlMap: {
+          ...(picMap['square_200'] ? {'200': picMap['square_200']} : null),
+          ...(picMap['square_360'] ? {'360': picMap['square_360']} : null),
+          ...(picMap['square_40'] ? {'40': picMap['square_40']} : null),
+        },
+        username: names[idx],
+      })
+    )
+  )
+  return Saga.all(actions)
+}
+
 let _avatarsToLoad = {}
 function* _loadAvatar(action: ConfigGen.LoadAvatarPayload) {
   const {username} = action.payload
@@ -215,42 +241,29 @@ function* _loadAvatar(action: ConfigGen.LoadAvatarPayload) {
   const names = Object.keys(_avatarsToLoad)
   _avatarsToLoad = {}
 
-  if (!names.length) {
-    return
-  }
-
-  try {
-    const response = yield Saga.call(RPCTypes.apiserverGetRpcPromise, {
-      args: [
-        {key: 'usernames', value: names.join(',')},
-        {key: 'formats', value: 'square_360,square_200,square_40'},
-      ],
-      endpoint: 'image/username_pic_lookups',
+  if (names.length) {
+    yield Saga.put({
+      payload: {endpoint: 'image/username_pic_lookups', key: 'usernames', names},
+      type: '_loadAvatarHelper',
     })
+  }
+}
 
-    const actions = JSON.parse(response.body).pictures.map((picMap, idx) =>
-      Saga.put(
-        ConfigGen.createLoadedAvatar({
-          urlMap: {
-            ...(picMap['square_200'] ? {'200': picMap['square_200']} : null),
-            ...(picMap['square_360'] ? {'360': picMap['square_360']} : null),
-            ...(picMap['square_40'] ? {'40': picMap['square_40']} : null),
-          },
-          username: names[idx],
-        })
-      )
-    )
-    yield Saga.all(actions)
-  } catch (e) {
-    const actions = names.map(username =>
-      Saga.put(
-        ConfigGen.createLoadedAvatar({
-          urlMap: null,
-          username,
-        })
-      )
-    )
-    yield Saga.all(actions)
+let _teamAvatarsToLoad = {}
+function* _loadTeamAvatar(action: ConfigGen.LoadTeamAvatarPayload) {
+  const {teamname} = action.payload
+  // store it and wait, once our timer is up we pull any and run it
+  _teamAvatarsToLoad[teamname] = true
+  yield Saga.call(Saga.delay, 200)
+
+  const names = Object.keys(_teamAvatarsToLoad)
+  _teamAvatarsToLoad = {}
+
+  if (names.length) {
+    yield Saga.put({
+      payload: {endpoint: 'image/team_avatar_lookups', key: 'team_names', names},
+      type: '_loadAvatarHelper',
+    })
   }
 }
 
@@ -270,8 +283,9 @@ function* configSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEvery(ConfigGen.retryBootstrap, _retryBootstrap)
   yield Saga.safeTakeEveryPure(ConfigGen.pgpAckedMessage, _pgpSecurityModelChangeMessageSaga)
   yield Saga.safeTakeEvery(ConfigGen.loadAvatar, _loadAvatar)
-  // TODO put back
-  // yield Saga.fork(_periodicAvatarCacheClear)
+  yield Saga.safeTakeEvery(ConfigGen.loadTeamAvatar, _loadTeamAvatar)
+  yield Saga.safeTakeEveryPure('_loadAvatarHelper', _loadAvatarHelper, _afterLoadAvatarHelper)
+  yield Saga.fork(_periodicAvatarCacheClear)
 }
 
 export {getExtendedStatus}
