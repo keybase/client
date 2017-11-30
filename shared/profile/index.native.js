@@ -248,7 +248,7 @@ class Profile extends Component<Props, State> {
         style={{
           ...globalStyles.flexBoxRow,
           flex: 1,
-          height: 108,
+          minHeight: userEntryMinHeight,
           justifyContent: 'space-around',
           backgroundColor: globalColors.white,
         }}
@@ -446,10 +446,12 @@ const userEntryContainerStyle = {
   width: 105,
 }
 
+const userEntryMinHeight = 108
+
 const userEntryInnerContainerStyle = {
   ...globalStyles.flexBoxColumn,
   alignItems: 'center',
-  height: 108,
+  minHeight: userEntryMinHeight,
   justifyContent: 'flex-start',
 }
 
