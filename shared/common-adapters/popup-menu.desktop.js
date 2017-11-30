@@ -21,7 +21,7 @@ class PopupMenu extends Component<Props> {
     return (
       <EscapeHandler onESC={this.props.onHidden}>
         <Box
-          style={stylesMenuCatcher}
+          style={{...stylesMenuCatcher, ...this.props.styleCatcher}}
           onClick={e => {
             this.props.onHidden()
             e.stopPropagation()
