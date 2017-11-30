@@ -1081,3 +1081,79 @@ func CreateTLF(ctx context.Context, g *libkb.GlobalContext, arg keybase1.CreateT
 		return t.associateTLFID(ctx, arg.TlfID)
 	})
 }
+
+func CanUserPerform(ctx context.Context, g *libkb.GlobalContext, teamname string, op keybase1.TeamOperation) (ret bool, err error) {
+	me, err := libkb.LoadMe(libkb.NewLoadUserArgWithContext(ctx, g))
+	if err != nil {
+		return false, err
+	}
+	meUV := me.ToUserVersion()
+
+	team, err := Load(ctx, g, keybase1.LoadTeamArg{
+		Name:    teamname,
+		StaleOK: true,
+		Public:  false, // assume private team
+	})
+	if err != nil {
+		return false, err
+	}
+
+	isImplicitAdmin := func() (bool, error) {
+		if team.ID.IsRootTeam() {
+			return false, nil
+		}
+		uvs, err := g.GetTeamLoader().ImplicitAdmins(ctx, team.ID)
+		if err != nil {
+			return false, err
+		}
+		for _, uv := range uvs {
+			if uv == meUV {
+				return true, nil
+			}
+		}
+		return false, nil
+	}
+
+	isRoleOrAbove := func(role keybase1.TeamRole) (bool, error) {
+		r, err := team.MemberRole(ctx, meUV)
+		if err != nil {
+			return false, err
+		}
+		return r.IsOrAbove(role), nil
+	}
+
+	isAdmin := func() (bool, error) {
+		return isRoleOrAbove(keybase1.TeamRole_ADMIN)
+	}
+
+	isWriter := func() (bool, error) {
+		return isRoleOrAbove(keybase1.TeamRole_WRITER)
+	}
+
+	isAdminOrImplicitAdmin := func() (bool, error) {
+		ret, err := isAdmin()
+		if err != nil {
+			return false, err
+		}
+		if ret {
+			return true, nil
+		}
+		return isImplicitAdmin()
+	}
+
+	switch op {
+	case keybase1.TeamOperation_MANAGE_MEMBERS,
+		keybase1.TeamOperation_MANAGE_SUBTEAMS,
+		keybase1.TeamOperation_SET_TEAM_SHOWCASE,
+		keybase1.TeamOperation_CHANGE_OPEN_TEAM:
+		ret, err = isAdminOrImplicitAdmin()
+	case keybase1.TeamOperation_CREATE_CHANNEL:
+		ret, err = isWriter()
+	case keybase1.TeamOperation_DELETE_CHANNEL:
+		ret, err = isAdmin() // no implicit admins
+	default:
+		err = fmt.Errorf("Unknown op: %v", op)
+	}
+
+	return ret, err
+}

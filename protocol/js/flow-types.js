@@ -1463,6 +1463,10 @@ export const simpleFSPathType = {
   kbfs: 1,
 }
 
+export const teamsCanUserPerformRpcChannelMap = (configKeys: Array<string>, request: TeamsCanUserPerformRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.canUserPerform', request)
+
+export const teamsCanUserPerformRpcPromise = (request: TeamsCanUserPerformRpcParam): Promise<TeamsCanUserPerformResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.canUserPerform', request, (error: RPCError, result: TeamsCanUserPerformResult) => error ? reject(error) : resolve(result)))
+
 export const teamsGetTeamAndMemberShowcaseRpcChannelMap = (configKeys: Array<string>, request: TeamsGetTeamAndMemberShowcaseRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.getTeamAndMemberShowcase', request)
 
 export const teamsGetTeamAndMemberShowcaseRpcPromise = (request: TeamsGetTeamAndMemberShowcaseRpcParam): Promise<TeamsGetTeamAndMemberShowcaseResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.getTeamAndMemberShowcase', request, (error: RPCError, result: TeamsGetTeamAndMemberShowcaseResult) => error ? reject(error) : resolve(result)))
@@ -1587,6 +1591,15 @@ export const teamsTeamListRpcPromise = (request: TeamsTeamListRpcParam): Promise
 export const teamsTeamListSubteamsRecursiveRpcChannelMap = (configKeys: Array<string>, request: TeamsTeamListSubteamsRecursiveRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamListSubteamsRecursive', request)
 
 export const teamsTeamListSubteamsRecursiveRpcPromise = (request: TeamsTeamListSubteamsRecursiveRpcParam): Promise<TeamsTeamListSubteamsRecursiveResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamListSubteamsRecursive', request, (error: RPCError, result: TeamsTeamListSubteamsRecursiveResult) => error ? reject(error) : resolve(result)))
+
+export const teamsTeamOperation = {
+  manageMembers: 0,
+  manageSubteams: 1,
+  createChannel: 2,
+  deleteChannel: 3,
+  setTeamShowcase: 4,
+  changeOpenTeam: 5,
+}
 
 export const teamsTeamReAddMemberAfterResetRpcChannelMap = (configKeys: Array<string>, request: TeamsTeamReAddMemberAfterResetRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamReAddMemberAfterReset', request)
 
@@ -3468,6 +3481,14 @@ export type TeamNamePart = String
 
 export type TeamOpenReqMsg = {|teamID: TeamID,tars?: ?Array<TeamAccessRequest>,|}
 
+export type TeamOperation =0 // MANAGE_MEMBERS_0
+ | 1 // MANAGE_SUBTEAMS_1
+ | 2 // CREATE_CHANNEL_2
+ | 3 // DELETE_CHANNEL_3
+ | 4 // SET_TEAM_SHOWCASE_4
+ | 5 // CHANGE_OPEN_TEAM_5
+
+
 export type TeamPlusApplicationKeys = {|id: TeamID,name: String,implicit: Boolean,public: Boolean,application: TeamApplication,writers?: ?Array<UserVersion>,onlyReaders?: ?Array<UserVersion>,applicationKeys?: ?Array<TeamApplicationKey>,|}
 
 export type TeamRefreshers = {|needKeyGeneration: PerTeamKeyGeneration,wantMembers?: ?Array<UserVersion>,wantMembersRole: TeamRole,|}
@@ -3503,6 +3524,8 @@ export type TeamType =0 // NONE_0
  | 1 // LEGACY_1
  | 2 // MODERN_2
 
+
+export type TeamsCanUserPerformRpcParam = {|name: String,op: TeamOperation,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
 export type TeamsGetTeamAndMemberShowcaseRpcParam = {|name: String,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
@@ -3873,6 +3896,7 @@ type SimpleFSSimpleFSReadResult = FileContent
 type SimpleFSSimpleFSStatResult = Dirent
 type StreamUiReadResult = Bytes
 type StreamUiWriteResult = Int
+type TeamsCanUserPerformResult = Bool
 type TeamsGetTeamAndMemberShowcaseResult = TeamAndMemberShowcase
 type TeamsGetTeamRootIDResult = TeamID
 type TeamsGetTeamShowcaseResult = TeamShowcase

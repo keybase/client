@@ -1753,6 +1753,44 @@ func (o LookupImplicitTeamRes) DeepCopy() LookupImplicitTeamRes {
 	}
 }
 
+type TeamOperation int
+
+const (
+	TeamOperation_MANAGE_MEMBERS    TeamOperation = 0
+	TeamOperation_MANAGE_SUBTEAMS   TeamOperation = 1
+	TeamOperation_CREATE_CHANNEL    TeamOperation = 2
+	TeamOperation_DELETE_CHANNEL    TeamOperation = 3
+	TeamOperation_SET_TEAM_SHOWCASE TeamOperation = 4
+	TeamOperation_CHANGE_OPEN_TEAM  TeamOperation = 5
+)
+
+func (o TeamOperation) DeepCopy() TeamOperation { return o }
+
+var TeamOperationMap = map[string]TeamOperation{
+	"MANAGE_MEMBERS":    0,
+	"MANAGE_SUBTEAMS":   1,
+	"CREATE_CHANNEL":    2,
+	"DELETE_CHANNEL":    3,
+	"SET_TEAM_SHOWCASE": 4,
+	"CHANGE_OPEN_TEAM":  5,
+}
+
+var TeamOperationRevMap = map[TeamOperation]string{
+	0: "MANAGE_MEMBERS",
+	1: "MANAGE_SUBTEAMS",
+	2: "CREATE_CHANNEL",
+	3: "DELETE_CHANNEL",
+	4: "SET_TEAM_SHOWCASE",
+	5: "CHANGE_OPEN_TEAM",
+}
+
+func (e TeamOperation) String() string {
+	if v, ok := TeamOperationRevMap[e]; ok {
+		return v
+	}
+	return ""
+}
+
 type TeamCreateArg struct {
 	SessionID            int    `codec:"sessionID" json:"sessionID"`
 	Name                 string `codec:"name" json:"name"`
@@ -1934,6 +1972,11 @@ type SetTeamMemberShowcaseArg struct {
 	IsShowcased bool   `codec:"isShowcased" json:"isShowcased"`
 }
 
+type CanUserPerformArg struct {
+	Name string        `codec:"name" json:"name"`
+	Op   TeamOperation `codec:"op" json:"op"`
+}
+
 type TeamsInterface interface {
 	TeamCreate(context.Context, TeamCreateArg) (TeamCreateResult, error)
 	TeamCreateWithSettings(context.Context, TeamCreateWithSettingsArg) (TeamCreateResult, error)
@@ -1969,6 +2012,7 @@ type TeamsInterface interface {
 	GetTeamAndMemberShowcase(context.Context, string) (TeamAndMemberShowcase, error)
 	SetTeamShowcase(context.Context, SetTeamShowcaseArg) error
 	SetTeamMemberShowcase(context.Context, SetTeamMemberShowcaseArg) error
+	CanUserPerform(context.Context, CanUserPerformArg) (bool, error)
 }
 
 func TeamsProtocol(i TeamsInterface) rpc.Protocol {
@@ -2471,6 +2515,22 @@ func TeamsProtocol(i TeamsInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"canUserPerform": {
+				MakeArg: func() interface{} {
+					ret := make([]CanUserPerformArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]CanUserPerformArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]CanUserPerformArg)(nil), args)
+						return
+					}
+					ret, err = i.CanUserPerform(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 		},
 	}
 }
@@ -2638,5 +2698,10 @@ func (c TeamsClient) SetTeamShowcase(ctx context.Context, __arg SetTeamShowcaseA
 
 func (c TeamsClient) SetTeamMemberShowcase(ctx context.Context, __arg SetTeamMemberShowcaseArg) (err error) {
 	err = c.Cli.Call(ctx, "keybase.1.teams.setTeamMemberShowcase", []interface{}{__arg}, nil)
+	return
+}
+
+func (c TeamsClient) CanUserPerform(ctx context.Context, __arg CanUserPerformArg) (res bool, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.teams.canUserPerform", []interface{}{__arg}, &res)
 	return
 }

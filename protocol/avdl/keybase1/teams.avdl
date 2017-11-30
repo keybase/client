@@ -669,4 +669,14 @@ protocol teams {
   TeamAndMemberShowcase getTeamAndMemberShowcase(string name);
   void setTeamShowcase(string name, union { null, boolean } isShowcased, union { null, string } description, union { null, boolean } anyMemberShowcase);
   void setTeamMemberShowcase(string name, boolean isShowcased);
+
+  enum TeamOperation {
+    MANAGE_MEMBERS_0,
+    MANAGE_SUBTEAMS_1,
+    CREATE_CHANNEL_2,
+    DELETE_CHANNEL_3,
+    SET_TEAM_SHOWCASE_4,
+    CHANGE_OPEN_TEAM_5
+  }
+  bool canUserPerform(string name, TeamOperation op);
 }
