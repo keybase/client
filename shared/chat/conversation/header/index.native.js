@@ -37,7 +37,7 @@ const ChannelHeader = ({
     >
       <Box style={{...globalStyles.flexBoxColumn}}>
         <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', alignSelf: 'center'}}>
-          <Avatar teamname={teamName} size={16} />
+          <Avatar teamname={teamName} size={smallTeam ? 16 : 12} />
           {!smallTeam &&
             <Text type="BodySmallSemibold" style={{color: globalColors.black_40}}>&nbsp;{teamName}</Text>}
           {smallTeam && <Text type="BodyBig" style={{color: globalColors.black_75}}>&nbsp;{teamName}</Text>}
