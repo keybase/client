@@ -558,7 +558,6 @@ func (p *blockPrefetcher) run(testSyncCh <-chan struct{}) {
 				// If the prefetch is to be tracked, then the 0
 				// `subtreeBlockCount` will be incremented by `numBlocks`
 				// below, once we've ensured that `numBlocks` is not 0.
-				// TODO (KBFS-2588): potential bug here?
 				pre = p.newPrefetch(0, true, req)
 				p.prefetches[req.ptr.ID] = pre
 				ctx = pre.ctx
