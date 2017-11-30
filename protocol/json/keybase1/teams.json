@@ -660,10 +660,7 @@
           "name": "openTeamJoinAs"
         },
         {
-          "type": [
-            null,
-            "TLFID"
-          ],
+          "type": "TLFID",
           "name": "tlfID"
         }
       ]
@@ -1515,10 +1512,7 @@
           "name": "displayName"
         },
         {
-          "type": [
-            null,
-            "TLFID"
-          ],
+          "type": "TLFID",
           "name": "tlfID"
         }
       ]

@@ -2545,7 +2545,7 @@ export type LoginUnlockWithPassphraseRpcParam = {|passphrase: String,incomingCal
 
 export type LogsendPrepareLogsendRpcParam = ?{|incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
-export type LookupImplicitTeamRes = {|teamID: TeamID,name: TeamName,displayName: ImplicitTeamDisplayName,tlfID?: ?TLFID,|}
+export type LookupImplicitTeamRes = {|teamID: TeamID,name: TeamName,displayName: ImplicitTeamDisplayName,tlfID: TLFID,|}
 
 export type MDBlock = {|version: Int,timestamp: Time,block: Bytes,|}
 
@@ -3491,7 +3491,7 @@ export type TeamSettings = {|open: Boolean,joinAs: TeamRole,|}
 
 export type TeamShowcase = {|isShowcased: Boolean,description?: ?String,setByUID?: ?UID,anyMemberShowcase: Boolean,|}
 
-export type TeamSigChainState = {|reader: UserVersion,id: TeamID,implicit: Boolean,public: Boolean,rootAncestor: TeamName,nameDepth: Int,nameLog?: ?Array<TeamNameLogPoint>,lastSeqno: Seqno,lastLinkID: LinkID,parentID?: ?TeamID,userLog: {[key: string]: ?Array<UserLogPoint>},subteamLog: {[key: string]: ?Array<SubteamLogPoint>},perTeamKeys: {[key: string]: PerTeamKey},linkIDs: {[key: string]: LinkID},stubbedLinks: {[key: string]: Boolean},activeInvites: {[key: string]: TeamInvite},open: Boolean,openTeamJoinAs: TeamRole,tlfID?: ?TLFID,|}
+export type TeamSigChainState = {|reader: UserVersion,id: TeamID,implicit: Boolean,public: Boolean,rootAncestor: TeamName,nameDepth: Int,nameLog?: ?Array<TeamNameLogPoint>,lastSeqno: Seqno,lastLinkID: LinkID,parentID?: ?TeamID,userLog: {[key: string]: ?Array<UserLogPoint>},subteamLog: {[key: string]: ?Array<SubteamLogPoint>},perTeamKeys: {[key: string]: PerTeamKey},linkIDs: {[key: string]: LinkID},stubbedLinks: {[key: string]: Boolean},activeInvites: {[key: string]: TeamInvite},open: Boolean,openTeamJoinAs: TeamRole,tlfID: TLFID,|}
 
 export type TeamTreeEntry = {|name: TeamName,admin: Boolean,|}
 

@@ -68,7 +68,7 @@ func (t *Team) OpenTeamJoinAs() keybase1.TeamRole {
 	return t.chain().inner.OpenTeamJoinAs
 }
 
-func (t *Team) KBFSTLFID() *keybase1.TLFID {
+func (t *Team) KBFSTLFID() keybase1.TLFID {
 	return t.chain().inner.TlfID
 }
 

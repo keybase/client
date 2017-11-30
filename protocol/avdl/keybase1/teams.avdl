@@ -258,8 +258,8 @@ protocol teams {
 
     // If there is a TLF associated, it shows up here. The last writer wins
     // here, and we are not concerned about historical associations that have been
-    // overwritten (for now).
-    union{null, TLFID} tlfID;
+    // overwritten (for now). An empty TLFID is given by an empty string.
+    TLFID tlfID;
   }
 
   // The team got this name at this point in time.
@@ -645,7 +645,7 @@ protocol teams {
     TeamID teamID;
     TeamName name;
     ImplicitTeamDisplayName displayName;
-    union{ null, TLFID } tlfID;
+    TLFID tlfID;
   }
 
   LookupImplicitTeamRes lookupImplicitTeam(string name, boolean public);

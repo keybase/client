@@ -341,7 +341,7 @@ func (t *TeamSigChainState) getLastSubteamPoint(id keybase1.TeamID) *keybase1.Su
 
 func (t *TeamSigChainState) informKBFSSettings(s SCTeamKBFS) {
 	if s.TLF != nil {
-		t.inner.TlfID = &s.TLF.ID
+		t.inner.TlfID = s.TLF.ID
 	}
 }
 

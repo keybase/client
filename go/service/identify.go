@@ -195,7 +195,7 @@ func (h *IdentifyHandler) resolveIdentifyImplicitTeamHelper(ctx context.Context,
 
 	var teamID keybase1.TeamID
 	var impName keybase1.ImplicitTeamDisplayName
-	var tlfID *keybase1.TLFID
+	var tlfID keybase1.TLFID
 	// Lookup*ImplicitTeam is responsible for making sure the returned team has the members from lookupName.
 	// Duplicates are also handled by Lookup*. So we might end up doing extra identifies of duplicates out here.
 	// (Duplicates e.g. "me,chris,chris", "me,chris#chris", "me,chris@rooter#chris")
@@ -247,9 +247,7 @@ func (h *IdentifyHandler) resolveIdentifyImplicitTeamHelper(ctx context.Context,
 		TeamID:      teamID,
 		Writers:     writers,
 		TrackBreaks: nil,
-	}
-	if tlfID != nil {
-		res.FolderID = *tlfID
+		FolderID:    tlfID,
 	}
 
 	if arg.DoIdentifies {

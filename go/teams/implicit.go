@@ -36,7 +36,7 @@ func (i *implicitTeam) GetAppStatus() *libkb.AppStatus {
 // Lookup an implicit team by name like "alice,bob+bob@twitter (conflicted 2017-03-04 #1)"
 // Resolves social assertions.
 func LookupImplicitTeam(ctx context.Context, g *libkb.GlobalContext, displayName string, public bool) (
-	teamID keybase1.TeamID, teamName keybase1.TeamName, impTeamName keybase1.ImplicitTeamDisplayName, tlfID *keybase1.TLFID, err error) {
+	teamID keybase1.TeamID, teamName keybase1.TeamName, impTeamName keybase1.ImplicitTeamDisplayName, tlfID keybase1.TLFID, err error) {
 
 	teamID, teamName, impTeamName, tlfID, _, err = LookupImplicitTeamAndConflicts(ctx, g, displayName, public)
 	return teamID, teamName, impTeamName, tlfID, err
@@ -45,7 +45,7 @@ func LookupImplicitTeam(ctx context.Context, g *libkb.GlobalContext, displayName
 // Lookup an implicit team by name like "alice,bob+bob@twitter (conflicted 2017-03-04 #1)"
 // Resolves social assertions.
 func LookupImplicitTeamAndConflicts(ctx context.Context, g *libkb.GlobalContext, displayName string, public bool) (
-	teamID keybase1.TeamID, teamName keybase1.TeamName, impTeamName keybase1.ImplicitTeamDisplayName, tlfID *keybase1.TLFID, conflicts []keybase1.ImplicitTeamConflictInfo, err error) {
+	teamID keybase1.TeamID, teamName keybase1.TeamName, impTeamName keybase1.ImplicitTeamDisplayName, tlfID keybase1.TLFID, conflicts []keybase1.ImplicitTeamConflictInfo, err error) {
 	impName, err := ResolveImplicitTeamDisplayName(ctx, g, displayName, public)
 	if err != nil {
 		return teamID, teamName, impTeamName, tlfID, conflicts, err
@@ -58,7 +58,7 @@ func LookupImplicitTeamAndConflicts(ctx context.Context, g *libkb.GlobalContext,
 // preResolveDisplayName is used for logging and errors
 func lookupImplicitTeamAndConflicts(ctx context.Context, g *libkb.GlobalContext,
 	preResolveDisplayName string, impTeamNameInput keybase1.ImplicitTeamDisplayName) (
-	teamID keybase1.TeamID, teamName keybase1.TeamName, impTeamName keybase1.ImplicitTeamDisplayName, tlfID *keybase1.TLFID, conflicts []keybase1.ImplicitTeamConflictInfo, err error) {
+	teamID keybase1.TeamID, teamName keybase1.TeamName, impTeamName keybase1.ImplicitTeamDisplayName, tlfID keybase1.TLFID, conflicts []keybase1.ImplicitTeamConflictInfo, err error) {
 
 	defer g.CTraceTimed(ctx, fmt.Sprintf("lookupImplicitTeamAndConflicts(%v)", preResolveDisplayName), func() error { return err })()
 
@@ -148,7 +148,7 @@ func lookupImplicitTeamAndConflicts(ctx context.Context, g *libkb.GlobalContext,
 
 // Lookup or create an implicit team by name like "alice,bob+bob@twitter (conflicted 2017-03-04 #1)"
 // Resolves social assertions.
-func LookupOrCreateImplicitTeam(ctx context.Context, g *libkb.GlobalContext, displayName string, public bool) (res keybase1.TeamID, teamName keybase1.TeamName, impTeamName keybase1.ImplicitTeamDisplayName, tlfID *keybase1.TLFID, err error) {
+func LookupOrCreateImplicitTeam(ctx context.Context, g *libkb.GlobalContext, displayName string, public bool) (res keybase1.TeamID, teamName keybase1.TeamName, impTeamName keybase1.ImplicitTeamDisplayName, tlfID keybase1.TLFID, err error) {
 	defer g.CTraceTimed(ctx, fmt.Sprintf("LookupOrCreateImplicitTeam(%v)", displayName),
 		func() error { return err })()
 	lookupName, err := ResolveImplicitTeamDisplayName(ctx, g, displayName, public)

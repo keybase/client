@@ -1036,6 +1036,14 @@ func (t TLFID) String() string {
 	return string(t)
 }
 
+func (t TLFID) IsNil() bool {
+	return len(t) == 0
+}
+
+func (t TLFID) Exists() bool {
+	return !t.IsNil()
+}
+
 func (t TLFID) ToBytes() []byte {
 	b, err := hex.DecodeString(string(t))
 	if err != nil {

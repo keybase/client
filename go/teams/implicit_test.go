@@ -48,24 +48,23 @@ func TestLookupImplicitTeams(t *testing.T) {
 		require.Error(t, err)
 		require.IsType(t, TeamDoesNotExistError{}, err)
 
-		createdTeamID, _, impTeamName, tlfidp1, err := LookupOrCreateImplicitTeam(context.TODO(), tc.G, displayName,
+		createdTeamID, _, impTeamName, tlfid0, err := LookupOrCreateImplicitTeam(context.TODO(), tc.G, displayName,
 			public)
 		require.NoError(t, err)
 		require.Equal(t, public, impTeamName.IsPublic)
-		require.Nil(t, tlfidp1)
+		require.True(t, tlfid0.IsNil())
 
-		tlfid := newImplicitTLFID(public)
-		err = CreateTLF(context.TODO(), tc.G, keybase1.CreateTLFArg{TeamID: createdTeamID, TlfID: tlfid})
+		tlfid1 := newImplicitTLFID(public)
+		err = CreateTLF(context.TODO(), tc.G, keybase1.CreateTLFArg{TeamID: createdTeamID, TlfID: tlfid1})
 		require.NoError(t, err)
 
 		// second time, LookupOrCreate should Lookup the team just created.
-		createdTeamID2, _, impTeamName2, tlfidp2, err := LookupOrCreateImplicitTeam(context.TODO(), tc.G, displayName,
+		createdTeamID2, _, impTeamName2, tlfid2, err := LookupOrCreateImplicitTeam(context.TODO(), tc.G, displayName,
 			public)
 		require.NoError(t, err)
 		require.Equal(t, createdTeamID, createdTeamID2)
 		require.Equal(t, impTeamName, impTeamName2, "public: %v", public)
-		require.NotNil(t, tlfidp2)
-		require.Equal(t, tlfid, *tlfidp2, "the right TLFID came back")
+		require.Equal(t, tlfid1, tlfid2, "the right TLFID came back")
 
 		lookupTeamID, _, impTeamName, _, err := LookupImplicitTeam(context.TODO(), tc.G, displayName, public)
 		require.NoError(t, err)
