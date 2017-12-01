@@ -18,7 +18,7 @@ export const resetSignup = 'signup:resetSignup'
 export const restartSignup = 'signup:restartSignup'
 export const setDeviceNameError = 'signup:setDeviceNameError'
 export const showPaperKey = 'signup:showPaperKey'
-export const signup = 'signup:signup'
+export const signupError = 'signup:signupError'
 export const startRequestInvite = 'signup:startRequestInvite'
 export const submitDeviceName = 'signup:submitDeviceName'
 export const waiting = 'signup:waiting'
@@ -37,8 +37,7 @@ export const createResetSignup = () => ({error: false, payload: undefined, type:
 export const createRestartSignup = () => ({error: false, payload: undefined, type: restartSignup})
 export const createSetDeviceNameError = (payload: {|+deviceNameError: string|}) => ({error: false, payload, type: setDeviceNameError})
 export const createShowPaperKey = (payload: {|+paperkey: HiddenString|}) => ({error: false, payload, type: showPaperKey})
-export const createSignup = () => ({error: false, payload: undefined, type: signup})
-export const createSignupError = (payload: {|+signupError: HiddenString|}) => ({error: true, payload, type: signup})
+export const createSignupError = (payload: {|+signupError: HiddenString|}) => ({error: false, payload, type: signupError})
 export const createStartRequestInvite = () => ({error: false, payload: undefined, type: startRequestInvite})
 export const createSubmitDeviceName = (payload: {|+deviceName: string|}) => ({error: false, payload, type: submitDeviceName})
 export const createSubmitDeviceNameError = (payload: {|+deviceNameError: string|}) => ({error: true, payload, type: submitDeviceName})
@@ -54,7 +53,7 @@ export type ResetSignupPayload = More.ReturnType<typeof createResetSignup>
 export type RestartSignupPayload = More.ReturnType<typeof createRestartSignup>
 export type SetDeviceNameErrorPayload = More.ReturnType<typeof createSetDeviceNameError>
 export type ShowPaperKeyPayload = More.ReturnType<typeof createShowPaperKey>
-export type SignupPayload = More.ReturnType<typeof createSignup>
+export type SignupErrorPayload = More.ReturnType<typeof createSignupError>
 export type StartRequestInvitePayload = More.ReturnType<typeof createStartRequestInvite>
 export type SubmitDeviceNamePayload = More.ReturnType<typeof createSubmitDeviceName>
 export type WaitingPayload = More.ReturnType<typeof createWaiting>
@@ -75,7 +74,6 @@ export type Actions =
   | More.ReturnType<typeof createRestartSignup>
   | More.ReturnType<typeof createSetDeviceNameError>
   | More.ReturnType<typeof createShowPaperKey>
-  | More.ReturnType<typeof createSignup>
   | More.ReturnType<typeof createSignupError>
   | More.ReturnType<typeof createStartRequestInvite>
   | More.ReturnType<typeof createSubmitDeviceName>

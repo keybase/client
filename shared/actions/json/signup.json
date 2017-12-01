@@ -44,10 +44,8 @@
     "showPaperKey": {
       "paperkey": "HiddenString"
     },
-    "signup": {
-      "canError": {
-        "signupError": "HiddenString"
-      }
+    "signupError": {
+       "signupError": "HiddenString"
     },
     "waiting": {
       "waiting": "boolean"

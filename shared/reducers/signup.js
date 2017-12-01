@@ -135,17 +135,12 @@ export default function(state: Types.State = Constants.initialState, action: Sig
         }
       }
 
-    case SignupGen.signup:
-      if (action.error) {
-        return {
-          ...state,
-          phase: 'signupError',
-          signupError: action.payload.signupError,
-        }
-      } else {
-        return state
+    case SignupGen.signupError:
+      return {
+        ...state,
+        phase: 'signupError',
+        signupError: action.payload.signupError,
       }
-
     case SignupGen.restartSignup:
       return {
         ...state,
