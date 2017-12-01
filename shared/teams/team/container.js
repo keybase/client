@@ -32,6 +32,7 @@ type StateProps = {
   selectedTab: string,
   waitingForSavePublicity: boolean,
   you: ?string,
+  yourRole: ?Types.TeamRoleType,
 }
 
 const mapStateToProps = (state: TypedState, {routeProps, routeState}): StateProps => {
@@ -70,6 +71,7 @@ const mapStateToProps = (state: TypedState, {routeProps, routeState}): StateProp
     selectedTab: routeState.get('selectedTab') || 'members',
     waitingForSavePublicity: anyWaiting(state, `setPublicity:${teamname}`, `getDetails:${teamname}`),
     you: state.config.username,
+    yourRole: Constants.getRole(state, teamname),
   }
 }
 
@@ -137,14 +139,6 @@ const mapDispatchToProps = (
     dispatch(Creators.setPublicity(teamname, settings)),
 })
 
-const isExplicitAdmin = (memberInfo: I.Set<Types.MemberInfo>, user: string): boolean => {
-  const info = memberInfo.find(member => member.username === user)
-  if (!info) {
-    return false
-  }
-  return info.type === 'owner' || info.type === 'admin'
-}
-
 const getOrderedMemberArray = (
   memberInfo: I.Set<Types.MemberInfo>,
   you: ?string,
@@ -178,9 +172,9 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
   let youImplicitAdmin = false
   let youAreMember = false
   if (you) {
-    youExplicitAdmin = isExplicitAdmin(stateProps._memberInfo, you)
+    youExplicitAdmin = Constants.isOwner(stateProps.yourRole) || Constants.isAdmin(stateProps.yourRole)
     youImplicitAdmin = stateProps._implicitAdminUsernames.has(you)
-    youAreMember = stateProps._memberInfo.some(member => member.username === you)
+    youAreMember = stateProps.yourRole && stateProps.yourRole !== 'none'
   }
   const youAdmin = youExplicitAdmin || youImplicitAdmin
 
