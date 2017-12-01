@@ -48,9 +48,6 @@ __INLINE_RULE__<TextInline, >
 TextBlock
  = children:(TextInline / InlineDelimiter)+ { return {type: 'text-block', children: flatten(children)} }
 
-InlineStart
- = InlineCode / Italic / Bold / Link / Mention / Strike / (!CodeBlock (Text / Emoji / NativeEmoji / ((EscapedChar / SpecialChar) InlineStart?)))
-
 InlineCont
  = !CodeBlock (Text / Emoji / NativeEmoji / EscapedChar / SpecialChar)
 
@@ -89,17 +86,25 @@ Text
 QuoteBlock
  = QuoteBlockMarker WhiteSpace* children:(CodeBlock / TextBlock)* LineTerminatorSequence? { return {type: 'quote-block', children: flatten(children)} }
 
+__INLINE_RULE__<BoldInline, !BoldMarker>
+
 Bold
- = BoldMarker !WhiteSpace children:__INLINE_MACRO__<!BoldMarker> BoldMarker !(BoldMarker / NormalChar) { return {type: 'bold', children: flatten(children)} }
+ = BoldMarker !WhiteSpace children:BoldInline BoldMarker !(BoldMarker / NormalChar) { return {type: 'bold', children: flatten(children)} }
+
+__INLINE_RULE__<ItalicInline, !ItalicMarker>
 
 Italic
- = ItalicMarker !WhiteSpace children:__INLINE_MACRO__<!ItalicMarker> ItalicMarker !(ItalicMarker / NormalChar) { return {type: 'italic', children: flatten(children)} }
+ = ItalicMarker !WhiteSpace children:ItalicInline ItalicMarker !(ItalicMarker / NormalChar) { return {type: 'italic', children: flatten(children)} }
+
+__INLINE_RULE__<StrikeInline, !StrikeMarker>
 
 Strike
- = StrikeMarker !WhiteSpace children:__INLINE_MACRO__<!StrikeMarker> StrikeMarker !(StrikeMarker / NormalChar) { return {type: 'strike', children: flatten(children)} }
+ = StrikeMarker !WhiteSpace children:StrikeInline StrikeMarker !(StrikeMarker / NormalChar) { return {type: 'strike', children: flatten(children)} }
+
+__INLINE_RULE__<MentionInline, !ClosingMentionMarker>
 
 Mention
- = MentionMarker !WhiteSpace children:__INLINE_MACRO__<!ClosingMentionMarker> MentionMarker service:ValidMentionService { return {type: 'mention', children: flatten(children), service: service.toLowerCase()} }
+ = MentionMarker !WhiteSpace children:MentionInline MentionMarker service:ValidMentionService { return {type: 'mention', children: flatten(children), service: service.toLowerCase()} }
 
 CodeBlock
  = Ticks3 LineTerminatorSequence? children:(!Ticks3 .)+ Ticks3 { return {type: 'code-block', children: flatten(children)} }

@@ -56,13 +56,13 @@ function buildParser() {
     .replace(
       /__INLINE_RULE__<([^>,]*)\s*,\s*([^>,]*)>/g,
       `$1Start
- = $2 InlineCode / Italic / Bold / Link / Mention / Strike / (!CodeBlock (Text / Emoji / NativeEmoji / ((EscapedChar / SpecialChar) $2 $1Start?)))
+ = $2 (InlineCode / Italic / Bold / Link / Mention / Strike / (!CodeBlock (Text / Emoji / NativeEmoji / ((EscapedChar / SpecialChar) $2 $1Start?))))
 
 $1Cont
- = $2 !CodeBlock (Text / Emoji / NativeEmoji / EscapedChar / SpecialChar)
+ = $2 InlineCont
 
 $1
- = ($1Start ((InlineDelimiter+ $1Start) / ($1Cont))*)
+ = ($1Start ((InlineDelimiter+ $1Start) / $1Cont)*)
 `
     )
     .replace(
