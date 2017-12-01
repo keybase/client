@@ -198,6 +198,7 @@ protocol teams {
     UserVersion inviter;
     string inviterUsername;
     string teamName;
+    boolean userActive;
   }
 
   // State of a parsed team sigchain.
@@ -502,6 +503,9 @@ protocol teams {
     boolean needsPUK;
     @jsonkey("member_count")
     int memberCount;
+    @jsonkey("member_eldest_seqno")
+    Seqno eldestSeqno;
+    boolean active;
   }
 
   record AnnotatedTeamList {
