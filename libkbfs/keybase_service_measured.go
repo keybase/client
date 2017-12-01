@@ -23,6 +23,7 @@ type KeybaseServiceMeasured struct {
 	loadUserPlusKeysTimer            metrics.Timer
 	loadTeamPlusKeysTimer            metrics.Timer
 	loadUnverifiedKeysTimer          metrics.Timer
+	createTeamTLFTimer               metrics.Timer
 	getCurrentMerkleRootTimer        metrics.Timer
 	currentSessionTimer              metrics.Timer
 	favoriteAddTimer                 metrics.Timer
@@ -44,6 +45,7 @@ func NewKeybaseServiceMeasured(delegate KeybaseService, r metrics.Registry) Keyb
 	loadUserPlusKeysTimer := metrics.GetOrRegisterTimer("KeybaseService.LoadUserPlusKeys", r)
 	loadTeamPlusKeysTimer := metrics.GetOrRegisterTimer("KeybaseService.LoadTeamPlusKeys", r)
 	loadUnverifiedKeysTimer := metrics.GetOrRegisterTimer("KeybaseService.LoadUnverifiedKeys", r)
+	createTeamTLFTimer := metrics.GetOrRegisterTimer("KeybaseService.CreateTeamTLF", r)
 	getCurrentMerkleRootTimer := metrics.GetOrRegisterTimer("KeybaseService.GetCurrentMerkleRoot", r)
 	currentSessionTimer := metrics.GetOrRegisterTimer("KeybaseService.CurrentSession", r)
 	favoriteAddTimer := metrics.GetOrRegisterTimer("KeybaseService.FavoriteAdd", r)
@@ -60,6 +62,7 @@ func NewKeybaseServiceMeasured(delegate KeybaseService, r metrics.Registry) Keyb
 		loadUserPlusKeysTimer:            loadUserPlusKeysTimer,
 		loadTeamPlusKeysTimer:            loadTeamPlusKeysTimer,
 		loadUnverifiedKeysTimer:          loadUnverifiedKeysTimer,
+		createTeamTLFTimer:               createTeamTLFTimer,
 		getCurrentMerkleRootTimer:        getCurrentMerkleRootTimer,
 		currentSessionTimer:              currentSessionTimer,
 		favoriteAddTimer:                 favoriteAddTimer,
@@ -118,6 +121,16 @@ func (k KeybaseServiceMeasured) LoadTeamPlusKeys(ctx context.Context,
 			ctx, tid, desiredKeyGen, desiredUser, desiredRole)
 	})
 	return teamInfo, err
+}
+
+// CreateTeamTLF implements the KBPKI interface for
+// KeybaseServiceMeasured.
+func (k KeybaseServiceMeasured) CreateTeamTLF(
+	ctx context.Context, teamID keybase1.TeamID, tlfID tlf.ID) (err error) {
+	k.createTeamTLFTimer.Time(func() {
+		err = k.delegate.CreateTeamTLF(ctx, teamID, tlfID)
+	})
+	return err
 }
 
 // GetCurrentMerkleRoot implements the KeybaseService interface for

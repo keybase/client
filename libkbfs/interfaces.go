@@ -419,6 +419,12 @@ type KeybaseService interface {
 		ctx context.Context, assertions, suffix string, tlfType tlf.Type,
 		doIdentifies bool, reason string) (ImplicitTeamInfo, error)
 
+	// CreateTeamTLF associates the given TLF ID with the team ID in
+	// the team's sigchain.  If the team already has a TLF ID
+	// associated with it, this overwrites it.
+	CreateTeamTLF(
+		ctx context.Context, teamID keybase1.TeamID, tlfID tlf.ID) error
+
 	// LoadUserPlusKeys returns a UserInfo struct for a
 	// user with the specified UID.
 	// If you have the UID for a user and don't require Identify to
@@ -629,6 +635,12 @@ type KBPKI interface {
 	// FavoriteList returns the list of all favorite folders for
 	// the logged in user.
 	FavoriteList(ctx context.Context) ([]keybase1.Folder, error)
+
+	// CreateTeamTLF associates the given TLF ID with the team ID in
+	// the team's sigchain.  If the team already has a TLF ID
+	// associated with it, this overwrites it.
+	CreateTeamTLF(
+		ctx context.Context, teamID keybase1.TeamID, tlfID tlf.ID) error
 
 	// Notify sends a filesystem notification.
 	Notify(ctx context.Context, notification *keybase1.FSNotification) error

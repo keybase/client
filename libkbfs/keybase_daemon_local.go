@@ -446,6 +446,16 @@ func (k *KeybaseDaemonLocal) LoadTeamPlusKeys(
 	return infoCopy, nil
 }
 
+// CreateTeamTLF implements the KBPKI interface for
+// KeybaseDaemonLocal.
+func (k *KeybaseDaemonLocal) CreateTeamTLF(
+	ctx context.Context, teamID keybase1.TeamID, tlfID tlf.ID) (err error) {
+	// For now, only support implicit teams; regular teams will get a
+	// NoSuchTeamError.  TODO: when the keybase1 RPCs allow it, store
+	// the TLF ID along with the regular team info.
+	return k.addImplicitTeamTlfID(teamID, tlfID)
+}
+
 // LoadUnverifiedKeys implements KeybaseDaemon for KeybaseDaemonLocal.
 func (k *KeybaseDaemonLocal) LoadUnverifiedKeys(ctx context.Context, uid keybase1.UID) (
 	[]keybase1.PublicKey, error) {

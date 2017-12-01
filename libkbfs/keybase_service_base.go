@@ -656,6 +656,16 @@ func (k *KeybaseServiceBase) LoadTeamPlusKeys(
 	return info, nil
 }
 
+// CreateTeamTLF implements the KBPKI interface for
+// KeybaseServiceBase.
+func (k *KeybaseServiceBase) CreateTeamTLF(
+	ctx context.Context, teamID keybase1.TeamID, tlfID tlf.ID) (err error) {
+	return k.kbfsClient.CreateTLF(ctx, keybase1.CreateTLFArg{
+		TeamID: teamID,
+		TlfID:  keybase1.TLFID(tlfID.String()),
+	})
+}
+
 func (k *KeybaseServiceBase) getCurrentMerkleRoot(ctx context.Context) (
 	keybase1.MerkleRootV2, error) {
 	const merkleFreshnessMs = int(time.Second * 60 / time.Millisecond)

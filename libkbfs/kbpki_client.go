@@ -306,6 +306,12 @@ func (k *KBPKIClient) GetTeamRootID(ctx context.Context, tid keybase1.TeamID) (
 	return teamInfo.RootID, nil
 }
 
+// CreateTeamTLF implements the KBPKI interface for KBPKIClient.
+func (k *KBPKIClient) CreateTeamTLF(
+	ctx context.Context, teamID keybase1.TeamID, tlfID tlf.ID) error {
+	return k.serviceOwner.KeybaseService().CreateTeamTLF(ctx, teamID, tlfID)
+}
+
 // FavoriteAdd implements the KBPKI interface for KBPKIClient.
 func (k *KBPKIClient) FavoriteAdd(ctx context.Context, folder keybase1.Folder) error {
 	return k.serviceOwner.KeybaseService().FavoriteAdd(ctx, folder)

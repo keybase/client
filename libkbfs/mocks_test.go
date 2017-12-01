@@ -1427,6 +1427,18 @@ func (mr *MockKeybaseServiceMockRecorder) ResolveIdentifyImplicitTeam(ctx, asser
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ResolveIdentifyImplicitTeam", reflect.TypeOf((*MockKeybaseService)(nil).ResolveIdentifyImplicitTeam), ctx, assertions, suffix, tlfType, doIdentifies, reason)
 }
 
+// CreateTeamTLF mocks base method
+func (m *MockKeybaseService) CreateTeamTLF(ctx context.Context, teamID keybase1.TeamID, tlfID tlf.ID) error {
+	ret := m.ctrl.Call(m, "CreateTeamTLF", ctx, teamID, tlfID)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// CreateTeamTLF indicates an expected call of CreateTeamTLF
+func (mr *MockKeybaseServiceMockRecorder) CreateTeamTLF(ctx, teamID, tlfID interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateTeamTLF", reflect.TypeOf((*MockKeybaseService)(nil).CreateTeamTLF), ctx, teamID, tlfID)
+}
+
 // LoadUserPlusKeys mocks base method
 func (m *MockKeybaseService) LoadUserPlusKeys(ctx context.Context, uid keybase1.UID, pollForKID keybase1.KID) (UserInfo, error) {
 	ret := m.ctrl.Call(m, "LoadUserPlusKeys", ctx, uid, pollForKID)
@@ -2179,6 +2191,18 @@ func (m *MockKBPKI) FavoriteList(ctx context.Context) ([]keybase1.Folder, error)
 // FavoriteList indicates an expected call of FavoriteList
 func (mr *MockKBPKIMockRecorder) FavoriteList(ctx interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FavoriteList", reflect.TypeOf((*MockKBPKI)(nil).FavoriteList), ctx)
+}
+
+// CreateTeamTLF mocks base method
+func (m *MockKBPKI) CreateTeamTLF(ctx context.Context, teamID keybase1.TeamID, tlfID tlf.ID) error {
+	ret := m.ctrl.Call(m, "CreateTeamTLF", ctx, teamID, tlfID)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// CreateTeamTLF indicates an expected call of CreateTeamTLF
+func (mr *MockKBPKIMockRecorder) CreateTeamTLF(ctx, teamID, tlfID interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateTeamTLF", reflect.TypeOf((*MockKBPKI)(nil).CreateTeamTLF), ctx, teamID, tlfID)
 }
 
 // Notify mocks base method
