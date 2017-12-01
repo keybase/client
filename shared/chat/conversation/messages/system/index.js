@@ -1,6 +1,7 @@
 // @flow
 import * as React from 'react'
-import {Box, Text, Usernames, Icon} from '../../../../common-adapters'
+import {Box, Text, ConnectedUsernames, Icon} from '../../../../common-adapters'
+import {EmojiIfExists} from '../../../../common-adapters/markdown.shared'
 import UserNotice from '../../notices/user-notice'
 import {globalStyles, globalColors, globalMargins} from '../../../../styles'
 import {formatTimeForMessages} from '../../../../util/timestamp'
@@ -8,59 +9,114 @@ import {isMobile} from '../../../../constants/platform'
 
 import type {SystemMessage} from '../../../../constants/types/chat'
 
+/**
+ * TODO: Fix typing hhere
+ * replace systemType with defined constants
+ * maybe type each system message props separately
+ * make a connected username component w/ auto coloring
+ */
+
 type Props = {
   channelname: string,
   message: SystemMessage,
-  onManageChannels: () => void,
-  onUsernameClicked: (username: string) => void,
+  onManageChannels: (teamname: string) => void,
   teamname: string,
-  following: boolean,
   you: string,
 }
 
-const AddedToTeamNotice = ({
-  channelname,
-  message,
-  onManageChannels,
-  you,
-  following,
-  onUsernameClicked,
-}: Props) => (
-  <UserNotice style={{marginTop: globalMargins.small}} username={message.author} bgColor={globalColors.blue4}>
-    <Text type="BodySmallSemibold" backgroundMode="Announcements" style={{color: globalColors.black_40}}>
-      {formatTimeForMessages(message.timestamp)}
-    </Text>
-    <Box style={globalStyles.flexBoxColumn}>
-      {message.message.stringValue().split('\n').map((line, index) => (
-        <Text
-          key={index}
-          type="BodySmallSemibold"
-          backgroundMode="Announcements"
-          style={{color: globalColors.black_40}}
-        >
-          {line}
-        </Text>
-      ))}
-    </Box>
-  </UserNotice>
-)
+const AddedToTeamNotice = ({channelname, message, onManageChannels, you}: Props) => {
+  let adder = ''
+  let addee = ''
+  let team = ''
+  if (message.meta.systemType === 0 && message.meta.addedtoteam) {
+    adder = message.meta.addedtoteam.adder
+    addee = message.meta.addedtoteam.addee
+    team = message.meta.addedtoteam.team
+  }
 
-const ComplexTeamNotice = ({
-  channelname,
-  message,
-  onManageChannels,
-  you,
-  following,
-  onUsernameClicked,
-}: Props) => {
-  const teamname = message.meta.systemType === 2 && message.meta.complexteam && message.meta.complexteam.team
-  const authorComponent = message.author === you
+  const adderComponent = adder === you
     ? 'You'
-    : <Usernames
+    : <ConnectedUsernames
+        clickable={true}
         inline={true}
         type="BodySmallSemibold"
         colorFollowing={true}
-        users={[{following, username: message.author}]}
+        usernames={[adder]}
+      />
+
+  const addeeComponent = addee === you
+    ? 'you'
+    : <ConnectedUsernames
+        clickable={true}
+        inline={true}
+        type="BodySmallSemibold"
+        colorFollowing={true}
+        usernames={[addee]}
+      />
+
+  let manageComponent = null
+  if (adder === you) {
+    // TODO manage members
+  } else if (addee === you) {
+    manageComponent = (
+      <Text
+        onClick={() => onManageChannels(team)}
+        type="BodySmallSemiboldInlineLink"
+        style={{color: globalColors.blue}}
+      >
+        Manage your channel subscriptions
+      </Text>
+    )
+  } else {
+    // TODO go to team details
+  }
+
+  return (
+    <UserNotice
+      style={{marginTop: globalMargins.small}}
+      username={you !== addee ? addee : undefined}
+      teamname={you === addee ? team : undefined}
+      bgColor={globalColors.blue4}
+    >
+      <Text type="BodySmallSemibold" backgroundMode="Announcements" style={{color: globalColors.black_40}}>
+        {formatTimeForMessages(message.timestamp)}
+      </Text>
+      <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center'}}>
+        <Text type="BodySmallSemibold" backgroundMode="Announcements" style={{color: globalColors.black_40}}>
+          {adderComponent}
+          {' '}
+          added
+          {' '}
+          {addeeComponent}
+          {' '}
+          to
+          {' '}
+          <Text type="BodySmallSemibold" style={{color: globalColors.black_60}}>{team}</Text>
+          .
+          {' '}
+          {you === addee &&
+            <Text type="BodySmallSemibold">
+              Say hi!
+              {' '}
+              <EmojiIfExists style={{display: 'inline-block'}} emojiName=":wave:" size={14} />
+            </Text>}
+        </Text>
+        {manageComponent}
+      </Box>
+    </UserNotice>
+  )
+}
+
+const ComplexTeamNotice = ({channelname, message, onManageChannels, you}: Props) => {
+  const teamname = message.meta.systemType === 2 && message.meta.complexteam && message.meta.complexteam.team
+  const authorComponent = message.author === you
+    ? 'You'
+    : <ConnectedUsernames
+        clickable={true}
+        inline={true}
+        type="BodySmallSemibold"
+        colorFollowing={true}
+        usernames={[message.author]}
       />
   return (
     <UserNotice
@@ -111,7 +167,7 @@ const ComplexTeamNotice = ({
               Everyone can now create and join channels.
               {' '}
               <Text
-                onClick={onManageChannels}
+                onClick={() => onManageChannels(teamname || '')}
                 type="BodySmallSemiboldInlineLink"
                 style={{color: globalColors.blue}}
               >
@@ -125,14 +181,7 @@ const ComplexTeamNotice = ({
   )
 }
 
-const InviteAddedToTeamNotice = ({
-  channelname,
-  message,
-  onManageChannels,
-  you,
-  following,
-  onUsernameClicked,
-}: Props) => (
+const InviteAddedToTeamNotice = ({channelname, message, onManageChannels, you}: Props) => (
   <UserNotice style={{marginTop: globalMargins.small}} username={message.author} bgColor={globalColors.blue4}>
     <Text type="BodySmallSemibold" backgroundMode="Announcements" style={{color: globalColors.black_40}}>
       {formatTimeForMessages(message.timestamp)}

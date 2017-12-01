@@ -4,8 +4,11 @@ import Text from './text'
 import shallowEqual from 'shallowequal'
 import {globalStyles, globalColors} from '../styles'
 import {isMobile} from '../constants/platform'
-
-import type {Props, PlaintextProps} from './usernames'
+import {connect} from 'react-redux'
+import {type TypedState} from '../constants/reducer'
+import {createShowUserProfile} from '../actions/profile-gen'
+import {getProfile} from '../actions/tracker'
+import type {Props, PlaintextProps, ConnectedProps} from './usernames'
 
 function usernameText({
   type,
@@ -151,4 +154,29 @@ class PlaintextUsernames extends Component<PlaintextProps> {
   }
 }
 
-export {usernameText, Usernames, PlaintextUsernames}
+// Connected username component
+// instead of username objects supply array of username strings & this will fill in the rest
+const mapStateToProps = (state: TypedState, ownProps: ConnectedProps) => {
+  const following = state.config.following
+  const you = state.config.username
+  const userData = ownProps.usernames.map(username => ({
+    following: !!following[username],
+    username,
+    you: you === username,
+  }))
+  return {
+    users: userData,
+  }
+}
+
+const mapDispatchToProps = (dispatch: Dispatch, ownProps: ConnectedProps) => ({
+  onUsernameClicked: ownProps.clickable
+    ? (username: string) => {
+        isMobile ? dispatch(createShowUserProfile({username})) : dispatch(getProfile(username, true, true))
+      }
+    : undefined,
+})
+
+const ConnectedUsernames = connect(mapStateToProps, mapDispatchToProps)(Usernames)
+
+export {usernameText, Usernames, PlaintextUsernames, ConnectedUsernames}

@@ -30,6 +30,13 @@ export type Props = {
   underline?: boolean,
 }
 
+export type ConnectedProps = {
+  ...Props,
+  usernames: Array<string>,
+  clickable?: boolean,
+  users?: Array<UserListItem>,
+}
+
 export type PlaintextProps = {
   type: TextType,
   users: UserList,
@@ -42,3 +49,4 @@ declare export function usernameText(props: Props): void
 
 declare export class Usernames extends React.Component<Props> {}
 declare export class PlaintextUsernames extends React.Component<PlaintextProps> {}
+declare export class ConnectedUsernames extends React.Component<ConnectedProps> {}
