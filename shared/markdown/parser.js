@@ -696,6 +696,60 @@ function peg$parse(input, options) {
     return s0;
   }
 
+  function peg$parseInlineCont() {
+    var s0, s1, s2;
+
+    s0 = peg$currPos;
+    s1 = peg$currPos;
+    peg$silentFails++;
+    s2 = peg$parseCodeBlock();
+    peg$silentFails--;
+    if (s2 === peg$FAILED) {
+      s1 = void 0;
+    } else {
+      peg$currPos = s1;
+      s1 = peg$FAILED;
+    }
+    if (s1 !== peg$FAILED) {
+      s2 = peg$parseText();
+      if (s2 === peg$FAILED) {
+        s2 = peg$parseEmoji();
+        if (s2 === peg$FAILED) {
+          s2 = peg$parseNativeEmoji();
+          if (s2 === peg$FAILED) {
+            s2 = peg$parseEscapedChar();
+            if (s2 === peg$FAILED) {
+              s2 = peg$parseSpecialChar();
+            }
+          }
+        }
+      }
+      if (s2 !== peg$FAILED) {
+        s1 = [s1, s2];
+        s0 = s1;
+      } else {
+        peg$currPos = s0;
+        s0 = peg$FAILED;
+      }
+    } else {
+      peg$currPos = s0;
+      s0 = peg$FAILED;
+    }
+
+    return s0;
+  }
+
+  function peg$parseInlineDelimiter() {
+    var s0;
+
+    s0 = peg$parseWhiteSpace();
+    if (s0 === peg$FAILED) {
+      s0 = peg$parsePunctuationMarker();
+    }
+
+    return s0;
+  }
+
   function peg$parseTextInlineStart() {
     var s0, s1, s2, s3, s4;
 
@@ -878,60 +932,6 @@ function peg$parse(input, options) {
       s1 = peg$c3(s1);
     }
     s0 = s1;
-
-    return s0;
-  }
-
-  function peg$parseInlineCont() {
-    var s0, s1, s2;
-
-    s0 = peg$currPos;
-    s1 = peg$currPos;
-    peg$silentFails++;
-    s2 = peg$parseCodeBlock();
-    peg$silentFails--;
-    if (s2 === peg$FAILED) {
-      s1 = void 0;
-    } else {
-      peg$currPos = s1;
-      s1 = peg$FAILED;
-    }
-    if (s1 !== peg$FAILED) {
-      s2 = peg$parseText();
-      if (s2 === peg$FAILED) {
-        s2 = peg$parseEmoji();
-        if (s2 === peg$FAILED) {
-          s2 = peg$parseNativeEmoji();
-          if (s2 === peg$FAILED) {
-            s2 = peg$parseEscapedChar();
-            if (s2 === peg$FAILED) {
-              s2 = peg$parseSpecialChar();
-            }
-          }
-        }
-      }
-      if (s2 !== peg$FAILED) {
-        s1 = [s1, s2];
-        s0 = s1;
-      } else {
-        peg$currPos = s0;
-        s0 = peg$FAILED;
-      }
-    } else {
-      peg$currPos = s0;
-      s0 = peg$FAILED;
-    }
-
-    return s0;
-  }
-
-  function peg$parseInlineDelimiter() {
-    var s0;
-
-    s0 = peg$parseWhiteSpace();
-    if (s0 === peg$FAILED) {
-      s0 = peg$parsePunctuationMarker();
-    }
 
     return s0;
   }

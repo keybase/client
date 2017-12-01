@@ -43,16 +43,19 @@ BlankLine
 NonEndBlankLine
  = BlankLine !(BlankLine* WhiteSpace* !.)  // excludes groups of blank lines at the end of the input
 
-__INLINE_RULE__<TextInline, >
-
-TextBlock
- = children:(TextInline / InlineDelimiter)+ { return {type: 'text-block', children: flatten(children)} }
+// InlineCont and InlineDelimiter are used by instantiations of
+// __INLINE_RULE__.
 
 InlineCont
  = !CodeBlock (Text / Emoji / NativeEmoji / EscapedChar / SpecialChar)
 
 InlineDelimiter
  = WhiteSpace / PunctuationMarker
+
+__INLINE_RULE__<TextInline, >
+
+TextBlock
+ = children:(TextInline / InlineDelimiter)+ { return {type: 'text-block', children: flatten(children)} }
 
 Ticks1 = "`"
 Ticks3 = "```"
