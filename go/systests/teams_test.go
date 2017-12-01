@@ -872,3 +872,72 @@ func TestTeamLeaveThenList(t *testing.T) {
 	teams = alice.teamList("", false, false)
 	require.Len(t, teams.Teams, 0)
 }
+
+func TestTeamCanUserPerform(t *testing.T) {
+	tt := newTeamTester(t)
+	defer tt.cleanup()
+
+	ann := tt.addUser("ann")
+	bob := tt.addUser("bob")
+	pam := tt.addUser("pam")
+	edd := tt.addUser("edd")
+
+	team := ann.createTeam()
+	ann.addTeamMember(team, bob.username, keybase1.TeamRole_ADMIN)
+	ann.addTeamMember(team, pam.username, keybase1.TeamRole_WRITER)
+	ann.addTeamMember(team, edd.username, keybase1.TeamRole_READER)
+
+	parentName, err := keybase1.TeamNameFromString(team)
+	require.NoError(t, err)
+
+	_, err = teams.CreateSubteam(context.TODO(), ann.tc.G, "mysubteam", parentName)
+	require.NoError(t, err)
+	subteam := team + ".mysubteam"
+
+	callCanPerform := func(user *userPlusDevice, teamname string, op keybase1.TeamOperation) bool {
+		ret, err := teams.CanUserPerform(context.TODO(), user.tc.G, teamname, op)
+		t.Logf("teams.CanUserPerform(%s,%s,%v)", user.username, teamname, op)
+		require.NoError(t, err)
+		return ret
+	}
+
+	for _, op := range keybase1.TeamOperationMap {
+		// All ops should be fine for owners and admins
+		require.True(t, callCanPerform(ann, team, op))
+		require.True(t, callCanPerform(bob, team, op))
+
+		// Some ops are fine for writers
+		ret := callCanPerform(pam, team, op)
+		switch op {
+		case keybase1.TeamOperation_CREATE_CHANNEL,
+			keybase1.TeamOperation_SET_MEMBER_SHOWCASE:
+			require.True(t, ret)
+		default:
+			require.False(t, ret)
+		}
+
+		// Only SetMemberShowcase (by default) is available for readers
+		ret = callCanPerform(edd, team, op)
+		switch op {
+		case keybase1.TeamOperation_SET_MEMBER_SHOWCASE:
+			require.True(t, ret)
+		default:
+			require.False(t, ret)
+		}
+	}
+
+	for _, op := range keybase1.TeamOperationMap {
+		// Some ops are fine for implicit admins
+		switch op {
+		case keybase1.TeamOperation_MANAGE_MEMBERS,
+			keybase1.TeamOperation_MANAGE_SUBTEAMS,
+			keybase1.TeamOperation_SET_TEAM_SHOWCASE,
+			keybase1.TeamOperation_CHANGE_OPEN_TEAM:
+			require.True(t, callCanPerform(ann, subteam, op))
+			require.True(t, callCanPerform(bob, subteam, op))
+		default:
+			require.False(t, callCanPerform(ann, subteam, op))
+			require.False(t, callCanPerform(bob, subteam, op))
+		}
+	}
+}
