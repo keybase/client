@@ -43,8 +43,11 @@ BlankLine
 NonEndBlankLine
  = BlankLine !(BlankLine* WhiteSpace* !.)  // excludes groups of blank lines at the end of the input
 
-// InlineCont and InlineDelimiter are used by instantiations of
-// __INLINE_RULE__.
+// InlineStartCommon, InlineCont and InlineDelimiter are used by
+// instantiations of __INLINE_RULE__.
+
+InlineStartCommon
+  = InlineCode / Italic / Bold / Link / Mention / Strike / Text / Emoji / NativeEmoji
 
 InlineCont
  = !CodeBlock (Text / Emoji / NativeEmoji / EscapedChar / SpecialChar)
