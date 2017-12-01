@@ -47,7 +47,7 @@ TextBlock
  = children:(__INLINE_MACRO__<> / InlineDelimiter)+ { return {type: 'text-block', children: flatten(children)} }
 
 InlineStart
- = InlineCode / Italic / Bold / Link / Mention / Strike / InlineCont
+ = InlineCode / Italic / Bold / Link / Mention / Strike / (!CodeBlock (Text / Emoji / (EscapedChar InlineStart*) / NativeEmoji / (SpecialChar InlineStart*)))
 
 InlineCont
  = !CodeBlock (Text / Emoji / EscapedChar / NativeEmoji / SpecialChar)
