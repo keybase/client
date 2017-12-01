@@ -135,17 +135,6 @@ export default function(state: Types.State = Constants.initialState, action: Sig
         }
       }
 
-    case SignupGen.showSuccess:
-      if (action.error) {
-        console.warn('Should not get an error from showing success')
-        return state
-      } else {
-        return {
-          ...state,
-          phase: 'success',
-        }
-      }
-
     case SignupGen.signup:
       if (action.error) {
         return {

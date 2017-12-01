@@ -22,7 +22,7 @@ const commands = {
     env: {BABEL_ENV: 'yarn', NO_SERVER: 'true', TREESHAKE: 'true'},
     help: 'Make a treeshake version of the build',
     nodeEnv: 'development',
-    shell: `${webpackCmd} --progress --profile --colors ${webpackLog ? `--json > ${webpackLog}` : ''} && echo 'Search desktop/dist/*.bundle.js for unused harmoney comments'`,
+    shell: `${webpackCmd} --progress --profile --colors ${webpackLog ? `--json > ${webpackLog}` : ''} && echo '\n\nSearch desktop/dist/*.bundle.js for unused harmoney comments. Note it doesn't understand mobile so use flow and lint to double check everything!'`,
   },
   'hot-server': {
     code: hotServer,

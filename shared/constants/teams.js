@@ -66,9 +66,6 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
 const userIsInTeamHelper = (state: TypedState, username: string, service: Service, teamname: string) =>
   service === 'Keybase' ? userIsInTeam(state, teamname, username) : false
 
-// TODO this is broken. channelnames are not unique
-const getConversationIDKeyFromChannelName = (state: TypedState, channelname: string) => null
-
 const getConvIdsFromTeamName = (state: TypedState, teamname: string): I.Set<string> =>
   state.entities.teams.teamNameToConvIDs.get(teamname, I.Set())
 
@@ -80,9 +77,6 @@ const getChannelNameFromConvID = (state: TypedState, conversationIDKey: ChatType
 
 const getTopicFromConvID = (state: TypedState, conversationIDKey: ChatTypes.ConversationIDKey) =>
   state.entities.teams.convIDToChannelInfo.getIn([conversationIDKey, 'description'], null)
-
-const getParticipants = (state: TypedState, conversationIDKey: ChatTypes.ConversationIDKey) =>
-  state.entities.getIn(['teams', 'convIDToChannelInfo', conversationIDKey, 'participants'], I.Set())
 
 const getMembersFromConvID = (state: TypedState, conversationIDKey: ChatTypes.ConversationIDKey) => {
   const teamname = getTeamNameFromConvID(state, conversationIDKey)
@@ -107,8 +101,6 @@ const isOwner = (type: Types.TeamRoleType) => type === 'owner'
 
 export {
   getConvIdsFromTeamName,
-  getConversationIDKeyFromChannelName,
-  getParticipants,
   userIsInTeamHelper,
   getTeamNameFromConvID,
   getChannelNameFromConvID,
