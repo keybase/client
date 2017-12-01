@@ -64,6 +64,12 @@ describe('Markdown parser', () => {
     check('thisis(*bold*) and(_italic_) and,~striked~! (*woot*) another.*test*.case')
   })
 
+  it('parses punctuation then formatting', () => {
+    check('(*bold*')
+    check('(_italic_')
+    check('(@marco@keybase')
+  })
+
   it('parses invalid emoji fragments correctly', () => {
     check('one::\n::two\n:three?::\n::four:\n::')
   })

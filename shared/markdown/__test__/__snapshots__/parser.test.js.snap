@@ -593,6 +593,67 @@ Object {
 }
 `;
 
+exports[`Markdown parser parses punctuation then formatting 1`] = `
+Object {
+  "children": Array [
+    Object {
+      "children": Array [
+        "(",
+        Object {
+          "children": Array [
+            "bold",
+          ],
+          "type": "bold",
+        },
+      ],
+      "type": "text-block",
+    },
+  ],
+  "type": "markup",
+}
+`;
+
+exports[`Markdown parser parses punctuation then formatting 2`] = `
+Object {
+  "children": Array [
+    Object {
+      "children": Array [
+        "(",
+        Object {
+          "children": Array [
+            "italic",
+          ],
+          "type": "italic",
+        },
+      ],
+      "type": "text-block",
+    },
+  ],
+  "type": "markup",
+}
+`;
+
+exports[`Markdown parser parses punctuation then formatting 3`] = `
+Object {
+  "children": Array [
+    Object {
+      "children": Array [
+        "(",
+        Object {
+          "children": Array [
+            "marco",
+          ],
+          "service": "keybase",
+          "type": "mention",
+        },
+      ],
+      "type": "text-block",
+    },
+  ],
+  "type": "markup",
+}
+`;
+
 exports[`Markdown parser parses quote blocks correctly 1`] = `
 Object {
   "children": Array [
