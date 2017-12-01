@@ -10,7 +10,6 @@ import mapValues from 'lodash/mapValues'
 import {RPCTimeoutError} from '../util/errors'
 
 // If a sub saga returns bail early, then the rpc will bail early
-const BailEarly = {type: '@@engineRPCCall:bailEarly'}
 const BailedEarly = {type: '@@engineRPCCall:bailedEarly', payload: undefined}
 
 const rpcResult = (args: any) => ({type: '@@engineRPCCall:respondResult', payload: args})
@@ -211,13 +210,4 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   rpcWaitingStates: I.Map(),
 })
 
-export {
-  EngineRpcCall,
-  isFinished,
-  BailEarly,
-  BailedEarly,
-  rpcResult,
-  rpcCancel,
-  rpcError,
-  passthroughResponseSaga,
-}
+export {EngineRpcCall, isFinished, BailedEarly, rpcResult, rpcCancel, rpcError, passthroughResponseSaga}

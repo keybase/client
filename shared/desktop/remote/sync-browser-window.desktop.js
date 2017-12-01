@@ -159,4 +159,4 @@ function BrowserWindowSync(ComposedComponent: any) {
 }
 
 export default BrowserWindowSync
-export {devScripts, sendLoad}
+export {sendLoad}

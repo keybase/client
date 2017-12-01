@@ -148,12 +148,4 @@ function folderFromPath(username: string, path: string): ?Folder {
   }
 }
 
-export {
-  canonicalizeTLF,
-  initialState,
-  folderFromFolderRPCWithMeta,
-  folderFromFolderRPC,
-  folderFromPath,
-  folderRPCFromPath,
-  pathFromFolder,
-}
+export {initialState, folderFromFolderRPCWithMeta, folderFromPath, folderRPCFromPath, pathFromFolder}
