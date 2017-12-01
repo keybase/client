@@ -20,11 +20,12 @@ type Props = {
   channelname: string,
   message: SystemMessage,
   onManageChannels: (teamname: string) => void,
+  onViewTeam: (teamname: string) => void,
   teamname: string,
   you: string,
 }
 
-const AddedToTeamNotice = ({channelname, message, onManageChannels, you}: Props) => {
+const AddedToTeamNotice = ({channelname, message, onManageChannels, onViewTeam, you}: Props) => {
   let adder = ''
   let addee = ''
   let team = ''
@@ -56,7 +57,15 @@ const AddedToTeamNotice = ({channelname, message, onManageChannels, you}: Props)
 
   let manageComponent = null
   if (adder === you) {
-    // TODO manage members
+    manageComponent = (
+      <Text
+        onClick={() => onViewTeam(team)}
+        type="BodySmallSemiboldInlineLink"
+        style={{color: globalColors.blue}}
+      >
+        Manage members
+      </Text>
+    )
   } else if (addee === you) {
     manageComponent = (
       <Text
@@ -68,7 +77,15 @@ const AddedToTeamNotice = ({channelname, message, onManageChannels, you}: Props)
       </Text>
     )
   } else {
-    // TODO go to team details
+    manageComponent = (
+      <Text
+        onClick={() => onViewTeam(team)}
+        type="BodySmallSemiboldInlineLink"
+        style={{color: globalColors.blue}}
+      >
+        See all members
+      </Text>
+    )
   }
 
   return (

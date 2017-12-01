@@ -5,7 +5,8 @@ import {AddedToTeamNotice, ComplexTeamNotice, InviteAddedToTeamNotice} from '.'
 import {compose, branch, renderComponent} from 'recompose'
 import createCachedSelector from 're-reselect'
 import {connect} from 'react-redux'
-import {navigateAppend} from '../../../../actions/route-tree'
+import {navigateAppend, navigateTo} from '../../../../actions/route-tree'
+import {teamsTab} from '../../../../constants/tabs'
 
 import type {TypedState} from '../../../../constants/reducer'
 import type {OwnProps} from './container'
@@ -24,6 +25,7 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
   onManageChannels: (teamname: string) => {
     dispatch(navigateAppend([{props: {teamname}, selected: 'manageChannels'}]))
   },
+  onViewTeam: (teamname: string) => dispatch(navigateTo([teamsTab, {props: {teamname}, selected: 'team'}])),
 })
 
 const mergeProps = (stateProps, dispatchProps) => {
