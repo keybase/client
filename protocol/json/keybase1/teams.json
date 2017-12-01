@@ -544,6 +544,10 @@
         {
           "type": "string",
           "name": "teamName"
+        },
+        {
+          "type": "boolean",
+          "name": "userActive"
         }
       ]
     },
@@ -1231,6 +1235,15 @@
           "type": "int",
           "name": "memberCount",
           "jsonkey": "member_count"
+        },
+        {
+          "type": "Seqno",
+          "name": "eldestSeqno",
+          "jsonkey": "member_eldest_seqno"
+        },
+        {
+          "type": "boolean",
+          "name": "active"
         }
       ]
     },

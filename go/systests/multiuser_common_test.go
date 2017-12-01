@@ -407,40 +407,28 @@ func (u *smuUser) lookupImplicitTeam(create bool, displayName string, public boo
 	return smuImplicitTeam{ID: res.TeamID}
 }
 
-func (u *smuUser) addWriter(team smuTeam, w *smuUser) {
+func (u *smuUser) addTeamMember(team smuTeam, member *smuUser, role keybase1.TeamRole) {
 	cli := u.getTeamsClient()
 	_, err := cli.TeamAddMember(context.TODO(), keybase1.TeamAddMemberArg{
 		Name:     team.name,
-		Username: w.username,
-		Role:     keybase1.TeamRole_WRITER,
+		Username: member.username,
+		Role:     role,
 	})
 	if err != nil {
 		u.ctx.t.Fatal(err)
 	}
+}
+
+func (u *smuUser) addWriter(team smuTeam, w *smuUser) {
+	u.addTeamMember(team, w, keybase1.TeamRole_WRITER)
 }
 
 func (u *smuUser) addAdmin(team smuTeam, w *smuUser) {
-	cli := u.getTeamsClient()
-	_, err := cli.TeamAddMember(context.TODO(), keybase1.TeamAddMemberArg{
-		Name:     team.name,
-		Username: w.username,
-		Role:     keybase1.TeamRole_ADMIN,
-	})
-	if err != nil {
-		u.ctx.t.Fatal(err)
-	}
+	u.addTeamMember(team, w, keybase1.TeamRole_ADMIN)
 }
 
 func (u *smuUser) addOwner(team smuTeam, w *smuUser) {
-	cli := u.getTeamsClient()
-	_, err := cli.TeamAddMember(context.TODO(), keybase1.TeamAddMemberArg{
-		Name:     team.name,
-		Username: w.username,
-		Role:     keybase1.TeamRole_OWNER,
-	})
-	if err != nil {
-		u.ctx.t.Fatal(err)
-	}
+	u.addTeamMember(team, w, keybase1.TeamRole_OWNER)
 }
 
 func (u *smuUser) reAddUserAfterReset(team smuImplicitTeam, w *smuUser) {

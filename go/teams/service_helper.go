@@ -90,7 +90,7 @@ func Details(ctx context.Context, g *libkb.GlobalContext, name string, forceRepo
 		details := keybase1.TeamMemberDetails{
 			Uv:       invite.Uv,
 			Username: string(invite.Name),
-			Active:   true,
+			Active:   invite.UserActive,
 			NeedsPUK: true,
 		}
 		switch invite.Role {

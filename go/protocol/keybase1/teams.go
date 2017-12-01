@@ -708,6 +708,7 @@ type AnnotatedTeamInvite struct {
 	Inviter         UserVersion    `codec:"inviter" json:"inviter"`
 	InviterUsername string         `codec:"inviterUsername" json:"inviterUsername"`
 	TeamName        string         `codec:"teamName" json:"teamName"`
+	UserActive      bool           `codec:"userActive" json:"userActive"`
 }
 
 func (o AnnotatedTeamInvite) DeepCopy() AnnotatedTeamInvite {
@@ -720,6 +721,7 @@ func (o AnnotatedTeamInvite) DeepCopy() AnnotatedTeamInvite {
 		Inviter:         o.Inviter.DeepCopy(),
 		InviterUsername: o.InviterUsername,
 		TeamName:        o.TeamName,
+		UserActive:      o.UserActive,
 	}
 }
 
@@ -1422,6 +1424,8 @@ type AnnotatedMemberInfo struct {
 	Implicit       *ImplicitRole `codec:"implicit,omitempty" json:"implicit,omitempty"`
 	NeedsPUK       bool          `codec:"needsPUK" json:"needsPUK"`
 	MemberCount    int           `codec:"memberCount" json:"member_count"`
+	EldestSeqno    Seqno         `codec:"eldestSeqno" json:"member_eldest_seqno"`
+	Active         bool          `codec:"active" json:"active"`
 }
 
 func (o AnnotatedMemberInfo) DeepCopy() AnnotatedMemberInfo {
@@ -1442,6 +1446,8 @@ func (o AnnotatedMemberInfo) DeepCopy() AnnotatedMemberInfo {
 		})(o.Implicit),
 		NeedsPUK:    o.NeedsPUK,
 		MemberCount: o.MemberCount,
+		EldestSeqno: o.EldestSeqno.DeepCopy(),
+		Active:      o.Active,
 	}
 }
 
