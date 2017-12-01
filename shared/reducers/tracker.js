@@ -128,7 +128,7 @@ export default function(
     }
     case TrackerGen.updateUsername: {
       const {username} = action.payload
-      return updateUserState(state, username, s => Constants.initialTrackerState(username))
+      return updateUserState(state, username, s => s || Constants.initialTrackerState(username))
     }
     case TrackerGen.identifyStarted:
       return updateUserState(state, action.payload.username, s => ({
