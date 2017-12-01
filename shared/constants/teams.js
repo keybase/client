@@ -105,9 +105,6 @@ const getYourRoleFromConvID = (state: TypedState, conversationIDKey: ChatTypes.C
 const isAdmin = (type: Types.TeamRoleType) => type === 'admin'
 const isOwner = (type: Types.TeamRoleType) => type === 'owner'
 
-export const getFollowingMap = (state: TypedState) => state.config.following
-export const getFollowerMap = (state: TypedState) => state.config.followers
-
 export {
   getConvIdsFromTeamName,
   getConversationIDKeyFromChannelName,
