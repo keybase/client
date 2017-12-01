@@ -38,31 +38,28 @@ function _registerRekeyListener() {
   })
 
   // we get this with sessionID == 0 if we call openDialog
-  engine().setIncomingActionCreator(
+  engine().setIncomingActionCreators(
     'keybase.1.rekeyUI.refresh',
     ({sessionID, problemSetDevices}, response) => {
       console.log('Asked for rekey')
       response && response.result()
-      return Saga.put(
+      return [
         UnlockFoldersGen.createNewRekeyPopup({
           devices: problemSetDevices.devices || [],
           problemSet: problemSetDevices.problemSet,
           sessionID,
-        })
-      )
+        }),
+      ]
     }
   )
 
   // else we get this also as part of delegateRekeyUI
-  engine().setIncomingActionCreator('keybase.1.rekeyUI.delegateRekeyUI', (_, response) => {
+  engine().setIncomingActionCreators('keybase.1.rekeyUI.delegateRekeyUI', (_, response, _dispatch) => {
     // Dangling, never gets closed
     const session = engine().createSession(
       {
         'keybase.1.rekeyUI.refresh': ({sessionID, problemSetDevices}, response) => {
-          // This is hacky cause we're in a callback and need to actually dispatch, but we're in saga land so
-          // temporarily (and this is likely the only place where this happens). I'm reaching into engine's dispatch
-          // $FlowIssue flow is correct in that we don't expose _dispatch
-          engine()._dispatch(
+          _dispatch(
             UnlockFoldersGen.createNewRekeyPopup({
               devices: problemSetDevices.devices || [],
               problemSet: problemSetDevices.problemSet,

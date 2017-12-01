@@ -9,7 +9,6 @@ import Profile from './index'
 import React, {PureComponent} from 'react'
 import {createSearchSuggestions} from '../actions/search-gen'
 import pausableConnect from '../util/pausable-connect'
-import {getProfile, updateTrackers, openProofUrl} from '../actions/tracker'
 import {isTesting} from '../local-debug'
 import {navigateAppend, navigateUp} from '../actions/route-tree'
 import {peopleTab} from '../constants/tabs'
@@ -63,7 +62,7 @@ const mapStateToProps = (state: TypedState, {routeProps, routeState, routePath}:
 }
 
 const mapDispatchToProps = (dispatch: Dispatch, {setRouteState}: OwnProps) => ({
-  getProfile: (username: string) => dispatch(getProfile(username)),
+  getProfile: (username: string) => dispatch(TrackerGen.createGetProfile({username})),
   onAcceptProofs: (username: string) => dispatch(TrackerGen.createFollow({localIgnore: false, username})),
   onBack: () => dispatch(navigateUp()),
   onChangeFriendshipsTab: currentFriendshipsTab => setRouteState({currentFriendshipsTab}),
@@ -96,8 +95,8 @@ const mapDispatchToProps = (dispatch: Dispatch, {setRouteState}: OwnProps) => ({
   },
   onUnfollow: (username: string) => dispatch(TrackerGen.createUnfollow({username})),
   onUserClick: (username: string) => dispatch(ProfileGen.createShowUserProfile({username})),
-  onViewProof: (proof: Types.Proof) => dispatch(openProofUrl(proof)),
-  updateTrackers: username => dispatch(updateTrackers(username)),
+  onViewProof: (proof: Types.Proof) => dispatch(TrackerGen.createOpenProofUrl({proof})),
+  updateTrackers: (username: string) => dispatch(TrackerGen.createUpdateTrackers({username})),
 })
 
 const mergeProps = (stateProps, dispatchProps) => {

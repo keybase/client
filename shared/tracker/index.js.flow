@@ -27,8 +27,6 @@ export type TrackerProps = {
   proofs: Array<Proof>,
   reason: string,
   serviceName?: string,
-  startTimer: () => void,
-  stopTimer: () => void,
   trackerState: SimpleProofState,
   userInfo: ?UserInfo,
   username: string,

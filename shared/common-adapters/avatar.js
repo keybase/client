@@ -41,10 +41,6 @@ export type Props = {
   teamname?: ?string,
 }
 
-type State = {
-  url: URLType,
-}
-
 const avatarPlaceHolders: {[key: string]: IconType} = {
   '112': 'icon-placeholder-avatar-112',
   '12': 'icon-placeholder-avatar-12',
@@ -162,6 +158,8 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => {
+  const isTeam = !!ownProps.teamname
+
   let style
   if (ownProps.style) {
     if (ownProps.onClick) {
@@ -182,11 +180,10 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
   }
 
   if (!url) {
-    url = iconTypeToImgSet(avatarPlaceHolders[String(ownProps.size)], ownProps.size)
+    const placeholder = isTeam ? teamPlaceHolders : avatarPlaceHolders
+    url = iconTypeToImgSet(placeholder[String(ownProps.size)], ownProps.size)
     isPlaceholder = true
   }
-
-  const isTeam = !!ownProps.teamname
 
   let _askForUserData = null
   if (stateProps._needAskForData) {

@@ -10,7 +10,7 @@ import Team, {CustomComponent} from '.'
 import {HeaderHoc} from '../../common-adapters'
 import {compose, lifecycle, renameProps, withHandlers, withPropsOnChange, withState} from 'recompose'
 import {connect, type TypedState} from '../../util/container'
-import {getProfile} from '../../actions/tracker'
+import {createGetProfile} from '../../actions/tracker-gen'
 import {isMobile} from '../../constants/platform'
 import {anyWaiting} from '../../constants/waiting'
 import {navigateAppend} from '../../actions/route-tree'
@@ -110,7 +110,9 @@ const mapDispatchToProps = (
   _onOpenFolder: (teamname: Types.Teamname) =>
     dispatch(KBFSGen.createOpen({path: `/keybase/team/${teamname}`})),
   onUsernameClick: (username: string) => {
-    isMobile ? dispatch(createShowUserProfile({username})) : dispatch(getProfile(username, true, true))
+    isMobile
+      ? dispatch(createShowUserProfile({username}))
+      : dispatch(createGetProfile({username, ignoreCache: true, forceDisplay: true}))
   },
   setSelectedTab: selectedTab => setRouteState({selectedTab}),
   onBack: () => dispatch(navigateUp()),

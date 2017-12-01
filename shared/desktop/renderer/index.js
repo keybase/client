@@ -44,7 +44,7 @@ function setupStore() {
 function setupApp(store) {
   setupSource()
   disableDragDrop()
-  const eng = makeEngine(store.dispatch)
+  const eng = makeEngine(store.dispatch, store.getState)
   loadPerf()
 
   if (__DEV__ && process.env.KEYBASE_LOCAL_DEBUG) {

@@ -1,5 +1,6 @@
 {
   "prelude": [
+    "import * as Types from '../constants/types/tracker'",
     "import * as FolderConstants from '../constants/folders'"
   ],
   "actions": {
@@ -13,6 +14,18 @@
         "username": "string",
         "error": "string"
       }
+    },
+    "setupTrackerHandlers": {},
+    "openProofUrl": {
+        "proof": "Types.Proof"
+    },
+    "getMyProfile": {
+      "ignoreCache?": "boolean"
+    },
+    "getProfile": {
+      "username": "string",
+      "ignoreCache?": "boolean",
+      "forceDisplay?": "boolean"
     },
     "identifyStarted": {
       "username": "string"
@@ -35,8 +48,6 @@
       "username": "string",
       "tlfs": "Array<FolderConstants.Folder>"
     },
-    "setStartTimer": {},
-    "stopTimer": {},
     "updateUsername": {
       "username": "string"
     },
@@ -108,10 +119,10 @@
       "username": "string"
     },
     "ignore": {
-      "username": "string",
+      "username": "string"
     },
     "refollow": {
-      "username": "string",
+      "username": "string"
     },
     "follow": {
       "username": "string",
@@ -139,6 +150,9 @@
     "setNeedTrackTokenDismiss": {
       "username": "string",
       "needTrackTokenDismiss": "boolean"
+    },
+    "updateTrackers": {
+      "username": "string"
     },
     "setUpdateTrackers": {
       "username": "string",

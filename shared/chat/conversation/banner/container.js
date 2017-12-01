@@ -10,7 +10,7 @@ import {
   type TypedState,
 } from '../../../util/container'
 import {createSelector} from 'reselect'
-import {getProfile} from '../../../actions/tracker'
+import {createGetProfile} from '../../../actions/tracker-gen'
 import {isMobile} from '../../../constants/platform'
 import {createShowUserProfile} from '../../../actions/profile-gen'
 import {Box} from '../../../common-adapters'
@@ -44,7 +44,9 @@ const mapStateToProps = (state: TypedState) => ({
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
   onClick: (username: string) => {
-    isMobile ? dispatch(createShowUserProfile({username})) : dispatch(getProfile(username, true, true))
+    isMobile
+      ? dispatch(createShowUserProfile({username}))
+      : dispatch(createGetProfile({username, ignoreCache: true, forceDisplay: true}))
   },
 })
 

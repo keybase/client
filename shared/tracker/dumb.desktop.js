@@ -143,8 +143,6 @@ const propsBase = {
   onRefollow: () => {},
   onUnfollow: () => {},
   onClose: () => {},
-  startTimer: () => {},
-  stopTimer: () => {},
   onIgnore: () => {},
   waiting: false,
   loggedIn: true,

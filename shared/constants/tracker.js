@@ -58,7 +58,6 @@ const initialState: Types.State = {
   cachedIdentifies: {},
   pendingIdentifies: {},
   serverStarted: false,
-  timerActive: 0,
   userTrackers: {},
   nonUserTrackers: {},
 }

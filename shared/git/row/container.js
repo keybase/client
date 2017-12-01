@@ -3,7 +3,7 @@ import React from 'react'
 import Row from '.'
 import * as Constants from '../../constants/git'
 import {connect, type TypedState} from '../../util/container'
-import {getProfile} from '../../actions/tracker'
+import {createGetProfile} from '../../actions/tracker-gen'
 import {copyToClipboard} from '../../util/clipboard'
 import {usernameSelector} from '../../constants/selectors'
 import openURL from '../../util/open-url'
@@ -20,7 +20,7 @@ const mapStateToProps = (state: TypedState, {id, expanded}) => {
 }
 
 const mapDispatchToProps = (dispatch: any) => ({
-  openUserTracker: (username: string) => dispatch(getProfile(username, false, true)),
+  openUserTracker: (username: string) => dispatch(createGetProfile({username, forceDisplay: true})),
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({

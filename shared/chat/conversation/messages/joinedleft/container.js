@@ -9,7 +9,7 @@ import {navigateTo, switchTo} from '../../../../actions/route-tree'
 import {teamsTab} from '../../../../constants/tabs'
 import {isMobile} from '../../../../constants/platform'
 import {createShowUserProfile} from '../../../../actions/profile-gen'
-import {getProfile} from '../../../../actions/tracker'
+import {createGetProfile} from '../../../../actions/tracker-gen'
 
 import type {TypedState} from '../../../../constants/reducer'
 import type {OwnProps} from './container'
@@ -57,7 +57,9 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
     dispatch(switchTo([teamsTab]))
   },
   onUsernameClicked: (username: string) => {
-    isMobile ? dispatch(createShowUserProfile({username})) : dispatch(getProfile(username, true, true))
+    isMobile
+      ? dispatch(createShowUserProfile({username}))
+      : dispatch(createGetProfile({username, ignoreCache: true, forceDisplay: true}))
   },
 })
 

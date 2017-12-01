@@ -9,7 +9,7 @@ import HiddenString from '../../util/hidden-string'
 import Conversation from './index'
 import NoConversation from './no-conversation'
 import Rekey from './rekey/container'
-import {getProfile} from '../../actions/tracker'
+import {createGetProfile} from '../../actions/tracker-gen'
 import {
   pausableConnect,
   withState,
@@ -126,7 +126,8 @@ const mapDispatchToProps = (
   },
   onOpenInfoPanelMobile: () => dispatch(navigateAppend(['infoPanel'])),
   onBack: () => dispatch(navigateUp()),
-  onShowTrackerInSearch: id => dispatch(getProfile(id, false, true)),
+  onShowTrackerInSearch: (username: string) =>
+    dispatch(createGetProfile({username, ignoreCache: false, forceDisplay: true})),
   _onStoreInputText: (selectedConversation: Types.ConversationIDKey, inputText: string) =>
     dispatch(Creators.setSelectedRouteState(selectedConversation, {inputText: new HiddenString(inputText)})),
 })

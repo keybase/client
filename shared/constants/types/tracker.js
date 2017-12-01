@@ -90,8 +90,6 @@ export type State = {
   cachedIdentifies: {[key: string]: number}, // good until unix timestamp
   pendingIdentifies: {[key: string]: boolean},
   serverStarted: boolean,
-  timerActive: number,
   userTrackers: {[key: string]: TrackerState},
   nonUserTrackers: {[key: string]: NonUserState},
-  // tracking: Array<FriendshipUserInfo>,
 }

@@ -50,16 +50,6 @@ export default function(
         trackers: {},
         nonUserTrackers: {},
       }
-    case TrackerGen.setStartTimer:
-      return {
-        ...state,
-        timerActive: state.timerActive + 1,
-      }
-    case TrackerGen.stopTimer:
-      return {
-        ...state,
-        timerActive: state.timerActive - 1,
-      }
     case TrackerGen.cacheIdentify: {
       const {goodTill, uid} = action.payload
       return {
@@ -403,11 +393,16 @@ export default function(
       }
     }
     // Saga only actions
-    case TrackerGen.ignore:
-    case TrackerGen.refollow:
     case TrackerGen.follow:
-    case TrackerGen.unfollow:
+    case TrackerGen.getMyProfile:
+    case TrackerGen.getProfile:
+    case TrackerGen.ignore:
+    case TrackerGen.openProofUrl:
     case TrackerGen.parseFriendship:
+    case TrackerGen.refollow:
+    case TrackerGen.setupTrackerHandlers:
+    case TrackerGen.unfollow:
+    case TrackerGen.updateTrackers:
       return state
     default:
       // eslint-disable-next-line no-unused-expressions

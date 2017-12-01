@@ -15,9 +15,8 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
   _onFollow: (username: string) => dispatch(TrackerGen.createFollow({username})),
   _onIgnore: (username: string) => dispatch(TrackerGen.createIgnore({username})),
   _onRefollow: (username: string) => dispatch(TrackerGen.createRefollow({username})),
-  _onRetry: (username: string) => {}, // dispatch(Creators.getProfile(ownProps.username, true)),
+  _onRetry: (username: string) => dispatch(TrackerGen.createGetProfile({ignoreCache: true, username})),
   _onUnfollow: (username: string) => dispatch(TrackerGen.createUnfollow({username})),
-  startTimer: () => {}, // dispatch(Creators.startTimer()),
 })
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   ...stateProps,
