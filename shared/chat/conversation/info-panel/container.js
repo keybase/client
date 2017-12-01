@@ -13,7 +13,7 @@ import {
   connect,
   type TypedState,
 } from '../../../util/container'
-import {isAdmin, isOwner} from '../../../constants/teams'
+import {isAdmin, isOwner, getRole} from '../../../constants/teams'
 import {createSelector} from 'reselect'
 import {navigateAppend, navigateTo} from '../../../actions/route-tree'
 import {chatTab, teamsTab} from '../../../constants/tabs'
@@ -63,7 +63,7 @@ const mapStateToProps = (state: TypedState) => {
 
   let admin = false
   if (teamname) {
-    const myRole = state.entities.getIn(['teams', 'teamNameToRole', teamname], '')
+    const myRole = getRole(state, teamname)
     admin = isAdmin(myRole) || isOwner(myRole)
   }
 

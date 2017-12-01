@@ -85,11 +85,11 @@ const getTopicFromConvID = (state: TypedState, conversationIDKey: ChatTypes.Conv
 const getParticipants = (state: TypedState, conversationIDKey: ChatTypes.ConversationIDKey) =>
   state.entities.getIn(['teams', 'convIDToChannelInfo', conversationIDKey, 'participants'], I.Set())
 
-const getRole = (state: TypedState, teamname: Types.Teamname) =>
-  state.entities.getIn(['teams', 'teamNameToRole', teamname], 'none')
+const getRole = (state: TypedState, teamname: Types.Teamname): ?Types.TeamRoleType =>
+  state.entities.getIn(['teams', 'teamNameToRole', teamname], null)
 
-const isAdmin = (type: ?string) => type === 'admin'
-const isOwner = (type: ?string) => type === 'owner'
+const isAdmin = (type: ?Types.TeamRoleType) => type === 'admin'
+const isOwner = (type: ?Types.TeamRoleType) => type === 'owner'
 
 export const getFollowingMap = (state: TypedState) => state.config.following
 export const getFollowerMap = (state: TypedState) => state.config.followers

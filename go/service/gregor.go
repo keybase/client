@@ -1534,7 +1534,7 @@ func (g *gregorHandler) DismissCategory(ctx context.Context, category gregor1.Ca
 			}},
 	}
 
-	incomingClient := gregor1.IncomingClient{Cli: g.cli}
+	incomingClient := g.GetIncomingClient()
 	err = incomingClient.ConsumeMessage(ctx, *dismissal)
 	return err
 }

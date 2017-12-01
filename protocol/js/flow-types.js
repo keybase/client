@@ -390,6 +390,7 @@ export const constantsStatusCode = {
   scnosession: 283,
   scaccountreset: 290,
   scidentifiesfailed: 295,
+  scnospaceondevice: 297,
   scbademail: 472,
   scbadsignupusernametaken: 701,
   scbadinvitationcode: 707,
@@ -1803,9 +1804,9 @@ export type AccountPassphrasePromptRpcParam = {|guiArg: GUIEntryArg,incomingCall
 
 export type AccountResetAccountRpcParam = ?{|incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
-export type AnnotatedMemberInfo = {|userID: UID,teamID: TeamID,username: String,fullName: String,fqName: String,isImplicitTeam: Boolean,role: TeamRole,implicit?: ?ImplicitRole,needsPUK: Boolean,memberCount: Int,|}
+export type AnnotatedMemberInfo = {|userID: UID,teamID: TeamID,username: String,fullName: String,fqName: String,isImplicitTeam: Boolean,role: TeamRole,implicit?: ?ImplicitRole,needsPUK: Boolean,memberCount: Int,eldestSeqno: Seqno,active: Boolean,|}
 
-export type AnnotatedTeamInvite = {|role: TeamRole,id: TeamInviteID,type: TeamInviteType,name: TeamInviteName,uv: UserVersion,inviter: UserVersion,inviterUsername: String,teamName: String,|}
+export type AnnotatedTeamInvite = {|role: TeamRole,id: TeamInviteID,type: TeamInviteType,name: TeamInviteName,uv: UserVersion,inviter: UserVersion,inviterUsername: String,teamName: String,userActive: Boolean,|}
 
 export type AnnotatedTeamList = {|teams?: ?Array<AnnotatedMemberInfo>,annotatedActiveInvites: {[key: string]: AnnotatedTeamInvite},|}
 
@@ -3230,6 +3231,7 @@ export type StatusCode =0 // SCOk_0
  | 283 // SCNoSession_283
  | 290 // SCAccountReset_290
  | 295 // SCIdentifiesFailed_295
+ | 297 // SCNoSpaceOnDevice_297
  | 472 // SCBadEmail_472
  | 701 // SCBadSignupUsernameTaken_701
  | 707 // SCBadInvitationCode_707
