@@ -107,6 +107,12 @@
     "showTracker": {
       "username": "string"
     },
+    "ignore": {
+      "username": "string",
+    },
+    "refollow": {
+      "username": "string",
+    },
     "follow": {
       "username": "string",
       "localIgnore?": "boolean"

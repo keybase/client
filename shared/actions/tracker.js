@@ -176,23 +176,21 @@ function registerIdentifyUi() {
   return registerIdentifyUiHelper
 }
 
-const onRefollow = (username: string) => (dispatch: Dispatch, getState: () => TypedState) => {
-  const trackToken = _getTrackToken(getState(), username)
+function* _refollow(action: TrackerGen.RefollowPayload) {
+  const {username} = action.payload
+  const state: TypedState = yield Saga.select()
+  const trackToken = _getTrackToken(state, username)
 
-  const dispatchRefollowAction = () => {
-    dispatch(TrackerGen.createWaiting({username, waiting: false}))
-    dispatch(TrackerGen.createSetOnRefollow({username}))
+  yield Saga.put(TrackerGen.createWaiting({username, waiting: true}))
+  try {
+    yield Saga.call(_trackUser, trackToken, false)
+    yield Saga.put(TrackerGen.createSetOnRefollow({username}))
+  } catch (e) {
+    console.warn("Couldn't track user:", e)
+    yield Saga.put(TrackerGen.createOnError({extraText: e.desc, username}))
+  } finally {
+    yield Saga.put(TrackerGen.createWaiting({username, waiting: false}))
   }
-  const dispatchErrorAction = errText => {
-    dispatch(TrackerGen.createWaiting({username, waiting: false}))
-    dispatch(TrackerGen.createOnError({username, extraText: errText}))
-  }
-
-  dispatch(TrackerGen.createWaiting({username, waiting: true}))
-  _trackUser(trackToken, false).then(dispatchRefollowAction).catch(err => {
-    console.warn("Couldn't track user:", err)
-    dispatchErrorAction(err.desc)
-  })
 }
 
 function* _unfollow(action: TrackerGen.UnfollowPayload) {
@@ -217,14 +215,14 @@ const _trackUser = (trackToken: ?string, localIgnore: boolean): Promise<boolean>
   new Promise((resolve, reject) => {
     if (trackToken != null) {
       RPCTypes.trackTrackWithTokenRpcPromise({
-        trackToken,
         options: {
-          localOnly: localIgnore,
-          expiringLocal: localIgnore,
           bypassConfirm: false,
-          forceRetrack: false,
+          expiringLocal: localIgnore,
           forPGPPull: false,
+          forceRetrack: false,
+          localOnly: localIgnore,
         },
+        trackToken,
       })
         .then(response => {
           console.log('Finished tracking', response)
@@ -239,9 +237,12 @@ const _trackUser = (trackToken: ?string, localIgnore: boolean): Promise<boolean>
     }
   })
 
-const onIgnore = (username: string): ((dispatch: Dispatch) => void) => dispatch => {
-  dispatch(TrackerGen.createFollow({username, localIgnore: true}))
-  dispatch(TrackerGen.createOnClose({username}))
+function _ignore(action: TrackerGen.IgnorePayload) {
+  const {username} = action.payload
+  return Saga.all([
+    Saga.put(TrackerGen.createFollow({localIgnore: true, username})),
+    Saga.put(TrackerGen.createOnClose({username})),
+  ])
 }
 
 function _getTrackToken(state, username) {
@@ -637,14 +638,14 @@ const openProofUrl = (proof: Types.Proof) => (dispatch: Dispatch) => {
 function* trackerSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEvery(TrackerGen.unfollow, _unfollow)
   yield Saga.safeTakeEvery(TrackerGen.follow, _follow)
+  yield Saga.safeTakeEveryPure(TrackerGen.ignore, _ignore)
+  yield Saga.safeTakeEvery(TrackerGen.refollow, _refollow)
   yield Saga.safeTakeEvery(TrackerGen.onClose, _onClose)
 }
 
 export {
   getMyProfile,
   getProfile,
-  onIgnore,
-  onRefollow,
   openProofUrl,
   registerIdentifyUi,
   setupUserChangedHandler,
