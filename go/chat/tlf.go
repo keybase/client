@@ -16,6 +16,8 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
+const kbfsTimeout = 15 * time.Second
+
 type KBFSNameInfoSource struct {
 	globals.Contextified
 	utils.DebugLabeler
@@ -127,7 +129,12 @@ func (t *KBFSNameInfoSource) CryptKeys(ctx context.Context, tlfName string) (res
 			IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_SKIP,
 		}
 
-		res, err = tlfClient.GetTLFCryptKeys(ectx, query)
+		tctx, cancel := context.WithTimeout(ectx, kbfsTimeout)
+		defer cancel()
+		res, err = tlfClient.GetTLFCryptKeys(tctx, query)
+		if err == context.DeadlineExceeded {
+			return ErrKeyServerTimeout
+		}
 		return err
 	})
 
@@ -195,7 +202,12 @@ func (t *KBFSNameInfoSource) PublicCanonicalTLFNameAndID(ctx context.Context, tl
 			IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_SKIP,
 		}
 
-		res, err = tlfClient.GetPublicCanonicalTLFNameAndID(ectx, query)
+		tctx, cancel := context.WithTimeout(ectx, kbfsTimeout)
+		defer cancel()
+		res, err = tlfClient.GetPublicCanonicalTLFNameAndID(tctx, query)
+		if err == context.DeadlineExceeded {
+			return ErrKeyServerTimeout
+		}
 		return err
 	})
 
