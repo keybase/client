@@ -90,5 +90,6 @@ docker run "${interactive_args[@]:+${interactive_args[@]}}" \
   -e BUCKET_NAME \
   -e NOWAIT \
   -e KEYBASE_DRY_RUN \
+  --rm \
   "$image" \
   bash /CLIENT/packaging/linux/inside_docker_main.sh "$@"
