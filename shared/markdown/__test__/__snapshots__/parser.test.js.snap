@@ -214,6 +214,81 @@ Object {
 }
 `;
 
+exports[`Markdown parser parses formatted mentions 1`] = `
+Object {
+  "children": Array [
+    Object {
+      "children": Array [
+        Object {
+          "children": Array [
+            Object {
+              "children": Array [
+                "marco",
+              ],
+              "service": "keybase",
+              "type": "mention",
+            },
+          ],
+          "type": "strike",
+        },
+      ],
+      "type": "text-block",
+    },
+  ],
+  "type": "markup",
+}
+`;
+
+exports[`Markdown parser parses formatted mentions 2`] = `
+Object {
+  "children": Array [
+    Object {
+      "children": Array [
+        Object {
+          "children": Array [
+            Object {
+              "children": Array [
+                "marco",
+              ],
+              "service": "keybase",
+              "type": "mention",
+            },
+          ],
+          "type": "bold",
+        },
+      ],
+      "type": "text-block",
+    },
+  ],
+  "type": "markup",
+}
+`;
+
+exports[`Markdown parser parses formatted mentions 3`] = `
+Object {
+  "children": Array [
+    Object {
+      "children": Array [
+        Object {
+          "children": Array [
+            Object {
+              "children": Array [
+                "marco",
+              ],
+              "service": "keybase",
+              "type": "mention",
+            },
+          ],
+          "type": "italic",
+        },
+      ],
+      "type": "text-block",
+    },
+  ],
+  "type": "markup",
+}
+`;
+
 exports[`Markdown parser parses formatting adjacent to punctuation 1`] = `
 Object {
   "children": Array [

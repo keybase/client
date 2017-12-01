@@ -206,4 +206,9 @@ this is a code block with two newline above\`\`\`
   it('parses mentions correctly, regardless of case', () => {
     check('hello there @marco@Keybase')
   })
+  it('parses formatted mentions', () => {
+    check('~@marco@keybase~')
+    check('*@marco@keybase*')
+    check('_@marco@keybase_')
+  })
 })
