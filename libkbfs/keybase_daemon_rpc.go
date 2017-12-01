@@ -59,7 +59,7 @@ func NewKeybaseDaemonRPC(config Config, kbCtx Context, log logger.Logger,
 ) *KeybaseDaemonRPC {
 	k := newKeybaseDaemonRPC(config, kbCtx, log)
 	k.config = config
-	k.daemonLog = logger.NewWithCallDepth("daemon", 1)
+	k.daemonLog = logger.New("daemon")
 	if createSimpleFS != nil {
 		k.simplefs = createSimpleFS(config)
 	}

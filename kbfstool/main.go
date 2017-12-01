@@ -69,7 +69,7 @@ func realMain() (exitStatus int) {
 		return 1
 	}
 
-	log := logger.NewWithCallDepth("", 1)
+	log := logger.New("")
 
 	// Turn these off to not interfere with a running kbfs daemon.
 	kbfsParams.EnableJournal = false

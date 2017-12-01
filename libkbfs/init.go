@@ -438,7 +438,7 @@ func InitLogWithPrefix(
 	if params.LogFileConfig.Path != "" {
 		err = logger.SetLogFileConfig(&params.LogFileConfig)
 	}
-	log := logger.NewWithCallDepth(prefix, 1)
+	log := logger.New(prefix)
 
 	log.Configure("", params.Debug, "")
 	log.Info("KBFS version %s", VersionString())
@@ -571,9 +571,7 @@ func doInit(
 		if module != "" {
 			mname += fmt.Sprintf("(%s)", module)
 		}
-		// Add log depth so that context-based messages get the right
-		// file printed out.
-		lg := logger.NewWithCallDepth(mname, 1)
+		lg := logger.New(mname)
 		if params.Debug {
 			// Turn on debugging.  TODO: allow a proper log file and
 			// style to be specified.
