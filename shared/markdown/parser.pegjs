@@ -113,7 +113,7 @@ CodeBlock
  = Ticks3 LineTerminatorSequence? children:(!Ticks3 .)+ Ticks3 { return {type: 'code-block', children: flatten(children)} }
 
 InlineCode
- = Ticks1 children:(!Ticks1 .)+ Ticks1 { return {type: 'inline-code', children: flatten(children)} }
+ = Ticks1 children:(!Ticks1 !LineTerminatorSequence .)+ Ticks1 { return {type: 'inline-code', children: flatten(children)} }
 
 // Here we use the literal ":" because we want to not match the :foo in ::foo
 InsideEmojiMarker

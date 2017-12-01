@@ -89,6 +89,26 @@ Object {
 }
 `;
 
+exports[`Markdown parser inline code not multiline 1`] = `
+Object {
+  "children": Array [
+    Object {
+      "children": Array [
+        "\`foo",
+      ],
+      "type": "text-block",
+    },
+    Object {
+      "children": Array [
+        "bar\`",
+      ],
+      "type": "text-block",
+    },
+  ],
+  "type": "markup",
+}
+`;
+
 exports[`Markdown parser parses a line with just whitespace correctly 1`] = `
 Object {
   "children": Array [],
