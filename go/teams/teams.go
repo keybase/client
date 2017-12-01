@@ -1560,6 +1560,7 @@ func AddMembersBestEffort(ctx context.Context, g *libkb.GlobalContext, teamID ke
 		ID:          teamID,
 		Public:      teamID.IsPublic(),
 		ForceRepoll: forceRepoll,
+		NeedAdmin:   true,
 	})
 	if err != nil {
 		return err
@@ -1637,6 +1638,7 @@ func AddMembersBestEffort(ctx context.Context, g *libkb.GlobalContext, teamID ke
 				ID:          teamID,
 				Public:      teamID.IsPublic(),
 				ForceRepoll: true,
+				NeedAdmin:   true,
 			})
 			if err != nil {
 				return err
