@@ -4,7 +4,6 @@ import * as I from 'immutable'
 import * as Constants from '../../constants/teams'
 import {type ConversationIDKey} from '../../constants/types/chat'
 import EditChannel from './edit-channel'
-import {compose} from 'recompose'
 import {connect, type TypedState} from '../../util/container'
 import {updateChannelName, updateTopic, deleteChannelConfirmed} from '../../actions/teams/creators'
 import {anyWaiting} from '../../constants/waiting'
@@ -75,5 +74,5 @@ const ConnectedEditChannel: React.ComponentType<{
   navigateUp: Function,
   routeProps: I.RecordOf<{conversationIDKey: ConversationIDKey}>,
   routeState: I.RecordOf<{waitingForSave: number}>,
-}> = compose(connect(mapStateToProps, mapDispatchToProps, mergeProps))(EditChannel)
+}> = connect(mapStateToProps, mapDispatchToProps, mergeProps)(EditChannel)
 export default ConnectedEditChannel

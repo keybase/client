@@ -62,7 +62,7 @@ export type Props = {
   setShowMenu: (s: boolean) => void,
   waitingForSavePublicity: boolean,
   you: string,
-  yourRole: ?string,
+  yourRole: ?Types.TeamRoleType,
   youCanShowcase: boolean,
   youCanAddPeople: boolean,
   youCanCreateSubteam: boolean,

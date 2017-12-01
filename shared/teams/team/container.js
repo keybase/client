@@ -32,7 +32,7 @@ type StateProps = {
   selectedTab: string,
   waitingForSavePublicity: boolean,
   you: ?string,
-  yourRole: ?string,
+  yourRole: ?Types.TeamRoleType,
 }
 
 const mapStateToProps = (state: TypedState, {routeProps, routeState}): StateProps => {
@@ -174,7 +174,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
   if (you) {
     youExplicitAdmin = Constants.isOwner(stateProps.yourRole) || Constants.isAdmin(stateProps.yourRole)
     youImplicitAdmin = stateProps._implicitAdminUsernames.has(you)
-    youAreMember = stateProps.yourRole !== '' && stateProps.yourRole !== 'none'
+    youAreMember = stateProps.yourRole && stateProps.yourRole !== 'none'
   }
   const youAdmin = youExplicitAdmin || youImplicitAdmin
 
