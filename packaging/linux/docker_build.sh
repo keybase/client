@@ -6,10 +6,8 @@
 #   2) run the "inside_docker_main.sh" script in that image, sharing several
 #      directories from your host, which does all the following...
 #   3) build .deb and .rpm packages and lay them out along with the new repo
-#      metadata and signatures in your server-ops repo (which is shared
-#      read-write with the container)
-#   4) commit and push the server-ops repo, or for prerelease builds, push to
-#      our S3 bucket
+#      metadata and signatures
+#   4) push the packages and repo metadata to our prerelease.keybase.io S3 bucket
 #
 # This script mostly concerns itself with updating git repos and organizing
 # GPG/SSH/S3 keys for the docker container.
@@ -27,11 +25,10 @@ here="$(dirname "$BASH_SOURCE")"
 
 clientdir="$(git -C "$here" rev-parse --show-toplevel)"
 kbfsdir="$clientdir/../kbfs"
-serveropsdir="$clientdir/../server-ops"
 
 # Run `git fetch` in all the repos we'll share with the container. This
 # prevents an unattended build machine from falling behind over time.
-for repo in "$clientdir" "$kbfsdir" "$serveropsdir" ; do
+for repo in "$clientdir" "$kbfsdir" ; do
   echo "Fetching $repo"
   git -C "$repo" fetch
 done
@@ -62,7 +59,7 @@ gpg_tempfile="$gpg_tempdir/code_signing_key"
 gpg --export-secret-key --armor "$code_signing_fingerprint" > "$gpg_tempfile"
 
 # Make sure the Docker image is built.
-image=keybase_packaging_v13
+image=keybase_packaging_v14
 if [ -z "$(docker images -q "$image")" ] ; then
   echo "Docker image '$image' not yet built. Building..."
   docker build -t "$image" "$clientdir/packaging/linux"
@@ -86,7 +83,6 @@ docker run "${interactive_args[@]:+${interactive_args[@]}}" \
   -v "$work_dir:/root" \
   -v "$clientdir:/CLIENT:ro" \
   -v "$kbfsdir:/KBFS:ro" \
-  -v "$serveropsdir:/SERVEROPS:ro" \
   -v "$gpg_tempdir:/GPG" \
   -v "$HOME/.ssh:/SSH:ro" \
   -v "$s3cmd_temp:/S3CMD:ro" \
@@ -94,5 +90,6 @@ docker run "${interactive_args[@]:+${interactive_args[@]}}" \
   -e BUCKET_NAME \
   -e NOWAIT \
   -e KEYBASE_DRY_RUN \
+  --rm \
   "$image" \
   bash /CLIENT/packaging/linux/inside_docker_main.sh "$@"

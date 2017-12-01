@@ -1867,6 +1867,33 @@ func TestProvisionPaperFailures(t *testing.T) {
 		t.Fatal("provision with another user's paper key worked")
 	}
 
+	// try provision as ux on a new device with swapped word paper key
+	tcSwap := SetupEngineTest(t, "login")
+	defer tcSwap.Cleanup()
+
+	words := strings.Fields(uxPaper)
+	words[2], words[3] = words[3], words[2]
+	swapped := strings.Join(words, " ")
+	secUI = ux.NewSecretUI()
+	secUI.Passphrase = swapped
+	provUI = newTestProvisionUIPaper()
+	provLoginUI = &libkb.TestLoginUI{Username: ux.Username}
+	ctx = &Context{
+		ProvisionUI: provUI,
+		LogUI:       tcSwap.G.UI.GetLogUI(),
+		SecretUI:    secUI,
+		LoginUI:     provLoginUI,
+		GPGUI:       &gpgtestui{},
+	}
+	eng = NewLogin(tcSwap.G, libkb.DeviceTypeDesktop, "", keybase1.ClientType_CLI)
+	err := RunEngine(eng, ctx)
+	if err == nil {
+		t.Fatal("provision with swapped word paper key worked")
+	}
+	if _, ok := err.(libkb.NotFoundError); !ok {
+		t.Fatalf("error type: %T, expected libkb.NotFoundError", err)
+	}
+
 	// try provision as ux on a new device first with fu's paper key
 	// then with ux's paper key (testing retry works)
 	tc2 := SetupEngineTest(t, "login")

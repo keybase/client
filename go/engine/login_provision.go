@@ -337,6 +337,10 @@ func (e *loginProvision) paper(ctx *Context, device *libkb.Device) error {
 	return e.G().LoginState().LoginWithKey(ctx.LoginContext, e.arg.User, kp.sigKey, afterLogin)
 }
 
+var paperKeyNotFound = libkb.NotFoundError{
+	Msg: "paper key not found, most likely due to a typo in one of the words in the phrase",
+}
+
 func (e *loginProvision) getValidPaperKey(ctx *Context) (*keypair, error) {
 	var lastErr error
 	for i := 0; i < 10; i++ {
@@ -355,19 +359,25 @@ func (e *loginProvision) getValidPaperKey(ctx *Context) (*keypair, error) {
 		uid, err := e.uidByKID(kp.sigKey.GetKID())
 		if err != nil {
 			e.G().Log.Debug("getValidPaperKey attempt %d (%s): %s", i, prefix, err)
-			if nf, ok := err.(libkb.NotFoundError); ok {
-				// make Msg a little friendlier (instead of KID Not Found)
-				nf.Msg = ("paper key not found, most likely due to a typo in one of the words in the phrase")
-				lastErr = nf
-			} else {
+
+			switch err := err.(type) {
+			case libkb.NotFoundError:
+				lastErr = paperKeyNotFound
+			case libkb.AppStatusError:
+				if err.Code == libkb.SCNotFound {
+					lastErr = paperKeyNotFound
+				} else {
+					lastErr = err
+				}
+			default:
 				lastErr = err
 			}
+
 			continue
 		}
 
 		if uid.NotEqual(e.arg.User.GetUID()) {
-			e.G().Log.Debug("paper key (%s) entered was for a different user", prefix)
-			lastErr = fmt.Errorf("paper key (%s) valid, but for %s, not %s", prefix, uid, e.arg.User.GetUID())
+			lastErr = paperKeyNotFound
 			continue
 		}
 

@@ -544,6 +544,10 @@
         {
           "type": "string",
           "name": "teamName"
+        },
+        {
+          "type": "boolean",
+          "name": "userActive"
         }
       ]
     },
@@ -658,6 +662,10 @@
         {
           "type": "TeamRole",
           "name": "openTeamJoinAs"
+        },
+        {
+          "type": "TLFID",
+          "name": "tlfID"
         }
       ]
     },
@@ -1227,6 +1235,15 @@
           "type": "int",
           "name": "memberCount",
           "jsonkey": "member_count"
+        },
+        {
+          "type": "Seqno",
+          "name": "eldestSeqno",
+          "jsonkey": "member_eldest_seqno"
+        },
+        {
+          "type": "boolean",
+          "name": "active"
         }
       ]
     },
@@ -1506,6 +1523,10 @@
         {
           "type": "ImplicitTeamDisplayName",
           "name": "displayName"
+        },
+        {
+          "type": "TLFID",
+          "name": "tlfID"
         }
       ]
     }
