@@ -336,19 +336,19 @@ class ProfileRender extends PureComponent<Props, State> {
                     <Box style={globalStyles.flexBoxRow}>
                       <Text type="BodySmallSemibold">Teams</Text>
                     </Box>
-                    {this.props.userInfo.showcasedTeams.map(teamname => <Box key={teamname} style={{  ...globalStyles.flexBoxRow,
+                    {this.props.userInfo.showcasedTeams.map(teamname => <Box key={teamname} onClick={() => {console.warn('in onClick'); this.props.onClickShowcased(teamname)}} style={{...globalStyles.flexBoxRow,
                       alignItems: 'flex-start',
                       justifyContent: 'flex-start',
                       minHeight: 32,
                     }}>
                       <Box style={{
-                          ...globalStyles.flexBoxRow,
-                          alignItems: 'center',
-                          alignSelf: 'center',
-                          height: 24,
-                          minHeight: 24,
-                          minWidth: 24,
-                          width: 24,
+                        ...globalStyles.flexBoxRow,
+                        alignItems: 'center',
+                        alignSelf: 'center',
+                        height: 24,
+                        minHeight: 24,
+                        minWidth: 24,
+                        width: 24,
                       }}>
                         <Avatar teamname={teamname} size={24} />
                       </Box>
@@ -359,7 +359,7 @@ class ProfileRender extends PureComponent<Props, State> {
                         alignSelf: 'center',
                         paddingLeft: globalMargins.tiny,
                       }}>
-                        <Text style={{color: globalColors.black_75}} type="BodySemibold">{teamname}</Text>
+                        <Text style={{color: globalColors.black_75}} type="BodySemiboldLink">{teamname}</Text>
                       </Box>
                     </Box>)}
                   </Box>

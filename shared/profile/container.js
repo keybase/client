@@ -70,6 +70,9 @@ const mapDispatchToProps = (dispatch: Dispatch, {setRouteState}: OwnProps) => ({
   onClickAvatar: username => dispatch(ProfileGen.createOnClickAvatar({username})),
   onClickFollowers: username => dispatch(ProfileGen.createOnClickFollowers({username})),
   onClickFollowing: username => dispatch(ProfileGen.createOnClickFollowing({username})),
+  onClickShowcased: teamname => {
+    dispatch(navigateAppend([{props: {teamname}, selected: 'showcasedTeamInfo'}]))
+  },
   onEditAvatar: () => dispatch(navigateAppend(['editAvatar'])),
   onEditProfile: () => dispatch(navigateAppend(['editProfile'])),
   onFolderClick: folder => dispatch(KBFSGen.createOpen({path: folder.path})),

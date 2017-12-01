@@ -12,6 +12,7 @@ import ConfirmOrPending from './confirm-or-pending-container'
 import SearchPopup from './search-container'
 import {isMobile} from '../constants/platform'
 import NonUserProfile from './non-user-profile-container'
+import ShowcasedTeamInfo from './showcased-team-info/container'
 
 const proveEnterUsername = makeRouteDefNode({
   component: ProveEnterUsername,
@@ -59,6 +60,11 @@ export const profileRoute = makeRouteDefNode({
     search: {
       children: {},
       component: SearchPopup,
+      tags: makeLeafTags({layerOnTop: !isMobile}),
+    },
+    showcasedTeamInfo: {
+      children: {},
+      component: ShowcasedTeamInfo,
       tags: makeLeafTags({layerOnTop: !isMobile}),
     },
   },
