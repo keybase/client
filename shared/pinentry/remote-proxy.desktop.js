@@ -7,7 +7,7 @@ import * as React from 'react'
 import * as Types from '../constants/types/pinentry'
 import SyncProps from '../desktop/remote/sync-props.desktop'
 import SyncBrowserWindow from '../desktop/remote/sync-browser-window.desktop'
-import {connect, type TypedState, compose} from '../util/container'
+import {connect, type TypedState, compose, renderNothing} from '../util/container'
 
 const windowOpts = {height: 210, width: 440}
 
@@ -32,9 +32,12 @@ const pinentryMapStateToProps = (state: TypedState, {id}) => {
 }
 
 // Actions are handled by remote-container
-const RemotePinentry = compose(connect(pinentryMapStateToProps, () => ({})), SyncBrowserWindow, SyncProps)(
-  <div />
-)
+const RemotePinentry = compose(
+  connect(pinentryMapStateToProps, () => ({})),
+  SyncBrowserWindow,
+  SyncProps,
+  renderNothing
+)(null)
 
 type Props = {
   pinentryIDs: I.Map<number, Types.PinentryState>,

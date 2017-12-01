@@ -7,7 +7,6 @@ import {sendLoad} from '../desktop/remote/sync-browser-window.desktop'
 import {connect, type TypedState, compose, renderNothing, branch} from '../util/container'
 import {remote} from 'electron'
 
-const PrintDebug = props => <div style={{wordWrap: 'break-word'}}>{JSON.stringify(props)}</div>
 const windowOpts = {}
 
 type Props = {
@@ -74,5 +73,6 @@ export default compose(
   branch(props => !props.externalRemoteWindow, renderNothing),
   RemoteMenubarWindow,
   SyncAvatarProps,
-  SyncProps
-)(PrintDebug)
+  SyncProps,
+  renderNothing
+)(null)

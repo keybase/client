@@ -2,7 +2,7 @@
 import * as React from 'react'
 import SyncProps from '../desktop/remote/sync-props.desktop'
 import SyncBrowserWindow from '../desktop/remote/sync-browser-window.desktop'
-import {connect, type TypedState, compose} from '../util/container'
+import {connect, type TypedState, compose, renderNothing} from '../util/container'
 
 const windowOpts = {height: 450, width: 600}
 
@@ -16,7 +16,7 @@ const purgeMapPropsToState = (state: TypedState) => {
 }
 
 // Actions are handled by remote-container
-const RemotePurge = compose(connect(purgeMapPropsToState, () => ({})), SyncBrowserWindow, SyncProps)(<div />)
+const RemotePurge = compose(connect(purgeMapPropsToState, () => ({})), SyncBrowserWindow, SyncProps, renderNothing)(null)
 
 type Props = {
   show: boolean,

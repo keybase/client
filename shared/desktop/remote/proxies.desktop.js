@@ -7,7 +7,7 @@ import RemoteUnlockFolders from '../../unlock-folders/remote-proxy.desktop'
 import RemotePurgeMessage from '../../pgp/remote-proxy.desktop'
 
 const RemoteProxies = () => (
-  <div style={{display: 'block', width: 200, height: '100%', backgroundColor: 'pink'}}>
+  <div style={style}>
     <RemoteMenubar />
     <RemoteTracker />
     <RemotePinentry />
@@ -16,4 +16,5 @@ const RemoteProxies = () => (
   </div>
 )
 
+const style = {display: 'none'}
 export default RemoteProxies

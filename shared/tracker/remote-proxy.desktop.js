@@ -8,11 +8,9 @@ import * as Constants from '../constants/tracker'
 import SyncAvatarProps from '../desktop/remote/sync-avatar-props.desktop'
 import SyncProps from '../desktop/remote/sync-props.desktop'
 import SyncBrowserWindow from '../desktop/remote/sync-browser-window.desktop'
-import {connect, type TypedState, compose} from '../util/container'
+import {connect, type TypedState, compose, renderNothing} from '../util/container'
 
 const MAX_TRACKERS = 5
-const PrintDebug = props => <div style={{wordWrap: 'break-word'}}>{JSON.stringify(props)}</div>
-
 const windowOpts = {height: 470, width: 320}
 
 const trackerMapStateToProps = (state: TypedState, {name}) => {
@@ -48,8 +46,9 @@ const RemoteTracker = compose(
   connect(trackerMapStateToProps, () => ({}), trackerMergeProps),
   SyncBrowserWindow,
   SyncAvatarProps,
-  SyncProps
-)(PrintDebug)
+  SyncProps,
+  renderNothing
+)(null)
 
 type Props = {
   names: Array<string>,
