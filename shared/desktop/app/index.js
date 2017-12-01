@@ -1,7 +1,6 @@
 // @flow
 import MainWindow from './main-window'
 import devTools from './dev-tools'
-import hello from '../../util/hello'
 import installer from './installer'
 import menuBar from './menu-bar'
 import os from 'os'
