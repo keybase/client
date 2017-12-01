@@ -390,6 +390,7 @@ export const constantsStatusCode = {
   scnosession: 283,
   scaccountreset: 290,
   scidentifiesfailed: 295,
+  scnospaceondevice: 297,
   scbademail: 472,
   scbadsignupusernametaken: 701,
   scbadinvitationcode: 707,
@@ -3230,6 +3231,7 @@ export type StatusCode =0 // SCOk_0
  | 283 // SCNoSession_283
  | 290 // SCAccountReset_290
  | 295 // SCIdentifiesFailed_295
+ | 297 // SCNoSpaceOnDevice_297
  | 472 // SCBadEmail_472
  | 701 // SCBadSignupUsernameTaken_701
  | 707 // SCBadInvitationCode_707
