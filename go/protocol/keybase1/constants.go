@@ -35,6 +35,7 @@ const (
 	StatusCode_SCNoSession                 StatusCode = 283
 	StatusCode_SCAccountReset              StatusCode = 290
 	StatusCode_SCIdentifiesFailed          StatusCode = 295
+	StatusCode_SCNoSpaceOnDevice           StatusCode = 297
 	StatusCode_SCBadEmail                  StatusCode = 472
 	StatusCode_SCBadSignupUsernameTaken    StatusCode = 701
 	StatusCode_SCBadInvitationCode         StatusCode = 707
@@ -150,7 +151,6 @@ const (
 	StatusCode_SCTeamKeyMaskNotFound       StatusCode = 2697
 	StatusCode_SCTeamBanned                StatusCode = 2702
 	StatusCode_SCTeamInvalidBan            StatusCode = 2703
-	StatusCode_SCNoSpaceOnDevice           StatusCode = 2900
 )
 
 func (o StatusCode) DeepCopy() StatusCode { return o }
@@ -181,6 +181,7 @@ var StatusCodeMap = map[string]StatusCode{
 	"SCNoSession":                 283,
 	"SCAccountReset":              290,
 	"SCIdentifiesFailed":          295,
+	"SCNoSpaceOnDevice":           297,
 	"SCBadEmail":                  472,
 	"SCBadSignupUsernameTaken":    701,
 	"SCBadInvitationCode":         707,
@@ -296,7 +297,6 @@ var StatusCodeMap = map[string]StatusCode{
 	"SCTeamKeyMaskNotFound":       2697,
 	"SCTeamBanned":                2702,
 	"SCTeamInvalidBan":            2703,
-	"SCNoSpaceOnDevice":           2900,
 }
 
 var StatusCodeRevMap = map[StatusCode]string{
@@ -325,6 +325,7 @@ var StatusCodeRevMap = map[StatusCode]string{
 	283:  "SCNoSession",
 	290:  "SCAccountReset",
 	295:  "SCIdentifiesFailed",
+	297:  "SCNoSpaceOnDevice",
 	472:  "SCBadEmail",
 	701:  "SCBadSignupUsernameTaken",
 	707:  "SCBadInvitationCode",
@@ -440,7 +441,6 @@ var StatusCodeRevMap = map[StatusCode]string{
 	2697: "SCTeamKeyMaskNotFound",
 	2702: "SCTeamBanned",
 	2703: "SCTeamInvalidBan",
-	2900: "SCNoSpaceOnDevice",
 }
 
 func (e StatusCode) String() string {

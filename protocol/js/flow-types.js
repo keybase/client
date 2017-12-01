@@ -390,6 +390,7 @@ export const constantsStatusCode = {
   scnosession: 283,
   scaccountreset: 290,
   scidentifiesfailed: 295,
+  scnospaceondevice: 297,
   scbademail: 472,
   scbadsignupusernametaken: 701,
   scbadinvitationcode: 707,
@@ -505,7 +506,6 @@ export const constantsStatusCode = {
   scteamkeymasknotfound: 2697,
   scteambanned: 2702,
   scteaminvalidban: 2703,
-  scnospaceondevice: 2900,
 }
 
 export const cryptoSignED25519ForKBFSRpcChannelMap = (configKeys: Array<string>, request: CryptoSignED25519ForKBFSRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.crypto.signED25519ForKBFS', request)
@@ -3225,6 +3225,7 @@ export type StatusCode =0 // SCOk_0
  | 283 // SCNoSession_283
  | 290 // SCAccountReset_290
  | 295 // SCIdentifiesFailed_295
+ | 297 // SCNoSpaceOnDevice_297
  | 472 // SCBadEmail_472
  | 701 // SCBadSignupUsernameTaken_701
  | 707 // SCBadInvitationCode_707
@@ -3340,7 +3341,6 @@ export type StatusCode =0 // SCOk_0
  | 2697 // SCTeamKeyMaskNotFound_2697
  | 2702 // SCTeamBanned_2702
  | 2703 // SCTeamInvalidBan_2703
- | 2900 // SCNoSpaceOnDevice_2900
 
 
 export type Stream = {|fd: Int,|}

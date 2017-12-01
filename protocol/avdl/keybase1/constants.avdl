@@ -27,6 +27,7 @@ protocol constants {
     SCNoSession_283,
     SCAccountReset_290,
     SCIdentifiesFailed_295,
+    SCNoSpaceOnDevice_297,
     SCBadEmail_472,
     SCBadSignupUsernameTaken_701,
     SCBadInvitationCode_707,
@@ -141,7 +142,6 @@ protocol constants {
     SCTeamImplicitBadRemove_2686,
     SCTeamKeyMaskNotFound_2697,
     SCTeamBanned_2702,
-    SCTeamInvalidBan_2703,
-    SCNoSpaceOnDevice_2900
+    SCTeamInvalidBan_2703
   }
 }
