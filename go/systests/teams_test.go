@@ -940,4 +940,8 @@ func TestTeamCanUserPerform(t *testing.T) {
 			require.False(t, callCanPerform(bob, subteam, op))
 		}
 	}
+
+	// Invalid team for pam
+	_, err = teams.CanUserPerform(context.TODO(), pam.tc.G, subteam, keybase1.TeamOperation_CREATE_CHANNEL)
+	require.Error(t, err)
 }
