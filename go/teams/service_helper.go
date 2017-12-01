@@ -492,6 +492,9 @@ func editMemberInvite(ctx context.Context, g *libkb.GlobalContext, teamname, use
 		return err
 	}
 
+	// Note that there could be a problem if removeMemberInvite works but AddMember doesn't
+	// as the original invite will be lost.  But the user will get an error and can try
+	// again.
 	if err := removeMemberInvite(ctx, g, t, username, uv); err != nil {
 		g.Log.CDebugf(ctx, "editMemberInvite error in removeMemberInvite: %s", err)
 		return err
@@ -1063,4 +1066,18 @@ func CreateSeitanToken(ctx context.Context, g *libkb.GlobalContext, teamname str
 	}
 
 	return keybase1.SeitanIKey(ikey), err
+}
+
+// CreateTLF is called by KBFS when a TLF ID is associated with an implicit team. Should
+// only work for implicit teams, and should give an error if a named team is provided.
+func CreateTLF(ctx context.Context, g *libkb.GlobalContext, arg keybase1.CreateTLFArg) (err error) {
+	defer g.CTrace(ctx, fmt.Sprintf("CreateTLF(%v)", arg), func() error { return err })()
+	return RetryOnSigOldSeqnoError(ctx, g, func(ctx context.Context, _ int) error {
+		// Need admin because only admins can issue this link
+		t, err := GetForTeamManagementByTeamID(ctx, g, arg.TeamID, true)
+		if err != nil {
+			return err
+		}
+		return t.associateTLFID(ctx, arg.TlfID)
+	})
 }

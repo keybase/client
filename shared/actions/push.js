@@ -41,15 +41,16 @@ function* permissionsRequestSaga(): Saga.SagaGenerator<any, any> {
 
 function* pushNotificationSaga(notification: PushGen.NotificationPayload): Saga.SagaGenerator<any, any> {
   console.log('Push notification:', notification)
-  const payload = notification.payload
+  const payload = notification.payload.notification
   if (payload && payload.userInteraction) {
     if (payload.type === 'chat.newmessageSilent') {
       console.info('Push notification: silent notification received')
       try {
         const unboxRes = yield Saga.call(ChatTypes.localUnboxMobilePushNotificationRpcPromise, {
-          convID: payload.c,
+          convID: payload.c || '',
+          // $FlowIssue payload.t isn't ConversationMembersType
           membersType: payload.t,
-          payload: payload.m,
+          payload: payload.m || '',
           pushIDs: payload.p,
         })
         if (payload.x && payload.x > 0) {

@@ -148,6 +148,10 @@ function keyToOutboxID(key: Types.OutboxIDKey): Types.OutboxID {
   return Buffer.from(key.substring(_outboxPrefix.length), 'hex')
 }
 
+function stringOutboxIDToKey(outboxID: string): Types.OutboxIDKey {
+  return `${_outboxPrefix}${outboxID}`
+}
+
 const _messageIDPrefix = 'MSGID-'
 const _messageIDPrefixReg = new RegExp('^' + _messageIDPrefix)
 function rpcMessageIDToMessageID(rpcMessageID: RPCChatTypes.MessageID): Types.MessageID {
@@ -574,11 +578,15 @@ const getUserItems = createShallowEqualSelector(
     })
 )
 
+function emptyConversationMessages(): Types.ConversationMessages {
+  return makeConversationMessages({high: -1, low: -1, messages: I.List()})
+}
+
 function getConversationMessages(
   state: TypedState,
   convIDKey: Types.ConversationIDKey
-): I.OrderedSet<Types.MessageKey> {
-  return state.entities.conversationMessages.get(convIDKey, I.OrderedSet())
+): Types.ConversationMessages {
+  return state.entities.conversationMessages.get(convIDKey, emptyConversationMessages())
 }
 
 function getDeletedMessageIDs(state: TypedState, convIDKey: Types.ConversationIDKey): I.Set<Types.MessageID> {
@@ -681,7 +689,8 @@ function getMessageKeyFromConvKeyMessageID(
   messageID: Types.MessageID | Types.OutboxIDKey // Works for outbox id too since it uses the message key
 ) {
   const convMsgs = getConversationMessages(state, conversationIDKey)
-  return convMsgs.find(k => {
+  const messageKeys = convMsgs.messages
+  return messageKeys.find(k => {
     const {messageID: mID} = splitMessageIDKey(k)
     return messageID === mID
   })
@@ -697,7 +706,8 @@ function getMessageFromConvKeyMessageID(
 }
 
 function lastMessageID(state: TypedState, conversationIDKey: Types.ConversationIDKey): ?Types.MessageID {
-  const messageKeys = getConversationMessages(state, conversationIDKey)
+  const convMsgs = getConversationMessages(state, conversationIDKey)
+  const messageKeys = convMsgs.messages
   const lastMessageKey = messageKeys.findLast(m => {
     if (m) {
       const {type: msgIDType} = parseMessageID(messageKeyValue(m))
@@ -706,6 +716,16 @@ function lastMessageID(state: TypedState, conversationIDKey: Types.ConversationI
   })
 
   return lastMessageKey ? messageKeyValue(lastMessageKey) : null
+}
+
+function lastOrdinal(state: TypedState, conversationIDKey: Types.ConversationIDKey): number {
+  const convMsgs = getConversationMessages(state, conversationIDKey)
+  return convMsgs.high
+}
+
+function nextFractionalOrdinal(ord: number): number {
+  // Mimic what the service does with outbox items
+  return ord + 0.001
 }
 
 const getDownloadProgress = (
@@ -770,6 +790,12 @@ function getPaginationPrev(state: TypedState, conversationIDKey: Types.Conversat
   return state.entities.pagination.prev.get(conversationIDKey, null)
 }
 
+const makeConversationMessages = I.Record({
+  high: 0,
+  low: 0,
+  messages: I.List(),
+})
+
 export {
   getBrokenUsers,
   getConversationMessages,
@@ -798,6 +824,7 @@ export {
   convSupersededByInfo,
   keyToConversationID,
   keyToOutboxID,
+  makeConversationMessages,
   makeSnippet,
   makeTeamTitle,
   messageKey,
@@ -807,6 +834,7 @@ export {
   messageKeyConversationIDKey,
   splitMessageIDKey,
   outboxIDToKey,
+  stringOutboxIDToKey,
   participantFilter,
   serverMessageToMessageText,
   usernamesToUserListItem,
@@ -837,4 +865,7 @@ export {
   parseMessageID,
   lastMessageID,
   getGeneralChannelOfSelectedInbox,
+  lastOrdinal,
+  nextFractionalOrdinal,
+  emptyConversationMessages,
 }

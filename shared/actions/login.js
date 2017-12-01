@@ -645,7 +645,8 @@ function* addNewDeviceSaga({payload: {role}}: LoginGen.AddNewDevicePayload) {
     addDeviceSagas,
     RPCTypes.deviceDeviceAddRpcChannelMap,
     'addDeviceRpc',
-    {}
+    {},
+    true // should cancel on finished+error
   )
 
   yield Saga.call(addDeviceRpc.run)

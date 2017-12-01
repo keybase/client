@@ -66,6 +66,7 @@ export type TextMessage = {
   editedCount: number, // increase as we edit it
   mentions: Mentions,
   channelMention: ChannelMention,
+  ordinal: number,
 }
 export type ErrorMessage = {
   type: 'Error',
@@ -74,6 +75,7 @@ export type ErrorMessage = {
   conversationIDKey: ConversationIDKey,
   messageID?: MessageID,
   key: MessageKey,
+  rawMessageID: number,
 }
 
 export type InvisibleErrorMessage = {
@@ -83,6 +85,7 @@ export type InvisibleErrorMessage = {
   messageID: MessageID,
   key: MessageKey,
   data: any,
+  rawMessageID: number,
 }
 
 export type UnhandledMessage = {
@@ -91,6 +94,7 @@ export type UnhandledMessage = {
   conversationIDKey: ConversationIDKey,
   messageID: MessageID,
   key: MessageKey,
+  rawMessageID: number,
 }
 
 export type AttachmentSize = {
@@ -127,6 +131,7 @@ export type AttachmentMessage = {
   senderDeviceRevokedAt: ?number,
   key: MessageKey,
   failureDescription?: ?string,
+  ordinal: number,
 }
 
 export type TimestampMessage = {
@@ -148,19 +153,23 @@ export type ChatSecuredHeaderMessage = {
 export type JoinedLeftMessage = {
   type: 'JoinedLeft',
   messageID?: MessageID,
+  rawMessageID: number,
   author: string,
   timestamp: number,
   message: HiddenString,
   key: MessageKey,
+  ordinal: number,
 }
 
 export type SystemMessage = {
   type: 'System',
   messageID?: MessageID,
+  rawMessageID: number,
   author: string,
   timestamp: number,
   message: HiddenString,
   key: MessageKey,
+  ordinal: number,
 }
 
 export type SupersedesMessage = {
@@ -176,6 +185,7 @@ export type DeletedMessage = {
   timestamp: number,
   key: MessageKey,
   messageID: MessageID,
+  rawMessageID: number,
   deletedIDs: Array<MessageID>,
 }
 
@@ -184,17 +194,20 @@ export type EditingMessage = {
   key: MessageKey,
   message: HiddenString,
   messageID: MessageID,
+  rawMessageID: number,
   outboxID?: ?OutboxIDKey,
   targetMessageID: MessageID,
   timestamp: number,
   mentions: Mentions,
   channelMention: ChannelMention,
+  ordinal: number,
 }
 
 export type UpdatingAttachment = {
   type: 'UpdateAttachment',
   key: MessageKey,
   messageID: MessageID,
+  rawMessageID: number,
   targetMessageID: MessageID,
   timestamp: number,
   updates: {
@@ -226,6 +239,12 @@ export type ServerMessage =
   | JoinedLeftMessage
 
 export type Message = ClientMessage | ServerMessage
+
+export type ConversationMessages = I.RecordOf<{
+  high: number,
+  low: number,
+  messages: I.List<MessageKey>,
+}>
 
 export type MaybeTimestamp = TimestampMessage | null
 export type _ConversationState = {
