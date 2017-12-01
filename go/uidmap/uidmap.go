@@ -410,7 +410,7 @@ func MapUIDsReturnMap(ctx context.Context, u libkb.UIDMapper, g libkb.UIDMapperC
 	}
 
 	resultList, err := u.MapUIDsToUsernamePackages(ctx, g, uidList, fullNameFreshness, networkTimeBudget, forceNetworkForFullNames)
-	if err != nil {
+	if err != nil && len(resultList) != len(uidList) {
 		return res, err
 	}
 
@@ -418,7 +418,7 @@ func MapUIDsReturnMap(ctx context.Context, u libkb.UIDMapper, g libkb.UIDMapperC
 	for i, uid := range uidList {
 		res[uid] = resultList[i]
 	}
-	return res, nil
+	return res, err
 }
 
 var _ libkb.UIDMapper = (*UIDMap)(nil)

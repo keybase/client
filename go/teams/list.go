@@ -339,6 +339,10 @@ func ListAll(ctx context.Context, g *libkb.GlobalContext, arg keybase1.TeamListA
 			continue
 		}
 
+		// TODO: memberUV is always empty for implicit admins that are
+		// not real members, because getTeamForMember will not try to
+		// look into ancestor teams.
+
 		if memberInfo.IsImplicitTeam && !arg.IncludeImplicitTeams {
 			g.Log.CDebugf(ctx, "| TeamList skipping implicit team: server-team:%v server-uid:%v", memberInfo.TeamID, memberInfo.UserID)
 			continue
@@ -381,27 +385,32 @@ func ListAll(ctx context.Context, g *libkb.GlobalContext, arg keybase1.TeamListA
 
 	namePkgs, err := uidmap.MapUIDsReturnMap(ctx, g.UIDMapper, g, uids, 0, 0, true)
 	if err != nil {
-		g.Log.CWarningf(ctx, "| Unable to load team members, uidmap returned: %v", err)
-		return res, nil
+		// UIDMap returned an error, but there may be useful data in the result.
+		g.Log.CDebugf(ctx, "| MapUIDsReturnMap returned: %v", err)
 	}
 
 	for i := range res.Teams {
 		member := &res.Teams[i]
-		pkg := namePkgs[member.UserID]
-
-		member.Username = pkg.NormalizedUsername.String()
-		if pkg.FullName != nil {
-			member.FullName = string(pkg.FullName.FullName)
-			if pkg.FullName.EldestSeqno != member.EldestSeqno {
-				member.Active = false
+		if pkg, ok := namePkgs[member.UserID]; ok {
+			member.Username = pkg.NormalizedUsername.String()
+			if pkg.FullName != nil {
+				member.FullName = string(pkg.FullName.FullName)
+				// TODO: We can't check if purely implicit admin is
+				// reset because we are not looking deep enough to get
+				// member uv. member.EldestSeqno will always be 0 for
+				// implicit admins. Only flag members that have actual
+				// role in the team here.
+				if member.Role != keybase1.TeamRole_NONE && pkg.FullName.EldestSeqno != member.EldestSeqno {
+					member.Active = false
+				}
 			}
 		}
 	}
 	for i, invite := range res.AnnotatedActiveInvites {
-		pkg := namePkgs[invite.Inviter.Uid]
-
-		invite.InviterUsername = pkg.NormalizedUsername.String()
-		res.AnnotatedActiveInvites[i] = invite
+		if pkg, ok := namePkgs[invite.Inviter.Uid]; ok {
+			invite.InviterUsername = pkg.NormalizedUsername.String()
+			res.AnnotatedActiveInvites[i] = invite
+		}
 	}
 
 	return res, nil
