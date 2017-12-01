@@ -898,49 +898,30 @@ function peg$parse(input, options) {
                   if (s2 === peg$FAILED) {
                     s2 = peg$parseEmoji();
                     if (s2 === peg$FAILED) {
-                      s2 = peg$currPos;
-                      s3 = peg$parseEscapedChar();
-                      if (s3 !== peg$FAILED) {
-                        s4 = [];
-                        s5 = peg$parseInlineStart();
-                        while (s5 !== peg$FAILED) {
-                          s4.push(s5);
-                          s5 = peg$parseInlineStart();
-                        }
-                        if (s4 !== peg$FAILED) {
-                          s3 = [s3, s4];
-                          s2 = s3;
-                        } else {
-                          peg$currPos = s2;
-                          s2 = peg$FAILED;
-                        }
-                      } else {
-                        peg$currPos = s2;
-                        s2 = peg$FAILED;
-                      }
+                      s2 = peg$parseNativeEmoji();
                       if (s2 === peg$FAILED) {
-                        s2 = peg$parseNativeEmoji();
-                        if (s2 === peg$FAILED) {
-                          s2 = peg$currPos;
+                        s2 = peg$currPos;
+                        s3 = peg$parseEscapedChar();
+                        if (s3 === peg$FAILED) {
                           s3 = peg$parseSpecialChar();
-                          if (s3 !== peg$FAILED) {
-                            s4 = [];
+                        }
+                        if (s3 !== peg$FAILED) {
+                          s4 = [];
+                          s5 = peg$parseInlineStart();
+                          while (s5 !== peg$FAILED) {
+                            s4.push(s5);
                             s5 = peg$parseInlineStart();
-                            while (s5 !== peg$FAILED) {
-                              s4.push(s5);
-                              s5 = peg$parseInlineStart();
-                            }
-                            if (s4 !== peg$FAILED) {
-                              s3 = [s3, s4];
-                              s2 = s3;
-                            } else {
-                              peg$currPos = s2;
-                              s2 = peg$FAILED;
-                            }
+                          }
+                          if (s4 !== peg$FAILED) {
+                            s3 = [s3, s4];
+                            s2 = s3;
                           } else {
                             peg$currPos = s2;
                             s2 = peg$FAILED;
                           }
+                        } else {
+                          peg$currPos = s2;
+                          s2 = peg$FAILED;
                         }
                       }
                     }
