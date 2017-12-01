@@ -868,7 +868,7 @@ function peg$parse(input, options) {
   }
 
   function peg$parseInlineStart() {
-    var s0, s1, s2, s3, s4, s5;
+    var s0, s1, s2, s3, s4;
 
     s0 = peg$parseInlineCode();
     if (s0 === peg$FAILED) {
@@ -906,11 +906,9 @@ function peg$parse(input, options) {
                           s3 = peg$parseSpecialChar();
                         }
                         if (s3 !== peg$FAILED) {
-                          s4 = [];
-                          s5 = peg$parseInlineStart();
-                          while (s5 !== peg$FAILED) {
-                            s4.push(s5);
-                            s5 = peg$parseInlineStart();
+                          s4 = peg$parseInlineStart();
+                          if (s4 === peg$FAILED) {
+                            s4 = null;
                           }
                           if (s4 !== peg$FAILED) {
                             s3 = [s3, s4];
@@ -966,9 +964,9 @@ function peg$parse(input, options) {
       if (s2 === peg$FAILED) {
         s2 = peg$parseEmoji();
         if (s2 === peg$FAILED) {
-          s2 = peg$parseEscapedChar();
+          s2 = peg$parseNativeEmoji();
           if (s2 === peg$FAILED) {
-            s2 = peg$parseNativeEmoji();
+            s2 = peg$parseEscapedChar();
             if (s2 === peg$FAILED) {
               s2 = peg$parseSpecialChar();
             }

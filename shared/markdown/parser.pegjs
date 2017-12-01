@@ -47,10 +47,10 @@ TextBlock
  = children:(__INLINE_MACRO__<> / InlineDelimiter)+ { return {type: 'text-block', children: flatten(children)} }
 
 InlineStart
- = InlineCode / Italic / Bold / Link / Mention / Strike / (!CodeBlock (Text / Emoji / NativeEmoji / ((EscapedChar / SpecialChar) InlineStart*)))
+ = InlineCode / Italic / Bold / Link / Mention / Strike / (!CodeBlock (Text / Emoji / NativeEmoji / ((EscapedChar / SpecialChar) InlineStart?)))
 
 InlineCont
- = !CodeBlock (Text / Emoji / EscapedChar / NativeEmoji / SpecialChar)
+ = !CodeBlock (Text / Emoji / NativeEmoji / EscapedChar / SpecialChar)
 
 InlineDelimiter
  = WhiteSpace / PunctuationMarker
