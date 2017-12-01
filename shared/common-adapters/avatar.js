@@ -1,6 +1,5 @@
 // @flow
 // High level avatar class. Handdles converting from usernames to urls. Deals with testing mode.
-// import * as React from 'react'
 import Render, {type AvatarSize} from './avatar.render'
 import pickBy from 'lodash/pickBy'
 import {iconTypeToImgSet, urlsToImgSet, type IconType} from './icon'

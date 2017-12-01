@@ -22,8 +22,6 @@ function SyncProps(ComposedComponent: any) {
       if (this.props.remoteWindow) {
         try {
           const props = this._getPropsToSend()
-          // TODO remove
-          console.log('aaa RemoteConnector sending props', JSON.stringify(props, null, 2))
           this.props.remoteWindow && this.props.remoteWindow.emit('props', props)
         } catch (e) {
           console.error(e)
