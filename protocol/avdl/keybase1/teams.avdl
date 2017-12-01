@@ -152,8 +152,12 @@ protocol teams {
     // in each slot generations _must_ start from 1 with no gaps
     map<TeamApplication,map<PerTeamKeyGeneration,MaskB64>> readerKeyMasks;
 
-    // Should only be used by TeamLoader
-    // because it is the only mutated field, and thus is not threadsafe to read.
+    // Should only be used by TeamLoader (because it is mutable, not threadsafe to read)
+    // The latest seqno of the remote team. Given by the server out of band.
+    // Used for caching.
+    Seqno latestSeqnoHint;
+
+    // Should only be used by TeamLoader (because it is mutable, not threadsafe to read)
     Time cachedAt;
   }
 
@@ -251,6 +255,11 @@ protocol teams {
     // Whether this is an open team.
     boolean open;
     TeamRole openTeamJoinAs;
+
+    // If there is a TLF associated, it shows up here. The last writer wins
+    // here, and we are not concerned about historical associations that have been
+    // overwritten (for now). An empty TLFID is given by an empty string.
+    TLFID tlfID;
   }
 
   // The team got this name at this point in time.
@@ -522,6 +531,7 @@ protocol teams {
   }
 
   record TeamCreateResult {
+    TeamID teamID;
     boolean chatSent;
     boolean creatorAdded;
   }
@@ -635,6 +645,7 @@ protocol teams {
     TeamID teamID;
     TeamName name;
     ImplicitTeamDisplayName displayName;
+    TLFID tlfID;
   }
 
   LookupImplicitTeamRes lookupImplicitTeam(string name, boolean public);

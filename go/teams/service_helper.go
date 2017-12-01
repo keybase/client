@@ -1067,3 +1067,17 @@ func CreateSeitanToken(ctx context.Context, g *libkb.GlobalContext, teamname str
 
 	return keybase1.SeitanIKey(ikey), err
 }
+
+// CreateTLF is called by KBFS when a TLF ID is associated with an implicit team. Should
+// only work for implicit teams, and should give an error if a named team is provided.
+func CreateTLF(ctx context.Context, g *libkb.GlobalContext, arg keybase1.CreateTLFArg) (err error) {
+	defer g.CTrace(ctx, fmt.Sprintf("CreateTLF(%v)", arg), func() error { return err })()
+	return RetryOnSigOldSeqnoError(ctx, g, func(ctx context.Context, _ int) error {
+		// Need admin because only admins can issue this link
+		t, err := GetForTeamManagementByTeamID(ctx, g, arg.TeamID, true)
+		if err != nil {
+			return err
+		}
+		return t.associateTLFID(ctx, arg.TlfID)
+	})
+}

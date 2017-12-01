@@ -25,7 +25,7 @@ func TestTeamOpenAutoAddMember(t *testing.T) {
 	teamName = strings.ToLower(teamName)
 
 	cli := own.teamsClient
-	_, err = cli.TeamCreateWithSettings(context.TODO(), keybase1.TeamCreateWithSettingsArg{
+	createRes, err := cli.TeamCreateWithSettings(context.TODO(), keybase1.TeamCreateWithSettingsArg{
 		Name:                 teamName,
 		SendChatNotification: false,
 		Settings: keybase1.TeamSettings{
@@ -34,6 +34,7 @@ func TestTeamOpenAutoAddMember(t *testing.T) {
 		},
 	})
 	require.NoError(t, err)
+	teamID := createRes.TeamID
 
 	t.Logf("Open team name is %q", teamName)
 
@@ -42,7 +43,7 @@ func TestTeamOpenAutoAddMember(t *testing.T) {
 	require.Equal(t, true, ret.Open)
 
 	own.kickTeamRekeyd()
-	own.waitForTeamChangedGregor(teamName, keybase1.Seqno(2))
+	own.waitForTeamChangedGregor(teamID, keybase1.Seqno(2))
 
 	teamObj, err := teams.Load(context.TODO(), own.tc.G, keybase1.LoadTeamArg{
 		Name:        teamName,
@@ -129,7 +130,7 @@ func TestOpenSubteamAdd(t *testing.T) {
 	roo.teamsClient.TeamRequestAccess(context.TODO(), keybase1.TeamRequestAccessArg{Name: subteamNameStr})
 
 	own.kickTeamRekeyd()
-	own.waitForTeamChangedGregor(subteamNameStr, keybase1.Seqno(3))
+	own.waitForTeamChangedGregor(*subteam, keybase1.Seqno(3))
 
 	subteamObj, err = teams.Load(context.TODO(), own.tc.G, keybase1.LoadTeamArg{
 		ID:          *subteam,
@@ -151,25 +152,25 @@ func TestTeamOpenMultipleTars(t *testing.T) {
 	tar3 := tt.addUser("roo3")
 	own := tt.addUser("own")
 
-	team := own.createTeam()
-	t.Logf("Open team name is %q", team)
+	teamID, teamName := own.createTeam2()
+	t.Logf("Open team name is %q", teamName.String())
 
 	// tar1 and tar2 request access before team is open.
-	tar1.teamsClient.TeamRequestAccess(context.TODO(), keybase1.TeamRequestAccessArg{Name: team})
-	tar2.teamsClient.TeamRequestAccess(context.TODO(), keybase1.TeamRequestAccessArg{Name: team})
+	tar1.teamsClient.TeamRequestAccess(context.TODO(), keybase1.TeamRequestAccessArg{Name: teamName.String()})
+	tar2.teamsClient.TeamRequestAccess(context.TODO(), keybase1.TeamRequestAccessArg{Name: teamName.String()})
 
 	// Change settings to open
-	err := teams.ChangeTeamSettings(context.TODO(), own.tc.G, team, keybase1.TeamSettings{Open: true, JoinAs: keybase1.TeamRole_READER})
+	err := teams.ChangeTeamSettings(context.TODO(), own.tc.G, teamName.String(), keybase1.TeamSettings{Open: true, JoinAs: keybase1.TeamRole_READER})
 	require.NoError(t, err)
 
 	// tar3 requests, but rekeyd will grab all requests
-	tar3.teamsClient.TeamRequestAccess(context.TODO(), keybase1.TeamRequestAccessArg{Name: team})
+	tar3.teamsClient.TeamRequestAccess(context.TODO(), keybase1.TeamRequestAccessArg{Name: teamName.String()})
 
 	own.kickTeamRekeyd()
-	own.waitForTeamChangedGregor(team, keybase1.Seqno(3))
+	own.waitForTeamChangedGregor(teamID, keybase1.Seqno(3))
 
 	teamObj, err := teams.Load(context.TODO(), own.tc.G, keybase1.LoadTeamArg{
-		Name:        team,
+		Name:        teamName.String(),
 		ForceRepoll: true,
 	})
 	require.NoError(t, err)

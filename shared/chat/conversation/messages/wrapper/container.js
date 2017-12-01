@@ -127,7 +127,8 @@ export default compose(
       if (
         this.props._editedCount !== prevProps._editedCount ||
         this.props.isFirstNewMessage !== prevProps.isFirstNewMessage ||
-        this.props.timestamp !== prevProps.timestamp
+        this.props.timestamp !== prevProps.timestamp ||
+        this.props.failureDescription !== prevProps.failureDescription
       ) {
         this.props.measure && this.props.measure()
       }

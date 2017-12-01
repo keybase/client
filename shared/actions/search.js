@@ -232,7 +232,7 @@ function* searchSuggestions({payload: {maxUsers, searchKey}}: SearchGen.SearchSu
   let suggestions: Array<
     RPCTypes.InterestingPerson
   > = yield Saga.call(RPCTypes.userInterestingPeopleRpcPromise, {
-    maxUsers: maxUsers || 0,
+    maxUsers: maxUsers || 50,
   })
 
   // No search results (e.g. this user doesn't follow/chat anyone)

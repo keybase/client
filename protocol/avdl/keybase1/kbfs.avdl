@@ -41,4 +41,9 @@ protocol kbfs {
         */
   @lint("ignore")
   void FSSyncEvent(FSPathSyncStatus event);
+
+
+  /* createTLF is called by TLF to associate the tlfID with the given teamID
+   */
+  void createTLF(TeamID teamID, TLFID tlfID);
 }
