@@ -3,10 +3,11 @@
 import * as React from 'react'
 import includes from 'lodash/includes'
 import throttle from 'lodash/throttle'
+import without from 'lodash/without'
 import Box from './box'
 import ReactDOM, {findDOMNode} from 'react-dom'
-import {withState} from '../util/container'
 import EscapeHandler from '../util/escape-handler'
+import {connect} from 'react-redux'
 
 const modalRoot = document.getElementById('modal-root')
 
@@ -26,28 +27,29 @@ class DOMNodeFinder
   }
 }
 
-function ModalHoc<P: {}>(WrappedComponent: React.ComponentType<P>): React.ComponentType<P> {
-  class Modal extends React.Component<P> {
-    el: HTMLElement
-    constructor() {
-      super()
-      this.el = document.createElement('div')
-    }
+class Modal extends React.Component<{setNode: (node: HTMLElement) => void, children: React.Element<*>}> {
+  el: HTMLElement
+  constructor() {
+    super()
+    this.el = document.createElement('div')
+  }
 
-    componentDidMount() {
-      modalRoot && modalRoot.appendChild(this.el)
-    }
-
-    componentWillUnmount() {
-      modalRoot && modalRoot.removeChild(this.el)
-    }
-
-    render() {
-      return ReactDOM.createPortal(<WrappedComponent {...this.props} />, this.el)
+  componentDidMount() {
+    modalRoot && modalRoot.appendChild(this.el)
+    const firstChild = this.el.firstChild
+    if (firstChild instanceof HTMLElement) {
+      this.props.setNode(firstChild)
     }
   }
 
-  return Modal
+  componentWillUnmount() {
+    modalRoot && modalRoot.removeChild(this.el)
+  }
+
+  render() {
+    const {children} = this.props
+    return ReactDOM.createPortal(React.Children.only(children), this.el)
+  }
 }
 
 type Position =
@@ -66,8 +68,20 @@ type ComputedStyle = {
   right?: number | 'auto',
   bottom?: number | 'auto',
 }
+
+const positions: Array<Position> = [
+  'top left',
+  'top right',
+  'bottom right',
+  'bottom left',
+  'right center',
+  'left center',
+  'top center',
+  'bottom center',
+]
+
 // Modified from https://github.com/Semantic-Org/Semantic-UI-React/blob/454daaab6e31459741e1cbce1b0c9a1a5f07bd2e/src/modules/Popup/Popup.js#L150
-function computePopupStyle(
+function _computePopupStyle(
   position: Position,
   coords: ClientRect,
   popupCoords: ClientRect,
@@ -122,17 +136,60 @@ function computePopupStyle(
   return style
 }
 
+function isStyleInViewport(style, popupCoords: ClientRect): boolean {
+  const {pageYOffset, pageXOffset} = window
+  const {clientWidth, clientHeight} = document.documentElement || {clientWidth: 800, clientHeight: 800}
+
+  const element = {
+    top: style.top,
+    left: style.left,
+    width: popupCoords.width,
+    height: popupCoords.height,
+  }
+  if (typeof style.right === 'number') {
+    element.left = clientWidth - style.right - element.width
+  }
+  if (typeof style.bottom === 'number') {
+    element.top = clientHeight - style.bottom - element.height
+  }
+
+  // hidden on top
+  if (element.top < pageYOffset) return false
+  // hidden on the bottom
+  if (element.top + element.height > pageYOffset + clientHeight) return false
+  // hidden the left
+  if (element.left < pageXOffset) return false
+  // hidden on the right
+  if (element.left + element.width > pageXOffset + clientWidth) return false
+
+  return true
+}
+
+function computePopupStyle(
+  position: Position,
+  coords: ClientRect,
+  popupCoords: ClientRect,
+  offset: ?number
+): ComputedStyle {
+  let style = _computePopupStyle(position, coords, popupCoords, offset)
+
+  const positionsShuffled = without(positions, position).concat([position])
+  for (let i = 0; !isStyleInViewport(style, popupCoords) && i < positionsShuffled.length; i += 1) {
+    style = _computePopupStyle(positionsShuffled[i], coords, popupCoords, offset)
+  }
+  return style
+}
+
 type ModalPositionRelativeProps<PP> = {
   targetNode: ?HTMLElement,
   position: Position,
-  onClose: () => void,
-  popupProps: PP,
-}
+  onClosePopup: () => void,
+} & PP
 
 function ModalPositionRelative<PP>(
   WrappedComponent: React.ComponentType<PP>
 ): React.ComponentType<ModalPositionRelativeProps<PP>> {
-  class Modal extends React.Component<ModalPositionRelativeProps<PP>, {style: {}}> {
+  class ModalPositionRelative extends React.Component<ModalPositionRelativeProps<PP>, {style: {}}> {
     popupNode: ?HTMLElement
     state: {style: {}}
     constructor() {
@@ -158,20 +215,20 @@ function ModalPositionRelative<PP>(
     }
 
     componentWillReceiveProps(nextProps: ModalPositionRelativeProps<PP>) {
-      if (!this.props.targetNode && nextProps.targetNode) {
+      if (nextProps.targetNode && this.props.targetNode !== nextProps.targetNode) {
         this._computeStyle(nextProps.targetNode)
       }
     }
 
     _handleClick = (e: MouseEvent) => {
       if (this.popupNode && e.target instanceof HTMLElement && !this.popupNode.contains(e.target)) {
-        this.props.onClose()
+        this.props.onClosePopup()
       }
     }
 
     _handleScroll = throttle(
       () => {
-        this.props.onClose()
+        this.props.onClosePopup()
       },
       500,
       {trailing: false}
@@ -195,60 +252,49 @@ function ModalPositionRelative<PP>(
 
     render() {
       return (
-        <Box style={this.state.style}>
-          <EscapeHandler onESC={this.props.onClose}>
-            <DOMNodeFinder setNode={this._setRef}>
-              <WrappedComponent {...(this.props.popupProps: PP)} />
-            </DOMNodeFinder>
-          </EscapeHandler>
-        </Box>
+        <Modal setNode={this._setRef}>
+          <Box style={this.state.style}>
+            <EscapeHandler onESC={this.props.onClosePopup}>
+              <WrappedComponent {...(this.props: PP)} />
+            </EscapeHandler>
+          </Box>
+        </Modal>
       )
     }
   }
 
-  return Modal
+  return ModalPositionRelative
 }
 
-type RelativePopupProps<TP, PP> = {
-  open: boolean,
-  onClose: () => void,
+type RelativePopupProps<PP: {}> = {
+  targetNode: ?HTMLElement,
   position: Position,
-  targetProps: TP,
-  popupProps: PP,
-}
+} & PP
 
-function RelativePopupHoc<TP, PP>(
-  TargetComponent: React.ComponentType<TP>,
+function RelativePopupHoc<PP: {}>(
   PopupComponent: React.ComponentType<PP>
-): React.ComponentType<RelativePopupProps<TP, PP>> {
-  const ModalPopupComponent = ModalHoc(ModalPositionRelative(PopupComponent))
-  return withState(
-    'targetNode',
-    'setTargetNode',
-    null
-  )(
-    (
-      props: {targetNode: ?HTMLElement, setTargetNode: (node: HTMLElement) => void} & RelativePopupProps<
-        TP,
-        PP
-      >
-    ) => {
-      return (
-        <Box>
-          <DOMNodeFinder setNode={props.setTargetNode}>
-            <TargetComponent {...(props.targetProps: TP)} />
-          </DOMNodeFinder>
-          {props.open &&
-            <ModalPopupComponent
-              onClose={props.onClose}
-              position={props.position}
-              targetNode={props.targetNode}
-              popupProps={props.popupProps}
-            />}
-        </Box>
-      )
-    }
+): React.ComponentType<RelativePopupProps<PP>> {
+  const ModalPopupComponent: React.ComponentType<ModalPositionRelativeProps<PP>> = ModalPositionRelative(
+    PopupComponent
   )
+
+  const C: React.ComponentType<
+    RelativePopupProps<PP>
+  > = connect(undefined, (dispatch, {navigateUp, routeProps}) => ({
+    onClosePopup: () => {
+      dispatch(navigateUp())
+      const onPopupWillClose = routeProps.get('onPopupWillClose')
+      onPopupWillClose && onPopupWillClose()
+    },
+    targetNode: routeProps.get('targetNode'),
+    position: routeProps.get('position'),
+  }))((props: RelativePopupProps<PP> & {onClosePopup: () => void}) => {
+    // $FlowIssue confusing error message
+    return <ModalPopupComponent {...(props: RelativePopupProps<PP>)} onClosePopup={props.onClosePopup} />
+  })
+
+  return C
 }
 
+export {DOMNodeFinder}
 export default RelativePopupHoc

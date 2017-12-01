@@ -133,6 +133,7 @@ body {
 }
 
 #modal-root {
+  display: inline-block;
 }
 
 .hover-underline {
