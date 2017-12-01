@@ -1,5 +1,45 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`Markdown parser Messed up 1`] = `
+Object {
+  "children": Array [
+    Object {
+      "children": Array [
+        "\`\`\`if (var == \\"foo\\")",
+      ],
+      "type": "text-block",
+    },
+    Object {
+      "children": Array [
+        "  echo \\"foo\\";",
+      ],
+      "type": "text-block",
+    },
+    Object {
+      "children": Array [
+        "else echo \\"bar\\";\`\`",
+      ],
+      "type": "text-block",
+    },
+  ],
+  "type": "markup",
+}
+`;
+
+exports[`Markdown parser Messed up 2`] = `
+Object {
+  "children": Array [
+    Object {
+      "children": Array [
+        "I think I *missed something**",
+      ],
+      "type": "text-block",
+    },
+  ],
+  "type": "markup",
+}
+`;
+
 exports[`Markdown parser eats multiple empty lines at end 1`] = `
 Object {
   "children": Array [
@@ -20,6 +60,27 @@ Object {
     Object {
       "children": Array [
         "start",
+      ],
+      "type": "text-block",
+    },
+  ],
+  "type": "markup",
+}
+`;
+
+exports[`Markdown parser inline code 1`] = `
+Object {
+  "children": Array [
+    Object {
+      "children": Array [
+        "I think we should try to use ",
+        Object {
+          "children": Array [
+            "if else",
+          ],
+          "type": "inline-code",
+        },
+        " statements",
       ],
       "type": "text-block",
     },
