@@ -194,7 +194,7 @@ func (md *MDServerRemote) OnConnect(ctx context.Context,
 		}
 	}()
 
-	md.log.CDebugf(ctx, "OnConnect called with a new connection")
+	md.log.CInfof(ctx, "OnConnect called with a new connection")
 
 	// we'll get replies asynchronously as to not block the connection
 	// for doing other active work for the user. they will be sent to
@@ -211,7 +211,7 @@ func (md *MDServerRemote) OnConnect(ctx context.Context,
 	switch err.(type) {
 	case nil:
 	case NoCurrentSessionError:
-		md.log.CDebugf(ctx, "Logged-out user")
+		md.log.CInfof(ctx, "Logged-out user")
 	default:
 		return err
 	}
@@ -245,7 +245,7 @@ func (md *MDServerRemote) resetAuth(
 
 	session, err := md.config.KBPKI().GetCurrentSession(ctx)
 	if err != nil {
-		md.log.CDebugf(ctx,
+		md.log.CInfof(ctx,
 			"Error getting current session (%+v), skipping resetAuth", err)
 		return MdServerDefaultPingIntervalSeconds, err
 	}
@@ -272,7 +272,7 @@ func (md *MDServerRemote) resetAuth(
 		md.log.CWarningf(ctx, "authentication error: %v", err)
 		return 0, err
 	}
-	md.log.CDebugf(ctx, "authentication successful; ping interval: %ds",
+	md.log.CInfof(ctx, "authentication successful; ping interval: %ds",
 		pingIntervalSeconds)
 
 	isAuthenticated = true
@@ -313,16 +313,18 @@ func (md *MDServerRemote) RefreshAuthToken(ctx context.Context) {
 	_, err := md.resetAuth(ctx, md.getClient())
 	switch err.(type) {
 	case nil:
-		md.log.CDebugf(ctx, "MDServerRemote: auth token refreshed")
+		md.log.CInfof(ctx, "MDServerRemote: auth token refreshed")
 	case NoCurrentSessionError:
-		md.log.CDebugf(ctx,
+		md.log.CInfof(ctx,
 			"MDServerRemote: no session available, connection remains anonymous")
 	default:
-		md.log.CDebugf(ctx,
+		md.log.CInfof(ctx,
 			"MDServerRemote: error refreshing auth token: %v", err)
-		// TODO: once KBFS-1982 is merged, an unknown error here
-		// should just cause a complete disconnect, and we can let the
-		// rpc connection do the retry.
+		err = md.reconnect()
+		if err != nil {
+			md.log.CWarningf(ctx,
+				"MDServerRemote: error calling md.reconnect(): %v", err)
+		}
 	}
 }
 
@@ -332,16 +334,16 @@ func (md *MDServerRemote) pingOnce(ctx context.Context) {
 	resp, err := md.getClient().Ping2(ctx)
 	if err == context.DeadlineExceeded {
 		if md.getIsAuthenticated() {
-			md.log.CDebugf(ctx, "Ping timeout -- reinitializing connection")
+			md.log.CInfof(ctx, "Ping timeout -- reinitializing connection")
 			if err = md.reconnect(); err != nil {
-				md.log.CDebugf(ctx, "reconnect error: %v", err)
+				md.log.CInfof(ctx, "reconnect error: %v", err)
 			}
 		} else {
-			md.log.CDebugf(ctx, "Ping timeout but not reinitializing")
+			md.log.CInfof(ctx, "Ping timeout but not reinitializing")
 		}
 		return
 	} else if err != nil {
-		md.log.CDebugf(ctx, "MDServerRemote: ping error %s", err)
+		md.log.CInfof(ctx, "MDServerRemote: ping error %s", err)
 		return
 	}
 	afterPing := clock.Now()
@@ -445,13 +447,13 @@ func (md *MDServerRemote) CheckReachability(ctx context.Context) {
 		md.mdSrvRemote.Peek(), MdServerPingTimeout)
 	if err != nil {
 		if md.getIsAuthenticated() {
-			md.log.CDebugf(ctx, "MDServerRemote: CheckReachability(): "+
+			md.log.CInfof(ctx, "MDServerRemote: CheckReachability(): "+
 				"failed to connect, reconnecting: %s", err.Error())
 			if err = md.reconnect(); err != nil {
-				md.log.CDebugf(ctx, "reconnect error: %v", err)
+				md.log.CInfof(ctx, "reconnect error: %v", err)
 			}
 		} else {
-			md.log.CDebugf(ctx, "MDServerRemote: CheckReachability(): "+
+			md.log.CInfof(ctx, "MDServerRemote: CheckReachability(): "+
 				"failed to connect (%s), but not reconnecting", err.Error())
 		}
 	}
