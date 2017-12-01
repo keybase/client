@@ -131,6 +131,55 @@ Object {
 }
 `;
 
+exports[`Markdown parser parses double bold as text 1`] = `
+Object {
+  "children": Array [
+    Object {
+      "children": Array [
+        "**hmm**",
+      ],
+      "type": "text-block",
+    },
+  ],
+  "type": "markup",
+}
+`;
+
+exports[`Markdown parser parses double bold with punctuation as text 1`] = `
+Object {
+  "children": Array [
+    Object {
+      "children": Array [
+        "*(*hmm**",
+      ],
+      "type": "text-block",
+    },
+  ],
+  "type": "markup",
+}
+`;
+
+exports[`Markdown parser parses double bold with splitting punctuation as single bold 1`] = `
+Object {
+  "children": Array [
+    Object {
+      "children": Array [
+        "*(",
+        Object {
+          "children": Array [
+            "hmm",
+          ],
+          "type": "bold",
+        },
+        ")*",
+      ],
+      "type": "text-block",
+    },
+  ],
+  "type": "markup",
+}
+`;
+
 exports[`Markdown parser parses escaped chars correctly 1`] = `
 Object {
   "children": Array [

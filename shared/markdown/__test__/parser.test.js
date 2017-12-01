@@ -70,6 +70,18 @@ describe('Markdown parser', () => {
     check('(@marco@keybase')
   })
 
+  it('parses double bold as text', () => {
+    check('**hmm**')
+  })
+
+  it('parses double bold with punctuation as text', () => {
+    check('*(*hmm**')
+  })
+
+  it('parses double bold with splitting punctuation as single bold', () => {
+    check('*(*hmm*)*')
+  })
+
   it('parses invalid emoji fragments correctly', () => {
     check('one::\n::two\n:three?::\n::four:\n::')
   })
