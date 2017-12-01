@@ -32,7 +32,10 @@ cp -r /SSH ~/.ssh
 # interrupt the build later.
 echo "Loading the Keybase code signing key in the container..."
 code_signing_fingerprint="$(cat /CLIENT/packaging/linux/code_signing_fingerprint)"
-gpg --import --quiet < /GPG/code_signing_key
+# Specifically use GnuPG v1 for the import, because modern versions need the
+# decryption password here, for some stupid reason, totally duplicative of the
+# password they'll need again below when we load the key into the agent.
+gpg1 --import < /GPG/code_signing_key
 true > /GPG/code_signing_key  # truncate it, just in case
 # Use very long lifetimes for the key in memory, so that we don't forget it in
 # the middle of a nightly loop.
