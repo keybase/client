@@ -53,17 +53,13 @@ func (e *Encoder) encodeSubsection(sectionName string, s *Subsection) error {
 		return err
 	}
 
-	if err := e.encodeOptions(s.Options); err != nil {
-		return err
-	}
-
-	return nil
+	return e.encodeOptions(s.Options)
 }
 
 func (e *Encoder) encodeOptions(opts Options) error {
 	for _, o := range opts {
 		pattern := "\t%s = %s\n"
-		if strings.Index(o.Value, "\\") != -1 {
+		if strings.Contains(o.Value, "\\") {
 			pattern = "\t%s = %q\n"
 		}
 

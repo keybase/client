@@ -31,17 +31,17 @@ type Storage struct {
 // NewStorage returns a new Storage base on memory
 func NewStorage() *Storage {
 	return &Storage{
-		ReferenceStorage: make(ReferenceStorage, 0),
+		ReferenceStorage: make(ReferenceStorage),
 		ConfigStorage:    ConfigStorage{},
 		ShallowStorage:   ShallowStorage{},
 		ObjectStorage: ObjectStorage{
-			Objects: make(map[plumbing.Hash]plumbing.EncodedObject, 0),
-			Commits: make(map[plumbing.Hash]plumbing.EncodedObject, 0),
-			Trees:   make(map[plumbing.Hash]plumbing.EncodedObject, 0),
-			Blobs:   make(map[plumbing.Hash]plumbing.EncodedObject, 0),
-			Tags:    make(map[plumbing.Hash]plumbing.EncodedObject, 0),
+			Objects: make(map[plumbing.Hash]plumbing.EncodedObject),
+			Commits: make(map[plumbing.Hash]plumbing.EncodedObject),
+			Trees:   make(map[plumbing.Hash]plumbing.EncodedObject),
+			Blobs:   make(map[plumbing.Hash]plumbing.EncodedObject),
+			Tags:    make(map[plumbing.Hash]plumbing.EncodedObject),
 		},
-		ModuleStorage: make(ModuleStorage, 0),
+		ModuleStorage: make(ModuleStorage),
 	}
 }
 
@@ -116,8 +116,7 @@ func (o *ObjectStorage) SetEncodedObject(obj plumbing.EncodedObject) (plumbing.H
 }
 
 func (o *ObjectStorage) HasEncodedObject(h plumbing.Hash) (err error) {
-	_, ok := o.Objects[h]
-	if !ok {
+	if _, ok := o.Objects[h]; !ok {
 		return plumbing.ErrObjectNotFound
 	}
 	return nil
@@ -161,7 +160,7 @@ func flattenObjectMap(m map[plumbing.Hash]plumbing.EncodedObject) []plumbing.Enc
 func (o *ObjectStorage) Begin() storer.Transaction {
 	return &TxObjectStorage{
 		Storage: o,
-		Objects: make(map[plumbing.Hash]plumbing.EncodedObject, 0),
+		Objects: make(map[plumbing.Hash]plumbing.EncodedObject),
 	}
 }
 
@@ -227,7 +226,7 @@ func (tx *TxObjectStorage) Commit() error {
 }
 
 func (tx *TxObjectStorage) Rollback() error {
-	tx.Objects = make(map[plumbing.Hash]plumbing.EncodedObject, 0)
+	tx.Objects = make(map[plumbing.Hash]plumbing.EncodedObject)
 	return nil
 }
 
@@ -242,16 +241,17 @@ func (r ReferenceStorage) SetReference(ref *plumbing.Reference) error {
 }
 
 func (r ReferenceStorage) CheckAndSetReference(ref, old *plumbing.Reference) error {
-	if ref != nil {
-		if old != nil {
-			tmp := r[ref.Name()]
-			if tmp != nil && tmp.Hash() != old.Hash() {
-				return ErrRefHasChanged
-			}
-		}
-		r[ref.Name()] = ref
+	if ref == nil {
+		return nil
 	}
 
+	if old != nil {
+		tmp := r[ref.Name()]
+		if tmp != nil && tmp.Hash() != old.Hash() {
+			return ErrRefHasChanged
+		}
+	}
+	r[ref.Name()] = ref
 	return nil
 }
 

@@ -808,11 +808,16 @@ func NeedsGC(storage storage.Storer, options GCOptions) (
 	doPackRefs = numLooseRefs > options.MaxLooseRefs
 
 	if options.PruneMinLooseObjects >= 0 {
+		los, ok := storage.(storer.LooseObjectStorer)
+		if !ok {
+			panic("storage is unexpectedly not a LooseObjectStorer")
+		}
+
 		// Count the number of loose objects that are older than the
 		// expire time, to see if pruning is needed.
 		numLooseMaybePrune := 0
-		err = storage.ForEachObjectHash(func(h plumbing.Hash) error {
-			t, err := storage.LooseObjectTime(h)
+		err = los.ForEachObjectHash(func(h plumbing.Hash) error {
+			t, err := los.LooseObjectTime(h)
 			if err != nil {
 				return err
 			}
@@ -830,7 +835,12 @@ func NeedsGC(storage storage.Storer, options GCOptions) (
 		}
 	}
 
-	packs, err := storage.ObjectPacks()
+	pos, ok := storage.(storer.PackedObjectStorer)
+	if !ok {
+		panic("storage is unexpectedly not a PackedObjectStorer")
+	}
+
+	packs, err := pos.ObjectPacks()
 	if err != nil {
 		return false, 0, false, false, 0, err
 	}
@@ -909,6 +919,8 @@ func GCRepo(
 		storage,
 		fsStorage.(storer.Initializer),
 		fsStorage.(storer.PackfileWriter),
+		fsStorage.(storer.LooseObjectStorer),
+		fsStorage.(storer.PackedObjectStorer),
 		10,
 	}
 

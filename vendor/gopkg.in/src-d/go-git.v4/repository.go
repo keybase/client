@@ -25,14 +25,15 @@ import (
 )
 
 var (
-	ErrInvalidReference        = errors.New("invalid reference, should be a tag or a branch")
-	ErrRepositoryNotExists     = errors.New("repository does not exist")
-	ErrRepositoryAlreadyExists = errors.New("repository already exists")
-	ErrRemoteNotFound          = errors.New("remote not found")
-	ErrRemoteExists            = errors.New("remote already exists	")
-	ErrWorktreeNotProvided     = errors.New("worktree should be provided")
-	ErrIsBareRepository        = errors.New("worktree not available in a bare repository")
-	ErrUnableToResolveCommit   = errors.New("unable to resolve commit")
+	ErrInvalidReference          = errors.New("invalid reference, should be a tag or a branch")
+	ErrRepositoryNotExists       = errors.New("repository does not exist")
+	ErrRepositoryAlreadyExists   = errors.New("repository already exists")
+	ErrRemoteNotFound            = errors.New("remote not found")
+	ErrRemoteExists              = errors.New("remote already exists	")
+	ErrWorktreeNotProvided       = errors.New("worktree should be provided")
+	ErrIsBareRepository          = errors.New("worktree not available in a bare repository")
+	ErrUnableToResolveCommit     = errors.New("unable to resolve commit")
+	ErrPackedObjectsNotSupported = errors.New("Packed objects not supported")
 )
 
 // Repository represents a git repository
@@ -325,7 +326,7 @@ func newRepository(s storage.Storer, worktree billy.Filesystem) *Repository {
 	return &Repository{
 		Storer: s,
 		wt:     worktree,
-		r:      make(map[string]*Remote, 0),
+		r:      make(map[string]*Remote),
 	}
 }
 
@@ -1026,8 +1027,13 @@ type RepackConfig struct {
 }
 
 func (r *Repository) RepackObjects(cfg *RepackConfig) (err error) {
+	pos, ok := r.Storer.(storer.PackedObjectStorer)
+	if !ok {
+		return ErrPackedObjectsNotSupported
+	}
+
 	// Get the existing object packs.
-	hs, err := r.Storer.ObjectPacks()
+	hs, err := pos.ObjectPacks()
 	if err != nil {
 		return err
 	}
@@ -1044,7 +1050,7 @@ func (r *Repository) RepackObjects(cfg *RepackConfig) (err error) {
 		if h == nh {
 			continue
 		}
-		err = r.Storer.DeleteOldObjectPackAndIndex(h, cfg.OnlyDeletePacksOlderThan)
+		err = pos.DeleteOldObjectPackAndIndex(h, cfg.OnlyDeletePacksOlderThan)
 		if err != nil {
 			return err
 		}
@@ -1084,5 +1090,22 @@ func (r *Repository) createNewObjectPack(cfg *RepackConfig) (h plumbing.Hash, er
 	if err != nil {
 		return h, err
 	}
+
+	// Delete the packed, loose objects.
+	if los, ok := r.Storer.(storer.LooseObjectStorer); ok {
+		err = los.ForEachObjectHash(func(hash plumbing.Hash) error {
+			if ow.isSeen(hash) {
+				err := los.DeleteLooseObject(hash)
+				if err != nil {
+					return err
+				}
+			}
+			return nil
+		})
+		if err != nil {
+			return h, err
+		}
+	}
+
 	return h, err
 }

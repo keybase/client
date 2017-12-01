@@ -65,8 +65,8 @@ type Config struct {
 // NewConfig returns a new empty Config.
 func NewConfig() *Config {
 	return &Config{
-		Remotes:    make(map[string]*RemoteConfig, 0),
-		Submodules: make(map[string]*Submodule, 0),
+		Remotes:    make(map[string]*RemoteConfig),
+		Submodules: make(map[string]*Submodule),
 		Raw:        format.New(),
 	}
 }
@@ -290,13 +290,8 @@ func (c *RemoteConfig) unmarshal(s *format.Subsection) error {
 		fetch = append(fetch, rs)
 	}
 
-	var urls []string
-	for _, f := range c.raw.Options.GetAll(urlKey) {
-		urls = append(urls, f)
-	}
-
 	c.Name = c.raw.Name
-	c.URLs = urls
+	c.URLs = append([]string(nil), c.raw.Options.GetAll(urlKey)...)
 	c.Fetch = fetch
 
 	return nil

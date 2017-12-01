@@ -215,12 +215,10 @@ var len8tab = [256]uint8{
 }
 
 func hashBlock(raw []byte, ptr int) int {
-	var hash uint32
-
 	// The first 4 steps collapse out into a 4 byte big-endian decode,
 	// with a larger right shift as we combined shift lefts together.
 	//
-	hash = ((uint32(raw[ptr]) & 0xff) << 24) |
+	hash := ((uint32(raw[ptr]) & 0xff) << 24) |
 		((uint32(raw[ptr+1]) & 0xff) << 16) |
 		((uint32(raw[ptr+2]) & 0xff) << 8) |
 		(uint32(raw[ptr+3]) & 0xff)

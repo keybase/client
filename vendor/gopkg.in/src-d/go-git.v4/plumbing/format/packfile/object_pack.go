@@ -84,11 +84,7 @@ func (o *ObjectToPack) Size() int64 {
 }
 
 func (o *ObjectToPack) IsDelta() bool {
-	if o.Base != nil {
-		return true
-	}
-
-	return false
+	return o.Base != nil
 }
 
 func (o *ObjectToPack) SetDelta(base *ObjectToPack, delta plumbing.EncodedObject) {

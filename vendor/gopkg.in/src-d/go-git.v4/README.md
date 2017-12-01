@@ -76,18 +76,17 @@ Info("git log")
 ref, err := r.Head()
 CheckIfError(err)
 
-// ... retrieves the commit object
-commit, err := r.CommitObject(ref.Hash())
-CheckIfError(err)
 
 // ... retrieves the commit history
-history, err := commit.History()
+cIter, err := r.Log(&git.LogOptions{From: ref.Hash()})
 CheckIfError(err)
 
 // ... just iterates over the commits, printing it
-for _, c := range history {
-    fmt.Println(c)
-}
+err = cIter.ForEach(func(c *object.Commit) error {
+	fmt.Println(c)
+	return nil
+})
+CheckIfError(err)
 ```
 
 Outputs:

@@ -600,7 +600,7 @@ func getHaves(
 	}
 
 	for _, ref := range localRefs {
-		if haves[ref.Hash()] == true {
+		if haves[ref.Hash()] {
 			continue
 		}
 
@@ -638,7 +638,7 @@ func calculateRefs(
 		return nil, err
 	}
 
-	refs := make(memory.ReferenceStorage, 0)
+	refs := make(memory.ReferenceStorage)
 	return refs, iter.ForEach(func(ref *plumbing.Reference) error {
 		if !config.MatchAny(spec, ref.Name()) {
 			return nil

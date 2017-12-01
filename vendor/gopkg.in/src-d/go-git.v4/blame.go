@@ -147,10 +147,7 @@ func (b *blame) fillRevs() error {
 	var err error
 
 	b.revs, err = references(b.fRev, b.path)
-	if err != nil {
-		return err
-	}
-	return nil
+	return err
 }
 
 // build graph of a file from its revision history
@@ -244,7 +241,7 @@ func (b *blame) GoString() string {
 
 	lines := strings.Split(contents, "\n")
 	// max line number length
-	mlnl := len(fmt.Sprintf("%s", strconv.Itoa(len(lines))))
+	mlnl := len(strconv.Itoa(len(lines)))
 	// max author length
 	mal := b.maxAuthorLength()
 	format := fmt.Sprintf("%%s (%%-%ds %%%dd) %%s\n",

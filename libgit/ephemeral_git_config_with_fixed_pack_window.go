@@ -6,6 +6,7 @@ package libgit
 
 import (
 	"io"
+	"time"
 
 	gogitcfg "gopkg.in/src-d/go-git.v4/config"
 	"gopkg.in/src-d/go-git.v4/plumbing"
@@ -20,6 +21,8 @@ type ephemeralGitConfigWithFixedPackWindow struct {
 	storage.Storer
 	initer     storer.Initializer
 	pfWriter   storer.PackfileWriter
+	los        storer.LooseObjectStorer
+	pos        storer.PackedObjectStorer
 	packWindow uint
 }
 
@@ -53,6 +56,39 @@ func (e *ephemeralGitConfigWithFixedPackWindow) SetConfig(c *gogitcfg.Config) (
 	return nil
 }
 
+// ForEachObjectHash implements the `storer.LooseObjectStorer` interface.
+func (e *ephemeralGitConfigWithFixedPackWindow) ForEachObjectHash(
+	f func(plumbing.Hash) error) error {
+	return e.los.ForEachObjectHash(f)
+}
+
+// LooseObjectHash implements the `storer.LooseObjectStorer` interface.
+func (e *ephemeralGitConfigWithFixedPackWindow) LooseObjectTime(
+	h plumbing.Hash) (time.Time, error) {
+	return e.los.LooseObjectTime(h)
+}
+
+// DeleteLooseObject implements the `storer.LooseObjectStorer` interface.
+func (e *ephemeralGitConfigWithFixedPackWindow) DeleteLooseObject(
+	h plumbing.Hash) error {
+	return e.los.DeleteLooseObject(h)
+}
+
+// ObjectPacks implements the `storer.PackedObjectStorer` interface.
+func (e *ephemeralGitConfigWithFixedPackWindow) ObjectPacks() (
+	[]plumbing.Hash, error) {
+	return e.pos.ObjectPacks()
+}
+
+// DeleteOldObjectPackAndIndex implements the
+// `storer.PackedObjectStorer` interface.
+func (e *ephemeralGitConfigWithFixedPackWindow) DeleteOldObjectPackAndIndex(
+	h plumbing.Hash, t time.Time) error {
+	return e.pos.DeleteOldObjectPackAndIndex(h, t)
+}
+
 var _ storage.Storer = (*ephemeralGitConfigWithFixedPackWindow)(nil)
 var _ storer.Initializer = (*ephemeralGitConfigWithFixedPackWindow)(nil)
 var _ storer.PackfileWriter = (*ephemeralGitConfigWithFixedPackWindow)(nil)
+var _ storer.LooseObjectStorer = (*ephemeralGitConfigWithFixedPackWindow)(nil)
+var _ storer.PackedObjectStorer = (*ephemeralGitConfigWithFixedPackWindow)(nil)

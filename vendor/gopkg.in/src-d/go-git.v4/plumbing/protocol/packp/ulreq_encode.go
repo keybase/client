@@ -70,7 +70,7 @@ func (e *ulReqEncoder) encodeFirstWant() stateFn {
 func (e *ulReqEncoder) encodeAditionalWants() stateFn {
 	last := e.data.Wants[0]
 	for _, w := range e.data.Wants[1:] {
-		if bytes.Compare(last[:], w[:]) == 0 {
+		if bytes.Equal(last[:], w[:]) {
 			continue
 		}
 
@@ -90,7 +90,7 @@ func (e *ulReqEncoder) encodeShallows() stateFn {
 
 	var last plumbing.Hash
 	for _, s := range e.data.Shallows {
-		if bytes.Compare(last[:], s[:]) == 0 {
+		if bytes.Equal(last[:], s[:]) {
 			continue
 		}
 

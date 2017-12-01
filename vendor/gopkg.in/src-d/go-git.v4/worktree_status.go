@@ -39,7 +39,7 @@ func (w *Worktree) Status() (Status, error) {
 }
 
 func (w *Worktree) status(commit plumbing.Hash) (Status, error) {
-	s := make(Status, 0)
+	s := make(Status)
 
 	left, err := w.diffCommitWithStaging(commit, false)
 	if err != nil {

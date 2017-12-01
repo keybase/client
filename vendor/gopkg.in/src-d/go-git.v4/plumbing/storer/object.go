@@ -40,24 +40,6 @@ type EncodedObjectStorer interface {
 	// HasEncodedObject returns ErrObjNotFound if the object doesn't
 	// exist.  If the object does exist, it returns nil.
 	HasEncodedObject(plumbing.Hash) error
-	// ForEachObjectHash iterates over all the (loose) object hashes
-	// in the repository without necessarily having to read those objects.
-	// Objects only inside pack files may be omitted.
-	// If ErrStop is sent the iteration is stop but no error is returned.
-	ForEachObjectHash(func(plumbing.Hash) error) error
-	// LooseObjectTime looks up the (m)time associated with the
-	// loose object (that is not in a pack file). Some
-	// implementations (e.g. without loose objects)
-	// always return an error.
-	LooseObjectTime(plumbing.Hash) (time.Time, error)
-	// DeleteLooseObject deletes a loose object if it exists.
-	DeleteLooseObject(plumbing.Hash) error
-	// ObjectPacks returns hashes of object packs if the underlying
-	// implementation has pack files.
-	ObjectPacks() ([]plumbing.Hash, error)
-	// DeleteOldObjectPackAndIndex deletes an object pack and the corresponding index file if they exist.
-	// Deletion is only performed if the pack is older than the supplied time (or the time is zero).
-	DeleteOldObjectPackAndIndex(plumbing.Hash, time.Time) error
 }
 
 // DeltaObjectStorer is an EncodedObjectStorer that can return delta
@@ -73,6 +55,34 @@ type DeltaObjectStorer interface {
 type Transactioner interface {
 	// Begin starts a transaction.
 	Begin() Transaction
+}
+
+// LooseObjectStorer is an optional interface for managing "loose"
+// objects, i.e. those not in packfiles.
+type LooseObjectStorer interface {
+	// ForEachObjectHash iterates over all the (loose) object hashes
+	// in the repository without necessarily having to read those objects.
+	// Objects only inside pack files may be omitted.
+	// If ErrStop is sent the iteration is stop but no error is returned.
+	ForEachObjectHash(func(plumbing.Hash) error) error
+	// LooseObjectTime looks up the (m)time associated with the
+	// loose object (that is not in a pack file). Some
+	// implementations (e.g. without loose objects)
+	// always return an error.
+	LooseObjectTime(plumbing.Hash) (time.Time, error)
+	// DeleteLooseObject deletes a loose object if it exists.
+	DeleteLooseObject(plumbing.Hash) error
+}
+
+// PackedObjectStorer is an optional interface for managing objects in
+// packfiles.
+type PackedObjectStorer interface {
+	// ObjectPacks returns hashes of object packs if the underlying
+	// implementation has pack files.
+	ObjectPacks() ([]plumbing.Hash, error)
+	// DeleteOldObjectPackAndIndex deletes an object pack and the corresponding index file if they exist.
+	// Deletion is only performed if the pack is older than the supplied time (or the time is zero).
+	DeleteOldObjectPackAndIndex(plumbing.Hash, time.Time) error
 }
 
 // PackfileWriter is a optional method for ObjectStorer, it enable direct write

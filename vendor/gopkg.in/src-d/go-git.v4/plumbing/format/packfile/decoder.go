@@ -105,7 +105,7 @@ func NewDecoderForType(s *Scanner, o storer.EncodedObjectStorer,
 		o: o,
 
 		idx:          NewIndex(0),
-		offsetToType: make(map[int64]plumbing.ObjectType, 0),
+		offsetToType: make(map[int64]plumbing.ObjectType),
 		decoderType:  t,
 	}, nil
 }

@@ -312,6 +312,7 @@ func (d *DotGit) checkReferenceAndTruncate(f billy.File, old *plumbing.Reference
 			return err
 		}
 	}
+
 	if ref.Hash() != old.Hash() {
 		return fmt.Errorf("reference has changed concurrently")
 	}
@@ -319,11 +320,7 @@ func (d *DotGit) checkReferenceAndTruncate(f billy.File, old *plumbing.Reference
 	if err != nil {
 		return err
 	}
-	err = f.Truncate(0)
-	if err != nil {
-		return err
-	}
-	return nil
+	return f.Truncate(0)
 }
 
 func (d *DotGit) SetRef(r, old *plumbing.Reference) (err error) {
@@ -397,17 +394,7 @@ func (d *DotGit) Ref(name plumbing.ReferenceName) (*plumbing.Reference, error) {
 	return d.packedRef(name)
 }
 
-func (d *DotGit) findPackedRefs() ([]*plumbing.Reference, error) {
-	f, err := d.fs.Open(packedRefsPath)
-	if err != nil {
-		if os.IsNotExist(err) {
-			return nil, nil
-		}
-		return nil, err
-	}
-
-	defer ioutil.CheckClose(f, &err)
-
+func (d *DotGit) findPackedRefsInFile(f billy.File) ([]*plumbing.Reference, error) {
 	s := bufio.NewScanner(f)
 	var refs []*plumbing.Reference
 	for s.Scan() {
@@ -422,6 +409,19 @@ func (d *DotGit) findPackedRefs() ([]*plumbing.Reference, error) {
 	}
 
 	return refs, s.Err()
+}
+
+func (d *DotGit) findPackedRefs() ([]*plumbing.Reference, error) {
+	f, err := d.fs.Open(packedRefsPath)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	defer ioutil.CheckClose(f, &err)
+	return d.findPackedRefsInFile(f)
 }
 
 func (d *DotGit) packedRef(name plumbing.ReferenceName) (*plumbing.Reference, error) {
@@ -470,38 +470,82 @@ func (d *DotGit) addRefsFromPackedRefs(refs *[]*plumbing.Reference, seen map[plu
 	return nil
 }
 
-func (d *DotGit) rewritePackedRefsWithoutRef(name plumbing.ReferenceName) (err error) {
-	f, err := d.fs.Open(packedRefsPath)
+func (d *DotGit) addRefsFromPackedRefsFile(refs *[]*plumbing.Reference, f billy.File, seen map[plumbing.ReferenceName]bool) (err error) {
+	packedRefs, err := d.findPackedRefsInFile(f)
 	if err != nil {
-		if os.IsNotExist(err) {
-			return nil
+		return err
+	}
+
+	for _, ref := range packedRefs {
+		if !seen[ref.Name()] {
+			*refs = append(*refs, ref)
+			seen[ref.Name()] = true
 		}
-
-		return err
 	}
-	defer ioutil.CheckClose(f, &err)
+	return nil
+}
 
-	err = f.Lock()
-	if err != nil {
-		return err
-	}
-
-	// Re-open the file after locking, since it could have been
-	// renamed over by a new file during the Lock process.
-	pr, err := d.fs.Open(packedRefsPath)
-	if err != nil {
-		if os.IsNotExist(err) {
-			return nil
-		}
-
-		return err
-	}
-	doClosePR := true
+func (d *DotGit) openAndLockPackedRefs(doCreate bool) (
+	pr billy.File, err error) {
+	var f billy.File
 	defer func() {
-		if doClosePR {
-			ioutil.CheckClose(pr, &err)
+		if err != nil && f != nil {
+			ioutil.CheckClose(f, &err)
 		}
 	}()
+
+	openFlags := os.O_RDWR
+	if doCreate {
+		openFlags |= os.O_CREATE
+	}
+
+	// Keep trying to open and lock the file until we're sure the file
+	// didn't change between the open and the lock.
+	for {
+		f, err = d.fs.OpenFile(packedRefsPath, openFlags, 0600)
+		if err != nil {
+			if os.IsNotExist(err) && !doCreate {
+				return nil, nil
+			}
+
+			return nil, err
+		}
+		fi, err := d.fs.Stat(packedRefsPath)
+		if err != nil {
+			return nil, err
+		}
+		mtime := fi.ModTime()
+
+		err = f.Lock()
+		if err != nil {
+			return nil, err
+		}
+
+		fi, err = d.fs.Stat(packedRefsPath)
+		if err != nil {
+			return nil, err
+		}
+		if mtime == fi.ModTime() {
+			break
+		}
+		// The file has changed since we opened it.  Close and retry.
+		err = f.Close()
+		if err != nil {
+			return nil, err
+		}
+	}
+	return f, nil
+}
+
+func (d *DotGit) rewritePackedRefsWithoutRef(name plumbing.ReferenceName) (err error) {
+	pr, err := d.openAndLockPackedRefs(false)
+	if err != nil {
+		return err
+	}
+	if pr == nil {
+		return nil
+	}
+	defer ioutil.CheckClose(pr, &err)
 
 	// Creating the temp file in the same directory as the target file
 	// improves our chances for rename operation to be atomic.
@@ -509,11 +553,10 @@ func (d *DotGit) rewritePackedRefsWithoutRef(name plumbing.ReferenceName) (err e
 	if err != nil {
 		return err
 	}
-	doCloseTmp := true
+	tmpName := tmp.Name()
 	defer func() {
-		if doCloseTmp {
-			ioutil.CheckClose(tmp, &err)
-		}
+		ioutil.CheckClose(tmp, &err)
+		_ = d.fs.Remove(tmpName) // don't check err, we might have renamed it
 	}()
 
 	s := bufio.NewScanner(pr)
@@ -540,26 +583,10 @@ func (d *DotGit) rewritePackedRefsWithoutRef(name plumbing.ReferenceName) (err e
 	}
 
 	if !found {
-		doCloseTmp = false
-		ioutil.CheckClose(tmp, &err)
-		if err != nil {
-			return err
-		}
-		// Delete the temp file if nothing needed to be removed.
-		return d.fs.Remove(tmp.Name())
+		return nil
 	}
 
-	doClosePR = false
-	if err := pr.Close(); err != nil {
-		return err
-	}
-
-	doCloseTmp = false
-	if err := tmp.Close(); err != nil {
-		return err
-	}
-
-	return d.fs.Rename(tmp.Name(), packedRefsPath)
+	return d.rewritePackedRefsWhileLocked(tmp, pr)
 }
 
 // process lines from a packed-refs file
@@ -699,45 +726,29 @@ func (d *DotGit) CountLooseRefs() (int, error) {
 // PackRefs packs all loose refs into the packed-refs file.
 //
 // This implementation only works under the assumption that the view
-// of the file system won't be updated during this operation, which is
-// true for kbfsgit after the Lock() operation is complete (and before
-// the Unlock()/Close() of the locked file).  If another process
-// concurrently updates one of the loose refs we delete, then KBFS
-// conflict resolution would just end up ignoring our delete.  Also
-// note that deleting a ref requires locking packed-refs, so a ref
-// deleted by the user shouldn't be revived by ref-packing.
-//
-// The strategy would not work on a general file system though,
-// without locking each loose reference and checking it again before
-// deleting the file, because otherwise an updated reference could
-// sneak in and then be deleted by the packed-refs process.
-// Alternatively, every ref update could also lock packed-refs, so
-// only one lock is required during ref-packing.  But that would
-// worsen performance in the common case.
-//
-// TODO: before trying to get this merged upstream, move it into a
-// custom kbfsgit Storer implementation, and rewrite this function to
-// work correctly on a general filesystem.
+// of the file system won't be updated during this operation.  This
+// strategy would not work on a general file system though, without
+// locking each loose reference and checking it again before deleting
+// the file, because otherwise an updated reference could sneak in and
+// then be deleted by the packed-refs process.  Alternatively, every
+// ref update could also lock packed-refs, so only one lock is
+// required during ref-packing.  But that would worsen performance in
+// the common case.
 //
 // TODO: add an "all" boolean like the `git pack-refs --all` flag.
 // When `all` is false, it would only pack refs that have already been
 // packed, plus all tags.
 func (d *DotGit) PackRefs() (err error) {
 	// Lock packed-refs, and create it if it doesn't exist yet.
-	f, err := d.fs.OpenFile(packedRefsPath, os.O_RDWR|os.O_CREATE, 0600)
+	f, err := d.openAndLockPackedRefs(true)
 	if err != nil {
 		return err
 	}
 	defer ioutil.CheckClose(f, &err)
 
-	err = f.Lock()
-	if err != nil {
-		return err
-	}
-
 	// Gather all refs using addRefsFromRefDir and addRefsFromPackedRefs.
 	var refs []*plumbing.Reference
-	var seen = make(map[plumbing.ReferenceName]bool)
+	seen := make(map[plumbing.ReferenceName]bool)
 	if err := d.addRefsFromRefDir(&refs, seen); err != nil {
 		return err
 	}
@@ -746,7 +757,7 @@ func (d *DotGit) PackRefs() (err error) {
 		return nil
 	}
 	numLooseRefs := len(refs)
-	if err := d.addRefsFromPackedRefs(&refs, seen); err != nil {
+	if err := d.addRefsFromPackedRefsFile(&refs, f, seen); err != nil {
 		return err
 	}
 
@@ -755,12 +766,12 @@ func (d *DotGit) PackRefs() (err error) {
 	if err != nil {
 		return err
 	}
-	doCloseTmp := true
+	tmpName := tmp.Name()
 	defer func() {
-		if doCloseTmp {
-			ioutil.CheckClose(tmp, &err)
-		}
+		ioutil.CheckClose(tmp, &err)
+		_ = d.fs.Remove(tmpName) // don't check err, we might have renamed it
 	}()
+
 	w := bufio.NewWriter(tmp)
 	for _, ref := range refs {
 		_, err := w.WriteString(ref.String() + "\n")
@@ -774,11 +785,7 @@ func (d *DotGit) PackRefs() (err error) {
 	}
 
 	// Rename the temp packed-refs file.
-	doCloseTmp = false
-	if err := tmp.Close(); err != nil {
-		return err
-	}
-	err = d.fs.Rename(tmp.Name(), packedRefsPath)
+	err = d.rewritePackedRefsWhileLocked(tmp, f)
 	if err != nil {
 		return err
 	}

@@ -63,21 +63,15 @@ func (e *Encoder) encodeLine(p []byte) error {
 	}
 
 	if bytes.Equal(p, Flush) {
-		if err := e.Flush(); err != nil {
-			return err
-		}
-		return nil
+		return e.Flush()
 	}
 
 	n := len(p) + 4
 	if _, err := e.w.Write(asciiHex16(n)); err != nil {
 		return err
 	}
-	if _, err := e.w.Write(p); err != nil {
-		return err
-	}
-
-	return nil
+	_, err := e.w.Write(p)
+	return err
 }
 
 // Returns the hexadecimal ascii representation of the 16 less

@@ -77,7 +77,7 @@ func (r *ServerResponse) stopReading(reader *bufio.Reader) (bool, error) {
 func (r *ServerResponse) isValidCommand(b []byte) bool {
 	commands := [][]byte{ack, nak}
 	for _, c := range commands {
-		if bytes.Compare(b, c) == 0 {
+		if bytes.Equal(b, c) {
 			return true
 		}
 	}
@@ -90,11 +90,11 @@ func (r *ServerResponse) decodeLine(line []byte) error {
 		return fmt.Errorf("unexpected flush")
 	}
 
-	if bytes.Compare(line[0:3], ack) == 0 {
+	if bytes.Equal(line[0:3], ack) {
 		return r.decodeACKLine(line)
 	}
 
-	if bytes.Compare(line[0:3], nak) == 0 {
+	if bytes.Equal(line[0:3], nak) {
 		return nil
 	}
 
