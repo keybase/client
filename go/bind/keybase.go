@@ -158,6 +158,10 @@ func Init(homeDir string, logFile string, runModeStr string, accessGroupOverride
 		// true in a mobile setting. Kill this setting if too spammy.
 		// (Setting to false now 2017-08-21 PC)
 		kbfsParams.Debug = false
+		// Set bserver address to "memory" to disable connecting to bserver on
+		// mobile.
+		// TODO: remove this when we start working on KBFS on mobile.
+		kbfsParams.BServerAddr = "memory"
 		kbfsParams.Mode = libkbfs.InitMinimalString
 		kbfsConfig, _ = libkbfs.Init(
 			context.Background(), kbfsCtx, kbfsParams, serviceCn{}, func() {},
