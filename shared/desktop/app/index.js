@@ -6,7 +6,6 @@ import installer from './installer'
 import menuBar from './menu-bar'
 import os from 'os'
 import semver from 'semver'
-import storeHelper from './store-helper'
 import windowHelper from './window-helper'
 import {BrowserWindow, app, ipcMain, dialog, crashReporter} from 'electron'
 import {setupExecuteActionsListener, executeActionsForContext} from '../../util/quit-helper.desktop'
@@ -91,7 +90,6 @@ function start() {
   app.once('ready', () => {
     mainWindow = MainWindow()
     _maybeTellMainWindowAboutMenubar()
-    storeHelper(mainWindow)
     ipcMain.on('mainWindowWantsMenubarWindowID', () => {
       _maybeTellMainWindowAboutMenubar()
     })

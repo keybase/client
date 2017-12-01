@@ -47,7 +47,8 @@ function SyncAvatarProps(ComposedComponent: any) {
     }
 
     render() {
-      const {_allAvatars, _avatars, ...props} = this.props
+      // Don't send our internal props forward
+      const {_allAvatars, _avatars, setUsernames, usernames, ...props} = this.props
       const config = {
         avatars: _avatars,
       }
@@ -59,12 +60,16 @@ function SyncAvatarProps(ComposedComponent: any) {
     _allAvatars: state.config.avatars,
   })
 
-  const mergeProps = (stateProps, dispatchProps, ownProps) => ({
-    ...stateProps,
-    ...dispatchProps,
-    ...ownProps,
-    _avatars: pick(stateProps._allAvatars, ownProps.usernames.toArray()),
-  })
+  const mergeProps = (stateProps, dispatchProps, ownProps) => {
+    const {_allAvatars, ..._stateProps} = stateProps
+
+    return {
+      ..._stateProps,
+      ...dispatchProps,
+      ...ownProps,
+      _avatars: pick(_allAvatars, ownProps.usernames.toArray()),
+    }
+  }
 
   return compose(
     withState('usernames', 'setUsernames', I.Set()),

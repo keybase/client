@@ -16,7 +16,12 @@ const purgeMapPropsToState = (state: TypedState) => {
 }
 
 // Actions are handled by remote-container
-const RemotePurge = compose(connect(purgeMapPropsToState, () => ({})), SyncBrowserWindow, SyncProps, renderNothing)(null)
+const RemotePurge = compose(
+  connect(purgeMapPropsToState, () => ({})),
+  SyncBrowserWindow,
+  SyncProps,
+  renderNothing
+)(null)
 
 type Props = {
   show: boolean,

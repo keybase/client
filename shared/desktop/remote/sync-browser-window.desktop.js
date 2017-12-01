@@ -149,6 +149,7 @@ function BrowserWindowSync(ComposedComponent: any) {
     }
 
     render() {
+      // Don't forward our internal props
       const {windowOpts, positionBottomRight, title, ...props} = this.props
       return <ComposedComponent {...props} remoteWindow={this.state.remoteWindow} />
     }
