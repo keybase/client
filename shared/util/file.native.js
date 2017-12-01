@@ -28,16 +28,10 @@ function stat(filepath: string): Promise<StatResult> {
   return RNFetchBlob.fs.stat(filepath).then(stats => ({size: stats.size}))
 }
 
-function writeFile(filepath: string, contents: string, encoding?: string): Promise<void> {
-  return RNFetchBlob.fs
-    .createFile(filepath, '', encoding)
-    .then(() => RNFetchBlob.fs.writeFile(filepath, contents, encoding))
-}
-
 function writeStream(filepath: string, encoding: string, append?: boolean): Promise<*> {
   return RNFetchBlob.fs.writeStream(filepath, encoding, append)
 }
 
 const cachesDirectoryPath = tmpDir()
 
-export {cachesDirectoryPath, copy, exists, downloadFilePath, stat, tmpDir, tmpFile, writeFile, writeStream}
+export {cachesDirectoryPath, copy, exists, downloadFilePath, stat, tmpDir, tmpFile, writeStream}

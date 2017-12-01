@@ -26,10 +26,10 @@ import type {Proof} from '../constants/types/tracker'
 import type {Props} from './index'
 
 export const AVATAR_SIZE = 112
-export const HEADER_TOP_SPACE = 48
+const HEADER_TOP_SPACE = 48
 export const HEADER_SIZE = AVATAR_SIZE / 2 + HEADER_TOP_SPACE
-export const BACK_ZINDEX = 12
-export const SEARCH_CONTAINER_ZINDEX = BACK_ZINDEX + 1
+const BACK_ZINDEX = 12
+const SEARCH_CONTAINER_ZINDEX = BACK_ZINDEX + 1
 
 type State = {
   searchHovered: boolean,
