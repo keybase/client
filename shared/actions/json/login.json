@@ -11,16 +11,11 @@
     "relogin": {
       "usernameOrEmail": "string",
       "passphrase": "HiddenString",
-      "canError": {
-        "error": "Error"
-      }
     },
-    "loginDone": {},
     "submitPassphrase": {
       "passphrase": "HiddenString",
       "storeSecret": "boolean"
     },
-    "someoneElse": {},
     "onBack": {},
     "onWont": {},
     "onFinish": {},

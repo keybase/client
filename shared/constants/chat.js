@@ -2,22 +2,15 @@
 import * as I from 'immutable'
 import * as RPCChatTypes from './types/flow-types-chat'
 import * as Types from './types/chat'
-import * as SearchConstants from './search'
 import * as RPCTypes from './types/flow-types'
 import clamp from 'lodash/clamp'
 import invert from 'lodash/invert'
 import {Buffer} from 'buffer'
 import {chatTab} from './tabs'
-import {createSelector, createSelectorCreator, defaultMemoize} from 'reselect'
-import isEqualWith from 'lodash/isEqualWith'
+import {createSelector} from 'reselect'
 import {getPath, getPathState} from '../route-tree'
-import {parseUserId, serviceIdToIcon} from '../util/platforms'
 import type {TypedState} from './reducer'
 import type {UserListItem} from '../common-adapters/usernames'
-
-const createShallowEqualSelector = createSelectorCreator(defaultMemoize, (a, b) =>
-  isEqualWith(a, b, (a, b, indexOrKey, object, other, stack) => (stack ? a === b : undefined))
-)
 
 export const messageStates: Array<Types.MessageState> = ['pending', 'failed', 'sent']
 
@@ -122,13 +115,10 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   tempPendingConversations: I.Map(),
 })
 
-export const maxAttachmentPreviewSize = 320
-
+const maxAttachmentPreviewSize = 320
 export const howLongBetweenTimestampsMs = 1000 * 60 * 15
 export const maxMessagesToLoadAtATime = 50
-
 export const nothingSelected = 'chat:noneSelected'
-export const blankChat = 'chat:blankChat'
 
 function conversationIDToKey(conversationID: Types.ConversationID): Types.ConversationIDKey {
   return conversationID.toString('hex')
@@ -199,18 +189,6 @@ function parseMessageID(msgID: Types.MessageID): Types.ParsedMessageID {
 
 function makeSnippet(messageBody: ?string): ?string {
   return textSnippet(messageBody || '', 100)
-}
-
-function makeTeamTitle(messageBody: ?RPCChatTypes.MessageBody): ?string {
-  if (!messageBody) {
-    return null
-  }
-  switch (messageBody.messageType) {
-    case RPCChatTypes.commonMessageType.metadata:
-      return messageBody.metadata ? `#${messageBody.metadata.conversationTitle}` : '<none>'
-    default:
-      return null
-  }
 }
 
 // This is emoji aware hence all the weird ... stuff. See https://mathiasbynens.be/notes/javascript-unicode#iterating-over-symbols
@@ -350,18 +328,6 @@ function convSupersededByInfo(
   chat: Types.State
 ): ?Types.SupersedeInfo {
   return chat.getIn(['supersededByState', conversationID])
-}
-
-function newestConversationIDKey(
-  conversationIDKey: ?Types.ConversationIDKey,
-  chat: Types.State
-): ?Types.ConversationIDKey {
-  const supersededBy = conversationIDKey ? chat.getIn(['supersededByState', conversationIDKey]) : null
-  if (!supersededBy) {
-    return conversationIDKey
-  }
-
-  return newestConversationIDKey(supersededBy.conversationIDKey, chat)
 }
 
 const getSelectedConversation = (state: TypedState) => {
@@ -504,15 +470,6 @@ const getGeneralChannelOfSelectedInbox = createSelector(
   }
 )
 
-const getTLF = createSelector([getSelectedInbox, getSelectedConversation], (selectedInbox, selected) => {
-  if (selected && isPendingConversationIDKey(selected)) {
-    return pendingConversationIDKeyToTlfName(selected) || ''
-  } else if (selected !== nothingSelected && selectedInbox) {
-    return selectedInbox.participants.join(',')
-  }
-  return ''
-})
-
 const getMuted = createSelector(
   [getSelectedInbox],
   selectedInbox => selectedInbox && selectedInbox.get('status') === 'muted'
@@ -549,34 +506,6 @@ const imageFileNameRegex = /[^/]+\.(jpg|png|gif|jpeg|bmp)$/
 function isImageFileName(filename: string): boolean {
   return imageFileNameRegex.test(filename)
 }
-
-const getFollowingStates = (state: TypedState) => {
-  const ids = SearchConstants.getUserInputItemIds(state, {searchKey: 'chatSearch'})
-  let followingStateMap = {}
-  ids.forEach(id => {
-    const {username, serviceId} = parseUserId(id)
-    const service = SearchConstants.serviceIdToService(serviceId)
-    followingStateMap[id] = SearchConstants.followStateHelper(state, username, service)
-  })
-  return followingStateMap
-}
-
-const getUserItems = createShallowEqualSelector(
-  [s => SearchConstants.getUserInputItemIds(s, {searchKey: 'chatSearch'}), getFollowingStates],
-  (userInputItemIds, followingStates) =>
-    userInputItemIds.map(id => {
-      const {username, serviceId} = parseUserId(id)
-      const service = SearchConstants.serviceIdToService(serviceId)
-      return {
-        id: id,
-        followingState: followingStates[id],
-        // $FlowIssue ??
-        icon: serviceIdToIcon(serviceId),
-        username,
-        service,
-      }
-    })
-)
 
 function emptyConversationMessages(): Types.ConversationMessages {
   return makeConversationMessages({high: -1, low: -1, messages: I.List()})
@@ -782,14 +711,6 @@ function getSnippet(state: TypedState, conversationIDKey: Types.ConversationIDKe
   return snippet ? snippet.stringValue() : ''
 }
 
-function getPaginationNext(state: TypedState, conversationIDKey: Types.ConversationIDKey): ?string {
-  return state.entities.pagination.next.get(conversationIDKey, null)
-}
-
-function getPaginationPrev(state: TypedState, conversationIDKey: Types.ConversationIDKey): ?string {
-  return state.entities.pagination.prev.get(conversationIDKey, null)
-}
-
 const makeConversationMessages = I.Record({
   high: 0,
   low: 0,
@@ -809,13 +730,7 @@ export {
   getSelectedConversationStates,
   getSupersedes,
   getAttachmentDownloadedPath,
-  getAttachmentPreviewPath,
   getAttachmentSavedPath,
-  getDownloadProgress,
-  getPaginationNext,
-  getPaginationPrev,
-  getPreviewProgress,
-  getUploadProgress,
   getSnippet,
   getTeamName,
   getTeamType,
@@ -826,7 +741,6 @@ export {
   keyToOutboxID,
   makeConversationMessages,
   makeSnippet,
-  makeTeamTitle,
   messageKey,
   messageKeyKind,
   messageKeyKindIsMessageID,
@@ -838,9 +752,6 @@ export {
   participantFilter,
   serverMessageToMessageText,
   usernamesToUserListItem,
-  clampAttachmentPreviewSize,
-  newestConversationIDKey,
-  parseMetadataPreviewSize,
   pendingConversationIDKey,
   isPendingConversationIDKey,
   pendingConversationIDKeyToTlfName,
@@ -852,16 +763,13 @@ export {
   getParticipants,
   getParticipantsWithFullNames,
   getSelectedInbox,
-  getTLF,
   getMuted,
-  getUserItems,
   getLocalMessageStateFromMessageKey,
   getMessageFromConvKeyMessageID,
   isImageFileName,
   rpcMessageIDToMessageID,
   messageIDToRpcMessageID,
   selfInventedIDToMessageID,
-  messageIDToSelfInventedID,
   parseMessageID,
   lastMessageID,
   getGeneralChannelOfSelectedInbox,

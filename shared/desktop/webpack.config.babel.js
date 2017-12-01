@@ -22,6 +22,7 @@ const flags = {
   isHot: getenv.boolish('HOT', false),
   isShowingDashboard: !getenv.boolish('NO_SERVER', !isDev),
   isVisDiff: getenv.boolish('VISDIFF', false),
+  isTreeShake: getenv.boolish('TREESHAKE', false),
 }
 
 console.log('Flags: ', flags)
@@ -52,6 +53,7 @@ const makeCommonConfig = () => {
           [
             'env',
             {
+              ...(flags.isTreeShake ? {modules: false} : null),
               debug: false,
               targets: {
                 electron: '1.7.5',
@@ -250,7 +252,7 @@ const makeRenderThreadConfig = () => {
     // Sourcemaps, eval is very fast, but you might want something else if you want to see the original code
     // Some eval sourcemaps cause issues with closures in chromium due to some bugs. Visdiff suffers from this and we don't debug it so
     // lets disable sourcemaps for it
-    devtool: flags.isVisDiff ? undefined : flags.isDev ? 'eval' : 'source-map',
+    devtool: flags.isVisDiff || flags.isTreeShake ? undefined : flags.isDev ? 'eval' : 'source-map',
     entry: makeEntries(),
     name: 'renderThread',
     plugins: makeRenderPlugins(),

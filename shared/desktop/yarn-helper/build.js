@@ -18,6 +18,12 @@ const commands = {
     nodeEnv: 'production',
     shell: `${webpackCmd} --progress`,
   },
+  'build-treeshake': {
+    env: {BABEL_ENV: 'yarn', NO_SERVER: 'true', TREESHAKE: 'true'},
+    help: 'Make a treeshake version of the build',
+    nodeEnv: 'development',
+    shell: `${webpackCmd} --progress --profile --colors ${webpackLog ? `--json > ${webpackLog}` : ''} && echo 'Search desktop/dist/*.bundle.js for unused harmoney comments'`,
+  },
   'hot-server': {
     code: hotServer,
     env: {BABEL_ENV: 'yarn', HOT: 'true'},

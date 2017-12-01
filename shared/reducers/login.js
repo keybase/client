@@ -114,7 +114,6 @@ export default function(state: Types.State = Constants.initialState, action: Log
     // Saga only actions
     case LoginGen.addNewDevice:
     case LoginGen.chooseGPGMethod:
-    case LoginGen.loginDone:
     case LoginGen.logout:
     case LoginGen.logoutDone:
     case LoginGen.navBasedOnLoginAndInitialState:
@@ -125,7 +124,6 @@ export default function(state: Types.State = Constants.initialState, action: Log
     case LoginGen.provisionTextCodeEntered:
     case LoginGen.relogin:
     case LoginGen.selectDeviceId:
-    case LoginGen.someoneElse:
     case LoginGen.startLogin:
     case LoginGen.submitDeviceName:
     case LoginGen.submitPassphrase:
