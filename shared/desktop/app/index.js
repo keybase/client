@@ -75,8 +75,6 @@ function start() {
     app.commandLine.appendSwitch('v', 3)
   }
 
-  hello(process.pid, 'Main Thread', process.argv, __VERSION__, false) // eslint-disable-line no-undef
-
   setupTarget()
   devTools()
   // Load menubar and get its browser window id so we can tell the main window
