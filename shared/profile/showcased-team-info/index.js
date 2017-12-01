@@ -1,123 +1,50 @@
 // @flow
 
 import * as React from 'react'
-import {Box, Text, Icon, Button, PlatformIcon} from '../../common-adapters'
+import {Avatar, Box, Text, Icon, Button, PlatformIcon} from '../../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../../styles'
 import {formatMessage, formatConfirmButton} from './index.shared'
 import {subtitle as platformSubtitle} from '../../util/platforms'
 import {isMobile} from '../../constants/platform'
+import {ModalLessPopupMenu as PopupMenu} from '../../common-adapters/popup-menu.desktop'
 
 import type {Props} from './index'
 
-const Revoke = ({platform, platformHandle, errorMessage, onCancel, onRevoke, isWaiting}: Props) => {
-  const platformHandleSubtitle = platformSubtitle(platform)
+const TeamInfo = (props: Props) => {
+  console.warn('isWaiting 2 is', props)
+  return <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center'}}>
+    <Avatar teamname={props.teamname} size={40} style={{marginTop: globalMargins.small}} />
 
+    <Box style={{...globalStyles.flexBoxRow, marginTop: globalMargins.xtiny}}>
+      <Text type='BodySemibold'>{props.teamname}</Text>
+    </Box>
+
+    <Text style={{color: globalColors.black_20, fontSize: 11, textTransform: 'uppercase'}} type='Body'>OPEN TEAM</Text>
+
+    <Text style={{color: globalColors.black_20, fontSize: 11}} type='Body'>{props.members} members</Text>
+
+    <Box style={{...globalStyles.flexBoxRow, marginTop: globalMargins.xtiny}}>
+      <Text style={{marginBottom: globalStyles.small, marginTop: globalStyles.small, color: globalColors.black_20, fontSize: 11}} type='Body'>description {props.description}</Text>
+    </Box>
+
+    <Box style={{...globalStyles.flexBoxRow, marginTop: globalMargins.tiny}}>
+      <Button label='Join team' style={{marginTop: globalStyles.small}} type='Primary' />
+    </Box>
+  </Box>
+}
+
+const Revoke = (props: Props) => {
+  console.warn('isWaiting is', props)
+  const header = {
+    title: 'header',
+    view: <TeamInfo {...(props: Props)} />,
+  }
+  let items = []
+  
   console.warn('in Revoke render')
   return (
-    <Box style={styleContainer}>
-      {!isWaiting && <Icon style={styleClose} type="iconfont-close" onClick={() => onCancel()} />}
-      {errorMessage &&
-        <Box style={styleErrorBanner}>
-          <Text style={styleErrorBannerText} type="BodySemibold">{errorMessage}</Text>
-        </Box>}
-      <Box style={styleContentContainer}>
-        <Text style={stylePlatformUsername} type="Header">{platformHandle}</Text>
-        {!!platformHandleSubtitle &&
-          <Text style={stylePlatformSubtitle} type="Body">{platformHandleSubtitle}</Text>}
-        <Text style={styleDescriptionText} type="Header">{formatMessage(platform)}</Text>
-        <Text style={styleReminderText} type="Body">
-          You can add it again later, if you change your mind.
-        </Text>
-        <Box style={styleButtonsContainer}>
-          <Button type="Secondary" onClick={onCancel} label="Cancel" disabled={isWaiting} />
-          <Button
-            type="Danger"
-            onClick={onRevoke}
-            style={{marginLeft: globalMargins.tiny}}
-            label={formatConfirmButton(platform)}
-            waiting={isWaiting}
-          />
-        </Box>
-      </Box>
-    </Box>
+    <PopupMenu style={{overflow: 'visible', width: 220}} header={header} items={items} />
   )
-}
-
-const styleContainer = {
-  ...globalStyles.flexBoxColumn,
-  flexGrow: 1,
-  alignItems: 'center',
-  position: 'relative',
-  paddingTop: globalMargins.large,
-  paddingBottom: globalMargins.large,
-  ...globalStyles.scrollable,
-  backgroundColor: globalColors.transparent,  
-}
-
-const styleClose = {
-  position: 'absolute',
-  top: globalMargins.small,
-  right: globalMargins.small,
-  ...globalStyles.clickable,
-  color: globalColors.black_10,
-}
-
-const styleErrorBanner = {
-  ...globalStyles.flexBoxColumn,
-  justifyContent: 'center',
-  alignItems: 'center',
-  width: '100%',
-  zIndex: 1,
-  minHeight: globalMargins.large,
-  padding: globalMargins.tiny,
-  backgroundColor: globalColors.red,
-}
-
-const styleErrorBannerText = {
-  color: globalColors.white,
-  maxWidth: 512,
-  ...(isMobile ? {} : {textAlign: 'center'}),
-}
-
-const styleContentContainer = {
-  ...globalStyles.flexBoxColumn,
-  flexGrow: 1,
-  justifyContent: 'center',
-  alignItems: 'center',
-  margin: globalMargins.large,
-  maxWidth: 512,
-  ...(isMobile ? {} : {textAlign: 'center'}),
-}
-
-const stylePlatformUsername = {
-  ...globalStyles.textDecoration('line-through'),
-  ...(isMobile
-    ? {}
-    : {
-        textAlign: 'center',
-        overflowWrap: 'break-word',
-        maxWidth: 400,
-      }),
-  color: globalColors.red,
-}
-
-const stylePlatformSubtitle = {
-  color: globalColors.black_20,
-}
-
-const styleDescriptionText = {
-  marginTop: globalMargins.medium,
-  ...(isMobile ? {} : {textAlign: 'center'}),
-}
-
-const styleReminderText = {
-  marginTop: globalMargins.tiny,
-  ...(isMobile ? {} : {textAlign: 'center'}),
-}
-
-const styleButtonsContainer = {
-  ...globalStyles.flexBoxRow,
-  marginTop: globalMargins.medium,
 }
 
 export default Revoke

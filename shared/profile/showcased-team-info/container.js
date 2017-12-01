@@ -5,7 +5,7 @@ import {connect, type TypedState} from '../../util/container'
 
 const mapStateToProps = (state: TypedState, {routeProps}) => ({
   errorMessage: state.profile.revoke.error,
-  isWaiting: state.profile.revoke.waiting,
+  isWaiting: 'foo',
   platform: routeProps.get('platform'),
   platformHandle: routeProps.get('platformHandle'),
 })
@@ -19,6 +19,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {routeProps}) => ({
       dispatch(submitRevokeProof(routeProps.get('proofId')))
     }
   },
+  teamname: routeProps.get('teamname'),
 })
 
 export default connect(mapStateToProps, mapDispatchToProps)(Revoke)

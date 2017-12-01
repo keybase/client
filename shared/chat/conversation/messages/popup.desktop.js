@@ -22,6 +22,7 @@ const stylePopup = {
 
 const TextPopupMenu = ({message, onShowEditor, onDeleteMessage, onHidden, style, you}: TextProps) => {
   let items = []
+  console.warn('style is', style)
   if (message.author === you) {
     if (!message.senderDeviceRevokedAt) {
       items.push('Divider')
