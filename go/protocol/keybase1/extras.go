@@ -1620,18 +1620,10 @@ func (t TeamMembers) AllUIDs() []UID {
 }
 
 func (t TeamMembers) AllUserVersions() (res []UserVersion) {
-	for _, u := range t.Owners {
-		res = append(res, u)
-	}
-	for _, u := range t.Admins {
-		res = append(res, u)
-	}
-	for _, u := range t.Writers {
-		res = append(res, u)
-	}
-	for _, u := range t.Readers {
-		res = append(res, u)
-	}
+	res = append(res, t.Owners...)
+	res = append(res, t.Admins...)
+	res = append(res, t.Writers...)
+	res = append(res, t.Readers...)
 	return res
 }
 
