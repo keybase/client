@@ -1307,7 +1307,7 @@ function peg$parse(input, options) {
   }
 
   function peg$parseBoldInlineStart() {
-    var s0, s1, s2, s3, s4, s5, s6, s7;
+    var s0, s1, s2, s3, s4, s5, s6;
 
     s0 = peg$currPos;
     s1 = peg$currPos;
@@ -1357,28 +1357,13 @@ function peg$parse(input, options) {
                             s5 = peg$parseSpecialChar();
                           }
                           if (s5 !== peg$FAILED) {
-                            s6 = peg$currPos;
-                            peg$silentFails++;
-                            s7 = peg$parseBoldMarker();
-                            peg$silentFails--;
-                            if (s7 === peg$FAILED) {
-                              s6 = void 0;
-                            } else {
-                              peg$currPos = s6;
-                              s6 = peg$FAILED;
+                            s6 = peg$parseBoldInlineStart();
+                            if (s6 === peg$FAILED) {
+                              s6 = null;
                             }
                             if (s6 !== peg$FAILED) {
-                              s7 = peg$parseBoldInlineStart();
-                              if (s7 === peg$FAILED) {
-                                s7 = null;
-                              }
-                              if (s7 !== peg$FAILED) {
-                                s5 = [s5, s6, s7];
-                                s4 = s5;
-                              } else {
-                                peg$currPos = s4;
-                                s4 = peg$FAILED;
-                              }
+                              s5 = [s5, s6];
+                              s4 = s5;
                             } else {
                               peg$currPos = s4;
                               s4 = peg$FAILED;
@@ -1595,7 +1580,7 @@ function peg$parse(input, options) {
   }
 
   function peg$parseItalicInlineStart() {
-    var s0, s1, s2, s3, s4, s5, s6, s7;
+    var s0, s1, s2, s3, s4, s5, s6;
 
     s0 = peg$currPos;
     s1 = peg$currPos;
@@ -1645,28 +1630,13 @@ function peg$parse(input, options) {
                             s5 = peg$parseSpecialChar();
                           }
                           if (s5 !== peg$FAILED) {
-                            s6 = peg$currPos;
-                            peg$silentFails++;
-                            s7 = peg$parseItalicMarker();
-                            peg$silentFails--;
-                            if (s7 === peg$FAILED) {
-                              s6 = void 0;
-                            } else {
-                              peg$currPos = s6;
-                              s6 = peg$FAILED;
+                            s6 = peg$parseItalicInlineStart();
+                            if (s6 === peg$FAILED) {
+                              s6 = null;
                             }
                             if (s6 !== peg$FAILED) {
-                              s7 = peg$parseItalicInlineStart();
-                              if (s7 === peg$FAILED) {
-                                s7 = null;
-                              }
-                              if (s7 !== peg$FAILED) {
-                                s5 = [s5, s6, s7];
-                                s4 = s5;
-                              } else {
-                                peg$currPos = s4;
-                                s4 = peg$FAILED;
-                              }
+                              s5 = [s5, s6];
+                              s4 = s5;
                             } else {
                               peg$currPos = s4;
                               s4 = peg$FAILED;
@@ -1883,7 +1853,7 @@ function peg$parse(input, options) {
   }
 
   function peg$parseStrikeInlineStart() {
-    var s0, s1, s2, s3, s4, s5, s6, s7;
+    var s0, s1, s2, s3, s4, s5, s6;
 
     s0 = peg$currPos;
     s1 = peg$currPos;
@@ -1933,28 +1903,13 @@ function peg$parse(input, options) {
                             s5 = peg$parseSpecialChar();
                           }
                           if (s5 !== peg$FAILED) {
-                            s6 = peg$currPos;
-                            peg$silentFails++;
-                            s7 = peg$parseStrikeMarker();
-                            peg$silentFails--;
-                            if (s7 === peg$FAILED) {
-                              s6 = void 0;
-                            } else {
-                              peg$currPos = s6;
-                              s6 = peg$FAILED;
+                            s6 = peg$parseStrikeInlineStart();
+                            if (s6 === peg$FAILED) {
+                              s6 = null;
                             }
                             if (s6 !== peg$FAILED) {
-                              s7 = peg$parseStrikeInlineStart();
-                              if (s7 === peg$FAILED) {
-                                s7 = null;
-                              }
-                              if (s7 !== peg$FAILED) {
-                                s5 = [s5, s6, s7];
-                                s4 = s5;
-                              } else {
-                                peg$currPos = s4;
-                                s4 = peg$FAILED;
-                              }
+                              s5 = [s5, s6];
+                              s4 = s5;
                             } else {
                               peg$currPos = s4;
                               s4 = peg$FAILED;
@@ -2171,7 +2126,7 @@ function peg$parse(input, options) {
   }
 
   function peg$parseMentionInlineStart() {
-    var s0, s1, s2, s3, s4, s5, s6, s7;
+    var s0, s1, s2, s3, s4, s5, s6;
 
     s0 = peg$currPos;
     s1 = peg$currPos;
@@ -2221,28 +2176,13 @@ function peg$parse(input, options) {
                             s5 = peg$parseSpecialChar();
                           }
                           if (s5 !== peg$FAILED) {
-                            s6 = peg$currPos;
-                            peg$silentFails++;
-                            s7 = peg$parseClosingMentionMarker();
-                            peg$silentFails--;
-                            if (s7 === peg$FAILED) {
-                              s6 = void 0;
-                            } else {
-                              peg$currPos = s6;
-                              s6 = peg$FAILED;
+                            s6 = peg$parseMentionInlineStart();
+                            if (s6 === peg$FAILED) {
+                              s6 = null;
                             }
                             if (s6 !== peg$FAILED) {
-                              s7 = peg$parseMentionInlineStart();
-                              if (s7 === peg$FAILED) {
-                                s7 = null;
-                              }
-                              if (s7 !== peg$FAILED) {
-                                s5 = [s5, s6, s7];
-                                s4 = s5;
-                              } else {
-                                peg$currPos = s4;
-                                s4 = peg$FAILED;
-                              }
+                              s5 = [s5, s6];
+                              s4 = s5;
                             } else {
                               peg$currPos = s4;
                               s4 = peg$FAILED;

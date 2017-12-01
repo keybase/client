@@ -54,7 +54,7 @@ function buildParser() {
   const generatedSource = source.replace('__EMOJI_CHARACTERS__', emojiCharacterClass).replace(
     /__INLINE_RULE__<([^>,]*)\s*,\s*([^>,]*)>/g,
     `$1Start
- = $2 (InlineCode / Italic / Bold / Link / Mention / Strike / (!CodeBlock (Text / Emoji / NativeEmoji / ((EscapedChar / SpecialChar) $2 $1Start?))))
+ = $2 (InlineCode / Italic / Bold / Link / Mention / Strike / (!CodeBlock (Text / Emoji / NativeEmoji / ((EscapedChar / SpecialChar) $1Start?))))
 
 $1Cont
  = $2 InlineCont
