@@ -1597,8 +1597,11 @@ export const teamsTeamOperation = {
   manageSubteams: 1,
   createChannel: 2,
   deleteChannel: 3,
-  setTeamShowcase: 4,
-  changeOpenTeam: 5,
+  renameChannel: 4,
+  editChannelDescription: 5,
+  setTeamShowcase: 6,
+  setMemberShowcase: 7,
+  changeOpenTeam: 8,
 }
 
 export const teamsTeamReAddMemberAfterResetRpcChannelMap = (configKeys: Array<string>, request: TeamsTeamReAddMemberAfterResetRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamReAddMemberAfterReset', request)
@@ -3485,8 +3488,11 @@ export type TeamOperation =0 // MANAGE_MEMBERS_0
  | 1 // MANAGE_SUBTEAMS_1
  | 2 // CREATE_CHANNEL_2
  | 3 // DELETE_CHANNEL_3
- | 4 // SET_TEAM_SHOWCASE_4
- | 5 // CHANGE_OPEN_TEAM_5
+ | 4 // RENAME_CHANNEL_4
+ | 5 // EDIT_CHANNEL_DESCRIPTION_5
+ | 6 // SET_TEAM_SHOWCASE_6
+ | 7 // SET_MEMBER_SHOWCASE_7
+ | 8 // CHANGE_OPEN_TEAM_8
 
 
 export type TeamPlusApplicationKeys = {|id: TeamID,name: String,implicit: Boolean,public: Boolean,application: TeamApplication,writers?: ?Array<UserVersion>,onlyReaders?: ?Array<UserVersion>,applicationKeys?: ?Array<TeamApplicationKey>,|}

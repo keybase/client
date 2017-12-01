@@ -1756,23 +1756,29 @@ func (o LookupImplicitTeamRes) DeepCopy() LookupImplicitTeamRes {
 type TeamOperation int
 
 const (
-	TeamOperation_MANAGE_MEMBERS    TeamOperation = 0
-	TeamOperation_MANAGE_SUBTEAMS   TeamOperation = 1
-	TeamOperation_CREATE_CHANNEL    TeamOperation = 2
-	TeamOperation_DELETE_CHANNEL    TeamOperation = 3
-	TeamOperation_SET_TEAM_SHOWCASE TeamOperation = 4
-	TeamOperation_CHANGE_OPEN_TEAM  TeamOperation = 5
+	TeamOperation_MANAGE_MEMBERS           TeamOperation = 0
+	TeamOperation_MANAGE_SUBTEAMS          TeamOperation = 1
+	TeamOperation_CREATE_CHANNEL           TeamOperation = 2
+	TeamOperation_DELETE_CHANNEL           TeamOperation = 3
+	TeamOperation_RENAME_CHANNEL           TeamOperation = 4
+	TeamOperation_EDIT_CHANNEL_DESCRIPTION TeamOperation = 5
+	TeamOperation_SET_TEAM_SHOWCASE        TeamOperation = 6
+	TeamOperation_SET_MEMBER_SHOWCASE      TeamOperation = 7
+	TeamOperation_CHANGE_OPEN_TEAM         TeamOperation = 8
 )
 
 func (o TeamOperation) DeepCopy() TeamOperation { return o }
 
 var TeamOperationMap = map[string]TeamOperation{
-	"MANAGE_MEMBERS":    0,
-	"MANAGE_SUBTEAMS":   1,
-	"CREATE_CHANNEL":    2,
-	"DELETE_CHANNEL":    3,
-	"SET_TEAM_SHOWCASE": 4,
-	"CHANGE_OPEN_TEAM":  5,
+	"MANAGE_MEMBERS":           0,
+	"MANAGE_SUBTEAMS":          1,
+	"CREATE_CHANNEL":           2,
+	"DELETE_CHANNEL":           3,
+	"RENAME_CHANNEL":           4,
+	"EDIT_CHANNEL_DESCRIPTION": 5,
+	"SET_TEAM_SHOWCASE":        6,
+	"SET_MEMBER_SHOWCASE":      7,
+	"CHANGE_OPEN_TEAM":         8,
 }
 
 var TeamOperationRevMap = map[TeamOperation]string{
@@ -1780,8 +1786,11 @@ var TeamOperationRevMap = map[TeamOperation]string{
 	1: "MANAGE_SUBTEAMS",
 	2: "CREATE_CHANNEL",
 	3: "DELETE_CHANNEL",
-	4: "SET_TEAM_SHOWCASE",
-	5: "CHANGE_OPEN_TEAM",
+	4: "RENAME_CHANNEL",
+	5: "EDIT_CHANNEL_DESCRIPTION",
+	6: "SET_TEAM_SHOWCASE",
+	7: "SET_MEMBER_SHOWCASE",
+	8: "CHANGE_OPEN_TEAM",
 }
 
 func (e TeamOperation) String() string {

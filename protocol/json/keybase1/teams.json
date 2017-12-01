@@ -1538,8 +1538,11 @@
         "MANAGE_SUBTEAMS_1",
         "CREATE_CHANNEL_2",
         "DELETE_CHANNEL_3",
-        "SET_TEAM_SHOWCASE_4",
-        "CHANGE_OPEN_TEAM_5"
+        "RENAME_CHANNEL_4",
+        "EDIT_CHANNEL_DESCRIPTION_5",
+        "SET_TEAM_SHOWCASE_6",
+        "SET_MEMBER_SHOWCASE_7",
+        "CHANGE_OPEN_TEAM_8"
       ]
     }
   ],

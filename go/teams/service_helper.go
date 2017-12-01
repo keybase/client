@@ -1141,6 +1141,23 @@ func CanUserPerform(ctx context.Context, g *libkb.GlobalContext, teamname string
 		return isImplicitAdmin()
 	}
 
+	canMemberShowcase := func() (bool, error) {
+		r, err := team.MemberRole(ctx, meUV)
+		if err != nil {
+			return false, err
+		}
+		if r.IsOrAbove(keybase1.TeamRole_ADMIN) {
+			return true, nil
+		} else if r == keybase1.TeamRole_NONE {
+			return false, nil
+		}
+		showcase, err := GetTeamShowcase(ctx, g, teamname)
+		if err != nil {
+			return false, err
+		}
+		return showcase.AnyMemberShowcase, nil
+	}
+
 	switch op {
 	case keybase1.TeamOperation_MANAGE_MEMBERS,
 		keybase1.TeamOperation_MANAGE_SUBTEAMS,
@@ -1149,7 +1166,11 @@ func CanUserPerform(ctx context.Context, g *libkb.GlobalContext, teamname string
 		ret, err = isAdminOrImplicitAdmin()
 	case keybase1.TeamOperation_CREATE_CHANNEL:
 		ret, err = isWriter()
-	case keybase1.TeamOperation_DELETE_CHANNEL:
+	case keybase1.TeamOperation_SET_MEMBER_SHOWCASE:
+		ret, err = canMemberShowcase()
+	case keybase1.TeamOperation_DELETE_CHANNEL,
+		keybase1.TeamOperation_RENAME_CHANNEL,
+		keybase1.TeamOperation_EDIT_CHANNEL_DESCRIPTION:
 		ret, err = isAdmin() // no implicit admins
 	default:
 		err = fmt.Errorf("Unknown op: %v", op)
