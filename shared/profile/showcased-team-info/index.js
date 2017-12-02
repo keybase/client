@@ -12,7 +12,7 @@ import type {Props} from './index'
 
 const TeamInfo = (props: Props) => {
   return <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center'}}>
-    <Avatar teamname={props.teamname} size={40} style={{marginTop: globalMargins.small}} />
+    <Avatar teamname={props.teamname} size={40} style={{marginTop: globalMargins.small, marginBottom: globalMargins.small}} />
 
     <Box style={{...globalStyles.flexBoxRow, marginTop: globalMargins.xtiny}}>
       <Text type='BodySemibold'>{props.teamname}</Text>
@@ -39,8 +39,7 @@ const TeamInfoWrapper = (props: Props) => {
   }
   let items = []
   
-  console.warn('in Revoke render')
-  return (isMobile ? <PopupMenu style={{overflow: 'visible', width: 220}} header={header} items={items} /> : <ModalLessPopupMenu style={{overflow: 'visible', width: 220}} header={header} items={items} />)
+  return (isMobile ? <PopupMenu onHidden={props.onHidden} style={{overflow: 'visible'}} header={header} items={items} /> : <ModalLessPopupMenu style={{overflow: 'visible', width: 220}} header={header} items={items} />)
 }
 
 export default TeamInfoWrapper

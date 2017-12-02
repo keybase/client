@@ -71,7 +71,6 @@ const mapDispatchToProps = (dispatch: Dispatch, {setRouteState}: OwnProps) => ({
   onClickFollowers: username => dispatch(ProfileGen.createOnClickFollowers({username})),
   onClickFollowing: username => dispatch(ProfileGen.createOnClickFollowing({username})),
   onClickShowcased: (event, teamname) => {
-    console.warn('in onClickShowcased', teamname)
     dispatch(navigateAppend([{props: {position: 'bottom left', targetNode: event && event.target, teamname}, selected: 'showcasedTeamInfo'}]))
   },
   onEditAvatar: () => dispatch(navigateAppend(['editAvatar'])),
@@ -146,10 +145,7 @@ const mergeProps = (stateProps, dispatchProps) => {
     onClickAvatar: () => dispatchProps.onClickAvatar(username),
     onClickFollowers: () => dispatchProps.onClickFollowers(username),
     onClickFollowing: () => dispatchProps.onClickFollowing(username),
-    onClickShowcased: (event, teamname) => { 
-      console.warn('in onClickShowcase')
-      dispatchProps.onClickShowcased(event, teamname)
-    },
+    onClickShowcased: (event, teamname) => dispatchProps.onClickShowcased(event, teamname),
     onFollow: () => dispatchProps.onFollow(username),
     onSearch: () => dispatchProps.onSearch(),
     onUnfollow: () => dispatchProps.onUnfollow(username),
