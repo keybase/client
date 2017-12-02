@@ -425,7 +425,7 @@ func testKeyManagerRekeyResolveAgainSuccessPublic(t *testing.T, ver kbfsmd.Metad
 
 	id := tlf.FakeID(1, tlf.Public)
 	h, err := ParseTlfHandle(
-		ctx, config.KBPKI(), nil, "alice,bob@twitter", tlf.Public)
+		ctx, config.KBPKI(), constIDGetter{id}, "alice,bob@twitter", tlf.Public)
 	require.NoError(t, err)
 	rmd, err := makeInitialRootMetadata(config.MetadataVersion(), id, h)
 	require.NoError(t, err)
@@ -437,9 +437,9 @@ func testKeyManagerRekeyResolveAgainSuccessPublic(t *testing.T, ver kbfsmd.Metad
 		Return(rmd.tlfHandle.ToBareHandleOrBust(), nil)
 
 	done, cryptKey, err := config.KeyManager().Rekey(ctx, rmd, false)
+	require.NoError(t, err)
 	require.True(t, done)
 	require.Nil(t, cryptKey)
-	require.NoError(t, err)
 
 	newH := rmd.GetTlfHandle()
 	require.Equal(t, tlf.CanonicalName("alice,bob"), newH.GetCanonicalName())
@@ -465,8 +465,8 @@ func testKeyManagerRekeyResolveAgainSuccessPublicSelf(t *testing.T, ver kbfsmd.M
 
 	id := tlf.FakeID(1, tlf.Public)
 	h, err := ParseTlfHandle(
-		ctx, config.KBPKI(), nil, "alice@twitter,bob,charlie@twitter",
-		tlf.Public)
+		ctx, config.KBPKI(), constIDGetter{id},
+		"alice@twitter,bob,charlie@twitter", tlf.Public)
 	require.NoError(t, err)
 	rmd, err := makeInitialRootMetadata(config.MetadataVersion(), id, h)
 	require.NoError(t, err)
@@ -591,7 +591,7 @@ func testKeyManagerPromoteReaderSuccess(t *testing.T, ver kbfsmd.MetadataVer) {
 	defer CheckConfigAndShutdown(ctx, t, config)
 
 	id := tlf.FakeID(1, tlf.Private)
-	h, err := ParseTlfHandle(ctx, config.KBPKI(), nil,
+	h, err := ParseTlfHandle(ctx, config.KBPKI(), constIDGetter{id},
 		"alice,bob@twitter#bob", tlf.Private)
 	require.NoError(t, err)
 
@@ -639,7 +639,7 @@ func testKeyManagerPromoteReaderSelf(t *testing.T, ver kbfsmd.MetadataVer) {
 	defer CheckConfigAndShutdown(ctx, t, config)
 
 	id := tlf.FakeID(1, tlf.Private)
-	h, err := ParseTlfHandle(ctx, config.KBPKI(), nil,
+	h, err := ParseTlfHandle(ctx, config.KBPKI(), constIDGetter{id},
 		"alice,bob@twitter#bob", tlf.Private)
 	require.NoError(t, err)
 
@@ -689,7 +689,7 @@ func testKeyManagerReaderRekeyShouldNotPromote(t *testing.T, ver kbfsmd.Metadata
 	defer CheckConfigAndShutdown(ctx, t, config)
 
 	id := tlf.FakeID(1, tlf.Private)
-	h, err := ParseTlfHandle(ctx, config.KBPKI(), nil,
+	h, err := ParseTlfHandle(ctx, config.KBPKI(), constIDGetter{id},
 		"alice,charlie@twitter#bob,charlie", tlf.Private)
 	require.NoError(t, err)
 

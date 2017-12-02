@@ -329,6 +329,41 @@ func (fs *KBFSOpsStandard) getOpsByHandle(ctx context.Context,
 	return ops
 }
 
+// createTlfIDIfNeeded creates a TLF ID for a handle that doesn't have
+// one yet.  If it returns a `nil` error, it may have modified `h` to
+// include the new TLF ID.
+func (fs *KBFSOpsStandard) createTlfIDIfNeeded(
+	ctx context.Context, h *TlfHandle) error {
+	if h.tlfID != tlf.NullID {
+		return nil
+	}
+
+	if !h.IsBackedByTeam() {
+		return errors.New("Can't create TLF ID for non-team-backed handle")
+	}
+
+	teamID, err := h.FirstResolvedWriter().AsTeam()
+	if err != nil {
+		return err
+	}
+
+	// When creating a new TLF for an implicit team, always start with
+	// epoch 0.  A different path will handle TLF resets with an
+	// increased epoch, if necessary.
+	tlfID, err := tlf.MakeIDFromTeam(h.Type(), teamID, 0)
+	if err != nil {
+		return err
+	}
+
+	err = fs.config.KBPKI().CreateTeamTLF(ctx, teamID, tlfID)
+	if err != nil {
+		return err
+	}
+
+	h.tlfID = tlfID
+	return nil
+}
+
 func (fs *KBFSOpsStandard) getOrInitializeNewMDMaster(ctx context.Context,
 	mdops MDOps, h *TlfHandle, create bool, fop FavoritesOp) (
 	initialized bool, md ImmutableRootMetadata, id tlf.ID, err error) {
@@ -343,9 +378,9 @@ func (fs *KBFSOpsStandard) getOrInitializeNewMDMaster(ctx context.Context,
 		}
 	}()
 
-	if h.tlfID == tlf.NullID {
-		return false, ImmutableRootMetadata{}, tlf.NullID,
-			errors.New("No ID")
+	err = fs.createTlfIDIfNeeded(ctx, h)
+	if err != nil {
+		return false, ImmutableRootMetadata{}, tlf.NullID, err
 	}
 
 	md, err = mdops.GetForTLF(ctx, h.tlfID, nil)
@@ -396,8 +431,9 @@ func (fs *KBFSOpsStandard) getMDByHandle(ctx context.Context,
 		return rmd, nil
 	}
 
-	if tlfHandle.tlfID == tlf.NullID {
-		return ImmutableRootMetadata{}, errors.New("No ID")
+	err = fs.createTlfIDIfNeeded(ctx, tlfHandle)
+	if err != nil {
+		return ImmutableRootMetadata{}, err
 	}
 
 	// Check for an unmerged MD first, unless we're in single-op
@@ -504,8 +540,9 @@ func (fs *KBFSOpsStandard) getMaybeCreateRootNode(
 		}
 	}
 
-	if h.tlfID == tlf.NullID {
-		return nil, EntryInfo{}, errors.New("No ID")
+	err = fs.createTlfIDIfNeeded(ctx, h)
+	if err != nil {
+		return nil, EntryInfo{}, err
 	}
 
 	mdops := fs.config.MDOps()

@@ -485,9 +485,7 @@ func (k *KeybaseServiceBase) ResolveIdentifyImplicitTeam(
 		Suffix:       suffix,
 		DoIdentifies: doIdentifies,
 		Reason:       keybase1.IdentifyReason{Reason: reason},
-		// TODO(KBFS-2621): Change this to `true` when we are ready to
-		// turn on implicit team TLFs.
-		Create: false,
+		Create:       true,
 	}
 
 	ei := getExtendedIdentify(ctx)

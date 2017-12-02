@@ -319,7 +319,7 @@ func testMakeRekeyReadErrorResolvedHandle(t *testing.T, ver kbfsmd.MetadataVer) 
 
 	tlfID := tlf.FakeID(1, tlf.Private)
 	h, err := ParseTlfHandle(
-		ctx, config.KBPKI(), nil, "alice,bob@twitter", tlf.Private)
+		ctx, config.KBPKI(), config.MDOps(), "alice,bob@twitter", tlf.Private)
 	require.NoError(t, err)
 	rmd, err := makeInitialRootMetadata(config.MetadataVersion(), tlfID, h)
 	require.NoError(t, err)

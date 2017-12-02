@@ -664,9 +664,10 @@ func parseTlfHandleLoose(
 
 	// First try resolving this full name as an implicit team.  If
 	// that doesn't work, fall through to individual name resolution.
+	var iteamHandle *TlfHandle
 	if doResolveImplicit(ctx) {
 		rit := resolvableImplicitTeam{kbpki, name, t}
-		iteamHandle, err := makeTlfHandleHelper(
+		iteamHandle, err = makeTlfHandleHelper(
 			ctx, t, []resolvableUser{rit}, nil, nil, idGetter)
 		if err == nil && iteamHandle.tlfID != tlf.NullID {
 			// The iteam already has a TLF ID, let's use it.
@@ -717,9 +718,14 @@ func parseTlfHandleLoose(
 		return nil, err
 	}
 
-	// TODO(KBFS-2621): When we want to start creating new implicit
-	// team TLFs, and h.tlfID is null, return `iteamHandle` instead of
-	// `h`.
+	if h.tlfID == tlf.NullID && iteamHandle != nil {
+		// If the server hasn't provided a TLF ID for the regular
+		// handle, switch over to using the i-team handle (which
+		// currently must have a null TLF ID).  Before the caller
+		// creates and uses the TLF, they must generate a TLF ID and
+		// store it in the i-team's sigchain.
+		return iteamHandle, nil
+	}
 
 	if t == tlf.Private {
 		session, err := kbpki.GetCurrentSession(ctx)

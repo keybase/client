@@ -150,9 +150,11 @@ func TestJournalServerOverQuotaError(t *testing.T) {
 	subname := libkb.NormalizedUsername("t1.sub")
 	teamInfos := AddEmptyTeamsForTestOrBust(t, config, name, subname)
 	teamID := teamInfos[0].TID
+	subteamID := teamInfos[1].TID
 	session, err := config.KBPKI().GetCurrentSession(ctx)
 	require.NoError(t, err)
 	AddTeamWriterForTestOrBust(t, config, teamID, session.UID)
+	AddTeamWriterForTestOrBust(t, config, subteamID, session.UID)
 	teamQuotaUsage := config.getQuotaUsage(teamID.AsUserOrTeam())
 
 	qbs := &quotaBlockServer{BlockServer: config.BlockServer()}
@@ -175,12 +177,14 @@ func TestJournalServerOverQuotaError(t *testing.T) {
 	err = jServer.Enable(ctx, tlfID1, nil, TLFJournalBackgroundWorkPaused)
 	require.NoError(t, err)
 	tlfID2 := tlf.FakeID(2, tlf.SingleTeam)
-	h, err := ParseTlfHandle(ctx, config.KBPKI(), nil, "t1", tlf.SingleTeam)
+	h, err := ParseTlfHandle(
+		ctx, config.KBPKI(), config.MDOps(), "t1", tlf.SingleTeam)
 	require.NoError(t, err)
 	err = jServer.Enable(ctx, tlfID2, h, TLFJournalBackgroundWorkPaused)
 	require.NoError(t, err)
 	tlfID3 := tlf.FakeID(2, tlf.SingleTeam)
-	h, err = ParseTlfHandle(ctx, config.KBPKI(), nil, "t1.sub", tlf.SingleTeam)
+	h, err = ParseTlfHandle(
+		ctx, config.KBPKI(), config.MDOps(), "t1.sub", tlf.SingleTeam)
 	require.NoError(t, err)
 	err = jServer.Enable(ctx, tlfID3, h, TLFJournalBackgroundWorkPaused)
 	require.NoError(t, err)
@@ -188,7 +192,8 @@ func TestJournalServerOverQuotaError(t *testing.T) {
 	blockServer := config.BlockServer()
 
 	h, err = ParseTlfHandle(
-		ctx, config.KBPKI(), nil, "test_user1,test_user2", tlf.Private)
+		ctx, config.KBPKI(), config.MDOps(), "test_user1,test_user2",
+		tlf.Private)
 	require.NoError(t, err)
 	id1 := h.ResolvedWriters()[0]
 
@@ -298,7 +303,8 @@ func TestJournalServerOverDiskLimitError(t *testing.T) {
 	blockServer := config.BlockServer()
 
 	h, err := ParseTlfHandle(
-		ctx, config.KBPKI(), nil, "test_user1,test_user2", tlf.Private)
+		ctx, config.KBPKI(), config.MDOps(), "test_user1,test_user2",
+		tlf.Private)
 	require.NoError(t, err)
 	id1 := h.ResolvedWriters()[0]
 
@@ -364,7 +370,7 @@ func TestJournalServerRestart(t *testing.T) {
 	mdOps := config.MDOps()
 
 	h, err := ParseTlfHandle(
-		ctx, config.KBPKI(), nil, "test_user1", tlf.Private)
+		ctx, config.KBPKI(), config.MDOps(), "test_user1", tlf.Private)
 	require.NoError(t, err)
 	id := h.ResolvedWriters()[0]
 
@@ -437,7 +443,7 @@ func TestJournalServerLogOutLogIn(t *testing.T) {
 	mdOps := config.MDOps()
 
 	h, err := ParseTlfHandle(
-		ctx, config.KBPKI(), nil, "test_user1", tlf.Private)
+		ctx, config.KBPKI(), config.MDOps(), "test_user1", tlf.Private)
 	require.NoError(t, err)
 	id := h.ResolvedWriters()[0]
 
@@ -544,7 +550,8 @@ func TestJournalServerMultiUser(t *testing.T) {
 	mdOps := config.MDOps()
 
 	h, err := ParseTlfHandle(
-		ctx, config.KBPKI(), nil, "test_user1,test_user2", tlf.Private)
+		ctx, config.KBPKI(), config.MDOps(), "test_user1,test_user2",
+		tlf.Private)
 	require.NoError(t, err)
 	id1 := h.ResolvedWriters()[0]
 	id2 := h.ResolvedWriters()[1]
@@ -706,13 +713,11 @@ func TestJournalServerEnableAuto(t *testing.T) {
 
 	blockServer := config.BlockServer()
 	h, err := ParseTlfHandle(
-		ctx, config.KBPKI(), nil, "test_user1", tlf.Private)
+		ctx, config.KBPKI(), config.MDOps(), "test_user1", tlf.Private)
 	require.NoError(t, err)
 	id := h.ResolvedWriters()[0]
+	tlfID := h.tlfID
 
-	// Access a TLF, which should create a journal automatically.
-	tlfID, err := config.MDOps().GetIDForHandle(ctx, h)
-	require.NoError(t, err)
 	bCtx := kbfsblock.MakeFirstContext(id, keybase1.BlockType_DATA)
 	data := []byte{1, 2, 3, 4}
 	bID, err := kbfsblock.MakePermanentID(data)
@@ -761,13 +766,11 @@ func TestJournalServerReaderTLFs(t *testing.T) {
 	require.Zero(t, status.JournalCount)
 	require.Len(t, tlfIDs, 0)
 
+	// This will end up calling journalMDOps.GetIDForHandle, which
+	// initializes the journal if possible.  In this case for a
+	// public, unwritable folder, it shouldn't.
 	h, err := ParseTlfHandle(
-		ctx, config.KBPKI(), nil, "test_user2", tlf.Public)
-	require.NoError(t, err)
-
-	// Access someone else's public TLF, which should NOT create a
-	// journal automatically.
-	_, err = config.MDOps().GetIDForHandle(ctx, h)
+		ctx, config.KBPKI(), config.MDOps(), "test_user2", tlf.Public)
 	require.NoError(t, err)
 
 	status, tlfIDs = jServer.Status(ctx)
@@ -777,9 +780,8 @@ func TestJournalServerReaderTLFs(t *testing.T) {
 
 	// Neither should a private, reader folder.
 	h, err = ParseTlfHandle(
-		ctx, config.KBPKI(), nil, "test_user2#test_user1", tlf.Private)
-	require.NoError(t, err)
-	_, err = config.MDOps().GetIDForHandle(ctx, h)
+		ctx, config.KBPKI(), config.MDOps(), "test_user2#test_user1",
+		tlf.Private)
 	require.NoError(t, err)
 
 	status, tlfIDs = jServer.Status(ctx)
@@ -796,9 +798,7 @@ func TestJournalServerReaderTLFs(t *testing.T) {
 	AddTeamReaderForTestOrBust(
 		t, config, id, h.ResolvedReaders()[0].AsUserOrBust())
 	h, err = ParseTlfHandle(
-		ctx, config.KBPKI(), nil, string(teamName), tlf.SingleTeam)
-	require.NoError(t, err)
-	_, err = config.MDOps().GetIDForHandle(ctx, h)
+		ctx, config.KBPKI(), config.MDOps(), string(teamName), tlf.SingleTeam)
 	require.NoError(t, err)
 
 	status, tlfIDs = jServer.Status(ctx)
@@ -808,9 +808,7 @@ func TestJournalServerReaderTLFs(t *testing.T) {
 
 	// But accessing our own should make one.
 	h, err = ParseTlfHandle(
-		ctx, config.KBPKI(), nil, "test_user1", tlf.Public)
-	require.NoError(t, err)
-	_, err = config.MDOps().GetIDForHandle(ctx, h)
+		ctx, config.KBPKI(), config.MDOps(), "test_user1", tlf.Public)
 	require.NoError(t, err)
 
 	status, tlfIDs = jServer.Status(ctx)
@@ -833,13 +831,12 @@ func TestJournalServerNukeEmptyJournalsOnRestart(t *testing.T) {
 
 	blockServer := config.BlockServer()
 	h, err := ParseTlfHandle(
-		ctx, config.KBPKI(), nil, "test_user1", tlf.Private)
+		ctx, config.KBPKI(), config.MDOps(), "test_user1", tlf.Private)
 	require.NoError(t, err)
 	id := h.ResolvedWriters()[0]
+	tlfID := h.tlfID
 
 	// Access a TLF, which should create a journal automatically.
-	tlfID, err := config.MDOps().GetIDForHandle(ctx, h)
-	require.NoError(t, err)
 	bCtx := kbfsblock.MakeFirstContext(id, keybase1.BlockType_DATA)
 	data := []byte{1, 2, 3, 4}
 	bID, err := kbfsblock.MakePermanentID(data)
@@ -896,7 +893,7 @@ func TestJournalServerTeamTLFWithRestart(t *testing.T) {
 	jServer.delegateBlockServer = shutdownOnlyBlockServer{}
 
 	h, err := ParseTlfHandle(
-		ctx, config.KBPKI(), nil, string(name), tlf.SingleTeam)
+		ctx, config.KBPKI(), config.MDOps(), string(name), tlf.SingleTeam)
 	require.NoError(t, err)
 
 	tlfID := tlf.FakeID(2, tlf.SingleTeam)
