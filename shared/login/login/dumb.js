@@ -49,5 +49,3 @@ const dumbMap: DumbComponentMap<Login> = {
 export default {
   'Login: Signed Out': dumbMap,
 }
-
-export {dumbMap}

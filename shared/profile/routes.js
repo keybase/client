@@ -30,7 +30,7 @@ const proveEnterUsername = makeRouteDefNode({
   },
 })
 
-export const profileRoute = makeRouteDefNode({
+const profileRoute = makeRouteDefNode({
   component: Profile,
   initialState: {currentFriendshipsTab: 'Followers'},
   tags: makeLeafTags({underStatusBar: true, title: 'Profile'}),

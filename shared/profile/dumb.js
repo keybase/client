@@ -27,7 +27,7 @@ import type {DumbComponentMap} from '../constants/types/more'
 import type {Proof, UserInfo} from '../constants/types/tracker'
 import type {Props as RenderProps} from './index'
 
-export const proofsDefault: Array<Proof> = [
+const proofsDefault: Array<Proof> = [
   {
     name: 'malgorithms',
     type: 'twitter',
@@ -85,27 +85,27 @@ export const proofsDefault: Array<Proof> = [
   },
 ]
 
-export const proofsTracked = proofsDefault.map(proof => ({...proof, isTracked: true}))
+const proofsTracked = proofsDefault.map(proof => ({...proof, isTracked: true}))
 
-export const proofsDeleted = proofsDefault.map((proof, idx) => ({
+const proofsDeleted = proofsDefault.map((proof, idx) => ({
   ...proof,
   state: idx % 2 ? checking : revoked,
   meta: idx % 2 ? metaNone : metaDeleted,
 }))
 
-export const proofsChanged = proofsDefault.map((proof, idx) => ({
+const proofsChanged = proofsDefault.map((proof, idx) => ({
   ...proof,
   state: idx === 0 ? error : checking,
   meta: idx === 0 ? metaUnreachable : metaNone,
 }))
 
-export const proofsPending = proofsDefault.map((proof, idx) => ({
+const proofsPending = proofsDefault.map((proof, idx) => ({
   ...proof,
   state: checking,
   meta: metaPending,
 }))
 
-export const mockUserInfo: {username: string, userInfo: UserInfo} = {
+const mockUserInfo: {username: string, userInfo: UserInfo} = {
   username: 'chris',
   userInfo: {
     uid: '0',

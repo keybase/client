@@ -71,11 +71,7 @@ function copy(from: string, to: string) {
   fs.writeFileSync(to, fs.readFileSync(from))
 }
 
-function writeStream(filepath: string, encoding: string, append?: boolean): Promise<*> {
-  return Promise.reject(new Error('not implemented'))
-}
-
 // TODO implemented for mobile, not here
 const cachesDirectoryPath = ''
 
-export {cachesDirectoryPath, copy, downloadFilePath, exists, stat, tmpDir, tmpFile, tmpRandFile, writeStream}
+export {cachesDirectoryPath, copy, downloadFilePath, exists, stat, tmpDir, tmpFile, tmpRandFile}
