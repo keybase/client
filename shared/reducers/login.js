@@ -1,92 +1,51 @@
 // @flow
+import * as I from 'immutable'
 import * as Constants from '../constants/login'
 import * as Types from '../constants/types/login'
 import * as LoginGen from '../actions/login-gen'
 
-export default function(state: Types.State = Constants.initialState, action: LoginGen.Actions): Types.State {
+const initialState = Constants.makeState()
+
+export default function(state: Types.State = initialState, action: LoginGen.Actions): Types.State {
   switch (action.type) {
     case LoginGen.resetStore:
-      return {...Constants.initialState}
-
-    case LoginGen.setMyDeviceCodeState: {
-      const {codePageMyDeviceRole} = action.payload
-      return {
-        ...state,
-        codePageMyDeviceRole,
-      }
-    }
-    case LoginGen.setOtherDeviceCodeState: {
-      const {codePageOtherDeviceRole} = action.payload
-      return {
-        ...state,
-        codePageOtherDeviceRole,
-      }
-    }
-    case LoginGen.setCodePageMode: {
-      const {codePageMode} = action.payload
-      return {
-        ...state,
-        codePageMode,
-      }
-    }
+      return initialState
+    case LoginGen.setMyDeviceCodeState:
+      return state.set('codePageMyDeviceRole', action.payload.codePageMyDeviceRole)
+    case LoginGen.setOtherDeviceCodeState:
+      return state.set('codePageOtherDeviceRole', action.payload.codePageOtherDeviceRole)
+    case LoginGen.setCodePageMode:
+      return state.set('codePageMode', action.payload.codePageMode)
     case LoginGen.setTextCode: {
       const {codePageEnterCodeErrorText, codePageTextCode} = action.payload
-      return {
-        ...state,
-        codePageEnterCodeErrorText,
-        codePageTextCode,
-      }
+      return state
+        .set('codePageEnterCodeErrorText', codePageEnterCodeErrorText)
+        .set('codePageTextCode', codePageTextCode)
     }
-    case LoginGen.setQRCode: {
-      const {codePageQrCode} = action.payload
-      return {
-        ...state,
-        codePageQrCode,
-      }
-    }
+    case LoginGen.setQRCode:
+      return state.set('codePageQrCode', action.payload.codePageQrCode)
     case LoginGen.clearQRCode:
-      return {
-        ...state,
-        codePageQrCode: null,
-      }
-    case LoginGen.qrScanned: {
-      const {phrase} = action.payload
-      return {
-        ...state,
-        codePageQrCodeScanned: true,
-        codePageQrScanned: phrase,
-      }
-    }
-    case LoginGen.setCameraBrokenMode: {
-      const {codePageCameraBrokenMode} = action.payload
-      return {
-        ...state,
-        codePageCameraBrokenMode,
-      }
-    }
+      return state.set('codePageQrCode', null)
+    case LoginGen.qrScanned:
+      return state.set('codePageQrScanned', action.payload.phrase).set('codePageQrCodeScanned', true)
+    case LoginGen.setCameraBrokenMode:
+      return state.set('codePageCameraBrokenMode', action.payload.codePageCameraBrokenMode)
     case LoginGen.configuredAccounts:
-      if (action.payload.error) {
-        return {...state, configuredAccounts: []}
-      } else {
-        const {accounts} = action.payload
-        return {...state, configuredAccounts: accounts}
-      }
-    case LoginGen.waitingForResponse: {
-      const {waiting} = action.payload
-      return {...state, waitingForResponse: waiting}
-    }
+      return action.payload.error
+        ? state.set('configuredAccounts', I.List())
+        : state.set(
+            'configuredAccounts',
+            I.List((action.payload.accounts || []).map(a => Constants.makeAccount(a)))
+          )
+    case LoginGen.waitingForResponse:
+      return state.set('waitingForResponse', action.payload.waiting)
     case LoginGen.provisioningError:
-      return {...state, codePageQrCodeScanned: false}
-    case LoginGen.resetQRCodeScanned:
-      return {...state, codePageQrCodeScanned: false}
-    case LoginGen.setRevokedSelf: {
-      const {revoked} = action.payload
-      return {...state, justRevokedSelf: revoked}
-    }
-    case LoginGen.setDeletedSelf: {
-      const {deletedUsername} = action.payload
-      return {...state, justDeletedSelf: deletedUsername}
-    }
+    case LoginGen.resetQRCodeScanned: // fallthrough
+      return state.set('codePageQrCodeScanned', false)
+    case LoginGen.setRevokedSelf:
+      return state.set('justRevokedSelf', action.payload.revoked)
+    case LoginGen.setDeletedSelf:
+      return state.set('justDeletedSelf', action.payload.deletedUsername)
     // Saga only actions
     case LoginGen.addNewDevice:
     case LoginGen.chooseGPGMethod:

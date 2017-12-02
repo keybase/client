@@ -179,7 +179,7 @@ const kex2Sagas = (
 
 function* cancelLogin(): Generator<any, void, any> {
   const getNumAccounts = (state: TypedState) =>
-    state.login.configuredAccounts && state.login.configuredAccounts.length
+    state.login.configuredAccounts && state.login.configuredAccounts.size
   const numAccounts = yield Saga.select(getNumAccounts)
 
   const route = numAccounts ? ['login'] : []

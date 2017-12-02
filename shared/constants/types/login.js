@@ -1,5 +1,7 @@
 // @flow
+import * as I from 'immutable'
 import HiddenString from '../../util/hidden-string'
+
 export type Mode =
   | 'codePageModeScanCode'
   | 'codePageModeShowCode'
@@ -14,7 +16,14 @@ export type DeviceRole =
 
 // It's the b64 encoded value used to render the image
 export type QRCode = HiddenString
-export type State = {
+
+export type _Account = {
+  hasStoredSecret: boolean,
+  username: string,
+}
+export type Account = I.RecordOf<_Account>
+
+export type _State = {
   codePageCameraBrokenMode: boolean,
   codePageCodeCountDown: number,
   codePageEnterCodeErrorText: string,
@@ -25,7 +34,7 @@ export type State = {
   codePageQrCodeScanned: boolean,
   codePageQrScanned: ?QRCode,
   codePageTextCode: ?HiddenString,
-  configuredAccounts: ?Array<{|hasStoredSecret: boolean, username: string|}>,
+  configuredAccounts: I.List<Account>,
   forgotPasswordError: ?Error,
   forgotPasswordSubmitting: boolean,
   forgotPasswordSuccess: boolean,
@@ -36,3 +45,5 @@ export type State = {
   registerUserPassLoading: boolean,
   waitingForResponse: boolean,
 }
+
+export type State = I.RecordOf<_State>
