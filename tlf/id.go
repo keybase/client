@@ -257,3 +257,45 @@ func MakeRandomID(t Type) (ID, error) {
 	}
 	return id, nil
 }
+
+// MakeIDFromTeam makes a deterministic TLF ID from a team ID and an epoch
+// representing how many times a new TLF has been needed for this
+// team.  Returns NullID on failure.
+func MakeIDFromTeam(t Type, tid keybase1.TeamID, epoch byte) (ID, error) {
+	idBytes := tid.ToBytes()
+	if len(idBytes) != idByteLen {
+		return NullID, errors.Errorf(
+			"The length of team ID %s doesn't match that of a TLF ID", tid)
+	}
+
+	idBytes[idByteLen-2] = epoch
+
+	switch t {
+	case Private:
+		if tid.IsPublic() {
+			return NullID, errors.Errorf(
+				"Cannot make a private TLF for a public team ID %s", tid)
+		}
+		idBytes[idByteLen-1] = idSuffix
+	case Public:
+		if !tid.IsPublic() {
+			return NullID, errors.Errorf(
+				"Cannot make a public TLF for a private team ID %s", tid)
+		}
+		idBytes[idByteLen-1] = pubIDSuffix
+	case SingleTeam:
+		if tid.IsPublic() {
+			return NullID, errors.Errorf(
+				"Cannot make a single-team TLF for a public team ID %s", tid)
+		}
+		idBytes[idByteLen-1] = singleTeamIDSuffix
+	default:
+		panic(fmt.Sprintf("Unknown TLF type %d", t))
+	}
+	var id ID
+	err := id.UnmarshalBinary(idBytes[:])
+	if err != nil {
+		return NullID, err
+	}
+	return id, nil
+}
