@@ -336,7 +336,7 @@ class ProfileRender extends PureComponent<Props, State> {
                     <Box style={globalStyles.flexBoxRow}>
                       <Text type="BodySmallSemibold">Teams</Text>
                     </Box>
-                    {this.props.userInfo.showcasedTeams.map(teamname => <Box key={teamname} onClick={event => this.props.onClickShowcased(teamname, event)} style={{...globalStyles.flexBoxRow,
+                    {this.props.userInfo.showcasedTeams.map(teamname => <Box key={teamname} onClick={event => this.props.onClickShowcased(event, teamname)} style={{...globalStyles.flexBoxRow,
                       alignItems: 'flex-start',
                       justifyContent: 'flex-start',
                       minHeight: 32,
