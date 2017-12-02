@@ -2,8 +2,8 @@
 import React, {PureComponent} from 'react'
 import Header from './header.render.desktop'
 import Action, {calcFooterHeight} from './action.render.desktop'
-import {UserProofs, UserBio} from '../common-adapters'
-import {globalStyles} from '../styles'
+import {Box, Avatar, Text, UserProofs, UserBio} from '../common-adapters'
+import {globalColors, globalMargins, globalStyles} from '../styles'
 import NonUser from './non-user'
 import {autoResize} from '../desktop/renderer/remote-component-helper'
 import TrackerError from './error'
@@ -73,6 +73,38 @@ export default class TrackerRender extends PureComponent<RenderProps> {
             onClickFollowers={this.props.onClickFollowers}
             onClickFollowing={this.props.onClickFollowing}
           />
+          {this.props.userInfo.showcasedTeams.length > 0 &&
+            <Box style={{...globalStyles.flexBoxColumn, paddingLeft: globalMargins.medium, paddingBottom: globalMargins.tiny, paddingTop: globalMargins.tiny}}>
+              {this.props.userInfo.showcasedTeams.map(teamname => <Box key={teamname} onClick={event => {
+                console.warn('in onClick')
+                this.props.onShowTeam(teamname)
+              }} style={{...globalStyles.flexBoxRow,
+                alignItems: 'flex-start',
+                justifyContent: 'flex-start',
+                minHeight: 24,
+              }}>
+                <Box style={{
+                  ...globalStyles.flexBoxRow,
+                  alignItems: 'center',
+                  alignSelf: 'center',
+                  height: 16,
+                  minHeight: 16,
+                  minWidth: 16,
+                  width: 16,
+                }}>
+                  <Avatar teamname={teamname} size={16} />
+                </Box>
+                <Box style={{
+                  ...globalStyles.flexBoxRow,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  alignSelf: 'center',
+                  paddingLeft: globalMargins.tiny,
+                }}>
+                  <Text style={{color: globalColors.black_75}} type="BodySmallSemiboldInlineLink">{teamname}</Text>
+                </Box>
+              </Box>)}
+            </Box>}
           <UserProofs
             type="proofs"
             style={{

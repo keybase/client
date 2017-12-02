@@ -6,6 +6,9 @@ import Render, {type RenderPropsUnshaped} from './render'
 import {connect, type TypedState} from '../util/container'
 import {isLoading} from '../constants/tracker'
 import {type Proof, type SimpleProofState, type UserInfo} from '../constants/types/tracker'
+import {navigateTo} from '../actions/route-tree'
+import {teamsTab} from '../constants/tabs'
+
 import {createStartConversation} from '../actions/chat-gen'
 import {type ErrorProps} from './error'
 
@@ -98,6 +101,10 @@ const mapDispatchToProps = (dispatch: any, ownProps: OwnProps) => ({
     dispatch(ProfileGen.createOnClickFollowers({username, openWebsite: true})),
   onClickFollowing: (username: string) =>
     dispatch(ProfileGen.createOnClickFollowing({username, openWebsite: true})),
+  onShowTeam: (teamname: string) => {
+    console.warn('in onShowTeam', teamname)
+    dispatch(navigateTo([teamsTab, {props: {teamname}, selected: 'team'}]))
+  },
   onClose: () => dispatch(Creators.onClose(ownProps.username)),
   onFollow: () => dispatch(Creators.onFollow(ownProps.username)),
   onIgnore: () => dispatch(Creators.onIgnore(ownProps.username)),
