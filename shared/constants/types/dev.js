@@ -1,12 +1,8 @@
 // @flow
 
-export type DebugConfig = {|
+export type State = {
   dumbFilter: string,
   dumbFullscreen: boolean,
   dumbIndex: number,
-|}
-
-export type State = {
-  debugConfig: DebugConfig,
   debugCount: number,
 }

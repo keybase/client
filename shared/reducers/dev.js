@@ -8,10 +8,12 @@ export default function(state: Types.State = Constants.initialState, action: Dev
     case DevGen.resetStore:
       return {...Constants.initialState}
     case DevGen.updateDebugConfig:
-      const {config} = action.payload
+      const {dumbFilter, dumbFullscreen, dumbIndex} = action.payload
       return {
         ...state,
-        debugConfig: {...state.debugConfig, ...config},
+        dumbFilter,
+        dumbFullscreen,
+        dumbIndex,
       }
     case DevGen.debugCount:
       return {

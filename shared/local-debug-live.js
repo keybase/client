@@ -8,7 +8,8 @@
 const dumbFilterJson = ''
 const dumbFilterOverride = '' // Changing this will apply during a hot reload session
 
-export const dumbFilter = dumbFilterOverride || dumbFilterJson
+export const dumbFilter: string = dumbFilterOverride || dumbFilterJson
+export const dumbFullscreen: boolean = false
 
 // Mobile only settings
-export const dumbIndex = 0
+export const dumbIndex: number = 0

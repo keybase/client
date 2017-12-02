@@ -2,10 +2,8 @@
 import type {State} from './types/dev'
 
 export const initialState: State = {
-  debugConfig: {
-    dumbFilter: '',
-    dumbFullscreen: false,
-    dumbIndex: 0,
-  },
+  dumbFilter: '',
+  dumbFullscreen: false,
+  dumbIndex: 0,
   debugCount: 0,
 }
