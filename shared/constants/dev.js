@@ -1,9 +1,12 @@
 // @flow
-import type {State} from './types/dev'
+import * as I from 'immutable'
+import type {_State} from './types/dev'
 
-export const initialState: State = {
+const makeState: I.RecordFactory<_State> = I.Record({
+  debugCount: 0,
   dumbFilter: '',
   dumbFullscreen: false,
   dumbIndex: 0,
-  debugCount: 0,
-}
+})
+
+export {makeState}
