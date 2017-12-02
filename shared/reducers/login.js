@@ -9,83 +9,59 @@ export default function(state: Types.State = Constants.initialState, action: Log
       return {...Constants.initialState}
 
     case LoginGen.setMyDeviceCodeState: {
-      const {state: myDeviceRole} = action.payload
+      const {codePageMyDeviceRole} = action.payload
       return {
         ...state,
-        codePage: {
-          ...state.codePage,
-          myDeviceRole,
-        },
+        codePageMyDeviceRole,
       }
     }
     case LoginGen.setOtherDeviceCodeState: {
-      const {state: otherDeviceRole} = action.payload
+      const {codePageOtherDeviceRole} = action.payload
       return {
         ...state,
-        codePage: {
-          ...state.codePage,
-          otherDeviceRole,
-        },
+        codePageOtherDeviceRole,
       }
     }
     case LoginGen.setCodePageMode: {
-      const {mode} = action.payload
+      const {codePageMode} = action.payload
       return {
         ...state,
-        codePage: {
-          ...state.codePage,
-          mode,
-        },
+        codePageMode,
       }
     }
     case LoginGen.setTextCode: {
-      const {enterCodeErrorText, textCode} = action.payload
+      const {codePageEnterCodeErrorText, codePageTextCode} = action.payload
       return {
         ...state,
-        codePage: {
-          ...state.codePage,
-          enterCodeErrorText,
-          textCode,
-        },
+        codePageEnterCodeErrorText,
+        codePageTextCode,
       }
     }
     case LoginGen.setQRCode: {
-      const {qrCode} = action.payload
+      const {codePageQrCode} = action.payload
       return {
         ...state,
-        codePage: {
-          ...state.codePage,
-          qrCode,
-        },
+        codePageQrCode,
       }
     }
     case LoginGen.clearQRCode:
       return {
         ...state,
-        codePage: {
-          ...state.codePage,
-          qrCode: null,
-        },
+        codePageQrCode: null,
       }
     case LoginGen.qrScanned: {
       const {phrase} = action.payload
       return {
         ...state,
-        codePage: {
-          ...state.codePage,
-          qrCodeScanned: true,
-          qrScanned: phrase,
-        },
+        codePageQrCodeScanned: true,
+        codePageQrScanned: phrase,
       }
     }
     case LoginGen.setCameraBrokenMode: {
-      const {broken} = action.payload
+      const {codePageCameraBrokenMode} = action.payload
       return {
         ...state,
-        codePage: {
-          ...state.codePage,
-          cameraBrokenMode: broken,
-        },
+        codePageCameraBrokenMode,
       }
     }
     case LoginGen.configuredAccounts:
@@ -100,9 +76,9 @@ export default function(state: Types.State = Constants.initialState, action: Log
       return {...state, waitingForResponse: waiting}
     }
     case LoginGen.provisioningError:
-      return {...state, codePage: {...state.codePage, qrCodeScanned: false}}
+      return {...state, codePageQrCodeScanned: false}
     case LoginGen.resetQRCodeScanned:
-      return {...state, codePage: {...state.codePage, qrCodeScanned: false}}
+      return {...state, codePageQrCodeScanned: false}
     case LoginGen.setRevokedSelf: {
       const {revoked} = action.payload
       return {...state, justRevokedSelf: revoked}

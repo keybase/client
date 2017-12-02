@@ -15,18 +15,16 @@ export type DeviceRole =
 // It's the b64 encoded value used to render the image
 export type QRCode = HiddenString
 export type State = {
-  codePage: {
-    cameraBrokenMode: boolean,
-    codeCountDown: number,
-    enterCodeErrorText: string,
-    mode: ?Mode,
-    myDeviceRole: ?DeviceRole,
-    otherDeviceRole: ?DeviceRole,
-    qrCode: ?QRCode,
-    qrCodeScanned: boolean,
-    qrScanned: ?QRCode,
-    textCode: ?HiddenString,
-  },
+  codePageCameraBrokenMode: boolean,
+  codePageCodeCountDown: number,
+  codePageEnterCodeErrorText: string,
+  codePageMode: ?Mode,
+  codePageMyDeviceRole: ?DeviceRole,
+  codePageOtherDeviceRole: ?DeviceRole,
+  codePageQrCode: ?QRCode,
+  codePageQrCodeScanned: boolean,
+  codePageQrScanned: ?QRCode,
+  codePageTextCode: ?HiddenString,
   configuredAccounts: ?Array<{|hasStoredSecret: boolean, username: string|}>,
   forgotPasswordError: ?Error,
   forgotPasswordSubmitting: boolean,

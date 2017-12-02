@@ -1,8 +1,6 @@
 // @flow
-import {Component} from 'react'
-import type {IconType as _IconType} from './icon.constants'
-export type IconType = _IconType
-import type {Exact} from '../constants/types/more'
+import * as React from 'react'
+import type {IconType} from './icon.constants'
 
 export type Props = {
   type: IconType,
@@ -18,6 +16,8 @@ export type Props = {
   className?: string,
 }
 
-declare export default class Icon extends Component<Props> {}
+declare export default class Icon extends React.Component<Props> {}
 declare export function iconTypeToImgSet(type: IconType, size: number): string
 declare export function urlsToImgSet(imgMap: {[size: string]: string}, size: number): ?string
+
+export type {IconType} from './icon.constants'

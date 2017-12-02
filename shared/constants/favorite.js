@@ -3,7 +3,7 @@ import * as RPCTypes from './types/flow-types'
 import * as Types from './types/favorite'
 import {defaultKBFSPath} from './config'
 import {parseFolderNameToUsers, sortUserList} from '../util/kbfs'
-import type {Folder, MetaType, FolderRPCWithMeta} from './folders'
+import type {Folder, MetaType, FolderRPCWithMeta} from './types/folders'
 import type {UserList} from '../common-adapters/usernames'
 
 // See KBDefines.h: KBExitFuseKextError

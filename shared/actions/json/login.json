@@ -10,7 +10,7 @@
     },
     "relogin": {
       "usernameOrEmail": "string",
-      "passphrase": "HiddenString",
+      "passphrase": "HiddenString"
     },
     "submitPassphrase": {
       "passphrase": "HiddenString",
@@ -35,22 +35,22 @@
       "deviceName": "string"
     },
     "setCodePageMode": {
-      "mode": "Types.Mode"
+      "codePageMode": "Types.Mode"
     },
     "openAccountResetPage": {},
     "setTextCode": {
-      "enterCodeErrorText": "string",
-      "textCode": "HiddenString"
+      "codePageEnterCodeErrorText": "string",
+      "codePageTextCode": "HiddenString"
     },
     "setQRCode": {
-      "qrCode": "HiddenString"
+      "codePageQrCode": "HiddenString"
     },
     "clearQRCode": {},
     "setMyDeviceCodeState": {
-      "state": "Types.DeviceRole"
+      "codePageMyDeviceRole": "Types.DeviceRole"
     },
     "setOtherDeviceCodeState": {
-      "state": "Types.DeviceRole"
+      "codePageOtherDeviceRole": "Types.DeviceRole"
     },
     "provisioningError": {
       "error": "Error"
@@ -62,7 +62,7 @@
     },
     "logoutDone": {},
     "setCameraBrokenMode": {
-      "broken": "boolean"
+      "codePageCameraBrokenMode": "boolean"
     },
     "navBasedOnLoginAndInitialState": {},
     "waitingForResponse": {

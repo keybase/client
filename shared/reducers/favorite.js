@@ -4,6 +4,7 @@ import * as Types from '../constants/types/favorite'
 import * as FavoriteGen from '../actions/favorite-gen'
 import * as KBFSGen from '../actions/kbfs-gen'
 
+// TODO use immutable for this when we rewrite it for the in-app-finder
 export default function(
   state: Types.State = Constants.initialState,
   action: FavoriteGen.Actions | KBFSGen.Actions

@@ -6,7 +6,7 @@ import * as I from 'immutable'
 import * as RPCTypes from '../constants/types/flow-types'
 import * as More from '../constants/types/more'
 import * as Types from '../constants/types/tracker'
-import * as FolderConstants from '../constants/folders'
+import * as FolderTypes from '../constants/types/folders'
 
 // Constants
 export const resetStore = 'common:resetStore' // not a part of tracker but is handled by every reducer
@@ -84,7 +84,7 @@ export const createShowTracker = (payload: {|+username: string|}) => ({error: fa
 export const createUnfollow = (payload: {|+username: string|}) => ({error: false, payload, type: unfollow})
 export const createUpdateBTC = (payload: {|+username: string, +address: string, +sigID: string|}) => ({error: false, payload, type: updateBTC})
 export const createUpdateEldestKidChanged = (payload: {|+username: string|}) => ({error: false, payload, type: updateEldestKidChanged})
-export const createUpdateFolders = (payload: {|+username: string, +tlfs: Array<FolderConstants.Folder>|}) => ({error: false, payload, type: updateFolders})
+export const createUpdateFolders = (payload: {|+username: string, +tlfs: Array<FolderTypes.Folder>|}) => ({error: false, payload, type: updateFolders})
 export const createUpdatePGPKey = (payload: {|+username: string, +pgpFingerprint: Buffer, +kid: string|}) => ({error: false, payload, type: updatePGPKey})
 export const createUpdateProof = (payload: {|+remoteProof: RPCTypes.RemoteProof, +linkCheckResult: RPCTypes.LinkCheckResult, +username: string|}) => ({error: false, payload, type: updateProof})
 export const createUpdateProofState = (payload: {|+username: string|}) => ({error: false, payload, type: updateProofState})
