@@ -13,7 +13,7 @@ import SearchPopup from './search-container'
 import {isMobile} from '../constants/platform'
 import NonUserProfile from './non-user-profile-container'
 import ShowcasedTeamInfo from './showcased-team-info/container'
-import RelativePopupHoc from '../common-adapters/relative-popup-hoc.desktop'
+import RelativePopupHoc from '../common-adapters/relative-popup-hoc'
 
 const proveEnterUsername = makeRouteDefNode({
   component: ProveEnterUsername,
@@ -65,8 +65,8 @@ export const profileRoute = makeRouteDefNode({
     },
     showcasedTeamInfo: {
       children: {},
-      component: RelativePopupHoc(ShowcasedTeamInfo),
-      tags: makeLeafTags({layerOnTop: !isMobile}),
+      component: isMobile ? ShowcasedTeamInfo : RelativePopupHoc(ShowcasedTeamInfo),
+      tags: makeLeafTags({layerOnTop: true}),
     },
   },
 })

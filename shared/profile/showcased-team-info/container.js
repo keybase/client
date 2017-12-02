@@ -1,25 +1,23 @@
 // @flow
-import Revoke from './index'
-import {submitRevokeProof, finishRevoking, dropPgp} from '../../actions/profile'
-import {connect, type TypedState} from '../../util/container'
+import ShowcasedTeamInfo from './index'
+import {getDetails} from '../../actions/teams/creators'
+import {connect, compose, lifecycle, type TypedState} from '../../util/container'
 
 const mapStateToProps = (state: TypedState, {routeProps}) => ({
-  errorMessage: state.profile.revoke.error,
-  isWaiting: 'foo',
-  platform: routeProps.get('platform'),
-  platformHandle: routeProps.get('platformHandle'),
+  description: state.entities.getIn(['teams', 'teamNameToPublicitySettings', routeProps.get('teamname'), 'description'], ''),
+  memberCount: state.entities.getIn(['teams', 'teammembercounts', routeProps.get('teamname')], 0),  
+  teamname: routeProps.get('teamname'),  
 })
 
 const mapDispatchToProps = (dispatch: Dispatch, {routeProps}) => ({
-  onCancel: () => dispatch(finishRevoking()),
-  onRevoke: () => {
-    if (routeProps.get('platform') === 'pgp') {
-      dispatch(dropPgp(routeProps.get('proofId')))
-    } else {
-      dispatch(submitRevokeProof(routeProps.get('proofId')))
-    }
-  },
-  teamname: routeProps.get('teamname'),
+  _loadTeam: teamname => dispatch(getDetails(teamname)),  
 })
 
-export default connect(mapStateToProps, mapDispatchToProps)(Revoke)
+export default compose(
+  connect(mapStateToProps, mapDispatchToProps),
+  lifecycle({
+    componentDidMount: function() {
+      this.props._loadTeam(this.props.teamname)
+    },
+  })
+)(ShowcasedTeamInfo)
