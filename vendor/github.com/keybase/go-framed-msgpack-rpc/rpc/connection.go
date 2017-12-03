@@ -161,6 +161,7 @@ type ConnectionTransportTLS struct {
 	transport       Transporter
 	stagedTransport Transporter
 	conn            net.Conn
+	dialerTimeout   time.Duration
 	logFactory      LogFactory
 	wef             WrapErrorFunc
 	log             connectionLog
@@ -168,6 +169,8 @@ type ConnectionTransportTLS struct {
 
 // Test that ConnectionTransportTLS fully implements the ConnectionTransport interface.
 var _ ConnectionTransport = (*ConnectionTransportTLS)(nil)
+
+const keepAlive = 10 * time.Second
 
 // Dial is an implementation of the ConnectionTransport interface.
 func (ct *ConnectionTransportTLS) Dial(ctx context.Context) (
@@ -204,7 +207,8 @@ func (ct *ConnectionTransportTLS) Dial(ctx context.Context) (
 		ct.log.Info("Dialing %s", addr)
 		// connect
 		dialer := net.Dialer{
-			KeepAlive: 10 * time.Second,
+			Timeout:   ct.dialerTimeout,
+			KeepAlive: keepAlive,
 		}
 		baseConn, err := dialer.Dial("tcp", addr)
 		if err != nil {
@@ -219,10 +223,12 @@ func (ct *ConnectionTransportTLS) Dial(ctx context.Context) (
 			resinit.ResInitIfDNSError(err)
 			return err
 		}
+		ct.log.Info("baseConn: %s; Calling Handshake", baseConn.LocalAddr())
 		conn = tls.Client(baseConn, config)
 		if err := conn.(*tls.Conn).Handshake(); err != nil {
 			return err
 		}
+		ct.log.Info("Handshaken")
 
 		// Disable SIGPIPE on platforms that require it (Darwin). See sigpipe_bsd.go.
 		return DisableSigPipe(baseConn)
@@ -331,6 +337,9 @@ type ConnectionOpts struct {
 	// before reconnecting. The random backoff timer is fast-forward-able by
 	// passing in a WithFireNow(ctx) into a RPC call.
 	InitialReconnectBackoffWindow time.Duration
+	// DialerTimeout is the Timeout used in net.Dialer when initiating new
+	// connections.
+	DialerTimeout time.Duration
 }
 
 // NewTLSConnection returns a connection that tries to connect to the
@@ -369,10 +378,11 @@ func NewTLSConnectionWithTLSConfig(
 	opts ConnectionOpts,
 ) *Connection {
 	transport := &ConnectionTransportTLS{
-		srvRemote:  srvRemote,
-		tlsConfig:  copyTLSConfig(tlsConfig),
-		logFactory: logFactory,
-		wef:        opts.WrapErrorFunc,
+		srvRemote:     srvRemote,
+		tlsConfig:     copyTLSConfig(tlsConfig),
+		logFactory:    logFactory,
+		wef:           opts.WrapErrorFunc,
+		dialerTimeout: opts.DialerTimeout,
 		log: connectionLog{
 			LogOutput: logOutput,
 			logPrefix: "CONNTSPT",
