@@ -14,8 +14,21 @@ protocol NotifyTeam {
     boolean renamed;
   }
 
-  void teamChangedByID  (TeamID teamID,   Seqno latestSeqno, TeamChangeSet changes) oneway;
-  void teamChangedByName(string teamName, Seqno latestSeqno, TeamChangeSet changes) oneway;
+  // All fields are unverified
+  void teamChangedByID(
+    TeamID teamID,
+    Seqno latestSeqno,
+    boolean implicitTeam,
+    TeamChangeSet changes
+  ) oneway;
+
+  // All fields are unverified
+  void teamChangedByName(
+    string teamName,
+    Seqno latestSeqno,
+    boolean implicitTeam,
+    TeamChangeSet changes
+  ) oneway;
 
   void teamDeleted(TeamID teamID) oneway;
 

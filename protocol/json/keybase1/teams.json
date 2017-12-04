@@ -811,6 +811,11 @@
           "type": "Seqno",
           "name": "latestSeqno",
           "jsonkey": "latest_seqno"
+        },
+        {
+          "type": "boolean",
+          "name": "implicitTeam",
+          "jsonkey": "implicit_team"
         }
       ]
     },

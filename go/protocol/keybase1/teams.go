@@ -981,6 +981,7 @@ type TeamChangeRow struct {
 	KeyRotated        bool   `codec:"keyRotated" json:"key_rotated"`
 	MembershipChanged bool   `codec:"membershipChanged" json:"membership_changed"`
 	LatestSeqno       Seqno  `codec:"latestSeqno" json:"latest_seqno"`
+	ImplicitTeam      bool   `codec:"implicitTeam" json:"implicit_team"`
 }
 
 func (o TeamChangeRow) DeepCopy() TeamChangeRow {
@@ -990,6 +991,7 @@ func (o TeamChangeRow) DeepCopy() TeamChangeRow {
 		KeyRotated:        o.KeyRotated,
 		MembershipChanged: o.MembershipChanged,
 		LatestSeqno:       o.LatestSeqno.DeepCopy(),
+		ImplicitTeam:      o.ImplicitTeam,
 	}
 }
 

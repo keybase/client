@@ -652,8 +652,10 @@ function* _setupTeamHandlers(): Saga.SagaGenerator<any, any> {
     engine().setIncomingHandler(
       'keybase.1.NotifyTeam.teamChangedByName',
       (args: RPCTypes.NotifyTeamTeamChangedByNameRpcParam) => {
-        const actions = getLoadCalls(args.teamName)
-        actions.forEach(dispatch)
+        if (!args.implicitTeam) {
+          const actions = getLoadCalls(args.teamName)
+          actions.forEach(dispatch)
+        }
       }
     )
     engine().setIncomingHandler(
