@@ -346,10 +346,41 @@ export type UnreadCounts = {
   badged: number,
 }
 
+
+/***
+ * TODO:
+ *
+ *
+ ***/
+
 /***
  *
  * notes:
  *
+ * features to support:
+ *
+ * messages come in. that updates the thread and inbox
+ * we get the inbox, which is basically a single message
+ *
+ * we have inbox items that can represent a convo thats not started yet (pending aka alwaysshow)
+ *
+ * inbox:
+ * item: number of unread messages (badging)
+ * big channels, big teams
+ * small teams
+ * filter
+ * global state of inbox
+ * syncing state
+ * inbox version <<<< rely on this more
+ *
+ *
+ * thread
+ * window of messages
+ * state of window (are we at the end)
+ * if finalized (pointers back / forward)
+ *
+ * misc:
+ * are we searching
  *
  *
  *
