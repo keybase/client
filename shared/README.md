@@ -132,7 +132,9 @@ Toold > Android > AVD Manager
 ```sh
 # Build the go keybaselib
 yarn run rn-gobuild-android
+```
 
+```sh
 # Install the app on your device
 react-native run-android
 ```
