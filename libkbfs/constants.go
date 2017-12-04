@@ -27,3 +27,7 @@ const bserverReconnectBackoffWindow = time.Hour
 // registerForUpdatesFireNowThreshold is the maximum length of time that
 // KBFS can be idle for, in order to trigger FireNow from RegisterForUpdate.
 const registerForUpdatesFireNowThreshold = 10 * time.Minute
+
+// dialerTimeout is the TCP dial timeout used by mdserver and bserver RPC
+// connections.
+const dialerTimeout = 16 * time.Second

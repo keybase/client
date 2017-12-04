@@ -76,6 +76,7 @@ func newBlockServerRemoteClientHandler(name string, log logger.Logger,
 		WrapErrorFunc:                 libkb.WrapError,
 		TagsFunc:                      libkb.LogTagsFromContext,
 		ReconnectBackoff:              func() backoff.BackOff { return constBackoff },
+		DialerTimeout:                 dialerTimeout,
 		InitialReconnectBackoffWindow: bserverReconnectBackoffWindow,
 	}
 	b.initNewConnection()

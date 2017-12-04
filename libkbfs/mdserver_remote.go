@@ -82,8 +82,6 @@ var _ kbfscrypto.AuthTokenRefreshHandler = (*MDServerRemote)(nil)
 // Test that MDServerRemote fully implements the ConnectionHandler interface.
 var _ rpc.ConnectionHandler = (*MDServerRemote)(nil)
 
-const dialerTimeout = 16 * time.Second
-
 // NewMDServerRemote returns a new instance of MDServerRemote.
 func NewMDServerRemote(config Config, srvRemote rpc.Remote,
 	rpcLogFactory rpc.LogFactory) *MDServerRemote {
@@ -111,11 +109,10 @@ func NewMDServerRemote(config Config, srvRemote rpc.Remote,
 		"libkbfs_mdserver_remote", VersionString(), mdServer)
 	constBackoff := backoff.NewConstantBackOff(RPCReconnectInterval)
 	mdServer.connOpts = rpc.ConnectionOpts{
-		WrapErrorFunc:    libkb.WrapError,
-		TagsFunc:         libkb.LogTagsFromContext,
-		ReconnectBackoff: func() backoff.BackOff { return constBackoff },
-		DialerTimeout:    dialerTimeout,
-
+		WrapErrorFunc:                 libkb.WrapError,
+		TagsFunc:                      libkb.LogTagsFromContext,
+		ReconnectBackoff:              func() backoff.BackOff { return constBackoff },
+		DialerTimeout:                 dialerTimeout,
 		InitialReconnectBackoffWindow: mdserverReconnectBackoffWindow,
 	}
 	mdServer.initNewConnection()
