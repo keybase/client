@@ -527,6 +527,12 @@ func (r *runner) waitForJournal(ctx context.Context) error {
 		return nil
 	}
 
+	_, err = jServer.JournalStatus(rootNode.GetFolderBranch().Tlf)
+	if err != nil {
+		r.log.CDebugf(ctx, "No journal: %+v", err)
+		return nil
+	}
+
 	printDoneCh := make(chan struct{})
 	waitDoneCh := make(chan struct{})
 	go func() {

@@ -847,18 +847,7 @@ func (md *RootMetadata) IsWriter(
 	uid keybase1.UID, verifyingKey kbfscrypto.VerifyingKey) (
 	bool, error) {
 	h := md.GetTlfHandle()
-	if md.TypeForKeying() != tlf.TeamKeying {
-		return h.IsWriter(uid), nil
-	}
-
-	// Team membership needs to be checked with the service.  For a
-	// SingleTeam TLF, there is always only a single writer in the
-	// handle.
-	tid, err := h.FirstResolvedWriter().AsTeam()
-	if err != nil {
-		return false, err
-	}
-	return checker.IsTeamWriter(ctx, tid, uid, verifyingKey)
+	return isWriterFromHandle(ctx, h, checker, uid, verifyingKey)
 }
 
 // IsReader checks that the given user is a valid reader of the TLF

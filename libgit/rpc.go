@@ -63,6 +63,12 @@ func (rh *RPCHandler) waitForJournal(
 		return nil
 	}
 
+	_, err = jServer.JournalStatus(rootNode.GetFolderBranch().Tlf)
+	if err != nil {
+		rh.log.CDebugf(ctx, "No journal: %+v", err)
+		return nil
+	}
+
 	// This squashes everything written to the journal into a single
 	// revision, to make sure that no partial states of the bare repo
 	// are seen by other readers of the TLF.  It also waits for any

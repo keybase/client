@@ -696,7 +696,6 @@ func TestJournalServerEnableAuto(t *testing.T) {
 	tempdir, ctx, cancel, config, _, jServer := setupJournalServerTest(t)
 	defer teardownJournalServerTest(t, tempdir, ctx, cancel, config)
 
-	tlfID := tlf.FakeID(2, tlf.Private)
 	err := jServer.EnableAuto(ctx)
 	require.NoError(t, err)
 
@@ -712,6 +711,8 @@ func TestJournalServerEnableAuto(t *testing.T) {
 	id := h.ResolvedWriters()[0]
 
 	// Access a TLF, which should create a journal automatically.
+	tlfID, err := config.MDOps().GetIDForHandle(ctx, h)
+	require.NoError(t, err)
 	bCtx := kbfsblock.MakeFirstContext(id, keybase1.BlockType_DATA)
 	data := []byte{1, 2, 3, 4}
 	bID, err := kbfsblock.MakePermanentID(data)
@@ -741,6 +742,76 @@ func TestJournalServerEnableAuto(t *testing.T) {
 	err = jServer.EnableExistingJournals(
 		ctx, session.UID, session.VerifyingKey, TLFJournalBackgroundWorkPaused)
 	require.NoError(t, err)
+	status, tlfIDs = jServer.Status(ctx)
+	require.True(t, status.EnableAuto)
+	require.Equal(t, 1, status.JournalCount)
+	require.Len(t, tlfIDs, 1)
+}
+
+func TestJournalServerPublicTLF(t *testing.T) {
+	tempdir, ctx, cancel, config, _, jServer := setupJournalServerTest(t)
+	defer teardownJournalServerTest(t, tempdir, ctx, cancel, config)
+
+	err := jServer.EnableAuto(ctx)
+	require.NoError(t, err)
+
+	status, tlfIDs := jServer.Status(ctx)
+	require.True(t, status.EnableAuto)
+	require.Zero(t, status.JournalCount)
+	require.Len(t, tlfIDs, 0)
+
+	h, err := ParseTlfHandle(
+		ctx, config.KBPKI(), nil, "test_user2", tlf.Public)
+	require.NoError(t, err)
+
+	// Access someone else's public TLF, which should NOT create a
+	// journal automatically.
+	_, err = config.MDOps().GetIDForHandle(ctx, h)
+	require.NoError(t, err)
+
+	status, tlfIDs = jServer.Status(ctx)
+	require.True(t, status.EnableAuto)
+	require.Equal(t, 0, status.JournalCount)
+	require.Len(t, tlfIDs, 0)
+
+	// Neither should a private, reader folder.
+	h, err = ParseTlfHandle(
+		ctx, config.KBPKI(), nil, "test_user2#test_user1", tlf.Private)
+	require.NoError(t, err)
+	_, err = config.MDOps().GetIDForHandle(ctx, h)
+	require.NoError(t, err)
+
+	status, tlfIDs = jServer.Status(ctx)
+	require.True(t, status.EnableAuto)
+	require.Equal(t, 0, status.JournalCount)
+	require.Len(t, tlfIDs, 0)
+
+	// Or a team folder, where you're just a reader.
+	teamName := libkb.NormalizedUsername("t1")
+	teamInfos := AddEmptyTeamsForTestOrBust(t, config, teamName)
+	id := teamInfos[0].TID
+	AddTeamWriterForTestOrBust(
+		t, config, id, h.FirstResolvedWriter().AsUserOrBust())
+	AddTeamReaderForTestOrBust(
+		t, config, id, h.ResolvedReaders()[0].AsUserOrBust())
+	h, err = ParseTlfHandle(
+		ctx, config.KBPKI(), nil, string(teamName), tlf.SingleTeam)
+	require.NoError(t, err)
+	_, err = config.MDOps().GetIDForHandle(ctx, h)
+	require.NoError(t, err)
+
+	status, tlfIDs = jServer.Status(ctx)
+	require.True(t, status.EnableAuto)
+	require.Equal(t, 0, status.JournalCount)
+	require.Len(t, tlfIDs, 0)
+
+	// But accessing our own should make one.
+	h, err = ParseTlfHandle(
+		ctx, config.KBPKI(), nil, "test_user1", tlf.Public)
+	require.NoError(t, err)
+	_, err = config.MDOps().GetIDForHandle(ctx, h)
+	require.NoError(t, err)
+
 	status, tlfIDs = jServer.Status(ctx)
 	require.True(t, status.EnableAuto)
 	require.Equal(t, 1, status.JournalCount)

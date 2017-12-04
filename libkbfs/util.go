@@ -12,6 +12,7 @@ import (
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/kbfscrypto"
+	"github.com/keybase/kbfs/kbfsmd"
 	"github.com/keybase/kbfs/tlf"
 	"github.com/pkg/errors"
 	"golang.org/x/net/context"
@@ -177,4 +178,22 @@ func getHandleFromFolderName(
 		t = tlf.Public
 	}
 	return GetHandleFromFolderNameAndType(ctx, kbpki, idGetter, tlfName, t)
+}
+
+func isWriterFromHandle(
+	ctx context.Context, h *TlfHandle, checker kbfsmd.TeamMembershipChecker,
+	uid keybase1.UID, verifyingKey kbfscrypto.VerifyingKey) (
+	bool, error) {
+	if h.TypeForKeying() != tlf.TeamKeying {
+		return h.IsWriter(uid), nil
+	}
+
+	// Team membership needs to be checked with the service.  For a
+	// SingleTeam TLF, there is always only a single writer in the
+	// handle.
+	tid, err := h.FirstResolvedWriter().AsTeam()
+	if err != nil {
+		return false, err
+	}
+	return checker.IsTeamWriter(ctx, tid, uid, verifyingKey)
 }

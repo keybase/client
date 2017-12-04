@@ -232,13 +232,36 @@ func (j *JournalServer) getTLFJournal(
 	tlfJournal, enableAuto, enableAutoSetByUser, ok := getJournalFn()
 	if !ok && enableAuto {
 		ctx := context.TODO() // plumb through from callers
+
+		if h == nil {
+			// h must always be passed in for MD write operations, so
+			// we are always safe in refusing new TLF journals in this
+			// case.
+			return nil, false
+		}
+
+		// Because of the above handle check, which will happen on
+		// every put of a TLF, we will be able to create a journal on
+		// the first write that happens after the user becomes a
+		// writer for the TLF.
+		isWriter, err := isWriterFromHandle(
+			ctx, h, j.config.KBPKI(), j.currentUID, j.currentVerifyingKey)
+		if err != nil {
+			j.log.CWarningf(ctx, "Couldn't find writership for %s: %+v",
+				tlfID, err)
+			return nil, false
+		}
+		if !isWriter {
+			return nil, false
+		}
+
 		j.log.CDebugf(ctx, "Enabling a new journal for %s (enableAuto=%t, set by user=%t)",
 			tlfID, enableAuto, enableAutoSetByUser)
 		bws := TLFJournalBackgroundWorkEnabled
 		if j.config.Mode() == InitSingleOp {
 			bws = TLFJournalSingleOpBackgroundWorkEnabled
 		}
-		err := j.Enable(ctx, tlfID, h, bws)
+		err = j.Enable(ctx, tlfID, h, bws)
 		if err != nil {
 			j.log.CWarningf(ctx, "Couldn't enable journal for %s: %+v", tlfID, err)
 			return nil, false
@@ -665,7 +688,7 @@ func (j *JournalServer) Disable(ctx context.Context, tlfID tlf.ID) (
 	defer j.lock.Unlock()
 	tlfJournal, ok := j.tlfJournals[tlfID]
 	if !ok {
-		j.log.CDebugf(ctx, "Journal already existed for %s", tlfID)
+		j.log.CDebugf(ctx, "Journal doesn't exist for %s", tlfID)
 		return false, nil
 	}
 
