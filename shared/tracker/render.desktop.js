@@ -47,6 +47,7 @@ export default class TrackerRender extends PureComponent<RenderProps> {
     // So we use the existing paddingBottom and add the height of the footer
     const footerHeight = calcFooterHeight(this.props.loggedIn)
     const calculatedPadding = styles.content.paddingBottom + footerHeight
+    console.warn('showTeamInfo is', this.props.showTeamInfo)
     return (
       <div style={styles.container}>
         <Header
@@ -74,36 +75,56 @@ export default class TrackerRender extends PureComponent<RenderProps> {
             onClickFollowing={this.props.onClickFollowing}
           />
           {this.props.userInfo.showcasedTeams.length > 0 &&
-            <Box style={{...globalStyles.flexBoxColumn, paddingLeft: globalMargins.medium, paddingBottom: globalMargins.tiny, paddingTop: globalMargins.tiny}}>
-              {this.props.userInfo.showcasedTeams.map(teamname => <Box key={teamname} onClick={event => {
-                console.warn('in onClick')
-                this.props.onShowTeam(teamname)
-              }} style={{...globalStyles.flexBoxRow,
-                alignItems: 'flex-start',
-                justifyContent: 'flex-start',
-                minHeight: 24,
-              }}>
-                <Box style={{
-                  ...globalStyles.flexBoxRow,
-                  alignItems: 'center',
-                  alignSelf: 'center',
-                  height: 16,
-                  minHeight: 16,
-                  minWidth: 16,
-                  width: 16,
-                }}>
-                  <Avatar teamname={teamname} size={16} />
+            <Box
+              style={{
+                ...globalStyles.flexBoxColumn,
+                paddingLeft: globalMargins.medium,
+                paddingBottom: globalMargins.tiny,
+                paddingTop: globalMargins.tiny,
+              }}
+            >
+              {this.props.userInfo.showcasedTeams.map(teamname => (
+                <Box
+                  key={teamname}
+                  onClick={event => {
+                    console.warn('in onClick')
+                    this.props.onShowTeam(teamname)
+                  }}
+                  style={{
+                    ...globalStyles.flexBoxRow,
+                    alignItems: 'flex-start',
+                    justifyContent: 'flex-start',
+                    minHeight: 24,
+                  }}
+                >
+                  <Box
+                    style={{
+                      ...globalStyles.flexBoxRow,
+                      alignItems: 'center',
+                      alignSelf: 'center',
+                      height: 16,
+                      minHeight: 16,
+                      minWidth: 16,
+                      width: 16,
+                    }}
+                  >
+                    <Avatar teamname={teamname} size={16} />
+                  </Box>
+                  <Box
+                    style={{
+                      ...globalStyles.flexBoxRow,
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      alignSelf: 'center',
+                      paddingLeft: globalMargins.tiny,
+                    }}
+                  >
+                    <Text style={{color: globalColors.black_75}} type="BodySmallSemiboldInlineLink">
+                      {teamname}
+                    </Text>
+                  </Box>
                 </Box>
-                <Box style={{
-                  ...globalStyles.flexBoxRow,
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  alignSelf: 'center',
-                  paddingLeft: globalMargins.tiny,
-                }}>
-                  <Text style={{color: globalColors.black_75}} type="BodySmallSemiboldInlineLink">{teamname}</Text>
-                </Box>
-              </Box>)}
+              ))}
             </Box>}
           <UserProofs
             type="proofs"

@@ -74,6 +74,7 @@ type OwnProps = {
 }
 
 const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
+  console.warn('in tracker mapStateToProps, state is', state)
   const trackerState =
     state.tracker.userTrackers[ownProps.username] || state.tracker.nonUserTrackers[ownProps.username]
   return {
@@ -131,4 +132,5 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     onClickFollowing: () => dispatchProps.onClickFollowing(username),
   }
 }
+
 export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(Tracker)

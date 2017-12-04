@@ -222,41 +222,62 @@ class Profile extends Component<Props, State> {
             onUnfollow={this.props.onUnfollow}
             onAcceptProofs={this.props.onAcceptProofs}
           />}
-          <Box style={{...globalStyles.flexBoxRow, marginTop: globalMargins.small,  marginRight: globalMargins.medium, marginLeft: globalMargins.medium, alignItems: 'flex-start'}}>
-            {this.props.userInfo && this.props.userInfo.showcasedTeams && this.props.userInfo.showcasedTeams.length > 0 &&
-              <Box style={{...globalStyles.flexBoxColumn}}>
-                <Box style={{...globalStyles.flexBoxRow, paddingBottom: globalMargins.tiny}}>
-                  <Text type="BodySmallSemibold">Teams:</Text>
-                </Box>
-                {this.props.userInfo.showcasedTeams.map(teamname => <ClickableBox key={teamname}onClick={event => this.props.onClickShowcased(event, teamname)} style={{...globalStyles.flexBoxRow,
-                  alignItems: 'flex-start',
-                  justifyContent: 'flex-start',
-                  minHeight: 32,
-                  paddingBottom: globalMargins.xtiny,
-                }}>
-                  <Box style={{
+        <Box
+          style={{
+            ...globalStyles.flexBoxRow,
+            marginTop: globalMargins.small,
+            marginRight: globalMargins.medium,
+            marginLeft: globalMargins.medium,
+            alignItems: 'flex-start',
+          }}
+        >
+          {this.props.userInfo &&
+            this.props.userInfo.showcasedTeams &&
+            this.props.userInfo.showcasedTeams.length > 0 &&
+            <Box style={{...globalStyles.flexBoxColumn}}>
+              <Box style={{...globalStyles.flexBoxRow, paddingBottom: globalMargins.tiny}}>
+                <Text type="BodySmallSemibold">Teams:</Text>
+              </Box>
+              {this.props.userInfo.showcasedTeams.map(teamname => (
+                <ClickableBox
+                  key={teamname}
+                  onClick={event => this.props.onClickShowcased(event, teamname)}
+                  style={{
                     ...globalStyles.flexBoxRow,
                     alignItems: 'flex-start',
-                    alignSelf: 'flex-start',
-                    height: 40,
-                    minHeight: 40,
-                    minWidth: 40,
-                    width: 40,
-                  }}>
+                    justifyContent: 'flex-start',
+                    minHeight: 32,
+                    paddingBottom: globalMargins.xtiny,
+                  }}
+                >
+                  <Box
+                    style={{
+                      ...globalStyles.flexBoxRow,
+                      alignItems: 'flex-start',
+                      alignSelf: 'flex-start',
+                      height: 40,
+                      minHeight: 40,
+                      minWidth: 40,
+                      width: 40,
+                    }}
+                  >
                     <Avatar teamname={teamname} size={40} />
                   </Box>
-                  <Box style={{
-                    ...globalStyles.flexBoxRow,
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    alignSelf: 'center',
-                    paddingLeft: globalMargins.tiny,
-                  }}>
+                  <Box
+                    style={{
+                      ...globalStyles.flexBoxRow,
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      alignSelf: 'center',
+                      paddingLeft: globalMargins.tiny,
+                    }}
+                  >
                     <Text style={{color: globalColors.black_75}} type="BodySemiboldLink">{teamname}</Text>
                   </Box>
-                </ClickableBox>)}
-              </Box>}
-            </Box>
+                </ClickableBox>
+              ))}
+            </Box>}
+        </Box>
         <Box style={styleProofsAndFolders}>
           <LoadingWrapper
             duration={500}
