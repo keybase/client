@@ -13,7 +13,7 @@ import {
   Checkbox,
 } from '../../common-adapters/index'
 import {isMobile} from '../../constants/platform'
-import {typeToLabel} from '../../constants/teams'
+import {typeToLabel, isAdmin, isOwner} from '../../constants/teams'
 import {type TeamRoleType} from '../../constants/types/teams'
 import {globalColors, globalMargins, globalStyles} from '../../styles'
 import {roleIconMap, roleIconColorMap, roleDescMap, permissionMap} from './index.meta'
@@ -166,7 +166,7 @@ export const RoleConfirm = ({
     .map((perm, idx) => <PermissionRow key={idx} can={false} permission={perm} />)
 
   // Handle a / an
-  const article = selectedRole === 'owner' || selectedRole === 'admin' ? 'an' : 'a'
+  const article = isOwner(selectedRole) || isAdmin(selectedRole) ? 'an' : 'a'
   const prompt = `Make ${username} ${article} ${selectedRole} of ${teamname}?`
 
   // Setup icon sizing

@@ -11,6 +11,7 @@ import * as PinentryGen from '../actions/pinentry-gen'
 import * as SignupGen from '../actions/signup-gen'
 import engine from '../engine'
 import {RouteStateStorage} from '../actions/route-state-storage'
+import {getTeams} from './teams/creators'
 import {createConfigurePush} from './push-gen'
 import {flushLogFile} from '../util/forward-logs'
 import {isMobile, isSimulator} from '../constants/platform'
@@ -134,8 +135,10 @@ const bootstrap = (opts: $PropertyType<ConfigGen.BootstrapPayload, 'payload'>): 
             if (getState().config.loggedIn) {
               // If we're logged in, restore any saved route state and
               // then nav again based on it.
+              // also load the teamlist for auxiliary information around the app
               await dispatch(routeStateStorage.load)
               await dispatch(LoginGen.createNavBasedOnLoginAndInitialState())
+              await dispatch(getTeams())
             }
           })
           dispatch(SignupGen.createResetSignup())
@@ -230,9 +233,13 @@ function _afterLoadAvatarHelper([response: {body: string}, names]) {
   return Saga.put(ConfigGen.createLoadedAvatars({nameToUrlMap}))
 }
 
+function _validUsernames(names: Array<string>) {
+  return names.filter(name => !!name.match(/^([.a-z0-9_-]{1,1000})$/i))
+}
+
 let _avatarsToLoad = {}
 function* _loadAvatars(action: ConfigGen.LoadAvatarsPayload) {
-  const {usernames} = action.payload
+  const usernames = _validUsernames(action.payload.usernames)
   // store it and wait, once our timer is up we pull any and run it
   usernames.forEach(username => {
     _avatarsToLoad[username] = true
@@ -252,7 +259,7 @@ function* _loadAvatars(action: ConfigGen.LoadAvatarsPayload) {
 
 let _teamAvatarsToLoad = {}
 function* _loadTeamAvatars(action: ConfigGen.LoadTeamAvatarsPayload) {
-  const {teamnames} = action.payload
+  const teamnames = _validUsernames(action.payload.teamnames)
   teamnames.forEach(teamname => {
     _teamAvatarsToLoad[teamname] = true
   })

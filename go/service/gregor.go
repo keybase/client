@@ -388,7 +388,7 @@ func (g *gregorHandler) Connect(uri *rpc.FMPURI) (err error) {
 }
 
 func (g *gregorHandler) HandlerName() string {
-	return "keybase service"
+	return "gregor"
 }
 
 // PushHandler adds a new ibm handler to our list. This is usually triggered
@@ -1534,7 +1534,7 @@ func (g *gregorHandler) DismissCategory(ctx context.Context, category gregor1.Ca
 			}},
 	}
 
-	incomingClient := gregor1.IncomingClient{Cli: g.cli}
+	incomingClient := g.GetIncomingClient()
 	err = incomingClient.ConsumeMessage(ctx, *dismissal)
 	return err
 }
