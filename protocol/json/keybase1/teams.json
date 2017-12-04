@@ -2085,6 +2085,15 @@
         }
       ],
       "response": "bool"
+    },
+    "teamRotateKey": {
+      "request": [
+        {
+          "name": "teamID",
+          "type": "TeamID"
+        }
+      ],
+      "response": null
     }
   },
   "namespace": "keybase.1"

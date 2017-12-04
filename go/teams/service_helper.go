@@ -1178,3 +1178,19 @@ func CanUserPerform(ctx context.Context, g *libkb.GlobalContext, teamname string
 
 	return ret, err
 }
+
+func RotateKey(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID) (err error) {
+	defer g.CTrace(ctx, fmt.Sprintf("RotateKey(%v)", teamID), func() error { return err })()
+	return RetryOnSigOldSeqnoError(ctx, g, func(ctx context.Context, attempt int) error {
+		team, err := Load(ctx, g, keybase1.LoadTeamArg{
+			ID:          teamID,
+			Public:      teamID.IsPublic(),
+			ForceRepoll: attempt > 0,
+		})
+		if err != nil {
+			return err
+		}
+
+		return team.Rotate(ctx)
+	})
+}

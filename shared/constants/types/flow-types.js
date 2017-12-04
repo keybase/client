@@ -1628,6 +1628,10 @@ export const teamsTeamRole = {
   owner: 4,
 }
 
+export const teamsTeamRotateKeyRpcChannelMap = (configKeys: Array<string>, request: TeamsTeamRotateKeyRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamRotateKey', request)
+
+export const teamsTeamRotateKeyRpcPromise = (request: TeamsTeamRotateKeyRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamRotateKey', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
+
 export const teamsTeamSetSettingsRpcChannelMap = (configKeys: Array<string>, request: TeamsTeamSetSettingsRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamSetSettings', request)
 
 export const teamsTeamSetSettingsRpcPromise = (request: TeamsTeamSetSettingsRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamSetSettings', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
@@ -3590,6 +3594,8 @@ export type TeamsTeamRemoveMemberRpcParam = {|name: String,username: String,emai
 export type TeamsTeamRenameRpcParam = {|prevName: TeamName,newName: TeamName,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
 export type TeamsTeamRequestAccessRpcParam = {|name: String,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+
+export type TeamsTeamRotateKeyRpcParam = {|teamID: TeamID,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
 export type TeamsTeamSetSettingsRpcParam = {|name: String,settings: TeamSettings,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
