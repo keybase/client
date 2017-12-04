@@ -314,15 +314,12 @@ func TestTeamOpenResetAndRejoin(t *testing.T) {
 	bob := ctx.installKeybaseForUser("bob", 10)
 	bob.signup()
 
-	t.Logf("bobs name is %q", bob.username)
-
 	team := ann.createTeam([]*smuUser{bob})
 	t.Logf("Open team name is %q", team)
 
-	annCtx := ann.getPrimaryGlobalContext()
-
 	ann.openTeam(team, keybase1.TeamRole_READER)
 
+	annCtx := ann.getPrimaryGlobalContext()
 	bobCtx := bob.getPrimaryGlobalContext()
 
 	// Bob is in the team but he resets and doesn't provision.
@@ -338,8 +335,6 @@ func TestTeamOpenResetAndRejoin(t *testing.T) {
 
 	// His EldestSeqno is 0 (in the middle of reset).
 	require.EqualValues(t, 0, upak.Current.EldestSeqno)
-
-	_ = annCtx
 
 	// Then bob makes a team access request (hypothetically from the
 	// website using "Join team" button).

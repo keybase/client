@@ -387,7 +387,7 @@ func (u *smuUser) pollForTeamSeqnoLink(team smuTeam, toSeqno keybase1.Seqno) {
 		time.Sleep(500 * time.Millisecond)
 	}
 
-	u.ctx.t.Fatalf("timed out waiting for team rotate %s", team)
+	u.ctx.t.Fatalf("timed out waiting for team %s seqno link %d", team, toSeqno)
 }
 
 func (u *smuUser) createTeam(writers []*smuUser) smuTeam {
