@@ -14,13 +14,6 @@ import type {
   InviteAcceptedInfo,
 } from '../../../../constants/types/chat'
 
-/**
- * TODO: Fix typing hhere
- * replace systemType with defined constants
- * maybe type each system message props separately
- * make a connected username component w/ auto coloring
- */
-
 const connectedUsernamesProps = {
   clickable: true,
   inline: true,
