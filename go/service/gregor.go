@@ -1534,9 +1534,11 @@ func (g *gregorHandler) DismissCategory(ctx context.Context, category gregor1.Ca
 			}},
 	}
 
-	incomingClient := g.GetIncomingClient()
-	err = incomingClient.ConsumeMessage(ctx, *dismissal)
-	return err
+	if incomingClient := g.GetIncomingClient(); incomingClient != nil {
+		return incomingClient.ConsumeMessage(ctx, *dismissal)
+	}
+
+	return nil
 }
 
 func (g *gregorHandler) InjectItem(ctx context.Context, cat string, body []byte, dtime gregor1.TimeOrOffset) (gregor1.MsgID, error) {
