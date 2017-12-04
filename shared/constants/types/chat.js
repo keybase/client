@@ -346,7 +346,6 @@ export type UnreadCounts = {
   badged: number,
 }
 
-
 /***
  * TODO:
  *
