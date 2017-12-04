@@ -388,7 +388,7 @@ func (g *gregorHandler) Connect(uri *rpc.FMPURI) (err error) {
 }
 
 func (g *gregorHandler) HandlerName() string {
-	return "keybase service"
+	return "gregor"
 }
 
 // PushHandler adds a new ibm handler to our list. This is usually triggered
