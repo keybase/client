@@ -198,6 +198,7 @@ protocol teams {
     UserVersion inviter;
     string inviterUsername;
     string teamName;
+    boolean userActive;
   }
 
   // State of a parsed team sigchain.
@@ -502,6 +503,9 @@ protocol teams {
     boolean needsPUK;
     @jsonkey("member_count")
     int memberCount;
+    @jsonkey("member_eldest_seqno")
+    Seqno eldestSeqno;
+    boolean active;
   }
 
   record AnnotatedTeamList {
@@ -665,4 +669,17 @@ protocol teams {
   TeamAndMemberShowcase getTeamAndMemberShowcase(string name);
   void setTeamShowcase(string name, union { null, boolean } isShowcased, union { null, string } description, union { null, boolean } anyMemberShowcase);
   void setTeamMemberShowcase(string name, boolean isShowcased);
+
+  enum TeamOperation {
+    MANAGE_MEMBERS_0,
+    MANAGE_SUBTEAMS_1,
+    CREATE_CHANNEL_2,
+    DELETE_CHANNEL_3,
+    RENAME_CHANNEL_4,
+    EDIT_CHANNEL_DESCRIPTION_5,
+    SET_TEAM_SHOWCASE_6,
+    SET_MEMBER_SHOWCASE_7,
+    CHANGE_OPEN_TEAM_8
+  }
+  bool canUserPerform(string name, TeamOperation op);
 }

@@ -72,9 +72,8 @@ class FoldersRender extends Component<Props> {
         <TabBar
           styleTabBar={{
             ...tabBarStyle,
-            backgroundColor: !this.props.smallMode && !this.props.installed
-              ? globalColors.grey
-              : globalColors.white,
+            backgroundColor: globalColors.white,
+            opacity: !this.props.smallMode && !this.props.installed ? 0.4 : 1,
             minHeight: this.props.smallMode ? 32 : 48,
           }}
         >

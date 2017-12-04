@@ -4,7 +4,8 @@
 #   1) Build Linux binaries with Go and Electron
 #   2) Make .deb packages, and lay them out in a signed repo.
 #   3) Make .rpm packages, sign them, and lay them out in a repo.
-#   4) Push all of this to server-ops or S3.
+#   4) Push all of this to S3.
+#   5) Push new version metadata to our Arch Linux AUR package.
 
 set -e -u -o pipefail
 
@@ -13,7 +14,6 @@ build_dir="$2"
 
 here="$(dirname "$BASH_SOURCE")"
 client_dir="$(git -C "$here" rev-parse --show-toplevel)"
-serverops_dir="$client_dir/../server-ops"
 kbfs_dir="$client_dir/../kbfs"
 
 if [ "${KEYBASE_DRY_RUN:-}" = 1 ] ; then

@@ -23,6 +23,7 @@ import (
 	"runtime"
 	"strings"
 	"sync"
+	"syscall"
 	"time"
 	"unicode"
 
@@ -803,4 +804,24 @@ func MobilePermissionDeniedCheck(g *GlobalContext, err error, msg string) {
 	}
 	g.Log.Warning("file open permission denied on mobile (%s): %s", msg, err)
 	panic(fmt.Sprintf("panic due to file open permission denied on mobile (%s)", msg))
+}
+
+// IsNoSpaceOnDeviceError will return true if err is an `os` error
+// for "no space left on device".
+func IsNoSpaceOnDeviceError(err error) bool {
+	if err == nil {
+		return false
+	}
+	switch err := err.(type) {
+	case NoSpaceOnDeviceError:
+		return true
+	case *os.PathError:
+		return err.Err == syscall.ENOSPC
+	case *os.LinkError:
+		return err.Err == syscall.ENOSPC
+	case *os.SyscallError:
+		return err.Err == syscall.ENOSPC
+	}
+
+	return false
 }

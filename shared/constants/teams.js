@@ -2,7 +2,7 @@
 import * as I from 'immutable'
 import * as ChatTypes from './types/chat'
 import * as Types from './types/teams'
-import {userIsInTeam, usernameSelector} from './selectors'
+import {userIsInTeam} from './selectors'
 import * as RPCTypes from './types/flow-types'
 import invert from 'lodash/invert'
 
@@ -55,6 +55,7 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   teamNameToImplicitAdminUsernames: I.Map(),
   teamNameToMembers: I.Map(),
   teamNameToRequests: I.Map(),
+  teamNameToRole: I.Map(),
   teamNameToTeamSettings: I.Map(),
   teamNameToPublicitySettings: I.Map(),
   teammembercounts: I.Map(),
@@ -78,34 +79,19 @@ const getChannelNameFromConvID = (state: TypedState, conversationIDKey: ChatType
 const getTopicFromConvID = (state: TypedState, conversationIDKey: ChatTypes.ConversationIDKey) =>
   state.entities.teams.convIDToChannelInfo.getIn([conversationIDKey, 'description'], null)
 
-const getMembersFromConvID = (state: TypedState, conversationIDKey: ChatTypes.ConversationIDKey) => {
-  const teamname = getTeamNameFromConvID(state, conversationIDKey)
-  if (teamname) {
-    return state.entities.teams.teamNameToMembers.get(teamname, I.Set())
-  }
-  return I.Set()
-}
+const getRole = (state: TypedState, teamname: Types.Teamname): ?Types.TeamRoleType =>
+  state.entities.getIn(['teams', 'teamNameToRole', teamname], null)
 
-const getYourRoleFromConvID = (state: TypedState, conversationIDKey: ChatTypes.ConversationIDKey) => {
-  const members = getMembersFromConvID(state, conversationIDKey)
-  const you = usernameSelector(state)
-  const youAsMember = members.find(m => m.username === you)
-  if (youAsMember) {
-    return youAsMember.type
-  }
-  return null
-}
-
-const isAdmin = (type: Types.TeamRoleType) => type === 'admin'
-const isOwner = (type: Types.TeamRoleType) => type === 'owner'
+const isAdmin = (type: ?Types.TeamRoleType) => type === 'admin'
+const isOwner = (type: ?Types.TeamRoleType) => type === 'owner'
 
 export {
   getConvIdsFromTeamName,
+  getRole,
   userIsInTeamHelper,
   getTeamNameFromConvID,
   getChannelNameFromConvID,
   getTopicFromConvID,
-  getYourRoleFromConvID,
   isAdmin,
   isOwner,
 }

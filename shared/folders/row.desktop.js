@@ -146,7 +146,8 @@ const Row = ({
   const containerStyle = {
     ...styles.rowContainer,
     minHeight: smallMode ? 40 : 48,
-    backgroundColor: !smallMode && !installed ? globalColors.grey : globalColors.white,
+    backgroundColor: globalColors.white,
+    opacity: !smallMode && !installed ? 0.4 : 1,
   }
 
   return (
