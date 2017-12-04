@@ -193,7 +193,14 @@ func (c *CmdTeamListMemberships) runUser(cli keybase1.TeamsClient) error {
 			role += strings.ToLower(t.Role.String())
 		}
 		if c.showAll {
-			fmt.Fprintf(c.tabw, "%s\t%s\t%s\t%s\n", t.FqName, role, t.Username, t.FullName)
+			var reset string
+			if !t.Active {
+				reset = "(inactive due to account reset)"
+				if len(t.FullName) > 0 {
+					reset = " " + reset
+				}
+			}
+			fmt.Fprintf(c.tabw, "%s\t%s\t%s\t%s%s\n", t.FqName, role, t.Username, t.FullName, reset)
 		} else {
 			fmt.Fprintf(c.tabw, "%s\t%s\t%d\n", t.FqName, role, t.MemberCount)
 		}

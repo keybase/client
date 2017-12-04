@@ -27,6 +27,7 @@ protocol constants {
     SCNoSession_283,
     SCAccountReset_290,
     SCIdentifiesFailed_295,
+    SCNoSpaceOnDevice_297,
     SCBadEmail_472,
     SCBadSignupUsernameTaken_701,
     SCBadInvitationCode_707,

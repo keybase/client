@@ -209,6 +209,10 @@ func (t *Team) ImplicitTeamDisplayName(ctx context.Context) (res keybase1.Implic
 			// this should never happen
 			return res, fmt.Errorf("missing invite: %v", inviteID)
 		}
+		if !invite.UserActive {
+			// Active invite for inactive member, e.g. keybase-type invite for reset user.
+			continue
+		}
 		invtyp, err := invite.Type.C()
 		if err != nil {
 			continue
