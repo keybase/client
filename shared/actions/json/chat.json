@@ -77,7 +77,6 @@
     },
     "addPending": {
       "participants": "Array<string>",
-      "temporary": "boolean"
     },
     "removeTempPendingConversations": {},
     "updateFinalizedState": {

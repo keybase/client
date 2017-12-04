@@ -203,20 +203,16 @@ function reducer(
       )
     }
     case ChatGen.addPending: {
-      const {participants, temporary} = action.payload
+      const {participants} = action.payload
       const sorted = participants.sort()
       const conversationIDKey = Constants.pendingConversationIDKey(sorted.join(','))
       const tempPendingConvIDs = state.tempPendingConversations.filter(v => v).keySeq().toArray()
-      return state
-        .update('pendingConversations', pendingConversations =>
-          // TODO use deleteAll when we update immutable
-          pendingConversations
-            .filterNot((v, k) => tempPendingConvIDs.includes(k))
-            .set(conversationIDKey, List(sorted))
-        )
-        .update('tempPendingConversations', tempPendingConversations =>
-          tempPendingConversations.filter(v => v).set(conversationIDKey, temporary)
-        )
+      return state.update('pendingConversations', pendingConversations =>
+        // TODO use deleteAll when we update immutable
+        pendingConversations
+          .filterNot((v, k) => tempPendingConvIDs.includes(k))
+          .set(conversationIDKey, List(sorted))
+      )
     }
     case ChatGen.removeTempPendingConversations: {
       const tempPendingConvIDs = state.tempPendingConversations.filter(v => v).keySeq().toArray()

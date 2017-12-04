@@ -27,7 +27,6 @@ function* _startConversation(action: ChatGen.StartConversationPayload): Saga.Sag
   }
 
   const users = uniq(action.payload.users)
-  const temporary = action.payload.temporary || false
   const forceImmediate = action.payload.forceImmediate || false
   const me = Selectors.usernameSelector(state)
 
@@ -67,7 +66,7 @@ function* _startConversation(action: ChatGen.StartConversationPayload): Saga.Sag
   } else {
     // Make a pending conversation so it appears in the inbox
     const conversationIDKey = Constants.pendingConversationIDKey(tlfName)
-    yield Saga.put(ChatGen.createAddPending({participants: users, temporary}))
+    yield Saga.put(ChatGen.createAddPending({participants: users}))
     yield Saga.put(ChatGen.createSelectConversation({conversationIDKey}))
     yield Saga.put(switchTo([chatTab]))
   }

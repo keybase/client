@@ -102,7 +102,7 @@ export const updatedNotifications = 'chat:updatedNotifications'
 export const uploadProgress = 'chat:uploadProgress'
 
 // Action Creators
-export const createAddPending = (payload: {|+participants: Array<string>, +temporary: boolean|}) => ({error: false, payload, type: addPending})
+export const createAddPending = (payload: {|+participants: Array<string>|}) => ({error: false, payload, type: addPending})
 export const createAppendMessages = (payload: {|+conversationIDKey: Types.ConversationIDKey, +isSelected: boolean, +isAppFocused: boolean, +messages: Array<Types.ServerMessage>, +svcShouldDisplayNotification: boolean|}) => ({error: false, payload, type: appendMessages})
 export const createAttachmentLoaded = (payload: {|+messageKey: Types.MessageKey, +path: ?string, +isPreview: boolean|}) => ({error: false, payload, type: attachmentLoaded})
 export const createAttachmentSaveFailed = (payload: {|+messageKey: Types.MessageKey|}) => ({error: false, payload, type: attachmentSaveFailed})
