@@ -78,7 +78,6 @@
     "addPending": {
       "participants": "Array<string>",
     },
-    "removeTempPendingConversations": {},
     "updateFinalizedState": {
       "finalizedState": "Types.FinalizedState"
     },

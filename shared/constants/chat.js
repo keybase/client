@@ -114,7 +114,6 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   teamJoinError: '',
   teamJoinSuccess: false,
   teamJoinSuccessTeamName: null,
-  tempPendingConversations: I.Map(),
 })
 
 const maxAttachmentPreviewSize = 320

@@ -140,7 +140,6 @@ const storeFn = (messageMap: {[key: string]: Types.Message}) => ({
     searchShowingSuggestions: false,
     selectedUsersInSearch: I.List(),
     inSearch: false,
-    tempPendingConversations: I.Map(),
     searchResultTerm: '',
   }),
   routeTree: dataToRouteState({

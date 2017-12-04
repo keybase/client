@@ -58,7 +58,6 @@ export const postMessage = 'chat:postMessage'
 export const prependMessages = 'chat:prependMessages'
 export const previewChannel = 'chat:previewChannel'
 export const removeOutboxMessage = 'chat:removeOutboxMessage'
-export const removeTempPendingConversations = 'chat:removeTempPendingConversations'
 export const replaceEntity = 'chat:replaceEntity'
 export const retryAttachment = 'chat:retryAttachment'
 export const retryMessage = 'chat:retryMessage'
@@ -146,7 +145,6 @@ export const createPostMessage = (payload: {|+conversationIDKey: Types.Conversat
 export const createPrependMessages = (payload: {|+conversationIDKey: Types.ConversationIDKey, +messages: Array<Types.ServerMessage>, +moreToLoad: boolean|}) => ({error: false, payload, type: prependMessages})
 export const createPreviewChannel = (payload: {|+conversationIDKey: Types.ConversationIDKey|}) => ({error: false, payload, type: previewChannel})
 export const createRemoveOutboxMessage = (payload: {|+conversationIDKey: Types.ConversationIDKey, +outboxID: Types.OutboxIDKey|}) => ({error: false, payload, type: removeOutboxMessage})
-export const createRemoveTempPendingConversations = () => ({error: false, payload: undefined, type: removeTempPendingConversations})
 export const createReplaceEntity = (payload: {|+keyPath: Array<string>, +entities: I.Map<any, any> | I.List<any>|}) => ({error: false, payload, type: replaceEntity})
 export const createRetryAttachment = (payload: {|+message: Types.AttachmentMessage|}) => ({error: false, payload, type: retryAttachment})
 export const createRetryMessage = (payload: {|+conversationIDKey: Types.ConversationIDKey, +outboxIDKey: string|}) => ({error: false, payload, type: retryMessage})
@@ -234,7 +232,6 @@ export type PostMessagePayload = More.ReturnType<typeof createPostMessage>
 export type PrependMessagesPayload = More.ReturnType<typeof createPrependMessages>
 export type PreviewChannelPayload = More.ReturnType<typeof createPreviewChannel>
 export type RemoveOutboxMessagePayload = More.ReturnType<typeof createRemoveOutboxMessage>
-export type RemoveTempPendingConversationsPayload = More.ReturnType<typeof createRemoveTempPendingConversations>
 export type ReplaceEntityPayload = More.ReturnType<typeof createReplaceEntity>
 export type RetryAttachmentPayload = More.ReturnType<typeof createRetryAttachment>
 export type RetryMessagePayload = More.ReturnType<typeof createRetryMessage>
@@ -324,7 +321,6 @@ export type Actions =
   | More.ReturnType<typeof createPrependMessages>
   | More.ReturnType<typeof createPreviewChannel>
   | More.ReturnType<typeof createRemoveOutboxMessage>
-  | More.ReturnType<typeof createRemoveTempPendingConversations>
   | More.ReturnType<typeof createReplaceEntity>
   | More.ReturnType<typeof createRetryAttachment>
   | More.ReturnType<typeof createRetryMessage>
