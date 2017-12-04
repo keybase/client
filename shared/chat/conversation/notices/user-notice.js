@@ -15,9 +15,10 @@ const AVATAR_SIZE = 24
 
 const UserNotice = ({bgColor, username, teamname, children, style}: Props) => (
   <Box style={{...styleOuterBox, ...style}}>
-    <Box style={stylesAvatarWrapper(AVATAR_SIZE)}>
-      <Avatar size={AVATAR_SIZE} {...(username ? {username} : {teamname})} style={stylesAvatar} />
-    </Box>
+    {(username || teamname) &&
+      <Box style={stylesAvatarWrapper(AVATAR_SIZE)}>
+        <Avatar size={AVATAR_SIZE} {...(username ? {username} : {teamname})} style={stylesAvatar} />
+      </Box>}
     <Box style={{...styleBox, backgroundColor: bgColor}}>
       {children}
     </Box>
