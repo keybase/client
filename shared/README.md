@@ -107,7 +107,27 @@ statement.
 Follow instructions at https://facebook.github.io/react-native/docs/getting-started.html
 to install and configure Android.
 
+macOS: skip HAX
+
+https://stackoverflow.com/questions/44814815/cant-launch-avd-on-macos-10-13
+
+https://issuetracker.google.com/issues/62395878
+
 Follow instructions at https://developer.android.com/ndk/guides/index.html to install and configure the Android NDK.
+
+Open an existing Android Studio Project: shared/react-native/android
+
+Install Build Tools 23.0.2 and sync project
+
+Install missing platforms and sync project
+
+Install Build Tools 25.0.2 and sync project
+
+Don't update the Android Gradle Plugin to 3.0.1.
+
+Toold > Android > SDK Manager
+
+Toold > Android > AVD Manager
 
 ```sh
 # Build the go keybaselib
