@@ -1605,6 +1605,12 @@ func AddMembersBestEffort(ctx context.Context, g *libkb.GlobalContext, teamID ke
 		existingUV, err := team.UserVersionByUID(ctx, uv.Uid)
 		if err == nil {
 			if !becameAnInvite && existingUV.EldestSeqno > uv.EldestSeqno {
+				// There is an edge case where user is in the middle
+				// of resetting (after reset, before provisioning) and
+				// has EldestSeqno=0. We are adding keybase-type
+				// invite for such users, making them PUKless members.
+				// Do not bail out here, even if there is an UV with
+				// higher EldestSeqno, it's still "old" version.
 				g.Log.CDebugf(ctx, "newer version of user %s is already in team", uv.Uid)
 				continue
 			}
