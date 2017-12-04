@@ -149,7 +149,7 @@ const createIconStyle = {
 }
 
 const _SmallTeamInfoPanel = (props: SmallTeamInfoPanelProps) => (
-  <ScrollView style={{...scrollViewStyle, display: 'flex'}} contentContainerStyle={contentContainerStyle}>
+  <ScrollView style={scrollViewStyle} contentContainerStyle={contentContainerStyle}>
     <ClickableBox
       style={{
         ...globalStyles.flexBoxRow,
@@ -187,6 +187,9 @@ const _SmallTeamInfoPanel = (props: SmallTeamInfoPanelProps) => (
         </Text>
       </ClickableBox>
     </Box>
+    <Divider style={styleDivider} />
+    <Participants participants={props.participants} onShowProfile={props.onShowProfile} />
+
   </ScrollView>
 )
 

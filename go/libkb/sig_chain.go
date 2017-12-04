@@ -1207,9 +1207,9 @@ func (l *SigChainLoader) Load() (ret *SigChain, err error) {
 	if err = l.chain.VerifyChain(l.ctx); err != nil {
 		return
 	}
-	stage("Store")
+	stage("StoreChain")
 	if err = l.chain.Store(l.ctx); err != nil {
-		return
+		l.G().Log.CDebugf(l.ctx, "| continuing past error storing chain links: %s", err)
 	}
 	stage("VerifySig")
 	if err = l.VerifySigsAndComputeKeys(); err != nil {
@@ -1217,8 +1217,8 @@ func (l *SigChainLoader) Load() (ret *SigChain, err error) {
 	}
 	stage("Store")
 	if err = l.Store(); err != nil {
-		return
+		l.G().Log.CDebugf(l.ctx, "| continuing past error storing chain: %s", err)
 	}
 
-	return
+	return ret, nil
 }
