@@ -24,8 +24,7 @@ func SetupTest(tb testing.TB, name string, depth int) (tc libkb.TestContext) {
 		}
 		return insecureTriplesec.NewCipher(passphrase, salt, warner, isProduction)
 	}
-
-	NewTeamLoaderAndInstall(tc.G)
+	ServiceInit(tc.G)
 	return tc
 }
 

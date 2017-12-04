@@ -657,7 +657,7 @@ protocol teams {
   }
 
   record ImplicitTeamConflictInfo {
-    int generation;
+    Seqno generation;
     Time time;
   }
 

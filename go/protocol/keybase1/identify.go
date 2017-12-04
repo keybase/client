@@ -178,12 +178,19 @@ type ResolveIdentifyImplicitTeamArg struct {
 	IdentifyBehavior TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
 }
 
+type ResolveImplicitTeamArg struct {
+	SessionID int    `codec:"sessionID" json:"sessionID"`
+	Id        TeamID `codec:"id" json:"id"`
+	IsPublic  bool   `codec:"isPublic" json:"isPublic"`
+}
+
 type IdentifyInterface interface {
 	// Resolve an assertion to a (UID,username) or (TeamID,teamname). On failure, returns an error.
 	Resolve3(context.Context, string) (UserOrTeamLite, error)
 	Identify2(context.Context, Identify2Arg) (Identify2Res, error)
 	IdentifyLite(context.Context, IdentifyLiteArg) (IdentifyLiteRes, error)
 	ResolveIdentifyImplicitTeam(context.Context, ResolveIdentifyImplicitTeamArg) (ResolveIdentifyImplicitTeamRes, error)
+	ResolveImplicitTeam(context.Context, ResolveImplicitTeamArg) (Folder, error)
 }
 
 func IdentifyProtocol(i IdentifyInterface) rpc.Protocol {
@@ -254,6 +261,22 @@ func IdentifyProtocol(i IdentifyInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"resolveImplicitTeam": {
+				MakeArg: func() interface{} {
+					ret := make([]ResolveImplicitTeamArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]ResolveImplicitTeamArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]ResolveImplicitTeamArg)(nil), args)
+						return
+					}
+					ret, err = i.ResolveImplicitTeam(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 		},
 	}
 }
@@ -281,5 +304,10 @@ func (c IdentifyClient) IdentifyLite(ctx context.Context, __arg IdentifyLiteArg)
 
 func (c IdentifyClient) ResolveIdentifyImplicitTeam(ctx context.Context, __arg ResolveIdentifyImplicitTeamArg) (res ResolveIdentifyImplicitTeamRes, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.identify.resolveIdentifyImplicitTeam", []interface{}{__arg}, &res)
+	return
+}
+
+func (c IdentifyClient) ResolveImplicitTeam(ctx context.Context, __arg ResolveImplicitTeamArg) (res Folder, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.identify.resolveImplicitTeam", []interface{}{__arg}, &res)
 	return
 }

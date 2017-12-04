@@ -1526,7 +1526,7 @@
       "name": "ImplicitTeamConflictInfo",
       "fields": [
         {
-          "type": "int",
+          "type": "Seqno",
           "name": "generation"
         },
         {

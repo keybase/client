@@ -307,6 +307,23 @@
         }
       ],
       "response": "ResolveIdentifyImplicitTeamRes"
+    },
+    "resolveImplicitTeam": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "id",
+          "type": "TeamID"
+        },
+        {
+          "name": "isPublic",
+          "type": "boolean"
+        }
+      ],
+      "response": "Folder"
     }
   },
   "namespace": "keybase.1"

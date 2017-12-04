@@ -1744,13 +1744,13 @@ func (o ImplicitTeamDisplayName) DeepCopy() ImplicitTeamDisplayName {
 }
 
 type ImplicitTeamConflictInfo struct {
-	Generation int  `codec:"generation" json:"generation"`
-	Time       Time `codec:"time" json:"time"`
+	Generation Seqno `codec:"generation" json:"generation"`
+	Time       Time  `codec:"time" json:"time"`
 }
 
 func (o ImplicitTeamConflictInfo) DeepCopy() ImplicitTeamConflictInfo {
 	return ImplicitTeamConflictInfo{
-		Generation: o.Generation,
+		Generation: o.Generation.DeepCopy(),
 		Time:       o.Time.DeepCopy(),
 	}
 }

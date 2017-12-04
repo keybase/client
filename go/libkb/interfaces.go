@@ -606,8 +606,29 @@ type TeamLoader interface {
 	ClearMem()
 }
 
+type ImplicitTeamConflictInfoCacher interface {
+	Get(context.Context, bool, keybase1.TeamID) *keybase1.ImplicitTeamConflictInfo
+	Put(context.Context, bool, keybase1.TeamID, keybase1.ImplicitTeamConflictInfo) error
+}
+
 type KVStoreContext interface {
 	GetKVStore() KVStorer
+}
+
+type LRUContext interface {
+	VLogContext
+	KVStoreContext
+	ClockContext
+}
+
+type LRUKeyer interface {
+	MemKey() string
+	DbKey() DbKey
+}
+
+type LRUer interface {
+	Get(context.Context, LRUContext, LRUKeyer) (interface{}, error)
+	Put(context.Context, LRUContext, LRUKeyer, interface{}) error
 }
 
 type ClockContext interface {
