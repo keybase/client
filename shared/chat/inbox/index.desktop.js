@@ -2,7 +2,7 @@
 import React, {PureComponent} from 'react'
 import ReactList from 'react-list'
 import {ErrorBoundary} from '../../common-adapters'
-import {globalStyles, globalColors} from '../../styles'
+import {globalStyles, globalColors, globalMargins} from '../../styles'
 import {makeRow} from './row'
 import FloatingDivider from './row/floating-divider/container'
 import Divider from './row/divider/container'
@@ -56,6 +56,7 @@ class Inbox extends PureComponent<Props, State> {
           key="divider"
           toggle={this.props.toggleSmallTeamsExpanded}
           smallIDsHidden={this.props.smallIDsHidden}
+          style={{marginBottom: globalMargins.tiny}}
         />
       )
     }

@@ -89,11 +89,30 @@ const Help = isMobile
   ? () => null
   : ({name}: {name: Types.Teamname}) => (
       <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center', margin: 20}}>
-        <Text type="Body" style={{textAlign: 'center'}}>
+        <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', marginBottom: globalMargins.xtiny}}>
+          <Box style={{backgroundColor: globalColors.black_05, height: 1, width: 24}} />
+          <Icon
+            style={{
+              color: globalColors.black_10,
+              paddingLeft: globalMargins.tiny,
+              paddingRight: globalMargins.tiny,
+            }}
+            type="iconfont-info"
+          />
+          <Box style={{backgroundColor: globalColors.black_05, height: 1, width: 24}} />
+        </Box>
+        <Text type="BodySmall" style={{textAlign: 'center'}}>
           You can also manage teams from the terminal:
-          <Text type="TerminalInline" style={{...globalStyles.selectable, marginLeft: globalMargins.tiny}}>
-            keybase team --help
-          </Text>
+        </Text>
+        <Text
+          type="TerminalInline"
+          style={{
+            ...globalStyles.selectable,
+            marginLeft: globalMargins.xtiny,
+            marginTop: globalMargins.xtiny,
+          }}
+        >
+          keybase team --help
         </Text>
       </Box>
     )
@@ -317,12 +336,12 @@ class Team extends React.PureComponent<Props> {
     } else if (selectedTab === 'publicity') {
       const teamsLink = 'keybase.io/popular-teams'
       contents = (
-        <ScrollView style={{...globalStyles.flexBoxColumn, alignSelf: 'stretch'}}>
+        <ScrollView
+          style={{...globalStyles.flexBoxColumn, alignSelf: 'stretch', padding: globalMargins.medium}}
+        >
           <Box
             style={{
               ...globalStyles.flexBoxRow,
-              paddingLeft: globalMargins.tiny,
-              paddingTop: globalMargins.small,
             }}
           >
             <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center'}}>
@@ -423,7 +442,8 @@ class Team extends React.PureComponent<Props> {
             style={{
               ...stylesSettingsTabRow,
               justifyContent: 'center',
-              paddingTop: isMobile ? globalMargins.xtiny : globalMargins.tiny,
+              paddingBottom: isMobile ? globalMargins.tiny : globalMargins.small,
+              paddingTop: isMobile ? globalMargins.tiny : globalMargins.small,
             }}
           >
             <Button
@@ -464,50 +484,52 @@ class Team extends React.PureComponent<Props> {
               Add yourself
             </Text>
           </Box>}
-        <Avatar isTeam={true} teamname={name} size={64} />
-        <Text type="Header" style={{marginTop: globalMargins.tiny}}>
-          {name}
-        </Text>
-        <Text type="BodySmall">TEAM</Text>
-        <Text type="BodySmall">
-          {memberCount + ' member' + (memberCount !== 1 ? 's' : '')}
-          {' '}
-          •
-          {' '}
-          {yourRole && Constants.typeToLabel[yourRole]}
-        </Text>
-        {!loading &&
-          (admin || description) &&
-          <Text
-            style={{
-              paddingTop: globalMargins.tiny,
-              color: description ? globalColors.black : globalColors.black_20,
-            }}
-            onClick={admin ? onEditDescription : null}
-            type={admin ? 'BodySecondaryLink' : 'Body'}
-          >
-            {description || (admin && 'Write a brief description')}
-          </Text>}
+        <Box style={stylesTeamHeader}>
+          <Avatar isTeam={true} teamname={name} size={64} />
+          <Text type="Header" style={{marginTop: globalMargins.tiny}}>
+            {name}
+          </Text>
+          <Text type="BodySmall">TEAM</Text>
+          <Text type="BodySmall">
+            {memberCount + ' member' + (memberCount !== 1 ? 's' : '')}
+            {' '}
+            •
+            {' '}
+            {yourRole && Constants.typeToLabel[yourRole]}
+          </Text>
+          {!loading &&
+            (admin || description) &&
+            <Text
+              style={{
+                paddingTop: globalMargins.tiny,
+                color: description ? globalColors.black_75 : globalColors.black_20,
+              }}
+              onClick={admin ? onEditDescription : null}
+              type={admin ? 'BodySecondaryLink' : 'Body'}
+            >
+              {description || (admin && 'Write a brief description')}
+            </Text>}
 
-        {youCanAddPeople &&
-          <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', marginTop: globalMargins.small}}>
-            <Button type="Primary" label="Add people" onClick={onAddPeople} />
-            {!isMobile &&
-              <Button
-                type="Secondary"
-                label="Invite by email"
-                onClick={onInviteByEmail}
-                style={{marginLeft: globalMargins.tiny}}
-              />}
-            {isMobile &&
-              <Button
-                type="Secondary"
-                label="Invite contacts"
-                onClick={onInviteByEmail}
-                style={{marginLeft: globalMargins.tiny}}
-              />}
-          </Box>}
-        <Help name={name} />
+          {youCanAddPeople &&
+            <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', marginTop: globalMargins.small}}>
+              <Button type="Primary" label="Add people" onClick={onAddPeople} />
+              {!isMobile &&
+                <Button
+                  type="Secondary"
+                  label="Invite by email"
+                  onClick={onInviteByEmail}
+                  style={{marginLeft: globalMargins.tiny}}
+                />}
+              {isMobile &&
+                <Button
+                  type="Secondary"
+                  label="Invite contacts"
+                  onClick={onInviteByEmail}
+                  style={{marginLeft: globalMargins.tiny}}
+                />}
+            </Box>}
+          <Help name={name} />
+        </Box>
         <TeamTabs {...this.props} admin={admin} />
         {contents}
         {showMenu &&
@@ -519,6 +541,15 @@ class Team extends React.PureComponent<Props> {
       </Box>
     )
   }
+}
+
+const stylesTeamHeader = {
+  ...globalStyles.flexBoxColumn,
+  alignItems: 'center',
+  textAlign: 'center',
+  paddingLeft: globalMargins.medium,
+  paddingRight: globalMargins.medium,
+  maxWidth: 560,
 }
 
 const stylesAddYourselfBanner = {
@@ -542,7 +573,6 @@ const stylesAddYourselfBannerText = {
 
 const stylesSettingsTabRow = {
   ...globalStyles.flexBoxRow,
-  paddingLeft: globalMargins.tiny,
   paddingTop: globalMargins.small,
 }
 
