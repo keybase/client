@@ -603,6 +603,11 @@ protocol teams {
 
   array<TeamJoinRequest> teamListRequests(int sessionID);
 
+  // List TeamAccessRequests from current user. Optionally can provide
+  // a teamname, and API server will only return request for that team,
+  // if there is one.
+  array<TeamName> teamListMyAccessRequests(int sessionID, union{ null, string } teamName);
+
   void teamIgnoreRequest(int sessionID, string name, string username);
 
   // Get a list of all recursive subteams recursively. Sorted alphabetically like a tree.
