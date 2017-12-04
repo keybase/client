@@ -796,6 +796,8 @@ const makeConversationMessages = I.Record({
   messages: I.List(),
 })
 
+const inviteCategoryEnumToName = invert(RPCTypes.teamsTeamInviteCategory)
+
 export {
   getBrokenUsers,
   getConversationMessages,
@@ -868,4 +870,5 @@ export {
   lastOrdinal,
   nextFractionalOrdinal,
   emptyConversationMessages,
+  inviteCategoryEnumToName,
 }

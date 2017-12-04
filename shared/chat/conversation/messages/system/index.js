@@ -7,7 +7,12 @@ import {globalStyles, globalColors, globalMargins} from '../../../../styles'
 import {formatTimeForMessages} from '../../../../util/timestamp'
 import {isMobile} from '../../../../constants/platform'
 
-import type {SystemMessage} from '../../../../constants/types/chat'
+import type {
+  SystemMessage,
+  AddedToTeamInfo,
+  SimpleToComplexTeamInfo,
+  InviteAcceptedInfo,
+} from '../../../../constants/types/chat'
 
 /**
  * TODO: Fix typing hhere
@@ -15,6 +20,13 @@ import type {SystemMessage} from '../../../../constants/types/chat'
  * maybe type each system message props separately
  * make a connected username component w/ auto coloring
  */
+
+const connectedUsernamesProps = {
+  clickable: true,
+  inline: true,
+  colorFollowing: true,
+  type: 'BodySmallSemibold',
+}
 
 type Props = {
   channelname: string,
@@ -25,35 +37,25 @@ type Props = {
   you: string,
 }
 
-const AddedToTeamNotice = ({channelname, message, onManageChannels, onViewTeam, you}: Props) => {
-  let adder = ''
-  let addee = ''
-  let team = ''
-  if (message.meta.systemType === 0 && message.meta.addedtoteam) {
-    adder = message.meta.addedtoteam.adder
-    addee = message.meta.addedtoteam.addee
-    team = message.meta.addedtoteam.team
-  }
+type AddedToTeamProps = Props & {info: AddedToTeamInfo}
+
+const AddedToTeamNotice = ({
+  channelname,
+  message,
+  info,
+  onManageChannels,
+  onViewTeam,
+  you,
+}: AddedToTeamProps) => {
+  const {adder, addee, team} = info
 
   const adderComponent = adder === you
     ? 'You'
-    : <ConnectedUsernames
-        clickable={true}
-        inline={true}
-        type="BodySmallSemibold"
-        colorFollowing={true}
-        usernames={[adder]}
-      />
+    : <ConnectedUsernames {...connectedUsernamesProps} usernames={[adder]} />
 
   const addeeComponent = addee === you
     ? 'you'
-    : <ConnectedUsernames
-        clickable={true}
-        inline={true}
-        type="BodySmallSemibold"
-        colorFollowing={true}
-        usernames={[addee]}
-      />
+    : <ConnectedUsernames {...connectedUsernamesProps} usernames={[addee]} />
 
   let manageComponent = null
   if (adder === you) {
@@ -128,8 +130,10 @@ const AddedToTeamNotice = ({channelname, message, onManageChannels, onViewTeam, 
   )
 }
 
-const ComplexTeamNotice = ({channelname, message, onManageChannels, you}: Props) => {
-  const teamname = message.meta.systemType === 2 && message.meta.complexteam && message.meta.complexteam.team
+type ComplexTeamProps = Props & {info: SimpleToComplexTeamInfo}
+
+const ComplexTeamNotice = ({channelname, message, info, onManageChannels, you}: ComplexTeamProps) => {
+  const teamname = info.team
   const authorComponent = message.author === you
     ? 'You'
     : <ConnectedUsernames
@@ -202,16 +206,16 @@ const ComplexTeamNotice = ({channelname, message, onManageChannels, you}: Props)
   )
 }
 
-const connectedUsernamesProps = {
-  clickable: true,
-  inline: true,
-  colorFollowing: true,
-  type: 'BodySmallSemibold',
-}
+type InviteAddedToTeamProps = Props & {info: InviteAcceptedInfo}
 
-const InviteAddedToTeamNotice = ({channelname, message, onManageChannels, you}: Props) => {
-  const messageData = message.meta.systemType === 1 && message.meta.inviteaddedtoteam
-  const {team, inviter, invitee, adder, inviteType} = messageData
+const InviteAddedToTeamNotice = ({
+  channelname,
+  message,
+  info,
+  onManageChannels,
+  you,
+}: InviteAddedToTeamProps) => {
+  const {team, inviter, invitee, adder, inviteType} = info
 
   let copy
   if (you === invitee) {
@@ -233,7 +237,7 @@ const InviteAddedToTeamNotice = ({channelname, message, onManageChannels, you}: 
         just joined {team}. {you === inviter ? 'You invited them' : 'They were invited by '}
         {you !== inviter && <ConnectedUsernames {...connectedUsernamesProps} usernames={[inviter]} />}
         {' '}
-        over {inviteType === 3 ? 'email' : 'text'}, and they were just now auto-added to the team sigchain by
+        via {inviteType}, and they were just now auto-added to the team sigchain by
         {' '}
         {you === adder ? 'you' : <ConnectedUsernames {...connectedUsernamesProps} usernames={[adder]} />}
         , the first available admin.

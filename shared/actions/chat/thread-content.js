@@ -561,29 +561,33 @@ function _unboxedToMessage(
           }
         }
         case ChatTypes.commonMessageType.system: {
-          let sysMsgText = '<unknown system message>'
           const body = payload.messageBody.system
-          const meta = body || {systemType: -1}
+          let info: Types.SystemMessageInfo = {type: 'unknown'}
+          let message = 'unknown'
           if (body) {
             switch (body.systemType) {
               case ChatTypes.localMessageSystemType.addedtoteam: {
-                const addee = body.addedtoteam ? `@${body.addedtoteam.addee}` : 'someone'
-                const adder = body.addedtoteam ? `@${body.addedtoteam.adder}` : 'someone'
-                const team = body.addedtoteam ? `${body.addedtoteam.team}` : '???'
-                sysMsgText = `${adder} just added ${addee} to team ${team}.`
+                const addee = body.addedtoteam ? body.addedtoteam.addee : 'someone'
+                const adder = body.addedtoteam ? body.addedtoteam.adder : 'someone'
+                const team = body.addedtoteam ? body.addedtoteam.team : '???'
+                message = `${adder} added ${addee} to ${team}`
+                info = {adder, addee, team, type: 'addedToTeam'}
                 break
               }
               case ChatTypes.localMessageSystemType.inviteaddedtoteam: {
-                const invitee = body.inviteaddedtoteam ? `@${body.inviteaddedtoteam.invitee}` : 'someone'
-                const adder = body.inviteaddedtoteam ? `@${body.inviteaddedtoteam.adder}` : 'someone'
-                const inviter = body.inviteaddedtoteam ? `@${body.inviteaddedtoteam.inviter}` : 'someone'
-                const team = body.inviteaddedtoteam ? `${body.inviteaddedtoteam.team}` : '???'
-                sysMsgText = `${adder} just added ${invitee} to team ${team}. This user had been invited by ${inviter}`
+                const invitee = body.inviteaddedtoteam ? body.inviteaddedtoteam.invitee : 'someone'
+                const adder = body.inviteaddedtoteam ? body.inviteaddedtoteam.adder : 'someone'
+                const inviter = body.inviteaddedtoteam ? body.inviteaddedtoteam.inviter : 'someone'
+                const team = body.inviteaddedtoteam ? body.inviteaddedtoteam.team : '???'
+                const inviteTypeEnum = body.inviteaddedtoteam ? body.inviteaddedtoteam.inviteType : 1
+                const inviteType = Constants.inviteCategoryEnumToName[inviteTypeEnum]
+                message = `${invitee} accepted an invite to join ${team}`
+                info = {invitee, inviter, adder, team, inviteType, type: 'inviteAccepted'}
                 break
               }
               case ChatTypes.localMessageSystemType.complexteam: {
                 const team = body.complexteam ? body.complexteam.team : '???'
-                sysMsgText = `A new channel has been created in team ${team}. Here are some things that are now different:\n\n1.) Notifications will not happen for every message. Click or tap the info icon on the right to configure them.\n2.) The #general channel is now in the "Big Teams" section of the inbox.\n3.) You can hit the three dots next to ${team} in the inbox view to join other channels.\n\nEnjoy!`
+                info = {team, type: 'simpleToComplex'}
                 break
               }
             }
@@ -592,9 +596,9 @@ function _unboxedToMessage(
             type: 'System',
             ...common,
             editedCount: payload.superseded ? 1 : 0, // mark it as edited if it's been superseded
-            message: new HiddenString(sysMsgText),
             messageState: 'sent',
-            meta,
+            message: new HiddenString(message),
+            info,
             key: Constants.messageKey(common.conversationIDKey, 'system', common.messageID),
           }
         }

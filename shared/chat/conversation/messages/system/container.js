@@ -2,7 +2,7 @@
 import * as Constants from '../../../../constants/chat'
 import * as Types from '../../../../constants/types/chat'
 import {AddedToTeamNotice, ComplexTeamNotice, InviteAddedToTeamNotice} from '.'
-import {compose, branch, renderComponent} from 'recompose'
+import {compose, branch, renderComponent, renderNothing} from 'recompose'
 import createCachedSelector from 're-reselect'
 import {connect} from 'react-redux'
 import {navigateAppend, navigateTo} from '../../../../actions/route-tree'
@@ -15,6 +15,7 @@ const getDetails = createCachedSelector(
   [Constants.getMessageFromMessageKey, Constants.getYou],
   (message: Types.SystemMessage, you: string) => ({
     message,
+    info: message.info,
     you,
   })
 )((state, messageKey) => messageKey)
@@ -38,6 +39,7 @@ const mergeProps = (stateProps, dispatchProps) => {
 // TODO branch against constants defined somewhere
 export default compose(
   connect(mapStateToProps, mapDispatchToProps, mergeProps),
-  branch(props => props.message.meta.systemType === 1, renderComponent(InviteAddedToTeamNotice)),
-  branch(props => props.message.meta.systemType === 2, renderComponent(ComplexTeamNotice))
-)(AddedToTeamNotice)
+  branch(props => props.message.info.type === 'inviteAccepted', renderComponent(InviteAddedToTeamNotice)),
+  branch(props => props.message.info.type === 'simpleToComplex', renderComponent(ComplexTeamNotice)),
+  branch(props => props.message.info.type === 'addedToTeam', renderComponent(AddedToTeamNotice))
+)(renderNothing())

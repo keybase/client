@@ -161,16 +161,43 @@ export type JoinedLeftMessage = {
   ordinal: number,
 }
 
+export type AddedToTeamInfo = {
+  type: 'addedToTeam',
+  team: string,
+  adder: string,
+  addee: string,
+}
+
+export type SimpleToComplexTeamInfo = {
+  type: 'simpleToComplex',
+  team: string,
+}
+
+export type InviteAcceptedInfo = {
+  type: 'inviteAccepted',
+  team: string,
+  inviter: string,
+  invitee: string,
+  adder: string,
+  inviteType: 'none' | 'unknown' | 'keybase' | 'email' | 'sbs' | 'text',
+}
+
+export type SystemMessageInfo =
+  | AddedToTeamInfo
+  | SimpleToComplexTeamInfo
+  | InviteAcceptedInfo
+  | {type: 'unknown'}
+
 export type SystemMessage = {
   type: 'System',
   messageID?: MessageID,
   rawMessageID: number,
   author: string,
   timestamp: number,
-  message: HiddenString,
+  message: HiddenString, // Summary for snippet
+  info: SystemMessageInfo,
   key: MessageKey,
   ordinal: number,
-  meta: RPCChatTypes.MessageSystem | {systemType: -1},
 }
 
 export type SupersedesMessage = {
