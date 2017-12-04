@@ -16,10 +16,7 @@ bucket="${BUCKET_NAME:-prerelease.keybase.io}"
 echo "Checking credentials for s3://$bucket (~/.s3cfg)..."
 s3cmd ls "s3://$bucket" > /dev/null
 
-echo 'Checking GitHub credentials (~/.ssh)...'
-git ls-remote git@github.com:keybase/server-ops > /dev/null
-
-echo 'Checking Arch AUR credentials (also ~/.ssh)...'
+echo 'Checking Arch AUR credentials (~/.ssh)...'
 git ls-remote aur@aur.archlinux.org:keybase-git > /dev/null
 
 # The release tool needs a GitHub API token to check test status. This is

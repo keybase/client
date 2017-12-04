@@ -1,7 +1,7 @@
 Oh my god so many steps I'm really sorry.
 
-Clone kbfs and server-ops adjacent to client (this repo). The exact path
-doesn't matter.
+Clone kbfs adjacent to client (this repo). The exact path doesn't
+matter.
 
 Get all the credentials. Run test_all_credentials.sh in this directory
 to see what you're missing and check that everything's working. Note

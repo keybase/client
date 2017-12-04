@@ -279,6 +279,7 @@ const (
 	SCGitRepoDoesntExist       = int(keybase1.StatusCode_SCGitRepoDoesntExist)
 	SCTeamBanned               = int(keybase1.StatusCode_SCTeamBanned)
 	SCTeamInvalidBan           = int(keybase1.StatusCode_SCTeamInvalidBan)
+	SCNoSpaceOnDevice          = int(keybase1.StatusCode_SCNoSpaceOnDevice)
 )
 
 const (
