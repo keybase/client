@@ -328,6 +328,8 @@ protocol teams {
     boolean membershipChanged;
     @jsonkey("latest_seqno")
     Seqno latestSeqno;
+    @jsonkey("implicit_team")
+    boolean implicitTeam;
   }
 
   record TeamExitRow {
