@@ -1,12 +1,12 @@
 // @flow
 import Container from '../../forms/container.desktop'
 import * as React from 'react'
-import {Text, Icon} from '../../../common-adapters'
+import {Box, Text, Icon} from '../../../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../../../styles'
-
-import type {DeviceType} from '../../../constants/types/devices'
-import type {IconType} from '../../../common-adapters/icon'
-import type {Props} from '.'
+import glamorous from 'glamorous'
+import {type DeviceType} from '../../../constants/types/devices'
+import {type IconType} from '../../../common-adapters/icon'
+import {type Props} from '.'
 
 const Row = ({deviceID, name, type, onSelect}) => {
   const iconType: IconType = ({
@@ -21,43 +21,43 @@ const Row = ({deviceID, name, type, onSelect}) => {
   }
 
   return (
-    <div>
-      <div style={stylesRow} className="deviceRow" onClick={onClick}>
-        <div style={stylesIconName}>
-          <div style={stylesIconContainer}>
+    <Box>
+      <DeviceBox onClick={onClick}>
+        <Box style={stylesIconName}>
+          <Box style={stylesIconContainer}>
             <Icon style={stylesIcon} type={iconType} />
-          </div>
+          </Box>
           <Text type="BodySemiboldItalic" onClick={onClick}>{name}</Text>
-        </div>
-      </div>
-    </div>
+        </Box>
+      </DeviceBox>
+    </Box>
   )
 }
 
 const ResetOption = ({showResetLink, setShowResetLink, onReset}) => (
-  <div>
-    <div style={stylesRow} className="deviceRow" onClick={() => setShowResetLink(true)}>
-      <div style={stylesIconName}>
-        <div style={stylesIconContainer}>
+  <Box>
+    <DeviceBox onClick={() => setShowResetLink(true)}>
+      <Box style={stylesIconName}>
+        <Box style={stylesIconContainer}>
           <Icon
             style={{...stylesIcon, fontSize: 28, color: globalColors.black_40, marginLeft: 34}}
             type="iconfont-close"
           />
-        </div>
+        </Box>
         <Text type="Body">
           Uh oh - I don't have any of these devices anymore, or I've uninstalled Keybase from all of them.
         </Text>
-      </div>
-    </div>
+      </Box>
+    </DeviceBox>
     {showResetLink &&
-      <div style={{...stylesRow, alignItems: 'center', cursor: 'normal'}}>
-        <div style={stylesIconName}>
+      <Box style={{...stylesRow, alignItems: 'center', cursor: 'normal'}}>
+        <Box style={stylesIconName}>
           <Text type="BodyPrimaryLink" onClick={onReset}>
-            RESET MY ACCOUNT & START FROM SCRATCH
+            RESET MY ACCOUNT
           </Text>
-        </div>
-      </div>}
-  </div>
+        </Box>
+      </Box>}
+  </Box>
 )
 
 const SelectOtherDevice = ({
@@ -71,12 +71,11 @@ const SelectOtherDevice = ({
   onReset,
 }: Props) => (
   <Container style={stylesContainer} onBack={onBack}>
-    <style>{realCSS}</style>
     <Text type="Header" style={stylesHeader}>Which Keybase install would you like to connect with?</Text>
-    <div style={stylesDevicesContainer}>
+    <Box style={stylesDevicesContainer}>
       {devices.map(d => <Row onSelect={onSelect} {...d} key={d.deviceID} />)}
       <ResetOption showResetLink={showResetLink} setShowResetLink={setShowResetLink} onReset={onReset} />
-    </div>
+    </Box>
     {canSelectNoDevice &&
       <Text style={stylesWont} type="BodySmallSecondaryLink" onClick={onWont}>
         Log in with your passphrase
@@ -125,9 +124,13 @@ const stylesWont = {
   alignSelf: 'center',
 }
 
-const realCSS = `
-  .deviceRow { border-bottom: 1px solid ${globalColors.black_05} }
-  .deviceRow:hover { background: ${globalColors.blue4}; border-bottom: 1px solid ${globalColors.blue4} }
-  `
+const DeviceBox = glamorous(Box)({
+  ...stylesRow,
+  borderBottom: `1px solid ${globalColors.black_05}`,
+  ':hover': {
+    backgroundColor: globalColors.blue4,
+    borderBottom: `1px solid ${globalColors.blue4}`,
+  },
+})
 
 export default SelectOtherDevice
