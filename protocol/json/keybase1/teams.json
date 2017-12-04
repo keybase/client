@@ -1529,6 +1529,21 @@
           "name": "tlfID"
         }
       ]
+    },
+    {
+      "type": "enum",
+      "name": "TeamOperation",
+      "symbols": [
+        "MANAGE_MEMBERS_0",
+        "MANAGE_SUBTEAMS_1",
+        "CREATE_CHANNEL_2",
+        "DELETE_CHANNEL_3",
+        "RENAME_CHANNEL_4",
+        "EDIT_CHANNEL_DESCRIPTION_5",
+        "SET_TEAM_SHOWCASE_6",
+        "SET_MEMBER_SHOWCASE_7",
+        "CHANGE_OPEN_TEAM_8"
+      ]
     }
   ],
   "messages": {
@@ -2057,6 +2072,19 @@
         }
       ],
       "response": null
+    },
+    "canUserPerform": {
+      "request": [
+        {
+          "name": "name",
+          "type": "string"
+        },
+        {
+          "name": "op",
+          "type": "TeamOperation"
+        }
+      ],
+      "response": "bool"
     }
   },
   "namespace": "keybase.1"
