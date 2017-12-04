@@ -30,16 +30,18 @@ const Participants = ({participants, onShowProfile}: Props) => (
                 marginRight: globalMargins.tiny,
               }}
             >
-              <Avatar size={32} username={username} />
-              <Usernames
-                colorFollowing={true}
-                type="BodySemibold"
-                users={[{broken, following, username, you: isYou}]}
-                containerStyle={{marginLeft: 12}}
-              />
-              <Text type="BodySmall" style={{flex: 1, marginLeft: globalMargins.tiny, textAlign: 'right'}}>
-                {fullname}
-              </Text>
+              <Avatar size={isMobile ? 40 : 32} username={username} />
+              <Box style={{...globalStyles.flexBoxColumn, marginLeft: globalMargins.small}}>
+                <Usernames
+                  colorFollowing={true}
+                  type="BodySemibold"
+                  users={[{broken, following, username, you: isYou}]}
+                />
+                {fullname !== '' &&
+                  <Text type="BodySmall">
+                    {fullname}
+                  </Text>}
+              </Box>
             </Box>
           </Box>
         </ClickableBox>
@@ -51,7 +53,7 @@ const Participants = ({participants, onShowProfile}: Props) => (
 const rowStyle = {
   ...globalStyles.flexBoxColumn,
   ...globalStyles.clickable,
-  minHeight: 40,
+  minHeight: 48,
   paddingLeft: globalMargins.small,
   paddingRight: globalMargins.small,
 }

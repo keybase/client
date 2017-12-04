@@ -51,7 +51,7 @@ func TestGregorHandler(t *testing.T) {
 	h = newGregorHandler(globals.NewContext(tc.G, &globals.ChatContext{}))
 	h.Init()
 	h.testingEvents = newTestingEvents()
-	require.Equal(t, "keybase service", h.HandlerName(), "wrong name")
+	require.Equal(t, "gregor", h.HandlerName(), "wrong name")
 
 	kbUID := user.User.GetUID()
 	gUID := gregor1.UID(kbUID.ToBytes())
