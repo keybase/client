@@ -346,6 +346,17 @@ export type UnreadCounts = {
   badged: number,
 }
 
+/***
+ *
+ * notes:
+ *
+ *
+ *
+ *
+ *
+ *
+ ***/
+
 export type _State = {
   alwaysShow: I.Set<ConversationIDKey>,
   channelCreationError: string,
