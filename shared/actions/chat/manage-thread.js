@@ -20,6 +20,12 @@ const inSearchSelector = (state: TypedState) => state.chat.get('inSearch')
 const inboxSelector = (state: TypedState) => state.chat.get('inbox')
 
 function* _startConversation(action: ChatGen.StartConversationPayload): Saga.SagaGenerator<any, any> {
+  // Cancel any existing search.
+  const inSearch = yield Saga.select((state: TypedState) => state.chat.get('inSearch'))
+  if (inSearch) {
+    yield Saga.put(ChatGen.createExitSearch({skipSelectPreviousConversation: true}))
+  }
+
   const users = uniq(action.payload.users)
   const temporary = action.payload.temporary || false
   const forceImmediate = action.payload.forceImmediate || false
