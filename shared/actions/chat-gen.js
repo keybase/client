@@ -165,7 +165,7 @@ export const createSetTypers = (payload: {|+conversationIDKey: Types.Conversatio
 export const createSetupChatHandlers = () => ({error: false, payload: undefined, type: setupChatHandlers})
 export const createShareAttachment = (payload: {|+messageKey: Types.MessageKey|}) => ({error: false, payload, type: shareAttachment})
 export const createShowEditor = (payload: {|+message: ?Types.Message|}) => ({error: false, payload, type: showEditor})
-export const createStartConversation = (payload: {|+users: Array<string>, +forceImmediate?: boolean, +temporary?: boolean, +forSearch?: boolean|}) => ({error: false, payload, type: startConversation})
+export const createStartConversation = (payload: {|+users: Array<string>, +forceImmediate?: boolean, +forSearch?: boolean|}) => ({error: false, payload, type: startConversation})
 export const createSubtractEntity = (payload: {|+keyPath: Array<string>, +entities: I.List<any>|}) => ({error: false, payload, type: subtractEntity})
 export const createThreadLoadedOffline = (payload: {|+conversationIDKey: Types.ConversationIDKey|}) => ({error: false, payload, type: threadLoadedOffline})
 export const createToggleChannelWideNotifications = (payload: {|+conversationIDKey: Types.ConversationIDKey|}) => ({error: false, payload, type: toggleChannelWideNotifications})

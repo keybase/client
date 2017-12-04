@@ -65,7 +65,6 @@ function* _updateTempSearchConversation(action: SearchGen.UserInputItemsUpdatedP
       Saga.put(
         ChatGen.createStartConversation({
           users: userInputItemIds.concat(me),
-          temporary: true,
           forSearch: true,
         })
       )
