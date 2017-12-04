@@ -347,10 +347,95 @@ export type UnreadCounts = {
 }
 
 /***
- * TODO:
+ * Theory:
  *
+ * All we have a threads.
+ * Each thread has a conversation id
+ * A thread has a window of messages we've downloaded (oldest, newest) plus metadata about it (muted, etc). The inbox 'version' basically increments whenver anything changes
+ * We know if oldest is the global oldest (aka moreToLoad)
+ * We know if the newest is the global newest (aka sync calls etc tell us if we're out of date)
+ * Threads have a team type, aka small team (teamname + #general), big team (teamname + channelname) , or kbfs team (name aka participants list)
+ * We know if the thread is finalized (has forward / back pointers)
+ *
+ * The inbox data is entirely derivable from the threads
+ * We can get every thread, pull its type and its latest message and build the list / tree / snippet
+ * When we 'load' the inbox we're essentially asking the server to give us the newest message of every thread
+ * When we get a sync call the server is telling us our current thread window isn't the newest
+ * Can we effeciently use reselect to derive this?
+ *  assuming we have a Map<id, ThreadVersion>, whenever that changes we do a reselect to pull out the
+ *  type and timestamp, teamname, channelname
+ *  we  use rereselect  with teh cachekey based on the convoid where we do
+ *
+ *  const getThread = (state, threadId) => state.chat.threadMap.get(threadId)
+ *
+ *  createCachedSelector(
+ *  [getThread],
+ *  (thread) => {
+ *  // derive timestamp, teamname, channelname etc
+ *
+ *  },
+ *  (state, threadId) => threadId // cachekey
+ *
+ * The thread should be more stateful. We should keep track of the requesting state for both sides of the window (i asked for newer than the newest or older than the oldest) so loadmore can be correct always.
+ * isEmpty is derived from an emtpy window with no more to reqeust on either side
+ *
+ * sending:
+ * ? maybe we make an ordinal based on the last thing and just inject it in and keep state on the message about itself
+ *
+ * superseded
+ * hopefully we don't need to keep these around and instead can just apply it and toss the old version. from our perspective we don't need to keep it and its just an action to apply to our playload
+ *
+ * rekey info can be in a sep. part
  *
  ***/
+
+// WIP types
+type __ThreadId = string
+type __MessageId = string
+
+// Rekey info
+type __Rekey = {
+
+}
+
+// A message
+type __Message = {
+  id: __MessageId,
+}
+
+// A single conversation
+type __Thread = {
+  version: number, // monotonically increasing number we get from the service to represent mutations to the state
+  idToMessage: I.Map<__MessageId, __Message>, // map of messageId to Message
+  messagesIdsInOrder: I.List<__MessageId>, // an ordered list of message ids we know about, no gaps allowed.
+}
+
+type __State = {
+  idToThread: I.Map<__ThreadId, __Thread>,
+  idToRekeyers: I.Map<__ThreadId, I.Set(string)>,
+}
+
+// Returns the min/max we know about
+// function getThreadWindow(t: __Thread) {
+// const first = t.messagesIdsInOrder.first()
+// const last = t.messagesIdsInOrder.last()
+
+// return {
+// max: first ? first.id : null,
+// min: last ? last.id : null,
+// }
+// }
+
+/***
+ *
+ *
+ * Thread
+ *
+ *
+ *
+ *
+ *
+ */
 
 /***
  *
@@ -387,51 +472,58 @@ export type UnreadCounts = {
  *
  ***/
 
-export type _State = {
-  alwaysShow: I.Set<ConversationIDKey>,
-  channelCreationError: string,
-  conversationStates: I.Map<ConversationIDKey, ConversationState>,
-  conversationUnreadCounts: I.Map<ConversationIDKey, UnreadCounts>,
-  editingMessage: ?Message,
-  finalizedState: FinalizedState,
-  inSearch: boolean,
-  inbox: I.Map<ConversationIDKey, InboxState>,
-  inboxAlwaysShow: I.Map<ConversationIDKey, boolean>,
+type _StateInbox = {
+  // really all of these are derived....
   inboxBigChannels: I.Map<ConversationIDKey, string>,
   inboxBigChannelsToTeam: I.Map<ConversationIDKey, string>,
-  inboxFilter: string,
-  inboxIsEmpty: I.Map<ConversationIDKey, boolean>,
-  inboxSearch: I.List<string>,
   inboxSmallTimestamps: I.Map<ConversationIDKey, number>,
-  inboxSnippet: I.Map<ConversationIDKey, ?HiddenString>,
-  inboxSupersededBy: I.Map<ConversationIDKey, boolean>,
-  inboxUnreadCountBadge: I.Map<ConversationIDKey, number>,
-  inboxUnreadCountTotal: I.Map<ConversationIDKey, number>,
-  inboxUntrustedState: I.Map<ConversationIDKey, InboxUntrustedState>,
-  inboxGlobalUntrustedState: UntrustedState,
-  inboxSyncingState: SyncingState,
-  inboxVersion: I.Map<ConversationIDKey, number>,
-  initialConversation: ?ConversationIDKey,
-  localMessageStates: I.Map<MessageKey, LocalMessageState>,
-  messageMap: I.Map<MessageKey, Message>,
-  metaData: MetaDataMap,
-  nowOverride: ?Date,
-  pendingConversations: I.Map<ConversationIDKey, Participants>,
-  previousConversation: ?ConversationIDKey,
-  rekeyInfos: I.Map<ConversationIDKey, RekeyInfo>,
-  searchPending: boolean,
-  searchResultTerm: string,
-  searchResults: ?I.List<SearchTypes.SearchResultId>,
-  searchShowingSuggestions: boolean,
-  selectedUsersInSearch: I.List<SearchTypes.SearchResultId>,
-  supersededByState: SupersededByState,
-  supersedesState: SupersedesState,
-  teamCreationError: string,
-  teamCreationPending: boolean,
-  teamJoinError: string,
-  teamJoinSuccess: boolean,
-  tempPendingConversations: I.Map<ConversationIDKey, boolean>,
 }
+
+type _StateThread = {}
+
+export type _State = _StateInbox &
+  _StateThread & {
+    alwaysShow: I.Set<ConversationIDKey>,
+    channelCreationError: string,
+    conversationStates: I.Map<ConversationIDKey, ConversationState>,
+    conversationUnreadCounts: I.Map<ConversationIDKey, UnreadCounts>,
+    editingMessage: ?Message,
+    finalizedState: FinalizedState,
+    inSearch: boolean,
+    inbox: I.Map<ConversationIDKey, InboxState>,
+    inboxAlwaysShow: I.Map<ConversationIDKey, boolean>,
+    inboxFilter: string,
+    inboxIsEmpty: I.Map<ConversationIDKey, boolean>,
+    inboxSearch: I.List<string>,
+    inboxSnippet: I.Map<ConversationIDKey, ?HiddenString>, // do we need this
+    inboxSupersededBy: I.Map<ConversationIDKey, boolean>, // move to thread
+    inboxUnreadCountBadge: I.Map<ConversationIDKey, number>, // move to thread
+    inboxUnreadCountTotal: I.Map<ConversationIDKey, number>, // move to thread
+    inboxUntrustedState: I.Map<ConversationIDKey, InboxUntrustedState>, // move to thread
+    inboxGlobalUntrustedState: UntrustedState,
+    inboxSyncingState: SyncingState,
+    inboxVersion: I.Map<ConversationIDKey, number>,
+    initialConversation: ?ConversationIDKey,
+    localMessageStates: I.Map<MessageKey, LocalMessageState>, // should just go into the message
+    messageMap: I.Map<MessageKey, Message>,
+    metaData: MetaDataMap,
+    nowOverride: ?Date, // should just be a part of the inbox render
+    pendingConversations: I.Map<ConversationIDKey, Participants>,
+    previousConversation: ?ConversationIDKey,
+    rekeyInfos: I.Map<ConversationIDKey, RekeyInfo>,
+    searchPending: boolean,
+    searchResultTerm: string,
+    searchResults: ?I.List<SearchTypes.SearchResultId>,
+    searchShowingSuggestions: boolean,
+    selectedUsersInSearch: I.List<SearchTypes.SearchResultId>,
+    supersededByState: SupersededByState,
+    supersedesState: SupersedesState,
+    teamCreationError: string,
+    teamCreationPending: boolean,
+    teamJoinError: string,
+    teamJoinSuccess: boolean,
+    tempPendingConversations: I.Map<ConversationIDKey, boolean>,
+  }
 
 export type State = I.RecordOf<_State>
 export type ParsedMessageID =
