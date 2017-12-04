@@ -453,6 +453,13 @@ func (k *KeybaseDaemonLocal) CreateTeamTLF(
 	// For now, only support implicit teams; regular teams will get a
 	// NoSuchTeamError.  TODO: when the keybase1 RPCs allow it, store
 	// the TLF ID along with the regular team info.
+	//
+	// Note that this only adds the implicit team TLF to this instance
+	// of KeybaseDaemonLocal; the caller would have to make the call
+	// to all instances to make it global.  However, the IDs are
+	// always deterministic so any client who thinks the ID is missing
+	// will just generate the same one.  TODO: abstract out the users
+	// and teams into a shareable module among all the instances.
 	return k.addImplicitTeamTlfID(teamID, tlfID)
 }
 

@@ -71,6 +71,13 @@ func makeTeams(t testing.TB, config libkbfs.Config, e Engine, teams teamMap,
 
 func makeImplicitTeams(t testing.TB, config libkbfs.Config, e Engine,
 	implicitTeams teamMap, users map[libkb.NormalizedUsername]User) {
+	if len(implicitTeams) > 0 {
+		err := libkbfs.EnableImplicitTeamsForTest(config)
+		if err != nil {
+			t.Fatal(err)
+		}
+	}
+
 	counter := byte(1)
 	for name, members := range implicitTeams {
 		ty := tlf.Private
@@ -79,7 +86,7 @@ func makeImplicitTeams(t testing.TB, config libkbfs.Config, e Engine,
 			ty = tlf.Public
 		}
 
-		teamID, _ := libkbfs.AddImplicitTeamForTestOrBust(
+		teamID := libkbfs.AddImplicitTeamForTestOrBust(
 			t, config, name.String(), "", counter, ty)
 		counter++
 

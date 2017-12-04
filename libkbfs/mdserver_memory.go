@@ -86,7 +86,8 @@ type mdServerMemShared struct {
 	branchDb            map[mdBranchKey]kbfsmd.BranchID
 	truncateLockManager *mdServerLocalTruncateLockManager
 	// tracks expire time and holder
-	lockIDs map[mdLockMemKey]mdLockMemVal
+	lockIDs              map[mdLockMemKey]mdLockMemVal
+	implicitTeamsEnabled bool
 
 	updateManager *mdServerLocalUpdateManager
 }
@@ -140,6 +141,12 @@ func (md *MDServerMemory) checkShutdownRLocked() error {
 	return nil
 }
 
+func (md *MDServerMemory) enableImplicitTeams() {
+	md.lock.Lock()
+	defer md.lock.Unlock()
+	md.implicitTeamsEnabled = true
+}
+
 func (md *MDServerMemory) getHandleID(ctx context.Context, handle tlf.Handle,
 	mStatus kbfsmd.MergeStatus) (tlfID tlf.ID, created bool, err error) {
 	handleBytes, err := md.config.Codec().Encode(handle)
@@ -175,6 +182,10 @@ func (md *MDServerMemory) getHandleID(ctx context.Context, handle tlf.Handle,
 		}
 	} else if !handle.IsReader(session.UID.AsUserOrTeam()) {
 		return tlf.NullID, false, kbfsmd.ServerErrorUnauthorized{}
+	}
+
+	if md.implicitTeamsEnabled {
+		return tlf.NullID, false, nil
 	}
 
 	// Allocate a new random ID.

@@ -355,6 +355,9 @@ func (fs *KBFSOpsStandard) createTlfIDIfNeeded(
 		return err
 	}
 
+	fs.log.CDebugf(ctx, "Creating new TLF ID %s for implicit team %s, %s",
+		tlfID, teamID, h.GetCanonicalName())
+
 	err = fs.config.KBPKI().CreateTeamTLF(ctx, teamID, tlfID)
 	if err != nil {
 		return err

@@ -2403,8 +2403,11 @@ func testKeyManagerGetImplicitTeamTLFCryptKey(t *testing.T, ty tlf.Type) {
 	// These are deterministic, and should add the same
 	// ImplicitTeamInfos for both user configs.
 	iname := "u1,u2"
-	teamID, tlfID := AddImplicitTeamForTestOrBust(t, config1, iname, "", 1, ty)
-	_, _ = AddImplicitTeamForTestOrBust(t, config2, iname, "", 1, ty)
+	err := EnableImplicitTeamsForTest(config1)
+	require.NoError(t, err)
+	teamID := AddImplicitTeamForTestOrBust(t, config1, iname, "", 1, ty)
+	_ = AddImplicitTeamForTestOrBust(t, config2, iname, "", 1, ty)
+	tlfID := tlf.FakeID(1, ty)
 
 	asUserName := libkb.NormalizedUsername(iname)
 	h := &TlfHandle{

@@ -36,7 +36,8 @@ type mdServerDiskShared struct {
 	tlfStorage map[tlf.ID]*mdServerTlfStorage
 	// Always use memory for the lock storage, so it gets wiped
 	// after a restart.
-	truncateLockManager *mdServerLocalTruncateLockManager
+	truncateLockManager  *mdServerLocalTruncateLockManager
+	implicitTeamsEnabled bool
 
 	updateManager *mdServerLocalUpdateManager
 
@@ -115,6 +116,12 @@ func (md *MDServerDisk) checkShutdownLocked() error {
 		return errors.WithStack(errMDServerDiskShutdown{})
 	}
 	return nil
+}
+
+func (md *MDServerDisk) enableImplicitTeams() {
+	md.lock.Lock()
+	defer md.lock.Unlock()
+	md.implicitTeamsEnabled = true
 }
 
 func (md *MDServerDisk) getStorage(tlfID tlf.ID) (*mdServerTlfStorage, error) {
@@ -199,6 +206,10 @@ func (md *MDServerDisk) getHandleID(ctx context.Context, handle tlf.Handle,
 		}
 	} else if !handle.IsReader(session.UID.AsUserOrTeam()) {
 		return tlf.NullID, false, kbfsmd.ServerErrorUnauthorized{}
+	}
+
+	if md.implicitTeamsEnabled {
+		return tlf.NullID, false, nil
 	}
 
 	// Allocate a new random ID.

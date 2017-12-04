@@ -1466,6 +1466,7 @@ type mdServerLocal interface {
 		rev kbfsmd.Revision, err error)
 	isShutdown() bool
 	copy(config mdServerLocalConfig) mdServerLocal
+	enableImplicitTeams()
 }
 
 // BlockServer gets and puts opaque data blocks.  The instantiation

@@ -4773,6 +4773,16 @@ func (mr *MockmdServerLocalMockRecorder) copy(config interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "copy", reflect.TypeOf((*MockmdServerLocal)(nil).copy), config)
 }
 
+// enableImplicitTeams mocks base method
+func (m *MockmdServerLocal) enableImplicitTeams() {
+	m.ctrl.Call(m, "enableImplicitTeams")
+}
+
+// enableImplicitTeams indicates an expected call of enableImplicitTeams
+func (mr *MockmdServerLocalMockRecorder) enableImplicitTeams() *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "enableImplicitTeams", reflect.TypeOf((*MockmdServerLocal)(nil).enableImplicitTeams))
+}
+
 // MockBlockServer is a mock of BlockServer interface
 type MockBlockServer struct {
 	ctrl     *gomock.Controller

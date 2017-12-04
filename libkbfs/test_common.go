@@ -556,36 +556,25 @@ func AddEmptyTeamsForTestOrBust(t logger.TestLogBackend,
 // AddImplicitTeamForTest adds an implicit team with a TLF ID.
 func AddImplicitTeamForTest(
 	config Config, name, suffix string, teamNumber byte, ty tlf.Type) (
-	keybase1.TeamID, tlf.ID, error) {
-	kbd, ok := config.KeybaseService().(*KeybaseDaemonLocal)
-	if !ok {
-		return "", tlf.NullID, errors.New("Bad keybase daemon")
-	}
-
-	iteamInfo, err := kbd.ResolveIdentifyImplicitTeam(
+	keybase1.TeamID, error) {
+	iteamInfo, err := config.KeybaseService().ResolveIdentifyImplicitTeam(
 		context.Background(), name, suffix, ty, true, "")
 	if err != nil {
-		return "", tlf.NullID, err
+		return "", err
 	}
-	tlfID := tlf.FakeID(teamNumber, ty)
-	err = kbd.addImplicitTeamTlfID(iteamInfo.TID, tlfID)
-	if err != nil {
-		return "", tlf.NullID, err
-	}
-	return iteamInfo.TID, tlfID, nil
+	return iteamInfo.TID, nil
 }
 
 // AddImplicitTeamForTestOrBust is like AddImplicitTeamForTest, but
 // dies if there's an error.
 func AddImplicitTeamForTestOrBust(t logger.TestLogBackend,
-	config Config, name, suffix string, teamNumber byte, ty tlf.Type) (
-	keybase1.TeamID, tlf.ID) {
-	teamID, tlfID, err := AddImplicitTeamForTest(
-		config, name, suffix, teamNumber, ty)
+	config Config, name, suffix string, teamNumber byte,
+	ty tlf.Type) keybase1.TeamID {
+	teamID, err := AddImplicitTeamForTest(config, name, suffix, teamNumber, ty)
 	if err != nil {
 		t.Fatal(err)
 	}
-	return teamID, tlfID
+	return teamID
 }
 
 // ChangeTeamNameForTest renames a team.
@@ -613,6 +602,17 @@ func ChangeTeamNameForTestOrBust(t logger.TestLogBackend, config Config,
 	if err != nil {
 		t.Fatal(err)
 	}
+}
+
+// EnableImplicitTeamsForTest causes the mdserver to stop returning
+// random TLF IDs for new TLFs.
+func EnableImplicitTeamsForTest(config Config) error {
+	md, ok := config.MDServer().(mdServerLocal)
+	if !ok {
+		return errors.New("Bad md server")
+	}
+	md.enableImplicitTeams()
+	return nil
 }
 
 func testRPCWithCanceledContext(t logger.TestLogBackend,
