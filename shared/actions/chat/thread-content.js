@@ -563,14 +563,14 @@ function _unboxedToMessage(
         case ChatTypes.commonMessageType.system: {
           const body = payload.messageBody.system
           let info: Types.SystemMessageInfo = {type: 'unknown'}
-          let message = 'unknown'
+          let messageText = 'unknown'
           if (body) {
             switch (body.systemType) {
               case ChatTypes.localMessageSystemType.addedtoteam: {
                 const addee = body.addedtoteam ? body.addedtoteam.addee : 'someone'
                 const adder = body.addedtoteam ? body.addedtoteam.adder : 'someone'
                 const team = body.addedtoteam ? body.addedtoteam.team : '???'
-                message = `${adder} added ${addee} to ${team}`
+                messageText = `${adder} added ${addee} to ${team}`
                 info = {adder, addee, team, type: 'addedToTeam'}
                 break
               }
@@ -581,12 +581,13 @@ function _unboxedToMessage(
                 const team = body.inviteaddedtoteam ? body.inviteaddedtoteam.team : '???'
                 const inviteTypeEnum = body.inviteaddedtoteam ? body.inviteaddedtoteam.inviteType : 1
                 const inviteType = Constants.inviteCategoryEnumToName[inviteTypeEnum]
-                message = `${invitee} accepted an invite to join ${team}`
+                messageText = `${invitee} accepted an invite to join ${team}`
                 info = {invitee, inviter, adder, team, inviteType, type: 'inviteAccepted'}
                 break
               }
               case ChatTypes.localMessageSystemType.complexteam: {
                 const team = body.complexteam ? body.complexteam.team : '???'
+                messageText = `${common.author} made ${team} a big team.`
                 info = {team, type: 'simpleToComplex'}
                 break
               }
@@ -597,7 +598,7 @@ function _unboxedToMessage(
             ...common,
             editedCount: payload.superseded ? 1 : 0, // mark it as edited if it's been superseded
             messageState: 'sent',
-            message: new HiddenString(message),
+            message: new HiddenString(messageText),
             info,
             key: Constants.messageKey(common.conversationIDKey, 'system', common.messageID),
           }
