@@ -7,13 +7,16 @@ import createCachedSelector from 're-reselect'
 import {connect} from 'react-redux'
 import {navigateAppend, navigateTo} from '../../../../actions/route-tree'
 import {teamsTab} from '../../../../constants/tabs'
+import {getRole, isAdmin, isOwner} from '../../../../constants/teams'
+import {type TeamRoleType} from '../../../../constants/types/teams'
 
 import type {TypedState} from '../../../../constants/reducer'
 import type {OwnProps} from './container'
 
 const getDetails = createCachedSelector(
-  [Constants.getMessageFromMessageKey, Constants.getYou],
-  (message: Types.SystemMessage, you: string) => ({
+  [Constants.getMessageFromMessageKey, Constants.getYou, getRole],
+  (message: Types.SystemMessage, you: string, role: TeamRoleType) => ({
+    admin: isAdmin(role) || isOwner(role),
     message,
     info: message.info,
     you,

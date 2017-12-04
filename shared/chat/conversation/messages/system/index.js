@@ -29,6 +29,7 @@ const connectedUsernamesProps = {
 }
 
 type Props = {
+  admin: boolean,
   channelname: string,
   message: SystemMessage,
   onManageChannels: (teamname: string) => void,
@@ -40,6 +41,7 @@ type Props = {
 type AddedToTeamProps = Props & {info: AddedToTeamInfo}
 
 const AddedToTeamNotice = ({
+  admin,
   channelname,
   message,
   info,
@@ -58,17 +60,8 @@ const AddedToTeamNotice = ({
     : <ConnectedUsernames {...connectedUsernamesProps} usernames={[addee]} />
 
   let manageComponent = null
-  if (adder === you) {
-    manageComponent = (
-      <Text
-        onClick={() => onViewTeam(team)}
-        type="BodySmallSemiboldInlineLink"
-        style={{color: globalColors.blue}}
-      >
-        Manage members
-      </Text>
-    )
-  } else if (addee === you) {
+
+  if (addee === you) {
     manageComponent = (
       <Text
         onClick={() => onManageChannels(team)}
@@ -76,6 +69,16 @@ const AddedToTeamNotice = ({
         style={{color: globalColors.blue}}
       >
         Manage your channel subscriptions
+      </Text>
+    )
+  } else if (admin) {
+    manageComponent = (
+      <Text
+        onClick={() => onViewTeam(team)}
+        type="BodySmallSemiboldInlineLink"
+        style={{color: globalColors.blue}}
+      >
+        Manage members
       </Text>
     )
   } else {
