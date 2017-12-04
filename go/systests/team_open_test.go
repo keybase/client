@@ -301,3 +301,99 @@ func TestTeamOpenRemoveOldUVAddInvite(t *testing.T) {
 	require.Equal(t, 1, len(members.AllUIDs()))
 	require.Equal(t, ann.uid(), members.AllUIDs()[0])
 }
+
+// Consider user that resets their account and immediately tries to
+// re-join their open teams from the website, before provisioning (and
+// therefore getting a PUK).
+func TestTeamOpenResetAndRejoin(t *testing.T) {
+	ctx := newSMUContext(t)
+	defer ctx.cleanup()
+
+	ann := ctx.installKeybaseForUser("ann", 10)
+	ann.signup()
+	bob := ctx.installKeybaseForUser("bob", 10)
+	bob.signup()
+
+	t.Logf("bobs name is %q", bob.username)
+
+	team := ann.createTeam([]*smuUser{bob})
+	t.Logf("Open team name is %q", team)
+
+	annCtx := ann.getPrimaryGlobalContext()
+
+	ann.openTeam(team, keybase1.TeamRole_READER)
+
+	bobCtx := bob.getPrimaryGlobalContext()
+
+	// Bob is in the team but he resets and doesn't provision.
+	bob.reset()
+
+	loadUserArg := libkb.NewLoadUserArg(annCtx).
+		WithNetContext(context.TODO()).
+		WithName(bob.username).
+		WithPublicKeyOptional().
+		WithForcePoll(true)
+	upak, _, err := annCtx.GetUPAKLoader().LoadV2(loadUserArg)
+	require.NoError(t, err)
+
+	// His EldestSeqno is 0 (in the middle of reset).
+	require.EqualValues(t, 0, upak.Current.EldestSeqno)
+
+	_ = annCtx
+
+	// Then bob makes a team access request (hypothetically from the
+	// website using "Join team" button).
+	err = bobCtx.LoginState().LoginWithPassphrase(bob.username, bob.userInfo.passphrase, false, nil)
+	require.NoError(t, err)
+
+	arg := libkb.NewAPIArgWithNetContext(context.TODO(), "team/request_access")
+	arg.Args = libkb.NewHTTPArgs()
+	arg.SessionType = libkb.APISessionTypeREQUIRED
+	arg.Args.Add("team", libkb.S{Val: team.name})
+	_, err = bobCtx.API.Post(arg)
+	require.NoError(t, err)
+
+	// We are expected to see following new links:
+	// - Rotate key (after bob resets)
+	// - Change membership (remove reset version of bob)
+	// - Invite (add bob%0 as keybase-type invite)
+	kickTeamRekeyd(annCtx, t)
+	ann.pollForTeamSeqnoLink(team, keybase1.Seqno(6))
+
+	loadTeamArg := keybase1.LoadTeamArg{
+		Name:        team.name,
+		ForceRepoll: true,
+	}
+	teamObj, err := teams.Load(context.TODO(), annCtx, loadTeamArg)
+	require.NoError(t, err)
+
+	require.Equal(t, 1, teamObj.NumActiveInvites())
+	// Expect to see bob%0 keybase invite.
+	ret, err := teamObj.HasActiveInvite(teams.NewUserVersion(bob.uid(), 0).TeamInviteName(), "keybase")
+	require.NoError(t, err)
+	require.True(t, ret)
+
+	members, err := teamObj.Members()
+	require.NoError(t, err)
+	// expecting just ann, pre-reset version of bob should have been removed.
+	require.Equal(t, 1, len(members.AllUIDs()))
+	require.Equal(t, ann.uid(), members.AllUIDs()[0])
+
+	// Finally bob gets a PUK - should be automatically added by SBS
+	// handler.
+	bob.loginAfterReset(10)
+
+	// We are expecting a new ChangeMembership link that adds bob.
+	kickTeamRekeyd(annCtx, t)
+	ann.pollForTeamSeqnoLink(team, keybase1.Seqno(7))
+
+	teamObj, err = teams.Load(context.TODO(), annCtx, loadTeamArg)
+	require.NoError(t, err)
+
+	require.Equal(t, 0, teamObj.NumActiveInvites())
+
+	members, err = teamObj.Members()
+	require.NoError(t, err)
+	// Expecting bob and ann finally reunited as proper cryptomembers.
+	require.Equal(t, 2, len(members.AllUIDs()))
+}

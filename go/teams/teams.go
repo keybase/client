@@ -1604,7 +1604,7 @@ func AddMembersBestEffort(ctx context.Context, g *libkb.GlobalContext, teamID ke
 
 		existingUV, err := team.UserVersionByUID(ctx, uv.Uid)
 		if err == nil {
-			if existingUV.EldestSeqno > uv.EldestSeqno {
+			if !becameAnInvite && existingUV.EldestSeqno > uv.EldestSeqno {
 				g.Log.CDebugf(ctx, "newer version of user %s is already in team", uv.Uid)
 				continue
 			}
