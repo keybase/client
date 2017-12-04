@@ -230,9 +230,13 @@ function _afterLoadAvatarHelper([response: {body: string}, names]) {
   return Saga.put(ConfigGen.createLoadedAvatars({nameToUrlMap}))
 }
 
+function _validUsernames(names: Array<string>) {
+  return names.filter(name => !!name.match(/^([.a-z0-9_-]{1,1000})$/i))
+}
+
 let _avatarsToLoad = {}
 function* _loadAvatars(action: ConfigGen.LoadAvatarsPayload) {
-  const {usernames} = action.payload
+  const usernames = _validUsernames(action.payload.usernames)
   // store it and wait, once our timer is up we pull any and run it
   usernames.forEach(username => {
     _avatarsToLoad[username] = true
@@ -252,7 +256,7 @@ function* _loadAvatars(action: ConfigGen.LoadAvatarsPayload) {
 
 let _teamAvatarsToLoad = {}
 function* _loadTeamAvatars(action: ConfigGen.LoadTeamAvatarsPayload) {
-  const {teamnames} = action.payload
+  const teamnames = _validUsernames(action.payload.teamnames)
   teamnames.forEach(teamname => {
     _teamAvatarsToLoad[teamname] = true
   })
