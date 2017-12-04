@@ -390,6 +390,7 @@ export const constantsStatusCode = {
   scnosession: 283,
   scaccountreset: 290,
   scidentifiesfailed: 295,
+  scnospaceondevice: 297,
   scbademail: 472,
   scbadsignupusernametaken: 701,
   scbadinvitationcode: 707,
@@ -895,6 +896,10 @@ export const kbfsCommonFSStatusCode = {
   finish: 1,
   error: 2,
 }
+
+export const kbfsCreateTLFRpcChannelMap = (configKeys: Array<string>, request: KbfsCreateTLFRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.kbfs.createTLF', request)
+
+export const kbfsCreateTLFRpcPromise = (request: KbfsCreateTLFRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.kbfs.createTLF', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
 
 export const kbfsFSEditListRpcChannelMap = (configKeys: Array<string>, request: KbfsFSEditListRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.kbfs.FSEditList', request)
 
@@ -1458,6 +1463,10 @@ export const simpleFSPathType = {
   kbfs: 1,
 }
 
+export const teamsCanUserPerformRpcChannelMap = (configKeys: Array<string>, request: TeamsCanUserPerformRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.canUserPerform', request)
+
+export const teamsCanUserPerformRpcPromise = (request: TeamsCanUserPerformRpcParam): Promise<TeamsCanUserPerformResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.canUserPerform', request, (error: RPCError, result: TeamsCanUserPerformResult) => error ? reject(error) : resolve(result)))
+
 export const teamsGetTeamAndMemberShowcaseRpcChannelMap = (configKeys: Array<string>, request: TeamsGetTeamAndMemberShowcaseRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.getTeamAndMemberShowcase', request)
 
 export const teamsGetTeamAndMemberShowcaseRpcPromise = (request: TeamsGetTeamAndMemberShowcaseRpcParam): Promise<TeamsGetTeamAndMemberShowcaseResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.getTeamAndMemberShowcase', request, (error: RPCError, result: TeamsGetTeamAndMemberShowcaseResult) => error ? reject(error) : resolve(result)))
@@ -1582,6 +1591,18 @@ export const teamsTeamListRpcPromise = (request: TeamsTeamListRpcParam): Promise
 export const teamsTeamListSubteamsRecursiveRpcChannelMap = (configKeys: Array<string>, request: TeamsTeamListSubteamsRecursiveRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamListSubteamsRecursive', request)
 
 export const teamsTeamListSubteamsRecursiveRpcPromise = (request: TeamsTeamListSubteamsRecursiveRpcParam): Promise<TeamsTeamListSubteamsRecursiveResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamListSubteamsRecursive', request, (error: RPCError, result: TeamsTeamListSubteamsRecursiveResult) => error ? reject(error) : resolve(result)))
+
+export const teamsTeamOperation = {
+  manageMembers: 0,
+  manageSubteams: 1,
+  createChannel: 2,
+  deleteChannel: 3,
+  renameChannel: 4,
+  editChannelDescription: 5,
+  setTeamShowcase: 6,
+  setMemberShowcase: 7,
+  changeOpenTeam: 8,
+}
 
 export const teamsTeamReAddMemberAfterResetRpcChannelMap = (configKeys: Array<string>, request: TeamsTeamReAddMemberAfterResetRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamReAddMemberAfterReset', request)
 
@@ -1799,9 +1820,9 @@ export type AccountPassphrasePromptRpcParam = {|guiArg: GUIEntryArg,incomingCall
 
 export type AccountResetAccountRpcParam = ?{|incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
-export type AnnotatedMemberInfo = {|userID: UID,teamID: TeamID,username: String,fullName: String,fqName: String,isImplicitTeam: Boolean,role: TeamRole,implicit?: ?ImplicitRole,needsPUK: Boolean,memberCount: Int,|}
+export type AnnotatedMemberInfo = {|userID: UID,teamID: TeamID,username: String,fullName: String,fqName: String,isImplicitTeam: Boolean,role: TeamRole,implicit?: ?ImplicitRole,needsPUK: Boolean,memberCount: Int,eldestSeqno: Seqno,active: Boolean,|}
 
-export type AnnotatedTeamInvite = {|role: TeamRole,id: TeamInviteID,type: TeamInviteType,name: TeamInviteName,uv: UserVersion,inviter: UserVersion,inviterUsername: String,teamName: String,|}
+export type AnnotatedTeamInvite = {|role: TeamRole,id: TeamInviteID,type: TeamInviteType,name: TeamInviteName,uv: UserVersion,inviter: UserVersion,inviterUsername: String,teamName: String,userActive: Boolean,|}
 
 export type AnnotatedTeamList = {|teams?: ?Array<AnnotatedMemberInfo>,annotatedActiveInvites: {[key: string]: AnnotatedTeamInvite},|}
 
@@ -2430,6 +2451,8 @@ export type KBFSGitGcRpcParam = {|folder: Folder,name: GitRepoName,options: GcOp
 
 export type KID = String
 
+export type KbfsCreateTLFRpcParam = {|teamID: TeamID,tlfID: TLFID,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+
 export type KbfsFSEditListRpcParam = {|edits?: ?Array<FSNotification>,requestID: Int,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
 export type KbfsFSEventRpcParam = {|event: FSNotification,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
@@ -2539,7 +2562,7 @@ export type LoginUnlockWithPassphraseRpcParam = {|passphrase: String,incomingCal
 
 export type LogsendPrepareLogsendRpcParam = ?{|incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
-export type LookupImplicitTeamRes = {|teamID: TeamID,name: TeamName,displayName: ImplicitTeamDisplayName,|}
+export type LookupImplicitTeamRes = {|teamID: TeamID,name: TeamName,displayName: ImplicitTeamDisplayName,tlfID: TLFID,|}
 
 export type MDBlock = {|version: Int,timestamp: Time,block: Bytes,|}
 
@@ -3224,6 +3247,7 @@ export type StatusCode =0 // SCOk_0
  | 283 // SCNoSession_283
  | 290 // SCAccountReset_290
  | 295 // SCIdentifiesFailed_295
+ | 297 // SCNoSpaceOnDevice_297
  | 472 // SCBadEmail_472
  | 701 // SCBadSignupUsernameTaken_701
  | 707 // SCBadInvitationCode_707
@@ -3460,6 +3484,17 @@ export type TeamNamePart = String
 
 export type TeamOpenReqMsg = {|teamID: TeamID,tars?: ?Array<TeamAccessRequest>,|}
 
+export type TeamOperation =0 // MANAGE_MEMBERS_0
+ | 1 // MANAGE_SUBTEAMS_1
+ | 2 // CREATE_CHANNEL_2
+ | 3 // DELETE_CHANNEL_3
+ | 4 // RENAME_CHANNEL_4
+ | 5 // EDIT_CHANNEL_DESCRIPTION_5
+ | 6 // SET_TEAM_SHOWCASE_6
+ | 7 // SET_MEMBER_SHOWCASE_7
+ | 8 // CHANGE_OPEN_TEAM_8
+
+
 export type TeamPlusApplicationKeys = {|id: TeamID,name: String,implicit: Boolean,public: Boolean,application: TeamApplication,writers?: ?Array<UserVersion>,onlyReaders?: ?Array<UserVersion>,applicationKeys?: ?Array<TeamApplicationKey>,|}
 
 export type TeamRefreshers = {|needKeyGeneration: PerTeamKeyGeneration,wantMembers?: ?Array<UserVersion>,wantMembersRole: TeamRole,|}
@@ -3485,7 +3520,7 @@ export type TeamSettings = {|open: Boolean,joinAs: TeamRole,|}
 
 export type TeamShowcase = {|isShowcased: Boolean,description?: ?String,setByUID?: ?UID,anyMemberShowcase: Boolean,|}
 
-export type TeamSigChainState = {|reader: UserVersion,id: TeamID,implicit: Boolean,public: Boolean,rootAncestor: TeamName,nameDepth: Int,nameLog?: ?Array<TeamNameLogPoint>,lastSeqno: Seqno,lastLinkID: LinkID,parentID?: ?TeamID,userLog: {[key: string]: ?Array<UserLogPoint>},subteamLog: {[key: string]: ?Array<SubteamLogPoint>},perTeamKeys: {[key: string]: PerTeamKey},linkIDs: {[key: string]: LinkID},stubbedLinks: {[key: string]: Boolean},activeInvites: {[key: string]: TeamInvite},open: Boolean,openTeamJoinAs: TeamRole,|}
+export type TeamSigChainState = {|reader: UserVersion,id: TeamID,implicit: Boolean,public: Boolean,rootAncestor: TeamName,nameDepth: Int,nameLog?: ?Array<TeamNameLogPoint>,lastSeqno: Seqno,lastLinkID: LinkID,parentID?: ?TeamID,userLog: {[key: string]: ?Array<UserLogPoint>},subteamLog: {[key: string]: ?Array<SubteamLogPoint>},perTeamKeys: {[key: string]: PerTeamKey},linkIDs: {[key: string]: LinkID},stubbedLinks: {[key: string]: Boolean},activeInvites: {[key: string]: TeamInvite},open: Boolean,openTeamJoinAs: TeamRole,tlfID: TLFID,|}
 
 export type TeamTreeEntry = {|name: TeamName,admin: Boolean,|}
 
@@ -3495,6 +3530,8 @@ export type TeamType =0 // NONE_0
  | 1 // LEGACY_1
  | 2 // MODERN_2
 
+
+export type TeamsCanUserPerformRpcParam = {|name: String,op: TeamOperation,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
 export type TeamsGetTeamAndMemberShowcaseRpcParam = {|name: String,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
@@ -3865,6 +3902,7 @@ type SimpleFSSimpleFSReadResult = FileContent
 type SimpleFSSimpleFSStatResult = Dirent
 type StreamUiReadResult = Bytes
 type StreamUiWriteResult = Int
+type TeamsCanUserPerformResult = Bool
 type TeamsGetTeamAndMemberShowcaseResult = TeamAndMemberShowcase
 type TeamsGetTeamRootIDResult = TeamID
 type TeamsGetTeamShowcaseResult = TeamShowcase

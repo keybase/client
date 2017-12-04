@@ -708,6 +708,7 @@ type AnnotatedTeamInvite struct {
 	Inviter         UserVersion    `codec:"inviter" json:"inviter"`
 	InviterUsername string         `codec:"inviterUsername" json:"inviterUsername"`
 	TeamName        string         `codec:"teamName" json:"teamName"`
+	UserActive      bool           `codec:"userActive" json:"userActive"`
 }
 
 func (o AnnotatedTeamInvite) DeepCopy() AnnotatedTeamInvite {
@@ -720,6 +721,7 @@ func (o AnnotatedTeamInvite) DeepCopy() AnnotatedTeamInvite {
 		Inviter:         o.Inviter.DeepCopy(),
 		InviterUsername: o.InviterUsername,
 		TeamName:        o.TeamName,
+		UserActive:      o.UserActive,
 	}
 }
 
@@ -742,6 +744,7 @@ type TeamSigChainState struct {
 	ActiveInvites  map[TeamInviteID]TeamInvite         `codec:"activeInvites" json:"activeInvites"`
 	Open           bool                                `codec:"open" json:"open"`
 	OpenTeamJoinAs TeamRole                            `codec:"openTeamJoinAs" json:"openTeamJoinAs"`
+	TlfID          TLFID                               `codec:"tlfID" json:"tlfID"`
 }
 
 func (o TeamSigChainState) DeepCopy() TeamSigChainState {
@@ -866,6 +869,7 @@ func (o TeamSigChainState) DeepCopy() TeamSigChainState {
 		})(o.ActiveInvites),
 		Open:           o.Open,
 		OpenTeamJoinAs: o.OpenTeamJoinAs.DeepCopy(),
+		TlfID:          o.TlfID.DeepCopy(),
 	}
 }
 
@@ -1420,6 +1424,8 @@ type AnnotatedMemberInfo struct {
 	Implicit       *ImplicitRole `codec:"implicit,omitempty" json:"implicit,omitempty"`
 	NeedsPUK       bool          `codec:"needsPUK" json:"needsPUK"`
 	MemberCount    int           `codec:"memberCount" json:"member_count"`
+	EldestSeqno    Seqno         `codec:"eldestSeqno" json:"member_eldest_seqno"`
+	Active         bool          `codec:"active" json:"active"`
 }
 
 func (o AnnotatedMemberInfo) DeepCopy() AnnotatedMemberInfo {
@@ -1440,6 +1446,8 @@ func (o AnnotatedMemberInfo) DeepCopy() AnnotatedMemberInfo {
 		})(o.Implicit),
 		NeedsPUK:    o.NeedsPUK,
 		MemberCount: o.MemberCount,
+		EldestSeqno: o.EldestSeqno.DeepCopy(),
+		Active:      o.Active,
 	}
 }
 
@@ -1733,6 +1741,7 @@ type LookupImplicitTeamRes struct {
 	TeamID      TeamID                  `codec:"teamID" json:"teamID"`
 	Name        TeamName                `codec:"name" json:"name"`
 	DisplayName ImplicitTeamDisplayName `codec:"displayName" json:"displayName"`
+	TlfID       TLFID                   `codec:"tlfID" json:"tlfID"`
 }
 
 func (o LookupImplicitTeamRes) DeepCopy() LookupImplicitTeamRes {
@@ -1740,7 +1749,55 @@ func (o LookupImplicitTeamRes) DeepCopy() LookupImplicitTeamRes {
 		TeamID:      o.TeamID.DeepCopy(),
 		Name:        o.Name.DeepCopy(),
 		DisplayName: o.DisplayName.DeepCopy(),
+		TlfID:       o.TlfID.DeepCopy(),
 	}
+}
+
+type TeamOperation int
+
+const (
+	TeamOperation_MANAGE_MEMBERS           TeamOperation = 0
+	TeamOperation_MANAGE_SUBTEAMS          TeamOperation = 1
+	TeamOperation_CREATE_CHANNEL           TeamOperation = 2
+	TeamOperation_DELETE_CHANNEL           TeamOperation = 3
+	TeamOperation_RENAME_CHANNEL           TeamOperation = 4
+	TeamOperation_EDIT_CHANNEL_DESCRIPTION TeamOperation = 5
+	TeamOperation_SET_TEAM_SHOWCASE        TeamOperation = 6
+	TeamOperation_SET_MEMBER_SHOWCASE      TeamOperation = 7
+	TeamOperation_CHANGE_OPEN_TEAM         TeamOperation = 8
+)
+
+func (o TeamOperation) DeepCopy() TeamOperation { return o }
+
+var TeamOperationMap = map[string]TeamOperation{
+	"MANAGE_MEMBERS":           0,
+	"MANAGE_SUBTEAMS":          1,
+	"CREATE_CHANNEL":           2,
+	"DELETE_CHANNEL":           3,
+	"RENAME_CHANNEL":           4,
+	"EDIT_CHANNEL_DESCRIPTION": 5,
+	"SET_TEAM_SHOWCASE":        6,
+	"SET_MEMBER_SHOWCASE":      7,
+	"CHANGE_OPEN_TEAM":         8,
+}
+
+var TeamOperationRevMap = map[TeamOperation]string{
+	0: "MANAGE_MEMBERS",
+	1: "MANAGE_SUBTEAMS",
+	2: "CREATE_CHANNEL",
+	3: "DELETE_CHANNEL",
+	4: "RENAME_CHANNEL",
+	5: "EDIT_CHANNEL_DESCRIPTION",
+	6: "SET_TEAM_SHOWCASE",
+	7: "SET_MEMBER_SHOWCASE",
+	8: "CHANGE_OPEN_TEAM",
+}
+
+func (e TeamOperation) String() string {
+	if v, ok := TeamOperationRevMap[e]; ok {
+		return v
+	}
+	return ""
 }
 
 type TeamCreateArg struct {
@@ -1924,6 +1981,11 @@ type SetTeamMemberShowcaseArg struct {
 	IsShowcased bool   `codec:"isShowcased" json:"isShowcased"`
 }
 
+type CanUserPerformArg struct {
+	Name string        `codec:"name" json:"name"`
+	Op   TeamOperation `codec:"op" json:"op"`
+}
+
 type TeamsInterface interface {
 	TeamCreate(context.Context, TeamCreateArg) (TeamCreateResult, error)
 	TeamCreateWithSettings(context.Context, TeamCreateWithSettingsArg) (TeamCreateResult, error)
@@ -1959,6 +2021,7 @@ type TeamsInterface interface {
 	GetTeamAndMemberShowcase(context.Context, string) (TeamAndMemberShowcase, error)
 	SetTeamShowcase(context.Context, SetTeamShowcaseArg) error
 	SetTeamMemberShowcase(context.Context, SetTeamMemberShowcaseArg) error
+	CanUserPerform(context.Context, CanUserPerformArg) (bool, error)
 }
 
 func TeamsProtocol(i TeamsInterface) rpc.Protocol {
@@ -2461,6 +2524,22 @@ func TeamsProtocol(i TeamsInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"canUserPerform": {
+				MakeArg: func() interface{} {
+					ret := make([]CanUserPerformArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]CanUserPerformArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]CanUserPerformArg)(nil), args)
+						return
+					}
+					ret, err = i.CanUserPerform(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 		},
 	}
 }
@@ -2628,5 +2707,10 @@ func (c TeamsClient) SetTeamShowcase(ctx context.Context, __arg SetTeamShowcaseA
 
 func (c TeamsClient) SetTeamMemberShowcase(ctx context.Context, __arg SetTeamMemberShowcaseArg) (err error) {
 	err = c.Cli.Call(ctx, "keybase.1.teams.setTeamMemberShowcase", []interface{}{__arg}, nil)
+	return
+}
+
+func (c TeamsClient) CanUserPerform(ctx context.Context, __arg CanUserPerformArg) (res bool, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.teams.canUserPerform", []interface{}{__arg}, &res)
 	return
 }

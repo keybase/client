@@ -653,6 +653,8 @@ func ImportStatusAsError(g *GlobalContext, s *keybase1.Status) error {
 		return e
 	case SCNoOp:
 		return NoOpError{Desc: s.Desc}
+	case SCNoSpaceOnDevice:
+		return NoSpaceOnDeviceError{Desc: s.Desc}
 	default:
 		ase := AppStatusError{
 			Code:   s.Code,
@@ -2164,6 +2166,13 @@ func (e RepoDoesntExistError) ToStatus() (s keybase1.Status) {
 func (e NoOpError) ToStatus() (s keybase1.Status) {
 	s.Code = SCNoOp
 	s.Name = "SC_NO_OP"
+	s.Desc = e.Desc
+	return
+}
+
+func (e NoSpaceOnDeviceError) ToStatus() (s keybase1.Status) {
+	s.Code = SCNoSpaceOnDevice
+	s.Name = "NO_SPACE_ON_DEVICE"
 	s.Desc = e.Desc
 	return
 }

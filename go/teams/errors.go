@@ -208,8 +208,20 @@ func (e ImplicitTeamOperationError) Error() string {
 	return fmt.Sprintf("Implicit team operation not allowed: %v", e.msg)
 }
 
+type ExplicitTeamOperationError struct {
+	msg string
+}
+
+func (e ExplicitTeamOperationError) Error() string {
+	return fmt.Sprintf("Operation only allowed on implicit teams: %s", e.msg)
+}
+
 func NewImplicitTeamOperationError(format string, args ...interface{}) error {
 	return &ImplicitTeamOperationError{msg: fmt.Sprintf(format, args...)}
+}
+
+func NewExplicitTeamOperationError(m string) error {
+	return &ExplicitTeamOperationError{msg: m}
 }
 
 func fixupTeamGetError(ctx context.Context, g *libkb.GlobalContext, e error, teamDescriptor string, publicTeam bool) error {
