@@ -1,5 +1,13 @@
 // @flow
-import type {AggregateLogger, LogLevel, Logger, LogFn, LogLineWithLevel} from './types'
+import type {
+  AggregateLogger,
+  LogLevel,
+  Logger,
+  LogFn,
+  LogLineWithLevel,
+  LogLineWithLevelISOTimestamp,
+} from './types'
+import {toISOTimestamp} from './types'
 import ConsoleLogger from './console-logger'
 import TeeLogger from './tee-logger'
 import RingLogger from './ring-logger'
@@ -81,13 +89,13 @@ class AggregateLoggerImpl implements AggregateLogger {
     const allKeys: Array<LogLevel> = Object.keys(this._allLoggers)
     const filterKeys = filter || allKeys
     const logDumpPromises = filterKeys.map((level: LogLevel) => this._allLoggers[level].dump(level))
-    const p: Promise<Array<LogLineWithLevel>> = Promise.all(
+    const p: Promise<Array<LogLineWithLevelISOTimestamp>> = Promise.all(
       logDumpPromises
-    ).then((logsToDump: Array<Array<LogLineWithLevel>>): Array<LogLineWithLevel> =>
+    ).then((logsToDump: Array<Array<LogLineWithLevel>>): Array<LogLineWithLevelISOTimestamp> =>
       _mergeSortedArraysHelper(
         ([, tsA]: LogLineWithLevel, [, tsB]: LogLineWithLevel) => tsA - tsB,
         ...logsToDump
-      )
+      ).map(toISOTimestamp)
     )
 
     return p

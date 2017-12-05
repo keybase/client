@@ -2,11 +2,13 @@
 // Separate type file because standard is failing
 
 type Timestamp = number
+type ISOTimestamp = string
 
 export type LogLevel = 'Error' | 'Warn' | 'Info' | 'Action' | 'Debug'
 
 export type LogLine = [Timestamp, string]
 export type LogLineWithLevel = [LogLevel, Timestamp, string]
+export type LogLineWithLevelISOTimestamp = [LogLevel, ISOTimestamp, string]
 
 export type LogFn = (...s: Array<any>) => void
 export interface Logger {
@@ -28,6 +30,12 @@ export interface AggregateLogger {
   info: LogFn,
   action: LogFn,
   debug: LogFn,
-  dump(filter?: Array<LogLevel>): Promise<Array<LogLineWithLevel>>, // Should return an ordered array of log lines (ordered by timestamp)
+  dump(filter?: Array<LogLevel>): Promise<Array<LogLineWithLevelISOTimestamp>>, // Should return an ordered array of log lines (ordered by timestamp)
   flush(): Promise<void>, // this calls flush on all logger impls
 }
+
+export const toISOTimestamp = ([level, ts, log]: LogLineWithLevel): LogLineWithLevelISOTimestamp => [
+  level,
+  new Date(ts).toISOString(),
+  log,
+]
