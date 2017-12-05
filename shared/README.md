@@ -132,6 +132,7 @@ Toold > Android > AVD Manager
 ```sh
 # Build the go keybaselib
 yarn run rn-gobuild-android
+yarn run rn-start
 ```
 
 ```sh
