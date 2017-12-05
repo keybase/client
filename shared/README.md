@@ -118,7 +118,8 @@ https://developer.android.com/ndk/guides/index.html to install and
 configure the Android NDK.
 
 Then select "Open an existing Android Studio Project" and point it to
-`shared/react-native/android`.
+`shared/react-native/android`. Not necessary to register the `client`
+dir as a VCS-controlled dir with Android studio, but may as well.
 
 You'll get various prompts about installing various tools. You should
 install 'Build Tools' and any missing platforms. However, _don't_
