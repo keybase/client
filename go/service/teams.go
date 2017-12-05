@@ -237,7 +237,7 @@ func (h *TeamsHandler) TeamRename(ctx context.Context, arg keybase1.TeamRenameAr
 	return teams.RenameSubteam(ctx, h.G().ExternalG(), arg.PrevName, arg.NewName)
 }
 
-var tokenRegexp = regexp.MustCompile(`token\: [a-z0-9]{16}`)
+var tokenRegexp = regexp.MustCompile(`token\: [a-z0-9+]{17}`)
 
 func parseInviteToken(token string) string {
 	// If the person pasted the whole seitan SMS message in, then let's parse out the token

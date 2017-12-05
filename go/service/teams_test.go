@@ -8,7 +8,7 @@ import (
 )
 
 func TestParseSeitanToken(t *testing.T) {
-	token := "aazaaa0aaaaaaaaa"
+	token := "aazaaa0a+aaaaaaaa"
 	s := fmt.Sprintf("HELLO AND WELCOME TO THIS TEAM. token: %s", token)
 	require.Equal(t, token, parseInviteToken(s))
 	s = token
