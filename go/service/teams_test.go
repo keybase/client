@@ -17,4 +17,5 @@ func TestParseSeitanToken(t *testing.T) {
 	require.NotEqual(t, token, parseInviteToken(s))
 	s = "token: MIKE"
 	require.NotEqual(t, "MIKE", parseInviteToken(s))
+	require.Equal(t, s, parseInviteToken(s))
 }
