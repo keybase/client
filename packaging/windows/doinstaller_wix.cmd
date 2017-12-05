@@ -118,8 +118,8 @@ echo ^<Include^> >> dokanver.xml
 echo ^<?define DokanProductCodeX86=^"%DokanProductCodeX86%^" ?^> >> dokanver.xml
 echo ^<?define DokanProductCodeX64=^"%DokanProductCodeX64%^" ?^> >> dokanver.xml
 echo ^<?define DOKAN_PATH=^"%DOKAN_PATH%^" ?^> >> dokanver.xml
-echo <?define Compressed="no" ?> >> dokanver.xml
-echo <?define VCRedistVersion="14.11.25325" ?> >> dokanver.xml
+echo ^<?define Compressed=^"no^" ?^> >> dokanver.xml
+echo ^<?define VCRedistVersion=^"14.11.25325^" ?^> >> dokanver.xml
 echo ^</Include^>  >> dokanver.xml
 
 msbuild WIX_Installers.sln  /p:Configuration=Release /p:Platform=x86 /t:Build
