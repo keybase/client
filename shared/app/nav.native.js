@@ -102,7 +102,7 @@ const nop = () => {}
 const emptyObj = () => ({})
 
 function renderStackRoute(route, isActiveRoute, shouldRender) {
-  const {underStatusBar, hideStatusBar, showStatusBarDarkContent, root} = route.tags || {}
+  const {hideStatusBar, root} = route.tags || {}
 
   let style
   if (root) {
