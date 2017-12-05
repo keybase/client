@@ -174,27 +174,37 @@ export default compose(
     // If contacts or _pendingInvites changes, recalculate the props on the contact rows.
     withPropsOnChange(['contacts', 'loadingInvites', '_pendingInvites'], props => {
       // Create static contact row props here
-      const contactRowProps = props.contacts.reduce((res, contact) => {
-        const contactName = isAndroid ? contact.givenName : contact.givenName + ' ' + contact.familyName
-        contact.emailAddresses.concat(contact.phoneNumbers).forEach(addr => {
-          const cData = {
-            name: contactName,
-            phoneNo: addr.number,
-            email: addr.email,
-            label: addr.label,
-            thumbnailPath: contact.thumbnailPath,
-            recordID: contact.recordID + (addr.email ? addr.email : addr.number),
-          }
-          res.push({
-            id: contact.recordID + (addr.email ? addr.email : addr.number),
-            loading: props.isLoading(addr.email, addr.number),
-            contact: cData,
-            selected: props.isSelected(cData.email || cData.phoneNo, cData.name),
-            onClick: () => props.onSelectContact(cData),
+      const contactRowProps = props.contacts
+        .reduce((res, contact) => {
+          const contactName = isAndroid ? contact.givenName : contact.givenName + ' ' + contact.familyName
+          contact.emailAddresses.concat(contact.phoneNumbers).forEach(addr => {
+            const cData = {
+              name: contactName,
+              phoneNo: addr.number,
+              email: addr.email,
+              label: addr.label,
+              thumbnailPath: contact.thumbnailPath,
+              recordID: contact.recordID + (addr.email ? addr.email : addr.number),
+            }
+            res.push({
+              id: contact.recordID + (addr.email ? addr.email : addr.number),
+              loading: props.isLoading(addr.email, addr.number),
+              contact: cData,
+              selected: props.isSelected(cData.email || cData.phoneNo, cData.name),
+              onClick: () => props.onSelectContact(cData),
+            })
           })
+          return res
+        }, [])
+        .sort((a, b) => {
+          const ca = a.contact
+          const cb = b.contact
+
+          if (ca.name === cb.name) {
+            return (ca.email || ca.phoneNo || '').localeCompare(cb.email || cb.phoneNo || '')
+          }
+          return ca.name.localeCompare(cb.name)
         })
-        return res
-      }, [])
 
       return {contactRowProps}
     }),
