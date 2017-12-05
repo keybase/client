@@ -9,12 +9,14 @@ import {
 } from '../../actions/teams/creators'
 import {connect, compose, lifecycle, type TypedState} from '../../util/container'
 
-const mapStateToProps = (state: TypedState, ownProps) => {
-  console.warn('ownProps are', ownProps, state)
-  const teamname = ownProps.teamname || ownProps.routeProps.get('teamname')
-  const description = ownProps.description !== null ? ownProps.description : ownProps.routeProps.get('description')
-  const memberCount = ownProps.memberCount || ownProps.routeProps.get('memberCount')
-  const openTeam = ownProps.openTeam !== null ? ownProps.openTeam : ownProps.routeProps.get('openTeam')
+const mapStateToProps = (state: TypedState, {routeProps}) => {
+  console.warn('routeProps', routeProps)
+  const team = routeProps.get('team')
+  const description = team.description
+  const memberCount = team.numMembers
+  const openTeam = team.openTeam
+  const teamname = team.fqName
+  const publicAdmins = ['cjb', 'max', 'chris', 'oconnor663', 'mlsteele', 'mikem', 'ayoubd']
   const youAreInTeam = false //state.entities ? !!state.entities.getIn(['teams', 'teamnames', teamname]) : false
   console.warn('showcased teamname is', teamname, state.chat.teamJoinError)
   return {
@@ -23,6 +25,7 @@ const mapStateToProps = (state: TypedState, ownProps) => {
     teamJoinSuccess: state.chat.teamJoinSuccess,
     memberCount,
     openTeam,
+    publicAdmins,
     teamname,
     youAreInTeam,
   }

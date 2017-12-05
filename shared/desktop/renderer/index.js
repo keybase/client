@@ -110,7 +110,6 @@ function setupApp(store) {
 
   const subsetsRemotesCareAbout = store => {
     return {
-      chat: store.chat,
       tracker: store.tracker,
       menubar: _menubarSelector(store),
       unlockFolder: _unlockFoldersSelector(store),
@@ -132,10 +131,12 @@ function setupApp(store) {
           // this is a HACK workaround where we can't send immutable over the wire to the main thread (and out again).
           // I have a much better way to handle this we can prioritize post-mobile launch (CN)
           notifications: _currentStore.menubar.notifications,
+          /*
           chat: {
             teamJoinError: _currentStore.chat.teamJoinError,
             teamJoinSuccess: _currentStore.chat.teamJoinSuccess,
           },
+          */
         })
       }
     }, 1000)

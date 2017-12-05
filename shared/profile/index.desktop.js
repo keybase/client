@@ -340,7 +340,7 @@ class ProfileRender extends PureComponent<Props, State> {
                     {this.props.userInfo.showcasedTeams.map(team => (
                       <Box
                         key={team.fqName}
-                        onClick={event => this.props.onClickShowcased(event, team.fqName)}
+                        onClick={event => this.props.onClickShowcased(event, team)}
                         style={{
                           ...globalStyles.flexBoxRow,
                           alignItems: 'flex-start',

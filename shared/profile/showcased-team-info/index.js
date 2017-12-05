@@ -1,7 +1,7 @@
 // @flow
 
 import * as React from 'react'
-import {Avatar, Box, Button, Text} from '../../common-adapters'
+import {Avatar, Box, Button, Divider, Text} from '../../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../../styles'
 import {isMobile} from '../../constants/platform'
 import PopupMenu, {ModalLessPopupMenu} from '../../common-adapters/popup-menu'
@@ -54,6 +54,14 @@ const TeamInfo = (props: Props) => {
             type={props.teamJoinSuccess ? 'Secondary' : props.openTeam ? 'Following' : 'Primary'}
           />
         </Box>}
+      
+      <Box style={{...globalStyles.flexBoxRow, marginTop: globalMargins.tiny}}>
+        <Divider />
+      </Box>
+
+      <Box style={{...globalStyles.flexBoxRow, marginTop: globalMargins.tiny}}>
+        <Text type='Body'>foo</Text>
+      </Box>
     </Box>
   )
 }
@@ -67,7 +75,7 @@ const TeamInfoWrapper = (props: Props) => {
 
   return isMobile
     ? <PopupMenu onHidden={props.onHidden} style={{overflow: 'visible'}} header={header} items={items} />
-    : <ModalLessPopupMenu style={{...props.style, overflow: 'visible', width: 220}} header={header} items={items} />
+    : <ModalLessPopupMenu style={{overflow: 'visible', width: 220}} header={header} items={items} />
 }
 
 export default TeamInfoWrapper
