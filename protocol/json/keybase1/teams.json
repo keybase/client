@@ -1395,7 +1395,7 @@
         },
         {
           "type": "boolean",
-          "name": "open"
+          "name": "wasOpenTeam"
         }
       ]
     },

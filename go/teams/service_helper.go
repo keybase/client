@@ -849,7 +849,7 @@ func TeamAcceptInviteOrRequestAccess(ctx context.Context, g *libkb.GlobalContext
 	if err == nil {
 		return keybase1.TeamAcceptOrRequestResult{
 			WasTeamName: true,
-			Open:        ret.Open,
+			WasOpenTeam: ret.Open,
 		}, nil
 	}
 

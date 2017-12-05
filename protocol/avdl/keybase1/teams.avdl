@@ -554,7 +554,9 @@ protocol teams {
   record TeamAcceptOrRequestResult {
     boolean wasToken;
     boolean wasTeamName;
-    boolean open;
+    // If trying to request access via TeamName, was the team open? It means
+    // that admin does not have to manually approve request.
+    boolean wasOpenTeam;
   }
 
   record TeamShowcase {
