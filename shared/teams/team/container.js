@@ -149,9 +149,17 @@ const getOrderedMemberArray = (
     youInfo = memberInfo.find(member => member.username === you)
     if (youInfo) memberInfo = memberInfo.delete(youInfo)
   }
-  let returnArray = memberInfo
-    .toArray()
-    .sort((a: Types.MemberInfo, b: Types.MemberInfo) => a.username.localeCompare(b.username))
+  let returnArray = memberInfo.toArray().sort((a: Types.MemberInfo, b: Types.MemberInfo) => {
+    if (a.type !== b.type) {
+      if (a.type === 'owner') return -1
+      if (b.type === 'owner') return 1
+      if (a.type === 'admin') return -1
+      if (b.type === 'admin') return 1
+      if (a.type === 'writer') return -1
+      if (b.type === 'writer') return 1
+    }
+    return a.username.localeCompare(b.username)
+  })
   if (youInfo) {
     returnArray.unshift(youInfo)
   }
