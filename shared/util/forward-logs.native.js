@@ -1,7 +1,7 @@
 // @flow
 import noop from 'lodash/noop'
 import RNFetchBlob from 'react-native-fetch-blob'
-import type {LogLineWithLevel} from '../logger/types'
+import type {LogLineWithLevelISOTimestamp} from '../logger/types'
 import {writeStream, exists} from './file'
 import {serialPromises} from './promise'
 import {logFileName, logFileDir} from '../constants/platform.native'
@@ -10,8 +10,8 @@ const localLog = __DEV__ ? window.console.log.bind(window.console) : noop
 const localWarn = window.console.warn.bind(window.console)
 const localError = window.console.error.bind(window.console)
 
-const writeLogLinesToFile: (lines: Array<LogLineWithLevel>) => Promise<void> = (
-  lines: Array<LogLineWithLevel>
+const writeLogLinesToFile: (lines: Array<LogLineWithLevelISOTimestamp>) => Promise<void> = (
+  lines: Array<LogLineWithLevelISOTimestamp>
 ) =>
   new Promise((resolve, reject) => {
     if (lines.length === 0) {
