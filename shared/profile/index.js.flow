@@ -6,6 +6,7 @@ import type {BioEditFns} from '../common-adapters/user-bio'
 import type {Tab as FriendshipsTab, FriendshipUserInfo} from './friendships'
 import type {MissingProof} from '../common-adapters/user-proofs'
 import type {Folder} from '../folders/list'
+import type {UserTeamShowcase} from '../constants/types/flow-types'
 
 export type Props = {
   isYou: boolean,
@@ -22,6 +23,7 @@ export type Props = {
   onUnfollow: () => void,
   onAcceptProofs: () => void,
   onChangeFriendshipsTab: (currentFriendshipsTab: FriendshipsTab) => void,
+  onClickShowcased: (target: ?HTMLElement, team: UserTeamShowcase) => void,
   onMissingProofClick: (missingProof: MissingProof) => void,
   onFolderClick: (folder: Folder) => void,
   onUserClick: (username: string) => void,

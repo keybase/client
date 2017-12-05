@@ -28,6 +28,8 @@ export type HeaderTextProps = {
 }
 
 class PopupHeaderText extends React.Component<HeaderTextProps> {}
-export {PopupHeaderText}
+class ModalLessPopupMenu extends React.Component<Props> {}
+
+export {PopupHeaderText, ModalLessPopupMenu}
 
 declare export default class PopupMenu extends React.Component<Props> {}
