@@ -328,6 +328,8 @@ protocol teams {
     boolean membershipChanged;
     @jsonkey("latest_seqno")
     Seqno latestSeqno;
+    @jsonkey("implicit_team")
+    boolean implicitTeam;
   }
 
   record TeamExitRow {
@@ -682,4 +684,6 @@ protocol teams {
     CHANGE_OPEN_TEAM_8
   }
   bool canUserPerform(string name, TeamOperation op);
+
+  void teamRotateKey(TeamID teamID);
 }
