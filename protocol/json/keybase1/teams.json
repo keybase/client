@@ -1841,6 +1841,25 @@
         "items": "TeamJoinRequest"
       }
     },
+    "teamListMyAccessRequests": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "teamName",
+          "type": [
+            null,
+            "string"
+          ]
+        }
+      ],
+      "response": {
+        "type": "array",
+        "items": "TeamName"
+      }
+    },
     "teamIgnoreRequest": {
       "request": [
         {
