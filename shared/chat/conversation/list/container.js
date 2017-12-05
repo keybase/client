@@ -119,13 +119,13 @@ const mapDispatchToProps = (dispatch: Dispatch): DispatchProps => ({
     localMessageState?: Types.LocalMessageState,
     onShowEditor?: () => void,
     onPopupWillClose?: () => void,
-    targetNode?: ?HTMLElement
+    targetRect?: ?ClientRect
   ) => {
     dispatch(
       navigateAppend([
         {
           props: {
-            targetNode,
+            targetRect,
             message,
             localMessageState,
             onShowEditor,

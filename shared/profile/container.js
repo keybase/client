@@ -74,7 +74,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {setRouteState}: OwnProps) => ({
     dispatch(
       navigateAppend([
         {
-          props: {position: 'bottom left', targetNode: target, team},
+          props: {position: 'bottom left', targetRect: target && target.getBoundingClientRect(), team},
           selected: 'showcasedTeamInfo',
         },
       ])

@@ -174,7 +174,7 @@ function computePopupStyle(
 }
 
 type ModalPositionRelativeProps<PP> = {
-  targetNode: ?HTMLElement,
+  targetRect: ?ClientRect,
   position: Position,
   onClosePopup: () => void,
 } & PP
@@ -190,26 +190,22 @@ function ModalPositionRelative<PP>(
       this.state = {style: {}}
     }
 
-    _computeStyle = (targetNode: ?HTMLElement) => {
-      if (!targetNode) return
+    _computeStyle = (targetRect: ?ClientRect) => {
+      if (!targetRect) return
       const popupNode = this.popupNode
-      if (!(targetNode instanceof HTMLElement) || !(popupNode instanceof HTMLElement)) {
+      if (!(popupNode instanceof HTMLElement)) {
         console.error('null nodes for popup')
         return
       }
 
-      const style = computePopupStyle(
-        this.props.position,
-        targetNode.getBoundingClientRect(),
-        popupNode.getBoundingClientRect()
-      )
+      const style = computePopupStyle(this.props.position, targetRect, popupNode.getBoundingClientRect())
 
       this.setState({style})
     }
 
     componentWillReceiveProps(nextProps: ModalPositionRelativeProps<PP>) {
-      if (nextProps.targetNode && this.props.targetNode !== nextProps.targetNode) {
-        this._computeStyle(nextProps.targetNode)
+      if (nextProps.targetRect && this.props.targetRect !== nextProps.targetRect) {
+        this._computeStyle(nextProps.targetRect)
       }
     }
 
@@ -240,7 +236,7 @@ function ModalPositionRelative<PP>(
     _setRef = r => {
       if (!r) return
       this.popupNode = r
-      this._computeStyle(this.props.targetNode)
+      this._computeStyle(this.props.targetRect)
     }
 
     render() {
@@ -272,7 +268,7 @@ const RelativePopupHoc: RelativePopupHocType<*> = PopupComponent => {
       const onPopupWillClose = routeProps.get('onPopupWillClose')
       onPopupWillClose && onPopupWillClose()
     },
-    targetNode: routeProps.get('targetNode'),
+    targetRect: routeProps.get('targetRect'),
     position: routeProps.get('position'),
   }))((props: RelativePopupProps<*> & {onClosePopup: () => void}) => {
     return <ModalPopupComponent {...(props: RelativePopupProps<*>)} onClosePopup={props.onClosePopup} />

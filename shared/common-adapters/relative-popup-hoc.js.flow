@@ -12,7 +12,7 @@ export type Position =
   | 'bottom center'
 
 export type RelativePopupProps<PP: {}> = {
-  targetNode: ?HTMLElement,
+  targetRect: ?ClientRect,
   position: Position,
 } & PP
 
