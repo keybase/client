@@ -551,6 +551,15 @@ protocol teams {
     boolean open;
   }
 
+  record TeamAcceptOrRequestResult {
+    boolean wasToken;
+    boolean wasSeitan;
+    boolean wasTeamName;
+    // If trying to request access via TeamName, was the team open? It means
+    // that admin does not have to manually approve request.
+    boolean wasOpenTeam;
+  }
+
   record TeamShowcase {
     @jsonkey("is_showcased")
     boolean isShowcased;
@@ -599,7 +608,7 @@ protocol teams {
   TeamRequestAccessResult teamRequestAccess(int sessionID, string name);
 
   // Accept an invite or request to join a team, try both.
-  void teamAcceptInviteOrRequestAccess(int sessionID, string tokenOrName);
+  TeamAcceptOrRequestResult teamAcceptInviteOrRequestAccess(int sessionID, string tokenOrName);
 
   array<TeamJoinRequest> teamListRequests(int sessionID);
 

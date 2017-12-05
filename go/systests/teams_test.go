@@ -342,9 +342,10 @@ func (u *userPlusDevice) acceptEmailInvite(token string) {
 	}
 }
 
-func (u *userPlusDevice) acceptInviteOrRequestAccess(tokenOrName string) {
-	err := teams.TeamAcceptInviteOrRequestAccess(context.TODO(), u.tc.G, tokenOrName)
+func (u *userPlusDevice) acceptInviteOrRequestAccess(tokenOrName string) keybase1.TeamAcceptOrRequestResult {
+	ret, err := teams.TeamAcceptInviteOrRequestAccess(context.TODO(), u.tc.G, tokenOrName)
 	require.NoError(u.tc.T, err)
+	return ret
 }
 
 func (u *userPlusDevice) teamList(userAssertion string, all, includeImplicitTeams bool) keybase1.AnnotatedTeamList {

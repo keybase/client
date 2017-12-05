@@ -663,6 +663,8 @@ func AcceptSeitan(ctx context.Context, g *libkb.GlobalContext, ikey SeitanIKey) 
 		return err
 	}
 
+	g.Log.CDebugf(ctx, "seitan invite ID: %v", inviteID)
+
 	arg := apiArg(ctx, "team/seitan")
 	arg.Args.Add("akey", libkb.S{Val: encoded})
 	arg.Args.Add("now", libkb.S{Val: strconv.FormatInt(unixNow, 10)})
@@ -835,14 +837,39 @@ func RequestAccess(ctx context.Context, g *libkb.GlobalContext, teamname string)
 	return ret, err
 }
 
-func TeamAcceptInviteOrRequestAccess(ctx context.Context, g *libkb.GlobalContext, tokenOrName string) error {
-	// First try to accept as an invite
-	err := AcceptInvite(ctx, g, tokenOrName)
-	if err != nil {
-		// Failing that, request access as a team name
-		_, err = RequestAccess(ctx, g, tokenOrName)
+func TeamAcceptInviteOrRequestAccess(ctx context.Context, g *libkb.GlobalContext, tokenOrName string) (keybase1.TeamAcceptOrRequestResult, error) {
+	// Check if it's a Seitan IKey.
+	seitan, err := GenerateIKeyFromString(tokenOrName)
+	if err == nil {
+		g.Log.CDebugf(ctx, "trying seitan token")
+		err = AcceptSeitan(ctx, g, seitan)
+		if err == nil {
+			return keybase1.TeamAcceptOrRequestResult{
+				WasSeitan: true,
+			}, nil
+		}
 	}
-	return err
+
+	// If not, maybe it's a server-trust invite e-mail token.
+	g.Log.CDebugf(ctx, "trying email-style invite")
+	err = AcceptInvite(ctx, g, tokenOrName)
+	if err == nil {
+		return keybase1.TeamAcceptOrRequestResult{
+			WasToken: true,
+		}, nil
+	}
+
+	// Failing that, request access as a team name
+	g.Log.CDebugf(ctx, "trying team request")
+	ret, err := RequestAccess(ctx, g, tokenOrName)
+	if err == nil {
+		return keybase1.TeamAcceptOrRequestResult{
+			WasTeamName: true,
+			WasOpenTeam: ret.Open,
+		}, nil
+	}
+
+	return keybase1.TeamAcceptOrRequestResult{}, err
 }
 
 type accessRequest struct {
