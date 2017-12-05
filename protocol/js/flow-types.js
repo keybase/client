@@ -3767,7 +3767,7 @@ export type UserSummary2 = {|uid: UID,username: String,thumbnail: String,fullNam
 
 export type UserSummary2Set = {|users?: ?Array<UserSummary2>,time: Time,version: Int,|}
 
-export type UserTeamShowcase = {|fqName: String,open: Boolean,teamIsShowcased: Boolean,description: String,role: TeamRole,|}
+export type UserTeamShowcase = {|fqName: String,open: Boolean,teamIsShowcased: Boolean,description: String,role: TeamRole,publicAdmins?: ?Array<String>,numMembers: Int,|}
 
 export type UserVersion = {|uid: UID,eldestSeqno: Seqno,|}
 
