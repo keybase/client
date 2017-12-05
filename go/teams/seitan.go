@@ -2,6 +2,7 @@ package teams
 
 import (
 	"fmt"
+	"strings"
 
 	"crypto/hmac"
 	"crypto/rand"
@@ -84,11 +85,11 @@ func GenerateIKeyFromString(token string) (ikey SeitanIKey, err error) {
 		return ikey, fmt.Errorf("invalid token length: expected %d characters, got %d", SeitanEncodedIKeyLength, len(token))
 	}
 
-	return SeitanIKey(token), nil
+	return SeitanIKey(strings.ToLower(token)), nil
 }
 
 func (ikey SeitanIKey) String() string {
-	return string(ikey)
+	return strings.ToLower(string(ikey))
 }
 
 const (
@@ -102,7 +103,7 @@ const (
 type SeitanSIKey [SeitanScryptKeylen]byte
 
 func (ikey SeitanIKey) GenerateSIKey() (sikey SeitanSIKey, err error) {
-	ret, err := scrypt.Key([]byte(ikey), nil, SeitanScryptCost, SeitanScryptR, SeitanScryptP, SeitanScryptKeylen)
+	ret, err := scrypt.Key([]byte(ikey.String()), nil, SeitanScryptCost, SeitanScryptR, SeitanScryptP, SeitanScryptKeylen)
 	if err != nil {
 		return sikey, err
 	}
