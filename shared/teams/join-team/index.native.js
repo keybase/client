@@ -21,6 +21,9 @@ const EntryComponent = ({errorText, name, onNameChange, onSubmit}: Props) => (
         <Input
           autoFocus={true}
           hintText="Token or team name"
+          multiline={true}
+          rowsMin={3}
+          rowsMax={5}
           value={name}
           onChangeText={onNameChange}
           onEnterKeyDown={onSubmit}

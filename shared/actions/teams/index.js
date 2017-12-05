@@ -203,9 +203,9 @@ const _inviteToTeamByPhone = function*(action: Types.InviteToTeamByPhone) {
   } else {
     // then this must be a subteam, and won't safely fit into a text
     const subteams = teamname.split('.')
-    teamDescription = `${subteams[subteams.length - 1]} subteam`
+    teamDescription = `${subteams[subteams.length - 1]} team`
   }
-  const bodyText = `Please join the ${teamDescription} on Keybase. Install and paste this in the "Teams" tab:\n\ntoken: ${seitan.toUpperCase()}\n\nquick install: keybase.io/_/go`
+  const bodyText = `Please join the ${teamDescription} on Keybase. Copy this entire message into the "Teams" tab.\n\ntoken: ${seitan.toLowerCase()}\n\nquick install: keybase.io/_/go`
   openSMS([phoneNumber], bodyText).catch(err => console.log('Error sending SMS', err))
 
   yield Saga.put(Creators.getDetails(teamname))
