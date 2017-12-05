@@ -1580,6 +1580,10 @@ export const teamsTeamLeaveRpcChannelMap = (configKeys: Array<string>, request: 
 
 export const teamsTeamLeaveRpcPromise = (request: TeamsTeamLeaveRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamLeave', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
 
+export const teamsTeamListMyAccessRequestsRpcChannelMap = (configKeys: Array<string>, request: TeamsTeamListMyAccessRequestsRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamListMyAccessRequests', request)
+
+export const teamsTeamListMyAccessRequestsRpcPromise = (request: TeamsTeamListMyAccessRequestsRpcParam): Promise<TeamsTeamListMyAccessRequestsResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamListMyAccessRequests', request, (error: RPCError, result: TeamsTeamListMyAccessRequestsResult) => error ? reject(error) : resolve(result)))
+
 export const teamsTeamListRequestsRpcChannelMap = (configKeys: Array<string>, request: TeamsTeamListRequestsRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamListRequests', request)
 
 export const teamsTeamListRequestsRpcPromise = (request: TeamsTeamListRequestsRpcParam): Promise<TeamsTeamListRequestsResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamListRequests', request, (error: RPCError, result: TeamsTeamListRequestsResult) => error ? reject(error) : resolve(result)))
@@ -3581,6 +3585,8 @@ export type TeamsTeamImplicitAdminsRpcParam = {|teamName: String,incomingCallMap
 
 export type TeamsTeamLeaveRpcParam = {|name: String,permanent: Boolean,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
+export type TeamsTeamListMyAccessRequestsRpcParam = {|teamName?: ?String,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+
 export type TeamsTeamListRequestsRpcParam = ?{|incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
 export type TeamsTeamListRpcParam = {|userAssertion: String,all: Boolean,includeImplicitTeams: Boolean,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
@@ -3767,7 +3773,7 @@ export type UserSummary2 = {|uid: UID,username: String,thumbnail: String,fullNam
 
 export type UserSummary2Set = {|users?: ?Array<UserSummary2>,time: Time,version: Int,|}
 
-export type UserTeamShowcase = {|fqName: String,open: Boolean,teamIsShowcased: Boolean,description: String,role: TeamRole,|}
+export type UserTeamShowcase = {|fqName: String,open: Boolean,teamIsShowcased: Boolean,description: String,role: TeamRole,publicAdmins?: ?Array<String>,numMembers: Int,|}
 
 export type UserVersion = {|uid: UID,eldestSeqno: Seqno,|}
 
@@ -3922,6 +3928,7 @@ type TeamsTeamCreateSeitanTokenResult = SeitanIKey
 type TeamsTeamCreateWithSettingsResult = TeamCreateResult
 type TeamsTeamGetResult = TeamDetails
 type TeamsTeamImplicitAdminsResult = ?Array<TeamMemberDetails>
+type TeamsTeamListMyAccessRequestsResult = ?Array<TeamName>
 type TeamsTeamListRequestsResult = ?Array<TeamJoinRequest>
 type TeamsTeamListResult = AnnotatedTeamList
 type TeamsTeamListSubteamsRecursiveResult = ?Array<TeamIDAndName>

@@ -275,6 +275,15 @@ func (h *TeamsHandler) TeamListRequests(ctx context.Context, sessionID int) (res
 	return teams.ListRequests(ctx, h.G().ExternalG())
 }
 
+func (h *TeamsHandler) TeamListMyAccessRequests(ctx context.Context, arg keybase1.TeamListMyAccessRequestsArg) (res []keybase1.TeamName, err error) {
+	ctx = libkb.WithLogTag(ctx, "TM")
+	defer h.G().CTraceTimed(ctx, "TeamListMyAccessRequests", func() error { return err })()
+	if err := h.assertLoggedIn(ctx); err != nil {
+		return nil, err
+	}
+	return teams.ListMyAccessRequests(ctx, h.G().ExternalG(), arg.TeamName)
+}
+
 func (h *TeamsHandler) TeamIgnoreRequest(ctx context.Context, arg keybase1.TeamIgnoreRequestArg) (err error) {
 	ctx = libkb.WithLogTag(ctx, "TM")
 	defer h.G().CTraceTimed(ctx, "TeamIgnoreRequest", func() error { return err })()

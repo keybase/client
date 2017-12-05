@@ -1257,7 +1257,7 @@ func (e *Env) RunningInCI() bool {
 func (e *Env) WantsSystemd() bool {
 	return (e.GetRunMode() == ProductionRunMode &&
 		systemd.IsRunningSystemd() &&
-		os.Getenv("KEYBASE_SYSTEMD") == "1")
+		os.Getenv("KEYBASE_SYSTEMD") != "0")
 }
 
 func (e *Env) DarwinForceSecretStoreFile() bool {

@@ -880,6 +880,40 @@ func ListRequests(ctx context.Context, g *libkb.GlobalContext) ([]keybase1.TeamJ
 	return joinRequests, nil
 }
 
+type myAccessRequestsList struct {
+	Requests []struct {
+		FQName string          `json:"fq_name"`
+		TeamID keybase1.TeamID `json:"team_id"`
+	} `json:"requests"`
+	Status libkb.AppStatus `json:"status"`
+}
+
+func (r *myAccessRequestsList) GetAppStatus() *libkb.AppStatus {
+	return &r.Status
+}
+
+func ListMyAccessRequests(ctx context.Context, g *libkb.GlobalContext, teamName *string) (res []keybase1.TeamName, err error) {
+	arg := apiArg(ctx, "team/my_access_requests")
+	if teamName != nil {
+		arg.Args.Add("team", libkb.S{Val: *teamName})
+	}
+
+	var arList myAccessRequestsList
+	if err := g.API.GetDecode(arg, &arList); err != nil {
+		return nil, err
+	}
+
+	for _, req := range arList.Requests {
+		name, err := keybase1.TeamNameFromString(req.FQName)
+		if err != nil {
+			return nil, err
+		}
+		res = append(res, name)
+	}
+
+	return res, nil
+}
+
 func IgnoreRequest(ctx context.Context, g *libkb.GlobalContext, teamname, username string) error {
 	uv, err := loadUserVersionByUsername(ctx, g, username)
 	if err != nil {
