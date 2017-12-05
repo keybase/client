@@ -68,7 +68,7 @@ type ConfigMock struct {
 func NewConfigMock(c *gomock.Controller, ctr *SafeTestReporter) *ConfigMock {
 	config := &ConfigMock{
 		ConfigLocal: ConfigLocal{
-			loggerFn: func(m string) logger.Logger {
+			loggerFn: func(m string, _ bool) logger.Logger {
 				return logger.NewTestLogger(ctr.t)
 			},
 		},

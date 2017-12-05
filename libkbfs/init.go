@@ -566,19 +566,20 @@ func doInit(
 		return nil, fmt.Errorf("Unexpected mode: %s", params.Mode)
 	}
 
-	config := NewConfigLocal(mode, func(module string) logger.Logger {
-		mname := logPrefix
-		if module != "" {
-			mname += fmt.Sprintf("(%s)", module)
-		}
-		lg := logger.New(mname)
-		if params.Debug {
-			// Turn on debugging.  TODO: allow a proper log file and
-			// style to be specified.
-			lg.Configure("", true, "")
-		}
-		return lg
-	}, params.StorageRoot, params.DiskCacheMode, kbCtx)
+	config := NewConfigLocal(mode,
+		func(module string, overrideEnableDebug bool) logger.Logger {
+			mname := logPrefix
+			if module != "" {
+				mname += fmt.Sprintf("(%s)", module)
+			}
+			lg := logger.New(mname)
+			if params.Debug || overrideEnableDebug {
+				// Turn on debugging.  TODO: allow a proper log file and
+				// style to be specified.
+				lg.Configure("", true, "")
+			}
+			return lg
+		}, params.StorageRoot, params.DiskCacheMode, kbCtx)
 
 	if params.CleanBlockCacheCapacity > 0 {
 		log.CDebugf(
