@@ -63,11 +63,16 @@ class RemoteTracker extends Component<Props> {
   }
 }
 
-const mapStateToProps = (state: TypedState) => ({
-  started: state.tracker.serverStarted,
-  trackers: state.tracker.userTrackers,
-  nonUserTrackers: state.tracker.nonUserTrackers,
-})
+const mapStateToProps = (state: TypedState) => {
+  console.log('in remote-tracker', state)
+  return {
+    teamJoinError: state.chat.teamJoinError,
+    teamJoinSuccess: state.chat.teamJoinSuccess,
+    started: state.tracker.serverStarted,
+    trackers: state.tracker.userTrackers,
+    nonUserTrackers: state.tracker.nonUserTrackers,
+  }
+}
 
 const mapDispatchToProps = (dispatch: any) => ({
   startTimer: () => dispatch(Creators.startTimer()),

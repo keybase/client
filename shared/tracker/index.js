@@ -3,7 +3,7 @@ import * as Creators from '../actions/tracker'
 import * as ProfileGen from '../actions/profile-gen'
 import React, {Component} from 'react'
 import Render, {type RenderPropsUnshaped} from './render'
-import {connect, type TypedState} from '../util/container'
+import {connect, compose, withState, type TypedState} from '../util/container'
 import {isLoading} from '../constants/tracker'
 import {type Proof, type SimpleProofState, type UserInfo} from '../constants/types/tracker'
 import {navigateTo} from '../actions/route-tree'
@@ -85,6 +85,8 @@ const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
     loggedIn: state.config && state.config.loggedIn,
     myUsername: state.config && state.config.username,
     nonUser: trackerState && trackerState.type === 'nonUser',
+    teamJoinError: state.chat && state.chat.teamJoinError,
+    teamJoinSuccess: state.chat && state.chat.teamJoinSuccess,
     ...trackerState,
     ...ownProps,
   }
@@ -133,4 +135,8 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
   }
 }
 
-export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(Tracker)
+export default compose(
+  withState('showTeam', 'onSetShowTeam', ''),
+  withState('showTeamNode', 'onSetShowTeamNode', null),
+  connect(mapStateToProps, mapDispatchToProps, mergeProps),
+)(Tracker)

@@ -5,6 +5,7 @@ import Action, {calcFooterHeight} from './action.render.desktop'
 import {Box, Avatar, Text, UserProofs, UserBio} from '../common-adapters'
 import {globalColors, globalMargins, globalStyles} from '../styles'
 import NonUser from './non-user'
+import ShowcasedTeamInfo from '../profile/showcased-team-info/container'
 import {autoResize} from '../desktop/renderer/remote-component-helper'
 import TrackerError from './error'
 
@@ -48,6 +49,8 @@ export default class TrackerRender extends PureComponent<RenderProps> {
     const footerHeight = calcFooterHeight(this.props.loggedIn)
     const calculatedPadding = styles.content.paddingBottom + footerHeight
     console.warn('showTeamInfo is', this.props.showTeamInfo)
+    console.warn('showTeam is', this.props.showTeam)
+    console.warn(this.props.showTeam === this.props.teamname)
     return (
       <div style={styles.container}>
         <Header
@@ -88,7 +91,9 @@ export default class TrackerRender extends PureComponent<RenderProps> {
                   key={teamname}
                   onClick={event => {
                     console.warn('in onClick')
-                    this.props.onShowTeam(teamname)
+                    const node = event.target instanceof window.HTMLElement ? event.target : null
+                    console.warn(node)
+                    this.props.onSetShowTeam(teamname)
                   }}
                   style={{
                     ...globalStyles.flexBoxRow,
@@ -97,6 +102,10 @@ export default class TrackerRender extends PureComponent<RenderProps> {
                     minHeight: 24,
                   }}
                 >
+                  {(this.props.showTeam === teamname) && <Box>
+                    <Text type='Body'>foo</Text>
+                    <ShowcasedTeamInfo teamname={teamname} />
+                  </Box>}
                   <Box
                     style={{
                       ...globalStyles.flexBoxRow,

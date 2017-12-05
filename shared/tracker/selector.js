@@ -4,6 +4,10 @@ export function selector(username: string): (store: TypedState) => ?Object {
   return store => {
     if (store.tracker.userTrackers[username] || store.tracker.nonUserTrackers[username]) {
       return {
+        chat: {
+          teamJoinError: store.chat.teamJoinError,
+          teamJoinSuccess: store.chat.teamJoinSuccess,
+        },
         config: {
           loggedIn: store.config.loggedIn,
           username: store.config.username,
