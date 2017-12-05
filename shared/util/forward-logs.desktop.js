@@ -1,5 +1,5 @@
 // @flow
-import type {LogLineWithLevel} from '../logger/types'
+import type {LogLineWithLevelISOTimestamp} from '../logger/types'
 
 const fileDoesNotExist = __STORYBOOK__
   ? _ => true
@@ -72,9 +72,9 @@ const localLog: Log = console.log.bind(console)
 const localWarn: Log = console.warn.bind(console)
 const localError: Log = console.error.bind(console)
 
-const writeLogLinesToFile: (lines: Array<LogLineWithLevel>) => Promise<void> = __STORYBOOK__
-  ? (lines: Array<LogLineWithLevel>) => Promise.resolve()
-  : (lines: Array<LogLineWithLevel>) =>
+const writeLogLinesToFile: (lines: Array<LogLineWithLevelISOTimestamp>) => Promise<void> = __STORYBOOK__
+  ? (lines: Array<LogLineWithLevelISOTimestamp>) => Promise.resolve()
+  : (lines: Array<LogLineWithLevelISOTimestamp>) =>
       new Promise((resolve, reject) => {
         if (lines.length === 0) {
           resolve()
