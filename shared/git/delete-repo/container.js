@@ -49,5 +49,5 @@ const mergeProps = (stateProps, dispatchProps, ownProps) =>
 
 export default compose(
   connect(mapStateToProps, mapDispatchToProps, mergeProps),
-  branch(props => !!props.name, renderNothing)
+  branch(props => !props.name, renderNothing)
 )(DeleteRepo)
