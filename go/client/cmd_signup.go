@@ -91,6 +91,11 @@ func (s *CmdSignup) SetTest() {
 	s.genPaper = true
 }
 
+func (s *CmdSignup) SetTestWithPaper(b bool) {
+	s.skipMail = true
+	s.genPaper = b
+}
+
 func (s *CmdSignup) ParseArgv(ctx *cli.Context) error {
 	nargs := len(ctx.Args())
 	var err error
