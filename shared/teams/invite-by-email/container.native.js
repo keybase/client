@@ -203,7 +203,7 @@ export default compose(
           if (ca.name === cb.name) {
             return (ca.email || ca.phoneNo || '').localeCompare(cb.email || cb.phoneNo || '')
           }
-          return ca.name.localeCompare(cb.name)
+          return (ca.name || '').localeCompare(cb.name || '')
         })
 
       return {contactRowProps}
