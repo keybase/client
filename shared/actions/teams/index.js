@@ -285,6 +285,11 @@ const _getDetails = function*(action: Types.GetDetails): Saga.SagaGenerator<any,
       forceRepoll: false,
     })
 
+    // Don't allow the none default
+    if (details.settings.joinAs === RPCTypes.teamsTeamRole.none) {
+      details.settings.joinAs = RPCTypes.teamsTeamRole.reader
+    }
+
     const implicitAdminDetails: Array<
       RPCTypes.TeamMemberDetails
     > = (yield Saga.call(RPCTypes.teamsTeamImplicitAdminsRpcPromise, {
