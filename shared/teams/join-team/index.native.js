@@ -1,7 +1,7 @@
 // @flow
 import React from 'react'
 import {SuccessComponent} from './index.shared'
-import {Box, HeaderHoc, ScrollView, Input, Button} from '../../common-adapters/'
+import {Box, Text, HeaderHoc, ScrollView, Input, Button} from '../../common-adapters/'
 import {compose, withProps, branch, renderComponent} from 'recompose'
 import {globalStyles, globalMargins} from '../../styles'
 
@@ -36,6 +36,11 @@ const EntryComponent = ({errorText, name, onNameChange, onSubmit}: Props) => (
             onClick={onSubmit}
             label="Continue"
           />
+        </Box>
+        <Box style={{...globalStyles.flexBoxRow, marginTop: globalMargins.medium}}>
+          <Text type="BodySmall" style={{textAlign: 'center', maxWidth: 280}}>
+            Tip: if you got an invitation by text, you can copy + paste the entire message here
+          </Text>
         </Box>
       </Box>
     </Box>
