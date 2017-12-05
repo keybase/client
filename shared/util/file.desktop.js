@@ -49,7 +49,7 @@ function stat(filepath: string): Promise<StatResult> {
       if (err) {
         return reject(err)
       }
-      resolve({size: stats.size})
+      resolve({size: stats.size, lastModified: stats.mtime.getTime()})
     })
   })
 }
@@ -69,6 +69,10 @@ function mkdirp(target) {
 function copy(from: string, to: string) {
   mkdirp(path.dirname(to))
   fs.writeFileSync(to, fs.readFileSync(from))
+}
+
+function unlink(filepath: string): Promise<void> {
+  return new Promise((resolve, reject) => fs.unlink(filepath, () => resolve()))
 }
 
 // TODO implemented for mobile, not here
@@ -94,4 +98,5 @@ export {
   tmpRandFile,
   writeFile,
   writeStream,
+  unlink,
 }

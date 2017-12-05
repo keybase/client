@@ -1,5 +1,13 @@
 // @flow
-import type {AggregateLogger, LogLevel, Logger, LogFn, LogLineWithLevel} from './types'
+import type {
+  AggregateLogger,
+  LogLevel,
+  Logger,
+  LogFn,
+  LogLineWithLevel,
+  LogLineWithLevelISOTimestamp,
+} from './types'
+import {toISOTimestamp} from './types'
 import ConsoleLogger from './console-logger'
 import TeeLogger from './tee-logger'
 import RingLogger from './ring-logger'
@@ -7,7 +15,8 @@ import NullLogger from './null-logger'
 import NativeLogger from './native-logger'
 import DumpPeriodicallyLogger from './dump-periodically-logger'
 import {writeLogLinesToFile} from '../util/forward-logs'
-import {isMobile} from '../constants/platform'
+import {isMobile, logFileName} from '../constants/platform'
+import {stat, unlink} from '../util/file'
 
 // Function to flatten arrays and preserve their sort order
 // Same as concating all the arrays and calling .sort() but could be faster
@@ -15,6 +24,14 @@ import {isMobile} from '../constants/platform'
 function _mergeSortedArraysHelper<A>(sortFn: (a: A, b: A) => number, ...arrays: Array<Array<A>>): Array<A> {
   // TODO make a more effecient version - doing simple thing for now
   return [].concat(...arrays).sort(sortFn)
+}
+
+function deleteFileIfOlderThanMs(olderThanMs: number, filepath: string): Promise<void> {
+  return stat(filepath).then(({lastModified}) => {
+    if (Date.now() - lastModified > olderThanMs) {
+      return unlink(filepath)
+    }
+  })
 }
 
 class AggregateLoggerImpl implements AggregateLogger {
@@ -62,6 +79,9 @@ class AggregateLoggerImpl implements AggregateLogger {
     this.info = info.log
     this.action = action.log
     this.debug = debug.log
+
+    const olderThanMs = 1e3 * 60 * 60 * 24 // 24 hours
+    deleteFileIfOlderThanMs(olderThanMs, logFileName())
   }
 
   dump(filter?: Array<LogLevel>) {
@@ -69,13 +89,13 @@ class AggregateLoggerImpl implements AggregateLogger {
     const allKeys: Array<LogLevel> = Object.keys(this._allLoggers)
     const filterKeys = filter || allKeys
     const logDumpPromises = filterKeys.map((level: LogLevel) => this._allLoggers[level].dump(level))
-    const p: Promise<Array<LogLineWithLevel>> = Promise.all(
+    const p: Promise<Array<LogLineWithLevelISOTimestamp>> = Promise.all(
       logDumpPromises
-    ).then((logsToDump: Array<Array<LogLineWithLevel>>): Array<LogLineWithLevel> =>
+    ).then((logsToDump: Array<Array<LogLineWithLevel>>): Array<LogLineWithLevelISOTimestamp> =>
       _mergeSortedArraysHelper(
         ([, tsA]: LogLineWithLevel, [, tsB]: LogLineWithLevel) => tsA - tsB,
         ...logsToDump
-      )
+      ).map(toISOTimestamp)
     )
 
     return p
@@ -100,7 +120,9 @@ const logSetup = __DEV__
       debug: new ConsoleLogger('log', 'DEBUG:'),
     }
   : {
-      error: new DumpPeriodicallyLogger(new RingLogger(1000), 1 * 60e3, writeLogLinesToFile, 'Error'),
+      error: isMobile
+        ? new NativeLogger()
+        : new DumpPeriodicallyLogger(new RingLogger(1000), 1 * 60e3, writeLogLinesToFile, 'Error'),
       warn: new RingLogger(1000),
       info: new NullLogger(),
       action: isMobile

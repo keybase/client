@@ -1,9 +1,9 @@
 // @flow
-import type {LogLineWithLevel} from '../logger/types'
+import type {LogLineWithLevelISOTimestamp} from '../logger/types'
 export const setupSource = () => {}
 export const setupTarget = () => {}
 
 export const localLog = (...args: any) => {}
 export const localWarn = (...args: any) => {}
 export const localError = (...args: any) => {}
-declare export var writeLogLinesToFile: (lines: Array<LogLineWithLevel>) => Promise<void>
+declare export var writeLogLinesToFile: (lines: Array<LogLineWithLevelISOTimestamp>) => Promise<void>

@@ -25,7 +25,7 @@ function exists(filepath: string): Promise<boolean> {
 }
 
 function stat(filepath: string): Promise<StatResult> {
-  return RNFetchBlob.fs.stat(filepath).then(stats => ({size: stats.size}))
+  return RNFetchBlob.fs.stat(filepath).then(stats => ({size: stats.size, lastModified: stats.lastModified}))
 }
 
 function writeFile(filepath: string, contents: string, encoding?: string): Promise<void> {
@@ -38,6 +38,21 @@ function writeStream(filepath: string, encoding: string, append?: boolean): Prom
   return RNFetchBlob.fs.writeStream(filepath, encoding, append)
 }
 
+function unlink(filepath: string): Promise<void> {
+  return RNFetchBlob.fs.unlink(filepath)
+}
+
 const cachesDirectoryPath = tmpDir()
 
-export {cachesDirectoryPath, copy, exists, downloadFilePath, stat, tmpDir, tmpFile, writeFile, writeStream}
+export {
+  cachesDirectoryPath,
+  copy,
+  exists,
+  downloadFilePath,
+  stat,
+  tmpDir,
+  tmpFile,
+  writeFile,
+  writeStream,
+  unlink,
+}

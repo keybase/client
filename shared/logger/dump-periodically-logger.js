@@ -1,8 +1,9 @@
 // @flow
-import type {Logger, LogFn, LogLevel, LogLineWithLevel} from './types'
+import type {Logger, LogFn, LogLevel, LogLineWithLevel, LogLineWithLevelISOTimestamp} from './types'
+import {toISOTimestamp} from './types'
 import {requestIdleCallback} from '../util/idle-callback'
 
-type FileWriterFn = (lines: Array<LogLineWithLevel>) => Promise<void>
+type FileWriterFn = (lines: Array<LogLineWithLevelISOTimestamp>) => Promise<void>
 
 // Dumps the inner logger periodically, everything else is forwarded
 // At most every `periodInMs` seconds. May be a little less because
@@ -31,6 +32,7 @@ class DumpPeriodicallyLogger implements Logger {
     if (this._ok) {
       return this._innerLogger
         .dump(this._levelPrefix)
+        .then(logLines => logLines.map(toISOTimestamp))
         .then(this._fileWriterFn)
         .then(() => {
           this._lastTimeoutId = setTimeout(
