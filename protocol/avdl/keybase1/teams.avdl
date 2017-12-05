@@ -551,6 +551,12 @@ protocol teams {
     boolean open;
   }
 
+  record TeamAcceptOrRequestResult {
+    boolean wasToken;
+    boolean wasTeamName;
+    boolean open;
+  }
+
   record TeamShowcase {
     @jsonkey("is_showcased")
     boolean isShowcased;
@@ -599,7 +605,7 @@ protocol teams {
   TeamRequestAccessResult teamRequestAccess(int sessionID, string name);
 
   // Accept an invite or request to join a team, try both.
-  void teamAcceptInviteOrRequestAccess(int sessionID, string tokenOrName);
+  TeamAcceptOrRequestResult teamAcceptInviteOrRequestAccess(int sessionID, string tokenOrName);
 
   array<TeamJoinRequest> teamListRequests(int sessionID);
 

@@ -835,14 +835,25 @@ func RequestAccess(ctx context.Context, g *libkb.GlobalContext, teamname string)
 	return ret, err
 }
 
-func TeamAcceptInviteOrRequestAccess(ctx context.Context, g *libkb.GlobalContext, tokenOrName string) error {
+func TeamAcceptInviteOrRequestAccess(ctx context.Context, g *libkb.GlobalContext, tokenOrName string) (keybase1.TeamAcceptOrRequestResult, error) {
 	// First try to accept as an invite
 	err := AcceptInvite(ctx, g, tokenOrName)
-	if err != nil {
-		// Failing that, request access as a team name
-		_, err = RequestAccess(ctx, g, tokenOrName)
+	if err == nil {
+		return keybase1.TeamAcceptOrRequestResult{
+			WasToken: true,
+		}, nil
 	}
-	return err
+
+	// Failing that, request access as a team name
+	ret, err := RequestAccess(ctx, g, tokenOrName)
+	if err == nil {
+		return keybase1.TeamAcceptOrRequestResult{
+			WasTeamName: true,
+			Open:        ret.Open,
+		}, nil
+	}
+
+	return keybase1.TeamAcceptOrRequestResult{}, err
 }
 
 type accessRequest struct {

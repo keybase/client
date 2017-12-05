@@ -1383,6 +1383,24 @@
     },
     {
       "type": "record",
+      "name": "TeamAcceptOrRequestResult",
+      "fields": [
+        {
+          "type": "boolean",
+          "name": "wasToken"
+        },
+        {
+          "type": "boolean",
+          "name": "wasTeamName"
+        },
+        {
+          "type": "boolean",
+          "name": "open"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "TeamShowcase",
       "fields": [
         {
@@ -1827,7 +1845,7 @@
           "type": "string"
         }
       ],
-      "response": null
+      "response": "TeamAcceptOrRequestResult"
     },
     "teamListRequests": {
       "request": [
