@@ -1,7 +1,6 @@
 // @flow
 import type {Logger, LogLevel, LogLineWithLevel} from './types'
 
-// Simple in memory ring Logger
 class NullLogger implements Logger {
   log = (...s: Array<string>) => {}
 
