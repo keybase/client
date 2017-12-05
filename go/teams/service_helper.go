@@ -474,7 +474,8 @@ func EditMember(ctx context.Context, g *libkb.GlobalContext, teamname, username 
 			return err
 		}
 		if existingRole == role {
-			return fmt.Errorf("user %q in team %q already has the role %s", username, teamname, role)
+			g.Log.CDebugf(ctx, "bailing out, role given is the same as current")
+			return nil
 		}
 
 		req, err := reqFromRole(uv, role)
