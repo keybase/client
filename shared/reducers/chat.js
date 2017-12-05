@@ -285,8 +285,8 @@ function reducer(state: Types.State = initialState, action: ChatGen.Actions) {
       return state.set('teamJoinError', teamJoinError)
     }
     case 'teams:setTeamJoinSuccess': {
-      const {payload: {teamJoinSuccess}} = action
-      return state.set('teamJoinSuccess', teamJoinSuccess)
+      const {payload: {teamJoinSuccess, teamname}} = action
+      return state.set('teamJoinSuccess', teamJoinSuccess).set('teamJoinSuccessTeamName', teamname)
     }
     // Saga only actions
     case ChatGen.updateBadging:
