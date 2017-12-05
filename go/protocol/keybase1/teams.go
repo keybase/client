@@ -981,6 +981,7 @@ type TeamChangeRow struct {
 	KeyRotated        bool   `codec:"keyRotated" json:"key_rotated"`
 	MembershipChanged bool   `codec:"membershipChanged" json:"membership_changed"`
 	LatestSeqno       Seqno  `codec:"latestSeqno" json:"latest_seqno"`
+	ImplicitTeam      bool   `codec:"implicitTeam" json:"implicit_team"`
 }
 
 func (o TeamChangeRow) DeepCopy() TeamChangeRow {
@@ -990,6 +991,7 @@ func (o TeamChangeRow) DeepCopy() TeamChangeRow {
 		KeyRotated:        o.KeyRotated,
 		MembershipChanged: o.MembershipChanged,
 		LatestSeqno:       o.LatestSeqno.DeepCopy(),
+		ImplicitTeam:      o.ImplicitTeam,
 	}
 }
 
@@ -1986,6 +1988,10 @@ type CanUserPerformArg struct {
 	Op   TeamOperation `codec:"op" json:"op"`
 }
 
+type TeamRotateKeyArg struct {
+	TeamID TeamID `codec:"teamID" json:"teamID"`
+}
+
 type TeamsInterface interface {
 	TeamCreate(context.Context, TeamCreateArg) (TeamCreateResult, error)
 	TeamCreateWithSettings(context.Context, TeamCreateWithSettingsArg) (TeamCreateResult, error)
@@ -2022,6 +2028,7 @@ type TeamsInterface interface {
 	SetTeamShowcase(context.Context, SetTeamShowcaseArg) error
 	SetTeamMemberShowcase(context.Context, SetTeamMemberShowcaseArg) error
 	CanUserPerform(context.Context, CanUserPerformArg) (bool, error)
+	TeamRotateKey(context.Context, TeamID) error
 }
 
 func TeamsProtocol(i TeamsInterface) rpc.Protocol {
@@ -2540,6 +2547,22 @@ func TeamsProtocol(i TeamsInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"teamRotateKey": {
+				MakeArg: func() interface{} {
+					ret := make([]TeamRotateKeyArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]TeamRotateKeyArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]TeamRotateKeyArg)(nil), args)
+						return
+					}
+					err = i.TeamRotateKey(ctx, (*typedArgs)[0].TeamID)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 		},
 	}
 }
@@ -2712,5 +2735,11 @@ func (c TeamsClient) SetTeamMemberShowcase(ctx context.Context, __arg SetTeamMem
 
 func (c TeamsClient) CanUserPerform(ctx context.Context, __arg CanUserPerformArg) (res bool, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.teams.canUserPerform", []interface{}{__arg}, &res)
+	return
+}
+
+func (c TeamsClient) TeamRotateKey(ctx context.Context, teamID TeamID) (err error) {
+	__arg := TeamRotateKeyArg{TeamID: teamID}
+	err = c.Cli.Call(ctx, "keybase.1.teams.teamRotateKey", []interface{}{__arg}, nil)
 	return
 }
