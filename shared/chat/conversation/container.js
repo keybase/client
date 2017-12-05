@@ -154,10 +154,11 @@ export default compose(
     (props: Props) =>
       (props.selectedConversationIDKey === Constants.nothingSelected || !props.selectedConversationIDKey) &&
       !props.inSearch,
+    // $FlowIssue gets very confused here
     renderComponent(NoConversation)
   ),
   // Ordering of branch() is important here -- rekey should come before error.
-  branch((props: Props) => !props.finalizeInfo && props.rekeyInfo, renderComponent(Rekey)),
+  branch((props: Props) => !props.finalizeInfo && !!props.rekeyInfo, renderComponent(Rekey)),
   branch((props: Props) => props.conversationIsError, renderComponent(ConversationError)),
   withState('focusInputCounter', 'setFocusInputCounter', 0),
   withState('editLastMessageCounter', 'setEditLastMessageCounter', 0),

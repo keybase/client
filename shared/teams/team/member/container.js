@@ -107,4 +107,5 @@ const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps) => {
   }
 }
 
+// $FlowIssue doesn't like HeaderHoc
 export default compose(connect(mapStateToProps, mapDispatchToProps, mergeProps), HeaderHoc)(TeamMember)

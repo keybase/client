@@ -101,6 +101,7 @@ const mapStateToProps: MapStateToProps<*, *, *> = (state: TypedState, {users, se
     })
     .map((u, i) => ({...u, selected: i === selectedIndex})),
 })
+// $FlowIssue is confused
 const MentionHud: Class<React.Component<MentionHudProps, void>> = compose(
   withState('selectedIndex', 'setSelectedIndex', 0),
   connect(mapStateToProps),

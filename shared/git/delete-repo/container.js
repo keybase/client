@@ -4,8 +4,6 @@ import * as Constants from '../../constants/git'
 import DeleteRepo from '.'
 import {compose, renderNothing, branch, connect, type TypedState} from '../../util/container'
 
-const missingGit = {error: 'NoGit', loading: false, name: '', teamname: ''}
-
 const mapStateToProps = (state: TypedState, {routeProps}) => {
   const gitMap = Constants.getIdToGit(state)
   const git = gitMap ? gitMap.get(routeProps.get('id')) : null
@@ -17,7 +15,12 @@ const mapStateToProps = (state: TypedState, {routeProps}) => {
         name: git.name,
         teamname: git.teamname,
       }
-    : missingGit
+    : {
+        error: null,
+        loading: false,
+        name: '',
+        teamname: '',
+      }
 }
 
 const mapDispatchToProps = (dispatch: any, {navigateAppend, navigateUp}) => ({
@@ -31,16 +34,20 @@ const mapDispatchToProps = (dispatch: any, {navigateAppend, navigateUp}) => ({
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps) =>
-  stateProps === missingGit
-    ? missingGit
-    : {
+  stateProps.name
+    ? {
         ...stateProps,
         ...dispatchProps,
         onDelete: (notifyTeam: boolean) =>
           dispatchProps._onDelete(stateProps.teamname, stateProps.name, notifyTeam),
       }
+    : {
+        ...stateProps,
+        onClose: dispatchProps.onClose,
+        onDelete: () => {},
+      }
 
 export default compose(
   connect(mapStateToProps, mapDispatchToProps, mergeProps),
-  branch(props => props === missingGit, renderNothing)
+  branch(props => !!props.name, renderNothing)
 )(DeleteRepo)
