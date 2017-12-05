@@ -35,8 +35,7 @@ RCT_REMAP_METHOD(dump,
       }
     }
   }
-  NSArray<NSString *> *finalLines = [lines copy];
-  resolve(finalLines);
+  resolve(lines);
 }
 
 @end
