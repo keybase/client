@@ -29,7 +29,6 @@ const commonProps = {
 
 const load = () => {
   const sizes = {}
-  // $FlowIssue
   Object.keys(iconMeta).map((type: IconType) => {
     const meta = iconMeta[type]
     const twoRegMatch = type.match(/(\d+)-x-\d+$/)
