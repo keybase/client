@@ -90,7 +90,7 @@ func Details(ctx context.Context, g *libkb.GlobalContext, name string, forceRepo
 		details := keybase1.TeamMemberDetails{
 			Uv:       invite.Uv,
 			Username: string(invite.Name),
-			Active:   true,
+			Active:   invite.UserActive,
 			NeedsPUK: true,
 		}
 		switch invite.Role {
@@ -492,6 +492,9 @@ func editMemberInvite(ctx context.Context, g *libkb.GlobalContext, teamname, use
 		return err
 	}
 
+	// Note that there could be a problem if removeMemberInvite works but AddMember doesn't
+	// as the original invite will be lost.  But the user will get an error and can try
+	// again.
 	if err := removeMemberInvite(ctx, g, t, username, uv); err != nil {
 		g.Log.CDebugf(ctx, "editMemberInvite error in removeMemberInvite: %s", err)
 		return err
@@ -1063,4 +1066,131 @@ func CreateSeitanToken(ctx context.Context, g *libkb.GlobalContext, teamname str
 	}
 
 	return keybase1.SeitanIKey(ikey), err
+}
+
+// CreateTLF is called by KBFS when a TLF ID is associated with an implicit team. Should
+// only work for implicit teams, and should give an error if a named team is provided.
+func CreateTLF(ctx context.Context, g *libkb.GlobalContext, arg keybase1.CreateTLFArg) (err error) {
+	defer g.CTrace(ctx, fmt.Sprintf("CreateTLF(%v)", arg), func() error { return err })()
+	return RetryOnSigOldSeqnoError(ctx, g, func(ctx context.Context, _ int) error {
+		// Need admin because only admins can issue this link
+		t, err := GetForTeamManagementByTeamID(ctx, g, arg.TeamID, true)
+		if err != nil {
+			return err
+		}
+		return t.associateTLFID(ctx, arg.TlfID)
+	})
+}
+
+func CanUserPerform(ctx context.Context, g *libkb.GlobalContext, teamname string, op keybase1.TeamOperation) (ret bool, err error) {
+	me, err := libkb.LoadMe(libkb.NewLoadUserArgWithContext(ctx, g))
+	if err != nil {
+		return false, err
+	}
+	meUV := me.ToUserVersion()
+
+	team, err := Load(ctx, g, keybase1.LoadTeamArg{
+		Name:    teamname,
+		StaleOK: true,
+		Public:  false, // assume private team
+	})
+	if err != nil {
+		return false, err
+	}
+
+	isImplicitAdmin := func() (bool, error) {
+		if team.ID.IsRootTeam() {
+			return false, nil
+		}
+		uvs, err := g.GetTeamLoader().ImplicitAdmins(ctx, team.ID)
+		if err != nil {
+			return false, err
+		}
+		for _, uv := range uvs {
+			if uv == meUV {
+				return true, nil
+			}
+		}
+		return false, nil
+	}
+
+	isRoleOrAbove := func(role keybase1.TeamRole) (bool, error) {
+		r, err := team.MemberRole(ctx, meUV)
+		if err != nil {
+			return false, err
+		}
+		return r.IsOrAbove(role), nil
+	}
+
+	isAdmin := func() (bool, error) {
+		return isRoleOrAbove(keybase1.TeamRole_ADMIN)
+	}
+
+	isWriter := func() (bool, error) {
+		return isRoleOrAbove(keybase1.TeamRole_WRITER)
+	}
+
+	isAdminOrImplicitAdmin := func() (bool, error) {
+		ret, err := isAdmin()
+		if err != nil {
+			return false, err
+		}
+		if ret {
+			return true, nil
+		}
+		return isImplicitAdmin()
+	}
+
+	canMemberShowcase := func() (bool, error) {
+		r, err := team.MemberRole(ctx, meUV)
+		if err != nil {
+			return false, err
+		}
+		if r.IsOrAbove(keybase1.TeamRole_ADMIN) {
+			return true, nil
+		} else if r == keybase1.TeamRole_NONE {
+			return false, nil
+		}
+		showcase, err := GetTeamShowcase(ctx, g, teamname)
+		if err != nil {
+			return false, err
+		}
+		return showcase.AnyMemberShowcase, nil
+	}
+
+	switch op {
+	case keybase1.TeamOperation_MANAGE_MEMBERS,
+		keybase1.TeamOperation_MANAGE_SUBTEAMS,
+		keybase1.TeamOperation_SET_TEAM_SHOWCASE,
+		keybase1.TeamOperation_CHANGE_OPEN_TEAM:
+		ret, err = isAdminOrImplicitAdmin()
+	case keybase1.TeamOperation_CREATE_CHANNEL:
+		ret, err = isWriter()
+	case keybase1.TeamOperation_SET_MEMBER_SHOWCASE:
+		ret, err = canMemberShowcase()
+	case keybase1.TeamOperation_DELETE_CHANNEL,
+		keybase1.TeamOperation_RENAME_CHANNEL,
+		keybase1.TeamOperation_EDIT_CHANNEL_DESCRIPTION:
+		ret, err = isAdmin() // no implicit admins
+	default:
+		err = fmt.Errorf("Unknown op: %v", op)
+	}
+
+	return ret, err
+}
+
+func RotateKey(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID) (err error) {
+	defer g.CTrace(ctx, fmt.Sprintf("RotateKey(%v)", teamID), func() error { return err })()
+	return RetryOnSigOldSeqnoError(ctx, g, func(ctx context.Context, attempt int) error {
+		team, err := Load(ctx, g, keybase1.LoadTeamArg{
+			ID:          teamID,
+			Public:      teamID.IsPublic(),
+			ForceRepoll: attempt > 0,
+		})
+		if err != nil {
+			return err
+		}
+
+		return team.Rotate(ctx)
+	})
 }

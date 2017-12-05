@@ -288,7 +288,7 @@ func TestIdentifyLite(t *testing.T) {
 
 	t.Logf("make an implicit team")
 	iTeamCreateName := strings.Join([]string{tt.users[0].username, "bob@github"}, ",")
-	iTeamID, _, _, err := teams.LookupOrCreateImplicitTeam(context.TODO(), g, iTeamCreateName, false /*isPublic*/)
+	iTeamID, _, _, _, err := teams.LookupOrCreateImplicitTeam(context.TODO(), g, iTeamCreateName, false /*isPublic*/)
 	require.NoError(t, err)
 	iTeamImpName := getTeamName(iTeamID)
 	require.True(t, iTeamImpName.IsImplicit())
@@ -397,7 +397,7 @@ func TestResolveIdentifyImplicitTeamWithSocial(t *testing.T) {
 	iTeamNameSorted := strings.Join([]string{tt.users[0].username, "bob@github", wong.username}, ",")
 
 	t.Logf("make an implicit team")
-	iTeamID, _, _, err := teams.LookupOrCreateImplicitTeam(context.TODO(), g, iTeamNameCreate, false /*isPublic*/)
+	iTeamID, _, _, _, err := teams.LookupOrCreateImplicitTeam(context.TODO(), g, iTeamNameCreate, false /*isPublic*/)
 	require.NoError(t, err)
 	iTeamImpName := getTeamName(iTeamID)
 	require.True(t, iTeamImpName.IsImplicit())
@@ -437,7 +437,7 @@ func TestResolveIdentifyImplicitTeamWithReaders(t *testing.T) {
 	iTeamNameLookup := tt.users[0].username + "#" + strings.Join([]string{"bob@github", wong.username + "@rooter"}, ",")
 
 	t.Logf("make an implicit team")
-	iTeamID, _, _, err := teams.LookupOrCreateImplicitTeam(context.TODO(), g, iTeamNameCreate, false /*isPublic*/)
+	iTeamID, _, _, _, err := teams.LookupOrCreateImplicitTeam(context.TODO(), g, iTeamNameCreate, false /*isPublic*/)
 	require.NoError(t, err)
 
 	cli, err := client.GetIdentifyClient(g)
@@ -490,7 +490,7 @@ func TestResolveIdentifyImplicitTeamWithDuplicates(t *testing.T) {
 	iTeamNameLookup3 := strings.Join([]string{alice.username, bob.username + "@rooter"}, ",") + "#" + bob.username
 
 	t.Logf("make an implicit team")
-	iTeamID, _, _, err := teams.LookupOrCreateImplicitTeam(context.TODO(), g, iTeamNameCreate, false /*isPublic*/)
+	iTeamID, _, _, _, err := teams.LookupOrCreateImplicitTeam(context.TODO(), g, iTeamNameCreate, false /*isPublic*/)
 	require.NoError(t, err)
 
 	bob.proveRooter()
@@ -530,24 +530,13 @@ func TestResolveIdentifyImplicitTeamWithConflict(t *testing.T) {
 	iTeamNameCreate2 := strings.Join([]string{tt.users[0].username, wong.username + "@rooter"}, ",")
 
 	t.Logf("make the teams")
-	iTeamID1, _, _, err := teams.LookupOrCreateImplicitTeam(context.TODO(), g, iTeamNameCreate1, false /*isPublic*/)
+	iTeamID1, _, _, _, err := teams.LookupOrCreateImplicitTeam(context.TODO(), g, iTeamNameCreate1, false /*isPublic*/)
 	require.NoError(t, err)
-	iTeamID2, _, _, err := teams.LookupOrCreateImplicitTeam(context.TODO(), g, iTeamNameCreate2, false /*isPublic*/)
+	iTeamID2, _, _, _, err := teams.LookupOrCreateImplicitTeam(context.TODO(), g, iTeamNameCreate2, false /*isPublic*/)
 	require.NoError(t, err)
 	require.NotEqual(t, iTeamID1, iTeamID2)
 	t.Logf("t1: %v", iTeamID1)
 	t.Logf("t2: %v", iTeamID2)
-
-	t.Logf("prove to create the conflict")
-	wong.proveRooter()
-
-	getTeamName := func(teamID keybase1.TeamID) keybase1.TeamName {
-		team, err := teams.Load(context.Background(), g, keybase1.LoadTeamArg{
-			ID: teamID,
-		})
-		require.NoError(t, err)
-		return team.Name()
-	}
 
 	getTeamSeqno := func(teamID keybase1.TeamID) keybase1.Seqno {
 		team, err := teams.Load(context.Background(), g, keybase1.LoadTeamArg{
@@ -557,7 +546,12 @@ func TestResolveIdentifyImplicitTeamWithConflict(t *testing.T) {
 		return team.CurrentSeqno()
 	}
 
-	tt.users[0].waitForTeamChangedGregor(getTeamName(iTeamID2).String(), getTeamSeqno(iTeamID2)+1)
+	expectedSeqno := getTeamSeqno(iTeamID2) + 1
+
+	t.Logf("prove to create the conflict")
+	wong.proveRooter()
+
+	tt.users[0].waitForTeamChangedGregor(iTeamID2, expectedSeqno)
 
 	cli, err := client.GetIdentifyClient(g)
 	require.NoError(t, err, "failed to get new identifyclient")
@@ -595,7 +589,7 @@ func TestResolveIdentifyImplicitTeamWithConflict(t *testing.T) {
 	require.Nil(t, res.TrackBreaks, "track breaks")
 
 	t.Logf("find out the conflict suffix")
-	iTeamIDxx, _, _, conflicts, err := teams.LookupImplicitTeamAndConflicts(context.TODO(), g, iTeamNameCreate1, false /*isPublic*/)
+	iTeamIDxx, _, _, _, conflicts, err := teams.LookupImplicitTeamAndConflicts(context.TODO(), g, iTeamNameCreate1, false /*isPublic*/)
 	require.NoError(t, err)
 	require.Equal(t, iTeamIDxx, iTeamID1)
 	require.Len(t, conflicts, 1)
@@ -629,7 +623,7 @@ func TestResolveIdentifyImplicitTeamWithIdentifyFailures(t *testing.T) {
 	iTeamNameCreate := strings.Join([]string{tt.users[0].username, wong.username}, ",")
 
 	t.Logf("make an implicit team")
-	iTeamID, _, _, err := teams.LookupOrCreateImplicitTeam(context.TODO(), g, iTeamNameCreate, false /*isPublic*/)
+	iTeamID, _, _, _, err := teams.LookupOrCreateImplicitTeam(context.TODO(), g, iTeamNameCreate, false /*isPublic*/)
 	require.NoError(t, err)
 
 	cli, err := client.GetIdentifyClient(g)

@@ -14,6 +14,7 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/client/go/teams"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 )
 
@@ -103,4 +104,8 @@ func (h *KBFSHandler) notifyConversation(uid keybase1.UID, filename string) {
 	ctx := chat.Context(context.Background(), g, keybase1.TLFIdentifyBehavior_CHAT_SKIP,
 		nil, chat.NewIdentifyNotifier(g))
 	h.ChatG().FetchRetrier.Rekey(ctx, tlf, chat1.ConversationMembersType_KBFS, public)
+}
+
+func (h *KBFSHandler) CreateTLF(ctx context.Context, arg keybase1.CreateTLFArg) error {
+	return teams.CreateTLF(ctx, h.G(), arg)
 }

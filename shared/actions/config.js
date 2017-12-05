@@ -10,6 +10,7 @@ import * as Saga from '../util/saga'
 import * as SignupGen from '../actions/signup-gen'
 import engine from '../engine'
 import {RouteStateStorage} from '../actions/route-state-storage'
+import {getTeams} from './teams/creators'
 import {createConfigurePush} from './push-gen'
 import {isMobile, isSimulator} from '../constants/platform'
 import {loggedInSelector} from '../constants/selectors'
@@ -33,7 +34,7 @@ const waitForKBFS = (): AsyncAction => dispatch =>
     // TODO clean this up with sagas!
     let timer = setTimeout(() => {
       timedOut = true
-      reject(new Error("Waited for KBFS client, but it wasn't not found"))
+      reject(new Error("Waited for KBFS client, but it wasn't found"))
     }, 10 * 1000)
 
     RPCTypes.configWaitForClientRpcPromise({
@@ -132,8 +133,10 @@ const bootstrap = (opts: $PropertyType<ConfigGen.BootstrapPayload, 'payload'>): 
             if (getState().config.loggedIn) {
               // If we're logged in, restore any saved route state and
               // then nav again based on it.
+              // also load the teamlist for auxiliary information around the app
               await dispatch(routeStateStorage.load)
               await dispatch(LoginGen.createNavBasedOnLoginAndInitialState())
+              await dispatch(getTeams())
             }
           })
           dispatch(SignupGen.createResetSignup())

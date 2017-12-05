@@ -1036,6 +1036,14 @@ func (t TLFID) String() string {
 	return string(t)
 }
 
+func (t TLFID) IsNil() bool {
+	return len(t) == 0
+}
+
+func (t TLFID) Exists() bool {
+	return !t.IsNil()
+}
+
 func (t TLFID) ToBytes() []byte {
 	b, err := hex.DecodeString(string(t))
 	if err != nil {
@@ -1619,25 +1627,12 @@ func (t TeamMembers) AllUIDs() []UID {
 	return all
 }
 
-func (t TeamMembers) AllUserVersions() []UserVersion {
-	m := make(map[UID]UserVersion)
-	for _, u := range t.Owners {
-		m[u.Uid] = u
-	}
-	for _, u := range t.Admins {
-		m[u.Uid] = u
-	}
-	for _, u := range t.Writers {
-		m[u.Uid] = u
-	}
-	for _, u := range t.Readers {
-		m[u.Uid] = u
-	}
-	var all []UserVersion
-	for _, uv := range m {
-		all = append(all, uv)
-	}
-	return all
+func (t TeamMembers) AllUserVersions() (res []UserVersion) {
+	res = append(res, t.Owners...)
+	res = append(res, t.Admins...)
+	res = append(res, t.Writers...)
+	res = append(res, t.Readers...)
+	return res
 }
 
 func (t TeamMember) IsReset() bool {

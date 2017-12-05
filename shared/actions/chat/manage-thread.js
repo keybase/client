@@ -20,6 +20,13 @@ const inSearchSelector = (state: TypedState) => state.chat.get('inSearch')
 const inboxSelector = (state: TypedState) => state.chat.get('inbox')
 
 function* _startConversation(action: ChatGen.StartConversationPayload): Saga.SagaGenerator<any, any> {
+  if (!action.payload.forSearch) {
+    const inSearch = yield Saga.select((state: TypedState) => state.chat.get('inSearch'))
+    if (inSearch) {
+      yield Saga.put(ChatGen.createExitSearch({skipSelectPreviousConversation: true}))
+    }
+  }
+
   const users = uniq(action.payload.users)
   const temporary = action.payload.temporary || false
   const forceImmediate = action.payload.forceImmediate || false
@@ -41,7 +48,10 @@ function* _startConversation(action: ChatGen.StartConversationPayload): Saga.Sag
 
   if (forceImmediate && existing) {
     const newID = yield Saga.call(Shared.startNewConversation, existing.get('conversationIDKey'))
-    yield Saga.put(ChatGen.createSelectConversation({conversationIDKey: newID}))
+    if (!newID[0]) {
+      throw new Error('Unable to get new conversation ID')
+    }
+    yield Saga.put(ChatGen.createSelectConversation({conversationIDKey: newID[0]}))
   } else if (existing) {
     // Select existing conversations
     yield Saga.put(

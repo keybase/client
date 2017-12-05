@@ -51,7 +51,7 @@ func TestGregorHandler(t *testing.T) {
 	h = newGregorHandler(globals.NewContext(tc.G, &globals.ChatContext{}))
 	h.Init()
 	h.testingEvents = newTestingEvents()
-	require.Equal(t, "keybase service", h.HandlerName(), "wrong name")
+	require.Equal(t, "gregor", h.HandlerName(), "wrong name")
 
 	kbUID := user.User.GetUID()
 	gUID := gregor1.UID(kbUID.ToBytes())
@@ -435,9 +435,17 @@ func doServerSync(t *testing.T, h *gregorHandler, srv mockGregord) ([]gregor.InB
 		Ctime:    ctime,
 	})
 	require.NoError(t, err)
-	r, c, err := h.serverSync(context.TODO(), srv, h.gregorCli, &sres.Notification)
+	c, err := h.serverSync(context.TODO(), srv, h.gregorCli, &sres.Notification)
 	require.NoError(t, err)
-	return r, c
+	require.NotNil(t, h.testingEvents)
+	select {
+	case r := <-h.testingEvents.replayThreadCh:
+		require.NoError(t, r.err)
+		return r.replayed, c
+	case <-time.After(20 * time.Second):
+		require.Fail(t, "no replay event received")
+		return nil, nil
+	}
 }
 
 func TestSyncFresh(t *testing.T) {
@@ -535,6 +543,7 @@ func TestSyncSaveRestoreFresh(t *testing.T) {
 
 	// Create a new gregor handler, this will restore our saved state
 	h = newGregorHandler(globals.NewContext(tc.G, &globals.ChatContext{}))
+	h.testingEvents = newTestingEvents()
 	h.Init()
 
 	// Sync from the server
@@ -580,6 +589,7 @@ func TestSyncSaveRestoreNonFresh(t *testing.T) {
 
 	// Create a new gregor handler, this will restore our saved state
 	h = newGregorHandler(globals.NewContext(tc.G, nil))
+	h.testingEvents = newTestingEvents()
 	h.Init()
 
 	// Turn off fresh replay
@@ -644,7 +654,7 @@ func TestGregorBadgesIBM(t *testing.T) {
 
 	// Sync from the server
 	t.Logf("client sync")
-	_, _, err := h.serverSync(context.TODO(), server, h.gregorCli, nil)
+	_, err := h.serverSync(context.TODO(), server, h.gregorCli, nil)
 	require.NoError(t, err)
 	t.Logf("client sync complete")
 
@@ -661,7 +671,7 @@ func TestGregorBadgesIBM(t *testing.T) {
 	require.NoError(t, server.ConsumeMessage(context.TODO(), msg))
 
 	t.Logf("client sync")
-	_, _, err = h.serverSync(context.TODO(), server, h.gregorCli, nil)
+	_, err = h.serverSync(context.TODO(), server, h.gregorCli, nil)
 	require.NoError(t, err)
 	t.Logf("client sync complete")
 
@@ -695,7 +705,7 @@ func TestGregorTeamBadges(t *testing.T) {
 
 	// Sync from the server
 	t.Logf("client sync")
-	_, _, err := h.serverSync(context.TODO(), server, h.gregorCli, nil)
+	_, err := h.serverSync(context.TODO(), server, h.gregorCli, nil)
 	require.NoError(t, err)
 	t.Logf("client sync complete")
 

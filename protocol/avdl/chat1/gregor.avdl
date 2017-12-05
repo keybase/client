@@ -69,6 +69,9 @@ protocol gregor {
         // Counts only visible types of messages deserving of a badge, no EDITs
         int unreadMessages;
         map<keybase1.DeviceType, int> unreadNotifyingMessages;
+        // Compatibility field for gregor->client messages. Result of past botched protocol change.
+        @mpackkey("UnreadMessages") @jsonkey("UnreadMessages")
+        int compatUnreadMessages;
     }
 
     record TLFFinalizeUpdate {

@@ -38,13 +38,13 @@ const mapStateToProps = (state: TypedState, {routeProps, routeState}) => {
     .filter(Boolean)
     .sort((a, b) => a.name.localeCompare(b.name))
 
-  const previousPath = pathSelector(state)
+  const currentPath = pathSelector(state)
 
   return {
     channels,
     teamname: routeProps.get('teamname'),
     waitingForSave,
-    previousPath,
+    currentPath,
   }
 }
 
@@ -74,6 +74,10 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routePath, routePro
         navigateTo([chatTab, {selected: conversationIDKey, props: {previousPath: previousPath || null}}])
       )
     },
+    _onView: (conversationIDKey: string) => {
+      dispatch(ChatGen.createSetInboxFilter({filter: ''}))
+      dispatch(ChatGen.createSelectConversation({conversationIDKey, fromUser: true}))
+    },
   }
 }
 
@@ -94,8 +98,18 @@ export default compose(
       })),
     onSaveSubscriptions: props => () =>
       props._saveSubscriptions(props.oldChannelState, props.nextChannelState),
-    onPreview: ({previousPath, _onPreview}) => (conversationIDKey: string) =>
-      _onPreview(conversationIDKey, previousPath),
+    onClickChannel: ({channels, currentPath, _onPreview, _onView}) => (conversationIDKey: string) => {
+      const channel = channels.find(c => c.convID === conversationIDKey)
+      if (!channel) {
+        console.warn('Attempted to navigate to a conversation ID that was not found in the channel list')
+        return
+      }
+      if (channel.selected) {
+        _onView(conversationIDKey)
+      } else {
+        _onPreview(conversationIDKey, currentPath)
+      }
+    },
   }),
   lifecycle({
     componentWillReceiveProps: function(nextProps) {

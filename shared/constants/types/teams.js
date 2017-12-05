@@ -199,8 +199,8 @@ export type UpdateTopic = NoErrorTypedAction<
   {conversationIDKey: Types.ConversationIDKey, newTopic: string}
 >
 
-export type DeleteChannel = NoErrorTypedAction<
-  'teams:deleteChannel',
+export type DeleteChannelConfirmed = NoErrorTypedAction<
+  'teams:deleteChannelConfirmed',
   {conversationIDKey: Types.ConversationIDKey}
 >
 
@@ -238,6 +238,7 @@ export type _State = {
   teamNameToImplicitAdminUsernames: I.Map<Teamname, I.Set<string>>,
   teamNameToLoading: I.Map<Teamname, boolean>,
   teamNameToRequests: I.Map<Teamname, I.Set<RequestInfo>>,
+  teamNameToRole: I.Map<Teamname, TeamRoleType>,
   teamNameToTeamSettings: I.Map<Teamname, TeamSettings>,
   teamNameToPublicitySettings: I.Map<Teamname, _PublicitySettings>,
   teamnames: I.Set<Teamname>,

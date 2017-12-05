@@ -23,10 +23,9 @@ was_started_with_systemd() {
     [ -e "$startup_token" ] && [ "$(cat "$startup_token")" = "systemd" ]
 }
 
-# Currently defaults to false unless KEYBASE_SYSTEMD=1. This default will
-# change in the future.
+# Defaults to true unless KEYBASE_SYSTEMD=0.
 wants_systemd() {
-    [ "${KEYBASE_SYSTEMD:-0}" = "1" ] && systemd_running
+    [ "${KEYBASE_SYSTEMD:-1}" != "0" ] && systemd_running
 }
 
 write_startup_token() {

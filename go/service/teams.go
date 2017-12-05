@@ -67,22 +67,26 @@ func (h *TeamsHandler) TeamCreateWithSettings(ctx context.Context, arg keybase1.
 	if err != nil {
 		return res, err
 	}
+	if teamName.Depth() == 0 {
+		return res, fmt.Errorf("empty team name")
+	}
 	if !teamName.IsRootTeam() {
 		h.G().Log.CDebugf(ctx, "TeamCreate: creating a new subteam: %s", arg.Name)
-		if teamName.Depth() == 0 {
-			return res, fmt.Errorf("empty team name")
-		}
 		parentName, err := teamName.Parent()
 		if err != nil {
 			return res, err
 		}
-		if _, err = teams.CreateSubteam(ctx, h.G().ExternalG(), string(teamName.LastPart()), parentName); err != nil {
+		teamID, err := teams.CreateSubteam(ctx, h.G().ExternalG(), string(teamName.LastPart()), parentName)
+		if err != nil {
 			return res, err
 		}
+		res.TeamID = *teamID
 	} else {
-		if err := teams.CreateRootTeam(ctx, h.G().ExternalG(), teamName.String(), arg.Settings); err != nil {
+		teamID, err := teams.CreateRootTeam(ctx, h.G().ExternalG(), teamName.String(), arg.Settings)
+		if err != nil {
 			return res, err
 		}
+		res.TeamID = *teamID
 		res.CreatorAdded = true
 	}
 
@@ -328,7 +332,7 @@ func (h *TeamsHandler) GetTeamRootID(ctx context.Context, id keybase1.TeamID) (k
 func (h *TeamsHandler) LookupImplicitTeam(ctx context.Context, arg keybase1.LookupImplicitTeamArg) (res keybase1.LookupImplicitTeamRes, err error) {
 	ctx = libkb.WithLogTag(ctx, "TM")
 	defer h.G().CTraceTimed(ctx, fmt.Sprintf("LookupImplicitTeam(%s)", arg.Name), func() error { return err })()
-	res.TeamID, res.Name, res.DisplayName, err = teams.LookupImplicitTeam(ctx, h.G().ExternalG(), arg.Name,
+	res.TeamID, res.Name, res.DisplayName, res.TlfID, err = teams.LookupImplicitTeam(ctx, h.G().ExternalG(), arg.Name,
 		arg.Public)
 	return res, err
 }
@@ -340,7 +344,7 @@ func (h *TeamsHandler) LookupOrCreateImplicitTeam(ctx context.Context, arg keyba
 	if err := h.assertLoggedIn(ctx); err != nil {
 		return res, err
 	}
-	res.TeamID, res.Name, res.DisplayName, err = teams.LookupOrCreateImplicitTeam(ctx, h.G().ExternalG(),
+	res.TeamID, res.Name, res.DisplayName, res.TlfID, err = teams.LookupOrCreateImplicitTeam(ctx, h.G().ExternalG(),
 		arg.Name, arg.Public)
 	return res, err
 }
@@ -389,4 +393,18 @@ func (h *TeamsHandler) SetTeamMemberShowcase(ctx context.Context, arg keybase1.S
 
 	err = teams.SetTeamMemberShowcase(ctx, h.G().ExternalG(), arg.Name, arg.IsShowcased)
 	return err
+}
+
+func (h *TeamsHandler) CanUserPerform(ctx context.Context, arg keybase1.CanUserPerformArg) (ret bool, err error) {
+	ctx = libkb.WithLogTag(ctx, "TM")
+	defer h.G().CTraceTimed(ctx, fmt.Sprintf("CanUserPerform(%s, %v)", arg.Name, arg.Op), func() error { return err })()
+
+	return teams.CanUserPerform(ctx, h.G().ExternalG(), arg.Name, arg.Op)
+}
+
+func (h *TeamsHandler) TeamRotateKey(ctx context.Context, teamID keybase1.TeamID) (err error) {
+	ctx = libkb.WithLogTag(ctx, "TM")
+	defer h.G().CTraceTimed(ctx, fmt.Sprintf("TeamRotateKey(%v)", teamID), func() error { return err })()
+
+	return teams.RotateKey(ctx, h.G().ExternalG(), teamID)
 }

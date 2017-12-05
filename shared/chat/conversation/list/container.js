@@ -46,7 +46,8 @@ const getMessageKeysForSelectedConv = (state: TypedState) => {
   if (!conversationIDKey) {
     return List()
   }
-  return Constants.getConversationMessages(state, conversationIDKey)
+  const convMsgs = Constants.getConversationMessages(state, conversationIDKey)
+  return convMsgs.messages
 }
 
 const getDeletedIDsForSelectedConv = (state: TypedState) => {
@@ -112,10 +113,30 @@ const mapDispatchToProps = (dispatch: Dispatch): DispatchProps => ({
   onEditMessage: (message: Types.Message, body: string) => {
     dispatch(ChatGen.createEditMessage({message, text: new HiddenString(body)}))
   },
-  onMessageAction: (message: Types.Message) => {
-    dispatch(navigateAppend([{props: {message}, selected: 'messageAction'}]))
-  },
   onOpenInFileUI: (path: string) => dispatch(KBFSGen.createOpenInFileUI({path})),
+  onMessageAction: (
+    message: Types.Message,
+    localMessageState?: Types.LocalMessageState,
+    onShowEditor?: () => void,
+    onPopupWillClose?: () => void,
+    targetNode?: ?HTMLElement
+  ) => {
+    dispatch(
+      navigateAppend([
+        {
+          props: {
+            targetNode,
+            message,
+            localMessageState,
+            onShowEditor,
+            onPopupWillClose,
+            position: 'bottom left',
+          },
+          selected: 'messageAction',
+        },
+      ])
+    )
+  },
 })
 
 const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps): Props => {

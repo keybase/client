@@ -506,20 +506,14 @@ func TestMemberAddEmailBulk(t *testing.T) {
 }
 
 func TestMemberListInviteUsername(t *testing.T) {
-	tc, _, name := memberSetup(t)
+	tc, user, name := memberSetup(t)
 	defer tc.Cleanup()
 
 	username := "t_ellen"
 	res, err := AddMember(context.TODO(), tc.G, name, username, keybase1.TeamRole_READER)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if !res.Invited {
-		t.Fatal("res.Invited should be set")
-	}
-	if res.User.Username != username {
-		t.Errorf("AddMember result username %q does not match arg username %q", res.User.Username, username)
-	}
+	require.NoError(t, err)
+	require.True(t, res.Invited)
+	require.Equal(t, username, res.User.Username)
 
 	// List can return stale results for invites, so do a force load of the team to refresh the cache.
 	// In the real world, hopefully gregor would cause this.
@@ -529,20 +523,20 @@ func TestMemberListInviteUsername(t *testing.T) {
 	})
 
 	annotatedTeamList, err := List(context.TODO(), tc.G, keybase1.TeamListArg{UserAssertion: "", All: true})
-	if err != nil {
-		t.Fatal(err)
-	}
-	if len(annotatedTeamList.AnnotatedActiveInvites) != 1 {
-		t.Fatalf("active invites: %d, expected 1", len(annotatedTeamList.AnnotatedActiveInvites))
-	}
-	for _, invite := range annotatedTeamList.AnnotatedActiveInvites {
-		if invite.TeamName != name {
-			t.Errorf("invite team name: %q, expected %q", invite.TeamName, name)
+	require.NoError(t, err)
+	require.Equal(t, 0, len(annotatedTeamList.AnnotatedActiveInvites))
+	require.Equal(t, 2, len(annotatedTeamList.Teams))
+
+	var foundMember bool
+	for _, member := range annotatedTeamList.Teams {
+		require.Equal(t, name, member.FqName)
+		if member.Username == username {
+			foundMember = true
+		} else if member.Username != user.Username {
+			t.Fatalf("Unexpected member name %s", member.Username)
 		}
-		if string(invite.Name) != username {
-			t.Errorf("invite username: %q, expected %q", invite.Name, username)
-		}
 	}
+	require.True(t, foundMember)
 }
 
 func TestMemberAddAsImplicitAdmin(t *testing.T) {
@@ -1151,4 +1145,31 @@ func TestMemberInviteChangeRole(t *testing.T) {
 		t.Fatal(err)
 	}
 	assertInvite(tc, name, fqUID, "keybase", keybase1.TeamRole_ADMIN)
+}
+
+// Add user without puk to a team, then change the invite role to owner,
+// which should now work.
+func TestMemberInviteChangeRoleOwner(t *testing.T) {
+	tc, _, name := memberSetup(t)
+	defer tc.Cleanup()
+
+	username := "t_alice"
+	uid := keybase1.UID("295a7eea607af32040647123732bc819")
+	role := keybase1.TeamRole_READER
+
+	res, err := AddMember(context.TODO(), tc.G, name, username, role)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !res.Invited {
+		t.Fatal("res.Invited should be set")
+	}
+
+	fqUID := string(uid) + "%1"
+	assertInvite(tc, name, fqUID, "keybase", role)
+
+	if err := EditMember(context.TODO(), tc.G, name, username, keybase1.TeamRole_OWNER); err != nil {
+		t.Fatal(err)
+	}
+	assertInvite(tc, name, fqUID, "keybase", keybase1.TeamRole_OWNER)
 }

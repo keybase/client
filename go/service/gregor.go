@@ -96,13 +96,20 @@ func (h *gregorFirehoseHandler) PushOutOfBandMessages(m []gregor1.OutOfBandMessa
 	}
 }
 
+type testingReplayRes struct {
+	replayed []gregor.InBandMessage
+	err      error
+}
+
 type testingEvents struct {
 	broadcastSentCh chan error
+	replayThreadCh  chan testingReplayRes
 }
 
 func newTestingEvents() *testingEvents {
 	return &testingEvents{
 		broadcastSentCh: make(chan error),
+		replayThreadCh:  make(chan testingReplayRes, 10),
 	}
 }
 
@@ -124,6 +131,12 @@ func (c connectionAuthError) ShouldRetry() bool {
 
 func (c connectionAuthError) Error() string {
 	return fmt.Sprintf("connection auth error: msg: %s shouldRetry: %v", c.msg, c.shouldRetry)
+}
+
+type replayThreadArg struct {
+	cli gregor1.IncomingInterface
+	t   time.Time
+	ctx context.Context
 }
 
 type gregorHandler struct {
@@ -159,6 +172,7 @@ type gregorHandler struct {
 
 	shutdownCh  chan struct{}
 	broadcastCh chan gregor1.Message
+	replayCh    chan replayThreadArg
 
 	// Testing
 	testingEvents       *testingEvents
@@ -201,6 +215,7 @@ func newGregorHandler(g *globals.Context) *gregorHandler {
 		broadcastCh:       make(chan gregor1.Message, 10000),
 		forceSessionCheck: false,
 		connectHappened:   make(chan struct{}),
+		replayCh:          make(chan replayThreadArg, 10),
 	}
 	return gh
 }
@@ -218,6 +233,9 @@ func (g *gregorHandler) Init() {
 
 	// Start the app state monitor thread
 	go g.monitorAppState()
+
+	// Start replay thread
+	go g.syncReplayThread()
 }
 
 func (g *gregorHandler) monitorAppState() {
@@ -388,7 +406,7 @@ func (g *gregorHandler) Connect(uri *rpc.FMPURI) (err error) {
 }
 
 func (g *gregorHandler) HandlerName() string {
-	return "keybase service"
+	return "gregor"
 }
 
 // PushHandler adds a new ibm handler to our list. This is usually triggered
@@ -539,11 +557,28 @@ func (g *gregorHandler) IsConnected() bool {
 	return g.conn != nil && g.conn.IsConnected()
 }
 
+func (g *gregorHandler) syncReplayThread() {
+	for rarg := range g.replayCh {
+		var trr testingReplayRes
+		replayedMsgs, err := g.replayInBandMessages(rarg.ctx, rarg.cli, rarg.t, nil)
+		if err != nil {
+			g.Debug(rarg.ctx, "serverSync: replayThread: replay messages failed: %s", err)
+			trr.err = err
+		} else {
+			g.Debug(rarg.ctx, "serverSync: replayThread: replayed %d messages", len(replayedMsgs))
+			trr.replayed = replayedMsgs
+		}
+		if g.testingEvents != nil {
+			g.testingEvents.replayThreadCh <- trr
+		}
+	}
+}
+
 // serverSync is called from
 // gregord. This can happen either on initial startup, or after a reconnect. Needs
 // to be called with gregorHandler locked.
 func (g *gregorHandler) serverSync(ctx context.Context,
-	cli gregor1.IncomingInterface, gcli *grclient.Client, syncRes *chat1.SyncAllNotificationRes) ([]gregor.InBandMessage, []gregor.InBandMessage, error) {
+	cli gregor1.IncomingInterface, gcli *grclient.Client, syncRes *chat1.SyncAllNotificationRes) ([]gregor.InBandMessage, error) {
 
 	// Get time of the last message we synced (unless this is our first time syncing)
 	var t time.Time
@@ -561,18 +596,19 @@ func (g *gregorHandler) serverSync(ctx context.Context,
 	consumedMsgs, err := gcli.Sync(ctx, cli, syncRes)
 	if err != nil {
 		g.Debug(ctx, "serverSync: error syncing from the server, reason: %s", err)
-		return nil, nil, err
+		return nil, err
 	}
+	g.Debug(ctx, "serverSync: consumed %d messages", len(consumedMsgs))
 
-	// Replay in-band messages
-	replayedMsgs, err := g.replayInBandMessages(ctx, cli, t, nil)
-	if err != nil {
-		g.Errorf(ctx, "serverSync: replay messages failed: %s", err)
-		return nil, nil, err
+	// Schedule replay of in-band messages
+	g.replayCh <- replayThreadArg{
+		cli: cli,
+		t:   t,
+		ctx: chat.BackgroundContext(ctx, g.G()),
 	}
 
 	g.pushState(keybase1.PushReason_RECONNECTED)
-	return replayedMsgs, consumedMsgs, nil
+	return consumedMsgs, nil
 }
 
 func (g *gregorHandler) makeReconnectOobm() gregor1.Message {
@@ -653,6 +689,7 @@ func (g *gregorHandler) OnConnect(ctx context.Context, conn *rpc.Connection,
 	var identBreaks []keybase1.TLFIdentifyFailure
 	ctx = chat.Context(ctx, g.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, &identBreaks,
 		chat.NewIdentifyNotifier(g.G()))
+	g.chatLog.Debug(ctx, "OnConnect begin")
 	syncAllRes, err := chatCli.SyncAll(ctx, chat1.SyncAllArg{
 		Uid:       uid,
 		DeviceID:  gcli.Device.(gregor1.DeviceID),
@@ -684,13 +721,9 @@ func (g *gregorHandler) OnConnect(ctx context.Context, conn *rpc.Connection,
 	}
 
 	// Sync down events since we have been dead
-	replayedMsgs, consumedMsgs, err := g.serverSync(ctx, gregor1.IncomingClient{Cli: timeoutCli}, gcli,
-		&syncAllRes.Notification)
-	if err != nil {
-		g.chatLog.Debug(ctx, "sync failure: %s", err.Error())
-	} else {
-		g.chatLog.Debug(ctx, "sync success: replayed: %d consumed: %d", len(replayedMsgs),
-			len(consumedMsgs))
+	if _, err := g.serverSync(ctx, gregor1.IncomingClient{Cli: timeoutCli}, gcli,
+		&syncAllRes.Notification); err != nil {
+		g.chatLog.Debug(ctx, "serverSync: failure: %s", err.Error())
 	}
 
 	// Sync badge state in the background
@@ -717,6 +750,7 @@ func (g *gregorHandler) OnConnect(ctx context.Context, conn *rpc.Connection,
 	g.firstConnect = false
 	// On successful login we can reset this guy to not force a check
 	g.forceSessionCheck = false
+	g.chatLog.Debug(ctx, "OnConnect complete")
 
 	return nil
 }
@@ -1534,7 +1568,7 @@ func (g *gregorHandler) DismissCategory(ctx context.Context, category gregor1.Ca
 			}},
 	}
 
-	incomingClient := gregor1.IncomingClient{Cli: g.cli}
+	incomingClient := g.GetIncomingClient()
 	err = incomingClient.ConsumeMessage(ctx, *dismissal)
 	return err
 }

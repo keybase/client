@@ -27,12 +27,30 @@
     }
   ],
   "messages": {
-    "teamChanged": {
+    "teamChangedByID": {
       "request": [
         {
           "name": "teamID",
           "type": "TeamID"
         },
+        {
+          "name": "latestSeqno",
+          "type": "Seqno"
+        },
+        {
+          "name": "implicitTeam",
+          "type": "boolean"
+        },
+        {
+          "name": "changes",
+          "type": "TeamChangeSet"
+        }
+      ],
+      "response": null,
+      "oneway": true
+    },
+    "teamChangedByName": {
+      "request": [
         {
           "name": "teamName",
           "type": "string"
@@ -40,6 +58,10 @@
         {
           "name": "latestSeqno",
           "type": "Seqno"
+        },
+        {
+          "name": "implicitTeam",
+          "type": "boolean"
         },
         {
           "name": "changes",

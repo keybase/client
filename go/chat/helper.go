@@ -781,7 +781,7 @@ func (n *newConversationHelper) create(ctx context.Context) (res chat1.Conversat
 
 		// couldn't find implicit team, so make one
 		n.Debug(ctx, "making new implicit team %q", n.tlfName)
-		_, _, _, err = teams.LookupOrCreateImplicitTeam(ctx, n.G().ExternalG(), n.tlfName, isPublic)
+		_, _, _, _, err = teams.LookupOrCreateImplicitTeam(ctx, n.G().ExternalG(), n.tlfName, isPublic)
 		if err != nil {
 			return res, rl, err
 		}

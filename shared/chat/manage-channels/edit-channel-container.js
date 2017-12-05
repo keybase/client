@@ -5,9 +5,7 @@ import * as Constants from '../../constants/teams'
 import {type ConversationIDKey} from '../../constants/types/chat'
 import EditChannel from './edit-channel'
 import {connect, type TypedState} from '../../util/container'
-import {updateChannelName, updateTopic, deleteChannel} from '../../actions/teams/creators'
-import {navigateTo} from '../../actions/route-tree'
-import {teamsTab} from '../../constants/tabs'
+import {updateChannelName, updateTopic, deleteChannelConfirmed} from '../../actions/teams/creators'
 import {anyWaiting} from '../../constants/waiting'
 
 const mapStateToProps = (state: TypedState, {navigateUp, routePath, routeProps}) => {
@@ -21,7 +19,7 @@ const mapStateToProps = (state: TypedState, {navigateUp, routePath, routeProps})
   )
   const channelName = Constants.getChannelNameFromConvID(state, conversationIDKey) || ''
   const topic = Constants.getTopicFromConvID(state, conversationIDKey) || ''
-  const yourRole = Constants.getYourRoleFromConvID(state, conversationIDKey) || 'reader'
+  const yourRole = Constants.getRole(state, teamname) || 'reader'
   const canDelete = (yourRole && (Constants.isAdmin(yourRole) || Constants.isOwner(yourRole))) || false
   return {
     conversationIDKey,
@@ -41,9 +39,9 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routePath, routePro
     _updateChannelName: (newChannelName: string) =>
       dispatch(updateChannelName(conversationIDKey, newChannelName)),
     _updateTopic: (newTopic: string) => dispatch(updateTopic(conversationIDKey, newTopic)),
-    _onDelete: teamname => {
-      dispatch(deleteChannel(conversationIDKey))
-      dispatch(navigateTo([teamsTab, {props: {teamname}, selected: 'team'}], []))
+    onConfirmedDelete: () => {
+      dispatch(deleteChannelConfirmed(conversationIDKey))
+      dispatch(navigateUp())
     },
   }
 }
@@ -55,10 +53,8 @@ const mergeProps = (stateProps, dispatchProps, {routeState}) => {
     channelName: stateProps.channelName,
     topic: stateProps.topic,
     onCancel: dispatchProps.onCancel,
-    onDelete: () => dispatchProps._onDelete(stateProps.teamname),
-    showDelete: false,
-    // TODO enable this after we get a better popup story
-    // showDelete: stateProps.canDelete,
+    onConfirmedDelete: dispatchProps.onConfirmedDelete,
+    showDelete: stateProps.canDelete,
     deleteRenameDisabled,
     onSave: (newChannelName: string, newTopic: string) => {
       if (!deleteRenameDisabled) {

@@ -420,6 +420,10 @@
           "name": "readerKeyMasks"
         },
         {
+          "type": "Seqno",
+          "name": "latestSeqnoHint"
+        },
+        {
           "type": "Time",
           "name": "cachedAt"
         }
@@ -540,6 +544,10 @@
         {
           "type": "string",
           "name": "teamName"
+        },
+        {
+          "type": "boolean",
+          "name": "userActive"
         }
       ]
     },
@@ -654,6 +662,10 @@
         {
           "type": "TeamRole",
           "name": "openTeamJoinAs"
+        },
+        {
+          "type": "TLFID",
+          "name": "tlfID"
         }
       ]
     },
@@ -799,6 +811,11 @@
           "type": "Seqno",
           "name": "latestSeqno",
           "jsonkey": "latest_seqno"
+        },
+        {
+          "type": "boolean",
+          "name": "implicitTeam",
+          "jsonkey": "implicit_team"
         }
       ]
     },
@@ -1223,6 +1240,15 @@
           "type": "int",
           "name": "memberCount",
           "jsonkey": "member_count"
+        },
+        {
+          "type": "Seqno",
+          "name": "eldestSeqno",
+          "jsonkey": "member_eldest_seqno"
+        },
+        {
+          "type": "boolean",
+          "name": "active"
         }
       ]
     },
@@ -1317,6 +1343,10 @@
       "type": "record",
       "name": "TeamCreateResult",
       "fields": [
+        {
+          "type": "TeamID",
+          "name": "teamID"
+        },
         {
           "type": "boolean",
           "name": "chatSent"
@@ -1498,7 +1528,26 @@
         {
           "type": "ImplicitTeamDisplayName",
           "name": "displayName"
+        },
+        {
+          "type": "TLFID",
+          "name": "tlfID"
         }
+      ]
+    },
+    {
+      "type": "enum",
+      "name": "TeamOperation",
+      "symbols": [
+        "MANAGE_MEMBERS_0",
+        "MANAGE_SUBTEAMS_1",
+        "CREATE_CHANNEL_2",
+        "DELETE_CHANNEL_3",
+        "RENAME_CHANNEL_4",
+        "EDIT_CHANNEL_DESCRIPTION_5",
+        "SET_TEAM_SHOWCASE_6",
+        "SET_MEMBER_SHOWCASE_7",
+        "CHANGE_OPEN_TEAM_8"
       ]
     }
   ],
@@ -2025,6 +2074,28 @@
         {
           "name": "isShowcased",
           "type": "boolean"
+        }
+      ],
+      "response": null
+    },
+    "canUserPerform": {
+      "request": [
+        {
+          "name": "name",
+          "type": "string"
+        },
+        {
+          "name": "op",
+          "type": "TeamOperation"
+        }
+      ],
+      "response": "bool"
+    },
+    "teamRotateKey": {
+      "request": [
+        {
+          "name": "teamID",
+          "type": "TeamID"
         }
       ],
       "response": null

@@ -42,36 +42,19 @@ func HandleRotateRequest(ctx context.Context, g *libkb.GlobalContext, teamID key
 	})
 }
 
-func reloadLocal(ctx context.Context, g *libkb.GlobalContext, row keybase1.TeamChangeRow, change keybase1.TeamChangeSet) (*Team, error) {
-	forceRepoll := true
-	if change.Renamed {
-		// This force reloads the team as a side effect
-		err := g.GetTeamLoader().NotifyTeamRename(ctx, row.Id, row.Name)
-		if err != nil {
-			return nil, err
-		}
-		forceRepoll = false
-	}
-
-	team, err := Load(ctx, g, keybase1.LoadTeamArg{
-		ID:          row.Id,
-		Public:      row.Id.IsPublic(),
-		ForceRepoll: forceRepoll,
-	})
-	return team, err
-}
-
 func handleChangeSingle(ctx context.Context, g *libkb.GlobalContext, row keybase1.TeamChangeRow, change keybase1.TeamChangeSet) (err error) {
 	change.KeyRotated = row.KeyRotated
 	change.MembershipChanged = row.MembershipChanged
 
 	defer g.CTrace(ctx, fmt.Sprintf("team.handleChangeSingle(%+v, %+v)", row, change), func() error { return err })()
 
-	team, err := reloadLocal(ctx, g, row, change)
+	err = g.GetTeamLoader().HintLatestSeqno(ctx, row.Id, row.LatestSeqno)
 	if err != nil {
-		return err
+		g.Log.CWarningf(ctx, "error in HintLatestSeqno: %v", err)
+		return nil
 	}
-	g.NotifyRouter.HandleTeamChanged(ctx, team.ID, team.Name().String(), team.chain().GetLatestSeqno(), change)
+	// Send teamID and teamName in two separate notifications. It is server-trust that they are the same team.
+	g.NotifyRouter.HandleTeamChangedByBothKeys(ctx, row.Id, row.Name, row.LatestSeqno, row.ImplicitTeam, change)
 	return nil
 }
 

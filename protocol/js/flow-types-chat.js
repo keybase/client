@@ -992,7 +992,7 @@ export type OutboxID = Bytes
 
 export type OutboxInfo = {|prev: MessageID,composeTime: Gregor1.Time,|}
 
-export type OutboxRecord = {|state: OutboxState,outboxID: OutboxID,convID: ConversationID,ctime: Gregor1.Time,Msg: MessagePlaintext,identifyBehavior: Keybase1.TLFIdentifyBehavior,|}
+export type OutboxRecord = {|state: OutboxState,outboxID: OutboxID,convID: ConversationID,ctime: Gregor1.Time,Msg: MessagePlaintext,identifyBehavior: Keybase1.TLFIdentifyBehavior,ordinal: Int,|}
 
 export type OutboxState ={ state: 0, sending: ?Int } | { state: 1, error: ?OutboxStateError }
 
@@ -1169,7 +1169,7 @@ export type TyperInfo = {|uid: Keybase1.UID,username: String,deviceID: Keybase1.
 
 export type UIMessage ={ state: 1, valid: ?UIMessageValid } | { state: 2, error: ?MessageUnboxedError } | { state: 3, outbox: ?UIMessageOutbox } | { state: 4, placeholder: ?MessageUnboxedPlaceholder }
 
-export type UIMessageOutbox = {|state: OutboxState,outboxID: String,messageType: MessageType,body: String,ctime: Gregor1.Time,|}
+export type UIMessageOutbox = {|state: OutboxState,outboxID: String,messageType: MessageType,body: String,ctime: Gregor1.Time,ordinal: Double,|}
 
 export type UIMessageValid = {|messageID: MessageID,ctime: Gregor1.Time,outboxID?: ?String,messageBody: MessageBody,senderUsername: String,senderDeviceName: String,senderDeviceType: String,superseded: Boolean,senderDeviceRevokedAt?: ?Gregor1.Time,atMentions?: ?Array<String>,channelMention: ChannelMention,channelNameMentions?: ?Array<String>,|}
 
@@ -1179,7 +1179,7 @@ export type UIPagination = {|next: String,previous: String,num: Int,last: Boolea
 
 export type UnreadFirstNumLimit = {|NumRead: Int,AtLeast: Int,AtMost: Int,|}
 
-export type UnreadUpdate = {|convID: ConversationID,unreadMessages: Int,unreadNotifyingMessages: {[key: string]: Int},|}
+export type UnreadUpdate = {|convID: ConversationID,unreadMessages: Int,unreadNotifyingMessages: {[key: string]: Int},compatUnreadMessages: Int,|}
 
 export type UnreadUpdateFull = {|ignore: Boolean,inboxVers: InboxVers,inboxSyncStatus: SyncInboxResType,updates?: ?Array<UnreadUpdate>,|}
 

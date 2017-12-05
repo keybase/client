@@ -36,7 +36,39 @@ const Row = ({deviceID, name, type, onSelect}) => {
   )
 }
 
-const SelectOtherDevice = ({onBack, devices, onWont, onSelect, canSelectNoDevice}: Props) => (
+const ResetOption = ({showResetLink, setShowResetLink, onReset}) => (
+  <Box>
+    <ClickableBox style={stylesRow} className="deviceRow" onClick={() => setShowResetLink(true)}>
+      <Box style={stylesIconName}>
+        <Box style={stylesIconContainer}>
+          <Icon style={{...stylesIcon, fontSize: 40, color: globalColors.black_40}} type="iconfont-close" />
+        </Box>
+        <Box style={{...globalStyles.flexBoxColumn, flex: 1}}>
+          <Text type="Body">
+            Uh oh - I don't have any of these devices anymore, or I've uninstalled Keybase from all of them.
+          </Text>
+        </Box>
+      </Box>
+    </ClickableBox>
+    {showResetLink &&
+      <Box style={{...stylesRow, justifyContent: 'center', borderBottomWidth: 0}}>
+        <Box style={{...stylesIconName, justifyContent: 'center'}}>
+          <Button type="Danger" label="RESET MY ACCOUNT" onClick={onReset} />
+        </Box>
+      </Box>}
+  </Box>
+)
+
+const SelectOtherDevice = ({
+  onBack,
+  devices,
+  onWont,
+  onSelect,
+  canSelectNoDevice,
+  showResetLink,
+  setShowResetLink,
+  onReset,
+}: Props) => (
   <Container style={stylesContainer} onBack={onBack} outerStyle={{paddingLeft: 0, paddingRight: 0}}>
     <Box style={globalStyles.flexBoxColumn}>
       <Text type="Header" style={stylesInstructions}>Please prove you're you</Text>
@@ -46,6 +78,7 @@ const SelectOtherDevice = ({onBack, devices, onWont, onSelect, canSelectNoDevice
     </Box>
     <NativeScrollView style={stylesDevicesContainer}>
       {devices.map(d => <Row onSelect={onSelect} {...d} key={d.deviceID} />)}
+      <ResetOption showResetLink={showResetLink} setShowResetLink={setShowResetLink} onReset={onReset} />
     </NativeScrollView>
     {canSelectNoDevice &&
       <Text style={stylesWont} type="BodySmallSecondaryLink" onClick={onWont}>
