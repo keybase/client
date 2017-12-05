@@ -43,7 +43,7 @@ const TeamInfo = (props: Props) => {
         <Text style={{color: globalColors.black_20, fontSize: 11}} type="Body">{props.description}</Text>
       </Box>
 
-      {props.teamJoinError && <Text type="Body">Error: {props.teamJoinError}</Text>}
+      {props.teamJoinError && <Text style={{padding: globalMargins.small}} type="BodySmall">Error: {props.teamJoinError}</Text>}
 
       {!props.youAreInTeam &&
         <Box style={{...globalStyles.flexBoxRow, marginTop: globalMargins.tiny}}>
@@ -67,7 +67,7 @@ const TeamInfoWrapper = (props: Props) => {
 
   return isMobile
     ? <PopupMenu onHidden={props.onHidden} style={{overflow: 'visible'}} header={header} items={items} />
-    : <ModalLessPopupMenu style={{overflow: 'visible', width: 220}} header={header} items={items} />
+    : <ModalLessPopupMenu style={{...props.style, overflow: 'visible', width: 220}} header={header} items={items} />
 }
 
 export default TeamInfoWrapper

@@ -104,10 +104,6 @@ const mapDispatchToProps = (dispatch: any, ownProps: OwnProps) => ({
     dispatch(ProfileGen.createOnClickFollowers({username, openWebsite: true})),
   onClickFollowing: (username: string) =>
     dispatch(ProfileGen.createOnClickFollowing({username, openWebsite: true})),
-  onShowTeam: (teamname: string) => {
-    console.warn('in onShowTeam', teamname)
-    dispatch(navigateTo([teamsTab, {props: {teamname}, selected: 'team'}]))
-  },
   onClose: () => dispatch(Creators.onClose(ownProps.username)),
   onFollow: () => dispatch(Creators.onFollow(ownProps.username)),
   onIgnore: () => dispatch(Creators.onIgnore(ownProps.username)),

@@ -2,7 +2,9 @@
 import {type TypedState} from '../constants/reducer'
 export function selector(username: string): (store: TypedState) => ?Object {
   return store => {
-    if (store.tracker.userTrackers[username] || store.tracker.nonUserTrackers[username]) {
+    console.log('in selector', store.chat)    
+    console.log('in selector 2', store.chat.teamJoinError)
+    if (store.chat && store.tracker.userTrackers[username] || store.tracker.nonUserTrackers[username]) {
       return {
         chat: {
           teamJoinError: store.chat.teamJoinError,

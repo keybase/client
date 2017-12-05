@@ -337,10 +337,10 @@ class ProfileRender extends PureComponent<Props, State> {
                     <Box style={globalStyles.flexBoxRow}>
                       <Text type="BodySmallSemibold">Teams</Text>
                     </Box>
-                    {this.props.userInfo.showcasedTeams.map(teamname => (
+                    {this.props.userInfo.showcasedTeams.map(team => (
                       <Box
-                        key={teamname}
-                        onClick={event => this.props.onClickShowcased(event, teamname)}
+                        key={team.fqName}
+                        onClick={event => this.props.onClickShowcased(event, team.fqName)}
                         style={{
                           ...globalStyles.flexBoxRow,
                           alignItems: 'flex-start',
@@ -359,7 +359,7 @@ class ProfileRender extends PureComponent<Props, State> {
                             width: 24,
                           }}
                         >
-                          <Avatar teamname={teamname} size={24} />
+                          <Avatar teamname={team.fqName} size={24} />
                         </Box>
                         <Box
                           style={{
@@ -371,7 +371,7 @@ class ProfileRender extends PureComponent<Props, State> {
                           }}
                         >
                           <Text style={{color: globalColors.black_75}} type="BodySemiboldLink">
-                            {teamname}
+                            {team.fqName}
                           </Text>
                         </Box>
                       </Box>

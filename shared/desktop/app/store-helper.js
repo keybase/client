@@ -43,12 +43,16 @@ export default function(mainWindow: any) {
   ipcMain.on('stateChange', (event, incomingStore) => {
     store = incomingStore
 
+    console.log('received stateChange')
     let dead = []
     subscribeStoreSubscribers.forEach((sub, idx) => {
+      console.log('in subscribeStoreSubscribers', sub)
       try {
+        console.log('in stateChange event')
         const newStore = sub.selector(store)
 
         if (newStore) {
+          console.log('sending stateChange')
           sub.sender.send('stateChange', newStore)
         }
       } catch (_) {

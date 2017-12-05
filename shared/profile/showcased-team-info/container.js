@@ -12,15 +12,19 @@ import {connect, compose, lifecycle, type TypedState} from '../../util/container
 const mapStateToProps = (state: TypedState, ownProps) => {
   console.warn('ownProps are', ownProps, state)
   const teamname = ownProps.teamname || ownProps.routeProps.get('teamname')
-  console.warn('showcased teamname is', teamname)
+  const description = ownProps.description !== null ? ownProps.description : ownProps.routeProps.get('description')
+  const memberCount = ownProps.memberCount || ownProps.routeProps.get('memberCount')
+  const openTeam = ownProps.openTeam !== null ? ownProps.openTeam : ownProps.routeProps.get('openTeam')
+  const youAreInTeam = false //state.entities ? !!state.entities.getIn(['teams', 'teamnames', teamname]) : false
+  console.warn('showcased teamname is', teamname, state.chat.teamJoinError)
   return {
-    description: 'foo', //state.entities.getIn(['teams', 'teamNameToPublicitySettings', teamname, 'description'], ''),
+    description,
     teamJoinError: state.chat.teamJoinError,
     teamJoinSuccess: state.chat.teamJoinSuccess,
-    memberCount: 2,//state.entities.getIn(['teams', 'teammembercounts', teamname], 0),
-    openTeam: true,//state.entities.getIn(['teams', 'teamNameToTeamSettings', teamname, 'open'], false),
+    memberCount,
+    openTeam,
     teamname,
-    youAreInTeam: false,//!!state.entities.getIn(['teams', 'teamnames', teamname]),
+    youAreInTeam,
   }
 }
 
@@ -40,12 +44,10 @@ export default compose(
   connect(mapStateToProps, mapDispatchToProps),
   lifecycle({
     componentWillMount: function() {
+      console.warn('mounting component for', this.props.teamname)
       this.props._onSetTeamJoinError('')
       this.props._onSetTeamJoinSuccess(false)
-      // Member count comes from loading teams in general
       this.props._loadTeams()
-      console.warn('teamname is', this.props.teamname)
-      this.props.youAreInTeam && this.props._loadTeam(this.props.teamname)
     },
   })
 )(ShowcasedTeamInfo)

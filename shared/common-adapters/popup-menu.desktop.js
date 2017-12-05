@@ -18,7 +18,7 @@ class ModalLessPopupMenu extends Component<Props> {
     .menu-hover-danger:hover .subtitle { color: ${globalColors.white}; }
     `
 
-    console.warn('in modallesspopup render')
+    console.warn('in modallesspopup render', this.props)
     return (
       <Box>
         <style>{realCSS}</style>

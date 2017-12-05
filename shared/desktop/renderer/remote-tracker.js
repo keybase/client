@@ -20,10 +20,14 @@ const MAX_TRACKERS = 5
 
 class RemoteTracker extends Component<Props> {
   shouldComponentUpdate(nextProps, nextState) {
-    return nextProps.trackers !== this.props.trackers
+    console.log('in shouldComponentUpdate', nextProps)
+    const should = (nextProps.trackers !== this.props.trackers || nextProps.teamJoinSuccess !== this.props.teamJoinSuccess || nextProps.teamJoinError !== this.props.teamJoinError)
+    console.warn('should is', should)
+    return should
   }
 
   render() {
+    console.warn('remote-tracker props are', this.props)
     const {trackers, nonUserTrackers} = this.props
     const windowsOpts = {height: 470, width: 320}
 

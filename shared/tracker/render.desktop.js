@@ -2,6 +2,7 @@
 import React, {PureComponent} from 'react'
 import Header from './header.render.desktop'
 import Action, {calcFooterHeight} from './action.render.desktop'
+import {ModalPositionRelative} from '../common-adapters/relative-popup-hoc.desktop'
 import {Box, Avatar, Text, UserProofs, UserBio} from '../common-adapters'
 import {globalColors, globalMargins, globalStyles} from '../styles'
 import NonUser from './non-user'
@@ -51,6 +52,7 @@ export default class TrackerRender extends PureComponent<RenderProps> {
     console.warn('showTeamInfo is', this.props.showTeamInfo)
     console.warn('showTeam is', this.props.showTeam)
     console.warn(this.props.showTeam === this.props.teamname)
+    const ModalPopupComponent = ModalPositionRelative(ShowcasedTeamInfo)
     return (
       <div style={styles.container}>
         <Header
@@ -86,14 +88,17 @@ export default class TrackerRender extends PureComponent<RenderProps> {
                 paddingTop: globalMargins.tiny,
               }}
             >
-              {this.props.userInfo.showcasedTeams.map(teamname => (
+              {this.props.userInfo.showcasedTeams.map(team => {
+                console.warn('team is', team)
+                return (
                 <Box
-                  key={teamname}
+                  key={team.fqName}
                   onClick={event => {
                     console.warn('in onClick')
                     const node = event.target instanceof window.HTMLElement ? event.target : null
                     console.warn(node)
-                    this.props.onSetShowTeam(teamname)
+                    this.props.onSetShowTeamNode(event.target)
+                    this.props.onSetShowTeam(team.fqName)
                   }}
                   style={{
                     ...globalStyles.flexBoxRow,
@@ -102,10 +107,12 @@ export default class TrackerRender extends PureComponent<RenderProps> {
                     minHeight: 24,
                   }}
                 >
-                  {(this.props.showTeam === teamname) && <Box>
-                    <Text type='Body'>foo</Text>
-                    <ShowcasedTeamInfo teamname={teamname} />
-                  </Box>}
+                  {(this.props.showTeam === team.fqName) && <Box key={team.fqName + 'popup'} style={{zIndex: 50}}>
+                      <ModalPopupComponent description={team.description} memberCount={2} openTeam={team.open} publicAdmins={[]} targetNode={this.props.showTeamNode} position="top left" style={{zIndex: 50}} popupNode={<Box />} onClosePopup={() => {
+                    this.props.onSetShowTeam(false)
+                  }} teamname={team.fqName} />
+                  </Box>
+                  }
                   <Box
                     style={{
                       ...globalStyles.flexBoxRow,
@@ -117,7 +124,7 @@ export default class TrackerRender extends PureComponent<RenderProps> {
                       width: 16,
                     }}
                   >
-                    <Avatar teamname={teamname} size={16} />
+                    <Avatar teamname={team.fqName} size={16} />
                   </Box>
                   <Box
                     style={{
@@ -129,11 +136,11 @@ export default class TrackerRender extends PureComponent<RenderProps> {
                     }}
                   >
                     <Text style={{color: globalColors.black_75}} type="BodySmallSemiboldInlineLink">
-                      {teamname}
+                      {team.fqName}
                     </Text>
                   </Box>
                 </Box>
-              ))}
+              )})}
             </Box>}
           <UserProofs
             type="proofs"

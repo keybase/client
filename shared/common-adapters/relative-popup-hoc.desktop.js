@@ -189,7 +189,7 @@ type ModalPositionRelativeProps<PP> = {
 function ModalPositionRelative<PP>(
   WrappedComponent: React.ComponentType<PP>
 ): React.ComponentType<ModalPositionRelativeProps<PP>> {
-  class ModalPositionRelative extends React.Component<ModalPositionRelativeProps<PP>, {style: {}}> {
+  class ModalPositionRelativeClass extends React.Component<ModalPositionRelativeProps<PP>, {style: {}}> {
     popupNode: ?HTMLElement
     state: {style: {}}
     constructor() {
@@ -201,15 +201,14 @@ function ModalPositionRelative<PP>(
       if (!targetNode) return
       const popupNode = this.popupNode
       if (!(targetNode instanceof HTMLElement) || !(popupNode instanceof HTMLElement)) {
-        console.error('null nodes for popup')
         return
       }
 
-      const style = computePopupStyle(
+      const style = {...computePopupStyle(
         this.props.position,
         targetNode.getBoundingClientRect(),
         popupNode.getBoundingClientRect()
-      )
+      ), ...this.props.style}
 
       this.setState({style})
     }
@@ -263,7 +262,7 @@ function ModalPositionRelative<PP>(
     }
   }
 
-  return ModalPositionRelative
+  return ModalPositionRelativeClass
 }
 
 type RelativePopupProps<PP: {}> = {
@@ -290,11 +289,11 @@ function RelativePopupHoc<PP: {}>(
     position: routeProps.get('position'),
   }))((props: RelativePopupProps<PP> & {onClosePopup: () => void}) => {
     // $FlowIssue confusing error message
-    return <ModalPopupComponent {...(props: RelativePopupProps<PP>)} onClosePopup={props.onClosePopup} />
+    return <ModalPopupComponent {...(props: RelativePopurelpProps<PP>)} onClosePopup={props.onClosePopup} />
   })
 
   return C
 }
 
-export {DOMNodeFinder}
+export {DOMNodeFinder, ModalPositionRelative}
 export default RelativePopupHoc
