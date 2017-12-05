@@ -931,6 +931,10 @@ func (md *MDServerRemote) CheckForRekeys(ctx context.Context) <-chan error {
 		return c
 	}
 
+	// This is likely called in response to a service event from
+	// keybase_service_base. So attach it with FireNow.
+	ctx = rpc.WithFireNow(ctx)
+
 	time.AfterFunc(5*time.Second, func() {
 		md.log.CInfof(ctx, "CheckForRekeys: checking for rekeys")
 		select {
