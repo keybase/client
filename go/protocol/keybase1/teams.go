@@ -1900,6 +1900,11 @@ type TeamListRequestsArg struct {
 	SessionID int `codec:"sessionID" json:"sessionID"`
 }
 
+type TeamListMyAccessRequestsArg struct {
+	SessionID int     `codec:"sessionID" json:"sessionID"`
+	TeamName  *string `codec:"teamName,omitempty" json:"teamName,omitempty"`
+}
+
 type TeamIgnoreRequestArg struct {
 	SessionID int    `codec:"sessionID" json:"sessionID"`
 	Name      string `codec:"name" json:"name"`
@@ -2009,6 +2014,7 @@ type TeamsInterface interface {
 	TeamRequestAccess(context.Context, TeamRequestAccessArg) (TeamRequestAccessResult, error)
 	TeamAcceptInviteOrRequestAccess(context.Context, TeamAcceptInviteOrRequestAccessArg) error
 	TeamListRequests(context.Context, int) ([]TeamJoinRequest, error)
+	TeamListMyAccessRequests(context.Context, TeamListMyAccessRequestsArg) ([]TeamName, error)
 	TeamIgnoreRequest(context.Context, TeamIgnoreRequestArg) error
 	TeamTree(context.Context, TeamTreeArg) (TeamTreeResult, error)
 	TeamDelete(context.Context, TeamDeleteArg) error
@@ -2287,6 +2293,22 @@ func TeamsProtocol(i TeamsInterface) rpc.Protocol {
 						return
 					}
 					ret, err = i.TeamListRequests(ctx, (*typedArgs)[0].SessionID)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"teamListMyAccessRequests": {
+				MakeArg: func() interface{} {
+					ret := make([]TeamListMyAccessRequestsArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]TeamListMyAccessRequestsArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]TeamListMyAccessRequestsArg)(nil), args)
+						return
+					}
+					ret, err = i.TeamListMyAccessRequests(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -2649,6 +2671,11 @@ func (c TeamsClient) TeamAcceptInviteOrRequestAccess(ctx context.Context, __arg 
 func (c TeamsClient) TeamListRequests(ctx context.Context, sessionID int) (res []TeamJoinRequest, err error) {
 	__arg := TeamListRequestsArg{SessionID: sessionID}
 	err = c.Cli.Call(ctx, "keybase.1.teams.teamListRequests", []interface{}{__arg}, &res)
+	return
+}
+
+func (c TeamsClient) TeamListMyAccessRequests(ctx context.Context, __arg TeamListMyAccessRequestsArg) (res []TeamName, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.teams.teamListMyAccessRequests", []interface{}{__arg}, &res)
 	return
 }
 

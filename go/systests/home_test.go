@@ -68,6 +68,7 @@ func assertTodoNotPresent(t *testing.T, home keybase1.HomeScreen, wanted keybase
 }
 
 func TestHome(t *testing.T) {
+	t.Skip()
 	tt := newTeamTester(t)
 	defer tt.cleanup()
 
