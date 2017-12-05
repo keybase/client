@@ -50,9 +50,13 @@ const (
 	// has been finalized, which isn't allowed.
 	StatusCodeServerErrorCannotReadFinalizedTLF = 2812
 	// StatusCodeServerErrorLockConflict is the error code returned by
-	// a MD write operation to indicate that a lockID that client required the
-	// write to be contingent on is not held at the time server tries to commit
-	// the MD, and as a result the MD is not written.
+	// a MD write operation to indicate a lock conflict has happened and the MD
+	// has not been written. The lock conflict could be due to:
+	//   1) a lockID that client required the write to be contingent on is not
+	//      held at the time server tries to commit the MD, or
+	//   2) a implicit team migration lock is held on server, and the MD that
+	//      the client tried to write was either a rekey MD update or a MDv2
+	//      update, and was blocked by server.
 	StatusCodeServerErrorLockConflict = 2813
 	// StatusCodeServerErrorClassicTLFDoesNotExist is the error code returned by a
 	// MD get operation to indicate that a classic TLF is not found, and client
