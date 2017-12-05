@@ -2419,7 +2419,7 @@ func (j *tlfJournal) finishSingleOp(ctx context.Context,
 		if err != nil {
 			return err
 		}
-		_, noLock := j.lastFlushErr.(kbfsmd.ServerErrorRequiredLockIsNotHeld)
+		_, noLock := j.lastFlushErr.(kbfsmd.ServerErrorLockConflict)
 		if noLock {
 			return j.lastFlushErr
 		}

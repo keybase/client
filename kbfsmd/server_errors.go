@@ -49,11 +49,11 @@ const (
 	// to indicate that a reader has requested to read a TLF ID that
 	// has been finalized, which isn't allowed.
 	StatusCodeServerErrorCannotReadFinalizedTLF = 2812
-	// StatusCodeServerErrorRequiredLockIsNotHeld is the error code returned by
+	// StatusCodeServerErrorLockConflict is the error code returned by
 	// a MD write operation to indicate that a lockID that client required the
 	// write to be contingent on is not held at the time server tries to commit
 	// the MD, and as a result the MD is not written.
-	StatusCodeServerErrorRequiredLockIsNotHeld = 2813
+	StatusCodeServerErrorLockConflict = 2813
 	// StatusCodeServerErrorClassicTLFDoesNotExist is the error code returned by a
 	// MD get operation to indicate that a classic TLF is not found, and client
 	// has specified not to create one. Normally upon this error, KBFS client
@@ -349,19 +349,19 @@ func (e ServerErrorCannotReadFinalizedTLF) ToStatus() (s keybase1.Status) {
 	return
 }
 
-// ServerErrorRequiredLockIsNotHeld is the error type for
-// StatusCodeServerErrorRequiredLockIsNotHeld.
-type ServerErrorRequiredLockIsNotHeld struct{}
+// ServerErrorLockConflict is the error type for
+// StatusCodeServerErrorLockConflict.
+type ServerErrorLockConflict struct{}
 
 // Error implements the Error interface.
-func (e ServerErrorRequiredLockIsNotHeld) Error() string {
-	return "ServerErrorRequiredLockIsNotHeld{}"
+func (e ServerErrorLockConflict) Error() string {
+	return "ServerErrorLockConflict{}"
 }
 
 // ToStatus implements the ExportableError interface.
-func (e ServerErrorRequiredLockIsNotHeld) ToStatus() (s keybase1.Status) {
-	s.Code = StatusCodeServerErrorRequiredLockIsNotHeld
-	s.Name = "REQUIRED_LOCK_IS_NOT_HELD"
+func (e ServerErrorLockConflict) ToStatus() (s keybase1.Status) {
+	s.Code = StatusCodeServerErrorLockConflict
+	s.Name = "REQUIRED_LOCK_CONFLICT"
 	s.Desc = e.Error()
 	return
 }
@@ -477,8 +477,8 @@ func (eu ServerErrorUnwrapper) UnwrapError(arg interface{}) (appError error, dis
 	case StatusCodeServerErrorCannotReadFinalizedTLF:
 		appError = ServerErrorCannotReadFinalizedTLF{}
 		break
-	case StatusCodeServerErrorRequiredLockIsNotHeld:
-		appError = ServerErrorRequiredLockIsNotHeld{}
+	case StatusCodeServerErrorLockConflict:
+		appError = ServerErrorLockConflict{}
 		break
 	case StatusCodeServerErrorClassicTLFDoesNotExist:
 		appError = ServerErrorClassicTLFDoesNotExist{}

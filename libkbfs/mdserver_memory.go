@@ -485,7 +485,7 @@ func (md *MDServerMemory) Put(ctx context.Context, rmds *RootMetadataSigned,
 	defer md.lock.Unlock()
 
 	if lc != nil && !md.isLockedLocked(ctx, id, lc.RequireLockID) {
-		return kbfsmd.ServerErrorRequiredLockIsNotHeld{}
+		return kbfsmd.ServerErrorLockConflict{}
 	}
 
 	mergedMasterHead, err :=
