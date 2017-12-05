@@ -553,6 +553,7 @@ protocol teams {
 
   record TeamAcceptOrRequestResult {
     boolean wasToken;
+    boolean wasSeitan;
     boolean wasTeamName;
     // If trying to request access via TeamName, was the team open? It means
     // that admin does not have to manually approve request.

@@ -3407,7 +3407,7 @@ export type TLFVisibility =0 // ANY_0
  | 2 // PRIVATE_2
 
 
-export type TeamAcceptOrRequestResult = {|wasToken: Boolean,wasTeamName: Boolean,wasOpenTeam: Boolean,|}
+export type TeamAcceptOrRequestResult = {|wasToken: Boolean,wasSeitan: Boolean,wasTeamName: Boolean,wasOpenTeam: Boolean,|}
 
 export type TeamAccessRequest = {|uid: UID,eldestSeqno: Seqno,|}
 

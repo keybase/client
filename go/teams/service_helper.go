@@ -836,8 +836,21 @@ func RequestAccess(ctx context.Context, g *libkb.GlobalContext, teamname string)
 }
 
 func TeamAcceptInviteOrRequestAccess(ctx context.Context, g *libkb.GlobalContext, tokenOrName string) (keybase1.TeamAcceptOrRequestResult, error) {
-	// First try to accept as an invite
-	err := AcceptInvite(ctx, g, tokenOrName)
+	// Check if it's a Seitan IKey.
+	seitan, err := GenerateIKeyFromString(tokenOrName)
+	if err == nil {
+		err = AcceptSeitan(ctx, g, seitan)
+		if err != nil {
+			return keybase1.TeamAcceptOrRequestResult{}, err
+		}
+
+		return keybase1.TeamAcceptOrRequestResult{
+			WasSeitan: true,
+		}, nil
+	}
+
+	// If not, maybe it's a server-trust invite e-mail token.
+	err = AcceptInvite(ctx, g, tokenOrName)
 	if err == nil {
 		return keybase1.TeamAcceptOrRequestResult{
 			WasToken: true,

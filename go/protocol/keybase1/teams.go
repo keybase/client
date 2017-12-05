@@ -1590,6 +1590,7 @@ func (o TeamRequestAccessResult) DeepCopy() TeamRequestAccessResult {
 
 type TeamAcceptOrRequestResult struct {
 	WasToken    bool `codec:"wasToken" json:"wasToken"`
+	WasSeitan   bool `codec:"wasSeitan" json:"wasSeitan"`
 	WasTeamName bool `codec:"wasTeamName" json:"wasTeamName"`
 	WasOpenTeam bool `codec:"wasOpenTeam" json:"wasOpenTeam"`
 }
@@ -1597,6 +1598,7 @@ type TeamAcceptOrRequestResult struct {
 func (o TeamAcceptOrRequestResult) DeepCopy() TeamAcceptOrRequestResult {
 	return TeamAcceptOrRequestResult{
 		WasToken:    o.WasToken,
+		WasSeitan:   o.WasSeitan,
 		WasTeamName: o.WasTeamName,
 		WasOpenTeam: o.WasOpenTeam,
 	}

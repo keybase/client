@@ -1391,6 +1391,10 @@
         },
         {
           "type": "boolean",
+          "name": "wasSeitan"
+        },
+        {
+          "type": "boolean",
           "name": "wasTeamName"
         },
         {
