@@ -32,10 +32,10 @@ const SeitanRawIKeyLength = 10
 // server-trust e-mail tokens are 12 characters.
 const SeitanEncodedIKeyLength = 16
 
-// Key-Base 33 encoding. lower case letters except 'l' and digits except for '0' and '1'.
-const KBase33EncodeStd = "abcdefghijkmnopqrstuvwxyz23456789"
+// Key-Base 32 encoding. lower case letters except 'l', 'i' and digits except for '0' and '1'.
+const KBase32EncodeStd = "abcdefghjkmnopqrstuvwxyz23456789"
 
-var Base33Encoding = basex.NewEncoding(KBase33EncodeStd, SeitanRawIKeyLength, "")
+var Base32Encoding = basex.NewEncoding(KBase32EncodeStd, SeitanRawIKeyLength, "")
 
 // "Invite Key"
 type SeitanIKey string
@@ -58,10 +58,10 @@ func GenerateIKey() (ikey SeitanIKey, err error) {
 	}
 
 	var encodedKey [SeitanEncodedIKeyLength]byte
-	Base33Encoding.Encode(encodedKey[:], rawKey)
+	Base32Encoding.Encode(encodedKey[:], rawKey)
 
 	var verify [SeitanRawIKeyLength]byte
-	_, err = Base33Encoding.Decode(verify[:], encodedKey[:])
+	_, err = Base32Encoding.Decode(verify[:], encodedKey[:])
 	if err != nil {
 		return ikey, err
 	}
