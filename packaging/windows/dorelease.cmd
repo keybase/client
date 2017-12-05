@@ -6,10 +6,10 @@ if NOT DEFINED ReleaseRevision set ReleaseRevision=master
 set OUTPUT=echo
 if DEFINED SlackBot set OUTPUT=go run %GOPATH%/src/github.com/keybase/slackbot/send/main.go -i=1
 
-if NOT DEFINED DOKAN_PATH set DOKAN_PATH=%GOPATH%\bin\dokan-dev\build84
+if NOT DEFINED DOKAN_PATH set DOKAN_PATH=%GOPATH%\bin\dokan-dev\build85
 echo DOKAN_PATH %DOKAN_PATH%
 
-if NOT DEFINED DevEnvDir call "%ProgramFiles(x86)%\\Microsoft Visual Studio 14.0\\vc\\bin\\vcvars32.bat"
+if NOT DEFINED DevEnvDir call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Professional\Common7\Tools\vsdevcmd\core\vsdevcmd_start.bat"
 
 IF [%UpdateChannel%] == [] goto:donecheckingdrivers
 

@@ -69,18 +69,15 @@
                      Variable="UCRTVERSION64"
                      Result="version"
                        />
+    
+    <util:RegistrySearch Id="vcredist_2017_x86_check" Root="HKLM" Key="SOFTWARE\Microsoft\DevDiv\VC\Servicing\14.0\RuntimeMinimum" Value="Install" Variable="vcredist_2017_x86_installed" Win64="no"/>
+    <util:RegistrySearch Id="vcredist_2017_x86_versioncheck" Root="HKLM" Key="SOFTWARE\Classes\Installer\Dependencies\Microsoft.VS.VC_RuntimeMinimumVSU_x86,v14" Value="Version" Variable="vcredist_2017_x86_version" Result="exists" Win64="no"/>
+    <util:RegistrySearch Id="vcredist_2017_x86_versionnumbercheck" Root="HKLM" Key="SOFTWARE\Classes\Installer\Dependencies\Microsoft.VS.VC_RuntimeMinimumVSU_x86,v14" Value="Version" Variable="vcredist_2017_x86_versionnumber" Result="value" Win64="no"/>
 
-    <util:RegistrySearch Id="vcredist_2015_x86_check" Root="HKLM" Key="SOFTWARE\Microsoft\DevDiv\VC\Servicing\14.0\RuntimeMinimum" Value="Install" Variable="vcredist_2015_x86_installed" Win64="no"/>
-    <!-- Alternat reg key location, as per https://msdn.microsoft.com/en-us/vs-knownissues/vs2015-update3-rc?f=255&MSPPError=-2147217396 -->
-    <util:RegistrySearch Id="vcredist_2015_x86_check2" Root="HKLM" Key="SOFTWARE\Microsoft\VisualStudio\14.0\VC\Runtimes\x86" Value="Installed" Variable="vcredist_2015_x86_installed" Win64="no" Condition="NOT vcredist_2015_x86_installed"/>
-    <util:RegistrySearch Id="vcredist_2015_x86_versioncheck" Root="HKLM" Key="SOFTWARE\Classes\Installer\Dependencies\Microsoft.VS.VC_RuntimeMinimumVSU_x86,v14" Value="Version" Variable="vcredist_2015_x86_version" Result="exists" Win64="no"/>
-    <util:RegistrySearch Id="vcredist_2015_x86_versionnumbercheck" Root="HKLM" Key="SOFTWARE\Classes\Installer\Dependencies\Microsoft.VS.VC_RuntimeMinimumVSU_x86,v14" Value="Version" Variable="vcredist_2015_x86_versionnumber" Result="value" Win64="no"/>
+    <util:RegistrySearch Id="vcredist_2017_x64_check" Root="HKLM" Key="SOFTWARE\Microsoft\DevDiv\VC\Servicing\14.0\RuntimeMinimum" Value="Install" Variable="vcredist_2017_x64_installed" Win64="yes"/>
+    <util:RegistrySearch Id="vcredist_2017_x64_versioncheck" Root="HKLM" Key="SOFTWARE\Classes\Installer\Dependencies\Microsoft.VS.VC_RuntimeMinimumVSU_amd64,v14" Value="Version" Variable="vcredist_2017_x64_version" Result="exists" Win64="yes"/>
+    <util:RegistrySearch Id="vcredist_2017_x64_versionnumbercheck" Root="HKLM" Key="SOFTWARE\Classes\Installer\Dependencies\Microsoft.VS.VC_RuntimeMinimumVSU_amd64,v14" Value="Version" Variable="vcredist_2017_x64_versionnumber" Result="value" Win64="yes"/>
 
-    <util:RegistrySearch Id="vcredist_2015_x64_check" Root="HKLM" Key="SOFTWARE\Microsoft\DevDiv\VC\Servicing\14.0\RuntimeMinimum" Value="Install" Variable="vcredist_2015_x64_installed" Win64="yes"/>
-    <!-- Alternat reg key location, as per https://msdn.microsoft.com/en-us/vs-knownissues/vs2015-update3-rc?f=255&MSPPError=-2147217396 -->
-    <util:RegistrySearch Id="vcredist_2015_x64_check2" Root="HKLM" Key="SOFTWARE\Microsoft\VisualStudio\14.0\VC\Runtimes\x64" Value="Installed" Variable="vcredist_2015_x64_installed" Win64="yes" Condition="NOT vcredist_2015_x64_installed"/>
-    <util:RegistrySearch Id="vcredist_2015_x64_versioncheck" Root="HKLM" Key="SOFTWARE\Classes\Installer\Dependencies\Microsoft.VS.VC_RuntimeMinimumVSU_amd64,v14" Value="Version" Variable="vcredist_2015_x64_version" Result="exists" Win64="yes"/>
-    <util:RegistrySearch Id="vcredist_2015_x64_versionnumbercheck" Root="HKLM" Key="SOFTWARE\Classes\Installer\Dependencies\Microsoft.VS.VC_RuntimeMinimumVSU_amd64,v14" Value="Version" Variable="vcredist_2015_x64_versionnumber" Result="value" Win64="yes"/>
 
     <bal:Condition Message="Installation failed because your version of Windows is too old. Dokan requires Windows 7 SP1 or newer."><![CDATA[NOT driver OR Installed OR VersionNT > v6.1 OR (VersionNT = v6.1 AND ServicePackLevel >= 1)]]></bal:Condition>
     
@@ -107,124 +104,48 @@
 
       <!-- Note there are 2 VC redistributable package entries, one for x86 and one for x64,
  	   which need to remain in sync. Also, "repair" doesn't seem to work, so we omit that attribute -->	    
-      <ExePackage Id="vcredist_2015_x86.exe"
-                  Name="vc_redist.x86.exe"
-                  Compressed="no"
-                  SourceFile="Redist\VCRedist_2015\vc_redist.x86.exe"
-                  InstallCommand="/norestart /passive /chainingpackage ADMINDEPLOYMENT"
-                  UninstallCommand="/uninstall /norestart /passive /chainingpackage ADMINDEPLOYMENT"
-                  Protocol="netfx4"
-                  Permanent="yes"
-                  DetectCondition="(vcredist_2015_x86_installed AND vcredist_2015_x86_version AND vcredist_2015_x86_versionnumber &gt;= v14.0.23918) OR NOT driver"
-                  PerMachine="yes"
-                  Vital="yes"
-                  SuppressSignatureVerification="yes"
-                  DownloadUrl="https://download.microsoft.com/download/6/D/F/6DF3FF94-F7F9-4F0B-838C-A328D1A7D0EE/vc_redist.x86.exe"
-      >
+      <ExePackage Id="vcredist_2017_x86.exe"
+            Name="vc_redist.x86.exe"
+            InstallCommand="/norestart /passive /chainingpackage ADMINDEPLOYMENT"
+            UninstallCommand="/uninstall /norestart /passive /chainingpackage ADMINDEPLOYMENT"
+            Protocol="netfx4"
+            Compressed="$(var.Compressed)"
+            Permanent="yes"
+            DetectCondition="(vcredist_2017_x86_installed AND vcredist_2017_x86_version AND vcredist_2017_x86_versionnumber &gt;= v$(var.VCRedistVersion)) OR NOT driver"
+            PerMachine="yes"
+            Vital="yes"
+            Cache="no"
+            SuppressSignatureVerification="yes"
+            SourceFile="Redist\vcredist_2017\vc_redist.x86.exe"
+            DownloadUrl="https://download.visualstudio.microsoft.com/download/pr/11100229/78c1e864d806e36f6035d80a0e80399e/VC_redist.x86.exe"
+            >
         <ExitCode Value="1641" Behavior="scheduleReboot"/>
         <ExitCode Value="3010" Behavior="scheduleReboot"/>
         <ExitCode Value="0" Behavior="success" />
       </ExePackage>
-
+      
       <!-- Note there are 2 VC redistributable package entries, one for x86 and one for x64,
- 	   which need to remain in sync -->	    
-      <ExePackage Id="vcredist_2015_x64.exe"
+ 	   which need to remain in sync -->
+      <ExePackage Id="vcredist_2017_x64.exe"
                   Name="vc_redist.x64.exe"
-                  Compressed="no"
-                  SourceFile="Redist\VCRedist_2015\vc_redist.x64.exe"
                   InstallCommand="/norestart /passive /chainingpackage ADMINDEPLOYMENT"
                   UninstallCommand="/uninstall /norestart /passive /chainingpackage ADMINDEPLOYMENT"
                   Protocol="netfx4"
+                  Compressed="$(var.Compressed)"
                   Permanent="yes"
                   InstallCondition="VersionNT64"
-                  DetectCondition="(vcredist_2015_x64_installed AND vcredist_2015_x64_version AND vcredist_2015_x64_versionnumber &gt;= v14.0.23918) OR NOT driver"
+                  DetectCondition="(vcredist_2017_x64_installed AND vcredist_2017_x64_version AND vcredist_2017_x64_versionnumber &gt;= v$(var.VCRedistVersion)"
                   PerMachine="yes"
                   Vital="yes"
+                  Cache="yes"
                   SuppressSignatureVerification="yes"
-                  DownloadUrl="https://download.microsoft.com/download/6/D/F/6DF3FF94-F7F9-4F0B-838C-A328D1A7D0EE/vc_redist.x64.exe"
+                  SourceFile="Redist\vcredist_2017\vc_redist.x64.exe"
+                  DownloadUrl="https://download.visualstudio.microsoft.com/download/pr/11100230/15ccb3f02745c7b206ad10373cbca89b/VC_redist.x64.exe"
                   >
         <ExitCode Value="1641" Behavior="scheduleReboot"/>
         <ExitCode Value="3010" Behavior="scheduleReboot"/>
         <ExitCode Value="0" Behavior="success" />
       </ExePackage>
-
-      <MsuPackage Id="Win71_KB2999226_x86"
-                  Name="Windows6.1-KB2999226-x86.msu"
-                  Compressed="yes"
-                  Permanent="yes"
-                  InstallCondition="NOT VersionNT64 AND VersionNT = v6.1"
-                  DetectCondition="(UCRTVERSION &gt;= v6.2.10585.0) OR NOT driver"
-                  Vital="yes"
-                  Cache="no"
-                  SuppressSignatureVerification="yes"
-                  SourceFile="Redist\KB2999226\Windows6.1-KB2999226-x86.msu"
-                  DownloadUrl="https://download.microsoft.com/download/4/F/E/4FE73868-5EDD-4B47-8B33-CE1BB7B2B16A/Windows6.1-KB2999226-x86.msu"
-                  />
-
-      <MsuPackage Id="Win71_KB2999226_x64"
-                  Name="Windows6.1-KB2999226-x64.msu"
-                  Compressed="yes"
-                  Permanent="yes"
-                  InstallCondition="VersionNT64 AND VersionNT = v6.1"
-                  DetectCondition="(UCRTVERSION64 &gt;= v6.2.10585.0) OR NOT driver"
-                  Vital="yes"
-                  Cache="no"
-                  SuppressSignatureVerification="yes"
-                  SourceFile="Redist\KB2999226\Windows6.1-KB2999226-x64.msu"
-                  DownloadUrl="https://download.microsoft.com/download/1/1/5/11565A9A-EA09-4F0A-A57E-520D5D138140/Windows6.1-KB2999226-x64.msu"
-                  />
-
-      <MsuPackage Id="Win80_KB2999226_x86"
-                  Name="Windows8-RT-KB2999226-x86.msu"
-                  Compressed="yes"
-                  Permanent="yes"
-                  InstallCondition="NOT VersionNT64 AND VersionNT = v6.2"
-                  DetectCondition="(UCRTVERSION &gt;= v6.2.10585.0) OR NOT driver"
-                  Vital="yes"
-                  Cache="no"
-                  SuppressSignatureVerification="yes"
-                  SourceFile="Redist\KB2999226\Windows8-RT-KB2999226-x86.msu"
-                  DownloadUrl="https://download.microsoft.com/download/1/E/8/1E8AFE90-5217-464D-9292-7D0B95A56CE4/Windows8-RT-KB2999226-x86.msu"
-                  />
-
-      <MsuPackage Id="Win80_KB2999226_x64"
-                  Name="Windows8-RT-KB2999226-x64.msu"
-                  Compressed="yes"
-                  Permanent="yes"
-                  InstallCondition="VersionNT64 AND VersionNT = v6.2"
-                  DetectCondition="(UCRTVERSION64 &gt;= v6.2.10585.0) OR NOT driver"
-                  Vital="yes"
-                  Cache="no"
-                  SuppressSignatureVerification="yes"
-                  SourceFile="Redist\KB2999226\Windows8-RT-KB2999226-x64.msu"
-                  DownloadUrl="https://download.microsoft.com/download/A/C/1/AC15393F-A6E6-469B-B222-C44B3BB6ECCC/Windows8-RT-KB2999226-x64.msu"
-                  />
-
-      <MsuPackage Id="Win81_KB2999226_x86"
-                  Name="Windows8.1-KB2999226-x86.msu"
-                  Compressed="yes"
-                  Permanent="yes"
-                  InstallCondition="NOT VersionNT64 AND VersionNT &gt;= v6.3 AND ADVAPIVERSION &lt; v6.3.10000.0"
-                  DetectCondition="(UCRTVERSION &gt;= v6.2.10585.0) OR NOT driver"
-                  Vital="yes"
-                  Cache="no"
-                  SuppressSignatureVerification="yes"
-                  SourceFile="Redist\KB2999226\Windows8.1-KB2999226-x86.msu"
-                  DownloadUrl="https://download.microsoft.com/download/E/4/6/E4694323-8290-4A08-82DB-81F2EB9452C2/Windows8.1-KB2999226-x86.msu"
-                  />
-
-      <MsuPackage Id="Win81_KB2999226_x64"
-                  Name="Windows8.1-KB2999226-x64.msu"
-                  Compressed="yes"
-                  Permanent="yes"
-                  InstallCondition="VersionNT64 AND VersionNT &gt;= v6.3 AND ADVAPIVERSION &lt; v6.3.10000.0"
-                  DetectCondition="(UCRTVERSION64 &gt;= v6.2.10585.0) OR NOT driver"
-                  Vital="yes"
-                  Cache="no"
-                  SuppressSignatureVerification="yes"
-                  SourceFile="Redist\KB2999226\Windows8.1-KB2999226-x64.msu"
-                  DownloadUrl="https://download.microsoft.com/download/9/6/F/96FD0525-3DDF-423D-8845-5F92F4A6883E/Windows8.1-KB2999226-x64.msu"
-                  />
 
       <MsiPackage Name="Dokan_x86.msi"
                   SourceFile="$(var.DOKAN_PATH)\dokan_wix\bin\x86\$(var.Configuration)\Dokan_x86.msi"
@@ -232,7 +153,7 @@
                   Compressed="no"
                   Visible="yes"
                   Permanent="yes"
-		  DownloadUrl="https://prerelease.keybase.io/windows-support/dokan-dev/build84/dokan_wix/bin/x86/$(var.Configuration)/Dokan_x86.msi"
+		  DownloadUrl="https://prerelease.keybase.io/windows-support/dokan-dev/build85/dokan_wix/bin/x86/$(var.Configuration)/Dokan_x86.msi"
                   >
         <!--<MsiProperty Name="ADDLOCAL" Value="ALL" />-->
         <MsiProperty Name="MSIUNINSTALLSUPERSEDEDCOMPONENTS" Value="1"/>
@@ -246,7 +167,7 @@
                   Compressed="no"
                   Visible="yes"
                   Permanent="yes"
-		  DownloadUrl="https://prerelease.keybase.io/windows-support/dokan-dev/build84/dokan_wix/bin/x64/$(var.Configuration)/Dokan_x64.msi"
+		  DownloadUrl="https://prerelease.keybase.io/windows-support/dokan-dev/build85/dokan_wix/bin/x64/$(var.Configuration)/Dokan_x64.msi"
                   >
         <!--<MsiProperty Name="ADDLOCAL" Value="ALL" />-->
         <MsiProperty Name="MSIUNINSTALLSUPERSEDEDCOMPONENTS" Value="1"/>
@@ -275,7 +196,7 @@
     <!-- check for GDR/LDR version. See https://github.com/dokan-dev/dokany/commit/9782a6491775ef3660a71f40f381d3f48e511f14 -->
     <bal:Condition
       Message="Microsoft patch KB3033929 is not installed. A reboot is needed between the installation of said patch and the installation of Keybase. https://support.microsoft.com/en-us/kb/3033929">
-      <![CDATA[Installed OR VersionNT > v6.1 OR (VersionNT = v6.1 AND ((WINTRUSTVERSION >= v6.1.7601.18741 AND WINTRUSTVERSION < v6.1.7601.22000) OR WINTRUSTVERSION >= v6.1.7601.22948))]]>
+      <![CDATA[Installed OR VersionNT > v6.1 OR (VersionNT = v6.1 AND ((WINTRUSTVERSION >= v6.1.7601.18741 AND WINTRUSTVERSION <= v6.1.7601.22000) OR WINTRUSTVERSION >= v6.1.7601.22947))]]>
     </bal:Condition>
   </Fragment>
   <Fragment>
