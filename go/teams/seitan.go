@@ -28,15 +28,26 @@ const SeitanRawIKeyLength = 10
 // is generated on one client and distributed to another via face-to-
 // face meeting, use of a trusted courier etc.
 //
-// We only try to distinguish Seitan tokens from normal e-mail tokens
-// via length so make sure they are never the same length. Right now
-// server-trust e-mail tokens are 12 characters.
-const SeitanEncodedIKeyLength = 16
+// Seitan tokens have a '+' as the fifth character. We use this and length
+// to distinguish from email invite tokens (and team names).
+// Right now server-trust e-mail tokens are 12 characters.
+const SeitanEncodedIKeyLength = 18
+const seitanEncodedIKeyLengthBeforePlus = 17
 
-// Key-Base 32 encoding. lower case letters except 'l', 'i' and digits except for '0' and '1'.
-const KBase32EncodeStd = "abcdefghjkmnopqrstuvwxyz23456789"
+// Key-Base 31 encoding. lower case letters except "lit", and digits except for '0' and '1'.
+const KBase31EncodeStd = "abcdefghjkmnopqrsuvwxyz23456789"
 
-var Base32Encoding = basex.NewEncoding(KBase32EncodeStd, SeitanRawIKeyLength, "")
+var Base31Encoding = basex.NewEncoding(KBase31EncodeStd, SeitanRawIKeyLength, "")
+
+func init() {
+	seitanEncodedIKeyLengthBeforePlus := 17
+	if seitanEncodedIKeyLengthBeforePlus != Base31Encoding.EncodedLen(SeitanRawIKeyLength) {
+		panic(fmt.Sprintf("seitan encoding misconfiguration (1): %v != %v", seitanEncodedIKeyLengthBeforePlus, Base31Encoding.EncodedLen(SeitanRawIKeyLength)))
+	}
+	if seitanEncodedIKeyLengthBeforePlus+1 != SeitanEncodedIKeyLength {
+		panic(fmt.Sprintf("seitan encoding misconfiguration (2): %v != %v", seitanEncodedIKeyLengthBeforePlus, SeitanEncodedIKeyLength))
+	}
+}
 
 // "Invite Key"
 type SeitanIKey string
@@ -58,11 +69,11 @@ func GenerateIKey() (ikey SeitanIKey, err error) {
 		return ikey, err
 	}
 
-	var encodedKey [SeitanEncodedIKeyLength]byte
-	Base32Encoding.Encode(encodedKey[:], rawKey)
+	var encodedIKeyBeforePlus [seitanEncodedIKeyLengthBeforePlus]byte
+	Base31Encoding.Encode(encodedIKeyBeforePlus[:], rawKey)
 
 	var verify [SeitanRawIKeyLength]byte
-	_, err = Base32Encoding.Decode(verify[:], encodedKey[:])
+	_, err = Base31Encoding.Decode(verify[:], encodedIKeyBeforePlus[:])
 	if err != nil {
 		return ikey, err
 	}
@@ -70,6 +81,13 @@ func GenerateIKey() (ikey SeitanIKey, err error) {
 	if !libkb.SecureByteArrayEq(verify[:], rawKey) {
 		return ikey, errors.New("Internal error - ikey encoding failed")
 	}
+
+	// Copy all the bytes from encodedIKeyBeforePlus -> encodedKey
+	// With the insertion of a '+' in fourth position.
+	var encodedKey [SeitanEncodedIKeyLength]byte
+	copy(encodedKey[0:4], encodedIKeyBeforePlus[0:4])
+	encodedKey[4] = '+'
+	copy(encodedKey[5:18], encodedIKeyBeforePlus[4:17])
 
 	ikey = SeitanIKey(encodedKey[:])
 	return ikey, nil
@@ -83,6 +101,9 @@ func GenerateIKey() (ikey SeitanIKey, err error) {
 func GenerateIKeyFromString(token string) (ikey SeitanIKey, err error) {
 	if len(token) != SeitanEncodedIKeyLength {
 		return ikey, fmt.Errorf("invalid token length: expected %d characters, got %d", SeitanEncodedIKeyLength, len(token))
+	}
+	if token[4] != '+' {
+		return ikey, fmt.Errorf("invalid token format: expected fourth character to be '+'")
 	}
 
 	return SeitanIKey(strings.ToLower(token)), nil
