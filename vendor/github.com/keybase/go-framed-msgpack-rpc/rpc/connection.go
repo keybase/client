@@ -204,7 +204,7 @@ func (ct *ConnectionTransportTLS) Dial(ctx context.Context) (
 			config = &tls.Config{ServerName: host}
 		}
 
-		ct.log.Info("Dialing %s", addr)
+		ct.log.Debug("Dialing %s", addr)
 		// connect
 		dialer := net.Dialer{
 			Timeout:   ct.dialerTimeout,
@@ -223,12 +223,12 @@ func (ct *ConnectionTransportTLS) Dial(ctx context.Context) (
 			resinit.ResInitIfDNSError(err)
 			return err
 		}
-		ct.log.Info("baseConn: %s; Calling Handshake", baseConn.LocalAddr())
+		ct.log.Debug("baseConn: %s; Calling Handshake", baseConn.LocalAddr())
 		conn = tls.Client(baseConn, config)
 		if err := conn.(*tls.Conn).Handshake(); err != nil {
 			return err
 		}
-		ct.log.Info("Handshaken")
+		ct.log.Debug("Handshaken")
 
 		// Disable SIGPIPE on platforms that require it (Darwin). See sigpipe_bsd.go.
 		return DisableSigPipe(baseConn)
@@ -314,7 +314,7 @@ type Connection struct {
 	cancelFunc        context.CancelFunc // used to cancel the reconnect loop
 	reconnectedBefore bool
 
-	initialReconnectBackoffWindow time.Duration
+	initialReconnectBackoffWindow func() time.Duration
 	randomTimer                   CancellableRandomTimer
 }
 
@@ -333,12 +333,18 @@ type ConnectionOpts struct {
 	WrapErrorFunc    WrapErrorFunc
 	ReconnectBackoff func() backoff.BackOff
 	CommandBackoff   func() backoff.BackOff
-	// InitialReconnectBackoffWindow, if non zero, causes a random backoff
-	// before reconnecting. The random backoff timer is fast-forward-able by
-	// passing in a WithFireNow(ctx) into a RPC call.
-	InitialReconnectBackoffWindow time.Duration
+	// InitialReconnectBackoffWindow, if it returns non zero, causes a random
+	// backoff before reconnecting. The random backoff timer is
+	// fast-forward-able by passing in a WithFireNow(ctx) into a RPC call.
+	InitialReconnectBackoffWindow func() time.Duration
+	// As the name suggests, we normally skip the "initial reconnect backoff"
+	// the very first time we try to connect. However, some callers instantiate
+	// new Connection objects after a disconnect, and they need the "first
+	// connection" to be treated as a reconnect.
+	ForceInitialBackoff bool
 	// DialerTimeout is the Timeout used in net.Dialer when initiating new
-	// connections.
+	// connections. Zero value is passed as-is to net.Dialer, which means no
+	// timeout. Note that OS may impose its own timeout.
 	DialerTimeout time.Duration
 }
 
@@ -438,7 +444,8 @@ func newConnectionWithTransportAndProtocols(handler ConnectionHandler,
 			LogOutput: log,
 			logPrefix: connectionPrefix,
 		},
-		protocols: opts.Protocols,
+		protocols:         opts.Protocols,
+		reconnectedBefore: opts.ForceInitialBackoff,
 	}
 	if !opts.DontConnectNow {
 		// start connecting now
@@ -449,7 +456,7 @@ func newConnectionWithTransportAndProtocols(handler ConnectionHandler,
 
 // connect performs the actual connect() and rpc setup.
 func (c *Connection) connect(ctx context.Context) error {
-	c.log.Info("Connection: dialing transport")
+	c.log.Debug("Connection: dialing transport")
 
 	// connect
 	transport, err := c.transport.Dial(ctx)
@@ -481,14 +488,14 @@ func (c *Connection) connect(ctx context.Context) error {
 	c.server = server
 	c.transport.Finalize()
 
-	c.log.Info("Connection: connected")
+	c.log.Debug("Connection: connected")
 	return nil
 }
 
 // DoCommand executes the specific rpc command wrapped in rpcFunc.
 func (c *Connection) DoCommand(ctx context.Context, name string,
 	rpcFunc func(GenericClient) error) error {
-	if c.initialReconnectBackoffWindow != 0 && isWithFireNow(ctx) {
+	if c.initialReconnectBackoffWindow != nil && isWithFireNow(ctx) {
 		c.randomTimer.FireNow()
 	}
 	for {
@@ -551,7 +558,7 @@ func (c *Connection) waitForConnection(
 	if !wait {
 		return nil
 	}
-	c.log.Info("Connection: waitForConnection; status: %d", disconnectStatus)
+	c.log.Debug("Connection: waitForConnection; status: %d", disconnectStatus)
 	select {
 	case <-ctx.Done():
 		// caller canceled
@@ -592,7 +599,7 @@ func (c *Connection) IsConnected() bool {
 func (c *Connection) getReconnectChanLocked() (
 	reconnectChan chan struct{}, disconnectStatus DisconnectStatus,
 	reconnectErrPtr *error) {
-	c.log.Info("Connection: getReconnectChan")
+	c.log.Debug("Connection: getReconnectChan")
 	if c.reconnectChan == nil {
 		var ctx context.Context
 		// for canceling the reconnect loop via Shutdown()
@@ -627,12 +634,12 @@ func (c *Connection) doReconnect(ctx context.Context, disconnectStatus Disconnec
 	reconnectChan chan struct{}, reconnectErrPtr *error) {
 	// inform the handler of our disconnected state
 	c.handler.OnDisconnected(ctx, disconnectStatus)
-	if c.initialReconnectBackoffWindow != 0 &&
+	if c.initialReconnectBackoffWindow != nil &&
 		disconnectStatus == StartingNonFirstConnection {
-		waitDur := c.randomTimer.Start(c.initialReconnectBackoffWindow)
-		c.log.Info("starting random backoff: %s", waitDur)
+		waitDur := c.randomTimer.Start(c.initialReconnectBackoffWindow())
+		c.log.Debug("starting random backoff: %s", waitDur)
 		c.randomTimer.Wait()
-		c.log.Info("backoff done!")
+		c.log.Debug("backoff done!")
 	}
 	err := backoff.RetryNotify(func() error {
 		// try to connect
