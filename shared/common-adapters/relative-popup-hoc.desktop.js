@@ -9,6 +9,8 @@ import ReactDOM, {findDOMNode} from 'react-dom'
 import EscapeHandler from '../util/escape-handler'
 import {connect} from 'react-redux'
 
+import type {Position, RelativePopupHocType, RelativePopupProps} from './relative-popup-hoc'
+
 const modalRoot = document.getElementById('modal-root')
 
 class DOMNodeFinder
@@ -52,15 +54,6 @@ class Modal extends React.Component<{setNode: (node: HTMLElement) => void, child
   }
 }
 
-type Position =
-  | 'top left'
-  | 'top right'
-  | 'bottom right'
-  | 'bottom left'
-  | 'right center'
-  | 'left center'
-  | 'top center'
-  | 'bottom center'
 type ComputedStyle = {
   position: string,
   top?: number | 'auto',
@@ -266,20 +259,13 @@ function ModalPositionRelative<PP>(
   return ModalPositionRelative
 }
 
-type RelativePopupProps<PP: {}> = {
-  targetNode: ?HTMLElement,
-  position: Position,
-} & PP
-
-function RelativePopupHoc<PP: {}>(
-  PopupComponent: React.ComponentType<PP>
-): React.ComponentType<RelativePopupProps<PP>> {
-  const ModalPopupComponent: React.ComponentType<ModalPositionRelativeProps<PP>> = ModalPositionRelative(
+const RelativePopupHoc: RelativePopupHocType<*> = PopupComponent => {
+  const ModalPopupComponent: React.ComponentType<ModalPositionRelativeProps<*>> = ModalPositionRelative(
     PopupComponent
   )
 
   const C: React.ComponentType<
-    RelativePopupProps<PP>
+    RelativePopupProps<*>
   > = connect(undefined, (dispatch, {navigateUp, routeProps}) => ({
     onClosePopup: () => {
       dispatch(navigateUp())
@@ -288,9 +274,8 @@ function RelativePopupHoc<PP: {}>(
     },
     targetNode: routeProps.get('targetNode'),
     position: routeProps.get('position'),
-  }))((props: RelativePopupProps<PP> & {onClosePopup: () => void}) => {
-    // $FlowIssue confusing error message
-    return <ModalPopupComponent {...(props: RelativePopupProps<PP>)} onClosePopup={props.onClosePopup} />
+  }))((props: RelativePopupProps<*> & {onClosePopup: () => void}) => {
+    return <ModalPopupComponent {...(props: RelativePopupProps<*>)} onClosePopup={props.onClosePopup} />
   })
 
   return C

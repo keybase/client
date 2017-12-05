@@ -1,0 +1,25 @@
+// @flow
+import * as React from 'react'
+
+export type Position =
+  | 'top left'
+  | 'top right'
+  | 'bottom right'
+  | 'bottom left'
+  | 'right center'
+  | 'left center'
+  | 'top center'
+  | 'bottom center'
+
+export type RelativePopupProps<PP: {}> = {
+  targetNode: ?HTMLElement,
+  position: Position,
+} & PP
+
+export type RelativePopupHocType<PP> = (
+  PopupComponent: React.ComponentType<PP>
+) => React.ComponentType<RelativePopupProps<PP>>;
+
+declare var RelativePopupHoc: RelativePopupHocType<*>;
+
+export default RelativePopupHoc
