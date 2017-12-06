@@ -748,7 +748,7 @@ func TestJournalServerEnableAuto(t *testing.T) {
 	require.Len(t, tlfIDs, 1)
 }
 
-func TestJournalServerPublicTLF(t *testing.T) {
+func TestJournalServerReaderTLFs(t *testing.T) {
 	tempdir, ctx, cancel, config, _, jServer := setupJournalServerTest(t)
 	defer teardownJournalServerTest(t, tempdir, ctx, cancel, config)
 
