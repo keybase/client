@@ -20,45 +20,56 @@ const TeamInfo = (props: Props) => (
       <Text type="BodySemibold">{props.teamname}</Text>
     </Box>
 
-    <Text style={{color: globalColors.black_20, fontSize: 11, textTransform: 'uppercase'}} type="Body">
+    <Text style={isMobile ? styleText : {...styleText, textTransform: 'uppercase'}} type="Body">
       {props.openTeam && 'OPEN '}TEAM
     </Text>
 
-    <Text style={{color: globalColors.black_20, fontSize: 11}} type="Body">
+    <Text style={styleText} type="Body">
       {props.memberCount} members
     </Text>
 
-    <Box
-      style={{
-        ...globalStyles.flexBoxRow,
-        marginBottom: globalMargins.tiny,
-        marginLeft: globalMargins.small,
-        marginRight: globalMargins.small,
-        marginTop: globalMargins.tiny,
-      }}
-    >
-      <Text style={{color: globalColors.black_20, fontSize: 11}} type="Body">{props.description}</Text>
+    <Box style={styleDescription}>
+      <Text style={styleText} type="Body">{props.description}</Text>
     </Box>
 
-    {props.teamJoinError &&
-      <Text style={{padding: globalMargins.small}} type="BodySmall">Error: {props.teamJoinError}</Text>}
+    {!!props.teamJoinError && <Box style={styleDescription}>
+      <Text style={{padding: globalMargins.small}} type="BodySmall">Error: {props.teamJoinError}</Text>
+    </Box>}
 
     {!props.youAreInTeam &&
-      <Box style={{...globalStyles.flexBoxRow, marginTop: globalMargins.tiny}}>
+      <Box style={styleDivider}>
         <Button
           onClick={props.onJoinTeam}
-          disabled={props.teamJoinSuccess}
-          label={props.teamJoinSuccess ? 'Request sent' : props.openTeam ? 'Join team' : 'Request to join'}
+          disabled={props.teamJoinSuccess || props.youHaveRequestedAccess}
+          label={(props.teamJoinSuccess || props.youHaveRequestedAccess) ? 'Request sent' : props.openTeam ? 'Join team' : 'Request to join'}
           style={{marginTop: globalStyles.small}}
-          type={props.teamJoinSuccess ? 'Secondary' : props.openTeam ? 'Following' : 'Primary'}
+          type={(props.teamJoinSuccess || props.youHaveRequestedAccess) ? 'Secondary' : props.openTeam ? 'Following' : 'Primary'}
         />
       </Box>}
 
-    <Box style={{...globalStyles.flexBoxRow, marginTop: globalMargins.tiny}}>
+    <Box style={styleDivider}>
       <Divider />
     </Box>
   </Box>
 )
+
+const styleDescription = {
+  ...globalStyles.flexBoxRow,
+  marginBottom: globalMargins.tiny,
+  marginLeft: globalMargins.small,
+  marginRight: globalMargins.small,
+  marginTop: globalMargins.tiny,
+}
+
+const styleDivider = {
+  ...globalStyles.flexBoxRow,
+  marginTop: globalMargins.tiny,
+}
+
+const styleText = {
+  color: globalColors.black_20,
+  fontSize: 11,
+}
 
 const TeamInfoWrapper = (props: Props) => {
   const header = {

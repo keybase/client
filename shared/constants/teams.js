@@ -47,6 +47,7 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   convIDToChannelInfo: I.Map(),
   loaded: false,
   sawChatBanner: false,
+  teamAccessRequestsPending: I.Set(),
   teamNameToConvIDs: I.Map(),
   teamNameToInvites: I.Map(),
   teamNameToLoadingInvites: I.Map(),

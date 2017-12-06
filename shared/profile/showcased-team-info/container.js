@@ -1,6 +1,7 @@
 // @flow
 import ShowcasedTeamInfo from './index'
 import {
+  checkRequestedAccess,
   getDetails,
   getTeams,
   joinTeam,
@@ -16,7 +17,8 @@ const mapStateToProps = (state: TypedState, {routeProps}) => {
   const openTeam = team.open
   const teamname = team.fqName
   const publicAdmins = team.publicAdmins || []
-  const youAreInTeam = state.entities ? !!state.entities.getIn(['teams', 'teamnames', teamname]) : false
+  const youAreInTeam = !!state.entities.getIn(['teams', 'teamnames', teamname], false)
+  const youHaveRequestedAccess = !!state.entities.getIn(['teams', 'teamAccessRequestsPending', teamname], false)
   return {
     description,
     teamJoinError: state.chat.teamJoinError,
@@ -26,12 +28,14 @@ const mapStateToProps = (state: TypedState, {routeProps}) => {
     publicAdmins,
     teamname,
     youAreInTeam,
+    youHaveRequestedAccess,
   }
 }
 
 const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routeProps}) => {
   const teamname = routeProps.get('team').fqName
   return {
+    _checkRequestedAccess: (teamname: string) => dispatch(checkRequestedAccess(teamname)),
     _loadTeam: (teamname: string) => dispatch(getDetails(teamname)),
     _loadTeams: () => dispatch(getTeams()),
     _onSetTeamJoinError: (error: string) => dispatch(setTeamJoinError(error)),
@@ -48,6 +52,7 @@ export default compose(
       this.props._onSetTeamJoinError('')
       this.props._onSetTeamJoinSuccess(false)
       this.props._loadTeams()
+      this.props._checkRequestedAccess()
     },
   })
 )(ShowcasedTeamInfo)

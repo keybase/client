@@ -499,6 +499,15 @@ const _toggleChannelMembership = function*(
   yield Saga.put(Creators.getChannels(teamname))
 }
 
+const _checkRequestedAccess = function*(
+  action: Types.CheckRequestedAccess
+): Saga.SagaGenerator<any, any> {
+  const result = yield Saga.call(RPCTypes.teamsTeamListMyAccessRequestsRpcPromise, {
+  })
+  const teams = result.map(row => row.parts[0])
+  yield Saga.put(replaceEntity(['teams', 'teamAccessRequestsPending'], I.Set(teams)))
+}
+
 const _saveChannelMembership = function(
   {payload: {teamname, channelState}}: Types.SaveChannelMembership,
   state: TypedState
@@ -839,6 +848,7 @@ const teamsSaga = function*(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(RouteConstants.switchTo, _onTabChange)
   yield Saga.safeTakeEvery('teams:inviteToTeamByPhone', _inviteToTeamByPhone)
   yield Saga.safeTakeEveryPure('teams:setPublicity', _setPublicity, _afterSaveCalls)
+  yield Saga.safeTakeEvery('teams:checkRequestedAccess', _checkRequestedAccess)
 }
 
 export default teamsSaga
