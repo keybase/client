@@ -1818,6 +1818,16 @@ func (e TeamOperation) String() string {
 	return ""
 }
 
+type TeamDebugRes struct {
+	Chain TeamSigChainState `codec:"chain" json:"chain"`
+}
+
+func (o TeamDebugRes) DeepCopy() TeamDebugRes {
+	return TeamDebugRes{
+		Chain: o.Chain.DeepCopy(),
+	}
+}
+
 type TeamCreateArg struct {
 	SessionID            int    `codec:"sessionID" json:"sessionID"`
 	Name                 string `codec:"name" json:"name"`
@@ -2013,6 +2023,10 @@ type TeamRotateKeyArg struct {
 	TeamID TeamID `codec:"teamID" json:"teamID"`
 }
 
+type TeamDebugArg struct {
+	TeamID TeamID `codec:"teamID" json:"teamID"`
+}
+
 type TeamsInterface interface {
 	TeamCreate(context.Context, TeamCreateArg) (TeamCreateResult, error)
 	TeamCreateWithSettings(context.Context, TeamCreateWithSettingsArg) (TeamCreateResult, error)
@@ -2051,6 +2065,7 @@ type TeamsInterface interface {
 	SetTeamMemberShowcase(context.Context, SetTeamMemberShowcaseArg) error
 	CanUserPerform(context.Context, CanUserPerformArg) (bool, error)
 	TeamRotateKey(context.Context, TeamID) error
+	TeamDebug(context.Context, TeamID) (TeamDebugRes, error)
 }
 
 func TeamsProtocol(i TeamsInterface) rpc.Protocol {
@@ -2601,6 +2616,22 @@ func TeamsProtocol(i TeamsInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"teamDebug": {
+				MakeArg: func() interface{} {
+					ret := make([]TeamDebugArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]TeamDebugArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]TeamDebugArg)(nil), args)
+						return
+					}
+					ret, err = i.TeamDebug(ctx, (*typedArgs)[0].TeamID)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 		},
 	}
 }
@@ -2784,5 +2815,11 @@ func (c TeamsClient) CanUserPerform(ctx context.Context, __arg CanUserPerformArg
 func (c TeamsClient) TeamRotateKey(ctx context.Context, teamID TeamID) (err error) {
 	__arg := TeamRotateKeyArg{TeamID: teamID}
 	err = c.Cli.Call(ctx, "keybase.1.teams.teamRotateKey", []interface{}{__arg}, nil)
+	return
+}
+
+func (c TeamsClient) TeamDebug(ctx context.Context, teamID TeamID) (res TeamDebugRes, err error) {
+	__arg := TeamDebugArg{TeamID: teamID}
+	err = c.Cli.Call(ctx, "keybase.1.teams.teamDebug", []interface{}{__arg}, &res)
 	return
 }

@@ -1547,6 +1547,10 @@ export const teamsTeamCreateWithSettingsRpcChannelMap = (configKeys: Array<strin
 
 export const teamsTeamCreateWithSettingsRpcPromise = (request: TeamsTeamCreateWithSettingsRpcParam): Promise<TeamsTeamCreateWithSettingsResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamCreateWithSettings', request, (error: RPCError, result: TeamsTeamCreateWithSettingsResult) => error ? reject(error) : resolve(result)))
 
+export const teamsTeamDebugRpcChannelMap = (configKeys: Array<string>, request: TeamsTeamDebugRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamDebug', request)
+
+export const teamsTeamDebugRpcPromise = (request: TeamsTeamDebugRpcParam): Promise<TeamsTeamDebugResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamDebug', request, (error: RPCError, result: TeamsTeamDebugResult) => error ? reject(error) : resolve(result)))
+
 export const teamsTeamDeleteRpcChannelMap = (configKeys: Array<string>, request: TeamsTeamDeleteRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamDelete', request)
 
 export const teamsTeamDeleteRpcPromise = (request: TeamsTeamDeleteRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamDelete', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
@@ -3440,6 +3444,8 @@ export type TeamCreateResult = {|teamID: TeamID,chatSent: Boolean,creatorAdded: 
 
 export type TeamData = {|secretless: Boolean,name: TeamName,chain: TeamSigChainState,perTeamKeySeeds: {[key: string]: PerTeamKeySeedItem},readerKeyMasks: {[key: string]: {[key: string]: MaskB64}},latestSeqnoHint: Seqno,cachedAt: Time,|}
 
+export type TeamDebugRes = {|chain: TeamSigChainState,|}
+
 export type TeamDetails = {|members: TeamMembersDetails,keyGeneration: PerTeamKeyGeneration,annotatedActiveInvites: {[key: string]: AnnotatedTeamInvite},settings: TeamSettings,showcase: TeamShowcase,|}
 
 export type TeamExitRow = {|id: TeamID,|}
@@ -3574,6 +3580,8 @@ export type TeamsTeamCreateRpcParam = {|name: String,sendChatNotification: Boole
 export type TeamsTeamCreateSeitanTokenRpcParam = {|name: String,role: TeamRole,label: SeitanIKeyLabel,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
 export type TeamsTeamCreateWithSettingsRpcParam = {|name: String,sendChatNotification: Boolean,settings: TeamSettings,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+
+export type TeamsTeamDebugRpcParam = {|teamID: TeamID,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
 export type TeamsTeamDeleteRpcParam = {|name: String,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
@@ -3929,6 +3937,7 @@ type TeamsTeamAddMemberResult = TeamAddMemberResult
 type TeamsTeamCreateResult = TeamCreateResult
 type TeamsTeamCreateSeitanTokenResult = SeitanIKey
 type TeamsTeamCreateWithSettingsResult = TeamCreateResult
+type TeamsTeamDebugResult = TeamDebugRes
 type TeamsTeamGetResult = TeamDetails
 type TeamsTeamImplicitAdminsResult = ?Array<TeamMemberDetails>
 type TeamsTeamListMyAccessRequestsResult = ?Array<TeamName>
