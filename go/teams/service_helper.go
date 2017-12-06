@@ -91,6 +91,7 @@ func Details(ctx context.Context, g *libkb.GlobalContext, name string, forceRepo
 			// Skip inactive puk-less members for now.
 			// Causes duplicate usernames in team list which we
 			// don't want.
+			delete(res.AnnotatedActiveInvites, invID)
 			continue
 		}
 		details := keybase1.TeamMemberDetails{
