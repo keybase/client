@@ -248,7 +248,11 @@ class Team extends React.PureComponent<Props> {
     const admin = Constants.isAdmin(yourRole) || Constants.isOwner(yourRole)
 
     // massage data for rowrenderers
-    const memberProps = members.map(member => ({username: member.username, teamname: name}))
+    const memberProps = members.map(member => ({
+      username: member.username,
+      teamname: name,
+      active: member.active,
+    }))
     const requestProps = requests.map(req => ({
       key: req.username,
       teamname: name,

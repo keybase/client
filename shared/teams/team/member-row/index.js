@@ -13,6 +13,7 @@ export type Props = {
   teamname: string,
   you: ?string,
   type: ?string,
+  active: boolean,
   onClick: () => void,
 }
 
@@ -24,7 +25,7 @@ const showCrown: TypeMap = {
 }
 
 export const TeamMemberRow = (props: Props) => {
-  const {username, onClick, you, following, type} = props
+  const {username, onClick, you, following, type, active} = props
   return (
     <ClickableBox
       style={{
@@ -56,7 +57,7 @@ export const TeamMemberRow = (props: Props) => {
                 marginRight: globalMargins.xtiny,
               }}
             />}
-          <Text type="BodySmall">{type && typeToLabel[type]}</Text>
+          <Text type="BodySmall">{type && typeToLabel[type]} {!active && '(inactive due to reset)'}</Text>
         </Box>
       </Box>
     </ClickableBox>

@@ -323,11 +323,12 @@ const _getDetails = function*(action: Types.GetDetails): Saga.SagaGenerator<any,
     }
     types.forEach(type => {
       const members = details.members[type] || []
-      members.forEach(({username}) => {
+      members.forEach(({username, active}) => {
         infos.push(
           Constants.makeMemberInfo({
             type: typeMap[type],
             username,
+            active,
           })
         )
         memberNames = memberNames.add(username)
