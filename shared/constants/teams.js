@@ -48,6 +48,7 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   convIDToChannelInfo: I.Map(),
   loaded: false,
   sawChatBanner: false,
+  teamAccessRequestsPending: I.Set(),
   teamNameToConvIDs: I.Map(),
   teamNameToInvites: I.Map(),
   teamNameToLoadingInvites: I.Map(),
@@ -103,6 +104,9 @@ const isSubteam = (maybeTeamname: string) => {
 
 export const getFollowingMap = (state: TypedState) => state.config.following
 export const getFollowerMap = (state: TypedState) => state.config.followers
+
+// How many public admins should we display on a showcased team card at once?
+export const publicAdminsLimit = 6
 
 export {
   getConvIdsFromTeamName,
