@@ -236,7 +236,8 @@ const _BigTeamInfoPanel = (props: BigTeamInfoPanelProps) => (
           small={true}
           onClick={props.onJoinChannel}
         />}
-      <Button type="Danger" small={true} label="Leave channel" onClick={props.onLeaveConversation} />
+      {!props.isPreview &&
+        <Button type="Danger" small={true} label="Leave channel" onClick={props.onLeaveConversation} />}
     </Box>
 
     {props.isPreview &&
