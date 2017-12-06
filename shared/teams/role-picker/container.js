@@ -5,6 +5,7 @@ import {compose, withState} from 'recompose'
 import RolePicker from '.'
 import * as Creators from '../../actions/teams/creators'
 import * as Types from '../../constants/types/teams'
+import {getRole, isOwner} from '../../constants/teams'
 
 import type {TypedState} from '../../constants/reducer'
 
@@ -13,14 +14,20 @@ type StateProps = {
   you: ?string,
   username: string,
   teamname: string,
+  yourRole: ?Types.TeamRoleType,
 }
 
-const mapStateToProps = (state: TypedState, {routeProps}): StateProps => ({
-  _memberInfo: state.entities.getIn(['teams', 'teamNameToMembers', routeProps.get('teamname')], I.Set()),
-  teamname: routeProps.get('teamname'),
-  username: routeProps.get('username'),
-  you: state.config.username,
-})
+const mapStateToProps = (state: TypedState, {routeProps}): StateProps => {
+  const teamname = routeProps.get('teamname')
+  const username = routeProps.get('username')
+  return {
+    _memberInfo: state.entities.getIn(['teams', 'teamNameToMembers', teamname], I.Set()),
+    teamname,
+    username,
+    you: state.config.username,
+    yourRole: getRole(state, teamname),
+  }
+}
 
 // TODO add stuff for edit membership options
 type DispatchProps = {
@@ -42,7 +49,6 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp}): DispatchProps => 
 })
 
 const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps, ownProps) => {
-  const yourInfo = stateProps._memberInfo.find(member => member.username === stateProps.you)
   const user = stateProps._memberInfo.find(member => member.username === stateProps.username)
   const onComplete = (role: Types.TeamRoleType, sendNotification?: boolean) => {
     if (user) {
@@ -57,7 +63,7 @@ const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps, ownPro
     ...stateProps,
     ...dispatchProps,
     ...ownProps,
-    allowOwner: yourInfo && yourInfo.type === 'owner',
+    allowOwner: isOwner(stateProps.yourRole),
     onComplete,
     showSendNotification,
     currentType: user && user.type,
