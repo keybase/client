@@ -36,7 +36,7 @@ export const TeamMemberRow = (props: Props) => {
         padding: globalMargins.tiny,
         width: '100%',
       }}
-      onClick={onClick}
+      onClick={active ? onClick : undefined}
     >
       <Avatar username={username} size={isMobile ? 48 : 32} />
       <Box style={{...globalStyles.flexBoxColumn, marginLeft: globalMargins.small}}>
