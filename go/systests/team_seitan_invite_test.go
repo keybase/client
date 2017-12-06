@@ -94,11 +94,11 @@ func TestTeamInviteSeitanFailures(t *testing.T) {
 	own := tt.addUser("own")
 	roo := tt.addUser("roo")
 
-	_, teamName := own.createTeam2()
+	teamID, teamName := own.createTeam2()
 
 	t.Logf("Created team %q", teamName.String())
 
-	token, err := own.teamsClient.TeamCreateSeitanToken(context.TODO(), keybase1.TeamCreateSeitanTokenArg{
+	token, err := own.teamsClient.TeamCreateSeitanToken(context.Background(), keybase1.TeamCreateSeitanTokenArg{
 		Name: teamName.String(),
 		Role: keybase1.TeamRole_WRITER,
 	})
@@ -112,7 +112,9 @@ func TestTeamInviteSeitanFailures(t *testing.T) {
 	require.NoError(t, err)
 	sikey, err := ikey.GenerateSIKey()
 	require.NoError(t, err)
-	inviteID, err := sikey.GenerateTeamInviteID()
+	inviteIDx, err := sikey.GenerateTeamInviteID()
+	require.NoError(t, err)
+	inviteID, err := keybase1.TeamInviteIDFromString(string(inviteIDx))
 	require.NoError(t, err)
 
 	ikey2, err := teams.GenerateIKey()
@@ -120,10 +122,10 @@ func TestTeamInviteSeitanFailures(t *testing.T) {
 	sikey2, err := ikey2.GenerateSIKey()
 	require.NoError(t, err)
 	unixNow := time.Now().Unix()
-	_, maliciousPayload, err := sikey2.GenerateAcceptanceKey(roo.uid, 1, unixNow)
+	_, maliciousPayload, err := sikey2.GenerateAcceptanceKey(roo.uid, roo.userVersion().EldestSeqno, unixNow)
 	require.NoError(t, err)
 
-	arg := libkb.NewAPIArgWithNetContext(context.TODO(), "team/seitan")
+	arg := libkb.NewAPIArgWithNetContext(context.Background(), "team/seitan")
 	arg.Args = libkb.NewHTTPArgs()
 	arg.SessionType = libkb.APISessionTypeREQUIRED
 	arg.Args.Add("akey", libkb.S{Val: maliciousPayload})
@@ -132,34 +134,31 @@ func TestTeamInviteSeitanFailures(t *testing.T) {
 	_, err = roo.tc.G.API.Post(arg)
 	require.NoError(t, err)
 
-	t.Logf("Prepared and send invalid akey, waiting for rekeyd")
-
-	own.kickTeamRekeyd()
-	pollingFound := false
-	for i := 0; i < 20; i++ {
-		after, err := teams.Load(context.TODO(), own.tc.G, keybase1.LoadTeamArg{
-			Name:        teamName.String(),
-			ForceRepoll: true,
-			NeedAdmin:   true,
-		})
-		require.NoError(t, err)
-		if after.CurrentSeqno() >= 3 {
-			t.Logf("Found new seqno %d at poll loop iter %d", after.CurrentSeqno(), i)
-			pollingFound = true
-			break
-		}
-		time.Sleep(500 * time.Millisecond)
+	t.Logf("handle synthesized rekeyd command")
+	msg := keybase1.TeamSeitanMsg{
+		TeamID: teamID,
+		Seitans: []keybase1.TeamSeitanRequest{{
+			InviteID:    inviteID,
+			Uid:         roo.uid,
+			EldestSeqno: roo.userVersion().EldestSeqno,
+			Akey:        keybase1.SeitanAKey(maliciousPayload),
+			Role:        keybase1.TeamRole_WRITER,
+			UnixCTime:   unixNow,
+		}},
 	}
-
-	require.True(t, pollingFound)
-
-	t0, err := teams.GetTeamByNameForTest(context.TODO(), own.tc.G, teamName.String(), false /* public */, true /* needAdmin */)
+	err = teams.HandleTeamSeitan(context.Background(), own.tc.G, msg)
 	require.NoError(t, err)
-	require.EqualValues(t, t0.CurrentSeqno(), 3)
 
-	role, err := t0.MemberRole(context.TODO(), teams.NewUserVersion(roo.uid, 1))
+	t.Logf("invite should still be there")
+	t0, err := teams.GetTeamByNameForTest(context.Background(), own.tc.G, teamName.String(), false /* public */, true /* needAdmin */)
 	require.NoError(t, err)
-	require.Equal(t, keybase1.TeamRole_NONE, role)
+	require.Equal(t, 1, t0.NumActiveInvites(), "invite should still be active")
+	require.EqualValues(t, t0.CurrentSeqno(), 2)
+
+	t.Logf("user should not be in team")
+	role, err := t0.MemberRole(context.Background(), roo.userVersion())
+	require.NoError(t, err)
+	require.Equal(t, keybase1.TeamRole_NONE, role, "user role")
 }
 
 func TestTeamCreateSeitanAndCancel(t *testing.T) {
