@@ -11,7 +11,7 @@ import PurgeMessage from '../../pgp/remote-container.desktop'
 import Tracker from '../../tracker/remote-container.desktop'
 import UnlockFolders from '../../unlock-folders/remote-container.desktop'
 import {disable as disableDragDrop} from '../../util/drag-drop'
-import {globalColors} from '../../styles'
+import {globalColors, globalStyles} from '../../styles'
 import {remote, BrowserWindow} from 'electron'
 import {setupContextMenu} from '../app/menu-helper'
 import {setupSource} from '../../util/forward-logs'
@@ -31,9 +31,13 @@ class RemoteComponentLoader extends Component<Props> {
   _ComponentClass: any
   _window: ?BrowserWindow
 
+  _isMenubar = () => {
+    return this.props.windowComponent === 'menubar'
+  }
+
   _onGotProps = () => {
     // Show when we get props, unless its the menubar
-    if (this._window && this.props.windowComponent !== 'menubar') {
+    if (this._window && !this._isMenubar()) {
       this._window.show()
     }
   }
@@ -70,7 +74,7 @@ class RemoteComponentLoader extends Component<Props> {
   render() {
     const TheComponent = this._ComponentClass
     return (
-      <div id="RemoteComponentRoot" style={styles.container}>
+      <div id="RemoteComponentRoot" style={this._isMenubar() ? styles.menubarContainer : styles.container}>
         <Root store={this._store}>
           <TheComponent />
         </Root>
@@ -89,6 +93,15 @@ const styles = {
   },
   loading: {
     backgroundColor: globalColors.grey,
+  },
+  // This is to keep that arrow and gap on top w/ transparency
+  menubarContainer: {
+    ...globalStyles.flexBoxColumn,
+    borderTopLeftRadius: 4,
+    borderTopRightRadius: 4,
+    flex: 1,
+    marginTop: 0,
+    position: 'relative',
   },
 }
 
