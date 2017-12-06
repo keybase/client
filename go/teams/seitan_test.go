@@ -205,3 +205,78 @@ func TestIsSeitanyNoMatches(t *testing.T) {
 		require.False(t, IsSeitany(s), "not seitany")
 	}
 }
+
+func TestParseSeitanTokenFromPaste(t *testing.T) {
+	units := []struct {
+		token     string
+		expectedS string
+		expectedB bool
+	}{
+		{
+			`aazaaa0a+aaaaaaaaa`,
+			`aazaaa0a+aaaaaaaaa`,
+			true,
+		}, {
+
+			`aazaaa0aaaaaaaaaa`,
+			`aazaaa0aaaaaaaaaa`,
+			false,
+		}, {
+
+			`team1`,
+			`team1`,
+			false,
+		}, {
+			`team1.subteam2`,
+			`team1.subteam2`,
+			false,
+		}, {
+			`team1.subteam222`,
+			`team1.subteam222`,
+			false,
+		}, {
+			`team1.subteam2222`,
+			`team1.subteam2222`,
+			false,
+		}, {
+			`team1.subteam22222`,
+			`team1.subteam22222`,
+			false,
+		}, {
+			`HELLO AND WELCOME TO THIS TEAM. token: aazaaa0a+aaaaaaaaa`,
+			`aazaaa0a+aaaaaaaaa`,
+			true,
+		}, {
+			`HELLO AND WELCOME TO THIS TEAM. token: aazaaa0aaaaaaaaa`,
+			`aazaaa0aaaaaaaaa`,
+			true,
+		}, {
+			`HELLO AND WELCOME TO THIS TEAM. token: aazaaa0aaaaaaaaaa`,
+			`aazaaa0aaaaaaaaaa`,
+			true,
+		}, {
+			`aazaaa0aaaaaaaaaa`,
+			`aazaaa0aaaaaaaaaa`,
+			false,
+		}, {
+			`aazaaa0aaaaaaaaaa aazaaa0aaaaaaaaaa`,
+			`aazaaa0aaaaaaaaaa aazaaa0aaaaaaaaaa`,
+			false,
+		}, {
+			`invited to team 0123456789012345 with token: 87zaaa0aaa1zyaaz`,
+			`87zaaa0aaa1zyaaz`,
+			true,
+		}, {
+			`Please join the agot team on Keybase. Install and paste this in the "Teams" tab:  token: m947873cdbwdvtku  quick install: keybase.io/_/go`,
+			`m947873cdbwdvtku`,
+			true,
+		},
+	}
+
+	for i, unit := range units {
+		t.Logf("[%v] %v", i, unit.token)
+		maybeSeitan, keepSecret := ParseSeitanTokenFromPaste(unit.token)
+		require.Equal(t, unit.expectedS, maybeSeitan)
+		require.Equal(t, unit.expectedB, keepSecret)
+	}
+}

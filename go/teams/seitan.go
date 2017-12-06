@@ -2,6 +2,7 @@ package teams
 
 import (
 	"fmt"
+	"regexp"
 	"strings"
 
 	"crypto/hmac"
@@ -86,6 +87,24 @@ func GenerateIKey() (ikey SeitanIKey, err error) {
 // tokens to the server.
 func IsSeitany(s string) bool {
 	return len(s) > 5 && strings.IndexByte(s, '+') > 1
+}
+
+var tokenPasteRegexp = regexp.MustCompile(`token\: [a-z0-9+]{16,18}`)
+
+// Returns the string that might be the token, and whether the content looked like a token paste.
+func ParseSeitanTokenFromPaste(token string) (string, bool) {
+	// If the person pasted the whole seitan SMS message in, then let's parse out the token
+	if strings.Contains(token, "token: ") {
+		m := tokenPasteRegexp.FindStringSubmatch(token)
+		if len(m) == 1 {
+			return strings.Split(m[0], " ")[1], true
+		}
+		return token, true
+	}
+	if IsSeitany(token) {
+		return token, true
+	}
+	return token, false
 }
 
 // GenerateIKeyFromString safely creates SeitanIKey value from

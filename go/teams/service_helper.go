@@ -857,9 +857,10 @@ func TeamAcceptInviteOrRequestAccess(ctx context.Context, g *libkb.GlobalContext
 	g.Log.CDebugf(ctx, "trying seitan token")
 
 	// If token looks at all like Seitan, don't pass to functions that might log or send to server.
-	if IsSeitany(tokenOrName) {
+	maybeSeitan, keepSecret := ParseSeitanTokenFromPaste(tokenOrName)
+	if keepSecret {
 		g.Log.CDebugf(ctx, "found seitan-ish token")
-		seitan, err := GenerateIKeyFromString(tokenOrName)
+		seitan, err := GenerateIKeyFromString(maybeSeitan)
 		if err != nil {
 			return keybase1.TeamAcceptOrRequestResult{}, err
 		}
