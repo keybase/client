@@ -430,13 +430,13 @@ type HomeMarkViewedArg struct {
 }
 
 type HomeInterface interface {
-	// * homeGetScreen returns the home screen for the current user.
-	// * If `markViewed` is specified, the server will mark this version of the
-	// * home screen "viewed", potentially updating some badges.
-	// * `numFollowSuggestionsWanted` controls the number of people to return.
-	// * If not specified, it will default to `0`, so no people.  If `-1` is specified,
-	// * the default number will be returned (10).  Otherwise, the caller should
-	// * specify.
+	// HomeGetScreen returns the home screen for the current user.
+	// If `markViewed` is specified, the server will mark this version of the
+	// home screen "viewed", potentially updating some badges.
+	// `numFollowSuggestionsWanted` controls the number of people to return.
+	// If not specified, it will default to `0`, so no people.  If `-1` is specified,
+	// the default number will be returned (10).  Otherwise, the caller should
+	// specify.
 	HomeGetScreen(context.Context, HomeGetScreenArg) (HomeScreen, error)
 	HomeSkipTodoType(context.Context, HomeScreenTodoType) error
 	HomeActionTaken(context.Context) error
@@ -509,13 +509,13 @@ type HomeClient struct {
 	Cli rpc.GenericClient
 }
 
-// * homeGetScreen returns the home screen for the current user.
-// * If `markViewed` is specified, the server will mark this version of the
-// * home screen "viewed", potentially updating some badges.
-// * `numFollowSuggestionsWanted` controls the number of people to return.
-// * If not specified, it will default to `0`, so no people.  If `-1` is specified,
-// * the default number will be returned (10).  Otherwise, the caller should
-// * specify.
+// HomeGetScreen returns the home screen for the current user.
+// If `markViewed` is specified, the server will mark this version of the
+// home screen "viewed", potentially updating some badges.
+// `numFollowSuggestionsWanted` controls the number of people to return.
+// If not specified, it will default to `0`, so no people.  If `-1` is specified,
+// the default number will be returned (10).  Otherwise, the caller should
+// specify.
 func (c HomeClient) HomeGetScreen(ctx context.Context, __arg HomeGetScreenArg) (res HomeScreen, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.home.homeGetScreen", []interface{}{__arg}, &res)
 	return

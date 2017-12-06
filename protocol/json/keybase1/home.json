@@ -243,7 +243,7 @@
         }
       ],
       "response": "HomeScreen",
-      "doc": "* homeGetScreen returns the home screen for the current user.\n   * If `markViewed` is specified, the server will mark this version of the\n   * home screen \"viewed\", potentially updating some badges.\n   * `numFollowSuggestionsWanted` controls the number of people to return.\n   * If not specified, it will default to `0`, so no people.  If `-1` is specified,\n   * the default number will be returned (10).  Otherwise, the caller should\n   * specify."
+      "doc": "HomeGetScreen returns the home screen for the current user.\n    If `markViewed` is specified, the server will mark this version of the\n    home screen \"viewed\", potentially updating some badges.\n    `numFollowSuggestionsWanted` controls the number of people to return.\n    If not specified, it will default to `0`, so no people.  If `-1` is specified,\n    the default number will be returned (10).  Otherwise, the caller should\n    specify."
     },
     "homeSkipTodoType": {
       "request": [

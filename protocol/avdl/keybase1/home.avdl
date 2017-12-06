@@ -84,13 +84,13 @@ protocol home {
   }
 
   /**
-   * homeGetScreen returns the home screen for the current user.
-   * If `markViewed` is specified, the server will mark this version of the
-   * home screen "viewed", potentially updating some badges.
-   * `numFollowSuggestionsWanted` controls the number of people to return.
-   * If not specified, it will default to `0`, so no people.  If `-1` is specified,
-   * the default number will be returned (10).  Otherwise, the caller should
-   * specify.
+    HomeGetScreen returns the home screen for the current user.
+    If `markViewed` is specified, the server will mark this version of the
+    home screen "viewed", potentially updating some badges.
+    `numFollowSuggestionsWanted` controls the number of people to return.
+    If not specified, it will default to `0`, so no people.  If `-1` is specified,
+    the default number will be returned (10).  Otherwise, the caller should
+    specify.
    */
   HomeScreen homeGetScreen(boolean markViewed, int numFollowSuggestionsWanted);
 
