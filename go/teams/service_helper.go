@@ -855,18 +855,21 @@ func RequestAccess(ctx context.Context, g *libkb.GlobalContext, teamname string)
 
 func TeamAcceptInviteOrRequestAccess(ctx context.Context, g *libkb.GlobalContext, tokenOrName string) (keybase1.TeamAcceptOrRequestResult, error) {
 	g.Log.CDebugf(ctx, "trying seitan token")
-	// Check if it's a Seitan IKey.
-	// If token is valid seitan, don't pass to functions that might log or send to server.
-	seitan, err := GenerateIKeyFromString(tokenOrName)
-	if err == nil {
+
+	// If token looks at all like Seitan, don't pass to functions that might log or send to server.
+	if IsSeitany(tokenOrName) {
+		g.Log.CDebugf(ctx, "found seitan-ish token")
+		seitan, err := GenerateIKeyFromString(tokenOrName)
+		if err != nil {
+			return keybase1.TeamAcceptOrRequestResult{}, err
+		}
 		g.Log.CDebugf(ctx, "found seitan token")
 		err = AcceptSeitan(ctx, g, seitan)
-		ret := keybase1.TeamAcceptOrRequestResult{WasSeitan: true}
-		return ret, err
+		return keybase1.TeamAcceptOrRequestResult{WasSeitan: true}, err
 	}
 
 	g.Log.CDebugf(ctx, "trying email-style invite")
-	err = AcceptInvite(ctx, g, tokenOrName)
+	err := AcceptInvite(ctx, g, tokenOrName)
 	if err == nil {
 		return keybase1.TeamAcceptOrRequestResult{
 			WasToken: true,
