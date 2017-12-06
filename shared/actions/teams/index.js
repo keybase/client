@@ -193,9 +193,7 @@ const generateSMSBody = (teamname: string, seitan: string): string => {
   // message sans teamname is 118chars. Teamname can be 33 chars before we truncate to 25 and pre-ellipsize
   let team
   const teamOrSubteam = teamname.includes('.') ? 'subteam' : 'team'
-  if (teamname.length <= 16) {
-    team = `${teamname} ${teamOrSubteam}`
-  } else if (teamname.length <= 33) {
+  if (teamname.length <= 33) {
     team = `${teamname} ${teamOrSubteam}`
   } else {
     team = `..${teamname.substring(teamname.length - 30)} subteam`
