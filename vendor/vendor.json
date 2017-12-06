@@ -585,6 +585,66 @@
 			"revisionTime": "2015-12-15T16:34:51+01:00"
 		},
 		{
+			"checksumSHA1": "HedK9m8E8iyib4bIBtIX7xprOgo=",
+			"path": "go.uber.org/atomic",
+			"revision": "8474b86a5a6f79c443ce4b2992817ff32cf208b8",
+			"revisionTime": "2017-11-14T20:44:01Z"
+		},
+		{
+			"checksumSHA1": "JDGx7hehaQunZySwPs7yvdUs2m8=",
+			"path": "go.uber.org/multierr",
+			"revision": "fb7d312c2c04c34f0ad621048bbb953b168f9ff6",
+			"revisionTime": "2017-08-29T22:43:07Z"
+		},
+		{
+			"checksumSHA1": "hTsGbLDKo7/2jp1UZUjeUT0+xkA=",
+			"path": "go.uber.org/zap",
+			"revision": "f85c78b1dd998214c5f2138155b320a4a43fbe36",
+			"revisionTime": "2017-10-30T23:38:06Z"
+		},
+		{
+			"checksumSHA1": "HYo/9nwrY08NQA+2ItPOAH8IFW8=",
+			"path": "go.uber.org/zap/buffer",
+			"revision": "f85c78b1dd998214c5f2138155b320a4a43fbe36",
+			"revisionTime": "2017-10-30T23:38:06Z"
+		},
+		{
+			"checksumSHA1": "MuxOAtZEsJitlWBzhmpm2vGiHok=",
+			"path": "go.uber.org/zap/internal/bufferpool",
+			"revision": "f85c78b1dd998214c5f2138155b320a4a43fbe36",
+			"revisionTime": "2017-10-30T23:38:06Z"
+		},
+		{
+			"checksumSHA1": "uC0L9eCSAYcCWNC8udJk/t1vvIU=",
+			"path": "go.uber.org/zap/internal/color",
+			"revision": "f85c78b1dd998214c5f2138155b320a4a43fbe36",
+			"revisionTime": "2017-10-30T23:38:06Z"
+		},
+		{
+			"checksumSHA1": "b80CJExrVpXu3SA1iCQ6uLqTn2c=",
+			"path": "go.uber.org/zap/internal/exit",
+			"revision": "f85c78b1dd998214c5f2138155b320a4a43fbe36",
+			"revisionTime": "2017-10-30T23:38:06Z"
+		},
+		{
+			"checksumSHA1": "mRD6lujPvXPkbC3+byNwO/bNVu8=",
+			"path": "go.uber.org/zap/zapcore",
+			"revision": "f85c78b1dd998214c5f2138155b320a4a43fbe36",
+			"revisionTime": "2017-10-30T23:38:06Z"
+		},
+		{
+			"checksumSHA1": "CSMVjFF7FnylAUUKW1e/4r+VFXA=",
+			"path": "golang.org/x/crypto/acme",
+			"revision": "94eea52f7b742c7cbe0b03b22f0c4c8631ece122",
+			"revisionTime": "2017-11-28T01:43:40Z"
+		},
+		{
+			"checksumSHA1": "4JU5m5FGcmRYDq/oPlwQC+K8TYA=",
+			"path": "golang.org/x/crypto/acme/autocert",
+			"revision": "94eea52f7b742c7cbe0b03b22f0c4c8631ece122",
+			"revisionTime": "2017-11-28T01:43:40Z"
+		},
+		{
 			"checksumSHA1": "TT1rac6kpQp2vz24m5yDGUNQ/QQ=",
 			"path": "golang.org/x/crypto/cast5",
 			"revision": "cbc3d0884eac986df6e78a039b8792e869bff863",

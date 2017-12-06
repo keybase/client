@@ -8,6 +8,7 @@ kbfsfuse/kbfs_md/
 kbfstool/kbfstool
 kbfsfuse/revision
 kbfsgit/git-remote-keybase/git-remote-keybase
+kbp/kbp
 *.test
 
 **/vim-go-test-compile

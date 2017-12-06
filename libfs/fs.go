@@ -9,6 +9,7 @@ import (
 	"context"
 	"crypto/rand"
 	"encoding/base64"
+	"net/http"
 	"os"
 	"path"
 	"strings"
@@ -760,4 +761,8 @@ func (fs *FS) sendEvents(e FSEvent) {
 	for ch := range fs.events {
 		ch <- e
 	}
+}
+
+func (fs *FS) ToHTTPFileSystem() http.FileSystem {
+	return httpFileSystem{fs: fs}
 }
