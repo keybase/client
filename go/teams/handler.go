@@ -333,8 +333,7 @@ func HandleTeamSeitan(ctx context.Context, g *libkb.GlobalContext, msg keybase1.
 
 		err := handleSeitanSingle(ctx, g, team, invite, seitan)
 		if err != nil {
-			g.Log.CDebugf(ctx, "Provided AKey failed to verify with error: \"%v\"; canceling invite.", err)
-			invitesToCancel = append(invitesToCancel, invite.Id)
+			g.Log.CDebugf(ctx, "Provided AKey failed to verify with error: %v; ignoring", err)
 			continue
 		}
 
