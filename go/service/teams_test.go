@@ -21,4 +21,7 @@ func TestParseSeitanToken(t *testing.T) {
 	s = "token: MIKE"
 	require.NotEqual(t, "MIKE", parseInviteToken(s))
 	require.Equal(t, s, parseInviteToken(s))
+	token = "87zaaa0aaa1zyaaz"
+	s = fmt.Sprintf("invited to team 0123456789012345 with token: %s", token)
+	require.Equal(t, token, parseInviteToken(s))
 }
