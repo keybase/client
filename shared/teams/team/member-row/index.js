@@ -40,7 +40,7 @@ export const TeamMemberRow = (props: Props) => {
     >
       <Avatar username={username} size={isMobile ? 48 : 32} />
       <Box style={{...globalStyles.flexBoxColumn, marginLeft: globalMargins.small}}>
-        <Box style={{...globalStyles.flexBoxRow, justifyContent: 'center'}}>
+        <Box style={globalStyles.flexBoxRow}>
           <Usernames
             type="BodySemibold"
             colorFollowing={true}
@@ -64,7 +64,11 @@ export const TeamMemberRow = (props: Props) => {
                 marginRight: globalMargins.xtiny,
               }}
             />}
-          <Text type="BodySmall">{type && typeToLabel[type]} {!active && '(inactive due to reset)'}</Text>
+          <Text type="BodySmall">
+            {active && type && typeToLabel[type]}
+            {' '}
+            {!active && 'Has reset their account; admin(s) can re-invite'}
+          </Text>
         </Box>
       </Box>
     </ClickableBox>
