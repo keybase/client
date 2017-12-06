@@ -642,6 +642,14 @@ func AcceptInvite(ctx context.Context, g *libkb.GlobalContext, token string) err
 	return err
 }
 
+func ParseAndAcceptSeitanToken(ctx context.Context, g *libkb.GlobalContext, tok string) error {
+	seitan, err := GenerateIKeyFromString(tok)
+	if err != nil {
+		return err
+	}
+	return AcceptSeitan(ctx, g, seitan)
+}
+
 func AcceptSeitan(ctx context.Context, g *libkb.GlobalContext, ikey SeitanIKey) error {
 	me, err := libkb.LoadMe(libkb.NewLoadUserArgWithContext(ctx, g))
 	if err != nil {

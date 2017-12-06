@@ -159,3 +159,13 @@ func TestSeitanKnownSamples(t *testing.T) {
 	require.Equal(t, peiKey.RandomNonce, peiKey2.RandomNonce)
 	require.Equal(t, peiKey.EncryptedIKeyAndLabel, peiKey2.EncryptedIKeyAndLabel)
 }
+
+func TestIsSeitany(t *testing.T) {
+	for i := 0; i < 100; i++ {
+		ikey, err := GenerateIKey()
+		require.NoError(t, err)
+		require.True(t, IsSeitany(ikey.String()))
+		require.True(t, IsSeitany(ikey.String()[2:10]))
+		require.True(t, IsSeitany(ikey.String()[3:13]))
+	}
+}
