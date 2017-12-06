@@ -1256,3 +1256,16 @@ func RotateKey(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.Team
 		return team.Rotate(ctx)
 	})
 }
+
+func TeamDebug(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID) (res keybase1.TeamDebugRes, err error) {
+	defer g.CTrace(ctx, fmt.Sprintf("TeamDebug(%v)", teamID), func() error { return err })()
+	team, err := Load(ctx, g, keybase1.LoadTeamArg{
+		ID:          teamID,
+		Public:      teamID.IsPublic(),
+		ForceRepoll: true,
+	})
+	if err != nil {
+		return res, err
+	}
+	return keybase1.TeamDebugRes{Chain: team.Data.Chain}, nil
+}

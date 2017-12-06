@@ -197,16 +197,16 @@ const _inviteToTeamByPhone = function*(action: Types.InviteToTeamByPhone) {
   })
 
   /* Open SMS */
-  // seitan is 16chars
-  // message sans teamname is 129chars long. Absolute max teamname + descriptor can be is 31chars to fit within 160 sms limit
-  // max length of a teamname is 16chars, + 5 - 8 chars for descriptor is a max of 24chars for teamDescription
+  // seitan is 17chars
+  // message sans teamname is 120chars long. Absolute max teamname + descriptor can be is 40chars to fit within 160 sms limit
+  // max length of a teamname is 16chars, + 5|8 chars for descriptor is a max of 24chars for teamDescription
   let teamDescription
   if (teamname.length <= 16) {
     teamDescription = `${teamname} team`
   } else {
     // then this must be a subteam, and won't safely fit into a text
     const subteams = teamname.split('.')
-    teamDescription = `${subteams[subteams.length - 1]} team`
+    teamDescription = `${subteams[subteams.length - 1]} subteam`
   }
   const bodyText = `Please join the ${teamDescription} on Keybase. Copy this entire message into the "Teams" tab.\n\ntoken: ${seitan.toLowerCase()}\n\nquick install: keybase.io/_/go`
   openSMS([phoneNumber], bodyText).catch(err => console.log('Error sending SMS', err))
@@ -323,11 +323,12 @@ const _getDetails = function*(action: Types.GetDetails): Saga.SagaGenerator<any,
     }
     types.forEach(type => {
       const members = details.members[type] || []
-      members.forEach(({username}) => {
+      members.forEach(({username, active}) => {
         infos.push(
           Constants.makeMemberInfo({
             type: typeMap[type],
             username,
+            active,
           })
         )
         memberNames = memberNames.add(username)
@@ -457,6 +458,12 @@ const _getTeams = function*(action: Types.GetTeams): Saga.SagaGenerator<any, any
   } finally {
     yield Saga.put(replaceEntity(['teams'], I.Map([['loaded', true]])))
   }
+}
+
+const _checkRequestedAccess = function*(action: Types.CheckRequestedAccess): Saga.SagaGenerator<any, any> {
+  const result = yield Saga.call(RPCTypes.teamsTeamListMyAccessRequestsRpcPromise, {})
+  const teams = result ? result.map(row => row.parts[0]) : []
+  yield Saga.put(replaceEntity(['teams'], I.Map([['teamAccessRequestsPending', I.Set(teams)]])))
 }
 
 const _saveChannelMembership = function(
@@ -797,6 +804,7 @@ const teamsSaga = function*(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(RouteConstants.switchTo, _onTabChange)
   yield Saga.safeTakeEvery('teams:inviteToTeamByPhone', _inviteToTeamByPhone)
   yield Saga.safeTakeEveryPure('teams:setPublicity', _setPublicity, _afterSaveCalls)
+  yield Saga.safeTakeEvery('teams:checkRequestedAccess', _checkRequestedAccess)
 }
 
 export default teamsSaga

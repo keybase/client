@@ -20,6 +20,7 @@ export const makeChannelInfo: I.RecordFactory<Types._ChannelInfo> = I.Record({
 export const makeMemberInfo: I.RecordFactory<Types._MemberInfo> = I.Record({
   type: null,
   username: '',
+  active: true,
 })
 
 export const makeInviteInfo: I.RecordFactory<Types._InviteInfo> = I.Record({
@@ -47,6 +48,7 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   convIDToChannelInfo: I.Map(),
   loaded: false,
   sawChatBanner: false,
+  teamAccessRequestsPending: I.Set(),
   teamNameToConvIDs: I.Map(),
   teamNameToInvites: I.Map(),
   teamNameToLoadingInvites: I.Map(),
@@ -93,6 +95,9 @@ const isSubteam = (maybeTeamname: string) => {
   }
   return true
 }
+
+// How many public admins should we display on a showcased team card at once?
+export const publicAdminsLimit = 6
 
 export {
   getConvIdsFromTeamName,

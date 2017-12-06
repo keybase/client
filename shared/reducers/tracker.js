@@ -324,6 +324,7 @@ export default function(
         bio: userCard.bio,
         avatar: `https://keybase.io/${username}/picture`,
         location: userCard.location,
+        showcasedTeams: userCard.teamShowcase || [],
       }
       return updateUserState(state, action.payload.username, s => ({
         ...s,

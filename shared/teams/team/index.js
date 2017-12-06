@@ -248,7 +248,12 @@ class Team extends React.PureComponent<Props> {
     const admin = Constants.isAdmin(yourRole) || Constants.isOwner(yourRole)
 
     // massage data for rowrenderers
-    const memberProps = members.map(member => ({username: member.username, teamname: name}))
+    const memberProps = members.map(member => ({
+      username: member.username,
+      teamname: name,
+      active: member.active,
+      key: member.username + member.active.toString(),
+    }))
     const requestProps = requests.map(req => ({
       key: req.username,
       teamname: name,
@@ -310,6 +315,7 @@ class Team extends React.PureComponent<Props> {
           <List
             items={requestsAndInvites}
             fixedHeight={48}
+            keyProperty="key"
             renderItem={TeamRequestOrDividerOrInviteRow}
             style={{alignSelf: 'stretch'}}
           />
