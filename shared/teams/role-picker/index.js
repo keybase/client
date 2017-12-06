@@ -59,7 +59,7 @@ const makeRoleOption = (
     <Icon type="iconfont-check" style={{alignSelf: 'center', color: globalColors.white, fontSize: 24}} />
     <Box style={{...globalStyles.flexBoxColumn, paddingLeft: globalMargins.tiny}}>
       <Box style={globalStyles.flexBoxRow}>
-        {roleIconMap[role] &&
+        {!!roleIconMap[role] &&
           <Icon
             type={roleIconMap[role]}
             style={{
