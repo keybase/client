@@ -44,16 +44,25 @@ const TeamInfo = (props: Props) => (
           disabled={props.teamJoinSuccess || props.youHaveRequestedAccess}
           label={
             props.teamJoinSuccess || props.youHaveRequestedAccess
-              ? 'Request sent'
+              ? props.openTeam ? 'Joined' : 'Request sent'
               : props.openTeam ? 'Join team' : 'Request to join'
           }
           style={{marginTop: globalStyles.small}}
           type={
             props.teamJoinSuccess || props.youHaveRequestedAccess
-              ? 'Secondary'
+              ? props.openTeam ? 'Following' : 'Secondary'
               : props.openTeam ? 'Following' : 'Primary'
           }
         />
+      </Box>}
+
+    {!props.youAreInTeam &&
+      props.youHaveRequestedAccess &&
+      props.openTeam &&
+      <Box style={styleDescription}>
+        <Text style={styleText} type="Body">
+          As soon as an admin comes online, this team will unlock for you.
+        </Text>
       </Box>}
 
     {!!props.publicAdmins.length &&

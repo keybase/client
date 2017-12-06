@@ -505,7 +505,7 @@ const _toggleChannelMembership = function*(
 
 const _checkRequestedAccess = function*(action: Types.CheckRequestedAccess): Saga.SagaGenerator<any, any> {
   const result = yield Saga.call(RPCTypes.teamsTeamListMyAccessRequestsRpcPromise, {})
-  const teams = result ? result.map(row => row.parts[0]) : []
+  const teams = (result || []).map(row => row.parts.join('.'))
   yield Saga.put(replaceEntity(['teams'], I.Map([['teamAccessRequestsPending', I.Set(teams)]])))
 }
 
