@@ -1,0 +1,137 @@
+// @flow
+
+import * as React from 'react'
+import {Avatar, Box, Button, Text, Usernames} from '../../common-adapters'
+import {globalStyles, globalMargins} from '../../styles'
+import {isMobile} from '../../constants/platform'
+import PopupMenu, {ModalLessPopupMenu} from '../../common-adapters/popup-menu'
+
+import type {Props} from './index'
+
+const TeamInfo = (props: Props) => (
+  <Box
+    style={{
+      ...globalStyles.flexBoxColumn,
+      alignItems: 'center',
+      textAlign: 'center',
+    }}
+  >
+    <Box
+      style={{
+        height: isMobile ? 64 : 40,
+        marginTop: isMobile ? globalMargins.tiny : globalMargins.small,
+        marginBottom: globalMargins.xtiny,
+      }}
+    >
+      <Avatar teamname={props.teamname} size={isMobile ? 64 : 40} />
+    </Box>
+    <Text type="Header">{props.teamname}</Text>
+
+    <Text type="BodySmall" style={{textTransform: 'uppercase'}}>
+      {props.openTeam && 'OPEN '}TEAM
+    </Text>
+
+    <Text type="BodySmall">
+      {props.memberCount} members
+    </Text>
+
+    <Text type={isMobile ? 'Body' : 'BodySmall'} style={styleDescription}>{props.description}</Text>
+
+    {!!props.teamJoinError &&
+      <Text type="BodySmall" style={styleDescription}>Error: {props.teamJoinError}</Text>}
+
+    {!props.youAreInTeam &&
+      <Box style={styleDivider}>
+        <Button
+          onClick={props.onJoinTeam}
+          disabled={props.teamJoinSuccess || props.youHaveRequestedAccess}
+          label={
+            props.teamJoinSuccess || props.youHaveRequestedAccess
+              ? 'Request sent'
+              : props.openTeam ? 'Join team' : 'Request to join'
+          }
+          small={!isMobile}
+          style={{marginTop: globalStyles.tiny}}
+          type={
+            props.teamJoinSuccess || props.youHaveRequestedAccess
+              ? 'Secondary'
+              : props.openTeam ? 'PrimaryGreen' : 'Primary'
+          }
+        />
+      </Box>}
+
+    {!!props.publicAdmins.length &&
+      <Box style={styleWrap}>
+        <Text type="BodySmall">Public admins: </Text>
+
+        {props.publicAdmins.map((username, idx) => (
+          <Box key={username} style={styleInnerWrap}>
+            <Usernames
+              type="BodySmallSemibold"
+              underline={true}
+              colorFollowing={true}
+              users={[{following: !!props.following[username], username}]}
+              onUsernameClicked={() => props.onUserClick(username)}
+            />
+
+            <Text type="BodySmall">
+              {idx < props.publicAdmins.length - 1
+                ? ', '
+                : props.publicAdminsOthers === 0 ? '.' : `, + ${props.publicAdminsOthers} others.`}
+            </Text>
+          </Box>
+        ))}
+      </Box>}
+  </Box>
+)
+
+const styleDescription = {
+  ...globalStyles.flexBoxRow,
+  marginBottom: globalMargins.tiny,
+  marginLeft: globalMargins.small,
+  marginRight: globalMargins.small,
+  marginTop: globalMargins.tiny,
+  textAlign: 'center',
+}
+
+const styleDivider = {
+  ...globalStyles.flexBoxRow,
+  marginTop: globalMargins.tiny,
+}
+
+const styleInnerWrap = {
+  ...globalStyles.flexBoxRow,
+  alignItems: 'center',
+  marginLeft: 2,
+}
+
+const styleWrap = {
+  ...globalStyles.flexBoxRow,
+  alignItems: 'flex-start',
+  justifyContent: 'flex-start',
+  alignSelf: 'center',
+  textAlign: 'center',
+  flexWrap: 'wrap',
+  marginLeft: globalMargins.small,
+  marginRight: globalMargins.small,
+  marginTop: globalMargins.tiny,
+}
+
+const TeamInfoWrapper = (props: Props) => {
+  const header = {
+    title: 'header',
+    view: <TeamInfo {...(props: Props)} />,
+  }
+  let items = []
+
+  return isMobile
+    ? <PopupMenu onHidden={props.onHidden} style={{overflow: 'visible'}} header={header} items={items} />
+    : <ModalLessPopupMenu
+        onHidden={() => {}}
+        style={{overflow: 'visible', width: 220}}
+        header={header}
+        items={items}
+      />
+}
+
+export default TeamInfoWrapper

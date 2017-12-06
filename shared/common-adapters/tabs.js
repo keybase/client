@@ -15,7 +15,7 @@ type Props = {
 
 const Tabs = ({tabs, selected, onSelect, style}: Props) => {
   return (
-    <Box style={{...style, ...containerStyle}}>
+    <Box style={{...containerStyle, ...style}}>
       {tabs.map((t, idx) => {
         // $FlowIssue
         const key: string = (t && t.key) || idx

@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
-import {Avatar, Box, ClickableBox, Text, Icon, Usernames} from '../../../common-adapters'
-import {globalMargins, globalStyles} from '../../../styles'
+import {Avatar, Box, ClickableBox, Text, Icon, Usernames, Meta} from '../../../common-adapters'
+import {globalMargins, globalStyles, globalColors} from '../../../styles'
 import {isMobile} from '../../../constants/platform'
 import {roleIconColorMap} from '../../role-picker/index.meta'
 import {typeToLabel} from '../../../constants/teams'
@@ -13,6 +13,7 @@ export type Props = {
   teamname: string,
   you: ?string,
   type: ?string,
+  active: boolean,
   onClick: () => void,
 }
 
@@ -24,7 +25,7 @@ const showCrown: TypeMap = {
 }
 
 export const TeamMemberRow = (props: Props) => {
-  const {username, onClick, you, following, type} = props
+  const {username, onClick, you, following, type, active} = props
   return (
     <ClickableBox
       style={{
@@ -35,15 +36,22 @@ export const TeamMemberRow = (props: Props) => {
         padding: globalMargins.tiny,
         width: '100%',
       }}
-      onClick={onClick}
+      onClick={active ? onClick : undefined}
     >
       <Avatar username={username} size={isMobile ? 48 : 32} />
       <Box style={{...globalStyles.flexBoxColumn, marginLeft: globalMargins.small}}>
-        <Usernames
-          type="BodySemibold"
-          colorFollowing={true}
-          users={[{username, following, you: you === username}]}
-        />
+        <Box style={globalStyles.flexBoxRow}>
+          <Usernames
+            type="BodySemibold"
+            colorFollowing={true}
+            users={[{username, following, you: you === username}]}
+          />
+          {!active &&
+            <Meta
+              title="LOCKED OUT"
+              style={{background: globalColors.red, marginLeft: globalMargins.xtiny, marginTop: 4}}
+            />}
+        </Box>
         <Box style={globalStyles.flexBoxRow}>
           {type &&
             !!showCrown[type] &&
@@ -56,7 +64,11 @@ export const TeamMemberRow = (props: Props) => {
                 marginRight: globalMargins.xtiny,
               }}
             />}
-          <Text type="BodySmall">{type && typeToLabel[type]}</Text>
+          <Text type="BodySmall">
+            {active && type && typeToLabel[type]}
+            {' '}
+            {!active && 'Has reset their account; admin(s) can re-invite'}
+          </Text>
         </Box>
       </Box>
     </ClickableBox>

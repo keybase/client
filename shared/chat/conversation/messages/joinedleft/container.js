@@ -5,11 +5,11 @@ import JoinedLeftNotice from '.'
 import createCachedSelector from 're-reselect'
 import {compose} from 'recompose'
 import {connect} from 'react-redux'
-import {navigateTo, switchTo} from '../../../../actions/route-tree'
-import {teamsTab} from '../../../../constants/tabs'
+import {navigateAppend, navigateTo} from '../../../../actions/route-tree'
 import {isMobile} from '../../../../constants/platform'
 import {createShowUserProfile} from '../../../../actions/profile-gen'
 import {getProfile} from '../../../../actions/tracker'
+import {chatTab} from '../../../../constants/tabs'
 
 import type {TypedState} from '../../../../constants/reducer'
 import type {OwnProps} from './container'
@@ -52,10 +52,10 @@ const getDetails = createCachedSelector(
 const mapStateToProps = (state: TypedState, {messageKey}: OwnProps) => getDetails(state, messageKey)
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
-  _onManageChannels: (teamname: string) => {
-    dispatch(navigateTo([{props: {teamname}, selected: 'manageChannels'}], [teamsTab]))
-    dispatch(switchTo([teamsTab]))
-  },
+  _onManageChannels: (teamname: string) =>
+    isMobile
+      ? dispatch(navigateTo([{props: {teamname}, selected: 'manageChannels'}], [chatTab]))
+      : dispatch(navigateAppend([{props: {teamname}, selected: 'manageChannels'}])),
   onUsernameClicked: (username: string) => {
     isMobile ? dispatch(createShowUserProfile({username})) : dispatch(getProfile(username, true, true))
   },
