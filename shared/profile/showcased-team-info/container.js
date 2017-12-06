@@ -63,8 +63,7 @@ const mapStateToProps = (state: TypedState, {routeProps}) => {
 const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routeProps}) => {
   const teamname = routeProps.get('team').fqName
   return {
-    _checkRequestedAccess: (teamname: string) => dispatch(checkRequestedAccess(teamname)),
-    _loadTeam: (teamname: string) => dispatch(getDetails(teamname)),
+    _checkRequestedAccess: () => dispatch(checkRequestedAccess(teamname)),
     _loadTeams: () => dispatch(getTeams()),
     _onSetTeamJoinError: (error: string) => dispatch(setTeamJoinError(error)),
     _onSetTeamJoinSuccess: (success: boolean) => dispatch(setTeamJoinSuccess(success)),
