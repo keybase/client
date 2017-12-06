@@ -91,6 +91,15 @@ const getRole = (state: TypedState, teamname: Types.Teamname): ?Types.TeamRoleTy
 const isAdmin = (type: ?Types.TeamRoleType) => type === 'admin'
 const isOwner = (type: ?Types.TeamRoleType) => type === 'owner'
 
+// TODO make this check for only valid subteam names
+const isSubteam = (maybeTeamname: string) => {
+  const subteams = maybeTeamname.split('.')
+  if (subteams.length <= 1) {
+    return false
+  }
+  return true
+}
+
 export const getFollowingMap = (state: TypedState) => state.config.following
 export const getFollowerMap = (state: TypedState) => state.config.followers
 
@@ -105,4 +114,5 @@ export {
   getTopicFromConvID,
   isAdmin,
   isOwner,
+  isSubteam,
 }

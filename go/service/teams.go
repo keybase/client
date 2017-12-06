@@ -257,11 +257,11 @@ func (h *TeamsHandler) TeamRequestAccess(ctx context.Context, arg keybase1.TeamR
 	return teams.RequestAccess(ctx, h.G().ExternalG(), arg.Name)
 }
 
-func (h *TeamsHandler) TeamAcceptInviteOrRequestAccess(ctx context.Context, arg keybase1.TeamAcceptInviteOrRequestAccessArg) (err error) {
+func (h *TeamsHandler) TeamAcceptInviteOrRequestAccess(ctx context.Context, arg keybase1.TeamAcceptInviteOrRequestAccessArg) (res keybase1.TeamAcceptOrRequestResult, err error) {
 	ctx = libkb.WithLogTag(ctx, "TM")
 	defer h.G().CTraceTimed(ctx, "TeamAcceptInviteOrRequestAccess", func() error { return err })()
 	if err := h.assertLoggedIn(ctx); err != nil {
-		return err
+		return res, err
 	}
 	return teams.TeamAcceptInviteOrRequestAccess(ctx, h.G().ExternalG(), arg.TokenOrName)
 }
@@ -273,6 +273,15 @@ func (h *TeamsHandler) TeamListRequests(ctx context.Context, sessionID int) (res
 		return nil, err
 	}
 	return teams.ListRequests(ctx, h.G().ExternalG())
+}
+
+func (h *TeamsHandler) TeamListMyAccessRequests(ctx context.Context, arg keybase1.TeamListMyAccessRequestsArg) (res []keybase1.TeamName, err error) {
+	ctx = libkb.WithLogTag(ctx, "TM")
+	defer h.G().CTraceTimed(ctx, "TeamListMyAccessRequests", func() error { return err })()
+	if err := h.assertLoggedIn(ctx); err != nil {
+		return nil, err
+	}
+	return teams.ListMyAccessRequests(ctx, h.G().ExternalG(), arg.TeamName)
 }
 
 func (h *TeamsHandler) TeamIgnoreRequest(ctx context.Context, arg keybase1.TeamIgnoreRequestArg) (err error) {

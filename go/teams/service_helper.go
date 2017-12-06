@@ -474,7 +474,8 @@ func EditMember(ctx context.Context, g *libkb.GlobalContext, teamname, username 
 			return err
 		}
 		if existingRole == role {
-			return fmt.Errorf("user %q in team %q already has the role %s", username, teamname, role)
+			g.Log.CDebugf(ctx, "bailing out, role given is the same as current")
+			return nil
 		}
 
 		req, err := reqFromRole(uv, role)
@@ -663,6 +664,8 @@ func AcceptSeitan(ctx context.Context, g *libkb.GlobalContext, ikey SeitanIKey) 
 		return err
 	}
 
+	g.Log.CDebugf(ctx, "seitan invite ID: %v", inviteID)
+
 	arg := apiArg(ctx, "team/seitan")
 	arg.Args.Add("akey", libkb.S{Val: encoded})
 	arg.Args.Add("now", libkb.S{Val: strconv.FormatInt(unixNow, 10)})
@@ -835,14 +838,39 @@ func RequestAccess(ctx context.Context, g *libkb.GlobalContext, teamname string)
 	return ret, err
 }
 
-func TeamAcceptInviteOrRequestAccess(ctx context.Context, g *libkb.GlobalContext, tokenOrName string) error {
-	// First try to accept as an invite
-	err := AcceptInvite(ctx, g, tokenOrName)
-	if err != nil {
-		// Failing that, request access as a team name
-		_, err = RequestAccess(ctx, g, tokenOrName)
+func TeamAcceptInviteOrRequestAccess(ctx context.Context, g *libkb.GlobalContext, tokenOrName string) (keybase1.TeamAcceptOrRequestResult, error) {
+	// Check if it's a Seitan IKey.
+	seitan, err := GenerateIKeyFromString(tokenOrName)
+	if err == nil {
+		g.Log.CDebugf(ctx, "trying seitan token")
+		err = AcceptSeitan(ctx, g, seitan)
+		if err == nil {
+			return keybase1.TeamAcceptOrRequestResult{
+				WasSeitan: true,
+			}, nil
+		}
 	}
-	return err
+
+	// If not, maybe it's a server-trust invite e-mail token.
+	g.Log.CDebugf(ctx, "trying email-style invite")
+	err = AcceptInvite(ctx, g, tokenOrName)
+	if err == nil {
+		return keybase1.TeamAcceptOrRequestResult{
+			WasToken: true,
+		}, nil
+	}
+
+	// Failing that, request access as a team name
+	g.Log.CDebugf(ctx, "trying team request")
+	ret, err := RequestAccess(ctx, g, tokenOrName)
+	if err == nil {
+		return keybase1.TeamAcceptOrRequestResult{
+			WasTeamName: true,
+			WasOpenTeam: ret.Open,
+		}, nil
+	}
+
+	return keybase1.TeamAcceptOrRequestResult{}, err
 }
 
 type accessRequest struct {
@@ -878,6 +906,40 @@ func ListRequests(ctx context.Context, g *libkb.GlobalContext) ([]keybase1.TeamJ
 	}
 
 	return joinRequests, nil
+}
+
+type myAccessRequestsList struct {
+	Requests []struct {
+		FQName string          `json:"fq_name"`
+		TeamID keybase1.TeamID `json:"team_id"`
+	} `json:"requests"`
+	Status libkb.AppStatus `json:"status"`
+}
+
+func (r *myAccessRequestsList) GetAppStatus() *libkb.AppStatus {
+	return &r.Status
+}
+
+func ListMyAccessRequests(ctx context.Context, g *libkb.GlobalContext, teamName *string) (res []keybase1.TeamName, err error) {
+	arg := apiArg(ctx, "team/my_access_requests")
+	if teamName != nil {
+		arg.Args.Add("team", libkb.S{Val: *teamName})
+	}
+
+	var arList myAccessRequestsList
+	if err := g.API.GetDecode(arg, &arList); err != nil {
+		return nil, err
+	}
+
+	for _, req := range arList.Requests {
+		name, err := keybase1.TeamNameFromString(req.FQName)
+		if err != nil {
+			return nil, err
+		}
+		res = append(res, name)
+	}
+
+	return res, nil
 }
 
 func IgnoreRequest(ctx context.Context, g *libkb.GlobalContext, teamname, username string) error {

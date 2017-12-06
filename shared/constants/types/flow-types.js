@@ -1509,7 +1509,7 @@ export const teamsSetTeamShowcaseRpcPromise = (request: TeamsSetTeamShowcaseRpcP
 
 export const teamsTeamAcceptInviteOrRequestAccessRpcChannelMap = (configKeys: Array<string>, request: TeamsTeamAcceptInviteOrRequestAccessRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamAcceptInviteOrRequestAccess', request)
 
-export const teamsTeamAcceptInviteOrRequestAccessRpcPromise = (request: TeamsTeamAcceptInviteOrRequestAccessRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamAcceptInviteOrRequestAccess', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
+export const teamsTeamAcceptInviteOrRequestAccessRpcPromise = (request: TeamsTeamAcceptInviteOrRequestAccessRpcParam): Promise<TeamsTeamAcceptInviteOrRequestAccessResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamAcceptInviteOrRequestAccess', request, (error: RPCError, result: TeamsTeamAcceptInviteOrRequestAccessResult) => error ? reject(error) : resolve(result)))
 
 export const teamsTeamAcceptInviteRpcChannelMap = (configKeys: Array<string>, request: TeamsTeamAcceptInviteRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamAcceptInvite', request)
 
@@ -1579,6 +1579,10 @@ export const teamsTeamInviteCategory = {
 export const teamsTeamLeaveRpcChannelMap = (configKeys: Array<string>, request: TeamsTeamLeaveRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamLeave', request)
 
 export const teamsTeamLeaveRpcPromise = (request: TeamsTeamLeaveRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamLeave', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
+
+export const teamsTeamListMyAccessRequestsRpcChannelMap = (configKeys: Array<string>, request: TeamsTeamListMyAccessRequestsRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamListMyAccessRequests', request)
+
+export const teamsTeamListMyAccessRequestsRpcPromise = (request: TeamsTeamListMyAccessRequestsRpcParam): Promise<TeamsTeamListMyAccessRequestsResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamListMyAccessRequests', request, (error: RPCError, result: TeamsTeamListMyAccessRequestsResult) => error ? reject(error) : resolve(result)))
 
 export const teamsTeamListRequestsRpcChannelMap = (configKeys: Array<string>, request: TeamsTeamListRequestsRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamListRequests', request)
 
@@ -3407,6 +3411,8 @@ export type TLFVisibility =0 // ANY_0
  | 2 // PRIVATE_2
 
 
+export type TeamAcceptOrRequestResult = {|wasToken: Boolean,wasSeitan: Boolean,wasTeamName: Boolean,wasOpenTeam: Boolean,|}
+
 export type TeamAccessRequest = {|uid: UID,eldestSeqno: Seqno,|}
 
 export type TeamAddMemberResult = {|invited: Boolean,user?: ?User,emailSent: Boolean,chatSent: Boolean,|}
@@ -3580,6 +3586,8 @@ export type TeamsTeamIgnoreRequestRpcParam = {|name: String,username: String,inc
 export type TeamsTeamImplicitAdminsRpcParam = {|teamName: String,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
 export type TeamsTeamLeaveRpcParam = {|name: String,permanent: Boolean,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+
+export type TeamsTeamListMyAccessRequestsRpcParam = {|teamName?: ?String,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
 export type TeamsTeamListRequestsRpcParam = ?{|incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
@@ -3767,7 +3775,7 @@ export type UserSummary2 = {|uid: UID,username: String,thumbnail: String,fullNam
 
 export type UserSummary2Set = {|users?: ?Array<UserSummary2>,time: Time,version: Int,|}
 
-export type UserTeamShowcase = {|fqName: String,open: Boolean,teamIsShowcased: Boolean,description: String,role: TeamRole,|}
+export type UserTeamShowcase = {|fqName: String,open: Boolean,teamIsShowcased: Boolean,description: String,role: TeamRole,publicAdmins?: ?Array<String>,numMembers: Int,|}
 
 export type UserVersion = {|uid: UID,eldestSeqno: Seqno,|}
 
@@ -3915,6 +3923,7 @@ type TeamsGetTeamShowcaseResult = TeamShowcase
 type TeamsLoadTeamPlusApplicationKeysResult = TeamPlusApplicationKeys
 type TeamsLookupImplicitTeamResult = LookupImplicitTeamRes
 type TeamsLookupOrCreateImplicitTeamResult = LookupImplicitTeamRes
+type TeamsTeamAcceptInviteOrRequestAccessResult = TeamAcceptOrRequestResult
 type TeamsTeamAddEmailsBulkResult = BulkRes
 type TeamsTeamAddMemberResult = TeamAddMemberResult
 type TeamsTeamCreateResult = TeamCreateResult
@@ -3922,6 +3931,7 @@ type TeamsTeamCreateSeitanTokenResult = SeitanIKey
 type TeamsTeamCreateWithSettingsResult = TeamCreateResult
 type TeamsTeamGetResult = TeamDetails
 type TeamsTeamImplicitAdminsResult = ?Array<TeamMemberDetails>
+type TeamsTeamListMyAccessRequestsResult = ?Array<TeamName>
 type TeamsTeamListRequestsResult = ?Array<TeamJoinRequest>
 type TeamsTeamListResult = AnnotatedTeamList
 type TeamsTeamListSubteamsRecursiveResult = ?Array<TeamIDAndName>

@@ -1588,6 +1588,22 @@ func (o TeamRequestAccessResult) DeepCopy() TeamRequestAccessResult {
 	}
 }
 
+type TeamAcceptOrRequestResult struct {
+	WasToken    bool `codec:"wasToken" json:"wasToken"`
+	WasSeitan   bool `codec:"wasSeitan" json:"wasSeitan"`
+	WasTeamName bool `codec:"wasTeamName" json:"wasTeamName"`
+	WasOpenTeam bool `codec:"wasOpenTeam" json:"wasOpenTeam"`
+}
+
+func (o TeamAcceptOrRequestResult) DeepCopy() TeamAcceptOrRequestResult {
+	return TeamAcceptOrRequestResult{
+		WasToken:    o.WasToken,
+		WasSeitan:   o.WasSeitan,
+		WasTeamName: o.WasTeamName,
+		WasOpenTeam: o.WasOpenTeam,
+	}
+}
+
 type TeamShowcase struct {
 	IsShowcased       bool    `codec:"isShowcased" json:"is_showcased"`
 	Description       *string `codec:"description,omitempty" json:"description,omitempty"`
@@ -1900,6 +1916,11 @@ type TeamListRequestsArg struct {
 	SessionID int `codec:"sessionID" json:"sessionID"`
 }
 
+type TeamListMyAccessRequestsArg struct {
+	SessionID int     `codec:"sessionID" json:"sessionID"`
+	TeamName  *string `codec:"teamName,omitempty" json:"teamName,omitempty"`
+}
+
 type TeamIgnoreRequestArg struct {
 	SessionID int    `codec:"sessionID" json:"sessionID"`
 	Name      string `codec:"name" json:"name"`
@@ -2007,8 +2028,9 @@ type TeamsInterface interface {
 	TeamRename(context.Context, TeamRenameArg) error
 	TeamAcceptInvite(context.Context, TeamAcceptInviteArg) error
 	TeamRequestAccess(context.Context, TeamRequestAccessArg) (TeamRequestAccessResult, error)
-	TeamAcceptInviteOrRequestAccess(context.Context, TeamAcceptInviteOrRequestAccessArg) error
+	TeamAcceptInviteOrRequestAccess(context.Context, TeamAcceptInviteOrRequestAccessArg) (TeamAcceptOrRequestResult, error)
 	TeamListRequests(context.Context, int) ([]TeamJoinRequest, error)
+	TeamListMyAccessRequests(context.Context, TeamListMyAccessRequestsArg) ([]TeamName, error)
 	TeamIgnoreRequest(context.Context, TeamIgnoreRequestArg) error
 	TeamTree(context.Context, TeamTreeArg) (TeamTreeResult, error)
 	TeamDelete(context.Context, TeamDeleteArg) error
@@ -2270,7 +2292,7 @@ func TeamsProtocol(i TeamsInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]TeamAcceptInviteOrRequestAccessArg)(nil), args)
 						return
 					}
-					err = i.TeamAcceptInviteOrRequestAccess(ctx, (*typedArgs)[0])
+					ret, err = i.TeamAcceptInviteOrRequestAccess(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -2287,6 +2309,22 @@ func TeamsProtocol(i TeamsInterface) rpc.Protocol {
 						return
 					}
 					ret, err = i.TeamListRequests(ctx, (*typedArgs)[0].SessionID)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"teamListMyAccessRequests": {
+				MakeArg: func() interface{} {
+					ret := make([]TeamListMyAccessRequestsArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]TeamListMyAccessRequestsArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]TeamListMyAccessRequestsArg)(nil), args)
+						return
+					}
+					ret, err = i.TeamListMyAccessRequests(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -2641,14 +2679,19 @@ func (c TeamsClient) TeamRequestAccess(ctx context.Context, __arg TeamRequestAcc
 	return
 }
 
-func (c TeamsClient) TeamAcceptInviteOrRequestAccess(ctx context.Context, __arg TeamAcceptInviteOrRequestAccessArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.teams.teamAcceptInviteOrRequestAccess", []interface{}{__arg}, nil)
+func (c TeamsClient) TeamAcceptInviteOrRequestAccess(ctx context.Context, __arg TeamAcceptInviteOrRequestAccessArg) (res TeamAcceptOrRequestResult, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.teams.teamAcceptInviteOrRequestAccess", []interface{}{__arg}, &res)
 	return
 }
 
 func (c TeamsClient) TeamListRequests(ctx context.Context, sessionID int) (res []TeamJoinRequest, err error) {
 	__arg := TeamListRequestsArg{SessionID: sessionID}
 	err = c.Cli.Call(ctx, "keybase.1.teams.teamListRequests", []interface{}{__arg}, &res)
+	return
+}
+
+func (c TeamsClient) TeamListMyAccessRequests(ctx context.Context, __arg TeamListMyAccessRequestsArg) (res []TeamName, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.teams.teamListMyAccessRequests", []interface{}{__arg}, &res)
 	return
 }
 

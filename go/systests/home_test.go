@@ -67,29 +67,43 @@ func assertTodoNotPresent(t *testing.T, home keybase1.HomeScreen, wanted keybase
 	}
 }
 
+func postBio(t *testing.T, u *userPlusDevice) {
+	g := u.tc.G
+	cli, err := client.GetUserClient(g)
+	require.NoError(t, err)
+	arg := keybase1.ProfileEditArg{
+		FullName: "Boaty McBoatface",
+		Location: "The Sea, The Sea",
+		Bio:      "Just your average stupidly named vessel",
+	}
+	err = cli.ProfileEdit(context.TODO(), arg)
+	require.NoError(t, err)
+}
+
 func TestHome(t *testing.T) {
-	t.Skip()
 	tt := newTeamTester(t)
 	defer tt.cleanup()
 
-	tt.addUser("alice")
+	// It's important that we don't add with a paper key, because if we did, we'd
+	// burn through the first two todo items (1. Device; 2. Paper Key), and then
+	// we wouldn't get a badge for another day or so. So this way, we're only going
+	// to have one item done (device), and two items will be in the next todo
+	// list, with one badged. This is a bit brittle since if the server-side logic
+	// changes, this test will break. But let's leave it for now.
+	tt.addUserNoPaper("alice")
 	alice := tt.users[0]
 	g := alice.tc.G
-	tt.addUser("wong")
-	wong := tt.users[1]
 
 	home := getHome(t, alice, true)
 	initialVersion := home.Version
 	require.True(t, (initialVersion > 0), "initial version should be > 0")
-	assertTodoPresent(t, home, keybase1.HomeScreenTodoType_FOLLOW, true)
+	assertTodoPresent(t, home, keybase1.HomeScreenTodoType_BIO, true)
 	badges := getBadgeState(t, alice)
 	g.Log.Debug("Previous badge state: %+v", badges)
 	countPre := badges.HomeTodoItems
+	require.Equal(t, countPre, 1, "right number of badges back")
 
-	iui := newSimpleIdentifyUI()
-	iui.confirmRes = keybase1.ConfirmResult{IdentityConfirmed: true, RemoteConfirmed: true, AutoConfirmed: true}
-	attachIdentifyUI(t, g, iui)
-	alice.track(wong.username)
+	postBio(t, alice)
 
 	// Wait for a gregor message to bust this cache, at most ~10s. Hopeully this is enough for
 	// slow CI but you never know.
@@ -108,5 +122,5 @@ func TestHome(t *testing.T) {
 		wait = wait * 2
 	}
 	require.True(t, found, "we found the new version of home (after waiting for the gregor message to refresh us")
-	assertTodoNotPresent(t, home, keybase1.HomeScreenTodoType_FOLLOW)
+	assertTodoNotPresent(t, home, keybase1.HomeScreenTodoType_BIO)
 }
