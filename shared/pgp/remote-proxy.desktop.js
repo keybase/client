@@ -8,9 +8,9 @@ const windowOpts = {height: 450, width: 600}
 
 const purgeMapPropsToState = (state: TypedState) => {
   return {
-    component: 'purgeMessage',
-    selectorParams: '',
+    windowComponent: 'purgeMessage',
     windowOpts,
+    windowParam: '',
     windowTitle: 'PgpPurgeMessage',
   }
 }

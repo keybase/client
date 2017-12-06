@@ -54,12 +54,12 @@ function _registerRekeyListener() {
   )
 
   // else we get this also as part of delegateRekeyUI
-  engine().setIncomingActionCreators('keybase.1.rekeyUI.delegateRekeyUI', (_, response, _dispatch) => {
+  engine().setIncomingActionCreators('keybase.1.rekeyUI.delegateRekeyUI', (_, response, dispatch) => {
     // Dangling, never gets closed
     const session = engine().createSession(
       {
         'keybase.1.rekeyUI.refresh': ({sessionID, problemSetDevices}, response) => {
-          _dispatch(
+          dispatch(
             UnlockFoldersGen.createNewRekeyPopup({
               devices: problemSetDevices.devices || [],
               problemSet: problemSetDevices.problemSet,

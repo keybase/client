@@ -403,7 +403,7 @@ func (t *Team) Rotate(ctx context.Context) error {
 	// to be getting this same notification a second time, since it will bounce off a gregor and
 	// back to us. But they are idempotent, so it should be fine to be double-notified.
 	t.G().NotifyRouter.HandleTeamChangedByBothKeys(ctx,
-		t.chain().GetID(), t.Name().String(), t.NextSeqno(), keybase1.TeamChangeSet{KeyRotated: true})
+		t.chain().GetID(), t.Name().String(), t.NextSeqno(), t.IsImplicit(), keybase1.TeamChangeSet{KeyRotated: true})
 
 	return nil
 }
@@ -507,7 +507,7 @@ func (t *Team) ChangeMembershipPermanent(ctx context.Context, req keybase1.TeamC
 
 	// send notification that team key rotated
 	changes := keybase1.TeamChangeSet{MembershipChanged: true, KeyRotated: t.rotated}
-	t.G().NotifyRouter.HandleTeamChangedByBothKeys(ctx, t.chain().GetID(), t.Name().String(), t.NextSeqno(), changes)
+	t.G().NotifyRouter.HandleTeamChangedByBothKeys(ctx, t.chain().GetID(), t.Name().String(), t.NextSeqno(), t.IsImplicit(), changes)
 	return nil
 }
 

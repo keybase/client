@@ -43,17 +43,22 @@ BlankLine
 NonEndBlankLine
  = BlankLine !(BlankLine* WhiteSpace* !.)  // excludes groups of blank lines at the end of the input
 
-TextBlock
- = children:(__INLINE_MACRO__<> / InlineDelimiter)+ { return {type: 'text-block', children: flatten(children)} }
+// InlineStartCommon, InlineCont and InlineDelimiter are used by
+// instantiations of __INLINE_RULE__.
 
-InlineStart
- = InlineCode / Italic / Bold / Link / Mention / Strike / InlineCont
+InlineStartCommon
+  = InlineCode / Italic / Bold / Link / Mention / Strike / Text / Emoji / NativeEmoji
 
 InlineCont
- = !CodeBlock (Text / Emoji / EscapedChar / NativeEmoji / SpecialChar)
+ = !CodeBlock (Text / Emoji / NativeEmoji / EscapedChar / SpecialChar)
 
 InlineDelimiter
  = WhiteSpace / PunctuationMarker
+
+__INLINE_RULE__<TextInline, >
+
+TextBlock
+ = children:(TextInline / InlineDelimiter)+ { return {type: 'text-block', children: flatten(children)} }
 
 Ticks1 = "`"
 Ticks3 = "```"
@@ -87,23 +92,30 @@ Text
 QuoteBlock
  = QuoteBlockMarker WhiteSpace* children:(CodeBlock / TextBlock)* LineTerminatorSequence? { return {type: 'quote-block', children: flatten(children)} }
 
+__INLINE_RULE__<BoldInline, !BoldMarker>
+
 Bold
- = BoldMarker !WhiteSpace children:__INLINE_MACRO__<!BoldMarker> BoldMarker !(BoldMarker / NormalChar) { return {type: 'bold', children: flatten(children)} }
+ = BoldMarker !WhiteSpace children:BoldInline BoldMarker !(BoldMarker / NormalChar) { return {type: 'bold', children: flatten(children)} }
+
+__INLINE_RULE__<ItalicInline, !ItalicMarker>
 
 Italic
- = ItalicMarker !WhiteSpace children:__INLINE_MACRO__<!ItalicMarker> ItalicMarker !(ItalicMarker / NormalChar) { return {type: 'italic', children: flatten(children)} }
+ = ItalicMarker !WhiteSpace children:ItalicInline ItalicMarker !(ItalicMarker / NormalChar) { return {type: 'italic', children: flatten(children)} }
+
+__INLINE_RULE__<StrikeInline, !StrikeMarker>
 
 Strike
- = StrikeMarker !WhiteSpace children:__INLINE_MACRO__<!StrikeMarker> StrikeMarker !(StrikeMarker / NormalChar) { return {type: 'strike', children: flatten(children)} }
+ = StrikeMarker !WhiteSpace children:StrikeInline StrikeMarker !(StrikeMarker / NormalChar) { return {type: 'strike', children: flatten(children)} }
 
+// children grammar adapted from username regexp in libkb/checkers.go.
 Mention
- = MentionMarker !WhiteSpace children:__INLINE_MACRO__<!ClosingMentionMarker> MentionMarker service:ValidMentionService { return {type: 'mention', children: flatten(children), service: service.toLowerCase()} }
+ = MentionMarker children:([a-zA-Z0-9][a-zA-Z0-9_]?)+ MentionMarker service:ValidMentionService { return {type: 'mention', children: flatten(children), service: service.toLowerCase()} }
 
 CodeBlock
  = Ticks3 LineTerminatorSequence? children:(!Ticks3 .)+ Ticks3 { return {type: 'code-block', children: flatten(children)} }
 
 InlineCode
- = Ticks1 children:(!Ticks1 .)+ Ticks1 { return {type: 'inline-code', children: flatten(children)} }
+ = Ticks1 children:(!Ticks1 !LineTerminatorSequence .)+ Ticks1 { return {type: 'inline-code', children: flatten(children)} }
 
 // Here we use the literal ":" because we want to not match the :foo in ::foo
 InsideEmojiMarker

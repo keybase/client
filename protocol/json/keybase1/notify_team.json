@@ -38,6 +38,10 @@
           "type": "Seqno"
         },
         {
+          "name": "implicitTeam",
+          "type": "boolean"
+        },
+        {
           "name": "changes",
           "type": "TeamChangeSet"
         }
@@ -54,6 +58,10 @@
         {
           "name": "latestSeqno",
           "type": "Seqno"
+        },
+        {
+          "name": "implicitTeam",
+          "type": "boolean"
         },
         {
           "name": "changes",

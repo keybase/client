@@ -197,6 +197,7 @@ type BigTeamInfoPanelProps = infoPanelProps & {
   onLeaveConversation: () => void,
   channelname: string,
   onJoinChannel: () => void,
+  onViewTeam: () => void,
   teamname: string,
   isPreview: boolean,
 }
@@ -207,12 +208,15 @@ const _BigTeamInfoPanel = (props: BigTeamInfoPanelProps) => (
       #{props.channelname}
     </Text>
 
-    <Box style={{...globalStyles.flexBoxRow, alignSelf: 'center', alignItems: 'center'}}>
+    <ClickableBox
+      style={{...globalStyles.flexBoxRow, alignSelf: 'center', alignItems: 'center'}}
+      onClick={props.onViewTeam}
+    >
       <Avatar teamname={props.teamname} size={12} />
       <Text style={{marginLeft: globalMargins.xtiny}} type="BodySmallSemibold">
         {props.teamname}
       </Text>
-    </Box>
+    </ClickableBox>
 
     {!props.isPreview &&
       <Box>
@@ -243,7 +247,7 @@ const _BigTeamInfoPanel = (props: BigTeamInfoPanelProps) => (
     <Divider style={styleDivider} />
 
     <Text style={{paddingLeft: globalMargins.small}} type="BodySmallSemibold">
-      Members
+      Members ({props.participants.length})
     </Text>
     <Participants participants={props.participants} onShowProfile={props.onShowProfile} />
   </ScrollView>

@@ -608,6 +608,7 @@ func GetConvMtime(conv chat1.Conversation) gregor1.Time {
 	timeTyps := []chat1.MessageType{
 		chat1.MessageType_TEXT,
 		chat1.MessageType_ATTACHMENT,
+		chat1.MessageType_SYSTEM,
 	}
 	var summaries []chat1.MessageSummary
 	for _, typ := range timeTyps {
@@ -642,6 +643,7 @@ func GetConvMtimeLocal(conv chat1.ConversationLocal) gregor1.Time {
 	timeTyps := []chat1.MessageType{
 		chat1.MessageType_TEXT,
 		chat1.MessageType_ATTACHMENT,
+		chat1.MessageType_SYSTEM,
 	}
 	msg, err := PickLatestMessageUnboxed(conv, timeTyps)
 	if err != nil {
@@ -654,6 +656,7 @@ func GetConvSnippet(conv chat1.ConversationLocal) string {
 	timeTyps := []chat1.MessageType{
 		chat1.MessageType_TEXT,
 		chat1.MessageType_ATTACHMENT,
+		chat1.MessageType_SYSTEM,
 	}
 	msg, err := PickLatestMessageUnboxed(conv, timeTyps)
 	if err != nil {
@@ -662,12 +665,31 @@ func GetConvSnippet(conv chat1.ConversationLocal) string {
 	return GetMsgSnippet(msg)
 }
 
+func systemMessageSnippet(msg chat1.MessageSystem) string {
+	typ, err := msg.SystemType()
+	if err != nil {
+		return ""
+	}
+	switch typ {
+	case chat1.MessageSystemType_ADDEDTOTEAM:
+		return fmt.Sprintf("%s added to team", msg.Addedtoteam().Addee)
+	case chat1.MessageSystemType_COMPLEXTEAM:
+		return fmt.Sprintf("%s converted to big team", msg.Complexteam().Team)
+	case chat1.MessageSystemType_INVITEADDEDTOTEAM:
+		return fmt.Sprintf("%s added to team", msg.Inviteaddedtoteam().Invitee)
+	default:
+		return ""
+	}
+}
+
 func GetMsgSnippet(msg chat1.MessageUnboxed) string {
 	switch msg.GetMessageType() {
 	case chat1.MessageType_TEXT:
 		return msg.Valid().MessageBody.Text().Body
 	case chat1.MessageType_ATTACHMENT:
 		return msg.Valid().MessageBody.Attachment().Object.Title
+	case chat1.MessageType_SYSTEM:
+		return systemMessageSnippet(msg.Valid().MessageBody.System())
 	}
 	return ""
 }

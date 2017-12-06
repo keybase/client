@@ -32,10 +32,10 @@ class RemoteStore {
 
   // Search for the main window and ask it directly for our props
   _askMainWindowForOurProps = props => {
-    sendToMainWindow('remoteWindowWantsProps', props.component, props.selectorParams)
+    sendToMainWindow('remoteWindowWantsProps', props.windowComponent, props.windowParam)
   }
 
-  constructor(props: {component: string, selectorParams?: ?string, gotPropsCallback: () => void}) {
+  constructor(props: {windowComponent: string, windowParam: string, gotPropsCallback: () => void}) {
     this._gotPropsCallback = props.gotPropsCallback
     this._registerForRemoteUpdate()
     this._askMainWindowForOurProps(props)
@@ -53,8 +53,8 @@ class RemoteStore {
       sendToMainWindow(
         'dispatchAction',
         action,
-        this._internalState.component,
-        this._internalState.selectorParams
+        this._internalState.windowComponent,
+        this._internalState.windowParam
       )
     }
   }
