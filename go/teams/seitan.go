@@ -105,8 +105,8 @@ func GenerateIKeyFromString(token string) (ikey SeitanIKey, err error) {
 	if len(token) != SeitanEncodedIKeyLength {
 		return ikey, fmt.Errorf("invalid token length: expected %d characters, got %d", SeitanEncodedIKeyLength, len(token))
 	}
-	if token[4] != '+' {
-		return ikey, fmt.Errorf("invalid token format: expected fourth character to be '+'")
+	if token[seitanEncodedIKeyPlusOffset] != '+' {
+		return ikey, fmt.Errorf("invalid token format: expected %dth character to be '+'", seitanEncodedIKeyPlusOffset)
 	}
 
 	return SeitanIKey(strings.ToLower(token)), nil
