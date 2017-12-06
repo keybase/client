@@ -31,14 +31,14 @@ type DispatchProps = {
     sendNotification: boolean
   ) => void,
   _onEditMember: (teamname: Types.Teamname, username: string, role: Types.TeamRoleType) => void,
-  onBack: () => void,
+  onCancel: () => void,
 }
 
 const mapDispatchToProps = (dispatch: Dispatch, {navigateUp}): DispatchProps => ({
   _onAddMember: (teamname, username, role, sendNotification) =>
     dispatch(Creators.addToTeam(teamname, '', username, role, sendNotification)),
   _onEditMember: (teamname, username, role) => dispatch(Creators.editMembership(teamname, username, role)),
-  onBack: () => dispatch(navigateUp()),
+  onCancel: () => dispatch(navigateUp()),
 })
 
 const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps, ownProps) => {
@@ -50,7 +50,7 @@ const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps, ownPro
     } else {
       dispatchProps._onAddMember(stateProps.teamname, stateProps.username, role, sendNotification || false)
     }
-    dispatchProps.onBack()
+    dispatchProps.onCancel()
   }
   const showSendNotification = !user
   return {
