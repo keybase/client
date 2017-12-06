@@ -134,7 +134,7 @@
                   Compressed="$(var.Compressed)"
                   Permanent="yes"
                   InstallCondition="VersionNT64"
-                  DetectCondition="(vcredist_2017_x64_installed AND vcredist_2017_x64_version AND vcredist_2017_x64_versionnumber &gt;= v$(var.VCRedistVersion)"
+                  DetectCondition="(vcredist_2017_x64_installed AND vcredist_2017_x64_version AND vcredist_2017_x64_versionnumber &gt;= v$(var.VCRedistVersion)) OR NOT driver"
                   PerMachine="yes"
                   Vital="yes"
                   Cache="yes"
