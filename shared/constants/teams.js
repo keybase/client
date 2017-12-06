@@ -104,6 +104,9 @@ const isSubteam = (maybeTeamname: string) => {
 export const getFollowingMap = (state: TypedState) => state.config.following
 export const getFollowerMap = (state: TypedState) => state.config.followers
 
+// How many public admins should we display on a showcased team card at once?
+export const publicAdminsLimit = 6
+
 export {
   getConvIdsFromTeamName,
   getConversationIDKeyFromChannelName,

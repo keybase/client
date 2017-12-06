@@ -1,7 +1,7 @@
 // @flow
 
 import * as React from 'react'
-import {Avatar, Box, Button, Divider, Text} from '../../common-adapters'
+import {Avatar, Box, Button, Text, Usernames} from '../../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../../styles'
 import {isMobile} from '../../constants/platform'
 import PopupMenu, {ModalLessPopupMenu} from '../../common-adapters/popup-menu'
@@ -32,24 +32,52 @@ const TeamInfo = (props: Props) => (
       <Text style={styleText} type="Body">{props.description}</Text>
     </Box>
 
-    {!!props.teamJoinError && <Box style={styleDescription}>
-      <Text style={{padding: globalMargins.small}} type="BodySmall">Error: {props.teamJoinError}</Text>
-    </Box>}
+    {!!props.teamJoinError &&
+      <Box style={styleDescription}>
+        <Text style={{padding: globalMargins.small}} type="BodySmall">Error: {props.teamJoinError}</Text>
+      </Box>}
 
     {!props.youAreInTeam &&
       <Box style={styleDivider}>
         <Button
           onClick={props.onJoinTeam}
           disabled={props.teamJoinSuccess || props.youHaveRequestedAccess}
-          label={(props.teamJoinSuccess || props.youHaveRequestedAccess) ? 'Request sent' : props.openTeam ? 'Join team' : 'Request to join'}
+          label={
+            props.teamJoinSuccess || props.youHaveRequestedAccess
+              ? 'Request sent'
+              : props.openTeam ? 'Join team' : 'Request to join'
+          }
           style={{marginTop: globalStyles.small}}
-          type={(props.teamJoinSuccess || props.youHaveRequestedAccess) ? 'Secondary' : props.openTeam ? 'Following' : 'Primary'}
+          type={
+            props.teamJoinSuccess || props.youHaveRequestedAccess
+              ? 'Secondary'
+              : props.openTeam ? 'Following' : 'Primary'
+          }
         />
       </Box>}
 
-    <Box style={styleDivider}>
-      <Divider />
-    </Box>
+    {!!props.publicAdmins.length &&
+      <Box style={styleWrap}>
+        <Text style={styleText} type="Body">Public admins: </Text>
+
+        {props.publicAdmins.map((username, idx) => (
+          <Box key={username} style={{...globalStyles.flexBoxRow, marginLeft: 2}}>
+            <Usernames
+              type="BodySmallSemibold"
+              underline={true}
+              colorFollowing={true}
+              users={[{following: !!props.following[username], username}]}
+              onUsernameClicked={() => props.onUserClick(username)}
+            />
+
+            <Text style={styleText} type="Body">
+              {idx < props.publicAdmins.length - 1
+                ? ', '
+                : props.publicAdminsOthers === 0 ? '.' : `, + ${props.publicAdminsOthers} others.`}
+            </Text>
+          </Box>
+        ))}
+      </Box>}
   </Box>
 )
 
@@ -69,6 +97,17 @@ const styleDivider = {
 const styleText = {
   color: globalColors.black_20,
   fontSize: 11,
+}
+
+const styleWrap = {
+  ...globalStyles.flexBoxRow,
+  alignItems: 'flex-start',
+  justifyContent: 'flex-start',
+  alignSelf: 'center',
+  flexWrap: 'wrap',
+  marginLeft: globalMargins.small,
+  marginRight: globalMargins.small,
+  marginTop: globalMargins.tiny,
 }
 
 const TeamInfoWrapper = (props: Props) => {

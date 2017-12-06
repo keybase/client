@@ -209,10 +209,7 @@ export type SaveChannelMembership = NoErrorTypedAction<
   {channelState: ChannelMembershipState, teamname: string}
 >
 
-export type CheckRequestedAccess = NoErrorTypedAction<
-  'teams:checkRequestedAccess',
-  {}
->
+export type CheckRequestedAccess = NoErrorTypedAction<'teams:checkRequestedAccess', {}>
 
 export type TypeMap = {
   admin: string | boolean,
