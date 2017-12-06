@@ -727,10 +727,11 @@ func TestJournalServerEnableAuto(t *testing.T) {
 	require.Equal(t, 1, status.JournalCount)
 	require.Len(t, tlfIDs, 1)
 
-	// Flush the journal so it's not still being operated on by
+	// Stop the journal so it's not still being operated on by
 	// another instance after the restart.
-	err = jServer.Flush(ctx, tlfID)
-	require.NoError(t, err)
+	tj, ok := jServer.getTLFJournal(tlfID, nil)
+	require.True(t, ok)
+	tj.shutdown(ctx)
 
 	// Simulate a restart.
 	jServer = makeJournalServer(
@@ -816,6 +817,67 @@ func TestJournalServerReaderTLFs(t *testing.T) {
 	require.True(t, status.EnableAuto)
 	require.Equal(t, 1, status.JournalCount)
 	require.Len(t, tlfIDs, 1)
+}
+
+func TestJournalServerNukeEmptyJournalsOnRestart(t *testing.T) {
+	tempdir, ctx, cancel, config, _, jServer := setupJournalServerTest(t)
+	defer teardownJournalServerTest(t, tempdir, ctx, cancel, config)
+
+	err := jServer.EnableAuto(ctx)
+	require.NoError(t, err)
+
+	status, tlfIDs := jServer.Status(ctx)
+	require.True(t, status.EnableAuto)
+	require.Zero(t, status.JournalCount)
+	require.Len(t, tlfIDs, 0)
+
+	blockServer := config.BlockServer()
+	h, err := ParseTlfHandle(
+		ctx, config.KBPKI(), nil, "test_user1", tlf.Private)
+	require.NoError(t, err)
+	id := h.ResolvedWriters()[0]
+
+	// Access a TLF, which should create a journal automatically.
+	tlfID, err := config.MDOps().GetIDForHandle(ctx, h)
+	require.NoError(t, err)
+	bCtx := kbfsblock.MakeFirstContext(id, keybase1.BlockType_DATA)
+	data := []byte{1, 2, 3, 4}
+	bID, err := kbfsblock.MakePermanentID(data)
+	require.NoError(t, err)
+	serverHalf, err := kbfscrypto.MakeRandomBlockCryptKeyServerHalf()
+	require.NoError(t, err)
+	err = blockServer.Put(ctx, tlfID, bID, bCtx, data, serverHalf)
+	require.NoError(t, err)
+
+	status, tlfIDs = jServer.Status(ctx)
+	require.True(t, status.EnableAuto)
+	require.Equal(t, 1, status.JournalCount)
+	require.Len(t, tlfIDs, 1)
+
+	tj, ok := jServer.getTLFJournal(tlfID, nil)
+	require.True(t, ok)
+
+	// Flush the journal so it's empty.
+	err = jServer.Flush(ctx, tlfID)
+	require.NoError(t, err)
+
+	// Simulate a restart and make sure the journal doesn't come back
+	// up.
+	jServer = makeJournalServer(
+		config, jServer.log, tempdir, jServer.delegateBlockCache,
+		jServer.delegateDirtyBlockCache,
+		jServer.delegateBlockServer, jServer.delegateMDOps, nil, nil)
+	session, err := config.KBPKI().GetCurrentSession(ctx)
+	require.NoError(t, err)
+	err = jServer.EnableExistingJournals(
+		ctx, session.UID, session.VerifyingKey, TLFJournalBackgroundWorkPaused)
+	require.NoError(t, err)
+	status, tlfIDs = jServer.Status(ctx)
+	require.True(t, status.EnableAuto)
+	require.Equal(t, 0, status.JournalCount)
+	require.Len(t, tlfIDs, 0)
+	_, err = os.Stat(tj.dir)
+	require.True(t, ioutil.IsNotExist(err))
 }
 
 func TestJournalServerTeamTLFWithRestart(t *testing.T) {

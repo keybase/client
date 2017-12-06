@@ -416,6 +416,26 @@ func (j *JournalServer) EnableExistingJournals(
 					tlfID, err)
 				continue
 			}
+
+			// Delete any empty journals so they don't clutter up the
+			// directory, until the TLF is accessed again.
+			blockEntryCount, mdEntryCount, err := tj.getJournalEntryCounts()
+			if err != nil {
+				tj.shutdown(groupCtx)
+				// Don't treat per-TLF errors as fatal.
+				j.log.CWarningf(
+					groupCtx,
+					"Error when getting status of existing journal for %s: %+v",
+					tlfID, err)
+				continue
+			}
+			if blockEntryCount == 0 && mdEntryCount == 0 {
+				j.log.CDebugf(groupCtx, "Nuking empty journal for %s", tlfID)
+				tj.shutdown(groupCtx)
+				os.RemoveAll(dir)
+				continue
+			}
+
 			journalCh <- journalRet{tlfID, tj}
 		}
 		return nil
