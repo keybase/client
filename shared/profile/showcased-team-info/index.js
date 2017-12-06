@@ -64,7 +64,7 @@ const TeamInfo = (props: Props) => (
       props.youHaveRequestedAccess &&
       props.openTeam &&
       <Box style={styleDescription}>
-        <Text style={styleText} type="Body">
+        <Text type="BodySmall">
           As soon as an admin comes online, this team will unlock for you.
         </Text>
       </Box>}
