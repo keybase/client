@@ -2,7 +2,6 @@
 import ShowcasedTeamInfo from './index'
 import {
   checkRequestedAccess,
-  getDetails,
   getTeams,
   joinTeam,
   setTeamJoinError,
