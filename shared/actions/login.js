@@ -560,11 +560,13 @@ function* _startLogin() {
 }
 
 function _relogin({payload: {usernameOrEmail, passphrase}}: LoginGen.ReloginPayload) {
-  return Saga.all([
+  return Saga.call(Saga.sequentially, [
     Saga.put(LoginGen.createSetRevokedSelf({revoked: ''})),
     Saga.put(LoginGen.createSetDeletedSelf({deletedUsername: ''})),
-    Saga.call(initalizeMyCodeStateForLogin),
-    Saga.call(loginFlowSaga, usernameOrEmail, passphrase),
+    Saga.call(Saga.sequentially, [
+      Saga.call(initalizeMyCodeStateForLogin),
+      Saga.call(loginFlowSaga, usernameOrEmail, passphrase),
+    ]),
   ])
 }
 

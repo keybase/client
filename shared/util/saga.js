@@ -111,6 +111,15 @@ function safeTakeEvery(pattern: string | Array<any> | Function, worker: Function
   return takeEvery(pattern, safeTakeEveryWorker, ...args)
 }
 
+// Useful in safeTakeEveryPure when you have an array of effects you want to run in order
+function *sequentially(effects: Array<Effects>) {
+  const results = []
+  for (let i = 0; i < effects.length; i++) {
+    results.push(yield effects[i])
+  }
+  return results
+}
+
 // Like safeTakeEvery but the worker is pure (not a generator) optionally pass in a third argument
 // Which is a selector function that will select some state and pass it to pureWorker
 // whatever purework returns will be yielded on.
@@ -294,6 +303,7 @@ export {
   safeTakeLatestWithCatch,
   safeTakeSerially,
   select,
+sequentially,
   singleFixedChannelConfig,
   spawn,
   take,
