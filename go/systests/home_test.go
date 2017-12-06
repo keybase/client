@@ -97,14 +97,10 @@ func TestHome(t *testing.T) {
 	home := getHome(t, alice, true)
 	initialVersion := home.Version
 
-	// We'd like to ask for 10, but on a new CI install, I worry we'll race before the DB is
-	// populated. So be happy with >0.
-	require.True(t, len(home.FollowSuggestions) > 0, "should get some people back to check out")
-
 	require.True(t, (initialVersion > 0), "initial version should be > 0")
 	assertTodoPresent(t, home, keybase1.HomeScreenTodoType_BIO, true)
 
-	// Wait for a gregor message to fill in the badget state, for at most ~10s.
+	// Wait for a gregor message to fill in the badge state, for at most ~10s.
 	// Hopefully this is enough for slow CI but you never know.
 	pollForTrue := func(poller func(i int) bool) {
 		// Hopefully this is enough for slow CI but you never know.
