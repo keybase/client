@@ -17,37 +17,22 @@ import (
 
 	libkb "github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
-	"github.com/keybase/saltpack/encoding/basex"
 )
-
-// How many random bytes are needed to create "Invite Key" token of
-// chosen alphabet and length.
-const SeitanRawIKeyLength = 10
 
 // This is expected seitan token length, the secret "Invite Key" that
 // is generated on one client and distributed to another via face-to-
 // face meeting, use of a trusted courier etc.
 //
-// Seitan tokens have a '+' as the fifth character. We use this and length
+// Seitan tokens have a '+' as the fifth character. We use this
 // to distinguish from email invite tokens (and team names).
-// Right now server-trust e-mail tokens are 12 characters.
+// See `IsSeitany`
 const SeitanEncodedIKeyLength = 18
-const seitanEncodedIKeyLengthBeforePlus = 17
+const seitanEncodedIKeyPlusOffset = 5
 
-// Key-Base 31 encoding. lower case letters except "lit", and digits except for '0' and '1'.
-const KBase31EncodeStd = "abcdefghjkmnopqrsuvwxyz23456789"
-
-var Base31Encoding = basex.NewEncoding(KBase31EncodeStd, SeitanRawIKeyLength, "")
-
-func init() {
-	seitanEncodedIKeyLengthBeforePlus := 17
-	if seitanEncodedIKeyLengthBeforePlus != Base31Encoding.EncodedLen(SeitanRawIKeyLength) {
-		panic(fmt.Sprintf("seitan encoding misconfiguration (1): %v != %v", seitanEncodedIKeyLengthBeforePlus, Base31Encoding.EncodedLen(SeitanRawIKeyLength)))
-	}
-	if seitanEncodedIKeyLengthBeforePlus+1 != SeitanEncodedIKeyLength {
-		panic(fmt.Sprintf("seitan encoding misconfiguration (2): %v != %v", seitanEncodedIKeyLengthBeforePlus, SeitanEncodedIKeyLength))
-	}
-}
+// Key-Base 30 encoding. lower case letters except "ilot", and digits except for '0' and '1'.
+// See TestSeitanParams for a test to make sure these two parameters match up.
+const KBase30EncodeStd = "abcdefghjkmnpqrsuvwxyz23456789"
+const base30BitMask = byte(0x1f)
 
 // "Invite Key"
 type SeitanIKey string
@@ -64,33 +49,43 @@ type SeitanPEIKey struct {
 }
 
 func GenerateIKey() (ikey SeitanIKey, err error) {
-	rawKey, err := libkb.RandBytes(SeitanRawIKeyLength)
-	if err != nil {
-		return ikey, err
+
+	alphabet := []byte(KBase30EncodeStd)
+	randEncodingByte := func() (byte, error) {
+		for {
+			var b [1]byte
+			_, err := rand.Read(b[:])
+			if err != nil {
+				return byte(0), err
+			}
+			i := int(b[0] & base30BitMask)
+			if i < len(alphabet) {
+				return alphabet[i], nil
+			}
+		}
 	}
 
-	var encodedIKeyBeforePlus [seitanEncodedIKeyLengthBeforePlus]byte
-	Base31Encoding.Encode(encodedIKeyBeforePlus[:], rawKey)
-
-	var verify [SeitanRawIKeyLength]byte
-	_, err = Base31Encoding.Decode(verify[:], encodedIKeyBeforePlus[:])
-	if err != nil {
-		return ikey, err
+	var buf []byte
+	for i := 0; i < SeitanEncodedIKeyLength; i++ {
+		if i == seitanEncodedIKeyPlusOffset {
+			buf = append(buf, '+')
+		} else {
+			b, err := randEncodingByte()
+			if err != nil {
+				return ikey, err
+			}
+			buf = append(buf, b)
+		}
 	}
+	return SeitanIKey(string(buf)), nil
+}
 
-	if !libkb.SecureByteArrayEq(verify[:], rawKey) {
-		return ikey, errors.New("Internal error - ikey encoding failed")
-	}
-
-	// Copy all the bytes from encodedIKeyBeforePlus -> encodedKey
-	// With the insertion of a '+' in fourth position.
-	var encodedKey [SeitanEncodedIKeyLength]byte
-	copy(encodedKey[0:4], encodedIKeyBeforePlus[0:4])
-	encodedKey[4] = '+'
-	copy(encodedKey[5:18], encodedIKeyBeforePlus[4:17])
-
-	ikey = SeitanIKey(encodedKey[:])
-	return ikey, nil
+// IsSeitany is a very conservative check of whether a given string looks
+// like a Seitan token. We want to err on the side of considering strings
+// Seitan tokens, since we don't mistakenly want to send botched Seitan
+// tokens to the server.
+func IsSeitany(s string) bool {
+	return len(s) > 5 && strings.IndexByte(s, '+') > 1
 }
 
 // GenerateIKeyFromString safely creates SeitanIKey value from
@@ -102,8 +97,8 @@ func GenerateIKeyFromString(token string) (ikey SeitanIKey, err error) {
 	if len(token) != SeitanEncodedIKeyLength {
 		return ikey, fmt.Errorf("invalid token length: expected %d characters, got %d", SeitanEncodedIKeyLength, len(token))
 	}
-	if token[4] != '+' {
-		return ikey, fmt.Errorf("invalid token format: expected fourth character to be '+'")
+	if token[seitanEncodedIKeyPlusOffset] != '+' {
+		return ikey, fmt.Errorf("invalid token format: expected %dth character to be '+'", seitanEncodedIKeyPlusOffset)
 	}
 
 	return SeitanIKey(strings.ToLower(token)), nil

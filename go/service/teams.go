@@ -257,10 +257,9 @@ func (h *TeamsHandler) TeamAcceptInvite(ctx context.Context, arg keybase1.TeamAc
 		return err
 	}
 
-	// If token is valid seitan, don't pass to functions that might log or send to server.
-	seitan, err := teams.GenerateIKeyFromString(arg.Token)
-	if err == nil {
-		return teams.AcceptSeitan(ctx, h.G().ExternalG(), seitan)
+	// If token looks at all like Seitan, don't pass to functions that might log or send to server.
+	if teams.IsSeitany(arg.Token) {
+		return teams.ParseAndAcceptSeitanToken(ctx, h.G().ExternalG(), arg.Token)
 	}
 
 	return teams.AcceptInvite(ctx, h.G().ExternalG(), arg.Token)
