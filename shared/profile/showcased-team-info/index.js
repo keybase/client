@@ -2,40 +2,43 @@
 
 import * as React from 'react'
 import {Avatar, Box, Button, Text, Usernames} from '../../common-adapters'
-import {globalStyles, globalColors, globalMargins} from '../../styles'
+import {globalStyles, globalMargins} from '../../styles'
 import {isMobile} from '../../constants/platform'
 import PopupMenu, {ModalLessPopupMenu} from '../../common-adapters/popup-menu'
 
 import type {Props} from './index'
 
 const TeamInfo = (props: Props) => (
-  <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center'}}>
-    <Avatar
-      teamname={props.teamname}
-      size={40}
-      style={{marginTop: globalMargins.small, marginBottom: globalMargins.small}}
-    />
-
-    <Box style={{...globalStyles.flexBoxRow, marginTop: globalMargins.xtiny}}>
-      <Text type="BodySemibold">{props.teamname}</Text>
+  <Box
+    style={{
+      ...globalStyles.flexBoxColumn,
+      alignItems: 'center',
+      textAlign: 'center',
+    }}
+  >
+    <Box
+      style={{
+        height: isMobile ? 64 : 40,
+        marginTop: isMobile ? globalMargins.tiny : globalMargins.small,
+        marginBottom: globalMargins.xtiny,
+      }}
+    >
+      <Avatar teamname={props.teamname} size={isMobile ? 64 : 40} />
     </Box>
+    <Text type="Header">{props.teamname}</Text>
 
-    <Text style={isMobile ? styleText : {...styleText, textTransform: 'uppercase'}} type="Body">
+    <Text type="BodySmall" style={{textTransform: 'uppercase'}}>
       {props.openTeam && 'OPEN '}TEAM
     </Text>
 
-    <Text style={styleText} type="Body">
+    <Text type="BodySmall">
       {props.memberCount} members
     </Text>
 
-    <Box style={styleDescription}>
-      <Text style={styleText} type="Body">{props.description}</Text>
-    </Box>
+    <Text type={isMobile ? 'Body' : 'BodySmall'} style={styleDescription}>{props.description}</Text>
 
     {!!props.teamJoinError &&
-      <Box style={styleDescription}>
-        <Text style={{padding: globalMargins.small}} type="BodySmall">Error: {props.teamJoinError}</Text>
-      </Box>}
+      <Text type="BodySmall" style={styleDescription}>Error: {props.teamJoinError}</Text>}
 
     {!props.youAreInTeam &&
       <Box style={styleDivider}>
@@ -47,11 +50,12 @@ const TeamInfo = (props: Props) => (
               ? props.openTeam ? 'Joined' : 'Request sent'
               : props.openTeam ? 'Join team' : 'Request to join'
           }
-          style={{marginTop: globalStyles.small}}
+          small={!isMobile}
+          style={{marginTop: globalStyles.tiny}}
           type={
             props.teamJoinSuccess || props.youHaveRequestedAccess
-              ? props.openTeam ? 'Following' : 'Secondary'
-              : props.openTeam ? 'Following' : 'Primary'
+              ? props.openTeam ? 'PrimaryGreen' : 'Secondary'
+              : props.openTeam ? 'PrimaryGreen' : 'Primary'
           }
         />
       </Box>}
@@ -67,7 +71,7 @@ const TeamInfo = (props: Props) => (
 
     {!!props.publicAdmins.length &&
       <Box style={styleWrap}>
-        <Text style={styleText} type="Body">Public admins: </Text>
+        <Text type="BodySmall">Public admins: </Text>
 
         {props.publicAdmins.map((username, idx) => (
           <Box key={username} style={styleInnerWrap}>
@@ -79,7 +83,7 @@ const TeamInfo = (props: Props) => (
               onUsernameClicked={() => props.onUserClick(username)}
             />
 
-            <Text style={styleText} type="Body">
+            <Text type="BodySmall">
               {idx < props.publicAdmins.length - 1
                 ? ', '
                 : props.publicAdminsOthers === 0 ? '.' : `, + ${props.publicAdminsOthers} others.`}
@@ -96,16 +100,12 @@ const styleDescription = {
   marginLeft: globalMargins.small,
   marginRight: globalMargins.small,
   marginTop: globalMargins.tiny,
+  textAlign: 'center',
 }
 
 const styleDivider = {
   ...globalStyles.flexBoxRow,
   marginTop: globalMargins.tiny,
-}
-
-const styleText = {
-  color: globalColors.black_20,
-  fontSize: 11,
 }
 
 const styleInnerWrap = {
@@ -119,6 +119,7 @@ const styleWrap = {
   alignItems: 'flex-start',
   justifyContent: 'flex-start',
   alignSelf: 'center',
+  textAlign: 'center',
   flexWrap: 'wrap',
   marginLeft: globalMargins.small,
   marginRight: globalMargins.small,
