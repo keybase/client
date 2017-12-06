@@ -23,8 +23,6 @@ const mapStateToProps = (state: TypedState, {routeProps}) => {
   const memberCount = team.numMembers
   const openTeam = team.open
   const teamname = team.fqName
-  let publicAdmins = team.publicAdmins || []
-  publicAdmins = ['one', 'two', 'cjb', 'max', 'five', 'six', 'seven']
   const youAreInTeam = !!state.entities.getIn(['teams', 'teamnames', teamname], false)
   const youHaveRequestedAccess = !!state.entities.getIn(
     ['teams', 'teamAccessRequestsPending', teamname],
@@ -33,6 +31,7 @@ const mapStateToProps = (state: TypedState, {routeProps}) => {
 
   // If the current user's in the list of public admins, pull them out to the
   // front.
+  let publicAdmins = team.publicAdmins || []
   const idx = publicAdmins.indexOf(username)
   if (idx !== -1) {
     const elem = publicAdmins.splice(idx, 1)

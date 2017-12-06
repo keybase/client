@@ -61,7 +61,7 @@ const TeamInfo = (props: Props) => (
         <Text style={styleText} type="Body">Public admins: </Text>
 
         {props.publicAdmins.map((username, idx) => (
-          <Box key={username} style={{...globalStyles.flexBoxRow, marginLeft: 2}}>
+          <Box key={username} style={styleInnerWrap}>
             <Usernames
               type="BodySmallSemibold"
               underline={true}
@@ -97,6 +97,12 @@ const styleDivider = {
 const styleText = {
   color: globalColors.black_20,
   fontSize: 11,
+}
+
+const styleInnerWrap = {
+  ...globalStyles.flexBoxRow,
+  alignItems: 'center',
+  marginLeft: 2,
 }
 
 const styleWrap = {

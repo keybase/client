@@ -335,7 +335,7 @@ class ProfileRender extends PureComponent<Props, State> {
                   this.props.userInfo.showcasedTeams.length > 0 &&
                   <Box style={{...globalStyles.flexBoxColumn, paddingBottom: globalMargins.small}}>
                     <Box style={globalStyles.flexBoxRow}>
-                      <Text type="BodySmallSemibold">Teams</Text>
+                      <Text type="BodySmallSemibold">Teams:</Text>
                     </Box>
                     {this.props.userInfo.showcasedTeams.map(team => (
                       <Box
