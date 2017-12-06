@@ -12,7 +12,13 @@ export type Props = {|
   onFocusInput: () => void,
   onDownloadAttachment: (messageKey: Types.MessageKey) => void,
   onLoadMoreMessages: () => void,
-  onMessageAction: (message: Types.Message) => void,
+  onMessageAction: (
+    message: Types.Message,
+    localMessageState?: Types.LocalMessageState,
+    onShowEditor?: () => void,
+    onPopupWillClose?: () => void,
+    targetNode?: ?HTMLElement
+  ) => void,
   onOpenInFileUI: (filename: string) => void,
   getMessageFromMessageKey: (messageKey: Types.MessageKey) => ?Types.Message,
   selectedConversation: ?Types.ConversationIDKey,

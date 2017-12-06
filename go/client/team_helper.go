@@ -26,6 +26,16 @@ func ParseOneTeamNameK1(ctx *cli.Context) (res keybase1.TeamName, err error) {
 	return keybase1.TeamNameFromString(teamNameStr)
 }
 
+func ParseOneTeamID(ctx *cli.Context) (res keybase1.TeamID, err error) {
+	if len(ctx.Args()) == 0 {
+		return "", errors.New("team ID argument required")
+	}
+	if len(ctx.Args()) > 1 {
+		return "", errors.New("one team ID argument required, multiple found")
+	}
+	return keybase1.TeamIDFromString(ctx.Args()[0])
+}
+
 func ParseUser(ctx *cli.Context) (string, error) {
 	username := ctx.String("user")
 	if len(username) == 0 {

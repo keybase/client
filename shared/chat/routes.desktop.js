@@ -1,12 +1,14 @@
 // @flow
 import {makeRouteDefNode, makeLeafTags} from '../route-tree'
 import {MaybePopupHoc} from '../common-adapters'
+import RelativePopupHoc from '../common-adapters/relative-popup-hoc.desktop'
 import Conversation from './conversation/container'
 import AttachmentPopup from './conversation/attachment-popup/container'
 import AttachmentInputPopup from './conversation/attachment-input/container'
 import BlockConversationWarning from './conversation/block-conversation-warning/container'
 import NewTeamDialogFromChat from './new-team-dialog-container.js'
 import ManageChannels from './manage-channels/container'
+import {ConnectedMessageAction} from './conversation/messages/popup.desktop'
 import EditChannel from './manage-channels/edit-channel-container'
 import CreateChannel from './create-channel/container'
 import {nothingSelected} from '../constants/chat'
@@ -31,6 +33,10 @@ const conversationRoute = makeRouteDefNode({
       component: BlockConversationWarning,
       tags: makeLeafTags({layerOnTop: true}),
       children: {},
+    },
+    messageAction: {
+      component: RelativePopupHoc(ConnectedMessageAction),
+      tags: makeLeafTags({layerOnTop: true}),
     },
     showNewTeamDialog: {
       component: NewTeamDialogFromChat,
