@@ -87,6 +87,13 @@ func Details(ctx context.Context, g *libkb.GlobalContext, name string, forceRepo
 		if cat != keybase1.TeamInviteCategory_KEYBASE {
 			continue
 		}
+		if !invite.UserActive {
+			// Skip inactive puk-less members for now.
+			// Causes duplicate usernames in team list which we
+			// don't want.
+			delete(res.AnnotatedActiveInvites, invID)
+			continue
+		}
 		details := keybase1.TeamMemberDetails{
 			Uv:       invite.Uv,
 			Username: string(invite.Name),
