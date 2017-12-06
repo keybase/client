@@ -69,7 +69,7 @@ export const SuccessComponent = ({successTeamName, onBack}: Props) => (
         <Text style={{textAlign: 'center'}} type="Body">
           We sent a request to
           {' '}
-          <Text type="BodySemibold">{successTeamName || 'the team'}</Text>
+          {successTeamName ? <Text type="BodySemibold">{successTeamName}</Text> : 'the team'}
           's admins. We will notify you as soon as they let you in!
         </Text>
       </Box>
