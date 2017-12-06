@@ -91,8 +91,8 @@ function start() {
       _maybeTellMainWindowAboutMenubar()
     })
 
-    ipcMain.on('remoteWindowWantsProps', (_, component, selectorParams) => {
-      mainWindow && mainWindow.window.webContents.send('remoteWindowWantsProps', component, selectorParams)
+    ipcMain.on('remoteWindowWantsProps', (_, windowComponent, windowParam) => {
+      mainWindow && mainWindow.window.webContents.send('remoteWindowWantsProps', windowComponent, windowParam)
     })
   })
 

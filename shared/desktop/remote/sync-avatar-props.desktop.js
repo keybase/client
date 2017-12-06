@@ -13,8 +13,8 @@ const BrowserWindow = remote.BrowserWindow
 type Props = {
   _allAvatars: Object,
   _avatars: Object,
-  selectorParams: ?string,
-  component: string,
+  windowParam: string,
+  windowComponent: string,
   remoteWindow: ?BrowserWindow,
   setUsernames: I.Set<string> => void,
   usernames: I.Set<string>,
@@ -25,10 +25,10 @@ function SyncAvatarProps(ComposedComponent: any) {
     _onRemoteActionFired = (
       event: any,
       action: {type: string, payload: Object},
-      component: string,
-      selectorParams: ?string
+      windowComponent: string,
+      windowParam: string
     ) => {
-      if (component === this.props.component && selectorParams === this.props.selectorParams) {
+      if (windowComponent === this.props.windowComponent && windowParam === this.props.windowParam) {
         if (action.type === ConfigGen.loadAvatars) {
           const {usernames} = action.payload
           this.props.setUsernames(this.props.usernames.add(usernames))

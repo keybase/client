@@ -9,25 +9,25 @@ const windowOpts = {height: 300, width: 500}
 const unlockFolderMapPropsToState = (state: TypedState) => {
   const {devices, phase, paperkeyError, waiting} = state.unlockFolders
   return {
-    component: 'unlockFolders',
     devices,
     paperkeyError,
     phase,
-    selectorParams: '',
     waiting,
+    windowComponent: 'unlockFolders',
     windowOpts,
+    windowParam: '',
     windowTitle: 'UnlockFolders',
   }
 }
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
-  component: stateProps.component,
   devices: stateProps.devices.toJS(), // Never send immutable over the wire
   paperkeyError: stateProps.paperkeyError,
   phase: stateProps.phase,
-  selectorParams: stateProps.selectorParams,
   waiting: stateProps.waiting,
+  windowComponent: stateProps.windowComponent,
   windowOpts: stateProps.windowOpts,
+  windowParam: stateProps.windowParam,
   windowTitle: stateProps.windowTitle,
 })
 

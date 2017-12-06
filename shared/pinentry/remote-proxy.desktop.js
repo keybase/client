@@ -16,18 +16,17 @@ const pinentryMapStateToProps = (state: TypedState, {id}) => {
 
   return {
     cancelLabel: p.cancelLabel,
-    component: 'pinentry',
     prompt: p.prompt,
     retryLabel: p.retryLabel,
-    selectorParams: String(id),
     sessionID: id,
     showTyping: p.showTyping,
     submitLabel: p.submitLabel,
     submitted: p.submitted,
-    title: 'Pinentry',
     type: p.type,
+    windowComponent: 'pinentry',
     windowOpts,
-    windowTitle: p.windowTitle,
+    windowParam: String(id),
+    windowTitle: 'Pinentry',
   }
 }
 

@@ -85,6 +85,15 @@ const getRole = (state: TypedState, teamname: Types.Teamname): ?Types.TeamRoleTy
 const isAdmin = (type: ?Types.TeamRoleType) => type === 'admin'
 const isOwner = (type: ?Types.TeamRoleType) => type === 'owner'
 
+// TODO make this check for only valid subteam names
+const isSubteam = (maybeTeamname: string) => {
+  const subteams = maybeTeamname.split('.')
+  if (subteams.length <= 1) {
+    return false
+  }
+  return true
+}
+
 export {
   getConvIdsFromTeamName,
   getRole,
@@ -94,4 +103,5 @@ export {
   getTopicFromConvID,
   isAdmin,
   isOwner,
+  isSubteam,
 }

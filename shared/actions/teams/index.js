@@ -54,14 +54,17 @@ const _createNewTeam = function*(action: Types.CreateNewTeam) {
 
 const _joinTeam = function*(action: Types.JoinTeam) {
   const {payload: {teamname}} = action
-  yield Saga.all([Saga.put(Creators.setTeamJoinError('')), Saga.put(Creators.setTeamJoinSuccess(false))])
+  yield Saga.all([
+    Saga.put(Creators.setTeamJoinError('')),
+    Saga.put(Creators.setTeamJoinSuccess(false, null)),
+  ])
   try {
-    yield Saga.call(RPCTypes.teamsTeamAcceptInviteOrRequestAccessRpcPromise, {
+    const result = yield Saga.call(RPCTypes.teamsTeamAcceptInviteOrRequestAccessRpcPromise, {
       tokenOrName: teamname,
     })
 
     // Success
-    yield Saga.put(Creators.setTeamJoinSuccess(true))
+    yield Saga.put(Creators.setTeamJoinSuccess(true, result && result.wasTeamName ? teamname : null))
   } catch (error) {
     yield Saga.put(Creators.setTeamJoinError(error.desc))
   }
@@ -203,9 +206,9 @@ const _inviteToTeamByPhone = function*(action: Types.InviteToTeamByPhone) {
   } else {
     // then this must be a subteam, and won't safely fit into a text
     const subteams = teamname.split('.')
-    teamDescription = `${subteams[subteams.length - 1]} subteam`
+    teamDescription = `${subteams[subteams.length - 1]} team`
   }
-  const bodyText = `Please join the ${teamDescription} on Keybase. Install and paste this in the "Teams" tab:\n\ntoken: ${seitan.toUpperCase()}\n\nquick install: keybase.io/_/go`
+  const bodyText = `Please join the ${teamDescription} on Keybase. Copy this entire message into the "Teams" tab.\n\ntoken: ${seitan.toLowerCase()}\n\nquick install: keybase.io/_/go`
   openSMS([phoneNumber], bodyText).catch(err => console.log('Error sending SMS', err))
 
   yield Saga.put(Creators.getDetails(teamname))
@@ -284,6 +287,11 @@ const _getDetails = function*(action: Types.GetDetails): Saga.SagaGenerator<any,
       name: teamname,
       forceRepoll: false,
     })
+
+    // Don't allow the none default
+    if (details.settings.joinAs === RPCTypes.teamsTeamRole.none) {
+      details.settings.joinAs = RPCTypes.teamsTeamRole.reader
+    }
 
     const implicitAdminDetails: Array<
       RPCTypes.TeamMemberDetails
@@ -609,8 +617,10 @@ function* _setupTeamHandlers(): Saga.SagaGenerator<any, any> {
     engine().setIncomingHandler(
       'keybase.1.NotifyTeam.teamChangedByName',
       (args: RPCTypes.NotifyTeamTeamChangedByNameRpcParam) => {
-        const actions = getLoadCalls(args.teamName)
-        actions.forEach(dispatch)
+        if (!args.implicitTeam) {
+          const actions = getLoadCalls(args.teamName)
+          actions.forEach(dispatch)
+        }
       }
     )
     engine().setIncomingHandler(

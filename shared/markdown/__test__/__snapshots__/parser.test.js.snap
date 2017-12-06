@@ -1,5 +1,45 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`Markdown parser Messed up 1`] = `
+Object {
+  "children": Array [
+    Object {
+      "children": Array [
+        "\`\`\`if (var == \\"foo\\")",
+      ],
+      "type": "text-block",
+    },
+    Object {
+      "children": Array [
+        "  echo \\"foo\\";",
+      ],
+      "type": "text-block",
+    },
+    Object {
+      "children": Array [
+        "else echo \\"bar\\";\`\`",
+      ],
+      "type": "text-block",
+    },
+  ],
+  "type": "markup",
+}
+`;
+
+exports[`Markdown parser Messed up 2`] = `
+Object {
+  "children": Array [
+    Object {
+      "children": Array [
+        "I think I *missed something**",
+      ],
+      "type": "text-block",
+    },
+  ],
+  "type": "markup",
+}
+`;
+
 exports[`Markdown parser eats multiple empty lines at end 1`] = `
 Object {
   "children": Array [
@@ -20,6 +60,47 @@ Object {
     Object {
       "children": Array [
         "start",
+      ],
+      "type": "text-block",
+    },
+  ],
+  "type": "markup",
+}
+`;
+
+exports[`Markdown parser inline code 1`] = `
+Object {
+  "children": Array [
+    Object {
+      "children": Array [
+        "I think we should try to use ",
+        Object {
+          "children": Array [
+            "if else",
+          ],
+          "type": "inline-code",
+        },
+        " statements",
+      ],
+      "type": "text-block",
+    },
+  ],
+  "type": "markup",
+}
+`;
+
+exports[`Markdown parser inline code not multiline 1`] = `
+Object {
+  "children": Array [
+    Object {
+      "children": Array [
+        "\`foo",
+      ],
+      "type": "text-block",
+    },
+    Object {
+      "children": Array [
+        "bar\`",
       ],
       "type": "text-block",
     },
@@ -70,12 +151,136 @@ Object {
 }
 `;
 
+exports[`Markdown parser parses double bold as text 1`] = `
+Object {
+  "children": Array [
+    Object {
+      "children": Array [
+        "**hmm**",
+      ],
+      "type": "text-block",
+    },
+  ],
+  "type": "markup",
+}
+`;
+
+exports[`Markdown parser parses double bold with punctuation as text 1`] = `
+Object {
+  "children": Array [
+    Object {
+      "children": Array [
+        "*(*hmm**",
+      ],
+      "type": "text-block",
+    },
+  ],
+  "type": "markup",
+}
+`;
+
+exports[`Markdown parser parses double bold with splitting punctuation as single bold 1`] = `
+Object {
+  "children": Array [
+    Object {
+      "children": Array [
+        "*(",
+        Object {
+          "children": Array [
+            "hmm",
+          ],
+          "type": "bold",
+        },
+        ")*",
+      ],
+      "type": "text-block",
+    },
+  ],
+  "type": "markup",
+}
+`;
+
 exports[`Markdown parser parses escaped chars correctly 1`] = `
 Object {
   "children": Array [
     Object {
       "children": Array [
         "I *should* see asterisks",
+      ],
+      "type": "text-block",
+    },
+  ],
+  "type": "markup",
+}
+`;
+
+exports[`Markdown parser parses formatted mentions 1`] = `
+Object {
+  "children": Array [
+    Object {
+      "children": Array [
+        Object {
+          "children": Array [
+            Object {
+              "children": Array [
+                "marco",
+              ],
+              "service": "keybase",
+              "type": "mention",
+            },
+          ],
+          "type": "strike",
+        },
+      ],
+      "type": "text-block",
+    },
+  ],
+  "type": "markup",
+}
+`;
+
+exports[`Markdown parser parses formatted mentions 2`] = `
+Object {
+  "children": Array [
+    Object {
+      "children": Array [
+        Object {
+          "children": Array [
+            Object {
+              "children": Array [
+                "marco",
+              ],
+              "service": "keybase",
+              "type": "mention",
+            },
+          ],
+          "type": "bold",
+        },
+      ],
+      "type": "text-block",
+    },
+  ],
+  "type": "markup",
+}
+`;
+
+exports[`Markdown parser parses formatted mentions 3`] = `
+Object {
+  "children": Array [
+    Object {
+      "children": Array [
+        Object {
+          "children": Array [
+            Object {
+              "children": Array [
+                "marco",
+              ],
+              "service": "keybase",
+              "type": "mention",
+            },
+          ],
+          "type": "italic",
+        },
       ],
       "type": "text-block",
     },
@@ -585,6 +790,67 @@ Object {
     Object {
       "children": Array [
         "hello, there! how are you? this shouldn't be markdown.",
+      ],
+      "type": "text-block",
+    },
+  ],
+  "type": "markup",
+}
+`;
+
+exports[`Markdown parser parses punctuation then formatting 1`] = `
+Object {
+  "children": Array [
+    Object {
+      "children": Array [
+        "(",
+        Object {
+          "children": Array [
+            "bold",
+          ],
+          "type": "bold",
+        },
+      ],
+      "type": "text-block",
+    },
+  ],
+  "type": "markup",
+}
+`;
+
+exports[`Markdown parser parses punctuation then formatting 2`] = `
+Object {
+  "children": Array [
+    Object {
+      "children": Array [
+        "(",
+        Object {
+          "children": Array [
+            "italic",
+          ],
+          "type": "italic",
+        },
+      ],
+      "type": "text-block",
+    },
+  ],
+  "type": "markup",
+}
+`;
+
+exports[`Markdown parser parses punctuation then formatting 3`] = `
+Object {
+  "children": Array [
+    Object {
+      "children": Array [
+        "(",
+        Object {
+          "children": Array [
+            "marco",
+          ],
+          "service": "keybase",
+          "type": "mention",
+        },
       ],
       "type": "text-block",
     },

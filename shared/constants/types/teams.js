@@ -161,7 +161,10 @@ export type RequestInfo = I.RecordOf<_RequestInfo>
 export type TabKey = 'members' | 'requests' | 'pending'
 
 export type SetTeamJoinError = NoErrorTypedAction<'teams:setTeamJoinError', {teamJoinError: string}>
-export type SetTeamJoinSuccess = NoErrorTypedAction<'teams:setTeamJoinSuccess', {teamJoinSuccess: boolean}>
+export type SetTeamJoinSuccess = NoErrorTypedAction<
+  'teams:setTeamJoinSuccess',
+  {teamJoinSuccess: boolean, teamname: ?string}
+>
 
 export type InviteToTeamByEmail = NoErrorTypedAction<
   'teams:inviteToTeamByEmail',

@@ -811,6 +811,11 @@
           "type": "Seqno",
           "name": "latestSeqno",
           "jsonkey": "latest_seqno"
+        },
+        {
+          "type": "boolean",
+          "name": "implicitTeam",
+          "jsonkey": "implicit_team"
         }
       ]
     },
@@ -1378,6 +1383,28 @@
     },
     {
       "type": "record",
+      "name": "TeamAcceptOrRequestResult",
+      "fields": [
+        {
+          "type": "boolean",
+          "name": "wasToken"
+        },
+        {
+          "type": "boolean",
+          "name": "wasSeitan"
+        },
+        {
+          "type": "boolean",
+          "name": "wasTeamName"
+        },
+        {
+          "type": "boolean",
+          "name": "wasOpenTeam"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "TeamShowcase",
       "fields": [
         {
@@ -1822,7 +1849,7 @@
           "type": "string"
         }
       ],
-      "response": null
+      "response": "TeamAcceptOrRequestResult"
     },
     "teamListRequests": {
       "request": [
@@ -1834,6 +1861,25 @@
       "response": {
         "type": "array",
         "items": "TeamJoinRequest"
+      }
+    },
+    "teamListMyAccessRequests": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "teamName",
+          "type": [
+            null,
+            "string"
+          ]
+        }
+      ],
+      "response": {
+        "type": "array",
+        "items": "TeamName"
       }
     },
     "teamIgnoreRequest": {
@@ -2085,6 +2131,15 @@
         }
       ],
       "response": "bool"
+    },
+    "teamRotateKey": {
+      "request": [
+        {
+          "name": "teamID",
+          "type": "TeamID"
+        }
+      ],
+      "response": null
     }
   },
   "namespace": "keybase.1"
