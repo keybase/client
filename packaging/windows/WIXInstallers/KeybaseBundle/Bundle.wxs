@@ -52,6 +52,49 @@
                  Win64="yes"
                  />
 
+    <!-- Split Installer Driver Update Detection: previous dokan installed by
+         us indicates we're updating drivers now too. Look for our breadcrumb
+         codes from previous install -->
+    <util:RegistrySearch Id="PreviousDokan"
+             After="DokanUninstall64"
+             Variable="PreviousDokan"
+             Condition="NOT DokanUninstallString"
+             Root="HKCU"
+             Key="SOFTWARE\Keybase\Keybase"
+             Value="DOKANPRODUCT86"
+             Format="raw"
+             />
+    <util:RegistrySearch Id="PreviousDokan64"
+             After="PreviousDokan"
+             Variable="PreviousDokan64"
+             Condition="NOT PreviousDokan AND NOT DokanUninstallString"
+             Root="HKCU"
+             Key="SOFTWARE\Keybase\Keybase"
+             Value="DOKANPRODUCT64"
+             Format="raw"
+             />
+    <!-- Now see if there is an uninstall entry for either one, and activate our driver variable.
+         Gating on NOT DokanUninstallString because that would mean the same drivers are present. -->
+    <util:RegistrySearch Id="PreviousDokanUninstall"
+            After="PreviousDokan64"
+             Variable="driver"
+             Root="HKLM"
+             Condition="PreviousDokan AND  NOT driver AND NOT DokanUninstallString"
+             Key="SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\[PreviousDokan]"
+             Value="UninstallString"
+             Result="exists"
+             />
+    <util:RegistrySearch Id="PreviousDokanUninstall64"
+                 After="DokanUninstall"
+                 Condition="PreviousDokan64 AND  NOT driver AND NOT DokanUninstallString"
+                 Variable="driver"
+                 Root="HKLM"
+                 Key="SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\[PreviousDokan64]"
+                 Value="UninstallString"
+                 Result="exists"
+                 Win64="yes"
+                 />                 
+
     <util:FileSearch Id="SearchSystem"
                      Path="[SystemFolder]advapi32.dll"
                      Variable="ADVAPIVERSION"
@@ -95,7 +138,7 @@
         PerMachine="yes"
         Permanent="yes"
         Compressed="no"
-        DownloadUrl="https://prerelease.keybase.io/windows-support/dokan-dev/build84/dokanclean.exe"
+        DownloadUrl="https://prerelease.keybase.io/windows-support/dokan-dev/build85/dokanclean.exe"
         >
         <ExitCode Value="1641" Behavior="forceReboot"/>
         <ExitCode Value="3010" Behavior="forceReboot"/>
@@ -134,7 +177,7 @@
                   Compressed="$(var.Compressed)"
                   Permanent="yes"
                   InstallCondition="VersionNT64"
-                  DetectCondition="(vcredist_2017_x64_installed AND vcredist_2017_x64_version AND vcredist_2017_x64_versionnumber &gt;= v$(var.VCRedistVersion)"
+                  DetectCondition="(vcredist_2017_x64_installed AND vcredist_2017_x64_version AND vcredist_2017_x64_versionnumber &gt;= v$(var.VCRedistVersion)) OR NOT driver"
                   PerMachine="yes"
                   Vital="yes"
                   Cache="yes"
