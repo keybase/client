@@ -1124,6 +1124,11 @@ func CreateSeitanToken(ctx context.Context, g *libkb.GlobalContext, teamname str
 	}
 	ikey, err := t.InviteSeitan(ctx, role, label)
 	if err != nil {
+		if _, ok := err.(libkb.KeyMaskNotFoundError); ok {
+			// Return more descriptive error instead of
+			// "You don't have access to SEITAN_INVITE_TOKEN for this team".
+			return "", fmt.Errorf("Implicit admins cannot create invite tokens. If you want to create tokens for %q, add yourself as an admin member.", t.Name().String())
+		}
 		return "", err
 	}
 
