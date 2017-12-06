@@ -527,6 +527,12 @@ func AnnotateInvites(ctx context.Context, g *libkb.GlobalContext, team *Team) (m
 		} else if category == keybase1.TeamInviteCategory_SEITAN {
 			name, err = AnnotateSeitanInvite(ctx, team, invite)
 			if err != nil {
+				if _, ok := err.(SeitanNotAvailableError); ok {
+					// If user is an implicit admin, they have access to
+					// invite links but are not able to decrypt seitan
+					// tokens. Do not error out.
+					continue
+				}
 				return annotatedInvites, err
 			}
 		}

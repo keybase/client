@@ -204,9 +204,26 @@ func (peikey SeitanPEIKey) decryptIKeyAndLabelWithSecretKey(secretKey keybase1.B
 	return ret, nil
 }
 
+// Error returned when current user is not able to decrypt seitan
+// ikeys because they does not have access to TeamApplication_
+// SEITAN_INVITE_TOKEN key. When returned during token handling,
+// it usually means that there is nothing wrong with the token itself,
+// but the user cannot process it.
+type SeitanNotAvailableError struct {
+	inner error
+}
+
+func (e SeitanNotAvailableError) Error() string {
+	return "current user is not able to decrypt IKeys for this team"
+}
+
 func (peikey SeitanPEIKey) DecryptIKeyAndLabel(ctx context.Context, team *Team) (ret keybase1.SeitanIKeyAndLabel, err error) {
 	appKey, err := team.ApplicationKeyAtGeneration(keybase1.TeamApplication_SEITAN_INVITE_TOKEN, peikey.TeamKeyGeneration)
 	if err != nil {
+		if _, ok := err.(libkb.KeyMaskNotFoundError); ok {
+			err = SeitanNotAvailableError{inner: err}
+		}
+
 		return ret, err
 	}
 
