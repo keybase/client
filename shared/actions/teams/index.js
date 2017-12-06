@@ -197,16 +197,16 @@ const _inviteToTeamByPhone = function*(action: Types.InviteToTeamByPhone) {
   })
 
   /* Open SMS */
-  // seitan is 16chars
-  // message sans teamname is 129chars long. Absolute max teamname + descriptor can be is 31chars to fit within 160 sms limit
-  // max length of a teamname is 16chars, + 5 - 8 chars for descriptor is a max of 24chars for teamDescription
+  // seitan is 17chars
+  // message sans teamname is 120chars long. Absolute max teamname + descriptor can be is 40chars to fit within 160 sms limit
+  // max length of a teamname is 16chars, + 5|8 chars for descriptor is a max of 24chars for teamDescription
   let teamDescription
   if (teamname.length <= 16) {
     teamDescription = `${teamname} team`
   } else {
     // then this must be a subteam, and won't safely fit into a text
     const subteams = teamname.split('.')
-    teamDescription = `${subteams[subteams.length - 1]} team`
+    teamDescription = `${subteams[subteams.length - 1]} subteam`
   }
   const bodyText = `Please join the ${teamDescription} on Keybase. Copy this entire message into the "Teams" tab.\n\ntoken: ${seitan.toLowerCase()}\n\nquick install: keybase.io/_/go`
   openSMS([phoneNumber], bodyText).catch(err => console.log('Error sending SMS', err))
