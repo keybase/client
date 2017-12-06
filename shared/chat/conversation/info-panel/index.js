@@ -137,16 +137,17 @@ type SmallTeamInfoPanelProps = infoPanelProps & {
   teamname: string,
 }
 
-const headerButtonBoxStyle = {
-  ...globalStyles.flexBoxRow,
-  alignItems: 'center',
-  alignSelf: 'center',
-}
+// TODO put leave team button back in once bugs are fixed
+// const headerButtonBoxStyle = {
+//   ...globalStyles.flexBoxRow,
+//   alignItems: 'center',
+//   alignSelf: 'center',
+// }
 
-const createIconStyle = {
-  color: globalColors.red,
-  fontSize: isMobile ? 20 : 16,
-}
+// const createIconStyle = {
+//   color: globalColors.red,
+//   fontSize: isMobile ? 20 : 16,
+// }
 
 const _SmallTeamInfoPanel = (props: SmallTeamInfoPanelProps) => (
   <ScrollView style={scrollViewStyle} contentContainerStyle={contentContainerStyle}>
@@ -178,7 +179,7 @@ const _SmallTeamInfoPanel = (props: SmallTeamInfoPanelProps) => (
     <MuteRow muted={props.muted} onMute={props.onMuteConversation} label="Mute all notifications" />
 
     <Notifications />
-    <Box style={{...globalStyles.flexBoxColumn, flex: 1, justifyContent: 'flex-end'}}>
+    {/* <Box style={{...globalStyles.flexBoxColumn, flex: 1, justifyContent: 'flex-end'}}>
       <Divider style={styleDivider} />
       <ClickableBox onClick={props.onLeaveTeam} style={headerButtonBoxStyle}>
         <Icon type="iconfont-team-leave" style={createIconStyle} />
@@ -186,7 +187,7 @@ const _SmallTeamInfoPanel = (props: SmallTeamInfoPanelProps) => (
           Leave team
         </Text>
       </ClickableBox>
-    </Box>
+    </Box> */}
     <Divider style={styleDivider} />
     <Participants participants={props.participants} onShowProfile={props.onShowProfile} />
 
