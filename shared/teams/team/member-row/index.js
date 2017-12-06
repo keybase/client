@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
-import {Avatar, Box, ClickableBox, Text, Icon, Usernames} from '../../../common-adapters'
-import {globalMargins, globalStyles} from '../../../styles'
+import {Avatar, Box, ClickableBox, Text, Icon, Usernames, Meta} from '../../../common-adapters'
+import {globalMargins, globalStyles, globalColors} from '../../../styles'
 import {isMobile} from '../../../constants/platform'
 import {roleIconColorMap} from '../../role-picker/index.meta'
 import {typeToLabel} from '../../../constants/teams'
@@ -40,11 +40,18 @@ export const TeamMemberRow = (props: Props) => {
     >
       <Avatar username={username} size={isMobile ? 48 : 32} />
       <Box style={{...globalStyles.flexBoxColumn, marginLeft: globalMargins.small}}>
-        <Usernames
-          type="BodySemibold"
-          colorFollowing={true}
-          users={[{username, following, you: you === username}]}
-        />
+        <Box style={{...globalStyles.flexBoxRow, justifyContent: 'center'}}>
+          <Usernames
+            type="BodySemibold"
+            colorFollowing={true}
+            users={[{username, following, you: you === username}]}
+          />
+          {!active &&
+            <Meta
+              title="LOCKED OUT"
+              style={{background: globalColors.red, marginLeft: globalMargins.xtiny, marginTop: 4}}
+            />}
+        </Box>
         <Box style={globalStyles.flexBoxRow}>
           {type &&
             !!showCrown[type] &&
