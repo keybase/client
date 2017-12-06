@@ -7,8 +7,7 @@ import {storiesOf, action} from '../stories/storybook'
 import {globalStyles} from '../styles'
 
 const commonProps = {
-  // type: 'Primary' | 'PrimaryPrivate' | 'Secondary' | 'Danger' | 'Follow' | 'Following' | 'Unfollow',
-  backgroundMode: 'Normal', // | 'Terminal',
+  backgroundMode: 'Normal',
   className: null,
   disabled: false,
   fullWidth: false,
@@ -59,6 +58,10 @@ const load = () => {
         <Button {...commonProps} type="Danger" label="Danger" />
         <Button {...commonProps} type="Danger" label="Danger" disabled={true} />
       </Pair>
+      <Pair>
+        <Button {...commonProps} type="PrimaryGreen" label="Feels good" />
+        <Button {...commonProps} type="PrimaryGreen" label="Feels good" disabled={true} />
+      </Pair>
       <Box style={{height: 20}} />
       <Button {...commonProps} type="Following" label="Following" />
       <Box style={{height: 10}} />
@@ -68,17 +71,19 @@ const load = () => {
       <Box
         style={{
           ...globalStyles.flexBoxColumn,
-          marginTop: 20,
           alignItems: 'flex-start',
           alignSelf: 'flex-start',
+          marginTop: 20,
         }}
       >
         <Text type="Body">These are align-self center hence not being left aligned. TODO fix that</Text>
-        <Button {...commonProps} type="Primary" label="Primary" small={true} />
+        <Button {...commonProps} type="Primary" label="Primary small" small={true} />
         <Box style={{height: 10}} />
-        <Button {...commonProps} type="Secondary" label="Secondary" small={true} />
+        <Button {...commonProps} type="Secondary" label="Secondary small" small={true} />
         <Box style={{height: 10}} />
-        <Button {...commonProps} type="Danger" label="Danger" small={true} />
+        <Button {...commonProps} type="Danger" label="Danger small" small={true} />
+        <Box style={{height: 10}} />
+        <Button {...commonProps} type="PrimaryGreen" label="Feels good small" small={true} />
       </Box>
     </Box>
   ))
