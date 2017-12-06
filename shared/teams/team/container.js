@@ -226,7 +226,9 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     publicitySettingsChanged,
     savePublicity,
     showAddYourselfBanner,
+    youAdmin,
     youCanAddPeople,
+    youImplicitAdmin,
     youCanCreateSubteam,
     youCanShowcase,
   }

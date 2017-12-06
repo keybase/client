@@ -700,4 +700,9 @@ protocol teams {
   bool canUserPerform(string name, TeamOperation op);
 
   void teamRotateKey(TeamID teamID);
+
+  TeamDebugRes teamDebug(TeamID teamID);
+  record TeamDebugRes {
+    TeamSigChainState chain;
+  }
 }
