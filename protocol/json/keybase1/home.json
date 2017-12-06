@@ -152,6 +152,57 @@
     },
     {
       "type": "record",
+      "name": "Pics",
+      "fields": [
+        {
+          "type": "string",
+          "name": "square40",
+          "jsonkey": "square_40"
+        },
+        {
+          "type": "string",
+          "name": "square200",
+          "jsonkey": "square_200"
+        },
+        {
+          "type": "string",
+          "name": "square360",
+          "jsonkey": "square_360"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "HomeUserSummary",
+      "fields": [
+        {
+          "type": "UID",
+          "name": "uid"
+        },
+        {
+          "type": "string",
+          "name": "username"
+        },
+        {
+          "type": "string",
+          "name": "bio"
+        },
+        {
+          "type": "string",
+          "name": "fullName",
+          "jsonkey": "full_name"
+        },
+        {
+          "type": [
+            null,
+            "Pics"
+          ],
+          "name": "pics"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "HomeScreen",
       "fields": [
         {
@@ -172,7 +223,7 @@
         {
           "type": {
             "type": "array",
-            "items": "UserSummary"
+            "items": "HomeUserSummary"
           },
           "name": "followSuggestions"
         }
@@ -185,9 +236,14 @@
         {
           "name": "markViewed",
           "type": "boolean"
+        },
+        {
+          "name": "numFollowSuggestionsWanted",
+          "type": "int"
         }
       ],
-      "response": "HomeScreen"
+      "response": "HomeScreen",
+      "doc": "* homeGetScreen returns the home screen for the current user.\n   * If `markViewed` is specified, the server will mark this version of the\n   * home screen \"viewed\", potentially updating some badges.\n   * `numFollowSuggestionsWanted` controls the number of people to return.\n   * If not specified, it will default to `0`, so no people.  If `-1` is specified,\n   * the default number will be returned (10).  Otherwise, the caller should\n   * specify."
     },
     "homeSkipTodoType": {
       "request": [
