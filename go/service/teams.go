@@ -417,3 +417,10 @@ func (h *TeamsHandler) TeamRotateKey(ctx context.Context, teamID keybase1.TeamID
 
 	return teams.RotateKey(ctx, h.G().ExternalG(), teamID)
 }
+
+func (h *TeamsHandler) TeamDebug(ctx context.Context, teamID keybase1.TeamID) (res keybase1.TeamDebugRes, err error) {
+	ctx = libkb.WithLogTag(ctx, "TM")
+	defer h.G().CTraceTimed(ctx, fmt.Sprintf("TeamDebug(%v)", teamID), func() error { return err })()
+
+	return teams.TeamDebug(ctx, h.G().ExternalG(), teamID)
+}
