@@ -7,7 +7,22 @@ import Text from './text'
 import {globalColors, globalStyles, globalMargins} from '../styles'
 import {isMobile} from '../constants/platform'
 
-import type {Props} from './button'
+export type Props = {
+  onClick: ?(event: SyntheticEvent<>) => void,
+  onPress?: void,
+  onMouseEnter?: Function,
+  onMouseLeave?: Function,
+  label: ?string,
+  style?: ?Object,
+  labelStyle?: ?Object,
+  type: 'Primary' | 'PrimaryPrivate' | 'Secondary' | 'Danger' | 'Follow' | 'Following' | 'Unfollow',
+  disabled?: ?boolean,
+  waiting?: ?boolean,
+  small?: boolean,
+  fullWidth?: boolean,
+  backgroundMode?: 'Normal' | 'Terminal',
+  className?: string,
+}
 
 const Progress = ({small}) => (
   <Box style={progress}>
