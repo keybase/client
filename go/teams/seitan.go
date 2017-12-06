@@ -30,17 +30,9 @@ const SeitanEncodedIKeyLength = 18
 const seitanEncodedIKeyPlusOffset = 5
 
 // Key-Base 30 encoding. lower case letters except "ilot", and digits except for '0' and '1'.
+// See TestSeitanParams for a test to make sure these two parameters match up.
 const KBase30EncodeStd = "abcdefghjkmnpqrsuvwxyz23456789"
-const base30BitMask = 0x1f
-
-func init() {
-	if len(KBase30EncodeStd) > base30BitMask {
-		panic(fmt.Sprintf("Bad base30BitMask; failed %d <= %d assertion", len(KBase30EncodeStd), base30BitMask))
-	}
-	if base30BitMask > 0xff {
-		panic(fmt.Sprintf("base30BitMask (%x) is greater than 2^8; this should never happen", base30BitMask))
-	}
-}
+const base30BitMask = byte(0x1f)
 
 // "Invite Key"
 type SeitanIKey string
@@ -66,7 +58,7 @@ func GenerateIKey() (ikey SeitanIKey, err error) {
 			if err != nil {
 				return byte(0), err
 			}
-			i := int(b[0]) & base30BitMask
+			i := int(b[0] & base30BitMask)
 			if i < len(alphabet) {
 				return alphabet[i], nil
 			}

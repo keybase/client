@@ -160,12 +160,48 @@ func TestSeitanKnownSamples(t *testing.T) {
 	require.Equal(t, peiKey.EncryptedIKeyAndLabel, peiKey2.EncryptedIKeyAndLabel)
 }
 
-func TestIsSeitany(t *testing.T) {
+// TestIsSeitanyAndAlphabetCoverage tests two unrelated things at once: (1) that
+// the IsSeitany function correclty identifies Seitan tokens; and (2) that all
+// letters of the Seitan alphabet are hit by generating a sufficient number of
+// tokens. It would be bad, for instance, if we only hit 10% of the characters.
+func TestIsSeitanyAndAlphabetCoverage(t *testing.T) {
+
+	coverage := make(map[byte]bool)
+
 	for i := 0; i < 100; i++ {
 		ikey, err := GenerateIKey()
 		require.NoError(t, err)
-		require.True(t, IsSeitany(ikey.String()))
-		require.True(t, IsSeitany(ikey.String()[2:10]))
-		require.True(t, IsSeitany(ikey.String()[3:13]))
+		s := ikey.String()
+		require.True(t, IsSeitany(s))
+		require.True(t, IsSeitany(s[2:10]))
+		require.True(t, IsSeitany(s[3:13]))
+		for _, b := range []byte(s) {
+			coverage[b] = true
+		}
+	}
+
+	// This test can fail with probability 1-(29/30)^(1800), which is approximately (1 - 2^-88)
+	for _, b := range []byte(KBase30EncodeStd) {
+		require.True(t, coverage[b], "covered all chars")
+	}
+}
+
+// TestSeitanParams tests the note at the top of seitan.go.
+func TestSeitanParams(t *testing.T) {
+	require.True(t, (len(KBase30EncodeStd) <= int(base30BitMask)), "the right bitmask at log2(len(alphabet))")
+}
+
+func TestIsSeitanyNoMatches(t *testing.T) {
+	var noMatches = []string{
+		"team.aaa.bb.cc",
+		"aanbbjejjeff",
+		"a+b",
+		"aaa+b",
+		"+",
+		"+++",
+		"chia_public",
+	}
+	for _, s := range noMatches {
+		require.False(t, IsSeitany(s), "not seitany")
 	}
 }
