@@ -535,6 +535,9 @@ func (p *blockPrefetcher) run(testSyncCh <-chan struct{}) {
 						// now one has been created.
 						pre.req.isDeepSync = true
 					} else {
+						// Short circuit prefetches if the subtree was already
+						// triggered, unless, as in the above case, we've
+						// changed from a regular prefetch to a deep sync.
 						continue
 					}
 				} else {
@@ -561,6 +564,8 @@ func (p *blockPrefetcher) run(testSyncCh <-chan struct{}) {
 				pre = p.newPrefetch(0, true, req)
 				p.prefetches[req.ptr.ID] = pre
 				ctx = pre.ctx
+				p.log.CDebugf(ctx, "created new prefetch for block %s",
+					req.ptr.ID)
 			}
 			// TODO: There is a potential optimization here that we can
 			// consider: Currently every time a prefetch is triggered, we

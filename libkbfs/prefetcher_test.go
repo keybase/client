@@ -1181,3 +1181,164 @@ func TestPrefetcherBasicUnsyncedBackwardPrefetch(t *testing.T) {
 	// Then we wait for the pending prefetches to complete.
 	waitForPrefetchOrBust(t, q.Prefetcher().Shutdown())
 }
+
+func TestPrefetcherBasicUnsyncedPrefetchEvicted(t *testing.T) {
+	t.Log("Test basic unsynced prefetching with a block that has been evicted.")
+	dbc, dbcConfig := initDiskBlockCacheTest(t)
+	q, bg, config := initPrefetcherTestWithDiskCache(t, dbc)
+	// We don't want any of these blocks cached in memory.
+	bcache := config.testCache
+	defer shutdownPrefetcherTest(q)
+	ctx := context.Background()
+	kmd := makeKMD()
+	prefetchSyncCh := make(chan struct{})
+	q.TogglePrefetcher(true, prefetchSyncCh)
+	notifySyncCh(t, prefetchSyncCh)
+
+	t.Log("Initialize a folder tree with structure: " +
+		"root -> {a}")
+	rootPtr := makeRandomBlockPointer(t)
+	root := &DirBlock{Children: map[string]DirEntry{
+		"a": makeRandomDirEntry(t, File, 10, "a"),
+	}}
+	aPtr := root.Children["a"].BlockPointer
+	a := makeFakeFileBlock(t, true)
+
+	encRoot, serverHalfRoot :=
+		setupRealBlockForDiskCache(t, rootPtr, root, dbcConfig)
+	encA, serverHalfA := setupRealBlockForDiskCache(t, aPtr, a, dbcConfig)
+
+	_, _ = bg.setBlockToReturn(rootPtr, root)
+	_, _ = bg.setBlockToReturn(aPtr, a)
+	err := dbc.Put(ctx, kmd.TlfID(), rootPtr.ID, encRoot, serverHalfRoot)
+	require.NoError(t, err)
+	err = dbc.Put(ctx, kmd.TlfID(), aPtr.ID, encA, serverHalfA)
+	require.NoError(t, err)
+
+	t.Log("Fetch dir root.")
+	var block Block = &DirBlock{}
+	ch := q.Request(context.Background(), defaultOnDemandRequestPriority, kmd,
+		rootPtr, block, TransientEntry)
+	notifySyncCh(t, prefetchSyncCh)
+	err = <-ch
+	require.NoError(t, err)
+	// Notify sync channel for the child block `a`.
+	notifySyncCh(t, prefetchSyncCh)
+
+	t.Log("Set the metadata of the block in the disk cache to NoPrefetch, " +
+		"simulating an eviction and a BlockServer.Get.")
+	err = dbc.UpdateMetadata(ctx, rootPtr.ID, NoPrefetch)
+	require.NoError(t, err)
+
+	t.Log("Evict the root block from the block cache.")
+	err = bcache.DeleteTransient(rootPtr, kmd.TlfID())
+	require.NoError(t, err)
+
+	t.Log("Fetch dir root again.")
+	block = &DirBlock{}
+	ch = q.Request(context.Background(), defaultOnDemandRequestPriority, kmd,
+		rootPtr, block, TransientEntry)
+	notifySyncCh(t, prefetchSyncCh)
+	err = <-ch
+	require.NoError(t, err)
+
+	t.Log("Fetch child block \"a\" on demand.")
+	block = &FileBlock{}
+	ch = q.Request(context.Background(), defaultOnDemandRequestPriority, kmd,
+		aPtr, block, TransientEntry)
+	// Notify sync channel for the child block `a`.
+	notifySyncCh(t, prefetchSyncCh)
+	err = <-ch
+	require.NoError(t, err)
+
+	testPrefetcherCheckGet(t, config.BlockCache(), rootPtr, root,
+		FinishedPrefetch, TransientEntry)
+	testPrefetcherCheckGet(t, config.BlockCache(), aPtr, a, FinishedPrefetch,
+		TransientEntry)
+
+	// Then we wait for the pending prefetches to complete.
+	waitForPrefetchOrBust(t, q.Prefetcher().Shutdown())
+}
+
+func TestPrefetcherBasicUnsyncedPrefetchEvictedCanceled(t *testing.T) {
+	t.Log("Regression test for KBFS-2588: when a prefetched block has " +
+		"children waiting on a prefetch, and it is canceled, subsequent " +
+		"attempts to prefetch that parent block panic.")
+	t.Skip("Currently panics since we don't yet have a fix for KBFS-2588.")
+	dbc, dbcConfig := initDiskBlockCacheTest(t)
+	q, bg, config := initPrefetcherTestWithDiskCache(t, dbc)
+	bcache := config.testCache
+	defer shutdownPrefetcherTest(q)
+	ctx := context.Background()
+	kmd := makeKMD()
+	prefetchSyncCh := make(chan struct{})
+	q.TogglePrefetcher(true, prefetchSyncCh)
+	notifySyncCh(t, prefetchSyncCh)
+
+	t.Log("Initialize a folder tree with structure: " +
+		"root -> {a}")
+	rootPtr := makeRandomBlockPointer(t)
+	root := &DirBlock{Children: map[string]DirEntry{
+		"a": makeRandomDirEntry(t, File, 10, "a"),
+	}}
+	aPtr := root.Children["a"].BlockPointer
+	a := makeFakeFileBlock(t, true)
+
+	encRoot, serverHalfRoot :=
+		setupRealBlockForDiskCache(t, rootPtr, root, dbcConfig)
+	encA, serverHalfA := setupRealBlockForDiskCache(t, aPtr, a, dbcConfig)
+
+	_, _ = bg.setBlockToReturn(rootPtr, root)
+	_, _ = bg.setBlockToReturn(aPtr, a)
+	err := dbc.Put(ctx, kmd.TlfID(), rootPtr.ID, encRoot, serverHalfRoot)
+	require.NoError(t, err)
+	err = dbc.Put(ctx, kmd.TlfID(), aPtr.ID, encA, serverHalfA)
+	require.NoError(t, err)
+
+	t.Log("Fetch dir root.")
+	var block Block = &DirBlock{}
+	ch := q.Request(context.Background(), defaultOnDemandRequestPriority, kmd,
+		rootPtr, block, TransientEntry)
+	notifySyncCh(t, prefetchSyncCh)
+	err = <-ch
+	require.NoError(t, err)
+	// Notify sync channel for the child block `a`.
+	notifySyncCh(t, prefetchSyncCh)
+
+	t.Log("Cancel the root block prefetch.")
+	q.Prefetcher().CancelPrefetch(rootPtr.ID)
+
+	t.Log("Set the metadata of the block in the disk cache to NoPrefetch, " +
+		"simulating an eviction and a BlockServer.Get.")
+	err = dbc.UpdateMetadata(ctx, rootPtr.ID, NoPrefetch)
+	require.NoError(t, err)
+
+	t.Log("Evict the root block from the block cache.")
+	err = bcache.DeleteTransient(rootPtr, kmd.TlfID())
+	require.NoError(t, err)
+
+	t.Log("Fetch dir root again.")
+	block = &DirBlock{}
+	ch = q.Request(context.Background(), defaultOnDemandRequestPriority, kmd,
+		rootPtr, block, TransientEntry)
+	notifySyncCh(t, prefetchSyncCh)
+	err = <-ch
+	require.NoError(t, err)
+
+	t.Log("Fetch child block \"a\" on demand.")
+	block = &FileBlock{}
+	ch = q.Request(context.Background(), defaultOnDemandRequestPriority, kmd,
+		aPtr, block, TransientEntry)
+	// Notify sync channel for the child block `a`.
+	notifySyncCh(t, prefetchSyncCh)
+	err = <-ch
+	require.NoError(t, err)
+
+	testPrefetcherCheckGet(t, config.BlockCache(), rootPtr, root,
+		FinishedPrefetch, TransientEntry)
+	testPrefetcherCheckGet(t, config.BlockCache(), aPtr, a, FinishedPrefetch,
+		TransientEntry)
+
+	// Then we wait for the pending prefetches to complete.
+	waitForPrefetchOrBust(t, q.Prefetcher().Shutdown())
+}
