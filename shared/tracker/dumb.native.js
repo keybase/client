@@ -180,6 +180,7 @@ const propsDefault: TrackerProps = {
     fullname: 'Gabriel Handford',
     location: 'San Francisco, California, USA, Earth, Milky Way',
     uid: '0',
+    showcasedTeams: [],
   },
   username: 'darksim905',
 }
@@ -284,6 +285,7 @@ const propsLessData: TrackerProps = {
     fullname: 'Hi',
     location: '',
     uid: '0',
+    showcasedTeams: [],
   },
   username: '00',
 }

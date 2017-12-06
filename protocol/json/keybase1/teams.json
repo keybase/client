@@ -1571,6 +1571,16 @@
         "SET_MEMBER_SHOWCASE_7",
         "CHANGE_OPEN_TEAM_8"
       ]
+    },
+    {
+      "type": "record",
+      "name": "TeamDebugRes",
+      "fields": [
+        {
+          "type": "TeamSigChainState",
+          "name": "chain"
+        }
+      ]
     }
   ],
   "messages": {
@@ -2140,6 +2150,15 @@
         }
       ],
       "response": null
+    },
+    "teamDebug": {
+      "request": [
+        {
+          "name": "teamID",
+          "type": "TeamID"
+        }
+      ],
+      "response": "TeamDebugRes"
     }
   },
   "namespace": "keybase.1"

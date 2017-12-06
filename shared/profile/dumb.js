@@ -116,6 +116,7 @@ export const mockUserInfo: {username: string, userInfo: UserInfo} = {
     bio: 'Co-founder of Keybase, OkCupid, SparkNotes, and some random other junk. I like making things.',
     avatar: 'https://keybase.io/chris/picture',
     followsYou: true,
+    showcasedTeams: [],
   },
 }
 
@@ -274,6 +275,7 @@ const propsBase: RenderProps = {
   onClickFollowers: () => console.log('on click followers'),
   onClickFollowing: () => console.log('on click following'),
   onSearch: () => console.log('on search'),
+  onClickShowcased: () => console.log('on click showcased'),
 }
 
 const bioEditFns = {

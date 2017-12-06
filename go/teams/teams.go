@@ -398,12 +398,7 @@ func (t *Team) Rotate(ctx context.Context) error {
 		return err
 	}
 
-	// send notification that team key rotated. The sequence number of team bumped by 1 as a
-	// result of this work, so use `NextSeqno()` and not `CurrentSeqno()`. Note that we're going
-	// to be getting this same notification a second time, since it will bounce off a gregor and
-	// back to us. But they are idempotent, so it should be fine to be double-notified.
-	t.G().NotifyRouter.HandleTeamChangedByBothKeys(ctx,
-		t.chain().GetID(), t.Name().String(), t.NextSeqno(), t.IsImplicit(), keybase1.TeamChangeSet{KeyRotated: true})
+	t.notify(ctx, keybase1.TeamChangeSet{KeyRotated: true})
 
 	return nil
 }
@@ -475,7 +470,7 @@ func (t *Team) ChangeMembershipPermanent(ctx context.Context, req keybase1.TeamC
 	}
 
 	if len(downgrades) != 0 {
-		lease, merkleRoot, err = libkb.RequestDowngradeLeaseByTeam(ctx, t.G(), t.chain().GetID(), downgrades)
+		lease, merkleRoot, err = libkb.RequestDowngradeLeaseByTeam(ctx, t.G(), t.ID, downgrades)
 		if err != nil {
 			return err
 		}
@@ -505,9 +500,8 @@ func (t *Team) ChangeMembershipPermanent(ctx context.Context, req keybase1.TeamC
 		return err
 	}
 
-	// send notification that team key rotated
-	changes := keybase1.TeamChangeSet{MembershipChanged: true, KeyRotated: t.rotated}
-	t.G().NotifyRouter.HandleTeamChangedByBothKeys(ctx, t.chain().GetID(), t.Name().String(), t.NextSeqno(), t.IsImplicit(), changes)
+	t.notify(ctx, keybase1.TeamChangeSet{MembershipChanged: true})
+
 	return nil
 }
 
@@ -911,7 +905,13 @@ func (t *Team) postTeamInvites(ctx context.Context, invites SCTeamInvites) error
 	}
 
 	payload := t.sigPayload(sigMultiItem, sigPayloadArgs{})
-	return t.postMulti(payload)
+	err = t.postMulti(payload)
+	if err != nil {
+		return err
+	}
+
+	t.notify(ctx, keybase1.TeamChangeSet{MembershipChanged: true})
+	return nil
 }
 
 func (t *Team) traverseUpUntil(ctx context.Context, validator func(t *Team) bool) (targetTeam *Team, err error) {
@@ -1131,7 +1131,7 @@ func (t *Team) sigTeamItem(ctx context.Context, section SCTeamSection, linkType 
 		Type:       string(linkType),
 		SeqType:    seqType,
 		SigInner:   string(sigJSON),
-		TeamID:     t.chain().GetID(),
+		TeamID:     t.ID,
 	}
 	if usesPerTeamKeys(linkType) {
 		sigMultiItem.PublicKeys = &libkb.SigMultiItemPublicKeys{
@@ -1381,7 +1381,13 @@ func (t *Team) PostTeamSettings(ctx context.Context, settings keybase1.TeamSetti
 		Public:   t.IsPublic(),
 	}
 
-	return t.postChangeItem(ctx, section, libkb.LinkTypeSettings, nil, sigPayloadArgs{})
+	err = t.postChangeItem(ctx, section, libkb.LinkTypeSettings, nil, sigPayloadArgs{})
+	if err != nil {
+		return err
+	}
+
+	t.notify(ctx, keybase1.TeamChangeSet{})
+	return nil
 }
 
 func (t *Team) parseSocial(username string) (typ string, name string, err error) {
@@ -1473,4 +1479,15 @@ func (t *Team) associateTLFID(ctx context.Context, tlfID keybase1.TLFID) (err er
 
 	payload := t.sigPayload(sigMultiItem, sigPayloadArgs{})
 	return t.postMulti(payload)
+}
+
+// Send notifyrouter messages.
+// Modifies `changes`
+// The sequence number of the is assumed to be bumped by 1, so use `NextSeqno()` and not `CurrentSeqno()`.
+// Note that we're probably going to be getting this same notification a second time, since it will
+// bounce off a gregor and back to us. But they are idempotent, so it should be fine to be double-notified.
+func (t *Team) notify(ctx context.Context, changes keybase1.TeamChangeSet) {
+	changes.KeyRotated = changes.KeyRotated || t.rotated
+	t.G().GetTeamLoader().HintLatestSeqno(ctx, t.ID, t.NextSeqno())
+	t.G().NotifyRouter.HandleTeamChangedByBothKeys(ctx, t.ID, t.Name().String(), t.NextSeqno(), t.IsImplicit(), changes)
 }
