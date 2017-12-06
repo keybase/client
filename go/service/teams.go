@@ -7,6 +7,8 @@ package service
 
 import (
 	"fmt"
+	"regexp"
+	"strings"
 
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/libkb"
@@ -235,17 +237,31 @@ func (h *TeamsHandler) TeamRename(ctx context.Context, arg keybase1.TeamRenameAr
 	return teams.RenameSubteam(ctx, h.G().ExternalG(), arg.PrevName, arg.NewName)
 }
 
+var tokenRegexp = regexp.MustCompile(`token\: [a-z0-9+]{16,18}`)
+
+func parseInviteToken(token string) string {
+	// If the person pasted the whole seitan SMS message in, then let's parse out the token
+	if strings.Contains(token, "token: ") {
+		m := tokenRegexp.FindStringSubmatch(token)
+		if len(m) == 1 {
+			return strings.Split(m[0], " ")[1]
+		}
+	}
+	return token
+}
+
 func (h *TeamsHandler) TeamAcceptInvite(ctx context.Context, arg keybase1.TeamAcceptInviteArg) (err error) {
 	ctx = libkb.WithLogTag(ctx, "TM")
 	defer h.G().CTraceTimed(ctx, "TeamAcceptInvite", func() error { return err })()
 	if err := h.assertLoggedIn(ctx); err != nil {
 		return err
 	}
-	seitan, err := teams.GenerateIKeyFromString(arg.Token)
+	token := parseInviteToken(arg.Token)
+	seitan, err := teams.GenerateIKeyFromString(token)
 	if err == nil {
 		return teams.AcceptSeitan(ctx, h.G().ExternalG(), seitan)
 	}
-	return teams.AcceptInvite(ctx, h.G().ExternalG(), arg.Token)
+	return teams.AcceptInvite(ctx, h.G().ExternalG(), token)
 }
 
 func (h *TeamsHandler) TeamRequestAccess(ctx context.Context, arg keybase1.TeamRequestAccessArg) (res keybase1.TeamRequestAccessResult, err error) {
@@ -263,7 +279,8 @@ func (h *TeamsHandler) TeamAcceptInviteOrRequestAccess(ctx context.Context, arg 
 	if err := h.assertLoggedIn(ctx); err != nil {
 		return res, err
 	}
-	return teams.TeamAcceptInviteOrRequestAccess(ctx, h.G().ExternalG(), arg.TokenOrName)
+	token := parseInviteToken(arg.TokenOrName)
+	return teams.TeamAcceptInviteOrRequestAccess(ctx, h.G().ExternalG(), token)
 }
 
 func (h *TeamsHandler) TeamListRequests(ctx context.Context, sessionID int) (res []keybase1.TeamJoinRequest, err error) {
