@@ -242,36 +242,12 @@ class Profile extends Component<Props, State> {
                 <ClickableBox
                   key={team.fqName}
                   onClick={event => this.props.onClickShowcased(null, team)}
-                  style={{
-                    ...globalStyles.flexBoxRow,
-                    alignItems: 'flex-start',
-                    justifyContent: 'flex-start',
-                    minHeight: 32,
-                    paddingBottom: globalMargins.xtiny,
-                  }}
+                  style={styleShowcasedTeamContainer}
                 >
-                  <Box
-                    style={{
-                      ...globalStyles.flexBoxRow,
-                      alignItems: 'flex-start',
-                      alignSelf: 'flex-start',
-                      height: 40,
-                      minHeight: 40,
-                      minWidth: 40,
-                      width: 40,
-                    }}
-                  >
+                  <Box style={styleShowcasedTeamAvatar}>
                     <Avatar teamname={team.fqName} size={40} />
                   </Box>
-                  <Box
-                    style={{
-                      ...globalStyles.flexBoxRow,
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      alignSelf: 'center',
-                      paddingLeft: globalMargins.tiny,
-                    }}
-                  >
+                  <Box style={styleShowcasedTeamName}>
                     <Text style={{color: globalColors.black_75}} type="BodySemiboldLink">{team.fqName}</Text>
                   </Box>
                 </ClickableBox>
@@ -599,6 +575,32 @@ const styleSearchText = {
   fontSize: 15,
   position: 'relative',
   top: -1,
+}
+
+const styleShowcasedTeamContainer = {
+  ...globalStyles.flexBoxRow,
+  alignItems: 'flex-start',
+  justifyContent: 'flex-start',
+  minHeight: 32,
+  paddingBottom: globalMargins.xtiny,
+}
+
+const styleShowcasedTeamAvatar = {
+  ...globalStyles.flexBoxRow,
+  alignItems: 'flex-start',
+  alignSelf: 'flex-start',
+  height: 40,
+  minHeight: 40,
+  minWidth: 40,
+  width: 40,
+}
+
+const styleShowcasedTeamName = {
+  ...globalStyles.flexBoxRow,
+  alignItems: 'center',
+  justifyContent: 'center',
+  alignSelf: 'center',
+  paddingLeft: globalMargins.tiny,
 }
 
 export default Profile

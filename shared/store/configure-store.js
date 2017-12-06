@@ -85,6 +85,7 @@ const errorCatching = store => next => action => {
     } catch (_) {}
   }
 }
+
 let middlewares = [errorCatching, createSagaMiddleware(crashHandler), thunkMiddleware]
 
 if (enableStoreLogging) {
@@ -92,8 +93,6 @@ if (enableStoreLogging) {
 } else if (enableActionLogging) {
   middlewares.push(actionLogger)
 }
-
-middlewares.push(createLogger())
 
 if (__DEV__ && typeof window !== 'undefined') {
   window.debugActionLoop = () => {

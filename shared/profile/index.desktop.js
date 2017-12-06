@@ -341,35 +341,12 @@ class ProfileRender extends PureComponent<Props, State> {
                       <Box
                         key={team.fqName}
                         onClick={event => this.props.onClickShowcased(event.target, team)}
-                        style={{
-                          ...globalStyles.flexBoxRow,
-                          alignItems: 'flex-start',
-                          justifyContent: 'flex-start',
-                          minHeight: 32,
-                        }}
+                        style={styleShowcasedTeamContainer}
                       >
-                        <Box
-                          style={{
-                            ...globalStyles.flexBoxRow,
-                            alignItems: 'center',
-                            alignSelf: 'center',
-                            height: 24,
-                            minHeight: 24,
-                            minWidth: 24,
-                            width: 24,
-                          }}
-                        >
+                        <Box style={styleShowcasedTeamAvatar}>
                           <Avatar teamname={team.fqName} size={24} />
                         </Box>
-                        <Box
-                          style={{
-                            ...globalStyles.flexBoxRow,
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            alignSelf: 'center',
-                            paddingLeft: globalMargins.tiny,
-                          }}
-                        >
+                        <Box style={styleShowcasedTeamName}>
                           <Text style={{color: globalColors.black_75}} type="BodySemiboldLink">
                             {team.fqName}
                           </Text>
@@ -547,6 +524,31 @@ const styleSearchText = {
   ...styleSearch,
   position: 'relative',
   top: -1,
+}
+
+const styleShowcasedTeamContainer = {
+  ...globalStyles.flexBoxRow,
+  alignItems: 'flex-start',
+  justifyContent: 'flex-start',
+  minHeight: 32,
+}
+
+const styleShowcasedTeamAvatar = {
+  ...globalStyles.flexBoxRow,
+  alignItems: 'center',
+  alignSelf: 'center',
+  height: globalStyles.medium,
+  minHeight: globalStyles.medium,
+  minWidth: globalStyles.medium,
+  width: globalStyles.medium,
+}
+
+const styleShowcasedTeamName = {
+  ...globalStyles.flexBoxRow,
+  alignItems: 'center',
+  justifyContent: 'center',
+  alignSelf: 'center',
+  paddingLeft: globalMargins.tiny,
 }
 
 export default ProfileRender
