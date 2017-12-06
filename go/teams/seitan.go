@@ -165,7 +165,7 @@ func (ikey SeitanIKey) generatePackedEncryptedIKeyWithSecretKey(secretKey keybas
 }
 
 func (ikey SeitanIKey) GeneratePackedEncryptedIKey(ctx context.Context, team *Team, label keybase1.SeitanIKeyLabel) (peikey SeitanPEIKey, encoded string, err error) {
-	appKey, err := team.SeitanInviteTokenKey(ctx)
+	appKey, err := team.SeitanInviteTokenKeyLatest(ctx)
 	if err != nil {
 		return peikey, encoded, err
 	}
@@ -205,7 +205,7 @@ func (peikey SeitanPEIKey) decryptIKeyAndLabelWithSecretKey(secretKey keybase1.B
 }
 
 func (peikey SeitanPEIKey) DecryptIKeyAndLabel(ctx context.Context, team *Team) (ret keybase1.SeitanIKeyAndLabel, err error) {
-	appKey, err := team.ApplicationKeyAtGeneration(keybase1.TeamApplication_SEITAN_INVITE_TOKEN, peikey.TeamKeyGeneration)
+	appKey, err := team.SeitanInviteTokenKeyAtGeneration(ctx, peikey.TeamKeyGeneration)
 	if err != nil {
 		return ret, err
 	}
