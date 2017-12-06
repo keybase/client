@@ -118,14 +118,18 @@ func newTeamTester(t *testing.T) *teamTester {
 }
 
 func (tt *teamTester) addUser(pre string) *userPlusDevice {
-	return tt.addUserHelper(pre, true)
+	return tt.addUserHelper(pre, true, true)
+}
+
+func (tt *teamTester) addUserNoPaper(pre string) *userPlusDevice {
+	return tt.addUserHelper(pre, true, false)
 }
 
 func (tt *teamTester) addPuklessUser(pre string) *userPlusDevice {
-	return tt.addUserHelper(pre, false)
+	return tt.addUserHelper(pre, false, true)
 }
 
-func (tt *teamTester) addUserHelper(pre string, puk bool) *userPlusDevice {
+func (tt *teamTester) addUserHelper(pre string, puk bool, paper bool) *userPlusDevice {
 	tctx := setupTest(tt.t, pre)
 	if !puk {
 		tctx.Tp.DisableUpgradePerUserKey = true
@@ -144,7 +148,7 @@ func (tt *teamTester) addUserHelper(pre string, puk bool) *userPlusDevice {
 	}
 	g.SetUI(&signupUI)
 	signup := client.NewCmdSignupRunner(g)
-	signup.SetTest()
+	signup.SetTestWithPaper(paper)
 	if err := signup.Run(); err != nil {
 		tt.t.Fatal(err)
 	}
@@ -185,9 +189,13 @@ func (tt *teamTester) addUserHelper(pre string, puk bool) *userPlusDevice {
 	require.Len(tt.t, devices, 1, "devices")
 	u.device.deviceKey.KID = devices[0]
 	require.True(tt.t, u.device.deviceKey.KID.Exists())
-	require.Len(tt.t, backups, 1, "backup keys")
-	u.backupKey = backups[0]
-	u.backupKey.secret = signupUI.info.displayedPaperKey
+	if paper {
+		require.Len(tt.t, backups, 1, "backup keys")
+		u.backupKey = backups[0]
+		u.backupKey.secret = signupUI.info.displayedPaperKey
+	} else {
+		require.Len(tt.t, backups, 0, "backup keys")
+	}
 
 	tt.users = append(tt.users, &u)
 	return &u
@@ -334,9 +342,10 @@ func (u *userPlusDevice) acceptEmailInvite(token string) {
 	}
 }
 
-func (u *userPlusDevice) acceptInviteOrRequestAccess(tokenOrName string) {
-	err := teams.TeamAcceptInviteOrRequestAccess(context.TODO(), u.tc.G, tokenOrName)
+func (u *userPlusDevice) acceptInviteOrRequestAccess(tokenOrName string) keybase1.TeamAcceptOrRequestResult {
+	ret, err := teams.TeamAcceptInviteOrRequestAccess(context.TODO(), u.tc.G, tokenOrName)
 	require.NoError(u.tc.T, err)
+	return ret
 }
 
 func (u *userPlusDevice) teamList(userAssertion string, all, includeImplicitTeams bool) keybase1.AnnotatedTeamList {

@@ -95,7 +95,7 @@ function urlToUsername(url: URL): ?string {
   }
 
   const pathname = url.pathname
-  // Adapted username regexp (see checkers.go) with a leading / and an
+  // Adapted username regexp (see libkb/checkers.go) with a leading / and an
   // optional trailing /.
   const match = pathname.match(/^\/((?:[a-zA-Z0-9][a-zA-Z0-9_]?)+)\/?$/)
   if (!match) {

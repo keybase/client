@@ -981,6 +981,7 @@ type TeamChangeRow struct {
 	KeyRotated        bool   `codec:"keyRotated" json:"key_rotated"`
 	MembershipChanged bool   `codec:"membershipChanged" json:"membership_changed"`
 	LatestSeqno       Seqno  `codec:"latestSeqno" json:"latest_seqno"`
+	ImplicitTeam      bool   `codec:"implicitTeam" json:"implicit_team"`
 }
 
 func (o TeamChangeRow) DeepCopy() TeamChangeRow {
@@ -990,6 +991,7 @@ func (o TeamChangeRow) DeepCopy() TeamChangeRow {
 		KeyRotated:        o.KeyRotated,
 		MembershipChanged: o.MembershipChanged,
 		LatestSeqno:       o.LatestSeqno.DeepCopy(),
+		ImplicitTeam:      o.ImplicitTeam,
 	}
 }
 
@@ -1586,6 +1588,22 @@ func (o TeamRequestAccessResult) DeepCopy() TeamRequestAccessResult {
 	}
 }
 
+type TeamAcceptOrRequestResult struct {
+	WasToken    bool `codec:"wasToken" json:"wasToken"`
+	WasSeitan   bool `codec:"wasSeitan" json:"wasSeitan"`
+	WasTeamName bool `codec:"wasTeamName" json:"wasTeamName"`
+	WasOpenTeam bool `codec:"wasOpenTeam" json:"wasOpenTeam"`
+}
+
+func (o TeamAcceptOrRequestResult) DeepCopy() TeamAcceptOrRequestResult {
+	return TeamAcceptOrRequestResult{
+		WasToken:    o.WasToken,
+		WasSeitan:   o.WasSeitan,
+		WasTeamName: o.WasTeamName,
+		WasOpenTeam: o.WasOpenTeam,
+	}
+}
+
 type TeamShowcase struct {
 	IsShowcased       bool    `codec:"isShowcased" json:"is_showcased"`
 	Description       *string `codec:"description,omitempty" json:"description,omitempty"`
@@ -1800,6 +1818,16 @@ func (e TeamOperation) String() string {
 	return ""
 }
 
+type TeamDebugRes struct {
+	Chain TeamSigChainState `codec:"chain" json:"chain"`
+}
+
+func (o TeamDebugRes) DeepCopy() TeamDebugRes {
+	return TeamDebugRes{
+		Chain: o.Chain.DeepCopy(),
+	}
+}
+
 type TeamCreateArg struct {
 	SessionID            int    `codec:"sessionID" json:"sessionID"`
 	Name                 string `codec:"name" json:"name"`
@@ -1898,6 +1926,11 @@ type TeamListRequestsArg struct {
 	SessionID int `codec:"sessionID" json:"sessionID"`
 }
 
+type TeamListMyAccessRequestsArg struct {
+	SessionID int     `codec:"sessionID" json:"sessionID"`
+	TeamName  *string `codec:"teamName,omitempty" json:"teamName,omitempty"`
+}
+
 type TeamIgnoreRequestArg struct {
 	SessionID int    `codec:"sessionID" json:"sessionID"`
 	Name      string `codec:"name" json:"name"`
@@ -1986,6 +2019,14 @@ type CanUserPerformArg struct {
 	Op   TeamOperation `codec:"op" json:"op"`
 }
 
+type TeamRotateKeyArg struct {
+	TeamID TeamID `codec:"teamID" json:"teamID"`
+}
+
+type TeamDebugArg struct {
+	TeamID TeamID `codec:"teamID" json:"teamID"`
+}
+
 type TeamsInterface interface {
 	TeamCreate(context.Context, TeamCreateArg) (TeamCreateResult, error)
 	TeamCreateWithSettings(context.Context, TeamCreateWithSettingsArg) (TeamCreateResult, error)
@@ -2001,8 +2042,9 @@ type TeamsInterface interface {
 	TeamRename(context.Context, TeamRenameArg) error
 	TeamAcceptInvite(context.Context, TeamAcceptInviteArg) error
 	TeamRequestAccess(context.Context, TeamRequestAccessArg) (TeamRequestAccessResult, error)
-	TeamAcceptInviteOrRequestAccess(context.Context, TeamAcceptInviteOrRequestAccessArg) error
+	TeamAcceptInviteOrRequestAccess(context.Context, TeamAcceptInviteOrRequestAccessArg) (TeamAcceptOrRequestResult, error)
 	TeamListRequests(context.Context, int) ([]TeamJoinRequest, error)
+	TeamListMyAccessRequests(context.Context, TeamListMyAccessRequestsArg) ([]TeamName, error)
 	TeamIgnoreRequest(context.Context, TeamIgnoreRequestArg) error
 	TeamTree(context.Context, TeamTreeArg) (TeamTreeResult, error)
 	TeamDelete(context.Context, TeamDeleteArg) error
@@ -2022,6 +2064,8 @@ type TeamsInterface interface {
 	SetTeamShowcase(context.Context, SetTeamShowcaseArg) error
 	SetTeamMemberShowcase(context.Context, SetTeamMemberShowcaseArg) error
 	CanUserPerform(context.Context, CanUserPerformArg) (bool, error)
+	TeamRotateKey(context.Context, TeamID) error
+	TeamDebug(context.Context, TeamID) (TeamDebugRes, error)
 }
 
 func TeamsProtocol(i TeamsInterface) rpc.Protocol {
@@ -2263,7 +2307,7 @@ func TeamsProtocol(i TeamsInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]TeamAcceptInviteOrRequestAccessArg)(nil), args)
 						return
 					}
-					err = i.TeamAcceptInviteOrRequestAccess(ctx, (*typedArgs)[0])
+					ret, err = i.TeamAcceptInviteOrRequestAccess(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -2280,6 +2324,22 @@ func TeamsProtocol(i TeamsInterface) rpc.Protocol {
 						return
 					}
 					ret, err = i.TeamListRequests(ctx, (*typedArgs)[0].SessionID)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"teamListMyAccessRequests": {
+				MakeArg: func() interface{} {
+					ret := make([]TeamListMyAccessRequestsArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]TeamListMyAccessRequestsArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]TeamListMyAccessRequestsArg)(nil), args)
+						return
+					}
+					ret, err = i.TeamListMyAccessRequests(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -2540,6 +2600,38 @@ func TeamsProtocol(i TeamsInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"teamRotateKey": {
+				MakeArg: func() interface{} {
+					ret := make([]TeamRotateKeyArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]TeamRotateKeyArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]TeamRotateKeyArg)(nil), args)
+						return
+					}
+					err = i.TeamRotateKey(ctx, (*typedArgs)[0].TeamID)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"teamDebug": {
+				MakeArg: func() interface{} {
+					ret := make([]TeamDebugArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]TeamDebugArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]TeamDebugArg)(nil), args)
+						return
+					}
+					ret, err = i.TeamDebug(ctx, (*typedArgs)[0].TeamID)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 		},
 	}
 }
@@ -2618,14 +2710,19 @@ func (c TeamsClient) TeamRequestAccess(ctx context.Context, __arg TeamRequestAcc
 	return
 }
 
-func (c TeamsClient) TeamAcceptInviteOrRequestAccess(ctx context.Context, __arg TeamAcceptInviteOrRequestAccessArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.teams.teamAcceptInviteOrRequestAccess", []interface{}{__arg}, nil)
+func (c TeamsClient) TeamAcceptInviteOrRequestAccess(ctx context.Context, __arg TeamAcceptInviteOrRequestAccessArg) (res TeamAcceptOrRequestResult, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.teams.teamAcceptInviteOrRequestAccess", []interface{}{__arg}, &res)
 	return
 }
 
 func (c TeamsClient) TeamListRequests(ctx context.Context, sessionID int) (res []TeamJoinRequest, err error) {
 	__arg := TeamListRequestsArg{SessionID: sessionID}
 	err = c.Cli.Call(ctx, "keybase.1.teams.teamListRequests", []interface{}{__arg}, &res)
+	return
+}
+
+func (c TeamsClient) TeamListMyAccessRequests(ctx context.Context, __arg TeamListMyAccessRequestsArg) (res []TeamName, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.teams.teamListMyAccessRequests", []interface{}{__arg}, &res)
 	return
 }
 
@@ -2712,5 +2809,17 @@ func (c TeamsClient) SetTeamMemberShowcase(ctx context.Context, __arg SetTeamMem
 
 func (c TeamsClient) CanUserPerform(ctx context.Context, __arg CanUserPerformArg) (res bool, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.teams.canUserPerform", []interface{}{__arg}, &res)
+	return
+}
+
+func (c TeamsClient) TeamRotateKey(ctx context.Context, teamID TeamID) (err error) {
+	__arg := TeamRotateKeyArg{TeamID: teamID}
+	err = c.Cli.Call(ctx, "keybase.1.teams.teamRotateKey", []interface{}{__arg}, nil)
+	return
+}
+
+func (c TeamsClient) TeamDebug(ctx context.Context, teamID TeamID) (res TeamDebugRes, err error) {
+	__arg := TeamDebugArg{TeamID: teamID}
+	err = c.Cli.Call(ctx, "keybase.1.teams.teamDebug", []interface{}{__arg}, &res)
 	return
 }

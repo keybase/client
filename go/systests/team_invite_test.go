@@ -134,7 +134,8 @@ func TestTeamInviteAcceptOrRequest(t *testing.T) {
 	teamID, teamName := tt.users[0].createTeam2()
 
 	// user 1 requests access
-	tt.users[1].acceptInviteOrRequestAccess(teamName.String())
+	ret := tt.users[1].acceptInviteOrRequestAccess(teamName.String())
+	require.EqualValues(t, ret, keybase1.TeamAcceptOrRequestResult{WasTeamName: true})
 
 	// user 0 adds a user by email
 	email := tt.users[1].username + "@keybase.io"
@@ -145,7 +146,8 @@ func TestTeamInviteAcceptOrRequest(t *testing.T) {
 	require.Len(t, tokens, 1)
 
 	// user 1 accepts the invitation
-	tt.users[1].acceptInviteOrRequestAccess(tokens[0])
+	ret = tt.users[1].acceptInviteOrRequestAccess(tokens[0])
+	require.EqualValues(t, ret, keybase1.TeamAcceptOrRequestResult{WasToken: true})
 
 	// user 0 kicks rekeyd so it notices the accepted invite
 	tt.users[0].kickTeamRekeyd()

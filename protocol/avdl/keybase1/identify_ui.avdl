@@ -95,6 +95,10 @@ protocol identifyUi {
     string description;
     @jsonkey("role")
     TeamRole role;
+    @jsonkey("public_admins")
+    array<string> publicAdmins;
+    @jsonkey("num_members")
+    int numMembers;
   }
 
   record UserCard {

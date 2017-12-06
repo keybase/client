@@ -119,6 +119,7 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   teamCreationPending: false,
   teamJoinError: '',
   teamJoinSuccess: false,
+  teamJoinSuccessTeamName: null,
   tempPendingConversations: I.Map(),
 })
 

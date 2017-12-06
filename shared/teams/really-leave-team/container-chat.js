@@ -7,11 +7,12 @@ import ReallyLeaveTeam from '.'
 import LastOwnerDialog from './last-owner'
 import {navigateTo} from '../../actions/route-tree'
 import {chatTab} from '../../constants/tabs'
+import {isSubteam} from '../../constants/teams'
 
 const mapStateToProps = (state: TypedState, {routeProps}) => {
   const name = routeProps.get('teamname')
   const members = state.entities.getIn(['teams', 'teamNameToMembers', name], Set())
-  const _lastOwner = members.size <= 1
+  const _lastOwner = members.size <= 1 && !isSubteam(name)
   return {
     _lastOwner,
     name,

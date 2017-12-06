@@ -389,6 +389,7 @@ export type _State = {
   teamCreationPending: boolean,
   teamJoinError: string,
   teamJoinSuccess: boolean,
+  teamJoinSuccessTeamName: ?string,
   tempPendingConversations: I.Map<ConversationIDKey, boolean>,
 }
 

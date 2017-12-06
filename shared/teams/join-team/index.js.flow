@@ -5,6 +5,7 @@ export type Props = {
   errorText: string,
   success: boolean,
   name: string,
+  successTeamName: ?string,
   onBack: () => void,
   onNameChange: () => void,
   onSubmit: () => void,

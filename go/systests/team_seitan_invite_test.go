@@ -15,23 +15,56 @@ import (
 )
 
 func TestTeamInviteSeitanHappy(t *testing.T) {
+	testTeamInviteSeitanHappy(t, false)
+}
+
+func TestTeamInviteSeitanHappyImplicitAdmin(t *testing.T) {
+	testTeamInviteSeitanHappy(t, true)
+}
+
+func testTeamInviteSeitanHappy(t *testing.T, implicitAdmin bool) {
 	tt := newTeamTester(t)
 	defer tt.cleanup()
 
 	own := tt.addUser("own")
 	roo := tt.addUser("roo")
 
-	teamID, teamName := own.createTeam2()
+	teamIDParent, teamNameParent := own.createTeam2()
+	teamID := teamIDParent
+	teamName := teamNameParent
+	t.Logf("Created team %v %v", teamIDParent, teamNameParent)
+	if implicitAdmin {
+		subteamID, err := teams.CreateSubteam(context.TODO(), tt.users[0].tc.G, "sub1", teamNameParent)
+		require.NoError(t, err)
+		teamID = *subteamID
+		subteamName, err := teamNameParent.Append("sub1")
+		require.NoError(t, err)
+		teamName = subteamName
+		t.Logf("Created subteam %v %v", teamID, teamName)
+	}
 
-	t.Logf("Created team %q", teamName.String())
-
+	label := keybase1.NewSeitanIKeyLabelWithSms(keybase1.SeitanIKeyLabelSms{
+		F: "bugs",
+		N: "0000",
+	})
 	token, err := own.teamsClient.TeamCreateSeitanToken(context.TODO(), keybase1.TeamCreateSeitanTokenArg{
-		Name: teamName.String(),
-		Role: keybase1.TeamRole_WRITER,
+		Name:  teamName.String(),
+		Role:  keybase1.TeamRole_WRITER,
+		Label: label,
 	})
 	require.NoError(t, err)
 
 	t.Logf("Created token %q", token)
+
+	details := own.teamGetDetails(teamName.String())
+	require.Len(t, details.AnnotatedActiveInvites, 1)
+	for _, invite := range details.AnnotatedActiveInvites {
+		require.Equal(t, keybase1.TeamRole_WRITER, invite.Role)
+		tic, err := invite.Type.C()
+		require.NoError(t, err)
+		require.Equal(t, keybase1.TeamInviteCategory_SEITAN, tic)
+		require.Equal(t, keybase1.TeamInviteName("bugs (0000)"), invite.Name)
+	}
 
 	err = roo.teamsClient.TeamAcceptInvite(context.TODO(), keybase1.TeamAcceptInviteArg{
 		Token: string(token),
@@ -49,6 +82,9 @@ func TestTeamInviteSeitanHappy(t *testing.T) {
 	role, err := t0.MemberRole(context.TODO(), teams.NewUserVersion(roo.uid, 1))
 	require.NoError(t, err)
 	require.Equal(t, role, keybase1.TeamRole_WRITER)
+
+	details = own.teamGetDetails(teamName.String())
+	require.Len(t, details.AnnotatedActiveInvites, 0)
 }
 
 func TestTeamInviteSeitanFailures(t *testing.T) {

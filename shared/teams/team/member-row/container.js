@@ -12,6 +12,7 @@ import type {TypedState} from '../../../constants/reducer'
 type OwnProps = {
   username: string,
   teamname: string,
+  active: boolean,
 }
 
 const getFollowing = (state, username: string) => {
@@ -21,13 +22,15 @@ const getFollowing = (state, username: string) => {
 
 type StateProps = {
   following: boolean,
+  active: boolean,
   you: ?string,
   _members: I.Set<Types.MemberInfo>,
 }
 
-const mapStateToProps = (state: TypedState, {teamname, username}: OwnProps): StateProps => ({
+const mapStateToProps = (state: TypedState, {teamname, username, active}: OwnProps): StateProps => ({
   following: getFollowing(state, username),
   you: state.config.username,
+  active,
   _members: state.entities.getIn(['teams', 'teamNameToMembers', teamname], I.Set()),
 })
 
