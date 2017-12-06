@@ -9,8 +9,8 @@ const ipcRenderer = electron.ipcRenderer
 const BrowserWindow = remote.BrowserWindow
 
 type Props = {
-  selectorParams: ?string,
-  component: string,
+  windowParam: ?string,
+  windowComponent: string,
   remoteWindow: ?BrowserWindow,
 }
 
@@ -29,8 +29,8 @@ function SyncProps(ComposedComponent: any) {
       }
     }
 
-    _onNeedProps = ({sender}, component: string, selectorParams: ?string) => {
-      if (component === this.props.component && selectorParams === this.props.selectorParams) {
+    _onNeedProps = ({sender}, windowComponent: string, windowParam: string) => {
+      if (windowComponent === this.props.windowComponent && windowParam === this.props.windowParam) {
         // If the remote asks for props send the whole thing
         this._lastProps = {}
         this._sendProps()

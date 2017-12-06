@@ -21,21 +21,26 @@ disableDragDrop()
 
 module.hot && module.hot.accept()
 
-class RemoteComponentLoader extends Component<any> {
+type Props = {
+  windowComponent: 'purgeMessage' | 'unlockFolders' | 'menubar' | 'pinentry' | 'tracker',
+  windowParam: string,
+}
+
+class RemoteComponentLoader extends Component<Props> {
   _store: any
   _ComponentClass: any
   _window: ?BrowserWindow
 
   _onGotProps = () => {
     // Show when we get props, unless its the menubar
-    if (this._window && this.props.component !== 'menubar') {
+    if (this._window && this.props.windowComponent !== 'menubar') {
       this._window.show()
     }
   }
 
   _getComponent = (key: string) => {
     switch (key) {
-      case 'puregeMessage':
+      case 'purgeMessage':
         return PurgeMessage
       case 'unlockFolders':
         return UnlockFolders
@@ -53,11 +58,11 @@ class RemoteComponentLoader extends Component<any> {
   componentWillMount() {
     this._window = remote.getCurrentWindow()
     this._store = new RemoteStore({
-      component: this.props.component,
       gotPropsCallback: this._onGotProps,
-      selectorParams: this.props.selectorParams,
+      windowComponent: this.props.windowComponent,
+      windowParam: this.props.windowParam,
     })
-    this._ComponentClass = this._getComponent(this.props.component)
+    this._ComponentClass = this._getComponent(this.props.windowComponent)
 
     setupContextMenu(this._window)
   }
@@ -91,7 +96,7 @@ function load(options) {
   const node = document.getElementById('root')
   if (node) {
     ReactDOM.render(
-      <RemoteComponentLoader component={options.component} selectorParams={options.selectorParams} />,
+      <RemoteComponentLoader windowComponent={options.windowComponent} windowParam={options.windowParam} />,
       node
     )
   }

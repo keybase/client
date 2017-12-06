@@ -11,11 +11,11 @@ const windowOpts = {}
 
 type Props = {
   externalRemoteWindow: any,
+  windowComponent: string,
   windowOpts?: Object,
-  positionBottomRight?: boolean,
-  component: string,
-  title: string,
-  selectorParams: string,
+  windowParam: string,
+  windowPositionBottomRight?: boolean,
+  windowTitle: string,
 }
 
 // Like RemoteWindow but the browserWindow is handled by the 3rd party menubar class and mostly lets it handle things
@@ -24,16 +24,16 @@ function RemoteMenubarWindow(ComposedComponent: any) {
     componentWillMount() {
       sendLoad(
         this.props.externalRemoteWindow.webContents,
-        this.props.selectorParams,
-        this.props.component,
-        this.props.title
+        this.props.windowParam,
+        this.props.windowComponent,
+        this.props.windowTitle
       )
 
       // uncomment to see menubar devtools
       // this.props.externalRemoteWindow.webContents.openDevTools('detach')
     }
     render() {
-      const {windowOpts, positionBottomRight, title, externalRemoteWindow, ...props} = this.props
+      const {windowOpts, windowPositionBottomRight, windowTitle, externalRemoteWindow, ...props} = this.props
       return <ComposedComponent {...props} remoteWindow={this.props.externalRemoteWindow} />
     }
   }
@@ -53,7 +53,6 @@ const mapStateToProps = (state: TypedState, {id}) => ({
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   badgeInfo: stateProps._badgeInfo.toJS(),
-  component: 'menubar',
   extendedConfig: stateProps.extendedConfig,
   externalRemoteWindow: stateProps._externalRemoteWindowID
     ? remote.BrowserWindow.fromId(stateProps._externalRemoteWindowID)
@@ -61,10 +60,11 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   folderProps: stateProps.folderProps,
   kbfsStatus: stateProps.kbfsStatus,
   loggedIn: stateProps.loggedIn,
-  selectorParams: '',
-  title: '',
   username: stateProps.username,
+  windowComponent: 'menubar',
   windowOpts,
+  windowParam: '',
+  windowTitle: '',
 })
 
 // Actions are handled by remote-container

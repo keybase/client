@@ -26,10 +26,10 @@ const devScripts = __DEV__
 
 type Props = {
   windowOpts?: Object,
-  positionBottomRight?: boolean,
-  component: string,
-  title: string,
-  selectorParams: string,
+  windowPositionBottomRight?: boolean,
+  windowComponent: string,
+  windowTitle: string,
+  windowParam: string,
 }
 
 const defaultWindowOpts = {
@@ -45,9 +45,9 @@ type State = {
   remoteWindow: ?BrowserWindow,
 }
 
-const sendLoad = (webContents: any, selectorParams: string, component: string, title: ?string) => {
+const sendLoad = (webContents: any, windowParam: string, windowComponent: string, windowTitle: ?string) => {
   webContents.send('load', {
-    component,
+    windowComponent,
     scripts: [
       ...devScripts,
       {
@@ -55,8 +55,8 @@ const sendLoad = (webContents: any, selectorParams: string, component: string, t
         src: hotPath('component-loader.bundle.js'),
       },
     ],
-    selectorParams,
-    title,
+    windowParam,
+    windowTitle,
   })
 }
 
@@ -85,7 +85,7 @@ function BrowserWindowSync(ComposedComponent: any) {
     }
 
     _positionBrowserWindow = (windowOpts: {width: number, height: number}) => {
-      if (this.props.positionBottomRight && electron.screen.getPrimaryDisplay()) {
+      if (this.props.windowPositionBottomRight && electron.screen.getPrimaryDisplay()) {
         const {width, height} = electron.screen.getPrimaryDisplay().workAreaSize
         this._remoteWindow &&
           this._remoteWindow.setPosition(
@@ -102,7 +102,7 @@ function BrowserWindowSync(ComposedComponent: any) {
       }
       const webContents = this._remoteWindow.webContents
       webContents.on('did-finish-load', () => {
-        sendLoad(webContents, this.props.selectorParams, this.props.component, this.props.title)
+        sendLoad(webContents, this.props.windowParam, this.props.windowComponent, this.props.windowTitle)
       })
 
       if (showDevTools && !skipSecondaryDevtools) {
@@ -136,7 +136,10 @@ function BrowserWindowSync(ComposedComponent: any) {
       ipcRenderer.send('showDockIconForRemoteWindow', this._remoteWindowId)
 
       remoteWindow.loadURL(
-        resolveRootAsURL('renderer', injectReactQueryParams(`renderer.html?${this.props.component || ''}`))
+        resolveRootAsURL(
+          'renderer',
+          injectReactQueryParams(`renderer.html?${this.props.windowComponent || ''}`)
+        )
       )
 
       this._setupWebContents()
@@ -150,7 +153,7 @@ function BrowserWindowSync(ComposedComponent: any) {
 
     render() {
       // Don't forward our internal props
-      const {windowOpts, positionBottomRight, title, ...props} = this.props
+      const {windowOpts, windowPositionBottomRight, windowTitle, ...props} = this.props
       return <ComposedComponent {...props} remoteWindow={this.state.remoteWindow} />
     }
   }

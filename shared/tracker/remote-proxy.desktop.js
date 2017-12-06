@@ -26,18 +26,17 @@ const trackerMergeProps = (stateProps, dispatchProps, {name}) => {
   return {
     ...t,
     actionBarReady: !t.serverActive && !t.error,
-    component: 'tracker',
     errorMessage: t.error,
     loading: Constants.isLoading(t),
     loggedIn: stateProps.loggedIn,
     myUsername: stateProps.myUsername,
     nonUser: t && t.type === 'nonUser',
-    positionBottomRight: true,
-    selectorParams: name,
     sessionID: name,
-    title: `Tracker - ${name}`,
+    windowComponent: 'tracker',
     windowOpts,
-    windowTitle: '',
+    windowParam: name,
+    windowPositionBottomRight: true,
+    windowTitle: `Tracker - ${name}`,
   }
 }
 
