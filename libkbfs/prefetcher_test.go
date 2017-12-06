@@ -1182,7 +1182,7 @@ func TestPrefetcherBasicUnsyncedBackwardPrefetch(t *testing.T) {
 	waitForPrefetchOrBust(t, q.Prefetcher().Shutdown())
 }
 
-func TestPrefetcherBasicUnsyncedPrefetchEvicted(t *testing.T) {
+func TestPrefetcherUnsyncedPrefetchEvicted(t *testing.T) {
 	t.Log("Test basic unsynced prefetching with a block that has been evicted.")
 	dbc, dbcConfig := initDiskBlockCacheTest(t)
 	q, bg, config := initPrefetcherTestWithDiskCache(t, dbc)
@@ -1260,7 +1260,118 @@ func TestPrefetcherBasicUnsyncedPrefetchEvicted(t *testing.T) {
 	waitForPrefetchOrBust(t, q.Prefetcher().Shutdown())
 }
 
-func TestPrefetcherBasicUnsyncedPrefetchEvictedCanceled(t *testing.T) {
+func TestPrefetcherUnsyncedPrefetchChildEvictedCanceled(t *testing.T) {
+	t.Log("Partial regression test for KBFS-2588: when a prefetched block " +
+		"has children waiting on a prefetch, and it is canceled, subsequent " +
+		"attempts to prefetch that parent block panic.")
+	// Note: this test actually passes, because as long as the block count of
+	// the parent is non-zero, the first child that completes it will also
+	// remove it from the tree. See
+	// TestPrefetcherUnsyncedPrefetchRootEvictedCanceled for the actual
+	// regression test that reproduces the panic.
+	dbc, dbcConfig := initDiskBlockCacheTest(t)
+	q, bg, config := initPrefetcherTestWithDiskCache(t, dbc)
+	bcache := config.testCache
+	defer shutdownPrefetcherTest(q)
+	ctx := context.Background()
+	kmd := makeKMD()
+	prefetchSyncCh := make(chan struct{})
+	q.TogglePrefetcher(true, prefetchSyncCh)
+	notifySyncCh(t, prefetchSyncCh)
+
+	t.Log("Initialize a folder tree with structure: " +
+		"root -> {a, b}")
+	rootPtr := makeRandomBlockPointer(t)
+	root := &DirBlock{Children: map[string]DirEntry{
+		"a": makeRandomDirEntry(t, File, 10, "a"),
+		"b": makeRandomDirEntry(t, File, 10, "b"),
+	}}
+	aPtr := root.Children["a"].BlockPointer
+	bPtr := root.Children["b"].BlockPointer
+	a := makeFakeFileBlock(t, true)
+	b := makeFakeFileBlock(t, true)
+
+	encRoot, serverHalfRoot :=
+		setupRealBlockForDiskCache(t, rootPtr, root, dbcConfig)
+	encA, serverHalfA := setupRealBlockForDiskCache(t, aPtr, a, dbcConfig)
+	encB, serverHalfB := setupRealBlockForDiskCache(t, bPtr, b, dbcConfig)
+
+	_, _ = bg.setBlockToReturn(rootPtr, root)
+	_, _ = bg.setBlockToReturn(aPtr, a)
+	_, _ = bg.setBlockToReturn(bPtr, b)
+	err := dbc.Put(ctx, kmd.TlfID(), rootPtr.ID, encRoot, serverHalfRoot)
+	require.NoError(t, err)
+	err = dbc.Put(ctx, kmd.TlfID(), aPtr.ID, encA, serverHalfA)
+	require.NoError(t, err)
+	err = dbc.Put(ctx, kmd.TlfID(), bPtr.ID, encB, serverHalfB)
+	require.NoError(t, err)
+
+	t.Log("Fetch dir root.")
+	var block Block = &DirBlock{}
+	ch := q.Request(context.Background(), defaultOnDemandRequestPriority, kmd,
+		rootPtr, block, TransientEntry)
+	notifySyncCh(t, prefetchSyncCh)
+	err = <-ch
+	require.NoError(t, err)
+	// Notify sync channel for the child blocks `a` and `b`.
+	notifySyncCh(t, prefetchSyncCh)
+	notifySyncCh(t, prefetchSyncCh)
+
+	t.Log("Cancel the prefetch for block 'a'.")
+	q.Prefetcher().CancelPrefetch(aPtr.ID)
+	// Notify sync channel for the cancelation.
+	notifySyncCh(t, prefetchSyncCh)
+
+	t.Log("Set the metadata of the root block in the disk cache to " +
+		"NoPrefetch, simulating an eviction and a BlockServer.Get.")
+	err = dbc.UpdateMetadata(ctx, rootPtr.ID, NoPrefetch)
+	require.NoError(t, err)
+
+	t.Log("Evict the root block from the block cache.")
+	err = bcache.DeleteTransient(rootPtr, kmd.TlfID())
+	require.NoError(t, err)
+
+	t.Log("Fetch dir root again.")
+	block = &DirBlock{}
+	ch = q.Request(context.Background(), defaultOnDemandRequestPriority, kmd,
+		rootPtr, block, TransientEntry)
+	notifySyncCh(t, prefetchSyncCh)
+	err = <-ch
+	require.NoError(t, err)
+	// Notify sync channel for only child block `a`, since `b` wasn't newly
+	// triggered.
+	notifySyncCh(t, prefetchSyncCh)
+
+	t.Log("Fetch child block \"a\" on demand.")
+	block = &FileBlock{}
+	ch = q.Request(context.Background(), defaultOnDemandRequestPriority, kmd,
+		aPtr, block, TransientEntry)
+	// Notify sync channel for the child block `a`.
+	notifySyncCh(t, prefetchSyncCh)
+	err = <-ch
+	require.NoError(t, err)
+
+	t.Log("Fetch child block \"b\" on demand.")
+	block = &FileBlock{}
+	ch = q.Request(context.Background(), defaultOnDemandRequestPriority, kmd,
+		bPtr, block, TransientEntry)
+	// Notify sync channel for the child block `b`.
+	notifySyncCh(t, prefetchSyncCh)
+	err = <-ch
+	require.NoError(t, err)
+
+	testPrefetcherCheckGet(t, config.BlockCache(), rootPtr, root,
+		FinishedPrefetch, TransientEntry)
+	testPrefetcherCheckGet(t, config.BlockCache(), aPtr, a, FinishedPrefetch,
+		TransientEntry)
+	testPrefetcherCheckGet(t, config.BlockCache(), bPtr, b, FinishedPrefetch,
+		TransientEntry)
+
+	// Then we wait for the pending prefetches to complete.
+	waitForPrefetchOrBust(t, q.Prefetcher().Shutdown())
+}
+
+func TestPrefetcherUnsyncedPrefetchRootEvictedCanceled(t *testing.T) {
 	t.Log("Regression test for KBFS-2588: when a prefetched block has " +
 		"children waiting on a prefetch, and it is canceled, subsequent " +
 		"attempts to prefetch that parent block panic.")
@@ -1312,8 +1423,10 @@ func TestPrefetcherBasicUnsyncedPrefetchEvictedCanceled(t *testing.T) {
 	notifySyncCh(t, prefetchSyncCh)
 	notifySyncCh(t, prefetchSyncCh)
 
-	t.Log("Cancel the prefetch for block 'b'.")
-	q.Prefetcher().CancelPrefetch(bPtr.ID)
+	t.Log("Cancel the prefetch for the root block.")
+	q.Prefetcher().CancelPrefetch(rootPtr.ID)
+	// Notify sync channel for the cancelation.
+	notifySyncCh(t, prefetchSyncCh)
 
 	t.Log("Set the metadata of the root block in the disk cache to " +
 		"NoPrefetch, simulating an eviction and a BlockServer.Get.")
@@ -1331,9 +1444,8 @@ func TestPrefetcherBasicUnsyncedPrefetchEvictedCanceled(t *testing.T) {
 	notifySyncCh(t, prefetchSyncCh)
 	err = <-ch
 	require.NoError(t, err)
-	// Notify sync channel for the child blocks `a` and `b`.
-	notifySyncCh(t, prefetchSyncCh)
-	notifySyncCh(t, prefetchSyncCh)
+	// Neither blocks `a` nor `b` got triggered, since they already existed.
+	// So no need to notify the sync channel.
 
 	t.Log("Fetch child block \"a\" on demand.")
 	block = &FileBlock{}
