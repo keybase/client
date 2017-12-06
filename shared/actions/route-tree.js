@@ -10,20 +10,6 @@ import type {RouteDefParams, Path, PropsPath} from '../route-tree'
 import type {TypedAction} from '../constants/types/flux'
 import type {TypedState} from '../constants/reducer'
 
-const pathActionTransformer = (action, oldState) => {
-  const prevPath = oldState.routeTree ? getPath(oldState.routeTree.routeState) : I.List()
-  const path = Array.from(action.payload.path.map(p => (typeof p === 'string' ? p : p.selected)))
-  const parentPath = action.payload.parentPath && Array.from(action.payload.parentPath)
-  return {
-    payload: {
-      prevPath,
-      path,
-      parentPath,
-    },
-    type: action.type,
-  }
-}
-
 export function pathSelector(state: TypedState, parentPath?: Path): I.List<string> {
   return getPath(state.routeTree.routeState, parentPath)
 }
@@ -51,7 +37,6 @@ export function switchTo(path: Path, parentPath?: Path): Types.SwitchTo {
   return {
     type: Constants.switchTo,
     payload: {path, parentPath},
-    logTransformer: pathActionTransformer,
   }
 }
 
@@ -77,7 +62,6 @@ export function navigateTo(
   return {
     type: Constants.navigateTo,
     payload: {path, parentPath, navigationSource},
-    logTransformer: pathActionTransformer,
   }
 }
 
@@ -88,7 +72,6 @@ export function navigateAppend(path: PropsPath<*>, parentPath?: Path): Types.Nav
   return {
     type: Constants.navigateAppend,
     payload: {path, parentPath},
-    logTransformer: pathActionTransformer,
   }
 }
 
@@ -120,7 +103,6 @@ export function setRouteState(
   return {
     type: Constants.setRouteState,
     payload: {path, partialState},
-    logTransformer: pathActionTransformer,
   }
 }
 
@@ -129,7 +111,6 @@ export function resetRoute(path: Path): Types.ResetRoute {
   return {
     type: Constants.resetRoute,
     payload: {path},
-    logTransformer: pathActionTransformer,
   }
 }
 

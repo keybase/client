@@ -38,7 +38,6 @@ if (enableStoreLogging) {
         args[0].type.match(filterActionLogs) && console.log('Action:', ...args)
       } else if (args[0] && args[0].type) {
         console.log('Action:', ...args)
-        logger.action('Type:', args[0].type, ...args)
       }
       return null
     },
