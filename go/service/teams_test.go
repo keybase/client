@@ -11,6 +11,9 @@ func TestParseSeitanToken(t *testing.T) {
 	token := "aazaaa0a+aaaaaaaa"
 	s := fmt.Sprintf("HELLO AND WELCOME TO THIS TEAM. token: %s", token)
 	require.Equal(t, token, parseInviteToken(s))
+	token = "aazaaa0aaaaaaaaa"
+	s = fmt.Sprintf("HELLO AND WELCOME TO THIS TEAM. token: %s", token)
+	require.Equal(t, token, parseInviteToken(s))
 	s = token
 	require.Equal(t, token, parseInviteToken(s))
 	s = fmt.Sprintf("%s %s", token, token)
