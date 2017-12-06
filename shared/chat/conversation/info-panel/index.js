@@ -190,6 +190,12 @@ const _SmallTeamInfoPanel = (props: SmallTeamInfoPanelProps) => (
       </ClickableBox>
     </Box>
     <Divider style={styleDivider} />
+    <Box style={{...globalStyles.flexBoxRow, marginRight: globalMargins.small}}>
+      <Text style={{flex: 1, paddingLeft: globalMargins.small}} type="BodySmallSemibold">
+        In this team ({props.participants.length.toString()})
+      </Text>
+      {props.admin && <Text type="BodySmallPrimaryLink" onClick={props.onViewTeam}>Manage</Text>}
+    </Box>
     <Participants participants={props.participants} onShowProfile={props.onShowProfile} />
 
   </ScrollView>
@@ -249,7 +255,7 @@ const _BigTeamInfoPanel = (props: BigTeamInfoPanelProps) => (
     <Divider style={styleDivider} />
     <Box style={{...globalStyles.flexBoxRow, marginRight: globalMargins.small}}>
       <Text style={{flex: 1, paddingLeft: globalMargins.small}} type="BodySmallSemibold">
-        Members ({props.participants.length.toString()})
+        In this channel ({props.participants.length.toString()})
       </Text>
       {props.admin &&
         props.channelname === 'general' &&
