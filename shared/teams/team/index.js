@@ -341,7 +341,7 @@ class Team extends React.PureComponent<Props> {
               />
             </Box>
             <Box style={{...globalStyles.flexBoxColumn, flexShrink: 1}}>
-              <Text style={{color: youCanShowcase ? globalColors.black : globalColors.grey}} type="Body">
+              <Text style={{color: youCanShowcase ? globalColors.black_75 : globalColors.grey}} type="Body">
                 Publish team on your own profile
               </Text>
               <Text type="BodySmall">
