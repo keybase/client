@@ -204,7 +204,7 @@ const TeamTabs = (props: TeamTabsProps) => {
   }
 
   const selected = tabs.find(tab => tab.key === selectedTab)
-  return <Tabs tabs={tabs} selected={selected} onSelect={onSelect} />
+  return <Tabs tabs={tabs} selected={selected} onSelect={onSelect} style={{flexBasis: '100%'}} />
 }
 
 class Team extends React.PureComponent<Props> {
