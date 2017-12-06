@@ -17,7 +17,7 @@ export type Props = {|
     localMessageState?: Types.LocalMessageState,
     onShowEditor?: () => void,
     onPopupWillClose?: () => void,
-    targetNode?: ?HTMLElement
+    targetRect?: ?ClientRect
   ) => void,
   onOpenInFileUI: (filename: string) => void,
   getMessageFromMessageKey: (messageKey: Types.MessageKey) => ?Types.Message,

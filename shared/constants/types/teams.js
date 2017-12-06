@@ -140,6 +140,7 @@ export type ChannelInfo = I.RecordOf<_ChannelInfo>
 export type _MemberInfo = {
   type: ?TeamRoleType,
   username: string,
+  active: boolean,
 }
 
 export type MemberInfo = I.RecordOf<_MemberInfo>
@@ -201,6 +202,8 @@ export type SaveChannelMembership = NoErrorTypedAction<
   {channelState: ChannelMembershipState, teamname: string}
 >
 
+export type CheckRequestedAccess = NoErrorTypedAction<'teams:checkRequestedAccess', {}>
+
 export type TypeMap = {
   admin: string | boolean,
   owner: string | boolean,
@@ -211,6 +214,7 @@ export type TypeMap = {
 export type _State = {
   convIDToChannelInfo: I.Map<Types.ConversationIDKey, ChannelInfo>,
   sawChatBanner: boolean,
+  teamAccessRequestsPending: I.Set<Teamname>,
   teamNameToConvIDs: I.Map<Teamname, I.Set<Types.ConversationIDKey>>,
   teamNameToInvites: I.Map<
     Teamname,

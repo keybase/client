@@ -162,9 +162,14 @@ function badgeAppForTeams(
   return {payload: {newTeamNames, newTeamAccessRequests}, type: 'teams:badgeAppForTeams'}
 }
 
+function checkRequestedAccess(teamname: string): Types.CheckRequestedAccess {
+  return {payload: {teamname}, type: 'teams:checkRequestedAccess'}
+}
+
 export {
   addPeopleToTeam,
   addToTeam,
+  checkRequestedAccess,
   createChannel,
   createNewTeam,
   createNewTeamFromConversation,
