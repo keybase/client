@@ -54,14 +54,17 @@ const _createNewTeam = function*(action: Types.CreateNewTeam) {
 
 const _joinTeam = function*(action: Types.JoinTeam) {
   const {payload: {teamname}} = action
-  yield Saga.all([Saga.put(Creators.setTeamJoinError('')), Saga.put(Creators.setTeamJoinSuccess(false))])
+  yield Saga.all([
+    Saga.put(Creators.setTeamJoinError('')),
+    Saga.put(Creators.setTeamJoinSuccess(false, null)),
+  ])
   try {
-    yield Saga.call(RPCTypes.teamsTeamAcceptInviteOrRequestAccessRpcPromise, {
+    const result = yield Saga.call(RPCTypes.teamsTeamAcceptInviteOrRequestAccessRpcPromise, {
       tokenOrName: teamname,
     })
 
     // Success
-    yield Saga.put(Creators.setTeamJoinSuccess(true))
+    yield Saga.put(Creators.setTeamJoinSuccess(true, result && result.wasTeamName ? teamname : null))
   } catch (error) {
     yield Saga.put(Creators.setTeamJoinError(error.desc))
   }
