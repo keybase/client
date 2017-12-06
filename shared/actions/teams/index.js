@@ -188,6 +188,21 @@ const _removeMemberOrPendingInvite = function*(action: Types.RemoveMemberOrPendi
   }
 }
 
+const generateSMSBody = (teamname: string, seitan: string): string => {
+  // seitan is 18chars
+  // message sans teamname is 118chars. Teamname can be 33 chars before we truncate to 25 and pre-ellipsize
+  let team
+  const teamOrSubteam = teamname.includes('.') ? 'subteam' : 'team'
+  if (teamname.length <= 16) {
+    team = `${teamname} ${teamOrSubteam}`
+  } else if (teamname.length <= 33) {
+    team = `${teamname} ${teamOrSubteam}`
+  } else {
+    team = `..${teamname.substring(teamname.length - 30)} subteam`
+  }
+  return `Join the ${team} on Keybase. Copy this message into the "Teams" tab.\n\ntoken: ${seitan.toLowerCase()}\n\ninstall: keybase.io/_/go`
+}
+
 const _inviteToTeamByPhone = function*(action: Types.InviteToTeamByPhone) {
   const {payload: {teamname, role, phoneNumber, fullName = ''}} = action
   const seitan = yield Saga.call(RPCTypes.teamsTeamCreateSeitanTokenRpcPromise, {
@@ -197,17 +212,7 @@ const _inviteToTeamByPhone = function*(action: Types.InviteToTeamByPhone) {
   })
 
   /* Open SMS */
-  // seitan is 18chars
-  // message sans teamname is 118chars. Teamname can be 33 chars before we truncate to 25 and pre-ellipsize
-  let team
-  if (teamname.length <= 16) {
-    team = `${teamname} team`
-  } else if (teamname.length <= 33) {
-    team = `${teamname} subteam`
-  } else {
-    team = `..${teamname.substring(teamname.length - 30)} subteam`
-  }
-  const bodyText = `Join the ${team} on Keybase. Copy this message into the "Teams" tab.\n\ntoken: ${seitan.toLowerCase()}\n\ninstall: keybase.io/_/go`
+  const bodyText = generateSMSBody(teamname, seitan)
   openSMS([phoneNumber], bodyText).catch(err => console.log('Error sending SMS', err))
 
   yield Saga.put(Creators.getDetails(teamname))
