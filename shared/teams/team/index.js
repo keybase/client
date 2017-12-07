@@ -334,7 +334,13 @@ class Team extends React.PureComponent<Props> {
                 paddingTop: globalMargins.small,
               }}
             >
-              <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center', paddingRight: globalMargins.tiny}}>
+              <Box
+                style={{
+                  ...globalStyles.flexBoxColumn,
+                  alignItems: 'center',
+                  paddingRight: globalMargins.tiny,
+                }}
+              >
                 <Checkbox
                   checked={publicityMember}
                   disabled={!youCanShowcase}
@@ -362,11 +368,7 @@ class Team extends React.PureComponent<Props> {
 
               <Box style={stylesSettingsTabRow}>
                 <Box style={stylesPublicitySettingsBox}>
-                  <Checkbox
-                    checked={publicityAnyMember}
-                    label=""
-                    onCheck={setPublicityAnyMember}
-                  />
+                  <Checkbox checked={publicityAnyMember} label="" onCheck={setPublicityAnyMember} />
                 </Box>
                 <Box style={{...globalStyles.flexBoxColumn, flexShrink: 1}}>
                   <Text type="Body">
@@ -380,11 +382,7 @@ class Team extends React.PureComponent<Props> {
 
               <Box style={stylesSettingsTabRow}>
                 <Box style={stylesPublicitySettingsBox}>
-                  <Checkbox
-                    checked={publicityTeam}
-                    label=""
-                    onCheck={setPublicityTeam}
-                  />
+                  <Checkbox checked={publicityTeam} label="" onCheck={setPublicityTeam} />
                 </Box>
                 <Box style={{...globalStyles.flexBoxColumn, flexShrink: 1}}>
                   <Text type="Body">
@@ -407,7 +405,9 @@ class Team extends React.PureComponent<Props> {
                     style={{paddingRight: globalMargins.xtiny}}
                   />
                 </Box>
-                <Box style={{...globalStyles.flexBoxColumn, flexShrink: 1, paddingRight: globalMargins.small}}>
+                <Box
+                  style={{...globalStyles.flexBoxColumn, flexShrink: 1, paddingRight: globalMargins.small}}
+                >
                   <Text type="Body">
                     Make this an open team
                   </Text>
