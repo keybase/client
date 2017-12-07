@@ -35,7 +35,6 @@ let config = {
 }
 
 // Developer settings
-config.isDevApplePushToken = true
 if (__DEV__) {
   config.enableActionLogging = false
   config.enableStoreLogging = false
@@ -43,6 +42,7 @@ if (__DEV__) {
   config.immediateStateLogging = false
   // Move this outside the if statement to get notifications working
   // with a "Profile" build on a phone.
+  config.isDevApplePushToken = true
   config.printOutstandingRPCs = true
   config.printRPC = true
   config.reduxSagaLoggerMasked = false
