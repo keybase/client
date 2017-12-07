@@ -113,6 +113,7 @@ function reducer(state: Types.State = initialState, action: ChatGen.Actions) {
       return state.update('conversationStates', conversationStates =>
         conversationStates.map((conversationState, conversationIDKey) => {
           if (convIDs.length === 0 || convIDs.includes(conversationIDKey)) {
+            console.log(`reducer: setting thread stale from mark as stale: ${conversationIDKey}`)
             return conversationState.set('isStale', true)
           }
           return conversationState
@@ -125,6 +126,7 @@ function reducer(state: Types.State = initialState, action: ChatGen.Actions) {
       return state.update('conversationStates', conversationStates =>
         conversationStates.map((conversationState, conversationIDKey) => {
           if (convIDs.length === 0 || convIDs.includes(conversationIDKey)) {
+            console.log(`reducer: setting thread stale from inbox synced: ${conversationIDKey}`)
             return conversationState.set('isStale', true)
           }
           return conversationState

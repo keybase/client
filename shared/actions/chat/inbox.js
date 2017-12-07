@@ -456,6 +456,10 @@ function* unboxConversations(action: ChatGen.UnboxConversationsPayload): SagaGen
   const state: TypedState = yield Saga.select()
   const untrustedState = state.chat.inboxUntrustedState
 
+  console.log(
+    `unboxConversations: before filter unboxing ${conversationIDKeys.length} convs, force: ${(force || false)
+      .toString()} because: ${reason}`
+  )
   // Don't unbox pending conversations
   conversationIDKeys = conversationIDKeys.filter(c => !Constants.isPendingConversationIDKey(c))
 
@@ -472,6 +476,8 @@ function* unboxConversations(action: ChatGen.UnboxConversationsPayload): SagaGen
       // This means this is the first unboxing
       map[c] = 'firstUnboxing'
       newConvIDKeys.push(c)
+    } else {
+      console.log(`unboxConversations: filtering conv: ${c} state: ${untrustedState.get(c, 'unknown')}`)
     }
     return map
   }, {})
@@ -483,9 +489,12 @@ function* unboxConversations(action: ChatGen.UnboxConversationsPayload): SagaGen
 
   conversationIDKeys = newConvIDKeys
   if (!conversationIDKeys.length) {
+    console.log(`unboxConversations: all conversations filtered, nothing to do`)
     return
   }
-  console.log(`unboxConversations: unboxing ${conversationIDKeys.length} convs, because: ${reason}`)
+  console.log(
+    `unboxConversations: after filter unboxing ${conversationIDKeys.length} convs, because: ${reason}`
+  )
 
   // If we've been asked to unbox something and we don't have a selected thing, lets make it selected (on desktop)
   if (!isMobile) {
@@ -516,7 +525,7 @@ function* unboxConversations(action: ChatGen.UnboxConversationsPayload): SagaGen
     yield Saga.call(loadInboxRpc.run, 30e3)
   } catch (error) {
     if (error instanceof RPCTimeoutError) {
-      console.warn('timed out request for unboxConversations, bailing')
+      console.warn('unboxConversations: timed out request for unboxConversations, bailing')
       yield Saga.put.resolve(
         ChatGen.createReplaceEntity({
           keyPath: ['inboxUntrustedState'],
@@ -524,7 +533,7 @@ function* unboxConversations(action: ChatGen.UnboxConversationsPayload): SagaGen
         })
       )
     } else {
-      console.warn('Error in loadInboxRpc', error)
+      console.warn('unboxConversations: error in loadInboxRpc', error)
     }
   }
   if (forInboxSync) {
