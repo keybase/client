@@ -180,7 +180,11 @@ function* onInboxStale(action: ChatGen.InboxStalePayload): SagaGenerator<any, an
       .map(c => c.conversationIDKey)
 
     yield Saga.put(
-      ChatGen.createUnboxConversations({conversationIDKeys: toUnbox, reason: 'reloading entire inbox'})
+      ChatGen.createUnboxConversations({
+        conversationIDKeys: toUnbox,
+        reason: 'reloading entire inbox',
+        dismissSyncing: true,
+      })
     )
   } finally {
     if (yield Saga.cancelled()) {
@@ -451,7 +455,7 @@ const unboxConversationsSagaMap = {
 
 // Loads the trusted inbox segments
 function* unboxConversations(action: ChatGen.UnboxConversationsPayload): SagaGenerator<any, any> {
-  let {conversationIDKeys, reason, force, forInboxSync} = action.payload
+  let {conversationIDKeys, reason, force, forInboxSync, dismissSyncing} = action.payload
 
   const state: TypedState = yield Saga.select()
   const untrustedState = state.chat.inboxUntrustedState
@@ -532,7 +536,7 @@ function* unboxConversations(action: ChatGen.UnboxConversationsPayload): SagaGen
       console.warn('unboxConversations: error in loadInboxRpc', error)
     }
   }
-  if (forInboxSync) {
+  if (dismissSyncing) {
     yield Saga.put(ChatGen.createSetInboxSyncingState({inboxSyncingState: 'notSyncing'}))
   }
 }
@@ -726,6 +730,7 @@ function* _inboxSynced(action: ChatGen.InboxSyncedPayload): Saga.SagaGenerator<a
       reason: 'inbox syncing',
       force: true,
       forInboxSync: true,
+      dismissSyncing: true,
     })
   )
 
