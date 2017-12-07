@@ -28,6 +28,10 @@ type logMaker interface {
 	MakeLogger(module string) logger.Logger
 }
 
+type debugForcedLogMaker interface {
+	MakeLoggerForceEnableDebug(module string) logger.Logger
+}
+
 type blockCacher interface {
 	BlockCache() BlockCache
 }
@@ -1693,6 +1697,7 @@ type initModeGetter interface {
 type Config interface {
 	dataVersioner
 	logMaker
+	debugForcedLogMaker
 	blockCacher
 	blockServerGetter
 	codecGetter
@@ -1708,7 +1713,6 @@ type Config interface {
 	syncedTlfGetterSetter
 	initModeGetter
 	Tracer
-	MakeLoggerForceEnableDebug(module string) logger.Logger
 	KBFSOps() KBFSOps
 	SetKBFSOps(KBFSOps)
 	KBPKI() KBPKI

@@ -97,7 +97,7 @@ type ConfigLocal struct {
 	kbpki            KBPKI
 	renamer          ConflictRenamer
 	registry         metrics.Registry
-	loggerFn         func(prefix string, overrideDebug bool) logger.Logger
+	loggerFn         func(prefix string, overrideEnableDebug bool) logger.Logger
 	noBGFlush        bool // logic opposite so the default value is the common setting
 	rwpWaitTime      time.Duration
 	diskLimiter      DiskLimiter
@@ -370,7 +370,7 @@ func getDefaultCleanBlockCacheCapacity() uint64 {
 // TODO: Now that NewConfigLocal takes loggerFn, add more default
 // components.
 func NewConfigLocal(mode InitMode,
-	loggerFn func(module string, overrideDebug bool) logger.Logger,
+	loggerFn func(module string, overrideEnableDebug bool) logger.Logger,
 	storageRoot string, diskCacheMode DiskCacheMode, kbCtx Context) *ConfigLocal {
 	config := &ConfigLocal{
 		loggerFn:      loggerFn,
@@ -991,8 +991,6 @@ func (c *ConfigLocal) MakeLogger(module string) logger.Logger {
 	return c.loggerFn(module, false)
 }
 
-// MakeLoggerForceEnableDebug implements the Config interface for ConfigLocal.
-// The returned logger always has Debug level enabled.
 func (c *ConfigLocal) MakeLoggerForceEnableDebug(module string) logger.Logger {
 	return c.loggerFn(module, true)
 }

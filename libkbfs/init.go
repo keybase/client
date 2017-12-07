@@ -567,13 +567,13 @@ func doInit(
 	}
 
 	config := NewConfigLocal(mode,
-		func(module string, overrideDebug bool) logger.Logger {
+		func(module string, overrideEnableDebug bool) logger.Logger {
 			mname := logPrefix
 			if module != "" {
 				mname += fmt.Sprintf("(%s)", module)
 			}
 			lg := logger.New(mname)
-			if params.Debug || overrideDebug {
+			if params.Debug || overrideEnableDebug {
 				// Turn on debugging.  TODO: allow a proper log file and
 				// style to be specified.
 				lg.Configure("", true, "")

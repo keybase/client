@@ -44,7 +44,7 @@ const (
 //
 // TODO: Move more common code here.
 func newConfigForTest(mode InitMode,
-	loggerFn func(module string, overrideDebug bool) logger.Logger,
+	loggerFn func(module string, overrideEnableDebug bool) logger.Logger,
 ) *ConfigLocal {
 	config := NewConfigLocal(mode|InitTest, loggerFn, "", DiskCacheModeOff, &env.KBFSContext{})
 
