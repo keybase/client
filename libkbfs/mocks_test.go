@@ -90,41 +90,6 @@ func (mr *MocklogMakerMockRecorder) MakeLogger(module interface{}) *gomock.Call 
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MakeLogger", reflect.TypeOf((*MocklogMaker)(nil).MakeLogger), module)
 }
 
-// MockdebugForcedLogMaker is a mock of debugForcedLogMaker interface
-type MockdebugForcedLogMaker struct {
-	ctrl     *gomock.Controller
-	recorder *MockdebugForcedLogMakerMockRecorder
-}
-
-// MockdebugForcedLogMakerMockRecorder is the mock recorder for MockdebugForcedLogMaker
-type MockdebugForcedLogMakerMockRecorder struct {
-	mock *MockdebugForcedLogMaker
-}
-
-// NewMockdebugForcedLogMaker creates a new mock instance
-func NewMockdebugForcedLogMaker(ctrl *gomock.Controller) *MockdebugForcedLogMaker {
-	mock := &MockdebugForcedLogMaker{ctrl: ctrl}
-	mock.recorder = &MockdebugForcedLogMakerMockRecorder{mock}
-	return mock
-}
-
-// EXPECT returns an object that allows the caller to indicate expected use
-func (m *MockdebugForcedLogMaker) EXPECT() *MockdebugForcedLogMakerMockRecorder {
-	return m.recorder
-}
-
-// MakeLoggerForceEnableDebug mocks base method
-func (m *MockdebugForcedLogMaker) MakeLoggerForceEnableDebug(module string) logger.Logger {
-	ret := m.ctrl.Call(m, "MakeLoggerForceEnableDebug", module)
-	ret0, _ := ret[0].(logger.Logger)
-	return ret0
-}
-
-// MakeLoggerForceEnableDebug indicates an expected call of MakeLoggerForceEnableDebug
-func (mr *MockdebugForcedLogMakerMockRecorder) MakeLoggerForceEnableDebug(module interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MakeLoggerForceEnableDebug", reflect.TypeOf((*MockdebugForcedLogMaker)(nil).MakeLoggerForceEnableDebug), module)
-}
-
 // MockblockCacher is a mock of blockCacher interface
 type MockblockCacher struct {
 	ctrl     *gomock.Controller
@@ -5560,18 +5525,6 @@ func (m *MockConfig) MakeLogger(module string) logger.Logger {
 // MakeLogger indicates an expected call of MakeLogger
 func (mr *MockConfigMockRecorder) MakeLogger(module interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MakeLogger", reflect.TypeOf((*MockConfig)(nil).MakeLogger), module)
-}
-
-// MakeLoggerForceEnableDebug mocks base method
-func (m *MockConfig) MakeLoggerForceEnableDebug(module string) logger.Logger {
-	ret := m.ctrl.Call(m, "MakeLoggerForceEnableDebug", module)
-	ret0, _ := ret[0].(logger.Logger)
-	return ret0
-}
-
-// MakeLoggerForceEnableDebug indicates an expected call of MakeLoggerForceEnableDebug
-func (mr *MockConfigMockRecorder) MakeLoggerForceEnableDebug(module interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MakeLoggerForceEnableDebug", reflect.TypeOf((*MockConfig)(nil).MakeLoggerForceEnableDebug), module)
 }
 
 // BlockCache mocks base method

@@ -44,8 +44,7 @@ const (
 //
 // TODO: Move more common code here.
 func newConfigForTest(mode InitMode,
-	loggerFn func(module string, overrideEnableDebug bool) logger.Logger,
-) *ConfigLocal {
+	loggerFn func(module string) logger.Logger) *ConfigLocal {
 	config := NewConfigLocal(mode|InitTest, loggerFn, "", DiskCacheModeOff, &env.KBFSContext{})
 
 	bops := NewBlockOpsStandard(config,
@@ -120,7 +119,7 @@ func MakeTestConfigOrBustLoggedInWithMode(
 	t logger.TestLogBackend, loggedInIndex int,
 	mode InitMode, users ...libkb.NormalizedUsername) *ConfigLocal {
 	log := logger.NewTestLogger(t)
-	config := newConfigForTest(mode, func(m string, _ bool) logger.Logger {
+	config := newConfigForTest(mode, func(m string) logger.Logger {
 		return log
 	})
 
