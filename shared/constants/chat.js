@@ -132,6 +132,14 @@ export const nothingSelected = 'chat:noneSelected'
 export const blankChat = 'chat:blankChat'
 
 function conversationIDToKey(conversationID: Types.ConversationID): Types.ConversationIDKey {
+  if (typeof conversationID === 'string') {
+    // Base64 encoded conversationID. convert to hex
+    return window
+      .atob(conversationID)
+      .split('')
+      .map(c => ('0' + c.charCodeAt(0).toString(16)).slice(-2))
+      .join('')
+  }
   return conversationID.toString('hex')
 }
 
