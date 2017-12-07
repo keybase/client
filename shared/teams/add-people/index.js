@@ -67,11 +67,11 @@ const AddPeople = (props: Props) => (
         style={{
           ...(isMobile ? globalStyles.flexBoxColumn : globalStyles.flexBoxRow),
           alignItems: 'center',
-          margin: globalMargins.small,
+          margin: isMobile ? 0 : globalMargins.small,
         }}
       >
-        <Text style={{margin: globalMargins.tiny}} type="Body">
-          Add these team members to {props.name} as:
+        <Text type="Body">
+          Add these members to {props.name} as:
         </Text>
         <ClickableBox onClick={() => props.onOpenRolePicker()}>
           <Dropdown
