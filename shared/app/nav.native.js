@@ -122,7 +122,7 @@ const barStyle = (showStatusBarDarkContent, underStatusBar) => {
 }
 
 function renderStackRoute(route, isActiveRoute, shouldRender) {
-  const {hideStatusBar, root} = route.tags || {}
+  const {underStatusBar, showStatusBarDarkContent, hideStatusBar, root} = route.tags || {}
 
   let style
   if (root) {
