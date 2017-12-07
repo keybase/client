@@ -321,9 +321,9 @@ func (brq *blockRetrievalQueue) Request(ctx context.Context,
 	brq.mtx.Lock()
 	defer brq.mtx.Unlock()
 	// We might have to retry if the context has been canceled.  This loop will
-	// iterate a maximum of 2 times. It either hits the `return` statement at
+	// iterate a maximum of 2 times. It either hits the `break` statement at
 	// the bottom on the first iteration, or the `continue` statement first
-	// which causes it to `return` on the next iteration.
+	// which causes it to `break` on the next iteration.
 	var br *blockRetrieval
 	for {
 		exists := false
