@@ -469,9 +469,15 @@ function* unboxConversations(action: ChatGen.UnboxConversationsPayload): SagaGen
 
   let newConvIDKeys = []
   const newUntrustedState = conversationIDKeys.reduce((map, c) => {
-    if (force) {
-      map[c] = 'reUnboxing'
-      newConvIDKeys.push(c)
+    if (untrustedState.get(c) === 'unboxed') {
+      // only unbox unboxed if we force
+      if (force) {
+        map[c] = 'reUnboxing'
+        newConvIDKeys.push(c)
+      } else {
+        console.log(`unboxConversations: filtering conv: ${c} state: ${untrustedState.get(c, 'unknown')}`)
+      }
+      // only unbox if we're not currently unboxing
     } else if (!['firstUnboxing', 'reUnboxing'].includes(untrustedState.get(c, 'untrusted'))) {
       // This means this is the first unboxing
       map[c] = 'firstUnboxing'
