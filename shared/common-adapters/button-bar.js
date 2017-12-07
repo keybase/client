@@ -4,8 +4,6 @@ import Box from './box'
 import {globalStyles, globalMargins, glamorous} from '../styles'
 import {isMobile} from '../constants/platform'
 
-// TODO test on mobile
-
 type Props =
   | {
       align?: 'flex-start' | 'flex-end' | 'center',
