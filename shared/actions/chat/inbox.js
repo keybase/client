@@ -13,6 +13,7 @@ import * as Saga from '../../util/saga'
 import * as Selectors from '../../constants/selectors'
 import * as Shared from './shared'
 import HiddenString from '../../util/hidden-string'
+import {toByteArray} from 'base64-js'
 import {NotifyPopup} from '../../native/notifications'
 import {RPCTimeoutError} from '../../util/errors'
 import {chatTab} from '../../constants/tabs'
@@ -211,7 +212,7 @@ function _toSupersedeInfo(
 
   return toConvert && finalizeInfo
     ? {
-        conversationIDKey: Constants.conversationIDToKey(toConvert.conversationID),
+        conversationIDKey: toByteArray(toConvert.conversationID).toString('hex'),
         finalizeInfo,
       }
     : null

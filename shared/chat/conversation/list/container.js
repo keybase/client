@@ -96,6 +96,7 @@ const mapStateToProps = createSelector(
       selectedConversation: convStateProps.selectedConversation,
       validated: convStateProps.validated,
       you: username,
+      _supersedes: convStateProps._supersedes,
     }
   }
 )
