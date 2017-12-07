@@ -169,7 +169,7 @@ function* _loadMoreMessages(action: ChatGen.LoadMoreMessagesPayload): Saga.SagaG
       const {payload: {params, error}} = result
 
       if (error) {
-        console.warn('error in localGetThreadNonblock', error)
+        console.warn('loadMoreMessages: error in localGetThreadNonblock', error)
       }
 
       if (params.offline) {
@@ -178,7 +178,7 @@ function* _loadMoreMessages(action: ChatGen.LoadMoreMessagesPayload): Saga.SagaG
 
       yield Saga.put(ChatGen.createSetLoaded({conversationIDKey, isLoaded: !error})) // reset isLoaded on error
     } else {
-      console.warn('localGetThreadNonblock rpc bailed early')
+      console.warn('loadMoreMessages: localGetThreadNonblock rpc bailed early')
     }
 
     // Do this here because it's possible loading messages takes a while

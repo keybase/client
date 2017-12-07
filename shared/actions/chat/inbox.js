@@ -470,6 +470,8 @@ function* unboxConversations(action: ChatGen.UnboxConversationsPayload): SagaGen
       if (force) {
         map[c] = 'reUnboxing'
         newConvIDKeys.push(c)
+      } else {
+        console.log(`unboxConversations: filtering conv: ${c} state: ${untrustedState.get(c, 'unknown')}`)
       }
       // only unbox if we're not currently unboxing
     } else if (!['firstUnboxing', 'reUnboxing'].includes(untrustedState.get(c, 'untrusted'))) {
