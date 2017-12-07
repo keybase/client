@@ -324,8 +324,10 @@ func (brq *blockRetrievalQueue) Request(ctx context.Context,
 	// iterate a maximum of 2 times. It either hits the `return` statement at
 	// the bottom on the first iteration, or the `continue` statement first
 	// which causes it to `return` on the next iteration.
+	var br *blockRetrieval
 	for {
-		br, exists := brq.ptrs[bpLookup]
+		exists := false
+		br, exists = brq.ptrs[bpLookup]
 		if !exists {
 			// Add to the heap
 			br = &blockRetrieval{
@@ -350,36 +352,37 @@ func (brq *blockRetrievalQueue) Request(ctx context.Context,
 				continue
 			}
 		}
-		br.reqMtx.Lock()
-		defer br.reqMtx.Unlock()
-		br.requests = append(br.requests, &blockRetrievalRequest{
-			block:  block,
-			doneCh: ch,
-		})
-		if lifetime > br.cacheLifetime {
-			br.cacheLifetime = lifetime
-		}
-		oldPriority := br.priority
-		if priority > oldPriority {
-			br.priority = priority
-			// If the new request priority is higher, elevate the retrieval in the
-			// queue.  Skip this if the request is no longer in the queue (which
-			// means it's actively being processed).
-			if br.index != -1 {
-				heap.Fix(brq.heap, br.index)
-				if oldPriority < defaultOnDemandRequestPriority &&
-					priority >= defaultOnDemandRequestPriority {
-					// We've crossed the priority threshold for prefetch workers,
-					// so we now need an on-demand worker to pick up the request.
-					// This means that we might have up to two workers "activated"
-					// per request. However, they won't leak because if a worker
-					// sees an empty queue, it continues merrily along.
-					brq.notifyWorker(priority)
-				}
+		break
+	}
+	br.reqMtx.Lock()
+	defer br.reqMtx.Unlock()
+	br.requests = append(br.requests, &blockRetrievalRequest{
+		block:  block,
+		doneCh: ch,
+	})
+	if lifetime > br.cacheLifetime {
+		br.cacheLifetime = lifetime
+	}
+	oldPriority := br.priority
+	if priority > oldPriority {
+		br.priority = priority
+		// If the new request priority is higher, elevate the retrieval in the
+		// queue.  Skip this if the request is no longer in the queue (which
+		// means it's actively being processed).
+		if br.index != -1 {
+			heap.Fix(brq.heap, br.index)
+			if oldPriority < defaultOnDemandRequestPriority &&
+				priority >= defaultOnDemandRequestPriority {
+				// We've crossed the priority threshold for prefetch workers,
+				// so we now need an on-demand worker to pick up the request.
+				// This means that we might have up to two workers "activated"
+				// per request. However, they won't leak because if a worker
+				// sees an empty queue, it continues merrily along.
+				brq.notifyWorker(priority)
 			}
 		}
-		return ch
 	}
+	return ch
 }
 
 // FinalizeRequest is the last step of a retrieval request once a block has

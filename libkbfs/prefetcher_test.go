@@ -1260,10 +1260,10 @@ func TestPrefetcherUnsyncedPrefetchEvicted(t *testing.T) {
 	waitForPrefetchOrBust(t, q.Prefetcher().Shutdown())
 }
 
-func TestPrefetcherUnsyncedPrefetchChildEvictedCanceled(t *testing.T) {
+func TestPrefetcherUnsyncedPrefetchChildCanceled(t *testing.T) {
 	t.Log("Partial regression test for KBFS-2588: when a prefetched block " +
-		"has children waiting on a prefetch, and it is canceled, subsequent " +
-		"attempts to prefetch that parent block panic.")
+		"has children waiting on a prefetch, a child cancelation should not " +
+		"result in a panic for a future parent prefetch.")
 	// Note: this test actually passes, because as long as the block count of
 	// the parent is non-zero, the first child that completes it will also
 	// remove it from the tree. See
@@ -1371,7 +1371,7 @@ func TestPrefetcherUnsyncedPrefetchChildEvictedCanceled(t *testing.T) {
 	waitForPrefetchOrBust(t, q.Prefetcher().Shutdown())
 }
 
-func TestPrefetcherUnsyncedPrefetchRootEvictedCanceled(t *testing.T) {
+func TestPrefetcherUnsyncedPrefetchParentCanceled(t *testing.T) {
 	t.Log("Regression test for KBFS-2588: when a prefetched block has " +
 		"children waiting on a prefetch, and it is canceled, subsequent " +
 		"attempts to prefetch that parent block panic.")
