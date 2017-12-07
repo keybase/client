@@ -68,15 +68,16 @@ const AttachmentPopup = ({
   const {downloadedPath} = localMessageState
 
   if (!previewType || previewType === 'Other') {
+    let outerBoxStyle = {
+      ...globalStyles.flexBoxColumn,
+      ...globalStyles.fillAbsolute,
+      backgroundColor: globalColors.white,
+    }
+    if (isIPhoneX) {
+      outerBoxStyle.paddingTop = globalMargins.medium
+    }
     return (
-      <Box
-        style={{
-          ...globalStyles.flexBoxColumn,
-          ...globalStyles.fillAbsolute,
-          backgroundColor: globalColors.white,
-          paddingTop: isIPhoneX ? globalMargins.medium : 'unset',
-        }}
-      >
+      <Box style={outerBoxStyle}>
         <Text
           type="Body"
           onClick={onClose}
@@ -108,15 +109,16 @@ const AttachmentPopup = ({
     )
   }
 
+  let outerBoxStyle = {
+    ...globalStyles.flexBoxColumn,
+    ...globalStyles.fillAbsolute,
+    backgroundColor: globalColors.black,
+  }
+  if (isIPhoneX) {
+    outerBoxStyle.paddingTop = globalMargins.medium
+  }
   return (
-    <Box
-      style={{
-        ...globalStyles.flexBoxColumn,
-        ...globalStyles.fillAbsolute,
-        backgroundColor: globalColors.black,
-        paddingTop: isIPhoneX ? globalMargins.medium : 'unset',
-      }}
-    >
+    <Box style={outerBoxStyle}>
       <Text type="Body" onClick={onClose} style={{color: globalColors.white, padding: globalMargins.small}}>
         Close
       </Text>
