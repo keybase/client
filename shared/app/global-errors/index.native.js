@@ -83,7 +83,7 @@ class GlobalError extends Component<Props, State> {
     return {
       Big: 500,
       Closed: 0,
-      Small: 35 + 20 + (isIPhoneX ? 40 : 0),
+      Small: 35 + 20 + (isIPhoneX ? globalMargins.medium : 0),
     }[size]
   }
 
@@ -129,13 +129,13 @@ class GlobalError extends Component<Props, State> {
 
 const containerStyle = {
   ...globalStyles.flexBoxColumn,
-  ...(isIPhoneX ? {paddingTop: 40} : {}),
   backgroundColor: globalColors.black_75,
   left: 0,
   overflow: 'hidden',
   position: 'absolute',
   right: 0,
   top: 0,
+  paddingTop: isIPhoneX ? globalMargins.medium : 'unset',
 }
 
 const summaryRowStyle = {
