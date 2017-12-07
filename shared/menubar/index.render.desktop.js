@@ -2,7 +2,7 @@
 import Folders, {type FolderType} from '../folders'
 import React, {Component} from 'react'
 import UserAdd from './user-add'
-import {Box, Icon, Text, Button, PopupMenu, Badge} from '../common-adapters/index'
+import {Box, Icon, Text, Button, PopupMenu, Badge, ButtonBar} from '../common-adapters/index'
 import {folderTab, peopleTab, chatTab, devicesTab} from '../constants/tabs'
 import {globalStyles, globalColors} from '../styles'
 import {isDarwin} from '../constants/platform'
@@ -59,12 +59,9 @@ class MenubarRender extends Component<Props, State> {
           <Text type="Body" small={true} style={{alignSelf: 'center', marginTop: 6}}>
             You're logged out of Keybase!
           </Text>
-          <Button
-            type="Primary"
-            label="Log In"
-            onClick={this.props.logIn}
-            style={{alignSelf: 'center', marginTop: 12}}
-          />
+          <ButtonBar direction="row">
+            <Button type="Primary" label="Log In" onClick={this.props.logIn} />
+          </ButtonBar>
         </Box>
         {this.state.showingMenu &&
           <PopupMenu

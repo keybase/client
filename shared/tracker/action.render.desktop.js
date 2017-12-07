@@ -41,12 +41,12 @@ export default class ActionRender extends PureComponent<ActionProps> {
           <Text type="TerminalInline">keybase signup</Text>
           <Text type="Body"> from the terminal for more options.</Text>
         </div>
-        <Button
-          style={styleActionButton}
-          type="Secondary"
-          label="Close"
-          onClick={() => this.props.onClose()}
-        />
+          <Button
+            style={styleActionButton}
+            type="Secondary"
+            label="Close"
+            onClick={() => this.props.onClose()}
+          />
       </div>
     )
   }

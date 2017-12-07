@@ -1,25 +1,41 @@
 // @flow
 import * as React from 'react'
 import Box from './box'
-import {globalStyles, globalMargins, glamorous} from '../styles'
+import {globalStyles, glamorous} from '../styles'
 import {isMobile} from '../constants/platform'
 
-type Props =
-  | {
-      align?: 'flex-start' | 'flex-end' | 'center',
-      direction: 'row',
-      fullWidth?: boolean,
-      small?: boolean,
-    }
-  | {
-      direction: 'column',
-    }
+type Props = {
+  direction: 'row' | 'column',
+  align?: 'flex-start' | 'flex-end' | 'center',
+  children: React.Node,
+  fullWidth?: boolean,
+  small?: boolean,
+  style?: any,
+}
 
 class ButtonBar extends React.PureComponent<Props> {
   static defaultProps = {
     align: 'center',
+    direction: 'row',
     fullWidth: false,
     small: false,
+  }
+
+  constructor(props: Props) {
+    super(props)
+
+    if (__DEV__) {
+      // I tried to get flow to do this but it got really confused so we get a dev only runtime check instead
+      if (props.direction === 'column') {
+        const keys = Object.keys(props)
+        const rowOnlyKeys = [('align', 'fullWidth', 'small')]
+        rowOnlyKeys.forEach(k => {
+          if (keys.includes(k)) {
+            throw new Error(`Invalid key passed to ButtonBar ${k}`)
+          }
+        })
+      }
+    }
   }
 
   _spacing = () => {
@@ -62,6 +78,7 @@ class ButtonBar extends React.PureComponent<Props> {
   }
 }
 
+// Note explicitly not using globalMargins here. We don't necessarily want this spacing to change ever
 const BigSpacer = () => <Box style={bigSpacerStyle} />
 const bigSpacerStyle = {
   height: 8,
@@ -74,7 +91,9 @@ const smallSpacerStyle = {
 }
 
 const Container = glamorous(Box)(
-  {},
+  {
+    width: '100%',
+  },
   props =>
     props.direction === 'column'
       ? {

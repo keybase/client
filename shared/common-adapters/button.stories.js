@@ -1,6 +1,5 @@
 // @flow
 import Box from './box'
-import Text from './text'
 import Button from './button'
 import * as React from 'react'
 import {storiesOf, action} from '../stories/storybook'
@@ -8,7 +7,6 @@ import {globalStyles} from '../styles'
 
 const commonProps = {
   backgroundMode: 'Normal',
-  className: null,
   disabled: false,
   fullWidth: false,
   label: 'label',
