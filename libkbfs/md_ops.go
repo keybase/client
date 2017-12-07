@@ -413,7 +413,12 @@ func (md *MDOpsStandard) GetIDForHandle(
 		return tlf.NullID, err
 	}
 	id, _, err = md.getForHandle(ctx, handle, kbfsmd.Merged, nil)
-	if err != nil {
+	switch errors.Cause(err).(type) {
+	case kbfsmd.ServerErrorClassicTLFDoesNotExist:
+		// The server thinks we should create an implicit team for this TLF.
+		return tlf.NullID, nil
+	case nil:
+	default:
 		return tlf.NullID, err
 	}
 	err = mdcache.PutIDForHandle(handle, id)

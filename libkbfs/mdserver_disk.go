@@ -209,7 +209,7 @@ func (md *MDServerDisk) getHandleID(ctx context.Context, handle tlf.Handle,
 	}
 
 	if md.implicitTeamsEnabled {
-		return tlf.NullID, false, nil
+		return tlf.NullID, false, kbfsmd.ServerErrorClassicTLFDoesNotExist{}
 	}
 
 	// Allocate a new random ID.
