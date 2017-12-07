@@ -74,7 +74,7 @@ const AttachmentPopup = ({
           ...globalStyles.flexBoxColumn,
           ...globalStyles.fillAbsolute,
           backgroundColor: globalColors.white,
-          paddingTop: isIPhoneX ? globalMargins.medium : 'unset',
+          paddingTop: isIPhoneX ? globalMargins.medium : undefined,
         }}
       >
         <Text
@@ -114,7 +114,7 @@ const AttachmentPopup = ({
         ...globalStyles.flexBoxColumn,
         ...globalStyles.fillAbsolute,
         backgroundColor: globalColors.black,
-        paddingTop: isIPhoneX ? globalMargins.medium : 'unset',
+        paddingTop: isIPhoneX ? globalMargins.medium : undefined,
       }}
     >
       <Text type="Body" onClick={onClose} style={{color: globalColors.white, padding: globalMargins.small}}>

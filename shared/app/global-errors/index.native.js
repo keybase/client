@@ -135,7 +135,7 @@ const containerStyle = {
   position: 'absolute',
   right: 0,
   top: 0,
-  paddingTop: isIPhoneX ? globalMargins.medium : 'unset',
+  paddingTop: isIPhoneX ? globalMargins.medium : undefined,
 }
 
 const summaryRowStyle = {
