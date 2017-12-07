@@ -10,7 +10,7 @@
     <Variable Name="DokanInstallFolder" Type="string" Value="[ProgramFiles6432Folder]Dokan\Dokan Library-1.0.0"/>
 
     <Variable Name="driver" bal:Overridable="yes" />
-    
+    <Variable Name="driver" bal:Overridable="yes" Persisted="yes"/>
     <Variable Name="modifyprompt" bal:Overridable="yes" Value="Modify Setup" />
     
     <Log PathVariable="LOGPATH_PROP"/>
@@ -79,7 +79,7 @@
             After="PreviousDokan64"
              Variable="driver"
              Root="HKLM"
-             Condition="PreviousDokan AND  NOT driver AND NOT DokanUninstallString"
+             Condition="PreviousDokan AND NOT driver AND NOT DokanUninstallString"
              Key="SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\[PreviousDokan]"
              Value="UninstallString"
              Result="exists"
