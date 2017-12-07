@@ -18,7 +18,7 @@ const commonProps = {
   onMouseLeave: action('onMouseLeave'),
   onPress: action('onPress'),
   small: false,
-  style: null,
+  style: {alignSelf: undefined}, // button really shouldn't have this set
   waiting: false,
 }
 
@@ -76,7 +76,6 @@ const load = () => {
           marginTop: 20,
         }}
       >
-        <Text type="Body">These are align-self center hence not being left aligned. TODO fix that</Text>
         <Button {...commonProps} type="Primary" label="Primary small" small={true} />
         <Box style={{height: 10}} />
         <Button {...commonProps} type="Secondary" label="Secondary small" small={true} />
