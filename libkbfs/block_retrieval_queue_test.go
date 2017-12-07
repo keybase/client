@@ -267,10 +267,11 @@ func TestBlockRetrievalQueueCurrentlyProcessingRequest(t *testing.T) {
 	require.Len(t, br.requests, 1)
 	require.Equal(t, block, br.requests[0].block)
 
-	t.Log("Request another block retrieval for ptr1 before it has finished. Verify that the priority is unchanged but there are now 2 requests.")
+	t.Log("Request another block retrieval for ptr1 before it has finished. " +
+		"Verify that the priority has elevated and there are now 2 requests.")
 	_ = q.Request(ctx, defaultOnDemandRequestPriority+1, makeKMD(), ptr1,
 		block, NoCacheEntry)
-	require.Equal(t, defaultOnDemandRequestPriority, br.priority)
+	require.Equal(t, defaultOnDemandRequestPriority+1, br.priority)
 	require.Equal(t, uint64(0), br.insertionOrder)
 	require.Len(t, br.requests, 2)
 	require.Equal(t, block, br.requests[0].block)

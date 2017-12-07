@@ -261,7 +261,8 @@ func (p *blockPrefetcher) request(ctx context.Context, priority int,
 // represents whether we need to fetch `childBlockID`, or whether such a fetch
 // has already been triggered.
 func (p *blockPrefetcher) recordPrefetchParent(childBlockID kbfsblock.ID,
-	parentBlockID kbfsblock.ID) (numBlocks int, needNewFetch bool) {
+	parentBlockID kbfsblock.ID, isParentNew bool) (numBlocks int,
+	needNewFetch bool) {
 	// If the prefetch is already waiting, don't make it wait again.
 	// Add the parent, however.
 	pre, isPrefetchWaiting := p.prefetches[childBlockID]
@@ -272,23 +273,44 @@ func (p *blockPrefetcher) recordPrefetchParent(childBlockID kbfsblock.ID,
 		p.prefetches[childBlockID] = pre
 		needNewFetch = true
 	}
-	if !pre.parents[parentBlockID] {
-		// The new parent needs its subtree block count increased.
+	_, isParentWaiting := p.prefetches[parentBlockID]
+	if !isParentWaiting {
+		p.log.CDebugf(pre.ctx, "prefetcher doesn't know about parent block "+
+			"%s for child block %s", parentBlockID, childBlockID)
+		panic("prefetcher doesn't know about parent block when trying to " +
+			"record parent-child relationship")
+	}
+	if !pre.parents[parentBlockID] || isParentNew {
+		// The new parent needs its subtree block count increased. This can
+		// happen either when:
+		// 1. The child doesn't know about the parent when the child is first
+		// created above, or the child was previously in the tree but the
+		// parent was not (e.g. when there's an updated parent due to a change
+		// in a sibling of this child).
+		// 2. The parent is newly created but the child _did_ know about it,
+		// like when the parent previously had a prefetch but was canceled.
 		pre.parents[parentBlockID] = true
 		return pre.subtreeBlockCount, needNewFetch
 	}
-	return 0, needNewFetch
+	if needNewFetch {
+		// The parent->child relationship was already known. Thus
+		// `needNewFetch` is necessarily false.
+		p.log.CDebugf(pre.ctx, "prefetcher believes that block %s needs "+
+			"a new fetch, but it can't need one", childBlockID)
+	}
+	return 0, false
 }
 
 func (p *blockPrefetcher) prefetchIndirectFileBlock(ctx context.Context,
 	parentBlockID kbfsblock.ID, b *FileBlock, kmd KeyMetadata,
-	lifetime BlockCacheLifetime) (numBlocks int, isTail bool) {
+	lifetime BlockCacheLifetime, isPrefetchNew bool) (numBlocks int,
+	isTail bool) {
 	// Prefetch indirect block pointers.
 	startingPriority :=
 		p.calculatePriority(fileIndirectBlockPrefetchPriority, kmd.TlfID())
 	for i, ptr := range b.IPtrs {
-		n, needNewFetch :=
-			p.recordPrefetchParent(ptr.BlockPointer.ID, parentBlockID)
+		n, needNewFetch := p.recordPrefetchParent(ptr.BlockPointer.ID,
+			parentBlockID, isPrefetchNew)
 		numBlocks += n
 		if needNewFetch {
 			p.request(ctx, startingPriority-i, kmd,
@@ -300,13 +322,14 @@ func (p *blockPrefetcher) prefetchIndirectFileBlock(ctx context.Context,
 
 func (p *blockPrefetcher) prefetchIndirectDirBlock(ctx context.Context,
 	parentBlockID kbfsblock.ID, b *DirBlock, kmd KeyMetadata,
-	lifetime BlockCacheLifetime) (numBlocks int, isTail bool) {
+	lifetime BlockCacheLifetime, isPrefetchNew bool) (numBlocks int,
+	isTail bool) {
 	// Prefetch indirect block pointers.
 	startingPriority :=
 		p.calculatePriority(fileIndirectBlockPrefetchPriority, kmd.TlfID())
 	for i, ptr := range b.IPtrs {
-		n, needNewFetch :=
-			p.recordPrefetchParent(ptr.BlockPointer.ID, parentBlockID)
+		n, needNewFetch := p.recordPrefetchParent(ptr.BlockPointer.ID,
+			parentBlockID, isPrefetchNew)
 		numBlocks += n
 		if needNewFetch {
 			p.request(ctx, startingPriority-i, kmd,
@@ -318,7 +341,8 @@ func (p *blockPrefetcher) prefetchIndirectDirBlock(ctx context.Context,
 
 func (p *blockPrefetcher) prefetchDirectDirBlock(ctx context.Context,
 	parentBlockID kbfsblock.ID, b *DirBlock, kmd KeyMetadata,
-	lifetime BlockCacheLifetime) (numBlocks int, isTail bool) {
+	lifetime BlockCacheLifetime, isPrefetchNew bool) (numBlocks int,
+	isTail bool) {
 	// Prefetch all DirEntry root blocks.
 	dirEntries := dirEntriesBySizeAsc{dirEntryMapToDirEntries(b.Children)}
 	sort.Sort(dirEntries)
@@ -336,14 +360,17 @@ func (p *blockPrefetcher) prefetchDirectDirBlock(ctx context.Context,
 			block = &FileBlock{}
 		case Exec:
 			block = &FileBlock{}
+		case Sym:
+			// Skip symbolic links because there's nothing to prefetch.
+			continue
 		default:
 			p.log.CDebugf(ctx, "Skipping prefetch for entry of "+
 				"unknown type %d", entry.Type)
 			continue
 		}
 		totalChildEntries++
-		n, needNewFetch :=
-			p.recordPrefetchParent(entry.BlockPointer.ID, parentBlockID)
+		n, needNewFetch := p.recordPrefetchParent(entry.BlockPointer.ID,
+			parentBlockID, isPrefetchNew)
 		numBlocks += n
 		if needNewFetch {
 			p.request(ctx, priority, kmd, entry.BlockPointer,
@@ -362,24 +389,24 @@ func (p *blockPrefetcher) prefetchDirectDirBlock(ctx context.Context,
 // Returns `numBlocks` which indicates how many additional blocks (blocks not
 // currently in the prefetch tree) with a parent of `pre.req.ptr.ID` must be
 // added to the tree.
-func (p *blockPrefetcher) handlePrefetch(pre *prefetch) (
+func (p *blockPrefetcher) handlePrefetch(pre *prefetch, isPrefetchNew bool) (
 	numBlocks int, isTail bool, err error) {
 	req := pre.req
 	switch b := req.block.(type) {
 	case *FileBlock:
 		if b.IsInd {
 			numBlocks, isTail = p.prefetchIndirectFileBlock(pre.ctx,
-				req.ptr.ID, b, req.kmd, req.lifetime)
+				req.ptr.ID, b, req.kmd, req.lifetime, isPrefetchNew)
 		} else {
 			isTail = true
 		}
 	case *DirBlock:
 		if b.IsInd {
 			numBlocks, isTail = p.prefetchIndirectDirBlock(pre.ctx, req.ptr.ID,
-				b, req.kmd, req.lifetime)
+				b, req.kmd, req.lifetime, isPrefetchNew)
 		} else {
 			numBlocks, isTail = p.prefetchDirectDirBlock(pre.ctx, req.ptr.ID,
-				b, req.kmd, req.lifetime)
+				b, req.kmd, req.lifetime, isPrefetchNew)
 		}
 	default:
 		// Skipping prefetch for block of unknown type (likely CommonBlock)
@@ -434,21 +461,26 @@ func (p *blockPrefetcher) run(testSyncCh <-chan struct{}) {
 	isShuttingDown := false
 	var shuttingDownCh <-chan interface{}
 	for {
-		if isShuttingDown && p.inFlightFetches.Len() == 0 &&
-			p.prefetchRequestCh.Len() == 0 && p.prefetchCancelCh.Len() == 0 {
-			return
-		}
-		if testSyncCh != nil {
+		if isShuttingDown {
+			if p.inFlightFetches.Len() == 0 &&
+				p.prefetchRequestCh.Len() == 0 &&
+				p.prefetchCancelCh.Len() == 0 {
+				return
+			}
+		} else if testSyncCh != nil {
+			// Only sync if we aren't shutting down.
 			<-testSyncCh
 		}
 		select {
 		case chInterface := <-shuttingDownCh:
+			p.log.Debug("shutting down")
 			ch := chInterface.(<-chan error)
 			<-ch
 		case bid := <-p.prefetchCancelCh.Out():
 			blockID := bid.(kbfsblock.ID)
 			pre, ok := p.prefetches[blockID]
 			if !ok {
+				p.log.Debug("nothing to cancel for block %s", blockID)
 				continue
 			}
 			p.log.Debug("canceling prefetch for block %s", blockID)
@@ -524,6 +556,9 @@ func (p *blockPrefetcher) run(testSyncCh <-chan struct{}) {
 						// now one has been created.
 						pre.req.isDeepSync = true
 					} else {
+						// Short circuit prefetches if the subtree was already
+						// triggered, unless, as in the above case, we've
+						// changed from a regular prefetch to a deep sync.
 						continue
 					}
 				} else {
@@ -550,6 +585,8 @@ func (p *blockPrefetcher) run(testSyncCh <-chan struct{}) {
 				pre = p.newPrefetch(0, true, req)
 				p.prefetches[req.ptr.ID] = pre
 				ctx = pre.ctx
+				p.log.CDebugf(ctx, "created new prefetch for block %s",
+					req.ptr.ID)
 			}
 			// TODO: There is a potential optimization here that we can
 			// consider: Currently every time a prefetch is triggered, we
@@ -561,7 +598,7 @@ func (p *blockPrefetcher) run(testSyncCh <-chan struct{}) {
 			//
 			// `numBlocks` now represents only the number of blocks to add
 			// to the tree from `pre` to its roots, inclusive.
-			numBlocks, isTail, err := p.handlePrefetch(pre)
+			numBlocks, isTail, err := p.handlePrefetch(pre, !isPrefetchWaiting)
 			if err != nil {
 				p.log.CDebugf(ctx, "error handling prefetch for block %s",
 					req.ptr.ID)
@@ -618,6 +655,7 @@ func (p *blockPrefetcher) run(testSyncCh <-chan struct{}) {
 				pp.subtreeBlockCount += numBlocks
 			}, req.ptr.ID, pre)
 		case <-p.almostDoneCh:
+			p.log.CDebugf(p.ctx, "starting shutdown")
 			isShuttingDown = true
 			shuttingDownCh = p.inFlightFetches.Out()
 		}
