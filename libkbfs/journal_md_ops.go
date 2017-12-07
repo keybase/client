@@ -232,6 +232,9 @@ func (j journalMDOps) GetIDForHandle(
 	if err != nil {
 		return tlf.NullID, err
 	}
+	if id == tlf.NullID {
+		return id, nil
+	}
 	// Create the journal if needed, while we have access to `handle`.
 	_, _ = j.jServer.getTLFJournal(id, handle)
 	return id, nil
