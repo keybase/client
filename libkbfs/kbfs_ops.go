@@ -329,10 +329,11 @@ func (fs *KBFSOpsStandard) getOpsByHandle(ctx context.Context,
 	return ops
 }
 
-// createTlfIDIfNeeded creates a TLF ID for a handle that doesn't have
-// one yet.  If it returns a `nil` error, it may have modified `h` to
-// include the new TLF ID.
-func (fs *KBFSOpsStandard) createTlfIDIfNeeded(
+// createAndStoreTlfIDIfNeeded creates a TLF ID for a team-backed
+// handle that doesn't have one yet, and associates it in the service
+// with the team.  If it returns a `nil` error, it may have modified
+// `h` to include the new TLF ID.
+func (fs *KBFSOpsStandard) createAndStoreTlfIDIfNeeded(
 	ctx context.Context, h *TlfHandle) error {
 	if h.tlfID != tlf.NullID {
 		return nil
@@ -381,7 +382,7 @@ func (fs *KBFSOpsStandard) getOrInitializeNewMDMaster(ctx context.Context,
 		}
 	}()
 
-	err = fs.createTlfIDIfNeeded(ctx, h)
+	err = fs.createAndStoreTlfIDIfNeeded(ctx, h)
 	if err != nil {
 		return false, ImmutableRootMetadata{}, tlf.NullID, err
 	}
@@ -434,7 +435,7 @@ func (fs *KBFSOpsStandard) getMDByHandle(ctx context.Context,
 		return rmd, nil
 	}
 
-	err = fs.createTlfIDIfNeeded(ctx, tlfHandle)
+	err = fs.createAndStoreTlfIDIfNeeded(ctx, tlfHandle)
 	if err != nil {
 		return ImmutableRootMetadata{}, err
 	}
@@ -543,7 +544,7 @@ func (fs *KBFSOpsStandard) getMaybeCreateRootNode(
 		}
 	}
 
-	err = fs.createTlfIDIfNeeded(ctx, h)
+	err = fs.createAndStoreTlfIDIfNeeded(ctx, h)
 	if err != nil {
 		return nil, EntryInfo{}, err
 	}
