@@ -486,6 +486,7 @@ func (k *KeybaseServiceBase) ResolveIdentifyImplicitTeam(
 		DoIdentifies: doIdentifies,
 		Reason:       keybase1.IdentifyReason{Reason: reason},
 		Create:       true,
+		IsPublic:     tlfType == tlf.Public,
 	}
 
 	ei := getExtendedIdentify(ctx)
