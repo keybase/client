@@ -133,6 +133,14 @@ function reducer(state: Types.State = initialState, action: ChatGen.Actions) {
         })
       )
     }
+    case ChatGen.inboxStale: {
+      return state.update('conversationStates', conversationStates =>
+        conversationStates.map((conversationState, conversationIDKey) => {
+          console.log(`reducer: setting thread stale from inbox stale: ${conversationIDKey}`)
+          return conversationState.set('isStale', true)
+        })
+      )
+    }
     case ChatGen.updateLatestMessage:
       // Clear new messages id of conversation
       const newConversationStates = state
@@ -302,7 +310,6 @@ function reducer(state: Types.State = initialState, action: ChatGen.Actions) {
     case ChatGen.downloadProgress:
     case ChatGen.editMessage:
     case ChatGen.getInboxAndUnbox:
-    case ChatGen.inboxStale:
     case ChatGen.inboxStoreLoaded:
     case ChatGen.incomingMessage:
     case ChatGen.incomingTyping:
