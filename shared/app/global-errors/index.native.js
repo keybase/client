@@ -9,7 +9,6 @@ import {
   NativeTouchableWithoutFeedback,
 } from '../../common-adapters/index.native'
 import {globalStyles, globalColors, globalMargins} from '../../styles'
-import {isIPhoneX} from '../../constants/platform'
 
 import type {Props} from './index'
 
@@ -83,7 +82,7 @@ class GlobalError extends Component<Props, State> {
     return {
       Big: 500,
       Closed: 0,
-      Small: 35 + 20 + (isIPhoneX ? 40 : 0),
+      Small: 35 + 20,
     }[size]
   }
 
@@ -129,7 +128,6 @@ class GlobalError extends Component<Props, State> {
 
 const containerStyle = {
   ...globalStyles.flexBoxColumn,
-  ...(isIPhoneX ? {paddingTop: 40} : {}),
   backgroundColor: globalColors.black_75,
   left: 0,
   overflow: 'hidden',

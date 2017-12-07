@@ -101,6 +101,26 @@ const _hiddenTransitionerStyle = {position: 'absolute', left: -9999, width: '100
 const nop = () => {}
 const emptyObj = () => ({})
 
+const barStyle = (showStatusBarDarkContent, underStatusBar) => {
+  // android always uses light-content
+  if (!isIOS) {
+    return 'light-content'
+  }
+  // allow an override when underStatusBar is true, but
+  // the content being displayed has a light background
+  if (showStatusBarDarkContent) {
+    return 'dark-content'
+  }
+  // replicates original behaviour of showing light text
+  // in the status bar when 'underStatusBar' is set to true
+  if (underStatusBar) {
+    return 'light-content'
+  }
+  // default to showing dark-content (dark text/icons) when
+  // on iOS
+  return 'dark-content'
+}
+
 function renderStackRoute(route, isActiveRoute, shouldRender) {
   const {hideStatusBar, root} = route.tags || {}
 
@@ -115,10 +135,14 @@ function renderStackRoute(route, isActiveRoute, shouldRender) {
 
   return (
     <Box style={style}>
-      <Box style={{height: '100%', width: '100%', position: 'relative'}}>
-        <NativeStatusBar hidden={hideStatusBar && !isIPhoneX} barStyle="dark-content" translucent={false} />
-        {route.component({isActiveRoute, shouldRender})}
-      </Box>
+      {!isIPhoneX &&
+        <NativeStatusBar
+          hidden={hideStatusBar && !isIPhoneX}
+          translucent={true}
+          backgroundColor="rgba(0, 26, 51, 0.25)"
+          barStyle={barStyle(showStatusBarDarkContent, underStatusBar)}
+        />}
+      {route.component({isActiveRoute, shouldRender})}
     </Box>
   )
 }
@@ -319,18 +343,9 @@ class Nav extends Component<Props, {keyboardShowing: boolean}> {
     // If we have layers, lets add an extra box, else lets just pass through
     if (layers.count()) {
       return (
-        <Box
-          style={{
-            ...globalStyles.fillAbsolute,
-            backgroundColor: 'black',
-            ...(isIPhoneX ? {paddingTop: 40} : {}),
-          }}
-        >
-          {isIPhoneX && <NativeStatusBar barStyle="dark-content" translucent={false} backgroundColor="red" />}
-          <Box style={{height: '100%', width: '100%'}}>
-            {shim}
-            {layers}
-          </Box>
+        <Box style={globalStyles.fillAbsolute}>
+          {shim}
+          {layers}
         </Box>
       )
     } else {
