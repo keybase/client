@@ -9,7 +9,6 @@
 
     <Variable Name="DokanInstallFolder" Type="string" Value="[ProgramFiles6432Folder]Dokan\Dokan Library-1.0.0"/>
 
-    <Variable Name="driver" bal:Overridable="yes" />
     <Variable Name="driver" bal:Overridable="yes" Persisted="yes"/>
     <Variable Name="modifyprompt" bal:Overridable="yes" Value="Modify Setup" />
     
