@@ -4,6 +4,7 @@ import {
   Avatar,
   Box,
   Button,
+  ButtonBar,
   Checkbox,
   ClickableBox,
   Divider,
@@ -96,7 +97,9 @@ const _ConversationInfoPanel = (props: ConversationInfoPanelProps) => (
     <Divider style={{marginBottom: 20, marginTop: props.showTeamButton ? 10 : 20}} />
 
     {props.showTeamButton
-      ? <Button type="Primary" small={true} label="Turn into team" onClick={props.onShowNewTeamDialog} />
+      ? <ButtonBar>
+          <Button type="Primary" small={true} label="Turn into team" onClick={props.onShowNewTeamDialog} />
+        </ButtonBar>
       : null}
 
     {props.showTeamButton

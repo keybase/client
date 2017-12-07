@@ -1,7 +1,15 @@
 // @flow
 import Container from '../../forms/container'
 import * as React from 'react'
-import {Box, Text, Icon, ClickableBox, NativeScrollView, Button} from '../../../common-adapters/index.native'
+import {
+  Box,
+  Text,
+  Icon,
+  ClickableBox,
+  NativeScrollView,
+  Button,
+  ButtonBar,
+} from '../../../common-adapters/index.native'
 import {globalColors, globalMargins, globalStyles} from '../../../styles'
 
 import type {DeviceType} from '../../../constants/types/devices'
@@ -52,9 +60,9 @@ const ResetOption = ({showResetLink, setShowResetLink, onReset}) => (
     </ClickableBox>
     {showResetLink &&
       <Box style={{...stylesRow, justifyContent: 'center', borderBottomWidth: 0}}>
-        <Box style={{...stylesIconName, justifyContent: 'center'}}>
+        <ButtonBar>
           <Button type="Danger" label="RESET MY ACCOUNT" onClick={onReset} />
-        </Box>
+        </ButtonBar>
       </Box>}
   </Box>
 )

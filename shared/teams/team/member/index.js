@@ -1,7 +1,16 @@
 // @flow
 import * as React from 'react'
 import * as Types from '../../../constants/types/teams'
-import {Avatar, Box, ProgressIndicator, Text, Button, Icon, Usernames} from '../../../common-adapters'
+import {
+  Avatar,
+  Box,
+  ProgressIndicator,
+  Text,
+  Button,
+  Icon,
+  Usernames,
+  ButtonBar,
+} from '../../../common-adapters'
 import {globalStyles, globalMargins} from '../../../styles'
 import {isMobile} from '../../../constants/platform'
 import {roleIconMap} from '../../role-picker/index.meta'
@@ -35,8 +44,6 @@ export const TeamMember = (props: Props) => {
     onRemoveMember,
     you,
   } = props
-  const buttonContainerStyle = isMobile ? {width: '90%', justifyContent: 'space-around'} : {}
-  const buttonStyle = isMobile ? {marginTop: globalMargins.tiny} : {marginLeft: globalMargins.tiny}
   return (
     <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center', flex: 1}}>
       <Box
@@ -91,24 +98,16 @@ export const TeamMember = (props: Props) => {
         />
         <Text type="BodySmall">{user.type} in {teamname}</Text>
       </Box>
-      <Box
-        style={{
-          ...(isMobile ? globalStyles.flexBoxColumn : globalStyles.flexBoxRow),
-          marginTop: globalMargins.large,
-          ...buttonContainerStyle,
-        }}
-      >
+      <ButtonBar>
         <Button type="Primary" label="Chat" onClick={onChat} />
-        {admin &&
-          <Button style={buttonStyle} type="Secondary" label="Edit role" onClick={onEditMembership} />}
+        {admin && <Button type="Secondary" label="Edit role" onClick={onEditMembership} />}
         {admin &&
           <Button
-            style={buttonStyle}
             type="Danger"
             label={you && you.username === user.username ? 'Leave team' : 'Remove'}
             onClick={onRemoveMember}
           />}
-      </Box>
+      </ButtonBar>
     </Box>
   )
 }

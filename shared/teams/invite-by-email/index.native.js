@@ -4,6 +4,7 @@ import {
   Avatar,
   Box,
   Button,
+  ButtonBar,
   ClickableBox,
   Icon,
   Input,
@@ -56,7 +57,9 @@ const AccessDenied = () => (
       <Text type="Body" style={{marginBottom: globalMargins.small, textAlign: 'center'}}>
         To fix this, please open Settings > Keybase and check off 'Allow Keybase to access Contacts'.
       </Text>
-      <Button type="Primary" label="Open settings" onClick={openSettings} />
+      <ButtonBar>
+        <Button type="Primary" label="Open settings" onClick={openSettings} />
+      </ButtonBar>
     </Box>
   </Box>
 )

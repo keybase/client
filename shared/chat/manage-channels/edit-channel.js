@@ -2,7 +2,7 @@
 import * as React from 'react'
 import {compose, withState} from 'recompose'
 import DeleteChannel from './delete-channel'
-import {Avatar, Text, Box, Button, Input, StandardScreen} from '../../common-adapters'
+import {Avatar, Text, Box, Button, Input, StandardScreen, ButtonBar} from '../../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../../styles'
 import {isMobile} from '../../constants/platform'
 
@@ -70,7 +70,7 @@ const EditChannelBare = (props: Props & TextState) => (
           onConfirmedDelete={props.onConfirmedDelete}
           disabled={props.deleteRenameDisabled}
         />}
-      <Box style={globalStyles.flexBoxRow}>
+      <ButtonBar>
         <Button type="Secondary" label="Cancel" onClick={props.onCancel} />
         <Button
           type="Primary"
@@ -80,7 +80,7 @@ const EditChannelBare = (props: Props & TextState) => (
           onClick={() => props.onSave(props.newChannelName, props.newTopic)}
           style={{marginLeft: globalMargins.tiny}}
         />
-      </Box>
+      </ButtonBar>
     </Box>
   </Box>
 )

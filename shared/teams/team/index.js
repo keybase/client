@@ -7,6 +7,7 @@ import {
   Badge,
   Box,
   Button,
+  ButtonBar,
   Checkbox,
   Text,
   Tabs,
@@ -499,23 +500,11 @@ class Team extends React.PureComponent<Props> {
           </Text>}
 
         {youCanAddPeople &&
-          <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', marginTop: globalMargins.small}}>
+          <ButtonBar>
             <Button type="Primary" label="Add people" onClick={onAddPeople} />
-            {!isMobile &&
-              <Button
-                type="Secondary"
-                label="Invite by email"
-                onClick={onInviteByEmail}
-                style={{marginLeft: globalMargins.tiny}}
-              />}
-            {isMobile &&
-              <Button
-                type="Secondary"
-                label="Invite contacts"
-                onClick={onInviteByEmail}
-                style={{marginLeft: globalMargins.tiny}}
-              />}
-          </Box>}
+            {!isMobile && <Button type="Secondary" label="Invite by email" onClick={onInviteByEmail} />}
+            {isMobile && <Button type="Secondary" label="Invite contacts" onClick={onInviteByEmail} />}
+          </ButtonBar>}
         <Help name={name} />
         <TeamTabs {...this.props} admin={youAdmin} />
         {contents}

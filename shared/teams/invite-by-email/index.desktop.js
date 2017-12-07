@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react'
-import {Box, Button, ClickableBox, Dropdown, Input, PopupDialog, Text} from '../../common-adapters'
+import {Box, Button, ClickableBox, Dropdown, Input, PopupDialog, Text, ButtonBar} from '../../common-adapters'
 import {globalStyles, globalMargins, globalColors} from '../../styles'
 import capitalize from 'lodash/capitalize'
 import {isMobile} from '../../constants/platform'
@@ -109,7 +109,9 @@ const InviteByEmail = (props: Props) => (
           />
         </Box>
 
-        <Button label="Invite" onClick={props.onInvite} type="Primary" />
+        <ButtonBar>
+          <Button label="Invite" onClick={props.onInvite} type="Primary" />
+        </ButtonBar>
       </Box>
     </Box>
   </MaybePopup>

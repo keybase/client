@@ -5,6 +5,7 @@ import {
   Box,
   ClickableBox,
   Button,
+  ButtonBar,
   HeaderHoc,
   PopupDialog,
   Text,
@@ -228,16 +229,15 @@ export const RoleConfirm = ({
           <Text type="BodySemibold">They won't be able to:</Text>
         </Box>}
       {cannots.length > 0 && <Box style={{...globalStyles.flexBoxColumn, width: 280}}>{cannots}</Box>}
-      <Box style={{...globalStyles.flexBoxRow, margin: globalMargins.small}}>
+      <ButtonBar>
         <Button type="Secondary" label="Back" onClick={() => setConfirm(false)} />
         <Button
           label="Confirm"
           type="Primary"
-          style={{marginLeft: globalMargins.tiny}}
           onClick={() => onComplete(selectedRole, sendNotification)}
           disabled={!selectedRole}
         />
-      </Box>
+      </ButtonBar>
     </Box>
   )
 }

@@ -1,8 +1,7 @@
 // @flow
 import * as React from 'react'
-import {Avatar, Box, Text, Icon, Button, MaybePopup} from '../../common-adapters'
+import {Avatar, Box, Text, Icon, Button, MaybePopup, ButtonBar} from '../../common-adapters'
 import {globalStyles, globalMargins} from '../../styles'
-import {isMobile} from '../../constants/platform'
 
 type Props = {
   onClose: () => void,
@@ -51,14 +50,9 @@ const ReallyLeaveTeam = (props: Props) => (
       >
         You'll have to add another user as an owner before you can leave {props.name}.
       </Text>
-      <Box
-        style={{
-          ...(isMobile ? globalStyles.flexBoxColumn : globalStyles.flexBoxRow),
-          flex: 1,
-        }}
-      >
+      <ButtonBar>
         <Button type="Primary" onClick={props.onClose} label="Got it" />
-      </Box>
+      </ButtonBar>
     </Box>
   </MaybePopup>
 )

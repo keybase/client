@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react'
-import {Box, Text, Button, PlatformIcon, StandardScreen} from '../common-adapters'
+import {Box, Text, Button, PlatformIcon, StandardScreen, ButtonBar} from '../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../styles'
 import {propsForPlatform} from './confirm-or-pending.shared'
 
@@ -39,18 +39,9 @@ const Render = (props: Props) => {
         </Text>
         {!!messageSubtitle && <Text type="BodySmall" style={{textAlign: 'center'}}>{messageSubtitle}</Text>}
       </Box>
-      <Box
-        style={{
-          ...globalStyles.flexBoxColumn,
-          justifyContent: 'center',
-          paddingLeft: globalMargins.small,
-          paddingRight: globalMargins.small,
-          flex: 1,
-          paddingBottom: globalMargins.small,
-        }}
-      >
+      <ButtonBar>
         <Button type="Primary" onClick={onReloadProfile} label="Reload profile" />
-      </Box>
+      </ButtonBar>
     </Box>
   )
 }

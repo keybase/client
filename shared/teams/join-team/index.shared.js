@@ -1,6 +1,6 @@
 // @flow
 import React from 'react'
-import {Box, Button, Icon, Text} from '../../common-adapters/index'
+import {Box, Button, Icon, Text, ButtonBar} from '../../common-adapters/index'
 import {isMobile} from '../../constants/platform'
 import {globalColors, globalMargins, globalStyles} from '../../styles'
 
@@ -73,9 +73,9 @@ export const SuccessComponent = ({successTeamName, onBack}: Props) => (
           's admins. We will notify you as soon as they let you in!
         </Text>
       </Box>
-      <Box style={{...globalStyles.flexBoxRow, marginTop: globalMargins.large}}>
-        <Button type="Primary" style={{marginLeft: globalMargins.tiny}} onClick={onBack} label="Close" />
-      </Box>
+      <ButtonBar>
+        <Button type="Primary" onClick={onBack} label="Close" />
+      </ButtonBar>
     </Box>
   </Box>
 )
