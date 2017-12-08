@@ -62,7 +62,7 @@ export const TeamMember = (props: Props) => {
             size={64}
           />
           {user.type &&
-            roleIconMap[user.type] &&
+            !!roleIconMap[user.type] &&
             <Icon
               type={roleIconMap[user.type]}
               style={{

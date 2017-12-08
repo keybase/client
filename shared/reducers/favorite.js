@@ -141,6 +141,7 @@ export default function(
     case KBFSGen.open:
     case KBFSGen.openInFileUI:
     case KBFSGen.uninstallKBFS:
+    case KBFSGen.uninstallKBFSResult:
       return state
     default:
       // eslint-disable-next-line no-unused-expressions

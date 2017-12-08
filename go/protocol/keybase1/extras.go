@@ -1627,12 +1627,25 @@ func (t TeamMembers) AllUIDs() []UID {
 	return all
 }
 
-func (t TeamMembers) AllUserVersions() (res []UserVersion) {
-	res = append(res, t.Owners...)
-	res = append(res, t.Admins...)
-	res = append(res, t.Writers...)
-	res = append(res, t.Readers...)
-	return res
+func (t TeamMembers) AllUserVersions() []UserVersion {
+	m := make(map[UID]UserVersion)
+	for _, u := range t.Owners {
+		m[u.Uid] = u
+	}
+	for _, u := range t.Admins {
+		m[u.Uid] = u
+	}
+	for _, u := range t.Writers {
+		m[u.Uid] = u
+	}
+	for _, u := range t.Readers {
+		m[u.Uid] = u
+	}
+	var all []UserVersion
+	for _, uv := range m {
+		all = append(all, uv)
+	}
+	return all
 }
 
 func (t TeamMember) IsReset() bool {
@@ -1991,6 +2004,10 @@ func (n ImplicitTeamDisplayName) String() string {
 	}
 
 	return name
+}
+
+func (c ImplicitTeamConflictInfo) IsConflict() bool {
+	return c.Generation > ConflictGeneration(0)
 }
 
 const (

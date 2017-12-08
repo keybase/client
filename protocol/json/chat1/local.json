@@ -80,7 +80,8 @@
       "symbols": [
         "ADDEDTOTEAM_0",
         "INVITEADDEDTOTEAM_1",
-        "COMPLEXTEAM_2"
+        "COMPLEXTEAM_2",
+        "CREATETEAM_3"
       ]
     },
     {
@@ -166,6 +167,20 @@
       ]
     },
     {
+      "type": "record",
+      "name": "MessageSystemCreateTeam",
+      "fields": [
+        {
+          "type": "string",
+          "name": "team"
+        },
+        {
+          "type": "string",
+          "name": "creator"
+        }
+      ]
+    },
+    {
       "type": "variant",
       "name": "MessageSystem",
       "switch": {
@@ -193,6 +208,13 @@
             "def": false
           },
           "body": "MessageSystemComplexTeam"
+        },
+        {
+          "label": {
+            "name": "CREATETEAM",
+            "def": false
+          },
+          "body": "MessageSystemCreateTeam"
         }
       ]
     },

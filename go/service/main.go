@@ -288,7 +288,7 @@ func (d *Service) SetupCriticalSubServices() error {
 }
 
 func (d *Service) setupTeams() error {
-	teams.NewTeamLoaderAndInstall(d.G())
+	teams.ServiceInit(d.G())
 	return nil
 }
 

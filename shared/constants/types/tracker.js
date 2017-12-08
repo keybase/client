@@ -49,6 +49,7 @@ export type UserInfo = {
   uid: string,
   avatar: ?string,
   location: string,
+  showcasedTeams: Array<RPCTypes.UserTeamShowcase>,
 }
 
 export type TrackerState = {

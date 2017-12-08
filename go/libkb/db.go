@@ -170,33 +170,34 @@ const (
 	// NOTE: This file needs to stay consistent with config/id.iced on the
 	// website, and that one has IDs on the lower end of the range that aren't
 	// represented here.
-	DBUidToFullName           = 0xdd
-	DBUidToUsername           = 0xde
-	DBUserPlusKeysVersioned   = 0xdf
-	DBLink                    = 0xe0
-	DBLocalTrack              = 0xe1
-	DBPGPKey                  = 0xe3
-	DBSigHints                = 0xe4
-	DBProofCheck              = 0xe5
-	DBUserSecretKeys          = 0xe6
-	DBSigChainTailPublic      = 0xe7
-	DBSigChainTailSemiprivate = 0xe8
-	DBSigChainTailEncrypted   = 0xe9
-	DBMerkleRoot              = 0xf0
-	DBTrackers                = 0xf1
-	DBGregor                  = 0xf2
-	DBTrackers2               = 0xf3
-	DBTrackers2Reverse        = 0xf4
-	DBNotificationDismiss     = 0xf5
-	DBChatBlockIndex          = 0xf6
-	DBChatBlocks              = 0xf7
-	DBChatOutbox              = 0xf8
-	DBChatInbox               = 0xf9
-	DBIdentify                = 0xfa
-	DBResolveUsernameToUID    = 0xfb
-	DBChatBodyHashIndex       = 0xfc
-	DBPvl                     = 0xfd
-	DBChatConvFailures        = 0xfe
+	DBImplicitTeamConflictInfo = 0xdc
+	DBUidToFullName            = 0xdd
+	DBUidToUsername            = 0xde
+	DBUserPlusKeysVersioned    = 0xdf
+	DBLink                     = 0xe0
+	DBLocalTrack               = 0xe1
+	DBPGPKey                   = 0xe3
+	DBSigHints                 = 0xe4
+	DBProofCheck               = 0xe5
+	DBUserSecretKeys           = 0xe6
+	DBSigChainTailPublic       = 0xe7
+	DBSigChainTailSemiprivate  = 0xe8
+	DBSigChainTailEncrypted    = 0xe9
+	DBMerkleRoot               = 0xf0
+	DBTrackers                 = 0xf1
+	DBGregor                   = 0xf2
+	DBTrackers2                = 0xf3
+	DBTrackers2Reverse         = 0xf4
+	DBNotificationDismiss      = 0xf5
+	DBChatBlockIndex           = 0xf6
+	DBChatBlocks               = 0xf7
+	DBChatOutbox               = 0xf8
+	DBChatInbox                = 0xf9
+	DBIdentify                 = 0xfa
+	DBResolveUsernameToUID     = 0xfb
+	DBChatBodyHashIndex        = 0xfc
+	DBPvl                      = 0xfd
+	DBChatConvFailures         = 0xfe
 )
 
 const (

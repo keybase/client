@@ -60,6 +60,7 @@ type problemSetBody struct {
 type newTeamBody struct {
 	TeamID   string `json:"id"`
 	TeamName string `json:"name"`
+	Implicit bool   `json:"implicit_team"`
 }
 
 type memberOutBody struct {
@@ -157,6 +158,9 @@ func (b *BadgeState) UpdateWithGregor(gstate gregor.State) error {
 			}
 			for _, x := range body {
 				if x.TeamName == "" {
+					continue
+				}
+				if x.Implicit {
 					continue
 				}
 				b.state.NewTeamNames = append(b.state.NewTeamNames, x.TeamName)

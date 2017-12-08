@@ -308,6 +308,19 @@
           "type": "TeamRole",
           "name": "role",
           "jsonkey": "role"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "publicAdmins",
+          "jsonkey": "public_admins"
+        },
+        {
+          "type": "int",
+          "name": "numMembers",
+          "jsonkey": "num_members"
         }
       ]
     },

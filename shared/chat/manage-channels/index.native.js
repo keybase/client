@@ -89,7 +89,6 @@ const ManageChannels = (props: Props) => (
     </ScrollView>
     <Box
       style={{
-        flex: 2,
         ...globalStyles.flexBoxColumn,
         justifyContent: 'flex-end',
         paddingBottom: globalMargins.small,

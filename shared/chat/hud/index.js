@@ -132,7 +132,7 @@ const MentionHud: Class<React.Component<MentionHudProps, void>> = compose(
       }
 
       if (nextProps.pickSelectedUserCounter !== this.props.pickSelectedUserCounter) {
-        if (nextProps.data.length) {
+        if (nextProps.selectedIndex < nextProps.data.length) {
           nextProps.onPickUser(nextProps.data[nextProps.selectedIndex].username)
         } else {
           // Just exit
@@ -141,7 +141,9 @@ const MentionHud: Class<React.Component<MentionHudProps, void>> = compose(
       }
 
       if (nextProps.selectedIndex !== this.props.selectedIndex) {
-        nextProps.onSelectUser(nextProps.data[nextProps.selectedIndex].username)
+        if (nextProps.selectedIndex < nextProps.data.length) {
+          nextProps.onSelectUser(nextProps.data[nextProps.selectedIndex].username)
+        }
       }
     },
   }),

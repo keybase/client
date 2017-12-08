@@ -44,7 +44,7 @@ const mapStateToProps = (state: TypedState, {routeProps}) => {
 }
 
 const mapDispatchToProps = (dispatch: Dispatch, {navigateUp}) => ({
-  onBack: () => dispatch(navigateUp()),
+  onCancel: () => dispatch(navigateUp()),
 })
 
 const ControlledRolePicker = props => (
@@ -54,7 +54,7 @@ const ControlledRolePicker = props => (
 )
 
 const PopupWrapped = props => (
-  <PopupDialog onClose={props.onBack}>
+  <PopupDialog onClose={props.onCancel}>
     <ControlledRolePicker {...props} />
   </PopupDialog>
 )
@@ -64,9 +64,9 @@ export default compose(
   withState('selectedRole', 'setSelectedRole', props => props.currentType),
   withState('sendNotification', 'setSendNotification', props => props.sendNotificationChecked),
   withHandlers({
-    setConfirm: ({_onComplete, onBack, selectedRole, sendNotification}) => (confirm: boolean) => {
+    setConfirm: ({_onComplete, onCancel, selectedRole, sendNotification}) => (confirm: boolean) => {
       _onComplete(selectedRole, sendNotification)
-      onBack()
+      onCancel()
     },
   })
 )(isMobile ? HeaderHoc(ControlledRolePicker) : PopupWrapped)

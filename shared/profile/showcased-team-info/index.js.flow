@@ -1,0 +1,21 @@
+// @flow
+import {Component} from 'react'
+
+export type Props = {
+  description: string,
+  following: {[key: string]: true},
+  memberCount: number,
+  onHidden: () => void,
+  onJoinTeam: () => void,
+  onUserClick: (username: string) => void,
+  openTeam: boolean,
+  publicAdmins: Array<string>,
+  publicAdminsOthers: number,
+  teamJoinError: boolean,
+  teamJoinSuccess: boolean,
+  teamname: string,
+  youAreInTeam: boolean,
+  youHaveRequestedAccess: boolean,
+}
+
+export default class Render extends Component<Props> {}

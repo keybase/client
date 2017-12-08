@@ -71,6 +71,7 @@ type GlobalContext struct {
 	LinkCache      *LinkCache      // cache of ChainLinks
 	upakLoader     UPAKLoader      // Load flat users with the ability to hit the cache
 	teamLoader     TeamLoader      // Play back teams for id/name properties
+	itciCacher     LRUer           // Cacher for implicit team conflict info
 	CardCache      *UserCardCache  // cache of keybase1.UserCard objects
 	fullSelfer     FullSelfer      // a loader that gets the full self object
 	pvlSource      PvlSource       // a cache and fetcher for pvl
@@ -460,6 +461,18 @@ func (g *GlobalContext) GetTeamLoader() TeamLoader {
 	g.cacheMu.RLock()
 	defer g.cacheMu.RUnlock()
 	return g.teamLoader
+}
+
+func (g *GlobalContext) GetImplicitTeamConflictInfoCacher() LRUer {
+	g.cacheMu.RLock()
+	defer g.cacheMu.RUnlock()
+	return g.itciCacher
+}
+
+func (g *GlobalContext) SetImplicitTeamConflictInfoCacher(l LRUer) {
+	g.cacheMu.RLock()
+	defer g.cacheMu.RUnlock()
+	g.itciCacher = l
 }
 
 func (g *GlobalContext) GetFullSelfer() FullSelfer {

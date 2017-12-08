@@ -17,5 +17,6 @@
 /shared/libs/immutable-interface.js
 /shared/markdown/parser.js
 /shared/node_modules
+/shared/test/setupTestFrameworkScriptFile.js
 /visdiff
 /shared/react-native/react-native-contacts

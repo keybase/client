@@ -8,7 +8,6 @@ import * as React from 'react'
 import ReactDOM from 'react-dom'
 import messageFactory from '../messages'
 import {Icon, ErrorBoundary} from '../../../common-adapters'
-import {TextPopupMenu, AttachmentPopupMenu} from '../messages/popup'
 import clipboard from '../../../desktop/clipboard'
 import debounce from 'lodash/debounce'
 import {findDOMNode} from '../../../util/dom'
@@ -305,48 +304,6 @@ class PopupEnabledList extends BaseList {
     this._showEditor(message, this._domNodeToRect(messageNode))
   }
 
-  _renderPopup(
-    message: Types.Message,
-    localMessageState: Types.LocalMessageState,
-    style: Object,
-    messageRect: any
-  ): ?React.Node {
-    switch (message.type) {
-      case 'Text':
-        return (
-          <TextPopupMenu
-            you={this.props.you}
-            message={message}
-            onShowEditor={(message: Types.TextMessage) => this._showEditor(message, messageRect)}
-            onDeleteMessage={this.props.onDeleteMessage}
-            onDownloadAttachment={this.props.onDownloadAttachment}
-            onOpenInFileUI={this.props.onOpenInFileUI}
-            onHidden={this._hidePopup}
-            style={style}
-          />
-        )
-      case 'Attachment':
-        const {key: messageKey} = message
-        const {savedPath} = localMessageState
-        return (
-          <AttachmentPopupMenu
-            you={this.props.you}
-            message={message}
-            localMessageState={localMessageState}
-            onDeleteMessage={this.props.onDeleteMessage}
-            onDownloadAttachment={() => {
-              this.props.onDownloadAttachment(messageKey)
-            }}
-            onOpenInFileUI={() => {
-              savedPath && this.props.onOpenInFileUI(savedPath)
-            }}
-            onHidden={this._hidePopup}
-            style={style}
-          />
-        )
-    }
-  }
-
   _showEditor = (message: Types.TextMessage, messageRect: any) => {
     const popupComponent = (
       <EditPopup
@@ -380,45 +337,29 @@ class PopupEnabledList extends BaseList {
     return null
   }
 
-  _showPopup(
-    message: Types.TextMessage | Types.AttachmentMessage,
-    localMessageState: Types.LocalMessageState,
-    event: SyntheticEvent<>
-  ) {
-    const target = (event.target: any)
-    const clientRect = target.getBoundingClientRect()
-
-    const messageNode = this._findMessageFromDOMNode(target)
-    const messageRect = messageNode && this._domNodeToRect(messageNode)
-    // Position next to button (client rect)
-    // TODO: Measure instead of pixel math
-    const x = clientRect.left - 205
-    let y = clientRect.top - (message.author === this.props.you ? 200 : 116)
-    if (y < 10) y = 10
-
-    const popupComponent = this._renderPopup(
-      message,
-      localMessageState,
-      {left: x, position: 'absolute', top: y},
-      messageRect
-    )
-    if (!popupComponent) return
-
-    this.setState({selectedMessageKey: message.key})
-
-    const container = document.getElementById('popupContainer')
-    // FIXME: this is the right way to render portals retaining context for now, though it will change in the future.
-    // $FlowIssue
-    ReactDOM.unstable_renderSubtreeIntoContainer(this, popupComponent, container)
-  }
-
   _onAction = (
     message: Types.ServerMessage,
     localMessageState: Types.LocalMessageState,
     event: SyntheticEvent<>
   ) => {
     if (message.type === 'Text' || message.type === 'Attachment') {
-      this._showPopup(message, localMessageState, event)
+      this.setState({selectedMessageKey: message.key})
+      const node = event.target instanceof window.HTMLElement ? event.target : null
+      const messageNode = this._findMessageFromDOMNode(event.target)
+      const messageRect = messageNode && this._domNodeToRect(messageNode)
+      this.props.onMessageAction(
+        message,
+        localMessageState,
+        () => {
+          if (message.type === 'Text') {
+            this._showEditor(message, messageRect)
+          }
+        },
+        () => {
+          this.setState({selectedMessageKey: null})
+        },
+        node && node.getBoundingClientRect()
+      )
     }
   }
 

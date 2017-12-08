@@ -54,7 +54,7 @@ func handleChangeSingle(ctx context.Context, g *libkb.GlobalContext, row keybase
 		return nil
 	}
 	// Send teamID and teamName in two separate notifications. It is server-trust that they are the same team.
-	g.NotifyRouter.HandleTeamChangedByBothKeys(ctx, row.Id, row.Name, row.LatestSeqno, change)
+	g.NotifyRouter.HandleTeamChangedByBothKeys(ctx, row.Id, row.Name, row.LatestSeqno, row.ImplicitTeam, change)
 	return nil
 }
 
@@ -306,6 +306,11 @@ func HandleOpenTeamAccessRequest(ctx context.Context, g *libkb.GlobalContext, ms
 	})
 }
 
+type chatSeitanRecip struct {
+	inviter keybase1.UID
+	invitee keybase1.UID
+}
+
 func HandleTeamSeitan(ctx context.Context, g *libkb.GlobalContext, msg keybase1.TeamSeitanMsg) (err error) {
 	ctx = libkb.WithLogTag(ctx, "CLKR")
 	defer g.CTrace(ctx, "HandleTeamSeitan", func() error { return err })()
@@ -321,6 +326,7 @@ func HandleTeamSeitan(ctx context.Context, g *libkb.GlobalContext, msg keybase1.
 	var invitesToCancel []keybase1.TeamInviteID
 
 	var req keybase1.TeamChangeReq
+	var chats []chatSeitanRecip
 	req.CompletedInvites = make(map[keybase1.TeamInviteID]keybase1.UserVersionPercentForm)
 
 	for _, seitan := range msg.Seitans {
@@ -333,8 +339,7 @@ func HandleTeamSeitan(ctx context.Context, g *libkb.GlobalContext, msg keybase1.
 
 		err := handleSeitanSingle(ctx, g, team, invite, seitan)
 		if err != nil {
-			g.Log.CDebugf(ctx, "Provided AKey failed to verify with error: \"%v\"; canceling invite.", err)
-			invitesToCancel = append(invitesToCancel, invite.Id)
+			g.Log.CDebugf(ctx, "Provided AKey failed to verify with error: %v; ignoring", err)
 			continue
 		}
 
@@ -366,6 +371,10 @@ func HandleTeamSeitan(ctx context.Context, g *libkb.GlobalContext, msg keybase1.
 
 		g.Log.CDebugf(ctx, "Completing invite %s", invite.Id)
 		req.CompletedInvites[seitan.InviteID] = uv.PercentForm()
+		chats = append(chats, chatSeitanRecip{
+			inviter: invite.Inviter.Uid,
+			invitee: seitan.Uid,
+		})
 	}
 
 	var needReload bool
@@ -377,6 +386,13 @@ func HandleTeamSeitan(ctx context.Context, g *libkb.GlobalContext, msg keybase1.
 			return err
 		}
 		needReload = true
+	}
+	// Send chats
+	for _, chat := range chats {
+		g.Log.CDebugf(ctx, "sending welcome message for successful Seitan handle: inviter: %s invitee: %s",
+			chat.inviter, chat.invitee)
+		SendChatInviteWelcomeMessage(ctx, g, team.Name().String(), keybase1.TeamInviteCategory_SEITAN,
+			chat.inviter, chat.invitee)
 	}
 
 	if len(invitesToCancel) > 0 {
@@ -424,14 +440,14 @@ func handleSeitanSingle(ctx context.Context, g *libkb.GlobalContext, team *Team,
 
 	version, err := ikeyAndLabel.V()
 	if err != nil {
-		return fmt.Errorf("While parsing IKeyAndLabel: %s\n", err)
+		return fmt.Errorf("while parsing IKeyAndLabel: %s", err)
 	}
 
 	switch version {
 	case keybase1.SeitanIKeyAndLabelVersion_V1:
 		ikey = SeitanIKey(ikeyAndLabel.V1().I)
 	default:
-		return fmt.Errorf("Unknown IKeyAndLabel version: %v\n", version)
+		return fmt.Errorf("unknown IKeyAndLabel version: %v", version)
 	}
 
 	sikey, err := ikey.GenerateSIKey()

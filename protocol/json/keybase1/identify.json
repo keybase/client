@@ -307,6 +307,20 @@
         }
       ],
       "response": "ResolveIdentifyImplicitTeamRes"
+    },
+    "resolveImplicitTeam": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "id",
+          "type": "TeamID"
+        }
+      ],
+      "response": "Folder",
+      "doc": "resolveImplicitTeam returns a TLF display name given a teamID. The publicness\n   of the team is inferred from the TeamID."
     }
   },
   "namespace": "keybase.1"
