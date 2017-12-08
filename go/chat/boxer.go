@@ -1036,8 +1036,42 @@ func (b *Boxer) attachMerkleRoot(ctx context.Context, msg *chat1.MessagePlaintex
 	return nil
 }
 
+func (b *Boxer) preBoxCheck(ctx context.Context, messagePlaintext chat1.MessagePlaintext) error {
+
+	typ, err := messagePlaintext.MessageBody.MessageType()
+	if err != nil {
+		return err
+	}
+	e := func(format string, args ...interface{}) error {
+		return errors.New(fmt.Sprintf("malformed %v message: ", typ) + fmt.Sprintf(format, args...))
+	}
+	if typ == chat1.MessageType_DELETEHISTORY {
+		body := messagePlaintext.MessageBody.Deletehistory()
+		dhHeader := messagePlaintext.ClientHeader.DeleteHistory
+		if dhHeader == nil {
+			return e("missing header")
+		}
+		if *dhHeader != body {
+			return e("header-body mismatch")
+		}
+
+	} else {
+		if messagePlaintext.ClientHeader.DeleteHistory != nil {
+			return e("cannot have delete-history header")
+		}
+	}
+
+	return nil
+}
+
 func (b *Boxer) box(ctx context.Context, messagePlaintext chat1.MessagePlaintext, encryptionKey types.CryptKey,
 	signingKeyPair libkb.NaclSigningKeyPair, version chat1.MessageBoxedVersion) (*chat1.MessageBoxed, error) {
+
+	err := b.preBoxCheck(ctx, messagePlaintext)
+	if err != nil {
+		return nil, err
+	}
+
 	switch version {
 	case chat1.MessageBoxedVersion_V1:
 		res, err := b.boxV1(messagePlaintext, encryptionKey, signingKeyPair)
