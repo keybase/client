@@ -97,7 +97,8 @@
       "conversationIDKeys": "Array<Types.ConversationIDKey>",
       "reason": "string",
       "force?": "boolean",
-      "forInboxSync?": "boolean"
+      "forInboxSync?": "boolean",
+      "dismissSyncing?": "boolean"
     },
     "selectNext": {
       "rows": "Array<{conversationIDKey: Types.ConversationIDKey}>",
@@ -264,7 +265,8 @@
     "startConversation": {
       "users": "Array<string>",
       "forceImmediate?": "boolean",
-      "temporary?": "boolean"
+      "temporary?": "boolean",
+      "forSearch?": "boolean"
     },
     "badgeAppForChat": {
       "conversations": "Array<RPCTypes.BadgeConversationInfo>"

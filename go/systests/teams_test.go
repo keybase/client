@@ -118,14 +118,18 @@ func newTeamTester(t *testing.T) *teamTester {
 }
 
 func (tt *teamTester) addUser(pre string) *userPlusDevice {
-	return tt.addUserHelper(pre, true)
+	return tt.addUserHelper(pre, true, true)
+}
+
+func (tt *teamTester) addUserNoPaper(pre string) *userPlusDevice {
+	return tt.addUserHelper(pre, true, false)
 }
 
 func (tt *teamTester) addPuklessUser(pre string) *userPlusDevice {
-	return tt.addUserHelper(pre, false)
+	return tt.addUserHelper(pre, false, true)
 }
 
-func (tt *teamTester) addUserHelper(pre string, puk bool) *userPlusDevice {
+func (tt *teamTester) addUserHelper(pre string, puk bool, paper bool) *userPlusDevice {
 	tctx := setupTest(tt.t, pre)
 	if !puk {
 		tctx.Tp.DisableUpgradePerUserKey = true
@@ -144,7 +148,7 @@ func (tt *teamTester) addUserHelper(pre string, puk bool) *userPlusDevice {
 	}
 	g.SetUI(&signupUI)
 	signup := client.NewCmdSignupRunner(g)
-	signup.SetTest()
+	signup.SetTestWithPaper(paper)
 	if err := signup.Run(); err != nil {
 		tt.t.Fatal(err)
 	}
@@ -185,9 +189,13 @@ func (tt *teamTester) addUserHelper(pre string, puk bool) *userPlusDevice {
 	require.Len(tt.t, devices, 1, "devices")
 	u.device.deviceKey.KID = devices[0]
 	require.True(tt.t, u.device.deviceKey.KID.Exists())
-	require.Len(tt.t, backups, 1, "backup keys")
-	u.backupKey = backups[0]
-	u.backupKey.secret = signupUI.info.displayedPaperKey
+	if paper {
+		require.Len(tt.t, backups, 1, "backup keys")
+		u.backupKey = backups[0]
+		u.backupKey.secret = signupUI.info.displayedPaperKey
+	} else {
+		require.Len(tt.t, backups, 0, "backup keys")
+	}
 
 	tt.users = append(tt.users, &u)
 	return &u
@@ -334,9 +342,10 @@ func (u *userPlusDevice) acceptEmailInvite(token string) {
 	}
 }
 
-func (u *userPlusDevice) acceptInviteOrRequestAccess(tokenOrName string) {
-	err := teams.TeamAcceptInviteOrRequestAccess(context.TODO(), u.tc.G, tokenOrName)
+func (u *userPlusDevice) acceptInviteOrRequestAccess(tokenOrName string) keybase1.TeamAcceptOrRequestResult {
+	ret, err := teams.TeamAcceptInviteOrRequestAccess(context.TODO(), u.tc.G, tokenOrName)
 	require.NoError(u.tc.T, err)
+	return ret
 }
 
 func (u *userPlusDevice) teamList(userAssertion string, all, includeImplicitTeams bool) keybase1.AnnotatedTeamList {
@@ -871,4 +880,77 @@ func TestTeamLeaveThenList(t *testing.T) {
 
 	teams = alice.teamList("", false, false)
 	require.Len(t, teams.Teams, 0)
+}
+
+func TestTeamCanUserPerform(t *testing.T) {
+	tt := newTeamTester(t)
+	defer tt.cleanup()
+
+	ann := tt.addUser("ann")
+	bob := tt.addUser("bob")
+	pam := tt.addUser("pam")
+	edd := tt.addUser("edd")
+
+	team := ann.createTeam()
+	ann.addTeamMember(team, bob.username, keybase1.TeamRole_ADMIN)
+	ann.addTeamMember(team, pam.username, keybase1.TeamRole_WRITER)
+	ann.addTeamMember(team, edd.username, keybase1.TeamRole_READER)
+
+	parentName, err := keybase1.TeamNameFromString(team)
+	require.NoError(t, err)
+
+	_, err = teams.CreateSubteam(context.TODO(), ann.tc.G, "mysubteam", parentName)
+	require.NoError(t, err)
+	subteam := team + ".mysubteam"
+
+	callCanPerform := func(user *userPlusDevice, teamname string, op keybase1.TeamOperation) bool {
+		ret, err := teams.CanUserPerform(context.TODO(), user.tc.G, teamname, op)
+		t.Logf("teams.CanUserPerform(%s,%s,%v)", user.username, teamname, op)
+		require.NoError(t, err)
+		return ret
+	}
+
+	for _, op := range keybase1.TeamOperationMap {
+		// All ops should be fine for owners and admins
+		require.True(t, callCanPerform(ann, team, op))
+		require.True(t, callCanPerform(bob, team, op))
+
+		// Some ops are fine for writers
+		ret := callCanPerform(pam, team, op)
+		switch op {
+		case keybase1.TeamOperation_CREATE_CHANNEL,
+			keybase1.TeamOperation_SET_MEMBER_SHOWCASE:
+			require.True(t, ret)
+		default:
+			require.False(t, ret)
+		}
+
+		// Only SetMemberShowcase (by default) is available for readers
+		ret = callCanPerform(edd, team, op)
+		switch op {
+		case keybase1.TeamOperation_SET_MEMBER_SHOWCASE:
+			require.True(t, ret)
+		default:
+			require.False(t, ret)
+		}
+	}
+
+	for _, op := range keybase1.TeamOperationMap {
+		// Some ops are fine for implicit admins
+		switch op {
+		case keybase1.TeamOperation_MANAGE_MEMBERS,
+			keybase1.TeamOperation_MANAGE_SUBTEAMS,
+			keybase1.TeamOperation_SET_TEAM_SHOWCASE,
+			keybase1.TeamOperation_CHANGE_OPEN_TEAM:
+			require.True(t, callCanPerform(ann, subteam, op))
+			require.True(t, callCanPerform(bob, subteam, op))
+		default:
+			require.False(t, callCanPerform(ann, subteam, op))
+			require.False(t, callCanPerform(bob, subteam, op))
+		}
+	}
+
+	// Invalid team for pam
+	_, err = teams.CanUserPerform(context.TODO(), pam.tc.G, subteam, keybase1.TeamOperation_CREATE_CHANNEL)
+	require.Error(t, err)
 }

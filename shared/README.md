@@ -104,18 +104,53 @@ statement.
 
 ### Android
 
-Follow instructions at https://facebook.github.io/react-native/docs/getting-started.html
-to install and configure Android.
+Follow instructions at
+https://facebook.github.io/react-native/docs/getting-started.html to
+install and configure Android.
 
-Follow instructions at https://developer.android.com/ndk/guides/index.html to install and configure the Android NDK.
+If you're installing on macOS on High Sierra, skip installing
+HAX. Instead, follow the instructions in
+https://issuetracker.google.com/issues/62395878#comment7 , i.e. put
+`HVF = on` in `~/.android/advancedFeatures.ini`.
+
+Follow instructions at
+https://developer.android.com/ndk/guides/index.html to install and
+configure the Android NDK.
+
+Don't install Revision 16, though. Instead, go to
+https://developer.android.com/ndk/downloads/older_releases.html and
+download Revision 15c. Then unzip it, and do:
+
+```sh
+mv $ANDROID_HOME/ndk-bundle{,.r16} # if needed
+mv /path/to/android-ndk-r15c/ $ANDROID_HOME/ndk-bundle
+```
+
+Then select "Open an existing Android Studio Project" and point it to
+`shared/react-native/android`. Not necessary to register the `client`
+dir as a VCS-controlled dir with Android studio, but may as well.
+
+You'll get various prompts about installing various tools. You should
+install 'Build Tools' and any missing platforms. However, _don't_
+update the Android Gradle Plugin to 3.0.1.
+
+Some instructions talk about the SDK Manager / AVD Manager. This is
+under the Tools > Android menu. You may have to wait for the Gradle to
+sync before they appear.
+
+To run on the Android simulator:
 
 ```sh
 # Build the go keybaselib
 yarn run rn-gobuild-android
-
-# Install the app on your device
-react-native run-android
 ```
+
+```sh
+# Start the react native publisher (unlike on iOS, have to do this manually).
+yarn run rn-start
+```
+
+Then do "Build > Make Project" and then "Run > Run 'app'".
 
 ### Debugging with React Developer Tools extension
 

@@ -61,7 +61,13 @@ function* _updateTempSearchConversation(action: SearchGen.UserInputItemsUpdatedP
   const actionsToPut = [Saga.put(ChatGen.createRemoveTempPendingConversations())]
   if (userInputItemIds.length) {
     actionsToPut.push(
-      Saga.put(ChatGen.createStartConversation({users: userInputItemIds.concat(me), temporary: true}))
+      Saga.put(
+        ChatGen.createStartConversation({
+          users: userInputItemIds.concat(me),
+          temporary: true,
+          forSearch: true,
+        })
+      )
     )
   } else {
     actionsToPut.push(Saga.put(ChatGen.createSelectConversation({conversationIDKey: null, fromUser: false})))

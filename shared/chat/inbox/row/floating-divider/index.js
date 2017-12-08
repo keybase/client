@@ -60,7 +60,7 @@ const _floatingStyle = {
   ...globalStyles.fillAbsolute,
   backgroundColor: isMobile ? globalColors.white : globalColors.blue5,
   flexShrink: 0,
-  height: isMobile ? 56 : 32,
+  height: isMobile ? 48 : 32,
   top: undefined,
 }
 

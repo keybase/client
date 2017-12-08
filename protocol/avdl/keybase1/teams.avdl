@@ -328,6 +328,8 @@ protocol teams {
     boolean membershipChanged;
     @jsonkey("latest_seqno")
     Seqno latestSeqno;
+    @jsonkey("implicit_team")
+    boolean implicitTeam;
   }
 
   record TeamExitRow {
@@ -549,6 +551,15 @@ protocol teams {
     boolean open;
   }
 
+  record TeamAcceptOrRequestResult {
+    boolean wasToken;
+    boolean wasSeitan;
+    boolean wasTeamName;
+    // If trying to request access via TeamName, was the team open? It means
+    // that admin does not have to manually approve request.
+    boolean wasOpenTeam;
+  }
+
   record TeamShowcase {
     @jsonkey("is_showcased")
     boolean isShowcased;
@@ -597,9 +608,14 @@ protocol teams {
   TeamRequestAccessResult teamRequestAccess(int sessionID, string name);
 
   // Accept an invite or request to join a team, try both.
-  void teamAcceptInviteOrRequestAccess(int sessionID, string tokenOrName);
+  TeamAcceptOrRequestResult teamAcceptInviteOrRequestAccess(int sessionID, string tokenOrName);
 
   array<TeamJoinRequest> teamListRequests(int sessionID);
+
+  // List TeamAccessRequests from current user. Optionally can provide
+  // a teamname, and API server will only return request for that team,
+  // if there is one.
+  array<TeamName> teamListMyAccessRequests(int sessionID, union{ null, string } teamName);
 
   void teamIgnoreRequest(int sessionID, string name, string username);
 
@@ -640,8 +656,11 @@ protocol teams {
     union { null, ImplicitTeamConflictInfo } conflictInfo;
   }
 
+  @typedef("int")
+  record ConflictGeneration {}
+
   record ImplicitTeamConflictInfo {
-    int generation;
+    ConflictGeneration generation;
     Time time;
   }
 
@@ -669,4 +688,24 @@ protocol teams {
   TeamAndMemberShowcase getTeamAndMemberShowcase(string name);
   void setTeamShowcase(string name, union { null, boolean } isShowcased, union { null, string } description, union { null, boolean } anyMemberShowcase);
   void setTeamMemberShowcase(string name, boolean isShowcased);
+
+  enum TeamOperation {
+    MANAGE_MEMBERS_0,
+    MANAGE_SUBTEAMS_1,
+    CREATE_CHANNEL_2,
+    DELETE_CHANNEL_3,
+    RENAME_CHANNEL_4,
+    EDIT_CHANNEL_DESCRIPTION_5,
+    SET_TEAM_SHOWCASE_6,
+    SET_MEMBER_SHOWCASE_7,
+    CHANGE_OPEN_TEAM_8
+  }
+  bool canUserPerform(string name, TeamOperation op);
+
+  void teamRotateKey(TeamID teamID);
+
+  TeamDebugRes teamDebug(TeamID teamID);
+  record TeamDebugRes {
+    TeamSigChainState chain;
+  }
 }

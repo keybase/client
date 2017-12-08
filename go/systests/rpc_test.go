@@ -516,6 +516,30 @@ func TestResolveIdentifyImplicitTeamWithDuplicates(t *testing.T) {
 	}
 }
 
+func testResolveImplicitTeam(t *testing.T, g *libkb.GlobalContext, id keybase1.TeamID, isPublic bool, gen keybase1.Seqno) {
+	cli, err := client.GetIdentifyClient(g)
+	require.NoError(t, err, "failed to get new Identify client")
+	arg := keybase1.ResolveImplicitTeamArg{
+		Id:       id,
+		IsPublic: isPublic,
+	}
+	res, err := cli.ResolveImplicitTeam(context.Background(), arg)
+	require.NoError(t, err, "resolve Implicit team worked")
+	if gen == keybase1.Seqno(0) {
+		require.False(t, strings.Contains(res.Name, "conflicted"), "no conflicts")
+	} else {
+		require.True(t, strings.Contains(res.Name, "conflicted"), "found conflicted")
+		require.True(t, strings.Contains(res.Name, fmt.Sprintf("#%d", int(gen))), "found conflict gen #")
+	}
+}
+
+// doubleTestResolveImplicitTeam calls testResolveImplicitTeam twice, to make sure it
+// it works when we hit the cache (which we will do the second time through).
+func doubleTestResolveImplicitTeam(t *testing.T, g *libkb.GlobalContext, id keybase1.TeamID, isPublic bool, gen keybase1.Seqno) {
+	testResolveImplicitTeam(t, g, id, isPublic, gen)
+	testResolveImplicitTeam(t, g, id, isPublic, gen)
+}
+
 func TestResolveIdentifyImplicitTeamWithConflict(t *testing.T) {
 	tt := newTeamTester(t)
 	defer tt.cleanup()
@@ -537,6 +561,9 @@ func TestResolveIdentifyImplicitTeamWithConflict(t *testing.T) {
 	require.NotEqual(t, iTeamID1, iTeamID2)
 	t.Logf("t1: %v", iTeamID1)
 	t.Logf("t2: %v", iTeamID2)
+
+	doubleTestResolveImplicitTeam(t, g, iTeamID1, false, keybase1.Seqno(0))
+	doubleTestResolveImplicitTeam(t, g, iTeamID2, false, keybase1.Seqno(0))
 
 	getTeamSeqno := func(teamID keybase1.TeamID) keybase1.Seqno {
 		team, err := teams.Load(context.Background(), g, keybase1.LoadTeamArg{
@@ -608,6 +635,10 @@ func TestResolveIdentifyImplicitTeamWithConflict(t *testing.T) {
 	require.Equal(t, res.TeamID, iTeamID2)
 	require.True(t, compareUserVersionSets([]keybase1.UserVersion{tt.users[0].userVersion(), wong.userVersion()}, res.Writers))
 	require.Nil(t, res.TrackBreaks, "track breaks")
+
+	testResolveImplicitTeam(t, g, iTeamID1, false, keybase1.Seqno(0))
+	testResolveImplicitTeam(t, g, iTeamID2, false, keybase1.Seqno(1))
+
 }
 
 func TestResolveIdentifyImplicitTeamWithIdentifyFailures(t *testing.T) {

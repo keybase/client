@@ -94,4 +94,8 @@ protocol identify {
     TLFID folderID; // i-team TLF ID, if there is one
   }
 
+  /*
+   * resolveImplicitTeam returns a TLF display name given a teamID.
+   */
+  Folder resolveImplicitTeam(int sessionID, TeamID id, boolean isPublic);
 }

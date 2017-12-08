@@ -3,6 +3,7 @@ import React, {Component} from 'react'
 import {Box, Icon, Text, ProgressIndicator, NativeImage} from '../../../common-adapters/index.native'
 import {globalColors, globalMargins, globalStyles} from '../../../styles'
 import {formatTimeForPopup} from '../../../util/timestamp'
+import {isIPhoneX} from '../../../constants/platform'
 
 import type {Props} from './'
 
@@ -73,6 +74,7 @@ const AttachmentPopup = ({
           ...globalStyles.flexBoxColumn,
           ...globalStyles.fillAbsolute,
           backgroundColor: globalColors.white,
+          paddingTop: isIPhoneX ? globalMargins.medium : undefined,
         }}
       >
         <Text
@@ -112,6 +114,7 @@ const AttachmentPopup = ({
         ...globalStyles.flexBoxColumn,
         ...globalStyles.fillAbsolute,
         backgroundColor: globalColors.black,
+        paddingTop: isIPhoneX ? globalMargins.medium : undefined,
       }}
     >
       <Text type="Body" onClick={onClose} style={{color: globalColors.white, padding: globalMargins.small}}>

@@ -64,6 +64,24 @@ describe('Markdown parser', () => {
     check('thisis(*bold*) and(_italic_) and,~striked~! (*woot*) another.*test*.case')
   })
 
+  it('parses punctuation then formatting', () => {
+    check('(*bold*')
+    check('(_italic_')
+    check('(@marco@keybase')
+  })
+
+  it('parses double bold as text', () => {
+    check('**hmm**')
+  })
+
+  it('parses double bold with punctuation as text', () => {
+    check('*(*hmm**')
+  })
+
+  it('parses double bold with splitting punctuation as single bold', () => {
+    check('*(*hmm*)*')
+  })
+
   it('parses invalid emoji fragments correctly', () => {
     check('one::\n::two\n:three?::\n::four:\n::')
   })
@@ -72,10 +90,23 @@ describe('Markdown parser', () => {
     check(':+1: :100:')
   })
 
+  it('inline code', () => {
+    check('I think we should try to use `if else` statements')
+  })
+
+  it('inline code not multiline', () => {
+    check('`foo\nbar`')
+  })
+
   it('parses kitchen sink demo correctly', () => {
     check(
       'I think we should try to use `if else` statements ```if (var == "foo")\n  echo "foo";\nelse echo "bar";``` How about *bold* and _italic?_ nice.\n Now youre thinking with ~portals~ crypto.\n how about ~_*bold and italic and strike through?*_~ - now - _*some bold* and just italic_'
     )
+  })
+
+  it('Messed up', () => {
+    check('```if (var == "foo")\n  echo "foo";\nelse echo "bar";``')
+    check('I think I *missed something**')
   })
 
   it('parses escaped chars correctly', () => {
@@ -174,5 +205,10 @@ this is a code block with two newline above\`\`\`
   })
   it('parses mentions correctly, regardless of case', () => {
     check('hello there @marco@Keybase')
+  })
+  it('parses formatted mentions', () => {
+    check('~@marco@keybase~')
+    check('*@marco@keybase*')
+    check('_@marco@keybase_')
   })
 })

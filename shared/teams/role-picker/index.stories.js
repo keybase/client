@@ -4,7 +4,7 @@ import {storiesOf, action} from '../../stories/storybook'
 import {RoleConfirm, RoleOptions} from '.'
 
 const commonProps = {
-  onBack: action('onBack'),
+  onCancel: action('onCancel'),
   onComplete: action('onComplete'),
   teamname: 'keybase',
   username: 'ayoubd',

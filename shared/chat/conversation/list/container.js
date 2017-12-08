@@ -96,6 +96,7 @@ const mapStateToProps = createSelector(
       selectedConversation: convStateProps.selectedConversation,
       validated: convStateProps.validated,
       you: username,
+      _supersedes: convStateProps._supersedes,
     }
   }
 )
@@ -113,10 +114,30 @@ const mapDispatchToProps = (dispatch: Dispatch): DispatchProps => ({
   onEditMessage: (message: Types.Message, body: string) => {
     dispatch(ChatGen.createEditMessage({message, text: new HiddenString(body)}))
   },
-  onMessageAction: (message: Types.Message) => {
-    dispatch(navigateAppend([{props: {message}, selected: 'messageAction'}]))
-  },
   onOpenInFileUI: (path: string) => dispatch(KBFSGen.createOpenInFileUI({path})),
+  onMessageAction: (
+    message: Types.Message,
+    localMessageState?: Types.LocalMessageState,
+    onShowEditor?: () => void,
+    onPopupWillClose?: () => void,
+    targetRect?: ?ClientRect
+  ) => {
+    dispatch(
+      navigateAppend([
+        {
+          props: {
+            targetRect,
+            message,
+            localMessageState,
+            onShowEditor,
+            onPopupWillClose,
+            position: 'bottom left',
+          },
+          selected: 'messageAction',
+        },
+      ])
+    )
+  },
 })
 
 const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps): Props => {

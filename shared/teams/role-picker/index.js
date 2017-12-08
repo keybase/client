@@ -34,7 +34,7 @@ export type RolePickerProps = {
   setSelectedRole: (r: TeamRoleType) => void,
   setSendNotification: (send: boolean) => void,
   onComplete: (r: TeamRoleType, showNotification: boolean) => void,
-  onBack: () => void,
+  onCancel: () => void,
 }
 
 // create row in rolepicker screen
@@ -59,7 +59,7 @@ const makeRoleOption = (
     <Icon type="iconfont-check" style={{alignSelf: 'center', color: globalColors.white, fontSize: 24}} />
     <Box style={{...globalStyles.flexBoxColumn, paddingLeft: globalMargins.tiny}}>
       <Box style={globalStyles.flexBoxRow}>
-        {roleIconMap[role] &&
+        {!!roleIconMap[role] &&
           <Icon
             type={roleIconMap[role]}
             style={{
@@ -123,7 +123,7 @@ export const RoleOptions = ({
         label={controlled ? 'Select' : 'Continue'}
         type="Primary"
         onClick={() => setConfirm(true)}
-        disabled={selectedRole === currentType && sendNotificationChecked === sendNotification}
+        disabled={!selectedRole}
       />
     </Box>
   </Box>
@@ -249,7 +249,7 @@ export const RolePicker = (props: RolePickerProps) => (
   </ScrollView>
 )
 const PopupWrapped = (props: RolePickerProps) => (
-  <PopupDialog onClose={props.onBack}>
+  <PopupDialog onClose={props.onCancel}>
     <RolePicker {...props} />
   </PopupDialog>
 )

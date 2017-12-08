@@ -125,7 +125,7 @@ func userTc(t *testing.T, world *kbtest.ChatMockWorld, user *kbtest.FakeUser) *k
 func NewChatMockWorld(t *testing.T, name string, numUsers int) (world *kbtest.ChatMockWorld) {
 	res := kbtest.NewChatMockWorld(t, name, numUsers)
 	for _, w := range res.Tcs {
-		teams.NewTeamLoaderAndInstall(w.G)
+		teams.ServiceInit(w.G)
 	}
 	return res
 }

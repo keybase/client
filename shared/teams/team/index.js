@@ -63,6 +63,8 @@ export type Props = {
   waitingForSavePublicity: boolean,
   you: string,
   yourRole: ?Types.TeamRoleType,
+  youAdmin: boolean,
+  youImplicitAdmin: boolean,
   youCanShowcase: boolean,
   youCanAddPeople: boolean,
   youCanCreateSubteam: boolean,
@@ -202,7 +204,7 @@ const TeamTabs = (props: TeamTabsProps) => {
   }
 
   const selected = tabs.find(tab => tab.key === selectedTab)
-  return <Tabs tabs={tabs} selected={selected} onSelect={onSelect} />
+  return <Tabs tabs={tabs} selected={selected} onSelect={onSelect} style={{flexBasis: '100%'}} />
 }
 
 class Team extends React.PureComponent<Props> {
@@ -240,15 +242,20 @@ class Team extends React.PureComponent<Props> {
       setPublicityTeam,
       waitingForSavePublicity,
       yourRole,
+      youAdmin,
+      youImplicitAdmin,
       youCanAddPeople,
       youCanCreateSubteam,
       youCanShowcase,
     } = this.props
 
-    const admin = Constants.isAdmin(yourRole) || Constants.isOwner(yourRole)
-
     // massage data for rowrenderers
-    const memberProps = members.map(member => ({username: member.username, teamname: name}))
+    const memberProps = members.map(member => ({
+      username: member.username,
+      teamname: name,
+      active: member.active,
+      key: member.username + member.active.toString(),
+    }))
     const requestProps = requests.map(req => ({
       key: req.username,
       teamname: name,
@@ -310,6 +317,7 @@ class Team extends React.PureComponent<Props> {
           <List
             items={requestsAndInvites}
             fixedHeight={48}
+            keyProperty="key"
             renderItem={TeamRequestOrDividerOrInviteRow}
             style={{alignSelf: 'stretch'}}
           />
@@ -318,47 +326,49 @@ class Team extends React.PureComponent<Props> {
       const teamsLink = 'keybase.io/popular-teams'
       contents = (
         <ScrollView style={{...globalStyles.flexBoxColumn, alignSelf: 'stretch'}}>
-          <Box
-            style={{
-              ...globalStyles.flexBoxRow,
-              paddingLeft: globalMargins.tiny,
-              paddingTop: globalMargins.small,
-            }}
-          >
-            <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center'}}>
-              <Checkbox
-                checked={publicityMember}
-                disabled={!youCanShowcase}
-                label=""
-                onCheck={setPublicityMember}
-                style={{paddingRight: globalMargins.xtiny}}
-              />
-            </Box>
-            <Box style={{...globalStyles.flexBoxColumn, flexShrink: 1}}>
-              <Text style={{color: youCanShowcase ? globalColors.black : globalColors.grey}} type="Body">
-                Publish team on your own profile
-              </Text>
-              <Text type="BodySmall">
-                {youCanShowcase
-                  ? 'Your profile on the Keybase website will mention this team. Description + number of members will be public.'
-                  : "Admins aren't allowing members to publish this team on their profile."}
-              </Text>
-            </Box>
-          </Box>
-          {admin &&
+          {!youImplicitAdmin &&
+            <Box
+              style={{
+                ...globalStyles.flexBoxRow,
+                paddingLeft: globalMargins.tiny,
+                paddingTop: globalMargins.small,
+              }}
+            >
+              <Box
+                style={{
+                  ...globalStyles.flexBoxColumn,
+                  alignItems: 'center',
+                  paddingRight: globalMargins.tiny,
+                }}
+              >
+                <Checkbox
+                  checked={publicityMember}
+                  disabled={!youCanShowcase}
+                  label=""
+                  onCheck={setPublicityMember}
+                  style={{paddingRight: globalMargins.xtiny}}
+                />
+              </Box>
+              <Box style={{...globalStyles.flexBoxColumn, flexShrink: 1}}>
+                <Text style={{color: youCanShowcase ? globalColors.black : globalColors.grey}} type="Body">
+                  Publish team on your own profile
+                </Text>
+                <Text type="BodySmall">
+                  {youCanShowcase
+                    ? 'Your profile on the Keybase website will mention this team. Description + number of members will be public.'
+                    : "Admins aren't allowing members to publish this team on their profile."}
+                </Text>
+              </Box>
+            </Box>}
+          {youAdmin &&
             <Box style={globalStyles.flexBoxColumn}>
               <Box style={stylesSettingsTabRow}>
                 <Text type="Header">Team</Text>
               </Box>
 
               <Box style={stylesSettingsTabRow}>
-                <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center'}}>
-                  <Checkbox
-                    checked={publicityAnyMember}
-                    label=""
-                    onCheck={setPublicityAnyMember}
-                    style={{paddingRight: globalMargins.xtiny}}
-                  />
+                <Box style={stylesPublicitySettingsBox}>
+                  <Checkbox checked={publicityAnyMember} label="" onCheck={setPublicityAnyMember} />
                 </Box>
                 <Box style={{...globalStyles.flexBoxColumn, flexShrink: 1}}>
                   <Text type="Body">
@@ -371,13 +381,8 @@ class Team extends React.PureComponent<Props> {
               </Box>
 
               <Box style={stylesSettingsTabRow}>
-                <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center'}}>
-                  <Checkbox
-                    checked={publicityTeam}
-                    label=""
-                    onCheck={setPublicityTeam}
-                    style={{paddingRight: globalMargins.xtiny}}
-                  />
+                <Box style={stylesPublicitySettingsBox}>
+                  <Checkbox checked={publicityTeam} label="" onCheck={setPublicityTeam} />
                 </Box>
                 <Box style={{...globalStyles.flexBoxColumn, flexShrink: 1}}>
                   <Text type="Body">
@@ -392,7 +397,7 @@ class Team extends React.PureComponent<Props> {
               </Box>
 
               <Box style={stylesSettingsTabRow}>
-                <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center'}}>
+                <Box style={stylesPublicitySettingsBox}>
                   <Checkbox
                     checked={openTeam}
                     label=""
@@ -400,7 +405,9 @@ class Team extends React.PureComponent<Props> {
                     style={{paddingRight: globalMargins.xtiny}}
                   />
                 </Box>
-                <Box style={{...globalStyles.flexBoxColumn, flexShrink: 1}}>
+                <Box
+                  style={{...globalStyles.flexBoxColumn, flexShrink: 1, paddingRight: globalMargins.small}}
+                >
                   <Text type="Body">
                     Make this an open team
                   </Text>
@@ -423,7 +430,7 @@ class Team extends React.PureComponent<Props> {
             style={{
               ...stylesSettingsTabRow,
               justifyContent: 'center',
-              paddingTop: isMobile ? globalMargins.xtiny : globalMargins.tiny,
+              padding: globalMargins.small,
             }}
           >
             <Button
@@ -477,16 +484,16 @@ class Team extends React.PureComponent<Props> {
           {yourRole && Constants.typeToLabel[yourRole]}
         </Text>
         {!loading &&
-          (admin || description) &&
+          (youAdmin || description) &&
           <Text
             style={{
               paddingTop: globalMargins.tiny,
               color: description ? globalColors.black : globalColors.black_20,
             }}
-            onClick={admin ? onEditDescription : null}
-            type={admin ? 'BodySecondaryLink' : 'Body'}
+            onClick={youAdmin ? onEditDescription : null}
+            type={youAdmin ? 'BodySecondaryLink' : 'Body'}
           >
-            {description || (admin && 'Write a brief description')}
+            {description || (youAdmin && 'Write a brief description')}
           </Text>}
 
         {youCanAddPeople &&
@@ -508,7 +515,7 @@ class Team extends React.PureComponent<Props> {
               />}
           </Box>}
         <Help name={name} />
-        <TeamTabs {...this.props} admin={admin} />
+        <TeamTabs {...this.props} admin={youAdmin} />
         {contents}
         {showMenu &&
           <PopupMenu
@@ -538,6 +545,12 @@ const stylesAddYourselfBanner = {
 const stylesAddYourselfBannerText = {
   color: globalColors.white,
   textAlign: 'center',
+}
+
+const stylesPublicitySettingsBox = {
+  ...globalStyles.flexBoxColumn,
+  alignItems: 'center',
+  paddingRight: globalMargins.small,
 }
 
 const stylesSettingsTabRow = {
