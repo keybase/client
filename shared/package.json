@@ -55,9 +55,9 @@
     "setupFiles": [
       "raf/polyfill"
     ],
+    "setupTestFrameworkScriptFile": "<rootDir>/test/setupTestFrameworkScriptFile.js",
     "testPathIgnorePatterns": [
-      "/node_modules/",
-      "/stories/"
+      "/node_modules/"
     ],
     "snapshotSerializers": [
       "jest-glamor-react"
