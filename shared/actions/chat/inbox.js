@@ -209,10 +209,9 @@ function _toSupersedeInfo(
   )
 
   const finalizeInfo = toConvert ? toConvert.finalizeInfo : null
-
   return toConvert && finalizeInfo
     ? {
-        conversationIDKey: toByteArray(toConvert.conversationID).toString('hex'),
+        conversationIDKey: Buffer.from(toByteArray(toConvert.conversationID)).toString('hex'),
         finalizeInfo,
       }
     : null
