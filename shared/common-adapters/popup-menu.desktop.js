@@ -239,6 +239,6 @@ const stylesMenuText = {
   color: undefined,
 }
 
-export {PopupHeaderText, ModalLessPopupMenu, OLDPopupMenu }
+export {PopupHeaderText, ModalLessPopupMenu, OLDPopupMenu}
 
 export default PopupMenu
