@@ -253,6 +253,25 @@ func (r *runner) printDoneOrErr(
 	}
 }
 
+func (r *runner) isManagedByApp() bool {
+	switch r.h.Type() {
+	case tlf.Public:
+		// Public TLFs are never managed by the app.
+		return false
+	case tlf.SingleTeam:
+		// Single-team TLFs are always managed by the app.
+		return true
+	case tlf.Private:
+		// Only single-user private TLFs are managed by the app.  So
+		// if the canonical name contains any commas, readers, or
+		// spaces, it's not managed by the app.
+		name := string(r.h.GetCanonicalName())
+		return !strings.ContainsAny(name, " ,"+tlf.ReaderSep)
+	default:
+		panic(fmt.Sprintf("Unexpected type: %s", r.h.Type()))
+	}
+}
+
 func (r *runner) initRepoIfNeeded(ctx context.Context, forCmd string) (
 	repo *gogit.Repository, fs *libfs.FS, err error) {
 	// This function might be called multiple times per function, but
@@ -269,14 +288,13 @@ func (r *runner) initRepoIfNeeded(ctx context.Context, forCmd string) (
 		}()
 	}
 
-	// Only allow lazy creates for public and multi-user TLFs.
-	numUsers := len(r.h.ResolvedWriters()) + len(r.h.UnresolvedWriters()) +
-		len(r.h.ResolvedReaders()) + len(r.h.UnresolvedReaders())
-	if r.h.Type() == tlf.Public || numUsers > 1 {
-		fs, _, err = libgit.GetOrCreateRepoAndID(
+	// Only allow lazy creates for TLFs that aren't managed by the
+	// Keybase app.
+	if r.isManagedByApp() {
+		fs, _, err = libgit.GetRepoAndID(
 			ctx, r.config, r.h, r.repo, r.uniqID)
 	} else {
-		fs, _, err = libgit.GetRepoAndID(
+		fs, _, err = libgit.GetOrCreateRepoAndID(
 			ctx, r.config, r.h, r.repo, r.uniqID)
 	}
 	if err != nil {
@@ -1019,9 +1037,7 @@ func (r *runner) checkGC(ctx context.Context) (err error) {
 	}
 	r.gcDone = true
 
-	numUsers := len(r.h.ResolvedWriters()) + len(r.h.UnresolvedWriters()) +
-		len(r.h.ResolvedReaders()) + len(r.h.UnresolvedReaders())
-	if r.h.Type() == tlf.Public || numUsers > 1 {
+	if !r.isManagedByApp() {
 		r.log.CDebugf(ctx, "Skipping GC check")
 		return nil
 	}
