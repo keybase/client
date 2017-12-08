@@ -102,8 +102,12 @@ func (t *Team) GitMetadataKey(ctx context.Context) (keybase1.TeamApplicationKey,
 	return t.ApplicationKey(ctx, keybase1.TeamApplication_GIT_METADATA)
 }
 
-func (t *Team) SeitanInviteTokenKey(ctx context.Context) (keybase1.TeamApplicationKey, error) {
+func (t *Team) SeitanInviteTokenKeyLatest(ctx context.Context) (keybase1.TeamApplicationKey, error) {
 	return t.ApplicationKey(ctx, keybase1.TeamApplication_SEITAN_INVITE_TOKEN)
+}
+
+func (t *Team) SeitanInviteTokenKeyAtGeneration(ctx context.Context, generation keybase1.PerTeamKeyGeneration) (keybase1.TeamApplicationKey, error) {
+	return t.ApplicationKeyAtGeneration(keybase1.TeamApplication_SEITAN_INVITE_TOKEN, generation)
 }
 
 func (t *Team) IsMember(ctx context.Context, uv keybase1.UserVersion) bool {
@@ -203,6 +207,7 @@ func (t *Team) ImplicitTeamDisplayName(ctx context.Context) (res keybase1.Implic
 	if err != nil {
 		return res, err
 	}
+	isFullyResolved := true
 	for inviteID := range chainInvites {
 		invite, ok := inviteMap[inviteID]
 		if !ok {
@@ -231,6 +236,7 @@ func (t *Team) ImplicitTeamDisplayName(ctx context.Context) (res keybase1.Implic
 			default:
 				return res, fmt.Errorf("implicit team contains invite to role: %v (%v)", invite.Role, invite.Id)
 			}
+			isFullyResolved = false
 		case keybase1.TeamInviteCategory_KEYBASE:
 			// invite.Name is the username of the invited user, which AnnotateInvites has resolved.
 			switch invite.Role {
@@ -244,6 +250,11 @@ func (t *Team) ImplicitTeamDisplayName(ctx context.Context) (res keybase1.Implic
 		default:
 			return res, fmt.Errorf("unrecognized invite type in implicit team: %v", invtyp)
 		}
+	}
+
+	impName, err = GetConflictInfo(ctx, t.G(), t.ID, isFullyResolved, impName)
+	if err != nil {
+		return res, err
 	}
 	return impName, nil
 }
@@ -282,6 +293,16 @@ func (t *Team) ApplicationKey(ctx context.Context, application keybase1.TeamAppl
 	return t.ApplicationKeyAtGeneration(application, latestGen)
 }
 
+func (t *Team) UseRKMForApp(application keybase1.TeamApplication) bool {
+	switch application {
+	case keybase1.TeamApplication_SEITAN_INVITE_TOKEN:
+		// Seitan tokens do not use RKMs because implicit admins have all the privileges of explicit members.
+		return false
+	default:
+		return true
+	}
+}
+
 func (t *Team) ApplicationKeyAtGeneration(
 	application keybase1.TeamApplication, generation keybase1.PerTeamKeyGeneration) (res keybase1.TeamApplicationKey, err error) {
 
@@ -290,11 +311,25 @@ func (t *Team) ApplicationKeyAtGeneration(
 		return res, libkb.NotFoundError{
 			Msg: fmt.Sprintf("no team secret found at generation %v", generation)}
 	}
-	rkm, err := t.readerKeyMask(application, generation)
-	if err != nil {
-		return res, err
+
+	var rkm *keybase1.ReaderKeyMask
+	if t.UseRKMForApp(application) {
+		rkmReal, err := t.readerKeyMask(application, generation)
+		if err != nil {
+			return res, err
+		}
+		rkm = &rkmReal
+	} else {
+		var zeroMask [32]byte
+		zeroRKM := keybase1.ReaderKeyMask{
+			Application: application,
+			Generation:  generation,
+			Mask:        zeroMask[:],
+		}
+		rkm = &zeroRKM
 	}
-	return t.applicationKeyForMask(rkm, item.Seed)
+
+	return t.applicationKeyForMask(*rkm, item.Seed)
 }
 
 func (t *Team) applicationKeyForMask(mask keybase1.ReaderKeyMask, secret keybase1.PerTeamKeySeed) (keybase1.TeamApplicationKey, error) {

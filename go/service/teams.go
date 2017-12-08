@@ -7,8 +7,6 @@ package service
 
 import (
 	"fmt"
-	"regexp"
-	"strings"
 
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/libkb"
@@ -90,12 +88,10 @@ func (h *TeamsHandler) TeamCreateWithSettings(ctx context.Context, arg keybase1.
 		}
 		res.TeamID = *teamID
 		res.CreatorAdded = true
+		// send system message that team was created
+		res.ChatSent = teams.SendTeamChatCreateMessage(ctx, h.G().ExternalG(), teamName.String(), h.G().Env.GetUsername().String())
 	}
 
-	if arg.SendChatNotification {
-		res.ChatSent = teams.SendTeamChatWelcomeMessage(ctx, h.G().ExternalG(),
-			teamName.String(), h.G().Env.GetUsername().String())
-	}
 	return res, nil
 }
 
@@ -237,31 +233,20 @@ func (h *TeamsHandler) TeamRename(ctx context.Context, arg keybase1.TeamRenameAr
 	return teams.RenameSubteam(ctx, h.G().ExternalG(), arg.PrevName, arg.NewName)
 }
 
-var tokenRegexp = regexp.MustCompile(`token\: [a-z0-9+]{16,18}`)
-
-func parseInviteToken(token string) string {
-	// If the person pasted the whole seitan SMS message in, then let's parse out the token
-	if strings.Contains(token, "token: ") {
-		m := tokenRegexp.FindStringSubmatch(token)
-		if len(m) == 1 {
-			return strings.Split(m[0], " ")[1]
-		}
-	}
-	return token
-}
-
 func (h *TeamsHandler) TeamAcceptInvite(ctx context.Context, arg keybase1.TeamAcceptInviteArg) (err error) {
 	ctx = libkb.WithLogTag(ctx, "TM")
 	defer h.G().CTraceTimed(ctx, "TeamAcceptInvite", func() error { return err })()
 	if err := h.assertLoggedIn(ctx); err != nil {
 		return err
 	}
-	token := parseInviteToken(arg.Token)
-	seitan, err := teams.GenerateIKeyFromString(token)
-	if err == nil {
-		return teams.AcceptSeitan(ctx, h.G().ExternalG(), seitan)
+
+	// If token looks at all like Seitan, don't pass to functions that might log or send to server.
+	maybeSeitan, keepSecret := teams.ParseSeitanTokenFromPaste(arg.Token)
+	if keepSecret {
+		return teams.ParseAndAcceptSeitanToken(ctx, h.G().ExternalG(), maybeSeitan)
 	}
-	return teams.AcceptInvite(ctx, h.G().ExternalG(), token)
+
+	return teams.AcceptInvite(ctx, h.G().ExternalG(), arg.Token)
 }
 
 func (h *TeamsHandler) TeamRequestAccess(ctx context.Context, arg keybase1.TeamRequestAccessArg) (res keybase1.TeamRequestAccessResult, err error) {
@@ -279,8 +264,8 @@ func (h *TeamsHandler) TeamAcceptInviteOrRequestAccess(ctx context.Context, arg 
 	if err := h.assertLoggedIn(ctx); err != nil {
 		return res, err
 	}
-	token := parseInviteToken(arg.TokenOrName)
-	return teams.TeamAcceptInviteOrRequestAccess(ctx, h.G().ExternalG(), token)
+
+	return teams.TeamAcceptInviteOrRequestAccess(ctx, h.G().ExternalG(), arg.TokenOrName)
 }
 
 func (h *TeamsHandler) TeamListRequests(ctx context.Context, sessionID int) (res []keybase1.TeamJoinRequest, err error) {
@@ -424,14 +409,12 @@ func (h *TeamsHandler) SetTeamMemberShowcase(ctx context.Context, arg keybase1.S
 func (h *TeamsHandler) CanUserPerform(ctx context.Context, arg keybase1.CanUserPerformArg) (ret bool, err error) {
 	ctx = libkb.WithLogTag(ctx, "TM")
 	defer h.G().CTraceTimed(ctx, fmt.Sprintf("CanUserPerform(%s, %v)", arg.Name, arg.Op), func() error { return err })()
-
 	return teams.CanUserPerform(ctx, h.G().ExternalG(), arg.Name, arg.Op)
 }
 
 func (h *TeamsHandler) TeamRotateKey(ctx context.Context, teamID keybase1.TeamID) (err error) {
 	ctx = libkb.WithLogTag(ctx, "TM")
 	defer h.G().CTraceTimed(ctx, fmt.Sprintf("TeamRotateKey(%v)", teamID), func() error { return err })()
-
 	return teams.RotateKey(ctx, h.G().ExternalG(), teamID)
 }
 

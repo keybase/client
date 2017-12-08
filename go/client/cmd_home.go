@@ -49,7 +49,7 @@ func (c *CmdHome) doSkipTodo(ctx context.Context, cli keybase1.HomeClient) error
 }
 
 func (c *CmdHome) getHome(ctx context.Context, cli keybase1.HomeClient) error {
-	screen, err := cli.HomeGetScreen(ctx, c.markViewed)
+	screen, err := cli.HomeGetScreen(ctx, keybase1.HomeGetScreenArg{MarkViewed: c.markViewed, NumFollowSuggestionsWanted: 10})
 	if err != nil {
 		return err
 	}

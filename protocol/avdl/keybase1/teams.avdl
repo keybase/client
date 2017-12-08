@@ -656,8 +656,11 @@ protocol teams {
     union { null, ImplicitTeamConflictInfo } conflictInfo;
   }
 
+  @typedef("int")
+  record ConflictGeneration {}
+
   record ImplicitTeamConflictInfo {
-    int generation;
+    ConflictGeneration generation;
     Time time;
   }
 
