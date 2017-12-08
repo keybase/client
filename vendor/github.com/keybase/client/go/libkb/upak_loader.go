@@ -341,7 +341,9 @@ func (u *CachedUPAKLoader) loadWithInfo(arg LoadUserArg, info *CachedUserLoadInf
 			upak.Uvv.CachedAt = keybase1.ToTime(g.Clock().Now())
 			// This is only necessary to update the levelDB representation,
 			// since the previous line updates the in-memory cache satisfactorially.
-			u.putUPAKToCache(ctx, upak)
+			if err := u.putUPAKToCache(ctx, upak); err != nil {
+				u.G().Log.CDebugf(ctx, "continuing past error in putUPAKToCache: %s", err)
+			}
 
 			return returnUPAK(upak, true)
 		}
@@ -382,7 +384,9 @@ func (u *CachedUPAKLoader) loadWithInfo(arg LoadUserArg, info *CachedUserLoadInf
 		return nil, nil, UserNotFoundError{UID: arg.uid, Msg: "LoadUser failed"}
 	}
 
-	err = u.putUPAKToCache(ctx, ret)
+	if err := u.putUPAKToCache(ctx, ret); err != nil {
+		u.G().Log.CDebugf(ctx, "continuing past error in putUPAKToCache: %s", err)
+	}
 
 	if u.TestDeadlocker != nil {
 		u.TestDeadlocker()
