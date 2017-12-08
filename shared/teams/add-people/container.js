@@ -72,7 +72,9 @@ export default compose(
       title: 'Add people',
     })),
     lifecycle({
-      componentWillMount: function() { this.props._getSuggestions() },
+      componentWillMount: function() {
+        this.props._getSuggestions()
+      },
     }),
     withHandlers({
       onAddPeople: ({onAddPeople, role, sendNotification}) => () =>
