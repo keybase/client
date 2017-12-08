@@ -6184,12 +6184,24 @@ func (fbo *folderBranchOps) TeamNameChanged(
 	defer cancelFunc()
 	fbo.log.CDebugf(ctx, "Starting name change for team %s", tid)
 
-	// TODO(KBFS-2621): resolve the i-team display name correctly.
-	newName, err := fbo.config.KBPKI().GetNormalizedUsername(
-		ctx, tid.AsUserOrTeam())
-	if err != nil {
-		fbo.log.CWarningf(ctx, "Error getting new team name: %+v", err)
-		return
+	// First check if this is an implicit team.
+	var newName libkb.NormalizedUsername
+	if fbo.id().Type() != tlf.SingleTeam {
+		iteamInfo, err := fbo.config.KBPKI().ResolveImplicitTeamByID(
+			ctx, tid, fbo.id().Type())
+		if err == nil {
+			newName = iteamInfo.Name
+		}
+	}
+
+	if newName == "" {
+		var err error
+		newName, err = fbo.config.KBPKI().GetNormalizedUsername(
+			ctx, tid.AsUserOrTeam())
+		if err != nil {
+			fbo.log.CWarningf(ctx, "Error getting new team name: %+v", err)
+			return
+		}
 	}
 
 	lState := makeFBOLockState()
