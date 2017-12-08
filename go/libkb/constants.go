@@ -109,8 +109,9 @@ const (
 	LinkCacheSize     = 0x10000
 	LinkCacheCleanDur = 1 * time.Minute
 
-	UPAKCacheSize           = 2000
-	UIDMapFullNameCacheSize = 100000
+	UPAKCacheSize                     = 2000
+	UIDMapFullNameCacheSize           = 100000
+	ImplicitTeamConflictInfoCacheSize = 10000
 
 	SigShortIDBytes  = 27
 	LocalTrackMaxAge = 48 * time.Hour

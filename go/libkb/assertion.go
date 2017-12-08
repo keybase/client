@@ -747,12 +747,12 @@ func ParseImplicitTeamDisplayNameSuffix(suffix string) (ret *keybase1.ImplicitTe
 	}
 
 	generation, err := strconv.Atoi(matches[2])
-	if err != nil || generation < 0 {
+	if err != nil || generation <= 0 {
 		return ret, NewImplicitTeamDisplayNameError("malformed suffix generation: %v", matches[2])
 	}
 
 	return &keybase1.ImplicitTeamConflictInfo{
-		Generation: generation,
+		Generation: keybase1.ConflictGeneration(generation),
 		Time:       keybase1.ToTime(conflictTime.UTC()),
 	}, nil
 }

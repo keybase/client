@@ -113,6 +113,7 @@ function reducer(state: Types.State = initialState, action: ChatGen.Actions) {
       return state.update('conversationStates', conversationStates =>
         conversationStates.map((conversationState, conversationIDKey) => {
           if (convIDs.length === 0 || convIDs.includes(conversationIDKey)) {
+            console.log(`reducer: setting thread stale from mark as stale: ${conversationIDKey}`)
             return conversationState.set('isStale', true)
           }
           return conversationState
@@ -125,9 +126,18 @@ function reducer(state: Types.State = initialState, action: ChatGen.Actions) {
       return state.update('conversationStates', conversationStates =>
         conversationStates.map((conversationState, conversationIDKey) => {
           if (convIDs.length === 0 || convIDs.includes(conversationIDKey)) {
+            console.log(`reducer: setting thread stale from inbox synced: ${conversationIDKey}`)
             return conversationState.set('isStale', true)
           }
           return conversationState
+        })
+      )
+    }
+    case ChatGen.inboxStale: {
+      return state.update('conversationStates', conversationStates =>
+        conversationStates.map((conversationState, conversationIDKey) => {
+          console.log(`reducer: setting thread stale from inbox stale: ${conversationIDKey}`)
+          return conversationState.set('isStale', true)
         })
       )
     }
@@ -300,7 +310,6 @@ function reducer(state: Types.State = initialState, action: ChatGen.Actions) {
     case ChatGen.downloadProgress:
     case ChatGen.editMessage:
     case ChatGen.getInboxAndUnbox:
-    case ChatGen.inboxStale:
     case ChatGen.inboxStoreLoaded:
     case ChatGen.incomingMessage:
     case ChatGen.incomingTyping:

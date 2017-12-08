@@ -23,6 +23,7 @@ export const open = 'kbfs:open'
 export const openDefaultPath = 'kbfs:openDefaultPath'
 export const openInFileUI = 'kbfs:openInFileUI'
 export const uninstallKBFS = 'kbfs:uninstallKBFS'
+export const uninstallKBFSResult = 'kbfs:uninstallKBFSResult'
 
 // Action Creators
 export const createClearFuseInstall = () => ({error: false, payload: undefined, type: clearFuseInstall})
@@ -41,6 +42,7 @@ export const createOpen = (payload: {|+path?: string|}) => ({error: false, paylo
 export const createOpenDefaultPath = (payload: {|+opening: boolean|}) => ({error: false, payload, type: openDefaultPath})
 export const createOpenInFileUI = (payload: {|+path: string|}) => ({error: false, payload, type: openInFileUI})
 export const createUninstallKBFS = () => ({error: false, payload: undefined, type: uninstallKBFS})
+export const createUninstallKBFSResult = (payload: {|+result: RPCTypes.UninstallResult|}) => ({error: false, payload, type: uninstallKBFSResult})
 
 // Action Payloads
 export type ClearFuseInstallPayload = More.ReturnType<typeof createClearFuseInstall>
@@ -58,6 +60,7 @@ export type OpenDefaultPathPayload = More.ReturnType<typeof createOpenDefaultPat
 export type OpenInFileUIPayload = More.ReturnType<typeof createOpenInFileUI>
 export type OpenPayload = More.ReturnType<typeof createOpen>
 export type UninstallKBFSPayload = More.ReturnType<typeof createUninstallKBFS>
+export type UninstallKBFSResultPayload = More.ReturnType<typeof createUninstallKBFSResult>
 
 // All Actions
 // prettier-ignore
@@ -78,4 +81,5 @@ export type Actions =
   | More.ReturnType<typeof createOpenDefaultPath>
   | More.ReturnType<typeof createOpenInFileUI>
   | More.ReturnType<typeof createUninstallKBFS>
+  | More.ReturnType<typeof createUninstallKBFSResult>
   | {type: 'common:resetStore', payload: void}
