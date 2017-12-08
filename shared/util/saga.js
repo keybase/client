@@ -112,7 +112,7 @@ function safeTakeEvery(pattern: string | Array<any> | Function, worker: Function
 }
 
 // Useful in safeTakeEveryPure when you have an array of effects you want to run in order
-function *sequentially(effects: Array<Effects>) {
+function* sequentially(effects: Array<any>): Generator<any, Array<any>, any> {
   const results = []
   for (let i = 0; i < effects.length; i++) {
     results.push(yield effects[i])
@@ -303,7 +303,7 @@ export {
   safeTakeLatestWithCatch,
   safeTakeSerially,
   select,
-sequentially,
+  sequentially,
   singleFixedChannelConfig,
   spawn,
   take,
