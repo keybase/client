@@ -1,13 +1,13 @@
 // @flow
 import * as React from 'react'
-import * as Constants from '../constants/folders'
+import * as Types from '../constants/types/folders'
 
 export type FolderType = 'public' | 'private' | 'team'
-export type Folder = Constants.Folder
+export type Folder = Types.Folder
 
 export type Props = {
-  tlfs?: Array<Constants.Folder>,
-  ignored?: Array<Constants.Folder>,
+  tlfs?: Array<Types.Folder>,
+  ignored?: Array<Types.Folder>,
   installed: boolean,
   type: FolderType,
   style?: any,

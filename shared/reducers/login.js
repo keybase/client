@@ -1,116 +1,51 @@
 // @flow
+import * as I from 'immutable'
 import * as Constants from '../constants/login'
 import * as Types from '../constants/types/login'
 import * as LoginGen from '../actions/login-gen'
 
-export default function(state: Types.State = Constants.initialState, action: LoginGen.Actions): Types.State {
+const initialState = Constants.makeState()
+
+export default function(state: Types.State = initialState, action: LoginGen.Actions): Types.State {
   switch (action.type) {
     case LoginGen.resetStore:
-      return {...Constants.initialState}
-
-    case LoginGen.setMyDeviceCodeState: {
-      const {state: myDeviceRole} = action.payload
-      return {
-        ...state,
-        codePage: {
-          ...state.codePage,
-          myDeviceRole,
-        },
-      }
-    }
-    case LoginGen.setOtherDeviceCodeState: {
-      const {state: otherDeviceRole} = action.payload
-      return {
-        ...state,
-        codePage: {
-          ...state.codePage,
-          otherDeviceRole,
-        },
-      }
-    }
-    case LoginGen.setCodePageMode: {
-      const {mode} = action.payload
-      return {
-        ...state,
-        codePage: {
-          ...state.codePage,
-          mode,
-        },
-      }
-    }
+      return initialState
+    case LoginGen.setMyDeviceCodeState:
+      return state.set('codePageMyDeviceRole', action.payload.codePageMyDeviceRole)
+    case LoginGen.setOtherDeviceCodeState:
+      return state.set('codePageOtherDeviceRole', action.payload.codePageOtherDeviceRole)
+    case LoginGen.setCodePageMode:
+      return state.set('codePageMode', action.payload.codePageMode)
     case LoginGen.setTextCode: {
-      const {enterCodeErrorText, textCode} = action.payload
-      return {
-        ...state,
-        codePage: {
-          ...state.codePage,
-          enterCodeErrorText,
-          textCode,
-        },
-      }
+      const {codePageEnterCodeErrorText, codePageTextCode} = action.payload
+      return state
+        .set('codePageEnterCodeErrorText', codePageEnterCodeErrorText)
+        .set('codePageTextCode', codePageTextCode)
     }
-    case LoginGen.setQRCode: {
-      const {qrCode} = action.payload
-      return {
-        ...state,
-        codePage: {
-          ...state.codePage,
-          qrCode,
-        },
-      }
-    }
+    case LoginGen.setQRCode:
+      return state.set('codePageQrCode', action.payload.codePageQrCode)
     case LoginGen.clearQRCode:
-      return {
-        ...state,
-        codePage: {
-          ...state.codePage,
-          qrCode: null,
-        },
-      }
-    case LoginGen.qrScanned: {
-      const {phrase} = action.payload
-      return {
-        ...state,
-        codePage: {
-          ...state.codePage,
-          qrCodeScanned: true,
-          qrScanned: phrase,
-        },
-      }
-    }
-    case LoginGen.setCameraBrokenMode: {
-      const {broken} = action.payload
-      return {
-        ...state,
-        codePage: {
-          ...state.codePage,
-          cameraBrokenMode: broken,
-        },
-      }
-    }
+      return state.set('codePageQrCode', null)
+    case LoginGen.qrScanned:
+      return state.set('codePageQrScanned', action.payload.phrase).set('codePageQrCodeScanned', true)
+    case LoginGen.setCameraBrokenMode:
+      return state.set('codePageCameraBrokenMode', action.payload.codePageCameraBrokenMode)
     case LoginGen.configuredAccounts:
-      if (action.payload.error) {
-        return {...state, configuredAccounts: []}
-      } else {
-        const {accounts} = action.payload
-        return {...state, configuredAccounts: accounts}
-      }
-    case LoginGen.waitingForResponse: {
-      const {waiting} = action.payload
-      return {...state, waitingForResponse: waiting}
-    }
+      return action.payload.error
+        ? state.set('configuredAccounts', I.List())
+        : state.set(
+            'configuredAccounts',
+            I.List((action.payload.accounts || []).map(a => Constants.makeAccount(a)))
+          )
+    case LoginGen.waitingForResponse:
+      return state.set('waitingForResponse', action.payload.waiting)
     case LoginGen.provisioningError:
-      return {...state, codePage: {...state.codePage, qrCodeScanned: false}}
-    case LoginGen.resetQRCodeScanned:
-      return {...state, codePage: {...state.codePage, qrCodeScanned: false}}
-    case LoginGen.setRevokedSelf: {
-      const {revoked} = action.payload
-      return {...state, justRevokedSelf: revoked}
-    }
-    case LoginGen.setDeletedSelf: {
-      const {deletedUsername} = action.payload
-      return {...state, justDeletedSelf: deletedUsername}
-    }
+    case LoginGen.resetQRCodeScanned: // fallthrough
+      return state.set('codePageQrCodeScanned', false)
+    case LoginGen.setRevokedSelf:
+      return state.set('justRevokedSelf', action.payload.revoked)
+    case LoginGen.setDeletedSelf:
+      return state.set('justDeletedSelf', action.payload.deletedUsername)
     // Saga only actions
     case LoginGen.addNewDevice:
     case LoginGen.chooseGPGMethod:

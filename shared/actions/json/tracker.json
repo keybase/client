@@ -1,7 +1,7 @@
 {
   "prelude": [
     "import * as Types from '../constants/types/tracker'",
-    "import * as FolderConstants from '../constants/folders'"
+    "import * as FolderTypes from '../constants/types/folders'"
   ],
   "actions": {
     "cacheIdentify": {
@@ -46,7 +46,7 @@
     },
     "updateFolders": {
       "username": "string",
-      "tlfs": "Array<FolderConstants.Folder>"
+      "tlfs": "Array<FolderTypes.Folder>"
     },
     "updateUsername": {
       "username": "string"

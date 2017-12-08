@@ -563,7 +563,7 @@ function _userChanged(action: {payload: {uid: string}}, state: TypedState) {
   if (username) {
     actions.push(TrackerGen.createGetProfile({username}))
   }
-  return actions
+  return Saga.all(actions)
 }
 
 function _setupTrackerHandlers() {

@@ -1,9 +1,31 @@
 // @flow
 // TODO(mm) Everytype in this file should be pure...
-import type {UserList} from '../common-adapters/usernames'
-import type {Props as FileProps} from '../folders/files/file/render'
-import type {DeviceType} from '../constants/types/devices'
-import type {Folder as FolderRPC} from '../constants/types/flow-types'
+import type {DeviceType} from './devices'
+import type {Folder as FolderRPC} from './flow-types'
+import type {IconType} from '../../common-adapters/icon'
+
+type UserListItem = {
+  username: string,
+  readOnly?: boolean,
+  broken?: boolean,
+  you?: boolean,
+  following?: boolean,
+}
+
+type UserList = Array<UserListItem>
+
+type FileProps = {
+  theme: 'public' | 'private',
+  size?: 'Small' | 'Large', // defaults to Large
+  name: string,
+  path: string,
+  lastModifiedMeta?: string,
+  lastModifiedBySelf?: ?boolean,
+  lastModifiedBy?: ?string,
+  modifiedMarker: boolean,
+  fileIcon: IconType,
+  onClick: () => void,
+}
 
 export type FileSection = {
   name: string,

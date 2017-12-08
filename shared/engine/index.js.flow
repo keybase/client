@@ -1,8 +1,6 @@
 // @flow
 // Sep. engine file so we can avoid import cycles w/ flow-types.js
 // A lot of weak typing here as we're usually interfacing with this through helpers, could make it more accurate later
-import type {TypedState} from '../constants/reducer'
-
 declare export class EngineChannel {
   map: () => any,
   close(): void,
@@ -22,7 +20,7 @@ declare export class Engine {
   setIncomingHandler(name: string, callback: Function): void,
   setIncomingActionCreators(
     method: string,
-    actionCreator: (param: Object, response: ?Object, dispatch: Dispatch, getState: () => TypedState) => ?any
+    actionCreator: (param: Object, response: ?Object, dispatch: Dispatch, getState: () => any) => ?any
   ): void,
   createSession(incomingCallMap: ?any, waitingHandler: ?any, cancelHandler: ?any, dangling?: boolean): any,
   _channelMapRpcHelper(configKeys: Array<string>, method: string, params: any): EngineChannel,
