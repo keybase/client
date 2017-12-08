@@ -94,7 +94,8 @@ func makeMDForTest(t testing.TB, ver kbfsmd.MetadataVer, tlfID tlf.ID,
 	bh, err := tlf.MakeHandle(
 		[]keybase1.UserOrTeamID{uid.AsUserOrTeam()}, nil, nil, nil, nil)
 	require.NoError(t, err)
-	h, err := MakeTlfHandle(context.Background(), bh, bh.Type(), nug, nil)
+	h, err := MakeTlfHandle(
+		context.Background(), bh, bh.Type(), nil, nug, nil)
 	require.NoError(t, err)
 	md, err := makeInitialRootMetadata(ver, tlfID, h)
 	require.NoError(t, err)

@@ -5601,7 +5601,7 @@ func (fbo *folderBranchOps) locallyFinalizeTLF(ctx context.Context) {
 	}
 	handle, err := MakeTlfHandle(
 		ctx, bareHandle, fbo.id().Type(), fbo.config.KBPKI(),
-		fbo.config.MDOps())
+		fbo.config.KBPKI(), fbo.config.MDOps())
 	if err != nil {
 		fbo.log.CErrorf(ctx, "Couldn't get finalized handle: %+v", err)
 		return

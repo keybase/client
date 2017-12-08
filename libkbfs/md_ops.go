@@ -372,7 +372,7 @@ func (md *MDOpsStandard) getForHandle(ctx context.Context, handle *TlfHandle,
 	}
 
 	mdHandle, err := MakeTlfHandle(
-		ctx, bareMdHandle, id.Type(), md.config.KBPKI(), nil)
+		ctx, bareMdHandle, id.Type(), md.config.KBPKI(), md.config.KBPKI(), nil)
 	if err != nil {
 		return tlf.ID{}, ImmutableRootMetadata{}, err
 	}
@@ -482,7 +482,7 @@ func (md *MDOpsStandard) getForTLF(ctx context.Context, id tlf.ID,
 	}
 	handle, err := MakeTlfHandle(
 		ctx, bareHandle, rmds.MD.TlfID().Type(), md.config.KBPKI(),
-		constIDGetter{id})
+		md.config.KBPKI(), constIDGetter{id})
 	if err != nil {
 		return ImmutableRootMetadata{}, err
 	}
@@ -533,7 +533,7 @@ func (md *MDOpsStandard) processRange(ctx context.Context, id tlf.ID,
 			}
 			handle, err := MakeTlfHandle(
 				groupCtx, bareHandle, rmds.MD.TlfID().Type(), md.config.KBPKI(),
-				constIDGetter{id})
+				md.config.KBPKI(), constIDGetter{id})
 			if err != nil {
 				return err
 			}

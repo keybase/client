@@ -139,6 +139,10 @@ func (c testTLFJournalConfig) usernameGetter() normalizedUsernameGetter {
 	return c.nug
 }
 
+func (c testTLFJournalConfig) resolver() resolver {
+	return nil
+}
+
 func (c testTLFJournalConfig) MDServer() MDServer {
 	return c.mdserver
 }

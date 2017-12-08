@@ -41,6 +41,7 @@ type tlfJournalConfig interface {
 	mdDecryptionKeyGetter() mdDecryptionKeyGetter
 	MDServer() MDServer
 	usernameGetter() normalizedUsernameGetter
+	resolver() resolver
 	MakeLogger(module string) logger.Logger
 	diskLimitTimeout() time.Duration
 	teamMembershipChecker() kbfsmd.TeamMembershipChecker
@@ -63,6 +64,10 @@ func (ca tlfJournalConfigAdapter) mdDecryptionKeyGetter() mdDecryptionKeyGetter 
 }
 
 func (ca tlfJournalConfigAdapter) usernameGetter() normalizedUsernameGetter {
+	return ca.Config.KBPKI()
+}
+
+func (ca tlfJournalConfigAdapter) resolver() resolver {
 	return ca.Config.KBPKI()
 }
 
@@ -1649,8 +1654,8 @@ func (j *tlfJournal) getUnflushedPathMDInfos(ctx context.Context,
 	}
 
 	handle, err := MakeTlfHandle(
-		ctx, ibrmdBareHandle, j.tlfID.Type(), j.config.usernameGetter(),
-		j.config.tlfIDGetter())
+		ctx, ibrmdBareHandle, j.tlfID.Type(), j.config.resolver(),
+		j.config.usernameGetter(), j.config.tlfIDGetter())
 	if err != nil {
 		return nil, err
 	}

@@ -29,7 +29,7 @@ func testMdcacheMakeHandle(t *testing.T, n uint32) *TlfHandle {
 	}
 
 	ctx := context.Background()
-	h, err := MakeTlfHandle(ctx, bh, bh.Type(), nug, nil)
+	h, err := MakeTlfHandle(ctx, bh, bh.Type(), nil, nug, nil)
 	require.NoError(t, err)
 	return h
 }
