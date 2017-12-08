@@ -1526,3 +1526,170 @@ func (t *Team) notify(ctx context.Context, changes keybase1.TeamChangeSet) {
 	t.G().GetTeamLoader().HintLatestSeqno(ctx, t.ID, t.NextSeqno())
 	t.G().NotifyRouter.HandleTeamChangedByBothKeys(ctx, t.ID, t.Name().String(), t.NextSeqno(), t.IsImplicit(), changes)
 }
+
+// AddMembersBestEffort will try to add list of UserVersions to the
+// team with specified role. It is aware of the following quirks of
+// adding members:
+// - User can be PUK-less. AddMembersBestEffort will create a
+//   keybase-type invite in this case.
+// - This user might have reset and previous UV is in the team.
+//   Then, a delete will be issued for that UV before adding new
+//   membership (or adding a new invite).
+// - If user has a PUK, it will add them normally, unless they
+//   already are in the team with a higher role.
+//
+// This function can be called multiple times with the same UV list
+// with no side effects. Caller is responsible for handling cases when
+// this function races other clients and hits bad sigchain sequence
+// numbers. `RetryOnSigOldSeqnoError` can be used for this. Even if
+// two clients race with adding overlapping UV sets, they should
+// eventually reconcile with all expected members in.
+//
+// This function only returns an error in the following conditions:
+// - Team fails to load.
+// - `role` argument is invalid.
+// - Either ChangeMembership or Invite signature fails to post
+//   (e.g. because of race with other client - see above.)
+//
+// If individual user cannot be processed, errors are only logged,
+// and the process continues.
+func AddMembersBestEffort(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID, role keybase1.TeamRole, uvs []keybase1.UserVersion, forceRepoll bool) (err error) {
+	defer g.CTrace(ctx, fmt.Sprintf("AddMembersBestEffort(TeamID:%s,role:%v)", teamID, role), func() error { return err })()
+
+	team, err := Load(ctx, g, keybase1.LoadTeamArg{
+		ID:          teamID,
+		Public:      teamID.IsPublic(),
+		ForceRepoll: forceRepoll,
+		NeedAdmin:   true,
+	})
+	if err != nil {
+		return err
+	}
+
+	var req keybase1.TeamChangeReq
+	var keybaseInvites []keybase1.UserVersion
+	var needPostMembership bool
+
+	for _, uv := range uvs {
+		var becameAnInvite bool
+		loadedUV, err := loadUserVersionByUID(ctx, g, uv.Uid)
+		if err != nil {
+			if err == errInviteRequired {
+				keybaseInvites = append(keybaseInvites, uv)
+				becameAnInvite = true
+				g.Log.CDebugf(ctx, "Invite required for %+v", uv)
+			} else {
+				g.Log.CDebugf(ctx, "got unexpected error while trying to load user: %s: %v; skipping", uv, err)
+				continue
+			}
+		}
+
+		if loadedUV.EldestSeqno != uv.EldestSeqno {
+			// TODO: We can skip this one or correct the EldestSeqno
+			// in the request.
+			g.Log.CDebugf(ctx, "Trying to add UID %s with EldestSeqno %d, but servers says EldestSeqno is %d", uv.Uid, uv.EldestSeqno, loadedUV.EldestSeqno)
+			continue
+		}
+
+		currentRole, err := team.MemberRole(ctx, uv)
+		if err != nil {
+			g.Log.CDebugf(ctx, "team.MemberRole(%+v) failed with %+v", uv, err)
+			continue
+		}
+
+		if currentRole.IsOrAbove(role) {
+			g.Log.CDebugf(ctx, "User %s already has role %v, skipping", uv.Uid, currentRole)
+			continue
+		}
+
+		existingUV, err := team.UserVersionByUID(ctx, uv.Uid)
+		if err == nil {
+			if !becameAnInvite && existingUV.EldestSeqno > uv.EldestSeqno {
+				// There is an edge case where user is in the middle
+				// of resetting (after reset, before provisioning) and
+				// has EldestSeqno=0. We are adding keybase-type
+				// invite for such users, making them PUKless members.
+				// Do not bail out here, even if there is an UV with
+				// higher EldestSeqno, it's still "old" version.
+				g.Log.CDebugf(ctx, "newer version of user %s is already in team", uv.Uid)
+				continue
+			}
+			g.Log.CDebugf(ctx, "Will remove old version of user (%s) from team", existingUV)
+			req.None = append(req.None, existingUV)
+			needPostMembership = true
+		}
+
+		if !becameAnInvite {
+			err = req.AddUVWithRole(uv, role)
+			if err != nil {
+				return fmt.Errorf("Failed to AddUVWithRole(%s,%s): %v; bailing out", uv, role, err)
+			}
+			needPostMembership = true
+		}
+	}
+
+	if needPostMembership {
+		memberCount := len(req.Owners) + len(req.Admins) + len(req.Writers) + len(req.Readers)
+		g.Log.CDebugf(ctx, "Posting ChangeMembership with %d members", memberCount)
+		err = team.ChangeMembership(ctx, req)
+		if err != nil {
+			return err
+		}
+	}
+
+	if len(keybaseInvites) > 0 {
+		if needPostMembership {
+			// Reload team after posting previous link.
+			team, err = Load(ctx, g, keybase1.LoadTeamArg{
+				ID:          teamID,
+				Public:      teamID.IsPublic(),
+				ForceRepoll: true,
+				NeedAdmin:   true,
+			})
+			if err != nil {
+				return err
+			}
+		}
+
+		var invList []SCTeamInvite
+		var inviteSection SCTeamInvites
+		for _, uv := range keybaseInvites {
+			invite := SCTeamInvite{
+				Type: "keybase",
+				Name: uv.TeamInviteName(),
+				ID:   NewInviteID(),
+			}
+
+			existing, err := team.HasActiveInvite(invite.Name, invite.Type)
+			if err != nil {
+				g.Log.CDebugf(ctx, "Error on HasActiveInvite for %s: %v, skipping", invite.Name, err)
+				continue
+			}
+			if existing {
+				g.Log.CDebugf(ctx, "Invite for %s already existing, skipping", invite.Name)
+				continue
+			}
+
+			invList = append(invList, invite)
+		}
+
+		switch role {
+		case keybase1.TeamRole_READER:
+			inviteSection.Readers = &invList
+		case keybase1.TeamRole_WRITER:
+			inviteSection.Writers = &invList
+		case keybase1.TeamRole_ADMIN:
+			inviteSection.Admins = &invList
+		case keybase1.TeamRole_OWNER:
+			g.Log.CDebugf(ctx, "Cannot add invites as owners, skipping entire invite section")
+			return nil
+		default:
+			return fmt.Errorf("Unexpected role: %v", role)
+		}
+
+		g.Log.CDebugf(ctx, "Posting TeamInvites with %d invites", len(invList))
+		return team.postTeamInvites(ctx, inviteSection)
+	}
+
+	return nil
+}
