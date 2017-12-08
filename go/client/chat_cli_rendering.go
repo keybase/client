@@ -211,17 +211,22 @@ func (v conversationListView) show(g *libkb.GlobalContext, myUsername string, sh
 		}
 
 		unread := ""
-		// show the last TEXT message
+		// Show the last visible message.
 		var msg *chat1.MessageUnboxed
 		for _, m := range conv.MaxMessages {
-			if m.GetMessageType() == chat1.MessageType_TEXT || m.GetMessageType() == chat1.MessageType_ATTACHMENT {
-				if conv.ReaderInfo.ReadMsgid < m.GetMessageID() {
-					unread = "*"
-				}
-				if msg == nil || m.GetMessageID() > msg.GetMessageID() {
-					mCopy := m
-					msg = &mCopy
-				}
+			mv2, err := newMessageView(g, conv.Info.Id, m)
+			if err != nil {
+				continue
+			}
+			if !mv2.Renderable {
+				continue
+			}
+			if conv.ReaderInfo.ReadMsgid < m.GetMessageID() {
+				unread = "*"
+			}
+			if msg == nil || m.GetMessageID() > msg.GetMessageID() {
+				mCopy := m
+				msg = &mCopy
 			}
 		}
 		if msg == nil {
@@ -490,10 +495,10 @@ func newMessageViewValid(g *libkb.GlobalContext, conversationID chat1.Conversati
 		mv.Renderable = false
 	case chat1.MessageType_JOIN:
 		mv.Renderable = true
-		mv.Body = "<joined the channel>"
+		mv.Body = "[Joined the channel]"
 	case chat1.MessageType_LEAVE:
 		mv.Renderable = true
-		mv.Body = "<left the channel>"
+		mv.Body = "[Left the channel]"
 	case chat1.MessageType_SYSTEM:
 		mv.Renderable = true
 		mv.Body = formatSystemMessage(m.MessageBody.System())
