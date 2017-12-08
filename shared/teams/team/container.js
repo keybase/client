@@ -154,7 +154,10 @@ const getOrderedMemberArray = (
   let returnArray = memberInfo
     .toArray()
     .sort(
-      (a, b) => (a.type === b.type ? a.username.localeCompare(b.username) : order[a.type] - order[b.type])
+      (a, b) =>
+        !a.type || !b.type || a.type === b.type
+          ? a.username.localeCompare(b.username)
+          : order[a.type] - order[b.type]
     )
 
   if (youInfo) {
