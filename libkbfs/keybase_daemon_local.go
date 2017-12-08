@@ -387,6 +387,24 @@ func (k *KeybaseDaemonLocal) ResolveIdentifyImplicitTeam(
 	return iteamInfo, nil
 }
 
+// ResolveImplicitTeamByID implements the KeybaseService interface for
+// KeybaseDaemonLocal.
+func (k *KeybaseDaemonLocal) ResolveImplicitTeamByID(
+	ctx context.Context, teamID keybase1.TeamID) (name string, err error) {
+	if err := checkContext(ctx); err != nil {
+		return "", err
+	}
+
+	k.lock.Lock()
+	defer k.lock.Unlock()
+
+	info, ok := k.localImplicitTeams[teamID]
+	if !ok {
+		return "", NoSuchTeamError{teamID.String()}
+	}
+	return info.Name.String(), nil
+}
+
 func (k *KeybaseDaemonLocal) addImplicitTeamTlfID(
 	tid keybase1.TeamID, tlfID tlf.ID) error {
 	// TODO: add check to make sure the private/public suffix of the

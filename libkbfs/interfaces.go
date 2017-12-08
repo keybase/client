@@ -419,6 +419,11 @@ type KeybaseService interface {
 		ctx context.Context, assertions, suffix string, tlfType tlf.Type,
 		doIdentifies bool, reason string) (ImplicitTeamInfo, error)
 
+	// ResolveImplicitTeamByID resolves an implicit team to a team
+	// name, given a team ID.
+	ResolveImplicitTeamByID(
+		ctx context.Context, teamID keybase1.TeamID) (string, error)
+
 	// CreateTeamTLF associates the given TLF ID with the team ID in
 	// the team's sigchain.  If the team already has a TLF ID
 	// associated with it, this overwrites it.
@@ -526,6 +531,11 @@ type resolver interface {
 	// ResolveImplicitTeam resolves the given implicit team.
 	ResolveImplicitTeam(
 		ctx context.Context, assertions, suffix string, tlfType tlf.Type) (
+		ImplicitTeamInfo, error)
+	// ResolveImplicitTeamByID resolves the given implicit team, given
+	// a team ID.
+	ResolveImplicitTeamByID(
+		ctx context.Context, teamID keybase1.TeamID, tlfType tlf.Type) (
 		ImplicitTeamInfo, error)
 }
 

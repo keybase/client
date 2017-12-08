@@ -20,6 +20,7 @@ type KeybaseServiceMeasured struct {
 	resolveTimer                     metrics.Timer
 	identifyTimer                    metrics.Timer
 	resolveIdentifyImplicitTeamTimer metrics.Timer
+	resolveImplicitTeamByIDTimer     metrics.Timer
 	loadUserPlusKeysTimer            metrics.Timer
 	loadTeamPlusKeysTimer            metrics.Timer
 	loadUnverifiedKeysTimer          metrics.Timer
@@ -42,6 +43,8 @@ func NewKeybaseServiceMeasured(delegate KeybaseService, r metrics.Registry) Keyb
 	identifyTimer := metrics.GetOrRegisterTimer("KeybaseService.Identify", r)
 	resolveIdentifyImplicitTeamTimer := metrics.GetOrRegisterTimer(
 		"KeybaseService.ResolveIdentifyImplicitTeam", r)
+	resolveImplicitTeamByIDTimer := metrics.GetOrRegisterTimer(
+		"KeybaseService.ResolveImplicitTeamByID", r)
 	loadUserPlusKeysTimer := metrics.GetOrRegisterTimer("KeybaseService.LoadUserPlusKeys", r)
 	loadTeamPlusKeysTimer := metrics.GetOrRegisterTimer("KeybaseService.LoadTeamPlusKeys", r)
 	loadUnverifiedKeysTimer := metrics.GetOrRegisterTimer("KeybaseService.LoadUnverifiedKeys", r)
@@ -59,6 +62,7 @@ func NewKeybaseServiceMeasured(delegate KeybaseService, r metrics.Registry) Keyb
 		resolveTimer:                     resolveTimer,
 		identifyTimer:                    identifyTimer,
 		resolveIdentifyImplicitTeamTimer: resolveIdentifyImplicitTeamTimer,
+		resolveImplicitTeamByIDTimer:     resolveImplicitTeamByIDTimer,
 		loadUserPlusKeysTimer:            loadUserPlusKeysTimer,
 		loadTeamPlusKeysTimer:            loadTeamPlusKeysTimer,
 		loadUnverifiedKeysTimer:          loadUnverifiedKeysTimer,
@@ -101,6 +105,16 @@ func (k KeybaseServiceMeasured) ResolveIdentifyImplicitTeam(
 			ctx, assertions, suffix, tlfType, doIdentifies, reason)
 	})
 	return info, err
+}
+
+// ResolveImplicitTeamByID implements the KeybaseService interface for
+// KeybaseServiceMeasured.
+func (k KeybaseServiceMeasured) ResolveImplicitTeamByID(
+	ctx context.Context, teamID keybase1.TeamID) (name string, err error) {
+	k.resolveImplicitTeamByIDTimer.Time(func() {
+		name, err = k.delegate.ResolveImplicitTeamByID(ctx, teamID)
+	})
+	return name, err
 }
 
 // LoadUserPlusKeys implements the KeybaseService interface for KeybaseServiceMeasured.

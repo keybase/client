@@ -521,6 +521,21 @@ func (k *KeybaseServiceBase) ResolveIdentifyImplicitTeam(
 	return iteamInfo, nil
 }
 
+// ResolveImplicitTeamByID implements the KeybaseService interface for
+// KeybaseServiceBase.
+func (k *KeybaseServiceBase) ResolveImplicitTeamByID(
+	ctx context.Context, teamID keybase1.TeamID) (name string, err error) {
+	arg := keybase1.ResolveImplicitTeamArg{
+		Id: teamID,
+	}
+
+	res, err := k.identifyClient.ResolveImplicitTeam(ctx, arg)
+	if err != nil {
+		return "", err
+	}
+	return res.Name, nil
+}
+
 // LoadUserPlusKeys implements the KeybaseService interface for
 // KeybaseServiceBase.
 func (k *KeybaseServiceBase) LoadUserPlusKeys(ctx context.Context,

@@ -65,6 +65,25 @@ func (k *KBPKIClient) ResolveImplicitTeam(
 		ctx, assertions, suffix, tlfType, false, "")
 }
 
+// ResolveImplicitTeamByID implements the KBPKI interface for KBPKIClient.
+func (k *KBPKIClient) ResolveImplicitTeamByID(
+	ctx context.Context, teamID keybase1.TeamID, tlfType tlf.Type) (
+	ImplicitTeamInfo, error) {
+	name, err := k.serviceOwner.KeybaseService().ResolveImplicitTeamByID(
+		ctx, teamID)
+	if err != nil {
+		return ImplicitTeamInfo{}, err
+	}
+
+	assertions, suffix, err := tlf.SplitExtension(name)
+	if err != nil {
+		return ImplicitTeamInfo{}, err
+	}
+
+	return k.serviceOwner.KeybaseService().ResolveIdentifyImplicitTeam(
+		ctx, assertions, suffix, tlfType, false, "")
+}
+
 // IdentifyImplicitTeam identifies (and creates if necessary) the
 // given implicit team.
 func (k *KBPKIClient) IdentifyImplicitTeam(
