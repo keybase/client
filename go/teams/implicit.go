@@ -211,7 +211,7 @@ func formatImplicitTeamDisplayNameCommon(ctx context.Context, g *libkb.GlobalCon
 	}
 
 	var suffix string
-	if impTeamName.ConflictInfo != nil {
+	if impTeamName.ConflictInfo != nil && impTeamName.ConflictInfo.IsConflict() {
 		suffix = libkb.FormatImplicitTeamDisplayNameSuffix(*impTeamName.ConflictInfo)
 	}
 

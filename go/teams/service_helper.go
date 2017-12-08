@@ -87,6 +87,13 @@ func Details(ctx context.Context, g *libkb.GlobalContext, name string, forceRepo
 		if cat != keybase1.TeamInviteCategory_KEYBASE {
 			continue
 		}
+		if !invite.UserActive {
+			// Skip inactive puk-less members for now.
+			// Causes duplicate usernames in team list which we
+			// don't want.
+			delete(res.AnnotatedActiveInvites, invID)
+			continue
+		}
 		details := keybase1.TeamMemberDetails{
 			Uv:       invite.Uv,
 			Username: string(invite.Name),
@@ -642,6 +649,14 @@ func AcceptInvite(ctx context.Context, g *libkb.GlobalContext, token string) err
 	return err
 }
 
+func ParseAndAcceptSeitanToken(ctx context.Context, g *libkb.GlobalContext, tok string) error {
+	seitan, err := GenerateIKeyFromString(tok)
+	if err != nil {
+		return err
+	}
+	return AcceptSeitan(ctx, g, seitan)
+}
+
 func AcceptSeitan(ctx context.Context, g *libkb.GlobalContext, ikey SeitanIKey) error {
 	me, err := libkb.LoadMe(libkb.NewLoadUserArgWithContext(ctx, g))
 	if err != nil {
@@ -839,38 +854,45 @@ func RequestAccess(ctx context.Context, g *libkb.GlobalContext, teamname string)
 }
 
 func TeamAcceptInviteOrRequestAccess(ctx context.Context, g *libkb.GlobalContext, tokenOrName string) (keybase1.TeamAcceptOrRequestResult, error) {
-	// Check if it's a Seitan IKey.
-	seitan, err := GenerateIKeyFromString(tokenOrName)
-	if err == nil {
-		g.Log.CDebugf(ctx, "trying seitan token")
-		err = AcceptSeitan(ctx, g, seitan)
-		if err == nil {
-			return keybase1.TeamAcceptOrRequestResult{
-				WasSeitan: true,
-			}, nil
+	g.Log.CDebugf(ctx, "trying seitan token")
+
+	// If token looks at all like Seitan, don't pass to functions that might log or send to server.
+	maybeSeitan, keepSecret := ParseSeitanTokenFromPaste(tokenOrName)
+	if keepSecret {
+		g.Log.CDebugf(ctx, "found seitan-ish token")
+		seitan, err := GenerateIKeyFromString(maybeSeitan)
+		if err != nil {
+			return keybase1.TeamAcceptOrRequestResult{}, err
 		}
+		g.Log.CDebugf(ctx, "found seitan token")
+		err = AcceptSeitan(ctx, g, seitan)
+		return keybase1.TeamAcceptOrRequestResult{WasSeitan: true}, err
 	}
 
-	// If not, maybe it's a server-trust invite e-mail token.
 	g.Log.CDebugf(ctx, "trying email-style invite")
-	err = AcceptInvite(ctx, g, tokenOrName)
+	err := AcceptInvite(ctx, g, tokenOrName)
 	if err == nil {
 		return keybase1.TeamAcceptOrRequestResult{
 			WasToken: true,
 		}, nil
 	}
+	g.Log.CDebugf(ctx, "email-style invite error: %v", err)
+	reportErr := err
 
-	// Failing that, request access as a team name
-	g.Log.CDebugf(ctx, "trying team request")
-	ret, err := RequestAccess(ctx, g, tokenOrName)
+	g.Log.CDebugf(ctx, "trying team name")
+	_, err = keybase1.TeamNameFromString(tokenOrName)
 	if err == nil {
-		return keybase1.TeamAcceptOrRequestResult{
+		ret2, err := RequestAccess(ctx, g, tokenOrName)
+		ret := keybase1.TeamAcceptOrRequestResult{
 			WasTeamName: true,
-			WasOpenTeam: ret.Open,
-		}, nil
+			WasOpenTeam: ret2.Open, // this is probably just false in error case
+		}
+		return ret, err
 	}
+	g.Log.CDebugf(ctx, "not a team name")
 
-	return keybase1.TeamAcceptOrRequestResult{}, err
+	// We don't know what this thing is. Return the error from AcceptInvite.
+	return keybase1.TeamAcceptOrRequestResult{}, reportErr
 }
 
 type accessRequest struct {
@@ -1268,4 +1290,32 @@ func TeamDebug(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.Team
 		return res, err
 	}
 	return keybase1.TeamDebugRes{Chain: team.Data.Chain}, nil
+}
+
+func MapImplicitTeamIDToDisplayName(ctx context.Context, g *libkb.GlobalContext, id keybase1.TeamID, isPublic bool) (folder keybase1.Folder, err error) {
+
+	team, err := Load(ctx, g, keybase1.LoadTeamArg{
+		ID:     id,
+		Public: isPublic,
+	})
+	if err != nil {
+		return folder, err
+	}
+
+	itdn, err := team.ImplicitTeamDisplayName(ctx)
+	if err != nil {
+		return folder, err
+	}
+
+	folder.Name, err = FormatImplicitTeamDisplayName(ctx, g, itdn)
+	if err != nil {
+		return folder, err
+	}
+	folder.Private = !isPublic
+	if isPublic {
+		folder.FolderType = keybase1.FolderType_PUBLIC
+	} else {
+		folder.FolderType = keybase1.FolderType_PRIVATE
+	}
+	return folder, nil
 }
