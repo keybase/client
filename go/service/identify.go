@@ -327,8 +327,8 @@ func (h *IdentifyHandler) resolveIdentifyImplicitTeamDoIdentifies(ctx context.Co
 
 func (h *IdentifyHandler) ResolveImplicitTeam(ctx context.Context, arg keybase1.ResolveImplicitTeamArg) (res keybase1.Folder, err error) {
 	ctx = libkb.WithLogTag(ctx, "RIT")
-	defer h.G().CTraceTimed(ctx, fmt.Sprintf("ResolveImplicitTeam(%s, %v)", arg.Id, arg.IsPublic), func() error { return err })()
-	return teams.MapImplicitTeamIDToDisplayName(ctx, h.G(), arg.Id, arg.IsPublic)
+	defer h.G().CTraceTimed(ctx, fmt.Sprintf("ResolveImplicitTeam(%s)", arg.Id), func() error { return err })()
+	return teams.MapImplicitTeamIDToDisplayName(ctx, h.G(), arg.Id, arg.Id.IsPublic())
 }
 
 func (u *RemoteIdentifyUI) newContext() (context.Context, func()) {
