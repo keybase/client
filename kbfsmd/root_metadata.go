@@ -322,8 +322,7 @@ func MakeInitialRootMetadata(
 	}
 	if ver < ImplicitTeamsVer && tlfID.Type() != tlf.SingleTeam &&
 		h.TypeForKeying() == tlf.TeamKeying {
-		return nil, errors.Errorf(
-			"Can't make an implicit teams TLF with version %s", ver)
+		return nil, NewMetadataVersionError{tlfID, ImplicitTeamsVer}
 	}
 
 	if ver < SegregatedKeyBundlesVer {
