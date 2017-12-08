@@ -156,7 +156,6 @@ function* installFuseSaga(): Saga.SagaGenerator<any, any> {
 function findKeybaseUninstallString(): Promise<string> {
   console.log('findKeybaseUninstallString')
   return new Promise((resolve, reject) => {
-    // $FlowIssue
     const regedit = require('regedit')
     const keybaseRegPath = 'HKCU\\SOFTWARE\\Keybase\\Keybase'
     try {
