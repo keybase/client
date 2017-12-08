@@ -9,6 +9,7 @@ import {navigateAppend} from '../../actions/route-tree'
 import {
   connect,
   compose,
+  lifecycle,
   withHandlers,
   withPropsOnChange,
   withState,
@@ -25,6 +26,7 @@ const mapStateToProps = (state: TypedState, {routeProps}) => {
 }
 
 const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routeProps}) => ({
+  _getSuggestions: () => dispatch(SearchGen.createSearchSuggestions({searchKey: 'addToTeamSearch'})),
   onAddPeople: (role: string, sendNotification: boolean) => {
     dispatch(Creators.addPeopleToTeam(routeProps.get('teamname'), role, sendNotification))
     dispatch(navigateUp())
@@ -69,6 +71,9 @@ export default compose(
       onCancel: () => props.onClose(),
       title: 'Add people',
     })),
+    lifecycle({
+      componentWillMount: function() { this.props._getSuggestions() },
+    }),
     withHandlers({
       onAddPeople: ({onAddPeople, role, sendNotification}) => () =>
         role && onAddPeople(role, sendNotification),
