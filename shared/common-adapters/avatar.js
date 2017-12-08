@@ -4,7 +4,7 @@ import Render, {type AvatarSize} from './avatar.render'
 import pickBy from 'lodash/pickBy'
 import {iconTypeToImgSet, urlsToImgSet, type IconType} from './icon'
 import {isTesting} from '../local-debug'
-import {connect, type TypedState, lifecycle, compose} from '../util/container'
+import {connect, type TypedState, lifecycle, compose, withProps} from '../util/container'
 import {globalStyles} from '../styles'
 import * as ConfigGen from '../actions/config-gen'
 
@@ -121,12 +121,12 @@ const mapStateToProps = (state: TypedState, ownProps: Props) => {
   let _urlMap
 
   const name = ownProps.username || ownProps.teamname
-  if (!isTesting && name) {
+  if (name) {
     _urlMap = state.config.avatars[name]
   }
 
   return {
-    _needAskForData: !isTesting && !state.config.avatars.hasOwnProperty(name),
+    _needAskForData: !state.config.avatars.hasOwnProperty(name),
     _urlMap,
   }
 }
@@ -170,7 +170,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
   let url
   let isPlaceholder
 
-  if (!isTesting && stateProps._urlMap) {
+  if (stateProps._urlMap) {
     url = urlsToImgSet(pickBy(stateProps._urlMap, value => value), ownProps.size)
     isPlaceholder = false
   }
@@ -210,7 +210,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
 
 // We could theoretically bundle all these requests into one action but this is simpler for now
 export type {AvatarSize}
-export default compose(
+const real = compose(
   connect(mapStateToProps, mapDispatchToProps, mergeProps),
   lifecycle({
     componentWillMount() {
@@ -229,3 +229,40 @@ export default compose(
     },
   })
 )(Render)
+
+const mock = compose(
+  withProps(props => {
+    const isTeam = !!props.teamname
+    const placeholder = isTeam ? teamPlaceHolders : avatarPlaceHolders
+    const url = iconTypeToImgSet(placeholder[String(props.size)], props.size)
+
+    let style
+    if (props.style) {
+      if (props.onClick) {
+        style = {...props.style, ...globalStyles.clickable}
+      } else {
+        style = props.style
+      }
+    } else if (props.onClick) {
+      style = globalStyles.clickable
+    }
+
+    return {
+      borderColor: props.borderColor,
+      children: props.children,
+      followIconSize: _followIconSize(props.size, props.followsYou, props.following),
+      followIconStyle: followSizeToStyle[props.size],
+      followIconType: _followIconType(props.size, props.followsYou, props.following),
+      isPlaceholder: true,
+      isTeam,
+      loadingColor: props.loadingColor,
+      onClick: props.onClick,
+      opacity: props.opacity,
+      size: props.size,
+      style,
+      url,
+    }
+  })
+)(Render)
+
+export default (isTesting ? mock : real)
