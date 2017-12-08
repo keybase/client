@@ -599,7 +599,6 @@ exports[`Storyshots Chat/Conversation/InfoPanel Participants (with add button) 1
   flex-direction: row;
   flex-wrap: wrap;
   text-decoration: inherit;
-  margin-left: 12px;
   -webkit-box-orient: horizontal;
   -webkit-box-direction: normal;
   -webkit-flex-direction: row;
@@ -640,10 +639,6 @@ exports[`Storyshots Chat/Conversation/InfoPanel Participants (with add button) 1
   text-rendering: optimizeLegibility;
   font-family: OpenSans;
   font-weight: 400;
-  flex: 1;
-  margin-left: 8px;
-  text-align: right;
-  -webkit-flex: 1;
 }
 
 .glamor-8,
@@ -726,7 +721,7 @@ exports[`Storyshots Chat/Conversation/InfoPanel Participants (with add button) 1
                 "cursor": "pointer",
                 "display": "flex",
                 "flexDirection": "column",
-                "minHeight": 40,
+                "minHeight": 48,
                 "paddingLeft": 16,
                 "paddingRight": 16,
               }
@@ -763,32 +758,42 @@ exports[`Storyshots Chat/Conversation/InfoPanel Participants (with add button) 1
                   className="glamor-1"
                 />
               </div>
-              <span
-                className="glamor-4"
-                onClick={undefined}
-                title={undefined}
+              <div
+                style={
+                  Object {
+                    "display": "flex",
+                    "flexDirection": "column",
+                    "marginLeft": 16,
+                  }
+                }
               >
                 <span
-                  className="glamor-3"
+                  className="glamor-4"
                   onClick={undefined}
                   title={undefined}
                 >
                   <span
-                    className="glamor-2"
+                    className="glamor-3"
                     onClick={undefined}
                     title={undefined}
                   >
-                    akalin
+                    <span
+                      className="glamor-2"
+                      onClick={undefined}
+                      title={undefined}
+                    >
+                      akalin
+                    </span>
                   </span>
                 </span>
-              </span>
-              <span
-                className="glamor-5"
-                onClick={undefined}
-                title={undefined}
-              >
-                Fred Akalin
-              </span>
+                <span
+                  className="glamor-5"
+                  onClick={undefined}
+                  title={undefined}
+                >
+                  Fred Akalin
+                </span>
+              </div>
             </div>
           </div>
         </div>
@@ -821,7 +826,7 @@ exports[`Storyshots Chat/Conversation/InfoPanel Participants (with add button) 1
                 "cursor": "pointer",
                 "display": "flex",
                 "flexDirection": "column",
-                "minHeight": 40,
+                "minHeight": 48,
                 "paddingLeft": 16,
                 "paddingRight": 16,
               }
@@ -858,32 +863,42 @@ exports[`Storyshots Chat/Conversation/InfoPanel Participants (with add button) 1
                   className="glamor-1"
                 />
               </div>
-              <span
-                className="glamor-4"
-                onClick={undefined}
-                title={undefined}
+              <div
+                style={
+                  Object {
+                    "display": "flex",
+                    "flexDirection": "column",
+                    "marginLeft": 16,
+                  }
+                }
               >
                 <span
-                  className="glamor-3"
+                  className="glamor-4"
                   onClick={undefined}
                   title={undefined}
                 >
                   <span
-                    className="glamor-8"
+                    className="glamor-3"
                     onClick={undefined}
                     title={undefined}
                   >
-                    strib
+                    <span
+                      className="glamor-8"
+                      onClick={undefined}
+                      title={undefined}
+                    >
+                      strib
+                    </span>
                   </span>
                 </span>
-              </span>
-              <span
-                className="glamor-5"
-                onClick={undefined}
-                title={undefined}
-              >
-                Jeremy Stribling
-              </span>
+                <span
+                  className="glamor-5"
+                  onClick={undefined}
+                  title={undefined}
+                >
+                  Jeremy Stribling
+                </span>
+              </div>
             </div>
           </div>
         </div>
@@ -916,7 +931,7 @@ exports[`Storyshots Chat/Conversation/InfoPanel Participants (with add button) 1
                 "cursor": "pointer",
                 "display": "flex",
                 "flexDirection": "column",
-                "minHeight": 40,
+                "minHeight": 48,
                 "paddingLeft": 16,
                 "paddingRight": 16,
               }
@@ -953,32 +968,42 @@ exports[`Storyshots Chat/Conversation/InfoPanel Participants (with add button) 1
                   className="glamor-1"
                 />
               </div>
-              <span
-                className="glamor-4"
-                onClick={undefined}
-                title={undefined}
+              <div
+                style={
+                  Object {
+                    "display": "flex",
+                    "flexDirection": "column",
+                    "marginLeft": 16,
+                  }
+                }
               >
                 <span
-                  className="glamor-3"
+                  className="glamor-4"
                   onClick={undefined}
                   title={undefined}
                 >
                   <span
-                    className="glamor-14"
+                    className="glamor-3"
                     onClick={undefined}
                     title={undefined}
                   >
-                    max
+                    <span
+                      className="glamor-14"
+                      onClick={undefined}
+                      title={undefined}
+                    >
+                      max
+                    </span>
                   </span>
                 </span>
-              </span>
-              <span
-                className="glamor-5"
-                onClick={undefined}
-                title={undefined}
-              >
-                Max Krohn
-              </span>
+                <span
+                  className="glamor-5"
+                  onClick={undefined}
+                  title={undefined}
+                >
+                  Max Krohn
+                </span>
+              </div>
             </div>
           </div>
         </div>
@@ -1033,7 +1058,6 @@ exports[`Storyshots Chat/Conversation/InfoPanel Participants 1`] = `
   flex-direction: row;
   flex-wrap: wrap;
   text-decoration: inherit;
-  margin-left: 12px;
   -webkit-box-orient: horizontal;
   -webkit-box-direction: normal;
   -webkit-flex-direction: row;
@@ -1074,10 +1098,6 @@ exports[`Storyshots Chat/Conversation/InfoPanel Participants 1`] = `
   text-rendering: optimizeLegibility;
   font-family: OpenSans;
   font-weight: 400;
-  flex: 1;
-  margin-left: 8px;
-  text-align: right;
-  -webkit-flex: 1;
 }
 
 .glamor-8,
@@ -1160,7 +1180,7 @@ exports[`Storyshots Chat/Conversation/InfoPanel Participants 1`] = `
                 "cursor": "pointer",
                 "display": "flex",
                 "flexDirection": "column",
-                "minHeight": 40,
+                "minHeight": 48,
                 "paddingLeft": 16,
                 "paddingRight": 16,
               }
@@ -1197,32 +1217,42 @@ exports[`Storyshots Chat/Conversation/InfoPanel Participants 1`] = `
                   className="glamor-1"
                 />
               </div>
-              <span
-                className="glamor-4"
-                onClick={undefined}
-                title={undefined}
+              <div
+                style={
+                  Object {
+                    "display": "flex",
+                    "flexDirection": "column",
+                    "marginLeft": 16,
+                  }
+                }
               >
                 <span
-                  className="glamor-3"
+                  className="glamor-4"
                   onClick={undefined}
                   title={undefined}
                 >
                   <span
-                    className="glamor-2"
+                    className="glamor-3"
                     onClick={undefined}
                     title={undefined}
                   >
-                    akalin
+                    <span
+                      className="glamor-2"
+                      onClick={undefined}
+                      title={undefined}
+                    >
+                      akalin
+                    </span>
                   </span>
                 </span>
-              </span>
-              <span
-                className="glamor-5"
-                onClick={undefined}
-                title={undefined}
-              >
-                Fred Akalin
-              </span>
+                <span
+                  className="glamor-5"
+                  onClick={undefined}
+                  title={undefined}
+                >
+                  Fred Akalin
+                </span>
+              </div>
             </div>
           </div>
         </div>
@@ -1255,7 +1285,7 @@ exports[`Storyshots Chat/Conversation/InfoPanel Participants 1`] = `
                 "cursor": "pointer",
                 "display": "flex",
                 "flexDirection": "column",
-                "minHeight": 40,
+                "minHeight": 48,
                 "paddingLeft": 16,
                 "paddingRight": 16,
               }
@@ -1292,32 +1322,42 @@ exports[`Storyshots Chat/Conversation/InfoPanel Participants 1`] = `
                   className="glamor-1"
                 />
               </div>
-              <span
-                className="glamor-4"
-                onClick={undefined}
-                title={undefined}
+              <div
+                style={
+                  Object {
+                    "display": "flex",
+                    "flexDirection": "column",
+                    "marginLeft": 16,
+                  }
+                }
               >
                 <span
-                  className="glamor-3"
+                  className="glamor-4"
                   onClick={undefined}
                   title={undefined}
                 >
                   <span
-                    className="glamor-8"
+                    className="glamor-3"
                     onClick={undefined}
                     title={undefined}
                   >
-                    strib
+                    <span
+                      className="glamor-8"
+                      onClick={undefined}
+                      title={undefined}
+                    >
+                      strib
+                    </span>
                   </span>
                 </span>
-              </span>
-              <span
-                className="glamor-5"
-                onClick={undefined}
-                title={undefined}
-              >
-                Jeremy Stribling
-              </span>
+                <span
+                  className="glamor-5"
+                  onClick={undefined}
+                  title={undefined}
+                >
+                  Jeremy Stribling
+                </span>
+              </div>
             </div>
           </div>
         </div>
@@ -1350,7 +1390,7 @@ exports[`Storyshots Chat/Conversation/InfoPanel Participants 1`] = `
                 "cursor": "pointer",
                 "display": "flex",
                 "flexDirection": "column",
-                "minHeight": 40,
+                "minHeight": 48,
                 "paddingLeft": 16,
                 "paddingRight": 16,
               }
@@ -1387,32 +1427,42 @@ exports[`Storyshots Chat/Conversation/InfoPanel Participants 1`] = `
                   className="glamor-1"
                 />
               </div>
-              <span
-                className="glamor-4"
-                onClick={undefined}
-                title={undefined}
+              <div
+                style={
+                  Object {
+                    "display": "flex",
+                    "flexDirection": "column",
+                    "marginLeft": 16,
+                  }
+                }
               >
                 <span
-                  className="glamor-3"
+                  className="glamor-4"
                   onClick={undefined}
                   title={undefined}
                 >
                   <span
-                    className="glamor-14"
+                    className="glamor-3"
                     onClick={undefined}
                     title={undefined}
                   >
-                    max
+                    <span
+                      className="glamor-14"
+                      onClick={undefined}
+                      title={undefined}
+                    >
+                      max
+                    </span>
                   </span>
                 </span>
-              </span>
-              <span
-                className="glamor-5"
-                onClick={undefined}
-                title={undefined}
-              >
-                Max Krohn
-              </span>
+                <span
+                  className="glamor-5"
+                  onClick={undefined}
+                  title={undefined}
+                >
+                  Max Krohn
+                </span>
+              </div>
             </div>
           </div>
         </div>
@@ -27491,7 +27541,7 @@ exports[`Storyshots Search Result 1`] = `
                 Object {
                   "display": "flex",
                   "flexDirection": "column",
-                  "marginLeft": 8,
+                  "marginLeft": 16,
                 }
               }
             >
@@ -27537,7 +27587,7 @@ exports[`Storyshots Search Result 1`] = `
               Object {
                 "backgroundColor": "rgba(0, 0, 0, 0.05)",
                 "bottom": 0,
-                "left": 48,
+                "left": 56,
                 "maxHeight": 1,
                 "minHeight": 1,
                 "position": "absolute",
@@ -27640,7 +27690,7 @@ exports[`Storyshots Search Result 1`] = `
                 Object {
                   "display": "flex",
                   "flexDirection": "column",
-                  "marginLeft": 8,
+                  "marginLeft": 16,
                 }
               }
             >
@@ -27686,7 +27736,7 @@ exports[`Storyshots Search Result 1`] = `
               Object {
                 "backgroundColor": "rgba(0, 0, 0, 0.05)",
                 "bottom": 0,
-                "left": 48,
+                "left": 56,
                 "maxHeight": 1,
                 "minHeight": 1,
                 "position": "absolute",
@@ -27788,7 +27838,7 @@ exports[`Storyshots Search Result 1`] = `
                 Object {
                   "display": "flex",
                   "flexDirection": "column",
-                  "marginLeft": 8,
+                  "marginLeft": 16,
                 }
               }
             >
@@ -27834,7 +27884,7 @@ exports[`Storyshots Search Result 1`] = `
               Object {
                 "backgroundColor": "rgba(0, 0, 0, 0.05)",
                 "bottom": 0,
-                "left": 48,
+                "left": 56,
                 "maxHeight": 1,
                 "minHeight": 1,
                 "position": "absolute",
@@ -27936,7 +27986,7 @@ exports[`Storyshots Search Result 1`] = `
                 Object {
                   "display": "flex",
                   "flexDirection": "column",
-                  "marginLeft": 8,
+                  "marginLeft": 16,
                 }
               }
             >
@@ -27982,7 +28032,7 @@ exports[`Storyshots Search Result 1`] = `
               Object {
                 "backgroundColor": "rgba(0, 0, 0, 0.05)",
                 "bottom": 0,
-                "left": 48,
+                "left": 56,
                 "maxHeight": 1,
                 "minHeight": 1,
                 "position": "absolute",
@@ -28084,7 +28134,7 @@ exports[`Storyshots Search Result 1`] = `
                 Object {
                   "display": "flex",
                   "flexDirection": "column",
-                  "marginLeft": 8,
+                  "marginLeft": 16,
                 }
               }
             >
@@ -28130,7 +28180,7 @@ exports[`Storyshots Search Result 1`] = `
               Object {
                 "backgroundColor": "rgba(0, 0, 0, 0.05)",
                 "bottom": 0,
-                "left": 48,
+                "left": 56,
                 "maxHeight": 1,
                 "minHeight": 1,
                 "position": "absolute",
@@ -28232,7 +28282,7 @@ exports[`Storyshots Search Result 1`] = `
                 Object {
                   "display": "flex",
                   "flexDirection": "column",
-                  "marginLeft": 8,
+                  "marginLeft": 16,
                 }
               }
             >
@@ -28305,7 +28355,7 @@ exports[`Storyshots Search Result 1`] = `
               Object {
                 "backgroundColor": "rgba(0, 0, 0, 0.05)",
                 "bottom": 0,
-                "left": 48,
+                "left": 56,
                 "maxHeight": 1,
                 "minHeight": 1,
                 "position": "absolute",
@@ -28407,7 +28457,7 @@ exports[`Storyshots Search Result 1`] = `
                 Object {
                   "display": "flex",
                   "flexDirection": "column",
-                  "marginLeft": 8,
+                  "marginLeft": 16,
                 }
               }
             >
@@ -28491,7 +28541,7 @@ exports[`Storyshots Search Result 1`] = `
               Object {
                 "backgroundColor": "rgba(0, 0, 0, 0.05)",
                 "bottom": 0,
-                "left": 48,
+                "left": 56,
                 "maxHeight": 1,
                 "minHeight": 1,
                 "position": "absolute",
@@ -28593,7 +28643,7 @@ exports[`Storyshots Search Result 1`] = `
                 Object {
                   "display": "flex",
                   "flexDirection": "column",
-                  "marginLeft": 8,
+                  "marginLeft": 16,
                 }
               }
             >
@@ -28677,7 +28727,7 @@ exports[`Storyshots Search Result 1`] = `
               Object {
                 "backgroundColor": "rgba(0, 0, 0, 0.05)",
                 "bottom": 0,
-                "left": 48,
+                "left": 56,
                 "maxHeight": 1,
                 "minHeight": 1,
                 "position": "absolute",
@@ -28771,7 +28821,7 @@ exports[`Storyshots Search Result 1`] = `
                 Object {
                   "display": "flex",
                   "flexDirection": "column",
-                  "marginLeft": 8,
+                  "marginLeft": 16,
                 }
               }
             >
@@ -28817,7 +28867,7 @@ exports[`Storyshots Search Result 1`] = `
               Object {
                 "backgroundColor": "rgba(0, 0, 0, 0.05)",
                 "bottom": 0,
-                "left": 48,
+                "left": 56,
                 "maxHeight": 1,
                 "minHeight": 1,
                 "position": "absolute",
@@ -28911,7 +28961,7 @@ exports[`Storyshots Search Result 1`] = `
                 Object {
                   "display": "flex",
                   "flexDirection": "column",
-                  "marginLeft": 8,
+                  "marginLeft": 16,
                 }
               }
             >
@@ -28991,7 +29041,7 @@ exports[`Storyshots Search Result 1`] = `
               Object {
                 "backgroundColor": "rgba(0, 0, 0, 0.05)",
                 "bottom": 0,
-                "left": 48,
+                "left": 56,
                 "maxHeight": 1,
                 "minHeight": 1,
                 "position": "absolute",
@@ -29085,7 +29135,7 @@ exports[`Storyshots Search Result 1`] = `
                 Object {
                   "display": "flex",
                   "flexDirection": "column",
-                  "marginLeft": 8,
+                  "marginLeft": 16,
                 }
               }
             >
@@ -29165,7 +29215,7 @@ exports[`Storyshots Search Result 1`] = `
               Object {
                 "backgroundColor": "rgba(0, 0, 0, 0.05)",
                 "bottom": 0,
-                "left": 48,
+                "left": 56,
                 "maxHeight": 1,
                 "minHeight": 1,
                 "position": "absolute",
@@ -29259,7 +29309,7 @@ exports[`Storyshots Search Result 1`] = `
                 Object {
                   "display": "flex",
                   "flexDirection": "column",
-                  "marginLeft": 8,
+                  "marginLeft": 16,
                 }
               }
             >
@@ -29339,7 +29389,7 @@ exports[`Storyshots Search Result 1`] = `
               Object {
                 "backgroundColor": "rgba(0, 0, 0, 0.05)",
                 "bottom": 0,
-                "left": 48,
+                "left": 56,
                 "maxHeight": 1,
                 "minHeight": 1,
                 "position": "absolute",
@@ -29433,7 +29483,7 @@ exports[`Storyshots Search Result 1`] = `
                 Object {
                   "display": "flex",
                   "flexDirection": "column",
-                  "marginLeft": 8,
+                  "marginLeft": 16,
                 }
               }
             >
@@ -29513,7 +29563,7 @@ exports[`Storyshots Search Result 1`] = `
               Object {
                 "backgroundColor": "rgba(0, 0, 0, 0.05)",
                 "bottom": 0,
-                "left": 48,
+                "left": 56,
                 "maxHeight": 1,
                 "minHeight": 1,
                 "position": "absolute",
@@ -29607,7 +29657,7 @@ exports[`Storyshots Search Result 1`] = `
                 Object {
                   "display": "flex",
                   "flexDirection": "column",
-                  "marginLeft": 8,
+                  "marginLeft": 16,
                 }
               }
             >
@@ -29653,7 +29703,7 @@ exports[`Storyshots Search Result 1`] = `
               Object {
                 "backgroundColor": "rgba(0, 0, 0, 0.05)",
                 "bottom": 0,
-                "left": 48,
+                "left": 56,
                 "maxHeight": 1,
                 "minHeight": 1,
                 "position": "absolute",
@@ -29747,7 +29797,7 @@ exports[`Storyshots Search Result 1`] = `
                 Object {
                   "display": "flex",
                   "flexDirection": "column",
-                  "marginLeft": 8,
+                  "marginLeft": 16,
                 }
               }
             >
@@ -29793,7 +29843,7 @@ exports[`Storyshots Search Result 1`] = `
               Object {
                 "backgroundColor": "rgba(0, 0, 0, 0.05)",
                 "bottom": 0,
-                "left": 48,
+                "left": 56,
                 "maxHeight": 1,
                 "minHeight": 1,
                 "position": "absolute",
@@ -29887,7 +29937,7 @@ exports[`Storyshots Search Result 1`] = `
                 Object {
                   "display": "flex",
                   "flexDirection": "column",
-                  "marginLeft": 8,
+                  "marginLeft": 16,
                 }
               }
             >
@@ -29933,7 +29983,7 @@ exports[`Storyshots Search Result 1`] = `
               Object {
                 "backgroundColor": "rgba(0, 0, 0, 0.05)",
                 "bottom": 0,
-                "left": 48,
+                "left": 56,
                 "maxHeight": 1,
                 "minHeight": 1,
                 "position": "absolute",
@@ -30027,7 +30077,7 @@ exports[`Storyshots Search Result 1`] = `
                 Object {
                   "display": "flex",
                   "flexDirection": "column",
-                  "marginLeft": 8,
+                  "marginLeft": 16,
                 }
               }
             >
@@ -30073,7 +30123,7 @@ exports[`Storyshots Search Result 1`] = `
               Object {
                 "backgroundColor": "rgba(0, 0, 0, 0.05)",
                 "bottom": 0,
-                "left": 48,
+                "left": 56,
                 "maxHeight": 1,
                 "minHeight": 1,
                 "position": "absolute",
@@ -36516,7 +36566,6 @@ exports[`Storyshots Team Roles Picker 1`] = `
               }
             }
           >
-            
             <span
               className="glamor-10"
               onClick={undefined}
@@ -36603,7 +36652,6 @@ exports[`Storyshots Team Roles Picker 1`] = `
               }
             }
           >
-            
             <span
               className="glamor-3"
               onClick={undefined}
@@ -36768,30 +36816,6 @@ exports[`Storyshots Teams BetaNote 1`] = `
   font-size: 11px;
   line-height: 15px;
   color: rgba(0, 0, 0, 0.40);
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  font-family: OpenSans;
-  font-weight: 400;
-}
-
-.glamor-2,
-[data-glamor-2] {
-  font-size: 11px;
-  line-height: 15px;
-  color: rgba(0, 0, 0, 0.40);
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  font-family: OpenSans;
-  font-weight: 400;
-  max-width: 426px;
-  text-align: center;
-}
-
-.glamor-3,
-[data-glamor-3] {
-  font-size: 11px;
-  line-height: 15px;
-  color: rgba(0, 0, 0, 0.40);
   cursor: pointer;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
@@ -36879,25 +36903,11 @@ exports[`Storyshots Teams BetaNote 1`] = `
         />
       </div>
       <span
-        className="glamor-1"
-        onClick={undefined}
-        title={undefined}
-      >
-        Teams are still very early-stage!
-      </span>
-      <span
-        className="glamor-2"
-        onClick={undefined}
-        title={undefined}
-      >
-        For now the GUI only allows you to create simple teams with no channels or subteams, but you can get to more complex teams using the command line.
-      </span>
-      <span
-        className="glamor-3 hover-underline"
+        className="glamor-1 hover-underline"
         onClick={[Function]}
         title={undefined}
       >
-        Read more
+        Read more about teams here
       </span>
     </div>
   </div>
