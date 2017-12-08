@@ -71,8 +71,8 @@
 if NOT exist Redist\VCRedist_2017\vc_redist.x86.exe (
 if NOT exist Redist\ mkdir Redist
 if NOT exist Redist\VCRedist_2017\ mkdir Redist\VCRedist_2017\
-powershell -command "wget https://download.visualstudio.microsoft.com/download/pr/11100230/15ccb3f02745c7b206ad10373cbca89b/VC_redist.x64.exe -OutFile Redist\VCRedist_2017\VC_redist.x86.exe"
-powershell -command "wget https://download.visualstudio.microsoft.com/download/pr/11100229/78c1e864d806e36f6035d80a0e80399e/VC_redist.x86.exe -OutFile Redist\VCRedist_2017\VC_redist.x64.exe"
+powershell -command "wget https://download.visualstudio.microsoft.com/download/pr/11100230/15ccb3f02745c7b206ad10373cbca89b/VC_redist.x64.exe -OutFile Redist\VCRedist_2017\VC_redist.x64.exe"
+powershell -command "wget https://download.visualstudio.microsoft.com/download/pr/11100229/78c1e864d806e36f6035d80a0e80399e/VC_redist.x86.exe -OutFile Redist\VCRedist_2017\VC_redist.x86.exe"
 )</PreBuildEvent>
   </PropertyGroup>
   <!--
