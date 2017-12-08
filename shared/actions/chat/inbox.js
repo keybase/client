@@ -200,6 +200,13 @@ function* onGetInboxAndUnbox({
   yield Saga.put(ChatGen.createUnboxConversations({conversationIDKeys, reason: 'getInboxAndUnbox'}))
 }
 
+function supersededConversationIDToKey(id): string {
+  if (typeof id === 'string') {
+    return Buffer.from(toByteArray(id)).toString('hex')
+  }
+  return id.toString('hex')
+}
+
 function _toSupersedeInfo(
   conversationIDKey: Types.ConversationIDKey,
   supersedeData: Array<RPCChatTypes.ConversationMetadata>
@@ -211,7 +218,7 @@ function _toSupersedeInfo(
   const finalizeInfo = toConvert ? toConvert.finalizeInfo : null
   return toConvert && finalizeInfo
     ? {
-        conversationIDKey: Buffer.from(toByteArray(toConvert.conversationID)).toString('hex'),
+        conversationIDKey: supersededConversationIDToKey(toConvert.conversationID),
         finalizeInfo,
       }
     : null
