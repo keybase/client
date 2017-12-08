@@ -1,7 +1,7 @@
 // @flow
 import Container from '../../forms/container.desktop'
 import * as React from 'react'
-import {Box, Text, Icon, Button} from '../../../common-adapters'
+import {Box, Text, Icon} from '../../../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../../../styles'
 import glamorous from 'glamorous'
 import {type DeviceType} from '../../../constants/types/devices'
@@ -41,8 +41,8 @@ const ResetOption = ({onReset}) => (
         <Box
           style={{
             ...stylesIconContainer,
-            width: 140,
-            marginTop: globalMargins.xtiny,
+            width: 160,
+            marginTop: globalMargins.tiny,
             alignSelf: 'flex-start',
           }}
         >
@@ -58,17 +58,10 @@ const ResetOption = ({onReset}) => (
         <Box style={globalStyles.flexBoxColumn}>
           <Text type="Body">
             Uh oh. I don't have any of these devices anymore, or I've uninstalled Keybase from all of them.
+            <Text type="BodyPrimaryLink" onClick={onReset} style={{color: globalColors.red, marginLeft: 2}}>
+              Reset account
+            </Text>
           </Text>
-          <Button
-            type="Danger"
-            label="Reset account"
-            onClick={onReset}
-            style={{
-              alignSelf: 'flex-start',
-              marginBottom: globalMargins.xtiny,
-              marginTop: globalMargins.xtiny,
-            }}
-          />
         </Box>
       </Box>
     </DeviceBox>

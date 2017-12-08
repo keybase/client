@@ -38,7 +38,7 @@ const Row = ({deviceID, name, type, onSelect}) => {
 
 const ResetOption = ({onReset}) => (
   <Box>
-    <ClickableBox style={stylesRow} className="deviceRow">
+    <Box style={stylesRow} className="deviceRow">
       <Box style={stylesIconName}>
         <Box
           style={{
@@ -59,23 +59,32 @@ const ResetOption = ({onReset}) => (
             type="iconfont-exclamation"
           />
         </Box>
-        <Box style={{...globalStyles.flexBoxColumn, flex: 1, alignItems: 'flex-start'}}>
+        <Box
+          style={{
+            ...globalStyles.flexBoxColumn,
+            flex: 1,
+            alignItems: 'flex-start',
+            paddingBottom: globalMargins.tiny,
+            paddingTop: globalMargins.tiny,
+          }}
+        >
           <Text type="Body">
             Uh oh. I don't have any of these devices anymore, or I've uninstalled Keybase from all of them.
           </Text>
-          <Button
-            type="Danger"
-            label="Reset account"
+          <Text
+            type="BodyPrimaryLink"
             onClick={onReset}
             style={{
-              alignSelf: 'flex-start',
-              marginBottom: globalMargins.small,
-              marginTop: globalMargins.tiny,
+              color: globalColors.red,
+              paddingBottom: globalMargins.tiny,
+              paddingTop: globalMargins.tiny,
             }}
-          />
+          >
+            Reset account
+          </Text>
         </Box>
       </Box>
-    </ClickableBox>
+    </Box>
   </Box>
 )
 
