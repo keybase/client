@@ -752,7 +752,7 @@ func ParseImplicitTeamDisplayNameSuffix(suffix string) (ret *keybase1.ImplicitTe
 	}
 
 	return &keybase1.ImplicitTeamConflictInfo{
-		Generation: keybase1.Seqno(generation),
+		Generation: keybase1.ConflictGeneration(generation),
 		Time:       keybase1.ToTime(conflictTime.UTC()),
 	}, nil
 }

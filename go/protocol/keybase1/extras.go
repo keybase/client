@@ -2007,7 +2007,7 @@ func (n ImplicitTeamDisplayName) String() string {
 }
 
 func (c ImplicitTeamConflictInfo) IsConflict() bool {
-	return c.Generation > Seqno(0)
+	return c.Generation > ConflictGeneration(0)
 }
 
 const (

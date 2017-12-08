@@ -533,6 +533,8 @@ func testResolveImplicitTeam(t *testing.T, g *libkb.GlobalContext, id keybase1.T
 	}
 }
 
+// doubleTestResolveImplicitTeam calls testResolveImplicitTeam twice, to make sure it
+// it works when we hit the cache (which we will do the second time through).
 func doubleTestResolveImplicitTeam(t *testing.T, g *libkb.GlobalContext, id keybase1.TeamID, isPublic bool, gen keybase1.Seqno) {
 	testResolveImplicitTeam(t, g, id, isPublic, gen)
 	testResolveImplicitTeam(t, g, id, isPublic, gen)

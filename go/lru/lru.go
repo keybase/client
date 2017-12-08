@@ -43,7 +43,7 @@ type diskWrapper struct {
 	CachedAt keybase1.Time `codec:"t"`
 }
 
-func (c *Cache) Clear() {
+func (c *Cache) ClearMemory() {
 	c.mem.Purge()
 }
 

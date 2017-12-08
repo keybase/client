@@ -75,7 +75,7 @@ func TestLRU(t *testing.T) {
 	testGet(1, true)
 	testMiss(2, false)
 	testStats()
-	lru.Clear()
+	lru.ClearMemory()
 	testGet(0, false)
 	testGet(1, false)
 	testStats()
@@ -92,7 +92,7 @@ func TestLRU(t *testing.T) {
 	// test that a put of the old version fails to get when we
 	// want the new version
 	testPut(0)
-	lru.Clear()
+	lru.ClearMemory()
 	lru.version = 2
 	testMiss(0, true)
 	testStats()
