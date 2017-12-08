@@ -232,7 +232,6 @@ func (u *userPlusDevice) createTeam() string {
 		u.tc.T.Fatal(err)
 	}
 	create.TeamName = name
-	create.SuppressTeamChatAnnounce = u.suppressTeamChatAnnounce
 	tracer := u.tc.G.CTimeTracer(context.Background(), "tracer-create-team")
 	defer tracer.Finish()
 	if err := create.Run(); err != nil {

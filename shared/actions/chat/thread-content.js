@@ -588,6 +588,12 @@ function _unboxedToMessage(
                 sysMsgText = `A new channel has been created in team ${team}. Here are some things that are now different:\n\n1.) Notifications will not happen for every message. Click or tap the info icon on the right to configure them.\n2.) The #general channel is now in the "Big Teams" section of the inbox.\n3.) You can hit the three dots next to ${team} in the inbox view to join other channels.\n\nEnjoy!`
                 break
               }
+              case ChatTypes.localMessageSystemType.createteam: {
+                const team = body.createteam ? body.createteam.team : '???'
+                const creator = body.createteam ? body.createteam.creator : '???'
+                sysMsgText = `${creator} created a new team ${team}.`
+                break
+              }
             }
           }
           return {

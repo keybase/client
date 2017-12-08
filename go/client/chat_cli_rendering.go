@@ -431,6 +431,8 @@ func formatSystemMessage(body chat1.MessageSystem) string {
 			body.Inviteaddedtoteam().Invitee, body.Inviteaddedtoteam().Inviter)
 	case chat1.MessageSystemType_COMPLEXTEAM:
 		return fmt.Sprintf(`Attention @channel! I have just created a new channel in team %s. Here are some things that are now different: 1.) Notifications will not happen for every message. Click or tap the info icon on the right to configure them. 2.) The #general channel is now in the "Big Teams" section of the inbox. 3.) You can hit the three dots next to %s in the inbox view to join other channels. Enjoy!`, body.Complexteam().Team, body.Complexteam().Team)
+	case chat1.MessageSystemType_CREATETEAM:
+		return fmt.Sprintf("Team %s created by %s.", body.Createteam().Team, body.Createteam().Creator)
 	}
 	return "<unknown system message>"
 }

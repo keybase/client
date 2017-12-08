@@ -88,12 +88,10 @@ func (h *TeamsHandler) TeamCreateWithSettings(ctx context.Context, arg keybase1.
 		}
 		res.TeamID = *teamID
 		res.CreatorAdded = true
+		// send system message that team was created
+		res.ChatSent = teams.SendTeamChatCreateMessage(ctx, h.G().ExternalG(), teamName.String(), h.G().Env.GetUsername().String())
 	}
 
-	if arg.SendChatNotification {
-		res.ChatSent = teams.SendTeamChatWelcomeMessage(ctx, h.G().ExternalG(),
-			teamName.String(), h.G().Env.GetUsername().String())
-	}
 	return res, nil
 }
 
