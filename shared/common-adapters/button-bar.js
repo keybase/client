@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
 import Box from './box'
-import {globalStyles, glamorous} from '../styles'
+import {globalStyles} from '../styles'
 import {isMobile} from '../constants/platform'
 
 type Props = {
@@ -64,16 +64,27 @@ class ButtonBar extends React.PureComponent<Props> {
       }
       return arr
     }, [])
+
+    const style = {
+      width: '100%',
+      ...(this.props.direction === 'column'
+        ? {
+            ...globalStyles.flexBoxColumn,
+            alignItems: this.props.fullWidth ? 'stretch' : 'center',
+          }
+        : {
+            ...globalStyles.flexBoxRow,
+            alignItems: 'center',
+            justifyContent: this.props.align,
+            minHeight: isMobile ? (this.props.small ? 64 : 72) : this.props.small ? 44 : 64,
+          }),
+      ...this.props.style,
+    }
+
     return (
-      <Container
-        align={this.props.align}
-        direction={this.props.direction}
-        fullWidth={this.props.fullWidth}
-        small={this.props.small}
-        style={this.props.style}
-      >
+      <Box style={style}>
         {childrenWithSpacing}
-      </Container>
+      </Box>
     )
   }
 }
@@ -89,24 +100,5 @@ const smallSpacerStyle = {
   height: isMobile ? 8 : 4,
   width: isMobile ? 8 : 4,
 }
-
-const Container = glamorous(Box)(
-  {
-    width: '100%',
-  },
-  props =>
-    props.direction === 'column'
-      ? {
-          ...globalStyles.flexBoxColumn,
-          alignItems: props.fullWidth ? 'stretch' : 'center',
-        }
-      : {
-          ...globalStyles.flexBoxRow,
-          alignItems: 'center',
-          justifyContent: props.align,
-          minHeight: isMobile ? (props.small ? 64 : 72) : props.small ? 44 : 64,
-        },
-  props => props.style
-)
 
 export default ButtonBar
