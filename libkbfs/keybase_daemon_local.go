@@ -239,12 +239,11 @@ func (k *KeybaseDaemonLocal) Resolve(ctx context.Context, assertion string) (
 		return libkb.NormalizedUsername(""), keybase1.UserOrTeamID(""), err
 	}
 
-	// TODO(KBFS-2621): Resolve shouldn't work for implicit teams, but
-	// until CORE-6623 is done, this is required.
-	iti, err := k.localImplicitTeams.getLocalImplicitTeam(id.AsTeamOrBust())
-	if err == nil {
-		// An implicit team exists, so use the display name.
-		return iti.Name, id, nil
+	_, ok := k.localImplicitTeams[id.AsTeamOrBust()]
+	if ok {
+		// An implicit team exists, so Resolve shouldn't work.
+		return libkb.NormalizedUsername(""), keybase1.UserOrTeamID(""),
+			fmt.Errorf("Team ID %s is an implicit team", id)
 	}
 
 	return ti.Name, id, nil
