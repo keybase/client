@@ -358,7 +358,7 @@ class PopupEnabledList extends BaseList {
         () => {
           this.setState({selectedMessageKey: null})
         },
-        node
+        node && node.getBoundingClientRect()
       )
     }
   }

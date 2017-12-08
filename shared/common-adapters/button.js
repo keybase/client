@@ -30,6 +30,7 @@ class Button extends Component<Props> {
       Follow,
       Following,
       Primary,
+      PrimaryGreen,
       PrimaryPrivate,
       Secondary,
       SecondaryOnTerminal,
@@ -42,6 +43,7 @@ class Button extends Component<Props> {
       FollowLabel,
       FollowingLabel,
       PrimaryLabel,
+      PrimaryGreenLabel,
       PrimaryPrivateLabel,
       SecondaryLabel,
       SecondaryLabelOnTerminal,
@@ -140,6 +142,7 @@ const disabled = {
   Follow: {opacity: 0.3},
   Following: {opacity: 0.3},
   Primary: {opacity: 0.3},
+  PrimaryGreen: {opacity: 0.3},
   PrimaryPrivate: {opacity: 0.2},
   Secondary: {opacity: 0.3},
   Unfollow: {opacity: 0.3},
@@ -150,6 +153,14 @@ const Primary = {
   backgroundColor: globalColors.blue,
 }
 const PrimaryLabel = {
+  ...commonLabel,
+}
+
+const PrimaryGreen = {
+  ...common,
+  backgroundColor: globalColors.green,
+}
+const PrimaryGreenLabel = {
   ...commonLabel,
 }
 

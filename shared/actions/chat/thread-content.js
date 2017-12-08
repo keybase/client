@@ -82,9 +82,10 @@ function* _loadMoreMessages(action: ChatGen.LoadMoreMessagesPayload): Saga.SagaG
     if (!conversationIDKey) {
       return
     }
+    console.log(`loadMoreMessages: loading for: ${conversationIDKey} recent: ${recent.toString()}`)
 
     if (Constants.isPendingConversationIDKey(conversationIDKey)) {
-      console.log('Bailing on selected pending conversation no matching inbox')
+      console.log('loadMoreMessages: bailing on selected pending conversation no matching inbox')
       return
     }
 
@@ -94,24 +95,24 @@ function* _loadMoreMessages(action: ChatGen.LoadMoreMessagesPayload): Saga.SagaG
     const rekeyInfo = yield Saga.select(rekeyInfoSelector, conversationIDKey)
 
     if (rekeyInfo) {
-      console.log('Bailing on chat due to rekey info')
+      console.log('loadMoreMessages: bailing on chat due to rekey info')
       return
     }
 
     const oldConversationState = yield Saga.select(Shared.conversationStateSelector, conversationIDKey)
     if (oldConversationState && !recent) {
       if (action.payload.onlyIfUnloaded && oldConversationState.get('isLoaded')) {
-        console.log('Bailing on chat load more due to already has initial load')
+        console.log('loadMoreMessages: bailing on chat load more due to already has initial load')
         return
       }
 
       if (oldConversationState.get('isRequesting')) {
-        console.log('Bailing on chat load more due to isRequesting already')
+        console.log('loadMoreMessages: bailing on chat load more due to isRequesting already')
         return
       }
 
       if (oldConversationState.get('moreToLoad') === false) {
-        console.log('Bailing on chat load more due to no more to load')
+        console.log('loadMoreMessages: bailing on chat load more due to no more to load')
         return
       }
     }
@@ -140,6 +141,8 @@ function* _loadMoreMessages(action: ChatGen.LoadMoreMessagesPayload): Saga.SagaG
       pivot = message ? message.rawMessageID : null
     }
 
+    const num = action.payload.numberOverride || Constants.maxMessagesToLoadAtATime
+    console.log(`loadMoreMessages: dispatching GetThreadNonblock: num: ${num} pivot: ${pivot || ''}`)
     const loadThreadChanMapRpc = new EngineRpc.EngineRpcCall(
       getThreadNonblockSagaMap(yourName, yourDeviceName, conversationIDKey, recent),
       ChatTypes.localGetThreadNonblockRpcChannelMap,
@@ -154,7 +157,7 @@ function* _loadMoreMessages(action: ChatGen.LoadMoreMessagesPayload): Saga.SagaG
           messageIDControl: {
             pivot,
             recent,
-            num: action.payload.numberOverride || Constants.maxMessagesToLoadAtATime,
+            num,
           },
         },
       }
@@ -166,7 +169,7 @@ function* _loadMoreMessages(action: ChatGen.LoadMoreMessagesPayload): Saga.SagaG
       const {payload: {params, error}} = result
 
       if (error) {
-        console.warn('error in localGetThreadNonblock', error)
+        console.warn('loadMoreMessages: error in localGetThreadNonblock', error)
       }
 
       if (params.offline) {
@@ -175,7 +178,7 @@ function* _loadMoreMessages(action: ChatGen.LoadMoreMessagesPayload): Saga.SagaG
 
       yield Saga.put(ChatGen.createSetLoaded({conversationIDKey, isLoaded: !error})) // reset isLoaded on error
     } else {
-      console.warn('localGetThreadNonblock rpc bailed early')
+      console.warn('loadMoreMessages: localGetThreadNonblock rpc bailed early')
     }
 
     // Do this here because it's possible loading messages takes a while
@@ -583,6 +586,12 @@ function _unboxedToMessage(
               case ChatTypes.localMessageSystemType.complexteam: {
                 const team = body.complexteam ? body.complexteam.team : '???'
                 sysMsgText = `A new channel has been created in team ${team}. Here are some things that are now different:\n\n1.) Notifications will not happen for every message. Click or tap the info icon on the right to configure them.\n2.) The #general channel is now in the "Big Teams" section of the inbox.\n3.) You can hit the three dots next to ${team} in the inbox view to join other channels.\n\nEnjoy!`
+                break
+              }
+              case ChatTypes.localMessageSystemType.createteam: {
+                const team = body.createteam ? body.createteam.team : '???'
+                const creator = body.createteam ? body.createteam.creator : '???'
+                sysMsgText = `${creator} created a new team ${team}.`
                 break
               }
             }

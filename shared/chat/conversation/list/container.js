@@ -96,6 +96,7 @@ const mapStateToProps = createSelector(
       selectedConversation: convStateProps.selectedConversation,
       validated: convStateProps.validated,
       you: username,
+      _supersedes: convStateProps._supersedes,
     }
   }
 )
@@ -119,13 +120,13 @@ const mapDispatchToProps = (dispatch: Dispatch): DispatchProps => ({
     localMessageState?: Types.LocalMessageState,
     onShowEditor?: () => void,
     onPopupWillClose?: () => void,
-    targetNode?: ?HTMLElement
+    targetRect?: ?ClientRect
   ) => {
     dispatch(
       navigateAppend([
         {
           props: {
-            targetNode,
+            targetRect,
             message,
             localMessageState,
             onShowEditor,

@@ -13,8 +13,9 @@ import (
 )
 
 type cache struct {
-	obj      keybase1.HomeScreen
-	cachedAt time.Time
+	obj          keybase1.HomeScreen
+	cachedAt     time.Time
+	peopleOffset int
 }
 
 type Home struct {
@@ -35,6 +36,24 @@ type rawGetHome struct {
 		Badged bool                        `json:"badged"`
 		Type   keybase1.HomeScreenTodoType `json:"type"`
 	} `json:"todo_list"`
+	People []keybase1.HomeUserSummary `json:"people"`
+}
+
+func (c *cache) hasEnoughPeople(i int) bool {
+	return c.peopleOffset+i <= len(c.obj.FollowSuggestions)
+}
+
+func (c *cache) popPeople(ctx context.Context, g *libkb.GlobalContext, i int) keybase1.HomeScreen {
+	ret := c.obj.DeepCopy()
+	numLeft := len(ret.FollowSuggestions) - c.peopleOffset
+	if i > numLeft {
+		i = numLeft
+	}
+	g.Log.CDebugf(ctx, "| Accessing people cache; %d left, taking %d of them", numLeft, i)
+	rightLimit := c.peopleOffset + i
+	ret.FollowSuggestions = ret.FollowSuggestions[c.peopleOffset:rightLimit]
+	c.peopleOffset += i
+	return ret
 }
 
 func (r *rawGetHome) GetAppStatus() *libkb.AppStatus {
@@ -47,13 +66,19 @@ func NewHome(g *libkb.GlobalContext) *Home {
 	return home
 }
 
-func (h *Home) get(ctx context.Context, markedViewed bool) (ret keybase1.HomeScreen, err error) {
+func (h *Home) get(ctx context.Context, markedViewed bool, numPeopleWanted int) (ret keybase1.HomeScreen, err error) {
 	defer h.G().CTrace(ctx, "Home#get", func() error { return err })()
+
+	numPeopleToRequest := 100
+	if numPeopleWanted > numPeopleToRequest {
+		numPeopleToRequest = numPeopleWanted
+	}
 
 	arg := libkb.NewAPIArgWithNetContext(ctx, "home")
 	arg.SessionType = libkb.APISessionTypeREQUIRED
 	arg.Args = libkb.HTTPArgs{
 		"record_visit": libkb.B{Val: markedViewed},
+		"num_people":   libkb.I{Val: numPeopleToRequest},
 	}
 	var raw rawGetHome
 	if err = h.G().API.GetDecode(arg, &raw); err != nil {
@@ -69,36 +94,48 @@ func (h *Home) get(ctx context.Context, markedViewed bool) (ret keybase1.HomeScr
 		ret.LastViewed = raw.VisitRecord.Atime
 		ret.Version = raw.VisitRecord.Version
 	}
+	ret.FollowSuggestions = raw.People
+	h.G().Log.CDebugf(ctx, "| %d follow suggestions returned", len(raw.People))
 	return ret, err
 }
 
-func (h *Home) Get(ctx context.Context, markViewed bool) (ret keybase1.HomeScreen, err error) {
+func (h *Home) Get(ctx context.Context, markViewed bool, numPeopleWanted int) (ret keybase1.HomeScreen, err error) {
 	defer h.G().CTrace(ctx, "Home#Get", func() error { return err })()
+
+	// 10 people by default
+	if numPeopleWanted < 0 {
+		numPeopleWanted = 10
+	}
 
 	h.Lock()
 	defer h.Unlock()
 
 	if h.cache != nil {
-		diff := h.G().GetClock().Now().Sub(h.cache.cachedAt)
-		if diff < libkb.HomeCacheTimeout {
-			h.G().Log.CDebugf(ctx, "| hit cache (cached %s ago)", diff)
-			if markViewed {
-				h.G().Log.CDebugf(ctx, "| going to server to mark view, anyways")
-				tmpErr := h.markViewed(ctx)
-				if tmpErr != nil {
-					h.G().Log.CInfof(ctx, "Error marking home as viewed: %s", tmpErr.Error())
+		if !h.cache.hasEnoughPeople(numPeopleWanted) {
+			h.G().Log.CDebugf(ctx, "| going to server, since not enough people left in cache; %d wanted", numPeopleWanted)
+		} else {
+			diff := h.G().GetClock().Now().Sub(h.cache.cachedAt)
+			if diff < libkb.HomeCacheTimeout {
+				h.G().Log.CDebugf(ctx, "| hit cache (cached %s ago)", diff)
+				if markViewed {
+					h.G().Log.CDebugf(ctx, "| going to server to mark view, anyways")
+					tmpErr := h.markViewed(ctx)
+					if tmpErr != nil {
+						h.G().Log.CInfof(ctx, "Error marking home as viewed: %s", tmpErr.Error())
+					}
 				}
+				return h.cache.popPeople(ctx, h.G(), numPeopleWanted), nil
 			}
-			return h.cache.obj, nil
 		}
 	}
 
-	ret, err = h.get(ctx, markViewed)
+	ret, err = h.get(ctx, markViewed, numPeopleWanted)
 	if err == nil {
 		h.cache = &cache{
 			obj:      ret,
 			cachedAt: h.G().GetClock().Now(),
 		}
+		ret = h.cache.popPeople(ctx, h.G(), numPeopleWanted)
 	}
 	return ret, err
 }

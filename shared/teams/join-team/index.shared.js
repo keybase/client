@@ -26,7 +26,7 @@ export const stylePadding = isMobile
       marginTop: 90,
     }
 
-export const SuccessComponent = ({name, onBack}: Props) => (
+export const SuccessComponent = ({successTeamName, onBack}: Props) => (
   <Box style={globalStyles.flexBoxColumn}>
     <Box style={{...styleContainer, backgroundColor: globalColors.blue}}>
       <Text
@@ -69,7 +69,7 @@ export const SuccessComponent = ({name, onBack}: Props) => (
         <Text style={{textAlign: 'center'}} type="Body">
           We sent a request to
           {' '}
-          <Text type="BodySemibold">{name}</Text>
+          {successTeamName ? <Text type="BodySemibold">{successTeamName}</Text> : 'the team'}
           's admins. We will notify you as soon as they let you in!
         </Text>
       </Box>

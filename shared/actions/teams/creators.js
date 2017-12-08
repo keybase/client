@@ -144,8 +144,8 @@ function setTeamJoinError(teamJoinError: string): Types.SetTeamJoinError {
   return {payload: {teamJoinError}, type: 'teams:setTeamJoinError'}
 }
 
-function setTeamJoinSuccess(teamJoinSuccess: boolean): Types.SetTeamJoinSuccess {
-  return {payload: {teamJoinSuccess}, type: 'teams:setTeamJoinSuccess'}
+function setTeamJoinSuccess(teamJoinSuccess: boolean, teamname: ?string): Types.SetTeamJoinSuccess {
+  return {payload: {teamJoinSuccess, teamname}, type: 'teams:setTeamJoinSuccess'}
 }
 
 function setupTeamHandlers(): Types.SetupTeamHandlers {
@@ -174,9 +174,14 @@ function badgeAppForTeams(
   return {payload: {newTeamNames, newTeamAccessRequests}, type: 'teams:badgeAppForTeams'}
 }
 
+function checkRequestedAccess(teamname: string): Types.CheckRequestedAccess {
+  return {payload: {teamname}, type: 'teams:checkRequestedAccess'}
+}
+
 export {
   addPeopleToTeam,
   addToTeam,
+  checkRequestedAccess,
   createChannel,
   createNewTeam,
   createNewTeamFromConversation,

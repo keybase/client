@@ -1383,6 +1383,28 @@
     },
     {
       "type": "record",
+      "name": "TeamAcceptOrRequestResult",
+      "fields": [
+        {
+          "type": "boolean",
+          "name": "wasToken"
+        },
+        {
+          "type": "boolean",
+          "name": "wasSeitan"
+        },
+        {
+          "type": "boolean",
+          "name": "wasTeamName"
+        },
+        {
+          "type": "boolean",
+          "name": "wasOpenTeam"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "TeamShowcase",
       "fields": [
         {
@@ -1501,10 +1523,16 @@
     },
     {
       "type": "record",
+      "name": "ConflictGeneration",
+      "fields": [],
+      "typedef": "int"
+    },
+    {
+      "type": "record",
       "name": "ImplicitTeamConflictInfo",
       "fields": [
         {
-          "type": "int",
+          "type": "ConflictGeneration",
           "name": "generation"
         },
         {
@@ -1548,6 +1576,16 @@
         "SET_TEAM_SHOWCASE_6",
         "SET_MEMBER_SHOWCASE_7",
         "CHANGE_OPEN_TEAM_8"
+      ]
+    },
+    {
+      "type": "record",
+      "name": "TeamDebugRes",
+      "fields": [
+        {
+          "type": "TeamSigChainState",
+          "name": "chain"
+        }
       ]
     }
   ],
@@ -1827,7 +1865,7 @@
           "type": "string"
         }
       ],
-      "response": null
+      "response": "TeamAcceptOrRequestResult"
     },
     "teamListRequests": {
       "request": [
@@ -2118,6 +2156,15 @@
         }
       ],
       "response": null
+    },
+    "teamDebug": {
+      "request": [
+        {
+          "name": "teamID",
+          "type": "TeamID"
+        }
+      ],
+      "response": "TeamDebugRes"
     }
   },
   "namespace": "keybase.1"

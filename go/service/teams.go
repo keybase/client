@@ -88,12 +88,10 @@ func (h *TeamsHandler) TeamCreateWithSettings(ctx context.Context, arg keybase1.
 		}
 		res.TeamID = *teamID
 		res.CreatorAdded = true
+		// send system message that team was created
+		res.ChatSent = teams.SendTeamChatCreateMessage(ctx, h.G().ExternalG(), teamName.String(), h.G().Env.GetUsername().String())
 	}
 
-	if arg.SendChatNotification {
-		res.ChatSent = teams.SendTeamChatWelcomeMessage(ctx, h.G().ExternalG(),
-			teamName.String(), h.G().Env.GetUsername().String())
-	}
 	return res, nil
 }
 
@@ -241,10 +239,13 @@ func (h *TeamsHandler) TeamAcceptInvite(ctx context.Context, arg keybase1.TeamAc
 	if err := h.assertLoggedIn(ctx); err != nil {
 		return err
 	}
-	seitan, err := teams.GenerateIKeyFromString(arg.Token)
-	if err == nil {
-		return teams.AcceptSeitan(ctx, h.G().ExternalG(), seitan)
+
+	// If token looks at all like Seitan, don't pass to functions that might log or send to server.
+	maybeSeitan, keepSecret := teams.ParseSeitanTokenFromPaste(arg.Token)
+	if keepSecret {
+		return teams.ParseAndAcceptSeitanToken(ctx, h.G().ExternalG(), maybeSeitan)
 	}
+
 	return teams.AcceptInvite(ctx, h.G().ExternalG(), arg.Token)
 }
 
@@ -257,12 +258,13 @@ func (h *TeamsHandler) TeamRequestAccess(ctx context.Context, arg keybase1.TeamR
 	return teams.RequestAccess(ctx, h.G().ExternalG(), arg.Name)
 }
 
-func (h *TeamsHandler) TeamAcceptInviteOrRequestAccess(ctx context.Context, arg keybase1.TeamAcceptInviteOrRequestAccessArg) (err error) {
+func (h *TeamsHandler) TeamAcceptInviteOrRequestAccess(ctx context.Context, arg keybase1.TeamAcceptInviteOrRequestAccessArg) (res keybase1.TeamAcceptOrRequestResult, err error) {
 	ctx = libkb.WithLogTag(ctx, "TM")
 	defer h.G().CTraceTimed(ctx, "TeamAcceptInviteOrRequestAccess", func() error { return err })()
 	if err := h.assertLoggedIn(ctx); err != nil {
-		return err
+		return res, err
 	}
+
 	return teams.TeamAcceptInviteOrRequestAccess(ctx, h.G().ExternalG(), arg.TokenOrName)
 }
 
@@ -407,13 +409,18 @@ func (h *TeamsHandler) SetTeamMemberShowcase(ctx context.Context, arg keybase1.S
 func (h *TeamsHandler) CanUserPerform(ctx context.Context, arg keybase1.CanUserPerformArg) (ret bool, err error) {
 	ctx = libkb.WithLogTag(ctx, "TM")
 	defer h.G().CTraceTimed(ctx, fmt.Sprintf("CanUserPerform(%s, %v)", arg.Name, arg.Op), func() error { return err })()
-
 	return teams.CanUserPerform(ctx, h.G().ExternalG(), arg.Name, arg.Op)
 }
 
 func (h *TeamsHandler) TeamRotateKey(ctx context.Context, teamID keybase1.TeamID) (err error) {
 	ctx = libkb.WithLogTag(ctx, "TM")
 	defer h.G().CTraceTimed(ctx, fmt.Sprintf("TeamRotateKey(%v)", teamID), func() error { return err })()
-
 	return teams.RotateKey(ctx, h.G().ExternalG(), teamID)
+}
+
+func (h *TeamsHandler) TeamDebug(ctx context.Context, teamID keybase1.TeamID) (res keybase1.TeamDebugRes, err error) {
+	ctx = libkb.WithLogTag(ctx, "TM")
+	defer h.G().CTraceTimed(ctx, fmt.Sprintf("TeamDebug(%v)", teamID), func() error { return err })()
+
+	return teams.TeamDebug(ctx, h.G().ExternalG(), teamID)
 }

@@ -91,6 +91,7 @@ type ConnectedTextMessageProps = {
   }>,
 }
 
+// $FlowIssue doen'st like routeProps here
 const mapStateToProps = ({config: {username}}: TypedState, {routeProps}) => ({
   you: username,
   message: routeProps.get('message'),
@@ -136,6 +137,7 @@ const mapDispatchToAttachmentProps = (dispatch, {routeProps}: ConnectedAttachmen
 const ConnectedAttachmentMessage = connect(mapStateToProps, mapDispatchToAttachmentProps)(AttachmentPopupMenu)
 
 const ConnectedMessageAction = branch(
+  // $FlowIssue doesn't like routeProps
   ({routeProps}: {routeProps: I.RecordOf<{message: Types.TextMessage | Types.AttachmentMessage}>}) =>
     routeProps.get('message').type === 'Attachment',
   renderComponent(ConnectedAttachmentMessage)
