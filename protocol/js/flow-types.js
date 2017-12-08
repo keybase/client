@@ -812,6 +812,10 @@ export const identifyResolveIdentifyImplicitTeamRpcChannelMap = (configKeys: Arr
 
 export const identifyResolveIdentifyImplicitTeamRpcPromise = (request: IdentifyResolveIdentifyImplicitTeamRpcParam): Promise<IdentifyResolveIdentifyImplicitTeamResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.identify.resolveIdentifyImplicitTeam', request, (error: RPCError, result: IdentifyResolveIdentifyImplicitTeamResult) => error ? reject(error) : resolve(result)))
 
+export const identifyResolveImplicitTeamRpcChannelMap = (configKeys: Array<string>, request: IdentifyResolveImplicitTeamRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.identify.resolveImplicitTeam', request)
+
+export const identifyResolveImplicitTeamRpcPromise = (request: IdentifyResolveImplicitTeamRpcParam): Promise<IdentifyResolveImplicitTeamResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.identify.resolveImplicitTeam', request, (error: RPCError, result: IdentifyResolveImplicitTeamResult) => error ? reject(error) : resolve(result)))
+
 export const identifyUiCheckResultFreshness = {
   fresh: 0,
   aged: 1,
@@ -1994,6 +1998,8 @@ export type ConfiguredAccount = {|username: String,hasStoredSecret: Boolean,|}
 
 export type ConfirmResult = {|identityConfirmed: Boolean,remoteConfirmed: Boolean,expiringLocal: Boolean,autoConfirmed: Boolean,|}
 
+export type ConflictGeneration = Int
+
 export type CopyArgs = {|opID: OpID,src: Path,dest: Path,|}
 
 export type CryptKey = {|KeyGeneration: Int,Key: Bytes32,|}
@@ -2382,6 +2388,8 @@ export type IdentifyResolve3RpcParam = {|assertion: String,incomingCallMap?: Inc
 
 export type IdentifyResolveIdentifyImplicitTeamRpcParam = {|assertions: String,suffix: String,isPublic: Boolean,doIdentifies: Boolean,create: Boolean,reason: IdentifyReason,identifyBehavior: TLFIdentifyBehavior,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
+export type IdentifyResolveImplicitTeamRpcParam = {|id: TeamID,isPublic: Boolean,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+
 export type IdentifyRow = {|rowId: Int,proof: RemoteProof,trackDiff?: ?TrackDiff,|}
 
 export type IdentifyTrackBreaks = {|keys?: ?Array<IdentifyKey>,proofs?: ?Array<IdentifyProofBreak>,|}
@@ -2422,7 +2430,7 @@ export type Identity = {|status?: ?Status,whenLastTracked: Time,proofs?: ?Array<
 
 export type ImplicitRole = {|role: TeamRole,ancestor: TeamID,|}
 
-export type ImplicitTeamConflictInfo = {|generation: Int,time: Time,|}
+export type ImplicitTeamConflictInfo = {|generation: ConflictGeneration,time: Time,|}
 
 export type ImplicitTeamDisplayName = {|isPublic: Boolean,writers: ImplicitTeamUserSet,readers: ImplicitTeamUserSet,conflictInfo?: ?ImplicitTeamConflictInfo,|}
 
@@ -3851,6 +3859,7 @@ type IdentifyIdentify2Result = Identify2Res
 type IdentifyIdentifyLiteResult = IdentifyLiteRes
 type IdentifyResolve3Result = UserOrTeamLite
 type IdentifyResolveIdentifyImplicitTeamResult = ResolveIdentifyImplicitTeamRes
+type IdentifyResolveImplicitTeamResult = Folder
 type IdentifyUiConfirmResult = ConfirmResult
 type IdentifyUiDelegateIdentifyUIResult = Int
 type InstallFuseStatusResult = FuseStatus

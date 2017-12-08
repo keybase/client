@@ -1523,10 +1523,16 @@
     },
     {
       "type": "record",
+      "name": "ConflictGeneration",
+      "fields": [],
+      "typedef": "int"
+    },
+    {
+      "type": "record",
       "name": "ImplicitTeamConflictInfo",
       "fields": [
         {
-          "type": "int",
+          "type": "ConflictGeneration",
           "name": "generation"
         },
         {

@@ -21,7 +21,7 @@ import (
 func SetupTest(tb testing.TB, name string, depth int) (tc libkb.TestContext) {
 	tc = libkb.SetupTest(tb, name, depth+1)
 	tc.G.SetServices(externals.GetServices())
-	teams.NewTeamLoaderAndInstall(tc.G)
+	teams.ServiceInit(tc.G)
 	return tc
 }
 

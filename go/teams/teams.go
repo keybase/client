@@ -207,6 +207,7 @@ func (t *Team) ImplicitTeamDisplayName(ctx context.Context) (res keybase1.Implic
 	if err != nil {
 		return res, err
 	}
+	isFullyResolved := true
 	for inviteID := range chainInvites {
 		invite, ok := inviteMap[inviteID]
 		if !ok {
@@ -235,6 +236,7 @@ func (t *Team) ImplicitTeamDisplayName(ctx context.Context) (res keybase1.Implic
 			default:
 				return res, fmt.Errorf("implicit team contains invite to role: %v (%v)", invite.Role, invite.Id)
 			}
+			isFullyResolved = false
 		case keybase1.TeamInviteCategory_KEYBASE:
 			// invite.Name is the username of the invited user, which AnnotateInvites has resolved.
 			switch invite.Role {
@@ -248,6 +250,11 @@ func (t *Team) ImplicitTeamDisplayName(ctx context.Context) (res keybase1.Implic
 		default:
 			return res, fmt.Errorf("unrecognized invite type in implicit team: %v", invtyp)
 		}
+	}
+
+	impName, err = GetConflictInfo(ctx, t.G(), t.ID, isFullyResolved, impName)
+	if err != nil {
+		return res, err
 	}
 	return impName, nil
 }

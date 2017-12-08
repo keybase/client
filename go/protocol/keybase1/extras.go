@@ -2006,6 +2006,10 @@ func (n ImplicitTeamDisplayName) String() string {
 	return name
 }
 
+func (c ImplicitTeamConflictInfo) IsConflict() bool {
+	return c.Generation > ConflictGeneration(0)
+}
+
 const (
 	// LockIDVersion0 is the first ever version for lock ID format.
 	LockIDVersion0 byte = iota
