@@ -29,7 +29,8 @@ protocol local {
   enum MessageSystemType {
     ADDEDTOTEAM_0,
     INVITEADDEDTOTEAM_1,
-    COMPLEXTEAM_2
+    COMPLEXTEAM_2,
+    CREATETEAM_3
   }
 
   record MessageSystemAddedToTeam {
@@ -54,10 +55,16 @@ protocol local {
     string team;
   }
 
+  record MessageSystemCreateTeam {
+    string team;
+    string creator;
+  }
+
   variant MessageSystem switch (MessageSystemType systemType) {
     case ADDEDTOTEAM: MessageSystemAddedToTeam;
     case INVITEADDEDTOTEAM: MessageSystemInviteAddedToTeam;
     case COMPLEXTEAM: MessageSystemComplexTeam;
+    case CREATETEAM: MessageSystemCreateTeam;
   }
 
   record AssetMetadataImage {

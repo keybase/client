@@ -13,7 +13,7 @@ func getHome(t *testing.T, u *userPlusDevice, markViewed bool) keybase1.HomeScre
 	g := u.tc.G
 	cli, err := client.GetHomeClient(g)
 	require.NoError(t, err)
-	home, err := cli.HomeGetScreen(context.TODO(), markViewed)
+	home, err := cli.HomeGetScreen(context.TODO(), keybase1.HomeGetScreenArg{MarkViewed: markViewed, NumFollowSuggestionsWanted: 10})
 	require.NoError(t, err)
 	return home
 }
@@ -67,45 +67,73 @@ func assertTodoNotPresent(t *testing.T, home keybase1.HomeScreen, wanted keybase
 	}
 }
 
+func postBio(t *testing.T, u *userPlusDevice) {
+	g := u.tc.G
+	cli, err := client.GetUserClient(g)
+	require.NoError(t, err)
+	arg := keybase1.ProfileEditArg{
+		FullName: "Boaty McBoatface",
+		Location: "The Sea, The Sea",
+		Bio:      "Just your average stupidly named vessel",
+	}
+	err = cli.ProfileEdit(context.TODO(), arg)
+	require.NoError(t, err)
+}
+
 func TestHome(t *testing.T) {
 	tt := newTeamTester(t)
 	defer tt.cleanup()
 
-	tt.addUser("alice")
+	// It's important that we don't add with a paper key, because if we did, we'd
+	// burn through the first two todo items (1. Device; 2. Paper Key), and then
+	// we wouldn't get a badge for another day or so. So this way, we're only going
+	// to have one item done (device), and two items will be in the next todo
+	// list, with one badged. This is a bit brittle since if the server-side logic
+	// changes, this test will break. But let's leave it for now.
+	tt.addUserNoPaper("alice")
 	alice := tt.users[0]
 	g := alice.tc.G
-	tt.addUser("wong")
-	wong := tt.users[1]
 
 	home := getHome(t, alice, true)
 	initialVersion := home.Version
+
 	require.True(t, (initialVersion > 0), "initial version should be > 0")
-	assertTodoPresent(t, home, keybase1.HomeScreenTodoType_FOLLOW, true)
-	badges := getBadgeState(t, alice)
-	g.Log.Debug("Previous badge state: %+v", badges)
-	countPre := badges.HomeTodoItems
+	assertTodoPresent(t, home, keybase1.HomeScreenTodoType_BIO, true)
 
-	iui := newSimpleIdentifyUI()
-	iui.confirmRes = keybase1.ConfirmResult{IdentityConfirmed: true, RemoteConfirmed: true, AutoConfirmed: true}
-	attachIdentifyUI(t, g, iui)
-	alice.track(wong.username)
-
-	// Wait for a gregor message to bust this cache, at most ~10s. Hopeully this is enough for
-	// slow CI but you never know.
-	wait := 10 * time.Millisecond
-	found := false
-	for i := 0; i < 10; i++ {
-		home = getHome(t, alice, true)
-		badges = getBadgeState(t, alice)
-		g.Log.Debug("Iter %d of check loop: Home is: %+v; BadgeState is: %+v", i, home, badges)
-		if home.Version > initialVersion && badges.HomeTodoItems < countPre {
-			found = true
-			break
+	// Wait for a gregor message to fill in the badge state, for at most ~10s.
+	// Hopefully this is enough for slow CI but you never know.
+	pollForTrue := func(poller func(i int) bool) {
+		// Hopefully this is enough for slow CI but you never know.
+		wait := 10 * time.Millisecond
+		found := false
+		for i := 0; i < 10; i++ {
+			if poller(i) {
+				found = true
+				break
+			}
+			g.Log.Debug("Didn't get an update; waiting %s more", wait)
+			time.Sleep(wait)
+			wait = wait * 2
 		}
-		g.Log.Debug("Didn't get an update; waiting %s more", wait)
-		time.Sleep(wait)
-		wait = wait * 2
+		require.True(t, found, "found result after poll")
 	}
-	require.True(t, found, "we found the new version of home (after waiting for the gregor message to refresh us")
-	assertTodoNotPresent(t, home, keybase1.HomeScreenTodoType_FOLLOW)
+
+	var countPre int
+	pollForTrue(func(i int) bool {
+		badges := getBadgeState(t, alice)
+		g.Log.Debug("Iter loop %d badge state: %+v", i, badges)
+		countPre = badges.HomeTodoItems
+		return (countPre == 1)
+	})
+
+	postBio(t, alice)
+
+	pollForTrue(func(i int) bool {
+		home = getHome(t, alice, true)
+		badges := getBadgeState(t, alice)
+		g.Log.Debug("Iter %d of check loop: Home is: %+v; BadgeState is: %+v", i, home, badges)
+		return (home.Version > initialVersion && badges.HomeTodoItems < countPre)
+	})
+
+	assertTodoNotPresent(t, home, keybase1.HomeScreenTodoType_BIO)
 }

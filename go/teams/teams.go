@@ -102,8 +102,12 @@ func (t *Team) GitMetadataKey(ctx context.Context) (keybase1.TeamApplicationKey,
 	return t.ApplicationKey(ctx, keybase1.TeamApplication_GIT_METADATA)
 }
 
-func (t *Team) SeitanInviteTokenKey(ctx context.Context) (keybase1.TeamApplicationKey, error) {
+func (t *Team) SeitanInviteTokenKeyLatest(ctx context.Context) (keybase1.TeamApplicationKey, error) {
 	return t.ApplicationKey(ctx, keybase1.TeamApplication_SEITAN_INVITE_TOKEN)
+}
+
+func (t *Team) SeitanInviteTokenKeyAtGeneration(ctx context.Context, generation keybase1.PerTeamKeyGeneration) (keybase1.TeamApplicationKey, error) {
+	return t.ApplicationKeyAtGeneration(keybase1.TeamApplication_SEITAN_INVITE_TOKEN, generation)
 }
 
 func (t *Team) IsMember(ctx context.Context, uv keybase1.UserVersion) bool {
@@ -203,6 +207,7 @@ func (t *Team) ImplicitTeamDisplayName(ctx context.Context) (res keybase1.Implic
 	if err != nil {
 		return res, err
 	}
+	isFullyResolved := true
 	for inviteID := range chainInvites {
 		invite, ok := inviteMap[inviteID]
 		if !ok {
@@ -231,6 +236,7 @@ func (t *Team) ImplicitTeamDisplayName(ctx context.Context) (res keybase1.Implic
 			default:
 				return res, fmt.Errorf("implicit team contains invite to role: %v (%v)", invite.Role, invite.Id)
 			}
+			isFullyResolved = false
 		case keybase1.TeamInviteCategory_KEYBASE:
 			// invite.Name is the username of the invited user, which AnnotateInvites has resolved.
 			switch invite.Role {
@@ -244,6 +250,11 @@ func (t *Team) ImplicitTeamDisplayName(ctx context.Context) (res keybase1.Implic
 		default:
 			return res, fmt.Errorf("unrecognized invite type in implicit team: %v", invtyp)
 		}
+	}
+
+	impName, err = GetConflictInfo(ctx, t.G(), t.ID, isFullyResolved, impName)
+	if err != nil {
+		return res, err
 	}
 	return impName, nil
 }
@@ -282,6 +293,16 @@ func (t *Team) ApplicationKey(ctx context.Context, application keybase1.TeamAppl
 	return t.ApplicationKeyAtGeneration(application, latestGen)
 }
 
+func (t *Team) UseRKMForApp(application keybase1.TeamApplication) bool {
+	switch application {
+	case keybase1.TeamApplication_SEITAN_INVITE_TOKEN:
+		// Seitan tokens do not use RKMs because implicit admins have all the privileges of explicit members.
+		return false
+	default:
+		return true
+	}
+}
+
 func (t *Team) ApplicationKeyAtGeneration(
 	application keybase1.TeamApplication, generation keybase1.PerTeamKeyGeneration) (res keybase1.TeamApplicationKey, err error) {
 
@@ -290,11 +311,25 @@ func (t *Team) ApplicationKeyAtGeneration(
 		return res, libkb.NotFoundError{
 			Msg: fmt.Sprintf("no team secret found at generation %v", generation)}
 	}
-	rkm, err := t.readerKeyMask(application, generation)
-	if err != nil {
-		return res, err
+
+	var rkm *keybase1.ReaderKeyMask
+	if t.UseRKMForApp(application) {
+		rkmReal, err := t.readerKeyMask(application, generation)
+		if err != nil {
+			return res, err
+		}
+		rkm = &rkmReal
+	} else {
+		var zeroMask [32]byte
+		zeroRKM := keybase1.ReaderKeyMask{
+			Application: application,
+			Generation:  generation,
+			Mask:        zeroMask[:],
+		}
+		rkm = &zeroRKM
 	}
-	return t.applicationKeyForMask(rkm, item.Seed)
+
+	return t.applicationKeyForMask(*rkm, item.Seed)
 }
 
 func (t *Team) applicationKeyForMask(mask keybase1.ReaderKeyMask, secret keybase1.PerTeamKeySeed) (keybase1.TeamApplicationKey, error) {
@@ -398,12 +433,7 @@ func (t *Team) Rotate(ctx context.Context) error {
 		return err
 	}
 
-	// send notification that team key rotated. The sequence number of team bumped by 1 as a
-	// result of this work, so use `NextSeqno()` and not `CurrentSeqno()`. Note that we're going
-	// to be getting this same notification a second time, since it will bounce off a gregor and
-	// back to us. But they are idempotent, so it should be fine to be double-notified.
-	t.G().NotifyRouter.HandleTeamChangedByBothKeys(ctx,
-		t.chain().GetID(), t.Name().String(), t.NextSeqno(), keybase1.TeamChangeSet{KeyRotated: true})
+	t.notify(ctx, keybase1.TeamChangeSet{KeyRotated: true})
 
 	return nil
 }
@@ -475,7 +505,7 @@ func (t *Team) ChangeMembershipPermanent(ctx context.Context, req keybase1.TeamC
 	}
 
 	if len(downgrades) != 0 {
-		lease, merkleRoot, err = libkb.RequestDowngradeLeaseByTeam(ctx, t.G(), t.chain().GetID(), downgrades)
+		lease, merkleRoot, err = libkb.RequestDowngradeLeaseByTeam(ctx, t.G(), t.ID, downgrades)
 		if err != nil {
 			return err
 		}
@@ -505,9 +535,8 @@ func (t *Team) ChangeMembershipPermanent(ctx context.Context, req keybase1.TeamC
 		return err
 	}
 
-	// send notification that team key rotated
-	changes := keybase1.TeamChangeSet{MembershipChanged: true, KeyRotated: t.rotated}
-	t.G().NotifyRouter.HandleTeamChangedByBothKeys(ctx, t.chain().GetID(), t.Name().String(), t.NextSeqno(), changes)
+	t.notify(ctx, keybase1.TeamChangeSet{MembershipChanged: true})
+
 	return nil
 }
 
@@ -911,7 +940,13 @@ func (t *Team) postTeamInvites(ctx context.Context, invites SCTeamInvites) error
 	}
 
 	payload := t.sigPayload(sigMultiItem, sigPayloadArgs{})
-	return t.postMulti(payload)
+	err = t.postMulti(payload)
+	if err != nil {
+		return err
+	}
+
+	t.notify(ctx, keybase1.TeamChangeSet{MembershipChanged: true})
+	return nil
 }
 
 func (t *Team) traverseUpUntil(ctx context.Context, validator func(t *Team) bool) (targetTeam *Team, err error) {
@@ -1131,7 +1166,7 @@ func (t *Team) sigTeamItem(ctx context.Context, section SCTeamSection, linkType 
 		Type:       string(linkType),
 		SeqType:    seqType,
 		SigInner:   string(sigJSON),
-		TeamID:     t.chain().GetID(),
+		TeamID:     t.ID,
 	}
 	if usesPerTeamKeys(linkType) {
 		sigMultiItem.PublicKeys = &libkb.SigMultiItemPublicKeys{
@@ -1381,7 +1416,13 @@ func (t *Team) PostTeamSettings(ctx context.Context, settings keybase1.TeamSetti
 		Public:   t.IsPublic(),
 	}
 
-	return t.postChangeItem(ctx, section, libkb.LinkTypeSettings, nil, sigPayloadArgs{})
+	err = t.postChangeItem(ctx, section, libkb.LinkTypeSettings, nil, sigPayloadArgs{})
+	if err != nil {
+		return err
+	}
+
+	t.notify(ctx, keybase1.TeamChangeSet{})
+	return nil
 }
 
 func (t *Team) parseSocial(username string) (typ string, name string, err error) {
@@ -1473,4 +1514,182 @@ func (t *Team) associateTLFID(ctx context.Context, tlfID keybase1.TLFID) (err er
 
 	payload := t.sigPayload(sigMultiItem, sigPayloadArgs{})
 	return t.postMulti(payload)
+}
+
+// Send notifyrouter messages.
+// Modifies `changes`
+// The sequence number of the is assumed to be bumped by 1, so use `NextSeqno()` and not `CurrentSeqno()`.
+// Note that we're probably going to be getting this same notification a second time, since it will
+// bounce off a gregor and back to us. But they are idempotent, so it should be fine to be double-notified.
+func (t *Team) notify(ctx context.Context, changes keybase1.TeamChangeSet) {
+	changes.KeyRotated = changes.KeyRotated || t.rotated
+	t.G().GetTeamLoader().HintLatestSeqno(ctx, t.ID, t.NextSeqno())
+	t.G().NotifyRouter.HandleTeamChangedByBothKeys(ctx, t.ID, t.Name().String(), t.NextSeqno(), t.IsImplicit(), changes)
+}
+
+// AddMembersBestEffort will try to add list of UserVersions to the
+// team with specified role. It is aware of the following quirks of
+// adding members:
+// - User can be PUK-less. AddMembersBestEffort will create a
+//   keybase-type invite in this case.
+// - This user might have reset and previous UV is in the team.
+//   Then, a delete will be issued for that UV before adding new
+//   membership (or adding a new invite).
+// - If user has a PUK, it will add them normally, unless they
+//   already are in the team with a higher role.
+//
+// This function can be called multiple times with the same UV list
+// with no side effects. Caller is responsible for handling cases when
+// this function races other clients and hits bad sigchain sequence
+// numbers. `RetryOnSigOldSeqnoError` can be used for this. Even if
+// two clients race with adding overlapping UV sets, they should
+// eventually reconcile with all expected members in.
+//
+// This function only returns an error in the following conditions:
+// - Team fails to load.
+// - `role` argument is invalid.
+// - Either ChangeMembership or Invite signature fails to post
+//   (e.g. because of race with other client - see above.)
+//
+// If individual user cannot be processed, errors are only logged,
+// and the process continues.
+func AddMembersBestEffort(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID, role keybase1.TeamRole, uvs []keybase1.UserVersion, forceRepoll bool) (err error) {
+	defer g.CTrace(ctx, fmt.Sprintf("AddMembersBestEffort(TeamID:%s,role:%v)", teamID, role), func() error { return err })()
+
+	team, err := Load(ctx, g, keybase1.LoadTeamArg{
+		ID:          teamID,
+		Public:      teamID.IsPublic(),
+		ForceRepoll: forceRepoll,
+		NeedAdmin:   true,
+	})
+	if err != nil {
+		return err
+	}
+
+	var req keybase1.TeamChangeReq
+	var keybaseInvites []keybase1.UserVersion
+	var needPostMembership bool
+
+	for _, uv := range uvs {
+		var becameAnInvite bool
+		loadedUV, err := loadUserVersionByUID(ctx, g, uv.Uid)
+		if err != nil {
+			if err == errInviteRequired {
+				keybaseInvites = append(keybaseInvites, uv)
+				becameAnInvite = true
+				g.Log.CDebugf(ctx, "Invite required for %+v", uv)
+			} else {
+				g.Log.CDebugf(ctx, "got unexpected error while trying to load user: %s: %v; skipping", uv, err)
+				continue
+			}
+		}
+
+		if loadedUV.EldestSeqno != uv.EldestSeqno {
+			// TODO: We can skip this one or correct the EldestSeqno
+			// in the request.
+			g.Log.CDebugf(ctx, "Trying to add UID %s with EldestSeqno %d, but servers says EldestSeqno is %d", uv.Uid, uv.EldestSeqno, loadedUV.EldestSeqno)
+			continue
+		}
+
+		currentRole, err := team.MemberRole(ctx, uv)
+		if err != nil {
+			g.Log.CDebugf(ctx, "team.MemberRole(%+v) failed with %+v", uv, err)
+			continue
+		}
+
+		if currentRole.IsOrAbove(role) {
+			g.Log.CDebugf(ctx, "User %s already has role %v, skipping", uv.Uid, currentRole)
+			continue
+		}
+
+		existingUV, err := team.UserVersionByUID(ctx, uv.Uid)
+		if err == nil {
+			if !becameAnInvite && existingUV.EldestSeqno > uv.EldestSeqno {
+				// There is an edge case where user is in the middle
+				// of resetting (after reset, before provisioning) and
+				// has EldestSeqno=0. We are adding keybase-type
+				// invite for such users, making them PUKless members.
+				// Do not bail out here, even if there is an UV with
+				// higher EldestSeqno, it's still "old" version.
+				g.Log.CDebugf(ctx, "newer version of user %s is already in team", uv.Uid)
+				continue
+			}
+			g.Log.CDebugf(ctx, "Will remove old version of user (%s) from team", existingUV)
+			req.None = append(req.None, existingUV)
+			needPostMembership = true
+		}
+
+		if !becameAnInvite {
+			err = req.AddUVWithRole(uv, role)
+			if err != nil {
+				return fmt.Errorf("Failed to AddUVWithRole(%s,%s): %v; bailing out", uv, role, err)
+			}
+			needPostMembership = true
+		}
+	}
+
+	if needPostMembership {
+		memberCount := len(req.Owners) + len(req.Admins) + len(req.Writers) + len(req.Readers)
+		g.Log.CDebugf(ctx, "Posting ChangeMembership with %d members", memberCount)
+		err = team.ChangeMembership(ctx, req)
+		if err != nil {
+			return err
+		}
+	}
+
+	if len(keybaseInvites) > 0 {
+		if needPostMembership {
+			// Reload team after posting previous link.
+			team, err = Load(ctx, g, keybase1.LoadTeamArg{
+				ID:          teamID,
+				Public:      teamID.IsPublic(),
+				ForceRepoll: true,
+				NeedAdmin:   true,
+			})
+			if err != nil {
+				return err
+			}
+		}
+
+		var invList []SCTeamInvite
+		var inviteSection SCTeamInvites
+		for _, uv := range keybaseInvites {
+			invite := SCTeamInvite{
+				Type: "keybase",
+				Name: uv.TeamInviteName(),
+				ID:   NewInviteID(),
+			}
+
+			existing, err := team.HasActiveInvite(invite.Name, invite.Type)
+			if err != nil {
+				g.Log.CDebugf(ctx, "Error on HasActiveInvite for %s: %v, skipping", invite.Name, err)
+				continue
+			}
+			if existing {
+				g.Log.CDebugf(ctx, "Invite for %s already existing, skipping", invite.Name)
+				continue
+			}
+
+			invList = append(invList, invite)
+		}
+
+		switch role {
+		case keybase1.TeamRole_READER:
+			inviteSection.Readers = &invList
+		case keybase1.TeamRole_WRITER:
+			inviteSection.Writers = &invList
+		case keybase1.TeamRole_ADMIN:
+			inviteSection.Admins = &invList
+		case keybase1.TeamRole_OWNER:
+			g.Log.CDebugf(ctx, "Cannot add invites as owners, skipping entire invite section")
+			return nil
+		default:
+			return fmt.Errorf("Unexpected role: %v", role)
+		}
+
+		g.Log.CDebugf(ctx, "Posting TeamInvites with %d invites", len(invList))
+		return team.postTeamInvites(ctx, inviteSection)
+	}
+
+	return nil
 }

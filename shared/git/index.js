@@ -2,16 +2,8 @@
 import * as React from 'react'
 import * as I from 'immutable'
 import Row from './row/container'
-import {
-  Box,
-  Text,
-  Icon,
-  ClickableBox,
-  PopupMenu,
-  ProgressIndicator,
-  ScrollView,
-  HeaderHoc,
-} from '../common-adapters'
+import {Box, Text, Icon, ClickableBox, ProgressIndicator, ScrollView, HeaderHoc} from '../common-adapters'
+import {OLDPopupMenu} from '../common-adapters/popup-menu'
 import {globalStyles, globalColors, globalMargins} from '../styles'
 import {isMobile} from '../constants/platform'
 import {branch} from 'recompose'
@@ -87,7 +79,7 @@ class Git extends React.Component<Props, State> {
           {this.props.teams.map(p => <Row key={p} {...this._rowPropsToProps(p)} />)}
         </ScrollView>
         {this.state.showingMenu &&
-          <PopupMenu items={this._menuItems} onHidden={this._toggleMenu} style={_popupStyle} />}
+          <OLDPopupMenu items={this._menuItems} onHidden={this._toggleMenu} style={_popupStyle} />}
       </Box>
     )
   }

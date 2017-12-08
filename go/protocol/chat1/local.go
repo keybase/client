@@ -79,6 +79,7 @@ const (
 	MessageSystemType_ADDEDTOTEAM       MessageSystemType = 0
 	MessageSystemType_INVITEADDEDTOTEAM MessageSystemType = 1
 	MessageSystemType_COMPLEXTEAM       MessageSystemType = 2
+	MessageSystemType_CREATETEAM        MessageSystemType = 3
 )
 
 func (o MessageSystemType) DeepCopy() MessageSystemType { return o }
@@ -87,12 +88,14 @@ var MessageSystemTypeMap = map[string]MessageSystemType{
 	"ADDEDTOTEAM":       0,
 	"INVITEADDEDTOTEAM": 1,
 	"COMPLEXTEAM":       2,
+	"CREATETEAM":        3,
 }
 
 var MessageSystemTypeRevMap = map[MessageSystemType]string{
 	0: "ADDEDTOTEAM",
 	1: "INVITEADDEDTOTEAM",
 	2: "COMPLEXTEAM",
+	3: "CREATETEAM",
 }
 
 func (e MessageSystemType) String() string {
@@ -192,11 +195,24 @@ func (o MessageSystemComplexTeam) DeepCopy() MessageSystemComplexTeam {
 	}
 }
 
+type MessageSystemCreateTeam struct {
+	Team    string `codec:"team" json:"team"`
+	Creator string `codec:"creator" json:"creator"`
+}
+
+func (o MessageSystemCreateTeam) DeepCopy() MessageSystemCreateTeam {
+	return MessageSystemCreateTeam{
+		Team:    o.Team,
+		Creator: o.Creator,
+	}
+}
+
 type MessageSystem struct {
 	SystemType__        MessageSystemType               `codec:"systemType" json:"systemType"`
 	Addedtoteam__       *MessageSystemAddedToTeam       `codec:"addedtoteam,omitempty" json:"addedtoteam,omitempty"`
 	Inviteaddedtoteam__ *MessageSystemInviteAddedToTeam `codec:"inviteaddedtoteam,omitempty" json:"inviteaddedtoteam,omitempty"`
 	Complexteam__       *MessageSystemComplexTeam       `codec:"complexteam,omitempty" json:"complexteam,omitempty"`
+	Createteam__        *MessageSystemCreateTeam        `codec:"createteam,omitempty" json:"createteam,omitempty"`
 }
 
 func (o *MessageSystem) SystemType() (ret MessageSystemType, err error) {
@@ -214,6 +230,11 @@ func (o *MessageSystem) SystemType() (ret MessageSystemType, err error) {
 	case MessageSystemType_COMPLEXTEAM:
 		if o.Complexteam__ == nil {
 			err = errors.New("unexpected nil value for Complexteam__")
+			return ret, err
+		}
+	case MessageSystemType_CREATETEAM:
+		if o.Createteam__ == nil {
+			err = errors.New("unexpected nil value for Createteam__")
 			return ret, err
 		}
 	}
@@ -250,6 +271,16 @@ func (o MessageSystem) Complexteam() (res MessageSystemComplexTeam) {
 	return *o.Complexteam__
 }
 
+func (o MessageSystem) Createteam() (res MessageSystemCreateTeam) {
+	if o.SystemType__ != MessageSystemType_CREATETEAM {
+		panic("wrong case accessed")
+	}
+	if o.Createteam__ == nil {
+		return
+	}
+	return *o.Createteam__
+}
+
 func NewMessageSystemWithAddedtoteam(v MessageSystemAddedToTeam) MessageSystem {
 	return MessageSystem{
 		SystemType__:  MessageSystemType_ADDEDTOTEAM,
@@ -268,6 +299,13 @@ func NewMessageSystemWithComplexteam(v MessageSystemComplexTeam) MessageSystem {
 	return MessageSystem{
 		SystemType__:  MessageSystemType_COMPLEXTEAM,
 		Complexteam__: &v,
+	}
+}
+
+func NewMessageSystemWithCreateteam(v MessageSystemCreateTeam) MessageSystem {
+	return MessageSystem{
+		SystemType__: MessageSystemType_CREATETEAM,
+		Createteam__: &v,
 	}
 }
 
@@ -295,6 +333,13 @@ func (o MessageSystem) DeepCopy() MessageSystem {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.Complexteam__),
+		Createteam__: (func(x *MessageSystemCreateTeam) *MessageSystemCreateTeam {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Createteam__),
 	}
 }
 

@@ -291,6 +291,8 @@ type UserTeamShowcase struct {
 	TeamIsShowcased bool     `codec:"teamIsShowcased" json:"team_is_showcased"`
 	Description     string   `codec:"description" json:"description"`
 	Role            TeamRole `codec:"role" json:"role"`
+	PublicAdmins    []string `codec:"publicAdmins" json:"public_admins"`
+	NumMembers      int      `codec:"numMembers" json:"num_members"`
 }
 
 func (o UserTeamShowcase) DeepCopy() UserTeamShowcase {
@@ -300,6 +302,18 @@ func (o UserTeamShowcase) DeepCopy() UserTeamShowcase {
 		TeamIsShowcased: o.TeamIsShowcased,
 		Description:     o.Description,
 		Role:            o.Role.DeepCopy(),
+		PublicAdmins: (func(x []string) []string {
+			if x == nil {
+				return nil
+			}
+			var ret []string
+			for _, v := range x {
+				vCopy := v
+				ret = append(ret, vCopy)
+			}
+			return ret
+		})(o.PublicAdmins),
+		NumMembers: o.NumMembers,
 	}
 }
 
