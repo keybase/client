@@ -156,6 +156,7 @@ function* installFuseSaga(): Saga.SagaGenerator<any, any> {
 function findKeybaseUninstallString(): Promise<string> {
   console.log('findKeybaseUninstallString')
   return new Promise((resolve, reject) => {
+    // $FlowIssue
     const regedit = require('regedit')
     const keybaseRegPath = 'HKCU\\SOFTWARE\\Keybase\\Keybase'
     try {
@@ -273,9 +274,8 @@ function* installKBFSSaga(): Saga.SagaGenerator<any, any> {
 }
 
 function* uninstallKBFSSaga(): Saga.SagaGenerator<any, any> {
-  yield Saga.call(RPCTypes.installUninstallKBFSRpcPromise)
-  yield Saga.put(KBFSGen.createUninstallKBFS())
-
+  const result: RPCTypes.UninstallResult = yield Saga.call(RPCTypes.installUninstallKBFSRpcPromise)
+  yield Saga.put(KBFSGen.createUninstallKBFSResult({result}))
   // Restart since we had to uninstall KBFS and it's needed by the service (for chat)
   const app = electron.remote.app
   app.relaunch()
