@@ -65,7 +65,7 @@ const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps, ownPro
   }
 }
 
-export const ConnectedInviteRow = connect(mapStateToProps, mapDispatchToProps, mergeProps)(TeamInviteRow)
+const ConnectedInviteRow = connect(mapStateToProps, mapDispatchToProps, mergeProps)(TeamInviteRow)
 
 export default function(i: number, props: OwnProps) {
   return <ConnectedInviteRow {...props} />

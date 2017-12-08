@@ -93,6 +93,5 @@ export {
   getClearSearchTextInput,
   getSearchResultIdsArray,
   getUserInputItemIds,
-  getUserInputItemIdsOrderedSet,
   isUserInputItemsUpdated,
 }

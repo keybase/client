@@ -1,5 +1,7 @@
 // @flow
+import * as I from 'immutable'
 import HiddenString from '../../util/hidden-string'
+
 export type Mode =
   | 'codePageModeScanCode'
   | 'codePageModeShowCode'
@@ -14,20 +16,25 @@ export type DeviceRole =
 
 // It's the b64 encoded value used to render the image
 export type QRCode = HiddenString
-export type State = {
-  codePage: {
-    cameraBrokenMode: boolean,
-    codeCountDown: number,
-    enterCodeErrorText: string,
-    mode: ?Mode,
-    myDeviceRole: ?DeviceRole,
-    otherDeviceRole: ?DeviceRole,
-    qrCode: ?QRCode,
-    qrCodeScanned: boolean,
-    qrScanned: ?QRCode,
-    textCode: ?HiddenString,
-  },
-  configuredAccounts: ?Array<{|hasStoredSecret: boolean, username: string|}>,
+
+export type _Account = {
+  hasStoredSecret: boolean,
+  username: string,
+}
+export type Account = I.RecordOf<_Account>
+
+export type _State = {
+  codePageCameraBrokenMode: boolean,
+  codePageCodeCountDown: number,
+  codePageEnterCodeErrorText: string,
+  codePageMode: ?Mode,
+  codePageMyDeviceRole: ?DeviceRole,
+  codePageOtherDeviceRole: ?DeviceRole,
+  codePageQrCode: ?QRCode,
+  codePageQrCodeScanned: boolean,
+  codePageQrScanned: ?QRCode,
+  codePageTextCode: ?HiddenString,
+  configuredAccounts: I.List<Account>,
   forgotPasswordError: ?Error,
   forgotPasswordSubmitting: boolean,
   forgotPasswordSuccess: boolean,
@@ -38,3 +45,5 @@ export type State = {
   registerUserPassLoading: boolean,
   waitingForResponse: boolean,
 }
+
+export type State = I.RecordOf<_State>

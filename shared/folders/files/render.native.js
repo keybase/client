@@ -17,7 +17,7 @@ import {globalStyles, globalColors, globalMargins} from '../../styles'
 import {intersperseFn} from '../../util/arrays'
 
 import type {IconType} from '../../common-adapters/icon'
-import type {FileSection} from '../../constants/folders'
+import type {FileSection} from '../../constants/types/folders'
 import type {Props} from './render'
 
 const RenderIgnore = ({isPrivate, ignored, unIgnoreCurrentFolder, ignoreCurrentFolder}) =>

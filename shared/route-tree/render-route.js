@@ -16,7 +16,7 @@ type _RenderRouteResult = {
 }
 
 export type RenderRouteResult = I.RecordOf<_RenderRouteResult>
-export const makeRenderRouteResult: I.RecordFactory<_RenderRouteResult> = I.Record({
+const makeRenderRouteResult: I.RecordFactory<_RenderRouteResult> = I.Record({
   path: I.List(),
   tags: makeLeafTags(),
   component: () => null,
@@ -218,8 +218,6 @@ type RenderRouteProps<S> = {
   routeState: RouteStateNode,
   setRouteState: (partialState: $Shape<S>) => void,
 }
-
-export {renderRouteStack}
 
 export default class RenderRoute extends React.PureComponent<RenderRouteProps<*>, *> {
   static defaultProps: *

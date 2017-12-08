@@ -162,4 +162,4 @@ function SyncBrowserWindow(ComposedComponent: any) {
 }
 
 export default SyncBrowserWindow
-export {devScripts, sendLoad}
+export {sendLoad}

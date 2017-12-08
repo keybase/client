@@ -6,7 +6,7 @@ import * as I from 'immutable'
 import * as RPCTypes from '../constants/types/flow-types'
 import * as More from '../constants/types/more'
 import * as Types from '../constants/types/favorite'
-import * as Folders from '../constants/folders'
+import * as Folders from '../constants/types/folders'
 
 // Constants
 export const resetStore = 'common:resetStore' // not a part of favorite but is handled by every reducer

@@ -4,7 +4,9 @@
   ],
   "actions": {
     "updateDebugConfig": {
-      "config": "Types.DebugConfig"
+      "dumbFilter": "string",
+      "dumbFullscreen": "boolean",
+      "dumbIndex": "number"
     },
     "debugCount": {}
   }

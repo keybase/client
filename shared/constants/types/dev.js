@@ -1,12 +1,11 @@
 // @flow
+import * as I from 'immutable'
 
-export type DebugConfig = {|
+export type _State = {
   dumbFilter: string,
   dumbFullscreen: boolean,
   dumbIndex: number,
-|}
-
-export type State = {
-  debugConfig: DebugConfig,
   debugCount: number,
 }
+
+export type State = I.RecordOf<_State>

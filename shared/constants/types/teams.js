@@ -52,22 +52,11 @@ export type IgnoreRequest = NoErrorTypedAction<'teams:ignoreRequest', {name: str
 export type JoinTeam = NoErrorTypedAction<'teams:joinTeam', {teamname: string}>
 export type LeaveTeam = NoErrorTypedAction<'teams:leaveTeam', {teamname: string}>
 export type GetChannels = NoErrorTypedAction<'teams:getChannels', {teamname: string}>
-
-export type MakeTeamOpen = NoErrorTypedAction<
-  'teams:makeTeamOpen',
-  {convertToOpen: boolean, defaultRole: TeamRoleType, teamname: string}
->
-
 export type GetTeams = NoErrorTypedAction<'teams:getTeams', {}>
 
 export type BadgeAppForTeams = NoErrorTypedAction<
   'teams:badgeAppForTeams',
   {newTeamNames?: ?Array<string>, newTeamAccessRequests?: ?Array<string>}
->
-
-export type ToggleChannelMembership = NoErrorTypedAction<
-  'teams:toggleChannelMembership',
-  {teamname: string, channelname: string}
 >
 
 export type CreateChannel = NoErrorTypedAction<

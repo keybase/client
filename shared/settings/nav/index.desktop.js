@@ -6,7 +6,7 @@ import {Box, Badge, ClickableBox, Text} from '../../common-adapters'
 
 import type {Props, SettingsItem as SettingsItemType} from './index'
 
-export function SettingsItem({text, selected, onClick, badgeNumber}: SettingsItemType) {
+function SettingsItem({text, selected, onClick, badgeNumber}: SettingsItemType) {
   return (
     <ClickableBox onClick={onClick} style={selected ? selectedStyle : itemStyle}>
       <Box style={globalStyles.flexBoxRow}>
