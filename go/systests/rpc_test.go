@@ -519,10 +519,7 @@ func TestResolveIdentifyImplicitTeamWithDuplicates(t *testing.T) {
 func testResolveImplicitTeam(t *testing.T, g *libkb.GlobalContext, id keybase1.TeamID, isPublic bool, gen keybase1.Seqno) {
 	cli, err := client.GetIdentifyClient(g)
 	require.NoError(t, err, "failed to get new Identify client")
-	arg := keybase1.ResolveImplicitTeamArg{
-		Id:       id,
-		IsPublic: isPublic,
-	}
+	arg := keybase1.ResolveImplicitTeamArg{Id: id}
 	res, err := cli.ResolveImplicitTeam(context.Background(), arg)
 	require.NoError(t, err, "resolve Implicit team worked")
 	if gen == keybase1.Seqno(0) {

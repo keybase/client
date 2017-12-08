@@ -181,7 +181,6 @@ type ResolveIdentifyImplicitTeamArg struct {
 type ResolveImplicitTeamArg struct {
 	SessionID int    `codec:"sessionID" json:"sessionID"`
 	Id        TeamID `codec:"id" json:"id"`
-	IsPublic  bool   `codec:"isPublic" json:"isPublic"`
 }
 
 type IdentifyInterface interface {
@@ -190,6 +189,8 @@ type IdentifyInterface interface {
 	Identify2(context.Context, Identify2Arg) (Identify2Res, error)
 	IdentifyLite(context.Context, IdentifyLiteArg) (IdentifyLiteRes, error)
 	ResolveIdentifyImplicitTeam(context.Context, ResolveIdentifyImplicitTeamArg) (ResolveIdentifyImplicitTeamRes, error)
+	// resolveImplicitTeam returns a TLF display name given a teamID. The publicness
+	// of the team is inferred from the TeamID.
 	ResolveImplicitTeam(context.Context, ResolveImplicitTeamArg) (Folder, error)
 }
 
@@ -307,6 +308,8 @@ func (c IdentifyClient) ResolveIdentifyImplicitTeam(ctx context.Context, __arg R
 	return
 }
 
+// resolveImplicitTeam returns a TLF display name given a teamID. The publicness
+// of the team is inferred from the TeamID.
 func (c IdentifyClient) ResolveImplicitTeam(ctx context.Context, __arg ResolveImplicitTeamArg) (res Folder, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.identify.resolveImplicitTeam", []interface{}{__arg}, &res)
 	return
