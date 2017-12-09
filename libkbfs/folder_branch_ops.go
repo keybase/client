@@ -805,6 +805,13 @@ func (fbo *folderBranchOps) setHeadLocked(
 			fbo.updateDoneChan = make(chan struct{})
 			go fbo.registerAndWaitForUpdates()
 		}
+		// If journaling is enabled, we should make sure to enable it
+		// for this TLF.  That's because we may have received the TLF
+		// ID from the service, rather than via a GetIDForHandle call,
+		// and so we might have skipped the journal.
+		if jServer, err := GetJournalServer(fbo.config); err == nil {
+			_, _ = jServer.getTLFJournal(fbo.id(), md.GetTlfHandle())
+		}
 	}
 	if !wasReadable && md.IsReadable() {
 		// Let any listeners know that this folder is now readable,
