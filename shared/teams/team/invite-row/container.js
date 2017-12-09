@@ -1,5 +1,5 @@
 // @flow
-import * as Creators from '../../../actions/teams/creators'
+import * as TeamsGen from '../../../actions/teams-gen'
 import * as I from 'immutable'
 import * as React from 'react'
 import * as Types from '../../../constants/types/teams'
@@ -41,11 +41,11 @@ const mapDispatchToProps = (
 ): DispatchProps => ({
   onCancelInvite: () => {
     if (email) {
-      dispatch(Creators.removeMember(email, teamname, '', ''))
+      dispatch(TeamsGen.createRemoveMemberOrPendingInvite({email, teamname, username: '', inviteID: ''}))
     } else if (username) {
-      dispatch(Creators.removeMember('', teamname, username, ''))
+      dispatch(TeamsGen.createRemoveMemberOrPendingInvite({email: '', teamname, username, inviteID: ''}))
     } else if (name) {
-      dispatch(Creators.removeMember('', teamname, '', id))
+      dispatch(TeamsGen.createRemoveMemberOrPendingInvite({email: '', teamname, username: '', inviteID: id}))
     }
   },
 })

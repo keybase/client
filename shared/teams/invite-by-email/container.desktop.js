@@ -1,5 +1,5 @@
 // @flow
-import * as Creators from '../../actions/teams/creators'
+import * as TeamsGen from '../../actions/teams-gen'
 import InviteByEmailDesktop from '.'
 import {HeaderHoc} from '../../common-adapters'
 import {navigateAppend} from '../../actions/route-tree'
@@ -20,9 +20,9 @@ const mapStateToProps = (state: TypedState, {routeProps}: OwnProps) => ({
 const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routeProps}) => ({
   onClose: () => dispatch(navigateUp()),
   onInvite: ({invitees, role}) => {
-    dispatch(Creators.inviteToTeamByEmail(routeProps.get('teamname'), role, invitees))
+    dispatch(TeamsGen.createInviteToTeamByEmail({teamname: routeProps.get('teamname'), role, invitees}))
     dispatch(navigateUp())
-    dispatch(Creators.getTeams())
+    dispatch(TeamsGen.createGetTeams())
   },
 
   onOpenRolePicker: (role: string, onComplete: string => void) => {

@@ -2,10 +2,10 @@
 import * as React from 'react'
 import * as I from 'immutable'
 import * as Constants from '../../constants/teams'
+import * as TeamsGen from '../../actions/teams-gen'
 import {type ConversationIDKey} from '../../constants/types/chat'
 import EditChannel from './edit-channel'
 import {connect, type TypedState} from '../../util/container'
-import {updateChannelName, updateTopic, deleteChannelConfirmed} from '../../actions/teams/creators'
 import {anyWaiting} from '../../constants/waiting'
 
 const mapStateToProps = (state: TypedState, {navigateUp, routePath, routeProps}) => {
@@ -37,10 +37,10 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routePath, routePro
   return {
     onCancel: () => dispatch(navigateUp()),
     _updateChannelName: (newChannelName: string) =>
-      dispatch(updateChannelName(conversationIDKey, newChannelName)),
-    _updateTopic: (newTopic: string) => dispatch(updateTopic(conversationIDKey, newTopic)),
+      dispatch(TeamsGen.createUpdateChannelName({conversationIDKey, newChannelName})),
+    _updateTopic: (newTopic: string) => dispatch(TeamsGen.createUpdateTopic({conversationIDKey, newTopic})),
     onConfirmedDelete: () => {
-      dispatch(deleteChannelConfirmed(conversationIDKey))
+      dispatch(TeamsGen.createDeleteChannelConfirmed({conversationIDKey}))
       dispatch(navigateUp())
     },
   }

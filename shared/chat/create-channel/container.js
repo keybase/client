@@ -1,7 +1,7 @@
 // @flow
+import * as TeamsGen from '../../actions/teams-gen'
 import CreateChannel from '.'
 import {compose, withHandlers, lifecycle, withState, connect, type TypedState} from '../../util/container'
-import {createChannel, setChannelCreationError} from '../../actions/teams/creators'
 import {navigateTo} from '../../actions/route-tree'
 import upperFirst from 'lodash/upperFirst'
 
@@ -14,7 +14,7 @@ const mapStateToProps = (state: TypedState, {routeProps}) => {
 
 const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routePath}) => ({
   _onSetChannelCreationError: error => {
-    dispatch(setChannelCreationError(error))
+    dispatch(TeamsGen.createSetChannelCreationError({error}))
   },
   onBack: () => dispatch(navigateTo(['manageChannels'], routePath.butLast())),
   onClose: () => dispatch(navigateUp()),
@@ -22,7 +22,9 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routePath}) => ({
     const rootPath = routePath.take(1)
     const sourceSubPath = routePath.rest()
     const destSubPath = sourceSubPath.butLast()
-    dispatch(createChannel(teamname, channelname, description, rootPath, sourceSubPath, destSubPath))
+    dispatch(
+      TeamsGen.createCreateChannel({teamname, channelname, description, rootPath, sourceSubPath, destSubPath})
+    )
   },
 })
 

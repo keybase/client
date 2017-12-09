@@ -1,6 +1,7 @@
 // @flow
 import * as KBFSGen from './kbfs-gen'
 import * as ConfigGen from './config-gen'
+import * as TeamsGen from './teams-gen'
 import * as LoginGen from './login-gen'
 import * as Constants from '../constants/config'
 import * as GregorCreators from '../actions/gregor'
@@ -11,7 +12,6 @@ import * as PinentryGen from '../actions/pinentry-gen'
 import * as SignupGen from '../actions/signup-gen'
 import engine from '../engine'
 import {RouteStateStorage} from '../actions/route-state-storage'
-import {getTeams} from './teams/creators'
 import {createConfigurePush} from './push-gen'
 import {flushLogFile} from '../util/forward-logs'
 import {isMobile, isSimulator} from '../constants/platform'
@@ -138,7 +138,7 @@ const bootstrap = (opts: $PropertyType<ConfigGen.BootstrapPayload, 'payload'>): 
               // also load the teamlist for auxiliary information around the app
               await dispatch(routeStateStorage.load)
               await dispatch(LoginGen.createNavBasedOnLoginAndInitialState())
-              await dispatch(getTeams())
+              await dispatch(TeamsGen.createGetTeams())
             }
           })
           dispatch(SignupGen.createResetSignup())

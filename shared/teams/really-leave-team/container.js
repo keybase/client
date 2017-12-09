@@ -1,8 +1,8 @@
 // @flow
+import * as TeamsGen from '../../actions/teams-gen'
 import {connect, type TypedState} from '../../util/container'
 import {Set} from 'immutable'
 import {compose, branch, renderComponent} from 'recompose'
-import * as Creators from '../../actions/teams/creators'
 import ReallyLeaveTeam from '.'
 import LastOwnerDialog from './last-owner'
 import {navigateTo} from '../../actions/route-tree'
@@ -22,9 +22,9 @@ const mapStateToProps = (state: TypedState, {routeProps}) => {
 const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routeProps}) => ({
   onClose: () => dispatch(navigateUp()),
   onLeave: () => {
-    dispatch(Creators.leaveTeam(routeProps.get('teamname')))
+    dispatch(TeamsGen.createLeaveTeam({teamname: routeProps.get('teamname')}))
     dispatch(navigateTo([teamsTab]))
-    dispatch(Creators.getTeams())
+    dispatch(TeamsGen.createGetTeams())
   },
 })
 

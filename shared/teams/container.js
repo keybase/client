@@ -2,9 +2,9 @@
 import * as I from 'immutable'
 import * as KBFSGen from '../actions/kbfs-gen'
 import * as GregorGen from '../actions/gregor-gen'
+import * as TeamsGen from '../actions/teams-gen'
 import Teams from './main'
 import openURL from '../util/open-url'
-import {getTeams} from '../actions/teams/creators'
 import {navigateAppend} from '../actions/route-tree'
 import {compose, lifecycle, type TypedState, pausableConnect} from '../util/container'
 import {type Teamname} from '../constants/types/teams'
@@ -45,7 +45,7 @@ type DispatchProps = {
 }
 
 const mapDispatchToProps = (dispatch: Dispatch): DispatchProps => ({
-  _loadTeams: () => dispatch(getTeams()),
+  _loadTeams: () => dispatch(TeamsGen.createGetTeams()),
   onCreateTeam: () => {
     dispatch(
       navigateAppend([
