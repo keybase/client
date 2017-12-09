@@ -241,7 +241,8 @@ func (k *KeybaseDaemonLocal) Resolve(ctx context.Context, assertion string) (
 
 	_, ok := k.localImplicitTeams[id.AsTeamOrBust()]
 	if ok {
-		// An implicit team exists, so Resolve shouldn't work.
+		// An implicit team exists, so Resolve shouldn't work.  The
+		// caller should use `ResolveImplicitTeamByID` instead.
 		return libkb.NormalizedUsername(""), keybase1.UserOrTeamID(""),
 			fmt.Errorf("Team ID %s is an implicit team", id)
 	}
