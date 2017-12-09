@@ -191,14 +191,25 @@ func (p *blockPrefetcher) completePrefetch(
 		}
 		if pp.subtreeBlockCount == 0 {
 			delete(p.prefetches, blockID)
+			defer pp.Close()
+			b := pp.req.block.NewEmpty()
+			// TODO: after we split out priority from whether to prefetch, make
+			// this a much higher priority.
+			err := <-p.retriever.Request(pre.ctx,
+				lowestTriggerPrefetchPriority-1, req.kmd, req.ptr, b,
+				req.lifetime)
+			if err != nil {
+				p.log.CWarningf(pp.ctx, "failed to retrieve block to "+
+					"complete its prefetch, canceled it instead: %+v", err)
+				return
+			}
 			err := p.retriever.PutInCaches(pp.ctx, pp.req.ptr,
-				pp.req.kmd.TlfID(), pp.req.block, pp.req.lifetime,
+				pp.req.kmd.TlfID(), b, pp.req.lifetime,
 				FinishedPrefetch)
 			if err != nil {
-				p.log.CWarningf(pp.ctx, "Failed to complete prefetch due to "+
+				p.log.CWarningf(pp.ctx, "failed to complete prefetch due to "+
 					"cache error, canceled it instead: %+v", err)
 			}
-			pp.Close()
 		}
 	}
 }
@@ -397,7 +408,17 @@ func (p *blockPrefetcher) prefetchDirectDirBlock(ctx context.Context,
 func (p *blockPrefetcher) handlePrefetch(pre *prefetch, isPrefetchNew,
 	isDeepSync bool) (numBlocks int, isTail bool, err error) {
 	req := pre.req
-	switch b := req.block.(type) {
+	b := req.block.NewEmpty()
+	// TODO: after we split out priority from whether to prefetch, make this a
+	// much higher priority.
+	err = <-p.retriever.Request(pre.ctx, lowestTriggerPrefetchPriority-1,
+		req.kmd, req.ptr, b, req.lifetime)
+	if err != nil {
+		p.log.CDebugf(ctx, "failed to retrieve block %s to handle its "+
+			"prefetch: %+v", req.ptr.ID, err)
+		return 0, false, err
+	}
+	switch b := b.(type) {
 	case *FileBlock:
 		if b.IsInd {
 			numBlocks, isTail = p.prefetchIndirectFileBlock(pre.ctx,
@@ -416,7 +437,7 @@ func (p *blockPrefetcher) handlePrefetch(pre *prefetch, isPrefetchNew,
 		}
 	default:
 		// Skipping prefetch for block of unknown type (likely CommonBlock)
-		return 0, false, errors.New("Unknown block type")
+		return 0, false, errors.New("unknown block type")
 	}
 	return numBlocks, isTail, nil
 }
@@ -619,8 +640,8 @@ func (p *blockPrefetcher) run(testSyncCh <-chan struct{}) {
 			numBlocks, isTail, err := p.handlePrefetch(pre, !isPrefetchWaiting,
 				req.isDeepSync)
 			if err != nil {
-				p.log.CDebugf(ctx, "error handling prefetch for block %s",
-					req.ptr.ID)
+				p.log.CWarningf(ctx, "error handling prefetch for block %s: "+
+					"%+v", req.ptr.ID, err)
 				// There's nothing for us to do when there's an error.
 				continue
 			}
@@ -709,7 +730,7 @@ func (p *blockPrefetcher) ProcessBlockForPrefetch(ctx context.Context,
 	ptr BlockPointer, block Block, kmd KeyMetadata, priority int,
 	lifetime BlockCacheLifetime, prefetchStatus PrefetchStatus) {
 	isDeepSync := p.config.IsSyncedTlf(kmd.TlfID())
-	req := &prefetchRequest{ptr, block, kmd, priority, lifetime,
+	req := &prefetchRequest{ptr, block.NewEmpty(), kmd, priority, lifetime,
 		prefetchStatus, isDeepSync}
 	if prefetchStatus == FinishedPrefetch {
 		// Finished prefetches can always be short circuited.
