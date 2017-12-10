@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
 import {Avatar, Box, Text, Icon, Button, MaybePopup, ButtonBar} from '../../common-adapters'
-import {globalStyles, globalMargins} from '../../styles'
+import {globalStyles, globalMargins, isMobile} from '../../styles'
 
 type Props = {
   onClose: () => void,
@@ -24,9 +24,9 @@ const ReallyLeaveTeam = (props: Props) => (
         {' '}
         chats and folders, and you won't be able to get back unless an admin invites you.
       </Text>
-      <ButtonBar>
+      <ButtonBar direction={isMobile ? 'column' : 'row'} fullWidth={isMobile}>
         <Button type="Secondary" onClick={props.onClose} label="Cancel" />
-        <Button type="Danger" onClick={props.onLeave} label={`Yes, leave ${props.name}`} />
+        <Button type="Danger" onClick={props.onLeave} label={`Yes, leave ${props.name}`} fullWidth={true} />
       </ButtonBar>
     </Box>
   </MaybePopup>

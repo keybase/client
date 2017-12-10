@@ -1,8 +1,7 @@
 // @flow
 import * as React from 'react'
 import {Avatar, Box, Text, Icon, PopupDialog, Button, ButtonBar} from '../../../common-adapters'
-import {globalStyles, globalMargins, globalColors} from '../../../styles'
-import {isMobile} from '../../../constants/platform'
+import {globalStyles, globalMargins, globalColors, isMobile} from '../../../styles'
 
 const MaybePopup = isMobile
   ? (props: {onClose: () => void, children: React.Node}) => (
@@ -39,9 +38,14 @@ const ReallyRemoveMember = (props: Props) => (
         {' '}
         chats and folders, and they won't be able to get back unless an admin invites them.
       </Text>
-      <ButtonBar>
+      <ButtonBar direction={isMobile ? 'column' : 'row'} fullWidth={isMobile}>
         <Button type="Secondary" onClick={props.onClose} label="Cancel" />
-        <Button type="Danger" onClick={props.onRemove} label={`Yes, remove ${props.member}`} />
+        <Button
+          type="Danger"
+          onClick={props.onRemove}
+          label={`Yes, remove ${props.member}`}
+          fullWidth={isMobile}
+        />
       </ButtonBar>
     </Box>
   </MaybePopup>

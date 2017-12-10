@@ -6,10 +6,10 @@ import {isMobile} from '../constants/platform'
 
 type Props = {
   direction: 'row' | 'column',
-  align?: 'flex-start' | 'flex-end' | 'center',
+  align?: 'flex-start' | 'flex-end' | 'center', // ignored by column
   children: React.Node,
-  fullWidth?: boolean,
-  small?: boolean,
+  fullWidth?: boolean, // ignored by column
+  small?: boolean, // ignored by column
   style?: any,
 }
 
@@ -19,23 +19,6 @@ class ButtonBar extends React.PureComponent<Props> {
     direction: 'row',
     fullWidth: false,
     small: false,
-  }
-
-  constructor(props: Props) {
-    super(props)
-
-    if (__DEV__) {
-      // I tried to get flow to do this but it got really confused so we get a dev only runtime check instead
-      if (props.direction === 'column') {
-        const keys = Object.keys(props)
-        const rowOnlyKeys = [('align', 'fullWidth', 'small')]
-        rowOnlyKeys.forEach(k => {
-          if (keys.includes(k)) {
-            throw new Error(`Invalid key passed to ButtonBar ${k}`)
-          }
-        })
-      }
-    }
   }
 
   _spacing = () => {
@@ -56,11 +39,11 @@ class ButtonBar extends React.PureComponent<Props> {
     const children = React.Children.toArray(this.props.children)
     const childrenWithSpacing = children.reduce((arr, c, idx) => {
       if (surroundSpacing || idx > 0) {
-        arr.push(<Spacing />)
+        arr.push(<Spacing key={arr.length} />)
       }
       arr.push(c)
       if (surroundSpacing && idx === children.length - 1) {
-        arr.push(<Spacing />)
+        arr.push(<Spacing key={arr.length} />)
       }
       return arr
     }, [])
