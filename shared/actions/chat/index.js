@@ -16,18 +16,21 @@ import engine from '../../engine'
 import some from 'lodash/some'
 import {parseFolderNameToUsers} from '../../util/kbfs'
 import {publicFolderWithUsers, privateFolderWithUsers, teamFolder} from '../../constants/config'
+import type {TypedState} from '../../constants/reducer'
 
-function* _incomingTyping(action: ChatGen.IncomingTypingPayload): Saga.SagaGenerator<any, any> {
+function _incomingTyping(action: ChatGen.IncomingTypingPayload) {
+  const actions = []
   // $FlowIssue
   for (const activity of action.payload.activity) {
     const conversationIDKey = Constants.conversationIDToKey(activity.convID)
     const typers = activity.typers || []
     const typing = typers.map(typer => typer.username)
-    yield Saga.put(ChatGen.createSetTypers({conversationIDKey, typing}))
+    actions.push(Saga.put(ChatGen.createSetTypers({conversationIDKey, typing})))
   }
+  return Saga.all(actions)
 }
 
-function* _setupChatHandlers(): Saga.SagaGenerator<any, any> {
+function _setupChatHandlers() {
   engine().setIncomingActionCreators('chat.1.NotifyChat.NewChatActivity', ({activity}) => [
     ChatGen.createIncomingMessage({activity}),
   ])
@@ -90,29 +93,30 @@ function* _setupChatHandlers(): Saga.SagaGenerator<any, any> {
   ])
 }
 
-function* _openTlfInChat(action: ChatGen.OpenTlfInChatPayload): Saga.SagaGenerator<any, any> {
+function _openTlfInChat(action: ChatGen.OpenTlfInChatPayload, state: TypedState) {
   const {payload: {tlf, isTeam}} = action
   if (isTeam) {
-    yield Saga.put(ChatGen.createOpenTeamConversation({teamname: tlf, channelname: 'general'}))
-    return
+    return Saga.put(ChatGen.createOpenTeamConversation({teamname: tlf, channelname: 'general'}))
   }
-  const me = yield Saga.select(Selectors.usernameSelector)
+  const me = Selectors.usernameSelector(state)
   const userlist = parseFolderNameToUsers(me, tlf)
   const users = userlist.map(u => u.username)
   if (some(userlist, 'readOnly')) {
     console.warn('Bug: openTlfToChat should never be called on a convo with readOnly members.')
     return
   }
-  yield Saga.put(ChatGen.createStartConversation({users}))
+  return Saga.put(ChatGen.createStartConversation({users}))
 }
 
-function* _openFolder(): Saga.SagaGenerator<any, any> {
-  const conversationIDKey = yield Saga.select(Constants.getSelectedConversation)
-
-  const inbox = yield Saga.select(Constants.getInbox, conversationIDKey)
+function _openFolder(_: ChatGen.OpenFolderPayload, state: TypedState) {
+  const conversationIDKey = Constants.getSelectedConversation(state)
+  const inbox = Constants.getInbox(state, conversationIDKey)
   if (inbox) {
     let path
     if (inbox.membersType === ChatTypes.commonConversationMembersType.team) {
+      if (!inbox.teamname) {
+        throw new Error(`Can't find conversation path`)
+      }
       path = teamFolder(inbox.teamname)
     } else {
       const helper = inbox.visibility === RPCTypes.commonTLFVisibility.public
@@ -120,7 +124,7 @@ function* _openFolder(): Saga.SagaGenerator<any, any> {
         : privateFolderWithUsers
       path = helper(inbox.get('participants').toArray())
     }
-    yield Saga.put(KBFSGen.createOpen({path}))
+    return Saga.put(KBFSGen.createOpen({path}))
   } else {
     throw new Error(`Can't find conversation path`)
   }
@@ -134,10 +138,10 @@ function* chatSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.fork(Search.registerSagas)
   yield Saga.fork(ManageThread.registerSagas)
 
-  yield Saga.safeTakeEvery(ChatGen.incomingTyping, _incomingTyping)
-  yield Saga.safeTakeEvery(ChatGen.openFolder, _openFolder)
-  yield Saga.safeTakeEvery(ChatGen.openTlfInChat, _openTlfInChat)
-  yield Saga.safeTakeEvery(ChatGen.setupChatHandlers, _setupChatHandlers)
+  yield Saga.safeTakeEveryPure(ChatGen.incomingTyping, _incomingTyping)
+  yield Saga.safeTakeEveryPure(ChatGen.openFolder, _openFolder)
+  yield Saga.safeTakeEveryPure(ChatGen.openTlfInChat, _openTlfInChat)
+  yield Saga.safeTakeEveryPure(ChatGen.setupChatHandlers, _setupChatHandlers)
 }
 
 export default chatSaga

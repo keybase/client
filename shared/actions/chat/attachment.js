@@ -43,7 +43,7 @@ function onLoadAttachmentPreview({payload: {messageKey}}: ChatGen.LoadAttachment
 function* onSaveAttachment({
   payload: {messageKey},
 }: ChatGen.SaveAttachmentPayload): Generator<any, ?string, any> {
-  const state: TypedState = yield Saga.select()
+  let state: TypedState = yield Saga.select()
   const savedPath = Constants.getAttachmentSavedPath(state, messageKey)
   const downloadedPath = Constants.getAttachmentDownloadedPath(state, messageKey)
 
@@ -82,14 +82,14 @@ function* onSaveAttachment({
     }
   }
 
-  const state2: TypedState = yield Saga.select()
-  const nextDownloadedPath = Constants.getAttachmentDownloadedPath(state2, messageKey)
+  state = yield Saga.select()
+  const nextDownloadedPath = Constants.getAttachmentDownloadedPath(state, messageKey)
   if (!nextDownloadedPath) {
     console.warn('_saveAttachment: message failed to download!')
     return null
   }
 
-  const message = Constants.getMessageFromMessageKey(state2, messageKey)
+  const message = Constants.getMessageFromMessageKey(state, messageKey)
   if (!message || !message.filename) {
     console.warn("can't find message")
     return null
