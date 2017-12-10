@@ -1291,3 +1291,31 @@ func TeamDebug(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.Team
 	}
 	return keybase1.TeamDebugRes{Chain: team.Data.Chain}, nil
 }
+
+func MapImplicitTeamIDToDisplayName(ctx context.Context, g *libkb.GlobalContext, id keybase1.TeamID, isPublic bool) (folder keybase1.Folder, err error) {
+
+	team, err := Load(ctx, g, keybase1.LoadTeamArg{
+		ID:     id,
+		Public: isPublic,
+	})
+	if err != nil {
+		return folder, err
+	}
+
+	itdn, err := team.ImplicitTeamDisplayName(ctx)
+	if err != nil {
+		return folder, err
+	}
+
+	folder.Name, err = FormatImplicitTeamDisplayName(ctx, g, itdn)
+	if err != nil {
+		return folder, err
+	}
+	folder.Private = !isPublic
+	if isPublic {
+		folder.FolderType = keybase1.FolderType_PUBLIC
+	} else {
+		folder.FolderType = keybase1.FolderType_PRIVATE
+	}
+	return folder, nil
+}

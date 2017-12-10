@@ -5,6 +5,7 @@ import Conversation from './conversation/container'
 import EnterPaperkey from './conversation/rekey/enter-paper-key'
 import AttachmentPopup from './conversation/attachment-popup/container'
 import AttachmentInputPopup from './conversation/attachment-input/container'
+import EditChannel from './manage-channels/edit-channel-container'
 import MessagePopup from './conversation/messages/popup.native'
 import BlockConversationWarning from './conversation/block-conversation-warning/container'
 import InfoPanel from './conversation/info-panel/container'
@@ -62,7 +63,13 @@ const conversationRoute = makeRouteDefNode({
 
 const manageChannelsRoute = makeRouteDefNode({
   component: ManageChannels,
-  children: {},
+  children: {
+    editChannel: {
+      component: EditChannel,
+      tags: makeLeafTags({hideStatusBar: true, layerOnTop: false}),
+      children: {},
+    },
+  },
   tags: makeLeafTags({hideStatusBar: true}),
 })
 

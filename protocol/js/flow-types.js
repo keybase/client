@@ -812,6 +812,10 @@ export const identifyResolveIdentifyImplicitTeamRpcChannelMap = (configKeys: Arr
 
 export const identifyResolveIdentifyImplicitTeamRpcPromise = (request: IdentifyResolveIdentifyImplicitTeamRpcParam): Promise<IdentifyResolveIdentifyImplicitTeamResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.identify.resolveIdentifyImplicitTeam', request, (error: RPCError, result: IdentifyResolveIdentifyImplicitTeamResult) => error ? reject(error) : resolve(result)))
 
+export const identifyResolveImplicitTeamRpcChannelMap = (configKeys: Array<string>, request: IdentifyResolveImplicitTeamRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.identify.resolveImplicitTeam', request)
+
+export const identifyResolveImplicitTeamRpcPromise = (request: IdentifyResolveImplicitTeamRpcParam): Promise<IdentifyResolveImplicitTeamResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.identify.resolveImplicitTeam', request, (error: RPCError, result: IdentifyResolveImplicitTeamResult) => error ? reject(error) : resolve(result)))
+
 export const identifyUiCheckResultFreshness = {
   fresh: 0,
   aged: 1,
@@ -1994,6 +1998,8 @@ export type ConfiguredAccount = {|username: String,hasStoredSecret: Boolean,|}
 
 export type ConfirmResult = {|identityConfirmed: Boolean,remoteConfirmed: Boolean,expiringLocal: Boolean,autoConfirmed: Boolean,|}
 
+export type ConflictGeneration = Int
+
 export type CopyArgs = {|opID: OpID,src: Path,dest: Path,|}
 
 export type CryptKey = {|KeyGeneration: Int,Key: Bytes32,|}
@@ -2307,13 +2313,13 @@ export type HelloRes = String
 
 export type HomeHomeActionTakenRpcParam = ?{|incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
-export type HomeHomeGetScreenRpcParam = {|markViewed: Boolean,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type HomeHomeGetScreenRpcParam = {|markViewed: Boolean,numFollowSuggestionsWanted: Int,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
 export type HomeHomeMarkViewedRpcParam = ?{|incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
 export type HomeHomeSkipTodoTypeRpcParam = {|t: HomeScreenTodoType,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
-export type HomeScreen = {|lastViewed: Time,version: Int,items?: ?Array<HomeScreenItem>,followSuggestions?: ?Array<UserSummary>,|}
+export type HomeScreen = {|lastViewed: Time,version: Int,items?: ?Array<HomeScreenItem>,followSuggestions?: ?Array<HomeUserSummary>,|}
 
 export type HomeScreenItem = {|badged: Boolean,data: HomeScreenItemData,|}
 
@@ -2352,6 +2358,8 @@ export type HomeScreenTodoType =0 // NONE_0
 
 export type HomeUiHomeUIRefreshRpcParam = ?{|incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
+export type HomeUserSummary = {|uid: UID,username: String,bio: String,fullName: String,pics?: ?Pics,|}
+
 export type Identify2Res = {|upk: UserPlusKeys,identifiedAt: Time,trackBreaks?: ?IdentifyTrackBreaks,|}
 
 export type IdentifyIdentify2RpcParam = {|uid: UID,userAssertion: String,reason: IdentifyReason,useDelegateUI?: Boolean,alwaysBlock?: Boolean,noErrorOnTrackFailure?: Boolean,forceRemoteCheck?: Boolean,needProofSet?: Boolean,allowEmptySelfID?: Boolean,noSkipSelf?: Boolean,canSuppressUI?: Boolean,identifyBehavior?: TLFIdentifyBehavior,forceDisplay?: Boolean,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
@@ -2381,6 +2389,8 @@ export type IdentifyReasonType =0 // NONE_0
 export type IdentifyResolve3RpcParam = {|assertion: String,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
 export type IdentifyResolveIdentifyImplicitTeamRpcParam = {|assertions: String,suffix: String,isPublic: Boolean,doIdentifies: Boolean,create: Boolean,reason: IdentifyReason,identifyBehavior: TLFIdentifyBehavior,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+
+export type IdentifyResolveImplicitTeamRpcParam = {|id: TeamID,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
 export type IdentifyRow = {|rowId: Int,proof: RemoteProof,trackDiff?: ?TrackDiff,|}
 
@@ -2422,7 +2432,7 @@ export type Identity = {|status?: ?Status,whenLastTracked: Time,proofs?: ?Array<
 
 export type ImplicitRole = {|role: TeamRole,ancestor: TeamID,|}
 
-export type ImplicitTeamConflictInfo = {|generation: Int,time: Time,|}
+export type ImplicitTeamConflictInfo = {|generation: ConflictGeneration,time: Time,|}
 
 export type ImplicitTeamDisplayName = {|isPublic: Boolean,writers: ImplicitTeamUserSet,readers: ImplicitTeamUserSet,conflictInfo?: ?ImplicitTeamConflictInfo,|}
 
@@ -2822,6 +2832,8 @@ export type PgpUiOutputSignatureSuccessNonKeybaseRpcParam = {|keyID: String,sign
 export type PgpUiOutputSignatureSuccessRpcParam = {|fingerprint: String,username: String,signedAt: Time,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
 export type PgpUiShouldPushPrivateRpcParam = ?{|incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+
+export type Pics = {|square40: String,square200: String,square360: String,|}
 
 export type PingResponse = {|timestamp: Time,|}
 
@@ -3851,6 +3863,7 @@ type IdentifyIdentify2Result = Identify2Res
 type IdentifyIdentifyLiteResult = IdentifyLiteRes
 type IdentifyResolve3Result = UserOrTeamLite
 type IdentifyResolveIdentifyImplicitTeamResult = ResolveIdentifyImplicitTeamRes
+type IdentifyResolveImplicitTeamResult = Folder
 type IdentifyUiConfirmResult = ConfirmResult
 type IdentifyUiDelegateIdentifyUIResult = Int
 type InstallFuseStatusResult = FuseStatus

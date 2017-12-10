@@ -2006,6 +2006,10 @@ func (n ImplicitTeamDisplayName) String() string {
 	return name
 }
 
+func (c ImplicitTeamConflictInfo) IsConflict() bool {
+	return c.Generation > ConflictGeneration(0)
+}
+
 const (
 	// LockIDVersion0 is the first ever version for lock ID format.
 	LockIDVersion0 byte = iota
@@ -2086,4 +2090,20 @@ func (r *GitRepoResult) GetIfOk() (res GitRepoInfo, err error) {
 		return r.Ok(), nil
 	}
 	return res, fmt.Errorf("git repo unknown error")
+}
+
+func (req *TeamChangeReq) AddUVWithRole(uv UserVersion, role TeamRole) error {
+	switch role {
+	case TeamRole_READER:
+		req.Readers = append(req.Readers, uv)
+	case TeamRole_WRITER:
+		req.Writers = append(req.Writers, uv)
+	case TeamRole_ADMIN:
+		req.Admins = append(req.Admins, uv)
+	case TeamRole_OWNER:
+		req.Owners = append(req.Owners, uv)
+	default:
+		return fmt.Errorf("Unexpected role: %v", role)
+	}
+	return nil
 }

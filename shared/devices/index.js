@@ -1,15 +1,7 @@
 // @flow
 import React, {PureComponent} from 'react'
-import {
-  Box,
-  Text,
-  List,
-  PopupMenu,
-  Icon,
-  ClickableBox,
-  ProgressIndicator,
-  HeaderHoc,
-} from '../common-adapters'
+import {Box, Text, List, Icon, ClickableBox, ProgressIndicator, HeaderHoc} from '../common-adapters'
+import {OLDPopupMenu} from '../common-adapters/popup-menu'
 import {RowConnector} from './row'
 import {globalStyles, globalColors, globalMargins, isMobile} from '../styles'
 import {branch} from 'recompose'
@@ -119,7 +111,7 @@ class Devices extends PureComponent<Props> {
           renderItem={this._renderRow}
         />
         {this.props.showingMenu &&
-          <PopupMenu style={stylesPopup} items={this.props.menuItems} onHidden={this.props.hideMenu} />}
+          <OLDPopupMenu style={stylesPopup} items={this.props.menuItems} onHidden={this.props.hideMenu} />}
       </Box>
     )
   }
@@ -163,6 +155,10 @@ const stylesRevokedDescription = {
 const stylesPopup = isMobile
   ? {}
   : {
+      top: globalMargins.large,
+      alignItems: 'center',
+      left: 0,
+      right: 0,
       marginLeft: 'auto',
       marginRight: 'auto',
       marginTop: 50,

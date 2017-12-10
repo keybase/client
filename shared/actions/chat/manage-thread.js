@@ -72,6 +72,7 @@ function* _startConversation(action: ChatGen.StartConversationPayload): Saga.Sag
 function* _selectConversation(action: ChatGen.SelectConversationPayload): Saga.SagaGenerator<any, any> {
   const {conversationIDKey, fromUser} = action.payload
 
+  console.log(`selectConversation: selecting: ${conversationIDKey || ''}`)
   // Always show this in the inbox
   if (conversationIDKey) {
     yield Saga.put(
@@ -93,6 +94,7 @@ function* _selectConversation(action: ChatGen.SelectConversationPayload): Saga.S
     oldConversationState = yield Saga.select(Shared.conversationStateSelector, conversationIDKey)
   }
   if (oldConversationState && oldConversationState.get('isStale') && conversationIDKey) {
+    console.log(`selectConversation: clearing because stale: ${conversationIDKey || ''}`)
     yield Saga.put(ChatGen.createClearMessages({conversationIDKey}))
   }
 
@@ -114,6 +116,7 @@ function* _selectConversation(action: ChatGen.SelectConversationPayload): Saga.S
   }
 
   if (conversationIDKey) {
+    console.log(`selectConversation: starting load more messages: ${conversationIDKey || ''}`)
     yield Saga.put(ChatGen.createLoadMoreMessages({conversationIDKey, onlyIfUnloaded: true, fromUser}))
     yield Saga.put(navigateTo([conversationIDKey], [chatTab]))
   } else {

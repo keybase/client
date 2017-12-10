@@ -97,7 +97,8 @@
       "conversationIDKeys": "Array<Types.ConversationIDKey>",
       "reason": "string",
       "force?": "boolean",
-      "forInboxSync?": "boolean"
+      "forInboxSync?": "boolean",
+      "dismissSyncing?": "boolean"
     },
     "selectNext": {
       "rows": "Array<{conversationIDKey: Types.ConversationIDKey}>",
