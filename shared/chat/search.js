@@ -6,8 +6,7 @@ import SearchResultsList from '../search/results-list/container'
 import {Box, ProgressIndicator, HeaderHoc} from '../common-adapters'
 import {branch, compose, defaultProps, withPropsOnChange} from 'recompose'
 import {connect} from 'react-redux'
-import {globalMargins, globalStyles} from '../styles'
-import {isMobile} from '../constants/platform'
+import {globalMargins, globalStyles, isMobile} from '../styles'
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
   onExitSearch: () => dispatch(ChatGen.createExitSearch({skipSelectPreviousConversation: false})),

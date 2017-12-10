@@ -1,8 +1,7 @@
 // @flow
 import React from 'react'
 import {Avatar, Box, Text, Icon, PopupMenu} from '../../../../common-adapters'
-import {globalStyles, globalColors, globalMargins, glamorous} from '../../../../styles'
-import {isMobile} from '../../../../constants/platform'
+import {globalStyles, globalColors, globalMargins, glamorous, isMobile} from '../../../../styles'
 
 type Props = {
   memberCount: number,

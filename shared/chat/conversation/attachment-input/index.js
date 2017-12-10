@@ -1,10 +1,8 @@
 // @flow
 import React, {Component} from 'react'
 import {Box, Button, Icon, Input, PopupDialog, Text, ButtonBar} from '../../../common-adapters/index'
-import {globalColors, globalStyles} from '../../../styles'
-import {isMobile} from '../../../constants/platform'
-
-import type {Props} from './'
+import {globalColors, globalStyles, isMobile} from '../../../styles'
+import type {Props} from '.'
 
 type State = {
   index: number,

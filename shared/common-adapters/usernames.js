@@ -2,8 +2,7 @@
 import React, {Component} from 'react'
 import Text from './text'
 import shallowEqual from 'shallowequal'
-import {globalStyles, globalColors} from '../styles'
-import {isMobile} from '../constants/platform'
+import {globalStyles, globalColors, isMobile} from '../styles'
 
 import type {Props, PlaintextProps} from './usernames'
 

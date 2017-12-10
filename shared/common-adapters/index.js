@@ -3,8 +3,7 @@ import * as React from 'react'
 import Box from './box'
 import PopupDialog from './popup-dialog'
 import {connect} from 'react-redux'
-import {isMobile} from '../constants/platform'
-import {globalColors} from '../styles'
+import {globalColors, isMobile} from '../styles'
 
 const MaybePopup = isMobile
   ? (props: {onClose: () => void, children: React.Node}) => (

@@ -9,8 +9,7 @@ import Revoke from './revoke'
 import pgpDumb from './pgp/dumb'
 import editProfileDumb from './edit-profile/dumb'
 import {createFolder} from '../folders/dumb'
-import {globalColors} from '../styles'
-import {isMobile} from '../constants/platform'
+import {globalColors, isMobile} from '../styles'
 import {
   normal,
   checking,

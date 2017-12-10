@@ -11,8 +11,7 @@ import {
   HeaderHoc,
 } from '../common-adapters'
 import {RowConnector} from './row'
-import {globalStyles, globalColors, globalMargins} from '../styles'
-import {isMobile} from '../constants/platform'
+import {globalStyles, globalColors, globalMargins, isMobile} from '../styles'
 import {branch} from 'recompose'
 
 import type {Device} from '../constants/types/flow-types'

@@ -12,8 +12,7 @@ import {
   ScrollView,
   HeaderHoc,
 } from '../common-adapters'
-import {globalStyles, globalColors, globalMargins} from '../styles'
-import {isMobile} from '../constants/platform'
+import {globalStyles, globalColors, globalMargins, isMobile} from '../styles'
 import {branch} from 'recompose'
 
 type Props = {

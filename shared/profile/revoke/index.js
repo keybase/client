@@ -1,10 +1,9 @@
 // @flow
 import * as React from 'react'
 import {Box, Text, Icon, Button, PlatformIcon, ButtonBar} from '../../common-adapters'
-import {globalStyles, globalColors, globalMargins} from '../../styles'
+import {globalStyles, globalColors, globalMargins, isMobile} from '../../styles'
 import {formatMessage, formatConfirmButton} from './index.shared'
 import {subtitle as platformSubtitle} from '../../util/platforms'
-import {isMobile} from '../../constants/platform'
 
 import type {Props} from './index'
 

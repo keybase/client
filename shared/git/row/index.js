@@ -13,8 +13,7 @@ import {
   HOCTimers,
 } from '../../common-adapters'
 
-import {globalStyles, globalColors, globalMargins, transition} from '../../styles'
-import {isMobile} from '../../constants/platform'
+import {globalStyles, globalColors, globalMargins, transition, isMobile} from '../../styles'
 
 export type Props = {
   canDelete: boolean,

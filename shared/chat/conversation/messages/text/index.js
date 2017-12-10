@@ -2,8 +2,7 @@
 import * as React from 'react'
 import * as Types from '../../../../constants/types/chat'
 import {Markdown} from '../../../../common-adapters'
-import {globalStyles, globalColors} from '../../../../styles'
-import {isMobile} from '../../../../constants/platform'
+import {globalStyles, globalColors, isMobile} from '../../../../styles'
 
 export type Props = {
   text: string,

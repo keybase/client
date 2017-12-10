@@ -1,12 +1,9 @@
 // @flow
-
 import * as React from 'react'
 import {Avatar, Box, Button, Text, Usernames} from '../../common-adapters'
-import {globalStyles, globalMargins} from '../../styles'
-import {isMobile} from '../../constants/platform'
+import {globalStyles, globalMargins, isMobile} from '../../styles'
 import PopupMenu, {ModalLessPopupMenu} from '../../common-adapters/popup-menu'
-
-import type {Props} from './index'
+import type {Props} from '.'
 
 const TeamInfo = (props: Props) => (
   <Box

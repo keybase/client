@@ -4,8 +4,7 @@ import ClickableBox from './clickable-box'
 import ProgressIndicator from './progress-indicator'
 import React, {Component} from 'react'
 import Text from './text'
-import {globalColors, globalStyles, globalMargins} from '../styles'
-import {isMobile} from '../constants/platform'
+import {globalColors, globalStyles, globalMargins, isMobile} from '../styles'
 
 export type Props = {
   onClick: ?(event: SyntheticEvent<>) => void,

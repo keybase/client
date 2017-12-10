@@ -1,8 +1,7 @@
 // @flow
 import * as React from 'react'
 import {ClickableBox, Box, Text, Badge} from '../../../../common-adapters'
-import {globalStyles, globalColors, globalMargins} from '../../../../styles'
-import {isMobile} from '../../../../constants/platform'
+import {globalStyles, globalColors, globalMargins, isMobile} from '../../../../styles'
 
 type Props = {
   badgeCount: number,

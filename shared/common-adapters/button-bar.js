@@ -1,8 +1,7 @@
 // @flow
 import * as React from 'react'
 import Box from './box'
-import {globalStyles} from '../styles'
-import {isMobile} from '../constants/platform'
+import {globalStyles, isMobile} from '../styles'
 
 type Props = {
   direction: 'row' | 'column',

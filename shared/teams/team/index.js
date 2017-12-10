@@ -17,8 +17,7 @@ import {
   ProgressIndicator,
   ScrollView,
 } from '../../common-adapters'
-import {globalStyles, globalMargins, globalColors} from '../../styles'
-import {isMobile} from '../../constants/platform'
+import {globalStyles, globalMargins, globalColors, isMobile} from '../../styles'
 import TeamInviteRow from './invite-row/container'
 import TeamMemberRow from './member-row/container'
 import TeamRequestRow from './request-row/container'

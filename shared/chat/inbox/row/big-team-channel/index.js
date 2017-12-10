@@ -1,8 +1,7 @@
 // @flow
 import React, {PureComponent} from 'react'
 import {Box, Text, Icon, ClickableBox} from '../../../../common-adapters'
-import {globalStyles, globalColors, globalMargins} from '../../../../styles'
-import {isMobile} from '../../../../constants/platform'
+import {globalStyles, globalColors, globalMargins, isMobile} from '../../../../styles'
 
 type Props = {
   isSelected?: boolean,

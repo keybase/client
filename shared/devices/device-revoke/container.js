@@ -1,5 +1,5 @@
 // @flow
-import DeviceRevoke from './'
+import DeviceRevoke from '.'
 import {compose, mapProps, connect, type TypedState} from '../../util/container'
 import {isMobile} from '../../constants/platform'
 import {navigateUp} from '../../actions/route-tree'

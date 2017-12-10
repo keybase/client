@@ -3,8 +3,7 @@ import * as React from 'react'
 import {compose, withState} from 'recompose'
 import DeleteChannel from './delete-channel'
 import {Avatar, Text, Box, Button, Input, StandardScreen, ButtonBar} from '../../common-adapters'
-import {globalStyles, globalColors, globalMargins} from '../../styles'
-import {isMobile} from '../../constants/platform'
+import {globalStyles, globalColors, globalMargins, isMobile} from '../../styles'
 
 type Props = {
   teamname: string,

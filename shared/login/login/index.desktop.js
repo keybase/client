@@ -1,8 +1,7 @@
 // @flow
 import React, {Component} from 'react'
 import {Box, UserCard, Text, Button, FormWithCheckbox, Icon, PopupDialog} from '../../common-adapters'
-import {globalStyles, globalColors, globalMargins, glamorous} from '../../styles'
-import {isMobile} from '../../constants/platform'
+import {globalStyles, globalColors, globalMargins, glamorous, isMobile} from '../../styles'
 
 import type {Props} from '.'
 

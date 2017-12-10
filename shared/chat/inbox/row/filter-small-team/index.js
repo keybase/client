@@ -4,8 +4,7 @@ import * as I from 'immutable'
 import {Box, ClickableBox} from '../../../../common-adapters'
 import {FilteredTopLine} from './top-line'
 import {Avatars, TeamAvatar} from '../avatars'
-import {isMobile} from '../../../../constants/platform'
-import {globalStyles} from '../../../../styles'
+import {globalStyles, isMobile} from '../../../../styles'
 
 type Props = {
   backgroundColor: string,

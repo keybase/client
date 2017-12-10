@@ -1,8 +1,7 @@
 // @flow
 import * as React from 'react'
 import {ClickableBox, Icon, Box, Badge} from '../../../../common-adapters'
-import {globalStyles, globalColors, globalMargins, glamorous} from '../../../../styles'
-import {isMobile} from '../../../../constants/platform'
+import {globalStyles, globalColors, globalMargins, glamorous, isMobile} from '../../../../styles'
 import {BigTeamsLabel} from '../big-teams-label'
 
 type Props = {

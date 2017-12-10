@@ -1,9 +1,8 @@
 // @flow
 import * as React from 'react'
 import {Box, Button, ClickableBox, Dropdown, Input, PopupDialog, Text, ButtonBar} from '../../common-adapters'
-import {globalStyles, globalMargins, globalColors} from '../../styles'
+import {globalStyles, globalMargins, globalColors, isMobile} from '../../styles'
 import capitalize from 'lodash/capitalize'
-import {isMobile} from '../../constants/platform'
 import {teamRoleTypes} from '../../constants/teams'
 import {type TeamRoleType} from '../../constants/types/teams'
 
