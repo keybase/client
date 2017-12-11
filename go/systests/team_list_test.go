@@ -150,12 +150,8 @@ func TestTeamDuplicateUIDList(t *testing.T) {
 
 	ann.addTeamMember(team, bob.username, keybase1.TeamRole_WRITER)
 
-	uvBefore := bob.userVersion()
-
 	bob.reset()
 	bob.loginAfterReset()
-
-	uvAfter := bob.userVersion()
 
 	t.Logf("Bob (%s) resets and reprovisions", bob.username)
 
@@ -169,19 +165,12 @@ func TestTeamDuplicateUIDList(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	require.Equal(t, 2, len(details.Members.Writers))
-	for _, member := range details.Members.Writers {
-		require.Equal(t, bob.username, member.Username)
-		if member.Uv == uvBefore {
-			require.False(t, member.Active)
-			require.True(t, member.NeedsPUK)
-		} else if member.Uv == uvAfter {
-			require.True(t, member.Active)
-			require.False(t, member.NeedsPUK)
-		} else {
-			t.Fatalf("Unexpected UV for member: %v", member.Uv)
-		}
-	}
+	// Expecting just the active writer here, and not inactive
+	// (because of reset) invite.
+	require.Equal(t, 1, len(details.Members.Writers))
+	member := details.Members.Writers[0]
+	require.True(t, member.Active)
+	require.False(t, member.NeedsPUK)
 
 	// TeamList reports memberCount of two: ann and bob. Second bob is
 	// ignored, because memberCount is set to number of unique UIDs.

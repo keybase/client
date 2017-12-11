@@ -7,9 +7,13 @@ import logSend from '../native/log-send'
 import {compose, withState, withHandlers, connect, type TypedState} from '../util/container'
 import {isAndroid, appVersionName, appVersionCode, mobileOsVersion, version} from '../constants/platform'
 import {getLogger} from '../util/periodic-logger'
-import {writeStream, exists, cachesDirectoryPath} from '../util/file'
+import {exists, cachesDirectoryPath} from '../util/file'
 import {serialPromises} from '../util/promise'
 import {type TimerProps} from '../common-adapters/hoc-timers'
+
+function writeStream(filepath: string, encoding: string, append?: boolean): Promise<*> {
+  return RNFetchBlob.fs.writeStream(filepath, encoding, append)
+}
 
 const FeedbackWrapped = compose(
   withState('sendLogs', 'onChangeSendLogs', true),

@@ -1,13 +1,17 @@
 // @flow
 import * as LoginGen from '../../../actions/login-gen'
+import * as RPCTypes from '../../../constants/types/flow-types'
 import SelectOtherDevice from '.'
 import {connect, type TypedState} from '../../../util/container'
-import {type Device} from '../../../constants/types/devices'
+import {compose, withState} from 'recompose'
 import {type RouteProps} from '../../../route-tree/render-route'
+import openURL from '../../../util/open-url'
+
+const ACCOUNT_RESET_URL = 'https://keybase.io/#account-reset'
 
 type OwnProps = RouteProps<
   {
-    devices: Array<Device>,
+    devices: Array<RPCTypes.Device>,
     canSelectNoDevice: boolean,
   },
   {}
@@ -21,6 +25,13 @@ const mapDispatchToProps = dispatch => ({
   onBack: () => dispatch(LoginGen.createOnBack()),
   onWont: () => dispatch(LoginGen.createOnWont()),
   onSelect: deviceId => dispatch(LoginGen.createSelectDeviceId({deviceId})),
+  onReset: () => {
+    openURL(ACCOUNT_RESET_URL)
+    dispatch(LoginGen.createOnBack())
+  },
 })
 
-export default connect(mapStateToProps, mapDispatchToProps)(SelectOtherDevice)
+export default compose(
+  connect(mapStateToProps, mapDispatchToProps),
+  withState('showResetLink', 'setShowResetLink', false)
+)(SelectOtherDevice)

@@ -12,6 +12,8 @@ import ConfirmOrPending from './confirm-or-pending-container'
 import SearchPopup from './search-container'
 import {isMobile} from '../constants/platform'
 import NonUserProfile from './non-user-profile-container'
+import ShowcasedTeamInfo from './showcased-team-info/container'
+import RelativePopupHoc from '../common-adapters/relative-popup-hoc'
 
 const proveEnterUsername = makeRouteDefNode({
   component: ProveEnterUsername,
@@ -30,7 +32,7 @@ const proveEnterUsername = makeRouteDefNode({
   },
 })
 
-export const profileRoute = makeRouteDefNode({
+const profileRoute = makeRouteDefNode({
   component: Profile,
   initialState: {currentFriendshipsTab: 'Followers'},
   tags: makeLeafTags({underStatusBar: true, title: 'Profile'}),
@@ -60,6 +62,11 @@ export const profileRoute = makeRouteDefNode({
       children: {},
       component: SearchPopup,
       tags: makeLeafTags({layerOnTop: !isMobile}),
+    },
+    showcasedTeamInfo: {
+      children: {},
+      component: isMobile ? ShowcasedTeamInfo : RelativePopupHoc(ShowcasedTeamInfo),
+      tags: makeLeafTags({layerOnTop: true}),
     },
   },
 })

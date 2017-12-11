@@ -6,35 +6,42 @@ import {compose, withState, withHandlers, connect, type TypedState} from '../../
 import {requestAutoInvite} from '../../actions/signup'
 
 const mapStateToProps = (state: TypedState) => {
-  const users = (state.login.configuredAccounts && state.login.configuredAccounts.map(c => c.username)) || []
-  let lastUser = state.config.extendedConfig && state.config.extendedConfig.defaultUsername
-
-  if (users.indexOf(lastUser) === -1 && users.length) {
-    lastUser = users[0]
-  }
+  const _accounts = state.login.configuredAccounts
+  const _defaultUsername = state.config.extendedConfig && state.config.extendedConfig.defaultUsername
 
   return {
+    _accounts,
+    _defaultUsername,
     error: state.login.loginError,
-    lastUser,
-    serverURI: 'https://keybase.io',
-    users,
     waitingForResponse: state.login.waitingForResponse,
   }
 }
 
 const mapDispatchToProps = (dispatch: any, {navigateAppend}) => ({
+  onFeedback: () => dispatch(navigateAppend(['feedback'])),
   onForgotPassphrase: () => dispatch(LoginGen.createOpenAccountResetPage()),
   onLogin: (user: string, passphrase: string) =>
-    dispatch(LoginGen.createRelogin({usernameOrEmail: user, passphrase: new HiddenString(passphrase)})),
+    dispatch(LoginGen.createRelogin({passphrase: new HiddenString(passphrase), usernameOrEmail: user})),
   onSignup: () => dispatch(requestAutoInvite()),
-  onSomeoneElse: () => {
-    dispatch(LoginGen.createStartLogin())
-  },
-  onFeedback: () => dispatch(navigateAppend(['feedback'])),
+  onSomeoneElse: () => dispatch(LoginGen.createStartLogin()),
 })
 
+const mergeProps = (stateProps, dispatchProps, ownProps) => {
+  const users = stateProps._accounts.map(a => a.username)
+  const lastUser = users.contains(stateProps._defaultUsername) ? stateProps._defaultUsername : users.first()
+
+  return {
+    ...stateProps,
+    ...dispatchProps,
+    ...ownProps,
+    lastUser,
+    serverURI: 'https://keybase.io',
+    users: users.toArray(),
+  }
+}
+
 export default compose(
-  connect(mapStateToProps, mapDispatchToProps),
+  connect(mapStateToProps, mapDispatchToProps, mergeProps),
   withState('selectedUser', 'setSelectedUser', props => props.lastUser),
   withState('showTyping', 'showTypingChange', false),
   withState('passphrase', 'passphraseChange', ''),

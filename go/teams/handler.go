@@ -2,9 +2,9 @@ package teams
 
 import (
 	"context"
-	"fmt"
-
 	"encoding/base64"
+	"errors"
+	"fmt"
 
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libkb"
@@ -54,7 +54,7 @@ func handleChangeSingle(ctx context.Context, g *libkb.GlobalContext, row keybase
 		return nil
 	}
 	// Send teamID and teamName in two separate notifications. It is server-trust that they are the same team.
-	g.NotifyRouter.HandleTeamChangedByBothKeys(ctx, row.Id, row.Name, row.LatestSeqno, change)
+	g.NotifyRouter.HandleTeamChangedByBothKeys(ctx, row.Id, row.Name, row.LatestSeqno, row.ImplicitTeam, change)
 	return nil
 }
 
@@ -245,65 +245,24 @@ func HandleOpenTeamAccessRequest(ctx context.Context, g *libkb.GlobalContext, ms
 			return nil // Not an error - let the handler dismiss the message.
 		}
 
-		var req keybase1.TeamChangeReq
 		joinAsRole := team.chain().inner.OpenTeamJoinAs
 		if joinAsRole != keybase1.TeamRole_READER && joinAsRole != keybase1.TeamRole_WRITER {
 			return fmt.Errorf("unexpected role to add to open team: %v", joinAsRole)
 		}
 
-		var errors []error
-
+		var uvs []keybase1.UserVersion
 		for _, tar := range msg.Tars {
-			uv := NewUserVersion(tar.Uid, tar.EldestSeqno)
-			currentRole, err := team.MemberRole(ctx, uv)
-			if err != nil {
-				g.Log.CWarningf(ctx, "error processing open team access request for %+v: %s", tar, err)
-				errors = append(errors, err)
-				continue
-			}
-
-			if currentRole.IsOrAbove(joinAsRole) {
-				g.Log.CDebugf(ctx, "user already has same or higher role, ignoring open request.")
-				// Invitee is already in the team.
-				continue
-			}
-
-			switch joinAsRole {
-			case keybase1.TeamRole_READER:
-				req.Readers = append(req.Readers, uv)
-			case keybase1.TeamRole_WRITER:
-				req.Writers = append(req.Writers, uv)
-			}
-
-			existingUV, err := team.UserVersionByUID(ctx, uv.Uid)
-			if err == nil {
-				if existingUV.EldestSeqno > uv.EldestSeqno {
-					g.Log.CWarningf(ctx, "newer version of user %v already exists in team %q (%v > %v)", tar, team.Name(), existingUV.EldestSeqno, uv.EldestSeqno)
-					errors = append(errors, err)
-					continue
-				}
-				g.Log.CDebugf(ctx, "will remove old version of user (%s) from team", existingUV)
-				req.None = append(req.None, existingUV)
-			}
-
+			uvs = append(uvs, NewUserVersion(tar.Uid, tar.EldestSeqno))
 		}
 
-		numToAdd := len(req.Readers) + len(req.Writers)
-		if numToAdd == 0 {
-			g.Log.CDebugf(ctx, "no post needed, not doing change membership for %+v", msg)
-			if len(errors) > 0 {
-				g.Log.CDebugf(ctx, "errors found: %d, returning the first one", len(errors))
-				return errors[0]
-			}
-			return nil
-		}
-
-		if len(errors) > 0 {
-			g.Log.CDebugf(ctx, "%d errors found preparing open team change membership request, but adding %d users without errors to team", len(errors), numToAdd)
-		}
-
-		return team.ChangeMembership(ctx, req)
+		// No need to forceRepoll here because we just loaded the team few lines above.
+		return AddMembersBestEffort(ctx, g, msg.TeamID, joinAsRole, uvs, false /* forceRepoll */)
 	})
+}
+
+type chatSeitanRecip struct {
+	inviter keybase1.UID
+	invitee keybase1.UID
 }
 
 func HandleTeamSeitan(ctx context.Context, g *libkb.GlobalContext, msg keybase1.TeamSeitanMsg) (err error) {
@@ -321,6 +280,7 @@ func HandleTeamSeitan(ctx context.Context, g *libkb.GlobalContext, msg keybase1.
 	var invitesToCancel []keybase1.TeamInviteID
 
 	var req keybase1.TeamChangeReq
+	var chats []chatSeitanRecip
 	req.CompletedInvites = make(map[keybase1.TeamInviteID]keybase1.UserVersionPercentForm)
 
 	for _, seitan := range msg.Seitans {
@@ -333,8 +293,7 @@ func HandleTeamSeitan(ctx context.Context, g *libkb.GlobalContext, msg keybase1.
 
 		err := handleSeitanSingle(ctx, g, team, invite, seitan)
 		if err != nil {
-			g.Log.CDebugf(ctx, "Provided AKey failed to verify with error: \"%v\"; canceling invite.", err)
-			invitesToCancel = append(invitesToCancel, invite.Id)
+			g.Log.CDebugf(ctx, "Provided AKey failed to verify with error: %v; ignoring", err)
 			continue
 		}
 
@@ -366,6 +325,10 @@ func HandleTeamSeitan(ctx context.Context, g *libkb.GlobalContext, msg keybase1.
 
 		g.Log.CDebugf(ctx, "Completing invite %s", invite.Id)
 		req.CompletedInvites[seitan.InviteID] = uv.PercentForm()
+		chats = append(chats, chatSeitanRecip{
+			inviter: invite.Inviter.Uid,
+			invitee: seitan.Uid,
+		})
 	}
 
 	var needReload bool
@@ -377,6 +340,13 @@ func HandleTeamSeitan(ctx context.Context, g *libkb.GlobalContext, msg keybase1.
 			return err
 		}
 		needReload = true
+	}
+	// Send chats
+	for _, chat := range chats {
+		g.Log.CDebugf(ctx, "sending welcome message for successful Seitan handle: inviter: %s invitee: %s",
+			chat.inviter, chat.invitee)
+		SendChatInviteWelcomeMessage(ctx, g, team.Name().String(), keybase1.TeamInviteCategory_SEITAN,
+			chat.inviter, chat.invitee)
 	}
 
 	if len(invitesToCancel) > 0 {
@@ -424,19 +394,28 @@ func handleSeitanSingle(ctx context.Context, g *libkb.GlobalContext, team *Team,
 
 	version, err := ikeyAndLabel.V()
 	if err != nil {
-		return fmt.Errorf("While parsing IKeyAndLabel: %s\n", err)
+		return fmt.Errorf("while parsing IKeyAndLabel: %s", err)
 	}
 
 	switch version {
 	case keybase1.SeitanIKeyAndLabelVersion_V1:
 		ikey = SeitanIKey(ikeyAndLabel.V1().I)
 	default:
-		return fmt.Errorf("Unknown IKeyAndLabel version: %v\n", version)
+		return fmt.Errorf("unknown IKeyAndLabel version: %v", version)
 	}
 
 	sikey, err := ikey.GenerateSIKey()
 	if err != nil {
 		return err
+	}
+
+	inviteID, err := sikey.GenerateTeamInviteID()
+	if err != nil {
+		return err
+	}
+
+	if !inviteID.Eq(invite.Id) {
+		return errors.New("invite ID mismatch (seitan)")
 	}
 
 	akey, _, err := sikey.GenerateAcceptanceKey(seitan.Uid, seitan.EldestSeqno, seitan.UnixCTime)

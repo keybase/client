@@ -13,6 +13,7 @@ import * as Saga from '../../util/saga'
 import * as Selectors from '../../constants/selectors'
 import * as Shared from './shared'
 import HiddenString from '../../util/hidden-string'
+import {toByteArray} from 'base64-js'
 import {NotifyPopup} from '../../native/notifications'
 import {RPCTimeoutError} from '../../util/errors'
 import {chatTab} from '../../constants/tabs'
@@ -180,7 +181,11 @@ function* onInboxStale(action: ChatGen.InboxStalePayload): SagaGenerator<any, an
       .map(c => c.conversationIDKey)
 
     yield Saga.put(
-      ChatGen.createUnboxConversations({conversationIDKeys: toUnbox, reason: 'reloading entire inbox'})
+      ChatGen.createUnboxConversations({
+        conversationIDKeys: toUnbox,
+        reason: 'reloading entire inbox',
+        dismissSyncing: true,
+      })
     )
   } finally {
     if (yield Saga.cancelled()) {
@@ -195,6 +200,13 @@ function* onGetInboxAndUnbox({
   yield Saga.put(ChatGen.createUnboxConversations({conversationIDKeys, reason: 'getInboxAndUnbox'}))
 }
 
+function supersededConversationIDToKey(id): string {
+  if (typeof id === 'string') {
+    return Buffer.from(toByteArray(id)).toString('hex')
+  }
+  return id.toString('hex')
+}
+
 function _toSupersedeInfo(
   conversationIDKey: Types.ConversationIDKey,
   supersedeData: Array<RPCChatTypes.ConversationMetadata>
@@ -204,10 +216,9 @@ function _toSupersedeInfo(
   )
 
   const finalizeInfo = toConvert ? toConvert.finalizeInfo : null
-
   return toConvert && finalizeInfo
     ? {
-        conversationIDKey: Constants.conversationIDToKey(toConvert.conversationID),
+        conversationIDKey: supersededConversationIDToKey(toConvert.conversationID),
         finalizeInfo,
       }
     : null
@@ -451,11 +462,15 @@ const unboxConversationsSagaMap = {
 
 // Loads the trusted inbox segments
 function* unboxConversations(action: ChatGen.UnboxConversationsPayload): SagaGenerator<any, any> {
-  let {conversationIDKeys, reason, force, forInboxSync} = action.payload
+  let {conversationIDKeys, reason, force, forInboxSync, dismissSyncing} = action.payload
 
   const state: TypedState = yield Saga.select()
   const untrustedState = state.chat.inboxUntrustedState
 
+  console.log(
+    `unboxConversations: before filter unboxing ${conversationIDKeys.length} convs, force: ${(force || false)
+      .toString()} because: ${reason}`
+  )
   // Don't unbox pending conversations
   conversationIDKeys = conversationIDKeys.filter(c => !Constants.isPendingConversationIDKey(c))
 
@@ -466,12 +481,16 @@ function* unboxConversations(action: ChatGen.UnboxConversationsPayload): SagaGen
       if (force) {
         map[c] = 'reUnboxing'
         newConvIDKeys.push(c)
+      } else {
+        console.log(`unboxConversations: filtering conv: ${c} state: ${untrustedState.get(c, 'unknown')}`)
       }
       // only unbox if we're not currently unboxing
     } else if (!['firstUnboxing', 'reUnboxing'].includes(untrustedState.get(c, 'untrusted'))) {
       // This means this is the first unboxing
       map[c] = 'firstUnboxing'
       newConvIDKeys.push(c)
+    } else {
+      console.log(`unboxConversations: filtering conv: ${c} state: ${untrustedState.get(c, 'unknown')}`)
     }
     return map
   }, {})
@@ -483,9 +502,12 @@ function* unboxConversations(action: ChatGen.UnboxConversationsPayload): SagaGen
 
   conversationIDKeys = newConvIDKeys
   if (!conversationIDKeys.length) {
+    console.log(`unboxConversations: all conversations filtered, nothing to do`)
     return
   }
-  console.log(`unboxConversations: unboxing ${conversationIDKeys.length} convs, because: ${reason}`)
+  console.log(
+    `unboxConversations: after filter unboxing ${conversationIDKeys.length} convs, because: ${reason}`
+  )
 
   // If we've been asked to unbox something and we don't have a selected thing, lets make it selected (on desktop)
   if (!isMobile) {
@@ -516,7 +538,7 @@ function* unboxConversations(action: ChatGen.UnboxConversationsPayload): SagaGen
     yield Saga.call(loadInboxRpc.run, 30e3)
   } catch (error) {
     if (error instanceof RPCTimeoutError) {
-      console.warn('timed out request for unboxConversations, bailing')
+      console.warn('unboxConversations: timed out request for unboxConversations, bailing')
       yield Saga.put.resolve(
         ChatGen.createReplaceEntity({
           keyPath: ['inboxUntrustedState'],
@@ -524,10 +546,10 @@ function* unboxConversations(action: ChatGen.UnboxConversationsPayload): SagaGen
         })
       )
     } else {
-      console.warn('Error in loadInboxRpc', error)
+      console.warn('unboxConversations: error in loadInboxRpc', error)
     }
   }
-  if (forInboxSync) {
+  if (dismissSyncing) {
     yield Saga.put(ChatGen.createSetInboxSyncingState({inboxSyncingState: 'notSyncing'}))
   }
 }
@@ -721,6 +743,7 @@ function* _inboxSynced(action: ChatGen.InboxSyncedPayload): Saga.SagaGenerator<a
       reason: 'inbox syncing',
       force: true,
       forInboxSync: true,
+      dismissSyncing: true,
     })
   )
 

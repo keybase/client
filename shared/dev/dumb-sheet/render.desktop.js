@@ -152,7 +152,7 @@ class DumbSheetRender extends Component<Props, any> {
   }
 }
 
-export const styleBox = {
+const styleBox = {
   ...globalStyles.flexBoxColumn,
   padding: 20,
   marginTop: 10,

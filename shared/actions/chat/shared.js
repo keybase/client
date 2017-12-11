@@ -12,12 +12,6 @@ import flags from '../../util/feature-flags'
 
 import type {TypedState} from '../../constants/reducer'
 
-function followingSelector(state: TypedState) {
-  return state.config.following
-}
-function alwaysShowSelector(state: TypedState) {
-  return state.chat.get('inboxAlwaysShow')
-}
 function metaDataSelector(state: TypedState) {
   return state.chat.get('metaData')
 }
@@ -44,10 +38,6 @@ function messageOutboxIDSelector(
 
 function devicenameSelector(state: TypedState) {
   return state.config && state.config.deviceName
-}
-
-function inboxGlobalUntrustedStateSelector(state: TypedState) {
-  return state.chat.get('inboxGlobalUntrustedState')
 }
 
 function tmpFileName(
@@ -170,14 +160,11 @@ function makeInboxStateRecords(
 }
 
 export {
-  alwaysShowSelector,
   conversationStateSelector,
   devicenameSelector,
   focusedSelector,
   activeSelector,
-  followingSelector,
   getPostingIdentifyBehavior,
-  inboxGlobalUntrustedStateSelector,
   makeInboxStateRecords,
   messageOutboxIDSelector,
   metaDataSelector,

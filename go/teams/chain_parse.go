@@ -223,6 +223,14 @@ func (i SCTeamInviteID) TeamInviteID() (keybase1.TeamInviteID, error) {
 	return keybase1.TeamInviteIDFromString(string(i))
 }
 
+func (i SCTeamInviteID) Eq(i2 keybase1.TeamInviteID) bool {
+	tmp, err := i.TeamInviteID()
+	if err != nil {
+		return false
+	}
+	return tmp.Eq(i2)
+}
+
 func (i SCTeamInvite) TeamInvite(g *libkb.GlobalContext, r keybase1.TeamRole, inviter keybase1.UserVersion) (keybase1.TeamInvite, error) {
 	id, err := i.ID.TeamInviteID()
 	if err != nil {

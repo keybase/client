@@ -1,6 +1,7 @@
 // @flow
 import * as Constants from '../constants/chat'
 import * as Types from '../constants/types/chat'
+import * as TeamsGen from '../actions/teams-gen'
 import * as ChatGen from '../actions/chat-gen'
 import * as GregorGen from '../actions/gregor-gen'
 import {Set, List, Map} from 'immutable'
@@ -19,7 +20,16 @@ function updateConversation(
   return conversationStates.update(conversationIDKey, initialConversation, conversationUpdateFn)
 }
 
-function reducer(state: Types.State = initialState, action: ChatGen.Actions) {
+function reducer(
+  state: Types.State = initialState,
+  action:
+    | ChatGen.Actions
+    | TeamsGen.SetChannelCreationErrorPayload
+    | TeamsGen.SetTeamCreationErrorPayload
+    | TeamsGen.SetTeamCreationPendingPayload
+    | TeamsGen.SetTeamJoinErrorPayload
+    | TeamsGen.SetTeamJoinSuccessPayload
+) {
   switch (action.type) {
     case ChatGen.resetStore:
       return Constants.makeState()
@@ -113,6 +123,7 @@ function reducer(state: Types.State = initialState, action: ChatGen.Actions) {
       return state.update('conversationStates', conversationStates =>
         conversationStates.map((conversationState, conversationIDKey) => {
           if (convIDs.length === 0 || convIDs.includes(conversationIDKey)) {
+            console.log(`reducer: setting thread stale from mark as stale: ${conversationIDKey}`)
             return conversationState.set('isStale', true)
           }
           return conversationState
@@ -125,9 +136,18 @@ function reducer(state: Types.State = initialState, action: ChatGen.Actions) {
       return state.update('conversationStates', conversationStates =>
         conversationStates.map((conversationState, conversationIDKey) => {
           if (convIDs.length === 0 || convIDs.includes(conversationIDKey)) {
+            console.log(`reducer: setting thread stale from inbox synced: ${conversationIDKey}`)
             return conversationState.set('isStale', true)
           }
           return conversationState
+        })
+      )
+    }
+    case ChatGen.inboxStale: {
+      return state.update('conversationStates', conversationStates =>
+        conversationStates.map((conversationState, conversationIDKey) => {
+          console.log(`reducer: setting thread stale from inbox stale: ${conversationIDKey}`)
+          return conversationState.set('isStale', true)
         })
       )
     }
@@ -268,25 +288,25 @@ function reducer(state: Types.State = initialState, action: ChatGen.Actions) {
     case ChatGen.exitSearch: {
       return state.set('inSearch', false)
     }
-    case 'teams:setChannelCreationError': {
-      const {payload: {channelCreationError}} = action
-      return state.set('channelCreationError', channelCreationError)
+    case TeamsGen.setChannelCreationError: {
+      const {error} = action.payload
+      return state.set('channelCreationError', error)
     }
-    case 'teams:setTeamCreationError': {
-      const {payload: {teamCreationError}} = action
-      return state.set('teamCreationError', teamCreationError)
+    case TeamsGen.setTeamCreationError: {
+      const {error} = action.payload
+      return state.set('teamCreationError', error)
     }
-    case 'teams:setTeamCreationPending': {
-      const {payload: {teamCreationPending}} = action
-      return state.set('teamCreationPending', teamCreationPending)
+    case TeamsGen.setTeamCreationPending: {
+      const {pending} = action.payload
+      return state.set('teamCreationPending', pending)
     }
-    case 'teams:setTeamJoinError': {
-      const {payload: {teamJoinError}} = action
-      return state.set('teamJoinError', teamJoinError)
+    case TeamsGen.setTeamJoinError: {
+      const {error} = action.payload
+      return state.set('teamJoinError', error)
     }
-    case 'teams:setTeamJoinSuccess': {
-      const {payload: {teamJoinSuccess}} = action
-      return state.set('teamJoinSuccess', teamJoinSuccess)
+    case TeamsGen.setTeamJoinSuccess: {
+      const {success, teamname} = action.payload
+      return state.set('teamJoinSuccess', success).set('teamJoinSuccessTeamName', teamname)
     }
     // Saga only actions
     case ChatGen.updateBadging:
@@ -300,7 +320,6 @@ function reducer(state: Types.State = initialState, action: ChatGen.Actions) {
     case ChatGen.downloadProgress:
     case ChatGen.editMessage:
     case ChatGen.getInboxAndUnbox:
-    case ChatGen.inboxStale:
     case ChatGen.inboxStoreLoaded:
     case ChatGen.incomingMessage:
     case ChatGen.incomingTyping:

@@ -8,8 +8,6 @@ import loadPerf from '../util/load-perf'
 import hello from '../util/hello'
 import {connect, type TypedState} from '../util/container'
 import debounce from 'lodash/debounce'
-import {getUserImageMap, loadUserImageMap, getTeamImageMap, loadTeamImageMap} from '../util/pictures'
-import {initAvatarLookup, initAvatarLoad} from '../common-adapters/index.native'
 import {navigateUp, setRouteState} from '../actions/route-tree'
 
 type Props = {
@@ -37,8 +35,6 @@ class Main extends Component<any> {
 
     if (!global.mainLoaded) {
       global.mainLoaded = true
-      initAvatarLookup(getUserImageMap, getTeamImageMap)
-      initAvatarLoad(loadUserImageMap, loadTeamImageMap)
 
       this.props.bootstrap()
       this.props.listenForNotifications()

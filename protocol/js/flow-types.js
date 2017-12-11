@@ -479,6 +479,7 @@ export const constantsStatusCode = {
   scteamexists: 2619,
   scteamreaderror: 2623,
   scnoop: 2638,
+  scteaminvitebadtoken: 2646,
   scteamtarduplicate: 2663,
   scteamtarnotfound: 2664,
   scteammemberexists: 2665,
@@ -503,6 +504,7 @@ export const constantsStatusCode = {
   scteambadadminseqnotype: 2684,
   scteamimplicitbadadd: 2685,
   scteamimplicitbadremove: 2686,
+  scteaminvitetokenreused: 2696,
   scteamkeymasknotfound: 2697,
   scteambanned: 2702,
   scteaminvalidban: 2703,
@@ -811,6 +813,10 @@ export const identifyResolve3RpcPromise = (request: IdentifyResolve3RpcParam): P
 export const identifyResolveIdentifyImplicitTeamRpcChannelMap = (configKeys: Array<string>, request: IdentifyResolveIdentifyImplicitTeamRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.identify.resolveIdentifyImplicitTeam', request)
 
 export const identifyResolveIdentifyImplicitTeamRpcPromise = (request: IdentifyResolveIdentifyImplicitTeamRpcParam): Promise<IdentifyResolveIdentifyImplicitTeamResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.identify.resolveIdentifyImplicitTeam', request, (error: RPCError, result: IdentifyResolveIdentifyImplicitTeamResult) => error ? reject(error) : resolve(result)))
+
+export const identifyResolveImplicitTeamRpcChannelMap = (configKeys: Array<string>, request: IdentifyResolveImplicitTeamRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.identify.resolveImplicitTeam', request)
+
+export const identifyResolveImplicitTeamRpcPromise = (request: IdentifyResolveImplicitTeamRpcParam): Promise<IdentifyResolveImplicitTeamResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.identify.resolveImplicitTeam', request, (error: RPCError, result: IdentifyResolveImplicitTeamResult) => error ? reject(error) : resolve(result)))
 
 export const identifyUiCheckResultFreshness = {
   fresh: 0,
@@ -1463,6 +1469,10 @@ export const simpleFSPathType = {
   kbfs: 1,
 }
 
+export const teamsCanUserPerformRpcChannelMap = (configKeys: Array<string>, request: TeamsCanUserPerformRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.canUserPerform', request)
+
+export const teamsCanUserPerformRpcPromise = (request: TeamsCanUserPerformRpcParam): Promise<TeamsCanUserPerformResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.canUserPerform', request, (error: RPCError, result: TeamsCanUserPerformResult) => error ? reject(error) : resolve(result)))
+
 export const teamsGetTeamAndMemberShowcaseRpcChannelMap = (configKeys: Array<string>, request: TeamsGetTeamAndMemberShowcaseRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.getTeamAndMemberShowcase', request)
 
 export const teamsGetTeamAndMemberShowcaseRpcPromise = (request: TeamsGetTeamAndMemberShowcaseRpcParam): Promise<TeamsGetTeamAndMemberShowcaseResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.getTeamAndMemberShowcase', request, (error: RPCError, result: TeamsGetTeamAndMemberShowcaseResult) => error ? reject(error) : resolve(result)))
@@ -1505,7 +1515,7 @@ export const teamsSetTeamShowcaseRpcPromise = (request: TeamsSetTeamShowcaseRpcP
 
 export const teamsTeamAcceptInviteOrRequestAccessRpcChannelMap = (configKeys: Array<string>, request: TeamsTeamAcceptInviteOrRequestAccessRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamAcceptInviteOrRequestAccess', request)
 
-export const teamsTeamAcceptInviteOrRequestAccessRpcPromise = (request: TeamsTeamAcceptInviteOrRequestAccessRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamAcceptInviteOrRequestAccess', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
+export const teamsTeamAcceptInviteOrRequestAccessRpcPromise = (request: TeamsTeamAcceptInviteOrRequestAccessRpcParam): Promise<TeamsTeamAcceptInviteOrRequestAccessResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamAcceptInviteOrRequestAccess', request, (error: RPCError, result: TeamsTeamAcceptInviteOrRequestAccessResult) => error ? reject(error) : resolve(result)))
 
 export const teamsTeamAcceptInviteRpcChannelMap = (configKeys: Array<string>, request: TeamsTeamAcceptInviteRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamAcceptInvite', request)
 
@@ -1543,6 +1553,10 @@ export const teamsTeamCreateWithSettingsRpcChannelMap = (configKeys: Array<strin
 
 export const teamsTeamCreateWithSettingsRpcPromise = (request: TeamsTeamCreateWithSettingsRpcParam): Promise<TeamsTeamCreateWithSettingsResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamCreateWithSettings', request, (error: RPCError, result: TeamsTeamCreateWithSettingsResult) => error ? reject(error) : resolve(result)))
 
+export const teamsTeamDebugRpcChannelMap = (configKeys: Array<string>, request: TeamsTeamDebugRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamDebug', request)
+
+export const teamsTeamDebugRpcPromise = (request: TeamsTeamDebugRpcParam): Promise<TeamsTeamDebugResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamDebug', request, (error: RPCError, result: TeamsTeamDebugResult) => error ? reject(error) : resolve(result)))
+
 export const teamsTeamDeleteRpcChannelMap = (configKeys: Array<string>, request: TeamsTeamDeleteRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamDelete', request)
 
 export const teamsTeamDeleteRpcPromise = (request: TeamsTeamDeleteRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamDelete', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
@@ -1576,6 +1590,10 @@ export const teamsTeamLeaveRpcChannelMap = (configKeys: Array<string>, request: 
 
 export const teamsTeamLeaveRpcPromise = (request: TeamsTeamLeaveRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamLeave', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
 
+export const teamsTeamListMyAccessRequestsRpcChannelMap = (configKeys: Array<string>, request: TeamsTeamListMyAccessRequestsRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamListMyAccessRequests', request)
+
+export const teamsTeamListMyAccessRequestsRpcPromise = (request: TeamsTeamListMyAccessRequestsRpcParam): Promise<TeamsTeamListMyAccessRequestsResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamListMyAccessRequests', request, (error: RPCError, result: TeamsTeamListMyAccessRequestsResult) => error ? reject(error) : resolve(result)))
+
 export const teamsTeamListRequestsRpcChannelMap = (configKeys: Array<string>, request: TeamsTeamListRequestsRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamListRequests', request)
 
 export const teamsTeamListRequestsRpcPromise = (request: TeamsTeamListRequestsRpcParam): Promise<TeamsTeamListRequestsResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamListRequests', request, (error: RPCError, result: TeamsTeamListRequestsResult) => error ? reject(error) : resolve(result)))
@@ -1587,6 +1605,18 @@ export const teamsTeamListRpcPromise = (request: TeamsTeamListRpcParam): Promise
 export const teamsTeamListSubteamsRecursiveRpcChannelMap = (configKeys: Array<string>, request: TeamsTeamListSubteamsRecursiveRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamListSubteamsRecursive', request)
 
 export const teamsTeamListSubteamsRecursiveRpcPromise = (request: TeamsTeamListSubteamsRecursiveRpcParam): Promise<TeamsTeamListSubteamsRecursiveResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamListSubteamsRecursive', request, (error: RPCError, result: TeamsTeamListSubteamsRecursiveResult) => error ? reject(error) : resolve(result)))
+
+export const teamsTeamOperation = {
+  manageMembers: 0,
+  manageSubteams: 1,
+  createChannel: 2,
+  deleteChannel: 3,
+  renameChannel: 4,
+  editChannelDescription: 5,
+  setTeamShowcase: 6,
+  setMemberShowcase: 7,
+  changeOpenTeam: 8,
+}
 
 export const teamsTeamReAddMemberAfterResetRpcChannelMap = (configKeys: Array<string>, request: TeamsTeamReAddMemberAfterResetRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamReAddMemberAfterReset', request)
 
@@ -1611,6 +1641,10 @@ export const teamsTeamRole = {
   admin: 3,
   owner: 4,
 }
+
+export const teamsTeamRotateKeyRpcChannelMap = (configKeys: Array<string>, request: TeamsTeamRotateKeyRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamRotateKey', request)
+
+export const teamsTeamRotateKeyRpcPromise = (request: TeamsTeamRotateKeyRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamRotateKey', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
 
 export const teamsTeamSetSettingsRpcChannelMap = (configKeys: Array<string>, request: TeamsTeamSetSettingsRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamSetSettings', request)
 
@@ -1966,6 +2000,8 @@ export type ConfiguredAccount = {|username: String,hasStoredSecret: Boolean,|}
 
 export type ConfirmResult = {|identityConfirmed: Boolean,remoteConfirmed: Boolean,expiringLocal: Boolean,autoConfirmed: Boolean,|}
 
+export type ConflictGeneration = Int
+
 export type CopyArgs = {|opID: OpID,src: Path,dest: Path,|}
 
 export type CryptKey = {|KeyGeneration: Int,Key: Bytes32,|}
@@ -2279,13 +2315,13 @@ export type HelloRes = String
 
 export type HomeHomeActionTakenRpcParam = ?{|incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
-export type HomeHomeGetScreenRpcParam = {|markViewed: Boolean,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type HomeHomeGetScreenRpcParam = {|markViewed: Boolean,numFollowSuggestionsWanted: Int,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
 export type HomeHomeMarkViewedRpcParam = ?{|incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
 export type HomeHomeSkipTodoTypeRpcParam = {|t: HomeScreenTodoType,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
-export type HomeScreen = {|lastViewed: Time,version: Int,items?: ?Array<HomeScreenItem>,followSuggestions?: ?Array<UserSummary>,|}
+export type HomeScreen = {|lastViewed: Time,version: Int,items?: ?Array<HomeScreenItem>,followSuggestions?: ?Array<HomeUserSummary>,|}
 
 export type HomeScreenItem = {|badged: Boolean,data: HomeScreenItemData,|}
 
@@ -2324,6 +2360,8 @@ export type HomeScreenTodoType =0 // NONE_0
 
 export type HomeUiHomeUIRefreshRpcParam = ?{|incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
+export type HomeUserSummary = {|uid: UID,username: String,bio: String,fullName: String,pics?: ?Pics,|}
+
 export type Identify2Res = {|upk: UserPlusKeys,identifiedAt: Time,trackBreaks?: ?IdentifyTrackBreaks,|}
 
 export type IdentifyIdentify2RpcParam = {|uid: UID,userAssertion: String,reason: IdentifyReason,useDelegateUI?: Boolean,alwaysBlock?: Boolean,noErrorOnTrackFailure?: Boolean,forceRemoteCheck?: Boolean,needProofSet?: Boolean,allowEmptySelfID?: Boolean,noSkipSelf?: Boolean,canSuppressUI?: Boolean,identifyBehavior?: TLFIdentifyBehavior,forceDisplay?: Boolean,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
@@ -2353,6 +2391,8 @@ export type IdentifyReasonType =0 // NONE_0
 export type IdentifyResolve3RpcParam = {|assertion: String,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
 export type IdentifyResolveIdentifyImplicitTeamRpcParam = {|assertions: String,suffix: String,isPublic: Boolean,doIdentifies: Boolean,create: Boolean,reason: IdentifyReason,identifyBehavior: TLFIdentifyBehavior,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+
+export type IdentifyResolveImplicitTeamRpcParam = {|id: TeamID,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
 export type IdentifyRow = {|rowId: Int,proof: RemoteProof,trackDiff?: ?TrackDiff,|}
 
@@ -2394,7 +2434,7 @@ export type Identity = {|status?: ?Status,whenLastTracked: Time,proofs?: ?Array<
 
 export type ImplicitRole = {|role: TeamRole,ancestor: TeamID,|}
 
-export type ImplicitTeamConflictInfo = {|generation: Int,time: Time,|}
+export type ImplicitTeamConflictInfo = {|generation: ConflictGeneration,time: Time,|}
 
 export type ImplicitTeamDisplayName = {|isPublic: Boolean,writers: ImplicitTeamUserSet,readers: ImplicitTeamUserSet,conflictInfo?: ?ImplicitTeamConflictInfo,|}
 
@@ -2672,9 +2712,9 @@ export type NotifySessionLoggedInRpcParam = {|username: String,incomingCallMap?:
 
 export type NotifySessionLoggedOutRpcParam = ?{|incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
-export type NotifyTeamTeamChangedByIDRpcParam = {|teamID: TeamID,latestSeqno: Seqno,changes: TeamChangeSet,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type NotifyTeamTeamChangedByIDRpcParam = {|teamID: TeamID,latestSeqno: Seqno,implicitTeam: Boolean,changes: TeamChangeSet,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
-export type NotifyTeamTeamChangedByNameRpcParam = {|teamName: String,latestSeqno: Seqno,changes: TeamChangeSet,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type NotifyTeamTeamChangedByNameRpcParam = {|teamName: String,latestSeqno: Seqno,implicitTeam: Boolean,changes: TeamChangeSet,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
 export type NotifyTeamTeamDeletedRpcParam = {|teamID: TeamID,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
@@ -2794,6 +2834,8 @@ export type PgpUiOutputSignatureSuccessNonKeybaseRpcParam = {|keyID: String,sign
 export type PgpUiOutputSignatureSuccessRpcParam = {|fingerprint: String,username: String,signedAt: Time,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
 export type PgpUiShouldPushPrivateRpcParam = ?{|incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+
+export type Pics = {|square40: String,square200: String,square360: String,|}
 
 export type PingResponse = {|timestamp: Time,|}
 
@@ -3320,6 +3362,7 @@ export type StatusCode =0 // SCOk_0
  | 2619 // SCTeamExists_2619
  | 2623 // SCTeamReadError_2623
  | 2638 // SCNoOp_2638
+ | 2646 // SCTeamInviteBadToken_2646
  | 2663 // SCTeamTarDuplicate_2663
  | 2664 // SCTeamTarNotFound_2664
  | 2665 // SCTeamMemberExists_2665
@@ -3344,6 +3387,7 @@ export type StatusCode =0 // SCOk_0
  | 2684 // SCTeamBadAdminSeqnoType_2684
  | 2685 // SCTeamImplicitBadAdd_2685
  | 2686 // SCTeamImplicitBadRemove_2686
+ | 2696 // SCTeamInviteTokenReused_2696
  | 2697 // SCTeamKeyMaskNotFound_2697
  | 2702 // SCTeamBanned_2702
  | 2703 // SCTeamInvalidBan_2703
@@ -3387,6 +3431,8 @@ export type TLFVisibility =0 // ANY_0
  | 2 // PRIVATE_2
 
 
+export type TeamAcceptOrRequestResult = {|wasToken: Boolean,wasSeitan: Boolean,wasTeamName: Boolean,wasOpenTeam: Boolean,|}
+
 export type TeamAccessRequest = {|uid: UID,eldestSeqno: Seqno,|}
 
 export type TeamAddMemberResult = {|invited: Boolean,user?: ?User,emailSent: Boolean,chatSent: Boolean,|}
@@ -3406,13 +3452,15 @@ export type TeamCLKRMsg = {|teamID: TeamID,generation: PerTeamKeyGeneration,scor
 
 export type TeamChangeReq = {|owners?: ?Array<UserVersion>,admins?: ?Array<UserVersion>,writers?: ?Array<UserVersion>,readers?: ?Array<UserVersion>,none?: ?Array<UserVersion>,completedInvites: {[key: string]: UserVersionPercentForm},|}
 
-export type TeamChangeRow = {|id: TeamID,name: String,keyRotated: Boolean,membershipChanged: Boolean,latestSeqno: Seqno,|}
+export type TeamChangeRow = {|id: TeamID,name: String,keyRotated: Boolean,membershipChanged: Boolean,latestSeqno: Seqno,implicitTeam: Boolean,|}
 
 export type TeamChangeSet = {|membershipChanged: Boolean,keyRotated: Boolean,renamed: Boolean,|}
 
 export type TeamCreateResult = {|teamID: TeamID,chatSent: Boolean,creatorAdded: Boolean,|}
 
 export type TeamData = {|secretless: Boolean,name: TeamName,chain: TeamSigChainState,perTeamKeySeeds: {[key: string]: PerTeamKeySeedItem},readerKeyMasks: {[key: string]: {[key: string]: MaskB64}},latestSeqnoHint: Seqno,cachedAt: Time,|}
+
+export type TeamDebugRes = {|chain: TeamSigChainState,|}
 
 export type TeamDetails = {|members: TeamMembersDetails,keyGeneration: PerTeamKeyGeneration,annotatedActiveInvites: {[key: string]: AnnotatedTeamInvite},settings: TeamSettings,showcase: TeamShowcase,|}
 
@@ -3468,6 +3516,17 @@ export type TeamNamePart = String
 
 export type TeamOpenReqMsg = {|teamID: TeamID,tars?: ?Array<TeamAccessRequest>,|}
 
+export type TeamOperation =0 // MANAGE_MEMBERS_0
+ | 1 // MANAGE_SUBTEAMS_1
+ | 2 // CREATE_CHANNEL_2
+ | 3 // DELETE_CHANNEL_3
+ | 4 // RENAME_CHANNEL_4
+ | 5 // EDIT_CHANNEL_DESCRIPTION_5
+ | 6 // SET_TEAM_SHOWCASE_6
+ | 7 // SET_MEMBER_SHOWCASE_7
+ | 8 // CHANGE_OPEN_TEAM_8
+
+
 export type TeamPlusApplicationKeys = {|id: TeamID,name: String,implicit: Boolean,public: Boolean,application: TeamApplication,writers?: ?Array<UserVersion>,onlyReaders?: ?Array<UserVersion>,applicationKeys?: ?Array<TeamApplicationKey>,|}
 
 export type TeamRefreshers = {|needKeyGeneration: PerTeamKeyGeneration,wantMembers?: ?Array<UserVersion>,wantMembersRole: TeamRole,|}
@@ -3504,6 +3563,8 @@ export type TeamType =0 // NONE_0
  | 2 // MODERN_2
 
 
+export type TeamsCanUserPerformRpcParam = {|name: String,op: TeamOperation,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+
 export type TeamsGetTeamAndMemberShowcaseRpcParam = {|name: String,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
 export type TeamsGetTeamRootIDRpcParam = {|id: TeamID,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
@@ -3536,6 +3597,8 @@ export type TeamsTeamCreateSeitanTokenRpcParam = {|name: String,role: TeamRole,l
 
 export type TeamsTeamCreateWithSettingsRpcParam = {|name: String,sendChatNotification: Boolean,settings: TeamSettings,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
+export type TeamsTeamDebugRpcParam = {|teamID: TeamID,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+
 export type TeamsTeamDeleteRpcParam = {|name: String,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
 export type TeamsTeamEditMemberRpcParam = {|name: String,username: String,role: TeamRole,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
@@ -3547,6 +3610,8 @@ export type TeamsTeamIgnoreRequestRpcParam = {|name: String,username: String,inc
 export type TeamsTeamImplicitAdminsRpcParam = {|teamName: String,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
 export type TeamsTeamLeaveRpcParam = {|name: String,permanent: Boolean,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+
+export type TeamsTeamListMyAccessRequestsRpcParam = {|teamName?: ?String,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
 export type TeamsTeamListRequestsRpcParam = ?{|incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
@@ -3561,6 +3626,8 @@ export type TeamsTeamRemoveMemberRpcParam = {|name: String,username: String,emai
 export type TeamsTeamRenameRpcParam = {|prevName: TeamName,newName: TeamName,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
 export type TeamsTeamRequestAccessRpcParam = {|name: String,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+
+export type TeamsTeamRotateKeyRpcParam = {|teamID: TeamID,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
 export type TeamsTeamSetSettingsRpcParam = {|name: String,settings: TeamSettings,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
@@ -3732,7 +3799,7 @@ export type UserSummary2 = {|uid: UID,username: String,thumbnail: String,fullNam
 
 export type UserSummary2Set = {|users?: ?Array<UserSummary2>,time: Time,version: Int,|}
 
-export type UserTeamShowcase = {|fqName: String,open: Boolean,teamIsShowcased: Boolean,description: String,role: TeamRole,|}
+export type UserTeamShowcase = {|fqName: String,open: Boolean,teamIsShowcased: Boolean,description: String,role: TeamRole,publicAdmins?: ?Array<String>,numMembers: Int,|}
 
 export type UserVersion = {|uid: UID,eldestSeqno: Seqno,|}
 
@@ -3800,6 +3867,7 @@ type IdentifyIdentify2Result = Identify2Res
 type IdentifyIdentifyLiteResult = IdentifyLiteRes
 type IdentifyResolve3Result = UserOrTeamLite
 type IdentifyResolveIdentifyImplicitTeamResult = ResolveIdentifyImplicitTeamRes
+type IdentifyResolveImplicitTeamResult = Folder
 type IdentifyUiConfirmResult = ConfirmResult
 type IdentifyUiDelegateIdentifyUIResult = Int
 type InstallFuseStatusResult = FuseStatus
@@ -3873,19 +3941,23 @@ type SimpleFSSimpleFSReadResult = FileContent
 type SimpleFSSimpleFSStatResult = Dirent
 type StreamUiReadResult = Bytes
 type StreamUiWriteResult = Int
+type TeamsCanUserPerformResult = Bool
 type TeamsGetTeamAndMemberShowcaseResult = TeamAndMemberShowcase
 type TeamsGetTeamRootIDResult = TeamID
 type TeamsGetTeamShowcaseResult = TeamShowcase
 type TeamsLoadTeamPlusApplicationKeysResult = TeamPlusApplicationKeys
 type TeamsLookupImplicitTeamResult = LookupImplicitTeamRes
 type TeamsLookupOrCreateImplicitTeamResult = LookupImplicitTeamRes
+type TeamsTeamAcceptInviteOrRequestAccessResult = TeamAcceptOrRequestResult
 type TeamsTeamAddEmailsBulkResult = BulkRes
 type TeamsTeamAddMemberResult = TeamAddMemberResult
 type TeamsTeamCreateResult = TeamCreateResult
 type TeamsTeamCreateSeitanTokenResult = SeitanIKey
 type TeamsTeamCreateWithSettingsResult = TeamCreateResult
+type TeamsTeamDebugResult = TeamDebugRes
 type TeamsTeamGetResult = TeamDetails
 type TeamsTeamImplicitAdminsResult = ?Array<TeamMemberDetails>
+type TeamsTeamListMyAccessRequestsResult = ?Array<TeamName>
 type TeamsTeamListRequestsResult = ?Array<TeamJoinRequest>
 type TeamsTeamListResult = AnnotatedTeamList
 type TeamsTeamListSubteamsRecursiveResult = ?Array<TeamIDAndName>
@@ -3920,4 +3992,4 @@ type UserLoadUserResult = User
 type UserMeUserVersionResult = UserVersion
 type UserSearchResult = ?Array<SearchResult>
 
-export type IncomingCallMapType = {|  'keybase.1.gpgUi.wantToAddGPGKey'?: (params: {|sessionID: Int|},response: {error: RPCErrorHandler, result: (result: GpgUiWantToAddGPGKeyResult) => void}) => void,  'keybase.1.gpgUi.confirmDuplicateKeyChosen'?: (params: {|sessionID: Int|},response: {error: RPCErrorHandler, result: (result: GpgUiConfirmDuplicateKeyChosenResult) => void}) => void,  'keybase.1.gpgUi.selectKeyAndPushOption'?: (params: {|sessionID: Int,keys?: ?Array<GPGKey>|},response: {error: RPCErrorHandler, result: (result: GpgUiSelectKeyAndPushOptionResult) => void}) => void,  'keybase.1.gpgUi.selectKey'?: (params: {|sessionID: Int,keys?: ?Array<GPGKey>|},response: {error: RPCErrorHandler, result: (result: GpgUiSelectKeyResult) => void}) => void,  'keybase.1.gpgUi.sign'?: (params: {|msg: Bytes,fingerprint: Bytes|},response: {error: RPCErrorHandler, result: (result: GpgUiSignResult) => void}) => void,  'keybase.1.gpgUi.getTTY'?: (params: {||},response: {error: RPCErrorHandler, result: (result: GpgUiGetTTYResult) => void}) => void,  'keybase.1.gregorUI.pushState'?: (params: {|state: Gregor1.State,reason: PushReason|},response: CommonResponseHandler) => void,  'keybase.1.gregorUI.pushOutOfBandMessages'?: (params: {|oobm?: ?Array<Gregor1.OutOfBandMessage>|},response: CommonResponseHandler) => void,  'keybase.1.homeUi.homeUIRefresh'?: (params: {||},response: CommonResponseHandler) => void,  'keybase.1.identifyUi.displayTLFCreateWithInvite'?: (params: {|sessionID: Int,folderName: String,isPrivate: Boolean,assertion: String,socialAssertion: SocialAssertion,inviteLink: String,throttled: Boolean|},response: CommonResponseHandler) => void,  'keybase.1.identifyUi.delegateIdentifyUI'?: (params: {||},response: {error: RPCErrorHandler, result: (result: IdentifyUiDelegateIdentifyUIResult) => void}) => void,  'keybase.1.identifyUi.start'?: (params: {|sessionID: Int,username: String,reason: IdentifyReason,forceDisplay?: Boolean|},response: CommonResponseHandler) => void,  'keybase.1.identifyUi.displayKey'?: (params: {|sessionID: Int,key: IdentifyKey|},response: CommonResponseHandler) => void,  'keybase.1.identifyUi.reportLastTrack'?: (params: {|sessionID: Int,track?: ?TrackSummary|},response: CommonResponseHandler) => void,  'keybase.1.identifyUi.launchNetworkChecks'?: (params: {|sessionID: Int,identity: Identity,user: User|},response: CommonResponseHandler) => void,  'keybase.1.identifyUi.displayTrackStatement'?: (params: {|sessionID: Int,stmt: String|},response: CommonResponseHandler) => void,  'keybase.1.identifyUi.finishWebProofCheck'?: (params: {|sessionID: Int,rp: RemoteProof,lcr: LinkCheckResult|},response: CommonResponseHandler) => void,  'keybase.1.identifyUi.finishSocialProofCheck'?: (params: {|sessionID: Int,rp: RemoteProof,lcr: LinkCheckResult|},response: CommonResponseHandler) => void,  'keybase.1.identifyUi.displayCryptocurrency'?: (params: {|sessionID: Int,c: Cryptocurrency|},response: CommonResponseHandler) => void,  'keybase.1.identifyUi.reportTrackToken'?: (params: {|sessionID: Int,trackToken: TrackToken|},response: CommonResponseHandler) => void,  'keybase.1.identifyUi.displayUserCard'?: (params: {|sessionID: Int,card: UserCard|},response: CommonResponseHandler) => void,  'keybase.1.identifyUi.confirm'?: (params: {|sessionID: Int,outcome: IdentifyOutcome|},response: {error: RPCErrorHandler, result: (result: IdentifyUiConfirmResult) => void}) => void,  'keybase.1.identifyUi.cancel'?: (params: {|sessionID: Int|},response: CommonResponseHandler) => void,  'keybase.1.identifyUi.finish'?: (params: {|sessionID: Int|},response: CommonResponseHandler) => void,  'keybase.1.identifyUi.dismiss'?: (params: {|sessionID: Int,username: String,reason: DismissReason|},response: CommonResponseHandler) => void,  'keybase.1.logUi.log'?: (params: {|sessionID: Int,level: LogLevel,text: Text|},response: CommonResponseHandler) => void,  'keybase.1.loginUi.getEmailOrUsername'?: (params: {|sessionID: Int|},response: {error: RPCErrorHandler, result: (result: LoginUiGetEmailOrUsernameResult) => void}) => void,  'keybase.1.loginUi.promptRevokePaperKeys'?: (params: {|sessionID: Int,device: Device,index: Int|},response: {error: RPCErrorHandler, result: (result: LoginUiPromptRevokePaperKeysResult) => void}) => void,  'keybase.1.loginUi.displayPaperKeyPhrase'?: (params: {|sessionID: Int,phrase: String|},response: CommonResponseHandler) => void,  'keybase.1.loginUi.displayPrimaryPaperKey'?: (params: {|sessionID: Int,phrase: String|},response: CommonResponseHandler) => void,  'keybase.1.logsend.prepareLogsend'?: (params: {||},response: CommonResponseHandler) => void,  'keybase.1.NotifyApp.exit'?: (params: {||},response: CommonResponseHandler) => void,  'keybase.1.NotifyBadges.badgeState'?: (params: {|badgeState: BadgeState|}) => void,  'keybase.1.NotifyFavorites.favoritesChanged'?: (params: {|uid: UID|}) => void,  'keybase.1.NotifyFS.FSActivity'?: (params: {|notification: FSNotification|}) => void,  'keybase.1.NotifyFS.FSSyncActivity'?: (params: {|status: FSPathSyncStatus|},response: CommonResponseHandler) => void,  'keybase.1.NotifyFS.FSEditListResponse'?: (params: {|edits?: ?Array<FSNotification>,requestID: Int|},response: CommonResponseHandler) => void,  'keybase.1.NotifyFS.FSSyncStatusResponse'?: (params: {|status: FSSyncStatus,requestID: Int|},response: CommonResponseHandler) => void,  'keybase.1.NotifyKeyfamily.keyfamilyChanged'?: (params: {|uid: UID|},response: CommonResponseHandler) => void,  'keybase.1.NotifyPaperKey.paperKeyCached'?: (params: {|uid: UID,encKID: KID,sigKID: KID|},response: CommonResponseHandler) => void,  'keybase.1.NotifyPGP.pgpKeyInSecretStoreFile'?: (params: {||},response: CommonResponseHandler) => void,  'keybase.1.NotifyService.shutdown'?: (params: {||},response: CommonResponseHandler) => void,  'keybase.1.NotifySession.loggedOut'?: (params: {||}) => void,  'keybase.1.NotifySession.loggedIn'?: (params: {|username: String|},response: CommonResponseHandler) => void,  'keybase.1.NotifySession.clientOutOfDate'?: (params: {|upgradeTo: String,upgradeURI: String,upgradeMsg: String|},response: CommonResponseHandler) => void,  'keybase.1.NotifyTeam.teamChangedByID'?: (params: {|teamID: TeamID,latestSeqno: Seqno,changes: TeamChangeSet|},response: CommonResponseHandler) => void,  'keybase.1.NotifyTeam.teamChangedByName'?: (params: {|teamName: String,latestSeqno: Seqno,changes: TeamChangeSet|},response: CommonResponseHandler) => void,  'keybase.1.NotifyTeam.teamDeleted'?: (params: {|teamID: TeamID|},response: CommonResponseHandler) => void,  'keybase.1.NotifyTeam.teamExit'?: (params: {|teamID: TeamID|},response: CommonResponseHandler) => void,  'keybase.1.NotifyTracking.trackingChanged'?: (params: {|uid: UID,username: String,isTracking: Boolean|}) => void,  'keybase.1.NotifyUsers.userChanged'?: (params: {|uid: UID|}) => void,  'keybase.1.pgpUi.outputSignatureSuccess'?: (params: {|sessionID: Int,fingerprint: String,username: String,signedAt: Time|},response: CommonResponseHandler) => void,  'keybase.1.pgpUi.outputSignatureSuccessNonKeybase'?: (params: {|sessionID: Int,keyID: String,signedAt: Time|},response: CommonResponseHandler) => void,  'keybase.1.pgpUi.keyGenerated'?: (params: {|sessionID: Int,kid: KID,key: KeyInfo|},response: CommonResponseHandler) => void,  'keybase.1.pgpUi.shouldPushPrivate'?: (params: {|sessionID: Int|},response: {error: RPCErrorHandler, result: (result: PgpUiShouldPushPrivateResult) => void}) => void,  'keybase.1.pgpUi.finished'?: (params: {|sessionID: Int|},response: CommonResponseHandler) => void,  'keybase.1.proveUi.promptOverwrite'?: (params: {|sessionID: Int,account: String,typ: PromptOverwriteType|},response: {error: RPCErrorHandler, result: (result: ProveUiPromptOverwriteResult) => void}) => void,  'keybase.1.proveUi.promptUsername'?: (params: {|sessionID: Int,prompt: String,prevError?: ?Status|},response: {error: RPCErrorHandler, result: (result: ProveUiPromptUsernameResult) => void}) => void,  'keybase.1.proveUi.outputPrechecks'?: (params: {|sessionID: Int,text: Text|},response: CommonResponseHandler) => void,  'keybase.1.proveUi.preProofWarning'?: (params: {|sessionID: Int,text: Text|},response: {error: RPCErrorHandler, result: (result: ProveUiPreProofWarningResult) => void}) => void,  'keybase.1.proveUi.outputInstructions'?: (params: {|sessionID: Int,instructions: Text,proof: String|},response: CommonResponseHandler) => void,  'keybase.1.proveUi.okToCheck'?: (params: {|sessionID: Int,name: String,attempt: Int|},response: {error: RPCErrorHandler, result: (result: ProveUiOkToCheckResult) => void}) => void,  'keybase.1.proveUi.displayRecheckWarning'?: (params: {|sessionID: Int,text: Text|},response: CommonResponseHandler) => void,  'keybase.1.provisionUi.chooseProvisioningMethod'?: (params: {|sessionID: Int,gpgOption: Boolean|},response: {error: RPCErrorHandler, result: (result: ProvisionUiChooseProvisioningMethodResult) => void}) => void,  'keybase.1.provisionUi.chooseGPGMethod'?: (params: {|sessionID: Int,keys?: ?Array<GPGKey>|},response: {error: RPCErrorHandler, result: (result: ProvisionUiChooseGPGMethodResult) => void}) => void,  'keybase.1.provisionUi.switchToGPGSignOK'?: (params: {|sessionID: Int,key: GPGKey,importError: String|},response: {error: RPCErrorHandler, result: (result: ProvisionUiSwitchToGPGSignOKResult) => void}) => void,  'keybase.1.provisionUi.chooseDevice'?: (params: {|sessionID: Int,devices?: ?Array<Device>,canSelectNoDevice: Boolean|},response: {error: RPCErrorHandler, result: (result: ProvisionUiChooseDeviceResult) => void}) => void,  'keybase.1.provisionUi.chooseDeviceType'?: (params: {|sessionID: Int,kind: ChooseType|},response: {error: RPCErrorHandler, result: (result: ProvisionUiChooseDeviceTypeResult) => void}) => void,  'keybase.1.provisionUi.DisplayAndPromptSecret'?: (params: {|sessionID: Int,secret: Bytes,phrase: String,otherDeviceType: DeviceType,previousErr: String|},response: {error: RPCErrorHandler, result: (result: ProvisionUiDisplayAndPromptSecretResult) => void}) => void,  'keybase.1.provisionUi.DisplaySecretExchanged'?: (params: {|sessionID: Int|},response: CommonResponseHandler) => void,  'keybase.1.provisionUi.PromptNewDeviceName'?: (params: {|sessionID: Int,existingDevices?: ?Array<String>,errorMessage: String|},response: {error: RPCErrorHandler, result: (result: ProvisionUiPromptNewDeviceNameResult) => void}) => void,  'keybase.1.provisionUi.ProvisioneeSuccess'?: (params: {|sessionID: Int,username: String,deviceName: String|},response: CommonResponseHandler) => void,  'keybase.1.provisionUi.ProvisionerSuccess'?: (params: {|sessionID: Int,deviceName: String,deviceType: String|},response: CommonResponseHandler) => void,  'keybase.1.rekeyUI.delegateRekeyUI'?: (params: {||},response: {error: RPCErrorHandler, result: (result: RekeyUIDelegateRekeyUIResult) => void}) => void,  'keybase.1.rekeyUI.refresh'?: (params: {|sessionID: Int,problemSetDevices: ProblemSetDevices|},response: CommonResponseHandler) => void,  'keybase.1.rekeyUI.rekeySendEvent'?: (params: {|sessionID: Int,event: RekeyEvent|},response: CommonResponseHandler) => void,  'keybase.1.saltpackUi.saltpackPromptForDecrypt'?: (params: {|sessionID: Int,sender: SaltpackSender,usedDelegateUI: Boolean|},response: CommonResponseHandler) => void,  'keybase.1.saltpackUi.saltpackVerifySuccess'?: (params: {|sessionID: Int,signingKID: KID,sender: SaltpackSender|},response: CommonResponseHandler) => void,  'keybase.1.saltpackUi.saltpackVerifyBadSender'?: (params: {|sessionID: Int,signingKID: KID,sender: SaltpackSender|},response: CommonResponseHandler) => void,  'keybase.1.secretUi.getPassphrase'?: (params: {|sessionID: Int,pinentry: GUIEntryArg,terminal?: ?SecretEntryArg|},response: {error: RPCErrorHandler, result: (result: SecretUiGetPassphraseResult) => void}) => void,  'keybase.1.streamUi.close'?: (params: {|sessionID: Int,s: Stream|},response: CommonResponseHandler) => void,  'keybase.1.streamUi.read'?: (params: {|sessionID: Int,s: Stream,sz: Int|},response: {error: RPCErrorHandler, result: (result: StreamUiReadResult) => void}) => void,  'keybase.1.streamUi.reset'?: (params: {|sessionID: Int,s: Stream|},response: CommonResponseHandler) => void,  'keybase.1.streamUi.write'?: (params: {|sessionID: Int,s: Stream,buf: Bytes|},response: {error: RPCErrorHandler, result: (result: StreamUiWriteResult) => void}) => void,  'keybase.1.teamsUi.confirmRootTeamDelete'?: (params: {|sessionID: Int,teamName: String|},response: {error: RPCErrorHandler, result: (result: TeamsUiConfirmRootTeamDeleteResult) => void}) => void,  'keybase.1.teamsUi.confirmSubteamDelete'?: (params: {|sessionID: Int,teamName: String|},response: {error: RPCErrorHandler, result: (result: TeamsUiConfirmSubteamDeleteResult) => void}) => void,  'keybase.1.ui.promptYesNo'?: (params: {|sessionID: Int,text: Text,promptDefault: PromptDefault|},response: {error: RPCErrorHandler, result: (result: UiPromptYesNoResult) => void}) => void|}
+export type IncomingCallMapType = {|  'keybase.1.gpgUi.wantToAddGPGKey'?: (params: {|sessionID: Int|},response: {error: RPCErrorHandler, result: (result: GpgUiWantToAddGPGKeyResult) => void}) => void,  'keybase.1.gpgUi.confirmDuplicateKeyChosen'?: (params: {|sessionID: Int|},response: {error: RPCErrorHandler, result: (result: GpgUiConfirmDuplicateKeyChosenResult) => void}) => void,  'keybase.1.gpgUi.selectKeyAndPushOption'?: (params: {|sessionID: Int,keys?: ?Array<GPGKey>|},response: {error: RPCErrorHandler, result: (result: GpgUiSelectKeyAndPushOptionResult) => void}) => void,  'keybase.1.gpgUi.selectKey'?: (params: {|sessionID: Int,keys?: ?Array<GPGKey>|},response: {error: RPCErrorHandler, result: (result: GpgUiSelectKeyResult) => void}) => void,  'keybase.1.gpgUi.sign'?: (params: {|msg: Bytes,fingerprint: Bytes|},response: {error: RPCErrorHandler, result: (result: GpgUiSignResult) => void}) => void,  'keybase.1.gpgUi.getTTY'?: (params: {||},response: {error: RPCErrorHandler, result: (result: GpgUiGetTTYResult) => void}) => void,  'keybase.1.gregorUI.pushState'?: (params: {|state: Gregor1.State,reason: PushReason|},response: CommonResponseHandler) => void,  'keybase.1.gregorUI.pushOutOfBandMessages'?: (params: {|oobm?: ?Array<Gregor1.OutOfBandMessage>|},response: CommonResponseHandler) => void,  'keybase.1.homeUi.homeUIRefresh'?: (params: {||},response: CommonResponseHandler) => void,  'keybase.1.identifyUi.displayTLFCreateWithInvite'?: (params: {|sessionID: Int,folderName: String,isPrivate: Boolean,assertion: String,socialAssertion: SocialAssertion,inviteLink: String,throttled: Boolean|},response: CommonResponseHandler) => void,  'keybase.1.identifyUi.delegateIdentifyUI'?: (params: {||},response: {error: RPCErrorHandler, result: (result: IdentifyUiDelegateIdentifyUIResult) => void}) => void,  'keybase.1.identifyUi.start'?: (params: {|sessionID: Int,username: String,reason: IdentifyReason,forceDisplay?: Boolean|},response: CommonResponseHandler) => void,  'keybase.1.identifyUi.displayKey'?: (params: {|sessionID: Int,key: IdentifyKey|},response: CommonResponseHandler) => void,  'keybase.1.identifyUi.reportLastTrack'?: (params: {|sessionID: Int,track?: ?TrackSummary|},response: CommonResponseHandler) => void,  'keybase.1.identifyUi.launchNetworkChecks'?: (params: {|sessionID: Int,identity: Identity,user: User|},response: CommonResponseHandler) => void,  'keybase.1.identifyUi.displayTrackStatement'?: (params: {|sessionID: Int,stmt: String|},response: CommonResponseHandler) => void,  'keybase.1.identifyUi.finishWebProofCheck'?: (params: {|sessionID: Int,rp: RemoteProof,lcr: LinkCheckResult|},response: CommonResponseHandler) => void,  'keybase.1.identifyUi.finishSocialProofCheck'?: (params: {|sessionID: Int,rp: RemoteProof,lcr: LinkCheckResult|},response: CommonResponseHandler) => void,  'keybase.1.identifyUi.displayCryptocurrency'?: (params: {|sessionID: Int,c: Cryptocurrency|},response: CommonResponseHandler) => void,  'keybase.1.identifyUi.reportTrackToken'?: (params: {|sessionID: Int,trackToken: TrackToken|},response: CommonResponseHandler) => void,  'keybase.1.identifyUi.displayUserCard'?: (params: {|sessionID: Int,card: UserCard|},response: CommonResponseHandler) => void,  'keybase.1.identifyUi.confirm'?: (params: {|sessionID: Int,outcome: IdentifyOutcome|},response: {error: RPCErrorHandler, result: (result: IdentifyUiConfirmResult) => void}) => void,  'keybase.1.identifyUi.cancel'?: (params: {|sessionID: Int|},response: CommonResponseHandler) => void,  'keybase.1.identifyUi.finish'?: (params: {|sessionID: Int|},response: CommonResponseHandler) => void,  'keybase.1.identifyUi.dismiss'?: (params: {|sessionID: Int,username: String,reason: DismissReason|},response: CommonResponseHandler) => void,  'keybase.1.logUi.log'?: (params: {|sessionID: Int,level: LogLevel,text: Text|},response: CommonResponseHandler) => void,  'keybase.1.loginUi.getEmailOrUsername'?: (params: {|sessionID: Int|},response: {error: RPCErrorHandler, result: (result: LoginUiGetEmailOrUsernameResult) => void}) => void,  'keybase.1.loginUi.promptRevokePaperKeys'?: (params: {|sessionID: Int,device: Device,index: Int|},response: {error: RPCErrorHandler, result: (result: LoginUiPromptRevokePaperKeysResult) => void}) => void,  'keybase.1.loginUi.displayPaperKeyPhrase'?: (params: {|sessionID: Int,phrase: String|},response: CommonResponseHandler) => void,  'keybase.1.loginUi.displayPrimaryPaperKey'?: (params: {|sessionID: Int,phrase: String|},response: CommonResponseHandler) => void,  'keybase.1.logsend.prepareLogsend'?: (params: {||},response: CommonResponseHandler) => void,  'keybase.1.NotifyApp.exit'?: (params: {||},response: CommonResponseHandler) => void,  'keybase.1.NotifyBadges.badgeState'?: (params: {|badgeState: BadgeState|}) => void,  'keybase.1.NotifyFavorites.favoritesChanged'?: (params: {|uid: UID|}) => void,  'keybase.1.NotifyFS.FSActivity'?: (params: {|notification: FSNotification|}) => void,  'keybase.1.NotifyFS.FSSyncActivity'?: (params: {|status: FSPathSyncStatus|},response: CommonResponseHandler) => void,  'keybase.1.NotifyFS.FSEditListResponse'?: (params: {|edits?: ?Array<FSNotification>,requestID: Int|},response: CommonResponseHandler) => void,  'keybase.1.NotifyFS.FSSyncStatusResponse'?: (params: {|status: FSSyncStatus,requestID: Int|},response: CommonResponseHandler) => void,  'keybase.1.NotifyKeyfamily.keyfamilyChanged'?: (params: {|uid: UID|},response: CommonResponseHandler) => void,  'keybase.1.NotifyPaperKey.paperKeyCached'?: (params: {|uid: UID,encKID: KID,sigKID: KID|},response: CommonResponseHandler) => void,  'keybase.1.NotifyPGP.pgpKeyInSecretStoreFile'?: (params: {||},response: CommonResponseHandler) => void,  'keybase.1.NotifyService.shutdown'?: (params: {||},response: CommonResponseHandler) => void,  'keybase.1.NotifySession.loggedOut'?: (params: {||}) => void,  'keybase.1.NotifySession.loggedIn'?: (params: {|username: String|},response: CommonResponseHandler) => void,  'keybase.1.NotifySession.clientOutOfDate'?: (params: {|upgradeTo: String,upgradeURI: String,upgradeMsg: String|},response: CommonResponseHandler) => void,  'keybase.1.NotifyTeam.teamChangedByID'?: (params: {|teamID: TeamID,latestSeqno: Seqno,implicitTeam: Boolean,changes: TeamChangeSet|},response: CommonResponseHandler) => void,  'keybase.1.NotifyTeam.teamChangedByName'?: (params: {|teamName: String,latestSeqno: Seqno,implicitTeam: Boolean,changes: TeamChangeSet|},response: CommonResponseHandler) => void,  'keybase.1.NotifyTeam.teamDeleted'?: (params: {|teamID: TeamID|},response: CommonResponseHandler) => void,  'keybase.1.NotifyTeam.teamExit'?: (params: {|teamID: TeamID|},response: CommonResponseHandler) => void,  'keybase.1.NotifyTracking.trackingChanged'?: (params: {|uid: UID,username: String,isTracking: Boolean|}) => void,  'keybase.1.NotifyUsers.userChanged'?: (params: {|uid: UID|}) => void,  'keybase.1.pgpUi.outputSignatureSuccess'?: (params: {|sessionID: Int,fingerprint: String,username: String,signedAt: Time|},response: CommonResponseHandler) => void,  'keybase.1.pgpUi.outputSignatureSuccessNonKeybase'?: (params: {|sessionID: Int,keyID: String,signedAt: Time|},response: CommonResponseHandler) => void,  'keybase.1.pgpUi.keyGenerated'?: (params: {|sessionID: Int,kid: KID,key: KeyInfo|},response: CommonResponseHandler) => void,  'keybase.1.pgpUi.shouldPushPrivate'?: (params: {|sessionID: Int|},response: {error: RPCErrorHandler, result: (result: PgpUiShouldPushPrivateResult) => void}) => void,  'keybase.1.pgpUi.finished'?: (params: {|sessionID: Int|},response: CommonResponseHandler) => void,  'keybase.1.proveUi.promptOverwrite'?: (params: {|sessionID: Int,account: String,typ: PromptOverwriteType|},response: {error: RPCErrorHandler, result: (result: ProveUiPromptOverwriteResult) => void}) => void,  'keybase.1.proveUi.promptUsername'?: (params: {|sessionID: Int,prompt: String,prevError?: ?Status|},response: {error: RPCErrorHandler, result: (result: ProveUiPromptUsernameResult) => void}) => void,  'keybase.1.proveUi.outputPrechecks'?: (params: {|sessionID: Int,text: Text|},response: CommonResponseHandler) => void,  'keybase.1.proveUi.preProofWarning'?: (params: {|sessionID: Int,text: Text|},response: {error: RPCErrorHandler, result: (result: ProveUiPreProofWarningResult) => void}) => void,  'keybase.1.proveUi.outputInstructions'?: (params: {|sessionID: Int,instructions: Text,proof: String|},response: CommonResponseHandler) => void,  'keybase.1.proveUi.okToCheck'?: (params: {|sessionID: Int,name: String,attempt: Int|},response: {error: RPCErrorHandler, result: (result: ProveUiOkToCheckResult) => void}) => void,  'keybase.1.proveUi.displayRecheckWarning'?: (params: {|sessionID: Int,text: Text|},response: CommonResponseHandler) => void,  'keybase.1.provisionUi.chooseProvisioningMethod'?: (params: {|sessionID: Int,gpgOption: Boolean|},response: {error: RPCErrorHandler, result: (result: ProvisionUiChooseProvisioningMethodResult) => void}) => void,  'keybase.1.provisionUi.chooseGPGMethod'?: (params: {|sessionID: Int,keys?: ?Array<GPGKey>|},response: {error: RPCErrorHandler, result: (result: ProvisionUiChooseGPGMethodResult) => void}) => void,  'keybase.1.provisionUi.switchToGPGSignOK'?: (params: {|sessionID: Int,key: GPGKey,importError: String|},response: {error: RPCErrorHandler, result: (result: ProvisionUiSwitchToGPGSignOKResult) => void}) => void,  'keybase.1.provisionUi.chooseDevice'?: (params: {|sessionID: Int,devices?: ?Array<Device>,canSelectNoDevice: Boolean|},response: {error: RPCErrorHandler, result: (result: ProvisionUiChooseDeviceResult) => void}) => void,  'keybase.1.provisionUi.chooseDeviceType'?: (params: {|sessionID: Int,kind: ChooseType|},response: {error: RPCErrorHandler, result: (result: ProvisionUiChooseDeviceTypeResult) => void}) => void,  'keybase.1.provisionUi.DisplayAndPromptSecret'?: (params: {|sessionID: Int,secret: Bytes,phrase: String,otherDeviceType: DeviceType,previousErr: String|},response: {error: RPCErrorHandler, result: (result: ProvisionUiDisplayAndPromptSecretResult) => void}) => void,  'keybase.1.provisionUi.DisplaySecretExchanged'?: (params: {|sessionID: Int|},response: CommonResponseHandler) => void,  'keybase.1.provisionUi.PromptNewDeviceName'?: (params: {|sessionID: Int,existingDevices?: ?Array<String>,errorMessage: String|},response: {error: RPCErrorHandler, result: (result: ProvisionUiPromptNewDeviceNameResult) => void}) => void,  'keybase.1.provisionUi.ProvisioneeSuccess'?: (params: {|sessionID: Int,username: String,deviceName: String|},response: CommonResponseHandler) => void,  'keybase.1.provisionUi.ProvisionerSuccess'?: (params: {|sessionID: Int,deviceName: String,deviceType: String|},response: CommonResponseHandler) => void,  'keybase.1.rekeyUI.delegateRekeyUI'?: (params: {||},response: {error: RPCErrorHandler, result: (result: RekeyUIDelegateRekeyUIResult) => void}) => void,  'keybase.1.rekeyUI.refresh'?: (params: {|sessionID: Int,problemSetDevices: ProblemSetDevices|},response: CommonResponseHandler) => void,  'keybase.1.rekeyUI.rekeySendEvent'?: (params: {|sessionID: Int,event: RekeyEvent|},response: CommonResponseHandler) => void,  'keybase.1.saltpackUi.saltpackPromptForDecrypt'?: (params: {|sessionID: Int,sender: SaltpackSender,usedDelegateUI: Boolean|},response: CommonResponseHandler) => void,  'keybase.1.saltpackUi.saltpackVerifySuccess'?: (params: {|sessionID: Int,signingKID: KID,sender: SaltpackSender|},response: CommonResponseHandler) => void,  'keybase.1.saltpackUi.saltpackVerifyBadSender'?: (params: {|sessionID: Int,signingKID: KID,sender: SaltpackSender|},response: CommonResponseHandler) => void,  'keybase.1.secretUi.getPassphrase'?: (params: {|sessionID: Int,pinentry: GUIEntryArg,terminal?: ?SecretEntryArg|},response: {error: RPCErrorHandler, result: (result: SecretUiGetPassphraseResult) => void}) => void,  'keybase.1.streamUi.close'?: (params: {|sessionID: Int,s: Stream|},response: CommonResponseHandler) => void,  'keybase.1.streamUi.read'?: (params: {|sessionID: Int,s: Stream,sz: Int|},response: {error: RPCErrorHandler, result: (result: StreamUiReadResult) => void}) => void,  'keybase.1.streamUi.reset'?: (params: {|sessionID: Int,s: Stream|},response: CommonResponseHandler) => void,  'keybase.1.streamUi.write'?: (params: {|sessionID: Int,s: Stream,buf: Bytes|},response: {error: RPCErrorHandler, result: (result: StreamUiWriteResult) => void}) => void,  'keybase.1.teamsUi.confirmRootTeamDelete'?: (params: {|sessionID: Int,teamName: String|},response: {error: RPCErrorHandler, result: (result: TeamsUiConfirmRootTeamDeleteResult) => void}) => void,  'keybase.1.teamsUi.confirmSubteamDelete'?: (params: {|sessionID: Int,teamName: String|},response: {error: RPCErrorHandler, result: (result: TeamsUiConfirmSubteamDeleteResult) => void}) => void,  'keybase.1.ui.promptYesNo'?: (params: {|sessionID: Int,text: Text,promptDefault: PromptDefault|},response: {error: RPCErrorHandler, result: (result: UiPromptYesNoResult) => void}) => void|}

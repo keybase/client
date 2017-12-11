@@ -101,5 +101,3 @@ export default {
   'Folders: Delete Confirmation': deleteMap,
   'Folders: Ignore Confirmation': ignoreMap,
 }
-
-export {clearHistoryMap, deleteMap, ignoreMap}

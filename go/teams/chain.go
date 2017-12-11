@@ -1496,9 +1496,6 @@ func (t *TeamSigChainPlayer) addInnerLink(
 		if err != nil {
 			return res, err
 		}
-		if !team.Implicit {
-			return res, NewExplicitTeamOperationError("KBFS settings")
-		}
 
 		res.newState = prevState.DeepCopy()
 		res.newState.informKBFSSettings(*team.KBFS)

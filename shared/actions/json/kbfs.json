@@ -35,6 +35,9 @@
     "openDefaultPath": {
       "opening": "boolean"
     },
-    "uninstallKBFS": {}
+    "uninstallKBFS": {},
+    "uninstallKBFSResult": {
+      "result": "RPCTypes.UninstallResult"
+    }
   }
 }

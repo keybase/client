@@ -22,6 +22,7 @@ const flags = {
   isHot: getenv.boolish('HOT', false),
   isShowingDashboard: !getenv.boolish('NO_SERVER', !isDev),
   isVisDiff: getenv.boolish('VISDIFF', false),
+  isTreeShake: getenv.boolish('TREESHAKE', false),
 }
 
 console.log('Flags: ', flags)
@@ -52,6 +53,7 @@ const makeCommonConfig = () => {
           [
             'env',
             {
+              ...(flags.isTreeShake ? {modules: false} : null),
               debug: false,
               targets: {
                 electron: '1.7.5',
@@ -203,7 +205,7 @@ const makeRenderThreadConfig = () => {
       : []
 
     // Put our vendored stuff into its own thing
-    const dllPlugin = flags.isDev && !flags.isVisDiff
+    const dllPlugin = flags.isDev && !flags.isVisDiff && !flags.isTreeShake
       ? [
           new webpack.DllReferencePlugin({
             manifest: path.resolve(__dirname, 'dll/vendor-manifest.json'),
@@ -221,7 +223,7 @@ const makeRenderThreadConfig = () => {
   }
 
   // Have to inject some additional code if we're using HMR
-  const HMREntries = flags.isHot && flags.isDev
+  const HMREntries = flags.isHot && flags.isDev && !flags.isTreeShake
     ? [
         'react-hot-loader/patch',
         'webpack-dev-server/client?http://localhost:4000',
@@ -241,20 +243,16 @@ const makeRenderThreadConfig = () => {
     } else
       return {
         index: [...HMREntries, path.resolve(__dirname, 'renderer/index.js')],
-        launcher: [...HMREntries, path.resolve(__dirname, 'renderer/launcher.js')],
-        'remote-component-loader': [
-          ...HMREntries,
-          path.resolve(__dirname, 'renderer/remote-component-loader.js'),
-        ],
+        'component-loader': [...HMREntries, path.resolve(__dirname, 'remote/component-loader.js')],
       }
   }
 
   return merge(commonConfig, {
-    dependencies: flags.isDev && !flags.isVisDiff ? ['vendor'] : undefined,
+    dependencies: flags.isDev && !flags.isVisDiff && !flags.isTreeShake ? ['vendor'] : undefined,
     // Sourcemaps, eval is very fast, but you might want something else if you want to see the original code
     // Some eval sourcemaps cause issues with closures in chromium due to some bugs. Visdiff suffers from this and we don't debug it so
     // lets disable sourcemaps for it
-    devtool: flags.isVisDiff ? undefined : flags.isDev ? 'eval' : 'source-map',
+    devtool: flags.isVisDiff || flags.isTreeShake ? undefined : flags.isDev ? 'eval' : 'source-map',
     entry: makeEntries(),
     name: 'renderThread',
     plugins: makeRenderPlugins(),
@@ -304,7 +302,7 @@ const makeDllConfig = () => {
 const commonConfig = makeCommonConfig()
 const mainThreadConfig = makeMainThreadConfig()
 const renderThreadConfig = makeRenderThreadConfig()
-const dllConfig = flags.isDev && !flags.isVisDiff && makeDllConfig()
+const dllConfig = flags.isDev && !flags.isVisDiff && !flags.isTreeShake && makeDllConfig()
 
 // When we start the hot server we want to build the main/dll without hot reloading statically
 const config = (flags.isBeforeHot

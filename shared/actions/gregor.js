@@ -8,7 +8,6 @@ import * as I from 'immutable'
 import * as RPCTypes from '../constants/types/flow-types'
 import * as Saga from '../util/saga'
 import engine from '../engine'
-import {clearErrors} from '../util/pictures'
 import {folderFromPath} from '../constants/favorite.js'
 import {nativeReachabilityEvents} from '../util/reachability'
 import {replaceEntity} from './entities'
@@ -52,7 +51,7 @@ function registerReachability() {
           // without re-bootstrapping. Originally we used to do this on HTML5
           // 'online' event, but reachability is more precise.
           dispatch(ConfigGen.createBootstrap({isReconnect: true}))
-          clearErrors()
+          dispatch(ConfigGen.createClearAvatarCache())
         }
       }
     })

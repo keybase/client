@@ -36,7 +36,59 @@ const Row = ({deviceID, name, type, onSelect}) => {
   )
 }
 
-const SelectOtherDevice = ({onBack, devices, onWont, onSelect, canSelectNoDevice}: Props) => (
+const ResetOption = ({onReset}) => (
+  <Box>
+    <Box style={stylesRow} className="deviceRow">
+      <Box style={stylesIconName}>
+        <Box
+          style={{
+            ...stylesIconContainer,
+            alignSelf: 'flex-start',
+            width: 48,
+            marginRight: globalMargins.small,
+            marginTop: globalMargins.tiny,
+          }}
+        >
+          <Icon
+            style={{
+              ...stylesIcon,
+              fontSize: 24,
+              color: globalColors.black_40,
+              marginRight: 0,
+            }}
+            type="iconfont-exclamation"
+          />
+        </Box>
+        <Box
+          style={{
+            ...globalStyles.flexBoxColumn,
+            flex: 1,
+            alignItems: 'flex-start',
+            paddingBottom: globalMargins.tiny,
+            paddingTop: globalMargins.tiny,
+          }}
+        >
+          <Text type="Body">
+            Uh oh. I don't have any of these devices anymore, or I've uninstalled Keybase from all of them.
+          </Text>
+          <Text
+            type="BodyPrimaryLink"
+            onClick={onReset}
+            style={{
+              color: globalColors.red,
+              paddingBottom: globalMargins.tiny,
+              paddingTop: globalMargins.tiny,
+            }}
+          >
+            Reset account
+          </Text>
+        </Box>
+      </Box>
+    </Box>
+  </Box>
+)
+
+const SelectOtherDevice = ({onBack, devices, onWont, onSelect, canSelectNoDevice, onReset}: Props) => (
   <Container style={stylesContainer} onBack={onBack} outerStyle={{paddingLeft: 0, paddingRight: 0}}>
     <Box style={globalStyles.flexBoxColumn}>
       <Text type="Header" style={stylesInstructions}>Please prove you're you</Text>
@@ -46,6 +98,7 @@ const SelectOtherDevice = ({onBack, devices, onWont, onSelect, canSelectNoDevice
     </Box>
     <NativeScrollView style={stylesDevicesContainer}>
       {devices.map(d => <Row onSelect={onSelect} {...d} key={d.deviceID} />)}
+      <ResetOption onReset={onReset} />
     </NativeScrollView>
     {canSelectNoDevice &&
       <Text style={stylesWont} type="BodySmallSecondaryLink" onClick={onWont}>

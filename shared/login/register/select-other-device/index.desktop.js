@@ -1,12 +1,12 @@
 // @flow
 import Container from '../../forms/container.desktop'
 import * as React from 'react'
-import {Text, Icon} from '../../../common-adapters'
+import {Box, Text, Icon} from '../../../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../../../styles'
-
-import type {DeviceType} from '../../../constants/types/devices'
-import type {IconType} from '../../../common-adapters/icon'
-import type {Props} from '.'
+import glamorous from 'glamorous'
+import {type DeviceType} from '../../../constants/types/devices'
+import {type IconType} from '../../../common-adapters/icon'
+import {type Props} from '.'
 
 const Row = ({deviceID, name, type, onSelect}) => {
   const iconType: IconType = ({
@@ -20,32 +20,61 @@ const Row = ({deviceID, name, type, onSelect}) => {
     e && e.preventDefault()
   }
 
-  const realCSS = `
-  .deviceRow { border-bottom: 1px solid ${globalColors.black_05} }
-  .deviceRow:hover { background: ${globalColors.blue4}; border-bottom: 1px solid ${globalColors.blue4} }
-  `
-
   return (
-    <div>
-      <style>{realCSS}</style>
-      <div style={stylesRow} className="deviceRow" onClick={onClick}>
-        <div style={stylesIconName}>
-          <div style={stylesIconContainer}>
+    <Box>
+      <DeviceBox onClick={onClick}>
+        <Box style={stylesIconName}>
+          <Box style={stylesIconContainer}>
             <Icon style={stylesIcon} type={iconType} />
-          </div>
+          </Box>
           <Text type="BodySemiboldItalic" onClick={onClick}>{name}</Text>
-        </div>
-      </div>
-    </div>
+        </Box>
+      </DeviceBox>
+    </Box>
   )
 }
 
-const SelectOtherDevice = ({onBack, devices, onWont, onSelect, canSelectNoDevice}: Props) => (
+const ResetOption = ({onReset}) => (
+  <Box>
+    <DeviceBox>
+      <Box style={stylesIconName}>
+        <Box
+          style={{
+            ...stylesIconContainer,
+            width: 160,
+            marginTop: globalMargins.tiny,
+            alignSelf: 'flex-start',
+          }}
+        >
+          <Icon
+            style={{
+              ...stylesIcon,
+              fontSize: 16,
+              color: globalColors.black_40,
+            }}
+            type="iconfont-exclamation"
+          />
+        </Box>
+        <Box style={globalStyles.flexBoxColumn}>
+          <Text type="Body">
+            Uh oh. I don't have any of these devices anymore, or I've uninstalled Keybase from all of them.
+            <Text type="BodyPrimaryLink" onClick={onReset} style={{color: globalColors.red, marginLeft: 2}}>
+              Reset account
+            </Text>
+          </Text>
+        </Box>
+      </Box>
+    </DeviceBox>
+  </Box>
+)
+
+const SelectOtherDevice = ({onBack, devices, onWont, onSelect, canSelectNoDevice, onReset}: Props) => (
   <Container style={stylesContainer} onBack={onBack}>
-    <Text type="Header" style={stylesHeader}>Which device would you like to connect with?</Text>
-    <div style={stylesDevicesContainer}>
+    <Text type="Header" style={stylesHeader}>Which Keybase install would you like to connect with?</Text>
+    <Box style={stylesDevicesContainer}>
       {devices.map(d => <Row onSelect={onSelect} {...d} key={d.deviceID} />)}
-    </div>
+      <ResetOption onReset={onReset} />
+    </Box>
     {canSelectNoDevice &&
       <Text style={stylesWont} type="BodySmallSecondaryLink" onClick={onWont}>
         Log in with your passphrase
@@ -93,5 +122,14 @@ const stylesWont = {
   marginTop: globalMargins.medium,
   alignSelf: 'center',
 }
+
+const DeviceBox = glamorous(Box)({
+  ...stylesRow,
+  borderBottom: `1px solid ${globalColors.black_05}`,
+  ':hover': {
+    backgroundColor: globalColors.blue4,
+    borderBottom: `1px solid ${globalColors.blue4}`,
+  },
+})
 
 export default SelectOtherDevice

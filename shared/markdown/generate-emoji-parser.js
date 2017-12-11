@@ -51,12 +51,18 @@ function buildParser() {
   const sourcePath = process.argv[2]
   const source = fs.readFileSync(sourcePath, {encoding: 'utf8'})
 
-  const generatedSource = source
-    .replace('__EMOJI_CHARACTERS__', emojiCharacterClass)
-    .replace(
-      /__INLINE_MACRO__<([^>]*)>/g,
-      '($1 InlineStart ((InlineDelimiter+ $1 InlineStart) / ($1 InlineCont))*)'
-    )
+  const generatedSource = source.replace('__EMOJI_CHARACTERS__', emojiCharacterClass).replace(
+    /__INLINE_RULE__<([^>,]*)\s*,\s*([^>,]*)>/g,
+    `$1Start
+ = !CodeBlock $2 (InlineStartCommon / ((EscapedChar / SpecialChar) $1Start?))
+
+$1Cont
+ = $2 InlineCont
+
+$1
+ = ($1Start ((InlineDelimiter+ $1Start) / $1Cont)*)
+`
+  )
 
   const linkExp = /^(?:(http(s)?):\/\/)?(([a-z0-9-]+\.)+([a-z]{2,63})|(\b(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\b))(((\/)|(\?))[a-z0-9.()\-_~:?#[\]@!$&'%*+,;=]*)*$/i
   const tldPuncExp = /^(?:(http(s)?):\/\/)?(([a-z0-9-]+\.)+([a-z]{2,63})|(\b(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\b))([)\].,;:"']+$)/i

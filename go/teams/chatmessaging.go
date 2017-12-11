@@ -92,3 +92,29 @@ func SendChatInviteWelcomeMessage(ctx context.Context, g *libkb.GlobalContext, t
 	}
 	return true
 }
+
+func SendTeamChatCreateMessage(ctx context.Context, g *libkb.GlobalContext, team, creator string) bool {
+	var err error
+	defer func() {
+		if err != nil {
+			g.Log.CWarningf(ctx, "failed to send team create message: %s", err.Error())
+		}
+	}()
+
+	subBody := chat1.NewMessageSystemWithCreateteam(chat1.MessageSystemCreateTeam{
+		Team:    team,
+		Creator: creator,
+	})
+	body := chat1.NewMessageBodyWithSystem(subBody)
+
+	// Ensure we have chat available
+	g.StartStandaloneChat()
+
+	if err = g.ChatHelper.SendMsgByName(ctx, team, &globals.DefaultTeamTopic,
+		chat1.ConversationMembersType_TEAM, keybase1.TLFIdentifyBehavior_CHAT_CLI, body,
+		chat1.MessageType_SYSTEM); err != nil {
+		return false
+	}
+
+	return true
+}

@@ -112,7 +112,7 @@ function* fuseStatusSaga(): Saga.SagaGenerator<any, any> {
   const state: TypedState = yield Saga.select()
   const prevStatus = state.favorite.fuseStatus
 
-  let status = yield Saga.call(RPCTypes.installFuseStatusRpcPromise)
+  let status = yield Saga.call(RPCTypes.installFuseStatusRpcPromise, {bundleVersion: ''})
   if (isWindows && status.installStatus !== 4) {
     // Check if another Dokan we didn't install mounted the filesystem
     const kbfsMount = yield Saga.call(RPCTypes.kbfsMountGetCurrentMountDirRpcPromise)
@@ -273,9 +273,8 @@ function* installKBFSSaga(): Saga.SagaGenerator<any, any> {
 }
 
 function* uninstallKBFSSaga(): Saga.SagaGenerator<any, any> {
-  yield Saga.call(RPCTypes.installUninstallKBFSRpcPromise)
-  yield Saga.put(KBFSGen.createUninstallKBFS())
-
+  const result: RPCTypes.UninstallResult = yield Saga.call(RPCTypes.installUninstallKBFSRpcPromise)
+  yield Saga.put(KBFSGen.createUninstallKBFSResult({result}))
   // Restart since we had to uninstall KBFS and it's needed by the service (for chat)
   const app = electron.remote.app
   app.relaunch()

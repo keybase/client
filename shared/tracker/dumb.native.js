@@ -1,191 +1,188 @@
-// @flow
-import Tracker from './render'
-import {trackerPropsToRenderProps} from './index'
+// @noflow
+import Tracker, {type TrackerProps} from '.'
 import * as Constants from '../constants/tracker'
-import type {TrackerProps} from '../tracker'
-import type {Proof} from '../constants/types/tracker'
-import type {DumbComponentMap} from '../constants/types/more'
+import {type Proof} from '../constants/types/tracker'
+import {type DumbComponentMap} from '../constants/types/more'
 
 function proofGithubMaker(name): Proof {
   return {
-    name: 'githubuser' + name,
-    type: 'github',
-    id: 'githubId' + name,
-    state: Constants.normal,
-    meta: Constants.metaNone,
     humanUrl: 'github.com',
-    profileUrl: 'http://github.com',
+    id: 'githubId' + name,
     isTracked: false,
     mTime: 1469665223000,
+    meta: Constants.metaNone,
+    name: 'githubuser' + name,
+    profileUrl: 'http://github.com',
+    state: Constants.normal,
+    type: 'github',
   }
 }
 
 const proofGithub = proofGithubMaker('')
 
 const proofTwitter: Proof = {
-  name: 'twitteruser',
-  type: 'twitter',
-  id: 'twitterId',
-  state: Constants.normal,
-  meta: Constants.metaNone,
   humanUrl: 'twitter.com',
-  profileUrl: 'http://twitter.com',
+  id: 'twitterId',
   isTracked: false,
   mTime: 1469665223000,
+  meta: Constants.metaNone,
+  name: 'twitteruser',
+  profileUrl: 'http://twitter.com',
+  state: Constants.normal,
+  type: 'twitter',
 }
 const proofHN: Proof = {
-  name: 'pg',
-  type: 'hackernews',
-  id: 'hnId',
-  state: Constants.normal,
-  meta: Constants.metaNone,
   humanUrl: 'news.ycombinator.com',
-  profileUrl: 'http://news.ycombinator.com',
+  id: 'hnId',
   isTracked: false,
   mTime: 1469565223000,
+  meta: Constants.metaNone,
+  name: 'pg',
+  profileUrl: 'http://news.ycombinator.com',
+  state: Constants.normal,
+  type: 'hackernews',
 }
 const longDomainName = 'thelongestdomainnameintheworldandthensomeandthensomemoreandmore.com'
 const proofWeb1: Proof = {
-  name: longDomainName,
-  type: 'http',
-  id: 'webId',
-  state: Constants.normal,
-  meta: Constants.metaNone,
   humanUrl: longDomainName,
-  profileUrl: '',
+  id: 'webId',
   isTracked: false,
   mTime: 1469465223000,
+  meta: Constants.metaNone,
+  name: longDomainName,
+  profileUrl: '',
+  state: Constants.normal,
+  type: 'http',
 }
 const proofWeb2: Proof = {
-  name: longDomainName.substring(1),
-  type: 'http',
-  id: 'webId1',
-  state: Constants.normal,
-  meta: Constants.metaNone,
   humanUrl: longDomainName,
-  profileUrl: '',
+  id: 'webId1',
   isTracked: false,
   mTime: 1469365223000,
+  meta: Constants.metaNone,
+  name: longDomainName.substring(1),
+  profileUrl: '',
+  state: Constants.normal,
+  type: 'http',
 }
 const proofRooter: Proof = {
-  name: 'roooooooter',
-  type: 'rooter',
-  state: Constants.normal,
-  meta: Constants.metaNone,
-  id: 'rooterId',
   humanUrl: '',
-  profileUrl: '',
+  id: 'rooterId',
   isTracked: false,
   mTime: 1469265223000,
+  meta: Constants.metaNone,
+  name: 'roooooooter',
+  profileUrl: '',
+  state: Constants.normal,
+  type: 'rooter',
 }
 
 const proofsDefault: Array<Proof> = [proofGithub, proofTwitter, proofHN, proofWeb1, proofWeb2, proofRooter]
 
 const proofsChanged: Array<Proof> = [
   {
-    name: 'deleted',
-    type: 'github',
-    id: 'warningId',
-    state: Constants.revoked,
-    meta: Constants.metaDeleted,
     humanUrl: '',
-    profileUrl: '',
+    id: 'warningId',
     isTracked: false,
     mTime: 1469665223000,
+    meta: Constants.metaDeleted,
+    name: 'deleted',
+    profileUrl: '',
+    state: Constants.revoked,
+    type: 'github',
   },
   {
-    name: 'unreachable',
-    type: 'twitter',
-    id: 'unreachableId',
-    state: Constants.error,
-    meta: Constants.metaUnreachable,
     humanUrl: '',
-    profileUrl: '',
+    id: 'unreachableId',
     isTracked: false,
     mTime: 1469565223000,
+    meta: Constants.metaUnreachable,
+    name: 'unreachable',
+    profileUrl: '',
+    state: Constants.error,
+    type: 'twitter',
   },
   {
-    name: 'checking',
-    type: 'twitter',
-    id: 'checkingId',
-    state: Constants.checking,
-    meta: Constants.metaNone,
     humanUrl: '',
-    profileUrl: '',
+    id: 'checkingId',
     isTracked: false,
     mTime: 1469465223000,
+    meta: Constants.metaNone,
+    name: 'checking',
+    profileUrl: '',
+    state: Constants.checking,
+    type: 'twitter',
   },
   {
-    name: 'pending',
-    type: 'https',
-    id: 'pendingId',
-    state: Constants.checking,
-    meta: Constants.metaPending,
     humanUrl: '',
-    profileUrl: '',
+    id: 'pendingId',
     isTracked: false,
     mTime: 1469365223000,
+    meta: Constants.metaPending,
+    name: 'pending',
+    profileUrl: '',
+    state: Constants.checking,
+    type: 'https',
   },
   {
-    name: 'upgraded',
-    type: 'rooter',
-    id: 'upgradedId',
-    state: Constants.normal,
-    meta: Constants.metaUpgraded,
     humanUrl: '',
-    profileUrl: '',
+    id: 'upgradedId',
     isTracked: false,
     mTime: 1469265223000,
+    meta: Constants.metaUpgraded,
+    name: 'upgraded',
+    profileUrl: '',
+    state: Constants.normal,
+    type: 'rooter',
   },
 ]
 
 const propsBase = {
+  actionBarReady: true,
   closed: false,
   currentlyFollowing: false,
-  onFollow: () => {},
-  onRefollow: () => {},
-  onUnfollow: () => {},
-  onChat: () => {},
-  onClose: () => {},
-  startTimer: () => {},
-  stopTimer: () => {},
-  onIgnore: () => {},
-  waiting: false,
-  loggedIn: true,
+  errorMessage: null,
   lastAction: null,
   loading: false,
-  actionBarReady: true,
+  loggedIn: true,
+  myUsername: 'bob',
+  onChat: () => {},
   onClickAvatar: console.log('on click avatar'),
   onClickFollowers: console.log('on click followers'),
   onClickFollowing: console.log('on click following'),
-  error: null,
-  myUsername: 'bob',
+  onClose: () => {},
+  onFollow: () => {},
+  onIgnore: () => {},
+  onRefollow: () => {},
+  onRetry: null,
+  onUnfollow: () => {},
+  waiting: false,
 }
 
 const propsDefault: TrackerProps = {
   ...propsBase,
-  nonUser: false,
-  username: 'darksim905',
-  reason: 'You accessed a private folder with gabrielh.',
-  userInfo: {
-    uid: '0',
-    fullname: 'Gabriel Handford',
-    followersCount: 1871,
-    followingCount: 356,
-    location: 'San Francisco, California, USA, Earth, Milky Way',
-    bio: 'Etsy photo booth mlkshk semiotics, 8-bit literally slow-carb keytar bushwick +1. Plaid migas etsy yuccie, locavore street art mlkshk lumbersexual. Literally microdosing pug disrupt iPhone raw denim, quinoa meggings kitsch. ',
-    avatar: 'https://keybase.io/darksim905/picture',
-    followsYou: false,
-  },
-  trackerState: Constants.normal,
-  proofs: proofsDefault,
-
   // For hover
   headerProps: {
     onClose: () => {
       console.log('Close')
     },
   },
+  nonUser: false,
+  proofs: proofsDefault,
+  reason: 'You accessed a private folder with gabrielh.',
+  trackerState: Constants.normal,
+  userInfo: {
+    avatar: 'https://keybase.io/darksim905/picture',
+    bio: 'Etsy photo booth mlkshk semiotics, 8-bit literally slow-carb keytar bushwick +1. Plaid migas etsy yuccie, locavore street art mlkshk lumbersexual. Literally microdosing pug disrupt iPhone raw denim, quinoa meggings kitsch. ',
+    followersCount: 1871,
+    followingCount: 356,
+    followsYou: false,
+    fullname: 'Gabriel Handford',
+    location: 'San Francisco, California, USA, Earth, Milky Way',
+    uid: '0',
+    showcasedTeams: [],
+  },
+  username: 'darksim905',
 }
 
 const propsNewUser: TrackerProps = {
@@ -194,14 +191,14 @@ const propsNewUser: TrackerProps = {
 
 const propsNonUser: TrackerProps = {
   ...propsDefault,
-  userInfo: null,
-  isPrivate: false,
-  proofs: [],
-  nonUser: true,
-  name: 'aliceb@reddit',
-  serviceName: 'reddit',
-  reason: 'Success! You opened a private folder with aliceb@twitter.',
   inviteLink: 'keybase.io/inv/9999999999',
+  isPrivate: false,
+  name: 'aliceb@reddit',
+  nonUser: true,
+  proofs: [],
+  reason: 'Success! You opened a private folder with aliceb@twitter.',
+  serviceName: 'reddit',
+  userInfo: null,
 }
 
 const propsNewUserFollowsYou: TrackerProps = {
@@ -230,13 +227,13 @@ const propsFollowing: TrackerProps = setFollow(
   {
     ...propsNewUser,
     currentlyFollowing: true,
+    lastAction: 'followed',
+    proofs: proofsDefault,
     reason: 'You have tracked gabrielh.',
     userInfo: {
       ...propsNewUser.userInfo,
       followsYou: true,
     },
-    proofs: proofsDefault,
-    lastAction: 'followed',
   },
   () => true
 )
@@ -244,8 +241,8 @@ const propsFollowing: TrackerProps = setFollow(
 const propsWhatevz: TrackerProps = setFollow(
   {
     ...propsFollowing,
-    reason: 'You have tracked gabrielh',
     proofs: [proofGithub, {...proofTwitter, meta: Constants.metaIgnored}],
+    reason: 'You have tracked gabrielh',
   },
   () => true
 )
@@ -253,43 +250,44 @@ const propsWhatevz: TrackerProps = setFollow(
 const propsChangedProofs: TrackerProps = {
   ...propsDefault,
   currentlyFollowing: true,
+  proofs: proofsChanged,
   reason: "Some of gabrielh's proofs have changed since you last tracked them.",
+  trackerState: Constants.error,
   userInfo: {
     ...propsNewUser.userInfo,
     followsYou: true,
   },
-  trackerState: Constants.error,
-  proofs: proofsChanged,
 }
 
 const propsUnfollowed: TrackerProps = {
   ...propsDefault,
+  lastAction: 'unfollowed',
   reason: 'You have untracked gabrielh.',
   userInfo: {
     ...propsNewUser.userInfo,
     followsYou: true,
   },
-  lastAction: 'unfollowed',
 }
 
 const propsLessData: TrackerProps = {
   ...propsBase,
+  currentlyFollowing: false,
   nonUser: false,
-  username: '00',
+  proofs: [proofGithub],
   reason: "I'm a user with not much data.",
+  trackerState: Constants.normal,
   userInfo: {
-    uid: '0',
-    fullname: 'Hi',
+    avatar: 'http://placehold.it/140x140/ffffff/000000',
     bio: '',
     followersCount: 1,
     followingCount: 0,
     followsYou: false,
-    avatar: 'http://placehold.it/140x140/ffffff/000000',
+    fullname: 'Hi',
     location: '',
+    uid: '0',
+    showcasedTeams: [],
   },
-  currentlyFollowing: false,
-  trackerState: Constants.normal,
-  proofs: [proofGithub],
+  username: '00',
 }
 
 const propsLoggedOut: TrackerProps = {
@@ -300,42 +298,42 @@ const propsLoggedOut: TrackerProps = {
 const propsOneProof: TrackerProps = {...propsDefault, proofs: [proofsDefault[0]]}
 const propsFiveProof: TrackerProps = {
   ...propsDefault,
+  proofs: [0, 1, 2, 3, 4].map(proofGithubMaker),
   userInfo: {
     ...propsDefault.userInfo,
     bio: 'bio',
     location: '',
   },
-  proofs: [0, 1, 2, 3, 4].map(proofGithubMaker),
 }
 
 const dumbMap: DumbComponentMap<Tracker> = {
   component: Tracker,
   mocks: {
-    'New user': trackerPropsToRenderProps(propsNewUser),
-    'New user, follows me': trackerPropsToRenderProps(propsNewUserFollowsYou),
-    'Only one proof - action bar not ready': trackerPropsToRenderProps({
+    'New user': propsNewUser,
+    'New user, follows me': propsNewUserFollowsYou,
+    'Only one proof - action bar not ready': {
       ...propsOneProof,
       actionBarReady: false,
-    }),
-    'Only one proof': trackerPropsToRenderProps(propsOneProof),
-    '5 proofs': trackerPropsToRenderProps(propsFiveProof),
-    Followed: trackerPropsToRenderProps(propsFollowing),
-    'Changed/Broken proofs user you dont follow': trackerPropsToRenderProps({
+    },
+    'Only one proof': propsOneProof,
+    '5 proofs': propsFiveProof,
+    Followed: propsFollowing,
+    'Changed/Broken proofs user you dont follow': {
       ...propsChangedProofs,
       currentlyFollowing: false,
-    }),
-    'Changed/Broken proofs': trackerPropsToRenderProps(propsChangedProofs),
-    'You track them': trackerPropsToRenderProps({
+    },
+    'Changed/Broken proofs': propsChangedProofs,
+    'You track them': {
       ...propsFollowing,
       userInfo: {...propsNewUser.userInfo, followsYou: false},
-    }),
-    Unfollowed: trackerPropsToRenderProps(propsUnfollowed),
-    'Barely there': trackerPropsToRenderProps(propsLessData),
-    Whatevz: trackerPropsToRenderProps(propsWhatevz),
-    NonuserNoLinkPrivate: trackerPropsToRenderProps({...propsNonUser, inviteLink: null, isPrivate: true}),
-    NonuserLink: trackerPropsToRenderProps(propsNonUser),
-    NonuserNoLinkPublic: trackerPropsToRenderProps({...propsNonUser, inviteLink: null}),
-    'Logged out': trackerPropsToRenderProps(propsLoggedOut),
+    },
+    Unfollowed: propsUnfollowed,
+    'Barely there': propsLessData,
+    Whatevz: propsWhatevz,
+    NonuserNoLinkPrivate: {...propsNonUser, inviteLink: null, isPrivate: true},
+    NonuserLink: propsNonUser,
+    NonuserNoLinkPublic: {...propsNonUser, inviteLink: null},
+    'Logged out': propsLoggedOut,
   },
 }
 

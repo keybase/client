@@ -12,6 +12,7 @@ import {
   immediateStateLogging,
   filterActionLogs,
 } from '../local-debug'
+import * as DevGen from '../actions/dev-gen'
 import * as ConfigGen from '../actions/config-gen'
 import {isMobile} from '../constants/platform'
 import {run as runSagas, create as createSagaMiddleware} from './configure-sagas'
@@ -97,7 +98,7 @@ if (enableStoreLogging) {
 if (__DEV__ && typeof window !== 'undefined') {
   window.debugActionLoop = () => {
     setInterval(() => {
-      theStore.dispatch({type: 'debugCount', payload: undefined})
+      theStore.dispatch(DevGen.createDebugCount())
     }, 1000)
   }
 }

@@ -3,11 +3,25 @@
     "import * as Constants from '../constants/pinentry'"
   ],
   "actions": {
-    "registerPinentryListener": {
-      "started": "boolean"
+    "deleteEntity": {
+      "keyPath": "Array<string>",
+      "ids": "Iterable<any>"
     },
+    "mergeEntity": {
+      "keyPath": "Array<string>",
+      "entities": "I.Map<any, any> | I.List<any>"
+    },
+    "replaceEntity": {
+      "keyPath": "Array<string>",
+      "entities": "I.Map<any, any> | I.List<any>"
+    },
+    "subtractEntity": {
+      "keyPath": "Array<string>",
+      "entities": "I.List<any>"
+    },
+    "registerPinentryListener": {},
     "newPinentry": {
-      "features": "RPCTypes.GUIEntryFeatures",
+      "showTyping": "RPCTypes.Feature",
       "type": "RPCTypes.PassphraseType",
       "sessionID": "number",
       "prompt": "string",
@@ -17,7 +31,8 @@
       "retryLabel": "?string"
     },
     "onSubmit": {
-      "sessionID": "number"
+      "sessionID": "number",
+      "passphrase": "string"
     },
     "onCancel": {
       "sessionID": "number"

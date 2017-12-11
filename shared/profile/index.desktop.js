@@ -6,6 +6,7 @@ import React, {PureComponent} from 'react'
 import orderBy from 'lodash/orderBy'
 import moment from 'moment'
 import {
+  Avatar,
   Box,
   Icon,
   PlatformIcon,
@@ -26,10 +27,10 @@ import type {Proof} from '../constants/types/tracker'
 import type {Props} from './index'
 
 export const AVATAR_SIZE = 112
-export const HEADER_TOP_SPACE = 48
+const HEADER_TOP_SPACE = 48
 export const HEADER_SIZE = AVATAR_SIZE / 2 + HEADER_TOP_SPACE
-export const BACK_ZINDEX = 12
-export const SEARCH_CONTAINER_ZINDEX = BACK_ZINDEX + 1
+const BACK_ZINDEX = 12
+const SEARCH_CONTAINER_ZINDEX = BACK_ZINDEX + 1
 
 type State = {
   searchHovered: boolean,
@@ -330,6 +331,29 @@ class ProfileRender extends PureComponent<Props, State> {
                   <Text type="BodySemibold" style={{color: globalColors.white}}>{proofNotice}</Text>}
               </Box>
               <Box style={styleProofs}>
+                {!loading &&
+                  this.props.userInfo.showcasedTeams.length > 0 &&
+                  <Box style={{...globalStyles.flexBoxColumn, paddingBottom: globalMargins.small}}>
+                    <Box style={globalStyles.flexBoxRow}>
+                      <Text type="BodySmallSemibold">Teams:</Text>
+                    </Box>
+                    {this.props.userInfo.showcasedTeams.map(team => (
+                      <Box
+                        key={team.fqName}
+                        onClick={event => this.props.onClickShowcased(event.target, team)}
+                        style={styleShowcasedTeamContainer}
+                      >
+                        <Box style={styleShowcasedTeamAvatar}>
+                          <Avatar teamname={team.fqName} size={24} />
+                        </Box>
+                        <Box style={styleShowcasedTeamName}>
+                          <Text style={{color: globalColors.black_75}} type="BodySemiboldLink">
+                            {team.fqName}
+                          </Text>
+                        </Box>
+                      </Box>
+                    ))}
+                  </Box>}
                 {(loading || this.props.proofs.length > 0) &&
                   <UserProofs
                     type={'proofs'}
@@ -500,6 +524,31 @@ const styleSearchText = {
   ...styleSearch,
   position: 'relative',
   top: -1,
+}
+
+const styleShowcasedTeamContainer = {
+  ...globalStyles.flexBoxRow,
+  alignItems: 'flex-start',
+  justifyContent: 'flex-start',
+  minHeight: 32,
+}
+
+const styleShowcasedTeamAvatar = {
+  ...globalStyles.flexBoxRow,
+  alignItems: 'center',
+  alignSelf: 'center',
+  height: globalStyles.medium,
+  minHeight: globalStyles.medium,
+  minWidth: globalStyles.medium,
+  width: globalStyles.medium,
+}
+
+const styleShowcasedTeamName = {
+  ...globalStyles.flexBoxRow,
+  alignItems: 'center',
+  justifyContent: 'center',
+  alignSelf: 'center',
+  paddingLeft: globalMargins.tiny,
 }
 
 export default ProfileRender

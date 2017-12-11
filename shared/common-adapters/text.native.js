@@ -20,7 +20,6 @@ const backgroundModes = [
   'Terminal',
 ]
 
-// $FlowIssue
 const styleMap = Object.keys(metaData).reduce((map, type: TextType) => {
   const meta = metaData[type]
   backgroundModes.forEach(mode => {

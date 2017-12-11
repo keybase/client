@@ -14,7 +14,7 @@ let config = {
   forwardLogs: true, // Send logs to remote console
   ignoreDisconnectOverlay: false, // Let you use the app even in a disconnected state
   immediateStateLogging: false, // Don't wait for idle to log state
-  isTesting: false, // Is running a unit test
+  isTesting: __SCREENSHOT__, // Is running a unit test
   maskStrings: false, // Replace all hiddenstrings w/ fake values
   printOutstandingRPCs: false, // Periodically print rpcs we're waiting for
   printRPC: false, // Print rpc traffic

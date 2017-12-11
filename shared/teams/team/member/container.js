@@ -1,12 +1,12 @@
 // @flow
 import * as Types from '../../../constants/types/teams'
-import * as Constants from '../../../constants/teams'
+import {amIBeingFollowed, amIFollowing} from '../../../constants/selectors'
 import * as I from 'immutable'
 import {connect} from 'react-redux'
 import {compose} from 'recompose'
 import {HeaderHoc} from '../../../common-adapters'
 import {createShowUserProfile} from '../../../actions/profile-gen'
-import {getProfile} from '../../../actions/tracker'
+import {createGetProfile} from '../../../actions/tracker-gen'
 import {createStartConversation} from '../../../actions/chat-gen'
 import {isMobile} from '../../../constants/platform'
 import {TeamMember} from '.'
@@ -19,18 +19,24 @@ type StateProps = {
   _you: ?string,
   _username: string,
   _memberInfo: I.Set<Types.MemberInfo>,
+  _implicitAdminUsernames: I.Set<string>,
   loading: boolean,
 }
 
 const mapStateToProps = (state: TypedState, {routeProps}): StateProps => {
   const username = routeProps.get('username')
   const teamname = routeProps.get('teamname')
+  const _implicitAdminUsernames = state.entities.getIn(
+    ['teams', 'teamNameToImplicitAdminUsernames', teamname],
+    I.Set()
+  )
 
   return {
     teamname: teamname,
     loading: state.entities.getIn(['teams', 'teamNameToLoading', teamname], true),
-    following: !!Constants.getFollowingMap(state)[username],
-    follower: !!Constants.getFollowerMap(state)[username],
+    following: amIFollowing(state, username),
+    follower: amIBeingFollowed(state, username),
+    _implicitAdminUsernames,
     _username: username,
     _you: state.config.username,
     _memberInfo: state.entities.getIn(['teams', 'teamNameToMembers', teamname], I.Set()),
@@ -51,7 +57,9 @@ const mapDispatchToProps = (dispatch: Dispatch, {routeProps, navigateAppend, nav
   onOpenProfile: () => {
     isMobile
       ? dispatch(createShowUserProfile({username: routeProps.get('username')}))
-      : dispatch(getProfile(routeProps.get('username'), true, true))
+      : dispatch(
+          createGetProfile({username: routeProps.get('username'), ignoreCache: true, forceDisplay: true})
+        )
   },
   _onEditMembership: (name: string, username: string) =>
     dispatch(
@@ -88,7 +96,10 @@ const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps) => {
   }
   // If they're an owner, you need to be an owner to edit them
   // otherwise you just need to be an admin
-  const admin = user.type === 'owner' ? you.type === 'owner' : you.type === 'owner' || you.type === 'admin'
+  let admin = user.type === 'owner' ? you.type === 'owner' : you.type === 'owner' || you.type === 'admin'
+  if (stateProps.teamname.includes('.')) {
+    admin = admin || stateProps._implicitAdminUsernames.contains(you.username || '')
+  }
   return {
     ...stateProps,
     ...dispatchProps,
@@ -107,4 +118,5 @@ const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps) => {
   }
 }
 
+// $FlowIssue doesn't like HeaderHoc
 export default compose(connect(mapStateToProps, mapDispatchToProps, mergeProps), HeaderHoc)(TeamMember)

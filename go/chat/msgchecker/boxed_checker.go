@@ -25,7 +25,11 @@ func boxedFieldLengthChecker(descriptibleItemName string, actualLength int, maxL
 
 func checkMessageBoxedLength(msg chat1.MessageBoxed) error {
 	switch msg.GetMessageType() {
-	case chat1.MessageType_ATTACHMENT, chat1.MessageType_DELETE, chat1.MessageType_NONE, chat1.MessageType_TLFNAME, chat1.MessageType_ATTACHMENTUPLOADED:
+	case chat1.MessageType_ATTACHMENT,
+		chat1.MessageType_DELETE,
+		chat1.MessageType_NONE,
+		chat1.MessageType_TLFNAME,
+		chat1.MessageType_ATTACHMENTUPLOADED:
 		return nil
 	case chat1.MessageType_TEXT:
 		return boxedFieldLengthChecker("TEXT message", len(msg.BodyCiphertext.E), BoxedTextMessageBodyMaxLength)
@@ -42,6 +46,9 @@ func checkMessageBoxedLength(msg chat1.MessageBoxed) error {
 	case chat1.MessageType_SYSTEM:
 		return boxedFieldLengthChecker("SYSTEM message", len(msg.BodyCiphertext.E),
 			BoxedSystemMessageBodyMaxLength)
+	case chat1.MessageType_DELETEHISTORY:
+		return boxedFieldLengthChecker("DELETEHISTORY message", len(msg.BodyCiphertext.E),
+			BoxedDeleteHistoryMessageBodyMaxLength)
 	default:
 		return fmt.Errorf("unknown message type: %v", msg.GetMessageType())
 	}

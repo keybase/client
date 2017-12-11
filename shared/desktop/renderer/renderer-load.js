@@ -1,5 +1,5 @@
 require('electron').ipcRenderer.once('load', (event, options) => {
-  document.title = options.title || document.title
+  document.title = options.windowTitle || document.title
   options.scripts.map(({src, async, defer}) => {
     const script = document.createElement('script')
     if (src == null) {
