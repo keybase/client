@@ -2647,8 +2647,12 @@ exports[`Storyshots Chat/Heads up Display Mention Hud 1`] = `
       <div
         style={
           Object {
+            "alignItems": "center",
             "display": "flex",
             "flexDirection": "row",
+            "justifyContent": "center",
+            "minHeight": 64,
+            "width": "100%",
           }
         }
       >
@@ -2701,6 +2705,14 @@ exports[`Storyshots Chat/Heads up Display Mention Hud 1`] = `
           </div>
         </div>
         <div
+          style={
+            Object {
+              "height": 8,
+              "width": 8,
+            }
+          }
+        />
+        <div
           onClick={[Function]}
           onMouseDown={[Function]}
           onMouseEnter={[Function]}
@@ -2718,7 +2730,6 @@ exports[`Storyshots Chat/Heads up Display Mention Hud 1`] = `
               "height": 32,
               "justifyContent": "center",
               "lineHeight": "inherit",
-              "marginLeft": 16,
               "minWidth": undefined,
               "paddingLeft": 24,
               "paddingRight": 24,
@@ -6385,9 +6396,12 @@ exports[`Storyshots Chat/Teams CreateChannel 1`] = `
               <div
                 style={
                   Object {
+                    "alignItems": "center",
                     "display": "flex",
                     "flexDirection": "row",
-                    "marginTop": 64,
+                    "justifyContent": "center",
+                    "minHeight": 64,
+                    "width": "100%",
                   }
                 }
               >
@@ -6409,7 +6423,6 @@ exports[`Storyshots Chat/Teams CreateChannel 1`] = `
                       "height": 32,
                       "justifyContent": "center",
                       "lineHeight": "inherit",
-                      "marginRight": 8,
                       "minWidth": undefined,
                       "paddingLeft": 24,
                       "paddingRight": 24,
@@ -6440,6 +6453,14 @@ exports[`Storyshots Chat/Teams CreateChannel 1`] = `
                     </span>
                   </div>
                 </div>
+                <div
+                  style={
+                    Object {
+                      "height": 8,
+                      "width": 8,
+                    }
+                  }
+                />
                 <div
                   onClick={[Function]}
                   onMouseDown={[Function]}
@@ -6881,8 +6902,12 @@ exports[`Storyshots Chat/Teams EditChannel - general 1`] = `
           <div
             style={
               Object {
+                "alignItems": "center",
                 "display": "flex",
                 "flexDirection": "row",
+                "justifyContent": "center",
+                "minHeight": 64,
+                "width": "100%",
               }
             }
           >
@@ -6934,6 +6959,14 @@ exports[`Storyshots Chat/Teams EditChannel - general 1`] = `
                 </span>
               </div>
             </div>
+            <div
+              style={
+                Object {
+                  "height": 8,
+                  "width": 8,
+                }
+              }
+            />
             <div
               onClick={null}
               onMouseDown={[Function]}
@@ -7352,8 +7385,12 @@ exports[`Storyshots Chat/Teams EditChannel 1`] = `
           <div
             style={
               Object {
+                "alignItems": "center",
                 "display": "flex",
                 "flexDirection": "row",
+                "justifyContent": "center",
+                "minHeight": 64,
+                "width": "100%",
               }
             }
           >
@@ -7405,6 +7442,14 @@ exports[`Storyshots Chat/Teams EditChannel 1`] = `
                 </span>
               </div>
             </div>
+            <div
+              style={
+                Object {
+                  "height": 8,
+                  "width": 8,
+                }
+              }
+            />
             <div
               onClick={null}
               onMouseDown={[Function]}
@@ -8799,8 +8844,12 @@ exports[`Storyshots Chat/Teams ManageChannels - Unsaved Subscription 1`] = `
                 <div
                   style={
                     Object {
+                      "alignItems": "center",
                       "display": "flex",
                       "flexDirection": "row",
+                      "justifyContent": "center",
+                      "minHeight": 64,
+                      "width": "100%",
                     }
                   }
                 >
@@ -8852,6 +8901,14 @@ exports[`Storyshots Chat/Teams ManageChannels - Unsaved Subscription 1`] = `
                       </span>
                     </div>
                   </div>
+                  <div
+                    style={
+                      Object {
+                        "height": 8,
+                        "width": 8,
+                      }
+                    }
+                  />
                   <div
                     onClick={[Function]}
                     onMouseDown={[Function]}
@@ -10598,8 +10655,12 @@ exports[`Storyshots Chat/Teams ManageChannels 1`] = `
                 <div
                   style={
                     Object {
+                      "alignItems": "center",
                       "display": "flex",
                       "flexDirection": "row",
+                      "justifyContent": "center",
+                      "minHeight": 64,
+                      "width": "100%",
                     }
                   }
                 >
@@ -10651,6 +10712,14 @@ exports[`Storyshots Chat/Teams ManageChannels 1`] = `
                       </span>
                     </div>
                   </div>
+                  <div
+                    style={
+                      Object {
+                        "height": 8,
+                        "width": 8,
+                      }
+                    }
+                  />
                   <div
                     onClick={null}
                     onMouseDown={[Function]}
@@ -13421,6 +13490,1857 @@ exports[`Storyshots Common Box 1`] = `
           64
           px
         </span>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`Storyshots Common Button 1`] = `
+.glamor-0,
+[data-glamor-0] {
+  font-size: 14px;
+  line-height: 18px;
+  color: #ffffff;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 600;
+  text-align: center;
+  white-space: pre;
+}
+
+.glamor-2,
+[data-glamor-2] {
+  font-size: 14px;
+  line-height: 18px;
+  color: rgba(0, 0, 0, 0.75);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 600;
+  text-align: center;
+  white-space: pre;
+}
+
+.glamor-8,
+[data-glamor-8] {
+  font-size: 14px;
+  line-height: 18px;
+  color: #3dcc8e;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 600;
+  text-align: center;
+  white-space: pre;
+}
+
+.glamor-11,
+[data-glamor-11] {
+  font-size: 13px;
+  line-height: 17px;
+  color: #ffffff;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 600;
+  text-align: center;
+  white-space: pre;
+}
+
+.glamor-12,
+[data-glamor-12] {
+  font-size: 13px;
+  line-height: 17px;
+  color: rgba(0, 0, 0, 0.75);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 600;
+  text-align: center;
+  white-space: pre;
+}
+
+<div
+  style={
+    Object {
+      "flex": 1,
+      "overflow": "auto",
+    }
+  }
+>
+  <div
+    style={undefined}
+  >
+    <div
+      style={
+        Object {
+          "borderColor": "grey",
+          "borderStyle": "solid",
+          "borderWidth": 1,
+          "display": "flex",
+          "flex": 1,
+          "flexDirection": "column",
+          "margin": 20,
+          "width": 350,
+        }
+      }
+    >
+      <div
+        style={
+          Object {
+            "display": "flex",
+            "flexDirection": "row",
+            "marginBottom": 20,
+            "width": "100%",
+          }
+        }
+      >
+        <div
+          style={
+            Object {
+              "flex": 1,
+            }
+          }
+        >
+          <div
+            onClick={[Function]}
+            onMouseDown={[Function]}
+            onMouseEnter={[Function]}
+            onMouseLeave={[Function]}
+            onMouseUp={[Function]}
+            style={
+              Object {
+                "alignItems": "center",
+                "alignSelf": undefined,
+                "backgroundColor": "#33a0ff",
+                "borderRadius": 50,
+                "cursor": "pointer",
+                "display": "inline-block",
+                "flexDirection": "column",
+                "height": 32,
+                "justifyContent": "center",
+                "lineHeight": "inherit",
+                "minWidth": undefined,
+                "paddingLeft": 24,
+                "paddingRight": 24,
+                "position": "relative",
+                "textAlign": "left",
+                "transform": "none",
+                "transition": "none",
+              }
+            }
+          >
+            <div
+              style={
+                Object {
+                  "alignItems": "center",
+                  "display": "flex",
+                  "height": "100%",
+                  "justifyContent": "center",
+                  "position": "relative",
+                }
+              }
+            >
+              <span
+                className="glamor-0"
+                onClick={undefined}
+                title={undefined}
+              >
+                Primary
+              </span>
+            </div>
+          </div>
+        </div>
+        <div
+          style={
+            Object {
+              "flex": 1,
+            }
+          }
+        >
+          <div
+            onClick={null}
+            onMouseDown={[Function]}
+            onMouseEnter={[Function]}
+            onMouseLeave={[Function]}
+            onMouseUp={[Function]}
+            style={
+              Object {
+                "alignItems": "center",
+                "alignSelf": undefined,
+                "backgroundColor": "#33a0ff",
+                "borderRadius": 50,
+                "display": "inline-block",
+                "flexDirection": "column",
+                "height": 32,
+                "justifyContent": "center",
+                "lineHeight": "inherit",
+                "minWidth": undefined,
+                "opacity": 0.3,
+                "paddingLeft": 24,
+                "paddingRight": 24,
+                "position": "relative",
+                "textAlign": "left",
+                "transform": "none",
+                "transition": "none",
+              }
+            }
+          >
+            <div
+              style={
+                Object {
+                  "alignItems": "center",
+                  "display": "flex",
+                  "height": "100%",
+                  "justifyContent": "center",
+                  "position": "relative",
+                }
+              }
+            >
+              <span
+                className="glamor-0"
+                onClick={undefined}
+                title={undefined}
+              >
+                Primary
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div
+        style={
+          Object {
+            "display": "flex",
+            "flexDirection": "row",
+            "marginBottom": 20,
+            "width": "100%",
+          }
+        }
+      >
+        <div
+          style={
+            Object {
+              "flex": 1,
+            }
+          }
+        >
+          <div
+            onClick={[Function]}
+            onMouseDown={[Function]}
+            onMouseEnter={[Function]}
+            onMouseLeave={[Function]}
+            onMouseUp={[Function]}
+            style={
+              Object {
+                "alignItems": "center",
+                "alignSelf": undefined,
+                "backgroundColor": "#e6e6e6",
+                "borderRadius": 50,
+                "cursor": "pointer",
+                "display": "inline-block",
+                "flexDirection": "column",
+                "height": 32,
+                "justifyContent": "center",
+                "lineHeight": "inherit",
+                "minWidth": undefined,
+                "paddingLeft": 24,
+                "paddingRight": 24,
+                "position": "relative",
+                "textAlign": "left",
+                "transform": "none",
+                "transition": "none",
+              }
+            }
+          >
+            <div
+              style={
+                Object {
+                  "alignItems": "center",
+                  "display": "flex",
+                  "height": "100%",
+                  "justifyContent": "center",
+                  "position": "relative",
+                }
+              }
+            >
+              <span
+                className="glamor-2"
+                onClick={undefined}
+                title={undefined}
+              >
+                Secondary
+              </span>
+            </div>
+          </div>
+        </div>
+        <div
+          style={
+            Object {
+              "flex": 1,
+            }
+          }
+        >
+          <div
+            onClick={null}
+            onMouseDown={[Function]}
+            onMouseEnter={[Function]}
+            onMouseLeave={[Function]}
+            onMouseUp={[Function]}
+            style={
+              Object {
+                "alignItems": "center",
+                "alignSelf": undefined,
+                "backgroundColor": "#e6e6e6",
+                "borderRadius": 50,
+                "display": "inline-block",
+                "flexDirection": "column",
+                "height": 32,
+                "justifyContent": "center",
+                "lineHeight": "inherit",
+                "minWidth": undefined,
+                "opacity": 0.3,
+                "paddingLeft": 24,
+                "paddingRight": 24,
+                "position": "relative",
+                "textAlign": "left",
+                "transform": "none",
+                "transition": "none",
+              }
+            }
+          >
+            <div
+              style={
+                Object {
+                  "alignItems": "center",
+                  "display": "flex",
+                  "height": "100%",
+                  "justifyContent": "center",
+                  "position": "relative",
+                }
+              }
+            >
+              <span
+                className="glamor-2"
+                onClick={undefined}
+                title={undefined}
+              >
+                Secondary
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div
+        style={
+          Object {
+            "display": "flex",
+            "flexDirection": "row",
+            "marginBottom": 20,
+            "width": "100%",
+          }
+        }
+      >
+        <div
+          style={
+            Object {
+              "flex": 1,
+            }
+          }
+        >
+          <div
+            onClick={[Function]}
+            onMouseDown={[Function]}
+            onMouseEnter={[Function]}
+            onMouseLeave={[Function]}
+            onMouseUp={[Function]}
+            style={
+              Object {
+                "alignItems": "center",
+                "alignSelf": undefined,
+                "backgroundColor": "#ff4d61",
+                "borderRadius": 50,
+                "cursor": "pointer",
+                "display": "inline-block",
+                "flexDirection": "column",
+                "height": 32,
+                "justifyContent": "center",
+                "lineHeight": "inherit",
+                "minWidth": undefined,
+                "paddingLeft": 24,
+                "paddingRight": 24,
+                "position": "relative",
+                "textAlign": "left",
+                "transform": "none",
+                "transition": "none",
+              }
+            }
+          >
+            <div
+              style={
+                Object {
+                  "alignItems": "center",
+                  "display": "flex",
+                  "height": "100%",
+                  "justifyContent": "center",
+                  "position": "relative",
+                }
+              }
+            >
+              <span
+                className="glamor-0"
+                onClick={undefined}
+                title={undefined}
+              >
+                Danger
+              </span>
+            </div>
+          </div>
+        </div>
+        <div
+          style={
+            Object {
+              "flex": 1,
+            }
+          }
+        >
+          <div
+            onClick={null}
+            onMouseDown={[Function]}
+            onMouseEnter={[Function]}
+            onMouseLeave={[Function]}
+            onMouseUp={[Function]}
+            style={
+              Object {
+                "alignItems": "center",
+                "alignSelf": undefined,
+                "backgroundColor": "#ff4d61",
+                "borderRadius": 50,
+                "display": "inline-block",
+                "flexDirection": "column",
+                "height": 32,
+                "justifyContent": "center",
+                "lineHeight": "inherit",
+                "minWidth": undefined,
+                "opacity": 0.2,
+                "paddingLeft": 24,
+                "paddingRight": 24,
+                "position": "relative",
+                "textAlign": "left",
+                "transform": "none",
+                "transition": "none",
+              }
+            }
+          >
+            <div
+              style={
+                Object {
+                  "alignItems": "center",
+                  "display": "flex",
+                  "height": "100%",
+                  "justifyContent": "center",
+                  "position": "relative",
+                }
+              }
+            >
+              <span
+                className="glamor-0"
+                onClick={undefined}
+                title={undefined}
+              >
+                Danger
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div
+        style={
+          Object {
+            "display": "flex",
+            "flexDirection": "row",
+            "marginBottom": 20,
+            "width": "100%",
+          }
+        }
+      >
+        <div
+          style={
+            Object {
+              "flex": 1,
+            }
+          }
+        >
+          <div
+            onClick={[Function]}
+            onMouseDown={[Function]}
+            onMouseEnter={[Function]}
+            onMouseLeave={[Function]}
+            onMouseUp={[Function]}
+            style={
+              Object {
+                "alignItems": "center",
+                "alignSelf": undefined,
+                "backgroundColor": "#3dcc8e",
+                "borderRadius": 50,
+                "cursor": "pointer",
+                "display": "inline-block",
+                "flexDirection": "column",
+                "height": 32,
+                "justifyContent": "center",
+                "lineHeight": "inherit",
+                "minWidth": undefined,
+                "paddingLeft": 24,
+                "paddingRight": 24,
+                "position": "relative",
+                "textAlign": "left",
+                "transform": "none",
+                "transition": "none",
+              }
+            }
+          >
+            <div
+              style={
+                Object {
+                  "alignItems": "center",
+                  "display": "flex",
+                  "height": "100%",
+                  "justifyContent": "center",
+                  "position": "relative",
+                }
+              }
+            >
+              <span
+                className="glamor-0"
+                onClick={undefined}
+                title={undefined}
+              >
+                Feels good
+              </span>
+            </div>
+          </div>
+        </div>
+        <div
+          style={
+            Object {
+              "flex": 1,
+            }
+          }
+        >
+          <div
+            onClick={null}
+            onMouseDown={[Function]}
+            onMouseEnter={[Function]}
+            onMouseLeave={[Function]}
+            onMouseUp={[Function]}
+            style={
+              Object {
+                "alignItems": "center",
+                "alignSelf": undefined,
+                "backgroundColor": "#3dcc8e",
+                "borderRadius": 50,
+                "display": "inline-block",
+                "flexDirection": "column",
+                "height": 32,
+                "justifyContent": "center",
+                "lineHeight": "inherit",
+                "minWidth": undefined,
+                "opacity": 0.3,
+                "paddingLeft": 24,
+                "paddingRight": 24,
+                "position": "relative",
+                "textAlign": "left",
+                "transform": "none",
+                "transition": "none",
+              }
+            }
+          >
+            <div
+              style={
+                Object {
+                  "alignItems": "center",
+                  "display": "flex",
+                  "height": "100%",
+                  "justifyContent": "center",
+                  "position": "relative",
+                }
+              }
+            >
+              <span
+                className="glamor-0"
+                onClick={undefined}
+                title={undefined}
+              >
+                Feels good
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div
+        style={
+          Object {
+            "height": 20,
+          }
+        }
+      />
+      <div
+        onClick={[Function]}
+        onMouseDown={[Function]}
+        onMouseEnter={[Function]}
+        onMouseLeave={[Function]}
+        onMouseUp={[Function]}
+        style={
+          Object {
+            "alignItems": "center",
+            "alignSelf": undefined,
+            "backgroundColor": "#ffffff",
+            "borderColor": "#3dcc8e",
+            "borderRadius": 50,
+            "borderStyle": "solid",
+            "borderWidth": 2,
+            "cursor": "pointer",
+            "display": "inline-block",
+            "flexDirection": "column",
+            "height": 32,
+            "justifyContent": "center",
+            "lineHeight": "inherit",
+            "minWidth": undefined,
+            "paddingLeft": 24,
+            "paddingRight": 24,
+            "position": "relative",
+            "textAlign": "left",
+            "transform": "none",
+            "transition": "none",
+            "width": 142,
+          }
+        }
+      >
+        <div
+          style={
+            Object {
+              "alignItems": "center",
+              "display": "flex",
+              "height": "100%",
+              "justifyContent": "center",
+              "position": "relative",
+            }
+          }
+        >
+          <span
+            className="glamor-8"
+            onClick={undefined}
+            title={undefined}
+          >
+            Following
+          </span>
+        </div>
+      </div>
+      <div
+        style={
+          Object {
+            "height": 10,
+          }
+        }
+      />
+      <div
+        onClick={[Function]}
+        onMouseDown={[Function]}
+        onMouseEnter={[Function]}
+        onMouseLeave={[Function]}
+        onMouseUp={[Function]}
+        style={
+          Object {
+            "alignItems": "center",
+            "alignSelf": undefined,
+            "backgroundColor": "#3dcc8e",
+            "borderRadius": 50,
+            "cursor": "pointer",
+            "display": "inline-block",
+            "flexDirection": "column",
+            "height": 32,
+            "justifyContent": "center",
+            "lineHeight": "inherit",
+            "minWidth": undefined,
+            "paddingLeft": 24,
+            "paddingRight": 24,
+            "position": "relative",
+            "textAlign": "left",
+            "transform": "none",
+            "transition": "none",
+            "width": 142,
+          }
+        }
+      >
+        <div
+          style={
+            Object {
+              "alignItems": "center",
+              "display": "flex",
+              "height": "100%",
+              "justifyContent": "center",
+              "position": "relative",
+            }
+          }
+        >
+          <span
+            className="glamor-0"
+            onClick={undefined}
+            title={undefined}
+          >
+            Follow
+          </span>
+        </div>
+      </div>
+      <div
+        style={
+          Object {
+            "height": 10,
+          }
+        }
+      />
+      <div
+        onClick={[Function]}
+        onMouseDown={[Function]}
+        onMouseEnter={[Function]}
+        onMouseLeave={[Function]}
+        onMouseUp={[Function]}
+        style={
+          Object {
+            "alignItems": "center",
+            "alignSelf": undefined,
+            "backgroundColor": "#e6e6e6",
+            "borderRadius": 50,
+            "cursor": "pointer",
+            "display": "inline-block",
+            "flexDirection": "column",
+            "height": 32,
+            "justifyContent": "center",
+            "lineHeight": "inherit",
+            "minWidth": undefined,
+            "paddingLeft": 24,
+            "paddingRight": 24,
+            "position": "relative",
+            "textAlign": "left",
+            "transform": "none",
+            "transition": "none",
+            "width": 142,
+          }
+        }
+      >
+        <div
+          style={
+            Object {
+              "alignItems": "center",
+              "display": "flex",
+              "height": "100%",
+              "justifyContent": "center",
+              "position": "relative",
+            }
+          }
+        >
+          <span
+            className="glamor-2"
+            onClick={undefined}
+            title={undefined}
+          >
+            Unfollow
+          </span>
+        </div>
+      </div>
+      <div
+        style={
+          Object {
+            "alignItems": "flex-start",
+            "alignSelf": "flex-start",
+            "display": "flex",
+            "flexDirection": "column",
+            "marginTop": 20,
+          }
+        }
+      >
+        <div
+          onClick={[Function]}
+          onMouseDown={[Function]}
+          onMouseEnter={[Function]}
+          onMouseLeave={[Function]}
+          onMouseUp={[Function]}
+          style={
+            Object {
+              "alignItems": "center",
+              "alignSelf": undefined,
+              "backgroundColor": "#33a0ff",
+              "borderRadius": 28,
+              "cursor": "pointer",
+              "display": "inline-block",
+              "flexDirection": "column",
+              "height": 28,
+              "justifyContent": "center",
+              "lineHeight": "inherit",
+              "minWidth": undefined,
+              "paddingLeft": 16,
+              "paddingRight": 16,
+              "position": "relative",
+              "textAlign": "left",
+              "transform": "none",
+              "transition": "none",
+            }
+          }
+        >
+          <div
+            style={
+              Object {
+                "alignItems": "center",
+                "display": "flex",
+                "height": "100%",
+                "justifyContent": "center",
+                "position": "relative",
+              }
+            }
+          >
+            <span
+              className="glamor-11"
+              onClick={undefined}
+              title={undefined}
+            >
+              Primary small
+            </span>
+          </div>
+        </div>
+        <div
+          style={
+            Object {
+              "height": 10,
+            }
+          }
+        />
+        <div
+          onClick={[Function]}
+          onMouseDown={[Function]}
+          onMouseEnter={[Function]}
+          onMouseLeave={[Function]}
+          onMouseUp={[Function]}
+          style={
+            Object {
+              "alignItems": "center",
+              "alignSelf": undefined,
+              "backgroundColor": "#e6e6e6",
+              "borderRadius": 28,
+              "cursor": "pointer",
+              "display": "inline-block",
+              "flexDirection": "column",
+              "height": 28,
+              "justifyContent": "center",
+              "lineHeight": "inherit",
+              "minWidth": undefined,
+              "paddingLeft": 16,
+              "paddingRight": 16,
+              "position": "relative",
+              "textAlign": "left",
+              "transform": "none",
+              "transition": "none",
+            }
+          }
+        >
+          <div
+            style={
+              Object {
+                "alignItems": "center",
+                "display": "flex",
+                "height": "100%",
+                "justifyContent": "center",
+                "position": "relative",
+              }
+            }
+          >
+            <span
+              className="glamor-12"
+              onClick={undefined}
+              title={undefined}
+            >
+              Secondary small
+            </span>
+          </div>
+        </div>
+        <div
+          style={
+            Object {
+              "height": 10,
+            }
+          }
+        />
+        <div
+          onClick={[Function]}
+          onMouseDown={[Function]}
+          onMouseEnter={[Function]}
+          onMouseLeave={[Function]}
+          onMouseUp={[Function]}
+          style={
+            Object {
+              "alignItems": "center",
+              "alignSelf": undefined,
+              "backgroundColor": "#ff4d61",
+              "borderRadius": 28,
+              "cursor": "pointer",
+              "display": "inline-block",
+              "flexDirection": "column",
+              "height": 28,
+              "justifyContent": "center",
+              "lineHeight": "inherit",
+              "minWidth": undefined,
+              "paddingLeft": 16,
+              "paddingRight": 16,
+              "position": "relative",
+              "textAlign": "left",
+              "transform": "none",
+              "transition": "none",
+            }
+          }
+        >
+          <div
+            style={
+              Object {
+                "alignItems": "center",
+                "display": "flex",
+                "height": "100%",
+                "justifyContent": "center",
+                "position": "relative",
+              }
+            }
+          >
+            <span
+              className="glamor-11"
+              onClick={undefined}
+              title={undefined}
+            >
+              Danger small
+            </span>
+          </div>
+        </div>
+        <div
+          style={
+            Object {
+              "height": 10,
+            }
+          }
+        />
+        <div
+          onClick={[Function]}
+          onMouseDown={[Function]}
+          onMouseEnter={[Function]}
+          onMouseLeave={[Function]}
+          onMouseUp={[Function]}
+          style={
+            Object {
+              "alignItems": "center",
+              "alignSelf": undefined,
+              "backgroundColor": "#3dcc8e",
+              "borderRadius": 28,
+              "cursor": "pointer",
+              "display": "inline-block",
+              "flexDirection": "column",
+              "height": 28,
+              "justifyContent": "center",
+              "lineHeight": "inherit",
+              "minWidth": undefined,
+              "paddingLeft": 16,
+              "paddingRight": 16,
+              "position": "relative",
+              "textAlign": "left",
+              "transform": "none",
+              "transition": "none",
+            }
+          }
+        >
+          <div
+            style={
+              Object {
+                "alignItems": "center",
+                "display": "flex",
+                "height": "100%",
+                "justifyContent": "center",
+                "position": "relative",
+              }
+            }
+          >
+            <span
+              className="glamor-11"
+              onClick={undefined}
+              title={undefined}
+            >
+              Feels good small
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`Storyshots Common ButtonBar 1`] = `
+.glamor-0,
+[data-glamor-0] {
+  font-size: 14px;
+  line-height: 18px;
+  color: #ffffff;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 600;
+  text-align: center;
+  white-space: pre;
+}
+
+.glamor-1,
+[data-glamor-1] {
+  font-size: 14px;
+  line-height: 18px;
+  color: rgba(0, 0, 0, 0.75);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 600;
+  text-align: center;
+  white-space: pre;
+}
+
+.glamor-8,
+[data-glamor-8] {
+  font-size: 13px;
+  line-height: 17px;
+  color: #ffffff;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 600;
+  text-align: center;
+  white-space: pre;
+}
+
+.glamor-9,
+[data-glamor-9] {
+  font-size: 13px;
+  line-height: 17px;
+  color: rgba(0, 0, 0, 0.75);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 600;
+  text-align: center;
+  white-space: pre;
+}
+
+<div
+  style={
+    Object {
+      "flex": 1,
+      "overflow": "auto",
+    }
+  }
+>
+  <div
+    style={undefined}
+  >
+    <div
+      style={
+        Object {
+          "borderColor": "grey",
+          "borderStyle": "solid",
+          "borderWidth": 1,
+          "flex": 1,
+          "maxWidth": 600,
+          "width": "100%",
+        }
+      }
+    >
+      <div
+        style={
+          Object {
+            "alignItems": "center",
+            "borderColor": "pink",
+            "borderStyle": "solid",
+            "borderWidth": 1,
+            "display": "flex",
+            "flexDirection": "row",
+            "justifyContent": "center",
+            "minHeight": 64,
+            "width": "100%",
+          }
+        }
+      >
+        <div
+          onClick={[Function]}
+          onMouseDown={[Function]}
+          onMouseEnter={[Function]}
+          onMouseLeave={[Function]}
+          onMouseUp={[Function]}
+          style={
+            Object {
+              "alignItems": "center",
+              "alignSelf": undefined,
+              "backgroundColor": "#33a0ff",
+              "borderRadius": 50,
+              "cursor": "pointer",
+              "display": "inline-block",
+              "flexDirection": "column",
+              "height": 32,
+              "justifyContent": "center",
+              "lineHeight": "inherit",
+              "minWidth": undefined,
+              "paddingLeft": 24,
+              "paddingRight": 24,
+              "position": "relative",
+              "textAlign": "left",
+              "transform": "none",
+              "transition": "none",
+            }
+          }
+        >
+          <div
+            style={
+              Object {
+                "alignItems": "center",
+                "display": "flex",
+                "height": "100%",
+                "justifyContent": "center",
+                "position": "relative",
+              }
+            }
+          >
+            <span
+              className="glamor-0"
+              onClick={undefined}
+              title={undefined}
+            >
+              Button
+            </span>
+          </div>
+        </div>
+      </div>
+      <div
+        style={
+          Object {
+            "alignItems": "center",
+            "borderColor": "pink",
+            "borderStyle": "solid",
+            "borderWidth": 1,
+            "display": "flex",
+            "flexDirection": "row",
+            "justifyContent": "center",
+            "minHeight": 64,
+            "width": "100%",
+          }
+        }
+      >
+        <div
+          onClick={[Function]}
+          onMouseDown={[Function]}
+          onMouseEnter={[Function]}
+          onMouseLeave={[Function]}
+          onMouseUp={[Function]}
+          style={
+            Object {
+              "alignItems": "center",
+              "alignSelf": undefined,
+              "backgroundColor": "#e6e6e6",
+              "borderRadius": 50,
+              "cursor": "pointer",
+              "display": "inline-block",
+              "flexDirection": "column",
+              "height": 32,
+              "justifyContent": "center",
+              "lineHeight": "inherit",
+              "minWidth": undefined,
+              "paddingLeft": 24,
+              "paddingRight": 24,
+              "position": "relative",
+              "textAlign": "left",
+              "transform": "none",
+              "transition": "none",
+            }
+          }
+        >
+          <div
+            style={
+              Object {
+                "alignItems": "center",
+                "display": "flex",
+                "height": "100%",
+                "justifyContent": "center",
+                "position": "relative",
+              }
+            }
+          >
+            <span
+              className="glamor-1"
+              onClick={undefined}
+              title={undefined}
+            >
+              Button
+            </span>
+          </div>
+        </div>
+        <div
+          style={
+            Object {
+              "height": 8,
+              "width": 8,
+            }
+          }
+        />
+        <div
+          onClick={[Function]}
+          onMouseDown={[Function]}
+          onMouseEnter={[Function]}
+          onMouseLeave={[Function]}
+          onMouseUp={[Function]}
+          style={
+            Object {
+              "alignItems": "center",
+              "alignSelf": undefined,
+              "backgroundColor": "#33a0ff",
+              "borderRadius": 50,
+              "cursor": "pointer",
+              "display": "inline-block",
+              "flexDirection": "column",
+              "height": 32,
+              "justifyContent": "center",
+              "lineHeight": "inherit",
+              "minWidth": undefined,
+              "paddingLeft": 24,
+              "paddingRight": 24,
+              "position": "relative",
+              "textAlign": "left",
+              "transform": "none",
+              "transition": "none",
+            }
+          }
+        >
+          <div
+            style={
+              Object {
+                "alignItems": "center",
+                "display": "flex",
+                "height": "100%",
+                "justifyContent": "center",
+                "position": "relative",
+              }
+            }
+          >
+            <span
+              className="glamor-0"
+              onClick={undefined}
+              title={undefined}
+            >
+              Another button
+            </span>
+          </div>
+        </div>
+      </div>
+      <div
+        style={
+          Object {
+            "alignItems": "center",
+            "borderColor": "pink",
+            "borderStyle": "solid",
+            "borderWidth": 1,
+            "display": "flex",
+            "flexDirection": "column",
+            "width": "100%",
+          }
+        }
+      >
+        <div
+          style={
+            Object {
+              "height": 8,
+              "width": 8,
+            }
+          }
+        />
+        <div
+          onClick={[Function]}
+          onMouseDown={[Function]}
+          onMouseEnter={[Function]}
+          onMouseLeave={[Function]}
+          onMouseUp={[Function]}
+          style={
+            Object {
+              "alignItems": "center",
+              "alignSelf": undefined,
+              "backgroundColor": "#33a0ff",
+              "borderRadius": 50,
+              "cursor": "pointer",
+              "display": "inline-block",
+              "flexDirection": "column",
+              "height": 32,
+              "justifyContent": "center",
+              "lineHeight": "inherit",
+              "minWidth": undefined,
+              "paddingLeft": 24,
+              "paddingRight": 24,
+              "position": "relative",
+              "textAlign": "left",
+              "transform": "none",
+              "transition": "none",
+            }
+          }
+        >
+          <div
+            style={
+              Object {
+                "alignItems": "center",
+                "display": "flex",
+                "height": "100%",
+                "justifyContent": "center",
+                "position": "relative",
+              }
+            }
+          >
+            <span
+              className="glamor-0"
+              onClick={undefined}
+              title={undefined}
+            >
+              Button
+            </span>
+          </div>
+        </div>
+        <div
+          style={
+            Object {
+              "height": 8,
+              "width": 8,
+            }
+          }
+        />
+      </div>
+      <div
+        style={
+          Object {
+            "alignItems": "center",
+            "borderColor": "pink",
+            "borderStyle": "solid",
+            "borderWidth": 1,
+            "display": "flex",
+            "flexDirection": "column",
+            "width": "100%",
+          }
+        }
+      >
+        <div
+          style={
+            Object {
+              "height": 8,
+              "width": 8,
+            }
+          }
+        />
+        <div
+          onClick={[Function]}
+          onMouseDown={[Function]}
+          onMouseEnter={[Function]}
+          onMouseLeave={[Function]}
+          onMouseUp={[Function]}
+          style={
+            Object {
+              "alignItems": "center",
+              "alignSelf": undefined,
+              "backgroundColor": "#e6e6e6",
+              "borderRadius": 50,
+              "cursor": "pointer",
+              "display": "inline-block",
+              "flexDirection": "column",
+              "height": 32,
+              "justifyContent": "center",
+              "lineHeight": "inherit",
+              "minWidth": undefined,
+              "paddingLeft": 24,
+              "paddingRight": 24,
+              "position": "relative",
+              "textAlign": "left",
+              "transform": "none",
+              "transition": "none",
+            }
+          }
+        >
+          <div
+            style={
+              Object {
+                "alignItems": "center",
+                "display": "flex",
+                "height": "100%",
+                "justifyContent": "center",
+                "position": "relative",
+              }
+            }
+          >
+            <span
+              className="glamor-1"
+              onClick={undefined}
+              title={undefined}
+            >
+              Button
+            </span>
+          </div>
+        </div>
+        <div
+          style={
+            Object {
+              "height": 8,
+              "width": 8,
+            }
+          }
+        />
+        <div
+          onClick={[Function]}
+          onMouseDown={[Function]}
+          onMouseEnter={[Function]}
+          onMouseLeave={[Function]}
+          onMouseUp={[Function]}
+          style={
+            Object {
+              "alignItems": "center",
+              "alignSelf": undefined,
+              "backgroundColor": "#33a0ff",
+              "borderRadius": 50,
+              "cursor": "pointer",
+              "display": "inline-block",
+              "flexDirection": "column",
+              "height": 32,
+              "justifyContent": "center",
+              "lineHeight": "inherit",
+              "minWidth": undefined,
+              "paddingLeft": 24,
+              "paddingRight": 24,
+              "position": "relative",
+              "textAlign": "left",
+              "transform": "none",
+              "transition": "none",
+            }
+          }
+        >
+          <div
+            style={
+              Object {
+                "alignItems": "center",
+                "display": "flex",
+                "height": "100%",
+                "justifyContent": "center",
+                "position": "relative",
+              }
+            }
+          >
+            <span
+              className="glamor-0"
+              onClick={undefined}
+              title={undefined}
+            >
+              Another button
+            </span>
+          </div>
+        </div>
+        <div
+          style={
+            Object {
+              "height": 8,
+              "width": 8,
+            }
+          }
+        />
+      </div>
+      <div
+        style={
+          Object {
+            "alignItems": "center",
+            "borderColor": "pink",
+            "borderStyle": "solid",
+            "borderWidth": 1,
+            "display": "flex",
+            "flexDirection": "row",
+            "justifyContent": "flex-start",
+            "minHeight": 64,
+            "width": "100%",
+          }
+        }
+      >
+        <div
+          onClick={[Function]}
+          onMouseDown={[Function]}
+          onMouseEnter={[Function]}
+          onMouseLeave={[Function]}
+          onMouseUp={[Function]}
+          style={
+            Object {
+              "alignItems": "center",
+              "alignSelf": undefined,
+              "backgroundColor": "#33a0ff",
+              "borderRadius": 50,
+              "cursor": "pointer",
+              "display": "inline-block",
+              "flexDirection": "column",
+              "height": 32,
+              "justifyContent": "center",
+              "lineHeight": "inherit",
+              "minWidth": undefined,
+              "paddingLeft": 24,
+              "paddingRight": 24,
+              "position": "relative",
+              "textAlign": "left",
+              "transform": "none",
+              "transition": "none",
+            }
+          }
+        >
+          <div
+            style={
+              Object {
+                "alignItems": "center",
+                "display": "flex",
+                "height": "100%",
+                "justifyContent": "center",
+                "position": "relative",
+              }
+            }
+          >
+            <span
+              className="glamor-0"
+              onClick={undefined}
+              title={undefined}
+            >
+              Button
+            </span>
+          </div>
+        </div>
+      </div>
+      <div
+        style={
+          Object {
+            "alignItems": "center",
+            "borderColor": "pink",
+            "borderStyle": "solid",
+            "borderWidth": 1,
+            "display": "flex",
+            "flexDirection": "row",
+            "justifyContent": "flex-end",
+            "minHeight": 64,
+            "width": "100%",
+          }
+        }
+      >
+        <div
+          onClick={[Function]}
+          onMouseDown={[Function]}
+          onMouseEnter={[Function]}
+          onMouseLeave={[Function]}
+          onMouseUp={[Function]}
+          style={
+            Object {
+              "alignItems": "center",
+              "alignSelf": undefined,
+              "backgroundColor": "#33a0ff",
+              "borderRadius": 50,
+              "cursor": "pointer",
+              "display": "inline-block",
+              "flexDirection": "column",
+              "height": 32,
+              "justifyContent": "center",
+              "lineHeight": "inherit",
+              "minWidth": undefined,
+              "paddingLeft": 24,
+              "paddingRight": 24,
+              "position": "relative",
+              "textAlign": "left",
+              "transform": "none",
+              "transition": "none",
+            }
+          }
+        >
+          <div
+            style={
+              Object {
+                "alignItems": "center",
+                "display": "flex",
+                "height": "100%",
+                "justifyContent": "center",
+                "position": "relative",
+              }
+            }
+          >
+            <span
+              className="glamor-0"
+              onClick={undefined}
+              title={undefined}
+            >
+              Button
+            </span>
+          </div>
+        </div>
+      </div>
+      <div
+        style={
+          Object {
+            "alignItems": "center",
+            "borderColor": "pink",
+            "borderStyle": "solid",
+            "borderWidth": 1,
+            "display": "flex",
+            "flexDirection": "row",
+            "justifyContent": "center",
+            "minHeight": 44,
+            "width": "100%",
+          }
+        }
+      >
+        <div
+          onClick={[Function]}
+          onMouseDown={[Function]}
+          onMouseEnter={[Function]}
+          onMouseLeave={[Function]}
+          onMouseUp={[Function]}
+          style={
+            Object {
+              "alignItems": "center",
+              "alignSelf": undefined,
+              "backgroundColor": "#33a0ff",
+              "borderRadius": 28,
+              "cursor": "pointer",
+              "display": "inline-block",
+              "flexDirection": "column",
+              "height": 28,
+              "justifyContent": "center",
+              "lineHeight": "inherit",
+              "minWidth": undefined,
+              "paddingLeft": 16,
+              "paddingRight": 16,
+              "position": "relative",
+              "textAlign": "left",
+              "transform": "none",
+              "transition": "none",
+            }
+          }
+        >
+          <div
+            style={
+              Object {
+                "alignItems": "center",
+                "display": "flex",
+                "height": "100%",
+                "justifyContent": "center",
+                "position": "relative",
+              }
+            }
+          >
+            <span
+              className="glamor-8"
+              onClick={undefined}
+              title={undefined}
+            >
+              Small button
+            </span>
+          </div>
+        </div>
+      </div>
+      <div
+        style={
+          Object {
+            "alignItems": "center",
+            "borderColor": "pink",
+            "borderStyle": "solid",
+            "borderWidth": 1,
+            "display": "flex",
+            "flexDirection": "row",
+            "justifyContent": "center",
+            "minHeight": 44,
+            "width": "100%",
+          }
+        }
+      >
+        <div
+          onClick={[Function]}
+          onMouseDown={[Function]}
+          onMouseEnter={[Function]}
+          onMouseLeave={[Function]}
+          onMouseUp={[Function]}
+          style={
+            Object {
+              "alignItems": "center",
+              "alignSelf": undefined,
+              "backgroundColor": "#e6e6e6",
+              "borderRadius": 28,
+              "cursor": "pointer",
+              "display": "inline-block",
+              "flexDirection": "column",
+              "height": 28,
+              "justifyContent": "center",
+              "lineHeight": "inherit",
+              "minWidth": undefined,
+              "paddingLeft": 16,
+              "paddingRight": 16,
+              "position": "relative",
+              "textAlign": "left",
+              "transform": "none",
+              "transition": "none",
+            }
+          }
+        >
+          <div
+            style={
+              Object {
+                "alignItems": "center",
+                "display": "flex",
+                "height": "100%",
+                "justifyContent": "center",
+                "position": "relative",
+              }
+            }
+          >
+            <span
+              className="glamor-9"
+              onClick={undefined}
+              title={undefined}
+            >
+              Small button
+            </span>
+          </div>
+        </div>
+        <div
+          style={
+            Object {
+              "height": 4,
+              "width": 4,
+            }
+          }
+        />
+        <div
+          onClick={[Function]}
+          onMouseDown={[Function]}
+          onMouseEnter={[Function]}
+          onMouseLeave={[Function]}
+          onMouseUp={[Function]}
+          style={
+            Object {
+              "alignItems": "center",
+              "alignSelf": undefined,
+              "backgroundColor": "#33a0ff",
+              "borderRadius": 28,
+              "cursor": "pointer",
+              "display": "inline-block",
+              "flexDirection": "column",
+              "height": 28,
+              "justifyContent": "center",
+              "lineHeight": "inherit",
+              "minWidth": undefined,
+              "paddingLeft": 16,
+              "paddingRight": 16,
+              "position": "relative",
+              "textAlign": "left",
+              "transform": "none",
+              "transition": "none",
+            }
+          }
+        >
+          <div
+            style={
+              Object {
+                "alignItems": "center",
+                "display": "flex",
+                "height": "100%",
+                "justifyContent": "center",
+                "position": "relative",
+              }
+            }
+          >
+            <span
+              className="glamor-8"
+              onClick={undefined}
+              title={undefined}
+            >
+              Small button
+            </span>
+          </div>
+        </div>
+      </div>
+      <div
+        style={
+          Object {
+            "alignItems": "stretch",
+            "borderColor": "pink",
+            "borderStyle": "solid",
+            "borderWidth": 1,
+            "display": "flex",
+            "flexDirection": "column",
+            "width": "100%",
+          }
+        }
+      >
+        <div
+          style={
+            Object {
+              "height": 8,
+              "width": 8,
+            }
+          }
+        />
+        <div
+          onClick={[Function]}
+          onMouseDown={[Function]}
+          onMouseEnter={[Function]}
+          onMouseLeave={[Function]}
+          onMouseUp={[Function]}
+          style={
+            Object {
+              "alignItems": "center",
+              "alignSelf": undefined,
+              "backgroundColor": "#33a0ff",
+              "borderRadius": 50,
+              "cursor": "pointer",
+              "display": "inline-block",
+              "flexDirection": "column",
+              "height": 32,
+              "justifyContent": "center",
+              "lineHeight": "inherit",
+              "minWidth": undefined,
+              "paddingLeft": 24,
+              "paddingRight": 24,
+              "position": "relative",
+              "textAlign": "left",
+              "transform": "none",
+              "transition": "none",
+            }
+          }
+        >
+          <div
+            style={
+              Object {
+                "alignItems": "center",
+                "display": "flex",
+                "height": "100%",
+                "justifyContent": "center",
+                "position": "relative",
+              }
+            }
+          >
+            <span
+              className="glamor-0"
+              onClick={undefined}
+              title={undefined}
+            >
+              Button
+            </span>
+          </div>
+        </div>
+        <div
+          style={
+            Object {
+              "height": 8,
+              "width": 8,
+            }
+          }
+        />
       </div>
     </div>
   </div>
@@ -22511,9 +24431,10 @@ exports[`Storyshots Edit team description Description changed 1`] = `
                   Object {
                     "alignItems": "center",
                     "display": "flex",
-                    "flex": 1,
                     "flexDirection": "row",
-                    "paddingTop": 24,
+                    "justifyContent": "center",
+                    "minHeight": 64,
+                    "width": "100%",
                   }
                 }
               >
@@ -22566,6 +24487,14 @@ exports[`Storyshots Edit team description Description changed 1`] = `
                   </div>
                 </div>
                 <div
+                  style={
+                    Object {
+                      "height": 8,
+                      "width": 8,
+                    }
+                  }
+                />
+                <div
                   onClick={[Function]}
                   onMouseDown={[Function]}
                   onMouseEnter={[Function]}
@@ -22583,7 +24512,6 @@ exports[`Storyshots Edit team description Description changed 1`] = `
                       "height": 32,
                       "justifyContent": "center",
                       "lineHeight": "inherit",
-                      "marginLeft": 8,
                       "minWidth": undefined,
                       "paddingLeft": 24,
                       "paddingRight": 24,
@@ -22927,9 +24855,10 @@ exports[`Storyshots Edit team description Description unchanged 1`] = `
                   Object {
                     "alignItems": "center",
                     "display": "flex",
-                    "flex": 1,
                     "flexDirection": "row",
-                    "paddingTop": 24,
+                    "justifyContent": "center",
+                    "minHeight": 64,
+                    "width": "100%",
                   }
                 }
               >
@@ -22982,6 +24911,14 @@ exports[`Storyshots Edit team description Description unchanged 1`] = `
                   </div>
                 </div>
                 <div
+                  style={
+                    Object {
+                      "height": 8,
+                      "width": 8,
+                    }
+                  }
+                />
+                <div
                   onClick={null}
                   onMouseDown={[Function]}
                   onMouseEnter={[Function]}
@@ -22998,7 +24935,6 @@ exports[`Storyshots Edit team description Description unchanged 1`] = `
                       "height": 32,
                       "justifyContent": "center",
                       "lineHeight": "inherit",
-                      "marginLeft": 8,
                       "minWidth": undefined,
                       "opacity": 0.3,
                       "paddingLeft": 24,
@@ -33965,9 +35901,12 @@ exports[`Storyshots Team Roles ConfirmAdmin 1`] = `
       <div
         style={
           Object {
+            "alignItems": "center",
             "display": "flex",
             "flexDirection": "row",
-            "margin": 16,
+            "justifyContent": "center",
+            "minHeight": 64,
+            "width": "100%",
           }
         }
       >
@@ -34020,6 +35959,14 @@ exports[`Storyshots Team Roles ConfirmAdmin 1`] = `
           </div>
         </div>
         <div
+          style={
+            Object {
+              "height": 8,
+              "width": 8,
+            }
+          }
+        />
+        <div
           onClick={[Function]}
           onMouseDown={[Function]}
           onMouseEnter={[Function]}
@@ -34037,7 +35984,6 @@ exports[`Storyshots Team Roles ConfirmAdmin 1`] = `
               "height": 32,
               "justifyContent": "center",
               "lineHeight": "inherit",
-              "marginLeft": 8,
               "minWidth": undefined,
               "paddingLeft": 24,
               "paddingRight": 24,
@@ -34614,9 +36560,12 @@ exports[`Storyshots Team Roles ConfirmOwner 1`] = `
       <div
         style={
           Object {
+            "alignItems": "center",
             "display": "flex",
             "flexDirection": "row",
-            "margin": 16,
+            "justifyContent": "center",
+            "minHeight": 64,
+            "width": "100%",
           }
         }
       >
@@ -34669,6 +36618,14 @@ exports[`Storyshots Team Roles ConfirmOwner 1`] = `
           </div>
         </div>
         <div
+          style={
+            Object {
+              "height": 8,
+              "width": 8,
+            }
+          }
+        />
+        <div
           onClick={[Function]}
           onMouseDown={[Function]}
           onMouseEnter={[Function]}
@@ -34686,7 +36643,6 @@ exports[`Storyshots Team Roles ConfirmOwner 1`] = `
               "height": 32,
               "justifyContent": "center",
               "lineHeight": "inherit",
-              "marginLeft": 8,
               "minWidth": undefined,
               "paddingLeft": 24,
               "paddingRight": 24,
@@ -35339,9 +37295,12 @@ exports[`Storyshots Team Roles ConfirmReader 1`] = `
       <div
         style={
           Object {
+            "alignItems": "center",
             "display": "flex",
             "flexDirection": "row",
-            "margin": 16,
+            "justifyContent": "center",
+            "minHeight": 64,
+            "width": "100%",
           }
         }
       >
@@ -35394,6 +37353,14 @@ exports[`Storyshots Team Roles ConfirmReader 1`] = `
           </div>
         </div>
         <div
+          style={
+            Object {
+              "height": 8,
+              "width": 8,
+            }
+          }
+        />
+        <div
           onClick={[Function]}
           onMouseDown={[Function]}
           onMouseEnter={[Function]}
@@ -35411,7 +37378,6 @@ exports[`Storyshots Team Roles ConfirmReader 1`] = `
               "height": 32,
               "justifyContent": "center",
               "lineHeight": "inherit",
-              "marginLeft": 8,
               "minWidth": undefined,
               "paddingLeft": 24,
               "paddingRight": 24,
@@ -36020,9 +37986,12 @@ exports[`Storyshots Team Roles ConfirmWriter 1`] = `
       <div
         style={
           Object {
+            "alignItems": "center",
             "display": "flex",
             "flexDirection": "row",
-            "margin": 16,
+            "justifyContent": "center",
+            "minHeight": 64,
+            "width": "100%",
           }
         }
       >
@@ -36075,6 +38044,14 @@ exports[`Storyshots Team Roles ConfirmWriter 1`] = `
           </div>
         </div>
         <div
+          style={
+            Object {
+              "height": 8,
+              "width": 8,
+            }
+          }
+        />
+        <div
           onClick={[Function]}
           onMouseDown={[Function]}
           onMouseEnter={[Function]}
@@ -36092,7 +38069,6 @@ exports[`Storyshots Team Roles ConfirmWriter 1`] = `
               "height": 32,
               "justifyContent": "center",
               "lineHeight": "inherit",
-              "marginLeft": 8,
               "minWidth": undefined,
               "paddingLeft": 24,
               "paddingRight": 24,
