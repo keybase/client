@@ -659,9 +659,7 @@ func ParseAndAcceptSeitanToken(ctx context.Context, g *libkb.GlobalContext, tok 
 	g.Log.CDebugf(ctx, "found seitan token")
 	err = AcceptSeitan(ctx, g, seitan)
 	if err != nil {
-		g.Log.CDebugf(ctx, "AcceptSeitan error: %s", err)
-		g.Log.CDebugf(ctx, "returning TeamInviteBadToken instead")
-		return true, libkb.TeamInviteBadTokenError{}
+		return true, err
 	}
 
 	return true, nil
