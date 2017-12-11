@@ -967,9 +967,7 @@ function _changedActive(action: AppGen.ChangedActivePayload, state: TypedState) 
   }
 }
 
-function _updateTyping({
-  payload: {conversationIDKey, typing},
-}: ChatGen.UpdateTypingPayload): Saga.SagaGenerator<any, any> {
+function _updateTyping({payload: {conversationIDKey, typing}}: ChatGen.UpdateTypingPayload) {
   // Send we-are-typing info up to Gregor.
   if (!Constants.isPendingConversationIDKey(conversationIDKey)) {
     const conversationID = Constants.keyToConversationID(conversationIDKey)

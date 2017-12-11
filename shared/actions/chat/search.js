@@ -55,7 +55,7 @@ function* _updateTempSearchConversation(action: SearchGen.UserInputItemsUpdatedP
   const me = Selectors.usernameSelector(state)
   const inSearch = state.chat.get('inSearch')
 
-  if (!inSearch) {
+  if (!inSearch || !me) {
     return
   }
 
