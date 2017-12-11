@@ -1,7 +1,7 @@
 // @flow
+import * as TeamsGen from '../../actions/teams-gen'
 import NewTeamDialog from './'
 import {connect, compose, lifecycle, withState, withHandlers, type TypedState} from '../../util/container'
-import {createNewTeam, setTeamCreationError} from '../../actions/teams/creators'
 import upperFirst from 'lodash/upperFirst'
 
 const mapStateToProps = (state: TypedState) => ({
@@ -10,14 +10,14 @@ const mapStateToProps = (state: TypedState) => ({
 })
 
 const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routePath}) => ({
-  _onCreateNewTeam: name => {
+  _onCreateNewTeam: (teamname: string) => {
     const rootPath = routePath.take(1)
     const sourceSubPath = routePath.rest()
     const destSubPath = sourceSubPath.butLast()
-    dispatch(createNewTeam(name, rootPath, sourceSubPath, destSubPath))
+    dispatch(TeamsGen.createCreateNewTeam({teamname, rootPath, sourceSubPath, destSubPath}))
   },
-  _onSetTeamCreationError: error => {
-    dispatch(setTeamCreationError(error))
+  _onSetTeamCreationError: (error: string) => {
+    dispatch(TeamsGen.createSetTeamCreationError({error}))
   },
   onBack: () => dispatch(navigateUp()),
 })

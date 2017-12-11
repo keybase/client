@@ -479,6 +479,7 @@ export const constantsStatusCode = {
   scteamexists: 2619,
   scteamreaderror: 2623,
   scnoop: 2638,
+  scteaminvitebadtoken: 2646,
   scteamtarduplicate: 2663,
   scteamtarnotfound: 2664,
   scteammemberexists: 2665,
@@ -503,6 +504,7 @@ export const constantsStatusCode = {
   scteambadadminseqnotype: 2684,
   scteamimplicitbadadd: 2685,
   scteamimplicitbadremove: 2686,
+  scteaminvitetokenreused: 2696,
   scteamkeymasknotfound: 2697,
   scteambanned: 2702,
   scteaminvalidban: 2703,
@@ -3360,6 +3362,7 @@ export type StatusCode =0 // SCOk_0
  | 2619 // SCTeamExists_2619
  | 2623 // SCTeamReadError_2623
  | 2638 // SCNoOp_2638
+ | 2646 // SCTeamInviteBadToken_2646
  | 2663 // SCTeamTarDuplicate_2663
  | 2664 // SCTeamTarNotFound_2664
  | 2665 // SCTeamMemberExists_2665
@@ -3384,6 +3387,7 @@ export type StatusCode =0 // SCOk_0
  | 2684 // SCTeamBadAdminSeqnoType_2684
  | 2685 // SCTeamImplicitBadAdd_2685
  | 2686 // SCTeamImplicitBadRemove_2686
+ | 2696 // SCTeamInviteTokenReused_2696
  | 2697 // SCTeamKeyMaskNotFound_2697
  | 2702 // SCTeamBanned_2702
  | 2703 // SCTeamInvalidBan_2703

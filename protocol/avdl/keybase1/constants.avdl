@@ -116,6 +116,7 @@ protocol constants {
     SCTeamExists_2619,
     SCTeamReadError_2623,
     SCNoOp_2638,
+    SCTeamInviteBadToken_2646,
     SCTeamTarDuplicate_2663,
     SCTeamTarNotFound_2664,
     SCTeamMemberExists_2665,
@@ -140,6 +141,7 @@ protocol constants {
     SCTeamBadAdminSeqnoType_2684,
     SCTeamImplicitBadAdd_2685,
     SCTeamImplicitBadRemove_2686,
+    SCTeamInviteTokenReused_2696,
     SCTeamKeyMaskNotFound_2697,
     SCTeamBanned_2702,
     SCTeamInvalidBan_2703
