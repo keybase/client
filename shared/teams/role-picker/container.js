@@ -1,10 +1,10 @@
 // @flow
-import {connect} from 'react-redux'
 import * as I from 'immutable'
+import * as TeamsGen from '../../actions/teams-gen'
+import * as Types from '../../constants/types/teams'
+import {connect} from 'react-redux'
 import {compose, withState} from 'recompose'
 import RolePicker from '.'
-import * as Creators from '../../actions/teams/creators'
-import * as Types from '../../constants/types/teams'
 import {getRole, isOwner} from '../../constants/teams'
 
 import type {TypedState} from '../../constants/reducer'
@@ -43,8 +43,17 @@ type DispatchProps = {
 
 const mapDispatchToProps = (dispatch: Dispatch, {navigateUp}): DispatchProps => ({
   _onAddMember: (teamname, username, role, sendNotification) =>
-    dispatch(Creators.addToTeam(teamname, '', username, role, sendNotification)),
-  _onEditMember: (teamname, username, role) => dispatch(Creators.editMembership(teamname, username, role)),
+    dispatch(
+      TeamsGen.createAddToTeam({
+        teamname,
+        email: '',
+        username,
+        role,
+        sendChatNotification: sendNotification,
+      })
+    ),
+  _onEditMember: (teamname, username, role) =>
+    dispatch(TeamsGen.createEditMembership({teamname, username, role})),
   onCancel: () => dispatch(navigateUp()),
 })
 

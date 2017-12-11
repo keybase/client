@@ -1,9 +1,9 @@
 // @flow
 import * as React from 'react'
+import * as TeamsGen from '../../../actions/teams-gen'
 import {amIFollowing} from '../../../constants/selectors'
 import {connect} from 'react-redux'
 import {TeamRequestRow} from '.'
-import {ignoreRequest} from '../../../actions/teams/creators'
 import {navigateAppend} from '../../../actions/route-tree'
 import {createShowUserProfile} from '../../../actions/profile-gen'
 import {createGetProfile} from '../../../actions/tracker-gen'
@@ -52,7 +52,8 @@ const mapDispatchToProps = (dispatch: Dispatch): DispatchProps => ({
   _onChat: (username, myUsername) => {
     username && myUsername && dispatch(createStartConversation({users: [username, myUsername]}))
   },
-  _onIgnoreRequest: (name: string, username: string) => dispatch(ignoreRequest(name, username)),
+  _onIgnoreRequest: (teamname: string, username: string) =>
+    dispatch(TeamsGen.createIgnoreRequest({teamname, username})),
 })
 
 const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps, ownProps: OwnProps) => {

@@ -1,8 +1,8 @@
 // @flow
+import * as TeamsGen from '../../actions/teams-gen'
 import EditTeamDescription from '.'
 import {connect} from 'react-redux'
 import {compose, withState, withHandlers} from 'recompose'
-import * as Creators from '../../actions/teams/creators'
 
 import type {TypedState} from '../../constants/reducer'
 
@@ -23,7 +23,7 @@ const mapStateToProps = (state: TypedState, {routeProps}) => {
 
 const mapDispatchToProps = (dispatch, {navigateUp, routeProps}) => ({
   _onSetDescription: (description: string) => {
-    dispatch(Creators.editTeamDescription(routeProps.get('teamname'), description))
+    dispatch(TeamsGen.createEditTeamDescription({teamname: routeProps.get('teamname'), description}))
     dispatch(navigateUp())
   },
   onClose: () => dispatch(navigateUp()),
