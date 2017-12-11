@@ -1898,6 +1898,10 @@ func TeamInviteIDFromString(s string) (TeamInviteID, error) {
 	return TeamInviteID(s), nil
 }
 
+func (i TeamInviteID) Eq(i2 TeamInviteID) bool {
+	return string(i) == string(i2)
+}
+
 func TeamInviteTypeFromString(s string, isDev bool) (TeamInviteType, error) {
 	switch s {
 	case "keybase":
