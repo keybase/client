@@ -1,5 +1,5 @@
 // @flow
-import * as Saga from '../../util/saga'
+import * as Saga from '../util/saga'
 
 // Nothing currently
 function* kbfsSaga(): Saga.SagaGenerator<any, any> {}
