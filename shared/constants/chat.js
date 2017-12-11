@@ -4,6 +4,7 @@ import * as RPCChatTypes from './types/flow-types-chat'
 import * as Types from './types/chat'
 import * as SearchConstants from './search'
 import * as RPCTypes from './types/flow-types'
+import base64 from 'base-64'
 import clamp from 'lodash/clamp'
 import invert from 'lodash/invert'
 import {Buffer} from 'buffer'
@@ -132,6 +133,14 @@ export const nothingSelected = 'chat:noneSelected'
 export const blankChat = 'chat:blankChat'
 
 function conversationIDToKey(conversationID: Types.ConversationID): Types.ConversationIDKey {
+  if (typeof conversationID === 'string') {
+    // Base64 encoded conversationID. convert to hex
+    return base64
+      .decode(conversationID)
+      .split('')
+      .map(c => ('0' + c.charCodeAt(0).toString(16)).slice(-2))
+      .join('')
+  }
   return conversationID.toString('hex')
 }
 
