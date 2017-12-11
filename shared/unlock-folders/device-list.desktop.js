@@ -3,14 +3,14 @@ import React, {Component} from 'react'
 import {globalColors, globalMargins, globalStyles} from '../styles'
 import {Text, Button, Icon} from '../common-adapters'
 
-import type {Device} from '../constants/types/unlock-folders'
+import type {_Device} from '../constants/types/unlock-folders'
 
 export type Props = {
-  devices: ?Array<Device>,
+  devices: ?Array<_Device>,
   toPaperKeyInput: () => void,
 }
 
-class DeviceRow extends Component<{device: Device}, void> {
+class DeviceRow extends Component<{device: _Device}, void> {
   render() {
     const icon = {
       desktop: 'icon-computer-32',

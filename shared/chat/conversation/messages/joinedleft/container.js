@@ -8,7 +8,7 @@ import {connect} from 'react-redux'
 import {navigateAppend, navigateTo} from '../../../../actions/route-tree'
 import {isMobile} from '../../../../constants/platform'
 import {createShowUserProfile} from '../../../../actions/profile-gen'
-import {getProfile} from '../../../../actions/tracker'
+import {createGetProfile} from '../../../../actions/tracker-gen'
 import {chatTab} from '../../../../constants/tabs'
 
 import type {TypedState} from '../../../../constants/reducer'
@@ -57,7 +57,9 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
       ? dispatch(navigateTo([{props: {teamname}, selected: 'manageChannels'}], [chatTab]))
       : dispatch(navigateAppend([{props: {teamname}, selected: 'manageChannels'}])),
   onUsernameClicked: (username: string) => {
-    isMobile ? dispatch(createShowUserProfile({username})) : dispatch(getProfile(username, true, true))
+    isMobile
+      ? dispatch(createShowUserProfile({username}))
+      : dispatch(createGetProfile({username, ignoreCache: true, forceDisplay: true}))
   },
 })
 

@@ -42,10 +42,6 @@ function getDetails(teamname: string): Types.GetDetails {
   return {payload: {teamname}, type: 'teams:getDetails'}
 }
 
-function toggleChannelMembership(teamname: string, channelname: string): Types.ToggleChannelMembership {
-  return {payload: {channelname, teamname}, type: 'teams:toggleChannelMembership'}
-}
-
 function saveChannelMembership(
   teamname: string,
   channelState: Types.ChannelMembershipState
@@ -84,14 +80,6 @@ function joinTeam(teamname: string): Types.JoinTeam {
 
 function leaveTeam(teamname: string): Types.LeaveTeam {
   return {payload: {teamname}, type: 'teams:leaveTeam'}
-}
-
-function makeTeamOpen(
-  teamname: string,
-  convertToOpen: boolean,
-  defaultRole: Types.TeamRoleType
-): Types.MakeTeamOpen {
-  return {payload: {convertToOpen, defaultRole, teamname}, type: 'teams:makeTeamOpen'}
 }
 
 function addToTeam(
@@ -196,7 +184,6 @@ export {
   inviteToTeamByPhone,
   joinTeam,
   leaveTeam,
-  makeTeamOpen,
   removeMember,
   saveChannelMembership,
   setChannelCreationError,
@@ -206,7 +193,6 @@ export {
   setTeamJoinError,
   setTeamJoinSuccess,
   setupTeamHandlers,
-  toggleChannelMembership,
   updateChannelName,
   updateTopic,
   badgeAppForTeams,

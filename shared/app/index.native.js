@@ -42,7 +42,7 @@ class Keybase extends Component<any> {
       global.store = this.store
       setupLocalDebug(this.store)
       this.store.dispatch(setRouteDef(routeDefs))
-      makeEngine(this.store.dispatch)
+      makeEngine(this.store.dispatch, this.store.getState)
     } else {
       this.store = global.store
     }

@@ -1,11 +1,15 @@
 // @flow
 import React, {Component} from 'react'
-import type {Props} from './user-add'
 import type {IconType} from '../common-adapters/icon'
 import {Box, Button, Input, Icon} from '../common-adapters'
 import {globalColors, globalStyles} from '../styles'
 import {defaultKBFSPath} from '../constants/config'
 
+export type Props = {
+  isPublic: boolean,
+  onAdded: (path: string) => void,
+  username: ?string,
+}
 type State = {
   showingInput: boolean,
   text: string,

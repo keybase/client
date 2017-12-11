@@ -2,43 +2,21 @@
 import type {PlatformsExpandedType} from '../constants/types/more'
 import type {IconType} from '../common-adapters/icon'
 
-const FriendlyNames = {
-  none: 'None',
-  keybase: 'Keybase',
-  twitter: 'Twitter',
-  facebook: 'Facebook',
-  github: 'GitHub',
-  reddit: 'Reddit',
-  hackernews: 'Hacker News',
-  dnsOrGenericWebSite: 'Website',
-  http: 'Website',
-  https: 'Website',
-  dns: 'DNS',
-  pgp: 'PGP',
-  rooter: 'Rooter',
-  btc: 'Bitcoin',
-  zcash: 'Zcash',
-}
-
-export function friendlyName(platform: PlatformsExpandedType) {
-  return FriendlyNames[platform]
-}
-
 const ProveMessages = {
-  none: '',
-  keybase: '',
-  twitter: 'Prove your Twitter',
+  btc: 'Set a Bitcoin address',
+  dns: 'Prove your website',
+  dnsOrGenericWebSite: 'Prove your website',
   facebook: 'Prove your Facebook',
   github: 'Prove your GitHub',
-  reddit: 'Prove your Reddit',
   hackernews: 'Prove your Hacker News',
-  dnsOrGenericWebSite: 'Prove your website',
   http: 'Prove your website',
   https: 'Prove your website',
-  dns: 'Prove your website',
+  keybase: '',
+  none: '',
   pgp: 'Add a PGP key',
+  reddit: 'Prove your Reddit',
   rooter: 'Prove your Rooter',
-  btc: 'Set a Bitcoin address',
+  twitter: 'Prove your Twitter',
   zcash: 'Set a Zcash address',
 }
 
@@ -60,31 +38,29 @@ export function subtitle(platform: PlatformsExpandedType): ?string {
   }
 }
 
-export type ServiceId = $Keys<typeof friendlyName>
+export type ServiceId = 'facebook' | 'github' | 'hackernews' | 'keybase' | 'pgp' | 'reddit' | 'twitter'
 
-// $FlowIssue ??
 export function serviceIdToIcon(service: ServiceId): IconType {
   return {
-    keybase: 'iconfont-identity-devices',
-    twitter: 'iconfont-identity-twitter',
-    github: 'iconfont-identity-github',
-    reddit: 'iconfont-identity-reddit',
-    hackernews: 'iconfont-identity-hn',
-    pgp: 'iconfont-identity-pgp',
     facebook: 'iconfont-identity-facebook',
+    github: 'iconfont-identity-github',
+    hackernews: 'iconfont-identity-hn',
+    keybase: 'iconfont-identity-devices',
+    pgp: 'iconfont-identity-pgp',
+    reddit: 'iconfont-identity-reddit',
+    twitter: 'iconfont-identity-twitter',
   }[service]
 }
 
-// $FlowIssue ??
 export function serviceIdToLogo24(service: ServiceId): IconType {
   return {
-    keybase: 'icon-keybase-logo-24',
-    twitter: 'icon-twitter-logo-24',
-    github: 'icon-github-logo-24',
-    reddit: 'icon-reddit-logo-24',
-    hackernews: 'icon-hacker-news-logo-24',
-    pgp: 'icon-pgp-key-24',
     facebook: 'icon-facebook-logo-24',
+    github: 'icon-github-logo-24',
+    hackernews: 'icon-hacker-news-logo-24',
+    keybase: 'icon-keybase-logo-24',
+    pgp: 'icon-pgp-key-24',
+    reddit: 'icon-reddit-logo-24',
+    twitter: 'icon-twitter-logo-24',
   }[service]
 }
 
@@ -93,10 +69,25 @@ export function serviceIdToLogo24(service: ServiceId): IconType {
 export type UserId = string
 
 export function parseUserId(id: UserId): {username: string, serviceId: ServiceId} {
-  const [username, serviceId = 'keybase'] = id.split('@')
+  const [username, maybeServiceId] = id.split('@')
+  let serviceId: ?ServiceId
+
+  switch (maybeServiceId) {
+    case 'facebook':
+    case 'github':
+    case 'hackernews':
+    case 'keybase':
+    case 'pgp':
+    case 'reddit':
+    case 'twitter':
+      serviceId = maybeServiceId
+      break
+    default:
+      serviceId = 'keybase'
+  }
+
   return {
-    username,
-    // $FlowIssue
     serviceId,
+    username,
   }
 }

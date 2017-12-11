@@ -1,7 +1,7 @@
 // @flow
 import shared from './notification-listeners.shared'
 import {kbfsNotification} from '../util/kbfs-notifications'
-import * as PgpGen from '../actions/pgp-gen'
+import * as ConfigGen from '../actions/config-gen'
 import {remote} from 'electron'
 import {flushLogFile} from '../util/forward-logs'
 
@@ -19,7 +19,7 @@ export default function(dispatch: Dispatch, getState: () => Object, notify: any)
       kbfsNotification(notification, notify, getState)
     },
     'keybase.1.NotifyPGP.pgpKeyInSecretStoreFile': () => {
-      dispatch(PgpGen.createPgpKeyInSecretStoreFile())
+      dispatch(ConfigGen.createPgpKeyInSecretStoreFile())
     },
     'keybase.1.NotifyService.shutdown': () => {
       // console.log('Quitting due to service shutdown')

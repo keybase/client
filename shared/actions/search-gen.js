@@ -9,7 +9,6 @@ import * as Types from '../constants/types/search'
 
 // Constants
 export const resetStore = 'common:resetStore' // not a part of search but is handled by every reducer
-export const addClickedFromUserInput = 'search:addClickedFromUserInput'
 export const addResultsToUserInput = 'search:addResultsToUserInput'
 export const clearSearchResults = 'search:clearSearchResults'
 export const finishedSearch = 'search:finishedSearch'
@@ -21,7 +20,6 @@ export const updateSelectedSearchResult = 'search:updateSelectedSearchResult'
 export const userInputItemsUpdated = 'search:userInputItemsUpdated'
 
 // Action Creators
-export const createAddClickedFromUserInput = (payload: {|+searchKey: string|}) => ({error: false, payload, type: addClickedFromUserInput})
 export const createAddResultsToUserInput = (payload: {|+searchKey: string, +searchResults: Array<Types.SearchResultId>|}) => ({error: false, payload, type: addResultsToUserInput})
 export const createClearSearchResults = (payload: {|+searchKey: string|}) => ({error: false, payload, type: clearSearchResults})
 export const createFinishedSearch = (payload: {|+searchResults: Array<Types.SearchResultId>, +searchResultTerm: string, +service: Types.Service, +searchKey: string, +searchShowingSuggestions?: boolean|}) => ({error: false, payload, type: finishedSearch})
@@ -33,7 +31,6 @@ export const createUpdateSelectedSearchResult = (payload: {|+searchKey: string, 
 export const createUserInputItemsUpdated = (payload: {|+searchKey: string, +userInputItemIds: Array<Types.SearchResultId>|}) => ({error: false, payload, type: userInputItemsUpdated})
 
 // Action Payloads
-export type AddClickedFromUserInputPayload = More.ReturnType<typeof createAddClickedFromUserInput>
 export type AddResultsToUserInputPayload = More.ReturnType<typeof createAddResultsToUserInput>
 export type ClearSearchResultsPayload = More.ReturnType<typeof createClearSearchResults>
 export type FinishedSearchPayload = More.ReturnType<typeof createFinishedSearch>
@@ -47,7 +44,6 @@ export type UserInputItemsUpdatedPayload = More.ReturnType<typeof createUserInpu
 // All Actions
 // prettier-ignore
 export type Actions =
-  | More.ReturnType<typeof createAddClickedFromUserInput>
   | More.ReturnType<typeof createAddResultsToUserInput>
   | More.ReturnType<typeof createClearSearchResults>
   | More.ReturnType<typeof createFinishedSearch>

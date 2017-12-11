@@ -3,10 +3,6 @@
     "import * as Types from '../constants/types/notifications'"
   ],
   "actions": {
-    "log": {
-      "level": "RPCTypes.LogLevel",
-      "text": "string"
-    },
     "badgeApp": {
       "key": "Types.NotificationKeys",
       "on": "boolean",

@@ -1,12 +1,12 @@
 // @flow
 import * as React from 'react'
-import * as Constants from '../../../constants/teams'
+import {amIFollowing} from '../../../constants/selectors'
 import {connect} from 'react-redux'
 import {TeamRequestRow} from '.'
 import {ignoreRequest} from '../../../actions/teams/creators'
 import {navigateAppend} from '../../../actions/route-tree'
 import {createShowUserProfile} from '../../../actions/profile-gen'
-import {getProfile} from '../../../actions/tracker'
+import {createGetProfile} from '../../../actions/tracker-gen'
 import {createStartConversation} from '../../../actions/chat-gen'
 import {isMobile} from '../../../constants/platform'
 
@@ -17,18 +17,13 @@ type OwnProps = {
   teamname: string,
 }
 
-const getFollowing = (state, username: string) => {
-  const followingMap = Constants.getFollowingMap(state)
-  return !!followingMap[username]
-}
-
 type StateProps = {
   you: ?string,
   following: boolean,
 }
 
 const mapStateToProps = (state: TypedState, {username}: OwnProps): StateProps => ({
-  following: getFollowing(state, username),
+  following: amIFollowing(state, username),
   you: state.config.username,
 })
 
@@ -41,7 +36,9 @@ type DispatchProps = {
 
 const mapDispatchToProps = (dispatch: Dispatch): DispatchProps => ({
   onOpenProfile: (username: string) => {
-    isMobile ? dispatch(createShowUserProfile({username})) : dispatch(getProfile(username, true, true))
+    isMobile
+      ? dispatch(createShowUserProfile({username}))
+      : dispatch(createGetProfile({username, ignoreCache: true, forceDisplay: true}))
   },
   _onAccept: (name: string, username: string) =>
     dispatch(
@@ -69,7 +66,7 @@ const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps, ownPro
   }
 }
 
-export const ConnectedRequestRow = connect(mapStateToProps, mapDispatchToProps, mergeProps)(TeamRequestRow)
+const ConnectedRequestRow = connect(mapStateToProps, mapDispatchToProps, mergeProps)(TeamRequestRow)
 
 export default function(i: number, props: OwnProps) {
   return <ConnectedRequestRow {...props} />

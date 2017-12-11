@@ -10,7 +10,6 @@ import type {State as Favorite} from '../constants/types/favorite'
 import type {State as Gregor} from '../constants/types/gregor'
 import type {State as Login} from '../constants/types/login'
 import type {State as Notification} from '../constants/types/notifications'
-import type {State as Pgp} from '../constants/types/pgp'
 import type {State as Pinentry} from '../constants/types/pinentry'
 import type {State as Profile} from '../constants/types/profile'
 import type {State as Push} from '../constants/types/push'
@@ -32,7 +31,6 @@ export type TypedState = {|
   +gregor: Gregor,
   +login: Login,
   +notifications: Notification,
-  +pgp: Pgp,
   +pinentry: Pinentry,
   +planBilling: Billing,
   +profile: Profile,

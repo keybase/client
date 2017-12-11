@@ -1,12 +1,10 @@
 // @flow
-import * as KBFSGen from '../actions/kbfs-gen'
 import Banner from './install/banner'
 import InstallSecurityPrefs from './install/security-prefs'
 import List from './list'
 import React, {Component} from 'react'
 import {Box, TabBar} from '../common-adapters'
 import {TabBarItem, TabBarButton} from '../common-adapters/tab-bar'
-import {connect, type TypedState} from '../util/container'
 import {globalStyles, globalColors, globalMargins} from '../styles'
 import {isLinux} from '../constants/platform'
 import {type Props, type FolderType} from '.'
@@ -135,16 +133,4 @@ const tabBarStyle = {
   ...globalStyles.flexBoxRow,
 }
 
-const mapStateToProps = (state: TypedState) => {
-  const installed = isLinux || (state.favorite.fuseStatus && state.favorite.fuseStatus.kextStarted)
-  return {
-    installed,
-    showSecurityPrefs: !installed && state.favorite.kextPermissionError,
-  }
-}
-
-const mapDispatchToProps = (dispatch: any) => ({
-  fuseStatus: () => dispatch(KBFSGen.createFuseStatus()),
-})
-
-export default connect(mapStateToProps, mapDispatchToProps)(FoldersRender)
+export default FoldersRender

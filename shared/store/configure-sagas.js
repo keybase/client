@@ -8,13 +8,15 @@ import gregorSaga from '../actions/gregor'
 import kbfsSaga from '../actions/kbfs'
 import loginSaga from '../actions/login'
 import notificationsSaga from '../actions/notifications'
-import pgpSaga from '../actions/pgp'
+import pinentrySaga from '../actions/pinentry'
 import gitSaga from '../actions/git'
 import planBillingSaga from '../actions/plan-billing'
 import profileSaga from '../actions/profile'
 import routeSaga from '../actions/route-tree'
 import searchSaga from '../actions/search'
 import settingsSaga from '../actions/settings'
+import trackerSaga from '../actions/tracker'
+import unlockFoldersSaga from '../actions/unlock-folders'
 import pushSaga from '../actions/push'
 import {fork} from 'redux-saga/effects'
 import sagaMonitor from './saga-monitor'
@@ -34,7 +36,7 @@ function* mainSaga(): SagaGenerator<any, any> {
   yield fork(kbfsSaga)
   yield fork(loginSaga)
   yield fork(notificationsSaga)
-  yield fork(pgpSaga)
+  yield fork(pinentrySaga)
   yield fork(planBillingSaga)
   yield fork(profileSaga)
   yield fork(pushSaga)
@@ -42,7 +44,9 @@ function* mainSaga(): SagaGenerator<any, any> {
   yield fork(searchSaga)
   yield fork(settingsSaga)
   yield fork(appStateSaga)
+  yield fork(trackerSaga)
   yield fork(teamsSaga)
+  yield fork(unlockFoldersSaga)
   yield fork(gitSaga)
 }
 

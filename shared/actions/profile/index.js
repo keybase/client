@@ -2,6 +2,7 @@
 import * as AppGen from '../app-gen'
 import * as Types from '../../constants/types/profile'
 import * as Constants from '../../constants/profile'
+import * as TrackerGen from '../tracker-gen'
 import * as ProfileGen from '../profile-gen'
 import * as Saga from '../../util/saga'
 import * as SearchConstants from '../../constants/search'
@@ -10,7 +11,6 @@ import * as RPCTypes from '../../constants/types/flow-types'
 import URL from 'url-parse'
 import keybaseUrl from '../../constants/urls'
 import openURL from '../../util/open-url'
-import {getMyProfile} from '.././tracker'
 import {getPathProps} from '../../route-tree'
 import {navigateAppend, navigateTo, navigateUp, switchTo, putActionIfOnPath} from '../../actions/route-tree'
 import {parseUserId} from '../../util/platforms'
@@ -32,7 +32,7 @@ function* _editProfile(action: ProfileGen.EditProfilePayload): Saga.SagaGenerato
 }
 
 function* _finishRevoking(): Saga.SagaGenerator<any, any> {
-  yield Saga.put(getMyProfile(true))
+  yield Saga.put(TrackerGen.createGetMyProfile({ignoreCache: true}))
   yield Saga.put(ProfileGen.createRevokeFinish())
   yield Saga.put(navigateUp())
 }
@@ -196,7 +196,7 @@ function* _outputInstructionsActionLink(): Saga.SagaGenerator<any, any> {
 }
 
 function* _backToProfile(): Saga.SagaGenerator<any, any> {
-  yield Saga.put(getMyProfile())
+  yield Saga.put(TrackerGen.createGetMyProfile({}))
   yield Saga.put(navigateTo([], [peopleTab]))
 }
 

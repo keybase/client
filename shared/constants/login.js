@@ -1,4 +1,5 @@
 // @flow
+import * as I from 'immutable'
 import * as Types from './types/login'
 
 export const codePageDeviceRoleExistingPhone = 'codePageDeviceRoleExistingPhone'
@@ -11,9 +12,7 @@ export const codePageModeShowCode = 'codePageModeShowCode'
 export const codePageModeEnterText = 'codePageModeEnterText'
 export const codePageModeShowText = 'codePageModeShowText'
 
-export const countDownTime = 5 * 60
-
-export function defaultModeForDeviceRoles(
+function defaultModeForDeviceRoles(
   myDeviceRole: Types.DeviceRole,
   otherDeviceRole: Types.DeviceRole,
   brokenMode: boolean
@@ -42,7 +41,7 @@ export function defaultModeForDeviceRoles(
   return null
 }
 
-export function qrGenerate(code: string): string {
+function qrGenerate(code: string): string {
   const QRCodeGen = require('qrcode-generator')
   const qr = QRCodeGen(4, 'L')
   qr.addData(code)
@@ -53,25 +52,23 @@ export function qrGenerate(code: string): string {
   return qrCode
 }
 
-export const initialState: Types.State = {
-  codePage: {
-    cameraBrokenMode: false,
-    codeCountDown: 0,
-    enterCodeErrorText: '',
-    mode: null,
-    myDeviceRole: null,
-    otherDeviceRole: null,
-    qrCode: null,
-    qrCodeScanned: false,
-    qrScanned: null,
-    textCode: null,
-  },
-  configuredAccounts: null,
-  deviceName: {
-    deviceName: '',
-    existingDevices: [],
-    onSubmit: () => {},
-  },
+const makeAccount: I.RecordFactory<Types._Account> = I.Record({
+  hasStoredSecret: false,
+  username: '',
+})
+
+const makeState: I.RecordFactory<Types._State> = I.Record({
+  codePageCameraBrokenMode: false,
+  codePageCodeCountDown: 0,
+  codePageEnterCodeErrorText: '',
+  codePageMode: null,
+  codePageMyDeviceRole: null,
+  codePageOtherDeviceRole: null,
+  codePageQrCode: null,
+  codePageQrCodeScanned: false,
+  codePageQrScanned: null,
+  codePageTextCode: null,
+  configuredAccounts: I.List(),
   forgotPasswordError: null,
   forgotPasswordSubmitting: false,
   forgotPasswordSuccess: false,
@@ -81,4 +78,6 @@ export const initialState: Types.State = {
   registerUserPassError: null,
   registerUserPassLoading: false,
   waitingForResponse: false,
-}
+})
+
+export {makeState, qrGenerate, defaultModeForDeviceRoles, makeAccount}

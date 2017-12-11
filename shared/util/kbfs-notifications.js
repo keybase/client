@@ -27,7 +27,7 @@ function tlfForNotification(notification: FSNotification): string {
   return notification.filename.split(path.sep).slice(0, 4).join(path.sep)
 }
 
-export function decodeKBFSError(user: string, notification: FSNotification): DecodedKBFSError {
+function decodeKBFSError(user: string, notification: FSNotification): DecodedKBFSError {
   console.log('Notification (kbfs error):', notification)
   const tlf = tlfForNotification(notification)
   switch (notification.errorType) {

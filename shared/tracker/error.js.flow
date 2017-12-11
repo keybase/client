@@ -3,7 +3,7 @@ import {Component} from 'react'
 
 export type ErrorProps = {
   errorMessage: string,
-  onRetry: () => void,
+  onRetry: ?() => void,
 }
 
 export type Props = ErrorProps & {

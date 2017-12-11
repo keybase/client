@@ -9,7 +9,7 @@ import {PlatformsExpanded} from '../constants/types/more'
 import type {MissingProof} from '../common-adapters/user-proofs'
 import type {Proof} from '../constants/types/tracker'
 import type {PlatformsExpandedType} from '../constants/types/more'
-import type {Folder} from '../constants/folders'
+import type {Folder} from '../constants/types/folders'
 
 export function folderIconProps(folder: Folder, style: ?Object = {}) {
   const type = folder.isPublic

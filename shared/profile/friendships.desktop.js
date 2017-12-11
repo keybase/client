@@ -33,14 +33,14 @@ class UserEntry extends PureComponent<UserEntryProps> {
   }
 
   render() {
-    const {username, fullname, followsYou, following, thumbnailUrl} = this.props
+    const {username, fullname, followsYou, following} = this.props
 
     return (
       <Box style={userEntryContainerStyle} onClick={this._onClick}>
         <Avatar
           style={userEntryAvatarStyle}
           size={64}
-          url={thumbnailUrl}
+          username={username}
           followsYou={followsYou}
           following={following}
         />

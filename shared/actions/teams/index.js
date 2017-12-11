@@ -389,21 +389,6 @@ const _getDetails = function*(action: Types.GetDetails): Saga.SagaGenerator<any,
   }
 }
 
-const _changeOpenTeamSetting = function*({
-  payload: {teamname, convertToOpen, defaultRole},
-}: Types.MakeTeamOpen) {
-  const param: RPCTypes.TeamsTeamSetSettingsRpcParam = {
-    name: teamname,
-    settings: {
-      joinAs: RPCTypes.teamsTeamRole[defaultRole],
-      open: convertToOpen,
-    },
-  }
-
-  yield Saga.call(RPCTypes.teamsTeamSetSettingsRpcPromise, param)
-  yield Saga.put(Creators.getDetails(teamname))
-}
-
 function _getChannels(action: Types.GetChannels) {
   const teamname = action.payload.teamname
   const waitingKey = {key: `getChannels:${teamname}`}
@@ -475,34 +460,6 @@ const _getTeams = function*(action: Types.GetTeams): Saga.SagaGenerator<any, any
   } finally {
     yield Saga.put(replaceEntity(['teams'], I.Map([['loaded', true]])))
   }
-}
-
-const _toggleChannelMembership = function*(
-  action: Types.ToggleChannelMembership
-): Saga.SagaGenerator<any, any> {
-  const {teamname, channelname} = action.payload
-  const {conversationIDKey, participants, you} = yield Saga.select((state: TypedState) => {
-    // TODO this is broken. channelnames are not unique
-    const conversationIDKey = Constants.getConversationIDKeyFromChannelName(state, channelname)
-    return {
-      conversationIDKey,
-      participants: conversationIDKey ? Constants.getParticipants(state, conversationIDKey) : I.Set(),
-      you: usernameSelector(state),
-    }
-  })
-
-  if (participants.get(you)) {
-    yield Saga.call(RPCChatTypes.localLeaveConversationLocalRpcPromise, {
-      convID: ChatConstants.keyToConversationID(conversationIDKey),
-    })
-  } else {
-    yield Saga.call(RPCChatTypes.localJoinConversationByIDLocalRpcPromise, {
-      convID: ChatConstants.keyToConversationID(conversationIDKey),
-    })
-  }
-
-  // reload
-  yield Saga.put(Creators.getChannels(teamname))
 }
 
 const _checkRequestedAccess = function*(action: Types.CheckRequestedAccess): Saga.SagaGenerator<any, any> {
@@ -827,13 +784,11 @@ const _onTabChange = (action: RouteTypes.SwitchTo) => {
 const teamsSaga = function*(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure('teams:leaveTeam', _leaveTeam)
   yield Saga.safeTakeEveryPure('teams:createNewTeam', _createNewTeam)
-  yield Saga.safeTakeEvery('teams:makeTeamOpen', _changeOpenTeamSetting)
   yield Saga.safeTakeEvery('teams:joinTeam', _joinTeam)
   yield Saga.safeTakeEvery('teams:getDetails', _getDetails)
   yield Saga.safeTakeEvery('teams:createNewTeamFromConversation', _createNewTeamFromConversation)
   yield Saga.safeTakeEveryPure('teams:getChannels', _getChannels, _afterGetChannels)
   yield Saga.safeTakeEvery('teams:getTeams', _getTeams)
-  yield Saga.safeTakeEvery('teams:toggleChannelMembership', _toggleChannelMembership)
   yield Saga.safeTakeEveryPure('teams:saveChannelMembership', _saveChannelMembership, _afterSaveCalls)
   yield Saga.safeTakeEvery('teams:createChannel', _createChannel)
   yield Saga.safeTakeEvery('teams:setupTeamHandlers', _setupTeamHandlers)

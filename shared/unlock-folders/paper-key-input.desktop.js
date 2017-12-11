@@ -3,11 +3,10 @@
 import React, {Component} from 'react'
 import {globalStyles} from '../styles'
 import {Text, Button, BackButton, Icon, Input} from '../common-adapters'
-import HiddenString from '../util/hidden-string'
 
 export type Props = {
   onBack: () => void,
-  onContinue: (paperkey: HiddenString) => void,
+  onContinue: (paperkey: string) => void,
   paperkeyError: ?string,
   waiting: ?boolean,
 }
@@ -17,11 +16,8 @@ type State = {
 }
 
 class PaperKeyInput extends Component<Props, State> {
-  state: State
-
-  constructor(props: Props) {
-    super(props)
-    this.state = {paperkey: ''}
+  state: State = {
+    paperkey: '',
   }
 
   render() {
@@ -47,7 +43,7 @@ ruril globil cose"
           label="Continue"
           style={continueStyle}
           waiting={this.props.waiting}
-          onClick={() => this.props.onContinue(new HiddenString(this.state.paperkey))}
+          onClick={() => this.props.onContinue(this.state.paperkey)}
         />
       </div>
     )

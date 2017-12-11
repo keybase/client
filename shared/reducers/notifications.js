@@ -62,7 +62,6 @@ export default function(state: Types.State = initialState, action: Notifications
     // Saga only actions
     case NotificationsGen.listenForKBFSNotifications:
     case NotificationsGen.listenForNotifications:
-    case NotificationsGen.log:
       return state
     default:
       // eslint-disable-next-line no-unused-expressions
