@@ -5,6 +5,7 @@ import * as I from 'immutable'
 import * as Saga from '../util/saga'
 import * as Types from './types/engine'
 import * as SagaTypes from './types/saga'
+import type {Channel} from 'redux-saga'
 import {getEngine, EngineChannel} from '../engine'
 import mapValues from 'lodash/mapValues'
 import {RPCTimeoutError} from '../util/errors'
@@ -55,7 +56,6 @@ function _handleRPCDecorator(rpcNameKey, saga) {
 // This decorator to put the result on a channel
 function _putReturnOnChan(chan, saga) {
   return function* _putReturnOnChanHelper(...args: any) {
-    // $FlowIssue has no way to type this
     const returnVal = yield Saga.call(saga, ...args)
     yield Saga.put(chan, _subSagaFinished(returnVal))
   }
@@ -72,7 +72,7 @@ class EngineRpcCall {
   _rpcNameKey: string // Used for the waiting state and error messages.
   _request: any
 
-  _subSagaChannel: SagaTypes.Channel<*>
+  _subSagaChannel: Channel
   _engineChannel: EngineChannel
   _cleanedUp: boolean
   _finishedErrorShouldCancel: boolean
