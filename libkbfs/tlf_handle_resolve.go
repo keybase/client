@@ -275,6 +275,12 @@ func (ruid resolvableID) resolve(ctx context.Context) (
 		iteamInfo, err := ruid.resolver.ResolveImplicitTeamByID(
 			ctx, ruid.id.AsTeamOrBust(), ruid.tlfType)
 		if err == nil {
+			if ruid.id != iteamInfo.TID.AsUserOrTeam() {
+				return nameIDPair{}, keybase1.SocialAssertion{}, tlf.NullID,
+					fmt.Errorf("Implicit team ID %s doesn't match ID in "+
+						"handle %s", iteamInfo.TID, ruid.id)
+			}
+
 			return nameIDPair{
 				name: iteamInfo.Name,
 				id:   iteamInfo.TID.AsUserOrTeam(),
