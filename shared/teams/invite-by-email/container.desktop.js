@@ -53,6 +53,7 @@ export default compose(
     withHandlers({
       onInvite: ({invitees, onInvite, role}) => () => invitees && role && onInvite({invitees, role}),
     }),
+    // $FlowIssue doesn't like withState
     HeaderHoc
   )
 )(InviteByEmailDesktop)

@@ -59,7 +59,6 @@ const Render = ({
   timeline,
   revokedAt,
   showRevokeDevicePage,
-  device,
   onBack,
   bannerBackgroundColor,
   bannerColor,

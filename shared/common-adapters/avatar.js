@@ -1,12 +1,13 @@
 // @flow
 // High level avatar class. Handdles converting from usernames to urls. Deals with testing mode.
-import Render, {type AvatarSize} from './avatar.render'
+import Render from './avatar.render'
 import pickBy from 'lodash/pickBy'
 import {iconTypeToImgSet, urlsToImgSet, type IconType} from './icon'
 import {isTesting} from '../local-debug'
 import {connect, type TypedState, lifecycle, compose, withProps} from '../util/container'
 import {globalStyles} from '../styles'
 import * as ConfigGen from '../actions/config-gen'
+import type {Props, AvatarSize} from './avatar'
 
 export type URLMap = {
   '200': string,
@@ -20,22 +21,6 @@ export type AvatarLookup = (username: string) => ?URLMap
 export type AvatarLoad = (username: string, callback: AvatarLookupCallback) => void
 export type TeamAvatarLookup = (teamname: string) => ?URLMap
 export type TeamAvatarLoad = (teamname: string, callback: AvatarLookupCallback) => void
-export type Props = {
-  borderColor?: string,
-  children?: any,
-  following?: ?boolean,
-  followsYou?: ?boolean,
-  isTeam?: boolean,
-  loadingColor?: string,
-  onAvatarLoaded?: () => void,
-  onClick?: ?() => void,
-  opacity?: number,
-  skipBackground?: boolean,
-  size: AvatarSize,
-  style?: ?Object,
-  username?: ?string,
-  teamname?: ?string,
-}
 
 const avatarPlaceHolders: {[key: string]: IconType} = {
   '112': 'icon-placeholder-avatar-112',
