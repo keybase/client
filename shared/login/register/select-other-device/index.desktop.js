@@ -34,47 +34,46 @@ const Row = ({deviceID, name, type, onSelect}) => {
   )
 }
 
-const ResetOption = ({showResetLink, setShowResetLink, onReset}) => (
+const ResetOption = ({onReset}) => (
   <Box>
-    <DeviceBox onClick={() => setShowResetLink(true)}>
+    <DeviceBox>
       <Box style={stylesIconName}>
-        <Box style={stylesIconContainer}>
+        <Box
+          style={{
+            ...stylesIconContainer,
+            width: 160,
+            marginTop: globalMargins.tiny,
+            alignSelf: 'flex-start',
+          }}
+        >
           <Icon
-            style={{...stylesIcon, fontSize: 28, color: globalColors.black_40, marginLeft: 34}}
-            type="iconfont-close"
+            style={{
+              ...stylesIcon,
+              fontSize: 16,
+              color: globalColors.black_40,
+            }}
+            type="iconfont-exclamation"
           />
         </Box>
-        <Text type="Body">
-          Uh oh - I don't have any of these devices anymore, or I've uninstalled Keybase from all of them.
-        </Text>
-      </Box>
-    </DeviceBox>
-    {showResetLink &&
-      <Box style={{...stylesRow, alignItems: 'center', cursor: 'normal'}}>
-        <Box style={stylesIconName}>
-          <Text type="BodyPrimaryLink" onClick={onReset}>
-            RESET MY ACCOUNT
+        <Box style={globalStyles.flexBoxColumn}>
+          <Text type="Body">
+            Uh oh. I don't have any of these devices anymore, or I've uninstalled Keybase from all of them.
+            <Text type="BodyPrimaryLink" onClick={onReset} style={{color: globalColors.red, marginLeft: 2}}>
+              Reset account
+            </Text>
           </Text>
         </Box>
-      </Box>}
+      </Box>
+    </DeviceBox>
   </Box>
 )
 
-const SelectOtherDevice = ({
-  onBack,
-  devices,
-  onWont,
-  onSelect,
-  canSelectNoDevice,
-  showResetLink,
-  setShowResetLink,
-  onReset,
-}: Props) => (
+const SelectOtherDevice = ({onBack, devices, onWont, onSelect, canSelectNoDevice, onReset}: Props) => (
   <Container style={stylesContainer} onBack={onBack}>
     <Text type="Header" style={stylesHeader}>Which Keybase install would you like to connect with?</Text>
     <Box style={stylesDevicesContainer}>
       {devices.map(d => <Row onSelect={onSelect} {...d} key={d.deviceID} />)}
-      <ResetOption showResetLink={showResetLink} setShowResetLink={setShowResetLink} onReset={onReset} />
+      <ResetOption onReset={onReset} />
     </Box>
     {canSelectNoDevice &&
       <Text style={stylesWont} type="BodySmallSecondaryLink" onClick={onWont}>

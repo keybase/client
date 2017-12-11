@@ -1,15 +1,7 @@
 // @flow
 import Container from '../../forms/container'
 import * as React from 'react'
-import {
-  Box,
-  Text,
-  Icon,
-  ClickableBox,
-  NativeScrollView,
-  Button,
-  ButtonBar,
-} from '../../../common-adapters/index.native'
+import {Box, Text, Icon, ClickableBox, NativeScrollView, Button} from '../../../common-adapters/index.native'
 import {globalColors, globalMargins, globalStyles} from '../../../styles'
 
 import type {DeviceType} from '../../../constants/types/devices'
@@ -44,39 +36,59 @@ const Row = ({deviceID, name, type, onSelect}) => {
   )
 }
 
-const ResetOption = ({showResetLink, setShowResetLink, onReset}) => (
+const ResetOption = ({onReset}) => (
   <Box>
-    <ClickableBox style={stylesRow} className="deviceRow" onClick={() => setShowResetLink(true)}>
+    <Box style={stylesRow} className="deviceRow">
       <Box style={stylesIconName}>
-        <Box style={stylesIconContainer}>
-          <Icon style={{...stylesIcon, fontSize: 40, color: globalColors.black_40}} type="iconfont-close" />
+        <Box
+          style={{
+            ...stylesIconContainer,
+            alignSelf: 'flex-start',
+            width: 48,
+            marginRight: globalMargins.small,
+            marginTop: globalMargins.tiny,
+          }}
+        >
+          <Icon
+            style={{
+              ...stylesIcon,
+              fontSize: 24,
+              color: globalColors.black_40,
+              marginRight: 0,
+            }}
+            type="iconfont-exclamation"
+          />
         </Box>
-        <Box style={{...globalStyles.flexBoxColumn, flex: 1}}>
+        <Box
+          style={{
+            ...globalStyles.flexBoxColumn,
+            flex: 1,
+            alignItems: 'flex-start',
+            paddingBottom: globalMargins.tiny,
+            paddingTop: globalMargins.tiny,
+          }}
+        >
           <Text type="Body">
-            Uh oh - I don't have any of these devices anymore, or I've uninstalled Keybase from all of them.
+            Uh oh. I don't have any of these devices anymore, or I've uninstalled Keybase from all of them.
+          </Text>
+          <Text
+            type="BodyPrimaryLink"
+            onClick={onReset}
+            style={{
+              color: globalColors.red,
+              paddingBottom: globalMargins.tiny,
+              paddingTop: globalMargins.tiny,
+            }}
+          >
+            Reset account
           </Text>
         </Box>
       </Box>
-    </ClickableBox>
-    {showResetLink &&
-      <Box style={{...stylesRow, justifyContent: 'center', borderBottomWidth: 0}}>
-        <ButtonBar>
-          <Button type="Danger" label="RESET MY ACCOUNT" onClick={onReset} />
-        </ButtonBar>
-      </Box>}
+    </Box>
   </Box>
 )
 
-const SelectOtherDevice = ({
-  onBack,
-  devices,
-  onWont,
-  onSelect,
-  canSelectNoDevice,
-  showResetLink,
-  setShowResetLink,
-  onReset,
-}: Props) => (
+const SelectOtherDevice = ({onBack, devices, onWont, onSelect, canSelectNoDevice, onReset}: Props) => (
   <Container style={stylesContainer} onBack={onBack} outerStyle={{paddingLeft: 0, paddingRight: 0}}>
     <Box style={globalStyles.flexBoxColumn}>
       <Text type="Header" style={stylesInstructions}>Please prove you're you</Text>
@@ -86,7 +98,7 @@ const SelectOtherDevice = ({
     </Box>
     <NativeScrollView style={stylesDevicesContainer}>
       {devices.map(d => <Row onSelect={onSelect} {...d} key={d.deviceID} />)}
-      <ResetOption showResetLink={showResetLink} setShowResetLink={setShowResetLink} onReset={onReset} />
+      <ResetOption onReset={onReset} />
     </NativeScrollView>
     {canSelectNoDevice &&
       <Text style={stylesWont} type="BodySmallSecondaryLink" onClick={onWont}>

@@ -2,9 +2,9 @@ package teams
 
 import (
 	"context"
-	"fmt"
-
 	"encoding/base64"
+	"errors"
+	"fmt"
 
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libkb"
@@ -407,6 +407,15 @@ func handleSeitanSingle(ctx context.Context, g *libkb.GlobalContext, team *Team,
 	sikey, err := ikey.GenerateSIKey()
 	if err != nil {
 		return err
+	}
+
+	inviteID, err := sikey.GenerateTeamInviteID()
+	if err != nil {
+		return err
+	}
+
+	if !inviteID.Eq(invite.Id) {
+		return errors.New("invite ID mismatch (seitan)")
 	}
 
 	akey, _, err := sikey.GenerateAcceptanceKey(seitan.Uid, seitan.EldestSeqno, seitan.UnixCTime)

@@ -508,7 +508,7 @@ func (b *Boxer) unboxV1(ctx context.Context, boxed chat1.MessageBoxed,
 	atMentions, atMentionUsernames, chanMention :=
 		b.getAtMentionInfo(ctx, clientHeader.Conv.Tlfid, membersType, body)
 
-	ierr = b.compareHeadersV1(ctx, boxed.ClientHeader, clientHeader)
+	ierr = b.compareHeadersMBV1(ctx, boxed.ClientHeader, clientHeader)
 	if ierr != nil {
 		return nil, ierr
 	}
@@ -1480,8 +1480,8 @@ func hashSha256V1(data []byte) chat1.Hash {
 	return sum[:]
 }
 
-// See note on compareHeadersV2.
-func (b *Boxer) compareHeadersV1(ctx context.Context, hServer chat1.MessageClientHeader, hSigned chat1.MessageClientHeaderVerified) UnboxingError {
+// See note on compareHeadersMBV2.
+func (b *Boxer) compareHeadersMBV1(ctx context.Context, hServer chat1.MessageClientHeader, hSigned chat1.MessageClientHeaderVerified) UnboxingError {
 	// Conv
 	if !hServer.Conv.Eq(hSigned.Conv) {
 		return NewPermanentUnboxingError(NewHeaderMismatchError("Conv"))
@@ -1502,7 +1502,7 @@ func (b *Boxer) compareHeadersV1(ctx context.Context, hServer chat1.MessageClien
 		return NewPermanentUnboxingError(NewHeaderMismatchError("MessageType"))
 	}
 
-	// Note: Supersedes and Deletes are not checked because they are not
+	// Note: Supersedes, Deletes, and DeleteHistory are not checked because they are not
 	//       part of MessageClientHeaderVerified.
 
 	// Prev

@@ -9,8 +9,6 @@ export type Props = {
   onWont: () => void,
   onBack: () => void,
   onReset: () => void,
-  showResetLink: boolean,
-  setShowResetLink: (show: boolean) => void,
 }
 
 export default class SelectOtherDevice extends Component<Props> {}
