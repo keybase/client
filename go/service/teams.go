@@ -245,7 +245,8 @@ func (h *TeamsHandler) TeamAcceptInvite(ctx context.Context, arg keybase1.TeamAc
 	// If token looks at all like Seitan, don't pass to functions that might log or send to server.
 	maybeSeitan, keepSecret := teams.ParseSeitanTokenFromPaste(arg.Token)
 	if keepSecret {
-		return teams.ParseAndAcceptSeitanToken(ctx, h.G().ExternalG(), maybeSeitan)
+		_, err = teams.ParseAndAcceptSeitanToken(ctx, h.G().ExternalG(), maybeSeitan)
+		return err
 	}
 
 	return teams.AcceptInvite(ctx, h.G().ExternalG(), arg.Token)
