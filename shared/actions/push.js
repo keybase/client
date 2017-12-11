@@ -19,10 +19,12 @@ import type {TypedState} from '../constants/reducer'
 const pushSelector = ({push: {token, tokenType}}: TypedState) => ({token, tokenType})
 const deviceIDSelector = ({config: {deviceID}}: TypedState) => deviceID
 
-function* permissionsNoSaga(): Saga.SagaGenerator<any, any> {
-  yield Saga.call(setNoPushPermissions)
-  yield Saga.put(PushGen.createPermissionsRequesting({requesting: false}))
-  yield Saga.put(PushGen.createPermissionsPrompt({prompt: false}))
+function permissionsNoSaga() {
+  return Saga.sequentially([
+    Saga.call(setNoPushPermissions),
+    Saga.put(PushGen.createPermissionsRequesting({requesting: false})),
+    Saga.put(PushGen.createPermissionsPrompt({prompt: false})),
+  ])
 }
 
 function* permissionsRequestSaga(): Saga.SagaGenerator<any, any> {
@@ -89,16 +91,19 @@ function* pushNotificationSaga(notification: PushGen.NotificationPayload): Saga.
   }
 }
 
-function* pushTokenSaga(action: PushGen.PushTokenPayload): Saga.SagaGenerator<any, any> {
+function pushTokenSaga(action: PushGen.PushTokenPayload) {
   const {token, tokenType} = action.payload
-  yield Saga.put(PushGen.createUpdatePushToken({token, tokenType}))
-  yield Saga.put(PushGen.createSavePushToken())
+  return Saga.all([
+    Saga.put(PushGen.createUpdatePushToken({token, tokenType})),
+    Saga.put(PushGen.createSavePushToken()),
+  ])
 }
 
 function* savePushTokenSaga(): Saga.SagaGenerator<any, any> {
   try {
-    const {token, tokenType} = (yield Saga.select(pushSelector): any)
-    const deviceID = (yield Saga.select(deviceIDSelector): any)
+    const state: TypedState = yield Saga.select()
+    const {token, tokenType} = pushSelector(state)
+    const deviceID = deviceIDSelector(state)
     if (!deviceID) {
       throw new Error('No device available for saving push token')
     }
@@ -109,12 +114,12 @@ function* savePushTokenSaga(): Saga.SagaGenerator<any, any> {
     const args = [
       {key: 'push_token', value: token},
       {key: 'device_id', value: deviceID},
-      {key: 'token_type', value: tokenType},
+      {key: 'token_type', value: tokenType || ''},
     ]
 
     yield Saga.call(RPCTypes.apiserverPostRpcPromise, {
+      args,
       endpoint: 'device/push_token',
-      args: args,
     })
   } catch (err) {
     console.warn('Error trying to save push token:', err)
@@ -134,14 +139,15 @@ function* configurePushSaga(): Saga.SagaGenerator<any, any> {
 
 function* deletePushTokenSaga(): Saga.SagaGenerator<any, any> {
   try {
-    const {tokenType} = (yield Saga.select(pushSelector): any)
+    const state: TypedState = yield Saga.select()
+    const {tokenType} = pushSelector(state)
     if (!tokenType) {
       // No push token to remove.
       console.log('Not deleting push token -- none to remove')
       return
     }
 
-    const deviceID = (yield Saga.select(deviceIDSelector): any)
+    const deviceID = deviceIDSelector(state)
     if (!deviceID) {
       throw new Error('No device id available for saving push token')
     }
@@ -159,8 +165,8 @@ function* deletePushTokenSaga(): Saga.SagaGenerator<any, any> {
 
 function* pushSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeLatest(PushGen.permissionsRequest, permissionsRequestSaga)
-  yield Saga.safeTakeLatest(PushGen.permissionsNo, permissionsNoSaga)
-  yield Saga.safeTakeLatest(PushGen.pushToken, pushTokenSaga)
+  yield Saga.safeTakeLatestPure(PushGen.permissionsNo, permissionsNoSaga)
+  yield Saga.safeTakeLatestPure(PushGen.pushToken, pushTokenSaga)
   yield Saga.safeTakeLatest(PushGen.savePushToken, savePushTokenSaga)
   yield Saga.safeTakeLatest(PushGen.configurePush, configurePushSaga)
   yield Saga.safeTakeEvery(PushGen.notification, pushNotificationSaga)
