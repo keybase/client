@@ -194,6 +194,7 @@ function _backToProfile() {
 }
 
 function* _profileSaga(): Saga.SagaGenerator<any, any> {
+  yield Saga.safeTakeEvery(ProfileGen.submitRevokeProof, _submitRevokeProof)
   yield Saga.safeTakeEveryPure(ProfileGen.backToProfile, _backToProfile)
   yield Saga.safeTakeEveryPure(ProfileGen.editProfile, _editProfile)
   yield Saga.safeTakeEveryPure(ProfileGen.finishRevoking, _finishRevoking)
@@ -203,8 +204,7 @@ function* _profileSaga(): Saga.SagaGenerator<any, any> {
     _openProfileOrWebsite
   )
   yield Saga.safeTakeEveryPure(ProfileGen.outputInstructionsActionLink, _outputInstructionsActionLink)
-  yield Saga.safeTakeEvery(ProfileGen.showUserProfile, _showUserProfile)
-  yield Saga.safeTakeEvery(ProfileGen.submitRevokeProof, _submitRevokeProof)
+  yield Saga.safeTakeEveryPure(ProfileGen.showUserProfile, _showUserProfile)
   yield Saga.safeTakeEveryPure(AppGen.link, _onAppLink)
 }
 
