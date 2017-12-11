@@ -9,10 +9,10 @@ import {globalMargins} from '../../styles'
 
 type OwnProps = {
   searchKey: string,
-  onShowTracker?: (id: string) => void,
+  onShowTracker: (id: string) => void,
   onClick?: (id: string) => void,
-  disableListBuilding?: boolean,
-  disableIfInTeamName?: ?string,
+  disableListBuilding: boolean,
+  disableIfInTeamName: ?string,
 }
 
 const mapStateToProps = ({entities}: TypedState, {disableIfInTeamName, searchKey}: OwnProps) => {
@@ -32,7 +32,7 @@ const mapStateToProps = ({entities}: TypedState, {disableIfInTeamName, searchKey
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch, {searchKey, onClick, disableListBuilding}: OwnProps): * => ({
+const mapDispatchToProps = (dispatch: Dispatch, {searchKey, onClick, disableListBuilding}: OwnProps) => ({
   onClick: (id: string) => {
     !disableListBuilding && dispatch(SearchGen.createAddResultsToUserInput({searchKey, searchResults: [id]}))
     onClick && onClick(id)
@@ -42,11 +42,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {searchKey, onClick, disableList
 
 export default compose(
   connect(mapStateToProps, mapDispatchToProps),
-  branch(
-    // $FlowIssue doesn't like props not in SearcResultsList.Props
-    (props: {pending: boolean}) => props.pending,
-    renderComponent(() => <ProgressIndicator style={styleSpinner} />)
-  )
+  branch(props => props.pending, renderComponent(() => <ProgressIndicator style={styleSpinner} />))
 )(SearchResultsList)
 
 const styleSpinner = {

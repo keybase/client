@@ -1,9 +1,9 @@
 // @flow
 import * as LoginGen from '../../../actions/login-gen'
-import * as RPCTypes from '../../../constants/types/flow-types'
 import SelectOtherDevice from '.'
 import {connect, type TypedState} from '../../../util/container'
 import {compose, withState} from 'recompose'
+import {type Device} from '../../../constants/types/devices'
 import {type RouteProps} from '../../../route-tree/render-route'
 import openURL from '../../../util/open-url'
 
@@ -11,7 +11,7 @@ const ACCOUNT_RESET_URL = 'https://keybase.io/#account-reset'
 
 type OwnProps = RouteProps<
   {
-    devices: Array<RPCTypes.Device>,
+    devices: Array<Device>,
     canSelectNoDevice: boolean,
   },
   {}

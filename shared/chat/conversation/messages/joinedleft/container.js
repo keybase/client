@@ -17,7 +17,6 @@ import type {OwnProps} from './container'
 type StateProps = {
   channelname: string,
   message: Types.TextMessage,
-  following: boolean,
   teamname: string,
   you: string,
 }
@@ -50,7 +49,7 @@ const getDetails = createCachedSelector(
   })
 )((state, messageKey) => messageKey)
 
-const mapStateToProps = (state: TypedState, {messageKey}: OwnProps): * => getDetails(state, messageKey)
+const mapStateToProps = (state: TypedState, {messageKey}: OwnProps) => getDetails(state, messageKey)
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
   _onManageChannels: (teamname: string) =>

@@ -185,7 +185,6 @@ const styleIconComposeMobile = {
   padding: globalMargins.xtiny,
 }
 
-// $FlowIssue thinks KeyHandler can be uninitialized
-const ChatFilterRow = branch(() => !isMobile && !!KeyHandler, KeyHandler)(_ChatFilterRow)
+const ChatFilterRow = branch(() => !isMobile, KeyHandler)(_ChatFilterRow)
 
 export default ChatFilterRow
