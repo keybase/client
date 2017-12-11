@@ -67,13 +67,11 @@ const Impossible = () => null
 export default compose(
   connect(mapStateToProps, mapDispatchToProps, mergeProps),
   branch(
-    (props: StateProps) => !!props.rekeyInfo && !!props.rekeyInfo.get('youCanRekey'),
-    // $FlowIssue doesn't like sending onEnterPaperkey into it cause it doens't use it
+    (props: StateProps) => props.rekeyInfo && props.rekeyInfo.get('youCanRekey'),
     renderComponent(YouRekey)
   ),
   branch(
-    (props: StateProps) => !!props.rekeyInfo && !!props.rekeyInfo.get('rekeyParticipants').count(),
-    // $FlowIssue doesn't like sending mixed props down
+    (props: StateProps) => props.rekeyInfo && props.rekeyInfo.get('rekeyParticipants').count(),
     renderComponent(ParticipantRekey)
   ),
   renderNothing

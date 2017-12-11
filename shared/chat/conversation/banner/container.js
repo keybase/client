@@ -53,8 +53,6 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
 export default compose(
   connect(mapStateToProps, mapDispatchToProps),
   branch(props => !props, renderNothing),
-  // $FlowIssue gets very confused here
   branch(({type}) => type === 'Invite', renderComponent(InviteBanner)),
-  // $FlowIssue gets very confused here
   branch(({type}) => type === 'BrokenTracker', renderComponent(BrokenTrackerBanner), renderNothing)
 )(Box)

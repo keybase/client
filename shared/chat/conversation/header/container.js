@@ -41,5 +41,5 @@ const mapDispatchToProps = (dispatch: Dispatch, {onBack, onToggleInfoPanel}: Own
 
 export default compose(
   connect(mapStateToProps, mapDispatchToProps),
-  branch(props => !!props.channelName && !!props.teamName, renderComponent(ChannelHeader))
+  branch(props => props.channelName && props.teamName, renderComponent(ChannelHeader))
 )(UsernameHeader)

@@ -40,7 +40,7 @@ const Body = ({endangeredTLFs, name, currentDevice}) => (
   </Box>
 )
 
-const Render = ({name, deviceID, currentDevice, onSubmit, onCancel, endangeredTLFs, icon}: Props) => (
+const Render = ({name, type, deviceID, currentDevice, onSubmit, onCancel, endangeredTLFs, icon}: Props) => (
   <Confirm
     body={<Body endangeredTLFs={endangeredTLFs} name={name} currentDevice={currentDevice} />}
     danger={true}

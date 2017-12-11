@@ -44,8 +44,6 @@ sketchy-null-bool=off
 sketchy-null-string=off
 sketchy-null-mixed=off
 sketchy-null-number=off
-unclear-type=off
-untyped-import=off
 
 [version]
-0.60.1
+0.59

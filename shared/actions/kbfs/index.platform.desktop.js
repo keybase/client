@@ -112,7 +112,7 @@ function* fuseStatusSaga(): Saga.SagaGenerator<any, any> {
   const state: TypedState = yield Saga.select()
   const prevStatus = state.favorite.fuseStatus
 
-  let status = yield Saga.call(RPCTypes.installFuseStatusRpcPromise, {bundleVersion: ''})
+  let status = yield Saga.call(RPCTypes.installFuseStatusRpcPromise)
   if (isWindows && status.installStatus !== 4) {
     // Check if another Dokan we didn't install mounted the filesystem
     const kbfsMount = yield Saga.call(RPCTypes.kbfsMountGetCurrentMountDirRpcPromise)

@@ -1,7 +1,13 @@
 // @flow
 import * as React from 'react'
+import * as Types from '../constants/types/chat'
 import UserInput from '../search/user-input/container'
 import {compose, withState, lifecycle} from 'recompose'
+
+type OwnProps = {
+  selectedConversationIDKey: ?Types.ConversationIDKey,
+  onExitSearch: () => void,
+}
 
 const _SearchHeader = props => (
   <UserInput
@@ -13,7 +19,7 @@ const _SearchHeader = props => (
   />
 )
 
-const SearchHeader = compose(
+const SearchHeader: Class<React.Component<OwnProps, void>> = compose(
   withState('focusInputCounter', 'setFocusInputCounter', 0),
   lifecycle({
     componentWillReceiveProps(nextProps) {

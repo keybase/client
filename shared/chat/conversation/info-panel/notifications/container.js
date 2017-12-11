@@ -24,7 +24,7 @@ const serverStateToProps = (notifications: Types.NotificationsState, type: 'desk
   return 'never'
 }
 
-const mapStateToProps = (state: TypedState): * => {
+const mapStateToProps = (state: TypedState) => {
   const conversationIDKey = Constants.getSelectedConversation(state)
   if (!conversationIDKey) {
     console.warn('no selected conversation')
@@ -87,6 +87,5 @@ const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps) => {
 
 export default compose(
   connect(mapStateToProps, mapDispatchToProps, mergeProps),
-  // $FlowIssue doens't like dynamic props like we do above
   branch(props => !props.conversationIDKey, renderNothing)
 )(Notifications)
