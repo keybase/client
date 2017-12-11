@@ -208,6 +208,7 @@ export default compose(
 
       return {contactRowProps}
     }),
+    // $FlowIssue doesn't like withProps
     HeaderHoc
   )
 )(InviteByEmailMobile)

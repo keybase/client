@@ -395,7 +395,6 @@ const radioButtonMap: DumbComponentMap<RadioButton> = {
 }
 
 const IconHolder = ({iconFont}) => {
-  // $FlowIssue
   const names: Array<IconType> = Object.keys(iconMeta)
   const sizes = names.reduce((map: {[key: string]: Array<IconType>}, name: IconType) => {
     const meta: any = iconMeta[name]

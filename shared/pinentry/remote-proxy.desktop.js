@@ -2,17 +2,18 @@
 // A mirror of the remote pinentry windows.
 // RemotePinentrys renders all of them (usually only one)
 // RemotePinentry is a single remote window
-import * as I from 'immutable'
 import * as React from 'react'
-import * as Types from '../constants/types/pinentry'
 import SyncProps from '../desktop/remote/sync-props.desktop'
 import SyncBrowserWindow from '../desktop/remote/sync-browser-window.desktop'
 import {connect, type TypedState, compose, renderNothing} from '../util/container'
 
 const windowOpts = {height: 210, width: 440}
 
-const pinentryMapStateToProps = (state: TypedState, {id}) => {
+const pinentryMapStateToProps = (state: TypedState, {id}: {id: number}) => {
   const p = state.pinentry.sessionIDToPinentry.get(id)
+  if (!p) {
+    return {}
+  }
 
   return {
     cancelLabel: p.cancelLabel,
@@ -35,11 +36,12 @@ const RemotePinentry = compose(
   connect(pinentryMapStateToProps, () => ({})),
   SyncBrowserWindow,
   SyncProps,
+  // $FlowIssue gets confused
   renderNothing
 )(null)
 
 type Props = {
-  pinentryIDs: I.Map<number, Types.PinentryState>,
+  pinentryIDs: Array<number>,
 }
 class RemotePinentrys extends React.PureComponent<Props> {
   render() {
