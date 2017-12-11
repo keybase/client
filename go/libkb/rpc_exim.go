@@ -655,6 +655,10 @@ func ImportStatusAsError(g *GlobalContext, s *keybase1.Status) error {
 		return NoOpError{Desc: s.Desc}
 	case SCNoSpaceOnDevice:
 		return NoSpaceOnDeviceError{Desc: s.Desc}
+	case SCTeamInviteBadToken:
+		return TeamInviteBadTokenError{}
+	case SCTeamInviteTokenReused:
+		return TeamInviteTokenReusedError{}
 	default:
 		ase := AppStatusError{
 			Code:   s.Code,
@@ -2174,5 +2178,17 @@ func (e NoSpaceOnDeviceError) ToStatus() (s keybase1.Status) {
 	s.Code = SCNoSpaceOnDevice
 	s.Name = "NO_SPACE_ON_DEVICE"
 	s.Desc = e.Desc
+	return
+}
+
+func (e TeamInviteBadTokenError) ToStatus() (s keybase1.Status) {
+	s.Code = SCTeamInviteBadToken
+	s.Name = "TEAM_INVITE_BAD_TOKEN"
+	return
+}
+
+func (e TeamInviteTokenReusedError) ToStatus() (s keybase1.Status) {
+	s.Code = SCTeamInviteTokenReused
+	s.Name = "TEAM_INVITE_TOKEN_REUSED"
 	return
 }

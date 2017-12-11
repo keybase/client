@@ -4,7 +4,7 @@ import * as More from '../../constants/types/more'
 import * as Types from '../../constants/types/chat'
 import * as Inbox from '.'
 import * as ChatGen from '../../actions/chat-gen'
-import {getTeams} from '../../actions/teams/creators'
+import * as TeamsGen from '../../actions/teams-gen'
 import * as I from 'immutable'
 import {
   pausableConnect,
@@ -228,7 +228,7 @@ const mapStateToProps = (state: TypedState, {isActiveRoute, routeState}: OwnProp
 }
 
 const mapDispatchToProps = (dispatch: Dispatch, {focusFilter, routeState, setRouteState}: OwnProps) => ({
-  getTeams: () => dispatch(getTeams()),
+  getTeams: () => dispatch(TeamsGen.createGetTeams()),
   loadInbox: () => dispatch(ChatGen.createLoadInbox()),
   _onSelectNext: (rows: Array<Inbox.RowItemSmall | Inbox.RowItemBig>, direction: -1 | 1) =>
     dispatch(

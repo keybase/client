@@ -2216,3 +2216,19 @@ type NoSpaceOnDeviceError struct {
 func (e NoSpaceOnDeviceError) Error() string {
 	return e.Desc
 }
+
+//=============================================================================
+
+type TeamInviteBadTokenError struct{}
+
+func (e TeamInviteBadTokenError) Error() string {
+	return "invalid team invite token"
+}
+
+//=============================================================================
+
+type TeamInviteTokenReusedError struct{}
+
+func (e TeamInviteTokenReusedError) Error() string {
+	return "team invite token already used"
+}

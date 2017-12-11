@@ -1,9 +1,9 @@
 // @flow
+import * as TeamsGen from '../actions/teams-gen'
 import NewTeamDialog from '../teams/new-team'
 import {connect} from 'react-redux'
 import {compose, withState, withHandlers} from 'recompose'
 import {type TypedState} from '../constants/reducer'
-import {createNewTeamFromConversation, setTeamCreationError} from '../actions/teams/creators'
 import upperFirst from 'lodash/upperFirst'
 import {lifecycle} from '../util/container'
 
@@ -13,11 +13,16 @@ const mapStateToProps = (state: TypedState) => ({
 })
 
 const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routeProps}) => ({
-  _onCreateNewTeam: name => {
-    dispatch(createNewTeamFromConversation(routeProps.get('conversationIDKey'), name))
+  _onCreateNewTeam: (teamname: string) => {
+    dispatch(
+      TeamsGen.createCreateNewTeamFromConversation({
+        conversationIDKey: routeProps.get('conversationIDKey'),
+        teamname,
+      })
+    )
   },
-  _onSetTeamCreationError: error => {
-    dispatch(setTeamCreationError(error))
+  _onSetTeamCreationError: (error: string) => {
+    dispatch(TeamsGen.createSetTeamCreationError({error}))
   },
   onBack: () => dispatch(navigateUp()),
 })

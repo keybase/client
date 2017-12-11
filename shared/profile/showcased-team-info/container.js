@@ -1,12 +1,6 @@
 // @flow
 import ShowcasedTeamInfo from './index'
-import {
-  checkRequestedAccess,
-  getTeams,
-  joinTeam,
-  setTeamJoinError,
-  setTeamJoinSuccess,
-} from '../../actions/teams/creators'
+import * as TeamsGen from '../../actions/teams-gen'
 import * as ProfileGen from '../../actions/profile-gen'
 import {publicAdminsLimit} from '../../constants/teams'
 import {connect, compose, lifecycle, type TypedState} from '../../util/container'
@@ -62,12 +56,13 @@ const mapStateToProps = (state: TypedState, {routeProps}) => {
 const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routeProps}) => {
   const teamname = routeProps.get('team').fqName
   return {
-    _checkRequestedAccess: () => dispatch(checkRequestedAccess(teamname)),
-    _loadTeams: () => dispatch(getTeams()),
-    _onSetTeamJoinError: (error: string) => dispatch(setTeamJoinError(error)),
-    _onSetTeamJoinSuccess: (success: boolean) => dispatch(setTeamJoinSuccess(success)),
+    _checkRequestedAccess: () => dispatch(TeamsGen.createCheckRequestedAccess({teamname})),
+    _loadTeams: () => dispatch(TeamsGen.createGetTeams()),
+    _onSetTeamJoinError: (error: string) => dispatch(TeamsGen.createSetTeamJoinError({error})),
+    _onSetTeamJoinSuccess: (success: boolean) =>
+      dispatch(TeamsGen.createSetTeamJoinSuccess({success, teamname: null})),
     onHidden: () => dispatch(navigateUp()),
-    onJoinTeam: () => dispatch(joinTeam(teamname)),
+    onJoinTeam: () => dispatch(TeamsGen.createJoinTeam({teamname})),
     onUserClick: username => {
       dispatch(navigateUp())
       dispatch(ProfileGen.createShowUserProfile({username}))
