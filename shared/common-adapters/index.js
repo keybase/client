@@ -57,7 +57,6 @@ const _styleContainer = {
   height: '100%',
 }
 
-export {initAvatarLookup, initAvatarLoad} from './index.shared'
 export {default as AutosizeInput} from './autosize-input'
 export {default as Avatar} from './avatar'
 export {default as BackButton} from './back-button'

@@ -15,7 +15,7 @@ const makeDeviceDetail: I.RecordFactory<Types._DeviceDetail> = I.Record({
   provisionerName: null,
   revokedAt: null,
   revokedByName: null,
-  type: '',
+  type: 'desktop',
 })
 
 const makeState: I.RecordFactory<Types._State> = I.Record({

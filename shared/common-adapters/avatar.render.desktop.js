@@ -56,19 +56,13 @@ const BackgroundDiv = glamorous.div(
     top: backgroundOffset,
   },
   props => ({
-    backgroundColor: props.loaded ? globalColors.white : props.loadingColor || globalColors.lightGrey,
+    backgroundColor: props.loadingColor || globalColors.lightGrey,
     borderRadius: props.borderRadius,
   })
 )
-class Background extends React.PureComponent<{loaded: boolean, loadingColor: ?string, borderRadius: any}> {
+class Background extends React.PureComponent<{borderRadius: any}> {
   render() {
-    return (
-      <BackgroundDiv
-        loaded={this.props.loaded}
-        loadingColor={this.props.loadingColor}
-        borderRadius={this.props.borderRadius}
-      />
-    )
+    return <BackgroundDiv borderRadius={this.props.borderRadius} />
   }
 }
 
@@ -127,72 +121,7 @@ const Border = ({borderColor, size, borderRadius}) => (
   />
 )
 
-const _alreadyLoaded: {[name: string]: ?true} = {}
-
 class AvatarRender extends React.PureComponent<Props, State> {
-  state: State = {
-    loaded: false,
-  }
-
-  _mounted: boolean = false
-  _image: any
-
-  _onLoadOrError = event => {
-    if (this.props.url) {
-      _alreadyLoaded[this.props.url] = true
-    }
-    if (this._mounted) {
-      this.setState({loaded: true})
-    }
-    this._image = null
-  }
-
-  componentWillReceiveProps(nextProps: Props) {
-    if (this.props.url !== nextProps.url) {
-      if (nextProps.url && !_alreadyLoaded[nextProps.url]) {
-        this.setState({loaded: false})
-        this._internalLoad(nextProps.url)
-      } else {
-        this.setState({loaded: true})
-      }
-    }
-  }
-
-  _internalLoad(url: ?string) {
-    if (url) {
-      const match = url.match(/url\('([^']*)/)
-      if (match) {
-        const single = match[1]
-        if (!this._image) {
-          this._image = new Image() // eslint-disable-line
-          this._image.onload = this._onLoadOrError
-          this._image.onerror = this._onLoadOrError
-          this._image.src = single
-        } else {
-          this._image.src = single
-        }
-      }
-    }
-  }
-
-  componentWillMount() {
-    if (this.props.url && _alreadyLoaded[this.props.url]) {
-      this.setState({loaded: true})
-    }
-  }
-
-  componentDidMount() {
-    this._mounted = true
-
-    if (this.props.url && !_alreadyLoaded[this.props.url]) {
-      this._internalLoad(this.props.url)
-    }
-  }
-
-  componentWillUnmount() {
-    this._mounted = false
-  }
-
   render() {
     const borderRadius = this.props.isTeam ? sizeToTeamBorderRadius[String(this.props.size)] : '50%'
 
@@ -209,12 +138,7 @@ class AvatarRender extends React.PureComponent<Props, State> {
           ...this.props.style,
         }}
       >
-        {!this.props.skipBackground &&
-          <Background
-            loaded={this.state.loaded}
-            loadingColor={this.props.loadingColor}
-            borderRadius={borderRadius}
-          />}
+        {!this.props.skipBackground && <Background borderRadius={borderRadius} />}
         {this.props.url &&
           <UserImage
             opacity={this.props.opacity}

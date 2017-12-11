@@ -35,7 +35,7 @@ type RowProps = {
   onViewTeam: () => void,
 }
 
-export const newCharmStyle = {
+const newCharmStyle = {
   backgroundColor: globalColors.orange,
   borderRadius: 1,
   marginRight: 4,

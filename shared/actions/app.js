@@ -3,6 +3,7 @@ import * as RPCTypes from '../constants/types/flow-types'
 import * as Saga from '../util/saga'
 import * as AppGen from './app-gen'
 import {call, put} from 'redux-saga/effects'
+import {showMainWindow} from './platform-specific'
 
 function* _onMobileAppStateChanged(action: AppGen.MobileAppStatePayload): Saga.SagaGenerator<any, any> {
   const nextAppState = action.payload.nextAppState
@@ -26,7 +27,12 @@ function* _onMobileAppStateChanged(action: AppGen.MobileAppStatePayload): Saga.S
   yield call(RPCTypes.appStateUpdateAppStateRpcPromise, {state})
 }
 
+function _onShowMain() {
+  showMainWindow()
+}
+
 function* appStateSaga(): Saga.SagaGenerator<any, any> {
+  yield Saga.safeTakeLatest(AppGen.showMain, _onShowMain)
   yield Saga.safeTakeLatest(AppGen.mobileAppState, _onMobileAppStateChanged)
 }
 

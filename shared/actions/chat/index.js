@@ -28,66 +28,66 @@ function* _incomingTyping(action: ChatGen.IncomingTypingPayload): Saga.SagaGener
 }
 
 function* _setupChatHandlers(): Saga.SagaGenerator<any, any> {
-  engine().setIncomingActionCreator('chat.1.NotifyChat.NewChatActivity', ({activity}) =>
-    ChatGen.createIncomingMessage({activity})
-  )
+  engine().setIncomingActionCreators('chat.1.NotifyChat.NewChatActivity', ({activity}) => [
+    ChatGen.createIncomingMessage({activity}),
+  ])
 
-  engine().setIncomingActionCreator('chat.1.NotifyChat.ChatTypingUpdate', ({typingUpdates}) =>
-    ChatGen.createIncomingTyping({activity: typingUpdates})
-  )
+  engine().setIncomingActionCreators('chat.1.NotifyChat.ChatTypingUpdate', ({typingUpdates}) => [
+    ChatGen.createIncomingTyping({activity: typingUpdates}),
+  ])
 
-  engine().setIncomingActionCreator('chat.1.NotifyChat.ChatIdentifyUpdate', ({update}) => {
+  engine().setIncomingActionCreators('chat.1.NotifyChat.ChatIdentifyUpdate', ({update}) => {
     const usernames = update.CanonicalName.split(',')
     const broken = (update.breaks.breaks || []).map(b => b.user.username)
     const userToBroken = usernames.reduce((map, name) => {
       map[name] = !!broken.includes(name)
       return map
     }, {})
-    return ChatGen.createUpdateBrokenTracker({userToBroken})
+    return [ChatGen.createUpdateBrokenTracker({userToBroken})]
   })
 
-  engine().setIncomingActionCreator('chat.1.NotifyChat.ChatTLFFinalize', ({convID}) =>
-    ChatGen.createGetInboxAndUnbox({conversationIDKeys: [Constants.conversationIDToKey(convID)]})
-  )
+  engine().setIncomingActionCreators('chat.1.NotifyChat.ChatTLFFinalize', ({convID}) => [
+    ChatGen.createGetInboxAndUnbox({conversationIDKeys: [Constants.conversationIDToKey(convID)]}),
+  ])
 
-  engine().setIncomingActionCreator('chat.1.NotifyChat.ChatInboxStale', () =>
-    ChatGen.createInboxStale({reason: 'service invoked'})
-  )
+  engine().setIncomingActionCreators('chat.1.NotifyChat.ChatInboxStale', () => [
+    ChatGen.createInboxStale({reason: 'service invoked'}),
+  ])
 
-  engine().setIncomingActionCreator(
+  engine().setIncomingActionCreators(
     'chat.1.NotifyChat.ChatTLFResolve',
-    ({convID, resolveInfo: {newTLFName}}) => ChatGen.createInboxStale({reason: 'TLF resolve notification'})
+    ({convID, resolveInfo: {newTLFName}}) => [ChatGen.createInboxStale({reason: 'TLF resolve notification'})]
   )
 
-  engine().setIncomingActionCreator('chat.1.NotifyChat.ChatThreadsStale', ({updates}) => {
+  engine().setIncomingActionCreators('chat.1.NotifyChat.ChatThreadsStale', ({updates}) => {
     if (updates) {
-      return ChatGen.createMarkThreadsStale({updates})
+      return [ChatGen.createMarkThreadsStale({updates})]
     }
     return null
   })
 
-  engine().setIncomingActionCreator('chat.1.NotifyChat.ChatInboxSynced', ({syncRes}) => {
+  engine().setIncomingActionCreators('chat.1.NotifyChat.ChatInboxSynced', ({syncRes}) => {
     switch (syncRes.syncType) {
       case ChatTypes.commonSyncInboxResType.clear:
-        return ChatGen.createInboxStale({reason: 'sync with clear result'})
+        return [ChatGen.createInboxStale({reason: 'sync with clear result'})]
       case ChatTypes.commonSyncInboxResType.current:
-        return ChatGen.createSetInboxSyncingState({inboxSyncingState: 'notSyncing'})
+        return [ChatGen.createSetInboxSyncingState({inboxSyncingState: 'notSyncing'})]
       case ChatTypes.commonSyncInboxResType.incremental:
-        return ChatGen.createInboxSynced({convs: syncRes.incremental.items})
+        return [ChatGen.createInboxSynced({convs: syncRes.incremental.items})]
     }
-    return ChatGen.createInboxStale({reason: 'sync with unknown result'})
+    return [ChatGen.createInboxStale({reason: 'sync with unknown result'})]
   })
 
-  engine().setIncomingActionCreator('chat.1.NotifyChat.ChatInboxSyncStarted', () => {
-    return ChatGen.createSetInboxSyncingState({inboxSyncingState: 'syncing'})
-  })
+  engine().setIncomingActionCreators('chat.1.NotifyChat.ChatInboxSyncStarted', () => [
+    ChatGen.createSetInboxSyncingState({inboxSyncingState: 'syncing'}),
+  ])
 
-  engine().setIncomingActionCreator('chat.1.NotifyChat.ChatJoinedConversation', () =>
-    ChatGen.createInboxStale({reason: 'joined a conversation'})
-  )
-  engine().setIncomingActionCreator('chat.1.NotifyChat.ChatLeftConversation', () =>
-    ChatGen.createInboxStale({reason: 'left a conversation'})
-  )
+  engine().setIncomingActionCreators('chat.1.NotifyChat.ChatJoinedConversation', () => [
+    ChatGen.createInboxStale({reason: 'joined a conversation'}),
+  ])
+  engine().setIncomingActionCreators('chat.1.NotifyChat.ChatLeftConversation', () => [
+    ChatGen.createInboxStale({reason: 'left a conversation'}),
+  ])
 }
 
 function* _openTlfInChat(action: ChatGen.OpenTlfInChatPayload): Saga.SagaGenerator<any, any> {

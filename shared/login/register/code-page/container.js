@@ -41,16 +41,14 @@ class _CodePage extends Component<Props, {enterText: string}> {
 
 const mapStateToProps = ({
   login: {
-    codePage: {
-      cameraBrokenMode,
-      enterCodeErrorText,
-      mode,
-      myDeviceRole,
-      otherDeviceRole,
-      qrCode,
-      qrCodeScanned,
-      textCode,
-    },
+    codePageCameraBrokenMode: cameraBrokenMode,
+    codePageEnterCodeErrorText: enterCodeErrorText,
+    codePageMode: mode,
+    codePageMyDeviceRole: myDeviceRole,
+    codePageOtherDeviceRole: otherDeviceRole,
+    codePageQrCode: qrCode,
+    codePageQrCodeScanned: qrCodeScanned,
+    codePageTextCode: textCode,
   },
 }: TypedState) => ({
   cameraBrokenMode,
@@ -65,10 +63,11 @@ const mapStateToProps = ({
 
 const mapDispatchToProps = dispatch => ({
   onBack: () => dispatch(LoginGen.createOnBack()),
-  setCodePageMode: mode => dispatch(LoginGen.createSetCodePageMode({mode})),
-  setCameraBrokenMode: (broken: boolean) => dispatch(LoginGen.createSetCameraBrokenMode({broken})),
   qrScanned: ({data}: {data: string}) => dispatch(LoginGen.createQrScanned({phrase: new HiddenString(data)})),
   resetQRCodeScanned: () => dispatch(LoginGen.createResetQRCodeScanned()),
+  setCameraBrokenMode: (codePageCameraBrokenMode: boolean) =>
+    dispatch(LoginGen.createSetCameraBrokenMode({codePageCameraBrokenMode})),
+  setCodePageMode: codePageMode => dispatch(LoginGen.createSetCodePageMode({codePageMode})),
   textEntered: (phrase: string) =>
     dispatch(LoginGen.createProvisionTextCodeEntered({phrase: new HiddenString(phrase)})),
 })

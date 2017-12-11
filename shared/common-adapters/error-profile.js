@@ -20,4 +20,4 @@ const ErrorLoadingProfile = ({error, onBack}: Props) => (
   </Box>
 )
 
-export default branch(props => isMobile && props.onBack, HeaderHOC)(ErrorLoadingProfile)
+export default branch(props => isMobile && !!props.onBack, HeaderHOC)(ErrorLoadingProfile)

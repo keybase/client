@@ -24,9 +24,6 @@
       "searchKey": "string",
       "userInputItemIds": "Array<Types.SearchResultId>"
     },
-    "addClickedFromUserInput": {
-      "searchKey": "string"
-    },
     "clearSearchResults": {
       "searchKey": "string"
     },

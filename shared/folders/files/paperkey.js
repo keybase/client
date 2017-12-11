@@ -1,8 +1,6 @@
 // @flow
 import * as Types from '../../constants/types/unlock-folders'
 import * as UnlockFoldersGen from '../../actions/unlock-folders-gen'
-import * as Creators from '../../actions/unlock-folders'
-import HiddenString from '../../util/hidden-string'
 import React, {Component} from 'react'
 import PaperKey from '../../login/register/paper-key'
 import {connect, type TypedState} from '../../util/container'
@@ -15,7 +13,7 @@ type Props = {
   onBackFromPaperKey: () => void,
   toPaperKeyInput: () => void,
   phase: $PropertyType<Types.State, 'phase'>,
-  checkPaperKey: (paperKey: HiddenString) => void,
+  checkPaperKey: (paperKey: string) => void,
 }
 
 // TODO remove this class
@@ -40,7 +38,7 @@ class _PaperKey extends Component<Props, {paperKey: string}> {
       <PaperKey
         onSubmit={() => {
           this.props.toPaperKeyInput()
-          this.props.checkPaperKey(new HiddenString(this.state.paperKey))
+          this.props.checkPaperKey(this.state.paperKey)
         }}
         error={this.props.error}
         onChangePaperKey={paperKey => this.setState({paperKey})}
@@ -60,7 +58,7 @@ const mapStateToProps = (state: TypedState, ownProps) => ({
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
   onBack: () => dispatch(navigateUp()),
-  checkPaperKey: paperkey => dispatch(Creators.checkPaperKey(paperkey)),
+  checkPaperKey: (paperKey: string) => dispatch(UnlockFoldersGen.createCheckPaperKey({paperKey})),
   toPaperKeyInput: () => dispatch(UnlockFoldersGen.createToPaperKeyInput()),
   onBackFromPaperKey: () => dispatch(UnlockFoldersGen.createOnBackFromPaperKey()),
 })

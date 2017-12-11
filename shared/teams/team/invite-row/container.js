@@ -1,11 +1,11 @@
 // @flow
-import * as React from 'react'
-import {connect} from 'react-redux'
 import * as Creators from '../../../actions/teams/creators'
-import * as Constants from '../../../constants/teams'
-import * as Types from '../../../constants/types/teams'
 import * as I from 'immutable'
+import * as React from 'react'
+import * as Types from '../../../constants/types/teams'
+import {amIFollowing} from '../../../constants/selectors'
 import {TeamInviteRow} from '.'
+import {connect} from 'react-redux'
 
 import type {TypedState} from '../../../constants/reducer'
 
@@ -15,11 +15,6 @@ type OwnProps = {
   name?: string,
   teamname: string,
   username?: string,
-}
-
-const getFollowing = (state, username: string) => {
-  const followingMap = Constants.getFollowingMap(state)
-  return !!followingMap[username]
 }
 
 type StateProps = {
@@ -32,7 +27,7 @@ type StateProps = {
 const mapStateToProps = (state: TypedState, {teamname, username}: OwnProps): StateProps => ({
   _invites: state.entities.getIn(['teams', 'teamNameToInvites', teamname], I.Set()),
   _members: state.entities.getIn(['teams', 'teamNameToMembers', teamname], I.Set()),
-  following: username ? getFollowing(state, username) : false,
+  following: amIFollowing(state, username || ''),
   you: state.config.username,
 })
 
@@ -70,7 +65,7 @@ const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps, ownPro
   }
 }
 
-export const ConnectedInviteRow = connect(mapStateToProps, mapDispatchToProps, mergeProps)(TeamInviteRow)
+const ConnectedInviteRow = connect(mapStateToProps, mapDispatchToProps, mergeProps)(TeamInviteRow)
 
 export default function(i: number, props: OwnProps) {
   return <ConnectedInviteRow {...props} />

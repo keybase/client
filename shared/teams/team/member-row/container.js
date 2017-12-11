@@ -1,10 +1,10 @@
 // @flow
-import * as React from 'react'
-import {connect} from 'react-redux'
-import * as Constants from '../../../constants/teams'
-import * as Types from '../../../constants/types/teams'
 import * as I from 'immutable'
+import * as React from 'react'
+import * as Types from '../../../constants/types/teams'
 import {TeamMemberRow} from '.'
+import {amIFollowing} from '../../../constants/selectors'
+import {connect} from 'react-redux'
 import {navigateAppend} from '../../../actions/route-tree'
 
 import type {TypedState} from '../../../constants/reducer'
@@ -15,11 +15,6 @@ type OwnProps = {
   active: boolean,
 }
 
-const getFollowing = (state, username: string) => {
-  const followingMap = Constants.getFollowingMap(state)
-  return !!followingMap[username]
-}
-
 type StateProps = {
   following: boolean,
   active: boolean,
@@ -28,7 +23,7 @@ type StateProps = {
 }
 
 const mapStateToProps = (state: TypedState, {teamname, username, active}: OwnProps): StateProps => ({
-  following: getFollowing(state, username),
+  following: amIFollowing(state, username),
   you: state.config.username,
   active,
   _members: state.entities.getIn(['teams', 'teamNameToMembers', teamname], I.Set()),
@@ -62,7 +57,7 @@ const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps, ownPro
   }
 }
 
-export const ConnectedMemberRow = connect(mapStateToProps, mapDispatchToProps, mergeProps)(TeamMemberRow)
+const ConnectedMemberRow = connect(mapStateToProps, mapDispatchToProps, mergeProps)(TeamMemberRow)
 
 export default function(i: number, props: OwnProps) {
   return <ConnectedMemberRow key={props.username} {...props} />

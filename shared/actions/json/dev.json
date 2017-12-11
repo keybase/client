@@ -4,10 +4,9 @@
   ],
   "actions": {
     "updateDebugConfig": {
-      "config": "Types.DebugConfig"
-    },
-    "updatehmrReloading": {
-      "reloading": "boolean"
+      "dumbFilter": "string",
+      "dumbFullscreen": "boolean",
+      "dumbIndex": "number"
     },
     "debugCount": {}
   }

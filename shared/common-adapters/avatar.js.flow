@@ -1,0 +1,23 @@
+// @flow
+// Keep this file as the avatar.js file w/ the HOC currently confuses flow
+import * as React from 'react'
+
+export type AvatarSize = 176 | 112 | 80 | 64 | 48 | 40 | 32 | 24 | 16 | 12
+export type Props = {
+  borderColor?: string,
+  children?: any,
+  following?: ?boolean,
+  followsYou?: ?boolean,
+  isTeam?: boolean,
+  loadingColor?: string,
+  onAvatarLoaded?: () => void,
+  onClick?: ?() => void,
+  opacity?: number,
+  skipBackground?: boolean,
+  size: AvatarSize,
+  style?: ?Object,
+  username?: ?string,
+  teamname?: ?string,
+}
+
+export default class Avatar extends React.Component<Props> {}

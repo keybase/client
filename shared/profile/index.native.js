@@ -31,7 +31,7 @@ import type {Props} from '.'
 import type {Tab as FriendshipsTab} from './friendships'
 
 export const AVATAR_SIZE = 112
-export const HEADER_TOP_SPACE = 96
+const HEADER_TOP_SPACE = 96
 export const HEADER_SIZE = AVATAR_SIZE / 2 + HEADER_TOP_SPACE
 export const BACK_ZINDEX = 12
 export const SEARCH_CONTAINER_ZINDEX = BACK_ZINDEX + 1
@@ -448,7 +448,7 @@ class Profile extends Component<Props, State> {
   }
 }
 
-const UserEntry = ({onClick, username, fullname, followsYou, following, thumbnailUrl}) => (
+const UserEntry = ({onClick, username, fullname, followsYou, following}) => (
   <ClickableBox
     onClick={() => {
       onClick && onClick(username)
@@ -459,7 +459,7 @@ const UserEntry = ({onClick, username, fullname, followsYou, following, thumbnai
       <Avatar
         style={userEntryAvatarStyle}
         size={64}
-        url={thumbnailUrl}
+        username={username}
         followsYou={followsYou}
         following={following}
       />

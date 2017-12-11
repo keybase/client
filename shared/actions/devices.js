@@ -72,6 +72,7 @@ function* _deviceListSaga(): Saga.SagaGenerator<any, any> {
         provisionerName: r.provisioner ? r.provisioner.name : '',
         revokedAt: r.revokedAt,
         revokedByName: r.revokedByDevice ? r.revokedByDevice.name : null,
+        // $ForceType avdl typed as string
         type: r.device.type,
       })
     })

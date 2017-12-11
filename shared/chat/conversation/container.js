@@ -9,7 +9,7 @@ import HiddenString from '../../util/hidden-string'
 import Conversation from './index'
 import NoConversation from './no-conversation'
 import Rekey from './rekey/container'
-import {getProfile} from '../../actions/tracker'
+import {createGetProfile} from '../../actions/tracker-gen'
 import {
   pausableConnect,
   withState,
@@ -126,7 +126,8 @@ const mapDispatchToProps = (
   },
   onOpenInfoPanelMobile: () => dispatch(navigateAppend(['infoPanel'])),
   onBack: () => dispatch(navigateUp()),
-  onShowTrackerInSearch: id => dispatch(getProfile(id, false, true)),
+  onShowTrackerInSearch: (username: string) =>
+    dispatch(createGetProfile({username, ignoreCache: false, forceDisplay: true})),
   _onStoreInputText: (selectedConversation: Types.ConversationIDKey, inputText: string) =>
     dispatch(Creators.setSelectedRouteState(selectedConversation, {inputText: new HiddenString(inputText)})),
 })
@@ -154,10 +155,11 @@ export default compose(
     (props: Props) =>
       (props.selectedConversationIDKey === Constants.nothingSelected || !props.selectedConversationIDKey) &&
       !props.inSearch,
+    // $FlowIssue gets very confused here
     renderComponent(NoConversation)
   ),
   // Ordering of branch() is important here -- rekey should come before error.
-  branch((props: Props) => !props.finalizeInfo && props.rekeyInfo, renderComponent(Rekey)),
+  branch((props: Props) => !props.finalizeInfo && !!props.rekeyInfo, renderComponent(Rekey)),
   branch((props: Props) => props.conversationIsError, renderComponent(ConversationError)),
   withState('focusInputCounter', 'setFocusInputCounter', 0),
   withState('editLastMessageCounter', 'setEditLastMessageCounter', 0),

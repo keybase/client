@@ -1,16 +1,9 @@
 // @flow
-import {
-  compose,
-  renderComponent,
-  branch,
-  type TypedState,
-  connect,
-  type MapStateToProps,
-} from '../../util/container'
+import {compose, renderComponent, branch, type TypedState, connect} from '../../util/container'
 import Install from './banner-install'
 import Uninstall from './banner-uninstall'
 
-const mapStateToProps: MapStateToProps<*, *, *> = (state: TypedState) => {
+const mapStateToProps = (state: TypedState): * => {
   const installed = state.favorite.fuseStatus && state.favorite.fuseStatus.kextStarted
   return {
     installed,
@@ -19,5 +12,6 @@ const mapStateToProps: MapStateToProps<*, *, *> = (state: TypedState) => {
 
 export default compose(
   connect(mapStateToProps),
+  // $FlowIssue doesnt like sending down props not used
   branch(props => props.installed, renderComponent(Uninstall))
 )(Install)
