@@ -46,6 +46,7 @@ const RemoteTracker = compose(
   SyncBrowserWindow,
   SyncAvatarProps,
   SyncProps,
+  // $FlowIssue gets confused
   renderNothing
 )(null)
 

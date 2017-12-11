@@ -5,12 +5,12 @@ import SyncAvatarProps from '../desktop/remote/sync-avatar-props.desktop'
 import SyncProps from '../desktop/remote/sync-props.desktop'
 import {sendLoad} from '../desktop/remote/sync-browser-window.desktop'
 import {connect, type TypedState, compose, renderNothing, branch} from '../util/container'
-import {remote} from 'electron'
+import {remote, BrowserWindow} from 'electron'
 
 const windowOpts = {}
 
 type Props = {
-  externalRemoteWindow: any,
+  externalRemoteWindow: BrowserWindow,
   windowComponent: string,
   windowOpts?: Object,
   windowParam: string,
@@ -41,7 +41,7 @@ function RemoteMenubarWindow(ComposedComponent: any) {
   return RemoteWindowComponent
 }
 
-const mapStateToProps = (state: TypedState, {id}) => ({
+const mapStateToProps = (state: TypedState) => ({
   _badgeInfo: state.notifications.navBadges,
   _externalRemoteWindowID: state.config.menubarWindowID,
   extendedConfig: state.config.extendedConfig,
@@ -51,7 +51,7 @@ const mapStateToProps = (state: TypedState, {id}) => ({
   username: state.config.username,
 })
 
-const mergeProps = (stateProps, dispatchProps, ownProps) => ({
+const mergeProps = stateProps => ({
   badgeInfo: stateProps._badgeInfo.toJS(),
   extendedConfig: stateProps.extendedConfig,
   externalRemoteWindow: stateProps._externalRemoteWindowID
@@ -74,5 +74,6 @@ export default compose(
   RemoteMenubarWindow,
   SyncAvatarProps,
   SyncProps,
+  // $FlowIssue gets confused
   renderNothing
 )(null)

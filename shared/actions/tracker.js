@@ -558,10 +558,10 @@ function _openProofUrl(action: TrackerGen.OpenProofUrlPayload) {
 
 function _userChanged(action: {payload: {uid: string}}, state: TypedState) {
   const {uid} = action.payload
-  const actions = [TrackerGen.createCacheIdentify({goodTill: 0, uid})]
+  const actions = [Saga.put(TrackerGen.createCacheIdentify({goodTill: 0, uid}))]
   const username = _getUsername(uid, state)
   if (username) {
-    actions.push(TrackerGen.createGetProfile({username}))
+    actions.push(Saga.put(TrackerGen.createGetProfile({username})))
   }
   return Saga.all(actions)
 }
