@@ -164,52 +164,40 @@ function _getFavoritesRPCToFolders(
   return folders
 }
 
-function* _addSaga(action: FavoriteGen.FavoriteAddPayload): Saga.SagaGenerator<any, any> {
+function* _addOrIgnoreSaga(
+  action: FavoriteGen.FavoriteAddPayload | FavoriteGen.FavoriteIgnorePayload
+): Saga.SagaGenerator<any, any> {
   const folder = Constants.folderRPCFromPath(action.payload.path)
+  const isAdd = action.type === FavoriteGen.favoriteAdd
   if (!folder) {
-    yield put(FavoriteGen.createFavoriteAddedError({errorText: 'No folder specified'}))
+    const create = isAdd ? FavoriteGen.createFavoriteAddedError : FavoriteGen.createFavoriteIgnoredError
+    yield put(create({errorText: 'No folder specified'}))
   } else {
     try {
-      yield call(RPCTypes.favoriteFavoriteAddRpcPromise, {folder})
+      yield call(isAdd ? RPCTypes.favoriteFavoriteAddRpcPromise : RPCTypes.favoriteFavoriteIgnoreRpcPromise, {
+        folder,
+      })
       yield put(FavoriteGen.createFavoriteAdded())
       yield put(FavoriteGen.createFavoriteList())
     } catch (error) {
-      console.warn('Err in favorite.favoriteAdd', error)
-    }
-  }
-}
-
-function* _ignoreSaga(action: FavoriteGen.FavoriteIgnorePayload): Saga.SagaGenerator<any, any> {
-  const folder = Constants.folderRPCFromPath(action.payload.path)
-  if (!folder) {
-    yield put(FavoriteGen.createFavoriteIgnoredError({errorText: 'No folder specified'}))
-  } else {
-    try {
-      yield call(RPCTypes.favoriteFavoriteIgnoreRpcPromise, {folder})
-      yield put(FavoriteGen.createFavoriteIgnored())
-      yield put(FavoriteGen.createFavoriteList())
-    } catch (error) {
-      console.warn('Err in favorite.favoriteIgnore', error)
+      console.warn('Err in favorite.favoriteAddOrIgnore', error)
     }
   }
 }
 
 function* _listSaga(): Saga.SagaGenerator<any, any> {
+  const state: TypedState = yield select()
   try {
     const results = yield call(RPCTypes.apiserverGetWithSessionRpcPromise, {
-      endpoint: 'kbfs/favorite/list',
       args: [{key: 'problems', value: '1'}],
+      endpoint: 'kbfs/favorite/list',
     })
-    const username = yield select((state: TypedState) => state.config && state.config.username)
-    const loggedIn = yield select((state: TypedState) => state.config && state.config.loggedIn)
-    const state: Types.FolderState = _folderToState(
-      results && results.body,
-      username || '',
-      loggedIn || false
-    )
+    const username = state.config.username || ''
+    const loggedIn = state.config.loggedIn
+    const folders: Types.FolderState = _folderToState(results && results.body, username, loggedIn)
 
-    yield put(FavoriteGen.createFavoriteListed({folders: state}))
-    yield call(_notify, state)
+    yield put(FavoriteGen.createFavoriteListed({folders}))
+    yield call(_notify, folders)
   } catch (e) {
     console.warn('Error listing favorites:', e)
   }
@@ -278,8 +266,7 @@ function* _setupKBFSChangedHandler(): Saga.SagaGenerator<any, any> {
 
 function* favoriteSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeLatest(FavoriteGen.favoriteList, _listSaga)
-  yield Saga.safeTakeEvery(FavoriteGen.favoriteAdd, _addSaga)
-  yield Saga.safeTakeEvery(FavoriteGen.favoriteIgnore, _ignoreSaga)
+  yield Saga.safeTakeEvery([FavoriteGen.favoriteAdd, FavoriteGen.favoriteIgnore], _addOrIgnoreSaga)
   yield Saga.safeTakeEvery(FavoriteGen.setupKBFSChangedHandler, _setupKBFSChangedHandler)
 }
 
