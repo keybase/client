@@ -324,7 +324,7 @@ function* _incomingMessage(action: ChatGen.IncomingMessagePayload): Saga.SagaGen
           const state = yield Saga.select()
           const pendingMessage = Shared.messageOutboxIDSelector(state, conversationIDKey, outboxID)
           if (pendingMessage) {
-            yield Saga.all([
+            yield Saga.sequentially([
               // If the message has an outboxID and came from our device, then we
               // sent it and have already rendered it in the message list; we just
               // need to mark it as sent.
@@ -895,7 +895,7 @@ function _updateOutboxMessageToReal(
     low: currentMessages.low,
     messages: currentMessages.messages.map(k => (k === oldMessageKey ? newMessageKey : k)),
   })
-  return Saga.all([
+  return Saga.sequentially([
     Saga.put(
       EntityCreators.replaceEntity(['conversationMessages'], I.Map({[conversationIDKey]: nextMessages}))
     ),

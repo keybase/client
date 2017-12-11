@@ -467,18 +467,18 @@ function onOpenAttachmentPopup(action: ChatGen.OpenAttachmentPopupPayload) {
     actions.push(Saga.put(ChatGen.createLoadAttachment({messageKey: message.key, loadPreview: false})))
   }
 
-  return Saga.all(actions)
+  return Saga.sequentially(actions)
 }
 
 function attachmentLoaded(action: ChatGen.AttachmentLoadedPayload) {
   const {payload: {messageKey, path, isPreview}} = action
   if (isPreview) {
-    return Saga.all([
+    return Saga.sequentially([
       Saga.put(EntityCreators.replaceEntity(['attachmentPreviewPath'], I.Map({[messageKey]: path}))),
       Saga.put(EntityCreators.replaceEntity(['attachmentPreviewProgress'], I.Map({[messageKey]: null}))),
     ])
   }
-  return Saga.all([
+  return Saga.sequentially([
     Saga.put(EntityCreators.replaceEntity(['attachmentDownloadedPath'], I.Map({[messageKey]: path}))),
     Saga.put(EntityCreators.replaceEntity(['attachmentDownloadProgress'], I.Map({[messageKey]: null}))),
   ])

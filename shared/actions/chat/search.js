@@ -25,7 +25,7 @@ function _newChat(action: ChatGen.NewChatPayload, state: TypedState) {
     actions.push(Saga.put(SearchGen.createSearchSuggestions({searchKey: 'chatSearch'})))
   }
 
-  return Saga.all(actions)
+  return Saga.sequentially(actions)
 }
 
 function _exitSearch({payload: {skipSelectPreviousConversation}}: ChatGen.ExitSearchPayload, s: TypedState) {
@@ -36,7 +36,7 @@ function _exitSearch({payload: {skipSelectPreviousConversation}}: ChatGen.ExitSe
     typeof Selectors.previousConversationSelector
   > = Selectors.previousConversationSelector(s)
 
-  return Saga.all(
+  return Saga.sequentially(
     [
       Saga.put(SearchGen.createClearSearchResults({searchKey: 'chatSearch'})),
       Saga.put(SearchGen.createSetUserInputItems({searchKey: 'chatSearch', searchResults: []})),
@@ -77,7 +77,7 @@ function* _updateTempSearchConversation(action: SearchGen.UserInputItemsUpdatedP
 
   // Always clear the search results when you select/unselect
   actionsToPut.push(Saga.put(SearchGen.createClearSearchResults({searchKey: 'chatSearch'})))
-  yield Saga.all(actionsToPut)
+  yield Saga.sequentially(actionsToPut)
 }
 
 function* registerSagas(): Saga.SagaGenerator<any, any> {

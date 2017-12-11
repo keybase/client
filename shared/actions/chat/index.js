@@ -27,7 +27,7 @@ function _incomingTyping(action: ChatGen.IncomingTypingPayload) {
     const typing = typers.map(typer => typer.username)
     actions.push(Saga.put(ChatGen.createSetTypers({conversationIDKey, typing})))
   }
-  return Saga.all(actions)
+  return Saga.sequentially(actions)
 }
 
 function _setupChatHandlers() {

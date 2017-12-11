@@ -154,7 +154,7 @@ function* onInboxStale(action: ChatGen.InboxStalePayload): SagaGenerator<any, an
 
     const inboxIsEmpty = I.Map(conversations.map(c => [c.conversationIDKey, c.isEmpty]))
 
-    yield Saga.all([
+    yield Saga.sequentially([
       Saga.put(ChatGen.createReplaceEntity({keyPath: ['inboxVersion'], entities: idToVersion})),
       Saga.put(
         ChatGen.createReplaceEntity({keyPath: ['inboxSmallTimestamps'], entities: inboxSmallTimestamps})
@@ -270,7 +270,7 @@ function* _processConversation(c: RPCChatTypes.InboxUIItem): Generator<any, void
     if (isBigTeam) {
       // There's a bug where the untrusted inbox state for the channel is incorrect so we
       // instead make sure that the small team maps and the big team maps don't allow duplicates
-      yield Saga.all([
+      yield Saga.sequentially([
         Saga.put(
           ChatGen.createReplaceEntity({
             keyPath: ['inboxBigChannels'],
@@ -291,7 +291,7 @@ function* _processConversation(c: RPCChatTypes.InboxUIItem): Generator<any, void
         ),
       ])
     } else {
-      yield Saga.all([
+      yield Saga.sequentially([
         Saga.put(
           ChatGen.createReplaceEntity({
             keyPath: ['inboxSmallTimestamps'],
@@ -709,7 +709,7 @@ function _markThreadsStale(action: ChatGen.MarkThreadsStalePayload, state: Typed
     )
   }
 
-  return Saga.all(actions)
+  return Saga.sequentially(actions)
 }
 
 function* _inboxSynced(action: ChatGen.InboxSyncedPayload): Saga.SagaGenerator<any, any> {
@@ -770,7 +770,7 @@ function* _inboxSynced(action: ChatGen.InboxSyncedPayload): Saga.SagaGenerator<a
       numberOverride = knownMaxMessageID - lastRpcMessageIdWeAreShowing
       if (numberOverride > tooManyMessagesToJustAppendOnStale) {
         console.log('Doing a full load due to too many old messages', numberOverride)
-        yield Saga.all([
+        yield Saga.sequentially([
           Saga.put(ChatGen.createClearMessages({conversationIDKey: selectedConversation})),
           Saga.put(
             ChatGen.createLoadMoreMessages({conversationIDKey: selectedConversation, onlyIfUnloaded: false})
