@@ -36,6 +36,7 @@ const UnlockFolder = compose(
   connect(unlockFolderMapPropsToState, () => ({}), mergeProps),
   SyncBrowserWindow,
   SyncProps,
+  // $FlowIssue gets confused
   renderNothing
 )(null)
 

@@ -20,6 +20,7 @@ const RemotePurge = compose(
   connect(purgeMapPropsToState, () => ({})),
   SyncBrowserWindow,
   SyncProps,
+  // $FlowIssue gets confused
   renderNothing
 )(null)
 

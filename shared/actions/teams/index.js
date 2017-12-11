@@ -478,6 +478,7 @@ const _saveChannelMembership = function(
 
   const calls = map(channelState, (wantsToBeInChannel: boolean, channelname: string) => {
     if (wantsToBeInChannel) {
+      // $FlowIssue doens't like callAndWrap
       return Saga.callAndWrap(RPCChatTypes.localJoinConversationLocalRpcPromise, {
         tlfName: teamname,
         topicName: channelname,
@@ -488,6 +489,7 @@ const _saveChannelMembership = function(
     const convID =
       channelnameToConvID[channelname] && ChatConstants.keyToConversationID(channelnameToConvID[channelname])
     if (convID) {
+      // $FlowIssue doens't like callAndWrap
       return Saga.callAndWrap(RPCChatTypes.localLeaveConversationLocalRpcPromise, {
         convID,
       })
@@ -579,6 +581,7 @@ const _setPublicity = function({payload: {teamname, settings}}: Types.SetPublici
   const calls = []
   if (openTeam !== settings.openTeam || (settings.openTeam && openTeamRole !== settings.openTeamRole)) {
     calls.push(
+      // $FlowIssue doens't like callAndWrap
       Saga.callAndWrap(RPCTypes.teamsTeamSetSettingsRpcPromise, {
         name: teamname,
         settings: {
@@ -590,6 +593,7 @@ const _setPublicity = function({payload: {teamname, settings}}: Types.SetPublici
   }
   if (publicityAnyMember !== settings.publicityAnyMember) {
     calls.push(
+      // $FlowIssue doens't like callAndWrap
       Saga.callAndWrap(RPCTypes.teamsSetTeamShowcaseRpcPromise, {
         anyMemberShowcase: settings.publicityAnyMember,
         name: teamname,
@@ -598,6 +602,7 @@ const _setPublicity = function({payload: {teamname, settings}}: Types.SetPublici
   }
   if (publicityMember !== settings.publicityMember) {
     calls.push(
+      // $FlowIssue doens't like callAndWrap
       Saga.callAndWrap(RPCTypes.teamsSetTeamMemberShowcaseRpcPromise, {
         isShowcased: settings.publicityMember,
         name: teamname,
@@ -606,6 +611,7 @@ const _setPublicity = function({payload: {teamname, settings}}: Types.SetPublici
   }
   if (publicityTeam !== settings.publicityTeam) {
     calls.push(
+      // $FlowIssue doens't like callAndWrap
       Saga.callAndWrap(RPCTypes.teamsSetTeamShowcaseRpcPromise, {
         isShowcased: settings.publicityTeam,
         name: teamname,
