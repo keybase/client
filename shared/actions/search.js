@@ -214,7 +214,7 @@ function* search({payload: {term, service, searchKey}}: SearchGen.SearchPayload)
     yield Saga.put(
       SearchGen.createFinishedSearch({searchKey, searchResults: ids, searchResultTerm: term, service})
     )
-    yield Saga.all([
+    yield Saga.sequentially([
       Saga.put(
         EntityAction.replaceEntity(['search', 'searchKeyToResults'], I.Map({[searchKey]: I.List(ids)}))
       ),
@@ -243,7 +243,7 @@ function* searchSuggestions({payload: {maxUsers, searchKey}}: SearchGen.SearchSu
   const ids = rows.map(r => r.id)
 
   yield Saga.put(EntityAction.mergeEntity(['search', 'searchResults'], I.Map(keyBy(rows, 'id'))))
-  yield Saga.all([
+  yield Saga.sequentially([
     Saga.put(EntityAction.replaceEntity(['search', 'searchKeyToResults'], I.Map({[searchKey]: I.List(ids)}))),
     Saga.put(
       EntityAction.replaceEntity(['search', 'searchKeyToShowSearchSuggestion'], I.Map({[searchKey]: true}))
@@ -321,7 +321,7 @@ function* setUserInputItems({payload: {searchKey, searchResults}}: SearchGen.Set
 }
 
 function clearSearchResults({payload: {searchKey}}: SearchGen.ClearSearchResultsPayload) {
-  return Saga.all([
+  return Saga.sequentially([
     Saga.put(EntityAction.replaceEntity(['search', 'searchKeyToResults'], I.Map({[searchKey]: null}))),
     Saga.put(
       EntityAction.replaceEntity(
