@@ -16,9 +16,6 @@ import {navigateTo, switchTo} from '../route-tree'
 import {type SagaGenerator} from '../../constants/types/saga'
 import {type TypedState} from '../../constants/reducer'
 
-const inSearchSelector = (state: TypedState) => state.chat.get('inSearch')
-const inboxSelector = (state: TypedState) => state.chat.get('inbox')
-
 function* _startConversation(action: ChatGen.StartConversationPayload): Saga.SagaGenerator<any, any> {
   const state: TypedState = yield Saga.select()
   if (!action.payload.forSearch) {
@@ -45,7 +42,7 @@ function* _startConversation(action: ChatGen.StartConversationPayload): Saga.Sag
 
   // not effecient but only happens when you start a new convo and not over and over
   const tlfName = users.sort().join(',')
-  const inbox = inboxSelector(state)
+  const inbox = state.chat.get('inbox')
   const existing = inbox.find(
     state =>
       state.get('membersType') === ChatTypes.commonConversationMembersType.kbfs &&
@@ -106,7 +103,7 @@ function* _selectConversation(action: ChatGen.SelectConversationPayload): Saga.S
   }
 
   const inbox = Constants.getInbox(state, conversationIDKey)
-  const inSearch = inSearchSelector(state)
+  const inSearch = state.chat.get('inSearch')
   if (inbox && !inbox.teamname) {
     const participants = inbox.get('participants').toArray()
     yield Saga.put(ChatGen.createUpdateMetadata({users: participants}))

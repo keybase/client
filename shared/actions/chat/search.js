@@ -8,8 +8,6 @@ import * as Saga from '../../util/saga'
 import type {ReturnValue} from '../../constants/types/more'
 import type {TypedState} from '../../constants/reducer'
 
-const inSearchSelector = (state: TypedState) => state.chat.get('inSearch')
-
 function _newChat(action: ChatGen.NewChatPayload, state: TypedState) {
   const actions = []
   actions.push(Saga.put(ChatGen.createSetInboxFilter({filter: ''})))
@@ -53,10 +51,9 @@ function _exitSearch({payload: {skipSelectPreviousConversation}}: ChatGen.ExitSe
 // TODO this is kinda confusing. I think there is duplicated state...
 function* _updateTempSearchConversation(action: SearchGen.UserInputItemsUpdatedPayload) {
   const {payload: {userInputItemIds}} = action
-  const [me, inSearch] = yield Saga.all([
-    Saga.select(Selectors.usernameSelector),
-    Saga.select(inSearchSelector),
-  ])
+  const state: TypedState = yield Saga.select()
+  const me = Selectors.usernameSelector(state)
+  const inSearch = state.chat.get('inSearch')
 
   if (!inSearch) {
     return
