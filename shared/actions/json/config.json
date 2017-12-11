@@ -59,8 +59,6 @@
     "retryBootstrap": {},
     "setInitialState": {
       "initialState": "Types.InitialState"
-    },
-    "pgpKeyInSecretStoreFile": {},
-    "pgpAckedMessage": {}
+    }
   }
 }

@@ -27,8 +27,6 @@ export const loadAvatars = 'config:loadAvatars'
 export const loadTeamAvatars = 'config:loadTeamAvatars'
 export const loadedAvatars = 'config:loadedAvatars'
 export const persistRouteState = 'config:persistRouteState'
-export const pgpAckedMessage = 'config:pgpAckedMessage'
-export const pgpKeyInSecretStoreFile = 'config:pgpKeyInSecretStoreFile'
 export const pushLoaded = 'config:pushLoaded'
 export const readyForBootstrap = 'config:readyForBootstrap'
 export const retryBootstrap = 'config:retryBootstrap'
@@ -54,8 +52,6 @@ export const createLoadAvatars = (payload: {|+usernames: Array<string>|}) => ({e
 export const createLoadTeamAvatars = (payload: {|+teamnames: Array<string>|}) => ({error: false, payload, type: loadTeamAvatars})
 export const createLoadedAvatars = (payload: {|+nameToUrlMap: {[name: string]: ?Object}|}) => ({error: false, payload, type: loadedAvatars})
 export const createPersistRouteState = () => ({error: false, payload: undefined, type: persistRouteState})
-export const createPgpAckedMessage = () => ({error: false, payload: undefined, type: pgpAckedMessage})
-export const createPgpKeyInSecretStoreFile = () => ({error: false, payload: undefined, type: pgpKeyInSecretStoreFile})
 export const createPushLoaded = (payload: {|+pushLoaded: boolean|}) => ({error: false, payload, type: pushLoaded})
 export const createReadyForBootstrap = () => ({error: false, payload: undefined, type: readyForBootstrap})
 export const createRetryBootstrap = () => ({error: false, payload: undefined, type: retryBootstrap})
@@ -81,8 +77,6 @@ export type LoadAvatarsPayload = More.ReturnType<typeof createLoadAvatars>
 export type LoadTeamAvatarsPayload = More.ReturnType<typeof createLoadTeamAvatars>
 export type LoadedAvatarsPayload = More.ReturnType<typeof createLoadedAvatars>
 export type PersistRouteStatePayload = More.ReturnType<typeof createPersistRouteState>
-export type PgpAckedMessagePayload = More.ReturnType<typeof createPgpAckedMessage>
-export type PgpKeyInSecretStoreFilePayload = More.ReturnType<typeof createPgpKeyInSecretStoreFile>
 export type PushLoadedPayload = More.ReturnType<typeof createPushLoaded>
 export type ReadyForBootstrapPayload = More.ReturnType<typeof createReadyForBootstrap>
 export type RetryBootstrapPayload = More.ReturnType<typeof createRetryBootstrap>
@@ -110,8 +104,6 @@ export type Actions =
   | More.ReturnType<typeof createLoadTeamAvatars>
   | More.ReturnType<typeof createLoadedAvatars>
   | More.ReturnType<typeof createPersistRouteState>
-  | More.ReturnType<typeof createPgpAckedMessage>
-  | More.ReturnType<typeof createPgpKeyInSecretStoreFile>
   | More.ReturnType<typeof createPushLoaded>
   | More.ReturnType<typeof createReadyForBootstrap>
   | More.ReturnType<typeof createRetryBootstrap>
