@@ -1,4 +1,5 @@
 // @flow
+// Keep this file as the avatar.js file w/ the HOC currently confuses flow
 import * as React from 'react'
 
 export type AvatarSize = 176 | 112 | 80 | 64 | 48 | 40 | 32 | 24 | 16 | 12
