@@ -82,7 +82,7 @@ const registerListeners = (): AsyncAction => dispatch => {
 }
 
 const _retryBootstrap = () =>
-  Saga.all([Saga.put(ConfigGen.createBootstrapRetry()), Saga.put(ConfigGen.createBootstrap({}))])
+  Saga.sequentially([Saga.put(ConfigGen.createBootstrapRetry()), Saga.put(ConfigGen.createBootstrap({}))])
 
 // TODO: It's unfortunate that we have these globals. Ideally,
 // bootstrap would be a method on an object.
@@ -197,7 +197,7 @@ function _bootstrapSuccess(action: ConfigGen.BootstrapSuccessPayload, state: Typ
     actions.push(Saga.put(ConfigGen.createPushLoaded({pushLoaded: true})))
   }
 
-  return Saga.all(actions)
+  return Saga.sequentially(actions)
 }
 
 function _pgpSecurityModelChangeMessageSaga() {
@@ -208,7 +208,7 @@ function _pgpSecurityModelChangeMessageSaga() {
 
 function _loadAvatarHelper(action: {payload: {names: Array<string>, endpoint: string, key: string}}) {
   const {names, endpoint, key} = action.payload
-  return Saga.all([
+  return Saga.sequentially([
     Saga.call(RPCTypes.apiserverGetRpcPromise, {
       args: [{key, value: names.join(',')}, {key: 'formats', value: 'square_360,square_200,square_40'}],
       endpoint,
