@@ -7,7 +7,6 @@ import RemoteStore from './store'
 import Root from '../renderer/container'
 import Menubar from '../../menubar/remote-container.desktop'
 import Pinentry from '../../pinentry/remote-container.desktop'
-import PurgeMessage from '../../pgp/remote-container.desktop'
 import Tracker from '../../tracker/remote-container.desktop'
 import UnlockFolders from '../../unlock-folders/remote-container.desktop'
 import {disable as disableDragDrop} from '../../util/drag-drop'
@@ -22,7 +21,7 @@ disableDragDrop()
 module.hot && module.hot.accept()
 
 type Props = {
-  windowComponent: 'purgeMessage' | 'unlockFolders' | 'menubar' | 'pinentry' | 'tracker',
+  windowComponent: 'unlockFolders' | 'menubar' | 'pinentry' | 'tracker',
   windowParam: string,
 }
 
@@ -44,8 +43,6 @@ class RemoteComponentLoader extends Component<Props> {
 
   _getComponent = (key: string) => {
     switch (key) {
-      case 'purgeMessage':
-        return PurgeMessage
       case 'unlockFolders':
         return UnlockFolders
       case 'menubar':
