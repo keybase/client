@@ -871,9 +871,7 @@ func TeamAcceptInviteOrRequestAccess(ctx context.Context, g *libkb.GlobalContext
 	if keepSecret {
 		g.Log.CDebugf(ctx, "found seitan-ish token")
 		wasSeitan, err := ParseAndAcceptSeitanToken(ctx, g, maybeSeitan)
-		if err != nil {
-			return keybase1.TeamAcceptOrRequestResult{WasSeitan: wasSeitan}, err
-		}
+		return keybase1.TeamAcceptOrRequestResult{WasSeitan: wasSeitan}, err
 	}
 
 	g.Log.CDebugf(ctx, "trying email-style invite")
