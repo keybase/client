@@ -1,6 +1,5 @@
 // @flow
 import * as AppGen from '../app-gen'
-import * as Types from '../../constants/types/profile'
 import * as Constants from '../../constants/profile'
 import * as TrackerGen from '../tracker-gen'
 import * as ProfileGen from '../profile-gen'
@@ -55,7 +54,7 @@ function _showUserProfile(action: ProfileGen.ShowUserProfilePayload, state: Type
       (profileNode && profileNode.props && profileNode.props.get('username')) ||
       (profileNode && profileNode.node === peopleTab && me)
     )
-  })
+  }
 
   const topProfile = getTopProfile(state)
 
@@ -67,8 +66,8 @@ function _showUserProfile(action: ProfileGen.ShowUserProfilePayload, state: Type
   // Assume user exists
   if (!username.includes('@')) {
     return Saga.sequentially([
-    Saga.put(switchTo([peopleTab])),
-    Saga.put(navigateAppend([{props: {username}, selected: 'profile'}], [peopleTab]))
+      Saga.put(switchTo([peopleTab])),
+      Saga.put(navigateAppend([{props: {username}, selected: 'profile'}], [peopleTab])),
     ])
   }
 
@@ -77,7 +76,7 @@ function _showUserProfile(action: ProfileGen.ShowUserProfilePayload, state: Type
   const searchResult = Selectors.searchResultSelector(state, username)
   if (searchResult) {
     props = {
-      fullname: searchResult.rightFullname,
+      fullname: searchResult.leftFullname,
       fullUsername: username,
       serviceName: searchResult.leftService,
       username: searchResult.leftUsername,
@@ -92,8 +91,8 @@ function _showUserProfile(action: ProfileGen.ShowUserProfilePayload, state: Type
   }
 
   return Saga.sequentially([
-   Saga.put(switchTo([peopleTab])),
-   Saga.put(navigateAppend([{props, selected: 'nonUserProfile'}], [peopleTab]))
+    Saga.put(switchTo([peopleTab])),
+    Saga.put(navigateAppend([{props, selected: 'nonUserProfile'}], [peopleTab])),
   ])
 }
 
@@ -165,7 +164,7 @@ function _onAppLink(action: AppGen.LinkPayload) {
 }
 
 function _outputInstructionsActionLink(
-  action: ProfileGen.outputInstructionsActionLinkPayload,
+  action: ProfileGen.OutputInstructionsActionLinkPayload,
   state: TypedState
 ) {
   const profile = state.profile
@@ -191,7 +190,7 @@ function _outputInstructionsActionLink(
 }
 
 function _backToProfile() {
-  return Saga.All([Saga.put(TrackerGen.createGetMyProfile({})), Saga.put(navigateTo([], [peopleTab]))])
+  return Saga.all([Saga.put(TrackerGen.createGetMyProfile({})), Saga.put(navigateTo([], [peopleTab]))])
 }
 
 function* _profileSaga(): Saga.SagaGenerator<any, any> {
