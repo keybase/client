@@ -125,12 +125,10 @@ function* fuseStatusSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.put(KBFSGen.createFuseStatusUpdate({prevStatus, status}))
 }
 
-function* fuseStatusUpdateSaga({
-  payload: {prevStatus, status},
-}: KBFSGen.FuseStatusUpdatePayload): Saga.SagaGenerator<any, any> {
+function fuseStatusUpdateSaga({payload: {prevStatus, status}}: KBFSGen.FuseStatusUpdatePayload) {
   // If our kextStarted status changed, finish KBFS install
   if (status.kextStarted && prevStatus && !prevStatus.kextStarted) {
-    yield Saga.call(installKBFSSaga)
+    return Saga.call(installKBFSSaga)
   }
 }
 
@@ -225,8 +223,8 @@ function installCachedDokan(): Promise<*> {
   )
 }
 
-function* installDokanSaga(): Saga.SagaGenerator<any, any> {
-  yield Saga.call(installCachedDokan)
+function installDokanSaga() {
+  return Saga.call(installCachedDokan)
 }
 
 function waitForMount(attempt: number): Promise<*> {
@@ -272,13 +270,16 @@ function* installKBFSSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.call(waitForMountAndOpenSaga)
 }
 
-function* uninstallKBFSSaga(): Saga.SagaGenerator<any, any> {
-  const result: RPCTypes.UninstallResult = yield Saga.call(RPCTypes.installUninstallKBFSRpcPromise)
-  yield Saga.put(KBFSGen.createUninstallKBFSResult({result}))
+function uninstallKBFSSaga() {
+  return Saga.call(RPCTypes.installUninstallKBFSRpcPromise)
+}
+
+function uninstallKBFSSagaSuccess(result: RPCTypes.UninstallResult) {
   // Restart since we had to uninstall KBFS and it's needed by the service (for chat)
   const app = electron.remote.app
   app.relaunch()
   app.exit(0)
+  return Saga.put(KBFSGen.createUninstallKBFSResult({result}))
 }
 
 function* openInWindows(openPath: string): Saga.SagaGenerator<any, any> {
@@ -287,7 +288,8 @@ function* openInWindows(openPath: string): Saga.SagaGenerator<any, any> {
   }
   openPath = openPath.slice(Constants.defaultKBFSPath.length)
 
-  let kbfsPath = yield Saga.select((state: TypedState) => state.config.kbfsPath)
+  const state: TypedState = yield Saga.select()
+  let kbfsPath = state.config.kbfsPath
 
   if (!kbfsPath) {
     throw new Error('No kbfsPath')
@@ -317,9 +319,9 @@ function* openInWindows(openPath: string): Saga.SagaGenerator<any, any> {
 
 function* openSaga(action: KBFSGen.OpenPayload): Saga.SagaGenerator<any, any> {
   const openPath = action.payload.path || Constants.defaultKBFSPath
-  const enabled = yield Saga.select(
-    (state: TypedState) => state.favorite.fuseStatus && state.favorite.fuseStatus.kextStarted
-  )
+  const state: TypedState = yield Saga.select()
+  const enabled = state.favorite.fuseStatus && state.favorite.fuseStatus.kextStarted
+
   if (isLinux || enabled) {
     console.log('openInKBFS:', openPath)
     if (isWindows) {
@@ -333,25 +335,27 @@ function* openSaga(action: KBFSGen.OpenPayload): Saga.SagaGenerator<any, any> {
   }
 }
 
-function* openInFileUISaga({payload: {path}}: KBFSGen.OpenInFileUIPayload): Saga.SagaGenerator<any, any> {
-  const enabled = yield Saga.select(
-    (state: TypedState) => state.favorite.fuseStatus && state.favorite.fuseStatus.kextStarted
-  )
+function openInFileUISaga({payload: {path}}: KBFSGen.OpenInFileUIPayload, state: TypedState) {
+  const enabled = state.favorite.fuseStatus && state.favorite.fuseStatus.kextStarted
   if (isLinux || enabled) {
-    yield Saga.call(_open, path)
+    return Saga.call(_open, path)
   } else {
-    yield Saga.put(navigateTo([], [folderTab]))
-    yield Saga.put(switchTo([folderTab]))
+    return Saga.all([Saga.put(navigateTo([], [folderTab])), Saga.put(switchTo([folderTab]))])
   }
 }
 
-export {
-  fuseStatusSaga,
-  fuseStatusUpdateSaga,
-  installFuseSaga,
-  installKBFSSaga,
-  installDokanSaga,
-  openInFileUISaga,
-  openSaga,
-  uninstallKBFSSaga,
+function* kbfsSaga(): Saga.SagaGenerator<any, any> {
+  yield Saga.safeTakeEvery(KBFSGen.open, openSaga)
+  yield Saga.safeTakeEveryPure(KBFSGen.openInFileUI, openInFileUISaga)
+  yield Saga.safeTakeLatest(KBFSGen.fuseStatus, fuseStatusSaga)
+  yield Saga.safeTakeLatestPure(KBFSGen.fuseStatusUpdate, fuseStatusUpdateSaga)
+  if (isWindows) {
+    yield Saga.safeTakeLatestPure(KBFSGen.installFuse, installDokanSaga)
+  } else {
+    yield Saga.safeTakeLatest(KBFSGen.installFuse, installFuseSaga)
+  }
+  yield Saga.safeTakeLatest(KBFSGen.installKBFS, installKBFSSaga)
+  yield Saga.safeTakeLatestPure(KBFSGen.uninstallKBFS, uninstallKBFSSaga, uninstallKBFSSagaSuccess)
 }
+
+export default kbfsSaga
