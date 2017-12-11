@@ -10,20 +10,24 @@ import type {TypedState} from '../../constants/reducer'
 
 const inSearchSelector = (state: TypedState) => state.chat.get('inSearch')
 
-function* _newChat(action: ChatGen.NewChatPayload): Saga.SagaGenerator<any, any> {
-  yield Saga.put(ChatGen.createSetInboxFilter({filter: ''}))
-  const ids = yield Saga.select(SearchConstants.getUserInputItemIds, {searchKey: 'chatSearch'})
-  if (ids && !!ids.length) {
-    // Ignore 'New Chat' attempts when we're already building a chat
-    return
+function _newChat(action: ChatGen.NewChatPayload, state: TypedState) {
+  const actions = []
+  actions.push(Saga.put(ChatGen.createSetInboxFilter({filter: ''})))
+  const ids = SearchConstants.getUserInputItemIds(state, {searchKey: 'chatSearch'})
+  // Ignore 'New Chat' attempts when we're already building a chat
+  if (!ids || !ids.length) {
+    actions.push(
+      Saga.put(
+        ChatGen.createSetPreviousConversation({
+          conversationIDKey: Constants.getSelectedConversation(state),
+        })
+      )
+    )
+    actions.push(Saga.put(ChatGen.createSelectConversation({conversationIDKey: null})))
+    actions.push(Saga.put(SearchGen.createSearchSuggestions({searchKey: 'chatSearch'})))
   }
-  yield Saga.put(
-    ChatGen.createSetPreviousConversation({
-      conversationIDKey: yield Saga.select(Constants.getSelectedConversation),
-    })
-  )
-  yield Saga.put(ChatGen.createSelectConversation({conversationIDKey: null}))
-  yield Saga.put(SearchGen.createSearchSuggestions({searchKey: 'chatSearch'}))
+
+  return Saga.all(actions)
 }
 
 function _exitSearch({payload: {skipSelectPreviousConversation}}: ChatGen.ExitSearchPayload, s: TypedState) {
@@ -85,7 +89,7 @@ function* registerSagas(): Saga.SagaGenerator<any, any> {
     _updateTempSearchConversation
   )
   yield Saga.safeTakeEveryPure(ChatGen.exitSearch, _exitSearch)
-  yield Saga.safeTakeEvery(ChatGen.newChat, _newChat)
+  yield Saga.safeTakeEveryPure(ChatGen.newChat, _newChat)
 }
 
 export {registerSagas}
