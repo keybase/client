@@ -5,7 +5,7 @@ import * as TeamsGen from '../../actions/teams-gen'
 import * as I from 'immutable'
 import NewRepo from '.'
 import {compose, lifecycle, mapProps, connect, type TypedState} from '../../util/container'
-import {navigateTo} from '../../actions/route-tree'
+import {navigateTo, switchTo} from '../../actions/route-tree'
 import {teamsTab} from '../../constants/tabs'
 
 const mapStateToProps = (state: TypedState, {routeProps}) => ({
@@ -24,7 +24,10 @@ const mapDispatchToProps = (dispatch: any, {navigateAppend, navigateUp, routePro
       : GitGen.createCreatePersonalRepo({name})
     dispatch(createAction)
   },
-  onNewTeam: () => dispatch(navigateTo([teamsTab], ['showNewTeamDialog'])),
+  onNewTeam: () => {
+    dispatch(navigateTo(['showNewTeamDialog'], [teamsTab]))
+    dispatch(switchTo([teamsTab]))
+  },
 })
 
 export default compose(
