@@ -220,6 +220,20 @@
     },
     {
       "type": "record",
+      "name": "MessageDeleteHistory",
+      "fields": [
+        {
+          "type": "gregor1.Time",
+          "name": "uptoTime"
+        },
+        {
+          "type": "MessageID",
+          "name": "upto"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "AssetMetadataImage",
       "fields": [
         {
@@ -516,6 +530,13 @@
             "def": false
           },
           "body": "MessageSystem"
+        },
+        {
+          "label": {
+            "name": "DELETEHISTORY",
+            "def": false
+          },
+          "body": "MessageDeleteHistory"
         }
       ]
     },

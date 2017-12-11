@@ -67,6 +67,13 @@ protocol local {
     case CREATETEAM: MessageSystemCreateTeam;
   }
 
+  record MessageDeleteHistory {
+    // Delete message before this time.
+    gregor1.Time uptoTime;
+    // Delete messages up to this ID (exclusive).
+    MessageID upto;
+  }
+
   record AssetMetadataImage {
     int width;
     int height;
@@ -148,6 +155,7 @@ protocol local {
     case JOIN: MessageJoin;
     case LEAVE: MessageLeave;
     case SYSTEM: MessageSystem;
+    case DELETEHISTORY: MessageDeleteHistory;
   }
 
   enum OutboxStateType {

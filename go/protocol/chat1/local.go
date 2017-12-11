@@ -343,6 +343,18 @@ func (o MessageSystem) DeepCopy() MessageSystem {
 	}
 }
 
+type MessageDeleteHistory struct {
+	UptoTime gregor1.Time `codec:"uptoTime" json:"uptoTime"`
+	Upto     MessageID    `codec:"upto" json:"upto"`
+}
+
+func (o MessageDeleteHistory) DeepCopy() MessageDeleteHistory {
+	return MessageDeleteHistory{
+		UptoTime: o.UptoTime.DeepCopy(),
+		Upto:     o.Upto.DeepCopy(),
+	}
+}
+
 type AssetMetadataImage struct {
 	Width  int `codec:"width" json:"width"`
 	Height int `codec:"height" json:"height"`
@@ -673,6 +685,7 @@ type MessageBody struct {
 	Join__               *MessageJoin                 `codec:"join,omitempty" json:"join,omitempty"`
 	Leave__              *MessageLeave                `codec:"leave,omitempty" json:"leave,omitempty"`
 	System__             *MessageSystem               `codec:"system,omitempty" json:"system,omitempty"`
+	Deletehistory__      *MessageDeleteHistory        `codec:"deletehistory,omitempty" json:"deletehistory,omitempty"`
 }
 
 func (o *MessageBody) MessageType() (ret MessageType, err error) {
@@ -725,6 +738,11 @@ func (o *MessageBody) MessageType() (ret MessageType, err error) {
 	case MessageType_SYSTEM:
 		if o.System__ == nil {
 			err = errors.New("unexpected nil value for System__")
+			return ret, err
+		}
+	case MessageType_DELETEHISTORY:
+		if o.Deletehistory__ == nil {
+			err = errors.New("unexpected nil value for Deletehistory__")
 			return ret, err
 		}
 	}
@@ -831,6 +849,16 @@ func (o MessageBody) System() (res MessageSystem) {
 	return *o.System__
 }
 
+func (o MessageBody) Deletehistory() (res MessageDeleteHistory) {
+	if o.MessageType__ != MessageType_DELETEHISTORY {
+		panic("wrong case accessed")
+	}
+	if o.Deletehistory__ == nil {
+		return
+	}
+	return *o.Deletehistory__
+}
+
 func NewMessageBodyWithText(v MessageText) MessageBody {
 	return MessageBody{
 		MessageType__: MessageType_TEXT,
@@ -898,6 +926,13 @@ func NewMessageBodyWithSystem(v MessageSystem) MessageBody {
 	return MessageBody{
 		MessageType__: MessageType_SYSTEM,
 		System__:      &v,
+	}
+}
+
+func NewMessageBodyWithDeletehistory(v MessageDeleteHistory) MessageBody {
+	return MessageBody{
+		MessageType__:   MessageType_DELETEHISTORY,
+		Deletehistory__: &v,
 	}
 }
 
@@ -974,6 +1009,13 @@ func (o MessageBody) DeepCopy() MessageBody {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.System__),
+		Deletehistory__: (func(x *MessageDeleteHistory) *MessageDeleteHistory {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Deletehistory__),
 	}
 }
 
