@@ -2091,3 +2091,19 @@ func (r *GitRepoResult) GetIfOk() (res GitRepoInfo, err error) {
 	}
 	return res, fmt.Errorf("git repo unknown error")
 }
+
+func (req *TeamChangeReq) AddUVWithRole(uv UserVersion, role TeamRole) error {
+	switch role {
+	case TeamRole_READER:
+		req.Readers = append(req.Readers, uv)
+	case TeamRole_WRITER:
+		req.Writers = append(req.Writers, uv)
+	case TeamRole_ADMIN:
+		req.Admins = append(req.Admins, uv)
+	case TeamRole_OWNER:
+		req.Owners = append(req.Owners, uv)
+	default:
+		return fmt.Errorf("Unexpected role: %v", role)
+	}
+	return nil
+}
