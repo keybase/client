@@ -649,12 +649,20 @@ func AcceptInvite(ctx context.Context, g *libkb.GlobalContext, token string) err
 	return err
 }
 
-func ParseAndAcceptSeitanToken(ctx context.Context, g *libkb.GlobalContext, tok string) error {
+func ParseAndAcceptSeitanToken(ctx context.Context, g *libkb.GlobalContext, tok string) (wasSeitan bool, err error) {
 	seitan, err := GenerateIKeyFromString(tok)
 	if err != nil {
-		return err
+		g.Log.CDebugf(ctx, "GenerateIKeyFromString error: %s", err)
+		g.Log.CDebugf(ctx, "returning TeamInviteBadToken instead")
+		return false, libkb.TeamInviteBadTokenError{}
 	}
-	return AcceptSeitan(ctx, g, seitan)
+	g.Log.CDebugf(ctx, "found seitan token")
+	err = AcceptSeitan(ctx, g, seitan)
+	if err != nil {
+		return true, err
+	}
+
+	return true, nil
 }
 
 func AcceptSeitan(ctx context.Context, g *libkb.GlobalContext, ikey SeitanIKey) error {
@@ -860,13 +868,8 @@ func TeamAcceptInviteOrRequestAccess(ctx context.Context, g *libkb.GlobalContext
 	maybeSeitan, keepSecret := ParseSeitanTokenFromPaste(tokenOrName)
 	if keepSecret {
 		g.Log.CDebugf(ctx, "found seitan-ish token")
-		seitan, err := GenerateIKeyFromString(maybeSeitan)
-		if err != nil {
-			return keybase1.TeamAcceptOrRequestResult{}, err
-		}
-		g.Log.CDebugf(ctx, "found seitan token")
-		err = AcceptSeitan(ctx, g, seitan)
-		return keybase1.TeamAcceptOrRequestResult{WasSeitan: true}, err
+		wasSeitan, err := ParseAndAcceptSeitanToken(ctx, g, maybeSeitan)
+		return keybase1.TeamAcceptOrRequestResult{WasSeitan: wasSeitan}, err
 	}
 
 	g.Log.CDebugf(ctx, "trying email-style invite")
@@ -877,7 +880,13 @@ func TeamAcceptInviteOrRequestAccess(ctx context.Context, g *libkb.GlobalContext
 		}, nil
 	}
 	g.Log.CDebugf(ctx, "email-style invite error: %v", err)
-	reportErr := err
+	var reportErr error
+	switch err := err.(type) {
+	case libkb.TeamInviteTokenReusedError:
+		reportErr = err
+	default:
+		reportErr = libkb.TeamInviteBadTokenError{}
+	}
 
 	g.Log.CDebugf(ctx, "trying team name")
 	_, err = keybase1.TeamNameFromString(tokenOrName)

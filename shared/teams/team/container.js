@@ -1,7 +1,7 @@
 // @flow
 import * as Constants from '../../constants/teams'
 import * as Types from '../../constants/types/teams'
-import * as Creators from '../../actions/teams/creators'
+import * as TeamsGen from '../../actions/teams-gen'
 import * as SearchGen from '../../actions/search-gen'
 import * as I from 'immutable'
 import * as KBFSGen from '../../actions/kbfs-gen'
@@ -92,7 +92,7 @@ const mapDispatchToProps = (
   dispatch: Dispatch,
   {navigateUp, newOpenTeamRole, setOpenTeamRole, setRouteState, routeProps}
 ): DispatchProps => ({
-  _loadTeam: teamname => dispatch(Creators.getDetails(teamname)),
+  _loadTeam: teamname => dispatch(TeamsGen.createGetDetails({teamname})),
   _onAddPeople: (teamname: Types.Teamname) =>
     dispatch(navigateAppend([{props: {teamname}, selected: 'addPeople'}])),
   _onAddSelf: (teamname: Types.Teamname, you: ?string) => {
@@ -138,7 +138,7 @@ const mapDispatchToProps = (
     )
   },
   _savePublicity: (teamname: Types.Teamname, settings: Types.PublicitySettings) =>
-    dispatch(Creators.setPublicity(teamname, settings)),
+    dispatch(TeamsGen.createSetPublicity({teamname, settings})),
 })
 
 const getOrderedMemberArray = (

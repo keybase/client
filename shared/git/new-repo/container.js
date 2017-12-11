@@ -1,10 +1,10 @@
 // @flow
 import * as GitGen from '../../actions/git-gen'
 import * as Constants from '../../constants/git'
+import * as TeamsGen from '../../actions/teams-gen'
 import * as I from 'immutable'
 import NewRepo from '.'
 import {compose, lifecycle, mapProps, connect, type TypedState} from '../../util/container'
-import {getTeams} from '../../actions/teams/creators'
 import {navigateTo} from '../../actions/route-tree'
 import {teamsTab} from '../../constants/tabs'
 
@@ -16,7 +16,7 @@ const mapStateToProps = (state: TypedState, {routeProps}) => ({
 })
 
 const mapDispatchToProps = (dispatch: any, {navigateAppend, navigateUp, routeProps}) => ({
-  _loadTeams: () => dispatch(getTeams()),
+  _loadTeams: () => dispatch(TeamsGen.createGetTeams()),
   onClose: () => dispatch(navigateUp()),
   onCreate: (name: string, teamname: ?string, notifyTeam: boolean) => {
     const createAction = routeProps.get('isTeam') && teamname
