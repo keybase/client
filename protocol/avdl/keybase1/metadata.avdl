@@ -71,6 +71,7 @@ protocol metadata {
   KeyBundleResponse getKeyBundles(string folderID, string writerBundleID, string readerBundleID);
   void lock(string folderID, LockID lockID);
   void releaseLock(string folderID, LockID lockID); // unfortunate naming conflict on "unlock" with login.avdl
+  void startImplicitTeamMigration(string folderID);
 
   // Merkle tree specific commands
   // todo: we probably also want a method which will return a minmum set of interior nodes
