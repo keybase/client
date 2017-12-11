@@ -13,6 +13,7 @@ import (
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"golang.org/x/net/context"
 )
 
 const publicConvNamePrefix = "(public) "
@@ -216,6 +217,7 @@ func (v conversationListView) show(g *libkb.GlobalContext, myUsername string, sh
 		for _, m := range conv.MaxMessages {
 			mv2, err := newMessageView(g, conv.Info.Id, m)
 			if err != nil {
+				g.Log.CDebugf(context.TODO(), "Message render error: %s", err)
 				continue
 			}
 			if !mv2.Renderable {
@@ -430,14 +432,14 @@ func formatSystemMessage(body chat1.MessageSystem) string {
 	typ, _ := body.SystemType()
 	switch typ {
 	case chat1.MessageSystemType_ADDEDTOTEAM:
-		return fmt.Sprintf("Hello! I've just added @%s to this team.", body.Addedtoteam().Addee)
+		return fmt.Sprintf("[Added @%s to the team]", body.Addedtoteam().Addee)
 	case chat1.MessageSystemType_INVITEADDEDTOTEAM:
-		return fmt.Sprintf("Hello! I've just added @%s to the team. This user had been invited by @%s.",
+		return fmt.Sprintf("[Added %s to the team (invited by @%s)]",
 			body.Inviteaddedtoteam().Invitee, body.Inviteaddedtoteam().Inviter)
 	case chat1.MessageSystemType_COMPLEXTEAM:
-		return fmt.Sprintf(`Attention @channel! I have just created a new channel in team %s. Here are some things that are now different: 1.) Notifications will not happen for every message. Click or tap the info icon on the right to configure them. 2.) The #general channel is now in the "Big Teams" section of the inbox. 3.) You can hit the three dots next to %s in the inbox view to join other channels. Enjoy!`, body.Complexteam().Team, body.Complexteam().Team)
+		return fmt.Sprintf("[Created a new channel in %s]", body.Complexteam().Team)
 	case chat1.MessageSystemType_CREATETEAM:
-		return fmt.Sprintf("Team %s created by %s.", body.Createteam().Team, body.Createteam().Creator)
+		return fmt.Sprintf("[%s created the team %s]", body.Createteam().Creator, body.Createteam().Team)
 	}
 	return "<unknown system message>"
 }
