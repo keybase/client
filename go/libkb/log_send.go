@@ -362,16 +362,11 @@ func (l *LogSendContext) LogSend(statusJSON, feedback string, sendLogs bool, num
 	var gitLog string
 
 	if sendLogs {
-		if l.G().Env.WantsSystemd() {
-			svcLog = tailSystemdJournal(l.G().Log, "keybase.service", numBytes)
-			kbfsLog = tailSystemdJournal(l.G().Log, "kbfs.service", numBytes)
-			desktopLog = tailSystemdJournal(l.G().Log, "keybase.gui.service", numBytes)
-		} else {
-			svcLog = tail(l.G().Log, "service", logs.Service, numBytes)
-			kbfsLog = tail(l.G().Log, "kbfs", logs.Kbfs, numBytes)
-			desktopLog = tail(l.G().Log, "desktop", logs.Desktop, numBytes)
-		}
+		svcLog = tail(l.G().Log, "service", logs.Service, numBytes)
+		kbfsLog = tail(l.G().Log, "kbfs", logs.Kbfs, numBytes)
+		desktopLog = tail(l.G().Log, "desktop", logs.Desktop, numBytes)
 		updaterLog = tail(l.G().Log, "updater", logs.Updater, numBytes)
+		// TODO: get start logs from systemd?
 		startLog = tail(l.G().Log, "start", logs.Start, numBytes)
 		installLog = tail(l.G().Log, "install", logs.Install, numBytes)
 		systemLog = tail(l.G().Log, "system", logs.System, numBytes)
