@@ -195,7 +195,7 @@ func (p *blockPrefetcher) completePrefetch(
 			b := pp.req.block.NewEmpty()
 			// TODO: after we split out priority from whether to prefetch, make
 			// this a much higher priority.
-			err := <-p.retriever.Request(pp.ctx,
+			err := <-p.retriever.RequestNoPrefetch(pp.ctx,
 				lowestTriggerPrefetchPriority-1, pp.req.kmd, pp.req.ptr, b,
 				pp.req.lifetime)
 			if err != nil {
@@ -411,8 +411,8 @@ func (p *blockPrefetcher) handlePrefetch(pre *prefetch, isPrefetchNew,
 	b := req.block.NewEmpty()
 	// TODO: after we split out priority from whether to prefetch, make this a
 	// much higher priority.
-	err = <-p.retriever.Request(pre.ctx, lowestTriggerPrefetchPriority-1,
-		req.kmd, req.ptr, b, req.lifetime)
+	err = <-p.retriever.RequestNoPrefetch(pre.ctx,
+		lowestTriggerPrefetchPriority-1, req.kmd, req.ptr, b, req.lifetime)
 	if err != nil {
 		p.log.CDebugf(pre.ctx, "failed to retrieve block %s to handle its "+
 			"prefetch: %+v", req.ptr.ID, err)
