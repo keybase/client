@@ -21,13 +21,20 @@ type Props = {
 // Like RemoteWindow but the browserWindow is handled by the 3rd party menubar class and mostly lets it handle things
 function RemoteMenubarWindow(ComposedComponent: any) {
   class RemoteWindowComponent extends React.PureComponent<Props> {
-    componentWillMount() {
+    _sendLoad = () => {
       sendLoad(
         this.props.externalRemoteWindow.webContents,
         this.props.windowParam,
         this.props.windowComponent,
         this.props.windowTitle
       )
+    }
+
+    componentWillMount() {
+      this._sendLoad()
+
+      // Allow reloads
+      this.props.externalRemoteWindow.webContents.on('did-finish-load', this._sendLoad)
 
       // uncomment to see menubar devtools
       // this.props.externalRemoteWindow.webContents.openDevTools('detach')
