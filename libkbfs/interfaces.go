@@ -2015,8 +2015,8 @@ type BlockRetriever interface {
 	// Request retrieves blocks asynchronously.
 	Request(ctx context.Context, priority int, kmd KeyMetadata,
 		ptr BlockPointer, block Block, lifetime BlockCacheLifetime) <-chan error
-	// Request retrieves blocks asynchronously, but doesn't trigger a prefetch
-	// unless the block had to be retrieved from the server.
+	// RequestNoPrefetch retrieves blocks asynchronously, but doesn't trigger a
+	// prefetch unless the block had to be retrieved from the server.
 	RequestNoPrefetch(ctx context.Context, priority int, kmd KeyMetadata,
 		ptr BlockPointer, block Block, lifetime BlockCacheLifetime) <-chan error
 	// PutInCaches puts the block into the in-memory cache, and ensures that

@@ -282,7 +282,7 @@ func (brq *blockRetrievalQueue) checkCaches(ctx context.Context,
 	return prefetchStatus, err
 }
 
-// Request implements the BlockRetriever interface for blockRetrievalQueue.
+// request retrieves blocks asynchronously.
 func (brq *blockRetrievalQueue) request(ctx context.Context,
 	priority int, kmd KeyMetadata, ptr BlockPointer, block Block,
 	lifetime BlockCacheLifetime, doPrefetch bool) <-chan error {
@@ -400,7 +400,8 @@ func (brq *blockRetrievalQueue) Request(ctx context.Context,
 	return brq.request(ctx, priority, kmd, ptr, block, lifetime, true)
 }
 
-// Request implements the BlockRetriever interface for blockRetrievalQueue.
+// RequestNoPrefetch implements the BlockRetriever interface for
+// blockRetrievalQueue.
 func (brq *blockRetrievalQueue) RequestNoPrefetch(ctx context.Context,
 	priority int, kmd KeyMetadata, ptr BlockPointer, block Block,
 	lifetime BlockCacheLifetime) <-chan error {
