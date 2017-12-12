@@ -632,7 +632,7 @@ func LeaveConversation(ctx context.Context, g *globals.Context, debugger utils.D
 	} else {
 		lres, err := ri().LeaveConversation(ctx, convID)
 		if err != nil {
-			debugger.Debug(ctx, "LeaveConversations: failed to leave conversation as a non-member: %s", err)
+			debugger.Debug(ctx, "LeaveConversation: failed to leave conversation as a non-member: %s", err)
 			return rl, err
 		}
 		if lres.RateLimit != nil {
