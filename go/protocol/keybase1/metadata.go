@@ -249,6 +249,10 @@ type ReleaseLockArg struct {
 	LockID   LockID `codec:"lockID" json:"lockID"`
 }
 
+type StartImplicitTeamMigrationArg struct {
+	FolderID string `codec:"folderID" json:"folderID"`
+}
+
 type GetMerkleRootArg struct {
 	TreeID MerkleTreeID `codec:"treeID" json:"treeID"`
 	SeqNo  int64        `codec:"seqNo" json:"seqNo"`
@@ -287,6 +291,7 @@ type MetadataInterface interface {
 	GetKeyBundles(context.Context, GetKeyBundlesArg) (KeyBundleResponse, error)
 	Lock(context.Context, LockArg) error
 	ReleaseLock(context.Context, ReleaseLockArg) error
+	StartImplicitTeamMigration(context.Context, string) error
 	GetMerkleRoot(context.Context, GetMerkleRootArg) (MerkleRoot, error)
 	GetMerkleRootLatest(context.Context, MerkleTreeID) (MerkleRoot, error)
 	GetMerkleRootSince(context.Context, GetMerkleRootSinceArg) (MerkleRoot, error)
@@ -586,6 +591,22 @@ func MetadataProtocol(i MetadataInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"startImplicitTeamMigration": {
+				MakeArg: func() interface{} {
+					ret := make([]StartImplicitTeamMigrationArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]StartImplicitTeamMigrationArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]StartImplicitTeamMigrationArg)(nil), args)
+						return
+					}
+					err = i.StartImplicitTeamMigration(ctx, (*typedArgs)[0].FolderID)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 			"getMerkleRoot": {
 				MakeArg: func() interface{} {
 					ret := make([]GetMerkleRootArg, 1)
@@ -755,6 +776,12 @@ func (c MetadataClient) Lock(ctx context.Context, __arg LockArg) (err error) {
 
 func (c MetadataClient) ReleaseLock(ctx context.Context, __arg ReleaseLockArg) (err error) {
 	err = c.Cli.Call(ctx, "keybase.1.metadata.releaseLock", []interface{}{__arg}, nil)
+	return
+}
+
+func (c MetadataClient) StartImplicitTeamMigration(ctx context.Context, folderID string) (err error) {
+	__arg := StartImplicitTeamMigrationArg{FolderID: folderID}
+	err = c.Cli.Call(ctx, "keybase.1.metadata.startImplicitTeamMigration", []interface{}{__arg}, nil)
 	return
 }
 
