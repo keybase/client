@@ -1056,7 +1056,7 @@ func ChangeTeamSettings(ctx context.Context, g *libkb.GlobalContext, teamName st
 		}
 
 		if !settings.Open && !t.IsOpen() {
-			g.Log.CDebugf(ctx, "team is already open, just returning: %s", teamName)
+			g.Log.CDebugf(ctx, "team is already closed, just returning: %s", teamName)
 			return nil
 		}
 
