@@ -6,7 +6,7 @@ import * as I from 'immutable'
 import * as DevicesGen from './devices-gen'
 import * as RPCTypes from '../constants/types/flow-types'
 import * as Saga from '../util/saga'
-import HiddenString from '../util/hidden-string'
+// import HiddenString from '../util/hidden-string'
 import {navigateTo} from './route-tree'
 import {type TypedState} from '../constants/reducer'
 // import {loginTab} from '../constants/tabs'
@@ -21,33 +21,29 @@ function getEndangeredTlfs(action: DevicesGen.ShowRevokePagePayload, state: Type
   }
 }
 
-function convertEndangeredTlfs(tlfs: RPCTypes.RevokeWarning) {
-  return Saga.put(
+const convertEndangeredTlfs = (tlfs: RPCTypes.RevokeWarning) =>
+  Saga.put(
     DevicesGen.createEndangeredTLFsLoaded({
       tlfs: (tlfs.endangeredTLFs || []).map(t => t.name),
     })
   )
-}
 
-function saveEndangeredTlfs(action: DevicesGen.EndangeredTLFsLoadedPayload) {
-  return Saga.put(
+const saveEndangeredTlfs = (action: DevicesGen.EndangeredTLFsLoadedPayload) =>
+  Saga.put(
     DevicesGen.createReplaceEntity({
       entities: I.Map([['idToEndangeredTLFs', I.Set(action.payload.tlfs)]]),
       keyPath: [],
     })
   )
-}
 
-function showRevokePage(action: DevicesGen.ShowRevokePagePayload) {
-  const {deviceID} = action.payload
-  return Saga.put(
+const showRevokePage = (action: DevicesGen.ShowRevokePagePayload) =>
+  Saga.put(
     navigateTo([
       ...Constants.devicesTabLocation,
-      {props: {deviceID}, selected: 'devicePage'},
-      {props: {deviceID}, selected: 'revokeDevice'},
+      {props: {deviceID: action.payload.deviceID}, selected: 'devicePage'},
+      {props: {deviceID: action.payload.deviceID}, selected: 'revokeDevice'},
     ])
   )
-}
 
 function changeWaiting(
   action:
@@ -68,14 +64,13 @@ function changeWaiting(
   return Saga.put(DevicesGen.createSetWaiting({waiting}))
 }
 
-function saveWaiting(action: DevicesGen.SetWaitingPayload) {
-  return Saga.put(
+const saveWaiting = (action: DevicesGen.SetWaitingPayload) =>
+  Saga.put(
     DevicesGen.createReplaceEntity({
       entities: I.Map([['waiting', action.payload.waiting]]),
       keyPath: [],
     })
   )
-}
 
 function convertDeviceList(results: Array<RPCTypes.DeviceDetail>) {
   const idToDetail = results.reduce((map: {[key: string]: Types.DeviceDetail}, d: RPCTypes.DeviceDetail) => {
@@ -98,22 +93,16 @@ function convertDeviceList(results: Array<RPCTypes.DeviceDetail>) {
   return Saga.put(DevicesGen.createDevicesLoaded({idToDetail}))
 }
 
-function saveDeviceList(action: DevicesGen.DevicesLoadedPayload) {
-  return Saga.put(
+const saveDeviceList = (action: DevicesGen.DevicesLoadedPayload) =>
+  Saga.put(
     DevicesGen.createReplaceEntity({
       entities: I.Map([['idToDetail', I.Map(action.payload.idToDetail)]]),
       keyPath: [],
     })
   )
-}
 
-function getDeviceList(action: DevicesGen.DevicesLoadPayload, state: TypedState) {
-  if (!state.config.loggedIn) {
-    return []
-  } else {
-    return Saga.call(RPCTypes.deviceDeviceHistoryListRpcPromise)
-  }
-}
+const getDeviceList = (action: DevicesGen.DevicesLoadPayload, state: TypedState) =>
+  state.config.loggedIn ? Saga.call(RPCTypes.deviceDeviceHistoryListRpcPromise) : []
 
 // function* _deviceRevokedSaga(action: DevicesGen.RevokePayload): Saga.SagaGenerator<any, any> {
 // let state: TypedState = yield Saga.select()
