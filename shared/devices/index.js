@@ -21,7 +21,7 @@ type Props = {
   showRemoveDevicePage: (device: Device) => void,
   showingMenu: boolean,
   showingRevoked: boolean,
-  waitingForServer: boolean,
+  waiting: boolean,
 }
 
 const DeviceHeader = ({onAddNew}) => {
@@ -91,15 +91,12 @@ class Devices extends PureComponent<Props> {
   }
 
   render() {
-    if (this.props.waitingForServer) {
-      return (
-        <Box style={{...globalStyles.flexBoxRow, height: 64, justifyContent: 'center'}}>
-          <ProgressIndicator style={{alignSelf: 'center', width: 24}} />
-        </Box>
-      )
-    }
     return (
       <Box style={stylesContainer}>
+        {this.props.waiting &&
+          <Box style={{...globalStyles.flexBoxRow, height: 64, justifyContent: 'center'}}>
+            <ProgressIndicator style={{alignSelf: 'center', width: 24}} />
+          </Box>}
         <DeviceHeader onAddNew={this.props.showMenu} />
         <List
           items={[

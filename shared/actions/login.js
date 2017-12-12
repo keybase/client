@@ -600,7 +600,7 @@ function* _addNewDevice({payload: {role}}: LoginGen.AddNewDevicePayload) {
   yield Saga.call(initalizeMyCodeStateForAddingADevice)
 
   const onBackSaga = function*(): Generator<any, void, any> {
-    yield Saga.put(DevicesGen.createLoad())
+    yield Saga.put(DevicesGen.createDevicesLoad())
     yield Saga.put(navigateTo(devicesTabLocation))
   }
 

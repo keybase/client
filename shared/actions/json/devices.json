@@ -1,11 +1,16 @@
 {
   "prelude": [
+    "import * as Types from '../constants/types/devices'",
     "import * as Constants from '../constants/devices'"
   ],
   "actions": {
-    "load": {},
-    "loaded": {
-      "deviceIDs": "Array<string>"
+    "replaceEntity": {
+      "keyPath": "Array<string>",
+      "entities": "I.Map<any, any> | I.List<any>"
+    },
+    "devicesLoad": {},
+    "devicesLoaded": {
+      "idToDetail": "{[id: string]: Types.DeviceDetail}"
     },
     "paperKeyMake": {},
     "revoke": {
@@ -13,6 +18,12 @@
     },
     "showRevokePage": {
       "deviceID": "string"
+    },
+    "endangeredTLFsLoad": {
+      "deviceID": "string"
+    },
+    "endangeredTLFsLoaded": {
+        "tlfs": "Array<string>"
     },
     "setWaiting": {
       "waiting": "boolean"

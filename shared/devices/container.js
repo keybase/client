@@ -13,45 +13,52 @@ import {
   connect,
   createSelector,
   type TypedState,
+  type Dispatch,
 } from '../util/container'
 
-const getAllDevicesSelector = (state: TypedState) => state.devices.get('deviceIDs')
-const getDeviceEntitiesSelector = (state: TypedState) => state.entities.get('devices')
+const getIdToDetail = (state: TypedState) => state.devices.idToDetail
 
-const getDevicesAndRevokedDevicesSelector = createSelector(
-  [getAllDevicesSelector, getDeviceEntitiesSelector],
-  (allDevices, deviceEntities) => {
-    const split = allDevices.groupBy(
-      id => (deviceEntities.getIn([id, 'revokedAt']) ? 'revokedDeviceIDs' : 'deviceIDs')
-    )
-    const deviceIDs = split.get('deviceIDs', I.List())
-    const revokedDeviceIDs = split.get('revokedDeviceIDs', I.List())
-    return {
-      deviceIDs,
-      revokedDeviceIDs,
-    }
+const getDevicesAndRevokedDevicesSelector = createSelector([getIdToDetail], idToDetail => {
+  const deviceIDs = []
+  const revokedDeviceIDs = []
+  idToDetail
+    .sort((a, b) => {
+      if (a.currentDevice) return -1
+      if (b.currentDevice) return 1
+      return a.name.localeCompare(b.name)
+    })
+    .forEach(detail => {
+      if (detail.revokedAt) {
+        revokedDeviceIDs.push(detail.deviceID)
+      } else {
+        deviceIDs.push(detail.deviceID)
+      }
+    })
+  return {
+    deviceIDs: I.List(deviceIDs),
+    revokedDeviceIDs: I.List(revokedDeviceIDs),
   }
-)
+})
 
 const mapStateToProps = (state: TypedState, {routeState}) => {
-  const {showingRevoked} = routeState.toObject()
+  const showingRevoked = routeState.get('showingRevoked')
   const {deviceIDs, revokedDeviceIDs} = getDevicesAndRevokedDevicesSelector(state)
-  const waitingForServer = state.devices.get('waitingForServer')
+  const waiting = state.devices.waiting
 
   return {
     deviceIDs,
     revokedDeviceIDs,
     showingRevoked,
-    waitingForServer,
+    waiting,
   }
 }
 
-const mapDispatchToProps = (dispatch: any, {routeState, setRouteState, navigateUp}) => ({
+const mapDispatchToProps = (dispatch: Dispatch, {routeState, setRouteState, navigateUp}) => ({
   addNewComputer: () =>
     dispatch(LoginGen.createAddNewDevice({role: LoginConstants.codePageDeviceRoleNewComputer})),
   addNewPaperKey: () => dispatch(DevicesGen.createPaperKeyMake()),
   addNewPhone: () => dispatch(LoginGen.createAddNewDevice({role: LoginConstants.codePageDeviceRoleNewPhone})),
-  loadDevices: () => dispatch(DevicesGen.createLoad()),
+  loadDevices: () => dispatch(DevicesGen.createDevicesLoad()),
   onBack: () => dispatch(navigateUp()),
   onToggleShowRevoked: () => {
     setRouteState({showingRevoked: !routeState.get('showingRevoked')})

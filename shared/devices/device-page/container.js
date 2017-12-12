@@ -33,8 +33,9 @@ const buildTimeline = (device: DeviceDetail) => {
   return [...(revoked || []), ...(lastUsed || []), added]
 }
 
+const blankDetail = Constants.makeDeviceDetail()
 const mapStateToProps = (state: TypedState, {routeProps}) => ({
-  device: state.entities.getIn(['devices', routeProps.get('deviceID')], Constants.makeDeviceDetail()),
+  device: state.devices.idToDetail.get(routeProps.get('deviceID'), blankDetail),
 })
 
 const mapDispatchToProps = (dispatch: Dispatch, {routeProps}) => ({

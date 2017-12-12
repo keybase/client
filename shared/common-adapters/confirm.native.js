@@ -39,6 +39,7 @@ class Confirm extends Component<Props> {
               label="Cancel"
               style={{...styleButton, ...cancelButtonThemed[this.props.theme]}}
               labelStyle={cancelButtonLabelThemed[this.props.theme]}
+              disabled={this.props.disabled}
             />
           </Box>
         </Box>

@@ -5,7 +5,6 @@ import * as ChatTypes from './chat'
 import * as SearchTypes from './search'
 import * as Git from './git'
 import {type NoErrorTypedAction} from './flux'
-import {type DeviceDetail} from './devices'
 
 export type EntityType = any // TODO stronger typing?
 
@@ -53,7 +52,6 @@ export type _State = {
   attachmentUploadProgress: I.Map<ChatTypes.MessageKey, ?number>,
   conversationMessages: I.Map<ChatTypes.ConversationIDKey, ChatTypes.ConversationMessages>,
   deletedIDs: I.Map<ChatTypes.ConversationIDKey, I.Set<ChatTypes.MessageID>>,
-  devices: I.Map<string, DeviceDetail>,
   git: Git.State,
   messageUpdates: I.Map<
     ChatTypes.ConversationIDKey,

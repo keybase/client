@@ -1,4 +1,5 @@
 // @flow
+import * as I from 'immutable'
 import * as Constants from '../../constants/devices'
 import DeviceRevoke from './'
 import {connect, type TypedState} from '../../util/container'
@@ -6,10 +7,26 @@ import {isMobile} from '../../constants/platform'
 import {navigateUp} from '../../actions/route-tree'
 import {createRevoke} from '../../actions/devices-gen'
 
-const mapStateToProps = (state: TypedState, {routeProps}) => ({
-  device: state.entities.getIn(['devices', routeProps.get('deviceID')], Constants.makeDeviceDetail()),
-  endangeredTLFs: routeProps.get('endangeredTLFs'),
-})
+const blankDetail = Constants.makeDeviceDetail()
+
+const mapStateToProps = (state: TypedState, {routeProps}) => {
+  const deviceID = routeProps.get('deviceID')
+  const device = state.devices.idToDetail.get(deviceID, blankDetail)
+  const icon = {
+    backup: isMobile ? 'icon-paper-key-revoke-64' : 'icon-paper-key-revoke-48',
+    desktop: isMobile ? 'icon-computer-revoke-64' : 'icon-computer-revoke-48',
+    mobile: isMobile ? 'icon-phone-revoke-64' : 'icon-phone-revoke-48',
+  }[device.type]
+
+  return {
+    currentDevice: device.currentDevice,
+    deviceID,
+    endangeredTLFs: state.devices.idToEndangeredTLFs.get(deviceID, I.Set()),
+    icon,
+    name: device.name,
+    waiting: state.devices.waiting,
+  }
+}
 
 const mapDispatchToProps = (dispatch: Dispatch, {routeProps}) => ({
   onCancel: () => dispatch(navigateUp()),
@@ -17,20 +34,14 @@ const mapDispatchToProps = (dispatch: Dispatch, {routeProps}) => ({
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
-  currentDevice: stateProps.device.currentDevice,
-  deviceID: stateProps.device.deviceID,
-  endangeredTLFs: stateProps.endangeredTLFs,
-  icon: icon(stateProps.device.type),
-  name: stateProps.device.name,
+  currentDevice: stateProps.currentDevice,
+  deviceID: stateProps.deviceID,
+  endangeredTLFs: stateProps.endangeredTLFs.toArray(),
+  icon: stateProps.icon,
+  name: stateProps.name,
   onCancel: dispatchProps.onCancel,
   onSubmit: dispatchProps.onSubmit,
+  waiting: stateProps.waiting,
 })
-
-const icon = type =>
-  ({
-    backup: isMobile ? 'icon-paper-key-revoke-64' : 'icon-paper-key-revoke-48',
-    desktop: isMobile ? 'icon-computer-revoke-64' : 'icon-computer-revoke-48',
-    mobile: isMobile ? 'icon-phone-revoke-64' : 'icon-phone-revoke-48',
-  }[type])
 
 export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(DeviceRevoke)

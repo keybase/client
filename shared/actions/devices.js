@@ -2,179 +2,228 @@
 import * as Constants from '../constants/devices'
 import * as Types from '../constants/types/devices'
 import * as I from 'immutable'
-import * as LoginGen from './login-gen'
+// import * as LoginGen from './login-gen'
 import * as DevicesGen from './devices-gen'
 import * as RPCTypes from '../constants/types/flow-types'
 import * as Saga from '../util/saga'
 import HiddenString from '../util/hidden-string'
-import keyBy from 'lodash/keyBy'
+// import keyBy from 'lodash/keyBy'
 import {navigateTo} from './route-tree'
-import {replaceEntity} from './entities'
+// import {replaceEntity} from './entities'
 import {type TypedState} from '../constants/reducer'
-import {loginTab} from '../constants/tabs'
+// import {loginTab} from '../constants/tabs'
 
-function* _deviceShowRevokePageSaga(action: DevicesGen.ShowRevokePagePayload): Saga.SagaGenerator<any, any> {
-  const {deviceID} = action.payload
-  let endangeredTLFs = {endangeredTLFs: []}
-  try {
-    const state: TypedState = yield Saga.select()
-    const actingDevice = state.config.deviceID
-    if (actingDevice) {
-      endangeredTLFs = yield Saga.call(RPCTypes.rekeyGetRevokeWarningRpcPromise, {
-        targetDevice: deviceID,
-        actingDevice,
-      })
-    }
-  } catch (e) {
-    console.warn('Error getting endangered TLFs:', e)
+function getEndangeredTlfs(action: DevicesGen.ShowRevokePagePayload, state: TypedState) {
+  const actingDevice = state.config.deviceID
+  if (actingDevice) {
+    return Saga.call(RPCTypes.rekeyGetRevokeWarningRpcPromise, {
+      actingDevice,
+      targetDevice: action.payload.deviceID,
+    })
   }
-  yield Saga.put(
+}
+
+function convertEndangeredTlfs(tlfs: RPCTypes.RevokeWarning) {
+  return Saga.put(
+    DevicesGen.createEndangeredTLFsLoaded({
+      tlfs: (tlfs.endangeredTLFs || []).map(t => t.name),
+    })
+  )
+}
+
+function saveEndangeredTlfs(action: DevicesGen.EndangeredTLFsLoadedPayload) {
+  return Saga.put(
+    DevicesGen.createReplaceEntity({
+      entities: I.Map([['idToEndangeredTLFs', I.Set(action.payload.tlfs)]]),
+      keyPath: [],
+    })
+  )
+}
+
+function showRevokePage(action: DevicesGen.ShowRevokePagePayload) {
+  const {deviceID} = action.payload
+  return Saga.put(
     navigateTo([
       ...Constants.devicesTabLocation,
-      {props: {deviceID, endangeredTLFs}, selected: 'devicePage'},
-      {props: {deviceID, endangeredTLFs}, selected: 'revokeDevice'},
+      {props: {deviceID}, selected: 'devicePage'},
+      {props: {deviceID}, selected: 'revokeDevice'},
     ])
   )
 }
 
-function _sortRecords(a: Types.DeviceDetail, b: Types.DeviceDetail) {
-  if (a.currentDevice) return -1
-  if (b.currentDevice) return 1
-  return a.name.localeCompare(b.name)
+function changeWaiting(
+  action:
+    | DevicesGen.DevicesLoadPayload
+    | DevicesGen.DevicesLoadedPayload
+    | DevicesGen.EndangeredTLFsLoadPayload
+    | DevicesGen.EndangeredTLFsLoadedPayload
+) {
+  let waiting
+  switch (action.type) {
+    case DevicesGen.devicesLoad:
+    case DevicesGen.endangeredTLFsLoad:
+      waiting = true
+      break
+    default:
+      waiting = false
+  }
+  return Saga.put(DevicesGen.createSetWaiting({waiting}))
 }
 
-function* _deviceListSaga(): Saga.SagaGenerator<any, any> {
-  const state: TypedState = yield Saga.select()
-  const loggedIn = state.config.loggedIn
-  if (!loggedIn) {
-    return
-  }
-
-  yield Saga.put(DevicesGen.createSetWaiting({waiting: true}))
-
-  try {
-    const result = yield Saga.call(RPCTypes.deviceDeviceHistoryListRpcPromise)
-    const records = result.map((r: RPCTypes.DeviceDetail) => {
-      return Constants.makeDeviceDetail({
-        created: r.device.cTime,
-        currentDevice: r.currentDevice,
-        deviceID: r.device.deviceID,
-        lastUsed: r.device.lastUsedTime,
-        name: r.device.name,
-        provisionedAt: r.provisionedAt,
-        provisionerName: r.provisioner ? r.provisioner.name : '',
-        revokedAt: r.revokedAt,
-        revokedByName: r.revokedByDevice ? r.revokedByDevice.name : null,
-        // $ForceType avdl typed as string
-        type: r.device.type,
-      })
+function saveWaiting(action: DevicesGen.SetWaitingPayload) {
+  return Saga.put(
+    DevicesGen.createReplaceEntity({
+      entities: I.Map([['waiting', action.payload.waiting]]),
+      keyPath: [],
     })
-
-    const deviceIDs = records.sort(_sortRecords).map(r => r.deviceID)
-    const entities = keyBy(records, 'deviceID')
-
-    yield Saga.put(replaceEntity(['devices'], I.Map(entities)))
-    yield Saga.put(DevicesGen.createLoaded({deviceIDs}))
-  } catch (e) {
-    throw new Error("Can't load devices")
-  } finally {
-    yield Saga.put(DevicesGen.createSetWaiting({waiting: false}))
-  }
+  )
 }
 
-function* _deviceRevokedSaga(action: DevicesGen.RevokePayload): Saga.SagaGenerator<any, any> {
-  let state: TypedState = yield Saga.select()
-  // Record our current route, only navigate away later if it's unchanged.
-  const beforeRouteState = state.routeTree.routeState
+function convertDeviceList(results: Array<RPCTypes.DeviceDetail>) {
+  const idToDetail = results.reduce((map: {[key: string]: Types.DeviceDetail}, d: RPCTypes.DeviceDetail) => {
+    const detail = Constants.makeDeviceDetail({
+      created: d.device.cTime,
+      currentDevice: d.currentDevice,
+      deviceID: d.device.deviceID,
+      lastUsed: d.device.lastUsedTime,
+      name: d.device.name,
+      provisionedAt: d.provisionedAt,
+      provisionerName: d.provisioner ? d.provisioner.name : '',
+      revokedAt: d.revokedAt,
+      revokedByName: d.revokedByDevice ? d.revokedByDevice.name : null,
+      // $ForceType avdl typed as string
+      type: d.device.type,
+    })
+    map[d.device.deviceID] = detail
+    return map
+  }, {})
+  return Saga.put(DevicesGen.createDevicesLoaded({idToDetail}))
+}
 
-  // Revoking the current device uses the "deprovision" RPC instead.
-  const {deviceID} = action.payload
-  const device = state.entities.getIn(['devices', deviceID])
+function saveDeviceList(action: DevicesGen.DevicesLoadedPayload) {
+  return Saga.put(
+    DevicesGen.createReplaceEntity({
+      entities: I.Map([['idToDetail', I.Map(action.payload.idToDetail)]]),
+      keyPath: [],
+    })
+  )
+}
 
-  if (!device) {
-    throw new Error("Can't find device to remove")
-  }
-
-  const currentDevice = device.currentDevice
-  const name = device.name
-
-  if (currentDevice) {
-    try {
-      const username = state.config ? state.config.username : null
-      if (!username) {
-        throw new Error('No username in device remove')
-      }
-      yield Saga.put(DevicesGen.createSetWaiting({waiting: true}))
-      yield Saga.call(RPCTypes.loginDeprovisionRpcPromise, {doRevoke: true, username})
-      yield Saga.put(navigateTo([loginTab]))
-      yield Saga.put(LoginGen.createSetRevokedSelf({revoked: name}))
-    } catch (e) {
-      throw new Error("Can't remove current device")
-    } finally {
-      yield Saga.put(DevicesGen.createSetWaiting({waiting: false}))
-    }
+function getDeviceList(action: DevicesGen.DevicesLoadPayload, state: TypedState) {
+  if (!state.config.loggedIn) {
+    return []
   } else {
-    // Not the current device.
-    try {
-      yield Saga.put(DevicesGen.createSetWaiting({waiting: true}))
-      yield Saga.call(RPCTypes.revokeRevokeDeviceRpcPromise, {
-        deviceID,
-        forceSelf: false,
-        forceLast: false,
-      })
-    } catch (e) {
-      throw new Error("Can't remove device")
-    } finally {
-      yield Saga.put(DevicesGen.createSetWaiting({waiting: false}))
-    }
-  }
-
-  yield Saga.put(DevicesGen.createLoad())
-
-  state = yield Saga.select()
-  const afterRouteState = state.routeTree.routeState
-  if (I.is(beforeRouteState, afterRouteState)) {
-    yield Saga.put(navigateTo([...Constants.devicesTabLocation]))
+    return Saga.call(RPCTypes.deviceDeviceHistoryListRpcPromise)
   }
 }
 
-function* _devicePaperKeySaga(): Saga.SagaGenerator<any, any> {
-  let channelMap
-  try {
-    yield Saga.put(DevicesGen.createSetWaiting({waiting: true}))
-    channelMap = RPCTypes.loginPaperKeyRpcChannelMap(
-      ['keybase.1.loginUi.promptRevokePaperKeys', 'keybase.1.loginUi.displayPaperKeyPhrase'],
-      {}
-    )
+// function* _deviceRevokedSaga(action: DevicesGen.RevokePayload): Saga.SagaGenerator<any, any> {
+// let state: TypedState = yield Saga.select()
+// // Record our current route, only navigate away later if it's unchanged.
+// const beforeRouteState = state.routeTree.routeState
+// // Revoking the current device uses the "deprovision" RPC instead.
+// const {deviceID} = action.payload
+// const device = state.entities.getIn(['devices', deviceID])
+// if (!device) {
+// throw new Error("Can't find device to remove")
+// }
+// const currentDevice = device.currentDevice
+// const name = device.name
+// if (currentDevice) {
+// try {
+// const username = state.config ? state.config.username : null
+// if (!username) {
+// throw new Error('No username in device remove')
+// }
+// yield Saga.put(DevicesGen.createSetWaiting({waiting: true}))
+// yield Saga.call(RPCTypes.loginDeprovisionRpcPromise, {doRevoke: true, username})
+// yield Saga.put(navigateTo([loginTab]))
+// yield Saga.put(LoginGen.createSetRevokedSelf({revoked: name}))
+// } catch (e) {
+// throw new Error("Can't remove current device")
+// } finally {
+// yield Saga.put(DevicesGen.createSetWaiting({waiting: false}))
+// }
+// } else {
+// // Not the current device.
+// try {
+// yield Saga.put(DevicesGen.createSetWaiting({waiting: true}))
+// yield Saga.call(RPCTypes.revokeRevokeDeviceRpcPromise, {
+// deviceID,
+// forceSelf: false,
+// forceLast: false,
+// })
+// } catch (e) {
+// throw new Error("Can't remove device")
+// } finally {
+// yield Saga.put(DevicesGen.createSetWaiting({waiting: false}))
+// }
+// }
+// yield Saga.put(DevicesGen.createLoad())
+// state = yield Saga.select()
+// const afterRouteState = state.routeTree.routeState
+// if (I.is(beforeRouteState, afterRouteState)) {
+// yield Saga.put(navigateTo([...Constants.devicesTabLocation]))
+// }
+// }
 
-    while (true) {
-      const incoming = yield channelMap.race()
+// function* _devicePaperKeySaga(): Saga.SagaGenerator<any, any> {
+// let channelMap
+// try {
+// yield Saga.put(DevicesGen.createSetWaiting({waiting: true}))
+// channelMap = RPCTypes.loginPaperKeyRpcChannelMap(
+// ['keybase.1.loginUi.promptRevokePaperKeys', 'keybase.1.loginUi.displayPaperKeyPhrase'],
+// {}
+// )
 
-      if (incoming['keybase.1.loginUi.promptRevokePaperKeys']) {
-        incoming['keybase.1.loginUi.promptRevokePaperKeys'].response.result(false)
-      } else if (incoming['keybase.1.loginUi.displayPaperKeyPhrase']) {
-        incoming['keybase.1.loginUi.displayPaperKeyPhrase'].response.result()
-        yield Saga.put(DevicesGen.createSetWaiting({waiting: false}))
-        const paperKey = new HiddenString(incoming['keybase.1.loginUi.displayPaperKeyPhrase'].params.phrase)
-        yield Saga.put(
-          navigateTo([...Constants.devicesTabLocation, {props: {paperKey}, selected: 'genPaperKey'}])
-        )
-        break
-      }
-    }
-  } catch (e) {
-    channelMap && channelMap.close()
-    throw new Error(`Error in generating paper key ${e}`)
-  } finally {
-    yield Saga.put(DevicesGen.createSetWaiting({waiting: false}))
-  }
-}
+// while (true) {
+// const incoming = yield channelMap.race()
+
+// if (incoming['keybase.1.loginUi.promptRevokePaperKeys']) {
+// incoming['keybase.1.loginUi.promptRevokePaperKeys'].response.result(false)
+// } else if (incoming['keybase.1.loginUi.displayPaperKeyPhrase']) {
+// incoming['keybase.1.loginUi.displayPaperKeyPhrase'].response.result()
+// yield Saga.put(DevicesGen.createSetWaiting({waiting: false}))
+// const paperKey = new HiddenString(incoming['keybase.1.loginUi.displayPaperKeyPhrase'].params.phrase)
+// yield Saga.put(
+// navigateTo([...Constants.devicesTabLocation, {props: {paperKey}, selected: 'genPaperKey'}])
+// )
+// break
+// }
+// }
+// } catch (e) {
+// channelMap && channelMap.close()
+// throw new Error(`Error in generating paper key ${e}`)
+// } finally {
+// yield Saga.put(DevicesGen.createSetWaiting({waiting: false}))
+// }
+// }
 
 function* deviceSaga(): Saga.SagaGenerator<any, any> {
-  yield Saga.safeTakeLatest(DevicesGen.load, _deviceListSaga)
-  yield Saga.safeTakeEvery(DevicesGen.revoke, _deviceRevokedSaga)
-  yield Saga.safeTakeEvery(DevicesGen.paperKeyMake, _devicePaperKeySaga)
-  yield Saga.safeTakeEvery(DevicesGen.showRevokePage, _deviceShowRevokePageSaga)
+  // Load devices
+  yield Saga.safeTakeLatestPure(DevicesGen.devicesLoad, getDeviceList, convertDeviceList)
+  yield Saga.safeTakeEveryPure(DevicesGen.devicesLoaded, saveDeviceList)
+
+  // Waiting states
+  yield Saga.safeTakeEveryPure(
+    [
+      DevicesGen.devicesLoad,
+      DevicesGen.devicesLoaded,
+      DevicesGen.endangeredTLFsLoad,
+      DevicesGen.endangeredTLFsLoaded,
+    ],
+    changeWaiting
+  )
+  yield Saga.safeTakeEveryPure(DevicesGen.setWaiting, saveWaiting)
+
+  // Revoke page
+  yield Saga.safeTakeEveryPure(DevicesGen.showRevokePage, getEndangeredTlfs, convertEndangeredTlfs)
+  yield Saga.safeTakeEveryPure(DevicesGen.showRevokePage, showRevokePage)
+  yield Saga.safeTakeEveryPure(DevicesGen.endangeredTLFsLoaded, saveEndangeredTlfs)
+
+  // TODO
+  // yield Saga.safeTakeEvery(DevicesGen.revoke, _deviceRevokedSaga)
+  // yield Saga.safeTakeEvery(DevicesGen.paperKeyMake, _devicePaperKeySaga)
 }
 
 export default deviceSaga

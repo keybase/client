@@ -19,8 +19,9 @@ const makeDeviceDetail: I.RecordFactory<Types._DeviceDetail> = I.Record({
 })
 
 const makeState: I.RecordFactory<Types._State> = I.Record({
-  deviceIDs: I.List(),
-  waitingForServer: false,
+  idToDetail: I.Map(),
+  idToEndangeredTLFs: I.Map(),
+  waiting: false,
 })
 
 // Converts a string to the DeviceType enum, logging an error if it doesn't match
