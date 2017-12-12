@@ -45,7 +45,7 @@ const teamHeaderStyle = {
   ...globalStyles.flexBoxColumn,
   alignItems: 'center',
   justifyContent: 'center',
-  padding: globalMargins.tiny,
+  paddingTop: globalMargins.small,
 }
 
 const teamStyle = {

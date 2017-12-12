@@ -829,6 +829,10 @@ export const identifyUiDismissReasonType = {
   handledElsewhere: 1,
 }
 
+export const implicitTeamMigrationStartMigrationRpcChannelMap = (configKeys: Array<string>, request: ImplicitTeamMigrationStartMigrationRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.implicitTeamMigration.startMigration', request)
+
+export const implicitTeamMigrationStartMigrationRpcPromise = (request: ImplicitTeamMigrationStartMigrationRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.implicitTeamMigration.startMigration', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
+
 export const installFuseStatusRpcChannelMap = (configKeys: Array<string>, request: InstallFuseStatusRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.install.fuseStatus', request)
 
 export const installFuseStatusRpcPromise = (request: InstallFuseStatusRpcParam): Promise<InstallFuseStatusResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.install.fuseStatus', request, (error: RPCError, result: InstallFuseStatusResult) => error ? reject(error) : resolve(result)))
@@ -1082,6 +1086,10 @@ export const metadataRegisterForUpdatesRpcPromise = (request: MetadataRegisterFo
 export const metadataReleaseLockRpcChannelMap = (configKeys: Array<string>, request: MetadataReleaseLockRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.metadata.releaseLock', request)
 
 export const metadataReleaseLockRpcPromise = (request: MetadataReleaseLockRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.metadata.releaseLock', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
+
+export const metadataStartImplicitTeamMigrationRpcChannelMap = (configKeys: Array<string>, request: MetadataStartImplicitTeamMigrationRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.metadata.startImplicitTeamMigration', request)
+
+export const metadataStartImplicitTeamMigrationRpcPromise = (request: MetadataStartImplicitTeamMigrationRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.metadata.startImplicitTeamMigration', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
 
 export const metadataTruncateLockRpcChannelMap = (configKeys: Array<string>, request: MetadataTruncateLockRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.metadata.truncateLock', request)
 
@@ -1749,6 +1757,10 @@ export const uiPromptDefault = {
 export const userDeleteUserRpcChannelMap = (configKeys: Array<string>, request: UserDeleteUserRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.user.deleteUser', request)
 
 export const userDeleteUserRpcPromise = (request: UserDeleteUserRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.user.deleteUser', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
+
+export const userGetUPAKRpcChannelMap = (configKeys: Array<string>, request: UserGetUPAKRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.user.getUPAK', request)
+
+export const userGetUPAKRpcPromise = (request: UserGetUPAKRpcParam): Promise<UserGetUPAKResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.user.getUPAK', request, (error: RPCError, result: UserGetUPAKResult) => error ? reject(error) : resolve(result)))
 
 export const userInterestingPeopleRpcChannelMap = (configKeys: Array<string>, request: UserInterestingPeopleRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.user.interestingPeople', request)
 
@@ -2438,6 +2450,8 @@ export type ImplicitTeamConflictInfo = {|generation: ConflictGeneration,time: Ti
 
 export type ImplicitTeamDisplayName = {|isPublic: Boolean,writers: ImplicitTeamUserSet,readers: ImplicitTeamUserSet,conflictInfo?: ?ImplicitTeamConflictInfo,|}
 
+export type ImplicitTeamMigrationStartMigrationRpcParam = {|folder: Folder,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+
 export type ImplicitTeamUserSet = {|keybaseUsers?: ?Array<String>,unresolvedUsers?: ?Array<SocialAssertion>,|}
 
 export type InstallAction =0 // UNKNOWN_0
@@ -2655,6 +2669,8 @@ export type MetadataRegisterForUpdatesRpcParam = {|folderID: String,currRevision
 export type MetadataReleaseLockRpcParam = {|folderID: String,lockID: LockID,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
 export type MetadataResponse = {|folderID: String,mdBlocks?: ?Array<MDBlock>,|}
+
+export type MetadataStartImplicitTeamMigrationRpcParam = {|folderID: String,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
 export type MetadataTruncateLockRpcParam = {|folderID: String,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
@@ -3733,6 +3749,8 @@ export type UserCard = {|following: Int,followers: Int,uid: UID,fullName: String
 
 export type UserDeleteUserRpcParam = ?{|incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
+export type UserGetUPAKRpcParam = {|uid: UID,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+
 export type UserInterestingPeopleRpcParam = {|maxUsers: Int,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
 export type UserListTrackers2RpcParam = {|assertion: String,reverse: Boolean,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
@@ -3974,6 +3992,7 @@ type TlfKeysGetTLFCryptKeysResult = GetTLFCryptKeysRes
 type TlfPublicCanonicalTLFNameAndIDResult = CanonicalTLFNameAndIDWithBreaks
 type TrackTrackResult = ConfirmResult
 type UiPromptYesNoResult = Boolean
+type UserGetUPAKResult = UPAKVersioned
 type UserInterestingPeopleResult = ?Array<InterestingPerson>
 type UserListTrackers2Result = UserSummary2Set
 type UserListTrackersByNameResult = ?Array<Tracker>

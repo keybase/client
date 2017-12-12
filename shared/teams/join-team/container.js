@@ -1,8 +1,8 @@
 // @flow
+import * as TeamsGen from '../../actions/teams-gen'
 import JoinTeamDialog from '.'
 import {connect} from 'react-redux'
 import {compose, lifecycle, withState, withHandlers} from 'recompose'
-import {joinTeam, setTeamJoinError, setTeamJoinSuccess} from '../../actions/teams/creators'
 import upperFirst from 'lodash/upperFirst'
 
 import type {TypedState} from '../../constants/reducer'
@@ -14,14 +14,14 @@ const mapStateToProps = (state: TypedState) => ({
 })
 
 const mapDispatchToProps = (dispatch: Dispatch, {navigateUp}) => ({
-  _onJoinTeam: name => {
-    dispatch(joinTeam(name))
+  _onJoinTeam: (teamname: string) => {
+    dispatch(TeamsGen.createJoinTeam({teamname}))
   },
   _onSetTeamJoinError: error => {
-    dispatch(setTeamJoinError(error))
+    dispatch(TeamsGen.createSetTeamJoinError({error}))
   },
-  _onSetTeamJoinSuccess: (success, teamname) => {
-    dispatch(setTeamJoinSuccess(success))
+  _onSetTeamJoinSuccess: (success: boolean, teamname: string) => {
+    dispatch(TeamsGen.createSetTeamJoinSuccess({success, teamname}))
   },
   onBack: () => dispatch(navigateUp()),
 })

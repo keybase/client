@@ -620,24 +620,15 @@ func LeaveConversation(ctx context.Context, g *globals.Context, debugger utils.D
 		rl = append(rl, *irl)
 	}
 
-	// Send a message to the channel before leaving
+	// Send a message to the channel to leave the conversation
 	if alreadyIn {
 		leaveMessageBody := chat1.NewMessageBodyWithLeave(chat1.MessageLeave{})
 		irl, err := postJoinLeave(ctx, g, ri, uid, convID, leaveMessageBody)
 		if err != nil {
 			debugger.Debug(ctx, "LeaveConversation: posting leave-conv message failed: %v", err)
-			// ignore the error
+			return rl, err
 		}
 		rl = append(rl, irl...)
-	}
-
-	leaveRes, err := ri().LeaveConversation(ctx, convID)
-	if err != nil {
-		debugger.Debug(ctx, "LeaveConversation: failed to leave conversation: %s", err.Error())
-		return rl, err
-	}
-	if leaveRes.RateLimit != nil {
-		rl = append(rl, *leaveRes.RateLimit)
 	}
 
 	return rl, nil
