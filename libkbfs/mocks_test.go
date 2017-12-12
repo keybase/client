@@ -6969,6 +6969,18 @@ func (mr *MockBlockRetrieverMockRecorder) Request(ctx, priority, kmd, ptr, block
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Request", reflect.TypeOf((*MockBlockRetriever)(nil).Request), ctx, priority, kmd, ptr, block, lifetime)
 }
 
+// RequestNoPrefetch mocks base method
+func (m *MockBlockRetriever) RequestNoPrefetch(ctx context.Context, priority int, kmd KeyMetadata, ptr BlockPointer, block Block, lifetime BlockCacheLifetime) <-chan error {
+	ret := m.ctrl.Call(m, "RequestNoPrefetch", ctx, priority, kmd, ptr, block, lifetime)
+	ret0, _ := ret[0].(<-chan error)
+	return ret0
+}
+
+// RequestNoPrefetch indicates an expected call of RequestNoPrefetch
+func (mr *MockBlockRetrieverMockRecorder) RequestNoPrefetch(ctx, priority, kmd, ptr, block, lifetime interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RequestNoPrefetch", reflect.TypeOf((*MockBlockRetriever)(nil).RequestNoPrefetch), ctx, priority, kmd, ptr, block, lifetime)
+}
+
 // PutInCaches mocks base method
 func (m *MockBlockRetriever) PutInCaches(ctx context.Context, ptr BlockPointer, tlfID tlf.ID, block Block, lifetime BlockCacheLifetime, prefetchStatus PrefetchStatus) error {
 	ret := m.ctrl.Call(m, "PutInCaches", ctx, ptr, tlfID, block, lifetime, prefetchStatus)
