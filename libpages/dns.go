@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 )
 
 const (
@@ -16,7 +17,7 @@ const (
 )
 
 // ErrKeybasePagesRecordNotFound is returned when a domain requested doesn't
-// have a kbp= recored configured.
+// have a kbp= record configured.
 type ErrKeybasePagesRecordNotFound struct{}
 
 // Error implements the error interface.
@@ -25,7 +26,7 @@ func (ErrKeybasePagesRecordNotFound) Error() string {
 }
 
 // ErrKeybasePagesRecordTooMany is returned when a domain requested has more
-// than one kbp= recored configured.
+// than one kbp= record configured.
 type ErrKeybasePagesRecordTooMany struct{}
 
 // Error implements the error interface.
@@ -40,9 +41,6 @@ func (ErrKeybasePagesRecordTooMany) Error() string {
 // than one exists, an ErrKeybasePagesRecordTooMany{} is returned. If none is
 // found, an ErrKeybasePagesRecordNotFound{} is returned.
 //
-// NOTE that a TXT record that's long than 256 characters can optionally be
-// split to multiple quoted strings. https://github.com/golang/go/issues/10482
-//
 // Examples:
 //
 // static.keybase.io TXT "kbp=/keybase/team/keybase.bots/static.keybase.io"
@@ -54,17 +52,14 @@ func LoadRootFromDNS(log *zap.Logger, domain string) (root Root, err error) {
 	var rootPath string
 
 	defer func() {
+		zapFields := []zapcore.Field{
+			zap.String("domain", domain),
+			zap.String("root_path", rootPath),
+		}
 		if err == nil {
-			log.Info("LoadRootFromDNS",
-				zap.String("domain", domain),
-				zap.String("root_path", rootPath),
-			)
+			log.Info("LoadRootFromDNS", zapFields...)
 		} else {
-			log.Warn("LoadRootFromDNS",
-				zap.String("domain", domain),
-				zap.String("root_path", rootPath),
-				zap.Error(err),
-			)
+			log.Warn("LoadRootFromDNS", append(zapFields, zap.Error(err))...)
 		}
 	}()
 

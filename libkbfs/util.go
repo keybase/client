@@ -82,10 +82,15 @@ const (
 	CtxBackgroundSyncKey CtxBackgroundSyncKeyType = iota
 )
 
+// Warninger is an interface that only waprs the Warning method.
+type Warninger interface {
+	Warning(format string, args ...interface{})
+}
+
 // CtxWithRandomIDReplayable returns a replayable context with a
 // random id associated with the given log key.
 func CtxWithRandomIDReplayable(ctx context.Context, tagKey interface{},
-	tagName string, log logger.Logger) context.Context {
+	tagName string, log Warninger) context.Context {
 	ctx = logger.ConvertRPCTagsToLogTags(ctx)
 
 	id, err := MakeRandomRequestID()

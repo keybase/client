@@ -1,11 +1,11 @@
 package libfs
 
 import (
-	"errors"
 	"net/http"
 	"os"
 
 	"github.com/keybase/kbfs/libkbfs"
+	"github.com/pkg/errors"
 )
 
 type dir struct {
@@ -14,16 +14,7 @@ type dir struct {
 	node    libkbfs.Node
 }
 
-func translateKBFSErrorToOSError(err error) error {
-	switch err.(type) {
-	case libkbfs.NoSuchNameError:
-		return os.ErrNotExist
-	case libkbfs.TlfAccessError, libkbfs.ReadAccessError:
-		return os.ErrPermission
-	default:
-		return err
-	}
-}
+// Readdir reads children from d.
 func (d *dir) Readdir(count int) (fis []os.FileInfo, err error) {
 	d.fs.log.CDebugf(d.fs.ctx, "ReadDir %s", count)
 	defer func() {
@@ -31,20 +22,7 @@ func (d *dir) Readdir(count int) (fis []os.FileInfo, err error) {
 		err = translateErr(err)
 	}()
 
-	children, err := d.fs.config.KBFSOps().GetDirChildren(d.fs.ctx, d.node)
-	if err != nil {
-		return nil, err
-	}
-
-	fis = make([]os.FileInfo, 0, len(children))
-	for name, ei := range children {
-		fis = append(fis, &FileInfo{
-			fs:   d.fs,
-			ei:   ei,
-			name: name,
-		})
-	}
-	return fis, nil
+	return d.fs.readDir(d.node)
 }
 
 // fileOrDir is a wrapper around billy FS types that satisfies http.File, which
@@ -145,7 +123,7 @@ type httpFileSystem struct {
 
 var _ http.FileSystem = httpFileSystem{}
 
-// Open impelements the http.FileSystem interface.
+// Open implements the http.FileSystem interface.
 func (hfs httpFileSystem) Open(filename string) (entry http.File, err error) {
 	hfs.fs.log.CDebugf(
 		hfs.fs.ctx, "hfs.Open %s", filename)

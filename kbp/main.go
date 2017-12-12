@@ -44,10 +44,8 @@ func main() {
 		panic(err)
 	}
 
-	if fDiskCertCache {
-		if fProd {
-			logger.Panic("disk cert cache should be used in development only")
-		}
+	if fDiskCertCache && fProd {
+		logger.Panic("disk cert cache should be used in development only")
 	}
 
 	// Hack to make libkbfs.Init connect to prod {md,b}server all the time.

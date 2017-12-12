@@ -7,7 +7,6 @@ package libpages
 import (
 	"context"
 	"errors"
-	"net/http"
 	"strings"
 
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -15,13 +14,14 @@ import (
 	"github.com/keybase/kbfs/libkbfs"
 	"github.com/keybase/kbfs/tlf"
 	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 )
 
 // ErrInvalidKeybasePagesRecord is returned when the kbp= DNS record for a
 // domain is invalid.
 type ErrInvalidKeybasePagesRecord struct{}
 
-// Errror returns the error interface.
+// Error returns the error interface.
 func (ErrInvalidKeybasePagesRecord) Error() string {
 	return "invalid TXT record"
 }
@@ -57,26 +57,21 @@ type Root struct {
 	PathUnparsed    string
 }
 
-// MakeFS makes a http.FileSystem from *r, to be used by http package to serve
-// through HTTP.
+// MakeFS makes a *libfs.FS from *r, which can be adapted to a http.FileSystem
+// (through ToHTTPFileSystem) to be used by http package to serve through HTTP.
 func (r *Root) MakeFS(ctx context.Context, log *zap.Logger,
-	kbfsConfig libkbfs.Config) (hfs http.FileSystem, err error) {
+	kbfsConfig libkbfs.Config) (fs *libfs.FS, err error) {
 	defer func() {
+		zapFields := []zapcore.Field{
+			zap.String("type", r.Type.String()),
+			zap.String("tlf_type", r.TlfType.String()),
+			zap.String("tlf", r.TlfNameUnparsed),
+			zap.String("path", r.PathUnparsed),
+		}
 		if err == nil {
-			log.Info("root.MakeFS",
-				zap.String("type", r.Type.String()),
-				zap.String("tlf_type", r.TlfType.String()),
-				zap.String("tlf", r.TlfNameUnparsed),
-				zap.String("path", r.PathUnparsed),
-			)
+			log.Info("root.MakeFS", zapFields...)
 		} else {
-			log.Warn("root.MakeFS",
-				zap.String("type", r.Type.String()),
-				zap.String("tlf_type", r.TlfType.String()),
-				zap.String("tlf", r.TlfNameUnparsed),
-				zap.String("path", r.PathUnparsed),
-				zap.Error(err),
-			)
+			log.Warn("root.MakeFS", append(zapFields, zap.Error(err))...)
 		}
 	}()
 	switch r.Type {
@@ -86,12 +81,12 @@ func (r *Root) MakeFS(ctx context.Context, log *zap.Logger,
 		if err != nil {
 			return nil, err
 		}
-		rawFS, err := libfs.NewFS(context.Background(), kbfsConfig,
-			tlfHandle, r.PathUnparsed, "TODO", keybase1.MDPriorityNormal)
+		fs, err = libfs.NewFS(context.Background(), kbfsConfig,
+			tlfHandle, r.PathUnparsed, "", keybase1.MDPriorityNormal)
 		if err != nil {
 			return nil, err
 		}
-		return rawFS.ToHTTPFileSystem(), nil
+		return fs, nil
 	case GitRoot:
 		// TODO: implment git root
 		return nil, errors.New("unimplemented")
@@ -100,7 +95,7 @@ func (r *Root) MakeFS(ctx context.Context, log *zap.Logger,
 	}
 }
 
-const gitPrefix = "git-keybase://"
+const gitPrefix = "git@keybase:"
 const kbfsPrefix = "/keybase/"
 const privatePrefix = "private/"
 const publicPrefix = "public/"
@@ -114,49 +109,42 @@ func setRootTlfNameAndPath(root *Root, str string) {
 	}
 }
 
+// str is everything after either gitPrefix or kbfsPrefix.
+func setRoot(root *Root, str string) error {
+	switch {
+	case strings.HasPrefix(str, privatePrefix):
+		root.TlfType = tlf.Private
+		setRootTlfNameAndPath(root, str[len(privatePrefix):])
+		return nil
+	case strings.HasPrefix(str, publicPrefix):
+		root.TlfType = tlf.Public
+		setRootTlfNameAndPath(root, str[len(publicPrefix):])
+		return nil
+	case strings.HasPrefix(str, teamPrefix):
+		root.TlfType = tlf.SingleTeam
+		setRootTlfNameAndPath(root, str[len(teamPrefix):])
+		return nil
+	default:
+		return ErrInvalidKeybasePagesRecord{}
+	}
+}
+
 // ParseRoot parses a kbp= TXT record from a domain into a Root object.
 func ParseRoot(str string) (Root, error) {
 	str = strings.TrimSpace(str)
 	switch {
 	case strings.HasPrefix(str, gitPrefix):
-		str = str[len(gitPrefix):]
 		root := Root{Type: GitRoot}
-		switch {
-		case strings.HasPrefix(str, privatePrefix):
-			root.TlfType = tlf.Private
-			setRootTlfNameAndPath(&root, str[len(privatePrefix):])
-			return root, nil
-		case strings.HasPrefix(str, publicPrefix):
-			root.TlfType = tlf.Public
-			setRootTlfNameAndPath(&root, str[len(publicPrefix):])
-			return root, nil
-		case strings.HasPrefix(str, teamPrefix):
-			root.TlfType = tlf.SingleTeam
-			setRootTlfNameAndPath(&root, str[len(teamPrefix):])
-			return root, nil
-		default:
-			return Root{}, ErrInvalidKeybasePagesRecord{}
+		if err := setRoot(&root, str[len(gitPrefix):]); err != nil {
+			return Root{}, err
 		}
-
+		return root, nil
 	case strings.HasPrefix(str, kbfsPrefix):
-		str = str[len(kbfsPrefix):]
 		root := Root{Type: KBFSRoot}
-		switch {
-		case strings.HasPrefix(str, privatePrefix):
-			root.TlfType = tlf.Private
-			setRootTlfNameAndPath(&root, str[len(privatePrefix):])
-			return root, nil
-		case strings.HasPrefix(str, publicPrefix):
-			root.TlfType = tlf.Public
-			setRootTlfNameAndPath(&root, str[len(publicPrefix):])
-			return root, nil
-		case strings.HasPrefix(str, teamPrefix):
-			root.TlfType = tlf.SingleTeam
-			setRootTlfNameAndPath(&root, str[len(teamPrefix):])
-			return root, nil
-		default:
-			return Root{}, ErrInvalidKeybasePagesRecord{}
+		if err := setRoot(&root, str[len(kbfsPrefix):]); err != nil {
+			return Root{}, err
 		}
+		return root, nil
 
 	default:
 		return Root{}, ErrInvalidKeybasePagesRecord{}

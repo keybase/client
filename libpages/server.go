@@ -9,11 +9,14 @@ import (
 	"crypto/ecdsa"
 	"crypto/elliptic"
 	"crypto/rand"
+	"fmt"
 	"net/http"
+	"reflect"
 	"sync"
 	"time"
 
 	lru "github.com/hashicorp/golang-lru"
+	"github.com/keybase/kbfs/libfs"
 	"github.com/keybase/kbfs/libkbfs"
 	"go.uber.org/zap"
 	"golang.org/x/crypto/acme"
@@ -46,24 +49,19 @@ type Server struct {
 func (s *Server) getFS(
 	ctx context.Context, root Root) (http.FileSystem, error) {
 	fsCached, ok := s.fsCache.Get(root)
-	if !ok {
-		fs, err := root.MakeFS(ctx, s.config.Logger, s.kbfsConfig)
-		if err != nil {
-			return nil, err
+	if ok {
+		if fs, ok := fsCached.(*libfs.FS); ok {
+			return fs.ToHTTPFileSystem(ctx), nil
 		}
-		s.fsCache.Add(root, fs)
-		return fs, nil
+		s.config.Logger.Error("nasty entry in s.fsCache",
+			zap.String("type", reflect.TypeOf(fsCached).String()))
 	}
-	fs, ok := fsCached.(http.FileSystem)
-	if !ok {
-		fs, err := root.MakeFS(ctx, s.config.Logger, s.kbfsConfig)
-		if err != nil {
-			return nil, err
-		}
-		s.fsCache.Add(root, fs)
-		return fs, nil
+	fs, err := root.MakeFS(ctx, s.config.Logger, s.kbfsConfig)
+	if err != nil {
+		return nil, err
 	}
-	return fs, nil
+	s.fsCache.Add(root, fs)
+	return fs.ToHTTPFileSystem(ctx), nil
 }
 
 func (s *Server) handleError(w http.ResponseWriter, err error) {
@@ -84,14 +82,46 @@ func (s *Server) handleError(w http.ResponseWriter, err error) {
 	}
 }
 
+// CtxKBPTagKey is the type used for unique context tags within kbp and
+// libpages.
+type CtxKBPTagKey int
+
+const (
+	// CtxKBPKey is the tag key for unique operation IDs within kbp and
+	// libpages.
+	CtxKBPKey CtxKBPTagKey = iota
+)
+
+// CtxKBPOpID is the display name for unique operations in kbp and libpages.
+const CtxKBPOpID = "KBP"
+
+type adaptedLogger struct {
+	msg    string
+	logger *zap.Logger
+}
+
+func (a adaptedLogger) Warning(format string, args ...interface{}) {
+	a.logger.Warn(a.msg, zap.String("desc", fmt.Sprintf(format, args...)))
+}
+
 // ServeHTTP implements the http.Handler interface.
 func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	s.config.Logger.Info("ServeHTTP",
+		zap.String("host", r.Host),
+		zap.String("urk", r.RequestURI),
+		zap.String("proto", r.Proto),
+	)
 	root, err := LoadRootFromDNS(s.config.Logger, r.Host)
 	if err != nil {
 		s.handleError(w, err)
 		return
 	}
-	fs, err := s.getFS(r.Context(), root)
+	ctx := libkbfs.CtxWithRandomIDReplayable(r.Context(),
+		CtxKBPKey, CtxKBPOpID, adaptedLogger{
+			msg:    "CtxWithRandomIDReplayable",
+			logger: s.config.Logger,
+		})
+	fs, err := s.getFS(ctx, root)
 	if err != nil {
 		s.handleError(w, err)
 		return
@@ -112,7 +142,7 @@ func (ErrDomainNotAllowedInWhitelist) Error() string {
 func (s *Server) allowedByDomainWhiteList(domain string) bool {
 	s.whiteListOnce.Do(func() {
 		if len(s.config.DomainWhitelist) > 0 {
-			s.whiteList = make(map[string]bool)
+			s.whiteList = make(map[string]bool, len(s.config.DomainWhitelist))
 			for _, d := range s.config.DomainWhitelist {
 				s.whiteList[d] = true
 			}
@@ -156,6 +186,9 @@ const (
 // ACME.
 func ListenAndServe(ctx context.Context,
 	config ServerConfig, kbfsConfig libkbfs.Config) (err error) {
+	ctx, cancel := context.WithCancel(ctx)
+	defer cancel()
+
 	fsCache, err := lru.New(fsCacheSize)
 	if err != nil {
 		return err

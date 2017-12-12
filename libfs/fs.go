@@ -42,15 +42,7 @@ type FSEvent struct {
 	Done      <-chan struct{}
 }
 
-// FS is a wrapper around a KBFS subdirectory that implements the
-// billy.Filesystem interface.  It uses forward-slash separated paths.
-// It may return errors wrapped with the `github.com/pkg/errors`
-// package.
-type FS struct {
-	// Yes, storing ctx in a struct is a mortal sin, but the
-	// billy.Filesystem interface doesn't give us a way to accept ctxs
-	// any other way.
-	ctx      context.Context
+type fsInner struct {
 	config   libkbfs.Config
 	root     libkbfs.Node
 	rootInfo libkbfs.EntryInfo
@@ -71,6 +63,18 @@ type FS struct {
 
 	eventsLock sync.RWMutex
 	events     map[chan<- FSEvent]bool
+}
+
+// FS is a wrapper around a KBFS subdirectory that implements the
+// billy.Filesystem interface.  It uses forward-slash separated paths.
+// It may return errors wrapped with the `github.com/pkg/errors`
+// package.
+type FS struct {
+	// Yes, storing ctx in a struct is a mortal sin, but the
+	// billy.Filesystem interface doesn't give us a way to accept ctxs
+	// any other way.
+	ctx context.Context
+	*fsInner
 }
 
 var _ billy.Filesystem = (*FS)(nil)
@@ -163,18 +167,20 @@ outer:
 	unixFullPath := path.Join("/keybase", tlfHandle.Type().String(), subdir)
 
 	return &FS{
-		ctx:           ctx,
-		config:        config,
-		root:          n,
-		rootInfo:      ei,
-		h:             tlfHandle,
-		subdir:        subdir,
-		uniqID:        uniqID,
-		log:           log,
-		deferLog:      log.CloneWithAddedDepth(1),
-		lockNamespace: []byte(unixFullPath),
-		priority:      priority,
-		events:        make(map[chan<- FSEvent]bool),
+		ctx: ctx,
+		fsInner: &fsInner{
+			config:        config,
+			root:          n,
+			rootInfo:      ei,
+			h:             tlfHandle,
+			subdir:        subdir,
+			uniqID:        uniqID,
+			log:           log,
+			deferLog:      log.CloneWithAddedDepth(1),
+			lockNamespace: []byte(unixFullPath),
+			priority:      priority,
+			events:        make(map[chan<- FSEvent]bool),
+		},
 	}, nil
 }
 
@@ -333,6 +339,10 @@ func translateErr(err error) error {
 	switch errors.Cause(err).(type) {
 	case libkbfs.NoSuchNameError:
 		return os.ErrNotExist
+	case libkbfs.TlfAccessError, libkbfs.ReadAccessError:
+		return os.ErrPermission
+	case libkbfs.NotDirError, libkbfs.NotFileError:
+		return os.ErrInvalid
 	case libkbfs.NameExistsError:
 		return os.ErrExist
 	default:
@@ -524,19 +534,7 @@ func (fs *FS) TempFile(dir, prefix string) (billy.File, error) {
 		os.O_CREATE|os.O_EXCL, 0600)
 }
 
-// ReadDir implements the billy.Filesystem interface for FS.
-func (fs *FS) ReadDir(p string) (fis []os.FileInfo, err error) {
-	fs.log.CDebugf(fs.ctx, "ReadDir %s", p)
-	defer func() {
-		fs.deferLog.CDebugf(fs.ctx, "ReadDir done: %+v", err)
-		err = translateErr(err)
-	}()
-
-	n, _, err := fs.lookupOrCreateEntry(p, os.O_RDONLY, 0)
-	if err != nil {
-		return nil, err
-	}
-
+func (fs *FS) readDir(n libkbfs.Node) (fis []os.FileInfo, err error) {
 	children, err := fs.config.KBFSOps().GetDirChildren(fs.ctx, n)
 	if err != nil {
 		return nil, err
@@ -551,6 +549,21 @@ func (fs *FS) ReadDir(p string) (fis []os.FileInfo, err error) {
 		})
 	}
 	return fis, nil
+}
+
+// ReadDir implements the billy.Filesystem interface for FS.
+func (fs *FS) ReadDir(p string) (fis []os.FileInfo, err error) {
+	fs.log.CDebugf(fs.ctx, "ReadDir %s", p)
+	defer func() {
+		fs.deferLog.CDebugf(fs.ctx, "ReadDir done: %+v", err)
+		err = translateErr(err)
+	}()
+
+	n, _, err := fs.lookupOrCreateEntry(p, os.O_RDONLY, 0)
+	if err != nil {
+		return nil, err
+	}
+	return fs.readDir(n)
 }
 
 // MkdirAll implements the billy.Filesystem interface for FS.
@@ -695,18 +708,20 @@ func (fs *FS) Chroot(p string) (newFS billy.Filesystem, err error) {
 	}
 
 	return &FS{
-		ctx:      fs.ctx,
-		config:   fs.config,
-		root:     n,
-		h:        fs.h,
-		subdir:   path.Clean(path.Join(fs.subdir, p)),
-		log:      fs.log,
-		deferLog: fs.deferLog,
+		ctx: fs.ctx,
+		fsInner: &fsInner{
+			config:   fs.config,
+			root:     n,
+			h:        fs.h,
+			subdir:   path.Clean(path.Join(fs.subdir, p)),
+			log:      fs.log,
+			deferLog: fs.deferLog,
 
-		// Original lock namespace plus '/' plus the subdir.
-		lockNamespace: bytes.Join(
-			[][]byte{fs.lockNamespace, []byte(p)}, []byte{'/'}),
-		priority: fs.priority,
+			// Original lock namespace plus '/' plus the subdir.
+			lockNamespace: bytes.Join(
+				[][]byte{fs.lockNamespace, []byte(p)}, []byte{'/'}),
+			priority: fs.priority,
+		},
 	}, nil
 }
 
@@ -763,6 +778,17 @@ func (fs *FS) sendEvents(e FSEvent) {
 	}
 }
 
-func (fs *FS) ToHTTPFileSystem() http.FileSystem {
-	return httpFileSystem{fs: fs}
+// WithContext returns a *FS based on fs, with its ctx replaced with ctx.
+func (fs *FS) WithContext(ctx context.Context) *FS {
+	return &FS{
+		ctx:     ctx,
+		fsInner: fs.fsInner,
+	}
+}
+
+// ToHTTPFileSystem calls fs.WithCtx with ctx to create a *FS with the new ctx,
+// and returns a wrapper around it that satisfies the http.FileSystem
+// interface.
+func (fs *FS) ToHTTPFileSystem(ctx context.Context) http.FileSystem {
+	return httpFileSystem{fs: fs.WithContext(ctx)}
 }
