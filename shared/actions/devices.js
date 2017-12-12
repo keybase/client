@@ -8,17 +8,10 @@ import * as RPCTypes from '../constants/types/flow-types'
 import * as Saga from '../util/saga'
 import HiddenString from '../util/hidden-string'
 import keyBy from 'lodash/keyBy'
-import {isMobile} from '../constants/platform'
 import {navigateTo} from './route-tree'
 import {replaceEntity} from './entities'
 import {type TypedState} from '../constants/reducer'
 import {loginTab} from '../constants/tabs'
-
-isMobile &&
-  module.hot &&
-  module.hot.accept(() => {
-    console.log('accepted update in actions/devices')
-  })
 
 function* _deviceShowRevokePageSaga(action: DevicesGen.ShowRevokePagePayload): Saga.SagaGenerator<any, any> {
   const {deviceID} = action.payload
