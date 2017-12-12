@@ -255,6 +255,11 @@ func (k *KBPKIClient) GetCurrentMerkleRoot(ctx context.Context) (
 func (k *KBPKIClient) IsTeamWriter(
 	ctx context.Context, tid keybase1.TeamID, uid keybase1.UID,
 	verifyingKey kbfscrypto.VerifyingKey) (bool, error) {
+	if uid.IsNil() || verifyingKey.IsNil() {
+		// A sessionless user can never be a writer.
+		return false, nil
+	}
+
 	// Use the verifying key to find out the eldest seqno of the user.
 	userInfo, err := k.loadUserPlusKeys(ctx, uid, verifyingKey.KID())
 	if err != nil {
@@ -292,6 +297,14 @@ func (k *KBPKIClient) IsTeamWriter(
 	teamInfo, err := k.serviceOwner.KeybaseService().LoadTeamPlusKeys(
 		ctx, tid, kbfsmd.UnspecifiedKeyGen, desiredUser, keybase1.TeamRole_WRITER)
 	if err != nil {
+		if tid.IsPublic() {
+			if _, notFound := err.(libkb.NotFoundError); notFound {
+				// We are probably just not a writer of this public team.
+				k.log.CDebugf(ctx,
+					"Ignoring not found error for public team: %+v", err)
+				return false, nil
+			}
+		}
 		return false, err
 	}
 	return teamInfo.Writers[uid], nil
