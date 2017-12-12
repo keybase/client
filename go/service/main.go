@@ -771,13 +771,16 @@ func (d *Service) cleanupSocketFile() error {
 func (d *Service) lockPIDFile() (err error) {
 	var fn string
 	if fn, err = d.G().Env.GetPidFile(); err != nil {
-		return
+		return err
+	}
+	if err = libkb.MakeParentDirs(d.G().Log, fn); err != nil {
+		return err
 	}
 	d.lockPid = libkb.NewLockPIDFile(d.G(), fn)
 	if err = d.lockPid.Lock(); err != nil {
 		return err
 	}
-	d.G().Log.Debug("Locking pidfile %s\n", fn)
+	d.G().Log.Debug("Lock pidfile: %s\n", fn)
 	return nil
 }
 

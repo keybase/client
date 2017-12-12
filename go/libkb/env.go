@@ -287,7 +287,12 @@ func (e *Env) GetRuntimeDir() string {
 	)
 }
 
-func (e *Env) GetInfoDir() string { return e.HomeFinder.InfoDir() }
+func (e *Env) GetInfoDir() string {
+	return e.GetString(
+		func() string { return e.Test.RuntimeDir }, // needed for systests
+		func() string { return e.HomeFinder.InfoDir() },
+	)
+}
 
 func (e *Env) GetServiceSpawnDir() (string, error) { return e.HomeFinder.ServiceSpawnDir() }
 
