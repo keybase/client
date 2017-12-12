@@ -829,9 +829,9 @@ export const identifyUiDismissReasonType = {
   handledElsewhere: 1,
 }
 
-export const implicitTeamUpgradeUpgradeLockRpcChannelMap = (configKeys: Array<string>, request: ImplicitTeamUpgradeUpgradeLockRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.implicitTeamUpgrade.upgradeLock', request)
+export const implicitTeamMigrationStartMigrationRpcChannelMap = (configKeys: Array<string>, request: ImplicitTeamMigrationStartMigrationRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.implicitTeamMigration.startMigration', request)
 
-export const implicitTeamUpgradeUpgradeLockRpcPromise = (request: ImplicitTeamUpgradeUpgradeLockRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.implicitTeamUpgrade.upgradeLock', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
+export const implicitTeamMigrationStartMigrationRpcPromise = (request: ImplicitTeamMigrationStartMigrationRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.implicitTeamMigration.startMigration', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
 
 export const installFuseStatusRpcChannelMap = (configKeys: Array<string>, request: InstallFuseStatusRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.install.fuseStatus', request)
 
@@ -2446,7 +2446,7 @@ export type ImplicitTeamConflictInfo = {|generation: ConflictGeneration,time: Ti
 
 export type ImplicitTeamDisplayName = {|isPublic: Boolean,writers: ImplicitTeamUserSet,readers: ImplicitTeamUserSet,conflictInfo?: ?ImplicitTeamConflictInfo,|}
 
-export type ImplicitTeamUpgradeUpgradeLockRpcParam = {|tlfName: String,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type ImplicitTeamMigrationStartMigrationRpcParam = {|folder: Folder,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
 export type ImplicitTeamUserSet = {|keybaseUsers?: ?Array<String>,unresolvedUsers?: ?Array<SocialAssertion>,|}
 
