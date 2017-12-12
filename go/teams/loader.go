@@ -1074,10 +1074,6 @@ func (l *TeamLoader) implicitAdminsAncestor(ctx context.Context, teamID keybase1
 	return impAdmins, nil
 }
 
-func (l *TeamLoader) MapIDToName(ctx context.Context, id keybase1.TeamID) (keybase1.TeamName, error) {
-	return keybase1.TeamName{}, nil
-}
-
 func (l *TeamLoader) NotifyTeamRename(ctx context.Context, id keybase1.TeamID, newName string) error {
 	// ignore newName from the server
 
