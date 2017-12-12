@@ -629,6 +629,15 @@ func LeaveConversation(ctx context.Context, g *globals.Context, debugger utils.D
 			return rl, err
 		}
 		rl = append(rl, irl...)
+	} else {
+		lres, err := ri().LeaveConversation(ctx, convID)
+		if err != nil {
+			debugger.Debug(ctx, "LeaveConversations: failed to leave conversation as a non-member: %s", err)
+			return rl, err
+		}
+		if lres.RateLimit != nil {
+			rl = append(rl, *lres.RateLimit)
+		}
 	}
 
 	return rl, nil
