@@ -234,6 +234,7 @@ function _validUsernames(names: Array<string>) {
 
 let _avatarsToLoad = {}
 function* _loadAvatars(action: ConfigGen.LoadAvatarsPayload) {
+  console.log('aaa', action.payload.usernames)
   const usernames = _validUsernames(action.payload.usernames)
   // store it and wait, once our timer is up we pull any and run it
   usernames.forEach(username => {

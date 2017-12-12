@@ -37,7 +37,7 @@ function RemoteMenubarWindow(ComposedComponent: any) {
       this.props.externalRemoteWindow.webContents.on('did-finish-load', this._sendLoad)
 
       // uncomment to see menubar devtools
-      // this.props.externalRemoteWindow.webContents.openDevTools('detach')
+      this.props.externalRemoteWindow.webContents.openDevTools('detach')
     }
     render() {
       const {windowOpts, windowPositionBottomRight, windowTitle, externalRemoteWindow, ...props} = this.props
@@ -51,21 +51,19 @@ function RemoteMenubarWindow(ComposedComponent: any) {
 const mapStateToProps = (state: TypedState) => ({
   _badgeInfo: state.notifications.navBadges,
   _externalRemoteWindowID: state.config.menubarWindowID,
-  extendedConfig: state.config.extendedConfig,
   folderProps: state.favorite.folderState,
-  kbfsStatus: state.favorite.kbfsStatus,
+  isAsyncWriteHappening: state.favorite.kbfsStatus && state.favorite.kbfsStatus.isAsyncWriteHappening,
   loggedIn: state.config.loggedIn,
   username: state.config.username,
 })
 
 const mergeProps = stateProps => ({
   badgeInfo: stateProps._badgeInfo.toJS(),
-  extendedConfig: stateProps.extendedConfig,
   externalRemoteWindow: stateProps._externalRemoteWindowID
     ? remote.BrowserWindow.fromId(stateProps._externalRemoteWindowID)
     : null,
   folderProps: stateProps.folderProps,
-  kbfsStatus: stateProps.kbfsStatus,
+  isAsyncWriteHappening: stateProps.isAsyncWriteHappening,
   loggedIn: stateProps.loggedIn,
   username: stateProps.username,
   windowComponent: 'menubar',

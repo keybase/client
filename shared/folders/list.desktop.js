@@ -1,21 +1,14 @@
 // @flow
 import React, {Component} from 'react'
-import ReactDOM from 'react-dom'
 import Row from './row'
 import some from 'lodash/some'
 import type {IconType} from '../common-adapters/icon'
-import type {Props, Folder} from './list'
-import {Box, Text, Icon} from '../common-adapters'
+import type {Props} from './list'
+import {Box, Text, Icon, List} from '../common-adapters'
 import {globalStyles, globalColors} from '../styles'
-
-const rowKey = users => users && users.map(u => `${u.username}-${u.readOnly ? 'reader' : ''}`).join('-')
 
 const Ignored = ({rows, showIgnored, styles, onToggle, isPublic, onClick}) => {
   const caretIcon: IconType = showIgnored ? 'iconfont-caret-down' : 'iconfont-caret-right'
-
-  if (!rows) {
-    return null
-  }
 
   return (
     <Box style={stylesIgnoreContainer}>
@@ -29,55 +22,52 @@ const Ignored = ({rows, showIgnored, styles, onToggle, isPublic, onClick}) => {
             Ignored folders won't show up on your computer and you won't receive alerts about them.
           </Text>
         </Box>}
-      {showIgnored && rows}
     </Box>
   )
 }
 
-const Rows = ({
-  tlfs = [],
-  installed,
-  isIgnored,
-  type,
-  onOpen,
-  onChat,
-  onClick,
-  onRekey,
-  smallMode,
-}: Props & {isIgnored: boolean, smallMode?: boolean, tlfs?: Array<Folder>}) => (
-  <Box>
-    {!!tlfs &&
-      tlfs.map(tlf => (
-        <Row
-          {...tlf}
-          key={rowKey(tlf.users)}
-          isPublic={type === 'public'}
-          isTeam={type === 'team'}
-          hasReadOnlyUsers={tlf.users && some(tlf.users, 'readOnly')}
-          ignored={isIgnored}
-          installed={installed}
-          onChat={onChat}
-          onClick={onClick}
-          onRekey={onRekey}
-          onOpen={onOpen}
-          smallMode={smallMode}
-        />
-      ))}
-  </Box>
-)
-
 class ListRender extends Component<Props> {
-  _scrollContainer = null
-
-  componentDidUpdate(prevProps: Props) {
-    if (prevProps.showIgnored !== this.props.showIgnored && this._scrollContainer && this.props.showIgnored) {
-      // $FlowIssue
-      ReactDOM.findDOMNode(this._scrollContainer).scrollTop += 100
+  _renderItem = (index: number, item: any) => {
+    const extra = this.props.extraRows.length || []
+    if (index < extra.length) {
+      return extra[index]
     }
-  }
 
-  _setRef = r => {
-    this._scrollContainer = r
+    // TODO how this works is HORRIBLE. This is just a short term fix to
+    // take this very very old code that we're about to throw out and have it so its not rendering every single row
+    const tlfsIdx = index - extra.length
+    const ignoredIdx = tlfsIdx - this.props.tlfs.length - 1 // 1 because we have the divider
+    const isTLF = tlfsIdx < this.props.tlfs.length
+    const tlf = isTLF ? this.props.tlfs[tlfsIdx] : this.props.ignored[ignoredIdx]
+
+    if (!isTLF && ignoredIdx === -1) {
+      // divider
+      return (
+        <Ignored
+          isPublic={this.props.isPublic}
+          showIgnored={this.props.showIgnored}
+          styles={this.props.isPublic ? stylesPublic : stylesPrivate}
+          onToggle={this.props.onToggleShowIgnored}
+        />
+      )
+    }
+
+    return (
+      <Row
+        {...tlf}
+        key={String(index)}
+        isPublic={this.props.type === 'public'}
+        isTeam={this.props.type === 'team'}
+        hasReadOnlyUsers={tlf.users && some(tlf.users, 'readOnly')}
+        ignored={!isTLF}
+        installed={this.props.installed}
+        onChat={this.props.onChat}
+        onClick={this.props.onClick}
+        onRekey={this.props.onRekey}
+        onOpen={this.props.onOpen}
+        smallMode={this.props.smallMode}
+      />
+    )
   }
 
   render() {
@@ -87,31 +77,34 @@ class ListRender extends Component<Props> {
       .folder-row:hover .folder-row-hover-action:hover { text-decoration: underline; }
     `
 
-    const styles = this.props.isPublic ? stylesPublic : stylesPrivate
-    const ignoredRows = <Rows {...this.props} isIgnored={true} tlfs={this.props.ignored || []} />
-
     return (
-      <Box style={{...stylesContainer, ...this.props.style}} ref={this._setRef}>
+      <Box style={{...stylesContainer, ...this.props.style}}>
         <style>{realCSS}</style>
-        {this.props.extraRows}
-        <Rows {...this.props} isIgnored={false} tlfs={this.props.tlfs || []} />
-        {!this.props.smallMode &&
-          <Ignored
-            isPublic={this.props.isPublic}
-            showIgnored={this.props.showIgnored}
-            styles={styles}
-            onToggle={this.props.onToggleShowIgnored}
-            rows={ignoredRows}
-          />}
+        <List
+          items={[
+            ...this.props.extraRows,
+            ...this.props.tlfs,
+            ...(!this.props.smallMode && this.props.ignored.length ? ['ignoreDivider'] : []),
+            ...(!this.props.smallMode && this.props.showIgnored ? this.props.ignored : []),
+          ]}
+          renderItem={this._renderItem}
+          fixedHeight={this.props.smallMode ? 48 : 56}
+        />
       </Box>
     )
   }
 }
 
+ListRender.defaultProps = {
+  extraRows: [],
+  ignored: [],
+  tlfs: [],
+}
+
 const stylesContainer = {
-  ...globalStyles.scrollable,
-  willChange: 'transform',
-  overflowX: 'hidden',
+  ...globalStyles.flexBoxColumn,
+  flex: 1,
+  backgroundColor: 'yellow',
 }
 
 const stylesIgnoreContainer = {
