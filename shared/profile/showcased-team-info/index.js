@@ -25,6 +25,7 @@ const TeamInfo = (props: Props) => (
     >
       <Avatar teamname={props.teamname} size={isMobile ? 64 : 40} />
     </Box>
+
     <Text type="Header">{props.teamname}</Text>
 
     <Text type="BodySmall" style={{textTransform: 'uppercase'}}>
@@ -43,7 +44,7 @@ const TeamInfo = (props: Props) => (
     {!props.youAreInTeam &&
       <Box style={styleDivider}>
         <Button
-          onClick={props.onJoinTeam}
+          onClick={() => props.onJoinTeam(props.teamname)}
           disabled={props.teamJoinSuccess || props.youHaveRequestedAccess}
           label={
             props.teamJoinSuccess || props.youHaveRequestedAccess
@@ -137,7 +138,7 @@ const TeamInfoWrapper = (props: Props) => {
     ? <PopupMenu onHidden={props.onHidden} style={{overflow: 'visible'}} header={header} items={items} />
     : <ModalLessPopupMenu
         onHidden={() => {}}
-        style={{overflow: 'visible', width: 220}}
+        style={{...props.style, overflow: 'visible', width: 220}}
         header={header}
         items={items}
       />
