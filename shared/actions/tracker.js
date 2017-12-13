@@ -193,9 +193,8 @@ function _dismissWithToken(trackToken) {
   })
 }
 
-function* _onClose(action: TrackerGen.OnClosePayload) {
+function _onClose(action: TrackerGen.OnClosePayload, state: TypedState) {
   const {username} = action.payload
-  const state: TypedState = yield Saga.select()
   const trackToken = _getTrackToken(state, username)
 
   if (trackToken) {
@@ -633,7 +632,7 @@ function* trackerSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEvery(TrackerGen.follow, _follow)
   yield Saga.safeTakeEveryPure(TrackerGen.ignore, _ignore)
   yield Saga.safeTakeEvery(TrackerGen.refollow, _refollow)
-  yield Saga.safeTakeEvery(TrackerGen.onClose, _onClose)
+  yield Saga.safeTakeEveryPure(TrackerGen.onClose, _onClose)
   yield Saga.safeTakeEvery(TrackerGen.updateTrackers, _updateTrackers)
   yield Saga.safeTakeEveryPure(TrackerGen.getProfile, _getProfile)
   yield Saga.safeTakeEveryPure(TrackerGen.getMyProfile, _getMyProfile)
