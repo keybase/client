@@ -22,7 +22,9 @@ function SyncProps(ComposedComponent: any) {
       if (this.props.remoteWindow) {
         try {
           const props = this._getPropsToSend()
-          this.props.remoteWindow && this.props.remoteWindow.emit('props', props)
+          // Using stringify to go over the wire as the representation it sends over IPC is very verbose and blows up
+          // the data a lot
+          this.props.remoteWindow && this.props.remoteWindow.emit('props', JSON.stringify(props))
         } catch (e) {
           console.error(e)
         }

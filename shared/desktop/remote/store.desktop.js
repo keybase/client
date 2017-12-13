@@ -12,12 +12,14 @@ class RemoteStore {
   _internalState: any = {}
   _gotPropsCallback: ?() => void // let component know it loaded once so it can show itself. Set to null after calling once
 
-  _onPropsUpdated = props => {
+  _onPropsUpdated = propsStr => {
+    const props = JSON.parse(propsStr)
     // We get diffs of the top level props so we always overwrite
     this._internalState = {
       ...this._internalState,
       ...props,
     }
+
     this._publishChange()
     if (this._gotPropsCallback) {
       this._gotPropsCallback()

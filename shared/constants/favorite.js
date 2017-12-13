@@ -119,12 +119,10 @@ function folderFromFolderRPCWithMeta(username: string, f: FolderRPCWithMeta): Fo
     path,
     users,
     sortName,
-    hasData: false, // TODO don't have this info
     isPublic: !f.private,
     isTeam: f.folderType === RPCTypes.favoriteFolderType.team,
     ignored,
     meta,
-    recentFiles: [],
     waitingForParticipantUnlock: f.waitingForParticipantUnlock,
     youCanUnlock: f.youCanUnlock,
   }

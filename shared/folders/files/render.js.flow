@@ -1,5 +1,5 @@
 // @flow
-import type {FileSection, Device, ParticipantUnlock} from '../../constants/types/folders'
+import type {Device, ParticipantUnlock} from '../../constants/types/folders'
 import type {Props as MenuProps} from '../../common-adapters/popup-menu'
 import type {UserList} from '../../common-adapters/usernames'
 import {Component} from 'react'
@@ -15,8 +15,6 @@ export type Props = {
   showGroupIcon?: boolean, // TODO (this is not implemented, but this will show the group icon instead of user avatars)
   onBack: () => void,
   onTogglePopupMenu: () => void,
-  recentFilesSection: Array<FileSection>,
-  recentFilesEnabled: boolean, // TODO (AW): remove when recentFiles feature is finished
   openCurrentFolder: () => void,
   openConversationFromFolder: () => void,
   ignoreCurrentFolder: () => void,
