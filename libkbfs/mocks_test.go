@@ -4036,16 +4036,6 @@ func (mr *MockPrefetcherMockRecorder) CancelPrefetch(arg0 interface{}) *gomock.C
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CancelPrefetch", reflect.TypeOf((*MockPrefetcher)(nil).CancelPrefetch), arg0)
 }
 
-// RemovePrefetch mocks base method
-func (m *MockPrefetcher) RemovePrefetch(arg0 kbfsblock.ID) {
-	m.ctrl.Call(m, "RemovePrefetch", arg0)
-}
-
-// RemovePrefetch indicates an expected call of RemovePrefetch
-func (mr *MockPrefetcherMockRecorder) RemovePrefetch(arg0 interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RemovePrefetch", reflect.TypeOf((*MockPrefetcher)(nil).RemovePrefetch), arg0)
-}
-
 // Shutdown mocks base method
 func (m *MockPrefetcher) Shutdown() <-chan struct{} {
 	ret := m.ctrl.Call(m, "Shutdown")
