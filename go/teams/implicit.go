@@ -74,7 +74,7 @@ func lookupImplicitTeamAndConflicts(ctx context.Context, g *libkb.GlobalContext,
 	}
 
 	arg := libkb.NewAPIArgWithNetContext(ctx, "team/implicit")
-	arg.SessionType = libkb.APISessionTypeREQUIRED
+	arg.SessionType = libkb.APISessionTypeOPTIONAL
 	arg.Args = libkb.HTTPArgs{
 		"display_name": libkb.S{Val: lookupNameWithoutConflict},
 		"public":       libkb.B{Val: impTeamName.IsPublic},

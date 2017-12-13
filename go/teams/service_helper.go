@@ -1056,13 +1056,14 @@ func ChangeTeamSettings(ctx context.Context, g *libkb.GlobalContext, teamName st
 		}
 
 		if !settings.Open && !t.IsOpen() {
-			return libkb.NoOpError{Desc: "Team is already closed."}
+			g.Log.CDebugf(ctx, "team is already closed, just returning: %s", teamName)
+			return nil
 		}
 
 		if settings.Open && t.IsOpen() && t.OpenTeamJoinAs() == settings.JoinAs {
-			return libkb.NoOpError{
-				Desc: fmt.Sprintf("Team is already open with default role: %s.", strings.ToLower(t.OpenTeamJoinAs().String())),
-			}
+			g.Log.CDebugf(ctx, "team is already open with default role: team: %s role: %s",
+				teamName, strings.ToLower(t.OpenTeamJoinAs().String()))
+			return nil
 		}
 
 		return t.PostTeamSettings(ctx, settings)

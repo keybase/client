@@ -200,12 +200,6 @@ function _bootstrapSuccess(action: ConfigGen.BootstrapSuccessPayload, state: Typ
   return Saga.all(actions)
 }
 
-function _pgpSecurityModelChangeMessageSaga() {
-  RPCTypes.pgpPgpStorageDismissRpcPromise().catch(err => {
-    console.warn('Error in sending pgpPgpStorageDismissRpc:', err)
-  })
-}
-
 function _loadAvatarHelper(action: {payload: {names: Array<string>, endpoint: string, key: string}}) {
   const {names, endpoint, key} = action.payload
   return Saga.all([

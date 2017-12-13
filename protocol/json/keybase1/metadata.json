@@ -440,6 +440,15 @@
       ],
       "response": null
     },
+    "startImplicitTeamMigration": {
+      "request": [
+        {
+          "name": "folderID",
+          "type": "string"
+        }
+      ],
+      "response": null
+    },
     "getMerkleRoot": {
       "request": [
         {

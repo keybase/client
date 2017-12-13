@@ -81,10 +81,6 @@ export default function(
         .set('appFocusedCount', state.appFocusedCount + 1)
     case AppGen.changedActive:
       return state.set('userActive', action.payload.userActive)
-    case ConfigGen.pgpKeyInSecretStoreFile:
-      return state.set('pgpPopupOpen', true)
-    case ConfigGen.pgpAckedMessage:
-      return state.set('pgpPopupOpen', false)
     case ConfigGen.clearAvatarCache: {
       const old = state.avatars
       const goodAvatars = pickBy(old, value => !isEmpty(value))

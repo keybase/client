@@ -442,6 +442,13 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage) (
 				DeviceID: keybase1.DeviceID(nm.Message.ClientHeader.SenderDevice.String()),
 			}, convID, false)
 
+			// Check for a leave message from ourselves and just bail out if it is
+			if nm.Message.GetMessageType() == chat1.MessageType_LEAVE &&
+				nm.Message.ClientHeader.Sender.Eq(uid) {
+				g.Debug(ctx, "chat activity: ignoring leave message from oursevles")
+				return
+			}
+
 			decmsg, appended, pushErr := g.G().ConvSource.Push(ctx, nm.ConvID, gregor1.UID(uid), nm.Message)
 			if pushErr != nil {
 				g.Debug(ctx, "chat activity: unable to push message: %s", pushErr.Error())

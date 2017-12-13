@@ -148,4 +148,9 @@ protocol user {
 
   UserVersion meUserVersion(int sessionID);
 
+  /**
+   getUPAK returns a UPAK. Used mainly for debugging.
+  */
+  @lint("ignore")
+  UPAKVersioned getUPAK(UID uid);
 }

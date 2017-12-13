@@ -8,22 +8,24 @@ import * as Saga from '../../util/saga'
 import type {ReturnValue} from '../../constants/types/more'
 import type {TypedState} from '../../constants/reducer'
 
-const inSearchSelector = (state: TypedState) => state.chat.get('inSearch')
-
-function* _newChat(action: ChatGen.NewChatPayload): Saga.SagaGenerator<any, any> {
-  yield Saga.put(ChatGen.createSetInboxFilter({filter: ''}))
-  const ids = yield Saga.select(SearchConstants.getUserInputItemIds, {searchKey: 'chatSearch'})
-  if (ids && !!ids.length) {
-    // Ignore 'New Chat' attempts when we're already building a chat
-    return
+function _newChat(action: ChatGen.NewChatPayload, state: TypedState) {
+  const actions = []
+  actions.push(Saga.put(ChatGen.createSetInboxFilter({filter: ''})))
+  const ids = SearchConstants.getUserInputItemIds(state, {searchKey: 'chatSearch'})
+  // Ignore 'New Chat' attempts when we're already building a chat
+  if (!ids || !ids.length) {
+    actions.push(
+      Saga.put(
+        ChatGen.createSetPreviousConversation({
+          conversationIDKey: Constants.getSelectedConversation(state),
+        })
+      )
+    )
+    actions.push(Saga.put(ChatGen.createSelectConversation({conversationIDKey: null})))
+    actions.push(Saga.put(SearchGen.createSearchSuggestions({searchKey: 'chatSearch'})))
   }
-  yield Saga.put(
-    ChatGen.createSetPreviousConversation({
-      conversationIDKey: yield Saga.select(Constants.getSelectedConversation),
-    })
-  )
-  yield Saga.put(ChatGen.createSelectConversation({conversationIDKey: null}))
-  yield Saga.put(SearchGen.createSearchSuggestions({searchKey: 'chatSearch'}))
+
+  return Saga.sequentially(actions)
 }
 
 function _exitSearch({payload: {skipSelectPreviousConversation}}: ChatGen.ExitSearchPayload, s: TypedState) {
@@ -34,7 +36,7 @@ function _exitSearch({payload: {skipSelectPreviousConversation}}: ChatGen.ExitSe
     typeof Selectors.previousConversationSelector
   > = Selectors.previousConversationSelector(s)
 
-  return Saga.all(
+  return Saga.sequentially(
     [
       Saga.put(SearchGen.createClearSearchResults({searchKey: 'chatSearch'})),
       Saga.put(SearchGen.createSetUserInputItems({searchKey: 'chatSearch', searchResults: []})),
@@ -49,12 +51,11 @@ function _exitSearch({payload: {skipSelectPreviousConversation}}: ChatGen.ExitSe
 // TODO this is kinda confusing. I think there is duplicated state...
 function* _updateTempSearchConversation(action: SearchGen.UserInputItemsUpdatedPayload) {
   const {payload: {userInputItemIds}} = action
-  const [me, inSearch] = yield Saga.all([
-    Saga.select(Selectors.usernameSelector),
-    Saga.select(inSearchSelector),
-  ])
+  const state: TypedState = yield Saga.select()
+  const me = Selectors.usernameSelector(state)
+  const inSearch = state.chat.get('inSearch')
 
-  if (!inSearch) {
+  if (!inSearch || !me) {
     return
   }
 
@@ -76,7 +77,7 @@ function* _updateTempSearchConversation(action: SearchGen.UserInputItemsUpdatedP
 
   // Always clear the search results when you select/unselect
   actionsToPut.push(Saga.put(SearchGen.createClearSearchResults({searchKey: 'chatSearch'})))
-  yield Saga.all(actionsToPut)
+  yield Saga.sequentially(actionsToPut)
 }
 
 function* registerSagas(): Saga.SagaGenerator<any, any> {
@@ -85,7 +86,7 @@ function* registerSagas(): Saga.SagaGenerator<any, any> {
     _updateTempSearchConversation
   )
   yield Saga.safeTakeEveryPure(ChatGen.exitSearch, _exitSearch)
-  yield Saga.safeTakeEvery(ChatGen.newChat, _newChat)
+  yield Saga.safeTakeEveryPure(ChatGen.newChat, _newChat)
 }
 
 export {registerSagas}
