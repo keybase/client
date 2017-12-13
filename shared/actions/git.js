@@ -81,17 +81,16 @@ function* _createDeleteHelper(theCall: *): Generator<any, void, any> {
   }
 }
 
-function* _createPersonalRepo(action: GitGen.CreatePersonalRepoPayload): Saga.SagaGenerator<any, any> {
-  yield Saga.call(
+const _createPersonalRepo = (action: GitGen.CreatePersonalRepoPayload) =>
+  Saga.call(
     _createDeleteHelper,
     Saga.call(RPCTypes.gitCreatePersonalRepoRpcPromise, {
       repoName: action.payload.name,
     })
   )
-}
 
-function* _createTeamRepo(action: GitGen.CreateTeamRepoPayload): Saga.SagaGenerator<any, any> {
-  yield Saga.call(
+const _createTeamRepo = (action: GitGen.CreateTeamRepoPayload) =>
+  Saga.call(
     _createDeleteHelper,
     Saga.call(RPCTypes.gitCreateTeamRepoRpcPromise, {
       notifyTeam: action.payload.notifyTeam,
@@ -101,19 +100,17 @@ function* _createTeamRepo(action: GitGen.CreateTeamRepoPayload): Saga.SagaGenera
       },
     })
   )
-}
 
-function* _deletePersonalRepo(action: GitGen.DeletePersonalRepoPayload): Saga.SagaGenerator<any, any> {
-  yield Saga.call(
+const _deletePersonalRepo = (action: GitGen.DeletePersonalRepoPayload) =>
+  Saga.call(
     _createDeleteHelper,
     Saga.call(RPCTypes.gitDeletePersonalRepoRpcPromise, {
       repoName: action.payload.name,
     })
   )
-}
 
-function* _deleteTeamRepo(action: GitGen.DeleteTeamRepoPayload): Saga.SagaGenerator<any, any> {
-  yield Saga.call(
+const _deleteTeamRepo = (action: GitGen.DeleteTeamRepoPayload) =>
+  Saga.call(
     _createDeleteHelper,
     Saga.call(RPCTypes.gitDeleteTeamRepoRpcPromise, {
       notifyTeam: action.payload.notifyTeam,
@@ -123,15 +120,12 @@ function* _deleteTeamRepo(action: GitGen.DeleteTeamRepoPayload): Saga.SagaGenera
       },
     })
   )
-}
 
-function* _setLoading(action: GitGen.SetLoadingPayload): Saga.SagaGenerator<any, any> {
-  yield Saga.put(Entities.replaceEntity(['git'], I.Map([['loading', action.payload.loading]])))
-}
+const _setLoading = (action: GitGen.SetLoadingPayload) =>
+  Saga.put(Entities.replaceEntity(['git'], I.Map([['loading', action.payload.loading]])))
 
-function* _setError(action: GitGen.SetErrorPayload): Saga.SagaGenerator<any, any> {
-  yield Saga.put(Entities.replaceEntity(['git'], I.Map([['error', action.payload.error]])))
-}
+const _setError = (action: GitGen.SetErrorPayload) =>
+  Saga.put(Entities.replaceEntity(['git'], I.Map([['error', action.payload.error]])))
 
 const _badgeAppForGit = (action: GitGen.BadgeAppForGitPayload) =>
   Saga.put(Entities.replaceEntity(['git'], I.Map([['isNew', I.Set(action.payload.ids)]])))
@@ -155,27 +149,26 @@ const _onTabChange = (action: RouteTreeTypes.SwitchTo) => {
   return null
 }
 
-function* _handleIncomingGregor(action: GitGen.HandleIncomingGregorPayload): Saga.SagaGenerator<any, any> {
+function _handleIncomingGregor(action: GitGen.HandleIncomingGregorPayload) {
   const msgs = action.payload.messages.map(msg => JSON.parse(msg.body.toString()))
   for (let body of msgs) {
     const needsLoad = ['delete', 'create', 'update'].includes(body.action)
     if (needsLoad) {
-      yield Saga.put(GitGen.createLoadGit())
-      return // Note: remove (or replace with `continue`) if any other actions may need dispatching
+      return Saga.put(GitGen.createLoadGit())
     }
   }
 }
 
 function* gitSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeLatest(GitGen.loadGit, _loadGit)
-  yield Saga.safeTakeEvery(GitGen.createPersonalRepo, _createPersonalRepo)
-  yield Saga.safeTakeEvery(GitGen.createTeamRepo, _createTeamRepo)
-  yield Saga.safeTakeEvery(GitGen.deletePersonalRepo, _deletePersonalRepo)
-  yield Saga.safeTakeEvery(GitGen.deleteTeamRepo, _deleteTeamRepo)
-  yield Saga.safeTakeLatest(GitGen.setLoading, _setLoading)
-  yield Saga.safeTakeLatest(GitGen.setError, _setError)
+  yield Saga.safeTakeEveryPure(GitGen.createPersonalRepo, _createPersonalRepo)
+  yield Saga.safeTakeEveryPure(GitGen.createTeamRepo, _createTeamRepo)
+  yield Saga.safeTakeEveryPure(GitGen.deletePersonalRepo, _deletePersonalRepo)
+  yield Saga.safeTakeEveryPure(GitGen.deleteTeamRepo, _deleteTeamRepo)
+  yield Saga.safeTakeLatestPure(GitGen.setLoading, _setLoading)
+  yield Saga.safeTakeLatestPure(GitGen.setError, _setError)
   yield Saga.safeTakeEveryPure(GitGen.badgeAppForGit, _badgeAppForGit)
-  yield Saga.safeTakeEvery(GitGen.handleIncomingGregor, _handleIncomingGregor)
+  yield Saga.safeTakeEveryPure(GitGen.handleIncomingGregor, _handleIncomingGregor)
   yield Saga.safeTakeEveryPure(RouteTreeConstants.switchTo, _onTabChange)
 }
 
