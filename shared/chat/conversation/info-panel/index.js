@@ -70,10 +70,12 @@ const MuteRow = (props: MuteRowProps) => (
 )
 
 type infoPanelProps = {
+  admin: boolean,
   muted: boolean,
   onMuteConversation: (muted: boolean) => void,
   onShowProfile: (username: string) => void,
   onToggleInfoPanel: () => void,
+  numberParticipants: number,
   participants: Array<{
     username: string,
     following: boolean,
@@ -189,6 +191,12 @@ const _SmallTeamInfoPanel = (props: SmallTeamInfoPanelProps) => (
       </ClickableBox>
     </Box> */}
     <Divider style={styleDivider} />
+    <Box style={{...globalStyles.flexBoxRow, marginRight: globalMargins.small}}>
+      <Text style={{flex: 1, paddingLeft: globalMargins.small}} type="BodySmallSemibold">
+        In this team ({props.participants.length.toString()})
+      </Text>
+      {props.admin && <Text type="BodySmallPrimaryLink" onClick={props.onViewTeam}>Manage</Text>}
+    </Box>
     <Participants participants={props.participants} onShowProfile={props.onShowProfile} />
 
   </ScrollView>
@@ -205,7 +213,7 @@ type BigTeamInfoPanelProps = infoPanelProps & {
 
 const _BigTeamInfoPanel = (props: BigTeamInfoPanelProps) => (
   <ScrollView style={scrollViewStyle} contentContainerStyle={contentContainerStyle}>
-    <Text style={{alignSelf: 'center', marginTop: 20}} type="BodyBig">
+    <Text style={{alignSelf: 'center', marginTop: globalMargins.medium}} type="BodyBig">
       #{props.channelname}
     </Text>
 
@@ -214,7 +222,7 @@ const _BigTeamInfoPanel = (props: BigTeamInfoPanelProps) => (
       onClick={props.onViewTeam}
     >
       <Avatar teamname={props.teamname} size={12} />
-      <Text style={{marginLeft: globalMargins.xtiny}} type="BodySmallSemibold">
+      <Text type="BodySmallSemibold" style={{marginLeft: globalMargins.xtiny}}>
         {props.teamname}
       </Text>
     </ClickableBox>
@@ -247,10 +255,14 @@ const _BigTeamInfoPanel = (props: BigTeamInfoPanelProps) => (
       </Text>}
 
     <Divider style={styleDivider} />
-
-    <Text style={{paddingLeft: globalMargins.small}} type="BodySmallSemibold">
-      Members ({props.participants.length})
-    </Text>
+    <Box style={{...globalStyles.flexBoxRow, marginRight: globalMargins.small}}>
+      <Text style={{flex: 1, paddingLeft: globalMargins.small}} type="BodySmallSemibold">
+        In this channel ({props.participants.length.toString()})
+      </Text>
+      {props.admin &&
+        props.channelname === 'general' &&
+        <Text type="BodySmallPrimaryLink" onClick={props.onViewTeam}>Manage</Text>}
+    </Box>
     <Participants participants={props.participants} onShowProfile={props.onShowProfile} />
   </ScrollView>
 )

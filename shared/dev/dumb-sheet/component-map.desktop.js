@@ -12,7 +12,6 @@ import LoginMap from '../../login/dumb'
 // import MenubarMap from '../../menubar/dumb.desktop'
 import MessagesMap from '../../chat/conversation/messages/dumb'
 import MessageNoticesMap from '../../chat/conversation/notices/dumb'
-import PgpMap from '../../pgp/dumb.desktop'
 import PinentryMap from '../../pinentry/dumb.desktop'
 import ProfileMap from '../../profile/dumb'
 import RegisterMap from '../../login/register/dumb'
@@ -36,7 +35,6 @@ const map: any = {
   // ...MenubarMap,
   ...MessagesMap,
   ...MessageNoticesMap,
-  ...PgpMap,
   ...PinentryMap,
   ...ProfileMap,
   ...RegisterMap,

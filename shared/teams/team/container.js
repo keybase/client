@@ -16,6 +16,8 @@ import {anyWaiting} from '../../constants/waiting'
 import {navigateAppend} from '../../actions/route-tree'
 import {createShowUserProfile} from '../../actions/profile-gen'
 
+const order = {owner: 0, admin: 1, writer: 2, reader: 3}
+
 type StateProps = {
   _invites: I.Set<Types.InviteInfo>,
   _memberInfo: I.Set<Types.MemberInfo>,
@@ -153,7 +155,13 @@ const getOrderedMemberArray = (
   }
   let returnArray = memberInfo
     .toArray()
-    .sort((a: Types.MemberInfo, b: Types.MemberInfo) => a.username.localeCompare(b.username))
+    .sort(
+      (a, b) =>
+        !a.type || !b.type || a.type === b.type
+          ? a.username.localeCompare(b.username)
+          : order[a.type] - order[b.type]
+    )
+
   if (youInfo) {
     returnArray.unshift(youInfo)
   }

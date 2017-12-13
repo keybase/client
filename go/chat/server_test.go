@@ -2390,14 +2390,17 @@ func TestChatSrvTeamChannels(t *testing.T) {
 		listener0 := newServerChatListener()
 		ctc.as(t, users[0]).h.G().SetService()
 		ctc.as(t, users[0]).h.G().NotifyRouter.SetListener(listener0)
+		ctc.world.Tcs[users[0].Username].ChatG.Syncer.(*Syncer).isConnected = true
 
 		listener1 := newServerChatListener()
 		ctc.as(t, users[1]).h.G().SetService()
 		ctc.as(t, users[1]).h.G().NotifyRouter.SetListener(listener1)
+		ctc.world.Tcs[users[1].Username].ChatG.Syncer.(*Syncer).isConnected = true
 
 		listener2 := newServerChatListener()
 		ctc.as(t, users[2]).h.G().SetService()
 		ctc.as(t, users[2]).h.G().NotifyRouter.SetListener(listener2)
+		ctc.world.Tcs[users[2].Username].ChatG.Syncer.(*Syncer).isConnected = true
 
 		conv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT,
 			mt, ctc.as(t, users[1]).user(), ctc.as(t, users[2]).user())
@@ -2534,7 +2537,6 @@ func TestChatSrvTeamChannels(t *testing.T) {
 			ncres.Conv.GetConvID())
 		require.NoError(t, err)
 		consumeNewMsg(t, listener0, chat1.MessageType_LEAVE)
-		consumeNewMsg(t, listener1, chat1.MessageType_LEAVE)
 		consumeNewMsg(t, listener2, chat1.MessageType_LEAVE)
 		select {
 		case convID := <-listener1.leftConv:
@@ -2606,7 +2608,6 @@ func TestChatSrvTeamChannels(t *testing.T) {
 		require.NoError(t, err)
 		consumeNewMsg(t, listener0, chat1.MessageType_LEAVE)
 		consumeNewMsg(t, listener1, chat1.MessageType_LEAVE)
-		consumeNewMsg(t, listener2, chat1.MessageType_LEAVE)
 		consumeLeaveConv(t, listener2)
 		_, err = ctc.as(t, users[2]).chatLocalHandler().PreviewConversationByIDLocal(ctx2, ncres.Conv.Info.Id)
 		require.NoError(t, err)

@@ -183,6 +183,7 @@ const (
 	DBSigChainTailPublic       = 0xe7
 	DBSigChainTailSemiprivate  = 0xe8
 	DBSigChainTailEncrypted    = 0xe9
+	DBChatActive               = 0xea
 	DBMerkleRoot               = 0xf0
 	DBTrackers                 = 0xf1
 	DBGregor                   = 0xf2

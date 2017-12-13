@@ -200,12 +200,6 @@ function _bootstrapSuccess(action: ConfigGen.BootstrapSuccessPayload, state: Typ
   return Saga.sequentially(actions)
 }
 
-function _pgpSecurityModelChangeMessageSaga() {
-  RPCTypes.pgpPgpStorageDismissRpcPromise().catch(err => {
-    console.warn('Error in sending pgpPgpStorageDismissRpc:', err)
-  })
-}
-
 function _loadAvatarHelper(action: {payload: {names: Array<string>, endpoint: string, key: string}}) {
   const {names, endpoint, key} = action.payload
   return Saga.sequentially([
@@ -291,7 +285,6 @@ function* configSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(ConfigGen.clearRouteState, _clearRouteState)
   yield Saga.safeTakeEveryPure(ConfigGen.persistRouteState, _persistRouteState)
   yield Saga.safeTakeEveryPure(ConfigGen.retryBootstrap, _retryBootstrap)
-  yield Saga.safeTakeEveryPure(ConfigGen.pgpAckedMessage, _pgpSecurityModelChangeMessageSaga)
   yield Saga.safeTakeEvery(ConfigGen.loadAvatars, _loadAvatars)
   yield Saga.safeTakeEvery(ConfigGen.loadTeamAvatars, _loadTeamAvatars)
   yield Saga.safeTakeEveryPure('_loadAvatarHelper', _loadAvatarHelper, _afterLoadAvatarHelper)

@@ -154,7 +154,7 @@ function* onInboxStale(action: ChatGen.InboxStalePayload): SagaGenerator<any, an
 
     const inboxIsEmpty = I.Map(conversations.map(c => [c.conversationIDKey, c.isEmpty]))
 
-    yield Saga.all([
+    yield Saga.sequentially([
       Saga.put(ChatGen.createReplaceEntity({keyPath: ['inboxVersion'], entities: idToVersion})),
       Saga.put(
         ChatGen.createReplaceEntity({keyPath: ['inboxSmallTimestamps'], entities: inboxSmallTimestamps})
@@ -194,10 +194,8 @@ function* onInboxStale(action: ChatGen.InboxStalePayload): SagaGenerator<any, an
   }
 }
 
-function* onGetInboxAndUnbox({
-  payload: {conversationIDKeys},
-}: ChatGen.GetInboxAndUnboxPayload): SagaGenerator<any, any> {
-  yield Saga.put(ChatGen.createUnboxConversations({conversationIDKeys, reason: 'getInboxAndUnbox'}))
+function onGetInboxAndUnbox({payload: {conversationIDKeys}}: ChatGen.GetInboxAndUnboxPayload) {
+  return Saga.put(ChatGen.createUnboxConversations({conversationIDKeys, reason: 'getInboxAndUnbox'}))
 }
 
 function supersededConversationIDToKey(id): string {
@@ -272,7 +270,7 @@ function* _processConversation(c: RPCChatTypes.InboxUIItem): Generator<any, void
     if (isBigTeam) {
       // There's a bug where the untrusted inbox state for the channel is incorrect so we
       // instead make sure that the small team maps and the big team maps don't allow duplicates
-      yield Saga.all([
+      yield Saga.sequentially([
         Saga.put(
           ChatGen.createReplaceEntity({
             keyPath: ['inboxBigChannels'],
@@ -293,7 +291,7 @@ function* _processConversation(c: RPCChatTypes.InboxUIItem): Generator<any, void
         ),
       ])
     } else {
-      yield Saga.all([
+      yield Saga.sequentially([
         Saga.put(
           ChatGen.createReplaceEntity({
             keyPath: ['inboxSmallTimestamps'],
@@ -350,8 +348,9 @@ function* _processConversation(c: RPCChatTypes.InboxUIItem): Generator<any, void
     }
 
     // Try and load messages if the updated item is the selected one
-    const selectedConversation = yield Saga.select(Constants.getSelectedConversation)
-    if (selectedConversation === inboxState.conversationIDKey) {
+    const state: TypedState = yield Saga.select()
+    const selectedConversation = Constants.getSelectedConversation(state)
+    if (selectedConversation && selectedConversation === inboxState.conversationIDKey) {
       // load validated selected
       yield Saga.put(
         ChatGen.createLoadMoreMessages({conversationIDKey: selectedConversation, onlyIfUnloaded: true})
@@ -626,11 +625,9 @@ function _conversationLocalToInboxState(c: ?RPCChatTypes.InboxUIItem): ?Types.In
   })
 }
 
-function* filterSelectNext(action: ChatGen.SelectNextPayload): SagaGenerator<any, any> {
+function filterSelectNext(action: ChatGen.SelectNextPayload, state: TypedState) {
   const rows = action.payload.rows
   const direction = action.payload.direction
-
-  const state: TypedState = yield Saga.select()
   const selected = Constants.getSelectedConversation(state)
 
   const idx = rows.findIndex(r => r.conversationIDKey === selected)
@@ -642,7 +639,7 @@ function* filterSelectNext(action: ChatGen.SelectNextPayload): SagaGenerator<any
   }
   const r = rows[nextIdx]
   if (r && r.conversationIDKey) {
-    yield Saga.put(
+    return Saga.put(
       ChatGen.createSelectConversation({conversationIDKey: r.conversationIDKey, fromUser: false})
     )
   }
@@ -689,25 +686,30 @@ function* _sendNotifications(action: ChatGen.AppendMessagesPayload): Saga.SagaGe
   }
 }
 
-function* _markThreadsStale(action: ChatGen.MarkThreadsStalePayload): Saga.SagaGenerator<any, any> {
+function _markThreadsStale(action: ChatGen.MarkThreadsStalePayload, state: TypedState) {
   // Load inbox items of any stale items so we get update on rekeyInfos, etc
   const {updates} = action.payload
   const convIDs = updates.map(u => Constants.conversationIDToKey(u.convID))
-  yield Saga.put(
-    ChatGen.createUnboxConversations({conversationIDKeys: convIDs, reason: 'thread stale', force: true})
-  )
 
-  const state: TypedState = yield Saga.select()
+  const actions = []
+  actions.push(
+    Saga.put(
+      ChatGen.createUnboxConversations({conversationIDKeys: convIDs, reason: 'thread stale', force: true})
+    )
+  )
 
   // Selected is stale?
   const selectedConversation = Constants.getSelectedConversation(state)
-  if (!selectedConversation) {
-    return
+  if (selectedConversation) {
+    actions.push(Saga.put(ChatGen.createClearMessages({conversationIDKey: selectedConversation})))
+    actions.push(
+      Saga.put(
+        ChatGen.createLoadMoreMessages({conversationIDKey: selectedConversation, onlyIfUnloaded: false})
+      )
+    )
   }
-  yield Saga.put(ChatGen.createClearMessages({conversationIDKey: selectedConversation}))
-  yield Saga.put(
-    ChatGen.createLoadMoreMessages({conversationIDKey: selectedConversation, onlyIfUnloaded: false})
-  )
+
+  return Saga.sequentially(actions)
 }
 
 function* _inboxSynced(action: ChatGen.InboxSyncedPayload): Saga.SagaGenerator<any, any> {
@@ -768,7 +770,7 @@ function* _inboxSynced(action: ChatGen.InboxSyncedPayload): Saga.SagaGenerator<a
       numberOverride = knownMaxMessageID - lastRpcMessageIdWeAreShowing
       if (numberOverride > tooManyMessagesToJustAppendOnStale) {
         console.log('Doing a full load due to too many old messages', numberOverride)
-        yield Saga.all([
+        yield Saga.sequentially([
           Saga.put(ChatGen.createClearMessages({conversationIDKey: selectedConversation})),
           Saga.put(
             ChatGen.createLoadMoreMessages({conversationIDKey: selectedConversation, onlyIfUnloaded: false})
@@ -940,14 +942,14 @@ function _previewChannel(action: ChatGen.PreviewChannelPayload) {
 
 function* registerSagas(): SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(ChatGen.updateSnippet, _updateSnippet)
-  yield Saga.safeTakeEvery(ChatGen.getInboxAndUnbox, onGetInboxAndUnbox)
-  yield Saga.safeTakeEvery(ChatGen.selectNext, filterSelectNext)
+  yield Saga.safeTakeEveryPure(ChatGen.getInboxAndUnbox, onGetInboxAndUnbox)
+  yield Saga.safeTakeEveryPure(ChatGen.selectNext, filterSelectNext)
   yield Saga.safeTakeLatest(ChatGen.inboxStale, onInboxStale)
   yield Saga.safeTakeLatest(ChatGen.loadInbox, onInboxLoad)
   yield Saga.safeTakeLatest(ChatGen.unboxMore, _unboxMore)
   yield Saga.safeTakeSerially(ChatGen.unboxConversations, unboxConversations)
   yield Saga.safeTakeEvery(ChatGen.appendMessages, _sendNotifications)
-  yield Saga.safeTakeEvery(ChatGen.markThreadsStale, _markThreadsStale)
+  yield Saga.safeTakeEveryPure(ChatGen.markThreadsStale, _markThreadsStale)
   yield Saga.safeTakeEvery(ChatGen.inboxSynced, _inboxSynced)
   yield Saga.safeTakeLatest(ChatGen.badgeAppForChat, _badgeAppForChat)
   yield Saga.safeTakeEvery(ChatGen.incomingMessage, _incomingMessage)
