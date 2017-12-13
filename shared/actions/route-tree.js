@@ -2,9 +2,8 @@
 import * as Types from '../constants/types/route-tree'
 import * as Constants from '../constants/route-tree'
 import * as I from 'immutable'
+import * as Saga from '../util/saga'
 import {getPath} from '../route-tree'
-import {put, select} from 'redux-saga/effects'
-import {safeTakeEvery} from '../util/saga'
 
 import type {RouteDefParams, Path, PropsPath} from '../route-tree'
 import type {TypedAction} from '../constants/types/flux'
@@ -134,14 +133,15 @@ export function resetRoute(path: Path): Types.ResetRoute {
 }
 
 function* _putActionIfOnPath({payload: {otherAction, expectedPath, parentPath}}: Types.PutActionIfOnPath<*>) {
-  const currentPath = yield select(pathSelector, parentPath)
+  const state: TypedState = yield Saga.select()
+  const currentPath = pathSelector(state, parentPath)
   if (I.is(I.List(expectedPath), currentPath)) {
-    yield put(otherAction)
+    yield Saga.put(otherAction)
   }
 }
 
 function* routeSaga(): any {
-  yield safeTakeEvery('routeTree:putActionIfOnPath', _putActionIfOnPath)
+  yield Saga.safeTakeEvery('routeTree:putActionIfOnPath', _putActionIfOnPath)
 }
 
 export default routeSaga

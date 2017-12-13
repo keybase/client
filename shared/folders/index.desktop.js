@@ -76,6 +76,9 @@ class FoldersRender extends Component<Props> {
             opacity: !this.props.smallMode && !this.props.installed ? 0.4 : 1,
             minHeight: this.props.smallMode ? 32 : 48,
           }}
+          style={{
+            flex: 1,
+          }}
         >
           {['private', 'public', 'team'].map(selected => (
             <TabBarItem

@@ -177,12 +177,13 @@ type ModalPositionRelativeProps<PP> = {
   targetRect: ?ClientRect,
   position: Position,
   onClosePopup: () => void,
+  style?: Object,
 } & PP
 
 function ModalPositionRelative<PP>(
   WrappedComponent: React.ComponentType<PP>
 ): React.ComponentType<ModalPositionRelativeProps<PP>> {
-  class ModalPositionRelative extends React.Component<ModalPositionRelativeProps<PP>, {style: {}}> {
+  class ModalPositionRelativeClass extends React.Component<ModalPositionRelativeProps<PP>, {style: {}}> {
     popupNode: ?HTMLElement
     state: {style: {}}
     constructor() {
@@ -198,7 +199,10 @@ function ModalPositionRelative<PP>(
         return
       }
 
-      const style = computePopupStyle(this.props.position, targetRect, popupNode.getBoundingClientRect())
+      const style = {
+        ...computePopupStyle(this.props.position, targetRect, popupNode.getBoundingClientRect()),
+        ...this.props.style,
+      }
 
       this.setState({style})
     }
@@ -252,7 +256,7 @@ function ModalPositionRelative<PP>(
     }
   }
 
-  return ModalPositionRelative
+  return ModalPositionRelativeClass
 }
 
 const RelativePopupHoc: RelativePopupHocType<*> = PopupComponent => {
@@ -277,5 +281,5 @@ const RelativePopupHoc: RelativePopupHocType<*> = PopupComponent => {
   return C
 }
 
-export {DOMNodeFinder}
+export {DOMNodeFinder, ModalPositionRelative}
 export default RelativePopupHoc

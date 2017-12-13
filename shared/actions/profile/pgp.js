@@ -34,15 +34,14 @@ function _checkPgpInfoForErrors(info: Types.PgpInfo): PgpInfoError {
   }
 }
 
-function* _checkPgpInfo(action: ProfileGen.UpdatePgpInfoPayload): Saga.SagaGenerator<any, any> {
+function _checkPgpInfo(action: ProfileGen.UpdatePgpInfoPayload, state: TypedState) {
   if (action.error) {
     return
   }
 
-  const state: TypedState = yield Saga.select()
-  const {profile: {pgpInfo}} = state
+  const {pgpInfo} = state.profile
 
-  yield Saga.put(
+  return Saga.put(
     ProfileGen.createUpdatePgpInfoError({
       error: _checkPgpInfoForErrors(pgpInfo),
     })
@@ -135,7 +134,7 @@ function* _generatePgpSaga(): Saga.SagaGenerator<any, any> {
 }
 
 function* pgpSaga(): Saga.SagaGenerator<any, any> {
-  yield Saga.safeTakeLatest(a => a && a.type === ProfileGen.updatePgpInfo && !a.error, _checkPgpInfo)
+  yield Saga.safeTakeLatestPure(a => a && a.type === ProfileGen.updatePgpInfo && !a.error, _checkPgpInfo)
   yield Saga.safeTakeLatest(ProfileGen.generatePgp, _generatePgpSaga)
   yield Saga.safeTakeEvery(ProfileGen.dropPgp, _dropPgpSaga)
 }

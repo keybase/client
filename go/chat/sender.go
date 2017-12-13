@@ -490,6 +490,10 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 	msg chat1.MessagePlaintext, clientPrev chat1.MessageID, outboxID *chat1.OutboxID) (obid chat1.OutboxID, boxed *chat1.MessageBoxed, rl *chat1.RateLimit, err error) {
 	defer s.Trace(ctx, func() error { return err }, fmt.Sprintf("Send(%s)", convID))()
 
+	// Record that this user is "active in chat", which we use to determine
+	// gregor reconnect backoffs.
+	RecordChatSend(ctx, s.G(), s.DebugLabeler)
+
 	ri := s.getRi()
 	if ri == nil {
 		return chat1.OutboxID{}, nil, nil, fmt.Errorf("Send(): no remote client found")
