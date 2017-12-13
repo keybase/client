@@ -85,43 +85,64 @@ func (mid MessageID) String() string {
 }
 
 func (t MessageType) String() string {
-	switch t {
-	case MessageType_NONE:
-		return "NONE"
-	case MessageType_TEXT:
-		return "TEXT"
-	case MessageType_ATTACHMENT:
-		return "ATTACHMENT"
-	case MessageType_EDIT:
-		return "EDIT"
-	case MessageType_DELETE:
-		return "DELETE"
-	case MessageType_METADATA:
-		return "METADATA"
-	case MessageType_TLFNAME:
-		return "TLFNAME"
-	case MessageType_ATTACHMENTUPLOADED:
-		return "ATTACHMENTUPLOADED"
-	case MessageType_JOIN:
-		return "JOIN"
-	case MessageType_LEAVE:
-		return "LEAVE"
-	default:
-		return "UNKNOWN"
+	s, ok := MessageTypeRevMap[t]
+	if ok {
+		return s
 	}
+	return "UNKNOWN"
+}
+
+// Message types deletable by a standard DELETE message.
+var deletableMessageTypesByDelete = []MessageType{
+	MessageType_TEXT,
+	MessageType_ATTACHMENT,
+	MessageType_EDIT,
+	MessageType_ATTACHMENTUPLOADED,
+}
+
+// Message types deletable by a DELETEHISTORY message.
+var deletableMessageTypesByDeleteHistory = []MessageType{
+	MessageType_TEXT,
+	MessageType_ATTACHMENT,
+	MessageType_EDIT,
+	MessageType_ATTACHMENTUPLOADED,
+	MessageType_JOIN,
+	MessageType_LEAVE,
+	MessageType_SYSTEM,
+}
+
+func DeletableMessageTypesByDelete() []MessageType {
+	return deletableMessageTypesByDelete
+}
+
+func DeletableMessageTypesByDeleteHistory() []MessageType {
+	return deletableMessageTypesByDeleteHistory
+}
+
+func IsDeletableByDelete(typ MessageType) bool {
+	for _, typ2 := range deletableMessageTypesByDelete {
+		if typ == typ2 {
+			return true
+		}
+	}
+	return false
+}
+
+func IsDeletableByDeleteHistory(typ MessageType) bool {
+	for _, typ2 := range deletableMessageTypesByDeleteHistory {
+		if typ == typ2 {
+			return true
+		}
+	}
+	return false
 }
 
 func (t TopicType) String() string {
-	switch t {
-	case TopicType_NONE:
-		return "NONE"
-	case TopicType_CHAT:
-		return "CHAT"
-	case TopicType_DEV:
-		return "DEV"
-	default:
-		return "UNKNOWN"
+	s, ok := TopicTypeRevMap[t]
+	if ok {
+		return s
 	}
+	return "UNKNOWN"
 }
 
 func (t TopicID) String() string {
