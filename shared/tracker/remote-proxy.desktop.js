@@ -28,7 +28,7 @@ const trackerMapStateToProps = (state: TypedState, {name, showTeam}) => {
   return {
     _trackerState: state.tracker.userTrackers[name] || state.tracker.nonUserTrackers[name],
     description: showTeam && showTeam.description,
-    following: state.config.following.toObject(),
+    following: state.config.following,
     loggedIn: state.config.loggedIn,
     teamJoinError: state.chat.teamJoinError,
     teamJoinSuccess: state.chat.teamJoinSuccess,
@@ -69,7 +69,7 @@ const trackerMergeProps = (
     actionBarReady: !t.serverActive && !t.error,
     description,
     errorMessage: t.error,
-    following,
+    following: following.toObject(),
     loading: Constants.isLoading(t),
     loggedIn,
     memberCount,
