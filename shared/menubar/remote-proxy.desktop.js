@@ -21,13 +21,20 @@ type Props = {
 // Like RemoteWindow but the browserWindow is handled by the 3rd party menubar class and mostly lets it handle things
 function RemoteMenubarWindow(ComposedComponent: any) {
   class RemoteWindowComponent extends React.PureComponent<Props> {
-    componentWillMount() {
+    _sendLoad = () => {
       sendLoad(
         this.props.externalRemoteWindow.webContents,
         this.props.windowParam,
         this.props.windowComponent,
         this.props.windowTitle
       )
+    }
+
+    componentWillMount() {
+      this._sendLoad()
+
+      // Allow reloads
+      this.props.externalRemoteWindow.webContents.on('did-finish-load', this._sendLoad)
 
       // uncomment to see menubar devtools
       // this.props.externalRemoteWindow.webContents.openDevTools('detach')
@@ -44,21 +51,19 @@ function RemoteMenubarWindow(ComposedComponent: any) {
 const mapStateToProps = (state: TypedState) => ({
   _badgeInfo: state.notifications.navBadges,
   _externalRemoteWindowID: state.config.menubarWindowID,
-  extendedConfig: state.config.extendedConfig,
   folderProps: state.favorite.folderState,
-  kbfsStatus: state.favorite.kbfsStatus,
+  isAsyncWriteHappening: state.favorite.kbfsStatus && state.favorite.kbfsStatus.isAsyncWriteHappening,
   loggedIn: state.config.loggedIn,
   username: state.config.username,
 })
 
 const mergeProps = stateProps => ({
   badgeInfo: stateProps._badgeInfo.toJS(),
-  extendedConfig: stateProps.extendedConfig,
   externalRemoteWindow: stateProps._externalRemoteWindowID
     ? remote.BrowserWindow.fromId(stateProps._externalRemoteWindowID)
     : null,
   folderProps: stateProps.folderProps,
-  kbfsStatus: stateProps.kbfsStatus,
+  isAsyncWriteHappening: stateProps.isAsyncWriteHappening,
   loggedIn: stateProps.loggedIn,
   username: stateProps.username,
   windowComponent: 'menubar',

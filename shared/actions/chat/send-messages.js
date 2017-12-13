@@ -28,14 +28,18 @@ function* deleteMessage(action: ChatGen.DeleteMessagePayload): SagaGenerator<any
   const attrs = Constants.splitMessageIDKey(message.key)
   const conversationIDKey: Types.ConversationIDKey = attrs.conversationIDKey
   const messageID: Types.ParsedMessageID = Constants.parseMessageID(attrs.messageID)
+  const state: TypedState = yield Saga.select()
+
   if (messageID.type === 'rpcMessageID') {
+    const inboxConvo = Constants.getInbox(state, conversationIDKey)
+    const lastMessageID = Constants.lastMessageID(state, conversationIDKey)
     // Deleting a server message.
-    const [inboxConvo, lastMessageID]: [Types.InboxState, ?Types.MessageID] = yield Saga.all([
-      Saga.select(Constants.getInbox, conversationIDKey),
-      Saga.select(Constants.lastMessageID, conversationIDKey),
-    ])
     yield Saga.put(navigateTo([], [chatTab, conversationIDKey]))
 
+    if (!inboxConvo) {
+      console.warn('Deleting message for non-existent inbox:', message)
+      return
+    }
     if (!inboxConvo.name) {
       console.warn('Deleting message for non-existent TLF:', message)
       return
@@ -87,20 +91,23 @@ function* postMessage(action: ChatGen.PostMessagePayload): SagaGenerator<any, an
   // Note: This should happen *after* startNewConversation, because
   // startNewConversation() uses the presence of a pendingConversation
   // that is deleted by exitSearch().
-  const inSearch = yield Saga.select((state: TypedState) => state.chat.get('inSearch'))
+  const state: TypedState = yield Saga.select()
+
+  const inSearch = state.chat.get('inSearch')
   if (inSearch) {
     yield Saga.put(ChatGen.createExitSearch({skipSelectPreviousConversation: false}))
   }
 
-  const [inboxConvo, lastMessageID]: [Types.InboxState, ?Types.MessageID] = yield Saga.all([
-    Saga.select(Constants.getInbox, conversationIDKey),
-    Saga.select(Constants.lastMessageID, conversationIDKey),
-  ])
-
+  const inboxConvo = Constants.getInbox(state, conversationIDKey)
+  const lastMessageID = Constants.lastMessageID(state, conversationIDKey)
   const outboxID = yield Saga.call(RPCChatTypes.localGenerateOutboxIDRpcPromise)
-  const author = yield Saga.select(usernameSelector)
+  const author = usernameSelector(state)
+  if (!author) {
+    console.warn('post message after logged out?')
+    return
+  }
   const outboxIDKey = Constants.outboxIDToKey(outboxID)
-  const lastOrd = yield Saga.select(Constants.lastOrdinal, conversationIDKey)
+  const lastOrd = Constants.lastOrdinal(state, conversationIDKey)
 
   const message: Types.TextMessage = {
     author,
@@ -114,23 +121,23 @@ function* postMessage(action: ChatGen.PostMessagePayload): SagaGenerator<any, an
     mentions: I.Set(),
     message: new HiddenString(action.payload.text.stringValue()),
     messageState: 'pending',
+    ordinal: Constants.nextFractionalOrdinal(lastOrd),
     outboxID: outboxIDKey,
     rawMessageID: -1,
     senderDeviceRevokedAt: null,
     timestamp: Date.now(),
     type: 'Text',
     you: author,
-    ordinal: Constants.nextFractionalOrdinal(lastOrd),
   }
 
-  const selectedConversation = yield Saga.select(Constants.getSelectedConversation)
-  const appFocused = yield Saga.select(Shared.focusedSelector)
+  const selectedConversation = Constants.getSelectedConversation(state)
+  const appFocused = Shared.focusedSelector(state)
 
   yield Saga.put(
     ChatGen.createAppendMessages({
       conversationIDKey,
-      isSelected: conversationIDKey === selectedConversation,
       isAppFocused: appFocused,
+      isSelected: conversationIDKey === selectedConversation,
       messages: [message],
       svcShouldDisplayNotification: false,
     })
@@ -140,13 +147,13 @@ function* postMessage(action: ChatGen.PostMessagePayload): SagaGenerator<any, an
   const clientPrev = parsedMessageID && parsedMessageID.type === 'rpcMessageID' ? parsedMessageID.msgID : 0
 
   yield Saga.call(RPCChatTypes.localPostTextNonblockRpcPromise, {
+    body: action.payload.text.stringValue(),
+    clientPrev,
     conversationID: Constants.keyToConversationID(conversationIDKey),
+    identifyBehavior: yield Saga.call(Shared.getPostingIdentifyBehavior, conversationIDKey),
+    outboxID,
     tlfName: (inboxConvo ? inboxConvo.name : newConvoTlfName) || '',
     tlfPublic: false,
-    outboxID,
-    body: action.payload.text.stringValue(),
-    identifyBehavior: yield Saga.call(Shared.getPostingIdentifyBehavior, conversationIDKey),
-    clientPrev,
   })
 }
 
@@ -166,10 +173,9 @@ function* editMessage(action: ChatGen.EditMessagePayload): SagaGenerator<any, an
   }
   let supersedes: RPCChatTypes.MessageID = messageID.msgID
 
-  const [inboxConvo, lastMessageID]: [Types.InboxState, ?Types.MessageID] = yield Saga.all([
-    Saga.select(Constants.getInbox, conversationIDKey),
-    Saga.select(Constants.lastMessageID, conversationIDKey),
-  ])
+  const state: TypedState = yield Saga.select()
+  const inboxConvo = Constants.getInbox(state, conversationIDKey)
+  const lastMessageID = Constants.lastMessageID(state, conversationIDKey)
 
   let clientPrev: RPCChatTypes.MessageID
   if (lastMessageID) {
@@ -184,6 +190,10 @@ function* editMessage(action: ChatGen.EditMessagePayload): SagaGenerator<any, an
     clientPrev = 0
   }
 
+  if (!inboxConvo) {
+    console.warn('Editing message for non-existent inbox:', message)
+    return
+  }
   if (!inboxConvo.name) {
     console.warn('Editing message for non-existent TLF:', message)
     return
@@ -224,7 +234,7 @@ function* retryMessage(action: ChatGen.RetryMessagePayload): SagaGenerator<any, 
   })
 }
 
-function* _logPostMessage(action: ChatGen.PostMessagePayload): Saga.SagaGenerator<any, any> {
+function _logPostMessage(action: ChatGen.PostMessagePayload) {
   const toPrint = {
     payload: {conversationIDKey: action.payload.conversationIDKey},
     type: action.type,
@@ -233,7 +243,7 @@ function* _logPostMessage(action: ChatGen.PostMessagePayload): Saga.SagaGenerato
   console.log('Posting message', JSON.stringify(toPrint, null, 2))
 }
 
-function* _logRetryMessage(action: ChatGen.RetryMessagePayload): Saga.SagaGenerator<any, any> {
+function _logRetryMessage(action: ChatGen.RetryMessagePayload) {
   const toPrint = {
     payload: {
       conversationIDKey: action.payload.conversationIDKey,
@@ -251,8 +261,8 @@ function* registerSagas(): SagaGenerator<any, any> {
   yield Saga.safeTakeEvery(ChatGen.retryMessage, retryMessage)
 
   if (enableActionLogging) {
-    yield Saga.safeTakeEvery(ChatGen.postMessage, _logPostMessage)
-    yield Saga.safeTakeEvery(ChatGen.retryMessage, _logRetryMessage)
+    yield Saga.safeTakeEveryPure(ChatGen.postMessage, _logPostMessage)
+    yield Saga.safeTakeEveryPure(ChatGen.retryMessage, _logRetryMessage)
   }
 }
 

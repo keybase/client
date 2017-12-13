@@ -123,8 +123,6 @@ const mockUserInfo: {username: string, userInfo: UserInfo} = {
 const baseFolder = {
   ignored: false,
   isPublic: true,
-  hasData: true,
-  recentFiles: [],
   waitingForParticipantUnlock: [],
   youCanUnlock: [],
 }
@@ -133,13 +131,11 @@ const folders = [
   createFolder({
     users: [{username: 'chris', you: true}, {username: 'cecileb'}],
     ...baseFolder,
-    hasData: false,
   }),
   createFolder({
     users: [{username: 'chris', you: true}, {username: 'cecileb'}],
     ...baseFolder,
     isPublic: false,
-    hasData: false,
   }),
   createFolder({
     users: [{username: 'chris', you: true}, {username: 'cecileb'}, {username: 'max'}],
