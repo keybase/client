@@ -1,6 +1,8 @@
 // @flow
 import * as GitGen from '../actions/git-gen'
 import * as NotificationsGen from '../actions/notifications-gen'
+import * as TrackerGen from '../actions/tracker-gen'
+import * as TeamsGen from '../actions/teams-gen'
 import * as FavoriteGen from '../actions/favorite-gen'
 import * as RPCTypes from '../constants/types/flow-types'
 import * as Saga from '../util/saga'
@@ -9,9 +11,8 @@ import engine, {Engine} from '../engine'
 import {NotifyPopup} from '../native/notifications'
 import {call, put, take, fork} from 'redux-saga/effects'
 import {isMobile} from '../constants/platform'
-import {registerIdentifyUi, setupUserChangedHandler} from './tracker'
 import {createBadgeAppForChat, createSetupChatHandlers} from './chat-gen'
-import {setupTeamHandlers, badgeAppForTeams} from './teams/creators'
+import {createRegisterRekeyListener} from './unlock-folders-gen'
 
 function* _listenSaga(): Saga.SagaGenerator<any, any> {
   const channels = {
@@ -48,15 +49,14 @@ function* _listenSaga(): Saga.SagaGenerator<any, any> {
     })
   }
   yield put(setHandlers)
-
-  yield put(registerIdentifyUi())
-  yield put(setupUserChangedHandler())
+  yield put(TrackerGen.createSetupTrackerHandlers())
 }
 
 function* _listenKBFSSaga(): Saga.SagaGenerator<any, any> {
   yield put(FavoriteGen.createSetupKBFSChangedHandler())
   yield put(createSetupChatHandlers())
-  yield put(setupTeamHandlers())
+  yield put(TeamsGen.createSetupTeamHandlers())
+  yield put(createRegisterRekeyListener())
 }
 
 function* _onRecievedBadgeState(
@@ -70,7 +70,12 @@ function* _onRecievedBadgeState(
   } = action.payload.badgeState
   yield put(createBadgeAppForChat({conversations: conversations || []}))
   yield put(GitGen.createBadgeAppForGit({ids: newGitRepoGlobalUniqueIDs || []}))
-  yield put(badgeAppForTeams(newTeamNames || [], newTeamAccessRequests || []))
+  yield put(
+    TeamsGen.createBadgeAppForTeams({
+      newTeamAccessRequests: newTeamAccessRequests || [],
+      newTeamNames: newTeamNames || [],
+    })
+  )
 }
 
 function* _listenNotifications(): Saga.SagaGenerator<any, any> {

@@ -13,6 +13,7 @@ import {
   connect,
   type TypedState,
 } from '../../../util/container'
+import {isAdmin, isOwner, getRole} from '../../../constants/teams'
 import {createSelector} from 'reselect'
 import {navigateAppend, navigateTo} from '../../../actions/route-tree'
 import {chatTab, teamsTab} from '../../../constants/tabs'
@@ -30,7 +31,7 @@ const getParticipants = createSelector(
   (you, users, followingMap, metaDataMap) => {
     return users.map(user => {
       const username = user.username
-      const following = !!followingMap[username]
+      const following = followingMap.has(username)
       const meta = metaDataMap.get(username, Map({}))
       const fullname = user.fullname ? user.fullname : meta.get('fullname') || ''
       const broken = meta.get('brokenTracker') || false
@@ -60,8 +61,15 @@ const mapStateToProps = (state: TypedState) => {
   const showTeamButton = flags.teamChatEnabled
   const smallTeam = Constants.getTeamType(state) === ChatTypes.commonTeamType.simple
 
+  let admin = false
+  if (teamname) {
+    const myRole = getRole(state, teamname)
+    admin = isAdmin(myRole) || isOwner(myRole)
+  }
+
   return {
     ...getPreviewState(state),
+    admin,
     channelname,
     muted: Constants.getMuted(state),
     participants: getParticipants(state),

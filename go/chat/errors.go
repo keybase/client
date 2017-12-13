@@ -10,7 +10,7 @@ import (
 )
 
 var ErrChatServerTimeout = errors.New("timeout calling chat server")
-var ErrDuplicateConnection = errors.New("duplicate chat server connection established, failing")
+var ErrDuplicateConnection = errors.New("error calling chat server")
 var ErrKeyServerTimeout = errors.New("timeout calling into key server")
 
 type UnboxingError interface {

@@ -17,7 +17,7 @@ import {isMobile} from '../constants/platform'
 
 import type {Action} from '../constants/types/flux'
 import type {TypedState} from '../constants/reducer'
-import type {FolderRPCWithMeta} from '../constants/folders'
+import type {FolderRPCWithMeta} from '../constants/types/folders'
 
 const injectMeta = type => f => {
   f.meta = type

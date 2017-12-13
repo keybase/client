@@ -108,16 +108,16 @@ func ParseSeitanTokenFromPaste(token string) (string, bool) {
 }
 
 // GenerateIKeyFromString safely creates SeitanIKey value from
-// plaintext string. Only length is checked - any 16-character token
-// can be "Invite Key". Alphabet is not checked, as it is only a hint
-// for token generation and it can change over time, but we assume
-// that token length stays the same.
+// plaintext string. Only format is checked - any 18-character token
+// with '+' character at position 5 can be "Invite Key". Alphabet is
+// not checked, as it is only a hint for token generation and it can
+// change over time, but we assume that token length stays the same.
 func GenerateIKeyFromString(token string) (ikey SeitanIKey, err error) {
 	if len(token) != SeitanEncodedIKeyLength {
 		return ikey, fmt.Errorf("invalid token length: expected %d characters, got %d", SeitanEncodedIKeyLength, len(token))
 	}
 	if token[seitanEncodedIKeyPlusOffset] != '+' {
-		return ikey, fmt.Errorf("invalid token format: expected %dth character to be '+'", seitanEncodedIKeyPlusOffset)
+		return ikey, fmt.Errorf("invalid token format: expected %dth character to be '+'", seitanEncodedIKeyPlusOffset+1)
 	}
 
 	return SeitanIKey(strings.ToLower(token)), nil

@@ -223,7 +223,9 @@ class CodePage extends Component<Props> {
     return (
       <Container style={stylesContainer} onBack={this.props.onBack}>
         <Box style={stylesIntro}>
-          <Text type="Header">Type in text code</Text>
+          <Text type="Header" style={{marginBottom: 10}}>Type in text code</Text>
+          <Text type="Body">In the Keybase app on your computer,</Text>
+          <Text type="Body">{'go to Devices > Add a new device.'}</Text>
         </Box>
         {this.renderEnterText()}
         {this.renderSwitchButton(codePageModeScanCode, 'icon-phone-qr-code-32', 'Scan QR code instead')}

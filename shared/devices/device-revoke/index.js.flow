@@ -1,19 +1,17 @@
 // @flow
 import {Component} from 'react'
 
-import type {Device, DeviceType} from '../../constants/types/devices'
+import type {DeviceType} from '../../constants/types/devices'
 import type {IconType} from '../../common-adapters/icon'
 
 export type Props = {
   currentDevice: boolean,
-  device: Device,
   deviceID: string,
   endangeredTLFs: any,
   icon: IconType,
   name: string,
   onCancel: () => void,
   onSubmit: Function,
-  type: DeviceType,
 }
 
 export default class Render extends Component<Props> {}

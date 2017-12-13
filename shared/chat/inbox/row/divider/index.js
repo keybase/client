@@ -7,11 +7,12 @@ import {isMobile} from '../../../../constants/platform'
 type Props = {
   badgeCount: number,
   hiddenCount: number,
+  style?: string,
   toggle: () => void,
 }
 
-const Divider = ({badgeCount, hiddenCount, toggle}: Props) => (
-  <Box style={_toggleContainer}>
+const Divider = ({badgeCount, hiddenCount, style, toggle}: Props) => (
+  <Box style={{..._toggleContainer, ...style}}>
     <ClickableBox onClick={toggle} style={_toggleButtonStyle} className="toggleButtonClass">
       <Text type="BodySmallSemibold" style={{color: globalColors.black_60}}>
         {hiddenCount > 0 ? `+${hiddenCount} more` : 'Show less'}

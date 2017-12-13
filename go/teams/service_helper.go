@@ -649,12 +649,20 @@ func AcceptInvite(ctx context.Context, g *libkb.GlobalContext, token string) err
 	return err
 }
 
-func ParseAndAcceptSeitanToken(ctx context.Context, g *libkb.GlobalContext, tok string) error {
+func ParseAndAcceptSeitanToken(ctx context.Context, g *libkb.GlobalContext, tok string) (wasSeitan bool, err error) {
 	seitan, err := GenerateIKeyFromString(tok)
 	if err != nil {
-		return err
+		g.Log.CDebugf(ctx, "GenerateIKeyFromString error: %s", err)
+		g.Log.CDebugf(ctx, "returning TeamInviteBadToken instead")
+		return false, libkb.TeamInviteBadTokenError{}
 	}
-	return AcceptSeitan(ctx, g, seitan)
+	g.Log.CDebugf(ctx, "found seitan token")
+	err = AcceptSeitan(ctx, g, seitan)
+	if err != nil {
+		return true, err
+	}
+
+	return true, nil
 }
 
 func AcceptSeitan(ctx context.Context, g *libkb.GlobalContext, ikey SeitanIKey) error {
@@ -860,13 +868,8 @@ func TeamAcceptInviteOrRequestAccess(ctx context.Context, g *libkb.GlobalContext
 	maybeSeitan, keepSecret := ParseSeitanTokenFromPaste(tokenOrName)
 	if keepSecret {
 		g.Log.CDebugf(ctx, "found seitan-ish token")
-		seitan, err := GenerateIKeyFromString(maybeSeitan)
-		if err != nil {
-			return keybase1.TeamAcceptOrRequestResult{}, err
-		}
-		g.Log.CDebugf(ctx, "found seitan token")
-		err = AcceptSeitan(ctx, g, seitan)
-		return keybase1.TeamAcceptOrRequestResult{WasSeitan: true}, err
+		wasSeitan, err := ParseAndAcceptSeitanToken(ctx, g, maybeSeitan)
+		return keybase1.TeamAcceptOrRequestResult{WasSeitan: wasSeitan}, err
 	}
 
 	g.Log.CDebugf(ctx, "trying email-style invite")
@@ -877,7 +880,13 @@ func TeamAcceptInviteOrRequestAccess(ctx context.Context, g *libkb.GlobalContext
 		}, nil
 	}
 	g.Log.CDebugf(ctx, "email-style invite error: %v", err)
-	reportErr := err
+	var reportErr error
+	switch err := err.(type) {
+	case libkb.TeamInviteTokenReusedError:
+		reportErr = err
+	default:
+		reportErr = libkb.TeamInviteBadTokenError{}
+	}
 
 	g.Log.CDebugf(ctx, "trying team name")
 	_, err = keybase1.TeamNameFromString(tokenOrName)
@@ -1047,13 +1056,14 @@ func ChangeTeamSettings(ctx context.Context, g *libkb.GlobalContext, teamName st
 		}
 
 		if !settings.Open && !t.IsOpen() {
-			return libkb.NoOpError{Desc: "Team is already closed."}
+			g.Log.CDebugf(ctx, "team is already closed, just returning: %s", teamName)
+			return nil
 		}
 
 		if settings.Open && t.IsOpen() && t.OpenTeamJoinAs() == settings.JoinAs {
-			return libkb.NoOpError{
-				Desc: fmt.Sprintf("Team is already open with default role: %s.", strings.ToLower(t.OpenTeamJoinAs().String())),
-			}
+			g.Log.CDebugf(ctx, "team is already open with default role: team: %s role: %s",
+				teamName, strings.ToLower(t.OpenTeamJoinAs().String()))
+			return nil
 		}
 
 		return t.PostTeamSettings(ctx, settings)
@@ -1290,4 +1300,32 @@ func TeamDebug(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.Team
 		return res, err
 	}
 	return keybase1.TeamDebugRes{Chain: team.Data.Chain}, nil
+}
+
+func MapImplicitTeamIDToDisplayName(ctx context.Context, g *libkb.GlobalContext, id keybase1.TeamID, isPublic bool) (folder keybase1.Folder, err error) {
+
+	team, err := Load(ctx, g, keybase1.LoadTeamArg{
+		ID:     id,
+		Public: isPublic,
+	})
+	if err != nil {
+		return folder, err
+	}
+
+	itdn, err := team.ImplicitTeamDisplayName(ctx)
+	if err != nil {
+		return folder, err
+	}
+
+	folder.Name, err = FormatImplicitTeamDisplayName(ctx, g, itdn)
+	if err != nil {
+		return folder, err
+	}
+	folder.Private = !isPublic
+	if isPublic {
+		folder.FolderType = keybase1.FolderType_PUBLIC
+	} else {
+		folder.FolderType = keybase1.FolderType_PRIVATE
+	}
+	return folder, nil
 }

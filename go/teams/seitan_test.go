@@ -149,9 +149,6 @@ func TestSeitanKnownSamples(t *testing.T) {
 	require.Equal(t, "Edwin Powell Hubble", labelSms.F)
 	require.Equal(t, "+48123ZZ3045", labelSms.N)
 
-	// Packing struct is non-deterministic as far as field ordering is
-	// concerned, so we will not be able to get same ciphertext here.
-
 	peiKey2, _, err := ikey.generatePackedEncryptedIKeyWithSecretKey(secretKey, keybase1.PerTeamKeyGeneration(1), peiKey.RandomNonce, ikeyAndLabelV1.L)
 	require.NoError(t, err)
 	require.Equal(t, peiKey.Version, peiKey2.Version)

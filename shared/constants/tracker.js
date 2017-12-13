@@ -58,7 +58,6 @@ const initialState: Types.State = {
   cachedIdentifies: {},
   pendingIdentifies: {},
   serverStarted: false,
-  timerActive: 0,
   userTrackers: {},
   nonUserTrackers: {},
 }
@@ -109,7 +108,6 @@ const initialNonUserState = (assertion: string): Types.NonUserState => ({
 })
 
 function mapValueToKey<K: string, V>(obj: {[key: K]: V}, tag: V): ?K {
-  // $FlowIssue the problem is that Object.keys returns an array of strings
   return Object.keys(obj).find(key => obj[key] === tag)
 }
 

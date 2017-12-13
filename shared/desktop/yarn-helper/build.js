@@ -18,6 +18,12 @@ const commands = {
     nodeEnv: 'production',
     shell: `${webpackCmd} --progress`,
   },
+  'build-treeshake': {
+    env: {BABEL_ENV: 'yarn', NO_SERVER: 'true', TREESHAKE: 'true'},
+    help: 'Make a treeshake version of the build',
+    nodeEnv: 'development',
+    shell: `${webpackCmd} --progress --profile --colors ${webpackLog ? `--json > ${webpackLog}` : ''} && echo '\n\n\nSearch desktop/dist/_.bundle.js for unused harmoney comments. Note it doesnt understand mobile so use flow and lint to double check everything!'`, // eslint-disable-line no-useless-escape
+  },
   'hot-server': {
     code: hotServer,
     env: {BABEL_ENV: 'yarn', HOT: 'true'},

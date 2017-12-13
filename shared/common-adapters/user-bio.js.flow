@@ -23,8 +23,6 @@ export type Props = {
   editFns?: ?BioEditFns,
   onAvatarLoaded?: () => void,
   onClickAvatar: (username: ?string) => void,
-  onClickFollowers: (username: ?string) => void,
-  onClickFollowing: (username: ?string) => void,
 }
 
 export default class Render extends Component<Props> {}

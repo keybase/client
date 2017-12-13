@@ -69,9 +69,6 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
 const userIsInTeamHelper = (state: TypedState, username: string, service: Service, teamname: string) =>
   service === 'Keybase' ? userIsInTeam(state, teamname, username) : false
 
-// TODO this is broken. channelnames are not unique
-const getConversationIDKeyFromChannelName = (state: TypedState, channelname: string) => null
-
 const getConvIdsFromTeamName = (state: TypedState, teamname: string): I.Set<string> =>
   state.entities.teams.teamNameToConvIDs.get(teamname, I.Set())
 
@@ -83,9 +80,6 @@ const getChannelNameFromConvID = (state: TypedState, conversationIDKey: ChatType
 
 const getTopicFromConvID = (state: TypedState, conversationIDKey: ChatTypes.ConversationIDKey) =>
   state.entities.teams.convIDToChannelInfo.getIn([conversationIDKey, 'description'], null)
-
-const getParticipants = (state: TypedState, conversationIDKey: ChatTypes.ConversationIDKey) =>
-  state.entities.getIn(['teams', 'convIDToChannelInfo', conversationIDKey, 'participants'], I.Set())
 
 const getRole = (state: TypedState, teamname: Types.Teamname): ?Types.TeamRoleType =>
   state.entities.getIn(['teams', 'teamNameToRole', teamname], null)
@@ -102,16 +96,11 @@ const isSubteam = (maybeTeamname: string) => {
   return true
 }
 
-export const getFollowingMap = (state: TypedState) => state.config.following
-export const getFollowerMap = (state: TypedState) => state.config.followers
-
 // How many public admins should we display on a showcased team card at once?
 export const publicAdminsLimit = 6
 
 export {
   getConvIdsFromTeamName,
-  getConversationIDKeyFromChannelName,
-  getParticipants,
   getRole,
   userIsInTeamHelper,
   getTeamNameFromConvID,

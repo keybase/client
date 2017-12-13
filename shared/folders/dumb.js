@@ -473,4 +473,4 @@ export default {
   'Folders: File': file,
 }
 
-export {createFolder, map, file, files}
+export {createFolder, map}

@@ -232,7 +232,6 @@ func (u *userPlusDevice) createTeam() string {
 		u.tc.T.Fatal(err)
 	}
 	create.TeamName = name
-	create.SuppressTeamChatAnnounce = u.suppressTeamChatAnnounce
 	tracer := u.tc.G.CTimeTracer(context.Background(), "tracer-create-team")
 	defer tracer.Finish()
 	if err := create.Run(); err != nil {
@@ -460,6 +459,27 @@ func (u *userPlusDevice) waitForTeamChangedAndRotated(teamID keybase1.TeamID, to
 		}
 	}
 	u.tc.T.Fatalf("timed out waiting for team rotate %s", teamID)
+}
+
+func (u *userPlusDevice) pollForTeamSeqnoLink(team string, toSeqno keybase1.Seqno) {
+	for i := 0; i < 20; i++ {
+		after, err := teams.Load(context.TODO(), u.tc.G, keybase1.LoadTeamArg{
+			Name:        team,
+			ForceRepoll: true,
+		})
+		if err != nil {
+			u.tc.T.Fatalf("error while loading team %q: %v", team, err)
+		}
+
+		if after.CurrentSeqno() >= toSeqno {
+			u.tc.T.Logf("Found new seqno %d at poll loop iter %d", after.CurrentSeqno(), i)
+			return
+		}
+
+		time.Sleep(500 * time.Millisecond)
+	}
+
+	u.tc.T.Fatalf("timed out waiting for team rotate %s", team)
 }
 
 func (u *userPlusDevice) proveRooter() {

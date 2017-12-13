@@ -143,14 +143,4 @@ const pendingSnippetRowSelector = createCachedSelector(
   }
 )(passConversationIDKey)
 
-export {
-  getSelected,
-  getInbox,
-  passConversationIDKey,
-  getFinalizedInfo,
-  getRekeyInfo,
-  getUnreadTotals,
-  getUnreadBadges,
-  pendingSnippetRowSelector,
-  snippetRowSelector,
-}
+export {pendingSnippetRowSelector, snippetRowSelector}

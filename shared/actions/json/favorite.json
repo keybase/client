@@ -1,7 +1,7 @@
 {
   "prelude": [
     "import * as Types from '../constants/types/favorite'",
-    "import * as Folders from '../constants/folders'"
+    "import * as Folders from '../constants/types/folders'"
   ],
   "actions": {
     "favoriteAdd": {

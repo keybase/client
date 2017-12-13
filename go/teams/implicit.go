@@ -74,7 +74,7 @@ func lookupImplicitTeamAndConflicts(ctx context.Context, g *libkb.GlobalContext,
 	}
 
 	arg := libkb.NewAPIArgWithNetContext(ctx, "team/implicit")
-	arg.SessionType = libkb.APISessionTypeREQUIRED
+	arg.SessionType = libkb.APISessionTypeOPTIONAL
 	arg.Args = libkb.HTTPArgs{
 		"display_name": libkb.S{Val: lookupNameWithoutConflict},
 		"public":       libkb.B{Val: impTeamName.IsPublic},
@@ -211,7 +211,7 @@ func formatImplicitTeamDisplayNameCommon(ctx context.Context, g *libkb.GlobalCon
 	}
 
 	var suffix string
-	if impTeamName.ConflictInfo != nil {
+	if impTeamName.ConflictInfo != nil && impTeamName.ConflictInfo.IsConflict() {
 		suffix = libkb.FormatImplicitTeamDisplayNameSuffix(*impTeamName.ConflictInfo)
 	}
 

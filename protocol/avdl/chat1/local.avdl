@@ -29,7 +29,8 @@ protocol local {
   enum MessageSystemType {
     ADDEDTOTEAM_0,
     INVITEADDEDTOTEAM_1,
-    COMPLEXTEAM_2
+    COMPLEXTEAM_2,
+    CREATETEAM_3
   }
 
   record MessageSystemAddedToTeam {
@@ -54,10 +55,23 @@ protocol local {
     string team;
   }
 
+  record MessageSystemCreateTeam {
+    string team;
+    string creator;
+  }
+
   variant MessageSystem switch (MessageSystemType systemType) {
     case ADDEDTOTEAM: MessageSystemAddedToTeam;
     case INVITEADDEDTOTEAM: MessageSystemInviteAddedToTeam;
     case COMPLEXTEAM: MessageSystemComplexTeam;
+    case CREATETEAM: MessageSystemCreateTeam;
+  }
+
+  record MessageDeleteHistory {
+    // Delete message before this time.
+    gregor1.Time uptoTime;
+    // Delete messages up to this ID (exclusive).
+    MessageID upto;
   }
 
   record AssetMetadataImage {
@@ -141,6 +155,7 @@ protocol local {
     case JOIN: MessageJoin;
     case LEAVE: MessageLeave;
     case SYSTEM: MessageSystem;
+    case DELETEHISTORY: MessageDeleteHistory;
   }
 
   enum OutboxStateType {

@@ -1,7 +1,7 @@
 // @flow
 import * as Constants from '../../constants/teams'
 import * as Types from '../../constants/types/teams'
-import * as Creators from '../../actions/teams/creators'
+import * as TeamsGen from '../../actions/teams-gen'
 import * as SearchGen from '../../actions/search-gen'
 import * as I from 'immutable'
 import * as KBFSGen from '../../actions/kbfs-gen'
@@ -10,11 +10,13 @@ import Team, {CustomComponent} from '.'
 import {HeaderHoc} from '../../common-adapters'
 import {compose, lifecycle, renameProps, withHandlers, withPropsOnChange, withState} from 'recompose'
 import {connect, type TypedState} from '../../util/container'
-import {getProfile} from '../../actions/tracker'
+import {createGetProfile} from '../../actions/tracker-gen'
 import {isMobile} from '../../constants/platform'
 import {anyWaiting} from '../../constants/waiting'
 import {navigateAppend} from '../../actions/route-tree'
 import {createShowUserProfile} from '../../actions/profile-gen'
+
+const order = {owner: 0, admin: 1, writer: 2, reader: 3}
 
 type StateProps = {
   _invites: I.Set<Types.InviteInfo>,
@@ -92,7 +94,7 @@ const mapDispatchToProps = (
   dispatch: Dispatch,
   {navigateUp, newOpenTeamRole, setOpenTeamRole, setRouteState, routeProps}
 ): DispatchProps => ({
-  _loadTeam: teamname => dispatch(Creators.getDetails(teamname)),
+  _loadTeam: teamname => dispatch(TeamsGen.createGetDetails({teamname})),
   _onAddPeople: (teamname: Types.Teamname) =>
     dispatch(navigateAppend([{props: {teamname}, selected: 'addPeople'}])),
   _onAddSelf: (teamname: Types.Teamname, you: ?string) => {
@@ -112,7 +114,9 @@ const mapDispatchToProps = (
   _onOpenFolder: (teamname: Types.Teamname) =>
     dispatch(KBFSGen.createOpen({path: `/keybase/team/${teamname}`})),
   onUsernameClick: (username: string) => {
-    isMobile ? dispatch(createShowUserProfile({username})) : dispatch(getProfile(username, true, true))
+    isMobile
+      ? dispatch(createShowUserProfile({username}))
+      : dispatch(createGetProfile({username, ignoreCache: true, forceDisplay: true}))
   },
   setSelectedTab: selectedTab => setRouteState({selectedTab}),
   onBack: () => dispatch(navigateUp()),
@@ -136,7 +140,7 @@ const mapDispatchToProps = (
     )
   },
   _savePublicity: (teamname: Types.Teamname, settings: Types.PublicitySettings) =>
-    dispatch(Creators.setPublicity(teamname, settings)),
+    dispatch(TeamsGen.createSetPublicity({teamname, settings})),
 })
 
 const getOrderedMemberArray = (
@@ -151,7 +155,13 @@ const getOrderedMemberArray = (
   }
   let returnArray = memberInfo
     .toArray()
-    .sort((a: Types.MemberInfo, b: Types.MemberInfo) => a.username.localeCompare(b.username))
+    .sort(
+      (a, b) =>
+        !a.type || !b.type || a.type === b.type
+          ? a.username.localeCompare(b.username)
+          : order[a.type] - order[b.type]
+    )
+
   if (youInfo) {
     returnArray.unshift(youInfo)
   }

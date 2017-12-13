@@ -109,8 +109,9 @@ const (
 	LinkCacheSize     = 0x10000
 	LinkCacheCleanDur = 1 * time.Minute
 
-	UPAKCacheSize           = 2000
-	UIDMapFullNameCacheSize = 100000
+	UPAKCacheSize                     = 2000
+	UIDMapFullNameCacheSize           = 100000
+	ImplicitTeamConflictInfoCacheSize = 10000
 
 	SigShortIDBytes  = 27
 	LocalTrackMaxAge = 48 * time.Hour
@@ -280,6 +281,8 @@ const (
 	SCTeamBanned               = int(keybase1.StatusCode_SCTeamBanned)
 	SCTeamInvalidBan           = int(keybase1.StatusCode_SCTeamInvalidBan)
 	SCNoSpaceOnDevice          = int(keybase1.StatusCode_SCNoSpaceOnDevice)
+	SCTeamInviteBadToken       = int(keybase1.StatusCode_SCTeamInviteBadToken)
+	SCTeamInviteTokenReused    = int(keybase1.StatusCode_SCTeamInviteTokenReused)
 )
 
 const (
