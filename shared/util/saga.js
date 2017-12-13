@@ -125,25 +125,62 @@ function* sequentially(effects: Array<any>): Generator<any, Array<any>, any> {
 // whatever purework returns will be yielded on.
 // i.e. it can return put(someAction). That effectively transforms the input action into another action
 // It can also return all([put(action1), put(action2)]) to dispatch multiple actions
-function safeTakeEveryPure<A, R, FinalAction>(
+function safeTakeEveryPure<A, R, FinalAction, FinalActionError>(
   pattern: string | Array<any> | Function,
   pureWorker: ((action: A, state: TypedState) => any) | ((action: A) => any),
-  actionCreatorsWithResult?: (result: R) => FinalAction
+  actionCreatorsWithResult?: (result: R) => FinalAction,
+  actionCreatorsWithError?: (result: R) => FinalActionError
 ) {
   return safeTakeEvery(pattern, function* safeTakeEveryPureWorker(action: A) {
     // If the pureWorker fn takes two arguments, let's pass the state
-    let result
-    if (pureWorker.length === 2) {
-      const state: TypedState = yield select()
-      // $FlowIssue - doesn't understand checking for arity
-      result = yield pureWorker(action, state)
-    } else {
-      // $FlowIssue - doesn't understand checking for arity
-      result = yield pureWorker(action)
-    }
+    try {
+      let result
+      if (pureWorker.length === 2) {
+        const state: TypedState = yield select()
+        // $FlowIssue - doesn't understand checking for arity
+        result = yield pureWorker(action, state)
+      } else {
+        // $FlowIssue - doesn't understand checking for arity
+        result = yield pureWorker(action)
+      }
 
-    if (actionCreatorsWithResult) {
-      yield actionCreatorsWithResult(result)
+      if (actionCreatorsWithResult) {
+        yield actionCreatorsWithResult(result)
+      }
+    } catch (e) {
+      if (actionCreatorsWithError) {
+        yield actionCreatorsWithError(e)
+      }
+    }
+  })
+}
+// Similar to safeTakeEveryPure
+function safeTakeLatestPure<A, R, FinalAction, FinalActionError>(
+  pattern: string | Array<any> | Function,
+  pureWorker: ((action: A, state: TypedState) => any) | ((action: A) => any),
+  actionCreatorsWithResult?: (result: R) => FinalAction,
+  actionCreatorsWithError?: (result: R) => FinalActionError
+) {
+  return safeTakeLatest(pattern, function* safeTakeLatestPureWorker(action: A) {
+    // If the pureWorker fn takes two arguments, let's pass the state
+    try {
+      let result
+      if (pureWorker.length === 2) {
+        const state: TypedState = yield select()
+        // $FlowIssue - doesn't understand checking for arity
+        result = yield pureWorker(action, state)
+      } else {
+        // $FlowIssue - doesn't understand checking for arity
+        result = yield pureWorker(action)
+      }
+
+      if (actionCreatorsWithResult) {
+        yield actionCreatorsWithResult(result)
+      }
+    } catch (e) {
+      if (actionCreatorsWithError) {
+        yield actionCreatorsWithError(e)
+      }
     }
   })
 }
@@ -301,6 +338,7 @@ export {
   safeTakeEvery,
   safeTakeEveryPure,
   safeTakeLatest,
+  safeTakeLatestPure,
   safeTakeLatestWithCatch,
   safeTakeSerially,
   select,
