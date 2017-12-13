@@ -85,7 +85,8 @@ const _leaveTeam = function(action: TeamsGen.LeaveTeamPayload) {
 const _addPeopleToTeam = function*(action: TeamsGen.AddPeopleToTeamPayload) {
   const {role, teamname, sendChatNotification} = action.payload
   yield Saga.put(replaceEntity(['teams', 'teamNameToLoading'], I.Map([[teamname, true]])))
-  const ids = yield Saga.select(SearchConstants.getUserInputItemIds, {searchKey: 'addToTeamSearch'})
+  const state: TypedState = yield Saga.select()
+  const ids = SearchConstants.getUserInputItemIds(state, {searchKey: 'addToTeamSearch'})
   for (const id of ids) {
     yield Saga.call(RPCTypes.teamsTeamAddMemberRpcPromise, {
       name: teamname,
@@ -244,14 +245,15 @@ const _createNewTeamFromConversation = function*(
   action: TeamsGen.CreateNewTeamFromConversationPayload
 ): Saga.SagaGenerator<any, any> {
   const {conversationIDKey, teamname} = action.payload
-  const me = yield Saga.select(usernameSelector)
-  const inbox = yield Saga.select(ChatConstants.getInbox, conversationIDKey)
+  const state: TypedState = yield Saga.select()
+  const me = usernameSelector(state)
+  const inbox = ChatConstants.getInbox(state, conversationIDKey)
   let participants
 
   if (inbox) {
     participants = inbox.get('participants')
   } else {
-    participants = yield Saga.select(getPendingConvParticipants, conversationIDKey)
+    participants = getPendingConvParticipants(state, conversationIDKey)
   }
 
   if (participants) {
@@ -432,7 +434,12 @@ function _afterGetChannels(
 }
 
 const _getTeams = function*(action: TeamsGen.GetTeamsPayload): Saga.SagaGenerator<any, any> {
-  const username = yield Saga.select(usernameSelector)
+  const state: TypedState = yield Saga.select()
+  const username = usernameSelector(state)
+  if (!username) {
+    console.warn('getTeams while logged out')
+    return
+  }
   yield Saga.put(replaceEntity(['teams'], I.Map([['loaded', false]])))
   try {
     const results: RPCTypes.AnnotatedTeamList = yield Saga.call(RPCTypes.teamsTeamListRpcPromise, {
@@ -466,12 +473,12 @@ const _getTeams = function*(action: TeamsGen.GetTeamsPayload): Saga.SagaGenerato
   }
 }
 
-const _checkRequestedAccess = function*(
-  action: TeamsGen.CheckRequestedAccessPayload
-): Saga.SagaGenerator<any, any> {
-  const result = yield Saga.call(RPCTypes.teamsTeamListMyAccessRequestsRpcPromise, {})
+const _checkRequestedAccess = (action: TeamsGen.CheckRequestedAccessPayload) =>
+  Saga.call(RPCTypes.teamsTeamListMyAccessRequestsRpcPromise, {})
+
+function _checkRequestedAccessSuccess(result) {
   const teams = (result || []).map(row => row.parts.join('.'))
-  yield Saga.put(replaceEntity(['teams'], I.Map([['teamAccessRequestsPending', I.Set(teams)]])))
+  return Saga.put(replaceEntity(['teams'], I.Map([['teamAccessRequestsPending', I.Set(teams)]])))
 }
 
 const _saveChannelMembership = function(action: TeamsGen.SaveChannelMembershipPayload, state: TypedState) {
@@ -638,8 +645,8 @@ const _setPublicity = function(action: TeamsGen.SetPublicityPayload, state: Type
   ])
 }
 
-function* _setupTeamHandlers(): Saga.SagaGenerator<any, any> {
-  yield Saga.put((dispatch: Dispatch) => {
+function _setupTeamHandlers() {
+  return Saga.put((dispatch: Dispatch) => {
     engine().setIncomingHandler(
       'keybase.1.NotifyTeam.teamChangedByName',
       (args: RPCTypes.NotifyTeamTeamChangedByNameRpcParam) => {
@@ -725,11 +732,8 @@ function _updateChannelname(action: TeamsGen.UpdateChannelNamePayload, state: Ty
   ])
 }
 
-function* _deleteChannelConfirmed(
-  action: TeamsGen.DeleteChannelConfirmedPayload
-): Saga.SagaGenerator<any, any> {
+function _deleteChannelConfirmed(action: TeamsGen.DeleteChannelConfirmedPayload, state: TypedState) {
   const {conversationIDKey} = action.payload
-  const state: TypedState = yield Saga.select()
   const channelName = Constants.getChannelNameFromConvID(state, conversationIDKey)
   const teamname = Constants.getTeamNameFromConvID(state, conversationIDKey) || ''
 
@@ -742,16 +746,20 @@ function* _deleteChannelConfirmed(
     confirmed: true,
   }
 
-  yield Saga.call(RPCChatTypes.localDeleteConversationLocalRpcPromise, param)
-  yield Saga.put(TeamsGen.createGetChannels({teamname}))
+  return Saga.sequentially([
+    Saga.call(RPCChatTypes.localDeleteConversationLocalRpcPromise, param),
+    Saga.put(TeamsGen.createGetChannels({teamname})),
+  ])
 }
 
-function* _badgeAppForTeams(action: TeamsGen.BadgeAppForTeamsPayload) {
-  const loggedIn = yield Saga.select((state: TypedState) => state.config.loggedIn)
+function _badgeAppForTeams(action: TeamsGen.BadgeAppForTeamsPayload, state: TypedState) {
+  const loggedIn = state.config.loggedIn
   if (!loggedIn) {
     // Don't make any calls we don't have permission to.
     return
   }
+
+  const actions = []
   const newTeams = I.Set(action.payload.newTeamNames || [])
   const newTeamRequests = I.List(action.payload.newTeamAccessRequests || [])
 
@@ -759,15 +767,11 @@ function* _badgeAppForTeams(action: TeamsGen.BadgeAppForTeamsPayload) {
     // Call getTeams if new teams come in.
     // Covers the case when we're staring at the teams page so
     // we don't miss a notification we clear when we tab away
-    const existingNewTeams = yield Saga.select((state: TypedState) =>
-      state.entities.getIn(['teams', 'newTeams'], I.Set())
-    )
-    const existingNewTeamRequests = yield Saga.select((state: TypedState) =>
-      state.entities.getIn(['teams', 'newTeamRequests'], I.List())
-    )
+    const existingNewTeams = state.entities.getIn(['teams', 'newTeams'], I.Set())
+    const existingNewTeamRequests = state.entities.getIn(['teams', 'newTeamRequests'], I.List())
     if (!newTeams.equals(existingNewTeams) && newTeams.size > 0) {
       // We have been added to a new team & we need to refresh the list
-      yield Saga.put(TeamsGen.createGetTeams())
+      actions.push(Saga.put(TeamsGen.createGetTeams()))
     }
 
     // getDetails for teams that have new access requests
@@ -777,12 +781,13 @@ function* _badgeAppForTeams(action: TeamsGen.BadgeAppForTeamsPayload) {
     const existingNewTeamRequestsSet = I.Set(existingNewTeamRequests)
     const toLoad = newTeamRequestsSet.subtract(existingNewTeamRequestsSet)
     const loadingCalls = toLoad.map(teamname => Saga.put(TeamsGen.createGetDetails({teamname})))
-    yield Saga.all(loadingCalls.toArray())
+    actions.push(Saga.all(loadingCalls.toArray()))
   }
 
   // if the user wasn't on the teams tab, loads will be triggered by navigation around the app
-  yield Saga.put(replaceEntity(['teams'], I.Map([['newTeams', newTeams]])))
-  yield Saga.put(replaceEntity(['teams'], I.Map([['newTeamRequests', newTeamRequests]])))
+  actions.push(Saga.put(replaceEntity(['teams'], I.Map([['newTeams', newTeams]]))))
+  actions.push(Saga.put(replaceEntity(['teams'], I.Map([['newTeamRequests', newTeamRequests]]))))
+  return Saga.sequentially(actions)
 }
 
 let _wasOnTeamsTab = false
@@ -816,7 +821,7 @@ const teamsSaga = function*(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEvery(TeamsGen.getTeams, _getTeams)
   yield Saga.safeTakeEveryPure(TeamsGen.saveChannelMembership, _saveChannelMembership, _afterSaveCalls)
   yield Saga.safeTakeEvery(TeamsGen.createChannel, _createChannel)
-  yield Saga.safeTakeEvery(TeamsGen.setupTeamHandlers, _setupTeamHandlers)
+  yield Saga.safeTakeEveryPure(TeamsGen.setupTeamHandlers, _setupTeamHandlers)
   yield Saga.safeTakeEvery(TeamsGen.addToTeam, _addToTeam)
   yield Saga.safeTakeEvery(TeamsGen.addPeopleToTeam, _addPeopleToTeam)
   yield Saga.safeTakeEvery(TeamsGen.inviteToTeamByEmail, _inviteByEmail)
@@ -826,12 +831,16 @@ const teamsSaga = function*(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEvery(TeamsGen.removeMemberOrPendingInvite, _removeMemberOrPendingInvite)
   yield Saga.safeTakeEveryPure(TeamsGen.updateTopic, _updateTopic, last)
   yield Saga.safeTakeEveryPure(TeamsGen.updateChannelName, _updateChannelname, last)
-  yield Saga.safeTakeEvery(TeamsGen.deleteChannelConfirmed, _deleteChannelConfirmed)
-  yield Saga.safeTakeEvery(TeamsGen.badgeAppForTeams, _badgeAppForTeams)
+  yield Saga.safeTakeEveryPure(TeamsGen.deleteChannelConfirmed, _deleteChannelConfirmed)
+  yield Saga.safeTakeEveryPure(TeamsGen.badgeAppForTeams, _badgeAppForTeams)
   yield Saga.safeTakeEveryPure(RouteConstants.switchTo, _onTabChange)
   yield Saga.safeTakeEvery(TeamsGen.inviteToTeamByPhone, _inviteToTeamByPhone)
   yield Saga.safeTakeEveryPure(TeamsGen.setPublicity, _setPublicity, _afterSaveCalls)
-  yield Saga.safeTakeEvery(TeamsGen.checkRequestedAccess, _checkRequestedAccess)
+  yield Saga.safeTakeEveryPure(
+    TeamsGen.checkRequestedAccess,
+    _checkRequestedAccess,
+    _checkRequestedAccessSuccess
+  )
 }
 
 export default teamsSaga

@@ -81,9 +81,8 @@ const registerListeners = (): AsyncAction => dispatch => {
   dispatch(PinentryGen.createRegisterPinentryListener())
 }
 
-const _retryBootstrap = () => {
-  return Saga.all([Saga.put(ConfigGen.createBootstrapRetry()), Saga.put(ConfigGen.createBootstrap({}))])
-}
+const _retryBootstrap = () =>
+  Saga.sequentially([Saga.put(ConfigGen.createBootstrapRetry()), Saga.put(ConfigGen.createBootstrap({}))])
 
 // TODO: It's unfortunate that we have these globals. Ideally,
 // bootstrap would be a method on an object.
@@ -91,8 +90,8 @@ let bootstrapSetup = false
 const routeStateStorage = new RouteStateStorage()
 
 // Until bootstrap is sagaized
-function* _bootstrap({payload}: ConfigGen.BootstrapPayload) {
-  yield Saga.put(bootstrap(payload))
+function _bootstrap({payload}: ConfigGen.BootstrapPayload) {
+  return Saga.put(bootstrap(payload))
 }
 
 const bootstrap = (opts: $PropertyType<ConfigGen.BootstrapPayload, 'payload'>): AsyncAction => (
@@ -167,8 +166,8 @@ function* _clearRouteState(action: ConfigGen.ClearRouteStatePayload) {
 }
 
 // Until routeStateStorage is sagaized.
-function* _persistRouteState(action: ConfigGen.PersistRouteStatePayload) {
-  yield Saga.put(routeStateStorage.store)
+function _persistRouteState(action: ConfigGen.PersistRouteStatePayload) {
+  return Saga.put(routeStateStorage.store)
 }
 
 const getBootstrapStatus = (): AsyncAction => dispatch =>
@@ -198,12 +197,12 @@ function _bootstrapSuccess(action: ConfigGen.BootstrapSuccessPayload, state: Typ
     actions.push(Saga.put(ConfigGen.createPushLoaded({pushLoaded: true})))
   }
 
-  return Saga.all(actions)
+  return Saga.sequentially(actions)
 }
 
 function _loadAvatarHelper(action: {payload: {names: Array<string>, endpoint: string, key: string}}) {
   const {names, endpoint, key} = action.payload
-  return Saga.all([
+  return Saga.sequentially([
     Saga.call(RPCTypes.apiserverGetRpcPromise, {
       args: [{key, value: names.join(',')}, {key: 'formats', value: 'square_360,square_200,square_40'}],
       endpoint,
@@ -282,10 +281,10 @@ function* _periodicAvatarCacheClear(): Generator<any, void, any> {
 
 function* configSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(ConfigGen.bootstrapSuccess, _bootstrapSuccess)
-  yield Saga.safeTakeEvery(ConfigGen.bootstrap, _bootstrap)
+  yield Saga.safeTakeEveryPure(ConfigGen.bootstrap, _bootstrap)
   yield Saga.safeTakeEveryPure(ConfigGen.clearRouteState, _clearRouteState)
-  yield Saga.safeTakeEvery(ConfigGen.persistRouteState, _persistRouteState)
-  yield Saga.safeTakeEvery(ConfigGen.retryBootstrap, _retryBootstrap)
+  yield Saga.safeTakeEveryPure(ConfigGen.persistRouteState, _persistRouteState)
+  yield Saga.safeTakeEveryPure(ConfigGen.retryBootstrap, _retryBootstrap)
   yield Saga.safeTakeEvery(ConfigGen.loadAvatars, _loadAvatars)
   yield Saga.safeTakeEvery(ConfigGen.loadTeamAvatars, _loadTeamAvatars)
   yield Saga.safeTakeEveryPure('_loadAvatarHelper', _loadAvatarHelper, _afterLoadAvatarHelper)
