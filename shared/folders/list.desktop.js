@@ -27,15 +27,19 @@ const Ignored = ({rows, showIgnored, styles, onToggle, isPublic, onClick}) => {
 }
 
 class ListRender extends Component<Props> {
+  static defaultProps: {
+    extraRows: Array<any>,
+    ignored: Array<any>,
+    tlfs: Array<any>,
+  }
   _renderItem = (index: number, item: any) => {
-    const extra = this.props.extraRows.length || []
-    if (index < extra.length) {
-      return extra[index]
+    if (index < this.props.extraRows.length) {
+      return this.props.extraRows[index]
     }
 
     // TODO how this works is HORRIBLE. This is just a short term fix to
     // take this very very old code that we're about to throw out and have it so its not rendering every single row
-    const tlfsIdx = index - extra.length
+    const tlfsIdx = index - this.props.extraRows.length
     const ignoredIdx = tlfsIdx - this.props.tlfs.length - 1 // 1 because we have the divider
     const isTLF = tlfsIdx < this.props.tlfs.length
     const tlf = isTLF ? this.props.tlfs[tlfsIdx] : this.props.ignored[ignoredIdx]
@@ -104,7 +108,6 @@ ListRender.defaultProps = {
 const stylesContainer = {
   ...globalStyles.flexBoxColumn,
   flex: 1,
-  backgroundColor: 'yellow',
 }
 
 const stylesIgnoreContainer = {

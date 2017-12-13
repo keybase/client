@@ -1,5 +1,4 @@
 // @flow
-import File from './file/render'
 import React, {Component} from 'react'
 import type {IconType} from '../../common-adapters/icon'
 import type {Props} from './render'
@@ -20,22 +19,6 @@ import {intersperseFn} from '../../util/arrays'
 const Divider = ({theme}) => (
   <Box style={{...globalStyles.flexBoxRow, height: 1, backgroundColor: globalColors.white}}>
     <Box style={{marginLeft: 48 + 8, backgroundColor: globalColors.black_05, flex: 1}} />
-  </Box>
-)
-
-const Section = ({section, theme}) => (
-  <Box style={{...globalStyles.flexBoxColumn, backgroundColor: backgroundColorThemed[theme]}}>
-    <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', height: globalMargins.medium}}>
-      <Box key={section.name} style={{display: 'inline', marginLeft: globalMargins.tiny}}>
-        {section.modifiedMarker &&
-          <Icon
-            type="iconfont-thunderbolt"
-            style={{fontSize: 14, marginTop: 2, marginRight: 6, ...styleSectionTextThemed[theme]}}
-          />}
-        <Text type="BodySmallSemibold" style={styleSectionTextThemed[theme]}>{section.name}</Text>
-      </Box>
-    </Box>
-    {intersperseFn(i => <Divider key={i} />, section.files.map(f => <File key={f.name} {...f} />))}
   </Box>
 )
 
@@ -155,66 +138,45 @@ class FilesRender extends Component<Props> {
       )
     }
 
-    if (!this.props.recentFilesEnabled) {
-      return (
-        <Box style={styleRecentFilesNotEnabled}>
+    return (
+      <Box style={styleRecentFilesNotEnabled}>
+        <Button
+          key="open"
+          type="Primary"
+          onClick={this.props.openCurrentFolder}
+          label="Open folder"
+          style={{
+            marginBottom: globalMargins.small,
+            backgroundColor: isPrivate ? globalColors.darkBlue2 : globalColors.yellowGreen,
+          }}
+        />
+        {isPrivate &&
+          !hasReadOnlyUsers &&
           <Button
-            key="open"
-            type="Primary"
-            onClick={this.props.openCurrentFolder}
-            label="Open folder"
-            style={{
-              marginBottom: globalMargins.small,
-              backgroundColor: isPrivate ? globalColors.darkBlue2 : globalColors.yellowGreen,
-            }}
-          />
-          {isPrivate &&
-            !hasReadOnlyUsers &&
-            <Button
-              key="chat"
-              type="Secondary"
-              onClick={this.props.openConversationFromFolder}
-              label="Open in chat"
-              style={{marginBottom: globalMargins.small, marginRight: 0}}
-            />}
+            key="chat"
+            type="Secondary"
+            onClick={this.props.openConversationFromFolder}
+            label="Open in chat"
+            style={{marginBottom: globalMargins.small, marginRight: 0}}
+          />}
 
-          {ignored
-            ? allowIgnore &&
-                <Button
-                  type="Secondary"
-                  onClick={this.props.unIgnoreCurrentFolder}
-                  label="Unignore folder"
-                  style={{marginRight: 0}}
-                />
-            : allowIgnore &&
-                <Button
-                  type="Secondary"
-                  onClick={this.props.ignoreCurrentFolder}
-                  label="Ignore folder"
-                  style={{marginRight: 0}}
-                />}
-        </Box>
-      )
-    }
-
-    if (this.props.recentFilesSection.length) {
-      return (
-        <Box style={globalStyles.flexBoxColumn}>
-          {this.props.recentFilesSection.map(s => (
-            <Section key={s.name} section={s} theme={this.props.theme} />
-          ))}
-        </Box>
-      )
-    } else {
-      return (
-        <Box style={styleNoFiles}>
-          <Text type="Body" backgroundMode={backgroundMode}>This folder is empty.</Text>
-          <Text type="BodyPrimaryLink" onClick={this.props.openCurrentFolder} backgroundMode={backgroundMode}>
-            Open folder
-          </Text>
-        </Box>
-      )
-    }
+        {ignored
+          ? allowIgnore &&
+              <Button
+                type="Secondary"
+                onClick={this.props.unIgnoreCurrentFolder}
+                label="Unignore folder"
+                style={{marginRight: 0}}
+              />
+          : allowIgnore &&
+              <Button
+                type="Secondary"
+                onClick={this.props.ignoreCurrentFolder}
+                label="Ignore folder"
+                style={{marginRight: 0}}
+              />}
+      </Box>
+    )
   }
 
   render() {
@@ -345,20 +307,6 @@ const styleTLFTextThemed = {
   },
 }
 
-const styleSectionTextThemed = {
-  public: {
-    color: globalColors.black_40,
-  },
-  private: {
-    color: globalColors.blue3_40,
-  },
-}
-
-const backgroundColorThemed = {
-  public: globalColors.lightGrey,
-  private: globalColors.darkBlue3,
-}
-
 const styleMenu = {
   ...globalStyles.clickable,
   marginLeft: 'auto',
@@ -366,14 +314,6 @@ const styleMenu = {
 }
 
 const styleRecentFilesNotEnabled = {
-  ...globalStyles.flexBoxColumn,
-  flex: 1,
-  justifyContent: 'center',
-  alignItems: 'center',
-  padding: globalMargins.xlarge,
-}
-
-const styleNoFiles = {
   ...globalStyles.flexBoxColumn,
   flex: 1,
   justifyContent: 'center',

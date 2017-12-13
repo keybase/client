@@ -6,6 +6,7 @@ export type FolderType = 'public' | 'private' | 'team'
 export type Folder = Types.Folder
 
 export type Props = {
+  isPublic: boolean,
   tlfs: Array<Types.Folder>,
   ignored: Array<Types.Folder>,
   installed: boolean,

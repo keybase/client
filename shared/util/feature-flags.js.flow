@@ -3,7 +3,6 @@
 export type FeatureFlags = {|
   admin: boolean,
   plansEnabled: boolean,
-  recentFilesEnabled: boolean,
   tabPeopleEnabled: boolean,
   teamChatEnabled: boolean,
   tabGitEnabled: boolean,
@@ -13,7 +12,6 @@ export type FeatureFlags = {|
 const ff: FeatureFlags = {
   admin: false,
   plansEnabled: false,
-  recentFilesEnabled: false,
   tabPeopleEnabled: false,
   teamChatEnabled: false,
   tabGitEnabled: false,

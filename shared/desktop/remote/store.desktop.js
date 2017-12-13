@@ -19,6 +19,7 @@ class RemoteStore {
       ...this._internalState,
       ...props,
     }
+
     this._publishChange()
     if (this._gotPropsCallback) {
       this._gotPropsCallback()

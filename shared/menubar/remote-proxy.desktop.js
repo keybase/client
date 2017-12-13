@@ -37,7 +37,7 @@ function RemoteMenubarWindow(ComposedComponent: any) {
       this.props.externalRemoteWindow.webContents.on('did-finish-load', this._sendLoad)
 
       // uncomment to see menubar devtools
-      this.props.externalRemoteWindow.webContents.openDevTools('detach')
+      // this.props.externalRemoteWindow.webContents.openDevTools('detach')
     }
     render() {
       const {windowOpts, windowPositionBottomRight, windowTitle, externalRemoteWindow, ...props} = this.props
