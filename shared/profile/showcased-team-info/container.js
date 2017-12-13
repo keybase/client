@@ -2,11 +2,13 @@
 import ShowcasedTeamInfo from './index'
 import * as TeamsGen from '../../actions/teams-gen'
 import * as ProfileGen from '../../actions/profile-gen'
-import {publicAdminsLimit} from '../../constants/teams'
+import {parsePublicAdmins} from '../../util/teams'
+
 import {connect, compose, lifecycle, type TypedState} from '../../util/container'
 
 const mapStateToProps = (state: TypedState, {routeProps}) => {
-  const {following, username} = state.config
+  const username = state.config.username
+  const following = state.config.following.toObject()
   if (!username || !following) {
     throw new Error('Not logged in')
   }
@@ -24,19 +26,7 @@ const mapStateToProps = (state: TypedState, {routeProps}) => {
 
   // If the current user's in the list of public admins, pull them out to the
   // front.
-  let publicAdmins = team.publicAdmins || []
-  const idx = publicAdmins.indexOf(username)
-  if (idx !== -1) {
-    const elem = publicAdmins.splice(idx, 1)
-    publicAdmins.unshift(...elem)
-  }
-  // If there are more than six public admins, take the first six and mention
-  // the count of the others.
-  const publicAdminsOthers = publicAdmins.length > publicAdminsLimit
-    ? publicAdmins.length - publicAdminsLimit
-    : 0
-  // Remove the public admins past the sixth.
-  publicAdmins.splice(publicAdminsLimit, publicAdmins.length - publicAdminsLimit)
+  const {publicAdmins, publicAdminsOthers} = parsePublicAdmins(team.publicAdmins || [], username)
 
   return {
     description,

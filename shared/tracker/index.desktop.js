@@ -14,7 +14,6 @@ import type {RenderProps} from '.'
 
 export default class TrackerRender extends PureComponent<RenderProps> {
   componentDidMount() {
-    console.warn('in componentDidMount')
     autoResize()
   }
 
@@ -86,7 +85,7 @@ export default class TrackerRender extends PureComponent<RenderProps> {
                 paddingTop: globalMargins.tiny,
               }}
             >
-              {this.props.userInfo.showcasedTeams.map(team =>
+              {this.props.userInfo.showcasedTeams.map(team => (
                 <Box
                   key={team.fqName}
                   onClick={event => {
@@ -150,7 +149,8 @@ export default class TrackerRender extends PureComponent<RenderProps> {
                     </Text>
                   </Box>
                 </Box>
-              )}</Box>}
+              ))}
+            </Box>}
 
           <UserProofs
             type="proofs"

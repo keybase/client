@@ -24,7 +24,8 @@ const mapDispatchToProps = (dispatch: Dispatch, {teamname}) => ({
   _onSetTeamJoinSuccess: (success: boolean) =>
     dispatch(TeamsGen.createSetTeamJoinSuccess({success, teamname: null})),
   _onUnfollow: (username: string) => dispatch(TrackerGen.createUnfollow({username})),
-  _onUserClick: (username: string) => dispatch(TrackerGen.createGetProfile({username, ignoreCache: true, forceDisplay: true})),
+  _onUserClick: (username: string) =>
+    dispatch(TrackerGen.createGetProfile({username, ignoreCache: true, forceDisplay: true})),
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({

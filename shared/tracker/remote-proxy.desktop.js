@@ -5,7 +5,7 @@
 // import * as I from 'immutable'
 import * as React from 'react'
 import * as Constants from '../constants/tracker'
-import {publicAdminsLimit} from '../constants/teams'
+import {parsePublicAdmins} from '../util/teams'
 
 import SyncAvatarProps from '../desktop/remote/sync-avatar-props.desktop'
 import SyncProps from '../desktop/remote/sync-props.desktop'
@@ -17,33 +17,18 @@ const windowOpts = {height: 470, width: 320}
 
 const trackerMapStateToProps = (state: TypedState, {name, showTeam}) => {
   const teamname = showTeam && showTeam.fqName
-  console.warn(
-    'in trackerMapStateToProps',
-    !!state.entities.getIn(['teams', 'teamAccessRequestsPending', teamname], false)
-  )
   const myUsername = state.config.username
-  // If the current user's in the list of public admins, pull them out to the
-  // front.
+  // If the current user's in the list of public admins, pull them out to the front.
   let publicAdmins = []
-  let publicAdminsOthers = []
+  let publicAdminsOthers = 0
   if (showTeam) {
-    publicAdmins = showTeam.publicAdmins || []
-    const idx = publicAdmins.indexOf(myUsername)
-    if (idx !== -1) {
-      const elem = publicAdmins.splice(idx, 1)
-      publicAdmins.unshift(...elem)
-    }
-    // If there are more than six public admins, take the first six and mention
-    // the count of the others.
-    publicAdminsOthers = publicAdmins.length > publicAdminsLimit ? publicAdmins.length - publicAdminsLimit : 0
-    // Remove the public admins past the sixth.
-    publicAdmins.splice(publicAdminsLimit, publicAdmins.length - publicAdminsLimit)
+    ;({publicAdmins, publicAdminsOthers} = parsePublicAdmins(showTeam.publicAdmins, myUsername))
   }
 
   return {
     _trackerState: state.tracker.userTrackers[name] || state.tracker.nonUserTrackers[name],
     description: showTeam && showTeam.description,
-    following: state.config.following,
+    following: state.config.following.toObject(),
     loggedIn: state.config.loggedIn,
     teamJoinError: state.chat.teamJoinError,
     teamJoinSuccess: state.chat.teamJoinSuccess,

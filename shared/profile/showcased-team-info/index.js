@@ -25,7 +25,6 @@ const TeamInfo = (props: Props) => (
     >
       <Avatar teamname={props.teamname} size={isMobile ? 64 : 40} />
     </Box>
-
     <Text type="Header">{props.teamname}</Text>
 
     <Text type="BodySmall" style={{textTransform: 'uppercase'}}>
