@@ -384,6 +384,8 @@ function messageKeyKindIsMessageID(key: Types.MessageKey): boolean {
 function messageKeyKind(key: Types.MessageKey): Types.MessageKeyKind {
   const [, kind] = key.split(':')
   switch (kind) {
+    case 'resetUser':
+      return 'resetUser'
     case 'joinedleft':
       return 'joinedleft'
     case 'system':

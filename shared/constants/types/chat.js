@@ -9,6 +9,7 @@ import type {DeviceType} from './devices'
 export type Username = string
 export type MessageKey = string
 export type MessageKeyKind =
+  | 'resetUser'
   | 'chatSecured'
   | 'error'
   | 'errorInvisible'

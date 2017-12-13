@@ -1055,6 +1055,16 @@ const iconMeta_ = {
     extension: 'png',
     require: require('../images/icons/icon-shh-active-24.png'),
   },
+  'icon-skull-48': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-skull-48.png'),
+  },
+  'icon-skull-64': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-skull-64.png'),
+  },
   'icon-team-leave-28': {
     isFont: false,
     extension: 'png',
