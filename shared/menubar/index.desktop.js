@@ -6,13 +6,12 @@ import {Box, Icon, Text, Button, PopupMenu, Badge} from '../common-adapters/inde
 import {folderTab, peopleTab, chatTab, devicesTab, type Tab} from '../constants/tabs'
 import {globalStyles, globalColors} from '../styles'
 import {isDarwin} from '../constants/platform'
-import {type KBFSStatus} from '../constants/types/favorite'
 import {remote} from 'electron'
 import throttle from 'lodash/throttle'
 
 export type Props = {
   folderProps: ?FolderProps,
-  kbfsStatus: ?KBFSStatus,
+  isAsyncWriteHappening: boolean,
   logIn: () => void,
   loggedIn: boolean,
   onFolderClick: (path: ?string) => void,
@@ -180,8 +179,7 @@ class MenubarRender extends Component<Props, State> {
           />
         </Box>
         <Folders {...mergedProps} />
-        {this.props.kbfsStatus &&
-          this.props.kbfsStatus.isAsyncWriteHappening &&
+        {this.props.isAsyncWriteHappening &&
           <Box
             style={{
               ...globalStyles.flexBoxColumn,

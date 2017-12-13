@@ -31,10 +31,10 @@ function SyncAvatarProps(ComposedComponent: any) {
       if (windowComponent === this.props.windowComponent && windowParam === this.props.windowParam) {
         if (action.type === ConfigGen.loadAvatars) {
           const {usernames} = action.payload
-          this.props.setUsernames(this.props.usernames.add(usernames))
+          this.props.setUsernames(this.props.usernames.concat(usernames))
         } else if (action.type === ConfigGen.loadTeamAvatars) {
           const {teamnames} = action.payload
-          this.props.setUsernames(this.props.usernames.add(teamnames))
+          this.props.setUsernames(this.props.usernames.concat(teamnames))
         }
       }
     }

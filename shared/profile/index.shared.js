@@ -12,9 +12,7 @@ import type {PlatformsExpandedType} from '../constants/types/more'
 import type {Folder} from '../constants/types/folders'
 
 export function folderIconProps(folder: Folder, style: ?Object = {}) {
-  const type = folder.isPublic
-    ? folder.hasData ? 'iconfont-folder-public-has-files' : 'iconfont-folder-public'
-    : folder.hasData ? 'iconfont-folder-private-has-files' : 'iconfont-folder-private'
+  const type = folder.isPublic ? 'iconfont-folder-public' : 'iconfont-folder-private'
 
   const color = folder.isPublic ? globalColors.yellowGreen : globalColors.darkBlue2
 

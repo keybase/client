@@ -9,7 +9,6 @@ import * as Saga from '../util/saga'
 import ListenerCreator from '../native/notification-listeners'
 import engine, {Engine} from '../engine'
 import {NotifyPopup} from '../native/notifications'
-import {call, put, take, fork} from 'redux-saga/effects'
 import {isMobile} from '../constants/platform'
 import {createBadgeAppForChat, createSetupChatHandlers} from './chat-gen'
 import {createRegisterRekeyListener} from './unlock-folders-gen'
@@ -33,8 +32,8 @@ function* _listenSaga(): Saga.SagaGenerator<any, any> {
     users: true,
   }
 
-  const engineInst: Engine = yield call(engine)
-  yield call([engineInst, engineInst.listenOnConnect], 'setNotifications', () => {
+  const engineInst: Engine = yield Saga.call(engine)
+  yield Saga.call([engineInst, engineInst.listenOnConnect], 'setNotifications', () => {
     RPCTypes.notifyCtlSetNotificationsRpcPromise({channels}).catch(error => {
       if (error != null) {
         console.warn('error in toggling notifications: ', error)
@@ -48,50 +47,50 @@ function* _listenSaga(): Saga.SagaGenerator<any, any> {
       engine().setIncomingHandler(key, listeners[key])
     })
   }
-  yield put(setHandlers)
-  yield put(TrackerGen.createSetupTrackerHandlers())
+  yield Saga.put(setHandlers)
+  yield Saga.put(TrackerGen.createSetupTrackerHandlers())
 }
 
 function* _listenKBFSSaga(): Saga.SagaGenerator<any, any> {
-  yield put(FavoriteGen.createSetupKBFSChangedHandler())
-  yield put(createSetupChatHandlers())
-  yield put(TeamsGen.createSetupTeamHandlers())
-  yield put(createRegisterRekeyListener())
+  yield Saga.put(FavoriteGen.createSetupKBFSChangedHandler())
+  yield Saga.put(createSetupChatHandlers())
+  yield Saga.put(TeamsGen.createSetupTeamHandlers())
+  yield Saga.put(createRegisterRekeyListener())
 }
 
-function* _onRecievedBadgeState(
-  action: NotificationsGen.ReceivedBadgeStatePayload
-): Saga.SagaGenerator<any, any> {
+function _onRecievedBadgeState(action: NotificationsGen.ReceivedBadgeStatePayload) {
   const {
     conversations,
     newGitRepoGlobalUniqueIDs,
     newTeamNames,
     newTeamAccessRequests,
   } = action.payload.badgeState
-  yield put(createBadgeAppForChat({conversations: conversations || []}))
-  yield put(GitGen.createBadgeAppForGit({ids: newGitRepoGlobalUniqueIDs || []}))
-  yield put(
-    TeamsGen.createBadgeAppForTeams({
-      newTeamAccessRequests: newTeamAccessRequests || [],
-      newTeamNames: newTeamNames || [],
-    })
-  )
+  return Saga.sequentially([
+    Saga.put(createBadgeAppForChat({conversations: conversations || []})),
+    Saga.put(GitGen.createBadgeAppForGit({ids: newGitRepoGlobalUniqueIDs || []})),
+    Saga.put(
+      TeamsGen.createBadgeAppForTeams({
+        newTeamAccessRequests: newTeamAccessRequests || [],
+        newTeamNames: newTeamNames || [],
+      })
+    ),
+  ])
 }
 
 function* _listenNotifications(): Saga.SagaGenerator<any, any> {
-  yield take(NotificationsGen.listenForNotifications)
-  yield call(_listenSaga)
+  yield Saga.take(NotificationsGen.listenForNotifications)
+  yield Saga.call(_listenSaga)
 }
 
 function* _listenForKBFSNotifications(): Saga.SagaGenerator<any, any> {
-  yield take(NotificationsGen.listenForKBFSNotifications)
-  yield call(_listenKBFSSaga)
+  yield Saga.take(NotificationsGen.listenForKBFSNotifications)
+  yield Saga.call(_listenKBFSSaga)
 }
 
 function* notificationsSaga(): Saga.SagaGenerator<any, any> {
-  yield fork(_listenNotifications)
-  yield fork(_listenForKBFSNotifications)
-  yield Saga.safeTakeLatest(NotificationsGen.receivedBadgeState, _onRecievedBadgeState)
+  yield Saga.fork(_listenNotifications)
+  yield Saga.fork(_listenForKBFSNotifications)
+  yield Saga.safeTakeLatestPure(NotificationsGen.receivedBadgeState, _onRecievedBadgeState)
 }
 
 export default notificationsSaga

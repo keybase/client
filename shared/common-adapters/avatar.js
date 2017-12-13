@@ -2,6 +2,7 @@
 // High level avatar class. Handdles converting from usernames to urls. Deals with testing mode.
 import Render from './avatar.render'
 import pickBy from 'lodash/pickBy'
+import debounce from 'lodash/debounce'
 import {iconTypeToImgSet, urlsToImgSet, type IconType} from './icon'
 import {isTesting} from '../local-debug'
 import {connect, type TypedState, lifecycle, compose, withProps} from '../util/container'
@@ -132,10 +133,27 @@ function _followIconSize(size: number, followsYou: boolean, following: boolean) 
   return 0
 }
 
+let _askQueue = {}
+let _askDispatch = null
+// We queue up the actions across all instances of Avatars so we don't flood the system with tons of actions
+const _askForUserDataQueueUp = (username: string, dispatch: Dispatch) => {
+  _askDispatch = dispatch
+  _askQueue[username] = true
+  _reallyAskForUserData()
+}
+
+const _reallyAskForUserData = debounce(() => {
+  if (_askDispatch) {
+    const usernames = Object.keys(_askQueue)
+    _askQueue = {}
+    _askDispatch(ConfigGen.createLoadAvatars({usernames}))
+  }
+}, 300)
+
 const mapDispatchToProps = (dispatch: Dispatch) => ({
   _askForTeamUserData: (teamname: string) =>
     dispatch(ConfigGen.createLoadTeamAvatars({teamnames: [teamname]})),
-  _askForUserData: (username: string) => dispatch(ConfigGen.createLoadAvatars({usernames: [username]})),
+  _askForUserData: (username: string) => _askForUserDataQueueUp(username, dispatch),
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => {
@@ -193,7 +211,6 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
   }
 }
 
-// We could theoretically bundle all these requests into one action but this is simpler for now
 export type {AvatarSize}
 const real = compose(
   connect(mapStateToProps, mapDispatchToProps, mergeProps),
