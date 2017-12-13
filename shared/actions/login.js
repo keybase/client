@@ -76,24 +76,19 @@ function* setCodePageOtherDeviceRole(codePageOtherDeviceRole: Types.DeviceRole):
 }
 
 function* navBasedOnLoginAndInitialState(): Saga.SagaGenerator<any, any> {
-  const selector = ({
-    config: {loggedIn, registered, initialState},
-    login: {justDeletedSelf, loginError},
-    routeTree: {loggedInUserNavigated},
-  }: TypedState) => ({
+  const state = yield Saga.select()
+  const {loggedIn, registered, initialState} = state.config
+  const {justDeletedSelf, loginError} = state.login
+  const {loggedInUserNavigated} = state.routeTree
+  console.log(
+    '[RouteState] navBasedOnLoginAndInitialState:',
+    loggedIn,
+    registered,
     initialState,
     justDeletedSelf,
-    loggedIn,
-    loggedInUserNavigated,
     loginError,
-    registered,
-  })
-
-  const args = yield Saga.select(selector)
-
-  console.log('[RouteState] navBasedOnLoginAndInitialState:', args)
-
-  const {loggedIn, registered, initialState, justDeletedSelf, loginError, loggedInUserNavigated} = args
+    loggedInUserNavigated
+  )
 
   // All branches except for when loggedIn is true,
   // loggedInUserNavigated is false, and and initialState is null must
@@ -161,10 +156,8 @@ const kex2Sagas = (
 })
 
 function* cancelLogin(): Generator<any, void, any> {
-  const getNumAccounts = (state: TypedState) =>
-    state.login.configuredAccounts && state.login.configuredAccounts.size
-  const numAccounts = yield Saga.select(getNumAccounts)
-
+  const state: TypedState = yield Saga.select()
+  const numAccounts = state.login.configuredAccounts ? state.login.configuredAccounts.size : 0
   const route = numAccounts ? ['login'] : []
   yield Saga.put(navigateTo(route, [loginTab]))
 }
@@ -400,9 +393,10 @@ const defaultGetPassphraseSaga = onBackSaga =>
           selected: 'paperkey',
         }
 
-        const currentPath = yield Saga.select(pathSelector)
+        const state: TypedState = yield Saga.select()
+        const currentPath = pathSelector(state)
         if (currentPath.last() === 'paperkey') {
-          yield Saga.put(navigateTo(currentPath.pop(1).push(destination)))
+          yield Saga.put(navigateTo(currentPath.pop().push(destination)))
         } else {
           yield Saga.put(navigateAppend([destination], [loginTab, 'login']))
         }
