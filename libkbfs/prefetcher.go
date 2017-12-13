@@ -286,11 +286,8 @@ func (p *blockPrefetcher) calculatePriority(basePriority int,
 	return basePriority
 }
 
-// request maps the parent->child block relationship. `numBlocks` represents
-// the number of blocks that need to be accounted in `parentBlockID`.
-// `needNewFetch` represents whether we need to fetch `ptr.ID`, or
-// whether such a fetch has already been triggered. Finally, it triggers child
-// prefetches that aren't already in progress.
+// request maps the parent->child block relationship in the prefetcher, and it
+// triggers child prefetches that aren't already in progress.
 func (p *blockPrefetcher) request(ctx context.Context, priority int,
 	kmd KeyMetadata, ptr BlockPointer, block Block,
 	lifetime BlockCacheLifetime, parentBlockID kbfsblock.ID,

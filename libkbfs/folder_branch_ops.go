@@ -4663,9 +4663,9 @@ func (fbo *folderBranchOps) notifyOneOpLocked(ctx context.Context,
 			return nil
 		}
 	}
-	// Remove any unreferenced blocks from the prefetcher.
+	// Cancel any block prefetches for unreferenced blocks.
 	for _, ptr := range op.Unrefs() {
-		fbo.config.BlockOps.Prefetcher().CancelPrefetch(ptr.ID)
+		fbo.config.BlockOps().Prefetcher().CancelPrefetch(ptr.ID)
 	}
 
 	fbo.observers.batchChanges(ctx, changes)
