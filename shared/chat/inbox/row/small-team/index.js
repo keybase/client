@@ -11,6 +11,8 @@ import {isMobile} from '../../../../constants/platform'
 
 type Props = {
   backgroundColor: string,
+  hasBadge: boolean,
+  hasResetUsers: boolean,
   hasUnread: boolean,
   isMuted: boolean,
   isSelected: boolean,
@@ -24,7 +26,6 @@ type Props = {
   timestamp: string,
   usernameColor: string,
   youNeedToRekey: boolean,
-  hasBadge: boolean,
 }
 
 class SmallTeam extends PureComponent<Props> {
@@ -68,6 +69,7 @@ class SmallTeam extends PureComponent<Props> {
               showBold={props.showBold}
               snippet={props.snippet}
               subColor={props.subColor}
+              hasResetUsers={props.hasResetUsers}
               youNeedToRekey={props.youNeedToRekey}
             />
           </Box>

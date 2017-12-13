@@ -1,6 +1,6 @@
 // @flow
 import React, {PureComponent} from 'react'
-import {Text, Markdown, Box} from '../../../../common-adapters'
+import {Text, Markdown, Box, Meta} from '../../../../common-adapters'
 import {
   globalStyles,
   globalColors,
@@ -18,11 +18,20 @@ type Props = {
   snippet: ?string,
   subColor: ?string,
   youNeedToRekey: boolean,
+  hasResetUsers: boolean,
 }
 
 class BottomLine extends PureComponent<Props> {
   render() {
-    const {participantNeedToRekey, youNeedToRekey, showBold, subColor, snippet, backgroundColor} = this.props
+    const {
+      participantNeedToRekey,
+      youNeedToRekey,
+      showBold,
+      subColor,
+      snippet,
+      backgroundColor,
+      hasResetUsers,
+    } = this.props
     let content
 
     if (youNeedToRekey) {
@@ -86,30 +95,40 @@ class BottomLine extends PureComponent<Props> {
       <Box
         style={{
           ...globalStyles.flexBoxRow,
+          alignItems: 'center',
           backgroundColor: isMobile ? backgroundColor : undefined,
-          flexGrow: 1,
-          maxHeight: height,
-          minHeight: height,
-          position: 'relative',
+          width: '100%',
+          flexShrink: 0,
+          height,
         }}
       >
-        <Box
-          style={{
-            ...globalStyles.flexBoxRow,
-            alignItems: 'flex-start',
-            bottom: 0,
-            justifyContent: 'flex-start',
-            left: 0,
-            position: 'absolute',
-            right: 0,
-            top: 0,
-          }}
-        >
-          {content}
+        {hasResetUsers && <Meta title="RESET" style={resetStyle} />}
+        <Box style={{flexGrow: 1, position: 'relative', height: '100%'}}>
+          <Box
+            style={{
+              ...globalStyles.flexBoxRow,
+              alignItems: 'flex-start',
+              bottom: 0,
+              justifyContent: 'flex-start',
+              left: 0,
+              position: 'absolute',
+              right: 0,
+              top: 0,
+            }}
+          >
+            {content}
+          </Box>
         </Box>
       </Box>
     )
   }
+}
+
+const resetStyle = {
+  ...(isMobile ? {} : {display: 'block'}),
+  alignSelf: 'center',
+  backgroundColor: globalColors.red,
+  marginRight: 6,
 }
 
 const noWrapStyle = {

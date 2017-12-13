@@ -92,6 +92,7 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   inboxGlobalUntrustedState: 'unloaded',
   inboxSyncingState: 'notSyncing',
   inboxUntrustedState: I.Map(),
+  inboxResetParticipants: I.Map(),
   inboxVersion: I.Map(),
   initialConversation: null,
   localMessageStates: I.Map(),

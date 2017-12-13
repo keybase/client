@@ -1,4 +1,5 @@
 // @flow
+import * as I from 'immutable'
 import * as Selectors from '../selectors'
 import * as Constants from '../../../../constants/chat'
 import * as Types from '../../../../constants/types/chat'
@@ -18,6 +19,7 @@ const mapStateToProps = (state: TypedState, {conversationIDKey, isActiveRoute}) 
   return {
     backgroundColor: p.backgroundColor,
     hasBadge: p.hasBadge,
+    hasResetUsers: state.chat.inboxResetParticipants.get(conversationIDKey, I.Set()).size > 0,
     hasUnread: p.hasUnread,
     isActiveRoute,
     isMuted: p.isMuted,
@@ -44,6 +46,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {conversationIDKey}) => ({
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   backgroundColor: stateProps.backgroundColor,
   hasBadge: stateProps.hasBadge,
+  hasResetUsers: stateProps.hasResetUsers,
   hasUnread: stateProps.hasUnread,
   isActiveRoute: ownProps.isActiveRoute,
   isMuted: stateProps.isMuted,

@@ -226,6 +226,15 @@ function _toSupersedeInfo(
 function* _processConversation(c: RPCChatTypes.InboxUIItem): Generator<any, void, any> {
   const conversationIDKey = c.convID
 
+  if (c.resetParticipants && c.resetParticipants.length > 0) {
+    yield Saga.put(
+      ChatGen.createUpdateResetParticipants({
+        conversationIDKey,
+        participants: c.resetParticipants,
+      })
+    )
+  }
+
   const isBigTeam = c.teamType === RPCChatTypes.commonTeamType.complex
   const isTeam = c.membersType === RPCChatTypes.commonConversationMembersType.team
 

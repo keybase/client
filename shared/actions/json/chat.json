@@ -308,6 +308,10 @@
     },
     "previewChannel": {
       "conversationIDKey": "Types.ConversationIDKey"
+    },
+    "updateResetParticipants": {
+      "conversationIDKey": "Types.ConversationIDKey",
+      "participants": "Array<string>"
     }
   }
 }
