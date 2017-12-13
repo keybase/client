@@ -1,7 +1,6 @@
 // @flow
 import * as React from 'react'
 import type {Folder} from './list'
-import type {IconType} from '../common-adapters/icon'
 import {Avatar, Box, Text, Icon, MultiAvatar, Meta, ClickableBox} from '../common-adapters/index.native'
 import {getStyle} from '../common-adapters/text'
 import {globalStyles, globalColors, globalMargins} from '../styles'
@@ -111,7 +110,6 @@ const Row = ({
   ignored,
   meta,
   modified,
-  hasData,
   path,
   onClick,
 }: Folder & {onClick: (path: string) => void}) => {
@@ -128,7 +126,6 @@ const Row = ({
     backgroundColor: globalColors.white,
   }
 
-  const icon: IconType = styles.hasStuffIcon
   const clickHandler = onClick ? () => onClick(path) : null
 
   return (
@@ -149,9 +146,7 @@ const Row = ({
             {meta && !ignored && <RowMeta meta={meta} styles={styles} />}
             {!(meta || ignored) && modified && <Modified modified={modified} styles={styles} />}
           </Box>
-          <Box style={stylesActionContainer}>
-            {hasData && <Icon type={icon} style={{width: 32}} />}
-          </Box>
+          <Box style={stylesActionContainer} />
         </Box>
       </Box>
     </ClickableBox>

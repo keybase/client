@@ -1,6 +1,5 @@
 // @flow
 import * as AppGen from '../app-gen'
-import * as Types from '../../constants/types/profile'
 import * as Constants from '../../constants/profile'
 import * as TrackerGen from '../tracker-gen'
 import * as ProfileGen from '../profile-gen'
@@ -20,30 +19,34 @@ import {proofsSaga} from './proofs'
 
 import type {TypedState} from '../../constants/reducer'
 
-function* _editProfile(action: ProfileGen.EditProfilePayload): Saga.SagaGenerator<any, any> {
+function _editProfile(action: ProfileGen.EditProfilePayload) {
   const {bio, fullname, location} = action.payload
-  yield Saga.call(RPCTypes.userProfileEditRpcPromise, {
-    bio,
-    fullName: fullname,
-    location,
-  })
-  // If the profile tab remained on the edit profile screen, navigate back to the top level.
-  yield Saga.put(putActionIfOnPath([peopleTab, 'editProfile'], navigateTo([], [peopleTab]), [peopleTab]))
+  return Saga.sequentially([
+    Saga.call(RPCTypes.userProfileEditRpcPromise, {
+      bio,
+      fullName: fullname,
+      location,
+    }),
+    // If the profile tab remained on the edit profile screen, navigate back to the top level.
+    Saga.put(putActionIfOnPath([peopleTab, 'editProfile'], navigateTo([], [peopleTab]), [peopleTab])),
+  ])
 }
 
-function* _finishRevoking(): Saga.SagaGenerator<any, any> {
-  yield Saga.put(TrackerGen.createGetMyProfile({ignoreCache: true}))
-  yield Saga.put(ProfileGen.createRevokeFinish())
-  yield Saga.put(navigateUp())
+function _finishRevoking() {
+  return Saga.sequentially([
+    Saga.put(TrackerGen.createGetMyProfile({ignoreCache: true})),
+    Saga.put(ProfileGen.createRevokeFinish()),
+    Saga.put(navigateUp()),
+  ])
 }
 
-function* _showUserProfile(action: ProfileGen.ShowUserProfilePayload): Saga.SagaGenerator<any, any> {
+function _showUserProfile(action: ProfileGen.ShowUserProfilePayload, state: TypedState) {
   const {username: userId} = action.payload
-  const searchResultMap = yield Saga.select(Selectors.searchResultMapSelector)
+  const searchResultMap = Selectors.searchResultMapSelector(state)
   const username = SearchConstants.maybeUpgradeSearchResultIdToKeybaseId(searchResultMap, userId)
   // get data on whose profile is currently being shown
-  const me = yield Saga.select(Selectors.usernameSelector)
-  const topProfile = yield Saga.select((state: TypedState) => {
+  const me = Selectors.usernameSelector(state)
+  const getTopProfile = (state: TypedState) => {
     const routeState = state.routeTree.routeState
     const routeProps = getPathProps(routeState, [peopleTab])
     const profileNode = (routeProps && routeProps.size > 0 && routeProps.get(routeProps.size - 1)) || null
@@ -51,27 +54,29 @@ function* _showUserProfile(action: ProfileGen.ShowUserProfilePayload): Saga.Saga
       (profileNode && profileNode.props && profileNode.props.get('username')) ||
       (profileNode && profileNode.node === peopleTab && me)
     )
-  })
+  }
+
+  const topProfile = getTopProfile(state)
 
   // If the username is the top profile, just switch to the profile tab
   if (username === topProfile) {
-    yield Saga.put(switchTo([peopleTab]))
-    return
+    return Saga.put(switchTo([peopleTab]))
   }
 
   // Assume user exists
   if (!username.includes('@')) {
-    yield Saga.put(switchTo([peopleTab]))
-    yield Saga.put(navigateAppend([{props: {username}, selected: 'profile'}], [peopleTab]))
-    return
+    return Saga.sequentially([
+      Saga.put(switchTo([peopleTab])),
+      Saga.put(navigateAppend([{props: {username}, selected: 'profile'}], [peopleTab])),
+    ])
   }
 
   // search for user first
   let props = {}
-  const searchResult = yield Saga.select(Selectors.searchResultSelector, username)
+  const searchResult = Selectors.searchResultSelector(state, username)
   if (searchResult) {
     props = {
-      fullname: searchResult.rightFullname,
+      fullname: searchResult.leftFullname,
       fullUsername: username,
       serviceName: searchResult.leftService,
       username: searchResult.leftUsername,
@@ -85,43 +90,35 @@ function* _showUserProfile(action: ProfileGen.ShowUserProfilePayload): Saga.Saga
     }
   }
 
-  yield Saga.put(switchTo([peopleTab]))
-  yield Saga.put(navigateAppend([{props, selected: 'nonUserProfile'}], [peopleTab]))
+  return Saga.sequentially([
+    Saga.put(switchTo([peopleTab])),
+    Saga.put(navigateAppend([{props, selected: 'nonUserProfile'}], [peopleTab])),
+  ])
 }
 
-function* _onClickAvatar(action: ProfileGen.OnClickFollowersPayload): Saga.SagaGenerator<any, any> {
+function _onClickAvatar(action: ProfileGen.OnClickFollowersPayload) {
   if (!action.payload.username) {
     return
   }
 
   if (!action.openWebsite) {
-    yield Saga.put(ProfileGen.createShowUserProfile({username: action.payload.username}))
+    return Saga.put(ProfileGen.createShowUserProfile({username: action.payload.username}))
   } else {
-    yield Saga.call(openURL, `${keybaseUrl}/${action.payload.username}`)
+    return Saga.call(openURL, `${keybaseUrl}/${action.payload.username}`)
   }
 }
 
-function* _onClickFollowers(action: ProfileGen.OnClickFollowersPayload): Saga.SagaGenerator<any, any> {
+function _openProfileOrWebsite(
+  action: ProfileGen.OnClickFollowersPayload | ProfileGen.OnClickFollowingPayload
+) {
   if (!action.payload.username) {
     return
   }
 
   if (!action.openWebsite) {
-    yield Saga.put(ProfileGen.createShowUserProfile({username: action.payload.username}))
+    return Saga.put(ProfileGen.createShowUserProfile({username: action.payload.username}))
   } else {
-    yield Saga.call(openURL, `${keybaseUrl}/${action.payload.username}#profile-tracking-section`)
-  }
-}
-
-function* _onClickFollowing(action: ProfileGen.OnClickFollowingPayload): Saga.SagaGenerator<any, any> {
-  if (!action.payload.username) {
-    return
-  }
-
-  if (!action.openWebsite) {
-    yield Saga.put(ProfileGen.createShowUserProfile({username: action.payload.username}))
-  } else {
-    yield Saga.call(openURL, `${keybaseUrl}/${action.payload.username}#profile-tracking-section`)
+    return Saga.call(openURL, `${keybaseUrl}/${action.payload.username}#profile-tracking-section`)
   }
 }
 
@@ -150,7 +147,7 @@ function _openURLIfNotNull(nullableThing, url, metaText): void {
   openURL(url)
 }
 
-function* _onAppLink(action: AppGen.LinkPayload): Saga.SagaGenerator<any, any> {
+function _onAppLink(action: AppGen.LinkPayload) {
   const link = action.payload.link
   let url
   try {
@@ -162,55 +159,56 @@ function* _onAppLink(action: AppGen.LinkPayload): Saga.SagaGenerator<any, any> {
   const username = Constants.urlToUsername(url)
   console.log('AppLink: url', url.href, 'username', username)
   if (username) {
-    yield Saga.put(ProfileGen.createShowUserProfile({username}))
+    return Saga.put(ProfileGen.createShowUserProfile({username}))
   }
 }
 
-function* _outputInstructionsActionLink(): Saga.SagaGenerator<any, any> {
-  const getProfile = (state: TypedState) => state.profile
-  const profile: Types.State = (yield Saga.select(getProfile): any)
+function _outputInstructionsActionLink(
+  action: ProfileGen.OutputInstructionsActionLinkPayload,
+  state: TypedState
+) {
+  const profile = state.profile
   switch (profile.platform) {
     case 'twitter':
-      yield Saga.call(
+      return Saga.call(
         _openURLIfNotNull,
         profile.proofText,
         `https://twitter.com/home?status=${profile.proofText || ''}`,
         'twitter url'
       )
-      break
     case 'github':
-      yield Saga.call(openURL, 'https://gist.github.com/')
-      break
+      return Saga.call(openURL, 'https://gist.github.com/')
     case 'reddit':
-      yield Saga.call(_openURLIfNotNull, profile.proofText, profile.proofText, 'reddit url')
-      break
+      return Saga.call(_openURLIfNotNull, profile.proofText, profile.proofText, 'reddit url')
     case 'facebook':
-      yield Saga.call(_openURLIfNotNull, profile.proofText, profile.proofText, 'facebook url')
-      break
+      return Saga.call(_openURLIfNotNull, profile.proofText, profile.proofText, 'facebook url')
     case 'hackernews':
-      yield Saga.call(openURL, `https://news.ycombinator.com/user?id=${profile.username}`)
-      break
+      return Saga.call(openURL, `https://news.ycombinator.com/user?id=${profile.username}`)
     default:
       break
   }
 }
 
-function* _backToProfile(): Saga.SagaGenerator<any, any> {
-  yield Saga.put(TrackerGen.createGetMyProfile({}))
-  yield Saga.put(navigateTo([], [peopleTab]))
+function _backToProfile() {
+  return Saga.sequentially([
+    Saga.put(TrackerGen.createGetMyProfile({})),
+    Saga.put(navigateTo([], [peopleTab])),
+  ])
 }
 
 function* _profileSaga(): Saga.SagaGenerator<any, any> {
-  yield Saga.safeTakeEvery(ProfileGen.backToProfile, _backToProfile)
-  yield Saga.safeTakeEvery(ProfileGen.editProfile, _editProfile)
-  yield Saga.safeTakeEvery(ProfileGen.finishRevoking, _finishRevoking)
-  yield Saga.safeTakeEvery(ProfileGen.onClickAvatar, _onClickAvatar)
-  yield Saga.safeTakeEvery(ProfileGen.onClickFollowers, _onClickFollowers)
-  yield Saga.safeTakeEvery(ProfileGen.onClickFollowing, _onClickFollowing)
-  yield Saga.safeTakeEvery(ProfileGen.outputInstructionsActionLink, _outputInstructionsActionLink)
-  yield Saga.safeTakeEvery(ProfileGen.showUserProfile, _showUserProfile)
   yield Saga.safeTakeEvery(ProfileGen.submitRevokeProof, _submitRevokeProof)
-  yield Saga.safeTakeEvery(AppGen.link, _onAppLink)
+  yield Saga.safeTakeEveryPure(ProfileGen.backToProfile, _backToProfile)
+  yield Saga.safeTakeEveryPure(ProfileGen.editProfile, _editProfile)
+  yield Saga.safeTakeEveryPure(ProfileGen.finishRevoking, _finishRevoking)
+  yield Saga.safeTakeEveryPure(ProfileGen.onClickAvatar, _onClickAvatar)
+  yield Saga.safeTakeEveryPure(
+    [ProfileGen.onClickFollowers, ProfileGen.onClickFollowing],
+    _openProfileOrWebsite
+  )
+  yield Saga.safeTakeEveryPure(ProfileGen.outputInstructionsActionLink, _outputInstructionsActionLink)
+  yield Saga.safeTakeEveryPure(ProfileGen.showUserProfile, _showUserProfile)
+  yield Saga.safeTakeEveryPure(AppGen.link, _onAppLink)
 }
 
 function* profileSaga(): Saga.SagaGenerator<any, any> {
