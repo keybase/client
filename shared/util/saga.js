@@ -128,8 +128,8 @@ function* sequentially(effects: Array<any>): Generator<any, Array<any>, any> {
 function safeTakeEveryPure<A, R, FinalAction, FinalActionError>(
   pattern: string | Array<any> | Function,
   pureWorker: ((action: A, state: TypedState) => any) | ((action: A) => any),
-  actionCreatorsWithResult?: (result: R) => FinalAction,
-  actionCreatorsWithError?: (result: R) => FinalActionError
+  actionCreatorsWithResult?: (result: R, action: A) => FinalAction,
+  actionCreatorsWithError?: (result: R, action: A) => FinalActionError
 ) {
   return safeTakeEvery(pattern, function* safeTakeEveryPureWorker(action: A) {
     // If the pureWorker fn takes two arguments, let's pass the state
@@ -145,11 +145,11 @@ function safeTakeEveryPure<A, R, FinalAction, FinalActionError>(
       }
 
       if (actionCreatorsWithResult) {
-        yield actionCreatorsWithResult(result)
+        yield actionCreatorsWithResult(result, action)
       }
     } catch (e) {
       if (actionCreatorsWithError) {
-        yield actionCreatorsWithError(e)
+        yield actionCreatorsWithError(e, action)
       }
     }
   })
@@ -158,8 +158,8 @@ function safeTakeEveryPure<A, R, FinalAction, FinalActionError>(
 function safeTakeLatestPure<A, R, FinalAction, FinalActionError>(
   pattern: string | Array<any> | Function,
   pureWorker: ((action: A, state: TypedState) => any) | ((action: A) => any),
-  actionCreatorsWithResult?: (result: R) => FinalAction,
-  actionCreatorsWithError?: (result: R) => FinalActionError
+  actionCreatorsWithResult?: (result: R, action: A) => FinalAction,
+  actionCreatorsWithError?: (result: R, action: A) => FinalActionError
 ) {
   return safeTakeLatest(pattern, function* safeTakeLatestPureWorker(action: A) {
     // If the pureWorker fn takes two arguments, let's pass the state
@@ -175,11 +175,11 @@ function safeTakeLatestPure<A, R, FinalAction, FinalActionError>(
       }
 
       if (actionCreatorsWithResult) {
-        yield actionCreatorsWithResult(result)
+        yield actionCreatorsWithResult(result, action)
       }
     } catch (e) {
       if (actionCreatorsWithError) {
-        yield actionCreatorsWithError(e)
+        yield actionCreatorsWithError(e, action)
       }
     }
   })
