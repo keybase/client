@@ -7,7 +7,7 @@ import {isMobile} from '../constants/platform'
 import {connect} from 'react-redux'
 import {type TypedState} from '../constants/reducer'
 import {createShowUserProfile} from '../actions/profile-gen'
-import {getProfile} from '../actions/tracker'
+import {createGetProfile} from '../actions/tracker-gen.js'
 import type {Props, PlaintextProps, ConnectedProps} from './usernames'
 
 function usernameText({
@@ -160,7 +160,7 @@ const mapStateToProps = (state: TypedState, ownProps: ConnectedProps) => {
   const following = state.config.following
   const you = state.config.username
   const userData = ownProps.usernames.map(username => ({
-    following: !!following[username],
+    following: following.has(username),
     username,
     you: you === username,
   }))
@@ -172,7 +172,9 @@ const mapStateToProps = (state: TypedState, ownProps: ConnectedProps) => {
 const mapDispatchToProps = (dispatch: Dispatch, ownProps: ConnectedProps) => ({
   onUsernameClicked: ownProps.clickable
     ? (username: string) => {
-        isMobile ? dispatch(createShowUserProfile({username})) : dispatch(getProfile(username, true, true))
+        isMobile
+          ? dispatch(createShowUserProfile({username}))
+          : dispatch(createGetProfile({username, ignoreCache: true, forceDisplay: true}))
       }
     : undefined,
 })

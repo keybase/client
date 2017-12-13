@@ -45,4 +45,5 @@ export default compose(
   branch(props => props.message.info.type === 'inviteAccepted', renderComponent(InviteAddedToTeamNotice)),
   branch(props => props.message.info.type === 'simpleToComplex', renderComponent(ComplexTeamNotice)),
   branch(props => props.message.info.type === 'addedToTeam', renderComponent(AddedToTeamNotice))
+  // $FlowIssue with the renderNothing type
 )(renderNothing())

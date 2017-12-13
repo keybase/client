@@ -597,7 +597,7 @@ function _unboxedToMessage(
               case ChatTypes.localMessageSystemType.createteam: {
                 const team = body.createteam ? body.createteam.team : '???'
                 const creator = body.createteam ? body.createteam.creator : '???'
-                sysMsgText = `${creator} created a new team ${team}.`
+                messageText = `${creator} created a new team ${team}.`
                 break
               }
             }

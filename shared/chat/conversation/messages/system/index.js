@@ -93,7 +93,8 @@ const AddedToTeamNotice = ({
       teamname={you === addee ? team : undefined}
       bgColor={globalColors.blue4}
     >
-      {you === addee && <Icon type="icon-team-sparkles-48-40" style={{marginTop: -36}} />}
+      {you === addee &&
+        <Icon type="icon-team-sparkles-48-40" style={{marginTop: -36, width: 48, height: 40}} />}
       <Text type="BodySmallSemibold" backgroundMode="Announcements" style={{color: globalColors.black_40}}>
         {formatTimeForMessages(message.timestamp)}
       </Text>
@@ -249,7 +250,8 @@ const InviteAddedToTeamNotice = ({
       teamname={invitee === you ? team : undefined}
       bgColor={globalColors.blue4}
     >
-      {you === invitee && <Icon type="icon-team-sparkles-48-40" style={{marginTop: -36}} />}
+      {you === invitee &&
+        <Icon type="icon-team-sparkles-48-40" style={{marginTop: -36, width: 48, height: 40}} />}
       <Text type="BodySmallSemibold" backgroundMode="Announcements" style={{color: globalColors.black_40}}>
         {formatTimeForMessages(message.timestamp)}
       </Text>
