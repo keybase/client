@@ -3870,7 +3870,7 @@ type UnboxMobilePushNotificationArg struct {
 	PushIDs     []string                `codec:"pushIDs" json:"pushIDs"`
 }
 
-type AddImplicitTeamMemberAfterResetArg struct {
+type AddTeamMemberAfterResetArg struct {
 	Username string         `codec:"username" json:"username"`
 	ConvID   ConversationID `codec:"convID" json:"convID"`
 }
@@ -3916,7 +3916,7 @@ type LocalInterface interface {
 	SetGlobalAppNotificationSettingsLocal(context.Context, map[string]bool) error
 	GetGlobalAppNotificationSettingsLocal(context.Context) (GlobalAppNotificationSettings, error)
 	UnboxMobilePushNotification(context.Context, UnboxMobilePushNotificationArg) (string, error)
-	AddImplicitTeamMemberAfterReset(context.Context, AddImplicitTeamMemberAfterResetArg) error
+	AddTeamMemberAfterReset(context.Context, AddTeamMemberAfterResetArg) error
 }
 
 func LocalProtocol(i LocalInterface) rpc.Protocol {
@@ -4553,18 +4553,18 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
-			"addImplicitTeamMemberAfterReset": {
+			"addTeamMemberAfterReset": {
 				MakeArg: func() interface{} {
-					ret := make([]AddImplicitTeamMemberAfterResetArg, 1)
+					ret := make([]AddTeamMemberAfterResetArg, 1)
 					return &ret
 				},
 				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[]AddImplicitTeamMemberAfterResetArg)
+					typedArgs, ok := args.(*[]AddTeamMemberAfterResetArg)
 					if !ok {
-						err = rpc.NewTypeError((*[]AddImplicitTeamMemberAfterResetArg)(nil), args)
+						err = rpc.NewTypeError((*[]AddTeamMemberAfterResetArg)(nil), args)
 						return
 					}
-					err = i.AddImplicitTeamMemberAfterReset(ctx, (*typedArgs)[0])
+					err = i.AddTeamMemberAfterReset(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -4785,7 +4785,7 @@ func (c LocalClient) UnboxMobilePushNotification(ctx context.Context, __arg Unbo
 	return
 }
 
-func (c LocalClient) AddImplicitTeamMemberAfterReset(ctx context.Context, __arg AddImplicitTeamMemberAfterResetArg) (err error) {
-	err = c.Cli.Call(ctx, "chat.1.local.addImplicitTeamMemberAfterReset", []interface{}{__arg}, nil)
+func (c LocalClient) AddTeamMemberAfterReset(ctx context.Context, __arg AddTeamMemberAfterResetArg) (err error) {
+	err = c.Cli.Call(ctx, "chat.1.local.addTeamMemberAfterReset", []interface{}{__arg}, nil)
 	return
 }

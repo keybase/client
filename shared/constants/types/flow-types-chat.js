@@ -94,9 +94,9 @@ export const commonTopicType = {
   dev: 2,
 }
 
-export const localAddImplicitTeamMemberAfterResetRpcChannelMap = (configKeys: Array<string>, request: LocalAddImplicitTeamMemberAfterResetRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.local.addImplicitTeamMemberAfterReset', request)
+export const localAddTeamMemberAfterResetRpcChannelMap = (configKeys: Array<string>, request: LocalAddTeamMemberAfterResetRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.local.addTeamMemberAfterReset', request)
 
-export const localAddImplicitTeamMemberAfterResetRpcPromise = (request: LocalAddImplicitTeamMemberAfterResetRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.local.addImplicitTeamMemberAfterReset', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
+export const localAddTeamMemberAfterResetRpcPromise = (request: LocalAddTeamMemberAfterResetRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.local.addTeamMemberAfterReset', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
 
 export const localAssetMetadataType = {
   none: 0,
@@ -761,7 +761,7 @@ export type JoinLeaveConversationLocalRes = {|offline: Boolean,rateLimits?: ?Arr
 
 export type JoinLeaveConversationRemoteRes = {|rateLimit?: ?RateLimit,|}
 
-export type LocalAddImplicitTeamMemberAfterResetRpcParam = {|username: String,convID: ConversationID,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type LocalAddTeamMemberAfterResetRpcParam = {|username: String,convID: ConversationID,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
 export type LocalCancelPostRpcParam = {|outboxID: OutboxID,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 

@@ -2511,10 +2511,10 @@ func (h *Server) GetGlobalAppNotificationSettingsLocal(ctx context.Context) (res
 	return h.remoteClient().GetGlobalAppNotificationSettings(ctx)
 }
 
-func (h *Server) AddImplicitTeamMemberAfterReset(ctx context.Context,
-	arg chat1.AddImplicitTeamMemberAfterResetArg) (err error) {
+func (h *Server) AddTeamMemberAfterReset(ctx context.Context,
+	arg chat1.AddTeamMemberAfterResetArg) (err error) {
 	ctx = Context(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, h.identNotifier)
-	defer h.Trace(ctx, func() error { return err }, "AddImplicitTeamMemberAfterReset")()
+	defer h.Trace(ctx, func() error { return err }, "AddTeamMemberAfterReset")()
 	if err = h.assertLoggedIn(ctx); err != nil {
 		return err
 	}

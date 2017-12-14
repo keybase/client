@@ -3405,8 +3405,8 @@ func TestChatSrvUserReset(t *testing.T) {
 		require.NoError(t, g1.Logout())
 		require.NoError(t, users[1].Login(g1))
 
-		require.NoError(t, ctc.as(t, users[0]).chatLocalHandler().AddImplicitTeamMemberAfterReset(ctx,
-			chat1.AddImplicitTeamMemberAfterResetArg{
+		require.NoError(t, ctc.as(t, users[0]).chatLocalHandler().AddTeamMemberAfterReset(ctx,
+			chat1.AddTeamMemberAfterResetArg{
 				Username: users[1].Username,
 				ConvID:   conv.Id,
 			}))

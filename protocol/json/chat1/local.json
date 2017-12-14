@@ -3074,7 +3074,7 @@
       ],
       "response": "string"
     },
-    "addImplicitTeamMemberAfterReset": {
+    "addTeamMemberAfterReset": {
       "request": [
         {
           "name": "username",
