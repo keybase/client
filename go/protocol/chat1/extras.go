@@ -100,23 +100,31 @@ var deletableMessageTypesByDelete = []MessageType{
 	MessageType_ATTACHMENTUPLOADED,
 }
 
-// Message types deletable by a DELETEHISTORY message.
-var deletableMessageTypesByDeleteHistory = []MessageType{
-	MessageType_TEXT,
-	MessageType_ATTACHMENT,
-	MessageType_EDIT,
-	MessageType_ATTACHMENTUPLOADED,
-	MessageType_JOIN,
-	MessageType_LEAVE,
-	MessageType_SYSTEM,
+// Messages types NOT deletable by a DELETEHISTORY message.
+var nonDeletableMessageTypesByDeleteHistory = []MessageType{
+	MessageType_NONE,
+	MessageType_DELETE,
+	MessageType_METADATA,
+	MessageType_TLFNAME,
+	MessageType_HEADLINE,
+	MessageType_DELETEHISTORY,
 }
 
 func DeletableMessageTypesByDelete() []MessageType {
 	return deletableMessageTypesByDelete
 }
 
-func DeletableMessageTypesByDeleteHistory() []MessageType {
-	return deletableMessageTypesByDeleteHistory
+func DeletableMessageTypesByDeleteHistory() (res []MessageType) {
+	banned := make(map[MessageType]bool)
+	for _, mt := range nonDeletableMessageTypesByDeleteHistory {
+		banned[mt] = true
+	}
+	for _, mt := range MessageTypeMap {
+		if !banned[mt] {
+			res = append(res, mt)
+		}
+	}
+	return res
 }
 
 func IsDeletableByDelete(typ MessageType) bool {
@@ -129,12 +137,12 @@ func IsDeletableByDelete(typ MessageType) bool {
 }
 
 func IsDeletableByDeleteHistory(typ MessageType) bool {
-	for _, typ2 := range deletableMessageTypesByDeleteHistory {
+	for _, typ2 := range nonDeletableMessageTypesByDeleteHistory {
 		if typ == typ2 {
-			return true
+			return false
 		}
 	}
-	return false
+	return true
 }
 
 func (t TopicType) String() string {
