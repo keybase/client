@@ -3073,6 +3073,19 @@
         }
       ],
       "response": "string"
+    },
+    "addTeamMemberAfterReset": {
+      "request": [
+        {
+          "name": "username",
+          "type": "string"
+        },
+        {
+          "name": "convID",
+          "type": "ConversationID"
+        }
+      ],
+      "response": null
     }
   },
   "namespace": "chat.1"
