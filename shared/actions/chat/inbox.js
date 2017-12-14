@@ -992,8 +992,8 @@ function _resetChatWithoutThem(action: ChatGen.ResetChatWithoutThemPayload, stat
 function _resetLetThemIn(action: ChatGen.ResetLetThemInPayload) {
   // TODO waiting on merger from master
   // Saga.call(RPCChatTypes.localAddTeamMemberAfterResetRpcPromise, {
-    // convID: Constants.keyToConversationID(action.payload.conversationIDKey),
-    // username: action.payload.username,
+  // convID: Constants.keyToConversationID(action.payload.conversationIDKey),
+  // username: action.payload.username,
   // })
 }
 
