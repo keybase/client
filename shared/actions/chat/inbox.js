@@ -977,6 +977,20 @@ function _previewChannel(action: ChatGen.PreviewChannelPayload) {
   return Saga.call(RPCChatTypes.localPreviewConversationByIDLocalRpcPromise, {convID})
 }
 
+function _resetChatWithoutThem(action: ChatGen.ResetChatWithoutThemPayload, state: TypedState) {
+  const participants = state.chat.getIn(['inbox', action.payload.conversationIDKey, 'participants'], I.List())
+  const withoutReset = participants.filter(u => u !== action.payload.username).toArray()
+  if (withoutReset.length) {
+    return Saga.put(
+      ChatGen.createStartConversation({
+        users: withoutReset,
+      })
+    )
+  }
+}
+
+function _resetLetThemIn(action: ChatGen.ResetLetThemInPayload) {}
+
 function* registerSagas(): SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(ChatGen.updateSnippet, _updateSnippet)
   yield Saga.safeTakeEveryPure(ChatGen.getInboxAndUnbox, onGetInboxAndUnbox)
@@ -992,6 +1006,8 @@ function* registerSagas(): SagaGenerator<any, any> {
   yield Saga.safeTakeEvery(ChatGen.incomingMessage, _incomingMessage)
   yield Saga.safeTakeEveryPure(ChatGen.joinConversation, _joinConversation)
   yield Saga.safeTakeEveryPure(ChatGen.previewChannel, _previewChannel)
+  yield Saga.safeTakeEveryPure(ChatGen.resetChatWithoutThem, _resetChatWithoutThem)
+  yield Saga.safeTakeEveryPure(ChatGen.resetLetThemIn, _resetLetThemIn)
 }
 
 export {registerSagas}

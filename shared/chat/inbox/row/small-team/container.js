@@ -21,7 +21,7 @@ const mapStateToProps = (state: TypedState, {conversationIDKey, isActiveRoute}) 
   return {
     backgroundColor: p.backgroundColor,
     hasBadge: p.hasBadge,
-    hasResetUsers: state.chat.inboxResetParticipants.get(conversationIDKey, I.Set()).size > 0,
+    hasResetUsers: state.chat.inboxResetParticipants.get(conversationIDKey || '', I.Set()).size > 0,
     hasUnread: p.hasUnread,
     isActiveRoute,
     isMuted: p.isMuted,

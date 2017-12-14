@@ -315,7 +315,6 @@ function reducer(
       return state.set('teamJoinSuccess', success).set('teamJoinSuccessTeamName', teamname)
     }
     // Saga only actions
-    case ChatGen.updateBadging:
     case ChatGen.attachmentLoaded:
     case ChatGen.attachmentSaveFailed:
     case ChatGen.attachmentSaveStart:
@@ -343,9 +342,11 @@ function reducer(
     case ChatGen.openTeamConversation:
     case ChatGen.openTlfInChat:
     case ChatGen.outboxMessageBecameReal:
-    case ChatGen.previewChannel:
     case ChatGen.postMessage:
+    case ChatGen.previewChannel:
     case ChatGen.removeOutboxMessage:
+    case ChatGen.resetChatWithoutThem:
+    case ChatGen.resetLetThemIn:
     case ChatGen.retryAttachment:
     case ChatGen.retryMessage:
     case ChatGen.saveAttachment:
@@ -360,6 +361,7 @@ function reducer(
     case ChatGen.toggleChannelWideNotifications:
     case ChatGen.unboxConversations:
     case ChatGen.unboxMore:
+    case ChatGen.updateBadging:
     case ChatGen.updateInboxComplete:
     case ChatGen.updateMetadata:
     case ChatGen.updateSnippet:

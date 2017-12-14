@@ -60,6 +60,8 @@ export const previewChannel = 'chat:previewChannel'
 export const removeOutboxMessage = 'chat:removeOutboxMessage'
 export const removeTempPendingConversations = 'chat:removeTempPendingConversations'
 export const replaceEntity = 'chat:replaceEntity'
+export const resetChatWithoutThem = 'chat:resetChatWithoutThem'
+export const resetLetThemIn = 'chat:resetLetThemIn'
 export const retryAttachment = 'chat:retryAttachment'
 export const retryMessage = 'chat:retryMessage'
 export const saveAttachment = 'chat:saveAttachment'
@@ -149,6 +151,8 @@ export const createPreviewChannel = (payload: {|+conversationIDKey: Types.Conver
 export const createRemoveOutboxMessage = (payload: {|+conversationIDKey: Types.ConversationIDKey, +outboxID: Types.OutboxIDKey|}) => ({error: false, payload, type: removeOutboxMessage})
 export const createRemoveTempPendingConversations = () => ({error: false, payload: undefined, type: removeTempPendingConversations})
 export const createReplaceEntity = (payload: {|+keyPath: Array<string>, +entities: I.Map<any, any> | I.List<any>|}) => ({error: false, payload, type: replaceEntity})
+export const createResetChatWithoutThem = (payload: {|+conversationIDKey: Types.ConversationIDKey, +username: string|}) => ({error: false, payload, type: resetChatWithoutThem})
+export const createResetLetThemIn = (payload: {|+conversationIDKey: Types.ConversationIDKey, +username: string|}) => ({error: false, payload, type: resetLetThemIn})
 export const createRetryAttachment = (payload: {|+message: Types.AttachmentMessage|}) => ({error: false, payload, type: retryAttachment})
 export const createRetryMessage = (payload: {|+conversationIDKey: Types.ConversationIDKey, +outboxIDKey: string|}) => ({error: false, payload, type: retryMessage})
 export const createSaveAttachment = (payload: {|+messageKey: Types.MessageKey|}) => ({error: false, payload, type: saveAttachment})
@@ -238,6 +242,8 @@ export type PreviewChannelPayload = More.ReturnType<typeof createPreviewChannel>
 export type RemoveOutboxMessagePayload = More.ReturnType<typeof createRemoveOutboxMessage>
 export type RemoveTempPendingConversationsPayload = More.ReturnType<typeof createRemoveTempPendingConversations>
 export type ReplaceEntityPayload = More.ReturnType<typeof createReplaceEntity>
+export type ResetChatWithoutThemPayload = More.ReturnType<typeof createResetChatWithoutThem>
+export type ResetLetThemInPayload = More.ReturnType<typeof createResetLetThemIn>
 export type RetryAttachmentPayload = More.ReturnType<typeof createRetryAttachment>
 export type RetryMessagePayload = More.ReturnType<typeof createRetryMessage>
 export type SaveAttachmentNativePayload = More.ReturnType<typeof createSaveAttachmentNative>
@@ -329,6 +335,8 @@ export type Actions =
   | More.ReturnType<typeof createRemoveOutboxMessage>
   | More.ReturnType<typeof createRemoveTempPendingConversations>
   | More.ReturnType<typeof createReplaceEntity>
+  | More.ReturnType<typeof createResetChatWithoutThem>
+  | More.ReturnType<typeof createResetLetThemIn>
   | More.ReturnType<typeof createRetryAttachment>
   | More.ReturnType<typeof createRetryMessage>
   | More.ReturnType<typeof createSaveAttachment>

@@ -312,7 +312,7 @@ function isPendingConversationIDKey(conversationIDKey: string) {
 
 function isResetConversationIDKey(state: TypedState, conversationIDKey: string) {
   const inbox = state.chat.getIn(['inbox', conversationIDKey])
-  return inbox && inbox.memberStatus === RPCChatTypes.commonConversationMemberStatus.reset
+  return inbox ? inbox.memberStatus === RPCChatTypes.commonConversationMemberStatus.reset : false
 }
 
 function pendingConversationIDKeyToTlfName(conversationIDKey: string): ?string {

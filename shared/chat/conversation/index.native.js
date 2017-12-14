@@ -10,13 +10,13 @@ import {withPropsOnChange, compose, branch} from 'recompose'
 import {Box, LoadingLine, Text, HeaderHoc} from '../../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../../styles'
 import CreateTeamHeader from './create-team-header/container'
+import YouAreReset from './you-are-reset'
 
 import type {Props} from './index'
 
-const Conversation = (props: Props) => (
-  <Box style={{...globalStyles.flexBoxColumn, ...globalStyles.fullHeight}}>
-    {props.threadLoadedOffline &&
-      <Box
+const Conversation = (props: Props) => {
+  const offline = props.threadLoadedOffline
+    ? <Box
         style={{
           ...globalStyles.flexBoxCenter,
           backgroundColor: globalColors.grey,
@@ -31,48 +31,67 @@ const Conversation = (props: Props) => (
         <Text style={{textAlign: 'center', color: globalColors.black_40}} type="BodySemibold">
           Couldn't load all chat messages due to network connectivity. Retrying...
         </Text>
-      </Box>}
-    <HeaderOrSearchHeader
-      inSearch={props.inSearch}
-      onToggleInfoPanel={props.onOpenInfoPanelMobile}
-      infoPanelOpen={false} // unused on mobile
-      onBack={props.onBack}
-      onExitSearch={props.onExitSearch}
-      selectedConversationIDKey={props.selectedConversationIDKey}
-    />
-    {props.showSearchResults
-      ? <SearchResultsList searchKey={'chatSearch'} onShowTracker={props.onShowTrackerInSearch} />
-      : <Box
-          style={{
-            ...globalStyles.flexBoxColumn,
-            ...globalStyles.flexGrow,
-            position: 'relative',
-          }}
-        >
-          <Box style={globalStyles.flexGrow}>
-            <List
-              focusInputCounter={props.focusInputCounter}
-              listScrollDownCounter={props.listScrollDownCounter}
-              onEditLastMessage={props.onEditLastMessage}
-              onScrollDown={props.onScrollDown}
-              onFocusInput={props.onFocusInput}
-              editLastMessageCounter={props.editLastMessageCounter}
-            />
-            {props.showTeamOffer && <CreateTeamHeader />}
-          </Box>
-          <Banner />
-          {props.showLoader && <LoadingLine />}
-          {props.finalizeInfo
-            ? <OldProfileResetNotice />
-            : <Input
-                focusInputCounter={props.focusInputCounter}
-                onEditLastMessage={props.onEditLastMessage}
-                onScrollDown={props.onScrollDown}
-                previousPath={props.previousPath}
-              />}
-        </Box>}
-  </Box>
-)
+      </Box>
+    : null
+
+  let list
+  if (props.showSearchResults) {
+    list = <SearchResultsList searchKey={'chatSearch'} onShowTracker={props.onShowTrackerInSearch} />
+  } else if (props.youAreReset) {
+    list = <YouAreReset />
+  } else {
+    const loadingLine = props.showLoader ? <LoadingLine /> : null
+    const input = props.finalizeInfo
+      ? <OldProfileResetNotice />
+      : <Input
+          focusInputCounter={props.focusInputCounter}
+          onEditLastMessage={props.onEditLastMessage}
+          onScrollDown={props.onScrollDown}
+          previousPath={props.previousPath}
+        />
+
+    list = (
+      <Box
+        style={{
+          ...globalStyles.flexBoxColumn,
+          ...globalStyles.flexGrow,
+          position: 'relative',
+        }}
+      >
+        <Box style={globalStyles.flexGrow}>
+          <List
+            focusInputCounter={props.focusInputCounter}
+            listScrollDownCounter={props.listScrollDownCounter}
+            onEditLastMessage={props.onEditLastMessage}
+            onScrollDown={props.onScrollDown}
+            onFocusInput={props.onFocusInput}
+            editLastMessageCounter={props.editLastMessageCounter}
+          />
+          {props.showTeamOffer && <CreateTeamHeader />}
+        </Box>
+        <Banner />
+        {loadingLine}
+        {input}
+      </Box>
+    )
+  }
+
+  return (
+    <Box style={{...globalStyles.flexBoxColumn, ...globalStyles.fullHeight}}>
+      {offline}
+      <HeaderOrSearchHeader
+        inSearch={props.inSearch}
+        onToggleInfoPanel={props.onOpenInfoPanelMobile}
+        infoPanelOpen={false} // unused on mobile
+        onBack={props.onBack}
+        onExitSearch={props.onExitSearch}
+        selectedConversationIDKey={props.selectedConversationIDKey}
+      />
+      {list}
+
+    </Box>
+  )
+}
 
 export default branch(
   ({inSearch}) => inSearch,

@@ -74,7 +74,7 @@ function _threadIsCleared(originalAction: Action, checkAction: Action): boolean 
   )
 }
 
-const _devicenameSelector = (state: TypedState) => state.config && state.config.deviceName
+const _devicenameSelector = (state: TypedState) => (state.config ? state.config.deviceName : null)
 
 function* _loadMoreMessages(action: ChatGen.LoadMoreMessagesPayload): Saga.SagaGenerator<any, any> {
   const conversationIDKey = action.payload.conversationIDKey
@@ -131,7 +131,15 @@ function* _loadMoreMessages(action: ChatGen.LoadMoreMessagesPayload): Saga.SagaG
     yield Saga.put(ChatGen.createLoadingMessages({conversationIDKey, isRequesting: true}))
 
     const yourName = Selectors.usernameSelector(state)
-    const yourDeviceName = _devicenameSelector(state)
+    if (!yourName) {
+      console.log('loadMoreMessage youre logged out?')
+      return
+    }
+    const yourDeviceName: ?string = _devicenameSelector(state)
+    if (!yourDeviceName) {
+      console.log('loadMoreMessage no device name?')
+      return
+    }
 
     // We receive the list with edit/delete/etc already applied so lets filter that out
     const messageTypes = Object.keys(RPCChatTypes.commonMessageType)
@@ -203,7 +211,12 @@ function* _loadMoreMessages(action: ChatGen.LoadMoreMessagesPayload): Saga.SagaG
   }
 }
 
-function subSagaUpdateThread(yourName, yourDeviceName, conversationIDKey, append) {
+function subSagaUpdateThread(
+  yourName: string,
+  yourDeviceName: string,
+  conversationIDKey: Types.ConversationIDKey,
+  append: boolean
+) {
   return function* subSagaUpdateThreadHelper({thread}) {
     if (thread) {
       const decThread: RPCChatTypes.UIMessages = JSON.parse(thread)
@@ -215,7 +228,12 @@ function subSagaUpdateThread(yourName, yourDeviceName, conversationIDKey, append
   }
 }
 
-const getThreadNonblockSagaMap = (yourName, yourDeviceName, conversationIDKey, append) => ({
+const getThreadNonblockSagaMap = (
+  yourName: string,
+  yourDeviceName: string,
+  conversationIDKey: Types.ConversationIDKey,
+  append: boolean
+) => ({
   'chat.1.chatUi.chatThreadCached': subSagaUpdateThread(yourName, yourDeviceName, conversationIDKey, append),
   'chat.1.chatUi.chatThreadFull': subSagaUpdateThread(yourName, yourDeviceName, conversationIDKey, append),
 })

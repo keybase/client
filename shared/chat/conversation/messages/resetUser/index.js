@@ -1,20 +1,17 @@
 // @flow
 import * as React from 'react'
 import {Box, Text, Icon, Button} from '../../../../common-adapters'
-// import UserNotice from '../../notices/user-notice'
 import {globalColors, globalMargins, globalStyles} from '../../../../styles'
-// import {formatTimeForMessages} from '../../../../util/timestamp'
-
-// import type {TextMessage} from '../../../../constants/types/chat'
 
 type Props = {
   allowChatWithoutThem: boolean,
   username: string,
   viewProfile: () => void,
+  chatWithoutThem: () => void,
   letThemIn: () => void,
 }
 
-const ResetUser = ({username, viewProfile, letThemIn, allowChatWithoutThem}: Props) => (
+const ResetUser = ({username, viewProfile, letThemIn, allowChatWithoutThem, chatWithoutThem}: Props) => (
   <Box style={containerStyle}>
     <Icon type="icon-skull-64" style={{margin: globalMargins.medium}} />
     <Box style={textContainerStyle}>
@@ -61,7 +58,9 @@ const ResetUser = ({username, viewProfile, letThemIn, allowChatWithoutThem}: Pro
       {allowChatWithoutThem &&
         <Text type="BodySemibold" backgroundMode="Terminal">
           Or until you’re sure,{' '}
-          <Text type="BodySemiboldLink" backgroundMode="Terminal" onClick={() => {}}>chat without them</Text>
+          <Text type="BodySemiboldLink" backgroundMode="Terminal" onClick={chatWithoutThem}>
+            chat without them
+          </Text>
         </Text>}
     </Box>
   </Box>

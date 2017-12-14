@@ -1,4 +1,5 @@
 [ignore]
+.*/node_modules/metro-bundler.*
 .*/node_modules/electron-packager.*
 .*/node_modules/react-native.*
 .*/node_modules/react-navigation.*
