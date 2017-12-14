@@ -8,22 +8,17 @@ import {globalColors, globalMargins, globalStyles} from '../../../../styles'
 // import type {TextMessage} from '../../../../constants/types/chat'
 
 type Props = {
-  user: string,
-  // channelname: string,
-  // message: TextMessage,
-  // onManageChannels: () => void,
-  // onUsernameClicked: (username: string) => void,
-  // teamname: string,
-  // following: boolean,
-  // you: string,
+  username: string,
+  viewProfile: () => void,
+  letThemIn: () => void,
 }
 
-const ResetUser = ({user}: Props) => (
+const ResetUser = ({username, viewProfile, letThemIn}: Props) => (
   <Box style={containerStyle}>
     <Icon type="icon-skull-64" style={{margin: globalMargins.medium}} />
     <Box style={textContainerStyle}>
       <Text type="BodySemibold" backgroundMode="Terminal" style={{textAlign: 'center'}}>
-        <Text type="BodySemiboldLink" backgroundMode="Terminal" onClick={() => {}}>{user} </Text>
+        <Text type="BodySemiboldLink" backgroundMode="Terminal" onClick={viewProfile}>{username} </Text>
         <Text type="BodySemibold" backgroundMode="Terminal">
           lost all their devices and this account has new keys. If you want to let them into this chat and folder's history, you should either:
         </Text>
@@ -49,14 +44,14 @@ const ResetUser = ({user}: Props) => (
         <Button
           type="Secondary"
           backgroundMode="Terminal"
-          onClick={() => {}}
+          onClick={viewProfile}
           label="View profile"
           style={{marginRight: 8, backgroundColor: globalColors.black_20}}
         />
         <Button
           type="Secondary"
           backgroundMode="Terminal"
-          onClick={() => {}}
+          onClick={letThemIn}
           label="Let them in"
           labelStyle={{color: globalColors.red}}
           style={{backgroundColor: globalColors.white}}
