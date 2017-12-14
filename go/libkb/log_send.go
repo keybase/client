@@ -248,10 +248,11 @@ func appendError(log logger.Logger, collected []byte, format string, args ...int
 	return append(collected, []byte("\n"+msg+"\n")...)
 }
 
-// If systemd is running, we look for logs in the systemd journal for our 3
-// main services.
-func tailSystemdJournal(log logger.Logger, which string, numBytes int) (ret string) {
-	log.Debug("+ tailing journalctl for %s (%d bytes)", which, numBytes)
+// Get logs from the systemd journal. Currently we don't use this for most of
+// our logging, since it's not persisted across boot on some systems. But we do
+// use it for startup logs.
+func tailSystemdJournal(log logger.Logger, userUnits []string, numBytes int) (ret string) {
+	log.Debug("+ tailing journalctl for %#v (%d bytes)", userUnits, numBytes)
 	defer func() {
 		log.Debug("- scanned %d bytes", len(ret))
 	}()
@@ -267,12 +268,16 @@ func tailSystemdJournal(log logger.Logger, which string, numBytes int) (ret stri
 	// We intentionally avoid the --user flag to journalctl. That would make us
 	// skip over the system journal, but in e.g. Ubuntu 16.04, that's where
 	// user units write their logs.
-	journalCmd := exec.Command(
-		"journalctl",
-		"--user-unit="+which,
-		"--lines="+strconv.Itoa(guessedLines),
-		"--output=cat",
-	)
+	args := []string{
+		"--lines=" + strconv.Itoa(guessedLines),
+	}
+	if len(userUnits) == 0 {
+		panic("without --user-unit we would scrape all system logs!!!")
+	}
+	for _, userUnit := range userUnits {
+		args = append(args, "--user-unit="+userUnit)
+	}
+	journalCmd := exec.Command("journalctl", args...)
 	journalCmd.Stderr = os.Stderr
 	stdout, err := journalCmd.StdoutPipe()
 	if err != nil {
@@ -366,8 +371,15 @@ func (l *LogSendContext) LogSend(statusJSON, feedback string, sendLogs bool, num
 		kbfsLog = tail(l.G().Log, "kbfs", logs.Kbfs, numBytes)
 		desktopLog = tail(l.G().Log, "desktop", logs.Desktop, numBytes)
 		updaterLog = tail(l.G().Log, "updater", logs.Updater, numBytes)
-		// TODO: get start logs from systemd?
-		startLog = tail(l.G().Log, "start", logs.Start, numBytes)
+		// We don't use the systemd journal to store regular logs, since on
+		// some systems (e.g. Ubuntu 16.04) it's not persisted across boots.
+		// However we do use it for startup logs, since that's the only place
+		// to get them in systemd mode.
+		if l.G().Env.WantsSystemd() {
+			startLog = tailSystemdJournal(l.G().Log, []string{"keybase.service", "kbfs.service", "keybase.gui.service"}, numBytes)
+		} else {
+			startLog = tail(l.G().Log, "start", logs.Start, numBytes)
+		}
 		installLog = tail(l.G().Log, "install", logs.Install, numBytes)
 		systemLog = tail(l.G().Log, "system", logs.System, numBytes)
 		gitLog = tail(l.G().Log, "git", logs.Git, numBytes)
