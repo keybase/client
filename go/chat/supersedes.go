@@ -98,7 +98,7 @@ func (t *basicSupersedesTransform) transform(ctx context.Context, msg chat1.Mess
 	superMsg chat1.MessageUnboxed) *chat1.MessageUnboxed {
 
 	switch superMsg.GetMessageType() {
-	case chat1.MessageType_DELETE:
+	case chat1.MessageType_DELETE, chat1.MessageType_DELETEHISTORY:
 		return nil
 	case chat1.MessageType_EDIT:
 		return t.transformEdit(msg, superMsg)
@@ -135,6 +135,8 @@ func (t *basicSupersedesTransform) Run(ctx context.Context,
 		return originalMsgs, nil
 	}
 
+	var deleteHistoryUpto chat1.MessageID
+
 	// Get superseding messages
 	msgs, err := t.messagesFunc(ctx, conv, uid, superMsgIDs)
 	if err != nil {
@@ -149,6 +151,13 @@ func (t *basicSupersedesTransform) Run(ctx context.Context,
 			for _, super := range supers {
 				smap[super] = m
 			}
+
+			delh, err := m.Valid().AsDeleteHistory()
+			if err == nil {
+				if delh.Upto > deleteHistoryUpto {
+					deleteHistoryUpto = delh.Upto
+				}
+			}
 		}
 	}
 
@@ -156,6 +165,10 @@ func (t *basicSupersedesTransform) Run(ctx context.Context,
 	var newMsgs []chat1.MessageUnboxed
 	for _, msg := range originalMsgs {
 		if msg.IsValid() {
+			if msg.GetMessageID() < deleteHistoryUpto && chat1.IsDeletableByDeleteHistory(msg.GetMessageType()) {
+				continue
+			}
+
 			// If the message is superseded, then transform it and add that
 			if superMsg, ok := smap[msg.GetMessageID()]; ok {
 				t.Debug(ctx, "transforming: msgID: %d superMsgID: %d", msg.GetMessageID(),
