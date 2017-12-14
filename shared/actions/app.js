@@ -21,7 +21,7 @@ function _onMobileAppStateChanged(action: AppGen.MobileAppStatePayload) {
     }[nextAppState] || RPCTypes.appStateAppState.foreground
   console.log(`setting app state on service to: ${state}`)
 
-  return Saga.all([
+  return Saga.sequentially([
     Saga.put(AppGen.createChangedFocus({appFocused})),
     Saga.call(RPCTypes.appStateUpdateAppStateRpcPromise, {state}),
   ])

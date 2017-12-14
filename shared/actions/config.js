@@ -82,7 +82,7 @@ const registerListeners = (): AsyncAction => dispatch => {
 }
 
 const _retryBootstrap = () =>
-  Saga.all([Saga.put(ConfigGen.createBootstrapRetry()), Saga.put(ConfigGen.createBootstrap({}))])
+  Saga.sequentially([Saga.put(ConfigGen.createBootstrapRetry()), Saga.put(ConfigGen.createBootstrap({}))])
 
 // TODO: It's unfortunate that we have these globals. Ideally,
 // bootstrap would be a method on an object.
@@ -197,17 +197,16 @@ function _bootstrapSuccess(action: ConfigGen.BootstrapSuccessPayload, state: Typ
     actions.push(Saga.put(ConfigGen.createPushLoaded({pushLoaded: true})))
   }
 
-  return Saga.all(actions)
+  return Saga.sequentially(actions)
 }
 
 function _loadAvatarHelper(action: {payload: {names: Array<string>, endpoint: string, key: string}}) {
   const {names, endpoint, key} = action.payload
-  return Saga.all([
+  return Saga.sequentially([
     Saga.call(RPCTypes.apiserverGetRpcPromise, {
       args: [{key, value: names.join(',')}, {key: 'formats', value: 'square_360,square_200,square_40'}],
       endpoint,
     }),
-    // $FlowIssue this works but flow-typed doesnt like it
     Promise.resolve(names),
   ])
 }
@@ -285,7 +284,6 @@ function* configSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(ConfigGen.clearRouteState, _clearRouteState)
   yield Saga.safeTakeEveryPure(ConfigGen.persistRouteState, _persistRouteState)
   yield Saga.safeTakeEveryPure(ConfigGen.retryBootstrap, _retryBootstrap)
-  yield Saga.safeTakeEveryPure(ConfigGen.pgpAckedMessage, _pgpSecurityModelChangeMessageSaga)
   yield Saga.safeTakeEvery(ConfigGen.loadAvatars, _loadAvatars)
   yield Saga.safeTakeEvery(ConfigGen.loadTeamAvatars, _loadTeamAvatars)
   yield Saga.safeTakeEveryPure('_loadAvatarHelper', _loadAvatarHelper, _afterLoadAvatarHelper)

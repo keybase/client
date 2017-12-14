@@ -283,6 +283,7 @@ const (
 	SCNoSpaceOnDevice          = int(keybase1.StatusCode_SCNoSpaceOnDevice)
 	SCTeamInviteBadToken       = int(keybase1.StatusCode_SCTeamInviteBadToken)
 	SCTeamInviteTokenReused    = int(keybase1.StatusCode_SCTeamInviteTokenReused)
+	SCTeamBadMembership        = int(keybase1.StatusCode_SCTeamBadMembership)
 )
 
 const (

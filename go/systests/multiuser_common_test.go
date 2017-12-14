@@ -342,7 +342,7 @@ func (u *smuUser) getTeamsClient() keybase1.TeamsClient {
 	return keybase1.TeamsClient{Cli: u.primaryDevice().rpcClient()}
 }
 
-func (u *smuUser) pollForMembershipUpdate(team smuTeam, kg keybase1.PerTeamKeyGeneration) keybase1.TeamDetails {
+func (u *smuUser) pollForMembershipUpdate(team smuTeam, kg keybase1.PerTeamKeyGeneration, poller func(d keybase1.TeamDetails) bool) keybase1.TeamDetails {
 	wait := 10 * time.Millisecond
 	var totalWait time.Duration
 	i := 0
@@ -352,7 +352,9 @@ func (u *smuUser) pollForMembershipUpdate(team smuTeam, kg keybase1.PerTeamKeyGe
 		if err != nil {
 			u.ctx.t.Fatal(err)
 		}
-		if details.KeyGeneration == kg {
+		// If the caller specified a "poller" that means we should keep polling until
+		// the predicate turns true
+		if details.KeyGeneration == kg && (poller == nil || poller(details)) {
 			u.ctx.log.Debug("found key generation %d", kg)
 			return details
 		}
@@ -360,7 +362,7 @@ func (u *smuUser) pollForMembershipUpdate(team smuTeam, kg keybase1.PerTeamKeyGe
 			break
 		}
 		i++
-		u.ctx.log.Debug("in pollForMembershipUpdate: iter=%d; missed it, now waiting for %s (latest details.KG = %d)", i, wait, details.KeyGeneration)
+		u.ctx.log.Debug("in pollForMembershipUpdate: iter=%d; missed it, now waiting for %s (latest details.KG = %d; poller=%v)", i, wait, details.KeyGeneration, (poller != nil))
 		time.Sleep(wait)
 		totalWait += wait
 		wait = wait * 2

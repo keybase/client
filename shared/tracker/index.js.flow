@@ -69,6 +69,30 @@ export type RenderPropsUnshaped = {
   onClickFollowing: () => void,
   errorMessage: ?string,
   onRetry: ?() => void,
+
+  // Optional showcased team props
+  _checkRequestedAccess: string => void,
+  _loadTeams: () => void,
+  _onSetTeamJoinError: string => void,
+  _onSetTeamJoinSuccess: boolean => void,
+  description?: string,
+  following?: {[key: string]: true},
+  memberCount?: number,
+  onHidden?: () => void,
+  onJoinTeam?: string => void,
+  onSetSelectedTeamRect: (rect?: ?any) => void,
+  onUpdateSelectedTeam: (teamname: string) => void,
+  onUserClick?: string => void,
+  openTeam?: boolean,
+  publicAdmins?: Array<string>,
+  publicAdminsOthers?: number,
+  selectedTeamRect?: any,
+  showTeam?: Object,
+  teamJoinError?: string,
+  teamJoinSuccess?: boolean,
+  teamname?: string,
+  youAreInTeam?: boolean,
+  youHaveRequestedAccess?: boolean,
 }
 
 export type RenderProps = Exact<RenderPropsUnshaped>

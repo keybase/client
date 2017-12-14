@@ -340,7 +340,7 @@ function openInFileUISaga({payload: {path}}: KBFSGen.OpenInFileUIPayload, state:
   if (isLinux || enabled) {
     return Saga.call(_open, path)
   } else {
-    return Saga.all([Saga.put(navigateTo([], [folderTab])), Saga.put(switchTo([folderTab]))])
+    return Saga.sequentially([Saga.put(navigateTo([], [folderTab])), Saga.put(switchTo([folderTab]))])
   }
 }
 
