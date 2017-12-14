@@ -74,6 +74,8 @@ function _threadIsCleared(originalAction: Action, checkAction: Action): boolean 
   )
 }
 
+const _devicenameSelector = (state: TypedState) => state.config && state.config.deviceName
+
 function* _loadMoreMessages(action: ChatGen.LoadMoreMessagesPayload): Saga.SagaGenerator<any, any> {
   const conversationIDKey = action.payload.conversationIDKey
   const recent = action.payload.wantNewer === true
@@ -120,7 +122,7 @@ function* _loadMoreMessages(action: ChatGen.LoadMoreMessagesPayload): Saga.SagaG
     yield Saga.put(ChatGen.createLoadingMessages({conversationIDKey, isRequesting: true}))
 
     const yourName = yield Saga.select(Selectors.usernameSelector)
-    const yourDeviceName = yield Saga.select(Shared.devicenameSelector)
+    const yourDeviceName = yield Saga.select(_devicenameSelector)
 
     // We receive the list with edit/delete/etc already applied so lets filter that out
     const messageTypes = Object.keys(ChatTypes.commonMessageType)
@@ -175,8 +177,6 @@ function* _loadMoreMessages(action: ChatGen.LoadMoreMessagesPayload): Saga.SagaG
       if (params.offline) {
         yield Saga.put(ChatGen.createThreadLoadedOffline({conversationIDKey}))
       }
-
-      yield Saga.put(ChatGen.createSetLoaded({conversationIDKey, isLoaded: !error})) // reset isLoaded on error
     } else {
       console.warn('loadMoreMessages: localGetThreadNonblock rpc bailed early')
     }
@@ -225,6 +225,12 @@ function _decodeFailureDescription(typ: ChatTypes.OutboxErrorType): string {
   return `unknown error type ${typ}`
 }
 
+const _messageOutboxIDSelector = (
+  state: TypedState,
+  conversationIDKey: Types.ConversationIDKey,
+  outboxID: Types.OutboxIDKey
+): ?Types.Message => Constants.getMessageFromConvKeyMessageID(state, conversationIDKey, outboxID)
+
 function* _incomingMessage(action: ChatGen.IncomingMessagePayload): Saga.SagaGenerator<any, any> {
   switch (action.payload.activity.activityType) {
     case ChatTypes.notifyChatChatActivityType.failedMessage:
@@ -240,7 +246,7 @@ function* _incomingMessage(action: ChatGen.IncomingMessagePayload): Saga.SagaGen
           if (!isConversationLoaded) return
 
           const pendingMessage = yield Saga.select(
-            Shared.messageOutboxIDSelector,
+            _messageOutboxIDSelector,
             conversationIDKey,
             outboxID
           )
@@ -278,7 +284,7 @@ function* _incomingMessage(action: ChatGen.IncomingMessagePayload): Saga.SagaGen
         const conversationIDKey = Constants.conversationIDToKey(incomingMessage.convID)
         const messageUnboxed: ChatTypes.UIMessage = incomingMessage.message
         const yourName = yield Saga.select(Selectors.usernameSelector)
-        const yourDeviceName = yield Saga.select(Shared.devicenameSelector)
+        const yourDeviceName = yield Saga.select(_devicenameSelector)
         const message: Types.ServerMessage = _unboxedToMessage(
           messageUnboxed,
           yourName,
@@ -299,7 +305,8 @@ function* _incomingMessage(action: ChatGen.IncomingMessagePayload): Saga.SagaGen
         // it was written by the current user.
         const selectedConversationIDKey = yield Saga.select(Constants.getSelectedConversation)
         const appFocused = yield Saga.select(Shared.focusedSelector)
-        const userActive = yield Saga.select(Shared.activeSelector)
+        const _activeSelector = (state: TypedState) => state.config.userActive
+        const userActive = yield Saga.select(_activeSelector)
         const selectedTab = yield Saga.select(Shared.routeSelector)
         const chatTabSelected = selectedTab === chatTab
         const conversationIsFocused =
@@ -322,7 +329,7 @@ function* _incomingMessage(action: ChatGen.IncomingMessagePayload): Saga.SagaGen
         ) {
           const outboxID: Types.OutboxIDKey = message.outboxID
           const state = yield Saga.select()
-          const pendingMessage = Shared.messageOutboxIDSelector(state, conversationIDKey, outboxID)
+          const pendingMessage = _messageOutboxIDSelector(state, conversationIDKey, outboxID)
           if (pendingMessage) {
             yield Saga.sequentially([
               // If the message has an outboxID and came from our device, then we
@@ -745,7 +752,7 @@ function* _updateThread({
     ) {
       const outboxID: Types.OutboxIDKey = message.outboxID
       const state = yield Saga.select()
-      const pendingMessage = Shared.messageOutboxIDSelector(state, conversationIDKey, outboxID)
+      const pendingMessage = _messageOutboxIDSelector(state, conversationIDKey, outboxID)
       if (pendingMessage) {
         // Delete the pre-existing pending version of this message, since we're
         // about to add a newly received version of the same message.

@@ -8,12 +8,13 @@ import {globalColors, globalMargins, globalStyles} from '../../../../styles'
 // import type {TextMessage} from '../../../../constants/types/chat'
 
 type Props = {
+  allowChatWithoutThem: boolean,
   username: string,
   viewProfile: () => void,
   letThemIn: () => void,
 }
 
-const ResetUser = ({username, viewProfile, letThemIn}: Props) => (
+const ResetUser = ({username, viewProfile, letThemIn, allowChatWithoutThem}: Props) => (
   <Box style={containerStyle}>
     <Icon type="icon-skull-64" style={{margin: globalMargins.medium}} />
     <Box style={textContainerStyle}>
@@ -57,10 +58,11 @@ const ResetUser = ({username, viewProfile, letThemIn}: Props) => (
           style={{backgroundColor: globalColors.white}}
         />
       </Box>
-      <Text type="BodySemibold" backgroundMode="Terminal">
-        Or until you’re sure,{' '}
-        <Text type="BodySemiboldLink" backgroundMode="Terminal" onClick={() => {}}>chat without them</Text>
-      </Text>
+      {allowChatWithoutThem &&
+        <Text type="BodySemibold" backgroundMode="Terminal">
+          Or until you’re sure,{' '}
+          <Text type="BodySemiboldLink" backgroundMode="Terminal" onClick={() => {}}>chat without them</Text>
+        </Text>}
     </Box>
   </Box>
 )

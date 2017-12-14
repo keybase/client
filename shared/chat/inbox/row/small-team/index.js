@@ -25,6 +25,7 @@ type Props = {
   teamname: ?string,
   timestamp: string,
   usernameColor: string,
+  youAreReset: boolean,
   youNeedToRekey: boolean,
 }
 
@@ -66,6 +67,7 @@ class SmallTeam extends PureComponent<Props> {
             <BottomLine
               backgroundColor={props.backgroundColor}
               participantNeedToRekey={props.participantNeedToRekey}
+              youAreReset={props.youAreReset}
               showBold={props.showBold}
               snippet={props.snippet}
               subColor={props.subColor}

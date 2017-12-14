@@ -170,6 +170,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
 export default compose(
   connect(mapStateToProps, mapDispatchToProps, mergeProps),
   branch(props => props.hasResetUsers, renderNothing),
+  // $FlowIssue doesn't like branch
   branch(props => props.isPreview, renderComponent(ChannelPreview)),
   withState('text', '_setText', props => props.defaultText || ''),
   withState('mentionPopupOpen', 'setMentionPopupOpen', false),

@@ -310,6 +310,11 @@ function isPendingConversationIDKey(conversationIDKey: string) {
   return conversationIDKey.startsWith('__PendingConversation__')
 }
 
+function isResetConversationIDKey(state: TypedState, conversationIDKey: string) {
+  const inbox = state.chat.getIn(['inbox', conversationIDKey])
+  return inbox && inbox.memberStatus === RPCChatTypes.commonConversationMemberStatus.reset
+}
+
 function pendingConversationIDKeyToTlfName(conversationIDKey: string): ?string {
   if (isPendingConversationIDKey(conversationIDKey)) {
     return conversationIDKey.substring('__PendingConversation__'.length)
@@ -758,6 +763,7 @@ export {
   usernamesToUserListItem,
   pendingConversationIDKey,
   isPendingConversationIDKey,
+  isResetConversationIDKey,
   pendingConversationIDKeyToTlfName,
   getAttachmentInfo,
   getSelectedRouteState,

@@ -167,8 +167,20 @@ function* onLoadAttachment({
     }
   }
 
+  function _tmpFileName(
+    isPreview: boolean,
+    conversationID: Types.ConversationIDKey,
+    messageID: Types.MessageID
+  ) {
+    if (!messageID) {
+      throw new Error('tmpFileName called without messageID!')
+    }
+
+    return `kbchat-${conversationID}-${messageID}.${isPreview ? 'preview' : 'download'}`
+  }
+
   const {conversationIDKey, messageID} = Constants.splitMessageIDKey(messageKey)
-  const destPath = tmpFile(Shared.tmpFileName(loadPreview, conversationIDKey, messageID))
+  const destPath = tmpFile(_tmpFileName(loadPreview, conversationIDKey, messageID))
   const fileExists = yield Saga.call(exists, destPath)
   if (fileExists) {
     try {

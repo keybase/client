@@ -20,6 +20,7 @@ import {chatTab} from '../../constants/tabs'
 import {isMobile} from '../../constants/platform'
 import {showMainWindow} from '../platform-specific'
 import {switchTo} from '../route-tree'
+import {parseFolderNameToUsers} from '../../util/kbfs'
 import {type SagaGenerator} from '../../constants/types/saga'
 import {type TypedState} from '../../constants/reducer'
 
@@ -115,7 +116,7 @@ function* onInboxStale(action: ChatGen.InboxStalePayload): SagaGenerator<any, an
 
     const oldInbox = state.chat.get('inbox')
     const toDelete = oldInbox.keySeq().toSet().subtract((inbox.items || []).map(c => c.convID))
-    const conversations = Shared.makeInboxStateRecords(author, inbox.items || [], oldInbox)
+    const conversations = _makeInboxStateRecords(author, inbox.items || [], oldInbox)
     yield Saga.put(ChatGen.createReplaceEntity({keyPath: ['inboxSnippet'], entities: I.Map(snippets)}))
     yield Saga.put(ChatGen.createSetInboxGlobalUntrustedState({inboxGlobalUntrustedState: 'loaded'}))
     yield Saga.put(
@@ -355,16 +356,6 @@ function* _processConversation(c: RPCChatTypes.InboxUIItem): Generator<any, void
       // inbox loaded so rekeyInfo is now clear
       yield Saga.put(ChatGen.createClearRekey({conversationIDKey: inboxState.conversationIDKey}))
     }
-
-    // Try and load messages if the updated item is the selected one
-    const state: TypedState = yield Saga.select()
-    const selectedConversation = Constants.getSelectedConversation(state)
-    if (selectedConversation && selectedConversation === inboxState.conversationIDKey) {
-      // load validated selected
-      yield Saga.put(
-        ChatGen.createLoadMoreMessages({conversationIDKey: selectedConversation, onlyIfUnloaded: true})
-      )
-    }
   }
 }
 
@@ -479,8 +470,10 @@ function* unboxConversations(action: ChatGen.UnboxConversationsPayload): SagaGen
     `unboxConversations: before filter unboxing ${conversationIDKeys.length} convs, force: ${(force || false)
       .toString()} because: ${reason}`
   )
-  // Don't unbox pending conversations
-  conversationIDKeys = conversationIDKeys.filter(c => !Constants.isPendingConversationIDKey(c))
+  // Don't unbox pending conversations or implied reset ones
+  conversationIDKeys = conversationIDKeys.filter(
+    c => !Constants.isPendingConversationIDKey(c) && !Constants.isResetConversationIDKey(state, c)
+  )
 
   let newConvIDKeys = []
   const newUntrustedState = conversationIDKeys.reduce((map, c) => {
@@ -721,6 +714,41 @@ function _markThreadsStale(action: ChatGen.MarkThreadsStalePayload, state: Typed
   return Saga.sequentially(actions)
 }
 
+function _makeInboxStateRecords(
+  author: string,
+  items: Array<RPCChatTypes.UnverifiedInboxUIItem>,
+  oldInbox: I.Map<Types.ConversationIDKey, Types.InboxState>
+): Array<Types.InboxState> {
+  return (items || [])
+    .map(c => {
+      // We already know about this version? Skip it
+      if (oldInbox.getIn([c.convID, 'version']) === c.version) {
+        return null
+      }
+      const parts = c.localMetadata
+        ? I.List(c.localMetadata.writerNames || [])
+        : I.List(parseFolderNameToUsers(author, c.name).map(ul => ul.username))
+      return Constants.makeInboxState({
+        channelname: c.membersType === RPCChatTypes.commonConversationMembersType.team && c.localMetadata
+          ? c.localMetadata.channelName
+          : undefined,
+        conversationIDKey: c.convID,
+        fullNames: I.Map(),
+        info: null,
+        maxMsgID: c.maxMsgID,
+        memberStatus: c.memberStatus,
+        membersType: c.membersType,
+        participants: parts,
+        status: Constants.ConversationStatusByEnum[c.status || 0],
+        teamType: c.teamType,
+        teamname: c.membersType === RPCChatTypes.commonConversationMembersType.team ? c.name : undefined,
+        time: c.time,
+        version: c.version,
+      })
+    })
+    .filter(Boolean)
+}
+
 function* _inboxSynced(action: ChatGen.InboxSyncedPayload): Saga.SagaGenerator<any, any> {
   const state: TypedState = yield Saga.select()
   const author = Selectors.usernameSelector(state)
@@ -730,7 +758,7 @@ function* _inboxSynced(action: ChatGen.InboxSyncedPayload): Saga.SagaGenerator<a
   }
 
   const {convs} = action.payload
-  const items = Shared.makeInboxStateRecords(author, convs, I.Map())
+  const items = _makeInboxStateRecords(author, convs, I.Map())
   const latestMaxMsgID = convs.reduce((acc, c) => {
     acc[c.convID] = c.maxMsgID
     return acc

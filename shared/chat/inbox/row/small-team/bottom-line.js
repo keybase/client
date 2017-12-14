@@ -18,6 +18,7 @@ type Props = {
   snippet: ?string,
   subColor: ?string,
   youNeedToRekey: boolean,
+  youAreReset: boolean,
   hasResetUsers: boolean,
 }
 
@@ -31,6 +32,7 @@ class BottomLine extends PureComponent<Props> {
       snippet,
       backgroundColor,
       hasResetUsers,
+      youAreReset,
     } = this.props
     let content
 
@@ -57,6 +59,20 @@ class BottomLine extends PureComponent<Props> {
             REKEY NEEDED
           </Text>
         </Box>
+      )
+    } else if (youAreReset) {
+      content = (
+        <Text
+          type="BodySmallSemibold"
+          backgroundMode="Terminal"
+          style={{
+            color: globalColors.red,
+            fontSize: 11,
+            lineHeight: lineHeight(14),
+          }}
+        >
+          You have to be let back in.
+        </Text>
       )
     } else if (participantNeedToRekey) {
       content = (

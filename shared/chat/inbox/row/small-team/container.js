@@ -12,6 +12,8 @@ const getSnippet = (state: TypedState, conversationIDKey: Types.ConversationIDKe
 
 const mapStateToProps = (state: TypedState, {conversationIDKey, isActiveRoute}) => {
   const isPending = Constants.isPendingConversationIDKey(conversationIDKey || '')
+  const youAreReset = Constants.isResetConversationIDKey(state, conversationIDKey || '')
+
   const p = isPending
     ? Selectors.pendingSnippetRowSelector(state, conversationIDKey)
     : Selectors.snippetRowSelector(state, conversationIDKey)
@@ -25,13 +27,14 @@ const mapStateToProps = (state: TypedState, {conversationIDKey, isActiveRoute}) 
     isMuted: p.isMuted,
     isSelected: p.isSelected,
     participantNeedToRekey: p.participantNeedToRekey,
-    participants: p.participants,
+    participants: youAreReset ? I.List() : p.participants,
     showBold: p.showBold,
     snippet: getSnippet(state, conversationIDKey || ''),
     subColor: p.subColor,
     teamname: p.teamname,
     timestamp: p.timestamp,
     usernameColor: p.usernameColor,
+    youAreReset,
     youNeedToRekey: p.youNeedToRekey,
   }
 }
@@ -60,6 +63,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   teamname: stateProps.teamname || '',
   timestamp: stateProps.timestamp,
   usernameColor: stateProps.usernameColor,
+  youAreReset: stateProps.youAreReset,
   youNeedToRekey: stateProps.youNeedToRekey,
 })
 
