@@ -88,9 +88,9 @@ export default function() {
     // This will result in a dropped .show request
     // We add a listener to `did-finish-load` so we can show it when
     // Windows is ready.
-    mainWindow.show(true)
+    mainWindow.show()
     mainWindow.window.webContents.once('did-finish-load', () => {
-      mainWindow.show(true)
+      mainWindow.show()
     })
   }
 
@@ -107,7 +107,7 @@ export default function() {
 
   ipcMain.on('showMain', () => {
     console.log('Show main window (requested)')
-    mainWindow.show(true)
+    mainWindow.show()
     const window = mainWindow.window
     if (window) {
       window.focus()

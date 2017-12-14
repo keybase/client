@@ -368,7 +368,7 @@ function* searchSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeLatest(SearchGen.setUserInputItems, setUserInputItems)
   yield Saga.safeTakeLatestPure(SearchGen.clearSearchResults, clearSearchResults)
   yield Saga.safeTakeLatestPure(SearchGen.finishedSearch, finishedSearch)
-  yield Saga.safeTakeLatest(SearchGen.userInputItemsUpdated, clearSearchTextInput)
+  yield Saga.safeTakeLatestPure(SearchGen.userInputItemsUpdated, clearSearchTextInput)
 }
 
 export default searchSaga
