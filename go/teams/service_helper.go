@@ -1176,7 +1176,7 @@ func CreateTLF(ctx context.Context, g *libkb.GlobalContext, arg keybase1.CreateT
 	})
 }
 
-func CanUserPerform(ctx context.Context, g *libkb.GlobalContext, teamname string) (ret []bool, err error) {
+func CanUserPerform(ctx context.Context, g *libkb.GlobalContext, teamname string) (ret keybase1.TeamOperation, err error) {
 	me, err := libkb.LoadMe(libkb.NewLoadUserArgWithContext(ctx, g))
 	if err != nil {
 		return
@@ -1252,32 +1252,34 @@ func CanUserPerform(ctx context.Context, g *libkb.GlobalContext, teamname string
 		return showcase.AnyMemberShowcase, nil
 	}
 
-	ret = make([]bool, len(keybase1.TeamOperationMap))
-
-	for _, op := range keybase1.TeamOperationMap {
-		perm := false
-		switch op {
-		case keybase1.TeamOperation_MANAGE_MEMBERS,
-			keybase1.TeamOperation_MANAGE_SUBTEAMS,
-			keybase1.TeamOperation_SET_TEAM_SHOWCASE,
-			keybase1.TeamOperation_CHANGE_OPEN_TEAM:
-			perm, err = isAdminOrImplicitAdmin()
-		case keybase1.TeamOperation_CREATE_CHANNEL:
-			perm, err = isWriter()
-		case keybase1.TeamOperation_SET_MEMBER_SHOWCASE:
-			perm, err = canMemberShowcase()
-		case keybase1.TeamOperation_DELETE_CHANNEL,
-			keybase1.TeamOperation_RENAME_CHANNEL,
-			keybase1.TeamOperation_EDIT_CHANNEL_DESCRIPTION:
-			perm, err = isAdmin() // no implicit admins
-		default:
-			err = fmt.Errorf("Unknown op: %d", op)
-		}
-		if err != nil {
-			break
-		}
-		ret[op] = perm
+	var perm bool
+	perm, err = isAdminOrImplicitAdmin()
+	if err != nil {
+		return
 	}
+	ret.ManageMembers = perm
+	ret.ManageSubteams = perm
+	ret.SetTeamShowcase = perm
+	ret.ChangeOpenTeam = perm
+
+	ret.CreateChannel, err = isWriter()
+	if err != nil {
+		return
+	}
+
+	ret.SetMemberShowcase, err = canMemberShowcase()
+	if err != nil {
+		return
+	}
+
+	perm, err = isAdmin()
+	if err != nil {
+		return
+	}
+	ret.DeleteChannel = perm
+	ret.RenameChannel = perm
+	ret.EditChannelDescription = perm
+
 	return ret, err
 }
 

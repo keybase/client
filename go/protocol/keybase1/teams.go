@@ -1777,51 +1777,30 @@ func (o LookupImplicitTeamRes) DeepCopy() LookupImplicitTeamRes {
 	}
 }
 
-type TeamOperation int
-
-const (
-	TeamOperation_MANAGE_MEMBERS           TeamOperation = 0
-	TeamOperation_MANAGE_SUBTEAMS          TeamOperation = 1
-	TeamOperation_CREATE_CHANNEL           TeamOperation = 2
-	TeamOperation_DELETE_CHANNEL           TeamOperation = 3
-	TeamOperation_RENAME_CHANNEL           TeamOperation = 4
-	TeamOperation_EDIT_CHANNEL_DESCRIPTION TeamOperation = 5
-	TeamOperation_SET_TEAM_SHOWCASE        TeamOperation = 6
-	TeamOperation_SET_MEMBER_SHOWCASE      TeamOperation = 7
-	TeamOperation_CHANGE_OPEN_TEAM         TeamOperation = 8
-)
-
-func (o TeamOperation) DeepCopy() TeamOperation { return o }
-
-var TeamOperationMap = map[string]TeamOperation{
-	"MANAGE_MEMBERS":           0,
-	"MANAGE_SUBTEAMS":          1,
-	"CREATE_CHANNEL":           2,
-	"DELETE_CHANNEL":           3,
-	"RENAME_CHANNEL":           4,
-	"EDIT_CHANNEL_DESCRIPTION": 5,
-	"SET_TEAM_SHOWCASE":        6,
-	"SET_MEMBER_SHOWCASE":      7,
-	"CHANGE_OPEN_TEAM":         8,
+type TeamOperation struct {
+	ManageMembers          bool `codec:"manageMembers" json:"manageMembers"`
+	ManageSubteams         bool `codec:"manageSubteams" json:"manageSubteams"`
+	CreateChannel          bool `codec:"createChannel" json:"createChannel"`
+	DeleteChannel          bool `codec:"deleteChannel" json:"deleteChannel"`
+	RenameChannel          bool `codec:"renameChannel" json:"renameChannel"`
+	EditChannelDescription bool `codec:"editChannelDescription" json:"editChannelDescription"`
+	SetTeamShowcase        bool `codec:"setTeamShowcase" json:"setTeamShowcase"`
+	SetMemberShowcase      bool `codec:"setMemberShowcase" json:"setMemberShowcase"`
+	ChangeOpenTeam         bool `codec:"changeOpenTeam" json:"changeOpenTeam"`
 }
 
-var TeamOperationRevMap = map[TeamOperation]string{
-	0: "MANAGE_MEMBERS",
-	1: "MANAGE_SUBTEAMS",
-	2: "CREATE_CHANNEL",
-	3: "DELETE_CHANNEL",
-	4: "RENAME_CHANNEL",
-	5: "EDIT_CHANNEL_DESCRIPTION",
-	6: "SET_TEAM_SHOWCASE",
-	7: "SET_MEMBER_SHOWCASE",
-	8: "CHANGE_OPEN_TEAM",
-}
-
-func (e TeamOperation) String() string {
-	if v, ok := TeamOperationRevMap[e]; ok {
-		return v
+func (o TeamOperation) DeepCopy() TeamOperation {
+	return TeamOperation{
+		ManageMembers:          o.ManageMembers,
+		ManageSubteams:         o.ManageSubteams,
+		CreateChannel:          o.CreateChannel,
+		DeleteChannel:          o.DeleteChannel,
+		RenameChannel:          o.RenameChannel,
+		EditChannelDescription: o.EditChannelDescription,
+		SetTeamShowcase:        o.SetTeamShowcase,
+		SetMemberShowcase:      o.SetMemberShowcase,
+		ChangeOpenTeam:         o.ChangeOpenTeam,
 	}
-	return ""
 }
 
 type TeamDebugRes struct {
@@ -2068,7 +2047,7 @@ type TeamsInterface interface {
 	GetTeamAndMemberShowcase(context.Context, string) (TeamAndMemberShowcase, error)
 	SetTeamShowcase(context.Context, SetTeamShowcaseArg) error
 	SetTeamMemberShowcase(context.Context, SetTeamMemberShowcaseArg) error
-	CanUserPerform(context.Context, string) ([]bool, error)
+	CanUserPerform(context.Context, string) (TeamOperation, error)
 	TeamRotateKey(context.Context, TeamID) error
 	TeamDebug(context.Context, TeamID) (TeamDebugRes, error)
 }
@@ -2812,7 +2791,7 @@ func (c TeamsClient) SetTeamMemberShowcase(ctx context.Context, __arg SetTeamMem
 	return
 }
 
-func (c TeamsClient) CanUserPerform(ctx context.Context, name string) (res []bool, err error) {
+func (c TeamsClient) CanUserPerform(ctx context.Context, name string) (res TeamOperation, err error) {
 	__arg := CanUserPerformArg{Name: name}
 	err = c.Cli.Call(ctx, "keybase.1.teams.canUserPerform", []interface{}{__arg}, &res)
 	return
