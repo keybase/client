@@ -45,6 +45,7 @@ export const updatePGPKey = 'tracker:updatePGPKey'
 export const updateProof = 'tracker:updateProof'
 export const updateProofState = 'tracker:updateProofState'
 export const updateReason = 'tracker:updateReason'
+export const updateSelectedTeam = 'tracker:updateSelectedTeam'
 export const updateTrackToken = 'tracker:updateTrackToken'
 export const updateTrackers = 'tracker:updateTrackers'
 export const updateUserInfo = 'tracker:updateUserInfo'
@@ -89,6 +90,7 @@ export const createUpdatePGPKey = (payload: {|+username: string, +pgpFingerprint
 export const createUpdateProof = (payload: {|+remoteProof: RPCTypes.RemoteProof, +linkCheckResult: RPCTypes.LinkCheckResult, +username: string|}) => ({error: false, payload, type: updateProof})
 export const createUpdateProofState = (payload: {|+username: string|}) => ({error: false, payload, type: updateProofState})
 export const createUpdateReason = (payload: {|+username: string, +reason: ?string|}) => ({error: false, payload, type: updateReason})
+export const createUpdateSelectedTeam = (payload: {|+selectedTeam: string|}) => ({error: false, payload, type: updateSelectedTeam})
 export const createUpdateTrackToken = (payload: {|+username: string, +trackToken: RPCTypes.TrackToken|}) => ({error: false, payload, type: updateTrackToken})
 export const createUpdateTrackers = (payload: {|+username: string|}) => ({error: false, payload, type: updateTrackers})
 export const createUpdateUserInfo = (payload: {|+userCard: RPCTypes.UserCard, +username: string|}) => ({error: false, payload, type: updateUserInfo})
@@ -132,6 +134,7 @@ export type UpdatePGPKeyPayload = More.ReturnType<typeof createUpdatePGPKey>
 export type UpdateProofPayload = More.ReturnType<typeof createUpdateProof>
 export type UpdateProofStatePayload = More.ReturnType<typeof createUpdateProofState>
 export type UpdateReasonPayload = More.ReturnType<typeof createUpdateReason>
+export type UpdateSelectedTeamPayload = More.ReturnType<typeof createUpdateSelectedTeam>
 export type UpdateTrackTokenPayload = More.ReturnType<typeof createUpdateTrackToken>
 export type UpdateTrackersPayload = More.ReturnType<typeof createUpdateTrackers>
 export type UpdateUserInfoPayload = More.ReturnType<typeof createUpdateUserInfo>
@@ -178,6 +181,7 @@ export type Actions =
   | More.ReturnType<typeof createUpdateProof>
   | More.ReturnType<typeof createUpdateProofState>
   | More.ReturnType<typeof createUpdateReason>
+  | More.ReturnType<typeof createUpdateSelectedTeam>
   | More.ReturnType<typeof createUpdateTrackToken>
   | More.ReturnType<typeof createUpdateTrackers>
   | More.ReturnType<typeof createUpdateUserInfo>

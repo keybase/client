@@ -15,18 +15,21 @@ import {connect, type TypedState, compose, renderNothing, withState} from '../ut
 const MAX_TRACKERS = 5
 const windowOpts = {height: 470, width: 320}
 
-const trackerMapStateToProps = (state: TypedState, {name, showTeam}) => {
+const trackerMapStateToProps = (state: TypedState, {name}) => {
+  const _trackerState = state.tracker.userTrackers[name] || state.tracker.nonUserTrackers[name]
+  const selectedTeam = _trackerState.selectedTeam
+  const showTeam = _trackerState.userInfo && _trackerState.userInfo.showcasedTeams && _trackerState.userInfo.showcasedTeams.find(team => team.fqName === selectedTeam)  
   const teamname = showTeam && showTeam.fqName
   const myUsername = state.config.username
   // If the current user's in the list of public admins, pull them out to the front.
   let publicAdmins = []
   let publicAdminsOthers = 0
   if (showTeam) {
-    ;({publicAdmins, publicAdminsOthers} = parsePublicAdmins(showTeam.publicAdmins, myUsername))
+    ;({publicAdmins, publicAdminsOthers} = parsePublicAdmins(showTeam.publicAdmins || [], myUsername))
   }
 
   return {
-    _trackerState: state.tracker.userTrackers[name] || state.tracker.nonUserTrackers[name],
+    _trackerState,
     description: showTeam && showTeam.description,
     following: state.config.following,
     loggedIn: state.config.loggedIn,
@@ -37,6 +40,7 @@ const trackerMapStateToProps = (state: TypedState, {name, showTeam}) => {
     openTeam: showTeam && showTeam.open,
     publicAdmins,
     publicAdminsOthers,
+    showTeam,
     teamname,
     youAreInTeam: !!state.entities.getIn(['teams', 'teamnames', teamname], false),
     youHaveRequestedAccess: !!state.entities.getIn(['teams', 'teamAccessRequestsPending', teamname], false),
@@ -46,7 +50,7 @@ const trackerMapStateToProps = (state: TypedState, {name, showTeam}) => {
 const trackerMergeProps = (
   stateProps,
   dispatchProps,
-  {name, onSetShowTeam, onSetShowTeamNode, showTeam, showTeamNode}
+  {name}
 ) => {
   const t = stateProps._trackerState
   const {
@@ -60,6 +64,7 @@ const trackerMergeProps = (
     openTeam,
     publicAdmins,
     publicAdminsOthers,
+    showTeam,
     teamname,
     youAreInTeam,
     youHaveRequestedAccess,
@@ -75,14 +80,11 @@ const trackerMergeProps = (
     memberCount,
     myUsername,
     nonUser: t && t.type === 'nonUser',
-    onSetShowTeam,
-    onSetShowTeamNode,
     openTeam,
     publicAdmins,
     publicAdminsOthers,
     sessionID: name,
     showTeam,
-    showTeamNode,
     teamJoinError,
     teamJoinSuccess,
     teamname,

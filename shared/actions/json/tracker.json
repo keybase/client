@@ -112,6 +112,10 @@
       "username": "string",
       "reason": "?string"
     },
+    "updateSelectedTeam": {
+      "selectedTeam": "string",
+      "username": "string"
+    },
     "resetProofs": {
       "username": "string"
     },
