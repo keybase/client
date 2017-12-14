@@ -224,7 +224,10 @@ function* _addServiceProof(service: ProvablePlatformsType): Saga.SagaGenerator<a
 }
 
 function _cancelAddProof() {
-  return Saga.all([Saga.put(ProfileGen.createUpdateErrorText({})), Saga.put(navigateTo([], [peopleTab]))])
+  return Saga.sequentially([
+    Saga.put(ProfileGen.createUpdateErrorText({})),
+    Saga.put(navigateTo([], [peopleTab])),
+  ])
 }
 
 function* _submitCryptoAddress(

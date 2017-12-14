@@ -125,6 +125,13 @@ export default function(
         ...s,
         error: null,
       }))
+    case TrackerGen.updateSelectedTeam: {
+      const {selectedTeam, username} = action.payload
+      return updateUserState(state, username, s => ({
+        ...s,
+        selectedTeam,
+      }))
+    }
     case TrackerGen.updateReason:
       // In case the reason is null, let's use our existing reason
       return updateUserState(state, action.payload.username, s => ({

@@ -678,7 +678,7 @@ function* _sendNotifications(action: ChatGen.AppendMessagesPayload): Saga.SagaGe
               })
             )
             dispatch(switchTo([chatTab]))
-            dispatch(showMainWindow())
+            showMainWindow()
           })
         })
       }

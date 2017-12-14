@@ -190,7 +190,10 @@ function _outputInstructionsActionLink(
 }
 
 function _backToProfile() {
-  return Saga.all([Saga.put(TrackerGen.createGetMyProfile({})), Saga.put(navigateTo([], [peopleTab]))])
+  return Saga.sequentially([
+    Saga.put(TrackerGen.createGetMyProfile({})),
+    Saga.put(navigateTo([], [peopleTab])),
+  ])
 }
 
 function* _profileSaga(): Saga.SagaGenerator<any, any> {

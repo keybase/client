@@ -93,7 +93,7 @@ function* pushNotificationSaga(notification: PushGen.NotificationPayload): Saga.
 
 function pushTokenSaga(action: PushGen.PushTokenPayload) {
   const {token, tokenType} = action.payload
-  return Saga.all([
+  return Saga.sequentially([
     Saga.put(PushGen.createUpdatePushToken({token, tokenType})),
     Saga.put(PushGen.createSavePushToken()),
   ])
