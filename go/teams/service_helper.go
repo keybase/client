@@ -1252,9 +1252,10 @@ func CanUserPerform(ctx context.Context, g *libkb.GlobalContext, teamname string
 		return showcase.AnyMemberShowcase, nil
 	}
 
-	perm := false
+	ret = make([]bool, len(keybase1.TeamOperationMap))
 
 	for _, op := range keybase1.TeamOperationMap {
+		perm := false
 		switch op {
 		case keybase1.TeamOperation_MANAGE_MEMBERS,
 			keybase1.TeamOperation_MANAGE_SUBTEAMS,
