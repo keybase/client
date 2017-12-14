@@ -1,4 +1,5 @@
 // @flow
+import logger from '../logger'
 import * as Constants from '../constants/tracker'
 import * as Types from '../constants/types/tracker'
 import * as TrackerGen from '../actions/tracker-gen'
@@ -54,7 +55,7 @@ const getProfile = (username: string, ignoreCache: boolean = false, forceDisplay
 
   // If we have a pending identify no point in firing off another one
   if (!ignoreCache && tracker.pendingIdentifies[username]) {
-    console.log('Bailing on simultaneous getProfile', username)
+    logger.info('Bailing on simultaneous getProfile', username)
     return
   }
 
@@ -64,7 +65,7 @@ const getProfile = (username: string, ignoreCache: boolean = false, forceDisplay
     : null
   const goodTill = uid && tracker.cachedIdentifies[uid + '']
   if (!ignoreCache && goodTill && goodTill >= Date.now()) {
-    console.log('Bailing on cached getProfile', username, uid)
+    logger.info('Bailing on cached getProfile', username, uid)
     return
   }
 
@@ -117,10 +118,10 @@ function registerIdentifyUi() {
     engine().listenOnConnect('registerIdentifyUi', () => {
       RPCTypes.delegateUiCtlRegisterIdentifyUIRpcPromise()
         .then(response => {
-          console.log('Registered identify ui')
+          logger.info('Registered identify ui')
         })
         .catch(error => {
-          console.warn('error in registering identify ui: ', error)
+          logger.warn('error in registering identify ui: ', error)
         })
     })
 
@@ -189,7 +190,7 @@ const onRefollow = (username: string) => (dispatch: Dispatch, getState: () => Ty
 
   dispatch(TrackerGen.createWaiting({username, waiting: true}))
   _trackUser(trackToken, false).then(dispatchRefollowAction).catch(err => {
-    console.warn("Couldn't track user:", err)
+    logger.warn("Couldn't track user:", err)
     dispatchErrorAction(err.desc)
   })
 }
@@ -203,11 +204,11 @@ const onUnfollow = (username: string) => (dispatch: Dispatch, getState: () => Ty
     .then(response => {
       dispatch(TrackerGen.createWaiting({username, waiting: false}))
       dispatch(TrackerGen.createReportLastTrack({username}))
-      console.log('success in untracking')
+      logger.info('success in untracking')
     })
     .catch(err => {
       dispatch(TrackerGen.createWaiting({username, waiting: false}))
-      console.log('err untracking', err)
+      logger.info('err untracking', err)
     })
 
   dispatch(TrackerGen.createSetOnUnfollow({username}))
@@ -227,11 +228,11 @@ const _trackUser = (trackToken: ?string, localIgnore: boolean): Promise<boolean>
         },
       })
         .then(response => {
-          console.log('Finished tracking', response)
+          logger.info('Finished tracking', response)
           resolve(true)
         })
         .catch(err => {
-          console.log('error: Track with token: ', err)
+          logger.info('error: Track with token: ', err)
           reject(err)
         })
     } else {
@@ -271,14 +272,14 @@ const onFollow = (username: string, localIgnore?: boolean) => (
 
   dispatch(TrackerGen.createWaiting({username, waiting: true}))
   _trackUser(trackToken, localIgnore || false).then(dispatchFollowedAction).catch(err => {
-    console.warn("Couldn't track user: ", err)
+    logger.warn("Couldn't track user: ", err)
     dispatchErrorAction(err.desc)
   })
 }
 
 function _dismissWithToken(trackToken) {
   RPCTypes.trackDismissWithTokenRpcPromise({trackToken}).catch(err => {
-    console.log('err dismissWithToken', err)
+    logger.info('err dismissWithToken', err)
   })
 }
 
@@ -288,7 +289,7 @@ const onClose = (username: string) => (dispatch: Dispatch, getState: () => Typed
   if (trackToken) {
     _dismissWithToken(trackToken)
   } else {
-    console.log(`Missing trackToken for ${username}, waiting...`)
+    logger.info(`Missing trackToken for ${username}, waiting...`)
   }
 
   dispatch(TrackerGen.createSetOnClose({username}))
@@ -314,7 +315,7 @@ function _serverCallMap(
       // The timeout is necessary because the callback fn f won't be called if the window is hidden.
       requestIdleCallback(f, {timeout: 1e3})
     } else {
-      console.log('skipped idle call due to already pending')
+      logger.info('skipped idle call due to already pending')
     }
   }
 
@@ -353,7 +354,7 @@ function _serverCallMap(
       onStart && onStart(username)
 
       if (getState().tracker.pendingIdentifies[username]) {
-        console.log('Bailing on idenitifies in time window', username)
+        logger.info('Bailing on idenitifies in time window', username)
         alreadyPending = true
 
         // Display anyways
@@ -600,7 +601,7 @@ const _listTrackersOrTracking = (
         )
       })
       .catch(error => {
-        console.log('err getting trackers', error)
+        logger.info('err getting trackers', error)
         reject(error)
       })
   })
@@ -633,7 +634,7 @@ const updateTrackers = (username: string) => (dispatch: Dispatch, getState: () =
       dispatch(TrackerGen.createSetUpdateTrackers({username, trackers, tracking}))
     })
     .catch(e => {
-      console.warn('Failed to get followers/followings', e)
+      logger.warn('Failed to get followers/followings', e)
     })
 
 const openProofUrl = (proof: Types.Proof) => (dispatch: Dispatch) => {

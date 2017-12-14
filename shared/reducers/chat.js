@@ -1,4 +1,5 @@
 // @flow
+import logger from '../logger'
 import * as Constants from '../constants/chat'
 import * as Types from '../constants/types/chat'
 import * as ChatGen from '../actions/chat-gen'
@@ -45,7 +46,7 @@ function reducer(state: Types.State = initialState, action: ChatGen.Actions) {
       const {conversationIDKey} = action.payload
       const origConversationState = state.get('conversationStates').get(conversationIDKey)
       if (!origConversationState) {
-        console.warn("Attempted to clear conversation state that doesn't exist")
+        logger.warn("Attempted to clear conversation state that doesn't exist")
         return state
       }
 
@@ -212,7 +213,7 @@ function reducer(state: Types.State = initialState, action: ChatGen.Actions) {
       if (oldPending.get(oldKey)) {
         return state.set('pendingConversations', oldPending.remove(oldKey))
       } else {
-        console.warn("couldn't find pending to upgrade", oldKey)
+        logger.warn("couldn't find pending to upgrade", oldKey)
       }
       return state
     }

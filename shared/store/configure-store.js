@@ -1,10 +1,10 @@
 // @flow
+import logger from '../logger'
 import rootReducer from '../reducers'
 import storeEnhancer from './enhancer.platform'
 import thunkMiddleware from 'redux-thunk'
 import {actionLogger} from './action-logger'
 import {convertToError} from '../util/errors'
-import logger from '../logger'
 import {createLogger} from 'redux-logger'
 import {createStore} from 'redux'
 import {enableStoreLogging, enableActionLogging, filterActionLogs} from '../local-debug'
@@ -25,7 +25,7 @@ const crashHandler = error => {
       })
     )
   } else {
-    console.warn('Got crash before store created?', error)
+    logger.warn('Got crash before store created?', error)
   }
 }
 
@@ -35,9 +35,9 @@ if (enableStoreLogging) {
   loggerMiddleware = createLogger({
     actionTransformer: (...args) => {
       if (filterActionLogs) {
-        args[0].type.match(filterActionLogs) && console.log('Action:', ...args)
+        args[0].type.match(filterActionLogs) && logger.info('Action:', ...args)
       } else if (args[0] && args[0].type) {
-        console.log('Action:', ...args)
+        logger.info('Action:', ...args)
       }
       return null
     },
@@ -71,7 +71,8 @@ const errorCatching = store => next => action => {
       return
     }
     lastError = error
-    console.warn(`Caught a middleware exception ${error} ${error.stack}`)
+    logger.warn(`Caught a middleware exception`)
+    logger.debug(`Caught a middleware exception`, error)
 
     try {
       crashHandler(error) // don't let this thing crash us forever

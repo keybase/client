@@ -1,5 +1,6 @@
 // @flow
 // Handles sending requests to the daemon
+import logger from '../logger'
 import * as Saga from '../util/saga'
 import Session from './session'
 import {constantsStatusCode} from '../constants/types/flow-types'
@@ -115,7 +116,7 @@ class Engine {
     }
 
     if (typeof window !== 'undefined') {
-      console.log('DEV MODE ENGINE AVAILABLE AS window.DEBUGengine')
+      logger.info('DEV MODE ENGINE AVAILABLE AS window.DEBUGengine')
       window.DEBUGengine = this
     }
 
@@ -198,7 +199,7 @@ class Engine {
         `${prefix} incoming rpc: ${sessionID} ${method} ${seqid} ${JSON.stringify(param)}${response ? ': Sending back error' : ''}`
       )
     }
-    console.warn(`${prefix} incoming rpc: ${sessionID} ${method}`)
+    logger.warn(`${prefix} incoming rpc: ${sessionID} ${method}`)
 
     if (__DEV__ && this._failOnError) {
       throw new Error(
@@ -450,7 +451,7 @@ class FakeEngine {
   _deadSessionsMap: {[key: SessionIDKey]: Session} // just to bookkeep
   _sessionsMap: {[key: SessionIDKey]: Session}
   constructor() {
-    console.log('Engine disabled!')
+    logger.info('Engine disabled!')
     this._sessionsMap = {}
   }
   reset() {}
@@ -487,7 +488,7 @@ class FakeEngine {
 let engine
 const makeEngine = (dispatch: Dispatch) => {
   if (__DEV__ && engine) {
-    console.warn('makeEngine called multiple times')
+    logger.warn('makeEngine called multiple times')
   }
 
   if (!engine) {

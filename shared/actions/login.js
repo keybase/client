@@ -1,5 +1,6 @@
 // @flow
 // Look at this doc: https://goo.gl/7B6p4H
+import logger from '../logger'
 import * as AppGen from './app-gen'
 import * as ConfigGen from './config-gen'
 import * as DevicesGen from './devices-gen'
@@ -79,13 +80,13 @@ function* setCodePageOtherDeviceRole(otherDeviceRole: Types.DeviceRole): Generat
   const state: TypedState = yield Saga.select()
   const codePage = codePageSelector(state)
   if (codePage.myDeviceRole == null) {
-    console.warn("my device role is null, can't setCodePageOtherDeviceRole. Bailing")
+    logger.warn("my device role is null, can't setCodePageOtherDeviceRole. Bailing")
     return
   }
 
   const mode = Constants.defaultModeForDeviceRoles(codePage.myDeviceRole, otherDeviceRole, false)
   if (!mode) {
-    console.warn("mode is null!, can't setCodePageMode. Bailing")
+    logger.warn("mode is null!, can't setCodePageMode. Bailing")
     return
   }
 
@@ -109,7 +110,7 @@ function* navBasedOnLoginAndInitialState(): Saga.SagaGenerator<any, any> {
 
   const args = yield Saga.select(selector)
 
-  console.log('[RouteState] navBasedOnLoginAndInitialState:', args)
+  logger.log('[RouteState] navBasedOnLoginAndInitialState:', args)
 
   const {loggedIn, registered, initialState, justDeletedSelf, loginError, loggedInUserNavigated} = args
 
@@ -254,7 +255,7 @@ const getEmailOrUsernameSaga = onBackSaga =>
     } else if (onSubmit) {
       const {usernameOrEmail} = onSubmit.payload
       if (!usernameOrEmail) {
-        console.error('no email')
+        logger.error('no email')
       }
       return EngineRpc.rpcResult(usernameOrEmail)
     }
@@ -509,20 +510,20 @@ function* loginFlowSaga(usernameOrEmail, passphrase): Generator<any, void, any> 
       const {error} = result.payload
 
       if (error) {
-        console.log(error)
+        logger.debug('login call error', error)
         yield Saga.call(handleProvisioningError, error)
       } else {
         yield Saga.call(navBasedOnLoginAndInitialState)
       }
     } else if (result === EngineRpc.BailedEarly) {
-      console.log('Bailed early')
+      logger.debug('Bailed early')
       yield Saga.put(navigateTo(['login'], [loginTab]))
     } else {
       yield Saga.put(navigateTo(['login'], [loginTab]))
     }
   } catch (error) {
     yield Saga.call(handleProvisioningError, error)
-    console.log('DEBUG: error in loginRPC:', error)
+    logger.debug('error in loginRPC:', error)
   }
 }
 
@@ -584,18 +585,18 @@ function* cameraBrokenModeSaga({payload: {broken}}: LoginGen.SetCameraBrokenMode
   const state: TypedState = yield Saga.select()
   const codePage = codePageSelector(state)
   if (codePage.myDeviceRole == null) {
-    console.warn("my device role is null, can't setCameraBrokenMode. Bailing")
+    logger.warn("my device role is null, can't setCameraBrokenMode. Bailing")
     return
   }
 
   if (codePage.otherDeviceRole == null) {
-    console.warn("other device role is null, can't setCameraBrokenMode. Bailing")
+    logger.warn("other device role is null, can't setCameraBrokenMode. Bailing")
     return
   }
 
   const mode = Constants.defaultModeForDeviceRoles(codePage.myDeviceRole, codePage.otherDeviceRole, broken)
   if (!mode) {
-    console.warn("mode is null!, can't setCodePageMode. Bailing")
+    logger.warn("mode is null!, can't setCodePageMode. Bailing")
     return
   }
   yield Saga.put(LoginGen.createSetCodePageMode({mode}))
@@ -672,7 +673,7 @@ function* logoutSaga() {
   const chanMap = RPCTypes.loginLogoutRpcChannelMap(['finished'], {})
   const incoming = yield chanMap.take('finished')
   if (incoming.error) {
-    console.log(incoming.error)
+    logger.debug(incoming.error)
   } else {
     yield Saga.put(LoginGen.createLogoutDone())
   }

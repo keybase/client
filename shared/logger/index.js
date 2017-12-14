@@ -124,7 +124,7 @@ const logSetup = __DEV__
         ? new NativeLogger()
         : new DumpPeriodicallyLogger(new RingLogger(1000), 1 * 60e3, writeLogLinesToFile, 'Error'),
       warn: new RingLogger(1000),
-      info: new NullLogger(),
+      info: new RingLogger(1000),
       action: isMobile
         ? new NativeLogger()
         : new DumpPeriodicallyLogger(new RingLogger(5000), 10 * 60e3, writeLogLinesToFile, 'Action'),

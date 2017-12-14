@@ -1,4 +1,5 @@
 // @flow
+import logger from '../logger'
 import React, {Component} from 'react'
 import {HeaderHoc, HOCTimers} from '../common-adapters'
 import Feedback from './feedback'
@@ -13,7 +14,6 @@ import {
   logFileName,
 } from '../constants/platform'
 import {type TimerProps} from '../common-adapters/hoc-timers'
-import logger from '../logger'
 import {writeLogLinesToFile} from '../util/forward-logs'
 
 const FeedbackWrapped = compose(
@@ -62,11 +62,11 @@ class FeedbackContainer extends Component<{status: string} & TimerProps, State> 
       maybeDump
         .then(() => {
           const path = logFileName()
-          console.log(`Sending ${sendLogs ? 'log' : 'feedback'} to daemon`)
+          logger.info(`Sending ${sendLogs ? 'log' : 'feedback'} to daemon`)
           return logSend(this.props.status, feedback, sendLogs, path)
         })
         .then(logSendId => {
-          console.warn('logSendId is', logSendId)
+          logger.info('logSendId is', logSendId)
           if (this.mounted) {
             this.setState({
               sentFeedback: true,
@@ -76,7 +76,7 @@ class FeedbackContainer extends Component<{status: string} & TimerProps, State> 
           }
         })
         .catch(err => {
-          console.warn('err in sending logs', err)
+          logger.warn('err in sending logs', err)
           if (this.mounted) {
             this.setState({
               sentFeedback: false,

@@ -1,4 +1,5 @@
 // @flow
+import logger from '../../logger'
 import map from 'lodash/map'
 import keyBy from 'lodash/keyBy'
 import last from 'lodash/last'
@@ -167,7 +168,7 @@ const _removeMemberOrPendingInvite = function*(action: Types.RemoveMemberOrPendi
   // disallow call with any pair of username, email, and ID to avoid black-bar errors
   if ((!!username && !!email) || (!!username && !!inviteID) || (!!email && !!inviteID)) {
     const errMsg = 'Supplied more than one form of identification to removeMemberOrPendingInvite'
-    console.error(errMsg)
+    logger.error(errMsg)
     throw new Error(errMsg)
   }
 
@@ -206,7 +207,7 @@ const _inviteToTeamByPhone = function*(action: Types.InviteToTeamByPhone) {
     teamDescription = `${subteams[subteams.length - 1]} subteam`
   }
   const bodyText = `Please join the ${teamDescription} on Keybase. Install and paste this in the "Teams" tab:\n\ntoken: ${seitan.toUpperCase()}\n\nquick install: keybase.io/_/go`
-  openSMS([phoneNumber], bodyText).catch(err => console.log('Error sending SMS', err))
+  openSMS([phoneNumber], bodyText).catch(err => logger.info('Error sending SMS', err))
 
   yield Saga.put(Creators.getDetails(teamname))
 }
@@ -556,7 +557,7 @@ function* _createChannel(action: Types.CreateChannel) {
     // No error if we get here.
     const newConversationIDKey = result ? ChatConstants.conversationIDToKey(result.conv.info.id) : null
     if (!newConversationIDKey) {
-      console.warn('No convoid from newConvoRPC')
+      logger.warn('No convoid from newConvoRPC')
       return null
     }
 

@@ -1,4 +1,5 @@
 // @flow
+import logger from '../logger'
 import * as PgpGen from '../actions/pgp-gen'
 import * as RPCTypes from '../constants/types/flow-types'
 import * as Saga from '../util/saga'
@@ -6,7 +7,8 @@ import * as Saga from '../util/saga'
 function pgpStorageDismiss() {
   // make rpc call to pgpStorageDismiss
   RPCTypes.pgpPgpStorageDismissRpcPromise().catch(err => {
-    console.warn('Error in sending pgpPgpStorageDismissRpc:', err)
+    logger.warn('Error in sending pgpPgpStorageDismissRpc:')
+    logger.debug('Error in sending pgpPgpStorageDismissRpc:', err)
   })
 }
 

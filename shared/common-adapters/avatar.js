@@ -1,6 +1,7 @@
 // @flow
 // High level avatar class. Handdles converting from usernames to urls. Deals with testing mode.
 import * as React from 'react'
+import logger from '../logger'
 import Render from './avatar.render'
 import pickBy from 'lodash/pickBy'
 import {iconTypeToImgSet, urlsToImgSet} from './icon'
@@ -143,7 +144,7 @@ class Avatar extends React.PureComponent<Props, State> {
   constructor(props: Props) {
     super(props)
     if (props.url && props.username) {
-      console.warn('Recieved both url and username to avatar!')
+      logger.warn('Recieved both url and username to avatar!')
     }
 
     this.state = this._getRawURLState(props.url, props.size)
@@ -228,7 +229,7 @@ class Avatar extends React.PureComponent<Props, State> {
       (nextProps.url && nextProps.teamname) ||
       (nextProps.username && nextProps.teamname)
     ) {
-      console.warn('Recieved multiple url / username /teamname to avatar!')
+      logger.warn('Recieved multiple url / username /teamname to avatar!')
       return
     }
     const url = this.props.url || this.props.username

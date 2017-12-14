@@ -1,5 +1,5 @@
 // @flow
-
+import logger from '../logger'
 import * as React from 'react'
 import includes from 'lodash/includes'
 import throttle from 'lodash/throttle'
@@ -201,7 +201,7 @@ function ModalPositionRelative<PP>(
       if (!targetNode) return
       const popupNode = this.popupNode
       if (!(targetNode instanceof HTMLElement) || !(popupNode instanceof HTMLElement)) {
-        console.error('null nodes for popup')
+        logger.error('null nodes for popup')
         return
       }
 

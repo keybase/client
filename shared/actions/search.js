@@ -1,4 +1,5 @@
 // @flow
+import logger from '../logger'
 import * as Constants from '../constants/search'
 import * as Types from '../constants/types/search'
 import * as SearchGen from './search-gen'
@@ -222,7 +223,7 @@ function* search({payload: {term, service, searchKey}}: SearchGen.SearchPayload)
       ),
     ])
   } catch (error) {
-    console.warn('error in searching', error)
+    logger.warn('error in searching', error)
   } finally {
     yield Saga.put(EntityAction.replaceEntity(['search', 'searchKeyToPending'], I.Map({[searchKey]: false})))
   }

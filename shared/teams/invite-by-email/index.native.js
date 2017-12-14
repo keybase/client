@@ -1,4 +1,5 @@
 // @flow
+import logger from '../../logger'
 import * as React from 'react'
 import {
   Avatar,
@@ -26,7 +27,7 @@ const openSettings = () => {
       if (can) {
         Linking.openURL(settingsURL)
       } else {
-        console.warn('Invite contacts: Unable to open app settings')
+        logger.warn('Invite contacts: Unable to open app settings')
       }
     })
   }

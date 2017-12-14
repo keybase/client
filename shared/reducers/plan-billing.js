@@ -1,4 +1,5 @@
 // @flow
+import logger from '../logger'
 import * as CommonConstants from '../constants/common'
 import * as Constants from '../constants/plan-billing'
 import * as Types from '../constants/types/plan-billing'
@@ -21,7 +22,7 @@ export default function(
       return {...initialState}
     case Constants.updateBillingAndQuota:
       if (action.error) {
-        console.warn('Error in action: ', action)
+        logger.warn('Error in action: ', action)
         return state
       }
       return {
@@ -30,7 +31,7 @@ export default function(
       }
     case Constants.updateAvailablePlans:
       if (action.error) {
-        console.warn('Error in action: ', action)
+        logger.warn('Error in action: ', action)
         return state
       }
       return {
@@ -39,7 +40,7 @@ export default function(
       }
     case Constants.updatePaymentInfo:
       if (action.error) {
-        console.warn('Error in action: ', action)
+        logger.warn('Error in action: ', action)
         return state
       }
       return {

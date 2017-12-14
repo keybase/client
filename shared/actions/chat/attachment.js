@@ -1,4 +1,5 @@
 // @flow
+import logger from '../../logger'
 import * as RPCChatTypes from '../../constants/types/flow-types-chat'
 import * as Types from '../../constants/types/chat'
 import * as Constants from '../../constants/chat'
@@ -9,7 +10,6 @@ import * as RPCTypes from '../../constants/types/flow-types'
 import * as Saga from '../../util/saga'
 import * as EntityCreators from '../entities'
 import * as Shared from './shared'
-import {enableActionLogging} from '../../local-debug'
 import {putActionIfOnPath, navigateAppend} from '../route-tree'
 import {saveAttachmentDialog, showShareActionSheet} from '../platform-specific'
 import {tmpDir, tmpFile, downloadFilePath, copy, exists, stat} from '../../util/file'
@@ -48,7 +48,7 @@ function* onSaveAttachment({payload: {messageKey}}: ChatGen.SaveAttachmentPayloa
     downloadedPath: Constants.getAttachmentDownloadedPath(s, messageKey),
   }))
   if (savedPath) {
-    console.log('_saveAttachment: message already saved. bailing.', messageKey, savedPath)
+    logger.info('_saveAttachment: message already saved. bailing.', messageKey, savedPath)
     return savedPath
   }
 
@@ -57,7 +57,7 @@ function* onSaveAttachment({payload: {messageKey}}: ChatGen.SaveAttachmentPayloa
   const startTime = Date.now()
   if (!downloadedPath) {
     yield Saga.put(ChatGen.createLoadAttachment({messageKey, loadPreview: false}))
-    console.log('_saveAttachment: waiting for attachment to load', messageKey)
+    logger.info('_saveAttachment: waiting for attachment to load', messageKey)
     yield Saga.take(
       action =>
         action.type === ChatGen.attachmentLoaded &&
@@ -84,7 +84,7 @@ function* onSaveAttachment({payload: {messageKey}}: ChatGen.SaveAttachmentPayloa
 
   const nextDownloadedPath = yield Saga.select(Constants.getAttachmentDownloadedPath, messageKey)
   if (!nextDownloadedPath) {
-    console.warn('_saveAttachment: message failed to download!')
+    logger.warn('_saveAttachment: message failed to download!')
     return
   }
 
@@ -94,7 +94,7 @@ function* onSaveAttachment({payload: {messageKey}}: ChatGen.SaveAttachmentPayloa
   try {
     yield copy(nextDownloadedPath, destPath)
   } catch (err) {
-    console.warn('_saveAttachment: copy failed:', err)
+    logger.warn('_saveAttachment: copy failed:', err)
     yield Saga.put(ChatGen.createAttachmentSaveFailed({messageKey}))
     return
   }
@@ -136,7 +136,7 @@ function* onLoadAttachment({
   if (loadPreview) {
     if (previewPath || previewProgress !== null) {
       // Already downloaded / downloading preview
-      console.log(
+      logger.info(
         'onLoadAttachment: preview already downloaded/downloading. bailing.',
         messageKey,
         previewPath,
@@ -147,7 +147,7 @@ function* onLoadAttachment({
   } else {
     if (downloadedPath || downloadProgress !== null) {
       // Already downloaded / downloading attachment
-      console.log(
+      logger.info(
         'onLoadAttachment: attachment already downloaded/downloading. bailing.',
         messageKey,
         downloadedPath,
@@ -164,14 +164,14 @@ function* onLoadAttachment({
     try {
       const fileStat = yield Saga.call(stat, destPath)
       if (fileStat.size === 0) {
-        console.warn('attachment file had size 0. overwriting:', destPath)
+        logger.warn('attachment file had size 0. overwriting:', destPath)
         // Fall through to download attachment
       } else {
         yield Saga.put(ChatGen.createAttachmentLoaded({messageKey, path: destPath, isPreview: loadPreview}))
         return
       }
     } catch (err) {
-      console.warn('unexpected error statting file:', destPath, err)
+      logger.warn('unexpected error statting file:', destPath, err)
     }
   }
 
@@ -200,11 +200,11 @@ function* onLoadAttachment({
       if (EngineRpc.isFinished(result)) {
         yield Saga.put(ChatGen.createAttachmentLoaded({messageKey, path: destPath, isPreview: loadPreview}))
       } else {
-        console.warn('downloadFileRpc bailed early')
+        logger.warn('downloadFileRpc bailed early')
         yield Saga.put(ChatGen.createAttachmentLoaded({messageKey, path: null, isPreview: loadPreview}))
       }
     } catch (err) {
-      console.warn('attachment failed to load:', err)
+      logger.warn('attachment failed to load:', err)
       yield Saga.put(ChatGen.createAttachmentLoaded({messageKey, path: null, isPreview: loadPreview}))
     }
   })
@@ -395,7 +395,7 @@ function* onSelectAttachment({payload: {input}}: ChatGen.SelectAttachmentPayload
       const curKey = yield Saga.call(getCurKey)
       yield Saga.put(ChatGen.createUploadProgress({messageKey: curKey, progress: null}))
     } else {
-      console.warn('Upload Attachment Failed')
+      logger.warn('Upload Attachment Failed')
     }
   } finally {
     yield Saga.cancel(keyChangedTask)
@@ -486,42 +486,6 @@ function updateAttachmentSavePath(
   }
 }
 
-function* _logLoadAttachmentPreview(
-  action: ChatGen.LoadAttachmentPreviewPayload
-): Saga.SagaGenerator<any, any> {
-  const toPrint = {
-    payload: {
-      messageKey: action.payload.messageKey,
-    },
-    type: action.type,
-  }
-  console.log('Load Attachment Preview', JSON.stringify(toPrint, null, 2))
-}
-
-function* _logAttachmentLoaded(action: ChatGen.AttachmentLoadedPayload): Saga.SagaGenerator<any, any> {
-  const toPrint = {
-    payload: {
-      messageKey: action.payload.messageKey,
-      isPreview: action.payload.isPreview,
-    },
-    type: action.type,
-  }
-  console.log('Load Attachment Loaded', JSON.stringify(toPrint, null, 2))
-}
-
-function* _logDownloadProgress(action: ChatGen.DownloadProgressPayload): Saga.SagaGenerator<any, any> {
-  const toPrint = {
-    payload: {
-      messageKey: action.payload.messageKey,
-      isPreview: action.payload.messageKey,
-      progress: action.payload.progress === 0 ? 'zero' : action.payload.progress === 1 ? 'one' : 'partial',
-    },
-    type: action.type,
-  }
-
-  console.log('Download Progress', JSON.stringify(toPrint, null, 2))
-}
-
 function* registerSagas(): SagaGenerator<any, any> {
   yield Saga.safeTakeSerially(ChatGen.loadAttachment, onLoadAttachment)
   yield Saga.safeTakeEvery(ChatGen.openAttachmentPopup, onOpenAttachmentPopup)
@@ -537,12 +501,6 @@ function* registerSagas(): SagaGenerator<any, any> {
     [ChatGen.attachmentSaveStart, ChatGen.attachmentSaveFailed, ChatGen.attachmentSaved],
     updateAttachmentSavePath
   )
-
-  if (enableActionLogging) {
-    yield Saga.safeTakeEvery(ChatGen.loadAttachmentPreview, _logLoadAttachmentPreview)
-    yield Saga.safeTakeEvery(ChatGen.attachmentLoaded, _logAttachmentLoaded)
-    yield Saga.safeTakeEvery(ChatGen.downloadProgress, _logDownloadProgress)
-  }
 }
 
 export {registerSagas}

@@ -1,5 +1,6 @@
 // @flow
 // Actions around sending / editing / deleting messages
+import logger from '../../logger'
 import * as I from 'immutable'
 import * as RPCChatTypes from '../../constants/types/flow-types-chat'
 import * as RPCTypes from '../../constants/types/flow-types'
@@ -21,7 +22,8 @@ import type {SagaGenerator} from '../../constants/types/saga'
 function* deleteMessage(action: ChatGen.DeleteMessagePayload): SagaGenerator<any, any> {
   const {message} = action.payload
   if (message.type !== 'Text' && message.type !== 'Attachment') {
-    console.warn('Deleting non-text non-attachment message:', message)
+    logger.warn('Deleting non-text non-attachment message:')
+    logger.debug('Deleting non-text non-attachment message:', message)
     return
   }
 
@@ -37,7 +39,8 @@ function* deleteMessage(action: ChatGen.DeleteMessagePayload): SagaGenerator<any
     yield Saga.put(navigateTo([], [chatTab, conversationIDKey]))
 
     if (!inboxConvo.name) {
-      console.warn('Deleting message for non-existent TLF:', message)
+      logger.warn('Deleting message for non-existent TLF:')
+      logger.debug('Deleting message for non-existent TLF:', message)
       return
     }
     const tlfName: string = inboxConvo.name
@@ -68,7 +71,8 @@ function* deleteMessage(action: ChatGen.DeleteMessagePayload): SagaGenerator<any
     // one less outbox entry in it.  Gotta remove it from the store ourselves.
     yield Saga.put(ChatGen.createRemoveOutboxMessage({conversationIDKey, outboxID}))
   } else {
-    console.warn('Deleting message without RPC or outbox message ID:', message, messageID)
+    logger.warn('Deleting message without RPC or outbox message ID:')
+    logger.debug('Deleting message without RPC or outbox message ID:', message, messageID)
   }
 }
 
@@ -153,7 +157,8 @@ function* postMessage(action: ChatGen.PostMessagePayload): SagaGenerator<any, an
 function* editMessage(action: ChatGen.EditMessagePayload): SagaGenerator<any, any> {
   const {message} = action.payload
   if (message.type !== 'Text') {
-    console.warn('Editing non-text message:', message)
+    logger.warn('Editing non-text message:')
+    logger.debug('Editing non-text message:', message)
     return
   }
   const textMessage = (message: Types.TextMessage)
@@ -161,7 +166,8 @@ function* editMessage(action: ChatGen.EditMessagePayload): SagaGenerator<any, an
   const conversationIDKey: Types.ConversationIDKey = attrs.conversationIDKey
   const messageID: Types.ParsedMessageID = Constants.parseMessageID(attrs.messageID)
   if (messageID.type !== 'rpcMessageID') {
-    console.warn('Editing message without RPC message ID:', message, messageID)
+    logger.warn('Editing message without RPC message ID:')
+    logger.debug('Editing message without RPC message ID:', message, messageID)
     return
   }
   let supersedes: RPCChatTypes.MessageID = messageID.msgID
@@ -175,7 +181,8 @@ function* editMessage(action: ChatGen.EditMessagePayload): SagaGenerator<any, an
   if (lastMessageID) {
     const clientPrevMessageID = Constants.parseMessageID(lastMessageID)
     if (clientPrevMessageID.type !== 'rpcMessageID') {
-      console.warn('Editing message without RPC last message ID:', message, clientPrevMessageID)
+      logger.warn('Editing message without RPC last message ID:')
+      logger.debug('Editing message without RPC last message ID:', message, clientPrevMessageID)
       return
     }
 
@@ -185,7 +192,8 @@ function* editMessage(action: ChatGen.EditMessagePayload): SagaGenerator<any, an
   }
 
   if (!inboxConvo.name) {
-    console.warn('Editing message for non-existent TLF:', message)
+    logger.warn('Editing message for non-existent TLF:')
+    logger.debug('Editing message for non-existent TLF:', message)
     return
   }
   const tlfName: string = inboxConvo.name
@@ -230,7 +238,7 @@ function* _logPostMessage(action: ChatGen.PostMessagePayload): Saga.SagaGenerato
     type: action.type,
   }
 
-  console.log('Posting message', JSON.stringify(toPrint, null, 2))
+  logger.info('Posting message', JSON.stringify(toPrint, null, 2))
 }
 
 function* _logRetryMessage(action: ChatGen.RetryMessagePayload): Saga.SagaGenerator<any, any> {
@@ -241,7 +249,7 @@ function* _logRetryMessage(action: ChatGen.RetryMessagePayload): Saga.SagaGenera
     },
     type: action.type,
   }
-  console.log('Retrying message', JSON.stringify(toPrint, null, 2))
+  logger.info('Retrying message', JSON.stringify(toPrint, null, 2))
 }
 
 function* registerSagas(): SagaGenerator<any, any> {

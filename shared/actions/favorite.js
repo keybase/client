@@ -1,4 +1,5 @@
 // @flow
+import logger from '../logger'
 import * as Constants from '../constants/favorite'
 import * as Types from '../constants/types/favorite'
 import * as RPCTypes from '../constants/types/flow-types'
@@ -123,7 +124,7 @@ function _getFavoritesRPCToFolders(
   try {
     json = JSON.parse(txt)
   } catch (err) {
-    console.warn('Invalid json from getFavorites: ', err)
+    logger.warn('Invalid json from getFavorites: ', err)
     return []
   }
 
@@ -174,7 +175,7 @@ function* _addSaga(action: FavoriteGen.FavoriteAddPayload): Saga.SagaGenerator<a
       yield put(FavoriteGen.createFavoriteAdded())
       yield put(FavoriteGen.createFavoriteList())
     } catch (error) {
-      console.warn('Err in favorite.favoriteAdd', error)
+      logger.warn('Err in favorite.favoriteAdd', error)
     }
   }
 }
@@ -189,7 +190,7 @@ function* _ignoreSaga(action: FavoriteGen.FavoriteIgnorePayload): Saga.SagaGener
       yield put(FavoriteGen.createFavoriteIgnored())
       yield put(FavoriteGen.createFavoriteList())
     } catch (error) {
-      console.warn('Err in favorite.favoriteIgnore', error)
+      logger.warn('Err in favorite.favoriteIgnore', error)
     }
   }
 }
@@ -211,7 +212,7 @@ function* _listSaga(): Saga.SagaGenerator<any, any> {
     yield put(FavoriteGen.createFavoriteListed({folders: state}))
     yield call(_notify, state)
   } catch (e) {
-    console.warn('Error listing favorites:', e)
+    logger.warn('Error listing favorites:', e)
   }
 }
 

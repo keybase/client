@@ -1,4 +1,5 @@
 // @flow
+import logger from '../logger'
 import * as Saga from '../util/saga'
 import * as Constants from '../constants/plan-billing'
 import * as Types from '../constants/types/plan-billing'
@@ -129,7 +130,7 @@ function* fetchBillingOverviewSaga(): Saga.SagaGenerator<any, any> {
 
     yield Saga.put(billingAndQuotaAction)
   } catch (e) {
-    console.warn('error in fetchBillingAndQuotaSaga', e)
+    logger.warn('error in fetchBillingAndQuotaSaga', e)
   }
 }
 
@@ -152,7 +153,7 @@ function* fetchBillingAndQuotaSaga(): Saga.SagaGenerator<any, any> {
 
     yield Saga.put(action)
   } catch (e) {
-    console.warn('error in fetchBillingAndQuotaSaga', e)
+    logger.warn('error in fetchBillingAndQuotaSaga', e)
   }
 }
 

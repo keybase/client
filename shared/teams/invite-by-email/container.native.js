@@ -1,4 +1,5 @@
 // @flow
+import logger from '../../logger'
 import * as Creators from '../../actions/teams/creators'
 import {Set, Map} from 'immutable'
 import InviteByEmailMobile, {type ContactDisplayProps} from '.'
@@ -91,7 +92,7 @@ export default compose(
             this.props._setContacts(val.contacts)
           },
           err => {
-            console.warn('Error fetching contacts: ', err)
+            logger.warn('Error fetching contacts: ', err)
             this.props._setHasPermission(false)
           }
         )
@@ -165,7 +166,7 @@ export default compose(
             if (relevantInvite) {
               onUninvite('', relevantInvite.id)
             } else {
-              console.warn('Could not find invite to remove in pending invites')
+              logger.warn('Could not find invite to remove in pending invites')
             }
           }
         }

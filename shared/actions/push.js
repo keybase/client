@@ -1,4 +1,5 @@
 // @flow
+import logger from '../logger'
 import * as PushGen from './push-gen'
 import * as ChatTypes from '../constants/types/flow-types-chat'
 import * as Saga from '../util/saga'
@@ -29,9 +30,9 @@ function* permissionsRequestSaga(): Saga.SagaGenerator<any, any> {
   try {
     yield Saga.put(PushGen.createPermissionsRequesting({requesting: true}))
 
-    console.log('Requesting permissions')
+    logger.info('Requesting permissions')
     const permissions = yield Saga.call(requestPushPermissions)
-    console.log('Permissions:', permissions)
+    logger.info('Permissions:', permissions)
     // TODO(gabriel): Set permissions we have in store, might want it at some point?
   } finally {
     yield Saga.put(PushGen.createPermissionsRequesting({requesting: false}))
@@ -40,11 +41,11 @@ function* permissionsRequestSaga(): Saga.SagaGenerator<any, any> {
 }
 
 function* pushNotificationSaga(notification: PushGen.NotificationPayload): Saga.SagaGenerator<any, any> {
-  console.log('Push notification:', notification)
+  logger.info('Push notification:', notification)
   const payload = notification.payload.notification
   if (payload && payload.userInteraction) {
     if (payload.type === 'chat.newmessageSilent') {
-      console.info('Push notification: silent notification received')
+      logger.info('Push notification: silent notification received')
       try {
         const unboxRes = yield Saga.call(ChatTypes.localUnboxMobilePushNotificationRpcPromise, {
           convID: payload.c || '',
@@ -57,7 +58,7 @@ function* pushNotificationSaga(notification: PushGen.NotificationPayload): Saga.
           const num = payload.x
           const ageMS = Date.now() - num * 1000
           if (ageMS > 15000) {
-            console.info('Push notification: silent notification is stale:', ageMS)
+            logger.info('Push notification: silent notification is stale:', ageMS)
             return
           }
         }
@@ -65,26 +66,26 @@ function* pushNotificationSaga(notification: PushGen.NotificationPayload): Saga.
           yield Saga.call(displayNewMessageNotification, unboxRes, payload.c, payload.b, payload.d)
         }
       } catch (err) {
-        console.info('failed to unbox silent notification', err)
+        logger.info('failed to unbox silent notification', err)
       }
     } else if (payload.type === 'chat.newmessage') {
       const {convID} = payload
       // Check for conversation ID so we know where to navigate to
       if (!convID) {
-        console.error('Push chat notification payload missing conversation ID')
+        logger.error('Push chat notification payload missing conversation ID')
         return
       }
       yield Saga.put(navigateTo([chatTab, convID]))
     } else if (payload.type === 'follow') {
       const {username} = payload
       if (!username) {
-        console.error('Follow notification payload missing username', JSON.stringify(payload))
+        logger.error('Follow notification payload missing username', JSON.stringify(payload))
         return
       }
-      console.info('Push notification: follow received, follower= ', username)
+      logger.info('Push notification: follow received, follower= ', username)
       yield Saga.put(createShowUserProfile({username}))
     } else {
-      console.error('Push notification payload missing or unknown type')
+      logger.error('Push notification payload missing or unknown type')
     }
   }
 }
@@ -117,7 +118,7 @@ function* savePushTokenSaga(): Saga.SagaGenerator<any, any> {
       args: args,
     })
   } catch (err) {
-    console.warn('Error trying to save push token:', err)
+    logger.warn('Error trying to save push token:', err)
   }
 }
 
@@ -137,7 +138,7 @@ function* deletePushTokenSaga(): Saga.SagaGenerator<any, any> {
     const {tokenType} = (yield Saga.select(pushSelector): any)
     if (!tokenType) {
       // No push token to remove.
-      console.log('Not deleting push token -- none to remove')
+      logger.info('Not deleting push token -- none to remove')
       return
     }
 
@@ -153,7 +154,7 @@ function* deletePushTokenSaga(): Saga.SagaGenerator<any, any> {
       args: args,
     })
   } catch (err) {
-    console.warn('Error trying to delete push token:', err)
+    logger.warn('Error trying to delete push token:', err)
   }
 }
 

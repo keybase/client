@@ -1,4 +1,5 @@
 // @flow
+import logger from '../../logger'
 import {
   Box,
   Icon,
@@ -68,7 +69,7 @@ class Dropdown extends React.Component<Props, State> {
       if (this.props.onOther) {
         this.props.onOther()
       } else {
-        console.warn('otherValue selected, yet no onOther handler')
+        logger.warn('otherValue selected, yet no onOther handler')
       }
     } else if (this.props.onClick) {
       this.props.onClick(this.state.value || '', (this.props.options || []).indexOf(this.state.value || ''))

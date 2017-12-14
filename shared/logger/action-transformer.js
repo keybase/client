@@ -4,6 +4,7 @@
 
 import * as I from 'immutable'
 import * as RouteTreeConstants from '../constants/route-tree'
+import * as ChatGen from '../actions/chat-gen'
 import type {TypedState} from '../constants/reducer'
 import {getPath} from '../route-tree'
 
@@ -26,6 +27,14 @@ const pathActionTransformer: ActionTransformer<*, *> = (action, oldState) => {
   }
 }
 
+const safeServerMessageMap = (m: any) => ({
+  key: m.key,
+  messageID: m.messageID,
+  messageState: m.messageState,
+  outboxID: m.outboxID,
+  type: m.type,
+})
+
 const defaultTransformer: ActionTransformer<*, *> = ({type}) => ({type})
 
 const actionTransformMap: {[key: string]: ActionTransformer<*, *>} = {
@@ -34,6 +43,51 @@ const actionTransformMap: {[key: string]: ActionTransformer<*, *>} = {
   [RouteTreeConstants.navigateAppend]: pathActionTransformer,
   [RouteTreeConstants.setRouteState]: pathActionTransformer,
   [RouteTreeConstants.resetRoute]: pathActionTransformer,
+
+  [ChatGen.loadAttachmentPreview]: (action: ChatGen.LoadAttachmentPreviewPayload) => ({
+    payload: {
+      messageKey: action.payload.messageKey,
+    },
+    type: action.type,
+  }),
+  [ChatGen.attachmentLoaded]: (action: ChatGen.AttachmentLoadedPayload) => ({
+    payload: {
+      messageKey: action.payload.messageKey,
+      isPreview: action.payload.isPreview,
+    },
+    type: action.type,
+  }),
+
+  [ChatGen.downloadProgress]: (action: ChatGen.DownloadProgressPayload) => ({
+    payload: {
+      messageKey: action.payload.messageKey,
+      isPreview: action.payload.messageKey,
+      progress: action.payload.progress === 0 ? 'zero' : action.payload.progress === 1 ? 'one' : 'partial',
+    },
+    type: action.type,
+  }),
+
+  [ChatGen.appendMessages]: (action: ChatGen.AppendMessagesPayload) => ({
+    payload: {
+      conversationIDKey: action.payload.conversationIDKey,
+      messages: action.payload.messages.map(safeServerMessageMap),
+      svcShouldDisplayNotification: action.payload.svcShouldDisplayNotification,
+    },
+    type: action.type,
+  }),
+  [ChatGen.prependMessages]: (action: ChatGen.PrependMessagesPayload) => ({
+    payload: {
+      conversationIDKey: action.payload.conversationIDKey,
+      messages: action.payload.messages.map(safeServerMessageMap),
+      moreToLoad: action.payload.moreToLoad,
+    },
+    type: action.type,
+  }),
+
+  [ChatGen.updateTempMessage]: (action: ChatGen.UpdateTempMessagePayload) => ({
+    payload: {conversationIDKey: action.payload.conversationIDKey, outboxIDKey: action.payload.outboxIDKey},
+    type: action.type,
+  }),
 }
 
 const transformActionForLog: ActionTransformer<*, *> = (action, state) =>
