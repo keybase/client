@@ -85,18 +85,15 @@ export default class TrackerRender extends PureComponent<RenderProps> {
                 paddingTop: globalMargins.tiny,
               }}
             >
-              {this.props.userInfo.showcasedTeams.map(team => {
-                let targetRect
-                console.warn(this.props)
-                return (
+              {this.props.userInfo.showcasedTeams.map(team => (
                 <Box
                   key={team.fqName}
                   onClick={event => {
                     const node = event.target instanceof window.HTMLElement ? event.target : null
-                    targetRect = node && node.getBoundingClientRect()
-                    console.warn('targetRect is', targetRect)
+                    const targetRect = node && node.getBoundingClientRect()
                     if (!this.props.showTeam || team.fqName !== this.props.showTeam.fqName) {
                       this.props.onUpdateSelectedTeam(team.fqName)
+                      this.props.onSetSelectedTeamRect(targetRect)
                       this.props._onSetTeamJoinError('')
                       this.props._onSetTeamJoinSuccess(false)
                       this.props._loadTeams()
@@ -115,14 +112,13 @@ export default class TrackerRender extends PureComponent<RenderProps> {
                     <Box key={team.fqName + 'popup'} style={{zIndex: 50}}>
                       <ModalPopupComponent
                         {...this.props}
-                        targetRect={targetRect}
+                        targetRect={this.props.selectedTeamRect}
                         position="top left"
                         style={{zIndex: 50}}
                         popupNode={<Box />}
                         onClosePopup={() => {
                           this.props.onUpdateSelectedTeam('')
-                          console.warn('targetRect was', targetRect)
-                          targetRect = null
+                          this.props.onSetSelectedTeamRect(null)
                         }}
                       />
                     </Box>}
@@ -153,7 +149,7 @@ export default class TrackerRender extends PureComponent<RenderProps> {
                     </Text>
                   </Box>
                 </Box>
-              )})}
+              ))}
             </Box>}
 
           <UserProofs
