@@ -4324,6 +4324,18 @@ func (mr *MockMDServerMockRecorder) ReleaseLock(ctx, tlfID, lockID interface{}) 
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ReleaseLock", reflect.TypeOf((*MockMDServer)(nil).ReleaseLock), ctx, tlfID, lockID)
 }
 
+// StartImplicitTeamMigration mocks base method
+func (m *MockMDServer) StartImplicitTeamMigration(ctx context.Context, id tlf.ID) error {
+	ret := m.ctrl.Call(m, "StartImplicitTeamMigration", ctx, id)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// StartImplicitTeamMigration indicates an expected call of StartImplicitTeamMigration
+func (mr *MockMDServerMockRecorder) StartImplicitTeamMigration(ctx, id interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "StartImplicitTeamMigration", reflect.TypeOf((*MockMDServer)(nil).StartImplicitTeamMigration), ctx, id)
+}
+
 // PruneBranch mocks base method
 func (m *MockMDServer) PruneBranch(ctx context.Context, id tlf.ID, bid kbfsmd.BranchID) error {
 	ret := m.ctrl.Call(m, "PruneBranch", ctx, id, bid)
@@ -4596,6 +4608,18 @@ func (m *MockmdServerLocal) ReleaseLock(ctx context.Context, tlfID tlf.ID, lockI
 // ReleaseLock indicates an expected call of ReleaseLock
 func (mr *MockmdServerLocalMockRecorder) ReleaseLock(ctx, tlfID, lockID interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ReleaseLock", reflect.TypeOf((*MockmdServerLocal)(nil).ReleaseLock), ctx, tlfID, lockID)
+}
+
+// StartImplicitTeamMigration mocks base method
+func (m *MockmdServerLocal) StartImplicitTeamMigration(ctx context.Context, id tlf.ID) error {
+	ret := m.ctrl.Call(m, "StartImplicitTeamMigration", ctx, id)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// StartImplicitTeamMigration indicates an expected call of StartImplicitTeamMigration
+func (mr *MockmdServerLocalMockRecorder) StartImplicitTeamMigration(ctx, id interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "StartImplicitTeamMigration", reflect.TypeOf((*MockmdServerLocal)(nil).StartImplicitTeamMigration), ctx, id)
 }
 
 // PruneBranch mocks base method

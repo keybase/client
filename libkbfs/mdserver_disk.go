@@ -462,6 +462,12 @@ func (*MDServerDisk) ReleaseLock(ctx context.Context,
 	panic("ReleaseLock called on *MDServerDisk")
 }
 
+// StartImplicitTeamMigration implements the MDServer interface.
+func (md *MDServerDisk) StartImplicitTeamMigration(
+	ctx context.Context, id tlf.ID) (err error) {
+	panic("StartImplicitTeamMigration called on *MDServerDisk")
+}
+
 // PruneBranch implements the MDServer interface for MDServerDisk.
 func (md *MDServerDisk) PruneBranch(ctx context.Context, id tlf.ID, bid kbfsmd.BranchID) error {
 	if err := checkContext(ctx); err != nil {

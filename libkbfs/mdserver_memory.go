@@ -88,6 +88,7 @@ type mdServerMemShared struct {
 	// tracks expire time and holder
 	lockIDs              map[mdLockMemKey]mdLockMemVal
 	implicitTeamsEnabled bool
+	iTeamMigrationLocks  map[tlf.ID]struct{}
 
 	updateManager *mdServerLocalUpdateManager
 }
@@ -122,6 +123,7 @@ func NewMDServerMemory(config mdServerLocalConfig) (*MDServerMemory, error) {
 		readerKeyBundleDb:   readerKeyBundleDb,
 		truncateLockManager: &truncateLockManager,
 		lockIDs:             make(map[mdLockMemKey]mdLockMemVal),
+		iTeamMigrationLocks: make(map[tlf.ID]struct{}),
 		updateManager:       newMDServerLocalUpdateManager(),
 	}
 	mdserv := &MDServerMemory{config, log, &shared}
@@ -465,6 +467,19 @@ func (md *MDServerMemory) GetRange(ctx context.Context, id tlf.ID,
 	}
 }
 
+func (md *MDServerMemory) iTeamMigrationRemoveLock(id tlf.ID) {
+	md.lock.Lock()
+	defer md.lock.Unlock()
+	delete(md.iTeamMigrationLocks, id)
+}
+
+func (md *MDServerMemory) iTeamMigrationIsLocked(id tlf.ID) bool {
+	md.lock.Lock()
+	defer md.lock.Unlock()
+	_, ok := md.iTeamMigrationLocks[id]
+	return ok
+}
+
 // Put implements the MDServer interface for MDServerMemory.
 func (md *MDServerMemory) Put(ctx context.Context, rmds *RootMetadataSigned,
 	extra kbfsmd.ExtraMetadata, lc *keybase1.LockContext, _ keybase1.MDPriority) error {
@@ -715,6 +730,15 @@ func (md *MDServerMemory) ReleaseLock(ctx context.Context,
 	md.lock.Lock()
 	defer md.lock.Unlock()
 	md.releaseLockLocked(ctx, tlfID, lockID)
+	return nil
+}
+
+// StartImplicitTeamMigration implements the MDServer interface.
+func (md *MDServerMemory) StartImplicitTeamMigration(
+	ctx context.Context, id tlf.ID) (err error) {
+	md.lock.Lock()
+	defer md.lock.Unlock()
+	md.iTeamMigrationLocks[id] = struct{}{}
 	return nil
 }
 

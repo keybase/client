@@ -15,6 +15,7 @@ import (
 	"github.com/keybase/kbfs/kbfscrypto"
 	"github.com/keybase/kbfs/kbfsmd"
 	"github.com/keybase/kbfs/tlf"
+	"github.com/pkg/errors"
 	"golang.org/x/net/context"
 )
 
@@ -1038,6 +1039,22 @@ func (k *KeybaseServiceBase) TeamChangedByName(ctx context.Context,
 func (k *KeybaseServiceBase) TeamDeleted(ctx context.Context,
 	teamID keybase1.TeamID) error {
 	return nil
+}
+
+// StartMigration implements keybase1.ImplicitTeamMigrationInterface for
+// KeybaseServiceBase.
+func (k *KeybaseServiceBase) StartMigration(ctx context.Context,
+	folder keybase1.Folder) (err error) {
+	mdServer := k.config.MDServer()
+	if mdServer == nil {
+		return errors.New("no mdserver")
+	}
+	fav := NewFavoriteFromFolder(folder)
+	handle, err := GetHandleFromFolderNameAndType(ctx, k.config.KBPKI(), k.config.MDOps(), fav.Name, fav.Type)
+	if err != nil {
+		return err
+	}
+	return k.config.MDServer().StartImplicitTeamMigration(ctx, handle.TlfID())
 }
 
 // GetTLFCryptKeys implements the TlfKeysInterface interface for

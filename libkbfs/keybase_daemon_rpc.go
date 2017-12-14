@@ -51,6 +51,8 @@ var _ rpc.ConnectionHandler = (*KeybaseDaemonRPC)(nil)
 
 var _ KeybaseService = (*KeybaseDaemonRPC)(nil)
 
+var _ keybase1.ImplicitTeamMigrationInterface = (*KeybaseDaemonRPC)(nil)
+
 // NewKeybaseDaemonRPC makes a new KeybaseDaemonRPC that makes RPC
 // calls using the socket of the given Keybase context.
 func NewKeybaseDaemonRPC(config Config, kbCtx Context, log logger.Logger,

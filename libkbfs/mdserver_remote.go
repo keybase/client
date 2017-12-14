@@ -712,6 +712,20 @@ func (md *MDServerRemote) ReleaseLock(ctx context.Context,
 	})
 }
 
+// StartImplicitTeamMigration implements the MDServer interface.
+func (md *MDServerRemote) StartImplicitTeamMigration(
+	ctx context.Context, id tlf.ID) (err error) {
+	ctx = rpc.WithFireNow(ctx)
+	md.log.LazyTrace(ctx,
+		"MDServer: StartImplicitTeamMigration %s", id)
+	defer func() {
+		md.deferLog.LazyTrace(ctx,
+			"MDServer: StartImplicitTeamMigration %s (err=%v)", id, err)
+	}()
+
+	return md.getClient().StartImplicitTeamMigration(ctx, id.String())
+}
+
 // PruneBranch implements the MDServer interface for MDServerRemote.
 func (md *MDServerRemote) PruneBranch(
 	ctx context.Context, id tlf.ID, bid kbfsmd.BranchID) (err error) {

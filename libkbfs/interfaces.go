@@ -1388,6 +1388,11 @@ type MDServer interface {
 	// expired, this is a no-op.
 	ReleaseLock(ctx context.Context, tlfID tlf.ID, lockID keybase1.LockID) error
 
+	// StartImplicitTeamMigration tells mdserver to put a implicit team
+	// migration lock on id, which prevents any rekey MD writes from going
+	// in.
+	StartImplicitTeamMigration(ctx context.Context, id tlf.ID) (err error)
+
 	// PruneBranch prunes all unmerged history for the given TLF branch.
 	PruneBranch(ctx context.Context, id tlf.ID, bid kbfsmd.BranchID) error
 
