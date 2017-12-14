@@ -2021,8 +2021,7 @@ type SetTeamMemberShowcaseArg struct {
 }
 
 type CanUserPerformArg struct {
-	Name string        `codec:"name" json:"name"`
-	Op   TeamOperation `codec:"op" json:"op"`
+	Name string `codec:"name" json:"name"`
 }
 
 type TeamRotateKeyArg struct {
@@ -2069,7 +2068,7 @@ type TeamsInterface interface {
 	GetTeamAndMemberShowcase(context.Context, string) (TeamAndMemberShowcase, error)
 	SetTeamShowcase(context.Context, SetTeamShowcaseArg) error
 	SetTeamMemberShowcase(context.Context, SetTeamMemberShowcaseArg) error
-	CanUserPerform(context.Context, CanUserPerformArg) (bool, error)
+	CanUserPerform(context.Context, string) ([]bool, error)
 	TeamRotateKey(context.Context, TeamID) error
 	TeamDebug(context.Context, TeamID) (TeamDebugRes, error)
 }
@@ -2601,7 +2600,7 @@ func TeamsProtocol(i TeamsInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]CanUserPerformArg)(nil), args)
 						return
 					}
-					ret, err = i.CanUserPerform(ctx, (*typedArgs)[0])
+					ret, err = i.CanUserPerform(ctx, (*typedArgs)[0].Name)
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -2813,7 +2812,8 @@ func (c TeamsClient) SetTeamMemberShowcase(ctx context.Context, __arg SetTeamMem
 	return
 }
 
-func (c TeamsClient) CanUserPerform(ctx context.Context, __arg CanUserPerformArg) (res bool, err error) {
+func (c TeamsClient) CanUserPerform(ctx context.Context, name string) (res []bool, err error) {
+	__arg := CanUserPerformArg{Name: name}
 	err = c.Cli.Call(ctx, "keybase.1.teams.canUserPerform", []interface{}{__arg}, &res)
 	return
 }

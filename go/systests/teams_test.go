@@ -923,38 +923,41 @@ func TestTeamCanUserPerform(t *testing.T) {
 	require.NoError(t, err)
 	subteam := team + ".mysubteam"
 
-	callCanPerform := func(user *userPlusDevice, teamname string, op keybase1.TeamOperation) bool {
-		ret, err := teams.CanUserPerform(context.TODO(), user.tc.G, teamname, op)
-		t.Logf("teams.CanUserPerform(%s,%s,%v)", user.username, teamname, op)
+	callCanPerform := func(user *userPlusDevice, teamname string) []bool {
+		ret, err := teams.CanUserPerform(context.TODO(), user.tc.G, teamname)
+		t.Logf("teams.CanUserPerform(%s,%s)", user.username, teamname)
 		require.NoError(t, err)
 		return ret
 	}
+	annPerms := callCanPerform(ann, team)
+	bobPerms := callCanPerform(bob, team)
+	pamPerms := callCanPerform(pam, team)
+	eddPerms := callCanPerform(edd, team)
 
 	for _, op := range keybase1.TeamOperationMap {
 		// All ops should be fine for owners and admins
-		require.True(t, callCanPerform(ann, team, op))
-		require.True(t, callCanPerform(bob, team, op))
+		require.True(t, annPerms[op])
+		require.True(t, bobPerms[op])
 
 		// Some ops are fine for writers
-		ret := callCanPerform(pam, team, op)
 		switch op {
 		case keybase1.TeamOperation_CREATE_CHANNEL,
 			keybase1.TeamOperation_SET_MEMBER_SHOWCASE:
-			require.True(t, ret)
+			require.True(t, pamPerms[op])
 		default:
-			require.False(t, ret)
+			require.False(t, pamPerms[op])
 		}
 
 		// Only SetMemberShowcase (by default) is available for readers
-		ret = callCanPerform(edd, team, op)
 		switch op {
 		case keybase1.TeamOperation_SET_MEMBER_SHOWCASE:
-			require.True(t, ret)
+			require.True(t, eddPerms[op])
 		default:
-			require.False(t, ret)
+			require.False(t, eddPerms[op])
 		}
 	}
-
+	annPerms = callCanPerform(ann, subteam)
+	bobPerms = callCanPerform(bob, subteam)
 	for _, op := range keybase1.TeamOperationMap {
 		// Some ops are fine for implicit admins
 		switch op {
@@ -962,15 +965,15 @@ func TestTeamCanUserPerform(t *testing.T) {
 			keybase1.TeamOperation_MANAGE_SUBTEAMS,
 			keybase1.TeamOperation_SET_TEAM_SHOWCASE,
 			keybase1.TeamOperation_CHANGE_OPEN_TEAM:
-			require.True(t, callCanPerform(ann, subteam, op))
-			require.True(t, callCanPerform(bob, subteam, op))
+			require.True(t, annPerms[op])
+			require.True(t, bobPerms[op])
 		default:
-			require.False(t, callCanPerform(ann, subteam, op))
-			require.False(t, callCanPerform(bob, subteam, op))
+			require.False(t, annPerms[op])
+			require.False(t, annPerms[op])
 		}
 	}
 
 	// Invalid team for pam
-	_, err = teams.CanUserPerform(context.TODO(), pam.tc.G, subteam, keybase1.TeamOperation_CREATE_CHANNEL)
+	_, err = teams.CanUserPerform(context.TODO(), pam.tc.G, subteam)
 	require.Error(t, err)
 }

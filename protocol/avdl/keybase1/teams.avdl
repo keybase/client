@@ -700,7 +700,8 @@ protocol teams {
     SET_MEMBER_SHOWCASE_7,
     CHANGE_OPEN_TEAM_8
   }
-  bool canUserPerform(string name, TeamOperation op);
+  
+  array<boolean> canUserPerform(string name);
 
   void teamRotateKey(TeamID teamID);
 

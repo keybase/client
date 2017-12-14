@@ -407,10 +407,10 @@ func (h *TeamsHandler) SetTeamMemberShowcase(ctx context.Context, arg keybase1.S
 	return err
 }
 
-func (h *TeamsHandler) CanUserPerform(ctx context.Context, arg keybase1.CanUserPerformArg) (ret bool, err error) {
+func (h *TeamsHandler) CanUserPerform(ctx context.Context, teamname string) (ret []bool, err error) {
 	ctx = libkb.WithLogTag(ctx, "TM")
-	defer h.G().CTraceTimed(ctx, fmt.Sprintf("CanUserPerform(%s, %v)", arg.Name, arg.Op), func() error { return err })()
-	return teams.CanUserPerform(ctx, h.G().ExternalG(), arg.Name, arg.Op)
+	defer h.G().CTraceTimed(ctx, fmt.Sprintf("CanUserPerform(%s)", teamname), func() error { return err })()
+	return teams.CanUserPerform(ctx, h.G().ExternalG(), teamname)
 }
 
 func (h *TeamsHandler) TeamRotateKey(ctx context.Context, teamID keybase1.TeamID) (err error) {

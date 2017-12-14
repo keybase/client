@@ -3579,7 +3579,7 @@ export type TeamType =0 // NONE_0
  | 2 // MODERN_2
 
 
-export type TeamsCanUserPerformRpcParam = {|name: String,op: TeamOperation,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type TeamsCanUserPerformRpcParam = {|name: String,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
 export type TeamsGetTeamAndMemberShowcaseRpcParam = {|name: String,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
@@ -3959,7 +3959,7 @@ type SimpleFSSimpleFSReadResult = FileContent
 type SimpleFSSimpleFSStatResult = Dirent
 type StreamUiReadResult = Bytes
 type StreamUiWriteResult = Int
-type TeamsCanUserPerformResult = Bool
+type TeamsCanUserPerformResult = ?Array<Boolean>
 type TeamsGetTeamAndMemberShowcaseResult = TeamAndMemberShowcase
 type TeamsGetTeamRootIDResult = TeamID
 type TeamsGetTeamShowcaseResult = TeamShowcase

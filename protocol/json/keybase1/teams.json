@@ -2140,13 +2140,12 @@
         {
           "name": "name",
           "type": "string"
-        },
-        {
-          "name": "op",
-          "type": "TeamOperation"
         }
       ],
-      "response": "bool"
+      "response": {
+        "type": "array",
+        "items": "boolean"
+      }
     },
     "teamRotateKey": {
       "request": [

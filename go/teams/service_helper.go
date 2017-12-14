@@ -1176,10 +1176,10 @@ func CreateTLF(ctx context.Context, g *libkb.GlobalContext, arg keybase1.CreateT
 	})
 }
 
-func CanUserPerform(ctx context.Context, g *libkb.GlobalContext, teamname string, op keybase1.TeamOperation) (ret bool, err error) {
+func CanUserPerform(ctx context.Context, g *libkb.GlobalContext, teamname string) (ret []bool, err error) {
 	me, err := libkb.LoadMe(libkb.NewLoadUserArgWithContext(ctx, g))
 	if err != nil {
-		return false, err
+		return
 	}
 	meUV := me.ToUserVersion()
 
@@ -1189,7 +1189,7 @@ func CanUserPerform(ctx context.Context, g *libkb.GlobalContext, teamname string
 		Public:  false, // assume private team
 	})
 	if err != nil {
-		return false, err
+		return
 	}
 
 	isImplicitAdmin := func() (bool, error) {
@@ -1252,24 +1252,32 @@ func CanUserPerform(ctx context.Context, g *libkb.GlobalContext, teamname string
 		return showcase.AnyMemberShowcase, nil
 	}
 
-	switch op {
-	case keybase1.TeamOperation_MANAGE_MEMBERS,
-		keybase1.TeamOperation_MANAGE_SUBTEAMS,
-		keybase1.TeamOperation_SET_TEAM_SHOWCASE,
-		keybase1.TeamOperation_CHANGE_OPEN_TEAM:
-		ret, err = isAdminOrImplicitAdmin()
-	case keybase1.TeamOperation_CREATE_CHANNEL:
-		ret, err = isWriter()
-	case keybase1.TeamOperation_SET_MEMBER_SHOWCASE:
-		ret, err = canMemberShowcase()
-	case keybase1.TeamOperation_DELETE_CHANNEL,
-		keybase1.TeamOperation_RENAME_CHANNEL,
-		keybase1.TeamOperation_EDIT_CHANNEL_DESCRIPTION:
-		ret, err = isAdmin() // no implicit admins
-	default:
-		err = fmt.Errorf("Unknown op: %v", op)
-	}
+	perm := false
 
+	for i := 0; i < len(keybase1.TeamOperationMap); i++ {
+		op := keybase1.TeamOperation(i)
+		switch op {
+		case keybase1.TeamOperation_MANAGE_MEMBERS,
+			keybase1.TeamOperation_MANAGE_SUBTEAMS,
+			keybase1.TeamOperation_SET_TEAM_SHOWCASE,
+			keybase1.TeamOperation_CHANGE_OPEN_TEAM:
+			perm, err = isAdminOrImplicitAdmin()
+		case keybase1.TeamOperation_CREATE_CHANNEL:
+			perm, err = isWriter()
+		case keybase1.TeamOperation_SET_MEMBER_SHOWCASE:
+			perm, err = canMemberShowcase()
+		case keybase1.TeamOperation_DELETE_CHANNEL,
+			keybase1.TeamOperation_RENAME_CHANNEL,
+			keybase1.TeamOperation_EDIT_CHANNEL_DESCRIPTION:
+			perm, err = isAdmin() // no implicit admins
+		default:
+			err = fmt.Errorf("Unknown op: %d", op)
+		}
+		if err != nil {
+			break
+		}
+		ret[op] = perm
+	}
 	return ret, err
 }
 
