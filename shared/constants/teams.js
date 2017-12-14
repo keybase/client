@@ -58,6 +58,7 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   teamNameToMembers: I.Map(),
   teamNameToRequests: I.Map(),
   teamNameToRole: I.Map(),
+  teamNameToCanPerform: I.Map(),
   teamNameToTeamSettings: I.Map(),
   teamNameToPublicitySettings: I.Map(),
   teammembercounts: I.Map(),
@@ -84,6 +85,18 @@ const getTopicFromConvID = (state: TypedState, conversationIDKey: ChatTypes.Conv
 const getRole = (state: TypedState, teamname: Types.Teamname): ?Types.TeamRoleType =>
   state.entities.getIn(['teams', 'teamNameToRole', teamname], null)
 
+const getCanPerform = (
+  state: TypedState,
+  teamname: Types.Teamname
+): I.Map<RPCTypes.TeamOperation, boolean> => {
+  // make a default map
+  var defaultOps = I.Map()
+  for (let val of Object.values(RPCTypes.teamsTeamOperation)) {
+    defaultOps.set(val, false)
+  }
+  return state.entities.getIn(['teams', 'teamNameToCanPerform', teamname], defaultOps)
+}
+
 const isAdmin = (type: ?Types.TeamRoleType) => type === 'admin'
 const isOwner = (type: ?Types.TeamRoleType) => type === 'owner'
 
@@ -102,6 +115,7 @@ export const publicAdminsLimit = 6
 export {
   getConvIdsFromTeamName,
   getRole,
+  getCanPerform,
   userIsInTeamHelper,
   getTeamNameFromConvID,
   getChannelNameFromConvID,

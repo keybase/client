@@ -375,6 +375,17 @@ const _getDetails = function*(action: TeamsGen.GetDetailsPayload): Saga.SagaGene
       team: publicity.teamShowcase.isShowcased,
     }
 
+    let operationsMap: Map<number, boolean> = new Map()
+    for (var op in RPCTypes.teamsTeamOperation) {
+      operationsMap.set(
+        RPCTypes.teamsTeamOperation[op],
+        yield Saga.call(RPCTypes.teamsCanUserPerformRpcPromise, {
+          name: teamname,
+          op: RPCTypes.teamsTeamOperation[op],
+        })
+      )
+    }
+
     yield Saga.all([
       Saga.put(replaceEntity(['teams', 'teamNameToMembers'], I.Map([[teamname, I.Set(infos)]]))),
       Saga.put(replaceEntity(['teams', 'teamNameToMemberUsernames'], I.Map([[teamname, memberNames]]))),
@@ -388,6 +399,7 @@ const _getDetails = function*(action: TeamsGen.GetDetailsPayload): Saga.SagaGene
       Saga.put(replaceEntity(['teams', 'teamNameToTeamSettings'], I.Map({[teamname]: details.settings}))),
       Saga.put(replaceEntity(['teams', 'teamNameToInvites'], I.Map([[teamname, I.Set(invitesMap)]]))),
       Saga.put(replaceEntity(['teams', 'teamNameToPublicitySettings'], I.Map({[teamname]: publicityMap}))),
+      Saga.put(replaceEntity(['teams', 'teamNameToCanPerform'], I.Map({[teamname]: operationsMap}))),
     ])
   } finally {
     yield Saga.put(replaceEntity(['teams', 'teamNameToLoading'], I.Map([[teamname, false]])))

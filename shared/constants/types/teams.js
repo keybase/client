@@ -87,6 +87,7 @@ export type _State = {
   teamNameToLoading: I.Map<Teamname, boolean>,
   teamNameToRequests: I.Map<Teamname, I.Set<RequestInfo>>,
   teamNameToRole: I.Map<Teamname, TeamRoleType>,
+  teamNameToCanPerform: I.Map<Teamname, I.Map<RPCTypes.TeamOperation, boolean>>,
   teamNameToTeamSettings: I.Map<Teamname, TeamSettings>,
   teamNameToPublicitySettings: I.Map<Teamname, _PublicitySettings>,
   teamnames: I.Set<Teamname>,

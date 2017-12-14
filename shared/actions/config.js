@@ -207,7 +207,6 @@ function _loadAvatarHelper(action: {payload: {names: Array<string>, endpoint: st
       args: [{key, value: names.join(',')}, {key: 'formats', value: 'square_360,square_200,square_40'}],
       endpoint,
     }),
-    // $FlowIssue this works but flow-typed doesnt like it
     Promise.resolve(names),
   ])
 }
