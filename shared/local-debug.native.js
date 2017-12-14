@@ -91,9 +91,10 @@ export const {
 } = config
 
 export function setup(store: any) {
-  const updateLiveConfig = () =>
-    // $FlowIssue doesn't like the require
-    store.dispatch(DevGen.createUpdateDebugConfig({config: require('./local-debug-live')}))
+  const updateLiveConfig = () => {
+    const config = require('./local-debug-live')
+    store.dispatch(DevGen.createUpdateDebugConfig({...config}))
+  }
 
   if (module.hot) {
     module.hot.accept(() => updateLiveConfig())

@@ -2,6 +2,8 @@ package teams
 
 import (
 	"fmt"
+	"regexp"
+	"strings"
 
 	"crypto/hmac"
 	"crypto/rand"
@@ -16,26 +18,22 @@ import (
 
 	libkb "github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
-	"github.com/keybase/saltpack/encoding/basex"
 )
-
-// How many random bytes are needed to create "Invite Key" token of
-// chosen alphabet and length.
-const SeitanRawIKeyLength = 10
 
 // This is expected seitan token length, the secret "Invite Key" that
 // is generated on one client and distributed to another via face-to-
 // face meeting, use of a trusted courier etc.
 //
-// We only try to distinguish Seitan tokens from normal e-mail tokens
-// via length so make sure they are never the same length. Right now
-// server-trust e-mail tokens are 12 characters.
-const SeitanEncodedIKeyLength = 16
+// Seitan tokens have a '+' as the fifth character. We use this
+// to distinguish from email invite tokens (and team names).
+// See `IsSeitany`
+const SeitanEncodedIKeyLength = 18
+const seitanEncodedIKeyPlusOffset = 5
 
-// Key-Base 33 encoding. lower case letters except 'l' and digits except for '0' and '1'.
-const KBase33EncodeStd = "abcdefghijkmnopqrstuvwxyz23456789"
-
-var Base33Encoding = basex.NewEncoding(KBase33EncodeStd, SeitanRawIKeyLength, "")
+// Key-Base 30 encoding. lower case letters except "ilot", and digits except for '0' and '1'.
+// See TestSeitanParams for a test to make sure these two parameters match up.
+const KBase30EncodeStd = "abcdefghjkmnpqrsuvwxyz23456789"
+const base30BitMask = byte(0x1f)
 
 // "Invite Key"
 type SeitanIKey string
@@ -52,43 +50,81 @@ type SeitanPEIKey struct {
 }
 
 func GenerateIKey() (ikey SeitanIKey, err error) {
-	rawKey, err := libkb.RandBytes(SeitanRawIKeyLength)
-	if err != nil {
-		return ikey, err
+
+	alphabet := []byte(KBase30EncodeStd)
+	randEncodingByte := func() (byte, error) {
+		for {
+			var b [1]byte
+			_, err := rand.Read(b[:])
+			if err != nil {
+				return byte(0), err
+			}
+			i := int(b[0] & base30BitMask)
+			if i < len(alphabet) {
+				return alphabet[i], nil
+			}
+		}
 	}
 
-	var encodedKey [SeitanEncodedIKeyLength]byte
-	Base33Encoding.Encode(encodedKey[:], rawKey)
-
-	var verify [SeitanRawIKeyLength]byte
-	_, err = Base33Encoding.Decode(verify[:], encodedKey[:])
-	if err != nil {
-		return ikey, err
+	var buf []byte
+	for i := 0; i < SeitanEncodedIKeyLength; i++ {
+		if i == seitanEncodedIKeyPlusOffset {
+			buf = append(buf, '+')
+		} else {
+			b, err := randEncodingByte()
+			if err != nil {
+				return ikey, err
+			}
+			buf = append(buf, b)
+		}
 	}
+	return SeitanIKey(string(buf)), nil
+}
 
-	if !libkb.SecureByteArrayEq(verify[:], rawKey) {
-		return ikey, errors.New("Internal error - ikey encoding failed")
+// IsSeitany is a very conservative check of whether a given string looks
+// like a Seitan token. We want to err on the side of considering strings
+// Seitan tokens, since we don't mistakenly want to send botched Seitan
+// tokens to the server.
+func IsSeitany(s string) bool {
+	return len(s) > 5 && strings.IndexByte(s, '+') > 1
+}
+
+var tokenPasteRegexp = regexp.MustCompile(`token\: [a-z0-9+]{16,18}`)
+
+// Returns the string that might be the token, and whether the content looked like a token paste.
+func ParseSeitanTokenFromPaste(token string) (string, bool) {
+	// If the person pasted the whole seitan SMS message in, then let's parse out the token
+	if strings.Contains(token, "token: ") {
+		m := tokenPasteRegexp.FindStringSubmatch(token)
+		if len(m) == 1 {
+			return strings.Split(m[0], " ")[1], true
+		}
+		return token, true
 	}
-
-	ikey = SeitanIKey(encodedKey[:])
-	return ikey, nil
+	if IsSeitany(token) {
+		return token, true
+	}
+	return token, false
 }
 
 // GenerateIKeyFromString safely creates SeitanIKey value from
-// plaintext string. Only length is checked - any 16-character token
-// can be "Invite Key". Alphabet is not checked, as it is only a hint
-// for token generation and it can change over time, but we assume
-// that token length stays the same.
+// plaintext string. Only format is checked - any 18-character token
+// with '+' character at position 5 can be "Invite Key". Alphabet is
+// not checked, as it is only a hint for token generation and it can
+// change over time, but we assume that token length stays the same.
 func GenerateIKeyFromString(token string) (ikey SeitanIKey, err error) {
 	if len(token) != SeitanEncodedIKeyLength {
 		return ikey, fmt.Errorf("invalid token length: expected %d characters, got %d", SeitanEncodedIKeyLength, len(token))
 	}
+	if token[seitanEncodedIKeyPlusOffset] != '+' {
+		return ikey, fmt.Errorf("invalid token format: expected %dth character to be '+'", seitanEncodedIKeyPlusOffset+1)
+	}
 
-	return SeitanIKey(token), nil
+	return SeitanIKey(strings.ToLower(token)), nil
 }
 
 func (ikey SeitanIKey) String() string {
-	return string(ikey)
+	return strings.ToLower(string(ikey))
 }
 
 const (
@@ -102,7 +138,7 @@ const (
 type SeitanSIKey [SeitanScryptKeylen]byte
 
 func (ikey SeitanIKey) GenerateSIKey() (sikey SeitanSIKey, err error) {
-	ret, err := scrypt.Key([]byte(ikey), nil, SeitanScryptCost, SeitanScryptR, SeitanScryptP, SeitanScryptKeylen)
+	ret, err := scrypt.Key([]byte(ikey.String()), nil, SeitanScryptCost, SeitanScryptR, SeitanScryptP, SeitanScryptKeylen)
 	if err != nil {
 		return sikey, err
 	}
@@ -164,7 +200,7 @@ func (ikey SeitanIKey) generatePackedEncryptedIKeyWithSecretKey(secretKey keybas
 }
 
 func (ikey SeitanIKey) GeneratePackedEncryptedIKey(ctx context.Context, team *Team, label keybase1.SeitanIKeyLabel) (peikey SeitanPEIKey, encoded string, err error) {
-	appKey, err := team.SeitanInviteTokenKey(ctx)
+	appKey, err := team.SeitanInviteTokenKeyLatest(ctx)
 	if err != nil {
 		return peikey, encoded, err
 	}
@@ -204,7 +240,7 @@ func (peikey SeitanPEIKey) decryptIKeyAndLabelWithSecretKey(secretKey keybase1.B
 }
 
 func (peikey SeitanPEIKey) DecryptIKeyAndLabel(ctx context.Context, team *Team) (ret keybase1.SeitanIKeyAndLabel, err error) {
-	appKey, err := team.ApplicationKeyAtGeneration(keybase1.TeamApplication_SEITAN_INVITE_TOKEN, peikey.TeamKeyGeneration)
+	appKey, err := team.SeitanInviteTokenKeyAtGeneration(ctx, peikey.TeamKeyGeneration)
 	if err != nil {
 		return ret, err
 	}

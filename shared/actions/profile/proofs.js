@@ -16,8 +16,8 @@ const _registerBTC = (): NavigateTo => navigateTo(['proveEnterUsername'], [peopl
 const _registerZcash = (): NavigateTo => navigateTo(['proveEnterUsername'], [peopleTab])
 
 function* _checkProof(action: ProfileGen.CheckProofPayload): Saga.SagaGenerator<any, any> {
-  const getSigID = (state: TypedState) => state.profile.sigID
-  const sigID = (yield Saga.select(getSigID): any)
+  const state: TypedState = yield Saga.select()
+  const sigID = state.profile.sigID
   if (!sigID) {
     return
   }
@@ -52,20 +52,22 @@ function* _checkProof(action: ProfileGen.CheckProofPayload): Saga.SagaGenerator<
   }
 }
 
-function* _addProof(action: ProfileGen.AddProofPayload): Saga.SagaGenerator<any, any> {
-  yield Saga.put(ProfileGen.createUpdatePlatform({platform: action.payload.platform}))
-  yield Saga.put(ProfileGen.createUpdateErrorText({}))
+function _addProof(action: ProfileGen.AddProofPayload) {
+  const actions = [
+    Saga.put(ProfileGen.createUpdatePlatform({platform: action.payload.platform})),
+    Saga.put(ProfileGen.createUpdateErrorText({})),
+  ]
 
   // Special cases
   switch (action.payload.platform) {
     case 'dnsOrGenericWebSite':
-      yield Saga.put(_askTextOrDNS())
+      actions.push(Saga.put(_askTextOrDNS()))
       break
     case 'zcash':
-      yield Saga.put(_registerZcash())
+      actions.push(Saga.put(_registerZcash()))
       break
     case 'btc':
-      yield Saga.put(_registerBTC())
+      actions.push(Saga.put(_registerBTC()))
       break
     // flow needs this for some reason
     case 'http':
@@ -76,11 +78,13 @@ function* _addProof(action: ProfileGen.AddProofPayload): Saga.SagaGenerator<any,
     case 'github':
     case 'hackernews':
     case 'dns':
-      yield Saga.call(_addServiceProof, action.payload.platform)
+      actions.push(Saga.call(_addServiceProof, action.payload.platform))
       break
     case 'pgp':
-      yield Saga.put(navigateAppend(['pgp'], [peopleTab]))
+      actions.push(Saga.put(navigateAppend(['pgp'], [peopleTab])))
   }
+
+  return Saga.sequentially(actions)
 }
 
 function* _addServiceProof(service: ProvablePlatformsType): Saga.SagaGenerator<any, any> {
@@ -140,7 +144,8 @@ function* _addServiceProof(service: ProvablePlatformsType): Saga.SagaGenerator<a
       yield Saga.put(ProfileGen.createCleanupUsername())
       if (_promptUsernameResponse) {
         yield Saga.put(ProfileGen.createUpdateErrorText({}))
-        const username = yield Saga.select((state: TypedState) => state.profile.username)
+        const state: TypedState = yield Saga.select()
+        const username = state.profile.username
         _promptUsernameResponse.result(username)
         _promptUsernameResponse = null
 
@@ -196,7 +201,7 @@ function* _addServiceProof(service: ProvablePlatformsType): Saga.SagaGenerator<a
           })
         )
       } else {
-        logger.log('Start Proof done: ', incoming.finished.params.sigID)
+        logger.info('Start Proof done: ', incoming.finished.params.sigID)
         yield Saga.put(ProfileGen.createCheckProof())
       }
       break
@@ -219,16 +224,19 @@ function* _addServiceProof(service: ProvablePlatformsType): Saga.SagaGenerator<a
   }
 }
 
-function* _cancelAddProof(): Saga.SagaGenerator<any, any> {
-  yield Saga.put(ProfileGen.createUpdateErrorText({}))
-  yield Saga.put(navigateTo([], [peopleTab]))
+function _cancelAddProof() {
+  return Saga.sequentially([
+    Saga.put(ProfileGen.createUpdateErrorText({})),
+    Saga.put(navigateTo([], [peopleTab])),
+  ])
 }
 
 function* _submitCryptoAddress(
   action: ProfileGen.SubmitBTCAddressPayload | ProfileGen.SubmitZcashAddressPayload
 ): Saga.SagaGenerator<any, any> {
   yield Saga.put(ProfileGen.createCleanupUsername())
-  const address = yield Saga.select((state: TypedState) => state.profile.username)
+  const state: TypedState = yield Saga.select()
+  const address = state.profile.username
 
   let wantedFamily
   switch (action.type) {
@@ -263,10 +271,9 @@ function* _submitCryptoAddress(
 }
 
 function* proofsSaga(): Saga.SagaGenerator<any, any> {
-  yield Saga.safeTakeEvery(ProfileGen.submitBTCAddress, _submitCryptoAddress)
-  yield Saga.safeTakeEvery(ProfileGen.submitZcashAddress, _submitCryptoAddress)
-  yield Saga.safeTakeEvery(ProfileGen.cancelAddProof, _cancelAddProof)
-  yield Saga.safeTakeEvery(ProfileGen.addProof, _addProof)
+  yield Saga.safeTakeEvery([ProfileGen.submitBTCAddress, ProfileGen.submitZcashAddress], _submitCryptoAddress)
+  yield Saga.safeTakeEveryPure(ProfileGen.cancelAddProof, _cancelAddProof)
+  yield Saga.safeTakeEveryPure(ProfileGen.addProof, _addProof)
   yield Saga.safeTakeEvery(ProfileGen.checkProof, _checkProof)
 }
 

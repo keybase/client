@@ -1627,12 +1627,25 @@ func (t TeamMembers) AllUIDs() []UID {
 	return all
 }
 
-func (t TeamMembers) AllUserVersions() (res []UserVersion) {
-	res = append(res, t.Owners...)
-	res = append(res, t.Admins...)
-	res = append(res, t.Writers...)
-	res = append(res, t.Readers...)
-	return res
+func (t TeamMembers) AllUserVersions() []UserVersion {
+	m := make(map[UID]UserVersion)
+	for _, u := range t.Owners {
+		m[u.Uid] = u
+	}
+	for _, u := range t.Admins {
+		m[u.Uid] = u
+	}
+	for _, u := range t.Writers {
+		m[u.Uid] = u
+	}
+	for _, u := range t.Readers {
+		m[u.Uid] = u
+	}
+	var all []UserVersion
+	for _, uv := range m {
+		all = append(all, uv)
+	}
+	return all
 }
 
 func (t TeamMember) IsReset() bool {
@@ -1885,6 +1898,10 @@ func TeamInviteIDFromString(s string) (TeamInviteID, error) {
 	return TeamInviteID(s), nil
 }
 
+func (i TeamInviteID) Eq(i2 TeamInviteID) bool {
+	return string(i) == string(i2)
+}
+
 func TeamInviteTypeFromString(s string, isDev bool) (TeamInviteType, error) {
 	switch s {
 	case "keybase":
@@ -1993,6 +2010,10 @@ func (n ImplicitTeamDisplayName) String() string {
 	return name
 }
 
+func (c ImplicitTeamConflictInfo) IsConflict() bool {
+	return c.Generation > ConflictGeneration(0)
+}
+
 const (
 	// LockIDVersion0 is the first ever version for lock ID format.
 	LockIDVersion0 byte = iota
@@ -2073,4 +2094,20 @@ func (r *GitRepoResult) GetIfOk() (res GitRepoInfo, err error) {
 		return r.Ok(), nil
 	}
 	return res, fmt.Errorf("git repo unknown error")
+}
+
+func (req *TeamChangeReq) AddUVWithRole(uv UserVersion, role TeamRole) error {
+	switch role {
+	case TeamRole_READER:
+		req.Readers = append(req.Readers, uv)
+	case TeamRole_WRITER:
+		req.Writers = append(req.Writers, uv)
+	case TeamRole_ADMIN:
+		req.Admins = append(req.Admins, uv)
+	case TeamRole_OWNER:
+		req.Owners = append(req.Owners, uv)
+	default:
+		return fmt.Errorf("Unexpected role: %v", role)
+	}
+	return nil
 }

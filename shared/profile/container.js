@@ -1,6 +1,7 @@
 // @flow
 import logger from '../logger'
 import * as KBFSGen from '../actions/kbfs-gen'
+import * as TrackerGen from '../actions/tracker-gen'
 import * as ProfileGen from '../actions/profile-gen'
 import * as Constants from '../constants/tracker'
 import * as Types from '../constants/types/tracker'
@@ -9,7 +10,6 @@ import Profile from './index'
 import React, {PureComponent} from 'react'
 import {createSearchSuggestions} from '../actions/search-gen'
 import pausableConnect from '../util/pausable-connect'
-import {getProfile, updateTrackers, onFollow, onUnfollow, openProofUrl} from '../actions/tracker'
 import {isTesting} from '../local-debug'
 import {navigateAppend, navigateUp} from '../actions/route-tree'
 import {peopleTab} from '../constants/tabs'
@@ -63,18 +63,27 @@ const mapStateToProps = (state: TypedState, {routeProps, routeState, routePath}:
 }
 
 const mapDispatchToProps = (dispatch: Dispatch, {setRouteState}: OwnProps) => ({
-  getProfile: username => dispatch(getProfile(username)),
-  onAcceptProofs: username => dispatch(onFollow(username, false)),
+  getProfile: (username: string) => dispatch(TrackerGen.createGetProfile({username})),
+  onAcceptProofs: (username: string) => dispatch(TrackerGen.createFollow({localIgnore: false, username})),
   onBack: () => dispatch(navigateUp()),
   onChangeFriendshipsTab: currentFriendshipsTab => setRouteState({currentFriendshipsTab}),
   onChat: (myUsername, username) => dispatch(createStartConversation({users: [username, myUsername]})),
-  onClickAvatar: username => dispatch(ProfileGen.createOnClickAvatar({username})),
-  onClickFollowers: username => dispatch(ProfileGen.createOnClickFollowers({username})),
-  onClickFollowing: username => dispatch(ProfileGen.createOnClickFollowing({username})),
+  onClickAvatar: (username: string) => dispatch(ProfileGen.createOnClickAvatar({username})),
+  onClickFollowers: (username: string) => dispatch(ProfileGen.createOnClickFollowers({username})),
+  onClickFollowing: (username: string) => dispatch(ProfileGen.createOnClickFollowing({username})),
+  onClickShowcased: (target, team) =>
+    dispatch(
+      navigateAppend([
+        {
+          props: {position: 'bottom left', targetRect: target && target.getBoundingClientRect(), team},
+          selected: 'showcasedTeamInfo',
+        },
+      ])
+    ),
   onEditAvatar: () => dispatch(navigateAppend(['editAvatar'])),
   onEditProfile: () => dispatch(navigateAppend(['editProfile'])),
   onFolderClick: folder => dispatch(KBFSGen.createOpen({path: folder.path})),
-  onFollow: username => dispatch(onFollow(username, false)),
+  onFollow: (username: string) => dispatch(TrackerGen.createFollow({localIgnore: false, username})),
   onMissingProofClick: (missingProof: MissingProof) =>
     dispatch(ProfileGen.createAddProof({platform: missingProof.type})),
   onRecheckProof: (proof: Types.Proof) => dispatch(ProfileGen.createCheckProof()),
@@ -94,10 +103,10 @@ const mapDispatchToProps = (dispatch: Dispatch, {setRouteState}: OwnProps) => ({
     dispatch(createSearchSuggestions({searchKey: 'profileSearch'}))
     dispatch(navigateAppend([{props: {}, selected: 'search'}]))
   },
-  onUnfollow: username => dispatch(onUnfollow(username)),
-  onUserClick: username => dispatch(ProfileGen.createShowUserProfile({username})),
-  onViewProof: (proof: Types.Proof) => dispatch(openProofUrl(proof)),
-  updateTrackers: username => dispatch(updateTrackers(username)),
+  onUnfollow: (username: string) => dispatch(TrackerGen.createUnfollow({username})),
+  onUserClick: (username: string) => dispatch(ProfileGen.createShowUserProfile({username})),
+  onViewProof: (proof: Types.Proof) => dispatch(TrackerGen.createOpenProofUrl({proof})),
+  updateTrackers: (username: string) => dispatch(TrackerGen.createUpdateTrackers({username})),
 })
 
 const mergeProps = (stateProps, dispatchProps) => {
@@ -143,6 +152,7 @@ const mergeProps = (stateProps, dispatchProps) => {
     onClickAvatar: () => dispatchProps.onClickAvatar(username),
     onClickFollowers: () => dispatchProps.onClickFollowers(username),
     onClickFollowing: () => dispatchProps.onClickFollowing(username),
+    onClickShowcased: (event, teamname) => dispatchProps.onClickShowcased(event, teamname),
     onFollow: () => dispatchProps.onFollow(username),
     onSearch: () => dispatchProps.onSearch(),
     onUnfollow: () => dispatchProps.onUnfollow(username),

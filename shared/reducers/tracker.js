@@ -50,16 +50,6 @@ export default function(
         trackers: {},
         nonUserTrackers: {},
       }
-    case TrackerGen.setStartTimer:
-      return {
-        ...state,
-        timerActive: state.timerActive + 1,
-      }
-    case TrackerGen.stopTimer:
-      return {
-        ...state,
-        timerActive: state.timerActive - 1,
-      }
     case TrackerGen.cacheIdentify: {
       const {goodTill, uid} = action.payload
       return {
@@ -103,7 +93,7 @@ export default function(
         }
       })
     }
-    case TrackerGen.setOnClose: {
+    case TrackerGen.onClose: {
       const {username} = action.payload
       const isUser = state.userTrackers[username]
       if (isUser) {
@@ -334,6 +324,7 @@ export default function(
         bio: userCard.bio,
         avatar: `https://keybase.io/${username}/picture`,
         location: userCard.location,
+        showcasedTeams: userCard.teamShowcase || [],
       }
       return updateUserState(state, action.payload.username, s => ({
         ...s,
@@ -403,7 +394,16 @@ export default function(
       }
     }
     // Saga only actions
+    case TrackerGen.follow:
+    case TrackerGen.getMyProfile:
+    case TrackerGen.getProfile:
+    case TrackerGen.ignore:
+    case TrackerGen.openProofUrl:
     case TrackerGen.parseFriendship:
+    case TrackerGen.refollow:
+    case TrackerGen.setupTrackerHandlers:
+    case TrackerGen.unfollow:
+    case TrackerGen.updateTrackers:
       return state
     default:
       // eslint-disable-next-line no-unused-expressions

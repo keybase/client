@@ -1,6 +1,6 @@
 // @flow
 import logger from '../../logger'
-import * as Creators from '../../actions/teams/creators'
+import * as TeamsGen from '../../actions/teams-gen'
 import {Set, Map} from 'immutable'
 import InviteByEmailMobile, {type ContactDisplayProps} from '.'
 import {HeaderHoc} from '../../common-adapters'
@@ -42,15 +42,31 @@ const mapStateToProps = (state: TypedState, {routeProps}: OwnProps) => {
 const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routeProps}) => ({
   onClose: () => dispatch(navigateUp()),
   onInviteEmail: ({invitee, role}) => {
-    dispatch(Creators.inviteToTeamByEmail(routeProps.get('teamname'), role, invitee))
-    dispatch(Creators.getTeams())
+    dispatch(
+      TeamsGen.createInviteToTeamByEmail({teamname: routeProps.get('teamname'), role, invitees: invitee})
+    )
+    dispatch(TeamsGen.createGetTeams())
   },
   onInvitePhone: ({invitee, role, fullName = ''}) => {
-    dispatch(Creators.inviteToTeamByPhone(routeProps.get('teamname'), role, invitee, fullName))
-    dispatch(Creators.getTeams())
+    dispatch(
+      TeamsGen.createInviteToTeamByPhone({
+        teamname: routeProps.get('teamname'),
+        role,
+        phoneNumber: invitee,
+        fullName,
+      })
+    )
+    dispatch(TeamsGen.createGetTeams())
   },
   onUninvite: (invitee: string, id?: string) => {
-    dispatch(Creators.removeMember(invitee, routeProps.get('teamname'), '', id || ''))
+    dispatch(
+      TeamsGen.createRemoveMemberOrPendingInvite({
+        email: invitee,
+        teamname: routeProps.get('teamname'),
+        username: '',
+        inviteID: id || '',
+      })
+    )
   },
 
   onOpenRolePicker: (role: string, onComplete: string => void) => {
@@ -175,30 +191,41 @@ export default compose(
     // If contacts or _pendingInvites changes, recalculate the props on the contact rows.
     withPropsOnChange(['contacts', 'loadingInvites', '_pendingInvites'], props => {
       // Create static contact row props here
-      const contactRowProps = props.contacts.reduce((res, contact) => {
-        const contactName = isAndroid ? contact.givenName : contact.givenName + ' ' + contact.familyName
-        contact.emailAddresses.concat(contact.phoneNumbers).forEach(addr => {
-          const cData = {
-            name: contactName,
-            phoneNo: addr.number,
-            email: addr.email,
-            label: addr.label,
-            thumbnailPath: contact.thumbnailPath,
-            recordID: contact.recordID + (addr.email ? addr.email : addr.number),
-          }
-          res.push({
-            id: contact.recordID + (addr.email ? addr.email : addr.number),
-            loading: props.isLoading(addr.email, addr.number),
-            contact: cData,
-            selected: props.isSelected(cData.email || cData.phoneNo, cData.name),
-            onClick: () => props.onSelectContact(cData),
+      const contactRowProps = props.contacts
+        .reduce((res, contact) => {
+          const contactName = isAndroid ? contact.givenName : contact.givenName + ' ' + contact.familyName
+          contact.emailAddresses.concat(contact.phoneNumbers).forEach(addr => {
+            const cData = {
+              name: contactName,
+              phoneNo: addr.number,
+              email: addr.email,
+              label: addr.label,
+              thumbnailPath: contact.thumbnailPath,
+              recordID: contact.recordID + (addr.email ? addr.email : addr.number),
+            }
+            res.push({
+              id: contact.recordID + (addr.email ? addr.email : addr.number),
+              loading: props.isLoading(addr.email, addr.number),
+              contact: cData,
+              selected: props.isSelected(cData.email || cData.phoneNo, cData.name),
+              onClick: () => props.onSelectContact(cData),
+            })
           })
+          return res
+        }, [])
+        .sort((a, b) => {
+          const ca = a.contact
+          const cb = b.contact
+
+          if (ca.name === cb.name) {
+            return (ca.email || ca.phoneNo || '').localeCompare(cb.email || cb.phoneNo || '')
+          }
+          return (ca.name || '').localeCompare(cb.name || '')
         })
-        return res
-      }, [])
 
       return {contactRowProps}
     }),
+    // $FlowIssue doesn't like withProps
     HeaderHoc
   )
 )(InviteByEmailMobile)

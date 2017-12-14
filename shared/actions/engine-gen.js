@@ -8,20 +8,16 @@ import * as More from '../constants/types/more'
 
 // Constants
 export const resetStore = 'common:resetStore' // not a part of engine but is handled by every reducer
-export const errorInRpc = 'engine:errorInRpc'
 export const waitingForRpc = 'engine:waitingForRpc'
 
 // Action Creators
-export const createErrorInRpc = (payload: {|+error: Error|}) => ({error: false, payload, type: errorInRpc})
 export const createWaitingForRpc = (payload: {|+waiting: boolean, +name: string|}) => ({error: false, payload, type: waitingForRpc})
 
 // Action Payloads
-export type ErrorInRpcPayload = More.ReturnType<typeof createErrorInRpc>
 export type WaitingForRpcPayload = More.ReturnType<typeof createWaitingForRpc>
 
 // All Actions
 // prettier-ignore
 export type Actions =
-  | More.ReturnType<typeof createErrorInRpc>
   | More.ReturnType<typeof createWaitingForRpc>
   | {type: 'common:resetStore', payload: void}

@@ -3,8 +3,25 @@
     "import * as Types from '../constants/types/config'"
   ],
   "actions": {
+    "clearAvatarCache": {},
+    "loadAvatars": {
+      "usernames": "Array<string>"
+    },
+    "loadedAvatars": {
+      "nameToUrlMap": "{[name: string]: ?Object}"
+    },
+    "loadTeamAvatars": {
+      "teamnames": "Array<string>"
+    },
     "bootstrapStatusLoaded": {
-      "bootstrapStatus": "RPCTypes.BootstrapStatus"
+      "deviceID": "string",
+      "deviceName": "string",
+      "followers?": "?Array<string>",
+      "following?": "?Array<string>",
+      "loggedIn": "boolean",
+      "registered": "boolean",
+      "uid": "string",
+      "username": "string"
     },
     "bootstrap": {
       "isReconnect?": "boolean"

@@ -17,7 +17,7 @@ import {globalStyles, globalColors, globalMargins} from '../../styles'
 import {intersperseFn} from '../../util/arrays'
 
 import type {IconType} from '../../common-adapters/icon'
-import type {FileSection} from '../../constants/folders'
+import type {FileSection} from '../../constants/types/folders'
 import type {Props} from './render'
 
 const RenderIgnore = ({isPrivate, ignored, unIgnoreCurrentFolder, ignoreCurrentFolder}) =>
@@ -218,25 +218,19 @@ class FilesRender extends Component<Props> {
       )
     }
 
-    if (!this.props.recentFilesEnabled) {
-      return (
-        <Box style={{...globalStyles.flexBoxColumn, flex: 1, justifyContent: 'center', alignItems: 'center'}}>
-          {
-            <RenderNotImplemented
-              isPrivate={isPrivate}
-              allowIgnore={allowIgnore}
-              ignored={ignored}
-              unIgnoreCurrentFolder={this.props.unIgnoreCurrentFolder}
-              ignoreCurrentFolder={this.props.ignoreCurrentFolder}
-            />
-          }
-        </Box>
-      )
-    } else {
-      return (
-        <NativeScrollView>{this.props.recentFilesSection.map(s => this._renderSection(s))}</NativeScrollView>
-      )
-    }
+    return (
+      <Box style={{...globalStyles.flexBoxColumn, flex: 1, justifyContent: 'center', alignItems: 'center'}}>
+        {
+          <RenderNotImplemented
+            isPrivate={isPrivate}
+            allowIgnore={allowIgnore}
+            ignored={ignored}
+            unIgnoreCurrentFolder={this.props.unIgnoreCurrentFolder}
+            ignoreCurrentFolder={this.props.ignoreCurrentFolder}
+          />
+        }
+      </Box>
+    )
   }
 
   render() {

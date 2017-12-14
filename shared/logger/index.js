@@ -85,7 +85,6 @@ class AggregateLoggerImpl implements AggregateLogger {
   }
 
   dump(filter?: Array<LogLevel>) {
-    // $FlowIssue with Object.keys just returning Array<string>
     const allKeys: Array<LogLevel> = Object.keys(this._allLoggers)
     const filterKeys = filter || allKeys
     const logDumpPromises = filterKeys.map((level: LogLevel) => this._allLoggers[level].dump(level))
@@ -102,7 +101,6 @@ class AggregateLoggerImpl implements AggregateLogger {
   }
 
   flush() {
-    // $FlowIssue with Object.keys just returning Array<string>
     const allKeys: Array<LogLevel> = Object.keys(this._allLoggers)
     allKeys.map(level => this._allLoggers[level].flush())
     const p: Promise<void> = Promise.all(allKeys).then(() => {})

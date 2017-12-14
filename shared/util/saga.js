@@ -112,30 +112,76 @@ function safeTakeEvery(pattern: string | Array<any> | Function, worker: Function
   return takeEvery(pattern, safeTakeEveryWorker, ...args)
 }
 
+// Useful in safeTakeEveryPure when you have an array of effects you want to run in order
+function* sequentially(effects: Array<any>): Generator<any, Array<any>, any> {
+  const results = []
+  for (let i = 0; i < effects.length; i++) {
+    results.push(yield effects[i])
+  }
+  return results
+}
+
 // Like safeTakeEvery but the worker is pure (not a generator) optionally pass in a third argument
 // Which is a selector function that will select some state and pass it to pureWorker
 // whatever purework returns will be yielded on.
 // i.e. it can return put(someAction). That effectively transforms the input action into another action
 // It can also return all([put(action1), put(action2)]) to dispatch multiple actions
-function safeTakeEveryPure<A, R, FinalAction>(
+function safeTakeEveryPure<A, R, FinalAction, FinalActionError>(
   pattern: string | Array<any> | Function,
   pureWorker: ((action: A, state: TypedState) => any) | ((action: A) => any),
-  actionCreatorsWithResult?: (result: R) => FinalAction
+  actionCreatorsWithResult?: (result: R) => FinalAction,
+  actionCreatorsWithError?: (result: R) => FinalActionError
 ) {
   return safeTakeEvery(pattern, function* safeTakeEveryPureWorker(action: A) {
     // If the pureWorker fn takes two arguments, let's pass the state
-    let result
-    if (pureWorker.length === 2) {
-      const state: TypedState = yield select()
-      // $FlowIssue - doesn't understand checking for arity
-      result = yield pureWorker(action, state)
-    } else {
-      // $FlowIssue - doesn't understand checking for arity
-      result = yield pureWorker(action)
-    }
+    try {
+      let result
+      if (pureWorker.length === 2) {
+        const state: TypedState = yield select()
+        // $FlowIssue - doesn't understand checking for arity
+        result = yield pureWorker(action, state)
+      } else {
+        // $FlowIssue - doesn't understand checking for arity
+        result = yield pureWorker(action)
+      }
 
-    if (actionCreatorsWithResult) {
-      yield actionCreatorsWithResult(result)
+      if (actionCreatorsWithResult) {
+        yield actionCreatorsWithResult(result)
+      }
+    } catch (e) {
+      if (actionCreatorsWithError) {
+        yield actionCreatorsWithError(e)
+      }
+    }
+  })
+}
+// Similar to safeTakeEveryPure
+function safeTakeLatestPure<A, R, FinalAction, FinalActionError>(
+  pattern: string | Array<any> | Function,
+  pureWorker: ((action: A, state: TypedState) => any) | ((action: A) => any),
+  actionCreatorsWithResult?: (result: R) => FinalAction,
+  actionCreatorsWithError?: (result: R) => FinalActionError
+) {
+  return safeTakeLatest(pattern, function* safeTakeLatestPureWorker(action: A) {
+    // If the pureWorker fn takes two arguments, let's pass the state
+    try {
+      let result
+      if (pureWorker.length === 2) {
+        const state: TypedState = yield select()
+        // $FlowIssue - doesn't understand checking for arity
+        result = yield pureWorker(action, state)
+      } else {
+        // $FlowIssue - doesn't understand checking for arity
+        result = yield pureWorker(action)
+      }
+
+      if (actionCreatorsWithResult) {
+        yield actionCreatorsWithResult(result)
+      }
+    } catch (e) {
+      if (actionCreatorsWithError) {
+        yield actionCreatorsWithError(e)
+      }
     }
   })
 }
@@ -207,7 +253,6 @@ function safeTakeSerially(pattern: string | Array<any> | Function, worker: Funct
     }
   }
 
-  // $FlowIssue confused
   return fork(function* safeTakeSeriallyForkWorker() {
     const chan = yield actionChannel(pattern, buffers.expanding(10))
     while (true) {
@@ -219,7 +264,6 @@ function safeTakeSerially(pattern: string | Array<any> | Function, worker: Funct
 
 // If you `yield identity(x)` you get x back
 function identity<X>(x: X) {
-  // $FlowIssue
   return call(() => x)
 }
 
@@ -235,21 +279,25 @@ type Fn3<T1, T2, T3, R> = (t1: T1, t2: T2, t3: T3) => R
 
 type CallAndWrap = (<R, Fn: Fn0<Promise<R>>, WR: Result<R, *>, WFn: Fn0<WR>>(
   fn: Fn
+  // $FlowIssue gives expected polymorphic type error
 ) => $Call<call<WR, WFn>>) &
   (<R, T1, Fn: Fn1<T1, Promise<R>>, WR: Result<R, *>, WFn: Fn1<T1, WR>>(
     fn: Fn,
     t1: T1
+    // $FlowIssue gives expected polymorphic type error
   ) => $Call<call<T1, WR, WFn>>) &
   (<R, T1, T2, Fn: Fn2<T1, T2, Promise<R>>, WR: Result<R, *>, WFn: Fn2<T1, T2, WR>>(
     fn: Fn,
     t1: T1,
     t2: T2
+    // $FlowIssue gives expected polymorphic type error
   ) => $Call<call<T1, T2, WR, WFn>>) &
   (<R, T1, T2, T3, Fn: Fn3<T1, T2, T3, Promise<R>>, WR: Result<R, *>, WFn: Fn3<T1, T2, T3, WR>>(
     fn: Fn,
     t1: T1,
     t2: T2,
     t3: T3
+    // $FlowIssue gives expected polymorphic type error
   ) => $Call<call<T1, T2, T3, WR, WFn>>)
 // TODO this doesn't type as well as it could
 const callAndWrap: CallAndWrap = (fn, ...args) => {
@@ -263,7 +311,6 @@ const callAndWrap: CallAndWrap = (fn, ...args) => {
     }
   }
 
-  // $FlowIssue
   return call(wrapper)
 }
 
@@ -292,9 +339,11 @@ export {
   safeTakeEvery,
   safeTakeEveryPure,
   safeTakeLatest,
+  safeTakeLatestPure,
   safeTakeLatestWithCatch,
   safeTakeSerially,
   select,
+  sequentially,
   singleFixedChannelConfig,
   spawn,
   take,

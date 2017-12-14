@@ -527,7 +527,10 @@ func AnnotateInvites(ctx context.Context, g *libkb.GlobalContext, team *Team) (m
 		} else if category == keybase1.TeamInviteCategory_SEITAN {
 			name, err = AnnotateSeitanInvite(ctx, team, invite)
 			if err != nil {
-				return annotatedInvites, err
+				// There are seitan invites in the wild from before https://github.com/keybase/client/pull/9816
+				// These can no longer be decrypted, we hide them.
+				g.Log.CDebugf(ctx, "error annotating seitan invite (%v): %v", id, err)
+				continue
 			}
 		}
 

@@ -16,6 +16,7 @@ export type Props = {
   following?: ?boolean,
   followsYou?: ?boolean,
   followIconSize: number,
+  isPlaceholder: boolean,
   loadingColor?: string,
   onAvatarLoaded?: () => void,
   onClick?: ?(event: SyntheticEvent<>) => void,

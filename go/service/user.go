@@ -338,3 +338,16 @@ func (h *UserHandler) MeUserVersion(ctx context.Context, sessionID int) (res key
 	}
 	return upak.Current.ToUserVersion(), nil
 }
+
+func (h *UserHandler) GetUPAK(ctx context.Context, uid keybase1.UID) (ret keybase1.UPAKVersioned, err error) {
+	arg := libkb.NewLoadUserArg(h.G()).WithNetContext(ctx).WithUID(uid).WithPublicKeyOptional()
+	upak, _, err := h.G().GetUPAKLoader().LoadV2(arg)
+	if err != nil {
+		return ret, err
+	}
+	if upak == nil {
+		return ret, libkb.UserNotFoundError{UID: uid, Msg: "upak load failed"}
+	}
+	ret = keybase1.NewUPAKVersionedWithV2(*upak)
+	return ret, err
+}

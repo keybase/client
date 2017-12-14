@@ -1,9 +1,9 @@
 // @flow
+import * as Constants from '../../constants/devices'
 import * as DevicesGen from '../../actions/devices-gen'
 import DevicePage from '.'
 import moment from 'moment'
-import {compose, mapProps, connect, type TypedState} from '../../util/container'
-import {globalColors} from '../../styles'
+import {connect, type TypedState} from '../../util/container'
 import {navigateUp} from '../../actions/route-tree'
 import {type DeviceDetail} from '../../constants/types/devices'
 
@@ -34,7 +34,7 @@ const buildTimeline = (device: DeviceDetail) => {
 }
 
 const mapStateToProps = (state: TypedState, {routeProps}) => ({
-  device: state.entities.getIn(['devices', routeProps.get('deviceID')]),
+  device: state.entities.getIn(['devices', routeProps.get('deviceID')], Constants.makeDeviceDetail()),
 })
 
 const mapDispatchToProps = (dispatch: Dispatch, {routeProps}) => ({
@@ -43,46 +43,34 @@ const mapDispatchToProps = (dispatch: Dispatch, {routeProps}) => ({
     dispatch(DevicesGen.createShowRevokePage({deviceID: routeProps.get('deviceID')})),
 })
 
-const bannerColor = props =>
-  ({
-    OutOfDate: globalColors.brown_60,
-    WillUnlock: globalColors.white,
-  }[props.device.type])
-
-const bannerBackgroundColor = props =>
-  ({
-    OutOfDate: globalColors.yellow,
-    WillUnlock: globalColors.blue,
-  }[props.device.type])
-
-const icon = props =>
+const icon = type =>
   ({
     backup: 'icon-paper-key-64',
     desktop: 'icon-computer-64',
     mobile: 'icon-phone-64',
-  }[props.device.type])
+  }[type])
 
-const revokeName = props =>
+const revokeName = type =>
   ({
     backup: 'paper key',
     desktop: 'device',
     mobile: 'device',
-  }[props.device.type])
+  }[type])
 
-const makeRenderProps = props => ({
-  ...props,
-  bannerBackgroundColor: bannerBackgroundColor(props),
-  bannerColor: bannerColor(props),
+const mergeProps = (stateProps, dispatchProps, ownProps) => ({
+  bannerBackgroundColor: undefined,
+  bannerColor: undefined,
   bannerDesc: null, // TODO at some point
-  currentDevice: props.device.currentDevice,
-  device: props.device,
-  deviceID: props.device.deviceID,
-  icon: icon(props),
-  name: props.device.name,
-  revokeName: revokeName(props),
-  revokedAt: props.device.revokedAt,
-  timeline: buildTimeline(props.device),
-  type: props.device.type,
+  currentDevice: stateProps.device.currentDevice,
+  deviceID: stateProps.device.deviceID,
+  icon: icon(stateProps.device.type),
+  name: stateProps.device.name,
+  onBack: dispatchProps.onBack,
+  revokeName: revokeName(stateProps.device.type),
+  revokedAt: stateProps.device.revokedAt,
+  showRevokeDevicePage: dispatchProps.showRevokeDevicePage,
+  timeline: buildTimeline(stateProps.device),
+  type: stateProps.device.type,
 })
 
-export default compose(connect(mapStateToProps, mapDispatchToProps), mapProps(makeRenderProps))(DevicePage)
+export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(DevicePage)

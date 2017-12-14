@@ -1,16 +1,14 @@
 // @flow
 // High level avatar class. Handdles converting from usernames to urls. Deals with testing mode.
-import * as React from 'react'
-import logger from '../logger'
 import Render from './avatar.render'
 import pickBy from 'lodash/pickBy'
-import {iconTypeToImgSet, urlsToImgSet} from './icon'
+import debounce from 'lodash/debounce'
+import {iconTypeToImgSet, urlsToImgSet, type IconType} from './icon'
 import {isTesting} from '../local-debug'
-import {requestIdleCallback} from '../util/idle-callback'
+import {connect, type TypedState, lifecycle, compose, withProps} from '../util/container'
 import {globalStyles} from '../styles'
-
-import type {IconType} from './icon'
-import type {URLType, AvatarSize} from './avatar.render'
+import * as ConfigGen from '../actions/config-gen'
+import type {Props, AvatarSize} from './avatar'
 
 export type URLMap = {
   '200': string,
@@ -24,27 +22,6 @@ export type AvatarLookup = (username: string) => ?URLMap
 export type AvatarLoad = (username: string, callback: AvatarLookupCallback) => void
 export type TeamAvatarLookup = (teamname: string) => ?URLMap
 export type TeamAvatarLoad = (teamname: string, callback: AvatarLookupCallback) => void
-export type Props = {
-  borderColor?: string,
-  children?: any,
-  following?: ?boolean,
-  followsYou?: ?boolean,
-  isTeam?: boolean,
-  loadingColor?: string,
-  onAvatarLoaded?: () => void,
-  onClick?: ?() => void,
-  opacity?: number,
-  skipBackground?: boolean,
-  size: AvatarSize,
-  style?: ?Object,
-  url?: ?string,
-  username?: ?string,
-  teamname?: ?string,
-}
-
-type State = {
-  url: URLType,
-}
 
 const avatarPlaceHolders: {[key: string]: IconType} = {
   '112': 'icon-placeholder-avatar-112',
@@ -126,200 +103,168 @@ const followSizeToStyle = {
   '80': {bottom: 0, left: 57, position: 'absolute'},
 }
 
-class Avatar extends React.PureComponent<Props, State> {
-  state: State
-  _mounted: boolean = false
-  _onURLLoaded = (name: string, urlMap: ?URLMap) => {
-    // Mounted and still looking at the same username?
-    requestIdleCallback(
-      () => {
-        if (this._mounted && (this.props.username === name || this.props.teamname === name)) {
-          this.setState({url: this._urlMapsToUrl(urlMap)})
+const mapStateToProps = (state: TypedState, ownProps: Props) => {
+  let _urlMap
+
+  const name = ownProps.username || ownProps.teamname
+  if (name) {
+    _urlMap = state.config.avatars[name]
+  }
+
+  return {
+    _needAskForData: !state.config.avatars.hasOwnProperty(name),
+    _urlMap,
+  }
+}
+
+function _followIconType(size: number, followsYou: boolean, following: boolean) {
+  const sizeString = String(size)
+  if (followStateToType.hasOwnProperty(sizeString)) {
+    return followStateToType[sizeString][followsYou ? 'theyYes' : 'theyNo'][following ? 'youYes' : 'youNo']
+  }
+  return null
+}
+
+function _followIconSize(size: number, followsYou: boolean, following: boolean) {
+  const sizeString = String(size)
+  if (followStateToSize.hasOwnProperty(sizeString)) {
+    return followStateToSize[sizeString][followsYou ? 'theyYes' : 'theyNo'][following ? 'youYes' : 'youNo']
+  }
+  return 0
+}
+
+let _askQueue = {}
+let _askDispatch = null
+// We queue up the actions across all instances of Avatars so we don't flood the system with tons of actions
+const _askForUserDataQueueUp = (username: string, dispatch: Dispatch) => {
+  _askDispatch = dispatch
+  _askQueue[username] = true
+  _reallyAskForUserData()
+}
+
+const _reallyAskForUserData = debounce(() => {
+  if (_askDispatch) {
+    const usernames = Object.keys(_askQueue)
+    _askQueue = {}
+    _askDispatch(ConfigGen.createLoadAvatars({usernames}))
+  }
+}, 300)
+
+const mapDispatchToProps = (dispatch: Dispatch) => ({
+  _askForTeamUserData: (teamname: string) =>
+    dispatch(ConfigGen.createLoadTeamAvatars({teamnames: [teamname]})),
+  _askForUserData: (username: string) => _askForUserDataQueueUp(username, dispatch),
+})
+
+const mergeProps = (stateProps, dispatchProps, ownProps) => {
+  const isTeam = !!ownProps.teamname
+
+  let style
+  if (ownProps.style) {
+    if (ownProps.onClick) {
+      style = {...ownProps.style, ...globalStyles.clickable}
+    } else {
+      style = ownProps.style
+    }
+  } else if (ownProps.onClick) {
+    style = globalStyles.clickable
+  }
+
+  let url
+  let isPlaceholder
+
+  if (stateProps._urlMap) {
+    url = urlsToImgSet(pickBy(stateProps._urlMap, value => value), ownProps.size)
+    isPlaceholder = false
+  }
+
+  if (!url) {
+    const placeholder = isTeam ? teamPlaceHolders : avatarPlaceHolders
+    url = iconTypeToImgSet(placeholder[String(ownProps.size)], ownProps.size)
+    isPlaceholder = true
+  }
+
+  let _askForUserData = null
+  if (stateProps._needAskForData) {
+    if (isTeam) {
+      _askForUserData = () => dispatchProps._askForTeamUserData(ownProps.teamname)
+    } else {
+      _askForUserData = () => dispatchProps._askForUserData(ownProps.username)
+    }
+  }
+
+  return {
+    _askForUserData,
+    borderColor: ownProps.borderColor,
+    children: ownProps.children,
+    followIconSize: _followIconSize(ownProps.size, ownProps.followsYou, ownProps.following),
+    followIconStyle: followSizeToStyle[ownProps.size],
+    followIconType: _followIconType(ownProps.size, ownProps.followsYou, ownProps.following),
+    isPlaceholder,
+    isTeam,
+    loadingColor: ownProps.loadingColor,
+    onClick: ownProps.onClick,
+    opacity: ownProps.opacity,
+    size: ownProps.size,
+    style,
+    url,
+  }
+}
+
+export type {AvatarSize}
+const real = compose(
+  connect(mapStateToProps, mapDispatchToProps, mergeProps),
+  lifecycle({
+    componentWillMount() {
+      this.setState({_askForUserData: this.props._askForUserData, _mounted: true})
+      setTimeout(() => {
+        // Still looking at the same user?
+        if (this.state._mounted && this.props._askForUserData === this.state._askForUserData) {
+          if (this.props._askForUserData) {
+            this.props._askForUserData()
+          }
         }
-      },
-      {timeout: 300}
-    )
-  }
+      }, 300)
+    },
+    componentWillUnmount() {
+      this.setState({_askForUserData: null, _mounted: false})
+    },
+  })
+)(Render)
 
-  constructor(props: Props) {
-    super(props)
-    if (props.url && props.username) {
-      logger.warn('Recieved both url and username to avatar!')
-    }
+const mock = compose(
+  withProps(props => {
+    const isTeam = !!props.teamname
+    const placeholder = isTeam ? teamPlaceHolders : avatarPlaceHolders
+    const url = iconTypeToImgSet(placeholder[String(props.size)], props.size)
 
-    this.state = this._getRawURLState(props.url, props.size)
-  }
-
-  _getRawURLState(url: ?string, size: number): {url: any} {
-    if (url) {
-      return {url: urlsToImgSet({[String(size)]: url}, size)}
-    } else {
-      return {url: null}
-    }
-  }
-
-  componentWillMount() {
-    if (this.props.url) {
-      this.setState(this._getRawURLState(this.props.url, this.props.size))
-      // Just let it load the url, prefer this over username
-    } else if (this.props.teamname) {
-      this._loadTeamname(this.props.teamname)
-    } else if (this.props.username) {
-      this._loadUsername(this.props.username)
-    } else {
-      // Just show the no avatar state
-      this.setState({url: this._noAvatar()})
-    }
-  }
-
-  componentDidMount() {
-    this._mounted = true
-  }
-
-  componentWillUnmount() {
-    this._mounted = false
-  }
-
-  _noAvatar() {
-    return iconTypeToImgSet(
-      (this.props.isTeam || this.props.teamname ? teamPlaceHolders : avatarPlaceHolders)[
-        String(this.props.size)
-      ],
-      this.props.size
-    )
-  }
-
-  _urlMapsToUrl(urlMap: ?URLMap) {
-    if (!urlMap || !Object.keys(urlMap).length) {
-      return this._noAvatar()
-    }
-
-    return urlsToImgSet(pickBy(urlMap, value => value), this.props.size)
-  }
-
-  _loadUsername(username: string) {
-    const urlMap = _avatarToURL ? _avatarToURL(username) : null
-    const url = this._urlMapsToUrl(urlMap)
-    this.setState({url})
-
-    if (!urlMap && _loadAvatarToURL) {
-      // Have to load it
-      _loadAvatarToURL(username, (teamname: string, urlMap: ?URLMap) => {
-        this._onURLLoaded(username, urlMap)
-      })
-    }
-  }
-
-  _loadTeamname(teamname: string) {
-    const urlMap = _teamAvatarToURL ? _teamAvatarToURL(teamname) : null
-    const url = this._urlMapsToUrl(urlMap)
-    this.setState({url})
-
-    if (!urlMap && _loadTeamAvatarToURL) {
-      // Have to load it
-      _loadTeamAvatarToURL(teamname, (teamname: string, urlMap: ?URLMap) => {
-        this._onURLLoaded(teamname, urlMap)
-      })
-    }
-  }
-
-  componentWillReceiveProps(nextProps: Props) {
-    if (
-      (nextProps.url && nextProps.username) ||
-      (nextProps.url && nextProps.teamname) ||
-      (nextProps.username && nextProps.teamname)
-    ) {
-      logger.warn('Recieved multiple url / username /teamname to avatar!')
-      return
-    }
-    const url = this.props.url || this.props.username
-    const nextUrl = nextProps.url || nextProps.username
-
-    if (url !== nextUrl) {
-      // Just show the url
-      if (nextProps.url) {
-        this.setState(this._getRawURLState(nextProps.url, nextProps.size))
-      } else if (nextProps.username) {
-        // We need to convert a username to a url
-        this._loadUsername(nextProps.username)
-      } else if (nextProps.teamname) {
-        // We need to convert a teamname to a url
-        this._loadTeamname(nextProps.teamname)
-      } else {
-        this.setState({url: this._noAvatar()})
-      }
-    }
-  }
-
-  _followIconType() {
-    const sizeString = String(this.props.size)
-    if (followStateToType.hasOwnProperty(sizeString)) {
-      return followStateToType[sizeString][this.props.followsYou ? 'theyYes' : 'theyNo'][
-        this.props.following ? 'youYes' : 'youNo'
-      ]
-    }
-    return null
-  }
-
-  _followIconSize() {
-    const sizeString = String(this.props.size)
-    if (followStateToSize.hasOwnProperty(sizeString)) {
-      return followStateToSize[sizeString][this.props.followsYou ? 'theyYes' : 'theyNo'][
-        this.props.following ? 'youYes' : 'youNo'
-      ]
-    }
-    return 0
-  }
-
-  render() {
-    const url = __SCREENSHOT__ || isTesting ? this._noAvatar() : this.state.url
     let style
-
-    if (this.props.style) {
-      if (this.props.onClick) {
-        style = {...this.props.style, ...globalStyles.clickable}
+    if (props.style) {
+      if (props.onClick) {
+        style = {...props.style, ...globalStyles.clickable}
       } else {
-        style = this.props.style
+        style = props.style
       }
-    } else if (this.props.onClick) {
+    } else if (props.onClick) {
       style = globalStyles.clickable
     }
 
-    return (
-      <Render
-        borderColor={this.props.borderColor}
-        children={this.props.children}
-        followIconType={this._followIconType()}
-        followIconSize={this._followIconSize()}
-        followIconStyle={followSizeToStyle[this.props.size]}
-        isTeam={!!this.props.teamname}
-        loadingColor={this.props.loadingColor}
-        onClick={this.props.onClick}
-        opacity={this.props.opacity}
-        size={this.props.size}
-        style={style}
-        url={url}
-      />
-    )
-  }
-}
+    return {
+      borderColor: props.borderColor,
+      children: props.children,
+      followIconSize: _followIconSize(props.size, props.followsYou, props.following),
+      followIconStyle: followSizeToStyle[props.size],
+      followIconType: _followIconType(props.size, props.followsYou, props.following),
+      isPlaceholder: true,
+      isTeam,
+      loadingColor: props.loadingColor,
+      onClick: props.onClick,
+      opacity: props.opacity,
+      size: props.size,
+      style,
+      url,
+    }
+  })
+)(Render)
 
-// To convert usernames/uids to avatarurls. This is setup on app start
-let _avatarToURL
-let _loadAvatarToURL
-let _teamAvatarToURL
-let _loadTeamAvatarToURL
-
-const initLookup = (lookupAvatar: AvatarLookup, lookupTeam: TeamAvatarLookup) => {
-  _avatarToURL = lookupAvatar
-  _teamAvatarToURL = lookupTeam
-}
-
-const initLoad = (loadAvatar: AvatarLoad, loadTeam: TeamAvatarLoad) => {
-  _loadAvatarToURL = loadAvatar
-  _loadTeamAvatarToURL = loadTeam
-}
-
-export default Avatar
-export {initLoad, initLookup}
-export type {AvatarSize}
+export default (isTesting ? mock : real)

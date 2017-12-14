@@ -13,43 +13,21 @@ import flags from '../../util/feature-flags'
 
 import type {TypedState} from '../../constants/reducer'
 
-function followingSelector(state: TypedState) {
-  return state.config.following
-}
-function alwaysShowSelector(state: TypedState) {
-  return state.chat.get('inboxAlwaysShow')
-}
-function metaDataSelector(state: TypedState) {
-  return state.chat.get('metaData')
-}
-function routeSelector(state: TypedState) {
-  return state.routeTree.routeState ? state.routeTree.routeState.get('selected') : null
-}
-function focusedSelector(state: TypedState) {
-  return state.config.appFocused
-}
-function activeSelector(state: TypedState) {
-  return state.config.userActive
-}
-function conversationStateSelector(state: TypedState, conversationIDKey: Types.ConversationIDKey) {
-  return state.chat.getIn(['conversationStates', conversationIDKey])
-}
+const metaDataSelector = (state: TypedState) => state.chat.get('metaData')
+const routeSelector = (state: TypedState) =>
+  state.routeTree.routeState ? state.routeTree.routeState.get('selected') : null
+const focusedSelector = (state: TypedState) => state.config.appFocused
+const activeSelector = (state: TypedState) => state.config.userActive
+const conversationStateSelector = (state: TypedState, conversationIDKey: Types.ConversationIDKey) =>
+  state.chat.getIn(['conversationStates', conversationIDKey])
 
-function messageOutboxIDSelector(
+const messageOutboxIDSelector = (
   state: TypedState,
   conversationIDKey: Types.ConversationIDKey,
   outboxID: Types.OutboxIDKey
-): ?Types.Message {
-  return Constants.getMessageFromConvKeyMessageID(state, conversationIDKey, outboxID)
-}
+): ?Types.Message => Constants.getMessageFromConvKeyMessageID(state, conversationIDKey, outboxID)
 
-function devicenameSelector(state: TypedState) {
-  return state.config && state.config.deviceName
-}
-
-function inboxGlobalUntrustedStateSelector(state: TypedState) {
-  return state.chat.get('inboxGlobalUntrustedState')
-}
+const devicenameSelector = (state: TypedState) => state.config && state.config.deviceName
 
 function tmpFileName(
   isPreview: boolean,
@@ -67,13 +45,14 @@ function tmpFileName(
 function* startNewConversation(
   oldKey: Types.ConversationIDKey
 ): Generator<any, [?Types.ConversationIDKey, ?string], any> {
+  const state: TypedState = yield select()
   // Find the participants
   const pendingTlfName = Constants.pendingConversationIDKeyToTlfName(oldKey)
   let tlfName
   if (pendingTlfName) {
     tlfName = pendingTlfName
   } else {
-    const existing = yield select(Constants.getInbox, oldKey)
+    const existing = Constants.getInbox(state, oldKey)
     if (existing) {
       tlfName = existing.get('participants').sort().join(',')
     }
@@ -109,7 +88,7 @@ function* startNewConversation(
   }
 
   // Select the new version if the old one was selected
-  const selectedConversation = yield select(Constants.getSelectedConversation)
+  const selectedConversation = Constants.getSelectedConversation(state)
   if (selectedConversation === oldKey) {
     yield put(ChatGen.createSelectConversation({conversationIDKey: newKey}))
   }
@@ -120,9 +99,10 @@ function* startNewConversation(
 
 // If we're showing a banner we send chatGui, if we're not we send chatGuiStrict
 function* getPostingIdentifyBehavior(conversationIDKey: Types.ConversationIDKey): Generator<any, any, any> {
-  const metaData = (yield select(metaDataSelector): any)
-  const inbox = yield select(Constants.getInbox, conversationIDKey)
-  const you = yield select(usernameSelector)
+  const state: TypedState = yield select()
+  const metaData = metaDataSelector(state)
+  const inbox = Constants.getInbox(state, conversationIDKey)
+  const you = usernameSelector(state)
 
   if (inbox && you) {
     const brokenUsers = Constants.getBrokenUsers(inbox.get('participants').toArray(), you, metaData)
@@ -171,14 +151,11 @@ function makeInboxStateRecords(
 }
 
 export {
-  alwaysShowSelector,
   conversationStateSelector,
   devicenameSelector,
   focusedSelector,
   activeSelector,
-  followingSelector,
   getPostingIdentifyBehavior,
-  inboxGlobalUntrustedStateSelector,
   makeInboxStateRecords,
   messageOutboxIDSelector,
   metaDataSelector,

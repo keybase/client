@@ -356,6 +356,10 @@ type MeUserVersionArg struct {
 	SessionID int `codec:"sessionID" json:"sessionID"`
 }
 
+type GetUPAKArg struct {
+	Uid UID `codec:"uid" json:"uid"`
+}
+
 type UserInterface interface {
 	ListTrackers(context.Context, ListTrackersArg) ([]Tracker, error)
 	ListTrackersByName(context.Context, ListTrackersByNameArg) ([]Tracker, error)
@@ -392,6 +396,8 @@ type UserInterface interface {
 	ResetUser(context.Context, int) error
 	DeleteUser(context.Context, int) error
 	MeUserVersion(context.Context, int) (UserVersion, error)
+	// getUPAK returns a UPAK. Used mainly for debugging.
+	GetUPAK(context.Context, UID) (UPAKVersioned, error)
 }
 
 func UserProtocol(i UserInterface) rpc.Protocol {
@@ -718,6 +724,22 @@ func UserProtocol(i UserInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"getUPAK": {
+				MakeArg: func() interface{} {
+					ret := make([]GetUPAKArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]GetUPAKArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]GetUPAKArg)(nil), args)
+						return
+					}
+					ret, err = i.GetUPAK(ctx, (*typedArgs)[0].Uid)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 		},
 	}
 }
@@ -845,5 +867,12 @@ func (c UserClient) DeleteUser(ctx context.Context, sessionID int) (err error) {
 func (c UserClient) MeUserVersion(ctx context.Context, sessionID int) (res UserVersion, err error) {
 	__arg := MeUserVersionArg{SessionID: sessionID}
 	err = c.Cli.Call(ctx, "keybase.1.user.meUserVersion", []interface{}{__arg}, &res)
+	return
+}
+
+// getUPAK returns a UPAK. Used mainly for debugging.
+func (c UserClient) GetUPAK(ctx context.Context, uid UID) (res UPAKVersioned, err error) {
+	__arg := GetUPAKArg{Uid: uid}
+	err = c.Cli.Call(ctx, "keybase.1.user.getUPAK", []interface{}{__arg}, &res)
 	return
 }

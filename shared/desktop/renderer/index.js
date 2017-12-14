@@ -10,7 +10,7 @@ import * as NotificationsGen from '../../actions/notifications-gen'
 import * as React from 'react'
 import * as ConfigGen from '../../actions/config-gen'
 import ReactDOM from 'react-dom'
-import RemoteManager from './remote-manager'
+import RemoteProxies from '../remote/proxies.desktop'
 import Root from './container'
 import configureStore from '../../store/configure-store'
 import electron, {ipcRenderer} from 'electron'
@@ -20,18 +20,12 @@ import loadPerf from '../../util/load-perf'
 import routeDefs from '../../app/routes'
 import {AppContainer} from 'react-hot-loader'
 import {disable as disableDragDrop} from '../../util/drag-drop'
-import {getUserImageMap, loadUserImageMap, getTeamImageMap, loadTeamImageMap} from '../../util/pictures'
-import {initAvatarLookup, initAvatarLoad} from '../../common-adapters'
 import merge from 'lodash/merge'
 import throttle from 'lodash/throttle'
-import {selector as menubarSelector} from '../../menubar/selector'
-import {selector as pineentrySelector} from '../../pinentry/selector'
-import {selector as remotePurgeMessageSelector} from '../../pgp/selector'
-import {selector as unlockFoldersSelector} from '../../unlock-folders/selector'
 import {setRouteDef} from '../../actions/route-tree'
 import {setupContextMenu} from '../app/menu-helper'
 import flags from '../../util/feature-flags'
-import InputMonitor from './inputmonitor'
+import InputMonitor from './input-monitor'
 
 let _store
 function setupStore() {
@@ -46,22 +40,26 @@ function setupStore() {
   return _store
 }
 
-function setupAvatar() {
-  initAvatarLookup(getUserImageMap, getTeamImageMap)
-  initAvatarLoad(loadUserImageMap, loadTeamImageMap)
-}
-
 function setupApp(store) {
   disableDragDrop()
-  const eng = makeEngine(store.dispatch)
+  const eng = makeEngine(store.dispatch, store.getState)
   loadPerf()
-  setupAvatar()
 
   if (__DEV__ && process.env.KEYBASE_LOCAL_DEBUG) {
     require('devtron').install()
   }
 
   setupContextMenu(electron.remote.getCurrentWindow())
+
+  // Tell the main window some remote window needs its props
+  ipcRenderer.on('remoteWindowWantsProps', (event, windowComponent, windowParam) => {
+    store.dispatch({type: 'remote:needProps', payload: {windowComponent, windowParam}})
+  })
+
+  // Listen for the menubarWindowID
+  ipcRenderer.on('updateMenubarWindowID', (event, id) => {
+    store.dispatch({type: 'remote:updateMenubarWindowID', payload: {id}})
+  })
 
   ipcRenderer.on('dispatchAction', (event, action) => {
     // we MUST convert this else we'll run into issues with redux. See https://github.com/rackt/redux/issues/830
@@ -73,6 +71,8 @@ function setupApp(store) {
       } catch (_) {}
     })
   })
+
+  ipcRenderer.send('mainWindowWantsMenubarWindowID')
 
   // After a delay, see if we're connected, and try starting keybase if not
   setTimeout(() => {
@@ -101,18 +101,9 @@ function setupApp(store) {
     store.dispatch(AppGen.createChangedFocus({appFocused: false}))
   })
 
-  const _menubarSelector = menubarSelector()
-  const _unlockFoldersSelector = unlockFoldersSelector()
-  const _pineentrySelector = pineentrySelector()
-  const _remotePurgeMessageSelector = remotePurgeMessageSelector()
-
   const subsetsRemotesCareAbout = store => {
     return {
       tracker: store.tracker,
-      menubar: _menubarSelector(store),
-      unlockFolder: _unlockFoldersSelector(store),
-      pinentry: _pineentrySelector(store),
-      pgpPurgeMessage: _remotePurgeMessageSelector(store),
     }
   }
 
@@ -123,12 +114,7 @@ function setupApp(store) {
       _currentStore = subsetsRemotesCareAbout(store.getState())
 
       if (JSON.stringify(previousStore) !== JSON.stringify(_currentStore)) {
-        ipcRenderer.send('stateChange', {
-          ...store.getState(),
-          // this is a HACK workaround where we can't send immutable over the wire to the main thread (and out again).
-          // I have a much better way to handle this we can prioritize post-mobile launch (CN)
-          notifications: _currentStore.menubar.notifications,
-        })
+        ipcRenderer.send('stateChange', store.getState())
       }
     }, 1000)
   )
@@ -161,7 +147,7 @@ function render(store, MainComponent) {
     <AppContainer>
       <Root store={store}>
         <div style={{display: 'flex', flex: 1}}>
-          <RemoteManager />
+          <RemoteProxies />
           <FontLoader />
           <MainComponent />
         </div>
@@ -185,12 +171,9 @@ function setupHMR(store) {
     module.hot.accept(['../../app/main.desktop', '../../app/routes'], () => {
       store.dispatch(setRouteDef(require('../../app/routes').default))
       try {
-        store.dispatch(DevGen.createUpdatehmrReloading({reloading: true}))
         const NewMain = require('../../app/main.desktop').default
         render(store, NewMain)
-      } finally {
-        setTimeout(() => store.dispatch(DevGen.createUpdatehmrReloading({reloading: false})), 10e3)
-      }
+      } catch (_) {}
     })
 
   module.hot &&

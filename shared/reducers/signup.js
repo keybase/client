@@ -136,28 +136,12 @@ export default function(state: Types.State = Constants.initialState, action: Sig
         }
       }
 
-    case SignupGen.showSuccess:
-      if (action.error) {
-        logger.warn('Should not get an error from showing success')
-        return state
-      } else {
-        return {
-          ...state,
-          phase: 'success',
-        }
+    case SignupGen.signupError:
+      return {
+        ...state,
+        phase: 'signupError',
+        signupError: action.payload.signupError,
       }
-
-    case SignupGen.signup:
-      if (action.error) {
-        return {
-          ...state,
-          phase: 'signupError',
-          signupError: action.payload.signupError,
-        }
-      } else {
-        return state
-      }
-
     case SignupGen.restartSignup:
       return {
         ...state,

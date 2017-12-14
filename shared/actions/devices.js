@@ -51,9 +51,9 @@ function _sortRecords(a: Types.DeviceDetail, b: Types.DeviceDetail) {
   return a.name.localeCompare(b.name)
 }
 
-const _loggedInSelector = (state: TypedState) => state.config.loggedIn
 function* _deviceListSaga(): Saga.SagaGenerator<any, any> {
-  const loggedIn = yield Saga.select(_loggedInSelector)
+  const state: TypedState = yield Saga.select()
+  const loggedIn = state.config.loggedIn
   if (!loggedIn) {
     return
   }
@@ -73,6 +73,7 @@ function* _deviceListSaga(): Saga.SagaGenerator<any, any> {
         provisionerName: r.provisioner ? r.provisioner.name : '',
         revokedAt: r.revokedAt,
         revokedByName: r.revokedByDevice ? r.revokedByDevice.name : null,
+        // $ForceType avdl typed as string
         type: r.device.type,
       })
     })
@@ -90,13 +91,13 @@ function* _deviceListSaga(): Saga.SagaGenerator<any, any> {
 }
 
 function* _deviceRevokedSaga(action: DevicesGen.RevokePayload): Saga.SagaGenerator<any, any> {
+  let state: TypedState = yield Saga.select()
   // Record our current route, only navigate away later if it's unchanged.
-  const beforeRouteState = yield Saga.select((state: TypedState) => state.routeTree.routeState)
+  const beforeRouteState = state.routeTree.routeState
 
   // Revoking the current device uses the "deprovision" RPC instead.
   const {deviceID} = action.payload
-
-  const device = yield Saga.select((state: TypedState) => state.entities.getIn(['devices', deviceID]))
+  const device = state.entities.getIn(['devices', deviceID])
 
   if (!device) {
     throw new Error("Can't find device to remove")
@@ -107,7 +108,7 @@ function* _deviceRevokedSaga(action: DevicesGen.RevokePayload): Saga.SagaGenerat
 
   if (currentDevice) {
     try {
-      const username = yield Saga.select((state: TypedState) => state.config && state.config.username)
+      const username = state.config ? state.config.username : null
       if (!username) {
         throw new Error('No username in device remove')
       }
@@ -138,7 +139,8 @@ function* _deviceRevokedSaga(action: DevicesGen.RevokePayload): Saga.SagaGenerat
 
   yield Saga.put(DevicesGen.createLoad())
 
-  const afterRouteState = yield Saga.select((state: TypedState) => state.routeTree.routeState)
+  state = yield Saga.select()
+  const afterRouteState = state.routeTree.routeState
   if (I.is(beforeRouteState, afterRouteState)) {
     yield Saga.put(navigateTo([...Constants.devicesTabLocation]))
   }

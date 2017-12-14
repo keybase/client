@@ -27,7 +27,7 @@ import type {DumbComponentMap} from '../constants/types/more'
 import type {Proof, UserInfo} from '../constants/types/tracker'
 import type {Props as RenderProps} from './index'
 
-export const proofsDefault: Array<Proof> = [
+const proofsDefault: Array<Proof> = [
   {
     name: 'malgorithms',
     type: 'twitter',
@@ -85,27 +85,27 @@ export const proofsDefault: Array<Proof> = [
   },
 ]
 
-export const proofsTracked = proofsDefault.map(proof => ({...proof, isTracked: true}))
+const proofsTracked = proofsDefault.map(proof => ({...proof, isTracked: true}))
 
-export const proofsDeleted = proofsDefault.map((proof, idx) => ({
+const proofsDeleted = proofsDefault.map((proof, idx) => ({
   ...proof,
   state: idx % 2 ? checking : revoked,
   meta: idx % 2 ? metaNone : metaDeleted,
 }))
 
-export const proofsChanged = proofsDefault.map((proof, idx) => ({
+const proofsChanged = proofsDefault.map((proof, idx) => ({
   ...proof,
   state: idx === 0 ? error : checking,
   meta: idx === 0 ? metaUnreachable : metaNone,
 }))
 
-export const proofsPending = proofsDefault.map((proof, idx) => ({
+const proofsPending = proofsDefault.map((proof, idx) => ({
   ...proof,
   state: checking,
   meta: metaPending,
 }))
 
-export const mockUserInfo: {username: string, userInfo: UserInfo} = {
+const mockUserInfo: {username: string, userInfo: UserInfo} = {
   username: 'chris',
   userInfo: {
     uid: '0',
@@ -116,14 +116,13 @@ export const mockUserInfo: {username: string, userInfo: UserInfo} = {
     bio: 'Co-founder of Keybase, OkCupid, SparkNotes, and some random other junk. I like making things.',
     avatar: 'https://keybase.io/chris/picture',
     followsYou: true,
+    showcasedTeams: [],
   },
 }
 
 const baseFolder = {
   ignored: false,
   isPublic: true,
-  hasData: true,
-  recentFiles: [],
   waitingForParticipantUnlock: [],
   youCanUnlock: [],
 }
@@ -132,13 +131,11 @@ const folders = [
   createFolder({
     users: [{username: 'chris', you: true}, {username: 'cecileb'}],
     ...baseFolder,
-    hasData: false,
   }),
   createFolder({
     users: [{username: 'chris', you: true}, {username: 'cecileb'}],
     ...baseFolder,
     isPublic: false,
-    hasData: false,
   }),
   createFolder({
     users: [{username: 'chris', you: true}, {username: 'cecileb'}, {username: 'max'}],
@@ -168,9 +165,6 @@ const folders = [
   }),
 ]
 
-const thumbnailUrl =
-  'https://s3.amazonaws.com/keybase_processed_uploads/40f1d7cce021744333f4ed77c08df905_360_360_square_360.jpeg'
-
 const followers = [
   {
     username: 'awendland',
@@ -178,7 +172,6 @@ const followers = [
     fullname: 'Alex Wendland',
     followsYou: true,
     following: false,
-    thumbnailUrl,
   },
   {
     username: 'marcopolo',
@@ -186,7 +179,6 @@ const followers = [
     fullname: 'Marco Munizaga',
     followsYou: false,
     following: false,
-    thumbnailUrl,
   },
   {
     username: 'chromakode',
@@ -194,7 +186,6 @@ const followers = [
     fullname: 'Max Goodman',
     followsYou: true,
     following: true,
-    thumbnailUrl,
   },
   {
     username: 'strib',
@@ -202,19 +193,17 @@ const followers = [
     fullname: 'Jeremy Stribling',
     followsYou: false,
     following: true,
-    thumbnailUrl,
   },
-  {username: 'chris', uid: '0', fullname: 'Chris Vendle', followsYou: false, following: false, thumbnailUrl},
-  {username: 'thor', uid: '0', fullname: 'Thor Asgard', followsYou: false, following: true, thumbnailUrl},
+  {username: 'chris', uid: '0', fullname: 'Chris Vendle', followsYou: false, following: false},
+  {username: 'thor', uid: '0', fullname: 'Thor Asgard', followsYou: false, following: true},
   {
     username: 'alex',
     uid: '0',
     fullname: 'Alexander The-Gret',
     followsYou: true,
     following: false,
-    thumbnailUrl,
   },
-  {username: 'daniel', uid: '0', fullname: 'Daniel Steven', followsYou: true, following: true, thumbnailUrl},
+  {username: 'daniel', uid: '0', fullname: 'Daniel Steven', followsYou: true, following: true},
 ]
 
 const following = [
@@ -224,7 +213,6 @@ const following = [
     fullname: 'Steve Sanders',
     followsYou: false,
     following: false,
-    thumbnailUrl,
   },
   {
     username: 'awendland',
@@ -232,7 +220,6 @@ const following = [
     fullname: 'Alex Wendland',
     followsYou: true,
     following: false,
-    thumbnailUrl,
   },
   {
     username: 'strib',
@@ -240,7 +227,6 @@ const following = [
     fullname: 'Jeremy Stribling',
     followsYou: false,
     following: true,
-    thumbnailUrl,
   },
 ]
 
@@ -285,6 +271,7 @@ const propsBase: RenderProps = {
   onClickFollowers: () => console.log('on click followers'),
   onClickFollowing: () => console.log('on click following'),
   onSearch: () => console.log('on search'),
+  onClickShowcased: () => console.log('on click showcased'),
 }
 
 const bioEditFns = {

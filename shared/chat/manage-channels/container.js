@@ -5,10 +5,10 @@ import isEqual from 'lodash/isEqual'
 import * as I from 'immutable'
 import * as Types from '../../constants/types/teams'
 import * as ChatGen from '../../actions/chat-gen'
+import * as TeamsGen from '../../actions/teams-gen'
 import ManageChannels from '.'
 import {withHandlers, withState, withPropsOnChange} from 'recompose'
 import {pausableConnect, compose, lifecycle, type TypedState} from '../../util/container'
-import {getChannels, saveChannelMembership} from '../../actions/teams/creators'
 import {navigateTo, navigateAppend, pathSelector} from '../../actions/route-tree'
 import {anyWaiting} from '../../constants/waiting'
 import {chatTab} from '../../constants/tabs'
@@ -52,7 +52,7 @@ const mapStateToProps = (state: TypedState, {routeProps, routeState}) => {
 const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routePath, routeProps}) => {
   const teamname = routeProps.get('teamname')
   return {
-    _loadChannels: () => dispatch(getChannels(teamname)),
+    _loadChannels: () => dispatch(TeamsGen.createGetChannels({teamname})),
     onBack: () => dispatch(navigateUp()),
     onClose: () => dispatch(navigateUp()),
     onEdit: conversationIDKey =>
@@ -67,7 +67,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routePath, routePro
         nextChannelState,
         (inChannel: boolean, channelname: string) => inChannel !== oldChannelState[channelname]
       )
-      dispatch(saveChannelMembership(teamname, channelsToChange))
+      dispatch(TeamsGen.createSaveChannelMembership({teamname, channelState: channelsToChange}))
     },
     _onPreview: (conversationIDKey: string, previousPath?: string[]) => {
       dispatch(ChatGen.createPreviewChannel({conversationIDKey}))

@@ -13,4 +13,4 @@ const marginColor = (user: string, isYou: boolean, isFollowing: boolean, isBroke
 const colorForAuthor = (user: string, isYou: boolean, isFollowing: boolean, isBroken: boolean) =>
   isYou ? globalColors.black_75 : marginColor(user, isYou, isFollowing, isBroken)
 
-export {marginColor, colorForAuthor}
+export {colorForAuthor}

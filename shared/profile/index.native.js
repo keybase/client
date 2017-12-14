@@ -31,7 +31,7 @@ import type {Props} from '.'
 import type {Tab as FriendshipsTab} from './friendships'
 
 export const AVATAR_SIZE = 112
-export const HEADER_TOP_SPACE = 96
+const HEADER_TOP_SPACE = 96
 export const HEADER_SIZE = AVATAR_SIZE / 2 + HEADER_TOP_SPACE
 export const BACK_ZINDEX = 12
 export const SEARCH_CONTAINER_ZINDEX = BACK_ZINDEX + 1
@@ -222,6 +222,38 @@ class Profile extends Component<Props, State> {
             onUnfollow={this.props.onUnfollow}
             onAcceptProofs={this.props.onAcceptProofs}
           />}
+        <Box
+          style={{
+            ...globalStyles.flexBoxRow,
+            marginTop: globalMargins.small,
+            marginRight: globalMargins.medium,
+            marginLeft: globalMargins.medium,
+            alignItems: 'flex-start',
+          }}
+        >
+          {this.props.userInfo &&
+            this.props.userInfo.showcasedTeams &&
+            this.props.userInfo.showcasedTeams.length > 0 &&
+            <Box style={{...globalStyles.flexBoxColumn}}>
+              <Box style={{...globalStyles.flexBoxRow, paddingBottom: globalMargins.tiny}}>
+                <Text type="BodySmallSemibold">Teams:</Text>
+              </Box>
+              {this.props.userInfo.showcasedTeams.map(team => (
+                <ClickableBox
+                  key={team.fqName}
+                  onClick={event => this.props.onClickShowcased(null, team)}
+                  style={styleShowcasedTeamContainer}
+                >
+                  <Box style={styleShowcasedTeamAvatar}>
+                    <Avatar teamname={team.fqName} size={40} />
+                  </Box>
+                  <Box style={styleShowcasedTeamName}>
+                    <Text style={{color: globalColors.black_75}} type="BodySemiboldLink">{team.fqName}</Text>
+                  </Box>
+                </ClickableBox>
+              ))}
+            </Box>}
+        </Box>
         <Box style={styleProofsAndFolders}>
           <LoadingWrapper
             duration={500}
@@ -416,7 +448,7 @@ class Profile extends Component<Props, State> {
   }
 }
 
-const UserEntry = ({onClick, username, fullname, followsYou, following, thumbnailUrl}) => (
+const UserEntry = ({onClick, username, fullname, followsYou, following}) => (
   <ClickableBox
     onClick={() => {
       onClick && onClick(username)
@@ -427,7 +459,7 @@ const UserEntry = ({onClick, username, fullname, followsYou, following, thumbnai
       <Avatar
         style={userEntryAvatarStyle}
         size={64}
-        url={thumbnailUrl}
+        username={username}
         followsYou={followsYou}
         following={following}
       />
@@ -543,6 +575,32 @@ const styleSearchText = {
   fontSize: 15,
   position: 'relative',
   top: -1,
+}
+
+const styleShowcasedTeamContainer = {
+  ...globalStyles.flexBoxRow,
+  alignItems: 'flex-start',
+  justifyContent: 'flex-start',
+  minHeight: 32,
+  paddingBottom: globalMargins.xtiny,
+}
+
+const styleShowcasedTeamAvatar = {
+  ...globalStyles.flexBoxRow,
+  alignItems: 'flex-start',
+  alignSelf: 'flex-start',
+  height: 40,
+  minHeight: 40,
+  minWidth: 40,
+  width: 40,
+}
+
+const styleShowcasedTeamName = {
+  ...globalStyles.flexBoxRow,
+  alignItems: 'center',
+  justifyContent: 'center',
+  alignSelf: 'center',
+  paddingLeft: globalMargins.tiny,
 }
 
 export default Profile

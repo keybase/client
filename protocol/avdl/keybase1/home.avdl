@@ -58,14 +58,42 @@ protocol home {
     HomeScreenItemData data;
   }
 
+  record Pics {
+    @jsonkey("square_40")
+    string square40;
+    @jsonkey("square_200")
+    string square200;
+    @jsonkey("square_360")
+    string square360;
+  }
+
+  record HomeUserSummary {
+    UID uid;
+    string username;
+    string bio;
+    @jsonkey("full_name")
+    string fullName;
+    union { null, Pics } pics;
+  }
+
   record HomeScreen {
     Time lastViewed;
     int version;
     array<HomeScreenItem> items;
-    array<UserSummary> followSuggestions;
+    array<HomeUserSummary> followSuggestions;
   }
 
-  HomeScreen homeGetScreen(boolean markViewed);
+  /**
+    HomeGetScreen returns the home screen for the current user.
+    If `markViewed` is specified, the server will mark this version of the
+    home screen "viewed", potentially updating some badges.
+    `numFollowSuggestionsWanted` controls the number of people to return.
+    If not specified, it will default to `0`, so no people.  If `-1` is specified,
+    the default number will be returned (10).  Otherwise, the caller should
+    specify.
+   */
+  HomeScreen homeGetScreen(boolean markViewed, int numFollowSuggestionsWanted);
+
   void homeSkipTodoType(HomeScreenTodoType t);
   void homeActionTaken();
   void homeMarkViewed();

@@ -479,6 +479,7 @@ export const constantsStatusCode = {
   scteamexists: 2619,
   scteamreaderror: 2623,
   scnoop: 2638,
+  scteaminvitebadtoken: 2646,
   scteamtarduplicate: 2663,
   scteamtarnotfound: 2664,
   scteammemberexists: 2665,
@@ -503,6 +504,7 @@ export const constantsStatusCode = {
   scteambadadminseqnotype: 2684,
   scteamimplicitbadadd: 2685,
   scteamimplicitbadremove: 2686,
+  scteaminvitetokenreused: 2696,
   scteamkeymasknotfound: 2697,
   scteambanned: 2702,
   scteaminvalidban: 2703,
@@ -812,6 +814,10 @@ export const identifyResolveIdentifyImplicitTeamRpcChannelMap = (configKeys: Arr
 
 export const identifyResolveIdentifyImplicitTeamRpcPromise = (request: IdentifyResolveIdentifyImplicitTeamRpcParam): Promise<IdentifyResolveIdentifyImplicitTeamResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.identify.resolveIdentifyImplicitTeam', request, (error: RPCError, result: IdentifyResolveIdentifyImplicitTeamResult) => error ? reject(error) : resolve(result)))
 
+export const identifyResolveImplicitTeamRpcChannelMap = (configKeys: Array<string>, request: IdentifyResolveImplicitTeamRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.identify.resolveImplicitTeam', request)
+
+export const identifyResolveImplicitTeamRpcPromise = (request: IdentifyResolveImplicitTeamRpcParam): Promise<IdentifyResolveImplicitTeamResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.identify.resolveImplicitTeam', request, (error: RPCError, result: IdentifyResolveImplicitTeamResult) => error ? reject(error) : resolve(result)))
+
 export const identifyUiCheckResultFreshness = {
   fresh: 0,
   aged: 1,
@@ -822,6 +828,10 @@ export const identifyUiDismissReasonType = {
   none: 0,
   handledElsewhere: 1,
 }
+
+export const implicitTeamMigrationStartMigrationRpcChannelMap = (configKeys: Array<string>, request: ImplicitTeamMigrationStartMigrationRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.implicitTeamMigration.startMigration', request)
+
+export const implicitTeamMigrationStartMigrationRpcPromise = (request: ImplicitTeamMigrationStartMigrationRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.implicitTeamMigration.startMigration', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
 
 export const installFuseStatusRpcChannelMap = (configKeys: Array<string>, request: InstallFuseStatusRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.install.fuseStatus', request)
 
@@ -1076,6 +1086,10 @@ export const metadataRegisterForUpdatesRpcPromise = (request: MetadataRegisterFo
 export const metadataReleaseLockRpcChannelMap = (configKeys: Array<string>, request: MetadataReleaseLockRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.metadata.releaseLock', request)
 
 export const metadataReleaseLockRpcPromise = (request: MetadataReleaseLockRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.metadata.releaseLock', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
+
+export const metadataStartImplicitTeamMigrationRpcChannelMap = (configKeys: Array<string>, request: MetadataStartImplicitTeamMigrationRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.metadata.startImplicitTeamMigration', request)
+
+export const metadataStartImplicitTeamMigrationRpcPromise = (request: MetadataStartImplicitTeamMigrationRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.metadata.startImplicitTeamMigration', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
 
 export const metadataTruncateLockRpcChannelMap = (configKeys: Array<string>, request: MetadataTruncateLockRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.metadata.truncateLock', request)
 
@@ -1509,7 +1523,7 @@ export const teamsSetTeamShowcaseRpcPromise = (request: TeamsSetTeamShowcaseRpcP
 
 export const teamsTeamAcceptInviteOrRequestAccessRpcChannelMap = (configKeys: Array<string>, request: TeamsTeamAcceptInviteOrRequestAccessRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamAcceptInviteOrRequestAccess', request)
 
-export const teamsTeamAcceptInviteOrRequestAccessRpcPromise = (request: TeamsTeamAcceptInviteOrRequestAccessRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamAcceptInviteOrRequestAccess', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
+export const teamsTeamAcceptInviteOrRequestAccessRpcPromise = (request: TeamsTeamAcceptInviteOrRequestAccessRpcParam): Promise<TeamsTeamAcceptInviteOrRequestAccessResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamAcceptInviteOrRequestAccess', request, (error: RPCError, result: TeamsTeamAcceptInviteOrRequestAccessResult) => error ? reject(error) : resolve(result)))
 
 export const teamsTeamAcceptInviteRpcChannelMap = (configKeys: Array<string>, request: TeamsTeamAcceptInviteRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamAcceptInvite', request)
 
@@ -1547,6 +1561,10 @@ export const teamsTeamCreateWithSettingsRpcChannelMap = (configKeys: Array<strin
 
 export const teamsTeamCreateWithSettingsRpcPromise = (request: TeamsTeamCreateWithSettingsRpcParam): Promise<TeamsTeamCreateWithSettingsResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamCreateWithSettings', request, (error: RPCError, result: TeamsTeamCreateWithSettingsResult) => error ? reject(error) : resolve(result)))
 
+export const teamsTeamDebugRpcChannelMap = (configKeys: Array<string>, request: TeamsTeamDebugRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamDebug', request)
+
+export const teamsTeamDebugRpcPromise = (request: TeamsTeamDebugRpcParam): Promise<TeamsTeamDebugResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamDebug', request, (error: RPCError, result: TeamsTeamDebugResult) => error ? reject(error) : resolve(result)))
+
 export const teamsTeamDeleteRpcChannelMap = (configKeys: Array<string>, request: TeamsTeamDeleteRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamDelete', request)
 
 export const teamsTeamDeleteRpcPromise = (request: TeamsTeamDeleteRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamDelete', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
@@ -1579,6 +1597,10 @@ export const teamsTeamInviteCategory = {
 export const teamsTeamLeaveRpcChannelMap = (configKeys: Array<string>, request: TeamsTeamLeaveRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamLeave', request)
 
 export const teamsTeamLeaveRpcPromise = (request: TeamsTeamLeaveRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamLeave', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
+
+export const teamsTeamListMyAccessRequestsRpcChannelMap = (configKeys: Array<string>, request: TeamsTeamListMyAccessRequestsRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamListMyAccessRequests', request)
+
+export const teamsTeamListMyAccessRequestsRpcPromise = (request: TeamsTeamListMyAccessRequestsRpcParam): Promise<TeamsTeamListMyAccessRequestsResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamListMyAccessRequests', request, (error: RPCError, result: TeamsTeamListMyAccessRequestsResult) => error ? reject(error) : resolve(result)))
 
 export const teamsTeamListRequestsRpcChannelMap = (configKeys: Array<string>, request: TeamsTeamListRequestsRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamListRequests', request)
 
@@ -1735,6 +1757,10 @@ export const uiPromptDefault = {
 export const userDeleteUserRpcChannelMap = (configKeys: Array<string>, request: UserDeleteUserRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.user.deleteUser', request)
 
 export const userDeleteUserRpcPromise = (request: UserDeleteUserRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.user.deleteUser', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
+
+export const userGetUPAKRpcChannelMap = (configKeys: Array<string>, request: UserGetUPAKRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.user.getUPAK', request)
+
+export const userGetUPAKRpcPromise = (request: UserGetUPAKRpcParam): Promise<UserGetUPAKResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.user.getUPAK', request, (error: RPCError, result: UserGetUPAKResult) => error ? reject(error) : resolve(result)))
 
 export const userInterestingPeopleRpcChannelMap = (configKeys: Array<string>, request: UserInterestingPeopleRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.user.interestingPeople', request)
 
@@ -1985,6 +2011,8 @@ export type ConfigWaitForClientRpcParam = {|clientType: ClientType,timeout: Dura
 export type ConfiguredAccount = {|username: String,hasStoredSecret: Boolean,|}
 
 export type ConfirmResult = {|identityConfirmed: Boolean,remoteConfirmed: Boolean,expiringLocal: Boolean,autoConfirmed: Boolean,|}
+
+export type ConflictGeneration = Int
 
 export type CopyArgs = {|opID: OpID,src: Path,dest: Path,|}
 
@@ -2299,13 +2327,13 @@ export type HelloRes = String
 
 export type HomeHomeActionTakenRpcParam = ?{|incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
-export type HomeHomeGetScreenRpcParam = {|markViewed: Boolean,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type HomeHomeGetScreenRpcParam = {|markViewed: Boolean,numFollowSuggestionsWanted: Int,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
 export type HomeHomeMarkViewedRpcParam = ?{|incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
 export type HomeHomeSkipTodoTypeRpcParam = {|t: HomeScreenTodoType,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
-export type HomeScreen = {|lastViewed: Time,version: Int,items?: ?Array<HomeScreenItem>,followSuggestions?: ?Array<UserSummary>,|}
+export type HomeScreen = {|lastViewed: Time,version: Int,items?: ?Array<HomeScreenItem>,followSuggestions?: ?Array<HomeUserSummary>,|}
 
 export type HomeScreenItem = {|badged: Boolean,data: HomeScreenItemData,|}
 
@@ -2344,6 +2372,8 @@ export type HomeScreenTodoType =0 // NONE_0
 
 export type HomeUiHomeUIRefreshRpcParam = ?{|incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
+export type HomeUserSummary = {|uid: UID,username: String,bio: String,fullName: String,pics?: ?Pics,|}
+
 export type Identify2Res = {|upk: UserPlusKeys,identifiedAt: Time,trackBreaks?: ?IdentifyTrackBreaks,|}
 
 export type IdentifyIdentify2RpcParam = {|uid: UID,userAssertion: String,reason: IdentifyReason,useDelegateUI?: Boolean,alwaysBlock?: Boolean,noErrorOnTrackFailure?: Boolean,forceRemoteCheck?: Boolean,needProofSet?: Boolean,allowEmptySelfID?: Boolean,noSkipSelf?: Boolean,canSuppressUI?: Boolean,identifyBehavior?: TLFIdentifyBehavior,forceDisplay?: Boolean,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
@@ -2373,6 +2403,8 @@ export type IdentifyReasonType =0 // NONE_0
 export type IdentifyResolve3RpcParam = {|assertion: String,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
 export type IdentifyResolveIdentifyImplicitTeamRpcParam = {|assertions: String,suffix: String,isPublic: Boolean,doIdentifies: Boolean,create: Boolean,reason: IdentifyReason,identifyBehavior: TLFIdentifyBehavior,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+
+export type IdentifyResolveImplicitTeamRpcParam = {|id: TeamID,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
 export type IdentifyRow = {|rowId: Int,proof: RemoteProof,trackDiff?: ?TrackDiff,|}
 
@@ -2414,9 +2446,11 @@ export type Identity = {|status?: ?Status,whenLastTracked: Time,proofs?: ?Array<
 
 export type ImplicitRole = {|role: TeamRole,ancestor: TeamID,|}
 
-export type ImplicitTeamConflictInfo = {|generation: Int,time: Time,|}
+export type ImplicitTeamConflictInfo = {|generation: ConflictGeneration,time: Time,|}
 
 export type ImplicitTeamDisplayName = {|isPublic: Boolean,writers: ImplicitTeamUserSet,readers: ImplicitTeamUserSet,conflictInfo?: ?ImplicitTeamConflictInfo,|}
+
+export type ImplicitTeamMigrationStartMigrationRpcParam = {|folder: Folder,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
 export type ImplicitTeamUserSet = {|keybaseUsers?: ?Array<String>,unresolvedUsers?: ?Array<SocialAssertion>,|}
 
@@ -2636,6 +2670,8 @@ export type MetadataReleaseLockRpcParam = {|folderID: String,lockID: LockID,inco
 
 export type MetadataResponse = {|folderID: String,mdBlocks?: ?Array<MDBlock>,|}
 
+export type MetadataStartImplicitTeamMigrationRpcParam = {|folderID: String,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+
 export type MetadataTruncateLockRpcParam = {|folderID: String,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
 export type MetadataTruncateUnlockRpcParam = {|folderID: String,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
@@ -2814,6 +2850,8 @@ export type PgpUiOutputSignatureSuccessNonKeybaseRpcParam = {|keyID: String,sign
 export type PgpUiOutputSignatureSuccessRpcParam = {|fingerprint: String,username: String,signedAt: Time,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
 export type PgpUiShouldPushPrivateRpcParam = ?{|incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+
+export type Pics = {|square40: String,square200: String,square360: String,|}
 
 export type PingResponse = {|timestamp: Time,|}
 
@@ -3340,6 +3378,7 @@ export type StatusCode =0 // SCOk_0
  | 2619 // SCTeamExists_2619
  | 2623 // SCTeamReadError_2623
  | 2638 // SCNoOp_2638
+ | 2646 // SCTeamInviteBadToken_2646
  | 2663 // SCTeamTarDuplicate_2663
  | 2664 // SCTeamTarNotFound_2664
  | 2665 // SCTeamMemberExists_2665
@@ -3364,6 +3403,7 @@ export type StatusCode =0 // SCOk_0
  | 2684 // SCTeamBadAdminSeqnoType_2684
  | 2685 // SCTeamImplicitBadAdd_2685
  | 2686 // SCTeamImplicitBadRemove_2686
+ | 2696 // SCTeamInviteTokenReused_2696
  | 2697 // SCTeamKeyMaskNotFound_2697
  | 2702 // SCTeamBanned_2702
  | 2703 // SCTeamInvalidBan_2703
@@ -3407,6 +3447,8 @@ export type TLFVisibility =0 // ANY_0
  | 2 // PRIVATE_2
 
 
+export type TeamAcceptOrRequestResult = {|wasToken: Boolean,wasSeitan: Boolean,wasTeamName: Boolean,wasOpenTeam: Boolean,|}
+
 export type TeamAccessRequest = {|uid: UID,eldestSeqno: Seqno,|}
 
 export type TeamAddMemberResult = {|invited: Boolean,user?: ?User,emailSent: Boolean,chatSent: Boolean,|}
@@ -3433,6 +3475,8 @@ export type TeamChangeSet = {|membershipChanged: Boolean,keyRotated: Boolean,ren
 export type TeamCreateResult = {|teamID: TeamID,chatSent: Boolean,creatorAdded: Boolean,|}
 
 export type TeamData = {|secretless: Boolean,name: TeamName,chain: TeamSigChainState,perTeamKeySeeds: {[key: string]: PerTeamKeySeedItem},readerKeyMasks: {[key: string]: {[key: string]: MaskB64}},latestSeqnoHint: Seqno,cachedAt: Time,|}
+
+export type TeamDebugRes = {|chain: TeamSigChainState,|}
 
 export type TeamDetails = {|members: TeamMembersDetails,keyGeneration: PerTeamKeyGeneration,annotatedActiveInvites: {[key: string]: AnnotatedTeamInvite},settings: TeamSettings,showcase: TeamShowcase,|}
 
@@ -3569,6 +3613,8 @@ export type TeamsTeamCreateSeitanTokenRpcParam = {|name: String,role: TeamRole,l
 
 export type TeamsTeamCreateWithSettingsRpcParam = {|name: String,sendChatNotification: Boolean,settings: TeamSettings,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
+export type TeamsTeamDebugRpcParam = {|teamID: TeamID,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+
 export type TeamsTeamDeleteRpcParam = {|name: String,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
 export type TeamsTeamEditMemberRpcParam = {|name: String,username: String,role: TeamRole,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
@@ -3580,6 +3626,8 @@ export type TeamsTeamIgnoreRequestRpcParam = {|name: String,username: String,inc
 export type TeamsTeamImplicitAdminsRpcParam = {|teamName: String,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
 export type TeamsTeamLeaveRpcParam = {|name: String,permanent: Boolean,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+
+export type TeamsTeamListMyAccessRequestsRpcParam = {|teamName?: ?String,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
 export type TeamsTeamListRequestsRpcParam = ?{|incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
@@ -3700,6 +3748,8 @@ export type User = {|uid: UID,username: String,|}
 export type UserCard = {|following: Int,followers: Int,uid: UID,fullName: String,location: String,bio: String,website: String,twitter: String,youFollowThem: Boolean,theyFollowYou: Boolean,teamShowcase?: ?Array<UserTeamShowcase>,|}
 
 export type UserDeleteUserRpcParam = ?{|incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+
+export type UserGetUPAKRpcParam = {|uid: UID,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
 export type UserInterestingPeopleRpcParam = {|maxUsers: Int,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
@@ -3835,6 +3885,7 @@ type IdentifyIdentify2Result = Identify2Res
 type IdentifyIdentifyLiteResult = IdentifyLiteRes
 type IdentifyResolve3Result = UserOrTeamLite
 type IdentifyResolveIdentifyImplicitTeamResult = ResolveIdentifyImplicitTeamRes
+type IdentifyResolveImplicitTeamResult = Folder
 type IdentifyUiConfirmResult = ConfirmResult
 type IdentifyUiDelegateIdentifyUIResult = Int
 type InstallFuseStatusResult = FuseStatus
@@ -3915,13 +3966,16 @@ type TeamsGetTeamShowcaseResult = TeamShowcase
 type TeamsLoadTeamPlusApplicationKeysResult = TeamPlusApplicationKeys
 type TeamsLookupImplicitTeamResult = LookupImplicitTeamRes
 type TeamsLookupOrCreateImplicitTeamResult = LookupImplicitTeamRes
+type TeamsTeamAcceptInviteOrRequestAccessResult = TeamAcceptOrRequestResult
 type TeamsTeamAddEmailsBulkResult = BulkRes
 type TeamsTeamAddMemberResult = TeamAddMemberResult
 type TeamsTeamCreateResult = TeamCreateResult
 type TeamsTeamCreateSeitanTokenResult = SeitanIKey
 type TeamsTeamCreateWithSettingsResult = TeamCreateResult
+type TeamsTeamDebugResult = TeamDebugRes
 type TeamsTeamGetResult = TeamDetails
 type TeamsTeamImplicitAdminsResult = ?Array<TeamMemberDetails>
+type TeamsTeamListMyAccessRequestsResult = ?Array<TeamName>
 type TeamsTeamListRequestsResult = ?Array<TeamJoinRequest>
 type TeamsTeamListResult = AnnotatedTeamList
 type TeamsTeamListSubteamsRecursiveResult = ?Array<TeamIDAndName>
@@ -3938,6 +3992,7 @@ type TlfKeysGetTLFCryptKeysResult = GetTLFCryptKeysRes
 type TlfPublicCanonicalTLFNameAndIDResult = CanonicalTLFNameAndIDWithBreaks
 type TrackTrackResult = ConfirmResult
 type UiPromptYesNoResult = Boolean
+type UserGetUPAKResult = UPAKVersioned
 type UserInterestingPeopleResult = ?Array<InterestingPerson>
 type UserListTrackers2Result = UserSummary2Set
 type UserListTrackersByNameResult = ?Array<Tracker>

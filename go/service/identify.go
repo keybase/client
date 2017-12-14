@@ -151,7 +151,7 @@ func (h *IdentifyHandler) resolveUserOrTeam(ctx context.Context, arg string) (u 
 }
 
 func (h *IdentifyHandler) ResolveIdentifyImplicitTeam(ctx context.Context, arg keybase1.ResolveIdentifyImplicitTeamArg) (res keybase1.ResolveIdentifyImplicitTeamRes, err error) {
-	ctx = libkb.WithLogTag(ctx, "RII")
+	ctx = libkb.WithLogTag(ctx, "RIIT")
 	defer h.G().CTrace(ctx, "IdentifyHandler#ResolveIdentifyImplicitTeam", func() error { return err })()
 
 	h.G().Log.CDebugf(ctx, "ResolveIdentifyImplicitTeam assertions:'%v'", arg.Assertions)
@@ -323,6 +323,12 @@ func (h *IdentifyHandler) resolveIdentifyImplicitTeamDoIdentifies(ctx context.Co
 		return res, libkb.NewIdentifiesFailedError()
 	}
 	return res, err
+}
+
+func (h *IdentifyHandler) ResolveImplicitTeam(ctx context.Context, arg keybase1.ResolveImplicitTeamArg) (res keybase1.Folder, err error) {
+	ctx = libkb.WithLogTag(ctx, "RIT")
+	defer h.G().CTraceTimed(ctx, fmt.Sprintf("ResolveImplicitTeam(%s)", arg.Id), func() error { return err })()
+	return teams.MapImplicitTeamIDToDisplayName(ctx, h.G(), arg.Id, arg.Id.IsPublic())
 }
 
 func (u *RemoteIdentifyUI) newContext() (context.Context, func()) {

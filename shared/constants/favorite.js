@@ -3,7 +3,7 @@ import * as RPCTypes from './types/flow-types'
 import * as Types from './types/favorite'
 import {defaultKBFSPath} from './config'
 import {parseFolderNameToUsers, sortUserList} from '../util/kbfs'
-import type {Folder, MetaType, FolderRPCWithMeta} from './folders'
+import type {Folder, MetaType, FolderRPCWithMeta} from './types/folders'
 import type {UserList} from '../common-adapters/usernames'
 
 // See KBDefines.h: KBExitFuseKextError
@@ -119,12 +119,10 @@ function folderFromFolderRPCWithMeta(username: string, f: FolderRPCWithMeta): Fo
     path,
     users,
     sortName,
-    hasData: false, // TODO don't have this info
     isPublic: !f.private,
     isTeam: f.folderType === RPCTypes.favoriteFolderType.team,
     ignored,
     meta,
-    recentFiles: [],
     waitingForParticipantUnlock: f.waitingForParticipantUnlock,
     youCanUnlock: f.youCanUnlock,
   }
@@ -148,12 +146,4 @@ function folderFromPath(username: string, path: string): ?Folder {
   }
 }
 
-export {
-  canonicalizeTLF,
-  initialState,
-  folderFromFolderRPCWithMeta,
-  folderFromFolderRPC,
-  folderFromPath,
-  folderRPCFromPath,
-  pathFromFolder,
-}
+export {initialState, folderFromFolderRPCWithMeta, folderFromPath, folderRPCFromPath, pathFromFolder}

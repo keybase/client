@@ -26,8 +26,8 @@ function* _onSubmitNewEmail(): Saga.SagaGenerator<any, any> {
   try {
     yield Saga.put(SettingsGen.createWaitingForResponse({waiting: true}))
 
-    const newEmailSelector = ({settings: {email: {newEmail}}}: TypedState) => newEmail
-    const newEmail: string = yield Saga.select(newEmailSelector)
+    const state: TypedState = yield Saga.select()
+    const newEmail = state.settings.email.newEmail
     yield Saga.call(RPCTypes.accountEmailChangeRpcPromise, {
       newEmail,
     })
@@ -44,8 +44,8 @@ function* _onSubmitNewPassphrase(): Saga.SagaGenerator<any, any> {
   try {
     yield Saga.put(SettingsGen.createWaitingForResponse({waiting: true}))
 
-    const selector = (state: TypedState) => state.settings.passphrase
-    const {newPassphrase, newPassphraseConfirm} = yield Saga.select(selector)
+    const state: TypedState = yield Saga.select()
+    const {newPassphrase, newPassphraseConfirm} = state.settings.passphrase
     if (newPassphrase.stringValue() !== newPassphraseConfirm.stringValue()) {
       yield Saga.put(SettingsGen.createOnUpdatePassphraseError({error: new Error("Passphrases don't match")}))
       return
@@ -66,7 +66,8 @@ function* _onSubmitNewPassphrase(): Saga.SagaGenerator<any, any> {
 function* _toggleNotificationsSaga(): Saga.SagaGenerator<any, any> {
   try {
     yield Saga.put(SettingsGen.createWaitingForResponse({waiting: true}))
-    const current = yield Saga.select((state: TypedState) => state.settings.notifications)
+    const state: TypedState = yield Saga.select()
+    const current = state.settings.notifications
 
     if (!current || !current.groups.email) {
       throw new Error('No notifications loaded yet')
@@ -326,13 +327,11 @@ function* _refreshNotificationsSaga(): Saga.SagaGenerator<any, any> {
   )
 }
 
-function* _dbNukeSaga(): Saga.SagaGenerator<any, any> {
-  yield Saga.call(RPCTypes.ctlDbNukeRpcPromise)
-}
+const _dbNukeSaga = () => Saga.call(RPCTypes.ctlDbNukeRpcPromise)
 
-function* _deleteAccountForeverSaga(): Saga.SagaGenerator<any, any> {
-  const username = yield Saga.select((state: TypedState) => state.config.username)
-  const allowDeleteAccount = yield Saga.select((state: TypedState) => state.settings.allowDeleteAccount)
+function _deleteAccountForeverSaga(action: SettingsGen.DeleteAccountForeverPayload, state: TypedState) {
+  const username = state.config.username
+  const allowDeleteAccount = state.settings.allowDeleteAccount
 
   if (!username) {
     throw new Error('Unable to delete account: no username set')
@@ -342,14 +341,14 @@ function* _deleteAccountForeverSaga(): Saga.SagaGenerator<any, any> {
     throw new Error('Account deletion failsafe was not disengaged. This is a bug!')
   }
 
-  yield Saga.call(RPCTypes.loginAccountDeleteRpcPromise)
-  yield Saga.put(LoginGen.createSetDeletedSelf({deletedUsername: username}))
+  return Saga.sequentially([
+    Saga.call(RPCTypes.loginAccountDeleteRpcPromise),
+    Saga.put(LoginGen.createSetDeletedSelf({deletedUsername: username})),
+  ])
 }
 
-function* _loadSettingsSaga(): Saga.SagaGenerator<any, any> {
-  const emailState = yield Saga.call(RPCTypes.userLoadMySettingsRpcPromise)
-  yield Saga.put(SettingsGen.createLoadedSettings({emailState}))
-}
+const _loadSettings = () => Saga.call(RPCTypes.userLoadMySettingsRpcPromise)
+const _loadSettingsSuccess = emailState => Saga.put(SettingsGen.createLoadedSettings({emailState}))
 
 function* settingsSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEvery(SettingsGen.invitesReclaim, _reclaimInviteSaga)
@@ -357,9 +356,9 @@ function* settingsSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEvery(SettingsGen.invitesSend, _sendInviteSaga)
   yield Saga.safeTakeLatest(SettingsGen.notificationsRefresh, _refreshNotificationsSaga)
   yield Saga.safeTakeLatest(SettingsGen.notificationsToggle, _toggleNotificationsSaga)
-  yield Saga.safeTakeLatest(SettingsGen.dbNuke, _dbNukeSaga)
-  yield Saga.safeTakeLatest(SettingsGen.deleteAccountForever, _deleteAccountForeverSaga)
-  yield Saga.safeTakeLatest(SettingsGen.loadSettings, _loadSettingsSaga)
+  yield Saga.safeTakeLatestPure(SettingsGen.dbNuke, _dbNukeSaga)
+  yield Saga.safeTakeLatestPure(SettingsGen.deleteAccountForever, _deleteAccountForeverSaga)
+  yield Saga.safeTakeLatestPure(SettingsGen.loadSettings, _loadSettings, _loadSettingsSuccess)
   yield Saga.safeTakeEvery(SettingsGen.onSubmitNewEmail, _onSubmitNewEmail)
   yield Saga.safeTakeEvery(SettingsGen.onSubmitNewPassphrase, _onSubmitNewPassphrase)
   yield Saga.safeTakeEvery(SettingsGen.onUpdatePGPSettings, _onUpdatePGPSettings)

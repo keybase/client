@@ -9,6 +9,8 @@ import ReactDOM, {findDOMNode} from 'react-dom'
 import EscapeHandler from '../util/escape-handler'
 import {connect} from 'react-redux'
 
+import type {Position, RelativePopupHocType, RelativePopupProps} from './relative-popup-hoc'
+
 const modalRoot = document.getElementById('modal-root')
 
 class DOMNodeFinder
@@ -52,15 +54,6 @@ class Modal extends React.Component<{setNode: (node: HTMLElement) => void, child
   }
 }
 
-type Position =
-  | 'top left'
-  | 'top right'
-  | 'bottom right'
-  | 'bottom left'
-  | 'right center'
-  | 'left center'
-  | 'top center'
-  | 'bottom center'
 type ComputedStyle = {
   position: string,
   top?: number | 'auto',
@@ -181,7 +174,7 @@ function computePopupStyle(
 }
 
 type ModalPositionRelativeProps<PP> = {
-  targetNode: ?HTMLElement,
+  targetRect: ?ClientRect,
   position: Position,
   onClosePopup: () => void,
 } & PP
@@ -197,26 +190,22 @@ function ModalPositionRelative<PP>(
       this.state = {style: {}}
     }
 
-    _computeStyle = (targetNode: ?HTMLElement) => {
-      if (!targetNode) return
+    _computeStyle = (targetRect: ?ClientRect) => {
+      if (!targetRect) return
       const popupNode = this.popupNode
-      if (!(targetNode instanceof HTMLElement) || !(popupNode instanceof HTMLElement)) {
+      if (!(popupNode instanceof HTMLElement)) {
         logger.error('null nodes for popup')
         return
       }
 
-      const style = computePopupStyle(
-        this.props.position,
-        targetNode.getBoundingClientRect(),
-        popupNode.getBoundingClientRect()
-      )
+      const style = computePopupStyle(this.props.position, targetRect, popupNode.getBoundingClientRect())
 
       this.setState({style})
     }
 
     componentWillReceiveProps(nextProps: ModalPositionRelativeProps<PP>) {
-      if (nextProps.targetNode && this.props.targetNode !== nextProps.targetNode) {
-        this._computeStyle(nextProps.targetNode)
+      if (nextProps.targetRect && this.props.targetRect !== nextProps.targetRect) {
+        this._computeStyle(nextProps.targetRect)
       }
     }
 
@@ -247,7 +236,7 @@ function ModalPositionRelative<PP>(
     _setRef = r => {
       if (!r) return
       this.popupNode = r
-      this._computeStyle(this.props.targetNode)
+      this._computeStyle(this.props.targetRect)
     }
 
     render() {
@@ -266,31 +255,23 @@ function ModalPositionRelative<PP>(
   return ModalPositionRelative
 }
 
-type RelativePopupProps<PP: {}> = {
-  targetNode: ?HTMLElement,
-  position: Position,
-} & PP
-
-function RelativePopupHoc<PP: {}>(
-  PopupComponent: React.ComponentType<PP>
-): React.ComponentType<RelativePopupProps<PP>> {
-  const ModalPopupComponent: React.ComponentType<ModalPositionRelativeProps<PP>> = ModalPositionRelative(
+const RelativePopupHoc: RelativePopupHocType<*> = PopupComponent => {
+  const ModalPopupComponent: React.ComponentType<ModalPositionRelativeProps<*>> = ModalPositionRelative(
     PopupComponent
   )
 
   const C: React.ComponentType<
-    RelativePopupProps<PP>
+    RelativePopupProps<*>
   > = connect(undefined, (dispatch, {navigateUp, routeProps}) => ({
     onClosePopup: () => {
       dispatch(navigateUp())
       const onPopupWillClose = routeProps.get('onPopupWillClose')
       onPopupWillClose && onPopupWillClose()
     },
-    targetNode: routeProps.get('targetNode'),
+    targetRect: routeProps.get('targetRect'),
     position: routeProps.get('position'),
-  }))((props: RelativePopupProps<PP> & {onClosePopup: () => void}) => {
-    // $FlowIssue confusing error message
-    return <ModalPopupComponent {...(props: RelativePopupProps<PP>)} onClosePopup={props.onClosePopup} />
+  }))((props: RelativePopupProps<*> & {onClosePopup: () => void}) => {
+    return <ModalPopupComponent {...(props: RelativePopupProps<*>)} onClosePopup={props.onClosePopup} />
   })
 
   return C

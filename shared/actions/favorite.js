@@ -13,12 +13,11 @@ import debounce from 'lodash/debounce'
 import findKey from 'lodash/findKey'
 import engine from '../engine'
 import {NotifyPopup} from '../native/notifications'
-import {call, put, select} from 'redux-saga/effects'
 import {isMobile} from '../constants/platform'
 
 import type {Action} from '../constants/types/flux'
 import type {TypedState} from '../constants/reducer'
-import type {FolderRPCWithMeta} from '../constants/folders'
+import type {FolderRPCWithMeta} from '../constants/types/folders'
 
 const injectMeta = type => f => {
   f.meta = type
@@ -165,52 +164,43 @@ function _getFavoritesRPCToFolders(
   return folders
 }
 
-function* _addSaga(action: FavoriteGen.FavoriteAddPayload): Saga.SagaGenerator<any, any> {
+function* _addOrIgnoreSaga(
+  action: FavoriteGen.FavoriteAddPayload | FavoriteGen.FavoriteIgnorePayload
+): Saga.SagaGenerator<any, any> {
   const folder = Constants.folderRPCFromPath(action.payload.path)
+  const isAdd = action.type === FavoriteGen.favoriteAdd
   if (!folder) {
-    yield put(FavoriteGen.createFavoriteAddedError({errorText: 'No folder specified'}))
+    const create = isAdd ? FavoriteGen.createFavoriteAddedError : FavoriteGen.createFavoriteIgnoredError
+    yield Saga.put(create({errorText: 'No folder specified'}))
   } else {
     try {
-      yield call(RPCTypes.favoriteFavoriteAddRpcPromise, {folder})
-      yield put(FavoriteGen.createFavoriteAdded())
-      yield put(FavoriteGen.createFavoriteList())
+      yield Saga.call(
+        isAdd ? RPCTypes.favoriteFavoriteAddRpcPromise : RPCTypes.favoriteFavoriteIgnoreRpcPromise,
+        {
+          folder,
+        }
+      )
+      yield Saga.put(FavoriteGen.createFavoriteAdded())
+      yield Saga.put(FavoriteGen.createFavoriteList())
     } catch (error) {
-      logger.warn('Err in favorite.favoriteAdd', error)
-    }
-  }
-}
-
-function* _ignoreSaga(action: FavoriteGen.FavoriteIgnorePayload): Saga.SagaGenerator<any, any> {
-  const folder = Constants.folderRPCFromPath(action.payload.path)
-  if (!folder) {
-    yield put(FavoriteGen.createFavoriteIgnoredError({errorText: 'No folder specified'}))
-  } else {
-    try {
-      yield call(RPCTypes.favoriteFavoriteIgnoreRpcPromise, {folder})
-      yield put(FavoriteGen.createFavoriteIgnored())
-      yield put(FavoriteGen.createFavoriteList())
-    } catch (error) {
-      logger.warn('Err in favorite.favoriteIgnore', error)
+      logger.warn('Err in favorite.favoriteAddOrIgnore', error)
     }
   }
 }
 
 function* _listSaga(): Saga.SagaGenerator<any, any> {
+  const state: TypedState = yield Saga.select()
   try {
-    const results = yield call(RPCTypes.apiserverGetWithSessionRpcPromise, {
-      endpoint: 'kbfs/favorite/list',
+    const results = yield Saga.call(RPCTypes.apiserverGetWithSessionRpcPromise, {
       args: [{key: 'problems', value: '1'}],
+      endpoint: 'kbfs/favorite/list',
     })
-    const username = yield select((state: TypedState) => state.config && state.config.username)
-    const loggedIn = yield select((state: TypedState) => state.config && state.config.loggedIn)
-    const state: Types.FolderState = _folderToState(
-      results && results.body,
-      username || '',
-      loggedIn || false
-    )
+    const username = state.config.username || ''
+    const loggedIn = state.config.loggedIn
+    const folders: Types.FolderState = _folderToState(results && results.body, username, loggedIn)
 
-    yield put(FavoriteGen.createFavoriteListed({folders: state}))
-    yield call(_notify, state)
+    yield Saga.put(FavoriteGen.createFavoriteListed({folders}))
+    yield Saga.call(_notify, folders)
   } catch (e) {
     logger.warn('Error listing favorites:', e)
   }
@@ -248,7 +238,7 @@ function _notify(state: Types.FolderState): void {
 // Don't send duplicates else we get high cpu usage
 let _kbfsUploadingState = false
 function* _setupKBFSChangedHandler(): Saga.SagaGenerator<any, any> {
-  yield put((dispatch: Dispatch) => {
+  yield Saga.put((dispatch: Dispatch) => {
     const debouncedKBFSStopped = debounce(() => {
       if (_kbfsUploadingState === true) {
         _kbfsUploadingState = false
@@ -274,13 +264,12 @@ function* _setupKBFSChangedHandler(): Saga.SagaGenerator<any, any> {
     }
   })
 
-  yield call(RPCTypes.NotifyFSRequestFSSyncStatusRequestRpcPromise, {req: {requestID: 0}})
+  yield Saga.call(RPCTypes.NotifyFSRequestFSSyncStatusRequestRpcPromise, {req: {requestID: 0}})
 }
 
 function* favoriteSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeLatest(FavoriteGen.favoriteList, _listSaga)
-  yield Saga.safeTakeEvery(FavoriteGen.favoriteAdd, _addSaga)
-  yield Saga.safeTakeEvery(FavoriteGen.favoriteIgnore, _ignoreSaga)
+  yield Saga.safeTakeEvery([FavoriteGen.favoriteAdd, FavoriteGen.favoriteIgnore], _addOrIgnoreSaga)
   yield Saga.safeTakeEvery(FavoriteGen.setupKBFSChangedHandler, _setupKBFSChangedHandler)
 }
 

@@ -1,13 +1,10 @@
 // @flow
 import MainWindow from './main-window'
 import devTools from './dev-tools'
-import hello from '../../util/hello'
 import installer from './installer'
 import menuBar from './menu-bar'
 import os from 'os'
 import semver from 'semver'
-import storeHelper from './store-helper'
-import urlHelper from './url-helper'
 import windowHelper from './window-helper'
 import {BrowserWindow, app, ipcMain, dialog, crashReporter} from 'electron'
 import {setupExecuteActionsListener, executeActionsForContext} from '../../util/quit-helper.desktop'
@@ -30,6 +27,13 @@ if (process.env.KEYBASE_CRASH_REPORT) {
 }
 
 let mainWindow = null
+let _menubarWindowID = 0
+
+const _maybeTellMainWindowAboutMenubar = () => {
+  if (mainWindow && _menubarWindowID) {
+    mainWindow.window.webContents.send('updateMenubarWindowID', _menubarWindowID)
+  }
+}
 
 function start() {
   // Only one app per app in osx...
@@ -69,17 +73,25 @@ function start() {
     app.commandLine.appendSwitch('v', 3)
   }
 
-  hello(process.pid, 'Main Thread', process.argv, __VERSION__, false) // eslint-disable-line no-undef
   devTools()
-  menuBar()
-  urlHelper()
+  // Load menubar and get its browser window id so we can tell the main window
+  menuBar(id => {
+    _menubarWindowID = id
+  })
   windowHelper(app)
 
   console.log('Version:', app.getVersion())
 
   app.once('ready', () => {
     mainWindow = MainWindow()
-    storeHelper(mainWindow)
+    _maybeTellMainWindowAboutMenubar()
+    ipcMain.on('mainWindowWantsMenubarWindowID', () => {
+      _maybeTellMainWindowAboutMenubar()
+    })
+
+    ipcMain.on('remoteWindowWantsProps', (_, windowComponent, windowParam) => {
+      mainWindow && mainWindow.window.webContents.send('remoteWindowWantsProps', windowComponent, windowParam)
+    })
   })
 
   ipcMain.on('install-check', (event, arg) => {

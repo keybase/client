@@ -76,16 +76,11 @@ function unlink(filepath: string): Promise<void> {
 }
 
 // TODO implemented for mobile, not here
-function writeFile(filepath: string, contents: string, encoding?: string): Promise<void> {
-  return Promise.reject(new Error('not implemented'))
-}
+const cachesDirectoryPath = ''
 
 function writeStream(filepath: string, encoding: string, append?: boolean): Promise<*> {
   return Promise.reject(new Error('not implemented'))
 }
-
-// TODO implemented for mobile, not here
-const cachesDirectoryPath = ''
 
 export {
   cachesDirectoryPath,
@@ -96,7 +91,6 @@ export {
   tmpDir,
   tmpFile,
   tmpRandFile,
-  writeFile,
-  writeStream,
   unlink,
+  writeStream,
 }

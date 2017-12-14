@@ -1,7 +1,6 @@
 // @flow
-
-import Menubar from './index.render'
-import type {DumbComponentMap} from '../constants/types/more'
+import Menubar from './index.desktop'
+import {type DumbComponentMap} from '../constants/types/more'
 import {map} from '../folders/dumb'
 import {globalStyles} from '../styles'
 
@@ -14,9 +13,7 @@ const propsNormal = {
   },
   folderProps: map.mocks['Normal Private'],
   username: 'max',
-  kbfsStatus: {
-    isAsyncWriteHappening: false,
-  },
+  isAsyncWriteHappening: false,
   onFolderClick: () => console.log('folder clicked'),
   openApp: () => console.log('open app'),
   showKBFS: () => console.log('show kbfs'),

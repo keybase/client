@@ -1,9 +1,9 @@
 // @flow
-import type {State} from './types/pinentry'
+import * as I from 'immutable'
+import * as Types from './types/pinentry'
 
-const initialState: State = {
-  pinentryStates: {},
-  started: false,
-}
+const makeState: I.RecordFactory<Types._State> = I.Record({
+  sessionIDToPinentry: I.Map(),
+})
 
-export {initialState}
+export {makeState}

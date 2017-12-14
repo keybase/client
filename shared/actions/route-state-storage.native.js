@@ -56,7 +56,7 @@ class RouteStateStorage {
     // in a loop of trying to restore the bad state every time we launch.
     await this._removeItem()
 
-    logger.log('[RouteState] Got item:', item)
+    logger.info('[RouteState] Got item:', item)
 
     if (!item) {
       return

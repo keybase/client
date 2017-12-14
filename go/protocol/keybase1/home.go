@@ -340,11 +340,49 @@ func (o HomeScreenItem) DeepCopy() HomeScreenItem {
 	}
 }
 
+type Pics struct {
+	Square40  string `codec:"square40" json:"square_40"`
+	Square200 string `codec:"square200" json:"square_200"`
+	Square360 string `codec:"square360" json:"square_360"`
+}
+
+func (o Pics) DeepCopy() Pics {
+	return Pics{
+		Square40:  o.Square40,
+		Square200: o.Square200,
+		Square360: o.Square360,
+	}
+}
+
+type HomeUserSummary struct {
+	Uid      UID    `codec:"uid" json:"uid"`
+	Username string `codec:"username" json:"username"`
+	Bio      string `codec:"bio" json:"bio"`
+	FullName string `codec:"fullName" json:"full_name"`
+	Pics     *Pics  `codec:"pics,omitempty" json:"pics,omitempty"`
+}
+
+func (o HomeUserSummary) DeepCopy() HomeUserSummary {
+	return HomeUserSummary{
+		Uid:      o.Uid.DeepCopy(),
+		Username: o.Username,
+		Bio:      o.Bio,
+		FullName: o.FullName,
+		Pics: (func(x *Pics) *Pics {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Pics),
+	}
+}
+
 type HomeScreen struct {
-	LastViewed        Time             `codec:"lastViewed" json:"lastViewed"`
-	Version           int              `codec:"version" json:"version"`
-	Items             []HomeScreenItem `codec:"items" json:"items"`
-	FollowSuggestions []UserSummary    `codec:"followSuggestions" json:"followSuggestions"`
+	LastViewed        Time              `codec:"lastViewed" json:"lastViewed"`
+	Version           int               `codec:"version" json:"version"`
+	Items             []HomeScreenItem  `codec:"items" json:"items"`
+	FollowSuggestions []HomeUserSummary `codec:"followSuggestions" json:"followSuggestions"`
 }
 
 func (o HomeScreen) DeepCopy() HomeScreen {
@@ -362,11 +400,11 @@ func (o HomeScreen) DeepCopy() HomeScreen {
 			}
 			return ret
 		})(o.Items),
-		FollowSuggestions: (func(x []UserSummary) []UserSummary {
+		FollowSuggestions: (func(x []HomeUserSummary) []HomeUserSummary {
 			if x == nil {
 				return nil
 			}
-			var ret []UserSummary
+			var ret []HomeUserSummary
 			for _, v := range x {
 				vCopy := v.DeepCopy()
 				ret = append(ret, vCopy)
@@ -377,7 +415,8 @@ func (o HomeScreen) DeepCopy() HomeScreen {
 }
 
 type HomeGetScreenArg struct {
-	MarkViewed bool `codec:"markViewed" json:"markViewed"`
+	MarkViewed                 bool `codec:"markViewed" json:"markViewed"`
+	NumFollowSuggestionsWanted int  `codec:"numFollowSuggestionsWanted" json:"numFollowSuggestionsWanted"`
 }
 
 type HomeSkipTodoTypeArg struct {
@@ -391,7 +430,14 @@ type HomeMarkViewedArg struct {
 }
 
 type HomeInterface interface {
-	HomeGetScreen(context.Context, bool) (HomeScreen, error)
+	// HomeGetScreen returns the home screen for the current user.
+	// If `markViewed` is specified, the server will mark this version of the
+	// home screen "viewed", potentially updating some badges.
+	// `numFollowSuggestionsWanted` controls the number of people to return.
+	// If not specified, it will default to `0`, so no people.  If `-1` is specified,
+	// the default number will be returned (10).  Otherwise, the caller should
+	// specify.
+	HomeGetScreen(context.Context, HomeGetScreenArg) (HomeScreen, error)
 	HomeSkipTodoType(context.Context, HomeScreenTodoType) error
 	HomeActionTaken(context.Context) error
 	HomeMarkViewed(context.Context) error
@@ -412,7 +458,7 @@ func HomeProtocol(i HomeInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]HomeGetScreenArg)(nil), args)
 						return
 					}
-					ret, err = i.HomeGetScreen(ctx, (*typedArgs)[0].MarkViewed)
+					ret, err = i.HomeGetScreen(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -463,8 +509,14 @@ type HomeClient struct {
 	Cli rpc.GenericClient
 }
 
-func (c HomeClient) HomeGetScreen(ctx context.Context, markViewed bool) (res HomeScreen, err error) {
-	__arg := HomeGetScreenArg{MarkViewed: markViewed}
+// HomeGetScreen returns the home screen for the current user.
+// If `markViewed` is specified, the server will mark this version of the
+// home screen "viewed", potentially updating some badges.
+// `numFollowSuggestionsWanted` controls the number of people to return.
+// If not specified, it will default to `0`, so no people.  If `-1` is specified,
+// the default number will be returned (10).  Otherwise, the caller should
+// specify.
+func (c HomeClient) HomeGetScreen(ctx context.Context, __arg HomeGetScreenArg) (res HomeScreen, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.home.homeGetScreen", []interface{}{__arg}, &res)
 	return
 }

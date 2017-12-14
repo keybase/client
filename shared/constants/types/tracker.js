@@ -49,6 +49,7 @@ export type UserInfo = {
   uid: string,
   avatar: ?string,
   location: string,
+  showcasedTeams: Array<RPCTypes.UserTeamShowcase>,
 }
 
 export type TrackerState = {
@@ -90,8 +91,6 @@ export type State = {
   cachedIdentifies: {[key: string]: number}, // good until unix timestamp
   pendingIdentifies: {[key: string]: boolean},
   serverStarted: boolean,
-  timerActive: number,
   userTrackers: {[key: string]: TrackerState},
   nonUserTrackers: {[key: string]: NonUserState},
-  // tracking: Array<FriendshipUserInfo>,
 }
