@@ -1254,8 +1254,7 @@ func CanUserPerform(ctx context.Context, g *libkb.GlobalContext, teamname string
 
 	perm := false
 
-	for i := 0; i < len(keybase1.TeamOperationMap); i++ {
-		op := keybase1.TeamOperation(i)
+	for _, op := range keybase1.TeamOperationMap {
 		switch op {
 		case keybase1.TeamOperation_MANAGE_MEMBERS,
 			keybase1.TeamOperation_MANAGE_SUBTEAMS,
