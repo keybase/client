@@ -56,7 +56,7 @@ func TestAMInvalidEldest(t *testing.T) {
 
 	// Wait for CLKR and RotateKey link.
 	kickTeamRekeyd(ann.getPrimaryGlobalContext(), t)
-	ann.pollForMembershipUpdate(team, keybase1.PerTeamKeyGeneration(2))
+	ann.pollForMembershipUpdate(team, keybase1.PerTeamKeyGeneration(2), nil)
 
 	t.Logf("Sending one UV, expecing one member to be added and an old version of member to be removed.")
 
