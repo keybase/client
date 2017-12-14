@@ -4,7 +4,7 @@ import * as ProfileGen from '../actions/profile-gen'
 import * as TeamsGen from '../actions/teams-gen'
 import * as TrackerGen from '../actions/tracker-gen'
 import Tracker from './index.desktop'
-import {connect, compose, lifecycle, renderNothing, branch, type Dispatch} from '../util/container'
+import {branch, connect, compose, lifecycle, renderNothing, withState, type Dispatch} from '../util/container'
 
 // Props are handled by remote-proxy.desktop.js
 const mapDispatchToProps = (dispatch: Dispatch, {teamname}) => ({
@@ -26,6 +26,8 @@ const mapDispatchToProps = (dispatch: Dispatch, {teamname}) => ({
   _onUnfollow: (username: string) => dispatch(TrackerGen.createUnfollow({username})),
   _onUserClick: (username: string) =>
     dispatch(TrackerGen.createGetProfile({username, ignoreCache: true, forceDisplay: true})),
+  _onUpdateSelectedTeam: (selectedTeam: string, username: string) =>
+    dispatch(TrackerGen.createUpdateSelectedTeam({selectedTeam, username})),
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
@@ -41,8 +43,11 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   onRetry: stateProps.errorMessage ? () => dispatchProps._onRetry(stateProps.username) : null,
   onUnfollow: () => dispatchProps._onUnfollow(stateProps.username),
   onUserClick: (username: string) => dispatchProps._onUserClick(username),
+  onUpdateSelectedTeam: (selectedTeam: string) =>
+    dispatchProps._onUpdateSelectedTeam(selectedTeam, stateProps.username),
 })
 export default compose(
+  withState('selectedTeamRect', 'onSetSelectedTeamRect', null),
   connect(state => state, mapDispatchToProps, mergeProps),
   branch(props => !props.username, renderNothing),
   lifecycle({
