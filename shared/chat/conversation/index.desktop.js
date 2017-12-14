@@ -11,6 +11,7 @@ import {Box, Icon, LoadingLine, ProgressIndicator, Text} from '../../common-adap
 import {globalStyles, globalColors, globalMargins} from '../../styles'
 import {readImageFromClipboard} from '../../util/clipboard.desktop'
 import CreateTeamHeader from './create-team-header/container'
+import YouAreReset from './you-are-reset'
 
 import type {Props} from '.'
 
@@ -147,16 +148,7 @@ class Conversation extends Component<Props, State> {
         />
       )
     } else if (this.props.youAreReset) {
-      ;<div style={{...globalStyles.flexBoxColumn, flex: 1}}>
-        <div style={{...globalStyles.flexBoxColumn, flex: 1, justifyContent: 'center', alignItems: 'center'}}>
-          <Icon type="icon-access-denied" />
-        </div>
-        <div style={{backgroundColor: globalColors.red, padding: globalMargins.small}}>
-          <Text type="BodySemibold">
-            Since you reset your account, participants have to accept to let you back in.
-          </Text>
-        </div>
-      </div>
+      list = <YouAreReset />
     } else {
       list = (
         <div style={{...globalStyles.flexBoxColumn, flex: 1}}>
