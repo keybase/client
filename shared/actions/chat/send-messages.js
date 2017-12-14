@@ -39,7 +39,8 @@ function* deleteMessage(action: ChatGen.DeleteMessagePayload): SagaGenerator<any
     yield Saga.put(navigateTo([], [chatTab, conversationIDKey]))
 
     if (!inboxConvo) {
-      console.warn('Deleting message for non-existent inbox:', message)
+      logger.warn('Deleting message for non-existent inbox:')
+      logger.debug('Deleting message for non-existent inbox:', message)
       return
     }
     if (!inboxConvo.name) {
@@ -107,7 +108,7 @@ function* postMessage(action: ChatGen.PostMessagePayload): SagaGenerator<any, an
   const outboxID = yield Saga.call(RPCChatTypes.localGenerateOutboxIDRpcPromise)
   const author = usernameSelector(state)
   if (!author) {
-    console.warn('post message after logged out?')
+    logger.warn('post message after logged out?')
     return
   }
   const outboxIDKey = Constants.outboxIDToKey(outboxID)
@@ -198,7 +199,8 @@ function* editMessage(action: ChatGen.EditMessagePayload): SagaGenerator<any, an
   }
 
   if (!inboxConvo) {
-    console.warn('Editing message for non-existent inbox:', message)
+    logger.warn('Editing message for non-existent inbox:')
+    logger.debug('Editing message for non-existent inbox:', message)
     return
   }
   if (!inboxConvo.name) {

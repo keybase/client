@@ -82,7 +82,7 @@ function* _loadMoreMessages(action: ChatGen.LoadMoreMessagesPayload): Saga.SagaG
     if (!conversationIDKey) {
       return
     }
-    console.log(`loadMoreMessages: loading for: ${conversationIDKey} recent: ${recent.toString()}`)
+    logger.info(`loadMoreMessages: loading for: ${conversationIDKey} recent: ${recent.toString()}`)
 
     if (Constants.isPendingConversationIDKey(conversationIDKey)) {
       logger.info('loadMoreMessages: bailing on selected pending conversation no matching inbox')
@@ -142,7 +142,7 @@ function* _loadMoreMessages(action: ChatGen.LoadMoreMessagesPayload): Saga.SagaG
     }
 
     const num = action.payload.numberOverride || Constants.maxMessagesToLoadAtATime
-    console.log(`loadMoreMessages: dispatching GetThreadNonblock: num: ${num} pivot: ${pivot || ''}`)
+    logger.info(`loadMoreMessages: dispatching GetThreadNonblock: num: ${num} pivot: ${pivot || ''}`)
     const loadThreadChanMapRpc = new EngineRpc.EngineRpcCall(
       getThreadNonblockSagaMap(yourName, yourDeviceName, conversationIDKey, recent),
       ChatTypes.localGetThreadNonblockRpcChannelMap,
@@ -1013,7 +1013,7 @@ function _logAppendMessages(action: ChatGen.AppendMessagesPayload) {
     },
     type: action.type,
   }
-  console.log('Appending', JSON.stringify(toPrint, null, 2))
+  logger.info('Appending', JSON.stringify(toPrint, null, 2))
 }
 
 function _logPrependMessages(action: ChatGen.PrependMessagesPayload) {
@@ -1025,7 +1025,7 @@ function _logPrependMessages(action: ChatGen.PrependMessagesPayload) {
     },
     type: action.type,
   }
-  console.log('Prepending', JSON.stringify(toPrint, null, 2))
+  logger.info('Prepending', JSON.stringify(toPrint, null, 2))
 }
 
 function _logUpdateTempMessage(action: ChatGen.UpdateTempMessagePayload) {
@@ -1033,7 +1033,7 @@ function _logUpdateTempMessage(action: ChatGen.UpdateTempMessagePayload) {
     payload: {conversationIDKey: action.payload.conversationIDKey, outboxIDKey: action.payload.outboxIDKey},
     type: action.type,
   }
-  console.log('Update temp message', JSON.stringify(toPrint, null, 2))
+  logger.info('Update temp message', JSON.stringify(toPrint, null, 2))
 }
 
 function* registerSagas(): Saga.SagaGenerator<any, any> {

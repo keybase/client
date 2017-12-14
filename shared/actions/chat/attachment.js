@@ -91,7 +91,7 @@ function* onSaveAttachment({
 
   const message = Constants.getMessageFromMessageKey(state, messageKey)
   if (!message || !message.filename) {
-    console.warn("can't find message")
+    logger.warn("can't find message")
     return null
   }
   // $FlowIssue
@@ -230,7 +230,7 @@ function* _appendAttachmentPlaceholder(
   const state: TypedState = yield Saga.select()
   const author = usernameSelector(state)
   if (!author) {
-    console.log('No logged in user append attach placeholder?')
+    logger.info('No logged in user append attach placeholder?')
     return
   }
   const lastOrd = Constants.lastOrdinal(state, conversationIDKey)
@@ -355,7 +355,7 @@ function* onSelectAttachment({payload: {input}}: ChatGen.SelectAttachmentPayload
   const state: TypedState = yield Saga.select()
   const inboxConvo = Constants.getInbox(state, conversationIDKey)
   if (!inboxConvo) {
-    console.log("Can't find inbox for select attachment")
+    logger.info("Can't find inbox for select attachment")
     return
   }
   const param = {
@@ -523,7 +523,7 @@ function _logLoadAttachmentPreview(action: ChatGen.LoadAttachmentPreviewPayload)
     },
     type: action.type,
   }
-  console.log('Load Attachment Preview', JSON.stringify(toPrint, null, 2))
+  logger.info('Load Attachment Preview', JSON.stringify(toPrint, null, 2))
 }
 
 function _logAttachmentLoaded(action: ChatGen.AttachmentLoadedPayload) {
@@ -534,7 +534,7 @@ function _logAttachmentLoaded(action: ChatGen.AttachmentLoadedPayload) {
     },
     type: action.type,
   }
-  console.log('Load Attachment Loaded', JSON.stringify(toPrint, null, 2))
+  logger.info('Load Attachment Loaded', JSON.stringify(toPrint, null, 2))
 }
 
 function _logDownloadProgress(action: ChatGen.DownloadProgressPayload) {
@@ -547,7 +547,7 @@ function _logDownloadProgress(action: ChatGen.DownloadProgressPayload) {
     type: action.type,
   }
 
-  console.log('Download Progress', JSON.stringify(toPrint, null, 2))
+  logger.info('Download Progress', JSON.stringify(toPrint, null, 2))
 }
 
 function* registerSagas(): SagaGenerator<any, any> {

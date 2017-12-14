@@ -43,7 +43,7 @@ function _registerRekeyListener() {
   engine().setIncomingActionCreators(
     'keybase.1.rekeyUI.refresh',
     ({sessionID, problemSetDevices}, response) => {
-      console.log('Asked for rekey')
+      logger.info('Asked for rekey')
       response && response.result()
       return [
         UnlockFoldersGen.createNewRekeyPopup({
