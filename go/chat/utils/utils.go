@@ -782,25 +782,37 @@ func computeOutboxOrdinal(obr chat1.OutboxRecord) float64 {
 
 func PresentMessageUnboxed(ctx context.Context, rawMsg chat1.MessageUnboxed, uid gregor1.UID,
 	tcs types.TeamChannelSource) (res chat1.UIMessage) {
-	state, err := rawMsg.State()
-	if err != nil {
-		res = chat1.NewUIMessageWithError(chat1.MessageUnboxedError{
+
+	miscErr := func(err error) chat1.UIMessage {
+		return chat1.NewUIMessageWithError(chat1.MessageUnboxedError{
 			ErrType:   chat1.MessageUnboxedErrorType_MISC,
 			ErrMsg:    err.Error(),
 			MessageID: rawMsg.GetMessageID(),
 		})
-		return res
+	}
+
+	state, err := rawMsg.State()
+	if err != nil {
+		return miscErr(err)
 	}
 
 	switch state {
 	case chat1.MessageUnboxedState_VALID:
+		bodyIsDeleted := rawMsg.Valid().MessageBody.IsNil()
+
 		// Get channel name mentions (only frontend really cares about these, so just get it here)
 		var channelNameMentions []string
 		switch rawMsg.GetMessageType() {
 		case chat1.MessageType_TEXT:
+			if bodyIsDeleted {
+				return miscErr(fmt.Errorf("unexpected deleted message"))
+			}
 			channelNameMentions = ParseChannelNameMentions(ctx, rawMsg.Valid().MessageBody.Text().Body, uid,
 				rawMsg.Valid().ClientHeader.Conv.Tlfid, tcs)
 		case chat1.MessageType_EDIT:
+			if bodyIsDeleted {
+				return miscErr(fmt.Errorf("unexpected deleted edit"))
+			}
 			channelNameMentions = ParseChannelNameMentions(ctx, rawMsg.Valid().MessageBody.Edit().Body, uid,
 				rawMsg.Valid().ClientHeader.Conv.Tlfid, tcs)
 		}

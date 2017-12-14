@@ -213,6 +213,10 @@ func (m MessageUnboxed) IsValid() bool {
 	return false
 }
 
+func (b MessageBody) IsNil() bool {
+	return b == MessageBody{}
+}
+
 func (m UIMessage) IsValid() bool {
 	if state, err := m.State(); err == nil {
 		return state == MessageUnboxedState_VALID
