@@ -15,7 +15,6 @@ import {isMobile} from '../../constants/platform'
 import {anyWaiting} from '../../constants/waiting'
 import {navigateAppend} from '../../actions/route-tree'
 import {createShowUserProfile} from '../../actions/profile-gen'
-import * as RPCTypes from '../../constants/types/flow-types'
 
 const order = {owner: 0, admin: 1, writer: 2, reader: 3}
 
@@ -36,7 +35,7 @@ type StateProps = {
   waitingForSavePublicity: boolean,
   you: ?string,
   yourRole: ?Types.TeamRoleType,
-  yourOperations: I.Map<RPCTypes.TeamOperation, boolean>,
+  yourOperations: I.Map<string, boolean>,
 }
 
 const mapStateToProps = (state: TypedState, {routeProps, routeState}): StateProps => {
@@ -208,7 +207,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
       onShowMenu={() => ownProps.setShowMenu(true)}
     />
   )
-  const youCanShowcase = stateProps.yourOperations.get(6) // RPCTypes.teamsTeamOperation['setTeamShowcase']
+  const youCanShowcase = stateProps.yourOperations.get('setTeamShowcase')
   const publicitySettingsChanged =
     ownProps.newPublicityAnyMember !== stateProps.publicityAnyMember ||
     ownProps.newPublicityMember !== stateProps.publicityMember ||

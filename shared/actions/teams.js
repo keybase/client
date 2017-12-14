@@ -375,10 +375,10 @@ const _getDetails = function*(action: TeamsGen.GetDetailsPayload): Saga.SagaGene
       team: publicity.teamShowcase.isShowcased,
     }
 
-    let operationsMap: Map<number, boolean> = new Map()
+    let operationsMap: Map<string, boolean> = new Map()
     for (var op in RPCTypes.teamsTeamOperation) {
       operationsMap.set(
-        RPCTypes.teamsTeamOperation[op],
+        op,
         yield Saga.call(RPCTypes.teamsCanUserPerformRpcPromise, {
           name: teamname,
           op: RPCTypes.teamsTeamOperation[op],

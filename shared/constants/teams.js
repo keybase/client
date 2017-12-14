@@ -85,14 +85,11 @@ const getTopicFromConvID = (state: TypedState, conversationIDKey: ChatTypes.Conv
 const getRole = (state: TypedState, teamname: Types.Teamname): ?Types.TeamRoleType =>
   state.entities.getIn(['teams', 'teamNameToRole', teamname], null)
 
-const getCanPerform = (
-  state: TypedState,
-  teamname: Types.Teamname
-): I.Map<RPCTypes.TeamOperation, boolean> => {
+const getCanPerform = (state: TypedState, teamname: Types.Teamname): I.Map<string, boolean> => {
   // make a default map
   var defaultOps = I.Map()
-  for (let val of Object.values(RPCTypes.teamsTeamOperation)) {
-    defaultOps.set(val, false)
+  for (const prop in RPCTypes.teamsTeamOperation) {
+    defaultOps.set(prop, false)
   }
   return state.entities.getIn(['teams', 'teamNameToCanPerform', teamname], defaultOps)
 }
