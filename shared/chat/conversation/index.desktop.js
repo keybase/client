@@ -134,14 +134,32 @@ class Conversation extends Component<Props, State> {
         </div>
       : null
 
-    // TODO hasReset flow
-    const list = this.props.showSearchResults
-      ? <SearchResultsList
+    let list
+
+    if (this.props.showSearchPending) {
+      list = <ProgressIndicator style={styleSpinner} />
+    } else if (this.props.showSearchResults) {
+      list = (
+        <SearchResultsList
           searchKey={'chatSearch'} /* todo move to constant */
           onShowTracker={this.props.onShowTrackerInSearch}
           style={{...globalStyles.scrollable, flexGrow: 1}}
         />
-      : <div style={{...globalStyles.flexBoxColumn, flex: 1}}>
+      )
+    } else if (this.props.youAreReset) {
+      ;<div style={{...globalStyles.flexBoxColumn, flex: 1}}>
+        <div style={{...globalStyles.flexBoxColumn, flex: 1, justifyContent: 'center', alignItems: 'center'}}>
+          <Icon type="icon-access-denied" />
+        </div>
+        <div style={{backgroundColor: globalColors.red, padding: globalMargins.small}}>
+          <Text type="BodySemibold">
+            Since you reset your account, participants have to accept to let you back in.
+          </Text>
+        </div>
+      </div>
+    } else {
+      list = (
+        <div style={{...globalStyles.flexBoxColumn, flex: 1}}>
           {this.props.showTeamOffer && <CreateTeamHeader />}
           <List
             focusInputCounter={this.props.focusInputCounter}
@@ -157,6 +175,8 @@ class Conversation extends Component<Props, State> {
           {infoPanel}
           {dropOverlay}
         </div>
+      )
+    }
 
     return (
       <Box
@@ -174,7 +194,7 @@ class Conversation extends Component<Props, State> {
           onExitSearch={this.props.onExitSearch}
           selectedConversationIDKey={this.props.selectedConversationIDKey}
         />
-        {this.props.showSearchPending ? <ProgressIndicator style={styleSpinner} /> : list}
+        {list}
       </Box>
     )
   }

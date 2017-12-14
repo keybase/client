@@ -15,6 +15,11 @@ const iconMeta_ = {
     extension: 'png',
     require: require('../images/icons/icon-GPG-export.png'),
   },
+  'icon-access-denied-266': {
+    isFont: false,
+    extension: 'gif',
+    require: require('../images/icons/icon-access-denied-266.gif'),
+  },
   'icon-addon-lock-12': {
     isFont: false,
     extension: 'png',

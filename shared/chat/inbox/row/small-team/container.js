@@ -27,7 +27,7 @@ const mapStateToProps = (state: TypedState, {conversationIDKey, isActiveRoute}) 
     isMuted: p.isMuted,
     isSelected: p.isSelected,
     participantNeedToRekey: p.participantNeedToRekey,
-    participants: youAreReset ? I.List() : p.participants,
+    participants: p.participants,
     showBold: p.showBold,
     snippet: getSnippet(state, conversationIDKey || ''),
     subColor: p.subColor,
