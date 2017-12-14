@@ -71,17 +71,14 @@ func (f *FSNotifications) processNotifications(ctx context.Context) {
 // QueueNotification queues a notification, which must be
 // goroutine-safe.
 func (f *FSNotifications) QueueNotification(fn func()) {
-	channel := func() channels.Channel {
-		f.notificationMutex.RLock()
-		defer f.notificationMutex.RUnlock()
-		return f.notifications
-	}()
-	if channel == nil {
+	f.notificationMutex.RLock()
+	defer f.notificationMutex.RUnlock()
+	if f.notifications == nil {
 		f.log.Warning("Ignoring notification, no available channel")
 		return
 	}
 	f.notificationGroup.Add(1)
-	channel.In() <- fn
+	f.notifications.In() <- fn
 }
 
 // LaunchProcessor launches the notification processor.
