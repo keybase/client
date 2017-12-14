@@ -90,7 +90,7 @@ export const createUpdatePGPKey = (payload: {|+username: string, +pgpFingerprint
 export const createUpdateProof = (payload: {|+remoteProof: RPCTypes.RemoteProof, +linkCheckResult: RPCTypes.LinkCheckResult, +username: string|}) => ({error: false, payload, type: updateProof})
 export const createUpdateProofState = (payload: {|+username: string|}) => ({error: false, payload, type: updateProofState})
 export const createUpdateReason = (payload: {|+username: string, +reason: ?string|}) => ({error: false, payload, type: updateReason})
-export const createUpdateSelectedTeam = (payload: {|+selectedTeam: string|}) => ({error: false, payload, type: updateSelectedTeam})
+export const createUpdateSelectedTeam = (payload: {|+selectedTeam: string, +username: string|}) => ({error: false, payload, type: updateSelectedTeam})
 export const createUpdateTrackToken = (payload: {|+username: string, +trackToken: RPCTypes.TrackToken|}) => ({error: false, payload, type: updateTrackToken})
 export const createUpdateTrackers = (payload: {|+username: string|}) => ({error: false, payload, type: updateTrackers})
 export const createUpdateUserInfo = (payload: {|+userCard: RPCTypes.UserCard, +username: string|}) => ({error: false, payload, type: updateUserInfo})

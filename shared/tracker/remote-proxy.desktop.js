@@ -21,7 +21,7 @@ const trackerMapStateToProps = (state: TypedState, {name}) => {
     _trackerState.userInfo &&
     _trackerState.userInfo.showcasedTeams &&
     _trackerState.userInfo.showcasedTeams.find(team => team.fqName === selectedTeam)
-  const teamname = showTeam && showTeam.fqName
+  const teamname = (showTeam && showTeam.fqName) || ''
   const myUsername = state.config.username
   // If the current user's in the list of public admins, pull them out to the front.
   let publicAdmins = []

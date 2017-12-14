@@ -41,7 +41,6 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   onIgnore: () => dispatchProps._onIgnore(stateProps.username),
   onRefollow: () => dispatchProps._onRefollow(stateProps.username),
   onRetry: stateProps.errorMessage ? () => dispatchProps._onRetry(stateProps.username) : null,
-  onSetSelectedTeamRect: (rect: any) => ownProps.onSetSelectedTeamRect(rect),
   onUnfollow: () => dispatchProps._onUnfollow(stateProps.username),
   onUserClick: (username: string) => dispatchProps._onUserClick(username),
   onUpdateSelectedTeam: (selectedTeam: string) =>
