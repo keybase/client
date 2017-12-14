@@ -1,6 +1,7 @@
 // @flow
 import * as Constants from '../../constants/chat'
 import * as Types from '../../constants/types/chat'
+import * as RPCChatTypes from '../../constants/types/flow-types-chat'
 import * as SearchConstants from '../../constants/search'
 import * as Creators from '../../actions/chat/creators'
 import * as ChatGen from '../../actions/chat-gen'
@@ -39,6 +40,7 @@ type StateProps = {|
   inboxFilter: ?string,
   showSearchResults: boolean,
   previousPath: ?List<string>,
+  youAreReset: boolean,
 |}
 
 type DispatchProps = {|
@@ -62,6 +64,7 @@ const mapStateToProps = (state: TypedState, {routePath, routeProps}): StateProps
   let threadLoadedOffline = false
   let conversationIsError = false
   let conversationErrorText = ''
+  let youAreReset = false
   const defaultChatText =
     (routeState && routeState.get('inputText', new HiddenString('')).stringValue()) || ''
 
@@ -70,6 +73,11 @@ const mapStateToProps = (state: TypedState, {routePath, routeProps}): StateProps
     finalizeInfo = state.chat.get('finalizedState').get(selectedConversationIDKey)
     supersedes = Constants.convSupersedesInfo(selectedConversationIDKey, state.chat)
     supersededBy = Constants.convSupersededByInfo(selectedConversationIDKey, state.chat)
+    youAreReset =
+      state.chat.getIn(
+        ['inbox', selectedConversationIDKey, 'memberStatus'],
+        RPCChatTypes.commonConversationMemberStatus.active
+      ) === RPCChatTypes.commonConversationMemberStatus.reset
 
     const conversationState = state.chat.get('conversationStates').get(selectedConversationIDKey)
     const untrustedState = state.chat.inboxUntrustedState.get(selectedConversationIDKey)
@@ -109,6 +117,7 @@ const mapStateToProps = (state: TypedState, {routePath, routeProps}): StateProps
     defaultChatText,
     showTeamOffer,
     previousPath: routeProps.get('previousPath'),
+    youAreReset,
   }
 }
 
