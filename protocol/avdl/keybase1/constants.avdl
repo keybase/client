@@ -111,6 +111,7 @@ protocol constants {
     SCChatClientError_2516,
     SCChatNotInTeam_2517,
     SCChatStalePreviousState_2518,
+    SCTeamBadMembership_2604,
     SCTeamSelfNotOwner_2607,
     SCTeamNotFound_2614,
     SCTeamExists_2619,
