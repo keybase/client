@@ -282,36 +282,44 @@ func (brq *blockRetrievalQueue) checkCaches(ctx context.Context,
 	return prefetchStatus, err
 }
 
-// Request implements the BlockRetriever interface for blockRetrievalQueue.
-func (brq *blockRetrievalQueue) Request(ctx context.Context,
+// request retrieves blocks asynchronously.
+func (brq *blockRetrievalQueue) request(ctx context.Context,
 	priority int, kmd KeyMetadata, ptr BlockPointer, block Block,
-	lifetime BlockCacheLifetime) <-chan error {
+	lifetime BlockCacheLifetime, doPrefetch bool) <-chan error {
 	// Only continue if we haven't been shut down
 	ch := make(chan error, 1)
 	select {
 	case <-brq.doneCh:
 		ch <- io.EOF
-		brq.Prefetcher().CancelPrefetch(ptr.ID)
+		if doPrefetch {
+			brq.Prefetcher().CancelPrefetch(ptr.ID)
+		}
 		return ch
 	default:
 	}
 	if block == nil {
 		ch <- errors.New("nil block passed to blockRetrievalQueue.Request")
-		brq.Prefetcher().CancelPrefetch(ptr.ID)
+		if doPrefetch {
+			brq.Prefetcher().CancelPrefetch(ptr.ID)
+		}
 		return ch
 	}
 
 	// Check caches before locking the mutex.
 	prefetchStatus, err := brq.checkCaches(ctx, kmd, ptr, block)
 	if err == nil {
-		brq.Prefetcher().ProcessBlockForPrefetch(ctx, ptr, block, kmd,
-			priority, lifetime, prefetchStatus)
+		if doPrefetch {
+			brq.Prefetcher().ProcessBlockForPrefetch(ctx, ptr, block, kmd,
+				priority, lifetime, prefetchStatus)
+		}
 		ch <- nil
 		return ch
 	}
 	err = checkDataVersion(brq.config, path{}, ptr)
 	if err != nil {
-		brq.Prefetcher().CancelPrefetch(ptr.ID)
+		if doPrefetch {
+			brq.Prefetcher().CancelPrefetch(ptr.ID)
+		}
 		ch <- err
 		return ch
 	}
@@ -383,6 +391,21 @@ func (brq *blockRetrievalQueue) Request(ctx context.Context,
 		}
 	}
 	return ch
+}
+
+// Request implements the BlockRetriever interface for blockRetrievalQueue.
+func (brq *blockRetrievalQueue) Request(ctx context.Context,
+	priority int, kmd KeyMetadata, ptr BlockPointer, block Block,
+	lifetime BlockCacheLifetime) <-chan error {
+	return brq.request(ctx, priority, kmd, ptr, block, lifetime, true)
+}
+
+// RequestNoPrefetch implements the BlockRetriever interface for
+// blockRetrievalQueue.
+func (brq *blockRetrievalQueue) RequestNoPrefetch(ctx context.Context,
+	priority int, kmd KeyMetadata, ptr BlockPointer, block Block,
+	lifetime BlockCacheLifetime) <-chan error {
+	return brq.request(ctx, priority, kmd, ptr, block, lifetime, false)
 }
 
 // FinalizeRequest is the last step of a retrieval request once a block has
