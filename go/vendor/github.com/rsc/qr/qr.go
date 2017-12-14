@@ -12,7 +12,7 @@ import (
 	"image"
 	"image/color"
 
-	"code.google.com/p/rsc/qr/coding"
+	"rsc.io/qr/coding"
 )
 
 // A Level denotes a QR error correction level.
