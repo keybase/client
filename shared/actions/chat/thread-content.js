@@ -194,6 +194,8 @@ function* _loadMoreMessages(action: ChatGen.LoadMoreMessagesPayload): Saga.SagaG
       if (params.offline) {
         yield Saga.put(ChatGen.createThreadLoadedOffline({conversationIDKey}))
       }
+
+      yield Saga.put(ChatGen.createSetLoaded({conversationIDKey, isLoaded: true}))
     } else {
       console.warn('loadMoreMessages: localGetThreadNonblock rpc bailed early')
     }
