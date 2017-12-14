@@ -231,7 +231,7 @@ function* _processConversation(c: RPCChatTypes.InboxUIItem): Generator<any, void
   yield Saga.put(
     ChatGen.createUpdateResetParticipants({
       conversationIDKey,
-      participants: c.resetParticipants,
+      participants: c.resetParticipants || [],
     })
   )
 
