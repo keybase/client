@@ -3405,10 +3405,11 @@ func TestChatSrvUserReset(t *testing.T) {
 		require.NoError(t, g1.Logout())
 		require.NoError(t, users[1].Login(g1))
 
-		teamID, err := tlfIDToTeamdID(conv.Triple.Tlfid)
-		require.NoError(t, err)
-		require.NoError(t, teams.ReAddMemberAfterReset(ctx, ctc.as(t, users[0]).h.G().ExternalG(),
-			teamID, users[1].Username))
+		require.NoError(t, ctc.as(t, users[0]).chatLocalHandler().AddImplicitTeamMemberAfterReset(ctx,
+			chat1.AddImplicitTeamMemberAfterResetArg{
+				Username: users[1].Username,
+				ConvID:   conv.Id,
+			}))
 		consumeMembersUpdate(t, listener0)
 		consumeJoinConv(t, listener1)
 
