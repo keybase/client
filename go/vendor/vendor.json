@@ -195,11 +195,10 @@
 			"revisionTime": "2016-06-21T22:08:13-04:00"
 		},
 		{
-			"checksumSHA1": "cb4z3+jmNE5b6l5CCUpcAaUF8pE=",
-			"origin": "github.com/keybase/kbfs/vendor/github.com/kardianos/osext",
+			"checksumSHA1": "PnRKPyKchl+O2JxrY5/tvUcqL54=",
 			"path": "github.com/kardianos/osext",
-			"revision": "6e7f843663477789fac7c02def0d0909e969b4e5",
-			"revisionTime": "2015-05-28T07:23:15-07:00"
+			"revision": "ae77be60afb1dcacde03767a8c37337fad28ac14",
+			"revisionTime": "2017-05-10T13:15:34Z"
 		},
 		{
 			"checksumSHA1": "tBFISVudi8RzOoFhK2+p0PRicfw=",
@@ -1108,6 +1107,7 @@
 			"revisionTime": "2016-06-17T13:51:20-05:00"
 		},
 		{
+			"origin": "github.com/keybase/client/go/vendor/golang.org/x/text/unicode/norm",
 			"path": "golang.org/x/text/unicode/norm",
 			"revision": ""
 		},
