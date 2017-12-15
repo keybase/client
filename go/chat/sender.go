@@ -605,13 +605,23 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 	}
 
 	// Write new message out to cache
+	var unboxedMsg chat1.MessageUnboxed
 	s.Debug(ctx, "sending local updates to chat sources")
-	if _, _, err = s.G().ConvSource.Push(ctx, convID, boxed.ClientHeader.Sender, *boxed); err != nil {
+	if unboxedMsg, _, err = s.G().ConvSource.Push(ctx, convID, boxed.ClientHeader.Sender, *boxed); err != nil {
 		s.Debug(ctx, "failed to push new message into convsource: %s", err)
 	}
 	if _, err = s.G().InboxSource.NewMessage(ctx, boxed.ClientHeader.Sender, 0, convID, *boxed); err != nil {
 		s.Debug(ctx, "failed to update inbox: %s", err)
 	}
+	// Send up to frontend
+	activity := chat1.NewChatActivityWithIncomingMessage(chat1.IncomingMessage{
+		Message: utils.PresentMessageUnboxed(ctx, unboxedMsg, boxed.ClientHeader.Sender,
+			s.G().TeamChannelSource),
+		ConvID: convID,
+		DisplayDesktopNotification: false,
+	})
+	s.G().NotifyRouter.HandleNewChatActivity(ctx, keybase1.UID(boxed.ClientHeader.Sender.String()), &activity)
+
 	return []byte{}, boxed, plres.RateLimit, nil
 }
 
