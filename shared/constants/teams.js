@@ -85,14 +85,18 @@ const getTopicFromConvID = (state: TypedState, conversationIDKey: ChatTypes.Conv
 const getRole = (state: TypedState, teamname: Types.Teamname): ?Types.TeamRoleType =>
   state.entities.getIn(['teams', 'teamNameToRole', teamname], null)
 
-const getCanPerform = (state: TypedState, teamname: Types.Teamname): I.Map<string, boolean> => {
-  // make a default map
-  var defaultOps = I.Map()
-  for (const prop in RPCTypes.teamsTeamOperation) {
-    defaultOps.set(prop, false)
-  }
-  return state.entities.getIn(['teams', 'teamNameToCanPerform', teamname], defaultOps)
-}
+const getCanPerform = (state: TypedState, teamname: Types.Teamname): RPCTypes.TeamOperation =>
+  state.entities.getIn(['teams', 'teamNameToCanPerform', teamname], {
+    manageMembers: false,
+    manageSubteams: false,
+    createChannel: false,
+    deleteChannel: false,
+    renameChannel: false,
+    editChannelDescription: false,
+    setTeamShowcase: false,
+    setMemberShowcase: false,
+    changeOpenTeam: false,
+  })
 
 const isAdmin = (type: ?Types.TeamRoleType) => type === 'admin'
 const isOwner = (type: ?Types.TeamRoleType) => type === 'owner'

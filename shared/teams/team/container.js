@@ -1,6 +1,7 @@
 // @flow
 import * as Constants from '../../constants/teams'
 import * as Types from '../../constants/types/teams'
+import * as RPCTypes from '../../constants/types/flow-types'
 import * as TeamsGen from '../../actions/teams-gen'
 import * as SearchGen from '../../actions/search-gen'
 import * as I from 'immutable'
@@ -35,7 +36,7 @@ type StateProps = {
   waitingForSavePublicity: boolean,
   you: ?string,
   yourRole: ?Types.TeamRoleType,
-  yourOperations: I.Map<string, boolean>,
+  yourOperations: RPCTypes.TeamOperation,
 }
 
 const mapStateToProps = (state: TypedState, {routeProps, routeState}): StateProps => {
@@ -207,7 +208,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
       onShowMenu={() => ownProps.setShowMenu(true)}
     />
   )
-  const youCanShowcase = stateProps.yourOperations.get('setTeamShowcase')
+  const youCanShowcase = stateProps.yourOperations.setTeamShowcase
   const publicitySettingsChanged =
     ownProps.newPublicityAnyMember !== stateProps.publicityAnyMember ||
     ownProps.newPublicityMember !== stateProps.publicityMember ||
