@@ -83,6 +83,7 @@ export default class TrackerRender extends PureComponent<RenderProps> {
                 paddingLeft: globalMargins.medium,
                 paddingBottom: globalMargins.tiny,
                 paddingTop: globalMargins.tiny,
+                backgroundColor: globalColors.white,
               }}
             >
               {this.props.userInfo.showcasedTeams.map(team => (
