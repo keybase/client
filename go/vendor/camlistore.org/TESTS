@@ -1,0 +1,34 @@
+Tests needed
+
+-- integration test of reindexing + race detector
+
+-- support for running race detector on all tests. when in race mode, also run
+   integration test children in race mode.
+
+-- test that server/camlistored still builds & starts even when sqlite isn't
+   available (TODO: hide it from the test by running make.go in a child
+   process with a faked-out PKG_CONFIG environment or something, to make
+   cmd/go unable to find it even if it's installed)
+
+-- search & corpus use of EnumeratePermanodesLastModified
+
+-- pkg/client --- test FetchVia against a server returning compressed content.
+   (fix in 3fa6d69405f036308931dd36e5070b2b19dbeadf without a new test)
+
+-cmd/camput/
+	-verify that stat caching works. verify that -filenodes does create the permanode even if the file was already uploaded (and cached) in a previous run.
+
+-- blobserver/{remote,shard} have no tests. should be easier now that
+   test.Fetcher is a full blobserver? see encrypt, replica, and cond's
+   nascent tests for examples.
+
+-- app engine integration tests (before we make a release, for sure,
+   but probably in presubmit)
+
+-- cross-compiling to freebsd and windows etc still works.
+
+-- pkg/auth -- not enough tests. see regression at
+   https://camlistore-review.googlesource.com/#/c/556/1
+
+-- blobserver.WaitForBlob, and integration tests for the http handlers
+   for long-polling on Enumerate and Stat

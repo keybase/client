@@ -1,0 +1,93 @@
+# People who have agreed to one of the CLAs and can contribute patches.
+# The AUTHORS file lists the copyright holders; this file
+# lists people.  For example, Google employees are listed here
+# but not in AUTHORS, because Google holds the copyright.
+#
+# http://code.google.com/legal/individual-cla-v1.0.html (electronic submission)
+# http://code.google.com/legal/corporate-cla-v1.0.html (requires FAX)
+#
+# Note that the CLA isn't a copyright _assignment_ but rather a
+# copyright _license_.  You retain the copyright on your
+# contributions.
+
+Aaron Bieber <deftly@gmail.com>
+Aaron Boodman <aaron@aaronboodman.com>
+Aaron Racine <aracine@google.com>
+Adam Langley <agl@golang.org>
+Alessandro Arzilli <alessandro.arzilli@gmail.com> gh=aarzilli
+Ali Afshar <afshar@google.com>
+Amir Mohammad Saied <amirsaied@gmail.com>
+Amit Levy <aalevy@gmail.com>
+Andrew Gerrand <adg@golang.org>
+Andy Smith <github@anarkystic.com>
+Anthony Martin <ality@pbrane.org>
+Antonin Amand <antonin.amand@gmail.com>
+Antti Rasinen <ars@iki.fi>
+Armen Baghumian <armen@vardump.org>
+Bill Thiede <couchmoney@gmail.com>
+Brad Fitzpatrick <brad@danga.com>
+Bret Comnes <bcomnes@gmail.com>
+Brett Slatkin <bslatkin@gmail.com>
+Brian Marete <marete@toshnix.com>
+Burcu Dogan <jbd@google.com>
+Caine Tighe <arctanofyourface@gmail.com>
+Dan Kortschak <dan.kortschak@adelaide.edu.au>
+Daniel Coonce <danielcoonce@gmail.com>
+Daniel Dermott Bryan <danbryan@gmail.com>
+Daniel Erat <dan@erat.org>
+Daniel Pupius <dan.pupius@gmail.com>
+Dean Landolt <dean@deanlandolt.com>
+Dustin Sallings <dsallings@gmail.com>
+Edward Sheffler III <ed@flin.ch>
+Emil Hessman <emil@hessman.se>
+Eric Drechsel <eric@pdxhub.org>
+Evan Martin <martine@danga.com>
+Fabian Wickborn <fabian@wickborn.net>
+Gina White <ginabythebay@gmail.com>
+Govert Versluis <govert@ver.slu.is>
+Han-Wen Nienhuys <hanwen@google.com>
+Hernan Grecco <hernan.grecco@gmail.com>
+Iain Peet <iain.peet@gmail.com> <iain@ipeet.org>
+Jakub Brzeski <jk.brzeski@gmail.com>
+Jani Monoses <jani@ubuntu.com>
+Jingguo Yao <yaojingguo@gmail.com>
+Johan Euphrosine <proppy@google.com>
+Josh Bleecher Snyder <josharian@gmail.com>
+Josh Huckabee <joshhuckabee@gmail.com>
+Joshua Gay <joshuagay@gmail.com>
+Jrabbit <jackjrabbit@gmail.com>
+Julien Danjou <julien@danjou.info>
+Kamil Kisiel <kamil@kamilkisiel.net> <kamil.kisiel@gmail.com>
+Kristopher Cost <me@krisco.st>
+Lindsey Simon <lsimon@commoner.com>
+Marc-Antoine Ruel <maruel@chromium.org>
+Mario Russo <mail.mr@gmail.com>
+Mateus Braga <mateus.a.braga@gmail.com>
+Mathieu Lonjaret <mathieu.lonjaret@gmail.com>
+Matthieu Rakotojaona Rainimangavelo <matthieu.rakotojaona@gmail.com>
+Matt Jibson <matt.jibson@gmail.com>
+Maxime Lavigne <duguigne@gmail.com>
+Michael Vincent Zuffoletti <mikezuff@gmail.com>
+Nick O'Neill <nick.oneill@gmail.com>
+Nico Weber <thakis@chromium.org>
+Nigel Tao <nigeltao@golang.org>
+Nolan Darilek <nolan@thewordnerd.info>
+Pawel Szczur <pawelszczur@gmail.com>
+Philio <phil@bayfmail.com>
+Piotr Staszewski <p.staszewski@gmail.com>
+Ranveer <ranveerkunal@gmail.com>
+Ritesh Sinha <ritesh.kumar.sinha@gmail.com>
+Rob Young <bubblenut@gmail.com>
+Robert Hencke <robert.hencke@gmail.com>
+Robert Kroeger <rjkroege@liqui.org>
+Robert Obryk <robryk@gmail.com>
+Ryan Barrett <camlistore@ryanb.org>
+Salman Aljammaz <s@0x65.net>
+Sarath Lakshman <sarathlakshman@slynux.com>
+Steve Phillips <elimisteve@gmail.com>
+Steven L. Speek <slspeek@gmail.com>
+Tamás Gulácsi <tgulacsi78@gmail.com>
+Timo Truyts <alkaloid.btx@gmail.com>
+Tony Chang <tony@ponderer.org>
+Tony Scelfo <scelfo@tonyscelfo.com>
+Ulf Holm Nielsen <doktor@dyregod.dk>

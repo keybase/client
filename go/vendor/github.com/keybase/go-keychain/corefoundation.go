@@ -17,6 +17,7 @@ import (
 	"unsafe"
 )
 
+// Release releases a CFTypeRef
 func Release(ref C.CFTypeRef) {
 	C.CFRelease(ref)
 }
@@ -153,33 +154,33 @@ func ConvertMapToCFDictionary(attr map[string]interface{}) (C.CFDictionaryRef, e
 	m := make(map[C.CFTypeRef]C.CFTypeRef)
 	for key, i := range attr {
 		var valueRef C.CFTypeRef
-		switch i.(type) {
+		switch val := i.(type) {
 		default:
 			return nil, fmt.Errorf("Unsupported value type: %v", reflect.TypeOf(i))
 		case C.CFTypeRef:
-			valueRef = i.(C.CFTypeRef)
+			valueRef = val
 		case bool:
-			if i == true {
+			if val {
 				valueRef = C.CFTypeRef(C.kCFBooleanTrue)
 			} else {
 				valueRef = C.CFTypeRef(C.kCFBooleanFalse)
 			}
 		case []byte:
-			bytesRef, err := BytesToCFData(i.([]byte))
+			bytesRef, err := BytesToCFData(val)
 			if err != nil {
 				return nil, err
 			}
 			valueRef = C.CFTypeRef(bytesRef)
 			defer Release(valueRef)
 		case string:
-			stringRef, err := StringToCFString(i.(string))
+			stringRef, err := StringToCFString(val)
 			if err != nil {
 				return nil, err
 			}
 			valueRef = C.CFTypeRef(stringRef)
 			defer Release(valueRef)
 		case Convertable:
-			convertedRef, err := (i.(Convertable)).Convert()
+			convertedRef, err := val.Convert()
 			if err != nil {
 				return nil, err
 			}
@@ -191,6 +192,7 @@ func ConvertMapToCFDictionary(attr map[string]interface{}) (C.CFDictionaryRef, e
 			return nil, err
 		}
 		m[C.CFTypeRef(keyRef)] = valueRef
+		defer Release(C.CFTypeRef(keyRef))
 	}
 
 	cfDict, err := MapToCFDictionary(m)

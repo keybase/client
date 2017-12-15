@@ -3,7 +3,7 @@
 // license that can be found in the LICENSE file.
 
 // Package resize resizes images.
-package resize // import "camlistore.org/pkg/images/resize"
+package resize
 
 import (
 	"image"

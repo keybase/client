@@ -15,7 +15,6 @@ command and linked into an executable/library, as long as there are any *.go
 files in the same directory.
 
 OPTIONS:
-  -arch="386": architecture of output file - one of: 386, [EXPERIMENTAL: amd64]
   -data="": path to raw data file to embed [WARNING: useless for Go 1.4+]
   -ico="": comma-separated list of paths to .ico files to embed
   -manifest="": path to a Windows manifest file to embed
@@ -31,6 +30,6 @@ TODO MAYBE/LATER:
 - fix or remove FIXMEs
 
 LICENSE: MIT
-  Copyright 2013-2015 The rsrc Authors.
+  Copyright 2013-2014 The rsrc Authors.
 
 http://github.com/akavel/rsrc

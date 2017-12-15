@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package images // import "camlistore.org/pkg/images"
+package images
 
 import (
 	"bytes"

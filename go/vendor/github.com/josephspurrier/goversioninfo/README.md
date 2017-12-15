@@ -19,7 +19,7 @@ go get github.com/josephspurrier/goversioninfo/cmd/goversioninfo
 
 Copy versioninfo.json into your working directory and then modify the file with your own settings.
 
-Add a similar text to the top of your Go source code (-icon and -manifest are optional):
+Add a similar text to the top of your Go source code (-icon and -manifest are optional, but can also be specified in the versioninfo.json file):
 ~~~ go
 //go:generate goversioninfo -icon=icon.ico -manifest=goversioninfo.exe.manifest
 ~~~
@@ -46,6 +46,7 @@ Complete list of the flags for goversioninfo:
   -internal-name="": StringFileInfo.InternalName
   -manifest="": manifest file name
   -o="resource.syso": output file name
+  -platform-specific=false: output i386 and amd64 named resource.syso, ignores -o
   -original-name="": StringFileInfo.OriginalFilename
   -private-build="": StringFileInfo.PrivateBuild
   -product-name="": StringFileInfo.ProductName
@@ -53,15 +54,41 @@ Complete list of the flags for goversioninfo:
   -special-build="": StringFileInfo.SpecialBuild
   -trademark="": StringFileInfo.LegalTrademarks
   -translation=0: translation ID
-  -ver-build=-1: FileVersion.Build
+  -64:false: generate 64-bit binaries on true
   -ver-major=-1: FileVersion.Major
   -ver-minor=-1: FileVersion.Minor
   -ver-patch=-1: FileVersion.Patch
+  -ver-build=-1: FileVersion.Build
+  -product-ver-major=-1: ProductVersion.Major
+  -product-ver-minor=-1: ProductVersion.Minor
+  -product-ver-patch=-1: ProductVersion.Patch
+  -product-ver-build=-1: ProductVersion.Build
 ~~~
 
 You can look over the Microsoft Resource Information: [VERSIONINFO resource](https://msdn.microsoft.com/en-us/library/windows/desktop/aa381058(v=vs.85).aspx)
 
 You can look through the Microsoft Version Information structures: [Version Information Structures](https://msdn.microsoft.com/en-us/library/windows/desktop/ff468916(v=vs.85).aspx)
+
+## PowerShell Differences
+
+In PowerShell, the version components are named differently than the fields in
+the versioninfo.json file:
+
+```
+PowerShell:          versioninfo.json:
+-----------          -----------------
+FileMajorPart      = FileVersion.Major
+FileMinorPart      = FileVersion.Minor
+FileBuildPart      = FileVersion.Patch
+FilePrivatePart    = FileVersion.Build
+ProductMajorPart   = ProductVersion.Major
+ProductMinorPart   = ProductVersion.Minor
+ProductBuildPart   = ProductVersion.Patch
+ProductPrivatePart = ProductVersion.Build
+
+```
+
+If you find any other differences, let me know.
 
 ## Alternatives to this Tool
 

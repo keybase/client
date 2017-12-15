@@ -1,0 +1,13 @@
+language: go
+
+go:
+  - 1.5
+  - 1.6
+  - 1.7
+  - 1.8
+  - 1.9
+  - tip
+
+script:
+  - go test -timeout 1h ./...
+  - go test -timeout 30m -race -run "TestDB_(Concurrent|GoleveldbIssue74)" ./leveldb

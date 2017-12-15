@@ -11,12 +11,6 @@ type Clock interface {
 	After(d time.Duration) <-chan time.Time
 	Sleep(d time.Duration)
 	Now() time.Time
-	Since(t time.Time) time.Duration
-
-	// AfterTime sends `now` on the returned channel after the given
-	// time t has been surpassed. This is an addition to the standard
-	// Clock interface, to alleviate race conditions with the fake clock.
-	AfterTime(t time.Time) <-chan time.Time
 }
 
 // FakeClock provides an interface for a clock which can be
@@ -66,22 +60,6 @@ func (rc *realClock) Now() time.Time {
 	return time.Now()
 }
 
-func (rc *realClock) Since(t time.Time) time.Duration {
-	return rc.Now().Sub(t)
-}
-
-// AfterTime sends the current time after the time t has been surpassed.
-// For the real clock, just computes `(t - Now())` and sleeps that long
-// via a call to `After`.
-func (rc *realClock) AfterTime(t time.Time) <-chan time.Time {
-	now := rc.Now()
-	var dur time.Duration
-	if t.After(now) {
-		dur = t.Sub(now)
-	}
-	return rc.After(dur)
-}
-
 type fakeClock struct {
 	sleepers []*sleeper
 	blockers []*blocker
@@ -125,27 +103,6 @@ func (fc *fakeClock) After(d time.Duration) <-chan time.Time {
 	return done
 }
 
-// AfterTime, when called with time `t`, is similar to calling `After(t.Sub(Now()))`.
-// Crucially, it is race-free, and therefore can be called from one go-routine
-// while another is calling `Advance`.
-func (fc *fakeClock) AfterTime(t time.Time) <-chan time.Time {
-	fc.l.Lock()
-	defer fc.l.Unlock()
-	done := make(chan time.Time, 1)
-	if now := fc.time; !t.After(now) {
-		done <- now
-	} else {
-		s := &sleeper{
-			until: t,
-			done:  done,
-		}
-		fc.sleepers = append(fc.sleepers, s)
-		// and notify any blockers
-		fc.blockers = notifyBlockers(fc.blockers, len(fc.sleepers))
-	}
-	return done
-}
-
 // notifyBlockers notifies all the blockers waiting until the
 // given number of sleepers are waiting on the fakeClock. It
 // returns an updated slice of blockers (i.e. those still waiting)
@@ -171,11 +128,6 @@ func (fc *fakeClock) Now() time.Time {
 	t := fc.time
 	fc.l.RUnlock()
 	return t
-}
-
-// Since returns the duration that has passed since the given time on the fakeClock
-func (fc *fakeClock) Since(t time.Time) time.Duration {
-	return fc.Now().Sub(t)
 }
 
 // Advance advances fakeClock to a new point in time, ensuring channels from any

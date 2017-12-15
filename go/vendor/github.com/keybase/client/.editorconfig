@@ -1,0 +1,32 @@
+root = true
+
+[*]
+trim_trailing_whitespace = true
+
+[**.avdl]
+indent_style = space
+indent_size = 2
+
+[**.go]
+indent_style = tab
+indent_size = 4
+
+[**.iced]
+indent_style = space
+indent_size = 2
+
+[**.js]
+indent_style = space
+indent_size = 2
+
+[**.flow]
+indent_style = space
+indent_size = 2
+
+[**.html]
+indent_style = space
+indent_size = 2
+
+[**.pegjs]
+indent_style = space
+indent_size = 2

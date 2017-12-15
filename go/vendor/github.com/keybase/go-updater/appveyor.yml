@@ -1,0 +1,27 @@
+platform: x64
+
+clone_folder: c:\gopath\src\github.com\keybase\go-updater
+
+environment:
+  GOPATH: c:\gopath
+  GOVERSION: 1.8.3
+
+install:
+  - set PATH=%GOPATH%\bin;C:\go\bin;%PATH%
+  - echo %PATH%
+  - rmdir c:\go /s /q
+  - appveyor DownloadFile https://storage.googleapis.com/golang/go%GOVERSION%.windows-amd64.zip
+  - 7z x go%GOVERSION%.windows-amd64.zip -y -oC:\ > NUL
+  - go version
+  - go env
+  - go get -u github.com/stretchr/testify/assert
+  - go get -u github.com/stretchr/testify/require
+  - go get github.com/keybase/go-updater/test
+  - dir %GOPATH%\bin\test.exe /s
+
+build_script:
+  - go test -short -v ./...
+
+test: off
+
+deploy: off

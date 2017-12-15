@@ -1,0 +1,12 @@
+{
+  "name": "keybase-test-vectors",
+  "version": "1.0.11",
+  "description": "test data shared between different Keybase implementations",
+  "main": "js/main.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/keybase/keybase-test-vectors"
+  },
+  "author": "Jack O'Connor",
+  "license": "BSD-3-Clause"
+}

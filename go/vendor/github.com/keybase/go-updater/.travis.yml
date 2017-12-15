@@ -1,0 +1,24 @@
+language: go
+go:
+  - 1.8.3
+os:
+  - linux
+  - osx
+before_install:
+  - go get github.com/mattn/goveralls
+  - go get golang.org/x/tools/cmd/cover
+  - go get github.com/axw/gocov/gocov
+  - go get github.com/modocache/gover
+  - go get github.com/keybase/go-updater/test
+script:
+  - go test -v -coverprofile=command.coverprofile ./command
+  - go test -v -coverprofile=keybase.coverprofile ./keybase
+  - go test -v -coverprofile=process.coverprofile ./process
+  - go test -v -coverprofile=saltpack.coverprofile ./saltpack
+  - go test -v -coverprofile=service.coverprofile ./service
+  - go test -v -coverprofile=sources.coverprofile ./sources
+  - go test -v -coverprofile=util.coverprofile ./util
+  - go test -v -coverprofile=watchdog.coverprofile ./watchdog
+  - go test -v -coverprofile=main.coverprofile
+  - $HOME/gopath/bin/gover
+  - $HOME/gopath/bin/goveralls -coverprofile=gover.coverprofile -service=travis-ci

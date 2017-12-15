@@ -1,0 +1,202 @@
+
+# Gopkg.toml example
+#
+# Refer to https://github.com/golang/dep/blob/master/docs/Gopkg.toml.md
+# for detailed Gopkg.toml documentation.
+#
+# required = ["github.com/user/thing/cmd/thing"]
+# ignored = ["github.com/user/project/pkgX", "bitbucket.org/user/project/pkgA/pkgY"]
+#
+# [[constraint]]
+#   name = "github.com/user/project"
+#   version = "1.0.0"
+#
+# [[constraint]]
+#   name = "github.com/user/project2"
+#   branch = "dev"
+#   source = "github.com/myfork/project2"
+#
+# [[override]]
+#  name = "github.com/x/y"
+#  version = "2.4.0"
+
+
+[[constraint]]
+  branch = "master"
+  name = "bazil.org/fuse"
+
+[[constraint]]
+  name = "camlistore.org"
+  version = "0.9.0"
+
+[[constraint]]
+  name = "github.com/PuerkitoBio/goquery"
+  version = "1.1.0"
+
+[[constraint]]
+  name = "github.com/akavel/rsrc"
+  version = "2.0.0"
+
+[[constraint]]
+  name = "github.com/blang/semver"
+  version = "3.5.1"
+
+[[constraint]]
+  name = "github.com/coreos/go-systemd"
+  version = "15.0.0"
+
+[[constraint]]
+  name = "github.com/davecgh/go-spew"
+  version = "1.1.0"
+
+[[constraint]]
+  name = "github.com/docopt/docopt-go"
+  version = "0.6.2"
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/dustin/go-humanize"
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/hashicorp/golang-lru"
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/josephspurrier/goversioninfo"
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/kardianos/osext"
+
+[[constraint]]
+  name = "github.com/keybase/backoff"
+  version = "1.0.0"
+
+[[constraint]]
+  name = "github.com/keybase/cli"
+  version = "1.2.0"
+
+[[constraint]]
+  name = "github.com/keybase/clockwork"
+  version = "0.1.0"
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/keybase/go-codec"
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/keybase/go-crypto"
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/keybase/go-framed-msgpack-rpc"
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/keybase/go-jsonw"
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/keybase/go-kext"
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/keybase/go-keychain"
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/keybase/go-logging"
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/keybase/go-triplesec"
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/keybase/go-triplesec-insecure"
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/keybase/go-updater"
+
+[[constraint]]
+  name = "github.com/keybase/kbfs"
+  version = "1.0.36"
+
+[[constraint]]
+  name = "github.com/keybase/keybase-test-vectors"
+  version = "1.0.11"
+
+[[constraint]]
+  branch = "v2"
+  name = "github.com/keybase/npipe"
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/keybase/saltpack"
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/kr/text"
+
+[[constraint]]
+  name = "github.com/mattn/go-isatty"
+  version = "0.0.3"
+
+[[constraint]]
+  name = "github.com/miekg/dns"
+  version = "1.0.0"
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/nfnt/resize"
+
+[[constraint]]
+  name = "github.com/pkg/errors"
+  version = "0.8.0"
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/qrtz/nativemessaging"
+
+[[constraint]]
+  name = "github.com/stretchr/testify"
+  version = "1.1.4"
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/syndtr/goleveldb"
+
+[[constraint]]
+  branch = "master"
+  name = "golang.org/x/crypto"
+
+[[constraint]]
+  branch = "master"
+  name = "golang.org/x/net"
+
+[[constraint]]
+  branch = "master"
+  name = "golang.org/x/sync"
+
+[[constraint]]
+  branch = "master"
+  name = "golang.org/x/sys"
+
+[[constraint]]
+  branch = "master"
+  name = "golang.org/x/text"
+
+[[constraint]]
+  branch = "master"
+  name = "h12.me/socks"
+
+[[constraint]]
+  branch = "master"
+  name = "rsc.io/qr"
+
+[[constraint]]
+  branch = "master"
+  name = "stathat.com/c/ramcache"

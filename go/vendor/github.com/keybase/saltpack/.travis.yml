@@ -1,0 +1,25 @@
+os:
+  - linux
+language: go
+go:
+  # Earliest and latest versions we support.
+  - 1.7
+  - 1.8.1
+before_install:
+  - go get github.com/mattn/goveralls
+  - go get golang.org/x/tools/cmd/cover
+  - go get github.com/axw/gocov/gocov
+  - go get github.com/modocache/gover
+script:
+  - go test -coverprofile=basic.coverprofile ./basic
+  - go test -coverprofile=basex.coverprofile ./encoding/basex
+  - go test -coverprofile=main.coverprofile
+  - $HOME/gopath/bin/gover
+  - $HOME/gopath/bin/goveralls -coverprofile=gover.coverprofile -service=travis-ci
+notifications:
+  slack:
+    rooms:
+      secure: W5hUm0MPWJ3v2VGRAq9fxgroVvqFOkwnbrxllEX3Zadf3e909fwQzm7KEUvSEd9fhsKrdBxPrphCZd1UCq5cXjCkfokKFojnbgnYPKZYgL4M7GWqiURCfIUY7r0gQCDnFzIIANacIbhT8089IkQva8QWCdfX4zVycTKOvMC0msE=
+branches:
+  only:
+    - master

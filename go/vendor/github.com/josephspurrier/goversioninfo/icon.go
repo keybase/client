@@ -77,14 +77,14 @@ func addIcon(coff *coff.Coff, fname string, newID <-chan uint16) error {
 			Type:     1, // magic num.
 			Count:    uint16(len(icons)),
 		}}
+		gid := <-newID
 		for _, icon := range icons {
 			id := <-newID
 			r := io.NewSectionReader(f, int64(icon.ImageOffset), int64(icon.BytesInRes))
 			coff.AddResource(rtIcon, id, r)
 			group.Entries = append(group.Entries, gRPICONDIRENTRY{IconDirEntryCommon: icon.IconDirEntryCommon, ID: id})
 		}
-		id := <-newID
-		coff.AddResource(rtGroupIcon, id, group)
+		coff.AddResource(rtGroupIcon, gid, group)
 	}
 
 	return nil
