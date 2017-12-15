@@ -253,6 +253,7 @@ func TestTeamOpenPuklessRequest(t *testing.T) {
 }
 
 func TestTeamOpenRemoveOldUVAddInvite(t *testing.T) {
+	t.Skip() // See CORE-6841
 	ctx := newSMUContext(t)
 	defer ctx.cleanup()
 
@@ -308,6 +309,7 @@ func TestTeamOpenRemoveOldUVAddInvite(t *testing.T) {
 // re-join their open teams from the website, before provisioning (and
 // therefore getting a PUK).
 func TestTeamOpenResetAndRejoin(t *testing.T) {
+	t.Skip() // See CORE-6841
 	ctx := newSMUContext(t)
 	defer ctx.cleanup()
 
