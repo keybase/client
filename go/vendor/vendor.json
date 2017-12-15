@@ -393,12 +393,6 @@
 			"revisionTime": "2016-12-20T22:57:08-05:00"
 		},
 		{
-			"checksumSHA1": "m7zvg7DyAruZtUEDtmeVzDMr4GA=",
-			"path": "github.com/rsc/qr",
-			"revision": "48b2ede4844e13f1a2b7ce4d2529c9af7e359fc5",
-			"revisionTime": "2016-11-21T13:34:36Z"
-		},
-		{
 			"checksumSHA1": "Q68FxXX04PtPDIG7C1RlSDhx/ko=",
 			"path": "github.com/rwcarlsen/goexif/exif",
 			"revision": "709fab3d192d7c62f86043caff1e7e3fb0f42bd8",
@@ -782,6 +776,12 @@
 			"path": "h12.me/socks",
 			"revision": "c19db44edd3ca0f7992809b55412dbb57805bc8e",
 			"revisionTime": "2015-04-10T14:41:13+08:00"
+		},
+		{
+			"checksumSHA1": "e45Azo7LgzRZ10Cj5ux0g8K83LA=",
+			"path": "rsc.io/qr",
+			"revision": "48b2ede4844e13f1a2b7ce4d2529c9af7e359fc5",
+			"revisionTime": "2016-11-21T13:34:36Z"
 		},
 		{
 			"path": "stathat.com/c/ramcache",
