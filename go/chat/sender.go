@@ -617,7 +617,7 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 	var unboxedMsg chat1.MessageUnboxed
 	var convLocal *chat1.ConversationLocal
 	s.Debug(ctx, "sending local updates to chat sources")
-	if unboxedMsg, _, cerr = s.G().ConvSource.Push(ctx, convID, boxed.ClientHeader.Sender, *boxed); err != nil {
+	if unboxedMsg, _, cerr = s.G().ConvSource.Push(ctx, convID, boxed.ClientHeader.Sender, *boxed); cerr != nil {
 		s.Debug(ctx, "failed to push new message into convsource: %s", err)
 	}
 	if convLocal, err = s.G().InboxSource.NewMessage(ctx, boxed.ClientHeader.Sender, 0, convID,
