@@ -88,7 +88,7 @@ type mdServerMemShared struct {
 	// tracks expire time and holder
 	lockIDs              map[mdLockMemKey]mdLockMemVal
 	implicitTeamsEnabled bool
-	iTeamMigrationLocks  map[tlf.ID]struct{}
+	iTeamMigrationLocks  map[tlf.ID]bool
 
 	updateManager *mdServerLocalUpdateManager
 }
@@ -123,7 +123,7 @@ func NewMDServerMemory(config mdServerLocalConfig) (*MDServerMemory, error) {
 		readerKeyBundleDb:   readerKeyBundleDb,
 		truncateLockManager: &truncateLockManager,
 		lockIDs:             make(map[mdLockMemKey]mdLockMemVal),
-		iTeamMigrationLocks: make(map[tlf.ID]struct{}),
+		iTeamMigrationLocks: make(map[tlf.ID]bool),
 		updateManager:       newMDServerLocalUpdateManager(),
 	}
 	mdserv := &MDServerMemory{config, log, &shared}
@@ -476,8 +476,7 @@ func (md *MDServerMemory) iTeamMigrationRemoveLock(id tlf.ID) {
 func (md *MDServerMemory) iTeamMigrationIsLocked(id tlf.ID) bool {
 	md.lock.Lock()
 	defer md.lock.Unlock()
-	_, ok := md.iTeamMigrationLocks[id]
-	return ok
+	return md.iTeamMigrationLocks[id]
 }
 
 // Put implements the MDServer interface for MDServerMemory.
@@ -738,7 +737,7 @@ func (md *MDServerMemory) StartImplicitTeamMigration(
 	ctx context.Context, id tlf.ID) (err error) {
 	md.lock.Lock()
 	defer md.lock.Unlock()
-	md.iTeamMigrationLocks[id] = struct{}{}
+	md.iTeamMigrationLocks[id] = true
 	return nil
 }
 

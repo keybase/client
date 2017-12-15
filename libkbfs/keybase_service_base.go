@@ -1049,6 +1049,8 @@ func (k *KeybaseServiceBase) StartMigration(ctx context.Context,
 	if mdServer == nil {
 		return errors.New("no mdserver")
 	}
+	// Making a favorite here to reuse the code that converts from
+	// `keybase1.FolderType` into `tlf.Type`.
 	fav := NewFavoriteFromFolder(folder)
 	handle, err := GetHandleFromFolderNameAndType(ctx, k.config.KBPKI(), k.config.MDOps(), fav.Name, fav.Type)
 	if err != nil {
