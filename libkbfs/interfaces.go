@@ -1390,7 +1390,8 @@ type MDServer interface {
 
 	// StartImplicitTeamMigration tells mdserver to put a implicit team
 	// migration lock on id, which prevents any rekey MD writes from going
-	// in.
+	// in. Normal classic MD updates can still happen after implicit team
+	// migration has started, until a iTeam-style MD is written.
 	StartImplicitTeamMigration(ctx context.Context, id tlf.ID) (err error)
 
 	// PruneBranch prunes all unmerged history for the given TLF branch.
