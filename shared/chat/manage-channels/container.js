@@ -8,7 +8,7 @@ import * as TeamsGen from '../../actions/teams-gen'
 import ManageChannels from '.'
 import {withHandlers, withState, withPropsOnChange} from 'recompose'
 import {pausableConnect, compose, lifecycle, type TypedState} from '../../util/container'
-import {navigateTo, navigateAppend, pathSelector} from '../../actions/route-tree'
+import {navigateTo, navigateAppend, pathSelector, switchTo} from '../../actions/route-tree'
 import {anyWaiting} from '../../constants/waiting'
 import {chatTab} from '../../constants/tabs'
 import '../../constants/route-tree'
@@ -77,6 +77,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routePath, routePro
     _onView: (conversationIDKey: string) => {
       dispatch(ChatGen.createSetInboxFilter({filter: ''}))
       dispatch(ChatGen.createSelectConversation({conversationIDKey, fromUser: true}))
+      dispatch(switchTo([chatTab]))
     },
   }
 }
