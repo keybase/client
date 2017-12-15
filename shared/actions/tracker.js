@@ -181,7 +181,7 @@ function* _follow(action: TrackerGen.FollowPayload) {
     yield Saga.call(_trackUser, trackToken, localIgnore || false)
     yield Saga.put(TrackerGen.createSetOnFollow({username}))
   } catch (e) {
-    console.warn("Couldn't track user: ", e)
+    logger.warn("Couldn't track user: ", e)
     yield Saga.put(TrackerGen.createOnError({extraText: e.desc, username}))
   } finally {
     yield Saga.put(TrackerGen.createWaiting({username, waiting: false}))
@@ -574,10 +574,10 @@ function _setupTrackerHandlers() {
   engine().listenOnConnect('registerIdentifyUi', () => {
     RPCTypes.delegateUiCtlRegisterIdentifyUIRpcPromise()
       .then(response => {
-        console.log('Registered identify ui')
+        logger.info('Registered identify ui')
       })
       .catch(error => {
-        console.warn('error in registering identify ui: ', error)
+        logger.warn('error in registering identify ui: ', error)
       })
   })
 

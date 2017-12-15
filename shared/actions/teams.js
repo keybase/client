@@ -438,7 +438,7 @@ const _getTeams = function*(action: TeamsGen.GetTeamsPayload): Saga.SagaGenerato
   const state: TypedState = yield Saga.select()
   const username = usernameSelector(state)
   if (!username) {
-    console.warn('getTeams while logged out')
+    logger.warn('getTeams while logged out')
     return
   }
   yield Saga.put(replaceEntity(['teams'], I.Map([['loaded', false]])))

@@ -1,7 +1,6 @@
 // @flow
 import path from 'path'
 import getenv from 'getenv'
-import logger from '../logger'
 
 const isMobile = false
 const isAndroid = false
@@ -24,7 +23,7 @@ const fileUIName = isDarwin ? 'Finder' : isWindows ? 'Explorer' : 'File Explorer
 const runMode = getenv('KEYBASE_RUN_MODE', 'prod')
 
 if (__DEV__ && !__STORYBOOK__) {
-  logger.info(`Run mode: ${runMode}`)
+  console.log(`Run mode: ${runMode}`)
 }
 
 const envedPathLinux = {
@@ -72,7 +71,7 @@ function linuxSocketDialPath(): string {
   const suffix = runMode === 'prod' ? '' : `.${runMode}`
 
   if (!runtimeDir && !homeDir) {
-    logger.warn(
+    console.warn(
       "You don't have $HOME or $XDG_RUNTIME_DIR defined, so we can't find the Keybase service path."
     )
   }

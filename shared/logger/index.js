@@ -7,6 +7,7 @@ import type {
   LogLineWithLevel,
   LogLineWithLevelISOTimestamp,
 } from './types'
+import {isMobile, logFileName} from '../constants/platform'
 import {toISOTimestamp} from './types'
 import ConsoleLogger from './console-logger'
 import TeeLogger from './tee-logger'
@@ -15,7 +16,6 @@ import NullLogger from './null-logger'
 import NativeLogger from './native-logger'
 import DumpPeriodicallyLogger from './dump-periodically-logger'
 import {writeLogLinesToFile} from '../util/forward-logs'
-import {isMobile, logFileName} from '../constants/platform'
 import {stat, unlink} from '../util/file'
 
 // Function to flatten arrays and preserve their sort order

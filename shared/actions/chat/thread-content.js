@@ -82,7 +82,7 @@ function* _loadMoreMessages(action: ChatGen.LoadMoreMessagesPayload): Saga.SagaG
     if (!conversationIDKey) {
       return
     }
-    console.log(`loadMoreMessages: loading for: ${conversationIDKey} recent: ${recent.toString()}`)
+    logger.info(`loadMoreMessages: loading for: ${conversationIDKey} recent: ${recent.toString()}`)
 
     if (Constants.isPendingConversationIDKey(conversationIDKey)) {
       logger.info('loadMoreMessages: bailing on selected pending conversation no matching inbox')
@@ -142,7 +142,7 @@ function* _loadMoreMessages(action: ChatGen.LoadMoreMessagesPayload): Saga.SagaG
     }
 
     const num = action.payload.numberOverride || Constants.maxMessagesToLoadAtATime
-    console.log(`loadMoreMessages: dispatching GetThreadNonblock: num: ${num} pivot: ${pivot || ''}`)
+    logger.info(`loadMoreMessages: dispatching GetThreadNonblock: num: ${num} pivot: ${pivot || ''}`)
     const loadThreadChanMapRpc = new EngineRpc.EngineRpcCall(
       getThreadNonblockSagaMap(yourName, yourDeviceName, conversationIDKey, recent),
       ChatTypes.localGetThreadNonblockRpcChannelMap,
@@ -996,46 +996,6 @@ function _changedFocus(action: AppGen.ChangedFocusPayload, state: TypedState) {
   }
 }
 
-const safeServerMessageMap = (m: any) => ({
-  key: m.key,
-  messageID: m.messageID,
-  messageState: m.messageState,
-  outboxID: m.outboxID,
-  type: m.type,
-})
-
-function _logAppendMessages(action: ChatGen.AppendMessagesPayload) {
-  const toPrint = {
-    payload: {
-      conversationIDKey: action.payload.conversationIDKey,
-      messages: action.payload.messages.map(safeServerMessageMap),
-      svcShouldDisplayNotification: action.payload.svcShouldDisplayNotification,
-    },
-    type: action.type,
-  }
-  console.log('Appending', JSON.stringify(toPrint, null, 2))
-}
-
-function _logPrependMessages(action: ChatGen.PrependMessagesPayload) {
-  const toPrint = {
-    payload: {
-      conversationIDKey: action.payload.conversationIDKey,
-      messages: action.payload.messages.map(safeServerMessageMap),
-      moreToLoad: action.payload.moreToLoad,
-    },
-    type: action.type,
-  }
-  console.log('Prepending', JSON.stringify(toPrint, null, 2))
-}
-
-function _logUpdateTempMessage(action: ChatGen.UpdateTempMessagePayload) {
-  const toPrint = {
-    payload: {conversationIDKey: action.payload.conversationIDKey, outboxIDKey: action.payload.outboxIDKey},
-    type: action.type,
-  }
-  console.log('Update temp message', JSON.stringify(toPrint, null, 2))
-}
-
 function* registerSagas(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(AppGen.changedActive, _changedActive)
   yield Saga.safeTakeEveryPure(ChatGen.clearMessages, _clearConversationMessages)
@@ -1057,14 +1017,6 @@ function* registerSagas(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEvery(ChatGen.updateMetadata, _updateMetadata)
   yield Saga.safeTakeEveryPure(ChatGen.updateTyping, _updateTyping)
   yield Saga.safeTakeEveryPure(AppGen.changedFocus, _changedFocus)
-
-  // TODO remove
-  const enableActionLogging = false
-  if (enableActionLogging) {
-    yield Saga.safeTakeEveryPure(ChatGen.appendMessages, _logAppendMessages)
-    yield Saga.safeTakeEveryPure(ChatGen.prependMessages, _logPrependMessages)
-    yield Saga.safeTakeEveryPure(ChatGen.updateTempMessage, _logUpdateTempMessage)
-  }
 }
 
 export {registerSagas, addMessagesToConversation}

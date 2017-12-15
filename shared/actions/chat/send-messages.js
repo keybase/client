@@ -11,7 +11,6 @@ import * as Shared from './shared'
 import * as Saga from '../../util/saga'
 import HiddenString from '../../util/hidden-string'
 import {isMobile} from '../../constants/platform'
-import {enableActionLogging} from '../../local-debug'
 import {usernameSelector} from '../../constants/selectors'
 import {navigateTo} from '../../actions/route-tree'
 import {chatTab} from '../../constants/tabs'
@@ -39,7 +38,8 @@ function* deleteMessage(action: ChatGen.DeleteMessagePayload): SagaGenerator<any
     yield Saga.put(navigateTo([], [chatTab, conversationIDKey]))
 
     if (!inboxConvo) {
-      console.warn('Deleting message for non-existent inbox:', message)
+      logger.warn('Deleting message for non-existent inbox:')
+      logger.debug('Deleting message for non-existent inbox:', message)
       return
     }
     if (!inboxConvo.name) {
@@ -107,7 +107,7 @@ function* postMessage(action: ChatGen.PostMessagePayload): SagaGenerator<any, an
   const outboxID = yield Saga.call(RPCChatTypes.localGenerateOutboxIDRpcPromise)
   const author = usernameSelector(state)
   if (!author) {
-    console.warn('post message after logged out?')
+    logger.warn('post message after logged out?')
     return
   }
   const outboxIDKey = Constants.outboxIDToKey(outboxID)
@@ -198,7 +198,8 @@ function* editMessage(action: ChatGen.EditMessagePayload): SagaGenerator<any, an
   }
 
   if (!inboxConvo) {
-    console.warn('Editing message for non-existent inbox:', message)
+    logger.warn('Editing message for non-existent inbox:')
+    logger.debug('Editing message for non-existent inbox:', message)
     return
   }
   if (!inboxConvo.name) {
@@ -242,36 +243,11 @@ function* retryMessage(action: ChatGen.RetryMessagePayload): SagaGenerator<any, 
   })
 }
 
-function _logPostMessage(action: ChatGen.PostMessagePayload) {
-  const toPrint = {
-    payload: {conversationIDKey: action.payload.conversationIDKey},
-    type: action.type,
-  }
-
-  logger.info('Posting message', JSON.stringify(toPrint, null, 2))
-}
-
-function _logRetryMessage(action: ChatGen.RetryMessagePayload) {
-  const toPrint = {
-    payload: {
-      conversationIDKey: action.payload.conversationIDKey,
-      outboxIDKey: action.payload.outboxIDKey,
-    },
-    type: action.type,
-  }
-  logger.info('Retrying message', JSON.stringify(toPrint, null, 2))
-}
-
 function* registerSagas(): SagaGenerator<any, any> {
   yield Saga.safeTakeEvery(ChatGen.deleteMessage, deleteMessage)
   yield Saga.safeTakeEvery(ChatGen.editMessage, editMessage)
   yield Saga.safeTakeEvery(ChatGen.postMessage, postMessage)
   yield Saga.safeTakeEvery(ChatGen.retryMessage, retryMessage)
-
-  if (enableActionLogging) {
-    yield Saga.safeTakeEveryPure(ChatGen.postMessage, _logPostMessage)
-    yield Saga.safeTakeEveryPure(ChatGen.retryMessage, _logRetryMessage)
-  }
 }
 
 export {registerSagas}

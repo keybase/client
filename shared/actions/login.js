@@ -81,7 +81,7 @@ function* navBasedOnLoginAndInitialState(): Saga.SagaGenerator<any, any> {
   const {loggedIn, registered, initialState} = state.config
   const {justDeletedSelf, loginError} = state.login
   const {loggedInUserNavigated} = state.routeTree
-  console.log(
+  logger.info(
     '[RouteState] navBasedOnLoginAndInitialState:',
     loggedIn,
     registered,

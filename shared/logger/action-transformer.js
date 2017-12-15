@@ -7,6 +7,7 @@ import * as RouteTreeConstants from '../constants/route-tree'
 import * as ChatGen from '../actions/chat-gen'
 import type {TypedState} from '../constants/reducer'
 import {getPath} from '../route-tree'
+import * as Entity from '../constants/types/entities'
 
 type ActionTransformer<P, A: {type: string, payload: P}> = (
   a: A,
@@ -33,6 +34,11 @@ const safeServerMessageMap = (m: any) => ({
   messageState: m.messageState,
   outboxID: m.outboxID,
   type: m.type,
+})
+
+const entityTransformer = (action: Entity.Actions) => ({
+  payload: {keyPath: action.payload.keyPath},
+  type: action.type,
 })
 
 const defaultTransformer: ActionTransformer<*, *> = ({type}) => ({type})
@@ -88,6 +94,46 @@ const actionTransformMap: {[key: string]: ActionTransformer<*, *>} = {
     payload: {conversationIDKey: action.payload.conversationIDKey, outboxIDKey: action.payload.outboxIDKey},
     type: action.type,
   }),
+  [ChatGen.loadAttachmentPreview]: (action: ChatGen.LoadAttachmentPreviewPayload) => ({
+    payload: {
+      messageKey: action.payload.messageKey,
+    },
+    type: action.type,
+  }),
+  [ChatGen.attachmentLoaded]: (action: ChatGen.AttachmentLoadedPayload) => ({
+    payload: {
+      messageKey: action.payload.messageKey,
+      isPreview: action.payload.isPreview,
+    },
+    type: action.type,
+  }),
+  [ChatGen.downloadProgress]: (action: ChatGen.DownloadProgressPayload) => ({
+    payload: {
+      messageKey: action.payload.messageKey,
+      isPreview: action.payload.messageKey,
+      progress: action.payload.progress === 0 ? 'zero' : action.payload.progress === 1 ? 'one' : 'partial',
+    },
+    type: action.type,
+  }),
+  [ChatGen.postMessage]: (action: ChatGen.PostMessagePayload) => ({
+    payload: {conversationIDKey: action.payload.conversationIDKey},
+    type: action.type,
+  }),
+  [ChatGen.retryMessage]: (action: ChatGen.RetryMessagePayload) => ({
+    payload: {
+      conversationIDKey: action.payload.conversationIDKey,
+      outboxIDKey: action.payload.outboxIDKey,
+    },
+    type: action.type,
+  }),
+  [ChatGen.replaceEntity]: entityTransformer,
+  [ChatGen.deleteEntity]: entityTransformer,
+  [ChatGen.mergeEntity]: entityTransformer,
+  [ChatGen.subtractEntity]: entityTransformer,
+  'entity:delete': entityTransformer,
+  'entity:merge': entityTransformer,
+  'entity:replace': entityTransformer,
+  'entity:subtract': entityTransformer,
 }
 
 const transformActionForLog: ActionTransformer<*, *> = (action, state) =>

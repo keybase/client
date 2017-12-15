@@ -467,7 +467,7 @@ function* unboxConversations(action: ChatGen.UnboxConversationsPayload): SagaGen
   const state: TypedState = yield Saga.select()
   const untrustedState = state.chat.inboxUntrustedState
 
-  console.log(
+  logger.info(
     `unboxConversations: before filter unboxing ${conversationIDKeys.length} convs, force: ${(force || false)
       .toString()} because: ${reason}`
   )
@@ -482,7 +482,7 @@ function* unboxConversations(action: ChatGen.UnboxConversationsPayload): SagaGen
         map[c] = 'reUnboxing'
         newConvIDKeys.push(c)
       } else {
-        console.log(`unboxConversations: filtering conv: ${c} state: ${untrustedState.get(c, 'unknown')}`)
+        logger.info(`unboxConversations: filtering conv: ${c} state: ${untrustedState.get(c, 'unknown')}`)
       }
       // only unbox if we're not currently unboxing
     } else if (!['firstUnboxing', 'reUnboxing'].includes(untrustedState.get(c, 'untrusted'))) {
@@ -490,7 +490,7 @@ function* unboxConversations(action: ChatGen.UnboxConversationsPayload): SagaGen
       map[c] = 'firstUnboxing'
       newConvIDKeys.push(c)
     } else {
-      console.log(`unboxConversations: filtering conv: ${c} state: ${untrustedState.get(c, 'unknown')}`)
+      logger.info(`unboxConversations: filtering conv: ${c} state: ${untrustedState.get(c, 'unknown')}`)
     }
     return map
   }, {})
@@ -502,7 +502,7 @@ function* unboxConversations(action: ChatGen.UnboxConversationsPayload): SagaGen
 
   conversationIDKeys = newConvIDKeys
   if (!conversationIDKeys.length) {
-    console.log(`unboxConversations: all conversations filtered, nothing to do`)
+    logger.info(`unboxConversations: all conversations filtered, nothing to do`)
     return
   }
   logger.info(

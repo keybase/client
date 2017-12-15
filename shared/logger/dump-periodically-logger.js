@@ -23,10 +23,11 @@ class DumpPeriodicallyLogger implements Logger {
     this._periodInMs = periodInMs
     this._fileWriterFn = fileWriterFn
     this._levelPrefix = levelPrefix
-    this.log = innerLogger.log
-    this.dump = innerLogger.dump
     this._periodicallyDump()
   }
+
+  log = (...s: Array<any>) => this._innerLogger.log(...s)
+  dump = (levelPrefix: LogLevel) => this._innerLogger.dump(levelPrefix)
 
   _periodicallyDump = () => {
     if (this._ok) {
