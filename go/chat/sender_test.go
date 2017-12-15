@@ -79,7 +79,6 @@ func (n *chatListener) NewChatActivity(uid keybase1.UID, activity chat1.ChatActi
 			if strOutboxID != nil {
 				outboxID, _ := hex.DecodeString(*strOutboxID)
 				n.obids = append(n.obids, chat1.OutboxID(outboxID))
-				fmt.Printf("OBID: %x\n", outboxID)
 				select {
 				case n.incoming <- len(n.obids):
 				case <-time.After(5 * time.Second):
@@ -590,7 +589,6 @@ func TestDisconnectedFailure(t *testing.T) {
 	}
 	require.Equal(t, 2*len(obids), len(listener.obids), "wrong amount of successes")
 	for index, obid := range listener.obids {
-		fmt.Printf("OBID: %s REF: %s\n", obid, obids[index/2])
 		require.Equal(t, obid, obids[index/2])
 	}
 }
