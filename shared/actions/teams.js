@@ -588,7 +588,7 @@ const _setPublicity = function(action: TeamsGen.SetPublicityPayload, state: Type
     team: false,
   })
   const openTeam = teamSettings.open
-  const openTeamRole = teamSettings.joinAs
+  const openTeamRole = Constants.teamRoleByEnum[teamSettings.joinAs]
   const publicityAnyMember = teamPublicitySettings.anyMemberShowcase
   const publicityMember = teamPublicitySettings.member
   const publicityTeam = teamPublicitySettings.team
