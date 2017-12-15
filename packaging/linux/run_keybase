@@ -108,8 +108,10 @@ main() {
   #    we tell them to do it after updates.
   kill_all
 
-  if wants_systemd ; then
+  if [ ! -e /etc/redhat-release ] ; then
+    if wants_systemd ; then
       start_systemd
+    fi
   else
       start_background
   fi
