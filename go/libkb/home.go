@@ -33,6 +33,7 @@ type HomeFinder interface {
 	LogDir() string
 	ServiceSpawnDir() (string, error)
 	SandboxCacheDir() string // For macOS
+	InfoDir() string
 }
 
 func (b Base) Unsplit(v []string) string {
@@ -84,6 +85,7 @@ func (x XdgPosix) SandboxCacheDir() string { return "" } // Unsupported
 func (x XdgPosix) DataDir() string         { return x.dirHelper("XDG_DATA_HOME", ".local", "share") }
 
 func (x XdgPosix) RuntimeDir() string { return x.dirHelper("XDG_RUNTIME_DIR", ".config") }
+func (x XdgPosix) InfoDir() string    { return x.RuntimeDir() }
 
 func (x XdgPosix) ServiceSpawnDir() (ret string, err error) {
 	ret = x.RuntimeDir()
@@ -113,7 +115,7 @@ func toUpper(s string) string {
 	return string(a)
 }
 
-func (d Darwin) homeDir(dirs ...string) string {
+func (d Darwin) appDir(dirs ...string) string {
 	appName := toUpper(d.appName)
 	runMode := d.getRunMode()
 	if runMode != ProductionRunMode {
@@ -123,17 +125,20 @@ func (d Darwin) homeDir(dirs ...string) string {
 	return filepath.Join(dirs...)
 }
 
-func (d Darwin) CacheDir() string { return d.homeDir(d.Home(false), "Library", "Caches") }
+func (d Darwin) CacheDir() string { return d.appDir(d.Home(false), "Library", "Caches") }
 func (d Darwin) SandboxCacheDir() string {
 	if isIOS {
 		return ""
 	}
 	// The container name "keybase" is the group name specified in the entitlement for sandboxed extensions
-	return d.homeDir(d.Home(false), "Library", "Group Containers", "keybase", "Library", "Caches")
+	// Note: this was added for kbfs finder integration, which was never activated.
+	// keybased.sock and kbfsd.sock live in this directory.
+	return d.appDir(d.Home(false), "Library", "Group Containers", "keybase", "Library", "Caches")
 }
-func (d Darwin) ConfigDir() string                { return d.homeDir(d.Home(false), "Library", "Application Support") }
+func (d Darwin) ConfigDir() string                { return d.appDir(d.Home(false), "Library", "Application Support") }
 func (d Darwin) DataDir() string                  { return d.ConfigDir() }
 func (d Darwin) RuntimeDir() string               { return d.CacheDir() }
+func (d Darwin) InfoDir() string                  { return d.appDir(os.TempDir()) }
 func (d Darwin) ServiceSpawnDir() (string, error) { return d.RuntimeDir(), nil }
 func (d Darwin) LogDir() string {
 	appName := toUpper(d.appName)
@@ -177,6 +182,7 @@ func (w Win32) SandboxCacheDir() string          { return "" } // Unsupported
 func (w Win32) ConfigDir() string                { return w.Home(false) }
 func (w Win32) DataDir() string                  { return w.Home(false) }
 func (w Win32) RuntimeDir() string               { return w.Home(false) }
+func (w Win32) InfoDir() string                  { return w.RuntimeDir() }
 func (w Win32) ServiceSpawnDir() (string, error) { return w.RuntimeDir(), nil }
 func (w Win32) LogDir() string                   { return w.Home(false) }
 

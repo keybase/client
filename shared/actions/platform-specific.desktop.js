@@ -1,4 +1,5 @@
 // @flow
+import {showDockIcon} from '../desktop/app/dock-icon'
 import {getMainWindow} from '../desktop/remote/util'
 
 function showShareActionSheet(options: {
@@ -28,6 +29,7 @@ function setNoPushPermissions(): Promise<*> {
 function showMainWindow() {
   const mw = getMainWindow()
   mw && mw.show()
+  showDockIcon()
 }
 
 function displayNewMessageNotification(text: string, convID: ?string, badgeCount: ?number, myMsgID: ?number) {

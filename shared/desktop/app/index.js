@@ -40,7 +40,7 @@ function start() {
   // Only one app per app in osx...
   const shouldQuit = app.makeSingleInstance(() => {
     if (mainWindow) {
-      mainWindow.show(true)
+      mainWindow.show()
       if (isWindows) {
         mainWindow.window && mainWindow.window.focus()
       }
@@ -114,7 +114,7 @@ function start() {
 
   // Called when the user clicks the dock icon
   app.on('activate', () => {
-    mainWindow && mainWindow.show(true)
+    mainWindow && mainWindow.show()
   })
 
   // Don't quit the app, instead try to close all windows

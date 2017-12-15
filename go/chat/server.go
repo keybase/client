@@ -14,6 +14,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/keybase/client/go/teams"
+
 	"encoding/base64"
 	"encoding/hex"
 
@@ -2507,4 +2509,36 @@ func (h *Server) GetGlobalAppNotificationSettingsLocal(ctx context.Context) (res
 		return res, err
 	}
 	return h.remoteClient().GetGlobalAppNotificationSettings(ctx)
+}
+
+func (h *Server) AddTeamMemberAfterReset(ctx context.Context,
+	arg chat1.AddTeamMemberAfterResetArg) (err error) {
+	ctx = Context(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, h.identNotifier)
+	defer h.Trace(ctx, func() error { return err }, "AddTeamMemberAfterReset")()
+	if err = h.assertLoggedIn(ctx); err != nil {
+		return err
+	}
+	uid := gregor1.UID(h.G().Env.GetUID().ToBytes())
+
+	// Lookup conversation to get team ID
+	iboxRes, _, err := h.G().InboxSource.Read(ctx, uid, nil, true, &chat1.GetInboxLocalQuery{
+		ConvIDs: []chat1.ConversationID{arg.ConvID},
+	}, nil)
+	if err != nil {
+		return err
+	}
+	if len(iboxRes.Convs) != 1 {
+		return errors.New("failed to find conversation to add reset user back into")
+	}
+	conv := iboxRes.Convs[0]
+	switch conv.Info.MembersType {
+	case chat1.ConversationMembersType_IMPTEAM, chat1.ConversationMembersType_TEAM:
+		// this is ok for these convs
+	default:
+		return fmt.Errorf("unable to add member back to non team conversation: %v",
+			conv.Info.MembersType)
+	}
+
+	teamID := keybase1.TeamID(conv.Info.Triple.Tlfid.String())
+	return teams.ReAddMemberAfterReset(ctx, h.G().ExternalG(), teamID, arg.Username)
 }

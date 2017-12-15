@@ -119,6 +119,7 @@ const (
 	StatusCode_SCChatClientError           StatusCode = 2516
 	StatusCode_SCChatNotInTeam             StatusCode = 2517
 	StatusCode_SCChatStalePreviousState    StatusCode = 2518
+	StatusCode_SCTeamBadMembership         StatusCode = 2604
 	StatusCode_SCTeamSelfNotOwner          StatusCode = 2607
 	StatusCode_SCTeamNotFound              StatusCode = 2614
 	StatusCode_SCTeamExists                StatusCode = 2619
@@ -267,6 +268,7 @@ var StatusCodeMap = map[string]StatusCode{
 	"SCChatClientError":           2516,
 	"SCChatNotInTeam":             2517,
 	"SCChatStalePreviousState":    2518,
+	"SCTeamBadMembership":         2604,
 	"SCTeamSelfNotOwner":          2607,
 	"SCTeamNotFound":              2614,
 	"SCTeamExists":                2619,
@@ -413,6 +415,7 @@ var StatusCodeRevMap = map[StatusCode]string{
 	2516: "SCChatClientError",
 	2517: "SCChatNotInTeam",
 	2518: "SCChatStalePreviousState",
+	2604: "SCTeamBadMembership",
 	2607: "SCTeamSelfNotOwner",
 	2614: "SCTeamNotFound",
 	2619: "SCTeamExists",

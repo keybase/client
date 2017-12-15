@@ -84,7 +84,20 @@ func readChatsWithDevice(team smuTeam, u *smuUser, dev *smuDeviceWrapper, nMessa
 
 func pollForMembershipUpdate(team smuTeam, ann *smuUser, bob *smuUser, cam *smuUser) {
 
-	details := ann.pollForMembershipUpdate(team, keybase1.PerTeamKeyGeneration(2))
+	// Keep reloading this team until we get that Bob has been deactivated.
+	// It might happen after the team is rotated, since a cache bust via gregor has
+	// to happen
+	poller := func(d keybase1.TeamDetails) bool {
+		for _, member := range d.Members.Writers {
+			switch member.Username {
+			case bob.username:
+				return !member.Active
+			}
+		}
+		return false
+	}
+
+	details := ann.pollForMembershipUpdate(team, keybase1.PerTeamKeyGeneration(2), poller)
 	for _, member := range details.Members.Admins {
 		switch member.Username {
 		case ann.username:
@@ -141,8 +154,8 @@ func TestTeamDelete(t *testing.T) {
 	kickTeamRekeyd(bob.getPrimaryGlobalContext(), t)
 
 	// bob and cam should see the key get rotated after ann deletes
-	bob.pollForMembershipUpdate(team, keybase1.PerTeamKeyGeneration(2))
-	cam.pollForMembershipUpdate(team, keybase1.PerTeamKeyGeneration(2))
+	bob.pollForMembershipUpdate(team, keybase1.PerTeamKeyGeneration(2), nil)
+	cam.pollForMembershipUpdate(team, keybase1.PerTeamKeyGeneration(2), nil)
 
 	// It's important for cam to clear her cache right before the attempt to send,
 	// since she might have received gregors that ann deleted her account,
@@ -202,10 +215,6 @@ func TestTeamReset(t *testing.T) {
 	bob.reset()
 	divDebug(ctx, "Reset bob (%s)", bob.username)
 
-	// NOTE(maxtaco): This might be racy! If so, please talk to me.
-	// I couldn't get it to race in my tests, but what does that mean.
-	// The race is that a gregor message is needed to clear out the UIDMap,
-	// and it's not guaranteed to come in before the team gets updated.
 	pollForMembershipUpdate(team, ann, bob, cam)
 	divDebug(ctx, "Polled for rekey")
 
@@ -585,7 +594,7 @@ func TestTeamRemoveAfterReset(t *testing.T) {
 	bob.loginAfterReset(10)
 	divDebug(ctx, "Bob logged in after reset")
 
-	ann.pollForMembershipUpdate(team, keybase1.PerTeamKeyGeneration(2))
+	ann.pollForMembershipUpdate(team, keybase1.PerTeamKeyGeneration(2), nil)
 
 	cli := ann.getTeamsClient()
 	err := cli.TeamRemoveMember(context.TODO(), keybase1.TeamRemoveMemberArg{
@@ -624,7 +633,7 @@ func TestTeamReAddAfterReset(t *testing.T) {
 	bob.loginAfterReset(10)
 	divDebug(ctx, "Bob logged in after reset")
 
-	ann.pollForMembershipUpdate(team, keybase1.PerTeamKeyGeneration(2))
+	ann.pollForMembershipUpdate(team, keybase1.PerTeamKeyGeneration(2), nil)
 
 	cli := ann.getTeamsClient()
 	_, err := cli.TeamAddMember(context.TODO(), keybase1.TeamAddMemberArg{
@@ -673,7 +682,7 @@ func TestTeamOpenReset(t *testing.T) {
 
 	kickTeamRekeyd(ann.getPrimaryGlobalContext(), t)
 
-	details := ann.pollForMembershipUpdate(team, keybase1.PerTeamKeyGeneration(2))
+	details := ann.pollForMembershipUpdate(team, keybase1.PerTeamKeyGeneration(2), nil)
 	t.Logf("details from poll: %+v", details)
 	ann.assertMemberInactive(team, bob)
 
@@ -683,6 +692,6 @@ func TestTeamOpenReset(t *testing.T) {
 	bob.requestAccess(team)
 	divDebug(ctx, "Bob requested access to open team after reset")
 
-	ann.pollForMembershipUpdate(team, keybase1.PerTeamKeyGeneration(3))
+	ann.pollForMembershipUpdate(team, keybase1.PerTeamKeyGeneration(3), nil)
 	ann.assertMemberActive(team, bob)
 }

@@ -85,43 +85,72 @@ func (mid MessageID) String() string {
 }
 
 func (t MessageType) String() string {
-	switch t {
-	case MessageType_NONE:
-		return "NONE"
-	case MessageType_TEXT:
-		return "TEXT"
-	case MessageType_ATTACHMENT:
-		return "ATTACHMENT"
-	case MessageType_EDIT:
-		return "EDIT"
-	case MessageType_DELETE:
-		return "DELETE"
-	case MessageType_METADATA:
-		return "METADATA"
-	case MessageType_TLFNAME:
-		return "TLFNAME"
-	case MessageType_ATTACHMENTUPLOADED:
-		return "ATTACHMENTUPLOADED"
-	case MessageType_JOIN:
-		return "JOIN"
-	case MessageType_LEAVE:
-		return "LEAVE"
-	default:
-		return "UNKNOWN"
+	s, ok := MessageTypeRevMap[t]
+	if ok {
+		return s
 	}
+	return "UNKNOWN"
+}
+
+// Message types deletable by a standard DELETE message.
+var deletableMessageTypesByDelete = []MessageType{
+	MessageType_TEXT,
+	MessageType_ATTACHMENT,
+	MessageType_EDIT,
+	MessageType_ATTACHMENTUPLOADED,
+}
+
+// Messages types NOT deletable by a DELETEHISTORY message.
+var nonDeletableMessageTypesByDeleteHistory = []MessageType{
+	MessageType_NONE,
+	MessageType_DELETE,
+	MessageType_METADATA,
+	MessageType_TLFNAME,
+	MessageType_HEADLINE,
+	MessageType_DELETEHISTORY,
+}
+
+func DeletableMessageTypesByDelete() []MessageType {
+	return deletableMessageTypesByDelete
+}
+
+func DeletableMessageTypesByDeleteHistory() (res []MessageType) {
+	banned := make(map[MessageType]bool)
+	for _, mt := range nonDeletableMessageTypesByDeleteHistory {
+		banned[mt] = true
+	}
+	for _, mt := range MessageTypeMap {
+		if !banned[mt] {
+			res = append(res, mt)
+		}
+	}
+	return res
+}
+
+func IsDeletableByDelete(typ MessageType) bool {
+	for _, typ2 := range deletableMessageTypesByDelete {
+		if typ == typ2 {
+			return true
+		}
+	}
+	return false
+}
+
+func IsDeletableByDeleteHistory(typ MessageType) bool {
+	for _, typ2 := range nonDeletableMessageTypesByDeleteHistory {
+		if typ == typ2 {
+			return false
+		}
+	}
+	return true
 }
 
 func (t TopicType) String() string {
-	switch t {
-	case TopicType_NONE:
-		return "NONE"
-	case TopicType_CHAT:
-		return "CHAT"
-	case TopicType_DEV:
-		return "DEV"
-	default:
-		return "UNKNOWN"
+	s, ok := TopicTypeRevMap[t]
+	if ok {
+		return s
 	}
+	return "UNKNOWN"
 }
 
 func (t TopicID) String() string {
@@ -182,6 +211,10 @@ func (m MessageUnboxed) IsValid() bool {
 		return state == MessageUnboxedState_VALID
 	}
 	return false
+}
+
+func (b MessageBody) IsNil() bool {
+	return b == MessageBody{}
 }
 
 func (m UIMessage) IsValid() bool {

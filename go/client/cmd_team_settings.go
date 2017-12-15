@@ -244,10 +244,23 @@ func (c *CmdTeamSettings) setOpenness(ctx context.Context, cli keybase1.TeamsCli
 }
 
 func (c *CmdTeamSettings) setProfilePromote(ctx context.Context, cli keybase1.TeamsClient, promote bool) error {
-	return cli.SetTeamMemberShowcase(ctx, keybase1.SetTeamMemberShowcaseArg{
+	err := cli.SetTeamMemberShowcase(ctx, keybase1.SetTeamMemberShowcaseArg{
 		Name:        c.Team.String(),
 		IsShowcased: promote,
 	})
+	if err != nil {
+		if _, ok := err.(libkb.TeamBadMembershipError); ok {
+			dui := c.G().UI.GetTerminalUI()
+			dui.Printf("You cannot promote team %q on your profile because you\n", c.Team)
+			dui.Printf("are not a member of the team.\n\n")
+			dui.Printf("You can add yourself to the team with `keybase team add-member ...`\n")
+			dui.Printf("and then you can promote the team on your profile.\n\n")
+			return nil
+		}
+		return err
+	}
+
+	return nil
 }
 
 func (c *CmdTeamSettings) setAllowProfilePromote(ctx context.Context, cli keybase1.TeamsClient, allow bool) error {

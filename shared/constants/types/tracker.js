@@ -74,6 +74,7 @@ export type TrackerState = {
   trackToken: ?string,
   needTrackTokenDismiss: boolean,
   tlfs: Array<Folder>,
+  selectedTeam: string,
 }
 
 export type NonUserState = {
