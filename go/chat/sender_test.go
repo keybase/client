@@ -79,6 +79,7 @@ func (n *chatListener) NewChatActivity(uid keybase1.UID, activity chat1.ChatActi
 			if strOutboxID != nil {
 				outboxID, _ := hex.DecodeString(*strOutboxID)
 				n.obids = append(n.obids, chat1.OutboxID(outboxID))
+				fmt.Printf("OBID: %x\n", outboxID)
 				select {
 				case n.incoming <- len(n.obids):
 				case <-time.After(5 * time.Second):
@@ -365,7 +366,7 @@ func TestNonblockTimer(t *testing.T) {
 
 	// Should get a blast of all 5
 	var olen int
-	for i := 0; i < 5; i++ {
+	for i := 0; i < 10; i++ {
 		select {
 		case olen = <-listener.incoming:
 		case <-time.After(20 * time.Second):
@@ -373,7 +374,7 @@ func TestNonblockTimer(t *testing.T) {
 		}
 
 		require.Equal(t, i+1, olen, "wrong length")
-		require.Equal(t, obids[i], listener.obids[i], "wrong obid")
+		require.Equal(t, listener.obids[i], obids[i/2], "wrong obid")
 	}
 
 	// Make sure it is really empty
@@ -499,12 +500,14 @@ func TestDisconnectedFailure(t *testing.T) {
 	default:
 	}
 	tc.ChatG.MessageDeliverer.Connected(ctx)
-	select {
-	case inc := <-listener.incoming:
-		require.Equal(t, 1, inc)
-		require.Equal(t, obid, listener.obids[0])
-	case <-time.After(20 * time.Second):
-		require.Fail(t, "no incoming message")
+	for i := 0; i < 2; i++ {
+		select {
+		case inc := <-listener.incoming:
+			require.Equal(t, i+1, inc)
+			require.Equal(t, obid, listener.obids[0])
+		case <-time.After(20 * time.Second):
+			require.Fail(t, "no incoming message")
+		}
 	}
 	listener.obids = nil
 
@@ -575,7 +578,7 @@ func TestDisconnectedFailure(t *testing.T) {
 	for {
 		select {
 		case inc := <-listener.incoming:
-			if inc >= len(obids) {
+			if inc >= 2*len(obids) {
 				break
 			}
 			continue
@@ -585,8 +588,11 @@ func TestDisconnectedFailure(t *testing.T) {
 		}
 		break
 	}
-	require.Equal(t, len(obids), len(listener.obids), "wrong amount of successes")
-	require.Equal(t, obids, listener.obids, "wrong obids for successes")
+	require.Equal(t, 2*len(obids), len(listener.obids), "wrong amount of successes")
+	for index, obid := range listener.obids {
+		fmt.Printf("OBID: %s REF: %s\n", obid, obids[index/2])
+		require.Equal(t, obid, obids[index/2])
+	}
 }
 
 // The sender is responsible for making sure that a deletion of a single
