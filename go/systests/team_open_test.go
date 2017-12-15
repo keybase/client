@@ -220,6 +220,8 @@ func TestTeamOpenBans(t *testing.T) {
 }
 
 func TestTeamOpenPuklessRequest(t *testing.T) {
+	t.Skip() // See CORE-6841
+
 	tt := newTeamTester(t)
 	defer tt.cleanup()
 

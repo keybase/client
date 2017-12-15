@@ -6,6 +6,7 @@ import noop from 'lodash/noop'
 const PERF = false
 
 let config = {
+  allowMultipleInstances: false, // Multiple instances of the app
   enableActionLogging: true, // Log actions to the log
   enableStoreLogging: false, // Log full store changes
   featureFlagsOverride: null, // Override feature flags
@@ -26,8 +27,9 @@ let config = {
 
 // Developer settings
 if (__DEV__) {
-  config.enableActionLogging = true
-  config.enableStoreLogging = false
+  config.allowMultipleInstances = true
+  config.enableActionLogging = false
+  config.enableStoreLogging = true
   config.filterActionLogs = null // '^chat|entity'
   config.printOutstandingRPCs = true
   config.printRPC = true
@@ -86,6 +88,7 @@ if (PERF) {
 }
 
 export const {
+  allowMultipleInstances,
   enableActionLogging,
   enableStoreLogging,
   featureFlagsOverride,

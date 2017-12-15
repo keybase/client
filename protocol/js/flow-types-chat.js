@@ -94,6 +94,10 @@ export const commonTopicType = {
   dev: 2,
 }
 
+export const localAddTeamMemberAfterResetRpcChannelMap = (configKeys: Array<string>, request: LocalAddTeamMemberAfterResetRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.local.addTeamMemberAfterReset', request)
+
+export const localAddTeamMemberAfterResetRpcPromise = (request: LocalAddTeamMemberAfterResetRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.local.addTeamMemberAfterReset', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
+
 export const localAssetMetadataType = {
   none: 0,
   image: 1,
@@ -756,6 +760,8 @@ export type IncomingMessage = {|message: UIMessage,convID: ConversationID,displa
 export type JoinLeaveConversationLocalRes = {|offline: Boolean,rateLimits?: ?Array<RateLimit>,|}
 
 export type JoinLeaveConversationRemoteRes = {|rateLimit?: ?RateLimit,|}
+
+export type LocalAddTeamMemberAfterResetRpcParam = {|username: String,convID: ConversationID,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
 export type LocalCancelPostRpcParam = {|outboxID: OutboxID,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 

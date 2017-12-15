@@ -30,13 +30,15 @@ const JoinedLeftNotice = ({
       {formatTimeForMessages(message.timestamp)}
     </Text>
     <Text type="BodySmallSemibold" backgroundMode="Announcements" style={{color: globalColors.black_40}}>
-      <Usernames
-        inline={true}
-        type="BodySmallSemibold"
-        onUsernameClicked={onUsernameClicked}
-        colorFollowing={true}
-        users={[{username: message.author, following, you: you === message.author}]}
-      />
+      {you === message.author
+        ? 'You'
+        : <Usernames
+            inline={true}
+            type="BodySmallSemibold"
+            onUsernameClicked={onUsernameClicked}
+            colorFollowing={true}
+            users={[{username: message.author, following, you: you === message.author}]}
+          />}
       {' '}
       {message.message.stringValue()}
       {' '}
