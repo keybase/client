@@ -11,10 +11,15 @@
     },
     "paperKeyMake": {},
     "paperKeyCreated": {
-        "paperKey": "HiddenString"
+      "paperKey": "HiddenString"
     },
-    "revoke": {
+    "deviceRevoke": {
       "deviceID": "string"
+    },
+    "deviceRevoked": {
+      "deviceID": "string",
+      "wasCurrentDevice": "boolean",
+      "deviceName": "string"
     },
     "showRevokePage": {
       "deviceID": "string"
@@ -25,9 +30,6 @@
     "endangeredTLFsLoaded": {
       "deviceID": "string",
       "tlfs": "Array<string>"
-    },
-    "setWaiting": {
-      "waiting": "boolean"
     }
   }
 }

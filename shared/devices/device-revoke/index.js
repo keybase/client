@@ -57,7 +57,7 @@ const DeviceRevoke = (props: Props) => (
     danger={true}
     header={<Header name={props.name} icon={props.icon} />}
     onCancel={props.onCancel}
-    onSubmit={props.waiting ? props.onSubmit : null}
+    onSubmit={props.waiting ? null : props.onSubmit}
     disabled={!!props.waiting}
     submitLabel="Yes, delete it"
     theme="public"

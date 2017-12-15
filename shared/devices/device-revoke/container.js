@@ -1,11 +1,11 @@
 // @flow
+import * as DevicesGen from '../../actions/devices-gen'
 import * as I from 'immutable'
 import * as Constants from '../../constants/devices'
 import DeviceRevoke from './'
 import {connect, type TypedState} from '../../util/container'
 import {isMobile} from '../../constants/platform'
 import {navigateUp} from '../../actions/route-tree'
-import {createRevoke} from '../../actions/devices-gen'
 
 const blankDetail = Constants.makeDeviceDetail()
 
@@ -24,13 +24,13 @@ const mapStateToProps = (state: TypedState, {routeProps}) => {
     endangeredTLFs: state.devices.idToEndangeredTLFs.get(deviceID, I.Set()),
     icon,
     name: device.name,
-    waiting: state.devices.waiting,
+    waiting: Constants.isWaiting(state)
   }
 }
 
 const mapDispatchToProps = (dispatch: Dispatch, {routeProps}) => ({
   onCancel: () => dispatch(navigateUp()),
-  onSubmit: () => dispatch(createRevoke({deviceID: routeProps.get('deviceID')})),
+  onSubmit: () => dispatch(DevicesGen.createDeviceRevoke({deviceID: routeProps.get('deviceID')})),
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({

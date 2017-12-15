@@ -4,6 +4,7 @@ import * as SettingsConstants from './settings'
 import * as Tabs from './tabs'
 import * as Types from './types/devices'
 import {isMobile} from './platform'
+import type {TypedState} from './reducer'
 
 const makeDeviceDetail: I.RecordFactory<Types._DeviceDetail> = I.Record({
   created: 0,
@@ -21,7 +22,6 @@ const makeDeviceDetail: I.RecordFactory<Types._DeviceDetail> = I.Record({
 const makeState: I.RecordFactory<Types._State> = I.Record({
   idToDetail: I.Map(),
   idToEndangeredTLFs: I.Map(),
-  waiting: false,
 })
 
 // Converts a string to the DeviceType enum, logging an error if it doesn't match
@@ -38,5 +38,8 @@ function toDeviceType(s: string): Types.DeviceType {
 }
 
 const devicesTabLocation = isMobile ? [Tabs.settingsTab, SettingsConstants.devicesTab] : [Tabs.devicesTab]
+const waitingKey = 'devicesPage'
 
-export {devicesTabLocation, makeState, makeDeviceDetail, toDeviceType}
+const isWaiting = (state: TypedState) => state.waiting.get(waitingKey, 0) !== 0
+
+export {devicesTabLocation, makeState, makeDeviceDetail, toDeviceType, waitingKey, isWaiting}

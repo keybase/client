@@ -2,6 +2,8 @@
 // Look at this doc: https://goo.gl/7B6p4H
 import * as AppGen from './app-gen'
 import * as ConfigGen from './config-gen'
+import * as DevicesConstants from '../constants/devices'
+import * as WaitingGen from './waiting-gen'
 import * as DevicesGen from './devices-gen'
 import * as LoginGen from './login-gen'
 import * as SignupGen from './signup-gen'
@@ -21,7 +23,6 @@ import {deletePushTokenSaga} from './push'
 import {getExtendedStatus} from './config'
 import {isMobile} from '../constants/platform'
 import {pathSelector, navigateTo, navigateAppend} from './route-tree'
-import {devicesTabLocation, toDeviceType} from '../constants/devices'
 import {type DeviceType} from '../constants/types/devices'
 import {type InitialState} from '../constants/types/config'
 import {type TypedState} from '../constants/reducer'
@@ -44,13 +45,13 @@ function _generateQRCode(_, state: TypedState) {
 
 function* getAccounts(): Generator<any, void, any> {
   try {
-    yield Saga.put(DevicesGen.createSetWaiting({waiting: true}))
+    yield Saga.put(WaitingGen.createIncrementWaiting({key: DevicesConstants.waitingKey}))
     const accounts = yield Saga.call(RPCTypes.loginGetConfiguredAccountsRpcPromise)
     yield Saga.put(LoginGen.createConfiguredAccounts({accounts}))
   } catch (error) {
     yield Saga.put(LoginGen.createConfiguredAccountsError({error}))
   } finally {
-    yield Saga.put(DevicesGen.createSetWaiting({waiting: false}))
+    yield Saga.put(WaitingGen.createDecrementWaiting({key: DevicesConstants.waitingKey}))
   }
 }
 
@@ -348,7 +349,7 @@ const chooseDeviceSaga = onBackSaga =>
         const role = ({
           desktop: Constants.codePageDeviceRoleExistingComputer,
           mobile: Constants.codePageDeviceRoleExistingPhone,
-        }: {[key: DeviceType]: Types.DeviceRole})[toDeviceType(device.type)]
+        }: {[key: DeviceType]: Types.DeviceRole})[DevicesConstants.toDeviceType(device.type)]
         if (role) {
           yield Saga.call(setCodePageOtherDeviceRole, role)
         }
@@ -596,12 +597,12 @@ function* _addNewDevice({payload: {role}}: LoginGen.AddNewDevicePayload) {
     [Constants.codePageDeviceRoleNewPhone]: RPCTypes.commonDeviceType.mobile,
   }
 
-  yield Saga.put(DevicesGen.createSetWaiting({waiting: true}))
+  yield Saga.put(WaitingGen.createIncrementWaiting({key: DevicesConstants.waitingKey}))
   yield Saga.call(initalizeMyCodeStateForAddingADevice)
 
   const onBackSaga = function*(): Generator<any, void, any> {
     yield Saga.put(DevicesGen.createDevicesLoad())
-    yield Saga.put(navigateTo(devicesTabLocation))
+    yield Saga.put(navigateTo(DevicesConstants.devicesTabLocation))
   }
 
   const onSuccessSaga = function*(): Generator<any, any, any> {
@@ -635,7 +636,8 @@ function* _addNewDevice({payload: {role}}: LoginGen.AddNewDevicePayload) {
 
   yield Saga.call(addDeviceRpc.run)
   yield Saga.call(onBackSaga)
-  yield Saga.put(DevicesGen.createSetWaiting({waiting: false}))
+
+  yield Saga.put(WaitingGen.createDecrementWaiting({key: DevicesConstants.waitingKey}))
 }
 
 function _openAccountResetPageSaga() {

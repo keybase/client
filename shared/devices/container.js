@@ -3,6 +3,7 @@ import Devices from '.'
 import * as DevicesGen from '../actions/devices-gen'
 import * as I from 'immutable'
 import * as LoginGen from '../actions/login-gen'
+import * as Constants from '../constants/devices'
 import * as LoginConstants from '../constants/login'
 import {
   compose,
@@ -43,13 +44,12 @@ const getDevicesAndRevokedDevicesSelector = createSelector([getIdToDetail], idTo
 const mapStateToProps = (state: TypedState, {routeState}) => {
   const showingRevoked = routeState.get('showingRevoked')
   const {deviceIDs, revokedDeviceIDs} = getDevicesAndRevokedDevicesSelector(state)
-  const waiting = state.devices.waiting
 
   return {
     deviceIDs,
     revokedDeviceIDs,
     showingRevoked,
-    waiting,
+    waiting: Constants.isWaiting(state),
   }
 }
 

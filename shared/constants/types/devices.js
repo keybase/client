@@ -18,6 +18,5 @@ export type DeviceDetail = I.RecordOf<_DeviceDetail>
 export type _State = {
   idToDetail: I.Map<string, DeviceDetail>,
   idToEndangeredTLFs: I.Map<string, I.Set<string>>,
-  waiting: boolean,
 }
 export type State = I.RecordOf<_State>

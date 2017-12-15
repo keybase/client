@@ -12,16 +12,15 @@ export default function(state: Types.State = initialState, action: DevicesGen.Ac
       return initialState
     case DevicesGen.devicesLoaded:
       return state.set('idToDetail', I.Map(action.payload.idToDetail))
-    case DevicesGen.setWaiting:
-      return state.set('waiting', action.payload.waiting)
     case DevicesGen.endangeredTLFsLoaded:
       return state.mergeIn(['idToEndangeredTLFs', action.payload.deviceID], I.Set(action.payload.tlfs))
     // Saga only actions
+    case DevicesGen.deviceRevoke:
+    case DevicesGen.deviceRevoked:
     case DevicesGen.devicesLoad:
     case DevicesGen.endangeredTLFsLoad:
-    case DevicesGen.paperKeyMake:
     case DevicesGen.paperKeyCreated:
-    case DevicesGen.revoke:
+    case DevicesGen.paperKeyMake:
     case DevicesGen.showRevokePage:
       return state
     default:
