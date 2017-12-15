@@ -1,4 +1,5 @@
 // @flow
+import logger from '../../logger'
 import PlanDetails from './index'
 import {connect} from 'react-redux'
 import {navigateUp} from '../../actions/route-tree'
@@ -32,7 +33,7 @@ export default connect(
       numStars: planToStars(selectedLevel),
       paymentOption: {
         type: 'credit-card-no-past',
-        onAddCreditCard: () => console.log('onadd credit'), // TODO
+        onAddCreditCard: () => logger.debug('onadd credit'), // TODO
       },
     }
   },
@@ -44,7 +45,7 @@ export default connect(
     ...dispatchProps,
     paymentOption: {
       ...stateProps.paymentOption,
-      onAddCreditCard: () => console.log('onadd credit'), // TODO
+      onAddCreditCard: () => logger.debug('onadd credit'), // TODO
     },
   })
 )(PlanDetails)

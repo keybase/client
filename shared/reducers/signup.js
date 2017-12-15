@@ -1,4 +1,5 @@
 // @flow
+import logger from '../logger'
 import * as Types from '../constants/types/signup'
 import * as Constants from '../constants/signup'
 import * as SignupGen from '../actions/signup-gen'
@@ -124,7 +125,7 @@ export default function(state: Types.State = Constants.initialState, action: Sig
 
     case SignupGen.showPaperKey:
       if (action.error) {
-        console.warn('Should not get an error from showing paper key')
+        logger.warn('Should not get an error from showing paper key')
         return state
       } else {
         const {paperkey} = action.payload

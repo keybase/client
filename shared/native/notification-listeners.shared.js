@@ -1,4 +1,5 @@
 // @flow
+import logger from '../logger'
 import * as ConfigGen from '../actions/config-gen'
 import * as LoginGen from '../actions/login-gen'
 import * as NotificationsGen from '../actions/notifications-gen'
@@ -21,7 +22,7 @@ export default function(dispatch: Dispatch, getState: () => Object, notify: any)
   return {
     'keybase.1.NotifyBadges.badgeState': ({badgeState}) => {
       if (badgeState.inboxVers < lastBadgeStateVersion) {
-        console.log(
+        logger.info(
           `Ignoring older badgeState, got ${badgeState.inboxVers} but have seen ${lastBadgeStateVersion}`
         )
         return

@@ -1,5 +1,6 @@
 // @flow
 // Simple control to show multiple avatars. Just used in chat but could be expanded. Keeping this simple for now
+import logger from '../logger'
 import Avatar from './avatar'
 import Box from './box'
 import * as React from 'react'
@@ -23,7 +24,7 @@ class MultiAvatar extends React.PureComponent<Props> {
       return null
     }
     if (avatarProps.length > 2) {
-      console.warn('MultiAvatar only handles up to 2 avatars')
+      logger.warn('MultiAvatar only handles up to 2 avatars')
       return null
     }
 

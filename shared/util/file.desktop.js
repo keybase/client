@@ -49,7 +49,7 @@ function stat(filepath: string): Promise<StatResult> {
       if (err) {
         return reject(err)
       }
-      resolve({size: stats.size})
+      resolve({size: stats.size, lastModified: stats.mtime.getTime()})
     })
   })
 }
@@ -71,7 +71,26 @@ function copy(from: string, to: string) {
   fs.writeFileSync(to, fs.readFileSync(from))
 }
 
+function unlink(filepath: string): Promise<void> {
+  return new Promise((resolve, reject) => fs.unlink(filepath, () => resolve()))
+}
+
 // TODO implemented for mobile, not here
 const cachesDirectoryPath = ''
 
-export {cachesDirectoryPath, copy, downloadFilePath, exists, stat, tmpDir, tmpFile, tmpRandFile}
+function writeStream(filepath: string, encoding: string, append?: boolean): Promise<*> {
+  return Promise.reject(new Error('not implemented'))
+}
+
+export {
+  cachesDirectoryPath,
+  copy,
+  downloadFilePath,
+  exists,
+  stat,
+  tmpDir,
+  tmpFile,
+  tmpRandFile,
+  unlink,
+  writeStream,
+}
