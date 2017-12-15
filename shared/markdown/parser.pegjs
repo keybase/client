@@ -119,12 +119,12 @@ Strike
 
 // children grammar adapted from username regexp in libkb/checkers.go.
 Mention
- = MentionMarker children:([a-zA-Z0-9][a-zA-Z0-9_]?)+ MentionMarker service:ValidMentionService { return {type: 'mention', children: flatten(children), service: service.toLowerCase()} }
+ = MentionMarker children:([a-zA-Z0-9][a-zA-Z0-9_]*) MentionMarker service:ValidMentionService { return {type: 'mention', children: flatten(children), service: service.toLowerCase()} }
 
 // Same as Mention above, but is just returns text
 // Useful if you don't want a mention in certain contexts (like in a code block)
 MentionlessMention
- = MentionMarker children:([a-zA-Z0-9][a-zA-Z0-9_]?)+ MentionMarker service:ValidMentionService { return prefix('@', children) }
+ = MentionMarker children:([a-zA-Z0-9][a-zA-Z0-9_]*) MentionMarker service:ValidMentionService { return prefix('@', children) }
 
 InCodeBlock
  = children:(MentionlessMention / (!Ticks3 .))+ {return children }
