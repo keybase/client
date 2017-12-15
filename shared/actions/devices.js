@@ -209,4 +209,10 @@ function* deviceSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(DevicesGen.deviceRevoked, navigateAfterRevoked)
 }
 
+export const _testing = {
+  changeWaiting,
+  dispatchDevicesListLoaded,
+  requestEndangeredTLFsLoad,
+}
+
 export default deviceSaga
