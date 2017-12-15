@@ -73,6 +73,7 @@ const initialTrackerState = (username: string): Types.TrackerState => ({
   proofs: [],
   reason: null,
   serverActive: true,
+  selectedTeam: '',
   shouldFollow: true,
   tlfs: [],
   trackToken: null,

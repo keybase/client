@@ -2,8 +2,10 @@
 import React, {PureComponent} from 'react'
 import Header from './header.render.desktop'
 import Action, {calcFooterHeight} from './action.render.desktop'
-import {UserProofs, UserBio} from '../common-adapters'
-import {globalStyles} from '../styles'
+import {Avatar, Box, Text, UserProofs, UserBio} from '../common-adapters'
+import {globalColors, globalMargins, globalStyles} from '../styles'
+import {ModalPositionRelative} from '../common-adapters/relative-popup-hoc.desktop'
+import TeamInfo from '../profile/showcased-team-info'
 import NonUser from './non-user'
 import {autoResize} from '../desktop/remote/util'
 import TrackerError from './error'
@@ -47,6 +49,7 @@ export default class TrackerRender extends PureComponent<RenderProps> {
     // So we use the existing paddingBottom and add the height of the footer
     const footerHeight = calcFooterHeight(this.props.loggedIn)
     const calculatedPadding = styles.content.paddingBottom + footerHeight
+    const ModalPopupComponent = ModalPositionRelative(TeamInfo)
     return (
       <div style={styles.container}>
         <Header
@@ -73,6 +76,82 @@ export default class TrackerRender extends PureComponent<RenderProps> {
             onClickFollowers={this.props.onClickFollowers}
             onClickFollowing={this.props.onClickFollowing}
           />
+          {this.props.userInfo.showcasedTeams.length > 0 &&
+            <Box
+              style={{
+                ...globalStyles.flexBoxColumn,
+                paddingLeft: globalMargins.medium,
+                paddingBottom: globalMargins.tiny,
+                paddingTop: globalMargins.tiny,
+              }}
+            >
+              {this.props.userInfo.showcasedTeams.map(team => (
+                <Box
+                  key={team.fqName}
+                  onClick={event => {
+                    const node = event.target instanceof window.HTMLElement ? event.target : null
+                    const targetRect = node && node.getBoundingClientRect()
+                    if (!this.props.showTeam || team.fqName !== this.props.showTeam.fqName) {
+                      this.props.onUpdateSelectedTeam(team.fqName)
+                      this.props.onSetSelectedTeamRect(targetRect)
+                      this.props._onSetTeamJoinError('')
+                      this.props._onSetTeamJoinSuccess(false)
+                      this.props._loadTeams()
+                      this.props._checkRequestedAccess(team.fqName)
+                    }
+                  }}
+                  style={{
+                    ...globalStyles.flexBoxRow,
+                    alignItems: 'flex-start',
+                    justifyContent: 'flex-start',
+                    minHeight: 24,
+                  }}
+                >
+                  {this.props.showTeam &&
+                    this.props.showTeam.fqName === team.fqName &&
+                    <Box key={team.fqName + 'popup'} style={{zIndex: 50}}>
+                      <ModalPopupComponent
+                        {...this.props}
+                        targetRect={this.props.selectedTeamRect}
+                        position="top left"
+                        style={{zIndex: 50}}
+                        popupNode={<Box />}
+                        onClosePopup={() => {
+                          this.props.onUpdateSelectedTeam('')
+                          this.props.onSetSelectedTeamRect(null)
+                        }}
+                      />
+                    </Box>}
+                  <Box
+                    style={{
+                      ...globalStyles.flexBoxRow,
+                      alignItems: 'center',
+                      alignSelf: 'center',
+                      height: 16,
+                      minHeight: 16,
+                      minWidth: 16,
+                      width: 16,
+                    }}
+                  >
+                    <Avatar teamname={team.fqName} size={16} />
+                  </Box>
+                  <Box
+                    style={{
+                      ...globalStyles.flexBoxRow,
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      alignSelf: 'center',
+                      paddingLeft: globalMargins.tiny,
+                    }}
+                  >
+                    <Text style={{color: globalColors.black_75}} type="BodySmallSemiboldInlineLink">
+                      {team.fqName}
+                    </Text>
+                  </Box>
+                </Box>
+              ))}
+            </Box>}
+
           <UserProofs
             type="proofs"
             style={{
