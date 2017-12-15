@@ -486,6 +486,14 @@ func (s *BlockingSender) Sign(payload []byte) ([]byte, error) {
 	return ri.S3Sign(context.Background(), arg)
 }
 
+func (s *BlockingSender) presentUIItem(conv *chat1.ConversationLocal) (res *chat1.InboxUIItem) {
+	if conv != nil {
+		pc := utils.PresentConversationLocal(*conv)
+		res = &pc
+	}
+	return res
+}
+
 func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 	msg chat1.MessagePlaintext, clientPrev chat1.MessageID, outboxID *chat1.OutboxID) (obid chat1.OutboxID, boxed *chat1.MessageBoxed, rl *chat1.RateLimit, err error) {
 	defer s.Trace(ctx, func() error { return err }, fmt.Sprintf("Send(%s)", convID))()
@@ -605,12 +613,28 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 	}
 
 	// Write new message out to cache
+	var cerr error
+	var unboxedMsg chat1.MessageUnboxed
+	var convLocal *chat1.ConversationLocal
 	s.Debug(ctx, "sending local updates to chat sources")
-	if _, _, err = s.G().ConvSource.Push(ctx, convID, boxed.ClientHeader.Sender, *boxed); err != nil {
+	if unboxedMsg, _, cerr = s.G().ConvSource.Push(ctx, convID, boxed.ClientHeader.Sender, *boxed); cerr != nil {
 		s.Debug(ctx, "failed to push new message into convsource: %s", err)
 	}
-	if _, err = s.G().InboxSource.NewMessage(ctx, boxed.ClientHeader.Sender, 0, convID, *boxed); err != nil {
+	if convLocal, err = s.G().InboxSource.NewMessage(ctx, boxed.ClientHeader.Sender, 0, convID,
+		*boxed); err != nil {
 		s.Debug(ctx, "failed to update inbox: %s", err)
+	}
+	// Send up to frontend
+	if cerr == nil {
+		activity := chat1.NewChatActivityWithIncomingMessage(chat1.IncomingMessage{
+			Message: utils.PresentMessageUnboxed(ctx, unboxedMsg, boxed.ClientHeader.Sender,
+				s.G().TeamChannelSource),
+			ConvID: convID,
+			DisplayDesktopNotification: false,
+			Conv: s.presentUIItem(convLocal),
+		})
+		s.G().NotifyRouter.HandleNewChatActivity(ctx, keybase1.UID(boxed.ClientHeader.Sender.String()),
+			&activity)
 	}
 	return []byte{}, boxed, plres.RateLimit, nil
 }
