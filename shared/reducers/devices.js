@@ -1,4 +1,5 @@
 // @flow
+import * as I from 'immutable'
 import * as Constants from '../constants/devices'
 import * as Types from '../constants/types/devices'
 import * as DevicesGen from '../actions/devices-gen'
@@ -9,18 +10,17 @@ export default function(state: Types.State = initialState, action: DevicesGen.Ac
   switch (action.type) {
     case DevicesGen.resetStore:
       return initialState
-    case DevicesGen.replaceEntity: {
-      const {keyPath, entities} = action.payload
-      return state.mergeIn(keyPath, entities)
-    }
+    case DevicesGen.devicesLoaded:
+      return state.set('idToDetail', I.Map(action.payload.idToDetail))
+    case DevicesGen.setWaiting:
+      return state.set('waiting', action.payload.waiting)
+    case DevicesGen.endangeredTLFsLoaded:
+      return state.mergeIn(['idToEndangeredTLFs', action.payload.deviceID], I.Set(action.payload.tlfs))
     // Saga only actions
     case DevicesGen.devicesLoad:
-    case DevicesGen.devicesLoaded:
     case DevicesGen.endangeredTLFsLoad:
-    case DevicesGen.endangeredTLFsLoaded:
     case DevicesGen.paperKeyMake:
     case DevicesGen.revoke:
-    case DevicesGen.setWaiting:
     case DevicesGen.showRevokePage:
       return state
     default:

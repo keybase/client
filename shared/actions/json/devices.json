@@ -4,10 +4,6 @@
     "import * as Constants from '../constants/devices'"
   ],
   "actions": {
-    "replaceEntity": {
-      "keyPath": "Array<string>",
-      "entities": "I.Map<any, any> | I.List<any>"
-    },
     "devicesLoad": {},
     "devicesLoaded": {
       "idToDetail": "{[id: string]: Types.DeviceDetail}"
@@ -23,7 +19,8 @@
       "deviceID": "string"
     },
     "endangeredTLFsLoaded": {
-        "tlfs": "Array<string>"
+      "deviceID": "string",
+      "tlfs": "Array<string>"
     },
     "setWaiting": {
       "waiting": "boolean"

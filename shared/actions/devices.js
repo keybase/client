@@ -1,7 +1,6 @@
 // @flow
 import * as Constants from '../constants/devices'
 import * as Types from '../constants/types/devices'
-import * as I from 'immutable'
 // import * as LoginGen from './login-gen'
 import * as DevicesGen from './devices-gen'
 import * as RPCTypes from '../constants/types/flow-types'
@@ -21,18 +20,11 @@ function getEndangeredTlfs(action: DevicesGen.ShowRevokePagePayload, state: Type
   }
 }
 
-const convertEndangeredTlfs = (tlfs: RPCTypes.RevokeWarning) =>
+const convertEndangeredTlfs = (tlfs: RPCTypes.RevokeWarning, action: DevicesGen.ShowRevokePagePayload) =>
   Saga.put(
     DevicesGen.createEndangeredTLFsLoaded({
+      deviceID: action.payload.deviceID,
       tlfs: (tlfs.endangeredTLFs || []).map(t => t.name),
-    })
-  )
-
-const saveEndangeredTlfs = (action: DevicesGen.EndangeredTLFsLoadedPayload) =>
-  Saga.put(
-    DevicesGen.createReplaceEntity({
-      entities: I.Map([['idToEndangeredTLFs', I.Set(action.payload.tlfs)]]),
-      keyPath: [],
     })
   )
 
@@ -64,14 +56,6 @@ function changeWaiting(
   return Saga.put(DevicesGen.createSetWaiting({waiting}))
 }
 
-const saveWaiting = (action: DevicesGen.SetWaitingPayload) =>
-  Saga.put(
-    DevicesGen.createReplaceEntity({
-      entities: I.Map([['waiting', action.payload.waiting]]),
-      keyPath: [],
-    })
-  )
-
 function convertDeviceList(results: Array<RPCTypes.DeviceDetail>) {
   const idToDetail = results.reduce((map: {[key: string]: Types.DeviceDetail}, d: RPCTypes.DeviceDetail) => {
     const detail = Constants.makeDeviceDetail({
@@ -92,14 +76,6 @@ function convertDeviceList(results: Array<RPCTypes.DeviceDetail>) {
   }, {})
   return Saga.put(DevicesGen.createDevicesLoaded({idToDetail}))
 }
-
-const saveDeviceList = (action: DevicesGen.DevicesLoadedPayload) =>
-  Saga.put(
-    DevicesGen.createReplaceEntity({
-      entities: I.Map([['idToDetail', I.Map(action.payload.idToDetail)]]),
-      keyPath: [],
-    })
-  )
 
 const getDeviceList = (action: DevicesGen.DevicesLoadPayload, state: TypedState) =>
   state.config.loggedIn ? Saga.call(RPCTypes.deviceDeviceHistoryListRpcPromise) : []
@@ -189,7 +165,6 @@ const getDeviceList = (action: DevicesGen.DevicesLoadPayload, state: TypedState)
 function* deviceSaga(): Saga.SagaGenerator<any, any> {
   // Load devices
   yield Saga.safeTakeLatestPure(DevicesGen.devicesLoad, getDeviceList, convertDeviceList)
-  yield Saga.safeTakeEveryPure(DevicesGen.devicesLoaded, saveDeviceList)
 
   // Waiting states
   yield Saga.safeTakeEveryPure(
@@ -201,12 +176,10 @@ function* deviceSaga(): Saga.SagaGenerator<any, any> {
     ],
     changeWaiting
   )
-  yield Saga.safeTakeEveryPure(DevicesGen.setWaiting, saveWaiting)
 
   // Revoke page
   yield Saga.safeTakeEveryPure(DevicesGen.showRevokePage, getEndangeredTlfs, convertEndangeredTlfs)
   yield Saga.safeTakeEveryPure(DevicesGen.showRevokePage, showRevokePage)
-  yield Saga.safeTakeEveryPure(DevicesGen.endangeredTLFsLoaded, saveEndangeredTlfs)
 
   // TODO
   // yield Saga.safeTakeEvery(DevicesGen.revoke, _deviceRevokedSaga)
