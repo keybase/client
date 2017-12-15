@@ -20,6 +20,7 @@ export default function(state: Types.State = initialState, action: DevicesGen.Ac
     case DevicesGen.devicesLoad:
     case DevicesGen.endangeredTLFsLoad:
     case DevicesGen.paperKeyMake:
+    case DevicesGen.paperKeyCreated:
     case DevicesGen.revoke:
     case DevicesGen.showRevokePage:
       return state

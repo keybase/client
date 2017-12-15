@@ -1,7 +1,8 @@
 {
   "prelude": [
     "import * as Types from '../constants/types/devices'",
-    "import * as Constants from '../constants/devices'"
+    "import * as Constants from '../constants/devices'",
+    "import HiddenString from '../util/hidden-string'"
   ],
   "actions": {
     "devicesLoad": {},
@@ -9,6 +10,9 @@
       "idToDetail": "{[id: string]: Types.DeviceDetail}"
     },
     "paperKeyMake": {},
+    "paperKeyCreated": {
+        "paperKey": "HiddenString"
+    },
     "revoke": {
       "deviceID": "string"
     },
