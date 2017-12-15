@@ -1,4 +1,4 @@
-// The cascadia package is an implementation of CSS selectors.
+// Package cascadia is an implementation of CSS selectors.
 package cascadia
 
 import (
@@ -395,6 +395,8 @@ func (p *parser) parseAttributeSelector() (Selector, error) {
 	switch op {
 	case "=":
 		return attributeEqualsSelector(key, val), nil
+	case "!=":
+		return attributeNotEqualSelector(key, val), nil
 	case "~=":
 		return attributeIncludesSelector(key, val), nil
 	case "|=":
@@ -412,9 +414,9 @@ func (p *parser) parseAttributeSelector() (Selector, error) {
 	return nil, fmt.Errorf("attribute operator %q is not supported", op)
 }
 
-var expectedParenthesis = errors.New("expected '(' but didn't find it")
-var expectedClosingParenthesis = errors.New("expected ')' but didn't find it")
-var unmatchedParenthesis = errors.New("unmatched '('")
+var errExpectedParenthesis = errors.New("expected '(' but didn't find it")
+var errExpectedClosingParenthesis = errors.New("expected ')' but didn't find it")
+var errUnmatchedParenthesis = errors.New("unmatched '('")
 
 // parsePseudoclassSelector parses a pseudoclass selector like :not(p).
 func (p *parser) parsePseudoclassSelector() (Selector, error) {
@@ -435,14 +437,14 @@ func (p *parser) parsePseudoclassSelector() (Selector, error) {
 	switch name {
 	case "not", "has", "haschild":
 		if !p.consumeParenthesis() {
-			return nil, expectedParenthesis
+			return nil, errExpectedParenthesis
 		}
-		sel, err := p.parseSelectorGroup()
-		if err != nil {
-			return nil, err
+		sel, parseErr := p.parseSelectorGroup()
+		if parseErr != nil {
+			return nil, parseErr
 		}
 		if !p.consumeClosingParenthesis() {
-			return nil, expectedClosingParenthesis
+			return nil, errExpectedClosingParenthesis
 		}
 
 		switch name {
@@ -456,10 +458,10 @@ func (p *parser) parsePseudoclassSelector() (Selector, error) {
 
 	case "contains", "containsown":
 		if !p.consumeParenthesis() {
-			return nil, expectedParenthesis
+			return nil, errExpectedParenthesis
 		}
 		if p.i == len(p.s) {
-			return nil, unmatchedParenthesis
+			return nil, errUnmatchedParenthesis
 		}
 		var val string
 		switch p.s[p.i] {
@@ -477,7 +479,7 @@ func (p *parser) parsePseudoclassSelector() (Selector, error) {
 			return nil, errors.New("unexpected EOF in pseudo selector")
 		}
 		if !p.consumeClosingParenthesis() {
-			return nil, expectedClosingParenthesis
+			return nil, errExpectedClosingParenthesis
 		}
 
 		switch name {
@@ -489,7 +491,7 @@ func (p *parser) parsePseudoclassSelector() (Selector, error) {
 
 	case "matches", "matchesown":
 		if !p.consumeParenthesis() {
-			return nil, expectedParenthesis
+			return nil, errExpectedParenthesis
 		}
 		rx, err := p.parseRegex()
 		if err != nil {
@@ -499,7 +501,7 @@ func (p *parser) parsePseudoclassSelector() (Selector, error) {
 			return nil, errors.New("unexpected EOF in pseudo selector")
 		}
 		if !p.consumeClosingParenthesis() {
-			return nil, expectedClosingParenthesis
+			return nil, errExpectedClosingParenthesis
 		}
 
 		switch name {
@@ -511,14 +513,26 @@ func (p *parser) parsePseudoclassSelector() (Selector, error) {
 
 	case "nth-child", "nth-last-child", "nth-of-type", "nth-last-of-type":
 		if !p.consumeParenthesis() {
-			return nil, expectedParenthesis
+			return nil, errExpectedParenthesis
 		}
 		a, b, err := p.parseNth()
 		if err != nil {
 			return nil, err
 		}
 		if !p.consumeClosingParenthesis() {
-			return nil, expectedClosingParenthesis
+			return nil, errExpectedClosingParenthesis
+		}
+		if a == 0 {
+			switch name {
+			case "nth-child":
+				return simpleNthChildSelector(b, false), nil
+			case "nth-of-type":
+				return simpleNthChildSelector(b, true), nil
+			case "nth-last-child":
+				return simpleNthLastChildSelector(b, false), nil
+			case "nth-last-of-type":
+				return simpleNthLastChildSelector(b, true), nil
+			}
 		}
 		return nthChildSelector(a, b,
 				name == "nth-last-child" || name == "nth-last-of-type",
@@ -526,13 +540,13 @@ func (p *parser) parsePseudoclassSelector() (Selector, error) {
 			nil
 
 	case "first-child":
-		return nthChildSelector(0, 1, false, false), nil
+		return simpleNthChildSelector(1, false), nil
 	case "last-child":
-		return nthChildSelector(0, 1, true, false), nil
+		return simpleNthLastChildSelector(1, false), nil
 	case "first-of-type":
-		return nthChildSelector(0, 1, false, true), nil
+		return simpleNthChildSelector(1, true), nil
 	case "last-of-type":
-		return nthChildSelector(0, 1, true, true), nil
+		return simpleNthLastChildSelector(1, true), nil
 	case "only-child":
 		return onlyChildSelector(false), nil
 	case "only-of-type":
@@ -541,6 +555,8 @@ func (p *parser) parsePseudoclassSelector() (Selector, error) {
 		return inputSelector, nil
 	case "empty":
 		return emptyElementSelector, nil
+	case "root":
+		return rootSelector, nil
 	}
 
 	return nil, fmt.Errorf("unknown pseudoclass :%s", name)
@@ -554,7 +570,7 @@ func (p *parser) parseInteger() (int, error) {
 		i++
 	}
 	if i == start {
-		return 0, errors.New("expected integer, but didn't find it.")
+		return 0, errors.New("expected integer, but didn't find it")
 	}
 	p.i = i
 
@@ -586,9 +602,9 @@ func (p *parser) parseNth() (a, b int, err error) {
 		p.i++
 		goto readN
 	case 'o', 'O', 'e', 'E':
-		id, err := p.parseName()
-		if err != nil {
-			return 0, 0, err
+		id, nameErr := p.parseName()
+		if nameErr != nil {
+			return 0, 0, nameErr
 		}
 		id = toLowerASCII(id)
 		if id == "odd" {
@@ -738,7 +754,7 @@ loop:
 
 	if result == nil {
 		result = func(n *html.Node) bool {
-			return true
+			return n.Type == html.ElementNode
 		}
 	}
 

@@ -1,0 +1,12 @@
+To build Camlistore:
+
+1) Install Go 1.5 or later.
+
+2) cd to the root of the Camlistore source (where this file is)
+
+3) Run:
+
+   $ go run make.go
+
+4) The compiled binaries should now be in the "bin" subdirectory:
+   camlistored (the server), camget, camput, and camtool.

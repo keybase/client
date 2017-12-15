@@ -1,0 +1,89 @@
+environment:
+  global:
+    GOPATH: c:\work\
+    KEYBASE_SERVER_URI: https://ci1.keybase.io
+    CGO_ENABLED: 1
+    GOARCH: 386
+    CC: c:\MinGW\bin\gcc
+    CPATH: C:\MinGW\include;C:\MinGW\include\ddk
+    GOVERSION: 1.9
+
+install:
+  - systeminfo | findstr /C:"OS"
+  - appveyor DownloadFile https://storage.googleapis.com/golang/go%GOVERSION%.windows-amd64.zip
+  - ps: rmdir C:\go -Force -Recurse -Confirm:$false
+  - 7z x go%GOVERSION%.windows-amd64.zip -o"C:\" -y > nul
+  - set Path=c:\go\bin;%Path%
+  # Keybase-built and signed v1.0.0-RC4
+  - appveyor DownloadFile https://github.com/keybase/dokany/releases/download/v1.0.4.84/dokany.zip
+  - 7z x dokany.zip -o"C:\" -y -aoa > nul
+  - copy C:\dokany\x64\Win8.1Release\sys\dokan1.sys C:\windows\system32\drivers\
+  - pushd C:\dokany\Win32\Release
+  - copy dokan1.dll C:\windows\syswow64\
+  - Bcdedit.exe -set TESTSIGNING ON
+  - ps: Restart-Computer -Force
+  - ps: Start-Sleep -s 10
+  - cd C:\dokany\Win32\Release
+  - dokanctl /i d
+  - sc query dokan1
+
+# clone directory
+clone_folder: c:\work\src\github.com\keybase\kbfs
+
+#---------------------------------#
+#       build configuration       #
+#---------------------------------#
+
+# build platform, i.e. x86, x64, Any CPU. This setting is optional.
+platform: x64
+os: Visual Studio 2015
+
+# scripts to run before build
+before_build:
+
+# scripts to run after build
+after_build:
+
+# to run your custom scripts instead of automatic MSBuild
+build_script:
+  - SET PATH=%PATH%;c:\MinGW\bin
+  - cd c:\work\src\github.com\keybase\kbfs
+  - cd dokan
+  - go test -i
+  - go test -c
+  - cd ..\kbfsdokan
+  - go install
+  - cd ..\kbfsgit\git-remote-keybase
+  - go install
+  - cd ..\..\test
+  - go test -i
+  - cd ..
+# Eventually there will be more tests, but let's just start with these for now
+#  - go list ./... | find /V "vendor" > testlist.txt
+  - echo github.com/keybase/kbfs/kbfsblock > testlist.txt
+  - echo github.com/keybase/kbfs/kbfscodec >> testlist.txt
+  - echo github.com/keybase/kbfs/kbfscrypto >> testlist.txt
+  - echo github.com/keybase/kbfs/kbfshash >> testlist.txt
+  - echo github.com/keybase/kbfs/kbfssync >> testlist.txt
+  - echo github.com/keybase/kbfs/tlf >> testlist.txt
+  - echo github.com/keybase/kbfs/libfs >> testlist.txt
+  - echo github.com/keybase/kbfs/libgit >> testlist.txt
+  - echo github.com/keybase/kbfs/libkbfs >> testlist.txt
+  - echo github.com/keybase/kbfs/libdokan >> testlist.txt
+  - echo github.com/keybase/kbfs/kbfsgit >> testlist.txt
+  - echo github.com/keybase/kbfs/simplefs >> testlist.txt
+  - echo github.com/keybase/kbfs/test >> testlist.txt
+# TODO: Run the below tests with env KEYBASE_TEST_BSERVER_ADDR=tempdir.
+  - for /f %%i in (testlist.txt) do (appveyor AddTest %%i -Outcome Running -Framework gotest -Filename %%i & go test -timeout 5m %%i && appveyor UpdateTest %%i -Outcome Passed -Framework gotest -Filename %%i -Duration 0) || (appveyor UpdateTest %%i -Outcome Failed -Framework gotest -Filename %%i -Duration 0 & exit /b 1) 
+  - cd test && go test -tags dokan -timeout 300s
+
+# to disable automatic builds
+#build: off
+
+# to run your custom scripts instead of automatic tests
+test_script:
+
+# only run on pull requests and pushes to master
+branches:
+    only:
+        - master

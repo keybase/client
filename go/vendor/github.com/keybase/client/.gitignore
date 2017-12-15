@@ -1,0 +1,51 @@
+# Compiled Object files, Static and Dynamic libs (Shared Objects)
+*.o
+*.a
+*.so
+
+# OSX BS
+.DS_Store
+
+# Folders
+_obj
+_test
+
+# Architecture specific extensions/prefixes
+*.[568vq]
+[568vq].out
+
+*.cgo1.go
+*.cgo2.c
+_cgo_defun.c
+_cgo_gotypes.go
+_cgo_export.*
+
+_testmain.go
+
+*.exe
+*.test
+*.prof
+
+go/keybase/keybase
+go/revision
+
+*-fuzz.zip
+
+# Xcode
+build
+# vscode
+.vscode
+
+npm-debug.log
+yarn-error.log
+shared/coverage
+shared/node_modules
+packaging/desktop/node_modules
+packaging/prerelease/node_modules
+visdiff/node_modules
+pvl-tools/node_modules
+
+Keybase.app.dSYM.zip
+
+shared/react-native/ios/fastlane
+shared/react-native/android/keybaselib/keybaselib-sources.jar

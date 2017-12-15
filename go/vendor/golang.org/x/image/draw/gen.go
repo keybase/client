@@ -804,7 +804,7 @@ func cOffset(x, y, sratio string) string {
 func ycbcrToRGB(lhs, tmp string) string {
 	s := `
 		// This is an inline version of image/color/ycbcr.go's YCbCr.RGBA method.
-		$yy1 := int(src.Y[$i]) * 0x10100
+		$yy1 := int(src.Y[$i]) * 0x10101
 		$cb1 := int(src.Cb[$j]) - 128
 		$cr1 := int(src.Cr[$j]) - 128
 		$r@ := ($yy1 + 91881*$cr1) >> 8
@@ -877,8 +877,9 @@ func relName(s string) string {
 const (
 	codeRoot = `
 		func (z $receiver) Scale(dst Image, dr image.Rectangle, src image.Image, sr image.Rectangle, op Op, opts *Options) {
-			// Try to simplify a Scale to a Copy.
-			if dr.Size() == sr.Size() {
+			// Try to simplify a Scale to a Copy when DstMask is not specified.
+			// If DstMask is not nil, Copy will call Scale back with same dr and sr, and cause stack overflow.
+			if dr.Size() == sr.Size() && (opts == nil || opts.DstMask == nil) {
 				Copy(dst, dr.Min, src, sr, op, opts)
 				return
 			}

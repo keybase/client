@@ -20,7 +20,7 @@ limitations under the License.
 // This reduces the amount of data that must be decompressed into memory when
 // the full resolution image isn't required, i.e. in the case of generating
 // thumbnails.
-package fastjpeg // import "camlistore.org/pkg/images/fastjpeg"
+package fastjpeg
 
 import (
 	"bytes"
@@ -38,8 +38,7 @@ import (
 	"sync"
 
 	"camlistore.org/pkg/buildinfo"
-
-	"go4.org/readerutil"
+	"camlistore.org/pkg/types"
 )
 
 var (
@@ -200,7 +199,7 @@ func DecodeDownsample(r io.Reader, factor int) (image.Image, error) {
 	}
 	args := []string{djpegBin, "-scale", fmt.Sprintf("1/%d", factor)}
 	cmd := exec.Command(args[0], args[1:]...)
-	cmd.Stdin = readerutil.NewStatsReader(djpegBytesWrittenVar, io.MultiReader(buf, r))
+	cmd.Stdin = types.NewStatsReader(djpegBytesWrittenVar, io.MultiReader(buf, r))
 
 	// Allocate space for the RGBA / Gray pixel data plus some extra for PNM
 	// header info.  Explicitly allocate all the memory upfront to prevent
@@ -212,8 +211,14 @@ func DecodeDownsample(r io.Reader, factor int) (image.Image, error) {
 	stderrW := new(bytes.Buffer)
 	cmd.Stderr = stderrW
 	if err := cmd.Run(); err != nil {
-		djpegFailureVar.Add(1)
-		return nil, DjpegFailedError{Err: fmt.Errorf("%v: %s", err, stderrW)}
+		// cmd.ProcessState == nil happens if /lib/*/ld-x.yz.so is missing, which gives you the ever useful:
+		// "fork/exec /usr/bin/djpeg: no such file or directory" error message.
+		// So of course it only happens on broken systems and this check is probably overkill.
+		if cmd.ProcessState == nil || !cmd.ProcessState.Success() {
+			djpegFailureVar.Add(1)
+			return nil, DjpegFailedError{Err: fmt.Errorf("%v: %s", err, stderrW)}
+		}
+		// false alarm, so proceed. See http://camlistore.org/issue/550
 	}
 	djpegSuccessVar.Add(1)
 	djpegBytesReadVar.Add(int64(w.Len()))

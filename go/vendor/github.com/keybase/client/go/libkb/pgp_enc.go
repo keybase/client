@@ -1,0 +1,43 @@
+// Copyright 2015 Keybase, Inc. All rights reserved. Use of
+// this source code is governed by the included BSD license.
+
+package libkb
+
+import (
+	"io"
+	"strings"
+
+	"github.com/keybase/go-crypto/openpgp"
+)
+
+func PGPEncrypt(source io.Reader, sink io.WriteCloser, signer *PGPKeyBundle, recipients []*PGPKeyBundle) error {
+	to := make([]*openpgp.Entity, len(recipients))
+	for i, r := range recipients {
+		to[i] = r.Entity
+	}
+	var signerEntity *openpgp.Entity
+	if signer != nil {
+		signerEntity = signer.Entity
+	}
+	w, err := openpgp.Encrypt(sink, to, signerEntity, &openpgp.FileHints{IsBinary: true}, nil)
+	if err != nil {
+		return err
+	}
+	_, err = io.Copy(w, source)
+	if err != nil {
+		return err
+	}
+	if err := w.Close(); err != nil {
+		return err
+	}
+	return sink.Close()
+}
+
+func PGPEncryptString(input string, signer *PGPKeyBundle, recipients []*PGPKeyBundle) ([]byte, error) {
+	source := strings.NewReader(input)
+	sink := NewBufferCloser()
+	if err := PGPEncrypt(source, sink, signer, recipients); err != nil {
+		return nil, err
+	}
+	return sink.Bytes(), nil
+}

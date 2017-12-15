@@ -1,0 +1,15 @@
+sudo: required
+dist: trusty
+go_import_path: camlistore.org
+language: go
+go:
+  - 1.5
+  - tip
+before_install:
+  - sudo apt-get install -qq pkg-config fuse
+  - sudo modprobe fuse
+  - sudo chmod 666 /dev/fuse
+  - sudo chown root:$USER /etc/fuse.conf
+install: GO15VENDOREXPERIMENT=1 go run make.go -v
+before_script: GO15VENDOREXPERIMENT=1 go build -o ./bin/devcam ./dev/devcam
+script: GO15VENDOREXPERIMENT=1 ./bin/devcam test

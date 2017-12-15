@@ -88,8 +88,10 @@ func dialSocks5(proxy, targetAddr string) (conn net.Conn, err error) {
 		return
 	} else if len(resp) != 2 {
 		err = errors.New("Server does not respond properly.")
+		return
 	} else if resp[0] != 5 {
 		err = errors.New("Server does not support Socks 5.")
+		return
 	} else if resp[1] != 0 { // no auth
 		err = errors.New("socks method negotiation failed.")
 		return
@@ -157,6 +159,7 @@ func dialSocks4(socksType int, proxy, targetAddr string) (conn net.Conn, err err
 		return
 	} else if len(resp) != 8 {
 		err = errors.New("Server does not respond properly.")
+		return
 	}
 	switch resp[1] {
 	case 90:
@@ -164,7 +167,7 @@ func dialSocks4(socksType int, proxy, targetAddr string) (conn net.Conn, err err
 	case 91:
 		err = errors.New("Socks connection request rejected or failed.")
 	case 92:
-		err = errors.New("Socks connection request rejected because SOCKS server cannot connect to identd on the client.")
+		err = errors.New("Socks connection request rejected becasue SOCKS server cannot connect to identd on the client.")
 	case 93:
 		err = errors.New("Socks connection request rejected because the client program and identd report different user-ids.")
 	default:

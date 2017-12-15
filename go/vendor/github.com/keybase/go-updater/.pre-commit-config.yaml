@@ -1,0 +1,10 @@
+-   repo: https://github.com/gabriel/pre-commit-golang
+    sha: c02a81d85a5295886022b8106c367518e6c3760e
+    hooks:
+    -   id: go-fmt
+    -   id: go-metalinter
+        args:
+        - --deadline=60s
+        - --vendor
+        - --cyclo-over=20
+        - --dupl-threshold=100

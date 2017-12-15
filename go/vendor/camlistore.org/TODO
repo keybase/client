@@ -1,0 +1,253 @@
+There are two TODO lists. This file (good for airplanes) and the online bug tracker:
+
+     https://github.com/camlistore/camlistore/issues
+
+Offline list:
+
+-- fix the presubmit's gofmt to be happy about emacs:
+
+        go fmt camlistore.org/cmd... camlistore.org/dev... camlistore.org/misc... camlistore.org/pkg... camlistore.org/server...
+        stat pkg/blobserver/.#multistream_test.go: no such file or directory
+        exit status 2
+        make: *** [fmt] Error 1
+
+
+-- add HTTP handler for blobstreamer. stream a tar file? where to put
+   continuation token? special file after each tar entry? special file
+   at the end? HTTP Trailers? (but nobody supports them)
+
+-- reindexing:
+   * add streaming interface to localdisk? maybe, even though not ideal, but
+     really: migrate my personal instance from localdisk to blobpacked +
+     maybe diskpacked for loose blobs? start by migrating to blobpacked and
+     measuring size of loose.
+   * add blobserver.EnumerateAllUnsorted (which could use StreamBlobs
+     if available, else use EnumerateAll, else maybe even use a new
+     interface method that goes forever and can't resume at a point,
+     but can be canceled, and localdisk could implement that at least)
+   * add buffered sorted.KeyValue implementation: a memory one (of
+     configurable max size) in front of a real disk one. add a Flush method
+     to it. also Flush when memory gets big enough.
+     In progress: pkg/sorted/buffer
+
+-- stop using the "cond" blob router storage type in genconfig, as
+   well as the /bs-and-index/ "replica" storage type, and just let the
+   index register its own AddReceiveHook like the sync handler
+   (pkg/server/sync.go). But whereas the sync handler only synchronously
+   _enqueues_ the blob to replicate, the indexer should synchronously
+   do the ReceiveBlob (ooo-reindex) on it too before returning.
+   But the sync handler, despite technically only synchronously-enqueueing
+   and being therefore async, is still very fast. It's likely the
+   sync handler will therefore send a ReceiveBlob to the indexer
+   at the ~same time the indexer is already indexing it.  So the indexer
+   should have some dup/merge suppression, and not do double work.
+   singleflight should work. The loser should still consume the
+   source io.Reader body and reply with the same error value.
+
+-- ditch the importer.Interrupt type and pass along a context.Context
+   instead, which has its Done channel for cancelation.
+
+-- be able to put a search (expr or JSON) into camlistore as a blob,
+   and search on it. and then name it with a permanode, and then
+   use a expr search like "named:someset" which looks up someset's
+   current camliContent, fetches it, and then expands into that blob's
+   search.expr or search.Constraint.
+
+-- S3-only mode doesn't work with a local disk index (kvfile) because
+   there's no directory for us to put the kv in.
+
+-- fault injection many more places with pkg/fault. maybe even in all
+   handlers automatically somehow?
+
+-- sync handler's shard validation doesn't retry on error.
+   only reports the errors now.
+
+-- export blobserver.checkHashReader and document it with
+   the blob.Fetcher docs.
+
+-- "filestogether" handler, putting related blobs (e.g. files)
+   next to each other in bigger blobs / separate files, and recording
+   offsets of small blobs into bigger ones
+
+-- diskpacked doesn't seem to sync its index quickly enough.
+   A new blob receieved + process exit + read in a new process
+   doesn't find that blob. kv bug? Seems to need an explicit Close.
+   This feels broken. Add tests & debug.
+
+-- websocket upload protocol. different write & read on same socket,
+   as opposed to HTTP, to have multiple chunks in flight.
+
+-- extension to blobserver upload protocol to minimize fsyncs: maybe a
+   client can say "no rush" on a bunch of data blobs first (which
+   still don't get acked back over websocket until they've been
+   fsynced), and then when the client uploads the schema/vivivy blob,
+   that websocket message won't have the "no rush" flag, calling the
+   optional blobserver.Storage method to fsync (in the case of
+   diskpacked/localdisk) and getting all the "uploaded" messages back
+   for the data chunks that were written-but-not-synced.
+
+-- measure FUSE operations, latency, round-trips, performance.
+   see next item:
+
+-- ... we probaby need a "describe all chunks in file" HTTP handler.
+   then FUSE (when it sees sequential access) can say "what's the
+   list of all chunks in this file?" and then fetch them all at once.
+   see next item:
+
+-- ... HTTP handler to get multiple blobs at once. multi-download
+   in multipart/mime body. we have this for stat and upload, but
+   not download.
+
+-- ... if we do blob fetching over websocket too, then we can support
+   cancellation of blob requests.  Then we can combine the previous
+   two items: FUSE client can ask the server, over websockets, for a
+   list of all chunks, and to also start streaming them all.  assume a
+   high-latency (but acceptable bandwidth) link. the chunks are
+   already in flight, but some might be redundant. once the client figures
+   out some might be redundant, it can issue "stop send" messages over
+   that websocket connection to prevent dups. this should work on
+   both "files" and "bytes" types.
+
+-- cacher: configurable policy on max cache size. clean oldest
+   things (consider mtime+atime) to get back under max cache size.
+   maybe prefer keeping small things (metadata blobs) too,
+   and only delete large data chunks.
+
+-- UI: video, at least thumbnailing (use external program,
+   like VLC or whatever nautilus uses?)
+
+-- rename server.ImageHandler to ThumbnailRequest or something? It's
+   not really a Handler in the normal sense. It's not built once and
+   called repeatedly; it's built for every ServeHTTP request.
+
+-- unexport more stuff from pkg/server. Cache, etc.
+
+-- look into garbage from openpgp signing
+
+-- make leveldb memdb's iterator struct only 8 bytes, pointing to a recycled
+   object, and just nil out that pointer at EOF.
+
+-- bring in the google glog package to third_party and use it in
+   places that want selective logging (e.g. pkg/index/receive.go)
+
+-- (Mostly done) verify all ReceiveBlob calls and see which should be
+   blobserver.Receive instead, or ReceiveNoHash.  git grep -E
+   "\.ReceiveBlob\(" And maybe ReceiveNoHash should go away and be
+   replaced with a "ReceiveString" method which combines the
+   blobref-from-string and ReceiveNoHash at once.
+
+-- union storage target. sharder can be thought of a specialization
+   of union. sharder already unions, but has a hard-coded policy
+   of where to put new blobs. union could a library (used by sharder)
+   with a pluggable policy on that.
+
+-- support for running cammount under camlistored. especially for OS X,
+   where the lifetime of the background daemon will be the same as the
+   user's login session.
+
+-- website: remove the "Installation" heading for /cmd/*, since
+   they're misleading and people should use "go run make.go" in the
+   general case.
+
+-- website: add godoc for /server/camlistored (also without a "go get"
+   line)
+
+-- tests for all cmd/* stuff, perhaps as part of some integration
+   tests.
+
+-- move most of camput into a library, not a package main.
+
+-- server cron support: full syncs, camput file backups, integrity
+   checks.
+
+-- status in top right of UI: sync, crons. (in-progress, un-acked
+   problems)
+
+-- finish metadata compaction on the encryption blobserver.Storage wrapper.
+
+-- get security review on encryption wrapper. (agl?)
+
+-- peer-to-peer server and blobserver target to store encrypted blobs
+   on stranger's hardrives.  server will be open source so groups of
+   friends/family can run their own for small circles, or some company
+   could run a huge instance.  spray encrypted backup chunks across
+   friends' machines, and have central server(s) present challenges to
+   the replicas to have them verify what they have and how big, and
+   also occasionally say what the SHA-1("challenge" + blob-data) is.
+
+-- sharing: make camget work with permanode sets too, not just
+   "directory" and "file" things.
+
+-- sharing: when hitting e.g. http://myserver/share/sha1-xxxxx, if
+   a web browser and not a smart client (Accept header? User-Agent?)
+   then redirect or render a cutesy gallery or file browser instead,
+   still with machine-readable data for slurping.
+
+-- rethink the directory schema so it can a) represent directories
+   with millions of files (without making a >1MB or >16MB schema blob),
+   probably forming a tree, similar to files. but rather than rolling checksum,
+   just split lexically when nodes get too big.
+
+-- delete mostly-obsolete camsigd.  see big TODO in camsigd.go.
+
+-- we used to be able live-edit js/css files in server/camlistored/ui when
+   running under the App Engine dev_appserver.py.  That's now broken with my
+   latest efforts to revive it.  The place to start looking is:
+        server/camlistored/ui/fileembed_appengine.go
+
+-- should a "share" claim be not a claim but its own permanode, so it
+   can be rescinded?  right now you can't really unshare a "haveref"
+   claim.  or rather, TODO: verify we support "delete" claims to
+   delete any claim, and verify the share system and indexer all
+   support it.  I think the indexer might, but not the share system.
+   Also TODO: "camput delete" or "rescind" subcommand.
+   Also TODO: document share claims in doc/schema/ and on website.
+
+-- make the -transitive flag for "camput share -transitive" be a tri-state:
+   unset, true, false, and unset should then mean default to true for "file"
+   and "directory" schema blobs, and "false" for other things.
+
+-- index: static directory recursive sizes: search: ask to see biggest directories?
+
+-- index: index dates in filenames ("yyyy-mm-dd-Foo-Trip", "yyyy-mm blah", etc).
+
+-- get webdav server working again, for mounting on Windows.  This worked before Go 1
+   but bitrot when we moved pkg/fs to use the rsc/fuse.
+
+-- work on runsit more, so I can start using this more often.  runsit should
+   be able to reload itself, and also watch for binaries changing and restart
+   when binaries change.  (or symlinks to binaries)
+
+-- BUG: osutil paths.go on OS X: should use Library everywhere instead of mix of
+   Library and ~/.camlistore?
+
+OLD:
+
+-- add CROS support? Access-Control-Allow-Origin: * + w/ OPTIONS
+   http://hacks.mozilla.org/2009/07/cross-site-xmlhttprequest-with-cors/
+
+-- brackup integration, perhaps sans GPG? (requires Perl client?)
+
+-- blobserver: clean up channel-closing consistency in blobserver interface
+   (most close, one doesn't.  all should probably close)
+
+Android:
+
+[ ] Fix wake locks in UploadThread.  need to hold CPU + WiFi whenever
+    something's enqueued at all and we're running.  Move out of the Thread
+    that's uploading itself.
+[ ] GPG signing of blobs (brad)
+    http://code.google.com/p/android-privacy-guard/
+    http://www.thialfihar.org/projects/apg/
+    (supports signing in code, but not an Intent?)
+    http://code.google.com/p/android-privacy-guard/wiki/UsingApgForDevelopment
+    ... mailed the author.
+
+Client libraries:
+
+[X] Go
+[X] JavaScript
+[/] Python (Brett); but see https://github.com/tsileo/camlipy
+[ ] Perl
+[ ] Ruby
+[ ] PHP

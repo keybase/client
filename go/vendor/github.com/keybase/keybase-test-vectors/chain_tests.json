@@ -1,0 +1,222 @@
+{
+  "tests": {
+    "test_ralph_sig_chain": {
+      "_comment": "Ralph is a test user I created by hand on my local server. I fetched his sigs and keys from the API, and then massaged them into our input format. This test is mainly to make sure that the generated chains we're using in other tests bear some relationship to reality.  - Jack",
+      "input": "ralph_chain.json",
+      "len": 5,
+      "sibkeys": 3,
+      "subkeys": 2,
+      "eldest": "second_eldest"
+    },
+
+    "test_simple_chain": {
+      "_comment": "Test a simple chain, just one link.",
+      "input": "simple_chain.json",
+      "len": 1,
+      "sibkeys": 1,
+      "subkeys": 0
+    },
+
+    "test_error_unknown_key": {
+      "_comment": "Check the case where a signing kid is simply missing from the list of available keys (as opposed to invalid for some other reason, like having been revoked).",
+      "input": "missing_kid_chain.json",
+      "eldest": "e",
+      "err_type": "NONEXISTENT_KID"
+    },
+
+    "test_error_unknown_reverse_sig_key": {
+      "_comment": "As above, but for a reverse sig.",
+      "input": "missing_reverse_kid_chain.json",
+      "eldest": "e",
+      "err_type": "NONEXISTENT_KID"
+    },
+
+    "test_error_bad_signature": {
+      "_comment": "Change some bytes from the valid signature, and confirm it gets rejected.",
+      "input": "bad_signature_chain.json",
+      "err_type": "VERIFY_FAILED"
+    },
+
+    "test_error_bad_reverse_signature": {
+      "_comment": "Change some bytes from the valid reverse signature, and confirm it gets rejected.",
+      "input": "bad_reverse_signature_chain.json",
+      "err_type": "REVERSE_SIG_VERIFY_FAILED"
+    },
+
+    "test_error_mismatched_kid": {
+      "_comment": "We need to use the server-provided KID to unbox a signature. We always need to check back after unboxing to make sure the internal KID matches the one we actually used. This test exercises that check. NOTE: I generated this chain by hacking some code into kbpgp to modify the payload right before it was signed.",
+      "input": "mismatched_kid_chain.json",
+      "err_type": "KID_MISMATCH"
+    },
+
+    "test_error_mismatched_fingerprint": {
+      "_comment": "We don't use fingerprints in unboxing, but nonetheless we want to make sure that if a chain link claims to have been signed by a given fingerprint, that does in fact correspond to the KID of the PGP key that signed it. NOTE: I generated this chain by hacking some code into kbpgp to modify the payload right before it was signed.",
+      "input": "mismatched_fingerprint_chain.json",
+      "err_type": "FINGERPRINT_MISMATCH"
+    },
+
+    "test_revokes": {
+      "_comment": "The chain is length 10, but after 2 sig revokes it should be length 8. Likewise, 6 keys are delegated, but after 2 sig revokes and 2 key revokes it should be down to 2 keys.",
+      "input": "example_revokes_chain.json",
+      "len": 13,
+      "sibkeys": 2,
+      "subkeys": 1
+    },
+
+    "test_error_revoked_key": {
+      "_comment": "Try signing a link with a key that was previously revoked.",
+      "input": "signed_with_revoked_key_chain.json",
+      "err_type": "INVALID_SIBKEY"
+    },
+
+    "test_error_expired_key": {
+      "_comment": "Try signing a link with a key that has expired.",
+      "input": "expired_key_chain.json",
+      "err_type": "EXPIRED_SIBKEY"
+    },
+
+    "test_error_bad_uid": {
+      "input": "bad_uid_chain.json",
+      "err_type": "WRONG_UID"
+    },
+
+    "test_error_bad_username": {
+      "input": "bad_username_chain.json",
+      "err_type": "WRONG_USERNAME"
+    },
+
+    "test_error_bad_prev": {
+      "input": "bad_prev_chain.json",
+      "err_type": "WRONG_PREV"
+    },
+
+    "test_error_bad_seqno": {
+      "input": "bad_seqno_chain.json",
+      "err_type": "WRONG_SEQNO"
+    },
+
+    "test_empty_sigchain": {
+      "input": "empty_chain.json",
+      "len": 0,
+      "sibkeys": 1,
+      "subkeys": 0,
+      "eldest": "ralph"
+    },
+
+    "test_error_empty_sigchain_bad_key_userid": {
+      "input": "empty_chain.json",
+      "eldest": "steve",
+      "err_type": "KEY_OWNERSHIP"
+    },
+
+    "test_error_empty_sigchain_nonexistent_pgp": {
+      "input": "empty_chain.json",
+      "eldest": "nonexistent",
+      "err_type": "NONEXISTENT_KID"
+    },
+
+    "test_error_empty_sigchain_eldest_key_is_nacl": {
+      "_comment": "NaCl keys don't have any internal userid info, so they can't stand alone as an eldest key without having signed some links.",
+      "input": "empty_chain.json",
+      "eldest": "naclkey",
+      "err_type": "KEY_OWNERSHIP"
+    },
+
+    "test_jack_chain": {
+      "_comment": "Just a sanity check with my own sigchain",
+      "input": "jack_chain.json",
+      "len": 29,
+      "sibkeys": 1,
+      "subkeys": 0
+    },
+
+    "test_error_missing_first_link": {
+      "_comment": "We need to make sure the server can't drop links off the front. This would be a risk if we assumed that, for example, they belonged to a previous eldest key.",
+      "input": "jack_chain_missing_first_link.json",
+      "err_type": "WRONG_SEQNO"
+    },
+
+    "test_error_substitute_first_link": {
+      "_comment": "Here the first link has been substituted for one signed by a different eldest key. We should notice the payload hash mismatch.",
+      "input": "jack_chain_substitute_first_link.json",
+      "eldest": "real_eldest",
+      "err_type": "WRONG_PREV"
+    },
+
+    "test_ralph_with_earlier_eldest_key": {
+      "_comment": "Eldest keys can be reused, which means there can be subchains other than the latest one that correspond to the current eldest key. Those must be ignored. Previously, before we supported repeating eldest keys at all, we used to require that this was an error. Note that if the latest links don't correspond to the current eldest key, as we're testing here, that's an implicit reset, and we return no links.",
+      "input": "ralph_chain.json",
+      "eldest": "first_eldest",
+      "len": 0,
+      "sibkeys": 1,
+      "subkeys": 0
+    },
+
+    "test_ralph_with_new_eldest_key": {
+      "input": "ralph_chain.json",
+      "eldest": "new_eldest",
+      "len": 0,
+      "sibkeys": 1,
+      "subkeys": 0
+    },
+
+    "test_melvin_with_expiring_pgp_key": {
+      "_comment": "Right now this just exercises some of the code that recognizes the expiration time. Eventually we should add tests that make sure the etime is really enforced.",
+      "input": "melvin_chain.json",
+      "len": 1,
+      "sibkeys": 1,
+      "subkeys": 0
+    },
+
+    "test_error_ralph_with_missing_subkey": {
+      "input": "nonexistent_subkey_chain.json",
+      "err_type": "NONEXISTENT_KID"
+    },
+
+    "test_helen_chain": {
+      "_comment": "A copy of t_helen's sigchain (also available as a permanent test user). Tests PGP keys with changing subkeys. She signed up with a PGP key, added a bitcoin address, and then changed that address, for a total of 3 sigchain links (but the first bitcoin link is revoked, so the final len is 2). In between each one she deleted the signing subkey that was used before and added a new one. So the only way to validate this sigchain is to do proper PGP key merging on all the bundles that the server returns. Note that the order of the key bundles given is intentionally rearranged, to make it less likely that the Go client will spuriously pass this test by only checking the last link against the last key.",
+      "input": "t_helen_chain.json",
+      "len": 2,
+      "sibkeys": 1,
+      "subkeys": 0
+    },
+    "test_pgp_subkey_after_revoke": {
+      "_comment": "The eldest link is signed with a PGP key with an extra signing subkey, then a pgp_update link is used to update the key to a version where that subkey has been revoked. Then, another pgp_update link appears which tries to revert to the original version of the key, but is signed by the revoked subkey.",
+      "input": "old_pgp_key.json",
+      "err_type": "VERIFY_FAILED"
+    },
+    "test_pgp_bad_full_hash": {
+      "_comment": "The eldest link is signed with a PGP key and includes a full_hash which doesn't match the key",
+      "input": "bad_full_hash.json",
+      "err_type": "NO_KEY_WITH_THIS_HASH"
+    },
+    "test_pnelsen_sigchain": {
+      "_comment": "pnelsen was one of several users affected by the 15 Sep 2015 white-space stripping bug on the server",
+      "input": "pnelsen_chain.json",
+      "len": 21,
+      "sibkeys": 1,
+      "subkeys": 0
+    },
+    "test_akalin_sigchain": {
+      "_comment": "Fred has some unverifiable links in his chain from old bugs of ours. These need to be special cased.",
+      "input": "akalin_chain.json",
+      "len": 31,
+      "sibkeys": 1,
+      "subkeys": 0
+    },
+    "test_repeat_eldest": {
+      "_comment": "We now define 'eldest' links to imply a sigchain reset. This is a basic test case with two links, both of type eldest, delegating the same eldest key. Old clients would've parsed this as a 2-link chain (where the second link was a no-op), but conforming clients should respect the reset adn return a 1-link chain.",
+      "input": "repeat_eldest.json",
+      "len": 1,
+      "sibkeys": 1,
+      "subkeys": 0
+    },
+    "test_hardcoded_reset": {
+      "_comment": "Several users (6) managed to do a sigchain reset and reuse their eldest key without an 'eldest' link, before we prohibited that on the server. This test uses the chain of one of those users, as a canary to make sure they're covered.",
+      "input": "hardcoded_reset.json",
+      "len": 1,
+      "sibkeys": 1,
+      "subkeys": 0
+    }
+  }
+}

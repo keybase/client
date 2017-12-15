@@ -58,7 +58,7 @@ func WrapWords(words [][]byte, spc, lim, pen int) [][][]byte {
 		cost[i] = math.MaxInt32
 	}
 	for i := n - 1; i >= 0; i-- {
-		if length[i][n-1] <= lim {
+		if length[i][n-1] <= lim || i == n-1 {
 			cost[i] = 0
 			nbrk[i] = n
 		} else {

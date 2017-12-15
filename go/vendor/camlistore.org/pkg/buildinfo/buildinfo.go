@@ -15,7 +15,7 @@ limitations under the License.
 */
 
 // Package buildinfo provides information about the current build.
-package buildinfo // import "camlistore.org/pkg/buildinfo"
+package buildinfo
 
 import "flag"
 
