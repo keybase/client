@@ -516,40 +516,6 @@ function updateAttachmentSavePath(
   }
 }
 
-function _logLoadAttachmentPreview(action: ChatGen.LoadAttachmentPreviewPayload) {
-  const toPrint = {
-    payload: {
-      messageKey: action.payload.messageKey,
-    },
-    type: action.type,
-  }
-  logger.info('Load Attachment Preview', JSON.stringify(toPrint, null, 2))
-}
-
-function _logAttachmentLoaded(action: ChatGen.AttachmentLoadedPayload) {
-  const toPrint = {
-    payload: {
-      messageKey: action.payload.messageKey,
-      isPreview: action.payload.isPreview,
-    },
-    type: action.type,
-  }
-  logger.info('Load Attachment Loaded', JSON.stringify(toPrint, null, 2))
-}
-
-function _logDownloadProgress(action: ChatGen.DownloadProgressPayload) {
-  const toPrint = {
-    payload: {
-      messageKey: action.payload.messageKey,
-      isPreview: action.payload.messageKey,
-      progress: action.payload.progress === 0 ? 'zero' : action.payload.progress === 1 ? 'one' : 'partial',
-    },
-    type: action.type,
-  }
-
-  logger.info('Download Progress', JSON.stringify(toPrint, null, 2))
-}
-
 function* registerSagas(): SagaGenerator<any, any> {
   yield Saga.safeTakeSerially(ChatGen.loadAttachment, onLoadAttachment)
   yield Saga.safeTakeEveryPure(ChatGen.openAttachmentPopup, onOpenAttachmentPopup)
@@ -565,14 +531,6 @@ function* registerSagas(): SagaGenerator<any, any> {
     [ChatGen.attachmentSaveStart, ChatGen.attachmentSaveFailed, ChatGen.attachmentSaved],
     updateAttachmentSavePath
   )
-
-  // TODO remove
-  const enableActionLogging = false
-  if (enableActionLogging) {
-    yield Saga.safeTakeEveryPure(ChatGen.loadAttachmentPreview, _logLoadAttachmentPreview)
-    yield Saga.safeTakeEveryPure(ChatGen.attachmentLoaded, _logAttachmentLoaded)
-    yield Saga.safeTakeEveryPure(ChatGen.downloadProgress, _logDownloadProgress)
-  }
 }
 
 export {registerSagas}
