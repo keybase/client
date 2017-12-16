@@ -1,5 +1,4 @@
 // @flow
-import logger from '../../logger'
 import * as Attachment from './attachment'
 import * as ChatTypes from '../../constants/types/flow-types-chat'
 import * as Constants from '../../constants/chat'
@@ -103,7 +102,7 @@ function _openTlfInChat(action: ChatGen.OpenTlfInChatPayload, state: TypedState)
   const userlist = parseFolderNameToUsers(me, tlf)
   const users = userlist.map(u => u.username)
   if (some(userlist, 'readOnly')) {
-    logger.error('Bug: openTlfToChat should never be called on a convo with readOnly members.')
+    console.warn('Bug: openTlfToChat should never be called on a convo with readOnly members.')
     return
   }
   return Saga.put(ChatGen.createStartConversation({users}))

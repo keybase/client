@@ -1,5 +1,4 @@
 // @flow
-import logger from '../logger'
 import * as Constants from '../constants/chat'
 import * as Types from '../constants/types/chat'
 import * as TeamsGen from '../actions/teams-gen'
@@ -56,7 +55,7 @@ function reducer(
       const {conversationIDKey} = action.payload
       const origConversationState = state.get('conversationStates').get(conversationIDKey)
       if (!origConversationState) {
-        logger.warn("Attempted to clear conversation state that doesn't exist")
+        console.warn("Attempted to clear conversation state that doesn't exist")
         return state
       }
 
@@ -124,7 +123,7 @@ function reducer(
       return state.update('conversationStates', conversationStates =>
         conversationStates.map((conversationState, conversationIDKey) => {
           if (convIDs.length === 0 || convIDs.includes(conversationIDKey)) {
-            logger.info(`reducer: setting thread stale from mark as stale: ${conversationIDKey}`)
+            console.log(`reducer: setting thread stale from mark as stale: ${conversationIDKey}`)
             return conversationState.set('isStale', true)
           }
           return conversationState
@@ -137,7 +136,7 @@ function reducer(
       return state.update('conversationStates', conversationStates =>
         conversationStates.map((conversationState, conversationIDKey) => {
           if (convIDs.length === 0 || convIDs.includes(conversationIDKey)) {
-            logger.info(`reducer: setting thread stale from inbox synced: ${conversationIDKey}`)
+            console.log(`reducer: setting thread stale from inbox synced: ${conversationIDKey}`)
             return conversationState.set('isStale', true)
           }
           return conversationState
@@ -147,7 +146,7 @@ function reducer(
     case ChatGen.inboxStale: {
       return state.update('conversationStates', conversationStates =>
         conversationStates.map((conversationState, conversationIDKey) => {
-          logger.info(`reducer: setting thread stale from inbox stale: ${conversationIDKey}`)
+          console.log(`reducer: setting thread stale from inbox stale: ${conversationIDKey}`)
           return conversationState.set('isStale', true)
         })
       )
@@ -233,7 +232,7 @@ function reducer(
       if (oldPending.get(oldKey)) {
         return state.set('pendingConversations', oldPending.remove(oldKey))
       } else {
-        logger.warn("couldn't find pending to upgrade", oldKey)
+        console.warn("couldn't find pending to upgrade", oldKey)
       }
       return state
     }

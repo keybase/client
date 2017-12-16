@@ -1,5 +1,4 @@
 // @flow
-import logger from '../logger'
 import * as Selectors from '../constants/selectors'
 import Mention, {type Props as MentionProps} from './mention'
 import React from 'react'
@@ -18,7 +17,7 @@ const mapStateToProps = (
   {username, service}: OwnProps
 ): {theme: $PropertyType<MentionProps, 'theme'>} => {
   if (service !== 'keybase') {
-    logger.warn('Non keybase service not implmented for mentions')
+    console.warn('Non keybase service not implmented for mentions')
     return {theme: 'none'}
   }
 

@@ -1,5 +1,4 @@
 // @flow
-import logger from '../../logger'
 import * as ChatGen from '../chat-gen'
 import * as Constants from '../../constants/chat'
 import * as Types from '../../constants/types/chat'
@@ -59,7 +58,7 @@ function* startNewConversation(
   }
 
   if (!tlfName) {
-    logger.warn("Shouldn't happen in practice")
+    console.warn("Shouldn't happen in practice")
     return [null, null]
   }
   const membersType = flags.impTeamChatEnabled
@@ -75,7 +74,7 @@ function* startNewConversation(
 
   const newKey = result ? Constants.conversationIDToKey(result.conv.info.id) : null
   if (!newKey) {
-    logger.warn('No convoid from newConvoRPC')
+    console.warn('No convoid from newConvoRPC')
     return [null, null]
   }
 

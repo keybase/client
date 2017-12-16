@@ -1,6 +1,5 @@
 // @flow
 import React, {Component} from 'react'
-import logger from '../../logger'
 import {Box, Text, Icon, HOCTimers} from '../../common-adapters'
 import {globalStyles, globalColors, globalMargins, transition} from '../../styles'
 import {ignoreDisconnectOverlay} from '../../local-debug.desktop.js'
@@ -83,7 +82,7 @@ class GlobalError extends Component<Props, State> {
 
   renderDaemonError() {
     if (ignoreDisconnectOverlay) {
-      logger.warn('Ignoring disconnect overlay')
+      console.warn('Ignoring disconnect overlay')
       return null
     }
 

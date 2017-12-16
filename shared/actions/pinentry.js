@@ -1,5 +1,4 @@
 // @flow
-import logger from '../logger'
 import * as PinentryGen from '../actions/pinentry-gen'
 import * as Saga from '../util/saga'
 import * as I from 'immutable'
@@ -13,15 +12,15 @@ function _setupPinentryHandlers() {
   engine().listenOnConnect('registerSecretUI', () => {
     RPCTypes.delegateUiCtlRegisterSecretUIRpcPromise()
       .then(response => {
-        logger.info('Registered secret ui')
+        console.log('Registered secret ui')
       })
       .catch(error => {
-        logger.warn('error in registering secret ui: ', error)
+        console.warn('error in registering secret ui: ', error)
       })
   })
 
   engine().setIncomingActionCreators('keybase.1.secretUi.getPassphrase', (payload, response) => {
-    logger.info('Asked for passphrase')
+    console.log('Asked for passphrase')
     const {prompt, submitLabel, cancelLabel, windowTitle, retryLabel, features, type} = payload.pinentry
     const {sessionID} = payload
 
@@ -81,7 +80,7 @@ function _respond(sessionID: number, result: any, err: ?any): void {
   const sessionKey = String(sessionID)
   const response = sessionIDToResponse[sessionKey]
   if (response == null) {
-    logger.info('lost response reference')
+    console.log('lost response reference')
     return
   }
 

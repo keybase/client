@@ -1,5 +1,4 @@
 // @flow
-import logger from '../logger'
 import * as Constants from '../constants/tracker'
 import * as TrackerGen from '../actions/tracker-gen'
 import * as Saga from '../util/saga'
@@ -31,7 +30,7 @@ function _getProfile(action: TrackerGen.GetProfilePayload, state: TypedState) {
 
   // If we have a pending identify no point in firing off another one
   if (!ignoreCache && tracker.pendingIdentifies[username]) {
-    logger.info('Bailing on simultaneous getProfile', username)
+    console.log('Bailing on simultaneous getProfile', username)
     return
   }
 
@@ -41,7 +40,7 @@ function _getProfile(action: TrackerGen.GetProfilePayload, state: TypedState) {
     : null
   const goodTill = uid && tracker.cachedIdentifies[uid + '']
   if (!ignoreCache && goodTill && goodTill >= Date.now()) {
-    logger.info('Bailing on cached getProfile', username, uid)
+    console.log('Bailing on cached getProfile', username, uid)
     return
   }
 
@@ -102,7 +101,7 @@ function* _refollow(action: TrackerGen.RefollowPayload) {
     yield Saga.call(_trackUser, trackToken, false)
     yield Saga.put(TrackerGen.createSetOnRefollow({username}))
   } catch (e) {
-    logger.warn("Couldn't track user:", e)
+    console.warn("Couldn't track user:", e)
     yield Saga.put(TrackerGen.createOnError({extraText: e.desc, username}))
   } finally {
     yield Saga.put(TrackerGen.createWaiting({username, waiting: false}))
@@ -117,9 +116,9 @@ function* _unfollow(action: TrackerGen.UnfollowPayload) {
       username,
     })
     yield Saga.put(TrackerGen.createReportLastTrack({username}))
-    logger.info('success in untracking')
+    console.log('success in untracking')
   } catch (e) {
-    logger.info('err untracking', e)
+    console.log('err untracking', e)
   } finally {
     yield Saga.put(TrackerGen.createWaiting({username, waiting: false}))
   }
@@ -141,11 +140,11 @@ const _trackUser = (trackToken: ?string, localIgnore: boolean): Promise<boolean>
         trackToken,
       })
         .then(response => {
-          logger.info('Finished tracking', response)
+          console.log('Finished tracking', response)
           resolve(true)
         })
         .catch(err => {
-          logger.info('error: Track with token: ', err)
+          console.log('error: Track with token: ', err)
           reject(err)
         })
     } else {
@@ -181,7 +180,7 @@ function* _follow(action: TrackerGen.FollowPayload) {
     yield Saga.call(_trackUser, trackToken, localIgnore || false)
     yield Saga.put(TrackerGen.createSetOnFollow({username}))
   } catch (e) {
-    logger.warn("Couldn't track user: ", e)
+    console.warn("Couldn't track user: ", e)
     yield Saga.put(TrackerGen.createOnError({extraText: e.desc, username}))
   } finally {
     yield Saga.put(TrackerGen.createWaiting({username, waiting: false}))
@@ -190,7 +189,7 @@ function* _follow(action: TrackerGen.FollowPayload) {
 
 function _dismissWithToken(trackToken) {
   RPCTypes.trackDismissWithTokenRpcPromise({trackToken}).catch(err => {
-    logger.info('err dismissWithToken', err)
+    console.log('err dismissWithToken', err)
   })
 }
 
@@ -201,7 +200,7 @@ function _onClose(action: TrackerGen.OnClosePayload, state: TypedState) {
   if (trackToken) {
     _dismissWithToken(trackToken)
   } else {
-    logger.info(`Missing trackToken for ${username}, waiting...`)
+    console.log(`Missing trackToken for ${username}, waiting...`)
   }
 }
 
@@ -225,7 +224,7 @@ function _serverCallMap(
       // The timeout is necessary because the callback fn f won't be called if the window is hidden.
       requestIdleCallback(f, {timeout: 1e3})
     } else {
-      logger.info('skipped idle call due to already pending')
+      console.log('skipped idle call due to already pending')
     }
   }
 
@@ -264,7 +263,7 @@ function _serverCallMap(
       onStart && onStart(username)
 
       if (getState().tracker.pendingIdentifies[username]) {
-        logger.info('Bailing on idenitifies in time window', username)
+        console.log('Bailing on idenitifies in time window', username)
         alreadyPending = true
 
         // Display anyways
@@ -513,7 +512,7 @@ const _listTrackersOrTracking = (
         )
       })
       .catch(error => {
-        logger.info('err getting trackers', error)
+        console.log('err getting trackers', error)
         reject(error)
       })
   })
@@ -547,7 +546,7 @@ function* _updateTrackers(action: TrackerGen.UpdateTrackersPayload) {
 
     yield Saga.put(TrackerGen.createSetUpdateTrackers({trackers, tracking, username}))
   } catch (e) {
-    logger.warn('Failed to get followers/followings', e)
+    console.warn('Failed to get followers/followings', e)
   }
 }
 
@@ -574,10 +573,10 @@ function _setupTrackerHandlers() {
   engine().listenOnConnect('registerIdentifyUi', () => {
     RPCTypes.delegateUiCtlRegisterIdentifyUIRpcPromise()
       .then(response => {
-        logger.info('Registered identify ui')
+        console.log('Registered identify ui')
       })
       .catch(error => {
-        logger.warn('error in registering identify ui: ', error)
+        console.warn('error in registering identify ui: ', error)
       })
   })
 

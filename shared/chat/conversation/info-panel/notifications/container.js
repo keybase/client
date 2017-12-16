@@ -1,5 +1,4 @@
 // @flow
-import logger from '../../../../logger'
 import * as Constants from '../../../../constants/chat'
 import * as Types from '../../../../constants/types/chat'
 import * as ChatGen from '../../../../actions/chat-gen'
@@ -28,17 +27,17 @@ const serverStateToProps = (notifications: Types.NotificationsState, type: 'desk
 const mapStateToProps = (state: TypedState): * => {
   const conversationIDKey = Constants.getSelectedConversation(state)
   if (!conversationIDKey) {
-    logger.warn('no selected conversation')
+    console.warn('no selected conversation')
     return {}
   }
   const inbox = Constants.getSelectedInbox(state)
   if (!inbox) {
-    logger.warn('no selected inbox')
+    console.warn('no selected inbox')
     return {}
   }
   const notifications = inbox.get('notifications')
   if (!notifications) {
-    logger.warn('no notifications')
+    console.warn('no notifications')
     return {}
   }
   const desktop = serverStateToProps(notifications, 'desktop')

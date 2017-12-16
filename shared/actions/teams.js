@@ -1,5 +1,4 @@
 // @flow
-import logger from '../logger'
 import map from 'lodash/map'
 import keyBy from 'lodash/keyBy'
 import last from 'lodash/last'
@@ -176,7 +175,7 @@ const _removeMemberOrPendingInvite = function*(action: TeamsGen.RemoveMemberOrPe
   // disallow call with any pair of username, email, and ID to avoid black-bar errors
   if ((!!username && !!email) || (!!username && !!inviteID) || (!!email && !!inviteID)) {
     const errMsg = 'Supplied more than one form of identification to removeMemberOrPendingInvite'
-    logger.error(errMsg)
+    console.error(errMsg)
     throw new Error(errMsg)
   }
 
@@ -217,7 +216,7 @@ const _inviteToTeamByPhone = function*(action: TeamsGen.InviteToTeamByPhonePaylo
 
   /* Open SMS */
   const bodyText = generateSMSBody(teamname, seitan)
-  openSMS([phoneNumber], bodyText).catch(err => logger.info('Error sending SMS', err))
+  openSMS([phoneNumber], bodyText).catch(err => console.log('Error sending SMS', err))
 
   yield Saga.put(TeamsGen.createGetDetails({teamname}))
 }
@@ -438,7 +437,7 @@ const _getTeams = function*(action: TeamsGen.GetTeamsPayload): Saga.SagaGenerato
   const state: TypedState = yield Saga.select()
   const username = usernameSelector(state)
   if (!username) {
-    logger.warn('getTeams while logged out')
+    console.warn('getTeams while logged out')
     return
   }
   yield Saga.put(replaceEntity(['teams'], I.Map([['loaded', false]])))
@@ -547,7 +546,7 @@ function* _createChannel(action: TeamsGen.CreateChannelPayload) {
     // No error if we get here.
     const newConversationIDKey = result ? ChatConstants.conversationIDToKey(result.conv.info.id) : null
     if (!newConversationIDKey) {
-      logger.warn('No convoid from newConvoRPC')
+      console.warn('No convoid from newConvoRPC')
       return null
     }
 

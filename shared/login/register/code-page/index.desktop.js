@@ -4,7 +4,6 @@
  * you're a phone/computer and if you're the existing device or the new device
  */
 
-import logger from '../../../logger'
 import Container from '../../forms/container.desktop'
 import * as React from 'react'
 import {Text, Icon, Input, Button} from '../../../common-adapters'
@@ -138,7 +137,7 @@ class CodePage extends React.Component<Props> {
       case codePageModeShowText:
         return <CodePageText {...this.props} />
     }
-    logger.warn(`No mode prop passed! Mode: ${this.props.mode}`)
+    console.warn(`No mode prop passed! Mode: ${this.props.mode}`)
     return <div />
   }
 }

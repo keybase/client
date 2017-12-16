@@ -1,5 +1,4 @@
 // @flow
-import logger from '../logger'
 import * as KBFSGen from '../actions/kbfs-gen'
 import * as TrackerGen from '../actions/tracker-gen'
 import * as ProfileGen from '../actions/profile-gen'
@@ -128,7 +127,7 @@ const mergeProps = (stateProps, dispatchProps) => {
 
   if (stateProps.trackerState && stateProps.trackerState.type !== 'tracker') {
     const propError = 'Expected a tracker type, trying to show profile for non user'
-    logger.warn(propError)
+    console.warn(propError)
     return {
       propError,
       type: 'error',

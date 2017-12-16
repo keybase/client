@@ -1,6 +1,5 @@
 // @flow
 import * as shared from './icon.shared'
-import logger from '../logger'
 import React, {Component} from 'react'
 import shallowEqual from 'shallowequal'
 import {globalStyles, globalColors, glamorous} from '../styles'
@@ -38,7 +37,7 @@ class Icon extends Component<Exact<Props>, void> {
     let iconType = shared.typeToIconMapper(this.props.type)
 
     if (!iconType) {
-      logger.warn('Null iconType passed')
+      console.warn('Null iconType passed')
       return null
     }
 

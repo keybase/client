@@ -1,5 +1,4 @@
 // @flow
-import logger from '../../logger'
 import * as AppGen from '../app-gen'
 import * as Types from '../../constants/types/chat'
 import * as ChatTypes from '../../constants/types/flow-types-chat'
@@ -15,6 +14,7 @@ import * as Shared from './shared'
 import HiddenString from '../../util/hidden-string'
 import {chatTab} from '../../constants/tabs'
 import {isMobile} from '../../constants/platform'
+import {enableActionLogging} from '../../local-debug'
 import {toDeviceType} from '../../constants/devices'
 import {type Action} from '../../constants/types/flux'
 import {type TypedState} from '../../constants/reducer'
@@ -82,10 +82,10 @@ function* _loadMoreMessages(action: ChatGen.LoadMoreMessagesPayload): Saga.SagaG
     if (!conversationIDKey) {
       return
     }
-    logger.info(`loadMoreMessages: loading for: ${conversationIDKey} recent: ${recent.toString()}`)
+    console.log(`loadMoreMessages: loading for: ${conversationIDKey} recent: ${recent.toString()}`)
 
     if (Constants.isPendingConversationIDKey(conversationIDKey)) {
-      logger.info('loadMoreMessages: bailing on selected pending conversation no matching inbox')
+      console.log('loadMoreMessages: bailing on selected pending conversation no matching inbox')
       return
     }
 
@@ -95,24 +95,24 @@ function* _loadMoreMessages(action: ChatGen.LoadMoreMessagesPayload): Saga.SagaG
     const rekeyInfo = yield Saga.select(rekeyInfoSelector, conversationIDKey)
 
     if (rekeyInfo) {
-      logger.info('loadMoreMessages: bailing on chat due to rekey info')
+      console.log('loadMoreMessages: bailing on chat due to rekey info')
       return
     }
 
     const oldConversationState = yield Saga.select(Shared.conversationStateSelector, conversationIDKey)
     if (oldConversationState && !recent) {
       if (action.payload.onlyIfUnloaded && oldConversationState.get('isLoaded')) {
-        logger.info('loadMoreMessages: bailing on chat load more due to already has initial load')
+        console.log('loadMoreMessages: bailing on chat load more due to already has initial load')
         return
       }
 
       if (oldConversationState.get('isRequesting')) {
-        logger.info('loadMoreMessages: bailing on chat load more due to isRequesting already')
+        console.log('loadMoreMessages: bailing on chat load more due to isRequesting already')
         return
       }
 
       if (oldConversationState.get('moreToLoad') === false) {
-        logger.info('loadMoreMessages: bailing on chat load more due to no more to load')
+        console.log('loadMoreMessages: bailing on chat load more due to no more to load')
         return
       }
     }
@@ -142,7 +142,7 @@ function* _loadMoreMessages(action: ChatGen.LoadMoreMessagesPayload): Saga.SagaG
     }
 
     const num = action.payload.numberOverride || Constants.maxMessagesToLoadAtATime
-    logger.info(`loadMoreMessages: dispatching GetThreadNonblock: num: ${num} pivot: ${pivot || ''}`)
+    console.log(`loadMoreMessages: dispatching GetThreadNonblock: num: ${num} pivot: ${pivot || ''}`)
     const loadThreadChanMapRpc = new EngineRpc.EngineRpcCall(
       getThreadNonblockSagaMap(yourName, yourDeviceName, conversationIDKey, recent),
       ChatTypes.localGetThreadNonblockRpcChannelMap,
@@ -169,7 +169,7 @@ function* _loadMoreMessages(action: ChatGen.LoadMoreMessagesPayload): Saga.SagaG
       const {payload: {params, error}} = result
 
       if (error) {
-        logger.debug('loadMoreMessages: error in localGetThreadNonblock', error)
+        console.warn('loadMoreMessages: error in localGetThreadNonblock', error)
       }
 
       if (params.offline) {
@@ -178,7 +178,7 @@ function* _loadMoreMessages(action: ChatGen.LoadMoreMessagesPayload): Saga.SagaG
 
       yield Saga.put(ChatGen.createSetLoaded({conversationIDKey, isLoaded: !error})) // reset isLoaded on error
     } else {
-      logger.warn('loadMoreMessages: localGetThreadNonblock rpc bailed early')
+      console.warn('loadMoreMessages: localGetThreadNonblock rpc bailed early')
     }
 
     // Do this here because it's possible loading messages takes a while
@@ -702,8 +702,7 @@ function* _markAsRead(
 
       _lastMarkedAsRead[conversationIDKey] = messageID
     } catch (err) {
-      logger.warn(`Couldn't mark as read ${conversationIDKey}`)
-      logger.debug(`Couldn't mark as read ${conversationIDKey} ${err}`)
+      console.log(`Couldn't mark as read ${conversationIDKey} ${err}`)
     }
   }
 }
@@ -859,8 +858,7 @@ function _updateMessageEntity(action: ChatGen.UpdateTempMessagePayload) {
     // We use merge instead of replace because otherwise the replace will turn message into an immutable struct
     return Saga.put(EntityCreators.mergeEntity(['messages'], I.Map({[message.key]: message})))
   } else {
-    logger.error('error in updating temp message')
-    logger.debug('error in updating temp message', action.payload)
+    console.warn('error in updating temp message', action.payload)
   }
 }
 
@@ -886,7 +884,7 @@ function _removeOutboxMessage(
   if (nextMessages.equals(msgKeys)) {
     return
   }
-  logger.info('removed outbox message')
+  console.log('removed outbox message')
   return Saga.put(
     EntityCreators.replaceEntity(['conversationMessages'], I.Map({[conversationIDKey]: nextMessages}))
   )
@@ -1003,6 +1001,46 @@ function _changedFocus(action: AppGen.ChangedFocusPayload, state: TypedState) {
   }
 }
 
+const safeServerMessageMap = (m: any) => ({
+  key: m.key,
+  messageID: m.messageID,
+  messageState: m.messageState,
+  outboxID: m.outboxID,
+  type: m.type,
+})
+
+function _logAppendMessages(action: ChatGen.AppendMessagesPayload) {
+  const toPrint = {
+    payload: {
+      conversationIDKey: action.payload.conversationIDKey,
+      messages: action.payload.messages.map(safeServerMessageMap),
+      svcShouldDisplayNotification: action.payload.svcShouldDisplayNotification,
+    },
+    type: action.type,
+  }
+  console.log('Appending', JSON.stringify(toPrint, null, 2))
+}
+
+function _logPrependMessages(action: ChatGen.PrependMessagesPayload) {
+  const toPrint = {
+    payload: {
+      conversationIDKey: action.payload.conversationIDKey,
+      messages: action.payload.messages.map(safeServerMessageMap),
+      moreToLoad: action.payload.moreToLoad,
+    },
+    type: action.type,
+  }
+  console.log('Prepending', JSON.stringify(toPrint, null, 2))
+}
+
+function _logUpdateTempMessage(action: ChatGen.UpdateTempMessagePayload) {
+  const toPrint = {
+    payload: {conversationIDKey: action.payload.conversationIDKey, outboxIDKey: action.payload.outboxIDKey},
+    type: action.type,
+  }
+  console.log('Update temp message', JSON.stringify(toPrint, null, 2))
+}
+
 function* registerSagas(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(AppGen.changedActive, _changedActive)
   yield Saga.safeTakeEveryPure(ChatGen.clearMessages, _clearConversationMessages)
@@ -1024,6 +1062,12 @@ function* registerSagas(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEvery(ChatGen.updateMetadata, _updateMetadata)
   yield Saga.safeTakeEveryPure(ChatGen.updateTyping, _updateTyping)
   yield Saga.safeTakeEveryPure(AppGen.changedFocus, _changedFocus)
+
+  if (enableActionLogging) {
+    yield Saga.safeTakeEveryPure(ChatGen.appendMessages, _logAppendMessages)
+    yield Saga.safeTakeEveryPure(ChatGen.prependMessages, _logPrependMessages)
+    yield Saga.safeTakeEveryPure(ChatGen.updateTempMessage, _logUpdateTempMessage)
+  }
 }
 
 export {registerSagas, addMessagesToConversation}

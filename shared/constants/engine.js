@@ -1,6 +1,5 @@
 // @flow
 // Handles sending requests to the daemon
-import logger from '../logger'
 import * as EngineGen from '../actions/engine-gen'
 import * as I from 'immutable'
 import * as Saga from '../util/saga'
@@ -121,7 +120,7 @@ class EngineRpcCall {
       this._subSagaChannel.close()
       yield Saga.put(EngineGen.createWaitingForRpc({name: this._rpcNameKey, waiting: false}))
     } else {
-      logger.error('Already cleaned up')
+      console.error('Already cleaned up')
     }
   }
 
