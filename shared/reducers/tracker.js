@@ -333,7 +333,7 @@ export default function(
         bio: userCard.bio,
         avatar: `https://keybase.io/${username}/picture`,
         location: userCard.location,
-        showcasedTeams: userCard.teamShowcase.sort(sortByTeamName) || [],
+        showcasedTeams: (userCard.teamShowcase || []).sort(sortByTeamName),
       }
       return updateUserState(state, action.payload.username, s => ({
         ...s,
