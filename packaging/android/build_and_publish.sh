@@ -16,7 +16,7 @@ check_ci=${CHECK_CI:-1}
 # Notify Slack on failure
 function notify_slack {
   if [ -n "$automated_build" ]; then
-    "$client_dir/packaging/slack/send.sh" "@channel Automated Android build failed, please check out the log."
+    "$client_dir/packaging/slack/send.sh" "<@channel> Automated Android build failed, please check out the log."
   fi
 }
 trap notify_slack ERR
