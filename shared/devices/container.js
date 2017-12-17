@@ -8,7 +8,6 @@ import * as LoginConstants from '../constants/login'
 import {
   compose,
   lifecycle,
-  mapProps,
   withState,
   withHandlers,
   connect,
@@ -54,41 +53,44 @@ const mapStateToProps = (state: TypedState, {routeState}) => {
 }
 
 const mapDispatchToProps = (dispatch: Dispatch, {routeState, setRouteState, navigateUp}) => ({
-  addNewComputer: () =>
+  _addNewComputer: () =>
     dispatch(LoginGen.createAddNewDevice({role: LoginConstants.codePageDeviceRoleNewComputer})),
-  addNewPaperKey: () => dispatch(DevicesGen.createPaperKeyMake()),
-  addNewPhone: () => dispatch(LoginGen.createAddNewDevice({role: LoginConstants.codePageDeviceRoleNewPhone})),
-  loadDevices: () => dispatch(DevicesGen.createDevicesLoad()),
+  _addNewPaperKey: () => dispatch(DevicesGen.createPaperKeyMake()),
+  _addNewPhone: () =>
+    dispatch(LoginGen.createAddNewDevice({role: LoginConstants.codePageDeviceRoleNewPhone})),
+  _loadDevices: () => dispatch(DevicesGen.createDevicesLoad()),
   onBack: () => dispatch(navigateUp()),
   onToggleShowRevoked: () => {
     setRouteState({showingRevoked: !routeState.get('showingRevoked')})
   },
-  title: 'Devices',
 })
 
-const menuItems = props => [
-  {onClick: props.addNewPhone, title: 'New phone'},
-  {onClick: props.addNewComputer, title: 'New computer'},
-  {onClick: props.addNewPaperKey, title: 'New paper key'},
-]
+const mergeProps = (stateProps, dispatchProps, ownProps) => ({
+  _loadDevices: dispatchProps._loadDevices,
+  deviceIDs: stateProps.deviceIDs.toArray(),
+  menuItems: [
+    {onClick: dispatchProps._addNewPhone, title: 'New phone'},
+    {onClick: dispatchProps._addNewComputer, title: 'New computer'},
+    {onClick: dispatchProps._addNewPaperKey, title: 'New paper key'},
+  ],
+  onBack: dispatchProps.onBack,
+  onToggleShowRevoked: dispatchProps.onToggleShowRevoked,
+  revokedDeviceIDs: stateProps.revokedDeviceIDs.toArray(),
+  showingRevoked: stateProps.showingRevoked,
+  title: 'Devices',
+  waiting: stateProps.waiting,
+})
 
 export default compose(
-  connect(mapStateToProps, mapDispatchToProps),
+  connect(mapStateToProps, mapDispatchToProps, mergeProps),
   lifecycle({
     componentWillMount: function() {
-      this.props.loadDevices()
+      this.props._loadDevices()
     },
   }),
-  // Don't pass immutable things to dumb components
-  mapProps(props => ({
-    ...props,
-    deviceIDs: props.deviceIDs.toArray(),
-    menuItems: menuItems(props),
-    revokedDeviceIDs: props.revokedDeviceIDs.toArray(),
-  })),
-  withState('showingMenu', 'setShowingMenu', false),
+  withState('showingMenu', '_setShowingMenu', false),
   withHandlers({
-    hideMenu: props => () => props.setShowingMenu(false),
-    showMenu: props => () => props.setShowingMenu(true),
+    hideMenu: props => () => props._setShowingMenu(false),
+    showMenu: props => () => props._setShowingMenu(true),
   })
 )(Devices)

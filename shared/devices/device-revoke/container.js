@@ -24,7 +24,7 @@ const mapStateToProps = (state: TypedState, {routeProps}) => {
     endangeredTLFs: state.devices.idToEndangeredTLFs.get(deviceID, I.Set()),
     icon,
     name: device.name,
-    waiting: Constants.isWaiting(state)
+    waiting: Constants.isWaiting(state),
   }
 }
 

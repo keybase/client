@@ -1,9 +1,10 @@
 // @flow
 /* eslint-env jest */
 import * as Constants from '../../constants/devices'
-import * as WaitingGen from '../waiting-gen'
 import * as DevicesGen from '../devices-gen'
+import * as RPCTypes from '../../constants/types/flow-types'
 import * as Saga from '../../util/saga'
+import * as WaitingGen from '../waiting-gen'
 import HiddenString from '../../util/hidden-string'
 import {_testing} from '../devices'
 
@@ -24,7 +25,7 @@ describe('convertDataFromServer', () => {
     deviceID: 'a1',
     encryptKey: 'kid',
     lastUsedTime: 3456,
-    mtime: 2345,
+    mTime: 2345,
     name: 'a',
     status: 0,
     type: 'mobile',
@@ -56,7 +57,7 @@ describe('convertDataFromServer', () => {
       provisionedAt: 5677,
       provisioner: d1,
       revokedAt: 69236,
-      revokedBy: null,
+      revokedBy: '',
       revokedByDevice: null,
     },
   ]
@@ -91,30 +92,6 @@ describe('convertDataFromServer', () => {
   expect(_testing.dispatchDevicesListLoaded(results)).toEqual(
     Saga.put(DevicesGen.createDevicesLoaded({idToDetail}))
   )
-
-  // const dispatchDevicesListLoaded = (results: Array<RPCTypes.DeviceDetail>) => {
-  // const idToDetail = results.reduce(
-  // (map: {[key: string]: Types.DeviceDetail}, d: RPCTypes.DeviceDetail) => {
-  // const detail = Constants.makeDeviceDetail({
-  // created: d.device.cTime,
-  // currentDevice: d.currentDevice,
-  // deviceID: d.device.deviceID,
-  // lastUsed: d.device.lastUsedTime,
-  // name: d.device.name,
-  // provisionedAt: d.provisionedAt,
-  // provisionerName: d.provisioner ? d.provisioner.name : '',
-  // revokedAt: d.revokedAt,
-  // revokedByName: d.revokedByDevice ? d.revokedByDevice.name : null,
-  // // $ForceType avdl typed as string
-  // type: d.device.type,
-  // })
-  // map[d.device.deviceID] = detail
-  // return map
-  // },
-  // {}
-  // )
-  // return Saga.put(DevicesGen.createDevicesLoaded({idToDetail}))
-  // }
 })
 
 describe('waitingGetsUpdated', () => {
@@ -124,7 +101,7 @@ describe('waitingGetsUpdated', () => {
     const actionsThatIncrement = [
       DevicesGen.createDeviceRevoke({deviceID: ''}),
       DevicesGen.createDevicesLoad(),
-      DevicesGen.createEndangeredTLFsLoad(),
+      DevicesGen.createEndangeredTLFsLoad({deviceID: ''}),
       DevicesGen.createPaperKeyMake(),
     ]
 

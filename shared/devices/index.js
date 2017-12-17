@@ -7,7 +7,6 @@ import {globalStyles, globalColors, globalMargins} from '../styles'
 import {isMobile} from '../constants/platform'
 import {branch} from 'recompose'
 
-import type {Device} from '../constants/types/flow-types'
 import type {MenuItem} from '../common-adapters/popup-menu.js'
 
 type Props = {
@@ -17,8 +16,6 @@ type Props = {
   revokedDeviceIDs: Array<string>,
   showMenu: () => void,
   hideMenu: () => void,
-  showExistingDevicePage: (device: Device) => void,
-  showRemoveDevicePage: (device: Device) => void,
   showingMenu: boolean,
   showingRevoked: boolean,
   waiting: boolean,
