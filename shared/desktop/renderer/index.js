@@ -24,7 +24,6 @@ import merge from 'lodash/merge'
 import throttle from 'lodash/throttle'
 import {setRouteDef} from '../../actions/route-tree'
 import {setupContextMenu} from '../app/menu-helper'
-import {setupSource} from '../../util/forward-logs'
 import flags from '../../util/feature-flags'
 import InputMonitor from './input-monitor'
 
@@ -42,7 +41,6 @@ function setupStore() {
 }
 
 function setupApp(store) {
-  setupSource()
   disableDragDrop()
   const eng = makeEngine(store.dispatch, store.getState)
   loadPerf()

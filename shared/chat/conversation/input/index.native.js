@@ -1,5 +1,6 @@
 // @flow
 /* eslint-env browser */
+import logger from '../../../logger'
 // $FlowIssue can't find this
 import {showImagePicker} from 'react-native-image-picker'
 import React, {Component} from 'react'
@@ -80,7 +81,7 @@ class ConversationInput extends Component<Props> {
     }
 
     if (this.props.isLoading) {
-      console.log('Ignoring chat submit while still loading')
+      logger.info('Ignoring chat submit while still loading')
       return
     }
 

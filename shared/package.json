@@ -89,7 +89,7 @@
   "dependencies": {
     "base64-js": "1.2.1",
     "buffer": "5.0.8",
-    "core-js": "2.5.3",
+    "core-js": "2.5.1",
     "cross-env": "5.1.1",
     "emoji-datasource": "3.0.0",
     "emoji-datasource-apple": "3.0.0",

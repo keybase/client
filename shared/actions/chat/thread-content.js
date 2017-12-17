@@ -1,4 +1,5 @@
 // @flow
+import logger from '../../logger'
 import * as AppGen from '../app-gen'
 import * as Types from '../../constants/types/chat'
 import * as ChatTypes from '../../constants/types/flow-types-chat'
@@ -14,7 +15,6 @@ import * as Shared from './shared'
 import HiddenString from '../../util/hidden-string'
 import {chatTab} from '../../constants/tabs'
 import {isMobile} from '../../constants/platform'
-import {enableActionLogging} from '../../local-debug'
 import {toDeviceType} from '../../constants/devices'
 import {type Action} from '../../constants/types/flux'
 import {type TypedState} from '../../constants/reducer'
@@ -82,10 +82,10 @@ function* _loadMoreMessages(action: ChatGen.LoadMoreMessagesPayload): Saga.SagaG
     if (!conversationIDKey) {
       return
     }
-    console.log(`loadMoreMessages: loading for: ${conversationIDKey} recent: ${recent.toString()}`)
+    logger.info(`loadMoreMessages: loading for: ${conversationIDKey} recent: ${recent.toString()}`)
 
     if (Constants.isPendingConversationIDKey(conversationIDKey)) {
-      console.log('loadMoreMessages: bailing on selected pending conversation no matching inbox')
+      logger.info('loadMoreMessages: bailing on selected pending conversation no matching inbox')
       return
     }
 
@@ -95,24 +95,24 @@ function* _loadMoreMessages(action: ChatGen.LoadMoreMessagesPayload): Saga.SagaG
     const rekeyInfo = yield Saga.select(rekeyInfoSelector, conversationIDKey)
 
     if (rekeyInfo) {
-      console.log('loadMoreMessages: bailing on chat due to rekey info')
+      logger.info('loadMoreMessages: bailing on chat due to rekey info')
       return
     }
 
     const oldConversationState = yield Saga.select(Shared.conversationStateSelector, conversationIDKey)
     if (oldConversationState && !recent) {
       if (action.payload.onlyIfUnloaded && oldConversationState.get('isLoaded')) {
-        console.log('loadMoreMessages: bailing on chat load more due to already has initial load')
+        logger.info('loadMoreMessages: bailing on chat load more due to already has initial load')
         return
       }
 
       if (oldConversationState.get('isRequesting')) {
-        console.log('loadMoreMessages: bailing on chat load more due to isRequesting already')
+        logger.info('loadMoreMessages: bailing on chat load more due to isRequesting already')
         return
       }
 
       if (oldConversationState.get('moreToLoad') === false) {
-        console.log('loadMoreMessages: bailing on chat load more due to no more to load')
+        logger.info('loadMoreMessages: bailing on chat load more due to no more to load')
         return
       }
     }
@@ -142,7 +142,7 @@ function* _loadMoreMessages(action: ChatGen.LoadMoreMessagesPayload): Saga.SagaG
     }
 
     const num = action.payload.numberOverride || Constants.maxMessagesToLoadAtATime
-    console.log(`loadMoreMessages: dispatching GetThreadNonblock: num: ${num} pivot: ${pivot || ''}`)
+    logger.info(`loadMoreMessages: dispatching GetThreadNonblock: num: ${num} pivot: ${pivot || ''}`)
     const loadThreadChanMapRpc = new EngineRpc.EngineRpcCall(
       getThreadNonblockSagaMap(yourName, yourDeviceName, conversationIDKey, recent),
       ChatTypes.localGetThreadNonblockRpcChannelMap,
@@ -169,7 +169,7 @@ function* _loadMoreMessages(action: ChatGen.LoadMoreMessagesPayload): Saga.SagaG
       const {payload: {params, error}} = result
 
       if (error) {
-        console.warn('loadMoreMessages: error in localGetThreadNonblock', error)
+        logger.debug('loadMoreMessages: error in localGetThreadNonblock', error)
       }
 
       if (params.offline) {
@@ -178,7 +178,7 @@ function* _loadMoreMessages(action: ChatGen.LoadMoreMessagesPayload): Saga.SagaG
 
       yield Saga.put(ChatGen.createSetLoaded({conversationIDKey, isLoaded: !error})) // reset isLoaded on error
     } else {
-      console.warn('loadMoreMessages: localGetThreadNonblock rpc bailed early')
+      logger.warn('loadMoreMessages: localGetThreadNonblock rpc bailed early')
     }
 
     // Do this here because it's possible loading messages takes a while
@@ -564,34 +564,40 @@ function _unboxedToMessage(
           }
         }
         case ChatTypes.commonMessageType.system: {
-          let sysMsgText = '<unknown system message>'
           const body = payload.messageBody.system
+          let info: Types.SystemMessageInfo = {type: 'unknown'}
+          let messageText = 'unknown'
           if (body) {
             switch (body.systemType) {
               case ChatTypes.localMessageSystemType.addedtoteam: {
-                const addee = body.addedtoteam ? `@${body.addedtoteam.addee}` : 'someone'
-                const adder = body.addedtoteam ? `@${body.addedtoteam.adder}` : 'someone'
-                const team = body.addedtoteam ? `${body.addedtoteam.team}` : '???'
-                sysMsgText = `${adder} just added ${addee} to team ${team}.`
+                const addee = body.addedtoteam ? body.addedtoteam.addee : 'someone'
+                const adder = body.addedtoteam ? body.addedtoteam.adder : 'someone'
+                const team = body.addedtoteam ? body.addedtoteam.team : '???'
+                messageText = `${adder} added ${addee} to ${team}`
+                info = {adder, addee, team, type: 'addedToTeam'}
                 break
               }
               case ChatTypes.localMessageSystemType.inviteaddedtoteam: {
-                const invitee = body.inviteaddedtoteam ? `@${body.inviteaddedtoteam.invitee}` : 'someone'
-                const adder = body.inviteaddedtoteam ? `@${body.inviteaddedtoteam.adder}` : 'someone'
-                const inviter = body.inviteaddedtoteam ? `@${body.inviteaddedtoteam.inviter}` : 'someone'
-                const team = body.inviteaddedtoteam ? `${body.inviteaddedtoteam.team}` : '???'
-                sysMsgText = `${adder} just added ${invitee} to team ${team}. This user had been invited by ${inviter}`
+                const invitee = body.inviteaddedtoteam ? body.inviteaddedtoteam.invitee : 'someone'
+                const adder = body.inviteaddedtoteam ? body.inviteaddedtoteam.adder : 'someone'
+                const inviter = body.inviteaddedtoteam ? body.inviteaddedtoteam.inviter : 'someone'
+                const team = body.inviteaddedtoteam ? body.inviteaddedtoteam.team : '???'
+                const inviteTypeEnum = body.inviteaddedtoteam ? body.inviteaddedtoteam.inviteType : 1
+                const inviteType = Constants.inviteCategoryEnumToName[inviteTypeEnum]
+                messageText = `${invitee} accepted an invite to join ${team}`
+                info = {invitee, inviter, adder, team, inviteType, type: 'inviteAccepted'}
                 break
               }
               case ChatTypes.localMessageSystemType.complexteam: {
                 const team = body.complexteam ? body.complexteam.team : '???'
-                sysMsgText = `A new channel has been created in team ${team}. Here are some things that are now different:\n\n1.) Notifications will not happen for every message. Click or tap the info icon on the right to configure them.\n2.) The #general channel is now in the "Big Teams" section of the inbox.\n3.) You can hit the three dots next to ${team} in the inbox view to join other channels.\n\nEnjoy!`
+                messageText = `${common.author} made ${team} a big team.`
+                info = {team, type: 'simpleToComplex'}
                 break
               }
               case ChatTypes.localMessageSystemType.createteam: {
                 const team = body.createteam ? body.createteam.team : '???'
                 const creator = body.createteam ? body.createteam.creator : '???'
-                sysMsgText = `${creator} created a new team ${team}.`
+                messageText = `${creator} created a new team ${team}.`
                 break
               }
             }
@@ -600,8 +606,9 @@ function _unboxedToMessage(
             type: 'System',
             ...common,
             editedCount: payload.superseded ? 1 : 0, // mark it as edited if it's been superseded
-            message: new HiddenString(sysMsgText),
             messageState: 'sent',
+            message: new HiddenString(messageText),
+            info,
             key: Constants.messageKey(common.conversationIDKey, 'system', common.messageID),
           }
         }
@@ -695,7 +702,8 @@ function* _markAsRead(
 
       _lastMarkedAsRead[conversationIDKey] = messageID
     } catch (err) {
-      console.log(`Couldn't mark as read ${conversationIDKey} ${err}`)
+      logger.warn(`Couldn't mark as read ${conversationIDKey}`)
+      logger.debug(`Couldn't mark as read ${conversationIDKey} ${err}`)
     }
   }
 }
@@ -851,7 +859,8 @@ function _updateMessageEntity(action: ChatGen.UpdateTempMessagePayload) {
     // We use merge instead of replace because otherwise the replace will turn message into an immutable struct
     return Saga.put(EntityCreators.mergeEntity(['messages'], I.Map({[message.key]: message})))
   } else {
-    console.warn('error in updating temp message', action.payload)
+    logger.error('error in updating temp message')
+    logger.debug('error in updating temp message', action.payload)
   }
 }
 
@@ -877,7 +886,7 @@ function _removeOutboxMessage(
   if (nextMessages.equals(msgKeys)) {
     return
   }
-  console.log('removed outbox message')
+  logger.info('removed outbox message')
   return Saga.put(
     EntityCreators.replaceEntity(['conversationMessages'], I.Map({[conversationIDKey]: nextMessages}))
   )
@@ -994,46 +1003,6 @@ function _changedFocus(action: AppGen.ChangedFocusPayload, state: TypedState) {
   }
 }
 
-const safeServerMessageMap = (m: any) => ({
-  key: m.key,
-  messageID: m.messageID,
-  messageState: m.messageState,
-  outboxID: m.outboxID,
-  type: m.type,
-})
-
-function _logAppendMessages(action: ChatGen.AppendMessagesPayload) {
-  const toPrint = {
-    payload: {
-      conversationIDKey: action.payload.conversationIDKey,
-      messages: action.payload.messages.map(safeServerMessageMap),
-      svcShouldDisplayNotification: action.payload.svcShouldDisplayNotification,
-    },
-    type: action.type,
-  }
-  console.log('Appending', JSON.stringify(toPrint, null, 2))
-}
-
-function _logPrependMessages(action: ChatGen.PrependMessagesPayload) {
-  const toPrint = {
-    payload: {
-      conversationIDKey: action.payload.conversationIDKey,
-      messages: action.payload.messages.map(safeServerMessageMap),
-      moreToLoad: action.payload.moreToLoad,
-    },
-    type: action.type,
-  }
-  console.log('Prepending', JSON.stringify(toPrint, null, 2))
-}
-
-function _logUpdateTempMessage(action: ChatGen.UpdateTempMessagePayload) {
-  const toPrint = {
-    payload: {conversationIDKey: action.payload.conversationIDKey, outboxIDKey: action.payload.outboxIDKey},
-    type: action.type,
-  }
-  console.log('Update temp message', JSON.stringify(toPrint, null, 2))
-}
-
 function* registerSagas(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(AppGen.changedActive, _changedActive)
   yield Saga.safeTakeEveryPure(ChatGen.clearMessages, _clearConversationMessages)
@@ -1055,12 +1024,6 @@ function* registerSagas(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEvery(ChatGen.updateMetadata, _updateMetadata)
   yield Saga.safeTakeEveryPure(ChatGen.updateTyping, _updateTyping)
   yield Saga.safeTakeEveryPure(AppGen.changedFocus, _changedFocus)
-
-  if (enableActionLogging) {
-    yield Saga.safeTakeEveryPure(ChatGen.appendMessages, _logAppendMessages)
-    yield Saga.safeTakeEveryPure(ChatGen.prependMessages, _logPrependMessages)
-    yield Saga.safeTakeEveryPure(ChatGen.updateTempMessage, _logUpdateTempMessage)
-  }
 }
 
 export {registerSagas, addMessagesToConversation}

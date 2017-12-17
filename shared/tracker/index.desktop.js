@@ -83,6 +83,7 @@ export default class TrackerRender extends PureComponent<RenderProps> {
                 paddingLeft: globalMargins.medium,
                 paddingBottom: globalMargins.tiny,
                 paddingTop: globalMargins.tiny,
+                backgroundColor: globalColors.white,
               }}
             >
               {this.props.userInfo.showcasedTeams.map(team => (
@@ -109,6 +110,7 @@ export default class TrackerRender extends PureComponent<RenderProps> {
                 >
                   {this.props.showTeam &&
                     this.props.showTeam.fqName === team.fqName &&
+                    this.props.selectedTeamRect &&
                     <Box key={team.fqName + 'popup'} style={{zIndex: 50}}>
                       <ModalPopupComponent
                         {...this.props}

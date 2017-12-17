@@ -1,4 +1,5 @@
 // @flow
+import logger from '../logger'
 import * as I from 'immutable'
 import * as CommonConstants from '../constants/common'
 import * as Types from '../constants/types/route-tree'
@@ -50,7 +51,7 @@ function loggedInUserNavigatedReducer(loggedInUserNavigated, newSelectedTab, act
     }
   })()
   if (loggedInUserNavigated !== newLoggedInUserNavigated) {
-    console.log(
+    logger.info(
       '[RouteState] route changed changed from',
       loggedInUserNavigated,
       'to',
@@ -150,11 +151,9 @@ export default function routeTreeReducer(state: Types.State = initialState, acti
     )
   } catch (err) {
     if (action.type === Constants.setRouteDef && err instanceof InvalidRouteError) {
-      console.warn(
-        'New route tree mismatches current state. Not updating (please reload manually if needed).'
-      )
+      logger.warn('New route tree mismatches current state. Not updating (please reload manually if needed).')
     } else {
-      console.error(
+      logger.error(
         `Attempt to perform ${action.type} on ${pathToString(getPath(routeState))} raised exception: ${err}. Aborting.`
       )
     }
@@ -170,7 +169,7 @@ export default function routeTreeReducer(state: Types.State = initialState, acti
     // $FlowIssue
     const routeError = checkRouteState(newLoggedInUserNavigated, newRouteDef, newRouteState)
     if (routeError) {
-      console.error(
+      logger.error(
         `Attempt to perform ${action.type} on ${pathToString(getPath(routeState))} would result in invalid routeTree state: "${routeError}". Aborting.`
       )
       return state
