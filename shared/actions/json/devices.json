@@ -7,7 +7,8 @@
   "actions": {
     "devicesLoad": {},
     "devicesLoaded": {
-      "idToDetail": "{[id: string]: Types.DeviceDetail}"
+      "idToDetail": "{[id: string]: Types.DeviceDetail}",
+      "canError": {}
     },
     "paperKeyMake": {},
     "paperKeyCreated": {

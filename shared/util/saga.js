@@ -161,12 +161,12 @@ function safeTakeLatestPure<A, R, FinalAction, FinalActionError>(
   actionCreatorsWithResult?: (result: R, action: A) => FinalAction,
   actionCreatorsWithError?: (result: R, action: A) => FinalActionError
 ) {
-  return safeTakeLatest(pattern, function* safeTakeLatestPureWorker(action: A) {
+  const safeTakeLatestPureWorker = function* safeTakeLatestPureWorker(action: A) {
     // If the pureWorker fn takes two arguments, let's pass the state
     try {
       let result
       if (pureWorker.length === 2) {
-        const state: TypedState = yield select()
+        const state: TypedState = yield select(s => s)
         // $FlowIssue - doesn't understand checking for arity
         result = yield pureWorker(action, state)
       } else {
@@ -175,14 +175,25 @@ function safeTakeLatestPure<A, R, FinalAction, FinalActionError>(
       }
 
       if (actionCreatorsWithResult) {
+        // $FlowIssue confused
         yield actionCreatorsWithResult(result, action)
       }
     } catch (e) {
       if (actionCreatorsWithError) {
+        // $FlowIssue confused
         yield actionCreatorsWithError(e, action)
       }
+    } finally {
+      if (actionCreatorsWithError) {
+        if (yield cancelled()) {
+          // $FlowIssue confused
+          yield actionCreatorsWithError(new Error('Canceled'), action)
+        }
+      }
     }
-  })
+  }
+  // $FlowIssue confused
+  return takeLatest(pattern, safeTakeLatestPureWorker)
 }
 
 function safeTakeLatestWithCatch(

@@ -69,7 +69,9 @@ const changeWaiting = (action: DevicesGen.Actions) => {
 const rpcDeviceList = (action: DevicesGen.DevicesLoadPayload, state: TypedState) =>
   state.config.loggedIn ? Saga.call(RPCTypes.deviceDeviceHistoryListRpcPromise) : Saga.identity([])
 
-const dispatchDevicesListLoaded = (results: Array<RPCTypes.DeviceDetail>) => {
+const dispatchDevicesLoadedError = () => Saga.put(DevicesGen.createDevicesLoadedError())
+
+const dispatchDevicesLoaded = (results: Array<RPCTypes.DeviceDetail>) => {
   const idToDetail = results.reduce((map: {[key: string]: Types.DeviceDetail}, d: RPCTypes.DeviceDetail) => {
     const detail = Constants.makeDeviceDetail({
       created: d.device.cTime,
@@ -179,7 +181,12 @@ const navigateAfterRevoked = (action: DevicesGen.DeviceRevokedPayload, state: Ty
 
 function* deviceSaga(): Saga.SagaGenerator<any, any> {
   // Load devices
-  yield Saga.safeTakeLatestPure(DevicesGen.devicesLoad, rpcDeviceList, dispatchDevicesListLoaded)
+  yield Saga.safeTakeLatestPure(
+    DevicesGen.devicesLoad,
+    rpcDeviceList,
+    dispatchDevicesLoaded,
+    dispatchDevicesLoadedError
+  )
 
   // Waiting states
   yield Saga.safeTakeEveryPure(
@@ -211,7 +218,7 @@ function* deviceSaga(): Saga.SagaGenerator<any, any> {
 
 export const _testing = {
   changeWaiting,
-  dispatchDevicesListLoaded,
+  dispatchDevicesLoaded,
   requestEndangeredTLFsLoad,
 }
 

@@ -29,14 +29,14 @@ const mapStateToProps = (state: TypedState, {deviceID}: OwnProps) => {
 }
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
-  showExistingDevicePage: (deviceID: string) =>
+  _showExistingDevicePage: (deviceID: string) =>
     dispatch(navigateAppend([{props: {deviceID}, selected: 'devicePage'}])),
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   ...stateProps,
   ...dispatchProps,
-  showExistingDevicePage: () => dispatchProps.showExistingDevicePage(ownProps.deviceID),
+  showExistingDevicePage: () => dispatchProps._showExistingDevicePage(ownProps.deviceID),
 })
 
 const RowConnector = connect(mapStateToProps, mapDispatchToProps, mergeProps)

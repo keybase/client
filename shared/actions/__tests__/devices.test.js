@@ -89,7 +89,7 @@ describe('convertDataFromServer', () => {
     }),
   }
 
-  expect(_testing.dispatchDevicesListLoaded(results)).toEqual(
+  expect(_testing.dispatchDevicesLoaded(results)).toEqual(
     Saga.put(DevicesGen.createDevicesLoaded({idToDetail}))
   )
 })

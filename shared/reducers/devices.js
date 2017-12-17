@@ -11,7 +11,7 @@ export default function(state: Types.State = initialState, action: DevicesGen.Ac
     case DevicesGen.resetStore:
       return initialState
     case DevicesGen.devicesLoaded:
-      return state.set('idToDetail', I.Map(action.payload.idToDetail))
+      return action.error ? state : state.set('idToDetail', I.Map(action.payload.idToDetail))
     case DevicesGen.endangeredTLFsLoaded:
       return state.mergeIn(['idToEndangeredTLFs', action.payload.deviceID], I.Set(action.payload.tlfs))
     // Saga only actions

@@ -26,6 +26,7 @@ export const createDeviceRevoke = (payload: {|+deviceID: string|}) => ({error: f
 export const createDeviceRevoked = (payload: {|+deviceID: string, +wasCurrentDevice: boolean, +deviceName: string|}) => ({error: false, payload, type: deviceRevoked})
 export const createDevicesLoad = () => ({error: false, payload: undefined, type: devicesLoad})
 export const createDevicesLoaded = (payload: {|+idToDetail: {[id: string]: Types.DeviceDetail}|}) => ({error: false, payload, type: devicesLoaded})
+export const createDevicesLoadedError = () => ({error: true, payload: undefined, type: devicesLoaded})
 export const createEndangeredTLFsLoad = (payload: {|+deviceID: string|}) => ({error: false, payload, type: endangeredTLFsLoad})
 export const createEndangeredTLFsLoaded = (payload: {|+deviceID: string, +tlfs: Array<string>|}) => ({error: false, payload, type: endangeredTLFsLoaded})
 export const createPaperKeyCreated = (payload: {|+paperKey: HiddenString|}) => ({error: false, payload, type: paperKeyCreated})
@@ -50,6 +51,7 @@ export type Actions =
   | More.ReturnType<typeof createDeviceRevoked>
   | More.ReturnType<typeof createDevicesLoad>
   | More.ReturnType<typeof createDevicesLoaded>
+  | More.ReturnType<typeof createDevicesLoadedError>
   | More.ReturnType<typeof createEndangeredTLFsLoad>
   | More.ReturnType<typeof createEndangeredTLFsLoaded>
   | More.ReturnType<typeof createPaperKeyCreated>

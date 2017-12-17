@@ -1,7 +1,7 @@
 // @flow
 import * as DevicesGen from '../../actions/devices-gen'
 import Render from '../../login/signup/success/index.render'
-import {connect, compose, mapProps} from '../../util/container'
+import {connect} from '../../util/container'
 import {navigateUp} from '../../actions/route-tree'
 
 const mapStateToProps = (state, {routeProps}) => ({
@@ -17,10 +17,11 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
   },
 })
 
-const makeRenderProps = props => ({
-  ...props,
+const mergeProps = (stateProps, dispatchProps, ownProps) => ({
+  ...stateProps,
+  ...dispatchProps,
   title: 'Paper key generated!',
   waiting: false,
 })
 
-export default compose(connect(mapStateToProps, mapDispatchToProps), mapProps(makeRenderProps))(Render)
+export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(Render)

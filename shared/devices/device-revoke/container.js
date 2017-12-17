@@ -1,7 +1,7 @@
 // @flow
+import * as Constants from '../../constants/devices'
 import * as DevicesGen from '../../actions/devices-gen'
 import * as I from 'immutable'
-import * as Constants from '../../constants/devices'
 import DeviceRevoke from './'
 import {connect, type TypedState} from '../../util/container'
 import {isMobile} from '../../constants/platform'
