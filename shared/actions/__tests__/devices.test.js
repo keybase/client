@@ -1,6 +1,5 @@
 // @flow
 /* eslint-env jest */
-import * as I from 'immutable'
 import * as Constants from '../../constants/devices'
 import * as WaitingGen from '../waiting-gen'
 import * as DevicesGen from '../devices-gen'
