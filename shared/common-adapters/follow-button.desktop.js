@@ -22,7 +22,7 @@ class FollowButton extends Component<Props, State> {
     if (following) {
       return (
         <Button
-          type={this.state.mouseOver ? 'Unfollow' : 'Following'}
+          type={this.state.mouseOver ? 'PrimaryGreen' : 'PrimaryGreenActive'}
           label={this.state.mouseOver ? 'Unfollow' : 'Following'}
           onClick={onUnfollow}
           waiting={waiting}
@@ -35,7 +35,7 @@ class FollowButton extends Component<Props, State> {
     } else {
       return (
         <Button
-          type="Follow"
+          type="PrimaryGreen"
           label="Follow"
           onClick={onFollow}
           waiting={waiting}
