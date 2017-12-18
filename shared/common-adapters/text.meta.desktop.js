@@ -4,10 +4,6 @@ import {globalStyles, globalColors} from '../styles'
 import type {MetaType, TextType, Background} from './text'
 
 function defaultColor(backgroundMode: ?Background) {
-  if (!backgroundMode) {
-    backgroundMode = 'Normal'
-  }
-
   return {
     Normal: globalColors.white,
     Announcements: globalColors.white,
@@ -16,18 +12,16 @@ function defaultColor(backgroundMode: ?Background) {
     HighRisk: globalColors.white,
     Documentation: globalColors.white,
     Terminal: globalColors.white,
-  }[backgroundMode]
+  }[backgroundMode || 'Normal']
 }
 
-function lineClamp(lines: number): Object {
-  return {
-    overflow: 'hidden',
-    display: '-webkit-box',
-    textOverflow: 'ellipsis',
-    WebkitBoxOrient: 'vertical',
-    WebkitLineClamp: lines,
-  }
-}
+const lineClamp = (lines: number) => ({
+  overflow: 'hidden',
+  display: '-webkit-box',
+  textOverflow: 'ellipsis',
+  WebkitBoxOrient: 'vertical',
+  WebkitLineClamp: lines,
+})
 
 function fontSizeToSizeStyle(fontSize: number): ?Object {
   const height = {

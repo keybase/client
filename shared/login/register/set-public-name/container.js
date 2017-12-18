@@ -94,8 +94,9 @@ const mapDispatchToProps = (dispatch: Dispatch<*>) => ({
   onBack: () => dispatch(LoginGen.createOnBack()),
   onSubmit: (deviceName: string) => {
     // map 'smart apostrophes' to ASCII (typewriter apostrophe)
-    deviceName = deviceName.replace(/[\u2018\u2019\u0060\u00B4]/g, "'")
-    dispatch(LoginGen.createSubmitDeviceName({deviceName}))
+    dispatch(
+      LoginGen.createSubmitDeviceName({deviceName: deviceName.replace(/[\u2018\u2019\u0060\u00B4]/g, "'")})
+    )
   },
 })
 
