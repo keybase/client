@@ -124,13 +124,19 @@ func makeConversation(maxID chat1.MessageID) chat1.Conversation {
 	}
 }
 
+func mustMerge(t testing.TB, storage *Storage,
+	convID chat1.ConversationID, uid gregor1.UID, msgs []chat1.MessageUnboxed) {
+	_, err := storage.Merge(context.Background(), convID, uid, msgs)
+	require.NoError(t, err)
+}
+
 func doSimpleBench(b *testing.B, storage *Storage, uid gregor1.UID) {
 	msgs := makeMsgRange(100000)
 	conv := makeConversation(msgs[0].GetMessageID())
 	b.ResetTimer()
 
 	for i := 0; i < b.N; i++ {
-		require.NoError(b, storage.Merge(context.TODO(), conv.Metadata.ConversationID, uid, msgs))
+		mustMerge(b, storage, conv.Metadata.ConversationID, uid, msgs)
 		_, err := storage.Fetch(context.TODO(), conv, uid, nil, nil, nil)
 		require.NoError(b, err)
 		storage.MaybeNuke(true, nil, conv.Metadata.ConversationID, uid)
@@ -142,7 +148,7 @@ func doCommonBench(b *testing.B, storage *Storage, uid gregor1.UID) {
 	conv := makeConversation(msgs[0].GetMessageID())
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		require.NoError(b, storage.Merge(context.TODO(), conv.Metadata.ConversationID, uid, msgs))
+		mustMerge(b, storage, conv.Metadata.ConversationID, uid, msgs)
 		_, err := storage.Fetch(context.TODO(), conv, uid, nil, nil, nil)
 		require.NoError(b, err)
 
@@ -152,7 +158,7 @@ func doCommonBench(b *testing.B, storage *Storage, uid gregor1.UID) {
 		newconv := makeConversation(newmsgs[0].GetMessageID())
 		b.StartTimer()
 
-		require.NoError(b, storage.Merge(context.TODO(), conv.Metadata.ConversationID, uid, newmsgs))
+		mustMerge(b, storage, conv.Metadata.ConversationID, uid, newmsgs)
 		storage.Fetch(context.TODO(), newconv, uid, nil, nil, nil)
 	}
 }
@@ -162,7 +168,7 @@ func doRandomBench(b *testing.B, storage *Storage, uid gregor1.UID, num, len int
 	conv := makeConversation(msgs[0].GetMessageID())
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		require.NoError(b, storage.Merge(context.TODO(), conv.Metadata.ConversationID, uid, msgs))
+		mustMerge(b, storage, conv.Metadata.ConversationID, uid, msgs)
 		for j := 0; j < 300; j++ {
 
 			b.StopTimer()
@@ -243,7 +249,7 @@ func TestStorageBasic(t *testing.T) {
 	msgs := makeMsgRange(10)
 	conv := makeConversation(msgs[0].GetMessageID())
 
-	require.NoError(t, storage.Merge(context.TODO(), conv.Metadata.ConversationID, uid, msgs))
+	mustMerge(t, storage, conv.Metadata.ConversationID, uid, msgs)
 	res, err := storage.Fetch(context.TODO(), conv, uid, nil, nil, nil)
 	require.NoError(t, err)
 	require.Equal(t, len(msgs), len(res.Messages), "wrong amount of messages")
@@ -258,7 +264,7 @@ func TestStorageLargeList(t *testing.T) {
 	msgs := makeMsgRange(2000)
 	conv := makeConversation(msgs[0].GetMessageID())
 
-	require.NoError(t, storage.Merge(context.TODO(), conv.Metadata.ConversationID, uid, msgs))
+	mustMerge(t, storage, conv.Metadata.ConversationID, uid, msgs)
 	res, err := storage.Fetch(context.TODO(), conv, uid, nil, nil, nil)
 	require.NoError(t, err)
 	require.Equal(t, len(msgs), len(res.Messages), "wrong amount of messages")
@@ -279,7 +285,7 @@ func TestStorageSupersedes(t *testing.T) {
 	msgs = append([]chat1.MessageUnboxed{supersedingEdit}, msgs...)
 	conv := makeConversation(msgs[0].GetMessageID())
 
-	require.NoError(t, storage.Merge(context.TODO(), conv.Metadata.ConversationID, uid, msgs))
+	mustMerge(t, storage, conv.Metadata.ConversationID, uid, msgs)
 	res, err := storage.Fetch(context.TODO(), conv, uid, nil, nil, nil)
 	require.NoError(t, err)
 	require.Equal(t, len(msgs), len(res.Messages), "wrong amount of messages")
@@ -294,8 +300,7 @@ func TestStorageSupersedes(t *testing.T) {
 	// the original message's body and the body of the edit above.
 	supersedingDelete := makeDelete(chat1.MessageID(112), 6, []chat1.MessageID{111})
 
-	require.NoError(t, storage.Merge(context.TODO(), conv.Metadata.ConversationID, uid,
-		[]chat1.MessageUnboxed{supersedingDelete}))
+	mustMerge(t, storage, conv.Metadata.ConversationID, uid, []chat1.MessageUnboxed{supersedingDelete})
 	conv.ReaderInfo.MaxMsgid = 112
 	msgs = append([]chat1.MessageUnboxed{supersedingDelete}, msgs...)
 	res, err = storage.Fetch(context.TODO(), conv, uid, nil, nil, nil)
@@ -322,7 +327,7 @@ func TestStorageMiss(t *testing.T) {
 	msgs := makeMsgRange(10)
 	conv := makeConversation(15)
 
-	require.NoError(t, storage.Merge(context.TODO(), conv.Metadata.ConversationID, uid, msgs))
+	mustMerge(t, storage, conv.Metadata.ConversationID, uid, msgs)
 	_, err := storage.Fetch(context.TODO(), conv, uid, nil, nil, nil)
 	require.Error(t, err, "expected error")
 	require.IsType(t, MissError{}, err, "wrong error type")
@@ -334,7 +339,7 @@ func TestStoragePagination(t *testing.T) {
 
 	msgs := makeMsgRange(300)
 	conv := makeConversation(msgs[0].GetMessageID())
-	require.NoError(t, storage.Merge(context.TODO(), conv.Metadata.ConversationID, uid, msgs))
+	mustMerge(t, storage, conv.Metadata.ConversationID, uid, msgs)
 
 	t.Logf("test next input")
 	tp := pager.NewThreadPager()
@@ -410,7 +415,7 @@ func TestStorageTypeFilter(t *testing.T) {
 		MessageTypes: []chat1.MessageType{chat1.MessageType_TEXT},
 	}
 
-	require.NoError(t, storage.Merge(context.TODO(), conv.Metadata.ConversationID, uid, msgs))
+	mustMerge(t, storage, conv.Metadata.ConversationID, uid, msgs)
 	res, err := storage.Fetch(context.TODO(), conv, uid, nil, &query, nil)
 	require.NoError(t, err)
 	require.Equal(t, len(msgs), len(res.Messages), "wrong amount of messages")
@@ -432,7 +437,7 @@ func TestStorageLocalMax(t *testing.T) {
 	require.Error(t, err)
 	require.IsType(t, MissError{}, err, "wrong error type")
 
-	require.NoError(t, storage.Merge(context.TODO(), conv.Metadata.ConversationID, uid, msgs))
+	mustMerge(t, storage, conv.Metadata.ConversationID, uid, msgs)
 	tv, err := storage.FetchUpToLocalMaxMsgID(context.TODO(), conv.Metadata.ConversationID, uid, nil, nil, nil)
 	require.NoError(t, err)
 	require.Len(t, tv.Messages, 10)
@@ -444,7 +449,7 @@ func TestStorageFetchMessages(t *testing.T) {
 	msgs := makeMsgRange(20)
 	conv := makeConversation(25)
 
-	require.NoError(t, storage.Merge(context.TODO(), conv.Metadata.ConversationID, uid, msgs))
+	mustMerge(t, storage, conv.Metadata.ConversationID, uid, msgs)
 
 	msgIDs := []chat1.MessageID{10, 15, 6}
 	umsgs, err := storage.FetchMessages(context.TODO(), conv.Metadata.ConversationID, uid, msgIDs)
@@ -472,7 +477,7 @@ func TestStorageServerVersion(t *testing.T) {
 
 	msgs := makeMsgRange(300)
 	conv := makeConversation(msgs[0].GetMessageID())
-	require.NoError(t, storage.Merge(context.TODO(), conv.Metadata.ConversationID, uid, msgs))
+	mustMerge(t, storage, conv.Metadata.ConversationID, uid, msgs)
 	res, err := storage.Fetch(context.TODO(), conv, uid, nil, nil, nil)
 	require.NoError(t, err)
 	require.Equal(t, len(msgs), len(res.Messages))
@@ -486,7 +491,7 @@ func TestStorageServerVersion(t *testing.T) {
 	require.Error(t, err)
 	require.IsType(t, MissError{}, err)
 
-	require.NoError(t, storage.Merge(context.TODO(), conv.Metadata.ConversationID, uid, msgs))
+	mustMerge(t, storage, conv.Metadata.ConversationID, uid, msgs)
 	res, err = storage.Fetch(context.TODO(), conv, uid, nil, nil, nil)
 	require.NoError(t, err)
 	require.Equal(t, len(msgs), len(res.Messages))
