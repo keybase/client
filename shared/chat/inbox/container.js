@@ -294,6 +294,8 @@ export default compose(
   pausableConnect(mapStateToProps, mapDispatchToProps, mergeProps),
   lifecycle({
     componentDidMount: function() {
+      // TEMP testing calling all the time
+      this.props.refreshInbox()
       if (this.props.neverLoaded) {
         this.props.refreshInbox()
         this.props.loadInbox()

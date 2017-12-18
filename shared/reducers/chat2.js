@@ -28,6 +28,7 @@ export default function(state: Types.State = initialState, action: $ReadOnly<Cha
     case Chat2Gen.inboxUtrustedLoaded:
       return state.update('metaMap', metaMap =>
         metaMap.withMutations(m => {
+          // $FlowIssue TODO Remove w/ const merge in
           action.payload.untrusted.forEach(u => {
             const old = m.get(u.id)
             // Only update if this is newer
