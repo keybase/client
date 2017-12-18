@@ -7,7 +7,6 @@ const isAndroid = false
 const isIOS = false
 const isLargeScreen = true
 const isSimulator = false
-const isStoryBook = false
 const isIPhoneX = false
 const isDeviceSecureAndroid: boolean = false
 const isAndroidNewerThanM: boolean = false
@@ -171,7 +170,6 @@ export {
   isLinux,
   isMobile,
   isSimulator,
-  isStoryBook,
   isWindows,
   jsonDebugFileName,
   logFileName,

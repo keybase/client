@@ -83,7 +83,7 @@ class AggregateLoggerImpl implements AggregateLogger {
     this.debug = debug.log
 
     const olderThanMs = 1e3 * 60 * 60 * 24 // 24 hours
-    if (!__SCREENSHOT__) {
+    if (!__STORYBOOK__) {
       deleteFileIfOlderThanMs(olderThanMs, logFileName())
     }
   }
@@ -133,6 +133,6 @@ const prodLoggers = () => ({
 })
 
 // Settings
-const logSetup = __DEV__ || __SCREENSHOT__ ? devLoggers() : prodLoggers()
+const logSetup = __DEV__ || __STORYBOOK__ ? devLoggers() : prodLoggers()
 
 export default new AggregateLoggerImpl(logSetup)

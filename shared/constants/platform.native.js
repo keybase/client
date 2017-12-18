@@ -11,7 +11,6 @@ NativeModules.ObjcEngine || {
   usingSimulator: 'fallback',
   isDeviceSecure: 'fallback',
 }
-const isStoryBook = (NativeModules.Storybook && NativeModules.Storybook.isStorybook) || false
 const version = nativeBridge.version
 const appVersionName = nativeBridge.appVersionName
 const appVersionCode = nativeBridge.appVersionCode
@@ -67,7 +66,6 @@ export {
   isLinux,
   isMobile,
   isSimulator,
-  isStoryBook,
   isWindows,
   mobileOsVersion,
   runMode,
