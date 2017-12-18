@@ -43,7 +43,19 @@ protocol kbfs {
   void FSSyncEvent(FSPathSyncStatus event);
 
 
-  /* createTLF is called by TLF to associate the tlfID with the given teamID
+  /**
+    createTLF is called by KBFS to associate the tlfID with the given teamID,
+    using the v2 Team-based system.
    */
   void createTLF(TeamID teamID, TLFID tlfID);
+
+  record KBFSTeamSettings {
+    TLFID tlfID;
+  }
+
+  /**
+    getKBFSTeamSettings gets the settings written for the team in the team's sigchain.
+  */
+  KBFSTeamSettings getKBFSTeamSettings(TeamID teamID);
+
 }

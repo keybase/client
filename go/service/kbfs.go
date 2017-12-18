@@ -109,3 +109,7 @@ func (h *KBFSHandler) notifyConversation(uid keybase1.UID, filename string) {
 func (h *KBFSHandler) CreateTLF(ctx context.Context, arg keybase1.CreateTLFArg) error {
 	return teams.CreateTLF(ctx, h.G(), arg)
 }
+
+func (h *KBFSHandler) GetKBFSTeamSettings(ctx context.Context, teamID keybase1.TeamID) (keybase1.KBFSTeamSettings, error) {
+	return teams.GetKBFSTeamSettings(ctx, h.G(), teamID.IsPublic(), teamID)
+}

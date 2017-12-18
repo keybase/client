@@ -15,7 +15,7 @@ const SetPublicName = ({
   waiting,
   submitEnabled,
 }: Props) => {
-  submitEnabled = submitEnabled == null ? true : submitEnabled
+  const enabled = submitEnabled == null ? true : submitEnabled
   return (
     <Container style={stylesContainer} onBack={onBack}>
       <Text type="Header" style={{textAlign: 'center'}}>Set a public name for this device:</Text>
@@ -26,7 +26,7 @@ const SetPublicName = ({
         errorText={deviceNameError}
         floatingHintTextOverride="Device name"
         hintText="Device name"
-        onEnterKeyDown={submitEnabled ? onSubmit : () => {}}
+        onEnterKeyDown={enabled ? onSubmit : () => {}}
         onChangeText={deviceName => onChange(deviceName)}
         value={deviceName}
       />
@@ -35,7 +35,7 @@ const SetPublicName = ({
         type="Primary"
         fullWidth={true}
         enabled={deviceName}
-        disabled={!submitEnabled}
+        disabled={!enabled}
         waiting={waiting}
         label="Continue"
         onClick={() => onSubmit()}

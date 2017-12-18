@@ -6,7 +6,6 @@
 //  Copyright © 2016 Keybase. All rights reserved.
 //
 
-@import CocoaLumberjack;
 #import "AppDelegate.h"
 #import "RCTPushNotificationManager.h"
 #import "RCTBundleURLProvider.h"

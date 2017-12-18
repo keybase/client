@@ -149,11 +149,14 @@ const getOrderedMemberArray = (
   youImplicitAdmin: boolean
 ): Array<Types.MemberInfo> => {
   let youInfo
+  let info = memberInfo
   if (you && !youImplicitAdmin) {
     youInfo = memberInfo.find(member => member.username === you)
-    if (youInfo) memberInfo = memberInfo.delete(youInfo)
+    if (youInfo) {
+      info = memberInfo.delete(youInfo)
+    }
   }
-  let returnArray = memberInfo
+  let returnArray = info
     .toArray()
     .sort(
       (a, b) =>

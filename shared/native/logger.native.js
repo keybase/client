@@ -1,10 +1,9 @@
 // @flow
 import {NativeModules} from 'react-native'
-import {isStoryBook} from '../constants/platform'
 import type {NativeLog, NativeLogDump} from './logger'
 
-const log: NativeLog = isStoryBook ? (tagPrefix, toLog) => {} : NativeModules.KBNativeLogger.log
-const dump: NativeLogDump = isStoryBook
+const log: NativeLog = __STORYBOOK__ ? (tagPrefix, toLog) => {} : NativeModules.KBNativeLogger.log
+const dump: NativeLogDump = __STORYBOOK__
   ? tagPrefix => {
       const p: Promise<Array<string>> = Promise.resolve([])
       return p

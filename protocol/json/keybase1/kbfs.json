@@ -6,7 +6,18 @@
       "type": "idl"
     }
   ],
-  "types": [],
+  "types": [
+    {
+      "type": "record",
+      "name": "KBFSTeamSettings",
+      "fields": [
+        {
+          "type": "TLFID",
+          "name": "tlfID"
+        }
+      ]
+    }
+  ],
   "messages": {
     "FSEvent": {
       "request": [
@@ -74,7 +85,18 @@
           "type": "TLFID"
         }
       ],
-      "response": null
+      "response": null,
+      "doc": "createTLF is called by KBFS to associate the tlfID with the given teamID,\n    using the v2 Team-based system."
+    },
+    "getKBFSTeamSettings": {
+      "request": [
+        {
+          "name": "teamID",
+          "type": "TeamID"
+        }
+      ],
+      "response": "KBFSTeamSettings",
+      "doc": "getKBFSTeamSettings gets the settings written for the team in the team's sigchain."
     }
   },
   "namespace": "keybase.1"

@@ -98,11 +98,11 @@ function reducer(
           if (!conversation.get('firstNewMessageID') && !inConversationFocused && firstMessage) {
             // Set first new message if we don't have one set, and are not in
             // the conversation with window focused
-            conversation = conversation.set('firstNewMessageID', firstMessage.messageID)
+            return conversation.set('firstNewMessageID', firstMessage.messageID)
           } else if (inConversationFocused) {
             // Clear new message if we received a new message while in
             // conversation and window is focused
-            conversation = conversation.set('firstNewMessageID', null)
+            return conversation.set('firstNewMessageID', null)
           }
 
           return conversation
@@ -159,8 +159,7 @@ function reducer(
         .update(action.payload.conversationIDKey, initialConversation, conversation =>
           conversation.set('firstNewMessageID', null)
         )
-      state = state.set('conversationStates', newConversationStates)
-      return state
+      return state.set('conversationStates', newConversationStates)
     case ChatGen.loadingMessages: {
       const {isRequesting, conversationIDKey} = action.payload
       const newConversationStates = state
