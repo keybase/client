@@ -4,6 +4,7 @@ import {
   Avatar,
   Box,
   Button,
+  ButtonBar,
   Checkbox,
   ClickableBox,
   Divider,
@@ -12,10 +13,8 @@ import {
   ScrollView,
   Text,
 } from '../../../common-adapters'
-import {globalColors, globalMargins, globalStyles} from '../../../styles'
-import {isMobile} from '../../../constants/platform'
+import {globalColors, globalMargins, globalStyles, isMobile} from '../../../styles'
 import {branch} from 'recompose'
-
 import Notifications from './notifications/container'
 import Participants from './participants'
 
@@ -98,7 +97,9 @@ const _ConversationInfoPanel = (props: ConversationInfoPanelProps) => (
     <Divider style={{marginBottom: 20, marginTop: props.showTeamButton ? 10 : 20}} />
 
     {props.showTeamButton
-      ? <Button type="Primary" small={true} label="Turn into team" onClick={props.onShowNewTeamDialog} />
+      ? <ButtonBar>
+          <Button type="Primary" small={true} label="Turn into team" onClick={props.onShowNewTeamDialog} />
+        </ButtonBar>
       : null}
 
     {props.showTeamButton

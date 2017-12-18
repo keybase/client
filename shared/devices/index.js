@@ -4,9 +4,8 @@ import React, {PureComponent} from 'react'
 import {Box, Text, List, Icon, ClickableBox, ProgressIndicator, HeaderHoc} from '../common-adapters'
 import {OLDPopupMenu} from '../common-adapters/popup-menu'
 import {RowConnector} from './row'
+import {globalStyles, globalColors, globalMargins, isMobile} from '../styles'
 import {branch} from 'recompose'
-import {globalStyles, globalColors, globalMargins} from '../styles'
-import {isMobile} from '../constants/platform'
 
 import type {MenuItem} from '../common-adapters/popup-menu.js'
 

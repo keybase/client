@@ -1,8 +1,7 @@
 // @flow
 import React, {PureComponent} from 'react'
 import {Avatar, MultiAvatar, Icon, Box} from '../../../common-adapters'
-import {globalStyles, globalColors, globalMargins} from '../../../styles'
-import {isMobile} from '../../../constants/platform'
+import {globalStyles, globalColors, globalMargins, isMobile} from '../../../styles'
 import memoize from 'lodash/memoize'
 import {List} from 'immutable'
 

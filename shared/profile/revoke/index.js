@@ -1,11 +1,9 @@
 // @flow
-
 import * as React from 'react'
-import {Box, Text, Icon, Button, PlatformIcon} from '../../common-adapters'
-import {globalStyles, globalColors, globalMargins} from '../../styles'
+import {Box, Text, Icon, Button, PlatformIcon, ButtonBar} from '../../common-adapters'
+import {globalStyles, globalColors, globalMargins, isMobile} from '../../styles'
 import {formatMessage, formatConfirmButton} from './index.shared'
 import {subtitle as platformSubtitle} from '../../util/platforms'
-import {isMobile} from '../../constants/platform'
 
 import type {Props} from './index'
 
@@ -28,16 +26,15 @@ const Revoke = ({platform, platformHandle, errorMessage, onCancel, onRevoke, isW
         <Text style={styleReminderText} type="Body">
           You can add it again later, if you change your mind.
         </Text>
-        <Box style={styleButtonsContainer}>
+        <ButtonBar>
           <Button type="Secondary" onClick={onCancel} label="Cancel" disabled={isWaiting} />
           <Button
             type="Danger"
             onClick={onRevoke}
-            style={{marginLeft: globalMargins.tiny}}
             label={formatConfirmButton(platform)}
             waiting={isWaiting}
           />
-        </Box>
+        </ButtonBar>
       </Box>
     </Box>
   )
@@ -112,11 +109,6 @@ const styleDescriptionText = {
 const styleReminderText = {
   marginTop: globalMargins.tiny,
   ...(isMobile ? {} : {textAlign: 'center'}),
-}
-
-const styleButtonsContainer = {
-  ...globalStyles.flexBoxRow,
-  marginTop: globalMargins.medium,
 }
 
 export default Revoke

@@ -3,8 +3,7 @@
 import * as Types from '../../constants/types/search'
 import React, {Component} from 'react'
 import {Box, Icon, ClickableBox, Text} from '../../common-adapters'
-import {globalStyles, globalColors, globalMargins, transition} from '../../styles'
-import {isMobile} from '../../constants/platform'
+import {globalStyles, globalColors, globalMargins, transition, isMobile} from '../../styles'
 
 import type {IconType} from '../../common-adapters/icon'
 

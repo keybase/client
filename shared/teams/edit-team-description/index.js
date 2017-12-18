@@ -1,6 +1,6 @@
 // @flow
 import React from 'react'
-import {Avatar, Box, Button, Input, MaybePopup, Text} from '../../common-adapters'
+import {Avatar, Box, Button, Input, MaybePopup, Text, ButtonBar} from '../../common-adapters'
 import {globalStyles, globalMargins} from '../../styles'
 
 export type Props = {
@@ -33,18 +33,15 @@ const EditTeamDescription = ({
         style={{flexShrink: 0}}
         value={description}
       />
-      <Box
-        style={{...globalStyles.flexBoxRow, flex: 1, alignItems: 'center', paddingTop: globalMargins.medium}}
-      >
+      <ButtonBar>
         <Button label="Cancel" onClick={onClose} type="Secondary" />
         <Button
           disabled={description === origDescription}
           label="Save"
           onClick={onSetDescription}
-          style={{marginLeft: globalMargins.tiny}}
           type="Primary"
         />
-      </Box>
+      </ButtonBar>
     </Box>
   </MaybePopup>
 )

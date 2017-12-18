@@ -3,8 +3,7 @@ import * as React from 'react'
 import Box from './box'
 import ClickableBox from './clickable-box'
 import Divider from './divider'
-import {globalColors, globalMargins, globalStyles} from '../styles'
-import {isMobile} from '../constants/platform'
+import {globalColors, globalMargins, globalStyles, isMobile} from '../styles'
 
 type Props = {
   tabs: Array<React.Node>,

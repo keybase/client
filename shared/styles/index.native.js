@@ -135,3 +135,4 @@ export {
   styleSheetCreate,
   transition,
 }
+export {isMobile} from '../constants/platform'

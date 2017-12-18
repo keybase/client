@@ -1,8 +1,7 @@
 // @flow
 import * as React from 'react'
 import {Box, ClickableBox, Avatar, Text, Usernames} from '../../../common-adapters'
-import {globalStyles, globalMargins} from '../../../styles'
-import {isMobile} from '../../../constants/platform'
+import {globalStyles, globalMargins, isMobile} from '../../../styles'
 
 type Props = {
   onShowProfile: (user: string) => void,

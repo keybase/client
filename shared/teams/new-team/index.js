@@ -1,9 +1,8 @@
 // @flow
 import React from 'react'
 import {Box, Button, HeaderHoc, Input, PopupDialog, Text, ScrollView} from '../../common-adapters/index'
-import {isMobile} from '../../constants/platform'
 import {validTeamname, baseTeamname} from '../../constants/teamname'
-import {globalColors, globalMargins, globalStyles} from '../../styles'
+import {globalColors, globalMargins, globalStyles, isMobile} from '../../styles'
 
 import type {Props} from './'
 

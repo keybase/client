@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react'
-import {Avatar, Box, Button, Icon, Input, PopupDialog, Text} from '../../common-adapters'
+import {Avatar, Box, Button, Icon, Input, PopupDialog, Text, ButtonBar} from '../../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../../styles'
 
 import type {Props} from '.'
@@ -60,15 +60,10 @@ const CreateChannel = (props: Props) => (
           onChangeText={description => props.onDescriptionChange(description)}
         />
       </Box>
-      <Box style={_buttonsStyle}>
-        <Button
-          type="Secondary"
-          onClick={props.onClose}
-          label="Cancel"
-          style={{marginRight: globalMargins.tiny}}
-        />
+      <ButtonBar>
+        <Button type="Secondary" onClick={props.onClose} label="Cancel" />
         <Button type="Primary" onClick={props.onSubmit} label="Save" />
-      </Box>
+      </ButtonBar>
     </Box>
   </PopupDialog>
 )
@@ -76,11 +71,6 @@ const CreateChannel = (props: Props) => (
 const _inputStyle = {
   ...globalStyles.flexBoxRow,
   marginTop: globalMargins.medium,
-}
-
-const _buttonsStyle = {
-  ...globalStyles.flexBoxRow,
-  marginTop: globalMargins.xlarge,
 }
 
 const _boxStyle = {

@@ -1,6 +1,16 @@
 // @flow
 import * as React from 'react'
-import {Avatar, Text, Box, Button, PopupDialog, ScrollView, Checkbox, Icon} from '../../common-adapters'
+import {
+  Avatar,
+  Text,
+  Box,
+  Button,
+  PopupDialog,
+  ScrollView,
+  Checkbox,
+  Icon,
+  ButtonBar,
+} from '../../common-adapters'
 import {globalStyles, globalColors, globalMargins, glamorous} from '../../styles'
 
 import type {Props, RowProps} from '.'
@@ -103,7 +113,7 @@ const ManageChannels = (props: Props) => (
         <Text type="BodyBigLink" onClick={props.onCreate}>New chat channel</Text>
       </Box>
       <Box style={{flex: 2, ...globalStyles.flexBoxColumn, justifyContent: 'flex-end'}}>
-        <Box style={{...globalStyles.flexBoxRow}}>
+        <ButtonBar>
           <Button type="Secondary" label="Cancel" onClick={props.onClose} />
           <Button
             type="Primary"
@@ -113,7 +123,7 @@ const ManageChannels = (props: Props) => (
             onClick={props.onSaveSubscriptions}
             style={{marginLeft: globalMargins.tiny}}
           />
-        </Box>
+        </ButtonBar>
       </Box>
     </Box>
   </PopupDialog>

@@ -1,8 +1,7 @@
 // @flow
 import React, {PureComponent} from 'react'
 import {Text, PlaintextUsernames, Box} from '../../../../common-adapters'
-import {globalStyles, globalColors, lineHeight} from '../../../../styles'
-import {isMobile} from '../../../../constants/platform'
+import {globalStyles, globalColors, lineHeight, isMobile} from '../../../../styles'
 import {List} from 'immutable'
 
 type Props = {
