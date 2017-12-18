@@ -1,5 +1,7 @@
 // @flow
 import avatar from '../common-adapters/avatar.stories'
+import buttonBar from '../common-adapters/button-bar.stories'
+import button from '../common-adapters/button.stories'
 import box from '../common-adapters/box.stories'
 import chatInboxRow from '../chat/inbox/row/index.stories'
 import chatInfoPanel from '../chat/conversation/info-panel/index.stories'
@@ -22,6 +24,8 @@ import editTeamDescription from '../teams/edit-team-description/index.stories'
 const stories = {
   avatar,
   box,
+  button,
+  buttonBar,
   chatCreateChannel,
   chatHud,
   chatInboxRow,

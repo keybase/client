@@ -5,6 +5,7 @@ import {globalStyles, globalMargins, globalColors} from '../styles'
 import {
   Box,
   Button,
+  ButtonBar,
   Checkbox,
   Icon,
   Text,
@@ -99,9 +100,9 @@ class Feedback extends Component<Props> {
               </Text>
             </Box>
           </Box>
-          <Box style={{alignSelf: 'center', marginTop: globalMargins.large}}>
+          <ButtonBar>
             <Button label="Send" type="Primary" onClick={this._onSubmit} waiting={sending} />
-          </Box>
+          </ButtonBar>
         </Box>
       </NativeScrollView>
     )

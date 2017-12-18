@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
-import {globalStyles, globalMargins} from '../../styles'
-import {StandardScreen, Box, Button, Input} from '../../common-adapters'
+import {globalStyles} from '../../styles'
+import {StandardScreen, Box, Button, Input, ButtonBar} from '../../common-adapters'
 
 import type {Props} from './render'
 
@@ -32,23 +32,13 @@ const EditProfileRender = (props: Props) => (
         onEnterKeyDown={props.onSubmit}
         onChangeText={location => props.onLocationChange(location)}
       />
-      <Box style={styleButtonContainer}>
-        <Button
-          type="Secondary"
-          onClick={props.onCancel}
-          label="Cancel"
-          style={{marginRight: globalMargins.tiny}}
-        />
+      <ButtonBar>
+        <Button type="Secondary" onClick={props.onCancel} label="Cancel" />
         <Button type="Primary" onClick={props.onSubmit} label="Save" />
-      </Box>
+      </ButtonBar>
     </Box>
   </StandardScreen>
 )
-
-const styleButtonContainer = {
-  ...globalStyles.flexBoxRow,
-  marginTop: 35,
-}
 
 const styleContainer = {
   ...globalStyles.flexBoxColumn,

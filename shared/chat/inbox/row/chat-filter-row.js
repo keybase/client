@@ -1,8 +1,7 @@
 // @flow
 import * as React from 'react'
 import {Icon, Box, ClickableBox, LoadingLine, Input, Text} from '../../../common-adapters'
-import {globalStyles, globalColors, globalMargins} from '../../../styles'
-import {isMobile} from '../../../constants/platform'
+import {globalStyles, globalColors, globalMargins, isMobile} from '../../../styles'
 import {branch} from 'recompose'
 
 let KeyHandler

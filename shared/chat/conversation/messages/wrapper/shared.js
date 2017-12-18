@@ -1,8 +1,7 @@
 // @flow
 import * as React from 'react'
 import {Avatar, Icon, Text, Box} from '../../../../common-adapters'
-import {globalStyles, globalMargins, globalColors} from '../../../../styles'
-import {isMobile} from '../../../../constants/platform'
+import {globalStyles, globalMargins, globalColors, isMobile} from '../../../../styles'
 import {colorForAuthor} from '../shared'
 import Timestamp from '../timestamp'
 

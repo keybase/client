@@ -3,8 +3,7 @@ import * as React from 'react'
 import Box from './box'
 import PopupDialog from './popup-dialog'
 import Icon from './icon'
-import {globalStyles, globalColors, globalMargins, glamorous} from '../styles'
-import {isMobile} from '../constants/platform'
+import {globalStyles, globalColors, globalMargins, glamorous, isMobile} from '../styles'
 
 type Props = {
   onChanged: (selected: React.Node) => void,

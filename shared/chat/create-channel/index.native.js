@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react'
-import {Avatar, Box, Button, HeaderHoc, Input, Text} from '../../common-adapters'
+import {Avatar, Box, Button, HeaderHoc, Input, Text, ButtonBar} from '../../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../../styles'
 import {renameProp, compose, withProps} from 'recompose'
 
@@ -51,9 +51,9 @@ const CreateChannel = (props: Props) => (
           onChangeText={description => props.onDescriptionChange(description)}
         />
       </Box>
-      <Box style={_buttonsStyle}>
+      <ButtonBar>
         <Button type="Primary" onClick={props.onSubmit} label="Save" />
-      </Box>
+      </ButtonBar>
     </Box>
   </Box>
 )
@@ -82,11 +82,6 @@ const _headerStyle = {
 
 const _boxStyle = {
   padding: 16,
-}
-
-const _buttonsStyle = {
-  alignItems: 'center',
-  marginTop: globalMargins.large,
 }
 
 const _inputStyle = {

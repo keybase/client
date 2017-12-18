@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
 import {globalStyles, globalMargins, globalColors} from '../../styles'
-import {Box, Button, Icon, Text, Avatar} from '../../common-adapters'
+import {Box, Button, Icon, Text, Avatar, ButtonBar} from '../../common-adapters'
 
 import type {Props} from './index'
 
@@ -28,16 +28,15 @@ function DeleteConfirm(props: Props) {
       <Text type="Header" style={{marginTop: globalMargins.medium, width: 320, textAlign: 'center'}}>
         Are you sure you want to permanently delete your account?
       </Text>
-      <Box style={{...globalStyles.flexBoxRow, marginTop: globalMargins.medium}}>
+      <ButtonBar>
         <Button type="Secondary" label="Cancel" onClick={props.onCancel} />
         <Button
-          style={{margin: 0, marginLeft: globalMargins.tiny}}
           disabled={!props.allowDeleteForever}
           type="Danger"
           label="Yes, permanently delete it"
           onClick={props.onDeleteForever}
         />
-      </Box>
+      </ButtonBar>
     </Box>
   )
 }

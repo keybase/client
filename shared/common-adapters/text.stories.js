@@ -2,9 +2,8 @@
 import Box from './box'
 import * as React from 'react'
 import Text from './text'
-import {globalColors, globalStyles} from '../styles'
+import {globalColors, globalStyles, isMobile} from '../styles'
 import {storiesOf, action} from '../stories/storybook'
-import {isMobile} from '../constants/platform'
 
 const SmallGap = () => <Box style={{minHeight: 24}} />
 const LargeGap = () => <Box style={{minHeight: 36}} />

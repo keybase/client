@@ -5,8 +5,7 @@ import openURL from '../../../util/open-url'
 import {RPCError} from '../../../util/errors'
 import {constantsStatusCode} from '../../../constants/types/flow-types'
 import {Box, Text, Markdown} from '../../../common-adapters'
-import {globalStyles, globalMargins} from '../../../styles'
-import {isMobile} from '../../../constants/platform'
+import {globalStyles, globalMargins, isMobile} from '../../../styles'
 
 import type {Props} from '.'
 
