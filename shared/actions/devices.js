@@ -72,23 +72,22 @@ const rpcDeviceList = (action: DevicesGen.DevicesLoadPayload, state: TypedState)
 const dispatchDevicesLoadedError = () => Saga.put(DevicesGen.createDevicesLoadedError())
 
 const dispatchDevicesLoaded = (results: Array<RPCTypes.DeviceDetail>) => {
-  const idToDetail = results.reduce((map: {[key: string]: Types.DeviceDetail}, d: RPCTypes.DeviceDetail) => {
-    const detail = Constants.makeDeviceDetail({
+  const devices = results.map((d: RPCTypes.DeviceDetail) =>
+    Constants.makeDeviceDetail({
       created: d.device.cTime,
       currentDevice: d.currentDevice,
-      deviceID: d.device.deviceID,
+      deviceID: Types.stringToDeviceID(d.device.deviceID),
       lastUsed: d.device.lastUsedTime,
       name: d.device.name,
       provisionedAt: d.provisionedAt,
       provisionerName: d.provisioner ? d.provisioner.name : '',
       revokedAt: d.revokedAt,
       revokedByName: d.revokedByDevice ? d.revokedByDevice.name : null,
-      // $ForceType avdl typed as string
-      type: d.device.type,
+      type: Types.stringToDeviceType(d.device.type),
     })
-    map[d.device.deviceID] = detail
-    return map
-  }, {})
+  )
+
+  const idToDetail: I.Map<Types.DeviceID, Types.DeviceDetail> = I.Map(devices.map(d => [d.deviceID, d]))
   return Saga.put(DevicesGen.createDevicesLoaded({idToDetail}))
 }
 

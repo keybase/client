@@ -1,11 +1,12 @@
 // @flow
+import * as Types from '../constants/types/devices'
 import {connect, type TypedState} from '../util/container'
 import {isMobile} from '../constants/platform'
 import {navigateAppend} from '../actions/route-tree'
 import {type IconType} from '../common-adapters/icon'
 
 type OwnProps = {
-  deviceID: string,
+  deviceID: Types.DeviceID,
 }
 
 const mapStateToProps = (state: TypedState, {deviceID}: OwnProps) => {

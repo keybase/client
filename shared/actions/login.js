@@ -3,6 +3,7 @@
 import logger from '../logger'
 import * as AppGen from './app-gen'
 import * as ConfigGen from './config-gen'
+import * as DevicesTypes from '../constants/types/devices'
 import * as DevicesConstants from '../constants/devices'
 import * as WaitingGen from './waiting-gen'
 import * as DevicesGen from './devices-gen'
@@ -24,11 +25,10 @@ import {deletePushTokenSaga} from './push'
 import {getExtendedStatus} from './config'
 import {isMobile} from '../constants/platform'
 import {pathSelector, navigateTo, navigateAppend} from './route-tree'
-import {type DeviceType} from '../constants/types/devices'
 import {type InitialState} from '../constants/types/config'
 import {type TypedState} from '../constants/reducer'
 
-const deviceType: DeviceType = isMobile ? 'mobile' : 'desktop'
+const deviceType: DevicesTypes.DeviceType = isMobile ? 'mobile' : 'desktop'
 const InputCancelError = {
   code: RPCTypes.constantsStatusCode.scinputcanceled,
   desc: 'Cancel Login',
@@ -350,7 +350,7 @@ const chooseDeviceSaga = onBackSaga =>
         const role = ({
           desktop: Constants.codePageDeviceRoleExistingComputer,
           mobile: Constants.codePageDeviceRoleExistingPhone,
-        }: {[key: DeviceType]: Types.DeviceRole})[DevicesConstants.toDeviceType(device.type)]
+        }: {[key: DevicesTypes.DeviceType]: Types.DeviceRole})[DevicesTypes.stringToDeviceType(device.type)]
         if (role) {
           yield Saga.call(setCodePageOtherDeviceRole, role)
         }

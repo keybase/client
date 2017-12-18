@@ -7,7 +7,7 @@
   "actions": {
     "devicesLoad": {},
     "devicesLoaded": {
-      "idToDetail": "{[id: string]: Types.DeviceDetail}",
+      "idToDetail": "I.Map<Types.DeviceID, Types.DeviceDetail>",
       "canError": {}
     },
     "paperKeyMake": {},
@@ -15,21 +15,21 @@
       "paperKey": "HiddenString"
     },
     "deviceRevoke": {
-      "deviceID": "string"
+      "deviceID": "Types.DeviceID"
     },
     "deviceRevoked": {
-      "deviceID": "string",
+      "deviceID": "Types.DeviceID",
       "wasCurrentDevice": "boolean",
       "deviceName": "string"
     },
     "showRevokePage": {
-      "deviceID": "string"
+      "deviceID": "Types.DeviceID"
     },
     "endangeredTLFsLoad": {
-      "deviceID": "string"
+      "deviceID": "Types.DeviceID"
     },
     "endangeredTLFsLoaded": {
-      "deviceID": "string",
+      "deviceID": "Types.DeviceID",
       "tlfs": "Array<string>"
     }
   }

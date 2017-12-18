@@ -1,4 +1,5 @@
 // @flow
+import * as Types from '../constants/types/devices'
 import React, {PureComponent} from 'react'
 import {Box, Text, List, Icon, ClickableBox, ProgressIndicator, HeaderHoc} from '../common-adapters'
 import {OLDPopupMenu} from '../common-adapters/popup-menu'
@@ -10,10 +11,10 @@ import {isMobile} from '../constants/platform'
 import type {MenuItem} from '../common-adapters/popup-menu.js'
 
 type Props = {
-  deviceIDs: Array<string>,
+  deviceIDs: Array<Types.DeviceID>,
   menuItems: Array<MenuItem | 'Divider' | null>,
   onToggleShowRevoked: () => void,
-  revokedDeviceIDs: Array<string>,
+  revokedDeviceIDs: Array<Types.DeviceID>,
   showMenu: () => void,
   hideMenu: () => void,
   showingMenu: boolean,

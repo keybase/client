@@ -1,5 +1,7 @@
 // @flow
 /* eslint-env jest */
+import * as I from 'immutable'
+import * as Types from '../../constants/types/devices'
 import * as Constants from '../../constants/devices'
 import * as DevicesGen from '../devices-gen'
 import * as RPCTypes from '../../constants/types/flow-types'
@@ -12,7 +14,7 @@ jest.unmock('immutable')
 
 describe('showRevokePageSideEffects', () => {
   it('Asks for endangered tlfs', () => {
-    const deviceID = '1234aaa'
+    const deviceID = Types.stringToDeviceID('1234aaa')
     expect(_testing.requestEndangeredTLFsLoad(DevicesGen.createShowRevokePage({deviceID}))).toEqual(
       Saga.put(DevicesGen.createEndangeredTLFsLoad({deviceID}))
     )
@@ -22,21 +24,21 @@ describe('showRevokePageSideEffects', () => {
 describe('convertDataFromServer', () => {
   const d1 = {
     cTime: 1234,
-    deviceID: 'a1',
+    deviceID: Types.stringToDeviceID('a1'),
     encryptKey: 'kid',
     lastUsedTime: 3456,
     mTime: 2345,
     name: 'a',
     status: 0,
-    type: 'mobile',
+    type: Types.stringToDeviceType('mobile'),
     verifyKey: 'vkey',
   }
 
   const d2 = {
     ...d1,
-    deviceID: 'b',
+    deviceID: Types.stringToDeviceID('b'),
     name: 'b',
-    type: 'desktop',
+    type: Types.stringToDeviceType('desktop'),
   }
 
   const results: Array<RPCTypes.DeviceDetail> = [
@@ -62,32 +64,38 @@ describe('convertDataFromServer', () => {
     },
   ]
 
-  const idToDetail = {
-    [d1.deviceID]: Constants.makeDeviceDetail({
-      created: d1.cTime,
-      currentDevice: false,
-      deviceID: d1.deviceID,
-      lastUsed: d1.lastUsedTime,
-      name: d1.name,
-      provisionedAt: 5677,
-      provisionerName: d2.name,
-      revokedAt: 69236,
-      revokedByName: d1.name,
-      type: 'mobile',
-    }),
-    [d2.deviceID]: Constants.makeDeviceDetail({
-      created: d2.cTime,
-      currentDevice: true,
-      deviceID: d2.deviceID,
-      lastUsed: d2.lastUsedTime,
-      name: d2.name,
-      provisionedAt: 5677,
-      provisionerName: d1.name,
-      revokedAt: 69236,
-      revokedByName: null,
-      type: 'desktop',
-    }),
-  }
+  const idToDetail: I.Map<Types.DeviceID, Types.DeviceDetail> = I.Map([
+    [
+      d1.deviceID,
+      Constants.makeDeviceDetail({
+        created: d1.cTime,
+        currentDevice: false,
+        deviceID: d1.deviceID,
+        lastUsed: d1.lastUsedTime,
+        name: d1.name,
+        provisionedAt: 5677,
+        provisionerName: d2.name,
+        revokedAt: 69236,
+        revokedByName: d1.name,
+        type: 'mobile',
+      }),
+    ],
+    [
+      d2.deviceID,
+      Constants.makeDeviceDetail({
+        created: d2.cTime,
+        currentDevice: true,
+        deviceID: d2.deviceID,
+        lastUsed: d2.lastUsedTime,
+        name: d2.name,
+        provisionedAt: 5677,
+        provisionerName: d1.name,
+        revokedAt: 69236,
+        revokedByName: null,
+        type: 'desktop',
+      }),
+    ],
+  ])
 
   expect(_testing.dispatchDevicesLoaded(results)).toEqual(
     Saga.put(DevicesGen.createDevicesLoaded({idToDetail}))
@@ -96,12 +104,13 @@ describe('convertDataFromServer', () => {
 
 describe('waitingGetsUpdated', () => {
   const payload = {key: Constants.waitingKey}
+  const deviceID = Types.stringToDeviceID('')
 
   it('waiting increments', () => {
     const actionsThatIncrement = [
-      DevicesGen.createDeviceRevoke({deviceID: ''}),
+      DevicesGen.createDeviceRevoke({deviceID}),
       DevicesGen.createDevicesLoad(),
-      DevicesGen.createEndangeredTLFsLoad({deviceID: ''}),
+      DevicesGen.createEndangeredTLFsLoad({deviceID}),
       DevicesGen.createPaperKeyMake(),
     ]
 
@@ -112,11 +121,11 @@ describe('waitingGetsUpdated', () => {
 
   it('waiting decrements', () => {
     const actionsThatDecrement = [
-      DevicesGen.createDevicesLoaded({idToDetail: {}}),
-      DevicesGen.createEndangeredTLFsLoaded({deviceID: '', tlfs: []}),
+      DevicesGen.createDevicesLoaded({idToDetail: I.Map()}),
+      DevicesGen.createEndangeredTLFsLoaded({deviceID, tlfs: []}),
       DevicesGen.createPaperKeyCreated({paperKey: new HiddenString('')}),
       DevicesGen.createDeviceRevoked({
-        deviceID: '',
+        deviceID,
         deviceName: '',
         wasCurrentDevice: false,
       }),
