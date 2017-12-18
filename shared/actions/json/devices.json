@@ -1,21 +1,36 @@
 {
   "prelude": [
-    "import * as Constants from '../constants/devices'"
+    "import * as Types from '../constants/types/devices'",
+    "import * as Constants from '../constants/devices'",
+    "import HiddenString from '../util/hidden-string'"
   ],
   "actions": {
-    "load": {},
-    "loaded": {
-      "deviceIDs": "Array<string>"
+    "devicesLoad": {},
+    "devicesLoaded": {
+      "idToDetail": "I.Map<Types.DeviceID, Types.DeviceDetail>",
+      "canError": {}
     },
     "paperKeyMake": {},
-    "revoke": {
-      "deviceID": "string"
+    "paperKeyCreated": {
+      "paperKey": "HiddenString"
+    },
+    "deviceRevoke": {
+      "deviceID": "Types.DeviceID"
+    },
+    "deviceRevoked": {
+      "deviceID": "Types.DeviceID",
+      "wasCurrentDevice": "boolean",
+      "deviceName": "string"
     },
     "showRevokePage": {
-      "deviceID": "string"
+      "deviceID": "Types.DeviceID"
     },
-    "setWaiting": {
-      "waiting": "boolean"
+    "endangeredTLFsLoad": {
+      "deviceID": "Types.DeviceID"
+    },
+    "endangeredTLFsLoaded": {
+      "deviceID": "Types.DeviceID",
+      "tlfs": "Array<string>"
     }
   }
 }

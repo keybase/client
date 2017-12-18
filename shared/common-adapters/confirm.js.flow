@@ -6,9 +6,10 @@ export type Props = {
   danger?: boolean,
   submitLabel: string,
   onCancel: () => void,
-  onSubmit: () => void,
+  onSubmit: ?() => void,
   header: React.Node,
   body: React.Node,
+  disabled?: boolean,
 }
 
 declare export default class Confirm extends React.Component<Props> {}

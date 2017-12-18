@@ -4,6 +4,7 @@ import * as AppGen from '../app-gen'
 import * as Types from '../../constants/types/chat'
 import * as ChatTypes from '../../constants/types/flow-types-chat'
 import * as Constants from '../../constants/chat'
+import * as DeviceTypes from '../../constants/types/devices'
 import * as ChatGen from '../chat-gen'
 import * as EngineRpc from '../../constants/engine'
 import * as EntityCreators from '../entities'
@@ -15,7 +16,6 @@ import * as Shared from './shared'
 import HiddenString from '../../util/hidden-string'
 import {chatTab} from '../../constants/tabs'
 import {isMobile} from '../../constants/platform'
-import {toDeviceType} from '../../constants/devices'
 import {type Action} from '../../constants/types/flux'
 import {type TypedState} from '../../constants/reducer'
 
@@ -423,7 +423,7 @@ function _unboxedToMessage(
         channelMention: _parseChannelMention(payload.channelMention),
         conversationIDKey,
         deviceName: payload.senderDeviceName,
-        deviceType: toDeviceType(payload.senderDeviceType),
+        deviceType: DeviceTypes.stringToDeviceType(payload.senderDeviceType),
         failureDescription: null,
         mentions: I.Set(payload.atMentions || []),
         messageID: Constants.rpcMessageIDToMessageID(payload.messageID),

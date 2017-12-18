@@ -1,4 +1,5 @@
 // @flow
+import * as Types from '../constants/types/devices'
 import React, {PureComponent} from 'react'
 import {Box, Text, List, Icon, ClickableBox, ProgressIndicator, HeaderHoc} from '../common-adapters'
 import {OLDPopupMenu} from '../common-adapters/popup-menu'
@@ -6,33 +7,28 @@ import {RowConnector} from './row'
 import {globalStyles, globalColors, globalMargins, isMobile} from '../styles'
 import {branch} from 'recompose'
 
-import type {Device} from '../constants/types/flow-types'
 import type {MenuItem} from '../common-adapters/popup-menu.js'
 
 type Props = {
-  deviceIDs: Array<string>,
+  deviceIDs: Array<Types.DeviceID>,
   menuItems: Array<MenuItem | 'Divider' | null>,
   onToggleShowRevoked: () => void,
-  revokedDeviceIDs: Array<string>,
+  revokedDeviceIDs: Array<Types.DeviceID>,
   showMenu: () => void,
   hideMenu: () => void,
-  showExistingDevicePage: (device: Device) => void,
-  showRemoveDevicePage: (device: Device) => void,
   showingMenu: boolean,
   showingRevoked: boolean,
-  waitingForServer: boolean,
+  waiting: boolean,
 }
 
-const DeviceHeader = ({onAddNew}) => {
-  return (
-    <ClickableBox onClick={onAddNew}>
-      <Box style={{...stylesCommonRow, alignItems: 'center', borderBottomWidth: 0}}>
-        <Icon type="iconfont-new" style={{color: globalColors.blue}} />
-        <Text type="BodyBigLink" style={{padding: globalMargins.xtiny}}>Add new...</Text>
-      </Box>
-    </ClickableBox>
-  )
-}
+const DeviceHeader = ({onAddNew}) => (
+  <ClickableBox onClick={onAddNew}>
+    <Box style={{...stylesCommonRow, alignItems: 'center', borderBottomWidth: 0}}>
+      <Icon type="iconfont-new" style={{color: globalColors.blue}} />
+      <Text type="BodyBigLink" style={{padding: globalMargins.xtiny}}>Add new...</Text>
+    </Box>
+  </ClickableBox>
+)
 
 const RevokedHeader = ({children, onToggleExpanded, expanded}) => (
   <Box>
@@ -75,41 +71,32 @@ const DeviceRow = RowConnector(({isCurrentDevice, name, isRevoked, icon, showExi
 ))
 
 class Devices extends PureComponent<Props> {
-  _renderRow = (index, item) => {
-    if (item.type === 'revokedHeader') {
-      return (
-        <RevokedHeader
+  _renderRow = (index, item) =>
+    item.type === 'revokedHeader'
+      ? <RevokedHeader
           key="revokedHeader"
           expanded={this.props.showingRevoked}
           onToggleExpanded={this.props.onToggleShowRevoked}
         />
-      )
-    }
-
-    return <DeviceRow key={item.id} deviceID={item.id} />
-  }
+      : <DeviceRow key={item.id} deviceID={item.id} />
 
   render() {
-    if (this.props.waitingForServer) {
-      return (
-        <Box style={{...globalStyles.flexBoxRow, height: 64, justifyContent: 'center'}}>
-          <ProgressIndicator style={{alignSelf: 'center', width: 24}} />
-        </Box>
-      )
-    }
+    const items = [
+      ...this.props.deviceIDs.map(id => ({id, key: id, type: 'device'})),
+      {key: 'revokedHeader', type: 'revokedHeader'},
+      ...(this.props.showingRevoked
+        ? this.props.revokedDeviceIDs.map(id => ({id, key: id, type: 'device'}))
+        : []),
+    ]
+
     return (
       <Box style={stylesContainer}>
+        {this.props.waiting &&
+          <Box style={{...globalStyles.flexBoxRow, height: 64, justifyContent: 'center'}}>
+            <ProgressIndicator style={{alignSelf: 'center', width: 24}} />
+          </Box>}
         <DeviceHeader onAddNew={this.props.showMenu} />
-        <List
-          items={[
-            ...this.props.deviceIDs.map(id => ({type: 'device', key: id, id})),
-            {type: 'revokedHeader', key: 'revokedHeader'},
-            ...(this.props.showingRevoked
-              ? this.props.revokedDeviceIDs.map(id => ({type: 'device', key: id, id}))
-              : []),
-          ]}
-          renderItem={this._renderRow}
-        />
+        <List items={items} renderItem={this._renderRow} />
         {this.props.showingMenu &&
           <OLDPopupMenu style={stylesPopup} items={this.props.menuItems} onHidden={this.props.hideMenu} />}
       </Box>
@@ -155,13 +142,13 @@ const stylesRevokedDescription = {
 const stylesPopup = isMobile
   ? {}
   : {
-      top: globalMargins.large,
       alignItems: 'center',
       left: 0,
-      right: 0,
       marginLeft: 'auto',
       marginRight: 'auto',
       marginTop: 50,
+      right: 0,
+      top: globalMargins.large,
     }
 
 const textStyle = isRevoked =>
