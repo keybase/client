@@ -182,18 +182,19 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
 
   const you = stateProps.you
   let youExplicitAdmin = false
-  let youImplicitAdmin = false
+  let youImplicitAdmin = stateProps.yourOperations.manageMembers
   let youAreMember = false
   if (you) {
-    youExplicitAdmin = Constants.isOwner(stateProps.yourRole) || Constants.isAdmin(stateProps.yourRole)
-    youImplicitAdmin = stateProps._implicitAdminUsernames.has(you)
+    // TODO: can we just test stateProps.yourOperations.RenameChannel ?
+    youExplicitAdmin = Constants.isOwner(stateProps.yourRole) || stateProps.yourOperations.manageMembers
+
     youAreMember = stateProps.yourRole && stateProps.yourRole !== 'none'
   }
   const youAdmin = youExplicitAdmin || youImplicitAdmin
 
   const showAddYourselfBanner = !youAreMember && !youExplicitAdmin && youImplicitAdmin
-  const youCanAddPeople = youAdmin
-  const youCanCreateSubteam = youAdmin
+  const youCanAddPeople = stateProps.yourOperations.manageMembers
+  const youCanCreateSubteam = stateProps.yourOperations.manageSubteams
 
   const onAddSelf = () => dispatchProps._onAddSelf(stateProps.name, you)
   const onSetOpenTeamRole = () =>
