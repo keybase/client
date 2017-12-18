@@ -25,9 +25,16 @@ export default function(state: Types.State = initialState, action: Chat2Gen.Acti
   switch (action.type) {
     case Chat2Gen.resetStore:
       return initialState
+    case Chat2Gen.inboxUtrustedLoaded: {
+      const {untrusted} = action.payload
+      return state.idToConversation.withMutations(m => {
+        untrusted.forEach(u => {
+          :
+        })
+      })
+    }
     // Saga only actions
     case Chat2Gen.inboxRefresh:
-    case Chat2Gen.inboxUtrustedLoaded:
       return state
     default:
       // eslint-disable-next-line no-unused-expressions
