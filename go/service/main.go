@@ -961,6 +961,9 @@ func (d *Service) configurePath() {
 	}
 }
 
+// tryLogin should only be called once.
+var tryLoginOnce sync.Once
+
 // tryLogin runs LoginOffline which will load the local session file and unlock the
 // local device keys without making any network requests.
 //
@@ -968,38 +971,40 @@ func (d *Service) configurePath() {
 // around any issue where the session.json file is out of date or missing since the
 // last time the service started.
 func (d *Service) tryLogin() {
-	eng := engine.NewLoginOffline(d.G())
-	ctx := &engine.Context{}
-	if err := engine.RunEngine(eng, ctx); err != nil {
-		d.G().Log.Debug("error running LoginOffline on service startup: %s", err)
-		d.G().Log.Debug("trying LoginProvisionedDevice")
+	tryLoginOnce.Do(func() {
+		eng := engine.NewLoginOffline(d.G())
+		ctx := &engine.Context{}
+		if err := engine.RunEngine(eng, ctx); err != nil {
+			d.G().Log.Debug("error running LoginOffline on service startup: %s", err)
+			d.G().Log.Debug("trying LoginProvisionedDevice")
 
-		// Standalone mode quirk here. We call tryLogin when client is
-		// launched in standalone to unlock the same keys that we would
-		// have in service mode. But NewLoginProvisionedDevice engine
-		// needs KbKeyrings and not every command sets it up. Ensure
-		// Keyring is available.
+			// Standalone mode quirk here. We call tryLogin when client is
+			// launched in standalone to unlock the same keys that we would
+			// have in service mode. But NewLoginProvisionedDevice engine
+			// needs KbKeyrings and not every command sets it up. Ensure
+			// Keyring is available.
 
-		// TODO: We will be phasing out KbKeyrings usage flag, or even
-		// usage flags entirely. Then this will not be needed because
-		// Keyrings will always be loaded.
+			// TODO: We will be phasing out KbKeyrings usage flag, or even
+			// usage flags entirely. Then this will not be needed because
+			// Keyrings will always be loaded.
 
-		if d.G().Keyrings == nil {
-			d.G().Log.Debug("tryLogin: Configuring Keyrings")
-			d.G().ConfigureKeyring()
+			if d.G().Keyrings == nil {
+				d.G().Log.Debug("tryLogin: Configuring Keyrings")
+				d.G().ConfigureKeyring()
+			}
+
+			deng := engine.NewLoginProvisionedDevice(d.G(), "")
+			deng.SecretStoreOnly = true
+			ctx := &engine.Context{
+				NetContext: context.Background(),
+			}
+			if err := engine.RunEngine(deng, ctx); err != nil {
+				d.G().Log.Debug("error running LoginProvisionedDevice on service startup: %s", err)
+			}
+		} else {
+			d.G().Log.Debug("success running LoginOffline on service startup")
 		}
-
-		deng := engine.NewLoginProvisionedDevice(d.G(), "")
-		deng.SecretStoreOnly = true
-		ctx := &engine.Context{
-			NetContext: context.Background(),
-		}
-		if err := engine.RunEngine(deng, ctx); err != nil {
-			d.G().Log.Debug("error running LoginProvisionedDevice on service startup: %s", err)
-		}
-	} else {
-		d.G().Log.Debug("success running LoginOffline on service startup")
-	}
+	})
 }
 
 func (d *Service) startProfile() {

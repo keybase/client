@@ -661,6 +661,22 @@ func ImportStatusAsError(g *GlobalContext, s *keybase1.Status) error {
 		return TeamInviteTokenReusedError{}
 	case SCTeamBadMembership:
 		return TeamBadMembershipError{}
+	case SCTeamProvisionalCanKey, SCTeamProvisionalCannotKey:
+		e := TeamProvisionalError{}
+		for _, field := range s.Fields {
+			switch field.Key {
+			case "IsPublic":
+				if field.Value == "1" {
+					e.IsPublic = true
+				}
+			case "PreResolveDisplayName":
+				e.PreResolveDisplayName = field.Value
+			}
+		}
+		if s.Code == SCTeamProvisionalCanKey {
+			e.CanKey = true
+		}
+		return e
 	default:
 		ase := AppStatusError{
 			Code:   s.Code,
@@ -2199,4 +2215,21 @@ func (e TeamBadMembershipError) ToStatus() (s keybase1.Status) {
 	s.Code = SCTeamBadMembership
 	s.Name = "TEAM_BAD_MEMBERSHIP"
 	return
+}
+
+func (e TeamProvisionalError) ToStatus() keybase1.Status {
+	var ret keybase1.Status
+	if e.CanKey {
+		ret.Code = SCTeamProvisionalCanKey
+		ret.Name = "TEAM_PROVISIONAL_CAN_KEY"
+		ret.Fields = append(ret.Fields, keybase1.StringKVPair{Key: "CanKey", Value: "1"})
+	} else {
+		ret.Code = SCTeamProvisionalCannotKey
+		ret.Name = "TEAM_PROVISIONAL_CANNOT_KEY"
+	}
+	ret.Fields = append(ret.Fields, keybase1.StringKVPair{Key: "PreResolveDisplayName", Value: e.PreResolveDisplayName})
+	if e.IsPublic {
+		ret.Fields = append(ret.Fields, keybase1.StringKVPair{Key: "IsPublic", Value: "1"})
+	}
+	return ret
 }

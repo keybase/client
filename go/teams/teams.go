@@ -1066,6 +1066,14 @@ func (t *Team) postChangeItem(ctx context.Context, section SCTeamSection, linkTy
 	return t.postMulti(payload)
 }
 
+func getCurrentUserUV(ctx context.Context, g *libkb.GlobalContext) (ret keybase1.UserVersion, err error) {
+	err = g.GetFullSelfer().WithSelf(ctx, func(u *libkb.User) error {
+		ret = u.ToUserVersion()
+		return nil
+	})
+	return ret, err
+}
+
 func (t *Team) loadMe(ctx context.Context) (*libkb.User, error) {
 	if t.me == nil {
 		me, err := libkb.LoadMe(libkb.NewLoadUserArgWithContext(ctx, t.G()))
@@ -1483,10 +1491,6 @@ func isSigOldSeqnoError(err error) bool {
 
 func (t *Team) associateTLFID(ctx context.Context, tlfID keybase1.TLFID) (err error) {
 	defer t.G().CTrace(ctx, "Team.associateTLFID", func() error { return err })()
-
-	if !t.IsImplicit() {
-		return NewExplicitTeamOperationError("associateTLFID")
-	}
 
 	teamSection := SCTeamSection{
 		ID:       SCTeamID(t.ID),

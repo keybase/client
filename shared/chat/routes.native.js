@@ -12,6 +12,7 @@ import InfoPanel from './conversation/info-panel/container'
 import NewTeamDialog from './new-team-dialog-container.js'
 import ManageChannels from './manage-channels/container'
 import CreateChannel from './create-channel/container'
+import ReallyLeaveTeam from '../teams/really-leave-team/container-chat'
 
 const conversationRoute = makeRouteDefNode({
   component: Conversation,
@@ -34,6 +35,11 @@ const conversationRoute = makeRouteDefNode({
     infoPanel: {
       component: InfoPanel,
       children: {
+        reallyLeaveTeam: {
+          component: ReallyLeaveTeam,
+          tags: makeLeafTags({layerOnTop: false}),
+          children: {},
+        },
         showBlockConversationDialog: {
           component: BlockConversationWarning,
           tags: makeLeafTags({hideStatusBar: true}),

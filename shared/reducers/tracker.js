@@ -3,6 +3,8 @@ import * as TrackerGen from '../actions/tracker-gen'
 import * as Types from '../constants/types/tracker'
 import * as Constants from '../constants/tracker'
 
+const sortByTeamName = (a, b) => a.fqName.localeCompare(b.fqName)
+
 function updateUserState(
   state: Types.State,
   username: string,
@@ -331,7 +333,7 @@ export default function(
         bio: userCard.bio,
         avatar: `https://keybase.io/${username}/picture`,
         location: userCard.location,
-        showcasedTeams: userCard.teamShowcase || [],
+        showcasedTeams: (userCard.teamShowcase || []).sort(sortByTeamName),
       }
       return updateUserState(state, action.payload.username, s => ({
         ...s,

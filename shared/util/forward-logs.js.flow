@@ -1,7 +1,5 @@
 // @flow
 import type {LogLineWithLevelISOTimestamp} from '../logger/types'
-export const setupSource = () => {}
-export const setupTarget = () => {}
 
 export const localLog = (...args: any) => {}
 export const localWarn = (...args: any) => {}
