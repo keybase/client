@@ -27,11 +27,13 @@ function _mergeSortedArraysHelper<A>(sortFn: (a: A, b: A) => number, ...arrays: 
 }
 
 function deleteFileIfOlderThanMs(olderThanMs: number, filepath: string): Promise<void> {
-  return stat(filepath).then(({lastModified}) => {
-    if (Date.now() - lastModified > olderThanMs) {
-      return unlink(filepath)
-    }
-  })
+  return stat(filepath)
+    .then(({lastModified}) => {
+      if (Date.now() - lastModified > olderThanMs) {
+        return unlink(filepath)
+      }
+    })
+    .catch(() => {})
 }
 
 class AggregateLoggerImpl implements AggregateLogger {
