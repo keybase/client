@@ -1564,18 +1564,45 @@
       ]
     },
     {
-      "type": "enum",
+      "type": "record",
       "name": "TeamOperation",
-      "symbols": [
-        "MANAGE_MEMBERS_0",
-        "MANAGE_SUBTEAMS_1",
-        "CREATE_CHANNEL_2",
-        "DELETE_CHANNEL_3",
-        "RENAME_CHANNEL_4",
-        "EDIT_CHANNEL_DESCRIPTION_5",
-        "SET_TEAM_SHOWCASE_6",
-        "SET_MEMBER_SHOWCASE_7",
-        "CHANGE_OPEN_TEAM_8"
+      "fields": [
+        {
+          "type": "boolean",
+          "name": "manageMembers"
+        },
+        {
+          "type": "boolean",
+          "name": "manageSubteams"
+        },
+        {
+          "type": "boolean",
+          "name": "createChannel"
+        },
+        {
+          "type": "boolean",
+          "name": "deleteChannel"
+        },
+        {
+          "type": "boolean",
+          "name": "renameChannel"
+        },
+        {
+          "type": "boolean",
+          "name": "editChannelDescription"
+        },
+        {
+          "type": "boolean",
+          "name": "setTeamShowcase"
+        },
+        {
+          "type": "boolean",
+          "name": "setMemberShowcase"
+        },
+        {
+          "type": "boolean",
+          "name": "changeOpenTeam"
+        }
       ]
     },
     {
@@ -2140,13 +2167,9 @@
         {
           "name": "name",
           "type": "string"
-        },
-        {
-          "name": "op",
-          "type": "TeamOperation"
         }
       ],
-      "response": "bool"
+      "response": "TeamOperation"
     },
     "teamRotateKey": {
       "request": [

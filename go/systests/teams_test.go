@@ -923,54 +923,85 @@ func TestTeamCanUserPerform(t *testing.T) {
 	require.NoError(t, err)
 	subteam := team + ".mysubteam"
 
-	callCanPerform := func(user *userPlusDevice, teamname string, op keybase1.TeamOperation) bool {
-		ret, err := teams.CanUserPerform(context.TODO(), user.tc.G, teamname, op)
-		t.Logf("teams.CanUserPerform(%s,%s,%v)", user.username, teamname, op)
+	callCanPerform := func(user *userPlusDevice, teamname string) keybase1.TeamOperation {
+		ret, err := teams.CanUserPerform(context.TODO(), user.tc.G, teamname)
+		t.Logf("teams.CanUserPerform(%s,%s)", user.username, teamname)
 		require.NoError(t, err)
 		return ret
 	}
+	annPerms := callCanPerform(ann, team)
+	bobPerms := callCanPerform(bob, team)
+	pamPerms := callCanPerform(pam, team)
+	eddPerms := callCanPerform(edd, team)
 
-	for _, op := range keybase1.TeamOperationMap {
-		// All ops should be fine for owners and admins
-		require.True(t, callCanPerform(ann, team, op))
-		require.True(t, callCanPerform(bob, team, op))
+	// All ops should be fine for owners and admins
+	require.True(t, annPerms.ManageMembers)
+	require.True(t, annPerms.ManageSubteams)
+	require.True(t, annPerms.CreateChannel)
+	require.True(t, annPerms.DeleteChannel)
+	require.True(t, annPerms.RenameChannel)
+	require.True(t, annPerms.EditChannelDescription)
+	require.True(t, annPerms.SetTeamShowcase)
+	require.True(t, annPerms.SetMemberShowcase)
+	require.True(t, annPerms.ChangeOpenTeam)
 
-		// Some ops are fine for writers
-		ret := callCanPerform(pam, team, op)
-		switch op {
-		case keybase1.TeamOperation_CREATE_CHANNEL,
-			keybase1.TeamOperation_SET_MEMBER_SHOWCASE:
-			require.True(t, ret)
-		default:
-			require.False(t, ret)
-		}
+	require.True(t, bobPerms.ManageMembers)
+	require.True(t, bobPerms.ManageSubteams)
+	require.True(t, bobPerms.CreateChannel)
+	require.True(t, bobPerms.DeleteChannel)
+	require.True(t, bobPerms.RenameChannel)
+	require.True(t, bobPerms.EditChannelDescription)
+	require.True(t, bobPerms.SetTeamShowcase)
+	require.True(t, bobPerms.SetMemberShowcase)
+	require.True(t, bobPerms.ChangeOpenTeam)
 
-		// Only SetMemberShowcase (by default) is available for readers
-		ret = callCanPerform(edd, team, op)
-		switch op {
-		case keybase1.TeamOperation_SET_MEMBER_SHOWCASE:
-			require.True(t, ret)
-		default:
-			require.False(t, ret)
-		}
-	}
+	// Some ops are fine for writers
+	require.False(t, pamPerms.ManageMembers)
+	require.False(t, pamPerms.ManageSubteams)
+	require.True(t, pamPerms.CreateChannel)
+	require.False(t, pamPerms.DeleteChannel)
+	require.False(t, pamPerms.RenameChannel)
+	require.False(t, pamPerms.EditChannelDescription)
+	require.False(t, pamPerms.SetTeamShowcase)
+	require.True(t, pamPerms.SetMemberShowcase)
+	require.False(t, pamPerms.ChangeOpenTeam)
 
-	for _, op := range keybase1.TeamOperationMap {
-		// Some ops are fine for implicit admins
-		switch op {
-		case keybase1.TeamOperation_MANAGE_MEMBERS,
-			keybase1.TeamOperation_MANAGE_SUBTEAMS,
-			keybase1.TeamOperation_SET_TEAM_SHOWCASE,
-			keybase1.TeamOperation_CHANGE_OPEN_TEAM:
-			require.True(t, callCanPerform(ann, subteam, op))
-			require.True(t, callCanPerform(bob, subteam, op))
-		default:
-			require.False(t, callCanPerform(ann, subteam, op))
-			require.False(t, callCanPerform(bob, subteam, op))
-		}
-	}
+	// Only SetMemberShowcase (by default) is available for readers
+	require.False(t, eddPerms.ManageMembers)
+	require.False(t, eddPerms.ManageSubteams)
+	require.False(t, eddPerms.CreateChannel)
+	require.False(t, eddPerms.DeleteChannel)
+	require.False(t, eddPerms.RenameChannel)
+	require.False(t, eddPerms.EditChannelDescription)
+	require.False(t, eddPerms.SetTeamShowcase)
+	require.True(t, eddPerms.SetMemberShowcase)
+	require.False(t, eddPerms.ChangeOpenTeam)
+
+	annPerms = callCanPerform(ann, subteam)
+	bobPerms = callCanPerform(bob, subteam)
+
+	// Some ops are fine for implicit admins
+	require.True(t, annPerms.ManageMembers)
+	require.True(t, annPerms.ManageSubteams)
+	require.False(t, annPerms.CreateChannel)
+	require.False(t, annPerms.DeleteChannel)
+	require.False(t, annPerms.RenameChannel)
+	require.False(t, annPerms.EditChannelDescription)
+	require.True(t, annPerms.SetTeamShowcase)
+	require.False(t, annPerms.SetMemberShowcase)
+	require.True(t, annPerms.ChangeOpenTeam)
+
+	require.True(t, bobPerms.ManageMembers)
+	require.True(t, bobPerms.ManageSubteams)
+	require.False(t, bobPerms.CreateChannel)
+	require.False(t, bobPerms.DeleteChannel)
+	require.False(t, bobPerms.RenameChannel)
+	require.False(t, bobPerms.EditChannelDescription)
+	require.True(t, bobPerms.SetTeamShowcase)
+	require.False(t, bobPerms.SetMemberShowcase)
+	require.True(t, bobPerms.ChangeOpenTeam)
 
 	// Invalid team for pam
-	_, err = teams.CanUserPerform(context.TODO(), pam.tc.G, subteam, keybase1.TeamOperation_CREATE_CHANNEL)
+	_, err = teams.CanUserPerform(context.TODO(), pam.tc.G, subteam)
 	require.Error(t, err)
 }

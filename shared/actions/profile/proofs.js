@@ -1,4 +1,5 @@
 // @flow
+import logger from '../../logger'
 import * as ProfileGen from '../profile-gen'
 import * as Saga from '../../util/saga'
 import * as RPCTypes from '../../constants/types/flow-types'
@@ -41,7 +42,7 @@ function* _checkProof(action: ProfileGen.CheckProofPayload): Saga.SagaGenerator<
     }
   } catch (error) {
     yield Saga.put(ProfileGen.createWaiting({waiting: false}))
-    console.warn('Error getting proof update')
+    logger.warn('Error getting proof update')
     yield Saga.put(
       ProfileGen.createUpdateErrorText({
         errorText: "We couldn't verify your proof. Please retry!",
@@ -192,7 +193,7 @@ function* _addServiceProof(service: ProvablePlatformsType): Saga.SagaGenerator<a
     } else if (incoming.finished) {
       yield Saga.put(ProfileGen.createUpdateSigID({sigID: incoming.finished.params.sigID}))
       if (incoming.finished.error) {
-        console.warn('Error making proof')
+        logger.warn('Error making proof')
         yield Saga.put(
           ProfileGen.createUpdateErrorText({
             errorText: incoming.finished.error.desc,
@@ -200,7 +201,7 @@ function* _addServiceProof(service: ProvablePlatformsType): Saga.SagaGenerator<a
           })
         )
       } else {
-        console.log('Start Proof done: ', incoming.finished.params.sigID)
+        logger.info('Start Proof done: ', incoming.finished.params.sigID)
         yield Saga.put(ProfileGen.createCheckProof())
       }
       break
@@ -263,7 +264,7 @@ function* _submitCryptoAddress(
     )
     yield Saga.put(navigateAppend(['confirmOrPending'], [peopleTab]))
   } catch (error) {
-    console.warn('Error making proof')
+    logger.warn('Error making proof')
     yield Saga.put(ProfileGen.createWaiting({waiting: false}))
     yield Saga.put(ProfileGen.createUpdateErrorText({errorText: error.desc, errorCode: error.code}))
   }

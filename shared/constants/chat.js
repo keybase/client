@@ -1,4 +1,5 @@
 // @flow
+import logger from '../logger'
 import * as I from 'immutable'
 import * as RPCChatTypes from './types/flow-types-chat'
 import * as Types from './types/chat'
@@ -181,7 +182,7 @@ function parseMessageID(msgID: Types.MessageID): Types.ParsedMessageID {
     }
   }
 
-  console.error('msgID was not valid', msgID)
+  logger.error('msgID was not valid', msgID)
   return {
     msgID: -1,
     type: 'invalid',
@@ -718,6 +719,8 @@ const makeConversationMessages = I.Record({
   messages: I.List(),
 })
 
+const inviteCategoryEnumToName = invert(RPCTypes.teamsTeamInviteCategory)
+
 export {
   getBrokenUsers,
   getConversationMessages,
@@ -777,4 +780,5 @@ export {
   lastOrdinal,
   nextFractionalOrdinal,
   emptyConversationMessages,
+  inviteCategoryEnumToName,
 }

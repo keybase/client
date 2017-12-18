@@ -1,4 +1,5 @@
 // @flow
+import logger from '../../logger'
 import * as SettingsGen from '../../actions/settings-gen'
 import Bootstrapable from '../../util/bootstrapable'
 import Landing from '.'
@@ -12,8 +13,8 @@ const mapStateToProps = (state: TypedState, ownProps: {}) => {
     accountProps = {
       email: emails[0].email,
       isVerified: emails[0].isVerified,
-      onChangeEmail: () => console.log('todo'),
-      onChangePassphrase: () => console.log('todo'),
+      onChangeEmail: () => logger.debug('todo'),
+      onChangePassphrase: () => logger.debug('todo'),
     }
   }
 
@@ -23,15 +24,15 @@ const mapStateToProps = (state: TypedState, ownProps: {}) => {
     const freeSpaceGB = plan.gigabytes - usage.gigabytes
     const freeSpacePercentage = freeSpaceGB / plan.gigabytes
     planProps = {
-      onUpgrade: () => console.log('todo'),
-      onDowngrade: () => console.log('todo'),
-      onInfo: () => console.log('todo'),
+      onUpgrade: () => logger.debug('todo'),
+      onDowngrade: () => logger.debug('todo'),
+      onInfo: () => logger.debug('todo'),
       selectedLevel: plan.planLevel,
       freeSpace: freeSpaceGB + 'GB',
       freeSpacePercentage,
       lowSpaceWarning: false,
       paymentInfo,
-      onChangePaymentInfo: () => console.log('todo'),
+      onChangePaymentInfo: () => logger.debug('todo'),
     }
   }
 

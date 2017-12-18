@@ -1,4 +1,5 @@
 // @flow
+import logger from '../logger'
 import * as SettingsGen from '../actions/settings-gen'
 import * as Types from '../constants/types/settings'
 import * as Constants from '../constants/settings'
@@ -15,10 +16,10 @@ function reducer(state: Types.State = Constants.initialState, action: SettingsGe
       }
     case SettingsGen.notificationsToggle:
       if (!state.notifications.groups.email) {
-        console.log('Warning: trying to toggle while not loaded')
+        logger.warn('Trying to toggle while not loaded')
         return state
       } else if (!state.notifications.allowEdit) {
-        console.log('Warning: trying to toggle while allowEdit false')
+        logger.warn('Trying to toggle while allowEdit false')
         return state
       }
 

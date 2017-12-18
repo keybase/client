@@ -1,4 +1,5 @@
 // @flow
+import logger from '../logger'
 import * as shared from './icon.shared'
 import ClickableBox from './clickable-box'
 import * as React from 'react'
@@ -97,11 +98,11 @@ class Icon extends React.PureComponent<Props> {
     let iconType = shared.typeToIconMapper(props.type)
 
     if (!iconType) {
-      console.warn('Null iconType passed')
+      logger.warn('Null iconType passed')
       return null
     }
     if (!iconMeta[iconType]) {
-      console.warn(`Invalid icon type passed in: ${iconType}`)
+      logger.warn(`Invalid icon type passed in: ${iconType}`)
       return null
     }
 

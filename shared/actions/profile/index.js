@@ -1,4 +1,5 @@
 // @flow
+import logger from '../../logger'
 import * as AppGen from '../app-gen'
 import * as Constants from '../../constants/profile'
 import * as TrackerGen from '../tracker-gen'
@@ -129,7 +130,7 @@ function* _submitRevokeProof(action: ProfileGen.SubmitRevokeProofPayload): Saga.
     yield Saga.put(ProfileGen.createRevokeWaiting({waiting: false}))
     yield Saga.put(ProfileGen.createFinishRevoking())
   } catch (error) {
-    console.warn(`Error when revoking proof ${action.payload.proofId}`, error)
+    logger.warn(`Error when revoking proof ${action.payload.proofId}`, error)
     yield Saga.put(ProfileGen.createRevokeWaiting({waiting: false}))
     yield Saga.put(
       ProfileGen.createRevokeFinishError({
@@ -141,7 +142,7 @@ function* _submitRevokeProof(action: ProfileGen.SubmitRevokeProofPayload): Saga.
 
 function _openURLIfNotNull(nullableThing, url, metaText): void {
   if (nullableThing == null) {
-    console.warn("Can't openURL because we have a null", metaText)
+    logger.warn("Can't openURL because we have a null", metaText)
     return
   }
   openURL(url)
@@ -153,11 +154,11 @@ function _onAppLink(action: AppGen.LinkPayload) {
   try {
     url = new URL(link)
   } catch (e) {
-    console.log('AppLink: could not parse link', link)
+    logger.info('AppLink: could not parse link', link)
     return
   }
   const username = Constants.urlToUsername(url)
-  console.log('AppLink: url', url.href, 'username', username)
+  logger.info('AppLink: url', url.href, 'username', username)
   if (username) {
     return Saga.put(ProfileGen.createShowUserProfile({username}))
   }

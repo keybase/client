@@ -8,7 +8,7 @@ import semver from 'semver'
 import windowHelper from './window-helper'
 import {BrowserWindow, app, ipcMain, dialog, crashReporter} from 'electron'
 import {setupExecuteActionsListener, executeActionsForContext} from '../../util/quit-helper.desktop'
-import {setupTarget} from '../../util/forward-logs'
+import {allowMultipleInstances} from '../../local-debug.desktop'
 import startWinService from './start-win-service'
 import {isWindows, cacheRoot} from '../../constants/platform.desktop'
 
@@ -37,20 +37,22 @@ const _maybeTellMainWindowAboutMenubar = () => {
 }
 
 function start() {
-  // Only one app per app in osx...
-  const shouldQuit = app.makeSingleInstance(() => {
-    if (mainWindow) {
-      mainWindow.show(true)
-      if (isWindows) {
-        mainWindow.window && mainWindow.window.focus()
+  if (!allowMultipleInstances) {
+    // Only one app per app in osx...
+    const shouldQuit = app.makeSingleInstance(() => {
+      if (mainWindow) {
+        mainWindow.show()
+        if (isWindows) {
+          mainWindow.window && mainWindow.window.focus()
+        }
       }
-    }
-  })
+    })
 
-  if (shouldQuit) {
-    console.log('Only one instance of keybase GUI allowed, bailing!')
-    app.quit()
-    return
+    if (shouldQuit) {
+      console.log('Only one instance of keybase GUI allowed, bailing!')
+      app.quit()
+      return
+    }
   }
 
   // Check supported OS version
@@ -74,7 +76,6 @@ function start() {
     app.commandLine.appendSwitch('v', 3)
   }
 
-  setupTarget()
   devTools()
   // Load menubar and get its browser window id so we can tell the main window
   menuBar(id => {
@@ -114,7 +115,7 @@ function start() {
 
   // Called when the user clicks the dock icon
   app.on('activate', () => {
-    mainWindow && mainWindow.show(true)
+    mainWindow && mainWindow.show()
   })
 
   // Don't quit the app, instead try to close all windows

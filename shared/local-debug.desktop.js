@@ -6,12 +6,12 @@ import noop from 'lodash/noop'
 const PERF = false
 
 let config = {
+  allowMultipleInstances: false, // Multiple instances of the app
   enableActionLogging: true, // Log actions to the log
   enableStoreLogging: false, // Log full store changes
   featureFlagsOverride: null, // Override feature flags
   filterActionLogs: null, // Filter actions in log
   forceImmediateLogging: false, // Don't wait for idle to log
-  forwardLogs: true, // Send logs to remote console
   ignoreDisconnectOverlay: false, // Let you use the app even in a disconnected state
   immediateStateLogging: false, // Don't wait for idle to log state
   isTesting: __SCREENSHOT__, // Is running a unit test
@@ -27,10 +27,10 @@ let config = {
 
 // Developer settings
 if (__DEV__) {
+  config.allowMultipleInstances = true
   config.enableActionLogging = false
   config.enableStoreLogging = true
   config.filterActionLogs = null // '^chat|entity'
-  config.forwardLogs = false
   config.printOutstandingRPCs = true
   config.printRPC = true
   config.reduxSagaLogger = false
@@ -78,7 +78,6 @@ if (PERF) {
   config.enableStoreLogging = false
   config.filterActionLogs = null
   config.forceImmediateLogging = false
-  config.forwardLogs = false
   config.ignoreDisconnectOverlay = false
   config.immediateStateLogging = false
   config.printOutstandingRPCs = false
@@ -89,12 +88,12 @@ if (PERF) {
 }
 
 export const {
+  allowMultipleInstances,
   enableActionLogging,
   enableStoreLogging,
   featureFlagsOverride,
   filterActionLogs,
   forceImmediateLogging,
-  forwardLogs,
   ignoreDisconnectOverlay,
   immediateStateLogging,
   isTesting,

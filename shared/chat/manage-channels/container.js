@@ -1,4 +1,5 @@
 // @flow
+import logger from '../../logger'
 import pickBy from 'lodash/pickBy'
 import isEqual from 'lodash/isEqual'
 import * as I from 'immutable'
@@ -8,7 +9,7 @@ import * as TeamsGen from '../../actions/teams-gen'
 import ManageChannels from '.'
 import {withHandlers, withState, withPropsOnChange} from 'recompose'
 import {pausableConnect, compose, lifecycle, type TypedState} from '../../util/container'
-import {navigateTo, navigateAppend, pathSelector} from '../../actions/route-tree'
+import {navigateTo, navigateAppend, pathSelector, switchTo} from '../../actions/route-tree'
 import {anyWaiting} from '../../constants/waiting'
 import {chatTab} from '../../constants/tabs'
 import '../../constants/route-tree'
@@ -77,6 +78,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routePath, routePro
     _onView: (conversationIDKey: string) => {
       dispatch(ChatGen.createSetInboxFilter({filter: ''}))
       dispatch(ChatGen.createSelectConversation({conversationIDKey, fromUser: true}))
+      dispatch(switchTo([chatTab]))
     },
   }
 }
@@ -101,7 +103,7 @@ export default compose(
     onClickChannel: ({channels, currentPath, _onPreview, _onView}) => (conversationIDKey: string) => {
       const channel = channels.find(c => c.convID === conversationIDKey)
       if (!channel) {
-        console.warn('Attempted to navigate to a conversation ID that was not found in the channel list')
+        logger.warn('Attempted to navigate to a conversation ID that was not found in the channel list')
         return
       }
       if (channel.selected) {
