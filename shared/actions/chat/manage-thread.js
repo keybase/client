@@ -40,7 +40,7 @@ function* _startConversation(action: ChatGen.StartConversationPayload): Saga.Sag
     logger.warn('Attempted to start a chat without the current user')
   }
 
-  // not effecient but only happens when you start a new convo and not over and over
+  // not efficient but only happens when you start a new convo and not over and over
   const tlfName = users.sort().join(',')
   const inbox = state.chat.get('inbox')
   const existing = inbox.find(
