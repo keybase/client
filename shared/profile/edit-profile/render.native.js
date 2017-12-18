@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react'
-import {Button, Input, StandardScreen} from '../../common-adapters'
+import {Button, Input, StandardScreen, ButtonBar} from '../../common-adapters'
 import {globalMargins} from '../../styles'
 
 import type {Props} from './render'
@@ -38,7 +38,9 @@ const EditProfileRender = (props: Props) => (
       onEnterKeyDown={props.onSubmit}
       onChangeText={location => props.onLocationChange(location)}
     />
-    <Button style={styleButton} type="Primary" fullWidth={true} onClick={props.onSubmit} label="Save" />
+    <ButtonBar fullWidth={true}>
+      <Button style={styleButton} type="Primary" fullWidth={true} onClick={props.onSubmit} label="Save" />
+    </ButtonBar>
   </StandardScreen>
 )
 

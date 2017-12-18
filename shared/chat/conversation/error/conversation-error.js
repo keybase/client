@@ -2,8 +2,7 @@
 import * as React from 'react'
 import {branch} from 'recompose'
 import {Box, CopyableText, HeaderHoc, Text} from '../../../common-adapters'
-import {globalStyles, globalMargins} from '../../../styles'
-import {isMobile} from '../../../constants/platform'
+import {globalStyles, globalMargins, isMobile} from '../../../styles'
 
 export type Props = {
   conversationErrorText: string,

@@ -1,4 +1,5 @@
 // @flow
+import logger from '../logger'
 import * as I from 'immutable'
 import * as Types from '../constants/types/config'
 import * as Constants from '../constants/config'
@@ -62,14 +63,14 @@ export default function(
     case ConfigGen.globalError: {
       const {globalError} = action.payload
       if (globalError) {
-        console.warn('Error (global):', globalError)
+        logger.error('Error (global):', globalError)
       }
       return state.set('globalError', globalError)
     }
     case ConfigGen.daemonError: {
       const {daemonError} = action.payload
       if (daemonError) {
-        console.warn('Error (daemon):', daemonError)
+        logger.error('Error (daemon):', daemonError)
       }
       return state.set('daemonError', daemonError)
     }

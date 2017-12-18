@@ -4,8 +4,7 @@ import * as I from 'immutable'
 import Row from './row/container'
 import {Box, Text, Icon, ClickableBox, ProgressIndicator, ScrollView, HeaderHoc} from '../common-adapters'
 import {OLDPopupMenu} from '../common-adapters/popup-menu'
-import {globalStyles, globalColors, globalMargins} from '../styles'
-import {isMobile} from '../constants/platform'
+import {globalStyles, globalColors, globalMargins, isMobile} from '../styles'
 import {branch} from 'recompose'
 
 type Props = {

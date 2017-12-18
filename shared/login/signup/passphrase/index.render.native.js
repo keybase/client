@@ -2,7 +2,7 @@
 import Container from '../../forms/container'
 import React, {Component} from 'react'
 import type {Props} from './index.render'
-import {UserCard, Input, Button} from '../../../common-adapters'
+import {UserCard, Input, Button, ButtonBar} from '../../../common-adapters'
 import {globalColors, globalMargins} from '../../../styles'
 
 class PassphraseRender extends Component<Props> {
@@ -28,7 +28,9 @@ class PassphraseRender extends Component<Props> {
             onEnterKeyDown={this.props.onSubmit}
             onChangeText={pass2 => this.props.pass2Update(pass2)}
           />
-          <Button fullWidth={true} type="Primary" label="Continue" onClick={this.props.onSubmit} />
+          <ButtonBar>
+            <Button fullWidth={true} type="Primary" label="Continue" onClick={this.props.onSubmit} />
+          </ButtonBar>
         </UserCard>
       </Container>
     )

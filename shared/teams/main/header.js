@@ -1,8 +1,7 @@
 // @flow
 import * as React from 'react'
 import {ClickableBox, Box, Icon, Text} from '../../common-adapters'
-import {globalColors, globalMargins, globalStyles} from '../../styles'
-import {isMobile} from '../../constants/platform'
+import {globalColors, globalMargins, globalStyles, isMobile} from '../../styles'
 
 import type {IconType} from '../../common-adapters/icon.constants'
 

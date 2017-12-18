@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react'
-import {Box, Button, Text} from '../../../common-adapters'
+import {Box, Button, Text, ButtonBar} from '../../../common-adapters'
 import {globalColors, globalStyles} from '../../../styles'
 
 import type {Props} from './you-rekey'
@@ -17,9 +17,9 @@ const YouRekey = ({onRekey}: Props) => {
           This conversation needs to be rekeyed.
         </Text>
       </Box>
-      <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', flex: 1, justifyContent: 'center'}}>
+      <ButtonBar>
         <Button type="Secondary" backgroundMode="Terminal" onClick={onRekey} label="Rekey" />
-      </Box>
+      </ButtonBar>
     </Box>
   )
 }

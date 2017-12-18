@@ -9,9 +9,8 @@ import {
   Text,
   PopupDialog,
 } from '../../common-adapters'
-import {globalStyles, globalMargins, globalColors} from '../../styles'
+import {globalStyles, globalMargins, globalColors, isMobile} from '../../styles'
 import capitalize from 'lodash/capitalize'
-import {isMobile} from '../../constants/platform'
 import UserInput from '../../search/user-input/container'
 import SearchResultsList from '../../search/results-list/container'
 

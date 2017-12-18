@@ -1,10 +1,8 @@
 // @flow
 import React, {Component} from 'react'
-import {Box, Button, Icon, Input, PopupDialog, Text} from '../../../common-adapters/index'
-import {globalColors, globalMargins, globalStyles} from '../../../styles'
-import {isMobile} from '../../../constants/platform'
-
-import type {Props} from './'
+import {Box, Button, Icon, Input, PopupDialog, Text, ButtonBar} from '../../../common-adapters/index'
+import {globalColors, globalStyles, isMobile} from '../../../styles'
+import type {Props} from '.'
 
 type State = {
   index: number,
@@ -59,15 +57,10 @@ class RenderAttachmentInput extends Component<Props, State> {
             onEnterKeyDown={this._onSelect}
             onChangeText={this._updateTitle}
           />
-          <Box style={isMobile ? stylesButtonGroupMobile : stylesButtonGroupDesktop}>
+          <ButtonBar>
             <Button type="Secondary" onClick={this.props.onClose} label="Cancel" />
-            <Button
-              type="Primary"
-              style={{marginLeft: globalMargins.tiny}}
-              onClick={this._onSelect}
-              label="Send"
-            />
-          </Box>
+            <Button type="Primary" onClick={this._onSelect} label="Send" />
+          </ButtonBar>
         </Box>
       </PopupDialog>
     )
@@ -90,11 +83,6 @@ const stylesInputDesktop = {
   width: 460,
 }
 
-const stylesButtonGroupDesktop = {
-  ...globalStyles.flexBoxRow,
-  marginTop: 100,
-}
-
 const stylesMobile = {
   ...globalStyles.flexBoxColumn,
   alignItems: 'center',
@@ -108,11 +96,6 @@ const stylesInputMobile = {
   minWidth: 320,
   paddingLeft: 20,
   paddingRight: 20,
-}
-
-const stylesButtonGroupMobile = {
-  ...globalStyles.flexBoxRow,
-  marginTop: 40,
 }
 
 export default RenderAttachmentInput

@@ -7,6 +7,7 @@ import {
   Badge,
   Box,
   Button,
+  ButtonBar,
   Checkbox,
   Text,
   Tabs,
@@ -16,8 +17,7 @@ import {
   ProgressIndicator,
   ScrollView,
 } from '../../common-adapters'
-import {globalStyles, globalMargins, globalColors} from '../../styles'
-import {isMobile} from '../../constants/platform'
+import {globalStyles, globalMargins, globalColors, isMobile} from '../../styles'
 import TeamInviteRow from './invite-row/container'
 import TeamMemberRow from './member-row/container'
 import TeamRequestRow from './request-row/container'
@@ -512,7 +512,7 @@ class Team extends React.PureComponent<Props> {
             </Text>}
 
           {youCanAddPeople &&
-            <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', marginTop: globalMargins.small}}>
+            <ButtonBar>
               <Button type="Primary" label="Add people" onClick={onAddPeople} />
               {!isMobile &&
                 <Button
@@ -528,7 +528,7 @@ class Team extends React.PureComponent<Props> {
                   onClick={onInviteByEmail}
                   style={{marginLeft: globalMargins.tiny}}
                 />}
-            </Box>}
+            </ButtonBar>}
           <Help name={name} />
         </Box>
         <TeamTabs {...this.props} admin={youAdmin} />

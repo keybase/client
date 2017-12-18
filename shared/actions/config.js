@@ -1,4 +1,5 @@
 // @flow
+import logger from '../logger'
 import * as KBFSGen from './kbfs-gen'
 import * as ConfigGen from './config-gen'
 import * as TeamsGen from './teams-gen'
@@ -13,7 +14,6 @@ import * as SignupGen from '../actions/signup-gen'
 import engine from '../engine'
 import {RouteStateStorage} from '../actions/route-state-storage'
 import {createConfigurePush} from './push-gen'
-import {flushLogFile} from '../util/forward-logs'
 import {isMobile, isSimulator} from '../constants/platform'
 import {loggedInSelector} from '../constants/selectors'
 import {type AsyncAction} from '../constants/types/flux'
@@ -24,7 +24,7 @@ import {type TypedState} from '../constants/reducer'
 isMobile &&
   module.hot &&
   module.hot.accept(() => {
-    console.log('accepted update in actions/config')
+    logger.info('accepted update in actions/config')
   })
 
 const waitForKBFS = (): AsyncAction => dispatch =>
@@ -100,22 +100,22 @@ const bootstrap = (opts: $PropertyType<ConfigGen.BootstrapPayload, 'payload'>): 
 ) => {
   const readyForBootstrap = getState().config.readyForBootstrap
   if (!readyForBootstrap) {
-    console.warn('Not ready for bootstrap/connect')
+    logger.warn('Not ready for bootstrap/connect')
     return
   }
 
   if (!bootstrapSetup) {
     bootstrapSetup = true
-    console.log('[bootstrap] registered bootstrap')
+    logger.info('[bootstrap] registered bootstrap')
     engine().listenOnConnect('bootstrap', () => {
       dispatch(ConfigGen.createDaemonError({daemonError: null}))
       dispatch(GregorCreators.checkReachabilityOnConnect())
-      console.log('[bootstrap] bootstrapping on connect')
+      logger.info('[bootstrap] bootstrapping on connect')
       dispatch(ConfigGen.createBootstrap({}))
     })
     dispatch(registerListeners())
   } else {
-    console.log('[bootstrap] performing bootstrap...')
+    logger.info('[bootstrap] performing bootstrap...')
     Promise.all([
       dispatch(getBootstrapStatus()),
       dispatch(waitForKBFS()),
@@ -125,7 +125,7 @@ const bootstrap = (opts: $PropertyType<ConfigGen.BootstrapPayload, 'payload'>): 
         dispatch(ConfigGen.createBootstrapSuccess())
         engine().listenOnDisconnect('daemonError', () => {
           dispatch(ConfigGen.createDaemonError({daemonError: new Error('Disconnected')}))
-          flushLogFile()
+          logger.flush()
         })
         dispatch(NotificationsGen.createListenForKBFSNotifications())
         if (!opts.isReconnect) {
@@ -144,18 +144,18 @@ const bootstrap = (opts: $PropertyType<ConfigGen.BootstrapPayload, 'payload'>): 
         }
       })
       .catch(error => {
-        console.warn('[bootstrap] error bootstrapping: ', error)
+        logger.warn('[bootstrap] error bootstrapping: ', error)
         const triesRemaining = getState().config.bootstrapTriesRemaining
         dispatch(ConfigGen.createBootstrapAttemptFailed())
         if (triesRemaining > 0) {
           const retryDelay = Constants.bootstrapRetryDelay / triesRemaining
-          console.log(`[bootstrap] resetting engine in ${retryDelay / 1000}s (${triesRemaining} tries left)`)
+          logger.info(`[bootstrap] resetting engine in ${retryDelay / 1000}s (${triesRemaining} tries left)`)
           setTimeout(() => engine().reset(), retryDelay)
         } else {
-          console.error('[bootstrap] exhausted bootstrap retries')
+          logger.error('[bootstrap] exhausted bootstrap retries')
           dispatch(ConfigGen.createBootstrapFailed())
         }
-        flushLogFile()
+        logger.flush()
       })
   }
 }

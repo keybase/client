@@ -13,9 +13,7 @@ import {disable as disableDragDrop} from '../../util/drag-drop'
 import {globalColors, globalStyles} from '../../styles'
 import {remote, BrowserWindow} from 'electron'
 import {setupContextMenu} from '../app/menu-helper'
-import {setupSource} from '../../util/forward-logs'
 
-setupSource()
 disableDragDrop()
 
 module.hot && module.hot.accept()

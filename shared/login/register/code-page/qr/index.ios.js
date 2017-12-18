@@ -1,4 +1,5 @@
 // @flow
+import logger from '../../../../logger'
 import Camera from 'react-native-camera'
 import React, {Component} from 'react'
 import type {Props} from './index'
@@ -20,7 +21,7 @@ class QR extends Component<Props, {permissionGranted: ?boolean}> {
       const permissionGranted = await Camera.checkVideoAuthorizationStatus()
       this.setState({permissionGranted})
     } catch (err) {
-      console.warn("Can't get camera permissions", err)
+      logger.warn("Can't get camera permissions", err)
       this.setState({permissionGranted: false})
     }
   }

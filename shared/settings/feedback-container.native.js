@@ -1,19 +1,20 @@
 // @flow
+import logger from '../logger'
 import React, {Component} from 'react'
-import RNFetchBlob from 'react-native-fetch-blob'
 import {HeaderHoc, HOCTimers} from '../common-adapters'
 import Feedback from './feedback'
 import logSend from '../native/log-send'
 import {compose, withState, withHandlers, connect, type TypedState} from '../util/container'
-import {isAndroid, appVersionName, appVersionCode, mobileOsVersion, version} from '../constants/platform'
-import {getLogger} from '../util/periodic-logger'
-import {exists, cachesDirectoryPath} from '../util/file'
-import {serialPromises} from '../util/promise'
+import {
+  isAndroid,
+  appVersionName,
+  appVersionCode,
+  mobileOsVersion,
+  version,
+  logFileName,
+} from '../constants/platform'
 import {type TimerProps} from '../common-adapters/hoc-timers'
-
-function writeStream(filepath: string, encoding: string, append?: boolean): Promise<*> {
-  return RNFetchBlob.fs.writeStream(filepath, encoding, append)
-}
+import {writeLogLinesToFile} from '../util/forward-logs'
 
 const FeedbackWrapped = compose(
   withState('sendLogs', 'onChangeSendLogs', true),
@@ -42,61 +43,7 @@ class FeedbackContainer extends Component<{status: string} & TimerProps, State> 
     this.setState({feedback})
   }
 
-  _dumpLogs = () =>
-    new Promise((resolve, reject) => {
-      // We don't get the notification from the daemon so we have to do this ourselves
-      const logs = []
-      console.log('Starting log dump')
-
-      const logNames = ['actionLogger', 'storeLogger']
-
-      logNames.forEach(name => {
-        try {
-          const logger = getLogger(name)
-          logger &&
-            logger.dumpAll((...args) => {
-              logs.push(args)
-            })
-        } catch (_) {}
-      })
-
-      logs.push(['=============CONSOLE.LOG START============='])
-      const logger = getLogger('nativeConsoleLog')
-      logger &&
-        logger.dumpAll((...args) => {
-          // Skip the extra prefixes that period-logger uses.
-          logs.push([args[1], ...args.slice(2)])
-        })
-      logs.push(['=============CONSOLE.LOG END============='])
-
-      const dir = `${cachesDirectoryPath}/Keybase`
-      const path = `${dir}/rn.log`
-      console.log('Starting log write')
-
-      RNFetchBlob.fs
-        .isDir(dir)
-        .then(isDir => (isDir ? Promise.resolve() : RNFetchBlob.fs.mkdir(dir)))
-        .then(() => exists(path))
-        .then(exists => (exists ? Promise.resolve() : RNFetchBlob.fs.createFile(path, '', 'utf8')))
-        .then(() => writeStream(path, 'utf8', true))
-        .then(stream => {
-          const writeLogsPromises = logs.map((log, idx) => {
-            return () => {
-              return stream.write(JSON.stringify(log, null, 2))
-            }
-          })
-
-          return serialPromises(writeLogsPromises).then(() => stream.close())
-        })
-        .then(success => {
-          console.log('Log write done')
-          resolve(path)
-        })
-        .catch(err => {
-          console.warn(`Couldn't log send! ${err}`)
-          reject(err)
-        })
-    })
+  _dumpLogs = () => logger.dump().then(writeLogLinesToFile)
 
   componentWillUnmount() {
     this.mounted = false
@@ -113,12 +60,13 @@ class FeedbackContainer extends Component<{status: string} & TimerProps, State> 
       const maybeDump = sendLogs ? this._dumpLogs() : Promise.resolve('')
 
       maybeDump
-        .then(path => {
-          console.log(`Sending ${sendLogs ? 'log' : 'feedback'} to daemon`)
+        .then(() => {
+          const path = logFileName()
+          logger.info(`Sending ${sendLogs ? 'log' : 'feedback'} to daemon`)
           return logSend(this.props.status, feedback, sendLogs, path)
         })
         .then(logSendId => {
-          console.warn('logSendId is', logSendId)
+          logger.info('logSendId is', logSendId)
           if (this.mounted) {
             this.setState({
               sentFeedback: true,
@@ -128,7 +76,7 @@ class FeedbackContainer extends Component<{status: string} & TimerProps, State> 
           }
         })
         .catch(err => {
-          console.warn('err in sending logs', err)
+          logger.warn('err in sending logs', err)
           if (this.mounted) {
             this.setState({
               sentFeedback: false,
