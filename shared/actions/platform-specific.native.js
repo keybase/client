@@ -1,4 +1,5 @@
 // @flow
+import logger from '../logger'
 import * as PushTypes from '../constants/types/push'
 import * as PushConstants from '../constants/push'
 import * as PushGen from './push-gen'
@@ -36,20 +37,20 @@ function showShareActionSheet(options: {
       ActionSheetIOS.showShareActionSheetWithOptions(options, reject, resolve)
     )
   } else {
-    console.warn('Sharing action not implemented in android')
+    logger.warn('Sharing action not implemented in android')
     return Promise.resolve({completed: false, method: ''})
   }
 }
 
 type NextURI = string
 function saveAttachmentDialog(filePath: string): Promise<NextURI> {
-  console.log('saveAttachment: ', filePath)
+  logger.debug('saveAttachment: ', filePath)
   if (isIOS || isImageFileName(filePath)) {
     if (!isIOS) filePath = 'file://' + filePath
-    console.log('Saving to camera roll: ', filePath)
+    logger.debug('Saving to camera roll: ', filePath)
     return CameraRoll.saveToCameraRoll(filePath)
   }
-  console.log('Android: Leaving at ', filePath)
+  logger.debug('Android: Leaving at ', filePath)
   return Promise.resolve(filePath)
 }
 
@@ -135,12 +136,12 @@ function configurePush() {
       )
     })
 
-    console.log('Check push permissions')
+    logger.debug('Check push permissions')
     if (isIOS) {
       AsyncStorage.getItem('allowPush', (error, result) => {
         if (error || result !== 'false') {
           PushNotifications.checkPermissions(permissions => {
-            console.log('Push checked permissions:', permissions)
+            logger.debug('Push checked permissions:', permissions)
             if (!permissions.alert) {
               // TODO(gabriel): Detect if we already showed permissions prompt and were denied,
               // in which case we should not show prompt or show different prompt about enabling

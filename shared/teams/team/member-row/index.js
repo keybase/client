@@ -1,8 +1,7 @@
 // @flow
 import * as React from 'react'
 import {Avatar, Box, ClickableBox, Text, Icon, Usernames, Meta} from '../../../common-adapters'
-import {globalMargins, globalStyles, globalColors} from '../../../styles'
-import {isMobile} from '../../../constants/platform'
+import {globalMargins, globalStyles, globalColors, isMobile} from '../../../styles'
 import {roleIconColorMap} from '../../role-picker/index.meta'
 import {typeToLabel} from '../../../constants/teams'
 import {type TypeMap} from '../../../constants/types/teams'

@@ -1,4 +1,5 @@
 // @flow
+import logger from '../logger'
 import * as ConfigGen from './config-gen'
 import * as KBFSGen from './kbfs-gen'
 import * as Constants from '../constants/config'
@@ -44,14 +45,14 @@ function openInDefaultDirectory(openPath: string): Promise<*> {
       // correctly focuses' the Finder, and also uses a newer
       // native API on macOS.
       const url = pathToURL(resolvedPath)
-      console.log('Open URL (directory):', url)
+      logger.info('Open URL (directory):', url)
 
       shell.openExternal(url, {}, err => {
         if (err) {
           reject(err)
           return
         }
-        console.log('Opened directory:', openPath)
+        logger.info('Opened directory:', openPath)
         resolve()
       })
     })
@@ -97,7 +98,7 @@ function _open(openPath: string): Promise<*> {
 }
 
 function openInDefault(openPath: string): Promise<*> {
-  console.log('openInDefault:', openPath)
+  logger.info('openInDefault:', openPath)
   // Path resolve removes any ..
   openPath = path.resolve(openPath)
   // Paths MUST start with defaultKBFSPath
@@ -152,20 +153,20 @@ function* installFuseSaga(): Saga.SagaGenerator<any, any> {
 }
 
 function findKeybaseUninstallString(): Promise<string> {
-  console.log('findKeybaseUninstallString')
+  logger.info('findKeybaseUninstallString')
   return new Promise((resolve, reject) => {
     const regedit = require('regedit')
     const keybaseRegPath = 'HKCU\\SOFTWARE\\Keybase\\Keybase'
     try {
       regedit.list(keybaseRegPath).on('data', function(entry) {
-        console.log('findKeybaseUninstallString on data')
+        logger.info('findKeybaseUninstallString on data')
         if (entry.data.values && entry.data.values.BUNDLEKEY) {
           const uninstallRegPath =
             'HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\' +
             entry.data.values.BUNDLEKEY.value
 
           regedit.list(uninstallRegPath).on('data', function(entry) {
-            console.log('findKeybaseUninstallString on data of', uninstallRegPath)
+            logger.info('findKeybaseUninstallString on data of', uninstallRegPath)
             if (
               entry.data.values &&
               entry.data.values.DisplayName &&
@@ -194,7 +195,7 @@ function findKeybaseUninstallString(): Promise<string> {
         }
       })
     } catch (err) {
-      console.log('findKeybaseUninstallString caught', err)
+      logger.info('findKeybaseUninstallString caught', err)
     }
   })
 }
@@ -207,7 +208,7 @@ function installCachedDokan(): Promise<*> {
     modifyCommand =>
       new Promise((resolve, reject) => {
         if (modifyCommand) {
-          console.log('Invoking repair to add driver: ' + modifyCommand)
+          logger.info('Invoking repair to add driver: ' + modifyCommand)
           execFile(modifyCommand, [
             '/modify',
             'driver=1',
@@ -216,7 +217,7 @@ function installCachedDokan(): Promise<*> {
           resolve()
         } else {
           const err = new Error('Cannot find Keybase uninstall string')
-          console.log(err)
+          logger.info(err)
           reject(err)
         }
       })
@@ -323,7 +324,7 @@ function* openSaga(action: KBFSGen.OpenPayload): Saga.SagaGenerator<any, any> {
   const enabled = state.favorite.fuseStatus && state.favorite.fuseStatus.kextStarted
 
   if (isLinux || enabled) {
-    console.log('openInKBFS:', openPath)
+    logger.info('openInKBFS:', openPath)
     if (isWindows) {
       yield* openInWindows(openPath)
     } else {

@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react'
-import {Box, Text, Button, Icon} from '../common-adapters'
+import {Box, Text, Button, Icon, ButtonBar} from '../common-adapters'
 import {globalColors, globalStyles} from '../styles'
 import type {Props} from './non-user'
 
@@ -69,7 +69,9 @@ const Bottom = ({onClose, name, serviceName}) => (
       <Text type="Body">In the meantime, you can continue to work in the folder.</Text>
     </Box>
     <Box style={{flex: 1, alignItems: 'center'}} />
-    <Button style={{width: 122}} type="Secondary" label="Close" onClick={onClose} />
+    <ButtonBar direction="row">
+      <Button type="Secondary" label="Close" onClick={onClose} />
+    </ButtonBar>
   </Box>
 )
 

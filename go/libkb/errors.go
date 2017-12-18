@@ -2232,3 +2232,13 @@ type TeamInviteTokenReusedError struct{}
 func (e TeamInviteTokenReusedError) Error() string {
 	return "team invite token already used"
 }
+
+//=============================================================================
+
+type TeamBadMembershipError struct{}
+
+func (e TeamBadMembershipError) Error() string {
+	return "cannot perform operation because not a member of the team"
+}
+
+//=============================================================================

@@ -659,6 +659,8 @@ func ImportStatusAsError(g *GlobalContext, s *keybase1.Status) error {
 		return TeamInviteBadTokenError{}
 	case SCTeamInviteTokenReused:
 		return TeamInviteTokenReusedError{}
+	case SCTeamBadMembership:
+		return TeamBadMembershipError{}
 	default:
 		ase := AppStatusError{
 			Code:   s.Code,
@@ -2190,5 +2192,11 @@ func (e TeamInviteBadTokenError) ToStatus() (s keybase1.Status) {
 func (e TeamInviteTokenReusedError) ToStatus() (s keybase1.Status) {
 	s.Code = SCTeamInviteTokenReused
 	s.Name = "TEAM_INVITE_TOKEN_REUSED"
+	return
+}
+
+func (e TeamBadMembershipError) ToStatus() (s keybase1.Status) {
+	s.Code = SCTeamBadMembership
+	s.Name = "TEAM_BAD_MEMBERSHIP"
 	return
 }

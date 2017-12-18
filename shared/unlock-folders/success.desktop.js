@@ -1,8 +1,7 @@
 // @flow
-
 import * as React from 'react'
 import {globalStyles} from '../styles'
-import {Text, Button, Icon, Box} from '../common-adapters'
+import {Text, Button, Icon, Box, ButtonBar} from '../common-adapters'
 
 const PaperKeyInput = ({onClose}: {onClose: () => void}) => (
   <div style={containerStyle}>
@@ -13,7 +12,9 @@ const PaperKeyInput = ({onClose}: {onClose: () => void}) => (
         Your paper key is now rekeying folders for this computer. It takes just a couple minutes but lasts forever, like the decision to have a child
       </Text>
     </Box>
-    <Button type="Primary" label="Okay" style={finishStyle} onClick={onClose} />
+    <ButtonBar>
+      <Button type="Primary" label="Okay" onClick={onClose} />
+    </ButtonBar>
   </div>
 )
 
@@ -30,10 +31,6 @@ const containerStyle = {
 
 const successStyle = {
   textAlign: 'center',
-}
-
-const finishStyle = {
-  alignSelf: 'center',
 }
 
 export default PaperKeyInput

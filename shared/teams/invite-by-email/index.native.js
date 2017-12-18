@@ -1,9 +1,11 @@
 // @flow
+import logger from '../../logger'
 import * as React from 'react'
 import {
   Avatar,
   Box,
   Button,
+  ButtonBar,
   ClickableBox,
   Icon,
   Input,
@@ -26,7 +28,7 @@ const openSettings = () => {
       if (can) {
         Linking.openURL(settingsURL)
       } else {
-        console.warn('Invite contacts: Unable to open app settings')
+        logger.warn('Invite contacts: Unable to open app settings')
       }
     })
   }
@@ -56,7 +58,9 @@ const AccessDenied = () => (
       <Text type="Body" style={{marginBottom: globalMargins.small, textAlign: 'center'}}>
         To fix this, please open Settings > Keybase and check off 'Allow Keybase to access Contacts'.
       </Text>
-      <Button type="Primary" label="Open settings" onClick={openSettings} />
+      <ButtonBar>
+        <Button type="Primary" label="Open settings" onClick={openSettings} />
+      </ButtonBar>
     </Box>
   </Box>
 )

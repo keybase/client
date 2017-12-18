@@ -2,9 +2,8 @@
 import * as React from 'react'
 import {Box, Icon, Text} from '../../../common-adapters'
 import {PopupHeaderText} from '../../../common-adapters/popup-menu'
-import {globalStyles, globalMargins, globalColors} from '../../../styles'
+import {globalStyles, globalMargins, globalColors, isMobile} from '../../../styles'
 import {formatTimeForPopup, formatTimeForRevoked} from '../../../util/timestamp'
-import {isMobile} from '../../../constants/platform'
 
 import type {TextMessage, AttachmentMessage} from '../../../constants/types/chat'
 import type {IconType} from '../../../common-adapters/icon'

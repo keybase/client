@@ -1,8 +1,7 @@
 // @flow
 import * as React from 'react'
-import {Avatar, Box, Text, Icon, Button, MaybePopup} from '../../common-adapters'
-import {globalStyles, globalMargins} from '../../styles'
-import {isMobile} from '../../constants/platform'
+import {Avatar, Box, Text, Icon, Button, MaybePopup, ButtonBar} from '../../common-adapters'
+import {globalStyles, globalMargins, isMobile} from '../../styles'
 
 type Props = {
   onClose: () => void,
@@ -25,24 +24,10 @@ const ReallyLeaveTeam = (props: Props) => (
         {' '}
         chats and folders, and you won't be able to get back unless an admin invites you.
       </Text>
-      <Box
-        style={{
-          ...(isMobile ? globalStyles.flexBoxColumn : globalStyles.flexBoxRow),
-          flex: 1,
-        }}
-      >
-        <Button
-          type="Secondary"
-          onClick={props.onClose}
-          label="Cancel"
-          style={
-            isMobile
-              ? {marginBottom: globalMargins.tiny, marginTop: globalMargins.tiny}
-              : {marginRight: globalMargins.tiny}
-          }
-        />
-        <Button type="Danger" onClick={props.onLeave} label={`Yes, leave ${props.name}`} />
-      </Box>
+      <ButtonBar direction={isMobile ? 'column' : 'row'} fullWidth={isMobile}>
+        <Button type="Secondary" onClick={props.onClose} label="Cancel" />
+        <Button type="Danger" onClick={props.onLeave} label={`Yes, leave ${props.name}`} fullWidth={true} />
+      </ButtonBar>
     </Box>
   </MaybePopup>
 )

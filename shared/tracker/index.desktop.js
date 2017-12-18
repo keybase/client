@@ -83,6 +83,7 @@ export default class TrackerRender extends PureComponent<RenderProps> {
                 paddingLeft: globalMargins.medium,
                 paddingBottom: globalMargins.tiny,
                 paddingTop: globalMargins.tiny,
+                backgroundColor: globalColors.white,
               }}
             >
               {this.props.userInfo.showcasedTeams.map(team => (
@@ -90,10 +91,10 @@ export default class TrackerRender extends PureComponent<RenderProps> {
                   key={team.fqName}
                   onClick={event => {
                     const node = event.target instanceof window.HTMLElement ? event.target : null
-                    const rect = node && node.getBoundingClientRect()
+                    const targetRect = node && node.getBoundingClientRect()
                     if (!this.props.showTeam || team.fqName !== this.props.showTeam.fqName) {
-                      this.props.onSetShowTeam(team)
-                      this.props.onSetShowTeamNode(rect)
+                      this.props.onUpdateSelectedTeam(team.fqName)
+                      this.props.onSetSelectedTeamRect(targetRect)
                       this.props._onSetTeamJoinError('')
                       this.props._onSetTeamJoinSuccess(false)
                       this.props._loadTeams()
@@ -109,16 +110,17 @@ export default class TrackerRender extends PureComponent<RenderProps> {
                 >
                   {this.props.showTeam &&
                     this.props.showTeam.fqName === team.fqName &&
+                    this.props.selectedTeamRect &&
                     <Box key={team.fqName + 'popup'} style={{zIndex: 50}}>
                       <ModalPopupComponent
                         {...this.props}
-                        targetRect={this.props.showTeamNode}
+                        targetRect={this.props.selectedTeamRect}
                         position="top left"
                         style={{zIndex: 50}}
                         popupNode={<Box />}
                         onClosePopup={() => {
-                          this.props.onSetShowTeam('')
-                          this.props.onSetShowTeamNode(null)
+                          this.props.onUpdateSelectedTeam('')
+                          this.props.onSetSelectedTeamRect(null)
                         }}
                       />
                     </Box>}

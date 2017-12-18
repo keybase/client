@@ -1,8 +1,7 @@
 // @flow
 import * as React from 'react'
 import {Box, Icon, Text} from '../../common-adapters'
-import {globalColors, globalMargins, globalStyles} from '../../styles'
-import {isMobile} from '../../constants/platform'
+import {globalColors, globalMargins, globalStyles, isMobile} from '../../styles'
 
 export type Props = {
   onReadMore: () => void,

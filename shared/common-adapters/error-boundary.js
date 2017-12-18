@@ -3,8 +3,7 @@ import * as React from 'react'
 import Box from './box'
 import ScrollView from './scroll-view'
 import Text from './text'
-import {globalStyles, globalColors} from '../styles'
-import {isMobile} from '../constants/platform'
+import {globalStyles, globalColors, isMobile} from '../styles'
 
 // NOTE: componentDidCatch doesn't currently work with react-native:
 // https://github.com/facebook/react-native/issues/15571 .

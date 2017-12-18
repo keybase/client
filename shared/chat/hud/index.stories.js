@@ -2,9 +2,9 @@
 import React from 'react'
 import {MentionRowRenderer, MentionHud} from '.'
 import {compose, withState} from 'recompose'
-import {Box, Button, Input} from '../../common-adapters'
+import {Box, Button, Input, ButtonBar} from '../../common-adapters'
 import {storiesOf, action} from '../../stories/storybook'
-import {globalStyles, globalMargins} from '../../styles'
+import {globalStyles} from '../../styles'
 
 const dummyStore = {
   getState: () => ({
@@ -24,15 +24,10 @@ const UpDownFilterHoc = compose(
   Component => props => (
     <Box style={globalStyles.flexBoxColumn}>
       <Component upCounter={props.upCounter} downCounter={props.downCounter} filter={props.filter} />
-      <Box style={globalStyles.flexBoxRow}>
+      <ButtonBar>
         <Button label="Up" type="Primary" onClick={() => props.setUpCounter(n => n + 1)} />
-        <Button
-          label="Down"
-          type="Primary"
-          onClick={() => props.setDownCounter(n => n + 1)}
-          style={{marginLeft: globalMargins.small}}
-        />
-      </Box>
+        <Button label="Down" type="Primary" onClick={() => props.setDownCounter(n => n + 1)} />
+      </ButtonBar>
       <Input onChangeText={props.setFilter} hintText="Filter" />
     </Box>
   )

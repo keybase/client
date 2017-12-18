@@ -1,8 +1,7 @@
 // @flow
 import React, {PureComponent} from 'react'
 import {PlaintextUsernames, Box} from '../../../../common-adapters'
-import {globalStyles} from '../../../../styles'
-import {isMobile} from '../../../../constants/platform'
+import {globalStyles, isMobile} from '../../../../styles'
 import {List} from 'immutable'
 
 const height = isMobile ? 19 : 17

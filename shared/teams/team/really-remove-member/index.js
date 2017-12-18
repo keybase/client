@@ -1,8 +1,7 @@
 // @flow
 import * as React from 'react'
-import {Avatar, Box, Text, Icon, PopupDialog, Button} from '../../../common-adapters'
-import {globalStyles, globalMargins, globalColors} from '../../../styles'
-import {isMobile} from '../../../constants/platform'
+import {Avatar, Box, Text, Icon, PopupDialog, Button, ButtonBar} from '../../../common-adapters'
+import {globalStyles, globalMargins, globalColors, isMobile} from '../../../styles'
 
 const MaybePopup = isMobile
   ? (props: {onClose: () => void, children: React.Node}) => (
@@ -39,24 +38,15 @@ const ReallyRemoveMember = (props: Props) => (
         {' '}
         chats and folders, and they won't be able to get back unless an admin invites them.
       </Text>
-      <Box
-        style={{
-          ...(isMobile ? globalStyles.flexBoxColumn : globalStyles.flexBoxRow),
-          flex: 1,
-        }}
-      >
+      <ButtonBar direction={isMobile ? 'column' : 'row'} fullWidth={isMobile}>
+        <Button type="Secondary" onClick={props.onClose} label="Cancel" />
         <Button
-          type="Secondary"
-          onClick={props.onClose}
-          label="Cancel"
-          style={
-            isMobile
-              ? {marginBottom: globalMargins.tiny, marginTop: globalMargins.tiny}
-              : {marginRight: globalMargins.tiny}
-          }
+          type="Danger"
+          onClick={props.onRemove}
+          label={`Yes, remove ${props.member}`}
+          fullWidth={isMobile}
         />
-        <Button type="Danger" onClick={props.onRemove} label={`Yes, remove ${props.member}`} />
-      </Box>
+      </ButtonBar>
     </Box>
   </MaybePopup>
 )

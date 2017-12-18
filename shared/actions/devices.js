@@ -1,4 +1,5 @@
 // @flow
+import logger from '../logger'
 import * as Constants from '../constants/devices'
 import * as Types from '../constants/types/devices'
 import * as I from 'immutable'
@@ -17,7 +18,7 @@ import {loginTab} from '../constants/tabs'
 isMobile &&
   module.hot &&
   module.hot.accept(() => {
-    console.log('accepted update in actions/devices')
+    logger.info('accepted update in actions/devices')
   })
 
 function* _deviceShowRevokePageSaga(action: DevicesGen.ShowRevokePagePayload): Saga.SagaGenerator<any, any> {
@@ -33,7 +34,7 @@ function* _deviceShowRevokePageSaga(action: DevicesGen.ShowRevokePagePayload): S
       })
     }
   } catch (e) {
-    console.warn('Error getting endangered TLFs:', e)
+    logger.warn('Error getting endangered TLFs:', e)
   }
   yield Saga.put(
     navigateTo([

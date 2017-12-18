@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react'
-import {StandardScreen, Avatar, Box, Text, Button} from '../common-adapters'
+import {StandardScreen, Avatar, Box, Text, Button, ButtonBar} from '../common-adapters'
 import {globalStyles, globalMargins} from '../styles'
 import {noAvatarMessage, hasAvatarMessage} from './edit-avatar.shared'
 
@@ -14,7 +14,9 @@ const EditAvatar = ({keybaseUsername, hasAvatar, onAck}: Props) => {
       <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center', padding: globalMargins.small}}>
         <Avatar size={176} username={keybaseUsername} />
         <Text type="Body" style={styleCaption}>{text}</Text>
-        <Button type="Primary" fullWidth={true} onClick={onAck} label="Got it!" style={styleButton} />
+        <ButtonBar>
+          <Button type="Primary" fullWidth={true} onClick={onAck} label="Got it!" />
+        </ButtonBar>
       </Box>
     </StandardScreen>
   )
@@ -25,11 +27,6 @@ const styleCaption = {
   marginLeft: globalMargins.small,
   marginRight: globalMargins.small,
   textAlign: 'center',
-}
-
-const styleButton = {
-  marginTop: globalMargins.medium,
-  alignSelf: 'stretch',
 }
 
 export default EditAvatar

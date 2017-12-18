@@ -1,6 +1,7 @@
 // @flow
 // Actions that have to do with the inbox.
 // Loading, unboxing, filtering, stale, out of sync, badging
+import logger from '../../logger'
 import * as RPCChatTypes from '../../constants/types/flow-types-chat'
 import * as Constants from '../../constants/chat'
 import * as Types from '../../constants/types/chat'
@@ -65,10 +66,10 @@ function* onInboxStale(action: ChatGen.InboxStalePayload): SagaGenerator<any, an
   const state: TypedState = yield Saga.select()
   const author = Selectors.usernameSelector(state)
   if (!author) {
-    console.log('Not logged in in inbox stale?')
+    logger.info('Not logged in in inbox stale?')
     return
   }
-  console.log('onInboxStale: running because of: ' + action.payload.reason)
+  logger.info('onInboxStale: running because of: ' + action.payload.reason)
   try {
     yield Saga.put(ChatGen.createSetInboxGlobalUntrustedState({inboxGlobalUntrustedState: 'loading'}))
 
@@ -387,7 +388,7 @@ function* _unboxMore(): SagaGenerator<any, any> {
 
 function* _chatInboxFailedSubSaga(params: RPCChatTypes.ChatUiChatInboxFailedRpcParam) {
   const {convID, error} = params
-  console.log('chatInboxFailed', params)
+  logger.info('chatInboxFailed', params)
   const conversationIDKey = Constants.conversationIDToKey(convID)
 
   // Valid inbox item for rekey errors only
@@ -423,7 +424,7 @@ function* _chatInboxFailedSubSaga(params: RPCChatTypes.ChatUiChatInboxFailedRpcP
         msgID: maxMsgid,
       })
     } catch (err) {
-      console.log(`Couldn't mark as read ${conversationIDKey} ${err}`)
+      logger.debug(`Couldn't mark as read ${conversationIDKey} ${err}`)
     }
   }
 
@@ -465,7 +466,7 @@ function* unboxConversations(action: ChatGen.UnboxConversationsPayload): SagaGen
   const state: TypedState = yield Saga.select()
   const untrustedState = state.chat.inboxUntrustedState
 
-  console.log(
+  logger.info(
     `unboxConversations: before filter unboxing ${conversationIDKeys.length} convs, force: ${(force || false)
       .toString()} because: ${reason}`
   )
@@ -482,7 +483,7 @@ function* unboxConversations(action: ChatGen.UnboxConversationsPayload): SagaGen
         map[c] = 'reUnboxing'
         newConvIDKeys.push(c)
       } else {
-        console.log(`unboxConversations: filtering conv: ${c} state: ${untrustedState.get(c, 'unknown')}`)
+        logger.info(`unboxConversations: filtering conv: ${c} state: ${untrustedState.get(c, 'unknown')}`)
       }
       // only unbox if we're not currently unboxing
     } else if (!['firstUnboxing', 'reUnboxing'].includes(untrustedState.get(c, 'untrusted'))) {
@@ -490,7 +491,7 @@ function* unboxConversations(action: ChatGen.UnboxConversationsPayload): SagaGen
       map[c] = 'firstUnboxing'
       newConvIDKeys.push(c)
     } else {
-      console.log(`unboxConversations: filtering conv: ${c} state: ${untrustedState.get(c, 'unknown')}`)
+      logger.info(`unboxConversations: filtering conv: ${c} state: ${untrustedState.get(c, 'unknown')}`)
     }
     return map
   }, {})
@@ -502,10 +503,10 @@ function* unboxConversations(action: ChatGen.UnboxConversationsPayload): SagaGen
 
   conversationIDKeys = newConvIDKeys
   if (!conversationIDKeys.length) {
-    console.log(`unboxConversations: all conversations filtered, nothing to do`)
+    logger.info(`unboxConversations: all conversations filtered, nothing to do`)
     return
   }
-  console.log(
+  logger.info(
     `unboxConversations: after filter unboxing ${conversationIDKeys.length} convs, because: ${reason}`
   )
 
@@ -538,7 +539,7 @@ function* unboxConversations(action: ChatGen.UnboxConversationsPayload): SagaGen
     yield Saga.call(loadInboxRpc.run, 30e3)
   } catch (error) {
     if (error instanceof RPCTimeoutError) {
-      console.warn('unboxConversations: timed out request for unboxConversations, bailing')
+      logger.warn('unboxConversations: timed out request for unboxConversations, bailing')
       yield Saga.put.resolve(
         ChatGen.createReplaceEntity({
           keyPath: ['inboxUntrustedState'],
@@ -546,7 +547,8 @@ function* unboxConversations(action: ChatGen.UnboxConversationsPayload): SagaGen
         })
       )
     } else {
-      console.warn('unboxConversations: error in loadInboxRpc', error)
+      logger.warn('unboxConversations: error in loadInboxRpc')
+      logger.debug('unboxConversations: error in loadInboxRpc', error)
     }
   }
   if (dismissSyncing) {
@@ -654,7 +656,7 @@ function* _sendNotifications(action: ChatGen.AppendMessagesPayload): Saga.SagaGe
   const convoIsSelected = action.payload.isSelected
   const svcDisplay = action.payload.svcShouldDisplayNotification
 
-  console.log(
+  logger.info(
     'Deciding whether to notify new message:',
     svcDisplay,
     convoIsSelected,
@@ -668,7 +670,7 @@ function* _sendNotifications(action: ChatGen.AppendMessagesPayload): Saga.SagaGe
     const convo = Constants.getInbox(state, action.payload.conversationIDKey)
     if (convo && convo.get('status') !== 'muted') {
       if (message && (message.type === 'Text' || message.type === 'System')) {
-        console.log('Sending Chat notification')
+        logger.info('Sending Chat notification')
         const snippet = Constants.makeSnippet(Constants.serverMessageToMessageText(message))
         yield Saga.put(dispatch => {
           NotifyPopup(message.author, {body: snippet}, -1, message.author, () => {
@@ -752,7 +754,7 @@ function* _inboxSynced(action: ChatGen.InboxSyncedPayload): Saga.SagaGenerator<a
   const state: TypedState = yield Saga.select()
   const author = Selectors.usernameSelector(state)
   if (!author) {
-    console.log('_inboxSynced with no logged in user')
+    logger.info('_inboxSynced with no logged in user')
     return
   }
 
@@ -805,7 +807,7 @@ function* _inboxSynced(action: ChatGen.InboxSyncedPayload): Saga.SagaGenerator<a
       // Check to see if we could possibly be asking for too many messages
       numberOverride = knownMaxMessageID - lastRpcMessageIdWeAreShowing
       if (numberOverride > tooManyMessagesToJustAppendOnStale) {
-        console.log('Doing a full load due to too many old messages', numberOverride)
+        logger.info('Doing a full load due to too many old messages', numberOverride)
         yield Saga.sequentially([
           Saga.put(ChatGen.createClearMessages({conversationIDKey: selectedConversation})),
           Saga.put(
@@ -933,7 +935,7 @@ function* _incomingMessage(action: ChatGen.IncomingMessagePayload): Saga.SagaGen
         break
       }
       // Just reload everything if we get this with no InboxUIItem
-      console.log('newConversation with no InboxUIItem')
+      logger.info('newConversation with no InboxUIItem')
       yield Saga.put(ChatGen.createInboxStale({reason: 'no inbox item for new conv message'}))
       break
     case RPCChatTypes.notifyChatChatActivityType.setAppNotificationSettings:

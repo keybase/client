@@ -1,4 +1,5 @@
 // @flow
+import logger from '../logger'
 import {createConnect} from 'react-redux/src/connect/connect'
 import defaultSelectorFactory from 'react-redux/src/connect/selectorFactory'
 
@@ -13,7 +14,7 @@ function selectorFactory(dispatch, factoryOptions) {
     // we forget to pass it down because that's very confusing
     if (__DEV__) {
       if (ownProps.isActiveRoute === undefined) {
-        console.error(
+        logger.error(
           "Error: pausableConnect didn't get isActiveRoute passed down. Did you forget to plumb it?"
         )
       }

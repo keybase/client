@@ -192,3 +192,4 @@ export {
   transitionColor,
   windowStyle,
 }
+export {isMobile} from '../constants/platform'

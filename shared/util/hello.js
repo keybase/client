@@ -1,6 +1,7 @@
 // @flow
 // Send helloIAm message to service
 
+import logger from '../logger'
 import engine from '../engine'
 import {commonClientType, configHelloIAmRpcPromise} from '../constants/types/flow-types'
 
@@ -26,7 +27,7 @@ export default function(
           resolve()
         })
         .catch(err => {
-          console.warn('error in helloIAm', err)
+          logger.warn('error in helloIAm', err)
           reject(err)
         })
     })

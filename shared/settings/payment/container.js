@@ -1,4 +1,5 @@
 // @flow
+import logger from '../../logger'
 import * as actions from '../../actions/plan-billing'
 import Bootstrapable from '../../util/bootstrapable'
 import HiddenString from '../../util/hidden-string'
@@ -78,7 +79,7 @@ export default connect(
       bootstrapDone: true,
       originalProps: {
         errorMessage: errorMessage,
-        onBack: () => console.log('todo'),
+        onBack: () => logger.debug('todo'),
       },
     }
   },
