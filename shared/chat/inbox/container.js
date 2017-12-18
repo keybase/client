@@ -26,7 +26,6 @@ const getInbox = (state: TypedState) => state.chat.get('inbox')
 const getInboxBigChannels = (state: TypedState) => state.chat.get('inboxBigChannels')
 const getInboxBigChannelsToTeam = (state: TypedState) => state.chat.get('inboxBigChannelsToTeam')
 const getIsEmpty = (state: TypedState) => state.chat.get('inboxIsEmpty')
-const getPending = (state: TypedState) => state.chat.get('pendingConversations')
 const getSmallTimestamps = (state: TypedState) => state.chat.getIn(['inboxSmallTimestamps'], I.Map())
 const getSupersededBy = (state: TypedState) => state.chat.get('inboxSupersededBy')
 const _rowsForSelect = (rows: Array<Inbox.RowItem>): Array<Inbox.RowItemSmall | Inbox.RowItemBig> =>
@@ -48,16 +47,14 @@ const getSortedSmallRowsIDs = createSelector([getSmallTimestamps], (smallTimesta
 
 // IDs filtering out empty conversations (unless we always show them) or superseded ones
 const getVisibleSmallIDs = createImmutableEqualSelector(
-  [getSortedSmallRowsIDs, getPending, getAlwaysShow, getSupersededBy, getIsEmpty],
-  (sortedSmallRows, pending, alwaysShow, supersededBy, isEmpty): Array<Types.ConversationIDKey> => {
-    const pendingRows = pending.keySeq().toArray()
-    const smallRows = sortedSmallRows.toArray().filter(conversationIDKey => {
+  [getSortedSmallRowsIDs, getAlwaysShow, getSupersededBy, getIsEmpty],
+  (sortedSmallRows, alwaysShow, supersededBy, isEmpty): Array<Types.ConversationIDKey> => {
+    return sortedSmallRows.toArray().filter(conversationIDKey => {
       return (
         !supersededBy.get(conversationIDKey) &&
         (!isEmpty.get(conversationIDKey) || alwaysShow.get(conversationIDKey))
       )
     })
-    return pendingRows.concat(smallRows)
   }
 )
 
