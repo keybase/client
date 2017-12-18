@@ -3,7 +3,7 @@ import * as TrackerGen from '../actions/tracker-gen'
 import * as Types from '../constants/types/tracker'
 import * as Constants from '../constants/tracker'
 
-const sortByTeamName = (a, b) => (a.fqName > b.fqName ? 1 : b.fqName > a.fqName ? -1 : 0)
+const sortByTeamName = (a, b) => a.fqName.localeCompare(b.fqName)
 
 function updateUserState(
   state: Types.State,
