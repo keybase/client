@@ -6,7 +6,7 @@
 //  Copyright © 2016 Keybase. All rights reserved.
 //
 
-@import CocoaLumberjack;
+#import "CocoaLumberjack.h"
 #import <UIKit/UIKit.h>
 
 @class Engine;
