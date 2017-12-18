@@ -202,7 +202,7 @@ func newGregorHandler(g *globals.Context) *gregorHandler {
 func (g *gregorHandler) Init() {
 	// Attempt to create a gregor client initially, if we are not logged in
 	// or don't have user/device info in G, then this won't work
-	if err := g.resetGregorClient(); err != nil {
+	if err := g.resetGregorClient(context.TODO()); err != nil {
 		g.Warning(context.Background(), "unable to create push service client: %s", err.Error())
 	}
 
@@ -270,11 +270,10 @@ func (g *gregorHandler) GetClient() chat1.RemoteInterface {
 	return chat1.RemoteClient{Cli: chat.NewRemoteClient(g.G(), g.cli)}
 }
 
-func (g *gregorHandler) resetGregorClient() (err error) {
+func (g *gregorHandler) resetGregorClient(ctx context.Context) (err error) {
 	defer g.G().Trace("gregorHandler#newGregorClient", func() error { return err })()
 	of := gregor1.ObjFactory{}
 	sm := storage.NewMemEngine(of, clockwork.NewRealClock())
-	ctx := context.Background()
 
 	var guid gregor.UID
 	var gdid gregor.DeviceID
@@ -311,7 +310,7 @@ func (g *gregorHandler) resetGregorClient() (err error) {
 
 	// Bring up local state
 	g.Debug(ctx, "restoring state from leveldb")
-	if err = gcli.Restore(); err != nil {
+	if err = gcli.Restore(ctx); err != nil {
 		// If this fails, we'll keep trying since the server can bail us out
 		g.Debug(ctx, "restore local state failed: %s", err)
 	}
@@ -365,7 +364,7 @@ func (g *gregorHandler) Connect(uri *rpc.FMPURI) (err error) {
 
 	// Create client interface to gregord; the user needs to be logged in for this
 	// to work
-	if err = g.resetGregorClient(); err != nil {
+	if err = g.resetGregorClient(context.TODO()); err != nil {
 		return err
 	}
 
@@ -1159,7 +1158,7 @@ func (g *gregorHandler) Shutdown() {
 
 func (g *gregorHandler) Reset() error {
 	g.Shutdown()
-	return g.resetGregorClient()
+	return g.resetGregorClient(context.TODO())
 }
 
 func (g *gregorHandler) kbfsFavorites(ctx context.Context, m gregor.OutOfBandMessage) error {
@@ -1578,6 +1577,21 @@ func (g *gregorHandler) DismissItem(ctx context.Context, cli gregor1.IncomingInt
 	}
 	err = cli.ConsumeMessage(ctx, *dismissal)
 	return err
+}
+
+func (g *gregorHandler) LocalDismissItem(ctx context.Context, id gregor.MsgID) (err error) {
+	if id == nil {
+		return nil
+	}
+	defer g.G().Trace(fmt.Sprintf("gregorHandler.localDismissItem(%s)", id.String()),
+		func() error { return err },
+	)()
+
+	cli, err := g.getGregorCli()
+	if err != nil {
+		return err
+	}
+	return cli.StateMachineConsumeLocalDismissal(ctx, id)
 }
 
 func (g *gregorHandler) DismissCategory(ctx context.Context, category gregor1.Category) error {

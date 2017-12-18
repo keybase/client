@@ -15,11 +15,8 @@ import (
 )
 
 type LocalStorageEngine interface {
-	Store(gregor.UID, []byte) error
-	Load(gregor.UID) ([]byte, error)
-	LocalDismiss(u gregor.UID, msgID gregor.MsgID) error
-	ClearLocalDismissal(u gregor.UID, msgID gregor.MsgID) error
-	FetchLocalDismissals(u gregor.UID) ([][]byte, error)
+	Store(gregor.UID, []byte, [][]byte) error
+	Load(gregor.UID) ([]byte, [][]byte, error)
 }
 
 type Client struct {
@@ -60,15 +57,23 @@ func (c *Client) Save(ctx context.Context) error {
 		return err
 	}
 
-	return c.Storage.Store(c.User, b)
+	localDismissals, err := c.Sm.LocalDismissals(ctx, c.User)
+	if err != nil {
+		return err
+	}
+	var ldm [][]byte
+	for _, ld := range localDismissals {
+		ldm = append(ldm, ld.Bytes())
+	}
+	return c.Storage.Store(c.User, b, ldm)
 }
 
-func (c *Client) Restore() error {
+func (c *Client) Restore(ctx context.Context) error {
 	if !c.Sm.IsEphemeral() {
 		return errors.New("state machine is non-ephemeral")
 	}
 
-	value, err := c.Storage.Load(c.User)
+	value, ldm, err := c.Storage.Load(c.User)
 	if err != nil {
 		return fmt.Errorf("Restore(): failed to load: %s", err.Error())
 	}
@@ -78,8 +83,21 @@ func (c *Client) Restore() error {
 		return fmt.Errorf("Restore(): failed to unmarshal: %s", err.Error())
 	}
 
+	var localDismissals []gregor.MsgID
+	for _, ld := range ldm {
+		msgID, err := c.Sm.ObjFactory().MakeMsgID(ld)
+		if err != nil {
+			return fmt.Errorf("Restore(): failed to unmarshal msgid: %s", err)
+		}
+		localDismissals = append(localDismissals, msgID)
+	}
+
 	if err := c.Sm.InitState(state); err != nil {
 		return fmt.Errorf("Restore(): failed to init state: %s", err.Error())
+	}
+
+	if err := c.Sm.InitLocalDismissals(ctx, c.User, localDismissals); err != nil {
+		return fmt.Errorf("Restore(): failed to init local dismissals: %s", err)
 	}
 
 	return nil
@@ -233,6 +251,13 @@ func (c *Client) State(cli gregor1.IncomingInterface) (res gregor.State, err err
 		return nil, err
 	}
 	return res, nil
+}
+
+func (c *Client) StateMachineConsumeLocalDismissal(ctx context.Context, id gregor.MsgID) error {
+	if err := c.Sm.ConsumeLocalDismissal(ctx, c.User, id); err != nil {
+		return err
+	}
+	return c.Save(ctx)
 }
 
 func (c *Client) StateMachineConsumeMessage(ctx context.Context, m gregor1.Message) error {

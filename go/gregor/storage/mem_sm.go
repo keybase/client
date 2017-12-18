@@ -65,8 +65,15 @@ type loggedMsg struct {
 // user consists of a list of items (some of which might be dismissed) and
 // and an unpruned log of all incoming messages.
 type user struct {
-	items [](*item)
-	log   []loggedMsg
+	items           [](*item)
+	log             []loggedMsg
+	localDismissals map[string]gregor.MsgID
+}
+
+func newUser() *user {
+	return &user{
+		localDismissals: make(map[string]gregor.MsgID),
+	}
 }
 
 // isDismissedAt returns true if item i is dismissed at time t. It will always return
@@ -130,6 +137,10 @@ func (u *user) logMessage(t time.Time, m gregor.InBandMessage, i *item) {
 	u.log = append(u.log, loggedMsg{m, t, i})
 }
 
+func (u *user) resetLocalDismissals() {
+	u.localDismissals = make(map[string]gregor.MsgID)
+}
+
 func msgIDtoString(m gregor.MsgID) string {
 	return hex.EncodeToString(m.Bytes())
 }
@@ -143,6 +154,7 @@ func (u *user) dismissMsgIDs(now time.Time, ids []gregor.MsgID) {
 		if _, found := set[msgIDtoString(i.item.Metadata().MsgID())]; found {
 			i.dtime = &now
 			i.dismissedImmediate = true
+			delete(u.localDismissals, i.item.Metadata().MsgID().String())
 		}
 	}
 }
@@ -174,6 +186,7 @@ func (u *user) dismissRanges(now time.Time, rs []gregor.MsgRange) {
 				isBeforeOrSame(i.ctime, toTime(now, r.EndTime())) {
 				i.dtime = &now
 				i.dismissedImmediate = true
+				delete(u.localDismissals, i.item.Metadata().MsgID().String())
 				break
 			}
 		}
@@ -197,6 +210,11 @@ func isBeforeOrSame(a, b time.Time) bool {
 	return !b.Before(a)
 }
 
+func (u *user) isLocallyDismissed(msgID gregor.MsgID) bool {
+	_, ok := u.localDismissals[msgID.String()]
+	return ok
+}
+
 func (u *user) state(now time.Time, f gregor.ObjFactory, d gregor.DeviceID, t gregor.TimeOrOffset) (gregor.State, error) {
 	var items []gregor.Item
 	table := make(map[string]gregor.Item)
@@ -210,6 +228,9 @@ func (u *user) state(now time.Time, f gregor.ObjFactory, d gregor.DeviceID, t gr
 			continue
 		}
 		if i.isDismissedAt(toTime(now, t)) {
+			continue
+		}
+		if u.isLocallyDismissed(md.MsgID()) {
 			continue
 		}
 		exported, err := i.export(f)
@@ -257,6 +278,9 @@ func (u *user) replayLog(now time.Time, d gregor.DeviceID, t time.Time) (msgs []
 		if msg.isDismissedAt(now) {
 			continue
 		}
+		if u.isLocallyDismissed(msg.m.Metadata().MsgID()) {
+			continue
+		}
 
 		msgs = append(msgs, msg.m)
 	}
@@ -297,6 +321,29 @@ func (m *MemEngine) ConsumeMessage(ctx context.Context, msg gregor.Message) (tim
 	}
 }
 
+func (m *MemEngine) ConsumeLocalDismissal(ctx context.Context, u gregor.UID, msgID gregor.MsgID) error {
+	user := m.getUser(u)
+	user.localDismissals[msgID.String()] = msgID
+	return nil
+}
+
+func (m *MemEngine) InitLocalDismissals(ctx context.Context, u gregor.UID, msgIDs []gregor.MsgID) error {
+	user := m.getUser(u)
+	user.resetLocalDismissals()
+	for _, msgID := range msgIDs {
+		user.localDismissals[msgID.String()] = msgID
+	}
+	return nil
+}
+
+func (m *MemEngine) LocalDismissals(ctx context.Context, u gregor.UID) (res []gregor.MsgID, err error) {
+	user := m.getUser(u)
+	for _, ld := range user.localDismissals {
+		res = append(res, ld)
+	}
+	return res, nil
+}
+
 func uidToString(u gregor.UID) string {
 	return hex.EncodeToString(u.Bytes())
 }
@@ -307,7 +354,7 @@ func (m *MemEngine) getUser(uid gregor.UID) *user {
 	if u, ok := m.users[uidHex]; ok {
 		return u
 	}
-	u := new(user)
+	u := newUser()
 	m.users[uidHex] = u
 	return u
 }

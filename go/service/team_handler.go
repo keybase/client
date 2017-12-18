@@ -99,8 +99,15 @@ func (r *teamHandler) changeTeam(ctx context.Context, cli gregor1.IncomingInterf
 		return err
 	}
 	r.G().Log.CDebugf(ctx, "team.(change|rename) unmarshaled: %+v", rows)
+	if err := teams.HandleChangeNotification(ctx, r.G(), rows, changes); err != nil {
+		return err
+	}
 
-	return teams.HandleChangeNotification(ctx, r.G(), rows, changes)
+	// Locally dismiss this now that we have processed it so we can avoid replaying it over and over
+	if err := r.G().GregorDismisser.LocalDismissItem(ctx, item.Metadata().MsgID()); err != nil {
+		r.G().Log.CDebugf(ctx, "failed to local dismiss team change: %s", err)
+	}
+	return nil
 }
 
 func (r *teamHandler) deleteTeam(ctx context.Context, cli gregor1.IncomingInterface, item gregor.Item) error {
