@@ -7,18 +7,19 @@ function findAvailableFilename(checkExists: string => Promise<boolean>, filepath
 
   return new Promise((resolve, reject) => {
     let i = 1
+    let fp = filepath
     function tryNextFilepath() {
       if (i > 1000) {
         throw new Error('unable to find available filename')
       }
-      checkExists(filepath)
+      checkExists(fp)
         .then(filepathExists => {
           if (!filepathExists) {
-            resolve(filepath)
+            resolve(fp)
             return
           }
 
-          filepath = [dir, `${name} (${i})${ext}`].join('/')
+          fp = [dir, `${name} (${i})${ext}`].join('/')
           i++
           tryNextFilepath()
         })
