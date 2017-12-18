@@ -2,7 +2,6 @@
 import * as I from 'immutable'
 
 export type DeviceType = 'mobile' | 'desktop' | 'backup'
-// eslint-line-disabled
 export opaque type DeviceID: string = string
 export type _DeviceDetail = {
   created: number,
