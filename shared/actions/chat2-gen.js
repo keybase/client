@@ -15,7 +15,7 @@ export const inboxUtrustedLoaded = 'chat2:inboxUtrustedLoaded'
 
 // Action Creators
 export const createInboxRefresh = () => ({error: false, payload: undefined, type: inboxRefresh})
-export const createInboxUtrustedLoaded = (payload: {|+untrusted: Array<Types.Conversation>|}) => ({error: false, payload, type: inboxUtrustedLoaded})
+export const createInboxUtrustedLoaded = (payload: {|+untrusted: Array<Types.ConversationMeta>|}) => ({error: false, payload, type: inboxUtrustedLoaded})
 
 // Action Payloads
 export type InboxRefreshPayload = More.ReturnType<typeof createInboxRefresh>

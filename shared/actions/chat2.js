@@ -1,5 +1,5 @@
 // @flow
-import * as Chat2Gen from './chat-gen'
+import * as Chat2Gen from './chat2-gen'
 import * as Constants from '../constants/chat2'
 import * as RPCChatTypes from '../constants/types/flow-types-chat'
 import * as RPCTypes from '../constants/types/flow-types'
@@ -26,7 +26,7 @@ const inboxQuery = {
   unreadOnly: false,
 }
 
-function* rpcRefreshInbox(action: Chat2Gen.RefreshInboxPayload): Generator<any, void, any> {
+function* rpcInboxRefresh(action: Chat2Gen.InboxRefreshPayload): Generator<any, void, any> {
   const loadInboxChanMap = RPCChatTypes.localGetInboxNonblockLocalRpcChannelMap(
     ['chat.1.chatUi.chatInboxUnverified', 'finished'],
     {
@@ -40,7 +40,7 @@ function* rpcRefreshInbox(action: Chat2Gen.RefreshInboxPayload): Generator<any, 
   const incoming = yield loadInboxChanMap.race()
 
   if (incoming.finished) {
-    yield Saga.put(Chat2Gen.createSetInboxGlobalUntrustedState({inboxGlobalUntrustedState: 'loaded'}))
+    // yield Saga.put(Chat2Gen.createSetInboxGlobalUntrustedState({inboxGlobalUntrustedState: 'loaded'}))
     if (incoming.finished.error) {
       throw new Error(`Can't load inbox ${incoming.finished.error}`)
     }
@@ -54,22 +54,8 @@ function* rpcRefreshInbox(action: Chat2Gen.RefreshInboxPayload): Generator<any, 
   }
 }
 
-export type UnverifiedInboxUIItem = {|
-  convID: String,
-  name: String,
-  visibility: Keybase1.TLFVisibility,
-  status: ConversationStatus,
-  membersType: ConversationMembersType,
-  memberStatus: ConversationMemberStatus,
-  teamType: TeamType,
-  notifications?: ?ConversationNotificationInfo,
-  time: Gregor1.Time,
-  version: ConversationVers,
-  maxMsgID: MessageID,
-  localMetadata?: ?UnverifiedInboxUIItemMetadata,
-|}
 function* chat2Saga(): Saga.SagaGenerator<any, any> {
-  yield Saga.safeTakeLatest(Chat2Gen.refreshInbox, rpcRefreshInbox)
+  yield Saga.safeTakeLatest(Chat2Gen.inboxRefresh, rpcInboxRefresh)
 }
 
 export default chat2Saga

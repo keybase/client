@@ -250,7 +250,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {focusFilter, routeState, setRou
   onUntrustedInboxVisible: (conversationIDKeys: Array<Types.ConversationIDKey>) =>
     dispatch(ChatGen.createUnboxConversations({conversationIDKeys, reason: 'untrusted inbox visible'})),
   toggleSmallTeamsExpanded: () => setRouteState({smallTeamsExpanded: !routeState.get('smallTeamsExpanded')}),
-  refreshInbox: (force: boolean) => dispatch(Chat2Gen.createRefreshInbox({force})),
+  refreshInbox: (force: boolean) => dispatch(Chat2Gen.createInboxRefresh()),
 })
 
 // This merge props is not spreading on purpose so we never have any random props that might mutate and force a re-render

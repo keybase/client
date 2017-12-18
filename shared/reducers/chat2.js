@@ -21,18 +21,22 @@ const initialState: Types.State = Constants.makeState()
 // }
 
 // Root reducer
-export default function(state: Types.State = initialState, action: Chat2Gen.Actions): Types.State {
+export default function(state: Types.State = initialState, action: $ReadOnly<Chat2Gen.Actions>): Types.State {
   switch (action.type) {
     case Chat2Gen.resetStore:
       return initialState
-    case Chat2Gen.inboxUtrustedLoaded: {
-      const {untrusted} = action.payload
-      return state.idToConversation.withMutations(m => {
-        untrusted.forEach(u => {
-          :
+    case Chat2Gen.inboxUtrustedLoaded:
+      return state.update('metaMap', metaMap =>
+        metaMap.withMutations(m => {
+          action.payload.untrusted.forEach(u => {
+            const old = m.get(u.id)
+            // Only update if this is newer
+            if (!old || u.inboxVersion > old.inboxVersion) {
+              m.set(u.id, u)
+            }
+          })
         })
-      })
-    }
+      )
     // Saga only actions
     case Chat2Gen.inboxRefresh:
       return state

@@ -6,7 +6,7 @@
   "actions": {
       "inboxRefresh": {},
       "inboxUtrustedLoaded": {
-          "untrusted": "Array<Types.Conversation>"
+          "untrusted": "Array<Types.ConversationMeta>"
       }
   }
 }

@@ -12,16 +12,19 @@ export const stringToConversationIDKey = (s: string): ConversationIDKey => s
 export type MessageID = string
 export const stringToMessageID = (s: string): MessageID => s
 
+// TODO
+type Message = any
+
 type MembershipType = 'active' | 'youArePreviewing' | 'youAreReset'
 type TeamType = 'small' | 'big' | 'adhoc'
 
-export type _Conversation = {
+// Metadata about a conversation. We keep the messages sep. since we update these at different times
+export type _ConversationMeta = {
   id: ConversationIDKey,
-  idToMessage: I.Map<MessageID, Message>,
   inboxVersion: number,
   isMuted: boolean,
+  isUnboxed: boolean,
   membershipType: MembershipType,
-  messageIDs: I.List<MessageID>,
   notificationSettings: ?RPCChatTypes.ConversationNotificationInfo,
   participants: I.Set<string>,
   resetParticipants: I.Set<string>,
@@ -30,10 +33,12 @@ export type _Conversation = {
   teamType: TeamType,
 }
 
-export type Conversation = I.RecordOf<_Conversation>
+export type ConversationMeta = I.RecordOf<_ConversationMeta>
 
 export type _State = {
-  idToConversation: I.Map<ConversationIDKey, Conversation>,
+  metaMap: I.Map<ConversationIDKey, ConversationMeta>,
+  messageMap: I.Map<ConversationIDKey, I.Map<MessageID, Message>>,
+  messageIDsLsit: I.Map<ConversationIDKey, I.List<MessageID>>,
 }
 
 export type State = I.RecordOf<_State>

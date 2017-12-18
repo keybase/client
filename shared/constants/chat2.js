@@ -3,7 +3,7 @@ import * as I from 'immutable'
 import * as Types from './types/chat2'
 import * as RPCChatTypes from './types/flow-types-chat'
 
-const conversationMemberStatusToMembershipType = (m: ConversationMemberStatus) => {
+const conversationMemberStatusToMembershipType = (m: RPCChatTypes.ConversationMemberStatus) => {
   switch (m) {
     case RPCChatTypes.commonConversationMemberStatus.active:
       return 'active'
@@ -15,13 +15,11 @@ const conversationMemberStatusToMembershipType = (m: ConversationMemberStatus) =
 }
 
 export const unverifiedInboxUIItemToConversation = (i: RPCChatTypes.UnverifiedInboxUIItem) => {
-  return makeConversation({
+  return makeConversationMeta({
     id: i.convID,
-    idToMessage: I.Map(),
     inboxVersion: i.version,
     isMuted: i.status === RPCChatTypes.commonConversationStatus.muted,
     membershipType: conversationMemberStatusToMembershipType(i.memberStatus),
-    messageIDs: I.List(),
     notificationSettings: null,
     participants: I.Set(),
     resetParticipants: I.Set(),
@@ -31,7 +29,7 @@ export const unverifiedInboxUIItemToConversation = (i: RPCChatTypes.UnverifiedIn
   })
 }
 
-export const makeConversation: I.RecordFactory<Types._Conversation> = I.Record({
+export const makeConversationMeta: I.RecordFactory<Types._ConversationMeta> = I.Record({
   id: Types.stringToConversationIDKey(''),
   inboxVersion: -1,
   isMuted: false,
@@ -46,5 +44,7 @@ export const makeConversation: I.RecordFactory<Types._Conversation> = I.Record({
 })
 
 export const makeState: I.RecordFactory<Types._State> = I.Record({
-  idToConversation: I.Map(),
+  metaMap: I.Map(),
+  messageMap: I.Map(),
+  messageIDsLsit: I.Map(),
 })
