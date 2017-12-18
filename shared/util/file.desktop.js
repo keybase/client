@@ -29,7 +29,7 @@ function tmpRandFile(suffix: string): Promise<string> {
 }
 
 // TODO make this a user setting
-const downloadFolder = path.join(os.homedir(), 'Downloads')
+const downloadFolder = __SCREENSHOT__ ? '' : path.join(os.homedir(), 'Downloads')
 
 function downloadFilePath(suffix: string): Promise<string> {
   return findAvailableFilename(exists, path.join(downloadFolder, suffix))
