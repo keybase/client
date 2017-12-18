@@ -1866,6 +1866,10 @@ func (r TeamRole) IsReaderOrAbove() bool {
 	return r.IsOrAbove(TeamRole_READER)
 }
 
+func (r TeamRole) IsWriterOrAbove() bool {
+	return r.IsOrAbove(TeamRole_WRITER)
+}
+
 func (r TeamRole) IsOrAbove(min TeamRole) bool {
 	return int(r) >= int(min)
 }

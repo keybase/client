@@ -2,8 +2,17 @@
 import * as React from 'react'
 import {Confirm, Box, Text, Icon} from '../../common-adapters'
 import {globalColors, globalMargins, globalStyles} from '../../styles'
+import type {IconType} from '../../common-adapters/icon'
 
-import type {Props} from '.'
+export type Props = {
+  currentDevice: boolean,
+  deviceID: string,
+  endangeredTLFs: Array<string>,
+  icon: IconType,
+  name: string,
+  onCancel: () => void,
+  onSubmit: () => void,
+}
 
 const Header = ({name, icon}) => (
   <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center'}}>
@@ -30,9 +39,9 @@ const Body = ({endangeredTLFs, name, currentDevice}) => (
 
         <Box style={styleDevicesContainer}>
           {endangeredTLFs.map(tlf => (
-            <Box key={tlf.name} style={styleTLF}>
+            <Box key={tlf} style={styleTLF}>
               <Text type="BodySemibold" style={{marginRight: globalMargins.tiny}}>•</Text>
-              <Text type="BodySemibold">{tlf.name}</Text>
+              <Text type="BodySemibold">{tlf}</Text>
             </Box>
           ))}
         </Box>
@@ -40,13 +49,16 @@ const Body = ({endangeredTLFs, name, currentDevice}) => (
   </Box>
 )
 
-const Render = ({name, deviceID, currentDevice, onSubmit, onCancel, endangeredTLFs, icon}: Props) => (
+const DeviceRevoke = (props: Props) => (
   <Confirm
-    body={<Body endangeredTLFs={endangeredTLFs} name={name} currentDevice={currentDevice} />}
+    body={
+      <Body endangeredTLFs={props.endangeredTLFs} name={props.name} currentDevice={props.currentDevice} />
+    }
     danger={true}
-    header={<Header name={name} icon={icon} />}
-    onCancel={onCancel}
-    onSubmit={() => onSubmit({currentDevice, deviceID, name})}
+    header={<Header name={props.name} icon={props.icon} />}
+    onCancel={props.onCancel}
+    onSubmit={props.waiting ? null : props.onSubmit}
+    disabled={!!props.waiting}
     submitLabel="Yes, delete it"
     theme="public"
   />
@@ -81,4 +93,4 @@ const styleDevicesContainer = {
   width: 440,
 }
 
-export default Render
+export default DeviceRevoke

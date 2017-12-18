@@ -29,6 +29,7 @@ class Confirm extends Component<Props> {
             type={this.props.danger ? 'Danger' : 'Primary'}
             onClick={this.props.onSubmit}
             label={this.props.submitLabel}
+            disabled={this.props.disabled}
           />
         </Box>
       </StandardScreen>

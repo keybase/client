@@ -42,16 +42,37 @@ type SecretStoreContext interface {
 type SecretStoreImp struct {
 	username NormalizedUsername
 	store    *SecretStoreLocked
+	secret   LKSecFullSecret
+	sync.Mutex
 }
 
 func (s *SecretStoreImp) RetrieveSecret() (LKSecFullSecret, error) {
-	return s.store.RetrieveSecret(s.username)
+	s.Lock()
+	defer s.Unlock()
+
+	if !s.secret.IsNil() {
+		return s.secret, nil
+	}
+	sec, err := s.store.RetrieveSecret(s.username)
+	if err != nil {
+		return sec, err
+	}
+	s.secret = sec
+	return sec, nil
 }
 
 func (s *SecretStoreImp) StoreSecret(secret LKSecFullSecret) error {
+	s.Lock()
+	defer s.Unlock()
+
+	// clear out any in-memory secret in this instance
+	s.secret = LKSecFullSecret{}
 	return s.store.StoreSecret(s.username, secret)
 }
 
+// NewSecretStore returns a SecretStore interface that is only used for
+// a short period of time (i.e. one function block).  Multiple calls to RetrieveSecret()
+// will only call the underlying store.RetrieveSecret once.
 func NewSecretStore(g *GlobalContext, username NormalizedUsername) SecretStore {
 	if g.SecretStoreAll != nil {
 		return &SecretStoreImp{
