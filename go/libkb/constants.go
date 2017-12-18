@@ -284,6 +284,8 @@ const (
 	SCTeamInviteBadToken       = int(keybase1.StatusCode_SCTeamInviteBadToken)
 	SCTeamInviteTokenReused    = int(keybase1.StatusCode_SCTeamInviteTokenReused)
 	SCTeamBadMembership        = int(keybase1.StatusCode_SCTeamBadMembership)
+	SCTeamProvisionalCanKey    = int(keybase1.StatusCode_SCTeamProvisionalCanKey)
+	SCTeamProvisionalCannotKey = int(keybase1.StatusCode_SCTeamProvisionalCannotKey)
 )
 
 const (
