@@ -273,7 +273,7 @@ func (g *gregorHandler) GetClient() chat1.RemoteInterface {
 func (g *gregorHandler) resetGregorClient(ctx context.Context) (err error) {
 	defer g.G().Trace("gregorHandler#newGregorClient", func() error { return err })()
 	of := gregor1.ObjFactory{}
-	sm := storage.NewMemEngine(of, clockwork.NewRealClock())
+	sm := storage.NewMemEngine(of, clockwork.NewRealClock(), g.G().Log)
 
 	var guid gregor.UID
 	var gdid gregor.DeviceID
@@ -486,23 +486,24 @@ func (g *gregorHandler) replayInBandMessages(ctx context.Context, cli gregor1.In
 		g.Debug(ctx, "replayInBandMessages: fresh replay: using state items")
 		state, err := gcli.StateMachineState(ctx, nil)
 		if err != nil {
-			g.Debug(ctx, "unable to fetch state for replay: %s", err)
+			g.Debug(ctx, "replayInBandMessages: unable to fetch state for replay: %s", err)
 			return nil, err
 		}
 		if msgs, err = gcli.InBandMessagesFromState(state); err != nil {
-			g.Debug(ctx, "unable to fetch messages from state for replay: %s", err)
+			g.Debug(ctx, "replayInBandMessages: unable to fetch messages from state for replay: %s", err)
 			return nil, err
 		}
 	} else {
 		g.Debug(ctx, "replayInBandMessages: incremental replay: using ibms since")
 		if msgs, err = gcli.StateMachineInBandMessagesSince(ctx, t); err != nil {
-			g.Debug(ctx, "unable to fetch messages for replay: %s", err)
+			g.Debug(ctx, "replayInBandMessages: unable to fetch messages for replay: %s", err)
 			return nil, err
 		}
 	}
 
-	g.Debug(ctx, "replaying %d messages", len(msgs))
+	g.Debug(ctx, "replayInBandMessages: replaying %d messages", len(msgs))
 	for _, msg := range msgs {
+		g.Debug(ctx, "replayInBandMessages: replaying: %s", msg.Metadata().MsgID())
 		// If we have a handler, just run it on that, otherwise run it against
 		// all of the handlers we know about
 		if handler == nil {
@@ -514,7 +515,7 @@ func (g *gregorHandler) replayInBandMessages(ctx context.Context, cli gregor1.In
 		// If an error happens when replaying, don't kill everything else that
 		// follows, just make a warning.
 		if err != nil {
-			g.Debug(ctx, "Failure in message replay: %s", err.Error())
+			g.Debug(ctx, "replayInBandMessages: failure in message replay: %s", err.Error())
 			err = nil
 		}
 	}
@@ -624,7 +625,7 @@ func (g *gregorHandler) notificationParams(ctx context.Context, gcli *grclient.C
 	if pt != nil {
 		t = gregor1.ToTime(*pt)
 	}
-	g.chatLog.Debug(ctx, "notificationParams: latest ctime: %s", t)
+	g.chatLog.Debug(ctx, "notificationParams: latest ctime: %v", t.Time())
 	return t
 }
 

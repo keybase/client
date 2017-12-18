@@ -7,6 +7,10 @@ import (
 	"github.com/keybase/client/go/libkb"
 )
 
+type localDismissalsRecord struct {
+	Dismissals [][]byte `json:"d"`
+}
+
 type LocalDb struct {
 	libkb.Contextified
 }
@@ -29,7 +33,10 @@ func (db *LocalDb) Store(u gregor.UID, state []byte, localDismissals [][]byte) e
 	if err := db.G().LocalDb.PutRaw(dbKey(u), state); err != nil {
 		return err
 	}
-	if err := db.G().LocalDb.PutObj(dbKeyLocalDismiss(u), nil, localDismissals); err != nil {
+	ldr := localDismissalsRecord{
+		Dismissals: localDismissals,
+	}
+	if err := db.G().LocalDb.PutObj(dbKeyLocalDismiss(u), nil, ldr); err != nil {
 		return err
 	}
 	return nil
@@ -39,8 +46,9 @@ func (db *LocalDb) Load(u gregor.UID) (state []byte, localDismissals [][]byte, e
 	if state, _, err = db.G().LocalDb.GetRaw(dbKey(u)); err != nil {
 		return state, localDismissals, err
 	}
-	if _, err = db.G().LocalDb.GetInto(localDismissals, dbKeyLocalDismiss(u)); err != nil {
+	var ldr localDismissalsRecord
+	if _, err = db.G().LocalDb.GetInto(&ldr, dbKeyLocalDismiss(u)); err != nil {
 		return state, localDismissals, err
 	}
-	return state, localDismissals, nil
+	return state, ldr.Dismissals, nil
 }

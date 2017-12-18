@@ -92,12 +92,12 @@ func (c *Client) Restore(ctx context.Context) error {
 		localDismissals = append(localDismissals, msgID)
 	}
 
-	if err := c.Sm.InitState(state); err != nil {
-		return fmt.Errorf("Restore(): failed to init state: %s", err.Error())
-	}
-
 	if err := c.Sm.InitLocalDismissals(ctx, c.User, localDismissals); err != nil {
 		return fmt.Errorf("Restore(): failed to init local dismissals: %s", err)
+	}
+
+	if err := c.Sm.InitState(state); err != nil {
+		return fmt.Errorf("Restore(): failed to init state: %s", err.Error())
 	}
 
 	return nil
@@ -135,6 +135,7 @@ func (c *Client) SyncFromTime(ctx context.Context, cli gregor1.IncomingInterface
 
 	c.Log.Debug("Sync(): consuming %d messages", len(syncResult.Msgs))
 	for _, ibm := range syncResult.Msgs {
+		c.Log.Debug("Sync(): consuming msgid: %s", ibm.Metadata().MsgID())
 		m := gregor1.Message{Ibm_: &ibm}
 		msgs = append(msgs, ibm)
 		c.Sm.ConsumeMessage(ctx, m)
@@ -186,9 +187,12 @@ func (c *Client) Sync(ctx context.Context, cli gregor1.IncomingInterface,
 	syncRes *chat1.SyncAllNotificationRes) (res []gregor.InBandMessage, err error) {
 	defer func() {
 		if err == nil {
+			c.Log.Debug("Sync(): sync success!")
 			if err = c.Save(ctx); err != nil {
 				c.Log.Debug("Sync(): error save state: %s", err.Error())
 			}
+		} else {
+			c.Log.Debug("Sync(): failure: %s", err)
 		}
 	}()
 
@@ -220,7 +224,6 @@ func (c *Client) Sync(ctx context.Context, cli gregor1.IncomingInterface,
 		}
 		return msgs, err
 	}
-	c.Log.Debug("Sync(): sync success!")
 	return msgs, nil
 }
 

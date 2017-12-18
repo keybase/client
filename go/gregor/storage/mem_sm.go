@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/keybase/client/go/gregor"
+	"github.com/keybase/client/go/logger"
 	"github.com/keybase/clockwork"
 	"golang.org/x/net/context"
 )
@@ -21,15 +22,17 @@ type MemEngine struct {
 	objFactory gregor.ObjFactory
 	clock      clockwork.Clock
 	users      map[string](*user)
+	log        logger.Logger
 }
 
 // NewMemEngine makes a new MemEngine with the given object factory and the
 // potentially fake clock (or a real clock if not testing).
-func NewMemEngine(f gregor.ObjFactory, cl clockwork.Clock) *MemEngine {
+func NewMemEngine(f gregor.ObjFactory, cl clockwork.Clock, log logger.Logger) *MemEngine {
 	return &MemEngine{
 		objFactory: f,
 		clock:      cl,
 		users:      make(map[string](*user)),
+		log:        log,
 	}
 }
 
@@ -65,14 +68,16 @@ type loggedMsg struct {
 // user consists of a list of items (some of which might be dismissed) and
 // and an unpruned log of all incoming messages.
 type user struct {
+	logger          logger.Logger
 	items           [](*item)
 	log             []loggedMsg
 	localDismissals map[string]gregor.MsgID
 }
 
-func newUser() *user {
+func newUser(logger logger.Logger) *user {
 	return &user{
 		localDismissals: make(map[string]gregor.MsgID),
+		logger:          logger,
 	}
 }
 
@@ -217,6 +222,7 @@ func (u *user) isLocallyDismissed(msgID gregor.MsgID) bool {
 
 func (u *user) state(now time.Time, f gregor.ObjFactory, d gregor.DeviceID, t gregor.TimeOrOffset) (gregor.State, error) {
 	var items []gregor.Item
+	u.logger.Debug("STATE: BEGIN")
 	table := make(map[string]gregor.Item)
 	for _, i := range u.items {
 		md := i.item.Metadata()
@@ -231,6 +237,7 @@ func (u *user) state(now time.Time, f gregor.ObjFactory, d gregor.DeviceID, t gr
 			continue
 		}
 		if u.isLocallyDismissed(md.MsgID()) {
+			u.logger.Debug("STATE: LOCALDIS: %s", md.MsgID())
 			continue
 		}
 		exported, err := i.export(f)
@@ -333,6 +340,7 @@ func (m *MemEngine) InitLocalDismissals(ctx context.Context, u gregor.UID, msgID
 	for _, msgID := range msgIDs {
 		user.localDismissals[msgID.String()] = msgID
 	}
+	m.log.CDebugf(ctx, "INITLOCALDISMISSALS: %d", len(msgIDs))
 	return nil
 }
 
@@ -354,7 +362,7 @@ func (m *MemEngine) getUser(uid gregor.UID) *user {
 	if u, ok := m.users[uidHex]; ok {
 		return u
 	}
-	u := newUser()
+	u := newUser(m.log)
 	m.users[uidHex] = u
 	return u
 }
