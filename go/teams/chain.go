@@ -778,6 +778,17 @@ func (t *TeamSigChainPlayer) addInnerLink(
 		return signerIsExplicitOwner, fmt.Errorf("link signer does not have permission to %s: %v is a %v", op, signer, signerRole)
 	}
 
+	checkExplicitWriter := func(op string) (err error) {
+		signerRole, err := prevState.GetUserRole(signer.signer)
+		if err != nil {
+			signerRole = keybase1.TeamRole_NONE
+		}
+		if !signerRole.IsWriterOrAbove() {
+			return fmt.Errorf("link signer does not have writer persmission to %s: %v is a %v", op, signer, signerRole)
+		}
+		return nil
+	}
+
 	switch libkb.LinkType(payload.Body.Type) {
 	case libkb.LinkTypeTeamRoot:
 		err = libkb.PickFirstError(
@@ -1492,7 +1503,7 @@ func (t *TeamSigChainPlayer) addInnerLink(
 			return res, err
 		}
 
-		_, err = checkAdmin("change KBFS settings")
+		err = checkExplicitWriter("change KBFS settings")
 		if err != nil {
 			return res, err
 		}
