@@ -8,6 +8,16 @@ import (
 	context "golang.org/x/net/context"
 )
 
+type KBFSTeamSettings struct {
+	TlfID TLFID `codec:"tlfID" json:"tlfID"`
+}
+
+func (o KBFSTeamSettings) DeepCopy() KBFSTeamSettings {
+	return KBFSTeamSettings{
+		TlfID: o.TlfID.DeepCopy(),
+	}
+}
+
 type FSEventArg struct {
 	Event FSNotification `codec:"event" json:"event"`
 }
@@ -31,6 +41,10 @@ type CreateTLFArg struct {
 	TlfID  TLFID  `codec:"tlfID" json:"tlfID"`
 }
 
+type GetKBFSTeamSettingsArg struct {
+	TeamID TeamID `codec:"teamID" json:"teamID"`
+}
+
 type KbfsInterface interface {
 	// Idea is that kbfs would call the function below whenever these actions are
 	// performed on a file.
@@ -50,7 +64,11 @@ type KbfsInterface interface {
 	// FSSyncEvent is called by KBFS when the sync status of an individual path
 	// changes.
 	FSSyncEvent(context.Context, FSPathSyncStatus) error
+	// createTLF is called by KBFS to associate the tlfID with the given teamID,
+	// using the v2 Team-based system.
 	CreateTLF(context.Context, CreateTLFArg) error
+	// getKBFSTeamSettings gets the settings written for the team in the team's sigchain.
+	GetKBFSTeamSettings(context.Context, TeamID) (KBFSTeamSettings, error)
 }
 
 func KbfsProtocol(i KbfsInterface) rpc.Protocol {
@@ -137,6 +155,22 @@ func KbfsProtocol(i KbfsInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"getKBFSTeamSettings": {
+				MakeArg: func() interface{} {
+					ret := make([]GetKBFSTeamSettingsArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]GetKBFSTeamSettingsArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]GetKBFSTeamSettingsArg)(nil), args)
+						return
+					}
+					ret, err = i.GetKBFSTeamSettings(ctx, (*typedArgs)[0].TeamID)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 		},
 	}
 }
@@ -181,7 +215,16 @@ func (c KbfsClient) FSSyncEvent(ctx context.Context, event FSPathSyncStatus) (er
 	return
 }
 
+// createTLF is called by KBFS to associate the tlfID with the given teamID,
+// using the v2 Team-based system.
 func (c KbfsClient) CreateTLF(ctx context.Context, __arg CreateTLFArg) (err error) {
 	err = c.Cli.Call(ctx, "keybase.1.kbfs.createTLF", []interface{}{__arg}, nil)
+	return
+}
+
+// getKBFSTeamSettings gets the settings written for the team in the team's sigchain.
+func (c KbfsClient) GetKBFSTeamSettings(ctx context.Context, teamID TeamID) (res KBFSTeamSettings, err error) {
+	__arg := GetKBFSTeamSettingsArg{TeamID: teamID}
+	err = c.Cli.Call(ctx, "keybase.1.kbfs.getKBFSTeamSettings", []interface{}{__arg}, &res)
 	return
 }
