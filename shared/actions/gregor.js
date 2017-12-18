@@ -1,5 +1,4 @@
 // @flow
-import logger from '../logger'
 import * as ConfigGen from './config-gen'
 import * as Types from '../constants/types/gregor'
 import * as FavoriteGen from './favorite-gen'
@@ -77,7 +76,7 @@ function checkReachabilityOnConnect() {
         dispatch(GregorGen.createUpdateReachability({reachability}))
       })
       .catch(err => {
-        logger.warn('error bootstrapping reachability: ', err)
+        console.warn('error bootstrapping reachability: ', err)
       })
   }
 }
@@ -86,10 +85,10 @@ function registerGregorListeners() {
   return (dispatch: Dispatch) => {
     RPCTypes.delegateUiCtlRegisterGregorFirehoseRpcPromise()
       .then(response => {
-        logger.info('Registered gregor listener')
+        console.log('Registered gregor listener')
       })
       .catch(error => {
-        logger.warn('error in registering gregor listener: ', error)
+        console.warn('error in registering gregor listener: ', error)
       })
 
     // we get this with sessionID == 0 if we call openDialog
@@ -136,7 +135,7 @@ function _handlePushState(pushAction: GregorGen.PushStatePayload) {
     const {payload: {state}} = pushAction
     const nonNullItems = toNonNullGregorItems(state)
     if (nonNullItems.length !== (state.items || []).length) {
-      logger.warn('Lost some messages in filtering out nonNull gregor items')
+      console.warn('Lost some messages in filtering out nonNull gregor items')
     }
 
     return Saga.sequentially([
@@ -144,7 +143,7 @@ function _handlePushState(pushAction: GregorGen.PushStatePayload) {
       Saga.call(handleChatBanner, nonNullItems),
     ])
   } else {
-    logger.debug('Error in gregor pushState', pushAction.payload)
+    console.log('Error in gregor pushState', pushAction.payload)
   }
 }
 
@@ -165,8 +164,7 @@ function* handleKbfsFavoritesOOBM(kbfsFavoriteMessages: Array<OutOfBandMessage>)
       arr.push(Saga.put(FavoriteGen.createMarkTLFCreated({folder})))
       return arr
     }
-    logger.warn('Failed to parse tlf for oobm:')
-    logger.debug('Failed to parse tlf for oobm:', m)
+    console.warn('Failed to parse tlf for oobm:', m)
     return arr
   }, [])
   yield Saga.all(folderActions)
@@ -185,7 +183,7 @@ function _handlePushOOBM(pushOOBM: GregorGen.PushOOBMPayload) {
 
     actions.push(Saga.call(handleKbfsFavoritesOOBM, messages.filter(i => i.system === 'kbfs.favorites')))
   } else {
-    logger.debug('Error in gregor oobm', pushOOBM.payload)
+    console.log('Error in gregor oobm', pushOOBM.payload)
   }
 
   return Saga.sequentially(actions)

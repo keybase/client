@@ -6,7 +6,6 @@
 //  Copyright © 2016 Keybase. All rights reserved.
 //
 
-@import CocoaLumberjack;
 #import <UIKit/UIKit.h>
 
 @class Engine;
@@ -15,7 +14,6 @@
 
 @property (nonatomic, strong) UIWindow *window;
 @property (nonatomic, strong) Engine *engine;
-@property (nonatomic, strong) DDFileLogger *fileLogger;
 @property UIImageView *resignImageView;
 
 @end

@@ -1,5 +1,4 @@
 // @flow
-import logger from '../logger'
 import React, {PureComponent} from 'react'
 import Emoji from './emoji'
 import Text from './text'
@@ -68,7 +67,7 @@ export function parseMarkdown(
   try {
     return processAST(parser.parse(preprocessMarkdown(markdown || '', meta)), markdownCreateComponent)
   } catch (err) {
-    logger.error('Markdown parsing failed:', err)
+    console.warn('Markdown parsing failed:', err)
     return markdown
   }
 }

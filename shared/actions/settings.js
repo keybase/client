@@ -1,5 +1,4 @@
 // @flow
-import logger from '../logger'
 import * as ChatTypes from '../constants/types/flow-types-chat'
 import * as Types from '../constants/types/settings'
 import * as Constants from '../constants/settings'
@@ -131,7 +130,7 @@ function* _reclaimInviteSaga(
     })
     yield Saga.put(SettingsGen.createInvitesReclaimed())
   } catch (e) {
-    logger.warn('Error reclaiming an invite:', e)
+    console.warn('Error reclaiming an invite:', e)
     yield Saga.put(
       SettingsGen.createInvitesReclaimedError({
         errorText: e.desc + e.name,
@@ -239,7 +238,7 @@ function* _sendInviteSaga(invitesSendAction: SettingsGen.InvitesSendPayload): Sa
       )
     }
   } catch (e) {
-    logger.warn('Error sending an invite:', e)
+    console.warn('Error sending an invite:', e)
     yield Saga.put(SettingsGen.createInvitesSentError({error: e}))
   } finally {
     yield Saga.put(SettingsGen.createWaitingForResponse({waiting: false}))

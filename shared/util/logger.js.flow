@@ -1,0 +1,6 @@
+// @flow
+export default {
+  info: (...args: any) => {},
+  warn: (...args: any) => {},
+  error: (...args: any) => {},
+}

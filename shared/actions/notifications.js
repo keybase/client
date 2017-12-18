@@ -1,5 +1,4 @@
 // @flow
-import logger from '../logger'
 import * as GitGen from '../actions/git-gen'
 import * as NotificationsGen from '../actions/notifications-gen'
 import * as TrackerGen from '../actions/tracker-gen'
@@ -37,7 +36,7 @@ function* _listenSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.call([engineInst, engineInst.listenOnConnect], 'setNotifications', () => {
     RPCTypes.notifyCtlSetNotificationsRpcPromise({channels}).catch(error => {
       if (error != null) {
-        logger.warn('error in toggling notifications: ', error)
+        console.warn('error in toggling notifications: ', error)
       }
     })
   })

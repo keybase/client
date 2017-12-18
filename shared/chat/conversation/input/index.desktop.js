@@ -1,6 +1,5 @@
 // @flow
 /* eslint-env browser */
-import logger from '../../../logger'
 import React, {Component} from 'react'
 import {Box, Icon, Input, Text} from '../../../common-adapters'
 import {globalColors, globalMargins, globalStyles} from '../../../styles'
@@ -254,7 +253,7 @@ class ConversationInput extends Component<InputProps, State> {
     }
 
     if (this.props.isLoading) {
-      logger.info('Ignoring chat submit while still loading')
+      console.log('Ignoring chat submit while still loading')
       return
     }
     if (this.props.text) {

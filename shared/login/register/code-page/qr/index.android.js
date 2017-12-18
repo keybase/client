@@ -1,5 +1,4 @@
 // @flow
-import logger from '../../../../logger'
 import Camera from 'react-native-camera'
 import {PermissionsAndroid} from 'react-native'
 import React, {Component} from 'react'
@@ -31,7 +30,7 @@ class QR extends Component<Props, {permissionGranted: ?boolean}> {
 
       this.setState({permissionGranted: status === 'granted'})
     } catch (err) {
-      logger.warn(err)
+      console.warn(err)
       this.setState({permissionGranted: false})
     }
   }

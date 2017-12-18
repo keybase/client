@@ -1,5 +1,4 @@
 // @flow
-import logger from '../logger'
 import * as React from 'react'
 import {Box, Text, Icon} from '../common-adapters'
 import {globalStyles, globalColors} from '../styles'
@@ -14,7 +13,7 @@ const Offline = ({reachable, appFocused}: Props) => {
   }
 
   if (ignoreDisconnectOverlay) {
-    logger.warn('Ignoring disconnect overlay')
+    console.warn('Ignoring disconnect overlay')
     return null
   }
 

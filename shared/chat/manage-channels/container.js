@@ -1,5 +1,4 @@
 // @flow
-import logger from '../../logger'
 import pickBy from 'lodash/pickBy'
 import isEqual from 'lodash/isEqual'
 import * as I from 'immutable'
@@ -103,7 +102,7 @@ export default compose(
     onClickChannel: ({channels, currentPath, _onPreview, _onView}) => (conversationIDKey: string) => {
       const channel = channels.find(c => c.convID === conversationIDKey)
       if (!channel) {
-        logger.warn('Attempted to navigate to a conversation ID that was not found in the channel list')
+        console.warn('Attempted to navigate to a conversation ID that was not found in the channel list')
         return
       }
       if (channel.selected) {

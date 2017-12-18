@@ -1,5 +1,4 @@
 // @flow
-import logger from '../logger'
 import mapValues from 'lodash/mapValues'
 import isEqual from 'lodash/isEqual'
 import map from 'lodash/map'
@@ -46,7 +45,7 @@ function putOnChannelMap<T>(channelMap: ChannelMap<T>, k: string, v: T): void {
   if (c) {
     c.put(v)
   } else {
-    logger.error('Trying to put, but no registered channel for', k)
+    console.error('Trying to put, but no registered channel for', k)
   }
 }
 
@@ -56,7 +55,7 @@ function effectOnChannelMap<T>(effectFn: any, channelMap: ChannelMap<T>, k: stri
   if (c) {
     return effectFn(c)
   } else {
-    logger.error('Trying to do effect, but no registered channel for', k)
+    console.error('Trying to do effect, but no registered channel for', k)
   }
 }
 
@@ -72,7 +71,7 @@ function mapSagasToChanMap<T>(
 ): Array<Effect> {
   // Check that all method names are accounted for
   if (!isEqual(Object.keys(channelMap).sort(), Object.keys(sagaMap).sort())) {
-    logger.warn('Missing or extraneous saga handlers')
+    console.warn('Missing or extraneous saga handlers')
   }
   return map(sagaMap, (saga, methodName) =>
     effectOnChannelMap(c => effectFn(c, saga), channelMap, methodName)
@@ -103,7 +102,7 @@ function safeTakeEvery(pattern: string | Array<any> | Function, worker: Function
       )
     } finally {
       if (yield cancelled()) {
-        logger.info('safeTakeEvery cancelled')
+        console.log('safeTakeEvery cancelled')
       }
     }
   }
@@ -205,7 +204,7 @@ function safeTakeLatestWithCatch(
       yield call(catchHandler, error)
     } finally {
       if (yield cancelled()) {
-        logger.info('safeTakeLatestWithCatch cancelled')
+        console.log('safeTakeLatestWithCatch cancelled')
       }
     }
   }
@@ -248,7 +247,7 @@ function safeTakeSerially(pattern: string | Array<any> | Function, worker: Funct
       })
     } finally {
       if (yield cancelled()) {
-        logger.info('safeTakeSerially cancelled')
+        console.log('safeTakeSerially cancelled')
       }
     }
   }

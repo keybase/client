@@ -1,7 +1,5 @@
 // @flow
 import {Dimensions, Platform, NativeModules} from 'react-native'
-import {cachesDirectoryPath} from '../util/file'
-
 // Modules from the native part of the code. Differently named on android/ios
 const nativeBridge = NativeModules.KeybaseEngine ||
 NativeModules.ObjcEngine || {
@@ -42,16 +40,6 @@ const isIPhoneX =
 // See https://material.io/devices/
 const isLargeScreen = Dimensions.get('window').height >= 667
 
-const _dir = `${cachesDirectoryPath}/Keybase`
-const _logPath = `${_dir}/rn.log`
-function logFileDir(): string {
-  return _dir
-}
-
-function logFileName(): string {
-  return _logPath
-}
-
 export {
   appVersionCode,
   appVersionName,
@@ -72,6 +60,4 @@ export {
   mobileOsVersion,
   runMode,
   version,
-  logFileName,
-  logFileDir,
 }

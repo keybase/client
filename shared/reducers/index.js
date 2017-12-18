@@ -1,5 +1,4 @@
 // @flow
-import logger from '../logger'
 import chat from './chat'
 import config from './config'
 import dev from './dev'
@@ -61,7 +60,7 @@ export default function(state: TypedState, action: any): TypedState {
       k =>
         nextState[k] !== initialState[k] &&
         nextState[k] === state[k] &&
-        logger.warn('Key %s did not change after resetStore action', k)
+        console.warn('Key %s did not change after resetStore action', k)
     )
     return nextState
   }

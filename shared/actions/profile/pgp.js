@@ -1,5 +1,4 @@
 // @flow
-import logger from '../../logger'
 import * as Types from '../../constants/types/profile'
 import * as ProfileGen from '../profile-gen'
 import * as RPCTypes from '../../constants/types/flow-types'
@@ -63,7 +62,7 @@ function* _dropPgpSaga(action: ProfileGen.DropPgpPayload): Saga.SagaGenerator<an
   } catch (e) {
     yield Saga.put(ProfileGen.createRevokeWaiting({waiting: false}))
     yield Saga.put(ProfileGen.createRevokeFinishError({error: `Error in dropping Pgp Key: ${e}`}))
-    logger.info('error in dropping pgp key', e)
+    console.log('error in dropping pgp key', e)
   }
 }
 
@@ -130,7 +129,7 @@ function* _generatePgpSaga(): Saga.SagaGenerator<any, any> {
     yield Saga.put(navigateTo([], [peopleTab]))
   } catch (e) {
     generatePgpKeyChanMap.close()
-    logger.info('error in generating pgp key', e)
+    console.log('error in generating pgp key', e)
   }
 }
 

@@ -8,6 +8,7 @@ import semver from 'semver'
 import windowHelper from './window-helper'
 import {BrowserWindow, app, ipcMain, dialog, crashReporter} from 'electron'
 import {setupExecuteActionsListener, executeActionsForContext} from '../../util/quit-helper.desktop'
+import {setupTarget} from '../../util/forward-logs'
 import {allowMultipleInstances} from '../../local-debug.desktop'
 import startWinService from './start-win-service'
 import {isWindows, cacheRoot} from '../../constants/platform.desktop'
@@ -76,6 +77,7 @@ function start() {
     app.commandLine.appendSwitch('v', 3)
   }
 
+  setupTarget()
   devTools()
   // Load menubar and get its browser window id so we can tell the main window
   menuBar(id => {

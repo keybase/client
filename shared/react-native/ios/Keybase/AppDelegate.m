@@ -6,7 +6,6 @@
 //  Copyright © 2016 Keybase. All rights reserved.
 //
 
-@import CocoaLumberjack;
 #import "AppDelegate.h"
 #import "RCTPushNotificationManager.h"
 #import "RCTBundleURLProvider.h"
@@ -115,11 +114,6 @@ const BOOL isDebug = NO;
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
-  self.fileLogger = [[DDFileLogger alloc] init];
-  self.fileLogger.rollingFrequency = 60 * 60 * 24; // 24 hour rolling
-  self.fileLogger.logFileManager.maximumNumberOfLogFiles = 3; // 3 days
-  [DDLog addLogger:self.fileLogger];
-
   [self setupGo];
 
   NSURL *jsCodeLocation;

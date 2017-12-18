@@ -1,7 +1,6 @@
 // @flow
 // Actions that have to do with managing a thread.
 // Mute, block, starting a new one, selecting one
-import logger from '../../logger'
 import * as ChatTypes from '../../constants/types/flow-types-chat'
 import * as Constants from '../../constants/chat'
 import * as ChatGen from '../../actions/chat-gen'
@@ -32,13 +31,13 @@ function* _startConversation(action: ChatGen.StartConversationPayload): Saga.Sag
   const me = Selectors.usernameSelector(state)
 
   if (!me) {
-    logger.warn('start convo loggedout?')
+    console.warn('start convo loggedout?')
     return
   }
 
   if (!users.includes(me)) {
     users.push(me)
-    logger.warn('Attempted to start a chat without the current user')
+    console.warn('Attempted to start a chat without the current user')
   }
 
   // not effecient but only happens when you start a new convo and not over and over
@@ -76,7 +75,7 @@ function* _startConversation(action: ChatGen.StartConversationPayload): Saga.Sag
 function* _selectConversation(action: ChatGen.SelectConversationPayload): Saga.SagaGenerator<any, any> {
   const {conversationIDKey, fromUser} = action.payload
 
-  logger.info(`selectConversation: selecting: ${conversationIDKey || ''}`)
+  console.log(`selectConversation: selecting: ${conversationIDKey || ''}`)
   // Always show this in the inbox
   if (conversationIDKey) {
     yield Saga.put(
@@ -99,7 +98,7 @@ function* _selectConversation(action: ChatGen.SelectConversationPayload): Saga.S
     oldConversationState = Shared.conversationStateSelector(state, conversationIDKey)
   }
   if (oldConversationState && oldConversationState.get('isStale') && conversationIDKey) {
-    logger.info(`selectConversation: clearing because stale: ${conversationIDKey || ''}`)
+    console.log(`selectConversation: clearing because stale: ${conversationIDKey || ''}`)
     yield Saga.put(ChatGen.createClearMessages({conversationIDKey}))
   }
 
@@ -121,7 +120,7 @@ function* _selectConversation(action: ChatGen.SelectConversationPayload): Saga.S
   }
 
   if (conversationIDKey) {
-    logger.info(`selectConversation: starting load more messages: ${conversationIDKey || ''}`)
+    console.log(`selectConversation: starting load more messages: ${conversationIDKey || ''}`)
     yield Saga.put(ChatGen.createLoadMoreMessages({conversationIDKey, onlyIfUnloaded: true, fromUser}))
     yield Saga.put(navigateTo([conversationIDKey], [chatTab]))
   } else {
@@ -152,7 +151,7 @@ const _openTeamConversation = function*(action: ChatGen.OpenTeamConversationPayl
     const {conversationIDKey} = conversation
     yield Saga.put(navigateTo([chatTab, conversationIDKey]))
   } else {
-    logger.info(`Unable to find conversationID for ${teamname}#${channelname}`)
+    console.log(`Unable to find conversationID for ${teamname}#${channelname}`)
   }
 }
 

@@ -1,14 +1,37 @@
 // @flow
-import transformActionForLog from '../logger/action-transformer'
-import logger from '../logger'
+import {forwardLogs, enableActionLogging, immediateStateLogging} from '../local-debug'
+import {noPayloadTransformer} from '../constants/types/flux'
+import {setupLogger, immutableToJS} from '../util/periodic-logger'
+
+function makeActionToLog(action, oldState) {
+  if (action.logTransformer) {
+    try {
+      return action.logTransformer(action, oldState)
+    } catch (e) {
+      console.warn('Action logger error', e)
+    }
+  }
+  return noPayloadTransformer(action, oldState)
+}
+
+const transform = (o: Array<any>) => {
+  return [JSON.stringify(immutableToJS(o), null, 2)]
+}
+
+const logger = enableActionLogging
+  ? setupLogger('actionLogger', 100, immediateStateLogging, transform, 50, true)
+  : {log: (...args: any) => {}}
 
 export const actionLogger = (store: any) => (next: any) => (action: any) => {
-  try {
-    const log1 = [`type: ${action.type}: `, transformActionForLog(action, store.getState())]
-    logger.action(...log1)
-  } catch (e) {
-    logger.action(`Error logging action: ${action.type || 'unknown type'}`)
-  }
+  const oldState = store.getState()
+  const actionToLog = makeActionToLog(action, oldState)
+
+  const log1 = [
+    `Dispatching action: ${action.type}: `,
+    forwardLogs ? JSON.stringify(actionToLog) : actionToLog,
+  ]
+  console.log(log1)
+  logger.log('Action:', log1)
 
   return next(action)
 }

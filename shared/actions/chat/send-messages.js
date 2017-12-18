@@ -1,6 +1,5 @@
 // @flow
 // Actions around sending / editing / deleting messages
-import logger from '../../logger'
 import * as I from 'immutable'
 import * as RPCChatTypes from '../../constants/types/flow-types-chat'
 import * as RPCTypes from '../../constants/types/flow-types'
@@ -11,6 +10,7 @@ import * as Shared from './shared'
 import * as Saga from '../../util/saga'
 import HiddenString from '../../util/hidden-string'
 import {isMobile} from '../../constants/platform'
+import {enableActionLogging} from '../../local-debug'
 import {usernameSelector} from '../../constants/selectors'
 import {navigateTo} from '../../actions/route-tree'
 import {chatTab} from '../../constants/tabs'
@@ -21,8 +21,7 @@ import type {SagaGenerator} from '../../constants/types/saga'
 function* deleteMessage(action: ChatGen.DeleteMessagePayload): SagaGenerator<any, any> {
   const {message} = action.payload
   if (message.type !== 'Text' && message.type !== 'Attachment') {
-    logger.warn('Deleting non-text non-attachment message:')
-    logger.debug('Deleting non-text non-attachment message:', message)
+    console.warn('Deleting non-text non-attachment message:', message)
     return
   }
 
@@ -38,13 +37,11 @@ function* deleteMessage(action: ChatGen.DeleteMessagePayload): SagaGenerator<any
     yield Saga.put(navigateTo([], [chatTab, conversationIDKey]))
 
     if (!inboxConvo) {
-      logger.warn('Deleting message for non-existent inbox:')
-      logger.debug('Deleting message for non-existent inbox:', message)
+      console.warn('Deleting message for non-existent inbox:', message)
       return
     }
     if (!inboxConvo.name) {
-      logger.warn('Deleting message for non-existent TLF:')
-      logger.debug('Deleting message for non-existent TLF:', message)
+      console.warn('Deleting message for non-existent TLF:', message)
       return
     }
     const tlfName: string = inboxConvo.name
@@ -75,8 +72,7 @@ function* deleteMessage(action: ChatGen.DeleteMessagePayload): SagaGenerator<any
     // one less outbox entry in it.  Gotta remove it from the store ourselves.
     yield Saga.put(ChatGen.createRemoveOutboxMessage({conversationIDKey, outboxID}))
   } else {
-    logger.warn('Deleting message without RPC or outbox message ID:')
-    logger.debug('Deleting message without RPC or outbox message ID:', message, messageID)
+    console.warn('Deleting message without RPC or outbox message ID:', message, messageID)
   }
 }
 
@@ -107,7 +103,7 @@ function* postMessage(action: ChatGen.PostMessagePayload): SagaGenerator<any, an
   const outboxID = yield Saga.call(RPCChatTypes.localGenerateOutboxIDRpcPromise)
   const author = usernameSelector(state)
   if (!author) {
-    logger.warn('post message after logged out?')
+    console.warn('post message after logged out?')
     return
   }
   const outboxIDKey = Constants.outboxIDToKey(outboxID)
@@ -164,8 +160,7 @@ function* postMessage(action: ChatGen.PostMessagePayload): SagaGenerator<any, an
 function* editMessage(action: ChatGen.EditMessagePayload): SagaGenerator<any, any> {
   const {message} = action.payload
   if (message.type !== 'Text') {
-    logger.warn('Editing non-text message:')
-    logger.debug('Editing non-text message:', message)
+    console.warn('Editing non-text message:', message)
     return
   }
   const textMessage = (message: Types.TextMessage)
@@ -173,8 +168,7 @@ function* editMessage(action: ChatGen.EditMessagePayload): SagaGenerator<any, an
   const conversationIDKey: Types.ConversationIDKey = attrs.conversationIDKey
   const messageID: Types.ParsedMessageID = Constants.parseMessageID(attrs.messageID)
   if (messageID.type !== 'rpcMessageID') {
-    logger.warn('Editing message without RPC message ID:')
-    logger.debug('Editing message without RPC message ID:', message, messageID)
+    console.warn('Editing message without RPC message ID:', message, messageID)
     return
   }
   let supersedes: RPCChatTypes.MessageID = messageID.msgID
@@ -187,8 +181,7 @@ function* editMessage(action: ChatGen.EditMessagePayload): SagaGenerator<any, an
   if (lastMessageID) {
     const clientPrevMessageID = Constants.parseMessageID(lastMessageID)
     if (clientPrevMessageID.type !== 'rpcMessageID') {
-      logger.warn('Editing message without RPC last message ID:')
-      logger.debug('Editing message without RPC last message ID:', message, clientPrevMessageID)
+      console.warn('Editing message without RPC last message ID:', message, clientPrevMessageID)
       return
     }
 
@@ -198,13 +191,11 @@ function* editMessage(action: ChatGen.EditMessagePayload): SagaGenerator<any, an
   }
 
   if (!inboxConvo) {
-    logger.warn('Editing message for non-existent inbox:')
-    logger.debug('Editing message for non-existent inbox:', message)
+    console.warn('Editing message for non-existent inbox:', message)
     return
   }
   if (!inboxConvo.name) {
-    logger.warn('Editing message for non-existent TLF:')
-    logger.debug('Editing message for non-existent TLF:', message)
+    console.warn('Editing message for non-existent TLF:', message)
     return
   }
   const tlfName: string = inboxConvo.name
@@ -243,11 +234,36 @@ function* retryMessage(action: ChatGen.RetryMessagePayload): SagaGenerator<any, 
   })
 }
 
+function _logPostMessage(action: ChatGen.PostMessagePayload) {
+  const toPrint = {
+    payload: {conversationIDKey: action.payload.conversationIDKey},
+    type: action.type,
+  }
+
+  console.log('Posting message', JSON.stringify(toPrint, null, 2))
+}
+
+function _logRetryMessage(action: ChatGen.RetryMessagePayload) {
+  const toPrint = {
+    payload: {
+      conversationIDKey: action.payload.conversationIDKey,
+      outboxIDKey: action.payload.outboxIDKey,
+    },
+    type: action.type,
+  }
+  console.log('Retrying message', JSON.stringify(toPrint, null, 2))
+}
+
 function* registerSagas(): SagaGenerator<any, any> {
   yield Saga.safeTakeEvery(ChatGen.deleteMessage, deleteMessage)
   yield Saga.safeTakeEvery(ChatGen.editMessage, editMessage)
   yield Saga.safeTakeEvery(ChatGen.postMessage, postMessage)
   yield Saga.safeTakeEvery(ChatGen.retryMessage, retryMessage)
+
+  if (enableActionLogging) {
+    yield Saga.safeTakeEveryPure(ChatGen.postMessage, _logPostMessage)
+    yield Saga.safeTakeEveryPure(ChatGen.retryMessage, _logRetryMessage)
+  }
 }
 
 export {registerSagas}

@@ -1,5 +1,4 @@
 // @flow
-import logger from '../logger'
 import * as RPCTypes from '../constants/types/flow-types'
 import * as Saga from '../util/saga'
 import * as AppGen from './app-gen'
@@ -20,7 +19,7 @@ function _onMobileAppStateChanged(action: AppGen.MobileAppStatePayload) {
       background: RPCTypes.appStateAppState.background,
       inactive: RPCTypes.appStateAppState.inactive,
     }[nextAppState] || RPCTypes.appStateAppState.foreground
-  logger.info(`setting app state on service to: ${state}`)
+  console.log(`setting app state on service to: ${state}`)
 
   return Saga.sequentially([
     Saga.put(AppGen.createChangedFocus({appFocused})),

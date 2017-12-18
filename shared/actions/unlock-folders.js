@@ -1,5 +1,4 @@
 // @flow
-import logger from '../logger'
 import * as UnlockFoldersGen from './unlock-folders-gen'
 import * as Saga from '../util/saga'
 import * as RPCTypes from '../constants/types/flow-types'
@@ -31,11 +30,10 @@ function _registerRekeyListener() {
   engine().listenOnConnect('registerRekeyUI', () => {
     RPCTypes.delegateUiCtlRegisterRekeyUIRpcPromise()
       .then(response => {
-        logger.info('Registered rekey ui')
+        console.log('Registered rekey ui')
       })
       .catch(error => {
-        logger.warn('error in registering rekey ui: ')
-        logger.debug('error in registering rekey ui: ', error)
+        console.warn('error in registering rekey ui: ', error)
       })
   })
 
@@ -43,7 +41,7 @@ function _registerRekeyListener() {
   engine().setIncomingActionCreators(
     'keybase.1.rekeyUI.refresh',
     ({sessionID, problemSetDevices}, response) => {
-      logger.info('Asked for rekey')
+      console.log('Asked for rekey')
       response && response.result()
       return [
         UnlockFoldersGen.createNewRekeyPopup({
