@@ -53,6 +53,10 @@
 		DBEE30851FE8511F0020EBA5 /* LICENSE.txt in Resources */ = {isa = PBXBuildFile; fileRef = DBEE307C1FE8511F0020EBA5 /* LICENSE.txt */; };
 		DBEE30861FE8511F0020EBA5 /* DDFileLogger.m in Sources */ = {isa = PBXBuildFile; fileRef = DBEE307D1FE8511F0020EBA5 /* DDFileLogger.m */; };
 		DBEE30871FE8511F0020EBA5 /* DDASLLogCapture.m in Sources */ = {isa = PBXBuildFile; fileRef = DBEE307F1FE8511F0020EBA5 /* DDASLLogCapture.m */; };
+		DBEE30AD1FE855040020EBA5 /* libRCTCamera.a in Frameworks */ = {isa = PBXBuildFile; fileRef = DB0417DA1E200FC0000B4B1F /* libRCTCamera.a */; };
+		DBEE30D71FE8550C0020EBA5 /* libRNImagePicker.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 27429B081E64A7A90058A4F9 /* libRNImagePicker.a */; };
+		DBEE30D81FE855170020EBA5 /* libRNFetchBlob.a in Frameworks */ = {isa = PBXBuildFile; fileRef = DB311B731EA90680005513D2 /* libRNFetchBlob.a */; };
+		DBEE30D91FE8551E0020EBA5 /* libRCTContacts.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 37D2980A1F9A48D600D43971 /* libRCTContacts.a */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -447,6 +451,10 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				DBEE30D91FE8551E0020EBA5 /* libRCTContacts.a in Frameworks */,
+				DBEE30D81FE855170020EBA5 /* libRNFetchBlob.a in Frameworks */,
+				DBEE30D71FE8550C0020EBA5 /* libRNImagePicker.a in Frameworks */,
+				DBEE30AD1FE855040020EBA5 /* libRCTCamera.a in Frameworks */,
 				2746CFFA1E9884BD00E579B0 /* libresolv.tbd in Frameworks */,
 				DB6D0B961E5B9ED200410F3C /* libRCTAnimation.a in Frameworks */,
 				DB2BD1E51DE7D9A600BB7989 /* libRCTActionSheet.a in Frameworks */,
