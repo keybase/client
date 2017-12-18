@@ -1162,26 +1162,33 @@ func CreateSeitanToken(ctx context.Context, g *libkb.GlobalContext, teamname str
 	return keybase1.SeitanIKey(ikey), err
 }
 
-// CreateTLF is called by KBFS when a TLF ID is associated with an implicit team. Should
-// only work for implicit teams, and should give an error if a named team is provided.
+// CreateTLF is called by KBFS when a TLF ID is associated with an implicit team.
+// Should work on either named or implicit teams.
 func CreateTLF(ctx context.Context, g *libkb.GlobalContext, arg keybase1.CreateTLFArg) (err error) {
 	defer g.CTrace(ctx, fmt.Sprintf("CreateTLF(%v)", arg), func() error { return err })()
 	return RetryOnSigOldSeqnoError(ctx, g, func(ctx context.Context, _ int) error {
 		// Need admin because only admins can issue this link
-		t, err := GetForTeamManagementByTeamID(ctx, g, arg.TeamID, true)
+		t, err := GetForTeamManagementByTeamID(ctx, g, arg.TeamID, false)
 		if err != nil {
 			return err
+		}
+		role, err := t.myRole(ctx)
+		if err != nil {
+			return err
+		}
+		if !role.IsWriterOrAbove() {
+			return fmt.Errorf("permission denied: need writer access (or above)")
 		}
 		return t.associateTLFID(ctx, arg.TlfID)
 	})
 }
 
 func CanUserPerform(ctx context.Context, g *libkb.GlobalContext, teamname string) (ret keybase1.TeamOperation, err error) {
-	me, err := libkb.LoadMe(libkb.NewLoadUserArgWithContext(ctx, g))
+
+	meUV, err := getCurrentUserUV(ctx, g)
 	if err != nil {
-		return
+		return ret, err
 	}
-	meUV := me.ToUserVersion()
 
 	team, err := Load(ctx, g, keybase1.LoadTeamArg{
 		Name:    teamname,
@@ -1189,7 +1196,7 @@ func CanUserPerform(ctx context.Context, g *libkb.GlobalContext, teamname string
 		Public:  false, // assume private team
 	})
 	if err != nil {
-		return
+		return ret, err
 	}
 
 	isImplicitAdmin := func() (bool, error) {
@@ -1255,7 +1262,7 @@ func CanUserPerform(ctx context.Context, g *libkb.GlobalContext, teamname string
 	var perm bool
 	perm, err = isAdminOrImplicitAdmin()
 	if err != nil {
-		return
+		return ret, err
 	}
 	ret.ManageMembers = perm
 	ret.ManageSubteams = perm
@@ -1264,17 +1271,17 @@ func CanUserPerform(ctx context.Context, g *libkb.GlobalContext, teamname string
 
 	ret.CreateChannel, err = isWriter()
 	if err != nil {
-		return
+		return ret, err
 	}
 
 	ret.SetMemberShowcase, err = canMemberShowcase()
 	if err != nil {
-		return
+		return ret, err
 	}
 
 	perm, err = isAdmin()
 	if err != nil {
-		return
+		return ret, err
 	}
 	ret.DeleteChannel = perm
 	ret.RenameChannel = perm
