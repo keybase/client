@@ -183,29 +183,6 @@ type gregorHandler struct {
 var _ libkb.GregorDismisser = (*gregorHandler)(nil)
 var _ libkb.GregorListener = (*gregorHandler)(nil)
 
-type gregorLocalDb struct {
-	libkb.Contextified
-}
-
-func newLocalDB(g *libkb.GlobalContext) *gregorLocalDb {
-	return &gregorLocalDb{
-		Contextified: libkb.NewContextified(g),
-	}
-}
-
-func dbKey(u gregor.UID) libkb.DbKey {
-	return libkb.DbKey{Typ: libkb.DBGregor, Key: hex.EncodeToString(u.Bytes())}
-}
-
-func (db *gregorLocalDb) Store(u gregor.UID, b []byte) error {
-	return db.G().LocalDb.PutRaw(dbKey(u), b)
-}
-
-func (db *gregorLocalDb) Load(u gregor.UID) (res []byte, e error) {
-	res, _, err := db.G().LocalDb.GetRaw(dbKey(u))
-	return res, err
-}
-
 func newGregorHandler(g *globals.Context) *gregorHandler {
 	gh := &gregorHandler{
 		Contextified:      globals.NewContextified(g),
@@ -329,7 +306,7 @@ func (g *gregorHandler) resetGregorClient() (err error) {
 	}
 
 	// Create client object
-	gcli := grclient.NewClient(guid, gdid, sm, newLocalDB(g.G().ExternalG()),
+	gcli := grclient.NewClient(guid, gdid, sm, storage.NewLocalDB(g.G().ExternalG()),
 		g.G().Env.GetGregorSaveInterval(), g.G().Log)
 
 	// Bring up local state

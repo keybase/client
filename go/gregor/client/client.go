@@ -17,6 +17,9 @@ import (
 type LocalStorageEngine interface {
 	Store(gregor.UID, []byte) error
 	Load(gregor.UID) ([]byte, error)
+	LocalDismiss(u gregor.UID, msgID gregor.MsgID) error
+	ClearLocalDismissal(u gregor.UID, msgID gregor.MsgID) error
+	FetchLocalDismissals(u gregor.UID) ([][]byte, error)
 }
 
 type Client struct {
