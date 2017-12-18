@@ -1,0 +1,12 @@
+{
+  "prelude": [
+    "import * as Types from '../constants/types/chat2'",
+    "import HiddenString from '../util/hidden-string'"
+  ],
+  "actions": {
+      "inboxRefresh": {},
+      "inboxUtrustedLoaded": {
+          "untrusted": "Array<Types.Conversation>"
+      }
+  }
+}
