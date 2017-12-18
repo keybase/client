@@ -745,7 +745,7 @@ export type InboxResType =0 // VERSIONHIT_0
  | 1 // FULL_1
 
 
-export type InboxUIItem = {|convID: String,isEmpty: Boolean,name: String,snippet: String,channel: String,headline: String,visibility: Keybase1.TLFVisibility,participants?: ?Array<String>,fullNames: {[key: string]: String},resetParticipants?: ?Array<String>,status: ConversationStatus,membersType: ConversationMembersType,memberStatus: ConversationMemberStatus,teamType: TeamType,time: Gregor1.Time,notifications?: ?ConversationNotificationInfo,creatorInfo?: ?ConversationCreatorInfoLocal,version: ConversationVers,maxMsgID: MessageID,finalizeInfo?: ?ConversationFinalizeInfo,supersedes?: ?Array<ConversationMetadata>,supersededBy?: ?Array<ConversationMetadata>,|}
+export type InboxUIItem = {|convID: String,isEmpty: Boolean,name: String,snippet: String,channel: String,headline: String,snippetMessage?: ?UIMessage,visibility: Keybase1.TLFVisibility,participants?: ?Array<String>,fullNames: {[key: string]: String},resetParticipants?: ?Array<String>,status: ConversationStatus,membersType: ConversationMembersType,memberStatus: ConversationMemberStatus,teamType: TeamType,time: Gregor1.Time,notifications?: ?ConversationNotificationInfo,creatorInfo?: ?ConversationCreatorInfoLocal,version: ConversationVers,maxMsgID: MessageID,finalizeInfo?: ?ConversationFinalizeInfo,supersedes?: ?Array<ConversationMetadata>,supersededBy?: ?Array<ConversationMetadata>,|}
 
 export type InboxUIItems = {|items?: ?Array<InboxUIItem>,pagination?: ?UIPagination,offline: Boolean,|}
 
