@@ -2242,3 +2242,25 @@ func (e TeamBadMembershipError) Error() string {
 }
 
 //=============================================================================
+
+type TeamProvisionalError struct {
+	CanKey                bool
+	IsPublic              bool
+	PreResolveDisplayName string
+}
+
+func (e TeamProvisionalError) Error() string {
+	ret := "team is provisional"
+	if e.CanKey {
+		ret += ", but the user can key"
+	} else {
+		ret += ", and the user cannot key"
+	}
+	return ret
+}
+
+func NewTeamProvisionalError(canKey bool, isPublic bool, dn string) error {
+	return TeamProvisionalError{canKey, isPublic, dn}
+}
+
+//=============================================================================

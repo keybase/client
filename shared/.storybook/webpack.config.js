@@ -50,6 +50,7 @@ module.exports = (storybookBaseConfig, configType) => {
 
   storybookBaseConfig.node = {
     __dirname: true,
+    fs: "empty",
   }
 
   return storybookBaseConfig

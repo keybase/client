@@ -83,7 +83,9 @@ class AggregateLoggerImpl implements AggregateLogger {
     this.debug = debug.log
 
     const olderThanMs = 1e3 * 60 * 60 * 24 // 24 hours
-    deleteFileIfOlderThanMs(olderThanMs, logFileName())
+    if (!__SCREENSHOT__) {
+      deleteFileIfOlderThanMs(olderThanMs, logFileName())
+    }
   }
 
   dump(filter?: Array<LogLevel>) {
@@ -110,25 +112,27 @@ class AggregateLoggerImpl implements AggregateLogger {
   }
 }
 
+const devLoggers = () => ({
+  action: new TeeLogger(new RingLogger(100), new ConsoleLogger('log', 'Dispatching Action')),
+  debug: new ConsoleLogger('log', 'DEBUG:'),
+  error: new ConsoleLogger('error'),
+  info: new ConsoleLogger('log'),
+  warn: new ConsoleLogger('warn'),
+})
+
+const prodLoggers = () => ({
+  action: isMobile
+    ? new NativeLogger()
+    : new DumpPeriodicallyLogger(new RingLogger(5000), 10 * 60e3, writeLogLinesToFile, 'Action'),
+  debug: new NullLogger(),
+  error: isMobile
+    ? new NativeLogger()
+    : new DumpPeriodicallyLogger(new RingLogger(1000), 1 * 60e3, writeLogLinesToFile, 'Error'),
+  info: new RingLogger(1000),
+  warn: new RingLogger(1000),
+})
+
 // Settings
-const logSetup = __DEV__
-  ? {
-      error: new ConsoleLogger('error'),
-      warn: new ConsoleLogger('warn'),
-      info: new ConsoleLogger('log'),
-      action: new TeeLogger(new RingLogger(100), new ConsoleLogger('log', 'Dispatching Action')),
-      debug: new ConsoleLogger('log', 'DEBUG:'),
-    }
-  : {
-      error: isMobile
-        ? new NativeLogger()
-        : new DumpPeriodicallyLogger(new RingLogger(1000), 1 * 60e3, writeLogLinesToFile, 'Error'),
-      warn: new RingLogger(1000),
-      info: new RingLogger(1000),
-      action: isMobile
-        ? new NativeLogger()
-        : new DumpPeriodicallyLogger(new RingLogger(5000), 10 * 60e3, writeLogLinesToFile, 'Action'),
-      debug: new NullLogger(),
-    }
+const logSetup = __DEV__ || __SCREENSHOT__ ? devLoggers() : prodLoggers()
 
 export default new AggregateLoggerImpl(logSetup)
