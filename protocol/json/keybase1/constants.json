@@ -149,7 +149,9 @@
         "SCTeamInviteTokenReused_2696",
         "SCTeamKeyMaskNotFound_2697",
         "SCTeamBanned_2702",
-        "SCTeamInvalidBan_2703"
+        "SCTeamInvalidBan_2703",
+        "SCTeamProvisionalCanKey_2721",
+        "SCTeamProvisionalCannotKey_2722"
       ]
     }
   ],
