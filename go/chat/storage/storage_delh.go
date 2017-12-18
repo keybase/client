@@ -131,23 +131,3 @@ func (t *delhTracker) setDeletedUpto(ctx context.Context,
 	entry.MinDeletableMessage = msgid
 	return t.setEntry(ctx, convID, uid, entry)
 }
-
-func (t *delhTracker) modify(ctx context.Context,
-	convID chat1.ConversationID, uid gregor1.UID, mod func(*delhTrackerEntry) (delhTrackerEntry, Error)) Error {
-
-	var before *delhTrackerEntry
-	tmp, err := t.getEntry(ctx, convID, uid)
-	switch err.(type) {
-	case nil:
-		before = &tmp
-	case MissError:
-		// ok
-	default:
-		return err
-	}
-	after, err := mod(before)
-	if err != nil {
-		return err
-	}
-	return t.setEntry(ctx, convID, uid, after)
-}
