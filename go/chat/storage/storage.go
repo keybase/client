@@ -281,8 +281,6 @@ func (s *Storage) Merge(ctx context.Context,
 		return res, err
 	}
 
-	// @@@ TODO delete messages on arrival that are older than the last processed deletehistory (?)
-
 	// Write out new data into blocks
 	if err = s.engine.WriteMessages(ctx, convID, uid, msgs); err != nil {
 		return res, s.MaybeNuke(false, err, convID, uid)
@@ -310,9 +308,6 @@ func (s *Storage) Merge(ctx context.Context,
 			return res, s.MaybeNuke(false, err, convID, uid)
 		}
 	}
-
-	// @@@ TODO notify frontend?
-	// @@@ TODO inform inboxsource that it may need to delete/recalculate snippets
 
 	return res, nil
 }
@@ -550,6 +545,7 @@ func (s *Storage) applyDeleteHistory(ctx context.Context, convID chat1.Conversat
 		}
 		if !msg.IsValid() {
 			de("skipping invalid msg: %v", msg.GetMessageID())
+			continue
 		}
 		mvalid := msg.Valid()
 		if mvalid.MessageBody.IsNil() {
