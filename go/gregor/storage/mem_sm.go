@@ -222,7 +222,6 @@ func (u *user) isLocallyDismissed(msgID gregor.MsgID) bool {
 
 func (u *user) state(now time.Time, f gregor.ObjFactory, d gregor.DeviceID, t gregor.TimeOrOffset) (gregor.State, error) {
 	var items []gregor.Item
-	u.logger.Debug("STATE: BEGIN")
 	table := make(map[string]gregor.Item)
 	for _, i := range u.items {
 		md := i.item.Metadata()
@@ -236,10 +235,7 @@ func (u *user) state(now time.Time, f gregor.ObjFactory, d gregor.DeviceID, t gr
 		if i.isDismissedAt(toTime(now, t)) {
 			continue
 		}
-		if u.isLocallyDismissed(md.MsgID()) {
-			u.logger.Debug("STATE: LOCALDIS: %s", md.MsgID())
-			continue
-		}
+
 		exported, err := i.export(f)
 		if err != nil {
 			return nil, err
@@ -283,9 +279,6 @@ func (u *user) replayLog(now time.Time, d gregor.DeviceID, t time.Time) (msgs []
 
 		allmsgs[msg.m.Metadata().MsgID().String()] = msg.m
 		if msg.isDismissedAt(now) {
-			continue
-		}
-		if u.isLocallyDismissed(msg.m.Metadata().MsgID()) {
 			continue
 		}
 
@@ -340,7 +333,6 @@ func (m *MemEngine) InitLocalDismissals(ctx context.Context, u gregor.UID, msgID
 	for _, msgID := range msgIDs {
 		user.localDismissals[msgID.String()] = msgID
 	}
-	m.log.CDebugf(ctx, "INITLOCALDISMISSALS: %d", len(msgIDs))
 	return nil
 }
 

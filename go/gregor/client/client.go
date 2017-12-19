@@ -146,6 +146,11 @@ func (c *Client) SyncFromTime(ctx context.Context, cli gregor1.IncomingInterface
 	if err != nil {
 		return nil, err
 	}
+	items, err := state.Items()
+	if err != nil {
+		return nil, err
+	}
+	c.Log.Debug("Sync(): state items: %d", len(items))
 	hash, err := state.Hash()
 	if err != nil {
 		return nil, err
