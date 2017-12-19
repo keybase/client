@@ -155,12 +155,11 @@ function _parseSuggestion(username: string) {
 }
 
 function _apiSearch(searchTerm: string, service: string = '', limit: number = 20): Promise<Array<RawResult>> {
-  service = service === 'Keybase' ? '' : service
   return RPCTypes.apiserverGetWithSessionRpcPromise({
     args: [
       {key: 'q', value: trim(searchTerm)},
       {key: 'num_wanted', value: String(limit)},
-      {key: 'service', value: service},
+      {key: 'service', value: service === 'Keybase' ? '' : service},
     ],
     endpoint: 'user/user_search',
   }).then(results => JSON.parse(results.body))

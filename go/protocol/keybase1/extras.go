@@ -1359,6 +1359,13 @@ func (ut UserOrTeamID) AsUserOrBust() UID {
 	return uid
 }
 
+func (ut UserOrTeamID) IsPublic() bool {
+	if ut.IsUser() {
+		return true
+	}
+	return ut.AsTeamOrBust().IsPublic()
+}
+
 func (ut UserOrTeamID) AsTeam() (TeamID, error) {
 	if !ut.IsTeamOrSubteam() {
 		return TeamID(""), fmt.Errorf("ID is not a team ID (%s)", ut)

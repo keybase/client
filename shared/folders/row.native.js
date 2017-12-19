@@ -6,12 +6,10 @@ import {getStyle} from '../common-adapters/text'
 import {globalStyles, globalColors, globalMargins} from '../styles'
 
 const Avatars = ({styles, users, ignored, isPublic, isTeam}) => {
-  if (!isPublic && users.length > 1) {
-    users = users.filter(({you}) => !you)
-  }
-  const avatarCount = Math.min(2, users.length)
+  const goodUsers = !isPublic && users.length > 1 ? users.filter(({you}) => !you) : users
+  const avatarCount = Math.min(2, goodUsers.length)
   const opacity = ignored ? 0.5 : 1
-  const avatarProps = users.slice(0, 2).map(({username}, idx) => ({
+  const avatarProps = goodUsers.slice(0, 2).map(({username}, idx) => ({
     borderColor: avatarCount > 1 && idx === 0 ? globalColors.white : undefined,
     loadingColor: globalColors.lightGrey,
     size: 32,
@@ -19,8 +17,8 @@ const Avatars = ({styles, users, ignored, isPublic, isTeam}) => {
   }))
 
   let teamname = 'unknown'
-  if (isTeam && users.length > 0) {
-    teamname = users[0].username
+  if (isTeam && goodUsers.length > 0) {
+    teamname = goodUsers[0].username
   }
 
   return (

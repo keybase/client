@@ -1,22 +1,18 @@
 // @flow
 /* eslint-disable no-native-reassign, no-global-assign, no-extend-native */
-// DO NOT REORDER THIS LIST OF IMPORTS
+// >>>>>>>>>>>>>>>>>>>>>>>      DO NOT REORDER ANYTHING in this file      <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+// This is supposed to bootstrap / polyfill / fixup the app. Do NOT add things here or change things unless you really know
+// what's happening
+//
 require('core-js/es6/reflect') // required for babel-plugin-transform-builtin-extend in RN iOS and Android
 // Needed for purepack
 window.Buffer = require('buffer').Buffer
-require('../dev/user-timings')
-const {isStoryBook} = require('../constants/platform.native')
-
-// __DEV__
-//  set by react-native to true if the app is being run in a simulator, false otherwise
-
-// __PROD__
-//  set opposite of __DEV__
+const {NativeModules} = require('react-native')
 
 // __STORYBOOK__
 // if we're in storybook mode
 if (typeof __STORYBOOK__ === 'undefined') {
-  __STORYBOOK__ = isStoryBook
+  __STORYBOOK__ = (NativeModules.Storybook && NativeModules.Storybook.isStorybook) || false
 }
 
 // __SCREENSHOT__
@@ -33,3 +29,5 @@ String.prototype.startsWith = function(searchString, position) {
   position = position || 0
   return this.substr(position, searchString.length) === searchString
 }
+
+require('../dev/user-timings')

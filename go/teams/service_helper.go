@@ -1183,6 +1183,20 @@ func CreateTLF(ctx context.Context, g *libkb.GlobalContext, arg keybase1.CreateT
 	})
 }
 
+func GetKBFSTeamSettings(ctx context.Context, g *libkb.GlobalContext, isPublic bool, teamID keybase1.TeamID) (res keybase1.KBFSTeamSettings, err error) {
+	defer g.CTrace(ctx, fmt.Sprintf("GetKBFSTeamSettings(%v,%v)", isPublic, teamID), func() error { return err })()
+	team, err := Load(ctx, g, keybase1.LoadTeamArg{
+		ID:     teamID,
+		Public: isPublic,
+	})
+	if err != nil {
+		return res, err
+	}
+	res.TlfID = team.KBFSTLFID()
+	g.Log.CDebugf(ctx, "res: %+v", res)
+	return res, err
+}
+
 func CanUserPerform(ctx context.Context, g *libkb.GlobalContext, teamname string) (ret keybase1.TeamOperation, err error) {
 
 	meUV, err := getCurrentUserUV(ctx, g)

@@ -149,11 +149,14 @@ const getOrderedMemberArray = (
   youImplicitAdmin: boolean
 ): Array<Types.MemberInfo> => {
   let youInfo
+  let info = memberInfo
   if (you && !youImplicitAdmin) {
     youInfo = memberInfo.find(member => member.username === you)
-    if (youInfo) memberInfo = memberInfo.delete(youInfo)
+    if (youInfo) {
+      info = memberInfo.delete(youInfo)
+    }
   }
-  let returnArray = memberInfo
+  let returnArray = info
     .toArray()
     .sort(
       (a, b) =>
@@ -191,6 +194,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
   const showAddYourselfBanner = !youAreMember && !youExplicitAdmin && youImplicitAdmin
   const youCanAddPeople = youAdmin
   const youCanCreateSubteam = youAdmin
+  const youCanLeaveTeam = youAreMember
 
   const onAddSelf = () => dispatchProps._onAddSelf(stateProps.name, you)
   const onSetOpenTeamRole = () =>
@@ -239,6 +243,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     youAdmin,
     youCanAddPeople,
     youImplicitAdmin,
+    youCanLeaveTeam,
     youCanCreateSubteam,
     youCanShowcase,
   }

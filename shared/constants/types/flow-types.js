@@ -930,6 +930,10 @@ export const kbfsFSSyncStatusRpcChannelMap = (configKeys: Array<string>, request
 
 export const kbfsFSSyncStatusRpcPromise = (request: KbfsFSSyncStatusRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.kbfs.FSSyncStatus', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
 
+export const kbfsGetKBFSTeamSettingsRpcChannelMap = (configKeys: Array<string>, request: KbfsGetKBFSTeamSettingsRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.kbfs.getKBFSTeamSettings', request)
+
+export const kbfsGetKBFSTeamSettingsRpcPromise = (request: KbfsGetKBFSTeamSettingsRpcParam): Promise<KbfsGetKBFSTeamSettingsResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.kbfs.getKBFSTeamSettings', request, (error: RPCError, result: KbfsGetKBFSTeamSettingsResult) => error ? reject(error) : resolve(result)))
+
 export const kbfsMountGetAllAvailableMountDirsRpcChannelMap = (configKeys: Array<string>, request: KbfsMountGetAllAvailableMountDirsRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.kbfsMount.GetAllAvailableMountDirs', request)
 
 export const kbfsMountGetAllAvailableMountDirsRpcPromise = (request: KbfsMountGetAllAvailableMountDirsRpcParam): Promise<KbfsMountGetAllAvailableMountDirsResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.kbfsMount.GetAllAvailableMountDirs', request, (error: RPCError, result: KbfsMountGetAllAvailableMountDirsResult) => error ? reject(error) : resolve(result)))
@@ -2478,6 +2482,8 @@ export type KBFSGitDeleteRepoRpcParam = {|folder: Folder,name: GitRepoName,incom
 
 export type KBFSGitGcRpcParam = {|folder: Folder,name: GitRepoName,options: GcOptions,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
+export type KBFSTeamSettings = {|tlfID: TLFID,|}
+
 export type KID = String
 
 export type KbfsCreateTLFRpcParam = {|teamID: TeamID,tlfID: TLFID,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
@@ -2489,6 +2495,8 @@ export type KbfsFSEventRpcParam = {|event: FSNotification,incomingCallMap?: Inco
 export type KbfsFSSyncEventRpcParam = {|event: FSPathSyncStatus,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
 export type KbfsFSSyncStatusRpcParam = {|status: FSSyncStatus,requestID: Int,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+
+export type KbfsGetKBFSTeamSettingsRpcParam = {|teamID: TeamID,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
 export type KbfsMountGetAllAvailableMountDirsRpcParam = ?{|incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
@@ -3879,6 +3887,7 @@ type InstallInstallFuseResult = InstallResult
 type InstallInstallKBFSResult = InstallResult
 type InstallUninstallKBFSResult = UninstallResult
 type KBFSGitCreateRepoResult = RepoID
+type KbfsGetKBFSTeamSettingsResult = KBFSTeamSettings
 type KbfsMountGetAllAvailableMountDirsResult = ?Array<String>
 type KbfsMountGetCurrentMountDirResult = String
 type Kex2Provisionee2Hello2Result = Hello2Res

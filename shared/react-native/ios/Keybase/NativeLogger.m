@@ -1,8 +1,8 @@
 #import "NativeLogger.h"
 #import <UIKit/UIKit.h>
 #import "AppDelegate.h"
+#import "CocoaLumberjack.h"
 
-@import CocoaLumberjack;
 @implementation NativeLogger
 
 static const DDLogLevel ddLogLevel = DDLogLevelDebug;

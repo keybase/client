@@ -65,6 +65,7 @@ export type Props = {
   yourRole: ?Types.TeamRoleType,
   youAdmin: boolean,
   youImplicitAdmin: boolean,
+  youCanLeaveTeam: boolean,
   youCanShowcase: boolean,
   youCanAddPeople: boolean,
   youCanCreateSubteam: boolean,
@@ -263,6 +264,7 @@ class Team extends React.PureComponent<Props> {
       yourRole,
       youAdmin,
       youImplicitAdmin,
+      youCanLeaveTeam,
       youCanAddPeople,
       youCanCreateSubteam,
       youCanShowcase,
@@ -459,10 +461,11 @@ class Team extends React.PureComponent<Props> {
       )
     }
 
-    const popupMenuItems = [
-      {onClick: onManageChat, title: 'Manage chat channels'},
-      {onClick: onLeaveTeam, title: 'Leave team', danger: true},
-    ]
+    const popupMenuItems = [{onClick: onManageChat, title: 'Manage chat channels'}]
+
+    if (youCanLeaveTeam) {
+      popupMenuItems.push({onClick: onLeaveTeam, title: 'Leave team', danger: true})
+    }
 
     if (youCanCreateSubteam) {
       popupMenuItems.push({onClick: onCreateSubteam, title: 'Create subteam'})
