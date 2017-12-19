@@ -228,6 +228,13 @@
             "items": "string"
           },
           "name": "resetParticipants"
+        },
+        {
+          "type": [
+            null,
+            "UIMessage"
+          ],
+          "name": "snippetMsg"
         }
       ]
     },

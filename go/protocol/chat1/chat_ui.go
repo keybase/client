@@ -308,11 +308,12 @@ func (o UIMessages) DeepCopy() UIMessages {
 }
 
 type UnverifiedInboxUIItemMetadata struct {
-	ChannelName       string   `codec:"channelName" json:"channelName"`
-	Headline          string   `codec:"headline" json:"headline"`
-	Snippet           string   `codec:"snippet" json:"snippet"`
-	WriterNames       []string `codec:"writerNames" json:"writerNames"`
-	ResetParticipants []string `codec:"resetParticipants" json:"resetParticipants"`
+	ChannelName       string     `codec:"channelName" json:"channelName"`
+	Headline          string     `codec:"headline" json:"headline"`
+	Snippet           string     `codec:"snippet" json:"snippet"`
+	WriterNames       []string   `codec:"writerNames" json:"writerNames"`
+	ResetParticipants []string   `codec:"resetParticipants" json:"resetParticipants"`
+	SnippetMsg        *UIMessage `codec:"snippetMsg,omitempty" json:"snippetMsg,omitempty"`
 }
 
 func (o UnverifiedInboxUIItemMetadata) DeepCopy() UnverifiedInboxUIItemMetadata {
@@ -342,6 +343,13 @@ func (o UnverifiedInboxUIItemMetadata) DeepCopy() UnverifiedInboxUIItemMetadata 
 			}
 			return ret
 		})(o.ResetParticipants),
+		SnippetMsg: (func(x *UIMessage) *UIMessage {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.SnippetMsg),
 	}
 }
 

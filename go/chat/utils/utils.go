@@ -736,6 +736,7 @@ func PresentRemoteConversation(rc types.RemoteConversation) (res chat1.Unverifie
 			Snippet:           rc.LocalMetadata.Snippet,
 			WriterNames:       rc.LocalMetadata.WriterNames,
 			ResetParticipants: rc.LocalMetadata.ResetParticipants,
+			SnippetMsg:        rc.LocalMetadata.SnippetMsg,
 		}
 	}
 	return res
