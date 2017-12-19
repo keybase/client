@@ -37,6 +37,14 @@ export default function(state: Types.State = initialState, action: $ReadOnly<Cha
           })
         })
       )
+    case Chat2Gen.updateConverationLoadingStates:
+      return state.update('metaMap', metaMap =>
+        metaMap.withMutations(m => {
+          action.payload.conversationIDKeys.forEach(id => {
+            m.setIn([id, 'loadingState'], action.payload.newState)
+          })
+        })
+      )
     // Saga only actions
     case Chat2Gen.inboxRefresh:
     case Chat2Gen.queueUnboxConversations:

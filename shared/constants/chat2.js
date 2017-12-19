@@ -33,7 +33,7 @@ export const makeConversationMeta: I.RecordFactory<Types._ConversationMeta> = I.
   id: Types.stringToConversationIDKey(''),
   inboxVersion: -1,
   isMuted: false,
-  isUnboxed: false,
+  loadingState: 'untrusted',
   membershipType: 'active',
   notificationSettings: null,
   participants: I.Set(),

@@ -15,6 +15,7 @@ export const inboxUtrustedLoaded = 'chat2:inboxUtrustedLoaded'
 export const queueUnboxConversations = 'chat2:queueUnboxConversations'
 export const unboxConversations = 'chat2:unboxConversations'
 export const unboxSomeConversations = 'chat2:unboxSomeConversations'
+export const updateConverationLoadingStates = 'chat2:updateConverationLoadingStates'
 
 // Action Creators
 export const createInboxRefresh = () => ({error: false, payload: undefined, type: inboxRefresh})
@@ -22,6 +23,7 @@ export const createInboxUtrustedLoaded = (payload: {|+untrusted: Array<Types.Con
 export const createQueueUnboxConversations = (payload: {|+conversationIDKeys: Array<Types.ConversationIDKey>, +reason: string|}) => ({error: false, payload, type: queueUnboxConversations})
 export const createUnboxConversations = (payload: {|+conversationIDKeys: Array<Types.ConversationIDKey>|}) => ({error: false, payload, type: unboxConversations})
 export const createUnboxSomeConversations = () => ({error: false, payload: undefined, type: unboxSomeConversations})
+export const createUpdateConverationLoadingStates = (payload: {|+newState: Types.LoadingState, +conversationIDKeys: Array<Types.ConversationIDKey>|}) => ({error: false, payload, type: updateConverationLoadingStates})
 
 // Action Payloads
 export type InboxRefreshPayload = More.ReturnType<typeof createInboxRefresh>
@@ -29,6 +31,7 @@ export type InboxUtrustedLoadedPayload = More.ReturnType<typeof createInboxUtrus
 export type QueueUnboxConversationsPayload = More.ReturnType<typeof createQueueUnboxConversations>
 export type UnboxConversationsPayload = More.ReturnType<typeof createUnboxConversations>
 export type UnboxSomeConversationsPayload = More.ReturnType<typeof createUnboxSomeConversations>
+export type UpdateConverationLoadingStatesPayload = More.ReturnType<typeof createUpdateConverationLoadingStates>
 
 // All Actions
 // prettier-ignore
@@ -38,4 +41,5 @@ export type Actions =
   | More.ReturnType<typeof createQueueUnboxConversations>
   | More.ReturnType<typeof createUnboxConversations>
   | More.ReturnType<typeof createUnboxSomeConversations>
+  | More.ReturnType<typeof createUpdateConverationLoadingStates>
   | {type: 'common:resetStore', payload: void}

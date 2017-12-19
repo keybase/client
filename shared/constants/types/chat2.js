@@ -17,13 +17,14 @@ type Message = any
 
 type MembershipType = 'active' | 'youArePreviewing' | 'youAreReset'
 type TeamType = 'small' | 'big' | 'adhoc'
+export type LoadingState = 'untrusted' | 'unboxing' | 'unboxed'
 
 // Metadata about a conversation. We keep the messages sep. since we update these at different times
 export type _ConversationMeta = {
   id: ConversationIDKey,
   inboxVersion: number,
   isMuted: boolean,
-  isUnboxed: boolean,
+  loadingState: LoadingState,
   membershipType: MembershipType,
   notificationSettings: ?RPCChatTypes.ConversationNotificationInfo,
   participants: I.Set<string>,

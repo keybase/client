@@ -68,7 +68,9 @@ function unboxSomeConversations(action: Chat2Gen.QueueUnboxConversationsPayload,
   const maybeUnbox = unboxQueue.takeLast(maxToUnboxAtATime)
   unboxQueue = unboxQueue.skipLast(maxToUnboxAtATime)
 
-  const conversationIDKeys = maybeUnbox.filter(id => !state.chat2.metaMap.getIn([id, 'isUnboxed'], false))
+  const conversationIDKeys = maybeUnbox.filter(
+    id => state.chat2.metaMap.getIn([id, 'loadingState'], 'untrusted') === 'untrusted'
+  )
   const toUnboxActions = conversationIDKeys.size
     ? [Saga.put(Chat2Gen.createUnboxConversations({conversationIDKeys: conversationIDKeys.toArray()}))]
     : []
@@ -85,13 +87,61 @@ function unboxSomeConversations(action: Chat2Gen.QueueUnboxConversationsPayload,
 }
 
 function rpcUnboxConversations(action: Chat2Gen.UnboxConversationsPayload) {
-  console.log('aaa', action.payload)
+  // const loadInboxRpc = new EngineRpc.EngineRpcCall(
+  // unboxConversationsSagaMap,
+  // RPCChatTypes.localGetInboxNonblockLocalRpcChannelMap,
+  // 'unboxConversations',
+  // {
+  // identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
+  // skipUnverified: forInboxSync,
+  // query: {
+  // ..._getInboxQuery,
+  // convIDs: conversationIDKeys.map(Constants.keyToConversationID),
+  // },
+  // }
+  // )
+  // try {
+  // yield Saga.call(loadInboxRpc.run, 30e3)
+  // } catch (error) {
+  // if (error instanceof RPCTimeoutError) {
+  // logger.warn('unboxConversations: timed out request for unboxConversations, bailing')
+  // yield Saga.put.resolve(
+  // ChatGen.createReplaceEntity({
+  // keyPath: ['inboxUntrustedState'],
+  // entities: I.Map(conversationIDKeys.map(c => [c, 'untrusted'])),
+  // })
+  // )
+  // } else {
+  // logger.warn('unboxConversations: error in loadInboxRpc')
+  // logger.debug('unboxConversations: error in loadInboxRpc', error)
+  // }
+  // }
+  // if (dismissSyncing) {
+  // yield Saga.put(ChatGen.createSetInboxSyncingState({inboxSyncingState: 'notSyncing'}))
+  // }
+}
+
+function updateConversationState(action: Chat2Gen.UnboxConversationsPayload) {
+  let newState
+  switch (action.type) {
+    case Chat2Gen.unboxConversations:
+      newState = 'unboxing'
+      break
+    default:
+      // eslint-disable-next-line no-unused-expressions
+      (action: empty) // errors if we don't handle any new actions
+  }
+  return Saga.put(Chat2Gen.createUpdateConverationLoadingStates({
+    conversationIDKeys: action.payload.conversationIDKeys,
+    newState,
+  }))
 }
 
 function* chat2Saga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeLatest(Chat2Gen.inboxRefresh, rpcInboxRefresh)
   yield Saga.safeTakeEveryPure(Chat2Gen.queueUnboxConversations, addConversationsToUnboxQueue)
   yield Saga.safeTakeEveryPure(Chat2Gen.unboxSomeConversations, unboxSomeConversations)
+  yield Saga.safeTakeEveryPure([Chat2Gen.unboxConversations], updateConversationState)
   yield Saga.safeTakeEveryPure(Chat2Gen.unboxConversations, rpcUnboxConversations)
 }
 

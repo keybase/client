@@ -15,6 +15,10 @@
     "unboxSomeConversations": {},
     "unboxConversations": {
       "conversationIDKeys": "Array<Types.ConversationIDKey>"
+    },
+    "updateConverationLoadingStates": {
+      "newState": "Types.LoadingState",
+      "conversationIDKeys": "Array<Types.ConversationIDKey>"
     }
   }
 }

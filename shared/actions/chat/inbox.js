@@ -461,99 +461,99 @@ const unboxConversationsSagaMap = {
 }
 
 // Loads the trusted inbox segments
-function* unboxConversations(action: ChatGen.UnboxConversationsPayload): SagaGenerator<any, any> {
-  let {conversationIDKeys, reason, force, forInboxSync, dismissSyncing} = action.payload
+// function* unboxConversations(action: ChatGen.UnboxConversationsPayload): SagaGenerator<any, any> {
+// let {conversationIDKeys, reason, force, forInboxSync, dismissSyncing} = action.payload
 
-  const state: TypedState = yield Saga.select()
-  const untrustedState = state.chat.inboxUntrustedState
+// const state: TypedState = yield Saga.select()
+// const untrustedState = state.chat.inboxUntrustedState
 
-  logger.info(
-    `unboxConversations: before filter unboxing ${conversationIDKeys.length} convs, force: ${(force || false)
-      .toString()} because: ${reason}`
-  )
-  // Don't unbox pending conversations
-  conversationIDKeys = conversationIDKeys.filter(c => !Constants.isPendingConversationIDKey(c))
+// logger.info(
+// `unboxConversations: before filter unboxing ${conversationIDKeys.length} convs, force: ${(force || false)
+// .toString()} because: ${reason}`
+// )
+// // Don't unbox pending conversations
+// conversationIDKeys = conversationIDKeys.filter(c => !Constants.isPendingConversationIDKey(c))
 
-  let newConvIDKeys = []
-  const newUntrustedState = conversationIDKeys.reduce((map, c) => {
-    if (untrustedState.get(c) === 'unboxed') {
-      // only unbox unboxed if we force
-      if (force) {
-        map[c] = 'reUnboxing'
-        newConvIDKeys.push(c)
-      } else {
-        logger.info(`unboxConversations: filtering conv: ${c} state: ${untrustedState.get(c, 'unknown')}`)
-      }
-      // only unbox if we're not currently unboxing
-    } else if (!['firstUnboxing', 'reUnboxing'].includes(untrustedState.get(c, 'untrusted'))) {
-      // This means this is the first unboxing
-      map[c] = 'firstUnboxing'
-      newConvIDKeys.push(c)
-    } else {
-      logger.info(`unboxConversations: filtering conv: ${c} state: ${untrustedState.get(c, 'unknown')}`)
-    }
-    return map
-  }, {})
+// let newConvIDKeys = []
+// const newUntrustedState = conversationIDKeys.reduce((map, c) => {
+// if (untrustedState.get(c) === 'unboxed') {
+// // only unbox unboxed if we force
+// if (force) {
+// map[c] = 'reUnboxing'
+// newConvIDKeys.push(c)
+// } else {
+// logger.info(`unboxConversations: filtering conv: ${c} state: ${untrustedState.get(c, 'unknown')}`)
+// }
+// // only unbox if we're not currently unboxing
+// } else if (!['firstUnboxing', 'reUnboxing'].includes(untrustedState.get(c, 'untrusted'))) {
+// // This means this is the first unboxing
+// map[c] = 'firstUnboxing'
+// newConvIDKeys.push(c)
+// } else {
+// logger.info(`unboxConversations: filtering conv: ${c} state: ${untrustedState.get(c, 'unknown')}`)
+// }
+// return map
+// }, {})
 
-  // Load new untrusted state
-  yield Saga.put.resolve(
-    ChatGen.createReplaceEntity({keyPath: ['inboxUntrustedState'], entities: I.Map(newUntrustedState)})
-  )
+// // Load new untrusted state
+// yield Saga.put.resolve(
+// ChatGen.createReplaceEntity({keyPath: ['inboxUntrustedState'], entities: I.Map(newUntrustedState)})
+// )
 
-  conversationIDKeys = newConvIDKeys
-  if (!conversationIDKeys.length) {
-    logger.info(`unboxConversations: all conversations filtered, nothing to do`)
-    return
-  }
-  logger.info(
-    `unboxConversations: after filter unboxing ${conversationIDKeys.length} convs, because: ${reason}`
-  )
+// conversationIDKeys = newConvIDKeys
+// if (!conversationIDKeys.length) {
+// logger.info(`unboxConversations: all conversations filtered, nothing to do`)
+// return
+// }
+// logger.info(
+// `unboxConversations: after filter unboxing ${conversationIDKeys.length} convs, because: ${reason}`
+// )
 
-  // If we've been asked to unbox something and we don't have a selected thing, lets make it selected (on desktop)
-  if (!isMobile) {
-    const state: TypedState = yield Saga.select()
-    const selected = Constants.getSelectedConversation(state)
-    if (!selected) {
-      yield Saga.put(
-        ChatGen.createSelectConversation({conversationIDKey: conversationIDKeys[0], fromUser: false})
-      )
-    }
-  }
+// // If we've been asked to unbox something and we don't have a selected thing, lets make it selected (on desktop)
+// if (!isMobile) {
+// const state: TypedState = yield Saga.select()
+// const selected = Constants.getSelectedConversation(state)
+// if (!selected) {
+// yield Saga.put(
+// ChatGen.createSelectConversation({conversationIDKey: conversationIDKeys[0], fromUser: false})
+// )
+// }
+// }
 
-  const loadInboxRpc = new EngineRpc.EngineRpcCall(
-    unboxConversationsSagaMap,
-    RPCChatTypes.localGetInboxNonblockLocalRpcChannelMap,
-    'unboxConversations',
-    {
-      identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
-      skipUnverified: forInboxSync,
-      query: {
-        ..._getInboxQuery,
-        convIDs: conversationIDKeys.map(Constants.keyToConversationID),
-      },
-    }
-  )
+// const loadInboxRpc = new EngineRpc.EngineRpcCall(
+// unboxConversationsSagaMap,
+// RPCChatTypes.localGetInboxNonblockLocalRpcChannelMap,
+// 'unboxConversations',
+// {
+// identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
+// skipUnverified: forInboxSync,
+// query: {
+// ..._getInboxQuery,
+// convIDs: conversationIDKeys.map(Constants.keyToConversationID),
+// },
+// }
+// )
 
-  try {
-    yield Saga.call(loadInboxRpc.run, 30e3)
-  } catch (error) {
-    if (error instanceof RPCTimeoutError) {
-      logger.warn('unboxConversations: timed out request for unboxConversations, bailing')
-      yield Saga.put.resolve(
-        ChatGen.createReplaceEntity({
-          keyPath: ['inboxUntrustedState'],
-          entities: I.Map(conversationIDKeys.map(c => [c, 'untrusted'])),
-        })
-      )
-    } else {
-      logger.warn('unboxConversations: error in loadInboxRpc')
-      logger.debug('unboxConversations: error in loadInboxRpc', error)
-    }
-  }
-  if (dismissSyncing) {
-    yield Saga.put(ChatGen.createSetInboxSyncingState({inboxSyncingState: 'notSyncing'}))
-  }
-}
+// try {
+// yield Saga.call(loadInboxRpc.run, 30e3)
+// } catch (error) {
+// if (error instanceof RPCTimeoutError) {
+// logger.warn('unboxConversations: timed out request for unboxConversations, bailing')
+// yield Saga.put.resolve(
+// ChatGen.createReplaceEntity({
+// keyPath: ['inboxUntrustedState'],
+// entities: I.Map(conversationIDKeys.map(c => [c, 'untrusted'])),
+// })
+// )
+// } else {
+// logger.warn('unboxConversations: error in loadInboxRpc')
+// logger.debug('unboxConversations: error in loadInboxRpc', error)
+// }
+// }
+// if (dismissSyncing) {
+// yield Saga.put(ChatGen.createSetInboxSyncingState({inboxSyncingState: 'notSyncing'}))
+// }
+// }
 
 const parseNotifications = (
   notifications: RPCChatTypes.ConversationNotificationInfo
