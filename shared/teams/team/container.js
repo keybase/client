@@ -1,6 +1,7 @@
 // @flow
 import * as Constants from '../../constants/teams'
 import * as Types from '../../constants/types/teams'
+import * as RPCTypes from '../../constants/types/flow-types'
 import * as TeamsGen from '../../actions/teams-gen'
 import * as SearchGen from '../../actions/search-gen'
 import * as I from 'immutable'
@@ -35,6 +36,7 @@ type StateProps = {
   waitingForSavePublicity: boolean,
   you: ?string,
   yourRole: ?Types.TeamRoleType,
+  yourOperations: RPCTypes.TeamOperation,
 }
 
 const mapStateToProps = (state: TypedState, {routeProps, routeState}): StateProps => {
@@ -74,6 +76,7 @@ const mapStateToProps = (state: TypedState, {routeProps, routeState}): StateProp
     waitingForSavePublicity: anyWaiting(state, `setPublicity:${teamname}`, `getDetails:${teamname}`),
     you: state.config.username,
     yourRole: Constants.getRole(state, teamname),
+    yourOperations: Constants.getCanPerform(state, teamname),
   }
 }
 
@@ -94,7 +97,10 @@ const mapDispatchToProps = (
   dispatch: Dispatch,
   {navigateUp, newOpenTeamRole, setOpenTeamRole, setRouteState, routeProps}
 ): DispatchProps => ({
-  _loadTeam: teamname => dispatch(TeamsGen.createGetDetails({teamname})),
+  _loadTeam: teamname => {
+    dispatch(TeamsGen.createGetDetails({teamname}))
+    dispatch(TeamsGen.createGetTeamOperations({teamname}))
+  },
   _onAddPeople: (teamname: Types.Teamname) =>
     dispatch(navigateAppend([{props: {teamname}, selected: 'addPeople'}])),
   _onAddSelf: (teamname: Types.Teamname, you: ?string) => {
@@ -182,18 +188,19 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
 
   const you = stateProps.you
   let youExplicitAdmin = false
-  let youImplicitAdmin = false
+  let youImplicitAdmin = stateProps.yourOperations.manageMembers
   let youAreMember = false
   if (you) {
-    youExplicitAdmin = Constants.isOwner(stateProps.yourRole) || Constants.isAdmin(stateProps.yourRole)
+    // TODO: can we just test stateProps.yourOperations.RenameChannel ?
+    youExplicitAdmin = Constants.isOwner(stateProps.yourRole) || stateProps.yourOperations.manageMembers
     youImplicitAdmin = stateProps._implicitAdminUsernames.has(you)
     youAreMember = stateProps.yourRole && stateProps.yourRole !== 'none'
   }
   const youAdmin = youExplicitAdmin || youImplicitAdmin
 
   const showAddYourselfBanner = !youAreMember && !youExplicitAdmin && youImplicitAdmin
-  const youCanAddPeople = youAdmin
-  const youCanCreateSubteam = youAdmin
+  const youCanAddPeople = stateProps.yourOperations.manageMembers
+  const youCanCreateSubteam = stateProps.yourOperations.manageSubteams
   const youCanLeaveTeam = youAreMember
 
   const onAddSelf = () => dispatchProps._onAddSelf(stateProps.name, you)
@@ -209,8 +216,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
       onShowMenu={() => ownProps.setShowMenu(true)}
     />
   )
-  const youCanShowcase = youAdmin || stateProps.publicityAnyMember
-
+  const youCanShowcase = stateProps.yourOperations.setTeamShowcase
   const publicitySettingsChanged =
     ownProps.newPublicityAnyMember !== stateProps.publicityAnyMember ||
     ownProps.newPublicityMember !== stateProps.publicityMember ||

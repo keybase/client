@@ -13,7 +13,7 @@ import {
   connect,
   type TypedState,
 } from '../../../util/container'
-import {isAdmin, isOwner, getRole} from '../../../constants/teams'
+import {getCanPerform} from '../../../constants/teams'
 import {createSelector} from 'reselect'
 import {navigateAppend, navigateTo} from '../../../actions/route-tree'
 import {chatTab, teamsTab} from '../../../constants/tabs'
@@ -63,8 +63,8 @@ const mapStateToProps = (state: TypedState) => {
 
   let admin = false
   if (teamname) {
-    const myRole = getRole(state, teamname)
-    admin = isAdmin(myRole) || isOwner(myRole)
+    const yourOperations = getCanPerform(state, teamname)
+    admin = yourOperations.renameChannel
   }
 
   return {

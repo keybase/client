@@ -396,6 +396,22 @@ const _getDetails = function*(action: TeamsGen.GetDetailsPayload): Saga.SagaGene
   }
 }
 
+const _getTeamOperations = function*(
+  action: TeamsGen.GetTeamOperationsPayload
+): Saga.SagaGenerator<any, any> {
+  const teamname = action.payload.teamname
+
+  yield Saga.put(replaceEntity(['teams', 'teamNameToLoading'], I.Map([[teamname, true]])))
+  try {
+    const teamOperation = yield Saga.call(RPCTypes.teamsCanUserPerformRpcPromise, {
+      name: teamname,
+    })
+    yield Saga.put(replaceEntity(['teams', 'teamNameToCanPerform'], I.Map({[teamname]: teamOperation})))
+  } finally {
+    yield Saga.put((dispatch: Dispatch) => dispatch(TeamsGen.createGetDetails({teamname}))) // getDetails will unset loading
+  }
+}
+
 function _getChannels(action: TeamsGen.GetChannelsPayload) {
   const teamname = action.payload.teamname
   const waitingKey = {key: `getChannels:${teamname}`}
@@ -817,6 +833,7 @@ const teamsSaga = function*(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(TeamsGen.createNewTeam, _createNewTeam)
   yield Saga.safeTakeEvery(TeamsGen.joinTeam, _joinTeam)
   yield Saga.safeTakeEvery(TeamsGen.getDetails, _getDetails)
+  yield Saga.safeTakeEvery(TeamsGen.getTeamOperations, _getTeamOperations)
   yield Saga.safeTakeEvery(TeamsGen.createNewTeamFromConversation, _createNewTeamFromConversation)
   yield Saga.safeTakeEveryPure(TeamsGen.getChannels, _getChannels, _afterGetChannels)
   yield Saga.safeTakeEvery(TeamsGen.getTeams, _getTeams)
