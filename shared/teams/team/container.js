@@ -97,7 +97,10 @@ const mapDispatchToProps = (
   dispatch: Dispatch,
   {navigateUp, newOpenTeamRole, setOpenTeamRole, setRouteState, routeProps}
 ): DispatchProps => ({
-  _loadTeam: teamname => dispatch(TeamsGen.createGetDetails({teamname})),
+  _loadTeam: teamname => {
+    dispatch(TeamsGen.createGetDetails({teamname}))
+    dispatch(TeamsGen.createGetTeamOperations({teamname}))
+  },
   _onAddPeople: (teamname: Types.Teamname) =>
     dispatch(navigateAppend([{props: {teamname}, selected: 'addPeople'}])),
   _onAddSelf: (teamname: Types.Teamname, you: ?string) => {
@@ -187,7 +190,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
   if (you) {
     // TODO: can we just test stateProps.yourOperations.RenameChannel ?
     youExplicitAdmin = Constants.isOwner(stateProps.yourRole) || stateProps.yourOperations.manageMembers
-
+    youImplicitAdmin = stateProps._implicitAdminUsernames.has(you)
     youAreMember = stateProps.yourRole && stateProps.yourRole !== 'none'
   }
   const youAdmin = youExplicitAdmin || youImplicitAdmin

@@ -22,6 +22,7 @@ export const editMembership = 'teams:editMembership'
 export const editTeamDescription = 'teams:editTeamDescription'
 export const getChannels = 'teams:getChannels'
 export const getDetails = 'teams:getDetails'
+export const getTeamOperations = 'teams:getTeamOperations'
 export const getTeams = 'teams:getTeams'
 export const ignoreRequest = 'teams:ignoreRequest'
 export const inviteToTeamByEmail = 'teams:inviteToTeamByEmail'
@@ -41,35 +42,141 @@ export const updateChannelName = 'teams:updateChannelName'
 export const updateTopic = 'teams:updateTopic'
 
 // Action Creators
-export const createAddPeopleToTeam = (payload: {|+teamname: string, +role: string, +sendChatNotification: boolean|}) => ({error: false, payload, type: addPeopleToTeam})
-export const createAddToTeam = (payload: {|+teamname: string, +email: string, +username: string, +role: Types.TeamRoleType, +sendChatNotification: boolean|}) => ({error: false, payload, type: addToTeam})
-export const createBadgeAppForTeams = (payload: {|+newTeamNames: Array<string>, +newTeamAccessRequests: Array<string>|}) => ({error: false, payload, type: badgeAppForTeams})
-export const createCheckRequestedAccess = (payload: {|+teamname: string|}) => ({error: false, payload, type: checkRequestedAccess})
-export const createCreateChannel = (payload: {|+teamname: string, +channelname: string, +description: ?string, +rootPath: I.List<string>, +sourceSubPath: I.List<string>, +destSubPath: I.List<string>|}) => ({error: false, payload, type: createChannel})
-export const createCreateNewTeam = (payload: {|+teamname: string, +rootPath: I.List<string>, +sourceSubPath: I.List<string>, +destSubPath: I.List<string>|}) => ({error: false, payload, type: createNewTeam})
-export const createCreateNewTeamFromConversation = (payload: {|+conversationIDKey: ChatTypes.ConversationIDKey, +teamname: string|}) => ({error: false, payload, type: createNewTeamFromConversation})
-export const createDeleteChannelConfirmed = (payload: {|+conversationIDKey: ChatTypes.ConversationIDKey|}) => ({error: false, payload, type: deleteChannelConfirmed})
-export const createEditMembership = (payload: {|+teamname: string, +username: string, +role: Types.TeamRoleType|}) => ({error: false, payload, type: editMembership})
-export const createEditTeamDescription = (payload: {|+teamname: string, +description: string|}) => ({error: false, payload, type: editTeamDescription})
-export const createGetChannels = (payload: {|+teamname: string|}) => ({error: false, payload, type: getChannels})
-export const createGetDetails = (payload: {|+teamname: string|}) => ({error: false, payload, type: getDetails})
+export const createAddPeopleToTeam = (payload: {|
+  +teamname: string,
+  +role: string,
+  +sendChatNotification: boolean,
+|}) => ({error: false, payload, type: addPeopleToTeam})
+export const createAddToTeam = (payload: {|
+  +teamname: string,
+  +email: string,
+  +username: string,
+  +role: Types.TeamRoleType,
+  +sendChatNotification: boolean,
+|}) => ({error: false, payload, type: addToTeam})
+export const createBadgeAppForTeams = (payload: {|
+  +newTeamNames: Array<string>,
+  +newTeamAccessRequests: Array<string>,
+|}) => ({error: false, payload, type: badgeAppForTeams})
+export const createCheckRequestedAccess = (payload: {|+teamname: string|}) => ({
+  error: false,
+  payload,
+  type: checkRequestedAccess,
+})
+export const createCreateChannel = (payload: {|
+  +teamname: string,
+  +channelname: string,
+  +description: ?string,
+  +rootPath: I.List<string>,
+  +sourceSubPath: I.List<string>,
+  +destSubPath: I.List<string>,
+|}) => ({error: false, payload, type: createChannel})
+export const createCreateNewTeam = (payload: {|
+  +teamname: string,
+  +rootPath: I.List<string>,
+  +sourceSubPath: I.List<string>,
+  +destSubPath: I.List<string>,
+|}) => ({error: false, payload, type: createNewTeam})
+export const createCreateNewTeamFromConversation = (payload: {|
+  +conversationIDKey: ChatTypes.ConversationIDKey,
+  +teamname: string,
+|}) => ({error: false, payload, type: createNewTeamFromConversation})
+export const createDeleteChannelConfirmed = (payload: {|
+  +conversationIDKey: ChatTypes.ConversationIDKey,
+|}) => ({error: false, payload, type: deleteChannelConfirmed})
+export const createEditMembership = (payload: {|
+  +teamname: string,
+  +username: string,
+  +role: Types.TeamRoleType,
+|}) => ({error: false, payload, type: editMembership})
+export const createEditTeamDescription = (payload: {|+teamname: string, +description: string|}) => ({
+  error: false,
+  payload,
+  type: editTeamDescription,
+})
+export const createGetChannels = (payload: {|+teamname: string|}) => ({
+  error: false,
+  payload,
+  type: getChannels,
+})
+export const createGetDetails = (payload: {|+teamname: string|}) => ({
+  error: false,
+  payload,
+  type: getDetails,
+})
+export const createGetTeamOperations = (payload: {|+teamname: string|}) => ({
+  error: false,
+  payload,
+  type: getTeamOperations,
+})
 export const createGetTeams = () => ({error: false, payload: undefined, type: getTeams})
-export const createIgnoreRequest = (payload: {|+teamname: string, +username: string|}) => ({error: false, payload, type: ignoreRequest})
-export const createInviteToTeamByEmail = (payload: {|+teamname: string, +role: Types.TeamRoleType, +invitees: string|}) => ({error: false, payload, type: inviteToTeamByEmail})
-export const createInviteToTeamByPhone = (payload: {|+teamname: string, +role: Types.TeamRoleType, +phoneNumber: string, +fullName: string|}) => ({error: false, payload, type: inviteToTeamByPhone})
+export const createIgnoreRequest = (payload: {|+teamname: string, +username: string|}) => ({
+  error: false,
+  payload,
+  type: ignoreRequest,
+})
+export const createInviteToTeamByEmail = (payload: {|
+  +teamname: string,
+  +role: Types.TeamRoleType,
+  +invitees: string,
+|}) => ({error: false, payload, type: inviteToTeamByEmail})
+export const createInviteToTeamByPhone = (payload: {|
+  +teamname: string,
+  +role: Types.TeamRoleType,
+  +phoneNumber: string,
+  +fullName: string,
+|}) => ({error: false, payload, type: inviteToTeamByPhone})
 export const createJoinTeam = (payload: {|+teamname: string|}) => ({error: false, payload, type: joinTeam})
 export const createLeaveTeam = (payload: {|+teamname: string|}) => ({error: false, payload, type: leaveTeam})
-export const createRemoveMemberOrPendingInvite = (payload: {|+email: string, +teamname: string, +username: string, +inviteID: string|}) => ({error: false, payload, type: removeMemberOrPendingInvite})
-export const createSaveChannelMembership = (payload: {|+teamname: string, +channelState: Types.ChannelMembershipState|}) => ({error: false, payload, type: saveChannelMembership})
-export const createSetChannelCreationError = (payload: {|+error: string|}) => ({error: false, payload, type: setChannelCreationError})
-export const createSetPublicity = (payload: {|+teamname: string, +settings: Types.PublicitySettings|}) => ({error: false, payload, type: setPublicity})
-export const createSetTeamCreationError = (payload: {|+error: string|}) => ({error: false, payload, type: setTeamCreationError})
-export const createSetTeamCreationPending = (payload: {|+pending: boolean|}) => ({error: false, payload, type: setTeamCreationPending})
-export const createSetTeamJoinError = (payload: {|+error: string|}) => ({error: false, payload, type: setTeamJoinError})
-export const createSetTeamJoinSuccess = (payload: {|+success: boolean, +teamname: ?string|}) => ({error: false, payload, type: setTeamJoinSuccess})
+export const createRemoveMemberOrPendingInvite = (payload: {|
+  +email: string,
+  +teamname: string,
+  +username: string,
+  +inviteID: string,
+|}) => ({error: false, payload, type: removeMemberOrPendingInvite})
+export const createSaveChannelMembership = (payload: {|
+  +teamname: string,
+  +channelState: Types.ChannelMembershipState,
+|}) => ({error: false, payload, type: saveChannelMembership})
+export const createSetChannelCreationError = (payload: {|+error: string|}) => ({
+  error: false,
+  payload,
+  type: setChannelCreationError,
+})
+export const createSetPublicity = (payload: {|+teamname: string, +settings: Types.PublicitySettings|}) => ({
+  error: false,
+  payload,
+  type: setPublicity,
+})
+export const createSetTeamCreationError = (payload: {|+error: string|}) => ({
+  error: false,
+  payload,
+  type: setTeamCreationError,
+})
+export const createSetTeamCreationPending = (payload: {|+pending: boolean|}) => ({
+  error: false,
+  payload,
+  type: setTeamCreationPending,
+})
+export const createSetTeamJoinError = (payload: {|+error: string|}) => ({
+  error: false,
+  payload,
+  type: setTeamJoinError,
+})
+export const createSetTeamJoinSuccess = (payload: {|+success: boolean, +teamname: ?string|}) => ({
+  error: false,
+  payload,
+  type: setTeamJoinSuccess,
+})
 export const createSetupTeamHandlers = () => ({error: false, payload: undefined, type: setupTeamHandlers})
-export const createUpdateChannelName = (payload: {|+conversationIDKey: ChatTypes.ConversationIDKey, +newChannelName: string|}) => ({error: false, payload, type: updateChannelName})
-export const createUpdateTopic = (payload: {|+conversationIDKey: ChatTypes.ConversationIDKey, +newTopic: string|}) => ({error: false, payload, type: updateTopic})
+export const createUpdateChannelName = (payload: {|
+  +conversationIDKey: ChatTypes.ConversationIDKey,
+  +newChannelName: string,
+|}) => ({error: false, payload, type: updateChannelName})
+export const createUpdateTopic = (payload: {|
+  +conversationIDKey: ChatTypes.ConversationIDKey,
+  +newTopic: string,
+|}) => ({error: false, payload, type: updateTopic})
 
 // Action Payloads
 export type AddPeopleToTeamPayload = More.ReturnType<typeof createAddPeopleToTeam>
@@ -84,6 +191,7 @@ export type EditMembershipPayload = More.ReturnType<typeof createEditMembership>
 export type EditTeamDescriptionPayload = More.ReturnType<typeof createEditTeamDescription>
 export type GetChannelsPayload = More.ReturnType<typeof createGetChannels>
 export type GetDetailsPayload = More.ReturnType<typeof createGetDetails>
+export type GetTeamOperationsPayload = More.ReturnType<typeof createGetTeamOperations>
 export type GetTeamsPayload = More.ReturnType<typeof createGetTeams>
 export type IgnoreRequestPayload = More.ReturnType<typeof createIgnoreRequest>
 export type InviteToTeamByEmailPayload = More.ReturnType<typeof createInviteToTeamByEmail>
@@ -117,6 +225,7 @@ export type Actions =
   | More.ReturnType<typeof createEditTeamDescription>
   | More.ReturnType<typeof createGetChannels>
   | More.ReturnType<typeof createGetDetails>
+  | More.ReturnType<typeof createGetTeamOperations>
   | More.ReturnType<typeof createGetTeams>
   | More.ReturnType<typeof createIgnoreRequest>
   | More.ReturnType<typeof createInviteToTeamByEmail>

@@ -376,10 +376,6 @@ const _getDetails = function*(action: TeamsGen.GetDetailsPayload): Saga.SagaGene
       team: publicity.teamShowcase.isShowcased,
     }
 
-    const teamOperation = yield Saga.call(RPCTypes.teamsCanUserPerformRpcPromise, {
-      name: teamname,
-    })
-
     yield Saga.all([
       Saga.put(replaceEntity(['teams', 'teamNameToMembers'], I.Map([[teamname, I.Set(infos)]]))),
       Saga.put(replaceEntity(['teams', 'teamNameToMemberUsernames'], I.Map([[teamname, memberNames]]))),
@@ -393,11 +389,26 @@ const _getDetails = function*(action: TeamsGen.GetDetailsPayload): Saga.SagaGene
       Saga.put(replaceEntity(['teams', 'teamNameToTeamSettings'], I.Map({[teamname]: details.settings}))),
       Saga.put(replaceEntity(['teams', 'teamNameToInvites'], I.Map([[teamname, I.Set(invitesMap)]]))),
       Saga.put(replaceEntity(['teams', 'teamNameToPublicitySettings'], I.Map({[teamname]: publicityMap}))),
-      Saga.put(replaceEntity(['teams', 'teamNameToCanPerform'], I.Map({[teamname]: teamOperation}))),
     ])
   } finally {
     yield Saga.put(replaceEntity(['teams', 'teamNameToLoading'], I.Map([[teamname, false]])))
     yield Saga.put(createDecrementWaiting(waitingKey))
+  }
+}
+
+const _getTeamOperations = function*(
+  action: TeamsGen.GetTeamOperationsPayload
+): Saga.SagaGenerator<any, any> {
+  const teamname = action.payload.teamname
+
+  yield Saga.put(replaceEntity(['teams', 'teamNameToLoading'], I.Map([[teamname, true]])))
+  try {
+    const teamOperation = yield Saga.call(RPCTypes.teamsCanUserPerformRpcPromise, {
+      name: teamname,
+    })
+    yield Saga.put(replaceEntity(['teams', 'teamNameToCanPerform'], I.Map({[teamname]: teamOperation})))
+  } finally {
+    yield Saga.put((dispatch: Dispatch) => dispatch(TeamsGen.createGetDetails({teamname}))) // getDetails will unset loading
   }
 }
 
@@ -822,6 +833,7 @@ const teamsSaga = function*(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(TeamsGen.createNewTeam, _createNewTeam)
   yield Saga.safeTakeEvery(TeamsGen.joinTeam, _joinTeam)
   yield Saga.safeTakeEvery(TeamsGen.getDetails, _getDetails)
+  yield Saga.safeTakeEvery(TeamsGen.getTeamOperations, _getTeamOperations)
   yield Saga.safeTakeEvery(TeamsGen.createNewTeamFromConversation, _createNewTeamFromConversation)
   yield Saga.safeTakeEveryPure(TeamsGen.getChannels, _getChannels, _afterGetChannels)
   yield Saga.safeTakeEvery(TeamsGen.getTeams, _getTeams)

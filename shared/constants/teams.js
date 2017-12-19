@@ -67,6 +67,18 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   teamnames: I.Set(),
 })
 
+export const initialCanUserPerform: RPCTypes.TeamOperation = {
+  manageMembers: false,
+  manageSubteams: false,
+  createChannel: false,
+  deleteChannel: false,
+  renameChannel: false,
+  editChannelDescription: false,
+  setTeamShowcase: false,
+  setMemberShowcase: false,
+  changeOpenTeam: false,
+}
+
 const userIsInTeamHelper = (state: TypedState, username: string, service: Service, teamname: string) =>
   service === 'Keybase' ? userIsInTeam(state, teamname, username) : false
 
@@ -86,17 +98,7 @@ const getRole = (state: TypedState, teamname: Types.Teamname): ?Types.TeamRoleTy
   state.entities.getIn(['teams', 'teamNameToRole', teamname], null)
 
 const getCanPerform = (state: TypedState, teamname: Types.Teamname): RPCTypes.TeamOperation =>
-  state.entities.getIn(['teams', 'teamNameToCanPerform', teamname], {
-    manageMembers: false,
-    manageSubteams: false,
-    createChannel: false,
-    deleteChannel: false,
-    renameChannel: false,
-    editChannelDescription: false,
-    setTeamShowcase: false,
-    setMemberShowcase: false,
-    changeOpenTeam: false,
-  })
+  state.entities.getIn(['teams', 'teamNameToCanPerform', teamname], initialCanUserPerform)
 
 const isAdmin = (type: ?Types.TeamRoleType) => type === 'admin'
 const isOwner = (type: ?Types.TeamRoleType) => type === 'owner'
