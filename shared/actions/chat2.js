@@ -55,11 +55,19 @@ function* rpcInboxRefresh(action: Chat2Gen.InboxRefreshPayload): Generator<any, 
   }
 }
 
+// Only get the untrusted conversations out
+const untrustedConversationIDKeys = (state: TypedState, ids: Array<Types.ConversationIDKey>) =>
+  ids.filter(id => state.chat2.metaMap.getIn([id, 'loadingState'], 'untrusted') === 'untrusted')
+
 // We keep a set of conversations to unbox
 let unboxQueue = I.OrderedSet()
-function addConversationsToUnboxQueue(action: Chat2Gen.QueueUnboxConversationsPayload) {
-  unboxQueue = unboxQueue.concat(action.payload.conversationIDKeys)
-  return Saga.put(Chat2Gen.createUnboxSomeConversations())
+function addConversationsToUnboxQueue(action: Chat2Gen.QueueUnboxConversationsPayload, state: TypedState) {
+  const old = unboxQueue
+  unboxQueue = unboxQueue.concat(untrustedConversationIDKeys(state, action.payload.conversationIDKeys))
+  if (old !== unboxQueue) {
+    // only unboxMore if something changed
+    return Saga.put(Chat2Gen.createUnboxSomeConversations())
+  }
 }
 
 // Watch the unboxing queue and take up to 10 items. Choose the last items first since they're likely still visible
@@ -68,9 +76,7 @@ function unboxSomeConversations(action: Chat2Gen.QueueUnboxConversationsPayload,
   const maybeUnbox = unboxQueue.takeLast(maxToUnboxAtATime)
   unboxQueue = unboxQueue.skipLast(maxToUnboxAtATime)
 
-  const conversationIDKeys = maybeUnbox.filter(
-    id => state.chat2.metaMap.getIn([id, 'loadingState'], 'untrusted') === 'untrusted'
-  )
+  const conversationIDKeys = untrustedConversationIDKeys(state, maybeUnbox)
   const toUnboxActions = conversationIDKeys.size
     ? [Saga.put(Chat2Gen.createUnboxConversations({conversationIDKeys: conversationIDKeys.toArray()}))]
     : []
