@@ -1319,19 +1319,16 @@ func TestChatSrvGracefulUnboxing(t *testing.T) {
 		switch mt {
 		case chat1.ConversationMembersType_KBFS, chat1.ConversationMembersType_IMPTEAM:
 		case chat1.ConversationMembersType_TEAM:
+			consumeNewMsg(t, listener, chat1.MessageType_JOIN)
+			consumeNewMsg(t, listener, chat1.MessageType_JOIN)
 			joinMessage = 1
 		default:
 			t.Fatalf("unknown members type: %v", mt)
 		}
-
-		// Wait for message notifications so we don't race cache clear with incoming message
-		for i := 0; i < 2+joinMessage; i++ {
-			select {
-			case <-listener.newMessage:
-			case <-time.After(20 * time.Second):
-				require.Fail(t, "no msg cb")
-			}
-		}
+		consumeNewMsg(t, listener, chat1.MessageType_TEXT)
+		consumeNewMsg(t, listener, chat1.MessageType_TEXT)
+		consumeNewMsg(t, listener, chat1.MessageType_TEXT)
+		consumeNewMsg(t, listener, chat1.MessageType_TEXT)
 
 		// make evil hello evil
 		tc := ctc.world.Tcs[users[0].Username]
