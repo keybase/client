@@ -29,6 +29,12 @@ export const unverifiedInboxUIItemToConversation = (i: RPCChatTypes.UnverifiedIn
   })
 }
 
+export const conversationIDToKey = (conversationID: RPCChatTypes.ConversationID): Types.ConversationIDKey =>
+  conversationID.toString('hex')
+
+export const keyToConversationID = (key: Types.ConversationIDKey): RPCChatTypes.ConversationID =>
+  Buffer.from(key, 'hex')
+
 export const makeConversationMeta: I.RecordFactory<Types._ConversationMeta> = I.Record({
   id: Types.stringToConversationIDKey(''),
   inboxVersion: -1,
@@ -44,7 +50,7 @@ export const makeConversationMeta: I.RecordFactory<Types._ConversationMeta> = I.
 })
 
 export const makeState: I.RecordFactory<Types._State> = I.Record({
-  metaMap: I.Map(),
-  messageMap: I.Map(),
   messageIDsLsit: I.Map(),
+  messageMap: I.Map(),
+  metaMap: I.Map(),
 })

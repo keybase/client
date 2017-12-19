@@ -1,5 +1,6 @@
 {
   "prelude": [
+    "import * as RPCChatTypes from '../constants/types/flow-types-chat'",
     "import * as Types from '../constants/types/chat2'",
     "import HiddenString from '../util/hidden-string'"
   ],
@@ -19,6 +20,13 @@
     "updateConverationLoadingStates": {
       "newState": "Types.LoadingState",
       "conversationIDKeys": "Array<Types.ConversationIDKey>"
+    },
+    "unboxingSuccess": {
+      "inboxItem": "RPCChatTypes.InboxUIItem"
+    },
+    "unboxingFailure": {
+      "conversationIDKey": "Types.ConversationIDKey",
+      "error": "RPCChatTypes.ConversationErrorLocal"
     }
   }
 }

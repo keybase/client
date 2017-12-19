@@ -50,6 +50,8 @@ export default function(state: Types.State = initialState, action: $ReadOnly<Cha
     case Chat2Gen.queueUnboxConversations:
     case Chat2Gen.unboxConversations:
     case Chat2Gen.unboxSomeConversations:
+    case Chat2Gen.unboxingFailure:
+    case Chat2Gen.unboxingSuccess:
       return state
     default:
       // eslint-disable-next-line no-unused-expressions

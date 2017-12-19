@@ -5,6 +5,7 @@
 import * as I from 'immutable'
 import * as RPCTypes from '../constants/types/flow-types'
 import * as More from '../constants/types/more'
+import * as RPCChatTypes from '../constants/types/flow-types-chat'
 import * as Types from '../constants/types/chat2'
 import HiddenString from '../util/hidden-string'
 
@@ -15,6 +16,8 @@ export const inboxUtrustedLoaded = 'chat2:inboxUtrustedLoaded'
 export const queueUnboxConversations = 'chat2:queueUnboxConversations'
 export const unboxConversations = 'chat2:unboxConversations'
 export const unboxSomeConversations = 'chat2:unboxSomeConversations'
+export const unboxingFailure = 'chat2:unboxingFailure'
+export const unboxingSuccess = 'chat2:unboxingSuccess'
 export const updateConverationLoadingStates = 'chat2:updateConverationLoadingStates'
 
 // Action Creators
@@ -23,6 +26,8 @@ export const createInboxUtrustedLoaded = (payload: {|+untrusted: Array<Types.Con
 export const createQueueUnboxConversations = (payload: {|+conversationIDKeys: Array<Types.ConversationIDKey>, +reason: string|}) => ({error: false, payload, type: queueUnboxConversations})
 export const createUnboxConversations = (payload: {|+conversationIDKeys: Array<Types.ConversationIDKey>|}) => ({error: false, payload, type: unboxConversations})
 export const createUnboxSomeConversations = () => ({error: false, payload: undefined, type: unboxSomeConversations})
+export const createUnboxingFailure = (payload: {|+conversationIDKey: Types.ConversationIDKey, +error: RPCChatTypes.ConversationErrorLocal|}) => ({error: false, payload, type: unboxingFailure})
+export const createUnboxingSuccess = (payload: {|+inboxItem: RPCChatTypes.InboxUIItem|}) => ({error: false, payload, type: unboxingSuccess})
 export const createUpdateConverationLoadingStates = (payload: {|+newState: Types.LoadingState, +conversationIDKeys: Array<Types.ConversationIDKey>|}) => ({error: false, payload, type: updateConverationLoadingStates})
 
 // Action Payloads
@@ -31,6 +36,8 @@ export type InboxUtrustedLoadedPayload = More.ReturnType<typeof createInboxUtrus
 export type QueueUnboxConversationsPayload = More.ReturnType<typeof createQueueUnboxConversations>
 export type UnboxConversationsPayload = More.ReturnType<typeof createUnboxConversations>
 export type UnboxSomeConversationsPayload = More.ReturnType<typeof createUnboxSomeConversations>
+export type UnboxingFailurePayload = More.ReturnType<typeof createUnboxingFailure>
+export type UnboxingSuccessPayload = More.ReturnType<typeof createUnboxingSuccess>
 export type UpdateConverationLoadingStatesPayload = More.ReturnType<typeof createUpdateConverationLoadingStates>
 
 // All Actions
@@ -41,5 +48,7 @@ export type Actions =
   | More.ReturnType<typeof createQueueUnboxConversations>
   | More.ReturnType<typeof createUnboxConversations>
   | More.ReturnType<typeof createUnboxSomeConversations>
+  | More.ReturnType<typeof createUnboxingFailure>
+  | More.ReturnType<typeof createUnboxingSuccess>
   | More.ReturnType<typeof createUpdateConverationLoadingStates>
   | {type: 'common:resetStore', payload: void}

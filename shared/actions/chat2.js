@@ -1,11 +1,15 @@
 // @flow
-import * as I from 'immutable'
 import * as Chat2Gen from './chat2-gen'
 import * as Constants from '../constants/chat2'
+import * as EngineRpc from '../constants/engine'
+import * as I from 'immutable'
 import * as RPCChatTypes from '../constants/types/flow-types-chat'
 import * as RPCTypes from '../constants/types/flow-types'
 import * as Saga from '../util/saga'
+import * as Types from '../constants/types/chat2'
+import logger from '../logger'
 import type {TypedState} from '../constants/reducer'
+import {RPCTimeoutError} from '../util/errors'
 
 /*
  * TODO:
@@ -76,9 +80,9 @@ function unboxSomeConversations(action: Chat2Gen.QueueUnboxConversationsPayload,
   const maybeUnbox = unboxQueue.takeLast(maxToUnboxAtATime)
   unboxQueue = unboxQueue.skipLast(maxToUnboxAtATime)
 
-  const conversationIDKeys = untrustedConversationIDKeys(state, maybeUnbox)
-  const toUnboxActions = conversationIDKeys.size
-    ? [Saga.put(Chat2Gen.createUnboxConversations({conversationIDKeys: conversationIDKeys.toArray()}))]
+  const conversationIDKeys = untrustedConversationIDKeys(state, maybeUnbox.toArray())
+  const toUnboxActions = conversationIDKeys.length
+    ? [Saga.put(Chat2Gen.createUnboxConversations({conversationIDKeys}))]
     : []
   const unboxSomeMoreActions = unboxQueue.size ? [Saga.put(Chat2Gen.createUnboxSomeConversations())] : []
   const delayBeforeUnboxingMoreActions = toUnboxActions.length && unboxSomeMoreActions.length
@@ -93,64 +97,106 @@ function unboxSomeConversations(action: Chat2Gen.QueueUnboxConversationsPayload,
 }
 
 function rpcUnboxConversations(action: Chat2Gen.UnboxConversationsPayload) {
-  // const loadInboxRpc = new EngineRpc.EngineRpcCall(
-  // unboxConversationsSagaMap,
-  // RPCChatTypes.localGetInboxNonblockLocalRpcChannelMap,
-  // 'unboxConversations',
-  // {
-  // identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
-  // skipUnverified: forInboxSync,
-  // query: {
-  // ..._getInboxQuery,
-  // convIDs: conversationIDKeys.map(Constants.keyToConversationID),
-  // },
-  // }
-  // )
-  // try {
-  // yield Saga.call(loadInboxRpc.run, 30e3)
-  // } catch (error) {
-  // if (error instanceof RPCTimeoutError) {
-  // logger.warn('unboxConversations: timed out request for unboxConversations, bailing')
-  // yield Saga.put.resolve(
-  // ChatGen.createReplaceEntity({
-  // keyPath: ['inboxUntrustedState'],
-  // entities: I.Map(conversationIDKeys.map(c => [c, 'untrusted'])),
-  // })
-  // )
-  // } else {
-  // logger.warn('unboxConversations: error in loadInboxRpc')
-  // logger.debug('unboxConversations: error in loadInboxRpc', error)
-  // }
-  // }
+  const loadInboxRpc = new EngineRpc.EngineRpcCall(
+    {
+      'chat.1.chatUi.chatInboxConversation': function*({
+        conv,
+      }: RPCChatTypes.ChatUiChatInboxConversationRpcParam) {
+        yield Saga.put(Chat2Gen.createUnboxingSuccess({inboxItem: JSON.parse(conv)}))
+        return EngineRpc.rpcResult()
+      },
+      'chat.1.chatUi.chatInboxFailed': function*({
+        convID,
+        error,
+      }: RPCChatTypes.ChatUiChatInboxFailedRpcParam) {
+        yield Saga.put(
+          Chat2Gen.createUnboxingFailure({conversationIDKey: Constants.conversationIDToKey(convID), error})
+        )
+        return EngineRpc.rpcResult()
+      },
+      'chat.1.chatUi.chatInboxUnverified': EngineRpc.passthroughResponseSaga,
+    },
+    RPCChatTypes.localGetInboxNonblockLocalRpcChannelMap,
+    'unboxConversations',
+    {
+      identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
+      query: {
+        ...inboxQuery,
+        convIDs: action.payload.conversationIDKeys.map(Constants.keyToConversationID),
+      },
+      skipUnverified: false,
+    }
+  )
+
+  return Saga.call(loadInboxRpc.run, 30e3)
   // if (dismissSyncing) {
   // yield Saga.put(ChatGen.createSetInboxSyncingState({inboxSyncingState: 'notSyncing'}))
   // }
 }
 
+function rpcUnboxConversationsError(error: Error, action: Chat2Gen.UnboxConversationsPayload) {
+  if (error instanceof RPCTimeoutError) {
+    logger.warn('unboxConversations: timed out request for unboxConversations, bailing')
+    // yield Saga.put.resolve(
+    // ChatGen.createReplaceEntity({
+    // keyPath: ['inboxUntrustedState'],
+    // entities: I.Map(conversationIDKeys.map(c => [c, 'untrusted'])),
+    // })
+    // )
+  } else {
+    logger.warn('unboxConversations: error in loadInboxRpc')
+    logger.debug('unboxConversations: error in loadInboxRpc', error)
+  }
+}
+
 function updateConversationState(action: Chat2Gen.UnboxConversationsPayload) {
   let newState
+  let conversationIDKeys
   switch (action.type) {
     case Chat2Gen.unboxConversations:
       newState = 'unboxing'
+      conversationIDKeys = action.payload.conversationIDKeys
+      break
+    case Chat2Gen.unboxingSuccess:
+      newState = 'unboxed'
+      conversationIDKeys = [action.payload.inboxItem.convID]
+      break
+    case Chat2Gen.unboxingFailure:
+      newState = 'unboxed'
+      conversationIDKeys = [action.payload.conversationIDKey]
       break
     default:
       // eslint-disable-next-line no-unused-expressions
       (action: empty) // errors if we don't handle any new actions
+      throw new Error('Invalid action passed to updateConversationState')
   }
   return Saga.put(
     Chat2Gen.createUpdateConverationLoadingStates({
-      conversationIDKeys: action.payload.conversationIDKeys,
+      conversationIDKeys,
       newState,
     })
   )
 }
 
 function* chat2Saga(): Saga.SagaGenerator<any, any> {
+  // Refresh the inbox
   yield Saga.safeTakeLatest(Chat2Gen.inboxRefresh, rpcInboxRefresh)
+  // We've scrolled some new inbox rows into view, queue them up
   yield Saga.safeTakeEveryPure(Chat2Gen.queueUnboxConversations, addConversationsToUnboxQueue)
+  // We have some items in the queue to process
   yield Saga.safeTakeEveryPure(Chat2Gen.unboxSomeConversations, unboxSomeConversations)
-  yield Saga.safeTakeEveryPure([Chat2Gen.unboxConversations], updateConversationState)
-  yield Saga.safeTakeEveryPure(Chat2Gen.unboxConversations, rpcUnboxConversations)
+  // Mark rows as loading, unboxing, unboxed, etc
+  yield Saga.safeTakeEveryPure(
+    [Chat2Gen.unboxConversations, Chat2Gen.unboxingSuccess, Chat2Gen.unboxingFailure],
+    updateConversationState
+  )
+  // Actually try and unbox conversations
+  yield Saga.safeTakeEveryPure(
+    Chat2Gen.unboxConversations,
+    rpcUnboxConversations,
+    () => {},
+    rpcUnboxConversationsError
+  )
 }
 
 export default chat2Saga
