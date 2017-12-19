@@ -43,7 +43,9 @@
       "tlf": "string",
       "isTeam?": "boolean"
     },
-    "newChat": {},
+    "newChat": {
+      "startSearch": "boolean",
+    },
     "setupChatHandlers": {},
     "loadInbox": {},
     "loadMoreMessages": {
