@@ -122,7 +122,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {searchKey}) => ({
       dispatch(SearchGen.createSearchSuggestions({searchKey}))
     }
   },
-  onAddUser: id => dispatch(SearchGen.createAddResultsToUserInput({searchKey, searchResults: [id]})),
+  onAddUser: id => id && dispatch(SearchGen.createAddResultsToUserInput({searchKey, searchResults: [id]})),
   clearSearchResults: () => dispatch(SearchGen.createClearSearchResults({searchKey})),
   onUpdateSelectedSearchResult: id => {
     dispatch(SearchGen.createUpdateSelectedSearchResult({searchKey, id}))
