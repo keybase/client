@@ -193,8 +193,11 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     }
   }
 
+  const _name = isTeam ? ownProps.teamname : ownProps.username
+
   return {
     _askForUserData,
+    _name,
     borderColor: ownProps.borderColor,
     children: ownProps.children,
     followIconSize: _followIconSize(ownProps.size, ownProps.followsYou, ownProps.following),
@@ -216,10 +219,10 @@ const real = compose(
   connect(mapStateToProps, mapDispatchToProps, mergeProps),
   lifecycle({
     componentWillMount() {
-      this.setState({_askForUserData: this.props._askForUserData, _mounted: true})
+      this.setState({_mounted: true, _name: this.props._name})
       setTimeout(() => {
         // Still looking at the same user?
-        if (this.state._mounted && this.props._askForUserData === this.state._askForUserData) {
+        if (this.state._mounted && this.props._name === this.state._name) {
           if (this.props._askForUserData) {
             this.props._askForUserData()
           }
@@ -227,7 +230,7 @@ const real = compose(
       }, 300)
     },
     componentWillUnmount() {
-      this.setState({_askForUserData: null, _mounted: false})
+      this.setState({_mounted: false, _name: null})
     },
   })
 )(Render)
