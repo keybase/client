@@ -120,7 +120,9 @@ function SyncBrowserWindow(ComposedComponent: any) {
 
     _closeBrowserWindow = () => {
       if (this._remoteWindow) {
-        this._remoteWindow.close()
+        try {
+          this._remoteWindow.close()
+        } catch (_) {}
         this._remoteWindow = null
       }
     }
