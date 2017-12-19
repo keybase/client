@@ -66,12 +66,10 @@ func (u *UIDMap) Clear() {
 
 func (u *UIDMap) findUsernamePackageLocally(ctx context.Context, g libkb.UIDMapperContext, uid keybase1.UID, fullNameFreshness time.Duration, forceNetworkForFullNames bool) (ret *libkb.UsernamePackage, stats mapStatus) {
 	nun, usernameStatus := u.findUsernameLocally(ctx, g, uid)
-	g.GetVDebugLog().CLogf(ctx, libkb.VLog0, "| local username lookup %s -> %s (status=%d)", uid, nun, usernameStatus)
 	if usernameStatus == notFound {
 		return nil, notFound
 	}
 	fullName, fullNameStatus := u.findFullNameLocally(ctx, g, uid, fullNameFreshness)
-	g.GetVDebugLog().CLogf(ctx, libkb.VLog0, "| local fullname lookup %s -> %+v (status=%d)", uid, fullName, fullNameStatus)
 	return &libkb.UsernamePackage{NormalizedUsername: nun, FullName: fullName}, fullNameStatus
 }
 
@@ -183,11 +181,19 @@ func (a *apiReply) GetAppStatus() *libkb.AppStatus {
 }
 
 func uidsToString(uids []keybase1.UID) string {
-	var s []string
-	for _, uid := range uids {
-		s = append(s, string(uid))
+	s := make([]string, len(uids))
+	for i, uid := range uids {
+		s[i] = string(uid)
 	}
 	return strings.Join(s, ",")
+}
+
+func uidsToStringForLog(uids []keybase1.UID) string {
+	if len(uids) < 5 {
+		return uidsToString(uids)
+	}
+
+	return fmt.Sprintf("%s,...,%s [%d total UIDs]", uids[0], uids[len(uids)-1], len(uids))
 }
 
 func (u *UIDMap) lookupFromServerBatch(ctx context.Context, g libkb.UIDMapperContext, uids []keybase1.UID, networkTimeBudget time.Duration) ([]libkb.UsernamePackage, error) {
@@ -283,7 +289,7 @@ func (u *UIDMap) lookupFromServer(ctx context.Context, g libkb.UIDMapperContext,
 // like a warning. But if, for instance, the mapper runs out of time budget, it will return the data
 // it was able to get, and also the error.
 func (u *UIDMap) MapUIDsToUsernamePackages(ctx context.Context, g libkb.UIDMapperContext, uids []keybase1.UID, fullNameFreshness time.Duration, networkTimeBudget time.Duration, forceNetworkForFullNames bool) (res []libkb.UsernamePackage, err error) {
-	defer libkb.CTrace(ctx, g.GetLog(), fmt.Sprintf("MapUIDsToUserPackages(%s)", uidsToString(uids)), func() error { return err })()
+	defer libkb.CTrace(ctx, g.GetLog(), fmt.Sprintf("MapUIDsToUserPackages(%s)", uidsToStringForLog(uids)), func() error { return err })()
 
 	u.Lock()
 	defer u.Unlock()
