@@ -953,3 +953,53 @@ func TestRepackObjects(t *testing.T) {
 	checkFile("foo3", "hello3")
 	checkFile("foo4", "hello4")
 }
+
+func TestRunnerWithKBFSClone(t *testing.T) {
+	ctx, config, tempdir := initConfigForRunner(t)
+	defer libkbfs.CheckConfigAndShutdown(ctx, t, config)
+	defer os.RemoveAll(tempdir)
+
+	git1, err := ioutil.TempDir(os.TempDir(), "kbfsgittest")
+	require.NoError(t, err)
+	defer os.RemoveAll(git1)
+
+	makeLocalRepoWithOneFile(t, git1, "foo", "hello", "")
+
+	h, err := libkbfs.ParseTlfHandle(
+		ctx, config.KBPKI(), config.MDOps(), "user1", tlf.Private)
+	require.NoError(t, err)
+	_, err = libgit.CreateRepoAndID(ctx, config, h, "test")
+	require.NoError(t, err)
+
+	testPush(t, ctx, config, git1, "refs/heads/master:refs/heads/master")
+
+	// Clone using worktree.
+	repoFS, _, err := libgit.GetRepoAndID(ctx, config, h, "test", "")
+	require.NoError(t, err)
+	rootFS, err := libfs.NewFS(ctx, config, h, "", "", 0)
+	require.NoError(t, err)
+	err = rootFS.MkdirAll("test-checkout", 0600)
+	require.NoError(t, err)
+	wtFS, err := rootFS.Chroot("test-checkout")
+	require.NoError(t, err)
+	err = libgit.Clone(ctx, repoFS, wtFS.(*libfs.FS), "refs/heads/master")
+	require.NoError(t, err)
+
+	f, err := wtFS.Open("foo")
+	require.NoError(t, err)
+	data, err := ioutil.ReadAll(f)
+	require.NoError(t, err)
+	require.Equal(t, "hello", string(data))
+
+	// Sync data and flush journal.
+	err = rootFS.SyncAll()
+	require.NoError(t, err)
+	jServer, err := libkbfs.GetJournalServer(config)
+	require.NoError(t, err)
+	rootNode, _, err := config.KBFSOps().GetOrCreateRootNode(
+		ctx, h, libkbfs.MasterBranch)
+	require.NoError(t, err)
+	err = jServer.FinishSingleOp(ctx,
+		rootNode.GetFolderBranch().Tlf, nil, keybase1.MDPriorityGit)
+	require.NoError(t, err)
+}
