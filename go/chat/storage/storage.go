@@ -136,6 +136,47 @@ func NewSimpleResultCollector(num int) *SimpleResultCollector {
 	}
 }
 
+type InsatiableResultCollector struct {
+	res []chat1.MessageUnboxed
+}
+
+var _ ResultCollector = (*InsatiableResultCollector)(nil)
+
+// InsatiableResultCollector aggregates all messages all the way back.
+// Its result can include holes.
+func NewInsatiableResultCollector() *InsatiableResultCollector {
+	return &InsatiableResultCollector{}
+}
+
+func (s *InsatiableResultCollector) Push(msg chat1.MessageUnboxed) {
+	s.res = append(s.res, msg)
+}
+
+func (s *InsatiableResultCollector) Done() bool {
+	return false
+}
+
+func (s *InsatiableResultCollector) Result() []chat1.MessageUnboxed {
+	return s.res
+}
+
+func (s *InsatiableResultCollector) Name() string {
+	return "inf"
+}
+
+func (s *InsatiableResultCollector) String() string {
+	return fmt.Sprintf("[ %s: c: %d ]", s.Name(), len(s.res))
+}
+
+func (s *InsatiableResultCollector) Error(err Error) Error {
+	return err
+}
+
+func (s *InsatiableResultCollector) PushPlaceholder(chat1.MessageID) bool {
+	// Missing messages are a-ok
+	return true
+}
+
 // TypedResultCollector aggregates results with a type contraints. It is not thread safe.
 type TypedResultCollector struct {
 	res         []chat1.MessageUnboxed
@@ -521,7 +562,7 @@ func (s *Storage) applyDeleteHistory(ctx context.Context, convID chat1.Conversat
 		s.Debug(ctx, "applyDeleteHistory: "+fmt.Sprintf(format, args...))
 	}
 
-	rc := NewSimpleResultCollector(-1) // collect all messages
+	rc := NewInsatiableResultCollector() // collect all messages
 	err := s.engine.ReadMessages(ctx, rc, convID, uid, delh.Upto-1)
 	switch err.(type) {
 	case nil:

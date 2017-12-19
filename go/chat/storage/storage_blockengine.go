@@ -23,7 +23,7 @@ type blockEngine struct {
 func newBlockEngine(g *globals.Context) *blockEngine {
 	return &blockEngine{
 		Contextified: globals.NewContextified(g),
-		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "BlockEngine", true),
+		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "BlockEngine", false),
 	}
 }
 
@@ -370,6 +370,7 @@ func (be *blockEngine) WriteMessages(ctx context.Context, convID chat1.Conversat
 
 func (be *blockEngine) ReadMessages(ctx context.Context, res ResultCollector,
 	convID chat1.ConversationID, uid gregor1.UID, maxID chat1.MessageID) (err Error) {
+	be.Debug(ctx, "readMessages: hi")
 
 	// Run all errors through resultCollector
 	defer func() {

@@ -438,8 +438,12 @@ func TestStorageDeleteHistory(t *testing.T) {
 			return expectedState[i].MsgID < expectedState[j].MsgID
 		})
 	}
-	assertState := func(maxMsgID chat1.MessageID) {
-		res, err := storage.Fetch(context.Background(), makeConversationAt(convID, maxMsgID), uid, nil, nil, nil)
+	assertStateHelper := func(maxMsgID chat1.MessageID, allowHoles bool) {
+		var rc ResultCollector
+		if allowHoles {
+			rc = NewInsatiableResultCollector()
+		}
+		res, err := storage.Fetch(context.Background(), makeConversationAt(convID, maxMsgID), uid, rc, nil, nil)
 		require.NoError(t, err)
 		if len(res.Messages) != len(expectedState) {
 			t.Logf("wrong number of messages")
@@ -466,9 +470,16 @@ func TestStorageDeleteHistory(t *testing.T) {
 			}
 		}
 	}
+	assertState := func(maxMsgID chat1.MessageID) {
+		assertStateHelper(maxMsgID, false)
+	}
+	assertStateAllowHoles := func(maxMsgID chat1.MessageID) {
+		assertStateHelper(maxMsgID, true)
+	}
 	merge := func(msgsUnsorted []chat1.MessageUnboxed, expectedDeletedHistory bool) {
 		res := mustMerge(t, storage, convID, uid, sortMessagesDesc(msgsUnsorted))
 		require.Equal(t, expectedDeletedHistory, res.DeletedHistory, "deleted history merge response")
+		t.Logf("merge complete")
 	}
 
 	t.Logf("initial merge")
@@ -528,11 +539,13 @@ func TestStorageDeleteHistory(t *testing.T) {
 
 	t.Logf("merge after gap")
 	merge([]chat1.MessageUnboxed{msgH, msgI, msgJ, msgK}, true)
-	setExpected("H", msgH, false, msgK.GetMessageID())
+	// B gets deleted even through it was across a gap
+	setExpected("B", msgB, false, msgJ.GetMessageID())
+	setExpected("H", msgH, false, msgJ.GetMessageID())
 	setExpected("I", msgI, true, 0) // delh can't be deleted
 	setExpected("J", msgJ, true, 0) // delh can't be deleted
 	setExpected("K", msgK, true, 0) // after the cutoff
-	assertState(msgK.GetMessageID())
+	assertStateAllowHoles(msgK.GetMessageID())
 }
 
 func TestStorageMiss(t *testing.T) {
