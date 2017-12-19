@@ -2,7 +2,7 @@
 import * as KBFSGen from '../actions/kbfs-gen'
 import {connect, type TypedState} from '../util/container'
 import {privateFolderWithUsers} from '../constants/config'
-import {createNewChat} from '../actions/chat-gen'
+import {createStartChat} from '../actions/chat-gen'
 import NonUserProfile from './non-user-profile'
 
 const mapStateToProps = (state: TypedState, {routeProps}) => {
@@ -21,8 +21,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp}) => ({
   },
   onStartChat: (myUsername, username) => {
     if (myUsername && username) {
-      dispatch(createNewChat({startSearch: false}))
-      // dispatch(createStartConversation({users: [username, myUsername]}))
+      dispatch(createStartChat({myUsername, username}))
     }
   },
 })
