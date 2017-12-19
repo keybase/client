@@ -194,6 +194,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
   const showAddYourselfBanner = !youAreMember && !youExplicitAdmin && youImplicitAdmin
   const youCanAddPeople = youAdmin
   const youCanCreateSubteam = youAdmin
+  const youCanLeaveTeam = youAreMember
 
   const onAddSelf = () => dispatchProps._onAddSelf(stateProps.name, you)
   const onSetOpenTeamRole = () =>
@@ -242,6 +243,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     youAdmin,
     youCanAddPeople,
     youImplicitAdmin,
+    youCanLeaveTeam,
     youCanCreateSubteam,
     youCanShowcase,
   }
