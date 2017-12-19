@@ -97,10 +97,7 @@ const mapDispatchToProps = (
   dispatch: Dispatch,
   {navigateUp, newOpenTeamRole, setOpenTeamRole, setRouteState, routeProps}
 ): DispatchProps => ({
-  _loadTeam: teamname => {
-    dispatch(TeamsGen.createGetDetails({teamname}))
-    dispatch(TeamsGen.createGetTeamOperations({teamname}))
-  },
+  _loadTeam: teamname => dispatch(TeamsGen.createGetDetails({teamname})),
   _onAddPeople: (teamname: Types.Teamname) =>
     dispatch(navigateAppend([{props: {teamname}, selected: 'addPeople'}])),
   _onAddSelf: (teamname: Types.Teamname, you: ?string) => {
