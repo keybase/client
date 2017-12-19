@@ -13,7 +13,7 @@ import pausableConnect from '../util/pausable-connect'
 import {isTesting} from '../local-debug'
 import {navigateAppend, navigateUp} from '../actions/route-tree'
 import {peopleTab} from '../constants/tabs'
-import {createStartConversation} from '../actions/chat-gen'
+import {createStartChat} from '../actions/chat-gen'
 
 import type {TypedState} from '../constants/reducer'
 import type {MissingProof} from '../common-adapters/user-proofs'
@@ -67,7 +67,9 @@ const mapDispatchToProps = (dispatch: Dispatch, {setRouteState}: OwnProps) => ({
   onAcceptProofs: (username: string) => dispatch(TrackerGen.createFollow({localIgnore: false, username})),
   onBack: () => dispatch(navigateUp()),
   onChangeFriendshipsTab: currentFriendshipsTab => setRouteState({currentFriendshipsTab}),
-  onChat: (myUsername, username) => dispatch(createStartConversation({users: [username, myUsername]})),
+  onChat: (myUsername, username) => {
+    dispatch(createStartChat({myUsername, username}))
+  },
   onClickAvatar: (username: string) => dispatch(ProfileGen.createOnClickAvatar({username})),
   onClickFollowers: (username: string) => dispatch(ProfileGen.createOnClickFollowers({username})),
   onClickFollowing: (username: string) => dispatch(ProfileGen.createOnClickFollowing({username})),

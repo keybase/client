@@ -58,7 +58,6 @@ export const postMessage = 'chat:postMessage'
 export const prependMessages = 'chat:prependMessages'
 export const previewChannel = 'chat:previewChannel'
 export const removeOutboxMessage = 'chat:removeOutboxMessage'
-export const removeTempPendingConversations = 'chat:removeTempPendingConversations'
 export const replaceEntity = 'chat:replaceEntity'
 export const retryAttachment = 'chat:retryAttachment'
 export const retryMessage = 'chat:retryMessage'
@@ -77,6 +76,7 @@ export const setTypers = 'chat:setTypers'
 export const setupChatHandlers = 'chat:setupChatHandlers'
 export const shareAttachment = 'chat:shareAttachment'
 export const showEditor = 'chat:showEditor'
+export const startChat = 'chat:startChat'
 export const startConversation = 'chat:startConversation'
 export const subtractEntity = 'chat:subtractEntity'
 export const threadLoadedOffline = 'chat:threadLoadedOffline'
@@ -102,7 +102,7 @@ export const updatedNotifications = 'chat:updatedNotifications'
 export const uploadProgress = 'chat:uploadProgress'
 
 // Action Creators
-export const createAddPending = (payload: {|+participants: Array<string>, +temporary: boolean|}) => ({error: false, payload, type: addPending})
+export const createAddPending = (payload: {|+participants: Array<string>|}) => ({error: false, payload, type: addPending})
 export const createAppendMessages = (payload: {|+conversationIDKey: Types.ConversationIDKey, +isSelected: boolean, +isAppFocused: boolean, +messages: Array<Types.ServerMessage>, +svcShouldDisplayNotification: boolean|}) => ({error: false, payload, type: appendMessages})
 export const createAttachmentLoaded = (payload: {|+messageKey: Types.MessageKey, +path: ?string, +isPreview: boolean|}) => ({error: false, payload, type: attachmentLoaded})
 export const createAttachmentSaveFailed = (payload: {|+messageKey: Types.MessageKey|}) => ({error: false, payload, type: attachmentSaveFailed})
@@ -134,7 +134,7 @@ export const createMarkSeenMessage = (payload: {|+conversationIDKey: Types.Conve
 export const createMarkThreadsStale = (payload: {|+updates: Array<RPCChatTypes.ConversationStaleUpdate>|}) => ({error: false, payload, type: markThreadsStale})
 export const createMergeEntity = (payload: {|+keyPath: Array<string>, +entities: I.Map<any, any> | I.List<any>|}) => ({error: false, payload, type: mergeEntity})
 export const createMuteConversation = (payload: {|+conversationIDKey: Types.ConversationIDKey, +muted: boolean|}) => ({error: false, payload, type: muteConversation})
-export const createNewChat = () => ({error: false, payload: undefined, type: newChat})
+export const createNewChat = (payload: {|+startSearch: boolean|}) => ({error: false, payload, type: newChat})
 export const createOpenAttachmentPopup = (payload: {|+message: Types.AttachmentMessage, +currentPath: Path|}) => ({error: false, payload, type: openAttachmentPopup})
 export const createOpenConversation = (payload: {|+conversationIDKey: Types.ConversationIDKey|}) => ({error: false, payload, type: openConversation})
 export const createOpenFolder = () => ({error: false, payload: undefined, type: openFolder})
@@ -146,7 +146,6 @@ export const createPostMessage = (payload: {|+conversationIDKey: Types.Conversat
 export const createPrependMessages = (payload: {|+conversationIDKey: Types.ConversationIDKey, +messages: Array<Types.ServerMessage>, +moreToLoad: boolean|}) => ({error: false, payload, type: prependMessages})
 export const createPreviewChannel = (payload: {|+conversationIDKey: Types.ConversationIDKey|}) => ({error: false, payload, type: previewChannel})
 export const createRemoveOutboxMessage = (payload: {|+conversationIDKey: Types.ConversationIDKey, +outboxID: Types.OutboxIDKey|}) => ({error: false, payload, type: removeOutboxMessage})
-export const createRemoveTempPendingConversations = () => ({error: false, payload: undefined, type: removeTempPendingConversations})
 export const createReplaceEntity = (payload: {|+keyPath: Array<string>, +entities: I.Map<any, any> | I.List<any>|}) => ({error: false, payload, type: replaceEntity})
 export const createRetryAttachment = (payload: {|+message: Types.AttachmentMessage|}) => ({error: false, payload, type: retryAttachment})
 export const createRetryMessage = (payload: {|+conversationIDKey: Types.ConversationIDKey, +outboxIDKey: string|}) => ({error: false, payload, type: retryMessage})
@@ -165,7 +164,8 @@ export const createSetTypers = (payload: {|+conversationIDKey: Types.Conversatio
 export const createSetupChatHandlers = () => ({error: false, payload: undefined, type: setupChatHandlers})
 export const createShareAttachment = (payload: {|+messageKey: Types.MessageKey|}) => ({error: false, payload, type: shareAttachment})
 export const createShowEditor = (payload: {|+message: ?Types.Message|}) => ({error: false, payload, type: showEditor})
-export const createStartConversation = (payload: {|+users: Array<string>, +forceImmediate?: boolean, +temporary?: boolean, +forSearch?: boolean|}) => ({error: false, payload, type: startConversation})
+export const createStartChat = (payload: {|+myUsername: string, +username: string|}) => ({error: false, payload, type: startChat})
+export const createStartConversation = (payload: {|+users: Array<string>, +forceImmediate?: boolean, +forSearch?: boolean|}) => ({error: false, payload, type: startConversation})
 export const createSubtractEntity = (payload: {|+keyPath: Array<string>, +entities: I.List<any>|}) => ({error: false, payload, type: subtractEntity})
 export const createThreadLoadedOffline = (payload: {|+conversationIDKey: Types.ConversationIDKey|}) => ({error: false, payload, type: threadLoadedOffline})
 export const createToggleChannelWideNotifications = (payload: {|+conversationIDKey: Types.ConversationIDKey|}) => ({error: false, payload, type: toggleChannelWideNotifications})
@@ -234,7 +234,6 @@ export type PostMessagePayload = More.ReturnType<typeof createPostMessage>
 export type PrependMessagesPayload = More.ReturnType<typeof createPrependMessages>
 export type PreviewChannelPayload = More.ReturnType<typeof createPreviewChannel>
 export type RemoveOutboxMessagePayload = More.ReturnType<typeof createRemoveOutboxMessage>
-export type RemoveTempPendingConversationsPayload = More.ReturnType<typeof createRemoveTempPendingConversations>
 export type ReplaceEntityPayload = More.ReturnType<typeof createReplaceEntity>
 export type RetryAttachmentPayload = More.ReturnType<typeof createRetryAttachment>
 export type RetryMessagePayload = More.ReturnType<typeof createRetryMessage>
@@ -253,6 +252,7 @@ export type SetTypersPayload = More.ReturnType<typeof createSetTypers>
 export type SetupChatHandlersPayload = More.ReturnType<typeof createSetupChatHandlers>
 export type ShareAttachmentPayload = More.ReturnType<typeof createShareAttachment>
 export type ShowEditorPayload = More.ReturnType<typeof createShowEditor>
+export type StartChatPayload = More.ReturnType<typeof createStartChat>
 export type StartConversationPayload = More.ReturnType<typeof createStartConversation>
 export type SubtractEntityPayload = More.ReturnType<typeof createSubtractEntity>
 export type ThreadLoadedOfflinePayload = More.ReturnType<typeof createThreadLoadedOffline>
@@ -324,7 +324,6 @@ export type Actions =
   | More.ReturnType<typeof createPrependMessages>
   | More.ReturnType<typeof createPreviewChannel>
   | More.ReturnType<typeof createRemoveOutboxMessage>
-  | More.ReturnType<typeof createRemoveTempPendingConversations>
   | More.ReturnType<typeof createReplaceEntity>
   | More.ReturnType<typeof createRetryAttachment>
   | More.ReturnType<typeof createRetryMessage>
@@ -343,6 +342,7 @@ export type Actions =
   | More.ReturnType<typeof createSetupChatHandlers>
   | More.ReturnType<typeof createShareAttachment>
   | More.ReturnType<typeof createShowEditor>
+  | More.ReturnType<typeof createStartChat>
   | More.ReturnType<typeof createStartConversation>
   | More.ReturnType<typeof createSubtractEntity>
   | More.ReturnType<typeof createThreadLoadedOffline>

@@ -227,29 +227,33 @@ const mapStateToProps = (state: TypedState, {isActiveRoute, routeState}: OwnProp
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch, {focusFilter, routeState, setRouteState}: OwnProps) => ({
-  getTeams: () => dispatch(TeamsGen.createGetTeams()),
-  loadInbox: () => dispatch(ChatGen.createLoadInbox()),
-  _onSelectNext: (rows: Array<Inbox.RowItemSmall | Inbox.RowItemBig>, direction: -1 | 1) =>
-    dispatch(
-      ChatGen.createSelectNext({rows: rows.map(r => ({conversationIDKey: r.conversationIDKey})), direction})
-    ),
-  onHotkey: (cmd: string) => {
-    if (cmd.endsWith('+n')) {
-      dispatch(ChatGen.createNewChat())
-    } else {
-      focusFilter()
-    }
-  },
-  onNewChat: () => dispatch(ChatGen.createNewChat()),
-  onSelect: (conversationIDKey: ?Types.ConversationIDKey) => {
-    dispatch(ChatGen.createSelectConversation({conversationIDKey, fromUser: true}))
-  },
-  onSetFilter: (filter: string) => dispatch(ChatGen.createSetInboxFilter({filter})),
-  onUntrustedInboxVisible: (conversationIDKeys: Array<Types.ConversationIDKey>) =>
-    dispatch(ChatGen.createUnboxConversations({conversationIDKeys, reason: 'untrusted inbox visible'})),
-  toggleSmallTeamsExpanded: () => setRouteState({smallTeamsExpanded: !routeState.get('smallTeamsExpanded')}),
-})
+const mapDispatchToProps = (dispatch: Dispatch, {focusFilter, routeState, setRouteState}: OwnProps) => {
+  const newChat = ChatGen.createNewChat({startSearch: true})
+  return {
+    getTeams: () => dispatch(TeamsGen.createGetTeams()),
+    loadInbox: () => dispatch(ChatGen.createLoadInbox()),
+    _onSelectNext: (rows: Array<Inbox.RowItemSmall | Inbox.RowItemBig>, direction: -1 | 1) =>
+      dispatch(
+        ChatGen.createSelectNext({rows: rows.map(r => ({conversationIDKey: r.conversationIDKey})), direction})
+      ),
+    onHotkey: (cmd: string) => {
+      if (cmd.endsWith('+n')) {
+        dispatch(newChat)
+      } else {
+        focusFilter()
+      }
+    },
+    onNewChat: () => dispatch(newChat),
+    onSelect: (conversationIDKey: ?Types.ConversationIDKey) => {
+      dispatch(ChatGen.createSelectConversation({conversationIDKey, fromUser: true}))
+    },
+    onSetFilter: (filter: string) => dispatch(ChatGen.createSetInboxFilter({filter})),
+    onUntrustedInboxVisible: (conversationIDKeys: Array<Types.ConversationIDKey>) =>
+      dispatch(ChatGen.createUnboxConversations({conversationIDKeys, reason: 'untrusted inbox visible'})),
+    toggleSmallTeamsExpanded: () =>
+      setRouteState({smallTeamsExpanded: !routeState.get('smallTeamsExpanded')}),
+  }
+}
 
 // This merge props is not spreading on purpose so we never have any random props that might mutate and force a re-render
 const mergeProps = (

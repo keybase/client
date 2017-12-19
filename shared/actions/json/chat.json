@@ -43,7 +43,13 @@
       "tlf": "string",
       "isTeam?": "boolean"
     },
-    "newChat": {},
+    "startChat": {
+      "myUsername": "string",
+      "username": "string",
+    },
+    "newChat": {
+      "startSearch": "boolean",
+    },
     "setupChatHandlers": {},
     "loadInbox": {},
     "loadMoreMessages": {
@@ -77,9 +83,7 @@
     },
     "addPending": {
       "participants": "Array<string>",
-      "temporary": "boolean"
     },
-    "removeTempPendingConversations": {},
     "updateFinalizedState": {
       "finalizedState": "Types.FinalizedState"
     },
@@ -265,7 +269,6 @@
     "startConversation": {
       "users": "Array<string>",
       "forceImmediate?": "boolean",
-      "temporary?": "boolean",
       "forSearch?": "boolean"
     },
     "badgeAppForChat": {

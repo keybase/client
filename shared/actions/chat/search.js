@@ -8,6 +8,20 @@ import * as Saga from '../../util/saga'
 import type {ReturnValue} from '../../constants/types/more'
 import type {TypedState} from '../../constants/reducer'
 
+function* _startChat(action: ChatGen.StartChatPayload) {
+  const {myUsername, username} = action.payload
+  if (myUsername && username) {
+    const state: TypedState = yield Saga.select()
+    const inSearch = state.chat.get('inSearch')
+    if (inSearch) {
+      yield Saga.put(ChatGen.createExitSearch({skipSelectPreviousConversation: true}))
+    }
+    const searchKey = 'chatSearch'
+    yield Saga.put(ChatGen.createNewChat({startSearch: false}))
+    yield Saga.put(SearchGen.createAddResultsToUserInput({searchKey, searchResults: [username]}))
+  }
+}
+
 function _newChat(action: ChatGen.NewChatPayload, state: TypedState) {
   const actions = []
   actions.push(Saga.put(ChatGen.createSetInboxFilter({filter: ''})))
@@ -22,7 +36,9 @@ function _newChat(action: ChatGen.NewChatPayload, state: TypedState) {
       )
     )
     actions.push(Saga.put(ChatGen.createSelectConversation({conversationIDKey: null})))
-    actions.push(Saga.put(SearchGen.createSearchSuggestions({searchKey: 'chatSearch'})))
+    if (action.payload.startSearch) {
+      actions.push(Saga.put(SearchGen.createSearchSuggestions({searchKey: 'chatSearch'})))
+    }
   }
 
   return Saga.sequentially(actions)
@@ -40,7 +56,6 @@ function _exitSearch({payload: {skipSelectPreviousConversation}}: ChatGen.ExitSe
     [
       Saga.put(SearchGen.createClearSearchResults({searchKey: 'chatSearch'})),
       Saga.put(SearchGen.createSetUserInputItems({searchKey: 'chatSearch', searchResults: []})),
-      Saga.put(ChatGen.createRemoveTempPendingConversations()),
       userInputItemIds.length === 0 && !skipSelectPreviousConversation
         ? Saga.put(ChatGen.createSelectConversation({conversationIDKey: previousConversation}))
         : null,
@@ -59,13 +74,12 @@ function* _updateTempSearchConversation(action: SearchGen.UserInputItemsUpdatedP
     return
   }
 
-  const actionsToPut = [Saga.put(ChatGen.createRemoveTempPendingConversations())]
+  const actionsToPut = []
   if (userInputItemIds.length) {
     actionsToPut.push(
       Saga.put(
         ChatGen.createStartConversation({
           users: userInputItemIds.concat(me),
-          temporary: true,
           forSearch: true,
         })
       )
@@ -86,6 +100,7 @@ function* registerSagas(): Saga.SagaGenerator<any, any> {
     _updateTempSearchConversation
   )
   yield Saga.safeTakeEveryPure(ChatGen.exitSearch, _exitSearch)
+  yield Saga.safeTakeEvery(ChatGen.startChat, _startChat)
   yield Saga.safeTakeEveryPure(ChatGen.newChat, _newChat)
 }
 
