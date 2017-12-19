@@ -8,10 +8,11 @@ import * as Saga from '../../util/saga'
 import type {ReturnValue} from '../../constants/types/more'
 import type {TypedState} from '../../constants/reducer'
 
-function* _startChat(action: ChatGen.StartChatPayload, state: TypedState) {
+function* _startChat(action: ChatGen.StartChatPayload) {
   const {myUsername, username} = action.payload
   if (myUsername && username) {
-    const inSearch = yield Saga.select((state: TypedState) => state.chat.get('inSearch'))
+    const state: TypedState = yield Saga.select()
+    const inSearch = state.chat.get('inSearch')
     if (inSearch) {
       yield Saga.put(ChatGen.createExitSearch({skipSelectPreviousConversation: true}))
     }
