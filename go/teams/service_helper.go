@@ -1213,16 +1213,14 @@ func CanUserPerform(ctx context.Context, g *libkb.GlobalContext, teamname string
 		return ret, err
 	}
 
-	uvs, err := g.GetTeamLoader().ImplicitAdmins(ctx, team.ID)
-	if err != nil {
-		return ret, err
-	}
-
 	isImplicitAdmin := func() (bool, error) {
 		if team.ID.IsRootTeam() {
 			return false, nil
 		}
-
+		uvs, err := g.GetTeamLoader().ImplicitAdmins(ctx, team.ID)
+		if err != nil {
+			return false, err
+		}
 		for _, uv := range uvs {
 			if uv == meUV {
 				return true, nil
