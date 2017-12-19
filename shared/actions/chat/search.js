@@ -8,15 +8,16 @@ import * as Saga from '../../util/saga'
 import type {ReturnValue} from '../../constants/types/more'
 import type {TypedState} from '../../constants/reducer'
 
-function _startChat(action: ChatGen.StartChatPayload, state: TypedState) {
+function* _startChat(action: ChatGen.StartChatPayload, state: TypedState) {
   const {myUsername, username} = action.payload
   if (myUsername && username) {
+    const inSearch = yield Saga.select((state: TypedState) => state.chat.get('inSearch'))
+    if (inSearch) {
+      yield Saga.put(ChatGen.createExitSearch({skipSelectPreviousConversation: true}))
+    }
     const searchKey = 'chatSearch'
-    return Saga.sequentially([
-      Saga.put(ChatGen.createNewChat({startSearch: false})),
-      Saga.put(SearchGen.createClearSearchResults({searchKey})),
-      Saga.put(SearchGen.createAddResultsToUserInput({searchKey, searchResults: [username]})),
-    ])
+    yield Saga.put(ChatGen.createNewChat({startSearch: false}))
+    yield Saga.put(SearchGen.createAddResultsToUserInput({searchKey, searchResults: [username]}))
   }
 }
 
@@ -99,7 +100,7 @@ function* registerSagas(): Saga.SagaGenerator<any, any> {
   )
   yield Saga.safeTakeEveryPure(ChatGen.exitSearch, _exitSearch)
   yield Saga.safeTakeEveryPure(ChatGen.startChat, _startChat)
-  yield Saga.safeTakeEveryPure(ChatGen.newChat, _newChat)
+  yield Saga.safeTakeEvery(ChatGen.newChat, _newChat)
 }
 
 export {registerSagas}
