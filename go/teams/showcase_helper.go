@@ -117,9 +117,11 @@ func SetTeamMemberShowcase(ctx context.Context, g *libkb.GlobalContext, teamname
 
 	// Clear usercard cache so when user goes to People tab,
 	// fresh card will be loaded.
-	u := g.LoginState().GetUID()
+	u := g.ActiveDevice.UID()
 	g.Log.CDebugf(ctx, "Clearing Card cache for %s", u)
-	g.CardCache.Delete(u)
+	if err := g.CardCache.Delete(u); err != nil {
+		g.Log.Debugf("Error in CardCache.Delete: %s", err)
+	}
 	g.UserChanged(u)
 	return nil
 }
