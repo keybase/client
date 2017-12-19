@@ -4,9 +4,17 @@
     "import HiddenString from '../util/hidden-string'"
   ],
   "actions": {
-      "inboxRefresh": {},
-      "inboxUtrustedLoaded": {
-          "untrusted": "Array<Types.ConversationMeta>"
-      }
+    "inboxRefresh": {},
+    "inboxUtrustedLoaded": {
+      "untrusted": "Array<Types.ConversationMeta>"
+    },
+    "queueUnboxConversations": {
+      "conversationIDKeys": "Array<Types.ConversationIDKey>",
+      "reason": "string"
+    },
+    "unboxSomeConversations": {},
+    "unboxConversations": {
+      "conversationIDKeys": "Array<Types.ConversationIDKey>"
+    }
   }
 }

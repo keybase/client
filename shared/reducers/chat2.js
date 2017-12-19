@@ -39,6 +39,9 @@ export default function(state: Types.State = initialState, action: $ReadOnly<Cha
       )
     // Saga only actions
     case Chat2Gen.inboxRefresh:
+    case Chat2Gen.queueUnboxConversations:
+    case Chat2Gen.unboxConversations:
+    case Chat2Gen.unboxSomeConversations:
       return state
     default:
       // eslint-disable-next-line no-unused-expressions
