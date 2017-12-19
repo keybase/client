@@ -8,7 +8,7 @@ function toStringForLog(a: any): string {
   } else if (typeof a === 'object') {
     return JSON.stringify(a)
   }
-  return (a.toString && a.toString()) || 'Failed to turn item to string in toStringForLog'
+  return (a && a.toString && a.toString()) || 'Failed to turn item to string in toStringForLog'
 }
 
 export {toStringForLog}
