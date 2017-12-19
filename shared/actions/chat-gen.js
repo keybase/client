@@ -76,6 +76,7 @@ export const setTypers = 'chat:setTypers'
 export const setupChatHandlers = 'chat:setupChatHandlers'
 export const shareAttachment = 'chat:shareAttachment'
 export const showEditor = 'chat:showEditor'
+export const startChat = 'chat:startChat'
 export const startConversation = 'chat:startConversation'
 export const subtractEntity = 'chat:subtractEntity'
 export const threadLoadedOffline = 'chat:threadLoadedOffline'
@@ -163,6 +164,7 @@ export const createSetTypers = (payload: {|+conversationIDKey: Types.Conversatio
 export const createSetupChatHandlers = () => ({error: false, payload: undefined, type: setupChatHandlers})
 export const createShareAttachment = (payload: {|+messageKey: Types.MessageKey|}) => ({error: false, payload, type: shareAttachment})
 export const createShowEditor = (payload: {|+message: ?Types.Message|}) => ({error: false, payload, type: showEditor})
+export const createStartChat = (payload: {|+myUsername: string, +username: string|}) => ({error: false, payload, type: startChat})
 export const createStartConversation = (payload: {|+users: Array<string>, +forceImmediate?: boolean, +forSearch?: boolean|}) => ({error: false, payload, type: startConversation})
 export const createSubtractEntity = (payload: {|+keyPath: Array<string>, +entities: I.List<any>|}) => ({error: false, payload, type: subtractEntity})
 export const createThreadLoadedOffline = (payload: {|+conversationIDKey: Types.ConversationIDKey|}) => ({error: false, payload, type: threadLoadedOffline})
@@ -250,6 +252,7 @@ export type SetTypersPayload = More.ReturnType<typeof createSetTypers>
 export type SetupChatHandlersPayload = More.ReturnType<typeof createSetupChatHandlers>
 export type ShareAttachmentPayload = More.ReturnType<typeof createShareAttachment>
 export type ShowEditorPayload = More.ReturnType<typeof createShowEditor>
+export type StartChatPayload = More.ReturnType<typeof createStartChat>
 export type StartConversationPayload = More.ReturnType<typeof createStartConversation>
 export type SubtractEntityPayload = More.ReturnType<typeof createSubtractEntity>
 export type ThreadLoadedOfflinePayload = More.ReturnType<typeof createThreadLoadedOffline>
@@ -339,6 +342,7 @@ export type Actions =
   | More.ReturnType<typeof createSetupChatHandlers>
   | More.ReturnType<typeof createShareAttachment>
   | More.ReturnType<typeof createShowEditor>
+  | More.ReturnType<typeof createStartChat>
   | More.ReturnType<typeof createStartConversation>
   | More.ReturnType<typeof createSubtractEntity>
   | More.ReturnType<typeof createThreadLoadedOffline>

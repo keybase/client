@@ -43,6 +43,10 @@
       "tlf": "string",
       "isTeam?": "boolean"
     },
+    "startChat": {
+      "myUsername": "string",
+      "username": "string",
+    },
     "newChat": {
       "startSearch": "boolean",
     },

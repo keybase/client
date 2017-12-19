@@ -334,6 +334,7 @@ function reducer(
     case ChatGen.setNotifications:
     case ChatGen.setupChatHandlers:
     case ChatGen.shareAttachment:
+    case ChatGen.startChat:
     case ChatGen.startConversation:
     case ChatGen.toggleChannelWideNotifications:
     case ChatGen.unboxConversations:

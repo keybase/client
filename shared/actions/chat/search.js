@@ -8,6 +8,15 @@ import * as Saga from '../../util/saga'
 import type {ReturnValue} from '../../constants/types/more'
 import type {TypedState} from '../../constants/reducer'
 
+function _startChat(action: ChatGen.StartChatPayload, state: TypedState) {
+  const searchKey = 'chatSearch'
+  return Saga.sequentially([
+    ChatGen.createNewChat({startSearch: false}),
+    SearchGen.createClearSearchResults({searchKey}),
+    SearchGen.createAddResultsToUserInput({searchKey, searchResults: [action.payload.username]}),
+  ])
+}
+
 function _newChat(action: ChatGen.NewChatPayload, state: TypedState) {
   const actions = []
   actions.push(Saga.put(ChatGen.createSetInboxFilter({filter: ''})))
@@ -86,6 +95,7 @@ function* registerSagas(): Saga.SagaGenerator<any, any> {
     _updateTempSearchConversation
   )
   yield Saga.safeTakeEveryPure(ChatGen.exitSearch, _exitSearch)
+  yield Saga.safeTakeEveryPure(ChatGen.startChat, _startChat)
   yield Saga.safeTakeEveryPure(ChatGen.newChat, _newChat)
 }
 
