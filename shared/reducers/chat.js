@@ -1,17 +1,17 @@
 // @flow
+import * as I from 'immutable'
 import logger from '../logger'
 import * as Constants from '../constants/chat'
 import * as Types from '../constants/types/chat'
 import * as TeamsGen from '../actions/teams-gen'
 import * as ChatGen from '../actions/chat-gen'
 import * as GregorGen from '../actions/gregor-gen'
-import {Set, List, Map} from 'immutable'
 import {reachabilityReachable} from '../constants/types/flow-types'
 
 const initialState: Types.State = Constants.makeState()
 const initialConversation: Types.ConversationState = Constants.makeConversationState()
 
-type ConversationsStates = Map<Types.ConversationIDKey, Types.ConversationState>
+type ConversationsStates = I.Map<Types.ConversationIDKey, Types.ConversationState>
 type ConversationUpdateFn = (c: Types.ConversationState) => Types.ConversationState
 function updateConversation(
   conversationStates: ConversationsStates,
@@ -98,11 +98,11 @@ function reducer(
           if (!conversation.get('firstNewMessageID') && !inConversationFocused && firstMessage) {
             // Set first new message if we don't have one set, and are not in
             // the conversation with window focused
-            conversation = conversation.set('firstNewMessageID', firstMessage.messageID)
+            return conversation.set('firstNewMessageID', firstMessage.messageID)
           } else if (inConversationFocused) {
             // Clear new message if we received a new message while in
             // conversation and window is focused
-            conversation = conversation.set('firstNewMessageID', null)
+            return conversation.set('firstNewMessageID', null)
           }
 
           return conversation
@@ -114,7 +114,7 @@ function reducer(
       const {conversationIDKey, typing} = action.payload
       return state.update('conversationStates', conversationStates =>
         updateConversation(conversationStates, conversationIDKey, conversation =>
-          conversation.set('typing', Set(typing))
+          conversation.set('typing', I.Set(typing))
         )
       )
     }
@@ -159,8 +159,7 @@ function reducer(
         .update(action.payload.conversationIDKey, initialConversation, conversation =>
           conversation.set('firstNewMessageID', null)
         )
-      state = state.set('conversationStates', newConversationStates)
-      return state
+      return state.set('conversationStates', newConversationStates)
     case ChatGen.loadingMessages: {
       const {isRequesting, conversationIDKey} = action.payload
       const newConversationStates = state
@@ -193,7 +192,7 @@ function reducer(
         'rekeyInfos',
         state
           .get('rekeyInfos')
-          .set(conversationIDKey, Constants.makeRekeyInfo({rekeyParticipants: List(rekeyers)}))
+          .set(conversationIDKey, Constants.makeRekeyInfo({rekeyParticipants: I.List(rekeyers)}))
       )
     }
     case ChatGen.updateInboxRekeySelf: {
@@ -213,7 +212,7 @@ function reducer(
           // TODO use deleteAll when we update immutable
           pendingConversations
             .filterNot((v, k) => tempPendingConvIDs.includes(k))
-            .set(conversationIDKey, List(sorted))
+            .set(conversationIDKey, I.List(sorted))
         )
         .update('tempPendingConversations', tempPendingConversations =>
           tempPendingConversations.filter(v => v).set(conversationIDKey, temporary)
@@ -289,6 +288,12 @@ function reducer(
     case ChatGen.exitSearch: {
       return state.set('inSearch', false)
     }
+    case ChatGen.updateResetParticipants: {
+      return state.mergeIn(
+        ['inboxResetParticipants'],
+        I.Map([[action.payload.conversationIDKey, I.Set(action.payload.participants)]])
+      )
+    }
     case TeamsGen.setChannelCreationError: {
       const {error} = action.payload
       return state.set('channelCreationError', error)
@@ -310,7 +315,6 @@ function reducer(
       return state.set('teamJoinSuccess', success).set('teamJoinSuccessTeamName', teamname)
     }
     // Saga only actions
-    case ChatGen.updateBadging:
     case ChatGen.attachmentLoaded:
     case ChatGen.attachmentSaveFailed:
     case ChatGen.attachmentSaveStart:
@@ -338,9 +342,11 @@ function reducer(
     case ChatGen.openTeamConversation:
     case ChatGen.openTlfInChat:
     case ChatGen.outboxMessageBecameReal:
-    case ChatGen.previewChannel:
     case ChatGen.postMessage:
+    case ChatGen.previewChannel:
     case ChatGen.removeOutboxMessage:
+    case ChatGen.resetChatWithoutThem:
+    case ChatGen.resetLetThemIn:
     case ChatGen.retryAttachment:
     case ChatGen.retryMessage:
     case ChatGen.saveAttachment:
@@ -355,6 +361,7 @@ function reducer(
     case ChatGen.toggleChannelWideNotifications:
     case ChatGen.unboxConversations:
     case ChatGen.unboxMore:
+    case ChatGen.updateBadging:
     case ChatGen.updateInboxComplete:
     case ChatGen.updateMetadata:
     case ChatGen.updateSnippet:

@@ -15,12 +15,12 @@ fs.readdir(tmpDir, function(err, files) {
     })
 
     toWipe.forEach(function(f) {
-      f = path.join(tmpDir, f)
+      const fullPath = path.join(tmpDir, f)
 
       if (dryRun) {
-        console.log('Dry run: wiping ', f)
+        console.log('Dry run: wiping ', fullPath)
       } else {
-        exec('rm -r ' + f, function(err, stdout, stderr) {
+        exec('rm -r ' + fullPath, function(err, stdout, stderr) {
           if (err) {
             console.log(err)
           }

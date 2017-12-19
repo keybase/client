@@ -64,8 +64,6 @@ function shallowEqualDebug(objA, objB, compare, compareContext) {
     return false
   }
 
-  compareContext = compareContext || null
-
   // Test for A's keys different from B.
   const bHasOwnProperty = Object.prototype.hasOwnProperty.bind(objB)
   for (let i = 0; i < len; i++) {
@@ -77,7 +75,7 @@ function shallowEqualDebug(objA, objB, compare, compareContext) {
     const valueA = objA[key]
     const valueB = objB[key]
 
-    const ret = compare ? compare.call(compareContext, valueA, valueB, key) : void 0
+    const ret = compare ? compare.call(compareContext || null, valueA, valueB, key) : void 0
     if (ret === false || (ret === void 0 && valueA !== valueB)) {
       console.log('Different value:', key, ':', valueA, valueB)
       return false

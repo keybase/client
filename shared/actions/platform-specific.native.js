@@ -44,14 +44,17 @@ function showShareActionSheet(options: {
 
 type NextURI = string
 function saveAttachmentDialog(filePath: string): Promise<NextURI> {
-  logger.debug('saveAttachment: ', filePath)
-  if (isIOS || isImageFileName(filePath)) {
-    if (!isIOS) filePath = 'file://' + filePath
-    logger.debug('Saving to camera roll: ', filePath)
-    return CameraRoll.saveToCameraRoll(filePath)
+  let goodPath = filePath
+  logger.debug('saveAttachment: ', goodPath)
+  if (isIOS || isImageFileName(goodPath)) {
+    if (!isIOS) {
+      goodPath = 'file://' + goodPath
+    }
+    logger.debug('Saving to camera roll: ', goodPath)
+    return CameraRoll.saveToCameraRoll(goodPath)
   }
-  logger.debug('Android: Leaving at ', filePath)
-  return Promise.resolve(filePath)
+  logger.debug('Android: Leaving at ', goodPath)
+  return Promise.resolve(goodPath)
 }
 
 function displayNewMessageNotification(text: string, convID: ?string, badgeCount: ?number, myMsgID: ?number) {

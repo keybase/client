@@ -13,6 +13,7 @@ import {FilterBigTeamChannel} from './filter-big-team-channel'
 const simpleCommon = {
   backgroundColor: globalColors.white,
   conversationIDKey: '',
+  hasResetUsers: false,
   hasUnread: false,
   isMuted: false,
   isSelected: false,
@@ -27,6 +28,7 @@ const simpleCommon = {
   timestamp: '1:23 pm',
   unreadCount: 0,
   usernameColor: globalColors.darkBlue,
+  youAreReset: false,
   youNeedToRekey: false,
 }
 

@@ -258,7 +258,8 @@ class Engine {
   }
 
   // An outgoing call. ONLY called by the flow-type rpc helpers
-  _channelMapRpcHelper(configKeys: Array<string>, method: string, params: any): EngineChannel {
+  _channelMapRpcHelper(configKeys: Array<string>, method: string, paramsIn: any): EngineChannel {
+    const params = paramsIn || {}
     const channelConfig = Saga.singleFixedChannelConfig(configKeys)
     const channelMap = Saga.createChannelMap(channelConfig)
     // $FlowIssue doesn't like empty objects with exact types
@@ -272,10 +273,6 @@ class Engine {
     const callback = (error, params) => {
       channelMap['finished'] && Saga.putOnChannelMap(channelMap, 'finished', {error, params})
       Saga.closeChannelMap(channelMap)
-    }
-
-    if (!params) {
-      params = {}
     }
 
     params.incomingCallMap = incomingCallMap
@@ -293,12 +290,7 @@ class Engine {
     },
     callback: (...args: Array<any>) => void
   ) {
-    if (!params) {
-      params = {}
-    }
-
-    let {incomingCallMap, waitingHandler, ...param} = params
-
+    let {incomingCallMap, waitingHandler, ...param} = params || {}
     // Ensure a non-null param
     if (!param) {
       param = {}

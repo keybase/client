@@ -19,14 +19,14 @@ import type {TypedState} from '../constants/reducer'
 // pathToURL takes path and converts to (file://) url.
 // See https://github.com/sindresorhus/file-url
 function pathToURL(path: string): string {
-  path = path.replace(/\\/g, '/')
+  let goodPath = path.replace(/\\/g, '/')
 
   // Windows drive letter must be prefixed with a slash
-  if (path[0] !== '/') {
-    path = '/' + path
+  if (goodPath[0] !== '/') {
+    goodPath = '/' + goodPath
   }
 
-  return encodeURI('file://' + path).replace(/#/g, '%23')
+  return encodeURI('file://' + goodPath).replace(/#/g, '%23')
 }
 
 function openInDefaultDirectory(openPath: string): Promise<*> {
@@ -100,13 +100,13 @@ function _open(openPath: string): Promise<*> {
 function openInDefault(openPath: string): Promise<*> {
   logger.info('openInDefault:', openPath)
   // Path resolve removes any ..
-  openPath = path.resolve(openPath)
+  let goodPath = path.resolve(openPath)
   // Paths MUST start with defaultKBFSPath
-  if (!openPath.startsWith(Constants.defaultKBFSPath)) {
-    throw new Error(`openInDefault requires ${Constants.defaultKBFSPath} prefix: ${openPath}`)
+  if (!goodPath.startsWith(Constants.defaultKBFSPath)) {
+    throw new Error(`openInDefault requires ${Constants.defaultKBFSPath} prefix: ${goodPath}`)
   }
 
-  return _open(openPath)
+  return _open(goodPath)
 }
 
 function* fuseStatusSaga(): Saga.SagaGenerator<any, any> {
@@ -287,7 +287,7 @@ function* openInWindows(openPath: string): Saga.SagaGenerator<any, any> {
   if (!openPath.startsWith(Constants.defaultKBFSPath)) {
     throw new Error(`openInWindows requires ${Constants.defaultKBFSPath} prefix: ${openPath}`)
   }
-  openPath = openPath.slice(Constants.defaultKBFSPath.length)
+  let goodPath = openPath.slice(Constants.defaultKBFSPath.length)
 
   const state: TypedState = yield Saga.select()
   let kbfsPath = state.config.kbfsPath
@@ -308,14 +308,14 @@ function* openInWindows(openPath: string): Saga.SagaGenerator<any, any> {
     yield Saga.put(ConfigGen.createChangeKBFSPath({kbfsPath}))
   }
 
-  openPath = path.resolve(kbfsPath, openPath)
+  goodPath = path.resolve(kbfsPath, goodPath)
   // Check to make sure our resolved path starts with the kbfsPath
   // i.e. (not opening a folder outside kbfs)
-  if (!openPath.startsWith(kbfsPath)) {
-    throw new Error(`openInWindows requires ${kbfsPath} prefix: ${openPath}`)
+  if (!goodPath.startsWith(kbfsPath)) {
+    throw new Error(`openInWindows requires ${kbfsPath} prefix: ${goodPath}`)
   }
 
-  yield Saga.call(_open, openPath)
+  yield Saga.call(_open, goodPath)
 }
 
 function* openSaga(action: KBFSGen.OpenPayload): Saga.SagaGenerator<any, any> {
