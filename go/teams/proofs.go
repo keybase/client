@@ -49,6 +49,9 @@ type proofIndex struct {
 }
 
 func (t proofTerm) seqno() keybase1.Seqno { return t.sigMeta.SigChainLocation.Seqno }
+func (t proofTerm) isPublic() bool {
+	return t.sigMeta.SigChainLocation.SeqType == keybase1.SeqType_PUBLIC
+}
 
 // comparison method only valid if `t` and `u` are known to be on the same chain
 func (t proofTerm) lessThanOrEqual(u proofTerm) bool {
@@ -195,7 +198,7 @@ func (p *proofSetT) AllProofs() []proof {
 // lookupMerkleTreeChain loads the path up to the merkle tree and back down that corresponds
 // to this proof. It will contact the API server.  Returns the sigchain tail on success.
 func (p proof) lookupMerkleTreeChain(ctx context.Context, world LoaderContext) (ret *libkb.MerkleTriple, err error) {
-	return world.merkleLookupTripleAtHashMeta(ctx, p.a.leafID, p.b.sigMeta.PrevMerkleRootSigned.HashMeta)
+	return world.merkleLookupTripleAtHashMeta(ctx, p.a.isPublic(), p.a.leafID, p.b.sigMeta.PrevMerkleRootSigned.HashMeta)
 }
 
 // check a single proof. Call to the merkle API enddpoint, and then ensure that the
