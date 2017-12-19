@@ -290,6 +290,7 @@ const _getDetails = function*(action: TeamsGen.GetDetailsPayload): Saga.SagaGene
   const waitingKey = {key: `getDetails:${teamname}`}
   // TODO completely replace teamNameToLoading with createIncrementWaiting?
   yield Saga.put(createIncrementWaiting(waitingKey))
+  yield Saga.put(TeamsGen.createGetTeamOperations({teamname}))
   yield Saga.put(replaceEntity(['teams', 'teamNameToLoading'], I.Map([[teamname, true]])))
   try {
     const details: RPCTypes.TeamDetails = yield Saga.call(RPCTypes.teamsTeamGetRpcPromise, {
