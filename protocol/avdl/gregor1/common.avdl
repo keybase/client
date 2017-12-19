@@ -92,6 +92,7 @@ protocol common {
   @typedef("bytes") record DeviceID {}
   @typedef("bytes") record Body {}
   @typedef("long") record Time {}
+  @typedef("long") record Seconds {}
   @typedef("string") record SessionID {}
   @typedef("string") record SessionToken {}
 }

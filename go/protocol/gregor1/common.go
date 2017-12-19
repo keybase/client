@@ -367,6 +367,12 @@ func (o Time) DeepCopy() Time {
 	return o
 }
 
+type Seconds int64
+
+func (o Seconds) DeepCopy() Seconds {
+	return o
+}
+
 type SessionID string
 
 func (o SessionID) DeepCopy() SessionID {

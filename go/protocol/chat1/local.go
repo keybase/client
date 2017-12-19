@@ -344,14 +344,12 @@ func (o MessageSystem) DeepCopy() MessageSystem {
 }
 
 type MessageDeleteHistory struct {
-	UptoTime gregor1.Time `codec:"uptoTime" json:"uptoTime"`
-	Upto     MessageID    `codec:"upto" json:"upto"`
+	Upto MessageID `codec:"upto" json:"upto"`
 }
 
 func (o MessageDeleteHistory) DeepCopy() MessageDeleteHistory {
 	return MessageDeleteHistory{
-		UptoTime: o.UptoTime.DeepCopy(),
-		Upto:     o.Upto.DeepCopy(),
+		Upto: o.Upto.DeepCopy(),
 	}
 }
 
@@ -3711,6 +3709,14 @@ type PostMetadataArg struct {
 	IdentifyBehavior keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
 }
 
+type PostDeleteHistoryArg struct {
+	ConversationID   ConversationID               `codec:"conversationID" json:"conversationID"`
+	TlfName          string                       `codec:"tlfName" json:"tlfName"`
+	TlfPublic        bool                         `codec:"tlfPublic" json:"tlfPublic"`
+	IdentifyBehavior keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
+	Age              gregor1.Seconds              `codec:"age" json:"age"`
+}
+
 type SetConversationStatusLocalArg struct {
 	ConversationID   ConversationID               `codec:"conversationID" json:"conversationID"`
 	Status           ConversationStatus           `codec:"status" json:"status"`
@@ -3891,6 +3897,7 @@ type LocalInterface interface {
 	PostHeadline(context.Context, PostHeadlineArg) (PostLocalRes, error)
 	PostMetadataNonblock(context.Context, PostMetadataNonblockArg) (PostLocalNonblockRes, error)
 	PostMetadata(context.Context, PostMetadataArg) (PostLocalRes, error)
+	PostDeleteHistory(context.Context, PostDeleteHistoryArg) (PostLocalRes, error)
 	SetConversationStatusLocal(context.Context, SetConversationStatusLocalArg) (SetConversationStatusLocalRes, error)
 	NewConversationLocal(context.Context, NewConversationLocalArg) (NewConversationLocalRes, error)
 	GetInboxSummaryForCLILocal(context.Context, GetInboxSummaryForCLILocalQuery) (GetInboxSummaryForCLILocalRes, error)
@@ -4154,6 +4161,22 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 						return
 					}
 					ret, err = i.PostMetadata(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"postDeleteHistory": {
+				MakeArg: func() interface{} {
+					ret := make([]PostDeleteHistoryArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]PostDeleteHistoryArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]PostDeleteHistoryArg)(nil), args)
+						return
+					}
+					ret, err = i.PostDeleteHistory(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -4649,6 +4672,11 @@ func (c LocalClient) PostMetadataNonblock(ctx context.Context, __arg PostMetadat
 
 func (c LocalClient) PostMetadata(ctx context.Context, __arg PostMetadataArg) (res PostLocalRes, err error) {
 	err = c.Cli.Call(ctx, "chat.1.local.postMetadata", []interface{}{__arg}, &res)
+	return
+}
+
+func (c LocalClient) PostDeleteHistory(ctx context.Context, __arg PostDeleteHistoryArg) (res PostLocalRes, err error) {
+	err = c.Cli.Call(ctx, "chat.1.local.postDeleteHistory", []interface{}{__arg}, &res)
 	return
 }
 

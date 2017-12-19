@@ -330,6 +330,12 @@
     },
     {
       "type": "record",
+      "name": "Seconds",
+      "fields": [],
+      "typedef": "long"
+    },
+    {
+      "type": "record",
       "name": "SessionID",
       "fields": [],
       "typedef": "string"

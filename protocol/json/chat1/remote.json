@@ -487,6 +487,23 @@
     },
     {
       "type": "record",
+      "name": "GetMessageBeforeRes",
+      "fields": [
+        {
+          "type": "MessageID",
+          "name": "msgID"
+        },
+        {
+          "type": [
+            null,
+            "RateLimit"
+          ],
+          "name": "rateLimit"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "GetTLFConversationsRes",
       "fields": [
         {
@@ -925,6 +942,19 @@
         }
       ],
       "response": "DeleteConversationRemoteRes"
+    },
+    "getMessageBefore": {
+      "request": [
+        {
+          "name": "convID",
+          "type": "ConversationID"
+        },
+        {
+          "name": "age",
+          "type": "gregor1.Seconds"
+        }
+      ],
+      "response": "GetMessageBeforeRes"
     },
     "getTLFConversations": {
       "request": [

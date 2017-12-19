@@ -667,6 +667,24 @@ func (o DeleteConversationRemoteRes) DeepCopy() DeleteConversationRemoteRes {
 	}
 }
 
+type GetMessageBeforeRes struct {
+	MsgID     MessageID  `codec:"msgID" json:"msgID"`
+	RateLimit *RateLimit `codec:"rateLimit,omitempty" json:"rateLimit,omitempty"`
+}
+
+func (o GetMessageBeforeRes) DeepCopy() GetMessageBeforeRes {
+	return GetMessageBeforeRes{
+		MsgID: o.MsgID.DeepCopy(),
+		RateLimit: (func(x *RateLimit) *RateLimit {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.RateLimit),
+	}
+}
+
 type GetTLFConversationsRes struct {
 	Conversations []Conversation `codec:"conversations" json:"conversations"`
 	RateLimit     *RateLimit     `codec:"rateLimit,omitempty" json:"rateLimit,omitempty"`
@@ -848,6 +866,11 @@ type DeleteConversationArg struct {
 	ConvID ConversationID `codec:"convID" json:"convID"`
 }
 
+type GetMessageBeforeArg struct {
+	ConvID ConversationID  `codec:"convID" json:"convID"`
+	Age    gregor1.Seconds `codec:"age" json:"age"`
+}
+
 type GetTLFConversationsArg struct {
 	TlfID            TLFID     `codec:"tlfID" json:"tlfID"`
 	TopicType        TopicType `codec:"topicType" json:"topicType"`
@@ -897,6 +920,7 @@ type RemoteInterface interface {
 	LeaveConversation(context.Context, ConversationID) (JoinLeaveConversationRemoteRes, error)
 	PreviewConversation(context.Context, ConversationID) (JoinLeaveConversationRemoteRes, error)
 	DeleteConversation(context.Context, ConversationID) (DeleteConversationRemoteRes, error)
+	GetMessageBefore(context.Context, GetMessageBeforeArg) (GetMessageBeforeRes, error)
 	GetTLFConversations(context.Context, GetTLFConversationsArg) (GetTLFConversationsRes, error)
 	SetAppNotificationSettings(context.Context, SetAppNotificationSettingsArg) (SetAppNotificationSettingsRes, error)
 	SetGlobalAppNotificationSettings(context.Context, GlobalAppNotificationSettings) error
@@ -1308,6 +1332,22 @@ func RemoteProtocol(i RemoteInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"getMessageBefore": {
+				MakeArg: func() interface{} {
+					ret := make([]GetMessageBeforeArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]GetMessageBeforeArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]GetMessageBeforeArg)(nil), args)
+						return
+					}
+					ret, err = i.GetMessageBefore(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 			"getTLFConversations": {
 				MakeArg: func() interface{} {
 					ret := make([]GetTLFConversationsArg, 1)
@@ -1523,6 +1563,11 @@ func (c RemoteClient) PreviewConversation(ctx context.Context, convID Conversati
 func (c RemoteClient) DeleteConversation(ctx context.Context, convID ConversationID) (res DeleteConversationRemoteRes, err error) {
 	__arg := DeleteConversationArg{ConvID: convID}
 	err = c.Cli.Call(ctx, "chat.1.remote.deleteConversation", []interface{}{__arg}, &res)
+	return
+}
+
+func (c RemoteClient) GetMessageBefore(ctx context.Context, __arg GetMessageBeforeArg) (res GetMessageBeforeRes, err error) {
+	err = c.Cli.Call(ctx, "chat.1.remote.getMessageBefore", []interface{}{__arg}, &res)
 	return
 }
 

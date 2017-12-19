@@ -140,6 +140,8 @@ export type ReminderID = {|uid: UID, msgID: MsgID, seqno: Int|}
 
 export type ReminderSet = {|reminders?: ?Array<Reminder>, moreRemindersReady: Boolean|}
 
+export type Seconds = Long
+
 export type SessionID = String
 
 export type SessionToken = String

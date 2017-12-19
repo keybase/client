@@ -263,6 +263,10 @@ export const localPostAttachmentLocalRpcChannelMap = (configKeys: Array<string>,
 
 export const localPostAttachmentLocalRpcPromise = (request: LocalPostAttachmentLocalRpcParam): Promise<LocalPostAttachmentLocalResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.local.postAttachmentLocal', request, (error: RPCError, result: LocalPostAttachmentLocalResult) => (error ? reject(error) : resolve(result))))
 
+export const localPostDeleteHistoryRpcChannelMap = (configKeys: Array<string>, request: LocalPostDeleteHistoryRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.local.postDeleteHistory', request)
+
+export const localPostDeleteHistoryRpcPromise = (request: LocalPostDeleteHistoryRpcParam): Promise<LocalPostDeleteHistoryResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.local.postDeleteHistory', request, (error: RPCError, result: LocalPostDeleteHistoryResult) => (error ? reject(error) : resolve(result))))
+
 export const localPostDeleteNonblockRpcChannelMap = (configKeys: Array<string>, request: LocalPostDeleteNonblockRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.local.postDeleteNonblock', request)
 
 export const localPostDeleteNonblockRpcPromise = (request: LocalPostDeleteNonblockRpcParam): Promise<LocalPostDeleteNonblockResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.local.postDeleteNonblock', request, (error: RPCError, result: LocalPostDeleteNonblockResult) => (error ? reject(error) : resolve(result))))
@@ -369,6 +373,10 @@ export const remoteGetInboxRemoteRpcPromise = (request: RemoteGetInboxRemoteRpcP
 export const remoteGetInboxVersionRpcChannelMap = (configKeys: Array<string>, request: RemoteGetInboxVersionRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.remote.getInboxVersion', request)
 
 export const remoteGetInboxVersionRpcPromise = (request: RemoteGetInboxVersionRpcParam): Promise<RemoteGetInboxVersionResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.remote.getInboxVersion', request, (error: RPCError, result: RemoteGetInboxVersionResult) => (error ? reject(error) : resolve(result))))
+
+export const remoteGetMessageBeforeRpcChannelMap = (configKeys: Array<string>, request: RemoteGetMessageBeforeRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.remote.getMessageBefore', request)
+
+export const remoteGetMessageBeforeRpcPromise = (request: RemoteGetMessageBeforeRpcParam): Promise<RemoteGetMessageBeforeResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.remote.getMessageBefore', request, (error: RPCError, result: RemoteGetMessageBeforeResult) => (error ? reject(error) : resolve(result))))
 
 export const remoteGetMessagesRemoteRpcChannelMap = (configKeys: Array<string>, request: RemoteGetMessagesRemoteRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.remote.getMessagesRemote', request)
 
@@ -694,6 +702,8 @@ export type GetInboxSummaryForCLILocalQuery = {|topicType: TopicType, after: Str
 
 export type GetInboxSummaryForCLILocalRes = {|conversations?: ?Array<ConversationLocal>, offline: Boolean, rateLimits?: ?Array<RateLimit>|}
 
+export type GetMessageBeforeRes = {|msgID: MessageID, rateLimit?: ?RateLimit|}
+
 export type GetMessagesLocalRes = {|messages?: ?Array<MessageUnboxed>, offline: Boolean, rateLimits?: ?Array<RateLimit>, identifyFailures?: ?Array<Keybase1.TLFIdentifyFailure>|}
 
 export type GetMessagesRemoteRes = {|msgs?: ?Array<MessageBoxed>, rateLimit?: ?RateLimit|}
@@ -809,6 +819,8 @@ export type LocalNewConversationLocalRpcParam = {|tlfName: String, topicType: To
 
 export type LocalPostAttachmentLocalRpcParam = {|conversationID: ConversationID, tlfName: String, visibility: Keybase1.TLFVisibility, attachment: LocalSource, preview?: ?MakePreviewRes, title: String, metadata: Bytes, identifyBehavior: Keybase1.TLFIdentifyBehavior, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
+export type LocalPostDeleteHistoryRpcParam = {|conversationID: ConversationID, tlfName: String, tlfPublic: Boolean, identifyBehavior: Keybase1.TLFIdentifyBehavior, age: Gregor1.Seconds, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+
 export type LocalPostDeleteNonblockRpcParam = {|conversationID: ConversationID, tlfName: String, tlfPublic: Boolean, supersedes: MessageID, clientPrev: MessageID, outboxID?: ?OutboxID, identifyBehavior: Keybase1.TLFIdentifyBehavior, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
 export type LocalPostEditNonblockRpcParam = {|conversationID: ConversationID, tlfName: String, tlfPublic: Boolean, supersedes: MessageID, body: String, outboxID?: ?OutboxID, clientPrev: MessageID, identifyBehavior: Keybase1.TLFIdentifyBehavior, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
@@ -876,7 +888,7 @@ export type MessageConversationMetadata = {|conversationTitle: String|}
 
 export type MessageDelete = {|messageIDs?: ?Array<MessageID>|}
 
-export type MessageDeleteHistory = {|uptoTime: Gregor1.Time, upto: MessageID|}
+export type MessageDeleteHistory = {|upto: MessageID|}
 
 export type MessageEdit = {|messageID: MessageID, body: String|}
 
@@ -1035,6 +1047,8 @@ export type RemoteGetGlobalAppNotificationSettingsRpcParam = ?{|incomingCallMap?
 export type RemoteGetInboxRemoteRpcParam = {|vers: InboxVers, query?: ?GetInboxQuery, pagination?: ?Pagination, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
 export type RemoteGetInboxVersionRpcParam = {|uid: Gregor1.UID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+
+export type RemoteGetMessageBeforeRpcParam = {|convID: ConversationID, age: Gregor1.Seconds, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
 export type RemoteGetMessagesRemoteRpcParam = {|conversationID: ConversationID, messageIDs?: ?Array<MessageID>, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
@@ -1225,6 +1239,7 @@ type LocalMakePreviewResult = MakePreviewRes
 type LocalMarkAsReadLocalResult = MarkAsReadLocalRes
 type LocalNewConversationLocalResult = NewConversationLocalRes
 type LocalPostAttachmentLocalResult = PostLocalRes
+type LocalPostDeleteHistoryResult = PostLocalRes
 type LocalPostDeleteNonblockResult = PostLocalNonblockRes
 type LocalPostEditNonblockResult = PostLocalNonblockRes
 type LocalPostFileAttachmentLocalResult = PostLocalRes
@@ -1243,6 +1258,7 @@ type RemoteDeleteConversationResult = DeleteConversationRemoteRes
 type RemoteGetGlobalAppNotificationSettingsResult = GlobalAppNotificationSettings
 type RemoteGetInboxRemoteResult = GetInboxRemoteRes
 type RemoteGetInboxVersionResult = InboxVers
+type RemoteGetMessageBeforeResult = GetMessageBeforeRes
 type RemoteGetMessagesRemoteResult = GetMessagesRemoteRes
 type RemoteGetPublicConversationsResult = GetPublicConversationsRes
 type RemoteGetS3ParamsResult = S3Params
