@@ -99,8 +99,8 @@ function* registerSagas(): Saga.SagaGenerator<any, any> {
     _updateTempSearchConversation
   )
   yield Saga.safeTakeEveryPure(ChatGen.exitSearch, _exitSearch)
-  yield Saga.safeTakeEveryPure(ChatGen.startChat, _startChat)
-  yield Saga.safeTakeEvery(ChatGen.newChat, _newChat)
+  yield Saga.safeTakeEvery(ChatGen.startChat, _startChat)
+  yield Saga.safeTakeEveryPure(ChatGen.newChat, _newChat)
 }
 
 export {registerSagas}
