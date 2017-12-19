@@ -26,12 +26,6 @@ mode="$(cat "$build_root/MODE")"
 
 name="$("$here/../../binary_name.sh" "$mode")"
 
-if [ "$rpm_arch" = "x86_64" ] ; then
-  dependencies="Requires: at, fuse, libappindicator1, 'libXss.so.1()(64bit)'"
-else
-  dependencies="Requires: at, fuse, libappindicator1, 'libXss.so.1'"
-fi
-
 if [ "$mode" = "production" ] ; then
   repo_url="http://dist.keybase.io/linux/rpm/repo"
 elif [ "$mode" = "prerelease" ] ; then
@@ -106,8 +100,10 @@ build_one_architecture() {
 
 export rpm_arch=i386
 export debian_arch=i386
+dependencies="Requires: at, fuse, libappindicator1, libXss.so.1"
 build_one_architecture
 
 export rpm_arch=x86_64
 export debian_arch=amd64
+dependencies="Requires: at, fuse, libappindicator1, libXss.so.1()(64bit)"
 build_one_architecture
