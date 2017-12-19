@@ -204,10 +204,13 @@ func (l *LoaderContextG) merkleLookupTripleAtHashMeta(ctx context.Context, leafI
 	if err != nil {
 		return nil, err
 	}
-	if leafID.IsUser() {
+	if leafID.IsPublic() {
 		triple = leaf.Public
 	} else {
 		triple = leaf.Private
+	}
+	if triple == nil {
+		return nil, fmt.Errorf("unexpected nil leaf for %v", leafID)
 	}
 	return triple, nil
 }
