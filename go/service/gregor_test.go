@@ -377,7 +377,7 @@ func newGregordMock(logger logger.Logger) mockGregord {
 	var of gregor1.ObjFactory
 	fc := clockwork.NewFakeClock()
 
-	sm := storage.NewMemEngine(of, fc)
+	sm := storage.NewMemEngine(of, fc, logger)
 
 	return mockGregord{sm: sm, fc: fc, log: logger}
 }
