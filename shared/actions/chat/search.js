@@ -22,7 +22,9 @@ function _newChat(action: ChatGen.NewChatPayload, state: TypedState) {
       )
     )
     actions.push(Saga.put(ChatGen.createSelectConversation({conversationIDKey: null})))
-    actions.push(Saga.put(SearchGen.createSearchSuggestions({searchKey: 'chatSearch'})))
+    if (action.payload.startSearch) {
+      actions.push(Saga.put(SearchGen.createSearchSuggestions({searchKey: 'chatSearch'})))
+    }
   }
 
   return Saga.sequentially(actions)
