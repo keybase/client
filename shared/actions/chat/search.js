@@ -13,9 +13,9 @@ function _startChat(action: ChatGen.StartChatPayload, state: TypedState) {
   if (myUsername && username) {
     const searchKey = 'chatSearch'
     return Saga.sequentially([
-      ChatGen.createNewChat({startSearch: false}),
-      SearchGen.createClearSearchResults({searchKey}),
-      SearchGen.createAddResultsToUserInput({searchKey, searchResults: [username]}),
+      Saga.put(ChatGen.createNewChat({startSearch: false})),
+      Saga.put(SearchGen.createClearSearchResults({searchKey})),
+      Saga.put(SearchGen.createAddResultsToUserInput({searchKey, searchResults: [username]})),
     ])
   }
 }
