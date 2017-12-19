@@ -6,12 +6,12 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/keybase/client/go/logger"
+
 	"github.com/keybase/client/go/gregor"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"golang.org/x/net/context"
-
-	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 )
 
 type LocalStorageEngine interface {
@@ -24,13 +24,13 @@ type Client struct {
 	Device  gregor.DeviceID
 	Sm      gregor.StateMachine
 	Storage LocalStorageEngine
-	Log     rpc.LogOutput
+	Log     logger.Logger
 
 	SaveTimer <-chan time.Time
 }
 
 func NewClient(user gregor.UID, device gregor.DeviceID, sm gregor.StateMachine,
-	storage LocalStorageEngine, saveInterval time.Duration, log rpc.LogOutput) *Client {
+	storage LocalStorageEngine, saveInterval time.Duration, log logger.Logger) *Client {
 	c := &Client{
 		User:      user,
 		Device:    device,
@@ -123,19 +123,19 @@ func (c *Client) SyncFromTime(ctx context.Context, cli gregor1.IncomingInterface
 
 	// Grab the events from gregord
 	if syncResult == nil {
-		c.Log.Debug("Sync(): start time: %s", gregor1.FromTime(arg.Ctime))
+		c.Log.CDebugf(ctx, "Sync(): start time: %s", gregor1.FromTime(arg.Ctime))
 		syncResult = new(gregor1.SyncResult)
 		*syncResult, err = cli.Sync(ctx, arg)
 		if err != nil {
 			return nil, err
 		}
 	} else {
-		c.Log.Debug("Sync(): skipping sync call, data previously obtained")
+		c.Log.CDebugf(ctx, "Sync(): skipping sync call, data previously obtained")
 	}
 
-	c.Log.Debug("Sync(): consuming %d messages", len(syncResult.Msgs))
+	c.Log.CDebugf(ctx, "Sync(): consuming %d messages", len(syncResult.Msgs))
 	for _, ibm := range syncResult.Msgs {
-		c.Log.Debug("Sync(): consuming msgid: %s", ibm.Metadata().MsgID())
+		c.Log.CDebugf(ctx, "Sync(): consuming msgid: %s", ibm.Metadata().MsgID())
 		m := gregor1.Message{Ibm_: &ibm}
 		msgs = append(msgs, ibm)
 		c.Sm.ConsumeMessage(ctx, m)
@@ -150,9 +150,9 @@ func (c *Client) SyncFromTime(ctx context.Context, cli gregor1.IncomingInterface
 	if err != nil {
 		return nil, err
 	}
-	c.Log.Debug("Sync(): state items: %d", len(items))
+	c.Log.CDebugf(ctx, "Sync(): state items: %d", len(items))
 	for _, it := range items {
-		c.Log.Debug("Sync(): state item: %s", it.Metadata().MsgID())
+		c.Log.CDebugf(ctx, "Sync(): state item: %s", it.Metadata().MsgID())
 	}
 	hash, err := state.Hash()
 	if err != nil {
@@ -165,7 +165,7 @@ func (c *Client) SyncFromTime(ctx context.Context, cli gregor1.IncomingInterface
 	return msgs, nil
 }
 
-func (c *Client) freshSync(cli gregor1.IncomingInterface, state *gregor.State) ([]gregor.InBandMessage, error) {
+func (c *Client) freshSync(ctx context.Context, cli gregor1.IncomingInterface, state *gregor.State) ([]gregor.InBandMessage, error) {
 
 	var msgs []gregor.InBandMessage
 	var err error
@@ -178,7 +178,7 @@ func (c *Client) freshSync(cli gregor1.IncomingInterface, state *gregor.State) (
 			return msgs, err
 		}
 	} else {
-		c.Log.Debug("Sync(): freshSync(): skipping State call, data previously obtained")
+		c.Log.CDebugf(ctx, "Sync(): freshSync(): skipping State call, data previously obtained")
 	}
 
 	if msgs, err = c.InBandMessagesFromState(*state); err != nil {
@@ -195,29 +195,29 @@ func (c *Client) Sync(ctx context.Context, cli gregor1.IncomingInterface,
 	syncRes *chat1.SyncAllNotificationRes) (res []gregor.InBandMessage, err error) {
 	defer func() {
 		if err == nil {
-			c.Log.Debug("Sync(): sync success!")
+			c.Log.CDebugf(ctx, "Sync(): sync success!")
 			if err = c.Save(ctx); err != nil {
-				c.Log.Debug("Sync(): error save state: %s", err.Error())
+				c.Log.CDebugf(ctx, "Sync(): error save state: %s", err.Error())
 			}
 		} else {
-			c.Log.Debug("Sync(): failure: %s", err)
+			c.Log.CDebugf(ctx, "Sync(): failure: %s", err)
 		}
 	}()
 
 	var syncResult *gregor1.SyncResult
 	if syncRes != nil {
-		c.Log.Debug("Sync(): using previously obtained data")
+		c.Log.CDebugf(ctx, "Sync(): using previously obtained data")
 		typ, err := syncRes.Typ()
 		if err != nil {
 			return res, err
 		}
 		switch typ {
 		case chat1.SyncAllNotificationType_STATE:
-			c.Log.Debug("Sync(): using previously obtained state result for freshSync")
+			c.Log.CDebugf(ctx, "Sync(): using previously obtained state result for freshSync")
 			st := gregor.State(syncRes.State())
-			return c.freshSync(cli, &st)
+			return c.freshSync(ctx, cli, &st)
 		case chat1.SyncAllNotificationType_INCREMENTAL:
-			c.Log.Debug("Sync(): using previously obtained incremental result")
+			c.Log.CDebugf(ctx, "Sync(): using previously obtained incremental result")
 			inc := syncRes.Incremental()
 			syncResult = &inc
 		}
@@ -228,7 +228,7 @@ func (c *Client) Sync(ctx context.Context, cli gregor1.IncomingInterface,
 	if err != nil {
 		if _, ok := err.(ErrHashMismatch); ok {
 			c.Log.Debug("Sync(): hash check failure: %v", err)
-			return c.freshSync(cli, nil)
+			return c.freshSync(ctx, cli, nil)
 		}
 		return msgs, err
 	}
@@ -279,10 +279,10 @@ func (c *Client) StateMachineConsumeMessage(ctx context.Context, m gregor1.Messa
 	// Check to see if we should save
 	select {
 	case <-c.SaveTimer:
-		c.Log.Debug("StateMachineConsumeMessage(): saving local state")
+		c.Log.CDebugf(ctx, "StateMachineConsumeMessage(): saving local state")
 		return c.Save(ctx)
 	default:
-		c.Log.Debug("StateMachineConsumeMessage(): not saving local state")
+		c.Log.CDebugf(ctx, "StateMachineConsumeMessage(): not saving local state")
 		// Plow through if the timer isn't up
 	}
 
@@ -301,13 +301,15 @@ func (c *Client) StateMachineInBandMessagesSince(ctx context.Context, t time.Tim
 	if filterLocalDismissals {
 		ldmap, err := c.localDismissalMap(ctx)
 		if err != nil {
-			c.Log.Debug("StateMachineInBandMessagesSince: failed to get local dismissal map: %s", err)
+			c.Log.CDebugf(ctx, "filterLocalDismissals: failed to get local dismissal map: %s", err)
 			return ibms, nil
 		}
 		var filteredIbms []gregor.InBandMessage
 		for _, ibm := range ibms {
 			if !ldmap[ibm.Metadata().MsgID().String()] {
 				filteredIbms = append(filteredIbms, ibm)
+			} else {
+				c.Log.CDebugf(ctx, "filterLocalDismissals: filtered message: %s", ibm.Metadata().MsgID())
 			}
 		}
 		return filteredIbms, nil
@@ -330,22 +332,25 @@ func (c *Client) localDismissalMap(ctx context.Context) (map[string]bool, error)
 func (c *Client) filterLocalDismissals(ctx context.Context, state gregor.State) gregor.State {
 	ldmap, err := c.localDismissalMap(ctx)
 	if err != nil {
-		c.Log.Debug("filterLocalDismissals: failed to read local dismissals, just returning state: %s", err)
+		c.Log.CDebugf(ctx, "filterLocalDismissals: failed to read local dismissals, just returning state: %s",
+			err)
 	}
 	items, err := state.Items()
 	if err != nil {
-		c.Log.Debug("filterLocalDismissals: failed to get state items: %s", err)
+		c.Log.CDebugf(ctx, "filterLocalDismissals: failed to get state items: %s", err)
 		return state
 	}
 	var filteredItems []gregor.Item
 	for _, it := range items {
 		if !ldmap[it.Metadata().MsgID().String()] {
 			filteredItems = append(filteredItems, it)
+		} else {
+			c.Log.CDebugf(ctx, "filterLocalDismissals: filtered state item: %s", it.Metadata().MsgID())
 		}
 	}
 	filteredState, err := c.Sm.ObjFactory().MakeState(filteredItems)
 	if err != nil {
-		c.Log.Debug("filterLocalDismissals: failed to make state: %s", err)
+		c.Log.CDebugf(ctx, "filterLocalDismissals: failed to make state: %s", err)
 	}
 	return filteredState
 }
