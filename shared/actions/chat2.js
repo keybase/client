@@ -131,10 +131,12 @@ function updateConversationState(action: Chat2Gen.UnboxConversationsPayload) {
       // eslint-disable-next-line no-unused-expressions
       (action: empty) // errors if we don't handle any new actions
   }
-  return Saga.put(Chat2Gen.createUpdateConverationLoadingStates({
-    conversationIDKeys: action.payload.conversationIDKeys,
-    newState,
-  }))
+  return Saga.put(
+    Chat2Gen.createUpdateConverationLoadingStates({
+      conversationIDKeys: action.payload.conversationIDKeys,
+      newState,
+    })
+  )
 }
 
 function* chat2Saga(): Saga.SagaGenerator<any, any> {
