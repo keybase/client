@@ -8,16 +8,12 @@ import * as Types from '../constants/types/tracker'
 import ErrorComponent from '../common-adapters/error-profile'
 import Profile from './index'
 import React, {PureComponent} from 'react'
-import {
-  createAddResultsToUserInput,
-  createClearSearchResults,
-  createSearchSuggestions,
-} from '../actions/search-gen'
+import {createSearchSuggestions} from '../actions/search-gen'
 import pausableConnect from '../util/pausable-connect'
 import {isTesting} from '../local-debug'
 import {navigateAppend, navigateUp} from '../actions/route-tree'
 import {peopleTab} from '../constants/tabs'
-import {createNewChat} from '../actions/chat-gen'
+import {createStartChat} from '../actions/chat-gen'
 
 import type {TypedState} from '../constants/reducer'
 import type {MissingProof} from '../common-adapters/user-proofs'
@@ -72,13 +68,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {setRouteState}: OwnProps) => ({
   onBack: () => dispatch(navigateUp()),
   onChangeFriendshipsTab: currentFriendshipsTab => setRouteState({currentFriendshipsTab}),
   onChat: (myUsername, username) => {
-    if (myUsername && username) {
-      const searchKey = 'chatSearch'
-      dispatch(createNewChat({startSearch: false}))
-      dispatch(createClearSearchResults({searchKey}))
-      dispatch(createAddResultsToUserInput({searchKey, searchResults: [username]}))
-      // dispatch(createStartConversation({users: [username, myUsername]}))
-    }
+    dispatch(createStartChat({myUsername, username}))
   },
   onClickAvatar: (username: string) => dispatch(ProfileGen.createOnClickAvatar({username})),
   onClickFollowers: (username: string) => dispatch(ProfileGen.createOnClickFollowers({username})),

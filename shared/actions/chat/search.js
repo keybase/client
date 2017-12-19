@@ -9,12 +9,15 @@ import type {ReturnValue} from '../../constants/types/more'
 import type {TypedState} from '../../constants/reducer'
 
 function _startChat(action: ChatGen.StartChatPayload, state: TypedState) {
-  const searchKey = 'chatSearch'
-  return Saga.sequentially([
-    ChatGen.createNewChat({startSearch: false}),
-    SearchGen.createClearSearchResults({searchKey}),
-    SearchGen.createAddResultsToUserInput({searchKey, searchResults: [action.payload.username]}),
-  ])
+  const {myUsername, username} = action.payload
+  if (myUsername && username) {
+    const searchKey = 'chatSearch'
+    return Saga.sequentially([
+      ChatGen.createNewChat({startSearch: false}),
+      SearchGen.createClearSearchResults({searchKey}),
+      SearchGen.createAddResultsToUserInput({searchKey, searchResults: [username]}),
+    ])
+  }
 }
 
 function _newChat(action: ChatGen.NewChatPayload, state: TypedState) {
