@@ -8,7 +8,11 @@ import * as Types from '../constants/types/tracker'
 import ErrorComponent from '../common-adapters/error-profile'
 import Profile from './index'
 import React, {PureComponent} from 'react'
-import {createAddResultsToUserInput, createSearchSuggestions} from '../actions/search-gen'
+import {
+  createAddResultsToUserInput,
+  createClearSearchResults,
+  createSearchSuggestions,
+} from '../actions/search-gen'
 import pausableConnect from '../util/pausable-connect'
 import {isTesting} from '../local-debug'
 import {navigateAppend, navigateUp} from '../actions/route-tree'
@@ -69,8 +73,10 @@ const mapDispatchToProps = (dispatch: Dispatch, {setRouteState}: OwnProps) => ({
   onChangeFriendshipsTab: currentFriendshipsTab => setRouteState({currentFriendshipsTab}),
   onChat: (myUsername, username) => {
     if (myUsername && username) {
+      const searchKey = 'chatSearch'
       dispatch(createNewChat({startSearch: false}))
-      dispatch(createAddResultsToUserInput({searchKey: 'chatSearch', searchResults: [username]}))
+      dispatch(createClearSearchResults({searchKey}))
+      dispatch(createAddResultsToUserInput({searchKey, searchResults: [username]}))
       // dispatch(createStartConversation({users: [username, myUsername]}))
     }
   },
