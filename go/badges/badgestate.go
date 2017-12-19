@@ -88,6 +88,7 @@ func (b *BadgeState) UpdateWithGregor(gstate gregor.State) error {
 	b.state.NewTeamNames = nil
 	b.state.NewTeamAccessRequests = nil
 	b.state.HomeTodoItems = 0
+	b.state.TeamsWithResetUsers = nil
 
 	var hsb *homeStateBody
 
