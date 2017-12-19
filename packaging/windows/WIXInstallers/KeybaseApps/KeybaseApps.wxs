@@ -26,7 +26,6 @@
       <ComponentGroupRef Id="StartupShortcuts" />
       <ComponentGroupRef Id="GuiStartMenuTileColors" />
       <ComponentGroupRef Id="BrowserExtensionKbnm" />
-      <ComponentGroupRef Id="installerFolderGroup" />
     </Feature>
 
 
@@ -62,7 +61,6 @@
 		<Directory Id="TARGETDIR" Name="SourceDir">
 			<Directory Id="LocalAppDataFolder">
         <Directory Id="INSTALLFOLDER" Name="Keybase">
-          <Directory Id="INSTALLERFOLDER" Name="install"/>
         </Directory>
       </Directory>
       <Directory Id="ProgramMenuFolder">
@@ -219,17 +217,6 @@
     </ComponentGroup>
   </Fragment>
 
-  <Fragment>
-    <ComponentGroup Id="installerFolderGroup" Directory="INSTALLERFOLDER">
-      <Component Id="installerFolderId" Guid="{DD3552AD-520F-4766-B717-151316F781E4}">
-        <CreateFolder />
-        <RemoveFolder Id='INSTALLERFOLDERRemove' Directory='INSTALLERFOLDER' On='uninstall' />
-        <RegistryKey Root="HKCU" Key="Software\Keybase\Keybase">
-          <RegistryValue Type="string" Name="BUNDLEFILE" Value="[INSTALLERFOLDER][BUNDLENAME]" KeyPath="yes"/>
-        </RegistryKey>        
-      </Component>
-    </ComponentGroup>
-  </Fragment>
   <Fragment>
     <!-- This has to be run so the repairman can finish moving files before upd.exe is run by watchdog2 -->
     <CustomAction Id="RunMainAppDummyForRepair"
