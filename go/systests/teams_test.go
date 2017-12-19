@@ -993,8 +993,7 @@ func TestTeamCanUserPerform(t *testing.T) {
 	require.False(t, annPerms.EditChannelDescription)
 	require.True(t, annPerms.SetTeamShowcase)
 	require.False(t, annPerms.SetMemberShowcase)
-	require.True(t, annPerms.ChangeOpenTeam)
-	require.False(t, annPerms.LeaveTeam)
+	require.True(t, annPerms.ChangeOpenTeam) // not a member of the subteam
 
 	require.True(t, bobPerms.ManageMembers)
 	require.True(t, bobPerms.ManageSubteams)
@@ -1005,7 +1004,7 @@ func TestTeamCanUserPerform(t *testing.T) {
 	require.True(t, bobPerms.SetTeamShowcase)
 	require.False(t, bobPerms.SetMemberShowcase)
 	require.True(t, bobPerms.ChangeOpenTeam)
-	require.True(t, bobPerms.LeaveTeam)
+	require.False(t, bobPerms.LeaveTeam) // not a member of the subteam
 
 	// Invalid team for pam
 	_, err = teams.CanUserPerform(context.TODO(), pam.tc.G, subteam)

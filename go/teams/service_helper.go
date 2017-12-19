@@ -1273,13 +1273,12 @@ func CanUserPerform(ctx context.Context, g *libkb.GlobalContext, teamname string
 		if err != nil {
 			return false, err
 		}
-		g.Log.CInfof(ctx, "hasOtherOwner shows %d owners", len(owners))
 		if len(owners) > 1 {
 			return true, nil
 		}
 		for _, owner := range owners {
 			if owner == meUV {
-				g.Log.CInfof(ctx, "hasOtherOwner: I am the owner!")
+				g.Log.CInfof(ctx, "hasOtherOwner: I am the sole owner")
 				return false, nil
 			}
 		}
@@ -1312,7 +1311,6 @@ func CanUserPerform(ctx context.Context, g *libkb.GlobalContext, teamname string
 		}
 		ret.LeaveTeam = leaveTeam
 	}
-	g.Log.CInfof(ctx, "CanUserPerform: role %d, LeaveTeam=%v", teamRole, ret.LeaveTeam)
 
 	ret.CreateChannel, err = isWriter()
 	if err != nil {
