@@ -24,46 +24,45 @@ type OwnProps = {|
   disableListBuilding?: boolean,
 |}
 
-const UserInputWithServiceFilter = props => {
-  return (
-    <Box
-      style={{
-        ...globalStyles.flexBoxColumn,
-        paddingLeft: globalMargins.tiny,
-        borderBottomColor: globalColors.black_05,
-        borderBottomWidth: 1,
-        borderBottom: `1px solid ${globalColors.black_05}`,
-      }}
-    >
-      <UserInput
-        ref={props.setInputRef}
-        autoFocus={props.autoFocus}
-        userItems={props.userItems}
-        onRemoveUser={props.onRemoveUser}
-        onClickAddButton={props.onClickAddButton}
-        placeholder={props.placeholder}
-        usernameText={props.searchText}
-        onChangeText={props.onChangeText}
-        onMoveSelectUp={props.onMoveSelectUp}
-        onMoveSelectDown={props.onMoveSelectDown}
-        onClearSearch={props.onClearSearch}
-        onAddSelectedUser={props.onAddSelectedUser}
-        onEnterEmptyText={props.onExitSearch}
-        onCancel={props.onExitSearch}
-      />
-      {props.showServiceFilter &&
-        <Box
-          style={{
-            ...globalStyles.flexBoxRow,
-            alignItems: 'center',
-          }}
-        >
-          <Text type="BodySmallSemibold" style={{marginRight: globalMargins.tiny}}>Filter:</Text>
-          <ServiceFilter selectedService={props.selectedService} onSelectService={props.onSelectService} />
-        </Box>}
-    </Box>
-  )
-}
+const UserInputWithServiceFilter = props => (
+  <Box
+    style={{
+      ...globalStyles.flexBoxColumn,
+      paddingLeft: globalMargins.tiny,
+      borderBottomColor: globalColors.black_05,
+      borderBottomWidth: 1,
+      borderBottom: `1px solid ${globalColors.black_05}`,
+    }}
+  >
+    <UserInput
+      ref={props.setInputRef}
+      autoFocus={props.autoFocus}
+      userItems={props.userItems}
+      onRemoveUser={props.onRemoveUser}
+      onClickAddButton={props.onClickAddButton}
+      placeholder={props.placeholder}
+      usernameText={props.searchText}
+      onChangeText={props.onChangeText}
+      onMoveSelectUp={props.onMoveSelectUp}
+      onMoveSelectDown={props.onMoveSelectDown}
+      onClearSearch={props.onClearSearch}
+      onAddSelectedUser={props.onAddSelectedUser}
+      onEnterEmptyText={props.onExitSearch}
+      onCancel={props.onExitSearch}
+      selectedSearchId={props.selectedSearchId}
+    />
+    {props.showServiceFilter &&
+      <Box
+        style={{
+          ...globalStyles.flexBoxRow,
+          alignItems: 'center',
+        }}
+      >
+        <Text type="BodySmallSemibold" style={{marginRight: globalMargins.tiny}}>Filter:</Text>
+        <ServiceFilter selectedService={props.selectedService} onSelectService={props.onSelectService} />
+      </Box>}
+  </Box>
+)
 
 const getSearchResultTerm = ({entities}: TypedState, {searchKey}: {searchKey: string}) => {
   const searchResultQuery = entities.getIn(['search', 'searchKeyToSearchResultQuery', searchKey], null)
@@ -102,6 +101,10 @@ const mapStateToProps = (state: TypedState, {searchKey}: OwnProps) => {
   const searchResultTerm = getSearchResultTerm(state, {searchKey})
   const searchResultIds = Constants.getSearchResultIdsArray(state, {searchKey})
   const selectedSearchId = entities.getIn(['search', 'searchKeyToSelectedId', searchKey])
+  const showingSearchSuggestions = entities.getIn(
+    ['search', 'searchKeyToShowSearchSuggestion', searchKey],
+    false
+  )
   const userItems = getUserItems(state, {searchKey})
   const clearSearchTextInput = Constants.getClearSearchTextInput(state, {searchKey})
   return {
@@ -110,6 +113,7 @@ const mapStateToProps = (state: TypedState, {searchKey}: OwnProps) => {
     selectedSearchId,
     userItems,
     searchResultTerm,
+    showingSearchSuggestions,
   }
 }
 
