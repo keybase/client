@@ -13,6 +13,7 @@ func NewCmdChat(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command 
 	subcommands := []cli.Command{
 		newCmdChatAPI(cl, g),
 		newCmdChatDeleteChannel(cl, g),
+		newCmdChatDeleteHistory(cl, g),
 		newCmdChatDownload(cl, g),
 		newCmdChatHide(cl, g),
 		newCmdChatJoinChannel(cl, g),

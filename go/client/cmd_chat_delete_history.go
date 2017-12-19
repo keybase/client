@@ -6,21 +6,23 @@ package client
 import (
 	"fmt"
 	"os"
-
-	"golang.org/x/net/context"
+	"strconv"
+	"time"
 
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
+	gregor1 "github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
 	isatty "github.com/mattn/go-isatty"
+	"golang.org/x/net/context"
 )
 
 type CmdChatDeleteHistory struct {
 	libkb.Contextified
 	resolvingRequest chatConversationResolvingRequest
-	upto             chat1.MessageID
+	age              gregor1.Seconds
 	hasTTY           bool
 }
 
@@ -34,15 +36,15 @@ func newCmdChatDeleteHistory(cl *libcmdline.CommandLine, g *libkb.GlobalContext)
 	return cli.Command{
 		Name:         "delete-history",
 		Usage:        "Delete chat history in a conversation",
-		ArgumentHelp: "[conversation] --upto=<messageid>",
+		ArgumentHelp: "[conversation] --age=<interval>",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(NewCmdChatDeleteHistoryRunner(g), "delete-history", c)
 			cl.SetNoStandalone()
 		},
 		Flags: append(getConversationResolverFlags(), []cli.Flag{
-			cli.IntFlag{
-				Name:  "upto",
-				Usage: `Up to this message ID (exclusive)`,
+			cli.StringFlag{
+				Name:  "age",
+				Usage: `Only delete messages older than e.g. 2h, 3d, 1w `,
 			},
 		}...),
 	}
@@ -70,15 +72,7 @@ func (c *CmdChatDeleteHistory) Run() (err error) {
 		}
 	}
 
-	return chatSend(context.TODO(), c.G(), ChatSendArg{
-		resolvingRequest: c.resolvingRequest,
-
-		deleteHistory: &chat1.MessageDeleteHistory{
-			Upto: c.upto,
-		},
-
-		hasTTY: c.hasTTY,
-	})
+	return c.chatSendDeleteHistory(context.TODO())
 }
 
 func (c *CmdChatDeleteHistory) ParseArgv(ctx *cli.Context) (err error) {
@@ -93,13 +87,12 @@ func (c *CmdChatDeleteHistory) ParseArgv(ctx *cli.Context) (err error) {
 		return err
 	}
 
-	// Send a normal message.
-	upto := ctx.Int("upto")
-	if upto == 0 {
-		cli.ShowCommandHelp(ctx, "delete-history")
-		return fmt.Errorf("upto must be > 0")
+	if timeStr := ctx.String("age"); len(timeStr) > 0 {
+		c.age, err = c.parseAge(timeStr)
+		if err != nil {
+			return err
+		}
 	}
-	c.upto = chat1.MessageID(upto)
 
 	return nil
 }
@@ -109,4 +102,78 @@ func (c *CmdChatDeleteHistory) GetUsage() libkb.Usage {
 		Config: true,
 		API:    true,
 	}
+}
+
+func (c *CmdChatDeleteHistory) parseAge(s string) (gregor1.Seconds, error) {
+	generalErr := fmt.Errorf("duration must be an integer and suffix [s,h,d,w,m] like: 10d")
+	if len(s) < 2 {
+		return 0, generalErr
+	}
+	factor := time.Second
+	switch s[len(s)-1] {
+	case 's':
+		factor = time.Second
+	case 'm':
+		factor = time.Minute
+	case 'h':
+		factor = time.Hour
+	case 'd':
+		factor = 24 * time.Hour
+	case 'w':
+		factor = 7 * 24 * time.Hour
+	default:
+		return 0, generalErr
+	}
+	base, err := strconv.Atoi(s[:len(s)-1])
+	if err != nil {
+		return 0, generalErr
+	}
+	if base < 0 {
+		return 0, fmt.Errorf("age cannot be negative")
+	}
+	d := time.Duration(base) * factor
+	return gregor1.Seconds(d.Seconds()), nil
+}
+
+// Like chatSend but uses PostDeleteHistory.
+func (c *CmdChatDeleteHistory) chatSendDeleteHistory(ctx context.Context) error {
+	resolver, err := newChatConversationResolver(c.G())
+	if err != nil {
+		return err
+	}
+
+	conversation, userChosen, err := resolver.Resolve(ctx, c.resolvingRequest, chatConversationResolvingBehavior{
+		CreateIfNotExists: false,
+		MustNotExist:      false,
+		Interactive:       c.hasTTY,
+		IdentifyBehavior:  keybase1.TLFIdentifyBehavior_CHAT_CLI,
+	})
+	if err != nil {
+		return err
+	}
+	conversationInfo := conversation.Info
+
+	arg := chat1.PostDeleteHistoryArg{
+		ConversationID:   conversationInfo.Id,
+		TlfName:          conversationInfo.TlfName,
+		TlfPublic:        (conversationInfo.Visibility == keybase1.TLFVisibility_PUBLIC),
+		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
+		Age:              c.age,
+	}
+
+	// Whether the user is really sure they want to send to the selected conversation.
+	// We require an additional confirmation if the choose menu was used.
+	confirmed := !userChosen
+
+	if !confirmed {
+		promptText := fmt.Sprintf("Send to [%s]? Hit Ctrl-C to cancel, or enter to send.", conversationInfo.TlfName)
+		_, err = c.G().UI.GetTerminalUI().Prompt(PromptDescriptorEnterChatMessage, promptText)
+		if err != nil {
+			return err
+		}
+		confirmed = true
+	}
+
+	_, err = resolver.ChatClient.PostDeleteHistory(ctx, arg)
+	return err
 }
