@@ -484,7 +484,7 @@ func (g *gregorHandler) replayInBandMessages(ctx context.Context, cli gregor1.In
 
 	if t.IsZero() {
 		g.Debug(ctx, "replayInBandMessages: fresh replay: using state items")
-		state, err := gcli.StateMachineState(ctx, nil)
+		state, err := gcli.StateMachineState(ctx, nil, true)
 		if err != nil {
 			g.Debug(ctx, "replayInBandMessages: unable to fetch state for replay: %s", err)
 			return nil, err
@@ -495,7 +495,7 @@ func (g *gregorHandler) replayInBandMessages(ctx context.Context, cli gregor1.In
 		}
 	} else {
 		g.Debug(ctx, "replayInBandMessages: incremental replay: using ibms since")
-		if msgs, err = gcli.StateMachineInBandMessagesSince(ctx, t); err != nil {
+		if msgs, err = gcli.StateMachineInBandMessagesSince(ctx, t, true); err != nil {
 			g.Debug(ctx, "replayInBandMessages: unable to fetch messages for replay: %s", err)
 			return nil, err
 		}
@@ -809,7 +809,7 @@ func (g *gregorHandler) broadcastMessageOnce(ctx context.Context, m gregor1.Mess
 		}
 		// Check to see if this is already in our state
 		msgID := ibm.Metadata().MsgID()
-		state, err := gcli.StateMachineState(ctx, nil)
+		state, err := gcli.StateMachineState(ctx, nil, false)
 		if err != nil {
 			g.Debug(ctx, "BroadcastMessage: no state machine available: %s", err.Error())
 			return err
@@ -918,7 +918,7 @@ func (g *gregorHandler) handleInBandMessageWithHandler(ctx context.Context, cli 
 	if err != nil {
 		return false, err
 	}
-	state, err := gcli.StateMachineState(ctx, nil)
+	state, err := gcli.StateMachineState(ctx, nil, false)
 	if err != nil {
 		return false, err
 	}
@@ -1698,7 +1698,7 @@ func (g *gregorHandler) getState(ctx context.Context) (res gregor1.State, err er
 		return res, errors.New("gregor service not available (are you in standalone?)")
 	}
 
-	s, err = g.gregorCli.StateMachineState(ctx, nil)
+	s, err = g.gregorCli.StateMachineState(ctx, nil, false)
 	if err != nil {
 		return res, err
 	}

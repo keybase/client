@@ -71,13 +71,12 @@ type user struct {
 	logger          logger.Logger
 	items           [](*item)
 	log             []loggedMsg
-	localDismissals map[string]gregor.MsgID
+	localDismissals []gregor.MsgID
 }
 
 func newUser(logger logger.Logger) *user {
 	return &user{
-		localDismissals: make(map[string]gregor.MsgID),
-		logger:          logger,
+		logger: logger,
 	}
 }
 
@@ -142,8 +141,14 @@ func (u *user) logMessage(t time.Time, m gregor.InBandMessage, i *item) {
 	u.log = append(u.log, loggedMsg{m, t, i})
 }
 
-func (u *user) resetLocalDismissals() {
-	u.localDismissals = make(map[string]gregor.MsgID)
+func (u *user) removeLocalDismissal(msgID gregor.MsgID) {
+	var lds []gregor.MsgID
+	for _, ld := range u.localDismissals {
+		if ld.String() != msgID.String() {
+			lds = append(lds, ld)
+		}
+	}
+	u.localDismissals = lds
 }
 
 func msgIDtoString(m gregor.MsgID) string {
@@ -159,7 +164,7 @@ func (u *user) dismissMsgIDs(now time.Time, ids []gregor.MsgID) {
 		if _, found := set[msgIDtoString(i.item.Metadata().MsgID())]; found {
 			i.dtime = &now
 			i.dismissedImmediate = true
-			delete(u.localDismissals, i.item.Metadata().MsgID().String())
+			u.removeLocalDismissal(i.item.Metadata().MsgID())
 		}
 	}
 }
@@ -191,7 +196,7 @@ func (u *user) dismissRanges(now time.Time, rs []gregor.MsgRange) {
 				isBeforeOrSame(i.ctime, toTime(now, r.EndTime())) {
 				i.dtime = &now
 				i.dismissedImmediate = true
-				delete(u.localDismissals, i.item.Metadata().MsgID().String())
+				u.removeLocalDismissal(i.item.Metadata().MsgID())
 				break
 			}
 		}
@@ -213,11 +218,6 @@ var _ gregor.TimeOrOffset = timeOrOffset{}
 
 func isBeforeOrSame(a, b time.Time) bool {
 	return !b.Before(a)
-}
-
-func (u *user) isLocallyDismissed(msgID gregor.MsgID) bool {
-	_, ok := u.localDismissals[msgID.String()]
-	return ok
 }
 
 func (u *user) state(now time.Time, f gregor.ObjFactory, d gregor.DeviceID, t gregor.TimeOrOffset) (gregor.State, error) {
@@ -323,25 +323,20 @@ func (m *MemEngine) ConsumeMessage(ctx context.Context, msg gregor.Message) (tim
 
 func (m *MemEngine) ConsumeLocalDismissal(ctx context.Context, u gregor.UID, msgID gregor.MsgID) error {
 	user := m.getUser(u)
-	user.localDismissals[msgID.String()] = msgID
+	user.removeLocalDismissal(msgID)
+	user.localDismissals = append(user.localDismissals, msgID)
 	return nil
 }
 
 func (m *MemEngine) InitLocalDismissals(ctx context.Context, u gregor.UID, msgIDs []gregor.MsgID) error {
 	user := m.getUser(u)
-	user.resetLocalDismissals()
-	for _, msgID := range msgIDs {
-		user.localDismissals[msgID.String()] = msgID
-	}
+	user.localDismissals = msgIDs
 	return nil
 }
 
 func (m *MemEngine) LocalDismissals(ctx context.Context, u gregor.UID) (res []gregor.MsgID, err error) {
 	user := m.getUser(u)
-	for _, ld := range user.localDismissals {
-		res = append(res, ld)
-	}
-	return res, nil
+	return user.localDismissals, nil
 }
 
 func uidToString(u gregor.UID) string {

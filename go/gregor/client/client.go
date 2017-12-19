@@ -151,6 +151,9 @@ func (c *Client) SyncFromTime(ctx context.Context, cli gregor1.IncomingInterface
 		return nil, err
 	}
 	c.Log.Debug("Sync(): state items: %d", len(items))
+	for _, it := range items {
+		c.Log.Debug("Sync(): state item: %s", it.Metadata().MsgID())
+	}
 	hash, err := state.Hash()
 	if err != nil {
 		return nil, err
@@ -290,10 +293,70 @@ func (c *Client) StateMachineLatestCTime(ctx context.Context) *time.Time {
 	return c.Sm.LatestCTime(ctx, c.User, c.Device)
 }
 
-func (c *Client) StateMachineInBandMessagesSince(ctx context.Context, t time.Time) ([]gregor.InBandMessage, error) {
-	return c.Sm.InBandMessagesSince(ctx, c.User, c.Device, t)
+func (c *Client) StateMachineInBandMessagesSince(ctx context.Context, t time.Time, filterLocalDismissals bool) ([]gregor.InBandMessage, error) {
+	ibms, err := c.Sm.InBandMessagesSince(ctx, c.User, c.Device, t)
+	if err != nil {
+		return nil, err
+	}
+	if filterLocalDismissals {
+		ldmap, err := c.localDismissalMap(ctx)
+		if err != nil {
+			c.Log.Debug("StateMachineInBandMessagesSince: failed to get local dismissal map: %s", err)
+			return ibms, nil
+		}
+		var filteredIbms []gregor.InBandMessage
+		for _, ibm := range ibms {
+			if !ldmap[ibm.Metadata().MsgID().String()] {
+				filteredIbms = append(filteredIbms, ibm)
+			}
+		}
+		return filteredIbms, nil
+	}
+	return ibms, nil
 }
 
-func (c *Client) StateMachineState(ctx context.Context, t gregor.TimeOrOffset) (gregor.State, error) {
-	return c.Sm.State(ctx, c.User, c.Device, t)
+func (c *Client) localDismissalMap(ctx context.Context) (map[string]bool, error) {
+	lds, err := c.Sm.LocalDismissals(ctx, c.User)
+	if err != nil {
+		return nil, err
+	}
+	ldmap := make(map[string]bool)
+	for _, ld := range lds {
+		ldmap[ld.String()] = true
+	}
+	return ldmap, nil
+}
+
+func (c *Client) filterLocalDismissals(ctx context.Context, state gregor.State) gregor.State {
+	ldmap, err := c.localDismissalMap(ctx)
+	if err != nil {
+		c.Log.Debug("filterLocalDismissals: failed to read local dismissals, just returning state: %s", err)
+	}
+	items, err := state.Items()
+	if err != nil {
+		c.Log.Debug("filterLocalDismissals: failed to get state items: %s", err)
+		return state
+	}
+	var filteredItems []gregor.Item
+	for _, it := range items {
+		if !ldmap[it.Metadata().MsgID().String()] {
+			filteredItems = append(filteredItems, it)
+		}
+	}
+	filteredState, err := c.Sm.ObjFactory().MakeState(filteredItems)
+	if err != nil {
+		c.Log.Debug("filterLocalDismissals: failed to make state: %s", err)
+	}
+	return filteredState
+}
+
+func (c *Client) StateMachineState(ctx context.Context, t gregor.TimeOrOffset, filterLocalDismissals bool) (gregor.State, error) {
+	st, err := c.Sm.State(ctx, c.User, c.Device, t)
+	if err != nil {
+		return st, err
+	}
+	if filterLocalDismissals {
+		return c.filterLocalDismissals(ctx, st), nil
+	}
+	return st, nil
 }
