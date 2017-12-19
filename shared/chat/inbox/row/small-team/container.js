@@ -1,4 +1,5 @@
 // @flow
+import * as I from 'immutable'
 import * as Selectors from '../selectors'
 import * as Constants from '../../../../constants/chat'
 import * as Types from '../../../../constants/types/chat'
@@ -11,6 +12,8 @@ const getSnippet = (state: TypedState, conversationIDKey: Types.ConversationIDKe
 
 const mapStateToProps = (state: TypedState, {conversationIDKey, isActiveRoute}) => {
   const isPending = Constants.isPendingConversationIDKey(conversationIDKey || '')
+  const youAreReset = Constants.isResetConversationIDKey(state, conversationIDKey || '')
+
   const p = isPending
     ? Selectors.pendingSnippetRowSelector(state, conversationIDKey)
     : Selectors.snippetRowSelector(state, conversationIDKey)
@@ -18,6 +21,7 @@ const mapStateToProps = (state: TypedState, {conversationIDKey, isActiveRoute}) 
   return {
     backgroundColor: p.backgroundColor,
     hasBadge: p.hasBadge,
+    hasResetUsers: state.chat.inboxResetParticipants.get(conversationIDKey || '', I.Set()).size > 0,
     hasUnread: p.hasUnread,
     isActiveRoute,
     isMuted: p.isMuted,
@@ -30,6 +34,7 @@ const mapStateToProps = (state: TypedState, {conversationIDKey, isActiveRoute}) 
     teamname: p.teamname,
     timestamp: p.timestamp,
     usernameColor: p.usernameColor,
+    youAreReset,
     youNeedToRekey: p.youNeedToRekey,
   }
 }
@@ -44,6 +49,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {conversationIDKey}) => ({
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   backgroundColor: stateProps.backgroundColor,
   hasBadge: stateProps.hasBadge,
+  hasResetUsers: stateProps.hasResetUsers,
   hasUnread: stateProps.hasUnread,
   isActiveRoute: ownProps.isActiveRoute,
   isMuted: stateProps.isMuted,
@@ -57,6 +63,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   teamname: stateProps.teamname || '',
   timestamp: stateProps.timestamp,
   usernameColor: stateProps.usernameColor,
+  youAreReset: stateProps.youAreReset,
   youNeedToRekey: stateProps.youNeedToRekey,
 })
 

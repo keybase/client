@@ -4449,38 +4449,42 @@ exports[`Storyshots Chat/Inbox Simple 1`] = `
             <div
               style={
                 Object {
+                  "alignItems": "center",
                   "backgroundColor": undefined,
                   "display": "flex",
                   "flexDirection": "row",
-                  "flexGrow": 1,
-                  "maxHeight": 17,
-                  "minHeight": 17,
-                  "position": "relative",
+                  "flexShrink": 0,
+                  "height": 17,
+                  "width": "100%",
                 }
               }
             >
               <div
                 style={
                   Object {
-                    "alignItems": "flex-start",
-                    "bottom": 0,
-                    "display": "flex",
-                    "flexDirection": "row",
-                    "justifyContent": "flex-start",
-                    "left": 0,
-                    "position": "absolute",
-                    "right": 0,
-                    "top": 0,
+                    "flexGrow": 1,
+                    "height": "100%",
+                    "position": "relative",
                   }
                 }
               >
-                <span
-                  className="glamor-6"
-                  onClick={undefined}
-                  title={undefined}
+                <div
+                  style={
+                    Object {
+                      "alignItems": "flex-start",
+                      "bottom": 0,
+                      "display": "flex",
+                      "flexDirection": "row",
+                      "justifyContent": "flex-start",
+                      "left": 0,
+                      "position": "absolute",
+                      "right": 0,
+                      "top": 0,
+                    }
+                  }
                 >
                   <span
-                    className="glamor-4"
+                    className="glamor-6"
                     onClick={undefined}
                     title={undefined}
                   >
@@ -4489,10 +4493,16 @@ exports[`Storyshots Chat/Inbox Simple 1`] = `
                       onClick={undefined}
                       title={undefined}
                     >
-                      elisa: Hopefully not
+                      <span
+                        className="glamor-4"
+                        onClick={undefined}
+                        title={undefined}
+                      >
+                        elisa: Hopefully not
+                      </span>
                     </span>
                   </span>
-                </span>
+                </div>
               </div>
             </div>
           </div>
@@ -4679,38 +4689,42 @@ exports[`Storyshots Chat/Inbox Simple 1`] = `
             <div
               style={
                 Object {
+                  "alignItems": "center",
                   "backgroundColor": undefined,
                   "display": "flex",
                   "flexDirection": "row",
-                  "flexGrow": 1,
-                  "maxHeight": 17,
-                  "minHeight": 17,
-                  "position": "relative",
+                  "flexShrink": 0,
+                  "height": 17,
+                  "width": "100%",
                 }
               }
             >
               <div
                 style={
                   Object {
-                    "alignItems": "flex-start",
-                    "bottom": 0,
-                    "display": "flex",
-                    "flexDirection": "row",
-                    "justifyContent": "flex-start",
-                    "left": 0,
-                    "position": "absolute",
-                    "right": 0,
-                    "top": 0,
+                    "flexGrow": 1,
+                    "height": "100%",
+                    "position": "relative",
                   }
                 }
               >
-                <span
-                  className="glamor-13"
-                  onClick={undefined}
-                  title={undefined}
+                <div
+                  style={
+                    Object {
+                      "alignItems": "flex-start",
+                      "bottom": 0,
+                      "display": "flex",
+                      "flexDirection": "row",
+                      "justifyContent": "flex-start",
+                      "left": 0,
+                      "position": "absolute",
+                      "right": 0,
+                      "top": 0,
+                    }
+                  }
                 >
                   <span
-                    className="glamor-4"
+                    className="glamor-13"
                     onClick={undefined}
                     title={undefined}
                   >
@@ -4719,10 +4733,16 @@ exports[`Storyshots Chat/Inbox Simple 1`] = `
                       onClick={undefined}
                       title={undefined}
                     >
-                      in the top-drawer i believe
+                      <span
+                        className="glamor-4"
+                        onClick={undefined}
+                        title={undefined}
+                      >
+                        in the top-drawer i believe
+                      </span>
                     </span>
                   </span>
-                </span>
+                </div>
               </div>
             </div>
           </div>
@@ -4898,38 +4918,48 @@ exports[`Storyshots Chat/Inbox Simple 1`] = `
             <div
               style={
                 Object {
+                  "alignItems": "center",
                   "backgroundColor": undefined,
                   "display": "flex",
                   "flexDirection": "row",
-                  "flexGrow": 1,
-                  "maxHeight": 17,
-                  "minHeight": 17,
-                  "position": "relative",
+                  "flexShrink": 0,
+                  "height": 17,
+                  "width": "100%",
                 }
               }
             >
               <div
                 style={
                   Object {
-                    "alignItems": "flex-start",
-                    "bottom": 0,
-                    "display": "flex",
-                    "flexDirection": "row",
-                    "justifyContent": "flex-start",
-                    "left": 0,
-                    "position": "absolute",
-                    "right": 0,
-                    "top": 0,
+                    "flexGrow": 1,
+                    "height": "100%",
+                    "position": "relative",
                   }
                 }
               >
-                <span
-                  className="glamor-6"
-                  onClick={undefined}
-                  title={undefined}
+                <div
+                  style={
+                    Object {
+                      "alignItems": "flex-start",
+                      "bottom": 0,
+                      "display": "flex",
+                      "flexDirection": "row",
+                      "justifyContent": "flex-start",
+                      "left": 0,
+                      "position": "absolute",
+                      "right": 0,
+                      "top": 0,
+                    }
+                  }
                 >
-                  I don	 know that I would want.
-                </span>
+                  <span
+                    className="glamor-6"
+                    onClick={undefined}
+                    title={undefined}
+                  >
+                    I don	 know that I would want.
+                  </span>
+                </div>
               </div>
             </div>
           </div>
@@ -6248,7 +6278,7 @@ exports[`Storyshots Chat/Teams CreateChannel 1`] = `
                   </span>
                 </div>
                 <span
-                  className="glamor-6 hover-underline"
+                  className="glamor-6"
                   onClick={[Function]}
                   title={undefined}
                 >
@@ -7375,7 +7405,7 @@ exports[`Storyshots Chat/Teams EditChannel 1`] = `
               </span>
             </div>
             <span
-              className="glamor-7 hover-underline"
+              className="glamor-7"
               onClick={[Function]}
               title={undefined}
             >
@@ -7927,7 +7957,7 @@ exports[`Storyshots Chat/Teams ManageChannels - Unsaved Subscription 1`] = `
                           }
                         >
                           <span
-                            className="glamor-7 hover-underline"
+                            className="glamor-7"
                             onClick={[Function]}
                             title={undefined}
                           >
@@ -8066,7 +8096,7 @@ exports[`Storyshots Chat/Teams ManageChannels - Unsaved Subscription 1`] = `
                           }
                         >
                           <span
-                            className="glamor-7 hover-underline"
+                            className="glamor-7"
                             onClick={[Function]}
                             title={undefined}
                           >
@@ -8206,7 +8236,7 @@ exports[`Storyshots Chat/Teams ManageChannels - Unsaved Subscription 1`] = `
                           }
                         >
                           <span
-                            className="glamor-7 hover-underline"
+                            className="glamor-7"
                             onClick={[Function]}
                             title={undefined}
                           >
@@ -8346,7 +8376,7 @@ exports[`Storyshots Chat/Teams ManageChannels - Unsaved Subscription 1`] = `
                           }
                         >
                           <span
-                            className="glamor-7 hover-underline"
+                            className="glamor-7"
                             onClick={[Function]}
                             title={undefined}
                           >
@@ -8486,7 +8516,7 @@ exports[`Storyshots Chat/Teams ManageChannels - Unsaved Subscription 1`] = `
                           }
                         >
                           <span
-                            className="glamor-7 hover-underline"
+                            className="glamor-7"
                             onClick={[Function]}
                             title={undefined}
                           >
@@ -8625,7 +8655,7 @@ exports[`Storyshots Chat/Teams ManageChannels - Unsaved Subscription 1`] = `
                           }
                         >
                           <span
-                            className="glamor-7 hover-underline"
+                            className="glamor-7"
                             onClick={[Function]}
                             title={undefined}
                           >
@@ -8764,7 +8794,7 @@ exports[`Storyshots Chat/Teams ManageChannels - Unsaved Subscription 1`] = `
                           }
                         >
                           <span
-                            className="glamor-7 hover-underline"
+                            className="glamor-7"
                             onClick={[Function]}
                             title={undefined}
                           >
@@ -8824,7 +8854,7 @@ exports[`Storyshots Chat/Teams ManageChannels - Unsaved Subscription 1`] = `
                   </span>
                 </div>
                 <span
-                  className="glamor-34 hover-underline"
+                  className="glamor-34"
                   onClick={[Function]}
                   title={undefined}
                 >
@@ -9416,7 +9446,7 @@ exports[`Storyshots Chat/Teams ManageChannels 1`] = `
                           }
                         >
                           <span
-                            className="glamor-7 hover-underline"
+                            className="glamor-7"
                             onClick={[Function]}
                             title={undefined}
                           >
@@ -9470,7 +9500,7 @@ exports[`Storyshots Chat/Teams ManageChannels 1`] = `
                             </span>
                           </div>
                           <span
-                            className="glamor-10 hover-underline"
+                            className="glamor-10"
                             onClick={undefined}
                             title={undefined}
                           >
@@ -9601,7 +9631,7 @@ exports[`Storyshots Chat/Teams ManageChannels 1`] = `
                           }
                         >
                           <span
-                            className="glamor-7 hover-underline"
+                            className="glamor-7"
                             onClick={[Function]}
                             title={undefined}
                           >
@@ -9655,7 +9685,7 @@ exports[`Storyshots Chat/Teams ManageChannels 1`] = `
                             </span>
                           </div>
                           <span
-                            className="glamor-10 hover-underline"
+                            className="glamor-10"
                             onClick={undefined}
                             title={undefined}
                           >
@@ -9787,7 +9817,7 @@ exports[`Storyshots Chat/Teams ManageChannels 1`] = `
                           }
                         >
                           <span
-                            className="glamor-7 hover-underline"
+                            className="glamor-7"
                             onClick={[Function]}
                             title={undefined}
                           >
@@ -9841,7 +9871,7 @@ exports[`Storyshots Chat/Teams ManageChannels 1`] = `
                             </span>
                           </div>
                           <span
-                            className="glamor-10 hover-underline"
+                            className="glamor-10"
                             onClick={undefined}
                             title={undefined}
                           >
@@ -9973,7 +10003,7 @@ exports[`Storyshots Chat/Teams ManageChannels 1`] = `
                           }
                         >
                           <span
-                            className="glamor-7 hover-underline"
+                            className="glamor-7"
                             onClick={[Function]}
                             title={undefined}
                           >
@@ -10027,7 +10057,7 @@ exports[`Storyshots Chat/Teams ManageChannels 1`] = `
                             </span>
                           </div>
                           <span
-                            className="glamor-10 hover-underline"
+                            className="glamor-10"
                             onClick={undefined}
                             title={undefined}
                           >
@@ -10159,7 +10189,7 @@ exports[`Storyshots Chat/Teams ManageChannels 1`] = `
                           }
                         >
                           <span
-                            className="glamor-7 hover-underline"
+                            className="glamor-7"
                             onClick={[Function]}
                             title={undefined}
                           >
@@ -10213,7 +10243,7 @@ exports[`Storyshots Chat/Teams ManageChannels 1`] = `
                             </span>
                           </div>
                           <span
-                            className="glamor-10 hover-underline"
+                            className="glamor-10"
                             onClick={undefined}
                             title={undefined}
                           >
@@ -10344,7 +10374,7 @@ exports[`Storyshots Chat/Teams ManageChannels 1`] = `
                           }
                         >
                           <span
-                            className="glamor-7 hover-underline"
+                            className="glamor-7"
                             onClick={[Function]}
                             title={undefined}
                           >
@@ -10398,7 +10428,7 @@ exports[`Storyshots Chat/Teams ManageChannels 1`] = `
                             </span>
                           </div>
                           <span
-                            className="glamor-10 hover-underline"
+                            className="glamor-10"
                             onClick={undefined}
                             title={undefined}
                           >
@@ -10529,7 +10559,7 @@ exports[`Storyshots Chat/Teams ManageChannels 1`] = `
                           }
                         >
                           <span
-                            className="glamor-7 hover-underline"
+                            className="glamor-7"
                             onClick={[Function]}
                             title={undefined}
                           >
@@ -10583,7 +10613,7 @@ exports[`Storyshots Chat/Teams ManageChannels 1`] = `
                             </span>
                           </div>
                           <span
-                            className="glamor-10 hover-underline"
+                            className="glamor-10"
                             onClick={undefined}
                             title={undefined}
                           >
@@ -10635,7 +10665,7 @@ exports[`Storyshots Chat/Teams ManageChannels 1`] = `
                   </span>
                 </div>
                 <span
-                  className="glamor-55 hover-underline"
+                  className="glamor-55"
                   onClick={[Function]}
                   title={undefined}
                 >
@@ -20922,6 +20952,23 @@ exports[`Storyshots Common Icon 1`] = `
           className={undefined}
           draggable="false"
           onClick={[Function]}
+          srcSet="icons/icon-skull-48.png 1x, icons/icon-skull-48@2x.png 2x"
+          style={
+            Object {
+              "borderColor": "rgba(0, 0, 0, 0.05)",
+              "borderStyle": "solid",
+              "borderWidth": 1,
+              "cursor": "pointer",
+              "margin": 5,
+              "userSelect": "none",
+            }
+          }
+          title="hint text"
+        />
+        <img
+          className={undefined}
+          draggable="false"
+          onClick={[Function]}
           srcSet="icons/icon-team-placeholder-avatar-48.png 1x, icons/icon-team-placeholder-avatar-48@2x.png 2x"
           style={
             Object {
@@ -21403,6 +21450,23 @@ exports[`Storyshots Common Icon 1`] = `
           draggable="false"
           onClick={[Function]}
           srcSet="icons/icon-reddit-logo-64.png 1x, icons/icon-reddit-logo-64@2x.png 2x"
+          style={
+            Object {
+              "borderColor": "rgba(0, 0, 0, 0.05)",
+              "borderStyle": "solid",
+              "borderWidth": 1,
+              "cursor": "pointer",
+              "margin": 5,
+              "userSelect": "none",
+            }
+          }
+          title="hint text"
+        />
+        <img
+          className={undefined}
+          draggable="false"
+          onClick={[Function]}
+          srcSet="icons/icon-skull-64.png 1x, icons/icon-skull-64@2x.png 2x"
           style={
             Object {
               "borderColor": "rgba(0, 0, 0, 0.05)",
@@ -22223,6 +22287,23 @@ exports[`Storyshots Common Icon 1`] = `
           }
         }
       >
+        <img
+          className={undefined}
+          draggable="false"
+          onClick={[Function]}
+          srcSet="icons/icon-access-denied-266.gif 1x, icons/icon-access-denied-266@2x.gif 2x"
+          style={
+            Object {
+              "borderColor": "rgba(0, 0, 0, 0.05)",
+              "borderStyle": "solid",
+              "borderWidth": 1,
+              "cursor": "pointer",
+              "margin": 5,
+              "userSelect": "none",
+            }
+          }
+          title="hint text"
+        />
         <img
           className={undefined}
           draggable="false"
@@ -23797,14 +23878,14 @@ exports[`Storyshots Common Text 1`] = `
           }
         />
         <span
-          className="glamor-38 hover-underline"
+          className="glamor-38"
           onClick={[Function]}
           title={undefined}
         >
           Header link Header link
         </span>
         <span
-          className="glamor-38 hover-underline"
+          className="glamor-38"
           onClick={[Function]}
           title={undefined}
         >
@@ -23846,14 +23927,14 @@ exports[`Storyshots Common Text 1`] = `
           }
         />
         <span
-          className="glamor-42 hover-underline"
+          className="glamor-42"
           onClick={[Function]}
           title={undefined}
         >
           Body big link Body big link
         </span>
         <span
-          className="glamor-42 hover-underline"
+          className="glamor-42"
           onClick={[Function]}
           title={undefined}
         >
@@ -23916,14 +23997,14 @@ exports[`Storyshots Common Text 1`] = `
           }
         />
         <span
-          className="glamor-48 hover-underline"
+          className="glamor-48"
           onClick={[Function]}
           title={undefined}
         >
           Body primary link
         </span>
         <span
-          className="glamor-48 hover-underline"
+          className="glamor-48"
           onClick={[Function]}
           title={undefined}
         >
@@ -23937,14 +24018,14 @@ exports[`Storyshots Common Text 1`] = `
           }
         />
         <span
-          className="glamor-50 hover-underline"
+          className="glamor-50"
           onClick={[Function]}
           title={undefined}
         >
           Body secondary link
         </span>
         <span
-          className="glamor-50 hover-underline"
+          className="glamor-50"
           onClick={[Function]}
           title={undefined}
         >
@@ -24049,14 +24130,14 @@ exports[`Storyshots Common Text 1`] = `
           }
         />
         <span
-          className="glamor-60 hover-underline"
+          className="glamor-60"
           onClick={[Function]}
           title={undefined}
         >
           Body small primary link
         </span>
         <span
-          className="glamor-60 hover-underline"
+          className="glamor-60"
           onClick={[Function]}
           title={undefined}
         >
@@ -24070,14 +24151,14 @@ exports[`Storyshots Common Text 1`] = `
           }
         />
         <span
-          className="glamor-62 hover-underline"
+          className="glamor-62"
           onClick={[Function]}
           title={undefined}
         >
           Body small secondary link
         </span>
         <span
-          className="glamor-62 hover-underline"
+          className="glamor-62"
           onClick={[Function]}
           title={undefined}
         >
@@ -38990,7 +39071,7 @@ exports[`Storyshots Teams Header 1`] = `
           </span>
         </div>
         <span
-          className="glamor-1 hover-underline"
+          className="glamor-1"
           onClick={undefined}
           title={undefined}
         >
@@ -39047,7 +39128,7 @@ exports[`Storyshots Teams Header 1`] = `
           </span>
         </div>
         <span
-          className="glamor-1 hover-underline"
+          className="glamor-1"
           onClick={undefined}
           title={undefined}
         >

@@ -4,6 +4,7 @@ import * as Types from '../../../constants/types/chat'
 import Attachment from './attachment/container'
 import ErrorMessage from './error/container'
 import Header from './header/container'
+import ResetUser from './resetUser/container'
 import JoinedLeft from './joinedleft/container'
 import System from './system/container'
 import ProfileResetNotice from '../notices/profile-reset-notice/container'
@@ -31,6 +32,8 @@ const factory = (
       return <JoinedLeft messageKey={messageKey} />
     case 'system':
       return <System messageKey={messageKey} />
+    case 'resetUser':
+      return <ResetUser messageKey={messageKey} />
     case 'header':
       return <Header messageKey={messageKey} />
     case 'outboxIDAttachment': // fallthrough

@@ -27,6 +27,7 @@ export type Props = {|
   setChatText: (nextText: string) => void,
   showTeamOffer: boolean,
   previousPath: ?PropsPath<*>,
+  youAreReset: boolean,
 |}
 
 export default class Conversation extends Component<Props> {}
