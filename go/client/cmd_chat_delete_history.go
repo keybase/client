@@ -142,7 +142,7 @@ func (c *CmdChatDeleteHistory) chatSendDeleteHistory(ctx context.Context) error 
 		return err
 	}
 
-	conversation, userChosen, err := resolver.Resolve(ctx, c.resolvingRequest, chatConversationResolvingBehavior{
+	conversation, _, err := resolver.Resolve(ctx, c.resolvingRequest, chatConversationResolvingBehavior{
 		CreateIfNotExists: false,
 		MustNotExist:      false,
 		Interactive:       c.hasTTY,
@@ -161,17 +161,11 @@ func (c *CmdChatDeleteHistory) chatSendDeleteHistory(ctx context.Context) error 
 		Age:              c.age,
 	}
 
-	// Whether the user is really sure they want to send to the selected conversation.
-	// We require an additional confirmation if the choose menu was used.
-	confirmed := !userChosen
-
-	if !confirmed {
-		promptText := fmt.Sprintf("Send to [%s]? Hit Ctrl-C to cancel, or enter to send.", conversationInfo.TlfName)
-		_, err = c.G().UI.GetTerminalUI().Prompt(PromptDescriptorEnterChatMessage, promptText)
-		if err != nil {
-			return err
-		}
-		confirmed = true
+	// Always ask for confirmation for this destructive operation.
+	promptText := fmt.Sprintf("Delete history of [%s]? Hit Enter, or Ctrl-C to cancel.", conversationInfo.TlfName)
+	_, err = c.G().UI.GetTerminalUI().Prompt(PromptDescriptorEnterChatMessage, promptText)
+	if err != nil {
+		return err
 	}
 
 	_, err = resolver.ChatClient.PostDeleteHistory(ctx, arg)
