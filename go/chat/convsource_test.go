@@ -292,6 +292,11 @@ func (f failingRemote) DeleteConversation(ctx context.Context, convID chat1.Conv
 	return chat1.DeleteConversationRemoteRes{}, nil
 }
 
+func (f failingRemote) GetMessageBefore(ctx context.Context, arg chat1.GetMessageBeforeArg) (chat1.GetMessageBeforeRes, error) {
+	require.Fail(f.t, "GetMessageBefore")
+	return chat1.GetMessageBeforeRes{}, nil
+}
+
 func (f failingRemote) RemoteNotificationSuccessful(ctx context.Context,
 	arg chat1.RemoteNotificationSuccessfulArg) error {
 	require.Fail(f.t, "RemoteNotificationSuccessful")

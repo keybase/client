@@ -1045,6 +1045,34 @@ func (h *Server) PostMetadata(ctx context.Context, arg chat1.PostMetadataArg) (c
 	return h.PostLocal(ctx, parg)
 }
 
+func (h *Server) PostDeleteHistory(ctx context.Context, arg chat1.PostDeleteHistoryArg) (res chat1.PostLocalRes, err error) {
+	ctx = Context(ctx, h.G(), arg.IdentifyBehavior, nil, h.identNotifier)
+	defer h.Trace(ctx, func() error { return err }, "PostDeleteHistory")()
+
+	gmRes, err := h.remoteClient().GetMessageBefore(ctx, chat1.GetMessageBeforeArg{
+		ConvID: arg.ConversationID,
+		Age:    arg.Age,
+	})
+	if err != nil {
+		return res, err
+	}
+
+	delh := chat1.MessageDeleteHistory{Upto: gmRes.MsgID + 1}
+
+	var parg chat1.PostLocalArg
+	parg.ConversationID = arg.ConversationID
+	parg.IdentifyBehavior = arg.IdentifyBehavior
+	parg.Msg.ClientHeader.MessageType = chat1.MessageType_DELETEHISTORY
+	parg.Msg.ClientHeader.TlfName = arg.TlfName
+	parg.Msg.ClientHeader.TlfPublic = arg.TlfPublic
+	parg.Msg.ClientHeader.DeleteHistory = &delh
+	parg.Msg.MessageBody = chat1.NewMessageBodyWithDeletehistory(delh)
+
+	h.Debug(ctx, "PostDeleteHistory: deleting upto msgid:%v (age:%v)", delh.Upto, arg.Age)
+
+	return h.PostLocal(ctx, parg)
+}
+
 func (h *Server) GenerateOutboxID(ctx context.Context) (res chat1.OutboxID, err error) {
 	ctx = Context(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_SKIP, nil, h.identNotifier)
 	defer h.Trace(ctx, func() error { return err }, "GenerateOutboxID")()
