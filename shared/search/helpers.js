@@ -63,6 +63,7 @@ const onChangeSelectedSearchResultHoc = compose(
       onAddSelectedUser: (props: OwnPropsWithSearchDebounced) => () => {
         props._searchDebounced.flush()
         // See whether the current search result term matches the last one submitted
+        // -- unless we're showing search suggestions, which don't have a term.
         if (lastSearchTerm === props.searchResultTerm || props.showingSearchSuggestions) {
           props.selectedSearchId && props.disableListBuilding
             ? props.onSelectUser(props.selectedSearchId)
