@@ -1312,6 +1312,7 @@ func CanUserPerform(ctx context.Context, g *libkb.GlobalContext, teamname string
 		}
 		ret.LeaveTeam = leaveTeam
 	}
+	g.Log.CInfof(ctx, "CanUserPerform: role %d, LeaveTeam=%v", teamRole, ret.LeaveTeam)
 
 	ret.CreateChannel, err = isWriter()
 	if err != nil {
