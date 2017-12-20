@@ -2,7 +2,7 @@
 import * as I from 'immutable'
 import * as ChatTypes from './types/chat'
 import * as Types from './types/teams'
-import {userIsInTeam} from './selectors'
+import {userIsActiveInTeam} from './selectors'
 import * as RPCTypes from './types/flow-types'
 import invert from 'lodash/invert'
 
@@ -79,8 +79,8 @@ export const initialCanUserPerform: RPCTypes.TeamOperation = {
   changeOpenTeam: false,
 }
 
-const userIsInTeamHelper = (state: TypedState, username: string, service: Service, teamname: string) =>
-  service === 'Keybase' ? userIsInTeam(state, teamname, username) : false
+const userIsActiveInTeamHelper = (state: TypedState, username: string, service: Service, teamname: string) =>
+  service === 'Keybase' ? userIsActiveInTeam(state, teamname, username) : false
 
 const getConvIdsFromTeamName = (state: TypedState, teamname: string): I.Set<string> =>
   state.entities.teams.teamNameToConvIDs.get(teamname, I.Set())
@@ -119,7 +119,7 @@ export {
   getConvIdsFromTeamName,
   getRole,
   getCanPerform,
-  userIsInTeamHelper,
+  userIsActiveInTeamHelper,
   getTeamNameFromConvID,
   getChannelNameFromConvID,
   getTopicFromConvID,
