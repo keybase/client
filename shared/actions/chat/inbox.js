@@ -6,8 +6,8 @@ import * as RPCChatTypes from '../../constants/types/flow-types-chat'
 import * as Constants from '../../constants/chat'
 import * as Types from '../../constants/types/chat'
 import * as ChatGen from '../chat-gen'
-import * as ConfigGen from '../config-gen'
-import * as EngineRpc from '../../constants/engine'
+// import * as ConfigGen from '../config-gen'
+// import * as EngineRpc from '../../constants/engine'
 import * as I from 'immutable'
 import * as RPCTypes from '../../constants/types/flow-types'
 import * as Saga from '../../util/saga'
@@ -361,14 +361,14 @@ function* _processConversation(c: RPCChatTypes.InboxUIItem): Generator<any, void
   }
 }
 
-const _chatInboxToProcess: Array<RPCChatTypes.InboxUIItem> = []
+// const _chatInboxToProcess: Array<RPCChatTypes.InboxUIItem> = []
 
-function* _chatInboxConversationSubSaga({conv}: {conv: string}) {
-  const pconv: RPCChatTypes.InboxUIItem = JSON.parse(conv)
-  _chatInboxToProcess.push(pconv)
-  yield Saga.put(ChatGen.createUnboxMore())
-  return EngineRpc.rpcResult()
-}
+// function* _chatInboxConversationSubSaga({conv}: {conv: string}) {
+// const pconv: RPCChatTypes.InboxUIItem = JSON.parse(conv)
+// _chatInboxToProcess.push(pconv)
+// yield Saga.put(ChatGen.createUnboxMore())
+// return EngineRpc.rpcResult()
+// }
 
 // function* _unboxMore(): SagaGenerator<any, any> {
 // if (!_chatInboxToProcess.length) {
@@ -388,72 +388,72 @@ function* _chatInboxConversationSubSaga({conv}: {conv: string}) {
 // }
 // }
 
-function* _chatInboxFailedSubSaga(params: RPCChatTypes.ChatUiChatInboxFailedRpcParam) {
-  const {convID, error} = params
-  logger.info('chatInboxFailed', params)
-  const conversationIDKey = Constants.conversationIDToKey(convID)
+// function* _chatInboxFailedSubSaga(params: RPCChatTypes.ChatUiChatInboxFailedRpcParam) {
+// const {convID, error} = params
+// logger.info('chatInboxFailed', params)
+// const conversationIDKey = Constants.conversationIDToKey(convID)
 
-  // Valid inbox item for rekey errors only
-  const conversation = Constants.makeInboxState({
-    conversationIDKey,
-    participants: error.rekeyInfo
-      ? I.List([].concat(error.rekeyInfo.writerNames, error.rekeyInfo.readerNames).filter(Boolean))
-      : I.List(error.unverifiedTLFName.split(',')),
-    status: 'unfiled',
-    time: error.remoteConv.readerInfo ? error.remoteConv.readerInfo.mtime : 0,
-  })
+// // Valid inbox item for rekey errors only
+// const conversation = Constants.makeInboxState({
+// conversationIDKey,
+// participants: error.rekeyInfo
+// ? I.List([].concat(error.rekeyInfo.writerNames, error.rekeyInfo.readerNames).filter(Boolean))
+// : I.List(error.unverifiedTLFName.split(',')),
+// status: 'unfiled',
+// time: error.remoteConv.readerInfo ? error.remoteConv.readerInfo.mtime : 0,
+// })
 
-  yield Saga.put(
-    ChatGen.createReplaceEntity({
-      keyPath: ['inboxUntrustedState'],
-      entities: I.Map({[conversationIDKey]: 'error'}),
-    })
-  )
-  yield Saga.put(ChatGen.createUpdateSnippet({conversationIDKey, snippet: new HiddenString(error.message)}))
-  yield Saga.put(
-    ChatGen.createReplaceEntity({keyPath: ['inbox'], entities: I.Map({[conversationIDKey]: conversation})})
-  )
+// yield Saga.put(
+// ChatGen.createReplaceEntity({
+// keyPath: ['inboxUntrustedState'],
+// entities: I.Map({[conversationIDKey]: 'error'}),
+// })
+// )
+// yield Saga.put(ChatGen.createUpdateSnippet({conversationIDKey, snippet: new HiddenString(error.message)}))
+// yield Saga.put(
+// ChatGen.createReplaceEntity({keyPath: ['inbox'], entities: I.Map({[conversationIDKey]: conversation})})
+// )
 
-  // Mark the conversation as read, to avoid a state where there's a
-  // badged conversation that can't be unbadged by clicking on it.
-  const {maxMsgid} = error.remoteConv.readerInfo || {}
-  const state: TypedState = yield Saga.select()
-  const selectedConversation = Constants.getSelectedConversation(state)
-  if (maxMsgid && selectedConversation === conversationIDKey) {
-    try {
-      yield Saga.call(RPCChatTypes.localMarkAsReadLocalRpcPromise, {
-        conversationID: convID,
-        msgID: maxMsgid,
-      })
-    } catch (err) {
-      logger.debug(`Couldn't mark as read ${conversationIDKey} ${err}`)
-    }
-  }
+// // Mark the conversation as read, to avoid a state where there's a
+// // badged conversation that can't be unbadged by clicking on it.
+// const {maxMsgid} = error.remoteConv.readerInfo || {}
+// const state: TypedState = yield Saga.select()
+// const selectedConversation = Constants.getSelectedConversation(state)
+// if (maxMsgid && selectedConversation === conversationIDKey) {
+// try {
+// yield Saga.call(RPCChatTypes.localMarkAsReadLocalRpcPromise, {
+// conversationID: convID,
+// msgID: maxMsgid,
+// })
+// } catch (err) {
+// logger.debug(`Couldn't mark as read ${conversationIDKey} ${err}`)
+// }
+// }
 
-  switch (error.typ) {
-    case RPCChatTypes.localConversationErrorType.selfrekeyneeded: {
-      yield Saga.put(ChatGen.createUpdateInboxRekeySelf({conversationIDKey}))
-      break
-    }
-    case RPCChatTypes.localConversationErrorType.otherrekeyneeded: {
-      const rekeyers = (error.rekeyInfo && error.rekeyInfo.rekeyers) || []
-      yield Saga.put(ChatGen.createUpdateInboxRekeyOthers({conversationIDKey, rekeyers}))
-      break
-    }
-    case RPCChatTypes.localConversationErrorType.transient: {
-      // Just ignore these, it is a transient error
-      break
-    }
-    case RPCChatTypes.localConversationErrorType.permanent: {
-      // Let's show it as failed in the inbox
-      break
-    }
-    default:
-      yield Saga.put(ConfigGen.createGlobalError({globalError: new Error(error.message)}))
-  }
+// switch (error.typ) {
+// case RPCChatTypes.localConversationErrorType.selfrekeyneeded: {
+// yield Saga.put(ChatGen.createUpdateInboxRekeySelf({conversationIDKey}))
+// break
+// }
+// case RPCChatTypes.localConversationErrorType.otherrekeyneeded: {
+// const rekeyers = (error.rekeyInfo && error.rekeyInfo.rekeyers) || []
+// yield Saga.put(ChatGen.createUpdateInboxRekeyOthers({conversationIDKey, rekeyers}))
+// break
+// }
+// case RPCChatTypes.localConversationErrorType.transient: {
+// // Just ignore these, it is a transient error
+// break
+// }
+// case RPCChatTypes.localConversationErrorType.permanent: {
+// // Let's show it as failed in the inbox
+// break
+// }
+// default:
+// yield Saga.put(ConfigGen.createGlobalError({globalError: new Error(error.message)}))
+// }
 
-  return EngineRpc.rpcResult()
-}
+// return EngineRpc.rpcResult()
+// }
 
 // const unboxConversationsSagaMap = {
 // 'chat.1.chatUi.chatInboxConversation': _chatInboxConversationSubSaga,

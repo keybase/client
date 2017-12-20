@@ -24,6 +24,9 @@
     "metaReceivedError": {
       "conversationIDKey": "Types.ConversationIDKey",
       "error": "RPCChatTypes.ConversationErrorLocal"
+    },
+    "messagesAdd": {
+        "messages": "Array<Types.Message>"
     }
   }
 }
