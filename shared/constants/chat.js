@@ -230,7 +230,7 @@ function usernamesToUserListItem(
     username,
     broken: metaDataMap.getIn([username, 'brokenTracker'], false),
     you: username === you,
-    following: !!followingMap[username],
+    following: !!followingMap.get(username),
   }))
 }
 
