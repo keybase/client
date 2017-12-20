@@ -47,6 +47,7 @@ function* pushNotificationSaga(notification: PushGen.NotificationPayload): Saga.
   logger.info('Push notification:', notification)
   const payload = notification.payload.notification
   if (payload) {
+    // Handle types that are not from user interaction
     if (payload.type === 'chat.newmessageSilent') {
       logger.info('Push notification: silent notification received')
       try {
@@ -78,6 +79,8 @@ function* pushNotificationSaga(notification: PushGen.NotificationPayload): Saga.
         clearAllNotifications()
       }
     }
+
+    // Handle types from user interaction
     if (payload.userInteration) {
       if (payload.type === 'chat.newmessage') {
         const {convID} = payload
