@@ -1560,7 +1560,7 @@ func (g *gregorHandler) DismissItem(ctx context.Context, cli gregor1.IncomingInt
 		return nil
 	}
 	var err error
-	defer g.G().Trace(fmt.Sprintf("gregorHandler.dismissItem(%s)", id.String()),
+	defer g.G().CTrace(ctx, fmt.Sprintf("gregorHandler.dismissItem(%s)", id.String()),
 		func() error { return err },
 	)()
 
@@ -1584,7 +1584,7 @@ func (g *gregorHandler) LocalDismissItem(ctx context.Context, id gregor.MsgID) (
 	if id == nil {
 		return nil
 	}
-	defer g.G().Trace(fmt.Sprintf("gregorHandler.localDismissItem(%s)", id.String()),
+	defer g.G().CTrace(ctx, fmt.Sprintf("gregorHandler.localDismissItem(%s)", id.String()),
 		func() error { return err },
 	)()
 
@@ -1597,7 +1597,7 @@ func (g *gregorHandler) LocalDismissItem(ctx context.Context, id gregor.MsgID) (
 
 func (g *gregorHandler) DismissCategory(ctx context.Context, category gregor1.Category) error {
 	var err error
-	defer g.G().Trace(fmt.Sprintf("gregorHandler.DismissCategory(%s)", category.String()),
+	defer g.G().CTrace(ctx.fmt.Sprintf("gregorHandler.DismissCategory(%s)", category.String()),
 		func() error { return err },
 	)()
 
