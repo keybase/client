@@ -100,10 +100,10 @@ build_one_architecture() {
 
 export rpm_arch=i386
 export debian_arch=i386
-dependencies="Requires: at, fuse, libappindicator1, libXss.so.1"
+dependencies="Requires: at, fuse, libXss.so.1"
 build_one_architecture
 
 export rpm_arch=x86_64
 export debian_arch=amd64
-dependencies="Requires: at, fuse, libappindicator1, libXss.so.1()(64bit)"
+dependencies="Requires: at, fuse, libXss.so.1()(64bit)"
 build_one_architecture
