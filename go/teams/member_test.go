@@ -482,21 +482,23 @@ func TestMemberAddEmailBulk(t *testing.T) {
 	tc, _, name := memberSetup(t)
 	defer tc.Cleanup()
 
-	blob := "u1@keybase.io u2@keybase.io\nu3@keybase.io,u4@keybase.io\tu5@keybase.io,u6@keybase.io, u7@keybase.io\n\n\n"
+	blob := "u1@keybase.io, u2@keybase.io\nu3@keybase.io,u4@keybase.io, u5@keybase.io,u6@keybase.io, u7@keybase.io\n\n\nFull Name <fullname@keybase.io>, Someone Else <someone@keybase.io>,u8@keybase.io\n\n"
 
 	res, err := AddEmailsBulk(context.TODO(), tc.G, name, blob, keybase1.TeamRole_WRITER)
 	if err != nil {
 		t.Fatal(err)
 	}
-	emails := []string{"u1@keybase.io", "u2@keybase.io", "u3@keybase.io", "u4@keybase.io", "u5@keybase.io", "u6@keybase.io", "u7@keybase.io"}
+	emails := []string{"u1@keybase.io", "u2@keybase.io", "u3@keybase.io", "u4@keybase.io", "u5@keybase.io", "u6@keybase.io", "u7@keybase.io", "u8@keybase.io"}
 
 	if len(res.Invited) != len(emails) {
+		t.Logf("invited: %+v", res.Invited)
 		t.Errorf("num invited: %d, expected %d", len(res.Invited), len(emails))
 	}
 	if len(res.AlreadyInvited) != 0 {
 		t.Errorf("num already invited: %d, expected 0", len(res.AlreadyInvited))
 	}
-	if len(res.Malformed) != 0 {
+	if len(res.Malformed) != 2 {
+		t.Logf("malformed: %+v", res.Malformed)
 		t.Errorf("num malformed: %d, expected 0", len(res.Malformed))
 	}
 

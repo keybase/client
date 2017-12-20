@@ -6,7 +6,6 @@ import (
 	"strconv"
 	"strings"
 	"time"
-	"unicode"
 
 	"golang.org/x/net/context"
 
@@ -1141,12 +1140,16 @@ func removeInviteID(ctx context.Context, team *Team, invID keybase1.TeamInviteID
 	return team.postTeamInvites(ctx, invites)
 }
 
-// splitBulk splits on whitespace or comma.
+// splitBulk splits on newline or comma.
 func splitBulk(s string) []string {
 	f := func(c rune) bool {
-		return unicode.IsSpace(c) || c == ','
+		return c == '\n' || c == ','
 	}
-	return strings.FieldsFunc(s, f)
+	split := strings.FieldsFunc(s, f)
+	for i, s := range split {
+		split[i] = strings.TrimSpace(s)
+	}
+	return split
 }
 
 func CreateSeitanToken(ctx context.Context, g *libkb.GlobalContext, teamname string, role keybase1.TeamRole, label keybase1.SeitanIKeyLabel) (keybase1.SeitanIKey, error) {
