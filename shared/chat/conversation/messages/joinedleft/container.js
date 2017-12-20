@@ -44,7 +44,7 @@ const getDetails = createCachedSelector(
     following: I.Set<Types.Username>
   ) => ({
     channelname,
-    following: !!following.has(message.author),
+    following: following.has(message.author),
     message,
     teamname,
     you,
