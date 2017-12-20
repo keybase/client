@@ -71,9 +71,15 @@ func makeKMD() KeyMetadata {
 	return emptyKeyMetadata{tlf.FakeID(0, tlf.Private), 1}
 }
 
+func initBlockRetrievalQueueTest(t *testing.T) *blockRetrievalQueue {
+	q := newBlockRetrievalQueue(0, 0, newTestBlockRetrievalConfig(t, nil, nil))
+	<-q.TogglePrefetcher(false, nil)
+	return q
+}
+
 func TestBlockRetrievalQueueBasic(t *testing.T) {
 	t.Log("Add a block retrieval request to the queue and retrieve it.")
-	q := newBlockRetrievalQueue(0, 0, newTestBlockRetrievalConfig(t, nil, nil))
+	q := initBlockRetrievalQueueTest(t)
 	require.NotNil(t, q)
 	defer q.Shutdown()
 
@@ -98,7 +104,7 @@ func TestBlockRetrievalQueueBasic(t *testing.T) {
 func TestBlockRetrievalQueuePreemptPriority(t *testing.T) {
 	t.Log("Preempt a lower-priority block retrieval request with a higher " +
 		"priority request.")
-	q := newBlockRetrievalQueue(0, 0, newTestBlockRetrievalConfig(t, nil, nil))
+	q := initBlockRetrievalQueueTest(t)
 	require.NotNil(t, q)
 	defer q.Shutdown()
 
@@ -130,7 +136,7 @@ func TestBlockRetrievalQueuePreemptPriority(t *testing.T) {
 
 func TestBlockRetrievalQueueInterleavedPreemption(t *testing.T) {
 	t.Log("Handle a first request and then preempt another one.")
-	q := newBlockRetrievalQueue(0, 0, newTestBlockRetrievalConfig(t, nil, nil))
+	q := initBlockRetrievalQueueTest(t)
 	require.NotNil(t, q)
 	defer q.Shutdown()
 
@@ -173,7 +179,7 @@ func TestBlockRetrievalQueueInterleavedPreemption(t *testing.T) {
 
 func TestBlockRetrievalQueueMultipleRequestsSameBlock(t *testing.T) {
 	t.Log("Request the same block multiple times.")
-	q := newBlockRetrievalQueue(0, 0, newTestBlockRetrievalConfig(t, nil, nil))
+	q := initBlockRetrievalQueueTest(t)
 	require.NotNil(t, q)
 	defer q.Shutdown()
 
@@ -201,7 +207,7 @@ func TestBlockRetrievalQueueMultipleRequestsSameBlock(t *testing.T) {
 
 func TestBlockRetrievalQueueElevatePriorityExistingRequest(t *testing.T) {
 	t.Log("Elevate the priority on an existing request.")
-	q := newBlockRetrievalQueue(0, 0, newTestBlockRetrievalConfig(t, nil, nil))
+	q := initBlockRetrievalQueueTest(t)
 	require.NotNil(t, q)
 	defer q.Shutdown()
 
@@ -247,7 +253,7 @@ func TestBlockRetrievalQueueElevatePriorityExistingRequest(t *testing.T) {
 
 func TestBlockRetrievalQueueCurrentlyProcessingRequest(t *testing.T) {
 	t.Log("Begin processing a request and then add another one for the same block.")
-	q := newBlockRetrievalQueue(0, 0, newTestBlockRetrievalConfig(t, nil, nil))
+	q := initBlockRetrievalQueueTest(t)
 	require.NotNil(t, q)
 	defer q.Shutdown()
 
