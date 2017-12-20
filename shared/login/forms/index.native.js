@@ -144,7 +144,7 @@ const Intro = (props: Props) => (
         />
         <Box style={{minHeight: 100, width: 1}} />
         <Text style={stylesLoginHeader} type="Body" onClick={props.onLogin}>Already on Keybase?</Text>
-        <ButtonBar>
+        <ButtonBar direction="column">
           <Button type="Secondary" onClick={props.onLogin} label="Log in" />
         </ButtonBar>
         <Text style={stylesFeedback} type="BodySmallSecondaryLink" onClick={props.onFeedback}>
