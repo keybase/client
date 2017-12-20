@@ -81,7 +81,7 @@ function* pushNotificationSaga(notification: PushGen.NotificationPayload): Saga.
     }
 
     // Handle types from user interaction
-    if (payload.userInteration) {
+    if (payload.userInteraction) {
       if (payload.type === 'chat.newmessage') {
         const {convID} = payload
         // Check for conversation ID so we know where to navigate to
