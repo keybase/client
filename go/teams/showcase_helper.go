@@ -111,5 +111,17 @@ func SetTeamMemberShowcase(ctx context.Context, g *libkb.GlobalContext, teamname
 	arg.Args.Add("tid", libkb.S{Val: string(t.ID)})
 	arg.Args.Add("is_showcased", libkb.B{Val: isShowcased})
 	_, err = g.API.Post(arg)
-	return err
+	if err != nil {
+		return err
+	}
+
+	// Clear usercard cache so when user goes to People tab,
+	// fresh card will be loaded.
+	u := g.ActiveDevice.UID()
+	g.Log.CDebugf(ctx, "Clearing Card cache for %s", u)
+	if err := g.CardCache.Delete(u); err != nil {
+		g.Log.CDebugf(ctx, "Error in CardCache.Delete: %s", err)
+	}
+	g.UserChanged(u)
+	return nil
 }

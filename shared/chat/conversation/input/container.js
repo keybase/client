@@ -1,4 +1,5 @@
 // @flow
+import * as I from 'immutable'
 import * as Constants from '../../../constants/chat'
 import * as Types from '../../../constants/types/chat'
 import * as Creators from '../../../actions/chat/creators'
@@ -11,6 +12,7 @@ import {
   branch,
   compose,
   renderComponent,
+  renderNothing,
   withHandlers,
   withState,
   lifecycle,
@@ -29,6 +31,13 @@ const conversationStateSelector = (state: TypedState) => {
     : null
 }
 
+const resetUsersSelector = (state: TypedState) => {
+  const selectedConversationIDKey = Constants.getSelectedConversation(state)
+  return selectedConversationIDKey
+    ? state.chat.getIn(['inboxResetParticipants', selectedConversationIDKey], I.Set())
+    : I.Set()
+}
+
 const editingMessageSelector = (state: TypedState) => state.chat.get('editingMessage')
 
 const ownPropsSelector = (_, {focusInputCounter}: OwnProps) => ({focusInputCounter})
@@ -40,8 +49,9 @@ const stateDependentProps = createSelector(
     Constants.getSelectedRouteState,
     editingMessageSelector,
     Constants.getSelectedInbox,
+    resetUsersSelector,
   ],
-  (selectedConversationIDKey, conversationState, routeState, editingMessage, inbox) => {
+  (selectedConversationIDKey, conversationState, routeState, editingMessage, inbox, resetUsers) => {
     let isLoading = true
     let typing = []
 
@@ -59,12 +69,14 @@ const stateDependentProps = createSelector(
     }
 
     const isPreview = (inbox && inbox.memberStatus) === commonConversationMemberStatus.preview
+    const hasResetUsers = resetUsers.size > 0
 
     return {
       channelName: inbox && inbox.channelname,
       editingMessage,
       isLoading,
       isPreview,
+      hasResetUsers,
       defaultText: (routeState && routeState.get('inputText', new HiddenString('')).stringValue()) || '',
       selectedConversationIDKey,
       typing,
@@ -157,6 +169,8 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
 
 export default compose(
   connect(mapStateToProps, mapDispatchToProps, mergeProps),
+  branch(props => props.hasResetUsers, renderNothing),
+  // $FlowIssue doesn't like branch
   branch(props => props.isPreview, renderComponent(ChannelPreview)),
   withState('text', '_setText', props => props.defaultText || ''),
   withState('mentionPopupOpen', 'setMentionPopupOpen', false),

@@ -29,6 +29,9 @@
     "getDetails": {
       "teamname": "string"
     },
+    "getTeamOperations": {
+      "teamname": "string"
+    },    
     "saveChannelMembership": {
       "teamname": "string",
       "channelState": "Types.ChannelMembershipState"

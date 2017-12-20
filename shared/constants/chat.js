@@ -93,6 +93,7 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   inboxGlobalUntrustedState: 'unloaded',
   inboxSyncingState: 'notSyncing',
   inboxUntrustedState: I.Map(),
+  inboxResetParticipants: I.Map(),
   inboxVersion: I.Map(),
   initialConversation: null,
   localMessageStates: I.Map(),
@@ -310,6 +311,11 @@ function isPendingConversationIDKey(conversationIDKey: string) {
   return conversationIDKey.startsWith('__PendingConversation__')
 }
 
+function isResetConversationIDKey(state: TypedState, conversationIDKey: string) {
+  const inbox = state.chat.getIn(['inbox', conversationIDKey])
+  return inbox ? inbox.memberStatus === RPCChatTypes.commonConversationMemberStatus.reset : false
+}
+
 function pendingConversationIDKeyToTlfName(conversationIDKey: string): ?string {
   if (isPendingConversationIDKey(conversationIDKey)) {
     return conversationIDKey.substring('__PendingConversation__'.length)
@@ -384,6 +390,8 @@ function messageKeyKindIsMessageID(key: Types.MessageKey): boolean {
 function messageKeyKind(key: Types.MessageKey): Types.MessageKeyKind {
   const [, kind] = key.split(':')
   switch (kind) {
+    case 'resetUser':
+      return 'resetUser'
     case 'joinedleft':
       return 'joinedleft'
     case 'system':
@@ -758,6 +766,7 @@ export {
   usernamesToUserListItem,
   pendingConversationIDKey,
   isPendingConversationIDKey,
+  isResetConversationIDKey,
   pendingConversationIDKeyToTlfName,
   getAttachmentInfo,
   getSelectedRouteState,

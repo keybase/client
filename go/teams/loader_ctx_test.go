@@ -239,7 +239,7 @@ func (l *MockLoaderContext) merkleLookup(ctx context.Context, teamID keybase1.Te
 }
 
 func (l *MockLoaderContext) merkleLookupTripleAtHashMeta(ctx context.Context,
-	leafID keybase1.UserOrTeamID, hm keybase1.HashMeta) (triple *libkb.MerkleTriple, err error) {
+	isPublic bool, leafID keybase1.UserOrTeamID, hm keybase1.HashMeta) (triple *libkb.MerkleTriple, err error) {
 
 	key := fmt.Sprintf("%s-%s", leafID, hm)
 	triple1, ok := l.unit.MerkleTriples[key]

@@ -3,7 +3,8 @@ import * as React from 'react'
 import Box from './box'
 import ScrollView from './scroll-view'
 import Text from './text'
-import {globalStyles, globalColors, isMobile} from '../styles'
+import Icon from './icon'
+import {globalStyles, globalColors, isMobile, globalMargins} from '../styles'
 
 // NOTE: componentDidCatch doesn't currently work with react-native:
 // https://github.com/facebook/react-native/issues/15571 .
@@ -22,6 +23,11 @@ type AllErrorInfo = {
   componentStack: string,
 }
 
+type FallbackProps = {
+  closeOnClick?: () => void,
+  info: AllErrorInfo,
+}
+
 const detailHeaderStyle = {
   marginTop: 20,
   marginBottom: 10,
@@ -38,45 +44,54 @@ const detailStyle = {
   whiteSpace: 'pre',
 }
 
-const Fallback = ({info: {name, message, stack, componentStack}}: {info: AllErrorInfo}) => {
+const Fallback = ({closeOnClick, info: {name, message, stack, componentStack}}: FallbackProps) => {
   return (
-    <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center', flex: 1, justifyContent: 'center'}}>
-      <Text type="Header">Something went wrong...</Text>
-      <Text type="Body" style={{marginBottom: 10, marginTop: 10}}>
-        Please submit a bug report by
-        {isMobile ? ' going into Settings / Feedback' : ' running this command in your terminal:'}
-      </Text>
-      {!isMobile &&
-        <Box
-          style={{
-            ...globalStyles.flexBoxColumn,
-            backgroundColor: globalColors.midnightBlue,
-            borderRadius: 4,
-            minWidth: 100,
-            padding: 10,
-          }}
-        >
-          <Text type="Terminal" backgroundMode="Terminal" style={globalStyles.selectable}>
-            keybase log send
-          </Text>
-        </Box>}
-      <Text type="BodySmall" style={detailHeaderStyle}>Error details</Text>
-      <Text type="BodySmall" style={{...globalStyles.selectable, margin: 10}}>{`${name}: ${message}`}</Text>
-      <Text type="BodySmall" style={{marginTop: 20}}>Stack trace</Text>
-      <ScrollView style={detailContainerStyle}>
-        <Text type="BodySmall" style={detailStyle}>{stack}</Text>
-      </ScrollView>
+    <ScrollView style={{width: '100%', height: '100%', padding: globalMargins.medium, position: 'relative'}}>
+      <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center', flex: 1, justifyContent: 'center'}}>
+        <Text type="Header">Something went wrong...</Text>
+        <Text type="Body" style={{marginBottom: 10, marginTop: 10}}>
+          Please submit a bug report by
+          {isMobile ? ' going into Settings / Feedback' : ' running this command in your terminal:'}
+        </Text>
+        {!isMobile &&
+          <Box
+            style={{
+              ...globalStyles.flexBoxColumn,
+              backgroundColor: globalColors.midnightBlue,
+              borderRadius: 4,
+              minWidth: 100,
+              padding: 10,
+            }}
+          >
+            <Text type="Terminal" backgroundMode="Terminal" style={globalStyles.selectable}>
+              keybase log send
+            </Text>
+          </Box>}
+        <Text type="BodySmall" style={detailHeaderStyle}>Error details</Text>
+        <Text type="BodySmall" style={{...globalStyles.selectable, margin: 10}}>{`${name}: ${message}`}</Text>
+        <Text type="BodySmall" style={{marginTop: 20}}>Stack trace</Text>
+        <ScrollView style={detailContainerStyle}>
+          <Text type="BodySmall" style={detailStyle}>{stack}</Text>
+        </ScrollView>
 
-      <Text type="BodySmall" style={detailHeaderStyle}>Component stack trace</Text>
-      <ScrollView style={detailContainerStyle}>
-        <Text type="BodySmall" style={detailStyle}>{componentStack}</Text>
-      </ScrollView>
-    </Box>
+        <Text type="BodySmall" style={detailHeaderStyle}>Component stack trace</Text>
+        <ScrollView style={detailContainerStyle}>
+          <Text type="BodySmall" style={detailStyle}>{componentStack}</Text>
+        </ScrollView>
+      </Box>
+      {closeOnClick &&
+        <Icon
+          type="iconfont-close"
+          style={{position: 'absolute', top: globalMargins.tiny, right: globalMargins.tiny}}
+          onClick={closeOnClick}
+        />}
+    </ScrollView>
   )
 }
 
 type Props = {
   children: React.Node,
+  closeOnClick?: () => void,
 }
 
 type State = {
@@ -105,7 +120,7 @@ class ErrorBoundary extends React.PureComponent<Props, State> {
 
   render() {
     if (this.state.info) {
-      return <Fallback info={this.state.info} />
+      return <Fallback info={this.state.info} closeOnClick={this.props.closeOnClick} />
     }
     return this.props.children
   }

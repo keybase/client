@@ -308,6 +308,18 @@
     },
     "previewChannel": {
       "conversationIDKey": "Types.ConversationIDKey"
+    },
+    "updateResetParticipants": {
+      "conversationIDKey": "Types.ConversationIDKey",
+      "participants": "Array<string>"
+    },
+    "resetLetThemIn": {
+      "conversationIDKey": "Types.ConversationIDKey",
+      "username": "string"
+    },
+    "resetChatWithoutThem": {
+      "conversationIDKey": "Types.ConversationIDKey",
+      "username": "string"
     }
   }
 }

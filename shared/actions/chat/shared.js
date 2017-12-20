@@ -7,7 +7,6 @@ import * as I from 'immutable'
 import * as RPCChatTypes from '../../constants/types/flow-types-chat'
 import * as RPCTypes from '../../constants/types/flow-types'
 import {call, put, select} from 'redux-saga/effects'
-import {parseFolderNameToUsers} from '../../util/kbfs'
 import {usernameSelector} from '../../constants/selectors'
 import flags from '../../util/feature-flags'
 
@@ -17,29 +16,8 @@ const metaDataSelector = (state: TypedState) => state.chat.get('metaData')
 const routeSelector = (state: TypedState) =>
   state.routeTree.routeState ? state.routeTree.routeState.get('selected') : null
 const focusedSelector = (state: TypedState) => state.config.appFocused
-const activeSelector = (state: TypedState) => state.config.userActive
 const conversationStateSelector = (state: TypedState, conversationIDKey: Types.ConversationIDKey) =>
   state.chat.getIn(['conversationStates', conversationIDKey])
-
-const messageOutboxIDSelector = (
-  state: TypedState,
-  conversationIDKey: Types.ConversationIDKey,
-  outboxID: Types.OutboxIDKey
-): ?Types.Message => Constants.getMessageFromConvKeyMessageID(state, conversationIDKey, outboxID)
-
-const devicenameSelector = (state: TypedState) => state.config && state.config.deviceName
-
-function tmpFileName(
-  isPreview: boolean,
-  conversationID: Types.ConversationIDKey,
-  messageID: Types.MessageID
-) {
-  if (!messageID) {
-    throw new Error('tmpFileName called without messageID!')
-  }
-
-  return `kbchat-${conversationID}-${messageID}.${isPreview ? 'preview' : 'download'}`
-}
 
 // Actually start a new conversation. conversationIDKey can be a pending one or a replacement
 function* startNewConversation(
@@ -115,51 +93,11 @@ function* getPostingIdentifyBehavior(conversationIDKey: Types.ConversationIDKey)
   return RPCTypes.tlfKeysTLFIdentifyBehavior.chatGuiStrict
 }
 
-function makeInboxStateRecords(
-  author: string,
-  items: Array<RPCChatTypes.UnverifiedInboxUIItem>,
-  oldInbox: I.Map<Types.ConversationIDKey, Types.InboxState>
-): Array<Types.InboxState> {
-  return (items || [])
-    .map(c => {
-      // We already know about this version? Skip it
-      if (oldInbox.getIn([c.convID, 'version']) === c.version) {
-        return null
-      }
-      const parts = c.localMetadata
-        ? I.List(c.localMetadata.writerNames || [])
-        : I.List(parseFolderNameToUsers(author, c.name).map(ul => ul.username))
-      return Constants.makeInboxState({
-        channelname: c.membersType === RPCChatTypes.commonConversationMembersType.team && c.localMetadata
-          ? c.localMetadata.channelName
-          : undefined,
-        conversationIDKey: c.convID,
-        fullNames: I.Map(),
-        info: null,
-        maxMsgID: c.maxMsgID,
-        memberStatus: c.memberStatus,
-        membersType: c.membersType,
-        participants: parts,
-        status: Constants.ConversationStatusByEnum[c.status || 0],
-        teamType: c.teamType,
-        teamname: c.membersType === RPCChatTypes.commonConversationMembersType.team ? c.name : undefined,
-        time: c.time,
-        version: c.version,
-      })
-    })
-    .filter(Boolean)
-}
-
 export {
   conversationStateSelector,
-  devicenameSelector,
   focusedSelector,
-  activeSelector,
   getPostingIdentifyBehavior,
-  makeInboxStateRecords,
-  messageOutboxIDSelector,
   metaDataSelector,
   routeSelector,
   startNewConversation,
-  tmpFileName,
 }
