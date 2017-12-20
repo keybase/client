@@ -486,6 +486,12 @@ const _getTeams = function*(action: TeamsGen.GetTeamsPayload): Saga.SagaGenerato
         })
       )
     )
+  } catch (err) {
+    if (err.code === RPCTypes.constantsStatusCode.scapinetworkerror) {
+      // Ignore API errors due to offline
+    } else {
+      throw err
+    }
   } finally {
     yield Saga.put(replaceEntity(['teams'], I.Map([['loaded', true]])))
   }
