@@ -2,6 +2,7 @@
 import * as I from 'immutable'
 import * as React from 'react'
 import * as Types from '../../../constants/types/teams'
+import * as TeamsGen from '../../../actions/teams-gen'
 import {TeamMemberRow} from '.'
 import {amIFollowing} from '../../../constants/selectors'
 import {connect} from 'react-redux'
@@ -31,6 +32,8 @@ const mapStateToProps = (state: TypedState, {teamname, username, active}: OwnPro
 
 type DispatchProps = {
   onClick: () => void,
+  _onReAddToTeam: (teamname: string, username: string, role: ?Types.TeamRoleType) => void,
+  _onRemoveFromTeam: (teamname: string, username: string) => void,
 }
 
 const mapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps): DispatchProps => ({
@@ -43,6 +46,27 @@ const mapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps): DispatchPro
         },
       ])
     ),
+  _onReAddToTeam: (teamname: string, username: string, role: ?Types.TeamRoleType) => {
+    dispatch(
+      TeamsGen.createAddToTeam({
+        teamname,
+        username,
+        role: role || 'reader',
+        sendChatNotification: false,
+        email: '',
+      })
+    )
+  },
+  _onRemoveFromTeam: (teamname: string, username: string) => {
+    dispatch(
+      TeamsGen.createRemoveMemberOrPendingInvite({
+        username,
+        teamname,
+        email: '',
+        inviteID: '',
+      })
+    )
+  },
 })
 
 const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps, ownProps: OwnProps) => {
@@ -51,9 +75,11 @@ const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps, ownPro
   const type = user ? user.type : null
   return {
     ...ownProps,
-    ...dispatchProps,
     ...stateProps,
     type,
+    onClick: dispatchProps.onClick,
+    onReAddToTeam: () => dispatchProps._onReAddToTeam(ownProps.teamname, ownProps.username, type),
+    onRemoveFromTeam: () => dispatchProps._onRemoveFromTeam(ownProps.teamname, ownProps.username),
   }
 }
 
