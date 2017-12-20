@@ -25,10 +25,10 @@ export default function(state: Types.State = initialState, action: $ReadOnly<Cha
   switch (action.type) {
     case Chat2Gen.resetStore:
       return initialState
-    case Chat2Gen.metaUntrustedReceived:
+    case Chat2Gen.metasReceived:
       return state.update('metaMap', metaMap =>
         metaMap.withMutations(map => {
-          action.payload.untrustedMetas.forEach(meta => {
+          action.payload.metas.forEach(meta => {
             const old = map.get(meta.id)
             // Only update if this is newer
             if (!old || meta.inboxVersion > old.inboxVersion) {
@@ -41,17 +41,16 @@ export default function(state: Types.State = initialState, action: $ReadOnly<Cha
       return state.update('metaMap', metaMap =>
         metaMap.withMutations(m => {
           action.payload.conversationIDKeys.forEach(id => {
-            m.setIn([id, 'loadingState'], action.payload.newState)
+            m.setIn([id, 'trustedState'], action.payload.newState)
           })
         })
       )
     // Saga only actions
     case Chat2Gen.inboxRefresh:
-    case Chat2Gen.metaNeedsUpdating:
-    case Chat2Gen.metaRequestTrusted:
     case Chat2Gen.metaHandleQueue:
-    case Chat2Gen.metaTrustedFailed:
-    case Chat2Gen.metaTrustedReceived:
+    case Chat2Gen.metaNeedsUpdating:
+    case Chat2Gen.metaReceivedError:
+    case Chat2Gen.metaRequestTrusted:
       return state
     default:
       // eslint-disable-next-line no-unused-expressions

@@ -469,7 +469,6 @@
 // const textMap: DumbComponentMap<Wrapper> = {
 // component: Wrapper,
 // mocks: {
-// // $FlowIssue with mockstore and innerclass
 // 'Normal - Text': {
 // mockStore,
 // ...textContainerMock(firstMsg.key),

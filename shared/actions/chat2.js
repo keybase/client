@@ -157,7 +157,9 @@ function rpcMetaRequestError(error: Error, action: Chat2Gen.MetaRequestTrustedPa
   }
 }
 
-function changeMetaTrustedState(action: Chat2Gen.MetaUpdateTrustedStatePayload) {
+function changeMetaTrustedState(
+  action: Chat2Gen.MetaRequestTrustedPayload | Chat2Gen.MetaReceivedErrorPayload
+) {
   let newState
   let conversationIDKeys
 

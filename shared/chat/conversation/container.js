@@ -85,7 +85,8 @@ const mapStateToProps = (state: TypedState, {routePath, routeProps}): StateProps
       const selected = Constants.getInbox(state, selectedConversationIDKey)
       if (selected && untrustedState === 'error') {
         conversationIsError = true
-        conversationErrorText = Constants.getSnippet(state, selectedConversationIDKey)
+        // TODO
+        // conversationErrorText = Constants.getSnippet(state, selectedConversationIDKey)
       }
       showLoader =
         (!Constants.isPendingConversationIDKey(selectedConversationIDKey) && untrustedState !== 'unboxed') ||

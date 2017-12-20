@@ -1,8 +1,23 @@
 // @flow
 import * as I from 'immutable'
-import * as Types from './types/chat2'
 import * as RPCChatTypes from './types/flow-types-chat'
+import * as Types from './types/chat2'
+import type {TypedState} from './reducer'
 import {toByteArray} from 'base64-js'
+
+// This is emoji aware hence all the weird ... stuff. See https://mathiasbynens.be/notes/javascript-unicode#iterating-over-symbols
+const textSnippet = (message: ?string = '', max: number) =>
+  // $FlowIssue flow doesn't understand spread + strings
+  [...message.substring(0, max * 4).replace(/\s+/g, ' ')].slice(0, max).join('')
+
+export const getSnippet = (state: TypedState, conversationIDKey: Types.ConversationIDKey) => {
+  const snippetTypes = ['Attachment', 'Text', 'System']
+  const messageMap = state.chat2.messageMap.get(conversationIDKey, I.Map())
+  const messageIDs = state.chat2.messageIDsList.get(conversationIDKey, I.List())
+  const messageID = messageIDs.findLast(id => snippetTypes.includes(messageMap.getIn([id, 'type'], '')))
+  // $FlowIssue doesn't know its an attachment/text/system
+  return messageID ? textSnippet(messageMap.getIn([messageID, 'message']).stringValue(), 100) : ''
+}
 
 const conversationMemberStatusToMembershipType = (m: RPCChatTypes.ConversationMemberStatus) => {
   switch (m) {
@@ -77,7 +92,7 @@ export const inboxUIItemToConversationMeta = (i: RPCChatTypes.InboxUIItem) => {
     isMuted: i.status === RPCChatTypes.commonConversationStatus.muted,
     membershipType: conversationMemberStatusToMembershipType(i.memberStatus),
     notificationSettings: i.notifications,
-    participants: I.Set(i.participants),
+    participants: I.Set(i.participants || []),
     resetParticipants,
     supersededBy,
     supersededByCausedBy,
@@ -103,7 +118,9 @@ export const makeConversationMeta: I.RecordFactory<Types._ConversationMeta> = I.
   participants: I.Set(),
   resetParticipants: I.Set(),
   supersededBy: null,
+  supersededByCausedBy: null,
   supersedes: null,
+  supersedesCausedBy: null,
   teamType: 'adhoc',
   trustedState: 'untrusted',
 })
