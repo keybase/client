@@ -128,6 +128,7 @@ const Intro = (props: Props) => (
         style={{
           ...globalStyles.flexBoxColumn,
           flexGrow: 1,
+          width: '100%',
           justifyContent: 'center',
           alignItems: 'center',
           marginTop: 55,
@@ -144,7 +145,7 @@ const Intro = (props: Props) => (
         />
         <Box style={{minHeight: 100, width: 1}} />
         <Text style={stylesLoginHeader} type="Body" onClick={props.onLogin}>Already on Keybase?</Text>
-        <ButtonBar direction="column">
+        <ButtonBar>
           <Button type="Secondary" onClick={props.onLogin} label="Log in" />
         </ButtonBar>
         <Text style={stylesFeedback} type="BodySmallSecondaryLink" onClick={props.onFeedback}>
