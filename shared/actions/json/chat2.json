@@ -6,25 +6,22 @@
   ],
   "actions": {
     "inboxRefresh": {},
-    "inboxUtrustedLoaded": {
-      "untrusted": "Array<Types.ConversationMeta>"
-    },
-    "queueUnboxConversations": {
+    "metaNeedsUpdating": {
       "conversationIDKeys": "Array<Types.ConversationIDKey>",
       "reason": "string"
     },
-    "unboxSomeConversations": {},
-    "unboxConversations": {
+    "metaHandleQueue": {},
+    "metaRequestTrusted": {
       "conversationIDKeys": "Array<Types.ConversationIDKey>"
     },
-    "updateConverationLoadingStates": {
-      "newState": "Types.LoadingState",
+    "metaUpdateTrustedState": {
+      "newState": "Types.MetaTrustedState",
       "conversationIDKeys": "Array<Types.ConversationIDKey>"
     },
-    "unboxingSuccess": {
-      "inboxItem": "RPCChatTypes.InboxUIItem"
+    "metasReceived": {
+      "metas": "Array<Types.ConversationMeta>"
     },
-    "unboxingFailure": {
+    "metaReceivedError": {
       "conversationIDKey": "Types.ConversationIDKey",
       "error": "RPCChatTypes.ConversationErrorLocal"
     }

@@ -61,6 +61,7 @@ protocol chatUi {
     string snippet;
     array<string> writerNames;
     array<string> resetParticipants;
+    union { null, UIMessage } snippetMsg;
   }
 
   record UnverifiedInboxUIItem {

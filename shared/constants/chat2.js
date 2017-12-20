@@ -2,6 +2,7 @@
 import * as I from 'immutable'
 import * as Types from './types/chat2'
 import * as RPCChatTypes from './types/flow-types-chat'
+import {toByteArray} from 'base64-js'
 
 const conversationMemberStatusToMembershipType = (m: RPCChatTypes.ConversationMemberStatus) => {
   switch (m) {
@@ -14,7 +15,11 @@ const conversationMemberStatusToMembershipType = (m: RPCChatTypes.ConversationMe
   }
 }
 
-export const unverifiedInboxUIItemToConversation = (i: RPCChatTypes.UnverifiedInboxUIItem) => {
+// This one call handles us getting a string or a buffer
+const supersededConversationIDToKey = (id: any): string =>
+  typeof id === 'string' ? Buffer.from(toByteArray(id)).toString('hex') : id.toString('hex')
+
+export const unverifiedInboxUIItemToConversationMeta = (i: RPCChatTypes.UnverifiedInboxUIItem) => {
   return makeConversationMeta({
     id: i.convID,
     inboxVersion: i.version,
@@ -26,6 +31,60 @@ export const unverifiedInboxUIItemToConversation = (i: RPCChatTypes.UnverifiedIn
     supersededBy: null,
     supersedes: null,
     teamType: 'adhoc',
+    trustedState: i.localMetadata ? 'trusted' : 'untrusted', // if we have localMetadata attached to an unverifiedInboxUIItem it's been loaded previously
+  })
+}
+
+const conversationMetadataToMetaSupersedeInfo = (metas: ?Array<RPCChatTypes.ConversationMetadata>) => {
+  const meta: ?RPCChatTypes.ConversationMetadata = (metas || [])
+    .find(m => m.idTriple.topicType === RPCChatTypes.commonTopicType.chat && m.finalizeInfo)
+
+  return {
+    conversationIDKey: meta ? supersededConversationIDToKey(meta.conversationID) : null,
+    username: meta && meta.finalizeInfo ? meta.finalizeInfo.resetUser : null,
+  }
+}
+
+export const inboxUIItemToConversationMeta = (i: RPCChatTypes.InboxUIItem) => {
+  let teamType
+  if (i.teamType === RPCChatTypes.commonTeamType.complex) {
+    teamType = 'big'
+  } else if (i.membersType === RPCChatTypes.commonConversationMembersType.team) {
+    teamType = 'small'
+  } else {
+    teamType = 'adhoc'
+  }
+
+  // We only treat implied adhoc teams as having resetParticipants
+  const resetParticipants = I.Set(
+    i.membersType === RPCChatTypes.commonConversationMembersType.impteam && i.resetParticipants
+      ? i.resetParticipants
+      : []
+  )
+
+  const {
+    conversationIDKey: supersededBy,
+    username: supersededByCausedBy,
+  } = conversationMetadataToMetaSupersedeInfo(i.supersededBy)
+  const {
+    conversationIDKey: supersedes,
+    username: supersedesCausedBy,
+  } = conversationMetadataToMetaSupersedeInfo(i.supersedes)
+
+  return makeConversationMeta({
+    id: i.convID,
+    inboxVersion: i.version,
+    isMuted: i.status === RPCChatTypes.commonConversationStatus.muted,
+    membershipType: conversationMemberStatusToMembershipType(i.memberStatus),
+    notificationSettings: i.notifications,
+    participants: I.Set(i.participants),
+    resetParticipants,
+    supersededBy,
+    supersededByCausedBy,
+    supersedes,
+    supersedesCausedBy,
+    teamType,
+    trustedState: 'trusted',
   })
 }
 
@@ -39,7 +98,6 @@ export const makeConversationMeta: I.RecordFactory<Types._ConversationMeta> = I.
   id: Types.stringToConversationIDKey(''),
   inboxVersion: -1,
   isMuted: false,
-  loadingState: 'untrusted',
   membershipType: 'active',
   notificationSettings: null,
   participants: I.Set(),
@@ -47,10 +105,11 @@ export const makeConversationMeta: I.RecordFactory<Types._ConversationMeta> = I.
   supersededBy: null,
   supersedes: null,
   teamType: 'adhoc',
+  trustedState: 'untrusted',
 })
 
 export const makeState: I.RecordFactory<Types._State> = I.Record({
-  messageIDsLsit: I.Map(),
+  messageIDsList: I.Map(),
   messageMap: I.Map(),
   metaMap: I.Map(),
 })

@@ -1199,7 +1199,7 @@ export type UnreadUpdateFull = {|ignore: Boolean,inboxVers: InboxVers,inboxSyncS
 
 export type UnverifiedInboxUIItem = {|convID: String,name: String,visibility: Keybase1.TLFVisibility,status: ConversationStatus,membersType: ConversationMembersType,memberStatus: ConversationMemberStatus,teamType: TeamType,notifications?: ?ConversationNotificationInfo,time: Gregor1.Time,version: ConversationVers,maxMsgID: MessageID,localMetadata?: ?UnverifiedInboxUIItemMetadata,|}
 
-export type UnverifiedInboxUIItemMetadata = {|channelName: String,headline: String,snippet: String,writerNames?: ?Array<String>,resetParticipants?: ?Array<String>,|}
+export type UnverifiedInboxUIItemMetadata = {|channelName: String,headline: String,snippet: String,writerNames?: ?Array<String>,resetParticipants?: ?Array<String>,snippetMsg?: ?UIMessage,|}
 
 export type UnverifiedInboxUIItems = {|items?: ?Array<UnverifiedInboxUIItem>,pagination?: ?UIPagination,offline: Boolean,|}
 

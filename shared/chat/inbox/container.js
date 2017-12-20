@@ -249,7 +249,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {focusFilter, routeState, setRou
   onSetFilter: (filter: string) => dispatch(ChatGen.createSetInboxFilter({filter})),
   onUntrustedInboxVisible: (conversationIDKeys: Array<Types.ConversationIDKey>) => {
     // dispatch(ChatGen.createUnboxConversations({conversationIDKeys, reason: 'untrusted inbox visible'}))
-    dispatch(Chat2Gen.createQueueUnboxConversations({conversationIDKeys, reason: 'untrusted inbox visible'}))
+    dispatch(Chat2Gen.createMetaNeedsUpdating({conversationIDKeys, reason: 'untrusted inbox visible'}))
   },
   toggleSmallTeamsExpanded: () => setRouteState({smallTeamsExpanded: !routeState.get('smallTeamsExpanded')}),
   refreshInbox: (force: boolean) => dispatch(Chat2Gen.createInboxRefresh()),

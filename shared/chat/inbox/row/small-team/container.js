@@ -9,7 +9,7 @@ import {pausableConnect, type TypedState} from '../../../../util/container'
 
 const getSnippet = (state: TypedState, conversationIDKey: Types.ConversationIDKey) =>
   // Constants.getSnippet(state, conversationIDKey) // TEMP
-  'state: ' + state.chat2.metaMap.getIn([conversationIDKey, 'loadingState'], 'untrusted')
+  'state: ' + state.chat2.metaMap.getIn([conversationIDKey, 'trustedState'], 'untrusted')
 
 const mapStateToProps = (state: TypedState, {conversationIDKey, isActiveRoute}) => {
   const isPending = Constants.isPendingConversationIDKey(conversationIDKey || '')

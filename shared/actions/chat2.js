@@ -54,37 +54,43 @@ function* rpcInboxRefresh(action: Chat2Gen.InboxRefreshPayload): Generator<any, 
     const result: RPCChatTypes.UnverifiedInboxUIItems = JSON.parse(
       incoming['chat.1.chatUi.chatInboxUnverified'].params.inbox
     )
-    const untrusted = (result.items || []).map(Constants.unverifiedInboxUIItemToConversation)
-    yield Saga.put(Chat2Gen.createInboxUtrustedLoaded({untrusted}))
+    // We get meta
+    const metas = (result.items || []).map(Constants.unverifiedInboxUIItemToConversationMeta)
+    yield Saga.put(Chat2Gen.createMetasReceived({metas}))
+    // We also get some cached messages
+    // const messages = (result.items || []).map(Constants.unverifiedInboxUIItemToMessage)
+    // yield Saga.put(Chat2Gen.createUnboxingSuccess({inboxItem: JSON.parse(conv)}))
   }
 }
+
+// const addMessageToConversation = (action: Chat2Gen.CreateUnboxingSuccessPayload) => {}
 
 // Only get the untrusted conversations out
 const untrustedConversationIDKeys = (state: TypedState, ids: Array<Types.ConversationIDKey>) =>
-  ids.filter(id => state.chat2.metaMap.getIn([id, 'loadingState'], 'untrusted') === 'untrusted')
+  ids.filter(id => state.chat2.metaMap.getIn([id, 'trustedState'], 'untrusted') === 'untrusted')
 
 // We keep a set of conversations to unbox
-let unboxQueue = I.OrderedSet()
-function addConversationsToUnboxQueue(action: Chat2Gen.QueueUnboxConversationsPayload, state: TypedState) {
-  const old = unboxQueue
-  unboxQueue = unboxQueue.concat(untrustedConversationIDKeys(state, action.payload.conversationIDKeys))
-  if (old !== unboxQueue) {
+let metaQueue = I.OrderedSet()
+function queueMetaToRequest(action: Chat2Gen.MetaNeedsUpdatingPayload, state: TypedState) {
+  const old = metaQueue
+  metaQueue = metaQueue.concat(untrustedConversationIDKeys(state, action.payload.conversationIDKeys))
+  if (old !== metaQueue) {
     // only unboxMore if something changed
-    return Saga.put(Chat2Gen.createUnboxSomeConversations())
+    return Saga.put(Chat2Gen.createMetaHandleQueue())
   }
 }
 
-// Watch the unboxing queue and take up to 10 items. Choose the last items first since they're likely still visible
-function unboxSomeConversations(action: Chat2Gen.QueueUnboxConversationsPayload, state: TypedState) {
+// Watch the meta queue and take up to 10 items. Choose the last items first since they're likely still visible
+function requestMeta(action: Chat2Gen.MetaHandleQueuePayload, state: TypedState) {
   const maxToUnboxAtATime = 10
-  const maybeUnbox = unboxQueue.takeLast(maxToUnboxAtATime)
-  unboxQueue = unboxQueue.skipLast(maxToUnboxAtATime)
+  const maybeUnbox = metaQueue.takeLast(maxToUnboxAtATime)
+  metaQueue = metaQueue.skipLast(maxToUnboxAtATime)
 
   const conversationIDKeys = untrustedConversationIDKeys(state, maybeUnbox.toArray())
   const toUnboxActions = conversationIDKeys.length
-    ? [Saga.put(Chat2Gen.createUnboxConversations({conversationIDKeys}))]
+    ? [Saga.put(Chat2Gen.createMetaRequestTrusted({conversationIDKeys}))]
     : []
-  const unboxSomeMoreActions = unboxQueue.size ? [Saga.put(Chat2Gen.createUnboxSomeConversations())] : []
+  const unboxSomeMoreActions = metaQueue.size ? [Saga.put(Chat2Gen.createMetaHandleQueue())] : []
   const delayBeforeUnboxingMoreActions = toUnboxActions.length && unboxSomeMoreActions.length
     ? [Saga.call(Saga.delay, 100)]
     : []
@@ -96,13 +102,15 @@ function unboxSomeConversations(action: Chat2Gen.QueueUnboxConversationsPayload,
   }
 }
 
-function rpcUnboxConversations(action: Chat2Gen.UnboxConversationsPayload) {
+function rpcMetaRequest(action: Chat2Gen.MetaRequestTrustedPayload) {
   const loadInboxRpc = new EngineRpc.EngineRpcCall(
     {
       'chat.1.chatUi.chatInboxConversation': function*({
         conv,
       }: RPCChatTypes.ChatUiChatInboxConversationRpcParam) {
-        yield Saga.put(Chat2Gen.createUnboxingSuccess({inboxItem: JSON.parse(conv)}))
+        yield Saga.put(
+          Chat2Gen.createMetasReceived({metas: [Constants.inboxUIItemToConversationMeta(JSON.parse(conv))]})
+        )
         return EngineRpc.rpcResult()
       },
       'chat.1.chatUi.chatInboxFailed': function*({
@@ -110,7 +118,7 @@ function rpcUnboxConversations(action: Chat2Gen.UnboxConversationsPayload) {
         error,
       }: RPCChatTypes.ChatUiChatInboxFailedRpcParam) {
         yield Saga.put(
-          Chat2Gen.createUnboxingFailure({conversationIDKey: Constants.conversationIDToKey(convID), error})
+          Chat2Gen.createMetaReceivedError({conversationIDKey: Constants.conversationIDToKey(convID), error})
         )
         return EngineRpc.rpcResult()
       },
@@ -134,7 +142,7 @@ function rpcUnboxConversations(action: Chat2Gen.UnboxConversationsPayload) {
   // }
 }
 
-function rpcUnboxConversationsError(error: Error, action: Chat2Gen.UnboxConversationsPayload) {
+function rpcMetaRequestError(error: Error, action: Chat2Gen.MetaRequestTrustedPayload) {
   if (error instanceof RPCTimeoutError) {
     logger.warn('unboxConversations: timed out request for unboxConversations, bailing')
     // yield Saga.put.resolve(
@@ -149,29 +157,26 @@ function rpcUnboxConversationsError(error: Error, action: Chat2Gen.UnboxConversa
   }
 }
 
-function updateConversationState(action: Chat2Gen.UnboxConversationsPayload) {
+function changeMetaTrustedState(action: Chat2Gen.MetaUpdateTrustedStatePayload) {
   let newState
   let conversationIDKeys
+
   switch (action.type) {
-    case Chat2Gen.unboxConversations:
-      newState = 'unboxing'
+    case Chat2Gen.metaRequestTrusted:
+      newState = 'requesting'
       conversationIDKeys = action.payload.conversationIDKeys
       break
-    case Chat2Gen.unboxingSuccess:
-      newState = 'unboxed'
-      conversationIDKeys = [action.payload.inboxItem.convID]
-      break
-    case Chat2Gen.unboxingFailure:
-      newState = 'unboxed'
+    case Chat2Gen.metaReceivedError:
+      newState = 'error'
       conversationIDKeys = [action.payload.conversationIDKey]
       break
     default:
       // eslint-disable-next-line no-unused-expressions
       (action: empty) // errors if we don't handle any new actions
-      throw new Error('Invalid action passed to updateConversationState')
+      throw new Error('Invalid action passed to updateMetaTrustedState')
   }
   return Saga.put(
-    Chat2Gen.createUpdateConverationLoadingStates({
+    Chat2Gen.createMetaUpdateTrustedState({
       conversationIDKeys,
       newState,
     })
@@ -182,21 +187,18 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
   // Refresh the inbox
   yield Saga.safeTakeLatest(Chat2Gen.inboxRefresh, rpcInboxRefresh)
   // We've scrolled some new inbox rows into view, queue them up
-  yield Saga.safeTakeEveryPure(Chat2Gen.queueUnboxConversations, addConversationsToUnboxQueue)
+  yield Saga.safeTakeEveryPure(Chat2Gen.metaNeedsUpdating, queueMetaToRequest)
   // We have some items in the queue to process
-  yield Saga.safeTakeEveryPure(Chat2Gen.unboxSomeConversations, unboxSomeConversations)
+  yield Saga.safeTakeEveryPure(Chat2Gen.metaHandleQueue, requestMeta)
   // Mark rows as loading, unboxing, unboxed, etc
   yield Saga.safeTakeEveryPure(
-    [Chat2Gen.unboxConversations, Chat2Gen.unboxingSuccess, Chat2Gen.unboxingFailure],
-    updateConversationState
+    [Chat2Gen.metaRequestTrusted, Chat2Gen.metaReceivedError],
+    changeMetaTrustedState
   )
   // Actually try and unbox conversations
-  yield Saga.safeTakeEveryPure(
-    Chat2Gen.unboxConversations,
-    rpcUnboxConversations,
-    () => {},
-    rpcUnboxConversationsError
-  )
+  yield Saga.safeTakeEveryPure(Chat2Gen.metaRequestTrusted, rpcMetaRequest, () => {}, rpcMetaRequestError)
+  // If we get an inbox update we take that message and make sure we have it
+  // yield Saga.safeTakeEveryPure(Chat2Gen.createUnboxingSuccess, addMessageToConversation)
 }
 
 export default chat2Saga

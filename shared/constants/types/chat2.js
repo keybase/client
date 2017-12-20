@@ -17,20 +17,23 @@ type Message = any
 
 type MembershipType = 'active' | 'youArePreviewing' | 'youAreReset'
 type TeamType = 'small' | 'big' | 'adhoc'
-export type LoadingState = 'untrusted' | 'unboxing' | 'unboxed'
+type Username = string
+export type MetaTrustedState = 'untrusted' | 'requesting' | 'trusted' | 'error'
 
 // Metadata about a conversation. We keep the messages sep. since we update these at different times
 export type _ConversationMeta = {
   id: ConversationIDKey,
   inboxVersion: number,
   isMuted: boolean,
-  loadingState: LoadingState,
+  trustedState: MetaTrustedState,
   membershipType: MembershipType,
   notificationSettings: ?RPCChatTypes.ConversationNotificationInfo,
   participants: I.Set<string>,
   resetParticipants: I.Set<string>,
   supersededBy: ?ConversationIDKey,
+  supersededByCausedBy: ?Username,
   supersedes: ?ConversationIDKey,
+  supersedesCausedBy: ?Username,
   teamType: TeamType,
 }
 
@@ -39,7 +42,7 @@ export type ConversationMeta = I.RecordOf<_ConversationMeta>
 export type _State = {
   metaMap: I.Map<ConversationIDKey, ConversationMeta>,
   messageMap: I.Map<ConversationIDKey, I.Map<MessageID, Message>>,
-  messageIDsLsit: I.Map<ConversationIDKey, I.List<MessageID>>,
+  messageIDsList: I.Map<ConversationIDKey, I.List<MessageID>>,
 }
 
 export type State = I.RecordOf<_State>
