@@ -189,7 +189,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
   let youAreMember = false
   if (you) {
     // TODO: can we just test stateProps.yourOperations.RenameChannel ?
-    youExplicitAdmin = Constants.isOwner(stateProps.yourRole) || stateProps.yourOperations.manageMembers
+    youExplicitAdmin = Constants.isOwner(stateProps.yourRole) || Constants.isAdmin(stateProps.yourRole)
     youImplicitAdmin = stateProps._implicitAdminUsernames.has(you)
     youAreMember = stateProps.yourRole && stateProps.yourRole !== 'none'
   }
