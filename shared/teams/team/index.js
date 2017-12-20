@@ -347,7 +347,13 @@ class Team extends React.PureComponent<Props> {
       const teamsLink = 'keybase.io/popular-teams'
       contents = (
         <ScrollView
-          style={{...globalStyles.flexBoxColumn, alignSelf: 'stretch', padding: globalMargins.medium}}
+          style={{
+            ...globalStyles.flexBoxColumn,
+            alignSelf: 'stretch',
+            padding: globalMargins.medium,
+            flexBasis: 0,
+            flexGrow: 1,
+          }}
         >
           {!youImplicitAdmin &&
             <Box
