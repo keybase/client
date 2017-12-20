@@ -1597,7 +1597,7 @@ func (g *gregorHandler) LocalDismissItem(ctx context.Context, id gregor.MsgID) (
 
 func (g *gregorHandler) DismissCategory(ctx context.Context, category gregor1.Category) error {
 	var err error
-	defer g.G().CTrace(ctx.fmt.Sprintf("gregorHandler.DismissCategory(%s)", category.String()),
+	defer g.G().CTrace(ctx, fmt.Sprintf("gregorHandler.DismissCategory(%s)", category.String()),
 		func() error { return err },
 	)()
 
