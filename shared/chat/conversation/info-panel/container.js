@@ -25,7 +25,7 @@ const getParticipants = createSelector(
   [
     Constants.getYou,
     Constants.getParticipantsWithFullNames,
-    Constants.getFollowingMap,
+    Constants.getFollowing,
     Constants.getMetaDataMap,
   ],
   (you, users, followingMap, metaDataMap) => {

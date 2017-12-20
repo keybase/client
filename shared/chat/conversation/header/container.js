@@ -11,7 +11,7 @@ import {type OwnProps} from './container'
 import * as ChatTypes from '../../../constants/types/flow-types-chat'
 
 const getUsers = createSelector(
-  [Constants.getYou, Constants.getParticipants, Constants.getFollowingMap, Constants.getMetaDataMap],
+  [Constants.getYou, Constants.getParticipants, Constants.getFollowing, Constants.getMetaDataMap],
   (you, participants, followingMap, metaDataMap) =>
     Constants.usernamesToUserListItem(
       Constants.participantFilter(List(participants), you).toArray(),
