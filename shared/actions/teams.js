@@ -107,11 +107,14 @@ const _inviteByEmail = function*(action: TeamsGen.InviteToTeamByEmailPayload) {
     replaceEntity(['teams', 'teamNameToLoadingInvites'], I.Map([[teamname, I.Map([[invitees, true]])]]))
   )
   try {
-    yield Saga.call(RPCTypes.teamsTeamAddEmailsBulkRpcPromise, {
+    const res: RPCTypes.BulkRes = yield Saga.call(RPCTypes.teamsTeamAddEmailsBulkRpcPromise, {
       name: teamname,
       emails: invitees,
       role: role ? RPCTypes.teamsTeamRole[role] : RPCTypes.teamsTeamRole.none,
     })
+    if (res.malformed && res.malformed.length > 0) {
+      throw new Error(`Unable to parse email addresses: ${res.malformed.join('; ')}`)
+    }
   } finally {
     // TODO handle error, but for now make sure loading is unset
     yield Saga.put((dispatch: Dispatch) => dispatch(TeamsGen.createGetDetails({teamname}))) // getDetails will unset loading
