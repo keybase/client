@@ -41,7 +41,7 @@ func parsePermissionsV1(permsStr string) (permissionsV1, error) {
 	return perms, nil
 }
 
-func (ac *AccessControlV1) makeAccessControlV1Internal(users map[string]UserV1) (
+func (ac *AccessControlV1) makeAccessControlV1Internal(users map[string][]byte) (
 	aci *accessControlV1, err error) {
 	if ac == nil {
 		return nil, errors.New("nil AccessControlV1")
@@ -142,9 +142,8 @@ func (m *aclCheckerV1) getPermissions(
 	return permissions
 }
 
-func makeACLCheckerV1(
-	defaultAC AccessControlV1, acl map[string]AccessControlV1, users map[string]UserV1) (
-	*aclCheckerV1, error) {
+func makeACLCheckerV1(defaultAC AccessControlV1, acl map[string]AccessControlV1,
+	users map[string][]byte) (*aclCheckerV1, error) {
 	defaultACI, err := defaultAC.makeAccessControlV1Internal(users)
 	if err != nil {
 		return nil, err

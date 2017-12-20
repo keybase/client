@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+	"golang.org/x/crypto/bcrypt"
 )
 
 func TestConfigV1Default(t *testing.T) {
@@ -60,20 +61,21 @@ func TestConfigV1Invalid(t *testing.T) {
 	require.IsType(t, ErrInvalidPermissions{}, err)
 }
 
+func generatePasswordHashForTestOrBust(t *testing.T, password string) []byte {
+	passwordHash, err := bcrypt.GenerateFromPassword(
+		[]byte(password), bcrypt.DefaultCost)
+	require.NoError(t, err)
+	return passwordHash
+}
+
 func TestConfigV1Full(t *testing.T) {
 	config := V1{
 		Common: Common{
 			Version: Version1Str,
 		},
-		Users: map[string]UserV1{
-			"alice": UserV1{
-				PasswordSalt:      "salt",
-				PasswordSHA512Hex: MakeSaltedSHA512PasswordHex("12345", "salt"),
-			},
-			"bob": UserV1{
-				PasswordSalt:      "tlas",
-				PasswordSHA512Hex: MakeSaltedSHA512PasswordHex("54321", "tlas"),
-			},
+		Users: map[string][]byte{
+			"alice": generatePasswordHashForTestOrBust(t, "12345"),
+			"bob":   generatePasswordHashForTestOrBust(t, "54321"),
 		},
 		DefaultACL: AccessControlV1{
 			AnonymousPermissions: "read",

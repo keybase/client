@@ -5,29 +5,10 @@
 package config
 
 import (
-	"crypto/sha512"
-	"encoding/hex"
 	"sync"
+
+	"golang.org/x/crypto/bcrypt"
 )
-
-// MakeSaltedSHA512PasswordHex takes concatenated salt and password, calculate
-// SHA512 of it, and return the result encoded in hex.
-func MakeSaltedSHA512PasswordHex(password string, salt string) string {
-	s := sha512.Sum512([]byte(salt + password))
-	return hex.EncodeToString(s[:])
-}
-
-// UserV1 defines a user's hashed password for the V1 config.
-type UserV1 struct {
-	PasswordSHA512Hex string `json:"password_sha512_hex"`
-	PasswordSalt      string `json:"password_salt"`
-}
-
-// Authenticate returns true if password matches u, or false if not.
-func (u *UserV1) Authenticate(password string) bool {
-	return MakeSaltedSHA512PasswordHex(
-		password, u.PasswordSalt) == u.PasswordSHA512Hex
-}
 
 // AccessControlV1 defines an access control list (ACL) for the V1 config.
 type AccessControlV1 struct {
@@ -47,9 +28,9 @@ type AccessControlV1 struct {
 type V1 struct {
 	Common
 
-	// Users is a username -> UserV1 map that defines how users should be
-	// authenticated.
-	Users map[string]UserV1 `json:"users"`
+	// Users is a [username -> bcrypt-hashed password] map that defines how
+	// users should be authenticated.
+	Users map[string][]byte `json:"users"`
 
 	// DefaultACL defines the ACL that should be used for paths that no ACL has
 	// been configured for.
@@ -83,11 +64,11 @@ func (c *V1) Version() Version {
 
 // Authenticate implements the Config interface.
 func (c *V1) Authenticate(username, password string) bool {
-	u, ok := c.Users[username]
+	passwordHash, ok := c.Users[username]
 	if !ok {
 		return false
 	}
-	return u.Authenticate(password)
+	return bcrypt.CompareHashAndPassword(passwordHash, []byte(password)) == nil
 }
 
 func (c *V1) initACLChecker() {
