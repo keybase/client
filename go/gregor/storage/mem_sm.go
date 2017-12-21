@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/keybase/client/go/gregor"
+	"github.com/keybase/client/go/logger"
 	"github.com/keybase/clockwork"
 	"golang.org/x/net/context"
 )
@@ -21,15 +22,17 @@ type MemEngine struct {
 	objFactory gregor.ObjFactory
 	clock      clockwork.Clock
 	users      map[string](*user)
+	log        logger.Logger
 }
 
 // NewMemEngine makes a new MemEngine with the given object factory and the
 // potentially fake clock (or a real clock if not testing).
-func NewMemEngine(f gregor.ObjFactory, cl clockwork.Clock) *MemEngine {
+func NewMemEngine(f gregor.ObjFactory, cl clockwork.Clock, log logger.Logger) *MemEngine {
 	return &MemEngine{
 		objFactory: f,
 		clock:      cl,
 		users:      make(map[string](*user)),
+		log:        log,
 	}
 }
 
@@ -65,8 +68,16 @@ type loggedMsg struct {
 // user consists of a list of items (some of which might be dismissed) and
 // and an unpruned log of all incoming messages.
 type user struct {
-	items [](*item)
-	log   []loggedMsg
+	logger          logger.Logger
+	items           [](*item)
+	log             []loggedMsg
+	localDismissals []gregor.MsgID
+}
+
+func newUser(logger logger.Logger) *user {
+	return &user{
+		logger: logger,
+	}
 }
 
 // isDismissedAt returns true if item i is dismissed at time t. It will always return
@@ -130,6 +141,16 @@ func (u *user) logMessage(t time.Time, m gregor.InBandMessage, i *item) {
 	u.log = append(u.log, loggedMsg{m, t, i})
 }
 
+func (u *user) removeLocalDismissal(msgID gregor.MsgID) {
+	var lds []gregor.MsgID
+	for _, ld := range u.localDismissals {
+		if ld.String() != msgID.String() {
+			lds = append(lds, ld)
+		}
+	}
+	u.localDismissals = lds
+}
+
 func msgIDtoString(m gregor.MsgID) string {
 	return hex.EncodeToString(m.Bytes())
 }
@@ -143,6 +164,7 @@ func (u *user) dismissMsgIDs(now time.Time, ids []gregor.MsgID) {
 		if _, found := set[msgIDtoString(i.item.Metadata().MsgID())]; found {
 			i.dtime = &now
 			i.dismissedImmediate = true
+			u.removeLocalDismissal(i.item.Metadata().MsgID())
 		}
 	}
 }
@@ -174,6 +196,7 @@ func (u *user) dismissRanges(now time.Time, rs []gregor.MsgRange) {
 				isBeforeOrSame(i.ctime, toTime(now, r.EndTime())) {
 				i.dtime = &now
 				i.dismissedImmediate = true
+				u.removeLocalDismissal(i.item.Metadata().MsgID())
 				break
 			}
 		}
@@ -212,6 +235,7 @@ func (u *user) state(now time.Time, f gregor.ObjFactory, d gregor.DeviceID, t gr
 		if i.isDismissedAt(toTime(now, t)) {
 			continue
 		}
+
 		exported, err := i.export(f)
 		if err != nil {
 			return nil, err
@@ -297,6 +321,24 @@ func (m *MemEngine) ConsumeMessage(ctx context.Context, msg gregor.Message) (tim
 	}
 }
 
+func (m *MemEngine) ConsumeLocalDismissal(ctx context.Context, u gregor.UID, msgID gregor.MsgID) error {
+	user := m.getUser(u)
+	user.removeLocalDismissal(msgID)
+	user.localDismissals = append(user.localDismissals, msgID)
+	return nil
+}
+
+func (m *MemEngine) InitLocalDismissals(ctx context.Context, u gregor.UID, msgIDs []gregor.MsgID) error {
+	user := m.getUser(u)
+	user.localDismissals = msgIDs
+	return nil
+}
+
+func (m *MemEngine) LocalDismissals(ctx context.Context, u gregor.UID) (res []gregor.MsgID, err error) {
+	user := m.getUser(u)
+	return user.localDismissals, nil
+}
+
 func uidToString(u gregor.UID) string {
 	return hex.EncodeToString(u.Bytes())
 }
@@ -307,7 +349,7 @@ func (m *MemEngine) getUser(uid gregor.UID) *user {
 	if u, ok := m.users[uidHex]; ok {
 		return u
 	}
-	u := new(user)
+	u := newUser(m.log)
 	m.users[uidHex] = u
 	return u
 }

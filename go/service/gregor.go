@@ -183,29 +183,6 @@ type gregorHandler struct {
 var _ libkb.GregorDismisser = (*gregorHandler)(nil)
 var _ libkb.GregorListener = (*gregorHandler)(nil)
 
-type gregorLocalDb struct {
-	libkb.Contextified
-}
-
-func newLocalDB(g *libkb.GlobalContext) *gregorLocalDb {
-	return &gregorLocalDb{
-		Contextified: libkb.NewContextified(g),
-	}
-}
-
-func dbKey(u gregor.UID) libkb.DbKey {
-	return libkb.DbKey{Typ: libkb.DBGregor, Key: hex.EncodeToString(u.Bytes())}
-}
-
-func (db *gregorLocalDb) Store(u gregor.UID, b []byte) error {
-	return db.G().LocalDb.PutRaw(dbKey(u), b)
-}
-
-func (db *gregorLocalDb) Load(u gregor.UID) (res []byte, e error) {
-	res, _, err := db.G().LocalDb.GetRaw(dbKey(u))
-	return res, err
-}
-
 func newGregorHandler(g *globals.Context) *gregorHandler {
 	gh := &gregorHandler{
 		Contextified:      globals.NewContextified(g),
@@ -225,7 +202,7 @@ func newGregorHandler(g *globals.Context) *gregorHandler {
 func (g *gregorHandler) Init() {
 	// Attempt to create a gregor client initially, if we are not logged in
 	// or don't have user/device info in G, then this won't work
-	if err := g.resetGregorClient(); err != nil {
+	if err := g.resetGregorClient(context.TODO()); err != nil {
 		g.Warning(context.Background(), "unable to create push service client: %s", err.Error())
 	}
 
@@ -293,11 +270,10 @@ func (g *gregorHandler) GetClient() chat1.RemoteInterface {
 	return chat1.RemoteClient{Cli: chat.NewRemoteClient(g.G(), g.cli)}
 }
 
-func (g *gregorHandler) resetGregorClient() (err error) {
+func (g *gregorHandler) resetGregorClient(ctx context.Context) (err error) {
 	defer g.G().Trace("gregorHandler#newGregorClient", func() error { return err })()
 	of := gregor1.ObjFactory{}
-	sm := storage.NewMemEngine(of, clockwork.NewRealClock())
-	ctx := context.Background()
+	sm := storage.NewMemEngine(of, clockwork.NewRealClock(), g.G().Log)
 
 	var guid gregor.UID
 	var gdid gregor.DeviceID
@@ -329,12 +305,12 @@ func (g *gregorHandler) resetGregorClient() (err error) {
 	}
 
 	// Create client object
-	gcli := grclient.NewClient(guid, gdid, sm, newLocalDB(g.G().ExternalG()),
+	gcli := grclient.NewClient(guid, gdid, sm, storage.NewLocalDB(g.G().ExternalG()),
 		g.G().Env.GetGregorSaveInterval(), g.G().Log)
 
 	// Bring up local state
 	g.Debug(ctx, "restoring state from leveldb")
-	if err = gcli.Restore(); err != nil {
+	if err = gcli.Restore(ctx); err != nil {
 		// If this fails, we'll keep trying since the server can bail us out
 		g.Debug(ctx, "restore local state failed: %s", err)
 	}
@@ -388,7 +364,7 @@ func (g *gregorHandler) Connect(uri *rpc.FMPURI) (err error) {
 
 	// Create client interface to gregord; the user needs to be logged in for this
 	// to work
-	if err = g.resetGregorClient(); err != nil {
+	if err = g.resetGregorClient(context.TODO()); err != nil {
 		return err
 	}
 
@@ -508,25 +484,26 @@ func (g *gregorHandler) replayInBandMessages(ctx context.Context, cli gregor1.In
 
 	if t.IsZero() {
 		g.Debug(ctx, "replayInBandMessages: fresh replay: using state items")
-		state, err := gcli.StateMachineState(ctx, nil)
+		state, err := gcli.StateMachineState(ctx, nil, true)
 		if err != nil {
-			g.Debug(ctx, "unable to fetch state for replay: %s", err)
+			g.Debug(ctx, "replayInBandMessages: unable to fetch state for replay: %s", err)
 			return nil, err
 		}
 		if msgs, err = gcli.InBandMessagesFromState(state); err != nil {
-			g.Debug(ctx, "unable to fetch messages from state for replay: %s", err)
+			g.Debug(ctx, "replayInBandMessages: unable to fetch messages from state for replay: %s", err)
 			return nil, err
 		}
 	} else {
 		g.Debug(ctx, "replayInBandMessages: incremental replay: using ibms since")
-		if msgs, err = gcli.StateMachineInBandMessagesSince(ctx, t); err != nil {
-			g.Debug(ctx, "unable to fetch messages for replay: %s", err)
+		if msgs, err = gcli.StateMachineInBandMessagesSince(ctx, t, true); err != nil {
+			g.Debug(ctx, "replayInBandMessages: unable to fetch messages for replay: %s", err)
 			return nil, err
 		}
 	}
 
-	g.Debug(ctx, "replaying %d messages", len(msgs))
+	g.Debug(ctx, "replayInBandMessages: replaying %d messages", len(msgs))
 	for _, msg := range msgs {
+		g.Debug(ctx, "replayInBandMessages: replaying: %s", msg.Metadata().MsgID())
 		// If we have a handler, just run it on that, otherwise run it against
 		// all of the handlers we know about
 		if handler == nil {
@@ -538,7 +515,7 @@ func (g *gregorHandler) replayInBandMessages(ctx context.Context, cli gregor1.In
 		// If an error happens when replaying, don't kill everything else that
 		// follows, just make a warning.
 		if err != nil {
-			g.Debug(ctx, "Failure in message replay: %s", err.Error())
+			g.Debug(ctx, "replayInBandMessages: failure in message replay: %s", err.Error())
 			err = nil
 		}
 	}
@@ -648,7 +625,7 @@ func (g *gregorHandler) notificationParams(ctx context.Context, gcli *grclient.C
 	if pt != nil {
 		t = gregor1.ToTime(*pt)
 	}
-	g.chatLog.Debug(ctx, "notificationParams: latest ctime: %s", t)
+	g.chatLog.Debug(ctx, "notificationParams: latest ctime: %v", t.Time())
 	return t
 }
 
@@ -832,7 +809,7 @@ func (g *gregorHandler) broadcastMessageOnce(ctx context.Context, m gregor1.Mess
 		}
 		// Check to see if this is already in our state
 		msgID := ibm.Metadata().MsgID()
-		state, err := gcli.StateMachineState(ctx, nil)
+		state, err := gcli.StateMachineState(ctx, nil, false)
 		if err != nil {
 			g.Debug(ctx, "BroadcastMessage: no state machine available: %s", err.Error())
 			return err
@@ -941,7 +918,7 @@ func (g *gregorHandler) handleInBandMessageWithHandler(ctx context.Context, cli 
 	if err != nil {
 		return false, err
 	}
-	state, err := gcli.StateMachineState(ctx, nil)
+	state, err := gcli.StateMachineState(ctx, nil, false)
 	if err != nil {
 		return false, err
 	}
@@ -1182,7 +1159,7 @@ func (g *gregorHandler) Shutdown() {
 
 func (g *gregorHandler) Reset() error {
 	g.Shutdown()
-	return g.resetGregorClient()
+	return g.resetGregorClient(context.TODO())
 }
 
 func (g *gregorHandler) kbfsFavorites(ctx context.Context, m gregor.OutOfBandMessage) error {
@@ -1583,7 +1560,7 @@ func (g *gregorHandler) DismissItem(ctx context.Context, cli gregor1.IncomingInt
 		return nil
 	}
 	var err error
-	defer g.G().Trace(fmt.Sprintf("gregorHandler.dismissItem(%s)", id.String()),
+	defer g.G().CTrace(ctx, fmt.Sprintf("gregorHandler.dismissItem(%s)", id.String()),
 		func() error { return err },
 	)()
 
@@ -1603,9 +1580,24 @@ func (g *gregorHandler) DismissItem(ctx context.Context, cli gregor1.IncomingInt
 	return err
 }
 
+func (g *gregorHandler) LocalDismissItem(ctx context.Context, id gregor.MsgID) (err error) {
+	if id == nil {
+		return nil
+	}
+	defer g.G().CTrace(ctx, fmt.Sprintf("gregorHandler.localDismissItem(%s)", id.String()),
+		func() error { return err },
+	)()
+
+	cli, err := g.getGregorCli()
+	if err != nil {
+		return err
+	}
+	return cli.StateMachineConsumeLocalDismissal(ctx, id)
+}
+
 func (g *gregorHandler) DismissCategory(ctx context.Context, category gregor1.Category) error {
 	var err error
-	defer g.G().Trace(fmt.Sprintf("gregorHandler.DismissCategory(%s)", category.String()),
+	defer g.G().CTrace(ctx, fmt.Sprintf("gregorHandler.DismissCategory(%s)", category.String()),
 		func() error { return err },
 	)()
 
@@ -1706,7 +1698,7 @@ func (g *gregorHandler) getState(ctx context.Context) (res gregor1.State, err er
 		return res, errors.New("gregor service not available (are you in standalone?)")
 	}
 
-	s, err = g.gregorCli.StateMachineState(ctx, nil)
+	s, err = g.gregorCli.StateMachineState(ctx, nil, false)
 	if err != nil {
 		return res, err
 	}

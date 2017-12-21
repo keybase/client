@@ -460,6 +460,10 @@ func (f *FakeGregorDismisser) DismissItem(_ context.Context, cli gregor1.Incomin
 	return nil
 }
 
+func (f *FakeGregorDismisser) LocalDismissItem(ctx context.Context, id gregor.MsgID) error {
+	return nil
+}
+
 // ResetLoginState is only used for testing...
 // Bypasses locks.
 func (g *GlobalContext) ResetLoginState() {
