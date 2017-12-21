@@ -20,6 +20,7 @@ import search from '../search/search.stories'
 import teams from '../teams/index.stories'
 import text from '../common-adapters/text.stories'
 import editTeamDescription from '../teams/edit-team-description/index.stories'
+import peopleTask from '../people/task/index.stories'
 
 const stories = {
   avatar,
@@ -38,6 +39,7 @@ const stories = {
   editTeamDescription,
   git,
   icon,
+  peopleTask,
   radiobutton,
   roles,
   search,
