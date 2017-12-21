@@ -1,5 +1,6 @@
 // @flow
 import React from 'react'
+import * as I from 'immutable'
 import {
   compose,
   withState,
@@ -20,7 +21,7 @@ type Props<D: {key: string, selected: boolean}> = {
 }
 
 type MentionDatum = {
-  following: {[username: string]: boolean},
+  following: I.Set<string>,
   you: string,
   username: string,
   fullName: string,
@@ -54,7 +55,7 @@ const MentionRowRenderer = ({
     <Usernames
       type="BodySemibold"
       colorFollowing={true}
-      users={[{you: you === username, username, following: following[username]}]}
+      users={[{you: you === username, username, following: following.has(username)}]}
       style={{marginLeft: globalMargins.small}}
     />
     <Text type="Body" style={{marginLeft: globalMargins.tiny}}>{fullName}</Text>
