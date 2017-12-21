@@ -51,7 +51,12 @@ func (l *LoaderContextG) getNewLinksFromServer(ctx context.Context,
 	readSubteamID *keybase1.TeamID) (*rawTeam, error) {
 
 	arg := libkb.NewAPIArgWithNetContext(ctx, "team/get")
-	arg.SessionType = libkb.APISessionTypeREQUIRED
+	if public {
+		arg.SessionType = libkb.APISessionTypeOPTIONAL
+	} else {
+		arg.SessionType = libkb.APISessionTypeREQUIRED
+
+	}
 	arg.Args = libkb.HTTPArgs{
 		"id":     libkb.S{Val: teamID.String()},
 		"low":    libkb.I{Val: int(lows.Seqno)},
