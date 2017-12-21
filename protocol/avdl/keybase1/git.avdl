@@ -101,6 +101,6 @@ protocol git {
     union { null, string } channelName;
     boolean chatDisabled; 
   }
-  GitTeamRepoSettings getTeamRepoSettings(Folder folder, GitRepoName repoName);
-  void setTeamRepoSettings(Folder folder, GitRepoName repoName, union { null, string } channelName, boolean chatDisabled);
+  GitTeamRepoSettings getTeamRepoSettings(Folder folder, RepoID repoID);
+  void setTeamRepoSettings(Folder folder, RepoID repoID, union { null, string } channelName, boolean chatDisabled);
 }

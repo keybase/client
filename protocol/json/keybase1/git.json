@@ -336,8 +336,8 @@
           "type": "Folder"
         },
         {
-          "name": "repoName",
-          "type": "GitRepoName"
+          "name": "repoID",
+          "type": "RepoID"
         }
       ],
       "response": "GitTeamRepoSettings"
@@ -349,8 +349,8 @@
           "type": "Folder"
         },
         {
-          "name": "repoName",
-          "type": "GitRepoName"
+          "name": "repoID",
+          "type": "RepoID"
         },
         {
           "name": "channelName",

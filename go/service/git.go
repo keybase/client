@@ -328,11 +328,11 @@ func (h *GitHandler) GcTeamRepo(ctx context.Context, arg keybase1.GcTeamRepoArg)
 }
 
 func (h *GitHandler) GetTeamRepoSettings(ctx context.Context, arg keybase1.GetTeamRepoSettingsArg) (keybase1.GitTeamRepoSettings, error) {
-	return keybase1.GitTeamRepoSettings{}, nil
+	return git.GetTeamRepoSettings(ctx, h.G(), arg)
 }
 
 func (h *GitHandler) SetTeamRepoSettings(ctx context.Context, arg keybase1.SetTeamRepoSettingsArg) error {
-	return nil
+	return git.SetTeamRepoSettings(ctx, h.G(), arg)
 }
 
 func (h *GitHandler) kbfsClient() (*keybase1.KBFSGitClient, error) {

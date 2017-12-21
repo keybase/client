@@ -2273,7 +2273,7 @@ export type GitGetAllGitMetadataRpcParam = ?{|incomingCallMap?: IncomingCallMapT
 
 export type GitGetGitMetadataRpcParam = {|folder: Folder, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type GitGetTeamRepoSettingsRpcParam = {|folder: Folder, repoName: GitRepoName, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type GitGetTeamRepoSettingsRpcParam = {|folder: Folder, repoID: RepoID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
 export type GitLocalMetadata = {|repoName: GitRepoName|}
 
@@ -2297,7 +2297,7 @@ export type GitRepoResultState =
 
 export type GitServerMetadata = {|ctime: Time, mtime: Time, lastModifyingUsername: String, lastModifyingDeviceID: DeviceID, lastModifyingDeviceName: String|}
 
-export type GitSetTeamRepoSettingsRpcParam = {|folder: Folder, repoName: GitRepoName, channelName?: ?String, chatDisabled: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type GitSetTeamRepoSettingsRpcParam = {|folder: Folder, repoID: RepoID, channelName?: ?String, chatDisabled: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
 export type GitTeamRepoSettings = {|channelName?: ?String, chatDisabled: Boolean|}
 

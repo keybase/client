@@ -336,15 +336,15 @@ type GcTeamRepoArg struct {
 }
 
 type GetTeamRepoSettingsArg struct {
-	Folder   Folder      `codec:"folder" json:"folder"`
-	RepoName GitRepoName `codec:"repoName" json:"repoName"`
+	Folder Folder `codec:"folder" json:"folder"`
+	RepoID RepoID `codec:"repoID" json:"repoID"`
 }
 
 type SetTeamRepoSettingsArg struct {
-	Folder       Folder      `codec:"folder" json:"folder"`
-	RepoName     GitRepoName `codec:"repoName" json:"repoName"`
-	ChannelName  *string     `codec:"channelName,omitempty" json:"channelName,omitempty"`
-	ChatDisabled bool        `codec:"chatDisabled" json:"chatDisabled"`
+	Folder       Folder  `codec:"folder" json:"folder"`
+	RepoID       RepoID  `codec:"repoID" json:"repoID"`
+	ChannelName  *string `codec:"channelName,omitempty" json:"channelName,omitempty"`
+	ChatDisabled bool    `codec:"chatDisabled" json:"chatDisabled"`
 }
 
 type GitInterface interface {
