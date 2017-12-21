@@ -72,7 +72,7 @@ export default class ActionRender extends PureComponent<ActionProps> {
           <Button
             waiting={this.props.waiting}
             style={{...styleActionButton, marginRight: globalMargins.tiny}}
-            type="Follow"
+            type="PrimaryGreen"
             label="Follow"
             onClick={() => this.props.onFollow()}
           />}
@@ -98,14 +98,14 @@ export default class ActionRender extends PureComponent<ActionProps> {
       <div style={styleContainer}>
         <Button
           waiting={this.props.waiting}
-          type="Unfollow"
+          type="Secondary"
           label="Ignore for 24 hrs"
           onClick={() => this.props.onIgnore()}
         />
         <Button
           waiting={this.props.waiting}
           style={{...styleActionButton, marginLeft: globalMargins.tiny}}
-          type="Follow"
+          type="PrimaryGreen"
           label="Accept"
           onClick={() => this.props.onRefollow()}
         />

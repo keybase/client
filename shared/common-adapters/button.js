@@ -14,15 +14,7 @@ export type Props = {
   label: ?string,
   style?: ?Object,
   labelStyle?: ?Object,
-  type:
-    | 'Primary'
-    | 'PrimaryPrivate'
-    | 'Secondary'
-    | 'Danger'
-    | 'Follow'
-    | 'Following'
-    | 'Unfollow'
-    | 'PrimaryGreen',
+  type: 'Primary' | 'PrimaryPrivate' | 'Secondary' | 'Danger' | 'PrimaryGreen' | 'PrimaryGreenActive',
   disabled?: ?boolean,
   waiting?: ?boolean,
   small?: boolean,
@@ -49,27 +41,23 @@ class Button extends Component<Props> {
     let containerStyle = {
       Custom,
       Danger,
-      Follow,
-      Following,
       Primary,
       PrimaryGreen,
+      PrimaryGreenActive,
       PrimaryPrivate,
       Secondary,
       SecondaryOnTerminal,
-      Unfollow,
     }[this.props.type + backgroundModeName]
 
     let labelStyle = {
       CustomLabel,
       DangerLabel,
-      FollowLabel,
-      FollowingLabel,
-      PrimaryLabel,
+      PrimaryGreenActiveLabel,
       PrimaryGreenLabel,
+      PrimaryLabel,
       PrimaryPrivateLabel,
       SecondaryLabel,
       SecondaryLabelOnTerminal,
-      UnfollowLabel,
     }[this.props.type + 'Label' + backgroundModeName]
 
     if (this.props.fullWidth) {
@@ -81,7 +69,7 @@ class Button extends Component<Props> {
     }
 
     if (this.props.disabled || this.props.waiting) {
-      containerStyle = {...containerStyle, ...disabled[this.props.type]}
+      containerStyle = {...containerStyle, opacity: 0.3}
     }
 
     if (!isMobile && this.props.waiting) {
@@ -152,133 +140,37 @@ const fullWidth = {
 }
 
 const smallStyle = {
+  borderRadius: smallBorderRadius,
   height: smallHeight,
   paddingLeft: globalMargins.small,
   paddingRight: globalMargins.small,
-  borderRadius: smallBorderRadius,
 }
 
-const disabled = {
-  Custom: {opacity: 0.3},
-  Danger: {opacity: 0.2},
-  Follow: {opacity: 0.3},
-  Following: {opacity: 0.3},
-  Primary: {opacity: 0.3},
-  PrimaryGreen: {opacity: 0.3},
-  PrimaryPrivate: {opacity: 0.2},
-  Secondary: {opacity: 0.3},
-  Unfollow: {opacity: 0.3},
-}
-
-const Primary = {
+const Primary = {...common, backgroundColor: globalColors.blue}
+const PrimaryLabel = commonLabel
+const PrimaryGreen = {...common, backgroundColor: globalColors.green}
+const PrimaryGreenLabel = commonLabel
+const PrimaryGreenActive = {
   ...common,
-  backgroundColor: globalColors.blue,
-}
-const PrimaryLabel = {
-  ...commonLabel,
-}
-
-const PrimaryGreen = {
-  ...common,
-  backgroundColor: globalColors.green,
-}
-const PrimaryGreenLabel = {
-  ...commonLabel,
-}
-
-const PrimaryPrivate = {
-  ...common,
-  backgroundColor: globalColors.darkBlue2,
-}
-const PrimaryPrivateLabel = {
-  ...commonLabel,
-}
-
-const Secondary = {
-  ...common,
-  backgroundColor: globalColors.lightGrey2,
-}
-const SecondaryOnTerminal = {
-  ...Secondary,
-  backgroundColor: globalColors.blue_30,
-}
-const SecondaryLabel = {
-  ...commonLabel,
-  color: globalColors.black_75,
-}
-const SecondaryLabelOnTerminal = {
-  ...SecondaryLabel,
-  color: globalColors.white,
-}
-
-const Danger = {
-  ...common,
-  backgroundColor: globalColors.red,
-}
-const DangerLabel = {
-  ...commonLabel,
-}
-
-const followCommon = {
-  width: 142,
-}
-
-const Follow = {
-  ...common,
-  ...followCommon,
-  backgroundColor: globalColors.green,
-}
-const FollowLabel = {
-  ...commonLabel,
-}
-
-const Following = {
-  ...common,
-  ...followCommon,
   backgroundColor: globalColors.white,
   borderColor: globalColors.green,
   borderWidth: 2,
-  ...(isMobile
-    ? {}
-    : {
-        borderStyle: 'solid',
-      }),
+  ...(isMobile ? {} : {borderStyle: 'solid'}),
 }
-const FollowingLabel = {
-  ...commonLabel,
-  color: globalColors.green,
-}
-
-const Unfollow = {
-  ...common,
-  ...followCommon,
-  backgroundColor: globalColors.lightGrey2,
-}
-const UnfollowLabel = {
-  ...commonLabel,
-  color: globalColors.black_75,
-}
-
+const PrimaryGreenActiveLabel = {...commonLabel, color: globalColors.green}
+const PrimaryPrivate = {...common, backgroundColor: globalColors.darkBlue2}
+const PrimaryPrivateLabel = commonLabel
+const Secondary = {...common, backgroundColor: globalColors.lightGrey2}
+const SecondaryOnTerminal = {...Secondary, backgroundColor: globalColors.blue_30}
+const SecondaryLabel = {...commonLabel, color: globalColors.black_75}
+const SecondaryLabelOnTerminal = {...SecondaryLabel, color: globalColors.white}
+const Danger = {...common, backgroundColor: globalColors.red}
+const DangerLabel = commonLabel
 const Custom = {}
-const CustomLabel = {
-  color: globalColors.black_75,
-  textAlign: 'center',
-}
-
-const progressStyle = small =>
-  isMobile
-    ? undefined
-    : {
-        height: small ? 20 : 20,
-      }
-
+const CustomLabel = {color: globalColors.black_75, textAlign: 'center'}
+const progressStyle = small => (isMobile ? undefined : {height: small ? 20 : 20})
 const progress = isMobile
-  ? {
-      marginTop: -regularHeight / 2,
-    }
-  : {
-      ...globalStyles.fillAbsolute,
-      ...globalStyles.flexBoxCenter,
-    }
+  ? {marginTop: -regularHeight / 2}
+  : {...globalStyles.fillAbsolute, ...globalStyles.flexBoxCenter}
 
 export default Button

@@ -41,7 +41,7 @@ const load = () => {
         borderWidth: 1,
         flex: 1,
         margin: 20,
-        width: 350,
+        width: 400,
       }}
     >
       <Pair>
@@ -57,15 +57,13 @@ const load = () => {
         <Button {...commonProps} type="Danger" label="Danger" disabled={true} />
       </Pair>
       <Pair>
-        <Button {...commonProps} type="PrimaryGreen" label="Feels good" />
-        <Button {...commonProps} type="PrimaryGreen" label="Feels good" disabled={true} />
+        <Button {...commonProps} type="PrimaryGreen" label="Primary Green" />
+        <Button {...commonProps} type="PrimaryGreen" label="Primary Green" disabled={true} />
       </Pair>
-      <Box style={{height: 20}} />
-      <Button {...commonProps} type="Following" label="Following" />
-      <Box style={{height: 10}} />
-      <Button {...commonProps} type="Follow" label="Follow" />
-      <Box style={{height: 10}} />
-      <Button {...commonProps} type="Unfollow" label="Unfollow" />
+      <Pair>
+        <Button {...commonProps} type="PrimaryGreenActive" label="Primary Green Active" />
+        <Button {...commonProps} type="PrimaryGreenActive" label="Primary Green Active" disabled={true} />
+      </Pair>
       <Box
         style={{
           ...globalStyles.flexBoxColumn,
@@ -80,7 +78,9 @@ const load = () => {
         <Box style={{height: 10}} />
         <Button {...commonProps} type="Danger" label="Danger small" small={true} />
         <Box style={{height: 10}} />
-        <Button {...commonProps} type="PrimaryGreen" label="Feels good small" small={true} />
+        <Button {...commonProps} type="PrimaryGreen" label="Primary Green small" small={true} />
+        <Box style={{height: 10}} />
+        <Button {...commonProps} type="PrimaryGreenActive" label="Primary Green Active small" small={true} />
       </Box>
     </Box>
   ))
