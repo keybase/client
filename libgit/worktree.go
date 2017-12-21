@@ -14,6 +14,18 @@ import (
 	"gopkg.in/src-d/go-git.v4/storage/filesystem"
 )
 
+// repoFromStorageAndWorktree returns a repo instance where the dotgit
+// storage layer points to the bare repo represented by `repoFS`, but
+// the worktree storage layer uses `worktreeFS`.  This is useful for
+// checking out the git repo without having to read and copy the
+// complete git history.  The index and the HEAD commit of the
+// worktree are stored in `worktreeFS/.git`.  The caller should make
+// no modifying calls into the repo, other than checkout/reset-related
+// calls.
+//
+// For the convenience of the caller, it also returns `currentHead`,
+// which is the current commit at the HEAD of `branch`, according to
+// the bare repo represented by `repoFS`.
 func repoFromStorageAndWorktree(
 	repoFS billy.Filesystem, worktreeFS billy.Filesystem,
 	branch plumbing.ReferenceName) (

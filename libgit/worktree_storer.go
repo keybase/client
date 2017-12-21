@@ -17,7 +17,23 @@ import (
 // directory in the worktree, but everything else goes through the
 // main bare repo's .git directory.  This is useful for making a quick
 // checkout of a git repo in a new directory, without making a full
-// git clone.
+// git clone. For example, consider the following instance:
+//
+// * `storage.Storer` points to a bare repo stored in KBFS, say
+//   `/keybase/team/keybase/.kbfs_git/secrets/.git`.
+// * `delta` is the same as above, but cast as a `DeltaObjectStorer`.
+// * `wtDotgit` can be pointed anywhere else in KBFS where you want to
+//   expose a checked-out version of the keybase secrets repo, say
+//   `/keybase/private/strib/.kbfs_autogit/team/keybase/secrets/`
+//
+// Any calls to update the index or set a reference will be routed to
+// `wtDotgit`, and everything else goes to `storage.Storer`.  That
+// means that the caller can use this to "reset" the autogit worktree
+// to some commit stored in the main bare repo, without having to do a
+// full clone and copy the git history, etc.
+//
+// This storage layer should only be used for read-only workloads,
+// where the entire git history isn't needed.
 type worktreeStorer struct {
 	storage.Storer // main dotgit where all the objects/refs are
 	delta          storer.DeltaObjectStorer
