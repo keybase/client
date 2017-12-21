@@ -896,6 +896,7 @@ func (fbo *folderBranchOps) setHeadSuccessorLocked(ctx context.Context,
 			ctx, fbo.config.Codec(), fbo.config.KBPKI(),
 			constIDGetter{fbo.id()}, *newHandle)
 	if err != nil {
+		fbo.log.CDebugf(ctx, "oldHandle=%+v, newHandle=%+v: err=%+v", oldHandle, newHandle, err)
 		return err
 	}
 

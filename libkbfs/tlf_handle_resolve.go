@@ -458,21 +458,27 @@ func (h TlfHandle) ResolvesTo(
 		other.finalizedInfo = nil
 	}
 
-	unresolvedAssertions := make(map[string]bool)
-	for _, uw := range other.unresolvedWriters {
-		unresolvedAssertions[uw.String()] = true
-	}
-	for _, ur := range other.unresolvedReaders {
-		unresolvedAssertions[ur.String()] = true
-	}
+	if h.TypeForKeying() == tlf.TeamKeying {
+		// Nothing to resolve for team-based TLFs, just use `other` by
+		// itself.
+		partialResolvedH = other.deepCopy()
+	} else {
+		unresolvedAssertions := make(map[string]bool)
+		for _, uw := range other.unresolvedWriters {
+			unresolvedAssertions[uw.String()] = true
+		}
+		for _, ur := range other.unresolvedReaders {
+			unresolvedAssertions[ur.String()] = true
+		}
 
-	// TODO: Once we keep track of the original assertions in
-	// TlfHandle, restrict the resolver to use other's assertions
-	// only, so that we don't hit the network at all.
-	partialResolvedH, err = h.ResolveAgain(
-		ctx, partialResolver{resolver, unresolvedAssertions}, idGetter)
-	if err != nil {
-		return false, nil, err
+		// TODO: Once we keep track of the original assertions in
+		// TlfHandle, restrict the resolver to use other's assertions
+		// only, so that we don't hit the network at all.
+		partialResolvedH, err = h.ResolveAgain(
+			ctx, partialResolver{resolver, unresolvedAssertions}, idGetter)
+		if err != nil {
+			return false, nil, err
+		}
 	}
 
 	if conflictAdded || finalizedAdded {
