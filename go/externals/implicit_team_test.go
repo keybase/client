@@ -55,6 +55,24 @@ func TestParseImplicitTeamTLFName(t *testing.T) {
 	require.True(t, firstSocial != secondSocial)
 	require.True(t, firstSocial == aliceExpected || firstSocial == bobExpected)
 	require.True(t, secondSocial == aliceExpected || secondSocial == bobExpected)
+
+	goodName = "/keybase/public/dave,bob@facebook#alice (conflicted 2017-03-04)"
+	name, err = libkb.ParseImplicitTeamTLFName(MakeAssertionContext(), goodName)
+	require.NoError(t, err)
+	require.Equal(t, name.IsPublic, true)
+	require.Equal(t, len(name.Writers.KeybaseUsers), 1)
+	require.Equal(t, len(name.Writers.UnresolvedUsers), 1)
+	require.True(t, containsString(name.Writers.KeybaseUsers, "dave"))
+	require.Equal(t, name.ConflictInfo.Generation, keybase1.ConflictGeneration(1), "right conflict info")
+
+	goodName = "/keybase/public/dave,bob@facebook#alice (conflicted 2017-03-04 #2)"
+	name, err = libkb.ParseImplicitTeamTLFName(MakeAssertionContext(), goodName)
+	require.NoError(t, err)
+	require.Equal(t, name.IsPublic, true)
+	require.Equal(t, len(name.Writers.KeybaseUsers), 1)
+	require.Equal(t, len(name.Writers.UnresolvedUsers), 1)
+	require.True(t, containsString(name.Writers.KeybaseUsers, "dave"))
+	require.Equal(t, name.ConflictInfo.Generation, keybase1.ConflictGeneration(2), "right conflict info")
 }
 
 func TestPartImplicitTeamTLFNameEvenMore(t *testing.T) {
