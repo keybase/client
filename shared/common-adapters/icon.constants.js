@@ -685,6 +685,11 @@ const iconMeta_ = {
     extension: 'png',
     require: require('../images/icons/icon-onboarding-git-48.png'),
   },
+  'icon-onboarding-paper-key-32': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-onboarding-paper-key-32.png'),
+  },
   'icon-onboarding-paper-key-48': {
     isFont: false,
     extension: 'png',
