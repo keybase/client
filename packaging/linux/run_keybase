@@ -80,6 +80,11 @@ start_systemd() {
       XAUTHORITY
       XDG_CURRENT_DESKTOP
       DBUS_SESSION_BUS_ADDRESS
+      CLUTTER_IM_MODULE
+      GTK_IM_MODULE
+      QT_IM_MODULE
+      QT4_IM_MODULE
+      XMODIFIERS
   )
   cat /dev/null > "$runtime_dir/keybase.gui.env"
   for varname in "${forwarded_env_vars[@]}" ; do
