@@ -5,6 +5,7 @@ import loginRoutes from '../login/routes'
 import devicesRoutes from '../devices/routes'
 import gitRoutes from '../git/routes'
 import foldersRoutes from '../folders/routes'
+import peopleRoutes from '../people/routes'
 import profileRoutes from '../profile/routes'
 import settingsRoutes from '../settings/routes'
 import teamsRoutes from '../teams/routes'
@@ -28,7 +29,7 @@ const routeTree = makeRouteDefNode({
     [folderTab]: foldersRoutes,
     [gitTab]: gitRoutes,
     [loginTab]: loginRoutes,
-    [peopleTab]: profileRoutes,
+    [peopleTab]: peopleRoutes,
     [profileTab]: profileRoutes,
     [settingsTab]: settingsRoutes,
     [teamsTab]: teamsRoutes,
