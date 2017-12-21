@@ -139,8 +139,7 @@
       <!-- The cleaner will look at these to make sure it only scrubs the driver we installed -->
       <Component Id="RegistryEntries" Guid="{753F8CE7-57CF-4824-865F-55B1FA520C48}">
         <RegistryKey Root="HKCU"
-                     Key="Software\Keybase\Keybase"
-              Action="createAndRemoveOnUninstall">
+                     Key="Software\Keybase\Keybase">
           <RegistryValue Type="string" Name="DOKANPRODUCT86" Value="[DOKANPRODUCT86]"/>
           <RegistryValue Type="string" Name="DOKANPRODUCT64" Value="[DOKANPRODUCT64]"/>
 	        <RegistryValue Type="string" Name="BUNDLEKEY" Value="[BUNDLEKEY]"/>
