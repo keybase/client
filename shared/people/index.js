@@ -1,14 +1,13 @@
 // @flow
-// $FlowIssue
-import PeopleRender from './index.render'
-import React, {Component} from 'react'
-import flags from '../util/feature-flags'
-import {connect} from 'react-redux'
+import React from 'react'
+import {Text} from '../common-adapters'
 
-class People extends Component<{}> {
+type Props = {}
+
+class People extends React.Component<Props> {
   render() {
-    return <PeopleRender showComingSoon={!flags.tabPeopleEnabled} />
+    return <Text type="BodySemibold">Welcome to people!</Text>
   }
 }
 
-export default connect()(People)
+export default People
