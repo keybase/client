@@ -1056,7 +1056,8 @@ func (b TLFIdentifyBehavior) AlwaysRunIdentify() bool {
 	switch b {
 	case TLFIdentifyBehavior_CHAT_CLI,
 		TLFIdentifyBehavior_CHAT_GUI,
-		TLFIdentifyBehavior_CHAT_GUI_STRICT:
+		TLFIdentifyBehavior_CHAT_GUI_STRICT,
+		TLFIdentifyBehavior_SALTPACK:
 		return true
 	default:
 		return false
@@ -1066,7 +1067,8 @@ func (b TLFIdentifyBehavior) AlwaysRunIdentify() bool {
 func (b TLFIdentifyBehavior) CanUseUntrackedFastPath() bool {
 	switch b {
 	case TLFIdentifyBehavior_CHAT_GUI,
-		TLFIdentifyBehavior_CHAT_GUI_STRICT:
+		TLFIdentifyBehavior_CHAT_GUI_STRICT,
+		TLFIdentifyBehavior_SALTPACK:
 		return true
 	default:
 		// TLFIdentifyBehavior_DEFAULT_KBFS, for filesystem activity that
