@@ -62,11 +62,12 @@ class RemoteComponentLoader extends Component<Props> {
 
   componentWillMount() {
     this._window = remote.getCurrentWindow()
-    this._store = new RemoteStore({
+    const remoteStore = new RemoteStore({
       gotPropsCallback: this._onGotProps,
       windowComponent: this.props.windowComponent,
       windowParam: this.props.windowParam,
     })
+    this._store = remoteStore.getStore()
     this._ComponentClass = this._getComponent(this.props.windowComponent)
 
     setupContextMenu(this._window)
