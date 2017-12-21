@@ -11,8 +11,11 @@ import (
 )
 
 const (
-	PermRead        = "read"
-	PermList        = "list"
+	// PermRead is the read permission.
+	PermRead = "read"
+	// PermList is the list permission.
+	PermList = "list"
+	// PermReadAndList allows both read and list.
 	PermReadAndList = "read,list"
 )
 
@@ -50,11 +53,25 @@ type V1 struct {
 // DefaultV1 returns a default V1 config, which allows anonymous read to
 // everything.
 func DefaultV1() *V1 {
-	return &V1{
+	v1 := &V1{
 		Common: Common{
 			Version: Version1Str,
 		},
 	}
+	v1.EnsureInit()
+	return v1
+}
+
+func (c *V1) initACLChecker() {
+	c.aclChecker, c.aclCheckerInitErr = makeACLCheckerV1(c.ACLs, c.Users)
+}
+
+// EnsureInit initializes c, and returns any error encountered during the
+// initialization. It is not necessary to call EnsureInit. Methods that need it
+// does it automatically.
+func (c *V1) EnsureInit() error {
+	c.initOnce.Do(c.initACLChecker)
+	return c.aclCheckerInitErr
 }
 
 // Version implements the Config interface.
@@ -71,16 +88,11 @@ func (c *V1) Authenticate(username, password string) bool {
 	return bcrypt.CompareHashAndPassword(passwordHash, []byte(password)) == nil
 }
 
-func (c *V1) initACLChecker() {
-	c.aclChecker, c.aclCheckerInitErr = makeACLCheckerV1(c.ACLs, c.Users)
-}
-
 // GetPermissionsForAnonymous implements the Config interface.
 func (c *V1) GetPermissionsForAnonymous(thePath string) (
 	read, list bool, err error) {
-	c.initOnce.Do(c.initACLChecker)
-	if c.aclCheckerInitErr != nil {
-		return false, false, c.aclCheckerInitErr
+	if err = c.EnsureInit(); err != nil {
+		return false, false, err
 	}
 
 	perms := c.aclChecker.getPermissions(thePath, nil)
@@ -90,9 +102,8 @@ func (c *V1) GetPermissionsForAnonymous(thePath string) (
 // GetPermissionsForUsername implements the Config interface.
 func (c *V1) GetPermissionsForUsername(thePath, username string) (
 	read, list bool, err error) {
-	c.initOnce.Do(c.initACLChecker)
-	if c.aclCheckerInitErr != nil {
-		return false, false, c.aclCheckerInitErr
+	if err = c.EnsureInit(); err != nil {
+		return false, false, err
 	}
 
 	perms := c.aclChecker.getPermissions(thePath, &username)

@@ -35,5 +35,9 @@ func TestParseConfig(t *testing.T) {
 	require.NoError(t, err)
 	parsed, err := ParseConfig(buf)
 	require.NoError(t, err)
-	require.Equal(t, config, parsed)
+	parsedV1, ok := parsed.(*V1)
+	require.True(t, ok)
+	require.Equal(t, config.ACLs, parsedV1.ACLs)
+	require.Equal(t, config.Common, parsedV1.Common)
+	require.Equal(t, config.Users, parsedV1.Users)
 }

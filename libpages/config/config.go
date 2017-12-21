@@ -83,7 +83,7 @@ func ParseConfig(reader io.Reader) (config Config, err error) {
 		if err != nil {
 			return nil, err
 		}
-		return &v1, nil
+		return &v1, (&v1).EnsureInit()
 	default:
 		return nil, ErrInvalidVersion{}
 	}

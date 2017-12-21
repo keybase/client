@@ -16,7 +16,9 @@ type permissionsV1 struct {
 }
 
 type accessControlV1 struct {
-	// username -> permissionsV1
+	// whitelistAdditional is the internal version of
+	// AccessControlV1.WhitelistAdditionalPermissions. See comment of latter
+	// for more details. It's a map of username -> permissionsV1.
 	whitelistAdditional map[string]permissionsV1
 	anonymous           permissionsV1
 }
@@ -41,7 +43,7 @@ func parsePermissionsV1(permsStr string) (permissionsV1, error) {
 	return perms, nil
 }
 
-func (a *AccessControlV1) makeAccessControlV1Internal(users map[string][]byte) (
+func makeAccessControlV1Internal(a *AccessControlV1, users map[string][]byte) (
 	ac *accessControlV1, err error) {
 	if a == nil {
 		return nil, errors.New("nil AccessControlV1")
@@ -77,17 +79,13 @@ type aclCheckerV1 struct {
 	ac       *accessControlV1
 }
 
-// cleanPath cleans p in following order:
-//   1) Call path.Clean;
-//   2) Remove leading and trailing "/";
-//   3) Split the rest.
-// If p is root, nil elems is returned. Otherwise, elems is guaranteed to
-// be non-empty.
+// cleanPath cleans p in by first calling path.Clean, then removing any leading
+// and trailing "/".
 //
-// If split2 is true, elems has at most 2 elements and the second one
-// would include everything other than the first element in the path;
-// otherwise, the entire p is split by "/" till the end of the world.
-func cleanPath(p string, split2 bool) (elems []string) {
+// If p represents root, an empty string is returned.
+//
+// Use cleanPathAndSplit2 or cleanPathAndSplit to further split the path.
+func cleanPath(p string) string {
 	p = path.Clean(p)
 	if p == "/" || p == "." {
 		// Examples of p (before clean) that lead us here:
@@ -96,18 +94,26 @@ func cleanPath(p string, split2 bool) (elems []string) {
 		//   "."
 		//   "/.."
 		//   "/."
-		return nil
+		return ""
 	}
-	p = strings.Trim(p, "/")
-	// Now p can only be form of "a/b/c", i.e., no leading or trailing
-	// "/". Examples:
+	// After the trim, p can only be form of "a/b/c", i.e., no leading or
+	// trailing "/". Examples:
 	//   "a"
 	//   "a/b"
 	//   "a/b/c"
-	if split2 {
-		return strings.SplitN(p, "/", 2)
-	}
-	return strings.Split(p, "/")
+	return strings.Trim(p, "/")
+}
+
+// cleanPathAndSplit calls cleanPath on p and splits the result using separator
+// "/", into a slice consisting of at least 1 element.
+func cleanPathAndSplit(p string) (elems []string) {
+	return strings.Split(cleanPath(p), "/")
+}
+
+// cleanPathAndSplit2 calls cleanPath on p and splits the result using
+// separator "/", into a slice of either 1 or 2 elements.
+func cleanPathAndSplit2(p string) (elems []string) {
+	return strings.SplitN(cleanPath(p), "/", 2)
 }
 
 // getAccessControl gets the corresponding accessControlV1 for p.
@@ -121,8 +127,8 @@ func (c *aclCheckerV1) getAccessControl(
 		// directory. So just inherit from the parent.
 		effectiveAC = parentAC
 	}
-	elems := cleanPath(p, true)
-	if len(elems) == 0 || c.children == nil {
+	elems := cleanPathAndSplit2(p)
+	if len(elems[0]) == 0 || c.children == nil {
 		return effectiveAC
 	}
 	if subChecker, ok := c.children[elems[0]]; ok {
@@ -178,14 +184,14 @@ func makeACLCheckerV1(acl map[string]AccessControlV1,
 		cleaned[cleanedPath] = &ac
 	}
 
-	for p, ac := range cleaned {
-		ac, err := ac.makeAccessControlV1Internal(users)
+	for p, a := range cleaned {
+		ac, err := makeAccessControlV1Internal(a, users)
 		if err != nil {
 			return nil, err
 		}
 
-		elems := cleanPath(p, false)
-		if len(elems) == 0 {
+		elems := cleanPathAndSplit(p)
+		if len(elems[0]) == 0 {
 			root.ac = ac
 			continue
 		}
@@ -193,18 +199,18 @@ func makeACLCheckerV1(acl map[string]AccessControlV1,
 		c := root
 		// Construct aclCheckerV1 objects along the path and populate
 		// defaultAC.
-		for i := range elems {
+		for _, elem := range elems {
 			if c.children == nil {
 				// path element -> *aclCheckerV1
 				c.children = make(map[string]*aclCheckerV1)
 			}
-			if c.children[elems[i]] == nil {
+			if c.children[elem] == nil {
 				// Intentionally leave the ac field empty so if no ACL is
 				// specified for this directory we'd use the one from its
 				// parent (see getAccessControl).
-				c.children[elems[i]] = &aclCheckerV1{}
+				c.children[elem] = &aclCheckerV1{}
 			}
-			c = c.children[elems[i]]
+			c = c.children[elem]
 		}
 		c.ac = ac
 	}
