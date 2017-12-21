@@ -327,6 +327,14 @@ func (h *GitHandler) GcTeamRepo(ctx context.Context, arg keybase1.GcTeamRepoArg)
 	return nil
 }
 
+func (h *GitHandler) GetTeamRepoSettings(ctx context.Context, arg keybase1.GetTeamRepoSettingsArg) (keybase1.GitTeamRepoSettings, error) {
+	return keybase1.GitTeamRepoSettings{}, nil
+}
+
+func (h *GitHandler) SetTeamRepoSettings(ctx context.Context, arg keybase1.SetTeamRepoSettingsArg) error {
+	return nil
+}
+
 func (h *GitHandler) kbfsClient() (*keybase1.KBFSGitClient, error) {
 	if !h.G().ActiveDevice.Valid() {
 		return nil, libkb.LoginRequiredError{}

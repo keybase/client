@@ -96,4 +96,11 @@ protocol git {
 
   // GC a team repo
   void gcTeamRepo(GitRepoName repoName, TeamName teamName, boolean force);
+
+  record GitTeamRepoSettings {
+    union { null, string } channelName;
+    boolean chatDisabled; 
+  }
+  GitTeamRepoSettings getTeamRepoSettings(Folder folder, GitRepoName repoName);
+  void setTeamRepoSettings(Folder folder, GitRepoName repoName, union { null, string } channelName, boolean chatDisabled);
 }

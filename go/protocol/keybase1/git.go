@@ -267,6 +267,24 @@ func (o GitRepoInfo) DeepCopy() GitRepoInfo {
 	}
 }
 
+type GitTeamRepoSettings struct {
+	ChannelName  *string `codec:"channelName,omitempty" json:"channelName,omitempty"`
+	ChatDisabled bool    `codec:"chatDisabled" json:"chatDisabled"`
+}
+
+func (o GitTeamRepoSettings) DeepCopy() GitTeamRepoSettings {
+	return GitTeamRepoSettings{
+		ChannelName: (func(x *string) *string {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x)
+			return &tmp
+		})(o.ChannelName),
+		ChatDisabled: o.ChatDisabled,
+	}
+}
+
 type PutGitMetadataArg struct {
 	Folder     Folder           `codec:"folder" json:"folder"`
 	RepoID     RepoID           `codec:"repoID" json:"repoID"`
@@ -317,6 +335,18 @@ type GcTeamRepoArg struct {
 	Force    bool        `codec:"force" json:"force"`
 }
 
+type GetTeamRepoSettingsArg struct {
+	Folder   Folder      `codec:"folder" json:"folder"`
+	RepoName GitRepoName `codec:"repoName" json:"repoName"`
+}
+
+type SetTeamRepoSettingsArg struct {
+	Folder       Folder      `codec:"folder" json:"folder"`
+	RepoName     GitRepoName `codec:"repoName" json:"repoName"`
+	ChannelName  *string     `codec:"channelName,omitempty" json:"channelName,omitempty"`
+	ChatDisabled bool        `codec:"chatDisabled" json:"chatDisabled"`
+}
+
 type GitInterface interface {
 	PutGitMetadata(context.Context, PutGitMetadataArg) error
 	DeleteGitMetadata(context.Context, DeleteGitMetadataArg) error
@@ -328,6 +358,8 @@ type GitInterface interface {
 	DeleteTeamRepo(context.Context, DeleteTeamRepoArg) error
 	GcPersonalRepo(context.Context, GcPersonalRepoArg) error
 	GcTeamRepo(context.Context, GcTeamRepoArg) error
+	GetTeamRepoSettings(context.Context, GetTeamRepoSettingsArg) (GitTeamRepoSettings, error)
+	SetTeamRepoSettings(context.Context, SetTeamRepoSettingsArg) error
 }
 
 func GitProtocol(i GitInterface) rpc.Protocol {
@@ -489,6 +521,38 @@ func GitProtocol(i GitInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"getTeamRepoSettings": {
+				MakeArg: func() interface{} {
+					ret := make([]GetTeamRepoSettingsArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]GetTeamRepoSettingsArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]GetTeamRepoSettingsArg)(nil), args)
+						return
+					}
+					ret, err = i.GetTeamRepoSettings(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"setTeamRepoSettings": {
+				MakeArg: func() interface{} {
+					ret := make([]SetTeamRepoSettingsArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]SetTeamRepoSettingsArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]SetTeamRepoSettingsArg)(nil), args)
+						return
+					}
+					err = i.SetTeamRepoSettings(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 		},
 	}
 }
@@ -547,5 +611,15 @@ func (c GitClient) GcPersonalRepo(ctx context.Context, __arg GcPersonalRepoArg) 
 
 func (c GitClient) GcTeamRepo(ctx context.Context, __arg GcTeamRepoArg) (err error) {
 	err = c.Cli.Call(ctx, "keybase.1.git.gcTeamRepo", []interface{}{__arg}, nil)
+	return
+}
+
+func (c GitClient) GetTeamRepoSettings(ctx context.Context, __arg GetTeamRepoSettingsArg) (res GitTeamRepoSettings, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.git.getTeamRepoSettings", []interface{}{__arg}, &res)
+	return
+}
+
+func (c GitClient) SetTeamRepoSettings(ctx context.Context, __arg SetTeamRepoSettingsArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.git.setTeamRepoSettings", []interface{}{__arg}, nil)
 	return
 }
