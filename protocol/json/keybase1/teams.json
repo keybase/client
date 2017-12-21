@@ -2065,23 +2065,6 @@
       ],
       "response": "LookupImplicitTeamRes"
     },
-    "teamReAddMemberAfterReset": {
-      "request": [
-        {
-          "name": "sessionID",
-          "type": "int"
-        },
-        {
-          "name": "id",
-          "type": "TeamID"
-        },
-        {
-          "name": "username",
-          "type": "string"
-        }
-      ],
-      "response": null
-    },
     "loadTeamPlusApplicationKeys": {
       "request": [
         {
