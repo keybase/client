@@ -1,4 +1,5 @@
 // @flow
+import logger from '../logger'
 import chat from './chat'
 import config from './config'
 import dev from './dev'
@@ -9,7 +10,6 @@ import favorite from './favorite'
 import gregor from './gregor'
 import login from './login'
 import notifications from './notifications'
-import pgp from './pgp'
 import pinentry from './pinentry'
 import planBilling from './plan-billing'
 import profile from './profile'
@@ -31,13 +31,12 @@ const reducers = {
   config,
   dev,
   devices,
-  entities,
   engine,
+  entities,
   favorite,
   gregor,
   login,
   notifications,
-  pgp,
   pinentry,
   planBilling,
   profile,
@@ -62,7 +61,7 @@ export default function(state: TypedState, action: any): TypedState {
       k =>
         nextState[k] !== initialState[k] &&
         nextState[k] === state[k] &&
-        console.warn('Key %s did not change after resetStore action', k)
+        logger.warn('Key %s did not change after resetStore action', k)
     )
     return nextState
   }

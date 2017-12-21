@@ -12,18 +12,21 @@ export const changedActive = 'app:changedActive'
 export const changedFocus = 'app:changedFocus'
 export const link = 'app:link'
 export const mobileAppState = 'app:mobileAppState'
+export const showMain = 'app:showMain'
 
 // Action Creators
 export const createChangedActive = (payload: {|+userActive: boolean|}) => ({error: false, payload, type: changedActive})
 export const createChangedFocus = (payload: {|+appFocused: boolean|}) => ({error: false, payload, type: changedFocus})
 export const createLink = (payload: {|+link: string|}) => ({error: false, payload, type: link})
 export const createMobileAppState = (payload: {|+nextAppState: 'active' | 'background' | 'inactive'|}) => ({error: false, payload, type: mobileAppState})
+export const createShowMain = () => ({error: false, payload: undefined, type: showMain})
 
 // Action Payloads
 export type ChangedActivePayload = More.ReturnType<typeof createChangedActive>
 export type ChangedFocusPayload = More.ReturnType<typeof createChangedFocus>
 export type LinkPayload = More.ReturnType<typeof createLink>
 export type MobileAppStatePayload = More.ReturnType<typeof createMobileAppState>
+export type ShowMainPayload = More.ReturnType<typeof createShowMain>
 
 // All Actions
 // prettier-ignore
@@ -32,4 +35,5 @@ export type Actions =
   | More.ReturnType<typeof createChangedFocus>
   | More.ReturnType<typeof createLink>
   | More.ReturnType<typeof createMobileAppState>
+  | More.ReturnType<typeof createShowMain>
   | {type: 'common:resetStore', payload: void}

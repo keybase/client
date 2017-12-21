@@ -11,7 +11,6 @@ export const isDarwin: boolean = false
 export const isWindows: boolean = false
 export const isLinux: boolean = false
 export const isSimulator: boolean = false
-export const isStoryBook: boolean = false
 export const isIPhoneX: boolean = false
 export const isDeviceSecureAndroid: boolean = false
 export const isAndroidNewerThanM: boolean = false
@@ -20,3 +19,4 @@ declare export var version: string
 declare export var appVersionName: string
 declare export var appVersionCode: string
 declare export var mobileOsVersion: string
+declare export var logFileName: () => string

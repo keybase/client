@@ -1,17 +1,14 @@
 // @flow
 import MainWindow from './main-window'
 import devTools from './dev-tools'
-import hello from '../../util/hello'
 import installer from './installer'
 import menuBar from './menu-bar'
 import os from 'os'
 import semver from 'semver'
-import storeHelper from './store-helper'
-import urlHelper from './url-helper'
 import windowHelper from './window-helper'
 import {BrowserWindow, app, ipcMain, dialog, crashReporter} from 'electron'
 import {setupExecuteActionsListener, executeActionsForContext} from '../../util/quit-helper.desktop'
-import {setupTarget} from '../../util/forward-logs'
+import {allowMultipleInstances} from '../../local-debug.desktop'
 import startWinService from './start-win-service'
 import {isWindows, cacheRoot} from '../../constants/platform.desktop'
 
@@ -31,22 +28,31 @@ if (process.env.KEYBASE_CRASH_REPORT) {
 }
 
 let mainWindow = null
+let _menubarWindowID = 0
+
+const _maybeTellMainWindowAboutMenubar = () => {
+  if (mainWindow && _menubarWindowID) {
+    mainWindow.window.webContents.send('updateMenubarWindowID', _menubarWindowID)
+  }
+}
 
 function start() {
-  // Only one app per app in osx...
-  const shouldQuit = app.makeSingleInstance(() => {
-    if (mainWindow) {
-      mainWindow.show(true)
-      if (isWindows) {
-        mainWindow.window && mainWindow.window.focus()
+  if (!allowMultipleInstances) {
+    // Only one app per app in osx...
+    const shouldQuit = app.makeSingleInstance(() => {
+      if (mainWindow) {
+        mainWindow.show()
+        if (isWindows) {
+          mainWindow.window && mainWindow.window.focus()
+        }
       }
-    }
-  })
+    })
 
-  if (shouldQuit) {
-    console.log('Only one instance of keybase GUI allowed, bailing!')
-    app.quit()
-    return
+    if (shouldQuit) {
+      console.log('Only one instance of keybase GUI allowed, bailing!')
+      app.quit()
+      return
+    }
   }
 
   // Check supported OS version
@@ -70,19 +76,25 @@ function start() {
     app.commandLine.appendSwitch('v', 3)
   }
 
-  hello(process.pid, 'Main Thread', process.argv, __VERSION__, false) // eslint-disable-line no-undef
-
-  setupTarget()
   devTools()
-  menuBar()
-  urlHelper()
+  // Load menubar and get its browser window id so we can tell the main window
+  menuBar(id => {
+    _menubarWindowID = id
+  })
   windowHelper(app)
 
   console.log('Version:', app.getVersion())
 
   app.once('ready', () => {
     mainWindow = MainWindow()
-    storeHelper(mainWindow)
+    _maybeTellMainWindowAboutMenubar()
+    ipcMain.on('mainWindowWantsMenubarWindowID', () => {
+      _maybeTellMainWindowAboutMenubar()
+    })
+
+    ipcMain.on('remoteWindowWantsProps', (_, windowComponent, windowParam) => {
+      mainWindow && mainWindow.window.webContents.send('remoteWindowWantsProps', windowComponent, windowParam)
+    })
   })
 
   ipcMain.on('install-check', (event, arg) => {
@@ -103,7 +115,7 @@ function start() {
 
   // Called when the user clicks the dock icon
   app.on('activate', () => {
-    mainWindow && mainWindow.show(true)
+    mainWindow && mainWindow.show()
   })
 
   // Don't quit the app, instead try to close all windows

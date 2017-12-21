@@ -1,6 +1,7 @@
 // @flow
 import * as Constants from '../../constants/chat'
 import * as Types from '../../constants/types/chat'
+import * as RPCChatTypes from '../../constants/types/flow-types-chat'
 import * as SearchConstants from '../../constants/search'
 import * as Creators from '../../actions/chat/creators'
 import * as ChatGen from '../../actions/chat-gen'
@@ -9,7 +10,7 @@ import HiddenString from '../../util/hidden-string'
 import Conversation from './index'
 import NoConversation from './no-conversation'
 import Rekey from './rekey/container'
-import {getProfile} from '../../actions/tracker'
+import {createGetProfile} from '../../actions/tracker-gen'
 import {
   pausableConnect,
   withState,
@@ -39,6 +40,7 @@ type StateProps = {|
   inboxFilter: ?string,
   showSearchResults: boolean,
   previousPath: ?List<string>,
+  youAreReset: boolean,
 |}
 
 type DispatchProps = {|
@@ -62,6 +64,7 @@ const mapStateToProps = (state: TypedState, {routePath, routeProps}): StateProps
   let threadLoadedOffline = false
   let conversationIsError = false
   let conversationErrorText = ''
+  let youAreReset = false
   const defaultChatText =
     (routeState && routeState.get('inputText', new HiddenString('')).stringValue()) || ''
 
@@ -70,6 +73,11 @@ const mapStateToProps = (state: TypedState, {routePath, routeProps}): StateProps
     finalizeInfo = state.chat.get('finalizedState').get(selectedConversationIDKey)
     supersedes = Constants.convSupersedesInfo(selectedConversationIDKey, state.chat)
     supersededBy = Constants.convSupersededByInfo(selectedConversationIDKey, state.chat)
+    youAreReset =
+      state.chat.getIn(
+        ['inbox', selectedConversationIDKey, 'memberStatus'],
+        RPCChatTypes.commonConversationMemberStatus.active
+      ) === RPCChatTypes.commonConversationMemberStatus.reset
 
     const conversationState = state.chat.get('conversationStates').get(selectedConversationIDKey)
     const untrustedState = state.chat.inboxUntrustedState.get(selectedConversationIDKey)
@@ -109,6 +117,7 @@ const mapStateToProps = (state: TypedState, {routePath, routeProps}): StateProps
     defaultChatText,
     showTeamOffer,
     previousPath: routeProps.get('previousPath'),
+    youAreReset,
   }
 }
 
@@ -126,7 +135,8 @@ const mapDispatchToProps = (
   },
   onOpenInfoPanelMobile: () => dispatch(navigateAppend(['infoPanel'])),
   onBack: () => dispatch(navigateUp()),
-  onShowTrackerInSearch: id => dispatch(getProfile(id, false, true)),
+  onShowTrackerInSearch: (username: string) =>
+    dispatch(createGetProfile({username, ignoreCache: false, forceDisplay: true})),
   _onStoreInputText: (selectedConversation: Types.ConversationIDKey, inputText: string) =>
     dispatch(Creators.setSelectedRouteState(selectedConversation, {inputText: new HiddenString(inputText)})),
 })
@@ -154,10 +164,11 @@ export default compose(
     (props: Props) =>
       (props.selectedConversationIDKey === Constants.nothingSelected || !props.selectedConversationIDKey) &&
       !props.inSearch,
+    // $FlowIssue gets very confused here
     renderComponent(NoConversation)
   ),
   // Ordering of branch() is important here -- rekey should come before error.
-  branch((props: Props) => !props.finalizeInfo && props.rekeyInfo, renderComponent(Rekey)),
+  branch((props: Props) => !props.finalizeInfo && !!props.rekeyInfo, renderComponent(Rekey)),
   branch((props: Props) => props.conversationIsError, renderComponent(ConversationError)),
   withState('focusInputCounter', 'setFocusInputCounter', 0),
   withState('editLastMessageCounter', 'setEditLastMessageCounter', 0),

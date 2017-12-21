@@ -9,7 +9,6 @@ import {Provider} from 'react-redux'
 import {makeEngine} from '../engine'
 import {setRouteDef} from '../actions/route-tree'
 import {setup as setupLocalDebug} from '../local-debug'
-import {setupSource} from '../util/forward-logs'
 
 // We don't want global font scaling as this messes up a TON of stuff. let's opt in
 function disallowFontScalingByDefault() {
@@ -37,12 +36,11 @@ class Keybase extends Component<any> {
 
     if (!global.keybaseLoaded) {
       global.keybaseLoaded = true
-      setupSource()
       this.store = configureStore()
       global.store = this.store
       setupLocalDebug(this.store)
       this.store.dispatch(setRouteDef(routeDefs))
-      makeEngine(this.store.dispatch)
+      makeEngine(this.store.dispatch, this.store.getState)
     } else {
       this.store = global.store
     }

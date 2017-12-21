@@ -1,4 +1,5 @@
 // @flow
+import logger from '../logger'
 import * as LoginGen from './login-gen'
 import * as SignupGen from './signup-gen'
 import * as RPCTypes from '../constants/types/flow-types'
@@ -41,7 +42,7 @@ function checkInviteCodeThenNextPhase(inviteCode: string) {
           resolve()
         })
         .catch(err => {
-          console.warn('error in inviteCode:', err)
+          logger.warn('error in inviteCode:', err)
           dispatch(
             SignupGen.createCheckInviteCodeError({errorText: "Sorry, that's not a valid invite code."})
           )
@@ -178,7 +179,7 @@ function checkUsernameEmail(username: ?string, email: ?string) {
           }
         })
         .catch(err => {
-          console.warn("username isn't available:", err)
+          logger.warn("username isn't available:", err)
           dispatch(
             SignupGen.createCheckUsernameEmailError({
               email,
@@ -262,7 +263,7 @@ function submitDeviceName(deviceName: string, skipMail?: boolean, onDisplayPaper
             }
           })
           .catch(err => {
-            console.warn('device name is invalid: ', err)
+            logger.warn('device name is invalid: ', err)
             dispatch(
               SignupGen.createSubmitDeviceNameError({
                 deviceNameError: `Device name is invalid: ${err.desc}.`,
@@ -322,18 +323,18 @@ function signup(skipMail: boolean, onDisplayPaperKey?: () => void) {
           },
         })
           .then(({passphraseOk, postOk, writeOk}) => {
-            console.log('Successful signup', passphraseOk, postOk, writeOk)
+            logger.info('Successful signup', passphraseOk, postOk, writeOk)
             dispatch(SignupGen.createWaiting({waiting: true}))
             resolve()
           })
           .catch(err => {
-            console.warn('error in signup:', err)
+            logger.warn('error in signup:', err)
             dispatch(SignupGen.createSignupError({signupError: new HiddenString(err.desc)}))
             dispatch(nextPhase())
             reject(new Error(err))
           })
       } else {
-        console.warn('Entered signup action with a null required field')
+        logger.warn('Entered signup action with a null required field')
         reject(new Error('null required field'))
       }
     })

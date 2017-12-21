@@ -74,6 +74,7 @@ export type TrackerState = {
   trackToken: ?string,
   needTrackTokenDismiss: boolean,
   tlfs: Array<Folder>,
+  selectedTeam: string,
 }
 
 export type NonUserState = {
@@ -91,8 +92,6 @@ export type State = {
   cachedIdentifies: {[key: string]: number}, // good until unix timestamp
   pendingIdentifies: {[key: string]: boolean},
   serverStarted: boolean,
-  timerActive: number,
   userTrackers: {[key: string]: TrackerState},
   nonUserTrackers: {[key: string]: NonUserState},
-  // tracking: Array<FriendshipUserInfo>,
 }

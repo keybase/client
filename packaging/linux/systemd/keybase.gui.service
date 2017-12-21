@@ -4,7 +4,8 @@ Wants=keybase.service kbfs.service
 
 [Service]
 Type=simple
-ExecStart=/opt/keybase/Keybase
+ExecStartPre=/usr/bin/env mkdir -p %h/.cache/keybase
+ExecStart=/usr/bin/env bash -c "/opt/keybase/Keybase &>> %h/.cache/keybase/Keybase.app.log"
 # The environment file lets run_keybase pass along KEYBASE_START_UI. The
 # autostart file will set that to suppress showing the main window during boot.
 # %t is the XDG_RUNTIME_DIR, and the leading - means it's ok if the file is

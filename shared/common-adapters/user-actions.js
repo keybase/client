@@ -1,8 +1,7 @@
 // @flow
 import * as React from 'react'
 import type {Props} from './user-actions'
-import {Box, Button, FollowButton} from '../common-adapters'
-import {globalMargins} from '../styles'
+import {Button, FollowButton, ButtonBar} from '../common-adapters'
 import {normal as proofNormal} from '../constants/tracker'
 
 function UserActions({
@@ -17,30 +16,25 @@ function UserActions({
   if (currentlyFollowing) {
     if (trackerState === proofNormal) {
       return (
-        <Box style={style}>
-          <FollowButton following={true} onUnfollow={onUnfollow} style={{marginRight: globalMargins.xtiny}} />
+        <ButtonBar style={style}>
+          <FollowButton following={true} onUnfollow={onUnfollow} />
           <Button type="Primary" label="Start a Chat" onClick={onChat} style={{marginRight: 0}} />
-        </Box>
+        </ButtonBar>
       )
     } else {
       return (
-        <Box style={style}>
-          <Button
-            type="Unfollow"
-            label="Unfollow"
-            onClick={onUnfollow}
-            style={{marginRight: globalMargins.xtiny}}
-          />
+        <ButtonBar style={style}>
+          <Button type="Unfollow" label="Unfollow" onClick={onUnfollow} />
           <Button type="Follow" label="Accept" onClick={onAcceptProofs} style={{marginRight: 0}} />
-        </Box>
+        </ButtonBar>
       )
     }
   } else {
     return (
-      <Box style={style}>
-        <FollowButton following={false} onFollow={onFollow} style={{marginRight: globalMargins.xtiny}} />
+      <ButtonBar style={style}>
+        <FollowButton following={false} onFollow={onFollow} />
         <Button type="Primary" label="Start a Chat" onClick={onChat} style={{marginRight: 0}} />
-      </Box>
+      </ButtonBar>
     )
   }
 }

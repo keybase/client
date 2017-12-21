@@ -567,6 +567,17 @@
         }
       ],
       "response": "UserVersion"
+    },
+    "getUPAK": {
+      "request": [
+        {
+          "name": "uid",
+          "type": "UID"
+        }
+      ],
+      "response": "UPAKVersioned",
+      "doc": "getUPAK returns a UPAK. Used mainly for debugging.",
+      "lint": "ignore"
     }
   },
   "namespace": "keybase.1"

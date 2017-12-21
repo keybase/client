@@ -1,5 +1,6 @@
 // @flow
-import {app} from 'electron'
+import electron from 'electron'
+const app = electron.app || electron.remote.app
 
 export function showDockIcon() {
   if (app.dock && !app.dock.isVisible()) {

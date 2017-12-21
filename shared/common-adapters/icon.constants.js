@@ -15,6 +15,11 @@ const iconMeta_ = {
     extension: 'png',
     require: require('../images/icons/icon-GPG-export.png'),
   },
+  'icon-access-denied-266': {
+    isFont: false,
+    extension: 'gif',
+    require: require('../images/icons/icon-access-denied-266.gif'),
+  },
   'icon-addon-lock-12': {
     isFont: false,
     extension: 'png',
@@ -1055,6 +1060,16 @@ const iconMeta_ = {
     extension: 'png',
     require: require('../images/icons/icon-shh-active-24.png'),
   },
+  'icon-skull-48': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-skull-48.png'),
+  },
+  'icon-skull-64': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-skull-64.png'),
+  },
   'icon-team-leave-28': {
     isFont: false,
     extension: 'png',
@@ -1109,6 +1124,11 @@ const iconMeta_ = {
     isFont: false,
     extension: 'png',
     require: require('../images/icons/icon-team-placeholder-avatar-80.png'),
+  },
+  'icon-team-sparkles-48-40': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-team-sparkles-48-40.png'),
   },
   'icon-terminal-32': {
     isFont: false,

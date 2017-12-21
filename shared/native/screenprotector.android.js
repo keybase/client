@@ -1,8 +1,7 @@
 // @flow
 import {NativeModules} from 'react-native'
-import {isStoryBook} from '../constants/platform'
 
-const m = isStoryBook
+const m = __STORYBOOK__
   ? {setSecureFlagSetting: () => {}, getSecureFlagSetting: () => {}}
   : NativeModules.ScreenProtector
 

@@ -58,6 +58,7 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   teamNameToMembers: I.Map(),
   teamNameToRequests: I.Map(),
   teamNameToRole: I.Map(),
+  teamNameToCanPerform: I.Map(),
   teamNameToTeamSettings: I.Map(),
   teamNameToPublicitySettings: I.Map(),
   teammembercounts: I.Map(),
@@ -66,11 +67,20 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   teamnames: I.Set(),
 })
 
+export const initialCanUserPerform: RPCTypes.TeamOperation = {
+  manageMembers: false,
+  manageSubteams: false,
+  createChannel: false,
+  deleteChannel: false,
+  renameChannel: false,
+  editChannelDescription: false,
+  setTeamShowcase: false,
+  setMemberShowcase: false,
+  changeOpenTeam: false,
+}
+
 const userIsInTeamHelper = (state: TypedState, username: string, service: Service, teamname: string) =>
   service === 'Keybase' ? userIsInTeam(state, teamname, username) : false
-
-// TODO this is broken. channelnames are not unique
-const getConversationIDKeyFromChannelName = (state: TypedState, channelname: string) => null
 
 const getConvIdsFromTeamName = (state: TypedState, teamname: string): I.Set<string> =>
   state.entities.teams.teamNameToConvIDs.get(teamname, I.Set())
@@ -84,11 +94,11 @@ const getChannelNameFromConvID = (state: TypedState, conversationIDKey: ChatType
 const getTopicFromConvID = (state: TypedState, conversationIDKey: ChatTypes.ConversationIDKey) =>
   state.entities.teams.convIDToChannelInfo.getIn([conversationIDKey, 'description'], null)
 
-const getParticipants = (state: TypedState, conversationIDKey: ChatTypes.ConversationIDKey) =>
-  state.entities.getIn(['teams', 'convIDToChannelInfo', conversationIDKey, 'participants'], I.Set())
-
 const getRole = (state: TypedState, teamname: Types.Teamname): ?Types.TeamRoleType =>
   state.entities.getIn(['teams', 'teamNameToRole', teamname], null)
+
+const getCanPerform = (state: TypedState, teamname: Types.Teamname): RPCTypes.TeamOperation =>
+  state.entities.getIn(['teams', 'teamNameToCanPerform', teamname], initialCanUserPerform)
 
 const isAdmin = (type: ?Types.TeamRoleType) => type === 'admin'
 const isOwner = (type: ?Types.TeamRoleType) => type === 'owner'
@@ -102,17 +112,13 @@ const isSubteam = (maybeTeamname: string) => {
   return true
 }
 
-export const getFollowingMap = (state: TypedState) => state.config.following
-export const getFollowerMap = (state: TypedState) => state.config.followers
-
 // How many public admins should we display on a showcased team card at once?
 export const publicAdminsLimit = 6
 
 export {
   getConvIdsFromTeamName,
-  getConversationIDKeyFromChannelName,
-  getParticipants,
   getRole,
+  getCanPerform,
   userIsInTeamHelper,
   getTeamNameFromConvID,
   getChannelNameFromConvID,

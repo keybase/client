@@ -74,17 +74,23 @@ func lookupImplicitTeamAndConflicts(ctx context.Context, g *libkb.GlobalContext,
 	}
 
 	arg := libkb.NewAPIArgWithNetContext(ctx, "team/implicit")
-	arg.SessionType = libkb.APISessionTypeREQUIRED
+	arg.SessionType = libkb.APISessionTypeOPTIONAL
 	arg.Args = libkb.HTTPArgs{
 		"display_name": libkb.S{Val: lookupNameWithoutConflict},
 		"public":       libkb.B{Val: impTeamName.IsPublic},
 	}
 	var imp implicitTeam
 	if err = g.API.GetDecode(arg, &imp); err != nil {
-		if aerr, ok := err.(libkb.AppStatusError); ok &&
-			keybase1.StatusCode(aerr.Code) == keybase1.StatusCode_SCTeamReadError {
-			return teamID, teamName, impTeamName, tlfID, conflicts, NewTeamDoesNotExistError(
-				impTeamName.IsPublic, preResolveDisplayName)
+		if aerr, ok := err.(libkb.AppStatusError); ok {
+			code := keybase1.StatusCode(aerr.Code)
+			switch code {
+			case keybase1.StatusCode_SCTeamReadError:
+				return teamID, teamName, impTeamName, tlfID, conflicts, NewTeamDoesNotExistError(
+					impTeamName.IsPublic, preResolveDisplayName)
+			case keybase1.StatusCode_SCTeamProvisionalCanKey, keybase1.StatusCode_SCTeamProvisionalCannotKey:
+				return teamID, teamName, impTeamName, tlfID, conflicts, libkb.NewTeamProvisionalError(
+					(code == keybase1.StatusCode_SCTeamProvisionalCanKey), impTeamName.IsPublic, preResolveDisplayName)
+			}
 		}
 		return teamID, teamName, impTeamName, tlfID, conflicts, err
 	}

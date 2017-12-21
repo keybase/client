@@ -29,7 +29,7 @@ function tmpRandFile(suffix: string): Promise<string> {
 }
 
 // TODO make this a user setting
-const downloadFolder = path.join(os.homedir(), 'Downloads')
+const downloadFolder = __STORYBOOK__ ? '' : path.join(os.homedir(), 'Downloads')
 
 function downloadFilePath(suffix: string): Promise<string> {
   return findAvailableFilename(exists, path.join(downloadFolder, suffix))
@@ -49,7 +49,7 @@ function stat(filepath: string): Promise<StatResult> {
       if (err) {
         return reject(err)
       }
-      resolve({size: stats.size})
+      resolve({size: stats.size, lastModified: stats.mtime.getTime()})
     })
   })
 }
@@ -71,17 +71,16 @@ function copy(from: string, to: string) {
   fs.writeFileSync(to, fs.readFileSync(from))
 }
 
-// TODO implemented for mobile, not here
-function writeFile(filepath: string, contents: string, encoding?: string): Promise<void> {
-  return Promise.reject(new Error('not implemented'))
-}
-
-function writeStream(filepath: string, encoding: string, append?: boolean): Promise<*> {
-  return Promise.reject(new Error('not implemented'))
+function unlink(filepath: string): Promise<void> {
+  return new Promise((resolve, reject) => fs.unlink(filepath, () => resolve()))
 }
 
 // TODO implemented for mobile, not here
 const cachesDirectoryPath = ''
+
+function writeStream(filepath: string, encoding: string, append?: boolean): Promise<*> {
+  return Promise.reject(new Error('not implemented'))
+}
 
 export {
   cachesDirectoryPath,
@@ -92,6 +91,6 @@ export {
   tmpDir,
   tmpFile,
   tmpRandFile,
-  writeFile,
+  unlink,
   writeStream,
 }

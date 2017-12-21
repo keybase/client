@@ -474,11 +474,13 @@ export const constantsStatusCode = {
   scchatclienterror: 2516,
   scchatnotinteam: 2517,
   scchatstalepreviousstate: 2518,
+  scteambadmembership: 2604,
   scteamselfnotowner: 2607,
   scteamnotfound: 2614,
   scteamexists: 2619,
   scteamreaderror: 2623,
   scnoop: 2638,
+  scteaminvitebadtoken: 2646,
   scteamtarduplicate: 2663,
   scteamtarnotfound: 2664,
   scteammemberexists: 2665,
@@ -503,9 +505,12 @@ export const constantsStatusCode = {
   scteambadadminseqnotype: 2684,
   scteamimplicitbadadd: 2685,
   scteamimplicitbadremove: 2686,
+  scteaminvitetokenreused: 2696,
   scteamkeymasknotfound: 2697,
   scteambanned: 2702,
   scteaminvalidban: 2703,
+  scteamprovisionalcankey: 2721,
+  scteamprovisionalcannotkey: 2722,
 }
 
 export const cryptoSignED25519ForKBFSRpcChannelMap = (configKeys: Array<string>, request: CryptoSignED25519ForKBFSRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.crypto.signED25519ForKBFS', request)
@@ -827,6 +832,10 @@ export const identifyUiDismissReasonType = {
   handledElsewhere: 1,
 }
 
+export const implicitTeamMigrationStartMigrationRpcChannelMap = (configKeys: Array<string>, request: ImplicitTeamMigrationStartMigrationRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.implicitTeamMigration.startMigration', request)
+
+export const implicitTeamMigrationStartMigrationRpcPromise = (request: ImplicitTeamMigrationStartMigrationRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.implicitTeamMigration.startMigration', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
+
 export const installFuseStatusRpcChannelMap = (configKeys: Array<string>, request: InstallFuseStatusRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.install.fuseStatus', request)
 
 export const installFuseStatusRpcPromise = (request: InstallFuseStatusRpcParam): Promise<InstallFuseStatusResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.install.fuseStatus', request, (error: RPCError, result: InstallFuseStatusResult) => error ? reject(error) : resolve(result)))
@@ -920,6 +929,10 @@ export const kbfsFSSyncEventRpcPromise = (request: KbfsFSSyncEventRpcParam): Pro
 export const kbfsFSSyncStatusRpcChannelMap = (configKeys: Array<string>, request: KbfsFSSyncStatusRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.kbfs.FSSyncStatus', request)
 
 export const kbfsFSSyncStatusRpcPromise = (request: KbfsFSSyncStatusRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.kbfs.FSSyncStatus', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
+
+export const kbfsGetKBFSTeamSettingsRpcChannelMap = (configKeys: Array<string>, request: KbfsGetKBFSTeamSettingsRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.kbfs.getKBFSTeamSettings', request)
+
+export const kbfsGetKBFSTeamSettingsRpcPromise = (request: KbfsGetKBFSTeamSettingsRpcParam): Promise<KbfsGetKBFSTeamSettingsResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.kbfs.getKBFSTeamSettings', request, (error: RPCError, result: KbfsGetKBFSTeamSettingsResult) => error ? reject(error) : resolve(result)))
 
 export const kbfsMountGetAllAvailableMountDirsRpcChannelMap = (configKeys: Array<string>, request: KbfsMountGetAllAvailableMountDirsRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.kbfsMount.GetAllAvailableMountDirs', request)
 
@@ -1080,6 +1093,10 @@ export const metadataRegisterForUpdatesRpcPromise = (request: MetadataRegisterFo
 export const metadataReleaseLockRpcChannelMap = (configKeys: Array<string>, request: MetadataReleaseLockRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.metadata.releaseLock', request)
 
 export const metadataReleaseLockRpcPromise = (request: MetadataReleaseLockRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.metadata.releaseLock', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
+
+export const metadataStartImplicitTeamMigrationRpcChannelMap = (configKeys: Array<string>, request: MetadataStartImplicitTeamMigrationRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.metadata.startImplicitTeamMigration', request)
+
+export const metadataStartImplicitTeamMigrationRpcPromise = (request: MetadataStartImplicitTeamMigrationRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.metadata.startImplicitTeamMigration', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
 
 export const metadataTruncateLockRpcChannelMap = (configKeys: Array<string>, request: MetadataTruncateLockRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.metadata.truncateLock', request)
 
@@ -1604,18 +1621,6 @@ export const teamsTeamListSubteamsRecursiveRpcChannelMap = (configKeys: Array<st
 
 export const teamsTeamListSubteamsRecursiveRpcPromise = (request: TeamsTeamListSubteamsRecursiveRpcParam): Promise<TeamsTeamListSubteamsRecursiveResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamListSubteamsRecursive', request, (error: RPCError, result: TeamsTeamListSubteamsRecursiveResult) => error ? reject(error) : resolve(result)))
 
-export const teamsTeamOperation = {
-  manageMembers: 0,
-  manageSubteams: 1,
-  createChannel: 2,
-  deleteChannel: 3,
-  renameChannel: 4,
-  editChannelDescription: 5,
-  setTeamShowcase: 6,
-  setMemberShowcase: 7,
-  changeOpenTeam: 8,
-}
-
 export const teamsTeamReAddMemberAfterResetRpcChannelMap = (configKeys: Array<string>, request: TeamsTeamReAddMemberAfterResetRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamReAddMemberAfterReset', request)
 
 export const teamsTeamReAddMemberAfterResetRpcPromise = (request: TeamsTeamReAddMemberAfterResetRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamReAddMemberAfterReset', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
@@ -1747,6 +1752,10 @@ export const uiPromptDefault = {
 export const userDeleteUserRpcChannelMap = (configKeys: Array<string>, request: UserDeleteUserRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.user.deleteUser', request)
 
 export const userDeleteUserRpcPromise = (request: UserDeleteUserRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.user.deleteUser', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
+
+export const userGetUPAKRpcChannelMap = (configKeys: Array<string>, request: UserGetUPAKRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.user.getUPAK', request)
+
+export const userGetUPAKRpcPromise = (request: UserGetUPAKRpcParam): Promise<UserGetUPAKResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.user.getUPAK', request, (error: RPCError, result: UserGetUPAKResult) => error ? reject(error) : resolve(result)))
 
 export const userInterestingPeopleRpcChannelMap = (configKeys: Array<string>, request: UserInterestingPeopleRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.user.interestingPeople', request)
 
@@ -2436,6 +2445,8 @@ export type ImplicitTeamConflictInfo = {|generation: ConflictGeneration,time: Ti
 
 export type ImplicitTeamDisplayName = {|isPublic: Boolean,writers: ImplicitTeamUserSet,readers: ImplicitTeamUserSet,conflictInfo?: ?ImplicitTeamConflictInfo,|}
 
+export type ImplicitTeamMigrationStartMigrationRpcParam = {|folder: Folder,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+
 export type ImplicitTeamUserSet = {|keybaseUsers?: ?Array<String>,unresolvedUsers?: ?Array<SocialAssertion>,|}
 
 export type InstallAction =0 // UNKNOWN_0
@@ -2471,6 +2482,8 @@ export type KBFSGitDeleteRepoRpcParam = {|folder: Folder,name: GitRepoName,incom
 
 export type KBFSGitGcRpcParam = {|folder: Folder,name: GitRepoName,options: GcOptions,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
+export type KBFSTeamSettings = {|tlfID: TLFID,|}
+
 export type KID = String
 
 export type KbfsCreateTLFRpcParam = {|teamID: TeamID,tlfID: TLFID,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
@@ -2482,6 +2495,8 @@ export type KbfsFSEventRpcParam = {|event: FSNotification,incomingCallMap?: Inco
 export type KbfsFSSyncEventRpcParam = {|event: FSPathSyncStatus,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
 export type KbfsFSSyncStatusRpcParam = {|status: FSSyncStatus,requestID: Int,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+
+export type KbfsGetKBFSTeamSettingsRpcParam = {|teamID: TeamID,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
 export type KbfsMountGetAllAvailableMountDirsRpcParam = ?{|incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
@@ -2653,6 +2668,8 @@ export type MetadataRegisterForUpdatesRpcParam = {|folderID: String,currRevision
 export type MetadataReleaseLockRpcParam = {|folderID: String,lockID: LockID,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
 export type MetadataResponse = {|folderID: String,mdBlocks?: ?Array<MDBlock>,|}
+
+export type MetadataStartImplicitTeamMigrationRpcParam = {|folderID: String,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
 export type MetadataTruncateLockRpcParam = {|folderID: String,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
@@ -3355,11 +3372,13 @@ export type StatusCode =0 // SCOk_0
  | 2516 // SCChatClientError_2516
  | 2517 // SCChatNotInTeam_2517
  | 2518 // SCChatStalePreviousState_2518
+ | 2604 // SCTeamBadMembership_2604
  | 2607 // SCTeamSelfNotOwner_2607
  | 2614 // SCTeamNotFound_2614
  | 2619 // SCTeamExists_2619
  | 2623 // SCTeamReadError_2623
  | 2638 // SCNoOp_2638
+ | 2646 // SCTeamInviteBadToken_2646
  | 2663 // SCTeamTarDuplicate_2663
  | 2664 // SCTeamTarNotFound_2664
  | 2665 // SCTeamMemberExists_2665
@@ -3384,9 +3403,12 @@ export type StatusCode =0 // SCOk_0
  | 2684 // SCTeamBadAdminSeqnoType_2684
  | 2685 // SCTeamImplicitBadAdd_2685
  | 2686 // SCTeamImplicitBadRemove_2686
+ | 2696 // SCTeamInviteTokenReused_2696
  | 2697 // SCTeamKeyMaskNotFound_2697
  | 2702 // SCTeamBanned_2702
  | 2703 // SCTeamInvalidBan_2703
+ | 2721 // SCTeamProvisionalCanKey_2721
+ | 2722 // SCTeamProvisionalCannotKey_2722
 
 
 export type Stream = {|fd: Int,|}
@@ -3512,16 +3534,7 @@ export type TeamNamePart = String
 
 export type TeamOpenReqMsg = {|teamID: TeamID,tars?: ?Array<TeamAccessRequest>,|}
 
-export type TeamOperation =0 // MANAGE_MEMBERS_0
- | 1 // MANAGE_SUBTEAMS_1
- | 2 // CREATE_CHANNEL_2
- | 3 // DELETE_CHANNEL_3
- | 4 // RENAME_CHANNEL_4
- | 5 // EDIT_CHANNEL_DESCRIPTION_5
- | 6 // SET_TEAM_SHOWCASE_6
- | 7 // SET_MEMBER_SHOWCASE_7
- | 8 // CHANGE_OPEN_TEAM_8
-
+export type TeamOperation = {|manageMembers: Boolean,manageSubteams: Boolean,createChannel: Boolean,deleteChannel: Boolean,renameChannel: Boolean,editChannelDescription: Boolean,setTeamShowcase: Boolean,setMemberShowcase: Boolean,changeOpenTeam: Boolean,|}
 
 export type TeamPlusApplicationKeys = {|id: TeamID,name: String,implicit: Boolean,public: Boolean,application: TeamApplication,writers?: ?Array<UserVersion>,onlyReaders?: ?Array<UserVersion>,applicationKeys?: ?Array<TeamApplicationKey>,|}
 
@@ -3559,7 +3572,7 @@ export type TeamType =0 // NONE_0
  | 2 // MODERN_2
 
 
-export type TeamsCanUserPerformRpcParam = {|name: String,op: TeamOperation,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type TeamsCanUserPerformRpcParam = {|name: String,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
 export type TeamsGetTeamAndMemberShowcaseRpcParam = {|name: String,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
@@ -3729,6 +3742,8 @@ export type UserCard = {|following: Int,followers: Int,uid: UID,fullName: String
 
 export type UserDeleteUserRpcParam = ?{|incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
+export type UserGetUPAKRpcParam = {|uid: UID,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+
 export type UserInterestingPeopleRpcParam = {|maxUsers: Int,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
 export type UserListTrackers2RpcParam = {|assertion: String,reverse: Boolean,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
@@ -3872,6 +3887,7 @@ type InstallInstallFuseResult = InstallResult
 type InstallInstallKBFSResult = InstallResult
 type InstallUninstallKBFSResult = UninstallResult
 type KBFSGitCreateRepoResult = RepoID
+type KbfsGetKBFSTeamSettingsResult = KBFSTeamSettings
 type KbfsMountGetAllAvailableMountDirsResult = ?Array<String>
 type KbfsMountGetCurrentMountDirResult = String
 type Kex2Provisionee2Hello2Result = Hello2Res
@@ -3937,7 +3953,7 @@ type SimpleFSSimpleFSReadResult = FileContent
 type SimpleFSSimpleFSStatResult = Dirent
 type StreamUiReadResult = Bytes
 type StreamUiWriteResult = Int
-type TeamsCanUserPerformResult = Bool
+type TeamsCanUserPerformResult = TeamOperation
 type TeamsGetTeamAndMemberShowcaseResult = TeamAndMemberShowcase
 type TeamsGetTeamRootIDResult = TeamID
 type TeamsGetTeamShowcaseResult = TeamShowcase
@@ -3970,6 +3986,7 @@ type TlfKeysGetTLFCryptKeysResult = GetTLFCryptKeysRes
 type TlfPublicCanonicalTLFNameAndIDResult = CanonicalTLFNameAndIDWithBreaks
 type TrackTrackResult = ConfirmResult
 type UiPromptYesNoResult = Boolean
+type UserGetUPAKResult = UPAKVersioned
 type UserInterestingPeopleResult = ?Array<InterestingPerson>
 type UserListTrackers2Result = UserSummary2Set
 type UserListTrackersByNameResult = ?Array<Tracker>

@@ -62,42 +62,32 @@ const Timeline = ({timeline}) => (
   </Box>
 )
 
-const Render = ({
-  name,
-  type,
-  deviceID,
-  currentDevice,
-  timeline,
-  revokedAt,
-  showRevokeDevicePage,
-  device,
-  onBack,
-  bannerBackgroundColor,
-  bannerColor,
-  bannerDesc,
-  icon,
-  revokeName,
-}: Props) => (
+const Render = (props: Props) => (
   <Box style={globalStyles.flexBoxColumn}>
     <Box style={{...globalStyles.flexBoxColumn, height: 48, justifyContent: 'center', paddingLeft: 16}}>
-      <BackButton onClick={onBack} />
+      <BackButton onClick={props.onBack} />
     </Box>
-    {!!bannerDesc && <Banner color={bannerColor} backgroundColor={bannerBackgroundColor} desc={bannerDesc} />}
+    {!!props.bannerDesc &&
+      <Banner
+        color={props.bannerColor}
+        backgroundColor={props.bannerBackgroundColor}
+        desc={props.bannerDesc}
+      />}
     <Box style={{...globalStyles.flexBoxRow, padding: 30}}>
       <Box
         style={{...globalStyles.flexBoxRow, alignItems: 'flex-start', justifyContent: 'center', width: 240}}
       >
-        <Icon type={icon} style={{opacity: revokedAt ? 0.4 : 1}} />
+        <Icon type={props.icon} style={{opacity: props.revokedAt ? 0.4 : 1}} />
       </Box>
       <Box style={globalStyles.flexBoxColumn}>
-        <Header name={name} currentDevice={currentDevice} revokedAt={revokedAt} />
-        {!!timeline && <Timeline timeline={timeline} />}
-        {!revokedAt &&
+        <Header name={props.name} currentDevice={props.currentDevice} revokedAt={props.revokedAt} />
+        {!!props.timeline && <Timeline timeline={props.timeline} />}
+        {!props.revokedAt &&
           <Button
             type="Danger"
-            style={{marginTop: 15, alignSelf: 'flex-start'}}
-            label={`Revoke this ${revokeName || ''}`}
-            onClick={showRevokeDevicePage}
+            style={{alignSelf: 'flex-start', marginTop: 15}}
+            label={`Revoke this ${props.revokeName || ''}`}
+            onClick={props.showRevokeDevicePage}
           />}
       </Box>
     </Box>

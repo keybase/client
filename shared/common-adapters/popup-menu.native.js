@@ -168,6 +168,7 @@ const styleButtonAlert = {
   paddingRight: globalMargins.medium,
 }
 
-export {PopupHeaderText}
+const OLDPopupMenu = PopupMenu
 
+export {PopupHeaderText, OLDPopupMenu}
 export default PopupMenu

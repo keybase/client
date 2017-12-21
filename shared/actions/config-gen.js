@@ -16,12 +16,16 @@ export const bootstrapRetry = 'config:bootstrapRetry'
 export const bootstrapStatusLoaded = 'config:bootstrapStatusLoaded'
 export const bootstrapSuccess = 'config:bootstrapSuccess'
 export const changeKBFSPath = 'config:changeKBFSPath'
+export const clearAvatarCache = 'config:clearAvatarCache'
 export const clearRouteState = 'config:clearRouteState'
 export const configLoaded = 'config:configLoaded'
 export const daemonError = 'config:daemonError'
 export const extendedConfigLoaded = 'config:extendedConfigLoaded'
 export const getExtendedStatus = 'config:getExtendedStatus'
 export const globalError = 'config:globalError'
+export const loadAvatars = 'config:loadAvatars'
+export const loadTeamAvatars = 'config:loadTeamAvatars'
+export const loadedAvatars = 'config:loadedAvatars'
 export const persistRouteState = 'config:persistRouteState'
 export const pushLoaded = 'config:pushLoaded'
 export const readyForBootstrap = 'config:readyForBootstrap'
@@ -34,15 +38,19 @@ export const createBootstrap = (payload: {|+isReconnect?: boolean|}) => ({error:
 export const createBootstrapAttemptFailed = () => ({error: false, payload: undefined, type: bootstrapAttemptFailed})
 export const createBootstrapFailed = () => ({error: false, payload: undefined, type: bootstrapFailed})
 export const createBootstrapRetry = () => ({error: false, payload: undefined, type: bootstrapRetry})
-export const createBootstrapStatusLoaded = (payload: {|+bootstrapStatus: RPCTypes.BootstrapStatus|}) => ({error: false, payload, type: bootstrapStatusLoaded})
+export const createBootstrapStatusLoaded = (payload: {|+deviceID: string, +deviceName: string, +followers?: ?Array<string>, +following?: ?Array<string>, +loggedIn: boolean, +registered: boolean, +uid: string, +username: string|}) => ({error: false, payload, type: bootstrapStatusLoaded})
 export const createBootstrapSuccess = () => ({error: false, payload: undefined, type: bootstrapSuccess})
 export const createChangeKBFSPath = (payload: {|+kbfsPath: string|}) => ({error: false, payload, type: changeKBFSPath})
+export const createClearAvatarCache = () => ({error: false, payload: undefined, type: clearAvatarCache})
 export const createClearRouteState = () => ({error: false, payload: undefined, type: clearRouteState})
 export const createConfigLoaded = (payload: {|+config: RPCTypes.Config|}) => ({error: false, payload, type: configLoaded})
 export const createDaemonError = (payload: {|+daemonError: ?Error|}) => ({error: false, payload, type: daemonError})
 export const createExtendedConfigLoaded = (payload: {|+extendedConfig: RPCTypes.ExtendedStatus|}) => ({error: false, payload, type: extendedConfigLoaded})
 export const createGetExtendedStatus = () => ({error: false, payload: undefined, type: getExtendedStatus})
 export const createGlobalError = (payload: {|+globalError: ?Error|}) => ({error: false, payload, type: globalError})
+export const createLoadAvatars = (payload: {|+usernames: Array<string>|}) => ({error: false, payload, type: loadAvatars})
+export const createLoadTeamAvatars = (payload: {|+teamnames: Array<string>|}) => ({error: false, payload, type: loadTeamAvatars})
+export const createLoadedAvatars = (payload: {|+nameToUrlMap: {[name: string]: ?Object}|}) => ({error: false, payload, type: loadedAvatars})
 export const createPersistRouteState = () => ({error: false, payload: undefined, type: persistRouteState})
 export const createPushLoaded = (payload: {|+pushLoaded: boolean|}) => ({error: false, payload, type: pushLoaded})
 export const createReadyForBootstrap = () => ({error: false, payload: undefined, type: readyForBootstrap})
@@ -58,12 +66,16 @@ export type BootstrapRetryPayload = More.ReturnType<typeof createBootstrapRetry>
 export type BootstrapStatusLoadedPayload = More.ReturnType<typeof createBootstrapStatusLoaded>
 export type BootstrapSuccessPayload = More.ReturnType<typeof createBootstrapSuccess>
 export type ChangeKBFSPathPayload = More.ReturnType<typeof createChangeKBFSPath>
+export type ClearAvatarCachePayload = More.ReturnType<typeof createClearAvatarCache>
 export type ClearRouteStatePayload = More.ReturnType<typeof createClearRouteState>
 export type ConfigLoadedPayload = More.ReturnType<typeof createConfigLoaded>
 export type DaemonErrorPayload = More.ReturnType<typeof createDaemonError>
 export type ExtendedConfigLoadedPayload = More.ReturnType<typeof createExtendedConfigLoaded>
 export type GetExtendedStatusPayload = More.ReturnType<typeof createGetExtendedStatus>
 export type GlobalErrorPayload = More.ReturnType<typeof createGlobalError>
+export type LoadAvatarsPayload = More.ReturnType<typeof createLoadAvatars>
+export type LoadTeamAvatarsPayload = More.ReturnType<typeof createLoadTeamAvatars>
+export type LoadedAvatarsPayload = More.ReturnType<typeof createLoadedAvatars>
 export type PersistRouteStatePayload = More.ReturnType<typeof createPersistRouteState>
 export type PushLoadedPayload = More.ReturnType<typeof createPushLoaded>
 export type ReadyForBootstrapPayload = More.ReturnType<typeof createReadyForBootstrap>
@@ -81,12 +93,16 @@ export type Actions =
   | More.ReturnType<typeof createBootstrapStatusLoaded>
   | More.ReturnType<typeof createBootstrapSuccess>
   | More.ReturnType<typeof createChangeKBFSPath>
+  | More.ReturnType<typeof createClearAvatarCache>
   | More.ReturnType<typeof createClearRouteState>
   | More.ReturnType<typeof createConfigLoaded>
   | More.ReturnType<typeof createDaemonError>
   | More.ReturnType<typeof createExtendedConfigLoaded>
   | More.ReturnType<typeof createGetExtendedStatus>
   | More.ReturnType<typeof createGlobalError>
+  | More.ReturnType<typeof createLoadAvatars>
+  | More.ReturnType<typeof createLoadTeamAvatars>
+  | More.ReturnType<typeof createLoadedAvatars>
   | More.ReturnType<typeof createPersistRouteState>
   | More.ReturnType<typeof createPushLoaded>
   | More.ReturnType<typeof createReadyForBootstrap>

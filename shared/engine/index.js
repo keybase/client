@@ -1,5 +1,6 @@
 // @flow
 // Handles sending requests to the daemon
+import logger from '../logger'
 import * as Saga from '../util/saga'
 import Session from './session'
 import {constantsStatusCode} from '../constants/types/flow-types'
@@ -18,6 +19,7 @@ import type {CancelHandlerType} from './session'
 import type {createClientType} from './index.platform'
 import type {IncomingCallMapType, LogUiLogRpcParam} from '../constants/types/flow-types'
 import type {SessionID, SessionIDKey, WaitingHandlerType, ResponseType, MethodKey} from './types'
+import type {TypedState} from '../constants/reducer'
 
 class EngineChannel {
   _map: ChannelMap<*>
@@ -79,7 +81,14 @@ class Engine {
   _rpcClient: createClientType
   // All incoming call handlers
   _incomingHandler: {[key: MethodKey]: (param: Object, response: ?Object) => void} = {}
-  _incomingActionCreator: {[key: MethodKey]: (param: Object, response: ?Object) => ?Action} = {}
+  _incomingActionCreators: {
+    [key: MethodKey]: (
+      param: Object,
+      response: ?Object,
+      dispatch: Dispatch,
+      getState: () => TypedState
+    ) => ?Array<Action>,
+  } = {}
   // Keyed methods that care when we disconnect. Is null while we're handing _onDisconnect
   _onDisconnectHandlers: ?{[key: string]: () => void} = {}
   // Keyed methods that care when we reconnect. Is null while we're handing _onConnect
@@ -92,9 +101,12 @@ class Engine {
   _hasConnected: boolean = false
   // So we can dispatch actions
   _dispatch: Dispatch
+  // Temporary helper for incoming call maps
+  _getState: () => TypedState
 
-  constructor(dispatch: Dispatch) {
+  constructor(dispatch: Dispatch, getState: () => TypedState) {
     this._dispatch = dispatch
+    this._getState = getState
     this._setupClient()
     this._setupCoreHandlers()
     this._setupIgnoredHandlers()
@@ -115,7 +127,7 @@ class Engine {
     }
 
     if (typeof window !== 'undefined') {
-      console.log('DEV MODE ENGINE AVAILABLE AS window.DEBUGengine')
+      logger.info('DEV MODE ENGINE AVAILABLE AS window.DEBUGengine')
       window.DEBUGengine = this
     }
 
@@ -198,7 +210,7 @@ class Engine {
         `${prefix} incoming rpc: ${sessionID} ${method} ${seqid} ${JSON.stringify(param)}${response ? ': Sending back error' : ''}`
       )
     }
-    console.warn(`${prefix} incoming rpc: ${sessionID} ${method}`)
+    logger.warn(`${prefix} incoming rpc: ${sessionID} ${method}`)
 
     if (__DEV__ && this._failOnError) {
       throw new Error(
@@ -227,12 +239,12 @@ class Engine {
       const session = this._sessionsMap[String(sessionID)]
       if (session && session.incomingCall(method, param, response)) {
         // Part of a session?
-      } else if (this._incomingActionCreator[method]) {
+      } else if (this._incomingActionCreators[method]) {
         // General incoming
-        const handler = this._incomingActionCreator[method]
+        const creator = this._incomingActionCreators[method]
         rpcLog('engineInternal', 'handling incoming')
-        const action = handler(param, response)
-        action && this._dispatch(action)
+        const actions = creator(param, response, this._dispatch, this._getState) || []
+        actions.forEach(a => this._dispatch(a))
       } else if (this._incomingHandler[method]) {
         // General incoming
         const handler = this._incomingHandler[method]
@@ -246,7 +258,8 @@ class Engine {
   }
 
   // An outgoing call. ONLY called by the flow-type rpc helpers
-  _channelMapRpcHelper(configKeys: Array<string>, method: string, params: any): EngineChannel {
+  _channelMapRpcHelper(configKeys: Array<string>, method: string, paramsIn: any): EngineChannel {
+    const params = paramsIn || {}
     const channelConfig = Saga.singleFixedChannelConfig(configKeys)
     const channelMap = Saga.createChannelMap(channelConfig)
     // $FlowIssue doesn't like empty objects with exact types
@@ -260,10 +273,6 @@ class Engine {
     const callback = (error, params) => {
       channelMap['finished'] && Saga.putOnChannelMap(channelMap, 'finished', {error, params})
       Saga.closeChannelMap(channelMap)
-    }
-
-    if (!params) {
-      params = {}
     }
 
     params.incomingCallMap = incomingCallMap
@@ -281,12 +290,7 @@ class Engine {
     },
     callback: (...args: Array<any>) => void
   ) {
-    if (!params) {
-      params = {}
-    }
-
-    let {incomingCallMap, waitingHandler, ...param} = params
-
+    let {incomingCallMap, waitingHandler, ...param} = params || {}
     // Ensure a non-null param
     if (!param) {
       param = {}
@@ -375,13 +379,16 @@ class Engine {
   }
 
   // Setup a handler for a rpc w/o a session (id = 0)
-  setIncomingActionCreator(method: MethodKey, actionCreator: (param: Object, response: ?Object) => ?Action) {
-    if (this._incomingActionCreator[method]) {
+  setIncomingActionCreators(
+    method: MethodKey,
+    actionCreator: (param: Object, response: ?Object, dispatch: Dispatch) => ?Array<Action>
+  ) {
+    if (this._incomingActionCreators[method]) {
       rpcLog('engineInternal', "duplicate incoming action creator!!! this isn't allowed", {method})
       return
     }
     rpcLog('engineInternal', 'registering incoming action creator:', {method})
-    this._incomingActionCreator[method] = actionCreator
+    this._incomingActionCreators[method] = actionCreator
   }
 
   setIncomingHandler(method: MethodKey, handler: (param: Object, response: ?Object) => void) {
@@ -450,7 +457,7 @@ class FakeEngine {
   _deadSessionsMap: {[key: SessionIDKey]: Session} // just to bookkeep
   _sessionsMap: {[key: SessionIDKey]: Session}
   constructor() {
-    console.log('Engine disabled!')
+    logger.info('Engine disabled!')
     this._sessionsMap = {}
   }
   reset() {}
@@ -462,7 +469,10 @@ class FakeEngine {
   listenOnDisconnect(key: string, f: () => void) {}
   hasEverConnected() {}
   setIncomingHandler(name: string, callback: Function) {}
-  setIncomingActionCreator(method: MethodKey, actionCreator: (param: Object, response: ?Object) => ?Action) {}
+  setIncomingActionCreator(
+    method: MethodKey,
+    actionCreator: (param: Object, response: ?Object, dispatch: Dispatch) => ?Action
+  ) {}
   createSession(
     incomingCallMap: ?IncomingCallMapType,
     waitingHandler: ?WaitingHandlerType,
@@ -485,13 +495,13 @@ class FakeEngine {
 }
 
 let engine
-const makeEngine = (dispatch: Dispatch) => {
+const makeEngine = (dispatch: Dispatch, getState: () => TypedState) => {
   if (__DEV__ && engine) {
-    console.warn('makeEngine called multiple times')
+    logger.warn('makeEngine called multiple times')
   }
 
   if (!engine) {
-    engine = process.env.KEYBASE_NO_ENGINE || isTesting ? new FakeEngine() : new Engine(dispatch)
+    engine = process.env.KEYBASE_NO_ENGINE || isTesting ? new FakeEngine() : new Engine(dispatch, getState)
   }
   return engine
 }

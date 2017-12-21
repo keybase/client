@@ -1,5 +1,5 @@
 // @flow
-import * as Creators from '../../actions/teams/creators'
+import * as TeamsGen from '../../actions/teams-gen'
 import * as SearchGen from '../../actions/search-gen'
 import * as SearchConstants from '../../constants/search'
 import {getRole, isOwner} from '../../constants/teams'
@@ -27,10 +27,12 @@ const mapStateToProps = (state: TypedState, {routeProps}) => {
 
 const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routeProps}) => ({
   _getSuggestions: () => dispatch(SearchGen.createSearchSuggestions({searchKey: 'addToTeamSearch'})),
-  onAddPeople: (role: string, sendNotification: boolean) => {
-    dispatch(Creators.addPeopleToTeam(routeProps.get('teamname'), role, sendNotification))
+  onAddPeople: (role: string, sendChatNotification: boolean) => {
+    dispatch(
+      TeamsGen.createAddPeopleToTeam({teamname: routeProps.get('teamname'), role, sendChatNotification})
+    )
     dispatch(navigateUp())
-    dispatch(Creators.getTeams())
+    dispatch(TeamsGen.createGetTeams())
     dispatch(SearchGen.createClearSearchResults({searchKey: 'addToTeamSearch'}))
     dispatch(SearchGen.createSetUserInputItems({searchKey: 'addToTeamSearch', searchResults: []}))
   },

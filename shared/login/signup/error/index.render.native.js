@@ -2,7 +2,7 @@
 import React, {Component} from 'react'
 import type {Props} from './index.render'
 import Container from '../../forms/container'
-import {Text, Button, Box} from '../../../common-adapters'
+import {Text, Button, Box, ButtonBar} from '../../../common-adapters'
 import {globalStyles} from '../../../styles'
 
 class ErrorRender extends Component<Props> {
@@ -15,7 +15,9 @@ class ErrorRender extends Component<Props> {
         <Text type="BodyError" style={{marginTop: 20, marginBottom: 20}}>
           {this.props.errorText.stringValue()}
         </Text>
-        <Button type="Secondary" label="Try Again" onClick={() => this.props.restartSignup()} />
+        <ButtonBar>
+          <Button type="Secondary" label="Try Again" onClick={() => this.props.restartSignup()} />
+        </ButtonBar>
         <Box style={{flex: 1}} />
       </Container>
     )

@@ -1,78 +1,87 @@
 // @flow
+import logger from '../logger'
 import * as PinentryGen from '../actions/pinentry-gen'
+import * as Saga from '../util/saga'
+import * as I from 'immutable'
 import * as RPCTypes from '../constants/types/flow-types'
 import engine from '../engine'
-import type {AsyncAction} from '../constants/types/flux'
 
-const uglySessionIDResponseMapper: {[key: number]: any} = {}
+// We keep track of sessionID to response objects since this is initiated by the daemon
+const sessionIDToResponse: {[key: string]: any} = {}
 
-export function registerPinentryListener(): AsyncAction {
-  return dispatch => {
-    engine().listenOnConnect('registerSecretUI', () => {
-      RPCTypes.delegateUiCtlRegisterSecretUIRpcPromise()
-        .then(response => {
-          console.log('Registered secret ui')
-        })
-        .catch(error => {
-          console.warn('error in registering secret ui: ', error)
-        })
-    })
+function _setupPinentryHandlers() {
+  engine().listenOnConnect('registerSecretUI', () => {
+    RPCTypes.delegateUiCtlRegisterSecretUIRpcPromise()
+      .then(response => {
+        logger.info('Registered secret ui')
+      })
+      .catch(error => {
+        logger.warn('error in registering secret ui: ', error)
+      })
+  })
 
-    dispatch(PinentryGen.createRegisterPinentryListener({started: true}))
+  engine().setIncomingActionCreators('keybase.1.secretUi.getPassphrase', (payload, response) => {
+    logger.info('Asked for passphrase')
+    const {prompt, submitLabel, cancelLabel, windowTitle, retryLabel, features, type} = payload.pinentry
+    const {sessionID} = payload
 
-    engine().setIncomingHandler('keybase.1.secretUi.getPassphrase', (payload, response) => {
-      console.log('Asked for passphrase')
+    // Stash response
+    sessionIDToResponse[String(sessionID)] = response
 
-      const {prompt, submitLabel, cancelLabel, windowTitle, retryLabel, features, type} = payload.pinentry
-      const sessionID = payload.sessionID
-
-      dispatch(
-        PinentryGen.createNewPinentry({
-          cancelLabel,
-          features,
-          prompt,
-          retryLabel,
-          sessionID,
-          submitLabel,
-          type,
-          windowTitle,
-        })
-      )
-
-      uglySessionIDResponseMapper[sessionID] = response
-    })
-  }
+    return [
+      PinentryGen.createNewPinentry({
+        cancelLabel,
+        prompt,
+        retryLabel,
+        sessionID,
+        showTyping: features.showTyping,
+        submitLabel,
+        type,
+        windowTitle,
+      }),
+    ]
+  })
 }
 
-export function onSubmit(
-  sessionID: number,
-  passphrase: string,
-  features: RPCTypes.GUIEntryFeatures
-): AsyncAction {
-  let result = {passphrase: passphrase}
-  for (const feature in features) {
-    result[feature] = features[feature]
-  }
-  return dispatch => {
-    dispatch(PinentryGen.createOnSubmit({sessionID}))
-    uglyResponse(sessionID, result)
-  }
-}
-
-export function onCancel(sessionID: number): AsyncAction {
-  return dispatch => {
-    dispatch(PinentryGen.createOnCancel({sessionID}))
-    uglyResponse(sessionID, null, {
-      code: RPCTypes.constantsStatusCode.scinputcanceled,
-      desc: 'Input canceled',
+function _onNewPinentry(action: PinentryGen.NewPinentryPayload) {
+  return Saga.put(
+    PinentryGen.createReplaceEntity({
+      entities: I.Map([[String(action.payload.sessionID), action.payload]]),
+      keyPath: ['sessionIDToPinentry'],
     })
-  }
+  )
 }
 
-function uglyResponse(sessionID: number, result: any, err: ?any): void {
-  const response = uglySessionIDResponseMapper[sessionID]
+function _onSubmit(action: PinentryGen.OnSubmitPayload) {
+  const {sessionID, passphrase} = action.payload
+  _respond(sessionID, {passphrase, storeSecret: false})
+  return Saga.put(
+    PinentryGen.createDeleteEntity({
+      ids: [action.payload.sessionID],
+      keyPath: ['sessionIDToPinentry'],
+    })
+  )
+}
+
+function _onCancel(action: PinentryGen.OnCancelPayload) {
+  const {sessionID} = action.payload
+  _respond(sessionID, null, {
+    code: RPCTypes.constantsStatusCode.scinputcanceled,
+    desc: 'Input canceled',
+  })
+  return Saga.put(
+    PinentryGen.createDeleteEntity({
+      ids: [action.payload.sessionID],
+      keyPath: ['sessionIDToPinentry'],
+    })
+  )
+}
+
+function _respond(sessionID: number, result: any, err: ?any): void {
+  const sessionKey = String(sessionID)
+  const response = sessionIDToResponse[sessionKey]
   if (response == null) {
-    console.log('lost response reference')
+    logger.info('lost response reference')
     return
   }
 
@@ -82,5 +91,14 @@ function uglyResponse(sessionID: number, result: any, err: ?any): void {
     response.result(result)
   }
 
-  delete uglySessionIDResponseMapper[sessionID]
+  delete sessionIDToResponse[sessionKey]
 }
+
+function* pinentrySaga(): Saga.SagaGenerator<any, any> {
+  yield Saga.safeTakeEveryPure(PinentryGen.registerPinentryListener, _setupPinentryHandlers)
+  yield Saga.safeTakeEveryPure(PinentryGen.onSubmit, _onSubmit)
+  yield Saga.safeTakeEveryPure(PinentryGen.onCancel, _onCancel)
+  yield Saga.safeTakeEveryPure(PinentryGen.newPinentry, _onNewPinentry)
+}
+
+export default pinentrySaga

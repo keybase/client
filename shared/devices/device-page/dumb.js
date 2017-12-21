@@ -4,12 +4,27 @@ import {globalColors} from '../../styles'
 
 import type {DumbComponentMap} from '../../constants/types/more'
 
+const device = {
+  created: 1444423192000,
+  currentDevice: false,
+  deviceID: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+  lastUsed: 1444423192001,
+  name: 'Home Computer',
+  provisionedAt: null,
+  provisioner: null,
+  provisionerName: '',
+  revokeName: 'device',
+  revokedAt: null,
+  type: 'desktop',
+}
+
 const common = {
   bannerBackgroundColor: null,
   bannerColor: null,
   bannerDesc: null,
   created: 1444423192000,
   currentDevice: false,
+  device,
   deviceID: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
   icon: 'icon-computer-64',
   lastUsed: 1444423192001,
@@ -19,6 +34,7 @@ const common = {
   },
   provisionedAt: null,
   provisioner: null,
+  provisionerName: '',
   revokeName: 'device',
   revokedAt: null,
   showRevokeDevicePage: () => {},
@@ -34,7 +50,6 @@ const map: DumbComponentMap<Render> = {
       bannerColor: globalColors.brown_60,
       bannerDesc: 'Home Computer is running an outdated version of Keybase. Remember to update!',
       currentDevice: true,
-      device: common,
       deviceID: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
       // This is the max length, 64 chars.
       name: 'Hello this extremely long device name should not look very ugly',
@@ -51,7 +66,6 @@ const map: DumbComponentMap<Render> = {
     },
     Paper: {
       ...common,
-      device: common,
       deviceID: 'dddddddddddddddddddddddddddddddd',
       icon: 'icon-paper-key-64',
       name: 'project green...',
@@ -68,7 +82,6 @@ const map: DumbComponentMap<Render> = {
     Revoked: {
       ...common,
       currentDevice: false,
-      device: common,
       deviceID: 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
       revokeName: 'device',
       revokedAt: 1444423192000,
@@ -95,7 +108,6 @@ const map: DumbComponentMap<Render> = {
       bannerBackgroundColor: globalColors.blue,
       bannerColor: globalColors.white,
       bannerDesc: 'Turning on this device will unlock 6 of your private folders.',
-      device: common,
       deviceID: 'cccccccccccccccccccccccccccccccc',
       icon: 'icon-phone-64',
       name: "Chris's iPhone",

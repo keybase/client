@@ -1,4 +1,5 @@
 // @flow
+import logger from '../../logger'
 import * as RPCChatTypes from '../../constants/types/flow-types-chat'
 import * as Types from '../../constants/types/chat'
 import * as Constants from '../../constants/chat'
@@ -9,7 +10,6 @@ import * as RPCTypes from '../../constants/types/flow-types'
 import * as Saga from '../../util/saga'
 import * as EntityCreators from '../entities'
 import * as Shared from './shared'
-import {enableActionLogging} from '../../local-debug'
 import {putActionIfOnPath, navigateAppend} from '../route-tree'
 import {saveAttachmentDialog, showShareActionSheet} from '../platform-specific'
 import {tmpDir, tmpFile, downloadFilePath, copy, exists, stat} from '../../util/file'
@@ -36,19 +36,19 @@ function* onSaveAttachmentNative({
   }
 }
 
-function* onLoadAttachmentPreview({
-  payload: {messageKey},
-}: ChatGen.LoadAttachmentPreviewPayload): SagaGenerator<any, any> {
-  yield Saga.put(ChatGen.createLoadAttachment({messageKey, loadPreview: true}))
+function onLoadAttachmentPreview({payload: {messageKey}}: ChatGen.LoadAttachmentPreviewPayload) {
+  return Saga.put(ChatGen.createLoadAttachment({messageKey, loadPreview: true}))
 }
 
-function* onSaveAttachment({payload: {messageKey}}: ChatGen.SaveAttachmentPayload): SagaGenerator<any, any> {
-  const {savedPath, downloadedPath} = yield Saga.select((s: TypedState) => ({
-    savedPath: Constants.getAttachmentSavedPath(s, messageKey),
-    downloadedPath: Constants.getAttachmentDownloadedPath(s, messageKey),
-  }))
+function* onSaveAttachment({
+  payload: {messageKey},
+}: ChatGen.SaveAttachmentPayload): Generator<any, ?string, any> {
+  let state: TypedState = yield Saga.select()
+  const savedPath = Constants.getAttachmentSavedPath(state, messageKey)
+  const downloadedPath = Constants.getAttachmentDownloadedPath(state, messageKey)
+
   if (savedPath) {
-    console.log('_saveAttachment: message already saved. bailing.', messageKey, savedPath)
+    logger.info('_saveAttachment: message already saved. bailing.', messageKey, savedPath)
     return savedPath
   }
 
@@ -57,7 +57,7 @@ function* onSaveAttachment({payload: {messageKey}}: ChatGen.SaveAttachmentPayloa
   const startTime = Date.now()
   if (!downloadedPath) {
     yield Saga.put(ChatGen.createLoadAttachment({messageKey, loadPreview: false}))
-    console.log('_saveAttachment: waiting for attachment to load', messageKey)
+    logger.info('_saveAttachment: waiting for attachment to load', messageKey)
     yield Saga.take(
       action =>
         action.type === ChatGen.attachmentLoaded &&
@@ -82,21 +82,28 @@ function* onSaveAttachment({payload: {messageKey}}: ChatGen.SaveAttachmentPayloa
     }
   }
 
-  const nextDownloadedPath = yield Saga.select(Constants.getAttachmentDownloadedPath, messageKey)
+  state = yield Saga.select()
+  const nextDownloadedPath = Constants.getAttachmentDownloadedPath(state, messageKey)
   if (!nextDownloadedPath) {
-    console.warn('_saveAttachment: message failed to download!')
-    return
+    logger.warn('_saveAttachment: message failed to download!')
+    return null
   }
 
-  const {filename} = yield Saga.select(Constants.getMessageFromMessageKey, messageKey)
+  const message = Constants.getMessageFromMessageKey(state, messageKey)
+  if (!message || !message.filename) {
+    logger.warn("can't find message")
+    return null
+  }
+  // $FlowIssue
+  const filename: string = message.filename
   const destPath = yield Saga.call(downloadFilePath, filename)
 
   try {
     yield copy(nextDownloadedPath, destPath)
   } catch (err) {
-    console.warn('_saveAttachment: copy failed:', err)
+    logger.warn('_saveAttachment: copy failed:', err)
     yield Saga.put(ChatGen.createAttachmentSaveFailed({messageKey}))
-    return
+    return null
   }
 
   yield Saga.put(ChatGen.createAttachmentSaved({messageKey, path: destPath}))
@@ -128,15 +135,18 @@ function* onLoadAttachment({
   // Check if we should download the attachment. Only one instance of this saga
   // should executes at any time, so that these checks don't interleave with
   // updating initial progress on the download.
-  const {previewPath, previewProgress, downloadedPath, downloadProgress} = yield Saga.select(
-    Constants.getLocalMessageStateFromMessageKey,
-    messageKey
-  )
+  const state: TypedState = yield Saga.select()
+  const {
+    previewPath,
+    previewProgress,
+    downloadedPath,
+    downloadProgress,
+  } = Constants.getLocalMessageStateFromMessageKey(state, messageKey)
 
   if (loadPreview) {
     if (previewPath || previewProgress !== null) {
       // Already downloaded / downloading preview
-      console.log(
+      logger.info(
         'onLoadAttachment: preview already downloaded/downloading. bailing.',
         messageKey,
         previewPath,
@@ -147,7 +157,7 @@ function* onLoadAttachment({
   } else {
     if (downloadedPath || downloadProgress !== null) {
       // Already downloaded / downloading attachment
-      console.log(
+      logger.info(
         'onLoadAttachment: attachment already downloaded/downloading. bailing.',
         messageKey,
         downloadedPath,
@@ -157,21 +167,33 @@ function* onLoadAttachment({
     }
   }
 
+  function _tmpFileName(
+    isPreview: boolean,
+    conversationID: Types.ConversationIDKey,
+    messageID: Types.MessageID
+  ) {
+    if (!messageID) {
+      throw new Error('tmpFileName called without messageID!')
+    }
+
+    return `kbchat-${conversationID}-${messageID}.${isPreview ? 'preview' : 'download'}`
+  }
+
   const {conversationIDKey, messageID} = Constants.splitMessageIDKey(messageKey)
-  const destPath = tmpFile(Shared.tmpFileName(loadPreview, conversationIDKey, messageID))
+  const destPath = tmpFile(_tmpFileName(loadPreview, conversationIDKey, messageID))
   const fileExists = yield Saga.call(exists, destPath)
   if (fileExists) {
     try {
       const fileStat = yield Saga.call(stat, destPath)
       if (fileStat.size === 0) {
-        console.warn('attachment file had size 0. overwriting:', destPath)
+        logger.warn('attachment file had size 0. overwriting:', destPath)
         // Fall through to download attachment
       } else {
         yield Saga.put(ChatGen.createAttachmentLoaded({messageKey, path: destPath, isPreview: loadPreview}))
         return
       }
     } catch (err) {
-      console.warn('unexpected error statting file:', destPath, err)
+      logger.warn('unexpected error statting file:', destPath, err)
     }
   }
 
@@ -200,11 +222,11 @@ function* onLoadAttachment({
       if (EngineRpc.isFinished(result)) {
         yield Saga.put(ChatGen.createAttachmentLoaded({messageKey, path: destPath, isPreview: loadPreview}))
       } else {
-        console.warn('downloadFileRpc bailed early')
+        logger.warn('downloadFileRpc bailed early')
         yield Saga.put(ChatGen.createAttachmentLoaded({messageKey, path: null, isPreview: loadPreview}))
       }
     } catch (err) {
-      console.warn('attachment failed to load:', err)
+      logger.warn('attachment failed to load:', err)
       yield Saga.put(ChatGen.createAttachmentLoaded({messageKey, path: null, isPreview: loadPreview}))
     }
   })
@@ -216,9 +238,14 @@ function* _appendAttachmentPlaceholder(
   preview: RPCChatTypes.MakePreviewRes,
   title: string,
   uploadPath: string
-): Generator<any, Types.AttachmentMessage, any> {
-  const author = yield Saga.select(usernameSelector)
-  const lastOrd = yield Saga.select(Constants.lastOrdinal, conversationIDKey)
+): Generator<any, ?Types.AttachmentMessage, any> {
+  const state: TypedState = yield Saga.select()
+  const author = usernameSelector(state)
+  if (!author) {
+    logger.info('No logged in user append attach placeholder?')
+    return
+  }
+  const lastOrd = Constants.lastOrdinal(state, conversationIDKey)
   const message: Types.AttachmentMessage = {
     author,
     conversationIDKey,
@@ -239,8 +266,8 @@ function* _appendAttachmentPlaceholder(
     ordinal: Constants.nextFractionalOrdinal(lastOrd), // Add an ordinal here to keep in correct order
   }
 
-  const selectedConversation = yield Saga.select(Constants.getSelectedConversation)
-  const appFocused = yield Saga.select(Shared.focusedSelector)
+  const selectedConversation = Constants.getSelectedConversation(state)
+  const appFocused = Shared.focusedSelector(state)
 
   yield Saga.put(
     ChatGen.createAppendMessages({
@@ -285,6 +312,9 @@ function uploadOutboxIDSubSaga(
       title,
       filename
     )
+    if (!placeholderMessage) {
+      return EngineRpc.rpcError()
+    }
     yield Saga.call(setCurKey, placeholderMessage.key)
     yield Saga.call(setOutboxId, outboxIDKey)
     return EngineRpc.rpcResult()
@@ -334,7 +364,12 @@ function* onSelectAttachment({payload: {input}}: ChatGen.SelectAttachmentPayload
     outputDir: tmpDir(),
   })
 
-  const inboxConvo = yield Saga.select(Constants.getInbox, conversationIDKey)
+  const state: TypedState = yield Saga.select()
+  const inboxConvo = Constants.getInbox(state, conversationIDKey)
+  if (!inboxConvo) {
+    logger.info("Can't find inbox for select attachment")
+    return
+  }
   const param = {
     conversationID: Constants.keyToConversationID(conversationIDKey),
     tlfName: inboxConvo ? inboxConvo.name : newConvoTlfName,
@@ -395,14 +430,14 @@ function* onSelectAttachment({payload: {input}}: ChatGen.SelectAttachmentPayload
       const curKey = yield Saga.call(getCurKey)
       yield Saga.put(ChatGen.createUploadProgress({messageKey: curKey, progress: null}))
     } else {
-      console.warn('Upload Attachment Failed')
+      logger.warn('Upload Attachment Failed')
     }
   } finally {
     yield Saga.cancel(keyChangedTask)
   }
 }
 
-function* onRetryAttachment({payload: {message}}: ChatGen.RetryAttachmentPayload): Generator<any, any, any> {
+function onRetryAttachment({payload: {message}}: ChatGen.RetryAttachmentPayload) {
   const {conversationIDKey, uploadPath, title, previewType, outboxID} = message
   if (!uploadPath || !title || !previewType) {
     throw new Error('attempted to retry attachment without upload path')
@@ -418,37 +453,44 @@ function* onRetryAttachment({payload: {message}}: ChatGen.RetryAttachmentPayload
     type: previewType || 'Other',
   }
 
-  yield Saga.put(ChatGen.createRemoveOutboxMessage({conversationIDKey: input.conversationIDKey, outboxID}))
-  yield Saga.call(onSelectAttachment, {payload: {input}, type: ChatGen.selectAttachment, error: false})
+  return Saga.sequentially([
+    Saga.put(ChatGen.createRemoveOutboxMessage({conversationIDKey: input.conversationIDKey, outboxID})),
+    Saga.call(onSelectAttachment, {payload: {input}, type: ChatGen.selectAttachment, error: false}),
+  ])
 }
 
-function* onOpenAttachmentPopup(action: ChatGen.OpenAttachmentPopupPayload): SagaGenerator<any, any> {
+function onOpenAttachmentPopup(action: ChatGen.OpenAttachmentPopupPayload) {
   const {message, currentPath} = action.payload
   const messageID = message.messageID
   if (!messageID) {
     throw new Error('Cannot open attachment popup for message missing ID')
   }
 
-  yield Saga.put(
-    putActionIfOnPath(
-      currentPath,
-      navigateAppend([{props: {messageKey: message.key}, selected: 'attachment'}])
+  const actions = []
+  actions.push(
+    Saga.put(
+      putActionIfOnPath(
+        currentPath,
+        navigateAppend([{props: {messageKey: message.key}, selected: 'attachment'}])
+      )
     )
   )
   if (!message.hdPreviewPath && message.filename && message.messageID) {
-    yield Saga.put(ChatGen.createLoadAttachment({messageKey: message.key, loadPreview: false}))
+    actions.push(Saga.put(ChatGen.createLoadAttachment({messageKey: message.key, loadPreview: false})))
   }
+
+  return Saga.sequentially(actions)
 }
 
 function attachmentLoaded(action: ChatGen.AttachmentLoadedPayload) {
   const {payload: {messageKey, path, isPreview}} = action
   if (isPreview) {
-    return Saga.all([
+    return Saga.sequentially([
       Saga.put(EntityCreators.replaceEntity(['attachmentPreviewPath'], I.Map({[messageKey]: path}))),
       Saga.put(EntityCreators.replaceEntity(['attachmentPreviewProgress'], I.Map({[messageKey]: null}))),
     ])
   }
-  return Saga.all([
+  return Saga.sequentially([
     Saga.put(EntityCreators.replaceEntity(['attachmentDownloadedPath'], I.Map({[messageKey]: path}))),
     Saga.put(EntityCreators.replaceEntity(['attachmentDownloadProgress'], I.Map({[messageKey]: null}))),
   ])
@@ -486,47 +528,11 @@ function updateAttachmentSavePath(
   }
 }
 
-function* _logLoadAttachmentPreview(
-  action: ChatGen.LoadAttachmentPreviewPayload
-): Saga.SagaGenerator<any, any> {
-  const toPrint = {
-    payload: {
-      messageKey: action.payload.messageKey,
-    },
-    type: action.type,
-  }
-  console.log('Load Attachment Preview', JSON.stringify(toPrint, null, 2))
-}
-
-function* _logAttachmentLoaded(action: ChatGen.AttachmentLoadedPayload): Saga.SagaGenerator<any, any> {
-  const toPrint = {
-    payload: {
-      messageKey: action.payload.messageKey,
-      isPreview: action.payload.isPreview,
-    },
-    type: action.type,
-  }
-  console.log('Load Attachment Loaded', JSON.stringify(toPrint, null, 2))
-}
-
-function* _logDownloadProgress(action: ChatGen.DownloadProgressPayload): Saga.SagaGenerator<any, any> {
-  const toPrint = {
-    payload: {
-      messageKey: action.payload.messageKey,
-      isPreview: action.payload.messageKey,
-      progress: action.payload.progress === 0 ? 'zero' : action.payload.progress === 1 ? 'one' : 'partial',
-    },
-    type: action.type,
-  }
-
-  console.log('Download Progress', JSON.stringify(toPrint, null, 2))
-}
-
 function* registerSagas(): SagaGenerator<any, any> {
   yield Saga.safeTakeSerially(ChatGen.loadAttachment, onLoadAttachment)
-  yield Saga.safeTakeEvery(ChatGen.openAttachmentPopup, onOpenAttachmentPopup)
-  yield Saga.safeTakeEvery(ChatGen.loadAttachmentPreview, onLoadAttachmentPreview)
-  yield Saga.safeTakeEvery(ChatGen.retryAttachment, onRetryAttachment)
+  yield Saga.safeTakeEveryPure(ChatGen.openAttachmentPopup, onOpenAttachmentPopup)
+  yield Saga.safeTakeEveryPure(ChatGen.loadAttachmentPreview, onLoadAttachmentPreview)
+  yield Saga.safeTakeEveryPure(ChatGen.retryAttachment, onRetryAttachment)
   yield Saga.safeTakeEvery(ChatGen.saveAttachment, onSaveAttachment)
   yield Saga.safeTakeEvery(ChatGen.saveAttachmentNative, onSaveAttachmentNative)
   yield Saga.safeTakeEvery(ChatGen.selectAttachment, onSelectAttachment)
@@ -537,12 +543,6 @@ function* registerSagas(): SagaGenerator<any, any> {
     [ChatGen.attachmentSaveStart, ChatGen.attachmentSaveFailed, ChatGen.attachmentSaved],
     updateAttachmentSavePath
   )
-
-  if (enableActionLogging) {
-    yield Saga.safeTakeEvery(ChatGen.loadAttachmentPreview, _logLoadAttachmentPreview)
-    yield Saga.safeTakeEvery(ChatGen.attachmentLoaded, _logAttachmentLoaded)
-    yield Saga.safeTakeEvery(ChatGen.downloadProgress, _logDownloadProgress)
-  }
 }
 
 export {registerSagas}

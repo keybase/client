@@ -3,10 +3,9 @@ import Box from './box'
 import Icon from './icon'
 import * as React from 'react'
 import Text from './text'
-import {globalStyles, globalColors} from '../styles'
+import {globalStyles, globalColors, isMobile} from '../styles'
 import {iconMeta} from './icon.constants'
 import {storiesOf, action} from '../stories/storybook'
-import {isMobile} from '../constants/platform'
 
 import type {IconType} from './icon'
 
@@ -29,7 +28,6 @@ const commonProps = {
 
 const load = () => {
   const sizes = {}
-  // $FlowIssue
   Object.keys(iconMeta).map((type: IconType) => {
     const meta = iconMeta[type]
     const twoRegMatch = type.match(/(\d+)-x-\d+$/)

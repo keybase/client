@@ -1,18 +1,14 @@
 // @flow
 import ShowcasedTeamInfo from './index'
-import {
-  checkRequestedAccess,
-  getTeams,
-  joinTeam,
-  setTeamJoinError,
-  setTeamJoinSuccess,
-} from '../../actions/teams/creators'
+import * as TeamsGen from '../../actions/teams-gen'
 import * as ProfileGen from '../../actions/profile-gen'
-import {publicAdminsLimit} from '../../constants/teams'
+import {parsePublicAdmins} from '../../util/teams'
+
 import {connect, compose, lifecycle, type TypedState} from '../../util/container'
 
 const mapStateToProps = (state: TypedState, {routeProps}) => {
-  const {following, username} = state.config
+  const username = state.config.username
+  const following = state.config.following.toObject()
   if (!username || !following) {
     throw new Error('Not logged in')
   }
@@ -30,19 +26,7 @@ const mapStateToProps = (state: TypedState, {routeProps}) => {
 
   // If the current user's in the list of public admins, pull them out to the
   // front.
-  let publicAdmins = team.publicAdmins || []
-  const idx = publicAdmins.indexOf(username)
-  if (idx !== -1) {
-    const elem = publicAdmins.splice(idx, 1)
-    publicAdmins.unshift(...elem)
-  }
-  // If there are more than six public admins, take the first six and mention
-  // the count of the others.
-  const publicAdminsOthers = publicAdmins.length > publicAdminsLimit
-    ? publicAdmins.length - publicAdminsLimit
-    : 0
-  // Remove the public admins past the sixth.
-  publicAdmins.splice(publicAdminsLimit, publicAdmins.length - publicAdminsLimit)
+  const {publicAdmins, publicAdminsOthers} = parsePublicAdmins(team.publicAdmins || [], username)
 
   return {
     description,
@@ -62,12 +46,13 @@ const mapStateToProps = (state: TypedState, {routeProps}) => {
 const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routeProps}) => {
   const teamname = routeProps.get('team').fqName
   return {
-    _checkRequestedAccess: () => dispatch(checkRequestedAccess(teamname)),
-    _loadTeams: () => dispatch(getTeams()),
-    _onSetTeamJoinError: (error: string) => dispatch(setTeamJoinError(error)),
-    _onSetTeamJoinSuccess: (success: boolean) => dispatch(setTeamJoinSuccess(success)),
+    _checkRequestedAccess: () => dispatch(TeamsGen.createCheckRequestedAccess({teamname})),
+    _loadTeams: () => dispatch(TeamsGen.createGetTeams()),
+    _onSetTeamJoinError: (error: string) => dispatch(TeamsGen.createSetTeamJoinError({error})),
+    _onSetTeamJoinSuccess: (success: boolean) =>
+      dispatch(TeamsGen.createSetTeamJoinSuccess({success, teamname: null})),
     onHidden: () => dispatch(navigateUp()),
-    onJoinTeam: () => dispatch(joinTeam(teamname)),
+    onJoinTeam: (teamname: string) => dispatch(TeamsGen.createJoinTeam({teamname})),
     onUserClick: username => {
       dispatch(navigateUp())
       dispatch(ProfileGen.createShowUserProfile({username}))

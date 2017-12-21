@@ -562,7 +562,7 @@ exports[`Storyshots Chat/Conversation/InfoPanel Participants (with add button) 1
   position: absolute;
   right: 1px;
   top: 1px;
-  background-color: #ffffff;
+  background-color: #f0f0f0;
   border-radius: 50%;
 }
 
@@ -1021,7 +1021,7 @@ exports[`Storyshots Chat/Conversation/InfoPanel Participants 1`] = `
   position: absolute;
   right: 1px;
   top: 1px;
-  background-color: #ffffff;
+  background-color: #f0f0f0;
   border-radius: 50%;
 }
 
@@ -2647,8 +2647,12 @@ exports[`Storyshots Chat/Heads up Display Mention Hud 1`] = `
       <div
         style={
           Object {
+            "alignItems": "center",
             "display": "flex",
             "flexDirection": "row",
+            "justifyContent": "center",
+            "minHeight": 64,
+            "width": "100%",
           }
         }
       >
@@ -2701,6 +2705,14 @@ exports[`Storyshots Chat/Heads up Display Mention Hud 1`] = `
           </div>
         </div>
         <div
+          style={
+            Object {
+              "height": 8,
+              "width": 8,
+            }
+          }
+        />
+        <div
           onClick={[Function]}
           onMouseDown={[Function]}
           onMouseEnter={[Function]}
@@ -2718,7 +2730,6 @@ exports[`Storyshots Chat/Heads up Display Mention Hud 1`] = `
               "height": 32,
               "justifyContent": "center",
               "lineHeight": "inherit",
-              "marginLeft": 16,
               "minWidth": undefined,
               "paddingLeft": 24,
               "paddingRight": 24,
@@ -2819,7 +2830,7 @@ exports[`Storyshots Chat/Heads up Display Mention Row 1`] = `
   position: absolute;
   right: 1px;
   top: 1px;
-  background-color: #ffffff;
+  background-color: #f0f0f0;
   border-radius: 50%;
 }
 
@@ -3152,7 +3163,7 @@ exports[`Storyshots Chat/Inbox Filtered 1`] = `
   position: absolute;
   right: 1px;
   top: 1px;
-  background-color: #ffffff;
+  background-color: #f0f0f0;
   border-radius: 50%;
 }
 
@@ -3212,7 +3223,7 @@ exports[`Storyshots Chat/Inbox Filtered 1`] = `
   position: absolute;
   right: 1px;
   top: 1px;
-  background-color: #ffffff;
+  background-color: #f0f0f0;
   border-radius: 6px;
 }
 
@@ -4126,7 +4137,7 @@ exports[`Storyshots Chat/Inbox Simple 1`] = `
   position: absolute;
   right: 1px;
   top: 1px;
-  background-color: #ffffff;
+  background-color: #f0f0f0;
   border-radius: 6px;
 }
 
@@ -4210,7 +4221,7 @@ exports[`Storyshots Chat/Inbox Simple 1`] = `
   position: absolute;
   right: 1px;
   top: 1px;
-  background-color: #ffffff;
+  background-color: #f0f0f0;
   border-radius: 50%;
 }
 
@@ -4438,38 +4449,42 @@ exports[`Storyshots Chat/Inbox Simple 1`] = `
             <div
               style={
                 Object {
+                  "alignItems": "center",
                   "backgroundColor": undefined,
                   "display": "flex",
                   "flexDirection": "row",
-                  "flexGrow": 1,
-                  "maxHeight": 17,
-                  "minHeight": 17,
-                  "position": "relative",
+                  "flexShrink": 0,
+                  "height": 17,
+                  "width": "100%",
                 }
               }
             >
               <div
                 style={
                   Object {
-                    "alignItems": "flex-start",
-                    "bottom": 0,
-                    "display": "flex",
-                    "flexDirection": "row",
-                    "justifyContent": "flex-start",
-                    "left": 0,
-                    "position": "absolute",
-                    "right": 0,
-                    "top": 0,
+                    "flexGrow": 1,
+                    "height": "100%",
+                    "position": "relative",
                   }
                 }
               >
-                <span
-                  className="glamor-6"
-                  onClick={undefined}
-                  title={undefined}
+                <div
+                  style={
+                    Object {
+                      "alignItems": "flex-start",
+                      "bottom": 0,
+                      "display": "flex",
+                      "flexDirection": "row",
+                      "justifyContent": "flex-start",
+                      "left": 0,
+                      "position": "absolute",
+                      "right": 0,
+                      "top": 0,
+                    }
+                  }
                 >
                   <span
-                    className="glamor-4"
+                    className="glamor-6"
                     onClick={undefined}
                     title={undefined}
                   >
@@ -4478,10 +4493,16 @@ exports[`Storyshots Chat/Inbox Simple 1`] = `
                       onClick={undefined}
                       title={undefined}
                     >
-                      elisa: Hopefully not
+                      <span
+                        className="glamor-4"
+                        onClick={undefined}
+                        title={undefined}
+                      >
+                        elisa: Hopefully not
+                      </span>
                     </span>
                   </span>
-                </span>
+                </div>
               </div>
             </div>
           </div>
@@ -4668,38 +4689,42 @@ exports[`Storyshots Chat/Inbox Simple 1`] = `
             <div
               style={
                 Object {
+                  "alignItems": "center",
                   "backgroundColor": undefined,
                   "display": "flex",
                   "flexDirection": "row",
-                  "flexGrow": 1,
-                  "maxHeight": 17,
-                  "minHeight": 17,
-                  "position": "relative",
+                  "flexShrink": 0,
+                  "height": 17,
+                  "width": "100%",
                 }
               }
             >
               <div
                 style={
                   Object {
-                    "alignItems": "flex-start",
-                    "bottom": 0,
-                    "display": "flex",
-                    "flexDirection": "row",
-                    "justifyContent": "flex-start",
-                    "left": 0,
-                    "position": "absolute",
-                    "right": 0,
-                    "top": 0,
+                    "flexGrow": 1,
+                    "height": "100%",
+                    "position": "relative",
                   }
                 }
               >
-                <span
-                  className="glamor-13"
-                  onClick={undefined}
-                  title={undefined}
+                <div
+                  style={
+                    Object {
+                      "alignItems": "flex-start",
+                      "bottom": 0,
+                      "display": "flex",
+                      "flexDirection": "row",
+                      "justifyContent": "flex-start",
+                      "left": 0,
+                      "position": "absolute",
+                      "right": 0,
+                      "top": 0,
+                    }
+                  }
                 >
                   <span
-                    className="glamor-4"
+                    className="glamor-13"
                     onClick={undefined}
                     title={undefined}
                   >
@@ -4708,10 +4733,16 @@ exports[`Storyshots Chat/Inbox Simple 1`] = `
                       onClick={undefined}
                       title={undefined}
                     >
-                      in the top-drawer i believe
+                      <span
+                        className="glamor-4"
+                        onClick={undefined}
+                        title={undefined}
+                      >
+                        in the top-drawer i believe
+                      </span>
                     </span>
                   </span>
-                </span>
+                </div>
               </div>
             </div>
           </div>
@@ -4887,38 +4918,48 @@ exports[`Storyshots Chat/Inbox Simple 1`] = `
             <div
               style={
                 Object {
+                  "alignItems": "center",
                   "backgroundColor": undefined,
                   "display": "flex",
                   "flexDirection": "row",
-                  "flexGrow": 1,
-                  "maxHeight": 17,
-                  "minHeight": 17,
-                  "position": "relative",
+                  "flexShrink": 0,
+                  "height": 17,
+                  "width": "100%",
                 }
               }
             >
               <div
                 style={
                   Object {
-                    "alignItems": "flex-start",
-                    "bottom": 0,
-                    "display": "flex",
-                    "flexDirection": "row",
-                    "justifyContent": "flex-start",
-                    "left": 0,
-                    "position": "absolute",
-                    "right": 0,
-                    "top": 0,
+                    "flexGrow": 1,
+                    "height": "100%",
+                    "position": "relative",
                   }
                 }
               >
-                <span
-                  className="glamor-6"
-                  onClick={undefined}
-                  title={undefined}
+                <div
+                  style={
+                    Object {
+                      "alignItems": "flex-start",
+                      "bottom": 0,
+                      "display": "flex",
+                      "flexDirection": "row",
+                      "justifyContent": "flex-start",
+                      "left": 0,
+                      "position": "absolute",
+                      "right": 0,
+                      "top": 0,
+                    }
+                  }
                 >
-                  I don	 know that I would want.
-                </span>
+                  <span
+                    className="glamor-6"
+                    onClick={undefined}
+                    title={undefined}
+                  >
+                    I don	 know that I would want.
+                  </span>
+                </div>
               </div>
             </div>
           </div>
@@ -4970,7 +5011,7 @@ exports[`Storyshots Chat/Inbox Team 1`] = `
   position: absolute;
   right: 1px;
   top: 1px;
-  background-color: #ffffff;
+  background-color: #f0f0f0;
   border-radius: 4px;
 }
 
@@ -5941,7 +5982,7 @@ exports[`Storyshots Chat/Teams CreateChannel 1`] = `
   position: absolute;
   right: 1px;
   top: 1px;
-  background-color: #ffffff;
+  background-color: #f0f0f0;
   border-radius: 4px;
 }
 
@@ -6237,7 +6278,7 @@ exports[`Storyshots Chat/Teams CreateChannel 1`] = `
                   </span>
                 </div>
                 <span
-                  className="glamor-6 hover-underline"
+                  className="glamor-6"
                   onClick={[Function]}
                   title={undefined}
                 >
@@ -6385,9 +6426,12 @@ exports[`Storyshots Chat/Teams CreateChannel 1`] = `
               <div
                 style={
                   Object {
+                    "alignItems": "center",
                     "display": "flex",
                     "flexDirection": "row",
-                    "marginTop": 64,
+                    "justifyContent": "center",
+                    "minHeight": 64,
+                    "width": "100%",
                   }
                 }
               >
@@ -6409,7 +6453,6 @@ exports[`Storyshots Chat/Teams CreateChannel 1`] = `
                       "height": 32,
                       "justifyContent": "center",
                       "lineHeight": "inherit",
-                      "marginRight": 8,
                       "minWidth": undefined,
                       "paddingLeft": 24,
                       "paddingRight": 24,
@@ -6440,6 +6483,14 @@ exports[`Storyshots Chat/Teams CreateChannel 1`] = `
                     </span>
                   </div>
                 </div>
+                <div
+                  style={
+                    Object {
+                      "height": 8,
+                      "width": 8,
+                    }
+                  }
+                />
                 <div
                   onClick={[Function]}
                   onMouseDown={[Function]}
@@ -6506,7 +6557,7 @@ exports[`Storyshots Chat/Teams EditChannel - general 1`] = `
   position: absolute;
   right: 1px;
   top: 1px;
-  background-color: #ffffff;
+  background-color: #f0f0f0;
   border-radius: 4px;
 }
 
@@ -6881,8 +6932,12 @@ exports[`Storyshots Chat/Teams EditChannel - general 1`] = `
           <div
             style={
               Object {
+                "alignItems": "center",
                 "display": "flex",
                 "flexDirection": "row",
+                "justifyContent": "center",
+                "minHeight": 64,
+                "width": "100%",
               }
             }
           >
@@ -6934,6 +6989,14 @@ exports[`Storyshots Chat/Teams EditChannel - general 1`] = `
                 </span>
               </div>
             </div>
+            <div
+              style={
+                Object {
+                  "height": 8,
+                  "width": 8,
+                }
+              }
+            />
             <div
               onClick={null}
               onMouseDown={[Function]}
@@ -6999,7 +7062,7 @@ exports[`Storyshots Chat/Teams EditChannel 1`] = `
   position: absolute;
   right: 1px;
   top: 1px;
-  background-color: #ffffff;
+  background-color: #f0f0f0;
   border-radius: 4px;
 }
 
@@ -7342,7 +7405,7 @@ exports[`Storyshots Chat/Teams EditChannel 1`] = `
               </span>
             </div>
             <span
-              className="glamor-7 hover-underline"
+              className="glamor-7"
               onClick={[Function]}
               title={undefined}
             >
@@ -7352,8 +7415,12 @@ exports[`Storyshots Chat/Teams EditChannel 1`] = `
           <div
             style={
               Object {
+                "alignItems": "center",
                 "display": "flex",
                 "flexDirection": "row",
+                "justifyContent": "center",
+                "minHeight": 64,
+                "width": "100%",
               }
             }
           >
@@ -7405,6 +7472,14 @@ exports[`Storyshots Chat/Teams EditChannel 1`] = `
                 </span>
               </div>
             </div>
+            <div
+              style={
+                Object {
+                  "height": 8,
+                  "width": 8,
+                }
+              }
+            />
             <div
               onClick={null}
               onMouseDown={[Function]}
@@ -7475,7 +7550,7 @@ exports[`Storyshots Chat/Teams ManageChannels - Unsaved Subscription 1`] = `
   position: absolute;
   right: 1px;
   top: 1px;
-  background-color: #ffffff;
+  background-color: #f0f0f0;
   border-radius: 4px;
 }
 
@@ -7882,7 +7957,7 @@ exports[`Storyshots Chat/Teams ManageChannels - Unsaved Subscription 1`] = `
                           }
                         >
                           <span
-                            className="glamor-7 hover-underline"
+                            className="glamor-7"
                             onClick={[Function]}
                             title={undefined}
                           >
@@ -8021,7 +8096,7 @@ exports[`Storyshots Chat/Teams ManageChannels - Unsaved Subscription 1`] = `
                           }
                         >
                           <span
-                            className="glamor-7 hover-underline"
+                            className="glamor-7"
                             onClick={[Function]}
                             title={undefined}
                           >
@@ -8161,7 +8236,7 @@ exports[`Storyshots Chat/Teams ManageChannels - Unsaved Subscription 1`] = `
                           }
                         >
                           <span
-                            className="glamor-7 hover-underline"
+                            className="glamor-7"
                             onClick={[Function]}
                             title={undefined}
                           >
@@ -8301,7 +8376,7 @@ exports[`Storyshots Chat/Teams ManageChannels - Unsaved Subscription 1`] = `
                           }
                         >
                           <span
-                            className="glamor-7 hover-underline"
+                            className="glamor-7"
                             onClick={[Function]}
                             title={undefined}
                           >
@@ -8441,7 +8516,7 @@ exports[`Storyshots Chat/Teams ManageChannels - Unsaved Subscription 1`] = `
                           }
                         >
                           <span
-                            className="glamor-7 hover-underline"
+                            className="glamor-7"
                             onClick={[Function]}
                             title={undefined}
                           >
@@ -8580,7 +8655,7 @@ exports[`Storyshots Chat/Teams ManageChannels - Unsaved Subscription 1`] = `
                           }
                         >
                           <span
-                            className="glamor-7 hover-underline"
+                            className="glamor-7"
                             onClick={[Function]}
                             title={undefined}
                           >
@@ -8719,7 +8794,7 @@ exports[`Storyshots Chat/Teams ManageChannels - Unsaved Subscription 1`] = `
                           }
                         >
                           <span
-                            className="glamor-7 hover-underline"
+                            className="glamor-7"
                             onClick={[Function]}
                             title={undefined}
                           >
@@ -8779,7 +8854,7 @@ exports[`Storyshots Chat/Teams ManageChannels - Unsaved Subscription 1`] = `
                   </span>
                 </div>
                 <span
-                  className="glamor-34 hover-underline"
+                  className="glamor-34"
                   onClick={[Function]}
                   title={undefined}
                 >
@@ -8799,8 +8874,12 @@ exports[`Storyshots Chat/Teams ManageChannels - Unsaved Subscription 1`] = `
                 <div
                   style={
                     Object {
+                      "alignItems": "center",
                       "display": "flex",
                       "flexDirection": "row",
+                      "justifyContent": "center",
+                      "minHeight": 64,
+                      "width": "100%",
                     }
                   }
                 >
@@ -8852,6 +8931,14 @@ exports[`Storyshots Chat/Teams ManageChannels - Unsaved Subscription 1`] = `
                       </span>
                     </div>
                   </div>
+                  <div
+                    style={
+                      Object {
+                        "height": 8,
+                        "width": 8,
+                      }
+                    }
+                  />
                   <div
                     onClick={[Function]}
                     onMouseDown={[Function]}
@@ -8925,7 +9012,7 @@ exports[`Storyshots Chat/Teams ManageChannels 1`] = `
   position: absolute;
   right: 1px;
   top: 1px;
-  background-color: #ffffff;
+  background-color: #f0f0f0;
   border-radius: 4px;
 }
 
@@ -9359,7 +9446,7 @@ exports[`Storyshots Chat/Teams ManageChannels 1`] = `
                           }
                         >
                           <span
-                            className="glamor-7 hover-underline"
+                            className="glamor-7"
                             onClick={[Function]}
                             title={undefined}
                           >
@@ -9413,7 +9500,7 @@ exports[`Storyshots Chat/Teams ManageChannels 1`] = `
                             </span>
                           </div>
                           <span
-                            className="glamor-10 hover-underline"
+                            className="glamor-10"
                             onClick={undefined}
                             title={undefined}
                           >
@@ -9544,7 +9631,7 @@ exports[`Storyshots Chat/Teams ManageChannels 1`] = `
                           }
                         >
                           <span
-                            className="glamor-7 hover-underline"
+                            className="glamor-7"
                             onClick={[Function]}
                             title={undefined}
                           >
@@ -9598,7 +9685,7 @@ exports[`Storyshots Chat/Teams ManageChannels 1`] = `
                             </span>
                           </div>
                           <span
-                            className="glamor-10 hover-underline"
+                            className="glamor-10"
                             onClick={undefined}
                             title={undefined}
                           >
@@ -9730,7 +9817,7 @@ exports[`Storyshots Chat/Teams ManageChannels 1`] = `
                           }
                         >
                           <span
-                            className="glamor-7 hover-underline"
+                            className="glamor-7"
                             onClick={[Function]}
                             title={undefined}
                           >
@@ -9784,7 +9871,7 @@ exports[`Storyshots Chat/Teams ManageChannels 1`] = `
                             </span>
                           </div>
                           <span
-                            className="glamor-10 hover-underline"
+                            className="glamor-10"
                             onClick={undefined}
                             title={undefined}
                           >
@@ -9916,7 +10003,7 @@ exports[`Storyshots Chat/Teams ManageChannels 1`] = `
                           }
                         >
                           <span
-                            className="glamor-7 hover-underline"
+                            className="glamor-7"
                             onClick={[Function]}
                             title={undefined}
                           >
@@ -9970,7 +10057,7 @@ exports[`Storyshots Chat/Teams ManageChannels 1`] = `
                             </span>
                           </div>
                           <span
-                            className="glamor-10 hover-underline"
+                            className="glamor-10"
                             onClick={undefined}
                             title={undefined}
                           >
@@ -10102,7 +10189,7 @@ exports[`Storyshots Chat/Teams ManageChannels 1`] = `
                           }
                         >
                           <span
-                            className="glamor-7 hover-underline"
+                            className="glamor-7"
                             onClick={[Function]}
                             title={undefined}
                           >
@@ -10156,7 +10243,7 @@ exports[`Storyshots Chat/Teams ManageChannels 1`] = `
                             </span>
                           </div>
                           <span
-                            className="glamor-10 hover-underline"
+                            className="glamor-10"
                             onClick={undefined}
                             title={undefined}
                           >
@@ -10287,7 +10374,7 @@ exports[`Storyshots Chat/Teams ManageChannels 1`] = `
                           }
                         >
                           <span
-                            className="glamor-7 hover-underline"
+                            className="glamor-7"
                             onClick={[Function]}
                             title={undefined}
                           >
@@ -10341,7 +10428,7 @@ exports[`Storyshots Chat/Teams ManageChannels 1`] = `
                             </span>
                           </div>
                           <span
-                            className="glamor-10 hover-underline"
+                            className="glamor-10"
                             onClick={undefined}
                             title={undefined}
                           >
@@ -10472,7 +10559,7 @@ exports[`Storyshots Chat/Teams ManageChannels 1`] = `
                           }
                         >
                           <span
-                            className="glamor-7 hover-underline"
+                            className="glamor-7"
                             onClick={[Function]}
                             title={undefined}
                           >
@@ -10526,7 +10613,7 @@ exports[`Storyshots Chat/Teams ManageChannels 1`] = `
                             </span>
                           </div>
                           <span
-                            className="glamor-10 hover-underline"
+                            className="glamor-10"
                             onClick={undefined}
                             title={undefined}
                           >
@@ -10578,7 +10665,7 @@ exports[`Storyshots Chat/Teams ManageChannels 1`] = `
                   </span>
                 </div>
                 <span
-                  className="glamor-55 hover-underline"
+                  className="glamor-55"
                   onClick={[Function]}
                   title={undefined}
                 >
@@ -10598,8 +10685,12 @@ exports[`Storyshots Chat/Teams ManageChannels 1`] = `
                 <div
                   style={
                     Object {
+                      "alignItems": "center",
                       "display": "flex",
                       "flexDirection": "row",
+                      "justifyContent": "center",
+                      "minHeight": 64,
+                      "width": "100%",
                     }
                   }
                 >
@@ -10651,6 +10742,14 @@ exports[`Storyshots Chat/Teams ManageChannels 1`] = `
                       </span>
                     </div>
                   </div>
+                  <div
+                    style={
+                      Object {
+                        "height": 8,
+                        "width": 8,
+                      }
+                    }
+                  />
                   <div
                     onClick={null}
                     onMouseDown={[Function]}
@@ -10723,8 +10822,8 @@ exports[`Storyshots Common Avatar 1`] = `
   font-weight: 400;
 }
 
-.glamor-3,
-[data-glamor-3] {
+.glamor-1,
+[data-glamor-1] {
   bottom: 1px;
   left: 1px;
   position: absolute;
@@ -10748,6 +10847,17 @@ exports[`Storyshots Common Avatar 1`] = `
   max-width: 176px;
   min-width: 176px;
   opacity: 1;
+}
+
+.glamor-11,
+[data-glamor-11] {
+  bottom: 1px;
+  left: 1px;
+  position: absolute;
+  right: 1px;
+  top: 1px;
+  background-color: #f0f0f0;
+  border-radius: 24px;
 }
 
 .glamor-12,
@@ -10782,6 +10892,17 @@ exports[`Storyshots Common Avatar 1`] = `
   opacity: 1;
 }
 
+.glamor-24,
+[data-glamor-24] {
+  bottom: 1px;
+  left: 1px;
+  position: absolute;
+  right: 1px;
+  top: 1px;
+  background-color: #f0f0f0;
+  border-radius: 12px;
+}
+
 .glamor-25,
 [data-glamor-25] {
   background-size: cover;
@@ -10812,6 +10933,17 @@ exports[`Storyshots Common Avatar 1`] = `
   max-width: 80px;
   min-width: 80px;
   opacity: 1;
+}
+
+.glamor-37,
+[data-glamor-37] {
+  bottom: 1px;
+  left: 1px;
+  position: absolute;
+  right: 1px;
+  top: 1px;
+  background-color: #f0f0f0;
+  border-radius: 10px;
 }
 
 .glamor-38,
@@ -10846,6 +10978,17 @@ exports[`Storyshots Common Avatar 1`] = `
   opacity: 1;
 }
 
+.glamor-50,
+[data-glamor-50] {
+  bottom: 1px;
+  left: 1px;
+  position: absolute;
+  right: 1px;
+  top: 1px;
+  background-color: #f0f0f0;
+  border-radius: 8px;
+}
+
 .glamor-51,
 [data-glamor-51] {
   background-size: cover;
@@ -10876,6 +11019,17 @@ exports[`Storyshots Common Avatar 1`] = `
   max-width: 48px;
   min-width: 48px;
   opacity: 1;
+}
+
+.glamor-63,
+[data-glamor-63] {
+  bottom: 1px;
+  left: 1px;
+  position: absolute;
+  right: 1px;
+  top: 1px;
+  background-color: #f0f0f0;
+  border-radius: 6px;
 }
 
 .glamor-64,
@@ -10942,6 +11096,17 @@ exports[`Storyshots Common Avatar 1`] = `
   opacity: 1;
 }
 
+.glamor-89,
+[data-glamor-89] {
+  bottom: 1px;
+  left: 1px;
+  position: absolute;
+  right: 1px;
+  top: 1px;
+  background-color: #f0f0f0;
+  border-radius: 5px;
+}
+
 .glamor-90,
 [data-glamor-90] {
   background-size: cover;
@@ -10972,6 +11137,17 @@ exports[`Storyshots Common Avatar 1`] = `
   max-width: 24px;
   min-width: 24px;
   opacity: 1;
+}
+
+.glamor-102,
+[data-glamor-102] {
+  bottom: 1px;
+  left: 1px;
+  position: absolute;
+  right: 1px;
+  top: 1px;
+  background-color: #f0f0f0;
+  border-radius: 4px;
 }
 
 .glamor-103,
@@ -11038,6 +11214,17 @@ exports[`Storyshots Common Avatar 1`] = `
   opacity: 1;
 }
 
+.glamor-128,
+[data-glamor-128] {
+  bottom: 1px;
+  left: 1px;
+  position: absolute;
+  right: 1px;
+  top: 1px;
+  background-color: #f0f0f0;
+  border-radius: 3px;
+}
+
 .glamor-129,
 [data-glamor-129] {
   background-size: cover;
@@ -11052,105 +11239,6 @@ exports[`Storyshots Common Avatar 1`] = `
   max-width: 12px;
   min-width: 12px;
   opacity: 1;
-}
-
-.glamor-1,
-[data-glamor-1] {
-  bottom: 1px;
-  left: 1px;
-  position: absolute;
-  right: 1px;
-  top: 1px;
-  background-color: #ffffff;
-  border-radius: 50%;
-}
-
-.glamor-11,
-[data-glamor-11] {
-  bottom: 1px;
-  left: 1px;
-  position: absolute;
-  right: 1px;
-  top: 1px;
-  background-color: #ffffff;
-  border-radius: 24px;
-}
-
-.glamor-24,
-[data-glamor-24] {
-  bottom: 1px;
-  left: 1px;
-  position: absolute;
-  right: 1px;
-  top: 1px;
-  background-color: #ffffff;
-  border-radius: 12px;
-}
-
-.glamor-37,
-[data-glamor-37] {
-  bottom: 1px;
-  left: 1px;
-  position: absolute;
-  right: 1px;
-  top: 1px;
-  background-color: #ffffff;
-  border-radius: 10px;
-}
-
-.glamor-50,
-[data-glamor-50] {
-  bottom: 1px;
-  left: 1px;
-  position: absolute;
-  right: 1px;
-  top: 1px;
-  background-color: #ffffff;
-  border-radius: 8px;
-}
-
-.glamor-63,
-[data-glamor-63] {
-  bottom: 1px;
-  left: 1px;
-  position: absolute;
-  right: 1px;
-  top: 1px;
-  background-color: #ffffff;
-  border-radius: 6px;
-}
-
-.glamor-89,
-[data-glamor-89] {
-  bottom: 1px;
-  left: 1px;
-  position: absolute;
-  right: 1px;
-  top: 1px;
-  background-color: #ffffff;
-  border-radius: 5px;
-}
-
-.glamor-102,
-[data-glamor-102] {
-  bottom: 1px;
-  left: 1px;
-  position: absolute;
-  right: 1px;
-  top: 1px;
-  background-color: #ffffff;
-  border-radius: 4px;
-}
-
-.glamor-128,
-[data-glamor-128] {
-  bottom: 1px;
-  left: 1px;
-  position: absolute;
-  right: 1px;
-  top: 1px;
-  background-color: #ffffff;
-  border-radius: 3px;
 }
 
 <div
@@ -11219,7 +11307,7 @@ exports[`Storyshots Common Avatar 1`] = `
           }
         >
           <div
-            className="glamor-3"
+            className="glamor-1"
           />
           <div
             className="glamor-2"
@@ -11257,7 +11345,7 @@ exports[`Storyshots Common Avatar 1`] = `
           }
         >
           <div
-            className="glamor-3"
+            className="glamor-1"
           />
           <div
             className="glamor-2"
@@ -11294,7 +11382,7 @@ exports[`Storyshots Common Avatar 1`] = `
           }
         >
           <div
-            className="glamor-3"
+            className="glamor-1"
           />
           <div
             className="glamor-2"
@@ -11331,7 +11419,7 @@ exports[`Storyshots Common Avatar 1`] = `
           }
         >
           <div
-            className="glamor-3"
+            className="glamor-1"
           />
           <div
             className="glamor-2"
@@ -11431,7 +11519,7 @@ exports[`Storyshots Common Avatar 1`] = `
           }
         >
           <div
-            className="glamor-3"
+            className="glamor-1"
           />
           <div
             className="glamor-15"
@@ -11469,7 +11557,7 @@ exports[`Storyshots Common Avatar 1`] = `
           }
         >
           <div
-            className="glamor-3"
+            className="glamor-1"
           />
           <div
             className="glamor-15"
@@ -11506,7 +11594,7 @@ exports[`Storyshots Common Avatar 1`] = `
           }
         >
           <div
-            className="glamor-3"
+            className="glamor-1"
           />
           <div
             className="glamor-15"
@@ -11543,7 +11631,7 @@ exports[`Storyshots Common Avatar 1`] = `
           }
         >
           <div
-            className="glamor-3"
+            className="glamor-1"
           />
           <div
             className="glamor-15"
@@ -11643,7 +11731,7 @@ exports[`Storyshots Common Avatar 1`] = `
           }
         >
           <div
-            className="glamor-3"
+            className="glamor-1"
           />
           <div
             className="glamor-28"
@@ -11681,7 +11769,7 @@ exports[`Storyshots Common Avatar 1`] = `
           }
         >
           <div
-            className="glamor-3"
+            className="glamor-1"
           />
           <div
             className="glamor-28"
@@ -11718,7 +11806,7 @@ exports[`Storyshots Common Avatar 1`] = `
           }
         >
           <div
-            className="glamor-3"
+            className="glamor-1"
           />
           <div
             className="glamor-28"
@@ -11755,7 +11843,7 @@ exports[`Storyshots Common Avatar 1`] = `
           }
         >
           <div
-            className="glamor-3"
+            className="glamor-1"
           />
           <div
             className="glamor-28"
@@ -11855,7 +11943,7 @@ exports[`Storyshots Common Avatar 1`] = `
           }
         >
           <div
-            className="glamor-3"
+            className="glamor-1"
           />
           <div
             className="glamor-41"
@@ -11893,7 +11981,7 @@ exports[`Storyshots Common Avatar 1`] = `
           }
         >
           <div
-            className="glamor-3"
+            className="glamor-1"
           />
           <div
             className="glamor-41"
@@ -11930,7 +12018,7 @@ exports[`Storyshots Common Avatar 1`] = `
           }
         >
           <div
-            className="glamor-3"
+            className="glamor-1"
           />
           <div
             className="glamor-41"
@@ -11967,7 +12055,7 @@ exports[`Storyshots Common Avatar 1`] = `
           }
         >
           <div
-            className="glamor-3"
+            className="glamor-1"
           />
           <div
             className="glamor-41"
@@ -12067,7 +12155,7 @@ exports[`Storyshots Common Avatar 1`] = `
           }
         >
           <div
-            className="glamor-3"
+            className="glamor-1"
           />
           <div
             className="glamor-54"
@@ -12105,7 +12193,7 @@ exports[`Storyshots Common Avatar 1`] = `
           }
         >
           <div
-            className="glamor-3"
+            className="glamor-1"
           />
           <div
             className="glamor-54"
@@ -12142,7 +12230,7 @@ exports[`Storyshots Common Avatar 1`] = `
           }
         >
           <div
-            className="glamor-3"
+            className="glamor-1"
           />
           <div
             className="glamor-54"
@@ -12179,7 +12267,7 @@ exports[`Storyshots Common Avatar 1`] = `
           }
         >
           <div
-            className="glamor-3"
+            className="glamor-1"
           />
           <div
             className="glamor-54"
@@ -12279,7 +12367,7 @@ exports[`Storyshots Common Avatar 1`] = `
           }
         >
           <div
-            className="glamor-3"
+            className="glamor-1"
           />
           <div
             className="glamor-67"
@@ -12317,7 +12405,7 @@ exports[`Storyshots Common Avatar 1`] = `
           }
         >
           <div
-            className="glamor-3"
+            className="glamor-1"
           />
           <div
             className="glamor-67"
@@ -12339,7 +12427,7 @@ exports[`Storyshots Common Avatar 1`] = `
           }
         >
           <div
-            className="glamor-3"
+            className="glamor-1"
           />
           <div
             className="glamor-67"
@@ -12361,7 +12449,7 @@ exports[`Storyshots Common Avatar 1`] = `
           }
         >
           <div
-            className="glamor-3"
+            className="glamor-1"
           />
           <div
             className="glamor-67"
@@ -12446,7 +12534,7 @@ exports[`Storyshots Common Avatar 1`] = `
           }
         >
           <div
-            className="glamor-3"
+            className="glamor-1"
           />
           <div
             className="glamor-80"
@@ -12484,7 +12572,7 @@ exports[`Storyshots Common Avatar 1`] = `
           }
         >
           <div
-            className="glamor-3"
+            className="glamor-1"
           />
           <div
             className="glamor-80"
@@ -12506,7 +12594,7 @@ exports[`Storyshots Common Avatar 1`] = `
           }
         >
           <div
-            className="glamor-3"
+            className="glamor-1"
           />
           <div
             className="glamor-80"
@@ -12528,7 +12616,7 @@ exports[`Storyshots Common Avatar 1`] = `
           }
         >
           <div
-            className="glamor-3"
+            className="glamor-1"
           />
           <div
             className="glamor-80"
@@ -12613,7 +12701,7 @@ exports[`Storyshots Common Avatar 1`] = `
           }
         >
           <div
-            className="glamor-3"
+            className="glamor-1"
           />
           <div
             className="glamor-93"
@@ -12651,7 +12739,7 @@ exports[`Storyshots Common Avatar 1`] = `
           }
         >
           <div
-            className="glamor-3"
+            className="glamor-1"
           />
           <div
             className="glamor-93"
@@ -12673,7 +12761,7 @@ exports[`Storyshots Common Avatar 1`] = `
           }
         >
           <div
-            className="glamor-3"
+            className="glamor-1"
           />
           <div
             className="glamor-93"
@@ -12695,7 +12783,7 @@ exports[`Storyshots Common Avatar 1`] = `
           }
         >
           <div
-            className="glamor-3"
+            className="glamor-1"
           />
           <div
             className="glamor-93"
@@ -12780,7 +12868,7 @@ exports[`Storyshots Common Avatar 1`] = `
           }
         >
           <div
-            className="glamor-3"
+            className="glamor-1"
           />
           <div
             className="glamor-106"
@@ -12818,7 +12906,7 @@ exports[`Storyshots Common Avatar 1`] = `
           }
         >
           <div
-            className="glamor-3"
+            className="glamor-1"
           />
           <div
             className="glamor-106"
@@ -12840,7 +12928,7 @@ exports[`Storyshots Common Avatar 1`] = `
           }
         >
           <div
-            className="glamor-3"
+            className="glamor-1"
           />
           <div
             className="glamor-106"
@@ -12862,7 +12950,7 @@ exports[`Storyshots Common Avatar 1`] = `
           }
         >
           <div
-            className="glamor-3"
+            className="glamor-1"
           />
           <div
             className="glamor-106"
@@ -12947,7 +13035,7 @@ exports[`Storyshots Common Avatar 1`] = `
           }
         >
           <div
-            className="glamor-3"
+            className="glamor-1"
           />
           <div
             className="glamor-119"
@@ -12985,7 +13073,7 @@ exports[`Storyshots Common Avatar 1`] = `
           }
         >
           <div
-            className="glamor-3"
+            className="glamor-1"
           />
           <div
             className="glamor-119"
@@ -13007,7 +13095,7 @@ exports[`Storyshots Common Avatar 1`] = `
           }
         >
           <div
-            className="glamor-3"
+            className="glamor-1"
           />
           <div
             className="glamor-119"
@@ -13029,7 +13117,7 @@ exports[`Storyshots Common Avatar 1`] = `
           }
         >
           <div
-            className="glamor-3"
+            className="glamor-1"
           />
           <div
             className="glamor-119"
@@ -13432,6 +13520,1857 @@ exports[`Storyshots Common Box 1`] = `
           64
           px
         </span>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`Storyshots Common Button 1`] = `
+.glamor-0,
+[data-glamor-0] {
+  font-size: 14px;
+  line-height: 18px;
+  color: #ffffff;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 600;
+  text-align: center;
+  white-space: pre;
+}
+
+.glamor-2,
+[data-glamor-2] {
+  font-size: 14px;
+  line-height: 18px;
+  color: rgba(0, 0, 0, 0.75);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 600;
+  text-align: center;
+  white-space: pre;
+}
+
+.glamor-8,
+[data-glamor-8] {
+  font-size: 14px;
+  line-height: 18px;
+  color: #3dcc8e;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 600;
+  text-align: center;
+  white-space: pre;
+}
+
+.glamor-11,
+[data-glamor-11] {
+  font-size: 13px;
+  line-height: 17px;
+  color: #ffffff;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 600;
+  text-align: center;
+  white-space: pre;
+}
+
+.glamor-12,
+[data-glamor-12] {
+  font-size: 13px;
+  line-height: 17px;
+  color: rgba(0, 0, 0, 0.75);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 600;
+  text-align: center;
+  white-space: pre;
+}
+
+<div
+  style={
+    Object {
+      "flex": 1,
+      "overflow": "auto",
+    }
+  }
+>
+  <div
+    style={undefined}
+  >
+    <div
+      style={
+        Object {
+          "borderColor": "grey",
+          "borderStyle": "solid",
+          "borderWidth": 1,
+          "display": "flex",
+          "flex": 1,
+          "flexDirection": "column",
+          "margin": 20,
+          "width": 350,
+        }
+      }
+    >
+      <div
+        style={
+          Object {
+            "display": "flex",
+            "flexDirection": "row",
+            "marginBottom": 20,
+            "width": "100%",
+          }
+        }
+      >
+        <div
+          style={
+            Object {
+              "flex": 1,
+            }
+          }
+        >
+          <div
+            onClick={[Function]}
+            onMouseDown={[Function]}
+            onMouseEnter={[Function]}
+            onMouseLeave={[Function]}
+            onMouseUp={[Function]}
+            style={
+              Object {
+                "alignItems": "center",
+                "alignSelf": undefined,
+                "backgroundColor": "#33a0ff",
+                "borderRadius": 50,
+                "cursor": "pointer",
+                "display": "inline-block",
+                "flexDirection": "column",
+                "height": 32,
+                "justifyContent": "center",
+                "lineHeight": "inherit",
+                "minWidth": undefined,
+                "paddingLeft": 24,
+                "paddingRight": 24,
+                "position": "relative",
+                "textAlign": "left",
+                "transform": "none",
+                "transition": "none",
+              }
+            }
+          >
+            <div
+              style={
+                Object {
+                  "alignItems": "center",
+                  "display": "flex",
+                  "height": "100%",
+                  "justifyContent": "center",
+                  "position": "relative",
+                }
+              }
+            >
+              <span
+                className="glamor-0"
+                onClick={undefined}
+                title={undefined}
+              >
+                Primary
+              </span>
+            </div>
+          </div>
+        </div>
+        <div
+          style={
+            Object {
+              "flex": 1,
+            }
+          }
+        >
+          <div
+            onClick={null}
+            onMouseDown={[Function]}
+            onMouseEnter={[Function]}
+            onMouseLeave={[Function]}
+            onMouseUp={[Function]}
+            style={
+              Object {
+                "alignItems": "center",
+                "alignSelf": undefined,
+                "backgroundColor": "#33a0ff",
+                "borderRadius": 50,
+                "display": "inline-block",
+                "flexDirection": "column",
+                "height": 32,
+                "justifyContent": "center",
+                "lineHeight": "inherit",
+                "minWidth": undefined,
+                "opacity": 0.3,
+                "paddingLeft": 24,
+                "paddingRight": 24,
+                "position": "relative",
+                "textAlign": "left",
+                "transform": "none",
+                "transition": "none",
+              }
+            }
+          >
+            <div
+              style={
+                Object {
+                  "alignItems": "center",
+                  "display": "flex",
+                  "height": "100%",
+                  "justifyContent": "center",
+                  "position": "relative",
+                }
+              }
+            >
+              <span
+                className="glamor-0"
+                onClick={undefined}
+                title={undefined}
+              >
+                Primary
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div
+        style={
+          Object {
+            "display": "flex",
+            "flexDirection": "row",
+            "marginBottom": 20,
+            "width": "100%",
+          }
+        }
+      >
+        <div
+          style={
+            Object {
+              "flex": 1,
+            }
+          }
+        >
+          <div
+            onClick={[Function]}
+            onMouseDown={[Function]}
+            onMouseEnter={[Function]}
+            onMouseLeave={[Function]}
+            onMouseUp={[Function]}
+            style={
+              Object {
+                "alignItems": "center",
+                "alignSelf": undefined,
+                "backgroundColor": "#e6e6e6",
+                "borderRadius": 50,
+                "cursor": "pointer",
+                "display": "inline-block",
+                "flexDirection": "column",
+                "height": 32,
+                "justifyContent": "center",
+                "lineHeight": "inherit",
+                "minWidth": undefined,
+                "paddingLeft": 24,
+                "paddingRight": 24,
+                "position": "relative",
+                "textAlign": "left",
+                "transform": "none",
+                "transition": "none",
+              }
+            }
+          >
+            <div
+              style={
+                Object {
+                  "alignItems": "center",
+                  "display": "flex",
+                  "height": "100%",
+                  "justifyContent": "center",
+                  "position": "relative",
+                }
+              }
+            >
+              <span
+                className="glamor-2"
+                onClick={undefined}
+                title={undefined}
+              >
+                Secondary
+              </span>
+            </div>
+          </div>
+        </div>
+        <div
+          style={
+            Object {
+              "flex": 1,
+            }
+          }
+        >
+          <div
+            onClick={null}
+            onMouseDown={[Function]}
+            onMouseEnter={[Function]}
+            onMouseLeave={[Function]}
+            onMouseUp={[Function]}
+            style={
+              Object {
+                "alignItems": "center",
+                "alignSelf": undefined,
+                "backgroundColor": "#e6e6e6",
+                "borderRadius": 50,
+                "display": "inline-block",
+                "flexDirection": "column",
+                "height": 32,
+                "justifyContent": "center",
+                "lineHeight": "inherit",
+                "minWidth": undefined,
+                "opacity": 0.3,
+                "paddingLeft": 24,
+                "paddingRight": 24,
+                "position": "relative",
+                "textAlign": "left",
+                "transform": "none",
+                "transition": "none",
+              }
+            }
+          >
+            <div
+              style={
+                Object {
+                  "alignItems": "center",
+                  "display": "flex",
+                  "height": "100%",
+                  "justifyContent": "center",
+                  "position": "relative",
+                }
+              }
+            >
+              <span
+                className="glamor-2"
+                onClick={undefined}
+                title={undefined}
+              >
+                Secondary
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div
+        style={
+          Object {
+            "display": "flex",
+            "flexDirection": "row",
+            "marginBottom": 20,
+            "width": "100%",
+          }
+        }
+      >
+        <div
+          style={
+            Object {
+              "flex": 1,
+            }
+          }
+        >
+          <div
+            onClick={[Function]}
+            onMouseDown={[Function]}
+            onMouseEnter={[Function]}
+            onMouseLeave={[Function]}
+            onMouseUp={[Function]}
+            style={
+              Object {
+                "alignItems": "center",
+                "alignSelf": undefined,
+                "backgroundColor": "#ff4d61",
+                "borderRadius": 50,
+                "cursor": "pointer",
+                "display": "inline-block",
+                "flexDirection": "column",
+                "height": 32,
+                "justifyContent": "center",
+                "lineHeight": "inherit",
+                "minWidth": undefined,
+                "paddingLeft": 24,
+                "paddingRight": 24,
+                "position": "relative",
+                "textAlign": "left",
+                "transform": "none",
+                "transition": "none",
+              }
+            }
+          >
+            <div
+              style={
+                Object {
+                  "alignItems": "center",
+                  "display": "flex",
+                  "height": "100%",
+                  "justifyContent": "center",
+                  "position": "relative",
+                }
+              }
+            >
+              <span
+                className="glamor-0"
+                onClick={undefined}
+                title={undefined}
+              >
+                Danger
+              </span>
+            </div>
+          </div>
+        </div>
+        <div
+          style={
+            Object {
+              "flex": 1,
+            }
+          }
+        >
+          <div
+            onClick={null}
+            onMouseDown={[Function]}
+            onMouseEnter={[Function]}
+            onMouseLeave={[Function]}
+            onMouseUp={[Function]}
+            style={
+              Object {
+                "alignItems": "center",
+                "alignSelf": undefined,
+                "backgroundColor": "#ff4d61",
+                "borderRadius": 50,
+                "display": "inline-block",
+                "flexDirection": "column",
+                "height": 32,
+                "justifyContent": "center",
+                "lineHeight": "inherit",
+                "minWidth": undefined,
+                "opacity": 0.2,
+                "paddingLeft": 24,
+                "paddingRight": 24,
+                "position": "relative",
+                "textAlign": "left",
+                "transform": "none",
+                "transition": "none",
+              }
+            }
+          >
+            <div
+              style={
+                Object {
+                  "alignItems": "center",
+                  "display": "flex",
+                  "height": "100%",
+                  "justifyContent": "center",
+                  "position": "relative",
+                }
+              }
+            >
+              <span
+                className="glamor-0"
+                onClick={undefined}
+                title={undefined}
+              >
+                Danger
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div
+        style={
+          Object {
+            "display": "flex",
+            "flexDirection": "row",
+            "marginBottom": 20,
+            "width": "100%",
+          }
+        }
+      >
+        <div
+          style={
+            Object {
+              "flex": 1,
+            }
+          }
+        >
+          <div
+            onClick={[Function]}
+            onMouseDown={[Function]}
+            onMouseEnter={[Function]}
+            onMouseLeave={[Function]}
+            onMouseUp={[Function]}
+            style={
+              Object {
+                "alignItems": "center",
+                "alignSelf": undefined,
+                "backgroundColor": "#3dcc8e",
+                "borderRadius": 50,
+                "cursor": "pointer",
+                "display": "inline-block",
+                "flexDirection": "column",
+                "height": 32,
+                "justifyContent": "center",
+                "lineHeight": "inherit",
+                "minWidth": undefined,
+                "paddingLeft": 24,
+                "paddingRight": 24,
+                "position": "relative",
+                "textAlign": "left",
+                "transform": "none",
+                "transition": "none",
+              }
+            }
+          >
+            <div
+              style={
+                Object {
+                  "alignItems": "center",
+                  "display": "flex",
+                  "height": "100%",
+                  "justifyContent": "center",
+                  "position": "relative",
+                }
+              }
+            >
+              <span
+                className="glamor-0"
+                onClick={undefined}
+                title={undefined}
+              >
+                Feels good
+              </span>
+            </div>
+          </div>
+        </div>
+        <div
+          style={
+            Object {
+              "flex": 1,
+            }
+          }
+        >
+          <div
+            onClick={null}
+            onMouseDown={[Function]}
+            onMouseEnter={[Function]}
+            onMouseLeave={[Function]}
+            onMouseUp={[Function]}
+            style={
+              Object {
+                "alignItems": "center",
+                "alignSelf": undefined,
+                "backgroundColor": "#3dcc8e",
+                "borderRadius": 50,
+                "display": "inline-block",
+                "flexDirection": "column",
+                "height": 32,
+                "justifyContent": "center",
+                "lineHeight": "inherit",
+                "minWidth": undefined,
+                "opacity": 0.3,
+                "paddingLeft": 24,
+                "paddingRight": 24,
+                "position": "relative",
+                "textAlign": "left",
+                "transform": "none",
+                "transition": "none",
+              }
+            }
+          >
+            <div
+              style={
+                Object {
+                  "alignItems": "center",
+                  "display": "flex",
+                  "height": "100%",
+                  "justifyContent": "center",
+                  "position": "relative",
+                }
+              }
+            >
+              <span
+                className="glamor-0"
+                onClick={undefined}
+                title={undefined}
+              >
+                Feels good
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div
+        style={
+          Object {
+            "height": 20,
+          }
+        }
+      />
+      <div
+        onClick={[Function]}
+        onMouseDown={[Function]}
+        onMouseEnter={[Function]}
+        onMouseLeave={[Function]}
+        onMouseUp={[Function]}
+        style={
+          Object {
+            "alignItems": "center",
+            "alignSelf": undefined,
+            "backgroundColor": "#ffffff",
+            "borderColor": "#3dcc8e",
+            "borderRadius": 50,
+            "borderStyle": "solid",
+            "borderWidth": 2,
+            "cursor": "pointer",
+            "display": "inline-block",
+            "flexDirection": "column",
+            "height": 32,
+            "justifyContent": "center",
+            "lineHeight": "inherit",
+            "minWidth": undefined,
+            "paddingLeft": 24,
+            "paddingRight": 24,
+            "position": "relative",
+            "textAlign": "left",
+            "transform": "none",
+            "transition": "none",
+            "width": 142,
+          }
+        }
+      >
+        <div
+          style={
+            Object {
+              "alignItems": "center",
+              "display": "flex",
+              "height": "100%",
+              "justifyContent": "center",
+              "position": "relative",
+            }
+          }
+        >
+          <span
+            className="glamor-8"
+            onClick={undefined}
+            title={undefined}
+          >
+            Following
+          </span>
+        </div>
+      </div>
+      <div
+        style={
+          Object {
+            "height": 10,
+          }
+        }
+      />
+      <div
+        onClick={[Function]}
+        onMouseDown={[Function]}
+        onMouseEnter={[Function]}
+        onMouseLeave={[Function]}
+        onMouseUp={[Function]}
+        style={
+          Object {
+            "alignItems": "center",
+            "alignSelf": undefined,
+            "backgroundColor": "#3dcc8e",
+            "borderRadius": 50,
+            "cursor": "pointer",
+            "display": "inline-block",
+            "flexDirection": "column",
+            "height": 32,
+            "justifyContent": "center",
+            "lineHeight": "inherit",
+            "minWidth": undefined,
+            "paddingLeft": 24,
+            "paddingRight": 24,
+            "position": "relative",
+            "textAlign": "left",
+            "transform": "none",
+            "transition": "none",
+            "width": 142,
+          }
+        }
+      >
+        <div
+          style={
+            Object {
+              "alignItems": "center",
+              "display": "flex",
+              "height": "100%",
+              "justifyContent": "center",
+              "position": "relative",
+            }
+          }
+        >
+          <span
+            className="glamor-0"
+            onClick={undefined}
+            title={undefined}
+          >
+            Follow
+          </span>
+        </div>
+      </div>
+      <div
+        style={
+          Object {
+            "height": 10,
+          }
+        }
+      />
+      <div
+        onClick={[Function]}
+        onMouseDown={[Function]}
+        onMouseEnter={[Function]}
+        onMouseLeave={[Function]}
+        onMouseUp={[Function]}
+        style={
+          Object {
+            "alignItems": "center",
+            "alignSelf": undefined,
+            "backgroundColor": "#e6e6e6",
+            "borderRadius": 50,
+            "cursor": "pointer",
+            "display": "inline-block",
+            "flexDirection": "column",
+            "height": 32,
+            "justifyContent": "center",
+            "lineHeight": "inherit",
+            "minWidth": undefined,
+            "paddingLeft": 24,
+            "paddingRight": 24,
+            "position": "relative",
+            "textAlign": "left",
+            "transform": "none",
+            "transition": "none",
+            "width": 142,
+          }
+        }
+      >
+        <div
+          style={
+            Object {
+              "alignItems": "center",
+              "display": "flex",
+              "height": "100%",
+              "justifyContent": "center",
+              "position": "relative",
+            }
+          }
+        >
+          <span
+            className="glamor-2"
+            onClick={undefined}
+            title={undefined}
+          >
+            Unfollow
+          </span>
+        </div>
+      </div>
+      <div
+        style={
+          Object {
+            "alignItems": "flex-start",
+            "alignSelf": "flex-start",
+            "display": "flex",
+            "flexDirection": "column",
+            "marginTop": 20,
+          }
+        }
+      >
+        <div
+          onClick={[Function]}
+          onMouseDown={[Function]}
+          onMouseEnter={[Function]}
+          onMouseLeave={[Function]}
+          onMouseUp={[Function]}
+          style={
+            Object {
+              "alignItems": "center",
+              "alignSelf": undefined,
+              "backgroundColor": "#33a0ff",
+              "borderRadius": 28,
+              "cursor": "pointer",
+              "display": "inline-block",
+              "flexDirection": "column",
+              "height": 28,
+              "justifyContent": "center",
+              "lineHeight": "inherit",
+              "minWidth": undefined,
+              "paddingLeft": 16,
+              "paddingRight": 16,
+              "position": "relative",
+              "textAlign": "left",
+              "transform": "none",
+              "transition": "none",
+            }
+          }
+        >
+          <div
+            style={
+              Object {
+                "alignItems": "center",
+                "display": "flex",
+                "height": "100%",
+                "justifyContent": "center",
+                "position": "relative",
+              }
+            }
+          >
+            <span
+              className="glamor-11"
+              onClick={undefined}
+              title={undefined}
+            >
+              Primary small
+            </span>
+          </div>
+        </div>
+        <div
+          style={
+            Object {
+              "height": 10,
+            }
+          }
+        />
+        <div
+          onClick={[Function]}
+          onMouseDown={[Function]}
+          onMouseEnter={[Function]}
+          onMouseLeave={[Function]}
+          onMouseUp={[Function]}
+          style={
+            Object {
+              "alignItems": "center",
+              "alignSelf": undefined,
+              "backgroundColor": "#e6e6e6",
+              "borderRadius": 28,
+              "cursor": "pointer",
+              "display": "inline-block",
+              "flexDirection": "column",
+              "height": 28,
+              "justifyContent": "center",
+              "lineHeight": "inherit",
+              "minWidth": undefined,
+              "paddingLeft": 16,
+              "paddingRight": 16,
+              "position": "relative",
+              "textAlign": "left",
+              "transform": "none",
+              "transition": "none",
+            }
+          }
+        >
+          <div
+            style={
+              Object {
+                "alignItems": "center",
+                "display": "flex",
+                "height": "100%",
+                "justifyContent": "center",
+                "position": "relative",
+              }
+            }
+          >
+            <span
+              className="glamor-12"
+              onClick={undefined}
+              title={undefined}
+            >
+              Secondary small
+            </span>
+          </div>
+        </div>
+        <div
+          style={
+            Object {
+              "height": 10,
+            }
+          }
+        />
+        <div
+          onClick={[Function]}
+          onMouseDown={[Function]}
+          onMouseEnter={[Function]}
+          onMouseLeave={[Function]}
+          onMouseUp={[Function]}
+          style={
+            Object {
+              "alignItems": "center",
+              "alignSelf": undefined,
+              "backgroundColor": "#ff4d61",
+              "borderRadius": 28,
+              "cursor": "pointer",
+              "display": "inline-block",
+              "flexDirection": "column",
+              "height": 28,
+              "justifyContent": "center",
+              "lineHeight": "inherit",
+              "minWidth": undefined,
+              "paddingLeft": 16,
+              "paddingRight": 16,
+              "position": "relative",
+              "textAlign": "left",
+              "transform": "none",
+              "transition": "none",
+            }
+          }
+        >
+          <div
+            style={
+              Object {
+                "alignItems": "center",
+                "display": "flex",
+                "height": "100%",
+                "justifyContent": "center",
+                "position": "relative",
+              }
+            }
+          >
+            <span
+              className="glamor-11"
+              onClick={undefined}
+              title={undefined}
+            >
+              Danger small
+            </span>
+          </div>
+        </div>
+        <div
+          style={
+            Object {
+              "height": 10,
+            }
+          }
+        />
+        <div
+          onClick={[Function]}
+          onMouseDown={[Function]}
+          onMouseEnter={[Function]}
+          onMouseLeave={[Function]}
+          onMouseUp={[Function]}
+          style={
+            Object {
+              "alignItems": "center",
+              "alignSelf": undefined,
+              "backgroundColor": "#3dcc8e",
+              "borderRadius": 28,
+              "cursor": "pointer",
+              "display": "inline-block",
+              "flexDirection": "column",
+              "height": 28,
+              "justifyContent": "center",
+              "lineHeight": "inherit",
+              "minWidth": undefined,
+              "paddingLeft": 16,
+              "paddingRight": 16,
+              "position": "relative",
+              "textAlign": "left",
+              "transform": "none",
+              "transition": "none",
+            }
+          }
+        >
+          <div
+            style={
+              Object {
+                "alignItems": "center",
+                "display": "flex",
+                "height": "100%",
+                "justifyContent": "center",
+                "position": "relative",
+              }
+            }
+          >
+            <span
+              className="glamor-11"
+              onClick={undefined}
+              title={undefined}
+            >
+              Feels good small
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`Storyshots Common ButtonBar 1`] = `
+.glamor-0,
+[data-glamor-0] {
+  font-size: 14px;
+  line-height: 18px;
+  color: #ffffff;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 600;
+  text-align: center;
+  white-space: pre;
+}
+
+.glamor-1,
+[data-glamor-1] {
+  font-size: 14px;
+  line-height: 18px;
+  color: rgba(0, 0, 0, 0.75);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 600;
+  text-align: center;
+  white-space: pre;
+}
+
+.glamor-8,
+[data-glamor-8] {
+  font-size: 13px;
+  line-height: 17px;
+  color: #ffffff;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 600;
+  text-align: center;
+  white-space: pre;
+}
+
+.glamor-9,
+[data-glamor-9] {
+  font-size: 13px;
+  line-height: 17px;
+  color: rgba(0, 0, 0, 0.75);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 600;
+  text-align: center;
+  white-space: pre;
+}
+
+<div
+  style={
+    Object {
+      "flex": 1,
+      "overflow": "auto",
+    }
+  }
+>
+  <div
+    style={undefined}
+  >
+    <div
+      style={
+        Object {
+          "borderColor": "grey",
+          "borderStyle": "solid",
+          "borderWidth": 1,
+          "flex": 1,
+          "maxWidth": 600,
+          "width": "100%",
+        }
+      }
+    >
+      <div
+        style={
+          Object {
+            "alignItems": "center",
+            "borderColor": "pink",
+            "borderStyle": "solid",
+            "borderWidth": 1,
+            "display": "flex",
+            "flexDirection": "row",
+            "justifyContent": "center",
+            "minHeight": 64,
+            "width": "100%",
+          }
+        }
+      >
+        <div
+          onClick={[Function]}
+          onMouseDown={[Function]}
+          onMouseEnter={[Function]}
+          onMouseLeave={[Function]}
+          onMouseUp={[Function]}
+          style={
+            Object {
+              "alignItems": "center",
+              "alignSelf": undefined,
+              "backgroundColor": "#33a0ff",
+              "borderRadius": 50,
+              "cursor": "pointer",
+              "display": "inline-block",
+              "flexDirection": "column",
+              "height": 32,
+              "justifyContent": "center",
+              "lineHeight": "inherit",
+              "minWidth": undefined,
+              "paddingLeft": 24,
+              "paddingRight": 24,
+              "position": "relative",
+              "textAlign": "left",
+              "transform": "none",
+              "transition": "none",
+            }
+          }
+        >
+          <div
+            style={
+              Object {
+                "alignItems": "center",
+                "display": "flex",
+                "height": "100%",
+                "justifyContent": "center",
+                "position": "relative",
+              }
+            }
+          >
+            <span
+              className="glamor-0"
+              onClick={undefined}
+              title={undefined}
+            >
+              Button
+            </span>
+          </div>
+        </div>
+      </div>
+      <div
+        style={
+          Object {
+            "alignItems": "center",
+            "borderColor": "pink",
+            "borderStyle": "solid",
+            "borderWidth": 1,
+            "display": "flex",
+            "flexDirection": "row",
+            "justifyContent": "center",
+            "minHeight": 64,
+            "width": "100%",
+          }
+        }
+      >
+        <div
+          onClick={[Function]}
+          onMouseDown={[Function]}
+          onMouseEnter={[Function]}
+          onMouseLeave={[Function]}
+          onMouseUp={[Function]}
+          style={
+            Object {
+              "alignItems": "center",
+              "alignSelf": undefined,
+              "backgroundColor": "#e6e6e6",
+              "borderRadius": 50,
+              "cursor": "pointer",
+              "display": "inline-block",
+              "flexDirection": "column",
+              "height": 32,
+              "justifyContent": "center",
+              "lineHeight": "inherit",
+              "minWidth": undefined,
+              "paddingLeft": 24,
+              "paddingRight": 24,
+              "position": "relative",
+              "textAlign": "left",
+              "transform": "none",
+              "transition": "none",
+            }
+          }
+        >
+          <div
+            style={
+              Object {
+                "alignItems": "center",
+                "display": "flex",
+                "height": "100%",
+                "justifyContent": "center",
+                "position": "relative",
+              }
+            }
+          >
+            <span
+              className="glamor-1"
+              onClick={undefined}
+              title={undefined}
+            >
+              Button
+            </span>
+          </div>
+        </div>
+        <div
+          style={
+            Object {
+              "height": 8,
+              "width": 8,
+            }
+          }
+        />
+        <div
+          onClick={[Function]}
+          onMouseDown={[Function]}
+          onMouseEnter={[Function]}
+          onMouseLeave={[Function]}
+          onMouseUp={[Function]}
+          style={
+            Object {
+              "alignItems": "center",
+              "alignSelf": undefined,
+              "backgroundColor": "#33a0ff",
+              "borderRadius": 50,
+              "cursor": "pointer",
+              "display": "inline-block",
+              "flexDirection": "column",
+              "height": 32,
+              "justifyContent": "center",
+              "lineHeight": "inherit",
+              "minWidth": undefined,
+              "paddingLeft": 24,
+              "paddingRight": 24,
+              "position": "relative",
+              "textAlign": "left",
+              "transform": "none",
+              "transition": "none",
+            }
+          }
+        >
+          <div
+            style={
+              Object {
+                "alignItems": "center",
+                "display": "flex",
+                "height": "100%",
+                "justifyContent": "center",
+                "position": "relative",
+              }
+            }
+          >
+            <span
+              className="glamor-0"
+              onClick={undefined}
+              title={undefined}
+            >
+              Another button
+            </span>
+          </div>
+        </div>
+      </div>
+      <div
+        style={
+          Object {
+            "alignItems": "center",
+            "borderColor": "pink",
+            "borderStyle": "solid",
+            "borderWidth": 1,
+            "display": "flex",
+            "flexDirection": "column",
+            "width": "100%",
+          }
+        }
+      >
+        <div
+          style={
+            Object {
+              "height": 8,
+              "width": 8,
+            }
+          }
+        />
+        <div
+          onClick={[Function]}
+          onMouseDown={[Function]}
+          onMouseEnter={[Function]}
+          onMouseLeave={[Function]}
+          onMouseUp={[Function]}
+          style={
+            Object {
+              "alignItems": "center",
+              "alignSelf": undefined,
+              "backgroundColor": "#33a0ff",
+              "borderRadius": 50,
+              "cursor": "pointer",
+              "display": "inline-block",
+              "flexDirection": "column",
+              "height": 32,
+              "justifyContent": "center",
+              "lineHeight": "inherit",
+              "minWidth": undefined,
+              "paddingLeft": 24,
+              "paddingRight": 24,
+              "position": "relative",
+              "textAlign": "left",
+              "transform": "none",
+              "transition": "none",
+            }
+          }
+        >
+          <div
+            style={
+              Object {
+                "alignItems": "center",
+                "display": "flex",
+                "height": "100%",
+                "justifyContent": "center",
+                "position": "relative",
+              }
+            }
+          >
+            <span
+              className="glamor-0"
+              onClick={undefined}
+              title={undefined}
+            >
+              Button
+            </span>
+          </div>
+        </div>
+        <div
+          style={
+            Object {
+              "height": 8,
+              "width": 8,
+            }
+          }
+        />
+      </div>
+      <div
+        style={
+          Object {
+            "alignItems": "center",
+            "borderColor": "pink",
+            "borderStyle": "solid",
+            "borderWidth": 1,
+            "display": "flex",
+            "flexDirection": "column",
+            "width": "100%",
+          }
+        }
+      >
+        <div
+          style={
+            Object {
+              "height": 8,
+              "width": 8,
+            }
+          }
+        />
+        <div
+          onClick={[Function]}
+          onMouseDown={[Function]}
+          onMouseEnter={[Function]}
+          onMouseLeave={[Function]}
+          onMouseUp={[Function]}
+          style={
+            Object {
+              "alignItems": "center",
+              "alignSelf": undefined,
+              "backgroundColor": "#e6e6e6",
+              "borderRadius": 50,
+              "cursor": "pointer",
+              "display": "inline-block",
+              "flexDirection": "column",
+              "height": 32,
+              "justifyContent": "center",
+              "lineHeight": "inherit",
+              "minWidth": undefined,
+              "paddingLeft": 24,
+              "paddingRight": 24,
+              "position": "relative",
+              "textAlign": "left",
+              "transform": "none",
+              "transition": "none",
+            }
+          }
+        >
+          <div
+            style={
+              Object {
+                "alignItems": "center",
+                "display": "flex",
+                "height": "100%",
+                "justifyContent": "center",
+                "position": "relative",
+              }
+            }
+          >
+            <span
+              className="glamor-1"
+              onClick={undefined}
+              title={undefined}
+            >
+              Button
+            </span>
+          </div>
+        </div>
+        <div
+          style={
+            Object {
+              "height": 8,
+              "width": 8,
+            }
+          }
+        />
+        <div
+          onClick={[Function]}
+          onMouseDown={[Function]}
+          onMouseEnter={[Function]}
+          onMouseLeave={[Function]}
+          onMouseUp={[Function]}
+          style={
+            Object {
+              "alignItems": "center",
+              "alignSelf": undefined,
+              "backgroundColor": "#33a0ff",
+              "borderRadius": 50,
+              "cursor": "pointer",
+              "display": "inline-block",
+              "flexDirection": "column",
+              "height": 32,
+              "justifyContent": "center",
+              "lineHeight": "inherit",
+              "minWidth": undefined,
+              "paddingLeft": 24,
+              "paddingRight": 24,
+              "position": "relative",
+              "textAlign": "left",
+              "transform": "none",
+              "transition": "none",
+            }
+          }
+        >
+          <div
+            style={
+              Object {
+                "alignItems": "center",
+                "display": "flex",
+                "height": "100%",
+                "justifyContent": "center",
+                "position": "relative",
+              }
+            }
+          >
+            <span
+              className="glamor-0"
+              onClick={undefined}
+              title={undefined}
+            >
+              Another button
+            </span>
+          </div>
+        </div>
+        <div
+          style={
+            Object {
+              "height": 8,
+              "width": 8,
+            }
+          }
+        />
+      </div>
+      <div
+        style={
+          Object {
+            "alignItems": "center",
+            "borderColor": "pink",
+            "borderStyle": "solid",
+            "borderWidth": 1,
+            "display": "flex",
+            "flexDirection": "row",
+            "justifyContent": "flex-start",
+            "minHeight": 64,
+            "width": "100%",
+          }
+        }
+      >
+        <div
+          onClick={[Function]}
+          onMouseDown={[Function]}
+          onMouseEnter={[Function]}
+          onMouseLeave={[Function]}
+          onMouseUp={[Function]}
+          style={
+            Object {
+              "alignItems": "center",
+              "alignSelf": undefined,
+              "backgroundColor": "#33a0ff",
+              "borderRadius": 50,
+              "cursor": "pointer",
+              "display": "inline-block",
+              "flexDirection": "column",
+              "height": 32,
+              "justifyContent": "center",
+              "lineHeight": "inherit",
+              "minWidth": undefined,
+              "paddingLeft": 24,
+              "paddingRight": 24,
+              "position": "relative",
+              "textAlign": "left",
+              "transform": "none",
+              "transition": "none",
+            }
+          }
+        >
+          <div
+            style={
+              Object {
+                "alignItems": "center",
+                "display": "flex",
+                "height": "100%",
+                "justifyContent": "center",
+                "position": "relative",
+              }
+            }
+          >
+            <span
+              className="glamor-0"
+              onClick={undefined}
+              title={undefined}
+            >
+              Button
+            </span>
+          </div>
+        </div>
+      </div>
+      <div
+        style={
+          Object {
+            "alignItems": "center",
+            "borderColor": "pink",
+            "borderStyle": "solid",
+            "borderWidth": 1,
+            "display": "flex",
+            "flexDirection": "row",
+            "justifyContent": "flex-end",
+            "minHeight": 64,
+            "width": "100%",
+          }
+        }
+      >
+        <div
+          onClick={[Function]}
+          onMouseDown={[Function]}
+          onMouseEnter={[Function]}
+          onMouseLeave={[Function]}
+          onMouseUp={[Function]}
+          style={
+            Object {
+              "alignItems": "center",
+              "alignSelf": undefined,
+              "backgroundColor": "#33a0ff",
+              "borderRadius": 50,
+              "cursor": "pointer",
+              "display": "inline-block",
+              "flexDirection": "column",
+              "height": 32,
+              "justifyContent": "center",
+              "lineHeight": "inherit",
+              "minWidth": undefined,
+              "paddingLeft": 24,
+              "paddingRight": 24,
+              "position": "relative",
+              "textAlign": "left",
+              "transform": "none",
+              "transition": "none",
+            }
+          }
+        >
+          <div
+            style={
+              Object {
+                "alignItems": "center",
+                "display": "flex",
+                "height": "100%",
+                "justifyContent": "center",
+                "position": "relative",
+              }
+            }
+          >
+            <span
+              className="glamor-0"
+              onClick={undefined}
+              title={undefined}
+            >
+              Button
+            </span>
+          </div>
+        </div>
+      </div>
+      <div
+        style={
+          Object {
+            "alignItems": "center",
+            "borderColor": "pink",
+            "borderStyle": "solid",
+            "borderWidth": 1,
+            "display": "flex",
+            "flexDirection": "row",
+            "justifyContent": "center",
+            "minHeight": 44,
+            "width": "100%",
+          }
+        }
+      >
+        <div
+          onClick={[Function]}
+          onMouseDown={[Function]}
+          onMouseEnter={[Function]}
+          onMouseLeave={[Function]}
+          onMouseUp={[Function]}
+          style={
+            Object {
+              "alignItems": "center",
+              "alignSelf": undefined,
+              "backgroundColor": "#33a0ff",
+              "borderRadius": 28,
+              "cursor": "pointer",
+              "display": "inline-block",
+              "flexDirection": "column",
+              "height": 28,
+              "justifyContent": "center",
+              "lineHeight": "inherit",
+              "minWidth": undefined,
+              "paddingLeft": 16,
+              "paddingRight": 16,
+              "position": "relative",
+              "textAlign": "left",
+              "transform": "none",
+              "transition": "none",
+            }
+          }
+        >
+          <div
+            style={
+              Object {
+                "alignItems": "center",
+                "display": "flex",
+                "height": "100%",
+                "justifyContent": "center",
+                "position": "relative",
+              }
+            }
+          >
+            <span
+              className="glamor-8"
+              onClick={undefined}
+              title={undefined}
+            >
+              Small button
+            </span>
+          </div>
+        </div>
+      </div>
+      <div
+        style={
+          Object {
+            "alignItems": "center",
+            "borderColor": "pink",
+            "borderStyle": "solid",
+            "borderWidth": 1,
+            "display": "flex",
+            "flexDirection": "row",
+            "justifyContent": "center",
+            "minHeight": 44,
+            "width": "100%",
+          }
+        }
+      >
+        <div
+          onClick={[Function]}
+          onMouseDown={[Function]}
+          onMouseEnter={[Function]}
+          onMouseLeave={[Function]}
+          onMouseUp={[Function]}
+          style={
+            Object {
+              "alignItems": "center",
+              "alignSelf": undefined,
+              "backgroundColor": "#e6e6e6",
+              "borderRadius": 28,
+              "cursor": "pointer",
+              "display": "inline-block",
+              "flexDirection": "column",
+              "height": 28,
+              "justifyContent": "center",
+              "lineHeight": "inherit",
+              "minWidth": undefined,
+              "paddingLeft": 16,
+              "paddingRight": 16,
+              "position": "relative",
+              "textAlign": "left",
+              "transform": "none",
+              "transition": "none",
+            }
+          }
+        >
+          <div
+            style={
+              Object {
+                "alignItems": "center",
+                "display": "flex",
+                "height": "100%",
+                "justifyContent": "center",
+                "position": "relative",
+              }
+            }
+          >
+            <span
+              className="glamor-9"
+              onClick={undefined}
+              title={undefined}
+            >
+              Small button
+            </span>
+          </div>
+        </div>
+        <div
+          style={
+            Object {
+              "height": 4,
+              "width": 4,
+            }
+          }
+        />
+        <div
+          onClick={[Function]}
+          onMouseDown={[Function]}
+          onMouseEnter={[Function]}
+          onMouseLeave={[Function]}
+          onMouseUp={[Function]}
+          style={
+            Object {
+              "alignItems": "center",
+              "alignSelf": undefined,
+              "backgroundColor": "#33a0ff",
+              "borderRadius": 28,
+              "cursor": "pointer",
+              "display": "inline-block",
+              "flexDirection": "column",
+              "height": 28,
+              "justifyContent": "center",
+              "lineHeight": "inherit",
+              "minWidth": undefined,
+              "paddingLeft": 16,
+              "paddingRight": 16,
+              "position": "relative",
+              "textAlign": "left",
+              "transform": "none",
+              "transition": "none",
+            }
+          }
+        >
+          <div
+            style={
+              Object {
+                "alignItems": "center",
+                "display": "flex",
+                "height": "100%",
+                "justifyContent": "center",
+                "position": "relative",
+              }
+            }
+          >
+            <span
+              className="glamor-8"
+              onClick={undefined}
+              title={undefined}
+            >
+              Small button
+            </span>
+          </div>
+        </div>
+      </div>
+      <div
+        style={
+          Object {
+            "alignItems": "stretch",
+            "borderColor": "pink",
+            "borderStyle": "solid",
+            "borderWidth": 1,
+            "display": "flex",
+            "flexDirection": "column",
+            "width": "100%",
+          }
+        }
+      >
+        <div
+          style={
+            Object {
+              "height": 8,
+              "width": 8,
+            }
+          }
+        />
+        <div
+          onClick={[Function]}
+          onMouseDown={[Function]}
+          onMouseEnter={[Function]}
+          onMouseLeave={[Function]}
+          onMouseUp={[Function]}
+          style={
+            Object {
+              "alignItems": "center",
+              "alignSelf": undefined,
+              "backgroundColor": "#33a0ff",
+              "borderRadius": 50,
+              "cursor": "pointer",
+              "display": "inline-block",
+              "flexDirection": "column",
+              "height": 32,
+              "justifyContent": "center",
+              "lineHeight": "inherit",
+              "minWidth": undefined,
+              "paddingLeft": 24,
+              "paddingRight": 24,
+              "position": "relative",
+              "textAlign": "left",
+              "transform": "none",
+              "transition": "none",
+            }
+          }
+        >
+          <div
+            style={
+              Object {
+                "alignItems": "center",
+                "display": "flex",
+                "height": "100%",
+                "justifyContent": "center",
+                "position": "relative",
+              }
+            }
+          >
+            <span
+              className="glamor-0"
+              onClick={undefined}
+              title={undefined}
+            >
+              Button
+            </span>
+          </div>
+        </div>
+        <div
+          style={
+            Object {
+              "height": 8,
+              "width": 8,
+            }
+          }
+        />
       </div>
     </div>
   </div>
@@ -18342,6 +20281,23 @@ exports[`Storyshots Common Icon 1`] = `
           }
           title="hint text"
         />
+        <img
+          className={undefined}
+          draggable="false"
+          onClick={[Function]}
+          srcSet="icons/icon-team-sparkles-48-40.png 1x, icons/icon-team-sparkles-48-40@2x.png 2x"
+          style={
+            Object {
+              "borderColor": "rgba(0, 0, 0, 0.05)",
+              "borderStyle": "solid",
+              "borderWidth": 1,
+              "cursor": "pointer",
+              "margin": 5,
+              "userSelect": "none",
+            }
+          }
+          title="hint text"
+        />
       </div>
     </div>
     <div>
@@ -18996,6 +20952,23 @@ exports[`Storyshots Common Icon 1`] = `
           className={undefined}
           draggable="false"
           onClick={[Function]}
+          srcSet="icons/icon-skull-48.png 1x, icons/icon-skull-48@2x.png 2x"
+          style={
+            Object {
+              "borderColor": "rgba(0, 0, 0, 0.05)",
+              "borderStyle": "solid",
+              "borderWidth": 1,
+              "cursor": "pointer",
+              "margin": 5,
+              "userSelect": "none",
+            }
+          }
+          title="hint text"
+        />
+        <img
+          className={undefined}
+          draggable="false"
+          onClick={[Function]}
           srcSet="icons/icon-team-placeholder-avatar-48.png 1x, icons/icon-team-placeholder-avatar-48@2x.png 2x"
           style={
             Object {
@@ -19477,6 +21450,23 @@ exports[`Storyshots Common Icon 1`] = `
           draggable="false"
           onClick={[Function]}
           srcSet="icons/icon-reddit-logo-64.png 1x, icons/icon-reddit-logo-64@2x.png 2x"
+          style={
+            Object {
+              "borderColor": "rgba(0, 0, 0, 0.05)",
+              "borderStyle": "solid",
+              "borderWidth": 1,
+              "cursor": "pointer",
+              "margin": 5,
+              "userSelect": "none",
+            }
+          }
+          title="hint text"
+        />
+        <img
+          className={undefined}
+          draggable="false"
+          onClick={[Function]}
+          srcSet="icons/icon-skull-64.png 1x, icons/icon-skull-64@2x.png 2x"
           style={
             Object {
               "borderColor": "rgba(0, 0, 0, 0.05)",
@@ -20297,6 +22287,23 @@ exports[`Storyshots Common Icon 1`] = `
           }
         }
       >
+        <img
+          className={undefined}
+          draggable="false"
+          onClick={[Function]}
+          srcSet="icons/icon-access-denied-266.gif 1x, icons/icon-access-denied-266@2x.gif 2x"
+          style={
+            Object {
+              "borderColor": "rgba(0, 0, 0, 0.05)",
+              "borderStyle": "solid",
+              "borderWidth": 1,
+              "cursor": "pointer",
+              "margin": 5,
+              "userSelect": "none",
+            }
+          }
+          title="hint text"
+        />
         <img
           className={undefined}
           draggable="false"
@@ -21871,14 +23878,14 @@ exports[`Storyshots Common Text 1`] = `
           }
         />
         <span
-          className="glamor-38 hover-underline"
+          className="glamor-38"
           onClick={[Function]}
           title={undefined}
         >
           Header link Header link
         </span>
         <span
-          className="glamor-38 hover-underline"
+          className="glamor-38"
           onClick={[Function]}
           title={undefined}
         >
@@ -21920,14 +23927,14 @@ exports[`Storyshots Common Text 1`] = `
           }
         />
         <span
-          className="glamor-42 hover-underline"
+          className="glamor-42"
           onClick={[Function]}
           title={undefined}
         >
           Body big link Body big link
         </span>
         <span
-          className="glamor-42 hover-underline"
+          className="glamor-42"
           onClick={[Function]}
           title={undefined}
         >
@@ -21990,14 +23997,14 @@ exports[`Storyshots Common Text 1`] = `
           }
         />
         <span
-          className="glamor-48 hover-underline"
+          className="glamor-48"
           onClick={[Function]}
           title={undefined}
         >
           Body primary link
         </span>
         <span
-          className="glamor-48 hover-underline"
+          className="glamor-48"
           onClick={[Function]}
           title={undefined}
         >
@@ -22011,14 +24018,14 @@ exports[`Storyshots Common Text 1`] = `
           }
         />
         <span
-          className="glamor-50 hover-underline"
+          className="glamor-50"
           onClick={[Function]}
           title={undefined}
         >
           Body secondary link
         </span>
         <span
-          className="glamor-50 hover-underline"
+          className="glamor-50"
           onClick={[Function]}
           title={undefined}
         >
@@ -22123,14 +24130,14 @@ exports[`Storyshots Common Text 1`] = `
           }
         />
         <span
-          className="glamor-60 hover-underline"
+          className="glamor-60"
           onClick={[Function]}
           title={undefined}
         >
           Body small primary link
         </span>
         <span
-          className="glamor-60 hover-underline"
+          className="glamor-60"
           onClick={[Function]}
           title={undefined}
         >
@@ -22144,14 +24151,14 @@ exports[`Storyshots Common Text 1`] = `
           }
         />
         <span
-          className="glamor-62 hover-underline"
+          className="glamor-62"
           onClick={[Function]}
           title={undefined}
         >
           Body small secondary link
         </span>
         <span
-          className="glamor-62 hover-underline"
+          className="glamor-62"
           onClick={[Function]}
           title={undefined}
         >
@@ -22244,7 +24251,7 @@ exports[`Storyshots Edit team description Description changed 1`] = `
   position: absolute;
   right: 1px;
   top: 1px;
-  background-color: #ffffff;
+  background-color: #f0f0f0;
   border-radius: 6px;
 }
 
@@ -22522,9 +24529,10 @@ exports[`Storyshots Edit team description Description changed 1`] = `
                   Object {
                     "alignItems": "center",
                     "display": "flex",
-                    "flex": 1,
                     "flexDirection": "row",
-                    "paddingTop": 24,
+                    "justifyContent": "center",
+                    "minHeight": 64,
+                    "width": "100%",
                   }
                 }
               >
@@ -22577,6 +24585,14 @@ exports[`Storyshots Edit team description Description changed 1`] = `
                   </div>
                 </div>
                 <div
+                  style={
+                    Object {
+                      "height": 8,
+                      "width": 8,
+                    }
+                  }
+                />
+                <div
                   onClick={[Function]}
                   onMouseDown={[Function]}
                   onMouseEnter={[Function]}
@@ -22594,7 +24610,6 @@ exports[`Storyshots Edit team description Description changed 1`] = `
                       "height": 32,
                       "justifyContent": "center",
                       "lineHeight": "inherit",
-                      "marginLeft": 8,
                       "minWidth": undefined,
                       "paddingLeft": 24,
                       "paddingRight": 24,
@@ -22660,7 +24675,7 @@ exports[`Storyshots Edit team description Description unchanged 1`] = `
   position: absolute;
   right: 1px;
   top: 1px;
-  background-color: #ffffff;
+  background-color: #f0f0f0;
   border-radius: 6px;
 }
 
@@ -22938,9 +24953,10 @@ exports[`Storyshots Edit team description Description unchanged 1`] = `
                   Object {
                     "alignItems": "center",
                     "display": "flex",
-                    "flex": 1,
                     "flexDirection": "row",
-                    "paddingTop": 24,
+                    "justifyContent": "center",
+                    "minHeight": 64,
+                    "width": "100%",
                   }
                 }
               >
@@ -22993,6 +25009,14 @@ exports[`Storyshots Edit team description Description unchanged 1`] = `
                   </div>
                 </div>
                 <div
+                  style={
+                    Object {
+                      "height": 8,
+                      "width": 8,
+                    }
+                  }
+                />
+                <div
                   onClick={null}
                   onMouseDown={[Function]}
                   onMouseEnter={[Function]}
@@ -23009,7 +25033,6 @@ exports[`Storyshots Edit team description Description unchanged 1`] = `
                       "height": 32,
                       "justifyContent": "center",
                       "lineHeight": "inherit",
-                      "marginLeft": 8,
                       "minWidth": undefined,
                       "opacity": 0.3,
                       "paddingLeft": 24,
@@ -23430,7 +25453,7 @@ exports[`Storyshots Git DeleteTeamRepo 1`] = `
   position: absolute;
   right: 1px;
   top: 1px;
-  background-color: #ffffff;
+  background-color: #f0f0f0;
   border-radius: 3px;
 }
 
@@ -27260,7 +29283,7 @@ exports[`Storyshots Search Result 1`] = `
   position: absolute;
   right: 1px;
   top: 1px;
-  background-color: #ffffff;
+  background-color: #f0f0f0;
   border-radius: 50%;
 }
 
@@ -30288,7 +32311,7 @@ exports[`Storyshots Search User Input 1`] = `
   position: absolute;
   right: 1px;
   top: 1px;
-  background-color: #ffffff;
+  background-color: #f0f0f0;
   border-radius: 50%;
 }
 
@@ -32576,7 +34599,7 @@ exports[`Storyshots Search User Input editable 1`] = `
   position: absolute;
   right: 1px;
   top: 1px;
-  background-color: #ffffff;
+  background-color: #f0f0f0;
   border-radius: 50%;
 }
 
@@ -33412,7 +35435,7 @@ exports[`Storyshots Team Roles ConfirmAdmin 1`] = `
   position: absolute;
   right: 1px;
   top: 1px;
-  background-color: #ffffff;
+  background-color: #f0f0f0;
   border-radius: 50%;
 }
 
@@ -33444,7 +35467,7 @@ exports[`Storyshots Team Roles ConfirmAdmin 1`] = `
   position: absolute;
   right: 1px;
   top: 1px;
-  background-color: #ffffff;
+  background-color: #f0f0f0;
   border-radius: 6px;
 }
 
@@ -33976,9 +35999,12 @@ exports[`Storyshots Team Roles ConfirmAdmin 1`] = `
       <div
         style={
           Object {
+            "alignItems": "center",
             "display": "flex",
             "flexDirection": "row",
-            "margin": 16,
+            "justifyContent": "center",
+            "minHeight": 64,
+            "width": "100%",
           }
         }
       >
@@ -34031,6 +36057,14 @@ exports[`Storyshots Team Roles ConfirmAdmin 1`] = `
           </div>
         </div>
         <div
+          style={
+            Object {
+              "height": 8,
+              "width": 8,
+            }
+          }
+        />
+        <div
           onClick={[Function]}
           onMouseDown={[Function]}
           onMouseEnter={[Function]}
@@ -34048,7 +36082,6 @@ exports[`Storyshots Team Roles ConfirmAdmin 1`] = `
               "height": 32,
               "justifyContent": "center",
               "lineHeight": "inherit",
-              "marginLeft": 8,
               "minWidth": undefined,
               "paddingLeft": 24,
               "paddingRight": 24,
@@ -34093,7 +36126,7 @@ exports[`Storyshots Team Roles ConfirmOwner 1`] = `
   position: absolute;
   right: 1px;
   top: 1px;
-  background-color: #ffffff;
+  background-color: #f0f0f0;
   border-radius: 50%;
 }
 
@@ -34125,7 +36158,7 @@ exports[`Storyshots Team Roles ConfirmOwner 1`] = `
   position: absolute;
   right: 1px;
   top: 1px;
-  background-color: #ffffff;
+  background-color: #f0f0f0;
   border-radius: 6px;
 }
 
@@ -34625,9 +36658,12 @@ exports[`Storyshots Team Roles ConfirmOwner 1`] = `
       <div
         style={
           Object {
+            "alignItems": "center",
             "display": "flex",
             "flexDirection": "row",
-            "margin": 16,
+            "justifyContent": "center",
+            "minHeight": 64,
+            "width": "100%",
           }
         }
       >
@@ -34680,6 +36716,14 @@ exports[`Storyshots Team Roles ConfirmOwner 1`] = `
           </div>
         </div>
         <div
+          style={
+            Object {
+              "height": 8,
+              "width": 8,
+            }
+          }
+        />
+        <div
           onClick={[Function]}
           onMouseDown={[Function]}
           onMouseEnter={[Function]}
@@ -34697,7 +36741,6 @@ exports[`Storyshots Team Roles ConfirmOwner 1`] = `
               "height": 32,
               "justifyContent": "center",
               "lineHeight": "inherit",
-              "marginLeft": 8,
               "minWidth": undefined,
               "paddingLeft": 24,
               "paddingRight": 24,
@@ -34742,7 +36785,7 @@ exports[`Storyshots Team Roles ConfirmReader 1`] = `
   position: absolute;
   right: 1px;
   top: 1px;
-  background-color: #ffffff;
+  background-color: #f0f0f0;
   border-radius: 50%;
 }
 
@@ -34774,7 +36817,7 @@ exports[`Storyshots Team Roles ConfirmReader 1`] = `
   position: absolute;
   right: 1px;
   top: 1px;
-  background-color: #ffffff;
+  background-color: #f0f0f0;
   border-radius: 6px;
 }
 
@@ -35350,9 +37393,12 @@ exports[`Storyshots Team Roles ConfirmReader 1`] = `
       <div
         style={
           Object {
+            "alignItems": "center",
             "display": "flex",
             "flexDirection": "row",
-            "margin": 16,
+            "justifyContent": "center",
+            "minHeight": 64,
+            "width": "100%",
           }
         }
       >
@@ -35405,6 +37451,14 @@ exports[`Storyshots Team Roles ConfirmReader 1`] = `
           </div>
         </div>
         <div
+          style={
+            Object {
+              "height": 8,
+              "width": 8,
+            }
+          }
+        />
+        <div
           onClick={[Function]}
           onMouseDown={[Function]}
           onMouseEnter={[Function]}
@@ -35422,7 +37476,6 @@ exports[`Storyshots Team Roles ConfirmReader 1`] = `
               "height": 32,
               "justifyContent": "center",
               "lineHeight": "inherit",
-              "marginLeft": 8,
               "minWidth": undefined,
               "paddingLeft": 24,
               "paddingRight": 24,
@@ -35467,7 +37520,7 @@ exports[`Storyshots Team Roles ConfirmWriter 1`] = `
   position: absolute;
   right: 1px;
   top: 1px;
-  background-color: #ffffff;
+  background-color: #f0f0f0;
   border-radius: 50%;
 }
 
@@ -35499,7 +37552,7 @@ exports[`Storyshots Team Roles ConfirmWriter 1`] = `
   position: absolute;
   right: 1px;
   top: 1px;
-  background-color: #ffffff;
+  background-color: #f0f0f0;
   border-radius: 6px;
 }
 
@@ -36031,9 +38084,12 @@ exports[`Storyshots Team Roles ConfirmWriter 1`] = `
       <div
         style={
           Object {
+            "alignItems": "center",
             "display": "flex",
             "flexDirection": "row",
-            "margin": 16,
+            "justifyContent": "center",
+            "minHeight": 64,
+            "width": "100%",
           }
         }
       >
@@ -36086,6 +38142,14 @@ exports[`Storyshots Team Roles ConfirmWriter 1`] = `
           </div>
         </div>
         <div
+          style={
+            Object {
+              "height": 8,
+              "width": 8,
+            }
+          }
+        />
+        <div
           onClick={[Function]}
           onMouseDown={[Function]}
           onMouseEnter={[Function]}
@@ -36103,7 +38167,6 @@ exports[`Storyshots Team Roles ConfirmWriter 1`] = `
               "height": 32,
               "justifyContent": "center",
               "lineHeight": "inherit",
-              "marginLeft": 8,
               "minWidth": undefined,
               "paddingLeft": 24,
               "paddingRight": 24,
@@ -37008,7 +39071,7 @@ exports[`Storyshots Teams Header 1`] = `
           </span>
         </div>
         <span
-          className="glamor-1 hover-underline"
+          className="glamor-1"
           onClick={undefined}
           title={undefined}
         >
@@ -37065,7 +39128,7 @@ exports[`Storyshots Teams Header 1`] = `
           </span>
         </div>
         <span
-          className="glamor-1 hover-underline"
+          className="glamor-1"
           onClick={undefined}
           title={undefined}
         >
@@ -37085,7 +39148,7 @@ exports[`Storyshots Teams TeamList 1`] = `
   position: absolute;
   right: 1px;
   top: 1px;
-  background-color: #ffffff;
+  background-color: #f0f0f0;
   border-radius: 5px;
 }
 

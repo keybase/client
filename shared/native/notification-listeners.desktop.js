@@ -1,16 +1,19 @@
 // @flow
+import * as RPCTypes from '../constants/types/flow-types'
 import shared from './notification-listeners.shared'
 import {kbfsNotification} from '../util/kbfs-notifications'
-import * as PgpGen from '../actions/pgp-gen'
 import {remote} from 'electron'
-import {flushLogFile} from '../util/forward-logs'
-
-import type {IncomingCallMapType} from '../constants/types/flow-types'
+import {writeLogLinesToFile} from '../util/forward-logs'
+import logger from '../logger'
 
 // TODO(mm) Move these to their own actions
-export default function(dispatch: Dispatch, getState: () => Object, notify: any): IncomingCallMapType {
-  const fromShared: IncomingCallMapType = shared(dispatch, getState, notify)
-  const handlers: IncomingCallMapType = {
+export default function(
+  dispatch: Dispatch,
+  getState: () => Object,
+  notify: any
+): RPCTypes.IncomingCallMapType {
+  const fromShared: RPCTypes.IncomingCallMapType = shared(dispatch, getState, notify)
+  const handlers: RPCTypes.IncomingCallMapType = {
     'keybase.1.NotifyApp.exit': () => {
       console.log('App exit requested')
       remote.app.exit(0)
@@ -19,7 +22,9 @@ export default function(dispatch: Dispatch, getState: () => Object, notify: any)
       kbfsNotification(notification, notify, getState)
     },
     'keybase.1.NotifyPGP.pgpKeyInSecretStoreFile': () => {
-      dispatch(PgpGen.createPgpKeyInSecretStoreFile())
+      RPCTypes.pgpPgpStorageDismissRpcPromise().catch(err => {
+        console.warn('Error in sending pgpPgpStorageDismissRpc:', err)
+      })
     },
     'keybase.1.NotifyService.shutdown': () => {
       // console.log('Quitting due to service shutdown')
@@ -31,8 +36,7 @@ export default function(dispatch: Dispatch, getState: () => Object, notify: any)
       notify('Client out of date!', {body}, 60 * 60)
     },
     'keybase.1.logsend.prepareLogsend': (_, response) => {
-      flushLogFile()
-      response.result()
+      logger.dump().then(writeLogLinesToFile).then(() => response.result())
     },
   }
 

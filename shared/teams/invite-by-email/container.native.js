@@ -1,5 +1,6 @@
 // @flow
-import * as Creators from '../../actions/teams/creators'
+import logger from '../../logger'
+import * as TeamsGen from '../../actions/teams-gen'
 import {Set, Map} from 'immutable'
 import InviteByEmailMobile, {type ContactDisplayProps} from '.'
 import {HeaderHoc} from '../../common-adapters'
@@ -41,15 +42,31 @@ const mapStateToProps = (state: TypedState, {routeProps}: OwnProps) => {
 const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routeProps}) => ({
   onClose: () => dispatch(navigateUp()),
   onInviteEmail: ({invitee, role}) => {
-    dispatch(Creators.inviteToTeamByEmail(routeProps.get('teamname'), role, invitee))
-    dispatch(Creators.getTeams())
+    dispatch(
+      TeamsGen.createInviteToTeamByEmail({teamname: routeProps.get('teamname'), role, invitees: invitee})
+    )
+    dispatch(TeamsGen.createGetTeams())
   },
   onInvitePhone: ({invitee, role, fullName = ''}) => {
-    dispatch(Creators.inviteToTeamByPhone(routeProps.get('teamname'), role, invitee, fullName))
-    dispatch(Creators.getTeams())
+    dispatch(
+      TeamsGen.createInviteToTeamByPhone({
+        teamname: routeProps.get('teamname'),
+        role,
+        phoneNumber: invitee,
+        fullName,
+      })
+    )
+    dispatch(TeamsGen.createGetTeams())
   },
   onUninvite: (invitee: string, id?: string) => {
-    dispatch(Creators.removeMember(invitee, routeProps.get('teamname'), '', id || ''))
+    dispatch(
+      TeamsGen.createRemoveMemberOrPendingInvite({
+        email: invitee,
+        teamname: routeProps.get('teamname'),
+        username: '',
+        inviteID: id || '',
+      })
+    )
   },
 
   onOpenRolePicker: (role: string, onComplete: string => void) => {
@@ -91,7 +108,7 @@ export default compose(
             this.props._setContacts(val.contacts)
           },
           err => {
-            console.warn('Error fetching contacts: ', err)
+            logger.warn('Error fetching contacts: ', err)
             this.props._setHasPermission(false)
           }
         )
@@ -165,7 +182,7 @@ export default compose(
             if (relevantInvite) {
               onUninvite('', relevantInvite.id)
             } else {
-              console.warn('Could not find invite to remove in pending invites')
+              logger.warn('Could not find invite to remove in pending invites')
             }
           }
         }
@@ -208,6 +225,7 @@ export default compose(
 
       return {contactRowProps}
     }),
+    // $FlowIssue doesn't like withProps
     HeaderHoc
   )
 )(InviteByEmailMobile)

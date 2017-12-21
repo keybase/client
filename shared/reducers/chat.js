@@ -1,15 +1,17 @@
 // @flow
+import * as I from 'immutable'
+import logger from '../logger'
 import * as Constants from '../constants/chat'
 import * as Types from '../constants/types/chat'
+import * as TeamsGen from '../actions/teams-gen'
 import * as ChatGen from '../actions/chat-gen'
 import * as GregorGen from '../actions/gregor-gen'
-import {Set, List, Map} from 'immutable'
 import {reachabilityReachable} from '../constants/types/flow-types'
 
 const initialState: Types.State = Constants.makeState()
 const initialConversation: Types.ConversationState = Constants.makeConversationState()
 
-type ConversationsStates = Map<Types.ConversationIDKey, Types.ConversationState>
+type ConversationsStates = I.Map<Types.ConversationIDKey, Types.ConversationState>
 type ConversationUpdateFn = (c: Types.ConversationState) => Types.ConversationState
 function updateConversation(
   conversationStates: ConversationsStates,
@@ -19,7 +21,16 @@ function updateConversation(
   return conversationStates.update(conversationIDKey, initialConversation, conversationUpdateFn)
 }
 
-function reducer(state: Types.State = initialState, action: ChatGen.Actions) {
+function reducer(
+  state: Types.State = initialState,
+  action:
+    | ChatGen.Actions
+    | TeamsGen.SetChannelCreationErrorPayload
+    | TeamsGen.SetTeamCreationErrorPayload
+    | TeamsGen.SetTeamCreationPendingPayload
+    | TeamsGen.SetTeamJoinErrorPayload
+    | TeamsGen.SetTeamJoinSuccessPayload
+) {
   switch (action.type) {
     case ChatGen.resetStore:
       return Constants.makeState()
@@ -45,7 +56,7 @@ function reducer(state: Types.State = initialState, action: ChatGen.Actions) {
       const {conversationIDKey} = action.payload
       const origConversationState = state.get('conversationStates').get(conversationIDKey)
       if (!origConversationState) {
-        console.warn("Attempted to clear conversation state that doesn't exist")
+        logger.warn("Attempted to clear conversation state that doesn't exist")
         return state
       }
 
@@ -87,11 +98,11 @@ function reducer(state: Types.State = initialState, action: ChatGen.Actions) {
           if (!conversation.get('firstNewMessageID') && !inConversationFocused && firstMessage) {
             // Set first new message if we don't have one set, and are not in
             // the conversation with window focused
-            conversation = conversation.set('firstNewMessageID', firstMessage.messageID)
+            return conversation.set('firstNewMessageID', firstMessage.messageID)
           } else if (inConversationFocused) {
             // Clear new message if we received a new message while in
             // conversation and window is focused
-            conversation = conversation.set('firstNewMessageID', null)
+            return conversation.set('firstNewMessageID', null)
           }
 
           return conversation
@@ -103,7 +114,7 @@ function reducer(state: Types.State = initialState, action: ChatGen.Actions) {
       const {conversationIDKey, typing} = action.payload
       return state.update('conversationStates', conversationStates =>
         updateConversation(conversationStates, conversationIDKey, conversation =>
-          conversation.set('typing', Set(typing))
+          conversation.set('typing', I.Set(typing))
         )
       )
     }
@@ -113,7 +124,7 @@ function reducer(state: Types.State = initialState, action: ChatGen.Actions) {
       return state.update('conversationStates', conversationStates =>
         conversationStates.map((conversationState, conversationIDKey) => {
           if (convIDs.length === 0 || convIDs.includes(conversationIDKey)) {
-            console.log(`reducer: setting thread stale from mark as stale: ${conversationIDKey}`)
+            logger.info(`reducer: setting thread stale from mark as stale: ${conversationIDKey}`)
             return conversationState.set('isStale', true)
           }
           return conversationState
@@ -126,7 +137,7 @@ function reducer(state: Types.State = initialState, action: ChatGen.Actions) {
       return state.update('conversationStates', conversationStates =>
         conversationStates.map((conversationState, conversationIDKey) => {
           if (convIDs.length === 0 || convIDs.includes(conversationIDKey)) {
-            console.log(`reducer: setting thread stale from inbox synced: ${conversationIDKey}`)
+            logger.info(`reducer: setting thread stale from inbox synced: ${conversationIDKey}`)
             return conversationState.set('isStale', true)
           }
           return conversationState
@@ -136,7 +147,7 @@ function reducer(state: Types.State = initialState, action: ChatGen.Actions) {
     case ChatGen.inboxStale: {
       return state.update('conversationStates', conversationStates =>
         conversationStates.map((conversationState, conversationIDKey) => {
-          console.log(`reducer: setting thread stale from inbox stale: ${conversationIDKey}`)
+          logger.info(`reducer: setting thread stale from inbox stale: ${conversationIDKey}`)
           return conversationState.set('isStale', true)
         })
       )
@@ -148,8 +159,7 @@ function reducer(state: Types.State = initialState, action: ChatGen.Actions) {
         .update(action.payload.conversationIDKey, initialConversation, conversation =>
           conversation.set('firstNewMessageID', null)
         )
-      state = state.set('conversationStates', newConversationStates)
-      return state
+      return state.set('conversationStates', newConversationStates)
     case ChatGen.loadingMessages: {
       const {isRequesting, conversationIDKey} = action.payload
       const newConversationStates = state
@@ -182,7 +192,7 @@ function reducer(state: Types.State = initialState, action: ChatGen.Actions) {
         'rekeyInfos',
         state
           .get('rekeyInfos')
-          .set(conversationIDKey, Constants.makeRekeyInfo({rekeyParticipants: List(rekeyers)}))
+          .set(conversationIDKey, Constants.makeRekeyInfo({rekeyParticipants: I.List(rekeyers)}))
       )
     }
     case ChatGen.updateInboxRekeySelf: {
@@ -202,7 +212,7 @@ function reducer(state: Types.State = initialState, action: ChatGen.Actions) {
           // TODO use deleteAll when we update immutable
           pendingConversations
             .filterNot((v, k) => tempPendingConvIDs.includes(k))
-            .set(conversationIDKey, List(sorted))
+            .set(conversationIDKey, I.List(sorted))
         )
         .update('tempPendingConversations', tempPendingConversations =>
           tempPendingConversations.filter(v => v).set(conversationIDKey, temporary)
@@ -222,7 +232,7 @@ function reducer(state: Types.State = initialState, action: ChatGen.Actions) {
       if (oldPending.get(oldKey)) {
         return state.set('pendingConversations', oldPending.remove(oldKey))
       } else {
-        console.warn("couldn't find pending to upgrade", oldKey)
+        logger.warn("couldn't find pending to upgrade", oldKey)
       }
       return state
     }
@@ -278,28 +288,33 @@ function reducer(state: Types.State = initialState, action: ChatGen.Actions) {
     case ChatGen.exitSearch: {
       return state.set('inSearch', false)
     }
-    case 'teams:setChannelCreationError': {
-      const {payload: {channelCreationError}} = action
-      return state.set('channelCreationError', channelCreationError)
+    case ChatGen.updateResetParticipants: {
+      return state.mergeIn(
+        ['inboxResetParticipants'],
+        I.Map([[action.payload.conversationIDKey, I.Set(action.payload.participants)]])
+      )
     }
-    case 'teams:setTeamCreationError': {
-      const {payload: {teamCreationError}} = action
-      return state.set('teamCreationError', teamCreationError)
+    case TeamsGen.setChannelCreationError: {
+      const {error} = action.payload
+      return state.set('channelCreationError', error)
     }
-    case 'teams:setTeamCreationPending': {
-      const {payload: {teamCreationPending}} = action
-      return state.set('teamCreationPending', teamCreationPending)
+    case TeamsGen.setTeamCreationError: {
+      const {error} = action.payload
+      return state.set('teamCreationError', error)
     }
-    case 'teams:setTeamJoinError': {
-      const {payload: {teamJoinError}} = action
-      return state.set('teamJoinError', teamJoinError)
+    case TeamsGen.setTeamCreationPending: {
+      const {pending} = action.payload
+      return state.set('teamCreationPending', pending)
     }
-    case 'teams:setTeamJoinSuccess': {
-      const {payload: {teamJoinSuccess, teamname}} = action
-      return state.set('teamJoinSuccess', teamJoinSuccess).set('teamJoinSuccessTeamName', teamname)
+    case TeamsGen.setTeamJoinError: {
+      const {error} = action.payload
+      return state.set('teamJoinError', error)
+    }
+    case TeamsGen.setTeamJoinSuccess: {
+      const {success, teamname} = action.payload
+      return state.set('teamJoinSuccess', success).set('teamJoinSuccessTeamName', teamname)
     }
     // Saga only actions
-    case ChatGen.updateBadging:
     case ChatGen.attachmentLoaded:
     case ChatGen.attachmentSaveFailed:
     case ChatGen.attachmentSaveStart:
@@ -327,9 +342,11 @@ function reducer(state: Types.State = initialState, action: ChatGen.Actions) {
     case ChatGen.openTeamConversation:
     case ChatGen.openTlfInChat:
     case ChatGen.outboxMessageBecameReal:
-    case ChatGen.previewChannel:
     case ChatGen.postMessage:
+    case ChatGen.previewChannel:
     case ChatGen.removeOutboxMessage:
+    case ChatGen.resetChatWithoutThem:
+    case ChatGen.resetLetThemIn:
     case ChatGen.retryAttachment:
     case ChatGen.retryMessage:
     case ChatGen.saveAttachment:
@@ -344,6 +361,7 @@ function reducer(state: Types.State = initialState, action: ChatGen.Actions) {
     case ChatGen.toggleChannelWideNotifications:
     case ChatGen.unboxConversations:
     case ChatGen.unboxMore:
+    case ChatGen.updateBadging:
     case ChatGen.updateInboxComplete:
     case ChatGen.updateMetadata:
     case ChatGen.updateSnippet:

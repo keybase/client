@@ -12,6 +12,7 @@
     },
     "mobileAppState": {
       "nextAppState": "'active' | 'background' | 'inactive'"
-    }
+    },
+    "showMain": {}
   }
 }

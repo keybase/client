@@ -4,38 +4,29 @@ import * as SettingsConstants from './settings'
 import * as Tabs from './tabs'
 import * as Types from './types/devices'
 import {isMobile} from './platform'
+import type {TypedState} from './reducer'
 
 const makeDeviceDetail: I.RecordFactory<Types._DeviceDetail> = I.Record({
   created: 0,
   currentDevice: false,
-  deviceID: '',
+  deviceID: Types.stringToDeviceID(''),
   lastUsed: 0,
   name: '',
   provisionedAt: 0,
   provisionerName: null,
   revokedAt: null,
   revokedByName: null,
-  type: '',
+  type: Types.stringToDeviceType('desktop'),
 })
 
 const makeState: I.RecordFactory<Types._State> = I.Record({
-  deviceIDs: I.List(),
-  waitingForServer: false,
+  idToDetail: I.Map(),
+  idToEndangeredTLFs: I.Map(),
 })
 
-// Converts a string to the DeviceType enum, logging an error if it doesn't match
-function toDeviceType(s: string): Types.DeviceType {
-  switch (s) {
-    case 'mobile':
-    case 'desktop':
-    case 'backup':
-      return s
-    default:
-      console.log('Unknown Device Type %s. Defaulting to `desktop`', s)
-      return 'desktop'
-  }
-}
-
 const devicesTabLocation = isMobile ? [Tabs.settingsTab, SettingsConstants.devicesTab] : [Tabs.devicesTab]
+const waitingKey = 'devicesPage'
 
-export {devicesTabLocation, makeState, makeDeviceDetail, toDeviceType}
+const isWaiting = (state: TypedState) => state.waiting.get(waitingKey, 0) !== 0
+
+export {devicesTabLocation, makeState, makeDeviceDetail, waitingKey, isWaiting}

@@ -27,7 +27,7 @@ type LoaderContext interface {
 	// Get the current user's per-user-key's derived encryption key (full).
 	perUserEncryptionKey(ctx context.Context, userSeqno keybase1.Seqno) (*libkb.NaclDHKeyPair, error)
 	merkleLookup(ctx context.Context, teamID keybase1.TeamID, public bool) (r1 keybase1.Seqno, r2 keybase1.LinkID, err error)
-	merkleLookupTripleAtHashMeta(ctx context.Context, leafID keybase1.UserOrTeamID, hm keybase1.HashMeta) (triple *libkb.MerkleTriple, err error)
+	merkleLookupTripleAtHashMeta(ctx context.Context, isPublic bool, leafID keybase1.UserOrTeamID, hm keybase1.HashMeta) (triple *libkb.MerkleTriple, err error)
 	forceLinkMapRefreshForUser(ctx context.Context, uid keybase1.UID) (linkMap linkMapT, err error)
 	loadKeyV2(ctx context.Context, uid keybase1.UID, kid keybase1.KID) (keybase1.UserVersion, *keybase1.PublicKeyV2NaCl, linkMapT, error)
 }
@@ -199,15 +199,18 @@ func (l *LoaderContextG) merkleLookup(ctx context.Context, teamID keybase1.TeamI
 	return leaf.Private.Seqno, leaf.Private.LinkID.Export(), nil
 }
 
-func (l *LoaderContextG) merkleLookupTripleAtHashMeta(ctx context.Context, leafID keybase1.UserOrTeamID, hm keybase1.HashMeta) (triple *libkb.MerkleTriple, err error) {
+func (l *LoaderContextG) merkleLookupTripleAtHashMeta(ctx context.Context, isPublic bool, leafID keybase1.UserOrTeamID, hm keybase1.HashMeta) (triple *libkb.MerkleTriple, err error) {
 	leaf, err := l.G().MerkleClient.LookupLeafAtHashMeta(ctx, leafID, hm)
 	if err != nil {
 		return nil, err
 	}
-	if leafID.IsUser() {
+	if isPublic {
 		triple = leaf.Public
 	} else {
 		triple = leaf.Private
+	}
+	if triple == nil {
+		return nil, fmt.Errorf("unexpected nil leaf for %v", leafID)
 	}
 	return triple, nil
 }

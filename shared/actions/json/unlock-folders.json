@@ -3,6 +3,11 @@
     "import * as Constants from '../constants/unlock-folders'"
   ],
   "actions": {
+    "checkPaperKey": {
+      "paperKey": "string"
+    },
+    "openPopup": {},
+    "closePopup": {},
     "checkPaperKeyDone": {
       "canError": {
         "error": "string"

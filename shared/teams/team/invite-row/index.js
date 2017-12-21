@@ -1,8 +1,7 @@
 // @flow
 import * as React from 'react'
 import {Avatar, Box, Button, ClickableBox, Text, Usernames} from '../../../common-adapters'
-import {globalStyles, globalMargins} from '../../../styles'
-import {isMobile} from '../../../constants/platform'
+import {globalStyles, globalMargins, isMobile} from '../../../styles'
 import {typeToLabel} from '../../../constants/teams'
 
 export type Props = {

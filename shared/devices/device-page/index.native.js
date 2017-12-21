@@ -51,33 +51,26 @@ const Timeline = ({timeline}) => (
   </Box>
 )
 
-const Render = ({
-  name,
-  type,
-  deviceID,
-  currentDevice,
-  timeline,
-  revokedAt,
-  showRevokeDevicePage,
-  device,
-  onBack,
-  bannerBackgroundColor,
-  bannerColor,
-  bannerDesc,
-  icon,
-  revokeName,
-}: Props) => (
-  <StandardScreen style={{...globalStyles.flexBoxColumn, alignItems: 'center', flexGrow: 1}} onBack={onBack}>
-    {!!bannerDesc && <Banner color={bannerColor} backgroundColor={bannerBackgroundColor} desc={bannerDesc} />}
-    <Icon type={icon} style={{marginTop: 32, opacity: revokedAt ? 0.4 : 1}} />
-    <Header name={name} isCurrent={currentDevice} isRevoked={revokedAt} />
-    {!!timeline && <Timeline timeline={timeline} />}
-    {!revokedAt &&
+const Render = (props: Props) => (
+  <StandardScreen
+    style={{...globalStyles.flexBoxColumn, alignItems: 'center', flexGrow: 1}}
+    onBack={props.onBack}
+  >
+    {!!props.bannerDesc &&
+      <Banner
+        color={props.bannerColor}
+        backgroundColor={props.bannerBackgroundColor}
+        desc={props.bannerDesc}
+      />}
+    <Icon type={props.icon} style={{marginTop: 32, opacity: props.revokedAt ? 0.4 : 1}} />
+    <Header name={props.name} isCurrent={props.currentDevice} isRevoked={props.revokedAt} />
+    {!!props.timeline && <Timeline timeline={props.timeline} />}
+    {!props.revokedAt &&
       <Button
         type="Danger"
         style={{marginTop: globalMargins.small}}
-        label={`Revoke this ${revokeName || ''}`}
-        onClick={showRevokeDevicePage}
+        label={`Revoke this ${props.revokeName || ''}`}
+        onClick={props.showRevokeDevicePage}
       />}
   </StandardScreen>
 )
@@ -85,10 +78,10 @@ const Render = ({
 const stylesBanner = {
   alignSelf: 'stretch',
   minHeight: 48,
+  paddingBottom: globalMargins.tiny,
   paddingLeft: globalMargins.medium,
   paddingRight: globalMargins.medium,
   paddingTop: globalMargins.tiny,
-  paddingBottom: globalMargins.tiny,
   textAlign: 'center',
 }
 

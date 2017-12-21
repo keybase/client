@@ -1,18 +1,15 @@
 // @flow
 import * as React from 'react'
 import type {Folder} from './list'
-import type {IconType} from '../common-adapters/icon'
 import {Avatar, Box, Text, Icon, MultiAvatar, Meta, ClickableBox} from '../common-adapters/index.native'
 import {getStyle} from '../common-adapters/text'
 import {globalStyles, globalColors, globalMargins} from '../styles'
 
 const Avatars = ({styles, users, ignored, isPublic, isTeam}) => {
-  if (!isPublic && users.length > 1) {
-    users = users.filter(({you}) => !you)
-  }
-  const avatarCount = Math.min(2, users.length)
+  const goodUsers = !isPublic && users.length > 1 ? users.filter(({you}) => !you) : users
+  const avatarCount = Math.min(2, goodUsers.length)
   const opacity = ignored ? 0.5 : 1
-  const avatarProps = users.slice(0, 2).map(({username}, idx) => ({
+  const avatarProps = goodUsers.slice(0, 2).map(({username}, idx) => ({
     borderColor: avatarCount > 1 && idx === 0 ? globalColors.white : undefined,
     loadingColor: globalColors.lightGrey,
     size: 32,
@@ -20,8 +17,8 @@ const Avatars = ({styles, users, ignored, isPublic, isTeam}) => {
   }))
 
   let teamname = 'unknown'
-  if (isTeam && users.length > 0) {
-    teamname = users[0].username
+  if (isTeam && goodUsers.length > 0) {
+    teamname = goodUsers[0].username
   }
 
   return (
@@ -111,7 +108,6 @@ const Row = ({
   ignored,
   meta,
   modified,
-  hasData,
   path,
   onClick,
 }: Folder & {onClick: (path: string) => void}) => {
@@ -128,7 +124,6 @@ const Row = ({
     backgroundColor: globalColors.white,
   }
 
-  const icon: IconType = styles.hasStuffIcon
   const clickHandler = onClick ? () => onClick(path) : null
 
   return (
@@ -149,9 +144,7 @@ const Row = ({
             {meta && !ignored && <RowMeta meta={meta} styles={styles} />}
             {!(meta || ignored) && modified && <Modified modified={modified} styles={styles} />}
           </Box>
-          <Box style={stylesActionContainer}>
-            {hasData && <Icon type={icon} style={{width: 32}} />}
-          </Box>
+          <Box style={stylesActionContainer} />
         </Box>
       </Box>
     </ClickableBox>

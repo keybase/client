@@ -1,14 +1,15 @@
 // @flow
+import logger from '../../logger'
 import pickBy from 'lodash/pickBy'
 import isEqual from 'lodash/isEqual'
 import * as I from 'immutable'
 import * as Types from '../../constants/types/teams'
 import * as ChatGen from '../../actions/chat-gen'
+import * as TeamsGen from '../../actions/teams-gen'
 import ManageChannels from '.'
 import {withHandlers, withState, withPropsOnChange} from 'recompose'
 import {pausableConnect, compose, lifecycle, type TypedState} from '../../util/container'
-import {getChannels, saveChannelMembership} from '../../actions/teams/creators'
-import {navigateTo, navigateAppend, pathSelector} from '../../actions/route-tree'
+import {navigateTo, navigateAppend, pathSelector, switchTo} from '../../actions/route-tree'
 import {anyWaiting} from '../../constants/waiting'
 import {chatTab} from '../../constants/tabs'
 import '../../constants/route-tree'
@@ -51,7 +52,7 @@ const mapStateToProps = (state: TypedState, {routeProps, routeState}) => {
 const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routePath, routeProps}) => {
   const teamname = routeProps.get('teamname')
   return {
-    _loadChannels: () => dispatch(getChannels(teamname)),
+    _loadChannels: () => dispatch(TeamsGen.createGetChannels({teamname})),
     onBack: () => dispatch(navigateUp()),
     onClose: () => dispatch(navigateUp()),
     onEdit: conversationIDKey =>
@@ -66,7 +67,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routePath, routePro
         nextChannelState,
         (inChannel: boolean, channelname: string) => inChannel !== oldChannelState[channelname]
       )
-      dispatch(saveChannelMembership(teamname, channelsToChange))
+      dispatch(TeamsGen.createSaveChannelMembership({teamname, channelState: channelsToChange}))
     },
     _onPreview: (conversationIDKey: string, previousPath?: string[]) => {
       dispatch(ChatGen.createPreviewChannel({conversationIDKey}))
@@ -77,6 +78,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routePath, routePro
     _onView: (conversationIDKey: string) => {
       dispatch(ChatGen.createSetInboxFilter({filter: ''}))
       dispatch(ChatGen.createSelectConversation({conversationIDKey, fromUser: true}))
+      dispatch(switchTo([chatTab]))
     },
   }
 }
@@ -101,7 +103,7 @@ export default compose(
     onClickChannel: ({channels, currentPath, _onPreview, _onView}) => (conversationIDKey: string) => {
       const channel = channels.find(c => c.convID === conversationIDKey)
       if (!channel) {
-        console.warn('Attempted to navigate to a conversation ID that was not found in the channel list')
+        logger.warn('Attempted to navigate to a conversation ID that was not found in the channel list')
         return
       }
       if (channel.selected) {

@@ -4,7 +4,6 @@ import * as KBFSGen from '../../actions/kbfs-gen'
 import * as FavoriteGen from '../../actions/favorite-gen'
 import React, {Component} from 'react'
 import Render from './render'
-import flags from '../../util/feature-flags'
 import get from 'lodash/get'
 import some from 'lodash/some'
 import type {Folder} from '../list'
@@ -104,8 +103,6 @@ class Files extends Component<Props, State> {
         onClickPaperkey={device => this.props.navigateAppend([{selected: 'paperkey', name: device.name}])} // FIXME: does this name route prop get used anywhere?
         ignoreCurrentFolder={ignoreCurrentFolder}
         unIgnoreCurrentFolder={unIgnoreCurrentFolder}
-        recentFilesSection={folder.recentFiles} // TODO (AW): integrate recent files once the service provides this data
-        recentFilesEnabled={flags.recentFilesEnabled}
       />
     )
   }

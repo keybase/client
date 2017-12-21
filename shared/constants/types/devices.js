@@ -1,36 +1,44 @@
 // @flow
 import * as I from 'immutable'
-import * as RPCTypes from './flow-types'
 
-// TODO could potentially use entities for devices provisioned by other devices but we still have
-// to support pgp
+export type DeviceType = 'mobile' | 'desktop' | 'backup'
+export opaque type DeviceID: string = string
 export type _DeviceDetail = {
   created: number,
   currentDevice: boolean,
-  deviceID: string,
+  deviceID: DeviceID,
   lastUsed: number,
   name: string,
   provisionedAt: ?number,
   provisionerName: ?string,
   revokedAt: ?number,
   revokedByName: ?string,
-  type: string,
+  type: DeviceType,
 }
 export type DeviceDetail = I.RecordOf<_DeviceDetail>
 export type _State = {
-  deviceIDs: I.List<string>,
-  waitingForServer: boolean,
+  idToDetail: I.Map<DeviceID, DeviceDetail>,
+  idToEndangeredTLFs: I.Map<DeviceID, I.Set<string>>,
 }
 export type State = I.RecordOf<_State>
-export type DeviceType = 'mobile' | 'desktop' | 'backup'
-export type Device = {
-  name: string,
-  deviceID: RPCTypes.DeviceID,
-  type: DeviceType,
-  created: RPCTypes.Time,
-  currentDevice: boolean,
-  provisioner: ?RPCTypes.Device,
-  provisionedAt: ?RPCTypes.Time,
-  revokedAt: ?RPCTypes.Time,
-  lastUsed: ?RPCTypes.Time,
+
+// Converts a string to the DeviceType enum, logging an error if it doesn't match
+export function stringToDeviceType(s: string): DeviceType {
+  switch (s) {
+    case 'mobile':
+    case 'desktop':
+    case 'backup':
+      return s
+    default:
+      console.log('Unknown Device Type %s. Defaulting to `desktop`', s)
+      return 'desktop'
+  }
+}
+
+export function stringToDeviceID(s: string): DeviceID {
+  return s
+}
+
+export function deviceIDToString(id: DeviceID): string {
+  return id
 }

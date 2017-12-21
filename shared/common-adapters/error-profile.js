@@ -2,9 +2,8 @@
 import * as React from 'react'
 import Box from './box'
 import Text from './text'
-import {globalColors, globalMargins} from '../styles'
+import {globalColors, globalMargins, isMobile} from '../styles'
 import HeaderHOC from './header-hoc'
-import {isMobile} from '../constants/platform'
 import {branch} from 'recompose'
 
 export type Props = {
@@ -21,4 +20,4 @@ const ErrorLoadingProfile = ({error, onBack}: Props) => (
   </Box>
 )
 
-export default branch(props => isMobile && props.onBack, HeaderHOC)(ErrorLoadingProfile)
+export default branch(props => isMobile && !!props.onBack, HeaderHOC)(ErrorLoadingProfile)

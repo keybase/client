@@ -68,6 +68,7 @@ export const commonMessageType = {
   join: 9,
   leave: 10,
   system: 11,
+  deletehistory: 12,
 }
 
 export const commonNotificationKind = {
@@ -92,6 +93,10 @@ export const commonTopicType = {
   chat: 1,
   dev: 2,
 }
+
+export const localAddTeamMemberAfterResetRpcChannelMap = (configKeys: Array<string>, request: LocalAddTeamMemberAfterResetRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.local.addTeamMemberAfterReset', request)
+
+export const localAddTeamMemberAfterResetRpcPromise = (request: LocalAddTeamMemberAfterResetRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.local.addTeamMemberAfterReset', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
 
 export const localAssetMetadataType = {
   none: 0,
@@ -756,6 +761,8 @@ export type JoinLeaveConversationLocalRes = {|offline: Boolean,rateLimits?: ?Arr
 
 export type JoinLeaveConversationRemoteRes = {|rateLimit?: ?RateLimit,|}
 
+export type LocalAddTeamMemberAfterResetRpcParam = {|username: String,convID: ConversationID,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+
 export type LocalCancelPostRpcParam = {|outboxID: OutboxID,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
 
 export type LocalDeleteConversationLocalRpcParam = {|convID: ConversationID,channelName: String,confirmed: Boolean,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
@@ -854,7 +861,7 @@ export type MessageAttachment = {|object: Asset,preview?: ?Asset,previews?: ?Arr
 
 export type MessageAttachmentUploaded = {|messageID: MessageID,object: Asset,previews?: ?Array<Asset>,metadata: Bytes,|}
 
-export type MessageBody ={ messageType: 1, text: ?MessageText } | { messageType: 2, attachment: ?MessageAttachment } | { messageType: 3, edit: ?MessageEdit } | { messageType: 4, delete: ?MessageDelete } | { messageType: 5, metadata: ?MessageConversationMetadata } | { messageType: 7, headline: ?MessageHeadline } | { messageType: 8, attachmentuploaded: ?MessageAttachmentUploaded } | { messageType: 9, join: ?MessageJoin } | { messageType: 10, leave: ?MessageLeave } | { messageType: 11, system: ?MessageSystem }
+export type MessageBody ={ messageType: 1, text: ?MessageText } | { messageType: 2, attachment: ?MessageAttachment } | { messageType: 3, edit: ?MessageEdit } | { messageType: 4, delete: ?MessageDelete } | { messageType: 5, metadata: ?MessageConversationMetadata } | { messageType: 7, headline: ?MessageHeadline } | { messageType: 8, attachmentuploaded: ?MessageAttachmentUploaded } | { messageType: 9, join: ?MessageJoin } | { messageType: 10, leave: ?MessageLeave } | { messageType: 11, system: ?MessageSystem } | { messageType: 12, deletehistory: ?MessageDeleteHistory }
 
 export type MessageBoxed = {|version: MessageBoxedVersion,serverHeader?: ?MessageServerHeader,clientHeader: MessageClientHeader,headerCiphertext: SealedData,bodyCiphertext: EncryptedData,verifyKey: Bytes,keyGeneration: Int,|}
 
@@ -863,13 +870,15 @@ export type MessageBoxedVersion =0 // VNONE_0
  | 2 // V2_2
 
 
-export type MessageClientHeader = {|conv: ConversationIDTriple,tlfName: String,tlfPublic: Boolean,messageType: MessageType,supersedes: MessageID,deletes?: ?Array<MessageID>,prev?: ?Array<MessagePreviousPointer>,sender: Gregor1.UID,senderDevice: Gregor1.DeviceID,merkleRoot?: ?MerkleRoot,outboxID?: ?OutboxID,outboxInfo?: ?OutboxInfo,|}
+export type MessageClientHeader = {|conv: ConversationIDTriple,tlfName: String,tlfPublic: Boolean,messageType: MessageType,supersedes: MessageID,deletes?: ?Array<MessageID>,prev?: ?Array<MessagePreviousPointer>,deleteHistory?: ?MessageDeleteHistory,sender: Gregor1.UID,senderDevice: Gregor1.DeviceID,merkleRoot?: ?MerkleRoot,outboxID?: ?OutboxID,outboxInfo?: ?OutboxInfo,|}
 
 export type MessageClientHeaderVerified = {|conv: ConversationIDTriple,tlfName: String,tlfPublic: Boolean,messageType: MessageType,prev?: ?Array<MessagePreviousPointer>,sender: Gregor1.UID,senderDevice: Gregor1.DeviceID,merkleRoot?: ?MerkleRoot,outboxID?: ?OutboxID,outboxInfo?: ?OutboxInfo,|}
 
 export type MessageConversationMetadata = {|conversationTitle: String,|}
 
 export type MessageDelete = {|messageIDs?: ?Array<MessageID>,|}
+
+export type MessageDeleteHistory = {|uptoTime: Gregor1.Time,upto: MessageID,|}
 
 export type MessageEdit = {|messageID: MessageID,body: String,|}
 
@@ -921,6 +930,7 @@ export type MessageType =0 // NONE_0
  | 9 // JOIN_9
  | 10 // LEAVE_10
  | 11 // SYSTEM_11
+ | 12 // DELETEHISTORY_12
 
 
 export type MessageUnboxed ={ state: 1, valid: ?MessageUnboxedValid } | { state: 2, error: ?MessageUnboxedError } | { state: 3, outbox: ?OutboxRecord } | { state: 4, placeholder: ?MessageUnboxedPlaceholder }

@@ -287,6 +287,13 @@ func (e *Env) GetRuntimeDir() string {
 	)
 }
 
+func (e *Env) GetInfoDir() string {
+	return e.GetString(
+		func() string { return e.Test.RuntimeDir }, // needed for systests
+		func() string { return e.HomeFinder.InfoDir() },
+	)
+}
+
 func (e *Env) GetServiceSpawnDir() (string, error) { return e.HomeFinder.ServiceSpawnDir() }
 
 func (e *Env) getEnvInt(s string) (int, bool) {
@@ -564,6 +571,8 @@ func (e *Env) defaultSocketFile() string {
 }
 
 // sandboxSocketFile is socket file location for sandbox (macOS only)
+// Note: this was added for KBFS finder integration, which was never
+// activated.
 func (e *Env) sandboxSocketFile() string {
 	sandboxCacheDir := e.HomeFinder.SandboxCacheDir()
 	if sandboxCacheDir == "" {
@@ -646,7 +655,7 @@ func (e *Env) GetPidFile() (ret string, err error) {
 		func() string { return e.GetConfig().GetPidFile() },
 	)
 	if len(ret) == 0 {
-		ret = filepath.Join(e.GetRuntimeDir(), PIDFile)
+		ret = filepath.Join(e.GetInfoDir(), PIDFile)
 	}
 	return
 }

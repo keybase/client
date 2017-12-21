@@ -1,8 +1,10 @@
 // @flow
+import logger from '../../logger'
 import * as AppGen from '../app-gen'
 import * as Types from '../../constants/types/chat'
-import * as ChatTypes from '../../constants/types/flow-types-chat'
+import * as RPCChatTypes from '../../constants/types/flow-types-chat'
 import * as Constants from '../../constants/chat'
+import * as DeviceTypes from '../../constants/types/devices'
 import * as ChatGen from '../chat-gen'
 import * as EngineRpc from '../../constants/engine'
 import * as EntityCreators from '../entities'
@@ -14,13 +16,11 @@ import * as Shared from './shared'
 import HiddenString from '../../util/hidden-string'
 import {chatTab} from '../../constants/tabs'
 import {isMobile} from '../../constants/platform'
-import {enableActionLogging} from '../../local-debug'
-import {toDeviceType} from '../../constants/devices'
 import {type Action} from '../../constants/types/flux'
 import {type TypedState} from '../../constants/reducer'
 
-function* _clearConversationMessages({payload: {conversationIDKey}}: ChatGen.ClearMessagesPayload) {
-  yield Saga.put(
+function _clearConversationMessages({payload: {conversationIDKey}}) {
+  return Saga.put(
     EntityCreators.replaceEntity(
       ['conversationMessages'],
       I.Map({[conversationIDKey]: Constants.emptyConversationMessages()})
@@ -28,12 +28,12 @@ function* _clearConversationMessages({payload: {conversationIDKey}}: ChatGen.Cle
   )
 }
 
-function* _storeMessageToEntity(action: ChatGen.AppendMessagesPayload | ChatGen.PrependMessagesPayload) {
+function _storeMessageToEntity(action: ChatGen.AppendMessagesPayload | ChatGen.PrependMessagesPayload) {
   const newMessages = action.payload.messages
-  yield Saga.put(EntityCreators.mergeEntity(['messages'], I.Map(newMessages.map(m => [m.key, m]))))
+  return Saga.put(EntityCreators.mergeEntity(['messages'], I.Map(newMessages.map(m => [m.key, m]))))
 }
 
-function* _findMessagesToDelete(action: ChatGen.AppendMessagesPayload | ChatGen.PrependMessagesPayload) {
+function _findMessagesToDelete(action: ChatGen.AppendMessagesPayload | ChatGen.PrependMessagesPayload) {
   const newMessages = action.payload.messages
   const deletedIDs = []
   const conversationIDKey = action.payload.conversationIDKey
@@ -44,13 +44,13 @@ function* _findMessagesToDelete(action: ChatGen.AppendMessagesPayload | ChatGen.
   })
 
   if (deletedIDs.length) {
-    yield Saga.put(
+    return Saga.put(
       EntityCreators.mergeEntity(['deletedIDs'], I.Map({[conversationIDKey]: I.Set(deletedIDs)}))
     )
   }
 }
 
-function* _findMessageUpdates(action: ChatGen.AppendMessagesPayload | ChatGen.PrependMessagesPayload) {
+function _findMessageUpdates(action: ChatGen.AppendMessagesPayload | ChatGen.PrependMessagesPayload) {
   const newMessages = action.payload.messages
   type TargetMessageID = string
   const updateIDs: {[key: TargetMessageID]: I.OrderedSet<Types.MessageKey>} = {}
@@ -62,7 +62,7 @@ function* _findMessageUpdates(action: ChatGen.AppendMessagesPayload | ChatGen.Pr
   })
 
   if (Object.keys(updateIDs).length) {
-    yield Saga.put(EntityCreators.mergeEntity(['messageUpdates', conversationIDKey], I.Map(updateIDs)))
+    return Saga.put(EntityCreators.mergeEntity(['messageUpdates', conversationIDKey], I.Map(updateIDs)))
   }
 }
 
@@ -74,61 +74,80 @@ function _threadIsCleared(originalAction: Action, checkAction: Action): boolean 
   )
 }
 
+const _devicenameSelector = (state: TypedState) => (state.config ? state.config.deviceName : null)
+
 function* _loadMoreMessages(action: ChatGen.LoadMoreMessagesPayload): Saga.SagaGenerator<any, any> {
   const conversationIDKey = action.payload.conversationIDKey
   const recent = action.payload.wantNewer === true
+
+  const state: TypedState = yield Saga.select()
 
   try {
     if (!conversationIDKey) {
       return
     }
-    console.log(`loadMoreMessages: loading for: ${conversationIDKey} recent: ${recent.toString()}`)
+    logger.info(`loadMoreMessages: loading for: ${conversationIDKey} recent: ${recent.toString()}`)
 
     if (Constants.isPendingConversationIDKey(conversationIDKey)) {
-      console.log('loadMoreMessages: bailing on selected pending conversation no matching inbox')
+      logger.info('loadMoreMessages: bailing on selected pending conversation no matching inbox')
       return
     }
 
-    const rekeyInfoSelector = (state: TypedState, conversationIDKey: Types.ConversationIDKey) => {
-      return state.chat.get('rekeyInfos').get(conversationIDKey)
+    if (
+      state.chat.getIn(
+        ['inbox', conversationIDKey, 'memberStatus'],
+        RPCChatTypes.commonConversationMemberStatus.active
+      ) === RPCChatTypes.commonConversationMemberStatus.reset
+    ) {
+      console.log('loadMoreMessages: bailing on selected member status reset')
+      return
     }
-    const rekeyInfo = yield Saga.select(rekeyInfoSelector, conversationIDKey)
+
+    const rekeyInfo = state.chat.get('rekeyInfos').get(conversationIDKey)
 
     if (rekeyInfo) {
-      console.log('loadMoreMessages: bailing on chat due to rekey info')
+      logger.info('loadMoreMessages: bailing on chat due to rekey info')
       return
     }
 
-    const oldConversationState = yield Saga.select(Shared.conversationStateSelector, conversationIDKey)
+    const oldConversationState = yield Shared.conversationStateSelector(state, conversationIDKey)
     if (oldConversationState && !recent) {
       if (action.payload.onlyIfUnloaded && oldConversationState.get('isLoaded')) {
-        console.log('loadMoreMessages: bailing on chat load more due to already has initial load')
+        logger.info('loadMoreMessages: bailing on chat load more due to already has initial load')
         return
       }
 
       if (oldConversationState.get('isRequesting')) {
-        console.log('loadMoreMessages: bailing on chat load more due to isRequesting already')
+        logger.info('loadMoreMessages: bailing on chat load more due to isRequesting already')
         return
       }
 
       if (oldConversationState.get('moreToLoad') === false) {
-        console.log('loadMoreMessages: bailing on chat load more due to no more to load')
+        logger.info('loadMoreMessages: bailing on chat load more due to no more to load')
         return
       }
     }
 
     yield Saga.put(ChatGen.createLoadingMessages({conversationIDKey, isRequesting: true}))
 
-    const yourName = yield Saga.select(Selectors.usernameSelector)
-    const yourDeviceName = yield Saga.select(Shared.devicenameSelector)
+    const yourName = Selectors.usernameSelector(state)
+    if (!yourName) {
+      console.log('loadMoreMessage youre logged out?')
+      return
+    }
+    const yourDeviceName: ?string = _devicenameSelector(state)
+    if (!yourDeviceName) {
+      console.log('loadMoreMessage no device name?')
+      return
+    }
 
     // We receive the list with edit/delete/etc already applied so lets filter that out
-    const messageTypes = Object.keys(ChatTypes.commonMessageType)
+    const messageTypes = Object.keys(RPCChatTypes.commonMessageType)
       .filter(k => !['edit', 'delete', 'headline', 'attachmentuploaded'].includes(k))
-      .map(k => ChatTypes.commonMessageType[k])
+      .map(k => RPCChatTypes.commonMessageType[k])
     const conversationID = Constants.keyToConversationID(conversationIDKey)
 
-    const convMsgs = yield Saga.select(Constants.getConversationMessages, conversationIDKey)
+    const convMsgs = Constants.getConversationMessages(state, conversationIDKey)
     const messageKeys = convMsgs.messages
     // Find a real message id (ignore outbox etc)
     let pivotMessageKey = recent
@@ -142,10 +161,10 @@ function* _loadMoreMessages(action: ChatGen.LoadMoreMessagesPayload): Saga.SagaG
     }
 
     const num = action.payload.numberOverride || Constants.maxMessagesToLoadAtATime
-    console.log(`loadMoreMessages: dispatching GetThreadNonblock: num: ${num} pivot: ${pivot || ''}`)
+    logger.info(`loadMoreMessages: dispatching GetThreadNonblock: num: ${num} pivot: ${pivot || ''}`)
     const loadThreadChanMapRpc = new EngineRpc.EngineRpcCall(
       getThreadNonblockSagaMap(yourName, yourDeviceName, conversationIDKey, recent),
-      ChatTypes.localGetThreadNonblockRpcChannelMap,
+      RPCChatTypes.localGetThreadNonblockRpcChannelMap,
       'localGetThreadNonblock',
       {
         conversationID,
@@ -169,16 +188,16 @@ function* _loadMoreMessages(action: ChatGen.LoadMoreMessagesPayload): Saga.SagaG
       const {payload: {params, error}} = result
 
       if (error) {
-        console.warn('loadMoreMessages: error in localGetThreadNonblock', error)
+        logger.debug('loadMoreMessages: error in localGetThreadNonblock', error)
       }
 
       if (params.offline) {
         yield Saga.put(ChatGen.createThreadLoadedOffline({conversationIDKey}))
       }
 
-      yield Saga.put(ChatGen.createSetLoaded({conversationIDKey, isLoaded: !error})) // reset isLoaded on error
+      yield Saga.put(ChatGen.createSetLoaded({conversationIDKey, isLoaded: true}))
     } else {
-      console.warn('loadMoreMessages: localGetThreadNonblock rpc bailed early')
+      logger.warn('loadMoreMessages: localGetThreadNonblock rpc bailed early')
     }
 
     // Do this here because it's possible loading messages takes a while
@@ -194,10 +213,15 @@ function* _loadMoreMessages(action: ChatGen.LoadMoreMessagesPayload): Saga.SagaG
   }
 }
 
-function subSagaUpdateThread(yourName, yourDeviceName, conversationIDKey, append) {
+function subSagaUpdateThread(
+  yourName: string,
+  yourDeviceName: string,
+  conversationIDKey: Types.ConversationIDKey,
+  append: boolean
+) {
   return function* subSagaUpdateThreadHelper({thread}) {
     if (thread) {
-      const decThread: ChatTypes.UIMessages = JSON.parse(thread)
+      const decThread: RPCChatTypes.UIMessages = JSON.parse(thread)
       yield Saga.put(
         ChatGen.createUpdateThread({thread: decThread, yourName, yourDeviceName, conversationIDKey, append})
       )
@@ -206,29 +230,40 @@ function subSagaUpdateThread(yourName, yourDeviceName, conversationIDKey, append
   }
 }
 
-const getThreadNonblockSagaMap = (yourName, yourDeviceName, conversationIDKey, append) => ({
+const getThreadNonblockSagaMap = (
+  yourName: string,
+  yourDeviceName: string,
+  conversationIDKey: Types.ConversationIDKey,
+  append: boolean
+) => ({
   'chat.1.chatUi.chatThreadCached': subSagaUpdateThread(yourName, yourDeviceName, conversationIDKey, append),
   'chat.1.chatUi.chatThreadFull': subSagaUpdateThread(yourName, yourDeviceName, conversationIDKey, append),
 })
 
-function _decodeFailureDescription(typ: ChatTypes.OutboxErrorType): string {
+function _decodeFailureDescription(typ: RPCChatTypes.OutboxErrorType): string {
   switch (typ) {
-    case ChatTypes.localOutboxErrorType.misc:
+    case RPCChatTypes.localOutboxErrorType.misc:
       return 'unknown error'
-    case ChatTypes.localOutboxErrorType.offline:
+    case RPCChatTypes.localOutboxErrorType.offline:
       return 'disconnected from chat server'
-    case ChatTypes.localOutboxErrorType.identify:
+    case RPCChatTypes.localOutboxErrorType.identify:
       return 'proofs failed for recipient user'
-    case ChatTypes.localOutboxErrorType.toolong:
+    case RPCChatTypes.localOutboxErrorType.toolong:
       return 'message is too long'
   }
   return `unknown error type ${typ}`
 }
 
+const _messageOutboxIDSelector = (
+  state: TypedState,
+  conversationIDKey: Types.ConversationIDKey,
+  outboxID: Types.OutboxIDKey
+): ?Types.Message => Constants.getMessageFromConvKeyMessageID(state, conversationIDKey, outboxID)
+
 function* _incomingMessage(action: ChatGen.IncomingMessagePayload): Saga.SagaGenerator<any, any> {
   switch (action.payload.activity.activityType) {
-    case ChatTypes.notifyChatChatActivityType.failedMessage:
-      const failedMessage: ?ChatTypes.FailedMessageInfo = action.payload.activity.failedMessage
+    case RPCChatTypes.notifyChatChatActivityType.failedMessage:
+      const failedMessage: ?RPCChatTypes.FailedMessageInfo = action.payload.activity.failedMessage
       if (failedMessage && failedMessage.outboxRecords) {
         for (const outboxRecord of failedMessage.outboxRecords) {
           const conversationIDKey = Constants.conversationIDToKey(outboxRecord.convID)
@@ -239,11 +274,7 @@ function* _incomingMessage(action: ChatGen.IncomingMessagePayload): Saga.SagaGen
           const isConversationLoaded = yield Saga.select(Shared.conversationStateSelector, conversationIDKey)
           if (!isConversationLoaded) return
 
-          const pendingMessage = yield Saga.select(
-            Shared.messageOutboxIDSelector,
-            conversationIDKey,
-            outboxID
-          )
+          const pendingMessage = yield Saga.select(_messageOutboxIDSelector, conversationIDKey, outboxID)
           if (pendingMessage) {
             yield Saga.put(
               ChatGen.createUpdateTempMessage({
@@ -262,8 +293,8 @@ function* _incomingMessage(action: ChatGen.IncomingMessagePayload): Saga.SagaGen
         }
       }
       break
-    case ChatTypes.notifyChatChatActivityType.incomingMessage:
-      const incomingMessage: ?ChatTypes.IncomingMessage = action.payload.activity.incomingMessage
+    case RPCChatTypes.notifyChatChatActivityType.incomingMessage:
+      const incomingMessage: ?RPCChatTypes.IncomingMessage = action.payload.activity.incomingMessage
       if (incomingMessage) {
         // If it's a public chat, the GUI (currently) wants no part of it. We
         // especially don't want to surface the conversation as if it were a
@@ -276,9 +307,9 @@ function* _incomingMessage(action: ChatGen.IncomingMessagePayload): Saga.SagaGen
         }
 
         const conversationIDKey = Constants.conversationIDToKey(incomingMessage.convID)
-        const messageUnboxed: ChatTypes.UIMessage = incomingMessage.message
+        const messageUnboxed: RPCChatTypes.UIMessage = incomingMessage.message
         const yourName = yield Saga.select(Selectors.usernameSelector)
-        const yourDeviceName = yield Saga.select(Shared.devicenameSelector)
+        const yourDeviceName = yield Saga.select(_devicenameSelector)
         const message: Types.ServerMessage = _unboxedToMessage(
           messageUnboxed,
           yourName,
@@ -299,7 +330,8 @@ function* _incomingMessage(action: ChatGen.IncomingMessagePayload): Saga.SagaGen
         // it was written by the current user.
         const selectedConversationIDKey = yield Saga.select(Constants.getSelectedConversation)
         const appFocused = yield Saga.select(Shared.focusedSelector)
-        const userActive = yield Saga.select(Shared.activeSelector)
+        const _activeSelector = (state: TypedState) => state.config.userActive
+        const userActive = yield Saga.select(_activeSelector)
         const selectedTab = yield Saga.select(Shared.routeSelector)
         const chatTabSelected = selectedTab === chatTab
         const conversationIsFocused =
@@ -322,9 +354,9 @@ function* _incomingMessage(action: ChatGen.IncomingMessagePayload): Saga.SagaGen
         ) {
           const outboxID: Types.OutboxIDKey = message.outboxID
           const state = yield Saga.select()
-          const pendingMessage = Shared.messageOutboxIDSelector(state, conversationIDKey, outboxID)
+          const pendingMessage = _messageOutboxIDSelector(state, conversationIDKey, outboxID)
           if (pendingMessage) {
-            yield Saga.all([
+            yield Saga.sequentially([
               // If the message has an outboxID and came from our device, then we
               // sent it and have already rendered it in the message list; we just
               // need to mark it as sent.
@@ -371,18 +403,18 @@ function* _incomingMessage(action: ChatGen.IncomingMessagePayload): Saga.SagaGen
 let errorIdx = -1
 
 function _unboxedToMessage(
-  message: ChatTypes.UIMessage,
+  message: RPCChatTypes.UIMessage,
   yourName,
   yourDeviceName,
   conversationIDKey: Types.ConversationIDKey
 ): Types.ServerMessage {
-  if (message && message.state === ChatTypes.chatUiMessageUnboxedState.outbox && message.outbox) {
+  if (message && message.state === RPCChatTypes.chatUiMessageUnboxedState.outbox && message.outbox) {
     // Outbox messages are always text, not attachments.
-    const payload: ChatTypes.UIMessageOutbox = message.outbox
+    const payload: RPCChatTypes.UIMessageOutbox = message.outbox
     // prettier-ignore
     const messageState: Types.MessageState = payload &&
       payload.state &&
-      payload.state.state === ChatTypes.localOutboxStateType.error
+      payload.state.state === RPCChatTypes.localOutboxStateType.error
       ? 'failed'
       : 'pending'
     // prettier-ignore
@@ -415,7 +447,7 @@ function _unboxedToMessage(
     }
   }
 
-  if (message.state === ChatTypes.chatUiMessageUnboxedState.valid) {
+  if (message.state === RPCChatTypes.chatUiMessageUnboxedState.valid) {
     const payload = message.valid
     if (payload) {
       const common = {
@@ -423,7 +455,7 @@ function _unboxedToMessage(
         channelMention: _parseChannelMention(payload.channelMention),
         conversationIDKey,
         deviceName: payload.senderDeviceName,
-        deviceType: toDeviceType(payload.senderDeviceType),
+        deviceType: DeviceTypes.stringToDeviceType(payload.senderDeviceType),
         failureDescription: null,
         mentions: I.Set(payload.atMentions || []),
         messageID: Constants.rpcMessageIDToMessageID(payload.messageID),
@@ -436,7 +468,7 @@ function _unboxedToMessage(
       }
 
       switch (payload.messageBody.messageType) {
-        case ChatTypes.commonMessageType.text:
+        case RPCChatTypes.commonMessageType.text:
           const p: any = payload
           const message = new HiddenString(
             (p.messageBody && p.messageBody.text && p.messageBody.text.body) || ''
@@ -450,11 +482,11 @@ function _unboxedToMessage(
             messageState: 'sent', // TODO, distinguish sent/pending once CORE sends it.
             key: Constants.messageKey(common.conversationIDKey, 'messageIDText', common.messageID),
           }
-        case ChatTypes.commonMessageType.attachment: {
+        case RPCChatTypes.commonMessageType.attachment: {
           if (!payload.messageBody.attachment) {
             throw new Error('empty attachment body')
           }
-          const attachment: ChatTypes.MessageAttachment = payload.messageBody.attachment
+          const attachment: RPCChatTypes.MessageAttachment = payload.messageBody.attachment
           const preview =
             attachment && (attachment.preview || (attachment.previews && attachment.previews[0]))
           const attachmentInfo = Constants.getAttachmentInfo(preview, attachment && attachment.object)
@@ -474,11 +506,11 @@ function _unboxedToMessage(
             key: Constants.messageKey(common.conversationIDKey, 'messageIDAttachment', common.messageID),
           }
         }
-        case ChatTypes.commonMessageType.attachmentuploaded: {
+        case RPCChatTypes.commonMessageType.attachmentuploaded: {
           if (!payload.messageBody.attachmentuploaded) {
             throw new Error('empty attachmentuploaded body')
           }
-          const attachmentUploaded: ChatTypes.MessageAttachmentUploaded =
+          const attachmentUploaded: RPCChatTypes.MessageAttachmentUploaded =
             payload.messageBody.attachmentuploaded
           const previews = attachmentUploaded && attachmentUploaded.previews
           const preview = previews && previews[0]
@@ -504,7 +536,7 @@ function _unboxedToMessage(
             },
           }
         }
-        case ChatTypes.commonMessageType.delete:
+        case RPCChatTypes.commonMessageType.delete:
           const deletedIDs = ((payload.messageBody.delete && payload.messageBody.delete.messageIDs) || [])
             .map(Constants.rpcMessageIDToMessageID)
           return {
@@ -516,7 +548,7 @@ function _unboxedToMessage(
             deletedIDs,
             ordinal: common.ordinal,
           }
-        case ChatTypes.commonMessageType.edit: {
+        case RPCChatTypes.commonMessageType.edit: {
           const message = new HiddenString(
             (payload.messageBody && payload.messageBody.edit && payload.messageBody.edit.body) || ''
           )
@@ -537,7 +569,7 @@ function _unboxedToMessage(
             ordinal: common.ordinal,
           }
         }
-        case ChatTypes.commonMessageType.join: {
+        case RPCChatTypes.commonMessageType.join: {
           const message = new HiddenString('joined')
           return {
             type: 'JoinedLeft',
@@ -550,7 +582,7 @@ function _unboxedToMessage(
             ordinal: common.ordinal,
           }
         }
-        case ChatTypes.commonMessageType.leave: {
+        case RPCChatTypes.commonMessageType.leave: {
           const message = new HiddenString('left')
           return {
             type: 'JoinedLeft',
@@ -563,35 +595,41 @@ function _unboxedToMessage(
             ordinal: common.ordinal,
           }
         }
-        case ChatTypes.commonMessageType.system: {
-          let sysMsgText = '<unknown system message>'
+        case RPCChatTypes.commonMessageType.system: {
           const body = payload.messageBody.system
+          let info: Types.SystemMessageInfo = {type: 'unknown'}
+          let messageText = 'unknown'
           if (body) {
             switch (body.systemType) {
-              case ChatTypes.localMessageSystemType.addedtoteam: {
-                const addee = body.addedtoteam ? `@${body.addedtoteam.addee}` : 'someone'
-                const adder = body.addedtoteam ? `@${body.addedtoteam.adder}` : 'someone'
-                const team = body.addedtoteam ? `${body.addedtoteam.team}` : '???'
-                sysMsgText = `${adder} just added ${addee} to team ${team}.`
+              case RPCChatTypes.localMessageSystemType.addedtoteam: {
+                const addee = body.addedtoteam ? body.addedtoteam.addee : 'someone'
+                const adder = body.addedtoteam ? body.addedtoteam.adder : 'someone'
+                const team = body.addedtoteam ? body.addedtoteam.team : '???'
+                messageText = `${adder} added ${addee} to ${team}`
+                info = {adder, addee, team, type: 'addedToTeam'}
                 break
               }
-              case ChatTypes.localMessageSystemType.inviteaddedtoteam: {
-                const invitee = body.inviteaddedtoteam ? `@${body.inviteaddedtoteam.invitee}` : 'someone'
-                const adder = body.inviteaddedtoteam ? `@${body.inviteaddedtoteam.adder}` : 'someone'
-                const inviter = body.inviteaddedtoteam ? `@${body.inviteaddedtoteam.inviter}` : 'someone'
-                const team = body.inviteaddedtoteam ? `${body.inviteaddedtoteam.team}` : '???'
-                sysMsgText = `${adder} just added ${invitee} to team ${team}. This user had been invited by ${inviter}`
+              case RPCChatTypes.localMessageSystemType.inviteaddedtoteam: {
+                const invitee = body.inviteaddedtoteam ? body.inviteaddedtoteam.invitee : 'someone'
+                const adder = body.inviteaddedtoteam ? body.inviteaddedtoteam.adder : 'someone'
+                const inviter = body.inviteaddedtoteam ? body.inviteaddedtoteam.inviter : 'someone'
+                const team = body.inviteaddedtoteam ? body.inviteaddedtoteam.team : '???'
+                const inviteTypeEnum = body.inviteaddedtoteam ? body.inviteaddedtoteam.inviteType : 1
+                const inviteType = Constants.inviteCategoryEnumToName[inviteTypeEnum]
+                messageText = `${invitee} accepted an invite to join ${team}`
+                info = {invitee, inviter, adder, team, inviteType, type: 'inviteAccepted'}
                 break
               }
-              case ChatTypes.localMessageSystemType.complexteam: {
+              case RPCChatTypes.localMessageSystemType.complexteam: {
                 const team = body.complexteam ? body.complexteam.team : '???'
-                sysMsgText = `A new channel has been created in team ${team}. Here are some things that are now different:\n\n1.) Notifications will not happen for every message. Click or tap the info icon on the right to configure them.\n2.) The #general channel is now in the "Big Teams" section of the inbox.\n3.) You can hit the three dots next to ${team} in the inbox view to join other channels.\n\nEnjoy!`
+                messageText = `${common.author} made ${team} a big team.`
+                info = {team, type: 'simpleToComplex'}
                 break
               }
-              case ChatTypes.localMessageSystemType.createteam: {
+              case RPCChatTypes.localMessageSystemType.createteam: {
                 const team = body.createteam ? body.createteam.team : '???'
                 const creator = body.createteam ? body.createteam.creator : '???'
-                sysMsgText = `${creator} created a new team ${team}.`
+                messageText = `${creator} created a new team ${team}.`
                 break
               }
             }
@@ -600,8 +638,9 @@ function _unboxedToMessage(
             type: 'System',
             ...common,
             editedCount: payload.superseded ? 1 : 0, // mark it as edited if it's been superseded
-            message: new HiddenString(sysMsgText),
             messageState: 'sent',
+            message: new HiddenString(messageText),
+            info,
             key: Constants.messageKey(common.conversationIDKey, 'system', common.messageID),
           }
         }
@@ -616,13 +655,13 @@ function _unboxedToMessage(
     }
   }
 
-  if (message.state === ChatTypes.chatUiMessageUnboxedState.error) {
+  if (message.state === RPCChatTypes.chatUiMessageUnboxedState.error) {
     const error = message.error
     if (error) {
       switch (error.errType) {
-        case ChatTypes.localMessageUnboxedErrorType.misc:
-        case ChatTypes.localMessageUnboxedErrorType.badversionCritical: // fallthrough
-        case ChatTypes.localMessageUnboxedErrorType.identify: // fallthrough
+        case RPCChatTypes.localMessageUnboxedErrorType.misc:
+        case RPCChatTypes.localMessageUnboxedErrorType.badversionCritical: // fallthrough
+        case RPCChatTypes.localMessageUnboxedErrorType.identify: // fallthrough
           return {
             conversationIDKey,
             key: Constants.messageKey(
@@ -636,7 +675,7 @@ function _unboxedToMessage(
             timestamp: error.ctime,
             type: 'Error',
           }
-        case ChatTypes.localMessageUnboxedErrorType.badversion:
+        case RPCChatTypes.localMessageUnboxedErrorType.badversion:
           return {
             conversationIDKey,
             key: Constants.messageKey(
@@ -688,14 +727,15 @@ function* _markAsRead(
   // only mark real messages read
   if (parsed.type === 'rpcMessageID') {
     try {
-      yield Saga.call(ChatTypes.localMarkAsReadLocalRpcPromise, {
+      yield Saga.call(RPCChatTypes.localMarkAsReadLocalRpcPromise, {
         conversationID,
         msgID: parsed.msgID,
       })
 
       _lastMarkedAsRead[conversationIDKey] = messageID
     } catch (err) {
-      console.log(`Couldn't mark as read ${conversationIDKey} ${err}`)
+      logger.warn(`Couldn't mark as read ${conversationIDKey}`)
+      logger.debug(`Couldn't mark as read ${conversationIDKey} ${err}`)
     }
   }
 }
@@ -708,11 +748,11 @@ function _updateBadging({payload: {conversationIDKey}}: ChatGen.UpdateBadgingPay
   }
 }
 
-function _parseChannelMention(channelMention: ChatTypes.ChannelMention): Types.ChannelMention {
+function _parseChannelMention(channelMention: RPCChatTypes.ChannelMention): Types.ChannelMention {
   switch (channelMention) {
-    case ChatTypes.remoteChannelMention.all:
+    case RPCChatTypes.remoteChannelMention.all:
       return 'All'
-    case ChatTypes.remoteChannelMention.here:
+    case RPCChatTypes.remoteChannelMention.here:
       return 'Here'
     default:
       return 'None'
@@ -745,7 +785,7 @@ function* _updateThread({
     ) {
       const outboxID: Types.OutboxIDKey = message.outboxID
       const state = yield Saga.select()
-      const pendingMessage = Shared.messageOutboxIDSelector(state, conversationIDKey, outboxID)
+      const pendingMessage = _messageOutboxIDSelector(state, conversationIDKey, outboxID)
       if (pendingMessage) {
         // Delete the pre-existing pending version of this message, since we're
         // about to add a newly received version of the same message.
@@ -834,12 +874,12 @@ function addMessagesToConversation(
   })
 }
 
-function* _addMessagesToConversationSaga({
-  payload: {conversationIDKey, messages},
-}: ChatGen.AppendMessagesPayload) {
-  const state: TypedState = yield Saga.select()
+function _addMessagesToConversationSaga(
+  {payload: {conversationIDKey, messages}}: ChatGen.AppendMessagesPayload,
+  state: TypedState
+) {
   const nextMessages = addMessagesToConversation(state, conversationIDKey, messages)
-  yield Saga.put(
+  return Saga.put(
     EntityCreators.replaceEntity(['conversationMessages'], I.Map({[conversationIDKey]: nextMessages}))
   )
 }
@@ -851,14 +891,13 @@ function _updateMessageEntity(action: ChatGen.UpdateTempMessagePayload) {
     // We use merge instead of replace because otherwise the replace will turn message into an immutable struct
     return Saga.put(EntityCreators.mergeEntity(['messages'], I.Map({[message.key]: message})))
   } else {
-    console.warn('error in updating temp message', action.payload)
+    logger.error('error in updating temp message')
+    logger.debug('error in updating temp message', action.payload)
   }
 }
 
-function* _openConversation({
-  payload: {conversationIDKey},
-}: ChatGen.OpenConversationPayload): Saga.SagaGenerator<any, any> {
-  yield Saga.put(ChatGen.createSelectConversation({conversationIDKey}))
+function _openConversation({payload: {conversationIDKey}}: ChatGen.OpenConversationPayload) {
+  return Saga.put(ChatGen.createSelectConversation({conversationIDKey}))
 }
 
 function _removeOutboxMessage(
@@ -879,24 +918,25 @@ function _removeOutboxMessage(
   if (nextMessages.equals(msgKeys)) {
     return
   }
-  console.log('removed outbox message')
+  logger.info('removed outbox message')
   return Saga.put(
     EntityCreators.replaceEntity(['conversationMessages'], I.Map({[conversationIDKey]: nextMessages}))
   )
 }
 
-function* _updateOutboxMessageToReal({
-  payload: {oldMessageKey, newMessageKey},
-}: ChatGen.OutboxMessageBecameRealPayload) {
-  const localMessageState = yield Saga.select(Constants.getLocalMessageStateFromMessageKey, oldMessageKey)
+function _updateOutboxMessageToReal(
+  {payload: {oldMessageKey, newMessageKey}}: ChatGen.OutboxMessageBecameRealPayload,
+  state: TypedState
+) {
+  const localMessageState = Constants.getLocalMessageStateFromMessageKey(state, oldMessageKey)
   const conversationIDKey = Constants.messageKeyConversationIDKey(newMessageKey)
-  const currentMessages = yield Saga.select(Constants.getConversationMessages, conversationIDKey)
+  const currentMessages = Constants.getConversationMessages(state, conversationIDKey)
   const nextMessages = Constants.makeConversationMessages({
     high: currentMessages.high,
     low: currentMessages.low,
     messages: currentMessages.messages.map(k => (k === oldMessageKey ? newMessageKey : k)),
   })
-  yield Saga.all([
+  return Saga.sequentially([
     Saga.put(
       EntityCreators.replaceEntity(['conversationMessages'], I.Map({[conversationIDKey]: nextMessages}))
     ),
@@ -950,10 +990,9 @@ function* _updateMetadata(action: ChatGen.UpdateMetadataPayload): Saga.SagaGener
   }
 }
 
-function* _changedActive(action: AppGen.ChangedActivePayload): Saga.SagaGenerator<any, any> {
+function _changedActive(action: AppGen.ChangedActivePayload, state: TypedState) {
   // Update badging and the latest message due to changing active state.
   const {userActive} = action.payload
-  const state: TypedState = yield Saga.select()
   const appFocused = Shared.focusedSelector(state)
   const conversationIDKey = Constants.getSelectedConversation(state)
   const selectedTab = Shared.routeSelector(state)
@@ -961,108 +1000,62 @@ function* _changedActive(action: AppGen.ChangedActivePayload): Saga.SagaGenerato
   // Only do this if focus is retained - otherwise, focus changing logic prevails
   if (conversationIDKey && chatTabSelected && appFocused) {
     if (userActive) {
-      yield Saga.put(ChatGen.createUpdateBadging({conversationIDKey}))
+      return Saga.put(ChatGen.createUpdateBadging({conversationIDKey}))
     } else {
       // Reset the orange line when becoming inactive
-      yield Saga.put(ChatGen.createUpdateLatestMessage({conversationIDKey}))
+      return Saga.put(ChatGen.createUpdateLatestMessage({conversationIDKey}))
     }
   }
 }
 
-function* _updateTyping({
-  payload: {conversationIDKey, typing},
-}: ChatGen.UpdateTypingPayload): Saga.SagaGenerator<any, any> {
+function _updateTyping({payload: {conversationIDKey, typing}}: ChatGen.UpdateTypingPayload) {
   // Send we-are-typing info up to Gregor.
   if (!Constants.isPendingConversationIDKey(conversationIDKey)) {
     const conversationID = Constants.keyToConversationID(conversationIDKey)
-    yield Saga.call(ChatTypes.localUpdateTypingRpcPromise, {
+    return Saga.call(RPCChatTypes.localUpdateTypingRpcPromise, {
       conversationID,
       typing,
     })
   }
 }
 
-function* _changedFocus(action: AppGen.ChangedFocusPayload): Saga.SagaGenerator<any, any> {
+function _changedFocus(action: AppGen.ChangedFocusPayload, state: TypedState) {
   // Update badging and the latest message due to the refocus.
   const {appFocused} = action.payload
-  const state: TypedState = yield Saga.select()
   const conversationIDKey = Constants.getSelectedConversation(state)
   const selectedTab = Shared.routeSelector(state)
   const chatTabSelected = selectedTab === chatTab
   if (conversationIDKey && chatTabSelected) {
     if (appFocused) {
-      yield Saga.put(ChatGen.createUpdateBadging({conversationIDKey}))
+      return Saga.put(ChatGen.createUpdateBadging({conversationIDKey}))
     } else {
       // Reset the orange line when focus leaves the app.
-      yield Saga.put(ChatGen.createUpdateLatestMessage({conversationIDKey}))
+      return Saga.put(ChatGen.createUpdateLatestMessage({conversationIDKey}))
     }
   }
 }
 
-const safeServerMessageMap = (m: any) => ({
-  key: m.key,
-  messageID: m.messageID,
-  messageState: m.messageState,
-  outboxID: m.outboxID,
-  type: m.type,
-})
-
-function* _logAppendMessages(action: ChatGen.AppendMessagesPayload): Saga.SagaGenerator<any, any> {
-  const toPrint = {
-    payload: {
-      conversationIDKey: action.payload.conversationIDKey,
-      messages: action.payload.messages.map(safeServerMessageMap),
-      svcShouldDisplayNotification: action.payload.svcShouldDisplayNotification,
-    },
-    type: action.type,
-  }
-  console.log('Appending', JSON.stringify(toPrint, null, 2))
-}
-
-function* _logPrependMessages(action: ChatGen.PrependMessagesPayload): Saga.SagaGenerator<any, any> {
-  const toPrint = {
-    payload: {
-      conversationIDKey: action.payload.conversationIDKey,
-      messages: action.payload.messages.map(safeServerMessageMap),
-      moreToLoad: action.payload.moreToLoad,
-    },
-    type: action.type,
-  }
-  console.log('Prepending', JSON.stringify(toPrint, null, 2))
-}
-
-function* _logUpdateTempMessage(action: ChatGen.UpdateTempMessagePayload): Saga.SagaGenerator<any, any> {
-  const toPrint = {
-    payload: {conversationIDKey: action.payload.conversationIDKey, outboxIDKey: action.payload.outboxIDKey},
-    type: action.type,
-  }
-  console.log('Update temp message', JSON.stringify(toPrint, null, 2))
-}
-
 function* registerSagas(): Saga.SagaGenerator<any, any> {
-  yield Saga.safeTakeEvery(AppGen.changedActive, _changedActive)
-  yield Saga.safeTakeEvery(ChatGen.clearMessages, _clearConversationMessages)
-  yield Saga.safeTakeEvery([ChatGen.appendMessages, ChatGen.prependMessages], _storeMessageToEntity)
-  yield Saga.safeTakeEvery([ChatGen.appendMessages, ChatGen.prependMessages], _findMessagesToDelete)
-  yield Saga.safeTakeEvery([ChatGen.appendMessages, ChatGen.prependMessages], _findMessageUpdates)
+  yield Saga.safeTakeEveryPure(AppGen.changedActive, _changedActive)
+  yield Saga.safeTakeEveryPure(ChatGen.clearMessages, _clearConversationMessages)
+  yield Saga.safeTakeEveryPure([ChatGen.appendMessages, ChatGen.prependMessages], _storeMessageToEntity)
+  yield Saga.safeTakeEveryPure([ChatGen.appendMessages, ChatGen.prependMessages], _findMessagesToDelete)
+  yield Saga.safeTakeEveryPure([ChatGen.appendMessages, ChatGen.prependMessages], _findMessageUpdates)
   yield Saga.safeTakeEvery(ChatGen.loadMoreMessages, Saga.cancelWhen(_threadIsCleared, _loadMoreMessages))
   yield Saga.safeTakeEvery(ChatGen.incomingMessage, _incomingMessage)
   yield Saga.safeTakeEvery(ChatGen.updateThread, _updateThread)
   yield Saga.safeTakeEveryPure(ChatGen.updateBadging, _updateBadging)
   yield Saga.safeTakeEveryPure(ChatGen.updateTempMessage, _updateMessageEntity)
-  yield Saga.safeTakeEvery([ChatGen.appendMessages, ChatGen.prependMessages], _addMessagesToConversationSaga)
+  yield Saga.safeTakeEveryPure(
+    [ChatGen.appendMessages, ChatGen.prependMessages],
+    _addMessagesToConversationSaga
+  )
   yield Saga.safeTakeEveryPure(ChatGen.removeOutboxMessage, _removeOutboxMessage)
-  yield Saga.safeTakeEvery(ChatGen.outboxMessageBecameReal, _updateOutboxMessageToReal)
-  yield Saga.safeTakeEvery(ChatGen.openConversation, _openConversation)
+  yield Saga.safeTakeEveryPure(ChatGen.outboxMessageBecameReal, _updateOutboxMessageToReal)
+  yield Saga.safeTakeEveryPure(ChatGen.openConversation, _openConversation)
   yield Saga.safeTakeEvery(ChatGen.updateMetadata, _updateMetadata)
-  yield Saga.safeTakeEvery(ChatGen.updateTyping, _updateTyping)
-  yield Saga.safeTakeEvery(AppGen.changedFocus, _changedFocus)
-
-  if (enableActionLogging) {
-    yield Saga.safeTakeEvery(ChatGen.appendMessages, _logAppendMessages)
-    yield Saga.safeTakeEvery(ChatGen.prependMessages, _logPrependMessages)
-    yield Saga.safeTakeEvery(ChatGen.updateTempMessage, _logUpdateTempMessage)
-  }
+  yield Saga.safeTakeEveryPure(ChatGen.updateTyping, _updateTyping)
+  yield Saga.safeTakeEveryPure(AppGen.changedFocus, _changedFocus)
 }
 
 export {registerSagas, addMessagesToConversation}

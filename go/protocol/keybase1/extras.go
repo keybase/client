@@ -1359,6 +1359,13 @@ func (ut UserOrTeamID) AsUserOrBust() UID {
 	return uid
 }
 
+func (ut UserOrTeamID) IsPublic() bool {
+	if ut.IsUser() {
+		return true
+	}
+	return ut.AsTeamOrBust().IsPublic()
+}
+
 func (ut UserOrTeamID) AsTeam() (TeamID, error) {
 	if !ut.IsTeamOrSubteam() {
 		return TeamID(""), fmt.Errorf("ID is not a team ID (%s)", ut)
@@ -1866,6 +1873,10 @@ func (r TeamRole) IsReaderOrAbove() bool {
 	return r.IsOrAbove(TeamRole_READER)
 }
 
+func (r TeamRole) IsWriterOrAbove() bool {
+	return r.IsOrAbove(TeamRole_WRITER)
+}
+
 func (r TeamRole) IsOrAbove(min TeamRole) bool {
 	return int(r) >= int(min)
 }
@@ -1896,6 +1907,10 @@ func TeamInviteIDFromString(s string) (TeamInviteID, error) {
 		return TeamInviteID(""), err
 	}
 	return TeamInviteID(s), nil
+}
+
+func (i TeamInviteID) Eq(i2 TeamInviteID) bool {
+	return string(i) == string(i2)
 }
 
 func TeamInviteTypeFromString(s string, isDev bool) (TeamInviteType, error) {

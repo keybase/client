@@ -1,5 +1,5 @@
 // @flow
-import {showDockIcon} from './dock-icon'
+import {showDockIcon, hideDockIcon} from './dock-icon'
 import menuHelper from './menu-helper'
 import {ipcMain, BrowserWindow} from 'electron'
 
@@ -48,6 +48,7 @@ export default class Window {
       // Prevent an actual close
       event.preventDefault()
       this.window.hide()
+      hideDockIcon()
     })
 
     this.window.on('closed', () => {
@@ -74,8 +75,8 @@ export default class Window {
     menuHelper(this.window)
   }
 
-  show(shouldShowDockIcon: boolean) {
-    shouldShowDockIcon && showDockIcon()
+  show() {
+    showDockIcon()
 
     if (this.window) {
       if (!this.window.isVisible()) {

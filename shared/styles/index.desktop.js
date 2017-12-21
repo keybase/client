@@ -169,8 +169,7 @@ const styleSheetCreate = (obj: Object) => obj
 const collapseStyles = (styles: Array<Object> | Object) => {
   if (isArray) {
     return styles.reduce((map, item) => {
-      map = {...map, ...item}
-      return map
+      return {...map, ...item}
     }, {})
   } else {
     return styles
@@ -192,3 +191,4 @@ export {
   transitionColor,
   windowStyle,
 }
+export {isMobile} from '../constants/platform'

@@ -2,6 +2,7 @@
 
 export type StatResult = {
   size: number,
+  lastModified: number,
 }
 
 declare function tmpDir(): string
@@ -10,9 +11,9 @@ declare function downloadFilePath(filename: string): Promise<string>
 declare function copy(from: string, to: string): void
 declare function exists(filename: string): Promise<boolean>
 declare function stat(filename: string): Promise<StatResult>
-declare function writeFile(filepath: string, contents: string, encoding?: string): Promise<void>
 declare function writeStream(filepath: string, encoding: string, append?: boolean): Promise<*>
+declare function unlink(filepath: string): Promise<void>
 
 declare var cachesDirectoryPath: string
 
-export {cachesDirectoryPath, copy, exists, downloadFilePath, stat, tmpDir, tmpFile, writeFile, writeStream}
+export {cachesDirectoryPath, copy, exists, downloadFilePath, stat, tmpDir, tmpFile, unlink, writeStream}

@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react'
-import {Avatar, Box, Text, Button} from '../common-adapters'
+import {Avatar, Box, Text, Button, ButtonBar} from '../common-adapters'
 import {globalStyles, globalMargins} from '../styles'
 import {noAvatarMessage, hasAvatarMessage} from './edit-avatar.shared'
 
@@ -23,7 +23,9 @@ const Render = ({keybaseUsername, hasAvatar, onAck}: Props) => {
       <Text type="Body" style={{marginTop: globalMargins.medium, textAlign: 'center', maxWidth: 560}}>
         {text}
       </Text>
-      <Button type="Primary" onClick={onAck} label="Got it!" style={{marginTop: globalMargins.medium}} />
+      <ButtonBar>
+        <Button type="Primary" onClick={onAck} label="Got it!" />
+      </ButtonBar>
     </Box>
   )
 }

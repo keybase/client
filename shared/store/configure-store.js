@@ -1,4 +1,5 @@
 // @flow
+import logger from '../logger'
 import rootReducer from '../reducers'
 import storeEnhancer from './enhancer.platform'
 import thunkMiddleware from 'redux-thunk'
@@ -6,16 +7,11 @@ import {actionLogger} from './action-logger'
 import {convertToError} from '../util/errors'
 import {createLogger} from 'redux-logger'
 import {createStore} from 'redux'
-import {
-  enableStoreLogging,
-  enableActionLogging,
-  immediateStateLogging,
-  filterActionLogs,
-} from '../local-debug'
+import {enableStoreLogging, enableActionLogging, filterActionLogs} from '../local-debug'
+import * as DevGen from '../actions/dev-gen'
 import * as ConfigGen from '../actions/config-gen'
 import {isMobile} from '../constants/platform'
 import {run as runSagas, create as createSagaMiddleware} from './configure-sagas'
-import {setupLogger, immutableToJS} from '../util/periodic-logger'
 
 let theStore: Store
 
@@ -30,21 +26,19 @@ const crashHandler = error => {
       })
     )
   } else {
-    console.warn('Got crash before store created?', error)
+    logger.warn('Got crash before store created?', error)
   }
 }
 
 let loggerMiddleware: any
 
 if (enableStoreLogging) {
-  const logger = setupLogger('storeLogger', 100, immediateStateLogging, immutableToJS, 50, true)
   loggerMiddleware = createLogger({
     actionTransformer: (...args) => {
       if (filterActionLogs) {
-        args[0].type.match(filterActionLogs) && console.log('Action:', ...args)
+        args[0].type.match(filterActionLogs) && logger.info('Action:', ...args)
       } else if (args[0] && args[0].type) {
-        console.log('Action:', ...args)
-        logger.log('Action:', ...args)
+        logger.info('Action:', ...args)
       }
       return null
     },
@@ -60,7 +54,7 @@ if (enableStoreLogging) {
     },
     stateTransformer: (...args) => {
       // This is noisy, so let's not show it while filtering action logs
-      !filterActionLogs && logger.log('State:', ...args)
+      !filterActionLogs && logger.info('State:', ...args)
       return null
     },
     titleFormatter: () => null,
@@ -78,7 +72,8 @@ const errorCatching = store => next => action => {
       return
     }
     lastError = error
-    console.warn(`Caught a middleware exception ${error} ${error.stack}`)
+    logger.warn(`Caught a middleware exception`)
+    logger.debug(`Caught a middleware exception`, error)
 
     try {
       crashHandler(error) // don't let this thing crash us forever
@@ -97,7 +92,7 @@ if (enableStoreLogging) {
 if (__DEV__ && typeof window !== 'undefined') {
   window.debugActionLoop = () => {
     setInterval(() => {
-      theStore.dispatch({type: 'debugCount', payload: undefined})
+      theStore.dispatch(DevGen.createDebugCount())
     }, 1000)
   }
 }

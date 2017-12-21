@@ -23,7 +23,7 @@ func newCmdGitGC(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command
 		Name:         "gc",
 		ArgumentHelp: "<repo name> [--team=<team name>]",
 		Usage:        "Run garbage collection on a personal or team git repository.",
-		Description:  "`keybase git gc reponame` will run garbage collection on  a personal git\n   repo. `keybase git create reponame --team=treehouse` will run garbage\n   collection on a team git repo for the `treehouse` team.  Garbage collection\n   cleans up unnecessary files and optimizes the Keybase repo.",
+		Description:  "`keybase git gc reponame` will run garbage collection on  a personal git\n   repo. `keybase git gc reponame --team=treehouse` will run garbage\n   collection on a team git repo for the `treehouse` team.  Garbage collection\n   cleans up unnecessary files and optimizes the Keybase repo.",
 		Action: func(c *cli.Context) {
 			cmd := NewCmdGitGCRunner(g)
 			cl.ChooseCommand(cmd, "gc", c)

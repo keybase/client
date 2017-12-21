@@ -27,6 +27,7 @@ export default connect(
   }),
   (dispatch: any) => ({
     onBack: () => dispatch(navigateUp()),
-    onDebugConfigChange: config => dispatch(DevGen.createUpdateDebugConfig({config})),
+    onDebugConfigChange: (config: $PropertyType<DevGen.UpdateDebugConfigPayload, 'payload'>) =>
+      dispatch(DevGen.createUpdateDebugConfig({...config})),
   })
 )(DumbSheet)

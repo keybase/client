@@ -1,7 +1,6 @@
 // @flow
-import {ipcRenderer} from 'electron'
-
-import type {AsyncAction} from '../constants/types/flux'
+import {showDockIcon} from '../desktop/app/dock-icon'
+import {getMainWindow} from '../desktop/remote/util'
 
 function showShareActionSheet(options: {
   url?: ?any,
@@ -27,14 +26,18 @@ function setNoPushPermissions(): Promise<*> {
   throw new Error('Push permissions unsupported on this platform')
 }
 
-function showMainWindow(): AsyncAction {
-  return () => {
-    ipcRenderer && ipcRenderer.send('showMain')
-  }
+function showMainWindow() {
+  const mw = getMainWindow()
+  mw && mw.show()
+  showDockIcon()
 }
 
 function displayNewMessageNotification(text: string, convID: ?string, badgeCount: ?number, myMsgID: ?number) {
   throw new Error('Display new message notification not available on this platform')
+}
+
+function clearAllNotifications() {
+  throw new Error('Clear all notifications not available on this platform')
 }
 
 export {
@@ -45,4 +48,5 @@ export {
   showShareActionSheet,
   setNoPushPermissions,
   displayNewMessageNotification,
+  clearAllNotifications,
 }

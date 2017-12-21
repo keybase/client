@@ -1,9 +1,10 @@
 // @flow
+import logger from '../logger'
 import * as Selectors from '../constants/selectors'
 import Mention, {type Props as MentionProps} from './mention'
 import React from 'react'
 import {connect, type TypedState} from '../util/container'
-import {getProfile} from '../actions/tracker'
+import {createGetProfile} from '../actions/tracker-gen'
 import {isMobile} from '../constants/platform'
 import {createShowUserProfile} from '../actions/profile-gen'
 
@@ -17,7 +18,7 @@ const mapStateToProps = (
   {username, service}: OwnProps
 ): {theme: $PropertyType<MentionProps, 'theme'>} => {
   if (service !== 'keybase') {
-    console.warn('Non keybase service not implmented for mentions')
+    logger.warn('Non keybase service not implmented for mentions')
     return {theme: 'none'}
   }
 
@@ -40,7 +41,9 @@ const mapDispatchToProps = (dispatch, {username}: OwnProps) => ({
   onClick: isSpecialCaseHighlight(username)
     ? undefined
     : () => {
-        isMobile ? dispatch(createShowUserProfile({username})) : dispatch(getProfile(username, true, true))
+        isMobile
+          ? dispatch(createShowUserProfile({username}))
+          : dispatch(createGetProfile({username, ignoreCache: true, forceDisplay: true}))
       },
 })
 

@@ -1,12 +1,9 @@
 // @flow
-
 import * as React from 'react'
 import {Avatar, Box, Button, Text, Usernames} from '../../common-adapters'
-import {globalStyles, globalMargins} from '../../styles'
-import {isMobile} from '../../constants/platform'
+import {globalStyles, globalMargins, isMobile} from '../../styles'
 import PopupMenu, {ModalLessPopupMenu} from '../../common-adapters/popup-menu'
-
-import type {Props} from './index'
+import type {Props} from '.'
 
 const TeamInfo = (props: Props) => (
   <Box
@@ -43,7 +40,7 @@ const TeamInfo = (props: Props) => (
     {!props.youAreInTeam &&
       <Box style={styleDivider}>
         <Button
-          onClick={props.onJoinTeam}
+          onClick={() => props.onJoinTeam(props.teamname)}
           disabled={props.teamJoinSuccess || props.youHaveRequestedAccess}
           label={
             props.teamJoinSuccess || props.youHaveRequestedAccess
@@ -137,7 +134,7 @@ const TeamInfoWrapper = (props: Props) => {
     ? <PopupMenu onHidden={props.onHidden} style={{overflow: 'visible'}} header={header} items={items} />
     : <ModalLessPopupMenu
         onHidden={() => {}}
-        style={{overflow: 'visible', width: 220}}
+        style={{...props.style, overflow: 'visible', width: 220}}
         header={header}
         items={items}
       />

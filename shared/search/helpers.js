@@ -1,6 +1,5 @@
 // @flow
-
-import {compose, withHandlers, withPropsOnChange, withState, lifecycle} from 'recompose'
+import {compose, withHandlers, withPropsOnChange} from 'recompose'
 import * as Types from '../constants/types/search'
 import debounce from 'lodash/debounce'
 
@@ -16,20 +15,6 @@ type OwnProps = {
   onAddUser: (id: Types.SearchResultId) => void,
   searchResultTerm: string,
 }
-
-// Which search result is highlighted
-const selectedSearchIdHoc = compose(
-  withState('selectedSearchId', 'onUpdateSelectedSearchResult', null),
-  lifecycle({
-    componentWillReceiveProps: function(nextProps: OwnProps) {
-      if (this.props.searchResultIds !== nextProps.searchResultIds) {
-        nextProps.onUpdateSelectedSearchResult(
-          (nextProps.searchResultIds && nextProps.searchResultIds[0]) || null
-        )
-      }
-    },
-  })
-)
 
 // TODO hook up this type
 /*
@@ -78,7 +63,8 @@ const onChangeSelectedSearchResultHoc = compose(
       onAddSelectedUser: (props: OwnPropsWithSearchDebounced) => () => {
         props._searchDebounced.flush()
         // See whether the current search result term matches the last one submitted
-        if (lastSearchTerm === props.searchResultTerm) {
+        // -- unless we're showing search suggestions, which don't have a term.
+        if (lastSearchTerm === props.searchResultTerm || props.showingSearchSuggestions) {
           props.selectedSearchId && props.disableListBuilding
             ? props.onSelectUser(props.selectedSearchId)
             : props.onAddUser(props.selectedSearchId)
@@ -113,10 +99,4 @@ const placeholderServiceHoc = withPropsOnChange(['selectedService'], ({selectedS
   placeholder: `Search ${selectedService}`,
 }))
 
-export {
-  clearSearchHoc,
-  onChangeSelectedSearchResultHoc,
-  placeholderServiceHoc,
-  selectedSearchIdHoc,
-  showServiceLogicHoc,
-}
+export {clearSearchHoc, onChangeSelectedSearchResultHoc, placeholderServiceHoc, showServiceLogicHoc}

@@ -11,6 +11,7 @@ import {Box, Icon, LoadingLine, ProgressIndicator, Text} from '../../common-adap
 import {globalStyles, globalColors, globalMargins} from '../../styles'
 import {readImageFromClipboard} from '../../util/clipboard.desktop'
 import CreateTeamHeader from './create-team-header/container'
+import YouAreReset from './you-are-reset'
 
 import type {Props} from '.'
 
@@ -108,6 +109,67 @@ class Conversation extends Component<Props, State> {
         </Text>
       </Box>
 
+    const loadingLine = this.props.showLoader ? <LoadingLine /> : null
+
+    const input = this.props.finalizeInfo
+      ? <OldProfileResetNotice />
+      : <Input
+          focusInputCounter={this.props.focusInputCounter}
+          onEditLastMessage={this.props.onEditLastMessage}
+          onScrollDown={this.props.onScrollDown}
+          previousPath={this.props.previousPath}
+        />
+
+    const infoPanel = this.state.infoPanelOpen
+      ? <div
+          style={{
+            ...globalStyles.flexBoxColumn,
+            bottom: 0,
+            position: 'absolute',
+            right: 0,
+            top: 35,
+            width: 320,
+          }}
+        >
+          <InfoPanel onToggleInfoPanel={this._onToggleInfoPanel} />
+        </div>
+      : null
+
+    let list
+
+    if (this.props.showSearchPending) {
+      list = <ProgressIndicator style={styleSpinner} />
+    } else if (this.props.showSearchResults) {
+      list = (
+        <SearchResultsList
+          searchKey={'chatSearch'} /* todo move to constant */
+          onShowTracker={this.props.onShowTrackerInSearch}
+          style={{...globalStyles.scrollable, flexGrow: 1}}
+        />
+      )
+    } else if (this.props.youAreReset) {
+      list = <YouAreReset />
+    } else {
+      list = (
+        <div style={{...globalStyles.flexBoxColumn, flex: 1}}>
+          {this.props.showTeamOffer && <CreateTeamHeader />}
+          <List
+            focusInputCounter={this.props.focusInputCounter}
+            listScrollDownCounter={this.props.listScrollDownCounter}
+            onEditLastMessage={this.props.onEditLastMessage}
+            onScrollDown={this.props.onScrollDown}
+            onFocusInput={this.props.onFocusInput}
+            editLastMessageCounter={this.props.editLastMessageCounter}
+          />
+          <Banner />
+          {loadingLine}
+          {input}
+          {infoPanel}
+          {dropOverlay}
+        </div>
+      )
+    }
+
     return (
       <Box
         className="conversation"
@@ -124,49 +186,7 @@ class Conversation extends Component<Props, State> {
           onExitSearch={this.props.onExitSearch}
           selectedConversationIDKey={this.props.selectedConversationIDKey}
         />
-        {this.props.showSearchPending
-          ? <ProgressIndicator style={styleSpinner} />
-          : this.props.showSearchResults
-              ? <SearchResultsList
-                  searchKey={'chatSearch'} /* todo move to constant */
-                  onShowTracker={this.props.onShowTrackerInSearch}
-                  style={{...globalStyles.scrollable, flexGrow: 1}}
-                />
-              : <div style={{...globalStyles.flexBoxColumn, flex: 1}}>
-                  {this.props.showTeamOffer && <CreateTeamHeader />}
-                  <List
-                    focusInputCounter={this.props.focusInputCounter}
-                    listScrollDownCounter={this.props.listScrollDownCounter}
-                    onEditLastMessage={this.props.onEditLastMessage}
-                    onScrollDown={this.props.onScrollDown}
-                    onFocusInput={this.props.onFocusInput}
-                    editLastMessageCounter={this.props.editLastMessageCounter}
-                  />
-                  <Banner />
-                  {this.props.showLoader && <LoadingLine />}
-                  {this.props.finalizeInfo
-                    ? <OldProfileResetNotice />
-                    : <Input
-                        focusInputCounter={this.props.focusInputCounter}
-                        onEditLastMessage={this.props.onEditLastMessage}
-                        onScrollDown={this.props.onScrollDown}
-                        previousPath={this.props.previousPath}
-                      />}
-                  {this.state.infoPanelOpen &&
-                    <div
-                      style={{
-                        ...globalStyles.flexBoxColumn,
-                        bottom: 0,
-                        position: 'absolute',
-                        right: 0,
-                        top: 35,
-                        width: 320,
-                      }}
-                    >
-                      <InfoPanel onToggleInfoPanel={this._onToggleInfoPanel} />
-                    </div>}
-                  {dropOverlay}
-                </div>}
+        {list}
       </Box>
     )
   }

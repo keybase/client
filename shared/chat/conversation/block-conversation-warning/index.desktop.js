@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react'
-import {Box, Button, PopupDialog, Text} from '../../../common-adapters/index'
+import {Box, Button, PopupDialog, Text, ButtonBar} from '../../../common-adapters/index'
 import {globalMargins, globalStyles} from '../../../styles'
 
 import type {Props} from './'
@@ -28,21 +28,11 @@ const Contents = ({conversationIDKey, onBack, participants, onBlock, onBlockAndR
       keybase chat hide -u {participants}
     </Text>
     <Text type="Body" style={{marginTop: globalMargins.small}}>in the terminal.</Text>
-    <Box style={{...globalStyles.flexBoxRow, marginTop: globalMargins.xlarge}}>
+    <ButtonBar>
       <Button type="Secondary" onClick={onBack} label="No, don't block them" />
-      <Button
-        type="Danger"
-        style={{marginLeft: globalMargins.tiny}}
-        onClick={onBlock}
-        label="Yes, block them"
-      />
-      <Button
-        type="Danger"
-        style={{marginLeft: globalMargins.tiny}}
-        onClick={onBlockAndReport}
-        label="Yes, block them and report abuse"
-      />
-    </Box>
+      <Button type="Danger" onClick={onBlock} label="Yes, block them" />
+      <Button type="Danger" onClick={onBlockAndReport} label="Yes, block them and report abuse" />
+    </ButtonBar>
   </Box>
 )
 

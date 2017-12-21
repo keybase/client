@@ -5,6 +5,7 @@ import {
   Box,
   ClickableBox,
   Button,
+  ButtonBar,
   HeaderHoc,
   PopupDialog,
   Text,
@@ -12,10 +13,9 @@ import {
   ScrollView,
   Checkbox,
 } from '../../common-adapters/index'
-import {isMobile} from '../../constants/platform'
 import {typeToLabel, isAdmin, isOwner} from '../../constants/teams'
 import {type TeamRoleType} from '../../constants/types/teams'
-import {globalColors, globalMargins, globalStyles} from '../../styles'
+import {globalColors, globalMargins, globalStyles, isMobile} from '../../styles'
 import {roleIconMap, roleIconColorMap, roleDescMap, permissionMap} from './index.meta'
 
 export type RolePickerProps = {
@@ -228,16 +228,15 @@ export const RoleConfirm = ({
           <Text type="BodySemibold">They won't be able to:</Text>
         </Box>}
       {cannots.length > 0 && <Box style={{...globalStyles.flexBoxColumn, width: 280}}>{cannots}</Box>}
-      <Box style={{...globalStyles.flexBoxRow, margin: globalMargins.small}}>
+      <ButtonBar>
         <Button type="Secondary" label="Back" onClick={() => setConfirm(false)} />
         <Button
           label="Confirm"
           type="Primary"
-          style={{marginLeft: globalMargins.tiny}}
           onClick={() => onComplete(selectedRole, sendNotification)}
           disabled={!selectedRole}
         />
-      </Box>
+      </ButtonBar>
     </Box>
   )
 }

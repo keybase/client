@@ -1,11 +1,9 @@
 // @flow
-import hotPath from '../hot-path'
 import menubar from 'menubar'
 import {injectReactQueryParams} from '../../util/dev'
 import {screen as electronScreen, ipcMain, systemPreferences, app} from 'electron'
 import {isDarwin, isWindows, isLinux} from '../../constants/platform'
 import {resolveImage, resolveRootAsURL} from '../resolve-root'
-import {showDevTools, skipSecondaryDevtools} from '../../local-debug.desktop'
 
 import type {BadgeType} from '../../constants/types/notifications'
 
@@ -35,7 +33,7 @@ const getIcon = invertColors => {
   )
 }
 
-export default function() {
+export default function(menubarWindowIDCallback: (id: number) => void) {
   const mb = menubar({
     index: resolveRootAsURL('renderer', injectReactQueryParams('renderer.html?menubar')),
     width: 320,
@@ -69,60 +67,14 @@ export default function() {
     }
   })
 
-  // We keep the listeners so we can cleanup on hot-reload
-  const menubarListeners = []
-
-  ipcMain.on('unsubscribeMenubar', event => {
-    const index = menubarListeners.indexOf(event.sender)
-    if (index !== -1) {
-      menubarListeners.splice(index, 1)
-    }
-  })
-
-  ipcMain.on('subscribeMenubar', event => {
-    menubarListeners.push(event.sender)
-  })
-
-  ipcMain.on('closeMenubar', () => {
-    mb.hideWindow()
-  })
-
   mb.on('ready', () => {
+    menubarWindowIDCallback(mb.window.id)
     // Hack: open widget when left/right/double clicked
     mb.tray.on('right-click', (e, bounds) => {
       e.preventDefault()
       setImmediate(() => mb.tray.emit('click', {...e}, {...bounds}))
     })
     mb.tray.on('double-click', e => e.preventDefault())
-
-    const webContents = mb.window.webContents
-    webContents.on('did-finish-load', () => {
-      webContents.send('load', {
-        scripts: [
-          ...(__DEV__
-            ? [
-                {
-                  src: resolveRootAsURL('dist', 'dll/dll.vendor.js'),
-                  async: false,
-                },
-                {
-                  src: hotPath('common-chunks.js'),
-                  async: false,
-                },
-              ]
-            : []),
-          {
-            src: hotPath('launcher.bundle.js'),
-            async: false,
-          },
-        ],
-        selectorParams: 'menubar',
-      })
-    })
-
-    if (showDevTools && !skipSecondaryDevtools) {
-      webContents.openDevTools('detach')
-    }
 
     // prevent the menubar's window from dying when we quit
     // We remove any existing listeners to close because menubar has one that deletes the reference to mb.window
@@ -156,11 +108,9 @@ export default function() {
         }
       }
 
-      menubarListeners.forEach(l => l.send('menubarShow'))
       isDarwin && updateIcon(!isDarkMode())
     })
     mb.on('hide', () => {
-      menubarListeners.forEach(l => l.send('menubarHide'))
       isDarwin && updateIcon(false)
     })
     mb.on('after-show', () => {

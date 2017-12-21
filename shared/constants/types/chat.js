@@ -9,6 +9,7 @@ import type {DeviceType} from './devices'
 export type Username = string
 export type MessageKey = string
 export type MessageKeyKind =
+  | 'resetUser'
   | 'chatSecured'
   | 'error'
   | 'errorInvisible'
@@ -29,7 +30,7 @@ export type MessageKeyKind =
 
 // TODO: Ideally, this would be 'Text' | 'Error' | etc.
 export type MessageType = string
-export type FollowingMap = {[key: string]: true}
+export type FollowingSet = I.Set<Username>
 
 export type MessageState = 'pending' | 'failed' | 'sent'
 
@@ -161,13 +162,41 @@ export type JoinedLeftMessage = {
   ordinal: number,
 }
 
+export type AddedToTeamInfo = {
+  type: 'addedToTeam',
+  team: string,
+  adder: string,
+  addee: string,
+}
+
+export type SimpleToComplexTeamInfo = {
+  type: 'simpleToComplex',
+  team: string,
+}
+
+export type InviteAcceptedInfo = {
+  type: 'inviteAccepted',
+  team: string,
+  inviter: string,
+  invitee: string,
+  adder: string,
+  inviteType: 'none' | 'unknown' | 'keybase' | 'email' | 'sbs' | 'text',
+}
+
+export type SystemMessageInfo =
+  | AddedToTeamInfo
+  | SimpleToComplexTeamInfo
+  | InviteAcceptedInfo
+  | {type: 'unknown'}
+
 export type SystemMessage = {
   type: 'System',
   messageID?: MessageID,
   rawMessageID: number,
   author: string,
   timestamp: number,
-  message: HiddenString,
+  message: HiddenString, // Summary for snippet
+  info: SystemMessageInfo,
   key: MessageKey,
   ordinal: number,
 }
@@ -366,6 +395,7 @@ export type _State = {
   inboxSupersededBy: I.Map<ConversationIDKey, boolean>,
   inboxUnreadCountBadge: I.Map<ConversationIDKey, number>,
   inboxUnreadCountTotal: I.Map<ConversationIDKey, number>,
+  inboxResetParticipants: I.Map<ConversationIDKey, I.Set<string>>,
   inboxUntrustedState: I.Map<ConversationIDKey, InboxUntrustedState>,
   inboxGlobalUntrustedState: UntrustedState,
   inboxSyncingState: SyncingState,

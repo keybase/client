@@ -1,8 +1,7 @@
 // @flow
 import * as React from 'react'
 import {Avatar, Box, Text, Icon, Input, Button, Checkbox, ScrollView} from '../../common-adapters'
-import {globalStyles, globalMargins, globalColors} from '../../styles'
-import {isMobile} from '../../constants/platform'
+import {globalStyles, globalMargins, globalColors, isMobile} from '../../styles'
 
 type Props = {
   loading: boolean,

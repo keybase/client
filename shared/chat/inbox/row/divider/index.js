@@ -1,17 +1,17 @@
 // @flow
 import * as React from 'react'
 import {ClickableBox, Box, Text, Badge} from '../../../../common-adapters'
-import {globalStyles, globalColors, globalMargins} from '../../../../styles'
-import {isMobile} from '../../../../constants/platform'
+import {globalStyles, globalColors, globalMargins, isMobile} from '../../../../styles'
 
 type Props = {
   badgeCount: number,
   hiddenCount: number,
+  style?: string,
   toggle: () => void,
 }
 
-const Divider = ({badgeCount, hiddenCount, toggle}: Props) => (
-  <Box style={_toggleContainer}>
+const Divider = ({badgeCount, hiddenCount, style, toggle}: Props) => (
+  <Box style={{..._toggleContainer, ...style}}>
     <ClickableBox onClick={toggle} style={_toggleButtonStyle} className="toggleButtonClass">
       <Text type="BodySmallSemibold" style={{color: globalColors.black_60}}>
         {hiddenCount > 0 ? `+${hiddenCount} more` : 'Show less'}

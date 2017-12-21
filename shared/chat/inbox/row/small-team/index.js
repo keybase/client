@@ -3,7 +3,6 @@ import React, {PureComponent} from 'react'
 import {Box, ClickableBox} from '../../../../common-adapters'
 import {globalStyles} from '../../../../styles'
 import {List} from 'immutable'
-
 import {SimpleTopLine} from './top-line'
 import {BottomLine} from './bottom-line'
 import {Avatars, TeamAvatar} from '.././avatars'
@@ -11,6 +10,8 @@ import {isMobile} from '../../../../constants/platform'
 
 type Props = {
   backgroundColor: string,
+  hasBadge: boolean,
+  hasResetUsers: boolean,
   hasUnread: boolean,
   isMuted: boolean,
   isSelected: boolean,
@@ -23,8 +24,8 @@ type Props = {
   teamname: ?string,
   timestamp: string,
   usernameColor: string,
+  youAreReset: boolean,
   youNeedToRekey: boolean,
-  hasBadge: boolean,
 }
 
 class SmallTeam extends PureComponent<Props> {
@@ -65,9 +66,11 @@ class SmallTeam extends PureComponent<Props> {
             <BottomLine
               backgroundColor={props.backgroundColor}
               participantNeedToRekey={props.participantNeedToRekey}
+              youAreReset={props.youAreReset}
               showBold={props.showBold}
               snippet={props.snippet}
               subColor={props.subColor}
+              hasResetUsers={props.hasResetUsers}
               youNeedToRekey={props.youNeedToRekey}
             />
           </Box>

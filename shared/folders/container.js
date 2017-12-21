@@ -1,4 +1,5 @@
 // @flow
+import {isLinux} from '../constants/platform'
 import Folders, {type FolderType} from '.'
 import * as ChatGen from '../actions/chat-gen'
 import * as KBFSGen from '../actions/kbfs-gen'
@@ -12,14 +13,20 @@ import {type RouteProps} from '../route-tree/render-route'
 type FoldersRouteProps = RouteProps<{}, {showingIgnored: boolean}>
 type OwnProps = FoldersRouteProps & {selected: FolderType}
 
-const mapStateToProps = (state: TypedState, {routeState, selected}: OwnProps) => ({
-  ...((state.favorite && state.favorite.folderState) || {}),
-  showingIgnored: !!state.favorite && routeState.get('showingIgnored'),
-  selected: !!state.favorite && selected,
-  username: state.config.username || '',
-})
+const mapStateToProps = (state: TypedState, {routeState, selected}: OwnProps) => {
+  const installed = isLinux || (state.favorite.fuseStatus && state.favorite.fuseStatus.kextStarted)
+  return {
+    ...((state.favorite && state.favorite.folderState) || {}),
+    installed,
+    showingIgnored: !!state.favorite && routeState.get('showingIgnored'),
+    selected: !!state.favorite && selected,
+    username: state.config.username || '',
+    showSecurityPrefs: !installed && state.favorite.kextPermissionError,
+  }
+}
 
 const mapDispatchToProps = (dispatch: any, {routePath, routeState, setRouteState, isTeam}: OwnProps) => ({
+  fuseStatus: () => dispatch(KBFSGen.createFuseStatus()),
   favoriteList: () => dispatch(FavoriteGen.createFavoriteList()),
   onChat: (tlf, isTeam?) => dispatch(ChatGen.createOpenTlfInChat({tlf, isTeam})),
   onClick: path => dispatch(navigateAppend([{props: {path}, selected: 'files'}])),

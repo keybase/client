@@ -1,8 +1,7 @@
 // @flow
 import React from 'react'
 import Text from './text'
-import {globalColors} from '../styles'
-import {isMobile} from '../constants/platform'
+import {globalColors, isMobile} from '../styles'
 
 export type Props = {
   key: string,

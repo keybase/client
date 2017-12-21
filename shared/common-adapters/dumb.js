@@ -22,9 +22,8 @@ import {
   Text,
 } from './index'
 import {TabBarButton, TabBarItem} from './tab-bar'
-import {globalStyles, globalColors} from '../styles'
+import {globalStyles, globalColors, isMobile} from '../styles'
 import {iconMeta} from './icon.constants'
-import {isMobile} from '../constants/platform'
 
 const onCheck = () => console.log('on check!')
 const onClick = () => console.log('on click!')
@@ -395,7 +394,6 @@ const radioButtonMap: DumbComponentMap<RadioButton> = {
 }
 
 const IconHolder = ({iconFont}) => {
-  // $FlowIssue
   const names: Array<IconType> = Object.keys(iconMeta)
   const sizes = names.reduce((map: {[key: string]: Array<IconType>}, name: IconType) => {
     const meta: any = iconMeta[name]

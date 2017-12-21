@@ -58,7 +58,6 @@ const initialState: Types.State = {
   cachedIdentifies: {},
   pendingIdentifies: {},
   serverStarted: false,
-  timerActive: 0,
   userTrackers: {},
   nonUserTrackers: {},
 }
@@ -74,6 +73,7 @@ const initialTrackerState = (username: string): Types.TrackerState => ({
   proofs: [],
   reason: null,
   serverActive: true,
+  selectedTeam: '',
   shouldFollow: true,
   tlfs: [],
   trackToken: null,
@@ -109,7 +109,6 @@ const initialNonUserState = (assertion: string): Types.NonUserState => ({
 })
 
 function mapValueToKey<K: string, V>(obj: {[key: K]: V}, tag: V): ?K {
-  // $FlowIssue the problem is that Object.keys returns an array of strings
   return Object.keys(obj).find(key => obj[key] === tag)
 }
 
@@ -261,12 +260,11 @@ function diffAndStatusMeta(
 // TODO Have the service give this information.
 // Currently this is copied from the website: https://github.com/keybase/keybase/blob/658aa97a9ad63733444298353a528e7f8499d8b9/lib/mod/user_lol.iced#L971
 function proofUrlToProfileUrl(proofType: number, name: string, key: ?string, humanUrl: ?string): string {
-  key = key || ''
   switch (proofType) {
     case RPCTypes.proveCommonProofType.dns:
       return `http://${name}`
     case RPCTypes.proveCommonProofType.genericWebSite:
-      return `${key}://${name}`
+      return `${key || ''}://${name}`
     case RPCTypes.proveCommonProofType.twitter:
       return `https://twitter.com/${name}`
     case RPCTypes.proveCommonProofType.facebook:

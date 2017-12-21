@@ -3,6 +3,7 @@ import React, {Component} from 'react'
 import {
   Box,
   Button,
+  ButtonBar,
   HOCTimers,
   Icon,
   Text,
@@ -127,6 +128,7 @@ const Intro = (props: Props) => (
         style={{
           ...globalStyles.flexBoxColumn,
           flexGrow: 1,
+          width: '100%',
           justifyContent: 'center',
           alignItems: 'center',
           marginTop: 55,
@@ -143,7 +145,9 @@ const Intro = (props: Props) => (
         />
         <Box style={{minHeight: 100, width: 1}} />
         <Text style={stylesLoginHeader} type="Body" onClick={props.onLogin}>Already on Keybase?</Text>
-        <Button style={stylesLoginButton} type="Secondary" onClick={props.onLogin} label="Log in" />
+        <ButtonBar>
+          <Button type="Secondary" onClick={props.onLogin} label="Log in" />
+        </ButtonBar>
         <Text style={stylesFeedback} type="BodySmallSecondaryLink" onClick={props.onFeedback}>
           Problems logging in?
         </Text>
@@ -179,11 +183,6 @@ const stylesLoginHeader = {
 
 const stylesSignupButton = {
   marginTop: globalMargins.medium,
-}
-
-const stylesLoginButton = {
-  marginTop: globalMargins.small,
-  marginBottom: globalMargins.small,
 }
 
 const stylesBannerBlue = {

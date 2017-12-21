@@ -11,8 +11,7 @@ import {
   ProgressIndicator,
   Meta,
 } from '../../common-adapters'
-import {globalMargins, globalStyles, globalColors} from '../../styles'
-import {isMobile} from '../../constants/platform'
+import {globalMargins, globalStyles, globalColors, isMobile} from '../../styles'
 
 import type {Teamname} from '../../constants/types/teams'
 
@@ -36,7 +35,7 @@ type RowProps = {
   onViewTeam: () => void,
 }
 
-export const newCharmStyle = {
+const newCharmStyle = {
   backgroundColor: globalColors.orange,
   borderRadius: 1,
   marginRight: 4,

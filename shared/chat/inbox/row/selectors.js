@@ -4,8 +4,7 @@ import * as Types from '../../../constants/types/chat'
 import * as I from 'immutable'
 import {createCachedSelector, type TypedState} from '../../../util/container'
 import {formatTimeForConversationList} from '../../../util/timestamp'
-import {globalColors} from '../../../styles'
-import {isMobile} from '../../../constants/platform'
+import {globalColors, isMobile} from '../../../styles'
 
 const getSelected = (state: TypedState) => Constants.getSelectedConversation(state)
 const getInbox = (state: TypedState, conversationIDKey: Types.ConversationIDKey) =>
@@ -143,14 +142,4 @@ const pendingSnippetRowSelector = createCachedSelector(
   }
 )(passConversationIDKey)
 
-export {
-  getSelected,
-  getInbox,
-  passConversationIDKey,
-  getFinalizedInfo,
-  getRekeyInfo,
-  getUnreadTotals,
-  getUnreadBadges,
-  pendingSnippetRowSelector,
-  snippetRowSelector,
-}
+export {pendingSnippetRowSelector, snippetRowSelector}

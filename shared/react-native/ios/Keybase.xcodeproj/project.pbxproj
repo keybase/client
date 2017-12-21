@@ -5,15 +5,14 @@
 	};
 	objectVersion = 46;
 	objects = {
+
 /* Begin PBXBuildFile section */
 		0044E59D1BCD7CEA008EF7EE /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 0044E59C1BCD7CEA008EF7EE /* LaunchScreen.storyboard */; };
 		2746CFFA1E9884BD00E579B0 /* libresolv.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 274AFB721E972F5300615A64 /* libresolv.tbd */; };
 		370EFC8E1FB3BDE1004DB3BB /* MessageUIManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 370EFC8D1FB3BDE1004DB3BB /* MessageUIManager.m */; };
-		39D6D1A57FB3452BA9A3B365 /* libRNFetchBlob.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 51B12F21D54542FC8B7379EC /* libRNFetchBlob.a */; };
-		7608E936D0B84B4FB1849590 /* libRCTCamera.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D4D90F8FFC2D4682850A6803 /* libRCTCamera.a */; };
+		A90CD4A81FCE1D0B00F97901 /* NativeLogger.m in Sources */ = {isa = PBXBuildFile; fileRef = A90CD4A61FCE1D0A00F97901 /* NativeLogger.m */; };
 		A969A40A1CF65C9C00F273F2 /* LogSend.m in Sources */ = {isa = PBXBuildFile; fileRef = A969A4091CF65C9C00F273F2 /* LogSend.m */; };
 		A9BB30DF1E6A274900E713E5 /* libRCTCameraRoll.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A9BB30C51E6A273A00E713E5 /* libRCTCameraRoll.a */; };
-		B698B104E0834338916083E7 /* libRCTContacts.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 8DC2EA7D9170401F8F611036 /* libRCTContacts.a */; };
 		C3A47BFE1E8B148A00974A63 /* keybasemessage.wav in Resources */ = {isa = PBXBuildFile; fileRef = C3A47BFD1E8B148A00974A63 /* keybasemessage.wav */; };
 		DB0846051BA75DC800F54960 /* keybase.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = DB0846041BA75DC800F54960 /* keybase.framework */; };
 		DB27DE571D747A6C003DE8BC /* Utils.m in Sources */ = {isa = PBXBuildFile; fileRef = DB27DE561D747A6C003DE8BC /* Utils.m */; };
@@ -46,7 +45,18 @@
 		DBDC80111DE7CC8E005387B3 /* SourceCodePro-Semi_bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = DBDC80091DE7CC8E005387B3 /* SourceCodePro-Semi_bold.ttf */; };
 		DBDC80121DE7CC8E005387B3 /* SourceCodePro.ttf in Resources */ = {isa = PBXBuildFile; fileRef = DBDC800A1DE7CC8E005387B3 /* SourceCodePro.ttf */; };
 		DBDCF30E1B8D03DD00BA95D8 /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = DBDCF3081B8D03DD00BA95D8 /* Images.xcassets */; };
-		DCF5D67E98CE413A87F0068C /* libRNImagePicker.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A77BBAD7A94F4A2580CA3B23 /* libRNImagePicker.a */; };
+		DBEE30801FE8511F0020EBA5 /* DDTTYLogger.m in Sources */ = {isa = PBXBuildFile; fileRef = DBEE306C1FE8511F0020EBA5 /* DDTTYLogger.m */; };
+		DBEE30811FE8511F0020EBA5 /* DDOSLogger.m in Sources */ = {isa = PBXBuildFile; fileRef = DBEE306F1FE8511F0020EBA5 /* DDOSLogger.m */; };
+		DBEE30821FE8511F0020EBA5 /* DDASLLogger.m in Sources */ = {isa = PBXBuildFile; fileRef = DBEE30731FE8511F0020EBA5 /* DDASLLogger.m */; };
+		DBEE30831FE8511F0020EBA5 /* DDLog.m in Sources */ = {isa = PBXBuildFile; fileRef = DBEE30751FE8511F0020EBA5 /* DDLog.m */; };
+		DBEE30841FE8511F0020EBA5 /* DDAbstractDatabaseLogger.m in Sources */ = {isa = PBXBuildFile; fileRef = DBEE307B1FE8511F0020EBA5 /* DDAbstractDatabaseLogger.m */; };
+		DBEE30851FE8511F0020EBA5 /* LICENSE.txt in Resources */ = {isa = PBXBuildFile; fileRef = DBEE307C1FE8511F0020EBA5 /* LICENSE.txt */; };
+		DBEE30861FE8511F0020EBA5 /* DDFileLogger.m in Sources */ = {isa = PBXBuildFile; fileRef = DBEE307D1FE8511F0020EBA5 /* DDFileLogger.m */; };
+		DBEE30871FE8511F0020EBA5 /* DDASLLogCapture.m in Sources */ = {isa = PBXBuildFile; fileRef = DBEE307F1FE8511F0020EBA5 /* DDASLLogCapture.m */; };
+		DBEE30AD1FE855040020EBA5 /* libRCTCamera.a in Frameworks */ = {isa = PBXBuildFile; fileRef = DB0417DA1E200FC0000B4B1F /* libRCTCamera.a */; };
+		DBEE30D71FE8550C0020EBA5 /* libRNImagePicker.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 27429B081E64A7A90058A4F9 /* libRNImagePicker.a */; };
+		DBEE30D81FE855170020EBA5 /* libRNFetchBlob.a in Frameworks */ = {isa = PBXBuildFile; fileRef = DB311B731EA90680005513D2 /* libRNFetchBlob.a */; };
+		DBEE30D91FE8551E0020EBA5 /* libRCTContacts.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 37D2980A1F9A48D600D43971 /* libRCTContacts.a */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -330,7 +340,34 @@
 			remoteGlobalIDString = 3D3CD9181DE5FBD800167DC4;
 			remoteInfo = "jschelpers-tvOS";
 		};
+		DBEE30641FE84EF40020EBA5 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = DB2BD17E1DE7D81C00BB7989 /* React.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 9936F3131F5F2E4B0010BF04;
+			remoteInfo = privatedata;
+		};
+		DBEE30661FE84EF40020EBA5 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = DB2BD17E1DE7D81C00BB7989 /* React.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 9936F32F1F5F2E5B0010BF04;
+			remoteInfo = "privatedata-tvOS";
+		};
 /* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		A90CD56F1FD70F7E00F97901 /* Embed Frameworks */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+			);
+			name = "Embed Frameworks";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		0044E59C1BCD7CEA008EF7EE /* LaunchScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; path = LaunchScreen.storyboard; sourceTree = "<group>"; };
@@ -342,16 +379,14 @@
 		27DDEEF0AE72483E8BF08ED2 /* RNFetchBlob.xcodeproj */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = "wrapper.pb-project"; name = RNFetchBlob.xcodeproj; path = "../../node_modules/react-native-fetch-blob/ios/RNFetchBlob.xcodeproj"; sourceTree = "<group>"; };
 		370EFC8D1FB3BDE1004DB3BB /* MessageUIManager.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = MessageUIManager.m; sourceTree = "<group>"; };
 		3724B72A1FB491F000A12CE6 /* MessageUIManager.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MessageUIManager.h; sourceTree = "<group>"; };
-		51B12F21D54542FC8B7379EC /* libRNFetchBlob.a */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = archive.ar; path = libRNFetchBlob.a; sourceTree = "<group>"; };
 		6266E16BBFF8461CAF2DDCB9 /* RCTContacts.xcodeproj */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = "wrapper.pb-project"; name = RCTContacts.xcodeproj; path = "../../node_modules/react-native-contacts/ios/RCTContacts.xcodeproj"; sourceTree = "<group>"; };
 		8A6B0997A42F4CC08AE6F28F /* RCTCamera.xcodeproj */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = "wrapper.pb-project"; name = RCTCamera.xcodeproj; path = "../../node_modules/react-native-camera/ios/RCTCamera.xcodeproj"; sourceTree = "<group>"; };
-		8DC2EA7D9170401F8F611036 /* libRCTContacts.a */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = archive.ar; path = libRCTContacts.a; sourceTree = "<group>"; };
-		A77BBAD7A94F4A2580CA3B23 /* libRNImagePicker.a */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = archive.ar; path = libRNImagePicker.a; sourceTree = "<group>"; };
+		A90CD4A61FCE1D0A00F97901 /* NativeLogger.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NativeLogger.m; sourceTree = "<group>"; };
+		A90CD4A71FCE1D0A00F97901 /* NativeLogger.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NativeLogger.h; sourceTree = "<group>"; };
 		A969A4091CF65C9C00F273F2 /* LogSend.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = LogSend.m; sourceTree = "<group>"; };
 		A969A4161CF65CB200F273F2 /* LogSend.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = LogSend.h; sourceTree = "<group>"; };
 		A9BB30BC1E6A273A00E713E5 /* RCTCameraRoll.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = RCTCameraRoll.xcodeproj; path = "../../node_modules/react-native/Libraries/CameraRoll/RCTCameraRoll.xcodeproj"; sourceTree = "<group>"; };
 		C3A47BFD1E8B148A00974A63 /* keybasemessage.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; name = keybasemessage.wav; path = ../../../sounds/keybasemessage.wav; sourceTree = "<group>"; };
-		D4D90F8FFC2D4682850A6803 /* libRCTCamera.a */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = archive.ar; path = libRCTCamera.a; sourceTree = "<group>"; };
 		DB0500F31F10114D000B54AD /* RCTLinking.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = RCTLinking.xcodeproj; path = "../../node_modules/react-native/Libraries/LinkingIOS/RCTLinking.xcodeproj"; sourceTree = "<group>"; };
 		DB0846041BA75DC800F54960 /* keybase.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = keybase.framework; sourceTree = "<group>"; };
 		DB27DE551D747A6B003DE8BC /* Utils.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Utils.h; sourceTree = "<group>"; };
@@ -388,6 +423,26 @@
 		DBDCF3081B8D03DD00BA95D8 /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Images.xcassets; sourceTree = "<group>"; };
 		DBDCF3091B8D03DD00BA95D8 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		DBDCF3441B8D04FC00BA95D8 /* Keybase-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "Keybase-Bridging-Header.h"; sourceTree = "<group>"; };
+		DBEE306C1FE8511F0020EBA5 /* DDTTYLogger.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = DDTTYLogger.m; sourceTree = "<group>"; };
+		DBEE306D1FE8511F0020EBA5 /* DDLog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DDLog.h; sourceTree = "<group>"; };
+		DBEE306E1FE8511F0020EBA5 /* DDLegacyMacros.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DDLegacyMacros.h; sourceTree = "<group>"; };
+		DBEE306F1FE8511F0020EBA5 /* DDOSLogger.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = DDOSLogger.m; sourceTree = "<group>"; };
+		DBEE30701FE8511F0020EBA5 /* DDAbstractDatabaseLogger.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DDAbstractDatabaseLogger.h; sourceTree = "<group>"; };
+		DBEE30711FE8511F0020EBA5 /* DDLogMacros.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DDLogMacros.h; sourceTree = "<group>"; };
+		DBEE30721FE8511F0020EBA5 /* DDASLLogCapture.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DDASLLogCapture.h; sourceTree = "<group>"; };
+		DBEE30731FE8511F0020EBA5 /* DDASLLogger.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = DDASLLogger.m; sourceTree = "<group>"; };
+		DBEE30741FE8511F0020EBA5 /* DDFileLogger.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DDFileLogger.h; sourceTree = "<group>"; };
+		DBEE30751FE8511F0020EBA5 /* DDLog.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = DDLog.m; sourceTree = "<group>"; };
+		DBEE30761FE8511F0020EBA5 /* CocoaLumberjack.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CocoaLumberjack.h; sourceTree = "<group>"; };
+		DBEE30771FE8511F0020EBA5 /* DDTTYLogger.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DDTTYLogger.h; sourceTree = "<group>"; };
+		DBEE30781FE8511F0020EBA5 /* DDAssertMacros.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DDAssertMacros.h; sourceTree = "<group>"; };
+		DBEE30791FE8511F0020EBA5 /* DDOSLogger.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DDOSLogger.h; sourceTree = "<group>"; };
+		DBEE307A1FE8511F0020EBA5 /* DDLog+LOGV.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "DDLog+LOGV.h"; sourceTree = "<group>"; };
+		DBEE307B1FE8511F0020EBA5 /* DDAbstractDatabaseLogger.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = DDAbstractDatabaseLogger.m; sourceTree = "<group>"; };
+		DBEE307C1FE8511F0020EBA5 /* LICENSE.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = LICENSE.txt; sourceTree = "<group>"; };
+		DBEE307D1FE8511F0020EBA5 /* DDFileLogger.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = DDFileLogger.m; sourceTree = "<group>"; };
+		DBEE307E1FE8511F0020EBA5 /* DDASLLogger.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DDASLLogger.h; sourceTree = "<group>"; };
+		DBEE307F1FE8511F0020EBA5 /* DDASLLogCapture.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = DDASLLogCapture.m; sourceTree = "<group>"; };
 		FE98B29CDF6C4C4085FF2315 /* RNImagePicker.xcodeproj */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = "wrapper.pb-project"; name = RNImagePicker.xcodeproj; path = "../../node_modules/react-native-image-picker/ios/RNImagePicker.xcodeproj"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -396,6 +451,10 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				DBEE30D91FE8551E0020EBA5 /* libRCTContacts.a in Frameworks */,
+				DBEE30D81FE855170020EBA5 /* libRNFetchBlob.a in Frameworks */,
+				DBEE30D71FE8550C0020EBA5 /* libRNImagePicker.a in Frameworks */,
+				DBEE30AD1FE855040020EBA5 /* libRCTCamera.a in Frameworks */,
 				2746CFFA1E9884BD00E579B0 /* libresolv.tbd in Frameworks */,
 				DB6D0B961E5B9ED200410F3C /* libRCTAnimation.a in Frameworks */,
 				DB2BD1E51DE7D9A600BB7989 /* libRCTActionSheet.a in Frameworks */,
@@ -411,10 +470,6 @@
 				DB2BD1EF1DE7D9A600BB7989 /* libReact.a in Frameworks */,
 				DB0846051BA75DC800F54960 /* keybase.framework in Frameworks */,
 				A9BB30DF1E6A274900E713E5 /* libRCTCameraRoll.a in Frameworks */,
-				7608E936D0B84B4FB1849590 /* libRCTCamera.a in Frameworks */,
-				DCF5D67E98CE413A87F0068C /* libRNImagePicker.a in Frameworks */,
-				39D6D1A57FB3452BA9A3B365 /* libRNFetchBlob.a in Frameworks */,
-				B698B104E0834338916083E7 /* libRCTContacts.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -490,6 +545,7 @@
 		83CBB9F61A601CBA00E9B192 = {
 			isa = PBXGroup;
 			children = (
+				DBEE306B1FE8511F0020EBA5 /* CocoaLumberjack */,
 				DBDCF3031B8D03DD00BA95D8 /* Keybase */,
 				832341AE1AAA6A7D00B99B32 /* Libraries */,
 				00E356EF1AD99517003FC87E /* KeybaseTests */,
@@ -554,11 +610,6 @@
 		DB090F7F1F719A2F007E4E1B /* Recovered References */ = {
 			isa = PBXGroup;
 			children = (
-				D4D90F8FFC2D4682850A6803 /* libRCTCamera.a */,
-				A77BBAD7A94F4A2580CA3B23 /* libRNImagePicker.a */,
-				51B12F21D54542FC8B7379EC /* libRNFetchBlob.a */,
-				8DC2EA7D9170401F8F611036 /* libRCTContacts.a */,
-				717E0727A65E4C5E929B7548 /* libRCTMessageUI.a */,
 			);
 			name = "Recovered References";
 			sourceTree = "<group>";
@@ -578,6 +629,8 @@
 				DB0501221F10114D000B54AD /* libthird-party.a */,
 				DB0501241F10114D000B54AD /* libdouble-conversion.a */,
 				DB0501261F10114D000B54AD /* libdouble-conversion.a */,
+				DBEE30651FE84EF40020EBA5 /* libprivatedata.a */,
+				DBEE30671FE84EF40020EBA5 /* libprivatedata-tvOS.a */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -725,11 +778,40 @@
 				3724B72A1FB491F000A12CE6 /* MessageUIManager.h */,
 				A969A4091CF65C9C00F273F2 /* LogSend.m */,
 				DB7539361D777E8400AFA61B /* LogSend-Test.m */,
+				A90CD4A71FCE1D0A00F97901 /* NativeLogger.h */,
+				A90CD4A61FCE1D0A00F97901 /* NativeLogger.m */,
 				DBDCF3441B8D04FC00BA95D8 /* Keybase-Bridging-Header.h */,
 				DB7539311D77753600AFA61B /* Keybase_For_Tests-Bridging-Header.h */,
 				0044E59C1BCD7CEA008EF7EE /* LaunchScreen.storyboard */,
 			);
 			path = Keybase;
+			sourceTree = "<group>";
+		};
+		DBEE306B1FE8511F0020EBA5 /* CocoaLumberjack */ = {
+			isa = PBXGroup;
+			children = (
+				DBEE306C1FE8511F0020EBA5 /* DDTTYLogger.m */,
+				DBEE306D1FE8511F0020EBA5 /* DDLog.h */,
+				DBEE306E1FE8511F0020EBA5 /* DDLegacyMacros.h */,
+				DBEE306F1FE8511F0020EBA5 /* DDOSLogger.m */,
+				DBEE30701FE8511F0020EBA5 /* DDAbstractDatabaseLogger.h */,
+				DBEE30711FE8511F0020EBA5 /* DDLogMacros.h */,
+				DBEE30721FE8511F0020EBA5 /* DDASLLogCapture.h */,
+				DBEE30731FE8511F0020EBA5 /* DDASLLogger.m */,
+				DBEE30741FE8511F0020EBA5 /* DDFileLogger.h */,
+				DBEE30751FE8511F0020EBA5 /* DDLog.m */,
+				DBEE30761FE8511F0020EBA5 /* CocoaLumberjack.h */,
+				DBEE30771FE8511F0020EBA5 /* DDTTYLogger.h */,
+				DBEE30781FE8511F0020EBA5 /* DDAssertMacros.h */,
+				DBEE30791FE8511F0020EBA5 /* DDOSLogger.h */,
+				DBEE307A1FE8511F0020EBA5 /* DDLog+LOGV.h */,
+				DBEE307B1FE8511F0020EBA5 /* DDAbstractDatabaseLogger.m */,
+				DBEE307C1FE8511F0020EBA5 /* LICENSE.txt */,
+				DBEE307D1FE8511F0020EBA5 /* DDFileLogger.m */,
+				DBEE307E1FE8511F0020EBA5 /* DDASLLogger.h */,
+				DBEE307F1FE8511F0020EBA5 /* DDASLLogCapture.m */,
+			);
+			path = CocoaLumberjack;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -743,6 +825,7 @@
 				13B07F8C1A680F5B00A75B9A /* Frameworks */,
 				13B07F8E1A680F5B00A75B9A /* Resources */,
 				DB229EE81BF697160081901A /* Bundle React Native code and images */,
+				A90CD56F1FD70F7E00F97901 /* Embed Frameworks */,
 			);
 			buildRules = (
 			);
@@ -1185,6 +1268,20 @@
 			remoteRef = DB7417C01E1FFF1000CEC6B7 /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
+		DBEE30651FE84EF40020EBA5 /* libprivatedata.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = libprivatedata.a;
+			remoteRef = DBEE30641FE84EF40020EBA5 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		DBEE30671FE84EF40020EBA5 /* libprivatedata-tvOS.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = "libprivatedata-tvOS.a";
+			remoteRef = DBEE30661FE84EF40020EBA5 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
 /* End PBXReferenceProxy section */
 
 /* Begin PBXResourcesBuildPhase section */
@@ -1192,6 +1289,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				DBEE30851FE8511F0020EBA5 /* LICENSE.txt in Resources */,
 				DBDC800D1DE7CC8E005387B3 /* OpenSans-Semi_bold_italic.ttf in Resources */,
 				C3A47BFE1E8B148A00974A63 /* keybasemessage.wav in Resources */,
 				DBDC80111DE7CC8E005387B3 /* SourceCodePro-Semi_bold.ttf in Resources */,
@@ -1299,8 +1397,16 @@
 			buildActionMask = 2147483647;
 			files = (
 				DB27DE571D747A6C003DE8BC /* Utils.m in Sources */,
+				DBEE30861FE8511F0020EBA5 /* DDFileLogger.m in Sources */,
+				DBEE30871FE8511F0020EBA5 /* DDASLLogCapture.m in Sources */,
+				DBEE30801FE8511F0020EBA5 /* DDTTYLogger.m in Sources */,
+				DBEE30841FE8511F0020EBA5 /* DDAbstractDatabaseLogger.m in Sources */,
 				A969A40A1CF65C9C00F273F2 /* LogSend.m in Sources */,
 				DBBCC6181D9C5C6A00312652 /* main.m in Sources */,
+				DBEE30821FE8511F0020EBA5 /* DDASLLogger.m in Sources */,
+				DBEE30831FE8511F0020EBA5 /* DDLog.m in Sources */,
+				DBEE30811FE8511F0020EBA5 /* DDOSLogger.m in Sources */,
+				A90CD4A81FCE1D0B00F97901 /* NativeLogger.m in Sources */,
 				370EFC8E1FB3BDE1004DB3BB /* MessageUIManager.m in Sources */,
 				DBCE36251B90F14800ECADDE /* Engine.m in Sources */,
 				DBBCC6131D9C4A8100312652 /* AppDelegate.m in Sources */,
@@ -1335,6 +1441,7 @@
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(PROJECT_DIR)",
+					"$(PROJECT_DIR)/cocoalumberjack",
 				);
 				HEADER_SEARCH_PATHS = (
 					"$(inherited)",
@@ -1350,9 +1457,7 @@
 				INFOPLIST_FILE = Keybase/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
-				LIBRARY_SEARCH_PATHS = (
-					"$(inherited)",
-				);
+				LIBRARY_SEARCH_PATHS = "$(inherited)";
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-ObjC",
@@ -1385,6 +1490,7 @@
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(PROJECT_DIR)",
+					"$(PROJECT_DIR)/cocoalumberjack",
 				);
 				HEADER_SEARCH_PATHS = (
 					"$(inherited)",
@@ -1400,9 +1506,7 @@
 				INFOPLIST_FILE = Keybase/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
-				LIBRARY_SEARCH_PATHS = (
-					"$(inherited)",
-				);
+				LIBRARY_SEARCH_PATHS = "$(inherited)";
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-ObjC",

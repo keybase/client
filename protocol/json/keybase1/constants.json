@@ -115,11 +115,13 @@
         "SCChatClientError_2516",
         "SCChatNotInTeam_2517",
         "SCChatStalePreviousState_2518",
+        "SCTeamBadMembership_2604",
         "SCTeamSelfNotOwner_2607",
         "SCTeamNotFound_2614",
         "SCTeamExists_2619",
         "SCTeamReadError_2623",
         "SCNoOp_2638",
+        "SCTeamInviteBadToken_2646",
         "SCTeamTarDuplicate_2663",
         "SCTeamTarNotFound_2664",
         "SCTeamMemberExists_2665",
@@ -144,9 +146,12 @@
         "SCTeamBadAdminSeqnoType_2684",
         "SCTeamImplicitBadAdd_2685",
         "SCTeamImplicitBadRemove_2686",
+        "SCTeamInviteTokenReused_2696",
         "SCTeamKeyMaskNotFound_2697",
         "SCTeamBanned_2702",
-        "SCTeamInvalidBan_2703"
+        "SCTeamInvalidBan_2703",
+        "SCTeamProvisionalCanKey_2721",
+        "SCTeamProvisionalCannotKey_2722"
       ]
     }
   ],

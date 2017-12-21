@@ -3,6 +3,8 @@ import * as TrackerGen from '../actions/tracker-gen'
 import * as Types from '../constants/types/tracker'
 import * as Constants from '../constants/tracker'
 
+const sortByTeamName = (a, b) => a.fqName.localeCompare(b.fqName)
+
 function updateUserState(
   state: Types.State,
   username: string,
@@ -50,16 +52,6 @@ export default function(
         trackers: {},
         nonUserTrackers: {},
       }
-    case TrackerGen.setStartTimer:
-      return {
-        ...state,
-        timerActive: state.timerActive + 1,
-      }
-    case TrackerGen.stopTimer:
-      return {
-        ...state,
-        timerActive: state.timerActive - 1,
-      }
     case TrackerGen.cacheIdentify: {
       const {goodTill, uid} = action.payload
       return {
@@ -103,7 +95,7 @@ export default function(
         }
       })
     }
-    case TrackerGen.setOnClose: {
+    case TrackerGen.onClose: {
       const {username} = action.payload
       const isUser = state.userTrackers[username]
       if (isUser) {
@@ -135,6 +127,13 @@ export default function(
         ...s,
         error: null,
       }))
+    case TrackerGen.updateSelectedTeam: {
+      const {selectedTeam, username} = action.payload
+      return updateUserState(state, username, s => ({
+        ...s,
+        selectedTeam,
+      }))
+    }
     case TrackerGen.updateReason:
       // In case the reason is null, let's use our existing reason
       return updateUserState(state, action.payload.username, s => ({
@@ -334,7 +333,7 @@ export default function(
         bio: userCard.bio,
         avatar: `https://keybase.io/${username}/picture`,
         location: userCard.location,
-        showcasedTeams: userCard.teamShowcase || [],
+        showcasedTeams: (userCard.teamShowcase || []).sort(sortByTeamName),
       }
       return updateUserState(state, action.payload.username, s => ({
         ...s,
@@ -404,7 +403,16 @@ export default function(
       }
     }
     // Saga only actions
+    case TrackerGen.follow:
+    case TrackerGen.getMyProfile:
+    case TrackerGen.getProfile:
+    case TrackerGen.ignore:
+    case TrackerGen.openProofUrl:
     case TrackerGen.parseFriendship:
+    case TrackerGen.refollow:
+    case TrackerGen.setupTrackerHandlers:
+    case TrackerGen.unfollow:
+    case TrackerGen.updateTrackers:
       return state
     default:
       // eslint-disable-next-line no-unused-expressions

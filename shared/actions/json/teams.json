@@ -1,0 +1,127 @@
+{
+  "prelude": [
+    "import * as ChatTypes from '../constants/types/chat'",
+    "import * as Types from '../constants/types/teams'"
+  ],
+  "actions": {
+    "createNewTeam": {
+      "teamname": "string",
+      "rootPath": "I.List<string>",
+      "sourceSubPath": "I.List<string>",
+      "destSubPath": "I.List<string>"
+    },
+    "createNewTeamFromConversation": {
+      "conversationIDKey": "ChatTypes.ConversationIDKey",
+      "teamname": "string"
+    },
+    "createChannel": {
+      "teamname": "string",
+      "channelname": "string",
+      "description": "?string",
+      "rootPath": "I.List<string>",
+      "sourceSubPath": "I.List<string>",
+      "destSubPath": "I.List<string>"
+    },
+    "getChannels": {
+      "teamname": "string"
+    },
+    "getTeams": {},
+    "getDetails": {
+      "teamname": "string"
+    },
+    "getTeamOperations": {
+      "teamname": "string"
+    },    
+    "saveChannelMembership": {
+      "teamname": "string",
+      "channelState": "Types.ChannelMembershipState"
+    },
+    "addPeopleToTeam": {
+      "teamname": "string",
+      "role": "string",
+      "sendChatNotification": "boolean"
+    },
+    "inviteToTeamByEmail": {
+      "teamname": "string",
+      "role": "Types.TeamRoleType",
+      "invitees": "string"
+    },
+    "inviteToTeamByPhone": {
+      "teamname": "string",
+      "role": "Types.TeamRoleType",
+      "phoneNumber": "string",
+      "fullName": "string"
+    },
+    "joinTeam": {
+      "teamname": "string"
+    },
+    "leaveTeam": {
+      "teamname": "string"
+    },
+    "addToTeam": {
+      "teamname": "string",
+      "email": "string",
+      "username": "string",
+      "role": "Types.TeamRoleType",
+      "sendChatNotification": "boolean"
+    },
+    "editTeamDescription": {
+      "teamname": "string",
+      "description": "string"
+    },
+    "editMembership": {
+      "teamname": "string",
+      "username": "string",
+      "role": "Types.TeamRoleType"
+    },
+    "removeMemberOrPendingInvite": {
+      "email": "string",
+      "teamname": "string",
+      "username": "string",
+      "inviteID": "string"
+    },
+    "ignoreRequest": {
+      "teamname": "string",
+      "username": "string"
+    },
+    "setPublicity": {
+      "teamname": "string",
+      "settings": "Types.PublicitySettings"
+    },
+    "setChannelCreationError": {
+      "error": "string"
+    },
+    "setTeamCreationError": {
+      "error": "string"
+    },
+    "setTeamCreationPending": {
+      "pending": "boolean"
+    },
+    "setTeamJoinError": {
+      "error": "string"
+    },
+    "setTeamJoinSuccess": {
+      "success": "boolean",
+      "teamname": "?string"
+    },
+    "setupTeamHandlers": {},
+    "updateChannelName": {
+      "conversationIDKey": "ChatTypes.ConversationIDKey",
+      "newChannelName": "string"
+    },
+    "updateTopic": {
+      "conversationIDKey": "ChatTypes.ConversationIDKey",
+      "newTopic": "string"
+    },
+    "deleteChannelConfirmed": {
+      "conversationIDKey": "ChatTypes.ConversationIDKey"
+    },
+    "badgeAppForTeams": {
+      "newTeamNames": "Array<string>",
+      "newTeamAccessRequests": "Array<string>"
+    },
+    "checkRequestedAccess": {
+      "teamname": "string"
+    }
+  }
+}

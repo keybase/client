@@ -2,10 +2,9 @@
 import * as Types from '../../constants/types/search'
 import * as React from 'react'
 import {Box, Icon, ClickableBox, Text} from '../../common-adapters/index'
-import {globalColors, globalStyles, globalMargins, hairlineWidth} from '../../styles'
+import {globalColors, globalStyles, globalMargins, hairlineWidth, isMobile} from '../../styles'
 import IconOrAvatar from '../icon-or-avatar'
 import {followingStateToStyle} from '../shared'
-import {isMobile} from '../../constants/platform'
 
 const Left = ({leftService, leftIcon, leftUsername, leftFollowingState, leftFullname}) => {
   return (

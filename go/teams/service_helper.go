@@ -6,7 +6,6 @@ import (
 	"strconv"
 	"strings"
 	"time"
-	"unicode"
 
 	"golang.org/x/net/context"
 
@@ -649,12 +648,20 @@ func AcceptInvite(ctx context.Context, g *libkb.GlobalContext, token string) err
 	return err
 }
 
-func ParseAndAcceptSeitanToken(ctx context.Context, g *libkb.GlobalContext, tok string) error {
+func ParseAndAcceptSeitanToken(ctx context.Context, g *libkb.GlobalContext, tok string) (wasSeitan bool, err error) {
 	seitan, err := GenerateIKeyFromString(tok)
 	if err != nil {
-		return err
+		g.Log.CDebugf(ctx, "GenerateIKeyFromString error: %s", err)
+		g.Log.CDebugf(ctx, "returning TeamInviteBadToken instead")
+		return false, libkb.TeamInviteBadTokenError{}
 	}
-	return AcceptSeitan(ctx, g, seitan)
+	g.Log.CDebugf(ctx, "found seitan token")
+	err = AcceptSeitan(ctx, g, seitan)
+	if err != nil {
+		return true, err
+	}
+
+	return true, nil
 }
 
 func AcceptSeitan(ctx context.Context, g *libkb.GlobalContext, ikey SeitanIKey) error {
@@ -860,13 +867,8 @@ func TeamAcceptInviteOrRequestAccess(ctx context.Context, g *libkb.GlobalContext
 	maybeSeitan, keepSecret := ParseSeitanTokenFromPaste(tokenOrName)
 	if keepSecret {
 		g.Log.CDebugf(ctx, "found seitan-ish token")
-		seitan, err := GenerateIKeyFromString(maybeSeitan)
-		if err != nil {
-			return keybase1.TeamAcceptOrRequestResult{}, err
-		}
-		g.Log.CDebugf(ctx, "found seitan token")
-		err = AcceptSeitan(ctx, g, seitan)
-		return keybase1.TeamAcceptOrRequestResult{WasSeitan: true}, err
+		wasSeitan, err := ParseAndAcceptSeitanToken(ctx, g, maybeSeitan)
+		return keybase1.TeamAcceptOrRequestResult{WasSeitan: wasSeitan}, err
 	}
 
 	g.Log.CDebugf(ctx, "trying email-style invite")
@@ -877,7 +879,13 @@ func TeamAcceptInviteOrRequestAccess(ctx context.Context, g *libkb.GlobalContext
 		}, nil
 	}
 	g.Log.CDebugf(ctx, "email-style invite error: %v", err)
-	reportErr := err
+	var reportErr error
+	switch err := err.(type) {
+	case libkb.TeamInviteTokenReusedError:
+		reportErr = err
+	default:
+		reportErr = libkb.TeamInviteBadTokenError{}
+	}
 
 	g.Log.CDebugf(ctx, "trying team name")
 	_, err = keybase1.TeamNameFromString(tokenOrName)
@@ -1047,13 +1055,14 @@ func ChangeTeamSettings(ctx context.Context, g *libkb.GlobalContext, teamName st
 		}
 
 		if !settings.Open && !t.IsOpen() {
-			return libkb.NoOpError{Desc: "Team is already closed."}
+			g.Log.CDebugf(ctx, "team is already closed, just returning: %s", teamName)
+			return nil
 		}
 
 		if settings.Open && t.IsOpen() && t.OpenTeamJoinAs() == settings.JoinAs {
-			return libkb.NoOpError{
-				Desc: fmt.Sprintf("Team is already open with default role: %s.", strings.ToLower(t.OpenTeamJoinAs().String())),
-			}
+			g.Log.CDebugf(ctx, "team is already open with default role: team: %s role: %s",
+				teamName, strings.ToLower(t.OpenTeamJoinAs().String()))
+			return nil
 		}
 
 		return t.PostTeamSettings(ctx, settings)
@@ -1131,12 +1140,16 @@ func removeInviteID(ctx context.Context, team *Team, invID keybase1.TeamInviteID
 	return team.postTeamInvites(ctx, invites)
 }
 
-// splitBulk splits on whitespace or comma.
+// splitBulk splits on newline or comma.
 func splitBulk(s string) []string {
 	f := func(c rune) bool {
-		return unicode.IsSpace(c) || c == ','
+		return c == '\n' || c == ','
 	}
-	return strings.FieldsFunc(s, f)
+	split := strings.FieldsFunc(s, f)
+	for i, s := range split {
+		split[i] = strings.TrimSpace(s)
+	}
+	return split
 }
 
 func CreateSeitanToken(ctx context.Context, g *libkb.GlobalContext, teamname string, role keybase1.TeamRole, label keybase1.SeitanIKeyLabel) (keybase1.SeitanIKey, error) {
@@ -1152,26 +1165,47 @@ func CreateSeitanToken(ctx context.Context, g *libkb.GlobalContext, teamname str
 	return keybase1.SeitanIKey(ikey), err
 }
 
-// CreateTLF is called by KBFS when a TLF ID is associated with an implicit team. Should
-// only work for implicit teams, and should give an error if a named team is provided.
+// CreateTLF is called by KBFS when a TLF ID is associated with an implicit team.
+// Should work on either named or implicit teams.
 func CreateTLF(ctx context.Context, g *libkb.GlobalContext, arg keybase1.CreateTLFArg) (err error) {
 	defer g.CTrace(ctx, fmt.Sprintf("CreateTLF(%v)", arg), func() error { return err })()
 	return RetryOnSigOldSeqnoError(ctx, g, func(ctx context.Context, _ int) error {
 		// Need admin because only admins can issue this link
-		t, err := GetForTeamManagementByTeamID(ctx, g, arg.TeamID, true)
+		t, err := GetForTeamManagementByTeamID(ctx, g, arg.TeamID, false)
 		if err != nil {
 			return err
+		}
+		role, err := t.myRole(ctx)
+		if err != nil {
+			return err
+		}
+		if !role.IsWriterOrAbove() {
+			return fmt.Errorf("permission denied: need writer access (or above)")
 		}
 		return t.associateTLFID(ctx, arg.TlfID)
 	})
 }
 
-func CanUserPerform(ctx context.Context, g *libkb.GlobalContext, teamname string, op keybase1.TeamOperation) (ret bool, err error) {
-	me, err := libkb.LoadMe(libkb.NewLoadUserArgWithContext(ctx, g))
+func GetKBFSTeamSettings(ctx context.Context, g *libkb.GlobalContext, isPublic bool, teamID keybase1.TeamID) (res keybase1.KBFSTeamSettings, err error) {
+	defer g.CTrace(ctx, fmt.Sprintf("GetKBFSTeamSettings(%v,%v)", isPublic, teamID), func() error { return err })()
+	team, err := Load(ctx, g, keybase1.LoadTeamArg{
+		ID:     teamID,
+		Public: isPublic,
+	})
 	if err != nil {
-		return false, err
+		return res, err
 	}
-	meUV := me.ToUserVersion()
+	res.TlfID = team.KBFSTLFID()
+	g.Log.CDebugf(ctx, "res: %+v", res)
+	return res, err
+}
+
+func CanUserPerform(ctx context.Context, g *libkb.GlobalContext, teamname string) (ret keybase1.TeamOperation, err error) {
+
+	meUV, err := getCurrentUserUV(ctx, g)
+	if err != nil {
+		return ret, err
+	}
 
 	team, err := Load(ctx, g, keybase1.LoadTeamArg{
 		Name:    teamname,
@@ -1179,7 +1213,7 @@ func CanUserPerform(ctx context.Context, g *libkb.GlobalContext, teamname string
 		Public:  false, // assume private team
 	})
 	if err != nil {
-		return false, err
+		return ret, err
 	}
 
 	isImplicitAdmin := func() (bool, error) {
@@ -1242,23 +1276,33 @@ func CanUserPerform(ctx context.Context, g *libkb.GlobalContext, teamname string
 		return showcase.AnyMemberShowcase, nil
 	}
 
-	switch op {
-	case keybase1.TeamOperation_MANAGE_MEMBERS,
-		keybase1.TeamOperation_MANAGE_SUBTEAMS,
-		keybase1.TeamOperation_SET_TEAM_SHOWCASE,
-		keybase1.TeamOperation_CHANGE_OPEN_TEAM:
-		ret, err = isAdminOrImplicitAdmin()
-	case keybase1.TeamOperation_CREATE_CHANNEL:
-		ret, err = isWriter()
-	case keybase1.TeamOperation_SET_MEMBER_SHOWCASE:
-		ret, err = canMemberShowcase()
-	case keybase1.TeamOperation_DELETE_CHANNEL,
-		keybase1.TeamOperation_RENAME_CHANNEL,
-		keybase1.TeamOperation_EDIT_CHANNEL_DESCRIPTION:
-		ret, err = isAdmin() // no implicit admins
-	default:
-		err = fmt.Errorf("Unknown op: %v", op)
+	var perm bool
+	perm, err = isAdminOrImplicitAdmin()
+	if err != nil {
+		return ret, err
 	}
+	ret.ManageMembers = perm
+	ret.ManageSubteams = perm
+	ret.SetTeamShowcase = perm
+	ret.ChangeOpenTeam = perm
+
+	ret.CreateChannel, err = isWriter()
+	if err != nil {
+		return ret, err
+	}
+
+	ret.SetMemberShowcase, err = canMemberShowcase()
+	if err != nil {
+		return ret, err
+	}
+
+	perm, err = isAdmin()
+	if err != nil {
+		return ret, err
+	}
+	ret.DeleteChannel = perm
+	ret.RenameChannel = perm
+	ret.EditChannelDescription = perm
 
 	return ret, err
 }

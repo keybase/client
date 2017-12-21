@@ -1,4 +1,5 @@
 // @flow
+import logger from '../logger'
 import * as ConfigGen from './config-gen'
 import * as Types from '../constants/types/gregor'
 import * as FavoriteGen from './favorite-gen'
@@ -8,7 +9,6 @@ import * as I from 'immutable'
 import * as RPCTypes from '../constants/types/flow-types'
 import * as Saga from '../util/saga'
 import engine from '../engine'
-import {clearErrors} from '../util/pictures'
 import {folderFromPath} from '../constants/favorite.js'
 import {nativeReachabilityEvents} from '../util/reachability'
 import {replaceEntity} from './entities'
@@ -52,7 +52,7 @@ function registerReachability() {
           // without re-bootstrapping. Originally we used to do this on HTML5
           // 'online' event, but reachability is more precise.
           dispatch(ConfigGen.createBootstrap({isReconnect: true}))
-          clearErrors()
+          dispatch(ConfigGen.createClearAvatarCache())
         }
       }
     })
@@ -77,7 +77,7 @@ function checkReachabilityOnConnect() {
         dispatch(GregorGen.createUpdateReachability({reachability}))
       })
       .catch(err => {
-        console.warn('error bootstrapping reachability: ', err)
+        logger.warn('error bootstrapping reachability: ', err)
       })
   }
 }
@@ -86,10 +86,10 @@ function registerGregorListeners() {
   return (dispatch: Dispatch) => {
     RPCTypes.delegateUiCtlRegisterGregorFirehoseRpcPromise()
       .then(response => {
-        console.log('Registered gregor listener')
+        logger.info('Registered gregor listener')
       })
       .catch(error => {
-        console.warn('error in registering gregor listener: ', error)
+        logger.warn('error in registering gregor listener: ', error)
       })
 
     // we get this with sessionID == 0 if we call openDialog
@@ -111,7 +111,8 @@ function registerGregorListeners() {
 }
 
 function* handleTLFUpdate(items: Array<Types.NonNullGregorItem>): SagaGenerator<any, any> {
-  const seenMsgs: Types.MsgMap = yield Saga.select((state: TypedState) => state.gregor.seenMsgs)
+  const state: TypedState = yield Saga.select()
+  const seenMsgs: Types.MsgMap = state.gregor.seenMsgs
 
   // Check if any are a tlf items
   const tlfUpdates = items.filter(isTlfItem)
@@ -130,18 +131,20 @@ function* handleChatBanner(items: Array<Types.NonNullGregorItem>): SagaGenerator
   }
 }
 
-function* _handlePushState(pushAction: GregorGen.PushStatePayload): SagaGenerator<any, any> {
+function _handlePushState(pushAction: GregorGen.PushStatePayload) {
   if (!pushAction.error) {
     const {payload: {state}} = pushAction
     const nonNullItems = toNonNullGregorItems(state)
     if (nonNullItems.length !== (state.items || []).length) {
-      console.warn('Lost some messages in filtering out nonNull gregor items')
+      logger.warn('Lost some messages in filtering out nonNull gregor items')
     }
 
-    yield Saga.call(handleTLFUpdate, nonNullItems)
-    yield Saga.call(handleChatBanner, nonNullItems)
+    return Saga.sequentially([
+      Saga.call(handleTLFUpdate, nonNullItems),
+      Saga.call(handleChatBanner, nonNullItems),
+    ])
   } else {
-    console.log('Error in gregor pushState', pushAction.payload)
+    logger.debug('Error in gregor pushState', pushAction.payload)
   }
 }
 
@@ -162,36 +165,41 @@ function* handleKbfsFavoritesOOBM(kbfsFavoriteMessages: Array<OutOfBandMessage>)
       arr.push(Saga.put(FavoriteGen.createMarkTLFCreated({folder})))
       return arr
     }
-    console.warn('Failed to parse tlf for oobm:', m)
+    logger.warn('Failed to parse tlf for oobm:')
+    logger.debug('Failed to parse tlf for oobm:', m)
     return arr
   }, [])
   yield Saga.all(folderActions)
 }
 
-function* _handlePushOOBM(pushOOBM: GregorGen.PushOOBMPayload) {
+function _handlePushOOBM(pushOOBM: GregorGen.PushOOBMPayload) {
+  const actions = []
   if (!pushOOBM.error) {
     const {payload: {messages}} = pushOOBM
 
     // Filter first so we don't dispatch unnecessary actions
     const gitMessages = messages.filter(i => i.system === 'git')
     if (gitMessages.length > 0) {
-      yield Saga.put(GitGen.createHandleIncomingGregor({messages: gitMessages}))
+      actions.push(Saga.put(GitGen.createHandleIncomingGregor({messages: gitMessages})))
     }
 
-    yield Saga.call(handleKbfsFavoritesOOBM, messages.filter(i => i.system === 'kbfs.favorites'))
+    actions.push(Saga.call(handleKbfsFavoritesOOBM, messages.filter(i => i.system === 'kbfs.favorites')))
   } else {
-    console.log('Error in gregor oobm', pushOOBM.payload)
+    logger.debug('Error in gregor oobm', pushOOBM.payload)
   }
+
+  return Saga.sequentially(actions)
 }
 
-function* _handleCheckReachability(action: GregorGen.CheckReachabilityPayload): SagaGenerator<any, any> {
-  const reachability = yield Saga.call(RPCTypes.reachabilityCheckReachabilityRpcPromise)
-  yield Saga.put(GregorGen.createUpdateReachability({reachability}))
-}
+const _handleCheckReachability = (action: GregorGen.CheckReachabilityPayload) =>
+  Saga.call(RPCTypes.reachabilityCheckReachabilityRpcPromise)
 
-function* _injectItem(action: GregorGen.InjectItemPayload): SagaGenerator<any, any> {
+const _handleCheckReachabilitySuccess = reachability =>
+  Saga.put(GregorGen.createUpdateReachability({reachability}))
+
+function _injectItem(action: GregorGen.InjectItemPayload) {
   const {category, body, dtime} = action.payload
-  yield Saga.call(RPCTypes.gregorInjectItemRpcPromise, {
+  return Saga.call(RPCTypes.gregorInjectItemRpcPromise, {
     body,
     cat: category,
     dtime: {
@@ -202,10 +210,14 @@ function* _injectItem(action: GregorGen.InjectItemPayload): SagaGenerator<any, a
 }
 
 function* gregorSaga(): SagaGenerator<any, any> {
-  yield Saga.safeTakeEvery(GregorGen.pushState, _handlePushState)
-  yield Saga.safeTakeEvery(GregorGen.pushOOBM, _handlePushOOBM)
-  yield Saga.safeTakeEvery(GregorGen.injectItem, _injectItem)
-  yield Saga.safeTakeLatest(GregorGen.checkReachability, _handleCheckReachability)
+  yield Saga.safeTakeEveryPure(GregorGen.pushState, _handlePushState)
+  yield Saga.safeTakeEveryPure(GregorGen.pushOOBM, _handlePushOOBM)
+  yield Saga.safeTakeEveryPure(GregorGen.injectItem, _injectItem)
+  yield Saga.safeTakeLatestPure(
+    GregorGen.checkReachability,
+    _handleCheckReachability,
+    _handleCheckReachabilitySuccess
+  )
 }
 
 export {

@@ -1,8 +1,7 @@
 // @flow
 import * as React from 'react'
 import {Text, Box, Icon} from '../../../../common-adapters'
-import {globalStyles} from '../../../../styles'
-import {isMobile} from '../../../../constants/platform'
+import {globalStyles, isMobile} from '../../../../styles'
 import CreateTeamNotice from '../../notices/create-team-notice/container'
 
 import type {Props} from '.'

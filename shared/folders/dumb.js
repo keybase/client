@@ -42,8 +42,6 @@ const f1: Folder = createFolder({
   ignored: false,
   isPublic: false,
   isTeam: false,
-  hasData: true,
-  recentFiles: [],
   waitingForParticipantUnlock: [],
   youCanUnlock: [],
 })
@@ -61,8 +59,6 @@ const f2: Folder = createFolder({
   ignored: false,
   isPublic: false,
   isTeam: false,
-  hasData: true,
-  recentFiles: [],
   waitingForParticipantUnlock: [],
   youCanUnlock: [],
 })
@@ -76,8 +72,6 @@ const f3: Folder = createFolder({
   ignored: false,
   isPublic: false,
   isTeam: false,
-  hasData: true,
-  recentFiles: [],
   waitingForParticipantUnlock: [],
   youCanUnlock: [],
 })
@@ -87,8 +81,6 @@ const f4: Folder = createFolder({
   ignored: false,
   isPublic: false,
   isTeam: false,
-  hasData: false,
-  recentFiles: [],
   waitingForParticipantUnlock: [],
   youCanUnlock: [],
 })
@@ -98,8 +90,6 @@ const f5: Folder = createFolder({
   ignored: false,
   isPublic: false,
   isTeam: false,
-  hasData: true,
-  recentFiles: [],
   waitingForParticipantUnlock: [],
   youCanUnlock: [],
 })
@@ -111,8 +101,6 @@ const f6: Folder = createFolder({
   ignored: false,
   isPublic: false,
   isTeam: false,
-  hasData: false,
-  recentFiles: [],
   waitingForParticipantUnlock: [],
   youCanUnlock: [],
 })
@@ -123,8 +111,6 @@ const f7: Folder = createFolder({
   ignored: false,
   isPublic: false,
   isTeam: true,
-  hasData: true,
-  recentFiles: [],
   waitingForParticipantUnlock: [],
   youCanUnlock: [],
 })
@@ -135,8 +121,6 @@ const i1: Folder = createFolder({
   users: [{username: 'cecileb', you: true}, {username: 'jeresig', broken: true}, {username: 'cdixon'}],
   ignored: true,
   isPublic: false,
-  hasData: true,
-  recentFiles: [],
   waitingForParticipantUnlock: [],
   youCanUnlock: [],
 })
@@ -145,8 +129,6 @@ const i2: Folder = createFolder({
   users: [{username: 'cecileb', you: true}, {username: 'jeresig', broken: true}],
   ignored: true,
   isPublic: false,
-  hasData: false,
-  recentFiles: [],
   waitingForParticipantUnlock: [],
   youCanUnlock: [],
 })
@@ -182,6 +164,7 @@ const commonFolders = {
     parentProps,
     onToggleShowIgnored,
     showIgnored: true,
+    extraRows: [],
   },
   public: {
     tlfs: [f2, f3, f4, f5],
@@ -194,6 +177,7 @@ const commonFolders = {
     parentProps,
     onToggleShowIgnored,
     showIgnored: false,
+    extraRows: [],
   },
   team: {
     tlfs: [f7],
@@ -207,6 +191,7 @@ const commonFolders = {
     parentProps,
     onToggleShowIgnored,
     showIgnored: false,
+    extraRows: [],
   },
   selected: 'team',
   showingPrivate: true,
@@ -473,4 +458,4 @@ export default {
   'Folders: File': file,
 }
 
-export {createFolder, map, file, files}
+export {createFolder, map}

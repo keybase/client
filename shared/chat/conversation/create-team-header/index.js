@@ -1,9 +1,7 @@
 // @flow
 import React from 'react'
 import {Box, Text} from '../../../common-adapters'
-import {globalColors, globalStyles, globalMargins} from '../../../styles'
-import {isMobile} from '../../../constants/platform'
-
+import {globalColors, globalStyles, globalMargins, isMobile} from '../../../styles'
 import type {Props} from '.'
 
 const CreateTeamHeader = ({onShowNewTeamDialog}: Props) => (

@@ -1,4 +1,5 @@
 // @flow
+import logger from '../../logger'
 import * as Types from '../../constants/types/profile'
 import * as ProfileGen from '../profile-gen'
 import * as RPCTypes from '../../constants/types/flow-types'
@@ -34,15 +35,14 @@ function _checkPgpInfoForErrors(info: Types.PgpInfo): PgpInfoError {
   }
 }
 
-function* _checkPgpInfo(action: ProfileGen.UpdatePgpInfoPayload): Saga.SagaGenerator<any, any> {
+function _checkPgpInfo(action: ProfileGen.UpdatePgpInfoPayload, state: TypedState) {
   if (action.error) {
     return
   }
 
-  const state: TypedState = yield Saga.select()
-  const {profile: {pgpInfo}} = state
+  const {pgpInfo} = state.profile
 
-  yield Saga.put(
+  return Saga.put(
     ProfileGen.createUpdatePgpInfoError({
       error: _checkPgpInfoForErrors(pgpInfo),
     })
@@ -63,7 +63,7 @@ function* _dropPgpSaga(action: ProfileGen.DropPgpPayload): Saga.SagaGenerator<an
   } catch (e) {
     yield Saga.put(ProfileGen.createRevokeWaiting({waiting: false}))
     yield Saga.put(ProfileGen.createRevokeFinishError({error: `Error in dropping Pgp Key: ${e}`}))
-    console.log('error in dropping pgp key', e)
+    logger.info('error in dropping pgp key', e)
   }
 }
 
@@ -130,12 +130,12 @@ function* _generatePgpSaga(): Saga.SagaGenerator<any, any> {
     yield Saga.put(navigateTo([], [peopleTab]))
   } catch (e) {
     generatePgpKeyChanMap.close()
-    console.log('error in generating pgp key', e)
+    logger.info('error in generating pgp key', e)
   }
 }
 
 function* pgpSaga(): Saga.SagaGenerator<any, any> {
-  yield Saga.safeTakeLatest(a => a && a.type === ProfileGen.updatePgpInfo && !a.error, _checkPgpInfo)
+  yield Saga.safeTakeLatestPure(a => a && a.type === ProfileGen.updatePgpInfo && !a.error, _checkPgpInfo)
   yield Saga.safeTakeLatest(ProfileGen.generatePgp, _generatePgpSaga)
   yield Saga.safeTakeEvery(ProfileGen.dropPgp, _dropPgpSaga)
 }

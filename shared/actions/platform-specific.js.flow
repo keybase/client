@@ -1,11 +1,8 @@
 // @flow
-
-import type {AsyncAction} from '../constants/types/flux'
-
 declare function setNoPushPermissions(): Promise<*>
 declare function requestPushPermissions(): Promise<*>
 declare function configurePush(): void
-declare function showMainWindow(): AsyncAction
+declare function showMainWindow(): void
 declare function showShareActionSheet(options: {url?: ?any, message?: ?any}): Promise<{
   completed: boolean,
   method: string,
@@ -19,6 +16,7 @@ declare function displayNewMessageNotification(
   badgeCount: ?number,
   myMsgID: ?number
 ): void
+declare function clearAllNotifications(): void
 
 export {
   requestPushPermissions,
@@ -28,4 +26,5 @@ export {
   showShareActionSheet,
   setNoPushPermissions,
   displayNewMessageNotification,
+  clearAllNotifications,
 }
