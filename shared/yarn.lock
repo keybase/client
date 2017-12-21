@@ -7703,7 +7703,7 @@ react-native-iphone-x-helper@^1.0.1:
 
 "react-native-push-notification@git://github.com/keybase/react-native-push-notification#clear-notification":
   version "3.0.2"
-  resolved "git://github.com/keybase/react-native-push-notification#58551c6c4124a61dfb038ac7e77ac46aadae619e"
+  resolved "git://github.com/keybase/react-native-push-notification#6e3712b94bd9ea9f4fd9bbde8d49836b42d39779"
 
 react-native-tab-view@^0.0.67:
   version "0.0.67"
