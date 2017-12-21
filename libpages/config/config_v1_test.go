@@ -24,14 +24,32 @@ func TestConfigV1Invalid(t *testing.T) {
 		Common: Common{
 			Version: Version1Str,
 		},
-		DefaultACL: AccessControlV1{
-			WhitelistAdditionalPermissions: map[string]string{
-				"alice": PermRead,
+		ACLs: map[string]AccessControlV1{
+			"/": AccessControlV1{
+				WhitelistAdditionalPermissions: map[string]string{
+					"alice": PermRead,
+				},
 			},
 		},
 	}).GetPermissionsForAnonymous("/")
 	require.Error(t, err)
 	require.IsType(t, ErrUndefinedUsername{}, err)
+
+	_, _, err = (&V1{
+		Common: Common{
+			Version: Version1Str,
+		},
+		ACLs: map[string]AccessControlV1{
+			"/": AccessControlV1{
+				AnonymousPermissions: "",
+			},
+			"": AccessControlV1{
+				AnonymousPermissions: PermRead,
+			},
+		},
+	}).GetPermissionsForAnonymous("/")
+	require.Error(t, err)
+	require.IsType(t, ErrDuplicateAccessControlPath{}, err)
 
 	_, _, err = (&V1{
 		Common: Common{
@@ -53,8 +71,10 @@ func TestConfigV1Invalid(t *testing.T) {
 		Common: Common{
 			Version: Version1Str,
 		},
-		DefaultACL: AccessControlV1{
-			AnonymousPermissions: "huh?",
+		ACLs: map[string]AccessControlV1{
+			"/": AccessControlV1{
+				AnonymousPermissions: "huh?",
+			},
 		},
 	}).GetPermissionsForAnonymous("/")
 	require.Error(t, err)
@@ -76,9 +96,6 @@ func TestConfigV1Full(t *testing.T) {
 		Users: map[string][]byte{
 			"alice": generatePasswordHashForTestOrBust(t, "12345"),
 			"bob":   generatePasswordHashForTestOrBust(t, "54321"),
-		},
-		DefaultACL: AccessControlV1{
-			AnonymousPermissions: PermRead,
 		},
 		ACLs: map[string]AccessControlV1{
 			"/alice-and-bob": AccessControlV1{
@@ -102,6 +119,7 @@ func TestConfigV1Full(t *testing.T) {
 					"alice": PermReadAndList,
 				},
 			},
+			"/bob/dir/deep-dir/deep-deep-dir": AccessControlV1{},
 		},
 	}
 
@@ -111,15 +129,15 @@ func TestConfigV1Full(t *testing.T) {
 	read, list, err := config.GetPermissionsForAnonymous("/")
 	require.NoError(t, err)
 	require.True(t, read)
-	require.False(t, list)
+	require.True(t, list)
 	read, list, err = config.GetPermissionsForUsername("/", "alice")
 	require.NoError(t, err)
 	require.True(t, read)
-	require.False(t, list)
+	require.True(t, list)
 	read, list, err = config.GetPermissionsForUsername("/", "bob")
 	require.NoError(t, err)
 	require.True(t, read)
-	require.False(t, list)
+	require.True(t, list)
 
 	read, list, err = config.GetPermissionsForAnonymous("/alice-and-bob")
 	require.NoError(t, err)
@@ -169,6 +187,45 @@ func TestConfigV1Full(t *testing.T) {
 	require.True(t, read)
 	require.True(t, list)
 	read, list, err = config.GetPermissionsForUsername("/public/not-really", "bob")
+	require.NoError(t, err)
+	require.False(t, read)
+	require.False(t, list)
+
+	read, list, err = config.GetPermissionsForAnonymous("/bob/dir")
+	require.NoError(t, err)
+	require.False(t, read)
+	require.False(t, list)
+	read, list, err = config.GetPermissionsForUsername("/bob/dir", "alice")
+	require.NoError(t, err)
+	require.False(t, read)
+	require.False(t, list)
+	read, list, err = config.GetPermissionsForUsername("/bob/dir", "bob")
+	require.NoError(t, err)
+	require.True(t, read)
+	require.True(t, list)
+
+	read, list, err = config.GetPermissionsForAnonymous("/bob/dir/sub")
+	require.NoError(t, err)
+	require.False(t, read)
+	require.False(t, list)
+	read, list, err = config.GetPermissionsForUsername("/bob/dir/sub", "alice")
+	require.NoError(t, err)
+	require.False(t, read)
+	require.False(t, list)
+	read, list, err = config.GetPermissionsForUsername("/bob/dir/sub", "bob")
+	require.NoError(t, err)
+	require.True(t, read)
+	require.True(t, list)
+
+	read, list, err = config.GetPermissionsForAnonymous("/bob/dir/deep-dir/deep-deep-dir")
+	require.NoError(t, err)
+	require.False(t, read)
+	require.False(t, list)
+	read, list, err = config.GetPermissionsForUsername("/bob/dir/deep-dir/deep-deep-dir", "alice")
+	require.NoError(t, err)
+	require.False(t, read)
+	require.False(t, list)
+	read, list, err = config.GetPermissionsForUsername("/bob/dir/deep-dir/deep-deep-dir", "bob")
 	require.NoError(t, err)
 	require.False(t, read)
 	require.False(t, list)

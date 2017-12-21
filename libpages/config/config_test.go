@@ -21,9 +21,6 @@ func TestParseConfig(t *testing.T) {
 			"alice": generatePasswordHashForTestOrBust(t, "12345"),
 			"bob":   generatePasswordHashForTestOrBust(t, "54321"),
 		},
-		DefaultACL: AccessControlV1{
-			AnonymousPermissions: PermRead,
-		},
 		ACLs: map[string]AccessControlV1{
 			"/alice-and-bob": AccessControlV1{
 				WhitelistAdditionalPermissions: map[string]string{

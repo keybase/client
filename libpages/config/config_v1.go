@@ -38,9 +38,6 @@ type V1 struct {
 	// users should be authenticated.
 	Users map[string][]byte `json:"users"`
 
-	// DefaultACL defines the ACL that should be used for paths that no ACL has
-	// been configured for.
-	DefaultACL AccessControlV1 `json:"default_acl"`
 	// ACLs is a path -> AccessControlV1 map that defines ACLs for different
 	// paths.
 	ACLs map[string]AccessControlV1 `json:"acls"`
@@ -56,9 +53,6 @@ func DefaultV1() *V1 {
 	return &V1{
 		Common: Common{
 			Version: Version1Str,
-		},
-		DefaultACL: AccessControlV1{
-			AnonymousPermissions: PermReadAndList,
 		},
 	}
 }
@@ -78,7 +72,7 @@ func (c *V1) Authenticate(username, password string) bool {
 }
 
 func (c *V1) initACLChecker() {
-	c.aclChecker, c.aclCheckerInitErr = makeACLCheckerV1(c.DefaultACL, c.ACLs, c.Users)
+	c.aclChecker, c.aclCheckerInitErr = makeACLCheckerV1(c.ACLs, c.Users)
 }
 
 // GetPermissionsForAnonymous implements the Config interface.

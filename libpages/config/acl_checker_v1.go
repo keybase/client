@@ -66,6 +66,12 @@ func (a *AccessControlV1) makeAccessControlV1Internal(users map[string][]byte) (
 	return ac, nil
 }
 
+func defaultAccessControlV1InternalForRoot() *accessControlV1 {
+	return &accessControlV1{
+		anonymous: permissionsV1{read: true, list: true},
+	}
+}
+
 type aclCheckerV1 struct {
 	children map[string]*aclCheckerV1
 	ac       *accessControlV1
@@ -107,24 +113,33 @@ func cleanPath(p string, split2 bool) (elems []string) {
 // getAccessControl gets the corresponding accessControlV1 for p.
 // If a specifically defined one exists, it's returned. Otherwise the default
 // one is returned.
-func (c *aclCheckerV1) getAccessControl(p string) (ac *accessControlV1) {
+func (c *aclCheckerV1) getAccessControl(
+	parentAC *accessControlV1, p string) (ac *accessControlV1) {
+	effectiveAC := c.ac
+	if c.ac == nil {
+		// If c.ac == nil, it means user didn't specify an ACL for this
+		// directory. So just inherit from the parent.
+		effectiveAC = parentAC
+	}
 	elems := cleanPath(p, true)
 	if len(elems) == 0 || c.children == nil {
-		return c.ac
+		return effectiveAC
 	}
 	if subChecker, ok := c.children[elems[0]]; ok {
 		if len(elems) > 1 {
-			return subChecker.getAccessControl(elems[1])
+			return subChecker.getAccessControl(effectiveAC, elems[1])
 		}
-		return subChecker.getAccessControl(".")
+		return subChecker.getAccessControl(effectiveAC, ".")
 	}
 
-	return c.ac
+	return effectiveAC
 }
 
 func (c *aclCheckerV1) getPermissions(
 	p string, username *string) (permissions permissionsV1) {
-	ac := c.getAccessControl(p)
+	// This is only called on the root aclCheckerV1, and c.ac is always
+	// populated here.
+	ac := c.getAccessControl(nil, p)
 	permissions = ac.anonymous
 	if ac.whitelistAdditional == nil || username == nil {
 		return permissions
@@ -136,14 +151,9 @@ func (c *aclCheckerV1) getPermissions(
 	return permissions
 }
 
-func makeACLCheckerV1(
-	defaultAccessControl AccessControlV1, acl map[string]AccessControlV1,
+func makeACLCheckerV1(acl map[string]AccessControlV1,
 	users map[string][]byte) (*aclCheckerV1, error) {
-	defaultAC, err := defaultAccessControl.makeAccessControlV1Internal(users)
-	if err != nil {
-		return nil, err
-	}
-	root := &aclCheckerV1{ac: defaultAC}
+	root := &aclCheckerV1{ac: defaultAccessControlV1InternalForRoot()}
 	if acl == nil {
 		return root, nil
 	}
@@ -158,6 +168,10 @@ func makeACLCheckerV1(
 		// address.
 		ac := acl[p]
 		cleanedPath := path.Clean(p)
+		if cleanedPath == "." {
+			// Override "." with "/" since they both represent the site root.
+			cleanedPath = "/"
+		}
 		if _, ok := cleaned[cleanedPath]; ok {
 			return nil, ErrDuplicateAccessControlPath{cleanedPath: cleanedPath}
 		}
@@ -185,7 +199,10 @@ func makeACLCheckerV1(
 				c.children = make(map[string]*aclCheckerV1)
 			}
 			if c.children[elems[i]] == nil {
-				c.children[elems[i]] = &aclCheckerV1{ac: defaultAC}
+				// Intentionally leave the ac field empty so if no ACL is
+				// specified for this directory we'd use the one from its
+				// parent (see getAccessControl).
+				c.children[elems[i]] = &aclCheckerV1{}
 			}
 			c = c.children[elems[i]]
 		}
