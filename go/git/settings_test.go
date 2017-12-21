@@ -24,13 +24,14 @@ func TestSettings(t *testing.T) {
 	repoName := "repoName"
 	repoID := "abc123"
 	doPut(t, tc.G, teamName, repoID, repoName)
+	folder := keybase1.Folder{
+		Name:       teamName,
+		Private:    true,
+		FolderType: keybase1.FolderType_TEAM,
+	}
 
 	arg := keybase1.GetTeamRepoSettingsArg{
-		Folder: keybase1.Folder{
-			Name:       teamName,
-			Private:    true,
-			FolderType: keybase1.FolderType_TEAM,
-		},
+		Folder: folder,
 		RepoID: keybase1.RepoID(repoID),
 	}
 	settings, err := GetTeamRepoSettings(context.Background(), tc.G, arg)
@@ -39,4 +40,17 @@ func TestSettings(t *testing.T) {
 	require.False(t, settings.ChatDisabled)
 	require.NotNil(t, settings.ChannelName)
 	require.Equal(t, *settings.ChannelName, "general")
+
+	setArg := keybase1.SetTeamRepoSettingsArg{
+		Folder:       folder,
+		RepoID:       keybase1.RepoID(repoID),
+		ChatDisabled: true,
+	}
+	err = SetTeamRepoSettings(context.Background(), tc.G, setArg)
+	require.NoError(t, err)
+
+	settings, err = GetTeamRepoSettings(context.Background(), tc.G, arg)
+	require.NoError(t, err)
+	require.True(t, settings.ChatDisabled)
+	require.Nil(t, settings.ChannelName)
 }
