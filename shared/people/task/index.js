@@ -17,10 +17,17 @@ export type Props = {
 
 export default (props: Props) => (
   <PeopleItem badged={props.badged} icon={props.icon}>
-    <Text type="Body" style={{marginTop: 2, marginBottom: globalMargins.xtiny, paddingRight: 32}}>
+    <Text type="Body" style={{marginTop: 2, marginBottom: globalMargins.xtiny, paddingRight: 40}}>
       {props.instructions}
     </Text>
-    <Box style={{...globalStyles.flexBoxRow, justifyContent: 'flex-start', alignItems: 'center'}}>
+    <Box
+      style={{
+        ...globalStyles.flexBoxRow,
+        justifyContent: 'flex-start',
+        alignItems: 'center',
+        flexWrap: 'wrap',
+      }}
+    >
       <Button
         small={true}
         type="Primary"
