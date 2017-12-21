@@ -215,6 +215,7 @@ const mapStateToProps = (state: TypedState, {isActiveRoute, routeState}: OwnProp
   }
 
   const inboxGlobalUntrustedState = state.chat.get('inboxGlobalUntrustedState')
+  const selectedConversationIDKey = Constants.getSelectedConversation(state)
 
   return {
     ...rowMetadata,
@@ -223,7 +224,9 @@ const mapStateToProps = (state: TypedState, {isActiveRoute, routeState}: OwnProp
     isLoading: inboxGlobalUntrustedState === 'loading' || state.chat.get('inboxSyncingState') === 'syncing',
     neverLoaded: inboxGlobalUntrustedState === 'unloaded',
     _user: Constants.getYou(state),
-    inSearch: state.chat.get('inSearch'),
+    showNewConversation: state.chat.get('inSearch') ||
+      // $FlowIssue this is a string
+      Constants.isPendingConversationIDKey(selectedConversationIDKey),
   }
 }
 
@@ -279,7 +282,7 @@ const mergeProps = (
     smallTeamsExpanded: stateProps.smallTeamsExpanded,
     toggleSmallTeamsExpanded: dispatchProps.toggleSmallTeamsExpanded,
     filterFocusCount: ownProps.filterFocusCount,
-    inSearch: stateProps.inSearch,
+    showNewConversation: stateProps.showNewConversation,
   }
 }
 
