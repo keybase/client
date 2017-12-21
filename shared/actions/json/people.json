@@ -1,0 +1,9 @@
+{
+  "prelude": [],
+  "actions": {
+    "getPeopleData": {
+      "markViewed": "boolean",
+      "numFollowSuggestionsWanted": "number"
+    }
+  }
+}
