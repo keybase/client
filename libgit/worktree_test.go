@@ -13,6 +13,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+	billy "gopkg.in/src-d/go-billy.v4"
 	"gopkg.in/src-d/go-billy.v4/osfs"
 )
 
@@ -46,7 +47,7 @@ func makeLocalRepoWithOneFile(t *testing.T,
 }
 
 func addOneFileToRepo(t *testing.T, gitDir, filename, contents string) {
-	t.Logf("Make a new repo in %s with one file", gitDir)
+	t.Logf("Add a new file to %s", gitDir)
 	err := ioutil.WriteFile(
 		filepath.Join(gitDir, filename), []byte(contents), 0600)
 	require.NoError(t, err)
@@ -57,7 +58,16 @@ func addOneFileToRepo(t *testing.T, gitDir, filename, contents string) {
 		"-c", "user.email=foo@foo.com", "commit", "-a", "-m", "foo")
 }
 
-func TestWorktreeClone(t *testing.T) {
+func testCheckFile(t *testing.T, fs billy.Filesystem,
+	name, expectedData string) {
+	f, err := fs.Open(name)
+	require.NoError(t, err)
+	data, err := ioutil.ReadAll(f)
+	require.NoError(t, err)
+	require.Equal(t, expectedData, string(data))
+}
+
+func TestWorktreeReset(t *testing.T) {
 	git1, err := ioutil.TempDir(os.TempDir(), "kbfsgittest")
 	require.NoError(t, err)
 	defer os.RemoveAll(git1)
@@ -70,21 +80,46 @@ func TestWorktreeClone(t *testing.T) {
 	require.NoError(t, err)
 	defer os.RemoveAll(git2)
 
-	dotgit1FS := osfs.New(filepath.Join(git1, ".git"))
+	dotgit1 := filepath.Join(git1, ".git")
+	dotgit1FS := osfs.New(dotgit1)
 	git2FS := osfs.New(git2)
 
 	ctx := context.Background()
-	err = Clone(ctx, dotgit1FS, git2FS, "refs/heads/master")
+	err = Reset(ctx, dotgit1FS, git2FS, "refs/heads/master")
 	require.NoError(t, err)
+	testCheckFile(t, git2FS, "foo", "hello")
 
-	f, err := git2FS.Open("foo")
+	// Try a second file.
+	addOneFileToRepo(t, git1, "foo2", "hello2")
+	err = Reset(ctx, dotgit1FS, git2FS, "refs/heads/master")
 	require.NoError(t, err)
-	data, err := ioutil.ReadAll(f)
+	testCheckFile(t, git2FS, "foo", "hello")
+	testCheckFile(t, git2FS, "foo2", "hello2")
+
+	// And two more over two commits.
+	addOneFileToRepo(t, git1, "foo3", "hello3")
+	addOneFileToRepo(t, git1, "foo4", "hello4")
+	err = Reset(ctx, dotgit1FS, git2FS, "refs/heads/master")
 	require.NoError(t, err)
-	require.Equal(t, "hello", string(data))
+	testCheckFile(t, git2FS, "foo", "hello")
+	testCheckFile(t, git2FS, "foo2", "hello2")
+	testCheckFile(t, git2FS, "foo3", "hello3")
+	testCheckFile(t, git2FS, "foo4", "hello4")
+
+	// Now delete one.
+	gitExec(t, dotgit1, git1, "rm", "-f", "foo2")
+	gitExec(t, dotgit1, git1, "-c", "user.name=Foo",
+		"-c", "user.email=foo@foo.com", "commit", "-a", "-m", "foo")
+	err = Reset(ctx, dotgit1FS, git2FS, "refs/heads/master")
+	require.NoError(t, err)
+	testCheckFile(t, git2FS, "foo", "hello")
+	testCheckFile(t, git2FS, "foo3", "hello3")
+	testCheckFile(t, git2FS, "foo4", "hello4")
+	_, err = git2FS.Stat("foo2")
+	require.True(t, os.IsNotExist(err))
 }
 
-func TestWorktreeCloneFromBranch(t *testing.T) {
+func TestWorktreeResetFromBranch(t *testing.T) {
 	git1, err := ioutil.TempDir(os.TempDir(), "kbfsgittest")
 	require.NoError(t, err)
 	defer os.RemoveAll(git1)
@@ -106,18 +141,9 @@ func TestWorktreeCloneFromBranch(t *testing.T) {
 	git2FS := osfs.New(git2)
 
 	ctx := context.Background()
-	err = Clone(ctx, dotgit1FS, git2FS, "refs/heads/test")
+	err = Reset(ctx, dotgit1FS, git2FS, "refs/heads/test")
 	require.NoError(t, err)
 
-	f, err := git2FS.Open("foo")
-	require.NoError(t, err)
-	data, err := ioutil.ReadAll(f)
-	require.NoError(t, err)
-	require.Equal(t, "hello", string(data))
-
-	f2, err := git2FS.Open("foo2")
-	require.NoError(t, err)
-	data2, err := ioutil.ReadAll(f2)
-	require.NoError(t, err)
-	require.Equal(t, "hello2", string(data2))
+	testCheckFile(t, git2FS, "foo", "hello")
+	testCheckFile(t, git2FS, "foo2", "hello2")
 }

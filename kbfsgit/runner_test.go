@@ -155,7 +155,7 @@ func makeLocalRepoWithOneFile(t *testing.T,
 }
 
 func addOneFileToRepo(t *testing.T, gitDir, filename, contents string) {
-	t.Logf("Make a new repo in %s with one file", gitDir)
+	t.Logf("Add a new file to %s", gitDir)
 	err := ioutil.WriteFile(
 		filepath.Join(gitDir, filename), []byte(contents), 0600)
 	require.NoError(t, err)
@@ -954,7 +954,7 @@ func TestRepackObjects(t *testing.T) {
 	checkFile("foo4", "hello4")
 }
 
-func TestRunnerWithKBFSClone(t *testing.T) {
+func TestRunnerWithKBFSReset(t *testing.T) {
 	ctx, config, tempdir := initConfigForRunner(t)
 	defer libkbfs.CheckConfigAndShutdown(ctx, t, config)
 	defer os.RemoveAll(tempdir)
@@ -973,7 +973,7 @@ func TestRunnerWithKBFSClone(t *testing.T) {
 
 	testPush(t, ctx, config, git1, "refs/heads/master:refs/heads/master")
 
-	// Clone using worktree.
+	// Reset using worktree.
 	repoFS, _, err := libgit.GetRepoAndID(ctx, config, h, "test", "")
 	require.NoError(t, err)
 	rootFS, err := libfs.NewFS(ctx, config, h, "", "", 0)
@@ -982,7 +982,7 @@ func TestRunnerWithKBFSClone(t *testing.T) {
 	require.NoError(t, err)
 	wtFS, err := rootFS.Chroot("test-checkout")
 	require.NoError(t, err)
-	err = libgit.Clone(ctx, repoFS, wtFS.(*libfs.FS), "refs/heads/master")
+	err = libgit.Reset(ctx, repoFS, wtFS.(*libfs.FS), "refs/heads/master")
 	require.NoError(t, err)
 
 	f, err := wtFS.Open("foo")

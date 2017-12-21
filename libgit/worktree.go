@@ -72,7 +72,7 @@ func repoFromStorageAndWorktree(
 	return repo, currentHeadRef.Hash(), nil
 }
 
-// Clone "clones" a repo from a billy filesystem, into another billy
+// Reset checks out a repo from a billy filesystem, into another billy
 // filesystem.  However, it doesn't make a true git clone, for two
 // reasons.
 //
@@ -89,10 +89,10 @@ func repoFromStorageAndWorktree(
 //    git clone, would be wasteful in that it would read and write way
 //    more data than we really need.
 //
-// The resulting clone in `worktreeFS` is therefore not a functional
+// The resulting checkout in `worktreeFS` is therefore not a functional
 // git repo.  The caller should only interact with `worktreeFS` in a
 // read-only way, and should not attempt any git operations on it.
-func Clone(
+func Reset(
 	ctx context.Context, repoFS billy.Filesystem, worktreeFS billy.Filesystem,
 	branch plumbing.ReferenceName) error {
 	repo, currentHead, err := repoFromStorageAndWorktree(
