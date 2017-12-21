@@ -14,31 +14,26 @@ export const stringToItemID: (id: string) => ItemID = id => id
 // 'paperkey' | 'team' | 'folder' | 'gitRepo' | 'teamShowcase'
 export type TodoTypeEnum = RPCTypes.HomeScreenTodoType
 export type TodoType = $Keys<typeof RPCTypes.homeHomeScreenTodoType>
-export type HomeScreenTodo = {t: TodoType}
+export type Todo = {
+  type: 'todo',
+  badged: boolean,
+  todoType: TodoType,
+  instructions: string,
+  confirmLabel: string,
+  dismissable: boolean,
+}
 
 export type FollowedNotification = {
   followTime: Date,
   user: RPCTypes.UserSummary,
 }
-export type MultiFollowedNotification = {
-  followers: Array<FollowedNotification>,
-  numOthers: number,
+export type FollowedNotificationItem = {
+  type: 'notification',
+  followed: Array<FollowedNotification>,
+  badged: boolean,
 }
-export type FollowedNotificationItem =
-  | {t: 'single', followed: FollowedNotification}
-  | {t: 'multi', followedMulti: MultiFollowedNotification}
 
-export type PeopleScreenItem =
-  | {
-      badged: boolean,
-      type: 'todo',
-      todo: HomeScreenTodo,
-    }
-  | {
-      badged: boolean,
-      type: 'notification',
-      notificiation: FollowedNotificationItem,
-    }
+export type PeopleScreenItem = Todo | FollowedNotificationItem
 
 export type FollowSuggestion = {
   uid: RPCTypes.UID,
@@ -51,14 +46,15 @@ export type FollowSuggestion = {
 export type _PeopleScreen = {
   lastViewed: Date,
   version: number,
-  items: Array<PeopleScreenItem>,
-  followSuggestions?: ?Array<FollowSuggestion>,
+  newItems: I.List<PeopleScreenItem>,
+  oldItems: I.List<PeopleScreenItem>,
+  followSuggestions: I.List<FollowSuggestion>,
 }
 
 export type PeopleScreen = I.RecordOf<_PeopleScreen>
-
+// TODO clean this up
 export type _State = {
-  data: PeopleScreen,
+  ..._PeopleScreen,
 }
 
 export type State = I.RecordOf<_State>

@@ -9,6 +9,13 @@ export default function(state: Types.State = initialState, action: PeopleGen.Act
   switch (action.type) {
     case PeopleGen.resetStore:
       return initialState
+    case PeopleGen.peopleDataProcessed:
+      return Constants.makeState({
+        ...state.toObject(),
+        lastViewed: action.payload.lastViewed,
+        oldItems: action.payload.oldItems,
+        newItems: action.payload.newItems,
+      })
     case PeopleGen.getPeopleData:
       return state
     default:
