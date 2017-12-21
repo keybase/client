@@ -57,17 +57,21 @@ func parseVersion(s string) (Version, error) {
 type Config interface {
 	Version() Version
 	Authenticate(username, password string) bool
-	GetPermissionsForAnonymous(thePath string) (read, list bool, err error)
+	GetPermissionsForAnonymous(path string) (read, list bool, err error)
 	GetPermissionsForUsername(
-		thePath, username string) (read, list bool, err error)
+		path, username string) (read, list bool, err error)
 }
 
-// ParseConfig parses a configu from reader.
+// ParseConfig parses a config from reader.
 func ParseConfig(reader io.Reader) (config Config, err error) {
+	// TODO: make a better decoder to avoid having a buffer here and decoding
+	// twice.
 	buf := &bytes.Buffer{}
-	// todo close
 	var common Common
-	json.NewDecoder(io.TeeReader(reader, buf)).Decode(&common)
+	err = json.NewDecoder(io.TeeReader(reader, buf)).Decode(&common)
+	if err != nil {
+		return nil, err
+	}
 	v, err := parseVersion(common.Version)
 	if err != nil {
 		return nil, err

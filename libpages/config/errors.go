@@ -24,7 +24,7 @@ func (e ErrDuplicateAccessControlPath) Error() string {
 	return "duplicate access control for " + e.cleanedPath
 }
 
-// ErrInvalidVersion is returned when Version filed of the config is invalid.
+// ErrInvalidVersion is returned when Version field of the config is invalid.
 type ErrInvalidVersion struct {
 	versionStr string
 }

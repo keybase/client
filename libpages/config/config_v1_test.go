@@ -16,7 +16,7 @@ func TestConfigV1Default(t *testing.T) {
 	read, list, err := config.GetPermissionsForAnonymous("/")
 	require.NoError(t, err)
 	require.True(t, read)
-	require.False(t, list)
+	require.True(t, list)
 }
 
 func TestConfigV1Invalid(t *testing.T) {
@@ -26,7 +26,7 @@ func TestConfigV1Invalid(t *testing.T) {
 		},
 		DefaultACL: AccessControlV1{
 			WhitelistAdditionalPermissions: map[string]string{
-				"alice": "read",
+				"alice": PermRead,
 			},
 		},
 	}).GetPermissionsForAnonymous("/")
@@ -42,7 +42,7 @@ func TestConfigV1Invalid(t *testing.T) {
 				AnonymousPermissions: "",
 			},
 			"/foo/../foo": AccessControlV1{
-				AnonymousPermissions: "read",
+				AnonymousPermissions: PermRead,
 			},
 		},
 	}).GetPermissionsForAnonymous("/")
@@ -78,33 +78,35 @@ func TestConfigV1Full(t *testing.T) {
 			"bob":   generatePasswordHashForTestOrBust(t, "54321"),
 		},
 		DefaultACL: AccessControlV1{
-			AnonymousPermissions: "read",
+			AnonymousPermissions: PermRead,
 		},
 		ACLs: map[string]AccessControlV1{
 			"/alice-and-bob": AccessControlV1{
-				AnonymousPermissions: "",
 				WhitelistAdditionalPermissions: map[string]string{
-					"alice": "read,list",
-					"bob":   "read",
+					"alice": PermReadAndList,
+					"bob":   PermRead,
 				},
 			},
 			"/bob": AccessControlV1{
 				AnonymousPermissions: "",
 				WhitelistAdditionalPermissions: map[string]string{
-					"bob": "read,list",
+					"bob": PermReadAndList,
 				},
 			},
 			"/public": AccessControlV1{
-				AnonymousPermissions: "read,list",
+				AnonymousPermissions: PermReadAndList,
 			},
 			"/public/not-really": AccessControlV1{
 				AnonymousPermissions: "",
 				WhitelistAdditionalPermissions: map[string]string{
-					"alice": "read,list",
+					"alice": PermReadAndList,
 				},
 			},
 		},
 	}
+
+	authenticated := config.Authenticate("alice", "12345")
+	require.True(t, authenticated)
 
 	read, list, err := config.GetPermissionsForAnonymous("/")
 	require.NoError(t, err)

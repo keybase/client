@@ -10,8 +10,8 @@ import (
 	"os"
 
 	"github.com/keybase/kbfs/env"
-	"github.com/keybase/kbfs/kbp"
 	"github.com/keybase/kbfs/libkbfs"
+	"github.com/keybase/kbfs/libpages"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 )
@@ -65,12 +65,12 @@ func main() {
 		logger.Panic("libkbfs.Init", zap.Error(err))
 	}
 
-	serverConfig := kbp.ServerConfig{
+	serverConfig := libpages.ServerConfig{
 		// Connect to staging Let's Encrypt server while we are testing since
 		// the rate-limit is way higher.
 		UseStaging:         true,
 		Logger:             logger,
 		UseDiskCacheForDev: fDiskCertCache,
 	}
-	kbp.ListenAndServe(ctx, serverConfig, kbConfig)
+	libpages.ListenAndServe(ctx, serverConfig, kbConfig)
 }

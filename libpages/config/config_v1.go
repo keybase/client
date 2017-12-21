@@ -10,11 +10,17 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
+const (
+	PermRead        = "read"
+	PermList        = "list"
+	PermReadAndList = "read,list"
+)
+
 // AccessControlV1 defines an access control list (ACL) for the V1 config.
 type AccessControlV1 struct {
 	// WhitelistAdditionalPermissions is a map of username -> permissions that
 	// defines a list of additional permissions that authenticated users have
-	// in addition to AnonymousPermissions
+	// in addition to AnonymousPermissions.
 	WhitelistAdditionalPermissions map[string]string `json:"whitelist_additional_permissions"`
 	// AnonymousPermissions is the permissions for
 	// unauthenticated/anonymous requests.
@@ -52,7 +58,7 @@ func DefaultV1() *V1 {
 			Version: Version1Str,
 		},
 		DefaultACL: AccessControlV1{
-			AnonymousPermissions: "read",
+			AnonymousPermissions: PermReadAndList,
 		},
 	}
 }
