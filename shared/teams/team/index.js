@@ -21,6 +21,7 @@ import {globalStyles, globalMargins, globalColors, isMobile} from '../../styles'
 import TeamInviteRow from './invite-row/container'
 import TeamMemberRow from './member-row/container'
 import TeamRequestRow from './request-row/container'
+import * as RPCTypes from '../../constants/types/flow-types'
 
 export type MemberRowProps = Types.MemberInfo
 type InviteRowProps = Types.InviteInfo
@@ -66,9 +67,7 @@ export type Props = {
   youAdmin: boolean,
   youImplicitAdmin: boolean,
   youCanLeaveTeam: boolean,
-  youCanShowcase: boolean,
-  youCanAddPeople: boolean,
-  youCanCreateSubteam: boolean,
+  yourOperations: RPCTypes.TeamOperation,
 }
 
 const TeamDividerRow = (index, {key}) => (
@@ -265,9 +264,7 @@ class Team extends React.PureComponent<Props> {
       youAdmin,
       youImplicitAdmin,
       youCanLeaveTeam,
-      youCanAddPeople,
-      youCanCreateSubteam,
-      youCanShowcase,
+      yourOperations,
     } = this.props
 
     // massage data for rowrenderers
@@ -364,18 +361,21 @@ class Team extends React.PureComponent<Props> {
               <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center'}}>
                 <Checkbox
                   checked={publicityMember}
-                  disabled={!youCanShowcase}
+                  disabled={!yourOperations.setTeamShowcase}
                   label=""
                   onCheck={setPublicityMember}
                   style={{paddingRight: globalMargins.xtiny}}
                 />
               </Box>
               <Box style={{...globalStyles.flexBoxColumn, flexShrink: 1}}>
-                <Text style={{color: youCanShowcase ? globalColors.black_75 : globalColors.grey}} type="Body">
+                <Text
+                  style={{color: yourOperations.setTeamShowcase ? globalColors.black_75 : globalColors.grey}}
+                  type="Body"
+                >
                   Publish team on your own profile
                 </Text>
                 <Text type="BodySmall">
-                  {youCanShowcase
+                  {yourOperations.setTeamShowcase
                     ? 'Your profile on the Keybase website will mention this team. Description + number of members will be public.'
                     : "Admins aren't allowing members to publish this team on their profile."}
                 </Text>
@@ -467,13 +467,17 @@ class Team extends React.PureComponent<Props> {
       )
     }
 
-    const popupMenuItems = [{onClick: onManageChat, title: 'Manage chat channels'}]
+    const popupMenuItems = []
+
+    if (yourOperations.renameChannel) {
+      popupMenuItems.push({onClick: onManageChat, title: 'Manage chat channels'})
+    }
 
     if (youCanLeaveTeam) {
       popupMenuItems.push({onClick: onLeaveTeam, title: 'Leave team', danger: true})
     }
 
-    if (youCanCreateSubteam) {
+    if (yourOperations.manageSubteams) {
       popupMenuItems.push({onClick: onCreateSubteam, title: 'Create subteam'})
     }
 
@@ -520,7 +524,7 @@ class Team extends React.PureComponent<Props> {
               {description || (youAdmin && 'Write a brief description')}
             </Text>}
 
-          {youCanAddPeople &&
+          {yourOperations.manageMembers &&
             <ButtonBar>
               <Button type="Primary" label="Add people" onClick={onAddPeople} />
               {!isMobile &&
@@ -543,6 +547,7 @@ class Team extends React.PureComponent<Props> {
         <TeamTabs {...this.props} admin={youAdmin} />
         {contents}
         {showMenu &&
+          popupMenuItems.length > 0 &&
           <PopupMenu
             items={popupMenuItems}
             onHidden={() => setShowMenu(false)}

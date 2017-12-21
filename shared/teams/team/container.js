@@ -196,9 +196,8 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
   const youAdmin = youExplicitAdmin || youImplicitAdmin
 
   const showAddYourselfBanner = !youAreMember && !youExplicitAdmin && youImplicitAdmin
-  const youCanAddPeople = stateProps.yourOperations.manageMembers
-  const youCanCreateSubteam = stateProps.yourOperations.manageSubteams
   const youCanLeaveTeam = youAreMember
+  const yourOperations = stateProps.yourOperations
 
   const onAddSelf = () => dispatchProps._onAddSelf(stateProps.name, you)
   const onSetOpenTeamRole = () =>
@@ -213,7 +212,6 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
       onShowMenu={() => ownProps.setShowMenu(true)}
     />
   )
-  const youCanShowcase = stateProps.yourOperations.setTeamShowcase
   const publicitySettingsChanged =
     ownProps.newPublicityAnyMember !== stateProps.publicityAnyMember ||
     ownProps.newPublicityMember !== stateProps.publicityMember ||
@@ -244,11 +242,9 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     savePublicity,
     showAddYourselfBanner,
     youAdmin,
-    youCanAddPeople,
     youImplicitAdmin,
     youCanLeaveTeam,
-    youCanCreateSubteam,
-    youCanShowcase,
+    yourOperations,
   }
 }
 
