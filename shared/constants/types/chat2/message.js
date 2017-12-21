@@ -7,13 +7,14 @@ import type {DeviceType} from '../devices'
 
 // TODO put back
 // export opaque type MessageID: string = string
-export type MessageID = string
-export const stringToMessageID = (s: string): MessageID => s
+export type MessageID = number
+export const numberToMessageID = (n: number): MessageID => n
 
 // TODO opaque
-export type MessageOrdinal = string
+export type MessageOrdinal = number
 
 type ChannelMention = 'None' | 'All' | 'Here'
+
 export type _MessageText = {
   author: string,
   content: HiddenString,

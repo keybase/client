@@ -42,6 +42,20 @@ const metaMapReducer = (metaMap, action) => {
   }
 }
 
+const messagesReducer = (messageMap, messageIDsList, action) => {
+  // messageMap: I.Map<Common.ConversationIDKey, I.Map<Message.MessageID, Message.Message>>,
+  // messageIDsList: I.Map<Common.ConversationIDKey, I.List<Message.MessageID>>,
+  let newState = {
+    messageIDsList,
+    messageMap,
+  }
+
+  switch (action.type) {
+    default:
+      return newState
+  }
+}
+
 const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions): Types.State => {
   switch (action.type) {
     case Chat2Gen.resetStore:
@@ -55,6 +69,11 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
     case Chat2Gen.metaReceivedError:
     case Chat2Gen.metaRequestTrusted:
       return state.set('metaMap', metaMapReducer(state.metaMap, action))
+    // MessageMap/MessageIDsList actions
+    case Chat2Gen.messagesAdd: {
+      const {messageIDsList, messageMap} = messagesReducer(state.messageMap, state.messageIDsList, action)
+      return state.set('messageMap', messageMap).set('messageIDsList', messageIDsList)
+    }
     // Saga only actions
     // return state
     default:

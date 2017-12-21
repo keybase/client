@@ -13,6 +13,6 @@ export type _State = {
 export type State = I.RecordOf<_State>
 
 export type {ConversationMeta, MetaTrustedState, _ConversationMeta} from './meta'
-export type {Message} from './message'
+export type {Message, _MessageText} from './message'
 export type {ConversationIDKey} from './common'
 export {stringToConversationIDKey} from './common'

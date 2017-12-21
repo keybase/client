@@ -22,3 +22,5 @@ export {
   inboxUIItemToConversationMeta,
   makeConversationMeta,
 } from './meta'
+
+export {uiMessageToMessage} from './message'
