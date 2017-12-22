@@ -30,7 +30,7 @@ export type MessageKeyKind =
 
 // TODO: Ideally, this would be 'Text' | 'Error' | etc.
 export type MessageType = string
-export type FollowingMap = {[key: string]: true}
+export type FollowingSet = I.Set<Username>
 
 export type MessageState = 'pending' | 'failed' | 'sent'
 

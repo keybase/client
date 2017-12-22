@@ -21,7 +21,7 @@ const mapStateToProps = (state: TypedState, {messageKey, prevMessageKey}: OwnPro
   }
   const author = message.author
   const isYou = Constants.getYou(state) === author
-  const isFollowing = Constants.getFollowingMap(state).has(author)
+  const isFollowing = Constants.getFollowing(state).has(author)
   const isBroken = Constants.getMetaDataMap(state).getIn([author, 'brokenTracker'], false)
 
   const {message: _prevMessage} = lookupMessageProps(state, prevMessageKey)

@@ -16,8 +16,8 @@ import {createShowUserProfile} from '../../../actions/profile-gen'
 import {Box} from '../../../common-adapters'
 
 const getBannerMessage = createSelector(
-  [Constants.getYou, Constants.getParticipants, Constants.getFollowingMap, Constants.getMetaDataMap],
-  (you, participants, followingMap, metaDataMap) => {
+  [Constants.getYou, Constants.getParticipants, Constants.getMetaDataMap],
+  (you, participants, metaDataMap) => {
     const brokenUsers = Constants.getBrokenUsers(participants, you, metaDataMap)
     if (brokenUsers.length) {
       return {

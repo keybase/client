@@ -10,7 +10,7 @@ class FollowButton extends Component<Props> {
     if (following) {
       return (
         <Button
-          type="Following"
+          type="PrimaryGreen"
           label="Following"
           onClick={onUnfollow}
           style={style}
@@ -21,7 +21,7 @@ class FollowButton extends Component<Props> {
     } else {
       return (
         <Button
-          type="Follow"
+          type="PrimaryGreenActive"
           label="Follow"
           onClick={onFollow}
           style={style}

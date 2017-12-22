@@ -1,4 +1,5 @@
 // @flow
+import * as AppGen from '../actions/app-gen'
 import * as ChatGen from '../actions/chat-gen'
 import * as ProfileGen from '../actions/profile-gen'
 import * as TeamsGen from '../actions/teams-gen'
@@ -10,8 +11,10 @@ import {branch, connect, compose, lifecycle, renderNothing, withState, type Disp
 const mapDispatchToProps = (dispatch: Dispatch, {teamname}) => ({
   _checkRequestedAccess: (teamname: string) => dispatch(TeamsGen.createCheckRequestedAccess({teamname})),
   _loadTeams: () => dispatch(TeamsGen.createGetTeams()),
-  _onChat: (username: string, myUsername: string) =>
-    dispatch(ChatGen.createStartConversation({users: [username, myUsername]})),
+  _onChat: (username: string, myUsername: string) => {
+    dispatch(AppGen.createShowMain())
+    dispatch(ChatGen.createStartConversation({users: [username, myUsername]}))
+  },
   _onClickAvatar: (username: string) =>
     dispatch(ProfileGen.createOnClickAvatar({openWebsite: true, username})),
   _onClose: (username: string) => dispatch(TrackerGen.createOnClose({username})),

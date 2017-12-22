@@ -196,27 +196,6 @@ const buttonsMap: DumbComponentMap<Button> = {
       type: 'Danger',
       waiting: true,
     },
-    Follow: {
-      ...commonButton,
-      label: 'Follow',
-      type: 'Follow',
-    },
-    'Follow Disabled': {
-      ...commonButton,
-      label: 'Follow',
-      type: 'Follow',
-      disabled: true,
-    },
-    Following: {
-      ...commonButton,
-      label: 'Following',
-      type: 'Following',
-    },
-    Unfollow: {
-      ...commonButton,
-      label: 'Unfollow',
-      type: 'Unfollow',
-    },
     'Primary fullWidth': {
       ...commonButton,
       label: 'Primary',
@@ -256,19 +235,6 @@ const buttonsMap: DumbComponentMap<Button> = {
       fullWidth: true,
       waiting: true,
     },
-    'Follow fullWidth': {
-      ...commonButton,
-      label: 'Follow',
-      type: 'Follow',
-      fullWidth: true,
-    },
-    'Follow fullWidth waiting': {
-      ...commonButton,
-      label: 'Follow',
-      type: 'Follow',
-      fullWidth: true,
-      waiting: true,
-    },
     'Primary small': {
       ...commonButton,
       label: 'Primary small',
@@ -285,12 +251,6 @@ const buttonsMap: DumbComponentMap<Button> = {
       ...commonButton,
       label: 'Danger small',
       type: 'Danger',
-      small: true,
-    },
-    'Follow small': {
-      ...commonButton,
-      label: 'Follow small',
-      type: 'Follow',
       small: true,
     },
     'Primary small waiting': {
@@ -311,13 +271,6 @@ const buttonsMap: DumbComponentMap<Button> = {
       ...commonButton,
       label: 'Danger small',
       type: 'Danger',
-      small: true,
-      waiting: true,
-    },
-    'Follow small waiting': {
-      ...commonButton,
-      label: 'Follow small',
-      type: 'Follow',
       small: true,
       waiting: true,
     },

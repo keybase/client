@@ -18,6 +18,7 @@ const (
 	TLFIdentifyBehavior_KBFS_REKEY      TLFIdentifyBehavior = 4
 	TLFIdentifyBehavior_KBFS_QR         TLFIdentifyBehavior = 5
 	TLFIdentifyBehavior_CHAT_SKIP       TLFIdentifyBehavior = 6
+	TLFIdentifyBehavior_SALTPACK        TLFIdentifyBehavior = 7
 )
 
 func (o TLFIdentifyBehavior) DeepCopy() TLFIdentifyBehavior { return o }
@@ -30,6 +31,7 @@ var TLFIdentifyBehaviorMap = map[string]TLFIdentifyBehavior{
 	"KBFS_REKEY":      4,
 	"KBFS_QR":         5,
 	"CHAT_SKIP":       6,
+	"SALTPACK":        7,
 }
 
 var TLFIdentifyBehaviorRevMap = map[TLFIdentifyBehavior]string{
@@ -40,6 +42,7 @@ var TLFIdentifyBehaviorRevMap = map[TLFIdentifyBehavior]string{
 	4: "KBFS_REKEY",
 	5: "KBFS_QR",
 	6: "CHAT_SKIP",
+	7: "SALTPACK",
 }
 
 func (e TLFIdentifyBehavior) String() string {

@@ -101,7 +101,7 @@ const contactRow = (i: number, props: ContactRowProps) => {
         </Box>
         <Box>
           <Button
-            type={props.selected ? 'Following' : 'Primary'}
+            type={props.selected ? 'PrimaryGreenActive' : 'Primary'}
             label={props.selected ? 'Invited!' : 'Invite'}
             waiting={props.loading}
             small={true}

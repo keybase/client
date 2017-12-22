@@ -128,6 +128,7 @@ const Intro = (props: Props) => (
         style={{
           ...globalStyles.flexBoxColumn,
           flexGrow: 1,
+          width: '100%',
           justifyContent: 'center',
           alignItems: 'center',
           marginTop: 55,

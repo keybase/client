@@ -95,7 +95,7 @@ function SpaceInfo({
 const UpgradeButton = ({onClick, type}: {onClick: () => void, type: 'upgrade' | 'change'}) => (
   <Button
     style={{marginRight: 0}}
-    type="Follow"
+    type="PrimaryGreen"
     label={{upgrade: 'Upgrade', change: 'Change'}[type]}
     onClick={e => {
       onClick()

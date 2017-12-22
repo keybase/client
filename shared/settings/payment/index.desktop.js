@@ -36,7 +36,7 @@ function PaymentForm(props: Props) {
         style={styleInput}
       />
       <Button
-        type="Follow"
+        type="PrimaryGreen"
         label="Done, upgrade!"
         onClick={props.onSubmit}
         style={{marginTop: globalMargins.medium}}
