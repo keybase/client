@@ -41,7 +41,7 @@ class LoadingWrapper extends React.Component<Props, State> {
     return (
       <Box style={{position: 'relative', ...this.props.style}}>
         {!this.props.loading && this.props.doneLoadingComponent}
-        {this.state.loadingActive &&
+        {this.state.loadingActive && (
           <Animated.View
             style={{
               opacity: this.state.opacity,
@@ -52,7 +52,8 @@ class LoadingWrapper extends React.Component<Props, State> {
             }}
           >
             {this.props.loadingComponent}
-          </Animated.View>}
+          </Animated.View>
+        )}
       </Box>
     )
   }

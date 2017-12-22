@@ -23,9 +23,17 @@ function brokenSeparator(idx, item, arr) {
   if (idx === arr.length) {
     return null
   } else if (idx === arr.length - 1) {
-    return <BannerText key={idx} style={brokenStyle}>{arr.length === 1 ? '' : ','}&nbsp;and&nbsp;</BannerText>
+    return (
+      <BannerText key={idx} style={brokenStyle}>
+        {arr.length === 1 ? '' : ','}&nbsp;and&nbsp;
+      </BannerText>
+    )
   } else {
-    return <BannerText key={idx} style={brokenStyle}>,&nbsp;</BannerText>
+    return (
+      <BannerText key={idx} style={brokenStyle}>
+        ,&nbsp;
+      </BannerText>
+    )
   }
 }
 
@@ -43,27 +51,29 @@ const Header = ({children, title, style = {}}: {children: React.Node, title?: st
 const BannerText = props => <Text type="BodySemibold" backgroundMode="Announcements" {...props} />
 
 const BrokenTrackerBanner = ({users, onClick}: BrokenTrackerProps) =>
-  users.length === 1
-    ? <Header style={globalStyles.flexBoxRow}>
-        <BannerText style={brokenStyle}>Some of&nbsp;</BannerText>
-        <BannerText type="BodySemiboldLink" style={brokenStyle} onClick={() => onClick(users[0])}>
-          {users[0]}
-        </BannerText>
-        <BannerText style={brokenStyle}>'s proofs have changed since you last followed them.</BannerText>
-      </Header>
-    : <Header style={globalStyles.flexBoxRow}>
-        {intersperseFn(
-          brokenSeparator,
-          users.map((user, idx) => (
-            <BannerText type="BodySemiboldLink" key={user} style={brokenStyle} onClick={() => onClick(user)}>
-              {user}
-            </BannerText>
-          ))
-        )}
-        <BannerText style={brokenStyle}>
-          &nbsp;have changed their proofs since you last followed them.
-        </BannerText>
-      </Header>
+  users.length === 1 ? (
+    <Header style={globalStyles.flexBoxRow}>
+      <BannerText style={brokenStyle}>Some of&nbsp;</BannerText>
+      <BannerText type="BodySemiboldLink" style={brokenStyle} onClick={() => onClick(users[0])}>
+        {users[0]}
+      </BannerText>
+      <BannerText style={brokenStyle}>'s proofs have changed since you last followed them.</BannerText>
+    </Header>
+  ) : (
+    <Header style={globalStyles.flexBoxRow}>
+      {intersperseFn(
+        brokenSeparator,
+        users.map((user, idx) => (
+          <BannerText type="BodySemiboldLink" key={user} style={brokenStyle} onClick={() => onClick(user)}>
+            {user}
+          </BannerText>
+        ))
+      )}
+      <BannerText style={brokenStyle}>
+        &nbsp;have changed their proofs since you last followed them.
+      </BannerText>
+    </Header>
+  )
 
 const ErrorBanner = ({text, textLink, textLinkOnClick}: ErrorProps) => (
   <Header>

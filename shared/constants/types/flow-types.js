@@ -7,174 +7,173 @@ import * as Gregor1 from './flow-types-gregor'
 import engine, {EngineChannel} from '../../engine'
 import type {Boolean, Bool, Bytes, Double, Int, Int64, Long, String, Uint, Uint64, WaitingHandlerType, RPCErrorHandler, CommonResponseHandler, RPCError} from '../../engine/types'
 
-
 export const BTCRegisterBTCRpcChannelMap = (configKeys: Array<string>, request: BTCRegisterBTCRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.BTC.registerBTC', request)
 
-export const BTCRegisterBTCRpcPromise = (request: BTCRegisterBTCRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.BTC.registerBTC', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
+export const BTCRegisterBTCRpcPromise = (request: BTCRegisterBTCRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.BTC.registerBTC', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
 
 export const KBFSGitCreateRepoRpcChannelMap = (configKeys: Array<string>, request: KBFSGitCreateRepoRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.KBFSGit.createRepo', request)
 
-export const KBFSGitCreateRepoRpcPromise = (request: KBFSGitCreateRepoRpcParam): Promise<KBFSGitCreateRepoResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.KBFSGit.createRepo', request, (error: RPCError, result: KBFSGitCreateRepoResult) => error ? reject(error) : resolve(result)))
+export const KBFSGitCreateRepoRpcPromise = (request: KBFSGitCreateRepoRpcParam): Promise<KBFSGitCreateRepoResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.KBFSGit.createRepo', request, (error: RPCError, result: KBFSGitCreateRepoResult) => (error ? reject(error) : resolve(result))))
 
 export const KBFSGitDeleteRepoRpcChannelMap = (configKeys: Array<string>, request: KBFSGitDeleteRepoRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.KBFSGit.deleteRepo', request)
 
-export const KBFSGitDeleteRepoRpcPromise = (request: KBFSGitDeleteRepoRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.KBFSGit.deleteRepo', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
+export const KBFSGitDeleteRepoRpcPromise = (request: KBFSGitDeleteRepoRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.KBFSGit.deleteRepo', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
 
 export const KBFSGitGcRpcChannelMap = (configKeys: Array<string>, request: KBFSGitGcRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.KBFSGit.gc', request)
 
-export const KBFSGitGcRpcPromise = (request: KBFSGitGcRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.KBFSGit.gc', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
+export const KBFSGitGcRpcPromise = (request: KBFSGitGcRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.KBFSGit.gc', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
 
 export const Kex2Provisionee2DidCounterSign2RpcChannelMap = (configKeys: Array<string>, request: Kex2Provisionee2DidCounterSign2RpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.Kex2Provisionee2.didCounterSign2', request)
 
-export const Kex2Provisionee2DidCounterSign2RpcPromise = (request: Kex2Provisionee2DidCounterSign2RpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.Kex2Provisionee2.didCounterSign2', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
+export const Kex2Provisionee2DidCounterSign2RpcPromise = (request: Kex2Provisionee2DidCounterSign2RpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.Kex2Provisionee2.didCounterSign2', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
 
 export const Kex2Provisionee2Hello2RpcChannelMap = (configKeys: Array<string>, request: Kex2Provisionee2Hello2RpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.Kex2Provisionee2.hello2', request)
 
-export const Kex2Provisionee2Hello2RpcPromise = (request: Kex2Provisionee2Hello2RpcParam): Promise<Kex2Provisionee2Hello2Result> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.Kex2Provisionee2.hello2', request, (error: RPCError, result: Kex2Provisionee2Hello2Result) => error ? reject(error) : resolve(result)))
+export const Kex2Provisionee2Hello2RpcPromise = (request: Kex2Provisionee2Hello2RpcParam): Promise<Kex2Provisionee2Hello2Result> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.Kex2Provisionee2.hello2', request, (error: RPCError, result: Kex2Provisionee2Hello2Result) => (error ? reject(error) : resolve(result))))
 
 export const Kex2ProvisioneeDidCounterSignRpcChannelMap = (configKeys: Array<string>, request: Kex2ProvisioneeDidCounterSignRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.Kex2Provisionee.didCounterSign', request)
 
-export const Kex2ProvisioneeDidCounterSignRpcPromise = (request: Kex2ProvisioneeDidCounterSignRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.Kex2Provisionee.didCounterSign', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
+export const Kex2ProvisioneeDidCounterSignRpcPromise = (request: Kex2ProvisioneeDidCounterSignRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.Kex2Provisionee.didCounterSign', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
 
 export const Kex2ProvisioneeHelloRpcChannelMap = (configKeys: Array<string>, request: Kex2ProvisioneeHelloRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.Kex2Provisionee.hello', request)
 
-export const Kex2ProvisioneeHelloRpcPromise = (request: Kex2ProvisioneeHelloRpcParam): Promise<Kex2ProvisioneeHelloResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.Kex2Provisionee.hello', request, (error: RPCError, result: Kex2ProvisioneeHelloResult) => error ? reject(error) : resolve(result)))
+export const Kex2ProvisioneeHelloRpcPromise = (request: Kex2ProvisioneeHelloRpcParam): Promise<Kex2ProvisioneeHelloResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.Kex2Provisionee.hello', request, (error: RPCError, result: Kex2ProvisioneeHelloResult) => (error ? reject(error) : resolve(result))))
 
 export const Kex2ProvisionerKexStartRpcChannelMap = (configKeys: Array<string>, request: Kex2ProvisionerKexStartRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.Kex2Provisioner.kexStart', request)
 
-export const Kex2ProvisionerKexStartRpcPromise = (request: Kex2ProvisionerKexStartRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.Kex2Provisioner.kexStart', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
+export const Kex2ProvisionerKexStartRpcPromise = (request: Kex2ProvisionerKexStartRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.Kex2Provisioner.kexStart', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
 
 export const NotifyFSRequestFSEditListRequestRpcChannelMap = (configKeys: Array<string>, request: NotifyFSRequestFSEditListRequestRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.NotifyFSRequest.FSEditListRequest', request)
 
-export const NotifyFSRequestFSEditListRequestRpcPromise = (request: NotifyFSRequestFSEditListRequestRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.NotifyFSRequest.FSEditListRequest', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
+export const NotifyFSRequestFSEditListRequestRpcPromise = (request: NotifyFSRequestFSEditListRequestRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.NotifyFSRequest.FSEditListRequest', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
 
 export const NotifyFSRequestFSSyncStatusRequestRpcChannelMap = (configKeys: Array<string>, request: NotifyFSRequestFSSyncStatusRequestRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.NotifyFSRequest.FSSyncStatusRequest', request)
 
-export const NotifyFSRequestFSSyncStatusRequestRpcPromise = (request: NotifyFSRequestFSSyncStatusRequestRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.NotifyFSRequest.FSSyncStatusRequest', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
+export const NotifyFSRequestFSSyncStatusRequestRpcPromise = (request: NotifyFSRequestFSSyncStatusRequestRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.NotifyFSRequest.FSSyncStatusRequest', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
 
 export const ScanProofsScanProofsRpcChannelMap = (configKeys: Array<string>, request: ScanProofsScanProofsRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.ScanProofs.scanProofs', request)
 
-export const ScanProofsScanProofsRpcPromise = (request: ScanProofsScanProofsRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.ScanProofs.scanProofs', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
+export const ScanProofsScanProofsRpcPromise = (request: ScanProofsScanProofsRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.ScanProofs.scanProofs', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
 
 export const SecretKeysGetSecretKeysRpcChannelMap = (configKeys: Array<string>, request: SecretKeysGetSecretKeysRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.SecretKeys.getSecretKeys', request)
 
-export const SecretKeysGetSecretKeysRpcPromise = (request: SecretKeysGetSecretKeysRpcParam): Promise<SecretKeysGetSecretKeysResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.SecretKeys.getSecretKeys', request, (error: RPCError, result: SecretKeysGetSecretKeysResult) => error ? reject(error) : resolve(result)))
+export const SecretKeysGetSecretKeysRpcPromise = (request: SecretKeysGetSecretKeysRpcParam): Promise<SecretKeysGetSecretKeysResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.SecretKeys.getSecretKeys', request, (error: RPCError, result: SecretKeysGetSecretKeysResult) => (error ? reject(error) : resolve(result))))
 
 export const SimpleFSSimpleFSCancelRpcChannelMap = (configKeys: Array<string>, request: SimpleFSSimpleFSCancelRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.SimpleFS.simpleFSCancel', request)
 
-export const SimpleFSSimpleFSCancelRpcPromise = (request: SimpleFSSimpleFSCancelRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.SimpleFS.simpleFSCancel', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
+export const SimpleFSSimpleFSCancelRpcPromise = (request: SimpleFSSimpleFSCancelRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.SimpleFS.simpleFSCancel', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
 
 export const SimpleFSSimpleFSCheckRpcChannelMap = (configKeys: Array<string>, request: SimpleFSSimpleFSCheckRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.SimpleFS.simpleFSCheck', request)
 
-export const SimpleFSSimpleFSCheckRpcPromise = (request: SimpleFSSimpleFSCheckRpcParam): Promise<SimpleFSSimpleFSCheckResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.SimpleFS.simpleFSCheck', request, (error: RPCError, result: SimpleFSSimpleFSCheckResult) => error ? reject(error) : resolve(result)))
+export const SimpleFSSimpleFSCheckRpcPromise = (request: SimpleFSSimpleFSCheckRpcParam): Promise<SimpleFSSimpleFSCheckResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.SimpleFS.simpleFSCheck', request, (error: RPCError, result: SimpleFSSimpleFSCheckResult) => (error ? reject(error) : resolve(result))))
 
 export const SimpleFSSimpleFSCloseRpcChannelMap = (configKeys: Array<string>, request: SimpleFSSimpleFSCloseRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.SimpleFS.simpleFSClose', request)
 
-export const SimpleFSSimpleFSCloseRpcPromise = (request: SimpleFSSimpleFSCloseRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.SimpleFS.simpleFSClose', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
+export const SimpleFSSimpleFSCloseRpcPromise = (request: SimpleFSSimpleFSCloseRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.SimpleFS.simpleFSClose', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
 
 export const SimpleFSSimpleFSCopyRecursiveRpcChannelMap = (configKeys: Array<string>, request: SimpleFSSimpleFSCopyRecursiveRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.SimpleFS.simpleFSCopyRecursive', request)
 
-export const SimpleFSSimpleFSCopyRecursiveRpcPromise = (request: SimpleFSSimpleFSCopyRecursiveRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.SimpleFS.simpleFSCopyRecursive', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
+export const SimpleFSSimpleFSCopyRecursiveRpcPromise = (request: SimpleFSSimpleFSCopyRecursiveRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.SimpleFS.simpleFSCopyRecursive', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
 
 export const SimpleFSSimpleFSCopyRpcChannelMap = (configKeys: Array<string>, request: SimpleFSSimpleFSCopyRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.SimpleFS.simpleFSCopy', request)
 
-export const SimpleFSSimpleFSCopyRpcPromise = (request: SimpleFSSimpleFSCopyRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.SimpleFS.simpleFSCopy', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
+export const SimpleFSSimpleFSCopyRpcPromise = (request: SimpleFSSimpleFSCopyRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.SimpleFS.simpleFSCopy', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
 
 export const SimpleFSSimpleFSGetOpsRpcChannelMap = (configKeys: Array<string>, request: SimpleFSSimpleFSGetOpsRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.SimpleFS.simpleFSGetOps', request)
 
-export const SimpleFSSimpleFSGetOpsRpcPromise = (request: SimpleFSSimpleFSGetOpsRpcParam): Promise<SimpleFSSimpleFSGetOpsResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.SimpleFS.simpleFSGetOps', request, (error: RPCError, result: SimpleFSSimpleFSGetOpsResult) => error ? reject(error) : resolve(result)))
+export const SimpleFSSimpleFSGetOpsRpcPromise = (request: SimpleFSSimpleFSGetOpsRpcParam): Promise<SimpleFSSimpleFSGetOpsResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.SimpleFS.simpleFSGetOps', request, (error: RPCError, result: SimpleFSSimpleFSGetOpsResult) => (error ? reject(error) : resolve(result))))
 
 export const SimpleFSSimpleFSListRecursiveRpcChannelMap = (configKeys: Array<string>, request: SimpleFSSimpleFSListRecursiveRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.SimpleFS.simpleFSListRecursive', request)
 
-export const SimpleFSSimpleFSListRecursiveRpcPromise = (request: SimpleFSSimpleFSListRecursiveRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.SimpleFS.simpleFSListRecursive', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
+export const SimpleFSSimpleFSListRecursiveRpcPromise = (request: SimpleFSSimpleFSListRecursiveRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.SimpleFS.simpleFSListRecursive', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
 
 export const SimpleFSSimpleFSListRpcChannelMap = (configKeys: Array<string>, request: SimpleFSSimpleFSListRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.SimpleFS.simpleFSList', request)
 
-export const SimpleFSSimpleFSListRpcPromise = (request: SimpleFSSimpleFSListRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.SimpleFS.simpleFSList', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
+export const SimpleFSSimpleFSListRpcPromise = (request: SimpleFSSimpleFSListRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.SimpleFS.simpleFSList', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
 
 export const SimpleFSSimpleFSMakeOpidRpcChannelMap = (configKeys: Array<string>, request: SimpleFSSimpleFSMakeOpidRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.SimpleFS.simpleFSMakeOpid', request)
 
-export const SimpleFSSimpleFSMakeOpidRpcPromise = (request: SimpleFSSimpleFSMakeOpidRpcParam): Promise<SimpleFSSimpleFSMakeOpidResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.SimpleFS.simpleFSMakeOpid', request, (error: RPCError, result: SimpleFSSimpleFSMakeOpidResult) => error ? reject(error) : resolve(result)))
+export const SimpleFSSimpleFSMakeOpidRpcPromise = (request: SimpleFSSimpleFSMakeOpidRpcParam): Promise<SimpleFSSimpleFSMakeOpidResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.SimpleFS.simpleFSMakeOpid', request, (error: RPCError, result: SimpleFSSimpleFSMakeOpidResult) => (error ? reject(error) : resolve(result))))
 
 export const SimpleFSSimpleFSMoveRpcChannelMap = (configKeys: Array<string>, request: SimpleFSSimpleFSMoveRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.SimpleFS.simpleFSMove', request)
 
-export const SimpleFSSimpleFSMoveRpcPromise = (request: SimpleFSSimpleFSMoveRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.SimpleFS.simpleFSMove', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
+export const SimpleFSSimpleFSMoveRpcPromise = (request: SimpleFSSimpleFSMoveRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.SimpleFS.simpleFSMove', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
 
 export const SimpleFSSimpleFSOpenRpcChannelMap = (configKeys: Array<string>, request: SimpleFSSimpleFSOpenRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.SimpleFS.simpleFSOpen', request)
 
-export const SimpleFSSimpleFSOpenRpcPromise = (request: SimpleFSSimpleFSOpenRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.SimpleFS.simpleFSOpen', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
+export const SimpleFSSimpleFSOpenRpcPromise = (request: SimpleFSSimpleFSOpenRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.SimpleFS.simpleFSOpen', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
 
 export const SimpleFSSimpleFSReadListRpcChannelMap = (configKeys: Array<string>, request: SimpleFSSimpleFSReadListRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.SimpleFS.simpleFSReadList', request)
 
-export const SimpleFSSimpleFSReadListRpcPromise = (request: SimpleFSSimpleFSReadListRpcParam): Promise<SimpleFSSimpleFSReadListResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.SimpleFS.simpleFSReadList', request, (error: RPCError, result: SimpleFSSimpleFSReadListResult) => error ? reject(error) : resolve(result)))
+export const SimpleFSSimpleFSReadListRpcPromise = (request: SimpleFSSimpleFSReadListRpcParam): Promise<SimpleFSSimpleFSReadListResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.SimpleFS.simpleFSReadList', request, (error: RPCError, result: SimpleFSSimpleFSReadListResult) => (error ? reject(error) : resolve(result))))
 
 export const SimpleFSSimpleFSReadRpcChannelMap = (configKeys: Array<string>, request: SimpleFSSimpleFSReadRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.SimpleFS.simpleFSRead', request)
 
-export const SimpleFSSimpleFSReadRpcPromise = (request: SimpleFSSimpleFSReadRpcParam): Promise<SimpleFSSimpleFSReadResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.SimpleFS.simpleFSRead', request, (error: RPCError, result: SimpleFSSimpleFSReadResult) => error ? reject(error) : resolve(result)))
+export const SimpleFSSimpleFSReadRpcPromise = (request: SimpleFSSimpleFSReadRpcParam): Promise<SimpleFSSimpleFSReadResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.SimpleFS.simpleFSRead', request, (error: RPCError, result: SimpleFSSimpleFSReadResult) => (error ? reject(error) : resolve(result))))
 
 export const SimpleFSSimpleFSRemoveRpcChannelMap = (configKeys: Array<string>, request: SimpleFSSimpleFSRemoveRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.SimpleFS.simpleFSRemove', request)
 
-export const SimpleFSSimpleFSRemoveRpcPromise = (request: SimpleFSSimpleFSRemoveRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.SimpleFS.simpleFSRemove', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
+export const SimpleFSSimpleFSRemoveRpcPromise = (request: SimpleFSSimpleFSRemoveRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.SimpleFS.simpleFSRemove', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
 
 export const SimpleFSSimpleFSRenameRpcChannelMap = (configKeys: Array<string>, request: SimpleFSSimpleFSRenameRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.SimpleFS.simpleFSRename', request)
 
-export const SimpleFSSimpleFSRenameRpcPromise = (request: SimpleFSSimpleFSRenameRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.SimpleFS.simpleFSRename', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
+export const SimpleFSSimpleFSRenameRpcPromise = (request: SimpleFSSimpleFSRenameRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.SimpleFS.simpleFSRename', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
 
 export const SimpleFSSimpleFSSetStatRpcChannelMap = (configKeys: Array<string>, request: SimpleFSSimpleFSSetStatRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.SimpleFS.simpleFSSetStat', request)
 
-export const SimpleFSSimpleFSSetStatRpcPromise = (request: SimpleFSSimpleFSSetStatRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.SimpleFS.simpleFSSetStat', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
+export const SimpleFSSimpleFSSetStatRpcPromise = (request: SimpleFSSimpleFSSetStatRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.SimpleFS.simpleFSSetStat', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
 
 export const SimpleFSSimpleFSStatRpcChannelMap = (configKeys: Array<string>, request: SimpleFSSimpleFSStatRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.SimpleFS.simpleFSStat', request)
 
-export const SimpleFSSimpleFSStatRpcPromise = (request: SimpleFSSimpleFSStatRpcParam): Promise<SimpleFSSimpleFSStatResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.SimpleFS.simpleFSStat', request, (error: RPCError, result: SimpleFSSimpleFSStatResult) => error ? reject(error) : resolve(result)))
+export const SimpleFSSimpleFSStatRpcPromise = (request: SimpleFSSimpleFSStatRpcParam): Promise<SimpleFSSimpleFSStatResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.SimpleFS.simpleFSStat', request, (error: RPCError, result: SimpleFSSimpleFSStatResult) => (error ? reject(error) : resolve(result))))
 
 export const SimpleFSSimpleFSWaitRpcChannelMap = (configKeys: Array<string>, request: SimpleFSSimpleFSWaitRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.SimpleFS.simpleFSWait', request)
 
-export const SimpleFSSimpleFSWaitRpcPromise = (request: SimpleFSSimpleFSWaitRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.SimpleFS.simpleFSWait', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
+export const SimpleFSSimpleFSWaitRpcPromise = (request: SimpleFSSimpleFSWaitRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.SimpleFS.simpleFSWait', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
 
 export const SimpleFSSimpleFSWriteRpcChannelMap = (configKeys: Array<string>, request: SimpleFSSimpleFSWriteRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.SimpleFS.simpleFSWrite', request)
 
-export const SimpleFSSimpleFSWriteRpcPromise = (request: SimpleFSSimpleFSWriteRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.SimpleFS.simpleFSWrite', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
+export const SimpleFSSimpleFSWriteRpcPromise = (request: SimpleFSSimpleFSWriteRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.SimpleFS.simpleFSWrite', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
 
 export const accountEmailChangeRpcChannelMap = (configKeys: Array<string>, request: AccountEmailChangeRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.account.emailChange', request)
 
-export const accountEmailChangeRpcPromise = (request: AccountEmailChangeRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.account.emailChange', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
+export const accountEmailChangeRpcPromise = (request: AccountEmailChangeRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.account.emailChange', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
 
 export const accountHasServerKeysRpcChannelMap = (configKeys: Array<string>, request: AccountHasServerKeysRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.account.hasServerKeys', request)
 
-export const accountHasServerKeysRpcPromise = (request: AccountHasServerKeysRpcParam): Promise<AccountHasServerKeysResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.account.hasServerKeys', request, (error: RPCError, result: AccountHasServerKeysResult) => error ? reject(error) : resolve(result)))
+export const accountHasServerKeysRpcPromise = (request: AccountHasServerKeysRpcParam): Promise<AccountHasServerKeysResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.account.hasServerKeys', request, (error: RPCError, result: AccountHasServerKeysResult) => (error ? reject(error) : resolve(result))))
 
 export const accountPassphraseChangeRpcChannelMap = (configKeys: Array<string>, request: AccountPassphraseChangeRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.account.passphraseChange', request)
 
-export const accountPassphraseChangeRpcPromise = (request: AccountPassphraseChangeRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.account.passphraseChange', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
+export const accountPassphraseChangeRpcPromise = (request: AccountPassphraseChangeRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.account.passphraseChange', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
 
 export const accountPassphrasePromptRpcChannelMap = (configKeys: Array<string>, request: AccountPassphrasePromptRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.account.passphrasePrompt', request)
 
-export const accountPassphrasePromptRpcPromise = (request: AccountPassphrasePromptRpcParam): Promise<AccountPassphrasePromptResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.account.passphrasePrompt', request, (error: RPCError, result: AccountPassphrasePromptResult) => error ? reject(error) : resolve(result)))
+export const accountPassphrasePromptRpcPromise = (request: AccountPassphrasePromptRpcParam): Promise<AccountPassphrasePromptResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.account.passphrasePrompt', request, (error: RPCError, result: AccountPassphrasePromptResult) => (error ? reject(error) : resolve(result))))
 
 export const accountResetAccountRpcChannelMap = (configKeys: Array<string>, request: AccountResetAccountRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.account.resetAccount', request)
 
-export const accountResetAccountRpcPromise = (request: AccountResetAccountRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.account.resetAccount', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
+export const accountResetAccountRpcPromise = (request: AccountResetAccountRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.account.resetAccount', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
 
 export const apiserverDeleteRpcChannelMap = (configKeys: Array<string>, request: ApiserverDeleteRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.apiserver.Delete', request)
 
-export const apiserverDeleteRpcPromise = (request: ApiserverDeleteRpcParam): Promise<ApiserverDeleteResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.apiserver.Delete', request, (error: RPCError, result: ApiserverDeleteResult) => error ? reject(error) : resolve(result)))
+export const apiserverDeleteRpcPromise = (request: ApiserverDeleteRpcParam): Promise<ApiserverDeleteResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.apiserver.Delete', request, (error: RPCError, result: ApiserverDeleteResult) => (error ? reject(error) : resolve(result))))
 
 export const apiserverGetRpcChannelMap = (configKeys: Array<string>, request: ApiserverGetRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.apiserver.Get', request)
 
-export const apiserverGetRpcPromise = (request: ApiserverGetRpcParam): Promise<ApiserverGetResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.apiserver.Get', request, (error: RPCError, result: ApiserverGetResult) => error ? reject(error) : resolve(result)))
+export const apiserverGetRpcPromise = (request: ApiserverGetRpcParam): Promise<ApiserverGetResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.apiserver.Get', request, (error: RPCError, result: ApiserverGetResult) => (error ? reject(error) : resolve(result))))
 
 export const apiserverGetWithSessionRpcChannelMap = (configKeys: Array<string>, request: ApiserverGetWithSessionRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.apiserver.GetWithSession', request)
 
-export const apiserverGetWithSessionRpcPromise = (request: ApiserverGetWithSessionRpcParam): Promise<ApiserverGetWithSessionResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.apiserver.GetWithSession', request, (error: RPCError, result: ApiserverGetWithSessionResult) => error ? reject(error) : resolve(result)))
+export const apiserverGetWithSessionRpcPromise = (request: ApiserverGetWithSessionRpcParam): Promise<ApiserverGetWithSessionResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.apiserver.GetWithSession', request, (error: RPCError, result: ApiserverGetWithSessionResult) => (error ? reject(error) : resolve(result))))
 
 export const apiserverPostJSONRpcChannelMap = (configKeys: Array<string>, request: ApiserverPostJSONRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.apiserver.PostJSON', request)
 
-export const apiserverPostJSONRpcPromise = (request: ApiserverPostJSONRpcParam): Promise<ApiserverPostJSONResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.apiserver.PostJSON', request, (error: RPCError, result: ApiserverPostJSONResult) => error ? reject(error) : resolve(result)))
+export const apiserverPostJSONRpcPromise = (request: ApiserverPostJSONRpcParam): Promise<ApiserverPostJSONResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.apiserver.PostJSON', request, (error: RPCError, result: ApiserverPostJSONResult) => (error ? reject(error) : resolve(result))))
 
 export const apiserverPostRpcChannelMap = (configKeys: Array<string>, request: ApiserverPostRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.apiserver.Post', request)
 
-export const apiserverPostRpcPromise = (request: ApiserverPostRpcParam): Promise<ApiserverPostResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.apiserver.Post', request, (error: RPCError, result: ApiserverPostResult) => error ? reject(error) : resolve(result)))
+export const apiserverPostRpcPromise = (request: ApiserverPostRpcParam): Promise<ApiserverPostResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.apiserver.Post', request, (error: RPCError, result: ApiserverPostResult) => (error ? reject(error) : resolve(result))))
 
 export const appStateAppState = {
   foreground: 0,
@@ -185,7 +184,7 @@ export const appStateAppState = {
 
 export const appStateUpdateAppStateRpcChannelMap = (configKeys: Array<string>, request: AppStateUpdateAppStateRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.appState.updateAppState', request)
 
-export const appStateUpdateAppStateRpcPromise = (request: AppStateUpdateAppStateRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.appState.updateAppState', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
+export const appStateUpdateAppStateRpcPromise = (request: AppStateUpdateAppStateRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.appState.updateAppState', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
 
 export const backendCommonBlockType = {
   data: 0,
@@ -195,59 +194,59 @@ export const backendCommonBlockType = {
 
 export const badgerGetBadgeStateRpcChannelMap = (configKeys: Array<string>, request: BadgerGetBadgeStateRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.badger.getBadgeState', request)
 
-export const badgerGetBadgeStateRpcPromise = (request: BadgerGetBadgeStateRpcParam): Promise<BadgerGetBadgeStateResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.badger.getBadgeState', request, (error: RPCError, result: BadgerGetBadgeStateResult) => error ? reject(error) : resolve(result)))
+export const badgerGetBadgeStateRpcPromise = (request: BadgerGetBadgeStateRpcParam): Promise<BadgerGetBadgeStateResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.badger.getBadgeState', request, (error: RPCError, result: BadgerGetBadgeStateResult) => (error ? reject(error) : resolve(result))))
 
 export const blockAddReferenceRpcChannelMap = (configKeys: Array<string>, request: BlockAddReferenceRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.block.addReference', request)
 
-export const blockAddReferenceRpcPromise = (request: BlockAddReferenceRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.block.addReference', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
+export const blockAddReferenceRpcPromise = (request: BlockAddReferenceRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.block.addReference', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
 
 export const blockArchiveReferenceRpcChannelMap = (configKeys: Array<string>, request: BlockArchiveReferenceRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.block.archiveReference', request)
 
-export const blockArchiveReferenceRpcPromise = (request: BlockArchiveReferenceRpcParam): Promise<BlockArchiveReferenceResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.block.archiveReference', request, (error: RPCError, result: BlockArchiveReferenceResult) => error ? reject(error) : resolve(result)))
+export const blockArchiveReferenceRpcPromise = (request: BlockArchiveReferenceRpcParam): Promise<BlockArchiveReferenceResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.block.archiveReference', request, (error: RPCError, result: BlockArchiveReferenceResult) => (error ? reject(error) : resolve(result))))
 
 export const blockArchiveReferenceWithCountRpcChannelMap = (configKeys: Array<string>, request: BlockArchiveReferenceWithCountRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.block.archiveReferenceWithCount', request)
 
-export const blockArchiveReferenceWithCountRpcPromise = (request: BlockArchiveReferenceWithCountRpcParam): Promise<BlockArchiveReferenceWithCountResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.block.archiveReferenceWithCount', request, (error: RPCError, result: BlockArchiveReferenceWithCountResult) => error ? reject(error) : resolve(result)))
+export const blockArchiveReferenceWithCountRpcPromise = (request: BlockArchiveReferenceWithCountRpcParam): Promise<BlockArchiveReferenceWithCountResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.block.archiveReferenceWithCount', request, (error: RPCError, result: BlockArchiveReferenceWithCountResult) => (error ? reject(error) : resolve(result))))
 
 export const blockAuthenticateSessionRpcChannelMap = (configKeys: Array<string>, request: BlockAuthenticateSessionRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.block.authenticateSession', request)
 
-export const blockAuthenticateSessionRpcPromise = (request: BlockAuthenticateSessionRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.block.authenticateSession', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
+export const blockAuthenticateSessionRpcPromise = (request: BlockAuthenticateSessionRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.block.authenticateSession', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
 
 export const blockBlockPingRpcChannelMap = (configKeys: Array<string>, request: BlockBlockPingRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.block.blockPing', request)
 
-export const blockBlockPingRpcPromise = (request: BlockBlockPingRpcParam): Promise<BlockBlockPingResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.block.blockPing', request, (error: RPCError, result: BlockBlockPingResult) => error ? reject(error) : resolve(result)))
+export const blockBlockPingRpcPromise = (request: BlockBlockPingRpcParam): Promise<BlockBlockPingResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.block.blockPing', request, (error: RPCError, result: BlockBlockPingResult) => (error ? reject(error) : resolve(result))))
 
 export const blockDelReferenceRpcChannelMap = (configKeys: Array<string>, request: BlockDelReferenceRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.block.delReference', request)
 
-export const blockDelReferenceRpcPromise = (request: BlockDelReferenceRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.block.delReference', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
+export const blockDelReferenceRpcPromise = (request: BlockDelReferenceRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.block.delReference', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
 
 export const blockDelReferenceWithCountRpcChannelMap = (configKeys: Array<string>, request: BlockDelReferenceWithCountRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.block.delReferenceWithCount', request)
 
-export const blockDelReferenceWithCountRpcPromise = (request: BlockDelReferenceWithCountRpcParam): Promise<BlockDelReferenceWithCountResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.block.delReferenceWithCount', request, (error: RPCError, result: BlockDelReferenceWithCountResult) => error ? reject(error) : resolve(result)))
+export const blockDelReferenceWithCountRpcPromise = (request: BlockDelReferenceWithCountRpcParam): Promise<BlockDelReferenceWithCountResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.block.delReferenceWithCount', request, (error: RPCError, result: BlockDelReferenceWithCountResult) => (error ? reject(error) : resolve(result))))
 
 export const blockGetBlockRpcChannelMap = (configKeys: Array<string>, request: BlockGetBlockRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.block.getBlock', request)
 
-export const blockGetBlockRpcPromise = (request: BlockGetBlockRpcParam): Promise<BlockGetBlockResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.block.getBlock', request, (error: RPCError, result: BlockGetBlockResult) => error ? reject(error) : resolve(result)))
+export const blockGetBlockRpcPromise = (request: BlockGetBlockRpcParam): Promise<BlockGetBlockResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.block.getBlock', request, (error: RPCError, result: BlockGetBlockResult) => (error ? reject(error) : resolve(result))))
 
 export const blockGetSessionChallengeRpcChannelMap = (configKeys: Array<string>, request: BlockGetSessionChallengeRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.block.getSessionChallenge', request)
 
-export const blockGetSessionChallengeRpcPromise = (request: BlockGetSessionChallengeRpcParam): Promise<BlockGetSessionChallengeResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.block.getSessionChallenge', request, (error: RPCError, result: BlockGetSessionChallengeResult) => error ? reject(error) : resolve(result)))
+export const blockGetSessionChallengeRpcPromise = (request: BlockGetSessionChallengeRpcParam): Promise<BlockGetSessionChallengeResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.block.getSessionChallenge', request, (error: RPCError, result: BlockGetSessionChallengeResult) => (error ? reject(error) : resolve(result))))
 
 export const blockGetTeamQuotaInfoRpcChannelMap = (configKeys: Array<string>, request: BlockGetTeamQuotaInfoRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.block.getTeamQuotaInfo', request)
 
-export const blockGetTeamQuotaInfoRpcPromise = (request: BlockGetTeamQuotaInfoRpcParam): Promise<BlockGetTeamQuotaInfoResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.block.getTeamQuotaInfo', request, (error: RPCError, result: BlockGetTeamQuotaInfoResult) => error ? reject(error) : resolve(result)))
+export const blockGetTeamQuotaInfoRpcPromise = (request: BlockGetTeamQuotaInfoRpcParam): Promise<BlockGetTeamQuotaInfoResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.block.getTeamQuotaInfo', request, (error: RPCError, result: BlockGetTeamQuotaInfoResult) => (error ? reject(error) : resolve(result))))
 
 export const blockGetUserQuotaInfoRpcChannelMap = (configKeys: Array<string>, request: BlockGetUserQuotaInfoRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.block.getUserQuotaInfo', request)
 
-export const blockGetUserQuotaInfoRpcPromise = (request: BlockGetUserQuotaInfoRpcParam): Promise<BlockGetUserQuotaInfoResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.block.getUserQuotaInfo', request, (error: RPCError, result: BlockGetUserQuotaInfoResult) => error ? reject(error) : resolve(result)))
+export const blockGetUserQuotaInfoRpcPromise = (request: BlockGetUserQuotaInfoRpcParam): Promise<BlockGetUserQuotaInfoResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.block.getUserQuotaInfo', request, (error: RPCError, result: BlockGetUserQuotaInfoResult) => (error ? reject(error) : resolve(result))))
 
 export const blockPutBlockAgainRpcChannelMap = (configKeys: Array<string>, request: BlockPutBlockAgainRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.block.putBlockAgain', request)
 
-export const blockPutBlockAgainRpcPromise = (request: BlockPutBlockAgainRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.block.putBlockAgain', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
+export const blockPutBlockAgainRpcPromise = (request: BlockPutBlockAgainRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.block.putBlockAgain', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
 
 export const blockPutBlockRpcChannelMap = (configKeys: Array<string>, request: BlockPutBlockRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.block.putBlock', request)
 
-export const blockPutBlockRpcPromise = (request: BlockPutBlockRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.block.putBlock', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
+export const blockPutBlockRpcPromise = (request: BlockPutBlockRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.block.putBlock', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
 
 export const commonClientType = {
   none: 0,
@@ -310,11 +309,11 @@ export const commonUserOrTeamResult = {
 
 export const configCheckAPIServerOutOfDateWarningRpcChannelMap = (configKeys: Array<string>, request: ConfigCheckAPIServerOutOfDateWarningRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.config.checkAPIServerOutOfDateWarning', request)
 
-export const configCheckAPIServerOutOfDateWarningRpcPromise = (request: ConfigCheckAPIServerOutOfDateWarningRpcParam): Promise<ConfigCheckAPIServerOutOfDateWarningResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.config.checkAPIServerOutOfDateWarning', request, (error: RPCError, result: ConfigCheckAPIServerOutOfDateWarningResult) => error ? reject(error) : resolve(result)))
+export const configCheckAPIServerOutOfDateWarningRpcPromise = (request: ConfigCheckAPIServerOutOfDateWarningRpcParam): Promise<ConfigCheckAPIServerOutOfDateWarningResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.config.checkAPIServerOutOfDateWarning', request, (error: RPCError, result: ConfigCheckAPIServerOutOfDateWarningResult) => (error ? reject(error) : resolve(result))))
 
 export const configClearValueRpcChannelMap = (configKeys: Array<string>, request: ConfigClearValueRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.config.clearValue', request)
 
-export const configClearValueRpcPromise = (request: ConfigClearValueRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.config.clearValue', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
+export const configClearValueRpcPromise = (request: ConfigClearValueRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.config.clearValue', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
 
 export const configForkType = {
   none: 0,
@@ -326,43 +325,43 @@ export const configForkType = {
 
 export const configGetBootstrapStatusRpcChannelMap = (configKeys: Array<string>, request: ConfigGetBootstrapStatusRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.config.getBootstrapStatus', request)
 
-export const configGetBootstrapStatusRpcPromise = (request: ConfigGetBootstrapStatusRpcParam): Promise<ConfigGetBootstrapStatusResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.config.getBootstrapStatus', request, (error: RPCError, result: ConfigGetBootstrapStatusResult) => error ? reject(error) : resolve(result)))
+export const configGetBootstrapStatusRpcPromise = (request: ConfigGetBootstrapStatusRpcParam): Promise<ConfigGetBootstrapStatusResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.config.getBootstrapStatus', request, (error: RPCError, result: ConfigGetBootstrapStatusResult) => (error ? reject(error) : resolve(result))))
 
 export const configGetConfigRpcChannelMap = (configKeys: Array<string>, request: ConfigGetConfigRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.config.getConfig', request)
 
-export const configGetConfigRpcPromise = (request: ConfigGetConfigRpcParam): Promise<ConfigGetConfigResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.config.getConfig', request, (error: RPCError, result: ConfigGetConfigResult) => error ? reject(error) : resolve(result)))
+export const configGetConfigRpcPromise = (request: ConfigGetConfigRpcParam): Promise<ConfigGetConfigResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.config.getConfig', request, (error: RPCError, result: ConfigGetConfigResult) => (error ? reject(error) : resolve(result))))
 
 export const configGetCurrentStatusRpcChannelMap = (configKeys: Array<string>, request: ConfigGetCurrentStatusRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.config.getCurrentStatus', request)
 
-export const configGetCurrentStatusRpcPromise = (request: ConfigGetCurrentStatusRpcParam): Promise<ConfigGetCurrentStatusResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.config.getCurrentStatus', request, (error: RPCError, result: ConfigGetCurrentStatusResult) => error ? reject(error) : resolve(result)))
+export const configGetCurrentStatusRpcPromise = (request: ConfigGetCurrentStatusRpcParam): Promise<ConfigGetCurrentStatusResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.config.getCurrentStatus', request, (error: RPCError, result: ConfigGetCurrentStatusResult) => (error ? reject(error) : resolve(result))))
 
 export const configGetExtendedStatusRpcChannelMap = (configKeys: Array<string>, request: ConfigGetExtendedStatusRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.config.getExtendedStatus', request)
 
-export const configGetExtendedStatusRpcPromise = (request: ConfigGetExtendedStatusRpcParam): Promise<ConfigGetExtendedStatusResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.config.getExtendedStatus', request, (error: RPCError, result: ConfigGetExtendedStatusResult) => error ? reject(error) : resolve(result)))
+export const configGetExtendedStatusRpcPromise = (request: ConfigGetExtendedStatusRpcParam): Promise<ConfigGetExtendedStatusResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.config.getExtendedStatus', request, (error: RPCError, result: ConfigGetExtendedStatusResult) => (error ? reject(error) : resolve(result))))
 
 export const configGetValueRpcChannelMap = (configKeys: Array<string>, request: ConfigGetValueRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.config.getValue', request)
 
-export const configGetValueRpcPromise = (request: ConfigGetValueRpcParam): Promise<ConfigGetValueResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.config.getValue', request, (error: RPCError, result: ConfigGetValueResult) => error ? reject(error) : resolve(result)))
+export const configGetValueRpcPromise = (request: ConfigGetValueRpcParam): Promise<ConfigGetValueResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.config.getValue', request, (error: RPCError, result: ConfigGetValueResult) => (error ? reject(error) : resolve(result))))
 
 export const configHelloIAmRpcChannelMap = (configKeys: Array<string>, request: ConfigHelloIAmRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.config.helloIAm', request)
 
-export const configHelloIAmRpcPromise = (request: ConfigHelloIAmRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.config.helloIAm', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
+export const configHelloIAmRpcPromise = (request: ConfigHelloIAmRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.config.helloIAm', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
 
 export const configSetPathRpcChannelMap = (configKeys: Array<string>, request: ConfigSetPathRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.config.setPath', request)
 
-export const configSetPathRpcPromise = (request: ConfigSetPathRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.config.setPath', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
+export const configSetPathRpcPromise = (request: ConfigSetPathRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.config.setPath', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
 
 export const configSetUserConfigRpcChannelMap = (configKeys: Array<string>, request: ConfigSetUserConfigRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.config.setUserConfig', request)
 
-export const configSetUserConfigRpcPromise = (request: ConfigSetUserConfigRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.config.setUserConfig', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
+export const configSetUserConfigRpcPromise = (request: ConfigSetUserConfigRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.config.setUserConfig', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
 
 export const configSetValueRpcChannelMap = (configKeys: Array<string>, request: ConfigSetValueRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.config.setValue', request)
 
-export const configSetValueRpcPromise = (request: ConfigSetValueRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.config.setValue', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
+export const configSetValueRpcPromise = (request: ConfigSetValueRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.config.setValue', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
 
 export const configWaitForClientRpcChannelMap = (configKeys: Array<string>, request: ConfigWaitForClientRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.config.waitForClient', request)
 
-export const configWaitForClientRpcPromise = (request: ConfigWaitForClientRpcParam): Promise<ConfigWaitForClientResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.config.waitForClient', request, (error: RPCError, result: ConfigWaitForClientResult) => error ? reject(error) : resolve(result)))
+export const configWaitForClientRpcPromise = (request: ConfigWaitForClientRpcParam): Promise<ConfigWaitForClientResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.config.waitForClient', request, (error: RPCError, result: ConfigWaitForClientResult) => (error ? reject(error) : resolve(result))))
 
 export const constantsStatusCode = {
   scok: 0,
@@ -515,47 +514,47 @@ export const constantsStatusCode = {
 
 export const cryptoSignED25519ForKBFSRpcChannelMap = (configKeys: Array<string>, request: CryptoSignED25519ForKBFSRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.crypto.signED25519ForKBFS', request)
 
-export const cryptoSignED25519ForKBFSRpcPromise = (request: CryptoSignED25519ForKBFSRpcParam): Promise<CryptoSignED25519ForKBFSResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.crypto.signED25519ForKBFS', request, (error: RPCError, result: CryptoSignED25519ForKBFSResult) => error ? reject(error) : resolve(result)))
+export const cryptoSignED25519ForKBFSRpcPromise = (request: CryptoSignED25519ForKBFSRpcParam): Promise<CryptoSignED25519ForKBFSResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.crypto.signED25519ForKBFS', request, (error: RPCError, result: CryptoSignED25519ForKBFSResult) => (error ? reject(error) : resolve(result))))
 
 export const cryptoSignED25519RpcChannelMap = (configKeys: Array<string>, request: CryptoSignED25519RpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.crypto.signED25519', request)
 
-export const cryptoSignED25519RpcPromise = (request: CryptoSignED25519RpcParam): Promise<CryptoSignED25519Result> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.crypto.signED25519', request, (error: RPCError, result: CryptoSignED25519Result) => error ? reject(error) : resolve(result)))
+export const cryptoSignED25519RpcPromise = (request: CryptoSignED25519RpcParam): Promise<CryptoSignED25519Result> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.crypto.signED25519', request, (error: RPCError, result: CryptoSignED25519Result) => (error ? reject(error) : resolve(result))))
 
 export const cryptoSignToStringRpcChannelMap = (configKeys: Array<string>, request: CryptoSignToStringRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.crypto.signToString', request)
 
-export const cryptoSignToStringRpcPromise = (request: CryptoSignToStringRpcParam): Promise<CryptoSignToStringResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.crypto.signToString', request, (error: RPCError, result: CryptoSignToStringResult) => error ? reject(error) : resolve(result)))
+export const cryptoSignToStringRpcPromise = (request: CryptoSignToStringRpcParam): Promise<CryptoSignToStringResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.crypto.signToString', request, (error: RPCError, result: CryptoSignToStringResult) => (error ? reject(error) : resolve(result))))
 
 export const cryptoUnboxBytes32AnyRpcChannelMap = (configKeys: Array<string>, request: CryptoUnboxBytes32AnyRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.crypto.unboxBytes32Any', request)
 
-export const cryptoUnboxBytes32AnyRpcPromise = (request: CryptoUnboxBytes32AnyRpcParam): Promise<CryptoUnboxBytes32AnyResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.crypto.unboxBytes32Any', request, (error: RPCError, result: CryptoUnboxBytes32AnyResult) => error ? reject(error) : resolve(result)))
+export const cryptoUnboxBytes32AnyRpcPromise = (request: CryptoUnboxBytes32AnyRpcParam): Promise<CryptoUnboxBytes32AnyResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.crypto.unboxBytes32Any', request, (error: RPCError, result: CryptoUnboxBytes32AnyResult) => (error ? reject(error) : resolve(result))))
 
 export const cryptoUnboxBytes32RpcChannelMap = (configKeys: Array<string>, request: CryptoUnboxBytes32RpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.crypto.unboxBytes32', request)
 
-export const cryptoUnboxBytes32RpcPromise = (request: CryptoUnboxBytes32RpcParam): Promise<CryptoUnboxBytes32Result> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.crypto.unboxBytes32', request, (error: RPCError, result: CryptoUnboxBytes32Result) => error ? reject(error) : resolve(result)))
+export const cryptoUnboxBytes32RpcPromise = (request: CryptoUnboxBytes32RpcParam): Promise<CryptoUnboxBytes32Result> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.crypto.unboxBytes32', request, (error: RPCError, result: CryptoUnboxBytes32Result) => (error ? reject(error) : resolve(result))))
 
 export const cryptocurrencyRegisterAddressRpcChannelMap = (configKeys: Array<string>, request: CryptocurrencyRegisterAddressRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.cryptocurrency.registerAddress', request)
 
-export const cryptocurrencyRegisterAddressRpcPromise = (request: CryptocurrencyRegisterAddressRpcParam): Promise<CryptocurrencyRegisterAddressResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.cryptocurrency.registerAddress', request, (error: RPCError, result: CryptocurrencyRegisterAddressResult) => error ? reject(error) : resolve(result)))
+export const cryptocurrencyRegisterAddressRpcPromise = (request: CryptocurrencyRegisterAddressRpcParam): Promise<CryptocurrencyRegisterAddressResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.cryptocurrency.registerAddress', request, (error: RPCError, result: CryptocurrencyRegisterAddressResult) => (error ? reject(error) : resolve(result))))
 
 export const ctlAppExitRpcChannelMap = (configKeys: Array<string>, request: CtlAppExitRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.ctl.appExit', request)
 
-export const ctlAppExitRpcPromise = (request: CtlAppExitRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.ctl.appExit', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
+export const ctlAppExitRpcPromise = (request: CtlAppExitRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.ctl.appExit', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
 
 export const ctlDbDeleteRpcChannelMap = (configKeys: Array<string>, request: CtlDbDeleteRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.ctl.dbDelete', request)
 
-export const ctlDbDeleteRpcPromise = (request: CtlDbDeleteRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.ctl.dbDelete', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
+export const ctlDbDeleteRpcPromise = (request: CtlDbDeleteRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.ctl.dbDelete', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
 
 export const ctlDbGetRpcChannelMap = (configKeys: Array<string>, request: CtlDbGetRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.ctl.dbGet', request)
 
-export const ctlDbGetRpcPromise = (request: CtlDbGetRpcParam): Promise<CtlDbGetResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.ctl.dbGet', request, (error: RPCError, result: CtlDbGetResult) => error ? reject(error) : resolve(result)))
+export const ctlDbGetRpcPromise = (request: CtlDbGetRpcParam): Promise<CtlDbGetResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.ctl.dbGet', request, (error: RPCError, result: CtlDbGetResult) => (error ? reject(error) : resolve(result))))
 
 export const ctlDbNukeRpcChannelMap = (configKeys: Array<string>, request: CtlDbNukeRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.ctl.dbNuke', request)
 
-export const ctlDbNukeRpcPromise = (request: CtlDbNukeRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.ctl.dbNuke', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
+export const ctlDbNukeRpcPromise = (request: CtlDbNukeRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.ctl.dbNuke', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
 
 export const ctlDbPutRpcChannelMap = (configKeys: Array<string>, request: CtlDbPutRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.ctl.dbPut', request)
 
-export const ctlDbPutRpcPromise = (request: CtlDbPutRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.ctl.dbPut', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
+export const ctlDbPutRpcPromise = (request: CtlDbPutRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.ctl.dbPut', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
 
 export const ctlDbType = {
   main: 0,
@@ -570,75 +569,75 @@ export const ctlExitCode = {
 
 export const ctlLogRotateRpcChannelMap = (configKeys: Array<string>, request: CtlLogRotateRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.ctl.logRotate', request)
 
-export const ctlLogRotateRpcPromise = (request: CtlLogRotateRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.ctl.logRotate', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
+export const ctlLogRotateRpcPromise = (request: CtlLogRotateRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.ctl.logRotate', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
 
 export const ctlReloadRpcChannelMap = (configKeys: Array<string>, request: CtlReloadRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.ctl.reload', request)
 
-export const ctlReloadRpcPromise = (request: CtlReloadRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.ctl.reload', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
+export const ctlReloadRpcPromise = (request: CtlReloadRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.ctl.reload', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
 
 export const ctlStopRpcChannelMap = (configKeys: Array<string>, request: CtlStopRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.ctl.stop', request)
 
-export const ctlStopRpcPromise = (request: CtlStopRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.ctl.stop', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
+export const ctlStopRpcPromise = (request: CtlStopRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.ctl.stop', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
 
 export const debuggingFirstStepRpcChannelMap = (configKeys: Array<string>, request: DebuggingFirstStepRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.debugging.firstStep', request)
 
-export const debuggingFirstStepRpcPromise = (request: DebuggingFirstStepRpcParam): Promise<DebuggingFirstStepResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.debugging.firstStep', request, (error: RPCError, result: DebuggingFirstStepResult) => error ? reject(error) : resolve(result)))
+export const debuggingFirstStepRpcPromise = (request: DebuggingFirstStepRpcParam): Promise<DebuggingFirstStepResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.debugging.firstStep', request, (error: RPCError, result: DebuggingFirstStepResult) => (error ? reject(error) : resolve(result))))
 
 export const debuggingIncrementRpcChannelMap = (configKeys: Array<string>, request: DebuggingIncrementRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.debugging.increment', request)
 
-export const debuggingIncrementRpcPromise = (request: DebuggingIncrementRpcParam): Promise<DebuggingIncrementResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.debugging.increment', request, (error: RPCError, result: DebuggingIncrementResult) => error ? reject(error) : resolve(result)))
+export const debuggingIncrementRpcPromise = (request: DebuggingIncrementRpcParam): Promise<DebuggingIncrementResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.debugging.increment', request, (error: RPCError, result: DebuggingIncrementResult) => (error ? reject(error) : resolve(result))))
 
 export const debuggingSecondStepRpcChannelMap = (configKeys: Array<string>, request: DebuggingSecondStepRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.debugging.secondStep', request)
 
-export const debuggingSecondStepRpcPromise = (request: DebuggingSecondStepRpcParam): Promise<DebuggingSecondStepResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.debugging.secondStep', request, (error: RPCError, result: DebuggingSecondStepResult) => error ? reject(error) : resolve(result)))
+export const debuggingSecondStepRpcPromise = (request: DebuggingSecondStepRpcParam): Promise<DebuggingSecondStepResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.debugging.secondStep', request, (error: RPCError, result: DebuggingSecondStepResult) => (error ? reject(error) : resolve(result))))
 
 export const delegateUiCtlRegisterGregorFirehoseRpcChannelMap = (configKeys: Array<string>, request: DelegateUiCtlRegisterGregorFirehoseRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.delegateUiCtl.registerGregorFirehose', request)
 
-export const delegateUiCtlRegisterGregorFirehoseRpcPromise = (request: DelegateUiCtlRegisterGregorFirehoseRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.delegateUiCtl.registerGregorFirehose', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
+export const delegateUiCtlRegisterGregorFirehoseRpcPromise = (request: DelegateUiCtlRegisterGregorFirehoseRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.delegateUiCtl.registerGregorFirehose', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
 
 export const delegateUiCtlRegisterIdentifyUIRpcChannelMap = (configKeys: Array<string>, request: DelegateUiCtlRegisterIdentifyUIRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.delegateUiCtl.registerIdentifyUI', request)
 
-export const delegateUiCtlRegisterIdentifyUIRpcPromise = (request: DelegateUiCtlRegisterIdentifyUIRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.delegateUiCtl.registerIdentifyUI', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
+export const delegateUiCtlRegisterIdentifyUIRpcPromise = (request: DelegateUiCtlRegisterIdentifyUIRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.delegateUiCtl.registerIdentifyUI', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
 
 export const delegateUiCtlRegisterRekeyUIRpcChannelMap = (configKeys: Array<string>, request: DelegateUiCtlRegisterRekeyUIRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.delegateUiCtl.registerRekeyUI', request)
 
-export const delegateUiCtlRegisterRekeyUIRpcPromise = (request: DelegateUiCtlRegisterRekeyUIRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.delegateUiCtl.registerRekeyUI', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
+export const delegateUiCtlRegisterRekeyUIRpcPromise = (request: DelegateUiCtlRegisterRekeyUIRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.delegateUiCtl.registerRekeyUI', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
 
 export const delegateUiCtlRegisterSecretUIRpcChannelMap = (configKeys: Array<string>, request: DelegateUiCtlRegisterSecretUIRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.delegateUiCtl.registerSecretUI', request)
 
-export const delegateUiCtlRegisterSecretUIRpcPromise = (request: DelegateUiCtlRegisterSecretUIRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.delegateUiCtl.registerSecretUI', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
+export const delegateUiCtlRegisterSecretUIRpcPromise = (request: DelegateUiCtlRegisterSecretUIRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.delegateUiCtl.registerSecretUI', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
 
 export const delegateUiCtlRegisterUpdateUIRpcChannelMap = (configKeys: Array<string>, request: DelegateUiCtlRegisterUpdateUIRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.delegateUiCtl.registerUpdateUI', request)
 
-export const delegateUiCtlRegisterUpdateUIRpcPromise = (request: DelegateUiCtlRegisterUpdateUIRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.delegateUiCtl.registerUpdateUI', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
+export const delegateUiCtlRegisterUpdateUIRpcPromise = (request: DelegateUiCtlRegisterUpdateUIRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.delegateUiCtl.registerUpdateUI', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
 
 export const deviceCheckDeviceNameForUserRpcChannelMap = (configKeys: Array<string>, request: DeviceCheckDeviceNameForUserRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.device.checkDeviceNameForUser', request)
 
-export const deviceCheckDeviceNameForUserRpcPromise = (request: DeviceCheckDeviceNameForUserRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.device.checkDeviceNameForUser', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
+export const deviceCheckDeviceNameForUserRpcPromise = (request: DeviceCheckDeviceNameForUserRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.device.checkDeviceNameForUser', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
 
 export const deviceCheckDeviceNameFormatRpcChannelMap = (configKeys: Array<string>, request: DeviceCheckDeviceNameFormatRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.device.checkDeviceNameFormat', request)
 
-export const deviceCheckDeviceNameFormatRpcPromise = (request: DeviceCheckDeviceNameFormatRpcParam): Promise<DeviceCheckDeviceNameFormatResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.device.checkDeviceNameFormat', request, (error: RPCError, result: DeviceCheckDeviceNameFormatResult) => error ? reject(error) : resolve(result)))
+export const deviceCheckDeviceNameFormatRpcPromise = (request: DeviceCheckDeviceNameFormatRpcParam): Promise<DeviceCheckDeviceNameFormatResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.device.checkDeviceNameFormat', request, (error: RPCError, result: DeviceCheckDeviceNameFormatResult) => (error ? reject(error) : resolve(result))))
 
 export const deviceDeviceAddRpcChannelMap = (configKeys: Array<string>, request: DeviceDeviceAddRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.device.deviceAdd', request)
 
-export const deviceDeviceAddRpcPromise = (request: DeviceDeviceAddRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.device.deviceAdd', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
+export const deviceDeviceAddRpcPromise = (request: DeviceDeviceAddRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.device.deviceAdd', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
 
 export const deviceDeviceHistoryListRpcChannelMap = (configKeys: Array<string>, request: DeviceDeviceHistoryListRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.device.deviceHistoryList', request)
 
-export const deviceDeviceHistoryListRpcPromise = (request: DeviceDeviceHistoryListRpcParam): Promise<DeviceDeviceHistoryListResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.device.deviceHistoryList', request, (error: RPCError, result: DeviceDeviceHistoryListResult) => error ? reject(error) : resolve(result)))
+export const deviceDeviceHistoryListRpcPromise = (request: DeviceDeviceHistoryListRpcParam): Promise<DeviceDeviceHistoryListResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.device.deviceHistoryList', request, (error: RPCError, result: DeviceDeviceHistoryListResult) => (error ? reject(error) : resolve(result))))
 
 export const deviceDeviceListRpcChannelMap = (configKeys: Array<string>, request: DeviceDeviceListRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.device.deviceList', request)
 
-export const deviceDeviceListRpcPromise = (request: DeviceDeviceListRpcParam): Promise<DeviceDeviceListResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.device.deviceList', request, (error: RPCError, result: DeviceDeviceListResult) => error ? reject(error) : resolve(result)))
+export const deviceDeviceListRpcPromise = (request: DeviceDeviceListRpcParam): Promise<DeviceDeviceListResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.device.deviceList', request, (error: RPCError, result: DeviceDeviceListResult) => (error ? reject(error) : resolve(result))))
 
 export const favoriteFavoriteAddRpcChannelMap = (configKeys: Array<string>, request: FavoriteFavoriteAddRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.favorite.favoriteAdd', request)
 
-export const favoriteFavoriteAddRpcPromise = (request: FavoriteFavoriteAddRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.favorite.favoriteAdd', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
+export const favoriteFavoriteAddRpcPromise = (request: FavoriteFavoriteAddRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.favorite.favoriteAdd', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
 
 export const favoriteFavoriteIgnoreRpcChannelMap = (configKeys: Array<string>, request: FavoriteFavoriteIgnoreRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.favorite.favoriteIgnore', request)
 
-export const favoriteFavoriteIgnoreRpcPromise = (request: FavoriteFavoriteIgnoreRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.favorite.favoriteIgnore', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
+export const favoriteFavoriteIgnoreRpcPromise = (request: FavoriteFavoriteIgnoreRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.favorite.favoriteIgnore', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
 
 export const favoriteFolderType = {
   unknown: 0,
@@ -649,47 +648,47 @@ export const favoriteFolderType = {
 
 export const favoriteGetFavoritesRpcChannelMap = (configKeys: Array<string>, request: FavoriteGetFavoritesRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.favorite.getFavorites', request)
 
-export const favoriteGetFavoritesRpcPromise = (request: FavoriteGetFavoritesRpcParam): Promise<FavoriteGetFavoritesResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.favorite.getFavorites', request, (error: RPCError, result: FavoriteGetFavoritesResult) => error ? reject(error) : resolve(result)))
+export const favoriteGetFavoritesRpcPromise = (request: FavoriteGetFavoritesRpcParam): Promise<FavoriteGetFavoritesResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.favorite.getFavorites', request, (error: RPCError, result: FavoriteGetFavoritesResult) => (error ? reject(error) : resolve(result))))
 
 export const fsListRpcChannelMap = (configKeys: Array<string>, request: FsListRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.fs.List', request)
 
-export const fsListRpcPromise = (request: FsListRpcParam): Promise<FsListResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.fs.List', request, (error: RPCError, result: FsListResult) => error ? reject(error) : resolve(result)))
+export const fsListRpcPromise = (request: FsListRpcParam): Promise<FsListResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.fs.List', request, (error: RPCError, result: FsListResult) => (error ? reject(error) : resolve(result))))
 
 export const gitCreatePersonalRepoRpcChannelMap = (configKeys: Array<string>, request: GitCreatePersonalRepoRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.git.createPersonalRepo', request)
 
-export const gitCreatePersonalRepoRpcPromise = (request: GitCreatePersonalRepoRpcParam): Promise<GitCreatePersonalRepoResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.git.createPersonalRepo', request, (error: RPCError, result: GitCreatePersonalRepoResult) => error ? reject(error) : resolve(result)))
+export const gitCreatePersonalRepoRpcPromise = (request: GitCreatePersonalRepoRpcParam): Promise<GitCreatePersonalRepoResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.git.createPersonalRepo', request, (error: RPCError, result: GitCreatePersonalRepoResult) => (error ? reject(error) : resolve(result))))
 
 export const gitCreateTeamRepoRpcChannelMap = (configKeys: Array<string>, request: GitCreateTeamRepoRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.git.createTeamRepo', request)
 
-export const gitCreateTeamRepoRpcPromise = (request: GitCreateTeamRepoRpcParam): Promise<GitCreateTeamRepoResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.git.createTeamRepo', request, (error: RPCError, result: GitCreateTeamRepoResult) => error ? reject(error) : resolve(result)))
+export const gitCreateTeamRepoRpcPromise = (request: GitCreateTeamRepoRpcParam): Promise<GitCreateTeamRepoResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.git.createTeamRepo', request, (error: RPCError, result: GitCreateTeamRepoResult) => (error ? reject(error) : resolve(result))))
 
 export const gitDeleteGitMetadataRpcChannelMap = (configKeys: Array<string>, request: GitDeleteGitMetadataRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.git.deleteGitMetadata', request)
 
-export const gitDeleteGitMetadataRpcPromise = (request: GitDeleteGitMetadataRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.git.deleteGitMetadata', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
+export const gitDeleteGitMetadataRpcPromise = (request: GitDeleteGitMetadataRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.git.deleteGitMetadata', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
 
 export const gitDeletePersonalRepoRpcChannelMap = (configKeys: Array<string>, request: GitDeletePersonalRepoRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.git.deletePersonalRepo', request)
 
-export const gitDeletePersonalRepoRpcPromise = (request: GitDeletePersonalRepoRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.git.deletePersonalRepo', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
+export const gitDeletePersonalRepoRpcPromise = (request: GitDeletePersonalRepoRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.git.deletePersonalRepo', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
 
 export const gitDeleteTeamRepoRpcChannelMap = (configKeys: Array<string>, request: GitDeleteTeamRepoRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.git.deleteTeamRepo', request)
 
-export const gitDeleteTeamRepoRpcPromise = (request: GitDeleteTeamRepoRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.git.deleteTeamRepo', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
+export const gitDeleteTeamRepoRpcPromise = (request: GitDeleteTeamRepoRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.git.deleteTeamRepo', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
 
 export const gitGcPersonalRepoRpcChannelMap = (configKeys: Array<string>, request: GitGcPersonalRepoRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.git.gcPersonalRepo', request)
 
-export const gitGcPersonalRepoRpcPromise = (request: GitGcPersonalRepoRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.git.gcPersonalRepo', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
+export const gitGcPersonalRepoRpcPromise = (request: GitGcPersonalRepoRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.git.gcPersonalRepo', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
 
 export const gitGcTeamRepoRpcChannelMap = (configKeys: Array<string>, request: GitGcTeamRepoRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.git.gcTeamRepo', request)
 
-export const gitGcTeamRepoRpcPromise = (request: GitGcTeamRepoRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.git.gcTeamRepo', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
+export const gitGcTeamRepoRpcPromise = (request: GitGcTeamRepoRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.git.gcTeamRepo', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
 
 export const gitGetAllGitMetadataRpcChannelMap = (configKeys: Array<string>, request: GitGetAllGitMetadataRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.git.getAllGitMetadata', request)
 
-export const gitGetAllGitMetadataRpcPromise = (request: GitGetAllGitMetadataRpcParam): Promise<GitGetAllGitMetadataResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.git.getAllGitMetadata', request, (error: RPCError, result: GitGetAllGitMetadataResult) => error ? reject(error) : resolve(result)))
+export const gitGetAllGitMetadataRpcPromise = (request: GitGetAllGitMetadataRpcParam): Promise<GitGetAllGitMetadataResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.git.getAllGitMetadata', request, (error: RPCError, result: GitGetAllGitMetadataResult) => (error ? reject(error) : resolve(result))))
 
 export const gitGetGitMetadataRpcChannelMap = (configKeys: Array<string>, request: GitGetGitMetadataRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.git.getGitMetadata', request)
 
-export const gitGetGitMetadataRpcPromise = (request: GitGetGitMetadataRpcParam): Promise<GitGetGitMetadataResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.git.getGitMetadata', request, (error: RPCError, result: GitGetGitMetadataResult) => error ? reject(error) : resolve(result)))
+export const gitGetGitMetadataRpcPromise = (request: GitGetGitMetadataRpcParam): Promise<GitGetGitMetadataResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.git.getGitMetadata', request, (error: RPCError, result: GitGetGitMetadataResult) => (error ? reject(error) : resolve(result))))
 
 export const gitGitLocalMetadataVersion = {
   v1: 1,
@@ -702,23 +701,23 @@ export const gitGitRepoResultState = {
 
 export const gitPutGitMetadataRpcChannelMap = (configKeys: Array<string>, request: GitPutGitMetadataRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.git.putGitMetadata', request)
 
-export const gitPutGitMetadataRpcPromise = (request: GitPutGitMetadataRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.git.putGitMetadata', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
+export const gitPutGitMetadataRpcPromise = (request: GitPutGitMetadataRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.git.putGitMetadata', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
 
 export const gregorDismissCategoryRpcChannelMap = (configKeys: Array<string>, request: GregorDismissCategoryRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.gregor.dismissCategory', request)
 
-export const gregorDismissCategoryRpcPromise = (request: GregorDismissCategoryRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.gregor.dismissCategory', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
+export const gregorDismissCategoryRpcPromise = (request: GregorDismissCategoryRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.gregor.dismissCategory', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
 
 export const gregorDismissItemRpcChannelMap = (configKeys: Array<string>, request: GregorDismissItemRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.gregor.dismissItem', request)
 
-export const gregorDismissItemRpcPromise = (request: GregorDismissItemRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.gregor.dismissItem', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
+export const gregorDismissItemRpcPromise = (request: GregorDismissItemRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.gregor.dismissItem', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
 
 export const gregorGetStateRpcChannelMap = (configKeys: Array<string>, request: GregorGetStateRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.gregor.getState', request)
 
-export const gregorGetStateRpcPromise = (request: GregorGetStateRpcParam): Promise<GregorGetStateResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.gregor.getState', request, (error: RPCError, result: GregorGetStateResult) => error ? reject(error) : resolve(result)))
+export const gregorGetStateRpcPromise = (request: GregorGetStateRpcParam): Promise<GregorGetStateResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.gregor.getState', request, (error: RPCError, result: GregorGetStateResult) => (error ? reject(error) : resolve(result))))
 
 export const gregorInjectItemRpcChannelMap = (configKeys: Array<string>, request: GregorInjectItemRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.gregor.injectItem', request)
 
-export const gregorInjectItemRpcPromise = (request: GregorInjectItemRpcParam): Promise<GregorInjectItemResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.gregor.injectItem', request, (error: RPCError, result: GregorInjectItemResult) => error ? reject(error) : resolve(result)))
+export const gregorInjectItemRpcPromise = (request: GregorInjectItemRpcParam): Promise<GregorInjectItemResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.gregor.injectItem', request, (error: RPCError, result: GregorInjectItemResult) => (error ? reject(error) : resolve(result))))
 
 export const gregorUIPushReason = {
   none: 0,
@@ -728,15 +727,15 @@ export const gregorUIPushReason = {
 
 export const homeHomeActionTakenRpcChannelMap = (configKeys: Array<string>, request: HomeHomeActionTakenRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.home.homeActionTaken', request)
 
-export const homeHomeActionTakenRpcPromise = (request: HomeHomeActionTakenRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.home.homeActionTaken', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
+export const homeHomeActionTakenRpcPromise = (request: HomeHomeActionTakenRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.home.homeActionTaken', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
 
 export const homeHomeGetScreenRpcChannelMap = (configKeys: Array<string>, request: HomeHomeGetScreenRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.home.homeGetScreen', request)
 
-export const homeHomeGetScreenRpcPromise = (request: HomeHomeGetScreenRpcParam): Promise<HomeHomeGetScreenResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.home.homeGetScreen', request, (error: RPCError, result: HomeHomeGetScreenResult) => error ? reject(error) : resolve(result)))
+export const homeHomeGetScreenRpcPromise = (request: HomeHomeGetScreenRpcParam): Promise<HomeHomeGetScreenResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.home.homeGetScreen', request, (error: RPCError, result: HomeHomeGetScreenResult) => (error ? reject(error) : resolve(result))))
 
 export const homeHomeMarkViewedRpcChannelMap = (configKeys: Array<string>, request: HomeHomeMarkViewedRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.home.homeMarkViewed', request)
 
-export const homeHomeMarkViewedRpcPromise = (request: HomeHomeMarkViewedRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.home.homeMarkViewed', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
+export const homeHomeMarkViewedRpcPromise = (request: HomeHomeMarkViewedRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.home.homeMarkViewed', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
 
 export const homeHomeScreenItemType = {
   todo: 1,
@@ -764,7 +763,7 @@ export const homeHomeScreenTodoType = {
 
 export const homeHomeSkipTodoTypeRpcChannelMap = (configKeys: Array<string>, request: HomeHomeSkipTodoTypeRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.home.homeSkipTodoType', request)
 
-export const homeHomeSkipTodoTypeRpcPromise = (request: HomeHomeSkipTodoTypeRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.home.homeSkipTodoType', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
+export const homeHomeSkipTodoTypeRpcPromise = (request: HomeHomeSkipTodoTypeRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.home.homeSkipTodoType', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
 
 export const identifyCommonIdentifyReasonType = {
   none: 0,
@@ -803,23 +802,23 @@ export const identifyCommonTrackStatus = {
 
 export const identifyIdentify2RpcChannelMap = (configKeys: Array<string>, request: IdentifyIdentify2RpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.identify.identify2', request)
 
-export const identifyIdentify2RpcPromise = (request: IdentifyIdentify2RpcParam): Promise<IdentifyIdentify2Result> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.identify.identify2', request, (error: RPCError, result: IdentifyIdentify2Result) => error ? reject(error) : resolve(result)))
+export const identifyIdentify2RpcPromise = (request: IdentifyIdentify2RpcParam): Promise<IdentifyIdentify2Result> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.identify.identify2', request, (error: RPCError, result: IdentifyIdentify2Result) => (error ? reject(error) : resolve(result))))
 
 export const identifyIdentifyLiteRpcChannelMap = (configKeys: Array<string>, request: IdentifyIdentifyLiteRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.identify.identifyLite', request)
 
-export const identifyIdentifyLiteRpcPromise = (request: IdentifyIdentifyLiteRpcParam): Promise<IdentifyIdentifyLiteResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.identify.identifyLite', request, (error: RPCError, result: IdentifyIdentifyLiteResult) => error ? reject(error) : resolve(result)))
+export const identifyIdentifyLiteRpcPromise = (request: IdentifyIdentifyLiteRpcParam): Promise<IdentifyIdentifyLiteResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.identify.identifyLite', request, (error: RPCError, result: IdentifyIdentifyLiteResult) => (error ? reject(error) : resolve(result))))
 
 export const identifyResolve3RpcChannelMap = (configKeys: Array<string>, request: IdentifyResolve3RpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.identify.Resolve3', request)
 
-export const identifyResolve3RpcPromise = (request: IdentifyResolve3RpcParam): Promise<IdentifyResolve3Result> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.identify.Resolve3', request, (error: RPCError, result: IdentifyResolve3Result) => error ? reject(error) : resolve(result)))
+export const identifyResolve3RpcPromise = (request: IdentifyResolve3RpcParam): Promise<IdentifyResolve3Result> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.identify.Resolve3', request, (error: RPCError, result: IdentifyResolve3Result) => (error ? reject(error) : resolve(result))))
 
 export const identifyResolveIdentifyImplicitTeamRpcChannelMap = (configKeys: Array<string>, request: IdentifyResolveIdentifyImplicitTeamRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.identify.resolveIdentifyImplicitTeam', request)
 
-export const identifyResolveIdentifyImplicitTeamRpcPromise = (request: IdentifyResolveIdentifyImplicitTeamRpcParam): Promise<IdentifyResolveIdentifyImplicitTeamResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.identify.resolveIdentifyImplicitTeam', request, (error: RPCError, result: IdentifyResolveIdentifyImplicitTeamResult) => error ? reject(error) : resolve(result)))
+export const identifyResolveIdentifyImplicitTeamRpcPromise = (request: IdentifyResolveIdentifyImplicitTeamRpcParam): Promise<IdentifyResolveIdentifyImplicitTeamResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.identify.resolveIdentifyImplicitTeam', request, (error: RPCError, result: IdentifyResolveIdentifyImplicitTeamResult) => (error ? reject(error) : resolve(result))))
 
 export const identifyResolveImplicitTeamRpcChannelMap = (configKeys: Array<string>, request: IdentifyResolveImplicitTeamRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.identify.resolveImplicitTeam', request)
 
-export const identifyResolveImplicitTeamRpcPromise = (request: IdentifyResolveImplicitTeamRpcParam): Promise<IdentifyResolveImplicitTeamResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.identify.resolveImplicitTeam', request, (error: RPCError, result: IdentifyResolveImplicitTeamResult) => error ? reject(error) : resolve(result)))
+export const identifyResolveImplicitTeamRpcPromise = (request: IdentifyResolveImplicitTeamRpcParam): Promise<IdentifyResolveImplicitTeamResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.identify.resolveImplicitTeam', request, (error: RPCError, result: IdentifyResolveImplicitTeamResult) => (error ? reject(error) : resolve(result))))
 
 export const identifyUiCheckResultFreshness = {
   fresh: 0,
@@ -834,11 +833,11 @@ export const identifyUiDismissReasonType = {
 
 export const implicitTeamMigrationStartMigrationRpcChannelMap = (configKeys: Array<string>, request: ImplicitTeamMigrationStartMigrationRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.implicitTeamMigration.startMigration', request)
 
-export const implicitTeamMigrationStartMigrationRpcPromise = (request: ImplicitTeamMigrationStartMigrationRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.implicitTeamMigration.startMigration', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
+export const implicitTeamMigrationStartMigrationRpcPromise = (request: ImplicitTeamMigrationStartMigrationRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.implicitTeamMigration.startMigration', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
 
 export const installFuseStatusRpcChannelMap = (configKeys: Array<string>, request: InstallFuseStatusRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.install.fuseStatus', request)
 
-export const installFuseStatusRpcPromise = (request: InstallFuseStatusRpcParam): Promise<InstallFuseStatusResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.install.fuseStatus', request, (error: RPCError, result: InstallFuseStatusResult) => error ? reject(error) : resolve(result)))
+export const installFuseStatusRpcPromise = (request: InstallFuseStatusRpcParam): Promise<InstallFuseStatusResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.install.fuseStatus', request, (error: RPCError, result: InstallFuseStatusResult) => (error ? reject(error) : resolve(result))))
 
 export const installInstallAction = {
   unknown: 0,
@@ -850,15 +849,15 @@ export const installInstallAction = {
 
 export const installInstallCommandLinePrivilegedRpcChannelMap = (configKeys: Array<string>, request: InstallInstallCommandLinePrivilegedRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.install.installCommandLinePrivileged', request)
 
-export const installInstallCommandLinePrivilegedRpcPromise = (request: InstallInstallCommandLinePrivilegedRpcParam): Promise<InstallInstallCommandLinePrivilegedResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.install.installCommandLinePrivileged', request, (error: RPCError, result: InstallInstallCommandLinePrivilegedResult) => error ? reject(error) : resolve(result)))
+export const installInstallCommandLinePrivilegedRpcPromise = (request: InstallInstallCommandLinePrivilegedRpcParam): Promise<InstallInstallCommandLinePrivilegedResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.install.installCommandLinePrivileged', request, (error: RPCError, result: InstallInstallCommandLinePrivilegedResult) => (error ? reject(error) : resolve(result))))
 
 export const installInstallFuseRpcChannelMap = (configKeys: Array<string>, request: InstallInstallFuseRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.install.installFuse', request)
 
-export const installInstallFuseRpcPromise = (request: InstallInstallFuseRpcParam): Promise<InstallInstallFuseResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.install.installFuse', request, (error: RPCError, result: InstallInstallFuseResult) => error ? reject(error) : resolve(result)))
+export const installInstallFuseRpcPromise = (request: InstallInstallFuseRpcParam): Promise<InstallInstallFuseResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.install.installFuse', request, (error: RPCError, result: InstallInstallFuseResult) => (error ? reject(error) : resolve(result))))
 
 export const installInstallKBFSRpcChannelMap = (configKeys: Array<string>, request: InstallInstallKBFSRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.install.installKBFS', request)
 
-export const installInstallKBFSRpcPromise = (request: InstallInstallKBFSRpcParam): Promise<InstallInstallKBFSResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.install.installKBFS', request, (error: RPCError, result: InstallInstallKBFSResult) => error ? reject(error) : resolve(result)))
+export const installInstallKBFSRpcPromise = (request: InstallInstallKBFSRpcParam): Promise<InstallInstallKBFSResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.install.installKBFS', request, (error: RPCError, result: InstallInstallKBFSResult) => (error ? reject(error) : resolve(result))))
 
 export const installInstallStatus = {
   unknown: 0,
@@ -869,7 +868,7 @@ export const installInstallStatus = {
 
 export const installUninstallKBFSRpcChannelMap = (configKeys: Array<string>, request: InstallUninstallKBFSRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.install.uninstallKBFS', request)
 
-export const installUninstallKBFSRpcPromise = (request: InstallUninstallKBFSRpcParam): Promise<InstallUninstallKBFSResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.install.uninstallKBFS', request, (error: RPCError, result: InstallUninstallKBFSResult) => error ? reject(error) : resolve(result)))
+export const installUninstallKBFSRpcPromise = (request: InstallUninstallKBFSRpcParam): Promise<InstallUninstallKBFSResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.install.uninstallKBFS', request, (error: RPCError, result: InstallUninstallKBFSResult) => (error ? reject(error) : resolve(result))))
 
 export const kbfsCommonFSErrorType = {
   accessDenied: 0,
@@ -912,219 +911,219 @@ export const kbfsCommonFSStatusCode = {
 
 export const kbfsCreateTLFRpcChannelMap = (configKeys: Array<string>, request: KbfsCreateTLFRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.kbfs.createTLF', request)
 
-export const kbfsCreateTLFRpcPromise = (request: KbfsCreateTLFRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.kbfs.createTLF', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
+export const kbfsCreateTLFRpcPromise = (request: KbfsCreateTLFRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.kbfs.createTLF', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
 
 export const kbfsFSEditListRpcChannelMap = (configKeys: Array<string>, request: KbfsFSEditListRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.kbfs.FSEditList', request)
 
-export const kbfsFSEditListRpcPromise = (request: KbfsFSEditListRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.kbfs.FSEditList', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
+export const kbfsFSEditListRpcPromise = (request: KbfsFSEditListRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.kbfs.FSEditList', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
 
 export const kbfsFSEventRpcChannelMap = (configKeys: Array<string>, request: KbfsFSEventRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.kbfs.FSEvent', request)
 
-export const kbfsFSEventRpcPromise = (request: KbfsFSEventRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.kbfs.FSEvent', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
+export const kbfsFSEventRpcPromise = (request: KbfsFSEventRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.kbfs.FSEvent', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
 
 export const kbfsFSSyncEventRpcChannelMap = (configKeys: Array<string>, request: KbfsFSSyncEventRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.kbfs.FSSyncEvent', request)
 
-export const kbfsFSSyncEventRpcPromise = (request: KbfsFSSyncEventRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.kbfs.FSSyncEvent', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
+export const kbfsFSSyncEventRpcPromise = (request: KbfsFSSyncEventRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.kbfs.FSSyncEvent', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
 
 export const kbfsFSSyncStatusRpcChannelMap = (configKeys: Array<string>, request: KbfsFSSyncStatusRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.kbfs.FSSyncStatus', request)
 
-export const kbfsFSSyncStatusRpcPromise = (request: KbfsFSSyncStatusRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.kbfs.FSSyncStatus', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
+export const kbfsFSSyncStatusRpcPromise = (request: KbfsFSSyncStatusRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.kbfs.FSSyncStatus', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
 
 export const kbfsGetKBFSTeamSettingsRpcChannelMap = (configKeys: Array<string>, request: KbfsGetKBFSTeamSettingsRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.kbfs.getKBFSTeamSettings', request)
 
-export const kbfsGetKBFSTeamSettingsRpcPromise = (request: KbfsGetKBFSTeamSettingsRpcParam): Promise<KbfsGetKBFSTeamSettingsResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.kbfs.getKBFSTeamSettings', request, (error: RPCError, result: KbfsGetKBFSTeamSettingsResult) => error ? reject(error) : resolve(result)))
+export const kbfsGetKBFSTeamSettingsRpcPromise = (request: KbfsGetKBFSTeamSettingsRpcParam): Promise<KbfsGetKBFSTeamSettingsResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.kbfs.getKBFSTeamSettings', request, (error: RPCError, result: KbfsGetKBFSTeamSettingsResult) => (error ? reject(error) : resolve(result))))
 
 export const kbfsMountGetAllAvailableMountDirsRpcChannelMap = (configKeys: Array<string>, request: KbfsMountGetAllAvailableMountDirsRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.kbfsMount.GetAllAvailableMountDirs', request)
 
-export const kbfsMountGetAllAvailableMountDirsRpcPromise = (request: KbfsMountGetAllAvailableMountDirsRpcParam): Promise<KbfsMountGetAllAvailableMountDirsResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.kbfsMount.GetAllAvailableMountDirs', request, (error: RPCError, result: KbfsMountGetAllAvailableMountDirsResult) => error ? reject(error) : resolve(result)))
+export const kbfsMountGetAllAvailableMountDirsRpcPromise = (request: KbfsMountGetAllAvailableMountDirsRpcParam): Promise<KbfsMountGetAllAvailableMountDirsResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.kbfsMount.GetAllAvailableMountDirs', request, (error: RPCError, result: KbfsMountGetAllAvailableMountDirsResult) => (error ? reject(error) : resolve(result))))
 
 export const kbfsMountGetCurrentMountDirRpcChannelMap = (configKeys: Array<string>, request: KbfsMountGetCurrentMountDirRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.kbfsMount.GetCurrentMountDir', request)
 
-export const kbfsMountGetCurrentMountDirRpcPromise = (request: KbfsMountGetCurrentMountDirRpcParam): Promise<KbfsMountGetCurrentMountDirResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.kbfsMount.GetCurrentMountDir', request, (error: RPCError, result: KbfsMountGetCurrentMountDirResult) => error ? reject(error) : resolve(result)))
+export const kbfsMountGetCurrentMountDirRpcPromise = (request: KbfsMountGetCurrentMountDirRpcParam): Promise<KbfsMountGetCurrentMountDirResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.kbfsMount.GetCurrentMountDir', request, (error: RPCError, result: KbfsMountGetCurrentMountDirResult) => (error ? reject(error) : resolve(result))))
 
 export const kbfsMountSetCurrentMountDirRpcChannelMap = (configKeys: Array<string>, request: KbfsMountSetCurrentMountDirRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.kbfsMount.SetCurrentMountDir', request)
 
-export const kbfsMountSetCurrentMountDirRpcPromise = (request: KbfsMountSetCurrentMountDirRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.kbfsMount.SetCurrentMountDir', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
+export const kbfsMountSetCurrentMountDirRpcPromise = (request: KbfsMountSetCurrentMountDirRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.kbfsMount.SetCurrentMountDir', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
 
 export const logRegisterLoggerRpcChannelMap = (configKeys: Array<string>, request: LogRegisterLoggerRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.log.registerLogger', request)
 
-export const logRegisterLoggerRpcPromise = (request: LogRegisterLoggerRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.log.registerLogger', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
+export const logRegisterLoggerRpcPromise = (request: LogRegisterLoggerRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.log.registerLogger', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
 
 export const loginAccountDeleteRpcChannelMap = (configKeys: Array<string>, request: LoginAccountDeleteRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.login.accountDelete', request)
 
-export const loginAccountDeleteRpcPromise = (request: LoginAccountDeleteRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.login.accountDelete', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
+export const loginAccountDeleteRpcPromise = (request: LoginAccountDeleteRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.login.accountDelete', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
 
 export const loginClearStoredSecretRpcChannelMap = (configKeys: Array<string>, request: LoginClearStoredSecretRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.login.clearStoredSecret', request)
 
-export const loginClearStoredSecretRpcPromise = (request: LoginClearStoredSecretRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.login.clearStoredSecret', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
+export const loginClearStoredSecretRpcPromise = (request: LoginClearStoredSecretRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.login.clearStoredSecret', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
 
 export const loginDeprovisionRpcChannelMap = (configKeys: Array<string>, request: LoginDeprovisionRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.login.deprovision', request)
 
-export const loginDeprovisionRpcPromise = (request: LoginDeprovisionRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.login.deprovision', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
+export const loginDeprovisionRpcPromise = (request: LoginDeprovisionRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.login.deprovision', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
 
 export const loginGetConfiguredAccountsRpcChannelMap = (configKeys: Array<string>, request: LoginGetConfiguredAccountsRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.login.getConfiguredAccounts', request)
 
-export const loginGetConfiguredAccountsRpcPromise = (request: LoginGetConfiguredAccountsRpcParam): Promise<LoginGetConfiguredAccountsResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.login.getConfiguredAccounts', request, (error: RPCError, result: LoginGetConfiguredAccountsResult) => error ? reject(error) : resolve(result)))
+export const loginGetConfiguredAccountsRpcPromise = (request: LoginGetConfiguredAccountsRpcParam): Promise<LoginGetConfiguredAccountsResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.login.getConfiguredAccounts', request, (error: RPCError, result: LoginGetConfiguredAccountsResult) => (error ? reject(error) : resolve(result))))
 
 export const loginLoginProvisionedDeviceRpcChannelMap = (configKeys: Array<string>, request: LoginLoginProvisionedDeviceRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.login.loginProvisionedDevice', request)
 
-export const loginLoginProvisionedDeviceRpcPromise = (request: LoginLoginProvisionedDeviceRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.login.loginProvisionedDevice', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
+export const loginLoginProvisionedDeviceRpcPromise = (request: LoginLoginProvisionedDeviceRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.login.loginProvisionedDevice', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
 
 export const loginLoginRpcChannelMap = (configKeys: Array<string>, request: LoginLoginRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.login.login', request)
 
-export const loginLoginRpcPromise = (request: LoginLoginRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.login.login', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
+export const loginLoginRpcPromise = (request: LoginLoginRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.login.login', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
 
 export const loginLoginWithPaperKeyRpcChannelMap = (configKeys: Array<string>, request: LoginLoginWithPaperKeyRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.login.loginWithPaperKey', request)
 
-export const loginLoginWithPaperKeyRpcPromise = (request: LoginLoginWithPaperKeyRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.login.loginWithPaperKey', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
+export const loginLoginWithPaperKeyRpcPromise = (request: LoginLoginWithPaperKeyRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.login.loginWithPaperKey', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
 
 export const loginLogoutRpcChannelMap = (configKeys: Array<string>, request: LoginLogoutRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.login.logout', request)
 
-export const loginLogoutRpcPromise = (request: LoginLogoutRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.login.logout', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
+export const loginLogoutRpcPromise = (request: LoginLogoutRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.login.logout', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
 
 export const loginPaperKeyRpcChannelMap = (configKeys: Array<string>, request: LoginPaperKeyRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.login.paperKey', request)
 
-export const loginPaperKeyRpcPromise = (request: LoginPaperKeyRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.login.paperKey', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
+export const loginPaperKeyRpcPromise = (request: LoginPaperKeyRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.login.paperKey', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
 
 export const loginPaperKeySubmitRpcChannelMap = (configKeys: Array<string>, request: LoginPaperKeySubmitRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.login.paperKeySubmit', request)
 
-export const loginPaperKeySubmitRpcPromise = (request: LoginPaperKeySubmitRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.login.paperKeySubmit', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
+export const loginPaperKeySubmitRpcPromise = (request: LoginPaperKeySubmitRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.login.paperKeySubmit', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
 
 export const loginPgpProvisionRpcChannelMap = (configKeys: Array<string>, request: LoginPgpProvisionRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.login.pgpProvision', request)
 
-export const loginPgpProvisionRpcPromise = (request: LoginPgpProvisionRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.login.pgpProvision', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
+export const loginPgpProvisionRpcPromise = (request: LoginPgpProvisionRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.login.pgpProvision', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
 
 export const loginRecoverAccountFromEmailAddressRpcChannelMap = (configKeys: Array<string>, request: LoginRecoverAccountFromEmailAddressRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.login.recoverAccountFromEmailAddress', request)
 
-export const loginRecoverAccountFromEmailAddressRpcPromise = (request: LoginRecoverAccountFromEmailAddressRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.login.recoverAccountFromEmailAddress', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
+export const loginRecoverAccountFromEmailAddressRpcPromise = (request: LoginRecoverAccountFromEmailAddressRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.login.recoverAccountFromEmailAddress', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
 
 export const loginUnlockRpcChannelMap = (configKeys: Array<string>, request: LoginUnlockRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.login.unlock', request)
 
-export const loginUnlockRpcPromise = (request: LoginUnlockRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.login.unlock', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
+export const loginUnlockRpcPromise = (request: LoginUnlockRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.login.unlock', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
 
 export const loginUnlockWithPassphraseRpcChannelMap = (configKeys: Array<string>, request: LoginUnlockWithPassphraseRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.login.unlockWithPassphrase', request)
 
-export const loginUnlockWithPassphraseRpcPromise = (request: LoginUnlockWithPassphraseRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.login.unlockWithPassphrase', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
+export const loginUnlockWithPassphraseRpcPromise = (request: LoginUnlockWithPassphraseRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.login.unlockWithPassphrase', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
 
 export const merkleGetCurrentMerkleRootRpcChannelMap = (configKeys: Array<string>, request: MerkleGetCurrentMerkleRootRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.merkle.getCurrentMerkleRoot', request)
 
-export const merkleGetCurrentMerkleRootRpcPromise = (request: MerkleGetCurrentMerkleRootRpcParam): Promise<MerkleGetCurrentMerkleRootResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.merkle.getCurrentMerkleRoot', request, (error: RPCError, result: MerkleGetCurrentMerkleRootResult) => error ? reject(error) : resolve(result)))
+export const merkleGetCurrentMerkleRootRpcPromise = (request: MerkleGetCurrentMerkleRootRpcParam): Promise<MerkleGetCurrentMerkleRootResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.merkle.getCurrentMerkleRoot', request, (error: RPCError, result: MerkleGetCurrentMerkleRootResult) => (error ? reject(error) : resolve(result))))
 
 export const metadataAuthenticateRpcChannelMap = (configKeys: Array<string>, request: MetadataAuthenticateRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.metadata.authenticate', request)
 
-export const metadataAuthenticateRpcPromise = (request: MetadataAuthenticateRpcParam): Promise<MetadataAuthenticateResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.metadata.authenticate', request, (error: RPCError, result: MetadataAuthenticateResult) => error ? reject(error) : resolve(result)))
+export const metadataAuthenticateRpcPromise = (request: MetadataAuthenticateRpcParam): Promise<MetadataAuthenticateResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.metadata.authenticate', request, (error: RPCError, result: MetadataAuthenticateResult) => (error ? reject(error) : resolve(result))))
 
 export const metadataDeleteKeyRpcChannelMap = (configKeys: Array<string>, request: MetadataDeleteKeyRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.metadata.deleteKey', request)
 
-export const metadataDeleteKeyRpcPromise = (request: MetadataDeleteKeyRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.metadata.deleteKey', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
+export const metadataDeleteKeyRpcPromise = (request: MetadataDeleteKeyRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.metadata.deleteKey', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
 
 export const metadataGetChallengeRpcChannelMap = (configKeys: Array<string>, request: MetadataGetChallengeRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.metadata.getChallenge', request)
 
-export const metadataGetChallengeRpcPromise = (request: MetadataGetChallengeRpcParam): Promise<MetadataGetChallengeResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.metadata.getChallenge', request, (error: RPCError, result: MetadataGetChallengeResult) => error ? reject(error) : resolve(result)))
+export const metadataGetChallengeRpcPromise = (request: MetadataGetChallengeRpcParam): Promise<MetadataGetChallengeResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.metadata.getChallenge', request, (error: RPCError, result: MetadataGetChallengeResult) => (error ? reject(error) : resolve(result))))
 
 export const metadataGetFolderHandleRpcChannelMap = (configKeys: Array<string>, request: MetadataGetFolderHandleRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.metadata.getFolderHandle', request)
 
-export const metadataGetFolderHandleRpcPromise = (request: MetadataGetFolderHandleRpcParam): Promise<MetadataGetFolderHandleResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.metadata.getFolderHandle', request, (error: RPCError, result: MetadataGetFolderHandleResult) => error ? reject(error) : resolve(result)))
+export const metadataGetFolderHandleRpcPromise = (request: MetadataGetFolderHandleRpcParam): Promise<MetadataGetFolderHandleResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.metadata.getFolderHandle', request, (error: RPCError, result: MetadataGetFolderHandleResult) => (error ? reject(error) : resolve(result))))
 
 export const metadataGetFoldersForRekeyRpcChannelMap = (configKeys: Array<string>, request: MetadataGetFoldersForRekeyRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.metadata.getFoldersForRekey', request)
 
-export const metadataGetFoldersForRekeyRpcPromise = (request: MetadataGetFoldersForRekeyRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.metadata.getFoldersForRekey', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
+export const metadataGetFoldersForRekeyRpcPromise = (request: MetadataGetFoldersForRekeyRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.metadata.getFoldersForRekey', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
 
 export const metadataGetKeyBundlesRpcChannelMap = (configKeys: Array<string>, request: MetadataGetKeyBundlesRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.metadata.getKeyBundles', request)
 
-export const metadataGetKeyBundlesRpcPromise = (request: MetadataGetKeyBundlesRpcParam): Promise<MetadataGetKeyBundlesResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.metadata.getKeyBundles', request, (error: RPCError, result: MetadataGetKeyBundlesResult) => error ? reject(error) : resolve(result)))
+export const metadataGetKeyBundlesRpcPromise = (request: MetadataGetKeyBundlesRpcParam): Promise<MetadataGetKeyBundlesResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.metadata.getKeyBundles', request, (error: RPCError, result: MetadataGetKeyBundlesResult) => (error ? reject(error) : resolve(result))))
 
 export const metadataGetKeyRpcChannelMap = (configKeys: Array<string>, request: MetadataGetKeyRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.metadata.getKey', request)
 
-export const metadataGetKeyRpcPromise = (request: MetadataGetKeyRpcParam): Promise<MetadataGetKeyResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.metadata.getKey', request, (error: RPCError, result: MetadataGetKeyResult) => error ? reject(error) : resolve(result)))
+export const metadataGetKeyRpcPromise = (request: MetadataGetKeyRpcParam): Promise<MetadataGetKeyResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.metadata.getKey', request, (error: RPCError, result: MetadataGetKeyResult) => (error ? reject(error) : resolve(result))))
 
 export const metadataGetLatestFolderHandleRpcChannelMap = (configKeys: Array<string>, request: MetadataGetLatestFolderHandleRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.metadata.getLatestFolderHandle', request)
 
-export const metadataGetLatestFolderHandleRpcPromise = (request: MetadataGetLatestFolderHandleRpcParam): Promise<MetadataGetLatestFolderHandleResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.metadata.getLatestFolderHandle', request, (error: RPCError, result: MetadataGetLatestFolderHandleResult) => error ? reject(error) : resolve(result)))
+export const metadataGetLatestFolderHandleRpcPromise = (request: MetadataGetLatestFolderHandleRpcParam): Promise<MetadataGetLatestFolderHandleResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.metadata.getLatestFolderHandle', request, (error: RPCError, result: MetadataGetLatestFolderHandleResult) => (error ? reject(error) : resolve(result))))
 
 export const metadataGetMerkleNodeRpcChannelMap = (configKeys: Array<string>, request: MetadataGetMerkleNodeRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.metadata.getMerkleNode', request)
 
-export const metadataGetMerkleNodeRpcPromise = (request: MetadataGetMerkleNodeRpcParam): Promise<MetadataGetMerkleNodeResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.metadata.getMerkleNode', request, (error: RPCError, result: MetadataGetMerkleNodeResult) => error ? reject(error) : resolve(result)))
+export const metadataGetMerkleNodeRpcPromise = (request: MetadataGetMerkleNodeRpcParam): Promise<MetadataGetMerkleNodeResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.metadata.getMerkleNode', request, (error: RPCError, result: MetadataGetMerkleNodeResult) => (error ? reject(error) : resolve(result))))
 
 export const metadataGetMerkleRootLatestRpcChannelMap = (configKeys: Array<string>, request: MetadataGetMerkleRootLatestRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.metadata.getMerkleRootLatest', request)
 
-export const metadataGetMerkleRootLatestRpcPromise = (request: MetadataGetMerkleRootLatestRpcParam): Promise<MetadataGetMerkleRootLatestResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.metadata.getMerkleRootLatest', request, (error: RPCError, result: MetadataGetMerkleRootLatestResult) => error ? reject(error) : resolve(result)))
+export const metadataGetMerkleRootLatestRpcPromise = (request: MetadataGetMerkleRootLatestRpcParam): Promise<MetadataGetMerkleRootLatestResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.metadata.getMerkleRootLatest', request, (error: RPCError, result: MetadataGetMerkleRootLatestResult) => (error ? reject(error) : resolve(result))))
 
 export const metadataGetMerkleRootRpcChannelMap = (configKeys: Array<string>, request: MetadataGetMerkleRootRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.metadata.getMerkleRoot', request)
 
-export const metadataGetMerkleRootRpcPromise = (request: MetadataGetMerkleRootRpcParam): Promise<MetadataGetMerkleRootResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.metadata.getMerkleRoot', request, (error: RPCError, result: MetadataGetMerkleRootResult) => error ? reject(error) : resolve(result)))
+export const metadataGetMerkleRootRpcPromise = (request: MetadataGetMerkleRootRpcParam): Promise<MetadataGetMerkleRootResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.metadata.getMerkleRoot', request, (error: RPCError, result: MetadataGetMerkleRootResult) => (error ? reject(error) : resolve(result))))
 
 export const metadataGetMerkleRootSinceRpcChannelMap = (configKeys: Array<string>, request: MetadataGetMerkleRootSinceRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.metadata.getMerkleRootSince', request)
 
-export const metadataGetMerkleRootSinceRpcPromise = (request: MetadataGetMerkleRootSinceRpcParam): Promise<MetadataGetMerkleRootSinceResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.metadata.getMerkleRootSince', request, (error: RPCError, result: MetadataGetMerkleRootSinceResult) => error ? reject(error) : resolve(result)))
+export const metadataGetMerkleRootSinceRpcPromise = (request: MetadataGetMerkleRootSinceRpcParam): Promise<MetadataGetMerkleRootSinceResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.metadata.getMerkleRootSince', request, (error: RPCError, result: MetadataGetMerkleRootSinceResult) => (error ? reject(error) : resolve(result))))
 
 export const metadataGetMetadataRpcChannelMap = (configKeys: Array<string>, request: MetadataGetMetadataRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.metadata.getMetadata', request)
 
-export const metadataGetMetadataRpcPromise = (request: MetadataGetMetadataRpcParam): Promise<MetadataGetMetadataResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.metadata.getMetadata', request, (error: RPCError, result: MetadataGetMetadataResult) => error ? reject(error) : resolve(result)))
+export const metadataGetMetadataRpcPromise = (request: MetadataGetMetadataRpcParam): Promise<MetadataGetMetadataResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.metadata.getMetadata', request, (error: RPCError, result: MetadataGetMetadataResult) => (error ? reject(error) : resolve(result))))
 
 export const metadataLockRpcChannelMap = (configKeys: Array<string>, request: MetadataLockRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.metadata.lock', request)
 
-export const metadataLockRpcPromise = (request: MetadataLockRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.metadata.lock', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
+export const metadataLockRpcPromise = (request: MetadataLockRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.metadata.lock', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
 
 export const metadataPing2RpcChannelMap = (configKeys: Array<string>, request: MetadataPing2RpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.metadata.ping2', request)
 
-export const metadataPing2RpcPromise = (request: MetadataPing2RpcParam): Promise<MetadataPing2Result> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.metadata.ping2', request, (error: RPCError, result: MetadataPing2Result) => error ? reject(error) : resolve(result)))
+export const metadataPing2RpcPromise = (request: MetadataPing2RpcParam): Promise<MetadataPing2Result> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.metadata.ping2', request, (error: RPCError, result: MetadataPing2Result) => (error ? reject(error) : resolve(result))))
 
 export const metadataPingRpcChannelMap = (configKeys: Array<string>, request: MetadataPingRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.metadata.ping', request)
 
-export const metadataPingRpcPromise = (request: MetadataPingRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.metadata.ping', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
+export const metadataPingRpcPromise = (request: MetadataPingRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.metadata.ping', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
 
 export const metadataPruneBranchRpcChannelMap = (configKeys: Array<string>, request: MetadataPruneBranchRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.metadata.pruneBranch', request)
 
-export const metadataPruneBranchRpcPromise = (request: MetadataPruneBranchRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.metadata.pruneBranch', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
+export const metadataPruneBranchRpcPromise = (request: MetadataPruneBranchRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.metadata.pruneBranch', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
 
 export const metadataPutKeysRpcChannelMap = (configKeys: Array<string>, request: MetadataPutKeysRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.metadata.putKeys', request)
 
-export const metadataPutKeysRpcPromise = (request: MetadataPutKeysRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.metadata.putKeys', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
+export const metadataPutKeysRpcPromise = (request: MetadataPutKeysRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.metadata.putKeys', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
 
 export const metadataPutMetadataRpcChannelMap = (configKeys: Array<string>, request: MetadataPutMetadataRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.metadata.putMetadata', request)
 
-export const metadataPutMetadataRpcPromise = (request: MetadataPutMetadataRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.metadata.putMetadata', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
+export const metadataPutMetadataRpcPromise = (request: MetadataPutMetadataRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.metadata.putMetadata', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
 
 export const metadataRegisterForUpdatesRpcChannelMap = (configKeys: Array<string>, request: MetadataRegisterForUpdatesRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.metadata.registerForUpdates', request)
 
-export const metadataRegisterForUpdatesRpcPromise = (request: MetadataRegisterForUpdatesRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.metadata.registerForUpdates', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
+export const metadataRegisterForUpdatesRpcPromise = (request: MetadataRegisterForUpdatesRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.metadata.registerForUpdates', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
 
 export const metadataReleaseLockRpcChannelMap = (configKeys: Array<string>, request: MetadataReleaseLockRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.metadata.releaseLock', request)
 
-export const metadataReleaseLockRpcPromise = (request: MetadataReleaseLockRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.metadata.releaseLock', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
+export const metadataReleaseLockRpcPromise = (request: MetadataReleaseLockRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.metadata.releaseLock', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
 
 export const metadataStartImplicitTeamMigrationRpcChannelMap = (configKeys: Array<string>, request: MetadataStartImplicitTeamMigrationRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.metadata.startImplicitTeamMigration', request)
 
-export const metadataStartImplicitTeamMigrationRpcPromise = (request: MetadataStartImplicitTeamMigrationRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.metadata.startImplicitTeamMigration', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
+export const metadataStartImplicitTeamMigrationRpcPromise = (request: MetadataStartImplicitTeamMigrationRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.metadata.startImplicitTeamMigration', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
 
 export const metadataTruncateLockRpcChannelMap = (configKeys: Array<string>, request: MetadataTruncateLockRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.metadata.truncateLock', request)
 
-export const metadataTruncateLockRpcPromise = (request: MetadataTruncateLockRpcParam): Promise<MetadataTruncateLockResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.metadata.truncateLock', request, (error: RPCError, result: MetadataTruncateLockResult) => error ? reject(error) : resolve(result)))
+export const metadataTruncateLockRpcPromise = (request: MetadataTruncateLockRpcParam): Promise<MetadataTruncateLockResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.metadata.truncateLock', request, (error: RPCError, result: MetadataTruncateLockResult) => (error ? reject(error) : resolve(result))))
 
 export const metadataTruncateUnlockRpcChannelMap = (configKeys: Array<string>, request: MetadataTruncateUnlockRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.metadata.truncateUnlock', request)
 
-export const metadataTruncateUnlockRpcPromise = (request: MetadataTruncateUnlockRpcParam): Promise<MetadataTruncateUnlockResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.metadata.truncateUnlock', request, (error: RPCError, result: MetadataTruncateUnlockResult) => error ? reject(error) : resolve(result)))
+export const metadataTruncateUnlockRpcPromise = (request: MetadataTruncateUnlockRpcParam): Promise<MetadataTruncateUnlockResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.metadata.truncateUnlock', request, (error: RPCError, result: MetadataTruncateUnlockResult) => (error ? reject(error) : resolve(result))))
 
 export const metadataUpdateFolderNeedsRekeyRpcChannelMap = (configKeys: Array<string>, request: MetadataUpdateFolderNeedsRekeyRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.metadataUpdate.folderNeedsRekey', request)
 
-export const metadataUpdateFolderNeedsRekeyRpcPromise = (request: MetadataUpdateFolderNeedsRekeyRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.metadataUpdate.folderNeedsRekey', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
+export const metadataUpdateFolderNeedsRekeyRpcPromise = (request: MetadataUpdateFolderNeedsRekeyRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.metadataUpdate.folderNeedsRekey', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
 
 export const metadataUpdateFoldersNeedRekeyRpcChannelMap = (configKeys: Array<string>, request: MetadataUpdateFoldersNeedRekeyRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.metadataUpdate.foldersNeedRekey', request)
 
-export const metadataUpdateFoldersNeedRekeyRpcPromise = (request: MetadataUpdateFoldersNeedRekeyRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.metadataUpdate.foldersNeedRekey', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
+export const metadataUpdateFoldersNeedRekeyRpcPromise = (request: MetadataUpdateFoldersNeedRekeyRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.metadataUpdate.foldersNeedRekey', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
 
 export const metadataUpdateMetadataUpdateRpcChannelMap = (configKeys: Array<string>, request: MetadataUpdateMetadataUpdateRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.metadataUpdate.metadataUpdate', request)
 
-export const metadataUpdateMetadataUpdateRpcPromise = (request: MetadataUpdateMetadataUpdateRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.metadataUpdate.metadataUpdate', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
+export const metadataUpdateMetadataUpdateRpcPromise = (request: MetadataUpdateMetadataUpdateRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.metadataUpdate.metadataUpdate', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
 
 export const notifyCtlSetNotificationsRpcChannelMap = (configKeys: Array<string>, request: NotifyCtlSetNotificationsRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.notifyCtl.setNotifications', request)
 
-export const notifyCtlSetNotificationsRpcPromise = (request: NotifyCtlSetNotificationsRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.notifyCtl.setNotifications', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
+export const notifyCtlSetNotificationsRpcPromise = (request: NotifyCtlSetNotificationsRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.notifyCtl.setNotifications', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
 
 export const paperprovisionPaperProvisionRpcChannelMap = (configKeys: Array<string>, request: PaperprovisionPaperProvisionRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.paperprovision.paperProvision', request)
 
-export const paperprovisionPaperProvisionRpcPromise = (request: PaperprovisionPaperProvisionRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.paperprovision.paperProvision', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
+export const paperprovisionPaperProvisionRpcPromise = (request: PaperprovisionPaperProvisionRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.paperprovision.paperProvision', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
 
 export const passphraseCommonPassphraseType = {
   none: 0,
@@ -1135,67 +1134,67 @@ export const passphraseCommonPassphraseType = {
 
 export const pgpPgpDecryptRpcChannelMap = (configKeys: Array<string>, request: PgpPgpDecryptRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.pgp.pgpDecrypt', request)
 
-export const pgpPgpDecryptRpcPromise = (request: PgpPgpDecryptRpcParam): Promise<PgpPgpDecryptResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.pgp.pgpDecrypt', request, (error: RPCError, result: PgpPgpDecryptResult) => error ? reject(error) : resolve(result)))
+export const pgpPgpDecryptRpcPromise = (request: PgpPgpDecryptRpcParam): Promise<PgpPgpDecryptResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.pgp.pgpDecrypt', request, (error: RPCError, result: PgpPgpDecryptResult) => (error ? reject(error) : resolve(result))))
 
 export const pgpPgpDeletePrimaryRpcChannelMap = (configKeys: Array<string>, request: PgpPgpDeletePrimaryRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.pgp.pgpDeletePrimary', request)
 
-export const pgpPgpDeletePrimaryRpcPromise = (request: PgpPgpDeletePrimaryRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.pgp.pgpDeletePrimary', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
+export const pgpPgpDeletePrimaryRpcPromise = (request: PgpPgpDeletePrimaryRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.pgp.pgpDeletePrimary', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
 
 export const pgpPgpEncryptRpcChannelMap = (configKeys: Array<string>, request: PgpPgpEncryptRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.pgp.pgpEncrypt', request)
 
-export const pgpPgpEncryptRpcPromise = (request: PgpPgpEncryptRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.pgp.pgpEncrypt', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
+export const pgpPgpEncryptRpcPromise = (request: PgpPgpEncryptRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.pgp.pgpEncrypt', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
 
 export const pgpPgpExportByFingerprintRpcChannelMap = (configKeys: Array<string>, request: PgpPgpExportByFingerprintRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.pgp.pgpExportByFingerprint', request)
 
-export const pgpPgpExportByFingerprintRpcPromise = (request: PgpPgpExportByFingerprintRpcParam): Promise<PgpPgpExportByFingerprintResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.pgp.pgpExportByFingerprint', request, (error: RPCError, result: PgpPgpExportByFingerprintResult) => error ? reject(error) : resolve(result)))
+export const pgpPgpExportByFingerprintRpcPromise = (request: PgpPgpExportByFingerprintRpcParam): Promise<PgpPgpExportByFingerprintResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.pgp.pgpExportByFingerprint', request, (error: RPCError, result: PgpPgpExportByFingerprintResult) => (error ? reject(error) : resolve(result))))
 
 export const pgpPgpExportByKIDRpcChannelMap = (configKeys: Array<string>, request: PgpPgpExportByKIDRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.pgp.pgpExportByKID', request)
 
-export const pgpPgpExportByKIDRpcPromise = (request: PgpPgpExportByKIDRpcParam): Promise<PgpPgpExportByKIDResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.pgp.pgpExportByKID', request, (error: RPCError, result: PgpPgpExportByKIDResult) => error ? reject(error) : resolve(result)))
+export const pgpPgpExportByKIDRpcPromise = (request: PgpPgpExportByKIDRpcParam): Promise<PgpPgpExportByKIDResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.pgp.pgpExportByKID', request, (error: RPCError, result: PgpPgpExportByKIDResult) => (error ? reject(error) : resolve(result))))
 
 export const pgpPgpExportRpcChannelMap = (configKeys: Array<string>, request: PgpPgpExportRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.pgp.pgpExport', request)
 
-export const pgpPgpExportRpcPromise = (request: PgpPgpExportRpcParam): Promise<PgpPgpExportResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.pgp.pgpExport', request, (error: RPCError, result: PgpPgpExportResult) => error ? reject(error) : resolve(result)))
+export const pgpPgpExportRpcPromise = (request: PgpPgpExportRpcParam): Promise<PgpPgpExportResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.pgp.pgpExport', request, (error: RPCError, result: PgpPgpExportResult) => (error ? reject(error) : resolve(result))))
 
 export const pgpPgpImportRpcChannelMap = (configKeys: Array<string>, request: PgpPgpImportRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.pgp.pgpImport', request)
 
-export const pgpPgpImportRpcPromise = (request: PgpPgpImportRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.pgp.pgpImport', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
+export const pgpPgpImportRpcPromise = (request: PgpPgpImportRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.pgp.pgpImport', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
 
 export const pgpPgpKeyGenDefaultRpcChannelMap = (configKeys: Array<string>, request: PgpPgpKeyGenDefaultRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.pgp.pgpKeyGenDefault', request)
 
-export const pgpPgpKeyGenDefaultRpcPromise = (request: PgpPgpKeyGenDefaultRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.pgp.pgpKeyGenDefault', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
+export const pgpPgpKeyGenDefaultRpcPromise = (request: PgpPgpKeyGenDefaultRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.pgp.pgpKeyGenDefault', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
 
 export const pgpPgpKeyGenRpcChannelMap = (configKeys: Array<string>, request: PgpPgpKeyGenRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.pgp.pgpKeyGen', request)
 
-export const pgpPgpKeyGenRpcPromise = (request: PgpPgpKeyGenRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.pgp.pgpKeyGen', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
+export const pgpPgpKeyGenRpcPromise = (request: PgpPgpKeyGenRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.pgp.pgpKeyGen', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
 
 export const pgpPgpPullRpcChannelMap = (configKeys: Array<string>, request: PgpPgpPullRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.pgp.pgpPull', request)
 
-export const pgpPgpPullRpcPromise = (request: PgpPgpPullRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.pgp.pgpPull', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
+export const pgpPgpPullRpcPromise = (request: PgpPgpPullRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.pgp.pgpPull', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
 
 export const pgpPgpPurgeRpcChannelMap = (configKeys: Array<string>, request: PgpPgpPurgeRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.pgp.pgpPurge', request)
 
-export const pgpPgpPurgeRpcPromise = (request: PgpPgpPurgeRpcParam): Promise<PgpPgpPurgeResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.pgp.pgpPurge', request, (error: RPCError, result: PgpPgpPurgeResult) => error ? reject(error) : resolve(result)))
+export const pgpPgpPurgeRpcPromise = (request: PgpPgpPurgeRpcParam): Promise<PgpPgpPurgeResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.pgp.pgpPurge', request, (error: RPCError, result: PgpPgpPurgeResult) => (error ? reject(error) : resolve(result))))
 
 export const pgpPgpSelectRpcChannelMap = (configKeys: Array<string>, request: PgpPgpSelectRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.pgp.pgpSelect', request)
 
-export const pgpPgpSelectRpcPromise = (request: PgpPgpSelectRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.pgp.pgpSelect', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
+export const pgpPgpSelectRpcPromise = (request: PgpPgpSelectRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.pgp.pgpSelect', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
 
 export const pgpPgpSignRpcChannelMap = (configKeys: Array<string>, request: PgpPgpSignRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.pgp.pgpSign', request)
 
-export const pgpPgpSignRpcPromise = (request: PgpPgpSignRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.pgp.pgpSign', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
+export const pgpPgpSignRpcPromise = (request: PgpPgpSignRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.pgp.pgpSign', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
 
 export const pgpPgpStorageDismissRpcChannelMap = (configKeys: Array<string>, request: PgpPgpStorageDismissRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.pgp.pgpStorageDismiss', request)
 
-export const pgpPgpStorageDismissRpcPromise = (request: PgpPgpStorageDismissRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.pgp.pgpStorageDismiss', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
+export const pgpPgpStorageDismissRpcPromise = (request: PgpPgpStorageDismissRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.pgp.pgpStorageDismiss', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
 
 export const pgpPgpUpdateRpcChannelMap = (configKeys: Array<string>, request: PgpPgpUpdateRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.pgp.pgpUpdate', request)
 
-export const pgpPgpUpdateRpcPromise = (request: PgpPgpUpdateRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.pgp.pgpUpdate', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
+export const pgpPgpUpdateRpcPromise = (request: PgpPgpUpdateRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.pgp.pgpUpdate', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
 
 export const pgpPgpVerifyRpcChannelMap = (configKeys: Array<string>, request: PgpPgpVerifyRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.pgp.pgpVerify', request)
 
-export const pgpPgpVerifyRpcPromise = (request: PgpPgpVerifyRpcParam): Promise<PgpPgpVerifyResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.pgp.pgpVerify', request, (error: RPCError, result: PgpPgpVerifyResult) => error ? reject(error) : resolve(result)))
+export const pgpPgpVerifyRpcPromise = (request: PgpPgpVerifyRpcParam): Promise<PgpPgpVerifyResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.pgp.pgpVerify', request, (error: RPCError, result: PgpPgpVerifyResult) => (error ? reject(error) : resolve(result))))
 
 export const pgpSignMode = {
   attached: 0,
@@ -1211,7 +1210,7 @@ export const processFileType = {
 
 export const proveCheckProofRpcChannelMap = (configKeys: Array<string>, request: ProveCheckProofRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.prove.checkProof', request)
 
-export const proveCheckProofRpcPromise = (request: ProveCheckProofRpcParam): Promise<ProveCheckProofResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.prove.checkProof', request, (error: RPCError, result: ProveCheckProofResult) => error ? reject(error) : resolve(result)))
+export const proveCheckProofRpcPromise = (request: ProveCheckProofRpcParam): Promise<ProveCheckProofResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.prove.checkProof', request, (error: RPCError, result: ProveCheckProofResult) => (error ? reject(error) : resolve(result))))
 
 export const proveCommonProofState = {
   none: 0,
@@ -1288,7 +1287,7 @@ export const proveCommonProofType = {
 
 export const proveStartProofRpcChannelMap = (configKeys: Array<string>, request: ProveStartProofRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.prove.startProof', request)
 
-export const proveStartProofRpcPromise = (request: ProveStartProofRpcParam): Promise<ProveStartProofResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.prove.startProof', request, (error: RPCError, result: ProveStartProofResult) => error ? reject(error) : resolve(result)))
+export const proveStartProofRpcPromise = (request: ProveStartProofRpcParam): Promise<ProveStartProofResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.prove.startProof', request, (error: RPCError, result: ProveStartProofResult) => (error ? reject(error) : resolve(result))))
 
 export const proveUiPromptOverwriteType = {
   social: 0,
@@ -1316,15 +1315,15 @@ export const provisionUiProvisionMethod = {
 
 export const quotaVerifySessionRpcChannelMap = (configKeys: Array<string>, request: QuotaVerifySessionRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.quota.verifySession', request)
 
-export const quotaVerifySessionRpcPromise = (request: QuotaVerifySessionRpcParam): Promise<QuotaVerifySessionResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.quota.verifySession', request, (error: RPCError, result: QuotaVerifySessionResult) => error ? reject(error) : resolve(result)))
+export const quotaVerifySessionRpcPromise = (request: QuotaVerifySessionRpcParam): Promise<QuotaVerifySessionResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.quota.verifySession', request, (error: RPCError, result: QuotaVerifySessionResult) => (error ? reject(error) : resolve(result))))
 
 export const reachabilityCheckReachabilityRpcChannelMap = (configKeys: Array<string>, request: ReachabilityCheckReachabilityRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.reachability.checkReachability', request)
 
-export const reachabilityCheckReachabilityRpcPromise = (request: ReachabilityCheckReachabilityRpcParam): Promise<ReachabilityCheckReachabilityResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.reachability.checkReachability', request, (error: RPCError, result: ReachabilityCheckReachabilityResult) => error ? reject(error) : resolve(result)))
+export const reachabilityCheckReachabilityRpcPromise = (request: ReachabilityCheckReachabilityRpcParam): Promise<ReachabilityCheckReachabilityResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.reachability.checkReachability', request, (error: RPCError, result: ReachabilityCheckReachabilityResult) => (error ? reject(error) : resolve(result))))
 
 export const reachabilityReachabilityChangedRpcChannelMap = (configKeys: Array<string>, request: ReachabilityReachabilityChangedRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.reachability.reachabilityChanged', request)
 
-export const reachabilityReachabilityChangedRpcPromise = (request: ReachabilityReachabilityChangedRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.reachability.reachabilityChanged', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
+export const reachabilityReachabilityChangedRpcPromise = (request: ReachabilityReachabilityChangedRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.reachability.reachabilityChanged', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
 
 export const reachabilityReachable = {
   unknown: 0,
@@ -1334,19 +1333,19 @@ export const reachabilityReachable = {
 
 export const reachabilityStartReachabilityRpcChannelMap = (configKeys: Array<string>, request: ReachabilityStartReachabilityRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.reachability.startReachability', request)
 
-export const reachabilityStartReachabilityRpcPromise = (request: ReachabilityStartReachabilityRpcParam): Promise<ReachabilityStartReachabilityResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.reachability.startReachability', request, (error: RPCError, result: ReachabilityStartReachabilityResult) => error ? reject(error) : resolve(result)))
+export const reachabilityStartReachabilityRpcPromise = (request: ReachabilityStartReachabilityRpcParam): Promise<ReachabilityStartReachabilityResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.reachability.startReachability', request, (error: RPCError, result: ReachabilityStartReachabilityResult) => (error ? reject(error) : resolve(result))))
 
 export const rekeyDebugShowRekeyStatusRpcChannelMap = (configKeys: Array<string>, request: RekeyDebugShowRekeyStatusRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.rekey.debugShowRekeyStatus', request)
 
-export const rekeyDebugShowRekeyStatusRpcPromise = (request: RekeyDebugShowRekeyStatusRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.rekey.debugShowRekeyStatus', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
+export const rekeyDebugShowRekeyStatusRpcPromise = (request: RekeyDebugShowRekeyStatusRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.rekey.debugShowRekeyStatus', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
 
 export const rekeyGetPendingRekeyStatusRpcChannelMap = (configKeys: Array<string>, request: RekeyGetPendingRekeyStatusRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.rekey.getPendingRekeyStatus', request)
 
-export const rekeyGetPendingRekeyStatusRpcPromise = (request: RekeyGetPendingRekeyStatusRpcParam): Promise<RekeyGetPendingRekeyStatusResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.rekey.getPendingRekeyStatus', request, (error: RPCError, result: RekeyGetPendingRekeyStatusResult) => error ? reject(error) : resolve(result)))
+export const rekeyGetPendingRekeyStatusRpcPromise = (request: RekeyGetPendingRekeyStatusRpcParam): Promise<RekeyGetPendingRekeyStatusResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.rekey.getPendingRekeyStatus', request, (error: RPCError, result: RekeyGetPendingRekeyStatusResult) => (error ? reject(error) : resolve(result))))
 
 export const rekeyGetRevokeWarningRpcChannelMap = (configKeys: Array<string>, request: RekeyGetRevokeWarningRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.rekey.getRevokeWarning', request)
 
-export const rekeyGetRevokeWarningRpcPromise = (request: RekeyGetRevokeWarningRpcParam): Promise<RekeyGetRevokeWarningResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.rekey.getRevokeWarning', request, (error: RPCError, result: RekeyGetRevokeWarningResult) => error ? reject(error) : resolve(result)))
+export const rekeyGetRevokeWarningRpcPromise = (request: RekeyGetRevokeWarningRpcParam): Promise<RekeyGetRevokeWarningResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.rekey.getRevokeWarning', request, (error: RPCError, result: RekeyGetRevokeWarningResult) => (error ? reject(error) : resolve(result))))
 
 export const rekeyOutcome = {
   none: 0,
@@ -1356,15 +1355,15 @@ export const rekeyOutcome = {
 
 export const rekeyRekeyStatusFinishRpcChannelMap = (configKeys: Array<string>, request: RekeyRekeyStatusFinishRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.rekey.rekeyStatusFinish', request)
 
-export const rekeyRekeyStatusFinishRpcPromise = (request: RekeyRekeyStatusFinishRpcParam): Promise<RekeyRekeyStatusFinishResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.rekey.rekeyStatusFinish', request, (error: RPCError, result: RekeyRekeyStatusFinishResult) => error ? reject(error) : resolve(result)))
+export const rekeyRekeyStatusFinishRpcPromise = (request: RekeyRekeyStatusFinishRpcParam): Promise<RekeyRekeyStatusFinishResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.rekey.rekeyStatusFinish', request, (error: RPCError, result: RekeyRekeyStatusFinishResult) => (error ? reject(error) : resolve(result))))
 
 export const rekeyRekeySyncRpcChannelMap = (configKeys: Array<string>, request: RekeyRekeySyncRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.rekey.rekeySync', request)
 
-export const rekeyRekeySyncRpcPromise = (request: RekeyRekeySyncRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.rekey.rekeySync', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
+export const rekeyRekeySyncRpcPromise = (request: RekeyRekeySyncRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.rekey.rekeySync', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
 
 export const rekeyShowPendingRekeyStatusRpcChannelMap = (configKeys: Array<string>, request: RekeyShowPendingRekeyStatusRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.rekey.showPendingRekeyStatus', request)
 
-export const rekeyShowPendingRekeyStatusRpcPromise = (request: RekeyShowPendingRekeyStatusRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.rekey.showPendingRekeyStatus', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
+export const rekeyShowPendingRekeyStatusRpcPromise = (request: RekeyShowPendingRekeyStatusRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.rekey.showPendingRekeyStatus', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
 
 export const rekeyUIRekeyEventType = {
   none: 0,
@@ -1380,31 +1379,31 @@ export const rekeyUIRekeyEventType = {
 
 export const revokeRevokeDeviceRpcChannelMap = (configKeys: Array<string>, request: RevokeRevokeDeviceRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.revoke.revokeDevice', request)
 
-export const revokeRevokeDeviceRpcPromise = (request: RevokeRevokeDeviceRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.revoke.revokeDevice', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
+export const revokeRevokeDeviceRpcPromise = (request: RevokeRevokeDeviceRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.revoke.revokeDevice', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
 
 export const revokeRevokeKeyRpcChannelMap = (configKeys: Array<string>, request: RevokeRevokeKeyRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.revoke.revokeKey', request)
 
-export const revokeRevokeKeyRpcPromise = (request: RevokeRevokeKeyRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.revoke.revokeKey', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
+export const revokeRevokeKeyRpcPromise = (request: RevokeRevokeKeyRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.revoke.revokeKey', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
 
 export const revokeRevokeSigsRpcChannelMap = (configKeys: Array<string>, request: RevokeRevokeSigsRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.revoke.revokeSigs', request)
 
-export const revokeRevokeSigsRpcPromise = (request: RevokeRevokeSigsRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.revoke.revokeSigs', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
+export const revokeRevokeSigsRpcPromise = (request: RevokeRevokeSigsRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.revoke.revokeSigs', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
 
 export const saltpackSaltpackDecryptRpcChannelMap = (configKeys: Array<string>, request: SaltpackSaltpackDecryptRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.saltpack.saltpackDecrypt', request)
 
-export const saltpackSaltpackDecryptRpcPromise = (request: SaltpackSaltpackDecryptRpcParam): Promise<SaltpackSaltpackDecryptResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.saltpack.saltpackDecrypt', request, (error: RPCError, result: SaltpackSaltpackDecryptResult) => error ? reject(error) : resolve(result)))
+export const saltpackSaltpackDecryptRpcPromise = (request: SaltpackSaltpackDecryptRpcParam): Promise<SaltpackSaltpackDecryptResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.saltpack.saltpackDecrypt', request, (error: RPCError, result: SaltpackSaltpackDecryptResult) => (error ? reject(error) : resolve(result))))
 
 export const saltpackSaltpackEncryptRpcChannelMap = (configKeys: Array<string>, request: SaltpackSaltpackEncryptRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.saltpack.saltpackEncrypt', request)
 
-export const saltpackSaltpackEncryptRpcPromise = (request: SaltpackSaltpackEncryptRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.saltpack.saltpackEncrypt', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
+export const saltpackSaltpackEncryptRpcPromise = (request: SaltpackSaltpackEncryptRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.saltpack.saltpackEncrypt', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
 
 export const saltpackSaltpackSignRpcChannelMap = (configKeys: Array<string>, request: SaltpackSaltpackSignRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.saltpack.saltpackSign', request)
 
-export const saltpackSaltpackSignRpcPromise = (request: SaltpackSaltpackSignRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.saltpack.saltpackSign', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
+export const saltpackSaltpackSignRpcPromise = (request: SaltpackSaltpackSignRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.saltpack.saltpackSign', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
 
 export const saltpackSaltpackVerifyRpcChannelMap = (configKeys: Array<string>, request: SaltpackSaltpackVerifyRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.saltpack.saltpackVerify', request)
 
-export const saltpackSaltpackVerifyRpcPromise = (request: SaltpackSaltpackVerifyRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.saltpack.saltpackVerify', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
+export const saltpackSaltpackVerifyRpcPromise = (request: SaltpackSaltpackVerifyRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.saltpack.saltpackVerify', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
 
 export const saltpackUiSaltpackSenderType = {
   notTracked: 0,
@@ -1419,39 +1418,39 @@ export const saltpackUiSaltpackSenderType = {
 
 export const sessionCurrentSessionRpcChannelMap = (configKeys: Array<string>, request: SessionCurrentSessionRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.session.currentSession', request)
 
-export const sessionCurrentSessionRpcPromise = (request: SessionCurrentSessionRpcParam): Promise<SessionCurrentSessionResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.session.currentSession', request, (error: RPCError, result: SessionCurrentSessionResult) => error ? reject(error) : resolve(result)))
+export const sessionCurrentSessionRpcPromise = (request: SessionCurrentSessionRpcParam): Promise<SessionCurrentSessionResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.session.currentSession', request, (error: RPCError, result: SessionCurrentSessionResult) => (error ? reject(error) : resolve(result))))
 
 export const sessionSessionPingRpcChannelMap = (configKeys: Array<string>, request: SessionSessionPingRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.session.sessionPing', request)
 
-export const sessionSessionPingRpcPromise = (request: SessionSessionPingRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.session.sessionPing', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
+export const sessionSessionPingRpcPromise = (request: SessionSessionPingRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.session.sessionPing', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
 
 export const signupCheckInvitationCodeRpcChannelMap = (configKeys: Array<string>, request: SignupCheckInvitationCodeRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.signup.checkInvitationCode', request)
 
-export const signupCheckInvitationCodeRpcPromise = (request: SignupCheckInvitationCodeRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.signup.checkInvitationCode', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
+export const signupCheckInvitationCodeRpcPromise = (request: SignupCheckInvitationCodeRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.signup.checkInvitationCode', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
 
 export const signupCheckUsernameAvailableRpcChannelMap = (configKeys: Array<string>, request: SignupCheckUsernameAvailableRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.signup.checkUsernameAvailable', request)
 
-export const signupCheckUsernameAvailableRpcPromise = (request: SignupCheckUsernameAvailableRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.signup.checkUsernameAvailable', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
+export const signupCheckUsernameAvailableRpcPromise = (request: SignupCheckUsernameAvailableRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.signup.checkUsernameAvailable', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
 
 export const signupGetInvitationCodeRpcChannelMap = (configKeys: Array<string>, request: SignupGetInvitationCodeRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.signup.getInvitationCode', request)
 
-export const signupGetInvitationCodeRpcPromise = (request: SignupGetInvitationCodeRpcParam): Promise<SignupGetInvitationCodeResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.signup.getInvitationCode', request, (error: RPCError, result: SignupGetInvitationCodeResult) => error ? reject(error) : resolve(result)))
+export const signupGetInvitationCodeRpcPromise = (request: SignupGetInvitationCodeRpcParam): Promise<SignupGetInvitationCodeResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.signup.getInvitationCode', request, (error: RPCError, result: SignupGetInvitationCodeResult) => (error ? reject(error) : resolve(result))))
 
 export const signupInviteRequestRpcChannelMap = (configKeys: Array<string>, request: SignupInviteRequestRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.signup.inviteRequest', request)
 
-export const signupInviteRequestRpcPromise = (request: SignupInviteRequestRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.signup.inviteRequest', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
+export const signupInviteRequestRpcPromise = (request: SignupInviteRequestRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.signup.inviteRequest', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
 
 export const signupSignupRpcChannelMap = (configKeys: Array<string>, request: SignupSignupRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.signup.signup', request)
 
-export const signupSignupRpcPromise = (request: SignupSignupRpcParam): Promise<SignupSignupResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.signup.signup', request, (error: RPCError, result: SignupSignupResult) => error ? reject(error) : resolve(result)))
+export const signupSignupRpcPromise = (request: SignupSignupRpcParam): Promise<SignupSignupResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.signup.signup', request, (error: RPCError, result: SignupSignupResult) => (error ? reject(error) : resolve(result))))
 
 export const sigsSigListJSONRpcChannelMap = (configKeys: Array<string>, request: SigsSigListJSONRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.sigs.sigListJSON', request)
 
-export const sigsSigListJSONRpcPromise = (request: SigsSigListJSONRpcParam): Promise<SigsSigListJSONResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.sigs.sigListJSON', request, (error: RPCError, result: SigsSigListJSONResult) => error ? reject(error) : resolve(result)))
+export const sigsSigListJSONRpcPromise = (request: SigsSigListJSONRpcParam): Promise<SigsSigListJSONResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.sigs.sigListJSON', request, (error: RPCError, result: SigsSigListJSONResult) => (error ? reject(error) : resolve(result))))
 
 export const sigsSigListRpcChannelMap = (configKeys: Array<string>, request: SigsSigListRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.sigs.sigList', request)
 
-export const sigsSigListRpcPromise = (request: SigsSigListRpcParam): Promise<SigsSigListResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.sigs.sigList', request, (error: RPCError, result: SigsSigListResult) => error ? reject(error) : resolve(result)))
+export const sigsSigListRpcPromise = (request: SigsSigListRpcParam): Promise<SigsSigListResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.sigs.sigList', request, (error: RPCError, result: SigsSigListResult) => (error ? reject(error) : resolve(result))))
 
 export const simpleFSAsyncOps = {
   list: 0,
@@ -1486,31 +1485,31 @@ export const simpleFSPathType = {
 
 export const teamsCanUserPerformRpcChannelMap = (configKeys: Array<string>, request: TeamsCanUserPerformRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.canUserPerform', request)
 
-export const teamsCanUserPerformRpcPromise = (request: TeamsCanUserPerformRpcParam): Promise<TeamsCanUserPerformResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.canUserPerform', request, (error: RPCError, result: TeamsCanUserPerformResult) => error ? reject(error) : resolve(result)))
+export const teamsCanUserPerformRpcPromise = (request: TeamsCanUserPerformRpcParam): Promise<TeamsCanUserPerformResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.canUserPerform', request, (error: RPCError, result: TeamsCanUserPerformResult) => (error ? reject(error) : resolve(result))))
 
 export const teamsGetTeamAndMemberShowcaseRpcChannelMap = (configKeys: Array<string>, request: TeamsGetTeamAndMemberShowcaseRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.getTeamAndMemberShowcase', request)
 
-export const teamsGetTeamAndMemberShowcaseRpcPromise = (request: TeamsGetTeamAndMemberShowcaseRpcParam): Promise<TeamsGetTeamAndMemberShowcaseResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.getTeamAndMemberShowcase', request, (error: RPCError, result: TeamsGetTeamAndMemberShowcaseResult) => error ? reject(error) : resolve(result)))
+export const teamsGetTeamAndMemberShowcaseRpcPromise = (request: TeamsGetTeamAndMemberShowcaseRpcParam): Promise<TeamsGetTeamAndMemberShowcaseResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.getTeamAndMemberShowcase', request, (error: RPCError, result: TeamsGetTeamAndMemberShowcaseResult) => (error ? reject(error) : resolve(result))))
 
 export const teamsGetTeamRootIDRpcChannelMap = (configKeys: Array<string>, request: TeamsGetTeamRootIDRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.getTeamRootID', request)
 
-export const teamsGetTeamRootIDRpcPromise = (request: TeamsGetTeamRootIDRpcParam): Promise<TeamsGetTeamRootIDResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.getTeamRootID', request, (error: RPCError, result: TeamsGetTeamRootIDResult) => error ? reject(error) : resolve(result)))
+export const teamsGetTeamRootIDRpcPromise = (request: TeamsGetTeamRootIDRpcParam): Promise<TeamsGetTeamRootIDResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.getTeamRootID', request, (error: RPCError, result: TeamsGetTeamRootIDResult) => (error ? reject(error) : resolve(result))))
 
 export const teamsGetTeamShowcaseRpcChannelMap = (configKeys: Array<string>, request: TeamsGetTeamShowcaseRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.getTeamShowcase', request)
 
-export const teamsGetTeamShowcaseRpcPromise = (request: TeamsGetTeamShowcaseRpcParam): Promise<TeamsGetTeamShowcaseResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.getTeamShowcase', request, (error: RPCError, result: TeamsGetTeamShowcaseResult) => error ? reject(error) : resolve(result)))
+export const teamsGetTeamShowcaseRpcPromise = (request: TeamsGetTeamShowcaseRpcParam): Promise<TeamsGetTeamShowcaseResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.getTeamShowcase', request, (error: RPCError, result: TeamsGetTeamShowcaseResult) => (error ? reject(error) : resolve(result))))
 
 export const teamsLoadTeamPlusApplicationKeysRpcChannelMap = (configKeys: Array<string>, request: TeamsLoadTeamPlusApplicationKeysRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.loadTeamPlusApplicationKeys', request)
 
-export const teamsLoadTeamPlusApplicationKeysRpcPromise = (request: TeamsLoadTeamPlusApplicationKeysRpcParam): Promise<TeamsLoadTeamPlusApplicationKeysResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.loadTeamPlusApplicationKeys', request, (error: RPCError, result: TeamsLoadTeamPlusApplicationKeysResult) => error ? reject(error) : resolve(result)))
+export const teamsLoadTeamPlusApplicationKeysRpcPromise = (request: TeamsLoadTeamPlusApplicationKeysRpcParam): Promise<TeamsLoadTeamPlusApplicationKeysResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.loadTeamPlusApplicationKeys', request, (error: RPCError, result: TeamsLoadTeamPlusApplicationKeysResult) => (error ? reject(error) : resolve(result))))
 
 export const teamsLookupImplicitTeamRpcChannelMap = (configKeys: Array<string>, request: TeamsLookupImplicitTeamRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.lookupImplicitTeam', request)
 
-export const teamsLookupImplicitTeamRpcPromise = (request: TeamsLookupImplicitTeamRpcParam): Promise<TeamsLookupImplicitTeamResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.lookupImplicitTeam', request, (error: RPCError, result: TeamsLookupImplicitTeamResult) => error ? reject(error) : resolve(result)))
+export const teamsLookupImplicitTeamRpcPromise = (request: TeamsLookupImplicitTeamRpcParam): Promise<TeamsLookupImplicitTeamResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.lookupImplicitTeam', request, (error: RPCError, result: TeamsLookupImplicitTeamResult) => (error ? reject(error) : resolve(result))))
 
 export const teamsLookupOrCreateImplicitTeamRpcChannelMap = (configKeys: Array<string>, request: TeamsLookupOrCreateImplicitTeamRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.lookupOrCreateImplicitTeam', request)
 
-export const teamsLookupOrCreateImplicitTeamRpcPromise = (request: TeamsLookupOrCreateImplicitTeamRpcParam): Promise<TeamsLookupOrCreateImplicitTeamResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.lookupOrCreateImplicitTeam', request, (error: RPCError, result: TeamsLookupOrCreateImplicitTeamResult) => error ? reject(error) : resolve(result)))
+export const teamsLookupOrCreateImplicitTeamRpcPromise = (request: TeamsLookupOrCreateImplicitTeamRpcParam): Promise<TeamsLookupOrCreateImplicitTeamResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.lookupOrCreateImplicitTeam', request, (error: RPCError, result: TeamsLookupOrCreateImplicitTeamResult) => (error ? reject(error) : resolve(result))))
 
 export const teamsSeitanIKeyAndLabelVersion = {
   v1: 1,
@@ -1522,27 +1521,27 @@ export const teamsSeitanIKeyLabelType = {
 
 export const teamsSetTeamMemberShowcaseRpcChannelMap = (configKeys: Array<string>, request: TeamsSetTeamMemberShowcaseRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.setTeamMemberShowcase', request)
 
-export const teamsSetTeamMemberShowcaseRpcPromise = (request: TeamsSetTeamMemberShowcaseRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.setTeamMemberShowcase', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
+export const teamsSetTeamMemberShowcaseRpcPromise = (request: TeamsSetTeamMemberShowcaseRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.setTeamMemberShowcase', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
 
 export const teamsSetTeamShowcaseRpcChannelMap = (configKeys: Array<string>, request: TeamsSetTeamShowcaseRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.setTeamShowcase', request)
 
-export const teamsSetTeamShowcaseRpcPromise = (request: TeamsSetTeamShowcaseRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.setTeamShowcase', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
+export const teamsSetTeamShowcaseRpcPromise = (request: TeamsSetTeamShowcaseRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.setTeamShowcase', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
 
 export const teamsTeamAcceptInviteOrRequestAccessRpcChannelMap = (configKeys: Array<string>, request: TeamsTeamAcceptInviteOrRequestAccessRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamAcceptInviteOrRequestAccess', request)
 
-export const teamsTeamAcceptInviteOrRequestAccessRpcPromise = (request: TeamsTeamAcceptInviteOrRequestAccessRpcParam): Promise<TeamsTeamAcceptInviteOrRequestAccessResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamAcceptInviteOrRequestAccess', request, (error: RPCError, result: TeamsTeamAcceptInviteOrRequestAccessResult) => error ? reject(error) : resolve(result)))
+export const teamsTeamAcceptInviteOrRequestAccessRpcPromise = (request: TeamsTeamAcceptInviteOrRequestAccessRpcParam): Promise<TeamsTeamAcceptInviteOrRequestAccessResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamAcceptInviteOrRequestAccess', request, (error: RPCError, result: TeamsTeamAcceptInviteOrRequestAccessResult) => (error ? reject(error) : resolve(result))))
 
 export const teamsTeamAcceptInviteRpcChannelMap = (configKeys: Array<string>, request: TeamsTeamAcceptInviteRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamAcceptInvite', request)
 
-export const teamsTeamAcceptInviteRpcPromise = (request: TeamsTeamAcceptInviteRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamAcceptInvite', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
+export const teamsTeamAcceptInviteRpcPromise = (request: TeamsTeamAcceptInviteRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamAcceptInvite', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
 
 export const teamsTeamAddEmailsBulkRpcChannelMap = (configKeys: Array<string>, request: TeamsTeamAddEmailsBulkRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamAddEmailsBulk', request)
 
-export const teamsTeamAddEmailsBulkRpcPromise = (request: TeamsTeamAddEmailsBulkRpcParam): Promise<TeamsTeamAddEmailsBulkResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamAddEmailsBulk', request, (error: RPCError, result: TeamsTeamAddEmailsBulkResult) => error ? reject(error) : resolve(result)))
+export const teamsTeamAddEmailsBulkRpcPromise = (request: TeamsTeamAddEmailsBulkRpcParam): Promise<TeamsTeamAddEmailsBulkResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamAddEmailsBulk', request, (error: RPCError, result: TeamsTeamAddEmailsBulkResult) => (error ? reject(error) : resolve(result))))
 
 export const teamsTeamAddMemberRpcChannelMap = (configKeys: Array<string>, request: TeamsTeamAddMemberRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamAddMember', request)
 
-export const teamsTeamAddMemberRpcPromise = (request: TeamsTeamAddMemberRpcParam): Promise<TeamsTeamAddMemberResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamAddMember', request, (error: RPCError, result: TeamsTeamAddMemberResult) => error ? reject(error) : resolve(result)))
+export const teamsTeamAddMemberRpcPromise = (request: TeamsTeamAddMemberRpcParam): Promise<TeamsTeamAddMemberResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamAddMember', request, (error: RPCError, result: TeamsTeamAddMemberResult) => (error ? reject(error) : resolve(result))))
 
 export const teamsTeamApplication = {
   kbfs: 1,
@@ -1554,43 +1553,43 @@ export const teamsTeamApplication = {
 
 export const teamsTeamChangeMembershipRpcChannelMap = (configKeys: Array<string>, request: TeamsTeamChangeMembershipRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamChangeMembership', request)
 
-export const teamsTeamChangeMembershipRpcPromise = (request: TeamsTeamChangeMembershipRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamChangeMembership', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
+export const teamsTeamChangeMembershipRpcPromise = (request: TeamsTeamChangeMembershipRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamChangeMembership', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
 
 export const teamsTeamCreateRpcChannelMap = (configKeys: Array<string>, request: TeamsTeamCreateRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamCreate', request)
 
-export const teamsTeamCreateRpcPromise = (request: TeamsTeamCreateRpcParam): Promise<TeamsTeamCreateResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamCreate', request, (error: RPCError, result: TeamsTeamCreateResult) => error ? reject(error) : resolve(result)))
+export const teamsTeamCreateRpcPromise = (request: TeamsTeamCreateRpcParam): Promise<TeamsTeamCreateResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamCreate', request, (error: RPCError, result: TeamsTeamCreateResult) => (error ? reject(error) : resolve(result))))
 
 export const teamsTeamCreateSeitanTokenRpcChannelMap = (configKeys: Array<string>, request: TeamsTeamCreateSeitanTokenRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamCreateSeitanToken', request)
 
-export const teamsTeamCreateSeitanTokenRpcPromise = (request: TeamsTeamCreateSeitanTokenRpcParam): Promise<TeamsTeamCreateSeitanTokenResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamCreateSeitanToken', request, (error: RPCError, result: TeamsTeamCreateSeitanTokenResult) => error ? reject(error) : resolve(result)))
+export const teamsTeamCreateSeitanTokenRpcPromise = (request: TeamsTeamCreateSeitanTokenRpcParam): Promise<TeamsTeamCreateSeitanTokenResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamCreateSeitanToken', request, (error: RPCError, result: TeamsTeamCreateSeitanTokenResult) => (error ? reject(error) : resolve(result))))
 
 export const teamsTeamCreateWithSettingsRpcChannelMap = (configKeys: Array<string>, request: TeamsTeamCreateWithSettingsRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamCreateWithSettings', request)
 
-export const teamsTeamCreateWithSettingsRpcPromise = (request: TeamsTeamCreateWithSettingsRpcParam): Promise<TeamsTeamCreateWithSettingsResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamCreateWithSettings', request, (error: RPCError, result: TeamsTeamCreateWithSettingsResult) => error ? reject(error) : resolve(result)))
+export const teamsTeamCreateWithSettingsRpcPromise = (request: TeamsTeamCreateWithSettingsRpcParam): Promise<TeamsTeamCreateWithSettingsResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamCreateWithSettings', request, (error: RPCError, result: TeamsTeamCreateWithSettingsResult) => (error ? reject(error) : resolve(result))))
 
 export const teamsTeamDebugRpcChannelMap = (configKeys: Array<string>, request: TeamsTeamDebugRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamDebug', request)
 
-export const teamsTeamDebugRpcPromise = (request: TeamsTeamDebugRpcParam): Promise<TeamsTeamDebugResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamDebug', request, (error: RPCError, result: TeamsTeamDebugResult) => error ? reject(error) : resolve(result)))
+export const teamsTeamDebugRpcPromise = (request: TeamsTeamDebugRpcParam): Promise<TeamsTeamDebugResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamDebug', request, (error: RPCError, result: TeamsTeamDebugResult) => (error ? reject(error) : resolve(result))))
 
 export const teamsTeamDeleteRpcChannelMap = (configKeys: Array<string>, request: TeamsTeamDeleteRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamDelete', request)
 
-export const teamsTeamDeleteRpcPromise = (request: TeamsTeamDeleteRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamDelete', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
+export const teamsTeamDeleteRpcPromise = (request: TeamsTeamDeleteRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamDelete', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
 
 export const teamsTeamEditMemberRpcChannelMap = (configKeys: Array<string>, request: TeamsTeamEditMemberRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamEditMember', request)
 
-export const teamsTeamEditMemberRpcPromise = (request: TeamsTeamEditMemberRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamEditMember', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
+export const teamsTeamEditMemberRpcPromise = (request: TeamsTeamEditMemberRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamEditMember', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
 
 export const teamsTeamGetRpcChannelMap = (configKeys: Array<string>, request: TeamsTeamGetRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamGet', request)
 
-export const teamsTeamGetRpcPromise = (request: TeamsTeamGetRpcParam): Promise<TeamsTeamGetResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamGet', request, (error: RPCError, result: TeamsTeamGetResult) => error ? reject(error) : resolve(result)))
+export const teamsTeamGetRpcPromise = (request: TeamsTeamGetRpcParam): Promise<TeamsTeamGetResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamGet', request, (error: RPCError, result: TeamsTeamGetResult) => (error ? reject(error) : resolve(result))))
 
 export const teamsTeamIgnoreRequestRpcChannelMap = (configKeys: Array<string>, request: TeamsTeamIgnoreRequestRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamIgnoreRequest', request)
 
-export const teamsTeamIgnoreRequestRpcPromise = (request: TeamsTeamIgnoreRequestRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamIgnoreRequest', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
+export const teamsTeamIgnoreRequestRpcPromise = (request: TeamsTeamIgnoreRequestRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamIgnoreRequest', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
 
 export const teamsTeamImplicitAdminsRpcChannelMap = (configKeys: Array<string>, request: TeamsTeamImplicitAdminsRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamImplicitAdmins', request)
 
-export const teamsTeamImplicitAdminsRpcPromise = (request: TeamsTeamImplicitAdminsRpcParam): Promise<TeamsTeamImplicitAdminsResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamImplicitAdmins', request, (error: RPCError, result: TeamsTeamImplicitAdminsResult) => error ? reject(error) : resolve(result)))
+export const teamsTeamImplicitAdminsRpcPromise = (request: TeamsTeamImplicitAdminsRpcParam): Promise<TeamsTeamImplicitAdminsResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamImplicitAdmins', request, (error: RPCError, result: TeamsTeamImplicitAdminsResult) => (error ? reject(error) : resolve(result))))
 
 export const teamsTeamInviteCategory = {
   none: 0,
@@ -1603,39 +1602,39 @@ export const teamsTeamInviteCategory = {
 
 export const teamsTeamLeaveRpcChannelMap = (configKeys: Array<string>, request: TeamsTeamLeaveRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamLeave', request)
 
-export const teamsTeamLeaveRpcPromise = (request: TeamsTeamLeaveRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamLeave', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
+export const teamsTeamLeaveRpcPromise = (request: TeamsTeamLeaveRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamLeave', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
 
 export const teamsTeamListMyAccessRequestsRpcChannelMap = (configKeys: Array<string>, request: TeamsTeamListMyAccessRequestsRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamListMyAccessRequests', request)
 
-export const teamsTeamListMyAccessRequestsRpcPromise = (request: TeamsTeamListMyAccessRequestsRpcParam): Promise<TeamsTeamListMyAccessRequestsResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamListMyAccessRequests', request, (error: RPCError, result: TeamsTeamListMyAccessRequestsResult) => error ? reject(error) : resolve(result)))
+export const teamsTeamListMyAccessRequestsRpcPromise = (request: TeamsTeamListMyAccessRequestsRpcParam): Promise<TeamsTeamListMyAccessRequestsResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamListMyAccessRequests', request, (error: RPCError, result: TeamsTeamListMyAccessRequestsResult) => (error ? reject(error) : resolve(result))))
 
 export const teamsTeamListRequestsRpcChannelMap = (configKeys: Array<string>, request: TeamsTeamListRequestsRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamListRequests', request)
 
-export const teamsTeamListRequestsRpcPromise = (request: TeamsTeamListRequestsRpcParam): Promise<TeamsTeamListRequestsResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamListRequests', request, (error: RPCError, result: TeamsTeamListRequestsResult) => error ? reject(error) : resolve(result)))
+export const teamsTeamListRequestsRpcPromise = (request: TeamsTeamListRequestsRpcParam): Promise<TeamsTeamListRequestsResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamListRequests', request, (error: RPCError, result: TeamsTeamListRequestsResult) => (error ? reject(error) : resolve(result))))
 
 export const teamsTeamListRpcChannelMap = (configKeys: Array<string>, request: TeamsTeamListRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamList', request)
 
-export const teamsTeamListRpcPromise = (request: TeamsTeamListRpcParam): Promise<TeamsTeamListResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamList', request, (error: RPCError, result: TeamsTeamListResult) => error ? reject(error) : resolve(result)))
+export const teamsTeamListRpcPromise = (request: TeamsTeamListRpcParam): Promise<TeamsTeamListResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamList', request, (error: RPCError, result: TeamsTeamListResult) => (error ? reject(error) : resolve(result))))
 
 export const teamsTeamListSubteamsRecursiveRpcChannelMap = (configKeys: Array<string>, request: TeamsTeamListSubteamsRecursiveRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamListSubteamsRecursive', request)
 
-export const teamsTeamListSubteamsRecursiveRpcPromise = (request: TeamsTeamListSubteamsRecursiveRpcParam): Promise<TeamsTeamListSubteamsRecursiveResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamListSubteamsRecursive', request, (error: RPCError, result: TeamsTeamListSubteamsRecursiveResult) => error ? reject(error) : resolve(result)))
+export const teamsTeamListSubteamsRecursiveRpcPromise = (request: TeamsTeamListSubteamsRecursiveRpcParam): Promise<TeamsTeamListSubteamsRecursiveResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamListSubteamsRecursive', request, (error: RPCError, result: TeamsTeamListSubteamsRecursiveResult) => (error ? reject(error) : resolve(result))))
 
 export const teamsTeamReAddMemberAfterResetRpcChannelMap = (configKeys: Array<string>, request: TeamsTeamReAddMemberAfterResetRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamReAddMemberAfterReset', request)
 
-export const teamsTeamReAddMemberAfterResetRpcPromise = (request: TeamsTeamReAddMemberAfterResetRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamReAddMemberAfterReset', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
+export const teamsTeamReAddMemberAfterResetRpcPromise = (request: TeamsTeamReAddMemberAfterResetRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamReAddMemberAfterReset', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
 
 export const teamsTeamRemoveMemberRpcChannelMap = (configKeys: Array<string>, request: TeamsTeamRemoveMemberRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamRemoveMember', request)
 
-export const teamsTeamRemoveMemberRpcPromise = (request: TeamsTeamRemoveMemberRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamRemoveMember', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
+export const teamsTeamRemoveMemberRpcPromise = (request: TeamsTeamRemoveMemberRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamRemoveMember', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
 
 export const teamsTeamRenameRpcChannelMap = (configKeys: Array<string>, request: TeamsTeamRenameRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamRename', request)
 
-export const teamsTeamRenameRpcPromise = (request: TeamsTeamRenameRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamRename', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
+export const teamsTeamRenameRpcPromise = (request: TeamsTeamRenameRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamRename', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
 
 export const teamsTeamRequestAccessRpcChannelMap = (configKeys: Array<string>, request: TeamsTeamRequestAccessRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamRequestAccess', request)
 
-export const teamsTeamRequestAccessRpcPromise = (request: TeamsTeamRequestAccessRpcParam): Promise<TeamsTeamRequestAccessResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamRequestAccess', request, (error: RPCError, result: TeamsTeamRequestAccessResult) => error ? reject(error) : resolve(result)))
+export const teamsTeamRequestAccessRpcPromise = (request: TeamsTeamRequestAccessRpcParam): Promise<TeamsTeamRequestAccessResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamRequestAccess', request, (error: RPCError, result: TeamsTeamRequestAccessResult) => (error ? reject(error) : resolve(result))))
 
 export const teamsTeamRole = {
   none: 0,
@@ -1647,43 +1646,43 @@ export const teamsTeamRole = {
 
 export const teamsTeamRotateKeyRpcChannelMap = (configKeys: Array<string>, request: TeamsTeamRotateKeyRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamRotateKey', request)
 
-export const teamsTeamRotateKeyRpcPromise = (request: TeamsTeamRotateKeyRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamRotateKey', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
+export const teamsTeamRotateKeyRpcPromise = (request: TeamsTeamRotateKeyRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamRotateKey', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
 
 export const teamsTeamSetSettingsRpcChannelMap = (configKeys: Array<string>, request: TeamsTeamSetSettingsRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamSetSettings', request)
 
-export const teamsTeamSetSettingsRpcPromise = (request: TeamsTeamSetSettingsRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamSetSettings', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
+export const teamsTeamSetSettingsRpcPromise = (request: TeamsTeamSetSettingsRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamSetSettings', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
 
 export const teamsTeamTreeRpcChannelMap = (configKeys: Array<string>, request: TeamsTeamTreeRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamTree', request)
 
-export const teamsTeamTreeRpcPromise = (request: TeamsTeamTreeRpcParam): Promise<TeamsTeamTreeResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamTree', request, (error: RPCError, result: TeamsTeamTreeResult) => error ? reject(error) : resolve(result)))
+export const teamsTeamTreeRpcPromise = (request: TeamsTeamTreeRpcParam): Promise<TeamsTeamTreeResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamTree', request, (error: RPCError, result: TeamsTeamTreeResult) => (error ? reject(error) : resolve(result))))
 
 export const testPanicRpcChannelMap = (configKeys: Array<string>, request: TestPanicRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.test.panic', request)
 
-export const testPanicRpcPromise = (request: TestPanicRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.test.panic', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
+export const testPanicRpcPromise = (request: TestPanicRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.test.panic', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
 
 export const testTestCallbackRpcChannelMap = (configKeys: Array<string>, request: TestTestCallbackRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.test.testCallback', request)
 
-export const testTestCallbackRpcPromise = (request: TestTestCallbackRpcParam): Promise<TestTestCallbackResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.test.testCallback', request, (error: RPCError, result: TestTestCallbackResult) => error ? reject(error) : resolve(result)))
+export const testTestCallbackRpcPromise = (request: TestTestCallbackRpcParam): Promise<TestTestCallbackResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.test.testCallback', request, (error: RPCError, result: TestTestCallbackResult) => (error ? reject(error) : resolve(result))))
 
 export const testTestRpcChannelMap = (configKeys: Array<string>, request: TestTestRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.test.test', request)
 
-export const testTestRpcPromise = (request: TestTestRpcParam): Promise<TestTestResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.test.test', request, (error: RPCError, result: TestTestResult) => error ? reject(error) : resolve(result)))
+export const testTestRpcPromise = (request: TestTestRpcParam): Promise<TestTestResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.test.test', request, (error: RPCError, result: TestTestResult) => (error ? reject(error) : resolve(result))))
 
 export const tlfCompleteAndCanonicalizePrivateTlfNameRpcChannelMap = (configKeys: Array<string>, request: TlfCompleteAndCanonicalizePrivateTlfNameRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.tlf.completeAndCanonicalizePrivateTlfName', request)
 
-export const tlfCompleteAndCanonicalizePrivateTlfNameRpcPromise = (request: TlfCompleteAndCanonicalizePrivateTlfNameRpcParam): Promise<TlfCompleteAndCanonicalizePrivateTlfNameResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.tlf.completeAndCanonicalizePrivateTlfName', request, (error: RPCError, result: TlfCompleteAndCanonicalizePrivateTlfNameResult) => error ? reject(error) : resolve(result)))
+export const tlfCompleteAndCanonicalizePrivateTlfNameRpcPromise = (request: TlfCompleteAndCanonicalizePrivateTlfNameRpcParam): Promise<TlfCompleteAndCanonicalizePrivateTlfNameResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.tlf.completeAndCanonicalizePrivateTlfName', request, (error: RPCError, result: TlfCompleteAndCanonicalizePrivateTlfNameResult) => (error ? reject(error) : resolve(result))))
 
 export const tlfCryptKeysRpcChannelMap = (configKeys: Array<string>, request: TlfCryptKeysRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.tlf.CryptKeys', request)
 
-export const tlfCryptKeysRpcPromise = (request: TlfCryptKeysRpcParam): Promise<TlfCryptKeysResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.tlf.CryptKeys', request, (error: RPCError, result: TlfCryptKeysResult) => error ? reject(error) : resolve(result)))
+export const tlfCryptKeysRpcPromise = (request: TlfCryptKeysRpcParam): Promise<TlfCryptKeysResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.tlf.CryptKeys', request, (error: RPCError, result: TlfCryptKeysResult) => (error ? reject(error) : resolve(result))))
 
 export const tlfKeysGetPublicCanonicalTLFNameAndIDRpcChannelMap = (configKeys: Array<string>, request: TlfKeysGetPublicCanonicalTLFNameAndIDRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.tlfKeys.getPublicCanonicalTLFNameAndID', request)
 
-export const tlfKeysGetPublicCanonicalTLFNameAndIDRpcPromise = (request: TlfKeysGetPublicCanonicalTLFNameAndIDRpcParam): Promise<TlfKeysGetPublicCanonicalTLFNameAndIDResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.tlfKeys.getPublicCanonicalTLFNameAndID', request, (error: RPCError, result: TlfKeysGetPublicCanonicalTLFNameAndIDResult) => error ? reject(error) : resolve(result)))
+export const tlfKeysGetPublicCanonicalTLFNameAndIDRpcPromise = (request: TlfKeysGetPublicCanonicalTLFNameAndIDRpcParam): Promise<TlfKeysGetPublicCanonicalTLFNameAndIDResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.tlfKeys.getPublicCanonicalTLFNameAndID', request, (error: RPCError, result: TlfKeysGetPublicCanonicalTLFNameAndIDResult) => (error ? reject(error) : resolve(result))))
 
 export const tlfKeysGetTLFCryptKeysRpcChannelMap = (configKeys: Array<string>, request: TlfKeysGetTLFCryptKeysRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.tlfKeys.getTLFCryptKeys', request)
 
-export const tlfKeysGetTLFCryptKeysRpcPromise = (request: TlfKeysGetTLFCryptKeysRpcParam): Promise<TlfKeysGetTLFCryptKeysResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.tlfKeys.getTLFCryptKeys', request, (error: RPCError, result: TlfKeysGetTLFCryptKeysResult) => error ? reject(error) : resolve(result)))
+export const tlfKeysGetTLFCryptKeysRpcPromise = (request: TlfKeysGetTLFCryptKeysRpcParam): Promise<TlfKeysGetTLFCryptKeysResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.tlfKeys.getTLFCryptKeys', request, (error: RPCError, result: TlfKeysGetTLFCryptKeysResult) => (error ? reject(error) : resolve(result))))
 
 export const tlfKeysTLFIdentifyBehavior = {
   defaultKbfs: 0,
@@ -1698,31 +1697,31 @@ export const tlfKeysTLFIdentifyBehavior = {
 
 export const tlfPublicCanonicalTLFNameAndIDRpcChannelMap = (configKeys: Array<string>, request: TlfPublicCanonicalTLFNameAndIDRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.tlf.publicCanonicalTLFNameAndID', request)
 
-export const tlfPublicCanonicalTLFNameAndIDRpcPromise = (request: TlfPublicCanonicalTLFNameAndIDRpcParam): Promise<TlfPublicCanonicalTLFNameAndIDResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.tlf.publicCanonicalTLFNameAndID', request, (error: RPCError, result: TlfPublicCanonicalTLFNameAndIDResult) => error ? reject(error) : resolve(result)))
+export const tlfPublicCanonicalTLFNameAndIDRpcPromise = (request: TlfPublicCanonicalTLFNameAndIDRpcParam): Promise<TlfPublicCanonicalTLFNameAndIDResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.tlf.publicCanonicalTLFNameAndID', request, (error: RPCError, result: TlfPublicCanonicalTLFNameAndIDResult) => (error ? reject(error) : resolve(result))))
 
 export const trackCheckTrackingRpcChannelMap = (configKeys: Array<string>, request: TrackCheckTrackingRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.track.checkTracking', request)
 
-export const trackCheckTrackingRpcPromise = (request: TrackCheckTrackingRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.track.checkTracking', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
+export const trackCheckTrackingRpcPromise = (request: TrackCheckTrackingRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.track.checkTracking', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
 
 export const trackDismissWithTokenRpcChannelMap = (configKeys: Array<string>, request: TrackDismissWithTokenRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.track.dismissWithToken', request)
 
-export const trackDismissWithTokenRpcPromise = (request: TrackDismissWithTokenRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.track.dismissWithToken', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
+export const trackDismissWithTokenRpcPromise = (request: TrackDismissWithTokenRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.track.dismissWithToken', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
 
 export const trackFakeTrackingChangedRpcChannelMap = (configKeys: Array<string>, request: TrackFakeTrackingChangedRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.track.fakeTrackingChanged', request)
 
-export const trackFakeTrackingChangedRpcPromise = (request: TrackFakeTrackingChangedRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.track.fakeTrackingChanged', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
+export const trackFakeTrackingChangedRpcPromise = (request: TrackFakeTrackingChangedRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.track.fakeTrackingChanged', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
 
 export const trackTrackRpcChannelMap = (configKeys: Array<string>, request: TrackTrackRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.track.track', request)
 
-export const trackTrackRpcPromise = (request: TrackTrackRpcParam): Promise<TrackTrackResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.track.track', request, (error: RPCError, result: TrackTrackResult) => error ? reject(error) : resolve(result)))
+export const trackTrackRpcPromise = (request: TrackTrackRpcParam): Promise<TrackTrackResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.track.track', request, (error: RPCError, result: TrackTrackResult) => (error ? reject(error) : resolve(result))))
 
 export const trackTrackWithTokenRpcChannelMap = (configKeys: Array<string>, request: TrackTrackWithTokenRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.track.trackWithToken', request)
 
-export const trackTrackWithTokenRpcPromise = (request: TrackTrackWithTokenRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.track.trackWithToken', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
+export const trackTrackWithTokenRpcPromise = (request: TrackTrackWithTokenRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.track.trackWithToken', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
 
 export const trackUntrackRpcChannelMap = (configKeys: Array<string>, request: TrackUntrackRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.track.untrack', request)
 
-export const trackUntrackRpcPromise = (request: TrackUntrackRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.track.untrack', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
+export const trackUntrackRpcPromise = (request: TrackUntrackRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.track.untrack', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
 
 export const uPKKeyType = {
   none: 0,
@@ -1752,359 +1751,359 @@ export const uiPromptDefault = {
 
 export const userDeleteUserRpcChannelMap = (configKeys: Array<string>, request: UserDeleteUserRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.user.deleteUser', request)
 
-export const userDeleteUserRpcPromise = (request: UserDeleteUserRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.user.deleteUser', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
+export const userDeleteUserRpcPromise = (request: UserDeleteUserRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.user.deleteUser', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
 
 export const userGetUPAKRpcChannelMap = (configKeys: Array<string>, request: UserGetUPAKRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.user.getUPAK', request)
 
-export const userGetUPAKRpcPromise = (request: UserGetUPAKRpcParam): Promise<UserGetUPAKResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.user.getUPAK', request, (error: RPCError, result: UserGetUPAKResult) => error ? reject(error) : resolve(result)))
+export const userGetUPAKRpcPromise = (request: UserGetUPAKRpcParam): Promise<UserGetUPAKResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.user.getUPAK', request, (error: RPCError, result: UserGetUPAKResult) => (error ? reject(error) : resolve(result))))
 
 export const userInterestingPeopleRpcChannelMap = (configKeys: Array<string>, request: UserInterestingPeopleRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.user.interestingPeople', request)
 
-export const userInterestingPeopleRpcPromise = (request: UserInterestingPeopleRpcParam): Promise<UserInterestingPeopleResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.user.interestingPeople', request, (error: RPCError, result: UserInterestingPeopleResult) => error ? reject(error) : resolve(result)))
+export const userInterestingPeopleRpcPromise = (request: UserInterestingPeopleRpcParam): Promise<UserInterestingPeopleResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.user.interestingPeople', request, (error: RPCError, result: UserInterestingPeopleResult) => (error ? reject(error) : resolve(result))))
 
 export const userListTrackers2RpcChannelMap = (configKeys: Array<string>, request: UserListTrackers2RpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.user.listTrackers2', request)
 
-export const userListTrackers2RpcPromise = (request: UserListTrackers2RpcParam): Promise<UserListTrackers2Result> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.user.listTrackers2', request, (error: RPCError, result: UserListTrackers2Result) => error ? reject(error) : resolve(result)))
+export const userListTrackers2RpcPromise = (request: UserListTrackers2RpcParam): Promise<UserListTrackers2Result> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.user.listTrackers2', request, (error: RPCError, result: UserListTrackers2Result) => (error ? reject(error) : resolve(result))))
 
 export const userListTrackersByNameRpcChannelMap = (configKeys: Array<string>, request: UserListTrackersByNameRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.user.listTrackersByName', request)
 
-export const userListTrackersByNameRpcPromise = (request: UserListTrackersByNameRpcParam): Promise<UserListTrackersByNameResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.user.listTrackersByName', request, (error: RPCError, result: UserListTrackersByNameResult) => error ? reject(error) : resolve(result)))
+export const userListTrackersByNameRpcPromise = (request: UserListTrackersByNameRpcParam): Promise<UserListTrackersByNameResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.user.listTrackersByName', request, (error: RPCError, result: UserListTrackersByNameResult) => (error ? reject(error) : resolve(result))))
 
 export const userListTrackersRpcChannelMap = (configKeys: Array<string>, request: UserListTrackersRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.user.listTrackers', request)
 
-export const userListTrackersRpcPromise = (request: UserListTrackersRpcParam): Promise<UserListTrackersResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.user.listTrackers', request, (error: RPCError, result: UserListTrackersResult) => error ? reject(error) : resolve(result)))
+export const userListTrackersRpcPromise = (request: UserListTrackersRpcParam): Promise<UserListTrackersResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.user.listTrackers', request, (error: RPCError, result: UserListTrackersResult) => (error ? reject(error) : resolve(result))))
 
 export const userListTrackersSelfRpcChannelMap = (configKeys: Array<string>, request: UserListTrackersSelfRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.user.listTrackersSelf', request)
 
-export const userListTrackersSelfRpcPromise = (request: UserListTrackersSelfRpcParam): Promise<UserListTrackersSelfResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.user.listTrackersSelf', request, (error: RPCError, result: UserListTrackersSelfResult) => error ? reject(error) : resolve(result)))
+export const userListTrackersSelfRpcPromise = (request: UserListTrackersSelfRpcParam): Promise<UserListTrackersSelfResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.user.listTrackersSelf', request, (error: RPCError, result: UserListTrackersSelfResult) => (error ? reject(error) : resolve(result))))
 
 export const userListTrackingJSONRpcChannelMap = (configKeys: Array<string>, request: UserListTrackingJSONRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.user.listTrackingJSON', request)
 
-export const userListTrackingJSONRpcPromise = (request: UserListTrackingJSONRpcParam): Promise<UserListTrackingJSONResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.user.listTrackingJSON', request, (error: RPCError, result: UserListTrackingJSONResult) => error ? reject(error) : resolve(result)))
+export const userListTrackingJSONRpcPromise = (request: UserListTrackingJSONRpcParam): Promise<UserListTrackingJSONResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.user.listTrackingJSON', request, (error: RPCError, result: UserListTrackingJSONResult) => (error ? reject(error) : resolve(result))))
 
 export const userListTrackingRpcChannelMap = (configKeys: Array<string>, request: UserListTrackingRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.user.listTracking', request)
 
-export const userListTrackingRpcPromise = (request: UserListTrackingRpcParam): Promise<UserListTrackingResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.user.listTracking', request, (error: RPCError, result: UserListTrackingResult) => error ? reject(error) : resolve(result)))
+export const userListTrackingRpcPromise = (request: UserListTrackingRpcParam): Promise<UserListTrackingResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.user.listTracking', request, (error: RPCError, result: UserListTrackingResult) => (error ? reject(error) : resolve(result))))
 
 export const userLoadAllPublicKeysUnverifiedRpcChannelMap = (configKeys: Array<string>, request: UserLoadAllPublicKeysUnverifiedRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.user.loadAllPublicKeysUnverified', request)
 
-export const userLoadAllPublicKeysUnverifiedRpcPromise = (request: UserLoadAllPublicKeysUnverifiedRpcParam): Promise<UserLoadAllPublicKeysUnverifiedResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.user.loadAllPublicKeysUnverified', request, (error: RPCError, result: UserLoadAllPublicKeysUnverifiedResult) => error ? reject(error) : resolve(result)))
+export const userLoadAllPublicKeysUnverifiedRpcPromise = (request: UserLoadAllPublicKeysUnverifiedRpcParam): Promise<UserLoadAllPublicKeysUnverifiedResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.user.loadAllPublicKeysUnverified', request, (error: RPCError, result: UserLoadAllPublicKeysUnverifiedResult) => (error ? reject(error) : resolve(result))))
 
 export const userLoadMyPublicKeysRpcChannelMap = (configKeys: Array<string>, request: UserLoadMyPublicKeysRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.user.loadMyPublicKeys', request)
 
-export const userLoadMyPublicKeysRpcPromise = (request: UserLoadMyPublicKeysRpcParam): Promise<UserLoadMyPublicKeysResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.user.loadMyPublicKeys', request, (error: RPCError, result: UserLoadMyPublicKeysResult) => error ? reject(error) : resolve(result)))
+export const userLoadMyPublicKeysRpcPromise = (request: UserLoadMyPublicKeysRpcParam): Promise<UserLoadMyPublicKeysResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.user.loadMyPublicKeys', request, (error: RPCError, result: UserLoadMyPublicKeysResult) => (error ? reject(error) : resolve(result))))
 
 export const userLoadMySettingsRpcChannelMap = (configKeys: Array<string>, request: UserLoadMySettingsRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.user.loadMySettings', request)
 
-export const userLoadMySettingsRpcPromise = (request: UserLoadMySettingsRpcParam): Promise<UserLoadMySettingsResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.user.loadMySettings', request, (error: RPCError, result: UserLoadMySettingsResult) => error ? reject(error) : resolve(result)))
+export const userLoadMySettingsRpcPromise = (request: UserLoadMySettingsRpcParam): Promise<UserLoadMySettingsResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.user.loadMySettings', request, (error: RPCError, result: UserLoadMySettingsResult) => (error ? reject(error) : resolve(result))))
 
 export const userLoadPublicKeysRpcChannelMap = (configKeys: Array<string>, request: UserLoadPublicKeysRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.user.loadPublicKeys', request)
 
-export const userLoadPublicKeysRpcPromise = (request: UserLoadPublicKeysRpcParam): Promise<UserLoadPublicKeysResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.user.loadPublicKeys', request, (error: RPCError, result: UserLoadPublicKeysResult) => error ? reject(error) : resolve(result)))
+export const userLoadPublicKeysRpcPromise = (request: UserLoadPublicKeysRpcParam): Promise<UserLoadPublicKeysResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.user.loadPublicKeys', request, (error: RPCError, result: UserLoadPublicKeysResult) => (error ? reject(error) : resolve(result))))
 
 export const userLoadUncheckedUserSummariesRpcChannelMap = (configKeys: Array<string>, request: UserLoadUncheckedUserSummariesRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.user.loadUncheckedUserSummaries', request)
 
-export const userLoadUncheckedUserSummariesRpcPromise = (request: UserLoadUncheckedUserSummariesRpcParam): Promise<UserLoadUncheckedUserSummariesResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.user.loadUncheckedUserSummaries', request, (error: RPCError, result: UserLoadUncheckedUserSummariesResult) => error ? reject(error) : resolve(result)))
+export const userLoadUncheckedUserSummariesRpcPromise = (request: UserLoadUncheckedUserSummariesRpcParam): Promise<UserLoadUncheckedUserSummariesResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.user.loadUncheckedUserSummaries', request, (error: RPCError, result: UserLoadUncheckedUserSummariesResult) => (error ? reject(error) : resolve(result))))
 
 export const userLoadUserByNameRpcChannelMap = (configKeys: Array<string>, request: UserLoadUserByNameRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.user.loadUserByName', request)
 
-export const userLoadUserByNameRpcPromise = (request: UserLoadUserByNameRpcParam): Promise<UserLoadUserByNameResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.user.loadUserByName', request, (error: RPCError, result: UserLoadUserByNameResult) => error ? reject(error) : resolve(result)))
+export const userLoadUserByNameRpcPromise = (request: UserLoadUserByNameRpcParam): Promise<UserLoadUserByNameResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.user.loadUserByName', request, (error: RPCError, result: UserLoadUserByNameResult) => (error ? reject(error) : resolve(result))))
 
 export const userLoadUserPlusKeysRpcChannelMap = (configKeys: Array<string>, request: UserLoadUserPlusKeysRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.user.loadUserPlusKeys', request)
 
-export const userLoadUserPlusKeysRpcPromise = (request: UserLoadUserPlusKeysRpcParam): Promise<UserLoadUserPlusKeysResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.user.loadUserPlusKeys', request, (error: RPCError, result: UserLoadUserPlusKeysResult) => error ? reject(error) : resolve(result)))
+export const userLoadUserPlusKeysRpcPromise = (request: UserLoadUserPlusKeysRpcParam): Promise<UserLoadUserPlusKeysResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.user.loadUserPlusKeys', request, (error: RPCError, result: UserLoadUserPlusKeysResult) => (error ? reject(error) : resolve(result))))
 
 export const userLoadUserRpcChannelMap = (configKeys: Array<string>, request: UserLoadUserRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.user.loadUser', request)
 
-export const userLoadUserRpcPromise = (request: UserLoadUserRpcParam): Promise<UserLoadUserResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.user.loadUser', request, (error: RPCError, result: UserLoadUserResult) => error ? reject(error) : resolve(result)))
+export const userLoadUserRpcPromise = (request: UserLoadUserRpcParam): Promise<UserLoadUserResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.user.loadUser', request, (error: RPCError, result: UserLoadUserResult) => (error ? reject(error) : resolve(result))))
 
 export const userMeUserVersionRpcChannelMap = (configKeys: Array<string>, request: UserMeUserVersionRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.user.meUserVersion', request)
 
-export const userMeUserVersionRpcPromise = (request: UserMeUserVersionRpcParam): Promise<UserMeUserVersionResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.user.meUserVersion', request, (error: RPCError, result: UserMeUserVersionResult) => error ? reject(error) : resolve(result)))
+export const userMeUserVersionRpcPromise = (request: UserMeUserVersionRpcParam): Promise<UserMeUserVersionResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.user.meUserVersion', request, (error: RPCError, result: UserMeUserVersionResult) => (error ? reject(error) : resolve(result))))
 
 export const userProfileEditRpcChannelMap = (configKeys: Array<string>, request: UserProfileEditRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.user.profileEdit', request)
 
-export const userProfileEditRpcPromise = (request: UserProfileEditRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.user.profileEdit', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
+export const userProfileEditRpcPromise = (request: UserProfileEditRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.user.profileEdit', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
 
 export const userResetUserRpcChannelMap = (configKeys: Array<string>, request: UserResetUserRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.user.resetUser', request)
 
-export const userResetUserRpcPromise = (request: UserResetUserRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.user.resetUser', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
+export const userResetUserRpcPromise = (request: UserResetUserRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.user.resetUser', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
 
 export const userSearchRpcChannelMap = (configKeys: Array<string>, request: UserSearchRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.user.search', request)
 
-export const userSearchRpcPromise = (request: UserSearchRpcParam): Promise<UserSearchResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.user.search', request, (error: RPCError, result: UserSearchResult) => error ? reject(error) : resolve(result)))
+export const userSearchRpcPromise = (request: UserSearchRpcParam): Promise<UserSearchResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.user.search', request, (error: RPCError, result: UserSearchResult) => (error ? reject(error) : resolve(result))))
 
-export type APIRes = {|status: String,body: String,httpStatus: Int,appStatus: String,|}
+export type APIRes = {|status: String, body: String, httpStatus: Int, appStatus: String|}
 
-export type AccountEmailChangeRpcParam = {|newEmail: String,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type AccountEmailChangeRpcParam = {|newEmail: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type AccountHasServerKeysRpcParam = ?{|incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type AccountHasServerKeysRpcParam = ?{|incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type AccountPassphraseChangeRpcParam = {|oldPassphrase: String,passphrase: String,force: Boolean,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type AccountPassphraseChangeRpcParam = {|oldPassphrase: String, passphrase: String, force: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type AccountPassphrasePromptRpcParam = {|guiArg: GUIEntryArg,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type AccountPassphrasePromptRpcParam = {|guiArg: GUIEntryArg, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type AccountResetAccountRpcParam = ?{|incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type AccountResetAccountRpcParam = ?{|incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type AnnotatedMemberInfo = {|userID: UID,teamID: TeamID,username: String,fullName: String,fqName: String,isImplicitTeam: Boolean,role: TeamRole,implicit?: ?ImplicitRole,needsPUK: Boolean,memberCount: Int,eldestSeqno: Seqno,active: Boolean,|}
+export type AnnotatedMemberInfo = {|userID: UID, teamID: TeamID, username: String, fullName: String, fqName: String, isImplicitTeam: Boolean, role: TeamRole, implicit?: ?ImplicitRole, needsPUK: Boolean, memberCount: Int, eldestSeqno: Seqno, active: Boolean|}
 
-export type AnnotatedTeamInvite = {|role: TeamRole,id: TeamInviteID,type: TeamInviteType,name: TeamInviteName,uv: UserVersion,inviter: UserVersion,inviterUsername: String,teamName: String,userActive: Boolean,|}
+export type AnnotatedTeamInvite = {|role: TeamRole, id: TeamInviteID, type: TeamInviteType, name: TeamInviteName, uv: UserVersion, inviter: UserVersion, inviterUsername: String, teamName: String, userActive: Boolean|}
 
-export type AnnotatedTeamList = {|teams?: ?Array<AnnotatedMemberInfo>,annotatedActiveInvites: {[key: string]: AnnotatedTeamInvite},|}
+export type AnnotatedTeamList = {|teams?: ?Array<AnnotatedMemberInfo>, annotatedActiveInvites: {[key: string]: AnnotatedTeamInvite}|}
 
-export type ApiserverDeleteRpcParam = {|endpoint: String,args?: ?Array<StringKVPair>,httpStatus?: ?Array<Int>,appStatusCode?: ?Array<Int>,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type ApiserverDeleteRpcParam = {|endpoint: String, args?: ?Array<StringKVPair>, httpStatus?: ?Array<Int>, appStatusCode?: ?Array<Int>, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type ApiserverGetRpcParam = {|endpoint: String,args?: ?Array<StringKVPair>,httpStatus?: ?Array<Int>,appStatusCode?: ?Array<Int>,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type ApiserverGetRpcParam = {|endpoint: String, args?: ?Array<StringKVPair>, httpStatus?: ?Array<Int>, appStatusCode?: ?Array<Int>, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type ApiserverGetWithSessionRpcParam = {|endpoint: String,args?: ?Array<StringKVPair>,httpStatus?: ?Array<Int>,appStatusCode?: ?Array<Int>,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type ApiserverGetWithSessionRpcParam = {|endpoint: String, args?: ?Array<StringKVPair>, httpStatus?: ?Array<Int>, appStatusCode?: ?Array<Int>, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type ApiserverPostJSONRpcParam = {|endpoint: String,args?: ?Array<StringKVPair>,JSONPayload?: ?Array<StringKVPair>,httpStatus?: ?Array<Int>,appStatusCode?: ?Array<Int>,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type ApiserverPostJSONRpcParam = {|endpoint: String, args?: ?Array<StringKVPair>, JSONPayload?: ?Array<StringKVPair>, httpStatus?: ?Array<Int>, appStatusCode?: ?Array<Int>, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type ApiserverPostRpcParam = {|endpoint: String,args?: ?Array<StringKVPair>,httpStatus?: ?Array<Int>,appStatusCode?: ?Array<Int>,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type ApiserverPostRpcParam = {|endpoint: String, args?: ?Array<StringKVPair>, httpStatus?: ?Array<Int>, appStatusCode?: ?Array<Int>, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type AppState =0 // FOREGROUND_0
- | 1 // BACKGROUND_1
- | 2 // INACTIVE_2
- | 3 // BACKGROUNDACTIVE_3
+export type AppState =
+  | 0 // FOREGROUND_0
+  | 1 // BACKGROUND_1
+  | 2 // INACTIVE_2
+  | 3 // BACKGROUNDACTIVE_3
 
+export type AppStateUpdateAppStateRpcParam = {|state: AppState, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type AppStateUpdateAppStateRpcParam = {|state: AppState,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type AsyncOps =
+  | 0 // LIST_0
+  | 1 // LIST_RECURSIVE_1
+  | 2 // READ_2
+  | 3 // WRITE_3
+  | 4 // COPY_4
+  | 5 // MOVE_5
+  | 6 // REMOVE_6
 
-export type AsyncOps =0 // LIST_0
- | 1 // LIST_RECURSIVE_1
- | 2 // READ_2
- | 3 // WRITE_3
- | 4 // COPY_4
- | 5 // MOVE_5
- | 6 // REMOVE_6
+export type BTCRegisterBTCRpcParam = {|address: String, force: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
+export type BadgeConversationInfo = {|convID: ChatConversationID, badgeCounts: {[key: string]: Int}, unreadMessages: Int|}
 
-export type BTCRegisterBTCRpcParam = {|address: String,force: Boolean,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type BadgeState = {|newTlfs: Int, rekeysNeeded: Int, newFollowers: Int, inboxVers: Int, homeTodoItems: Int, conversations?: ?Array<BadgeConversationInfo>, newGitRepoGlobalUniqueIDs?: ?Array<String>, newTeamNames?: ?Array<String>, newTeamAccessRequests?: ?Array<String>, teamsWithResetUsers?: ?Array<TeamMemberOutReset>|}
 
-export type BadgeConversationInfo = {|convID: ChatConversationID,badgeCounts: {[key: string]: Int},unreadMessages: Int,|}
-
-export type BadgeState = {|newTlfs: Int,rekeysNeeded: Int,newFollowers: Int,inboxVers: Int,homeTodoItems: Int,conversations?: ?Array<BadgeConversationInfo>,newGitRepoGlobalUniqueIDs?: ?Array<String>,newTeamNames?: ?Array<String>,newTeamAccessRequests?: ?Array<String>,teamsWithResetUsers?: ?Array<TeamMemberOutReset>,|}
-
-export type BadgerGetBadgeStateRpcParam = ?{|incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type BadgerGetBadgeStateRpcParam = ?{|incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
 export type BinaryKID = Bytes
 
-export type BlockAddReferenceRpcParam = {|folder: String,ref: BlockReference,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type BlockAddReferenceRpcParam = {|folder: String, ref: BlockReference, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type BlockArchiveReferenceRpcParam = {|folder: String,refs?: ?Array<BlockReference>,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type BlockArchiveReferenceRpcParam = {|folder: String, refs?: ?Array<BlockReference>, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type BlockArchiveReferenceWithCountRpcParam = {|folder: String,refs?: ?Array<BlockReference>,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type BlockArchiveReferenceWithCountRpcParam = {|folder: String, refs?: ?Array<BlockReference>, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type BlockAuthenticateSessionRpcParam = {|signature: String,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type BlockAuthenticateSessionRpcParam = {|signature: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type BlockBlockPingRpcParam = ?{|incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type BlockBlockPingRpcParam = ?{|incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type BlockDelReferenceRpcParam = {|folder: String,ref: BlockReference,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type BlockDelReferenceRpcParam = {|folder: String, ref: BlockReference, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type BlockDelReferenceWithCountRpcParam = {|folder: String,refs?: ?Array<BlockReference>,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type BlockDelReferenceWithCountRpcParam = {|folder: String, refs?: ?Array<BlockReference>, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type BlockGetBlockRpcParam = {|bid: BlockIdCombo,folder: String,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type BlockGetBlockRpcParam = {|bid: BlockIdCombo, folder: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type BlockGetSessionChallengeRpcParam = ?{|incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type BlockGetSessionChallengeRpcParam = ?{|incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type BlockGetTeamQuotaInfoRpcParam = {|tid: TeamID,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type BlockGetTeamQuotaInfoRpcParam = {|tid: TeamID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type BlockGetUserQuotaInfoRpcParam = ?{|incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type BlockGetUserQuotaInfoRpcParam = ?{|incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type BlockIdCombo = {|blockHash: String,chargedTo: UserOrTeamID,blockType: BlockType,|}
+export type BlockIdCombo = {|blockHash: String, chargedTo: UserOrTeamID, blockType: BlockType|}
 
 export type BlockPingResponse = {||}
 
-export type BlockPutBlockAgainRpcParam = {|folder: String,ref: BlockReference,blockKey: String,buf: Bytes,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type BlockPutBlockAgainRpcParam = {|folder: String, ref: BlockReference, blockKey: String, buf: Bytes, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type BlockPutBlockRpcParam = {|bid: BlockIdCombo,folder: String,blockKey: String,buf: Bytes,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type BlockPutBlockRpcParam = {|bid: BlockIdCombo, folder: String, blockKey: String, buf: Bytes, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
 export type BlockRefNonce = any
 
-export type BlockReference = {|bid: BlockIdCombo,nonce: BlockRefNonce,chargedTo: UserOrTeamID,|}
+export type BlockReference = {|bid: BlockIdCombo, nonce: BlockRefNonce, chargedTo: UserOrTeamID|}
 
-export type BlockReferenceCount = {|ref: BlockReference,liveCount: Int,|}
+export type BlockReferenceCount = {|ref: BlockReference, liveCount: Int|}
 
-export type BlockType =0 // DATA_0
- | 1 // MD_1
- | 2 // GIT_2
+export type BlockType =
+  | 0 // DATA_0
+  | 1 // MD_1
+  | 2 // GIT_2
 
-
-export type BootstrapStatus = {|registered: Boolean,loggedIn: Boolean,uid: UID,username: String,deviceID: DeviceID,deviceName: String,following?: ?Array<String>,followers?: ?Array<String>,|}
+export type BootstrapStatus = {|registered: Boolean, loggedIn: Boolean, uid: UID, username: String, deviceID: DeviceID, deviceName: String, following?: ?Array<String>, followers?: ?Array<String>|}
 
 export type BoxNonce = any
 
 export type BoxPublicKey = any
 
-export type BulkRes = {|invited?: ?Array<String>,alreadyInvited?: ?Array<String>,malformed?: ?Array<String>,|}
+export type BulkRes = {|invited?: ?Array<String>, alreadyInvited?: ?Array<String>, malformed?: ?Array<String>|}
 
 export type Bytes32 = any
 
-export type CanonicalTLFNameAndIDWithBreaks = {|tlfID: TLFID,CanonicalName: CanonicalTlfName,breaks: TLFBreak,|}
+export type CanonicalTLFNameAndIDWithBreaks = {|tlfID: TLFID, CanonicalName: CanonicalTlfName, breaks: TLFBreak|}
 
 export type CanonicalTlfName = String
 
-export type ChallengeInfo = {|now: Long,challenge: String,|}
+export type ChallengeInfo = {|now: Long, challenge: String|}
 
 export type ChatConversationID = Bytes
 
-export type CheckProofStatus = {|found: Boolean,status: ProofStatus,proofText: String,state: ProofState,|}
+export type CheckProofStatus = {|found: Boolean, status: ProofStatus, proofText: String, state: ProofState|}
 
-export type CheckResult = {|proofResult: ProofResult,time: Time,freshness: CheckResultFreshness,|}
+export type CheckResult = {|proofResult: ProofResult, time: Time, freshness: CheckResultFreshness|}
 
-export type CheckResultFreshness =0 // FRESH_0
- | 1 // AGED_1
- | 2 // RANCID_2
+export type CheckResultFreshness =
+  | 0 // FRESH_0
+  | 1 // AGED_1
+  | 2 // RANCID_2
 
+export type ChooseType =
+  | 0 // EXISTING_DEVICE_0
+  | 1 // NEW_DEVICE_1
 
-export type ChooseType =0 // EXISTING_DEVICE_0
- | 1 // NEW_DEVICE_1
+export type CiphertextBundle = {|kid: KID, ciphertext: EncryptedBytes32, nonce: BoxNonce, publicKey: BoxPublicKey|}
 
+export type ClientDetails = {|pid: Int, clientType: ClientType, argv?: ?Array<String>, desc: String, version: String|}
 
-export type CiphertextBundle = {|kid: KID,ciphertext: EncryptedBytes32,nonce: BoxNonce,publicKey: BoxPublicKey,|}
+export type ClientType =
+  | 0 // NONE_0
+  | 1 // CLI_1
+  | 2 // GUI_MAIN_2
+  | 3 // KBFS_3
+  | 4 // GUI_HELPER_4
 
-export type ClientDetails = {|pid: Int,clientType: ClientType,argv?: ?Array<String>,desc: String,version: String,|}
+export type CompatibilityTeamID = {typ: 1, legacy: ?TLFID} | {typ: 2, modern: ?TeamID}
 
-export type ClientType =0 // NONE_0
- | 1 // CLI_1
- | 2 // GUI_MAIN_2
- | 3 // KBFS_3
- | 4 // GUI_HELPER_4
+export type ComponentResult = {|name: String, status: Status, exitCode: Int|}
 
+export type Config = {|serverURI: String, socketFile: String, label: String, runMode: String, gpgExists: Boolean, gpgPath: String, version: String, path: String, binaryRealpath: String, configPath: String, versionShort: String, versionFull: String, isAutoForked: Boolean, forkType: ForkType|}
 
-export type CompatibilityTeamID ={ typ: 1, legacy: ?TLFID } | { typ: 2, modern: ?TeamID }
+export type ConfigCheckAPIServerOutOfDateWarningRpcParam = ?{|incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type ComponentResult = {|name: String,status: Status,exitCode: Int,|}
+export type ConfigClearValueRpcParam = {|path: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type Config = {|serverURI: String,socketFile: String,label: String,runMode: String,gpgExists: Boolean,gpgPath: String,version: String,path: String,binaryRealpath: String,configPath: String,versionShort: String,versionFull: String,isAutoForked: Boolean,forkType: ForkType,|}
+export type ConfigGetBootstrapStatusRpcParam = ?{|incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type ConfigCheckAPIServerOutOfDateWarningRpcParam = ?{|incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type ConfigGetConfigRpcParam = ?{|incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type ConfigClearValueRpcParam = {|path: String,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type ConfigGetCurrentStatusRpcParam = ?{|incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type ConfigGetBootstrapStatusRpcParam = ?{|incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type ConfigGetExtendedStatusRpcParam = ?{|incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type ConfigGetConfigRpcParam = ?{|incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type ConfigGetValueRpcParam = {|path: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type ConfigGetCurrentStatusRpcParam = ?{|incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type ConfigHelloIAmRpcParam = {|details: ClientDetails, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type ConfigGetExtendedStatusRpcParam = ?{|incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type ConfigSetPathRpcParam = {|path: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type ConfigGetValueRpcParam = {|path: String,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type ConfigSetUserConfigRpcParam = {|username: String, key: String, value: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type ConfigHelloIAmRpcParam = {|details: ClientDetails,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type ConfigSetValueRpcParam = {|path: String, value: ConfigValue, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type ConfigSetPathRpcParam = {|path: String,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type ConfigValue = {|isNull: Boolean, b?: ?Boolean, i?: ?Int, s?: ?String, o?: ?String|}
 
-export type ConfigSetUserConfigRpcParam = {|username: String,key: String,value: String,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type ConfigWaitForClientRpcParam = {|clientType: ClientType, timeout: DurationSec, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type ConfigSetValueRpcParam = {|path: String,value: ConfigValue,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type ConfiguredAccount = {|username: String, hasStoredSecret: Boolean|}
 
-export type ConfigValue = {|isNull: Boolean,b?: ?Boolean,i?: ?Int,s?: ?String,o?: ?String,|}
-
-export type ConfigWaitForClientRpcParam = {|clientType: ClientType,timeout: DurationSec,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
-
-export type ConfiguredAccount = {|username: String,hasStoredSecret: Boolean,|}
-
-export type ConfirmResult = {|identityConfirmed: Boolean,remoteConfirmed: Boolean,expiringLocal: Boolean,autoConfirmed: Boolean,|}
+export type ConfirmResult = {|identityConfirmed: Boolean, remoteConfirmed: Boolean, expiringLocal: Boolean, autoConfirmed: Boolean|}
 
 export type ConflictGeneration = Int
 
-export type CopyArgs = {|opID: OpID,src: Path,dest: Path,|}
+export type CopyArgs = {|opID: OpID, src: Path, dest: Path|}
 
-export type CryptKey = {|KeyGeneration: Int,Key: Bytes32,|}
+export type CryptKey = {|KeyGeneration: Int, Key: Bytes32|}
 
-export type CryptoSignED25519ForKBFSRpcParam = {|msg: Bytes,reason: String,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type CryptoSignED25519ForKBFSRpcParam = {|msg: Bytes, reason: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type CryptoSignED25519RpcParam = {|msg: Bytes,reason: String,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type CryptoSignED25519RpcParam = {|msg: Bytes, reason: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type CryptoSignToStringRpcParam = {|msg: Bytes,reason: String,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type CryptoSignToStringRpcParam = {|msg: Bytes, reason: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type CryptoUnboxBytes32AnyRpcParam = {|bundles?: ?Array<CiphertextBundle>,reason: String,promptPaper: Boolean,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type CryptoUnboxBytes32AnyRpcParam = {|bundles?: ?Array<CiphertextBundle>, reason: String, promptPaper: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type CryptoUnboxBytes32RpcParam = {|encryptedBytes32: EncryptedBytes32,nonce: BoxNonce,peersPublicKey: BoxPublicKey,reason: String,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type CryptoUnboxBytes32RpcParam = {|encryptedBytes32: EncryptedBytes32, nonce: BoxNonce, peersPublicKey: BoxPublicKey, reason: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type Cryptocurrency = {|rowId: Int,pkhash: Bytes,address: String,sigID: SigID,type: String,family: String,|}
+export type Cryptocurrency = {|rowId: Int, pkhash: Bytes, address: String, sigID: SigID, type: String, family: String|}
 
-export type CryptocurrencyRegisterAddressRpcParam = {|address: String,force: Boolean,wantedFamily: String,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type CryptocurrencyRegisterAddressRpcParam = {|address: String, force: Boolean, wantedFamily: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
 export type CsrfToken = String
 
-export type CtlAppExitRpcParam = ?{|incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type CtlAppExitRpcParam = ?{|incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type CtlDbDeleteRpcParam = {|key: DbKey,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type CtlDbDeleteRpcParam = {|key: DbKey, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type CtlDbGetRpcParam = {|key: DbKey,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type CtlDbGetRpcParam = {|key: DbKey, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type CtlDbNukeRpcParam = ?{|incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type CtlDbNukeRpcParam = ?{|incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type CtlDbPutRpcParam = {|key: DbKey,value: DbValue,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type CtlDbPutRpcParam = {|key: DbKey, value: DbValue, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type CtlLogRotateRpcParam = ?{|incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type CtlLogRotateRpcParam = ?{|incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type CtlReloadRpcParam = ?{|incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type CtlReloadRpcParam = ?{|incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type CtlStopRpcParam = {|exitCode: ExitCode,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type CtlStopRpcParam = {|exitCode: ExitCode, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type DbKey = {|dbType: DbType,objType: Int,key: String,|}
+export type DbKey = {|dbType: DbType, objType: Int, key: String|}
 
-export type DbType =0 // MAIN_0
- | 1 // CHAT_1
-
+export type DbType =
+  | 0 // MAIN_0
+  | 1 // CHAT_1
 
 export type DbValue = Bytes
 
-export type DebuggingFirstStepRpcParam = {|val: Int,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type DebuggingFirstStepRpcParam = {|val: Int, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type DebuggingIncrementRpcParam = {|val: Int,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type DebuggingIncrementRpcParam = {|val: Int, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type DebuggingSecondStepRpcParam = {|val: Int,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type DebuggingSecondStepRpcParam = {|val: Int, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type DelegateUiCtlRegisterGregorFirehoseRpcParam = ?{|incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type DelegateUiCtlRegisterGregorFirehoseRpcParam = ?{|incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type DelegateUiCtlRegisterIdentifyUIRpcParam = ?{|incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type DelegateUiCtlRegisterIdentifyUIRpcParam = ?{|incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type DelegateUiCtlRegisterRekeyUIRpcParam = ?{|incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type DelegateUiCtlRegisterRekeyUIRpcParam = ?{|incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type DelegateUiCtlRegisterSecretUIRpcParam = ?{|incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type DelegateUiCtlRegisterSecretUIRpcParam = ?{|incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type DelegateUiCtlRegisterUpdateUIRpcParam = ?{|incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type DelegateUiCtlRegisterUpdateUIRpcParam = ?{|incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type Device = {|type: String,name: String,deviceID: DeviceID,cTime: Time,mTime: Time,lastUsedTime: Time,encryptKey: KID,verifyKey: KID,status: Int,|}
+export type Device = {|type: String, name: String, deviceID: DeviceID, cTime: Time, mTime: Time, lastUsedTime: Time, encryptKey: KID, verifyKey: KID, status: Int|}
 
-export type DeviceCheckDeviceNameForUserRpcParam = {|username: String,devicename: String,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type DeviceCheckDeviceNameForUserRpcParam = {|username: String, devicename: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type DeviceCheckDeviceNameFormatRpcParam = {|name: String,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type DeviceCheckDeviceNameFormatRpcParam = {|name: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type DeviceDetail = {|device: Device,eldest: Boolean,provisioner?: ?Device,provisionedAt?: ?Time,revokedAt?: ?Time,revokedBy: KID,revokedByDevice?: ?Device,currentDevice: Boolean,|}
+export type DeviceDetail = {|device: Device, eldest: Boolean, provisioner?: ?Device, provisionedAt?: ?Time, revokedAt?: ?Time, revokedBy: KID, revokedByDevice?: ?Device, currentDevice: Boolean|}
 
-export type DeviceDeviceAddRpcParam = ?{|incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type DeviceDeviceAddRpcParam = ?{|incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type DeviceDeviceHistoryListRpcParam = ?{|incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type DeviceDeviceHistoryListRpcParam = ?{|incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type DeviceDeviceListRpcParam = ?{|incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type DeviceDeviceListRpcParam = ?{|incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
 export type DeviceID = String
 
-export type DeviceType =0 // DESKTOP_0
- | 1 // MOBILE_1
+export type DeviceType =
+  | 0 // DESKTOP_0
+  | 1 // MOBILE_1
 
+export type Dirent = {|time: Time, size: Int, name: String, direntType: DirentType|}
 
-export type Dirent = {|time: Time,size: Int,name: String,direntType: DirentType,|}
+export type DirentType =
+  | 0 // FILE_0
+  | 1 // DIR_1
+  | 2 // SYM_2
+  | 3 // EXEC_3
 
-export type DirentType =0 // FILE_0
- | 1 // DIR_1
- | 2 // SYM_2
- | 3 // EXEC_3
+export type DismissReason = {|type: DismissReasonType, reason: String, resource: String|}
 
+export type DismissReasonType =
+  | 0 // NONE_0
+  | 1 // HANDLED_ELSEWHERE_1
 
-export type DismissReason = {|type: DismissReasonType,reason: String,resource: String,|}
-
-export type DismissReasonType =0 // NONE_0
- | 1 // HANDLED_ELSEWHERE_1
-
-
-export type DowngradeReferenceRes = {|completed?: ?Array<BlockReferenceCount>,failed: BlockReference,|}
+export type DowngradeReferenceRes = {|completed?: ?Array<BlockReferenceCount>, failed: BlockReference|}
 
 export type DurationSec = Double
 
@@ -2112,577 +2111,576 @@ export type ED25519PublicKey = any
 
 export type ED25519Signature = any
 
-export type ED25519SignatureInfo = {|sig: ED25519Signature,publicKey: ED25519PublicKey,|}
+export type ED25519SignatureInfo = {|sig: ED25519Signature, publicKey: ED25519PublicKey|}
 
-export type Email = {|email: String,isVerified: Boolean,|}
+export type Email = {|email: String, isVerified: Boolean|}
 
 export type EncryptedBytes32 = any
 
-export type EncryptedGitMetadata = {|v: Int,e: Bytes,n: BoxNonce,gen: PerTeamKeyGeneration,|}
+export type EncryptedGitMetadata = {|v: Int, e: Bytes, n: BoxNonce, gen: PerTeamKeyGeneration|}
 
 export type ErrorNum = Int
 
-export type ExitCode =0 // OK_0
- | 2 // NOTOK_2
- | 4 // RESTART_4
+export type ExitCode =
+  | 0 // OK_0
+  | 2 // NOTOK_2
+  | 4 // RESTART_4
 
+export type ExtendedStatus = {|standalone: Boolean, passphraseStreamCached: Boolean, tsecCached: Boolean, deviceSigKeyCached: Boolean, deviceEncKeyCached: Boolean, paperSigKeyCached: Boolean, paperEncKeyCached: Boolean, storedSecret: Boolean, secretPromptSkip: Boolean, device?: ?Device, deviceErr?: ?LoadDeviceErr, logDir: String, session?: ?SessionStatus, defaultUsername: String, provisionedUsernames?: ?Array<String>, Clients?: ?Array<ClientDetails>, platformInfo: PlatformInfo, defaultDeviceID: DeviceID|}
 
-export type ExtendedStatus = {|standalone: Boolean,passphraseStreamCached: Boolean,tsecCached: Boolean,deviceSigKeyCached: Boolean,deviceEncKeyCached: Boolean,paperSigKeyCached: Boolean,paperEncKeyCached: Boolean,storedSecret: Boolean,secretPromptSkip: Boolean,device?: ?Device,deviceErr?: ?LoadDeviceErr,logDir: String,session?: ?SessionStatus,defaultUsername: String,provisionedUsernames?: ?Array<String>,Clients?: ?Array<ClientDetails>,platformInfo: PlatformInfo,defaultDeviceID: DeviceID,|}
+export type FSEditListRequest = {|folder: Folder, requestID: Int|}
 
-export type FSEditListRequest = {|folder: Folder,requestID: Int,|}
+export type FSErrorType =
+  | 0 // ACCESS_DENIED_0
+  | 1 // USER_NOT_FOUND_1
+  | 2 // REVOKED_DATA_DETECTED_2
+  | 3 // NOT_LOGGED_IN_3
+  | 4 // TIMEOUT_4
+  | 5 // REKEY_NEEDED_5
+  | 6 // BAD_FOLDER_6
+  | 7 // NOT_IMPLEMENTED_7
+  | 8 // OLD_VERSION_8
+  | 9 // OVER_QUOTA_9
+  | 10 // NO_SIG_CHAIN_10
+  | 11 // TOO_MANY_FOLDERS_11
+  | 12 // EXDEV_NOT_SUPPORTED_12
+  | 13 // DISK_LIMIT_REACHED_13
+  | 14 // DISK_CACHE_ERROR_LOG_SEND_14
 
-export type FSErrorType =0 // ACCESS_DENIED_0
- | 1 // USER_NOT_FOUND_1
- | 2 // REVOKED_DATA_DETECTED_2
- | 3 // NOT_LOGGED_IN_3
- | 4 // TIMEOUT_4
- | 5 // REKEY_NEEDED_5
- | 6 // BAD_FOLDER_6
- | 7 // NOT_IMPLEMENTED_7
- | 8 // OLD_VERSION_8
- | 9 // OVER_QUOTA_9
- | 10 // NO_SIG_CHAIN_10
- | 11 // TOO_MANY_FOLDERS_11
- | 12 // EXDEV_NOT_SUPPORTED_12
- | 13 // DISK_LIMIT_REACHED_13
- | 14 // DISK_CACHE_ERROR_LOG_SEND_14
+export type FSNotification = {|filename: String, status: String, statusCode: FSStatusCode, notificationType: FSNotificationType, errorType: FSErrorType, params: {[key: string]: String}, writerUid: UID, localTime: Time, folderType: FolderType|}
 
+export type FSNotificationType =
+  | 0 // ENCRYPTING_0
+  | 1 // DECRYPTING_1
+  | 2 // SIGNING_2
+  | 3 // VERIFYING_3
+  | 4 // REKEYING_4
+  | 5 // CONNECTION_5
+  | 6 // MD_READ_SUCCESS_6
+  | 7 // FILE_CREATED_7
+  | 8 // FILE_MODIFIED_8
+  | 9 // FILE_DELETED_9
+  | 10 // FILE_RENAMED_10
+  | 11 // INITIALIZED_11
 
-export type FSNotification = {|filename: String,status: String,statusCode: FSStatusCode,notificationType: FSNotificationType,errorType: FSErrorType,params: {[key: string]: String},writerUid: UID,localTime: Time,folderType: FolderType,|}
+export type FSPathSyncStatus = {|folderType: FolderType, path: String, syncingBytes: Int64, syncingOps: Int64, syncedBytes: Int64|}
 
-export type FSNotificationType =0 // ENCRYPTING_0
- | 1 // DECRYPTING_1
- | 2 // SIGNING_2
- | 3 // VERIFYING_3
- | 4 // REKEYING_4
- | 5 // CONNECTION_5
- | 6 // MD_READ_SUCCESS_6
- | 7 // FILE_CREATED_7
- | 8 // FILE_MODIFIED_8
- | 9 // FILE_DELETED_9
- | 10 // FILE_RENAMED_10
- | 11 // INITIALIZED_11
+export type FSStatusCode =
+  | 0 // START_0
+  | 1 // FINISH_1
+  | 2 // ERROR_2
 
+export type FSSyncStatus = {|totalSyncingBytes: Int64, totalSyncingOps: Int64, pathStatuses?: ?Array<FSPathSyncStatus>|}
 
-export type FSPathSyncStatus = {|folderType: FolderType,path: String,syncingBytes: Int64,syncingOps: Int64,syncedBytes: Int64,|}
+export type FSSyncStatusRequest = {|requestID: Int|}
 
-export type FSStatusCode =0 // START_0
- | 1 // FINISH_1
- | 2 // ERROR_2
+export type FavoriteFavoriteAddRpcParam = {|folder: Folder, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
+export type FavoriteFavoriteIgnoreRpcParam = {|folder: Folder, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type FSSyncStatus = {|totalSyncingBytes: Int64,totalSyncingOps: Int64,pathStatuses?: ?Array<FSPathSyncStatus>,|}
+export type FavoriteGetFavoritesRpcParam = ?{|incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type FSSyncStatusRequest = {|requestID: Int,|}
+export type FavoritesResult = {|favoriteFolders?: ?Array<Folder>, ignoredFolders?: ?Array<Folder>, newFolders?: ?Array<Folder>|}
 
-export type FavoriteFavoriteAddRpcParam = {|folder: Folder,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type Feature = {|allow: Boolean, defaultValue: Boolean, readonly: Boolean, label: String|}
 
-export type FavoriteFavoriteIgnoreRpcParam = {|folder: Folder,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type File = {|path: String|}
 
-export type FavoriteGetFavoritesRpcParam = ?{|incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type FileContent = {|data: Bytes, progress: Progress|}
 
-export type FavoritesResult = {|favoriteFolders?: ?Array<Folder>,ignoredFolders?: ?Array<Folder>,newFolders?: ?Array<Folder>,|}
+export type FileDescriptor = {|name: String, type: FileType|}
 
-export type Feature = {|allow: Boolean,defaultValue: Boolean,readonly: Boolean,label: String,|}
+export type FileType =
+  | 0 // UNKNOWN_0
+  | 1 // DIRECTORY_1
+  | 2 // FILE_2
 
-export type File = {|path: String,|}
+export type FirstStepResult = {|valPlusTwo: Int|}
 
-export type FileContent = {|data: Bytes,progress: Progress,|}
+export type Folder = {|name: String, private: Boolean, notificationsOn: Boolean, created: Boolean, folderType: FolderType|}
 
-export type FileDescriptor = {|name: String,type: FileType,|}
+export type FolderType =
+  | 0 // UNKNOWN_0
+  | 1 // PRIVATE_1
+  | 2 // PUBLIC_2
+  | 3 // TEAM_3
 
-export type FileType =0 // UNKNOWN_0
- | 1 // DIRECTORY_1
- | 2 // FILE_2
+export type ForkType =
+  | 0 // NONE_0
+  | 1 // AUTO_1
+  | 2 // WATCHDOG_2
+  | 3 // LAUNCHD_3
+  | 4 // SYSTEMD_4
 
-
-export type FirstStepResult = {|valPlusTwo: Int,|}
-
-export type Folder = {|name: String,private: Boolean,notificationsOn: Boolean,created: Boolean,folderType: FolderType,|}
-
-export type FolderType =0 // UNKNOWN_0
- | 1 // PRIVATE_1
- | 2 // PUBLIC_2
- | 3 // TEAM_3
-
-
-export type ForkType =0 // NONE_0
- | 1 // AUTO_1
- | 2 // WATCHDOG_2
- | 3 // LAUNCHD_3
- | 4 // SYSTEMD_4
-
-
-export type FsListRpcParam = {|path: String,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type FsListRpcParam = {|path: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
 export type FullName = String
 
-export type FullNamePackage = {|version: FullNamePackageVersion,fullName: FullName,eldestSeqno: Seqno,cachedAt: Time,|}
+export type FullNamePackage = {|version: FullNamePackageVersion, fullName: FullName, eldestSeqno: Seqno, cachedAt: Time|}
 
-export type FullNamePackageVersion =0 // V0_0
- | 1 // V1_1
+export type FullNamePackageVersion =
+  | 0 // V0_0
+  | 1 // V1_1
 
+export type FuseMountInfo = {|path: String, fstype: String, output: String|}
 
-export type FuseMountInfo = {|path: String,fstype: String,output: String,|}
+export type FuseStatus = {|version: String, bundleVersion: String, kextID: String, path: String, kextStarted: Boolean, installStatus: InstallStatus, installAction: InstallAction, mountInfos?: ?Array<FuseMountInfo>, status: Status|}
 
-export type FuseStatus = {|version: String,bundleVersion: String,kextID: String,path: String,kextStarted: Boolean,installStatus: InstallStatus,installAction: InstallAction,mountInfos?: ?Array<FuseMountInfo>,status: Status,|}
+export type GPGKey = {|algorithm: String, keyID: String, creation: String, expiration: String, identities?: ?Array<PGPIdentity>|}
 
-export type GPGKey = {|algorithm: String,keyID: String,creation: String,expiration: String,identities?: ?Array<PGPIdentity>,|}
+export type GPGMethod =
+  | 0 // GPG_NONE_0
+  | 1 // GPG_IMPORT_1
+  | 2 // GPG_SIGN_2
 
-export type GPGMethod =0 // GPG_NONE_0
- | 1 // GPG_IMPORT_1
- | 2 // GPG_SIGN_2
+export type GUIEntryArg = {|windowTitle: String, prompt: String, username: String, submitLabel: String, cancelLabel: String, retryLabel: String, type: PassphraseType, features: GUIEntryFeatures|}
 
+export type GUIEntryFeatures = {|showTyping: Feature|}
 
-export type GUIEntryArg = {|windowTitle: String,prompt: String,username: String,submitLabel: String,cancelLabel: String,retryLabel: String,type: PassphraseType,features: GUIEntryFeatures,|}
+export type GcOptions = {|maxLooseRefs: Int, pruneMinLooseObjects: Int, pruneExpireTime: Time|}
 
-export type GUIEntryFeatures = {|showTyping: Feature,|}
+export type GetBlockRes = {|blockKey: String, buf: Bytes|}
 
-export type GcOptions = {|maxLooseRefs: Int,pruneMinLooseObjects: Int,pruneExpireTime: Time,|}
+export type GetCurrentStatusRes = {|configured: Boolean, registered: Boolean, loggedIn: Boolean, sessionIsValid: Boolean, user?: ?User|}
 
-export type GetBlockRes = {|blockKey: String,buf: Bytes,|}
+export type GetPassphraseRes = {|passphrase: String, storeSecret: Boolean|}
 
-export type GetCurrentStatusRes = {|configured: Boolean,registered: Boolean,loggedIn: Boolean,sessionIsValid: Boolean,user?: ?User,|}
+export type GetTLFCryptKeysRes = {|nameIDBreaks: CanonicalTLFNameAndIDWithBreaks, CryptKeys?: ?Array<CryptKey>|}
 
-export type GetPassphraseRes = {|passphrase: String,storeSecret: Boolean,|}
+export type GitCreatePersonalRepoRpcParam = {|repoName: GitRepoName, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type GetTLFCryptKeysRes = {|nameIDBreaks: CanonicalTLFNameAndIDWithBreaks,CryptKeys?: ?Array<CryptKey>,|}
+export type GitCreateTeamRepoRpcParam = {|repoName: GitRepoName, teamName: TeamName, notifyTeam: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type GitCreatePersonalRepoRpcParam = {|repoName: GitRepoName,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type GitDeleteGitMetadataRpcParam = {|folder: Folder, repoName: GitRepoName, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type GitCreateTeamRepoRpcParam = {|repoName: GitRepoName,teamName: TeamName,notifyTeam: Boolean,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type GitDeletePersonalRepoRpcParam = {|repoName: GitRepoName, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type GitDeleteGitMetadataRpcParam = {|folder: Folder,repoName: GitRepoName,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type GitDeleteTeamRepoRpcParam = {|repoName: GitRepoName, teamName: TeamName, notifyTeam: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type GitDeletePersonalRepoRpcParam = {|repoName: GitRepoName,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type GitGcPersonalRepoRpcParam = {|repoName: GitRepoName, force: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type GitDeleteTeamRepoRpcParam = {|repoName: GitRepoName,teamName: TeamName,notifyTeam: Boolean,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type GitGcTeamRepoRpcParam = {|repoName: GitRepoName, teamName: TeamName, force: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type GitGcPersonalRepoRpcParam = {|repoName: GitRepoName,force: Boolean,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type GitGetAllGitMetadataRpcParam = ?{|incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type GitGcTeamRepoRpcParam = {|repoName: GitRepoName,teamName: TeamName,force: Boolean,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type GitGetGitMetadataRpcParam = {|folder: Folder, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type GitGetAllGitMetadataRpcParam = ?{|incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type GitLocalMetadata = {|repoName: GitRepoName|}
 
-export type GitGetGitMetadataRpcParam = {|folder: Folder,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type GitLocalMetadataV1 = {|repoName: GitRepoName|}
 
-export type GitLocalMetadata = {|repoName: GitRepoName,|}
+export type GitLocalMetadataVersion = 1 // V1_1
 
-export type GitLocalMetadataV1 = {|repoName: GitRepoName,|}
+export type GitLocalMetadataVersioned = {version: 1, v1: ?GitLocalMetadataV1}
 
-export type GitLocalMetadataVersion =1 // V1_1
+export type GitPutGitMetadataRpcParam = {|folder: Folder, repoID: RepoID, metadata: GitLocalMetadata, notifyTeam: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-
-export type GitLocalMetadataVersioned ={ version: 1, v1: ?GitLocalMetadataV1 }
-
-export type GitPutGitMetadataRpcParam = {|folder: Folder,repoID: RepoID,metadata: GitLocalMetadata,notifyTeam: Boolean,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
-
-export type GitRepoInfo = {|folder: Folder,repoID: RepoID,localMetadata: GitLocalMetadata,serverMetadata: GitServerMetadata,repoUrl: String,globalUniqueID: String,canDelete: Boolean,|}
+export type GitRepoInfo = {|folder: Folder, repoID: RepoID, localMetadata: GitLocalMetadata, serverMetadata: GitServerMetadata, repoUrl: String, globalUniqueID: String, canDelete: Boolean|}
 
 export type GitRepoName = String
 
-export type GitRepoResult ={ state: 0, err: ?String } | { state: 1, ok: ?GitRepoInfo }
+export type GitRepoResult = {state: 0, err: ?String} | {state: 1, ok: ?GitRepoInfo}
 
-export type GitRepoResultState =0 // ERR_0
- | 1 // OK_1
+export type GitRepoResultState =
+  | 0 // ERR_0
+  | 1 // OK_1
 
+export type GitServerMetadata = {|ctime: Time, mtime: Time, lastModifyingUsername: String, lastModifyingDeviceID: DeviceID, lastModifyingDeviceName: String|}
 
-export type GitServerMetadata = {|ctime: Time,mtime: Time,lastModifyingUsername: String,lastModifyingDeviceID: DeviceID,lastModifyingDeviceName: String,|}
+export type GpgUiConfirmDuplicateKeyChosenRpcParam = ?{|incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type GpgUiConfirmDuplicateKeyChosenRpcParam = ?{|incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type GpgUiGetTTYRpcParam = ?{|incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type GpgUiGetTTYRpcParam = ?{|incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type GpgUiSelectKeyAndPushOptionRpcParam = {|keys?: ?Array<GPGKey>, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type GpgUiSelectKeyAndPushOptionRpcParam = {|keys?: ?Array<GPGKey>,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type GpgUiSelectKeyRpcParam = {|keys?: ?Array<GPGKey>, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type GpgUiSelectKeyRpcParam = {|keys?: ?Array<GPGKey>,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type GpgUiSignRpcParam = {|msg: Bytes, fingerprint: Bytes, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type GpgUiSignRpcParam = {|msg: Bytes,fingerprint: Bytes,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type GpgUiWantToAddGPGKeyRpcParam = ?{|incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type GpgUiWantToAddGPGKeyRpcParam = ?{|incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type GregorDismissCategoryRpcParam = {|category: Gregor1.Category, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type GregorDismissCategoryRpcParam = {|category: Gregor1.Category,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type GregorDismissItemRpcParam = {|id: Gregor1.MsgID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type GregorDismissItemRpcParam = {|id: Gregor1.MsgID,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type GregorGetStateRpcParam = ?{|incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type GregorGetStateRpcParam = ?{|incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type GregorInjectItemRpcParam = {|cat: String, body: String, dtime: Gregor1.TimeOrOffset, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type GregorInjectItemRpcParam = {|cat: String,body: String,dtime: Gregor1.TimeOrOffset,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type GregorUIPushOutOfBandMessagesRpcParam = {|oobm?: ?Array<Gregor1.OutOfBandMessage>, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type GregorUIPushOutOfBandMessagesRpcParam = {|oobm?: ?Array<Gregor1.OutOfBandMessage>,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type GregorUIPushStateRpcParam = {|state: Gregor1.State, reason: PushReason, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type GregorUIPushStateRpcParam = {|state: Gregor1.State,reason: PushReason,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
-
-export type HasServerKeysRes = {|hasServerKeys: Boolean,|}
+export type HasServerKeysRes = {|hasServerKeys: Boolean|}
 
 export type HashMeta = Bytes
 
-export type Hello2Res = {|encryptionKey: KID,sigPayload: HelloRes,|}
+export type Hello2Res = {|encryptionKey: KID, sigPayload: HelloRes|}
 
 export type HelloRes = String
 
-export type HomeHomeActionTakenRpcParam = ?{|incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type HomeHomeActionTakenRpcParam = ?{|incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type HomeHomeGetScreenRpcParam = {|markViewed: Boolean,numFollowSuggestionsWanted: Int,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type HomeHomeGetScreenRpcParam = {|markViewed: Boolean, numFollowSuggestionsWanted: Int, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type HomeHomeMarkViewedRpcParam = ?{|incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type HomeHomeMarkViewedRpcParam = ?{|incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type HomeHomeSkipTodoTypeRpcParam = {|t: HomeScreenTodoType,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type HomeHomeSkipTodoTypeRpcParam = {|t: HomeScreenTodoType, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type HomeScreen = {|lastViewed: Time,version: Int,items?: ?Array<HomeScreenItem>,followSuggestions?: ?Array<HomeUserSummary>,|}
+export type HomeScreen = {|lastViewed: Time, version: Int, items?: ?Array<HomeScreenItem>, followSuggestions?: ?Array<HomeUserSummary>|}
 
-export type HomeScreenItem = {|badged: Boolean,data: HomeScreenItemData,|}
+export type HomeScreenItem = {|badged: Boolean, data: HomeScreenItemData|}
 
-export type HomeScreenItemData ={ t: 1, todo: ?HomeScreenTodo } | { t: 2, people: ?HomeScreenPeopleNotification }
+export type HomeScreenItemData = {t: 1, todo: ?HomeScreenTodo} | {t: 2, people: ?HomeScreenPeopleNotification}
 
 export type HomeScreenItemID = String
 
-export type HomeScreenItemType =1 // TODO_1
- | 2 // PEOPLE_2
+export type HomeScreenItemType =
+  | 1 // TODO_1
+  | 2 // PEOPLE_2
 
+export type HomeScreenPeopleNotification = {t: 0, followed: ?HomeScreenPeopleNotificationFollowed} | {t: 1, followedMulti: ?HomeScreenPeopleNotificationFollowedMulti}
 
-export type HomeScreenPeopleNotification ={ t: 0, followed: ?HomeScreenPeopleNotificationFollowed } | { t: 1, followedMulti: ?HomeScreenPeopleNotificationFollowedMulti }
+export type HomeScreenPeopleNotificationFollowed = {|followTime: Time, user: UserSummary|}
 
-export type HomeScreenPeopleNotificationFollowed = {|followTime: Time,user: UserSummary,|}
+export type HomeScreenPeopleNotificationFollowedMulti = {|followers?: ?Array<HomeScreenPeopleNotificationFollowed>, numOthers: Int|}
 
-export type HomeScreenPeopleNotificationFollowedMulti = {|followers?: ?Array<HomeScreenPeopleNotificationFollowed>,numOthers: Int,|}
+export type HomeScreenPeopleNotificationType =
+  | 0 // FOLLOWED_0
+  | 1 // FOLLOWED_MULTI_1
 
-export type HomeScreenPeopleNotificationType =0 // FOLLOWED_0
- | 1 // FOLLOWED_MULTI_1
+export type HomeScreenTodo = {t: any}
 
+export type HomeScreenTodoType =
+  | 0 // NONE_0
+  | 1 // BIO_1
+  | 2 // PROOF_2
+  | 3 // DEVICE_3
+  | 4 // FOLLOW_4
+  | 5 // CHAT_5
+  | 6 // PAPERKEY_6
+  | 7 // TEAM_7
+  | 8 // FOLDER_8
+  | 9 // GIT_REPO_9
+  | 10 // TEAM_SHOWCASE_10
 
-export type HomeScreenTodo ={ t: any }
+export type HomeUiHomeUIRefreshRpcParam = ?{|incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type HomeScreenTodoType =0 // NONE_0
- | 1 // BIO_1
- | 2 // PROOF_2
- | 3 // DEVICE_3
- | 4 // FOLLOW_4
- | 5 // CHAT_5
- | 6 // PAPERKEY_6
- | 7 // TEAM_7
- | 8 // FOLDER_8
- | 9 // GIT_REPO_9
- | 10 // TEAM_SHOWCASE_10
+export type HomeUserSummary = {|uid: UID, username: String, bio: String, fullName: String, pics?: ?Pics|}
 
+export type Identify2Res = {|upk: UserPlusKeys, identifiedAt: Time, trackBreaks?: ?IdentifyTrackBreaks|}
 
-export type HomeUiHomeUIRefreshRpcParam = ?{|incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type IdentifyIdentify2RpcParam = {|uid: UID, userAssertion: String, reason: IdentifyReason, useDelegateUI?: Boolean, alwaysBlock?: Boolean, noErrorOnTrackFailure?: Boolean, forceRemoteCheck?: Boolean, needProofSet?: Boolean, allowEmptySelfID?: Boolean, noSkipSelf?: Boolean, canSuppressUI?: Boolean, identifyBehavior?: TLFIdentifyBehavior, forceDisplay?: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type HomeUserSummary = {|uid: UID,username: String,bio: String,fullName: String,pics?: ?Pics,|}
+export type IdentifyIdentifyLiteRpcParam = {|id: UserOrTeamID, assertion: String, reason: IdentifyReason, useDelegateUI?: Boolean, alwaysBlock?: Boolean, noErrorOnTrackFailure?: Boolean, forceRemoteCheck?: Boolean, needProofSet?: Boolean, allowEmptySelfID?: Boolean, noSkipSelf?: Boolean, canSuppressUI?: Boolean, identifyBehavior?: TLFIdentifyBehavior, forceDisplay?: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type Identify2Res = {|upk: UserPlusKeys,identifiedAt: Time,trackBreaks?: ?IdentifyTrackBreaks,|}
+export type IdentifyKey = {|pgpFingerprint: Bytes, KID: KID, trackDiff?: ?TrackDiff, breaksTracking: Boolean|}
 
-export type IdentifyIdentify2RpcParam = {|uid: UID,userAssertion: String,reason: IdentifyReason,useDelegateUI?: Boolean,alwaysBlock?: Boolean,noErrorOnTrackFailure?: Boolean,forceRemoteCheck?: Boolean,needProofSet?: Boolean,allowEmptySelfID?: Boolean,noSkipSelf?: Boolean,canSuppressUI?: Boolean,identifyBehavior?: TLFIdentifyBehavior,forceDisplay?: Boolean,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type IdentifyLiteRes = {|ul: UserOrTeamLite, trackBreaks?: ?IdentifyTrackBreaks|}
 
-export type IdentifyIdentifyLiteRpcParam = {|id: UserOrTeamID,assertion: String,reason: IdentifyReason,useDelegateUI?: Boolean,alwaysBlock?: Boolean,noErrorOnTrackFailure?: Boolean,forceRemoteCheck?: Boolean,needProofSet?: Boolean,allowEmptySelfID?: Boolean,noSkipSelf?: Boolean,canSuppressUI?: Boolean,identifyBehavior?: TLFIdentifyBehavior,forceDisplay?: Boolean,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type IdentifyOutcome = {|username: String, status?: ?Status, warnings?: ?Array<String>, trackUsed?: ?TrackSummary, trackStatus: TrackStatus, numTrackFailures: Int, numTrackChanges: Int, numProofFailures: Int, numRevoked: Int, numProofSuccesses: Int, revoked?: ?Array<TrackDiff>, trackOptions: TrackOptions, forPGPPull: Boolean, reason: IdentifyReason|}
 
-export type IdentifyKey = {|pgpFingerprint: Bytes,KID: KID,trackDiff?: ?TrackDiff,breaksTracking: Boolean,|}
+export type IdentifyProofBreak = {|remoteProof: RemoteProof, lcr: LinkCheckResult|}
 
-export type IdentifyLiteRes = {|ul: UserOrTeamLite,trackBreaks?: ?IdentifyTrackBreaks,|}
+export type IdentifyReason = {|type: IdentifyReasonType, reason: String, resource: String|}
 
-export type IdentifyOutcome = {|username: String,status?: ?Status,warnings?: ?Array<String>,trackUsed?: ?TrackSummary,trackStatus: TrackStatus,numTrackFailures: Int,numTrackChanges: Int,numProofFailures: Int,numRevoked: Int,numProofSuccesses: Int,revoked?: ?Array<TrackDiff>,trackOptions: TrackOptions,forPGPPull: Boolean,reason: IdentifyReason,|}
+export type IdentifyReasonType =
+  | 0 // NONE_0
+  | 1 // ID_1
+  | 2 // TRACK_2
+  | 3 // ENCRYPT_3
+  | 4 // DECRYPT_4
+  | 5 // VERIFY_5
+  | 6 // RESOURCE_6
+  | 7 // BACKGROUND_7
 
-export type IdentifyProofBreak = {|remoteProof: RemoteProof,lcr: LinkCheckResult,|}
+export type IdentifyResolve3RpcParam = {|assertion: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type IdentifyReason = {|type: IdentifyReasonType,reason: String,resource: String,|}
+export type IdentifyResolveIdentifyImplicitTeamRpcParam = {|assertions: String, suffix: String, isPublic: Boolean, doIdentifies: Boolean, create: Boolean, reason: IdentifyReason, identifyBehavior: TLFIdentifyBehavior, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type IdentifyReasonType =0 // NONE_0
- | 1 // ID_1
- | 2 // TRACK_2
- | 3 // ENCRYPT_3
- | 4 // DECRYPT_4
- | 5 // VERIFY_5
- | 6 // RESOURCE_6
- | 7 // BACKGROUND_7
+export type IdentifyResolveImplicitTeamRpcParam = {|id: TeamID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
+export type IdentifyRow = {|rowId: Int, proof: RemoteProof, trackDiff?: ?TrackDiff|}
 
-export type IdentifyResolve3RpcParam = {|assertion: String,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type IdentifyTrackBreaks = {|keys?: ?Array<IdentifyKey>, proofs?: ?Array<IdentifyProofBreak>|}
 
-export type IdentifyResolveIdentifyImplicitTeamRpcParam = {|assertions: String,suffix: String,isPublic: Boolean,doIdentifies: Boolean,create: Boolean,reason: IdentifyReason,identifyBehavior: TLFIdentifyBehavior,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type IdentifyUiCancelRpcParam = ?{|incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type IdentifyResolveImplicitTeamRpcParam = {|id: TeamID,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type IdentifyUiConfirmRpcParam = {|outcome: IdentifyOutcome, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type IdentifyRow = {|rowId: Int,proof: RemoteProof,trackDiff?: ?TrackDiff,|}
+export type IdentifyUiDelegateIdentifyUIRpcParam = ?{|incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type IdentifyTrackBreaks = {|keys?: ?Array<IdentifyKey>,proofs?: ?Array<IdentifyProofBreak>,|}
+export type IdentifyUiDismissRpcParam = {|username: String, reason: DismissReason, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type IdentifyUiCancelRpcParam = ?{|incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type IdentifyUiDisplayCryptocurrencyRpcParam = {|c: Cryptocurrency, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type IdentifyUiConfirmRpcParam = {|outcome: IdentifyOutcome,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type IdentifyUiDisplayKeyRpcParam = {|key: IdentifyKey, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type IdentifyUiDelegateIdentifyUIRpcParam = ?{|incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type IdentifyUiDisplayTLFCreateWithInviteRpcParam = {|folderName: String, isPrivate: Boolean, assertion: String, socialAssertion: SocialAssertion, inviteLink: String, throttled: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type IdentifyUiDismissRpcParam = {|username: String,reason: DismissReason,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type IdentifyUiDisplayTrackStatementRpcParam = {|stmt: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type IdentifyUiDisplayCryptocurrencyRpcParam = {|c: Cryptocurrency,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type IdentifyUiDisplayUserCardRpcParam = {|card: UserCard, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type IdentifyUiDisplayKeyRpcParam = {|key: IdentifyKey,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type IdentifyUiFinishRpcParam = ?{|incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type IdentifyUiDisplayTLFCreateWithInviteRpcParam = {|folderName: String,isPrivate: Boolean,assertion: String,socialAssertion: SocialAssertion,inviteLink: String,throttled: Boolean,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type IdentifyUiFinishSocialProofCheckRpcParam = {|rp: RemoteProof, lcr: LinkCheckResult, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type IdentifyUiDisplayTrackStatementRpcParam = {|stmt: String,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type IdentifyUiFinishWebProofCheckRpcParam = {|rp: RemoteProof, lcr: LinkCheckResult, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type IdentifyUiDisplayUserCardRpcParam = {|card: UserCard,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type IdentifyUiLaunchNetworkChecksRpcParam = {|identity: Identity, user: User, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type IdentifyUiFinishRpcParam = ?{|incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type IdentifyUiReportLastTrackRpcParam = {|track?: ?TrackSummary, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type IdentifyUiFinishSocialProofCheckRpcParam = {|rp: RemoteProof,lcr: LinkCheckResult,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type IdentifyUiReportTrackTokenRpcParam = {|trackToken: TrackToken, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type IdentifyUiFinishWebProofCheckRpcParam = {|rp: RemoteProof,lcr: LinkCheckResult,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type IdentifyUiStartRpcParam = {|username: String, reason: IdentifyReason, forceDisplay?: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type IdentifyUiLaunchNetworkChecksRpcParam = {|identity: Identity,user: User,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type Identity = {|status?: ?Status, whenLastTracked: Time, proofs?: ?Array<IdentifyRow>, cryptocurrency?: ?Array<Cryptocurrency>, revoked?: ?Array<TrackDiff>, revokedDetails?: ?Array<RevokedProof>, breaksTracking: Boolean|}
 
-export type IdentifyUiReportLastTrackRpcParam = {|track?: ?TrackSummary,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type ImplicitRole = {|role: TeamRole, ancestor: TeamID|}
 
-export type IdentifyUiReportTrackTokenRpcParam = {|trackToken: TrackToken,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type ImplicitTeamConflictInfo = {|generation: ConflictGeneration, time: Time|}
 
-export type IdentifyUiStartRpcParam = {|username: String,reason: IdentifyReason,forceDisplay?: Boolean,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type ImplicitTeamDisplayName = {|isPublic: Boolean, writers: ImplicitTeamUserSet, readers: ImplicitTeamUserSet, conflictInfo?: ?ImplicitTeamConflictInfo|}
 
-export type Identity = {|status?: ?Status,whenLastTracked: Time,proofs?: ?Array<IdentifyRow>,cryptocurrency?: ?Array<Cryptocurrency>,revoked?: ?Array<TrackDiff>,revokedDetails?: ?Array<RevokedProof>,breaksTracking: Boolean,|}
+export type ImplicitTeamMigrationStartMigrationRpcParam = {|folder: Folder, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type ImplicitRole = {|role: TeamRole,ancestor: TeamID,|}
+export type ImplicitTeamUserSet = {|keybaseUsers?: ?Array<String>, unresolvedUsers?: ?Array<SocialAssertion>|}
 
-export type ImplicitTeamConflictInfo = {|generation: ConflictGeneration,time: Time,|}
+export type InstallAction =
+  | 0 // UNKNOWN_0
+  | 1 // NONE_1
+  | 2 // UPGRADE_2
+  | 3 // REINSTALL_3
+  | 4 // INSTALL_4
 
-export type ImplicitTeamDisplayName = {|isPublic: Boolean,writers: ImplicitTeamUserSet,readers: ImplicitTeamUserSet,conflictInfo?: ?ImplicitTeamConflictInfo,|}
+export type InstallFuseStatusRpcParam = {|bundleVersion: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type ImplicitTeamMigrationStartMigrationRpcParam = {|folder: Folder,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type InstallInstallCommandLinePrivilegedRpcParam = ?{|incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type ImplicitTeamUserSet = {|keybaseUsers?: ?Array<String>,unresolvedUsers?: ?Array<SocialAssertion>,|}
+export type InstallInstallFuseRpcParam = ?{|incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type InstallAction =0 // UNKNOWN_0
- | 1 // NONE_1
- | 2 // UPGRADE_2
- | 3 // REINSTALL_3
- | 4 // INSTALL_4
+export type InstallInstallKBFSRpcParam = ?{|incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
+export type InstallResult = {|componentResults?: ?Array<ComponentResult>, status: Status, fatal: Boolean|}
 
-export type InstallFuseStatusRpcParam = {|bundleVersion: String,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type InstallStatus =
+  | 0 // UNKNOWN_0
+  | 1 // ERROR_1
+  | 2 // NOT_INSTALLED_2
+  | 4 // INSTALLED_4
 
-export type InstallInstallCommandLinePrivilegedRpcParam = ?{|incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type InstallUninstallKBFSRpcParam = ?{|incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type InstallInstallFuseRpcParam = ?{|incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type InterestingPerson = {|uid: UID, username: String|}
 
-export type InstallInstallKBFSRpcParam = ?{|incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type KBFSGitCreateRepoRpcParam = {|folder: Folder, name: GitRepoName, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type InstallResult = {|componentResults?: ?Array<ComponentResult>,status: Status,fatal: Boolean,|}
+export type KBFSGitDeleteRepoRpcParam = {|folder: Folder, name: GitRepoName, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type InstallStatus =0 // UNKNOWN_0
- | 1 // ERROR_1
- | 2 // NOT_INSTALLED_2
- | 4 // INSTALLED_4
+export type KBFSGitGcRpcParam = {|folder: Folder, name: GitRepoName, options: GcOptions, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-
-export type InstallUninstallKBFSRpcParam = ?{|incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
-
-export type InterestingPerson = {|uid: UID,username: String,|}
-
-export type KBFSGitCreateRepoRpcParam = {|folder: Folder,name: GitRepoName,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
-
-export type KBFSGitDeleteRepoRpcParam = {|folder: Folder,name: GitRepoName,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
-
-export type KBFSGitGcRpcParam = {|folder: Folder,name: GitRepoName,options: GcOptions,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
-
-export type KBFSTeamSettings = {|tlfID: TLFID,|}
+export type KBFSTeamSettings = {|tlfID: TLFID|}
 
 export type KID = String
 
-export type KbfsCreateTLFRpcParam = {|teamID: TeamID,tlfID: TLFID,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type KbfsCreateTLFRpcParam = {|teamID: TeamID, tlfID: TLFID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type KbfsFSEditListRpcParam = {|edits?: ?Array<FSNotification>,requestID: Int,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type KbfsFSEditListRpcParam = {|edits?: ?Array<FSNotification>, requestID: Int, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type KbfsFSEventRpcParam = {|event: FSNotification,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type KbfsFSEventRpcParam = {|event: FSNotification, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type KbfsFSSyncEventRpcParam = {|event: FSPathSyncStatus,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type KbfsFSSyncEventRpcParam = {|event: FSPathSyncStatus, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type KbfsFSSyncStatusRpcParam = {|status: FSSyncStatus,requestID: Int,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type KbfsFSSyncStatusRpcParam = {|status: FSSyncStatus, requestID: Int, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type KbfsGetKBFSTeamSettingsRpcParam = {|teamID: TeamID,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type KbfsGetKBFSTeamSettingsRpcParam = {|teamID: TeamID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type KbfsMountGetAllAvailableMountDirsRpcParam = ?{|incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type KbfsMountGetAllAvailableMountDirsRpcParam = ?{|incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type KbfsMountGetCurrentMountDirRpcParam = ?{|incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type KbfsMountGetCurrentMountDirRpcParam = ?{|incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type KbfsMountSetCurrentMountDirRpcParam = {|dir: String,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type KbfsMountSetCurrentMountDirRpcParam = {|dir: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type Kex2Provisionee2DidCounterSign2RpcParam = {|sig: Bytes,ppsEncrypted: String,pukBox?: ?PerUserKeyBox,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type Kex2Provisionee2DidCounterSign2RpcParam = {|sig: Bytes, ppsEncrypted: String, pukBox?: ?PerUserKeyBox, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type Kex2Provisionee2Hello2RpcParam = {|uid: UID,token: SessionToken,csrf: CsrfToken,sigBody: String,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type Kex2Provisionee2Hello2RpcParam = {|uid: UID, token: SessionToken, csrf: CsrfToken, sigBody: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type Kex2ProvisioneeDidCounterSignRpcParam = {|sig: Bytes,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type Kex2ProvisioneeDidCounterSignRpcParam = {|sig: Bytes, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type Kex2ProvisioneeHelloRpcParam = {|uid: UID,token: SessionToken,csrf: CsrfToken,pps: PassphraseStream,sigBody: String,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type Kex2ProvisioneeHelloRpcParam = {|uid: UID, token: SessionToken, csrf: CsrfToken, pps: PassphraseStream, sigBody: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type Kex2ProvisionerKexStartRpcParam = ?{|incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type Kex2ProvisionerKexStartRpcParam = ?{|incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type KeyBundle = {|version: Int,bundle: Bytes,|}
+export type KeyBundle = {|version: Int, bundle: Bytes|}
 
-export type KeyBundleResponse = {|WriterBundle: KeyBundle,ReaderBundle: KeyBundle,|}
+export type KeyBundleResponse = {|WriterBundle: KeyBundle, ReaderBundle: KeyBundle|}
 
-export type KeyHalf = {|user: UID,deviceKID: KID,key: Bytes,|}
+export type KeyHalf = {|user: UID, deviceKID: KID, key: Bytes|}
 
-export type KeyInfo = {|fingerprint: String,key: String,desc: String,|}
+export type KeyInfo = {|fingerprint: String, key: String, desc: String|}
 
-export type KeyType =0 // NONE_0
- | 1 // NACL_1
- | 2 // PGP_2
+export type KeyType =
+  | 0 // NONE_0
+  | 1 // NACL_1
+  | 2 // PGP_2
 
-
-export type KeybaseTime = {|unix: Time,chain: Seqno,|}
+export type KeybaseTime = {|unix: Time, chain: Seqno|}
 
 export type LeaseID = String
 
-export type LinkCheckResult = {|proofId: Int,proofResult: ProofResult,snoozedResult: ProofResult,torWarning: Boolean,tmpTrackExpireTime: Time,cached?: ?CheckResult,diff?: ?TrackDiff,remoteDiff?: ?TrackDiff,hint?: ?SigHint,breaksTracking: Boolean,|}
+export type LinkCheckResult = {|proofId: Int, proofResult: ProofResult, snoozedResult: ProofResult, torWarning: Boolean, tmpTrackExpireTime: Time, cached?: ?CheckResult, diff?: ?TrackDiff, remoteDiff?: ?TrackDiff, hint?: ?SigHint, breaksTracking: Boolean|}
 
 export type LinkID = String
 
-export type ListArgs = {|opID: OpID,path: Path,|}
+export type ListArgs = {|opID: OpID, path: Path|}
 
-export type ListResult = {|files?: ?Array<File>,|}
+export type ListResult = {|files?: ?Array<File>|}
 
-export type LoadDeviceErr = {|where: String,desc: String,|}
+export type LoadDeviceErr = {|where: String, desc: String|}
 
-export type LoadTeamArg = {|ID: TeamID,name: String,public: Boolean,needAdmin: Boolean,refreshers: TeamRefreshers,forceFullReload: Boolean,forceRepoll: Boolean,staleOK: Boolean,|}
+export type LoadTeamArg = {|ID: TeamID, name: String, public: Boolean, needAdmin: Boolean, refreshers: TeamRefreshers, forceFullReload: Boolean, forceRepoll: Boolean, staleOK: Boolean|}
 
-export type LockContext = {|requireLockID: LockID,releaseAfterSuccess: Boolean,|}
+export type LockContext = {|requireLockID: LockID, releaseAfterSuccess: Boolean|}
 
 export type LockID = Long
 
-export type LogLevel =0 // NONE_0
- | 1 // DEBUG_1
- | 2 // INFO_2
- | 3 // NOTICE_3
- | 4 // WARN_4
- | 5 // ERROR_5
- | 6 // CRITICAL_6
- | 7 // FATAL_7
+export type LogLevel =
+  | 0 // NONE_0
+  | 1 // DEBUG_1
+  | 2 // INFO_2
+  | 3 // NOTICE_3
+  | 4 // WARN_4
+  | 5 // ERROR_5
+  | 6 // CRITICAL_6
+  | 7 // FATAL_7
 
+export type LogRegisterLoggerRpcParam = {|name: String, level: LogLevel, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type LogRegisterLoggerRpcParam = {|name: String,level: LogLevel,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type LogUiLogRpcParam = {|level: LogLevel, text: Text, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type LogUiLogRpcParam = {|level: LogLevel,text: Text,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type LoginAccountDeleteRpcParam = ?{|incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type LoginAccountDeleteRpcParam = ?{|incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type LoginClearStoredSecretRpcParam = {|username: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type LoginClearStoredSecretRpcParam = {|username: String,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type LoginDeprovisionRpcParam = {|username: String, doRevoke: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type LoginDeprovisionRpcParam = {|username: String,doRevoke: Boolean,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type LoginGetConfiguredAccountsRpcParam = ?{|incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type LoginGetConfiguredAccountsRpcParam = ?{|incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type LoginLoginProvisionedDeviceRpcParam = {|username: String, noPassphrasePrompt: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type LoginLoginProvisionedDeviceRpcParam = {|username: String,noPassphrasePrompt: Boolean,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type LoginLoginRpcParam = {|deviceType: String, usernameOrEmail: String, clientType: ClientType, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type LoginLoginRpcParam = {|deviceType: String,usernameOrEmail: String,clientType: ClientType,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type LoginLoginWithPaperKeyRpcParam = ?{|incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type LoginLoginWithPaperKeyRpcParam = ?{|incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type LoginLogoutRpcParam = ?{|incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type LoginLogoutRpcParam = ?{|incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type LoginPaperKeyRpcParam = ?{|incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type LoginPaperKeyRpcParam = ?{|incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type LoginPaperKeySubmitRpcParam = {|paperPhrase: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type LoginPaperKeySubmitRpcParam = {|paperPhrase: String,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type LoginPgpProvisionRpcParam = {|username: String, passphrase: String, deviceName: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type LoginPgpProvisionRpcParam = {|username: String,passphrase: String,deviceName: String,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type LoginRecoverAccountFromEmailAddressRpcParam = {|email: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type LoginRecoverAccountFromEmailAddressRpcParam = {|email: String,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type LoginUiDisplayPaperKeyPhraseRpcParam = {|phrase: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type LoginUiDisplayPaperKeyPhraseRpcParam = {|phrase: String,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type LoginUiDisplayPrimaryPaperKeyRpcParam = {|phrase: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type LoginUiDisplayPrimaryPaperKeyRpcParam = {|phrase: String,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type LoginUiGetEmailOrUsernameRpcParam = ?{|incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type LoginUiGetEmailOrUsernameRpcParam = ?{|incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type LoginUiPromptRevokePaperKeysRpcParam = {|device: Device, index: Int, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type LoginUiPromptRevokePaperKeysRpcParam = {|device: Device,index: Int,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type LoginUnlockRpcParam = ?{|incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type LoginUnlockRpcParam = ?{|incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type LoginUnlockWithPassphraseRpcParam = {|passphrase: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type LoginUnlockWithPassphraseRpcParam = {|passphrase: String,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type LogsendPrepareLogsendRpcParam = ?{|incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type LogsendPrepareLogsendRpcParam = ?{|incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type LookupImplicitTeamRes = {|teamID: TeamID, name: TeamName, displayName: ImplicitTeamDisplayName, tlfID: TLFID|}
 
-export type LookupImplicitTeamRes = {|teamID: TeamID,name: TeamName,displayName: ImplicitTeamDisplayName,tlfID: TLFID,|}
-
-export type MDBlock = {|version: Int,timestamp: Time,block: Bytes,|}
+export type MDBlock = {|version: Int, timestamp: Time, block: Bytes|}
 
 export type MDPriority = Int
 
 export type MaskB64 = Bytes
 
-export type MemberInfo = {|userID: UID,teamID: TeamID,fqName: String,isImplicitTeam: Boolean,role: TeamRole,implicit?: ?ImplicitRole,|}
+export type MemberInfo = {|userID: UID, teamID: TeamID, fqName: String, isImplicitTeam: Boolean, role: TeamRole, implicit?: ?ImplicitRole|}
 
-export type MerkleGetCurrentMerkleRootRpcParam = {|freshnessMsec: Int,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type MerkleGetCurrentMerkleRootRpcParam = {|freshnessMsec: Int, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type MerkleRoot = {|version: Int,root: Bytes,|}
+export type MerkleRoot = {|version: Int, root: Bytes|}
 
-export type MerkleRootAndTime = {|root: MerkleRootV2,updateTime: Time,fetchTime: Time,|}
+export type MerkleRootAndTime = {|root: MerkleRootV2, updateTime: Time, fetchTime: Time|}
 
-export type MerkleRootV2 = {|seqno: Seqno,hashMeta: HashMeta,|}
+export type MerkleRootV2 = {|seqno: Seqno, hashMeta: HashMeta|}
 
-export type MerkleTreeID =0 // MASTER_0
- | 1 // KBFS_PUBLIC_1
- | 2 // KBFS_PRIVATE_2
- | 3 // KBFS_PRIVATETEAM_3
+export type MerkleTreeID =
+  | 0 // MASTER_0
+  | 1 // KBFS_PUBLIC_1
+  | 2 // KBFS_PRIVATE_2
+  | 3 // KBFS_PRIVATETEAM_3
 
+export type MerkleTreeLocation = {|leaf: UserOrTeamID, loc: SigChainLocation|}
 
-export type MerkleTreeLocation = {|leaf: UserOrTeamID,loc: SigChainLocation,|}
+export type MetadataAuthenticateRpcParam = {|signature: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type MetadataAuthenticateRpcParam = {|signature: String,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type MetadataDeleteKeyRpcParam = {|uid: UID, deviceKID: KID, keyHalfID: Bytes, logTags: {[key: string]: String}, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type MetadataDeleteKeyRpcParam = {|uid: UID,deviceKID: KID,keyHalfID: Bytes,logTags: {[key: string]: String},incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type MetadataGetChallengeRpcParam = ?{|incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type MetadataGetChallengeRpcParam = ?{|incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type MetadataGetFolderHandleRpcParam = {|folderID: String, signature: String, challenge: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type MetadataGetFolderHandleRpcParam = {|folderID: String,signature: String,challenge: String,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type MetadataGetFoldersForRekeyRpcParam = {|deviceKID: KID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type MetadataGetFoldersForRekeyRpcParam = {|deviceKID: KID,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type MetadataGetKeyBundlesRpcParam = {|folderID: String, writerBundleID: String, readerBundleID: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type MetadataGetKeyBundlesRpcParam = {|folderID: String,writerBundleID: String,readerBundleID: String,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type MetadataGetKeyRpcParam = {|keyHalfID: Bytes, deviceKID: String, logTags: {[key: string]: String}, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type MetadataGetKeyRpcParam = {|keyHalfID: Bytes,deviceKID: String,logTags: {[key: string]: String},incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type MetadataGetLatestFolderHandleRpcParam = {|folderID: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type MetadataGetLatestFolderHandleRpcParam = {|folderID: String,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type MetadataGetMerkleNodeRpcParam = {|hash: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type MetadataGetMerkleNodeRpcParam = {|hash: String,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type MetadataGetMerkleRootLatestRpcParam = {|treeID: MerkleTreeID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type MetadataGetMerkleRootLatestRpcParam = {|treeID: MerkleTreeID,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type MetadataGetMerkleRootRpcParam = {|treeID: MerkleTreeID, seqNo: Long, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type MetadataGetMerkleRootRpcParam = {|treeID: MerkleTreeID,seqNo: Long,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type MetadataGetMerkleRootSinceRpcParam = {|treeID: MerkleTreeID, when: Time, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type MetadataGetMerkleRootSinceRpcParam = {|treeID: MerkleTreeID,when: Time,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type MetadataGetMetadataRpcParam = {|folderID: String, folderHandle: Bytes, branchID: String, unmerged: Boolean, startRevision: Long, stopRevision: Long, logTags: {[key: string]: String}, lockBeforeGet?: ?LockID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type MetadataGetMetadataRpcParam = {|folderID: String,folderHandle: Bytes,branchID: String,unmerged: Boolean,startRevision: Long,stopRevision: Long,logTags: {[key: string]: String},lockBeforeGet?: ?LockID,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type MetadataLockRpcParam = {|folderID: String, lockID: LockID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type MetadataLockRpcParam = {|folderID: String,lockID: LockID,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type MetadataPing2RpcParam = ?{|incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type MetadataPing2RpcParam = ?{|incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type MetadataPingRpcParam = ?{|incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type MetadataPingRpcParam = ?{|incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type MetadataPruneBranchRpcParam = {|folderID: String, branchID: String, logTags: {[key: string]: String}, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type MetadataPruneBranchRpcParam = {|folderID: String,branchID: String,logTags: {[key: string]: String},incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type MetadataPutKeysRpcParam = {|keyHalves?: ?Array<KeyHalf>, logTags: {[key: string]: String}, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type MetadataPutKeysRpcParam = {|keyHalves?: ?Array<KeyHalf>,logTags: {[key: string]: String},incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type MetadataPutMetadataRpcParam = {|mdBlock: MDBlock, readerKeyBundle: KeyBundle, writerKeyBundle: KeyBundle, logTags: {[key: string]: String}, lockContext?: ?LockContext, priority: MDPriority, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type MetadataPutMetadataRpcParam = {|mdBlock: MDBlock,readerKeyBundle: KeyBundle,writerKeyBundle: KeyBundle,logTags: {[key: string]: String},lockContext?: ?LockContext,priority: MDPriority,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type MetadataRegisterForUpdatesRpcParam = {|folderID: String, currRevision: Long, logTags: {[key: string]: String}, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type MetadataRegisterForUpdatesRpcParam = {|folderID: String,currRevision: Long,logTags: {[key: string]: String},incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type MetadataReleaseLockRpcParam = {|folderID: String, lockID: LockID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type MetadataReleaseLockRpcParam = {|folderID: String,lockID: LockID,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type MetadataResponse = {|folderID: String, mdBlocks?: ?Array<MDBlock>|}
 
-export type MetadataResponse = {|folderID: String,mdBlocks?: ?Array<MDBlock>,|}
+export type MetadataStartImplicitTeamMigrationRpcParam = {|folderID: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type MetadataStartImplicitTeamMigrationRpcParam = {|folderID: String,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type MetadataTruncateLockRpcParam = {|folderID: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type MetadataTruncateLockRpcParam = {|folderID: String,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type MetadataTruncateUnlockRpcParam = {|folderID: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type MetadataTruncateUnlockRpcParam = {|folderID: String,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type MetadataUpdateFolderNeedsRekeyRpcParam = {|folderID: String, revision: Long, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type MetadataUpdateFolderNeedsRekeyRpcParam = {|folderID: String,revision: Long,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type MetadataUpdateFoldersNeedRekeyRpcParam = {|requests?: ?Array<RekeyRequest>, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type MetadataUpdateFoldersNeedRekeyRpcParam = {|requests?: ?Array<RekeyRequest>,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type MetadataUpdateMetadataUpdateRpcParam = {|folderID: String, revision: Long, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type MetadataUpdateMetadataUpdateRpcParam = {|folderID: String,revision: Long,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
-
-export type MoveArgs = {|opID: OpID,src: Path,dest: Path,|}
+export type MoveArgs = {|opID: OpID, src: Path, dest: Path|}
 
 export type NaclDHKeyPrivate = any
 
@@ -2692,815 +2690,813 @@ export type NaclSigningKeyPrivate = any
 
 export type NaclSigningKeyPublic = any
 
-export type NotificationChannels = {|session: Boolean,users: Boolean,kbfs: Boolean,tracking: Boolean,favorites: Boolean,paperkeys: Boolean,keyfamily: Boolean,service: Boolean,app: Boolean,chat: Boolean,pgp: Boolean,kbfsrequest: Boolean,badges: Boolean,reachability: Boolean,team: Boolean,|}
+export type NotificationChannels = {|session: Boolean, users: Boolean, kbfs: Boolean, tracking: Boolean, favorites: Boolean, paperkeys: Boolean, keyfamily: Boolean, service: Boolean, app: Boolean, chat: Boolean, pgp: Boolean, kbfsrequest: Boolean, badges: Boolean, reachability: Boolean, team: Boolean|}
 
-export type NotifyAppExitRpcParam = ?{|incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type NotifyAppExitRpcParam = ?{|incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type NotifyBadgesBadgeStateRpcParam = {|badgeState: BadgeState,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type NotifyBadgesBadgeStateRpcParam = {|badgeState: BadgeState, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type NotifyCtlSetNotificationsRpcParam = {|channels: NotificationChannels,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type NotifyCtlSetNotificationsRpcParam = {|channels: NotificationChannels, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type NotifyFSFSActivityRpcParam = {|notification: FSNotification,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type NotifyFSFSActivityRpcParam = {|notification: FSNotification, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type NotifyFSFSEditListResponseRpcParam = {|edits?: ?Array<FSNotification>,requestID: Int,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type NotifyFSFSEditListResponseRpcParam = {|edits?: ?Array<FSNotification>, requestID: Int, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type NotifyFSFSSyncActivityRpcParam = {|status: FSPathSyncStatus,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type NotifyFSFSSyncActivityRpcParam = {|status: FSPathSyncStatus, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type NotifyFSFSSyncStatusResponseRpcParam = {|status: FSSyncStatus,requestID: Int,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type NotifyFSFSSyncStatusResponseRpcParam = {|status: FSSyncStatus, requestID: Int, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type NotifyFSRequestFSEditListRequestRpcParam = {|req: FSEditListRequest,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type NotifyFSRequestFSEditListRequestRpcParam = {|req: FSEditListRequest, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type NotifyFSRequestFSSyncStatusRequestRpcParam = {|req: FSSyncStatusRequest,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type NotifyFSRequestFSSyncStatusRequestRpcParam = {|req: FSSyncStatusRequest, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type NotifyFavoritesFavoritesChangedRpcParam = {|uid: UID,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type NotifyFavoritesFavoritesChangedRpcParam = {|uid: UID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type NotifyKeyfamilyKeyfamilyChangedRpcParam = {|uid: UID,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type NotifyKeyfamilyKeyfamilyChangedRpcParam = {|uid: UID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type NotifyPGPPgpKeyInSecretStoreFileRpcParam = ?{|incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type NotifyPGPPgpKeyInSecretStoreFileRpcParam = ?{|incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type NotifyPaperKeyPaperKeyCachedRpcParam = {|uid: UID,encKID: KID,sigKID: KID,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type NotifyPaperKeyPaperKeyCachedRpcParam = {|uid: UID, encKID: KID, sigKID: KID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type NotifyServiceShutdownRpcParam = ?{|incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type NotifyServiceShutdownRpcParam = ?{|incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type NotifySessionClientOutOfDateRpcParam = {|upgradeTo: String,upgradeURI: String,upgradeMsg: String,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type NotifySessionClientOutOfDateRpcParam = {|upgradeTo: String, upgradeURI: String, upgradeMsg: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type NotifySessionLoggedInRpcParam = {|username: String,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type NotifySessionLoggedInRpcParam = {|username: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type NotifySessionLoggedOutRpcParam = ?{|incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type NotifySessionLoggedOutRpcParam = ?{|incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type NotifyTeamTeamChangedByIDRpcParam = {|teamID: TeamID,latestSeqno: Seqno,implicitTeam: Boolean,changes: TeamChangeSet,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type NotifyTeamTeamChangedByIDRpcParam = {|teamID: TeamID, latestSeqno: Seqno, implicitTeam: Boolean, changes: TeamChangeSet, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type NotifyTeamTeamChangedByNameRpcParam = {|teamName: String,latestSeqno: Seqno,implicitTeam: Boolean,changes: TeamChangeSet,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type NotifyTeamTeamChangedByNameRpcParam = {|teamName: String, latestSeqno: Seqno, implicitTeam: Boolean, changes: TeamChangeSet, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type NotifyTeamTeamDeletedRpcParam = {|teamID: TeamID,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type NotifyTeamTeamDeletedRpcParam = {|teamID: TeamID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type NotifyTeamTeamExitRpcParam = {|teamID: TeamID,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type NotifyTeamTeamExitRpcParam = {|teamID: TeamID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type NotifyTrackingTrackingChangedRpcParam = {|uid: UID,username: String,isTracking: Boolean,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type NotifyTrackingTrackingChangedRpcParam = {|uid: UID, username: String, isTracking: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type NotifyUsersUserChangedRpcParam = {|uid: UID,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type NotifyUsersUserChangedRpcParam = {|uid: UID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type OpDescription ={ asyncOp: 0, list: ?ListArgs } | { asyncOp: 1, listRecursive: ?ListArgs } | { asyncOp: 2, read: ?ReadArgs } | { asyncOp: 3, write: ?WriteArgs } | { asyncOp: 4, copy: ?CopyArgs } | { asyncOp: 5, move: ?MoveArgs } | { asyncOp: 6, remove: ?RemoveArgs }
+export type OpDescription = {asyncOp: 0, list: ?ListArgs} | {asyncOp: 1, listRecursive: ?ListArgs} | {asyncOp: 2, read: ?ReadArgs} | {asyncOp: 3, write: ?WriteArgs} | {asyncOp: 4, copy: ?CopyArgs} | {asyncOp: 5, move: ?MoveArgs} | {asyncOp: 6, remove: ?RemoveArgs}
 
 export type OpID = any
 
-export type OpenFlags =0 // READ_0
- | 1 // REPLACE_1
- | 2 // EXISTING_2
- | 4 // WRITE_4
- | 8 // APPEND_8
- | 16 // DIRECTORY_16
+export type OpenFlags =
+  | 0 // READ_0
+  | 1 // REPLACE_1
+  | 2 // EXISTING_2
+  | 4 // WRITE_4
+  | 8 // APPEND_8
+  | 16 // DIRECTORY_16
 
+export type OutOfDateInfo = {|upgradeTo: String, upgradeURI: String, customMessage: String, criticalClockSkew: Long|}
 
-export type OutOfDateInfo = {|upgradeTo: String,upgradeURI: String,customMessage: String,criticalClockSkew: Long,|}
+export type Outcome =
+  | 0 // NONE_0
+  | 1 // FIXED_1
+  | 2 // IGNORED_2
 
-export type Outcome =0 // NONE_0
- | 1 // FIXED_1
- | 2 // IGNORED_2
+export type PGPCreateUids = {|useDefault: Boolean, ids?: ?Array<PGPIdentity>|}
 
+export type PGPDecryptOptions = {|assertSigned: Boolean, signedBy: String|}
 
-export type PGPCreateUids = {|useDefault: Boolean,ids?: ?Array<PGPIdentity>,|}
-
-export type PGPDecryptOptions = {|assertSigned: Boolean,signedBy: String,|}
-
-export type PGPEncryptOptions = {|recipients?: ?Array<String>,noSign: Boolean,noSelf: Boolean,binaryOut: Boolean,keyQuery: String,|}
+export type PGPEncryptOptions = {|recipients?: ?Array<String>, noSign: Boolean, noSelf: Boolean, binaryOut: Boolean, keyQuery: String|}
 
 export type PGPFingerprint = any
 
-export type PGPIdentity = {|username: String,comment: String,email: String,|}
+export type PGPIdentity = {|username: String, comment: String, email: String|}
 
-export type PGPPurgeRes = {|filenames?: ?Array<String>,|}
+export type PGPPurgeRes = {|filenames?: ?Array<String>|}
 
-export type PGPQuery = {|secret: Boolean,query: String,exactMatch: Boolean,|}
+export type PGPQuery = {|secret: Boolean, query: String, exactMatch: Boolean|}
 
-export type PGPSigVerification = {|isSigned: Boolean,verified: Boolean,signer: User,signKey: PublicKey,|}
+export type PGPSigVerification = {|isSigned: Boolean, verified: Boolean, signer: User, signKey: PublicKey|}
 
-export type PGPSignOptions = {|keyQuery: String,mode: SignMode,binaryIn: Boolean,binaryOut: Boolean,|}
+export type PGPSignOptions = {|keyQuery: String, mode: SignMode, binaryIn: Boolean, binaryOut: Boolean|}
 
-export type PGPVerifyOptions = {|signedBy: String,signature: Bytes,|}
+export type PGPVerifyOptions = {|signedBy: String, signature: Bytes|}
 
-export type PaperprovisionPaperProvisionRpcParam = {|username: String,deviceName: String,paperKey: String,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type PaperprovisionPaperProvisionRpcParam = {|username: String, deviceName: String, paperKey: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type PassphraseStream = {|passphraseStream: Bytes,generation: Int,|}
+export type PassphraseStream = {|passphraseStream: Bytes, generation: Int|}
 
-export type PassphraseType =0 // NONE_0
- | 1 // PAPER_KEY_1
- | 2 // PASS_PHRASE_2
- | 3 // VERIFY_PASS_PHRASE_3
+export type PassphraseType =
+  | 0 // NONE_0
+  | 1 // PAPER_KEY_1
+  | 2 // PASS_PHRASE_2
+  | 3 // VERIFY_PASS_PHRASE_3
 
+export type Path = {PathType: 0, local: ?String} | {PathType: 1, kbfs: ?String}
 
-export type Path ={ PathType: 0, local: ?String } | { PathType: 1, kbfs: ?String }
+export type PathType =
+  | 0 // LOCAL_0
+  | 1 // KBFS_1
 
-export type PathType =0 // LOCAL_0
- | 1 // KBFS_1
-
-
-export type PerTeamKey = {|gen: PerTeamKeyGeneration,seqno: Seqno,sigKID: KID,encKID: KID,|}
+export type PerTeamKey = {|gen: PerTeamKeyGeneration, seqno: Seqno, sigKID: KID, encKID: KID|}
 
 export type PerTeamKeyGeneration = Int
 
 export type PerTeamKeySeed = any
 
-export type PerTeamKeySeedItem = {|seed: PerTeamKeySeed,generation: PerTeamKeyGeneration,seqno: Seqno,|}
+export type PerTeamKeySeedItem = {|seed: PerTeamKeySeed, generation: PerTeamKeyGeneration, seqno: Seqno|}
 
-export type PerUserKey = {|gen: Int,seqno: Seqno,sigKID: KID,encKID: KID,signedByKID: KID,|}
+export type PerUserKey = {|gen: Int, seqno: Seqno, sigKID: KID, encKID: KID, signedByKID: KID|}
 
-export type PerUserKeyBox = {|generation: PerUserKeyGeneration,box: String,receiverKID: KID,|}
+export type PerUserKeyBox = {|generation: PerUserKeyGeneration, box: String, receiverKID: KID|}
 
 export type PerUserKeyGeneration = Int
 
-export type PgpPgpDecryptRpcParam = {|source: Stream,sink: Stream,opts: PGPDecryptOptions,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type PgpPgpDecryptRpcParam = {|source: Stream, sink: Stream, opts: PGPDecryptOptions, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type PgpPgpDeletePrimaryRpcParam = ?{|incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type PgpPgpDeletePrimaryRpcParam = ?{|incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type PgpPgpEncryptRpcParam = {|source: Stream,sink: Stream,opts: PGPEncryptOptions,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type PgpPgpEncryptRpcParam = {|source: Stream, sink: Stream, opts: PGPEncryptOptions, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type PgpPgpExportByFingerprintRpcParam = {|options: PGPQuery,encrypted: Boolean,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type PgpPgpExportByFingerprintRpcParam = {|options: PGPQuery, encrypted: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type PgpPgpExportByKIDRpcParam = {|options: PGPQuery,encrypted: Boolean,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type PgpPgpExportByKIDRpcParam = {|options: PGPQuery, encrypted: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type PgpPgpExportRpcParam = {|options: PGPQuery,encrypted: Boolean,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type PgpPgpExportRpcParam = {|options: PGPQuery, encrypted: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type PgpPgpImportRpcParam = {|key: Bytes,pushSecret: Boolean,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type PgpPgpImportRpcParam = {|key: Bytes, pushSecret: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type PgpPgpKeyGenDefaultRpcParam = {|createUids: PGPCreateUids,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type PgpPgpKeyGenDefaultRpcParam = {|createUids: PGPCreateUids, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type PgpPgpKeyGenRpcParam = {|primaryBits: Int,subkeyBits: Int,createUids: PGPCreateUids,allowMulti: Boolean,doExport: Boolean,exportEncrypted: Boolean,pushSecret: Boolean,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type PgpPgpKeyGenRpcParam = {|primaryBits: Int, subkeyBits: Int, createUids: PGPCreateUids, allowMulti: Boolean, doExport: Boolean, exportEncrypted: Boolean, pushSecret: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type PgpPgpPullRpcParam = {|userAsserts?: ?Array<String>,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type PgpPgpPullRpcParam = {|userAsserts?: ?Array<String>, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type PgpPgpPurgeRpcParam = {|doPurge: Boolean,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type PgpPgpPurgeRpcParam = {|doPurge: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type PgpPgpSelectRpcParam = {|fingerprintQuery: String,allowMulti: Boolean,skipImport: Boolean,onlyImport: Boolean,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type PgpPgpSelectRpcParam = {|fingerprintQuery: String, allowMulti: Boolean, skipImport: Boolean, onlyImport: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type PgpPgpSignRpcParam = {|source: Stream,sink: Stream,opts: PGPSignOptions,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type PgpPgpSignRpcParam = {|source: Stream, sink: Stream, opts: PGPSignOptions, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type PgpPgpStorageDismissRpcParam = ?{|incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type PgpPgpStorageDismissRpcParam = ?{|incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type PgpPgpUpdateRpcParam = {|all: Boolean,fingerprints?: ?Array<String>,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type PgpPgpUpdateRpcParam = {|all: Boolean, fingerprints?: ?Array<String>, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type PgpPgpVerifyRpcParam = {|source: Stream,opts: PGPVerifyOptions,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type PgpPgpVerifyRpcParam = {|source: Stream, opts: PGPVerifyOptions, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type PgpUiFinishedRpcParam = ?{|incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type PgpUiFinishedRpcParam = ?{|incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type PgpUiKeyGeneratedRpcParam = {|kid: KID,key: KeyInfo,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type PgpUiKeyGeneratedRpcParam = {|kid: KID, key: KeyInfo, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type PgpUiOutputSignatureSuccessNonKeybaseRpcParam = {|keyID: String,signedAt: Time,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type PgpUiOutputSignatureSuccessNonKeybaseRpcParam = {|keyID: String, signedAt: Time, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type PgpUiOutputSignatureSuccessRpcParam = {|fingerprint: String,username: String,signedAt: Time,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type PgpUiOutputSignatureSuccessRpcParam = {|fingerprint: String, username: String, signedAt: Time, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type PgpUiShouldPushPrivateRpcParam = ?{|incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type PgpUiShouldPushPrivateRpcParam = ?{|incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type Pics = {|square40: String,square200: String,square360: String,|}
+export type Pics = {|square40: String, square200: String, square360: String|}
 
-export type PingResponse = {|timestamp: Time,|}
+export type PingResponse = {|timestamp: Time|}
 
-export type PlatformInfo = {|os: String,osVersion: String,arch: String,goVersion: String,|}
+export type PlatformInfo = {|os: String, osVersion: String, arch: String, goVersion: String|}
 
-export type ProblemSet = {|user: User,kid: KID,tlfs?: ?Array<ProblemTLF>,|}
+export type ProblemSet = {|user: User, kid: KID, tlfs?: ?Array<ProblemTLF>|}
 
-export type ProblemSetDevices = {|problemSet: ProblemSet,devices?: ?Array<Device>,|}
+export type ProblemSetDevices = {|problemSet: ProblemSet, devices?: ?Array<Device>|}
 
-export type ProblemTLF = {|tlf: TLF,score: Int,solution_kids?: ?Array<KID>,|}
+export type ProblemTLF = {|tlf: TLF, score: Int, solution_kids?: ?Array<KID>|}
 
-export type Process = {|pid: String,command: String,fileDescriptors?: ?Array<FileDescriptor>,|}
+export type Process = {|pid: String, command: String, fileDescriptors?: ?Array<FileDescriptor>|}
 
 export type Progress = Int
 
-export type PromptDefault =0 // NONE_0
- | 1 // YES_1
- | 2 // NO_2
-
-
-export type PromptOverwriteType =0 // SOCIAL_0
- | 1 // SITE_1
-
-
-export type ProofResult = {|state: ProofState,status: ProofStatus,desc: String,|}
-
-export type ProofState =0 // NONE_0
- | 1 // OK_1
- | 2 // TEMP_FAILURE_2
- | 3 // PERM_FAILURE_3
- | 4 // LOOKING_4
- | 5 // SUPERSEDED_5
- | 6 // POSTED_6
- | 7 // REVOKED_7
- | 8 // DELETED_8
- | 9 // UNKNOWN_TYPE_9
- | 10 // SIG_HINT_MISSING_10
- | 11 // UNCHECKED_11
-
+export type PromptDefault =
+  | 0 // NONE_0
+  | 1 // YES_1
+  | 2 // NO_2
+
+export type PromptOverwriteType =
+  | 0 // SOCIAL_0
+  | 1 // SITE_1
+
+export type ProofResult = {|state: ProofState, status: ProofStatus, desc: String|}
+
+export type ProofState =
+  | 0 // NONE_0
+  | 1 // OK_1
+  | 2 // TEMP_FAILURE_2
+  | 3 // PERM_FAILURE_3
+  | 4 // LOOKING_4
+  | 5 // SUPERSEDED_5
+  | 6 // POSTED_6
+  | 7 // REVOKED_7
+  | 8 // DELETED_8
+  | 9 // UNKNOWN_TYPE_9
+  | 10 // SIG_HINT_MISSING_10
+  | 11 // UNCHECKED_11
+
+export type ProofStatus =
+  | 0 // NONE_0
+  | 1 // OK_1
+  | 2 // LOCAL_2
+  | 3 // FOUND_3
+  | 100 // BASE_ERROR_100
+  | 101 // HOST_UNREACHABLE_101
+  | 103 // PERMISSION_DENIED_103
+  | 106 // FAILED_PARSE_106
+  | 107 // DNS_ERROR_107
+  | 108 // AUTH_FAILED_108
+  | 129 // HTTP_429_129
+  | 150 // HTTP_500_150
+  | 160 // TIMEOUT_160
+  | 170 // INTERNAL_ERROR_170
+  | 171 // UNCHECKED_171
+  | 172 // MISSING_PVL_172
+  | 200 // BASE_HARD_ERROR_200
+  | 201 // NOT_FOUND_201
+  | 202 // CONTENT_FAILURE_202
+  | 203 // BAD_USERNAME_203
+  | 204 // BAD_REMOTE_ID_204
+  | 205 // TEXT_NOT_FOUND_205
+  | 206 // BAD_ARGS_206
+  | 207 // CONTENT_MISSING_207
+  | 208 // TITLE_NOT_FOUND_208
+  | 209 // SERVICE_ERROR_209
+  | 210 // TOR_SKIPPED_210
+  | 211 // TOR_INCOMPATIBLE_211
+  | 230 // HTTP_300_230
+  | 240 // HTTP_400_240
+  | 260 // HTTP_OTHER_260
+  | 270 // EMPTY_JSON_270
+  | 301 // DELETED_301
+  | 302 // SERVICE_DEAD_302
+  | 303 // BAD_SIGNATURE_303
+  | 304 // BAD_API_URL_304
+  | 305 // UNKNOWN_TYPE_305
+  | 306 // NO_HINT_306
+  | 307 // BAD_HINT_TEXT_307
+  | 308 // INVALID_PVL_308
 
-export type ProofStatus =0 // NONE_0
- | 1 // OK_1
- | 2 // LOCAL_2
- | 3 // FOUND_3
- | 100 // BASE_ERROR_100
- | 101 // HOST_UNREACHABLE_101
- | 103 // PERMISSION_DENIED_103
- | 106 // FAILED_PARSE_106
- | 107 // DNS_ERROR_107
- | 108 // AUTH_FAILED_108
- | 129 // HTTP_429_129
- | 150 // HTTP_500_150
- | 160 // TIMEOUT_160
- | 170 // INTERNAL_ERROR_170
- | 171 // UNCHECKED_171
- | 172 // MISSING_PVL_172
- | 200 // BASE_HARD_ERROR_200
- | 201 // NOT_FOUND_201
- | 202 // CONTENT_FAILURE_202
- | 203 // BAD_USERNAME_203
- | 204 // BAD_REMOTE_ID_204
- | 205 // TEXT_NOT_FOUND_205
- | 206 // BAD_ARGS_206
- | 207 // CONTENT_MISSING_207
- | 208 // TITLE_NOT_FOUND_208
- | 209 // SERVICE_ERROR_209
- | 210 // TOR_SKIPPED_210
- | 211 // TOR_INCOMPATIBLE_211
- | 230 // HTTP_300_230
- | 240 // HTTP_400_240
- | 260 // HTTP_OTHER_260
- | 270 // EMPTY_JSON_270
- | 301 // DELETED_301
- | 302 // SERVICE_DEAD_302
- | 303 // BAD_SIGNATURE_303
- | 304 // BAD_API_URL_304
- | 305 // UNKNOWN_TYPE_305
- | 306 // NO_HINT_306
- | 307 // BAD_HINT_TEXT_307
- | 308 // INVALID_PVL_308
+export type ProofType =
+  | 0 // NONE_0
+  | 1 // KEYBASE_1
+  | 2 // TWITTER_2
+  | 3 // GITHUB_3
+  | 4 // REDDIT_4
+  | 5 // COINBASE_5
+  | 6 // HACKERNEWS_6
+  | 8 // FACEBOOK_8
+  | 1000 // GENERIC_WEB_SITE_1000
+  | 1001 // DNS_1001
+  | 1002 // PGP_1002
+  | 100001 // ROOTER_100001
 
+export type Proofs = {|social?: ?Array<TrackProof>, web?: ?Array<WebProof>, publicKeys?: ?Array<PublicKey>|}
 
-export type ProofType =0 // NONE_0
- | 1 // KEYBASE_1
- | 2 // TWITTER_2
- | 3 // GITHUB_3
- | 4 // REDDIT_4
- | 5 // COINBASE_5
- | 6 // HACKERNEWS_6
- | 8 // FACEBOOK_8
- | 1000 // GENERIC_WEB_SITE_1000
- | 1001 // DNS_1001
- | 1002 // PGP_1002
- | 100001 // ROOTER_100001
+export type ProveCheckProofRpcParam = {|sigID: SigID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
+export type ProveStartProofRpcParam = {|service: String, username: String, force: Boolean, promptPosted: Boolean, auto: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type Proofs = {|social?: ?Array<TrackProof>,web?: ?Array<WebProof>,publicKeys?: ?Array<PublicKey>,|}
+export type ProveUiDisplayRecheckWarningRpcParam = {|text: Text, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type ProveCheckProofRpcParam = {|sigID: SigID,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type ProveUiOkToCheckRpcParam = {|name: String, attempt: Int, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type ProveStartProofRpcParam = {|service: String,username: String,force: Boolean,promptPosted: Boolean,auto: Boolean,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type ProveUiOutputInstructionsRpcParam = {|instructions: Text, proof: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type ProveUiDisplayRecheckWarningRpcParam = {|text: Text,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type ProveUiOutputPrechecksRpcParam = {|text: Text, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type ProveUiOkToCheckRpcParam = {|name: String,attempt: Int,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type ProveUiPreProofWarningRpcParam = {|text: Text, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type ProveUiOutputInstructionsRpcParam = {|instructions: Text,proof: String,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type ProveUiPromptOverwriteRpcParam = {|account: String, typ: PromptOverwriteType, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type ProveUiOutputPrechecksRpcParam = {|text: Text,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type ProveUiPromptUsernameRpcParam = {|prompt: String, prevError?: ?Status, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type ProveUiPreProofWarningRpcParam = {|text: Text,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type ProvisionMethod =
+  | 0 // DEVICE_0
+  | 1 // PAPER_KEY_1
+  | 2 // PASSPHRASE_2
+  | 3 // GPG_IMPORT_3
+  | 4 // GPG_SIGN_4
 
-export type ProveUiPromptOverwriteRpcParam = {|account: String,typ: PromptOverwriteType,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type ProvisionUiChooseDeviceRpcParam = {|devices?: ?Array<Device>, canSelectNoDevice: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type ProveUiPromptUsernameRpcParam = {|prompt: String,prevError?: ?Status,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type ProvisionUiChooseDeviceTypeRpcParam = {|kind: ChooseType, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type ProvisionMethod =0 // DEVICE_0
- | 1 // PAPER_KEY_1
- | 2 // PASSPHRASE_2
- | 3 // GPG_IMPORT_3
- | 4 // GPG_SIGN_4
+export type ProvisionUiChooseGPGMethodRpcParam = {|keys?: ?Array<GPGKey>, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
+export type ProvisionUiChooseProvisioningMethodRpcParam = {|gpgOption: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type ProvisionUiChooseDeviceRpcParam = {|devices?: ?Array<Device>,canSelectNoDevice: Boolean,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type ProvisionUiDisplayAndPromptSecretRpcParam = {|secret: Bytes, phrase: String, otherDeviceType: DeviceType, previousErr: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type ProvisionUiChooseDeviceTypeRpcParam = {|kind: ChooseType,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type ProvisionUiDisplaySecretExchangedRpcParam = ?{|incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type ProvisionUiChooseGPGMethodRpcParam = {|keys?: ?Array<GPGKey>,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type ProvisionUiPromptNewDeviceNameRpcParam = {|existingDevices?: ?Array<String>, errorMessage: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type ProvisionUiChooseProvisioningMethodRpcParam = {|gpgOption: Boolean,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type ProvisionUiProvisioneeSuccessRpcParam = {|username: String, deviceName: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type ProvisionUiDisplayAndPromptSecretRpcParam = {|secret: Bytes,phrase: String,otherDeviceType: DeviceType,previousErr: String,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type ProvisionUiProvisionerSuccessRpcParam = {|deviceName: String, deviceType: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type ProvisionUiDisplaySecretExchangedRpcParam = ?{|incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type ProvisionUiSwitchToGPGSignOKRpcParam = {|key: GPGKey, importError: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type ProvisionUiPromptNewDeviceNameRpcParam = {|existingDevices?: ?Array<String>,errorMessage: String,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type PublicKey = {|KID: KID, PGPFingerprint: String, PGPIdentities?: ?Array<PGPIdentity>, isSibkey: Boolean, isEldest: Boolean, parentID: String, deviceID: DeviceID, deviceDescription: String, deviceType: String, cTime: Time, eTime: Time, isRevoked: Boolean|}
 
-export type ProvisionUiProvisioneeSuccessRpcParam = {|username: String,deviceName: String,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type PublicKeyV2 = {keyType: 1, nacl: ?PublicKeyV2NaCl} | {keyType: 2, pgp: ?PublicKeyV2PGPSummary} | {keyType: any}
 
-export type ProvisionUiProvisionerSuccessRpcParam = {|deviceName: String,deviceType: String,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type PublicKeyV2Base = {|kid: KID, isSibkey: Boolean, isEldest: Boolean, cTime: Time, eTime: Time, provisioning: SignatureMetadata, revocation?: ?SignatureMetadata|}
 
-export type ProvisionUiSwitchToGPGSignOKRpcParam = {|key: GPGKey,importError: String,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type PublicKeyV2NaCl = {|base: PublicKeyV2Base, parent?: ?KID, deviceID: DeviceID, deviceDescription: String, deviceType: String|}
 
-export type PublicKey = {|KID: KID,PGPFingerprint: String,PGPIdentities?: ?Array<PGPIdentity>,isSibkey: Boolean,isEldest: Boolean,parentID: String,deviceID: DeviceID,deviceDescription: String,deviceType: String,cTime: Time,eTime: Time,isRevoked: Boolean,|}
+export type PublicKeyV2PGPSummary = {|base: PublicKeyV2Base, fingerprint: PGPFingerprint, identities?: ?Array<PGPIdentity>|}
 
-export type PublicKeyV2 ={ keyType: 1, nacl: ?PublicKeyV2NaCl } | { keyType: 2, pgp: ?PublicKeyV2PGPSummary } | { keyType: any }
+export type PushReason =
+  | 0 // NONE_0
+  | 1 // RECONNECTED_1
+  | 2 // NEW_DATA_2
 
-export type PublicKeyV2Base = {|kid: KID,isSibkey: Boolean,isEldest: Boolean,cTime: Time,eTime: Time,provisioning: SignatureMetadata,revocation?: ?SignatureMetadata,|}
+export type QuotaVerifySessionRpcParam = {|session: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type PublicKeyV2NaCl = {|base: PublicKeyV2Base,parent?: ?KID,deviceID: DeviceID,deviceDescription: String,deviceType: String,|}
+export type Reachability = {|reachable: Reachable|}
 
-export type PublicKeyV2PGPSummary = {|base: PublicKeyV2Base,fingerprint: PGPFingerprint,identities?: ?Array<PGPIdentity>,|}
+export type ReachabilityCheckReachabilityRpcParam = ?{|incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type PushReason =0 // NONE_0
- | 1 // RECONNECTED_1
- | 2 // NEW_DATA_2
+export type ReachabilityReachabilityChangedRpcParam = {|reachability: Reachability, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
+export type ReachabilityStartReachabilityRpcParam = ?{|incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type QuotaVerifySessionRpcParam = {|session: String,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type Reachable =
+  | 0 // UNKNOWN_0
+  | 1 // YES_1
+  | 2 // NO_2
 
-export type Reachability = {|reachable: Reachable,|}
+export type ReadArgs = {|opID: OpID, path: Path, offset: Long, size: Int|}
 
-export type ReachabilityCheckReachabilityRpcParam = ?{|incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type ReaderKeyMask = {|application: TeamApplication, generation: PerTeamKeyGeneration, mask: MaskB64|}
 
-export type ReachabilityReachabilityChangedRpcParam = {|reachability: Reachability,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type RegisterAddressRes = {|type: String, family: String|}
 
-export type ReachabilityStartReachabilityRpcParam = ?{|incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type RekeyDebugShowRekeyStatusRpcParam = ?{|incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type Reachable =0 // UNKNOWN_0
- | 1 // YES_1
- | 2 // NO_2
+export type RekeyEvent = {|eventType: RekeyEventType, interruptType: Int|}
 
+export type RekeyEventType =
+  | 0 // NONE_0
+  | 1 // NOT_LOGGED_IN_1
+  | 2 // API_ERROR_2
+  | 3 // NO_PROBLEMS_3
+  | 4 // LOAD_ME_ERROR_4
+  | 5 // CURRENT_DEVICE_CAN_REKEY_5
+  | 6 // DEVICE_LOAD_ERROR_6
+  | 7 // HARASS_7
+  | 8 // NO_GREGOR_MESSAGES_8
 
-export type ReadArgs = {|opID: OpID,path: Path,offset: Long,size: Int,|}
+export type RekeyGetPendingRekeyStatusRpcParam = ?{|incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type ReaderKeyMask = {|application: TeamApplication,generation: PerTeamKeyGeneration,mask: MaskB64,|}
+export type RekeyGetRevokeWarningRpcParam = {|actingDevice: DeviceID, targetDevice: DeviceID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type RegisterAddressRes = {|type: String,family: String,|}
+export type RekeyRekeyStatusFinishRpcParam = ?{|incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type RekeyDebugShowRekeyStatusRpcParam = ?{|incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type RekeyRekeySyncRpcParam = {|force: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type RekeyEvent = {|eventType: RekeyEventType,interruptType: Int,|}
+export type RekeyRequest = {|folderID: String, revision: Long|}
 
-export type RekeyEventType =0 // NONE_0
- | 1 // NOT_LOGGED_IN_1
- | 2 // API_ERROR_2
- | 3 // NO_PROBLEMS_3
- | 4 // LOAD_ME_ERROR_4
- | 5 // CURRENT_DEVICE_CAN_REKEY_5
- | 6 // DEVICE_LOAD_ERROR_6
- | 7 // HARASS_7
- | 8 // NO_GREGOR_MESSAGES_8
+export type RekeyShowPendingRekeyStatusRpcParam = ?{|incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
+export type RekeyUIDelegateRekeyUIRpcParam = ?{|incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type RekeyGetPendingRekeyStatusRpcParam = ?{|incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type RekeyUIRefreshRpcParam = {|problemSetDevices: ProblemSetDevices, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type RekeyGetRevokeWarningRpcParam = {|actingDevice: DeviceID,targetDevice: DeviceID,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type RekeyUIRekeySendEventRpcParam = {|event: RekeyEvent, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type RekeyRekeyStatusFinishRpcParam = ?{|incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type RemoteProof = {|proofType: ProofType, key: String, value: String, displayMarkup: String, sigID: SigID, mTime: Time|}
 
-export type RekeyRekeySyncRpcParam = {|force: Boolean,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type RemoteTrack = {|username: String, uid: UID, linkID: LinkID|}
 
-export type RekeyRequest = {|folderID: String,revision: Long,|}
-
-export type RekeyShowPendingRekeyStatusRpcParam = ?{|incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
-
-export type RekeyUIDelegateRekeyUIRpcParam = ?{|incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
-
-export type RekeyUIRefreshRpcParam = {|problemSetDevices: ProblemSetDevices,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
-
-export type RekeyUIRekeySendEventRpcParam = {|event: RekeyEvent,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
-
-export type RemoteProof = {|proofType: ProofType,key: String,value: String,displayMarkup: String,sigID: SigID,mTime: Time,|}
-
-export type RemoteTrack = {|username: String,uid: UID,linkID: LinkID,|}
-
-export type RemoveArgs = {|opID: OpID,path: Path,|}
+export type RemoveArgs = {|opID: OpID, path: Path|}
 
 export type RepoID = String
 
-export type ResolveIdentifyImplicitTeamRes = {|displayName: String,teamID: TeamID,writers?: ?Array<UserVersion>,trackBreaks: {[key: string]: IdentifyTrackBreaks},folderID: TLFID,|}
+export type ResolveIdentifyImplicitTeamRes = {|displayName: String, teamID: TeamID, writers?: ?Array<UserVersion>, trackBreaks: {[key: string]: IdentifyTrackBreaks}, folderID: TLFID|}
 
-export type RevokeRevokeDeviceRpcParam = {|deviceID: DeviceID,forceSelf: Boolean,forceLast: Boolean,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type RevokeRevokeDeviceRpcParam = {|deviceID: DeviceID, forceSelf: Boolean, forceLast: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type RevokeRevokeKeyRpcParam = {|keyID: KID,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type RevokeRevokeKeyRpcParam = {|keyID: KID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type RevokeRevokeSigsRpcParam = {|sigIDQueries?: ?Array<String>,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type RevokeRevokeSigsRpcParam = {|sigIDQueries?: ?Array<String>, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type RevokeWarning = {|endangeredTLFs?: ?Array<TLF>,|}
+export type RevokeWarning = {|endangeredTLFs?: ?Array<TLF>|}
 
-export type RevokedKey = {|key: PublicKey,time: KeybaseTime,by: KID,|}
+export type RevokedKey = {|key: PublicKey, time: KeybaseTime, by: KID|}
 
-export type RevokedProof = {|proof: RemoteProof,diff: TrackDiff,|}
+export type RevokedProof = {|proof: RemoteProof, diff: TrackDiff|}
 
-export type SaltpackDecryptOptions = {|interactive: Boolean,forceRemoteCheck: Boolean,usePaperKey: Boolean,|}
+export type SaltpackDecryptOptions = {|interactive: Boolean, forceRemoteCheck: Boolean, usePaperKey: Boolean|}
 
-export type SaltpackEncryptOptions = {|recipients?: ?Array<String>,anonymousSender: Boolean,encryptionOnlyMode: Boolean,noSelfEncrypt: Boolean,binary: Boolean,saltpackVersion: Int,|}
+export type SaltpackEncryptOptions = {|recipients?: ?Array<String>, anonymousSender: Boolean, encryptionOnlyMode: Boolean, noSelfEncrypt: Boolean, binary: Boolean, saltpackVersion: Int|}
 
-export type SaltpackEncryptedMessageInfo = {|devices?: ?Array<Device>,numAnonReceivers: Int,receiverIsAnon: Boolean,sender: SaltpackSender,|}
+export type SaltpackEncryptedMessageInfo = {|devices?: ?Array<Device>, numAnonReceivers: Int, receiverIsAnon: Boolean, sender: SaltpackSender|}
 
-export type SaltpackSaltpackDecryptRpcParam = {|source: Stream,sink: Stream,opts: SaltpackDecryptOptions,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type SaltpackSaltpackDecryptRpcParam = {|source: Stream, sink: Stream, opts: SaltpackDecryptOptions, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type SaltpackSaltpackEncryptRpcParam = {|source: Stream,sink: Stream,opts: SaltpackEncryptOptions,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type SaltpackSaltpackEncryptRpcParam = {|source: Stream, sink: Stream, opts: SaltpackEncryptOptions, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type SaltpackSaltpackSignRpcParam = {|source: Stream,sink: Stream,opts: SaltpackSignOptions,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type SaltpackSaltpackSignRpcParam = {|source: Stream, sink: Stream, opts: SaltpackSignOptions, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type SaltpackSaltpackVerifyRpcParam = {|source: Stream,sink: Stream,opts: SaltpackVerifyOptions,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type SaltpackSaltpackVerifyRpcParam = {|source: Stream, sink: Stream, opts: SaltpackVerifyOptions, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type SaltpackSender = {|uid: UID,username: String,senderType: SaltpackSenderType,|}
+export type SaltpackSender = {|uid: UID, username: String, senderType: SaltpackSenderType|}
 
-export type SaltpackSenderType =0 // NOT_TRACKED_0
- | 1 // UNKNOWN_1
- | 2 // ANONYMOUS_2
- | 3 // TRACKING_BROKE_3
- | 4 // TRACKING_OK_4
- | 5 // SELF_5
- | 6 // REVOKED_6
- | 7 // EXPIRED_7
+export type SaltpackSenderType =
+  | 0 // NOT_TRACKED_0
+  | 1 // UNKNOWN_1
+  | 2 // ANONYMOUS_2
+  | 3 // TRACKING_BROKE_3
+  | 4 // TRACKING_OK_4
+  | 5 // SELF_5
+  | 6 // REVOKED_6
+  | 7 // EXPIRED_7
 
+export type SaltpackSignOptions = {|detached: Boolean, binary: Boolean, saltpackVersion: Int|}
 
-export type SaltpackSignOptions = {|detached: Boolean,binary: Boolean,saltpackVersion: Int,|}
+export type SaltpackUiSaltpackPromptForDecryptRpcParam = {|sender: SaltpackSender, usedDelegateUI: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type SaltpackUiSaltpackPromptForDecryptRpcParam = {|sender: SaltpackSender,usedDelegateUI: Boolean,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type SaltpackUiSaltpackVerifyBadSenderRpcParam = {|signingKID: KID, sender: SaltpackSender, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type SaltpackUiSaltpackVerifyBadSenderRpcParam = {|signingKID: KID,sender: SaltpackSender,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type SaltpackUiSaltpackVerifySuccessRpcParam = {|signingKID: KID, sender: SaltpackSender, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type SaltpackUiSaltpackVerifySuccessRpcParam = {|signingKID: KID,sender: SaltpackSender,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type SaltpackVerifyOptions = {|signedBy: String, signature: Bytes|}
 
-export type SaltpackVerifyOptions = {|signedBy: String,signature: Bytes,|}
+export type ScanProofsScanProofsRpcParam = {|infile: String, indices: String, sigid: String, ratelimit: Int, cachefile: String, ignorefile: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type ScanProofsScanProofsRpcParam = {|infile: String,indices: String,sigid: String,ratelimit: Int,cachefile: String,ignorefile: String,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type SearchComponent = {|key: String, value: String, score: Double|}
 
-export type SearchComponent = {|key: String,value: String,score: Double,|}
+export type SearchResult = {|uid: UID, username: String, components?: ?Array<SearchComponent>, score: Double|}
 
-export type SearchResult = {|uid: UID,username: String,components?: ?Array<SearchComponent>,score: Double,|}
+export type SecretEntryArg = {|desc: String, prompt: String, err: String, cancel: String, ok: String, reason: String, showTyping: Boolean|}
 
-export type SecretEntryArg = {|desc: String,prompt: String,err: String,cancel: String,ok: String,reason: String,showTyping: Boolean,|}
+export type SecretEntryRes = {|text: String, canceled: Boolean, storeSecret: Boolean|}
 
-export type SecretEntryRes = {|text: String,canceled: Boolean,storeSecret: Boolean,|}
+export type SecretKeys = {|signing: NaclSigningKeyPrivate, encryption: NaclDHKeyPrivate|}
 
-export type SecretKeys = {|signing: NaclSigningKeyPrivate,encryption: NaclDHKeyPrivate,|}
+export type SecretKeysGetSecretKeysRpcParam = ?{|incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type SecretKeysGetSecretKeysRpcParam = ?{|incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type SecretResponse = {|secret: Bytes, phrase: String|}
 
-export type SecretResponse = {|secret: Bytes,phrase: String,|}
-
-export type SecretUiGetPassphraseRpcParam = {|pinentry: GUIEntryArg,terminal?: ?SecretEntryArg,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type SecretUiGetPassphraseRpcParam = {|pinentry: GUIEntryArg, terminal?: ?SecretEntryArg, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
 export type SeitanAKey = String
 
 export type SeitanIKey = String
 
-export type SeitanIKeyAndLabel ={ v: 1, v1: ?SeitanIKeyAndLabelVersion1 } | { v: any }
+export type SeitanIKeyAndLabel = {v: 1, v1: ?SeitanIKeyAndLabelVersion1} | {v: any}
 
-export type SeitanIKeyAndLabelVersion =1 // V1_1
+export type SeitanIKeyAndLabelVersion = 1 // V1_1
 
+export type SeitanIKeyAndLabelVersion1 = {|i: SeitanIKey, l: SeitanIKeyLabel|}
 
-export type SeitanIKeyAndLabelVersion1 = {|i: SeitanIKey,l: SeitanIKeyLabel,|}
+export type SeitanIKeyLabel = {t: 1, sms: ?SeitanIKeyLabelSms} | {t: any}
 
-export type SeitanIKeyLabel ={ t: 1, sms: ?SeitanIKeyLabelSms } | { t: any }
+export type SeitanIKeyLabelSms = {|f: String, n: String|}
 
-export type SeitanIKeyLabelSms = {|f: String,n: String,|}
+export type SeitanIKeyLabelType = 1 // SMS_1
 
-export type SeitanIKeyLabelType =1 // SMS_1
+export type SelectKeyRes = {|keyID: String, doSecretPush: Boolean|}
 
-
-export type SelectKeyRes = {|keyID: String,doSecretPush: Boolean,|}
-
-export type SeqType =1 // PUBLIC_1
- | 2 // PRIVATE_2
- | 3 // SEMIPRIVATE_3
-
+export type SeqType =
+  | 1 // PUBLIC_1
+  | 2 // PRIVATE_2
+  | 3 // SEMIPRIVATE_3
 
 export type Seqno = Int64
 
-export type ServiceStatus = {|version: String,label: String,pid: String,lastExitStatus: String,bundleVersion: String,installStatus: InstallStatus,installAction: InstallAction,status: Status,|}
+export type ServiceStatus = {|version: String, label: String, pid: String, lastExitStatus: String, bundleVersion: String, installStatus: InstallStatus, installAction: InstallAction, status: Status|}
 
-export type ServicesStatus = {|service?: ?Array<ServiceStatus>,kbfs?: ?Array<ServiceStatus>,updater?: ?Array<ServiceStatus>,|}
+export type ServicesStatus = {|service?: ?Array<ServiceStatus>, kbfs?: ?Array<ServiceStatus>, updater?: ?Array<ServiceStatus>|}
 
-export type Session = {|uid: UID,username: String,token: String,deviceSubkeyKid: KID,deviceSibkeyKid: KID,|}
+export type Session = {|uid: UID, username: String, token: String, deviceSubkeyKid: KID, deviceSibkeyKid: KID|}
 
-export type SessionCurrentSessionRpcParam = ?{|incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type SessionCurrentSessionRpcParam = ?{|incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type SessionSessionPingRpcParam = ?{|incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type SessionSessionPingRpcParam = ?{|incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type SessionStatus = {|SessionFor: String,Loaded: Boolean,Cleared: Boolean,SaltOnly: Boolean,Expired: Boolean,|}
+export type SessionStatus = {|SessionFor: String, Loaded: Boolean, Cleared: Boolean, SaltOnly: Boolean, Expired: Boolean|}
 
 export type SessionToken = String
 
-export type Sig = {|seqno: Seqno,sigID: SigID,sigIDDisplay: String,type: String,cTime: Time,revoked: Boolean,active: Boolean,key: String,body: String,|}
+export type Sig = {|seqno: Seqno, sigID: SigID, sigIDDisplay: String, type: String, cTime: Time, revoked: Boolean, active: Boolean, key: String, body: String|}
 
-export type SigChainLocation = {|seqno: Seqno,seqType: SeqType,|}
+export type SigChainLocation = {|seqno: Seqno, seqType: SeqType|}
 
-export type SigHint = {|remoteId: String,humanUrl: String,apiUrl: String,checkText: String,|}
+export type SigHint = {|remoteId: String, humanUrl: String, apiUrl: String, checkText: String|}
 
 export type SigID = String
 
-export type SigListArgs = {|sessionID: Int,username: String,allKeys: Boolean,types?: ?SigTypes,filterx: String,verbose: Boolean,revoked: Boolean,|}
+export type SigListArgs = {|sessionID: Int, username: String, allKeys: Boolean, types?: ?SigTypes, filterx: String, verbose: Boolean, revoked: Boolean|}
 
-export type SigTypes = {|track: Boolean,proof: Boolean,cryptocurrency: Boolean,isSelf: Boolean,|}
+export type SigTypes = {|track: Boolean, proof: Boolean, cryptocurrency: Boolean, isSelf: Boolean|}
 
-export type SignMode =0 // ATTACHED_0
- | 1 // DETACHED_1
- | 2 // CLEAR_2
+export type SignMode =
+  | 0 // ATTACHED_0
+  | 1 // DETACHED_1
+  | 2 // CLEAR_2
 
+export type SignatureMetadata = {|signingKID: KID, prevMerkleRootSigned: MerkleRootV2, firstAppearedUnverified: Seqno, time: Time, sigChainLocation: SigChainLocation|}
 
-export type SignatureMetadata = {|signingKID: KID,prevMerkleRootSigned: MerkleRootV2,firstAppearedUnverified: Seqno,time: Time,sigChainLocation: SigChainLocation,|}
+export type SignupCheckInvitationCodeRpcParam = {|invitationCode: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type SignupCheckInvitationCodeRpcParam = {|invitationCode: String,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type SignupCheckUsernameAvailableRpcParam = {|username: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type SignupCheckUsernameAvailableRpcParam = {|username: String,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type SignupGetInvitationCodeRpcParam = ?{|incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type SignupGetInvitationCodeRpcParam = ?{|incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type SignupInviteRequestRpcParam = {|email: String, fullname: String, notes: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type SignupInviteRequestRpcParam = {|email: String,fullname: String,notes: String,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type SignupRes = {|passphraseOk: Boolean, postOk: Boolean, writeOk: Boolean|}
 
-export type SignupRes = {|passphraseOk: Boolean,postOk: Boolean,writeOk: Boolean,|}
+export type SignupSignupRpcParam = {|email: String, inviteCode: String, passphrase: String, username: String, deviceName: String, deviceType: DeviceType, storeSecret: Boolean, skipMail: Boolean, genPGPBatch: Boolean, genPaper: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type SignupSignupRpcParam = {|email: String,inviteCode: String,passphrase: String,username: String,deviceName: String,deviceType: DeviceType,storeSecret: Boolean,skipMail: Boolean,genPGPBatch: Boolean,genPaper: Boolean,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type SigsSigListJSONRpcParam = {|arg: SigListArgs, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type SigsSigListJSONRpcParam = {|arg: SigListArgs,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type SigsSigListRpcParam = {|arg: SigListArgs, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type SigsSigListRpcParam = {|arg: SigListArgs,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type SimpleFSListResult = {|entries?: ?Array<Dirent>, progress: Progress|}
 
-export type SimpleFSListResult = {|entries?: ?Array<Dirent>,progress: Progress,|}
+export type SimpleFSSimpleFSCancelRpcParam = {|opID: OpID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type SimpleFSSimpleFSCancelRpcParam = {|opID: OpID,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type SimpleFSSimpleFSCheckRpcParam = {|opID: OpID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type SimpleFSSimpleFSCheckRpcParam = {|opID: OpID,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type SimpleFSSimpleFSCloseRpcParam = {|opID: OpID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type SimpleFSSimpleFSCloseRpcParam = {|opID: OpID,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type SimpleFSSimpleFSCopyRecursiveRpcParam = {|opID: OpID, src: Path, dest: Path, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type SimpleFSSimpleFSCopyRecursiveRpcParam = {|opID: OpID,src: Path,dest: Path,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type SimpleFSSimpleFSCopyRpcParam = {|opID: OpID, src: Path, dest: Path, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type SimpleFSSimpleFSCopyRpcParam = {|opID: OpID,src: Path,dest: Path,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type SimpleFSSimpleFSGetOpsRpcParam = ?{|incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type SimpleFSSimpleFSGetOpsRpcParam = ?{|incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type SimpleFSSimpleFSListRecursiveRpcParam = {|opID: OpID, path: Path, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type SimpleFSSimpleFSListRecursiveRpcParam = {|opID: OpID,path: Path,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type SimpleFSSimpleFSListRpcParam = {|opID: OpID, path: Path, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type SimpleFSSimpleFSListRpcParam = {|opID: OpID,path: Path,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type SimpleFSSimpleFSMakeOpidRpcParam = ?{|incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type SimpleFSSimpleFSMakeOpidRpcParam = ?{|incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type SimpleFSSimpleFSMoveRpcParam = {|opID: OpID, src: Path, dest: Path, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type SimpleFSSimpleFSMoveRpcParam = {|opID: OpID,src: Path,dest: Path,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type SimpleFSSimpleFSOpenRpcParam = {|opID: OpID, dest: Path, flags: OpenFlags, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type SimpleFSSimpleFSOpenRpcParam = {|opID: OpID,dest: Path,flags: OpenFlags,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type SimpleFSSimpleFSReadListRpcParam = {|opID: OpID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type SimpleFSSimpleFSReadListRpcParam = {|opID: OpID,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type SimpleFSSimpleFSReadRpcParam = {|opID: OpID, offset: Long, size: Int, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type SimpleFSSimpleFSReadRpcParam = {|opID: OpID,offset: Long,size: Int,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type SimpleFSSimpleFSRemoveRpcParam = {|opID: OpID, path: Path, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type SimpleFSSimpleFSRemoveRpcParam = {|opID: OpID,path: Path,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type SimpleFSSimpleFSRenameRpcParam = {|src: Path, dest: Path, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type SimpleFSSimpleFSRenameRpcParam = {|src: Path,dest: Path,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type SimpleFSSimpleFSSetStatRpcParam = {|dest: Path, flag: DirentType, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type SimpleFSSimpleFSSetStatRpcParam = {|dest: Path,flag: DirentType,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type SimpleFSSimpleFSStatRpcParam = {|path: Path, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type SimpleFSSimpleFSStatRpcParam = {|path: Path,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type SimpleFSSimpleFSWaitRpcParam = {|opID: OpID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type SimpleFSSimpleFSWaitRpcParam = {|opID: OpID,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type SimpleFSSimpleFSWriteRpcParam = {|opID: OpID, offset: Long, content: Bytes, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type SimpleFSSimpleFSWriteRpcParam = {|opID: OpID,offset: Long,content: Bytes,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
-
-export type SocialAssertion = {|user: String,service: SocialAssertionService,|}
+export type SocialAssertion = {|user: String, service: SocialAssertionService|}
 
 export type SocialAssertionService = String
 
-export type StartProofResult = {|sigID: SigID,|}
+export type StartProofResult = {|sigID: SigID|}
 
-export type Status = {|code: Int,name: String,desc: String,fields?: ?Array<StringKVPair>,|}
+export type Status = {|code: Int, name: String, desc: String, fields?: ?Array<StringKVPair>|}
 
-export type StatusCode =0 // SCOk_0
- | 100 // SCInputError_100
- | 201 // SCLoginRequired_201
- | 202 // SCBadSession_202
- | 203 // SCBadLoginUserNotFound_203
- | 204 // SCBadLoginPassword_204
- | 205 // SCNotFound_205
- | 210 // SCThrottleControl_210
- | 216 // SCDeleted_216
- | 218 // SCGeneric_218
- | 235 // SCAlreadyLoggedIn_235
- | 230 // SCExists_230
- | 237 // SCCanceled_237
- | 239 // SCInputCanceled_239
- | 274 // SCReloginRequired_274
- | 275 // SCResolutionFailed_275
- | 276 // SCProfileNotPublic_276
- | 277 // SCIdentifyFailed_277
- | 278 // SCTrackingBroke_278
- | 279 // SCWrongCryptoFormat_279
- | 280 // SCDecryptionError_280
- | 281 // SCInvalidAddress_281
- | 283 // SCNoSession_283
- | 290 // SCAccountReset_290
- | 295 // SCIdentifiesFailed_295
- | 297 // SCNoSpaceOnDevice_297
- | 472 // SCBadEmail_472
- | 701 // SCBadSignupUsernameTaken_701
- | 707 // SCBadInvitationCode_707
- | 801 // SCMissingResult_801
- | 901 // SCKeyNotFound_901
- | 905 // SCKeyCorrupted_905
- | 907 // SCKeyInUse_907
- | 913 // SCKeyBadGen_913
- | 914 // SCKeyNoSecret_914
- | 915 // SCKeyBadUIDs_915
- | 916 // SCKeyNoActive_916
- | 917 // SCKeyNoSig_917
- | 918 // SCKeyBadSig_918
- | 919 // SCKeyBadEldest_919
- | 920 // SCKeyNoEldest_920
- | 921 // SCKeyDuplicateUpdate_921
- | 922 // SCSibkeyAlreadyExists_922
- | 924 // SCDecryptionKeyNotFound_924
- | 927 // SCKeyNoPGPEncryption_927
- | 928 // SCKeyNoNaClEncryption_928
- | 929 // SCKeySyncedPGPNotFound_929
- | 930 // SCKeyNoMatchingGPG_930
- | 931 // SCKeyRevoked_931
- | 1010 // SCSigOldSeqno_1010
- | 1301 // SCBadTrackSession_1301
- | 1404 // SCDeviceBadName_1404
- | 1408 // SCDeviceNameInUse_1408
- | 1409 // SCDeviceNotFound_1409
- | 1410 // SCDeviceMismatch_1410
- | 1411 // SCDeviceRequired_1411
- | 1413 // SCDevicePrevProvisioned_1413
- | 1414 // SCDeviceNoProvision_1414
- | 1415 // SCDeviceProvisionViaDevice_1415
- | 1416 // SCRevokeCurrentDevice_1416
- | 1417 // SCRevokeLastDevice_1417
- | 1418 // SCDeviceProvisionOffline_1418
- | 1419 // SCRevokeLastDevicePGP_1419
- | 1501 // SCStreamExists_1501
- | 1502 // SCStreamNotFound_1502
- | 1503 // SCStreamWrongKind_1503
- | 1504 // SCStreamEOF_1504
- | 1600 // SCGenericAPIError_1600
- | 1601 // SCAPINetworkError_1601
- | 1602 // SCTimeout_1602
- | 1701 // SCProofError_1701
- | 1702 // SCIdentificationExpired_1702
- | 1703 // SCSelfNotFound_1703
- | 1704 // SCBadKexPhrase_1704
- | 1705 // SCNoUIDelegation_1705
- | 1706 // SCNoUI_1706
- | 1707 // SCGPGUnavailable_1707
- | 1800 // SCInvalidVersionError_1800
- | 1801 // SCOldVersionError_1801
- | 1802 // SCInvalidLocationError_1802
- | 1803 // SCServiceStatusError_1803
- | 1804 // SCInstallError_1804
- | 1810 // SCLoadKextError_1810
- | 1811 // SCLoadKextPermError_1811
- | 2300 // SCGitInternal_2300
- | 2301 // SCGitRepoAlreadyExists_2301
- | 2302 // SCGitInvalidRepoName_2302
- | 2303 // SCGitCannotDelete_2303
- | 2304 // SCGitRepoDoesntExist_2304
- | 2400 // SCLoginStateTimeout_2400
- | 2500 // SCChatInternal_2500
- | 2501 // SCChatRateLimit_2501
- | 2502 // SCChatConvExists_2502
- | 2503 // SCChatUnknownTLFID_2503
- | 2504 // SCChatNotInConv_2504
- | 2505 // SCChatBadMsg_2505
- | 2506 // SCChatBroadcast_2506
- | 2507 // SCChatAlreadySuperseded_2507
- | 2508 // SCChatAlreadyDeleted_2508
- | 2509 // SCChatTLFFinalized_2509
- | 2510 // SCChatCollision_2510
- | 2511 // SCIdentifySummaryError_2511
- | 2512 // SCNeedSelfRekey_2512
- | 2513 // SCNeedOtherRekey_2513
- | 2514 // SCChatMessageCollision_2514
- | 2515 // SCChatDuplicateMessage_2515
- | 2516 // SCChatClientError_2516
- | 2517 // SCChatNotInTeam_2517
- | 2518 // SCChatStalePreviousState_2518
- | 2604 // SCTeamBadMembership_2604
- | 2607 // SCTeamSelfNotOwner_2607
- | 2614 // SCTeamNotFound_2614
- | 2619 // SCTeamExists_2619
- | 2623 // SCTeamReadError_2623
- | 2638 // SCNoOp_2638
- | 2646 // SCTeamInviteBadToken_2646
- | 2663 // SCTeamTarDuplicate_2663
- | 2664 // SCTeamTarNotFound_2664
- | 2665 // SCTeamMemberExists_2665
- | 2666 // SCTeamNotReleased_2666
- | 2667 // SCTeamPermanentlyLeft_2667
- | 2668 // SCTeamNeedRootId_2668
- | 2669 // SCTeamHasLiveChildren_2669
- | 2670 // SCTeamDeleteError_2670
- | 2671 // SCTeamBadRootTeam_2671
- | 2672 // SCTeamNameConflictsWithUser_2672
- | 2673 // SCTeamDeleteNoUpPointer_2673
- | 2674 // SCTeamNeedOwner_2674
- | 2675 // SCTeamNoOwnerAllowed_2675
- | 2676 // SCTeamImplicitNoNonSbs_2676
- | 2677 // SCTeamImplicitBadHash_2677
- | 2678 // SCTeamImplicitBadName_2678
- | 2679 // SCTeamImplicitClash_2679
- | 2680 // SCTeamImplicitDuplicate_2680
- | 2681 // SCTeamImplicitBadOp_2681
- | 2682 // SCTeamImplicitBadRole_2682
- | 2683 // SCTeamImplicitNotFound_2683
- | 2684 // SCTeamBadAdminSeqnoType_2684
- | 2685 // SCTeamImplicitBadAdd_2685
- | 2686 // SCTeamImplicitBadRemove_2686
- | 2696 // SCTeamInviteTokenReused_2696
- | 2697 // SCTeamKeyMaskNotFound_2697
- | 2702 // SCTeamBanned_2702
- | 2703 // SCTeamInvalidBan_2703
- | 2721 // SCTeamProvisionalCanKey_2721
- | 2722 // SCTeamProvisionalCannotKey_2722
+export type StatusCode =
+  | 0 // SCOk_0
+  | 100 // SCInputError_100
+  | 201 // SCLoginRequired_201
+  | 202 // SCBadSession_202
+  | 203 // SCBadLoginUserNotFound_203
+  | 204 // SCBadLoginPassword_204
+  | 205 // SCNotFound_205
+  | 210 // SCThrottleControl_210
+  | 216 // SCDeleted_216
+  | 218 // SCGeneric_218
+  | 235 // SCAlreadyLoggedIn_235
+  | 230 // SCExists_230
+  | 237 // SCCanceled_237
+  | 239 // SCInputCanceled_239
+  | 274 // SCReloginRequired_274
+  | 275 // SCResolutionFailed_275
+  | 276 // SCProfileNotPublic_276
+  | 277 // SCIdentifyFailed_277
+  | 278 // SCTrackingBroke_278
+  | 279 // SCWrongCryptoFormat_279
+  | 280 // SCDecryptionError_280
+  | 281 // SCInvalidAddress_281
+  | 283 // SCNoSession_283
+  | 290 // SCAccountReset_290
+  | 295 // SCIdentifiesFailed_295
+  | 297 // SCNoSpaceOnDevice_297
+  | 472 // SCBadEmail_472
+  | 701 // SCBadSignupUsernameTaken_701
+  | 707 // SCBadInvitationCode_707
+  | 801 // SCMissingResult_801
+  | 901 // SCKeyNotFound_901
+  | 905 // SCKeyCorrupted_905
+  | 907 // SCKeyInUse_907
+  | 913 // SCKeyBadGen_913
+  | 914 // SCKeyNoSecret_914
+  | 915 // SCKeyBadUIDs_915
+  | 916 // SCKeyNoActive_916
+  | 917 // SCKeyNoSig_917
+  | 918 // SCKeyBadSig_918
+  | 919 // SCKeyBadEldest_919
+  | 920 // SCKeyNoEldest_920
+  | 921 // SCKeyDuplicateUpdate_921
+  | 922 // SCSibkeyAlreadyExists_922
+  | 924 // SCDecryptionKeyNotFound_924
+  | 927 // SCKeyNoPGPEncryption_927
+  | 928 // SCKeyNoNaClEncryption_928
+  | 929 // SCKeySyncedPGPNotFound_929
+  | 930 // SCKeyNoMatchingGPG_930
+  | 931 // SCKeyRevoked_931
+  | 1010 // SCSigOldSeqno_1010
+  | 1301 // SCBadTrackSession_1301
+  | 1404 // SCDeviceBadName_1404
+  | 1408 // SCDeviceNameInUse_1408
+  | 1409 // SCDeviceNotFound_1409
+  | 1410 // SCDeviceMismatch_1410
+  | 1411 // SCDeviceRequired_1411
+  | 1413 // SCDevicePrevProvisioned_1413
+  | 1414 // SCDeviceNoProvision_1414
+  | 1415 // SCDeviceProvisionViaDevice_1415
+  | 1416 // SCRevokeCurrentDevice_1416
+  | 1417 // SCRevokeLastDevice_1417
+  | 1418 // SCDeviceProvisionOffline_1418
+  | 1419 // SCRevokeLastDevicePGP_1419
+  | 1501 // SCStreamExists_1501
+  | 1502 // SCStreamNotFound_1502
+  | 1503 // SCStreamWrongKind_1503
+  | 1504 // SCStreamEOF_1504
+  | 1600 // SCGenericAPIError_1600
+  | 1601 // SCAPINetworkError_1601
+  | 1602 // SCTimeout_1602
+  | 1701 // SCProofError_1701
+  | 1702 // SCIdentificationExpired_1702
+  | 1703 // SCSelfNotFound_1703
+  | 1704 // SCBadKexPhrase_1704
+  | 1705 // SCNoUIDelegation_1705
+  | 1706 // SCNoUI_1706
+  | 1707 // SCGPGUnavailable_1707
+  | 1800 // SCInvalidVersionError_1800
+  | 1801 // SCOldVersionError_1801
+  | 1802 // SCInvalidLocationError_1802
+  | 1803 // SCServiceStatusError_1803
+  | 1804 // SCInstallError_1804
+  | 1810 // SCLoadKextError_1810
+  | 1811 // SCLoadKextPermError_1811
+  | 2300 // SCGitInternal_2300
+  | 2301 // SCGitRepoAlreadyExists_2301
+  | 2302 // SCGitInvalidRepoName_2302
+  | 2303 // SCGitCannotDelete_2303
+  | 2304 // SCGitRepoDoesntExist_2304
+  | 2400 // SCLoginStateTimeout_2400
+  | 2500 // SCChatInternal_2500
+  | 2501 // SCChatRateLimit_2501
+  | 2502 // SCChatConvExists_2502
+  | 2503 // SCChatUnknownTLFID_2503
+  | 2504 // SCChatNotInConv_2504
+  | 2505 // SCChatBadMsg_2505
+  | 2506 // SCChatBroadcast_2506
+  | 2507 // SCChatAlreadySuperseded_2507
+  | 2508 // SCChatAlreadyDeleted_2508
+  | 2509 // SCChatTLFFinalized_2509
+  | 2510 // SCChatCollision_2510
+  | 2511 // SCIdentifySummaryError_2511
+  | 2512 // SCNeedSelfRekey_2512
+  | 2513 // SCNeedOtherRekey_2513
+  | 2514 // SCChatMessageCollision_2514
+  | 2515 // SCChatDuplicateMessage_2515
+  | 2516 // SCChatClientError_2516
+  | 2517 // SCChatNotInTeam_2517
+  | 2518 // SCChatStalePreviousState_2518
+  | 2604 // SCTeamBadMembership_2604
+  | 2607 // SCTeamSelfNotOwner_2607
+  | 2614 // SCTeamNotFound_2614
+  | 2619 // SCTeamExists_2619
+  | 2623 // SCTeamReadError_2623
+  | 2638 // SCNoOp_2638
+  | 2646 // SCTeamInviteBadToken_2646
+  | 2663 // SCTeamTarDuplicate_2663
+  | 2664 // SCTeamTarNotFound_2664
+  | 2665 // SCTeamMemberExists_2665
+  | 2666 // SCTeamNotReleased_2666
+  | 2667 // SCTeamPermanentlyLeft_2667
+  | 2668 // SCTeamNeedRootId_2668
+  | 2669 // SCTeamHasLiveChildren_2669
+  | 2670 // SCTeamDeleteError_2670
+  | 2671 // SCTeamBadRootTeam_2671
+  | 2672 // SCTeamNameConflictsWithUser_2672
+  | 2673 // SCTeamDeleteNoUpPointer_2673
+  | 2674 // SCTeamNeedOwner_2674
+  | 2675 // SCTeamNoOwnerAllowed_2675
+  | 2676 // SCTeamImplicitNoNonSbs_2676
+  | 2677 // SCTeamImplicitBadHash_2677
+  | 2678 // SCTeamImplicitBadName_2678
+  | 2679 // SCTeamImplicitClash_2679
+  | 2680 // SCTeamImplicitDuplicate_2680
+  | 2681 // SCTeamImplicitBadOp_2681
+  | 2682 // SCTeamImplicitBadRole_2682
+  | 2683 // SCTeamImplicitNotFound_2683
+  | 2684 // SCTeamBadAdminSeqnoType_2684
+  | 2685 // SCTeamImplicitBadAdd_2685
+  | 2686 // SCTeamImplicitBadRemove_2686
+  | 2696 // SCTeamInviteTokenReused_2696
+  | 2697 // SCTeamKeyMaskNotFound_2697
+  | 2702 // SCTeamBanned_2702
+  | 2703 // SCTeamInvalidBan_2703
+  | 2721 // SCTeamProvisionalCanKey_2721
+  | 2722 // SCTeamProvisionalCannotKey_2722
 
+export type Stream = {|fd: Int|}
 
-export type Stream = {|fd: Int,|}
+export type StreamUiCloseRpcParam = {|s: Stream, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type StreamUiCloseRpcParam = {|s: Stream,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type StreamUiReadRpcParam = {|s: Stream, sz: Int, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type StreamUiReadRpcParam = {|s: Stream,sz: Int,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type StreamUiResetRpcParam = {|s: Stream, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type StreamUiResetRpcParam = {|s: Stream,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type StreamUiWriteRpcParam = {|s: Stream, buf: Bytes, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type StreamUiWriteRpcParam = {|s: Stream,buf: Bytes,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type StringKVPair = {|key: String, value: String|}
 
-export type StringKVPair = {|key: String,value: String,|}
+export type SubteamLogPoint = {|name: TeamName, seqno: Seqno|}
 
-export type SubteamLogPoint = {|name: TeamName,seqno: Seqno,|}
+export type TLF = {|id: TLFID, name: String, writers?: ?Array<String>, readers?: ?Array<String>, isPrivate: Boolean|}
 
-export type TLF = {|id: TLFID,name: String,writers?: ?Array<String>,readers?: ?Array<String>,isPrivate: Boolean,|}
-
-export type TLFBreak = {|breaks?: ?Array<TLFIdentifyFailure>,|}
+export type TLFBreak = {|breaks?: ?Array<TLFIdentifyFailure>|}
 
 export type TLFID = String
 
-export type TLFIdentifyBehavior =0 // DEFAULT_KBFS_0
- | 1 // CHAT_CLI_1
- | 2 // CHAT_GUI_2
- | 3 // CHAT_GUI_STRICT_3
- | 4 // KBFS_REKEY_4
- | 5 // KBFS_QR_5
- | 6 // CHAT_SKIP_6
- | 7 // SALTPACK_7
+export type TLFIdentifyBehavior =
+  | 0 // DEFAULT_KBFS_0
+  | 1 // CHAT_CLI_1
+  | 2 // CHAT_GUI_2
+  | 3 // CHAT_GUI_STRICT_3
+  | 4 // KBFS_REKEY_4
+  | 5 // KBFS_QR_5
+  | 6 // CHAT_SKIP_6
+  | 7 // SALTPACK_7
 
+export type TLFIdentifyFailure = {|user: User, breaks?: ?IdentifyTrackBreaks|}
 
-export type TLFIdentifyFailure = {|user: User,breaks?: ?IdentifyTrackBreaks,|}
+export type TLFQuery = {|tlfName: String, identifyBehavior: TLFIdentifyBehavior|}
 
-export type TLFQuery = {|tlfName: String,identifyBehavior: TLFIdentifyBehavior,|}
+export type TLFVisibility =
+  | 0 // ANY_0
+  | 1 // PUBLIC_1
+  | 2 // PRIVATE_2
 
-export type TLFVisibility =0 // ANY_0
- | 1 // PUBLIC_1
- | 2 // PRIVATE_2
+export type TeamAcceptOrRequestResult = {|wasToken: Boolean, wasSeitan: Boolean, wasTeamName: Boolean, wasOpenTeam: Boolean|}
 
+export type TeamAccessRequest = {|uid: UID, eldestSeqno: Seqno|}
 
-export type TeamAcceptOrRequestResult = {|wasToken: Boolean,wasSeitan: Boolean,wasTeamName: Boolean,wasOpenTeam: Boolean,|}
+export type TeamAddMemberResult = {|invited: Boolean, user?: ?User, emailSent: Boolean, chatSent: Boolean|}
 
-export type TeamAccessRequest = {|uid: UID,eldestSeqno: Seqno,|}
+export type TeamAndMemberShowcase = {|teamShowcase: TeamShowcase, isMemberShowcased: Boolean|}
 
-export type TeamAddMemberResult = {|invited: Boolean,user?: ?User,emailSent: Boolean,chatSent: Boolean,|}
+export type TeamApplication =
+  | 1 // KBFS_1
+  | 2 // CHAT_2
+  | 3 // SALTPACK_3
+  | 4 // GIT_METADATA_4
+  | 5 // SEITAN_INVITE_TOKEN_5
 
-export type TeamAndMemberShowcase = {|teamShowcase: TeamShowcase,isMemberShowcased: Boolean,|}
+export type TeamApplicationKey = {|application: TeamApplication, keyGeneration: PerTeamKeyGeneration, key: Bytes32|}
 
-export type TeamApplication =1 // KBFS_1
- | 2 // CHAT_2
- | 3 // SALTPACK_3
- | 4 // GIT_METADATA_4
- | 5 // SEITAN_INVITE_TOKEN_5
+export type TeamCLKRMsg = {|teamID: TeamID, generation: PerTeamKeyGeneration, score: Int|}
 
+export type TeamChangeReq = {|owners?: ?Array<UserVersion>, admins?: ?Array<UserVersion>, writers?: ?Array<UserVersion>, readers?: ?Array<UserVersion>, none?: ?Array<UserVersion>, completedInvites: {[key: string]: UserVersionPercentForm}|}
 
-export type TeamApplicationKey = {|application: TeamApplication,keyGeneration: PerTeamKeyGeneration,key: Bytes32,|}
+export type TeamChangeRow = {|id: TeamID, name: String, keyRotated: Boolean, membershipChanged: Boolean, latestSeqno: Seqno, implicitTeam: Boolean|}
 
-export type TeamCLKRMsg = {|teamID: TeamID,generation: PerTeamKeyGeneration,score: Int,|}
+export type TeamChangeSet = {|membershipChanged: Boolean, keyRotated: Boolean, renamed: Boolean|}
 
-export type TeamChangeReq = {|owners?: ?Array<UserVersion>,admins?: ?Array<UserVersion>,writers?: ?Array<UserVersion>,readers?: ?Array<UserVersion>,none?: ?Array<UserVersion>,completedInvites: {[key: string]: UserVersionPercentForm},|}
+export type TeamCreateResult = {|teamID: TeamID, chatSent: Boolean, creatorAdded: Boolean|}
 
-export type TeamChangeRow = {|id: TeamID,name: String,keyRotated: Boolean,membershipChanged: Boolean,latestSeqno: Seqno,implicitTeam: Boolean,|}
+export type TeamData = {|secretless: Boolean, name: TeamName, chain: TeamSigChainState, perTeamKeySeeds: {[key: string]: PerTeamKeySeedItem}, readerKeyMasks: {[key: string]: {[key: string]: MaskB64}}, latestSeqnoHint: Seqno, cachedAt: Time|}
 
-export type TeamChangeSet = {|membershipChanged: Boolean,keyRotated: Boolean,renamed: Boolean,|}
+export type TeamDebugRes = {|chain: TeamSigChainState|}
 
-export type TeamCreateResult = {|teamID: TeamID,chatSent: Boolean,creatorAdded: Boolean,|}
+export type TeamDetails = {|members: TeamMembersDetails, keyGeneration: PerTeamKeyGeneration, annotatedActiveInvites: {[key: string]: AnnotatedTeamInvite}, settings: TeamSettings, showcase: TeamShowcase|}
 
-export type TeamData = {|secretless: Boolean,name: TeamName,chain: TeamSigChainState,perTeamKeySeeds: {[key: string]: PerTeamKeySeedItem},readerKeyMasks: {[key: string]: {[key: string]: MaskB64}},latestSeqnoHint: Seqno,cachedAt: Time,|}
-
-export type TeamDebugRes = {|chain: TeamSigChainState,|}
-
-export type TeamDetails = {|members: TeamMembersDetails,keyGeneration: PerTeamKeyGeneration,annotatedActiveInvites: {[key: string]: AnnotatedTeamInvite},settings: TeamSettings,showcase: TeamShowcase,|}
-
-export type TeamExitRow = {|id: TeamID,|}
+export type TeamExitRow = {|id: TeamID|}
 
 export type TeamID = String
 
-export type TeamIDAndName = {|id: TeamID,name: TeamName,|}
+export type TeamIDAndName = {|id: TeamID, name: TeamName|}
 
-export type TeamIDWithVisibility = {|teamID: TeamID,visibility: TLFVisibility,|}
+export type TeamIDWithVisibility = {|teamID: TeamID, visibility: TLFVisibility|}
 
-export type TeamInvite = {|role: TeamRole,id: TeamInviteID,type: TeamInviteType,name: TeamInviteName,inviter: UserVersion,|}
+export type TeamInvite = {|role: TeamRole, id: TeamInviteID, type: TeamInviteType, name: TeamInviteName, inviter: UserVersion|}
 
-export type TeamInviteCategory =0 // NONE_0
- | 1 // UNKNOWN_1
- | 2 // KEYBASE_2
- | 3 // EMAIL_3
- | 4 // SBS_4
- | 5 // SEITAN_5
-
+export type TeamInviteCategory =
+  | 0 // NONE_0
+  | 1 // UNKNOWN_1
+  | 2 // KEYBASE_2
+  | 3 // EMAIL_3
+  | 4 // SBS_4
+  | 5 // SEITAN_5
 
 export type TeamInviteID = String
 
@@ -3508,323 +3504,323 @@ export type TeamInviteName = String
 
 export type TeamInviteSocialNetwork = String
 
-export type TeamInviteType ={ c: 1, unknown: ?String } | { c: 4, sbs: ?TeamInviteSocialNetwork } | { c: any }
+export type TeamInviteType = {c: 1, unknown: ?String} | {c: 4, sbs: ?TeamInviteSocialNetwork} | {c: any}
 
-export type TeamInvitee = {|inviteID: TeamInviteID,uid: UID,eldestSeqno: Seqno,role: TeamRole,|}
+export type TeamInvitee = {|inviteID: TeamInviteID, uid: UID, eldestSeqno: Seqno, role: TeamRole|}
 
-export type TeamJoinRequest = {|name: String,username: String,|}
+export type TeamJoinRequest = {|name: String, username: String|}
 
-export type TeamList = {|teams?: ?Array<MemberInfo>,|}
+export type TeamList = {|teams?: ?Array<MemberInfo>|}
 
-export type TeamMember = {|uid: UID,role: TeamRole,eldestSeqno: Seqno,userEldestSeqno: Seqno,|}
+export type TeamMember = {|uid: UID, role: TeamRole, eldestSeqno: Seqno, userEldestSeqno: Seqno|}
 
-export type TeamMemberDetails = {|uv: UserVersion,username: String,active: Boolean,needsPUK: Boolean,|}
+export type TeamMemberDetails = {|uv: UserVersion, username: String, active: Boolean, needsPUK: Boolean|}
 
-export type TeamMemberOutFromReset = {|teamName: String,resetUser: TeamResetUser,|}
+export type TeamMemberOutFromReset = {|teamName: String, resetUser: TeamResetUser|}
 
-export type TeamMemberOutReset = {|teamname: String,username: String,id: Gregor1.MsgID,|}
+export type TeamMemberOutReset = {|teamname: String, username: String, id: Gregor1.MsgID|}
 
-export type TeamMembers = {|owners?: ?Array<UserVersion>,admins?: ?Array<UserVersion>,writers?: ?Array<UserVersion>,readers?: ?Array<UserVersion>,|}
+export type TeamMembers = {|owners?: ?Array<UserVersion>, admins?: ?Array<UserVersion>, writers?: ?Array<UserVersion>, readers?: ?Array<UserVersion>|}
 
-export type TeamMembersDetails = {|owners?: ?Array<TeamMemberDetails>,admins?: ?Array<TeamMemberDetails>,writers?: ?Array<TeamMemberDetails>,readers?: ?Array<TeamMemberDetails>,|}
+export type TeamMembersDetails = {|owners?: ?Array<TeamMemberDetails>, admins?: ?Array<TeamMemberDetails>, writers?: ?Array<TeamMemberDetails>, readers?: ?Array<TeamMemberDetails>|}
 
-export type TeamName = {|parts?: ?Array<TeamNamePart>,|}
+export type TeamName = {|parts?: ?Array<TeamNamePart>|}
 
-export type TeamNameLogPoint = {|lastPart: TeamNamePart,seqno: Seqno,|}
+export type TeamNameLogPoint = {|lastPart: TeamNamePart, seqno: Seqno|}
 
 export type TeamNamePart = String
 
-export type TeamOpenReqMsg = {|teamID: TeamID,tars?: ?Array<TeamAccessRequest>,|}
+export type TeamOpenReqMsg = {|teamID: TeamID, tars?: ?Array<TeamAccessRequest>|}
 
-export type TeamOperation = {|manageMembers: Boolean,manageSubteams: Boolean,createChannel: Boolean,deleteChannel: Boolean,renameChannel: Boolean,editChannelDescription: Boolean,setTeamShowcase: Boolean,setMemberShowcase: Boolean,changeOpenTeam: Boolean,|}
+export type TeamOperation = {|manageMembers: Boolean, manageSubteams: Boolean, createChannel: Boolean, deleteChannel: Boolean, renameChannel: Boolean, editChannelDescription: Boolean, setTeamShowcase: Boolean, setMemberShowcase: Boolean, changeOpenTeam: Boolean|}
 
-export type TeamPlusApplicationKeys = {|id: TeamID,name: String,implicit: Boolean,public: Boolean,application: TeamApplication,writers?: ?Array<UserVersion>,onlyReaders?: ?Array<UserVersion>,applicationKeys?: ?Array<TeamApplicationKey>,|}
+export type TeamPlusApplicationKeys = {|id: TeamID, name: String, implicit: Boolean, public: Boolean, application: TeamApplication, writers?: ?Array<UserVersion>, onlyReaders?: ?Array<UserVersion>, applicationKeys?: ?Array<TeamApplicationKey>|}
 
-export type TeamRefreshers = {|needKeyGeneration: PerTeamKeyGeneration,wantMembers?: ?Array<UserVersion>,wantMembersRole: TeamRole,|}
+export type TeamRefreshers = {|needKeyGeneration: PerTeamKeyGeneration, wantMembers?: ?Array<UserVersion>, wantMembersRole: TeamRole|}
 
-export type TeamRequestAccessResult = {|open: Boolean,|}
+export type TeamRequestAccessResult = {|open: Boolean|}
 
-export type TeamResetUser = {|username: String,uid: UID,eldestSeqno: Seqno,|}
+export type TeamResetUser = {|username: String, uid: UID, eldestSeqno: Seqno|}
 
-export type TeamRole =0 // NONE_0
- | 1 // READER_1
- | 2 // WRITER_2
- | 3 // ADMIN_3
- | 4 // OWNER_4
+export type TeamRole =
+  | 0 // NONE_0
+  | 1 // READER_1
+  | 2 // WRITER_2
+  | 3 // ADMIN_3
+  | 4 // OWNER_4
 
+export type TeamSBSMsg = {|teamID: TeamID, score: Int, invitees?: ?Array<TeamInvitee>|}
 
-export type TeamSBSMsg = {|teamID: TeamID,score: Int,invitees?: ?Array<TeamInvitee>,|}
+export type TeamSeitanMsg = {|teamID: TeamID, seitans?: ?Array<TeamSeitanRequest>|}
 
-export type TeamSeitanMsg = {|teamID: TeamID,seitans?: ?Array<TeamSeitanRequest>,|}
+export type TeamSeitanRequest = {|inviteID: TeamInviteID, uid: UID, eldestSeqno: Seqno, akey: SeitanAKey, role: TeamRole, unixCTime: Int64|}
 
-export type TeamSeitanRequest = {|inviteID: TeamInviteID,uid: UID,eldestSeqno: Seqno,akey: SeitanAKey,role: TeamRole,unixCTime: Int64,|}
+export type TeamSettings = {|open: Boolean, joinAs: TeamRole|}
 
-export type TeamSettings = {|open: Boolean,joinAs: TeamRole,|}
+export type TeamShowcase = {|isShowcased: Boolean, description?: ?String, setByUID?: ?UID, anyMemberShowcase: Boolean|}
 
-export type TeamShowcase = {|isShowcased: Boolean,description?: ?String,setByUID?: ?UID,anyMemberShowcase: Boolean,|}
+export type TeamSigChainState = {|reader: UserVersion, id: TeamID, implicit: Boolean, public: Boolean, rootAncestor: TeamName, nameDepth: Int, nameLog?: ?Array<TeamNameLogPoint>, lastSeqno: Seqno, lastLinkID: LinkID, parentID?: ?TeamID, userLog: {[key: string]: ?Array<UserLogPoint>}, subteamLog: {[key: string]: ?Array<SubteamLogPoint>}, perTeamKeys: {[key: string]: PerTeamKey}, linkIDs: {[key: string]: LinkID}, stubbedLinks: {[key: string]: Boolean}, activeInvites: {[key: string]: TeamInvite}, open: Boolean, openTeamJoinAs: TeamRole, tlfID: TLFID|}
 
-export type TeamSigChainState = {|reader: UserVersion,id: TeamID,implicit: Boolean,public: Boolean,rootAncestor: TeamName,nameDepth: Int,nameLog?: ?Array<TeamNameLogPoint>,lastSeqno: Seqno,lastLinkID: LinkID,parentID?: ?TeamID,userLog: {[key: string]: ?Array<UserLogPoint>},subteamLog: {[key: string]: ?Array<SubteamLogPoint>},perTeamKeys: {[key: string]: PerTeamKey},linkIDs: {[key: string]: LinkID},stubbedLinks: {[key: string]: Boolean},activeInvites: {[key: string]: TeamInvite},open: Boolean,openTeamJoinAs: TeamRole,tlfID: TLFID,|}
+export type TeamTreeEntry = {|name: TeamName, admin: Boolean|}
 
-export type TeamTreeEntry = {|name: TeamName,admin: Boolean,|}
+export type TeamTreeResult = {|entries?: ?Array<TeamTreeEntry>|}
 
-export type TeamTreeResult = {|entries?: ?Array<TeamTreeEntry>,|}
+export type TeamType =
+  | 0 // NONE_0
+  | 1 // LEGACY_1
+  | 2 // MODERN_2
 
-export type TeamType =0 // NONE_0
- | 1 // LEGACY_1
- | 2 // MODERN_2
+export type TeamsCanUserPerformRpcParam = {|name: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
+export type TeamsGetTeamAndMemberShowcaseRpcParam = {|name: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type TeamsCanUserPerformRpcParam = {|name: String,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type TeamsGetTeamRootIDRpcParam = {|id: TeamID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type TeamsGetTeamAndMemberShowcaseRpcParam = {|name: String,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type TeamsGetTeamShowcaseRpcParam = {|name: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type TeamsGetTeamRootIDRpcParam = {|id: TeamID,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type TeamsLoadTeamPlusApplicationKeysRpcParam = {|id: TeamID, application: TeamApplication, refreshers: TeamRefreshers, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type TeamsGetTeamShowcaseRpcParam = {|name: String,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type TeamsLookupImplicitTeamRpcParam = {|name: String, public: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type TeamsLoadTeamPlusApplicationKeysRpcParam = {|id: TeamID,application: TeamApplication,refreshers: TeamRefreshers,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type TeamsLookupOrCreateImplicitTeamRpcParam = {|name: String, public: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type TeamsLookupImplicitTeamRpcParam = {|name: String,public: Boolean,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type TeamsSetTeamMemberShowcaseRpcParam = {|name: String, isShowcased: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type TeamsLookupOrCreateImplicitTeamRpcParam = {|name: String,public: Boolean,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type TeamsSetTeamShowcaseRpcParam = {|name: String, isShowcased?: ?Boolean, description?: ?String, anyMemberShowcase?: ?Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type TeamsSetTeamMemberShowcaseRpcParam = {|name: String,isShowcased: Boolean,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type TeamsTeamAcceptInviteOrRequestAccessRpcParam = {|tokenOrName: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type TeamsSetTeamShowcaseRpcParam = {|name: String,isShowcased?: ?Boolean,description?: ?String,anyMemberShowcase?: ?Boolean,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type TeamsTeamAcceptInviteRpcParam = {|token: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type TeamsTeamAcceptInviteOrRequestAccessRpcParam = {|tokenOrName: String,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type TeamsTeamAddEmailsBulkRpcParam = {|name: String, emails: String, role: TeamRole, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type TeamsTeamAcceptInviteRpcParam = {|token: String,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type TeamsTeamAddMemberRpcParam = {|name: String, email: String, username: String, role: TeamRole, sendChatNotification: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type TeamsTeamAddEmailsBulkRpcParam = {|name: String,emails: String,role: TeamRole,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type TeamsTeamChangeMembershipRpcParam = {|name: String, req: TeamChangeReq, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type TeamsTeamAddMemberRpcParam = {|name: String,email: String,username: String,role: TeamRole,sendChatNotification: Boolean,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type TeamsTeamCreateRpcParam = {|name: String, sendChatNotification: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type TeamsTeamChangeMembershipRpcParam = {|name: String,req: TeamChangeReq,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type TeamsTeamCreateSeitanTokenRpcParam = {|name: String, role: TeamRole, label: SeitanIKeyLabel, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type TeamsTeamCreateRpcParam = {|name: String,sendChatNotification: Boolean,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type TeamsTeamCreateWithSettingsRpcParam = {|name: String, sendChatNotification: Boolean, settings: TeamSettings, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type TeamsTeamCreateSeitanTokenRpcParam = {|name: String,role: TeamRole,label: SeitanIKeyLabel,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type TeamsTeamDebugRpcParam = {|teamID: TeamID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type TeamsTeamCreateWithSettingsRpcParam = {|name: String,sendChatNotification: Boolean,settings: TeamSettings,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type TeamsTeamDeleteRpcParam = {|name: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type TeamsTeamDebugRpcParam = {|teamID: TeamID,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type TeamsTeamEditMemberRpcParam = {|name: String, username: String, role: TeamRole, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type TeamsTeamDeleteRpcParam = {|name: String,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type TeamsTeamGetRpcParam = {|name: String, forceRepoll: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type TeamsTeamEditMemberRpcParam = {|name: String,username: String,role: TeamRole,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type TeamsTeamIgnoreRequestRpcParam = {|name: String, username: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type TeamsTeamGetRpcParam = {|name: String,forceRepoll: Boolean,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type TeamsTeamImplicitAdminsRpcParam = {|teamName: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type TeamsTeamIgnoreRequestRpcParam = {|name: String,username: String,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type TeamsTeamLeaveRpcParam = {|name: String, permanent: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type TeamsTeamImplicitAdminsRpcParam = {|teamName: String,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type TeamsTeamListMyAccessRequestsRpcParam = {|teamName?: ?String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type TeamsTeamLeaveRpcParam = {|name: String,permanent: Boolean,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type TeamsTeamListRequestsRpcParam = ?{|incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type TeamsTeamListMyAccessRequestsRpcParam = {|teamName?: ?String,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type TeamsTeamListRpcParam = {|userAssertion: String, all: Boolean, includeImplicitTeams: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type TeamsTeamListRequestsRpcParam = ?{|incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type TeamsTeamListSubteamsRecursiveRpcParam = {|parentTeamName: String, forceRepoll: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type TeamsTeamListRpcParam = {|userAssertion: String,all: Boolean,includeImplicitTeams: Boolean,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type TeamsTeamReAddMemberAfterResetRpcParam = {|id: TeamID, username: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type TeamsTeamListSubteamsRecursiveRpcParam = {|parentTeamName: String,forceRepoll: Boolean,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type TeamsTeamRemoveMemberRpcParam = {|name: String, username: String, email: String, inviteID: TeamInviteID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type TeamsTeamReAddMemberAfterResetRpcParam = {|id: TeamID,username: String,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type TeamsTeamRenameRpcParam = {|prevName: TeamName, newName: TeamName, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type TeamsTeamRemoveMemberRpcParam = {|name: String,username: String,email: String,inviteID: TeamInviteID,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type TeamsTeamRequestAccessRpcParam = {|name: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type TeamsTeamRenameRpcParam = {|prevName: TeamName,newName: TeamName,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type TeamsTeamRotateKeyRpcParam = {|teamID: TeamID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type TeamsTeamRequestAccessRpcParam = {|name: String,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type TeamsTeamSetSettingsRpcParam = {|name: String, settings: TeamSettings, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type TeamsTeamRotateKeyRpcParam = {|teamID: TeamID,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type TeamsTeamTreeRpcParam = {|name: TeamName, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type TeamsTeamSetSettingsRpcParam = {|name: String,settings: TeamSettings,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type TeamsUiConfirmRootTeamDeleteRpcParam = {|teamName: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type TeamsTeamTreeRpcParam = {|name: TeamName,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type TeamsUiConfirmSubteamDeleteRpcParam = {|teamName: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type TeamsUiConfirmRootTeamDeleteRpcParam = {|teamName: String,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type Test = {|reply: String|}
 
-export type TeamsUiConfirmSubteamDeleteRpcParam = {|teamName: String,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type TestPanicRpcParam = {|message: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type Test = {|reply: String,|}
+export type TestTestCallbackRpcParam = {|name: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type TestPanicRpcParam = {|message: String,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type TestTestRpcParam = {|name: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type TestTestCallbackRpcParam = {|name: String,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
-
-export type TestTestRpcParam = {|name: String,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
-
-export type Text = {|data: String,markup: Boolean,|}
+export type Text = {|data: String, markup: Boolean|}
 
 export type Time = Long
 
-export type TlfCompleteAndCanonicalizePrivateTlfNameRpcParam = {|query: TLFQuery,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type TlfCompleteAndCanonicalizePrivateTlfNameRpcParam = {|query: TLFQuery, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type TlfCryptKeysRpcParam = {|query: TLFQuery,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type TlfCryptKeysRpcParam = {|query: TLFQuery, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type TlfKeysGetPublicCanonicalTLFNameAndIDRpcParam = {|query: TLFQuery,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type TlfKeysGetPublicCanonicalTLFNameAndIDRpcParam = {|query: TLFQuery, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type TlfKeysGetTLFCryptKeysRpcParam = {|query: TLFQuery,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type TlfKeysGetTLFCryptKeysRpcParam = {|query: TLFQuery, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type TlfPublicCanonicalTLFNameAndIDRpcParam = {|query: TLFQuery,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type TlfPublicCanonicalTLFNameAndIDRpcParam = {|query: TLFQuery, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type TrackCheckTrackingRpcParam = ?{|incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type TrackCheckTrackingRpcParam = ?{|incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type TrackDiff = {|type: TrackDiffType,displayMarkup: String,|}
+export type TrackDiff = {|type: TrackDiffType, displayMarkup: String|}
 
-export type TrackDiffType =0 // NONE_0
- | 1 // ERROR_1
- | 2 // CLASH_2
- | 3 // REVOKED_3
- | 4 // UPGRADED_4
- | 5 // NEW_5
- | 6 // REMOTE_FAIL_6
- | 7 // REMOTE_WORKING_7
- | 8 // REMOTE_CHANGED_8
- | 9 // NEW_ELDEST_9
- | 10 // NONE_VIA_TEMPORARY_10
+export type TrackDiffType =
+  | 0 // NONE_0
+  | 1 // ERROR_1
+  | 2 // CLASH_2
+  | 3 // REVOKED_3
+  | 4 // UPGRADED_4
+  | 5 // NEW_5
+  | 6 // REMOTE_FAIL_6
+  | 7 // REMOTE_WORKING_7
+  | 8 // REMOTE_CHANGED_8
+  | 9 // NEW_ELDEST_9
+  | 10 // NONE_VIA_TEMPORARY_10
 
+export type TrackDismissWithTokenRpcParam = {|trackToken: TrackToken, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type TrackDismissWithTokenRpcParam = {|trackToken: TrackToken,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type TrackFakeTrackingChangedRpcParam = {|username: String, isTracking: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type TrackFakeTrackingChangedRpcParam = {|username: String,isTracking: Boolean,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type TrackOptions = {|localOnly: Boolean, bypassConfirm: Boolean, forceRetrack: Boolean, expiringLocal: Boolean, forPGPPull: Boolean|}
 
-export type TrackOptions = {|localOnly: Boolean,bypassConfirm: Boolean,forceRetrack: Boolean,expiringLocal: Boolean,forPGPPull: Boolean,|}
+export type TrackProof = {|proofType: String, proofName: String, idString: String|}
 
-export type TrackProof = {|proofType: String,proofName: String,idString: String,|}
+export type TrackStatus =
+  | 1 // NEW_OK_1
+  | 2 // NEW_ZERO_PROOFS_2
+  | 3 // NEW_FAIL_PROOFS_3
+  | 4 // UPDATE_BROKEN_FAILED_PROOFS_4
+  | 5 // UPDATE_NEW_PROOFS_5
+  | 6 // UPDATE_OK_6
+  | 7 // UPDATE_BROKEN_REVOKED_7
 
-export type TrackStatus =1 // NEW_OK_1
- | 2 // NEW_ZERO_PROOFS_2
- | 3 // NEW_FAIL_PROOFS_3
- | 4 // UPDATE_BROKEN_FAILED_PROOFS_4
- | 5 // UPDATE_NEW_PROOFS_5
- | 6 // UPDATE_OK_6
- | 7 // UPDATE_BROKEN_REVOKED_7
-
-
-export type TrackSummary = {|username: String,time: Time,isRemote: Boolean,|}
+export type TrackSummary = {|username: String, time: Time, isRemote: Boolean|}
 
 export type TrackToken = String
 
-export type TrackTrackRpcParam = {|userAssertion: String,options: TrackOptions,forceRemoteCheck: Boolean,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type TrackTrackRpcParam = {|userAssertion: String, options: TrackOptions, forceRemoteCheck: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type TrackTrackWithTokenRpcParam = {|trackToken: TrackToken,options: TrackOptions,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type TrackTrackWithTokenRpcParam = {|trackToken: TrackToken, options: TrackOptions, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type TrackUntrackRpcParam = {|username: String,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type TrackUntrackRpcParam = {|username: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type Tracker = {|tracker: UID,status: Int,mTime: Time,|}
+export type Tracker = {|tracker: UID, status: Int, mTime: Time|}
 
 export type UID = String
 
-export type UPAKVersion =1 // V1_1
- | 2 // V2_2
+export type UPAKVersion =
+  | 1 // V1_1
+  | 2 // V2_2
 
+export type UPAKVersioned = {v: 1, v1: ?UserPlusAllKeys} | {v: 2, v2: ?UserPlusKeysV2AllIncarnations}
 
-export type UPAKVersioned ={ v: 1, v1: ?UserPlusAllKeys } | { v: 2, v2: ?UserPlusKeysV2AllIncarnations }
+export type UPK2MinorVersion =
+  | 0 // V0_0
+  | 1 // V1_1
+  | 2 // V2_2
+  | 3 // V3_3
+  | 4 // V4_4
+  | 5 // V5_5
 
-export type UPK2MinorVersion =0 // V0_0
- | 1 // V1_1
- | 2 // V2_2
- | 3 // V3_3
- | 4 // V4_4
- | 5 // V5_5
+export type UiPromptYesNoRpcParam = {|text: Text, promptDefault: PromptDefault, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
+export type UnboxAnyRes = {|kid: KID, plaintext: Bytes32, index: Int|}
 
-export type UiPromptYesNoRpcParam = {|text: Text,promptDefault: PromptDefault,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type UninstallResult = {|componentResults?: ?Array<ComponentResult>, status: Status|}
 
-export type UnboxAnyRes = {|kid: KID,plaintext: Bytes32,index: Int,|}
+export type User = {|uid: UID, username: String|}
 
-export type UninstallResult = {|componentResults?: ?Array<ComponentResult>,status: Status,|}
+export type UserCard = {|following: Int, followers: Int, uid: UID, fullName: String, location: String, bio: String, website: String, twitter: String, youFollowThem: Boolean, theyFollowYou: Boolean, teamShowcase?: ?Array<UserTeamShowcase>|}
 
-export type User = {|uid: UID,username: String,|}
+export type UserDeleteUserRpcParam = ?{|incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type UserCard = {|following: Int,followers: Int,uid: UID,fullName: String,location: String,bio: String,website: String,twitter: String,youFollowThem: Boolean,theyFollowYou: Boolean,teamShowcase?: ?Array<UserTeamShowcase>,|}
+export type UserGetUPAKRpcParam = {|uid: UID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type UserDeleteUserRpcParam = ?{|incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type UserInterestingPeopleRpcParam = {|maxUsers: Int, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type UserGetUPAKRpcParam = {|uid: UID,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type UserListTrackers2RpcParam = {|assertion: String, reverse: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type UserInterestingPeopleRpcParam = {|maxUsers: Int,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type UserListTrackersByNameRpcParam = {|username: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type UserListTrackers2RpcParam = {|assertion: String,reverse: Boolean,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type UserListTrackersRpcParam = {|uid: UID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type UserListTrackersByNameRpcParam = {|username: String,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type UserListTrackersSelfRpcParam = ?{|incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type UserListTrackersRpcParam = {|uid: UID,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type UserListTrackingJSONRpcParam = {|filter: String, verbose: Boolean, assertion: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type UserListTrackersSelfRpcParam = ?{|incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type UserListTrackingRpcParam = {|filter: String, assertion: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type UserListTrackingJSONRpcParam = {|filter: String,verbose: Boolean,assertion: String,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type UserLoadAllPublicKeysUnverifiedRpcParam = {|uid: UID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type UserListTrackingRpcParam = {|filter: String,assertion: String,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type UserLoadMyPublicKeysRpcParam = ?{|incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type UserLoadAllPublicKeysUnverifiedRpcParam = {|uid: UID,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type UserLoadMySettingsRpcParam = ?{|incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type UserLoadMyPublicKeysRpcParam = ?{|incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type UserLoadPublicKeysRpcParam = {|uid: UID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type UserLoadMySettingsRpcParam = ?{|incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type UserLoadUncheckedUserSummariesRpcParam = {|uids?: ?Array<UID>, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type UserLoadPublicKeysRpcParam = {|uid: UID,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type UserLoadUserByNameRpcParam = {|username: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type UserLoadUncheckedUserSummariesRpcParam = {|uids?: ?Array<UID>,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type UserLoadUserPlusKeysRpcParam = {|uid: UID, pollForKID: KID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type UserLoadUserByNameRpcParam = {|username: String,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type UserLoadUserRpcParam = {|uid: UID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type UserLoadUserPlusKeysRpcParam = {|uid: UID,pollForKID: KID,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type UserLogPoint = {|role: TeamRole, sigMeta: SignatureMetadata|}
 
-export type UserLoadUserRpcParam = {|uid: UID,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
-
-export type UserLogPoint = {|role: TeamRole,sigMeta: SignatureMetadata,|}
-
-export type UserMeUserVersionRpcParam = ?{|incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type UserMeUserVersionRpcParam = ?{|incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
 export type UserOrTeamID = String
 
-export type UserOrTeamLite = {|id: UserOrTeamID,name: String,|}
+export type UserOrTeamLite = {|id: UserOrTeamID, name: String|}
 
-export type UserOrTeamResult =1 // USER_1
- | 2 // TEAM_2
+export type UserOrTeamResult =
+  | 1 // USER_1
+  | 2 // TEAM_2
 
+export type UserPlusAllKeys = {|base: UserPlusKeys, pgpKeys?: ?Array<PublicKey>, remoteTracks?: ?Array<RemoteTrack>|}
 
-export type UserPlusAllKeys = {|base: UserPlusKeys,pgpKeys?: ?Array<PublicKey>,remoteTracks?: ?Array<RemoteTrack>,|}
+export type UserPlusKeys = {|uid: UID, username: String, eldestSeqno: Seqno, status: StatusCode, deviceKeys?: ?Array<PublicKey>, revokedDeviceKeys?: ?Array<RevokedKey>, pgpKeyCount: Int, uvv: UserVersionVector, deletedDeviceKeys?: ?Array<PublicKey>, perUserKeys?: ?Array<PerUserKey>|}
 
-export type UserPlusKeys = {|uid: UID,username: String,eldestSeqno: Seqno,status: StatusCode,deviceKeys?: ?Array<PublicKey>,revokedDeviceKeys?: ?Array<RevokedKey>,pgpKeyCount: Int,uvv: UserVersionVector,deletedDeviceKeys?: ?Array<PublicKey>,perUserKeys?: ?Array<PerUserKey>,|}
+export type UserPlusKeysV2 = {|uid: UID, username: String, eldestSeqno: Seqno, status: StatusCode, perUserKeys?: ?Array<PerUserKey>, deviceKeys: {[key: string]: PublicKeyV2NaCl}, pgpKeys: {[key: string]: PublicKeyV2PGPSummary}, remoteTracks: {[key: string]: RemoteTrack}|}
 
-export type UserPlusKeysV2 = {|uid: UID,username: String,eldestSeqno: Seqno,status: StatusCode,perUserKeys?: ?Array<PerUserKey>,deviceKeys: {[key: string]: PublicKeyV2NaCl},pgpKeys: {[key: string]: PublicKeyV2PGPSummary},remoteTracks: {[key: string]: RemoteTrack},|}
+export type UserPlusKeysV2AllIncarnations = {|current: UserPlusKeysV2, pastIncarnations?: ?Array<UserPlusKeysV2>, uvv: UserVersionVector, seqnoLinkIDs: {[key: string]: LinkID}, minorVersion: UPK2MinorVersion|}
 
-export type UserPlusKeysV2AllIncarnations = {|current: UserPlusKeysV2,pastIncarnations?: ?Array<UserPlusKeysV2>,uvv: UserVersionVector,seqnoLinkIDs: {[key: string]: LinkID},minorVersion: UPK2MinorVersion,|}
+export type UserProfileEditRpcParam = {|fullName: String, location: String, bio: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type UserProfileEditRpcParam = {|fullName: String,location: String,bio: String,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type UserResetUserRpcParam = ?{|incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type UserResetUserRpcParam = ?{|incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type UserResolution = {|assertion: SocialAssertion, userID: UID|}
 
-export type UserResolution = {|assertion: SocialAssertion,userID: UID,|}
+export type UserSearchRpcParam = {|query: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type UserSearchRpcParam = {|query: String,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
+export type UserSettings = {|emails?: ?Array<Email>|}
 
-export type UserSettings = {|emails?: ?Array<Email>,|}
+export type UserSummary = {|uid: UID, username: String, thumbnail: String, idVersion: Int, fullName: String, bio: String, proofs: Proofs, sigIDDisplay: String, trackTime: Time|}
 
-export type UserSummary = {|uid: UID,username: String,thumbnail: String,idVersion: Int,fullName: String,bio: String,proofs: Proofs,sigIDDisplay: String,trackTime: Time,|}
+export type UserSummary2 = {|uid: UID, username: String, thumbnail: String, fullName: String, isFollower: Boolean, isFollowee: Boolean|}
 
-export type UserSummary2 = {|uid: UID,username: String,thumbnail: String,fullName: String,isFollower: Boolean,isFollowee: Boolean,|}
+export type UserSummary2Set = {|users?: ?Array<UserSummary2>, time: Time, version: Int|}
 
-export type UserSummary2Set = {|users?: ?Array<UserSummary2>,time: Time,version: Int,|}
+export type UserTeamShowcase = {|fqName: String, open: Boolean, teamIsShowcased: Boolean, description: String, role: TeamRole, publicAdmins?: ?Array<String>, numMembers: Int|}
 
-export type UserTeamShowcase = {|fqName: String,open: Boolean,teamIsShowcased: Boolean,description: String,role: TeamRole,publicAdmins?: ?Array<String>,numMembers: Int,|}
-
-export type UserVersion = {|uid: UID,eldestSeqno: Seqno,|}
+export type UserVersion = {|uid: UID, eldestSeqno: Seqno|}
 
 export type UserVersionPercentForm = String
 
-export type UserVersionVector = {|id: Long,sigHints: Int,sigChain: Long,cachedAt: Time,|}
+export type UserVersionVector = {|id: Long, sigHints: Int, sigChain: Long, cachedAt: Time|}
 
-export type VerifySessionRes = {|uid: UID,sid: String,generated: Int,lifetime: Int,|}
+export type VerifySessionRes = {|uid: UID, sid: String, generated: Int, lifetime: Int|}
 
-export type WebProof = {|hostname: String,protocols?: ?Array<String>,|}
+export type WebProof = {|hostname: String, protocols?: ?Array<String>|}
 
-export type WriteArgs = {|opID: OpID,path: Path,offset: Long,|}
+export type WriteArgs = {|opID: OpID, path: Path, offset: Long|}
 type AccountHasServerKeysResult = HasServerKeysRes
 type AccountPassphrasePromptResult = GetPassphraseRes
 type ApiserverDeleteResult = APIRes
@@ -4007,4 +4003,92 @@ type UserLoadUserResult = User
 type UserMeUserVersionResult = UserVersion
 type UserSearchResult = ?Array<SearchResult>
 
-export type IncomingCallMapType = {|  'keybase.1.gpgUi.wantToAddGPGKey'?: (params: {|sessionID: Int|},response: {error: RPCErrorHandler, result: (result: GpgUiWantToAddGPGKeyResult) => void}) => void,  'keybase.1.gpgUi.confirmDuplicateKeyChosen'?: (params: {|sessionID: Int|},response: {error: RPCErrorHandler, result: (result: GpgUiConfirmDuplicateKeyChosenResult) => void}) => void,  'keybase.1.gpgUi.selectKeyAndPushOption'?: (params: {|sessionID: Int,keys?: ?Array<GPGKey>|},response: {error: RPCErrorHandler, result: (result: GpgUiSelectKeyAndPushOptionResult) => void}) => void,  'keybase.1.gpgUi.selectKey'?: (params: {|sessionID: Int,keys?: ?Array<GPGKey>|},response: {error: RPCErrorHandler, result: (result: GpgUiSelectKeyResult) => void}) => void,  'keybase.1.gpgUi.sign'?: (params: {|msg: Bytes,fingerprint: Bytes|},response: {error: RPCErrorHandler, result: (result: GpgUiSignResult) => void}) => void,  'keybase.1.gpgUi.getTTY'?: (params: {||},response: {error: RPCErrorHandler, result: (result: GpgUiGetTTYResult) => void}) => void,  'keybase.1.gregorUI.pushState'?: (params: {|state: Gregor1.State,reason: PushReason|},response: CommonResponseHandler) => void,  'keybase.1.gregorUI.pushOutOfBandMessages'?: (params: {|oobm?: ?Array<Gregor1.OutOfBandMessage>|},response: CommonResponseHandler) => void,  'keybase.1.homeUi.homeUIRefresh'?: (params: {||},response: CommonResponseHandler) => void,  'keybase.1.identifyUi.displayTLFCreateWithInvite'?: (params: {|sessionID: Int,folderName: String,isPrivate: Boolean,assertion: String,socialAssertion: SocialAssertion,inviteLink: String,throttled: Boolean|},response: CommonResponseHandler) => void,  'keybase.1.identifyUi.delegateIdentifyUI'?: (params: {||},response: {error: RPCErrorHandler, result: (result: IdentifyUiDelegateIdentifyUIResult) => void}) => void,  'keybase.1.identifyUi.start'?: (params: {|sessionID: Int,username: String,reason: IdentifyReason,forceDisplay?: Boolean|},response: CommonResponseHandler) => void,  'keybase.1.identifyUi.displayKey'?: (params: {|sessionID: Int,key: IdentifyKey|},response: CommonResponseHandler) => void,  'keybase.1.identifyUi.reportLastTrack'?: (params: {|sessionID: Int,track?: ?TrackSummary|},response: CommonResponseHandler) => void,  'keybase.1.identifyUi.launchNetworkChecks'?: (params: {|sessionID: Int,identity: Identity,user: User|},response: CommonResponseHandler) => void,  'keybase.1.identifyUi.displayTrackStatement'?: (params: {|sessionID: Int,stmt: String|},response: CommonResponseHandler) => void,  'keybase.1.identifyUi.finishWebProofCheck'?: (params: {|sessionID: Int,rp: RemoteProof,lcr: LinkCheckResult|},response: CommonResponseHandler) => void,  'keybase.1.identifyUi.finishSocialProofCheck'?: (params: {|sessionID: Int,rp: RemoteProof,lcr: LinkCheckResult|},response: CommonResponseHandler) => void,  'keybase.1.identifyUi.displayCryptocurrency'?: (params: {|sessionID: Int,c: Cryptocurrency|},response: CommonResponseHandler) => void,  'keybase.1.identifyUi.reportTrackToken'?: (params: {|sessionID: Int,trackToken: TrackToken|},response: CommonResponseHandler) => void,  'keybase.1.identifyUi.displayUserCard'?: (params: {|sessionID: Int,card: UserCard|},response: CommonResponseHandler) => void,  'keybase.1.identifyUi.confirm'?: (params: {|sessionID: Int,outcome: IdentifyOutcome|},response: {error: RPCErrorHandler, result: (result: IdentifyUiConfirmResult) => void}) => void,  'keybase.1.identifyUi.cancel'?: (params: {|sessionID: Int|},response: CommonResponseHandler) => void,  'keybase.1.identifyUi.finish'?: (params: {|sessionID: Int|},response: CommonResponseHandler) => void,  'keybase.1.identifyUi.dismiss'?: (params: {|sessionID: Int,username: String,reason: DismissReason|},response: CommonResponseHandler) => void,  'keybase.1.logUi.log'?: (params: {|sessionID: Int,level: LogLevel,text: Text|},response: CommonResponseHandler) => void,  'keybase.1.loginUi.getEmailOrUsername'?: (params: {|sessionID: Int|},response: {error: RPCErrorHandler, result: (result: LoginUiGetEmailOrUsernameResult) => void}) => void,  'keybase.1.loginUi.promptRevokePaperKeys'?: (params: {|sessionID: Int,device: Device,index: Int|},response: {error: RPCErrorHandler, result: (result: LoginUiPromptRevokePaperKeysResult) => void}) => void,  'keybase.1.loginUi.displayPaperKeyPhrase'?: (params: {|sessionID: Int,phrase: String|},response: CommonResponseHandler) => void,  'keybase.1.loginUi.displayPrimaryPaperKey'?: (params: {|sessionID: Int,phrase: String|},response: CommonResponseHandler) => void,  'keybase.1.logsend.prepareLogsend'?: (params: {||},response: CommonResponseHandler) => void,  'keybase.1.NotifyApp.exit'?: (params: {||},response: CommonResponseHandler) => void,  'keybase.1.NotifyBadges.badgeState'?: (params: {|badgeState: BadgeState|}) => void,  'keybase.1.NotifyFavorites.favoritesChanged'?: (params: {|uid: UID|}) => void,  'keybase.1.NotifyFS.FSActivity'?: (params: {|notification: FSNotification|}) => void,  'keybase.1.NotifyFS.FSSyncActivity'?: (params: {|status: FSPathSyncStatus|},response: CommonResponseHandler) => void,  'keybase.1.NotifyFS.FSEditListResponse'?: (params: {|edits?: ?Array<FSNotification>,requestID: Int|},response: CommonResponseHandler) => void,  'keybase.1.NotifyFS.FSSyncStatusResponse'?: (params: {|status: FSSyncStatus,requestID: Int|},response: CommonResponseHandler) => void,  'keybase.1.NotifyKeyfamily.keyfamilyChanged'?: (params: {|uid: UID|},response: CommonResponseHandler) => void,  'keybase.1.NotifyPaperKey.paperKeyCached'?: (params: {|uid: UID,encKID: KID,sigKID: KID|},response: CommonResponseHandler) => void,  'keybase.1.NotifyPGP.pgpKeyInSecretStoreFile'?: (params: {||},response: CommonResponseHandler) => void,  'keybase.1.NotifyService.shutdown'?: (params: {||},response: CommonResponseHandler) => void,  'keybase.1.NotifySession.loggedOut'?: (params: {||}) => void,  'keybase.1.NotifySession.loggedIn'?: (params: {|username: String|},response: CommonResponseHandler) => void,  'keybase.1.NotifySession.clientOutOfDate'?: (params: {|upgradeTo: String,upgradeURI: String,upgradeMsg: String|},response: CommonResponseHandler) => void,  'keybase.1.NotifyTeam.teamChangedByID'?: (params: {|teamID: TeamID,latestSeqno: Seqno,implicitTeam: Boolean,changes: TeamChangeSet|},response: CommonResponseHandler) => void,  'keybase.1.NotifyTeam.teamChangedByName'?: (params: {|teamName: String,latestSeqno: Seqno,implicitTeam: Boolean,changes: TeamChangeSet|},response: CommonResponseHandler) => void,  'keybase.1.NotifyTeam.teamDeleted'?: (params: {|teamID: TeamID|},response: CommonResponseHandler) => void,  'keybase.1.NotifyTeam.teamExit'?: (params: {|teamID: TeamID|},response: CommonResponseHandler) => void,  'keybase.1.NotifyTracking.trackingChanged'?: (params: {|uid: UID,username: String,isTracking: Boolean|}) => void,  'keybase.1.NotifyUsers.userChanged'?: (params: {|uid: UID|}) => void,  'keybase.1.pgpUi.outputSignatureSuccess'?: (params: {|sessionID: Int,fingerprint: String,username: String,signedAt: Time|},response: CommonResponseHandler) => void,  'keybase.1.pgpUi.outputSignatureSuccessNonKeybase'?: (params: {|sessionID: Int,keyID: String,signedAt: Time|},response: CommonResponseHandler) => void,  'keybase.1.pgpUi.keyGenerated'?: (params: {|sessionID: Int,kid: KID,key: KeyInfo|},response: CommonResponseHandler) => void,  'keybase.1.pgpUi.shouldPushPrivate'?: (params: {|sessionID: Int|},response: {error: RPCErrorHandler, result: (result: PgpUiShouldPushPrivateResult) => void}) => void,  'keybase.1.pgpUi.finished'?: (params: {|sessionID: Int|},response: CommonResponseHandler) => void,  'keybase.1.proveUi.promptOverwrite'?: (params: {|sessionID: Int,account: String,typ: PromptOverwriteType|},response: {error: RPCErrorHandler, result: (result: ProveUiPromptOverwriteResult) => void}) => void,  'keybase.1.proveUi.promptUsername'?: (params: {|sessionID: Int,prompt: String,prevError?: ?Status|},response: {error: RPCErrorHandler, result: (result: ProveUiPromptUsernameResult) => void}) => void,  'keybase.1.proveUi.outputPrechecks'?: (params: {|sessionID: Int,text: Text|},response: CommonResponseHandler) => void,  'keybase.1.proveUi.preProofWarning'?: (params: {|sessionID: Int,text: Text|},response: {error: RPCErrorHandler, result: (result: ProveUiPreProofWarningResult) => void}) => void,  'keybase.1.proveUi.outputInstructions'?: (params: {|sessionID: Int,instructions: Text,proof: String|},response: CommonResponseHandler) => void,  'keybase.1.proveUi.okToCheck'?: (params: {|sessionID: Int,name: String,attempt: Int|},response: {error: RPCErrorHandler, result: (result: ProveUiOkToCheckResult) => void}) => void,  'keybase.1.proveUi.displayRecheckWarning'?: (params: {|sessionID: Int,text: Text|},response: CommonResponseHandler) => void,  'keybase.1.provisionUi.chooseProvisioningMethod'?: (params: {|sessionID: Int,gpgOption: Boolean|},response: {error: RPCErrorHandler, result: (result: ProvisionUiChooseProvisioningMethodResult) => void}) => void,  'keybase.1.provisionUi.chooseGPGMethod'?: (params: {|sessionID: Int,keys?: ?Array<GPGKey>|},response: {error: RPCErrorHandler, result: (result: ProvisionUiChooseGPGMethodResult) => void}) => void,  'keybase.1.provisionUi.switchToGPGSignOK'?: (params: {|sessionID: Int,key: GPGKey,importError: String|},response: {error: RPCErrorHandler, result: (result: ProvisionUiSwitchToGPGSignOKResult) => void}) => void,  'keybase.1.provisionUi.chooseDevice'?: (params: {|sessionID: Int,devices?: ?Array<Device>,canSelectNoDevice: Boolean|},response: {error: RPCErrorHandler, result: (result: ProvisionUiChooseDeviceResult) => void}) => void,  'keybase.1.provisionUi.chooseDeviceType'?: (params: {|sessionID: Int,kind: ChooseType|},response: {error: RPCErrorHandler, result: (result: ProvisionUiChooseDeviceTypeResult) => void}) => void,  'keybase.1.provisionUi.DisplayAndPromptSecret'?: (params: {|sessionID: Int,secret: Bytes,phrase: String,otherDeviceType: DeviceType,previousErr: String|},response: {error: RPCErrorHandler, result: (result: ProvisionUiDisplayAndPromptSecretResult) => void}) => void,  'keybase.1.provisionUi.DisplaySecretExchanged'?: (params: {|sessionID: Int|},response: CommonResponseHandler) => void,  'keybase.1.provisionUi.PromptNewDeviceName'?: (params: {|sessionID: Int,existingDevices?: ?Array<String>,errorMessage: String|},response: {error: RPCErrorHandler, result: (result: ProvisionUiPromptNewDeviceNameResult) => void}) => void,  'keybase.1.provisionUi.ProvisioneeSuccess'?: (params: {|sessionID: Int,username: String,deviceName: String|},response: CommonResponseHandler) => void,  'keybase.1.provisionUi.ProvisionerSuccess'?: (params: {|sessionID: Int,deviceName: String,deviceType: String|},response: CommonResponseHandler) => void,  'keybase.1.rekeyUI.delegateRekeyUI'?: (params: {||},response: {error: RPCErrorHandler, result: (result: RekeyUIDelegateRekeyUIResult) => void}) => void,  'keybase.1.rekeyUI.refresh'?: (params: {|sessionID: Int,problemSetDevices: ProblemSetDevices|},response: CommonResponseHandler) => void,  'keybase.1.rekeyUI.rekeySendEvent'?: (params: {|sessionID: Int,event: RekeyEvent|},response: CommonResponseHandler) => void,  'keybase.1.saltpackUi.saltpackPromptForDecrypt'?: (params: {|sessionID: Int,sender: SaltpackSender,usedDelegateUI: Boolean|},response: CommonResponseHandler) => void,  'keybase.1.saltpackUi.saltpackVerifySuccess'?: (params: {|sessionID: Int,signingKID: KID,sender: SaltpackSender|},response: CommonResponseHandler) => void,  'keybase.1.saltpackUi.saltpackVerifyBadSender'?: (params: {|sessionID: Int,signingKID: KID,sender: SaltpackSender|},response: CommonResponseHandler) => void,  'keybase.1.secretUi.getPassphrase'?: (params: {|sessionID: Int,pinentry: GUIEntryArg,terminal?: ?SecretEntryArg|},response: {error: RPCErrorHandler, result: (result: SecretUiGetPassphraseResult) => void}) => void,  'keybase.1.streamUi.close'?: (params: {|sessionID: Int,s: Stream|},response: CommonResponseHandler) => void,  'keybase.1.streamUi.read'?: (params: {|sessionID: Int,s: Stream,sz: Int|},response: {error: RPCErrorHandler, result: (result: StreamUiReadResult) => void}) => void,  'keybase.1.streamUi.reset'?: (params: {|sessionID: Int,s: Stream|},response: CommonResponseHandler) => void,  'keybase.1.streamUi.write'?: (params: {|sessionID: Int,s: Stream,buf: Bytes|},response: {error: RPCErrorHandler, result: (result: StreamUiWriteResult) => void}) => void,  'keybase.1.teamsUi.confirmRootTeamDelete'?: (params: {|sessionID: Int,teamName: String|},response: {error: RPCErrorHandler, result: (result: TeamsUiConfirmRootTeamDeleteResult) => void}) => void,  'keybase.1.teamsUi.confirmSubteamDelete'?: (params: {|sessionID: Int,teamName: String|},response: {error: RPCErrorHandler, result: (result: TeamsUiConfirmSubteamDeleteResult) => void}) => void,  'keybase.1.ui.promptYesNo'?: (params: {|sessionID: Int,text: Text,promptDefault: PromptDefault|},response: {error: RPCErrorHandler, result: (result: UiPromptYesNoResult) => void}) => void|}
+export type IncomingCallMapType = {|
+  'keybase.1.gpgUi.wantToAddGPGKey'?: (params: {|sessionID: Int|}, response: {error: RPCErrorHandler, result: (result: GpgUiWantToAddGPGKeyResult) => void}) => void,
+  'keybase.1.gpgUi.confirmDuplicateKeyChosen'?: (params: {|sessionID: Int|}, response: {error: RPCErrorHandler, result: (result: GpgUiConfirmDuplicateKeyChosenResult) => void}) => void,
+  'keybase.1.gpgUi.selectKeyAndPushOption'?: (params: {|sessionID: Int, keys?: ?Array<GPGKey>|}, response: {error: RPCErrorHandler, result: (result: GpgUiSelectKeyAndPushOptionResult) => void}) => void,
+  'keybase.1.gpgUi.selectKey'?: (params: {|sessionID: Int, keys?: ?Array<GPGKey>|}, response: {error: RPCErrorHandler, result: (result: GpgUiSelectKeyResult) => void}) => void,
+  'keybase.1.gpgUi.sign'?: (params: {|msg: Bytes, fingerprint: Bytes|}, response: {error: RPCErrorHandler, result: (result: GpgUiSignResult) => void}) => void,
+  'keybase.1.gpgUi.getTTY'?: (params: {||}, response: {error: RPCErrorHandler, result: (result: GpgUiGetTTYResult) => void}) => void,
+  'keybase.1.gregorUI.pushState'?: (params: {|state: Gregor1.State, reason: PushReason|}, response: CommonResponseHandler) => void,
+  'keybase.1.gregorUI.pushOutOfBandMessages'?: (params: {|oobm?: ?Array<Gregor1.OutOfBandMessage>|}, response: CommonResponseHandler) => void,
+  'keybase.1.homeUi.homeUIRefresh'?: (params: {||}, response: CommonResponseHandler) => void,
+  'keybase.1.identifyUi.displayTLFCreateWithInvite'?: (params: {|sessionID: Int, folderName: String, isPrivate: Boolean, assertion: String, socialAssertion: SocialAssertion, inviteLink: String, throttled: Boolean|}, response: CommonResponseHandler) => void,
+  'keybase.1.identifyUi.delegateIdentifyUI'?: (params: {||}, response: {error: RPCErrorHandler, result: (result: IdentifyUiDelegateIdentifyUIResult) => void}) => void,
+  'keybase.1.identifyUi.start'?: (params: {|sessionID: Int, username: String, reason: IdentifyReason, forceDisplay?: Boolean|}, response: CommonResponseHandler) => void,
+  'keybase.1.identifyUi.displayKey'?: (params: {|sessionID: Int, key: IdentifyKey|}, response: CommonResponseHandler) => void,
+  'keybase.1.identifyUi.reportLastTrack'?: (params: {|sessionID: Int, track?: ?TrackSummary|}, response: CommonResponseHandler) => void,
+  'keybase.1.identifyUi.launchNetworkChecks'?: (params: {|sessionID: Int, identity: Identity, user: User|}, response: CommonResponseHandler) => void,
+  'keybase.1.identifyUi.displayTrackStatement'?: (params: {|sessionID: Int, stmt: String|}, response: CommonResponseHandler) => void,
+  'keybase.1.identifyUi.finishWebProofCheck'?: (params: {|sessionID: Int, rp: RemoteProof, lcr: LinkCheckResult|}, response: CommonResponseHandler) => void,
+  'keybase.1.identifyUi.finishSocialProofCheck'?: (params: {|sessionID: Int, rp: RemoteProof, lcr: LinkCheckResult|}, response: CommonResponseHandler) => void,
+  'keybase.1.identifyUi.displayCryptocurrency'?: (params: {|sessionID: Int, c: Cryptocurrency|}, response: CommonResponseHandler) => void,
+  'keybase.1.identifyUi.reportTrackToken'?: (params: {|sessionID: Int, trackToken: TrackToken|}, response: CommonResponseHandler) => void,
+  'keybase.1.identifyUi.displayUserCard'?: (params: {|sessionID: Int, card: UserCard|}, response: CommonResponseHandler) => void,
+  'keybase.1.identifyUi.confirm'?: (params: {|sessionID: Int, outcome: IdentifyOutcome|}, response: {error: RPCErrorHandler, result: (result: IdentifyUiConfirmResult) => void}) => void,
+  'keybase.1.identifyUi.cancel'?: (params: {|sessionID: Int|}, response: CommonResponseHandler) => void,
+  'keybase.1.identifyUi.finish'?: (params: {|sessionID: Int|}, response: CommonResponseHandler) => void,
+  'keybase.1.identifyUi.dismiss'?: (params: {|sessionID: Int, username: String, reason: DismissReason|}, response: CommonResponseHandler) => void,
+  'keybase.1.logUi.log'?: (params: {|sessionID: Int, level: LogLevel, text: Text|}, response: CommonResponseHandler) => void,
+  'keybase.1.loginUi.getEmailOrUsername'?: (params: {|sessionID: Int|}, response: {error: RPCErrorHandler, result: (result: LoginUiGetEmailOrUsernameResult) => void}) => void,
+  'keybase.1.loginUi.promptRevokePaperKeys'?: (params: {|sessionID: Int, device: Device, index: Int|}, response: {error: RPCErrorHandler, result: (result: LoginUiPromptRevokePaperKeysResult) => void}) => void,
+  'keybase.1.loginUi.displayPaperKeyPhrase'?: (params: {|sessionID: Int, phrase: String|}, response: CommonResponseHandler) => void,
+  'keybase.1.loginUi.displayPrimaryPaperKey'?: (params: {|sessionID: Int, phrase: String|}, response: CommonResponseHandler) => void,
+  'keybase.1.logsend.prepareLogsend'?: (params: {||}, response: CommonResponseHandler) => void,
+  'keybase.1.NotifyApp.exit'?: (params: {||}, response: CommonResponseHandler) => void,
+  'keybase.1.NotifyBadges.badgeState'?: (params: {|badgeState: BadgeState|}) => void,
+  'keybase.1.NotifyFavorites.favoritesChanged'?: (params: {|uid: UID|}) => void,
+  'keybase.1.NotifyFS.FSActivity'?: (params: {|notification: FSNotification|}) => void,
+  'keybase.1.NotifyFS.FSSyncActivity'?: (params: {|status: FSPathSyncStatus|}, response: CommonResponseHandler) => void,
+  'keybase.1.NotifyFS.FSEditListResponse'?: (params: {|edits?: ?Array<FSNotification>, requestID: Int|}, response: CommonResponseHandler) => void,
+  'keybase.1.NotifyFS.FSSyncStatusResponse'?: (params: {|status: FSSyncStatus, requestID: Int|}, response: CommonResponseHandler) => void,
+  'keybase.1.NotifyKeyfamily.keyfamilyChanged'?: (params: {|uid: UID|}, response: CommonResponseHandler) => void,
+  'keybase.1.NotifyPaperKey.paperKeyCached'?: (params: {|uid: UID, encKID: KID, sigKID: KID|}, response: CommonResponseHandler) => void,
+  'keybase.1.NotifyPGP.pgpKeyInSecretStoreFile'?: (params: {||}, response: CommonResponseHandler) => void,
+  'keybase.1.NotifyService.shutdown'?: (params: {||}, response: CommonResponseHandler) => void,
+  'keybase.1.NotifySession.loggedOut'?: (params: {||}) => void,
+  'keybase.1.NotifySession.loggedIn'?: (params: {|username: String|}, response: CommonResponseHandler) => void,
+  'keybase.1.NotifySession.clientOutOfDate'?: (params: {|upgradeTo: String, upgradeURI: String, upgradeMsg: String|}, response: CommonResponseHandler) => void,
+  'keybase.1.NotifyTeam.teamChangedByID'?: (params: {|teamID: TeamID, latestSeqno: Seqno, implicitTeam: Boolean, changes: TeamChangeSet|}, response: CommonResponseHandler) => void,
+  'keybase.1.NotifyTeam.teamChangedByName'?: (params: {|teamName: String, latestSeqno: Seqno, implicitTeam: Boolean, changes: TeamChangeSet|}, response: CommonResponseHandler) => void,
+  'keybase.1.NotifyTeam.teamDeleted'?: (params: {|teamID: TeamID|}, response: CommonResponseHandler) => void,
+  'keybase.1.NotifyTeam.teamExit'?: (params: {|teamID: TeamID|}, response: CommonResponseHandler) => void,
+  'keybase.1.NotifyTracking.trackingChanged'?: (params: {|uid: UID, username: String, isTracking: Boolean|}) => void,
+  'keybase.1.NotifyUsers.userChanged'?: (params: {|uid: UID|}) => void,
+  'keybase.1.pgpUi.outputSignatureSuccess'?: (params: {|sessionID: Int, fingerprint: String, username: String, signedAt: Time|}, response: CommonResponseHandler) => void,
+  'keybase.1.pgpUi.outputSignatureSuccessNonKeybase'?: (params: {|sessionID: Int, keyID: String, signedAt: Time|}, response: CommonResponseHandler) => void,
+  'keybase.1.pgpUi.keyGenerated'?: (params: {|sessionID: Int, kid: KID, key: KeyInfo|}, response: CommonResponseHandler) => void,
+  'keybase.1.pgpUi.shouldPushPrivate'?: (params: {|sessionID: Int|}, response: {error: RPCErrorHandler, result: (result: PgpUiShouldPushPrivateResult) => void}) => void,
+  'keybase.1.pgpUi.finished'?: (params: {|sessionID: Int|}, response: CommonResponseHandler) => void,
+  'keybase.1.proveUi.promptOverwrite'?: (params: {|sessionID: Int, account: String, typ: PromptOverwriteType|}, response: {error: RPCErrorHandler, result: (result: ProveUiPromptOverwriteResult) => void}) => void,
+  'keybase.1.proveUi.promptUsername'?: (params: {|sessionID: Int, prompt: String, prevError?: ?Status|}, response: {error: RPCErrorHandler, result: (result: ProveUiPromptUsernameResult) => void}) => void,
+  'keybase.1.proveUi.outputPrechecks'?: (params: {|sessionID: Int, text: Text|}, response: CommonResponseHandler) => void,
+  'keybase.1.proveUi.preProofWarning'?: (params: {|sessionID: Int, text: Text|}, response: {error: RPCErrorHandler, result: (result: ProveUiPreProofWarningResult) => void}) => void,
+  'keybase.1.proveUi.outputInstructions'?: (params: {|sessionID: Int, instructions: Text, proof: String|}, response: CommonResponseHandler) => void,
+  'keybase.1.proveUi.okToCheck'?: (params: {|sessionID: Int, name: String, attempt: Int|}, response: {error: RPCErrorHandler, result: (result: ProveUiOkToCheckResult) => void}) => void,
+  'keybase.1.proveUi.displayRecheckWarning'?: (params: {|sessionID: Int, text: Text|}, response: CommonResponseHandler) => void,
+  'keybase.1.provisionUi.chooseProvisioningMethod'?: (params: {|sessionID: Int, gpgOption: Boolean|}, response: {error: RPCErrorHandler, result: (result: ProvisionUiChooseProvisioningMethodResult) => void}) => void,
+  'keybase.1.provisionUi.chooseGPGMethod'?: (params: {|sessionID: Int, keys?: ?Array<GPGKey>|}, response: {error: RPCErrorHandler, result: (result: ProvisionUiChooseGPGMethodResult) => void}) => void,
+  'keybase.1.provisionUi.switchToGPGSignOK'?: (params: {|sessionID: Int, key: GPGKey, importError: String|}, response: {error: RPCErrorHandler, result: (result: ProvisionUiSwitchToGPGSignOKResult) => void}) => void,
+  'keybase.1.provisionUi.chooseDevice'?: (params: {|sessionID: Int, devices?: ?Array<Device>, canSelectNoDevice: Boolean|}, response: {error: RPCErrorHandler, result: (result: ProvisionUiChooseDeviceResult) => void}) => void,
+  'keybase.1.provisionUi.chooseDeviceType'?: (params: {|sessionID: Int, kind: ChooseType|}, response: {error: RPCErrorHandler, result: (result: ProvisionUiChooseDeviceTypeResult) => void}) => void,
+  'keybase.1.provisionUi.DisplayAndPromptSecret'?: (params: {|sessionID: Int, secret: Bytes, phrase: String, otherDeviceType: DeviceType, previousErr: String|}, response: {error: RPCErrorHandler, result: (result: ProvisionUiDisplayAndPromptSecretResult) => void}) => void,
+  'keybase.1.provisionUi.DisplaySecretExchanged'?: (params: {|sessionID: Int|}, response: CommonResponseHandler) => void,
+  'keybase.1.provisionUi.PromptNewDeviceName'?: (params: {|sessionID: Int, existingDevices?: ?Array<String>, errorMessage: String|}, response: {error: RPCErrorHandler, result: (result: ProvisionUiPromptNewDeviceNameResult) => void}) => void,
+  'keybase.1.provisionUi.ProvisioneeSuccess'?: (params: {|sessionID: Int, username: String, deviceName: String|}, response: CommonResponseHandler) => void,
+  'keybase.1.provisionUi.ProvisionerSuccess'?: (params: {|sessionID: Int, deviceName: String, deviceType: String|}, response: CommonResponseHandler) => void,
+  'keybase.1.rekeyUI.delegateRekeyUI'?: (params: {||}, response: {error: RPCErrorHandler, result: (result: RekeyUIDelegateRekeyUIResult) => void}) => void,
+  'keybase.1.rekeyUI.refresh'?: (params: {|sessionID: Int, problemSetDevices: ProblemSetDevices|}, response: CommonResponseHandler) => void,
+  'keybase.1.rekeyUI.rekeySendEvent'?: (params: {|sessionID: Int, event: RekeyEvent|}, response: CommonResponseHandler) => void,
+  'keybase.1.saltpackUi.saltpackPromptForDecrypt'?: (params: {|sessionID: Int, sender: SaltpackSender, usedDelegateUI: Boolean|}, response: CommonResponseHandler) => void,
+  'keybase.1.saltpackUi.saltpackVerifySuccess'?: (params: {|sessionID: Int, signingKID: KID, sender: SaltpackSender|}, response: CommonResponseHandler) => void,
+  'keybase.1.saltpackUi.saltpackVerifyBadSender'?: (params: {|sessionID: Int, signingKID: KID, sender: SaltpackSender|}, response: CommonResponseHandler) => void,
+  'keybase.1.secretUi.getPassphrase'?: (params: {|sessionID: Int, pinentry: GUIEntryArg, terminal?: ?SecretEntryArg|}, response: {error: RPCErrorHandler, result: (result: SecretUiGetPassphraseResult) => void}) => void,
+  'keybase.1.streamUi.close'?: (params: {|sessionID: Int, s: Stream|}, response: CommonResponseHandler) => void,
+  'keybase.1.streamUi.read'?: (params: {|sessionID: Int, s: Stream, sz: Int|}, response: {error: RPCErrorHandler, result: (result: StreamUiReadResult) => void}) => void,
+  'keybase.1.streamUi.reset'?: (params: {|sessionID: Int, s: Stream|}, response: CommonResponseHandler) => void,
+  'keybase.1.streamUi.write'?: (params: {|sessionID: Int, s: Stream, buf: Bytes|}, response: {error: RPCErrorHandler, result: (result: StreamUiWriteResult) => void}) => void,
+  'keybase.1.teamsUi.confirmRootTeamDelete'?: (params: {|sessionID: Int, teamName: String|}, response: {error: RPCErrorHandler, result: (result: TeamsUiConfirmRootTeamDeleteResult) => void}) => void,
+  'keybase.1.teamsUi.confirmSubteamDelete'?: (params: {|sessionID: Int, teamName: String|}, response: {error: RPCErrorHandler, result: (result: TeamsUiConfirmSubteamDeleteResult) => void}) => void,
+  'keybase.1.ui.promptYesNo'?: (params: {|sessionID: Int, text: Text, promptDefault: PromptDefault|}, response: {error: RPCErrorHandler, result: (result: UiPromptYesNoResult) => void}) => void,
+|}

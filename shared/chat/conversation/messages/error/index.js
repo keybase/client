@@ -9,7 +9,9 @@ export type Props = {
 
 const Error = ({reason}: Props) => (
   <Box style={errorStyle}>
-    <Text type="BodySmallItalic" style={textStyle}>{reason}</Text>
+    <Text type="BodySmallItalic" style={textStyle}>
+      {reason}
+    </Text>
   </Box>
 )
 

@@ -4,22 +4,23 @@ import {cachesDirectoryPath} from '../util/file'
 
 // Modules from the native part of the code. Differently named on android/ios
 const nativeBridge = NativeModules.KeybaseEngine ||
-NativeModules.ObjcEngine || {
-  version: 'fallback',
-  appVersionName: 'fallback',
-  appVersionCode: 'fallback',
-  usingSimulator: 'fallback',
-  isDeviceSecure: 'fallback',
-}
+  NativeModules.ObjcEngine || {
+    version: 'fallback',
+    appVersionName: 'fallback',
+    appVersionCode: 'fallback',
+    usingSimulator: 'fallback',
+    isDeviceSecure: 'fallback',
+  }
 const version = nativeBridge.version
 const appVersionName = nativeBridge.appVersionName
 const appVersionCode = nativeBridge.appVersionCode
 const isSimulator = nativeBridge.usingSimulator === '1'
 // Currently this is given to us as a boolean, but no real documentation on this, so just in case it changes in the future.
 // Android only field that tells us if there is a lock screen.
-const isDeviceSecureAndroid: boolean = typeof nativeBridge.isDeviceSecure === 'boolean'
-  ? nativeBridge.isDeviceSecure
-  : nativeBridge.isDeviceSecure === 'true' || false
+const isDeviceSecureAndroid: boolean =
+  typeof nativeBridge.isDeviceSecure === 'boolean'
+    ? nativeBridge.isDeviceSecure
+    : nativeBridge.isDeviceSecure === 'true' || false
 
 const runMode = 'prod'
 const isIOS = Platform.OS === 'ios'

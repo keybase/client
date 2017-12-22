@@ -11,9 +11,7 @@ export function PopupDialog({children, onClose, fill, styleCover, styleContainer
     <NativeTouchableWithoutFeedback onPress={onClose}>
       <Box style={{...coverStyle, ...styleCover}}>
         <NativeTouchableWithoutFeedback>
-          <Box style={{...containerStyle, ...styleContainer}}>
-            {children}
-          </Box>
+          <Box style={{...containerStyle, ...styleContainer}}>{children}</Box>
         </NativeTouchableWithoutFeedback>
       </Box>
     </NativeTouchableWithoutFeedback>

@@ -11,16 +11,17 @@ import {type RouteProps} from '../../../route-tree/render-route'
 import {type TextProps, type AttachmentProps} from './popup'
 
 function _textMessagePopupHelper({message, type, onDeleteMessage, onHidden, onShowEditor, you}: TextProps) {
-  const edit = message.author === you
-    ? [
-        {
-          onClick: () => {
-            onShowEditor(message)
+  const edit =
+    message.author === you
+      ? [
+          {
+            onClick: () => {
+              onShowEditor(message)
+            },
+            title: 'Edit',
           },
-          title: 'Edit',
-        },
-      ]
-    : []
+        ]
+      : []
 
   const copy = [
     {

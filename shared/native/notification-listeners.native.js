@@ -16,12 +16,10 @@ export default function(dispatch: Dispatch, getState: () => Object, notify: any)
         sharedBadgeState({badgeState})
       }
 
-      const count = (badgeState.conversations || [])
-        .reduce(
-          (total, c) =>
-            c.badgeCounts ? total + c.badgeCounts[`${RPCTypes.commonDeviceType.mobile}`] : total,
-          0
-        )
+      const count = (badgeState.conversations || []).reduce(
+        (total, c) => (c.badgeCounts ? total + c.badgeCounts[`${RPCTypes.commonDeviceType.mobile}`] : total),
+        0
+      )
 
       RNPN.setApplicationIconBadgeNumber(count)
       if (count === 0) {

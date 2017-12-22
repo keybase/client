@@ -32,10 +32,11 @@ const Avatars = ({styles, users, ignored, isPublic, isTeam}) => {
         width: 56,
       }}
     >
-
-      {isTeam
-        ? <Avatar size={40} teamname={teamname} style={{opacity}} />
-        : <MultiAvatar singleSize={40} multiSize={32} avatarProps={avatarProps} style={{opacity}} />}
+      {isTeam ? (
+        <Avatar size={40} teamname={teamname} style={{opacity}} />
+      ) : (
+        <MultiAvatar singleSize={40} multiSize={32} avatarProps={avatarProps} style={{opacity}} />
+      )}
     </Box>
   )
 }
@@ -56,7 +57,11 @@ const Names = ({styles, users, nameColor, redColor, ignored, isPublic}) => {
         >
           {u.username}
           {/* Injecting the commas here so we never wrap and have newlines starting with a , */}
-          {i !== users.length - 1 && <Text type="BodySemibold" style={{marginRight: 2}}>,</Text>}
+          {i !== users.length - 1 && (
+            <Text type="BodySemibold" style={{marginRight: 2}}>
+              ,
+            </Text>
+          )}
         </Text>
       ))}
     </Box>

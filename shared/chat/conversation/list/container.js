@@ -96,8 +96,8 @@ const mapStateToProps = createSelector(
       selectedConversation: convStateProps.selectedConversation,
       validated: convStateProps.validated,
       you: username,
-      hasResetUsers: state.chat.inboxResetParticipants.get(convStateProps.selectedConversation, I.Set())
-        .size > 0,
+      hasResetUsers:
+        state.chat.inboxResetParticipants.get(convStateProps.selectedConversation, I.Set()).size > 0,
       _supersedes: convStateProps._supersedes,
     }
   }

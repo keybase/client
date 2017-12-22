@@ -537,8 +537,10 @@ function _unboxedToMessage(
           }
         }
         case RPCChatTypes.commonMessageType.delete:
-          const deletedIDs = ((payload.messageBody.delete && payload.messageBody.delete.messageIDs) || [])
-            .map(Constants.rpcMessageIDToMessageID)
+          const deletedIDs = (
+            (payload.messageBody.delete && payload.messageBody.delete.messageIDs) ||
+            []
+          ).map(Constants.rpcMessageIDToMessageID)
           return {
             type: 'Deleted',
             timestamp: payload.ctime,
@@ -853,14 +855,16 @@ function addMessagesToConversation(
 
   // Figure out the new bounds for the set of messages. Note the special case for the first setting of low,
   // using the special value of -1, which cannot be set by a normal call
-  const newLow = incrMessages.length > 0 &&
+  const newLow =
+    incrMessages.length > 0 &&
     (currentMessages.low < 0 || _getMessageOrdinal(incrMessages[0]) < currentMessages.low)
-    ? _getMessageOrdinal(incrMessages[0])
-    : currentMessages.low
-  const newHigh = incrMessages.length > 0 &&
+      ? _getMessageOrdinal(incrMessages[0])
+      : currentMessages.low
+  const newHigh =
+    incrMessages.length > 0 &&
     _getMessageOrdinal(incrMessages[incrMessages.length - 1]) > currentMessages.high
-    ? _getMessageOrdinal(incrMessages[incrMessages.length - 1])
-    : currentMessages.high
+      ? _getMessageOrdinal(incrMessages[incrMessages.length - 1])
+      : currentMessages.high
 
   // Join the new lists together in the correct order and return the properly formatted result
   const newMessages = lowMessages

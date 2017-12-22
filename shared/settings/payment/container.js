@@ -60,7 +60,8 @@ class PaymentStateHolder extends Component<Props, State> {
             this.state.name,
             this.state.securityCode,
             this.state.expiration
-          )}
+          )
+        }
       />
     )
   }

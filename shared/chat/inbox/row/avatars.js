@@ -117,12 +117,11 @@ const avatarInnerBoxStyle = {
   position: 'relative',
 }
 
-class TeamAvatar
-  extends PureComponent<{
-    teamname: string,
-    isMuted: boolean,
-    isSelected: boolean,
-  }> {
+class TeamAvatar extends PureComponent<{
+  teamname: string,
+  isMuted: boolean,
+  isSelected: boolean,
+}> {
   render() {
     return (
       <Box style={avatarBoxStyle}>

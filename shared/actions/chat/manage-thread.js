@@ -47,7 +47,10 @@ function* _startConversation(action: ChatGen.StartConversationPayload): Saga.Sag
   const existing = inbox.find(
     state =>
       state.get('membersType') === ChatTypes.commonConversationMembersType.kbfs &&
-      state.get('participants').sort().join(',') === tlfName
+      state
+        .get('participants')
+        .sort()
+        .join(',') === tlfName
   )
 
   if (forceImmediate && existing) {

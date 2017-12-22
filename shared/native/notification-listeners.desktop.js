@@ -36,7 +36,10 @@ export default function(
       notify('Client out of date!', {body}, 60 * 60)
     },
     'keybase.1.logsend.prepareLogsend': (_, response) => {
-      logger.dump().then(writeLogLinesToFile).then(() => response.result())
+      logger
+        .dump()
+        .then(writeLogLinesToFile)
+        .then(() => response.result())
     },
   }
 

@@ -44,13 +44,11 @@ const AddedToTeamNotice = ({
 }: AddedToTeamProps) => {
   const {adder, addee, team} = info
 
-  const adderComponent = adder === you
-    ? 'You'
-    : <ConnectedUsernames {...connectedUsernamesProps} usernames={[adder]} />
+  const adderComponent =
+    adder === you ? 'You' : <ConnectedUsernames {...connectedUsernamesProps} usernames={[adder]} />
 
-  const addeeComponent = addee === you
-    ? 'you'
-    : <ConnectedUsernames {...connectedUsernamesProps} usernames={[addee]} />
+  const addeeComponent =
+    addee === you ? 'you' : <ConnectedUsernames {...connectedUsernamesProps} usernames={[addee]} />
 
   let manageComponent = null
 
@@ -93,8 +91,9 @@ const AddedToTeamNotice = ({
       teamname={you === addee ? team : undefined}
       bgColor={globalColors.blue4}
     >
-      {you === addee &&
-        <Icon type="icon-team-sparkles-48-40" style={{marginTop: -36, width: 48, height: 40}} />}
+      {you === addee && (
+        <Icon type="icon-team-sparkles-48-40" style={{marginTop: -36, width: 48, height: 40}} />
+      )}
       <Text type="BodySmallSemibold" backgroundMode="Announcements" style={{color: globalColors.black_40}}>
         {formatTimeForMessages(message.timestamp)}
       </Text>
@@ -104,23 +103,16 @@ const AddedToTeamNotice = ({
           backgroundMode="Announcements"
           style={{color: globalColors.black_40, textAlign: 'center'}}
         >
-          {adderComponent}
-          {' '}
-          added
-          {' '}
-          {addeeComponent}
-          {' '}
-          to
-          {' '}
-          <Text type="BodySmallSemibold" style={{color: globalColors.black_60}}>{team}</Text>
-          .
-          {' '}
-          {you === addee &&
+          {adderComponent} added {addeeComponent} to{' '}
+          <Text type="BodySmallSemibold" style={{color: globalColors.black_60}}>
+            {team}
+          </Text>
+          .{' '}
+          {you === addee && (
             <Text type="BodySmallSemibold">
-              Say hi!
-              {' '}
-              <EmojiIfExists style={{display: 'inline-block'}} emojiName=":wave:" size={14} />
-            </Text>}
+              Say hi! <EmojiIfExists style={{display: 'inline-block'}} emojiName=":wave:" size={14} />
+            </Text>
+          )}
         </Text>
         {manageComponent}
       </Box>
@@ -132,15 +124,18 @@ type ComplexTeamProps = Props & {info: SimpleToComplexTeamInfo}
 
 const ComplexTeamNotice = ({channelname, message, info, onManageChannels, you}: ComplexTeamProps) => {
   const teamname = info.team
-  const authorComponent = message.author === you
-    ? 'You'
-    : <ConnectedUsernames
+  const authorComponent =
+    message.author === you ? (
+      'You'
+    ) : (
+      <ConnectedUsernames
         clickable={true}
         inline={true}
         type="BodySmallSemibold"
         colorFollowing={true}
         usernames={[message.author]}
       />
+    )
   return (
     <UserNotice
       style={{marginTop: globalMargins.small}}
@@ -163,32 +158,31 @@ const ComplexTeamNotice = ({channelname, message, info, onManageChannels, you}: 
         </Text>
         <Box style={{...globalStyles.flexBoxColumn, marginTop: globalMargins.xtiny}}>
           <Box style={{...globalStyles.flexBoxRow}}>
-            <Text type="BodySmallSemibold" style={{marginRight: globalMargins.tiny}}>{'\u2022'}</Text>
+            <Text type="BodySmallSemibold" style={{marginRight: globalMargins.tiny}}>
+              {'\u2022'}
+            </Text>
             <Text type="BodySmallSemibold">
               Your team channels will now appear in the "Big teams" section of the inbox.
             </Text>
           </Box>
           <Box style={{...globalStyles.flexBoxRow, marginTop: globalMargins.tiny}}>
-            <Text type="BodySmallSemibold" style={{marginRight: globalMargins.tiny}}>{'\u2022'}</Text>
+            <Text type="BodySmallSemibold" style={{marginRight: globalMargins.tiny}}>
+              {'\u2022'}
+            </Text>
             <Text type="BodySmallSemibold">
-              Notifications will no longer happen for every message.
-              {' '}
-              {isMobile ? 'Tap' : 'Click on'}
-              {' '}
-              the
-              {' '}
+              Notifications will no longer happen for every message. {isMobile ? 'Tap' : 'Click on'} the{' '}
               <Box style={{display: 'inline-block'}}>
                 <Icon type="iconfont-info" style={{fontSize: 11}} />
-              </Box>
-              {' '}
+              </Box>{' '}
               to configure them.
             </Text>
           </Box>
           <Box style={{...globalStyles.flexBoxRow, marginTop: globalMargins.tiny}}>
-            <Text type="BodySmallSemibold" style={{marginRight: globalMargins.tiny}}>{'\u2022'}</Text>
+            <Text type="BodySmallSemibold" style={{marginRight: globalMargins.tiny}}>
+              {'\u2022'}
+            </Text>
             <Text type="BodySmallSemibold">
-              Everyone can now create and join channels.
-              {' '}
+              Everyone can now create and join channels.{' '}
               <Text
                 onClick={() => onManageChannels(teamname || '')}
                 type="BodySmallSemiboldInlineLink"
@@ -219,24 +213,22 @@ const InviteAddedToTeamNotice = ({
   if (you === invitee) {
     copy = (
       <Text type="BodySmallSemibold" style={{textAlign: 'center'}}>
-        Welcome to
-        {' '}
-        <Text type="BodySmallSemibold" style={{color: globalColors.black_60}}>{team}</Text>
-        . Say hi!
-        {' '}
+        Welcome to{' '}
+        <Text type="BodySmallSemibold" style={{color: globalColors.black_60}}>
+          {team}
+        </Text>
+        . Say hi!{' '}
         <EmojiIfExists style={{display: isMobile ? 'flex' : 'inline-block'}} emojiName=":wave:" size={14} />
       </Text>
     )
   } else {
     copy = (
       <Text type="BodySmallSemibold" style={{textAlign: 'center'}}>
-        <ConnectedUsernames {...connectedUsernamesProps} usernames={[invitee]} />
-        {' '}
-        just joined {team}. {you === inviter ? 'You invited them' : 'They were invited by '}
-        {you !== inviter && <ConnectedUsernames {...connectedUsernamesProps} usernames={[inviter]} />}
-        {' '}
-        via {inviteType}, and they were just now auto-added to the team sigchain by
-        {' '}
+        <ConnectedUsernames {...connectedUsernamesProps} usernames={[invitee]} /> just joined {team}.{' '}
+        {you === inviter ? 'You invited them' : 'They were invited by '}
+        {you !== inviter && (
+          <ConnectedUsernames {...connectedUsernamesProps} usernames={[inviter]} />
+        )} via {inviteType}, and they were just now auto-added to the team sigchain by{' '}
         {you === adder ? 'you' : <ConnectedUsernames {...connectedUsernamesProps} usernames={[adder]} />}
         , the first available admin.
       </Text>
@@ -250,14 +242,13 @@ const InviteAddedToTeamNotice = ({
       teamname={invitee === you ? team : undefined}
       bgColor={globalColors.blue4}
     >
-      {you === invitee &&
-        <Icon type="icon-team-sparkles-48-40" style={{marginTop: -36, width: 48, height: 40}} />}
+      {you === invitee && (
+        <Icon type="icon-team-sparkles-48-40" style={{marginTop: -36, width: 48, height: 40}} />
+      )}
       <Text type="BodySmallSemibold" backgroundMode="Announcements" style={{color: globalColors.black_40}}>
         {formatTimeForMessages(message.timestamp)}
       </Text>
-      <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center'}}>
-        {copy}
-      </Box>
+      <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center'}}>{copy}</Box>
     </UserNotice>
   )
 }

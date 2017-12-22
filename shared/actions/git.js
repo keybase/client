@@ -19,9 +19,8 @@ function* _loadGit(action: GitGen.LoadGitPayload): Saga.SagaGenerator<any, any> 
   yield Saga.put(GitGen.createSetLoading({loading: true}))
 
   try {
-    const results: Array<RPCTypes.GitRepoResult> = yield Saga.call(
-      RPCTypes.gitGetAllGitMetadataRpcPromise
-    ) || []
+    const results: Array<RPCTypes.GitRepoResult> = yield Saga.call(RPCTypes.gitGetAllGitMetadataRpcPromise) ||
+      []
 
     let idToInfo = {}
 

@@ -80,12 +80,18 @@ function actionReduxTypeName(ns: ActionNS, actionName: ActionName): string {
 
 function printPayload(p: Object) {
   return Object.keys(p).length
-    ? '(payload: {|' + Object.keys(p).map(key => `+${key}: ${p[key]}`).join(',\n') + '|})'
+    ? '(payload: {|' +
+        Object.keys(p)
+          .map(key => `+${key}: ${p[key]}`)
+          .join(',\n') +
+        '|})'
     : '()'
 }
 
 function compileActionPayloads(ns: ActionNS, actionName: ActionName, desc: ActionDesc) {
-  return `export type ${capitalize(actionName)}Payload = More.ReturnType<typeof create${capitalize(actionName)}>`
+  return `export type ${capitalize(actionName)}Payload = More.ReturnType<typeof create${capitalize(
+    actionName
+  )}>`
 }
 
 function compileActionCreator(ns: ActionNS, actionName: ActionName, desc: ActionDesc) {
@@ -108,14 +114,6 @@ function compileReduxTypeConstant(ns: ActionNS, actionName: ActionName, desc: Ac
   return `export const ${actionName} = ${actionReduxTypeName(ns, actionName)}`
 }
 
-// load prettier rules from eslintrc
-const prettierOptions = json5.parse(
-  fs.readFileSync(path.join(__dirname, '../../../.eslintrc'), {encoding: 'utf8'})
-).rules['prettier/prettier'][1]
-
-// Allow extra wide
-prettierOptions.printWidth = 500
-
 function main() {
   const root = path.join(__dirname, '../../actions/json')
   const files = fs.readdirSync(root)
@@ -123,8 +121,8 @@ function main() {
     const ns = path.basename(file, '.json')
     console.log(`Generating ${ns}`)
     const desc = json5.parse(fs.readFileSync(path.join(root, file)))
-    const generated = prettier.format(compile(ns, desc), prettierOptions)
     const outPath = path.join(root, '..', ns + '-gen.js')
+    const generated = prettier.format(compile(ns, desc), prettier.resolveConfig.sync(outPath))
     console.log(generated)
     fs.writeFileSync(outPath, generated)
   })

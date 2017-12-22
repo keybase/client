@@ -46,11 +46,7 @@ const ClickableBox = ({
       )
     }
   } else {
-    return (
-      <Box style={style}>
-        {children}
-      </Box>
-    )
+    return <Box style={style}>{children}</Box>
   }
 }
 

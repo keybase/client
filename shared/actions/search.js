@@ -230,11 +230,12 @@ function* search({payload: {term, service, searchKey}}: SearchGen.SearchPayload)
 }
 
 function* searchSuggestions({payload: {maxUsers, searchKey}}: SearchGen.SearchSuggestionsPayload) {
-  let suggestions: Array<
-    RPCTypes.InterestingPerson
-  > = yield Saga.call(RPCTypes.userInterestingPeopleRpcPromise, {
-    maxUsers: maxUsers || 50,
-  })
+  let suggestions: Array<RPCTypes.InterestingPerson> = yield Saga.call(
+    RPCTypes.userInterestingPeopleRpcPromise,
+    {
+      maxUsers: maxUsers || 50,
+    }
+  )
 
   // No search results (e.g. this user doesn't follow/chat anyone)
   suggestions = suggestions || []

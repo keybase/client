@@ -29,8 +29,14 @@ const NonUserRender = (props: Props) => (
               {props.username}
             </Text>
           </Box>
-          {props.fullname && <Text type="BodySemibold" style={styleFullname}>{props.fullname}</Text>}
-          <Text type="BodySmall" style={styleServiceLabel}>{props.serviceName} user</Text>
+          {props.fullname && (
+            <Text type="BodySemibold" style={styleFullname}>
+              {props.fullname}
+            </Text>
+          )}
+          <Text type="BodySmall" style={styleServiceLabel}>
+            {props.serviceName} user
+          </Text>
           <Button
             style={{marginTop: globalMargins.medium}}
             onClick={props.onStartChat}
@@ -46,10 +52,11 @@ const NonUserRender = (props: Props) => (
         </Box>
       </Box>
       <Box style={styleRightColumn}>
-        <Text
-          type="BodySmall"
-          style={styleDetails}
-        >{`When ${props.username} connects Keybase and their ${capitalize(props.serviceName)} account, your computer will verify them and rekey the folder or conversation.`}</Text>
+        <Text type="BodySmall" style={styleDetails}>{`When ${
+          props.username
+        } connects Keybase and their ${capitalize(
+          props.serviceName
+        )} account, your computer will verify them and rekey the folder or conversation.`}</Text>
       </Box>
     </Box>
   </Box>

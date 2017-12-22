@@ -95,7 +95,7 @@ class Row extends React.Component<Props, State> {
             {this.props.isNew && <Meta title="New" style={_metaStyle} />}
           </Box>
         </ClickableBox>
-        {this.props.expanded &&
+        {this.props.expanded && (
           <Box style={_rowBottomStyle}>
             <Box
               style={{
@@ -129,8 +129,9 @@ class Row extends React.Component<Props, State> {
                 </ClickableBox>
               </Box>
               {!isMobile &&
-                this.props.canDelete &&
-                <Button type="Danger" small={true} label="Delete repo" onClick={this.props.onShowDelete} />}
+                this.props.canDelete && (
+                  <Button type="Danger" small={true} label="Delete repo" onClick={this.props.onShowDelete} />
+                )}
               <Box style={{alignSelf: 'flex-start', position: 'relative'}}>
                 <Copied showing={this.state.showingCopy} />
               </Box>
@@ -146,47 +147,56 @@ class Row extends React.Component<Props, State> {
               }}
             >
               <Text type="BodySmall">
-                {`Last push ${this.props.lastEditTime}${!!this.props.teamname && !!this.props.lastEditUser ? ' by ' : ''}`}
+                {`Last push ${this.props.lastEditTime}${
+                  !!this.props.teamname && !!this.props.lastEditUser ? ' by ' : ''
+                }`}
               </Text>
               {!!this.props.teamname &&
-                !!this.props.lastEditUser &&
-                <Avatar
-                  username={this.props.lastEditUser}
-                  size={isMobile ? 16 : 12}
-                  style={{marginLeft: isMobile ? 0 : 4}}
-                />}
-              {!!this.props.teamname &&
-                !!this.props.lastEditUser &&
-                <Box style={{marginLeft: 2}}>
-                  <Usernames
-                    type="BodySmallSemibold"
-                    underline={true}
-                    colorFollowing={true}
-                    users={[{following: this.props.lastEditUserFollowing, username: this.props.lastEditUser}]}
-                    onUsernameClicked={() => this.props.openUserTracker(this.props.lastEditUser)}
+                !!this.props.lastEditUser && (
+                  <Avatar
+                    username={this.props.lastEditUser}
+                    size={isMobile ? 16 : 12}
+                    style={{marginLeft: isMobile ? 0 : 4}}
                   />
-                </Box>}
-              {isMobile && <Text type="BodySmall">.{' '}</Text>}
+                )}
+              {!!this.props.teamname &&
+                !!this.props.lastEditUser && (
+                  <Box style={{marginLeft: 2}}>
+                    <Usernames
+                      type="BodySmallSemibold"
+                      underline={true}
+                      colorFollowing={true}
+                      users={[
+                        {following: this.props.lastEditUserFollowing, username: this.props.lastEditUser},
+                      ]}
+                      onUsernameClicked={() => this.props.openUserTracker(this.props.lastEditUser)}
+                    />
+                  </Box>
+                )}
+              {isMobile && <Text type="BodySmall">. </Text>}
               <Text type="BodySmall">
                 <Text type="BodySmall">
                   {isMobile ? 'Signed and encrypted using device' : ', signed and encrypted using device'}
                 </Text>
                 <Text type="BodySmall" style={_deviceStyle} onClick={this.props.onClickDevice}>
-                  {' '}{this.props.devicename}
+                  {' '}
+                  {this.props.devicename}
                 </Text>
                 <Text type="BodySmall">.</Text>
               </Text>
             </Box>
             {isMobile &&
-              this.props.canDelete &&
-              <Button
-                type="Danger"
-                small={false}
-                label="Delete repo"
-                onClick={this.props.onShowDelete}
-                style={{marginTop: globalMargins.tiny, alignSelf: 'flex-start'}}
-              />}
-          </Box>}
+              this.props.canDelete && (
+                <Button
+                  type="Danger"
+                  small={false}
+                  label="Delete repo"
+                  onClick={this.props.onShowDelete}
+                  style={{marginTop: globalMargins.tiny, alignSelf: 'flex-start'}}
+                />
+              )}
+          </Box>
+        )}
       </Box>
     )
   }
@@ -208,7 +218,9 @@ const Copied = ({showing}) => (
       top: -28,
     }}
   >
-    <Text type="BodySmall" backgroundMode="Terminal" style={{color: globalColors.white}}>Copied!</Text>
+    <Text type="BodySmall" backgroundMode="Terminal" style={{color: globalColors.white}}>
+      Copied!
+    </Text>
   </Box>
 )
 

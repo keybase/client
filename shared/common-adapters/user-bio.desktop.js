@@ -70,13 +70,14 @@ class BioRender extends Component<Props> {
 
     return (
       <Box style={{minHeight: 190, ...this.props.style}}>
-        {loading &&
+        {loading && (
           <BioLoading
             key="loading-state"
             loading={loading}
             style={this.props.style}
             avatarSize={this.props.avatarSize}
-          />}
+          />
+        )}
         <Box style={stylesContainer}>
           <Box
             style={{
@@ -96,14 +97,15 @@ class BioRender extends Component<Props> {
               following={currentlyFollowing && !editFns}
               followsYou={followsYou && !editFns}
             />
-            {editFns &&
+            {editFns && (
               <Box style={{height: 16, width: 0}}>
                 <Icon
                   type="iconfont-edit"
                   onClick={editFns.onEditAvatarClick}
                   style={stylesEditAvatarIcon(avatarSize)}
                 />
-              </Box>}
+              </Box>
+            )}
           </Box>
           <Box style={{...stylesContent, ...globalStyles.fadeOpacity, opacity: loading ? 0 : 1}}>
             <Text
@@ -113,26 +115,30 @@ class BioRender extends Component<Props> {
             >
               {username}
             </Text>
-            <Text type="BodyBig" style={stylesFullname} {...nameTweaks}>{userInfo.fullname}</Text>
+            <Text type="BodyBig" style={stylesFullname} {...nameTweaks}>
+              {userInfo.fullname}
+            </Text>
             {!userInfo.fullname &&
-              editFns &&
-              <Text
-                type="BodySemibold"
-                style={{...stylesFullname, color: globalColors.black_20}}
-                {...nameTweaks}
-              >
-                Your full name
-              </Text>}
+              editFns && (
+                <Text
+                  type="BodySemibold"
+                  style={{...stylesFullname, color: globalColors.black_20}}
+                  {...nameTweaks}
+                >
+                  Your full name
+                </Text>
+              )}
             {!editFns &&
-              followLabel &&
-              <Text type="BodySmall" style={{...stylesFollowLabel, marginTop: 4}}>{followLabel}</Text>}
-            {userInfo.followersCount !== -1 &&
+              followLabel && (
+                <Text type="BodySmall" style={{...stylesFollowLabel, marginTop: 4}}>
+                  {followLabel}
+                </Text>
+              )}
+            {userInfo.followersCount !== -1 && (
               <Box style={{...globalStyles.flexBoxRow, margin: 4}}>
                 <Text type="BodySmall" style={globalStyles.fontBold}>
                   {userInfo.followersCount}
-                  <Text type="BodySmall">
-                    &nbsp;Follower{userInfo.followersCount === 1 ? '' : 's'}
-                  </Text>
+                  <Text type="BodySmall">&nbsp;Follower{userInfo.followersCount === 1 ? '' : 's'}</Text>
                 </Text>
                 <Text type="BodySmall">&nbsp; &middot; &nbsp;</Text>
                 <Text type="BodySmall">
@@ -141,8 +147,9 @@ class BioRender extends Component<Props> {
                     {userInfo.followingCount}
                   </Text>
                 </Text>
-              </Box>}
-            {userInfo.bio &&
+              </Box>
+            )}
+            {userInfo.bio && (
               <Text
                 type={this.props.type === 'Profile' ? 'Body' : 'BodySmall'}
                 style={{...stylesBio, ...stylesBioType[this.props.type]}}
@@ -150,40 +157,45 @@ class BioRender extends Component<Props> {
                 {...bioTweaks}
               >
                 {userInfo.bio}
-              </Text>}
+              </Text>
+            )}
             {!userInfo.bio &&
-              editFns &&
-              <Text
-                type={this.props.type === 'Profile' ? 'Body' : 'BodySmall'}
-                onClick={editFns.onBioEdit}
-                style={{...stylesBio, ...stylesBioType[this.props.type], color: globalColors.black_20}}
-                {...bioTweaks}
-                {...bioLineClamp}
-              >
-                Write a brief bio
-              </Text>}
+              editFns && (
+                <Text
+                  type={this.props.type === 'Profile' ? 'Body' : 'BodySmall'}
+                  onClick={editFns.onBioEdit}
+                  style={{...stylesBio, ...stylesBioType[this.props.type], color: globalColors.black_20}}
+                  {...bioTweaks}
+                  {...bioLineClamp}
+                >
+                  Write a brief bio
+                </Text>
+              )}
 
-            {userInfo.location &&
+            {userInfo.location && (
               <Text type="BodySmall" style={stylesLocation} {...locationLineClamp} {...locationTweaks}>
                 {userInfo.location}
-              </Text>}
+              </Text>
+            )}
             {!userInfo.location &&
-              editFns &&
-              <Text
-                type="BodySmall"
-                style={{...stylesLocation, color: globalColors.black_20}}
-                {...locationLineClamp}
-                {...locationTweaks}
-              >
-                Wherever, Earth
-              </Text>}
-            {editFns &&
+              editFns && (
+                <Text
+                  type="BodySmall"
+                  style={{...stylesLocation, color: globalColors.black_20}}
+                  {...locationLineClamp}
+                  {...locationTweaks}
+                >
+                  Wherever, Earth
+                </Text>
+              )}
+            {editFns && (
               <Button
                 style={{marginTop: globalMargins.small}}
                 type="Primary"
                 label="Edit profile"
                 onClick={editFns.onEditProfile}
-              />}
+              />
+            )}
           </Box>
         </Box>
       </Box>

@@ -32,7 +32,10 @@ function* startNewConversation(
   } else {
     const existing = Constants.getInbox(state, oldKey)
     if (existing) {
-      tlfName = existing.get('participants').sort().join(',')
+      tlfName = existing
+        .get('participants')
+        .sort()
+        .join(',')
     }
   }
 

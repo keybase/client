@@ -120,9 +120,10 @@ function _openFolder(_: ChatGen.OpenFolderPayload, state: TypedState) {
       }
       path = teamFolder(inbox.teamname)
     } else {
-      const helper = inbox.visibility === RPCTypes.commonTLFVisibility.public
-        ? publicFolderWithUsers
-        : privateFolderWithUsers
+      const helper =
+        inbox.visibility === RPCTypes.commonTLFVisibility.public
+          ? publicFolderWithUsers
+          : privateFolderWithUsers
       path = helper(inbox.get('participants').toArray())
     }
     return Saga.put(KBFSGen.createOpen({path}))

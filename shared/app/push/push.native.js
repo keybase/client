@@ -40,10 +40,10 @@ const Push = (props: Props) => (
           />
         </Box>
         <Text type="BodySmallSemibold" style={{textAlign: 'center', color: globalColors.black}}>
-          It's
-          {' '}
-          <Text type="BodySmallSemiboldItalic" style={{color: globalColors.black}}>very</Text>
-          {' '}
+          It's{' '}
+          <Text type="BodySmallSemiboldItalic" style={{color: globalColors.black}}>
+            very
+          </Text>{' '}
           important you enable notifications.
         </Text>
         <Text
@@ -55,7 +55,8 @@ const Push = (props: Props) => (
             color: globalColors.black,
           }}
         >
-          This phone may need to perform crypto for you, which the Keybase servers cannot do. For example, if you provision a new device, this phone will be contacted.
+          This phone may need to perform crypto for you, which the Keybase servers cannot do. For example, if
+          you provision a new device, this phone will be contacted.
         </Text>
         <Button
           type="Primary"

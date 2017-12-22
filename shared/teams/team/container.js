@@ -60,9 +60,10 @@ const mapStateToProps = (state: TypedState, {routeProps, routeState}): StateProp
     loading: state.entities.getIn(['teams', 'teamNameToLoading', teamname], true),
     memberCount: state.entities.getIn(['teams', 'teammembercounts', teamname], 0),
     name: teamname,
-    openTeamRole: Constants.teamRoleByEnum[
-      state.entities.getIn(['teams', 'teamNameToTeamSettings', teamname], {joinAs: 'reader'}).joinAs
-    ],
+    openTeamRole:
+      Constants.teamRoleByEnum[
+        state.entities.getIn(['teams', 'teamNameToTeamSettings', teamname], {joinAs: 'reader'}).joinAs
+      ],
     publicityAnyMember: state.entities.getIn(
       ['teams', 'teamNameToPublicitySettings', teamname, 'anyMemberShowcase'],
       false

@@ -261,16 +261,15 @@ function* _refreshNotificationsSaga(): Saga.SagaGenerator<any, any> {
     )
   })
 
-  const [
-    json: ?{body: string},
-    chatGlobalSettings: ChatTypes.GlobalAppNotificationSettings,
-  ] = yield Saga.all([
-    Saga.call(RPCTypes.apiserverGetWithSessionRpcPromise, {
-      endpoint: 'account/subscriptions',
-      args: [],
-    }),
-    Saga.call(ChatTypes.localGetGlobalAppNotificationSettingsLocalRpcPromise),
-  ])
+  const [json: ?{body: string}, chatGlobalSettings: ChatTypes.GlobalAppNotificationSettings] = yield Saga.all(
+    [
+      Saga.call(RPCTypes.apiserverGetWithSessionRpcPromise, {
+        endpoint: 'account/subscriptions',
+        args: [],
+      }),
+      Saga.call(ChatTypes.localGetGlobalAppNotificationSettingsLocalRpcPromise),
+    ]
+  )
   yield Saga.cancel(delayThenEmptyTask)
 
   const results: {
@@ -299,9 +298,8 @@ function* _refreshNotificationsSaga(): Saga.SagaGenerator<any, any> {
       {
         name: 'plaintextmobile',
         description: 'Display mobile plaintext notifications',
-        subscribed: chatGlobalSettings.settings[
-          `${ChatTypes.commonGlobalAppNotificationSetting.plaintextmobile}`
-        ],
+        subscribed:
+          chatGlobalSettings.settings[`${ChatTypes.commonGlobalAppNotificationSetting.plaintextmobile}`],
       },
     ],
     unsub: false,

@@ -45,7 +45,9 @@ const Row = (
       >
         #{props.name}
       </Text>
-      <Text type="BodySmall" lineClamp={1}>{props.description}</Text>
+      <Text type="BodySmall" lineClamp={1}>
+        {props.description}
+      </Text>
     </Box>
     <Edit
       style={{
@@ -72,7 +74,9 @@ const ManageChannels = (props: Props) => (
     <ScrollView style={{alignSelf: 'flex-start', width: '100%'}}>
       <Box style={_createStyle}>
         <Icon style={_createIcon} type="iconfont-new" onClick={props.onCreate} />
-        <Text type="BodyBigLink" onClick={props.onCreate}>New chat channel</Text>
+        <Text type="BodyBigLink" onClick={props.onCreate}>
+          New chat channel
+        </Text>
       </Box>
       {props.channels.map(c => (
         <Row

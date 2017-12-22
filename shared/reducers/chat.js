@@ -206,7 +206,10 @@ function reducer(
       const {participants, temporary} = action.payload
       const sorted = participants.sort()
       const conversationIDKey = Constants.pendingConversationIDKey(sorted.join(','))
-      const tempPendingConvIDs = state.tempPendingConversations.filter(v => v).keySeq().toArray()
+      const tempPendingConvIDs = state.tempPendingConversations
+        .filter(v => v)
+        .keySeq()
+        .toArray()
       return state
         .update('pendingConversations', pendingConversations =>
           // TODO use deleteAll when we update immutable
@@ -219,7 +222,10 @@ function reducer(
         )
     }
     case ChatGen.removeTempPendingConversations: {
-      const tempPendingConvIDs = state.tempPendingConversations.filter(v => v).keySeq().toArray()
+      const tempPendingConvIDs = state.tempPendingConversations
+        .filter(v => v)
+        .keySeq()
+        .toArray()
       return state
         .update('tempPendingConversations', tempPendingConversations => tempPendingConversations.clear())
         .update('pendingConversations', pendingConversations =>
@@ -374,7 +380,7 @@ function reducer(
 
     default:
       // eslint-disable-next-line no-unused-expressions
-      (action: empty) // if you get a flow error here it means there's an action you claim to handle but didn't
+      ;(action: empty) // if you get a flow error here it means there's an action you claim to handle but didn't
       return state
   }
 }

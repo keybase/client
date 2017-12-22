@@ -22,7 +22,9 @@ const Offline = ({reachable}: Props) => {
   return (
     <Box style={containerOverlayStyle}>
       <Box style={overlayRowStyle}>
-        <Text type="BodySemibold" style={textStyle}>{message}</Text>
+        <Text type="BodySemibold" style={textStyle}>
+          {message}
+        </Text>
       </Box>
       <Box style={overlayFillStyle}>
         <Icon type="icon-loader-connecting-266" />

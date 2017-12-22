@@ -22,7 +22,9 @@ class DumbSheetRender extends Component<Props, any> {
   }
 
   _onNext = (key, offset) => {
-    const keys = Object.keys(dumbComponentMap).map(k => k.toLowerCase()).sort()
+    const keys = Object.keys(dumbComponentMap)
+      .map(k => k.toLowerCase())
+      .sort()
     const idx = keys.indexOf(key.toLowerCase())
 
     if (idx === -1) {
@@ -135,14 +137,24 @@ class DumbSheetRender extends Component<Props, any> {
           return (
             <Box key={key} style={styleBox}>
               <Box style={{...globalStyles.flexBoxRow, justifyContent: 'space-between', marginBottom: 5}}>
-                <Text type="Header" onClick={() => this._onNext(key, -1)}>&lt;&nbsp;</Text>
-                <Text type="Header" onClick={() => this._onFilterChange(`'${key}'`)}>{key}</Text>
-                <Text type="Header" onClick={() => this._onNext(key, 1)}>&nbsp;&gt;</Text>
+                <Text type="Header" onClick={() => this._onNext(key, -1)}>
+                  &lt;&nbsp;
+                </Text>
+                <Text type="Header" onClick={() => this._onFilterChange(`'${key}'`)}>
+                  {key}
+                </Text>
+                <Text type="Header" onClick={() => this._onNext(key, 1)}>
+                  &nbsp;&gt;
+                </Text>
               </Box>
               {items}
               <Box style={{...globalStyles.flexBoxRow, justifyContent: 'space-between', marginTop: 5}}>
-                <Text type="Header" onClick={() => this._onNext(key, -1)}>&lt;&nbsp;</Text>
-                <Text type="Header" onClick={() => this._onNext(key, 1)}>&nbsp;&gt;</Text>
+                <Text type="Header" onClick={() => this._onNext(key, -1)}>
+                  &lt;&nbsp;
+                </Text>
+                <Text type="Header" onClick={() => this._onNext(key, 1)}>
+                  &nbsp;&gt;
+                </Text>
               </Box>
             </Box>
           )

@@ -8,7 +8,8 @@ import {globalColors, globalMargins, globalStyles} from '../styles'
 class ModalLessPopupMenu extends Component<Props> {
   render() {
     const realCSS = `
-    .menu-hover:hover { background-color: ${(this.props.style && this.props.style.hoverColor) || globalColors.blue4}; }
+    .menu-hover:hover { background-color: ${(this.props.style && this.props.style.hoverColor) ||
+      globalColors.blue4}; }
     .menu-hover-danger:hover { background-color: ${globalColors.red}; }
 
     .menu-hover .title { color: ${globalColors.black_75}; }
@@ -60,7 +61,7 @@ class ModalLessPopupMenu extends Component<Props> {
                   >
                     {i.title}
                   </Text>
-                  {i.subTitle &&
+                  {i.subTitle && (
                     <Text
                       className="subtitle"
                       key={i.subTitle}
@@ -68,7 +69,8 @@ class ModalLessPopupMenu extends Component<Props> {
                       style={{...stylesMenuText, ...i.style}}
                     >
                       {i.subTitle}
-                    </Text>}
+                    </Text>
+                  )}
                 </Box>
               )
             })}
@@ -103,7 +105,8 @@ class PopupMenu extends Component<Props> {
 class OLDPopupMenu extends Component<Props> {
   render() {
     const realCSS = `
-    .menu-hover:hover { background-color: ${(this.props.style && this.props.style.hoverColor) || globalColors.blue4}; }
+    .menu-hover:hover { background-color: ${(this.props.style && this.props.style.hoverColor) ||
+      globalColors.blue4}; }
     .menu-hover-danger:hover { background-color: ${globalColors.red}; }
 
     .menu-hover .title { color: ${globalColors.black_75}; }
@@ -162,7 +165,7 @@ class OLDPopupMenu extends Component<Props> {
                     >
                       {i.title}
                     </Text>
-                    {i.subTitle &&
+                    {i.subTitle && (
                       <Text
                         className="subtitle"
                         key={i.subTitle}
@@ -170,7 +173,8 @@ class OLDPopupMenu extends Component<Props> {
                         style={{...stylesMenuText, ...i.style}}
                       >
                         {i.subTitle}
-                      </Text>}
+                      </Text>
+                    )}
                   </Box>
                 )
               })}

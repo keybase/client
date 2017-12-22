@@ -135,9 +135,8 @@ function fuseStatusUpdateSaga({payload: {prevStatus, status}}: KBFSGen.FuseStatu
 
 function* installFuseSaga(): Saga.SagaGenerator<any, any> {
   const result: RPCTypes.InstallResult = yield Saga.call(RPCTypes.installInstallFuseRpcPromise)
-  const fuseResults = result && result.componentResults
-    ? result.componentResults.filter(c => c.name === 'fuse')
-    : []
+  const fuseResults =
+    result && result.componentResults ? result.componentResults.filter(c => c.name === 'fuse') : []
   const kextPermissionError =
     fuseResults.length > 0 && fuseResults[0].exitCode === ExitCodeFuseKextPermissionError
 

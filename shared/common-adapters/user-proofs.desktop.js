@@ -104,20 +104,24 @@ class ProofRow extends React.PureComponent<ProofRowProps, ProofRowState> {
               >
                 {proof.name}
               </Text>
-              {proof.id &&
+              {proof.id && (
                 <Text className="no-underline" type="Body" style={styleProofType}>
-                  <wbr />@{proof.type}<wbr />
-                </Text>}
+                  <wbr />@{proof.type}
+                  <wbr />
+                </Text>
+              )}
             </Text>
             {proof.meta &&
-              proof.meta !== metaNone &&
-              <Meta title={proof.meta} style={{backgroundColor: shared.metaColor(proof), marginTop: 1}} />}
+              proof.meta !== metaNone && (
+                <Meta title={proof.meta} style={{backgroundColor: shared.metaColor(proof), marginTop: 1}} />
+              )}
           </Box>
         </Box>
         <Box style={styleProofMenuButton} onClick={() => onClickStatus(proof)}>
-          {proofStatusIconType &&
-            <Icon type={proofStatusIconType} style={{color: shared.proofColor(proof, true)}} />}
-          {hasMenu &&
+          {proofStatusIconType && (
+            <Icon type={proofStatusIconType} style={{color: shared.proofColor(proof, true)}} />
+          )}
+          {hasMenu && (
             <Icon
               type="iconfont-caret-down"
               style={{
@@ -126,7 +130,8 @@ class ProofRow extends React.PureComponent<ProofRowProps, ProofRowState> {
                 marginLeft: menuButtonVisible ? globalMargins.xtiny - 2 : -12,
                 opacity: menuButtonVisible ? 1 : 0,
               }}
-            />}
+            />
+          )}
         </Box>
       </Box>
     )
@@ -190,7 +195,9 @@ class ProofsRender extends React.Component<Props> {
         text-decoration: underline;
       }
       .user-proof-row .user-proof-row__name, .user-proof-row .user-proof-row__icon {
-        color: ${globalColors.black_20} !important; /* Must use important because Text has a default color which is set inline */
+        color: ${
+          globalColors.black_20
+        } !important; /* Must use important because Text has a default color which is set inline */
       }
       .user-proof-row:hover .user-proof-row__name, .user-proof-row:hover .user-proof-row__icon {
         color: ${globalColors.black_60} !important;
@@ -200,33 +207,35 @@ class ProofsRender extends React.Component<Props> {
     return (
       <Box style={{...styleContainer(loading), ...style}}>
         <TransitionGroup>
-          {loading
-            ? <CSSTransition classNames="fade-anim" timeout={{exit: 250, enter: 250}}>
-                <IgnorePropsBox key="loading" onlyProps={{style: {...styleLoading, ...loadingStyle}}}>
-                  {[147, 77, 117].map((w, idx) => <LoadingProofRow key={idx} textBlockWidth={w} />)}
-                </IgnorePropsBox>
-              </CSSTransition>
-            : <IgnorePropsBox key="non-loading">
-                {this.props.type === 'proofs' &&
-                  this.props.proofs.map((p, idx) => (
-                    <ProofRow
-                      key={`${p.id || ''}${p.type}`}
-                      ref={c => {
-                        this._rows[idx] = c
-                      }}
-                      proof={p}
-                      onClickStatus={onClickProofMenu ? () => onClickProofMenu(idx) : this._onClickProof}
-                      onClickProfile={this._onClickProfile}
-                      hasMenu={!!onClickProofMenu}
-                      showingMenu={idx === showingMenuIndex}
-                    />
-                  ))}
-                {this.props.type === 'missingProofs' &&
-                  this.props.missingProofs.map((mp, idx) => (
-                    <MissingProofRow key={mp.type} missingProof={mp} />
-                  ))}
-                {this.props.type === 'missingProofs' && <style>{missingProofsRealCSS}</style>}
-              </IgnorePropsBox>}
+          {loading ? (
+            <CSSTransition classNames="fade-anim" timeout={{exit: 250, enter: 250}}>
+              <IgnorePropsBox key="loading" onlyProps={{style: {...styleLoading, ...loadingStyle}}}>
+                {[147, 77, 117].map((w, idx) => <LoadingProofRow key={idx} textBlockWidth={w} />)}
+              </IgnorePropsBox>
+            </CSSTransition>
+          ) : (
+            <IgnorePropsBox key="non-loading">
+              {this.props.type === 'proofs' &&
+                this.props.proofs.map((p, idx) => (
+                  <ProofRow
+                    key={`${p.id || ''}${p.type}`}
+                    ref={c => {
+                      this._rows[idx] = c
+                    }}
+                    proof={p}
+                    onClickStatus={onClickProofMenu ? () => onClickProofMenu(idx) : this._onClickProof}
+                    onClickProfile={this._onClickProfile}
+                    hasMenu={!!onClickProofMenu}
+                    showingMenu={idx === showingMenuIndex}
+                  />
+                ))}
+              {this.props.type === 'missingProofs' &&
+                this.props.missingProofs.map((mp, idx) => (
+                  <MissingProofRow key={mp.type} missingProof={mp} />
+                ))}
+              {this.props.type === 'missingProofs' && <style>{missingProofsRealCSS}</style>}
+            </IgnorePropsBox>
+          )}
         </TransitionGroup>
       </Box>
     )

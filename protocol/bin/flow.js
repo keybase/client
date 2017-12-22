@@ -8,14 +8,6 @@ const path = require('path')
 const camelcase = require('camelcase')
 const colors = require('colors')
 
-// load prettier rules from eslintrc
-const prettierOptions = json5.parse(
-  fs.readFileSync(path.join(__dirname, '../../.eslintrc'), {encoding: 'utf8'})
-).rules['prettier/prettier'][1]
-
-// Allow extra wide
-prettierOptions.printWidth = 9999
-
 var projects = {
   chat1: {
     root: './json/chat1',
@@ -370,9 +362,8 @@ import type {Boolean, Bool, Bytes, Double, Int, Int64, Long, String, Uint, Uint6
     Object.keys(project.incomingMaps).map(im => `  '${im}'?: ${project.incomingMaps[im]}`).join(',') +
     '|}\n'
   const toWrite = [typePrelude, typeDefs.join('\n'), incomingMap].join('\n')
-  // const formatted = prettier.format(toWrite, prettierOptions)
-  // TODO disabling prettier short term
-  fs.writeFileSync(project.out, /*formatted*/ toWrite)
+  const formatted = prettier.format(toWrite, prettier.resolveConfig.sync(project.out))
+  fs.writeFileSync(project.out, formatted)
 }
 
 function decapitalize(s) {

@@ -9,7 +9,7 @@ import type {Props} from '.'
 const EntryComponent = ({errorText, name, onNameChange, onSubmit}) => (
   <ScrollView>
     <Box style={globalStyles.flexBoxColumn}>
-      {!!errorText &&
+      {!!errorText && (
         <Box
           style={{
             ...styleContainer,
@@ -23,7 +23,8 @@ const EntryComponent = ({errorText, name, onNameChange, onSubmit}) => (
           >
             {errorText}
           </Text>
-        </Box>}
+        </Box>
+      )}
       <Box
         style={{
           ...globalStyles.flexBoxColumn,

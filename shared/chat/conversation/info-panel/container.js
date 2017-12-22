@@ -130,12 +130,13 @@ const mergeProps = (stateProps, dispatchProps) => ({
     }
   },
   onJoinChannel: () => dispatchProps._onJoinChannel(stateProps.selectedConversationIDKey),
-  onMuteConversation: stateProps.selectedConversationIDKey &&
+  onMuteConversation:
+    stateProps.selectedConversationIDKey &&
     !Constants.isPendingConversationIDKey(stateProps.selectedConversationIDKey)
-    ? (muted: boolean) =>
-        stateProps.selectedConversationIDKey &&
-        dispatchProps._onMuteConversation(stateProps.selectedConversationIDKey, muted)
-    : null,
+      ? (muted: boolean) =>
+          stateProps.selectedConversationIDKey &&
+          dispatchProps._onMuteConversation(stateProps.selectedConversationIDKey, muted)
+      : null,
   onShowBlockConversationDialog: () =>
     dispatchProps._onShowBlockConversationDialog(
       stateProps.selectedConversationIDKey,

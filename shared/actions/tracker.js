@@ -36,9 +36,10 @@ function _getProfile(action: TrackerGen.GetProfilePayload, state: TypedState) {
   }
 
   const trackerState = tracker.userTrackers[username]
-  const uid = trackerState && trackerState.type === 'tracker'
-    ? trackerState.userInfo && trackerState.userInfo.uid
-    : null
+  const uid =
+    trackerState && trackerState.type === 'tracker'
+      ? trackerState.userInfo && trackerState.userInfo.uid
+      : null
   const goodTill = uid && tracker.cachedIdentifies[uid + '']
   if (!ignoreCache && goodTill && goodTill >= Date.now()) {
     logger.info('Bailing on cached getProfile', username, uid)
