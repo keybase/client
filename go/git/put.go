@@ -5,7 +5,9 @@ import (
 	"encoding/base64"
 	"fmt"
 
+	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-codec/codec"
 )
@@ -75,6 +77,28 @@ func sendChat(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamI
 	if settings.ChatDisabled {
 		return nil
 	}
+	if settings.ChannelName == nil {
+		// this shouldn't happen, but protect it if it does:
+		g.Log.CDebugf(ctx, "invalid team repo settings:  chat enabled, but nil ChannelName.  using default.")
+		settings.ChannelName = &globals.DefaultTeamTopic
+	}
 
-	return nil
+	if g.ChatHelper == nil {
+		g.Log.CDebugf(ctx, "cannot send chat on git push to team channel because no ChatHelper")
+		return nil
+	}
+
+	subBody := chat1.NewMessageSystemWithGitpush(chat1.MessageSystemGitPush{
+		Team:     arg.Folder.Name,
+		Pusher:   g.Env.GetUsername().String(),
+		RepoName: string(arg.Metadata.RepoName),
+	})
+	body := chat1.NewMessageBodyWithSystem(subBody)
+
+	g.StartStandaloneChat()
+
+	g.Log.CDebugf(ctx, "sending git push system chat message to %s/%s", arg.Folder.Name, *settings.ChannelName)
+	return g.ChatHelper.SendMsgByName(ctx, arg.Folder.Name, settings.ChannelName,
+		chat1.ConversationMembersType_TEAM, keybase1.TLFIdentifyBehavior_CHAT_CLI, body,
+		chat1.MessageType_SYSTEM)
 }

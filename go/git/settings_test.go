@@ -4,6 +4,7 @@ import (
 	"context"
 	"testing"
 
+	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/teams"
@@ -39,7 +40,7 @@ func TestSettings(t *testing.T) {
 
 	require.False(t, settings.ChatDisabled)
 	require.NotNil(t, settings.ChannelName)
-	require.Equal(t, *settings.ChannelName, "general")
+	require.Equal(t, *settings.ChannelName, globals.DefaultTeamTopic)
 
 	setArg := keybase1.SetTeamRepoSettingsArg{
 		Folder:       folder,
