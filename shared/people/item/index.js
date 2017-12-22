@@ -42,8 +42,6 @@ export default (props: Props) => (
       paddingLeft: 12,
       paddingBottom: globalMargins.tiny,
       position: 'relative',
-      borderBottomWidth: 2,
-      borderBottomColor: props.badged ? globalColors.white : globalColors.black_05,
     }}
   >
     <Box style={{marginRight: 20, width: isMobile ? 48 : 32}}>
