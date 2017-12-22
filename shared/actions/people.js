@@ -19,18 +19,36 @@ const _processPeopleData = function(data: RPCTypes.HomeScreen) {
   console.log(data)
   if (data.items) {
     data.items.forEach(item => {
+      const badged = item.badged
       if (item.data.t === RPCTypes.homeHomeScreenItemType.todo) {
         const todoType = Constants.todoTypeEnumToType[(item.data.todo && item.data.todo.t) || 0]
         newItems = newItems.push({
           type: 'todo',
-          badged: item.badged,
+          badged: badged,
           todoType,
           instructions: Constants.todoTypeToInstructions[todoType],
           confirmLabel: Constants.todoTypeToConfirmLabel[todoType],
           dismissable: Constants.todoTypeToDismissable[todoType],
         })
       } else if (item.data.t === RPCTypes.homeHomeScreenItemType.people) {
-        // TODO (no pun intended)
+        const notification = item.data.people
+        if (notification && notification.t === RPCTypes.homeHomeScreenPeopleNotificationType.followed) {
+          const follow = notification.followed
+          if (!follow) {
+            return
+          }
+          const item = {
+            type: 'notification',
+            newFollows: [{username: follow.user.username}],
+            notificationTime: new Date(follow.followTime),
+            badged,
+          }
+          if (badged) {
+            newItems.push(item)
+          } else {
+            oldItems.push(item)
+          }
+        }
       }
     })
   }

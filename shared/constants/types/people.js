@@ -24,12 +24,12 @@ export type Todo = {
 }
 
 export type FollowedNotification = {
-  followTime: Date,
-  user: RPCTypes.UserSummary,
+  username: string,
 }
 export type FollowedNotificationItem = {
   type: 'notification',
-  followed: Array<FollowedNotification>,
+  newFollows: Array<FollowedNotification>,
+  notificationTime: Date,
   badged: boolean,
 }
 
