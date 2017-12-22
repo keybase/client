@@ -119,6 +119,7 @@ const (
 	StatusCode_SCChatClientError           StatusCode = 2516
 	StatusCode_SCChatNotInTeam             StatusCode = 2517
 	StatusCode_SCChatStalePreviousState    StatusCode = 2518
+	StatusCode_SCTeamBadMembership         StatusCode = 2604
 	StatusCode_SCTeamSelfNotOwner          StatusCode = 2607
 	StatusCode_SCTeamNotFound              StatusCode = 2614
 	StatusCode_SCTeamExists                StatusCode = 2619
@@ -153,6 +154,8 @@ const (
 	StatusCode_SCTeamKeyMaskNotFound       StatusCode = 2697
 	StatusCode_SCTeamBanned                StatusCode = 2702
 	StatusCode_SCTeamInvalidBan            StatusCode = 2703
+	StatusCode_SCTeamProvisionalCanKey     StatusCode = 2721
+	StatusCode_SCTeamProvisionalCannotKey  StatusCode = 2722
 )
 
 func (o StatusCode) DeepCopy() StatusCode { return o }
@@ -267,6 +270,7 @@ var StatusCodeMap = map[string]StatusCode{
 	"SCChatClientError":           2516,
 	"SCChatNotInTeam":             2517,
 	"SCChatStalePreviousState":    2518,
+	"SCTeamBadMembership":         2604,
 	"SCTeamSelfNotOwner":          2607,
 	"SCTeamNotFound":              2614,
 	"SCTeamExists":                2619,
@@ -301,6 +305,8 @@ var StatusCodeMap = map[string]StatusCode{
 	"SCTeamKeyMaskNotFound":       2697,
 	"SCTeamBanned":                2702,
 	"SCTeamInvalidBan":            2703,
+	"SCTeamProvisionalCanKey":     2721,
+	"SCTeamProvisionalCannotKey":  2722,
 }
 
 var StatusCodeRevMap = map[StatusCode]string{
@@ -413,6 +419,7 @@ var StatusCodeRevMap = map[StatusCode]string{
 	2516: "SCChatClientError",
 	2517: "SCChatNotInTeam",
 	2518: "SCChatStalePreviousState",
+	2604: "SCTeamBadMembership",
 	2607: "SCTeamSelfNotOwner",
 	2614: "SCTeamNotFound",
 	2619: "SCTeamExists",
@@ -447,6 +454,8 @@ var StatusCodeRevMap = map[StatusCode]string{
 	2697: "SCTeamKeyMaskNotFound",
 	2702: "SCTeamBanned",
 	2703: "SCTeamInvalidBan",
+	2721: "SCTeamProvisionalCanKey",
+	2722: "SCTeamProvisionalCannotKey",
 }
 
 func (e StatusCode) String() string {
