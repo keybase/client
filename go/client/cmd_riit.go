@@ -32,7 +32,11 @@ func NewCmdRIIT(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command 
 			},
 			cli.BoolFlag{
 				Name:  "public",
-				Usage: "Make a public team",
+				Usage: "Treat the team as a public team",
+			},
+			cli.BoolFlag{
+				Name:  "i, identify",
+				Usage: "Identify the users too",
 			},
 		},
 		Action: func(c *cli.Context) {
@@ -74,6 +78,9 @@ func (c *cmdRIIT) ParseArgv(ctx *cli.Context) error {
 	}
 	if ctx.Bool("public") {
 		c.arg.IsPublic = true
+	}
+	if ctx.Bool("identify") {
+		c.arg.DoIdentifies = true
 	}
 	return nil
 }
