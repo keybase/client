@@ -9,6 +9,7 @@ import (
 	"io/ioutil"
 	"os"
 
+	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/libkbfs"
 )
@@ -108,4 +109,57 @@ func Init(ctx context.Context, gitKBFSParams libkbfs.InitParams,
 	config.MakeDiskBlockCacheIfNotExists()
 
 	return ctx, config, nil
+}
+
+// KeybaseServiceCn defines methods needed to construct KeybaseService
+// and Crypto implementations.
+type keybaseServicePassthrough struct {
+	config libkbfs.Config
+}
+
+func (ksp keybaseServicePassthrough) NewKeybaseService(
+	_ libkbfs.Config, _ libkbfs.InitParams, _ libkbfs.Context,
+	_ logger.Logger) (libkbfs.KeybaseService, error) {
+	return ksp.config.KeybaseService(), nil
+}
+
+func (ksp keybaseServicePassthrough) NewCrypto(
+	_ libkbfs.Config, _ libkbfs.InitParams, _ libkbfs.Context,
+	_ logger.Logger) (libkbfs.Crypto, error) {
+	return ksp.config.Crypto(), nil
+}
+
+var _ libkbfs.KeybaseServiceCn = keybaseServicePassthrough{}
+
+func getNewConfig(
+	ctx context.Context, config libkbfs.Config, kbCtx libkbfs.Context,
+	kbfsInitParams *libkbfs.InitParams, log logger.Logger) (
+	newCtx context.Context, gitConfig libkbfs.Config,
+	tempDir string, err error) {
+	// Initialize libgit.
+	params, tempDir, err := Params(kbCtx, config.StorageRoot(), kbfsInitParams)
+	if err != nil {
+		return nil, nil, "", err
+	}
+	defer func() {
+		if err != nil {
+			rmErr := os.RemoveAll(tempDir)
+			if rmErr != nil {
+				log.CDebugf(
+					ctx, "Error cleaning storage dir %s: %+v\n", tempDir, rmErr)
+			}
+		}
+	}()
+
+	// Let the init code know it shouldn't try to change the
+	// global logger settings.
+	params.LogToFile = false
+	params.LogFileConfig.Path = ""
+
+	newCtx, gitConfig, err = Init(
+		ctx, params, kbCtx, keybaseServicePassthrough{config}, "")
+	if err != nil {
+		return nil, nil, "", err
+	}
+	return newCtx, gitConfig, tempDir, nil
 }

@@ -92,59 +92,23 @@ func (rh *RPCHandler) waitForJournal(
 	return nil
 }
 
-// KeybaseServiceCn defines methods needed to construct KeybaseService
-// and Crypto implementations.
-type keybaseServicePassthrough struct {
-	config libkbfs.Config
-}
-
-func (ksp keybaseServicePassthrough) NewKeybaseService(
-	_ libkbfs.Config, _ libkbfs.InitParams, _ libkbfs.Context,
-	_ logger.Logger) (libkbfs.KeybaseService, error) {
-	return ksp.config.KeybaseService(), nil
-}
-
-func (ksp keybaseServicePassthrough) NewCrypto(
-	_ libkbfs.Config, _ libkbfs.InitParams, _ libkbfs.Context,
-	_ logger.Logger) (libkbfs.Crypto, error) {
-	return ksp.config.Crypto(), nil
-}
-
-var _ libkbfs.KeybaseServiceCn = keybaseServicePassthrough{}
-
 func (rh *RPCHandler) getHandleAndConfig(
 	ctx context.Context, folder keybase1.Folder) (
 	newCtx context.Context, gitConfig libkbfs.Config,
 	tlfHandle *libkbfs.TlfHandle, tempDir string, err error) {
-	// Initialize libgit.
-	params, tempDir, err := Params(rh.kbCtx,
-		rh.config.StorageRoot(), rh.kbfsInitParams)
-	if err != nil {
-		return nil, nil, nil, "", err
-	}
-	defer func() {
-		if err != nil {
-			rmErr := os.RemoveAll(tempDir)
-			if rmErr != nil {
-				rh.log.CDebugf(
-					ctx, "Error cleaning storage dir %s: %+v\n", tempDir, rmErr)
-			}
-		}
-	}()
-
-	// Let the init code know it shouldn't try to change the
-	// global logger settings.
-	params.LogToFile = false
-	params.LogFileConfig.Path = ""
-
-	newCtx, gitConfig, err = Init(
-		ctx, params, rh.kbCtx, keybaseServicePassthrough{rh.config}, "")
+	newCtx, gitConfig, tempDir, err = getNewConfig(
+		ctx, rh.config, rh.kbCtx, rh.kbfsInitParams, rh.log)
 	if err != nil {
 		return nil, nil, nil, "", err
 	}
 	defer func() {
 		if err != nil {
 			gitConfig.Shutdown(ctx)
+			rmErr := os.RemoveAll(tempDir)
+			if rmErr != nil {
+				rh.log.CDebugf(
+					ctx, "Error cleaning storage dir %s: %+v\n", tempDir, rmErr)
+			}
 		}
 	}()
 
