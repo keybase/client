@@ -50,6 +50,8 @@ type V1 struct {
 	aclCheckerInitErr error
 }
 
+var _ Config = (*V1)(nil)
+
 // DefaultV1 returns a default V1 config, which allows anonymous read to
 // everything.
 func DefaultV1() *V1 {
@@ -90,22 +92,22 @@ func (c *V1) Authenticate(username, password string) bool {
 
 // GetPermissionsForAnonymous implements the Config interface.
 func (c *V1) GetPermissionsForAnonymous(thePath string) (
-	read, list bool, err error) {
+	read, list bool, realm string, err error) {
 	if err = c.EnsureInit(); err != nil {
-		return false, false, err
+		return false, false, "", err
 	}
 
-	perms := c.aclChecker.getPermissions(thePath, nil)
-	return perms.read, perms.list, nil
+	perms, realm := c.aclChecker.getPermissions(thePath, nil)
+	return perms.read, perms.list, realm, nil
 }
 
 // GetPermissionsForUsername implements the Config interface.
 func (c *V1) GetPermissionsForUsername(thePath, username string) (
-	read, list bool, err error) {
+	read, list bool, realm string, err error) {
 	if err = c.EnsureInit(); err != nil {
-		return false, false, err
+		return false, false, "", err
 	}
 
-	perms := c.aclChecker.getPermissions(thePath, &username)
-	return perms.read, perms.list, nil
+	perms, realm := c.aclChecker.getPermissions(thePath, &username)
+	return perms.read, perms.list, realm, nil
 }

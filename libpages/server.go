@@ -11,12 +11,14 @@ import (
 	"crypto/rand"
 	"fmt"
 	"net/http"
+	"os"
+	"path"
 	"reflect"
+	"strings"
 	"sync"
 	"time"
 
 	lru "github.com/hashicorp/golang-lru"
-	"github.com/keybase/kbfs/libfs"
 	"github.com/keybase/kbfs/libkbfs"
 	"go.uber.org/zap"
 	"golang.org/x/crypto/acme"
@@ -40,28 +42,28 @@ type Server struct {
 	config     ServerConfig
 	kbfsConfig libkbfs.Config
 
-	fsCache *lru.Cache
+	siteCache *lru.Cache
 
 	whiteList     map[string]bool
 	whiteListOnce sync.Once
 }
 
-func (s *Server) getFS(
-	ctx context.Context, root Root) (http.FileSystem, error) {
-	fsCached, ok := s.fsCache.Get(root)
+func (s *Server) getSite(ctx context.Context, root Root) (st *site, err error) {
+	siteCached, ok := s.siteCache.Get(root)
 	if ok {
-		if fs, ok := fsCached.(*libfs.FS); ok {
-			return fs.ToHTTPFileSystem(ctx), nil
+		if s, ok := siteCached.(*site); ok {
+			return s, nil
 		}
-		s.config.Logger.Error("nasty entry in s.fsCache",
-			zap.String("type", reflect.TypeOf(fsCached).String()))
+		s.config.Logger.Error("nasty entry in s.siteCache",
+			zap.String("type", reflect.TypeOf(siteCached).String()))
 	}
 	fs, err := root.MakeFS(ctx, s.config.Logger, s.kbfsConfig)
 	if err != nil {
 		return nil, err
 	}
-	s.fsCache.Add(root, fs)
-	return fs.ToHTTPFileSystem(ctx), nil
+	st = makeSite(fs)
+	s.siteCache.Add(root, st)
+	return st, nil
 }
 
 func (s *Server) handleError(w http.ResponseWriter, err error) {
@@ -104,6 +106,12 @@ func (a adaptedLogger) Warning(format string, args ...interface{}) {
 	a.logger.Warn(a.msg, zap.String("desc", fmt.Sprintf(format, args...)))
 }
 
+func (s *Server) handleNeedAuthentication(
+	w http.ResponseWriter, r *http.Request, realm string) {
+	w.Header().Set("WWW-Authenticate", fmt.Sprintf("Basic realm=%s", realm))
+	w.WriteHeader(http.StatusUnauthorized)
+}
+
 // ServeHTTP implements the http.Handler interface.
 func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	s.config.Logger.Info("ServeHTTP",
@@ -111,6 +119,14 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		zap.String("urk", r.RequestURI),
 		zap.String("proto", r.Proto),
 	)
+
+	if path.Clean(strings.ToLower(r.RequestURI)) == kbpConfigPath {
+		// Don't serve .kbp_config.
+		// TODO: integrate this check into Config?
+		w.WriteHeader(http.StatusForbidden)
+		return
+	}
+
 	root, err := LoadRootFromDNS(s.config.Logger, r.Host)
 	if err != nil {
 		s.handleError(w, err)
@@ -121,12 +137,62 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			msg:    "CtxWithRandomIDReplayable",
 			logger: s.config.Logger,
 		})
-	fs, err := s.getFS(ctx, root)
+	st, err := s.getSite(ctx, root)
 	if err != nil {
 		s.handleError(w, err)
 		return
 	}
-	http.FileServer(fs).ServeHTTP(w, r)
+
+	cfg, err := st.getConfig(false)
+	if err != nil {
+		s.handleError(w, err)
+		return
+	}
+
+	var canRead, canList bool
+	var realm string
+	user, pass, ok := r.BasicAuth()
+	if ok && cfg.Authenticate(user, pass) {
+		canRead, canList, realm, err = cfg.GetPermissionsForUsername(
+			r.RequestURI, user)
+	} else {
+		canRead, canList, realm, err = cfg.GetPermissionsForAnonymous(
+			r.RequestURI)
+	}
+	if err != nil {
+		s.handleError(w, err)
+		return
+	}
+
+	if !canRead {
+		s.handleNeedAuthentication(w, r, realm)
+		return
+	}
+
+	if !canList {
+		// Check if it's a directory containing no index.html before letting
+		// http.FileServer handle it.  This permission check should ideally
+		// happen inside the http package, but unfortunately there isn't a
+		// way today.
+		fi, err := st.fs.Stat(r.RequestURI)
+		if err != nil {
+			s.handleError(w, err)
+			return
+		}
+		if fi.IsDir() {
+			fi, err = st.fs.Stat(path.Join(r.RequestURI, "index.html"))
+			if err != nil {
+				s.handleError(w, err)
+				return
+			}
+			if !os.IsNotExist(err) {
+				s.handleNeedAuthentication(w, r, realm)
+				return
+			}
+		}
+	}
+
+	http.FileServer(st.getHTTPFileSystem(ctx)).ServeHTTP(w, r)
 }
 
 // ErrDomainNotAllowedInWhitelist is returned when the server is configured
@@ -189,14 +255,14 @@ func ListenAndServe(ctx context.Context,
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
-	fsCache, err := lru.New(fsCacheSize)
+	siteCache, err := lru.New(fsCacheSize)
 	if err != nil {
 		return err
 	}
 	server := &Server{
 		config:     config,
 		kbfsConfig: kbfsConfig,
-		fsCache:    fsCache,
+		siteCache:  siteCache,
 	}
 
 	if config.AutoDirectHTTP {

@@ -57,9 +57,9 @@ func parseVersion(s string) (Version, error) {
 type Config interface {
 	Version() Version
 	Authenticate(username, password string) bool
-	GetPermissionsForAnonymous(path string) (read, list bool, err error)
+	GetPermissionsForAnonymous(path string) (read, list bool, realm string, err error)
 	GetPermissionsForUsername(
-		path, username string) (read, list bool, err error)
+		path, username string) (read, list bool, realm string, err error)
 }
 
 // ParseConfig parses a config from reader.

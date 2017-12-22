@@ -49,7 +49,8 @@ func (t RootType) String() string {
 	}
 }
 
-// Root defines the root of a static site hosted by Keybase Pages.
+// Root defines the root of a static site hosted by Keybase Pages. It is
+// normally constructed from DNS records directly and is cheap to make.
 type Root struct {
 	Type            RootType
 	TlfType         tlf.Type

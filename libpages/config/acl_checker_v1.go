@@ -44,17 +44,22 @@ type accessControlV1 struct {
 	// for more details. It's a map of username -> permissionsV1.
 	whitelistAdditional map[string]permissionsV1
 	anonymous           permissionsV1
+	// p stores the path (from Config declaration) that a *accessControlV1
+	// object is constructed for. When a *aclCheckerV1 is picked for a path,
+	// the p field can be used as a realm for HTTP Basic Authentication.
+	p string
 }
 
 // makeAccessControlV1Internal makes an *accessControlV1 out of an
 // *AccessControlV1. The users map is used to check if every username defined
 // in WhitelistAdditionalPermissions is defined.
-func makeAccessControlV1Internal(a *AccessControlV1, users map[string][]byte) (
+func makeAccessControlV1Internal(
+	a *AccessControlV1, users map[string][]byte, p string) (
 	ac *accessControlV1, err error) {
 	if a == nil {
 		return nil, errors.New("nil AccessControlV1")
 	}
-	ac = &accessControlV1{}
+	ac = &accessControlV1{p: p}
 	ac.anonymous, err = parsePermissionsV1(a.AnonymousPermissions)
 	if err != nil {
 		return nil, err
@@ -77,6 +82,7 @@ func makeAccessControlV1Internal(a *AccessControlV1, users map[string][]byte) (
 func defaultAccessControlV1InternalForRoot() *accessControlV1 {
 	return &accessControlV1{
 		anonymous: permissionsV1{read: true, list: true},
+		p:         "/",
 	}
 }
 
@@ -167,21 +173,21 @@ func (c *aclCheckerV1) getAccessControl(
 
 // getPermissions returns the permissions that username has on p. This method
 // should only be called on the root aclCheckerV1.
-func (c *aclCheckerV1) getPermissions(
-	p string, username *string) (permissions permissionsV1) {
+func (c *aclCheckerV1) getPermissions(p string, username *string) (
+	permissions permissionsV1, effectivePath string) {
 	// This is only called on the root aclCheckerV1, and c.ac is always
 	// populated here. So even if no other path shows up in the ACLs, any path
 	// will get root's *accessControlV1 as the last resort.
 	ac := c.getAccessControl(nil, p)
 	permissions = ac.anonymous
 	if ac.whitelistAdditional == nil || username == nil {
-		return permissions
+		return permissions, ac.p
 	}
 	if perms, ok := ac.whitelistAdditional[*username]; ok {
 		permissions.read = perms.read || permissions.read
 		permissions.list = perms.list || permissions.list
 	}
-	return permissions
+	return permissions, ac.p
 }
 
 // makeACLCheckerV1 makes an *aclCheckerV1 out of user-defined ACLs (acl). It
@@ -217,7 +223,7 @@ func makeACLCheckerV1(acl map[string]AccessControlV1,
 	// Iterate through the cleaned slice, and construct *aclCheckerV1 objects
 	// along each path.
 	for p, a := range cleaned {
-		ac, err := makeAccessControlV1Internal(a, users)
+		ac, err := makeAccessControlV1Internal(a, users, p)
 		if err != nil {
 			return nil, err
 		}
