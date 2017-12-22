@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/keybase/client/go/externals"
 	"github.com/keybase/client/go/kbfs"
 	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/libkb"
@@ -16,14 +15,6 @@ import (
 	"github.com/keybase/client/go/teams"
 	"github.com/stretchr/testify/require"
 )
-
-// Copied from the teams tests.
-func SetupTest(tb testing.TB, name string, depth int) (tc libkb.TestContext) {
-	tc = libkb.SetupTest(tb, name, depth+1)
-	tc.G.SetServices(externals.GetServices())
-	teams.ServiceInit(tc.G)
-	return tc
-}
 
 func doPut(t *testing.T, g *libkb.GlobalContext, teamName string, repoID string, repoName string) {
 	err := PutMetadata(context.Background(), g, keybase1.PutGitMetadataArg{
