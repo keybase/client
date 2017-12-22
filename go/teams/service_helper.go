@@ -133,6 +133,12 @@ func membersFromInvites(ctx context.Context, g *libkb.GlobalContext, invites Ann
 		}
 	}
 
+	if len(uids) == 0 {
+		// Invites had no keybase-type invites that could be mapped to
+		// members.
+		return nil
+	}
+
 	namePkgs, err := uidmap.MapUIDsReturnMap(ctx, g.UIDMapper, g, uids, 0, 0, true)
 	if err != nil {
 		// UIDMap returned an error, but there may be useful data in the result.
