@@ -36,10 +36,7 @@ func (db *LocalDb) Store(u gregor.UID, state []byte, localDismissals [][]byte) e
 	ldr := localDismissalsRecord{
 		Dismissals: localDismissals,
 	}
-	if err := db.G().LocalDb.PutObj(dbKeyLocalDismiss(u), nil, ldr); err != nil {
-		return err
-	}
-	return nil
+	return db.G().LocalDb.PutObj(dbKeyLocalDismiss(u), nil, ldr)
 }
 
 func (db *LocalDb) Load(u gregor.UID) (state []byte, localDismissals [][]byte, err error) {
