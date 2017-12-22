@@ -4,8 +4,8 @@ import * as ChatGen from '../chat-gen'
 import * as Constants from '../../constants/chat'
 import * as Types from '../../constants/types/chat'
 import * as I from 'immutable'
-import * as RPCChatTypes from '../../constants/types/flow-types-chat'
-import * as RPCTypes from '../../constants/types/flow-types'
+import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
+import * as RPCTypes from '../../constants/types/rpc-gen'
 import {call, put, select} from 'redux-saga/effects'
 import {usernameSelector} from '../../constants/selectors'
 import flags from '../../util/feature-flags'
@@ -32,7 +32,10 @@ function* startNewConversation(
   } else {
     const existing = Constants.getInbox(state, oldKey)
     if (existing) {
-      tlfName = existing.get('participants').sort().join(',')
+      tlfName = existing
+        .get('participants')
+        .sort()
+        .join(',')
     }
   }
 

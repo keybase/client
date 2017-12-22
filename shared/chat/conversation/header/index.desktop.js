@@ -36,10 +36,11 @@ const ChannelHeader = ({
       >
         {teamName}
       </Text>
-      {!smallTeam &&
+      {!smallTeam && (
         <Text type="BodyBig" style={{color: globalColors.black_75, marginLeft: 2}}>
           #{channelName}
-        </Text>}
+        </Text>
+      )}
       {muted && <ShhIcon />}
     </Box>
     <Icon type="iconfont-folder-private" style={styleLeft} onClick={onOpenFolder} />
@@ -75,12 +76,13 @@ const UsernameHeader = ({
       {muted && <ShhIcon />}
     </Box>
     <Icon type="iconfont-folder-private" style={styleLeft} onClick={onOpenFolder} />
-    {canOpenInfoPanel &&
+    {canOpenInfoPanel && (
       <Icon
         type={infoPanelOpen ? 'iconfont-close' : 'iconfont-info'}
         style={styleLeft}
         onClick={onToggleInfoPanel}
-      />}
+      />
+    )}
   </Box>
 )
 

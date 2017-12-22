@@ -110,9 +110,7 @@ const mapText = (secondary: boolean) => {
 const load = () => {
   storiesOf('Common', module).add('Text', () => (
     <Box style={outerStyle}>
-      <Container backgroundColor={globalColors.white}>
-        {mapText(false)}
-      </Container>
+      <Container backgroundColor={globalColors.white}>{mapText(false)}</Container>
       <Container backgroundColor={globalColors.midnightBlue}>
         <SecondaryColorBox />
         {mapText(true)}

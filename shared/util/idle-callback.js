@@ -52,8 +52,8 @@ const useFallback = typeof window === 'undefined' || isAndroid || !window.reques
 const requestIdleCallback = forceImmediateLogging
   ? immediateCallback
   : useFallback
-      ? isMobile ? runAfterInteractionsFallback : timeoutFallback
-      : window.requestIdleCallback.bind(window)
+    ? isMobile ? runAfterInteractionsFallback : timeoutFallback
+    : window.requestIdleCallback.bind(window)
 const cancelIdleCallback = useFallback
   ? isMobile ? cancelRunAfterInteractionsFallback : cancelIdleCallbackFallback
   : window.cancelIdleCallback.bind(window)

@@ -70,12 +70,13 @@ export const TeamRequestRow = (props: Props) => {
           style={{marginLeft: globalMargins.xtiny}}
           type="Danger"
         />
-        {!isMobile &&
+        {!isMobile && (
           <Icon
             onClick={onChat}
             style={{fontSize: 20, marginLeft: globalMargins.tiny}}
             type="iconfont-chat"
-          />}
+          />
+        )}
       </Box>
     </Box>
   )

@@ -1,5 +1,5 @@
 // @flow
-import * as RPCTypes from '../constants/types/flow-types'
+import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Types from './types/tracker'
 import {type PlatformsExpandedType} from '../constants/types/more'
 import uniqBy from 'lodash/uniqBy'
@@ -46,7 +46,11 @@ function isLoading(state: ?Types.TrackerState): boolean {
 
 function bufferToNiceHexString(fingerPrint: Buffer): string {
   try {
-    const match = fingerPrint.toString('hex').slice(-16).toUpperCase().match(/(.{4})(.{4})(.{4})(.{4})/)
+    const match = fingerPrint
+      .toString('hex')
+      .slice(-16)
+      .toUpperCase()
+      .match(/(.{4})(.{4})(.{4})(.{4})/)
     if (match) {
       return match.slice(1).join(' ')
     }
@@ -312,10 +316,12 @@ function remoteProofToProof(
     (lcr &&
       proofStateToSimpleProofState(lcr.proofResult.state, lcr.diff, lcr.remoteDiff, lcr.breaksTracking)) ||
     oldProofState
-  const isTracked = !!(lcr &&
+  const isTracked = !!(
+    lcr &&
     lcr.diff &&
     lcr.diff.type === RPCTypes.identifyCommonTrackDiffType.none &&
-    !lcr.breaksTracking)
+    !lcr.breaksTracking
+  )
   const {diffMeta, statusMeta} = diffAndStatusMeta(
     lcr && lcr.diff && lcr.diff.type,
     lcr && lcr.proofResult,

@@ -1,7 +1,7 @@
 // @flow
 import * as Constants from '../../constants/chat'
 import * as Types from '../../constants/types/chat'
-import * as RPCChatTypes from '../../constants/types/flow-types-chat'
+import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
 import * as SearchConstants from '../../constants/search'
 import * as Creators from '../../actions/chat/creators'
 import * as ChatGen from '../../actions/chat-gen'

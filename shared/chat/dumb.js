@@ -15,7 +15,7 @@ import {List, Map} from 'immutable'
 import {globalStyles} from '../styles'
 import {makeRouteStateNode} from '../route-tree'
 import {isMobile} from '../constants/platform'
-import * as ChatTypes from '../constants/types/flow-types-chat'
+import * as ChatTypes from '../constants/types/rpc-chat-gen'
 import type {ConversationIDKey} from '../constants/chat'
 
 const now = new Date(2016, 4, 20, 4, 20)

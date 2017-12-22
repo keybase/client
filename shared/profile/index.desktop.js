@@ -132,10 +132,12 @@ class ProfileRender extends PureComponent<Props, State> {
                 overlay="icon-proof-success"
                 overlayColor={globalColors.blue}
               />
-              {!!proof.mTime &&
+              {!!proof.mTime && (
                 <Text type="BodySmall" style={{textAlign: 'center', color: globalColors.black_40}}>
-                  Posted on<br />{moment(proof.mTime).format('ddd MMM D, YYYY')}
-                </Text>}
+                  Posted on<br />
+                  {moment(proof.mTime).format('ddd MMM D, YYYY')}
+                </Text>
+              )}
             </Box>
           ),
         },
@@ -263,22 +265,24 @@ class ProfileRender extends PureComponent<Props, State> {
     const missingProofs = !this.props.isYou
       ? []
       : shared.missingProofs(this.props.proofs, this.props.onMissingProofClick)
-    const proofMenuContent = this.state.proofMenuIndex != null
-      ? this._proofMenuContent(this.props.proofs[this.state.proofMenuIndex])
-      : null
+    const proofMenuContent =
+      this.state.proofMenuIndex != null
+        ? this._proofMenuContent(this.props.proofs[this.state.proofMenuIndex])
+        : null
 
     return (
       <Box style={styleOuterContainer}>
         <Box style={{...styleScrollHeaderBg, backgroundColor: trackerStateColors.header.background}} />
         <Box style={{...styleScrollHeaderCover, backgroundColor: trackerStateColors.header.background}} />
         <Box style={globalStyles.flexBoxColumn}>
-          {this.props.onBack &&
+          {this.props.onBack && (
             <BackButton
               onClick={this.props.onBack}
               style={{left: 14, position: 'absolute', top: 16, zIndex: BACK_ZINDEX}}
               textStyle={{color: globalColors.white}}
               iconStyle={{color: globalColors.white}}
-            />}
+            />
+          )}
           <Box
             onClick={this.props.onSearch}
             onMouseEnter={() => this.setState({searchHovered: true})}
@@ -286,7 +290,9 @@ class ProfileRender extends PureComponent<Props, State> {
             style={{...styleSearchContainer, opacity: this.state.searchHovered ? 0.8 : 1}}
           >
             <Icon style={styleSearch} type="iconfont-search" />
-            <Text style={styleSearchText} type="Body">Search people</Text>
+            <Text style={styleSearchText} type="Body">
+              Search people
+            </Text>
           </Box>
         </Box>
         <Box
@@ -314,47 +320,52 @@ class ProfileRender extends PureComponent<Props, State> {
                 onClickFollowing={this.props.onClickFollowing}
               />
               {!this.props.isYou &&
-                !loading &&
-                <UserActions
-                  style={styleActions}
-                  trackerState={this.props.trackerState}
-                  currentlyFollowing={this.props.currentlyFollowing}
-                  onChat={this.props.onChat}
-                  onFollow={this.props.onFollow}
-                  onUnfollow={this.props.onUnfollow}
-                  onAcceptProofs={this.props.onAcceptProofs}
-                />}
+                !loading && (
+                  <UserActions
+                    style={styleActions}
+                    trackerState={this.props.trackerState}
+                    currentlyFollowing={this.props.currentlyFollowing}
+                    onChat={this.props.onChat}
+                    onFollow={this.props.onFollow}
+                    onUnfollow={this.props.onUnfollow}
+                    onAcceptProofs={this.props.onAcceptProofs}
+                  />
+                )}
             </Box>
             <Box style={styleProofColumn}>
               <Box style={styleProofNoticeBox}>
-                {proofNotice &&
-                  <Text type="BodySemibold" style={{color: globalColors.white}}>{proofNotice}</Text>}
+                {proofNotice && (
+                  <Text type="BodySemibold" style={{color: globalColors.white}}>
+                    {proofNotice}
+                  </Text>
+                )}
               </Box>
               <Box style={styleProofs}>
                 {!loading &&
-                  this.props.userInfo.showcasedTeams.length > 0 &&
-                  <Box style={{...globalStyles.flexBoxColumn, paddingBottom: globalMargins.small}}>
-                    <Box style={globalStyles.flexBoxRow}>
-                      <Text type="BodySmallSemibold">Teams:</Text>
-                    </Box>
-                    {this.props.userInfo.showcasedTeams.map(team => (
-                      <Box
-                        key={team.fqName}
-                        onClick={event => this.props.onClickShowcased(event.target, team)}
-                        style={styleShowcasedTeamContainer}
-                      >
-                        <Box style={styleShowcasedTeamAvatar}>
-                          <Avatar teamname={team.fqName} size={24} />
-                        </Box>
-                        <Box style={styleShowcasedTeamName}>
-                          <Text style={{color: globalColors.black_75}} type="BodySemiboldLink">
-                            {team.fqName}
-                          </Text>
-                        </Box>
+                  this.props.userInfo.showcasedTeams.length > 0 && (
+                    <Box style={{...globalStyles.flexBoxColumn, paddingBottom: globalMargins.small}}>
+                      <Box style={globalStyles.flexBoxRow}>
+                        <Text type="BodySmallSemibold">Teams:</Text>
                       </Box>
-                    ))}
-                  </Box>}
-                {(loading || this.props.proofs.length > 0) &&
+                      {this.props.userInfo.showcasedTeams.map(team => (
+                        <Box
+                          key={team.fqName}
+                          onClick={event => this.props.onClickShowcased(event.target, team)}
+                          style={styleShowcasedTeamContainer}
+                        >
+                          <Box style={styleShowcasedTeamAvatar}>
+                            <Avatar teamname={team.fqName} size={24} />
+                          </Box>
+                          <Box style={styleShowcasedTeamName}>
+                            <Text style={{color: globalColors.black_75}} type="BodySemiboldLink">
+                              {team.fqName}
+                            </Text>
+                          </Box>
+                        </Box>
+                      ))}
+                    </Box>
+                  )}
+                {(loading || this.props.proofs.length > 0) && (
                   <UserProofs
                     type={'proofs'}
                     ref={c => {
@@ -365,39 +376,45 @@ class ProfileRender extends PureComponent<Props, State> {
                     proofs={this.props.proofs}
                     onClickProofMenu={this.props.isYou ? idx => this.handleShowMenu(idx) : null}
                     showingMenuIndex={this.state.proofMenuIndex}
-                  />}
+                  />
+                )}
                 {!loading &&
                   !this.props.serverActive &&
-                  missingProofs.length > 0 &&
-                  <UserProofs
-                    type={'missingProofs'}
-                    username={this.props.username}
-                    missingProofs={missingProofs}
-                  />}
+                  missingProofs.length > 0 && (
+                    <UserProofs
+                      type={'missingProofs'}
+                      username={this.props.username}
+                      missingProofs={missingProofs}
+                    />
+                  )}
                 {!loading && folders}
               </Box>
             </Box>
           </Box>
           {!loading &&
             !!this.props.followers &&
-            !!this.props.following &&
-            <Friendships
-              username={this.props.username}
-              isYou={this.props.isYou}
-              style={styleFriendships}
-              currentTab={this.props.currentFriendshipsTab}
-              onSwitchTab={currentFriendshipsTab => this.props.onChangeFriendshipsTab(currentFriendshipsTab)}
-              onUserClick={this.props.onUserClick}
-              followersLoaded={this.props.followersLoaded}
-              followers={this.props.followers}
-              following={this.props.following}
-            />}
-          {proofMenuContent &&
+            !!this.props.following && (
+              <Friendships
+                username={this.props.username}
+                isYou={this.props.isYou}
+                style={styleFriendships}
+                currentTab={this.props.currentFriendshipsTab}
+                onSwitchTab={currentFriendshipsTab =>
+                  this.props.onChangeFriendshipsTab(currentFriendshipsTab)
+                }
+                onUserClick={this.props.onUserClick}
+                followersLoaded={this.props.followersLoaded}
+                followers={this.props.followers}
+                following={this.props.following}
+              />
+            )}
+          {proofMenuContent && (
             <PopupMenu
               style={{...styleProofMenu, ...this.state.popupMenuPosition}}
               {...proofMenuContent}
               onHidden={() => this.handleHideMenu()}
-            />}
+            />
+          )}
         </Box>
       </Box>
     )

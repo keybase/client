@@ -69,9 +69,7 @@ const AddPeople = (props: Props) => (
           margin: isMobile ? 0 : globalMargins.small,
         }}
       >
-        <Text type="Body">
-          Add these members to {props.name} as:
-        </Text>
+        <Text type="Body">Add these members to {props.name} as:</Text>
         <ClickableBox onClick={() => props.onOpenRolePicker()}>
           <Dropdown
             items={_makeDropdownItems()}
@@ -92,14 +90,15 @@ const AddPeople = (props: Props) => (
         />
       </Box>
 
-      {!isMobile &&
+      {!isMobile && (
         <Box
           style={{
             ...globalStyles.flexBoxRow,
             borderBottom: `1px solid ${globalColors.black_10}`,
             boxShadow: `0 2px 5px 0 ${globalColors.black_20}`,
           }}
-        />}
+        />
+      )}
 
       <Box style={{...globalStyles.flexBoxColumn}}>
         <UserInput
@@ -110,13 +109,15 @@ const AddPeople = (props: Props) => (
         />
       </Box>
       <Box style={{...globalStyles.scrollable, flex: 1, height: 500}}>
-        {props.showSearchPending
-          ? <ProgressIndicator style={{width: 24}} />
-          : <SearchResultsList
-              searchKey={'addToTeamSearch'}
-              disableIfInTeamName={props.name}
-              style={{flexGrow: 1, height: 500}}
-            />}
+        {props.showSearchPending ? (
+          <ProgressIndicator style={{width: 24}} />
+        ) : (
+          <SearchResultsList
+            searchKey={'addToTeamSearch'}
+            disableIfInTeamName={props.name}
+            style={{flexGrow: 1, height: 500}}
+          />
+        )}
       </Box>
     </Box>
   </MaybePopup>

@@ -2,7 +2,7 @@
 import logger from '../logger'
 import * as UnlockFoldersGen from './unlock-folders-gen'
 import * as Saga from '../util/saga'
-import * as RPCTypes from '../constants/types/flow-types'
+import * as RPCTypes from '../constants/types/rpc-gen'
 import engine from '../engine'
 
 function* _checkPaperKey(action: UnlockFoldersGen.CheckPaperKeyPayload) {

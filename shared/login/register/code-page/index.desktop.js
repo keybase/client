@@ -22,23 +22,26 @@ import type {Props} from '.'
 
 const SubTitle = ({usePhone}) => (
   <p>
-    {usePhone
-      ? <Text type="Body">
-          In the Keybase app on your phone, go to
-          {' '}
-          <Text type="BodySemibold">Settings > Devices > Add new...</Text>
-        </Text>
-      : <Text type="Body">
-          In the Keybase app on your computer, go to <Text type="BodySemibold">Devices > Add new...</Text>
-        </Text>}
+    {usePhone ? (
+      <Text type="Body">
+        In the Keybase app on your phone, go to{' '}
+        <Text type="BodySemibold">Settings > Devices > Add new...</Text>
+      </Text>
+    ) : (
+      <Text type="Body">
+        In the Keybase app on your computer, go to <Text type="BodySemibold">Devices > Add new...</Text>
+      </Text>
+    )}
   </p>
 )
 
 const DeviceIcon = ({usePhone}) => (
   <p>
-    {usePhone
-      ? <Icon type="icon-phone-text-code-48" style={{marginTop: globalMargins.medium}} />
-      : <Icon type="icon-computer-text-code-48" style={{marginTop: globalMargins.medium}} />}
+    {usePhone ? (
+      <Icon type="icon-phone-text-code-48" style={{marginTop: globalMargins.medium}} />
+    ) : (
+      <Icon type="icon-computer-text-code-48" style={{marginTop: globalMargins.medium}} />
+    )}
   </p>
 )
 
@@ -49,8 +52,10 @@ const CodePageText = ({onBack, textCode, otherDeviceRole, setCodePageMode}) => (
     </Text>
     <SubTitle usePhone={_otherIsPhone(otherDeviceRole)} />
     <DeviceIcon usePhone={_otherIsPhone(otherDeviceRole)} />
-    <Text type="Body" style={stylesPaperkey}>{textCode}</Text>
-    {_otherIsPhone(otherDeviceRole) &&
+    <Text type="Body" style={stylesPaperkey}>
+      {textCode}
+    </Text>
+    {_otherIsPhone(otherDeviceRole) && (
       <p
         style={{...globalStyles.flexBoxRow, alignItems: 'flex-end'}}
         onClick={() => setCodePageMode(codePageModeShowCode)}
@@ -59,7 +64,8 @@ const CodePageText = ({onBack, textCode, otherDeviceRole, setCodePageMode}) => (
         <Text type="BodyPrimaryLink" onClick={() => setCodePageMode(codePageModeShowCode)}>
           Scan QR code instead
         </Text>
-      </p>}
+      </p>
+    )}
   </Container>
 )
 
@@ -94,7 +100,9 @@ const CodePageEnterText = ({
   setCodePageMode,
 }) => (
   <Container style={stylesContainer} onBack={onBack}>
-    <Text style={{marginBottom: 11, marginTop: 38}} type="Header">Type in text code</Text>
+    <Text style={{marginBottom: 11, marginTop: 38}} type="Header">
+      Type in text code
+    </Text>
     <SubTitle usePhone={_otherIsPhone(otherDeviceRole)} />
     <DeviceIcon usePhone={_otherIsPhone(otherDeviceRole)} />
     <Input
@@ -111,7 +119,7 @@ const CodePageEnterText = ({
       label="Continue"
       onClick={() => textEntered(codePageModeEnterText)}
     />
-    {_otherIsPhone(otherDeviceRole) &&
+    {_otherIsPhone(otherDeviceRole) && (
       <p
         style={{...globalStyles.flexBoxRow, alignItems: 'flex-end'}}
         onClick={() => setCodePageMode(codePageModeShowCode)}
@@ -120,7 +128,8 @@ const CodePageEnterText = ({
         <Text type="BodyPrimaryLink" onClick={() => setCodePageMode(codePageModeShowCode)}>
           Scan QR code instead
         </Text>
-      </p>}
+      </p>
+    )}
   </Container>
 )
 

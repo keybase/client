@@ -2,14 +2,14 @@
 // Actions that have to do with the inbox.
 // Loading, unboxing, filtering, stale, out of sync, badging
 import logger from '../../logger'
-import * as RPCChatTypes from '../../constants/types/flow-types-chat'
+import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
 import * as Constants from '../../constants/chat'
 import * as Types from '../../constants/types/chat'
 import * as ChatGen from '../chat-gen'
 import * as ConfigGen from '../config-gen'
 import * as EngineRpc from '../../constants/engine'
 import * as I from 'immutable'
-import * as RPCTypes from '../../constants/types/flow-types'
+import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as Saga from '../../util/saga'
 import * as Selectors from '../../constants/selectors'
 import * as Shared from './shared'
@@ -116,7 +116,10 @@ function* onInboxStale(action: ChatGen.InboxStalePayload): SagaGenerator<any, an
     }, {})
 
     const oldInbox = state.chat.get('inbox')
-    const toDelete = oldInbox.keySeq().toSet().subtract((inbox.items || []).map(c => c.convID))
+    const toDelete = oldInbox
+      .keySeq()
+      .toSet()
+      .subtract((inbox.items || []).map(c => c.convID))
     const conversations = _makeInboxStateRecords(author, inbox.items || [], oldInbox)
     yield Saga.put(ChatGen.createReplaceEntity({keyPath: ['inboxSnippet'], entities: I.Map(snippets)}))
     yield Saga.put(ChatGen.createSetInboxGlobalUntrustedState({inboxGlobalUntrustedState: 'loaded'}))
@@ -469,8 +472,9 @@ function* unboxConversations(action: ChatGen.UnboxConversationsPayload): SagaGen
   const untrustedState = state.chat.inboxUntrustedState
 
   logger.info(
-    `unboxConversations: before filter unboxing ${conversationIDKeys.length} convs, force: ${(force || false)
-      .toString()} because: ${reason}`
+    `unboxConversations: before filter unboxing ${conversationIDKeys.length} convs, force: ${(
+      force || false
+    ).toString()} because: ${reason}`
   )
   // Don't unbox pending conversations or implied reset ones
   conversationIDKeys = conversationIDKeys.filter(
@@ -568,20 +572,24 @@ const parseNotifications = (
   return {
     channelWide: notifications.channelWide,
     desktop: {
-      atmention: settings[RPCTypes.commonDeviceType.desktop.toString()][
-        RPCChatTypes.commonNotificationKind.atmention.toString()
-      ],
-      generic: settings[RPCTypes.commonDeviceType.desktop.toString()][
-        RPCChatTypes.commonNotificationKind.generic.toString()
-      ],
+      atmention:
+        settings[RPCTypes.commonDeviceType.desktop.toString()][
+          RPCChatTypes.commonNotificationKind.atmention.toString()
+        ],
+      generic:
+        settings[RPCTypes.commonDeviceType.desktop.toString()][
+          RPCChatTypes.commonNotificationKind.generic.toString()
+        ],
     },
     mobile: {
-      atmention: settings[RPCTypes.commonDeviceType.mobile.toString()][
-        RPCChatTypes.commonNotificationKind.atmention.toString()
-      ],
-      generic: settings[RPCTypes.commonDeviceType.mobile.toString()][
-        RPCChatTypes.commonNotificationKind.generic.toString()
-      ],
+      atmention:
+        settings[RPCTypes.commonDeviceType.mobile.toString()][
+          RPCChatTypes.commonNotificationKind.atmention.toString()
+        ],
+      generic:
+        settings[RPCTypes.commonDeviceType.mobile.toString()][
+          RPCChatTypes.commonNotificationKind.generic.toString()
+        ],
     },
   }
 }
@@ -732,9 +740,10 @@ function _makeInboxStateRecords(
         ? I.List(c.localMetadata.writerNames || [])
         : I.List(parseFolderNameToUsers(author, c.name).map(ul => ul.username))
       return Constants.makeInboxState({
-        channelname: c.membersType === RPCChatTypes.commonConversationMembersType.team && c.localMetadata
-          ? c.localMetadata.channelName
-          : undefined,
+        channelname:
+          c.membersType === RPCChatTypes.commonConversationMembersType.team && c.localMetadata
+            ? c.localMetadata.channelName
+            : undefined,
         conversationIDKey: c.convID,
         fullNames: I.Map(),
         info: null,

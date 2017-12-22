@@ -15,24 +15,24 @@ import YouAreReset from './you-are-reset'
 import type {Props} from './index'
 
 const Conversation = (props: Props) => {
-  const offline = props.threadLoadedOffline
-    ? <Box
-        style={{
-          ...globalStyles.flexBoxCenter,
-          backgroundColor: globalColors.grey,
-          width: '100%',
-          maxHeight: 48,
-          paddingBottom: globalMargins.tiny,
-          paddingLeft: globalMargins.medium,
-          paddingRight: globalMargins.medium,
-          paddingTop: globalMargins.tiny,
-        }}
-      >
-        <Text style={{textAlign: 'center', color: globalColors.black_40}} type="BodySemibold">
-          Couldn't load all chat messages due to network connectivity. Retrying...
-        </Text>
-      </Box>
-    : null
+  const offline = props.threadLoadedOffline ? (
+    <Box
+      style={{
+        ...globalStyles.flexBoxCenter,
+        backgroundColor: globalColors.grey,
+        width: '100%',
+        maxHeight: 48,
+        paddingBottom: globalMargins.tiny,
+        paddingLeft: globalMargins.medium,
+        paddingRight: globalMargins.medium,
+        paddingTop: globalMargins.tiny,
+      }}
+    >
+      <Text style={{textAlign: 'center', color: globalColors.black_40}} type="BodySemibold">
+        Couldn't load all chat messages due to network connectivity. Retrying...
+      </Text>
+    </Box>
+  ) : null
 
   let list
   if (props.showSearchResults) {
@@ -41,14 +41,16 @@ const Conversation = (props: Props) => {
     list = <YouAreReset />
   } else {
     const loadingLine = props.showLoader ? <LoadingLine /> : null
-    const input = props.finalizeInfo
-      ? <OldProfileResetNotice />
-      : <Input
-          focusInputCounter={props.focusInputCounter}
-          onEditLastMessage={props.onEditLastMessage}
-          onScrollDown={props.onScrollDown}
-          previousPath={props.previousPath}
-        />
+    const input = props.finalizeInfo ? (
+      <OldProfileResetNotice />
+    ) : (
+      <Input
+        focusInputCounter={props.focusInputCounter}
+        onEditLastMessage={props.onEditLastMessage}
+        onScrollDown={props.onScrollDown}
+        previousPath={props.previousPath}
+      />
+    )
 
     list = (
       <Box
@@ -88,7 +90,6 @@ const Conversation = (props: Props) => {
         selectedConversationIDKey={props.selectedConversationIDKey}
       />
       {list}
-
     </Box>
   )
 }

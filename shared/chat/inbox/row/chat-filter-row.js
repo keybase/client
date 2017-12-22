@@ -137,10 +137,11 @@ class _ChatFilterRow extends React.PureComponent<Props, State> {
           style={isMobile ? styleIconComposeMobile : styleIconCompose}
           onClick={this.props.onNewChat}
         />
-        {this.props.isLoading &&
+        {this.props.isLoading && (
           <Box style={{bottom: 0, left: 0, position: 'absolute', height: 1, right: 0}}>
             <LoadingLine />
-          </Box>}
+          </Box>
+        )}
       </Box>
     )
   }

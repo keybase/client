@@ -25,7 +25,9 @@ const DeviceHeader = ({onAddNew}) => (
   <ClickableBox onClick={onAddNew}>
     <Box style={{...stylesCommonRow, alignItems: 'center', borderBottomWidth: 0}}>
       <Icon type="iconfont-new" style={{color: globalColors.blue}} />
-      <Text type="BodyBigLink" style={{padding: globalMargins.xtiny}}>Add new...</Text>
+      <Text type="BodyBigLink" style={{padding: globalMargins.xtiny}}>
+        Add new...
+      </Text>
     </Box>
   </ClickableBox>
 )
@@ -34,14 +36,16 @@ const RevokedHeader = ({children, onToggleExpanded, expanded}) => (
   <Box>
     <ClickableBox onClick={onToggleExpanded}>
       <Box style={stylesRevokedRow}>
-        <Text type="BodySmallSemibold" style={{color: globalColors.black_60}}>Revoked devices</Text>
+        <Text type="BodySmallSemibold" style={{color: globalColors.black_60}}>
+          Revoked devices
+        </Text>
         <Icon
           type={expanded ? 'iconfont-caret-down' : 'iconfont-caret-right'}
           style={{color: globalColors.black_60, fontSize: 10, padding: 5}}
         />
       </Box>
     </ClickableBox>
-    {expanded &&
+    {expanded && (
       <Box style={stylesRevokedDescription}>
         <Text
           type="BodySmallSemibold"
@@ -54,7 +58,8 @@ const RevokedHeader = ({children, onToggleExpanded, expanded}) => (
         >
           Revoked devices will no longer be able to access your Keybase account.
         </Text>
-      </Box>}
+      </Box>
+    )}
   </Box>
 )
 
@@ -63,7 +68,9 @@ const DeviceRow = RowConnector(({isCurrentDevice, name, isRevoked, icon, showExi
     <Box key={name} style={{...globalStyles.flexBoxRow, alignItems: 'center', flex: 1}}>
       <Icon type={icon} style={isRevoked ? {marginRight: 16, opacity: 0.2} : {marginRight: 16}} />
       <Box style={{...globalStyles.flexBoxColumn, flex: 1, justifyContent: 'flex-start'}}>
-        <Text style={textStyle(isRevoked)} type="BodySemiboldItalic">{name}</Text>
+        <Text style={textStyle(isRevoked)} type="BodySemiboldItalic">
+          {name}
+        </Text>
         {isCurrentDevice && <Text type="BodySmall">Current device</Text>}
       </Box>
     </Box>
@@ -72,13 +79,15 @@ const DeviceRow = RowConnector(({isCurrentDevice, name, isRevoked, icon, showExi
 
 class Devices extends PureComponent<Props> {
   _renderRow = (index, item) =>
-    item.type === 'revokedHeader'
-      ? <RevokedHeader
-          key="revokedHeader"
-          expanded={this.props.showingRevoked}
-          onToggleExpanded={this.props.onToggleShowRevoked}
-        />
-      : <DeviceRow key={item.id} deviceID={item.id} />
+    item.type === 'revokedHeader' ? (
+      <RevokedHeader
+        key="revokedHeader"
+        expanded={this.props.showingRevoked}
+        onToggleExpanded={this.props.onToggleShowRevoked}
+      />
+    ) : (
+      <DeviceRow key={item.id} deviceID={item.id} />
+    )
 
   render() {
     const items = [
@@ -91,14 +100,16 @@ class Devices extends PureComponent<Props> {
 
     return (
       <Box style={stylesContainer}>
-        {this.props.waiting &&
+        {this.props.waiting && (
           <Box style={{...globalStyles.flexBoxRow, height: 64, justifyContent: 'center'}}>
             <ProgressIndicator style={{alignSelf: 'center', width: 24}} />
-          </Box>}
+          </Box>
+        )}
         <DeviceHeader onAddNew={this.props.showMenu} />
         <List items={items} renderItem={this._renderRow} />
-        {this.props.showingMenu &&
-          <OLDPopupMenu style={stylesPopup} items={this.props.menuItems} onHidden={this.props.hideMenu} />}
+        {this.props.showingMenu && (
+          <OLDPopupMenu style={stylesPopup} items={this.props.menuItems} onHidden={this.props.hideMenu} />
+        )}
       </Box>
     )
   }

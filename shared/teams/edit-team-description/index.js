@@ -22,7 +22,9 @@ const EditTeamDescription = ({
 }: Props) => (
   <MaybePopup onClose={onClose}>
     <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center', padding: globalMargins.large}}>
-      <Text style={{paddingBottom: globalMargins.medium}} type="Header">Edit team description</Text>
+      <Text style={{paddingBottom: globalMargins.medium}} type="Header">
+        Edit team description
+      </Text>
       <Avatar isTeam={true} teamname={teamname} size={40} />
       <Text style={{paddingBottom: globalMargins.medium, paddingTop: globalMargins.tiny}} type="Body">
         {teamname}

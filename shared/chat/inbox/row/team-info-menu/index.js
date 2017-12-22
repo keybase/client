@@ -20,10 +20,10 @@ const TeamInfoMenu = (props: Props) => (
       view: (
         <Box style={teamHeaderStyle}>
           <Avatar teamname={props.teamname} size={16} />
-          <Text type="BodySmallSemibold" style={teamStyle}>{props.teamname}</Text>
-          <Text type="BodySmall">
-            {props.memberCount + ' member' + (props.memberCount !== 1 ? 's' : '')}
+          <Text type="BodySmallSemibold" style={teamStyle}>
+            {props.teamname}
           </Text>
+          <Text type="BodySmall">{props.memberCount + ' member' + (props.memberCount !== 1 ? 's' : '')}</Text>
         </Box>
       ),
     }}

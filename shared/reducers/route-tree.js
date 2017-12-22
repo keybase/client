@@ -154,7 +154,9 @@ export default function routeTreeReducer(state: Types.State = initialState, acti
       logger.warn('New route tree mismatches current state. Not updating (please reload manually if needed).')
     } else {
       logger.error(
-        `Attempt to perform ${action.type} on ${pathToString(getPath(routeState))} raised exception: ${err}. Aborting.`
+        `Attempt to perform ${action.type} on ${pathToString(
+          getPath(routeState)
+        )} raised exception: ${err}. Aborting.`
       )
     }
     return state
@@ -170,7 +172,9 @@ export default function routeTreeReducer(state: Types.State = initialState, acti
     const routeError = checkRouteState(newLoggedInUserNavigated, newRouteDef, newRouteState)
     if (routeError) {
       logger.error(
-        `Attempt to perform ${action.type} on ${pathToString(getPath(routeState))} would result in invalid routeTree state: "${routeError}". Aborting.`
+        `Attempt to perform ${action.type} on ${pathToString(
+          getPath(routeState)
+        )} would result in invalid routeTree state: "${routeError}". Aborting.`
       )
       return state
     }

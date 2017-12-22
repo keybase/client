@@ -48,12 +48,16 @@ class ChoiceList extends Component<Props, State> {
             >
               <Box style={styleEntry}>
                 <Box style={styleIconContainer(this.state.activeIndex === idx)}>
-                  {typeof op.icon === 'string'
-                    ? <Icon style={styleIcon} type={iconType} />
-                    : <Box style={styleIcon}>{op.icon}</Box>}
+                  {typeof op.icon === 'string' ? (
+                    <Icon style={styleIcon} type={iconType} />
+                  ) : (
+                    <Box style={styleIcon}>{op.icon}</Box>
+                  )}
                 </Box>
                 <Box style={styleInfoContainer}>
-                  <Text style={styleInfoTitle} type="Header">{op.title}</Text>
+                  <Text style={styleInfoTitle} type="Header">
+                    {op.title}
+                  </Text>
                   <Text type="Body">{op.description}</Text>
                 </Box>
               </Box>

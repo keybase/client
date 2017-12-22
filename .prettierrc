@@ -1,0 +1,22 @@
+{
+  "bracketSpacing": false,
+  "printWidth": 110,
+  "semi": false,
+  "singleQuote": true,
+  "tabWidth": 2,
+  "trailingComma": "es5",
+  "overrides": [
+    {
+      "files": "*-gen.js",
+      "options": {
+        "printWidth": 500
+      }
+    },
+    {
+      "files": "rpc-*gen*.js",
+      "options": {
+        "printWidth": 9999
+      }
+    }
+  ]
+}

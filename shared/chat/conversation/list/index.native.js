@@ -33,18 +33,16 @@ class ConversationList extends Component<Props> {
     const isSelected = false
     return (
       // We have to invert transform the message or else it will look flipped
-      (
-        <Box style={verticallyInvertedStyle}>
-          {messageFactory(
-            messageKey,
-            prevMessageKey,
-            this._onAction,
-            this._onShowEditor,
-            isSelected,
-            this._measure
-          )}
-        </Box>
-      )
+      <Box style={verticallyInvertedStyle}>
+        {messageFactory(
+          messageKey,
+          prevMessageKey,
+          this._onAction,
+          this._onShowEditor,
+          isSelected,
+          this._measure
+        )}
+      </Box>
     )
   }
 

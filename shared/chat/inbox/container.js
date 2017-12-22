@@ -84,22 +84,26 @@ const getBigRowItems = createSelector([getTeamToChannel], (teamToChannels): Arra
   Inbox.RowItemBigHeader | Inbox.RowItemBig
 > => {
   const rows = []
-  Object.keys(teamToChannels).sort().forEach(teamname => {
-    rows.push({
-      teamname,
-      type: 'bigHeader',
-    })
-
-    const channels = teamToChannels[teamname]
-    Object.keys(channels).sort().forEach(channelname => {
+  Object.keys(teamToChannels)
+    .sort()
+    .forEach(teamname => {
       rows.push({
-        channelname,
-        conversationIDKey: channels[channelname],
         teamname,
-        type: 'big',
+        type: 'bigHeader',
       })
+
+      const channels = teamToChannels[teamname]
+      Object.keys(channels)
+        .sort()
+        .forEach(channelname => {
+          rows.push({
+            channelname,
+            conversationIDKey: channels[channelname],
+            teamname,
+            type: 'big',
+          })
+        })
     })
-  })
 
   return rows
 })
@@ -158,21 +162,25 @@ const getFilteredBigRows = createSelector([getTeamToChannel, getFilter], (teamTo
   Inbox.RowItemBig
 > => {
   const rows = []
-  Object.keys(teamToChannels).sort().forEach(teamname => {
-    const teamPassed = passesStringFilter(lcFilter, teamname.toLowerCase())
-    const channels = teamToChannels[teamname]
-    Object.keys(channels).sort().forEach(channelname => {
-      const channelPassed = teamPassed || passesStringFilter(lcFilter, channelname.toLowerCase())
-      if (channelPassed) {
-        rows.push({
-          channelname,
-          conversationIDKey: channels[channelname],
-          teamname,
-          type: 'big',
+  Object.keys(teamToChannels)
+    .sort()
+    .forEach(teamname => {
+      const teamPassed = passesStringFilter(lcFilter, teamname.toLowerCase())
+      const channels = teamToChannels[teamname]
+      Object.keys(channels)
+        .sort()
+        .forEach(channelname => {
+          const channelPassed = teamPassed || passesStringFilter(lcFilter, channelname.toLowerCase())
+          if (channelPassed) {
+            rows.push({
+              channelname,
+              conversationIDKey: channels[channelname],
+              teamname,
+              type: 'big',
+            })
+          }
         })
-      }
     })
-  })
 
   return rows
 })

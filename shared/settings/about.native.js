@@ -18,7 +18,9 @@ const About = ({version, onShowTerms, onShowPrivacyPolicy}: Props) => (
     <Text style={{marginBottom: globalMargins.tiny}} type="BodyPrimaryLink" onClick={onShowTerms}>
       Terms and Conditions
     </Text>
-    <Text type="BodyPrimaryLink" onClick={onShowPrivacyPolicy}>Privacy Policy</Text>
+    <Text type="BodyPrimaryLink" onClick={onShowPrivacyPolicy}>
+      Privacy Policy
+    </Text>
   </Box>
 )
 

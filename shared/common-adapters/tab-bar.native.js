@@ -83,10 +83,11 @@ const TabBarButton = (props: TabBarButtonProps) => {
           ...props.styleIcon,
         }}
       />
-      {!!props.label &&
+      {!!props.label && (
         <Text type="BodySemibold" style={{textAlign: 'center', ...props.styleLabel}}>
           {props.label}
-        </Text>}
+        </Text>
+      )}
       {badgeComponent}
       {props.underlined && <UnderlineHighlight />}
     </Box>
@@ -125,9 +126,7 @@ class TabBar extends React.Component<Props> {
   render() {
     const tabBarButtons = (
       <Box style={globalStyles.flexBoxColumn}>
-        <Box style={{...globalStyles.flexBoxRow, ...this.props.styleTabBar}}>
-          {this._labels()}
-        </Box>
+        <Box style={{...globalStyles.flexBoxRow, ...this.props.styleTabBar}}>{this._labels()}</Box>
         {this.props.underlined && <Box style={stylesUnderline} />}
       </Box>
     )

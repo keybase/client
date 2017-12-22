@@ -11,7 +11,10 @@ class PgpAdd extends Component<Props> {
       <StandardScreen style={styleContainer} onCancel={this.props.onCancel}>
         {/* TODO(MM) when we get the pgp icon, put it in here */}
         <PlatformIcon platform="pgp" overlay="icon-proof-unfinished" style={styleIcon} />
-        <Text style={styleHeader} type="BodySemibold"> Fill in your public info.</Text>
+        <Text style={styleHeader} type="BodySemibold">
+          {' '}
+          Fill in your public info.
+        </Text>
         <Input
           hintText="Your full name"
           value={this.props.fullName}
@@ -59,8 +62,7 @@ class PgpAdd extends Component<Props> {
             label="Let the math begin"
             disabled={nextDisabled}
             onClick={this.props.onNext}
-          />
-          {' '}
+          />{' '}
         </Box>
       </StandardScreen>
     )

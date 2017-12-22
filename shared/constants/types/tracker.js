@@ -1,5 +1,5 @@
 // @flow
-import * as RPCTypes from './flow-types'
+import * as RPCTypes from './rpc-gen'
 import type {Folder} from '../../folders/list'
 import type {FriendshipUserInfo} from '../../profile/friendships'
 import type {PlatformsExpandedType} from './more'

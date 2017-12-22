@@ -48,8 +48,12 @@ function PlanDetails({plan, price, paymentOption, onBack, gigabytes, numStars}: 
     <StandardScreen onBack={onBack}>
       <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center', justifyContent: 'center', flex: 1}}>
         <Stars count={numStars} />
-        <Text type={'Header'} style={{textAlign: 'center', marginTop: globalMargins.small}}>{plan}</Text>
-        <Text type={'Body'} style={{textAlign: 'center', marginBottom: globalMargins.medium}}>{price}</Text>
+        <Text type={'Header'} style={{textAlign: 'center', marginTop: globalMargins.small}}>
+          {plan}
+        </Text>
+        <Text type={'Body'} style={{textAlign: 'center', marginBottom: globalMargins.medium}}>
+          {price}
+        </Text>
         <Text
           type={'BodySemibold'}
           style={{textAlign: 'center', marginBottom: globalMargins.large}}

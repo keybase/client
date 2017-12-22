@@ -6,7 +6,7 @@ import * as NotificationsGen from '../actions/notifications-gen'
 import throttle from 'lodash/throttle'
 
 import type {Dispatch} from '../constants/types/flux'
-import type {IncomingCallMapType} from '../constants/types/flow-types'
+import type {IncomingCallMapType} from '../constants/types/rpc-gen'
 
 // Keep track of the last time we notified and ignore if its the same
 let lastLoggedInNotifyUsername = null

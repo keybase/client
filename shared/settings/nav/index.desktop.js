@@ -10,7 +10,9 @@ function SettingsItem({text, selected, onClick, badgeNumber}: SettingsItemType) 
   return (
     <ClickableBox onClick={onClick} style={selected ? selectedStyle : itemStyle}>
       <Box style={globalStyles.flexBoxRow}>
-        <Text type={'BodySmallSemibold'} style={selected ? selectedTextStyle : itemTextStyle}>{text}</Text>
+        <Text type={'BodySmallSemibold'} style={selected ? selectedTextStyle : itemTextStyle}>
+          {text}
+        </Text>
         {!!badgeNumber && badgeNumber > 0 && <Badge badgeStyle={badgeStyle} badgeNumber={badgeNumber} />}
       </Box>
     </ClickableBox>
@@ -45,12 +47,13 @@ function SettingsNav({badgeNumbers, selectedTab, onTabChange, onLogout}: Props) 
         onClick={() => onTabChange(Constants.deleteMeTab)}
       />
       <SettingsItem text="Sign out" selected={false} badgeNumber={0} onClick={onLogout} />
-      {__DEV__ &&
+      {__DEV__ && (
         <SettingsItem
           text="😎 &nbsp; Dev Menu"
           selected={selectedTab === Constants.devMenuTab}
           onClick={() => onTabChange(Constants.devMenuTab)}
-        />}
+        />
+      )}
     </Box>
   )
 }

@@ -22,12 +22,8 @@ const commonProps = {
 
 const Pair = ({children}) => (
   <Box style={{...globalStyles.flexBoxRow, width: '100%', marginBottom: 20}}>
-    <Box style={{flex: 1}}>
-      {children[0]}
-    </Box>
-    <Box style={{flex: 1}}>
-      {children[1]}
-    </Box>
+    <Box style={{flex: 1}}>{children[0]}</Box>
+    <Box style={{flex: 1}}>{children[1]}</Box>
   </Box>
 )
 

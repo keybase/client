@@ -1,9 +1,9 @@
 // @flow
 import type {SessionID, WaitingHandlerType, EndHandlerType, MethodKey} from './types'
-import type {IncomingCallMapType} from '../constants/types/flow-types'
+import type {IncomingCallMapType} from '../constants/types/rpc-gen'
 import type {invokeType} from './index.platform'
 import {IncomingRequest, OutgoingRequest} from './request'
-import {constantsStatusCode} from '../constants/types/flow-types'
+import {constantsStatusCode} from '../constants/types/rpc-gen'
 import {rpcLog} from './index.platform'
 import {RPCError} from '../util/errors'
 import {measureStart, measureStop} from '../dev/user-timings'

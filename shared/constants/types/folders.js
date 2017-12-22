@@ -1,7 +1,7 @@
 // @flow
 // TODO(mm) Everytype in this file should be pure...
 import type {DeviceType} from './devices'
-import type {Folder as FolderRPC} from './flow-types'
+import type {Folder as FolderRPC} from './rpc-gen'
 import type {IconType} from '../../common-adapters/icon'
 
 type UserListItem = {

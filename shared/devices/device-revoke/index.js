@@ -17,7 +17,9 @@ export type Props = {
 const Header = ({name, icon}) => (
   <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center'}}>
     <Icon type={icon} />
-    <Text type="BodySemibold" style={styleName}>{name}</Text>
+    <Text type="BodySemibold" style={styleName}>
+      {name}
+    </Text>
   </Box>
 )
 
@@ -25,13 +27,15 @@ const Body = ({endangeredTLFs, name, currentDevice}) => (
   <Box>
     <Box style={styleHeader}>
       <Text type="BodySemibold">Are you sure you want to revoke </Text>
-      {currentDevice
-        ? <Text type="BodySemibold">your current device</Text>
-        : <Text type="BodySemiboldItalic">{name}</Text>}
+      {currentDevice ? (
+        <Text type="BodySemibold">your current device</Text>
+      ) : (
+        <Text type="BodySemiboldItalic">{name}</Text>
+      )}
       <Text type="BodySemibold">?</Text>
     </Box>
 
-    {endangeredTLFs.length > 0 &&
+    {endangeredTLFs.length > 0 && (
       <Box>
         <Box>
           <Text type="Body">You may lose access to these folders forever:</Text>
@@ -40,12 +44,15 @@ const Body = ({endangeredTLFs, name, currentDevice}) => (
         <Box style={styleDevicesContainer}>
           {endangeredTLFs.map(tlf => (
             <Box key={tlf} style={styleTLF}>
-              <Text type="BodySemibold" style={{marginRight: globalMargins.tiny}}>•</Text>
+              <Text type="BodySemibold" style={{marginRight: globalMargins.tiny}}>
+                •
+              </Text>
               <Text type="BodySemibold">{tlf}</Text>
             </Box>
           ))}
         </Box>
-      </Box>}
+      </Box>
+    )}
   </Box>
 )
 

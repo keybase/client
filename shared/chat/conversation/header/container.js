@@ -8,7 +8,7 @@ import {createSelector} from 'reselect'
 import {createShowUserProfile} from '../../../actions/profile-gen'
 import {chatTab} from '../../../constants/tabs'
 import {type OwnProps} from './container'
-import * as ChatTypes from '../../../constants/types/flow-types-chat'
+import * as ChatTypes from '../../../constants/types/rpc-chat-gen'
 
 const getUsers = createSelector(
   [Constants.getYou, Constants.getParticipants, Constants.getFollowing, Constants.getMetaDataMap],

@@ -11,9 +11,7 @@ const MessageLoadingMore = ({moreToLoad, showTeamOffer}: Props) => (
     <Box style={secureStyle}>
       {!moreToLoad && <Icon type={isMobile ? 'icon-secure-static-266' : 'icon-secure-266'} />}
     </Box>
-    <Box style={moreStyle}>
-      {showTeamOffer && <CreateTeamNotice />}
-    </Box>
+    <Box style={moreStyle}>{showTeamOffer && <CreateTeamNotice />}</Box>
     <Box style={moreToLoad ? moreStyle : noneStyle}>
       <Text type="BodySmallSemibold">ヽ(ಠ益ಠ)ノ</Text>
       <Text type="BodySmallSemibold">Digging ancient messages...</Text>

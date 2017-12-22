@@ -6,23 +6,24 @@ import type {Props, NotificationType} from './standard-screen'
 
 const StandardScreen = ({theme = 'light', ...props}: Props) => {
   const topStack = [
-    !!props.notification &&
+    !!props.notification && (
       <Box key="banner" style={{...styleBanner(props.notification.type), ...props.styleBanner}}>
-        {typeof props.notification.message === 'string'
-          ? <Text style={styleBannerText} type="BodySemibold">{props.notification.message}</Text>
-          : props.notification.message}
-      </Box>,
+        {typeof props.notification.message === 'string' ? (
+          <Text style={styleBannerText} type="BodySemibold">
+            {props.notification.message}
+          </Text>
+        ) : (
+          props.notification.message
+        )}
+      </Box>
+    ),
   ]
   const topStackCount = topStack.reduce((acc, x) => acc + !!x, 0)
   return (
     <Box style={{...styleContainer, ...backgroundColorThemed[theme]}}>
-      <Box style={styleTopStack}>
-        {topStack}
-      </Box>
+      <Box style={styleTopStack}>{topStack}</Box>
       <Box style={{...styleInnerContainer, paddingBottom: topStackCount * globalMargins.large}}>
-        <Box style={{...styleContentContainer, ...props.style}}>
-          {props.children}
-        </Box>
+        <Box style={{...styleContentContainer, ...props.style}}>{props.children}</Box>
       </Box>
     </Box>
   )

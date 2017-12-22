@@ -1,13 +1,13 @@
 // @flow
 import logger from '../../logger'
 import * as Attachment from './attachment'
-import * as ChatTypes from '../../constants/types/flow-types-chat'
+import * as ChatTypes from '../../constants/types/rpc-chat-gen'
 import * as Constants from '../../constants/chat'
 import * as ChatGen from '../chat-gen'
 import * as KBFSGen from '../kbfs-gen'
 import * as Inbox from './inbox'
 import * as ManageThread from './manage-thread'
-import * as RPCTypes from '../../constants/types/flow-types'
+import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as Saga from '../../util/saga'
 import * as Search from './search'
 import * as Selectors from '../../constants/selectors'
@@ -120,9 +120,10 @@ function _openFolder(_: ChatGen.OpenFolderPayload, state: TypedState) {
       }
       path = teamFolder(inbox.teamname)
     } else {
-      const helper = inbox.visibility === RPCTypes.commonTLFVisibility.public
-        ? publicFolderWithUsers
-        : privateFolderWithUsers
+      const helper =
+        inbox.visibility === RPCTypes.commonTLFVisibility.public
+          ? publicFolderWithUsers
+          : privateFolderWithUsers
       path = helper(inbox.get('participants').toArray())
     }
     return Saga.put(KBFSGen.createOpen({path}))
