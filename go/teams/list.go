@@ -526,8 +526,6 @@ func AnnotateInvites(ctx context.Context, g *libkb.GlobalContext, team *Team) (A
 				active = false
 			}
 			name = keybase1.TeamInviteName(up.Username)
-			// TODO: Add support for full name here. FullName field in
-			// AnnotatedTeamInvite.
 		} else if category == keybase1.TeamInviteCategory_SEITAN {
 			name, err = AnnotateSeitanInvite(ctx, team, invite)
 			if err != nil {
