@@ -145,6 +145,8 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	cfg, err := st.getConfig(false)
 	if err != nil {
+		// TODO: error page to show the error message?
+		s.config.Logger.Info("getConfig", zap.String("host", r.Host), zap.Error(err))
 		s.handleError(w, err)
 		return
 	}
