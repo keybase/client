@@ -80,7 +80,7 @@ const styleSearchContainer = {
 
 const styleSearch = {
   color: globalColors.black_20,
-  fontSize: 12,
+  fontSize: 15,
   padding: 3,
 }
 
