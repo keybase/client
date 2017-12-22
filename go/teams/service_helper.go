@@ -1264,12 +1264,7 @@ func CanUserPerform(ctx context.Context, g *libkb.GlobalContext, teamname string
 	}
 
 	hasOtherOwner := func() (bool, error) {
-
-		t, err := GetForTeamManagementByStringName(ctx, g, teamname, true)
-		if err != nil {
-			return false, err
-		}
-		owners, err := t.UsersWithRole(keybase1.TeamRole_OWNER)
+		owners, err := team.UsersWithRole(keybase1.TeamRole_OWNER)
 		if err != nil {
 			return false, err
 		}
