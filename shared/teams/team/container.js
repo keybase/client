@@ -1,7 +1,7 @@
 // @flow
 import * as Constants from '../../constants/teams'
 import * as Types from '../../constants/types/teams'
-import * as RPCTypes from '../../constants/types/flow-types'
+import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as TeamsGen from '../../actions/teams-gen'
 import * as SearchGen from '../../actions/search-gen'
 import * as I from 'immutable'

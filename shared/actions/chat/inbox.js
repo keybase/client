@@ -2,14 +2,14 @@
 // Actions that have to do with the inbox.
 // Loading, unboxing, filtering, stale, out of sync, badging
 import logger from '../../logger'
-import * as RPCChatTypes from '../../constants/types/flow-types-chat'
+import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
 import * as Constants from '../../constants/chat'
 import * as Types from '../../constants/types/chat'
 import * as ChatGen from '../chat-gen'
 import * as ConfigGen from '../config-gen'
 import * as EngineRpc from '../../constants/engine'
 import * as I from 'immutable'
-import * as RPCTypes from '../../constants/types/flow-types'
+import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as Saga from '../../util/saga'
 import * as Selectors from '../../constants/selectors'
 import * as Shared from './shared'

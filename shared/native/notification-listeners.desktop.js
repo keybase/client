@@ -1,5 +1,5 @@
 // @flow
-import * as RPCTypes from '../constants/types/flow-types'
+import * as RPCTypes from '../constants/types/rpc-gen'
 import shared from './notification-listeners.shared'
 import {kbfsNotification} from '../util/kbfs-notifications'
 import {remote} from 'electron'

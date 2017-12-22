@@ -15,7 +15,7 @@ import * as EngineRpc from '../constants/engine'
 import * as RouteTypes from '../constants/types/route-tree'
 import * as RouteConstants from '../constants/route-tree'
 import * as Saga from '../util/saga'
-import * as RPCTypes from '../constants/types/flow-types'
+import * as RPCTypes from '../constants/types/rpc-gen'
 import HiddenString from '../util/hidden-string'
 import openURL from '../util/open-url'
 import {RPCError} from '../util/errors'
@@ -312,7 +312,7 @@ const promptNewDeviceNameSaga = onBackSaga =>
     }
   }
 
-// TODO change types in flow-types to generate this
+// TODO change types in rpc-gen to generate this
 const chooseDeviceSaga = onBackSaga =>
   function*({devices, canSelectNoDevice}: {devices: Array<RPCTypes.Device>, canSelectNoDevice: boolean}) {
     yield Saga.put(

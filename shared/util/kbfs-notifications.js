@@ -4,10 +4,10 @@ import {
   kbfsCommonFSErrorType,
   kbfsCommonFSNotificationType,
   kbfsCommonFSStatusCode,
-} from '../constants/types/flow-types'
+} from '../constants/types/rpc-gen'
 import path from 'path'
 import {parseFolderNameToUsers} from './kbfs'
-import type {FSNotification} from '../constants/types/flow-types'
+import type {FSNotification} from '../constants/types/rpc-gen'
 
 type DecodedKBFSError = {
   title: string,

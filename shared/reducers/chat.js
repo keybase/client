@@ -6,7 +6,7 @@ import * as Types from '../constants/types/chat'
 import * as TeamsGen from '../actions/teams-gen'
 import * as ChatGen from '../actions/chat-gen'
 import * as GregorGen from '../actions/gregor-gen'
-import {reachabilityReachable} from '../constants/types/flow-types'
+import {reachabilityReachable} from '../constants/types/rpc-gen'
 
 const initialState: Types.State = Constants.makeState()
 const initialConversation: Types.ConversationState = Constants.makeConversationState()

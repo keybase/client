@@ -2,11 +2,11 @@
 // Actions that have to do with managing a thread.
 // Mute, block, starting a new one, selecting one
 import logger from '../../logger'
-import * as ChatTypes from '../../constants/types/flow-types-chat'
+import * as ChatTypes from '../../constants/types/rpc-chat-gen'
 import * as Constants from '../../constants/chat'
 import * as ChatGen from '../../actions/chat-gen'
 import * as I from 'immutable'
-import * as RPCTypes from '../../constants/types/flow-types'
+import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as Saga from '../../util/saga'
 import * as SearchGen from '../search-gen'
 import * as Selectors from '../../constants/selectors'

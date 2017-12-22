@@ -2,7 +2,7 @@
 import logger from '../../logger'
 import * as Types from '../../constants/types/profile'
 import * as ProfileGen from '../profile-gen'
-import * as RPCTypes from '../../constants/types/flow-types'
+import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as Saga from '../../util/saga'
 import {isValidEmail, isValidName} from '../../util/simple-validators'
 import {navigateTo, navigateAppend} from '../../actions/route-tree'

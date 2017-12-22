@@ -3,7 +3,7 @@ import React, {Component} from 'react'
 import {globalStyles, globalColors, globalMargins} from '../styles'
 import {autoResize} from '../desktop/remote/util'
 import {Button, FormWithCheckbox, Header, Text, Box, Icon} from '../common-adapters'
-import * as RPCTypes from '../constants/types/flow-types'
+import * as RPCTypes from '../constants/types/rpc-gen'
 
 export type Props = {
   onSubmit: (passphrase: string) => void,

@@ -3,7 +3,7 @@ import logger from '../logger'
 import * as React from 'react'
 import {Box, Text, Icon} from '../common-adapters'
 import {globalStyles, globalColors} from '../styles'
-import {reachabilityReachable} from '../constants/types/flow-types'
+import {reachabilityReachable} from '../constants/types/rpc-gen'
 import {ignoreDisconnectOverlay} from '../local-debug.desktop.js'
 
 import type {Props} from './index'
