@@ -1,5 +1,5 @@
 // @flow
-import People from '.'
+import People from './'
 import * as PeopleGen from '../actions/people-gen'
 import {connect} from 'react-redux'
 import {compose, lifecycle} from 'recompose'
