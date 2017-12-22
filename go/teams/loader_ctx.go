@@ -114,9 +114,15 @@ func (l *LoaderContextG) getLinksFromServer(ctx context.Context,
 }
 
 func (l *LoaderContextG) getMe(ctx context.Context) (res keybase1.UserVersion, err error) {
+	uid := l.G().ActiveDevice.UID()
+	// If we're logged out, we still should be able to access the team loader
+	// for public teams. So we'll just return a nil UID here, and it should just work.
+	if uid.IsNil() {
+		return res, nil
+	}
 	loadMeArg := libkb.NewLoadUserArg(l.G()).
 		WithNetContext(ctx).
-		WithUID(l.G().Env.GetUID()).
+		WithUID(uid).
 		WithSelf(true).
 		WithPublicKeyOptional()
 	upak, _, err := l.G().GetUPAKLoader().LoadV2(loadMeArg)
