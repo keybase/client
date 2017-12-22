@@ -10,17 +10,10 @@ import (
 	"strings"
 )
 
+// permissionsV1 is the parsed version of a permission string.
 type permissionsV1 struct {
 	read bool
 	list bool
-}
-
-type accessControlV1 struct {
-	// whitelistAdditional is the internal version of
-	// AccessControlV1.WhitelistAdditionalPermissions. See comment of latter
-	// for more details. It's a map of username -> permissionsV1.
-	whitelistAdditional map[string]permissionsV1
-	anonymous           permissionsV1
 }
 
 func parsePermissionsV1(permsStr string) (permissionsV1, error) {
@@ -43,6 +36,19 @@ func parsePermissionsV1(permsStr string) (permissionsV1, error) {
 	return perms, nil
 }
 
+// accessControlV1 is the parsed version of AccessControlV1. It can be used
+// directly with no parsing errors by the ACL checker.
+type accessControlV1 struct {
+	// whitelistAdditional is the internal version of
+	// AccessControlV1.WhitelistAdditionalPermissions. See comment of latter
+	// for more details. It's a map of username -> permissionsV1.
+	whitelistAdditional map[string]permissionsV1
+	anonymous           permissionsV1
+}
+
+// makeAccessControlV1Internal makes an *accessControlV1 out of an
+// *AccessControlV1. The users map is used to check if every username defined
+// in WhitelistAdditionalPermissions is defined.
 func makeAccessControlV1Internal(a *AccessControlV1, users map[string][]byte) (
 	ac *accessControlV1, err error) {
 	if a == nil {
@@ -76,7 +82,13 @@ func defaultAccessControlV1InternalForRoot() *accessControlV1 {
 
 type aclCheckerV1 struct {
 	children map[string]*aclCheckerV1
-	ac       *accessControlV1
+	// ac, if not nil, defines the access control that should be applied to the
+	// path that the *aclCheckerV1 represents. If it's nil, it means no
+	// specific access control is defined for the path, and the object exists
+	// most likely for the purpose of the children field to realy to checkers
+	// under this path. In this case, the parent's access control is the
+	// effective one for this path.
+	ac *accessControlV1
 }
 
 // cleanPath cleans p in by first calling path.Clean, then removing any leading
@@ -116,35 +128,50 @@ func cleanPathAndSplit2(p string) (elems []string) {
 	return strings.SplitN(cleanPath(p), "/", 2)
 }
 
-// getAccessControl gets the corresponding accessControlV1 for p.
-// If a specifically defined one exists, it's returned. Otherwise the default
-// one is returned.
+// getAccessControl gets the corresponding accessControlV1 for p. It walks
+// along the children field recursively.  If a specifically defined one exists,
+// it's returned. Otherwise the parent's (parentAC) is returned.
 func (c *aclCheckerV1) getAccessControl(
 	parentAC *accessControlV1, p string) (ac *accessControlV1) {
 	effectiveAC := c.ac
 	if c.ac == nil {
-		// If c.ac == nil, it means user didn't specify an ACL for this
-		// directory. So just inherit from the parent.
+		// If c.ac == nil, it means user didn't specify an ACL for the
+		// path that c represents. So just inherit from the parent.
 		effectiveAC = parentAC
 	}
 	elems := cleanPathAndSplit2(p)
 	if len(elems[0]) == 0 || c.children == nil {
+		// Either what we are looking for is exactly what c represents, or c
+		// doesn't have any children *aclCheckerV1's. Either way, c should be
+		// the checker that controls the path p, so we can just returned the
+		// current effectiveAC.
 		return effectiveAC
 	}
+	// See if we have a sub-checker for the next element in the path p.
 	if subChecker, ok := c.children[elems[0]]; ok {
 		if len(elems) > 1 {
+			// There are more elements in the path p, so ask the sub-checker
+			// for check for the rest.
 			return subChecker.getAccessControl(effectiveAC, elems[1])
 		}
+		// The sub-checker is what we need in order to know get the
+		// *accessControlV1 for path p, so call it with "." to indicate that.
 		return subChecker.getAccessControl(effectiveAC, ".")
 	}
 
+	// We don't have a sub-checker for the next element in the path p, so just
+	// use the current effectiveAC like the `len(elems[0]) == 0 || c.children
+	// == nil` above.
 	return effectiveAC
 }
 
+// getPermissions returns the permissions that username has on p. This method
+// should only be called on the root aclCheckerV1.
 func (c *aclCheckerV1) getPermissions(
 	p string, username *string) (permissions permissionsV1) {
 	// This is only called on the root aclCheckerV1, and c.ac is always
-	// populated here.
+	// populated here. So even if no other path shows up in the ACLs, any path
+	// will get root's *accessControlV1 as the last resort.
 	ac := c.getAccessControl(nil, p)
 	permissions = ac.anonymous
 	if ac.whitelistAdditional == nil || username == nil {
@@ -157,6 +184,9 @@ func (c *aclCheckerV1) getPermissions(
 	return permissions
 }
 
+// makeACLCheckerV1 makes an *aclCheckerV1 out of user-defined ACLs (acl). It
+// recursively constructs nested *aclCheckerV1 so that each defined path has a
+// corresponding checker, and all intermediate nodes have a checker populated.
 func makeACLCheckerV1(acl map[string]AccessControlV1,
 	users map[string][]byte) (*aclCheckerV1, error) {
 	root := &aclCheckerV1{ac: defaultAccessControlV1InternalForRoot()}
@@ -184,6 +214,8 @@ func makeACLCheckerV1(acl map[string]AccessControlV1,
 		cleaned[cleanedPath] = &ac
 	}
 
+	// Iterate through the cleaned slice, and construct *aclCheckerV1 objects
+	// along each path.
 	for p, a := range cleaned {
 		ac, err := makeAccessControlV1Internal(a, users)
 		if err != nil {
@@ -197,8 +229,7 @@ func makeACLCheckerV1(acl map[string]AccessControlV1,
 		}
 
 		c := root
-		// Construct aclCheckerV1 objects along the path and populate
-		// defaultAC.
+		// Construct aclCheckerV1 objects along the path if needed.
 		for _, elem := range elems {
 			if c.children == nil {
 				// path element -> *aclCheckerV1
@@ -212,6 +243,8 @@ func makeACLCheckerV1(acl map[string]AccessControlV1,
 			}
 			c = c.children[elem]
 		}
+		// Now that c points the the *aclCheckerV1 that represents the path p,
+		// populate c.ac for it.
 		c.ac = ac
 	}
 
