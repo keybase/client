@@ -24,17 +24,14 @@ const singleFollowProps2: Props = {
 }
 
 const load = () => {
-  storiesOf('People', module)
-    .add('Someone followed you', () => (
+  storiesOf('People/Follow notification', module)
+    .addDecorator(story => (
       <Provider store={createStore(ignore => store, store)}>
-        <FollowNotification {...singleFollowProps1} />
+        {story()}
       </Provider>
     ))
-    .add('Someone you follow followed you', () => (
-      <Provider store={createStore(ignore => store, store)}>
-        <FollowNotification {...singleFollowProps2} />
-      </Provider>
-    ))
+    .add('Someone followed you', () => <FollowNotification {...singleFollowProps1} />)
+    .add('Someone you follow followed you', () => <FollowNotification {...singleFollowProps2} />)
 }
 
 export default load

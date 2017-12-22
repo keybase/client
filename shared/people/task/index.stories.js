@@ -99,7 +99,7 @@ const publicityTaskProps: Props = {
 }
 
 const load = () => {
-  storiesOf('People', module)
+  storiesOf('People/Todos', module)
     .add('Fill out bio', () => <Task {...bioTaskProps} />)
     .add('Prove something', () => <Task {...proofTaskProps} />)
     .add('Install on phone', () => <Task {...installTaskProps} />)
