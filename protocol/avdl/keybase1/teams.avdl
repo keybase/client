@@ -79,6 +79,7 @@ protocol teams {
   record TeamMemberDetails {
     UserVersion uv;
     string username;
+    FullName fullName;
     boolean active;
     @lint("ignore")
     boolean needsPUK;
@@ -199,6 +200,8 @@ protocol teams {
     string inviterUsername;
     string teamName;
     boolean userActive;
+    // Full name may only be available for KEYBASE invites.
+    union { null, FullName } fullName;
   }
 
   // State of a parsed team sigchain.

@@ -243,6 +243,7 @@ func (o TeamMembers) DeepCopy() TeamMembers {
 type TeamMemberDetails struct {
 	Uv       UserVersion `codec:"uv" json:"uv"`
 	Username string      `codec:"username" json:"username"`
+	FullName FullName    `codec:"fullName" json:"fullName"`
 	Active   bool        `codec:"active" json:"active"`
 	NeedsPUK bool        `codec:"needsPUK" json:"needsPUK"`
 }
@@ -251,6 +252,7 @@ func (o TeamMemberDetails) DeepCopy() TeamMemberDetails {
 	return TeamMemberDetails{
 		Uv:       o.Uv.DeepCopy(),
 		Username: o.Username,
+		FullName: o.FullName.DeepCopy(),
 		Active:   o.Active,
 		NeedsPUK: o.NeedsPUK,
 	}
@@ -709,6 +711,7 @@ type AnnotatedTeamInvite struct {
 	InviterUsername string         `codec:"inviterUsername" json:"inviterUsername"`
 	TeamName        string         `codec:"teamName" json:"teamName"`
 	UserActive      bool           `codec:"userActive" json:"userActive"`
+	FullName        *FullName      `codec:"fullName,omitempty" json:"fullName,omitempty"`
 }
 
 func (o AnnotatedTeamInvite) DeepCopy() AnnotatedTeamInvite {
@@ -722,6 +725,13 @@ func (o AnnotatedTeamInvite) DeepCopy() AnnotatedTeamInvite {
 		InviterUsername: o.InviterUsername,
 		TeamName:        o.TeamName,
 		UserActive:      o.UserActive,
+		FullName: (func(x *FullName) *FullName {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.FullName),
 	}
 }
 

@@ -143,23 +143,6 @@ func members(ctx context.Context, g *libkb.GlobalContext, t *Team, forceRepoll b
 	return membersUIDsToUsernames(ctx, g, members, forceRepoll)
 }
 
-func userVersionToDetails(ctx context.Context, g *libkb.GlobalContext, uv keybase1.UserVersion, forceRepoll bool) (res keybase1.TeamMemberDetails, err error) {
-	_, nun, err := loadMember(ctx, g, uv, forceRepoll)
-	active := true
-	if err != nil {
-		if _, reset := err.(libkb.AccountResetError); reset {
-			active = false
-		} else {
-			return res, err
-		}
-	}
-	return keybase1.TeamMemberDetails{
-		Uv:       uv,
-		Username: nun.String(),
-		Active:   active,
-	}, nil
-}
-
 func userVersionsToDetails(ctx context.Context, g *libkb.GlobalContext, uvs []keybase1.UserVersion, forceRepoll bool) (ret []keybase1.TeamMemberDetails, err error) {
 	uids := make([]keybase1.UID, len(uvs), len(uvs))
 	for i, uv := range uvs {
@@ -175,12 +158,17 @@ func userVersionsToDetails(ctx context.Context, g *libkb.GlobalContext, uvs []ke
 	for i, uv := range uvs {
 		pkg := packages[i]
 		active := true
-		if pkg.FullName != nil && pkg.FullName.EldestSeqno != uv.EldestSeqno {
-			active = false
+		var fullName keybase1.FullName
+		if pkg.FullName != nil {
+			if pkg.FullName.EldestSeqno != uv.EldestSeqno {
+				active = false
+			}
+			fullName = pkg.FullName.FullName
 		}
 		ret[i] = keybase1.TeamMemberDetails{
 			Uv:       uvs[i],
 			Username: pkg.NormalizedUsername.String(),
+			FullName: fullName,
 			Active:   active,
 		}
 	}

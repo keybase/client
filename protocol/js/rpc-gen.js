@@ -1847,7 +1847,7 @@ export type AccountResetAccountRpcParam = ?{|incomingCallMap?: IncomingCallMapTy
 
 export type AnnotatedMemberInfo = {|userID: UID, teamID: TeamID, username: String, fullName: String, fqName: String, isImplicitTeam: Boolean, role: TeamRole, implicit?: ?ImplicitRole, needsPUK: Boolean, memberCount: Int, eldestSeqno: Seqno, active: Boolean|}
 
-export type AnnotatedTeamInvite = {|role: TeamRole, id: TeamInviteID, type: TeamInviteType, name: TeamInviteName, uv: UserVersion, inviter: UserVersion, inviterUsername: String, teamName: String, userActive: Boolean|}
+export type AnnotatedTeamInvite = {|role: TeamRole, id: TeamInviteID, type: TeamInviteType, name: TeamInviteName, uv: UserVersion, inviter: UserVersion, inviterUsername: String, teamName: String, userActive: Boolean, fullName?: ?FullName|}
 
 export type AnnotatedTeamList = {|teams?: ?Array<AnnotatedMemberInfo>, annotatedActiveInvites: {[key: string]: AnnotatedTeamInvite}|}
 
@@ -3514,7 +3514,7 @@ export type TeamList = {|teams?: ?Array<MemberInfo>|}
 
 export type TeamMember = {|uid: UID, role: TeamRole, eldestSeqno: Seqno, userEldestSeqno: Seqno|}
 
-export type TeamMemberDetails = {|uv: UserVersion, username: String, active: Boolean, needsPUK: Boolean|}
+export type TeamMemberDetails = {|uv: UserVersion, username: String, fullName: FullName, active: Boolean, needsPUK: Boolean|}
 
 export type TeamMemberOutFromReset = {|teamName: String, resetUser: TeamResetUser|}
 

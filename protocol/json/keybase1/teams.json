@@ -193,6 +193,10 @@
           "name": "username"
         },
         {
+          "type": "FullName",
+          "name": "fullName"
+        },
+        {
           "type": "boolean",
           "name": "active"
         },
@@ -548,6 +552,13 @@
         {
           "type": "boolean",
           "name": "userActive"
+        },
+        {
+          "type": [
+            null,
+            "FullName"
+          ],
+          "name": "fullName"
         }
       ]
     },
