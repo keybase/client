@@ -25,6 +25,12 @@ const singleFollowProps2: Props = {
   notificationTime: new Date(2017, 12, 14),
 }
 
+const multiFollowProps1: Props = {
+  newFollows: [{username: 'max'}, {username: 'mmaxim'}, {username: 'chrisnojima'}],
+  badged: true,
+  notificationTime: new Date(),
+}
+
 const load = () => {
   storiesOf('People/Follow notification', module)
     .addDecorator(story => (
@@ -34,6 +40,7 @@ const load = () => {
     ))
     .add('Someone followed you', () => <FollowNotification {...singleFollowProps1} />)
     .add('Someone you follow followed you', () => <FollowNotification {...singleFollowProps2} />)
+    .add('A few people followed you', () => <FollowNotification {...multiFollowProps1} />)
 }
 
 export default load
