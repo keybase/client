@@ -13,7 +13,7 @@
       }
     },
     {
-      "files": "*flow-types*.js",
+      "files": "rpc-*gen*.js",
       "options": {
         "printWidth": 9999
       }

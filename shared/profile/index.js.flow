@@ -6,7 +6,7 @@ import type {BioEditFns} from '../common-adapters/user-bio'
 import type {Tab as FriendshipsTab, FriendshipUserInfo} from './friendships'
 import type {MissingProof} from '../common-adapters/user-proofs'
 import type {Folder} from '../folders/list'
-import type {UserTeamShowcase} from '../constants/types/flow-types'
+import type {UserTeamShowcase} from '../constants/types/rpc-gen'
 
 export type Props = {
   isYou: boolean,

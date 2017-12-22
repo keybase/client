@@ -1,10 +1,10 @@
 // @flow
 import shared from './notification-listeners.shared'
 import RNPN from 'react-native-push-notification'
-import * as RPCTypes from '../constants/types/flow-types'
+import * as RPCTypes from '../constants/types/rpc-gen'
 
 import type {Dispatch} from '../constants/types/flux'
-import type {IncomingCallMapType} from '../constants/types/flow-types'
+import type {IncomingCallMapType} from '../constants/types/rpc-gen'
 
 // TODO(mm) Move these to their own actions
 export default function(dispatch: Dispatch, getState: () => Object, notify: any): IncomingCallMapType {

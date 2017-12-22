@@ -3,7 +3,7 @@ import logger from '../logger'
 import * as Saga from '../util/saga'
 import * as Constants from '../constants/plan-billing'
 import * as Types from '../constants/types/plan-billing'
-import * as RPCTypes from '../constants/types/flow-types'
+import * as RPCTypes from '../constants/types/rpc-gen'
 import {type TypedState} from '../constants/reducer'
 
 function updateBilling(updateBillingArgs: Types.UpdateBillingArgs): Types.UpdateBilling {

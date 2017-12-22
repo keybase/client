@@ -1,5 +1,5 @@
 // @flow
-import * as RPCTypes from './types/flow-types'
+import * as RPCTypes from './types/rpc-gen'
 import * as Types from './types/favorite'
 import {defaultKBFSPath} from './config'
 import {parseFolderNameToUsers, sortUserList} from '../util/kbfs'

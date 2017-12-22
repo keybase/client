@@ -3,7 +3,7 @@ import Container from '../../forms/container'
 import * as React from 'react'
 import openURL from '../../../util/open-url'
 import {RPCError} from '../../../util/errors'
-import {constantsStatusCode} from '../../../constants/types/flow-types'
+import {constantsStatusCode} from '../../../constants/types/rpc-gen'
 import {Box, Text, Markdown} from '../../../common-adapters'
 import {globalStyles, globalMargins, isMobile} from '../../../styles'
 

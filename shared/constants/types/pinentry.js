@@ -1,6 +1,6 @@
 // @flow
 import * as I from 'immutable'
-import * as RPCTypes from './flow-types'
+import * as RPCTypes from './rpc-gen'
 
 export type EnabledFeatures = {[key: string]: RPCTypes.Feature}
 

@@ -19,7 +19,7 @@ import {navigateAppend, navigateTo} from '../../../actions/route-tree'
 import {chatTab, teamsTab} from '../../../constants/tabs'
 import {createShowUserProfile} from '../../../actions/profile-gen'
 import flags from '../../../util/feature-flags'
-import * as ChatTypes from '../../../constants/types/flow-types-chat'
+import * as ChatTypes from '../../../constants/types/rpc-chat-gen'
 
 const getParticipants = createSelector(
   [

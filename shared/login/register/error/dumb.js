@@ -1,7 +1,7 @@
 // @flow
 import ErrorRender from '.'
 import {convertToRPCError} from '../../../util/errors'
-import {constantsStatusCode} from '../../../constants/types/flow-types'
+import {constantsStatusCode} from '../../../constants/types/rpc-gen'
 
 import type {DumbComponentMap} from '../../../constants/types/more'
 

@@ -36,10 +36,10 @@ go-build-stamp: avdl/keybase1/*.avdl avdl/gregor1/*.avdl avdl/chat1/*.avdl $(AVD
 	(cd ../go/protocol && go fmt ./...)
 	date > $@
 
-js/flow-types.js: build-stamp | config
+js/rpc.js: build-stamp | config
 	@mkdir -p js/
 	node --harmony ./bin/flow.js
-	cp ./js/flow-types* ../shared/constants/types
+	cp ./js/rpc* ../shared/constants/types
 
 clean:
 	rm -rf json/*/*.json js/*.js *build-stamp
@@ -50,6 +50,6 @@ clean:
 fmt:
 	@./fmt.sh
 
-build: fmt build-stamp go-build-stamp js/flow-types.js
+build: fmt build-stamp go-build-stamp js/rpc.js
 
 .PHONY: test config

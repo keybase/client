@@ -29,7 +29,7 @@ function compile(ns: ActionNS, {prelude, actions}: FileDesc): string {
 /* eslint-disable no-unused-vars,prettier/prettier */
 
 import * as I from 'immutable'
-import * as RPCTypes from '../constants/types/flow-types'
+import * as RPCTypes from '../constants/types/rpc-gen'
 import * as More from '../constants/types/more'
 ${prelude.join('\n')}
 

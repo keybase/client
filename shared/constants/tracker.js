@@ -1,5 +1,5 @@
 // @flow
-import * as RPCTypes from '../constants/types/flow-types'
+import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Types from './types/tracker'
 import {type PlatformsExpandedType} from '../constants/types/more'
 import uniqBy from 'lodash/uniqBy'

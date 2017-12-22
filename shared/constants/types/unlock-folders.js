@@ -1,6 +1,6 @@
 // @flow
 import * as I from 'immutable'
-import type {DeviceID} from './flow-types'
+import type {DeviceID} from './rpc-gen'
 import type {DeviceType} from './devices'
 
 export type _Device = {

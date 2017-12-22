@@ -1,5 +1,5 @@
 // @flow
-import type {Email} from './flow-types'
+import type {Email} from './rpc-gen'
 import type {AcceptedInvite, PendingInvite} from '../../settings/invites/index'
 import HiddenString from '../../util/hidden-string'
 
