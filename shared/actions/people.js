@@ -21,7 +21,7 @@ const _processPeopleData = function(data: RPCTypes.HomeScreen) {
     // $FlowIssue I'm not filling this in
     data.items = [
       {
-        badged: false,
+        badged: true,
         data: {
           t: 2,
           people: {
