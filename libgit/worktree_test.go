@@ -62,6 +62,7 @@ func testCheckFile(t *testing.T, fs billy.Filesystem,
 	name, expectedData string) {
 	f, err := fs.Open(name)
 	require.NoError(t, err)
+	defer f.Close()
 	data, err := ioutil.ReadAll(f)
 	require.NoError(t, err)
 	require.Equal(t, expectedData, string(data))

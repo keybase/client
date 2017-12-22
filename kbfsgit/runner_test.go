@@ -987,6 +987,7 @@ func TestRunnerWithKBFSReset(t *testing.T) {
 
 	f, err := wtFS.Open("foo")
 	require.NoError(t, err)
+	defer f.Close()
 	data, err := ioutil.ReadAll(f)
 	require.NoError(t, err)
 	require.Equal(t, "hello", string(data))
