@@ -16,11 +16,13 @@ const store = {
 const singleFollowProps1: Props = {
   newFollows: [{username: 'mmaxim'}],
   badged: true,
+  notificationTime: new Date(),
 }
 
 const singleFollowProps2: Props = {
   newFollows: [{username: 'max'}],
   badged: false,
+  notificationTime: new Date(2017, 12, 14),
 }
 
 const load = () => {

@@ -1,7 +1,7 @@
 // @flow
 import React from 'react'
 import PeopleItem from '../item'
-import {ConnectedUsernames, Text} from '../../common-adapters'
+import {Avatar, ConnectedUsernames, Text} from '../../common-adapters'
 
 const connectedUsernamesProps = {
   clickable: true,
@@ -17,6 +17,7 @@ export type NewFollow = {
 export type Props = {
   newFollows: Array<NewFollow>,
   badged: boolean,
+  notificationTime: Date,
 }
 
 export default (props: Props) => {
@@ -30,10 +31,15 @@ export const FollowNotification = (props: Props) => {
   if (props.newFollows.length !== 1) {
     throw new Error('Follow notification must have exactly one user supplied')
   }
+  const username = props.newFollows[0].username
   return (
-    <PeopleItem badged={props.badged} icon="icon-onboarding-git-32">
-      <Text type="Body" style={{marginTop: 2, paddingRight: 40}}>
-        <ConnectedUsernames {...connectedUsernamesProps} usernames={[props.newFollows[0].username]} />
+    <PeopleItem
+      badged={props.badged}
+      icon={<Avatar username={username} size={32} />}
+      when={props.notificationTime}
+    >
+      <Text type="Body" style={{marginTop: 2}}>
+        <ConnectedUsernames {...connectedUsernamesProps} usernames={[username]} />
         {' '}
         followed you.
       </Text>
@@ -47,7 +53,7 @@ export const MultiFollowNotification = (props: Props) => {
   }
   return (
     <PeopleItem badged={props.badged} icon="icon-onboarding-git-32">
-      <Text type="Body" style={{marginTop: 2, paddingRight: 40}}>
+      <Text type="Body" style={{marginTop: 2}}>
         <ConnectedUsernames {...connectedUsernamesProps} usernames={[props.newFollows[0].username]} />
       </Text>
     </PeopleItem>

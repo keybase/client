@@ -1,7 +1,7 @@
 // @flow
 import React from 'react'
 import PeopleItem from '../item'
-import {Box, Button, Text} from '../../common-adapters'
+import {Box, Button, Icon, Text} from '../../common-adapters'
 import {type IconType} from '../../common-adapters/icon.constants'
 import {globalStyles, globalMargins} from '../../styles'
 
@@ -16,8 +16,8 @@ export type Props = {
 }
 
 export default (props: Props) => (
-  <PeopleItem badged={props.badged} icon={props.icon}>
-    <Text type="Body" style={{marginTop: 2, marginBottom: globalMargins.xtiny, paddingRight: 40}}>
+  <PeopleItem badged={props.badged} icon={<Icon type={props.icon} />}>
+    <Text type="Body" style={{marginTop: 2, marginBottom: globalMargins.xtiny}}>
       {props.instructions}
     </Text>
     <Box
