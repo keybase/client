@@ -18,6 +18,5 @@
 /shared/markdown/parser.js
 /shared/node_modules
 /shared/test/setupTestFrameworkScriptFile.js
-/shared/constants/types/devices.js
 /visdiff
 /shared/react-native/react-native-contacts
