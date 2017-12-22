@@ -69,6 +69,9 @@ func GetConflictInfo(ctx context.Context, g *libkb.GlobalContext, id keybase1.Te
 
 	arg := libkb.NewAPIArgWithNetContext(ctx, "team/conflict_info")
 	arg.SessionType = libkb.APISessionTypeREQUIRED
+	if name.IsPublic {
+		arg.SessionType = libkb.APISessionTypeOPTIONAL
+	}
 	arg.Args = libkb.HTTPArgs{
 		"tid":          libkb.S{Val: string(id)},
 		"display_name": libkb.S{Val: displayName},
