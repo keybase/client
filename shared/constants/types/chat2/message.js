@@ -15,23 +15,7 @@ export type Ordinal = number
 
 type ChannelMention = 'none' | 'all' | 'here'
 
-// TODO haivng issues w/ sprad
-// type _MessageCommon = {|
-// author: string,
-// conversationIDKey: Common.ConversationIDKey,
-// deviceName: string,
-// deviceRevokedAt: ?number,
-// deviceType: DeviceType,
-// id: ID,
-// hasBeenEdited: boolean,
-// mentionsAt: I.Set<string>,
-// mentionsChannel: ChannelMention,
-// ordinal: Ordinal,
-// timestamp: number,
-// |}
-
-export type _MessageText = {|
-  type: 'text',
+type _MessageCommon = {
   author: string,
   conversationIDKey: Common.ConversationIDKey,
   deviceName: string,
@@ -39,37 +23,22 @@ export type _MessageText = {|
   deviceType: DeviceType,
   id: ID,
   hasBeenEdited: boolean,
-  mentionsAt: I.Set<string>,
-  mentionsChannel: ChannelMention,
   ordinal: Ordinal,
   timestamp: number,
+}
+
+export type _MessageText = _MessageCommon & {
+  type: 'text',
+  mentionsAt: I.Set<string>,
+  mentionsChannel: ChannelMention,
   text: HiddenString,
-  // state: MessageState,
-  // you: string,
-  // rawMessageID: number,
-  // failureDescription: ?string, // TODO move to error type?
-  // outboxID?: ?OutboxIDKey, // needed?
-  // key: MessageKey,
-  // editedCount: number, // increase as we edit it
-|}
+}
 export type MessageText = I.RecordOf<_MessageText>
 
 type AttachmentType = 'image' | 'other'
 
-export type _MessageAttachment = {|
+export type _MessageAttachment = _MessageCommon & {
   type: 'attachment',
-  author: string,
-  conversationIDKey: Common.ConversationIDKey,
-  deviceName: string,
-  deviceRevokedAt: ?number,
-  deviceType: DeviceType,
-  id: ID,
-  hasBeenEdited: boolean,
-  mentionsAt: I.Set<string>,
-  mentionsChannel: ChannelMention,
-  ordinal: Ordinal,
-  timestamp: number,
-  title: string,
   attachmentType: AttachmentType,
   durationMs: number,
   filename: ?string,
@@ -77,7 +46,8 @@ export type _MessageAttachment = {|
   previewHeight: number,
   previewWidth: number,
   title: string,
-|}
+}
+
 export type MessageAttachment = I.RecordOf<_MessageAttachment>
 
 // export type _MessageError = {|

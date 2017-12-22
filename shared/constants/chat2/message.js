@@ -7,23 +7,10 @@ import * as Types from '../types/chat2'
 import HiddenString from '../../util/hidden-string'
 import clamp from 'lodash/clamp'
 import type {TypedState} from '../reducer'
+import type {_MessageText, _MessageAttachment} from '../types/chat2/message'
 
 // flow is geting confused
-// const makeMessageCommon = {
-// author: '',
-// conversationIDKey: '',
-// deviceName: '',
-// deviceRevokedAt: null,
-// deviceType: 'mobile',
-// hasBeenEdited: false,
-// id: 0,
-// mentionsAt: I.Set(),
-// mentionsChannel: 'none',
-// ordinal: 0,
-// timestamp: 0,
-// }
-
-export const makeMessageText: I.RecordFactory<Types._MessageText> = I.Record({
+const makeMessageCommon = {
   author: '',
   conversationIDKey: '',
   deviceName: '',
@@ -31,26 +18,20 @@ export const makeMessageText: I.RecordFactory<Types._MessageText> = I.Record({
   deviceType: 'mobile',
   hasBeenEdited: false,
   id: 0,
-  mentionsAt: I.Set(),
-  mentionsChannel: 'none',
   ordinal: 0,
   timestamp: 0,
+}
+
+export const makeMessageText: I.RecordFactory<_MessageText> = I.Record({
+  ...makeMessageCommon,
+  mentionsAt: I.Set(),
+  mentionsChannel: 'none',
   text: new HiddenString(''),
   type: 'text',
 })
 
-export const makeMessageAttachment: I.RecordFactory<Types._MessageAttachment> = I.Record({
-  author: '',
-  conversationIDKey: '',
-  deviceName: '',
-  deviceRevokedAt: null,
-  deviceType: 'mobile',
-  hasBeenEdited: false,
-  id: 0,
-  mentionsAt: I.Set(),
-  mentionsChannel: 'none',
-  ordinal: 0,
-  timestamp: 0,
+export const makeMessageAttachment: I.RecordFactory<_MessageAttachment> = I.Record({
+  ...makeMessageCommon,
   attachmentType: 'other',
   durationMs: 0,
   filename: null,
@@ -98,17 +79,18 @@ export const uiMessageToMessage = (
       deviceType: DeviceTypes.stringToDeviceType(m.senderDeviceType),
       hasBeenEdited: m.superseded,
       id: m.messageID,
-      mentionsAt: I.Set(m.atMentions || []),
-      mentionsChannel: channelMentionToMentionsChannel(m.channelMention),
       ordinal: m.messageID,
       timestamp: m.ctime,
     }
 
     switch (m.messageBody.messageType) {
       case RPCChatTypes.commonMessageType.text:
+        const rawText: string = (m.messageBody.text && m.messageBody.text.body) || ''
         return makeMessageText({
           ...common,
-          text: new HiddenString((m.messageBody.text && m.messageBody.text.body) || ''),
+          mentionsAt: I.Set(m.atMentions || []),
+          mentionsChannel: channelMentionToMentionsChannel(m.channelMention),
+          text: new HiddenString(rawText),
         })
       case RPCChatTypes.commonMessageType.attachment: {
         const attachment = m.messageBody.attachment
@@ -148,21 +130,6 @@ export const uiMessageToMessage = (
 
   // TODO errors and unbox
   return null
-  // const common = {
-  // channelMention: _parseChannelMention(m.channelMention),
-  // conversationIDKey,
-  // deviceName: payload.senderDeviceName,
-  // deviceType: DeviceTypes.stringToDeviceType(payload.senderDeviceType),
-  // failureDescription: null,
-  // mentions: I.Set(payload.atMentions || []),
-  // messageID: Constants.rpcMessageIDToMessageID(payload.messageID),
-  // rawMessageID: payload.messageID,
-  // outboxID: payload.outboxID && Constants.stringOutboxIDToKey(payload.outboxID),
-  // senderDeviceRevokedAt: payload.senderDeviceRevokedAt,
-  // timestamp: payload.ctime,
-  // you: yourName,
-  // ordinal: payload.messageID,
-  // }
 }
 
 // This is emoji aware hence all the weird ... stuff. See https://mathiasbynens.be/notes/javascript-unicode#iterating-over-symbols
@@ -199,23 +166,17 @@ export const getSnippet = (state: TypedState, conversationIDKey: Types.Conversat
     return ''
   }
 
-  if (message.type === 'attachment') {
-    const m: Types.MessageAttachment = message
-    return textSnippet(m.title, 100)
+  switch (message.type) {
+    case 'attachment': {
+      const m: Types.MessageAttachment = message
+      return textSnippet(m.title, 100)
+    }
+    // case 'System':
+    case 'text': {
+      const m: Types.MessageText = message
+      return textSnippet(m.text.stringValue(), 100)
+    }
+    default:
+      return ''
   }
-
-  return ''
-  // switch (message.type) {
-  // case 'attachment': {
-  // const m: Types.MessageAttachment = message
-  // return textSnippet(m.title, 100)
-  // }
-  // // case 'System':
-  // case 'text': {
-  // const m: Types.MessageText = message
-  // return textSnippet(m.text.stringValue(), 100)
-  // }
-  // default:
-  // return ''
-  // }
 }

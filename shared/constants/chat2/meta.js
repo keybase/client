@@ -4,6 +4,7 @@ import * as I from 'immutable'
 import * as RPCChatTypes from '../types/flow-types-chat'
 import * as Types from '../types/chat2'
 import {toByteArray} from 'base64-js'
+import type {_ConversationMeta} from '../types/chat2/meta'
 
 const conversationMemberStatusToMembershipType = (m: RPCChatTypes.ConversationMemberStatus) => {
   switch (m) {
@@ -89,7 +90,7 @@ export const inboxUIItemToConversationMeta = (i: RPCChatTypes.InboxUIItem) => {
   })
 }
 
-export const makeConversationMeta: I.RecordFactory<Types._ConversationMeta> = I.Record({
+export const makeConversationMeta: I.RecordFactory<_ConversationMeta> = I.Record({
   id: Types.stringToConversationIDKey(''),
   inboxVersion: -1,
   isMuted: false,
