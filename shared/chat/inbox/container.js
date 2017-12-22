@@ -3,6 +3,7 @@ import * as Constants from '../../constants/chat'
 import * as More from '../../constants/types/more'
 import * as Types from '../../constants/types/chat'
 import * as Inbox from '.'
+import * as Chat2Gen from '../../actions/chat2-gen'
 import * as ChatGen from '../../actions/chat-gen'
 import * as TeamsGen from '../../actions/teams-gen'
 import * as I from 'immutable'
@@ -246,9 +247,12 @@ const mapDispatchToProps = (dispatch: Dispatch, {focusFilter, routeState, setRou
     dispatch(ChatGen.createSelectConversation({conversationIDKey, fromUser: true}))
   },
   onSetFilter: (filter: string) => dispatch(ChatGen.createSetInboxFilter({filter})),
-  onUntrustedInboxVisible: (conversationIDKeys: Array<Types.ConversationIDKey>) =>
-    dispatch(ChatGen.createUnboxConversations({conversationIDKeys, reason: 'untrusted inbox visible'})),
+  onUntrustedInboxVisible: (conversationIDKeys: Array<Types.ConversationIDKey>) => {
+    // dispatch(ChatGen.createUnboxConversations({conversationIDKeys, reason: 'untrusted inbox visible'}))
+    dispatch(Chat2Gen.createMetaNeedsUpdating({conversationIDKeys, reason: 'untrusted inbox visible'}))
+  },
   toggleSmallTeamsExpanded: () => setRouteState({smallTeamsExpanded: !routeState.get('smallTeamsExpanded')}),
+  refreshInbox: (force: boolean) => dispatch(Chat2Gen.createInboxRefresh()),
 })
 
 // This merge props is not spreading on purpose so we never have any random props that might mutate and force a re-render
@@ -280,6 +284,7 @@ const mergeProps = (
     toggleSmallTeamsExpanded: dispatchProps.toggleSmallTeamsExpanded,
     filterFocusCount: ownProps.filterFocusCount,
     inSearch: stateProps.inSearch,
+    refreshInbox: dispatchProps.refreshInbox,
   }
 }
 
@@ -291,7 +296,10 @@ export default compose(
   pausableConnect(mapStateToProps, mapDispatchToProps, mergeProps),
   lifecycle({
     componentDidMount: function() {
+      // TEMP testing calling all the time
+      this.props.refreshInbox()
       if (this.props.neverLoaded) {
+        this.props.refreshInbox()
         this.props.loadInbox()
         // Get team counts for team headers in the inbox
         this.props.getTeams()

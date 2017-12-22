@@ -1,6 +1,7 @@
 // @flow
 import * as I from 'immutable'
 import * as Selectors from '../selectors'
+import * as Constants2 from '../../../../constants/chat2'
 import * as Constants from '../../../../constants/chat'
 import * as Types from '../../../../constants/types/chat'
 import * as ChatGen from '../../../../actions/chat-gen'
@@ -8,7 +9,8 @@ import {SmallTeam} from '.'
 import {pausableConnect, type TypedState} from '../../../../util/container'
 
 const getSnippet = (state: TypedState, conversationIDKey: Types.ConversationIDKey) =>
-  Constants.getSnippet(state, conversationIDKey)
+  Constants2.getSnippet(state, conversationIDKey)
+// 'state: ' + state.chat2.metaMap.getIn([conversationIDKey, 'trustedState'], 'untrusted')
 
 const mapStateToProps = (state: TypedState, {conversationIDKey, isActiveRoute}) => {
   const isPending = Constants.isPendingConversationIDKey(conversationIDKey || '')
