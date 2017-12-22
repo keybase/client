@@ -490,7 +490,9 @@ func AnnotateSeitanInvite(ctx context.Context, team *Team, invite keybase1.TeamI
 	return "", nil
 }
 
-func AnnotateInvites(ctx context.Context, g *libkb.GlobalContext, team *Team) (map[keybase1.TeamInviteID]keybase1.AnnotatedTeamInvite, error) {
+type AnnotatedInviteMap map[keybase1.TeamInviteID]keybase1.AnnotatedTeamInvite
+
+func AnnotateInvites(ctx context.Context, g *libkb.GlobalContext, team *Team) (AnnotatedInviteMap, error) {
 	invites := team.chain().inner.ActiveInvites
 	teamName := team.Name().String()
 

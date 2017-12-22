@@ -552,13 +552,6 @@
         {
           "type": "boolean",
           "name": "userActive"
-        },
-        {
-          "type": [
-            null,
-            "FullName"
-          ],
-          "name": "fullName"
         }
       ]
     },

@@ -12,6 +12,7 @@ import (
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/client/go/uidmap"
 )
 
 func LoadTeamPlusApplicationKeys(ctx context.Context, g *libkb.GlobalContext, id keybase1.TeamID,
@@ -77,41 +78,9 @@ func Details(ctx context.Context, g *libkb.GlobalContext, name string, forceRepo
 	res.AnnotatedActiveInvites = annotatedInvites
 
 	tracer.Stage("invites")
-	// put any keybase invites in the members list
-	for invID, invite := range annotatedInvites {
-		cat, err := invite.Type.C()
-		if err != nil {
-			return res, err
-		}
-		if cat != keybase1.TeamInviteCategory_KEYBASE {
-			continue
-		}
-		if !invite.UserActive {
-			// Skip inactive puk-less members for now.
-			// Causes duplicate usernames in team list which we
-			// don't want.
-			delete(res.AnnotatedActiveInvites, invID)
-			continue
-		}
-		details := keybase1.TeamMemberDetails{
-			Uv:       invite.Uv,
-			Username: string(invite.Name),
-			Active:   invite.UserActive,
-			NeedsPUK: true,
-		}
-		switch invite.Role {
-		case keybase1.TeamRole_OWNER:
-			res.Members.Owners = append(res.Members.Owners, details)
-		case keybase1.TeamRole_ADMIN:
-			res.Members.Admins = append(res.Members.Admins, details)
-		case keybase1.TeamRole_WRITER:
-			res.Members.Writers = append(res.Members.Writers, details)
-		case keybase1.TeamRole_READER:
-			res.Members.Readers = append(res.Members.Readers, details)
-		}
-
-		// and remove them from the invite list
-		delete(res.AnnotatedActiveInvites, invID)
+	err = membersFromInvites(ctx, g, annotatedInvites, &res.Members)
+	if err != nil {
+		return res, err
 	}
 
 	res.Settings.Open = t.IsOpen()
@@ -141,6 +110,79 @@ func members(ctx context.Context, g *libkb.GlobalContext, t *Team, forceRepoll b
 		return keybase1.TeamMembersDetails{}, err
 	}
 	return membersUIDsToUsernames(ctx, g, members, forceRepoll)
+}
+
+// membersFromInvites puts any keybase invites in the members list,
+// passed as pointer to TeamMemberDetails. AnnotatedInviteMap is also
+// mutated - all keybase-type invites that became members are removed.
+// TODO: This is only needed until list.go:AnnotateInvites gets UIDMapper
+// support and can do it by itself.
+func membersFromInvites(ctx context.Context, g *libkb.GlobalContext, invites AnnotatedInviteMap, members *keybase1.TeamMembersDetails) error {
+	// remember invite ids to remove from map
+	var keybaseInviteIDs []keybase1.TeamInviteID
+	// uid to pass to uidmapper to get full names
+	var uids []keybase1.UID
+
+	for _, invite := range invites {
+		cat, err := invite.Type.C()
+		if err != nil {
+			return err
+		}
+		if cat == keybase1.TeamInviteCategory_KEYBASE && invite.UserActive {
+			uids = append(uids, invite.Uv.Uid)
+		}
+	}
+
+	namePkgs, err := uidmap.MapUIDsReturnMap(ctx, g.UIDMapper, g, uids, 0, 0, true)
+	if err != nil {
+		// UIDMap returned an error, but there may be useful data in the result.
+		g.Log.CDebugf(ctx, "membersFromInvites: MapUIDsReturnMap returned: %v", err)
+	}
+
+	for invID, invite := range invites {
+		cat, err := invite.Type.C()
+		if err != nil {
+			return err
+		}
+		if cat != keybase1.TeamInviteCategory_KEYBASE {
+			continue
+		}
+
+		// Save inviteID to filter `invites` map after we are done.
+		keybaseInviteIDs = append(keybaseInviteIDs, invID)
+
+		if !invite.UserActive {
+			// Skip inactive puk-less members for now. Causes
+			// duplicate usernames in team list which we don't want.
+			continue
+		}
+		details := keybase1.TeamMemberDetails{
+			Uv:       invite.Uv,
+			Username: string(invite.Name),
+			Active:   invite.UserActive,
+			NeedsPUK: true,
+		}
+		if pkg, ok := namePkgs[invite.Uv.Uid]; ok && pkg.FullName != nil {
+			details.FullName = pkg.FullName.FullName
+		}
+
+		switch invite.Role {
+		case keybase1.TeamRole_OWNER:
+			members.Owners = append(members.Owners, details)
+		case keybase1.TeamRole_ADMIN:
+			members.Admins = append(members.Admins, details)
+		case keybase1.TeamRole_WRITER:
+			members.Writers = append(members.Writers, details)
+		case keybase1.TeamRole_READER:
+			members.Readers = append(members.Readers, details)
+		}
+	}
+
+	for _, invID := range keybaseInviteIDs {
+		delete(invites, invID)
+	}
+
+	return nil
 }
 
 func userVersionsToDetails(ctx context.Context, g *libkb.GlobalContext, uvs []keybase1.UserVersion, forceRepoll bool) (ret []keybase1.TeamMemberDetails, err error) {
