@@ -23,6 +23,7 @@ function usernameText({
   onUsernameClicked,
   underline = false,
   inlineGrammar = false,
+  showAnd = false,
 }: Props) {
   return users.map((u, i) => {
     const userStyle = {
@@ -40,7 +41,7 @@ function usernameText({
     const _onUsernameClicked = onUsernameClicked
     return (
       <Text type={type} key={u.username}>
-        {i === users.length - 1 && inlineGrammar && 'and '}
+        {i === users.length - 1 && showAnd && 'and '}
         <Text
           type={type}
           backgroundMode={backgroundMode}

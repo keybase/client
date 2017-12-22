@@ -22,13 +22,21 @@ const singleFollowProps1: Props = {
 const singleFollowProps2: Props = {
   newFollows: [{username: 'max'}],
   badged: false,
-  notificationTime: new Date(2017, 12, 14),
+  notificationTime: new Date(2017, 11, 14),
 }
 
 const multiFollowProps1: Props = {
   newFollows: [{username: 'max'}, {username: 'mmaxim'}, {username: 'chrisnojima'}],
   badged: true,
   notificationTime: new Date(),
+  numAdditional: 0,
+}
+
+const multiFollowProps2: Props = {
+  newFollows: [{username: 'max'}, {username: 'mmaxim'}, {username: 'chrisnojima'}],
+  badged: false,
+  notificationTime: new Date(2017, 10, 1),
+  numAdditional: 5,
 }
 
 const load = () => {
@@ -41,6 +49,7 @@ const load = () => {
     .add('Someone followed you', () => <FollowNotification {...singleFollowProps1} />)
     .add('Someone you follow followed you', () => <FollowNotification {...singleFollowProps2} />)
     .add('A few people followed you', () => <FollowNotification {...multiFollowProps1} />)
+    .add('Many people followed you', () => <FollowNotification {...multiFollowProps2} />)
 }
 
 export default load

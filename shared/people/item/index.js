@@ -45,7 +45,7 @@ export default (props: Props) => (
     <Box style={{marginRight: 20, width: 32}}>
       {props.icon}
     </Box>
-    <Box style={{...globalStyles.flexBoxColumn, paddingRight: 70}}>
+    <Box style={{...globalStyles.flexBoxColumn, paddingRight: 70, width: 'auto', overflow: 'hidden'}}>
       {props.children}
     </Box>
     <Box style={{...globalStyles.flexBoxRow, position: 'absolute', right: 8, top: 12}}>

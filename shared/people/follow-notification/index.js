@@ -2,13 +2,13 @@
 import React from 'react'
 import PeopleItem from '../item'
 import {Avatar, Box, ConnectedUsernames, Icon, Meta, Text} from '../../common-adapters'
-import {globalStyles, globalColors} from '../../styles'
+import {globalStyles, globalColors, globalMargins} from '../../styles'
 
 const connectedUsernamesProps = {
   clickable: true,
   inline: true,
   colorFollowing: true,
-  type: 'BodySemibold',
+  type: 'Body',
 }
 
 export type NewFollow = {
@@ -17,6 +17,7 @@ export type NewFollow = {
 
 export type Props = {
   newFollows: Array<NewFollow>,
+  numAdditional?: number,
   badged: boolean,
   notificationTime: Date,
 }
@@ -52,6 +53,7 @@ export const MultiFollowNotification = (props: Props) => {
   if (props.newFollows.length <= 1) {
     throw new Error('Multi follow notification must have more than one user supplied')
   }
+  const usernames = props.newFollows.map(f => f.username)
   return (
     <PeopleItem
       badged={props.badged}
@@ -59,9 +61,9 @@ export const MultiFollowNotification = (props: Props) => {
         <Box style={{...globalStyles.flexBoxColumn, width: 32, height: 32}}>
           <Icon type="icon-followers-new-32" />
           <Meta
-            title={`+${props.newFollows.length}`}
+            title={`+${props.newFollows.length + (props.numAdditional || 0)}`}
             style={{
-              backgroundColor: globalColors.blue,
+              backgroundColor: globalColors.blue_60,
               marginTop: -12,
               marginLeft: 'auto',
               marginRight: 'auto',
@@ -71,10 +73,25 @@ export const MultiFollowNotification = (props: Props) => {
           />
         </Box>
       }
+      when={props.notificationTime}
     >
-      <Text type="Body" style={{marginTop: 2}}>
-        <ConnectedUsernames {...connectedUsernamesProps} usernames={[props.newFollows[0].username]} />
+      <Text type="Body" style={{marginTop: 2, marginBottom: globalMargins.xtiny}}>
+        <ConnectedUsernames
+          containerStyle={{whiteSpace: 'wrap'}}
+          inlineGrammar={true}
+          showAnd={!props.numAdditional}
+          {...connectedUsernamesProps}
+          usernames={usernames}
+        />
+        {!!props.numAdditional && props.numAdditional > 0 && ` and ${props.numAdditional} others `}
+        {' '}
+        started following you.
       </Text>
+      <Box style={{...globalStyles.flexBoxRow, overflow: 'auto'}}>
+        {usernames.map(username => (
+          <Avatar username={username} size={32} key={username} style={{marginRight: globalMargins.xtiny}} />
+        ))}
+      </Box>
     </PeopleItem>
   )
 }
