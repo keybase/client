@@ -12,19 +12,19 @@ import (
 	"gopkg.in/src-d/go-git.v4/storage"
 )
 
-// worktreeStorer fake out the storage layer in such a way that it
+// worktreeStorer fakes out the storage layer in such a way that it
 // stores its index, and any reference modifications, in a .git/
 // directory in the worktree, but everything else goes through the
-// main bare repo's .git directory.  This is useful for making a quick
+// main repo's .git directory.  This is useful for making a quick
 // checkout of a git repo in a new directory, without making a full
 // git clone. For example, consider the following instance:
 //
 // * `storage.Storer` points to a bare repo stored in KBFS, say
-//   `/keybase/team/keybase/.kbfs_git/secrets/.git`.
+//   `/keybase/team/keybase/.kbfs_git/secrets/`.
 // * `delta` is the same as above, but cast as a `DeltaObjectStorer`.
 // * `wtDotgit` can be pointed anywhere else in KBFS where you want to
-//   expose a checked-out version of the keybase secrets repo, say
-//   `/keybase/private/strib/.kbfs_autogit/team/keybase/secrets/`
+//   track a checked-out version of the keybase secrets repo, say
+//   `/keybase/private/strib/.kbfs_autogit/team/keybase/secrets/.git/`
 //
 // Any calls to update the index or set a reference will be routed to
 // `wtDotgit`, and everything else goes to `storage.Storer`.  That
