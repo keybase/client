@@ -151,6 +151,12 @@ function safeTakeEveryPure<A, R, FinalAction, FinalActionError>(
     } catch (e) {
       if (actionCreatorsWithError) {
         yield actionCreatorsWithError(e, action)
+      } else {
+        yield put(
+          ConfigGen.createGlobalError({
+            globalError: convertToError(e),
+          })
+        )
       }
     }
   })
@@ -183,6 +189,12 @@ function safeTakeLatestPure<A, R, FinalAction, FinalActionError>(
       if (actionCreatorsWithError) {
         // $FlowIssue confused
         yield actionCreatorsWithError(e, action)
+      } else {
+        yield put(
+          ConfigGen.createGlobalError({
+            globalError: convertToError(e),
+          })
+        )
       }
     } finally {
       if (actionCreatorsWithError) {

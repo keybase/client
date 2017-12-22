@@ -295,15 +295,14 @@ export default compose(
   }),
   pausableConnect(mapStateToProps, mapDispatchToProps, mergeProps),
   lifecycle({
-    componentDidMount: function() {
+    componentDidMount() {
       // TEMP testing calling all the time
-      this.props.refreshInbox()
       if (this.props.neverLoaded) {
         this.props.refreshInbox()
-        this.props.loadInbox()
+        this.props.loadInbox() // TODO remove
         // Get team counts for team headers in the inbox
         this.props.getTeams()
       }
-    },
+    }
   })
 )(Inbox.default)

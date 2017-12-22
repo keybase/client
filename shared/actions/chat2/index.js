@@ -55,6 +55,7 @@ function* rpcInboxRefresh(action: Chat2Gen.InboxRefreshPayload): Generator<any, 
     // We get meta
     const metas = items.map(Constants.unverifiedInboxUIItemToConversationMeta)
     yield Saga.put(Chat2Gen.createMetasReceived({metas}))
+
     // We also get some cached messages which are trusted
     const messages = items.reduce((arr, i) => {
       if (i.localMetadata && i.localMetadata.snippetMsg) {
@@ -63,7 +64,6 @@ function* rpcInboxRefresh(action: Chat2Gen.InboxRefreshPayload): Generator<any, 
           arr.push(message)
         }
       }
-
       return arr
     }, [])
     if (messages.length) {
@@ -209,6 +209,9 @@ const changeMetaTrustedState = (
 function* chat2Saga(): Saga.SagaGenerator<any, any> {
   // Refresh the inbox
   yield Saga.safeTakeLatest(Chat2Gen.inboxRefresh, rpcInboxRefresh)
+
+  // TODO  handle initla load. jst go through untrusted meta and go by last time and pull 20
+  //
   // We've scrolled some new inbox rows into view, queue them up
   yield Saga.safeTakeEveryPure(Chat2Gen.metaNeedsUpdating, queueMetaToRequest)
   // We have some items in the queue to process
