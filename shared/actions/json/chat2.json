@@ -1,0 +1,32 @@
+{
+  "prelude": [
+    "import * as RPCChatTypes from '../constants/types/flow-types-chat'",
+    "import * as Types from '../constants/types/chat2'",
+    "import HiddenString from '../util/hidden-string'"
+  ],
+  "actions": {
+    "inboxRefresh": {},
+    "metaNeedsUpdating": {
+      "conversationIDKeys": "Array<Types.ConversationIDKey>",
+      "reason": "string"
+    },
+    "metaHandleQueue": {},
+    "metaRequestTrusted": {
+      "conversationIDKeys": "Array<Types.ConversationIDKey>"
+    },
+    "metaUpdateTrustedState": {
+      "newState": "Types.MetaTrustedState",
+      "conversationIDKeys": "Array<Types.ConversationIDKey>"
+    },
+    "metasReceived": {
+      "metas": "Array<Types.ConversationMeta>"
+    },
+    "metaReceivedError": {
+      "conversationIDKey": "Types.ConversationIDKey",
+      "error": "RPCChatTypes.ConversationErrorLocal"
+    },
+    "messagesAdd": {
+      "messages": "Array<Types.Message>"
+    }
+  }
+}

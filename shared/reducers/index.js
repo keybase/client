@@ -1,6 +1,7 @@
 // @flow
 import logger from '../logger'
 import chat from './chat'
+import chat2 from './chat2'
 import config from './config'
 import dev from './dev'
 import devices from './devices'
@@ -28,6 +29,7 @@ import type {TypedState} from '../constants/reducer'
 
 const reducers = {
   chat,
+  chat2,
   config,
   dev,
   devices,
