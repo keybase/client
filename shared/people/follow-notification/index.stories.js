@@ -33,7 +33,7 @@ const multiFollowProps1: Props = {
 }
 
 const multiFollowProps2: Props = {
-  newFollows: [{username: 'max'}, {username: 'mmaxim'}, {username: 'chrisnojima'}],
+  newFollows: [{username: 'max'}, {username: 'mmaxim'}, {username: 'chrisnojima'}, {username: 'chris'}],
   badged: false,
   notificationTime: new Date(2017, 10, 1),
   numAdditional: 5,
