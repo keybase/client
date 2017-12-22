@@ -18,6 +18,23 @@ const _processPeopleData = function(data: RPCTypes.HomeScreen) {
   let newItems: I.List<Types.PeopleScreenItem> = I.List()
   console.log(data)
   if (data.items) {
+    // $FlowIssue I'm not filling this in
+    data.items.push({
+      badged: true,
+      data: {
+        t: 2,
+        people: {
+          t: 0,
+          followed: {
+            followTime: 1513965111449,
+            user: {
+              username: 'chris',
+            },
+          },
+        },
+      },
+    })
+    // $FlowIssue because this isn't the line after the if statement
     data.items.forEach(item => {
       const badged = item.badged
       if (item.data.t === RPCTypes.homeHomeScreenItemType.todo) {
@@ -44,9 +61,9 @@ const _processPeopleData = function(data: RPCTypes.HomeScreen) {
             badged,
           }
           if (badged) {
-            newItems.push(item)
+            newItems = newItems.push(item)
           } else {
-            oldItems.push(item)
+            oldItems = oldItems.push(item)
           }
         }
       }
