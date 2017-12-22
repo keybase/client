@@ -12,7 +12,7 @@ const mapStateToProps = (state: TypedState) => ({
 })
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
-  getData: () => dispatch(PeopleGen.createGetPeopleData({markViewed: false, numFollowSuggestionsWanted: 10})),
+  getData: () => dispatch(PeopleGen.createGetPeopleData({markViewed: true, numFollowSuggestionsWanted: 10})),
   todoDispatch: {},
 })
 

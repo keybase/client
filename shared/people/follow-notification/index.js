@@ -3,6 +3,7 @@ import React from 'react'
 import PeopleItem from '../item'
 import {Avatar, Box, ConnectedUsernames, Icon, Meta, Text} from '../../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../../styles'
+import {isMobile} from '../../constants/platform'
 
 const connectedUsernamesProps = {
   clickable: true,
@@ -37,7 +38,7 @@ export const FollowNotification = (props: Props) => {
   return (
     <PeopleItem
       badged={props.badged}
-      icon={<Avatar username={username} size={32} />}
+      icon={<Avatar username={username} size={isMobile ? 48 : 32} />}
       when={props.notificationTime}
     >
       <Text type="Body" style={{marginTop: 2}}>
@@ -59,7 +60,7 @@ export const MultiFollowNotification = (props: Props) => {
       badged={props.badged}
       icon={
         <Box style={{...globalStyles.flexBoxColumn, width: 32, height: 32}}>
-          <Icon type="icon-followers-new-32" />
+          <Icon type={isMobile ? 'icon-followers-new-48' : 'icon-followers-new-32'} />
           <Meta
             title={`+${props.newFollows.length + (props.numAdditional || 0)}`}
             style={{

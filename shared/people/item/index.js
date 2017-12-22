@@ -3,6 +3,7 @@ import * as React from 'react'
 import {Badge, Box, Text} from '../../common-adapters'
 import {globalColors, globalStyles, globalMargins} from '../../styles'
 import moment from 'moment'
+import {isMobile} from '../../constants/platform'
 
 // Update moment locale for relative time strings
 moment.updateLocale('en', {
@@ -43,18 +44,18 @@ export default (props: Props) => (
       position: 'relative',
     }}
   >
-    <Box style={{marginRight: 20, width: 32}}>
+    <Box style={{marginRight: 20, width: isMobile ? 48 : 32}}>
       {props.icon}
     </Box>
     <Box style={{...globalStyles.flexBoxColumn, paddingRight: 70, width: 'auto', overflow: 'hidden'}}>
       {props.children}
     </Box>
-    <Box style={{...globalStyles.flexBoxRow, position: 'absolute', right: 8, top: 12}}>
+    <Box style={{...globalStyles.flexBoxRow, position: 'absolute', alignItems: 'center', right: 8, top: 12}}>
       {!!props.when &&
         <Text type="BodySmall" style={{}}>
           {moment(props.when).fromNow(true)}
         </Text>}
-      {props.badged && <Badge badgeNumber={null} badgeStyle={{marginLeft: globalMargins.tiny}} />}
+      {props.badged && <Badge badgeNumber={null} badgeStyle={{marginLeft: globalMargins.tiny, height: 10}} />}
     </Box>
   </Box>
 )
