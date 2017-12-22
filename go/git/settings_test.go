@@ -53,4 +53,7 @@ func TestSettings(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, settings.ChatDisabled)
 	require.Nil(t, settings.ChannelName)
+
+	// create a channel and change the settings to use it
+	require.NotNil(t, tc.G.ChatHelper)
 }

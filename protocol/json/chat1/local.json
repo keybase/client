@@ -81,7 +81,8 @@
         "ADDEDTOTEAM_0",
         "INVITEADDEDTOTEAM_1",
         "COMPLEXTEAM_2",
-        "CREATETEAM_3"
+        "CREATETEAM_3",
+        "GITPUSH_4"
       ]
     },
     {
@@ -181,6 +182,35 @@
       ]
     },
     {
+      "type": "record",
+      "name": "MessageSystemGitPush",
+      "fields": [
+        {
+          "type": "string",
+          "name": "team"
+        },
+        {
+          "type": "string",
+          "name": "pusher"
+        },
+        {
+          "type": "string",
+          "name": "repoName"
+        },
+        {
+          "type": "string",
+          "name": "branchName"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "commitMsgs"
+        }
+      ]
+    },
+    {
       "type": "variant",
       "name": "MessageSystem",
       "switch": {
@@ -215,6 +245,13 @@
             "def": false
           },
           "body": "MessageSystemCreateTeam"
+        },
+        {
+          "label": {
+            "name": "GITPUSH",
+            "def": false
+          },
+          "body": "MessageSystemGitPush"
         }
       ]
     },

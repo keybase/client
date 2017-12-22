@@ -55,5 +55,26 @@ func PutMetadata(ctx context.Context, g *libkb.GlobalContext, arg keybase1.PutGi
 		},
 	}
 	_, err = g.GetAPI().Post(apiArg)
+
+	if err == nil {
+		err = sendChat(ctx, g, teamIDVis.TeamID, arg)
+	}
+
 	return err
+}
+
+func sendChat(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID, arg keybase1.PutGitMetadataArg) error {
+	settingsArg := keybase1.GetTeamRepoSettingsArg{
+		Folder: arg.Folder,
+		RepoID: arg.RepoID,
+	}
+	settings, err := GetTeamRepoSettings(ctx, g, settingsArg)
+	if err != nil {
+		return err
+	}
+	if settings.ChatDisabled {
+		return nil
+	}
+
+	return nil
 }
