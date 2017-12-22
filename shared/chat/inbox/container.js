@@ -224,9 +224,10 @@ const mapStateToProps = (state: TypedState, {isActiveRoute, routeState}: OwnProp
     isLoading: inboxGlobalUntrustedState === 'loading' || state.chat.get('inboxSyncingState') === 'syncing',
     neverLoaded: inboxGlobalUntrustedState === 'unloaded',
     _user: Constants.getYou(state),
-    showNewConversation: state.chat.get('inSearch') || (selectedConversationIDKey && 
-      // $FlowIssue this is a string
-      Constants.isPendingConversationIDKey(selectedConversationIDKey)),
+    showNewConversation: state.chat.get('inSearch') ||
+      (selectedConversationIDKey &&
+        // $FlowIssue this is a string
+        Constants.isPendingConversationIDKey(selectedConversationIDKey)),
   }
 }
 
