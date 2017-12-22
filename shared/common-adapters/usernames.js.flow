@@ -26,6 +26,7 @@ export type Props = {
   suffix?: ?string,
   colorFollowing?: boolean,
   colorBroken?: boolean,
+  inlineGrammar?: boolean,
   onUsernameClicked?: (username: string) => void,
   underline?: boolean,
 }
