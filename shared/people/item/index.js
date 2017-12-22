@@ -25,6 +25,6 @@ export default (props: Props) => (
     <Box style={globalStyles.flexBoxColumn}>
       {props.children}
     </Box>
-    <Badge badgeNumber={null} badgeStyle={{position: 'absolute', right: 8, top: 12}} />
+    {props.badged && <Badge badgeNumber={null} badgeStyle={{position: 'absolute', right: 8, top: 12}} />}
   </Box>
 )
