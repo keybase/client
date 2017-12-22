@@ -740,6 +740,11 @@ const iconMeta_ = {
     extension: 'png',
     require: require('../images/icons/icon-onboarding-team-publicity-32.png'),
   },
+  'icon-onboarding-team-publicity-48': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-onboarding-team-publicity-48.png'),
+  },
   'icon-onboarding-user-info-32': {
     isFont: false,
     extension: 'png',

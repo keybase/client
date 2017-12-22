@@ -3,6 +3,8 @@ import * as I from 'immutable'
 import * as Types from './types/people'
 import * as RPCTypes from './types/flow-types'
 import {invert} from 'lodash'
+import {type IconType} from '../common-adapters/icon.constants'
+import {isMobile} from '../constants/platform'
 
 export const todoTypeEnumToType: {[key: Types.TodoTypeEnum]: Types.TodoType} = invert(
   RPCTypes.homeHomeScreenTodoType
@@ -43,6 +45,18 @@ export const todoTypeToDismissable: {[key: Types.TodoType]: boolean} = {
   folder: true,
   gitRepo: true,
   teamShowcase: true,
+}
+export const todoTypeToIcon: {[key: Types.TodoType]: IconType} = {
+  bio: isMobile ? 'icon-onboarding-user-info-48' : 'icon-onboarding-user-info-32',
+  proof: isMobile ? 'icon-onboarding-proofs-48' : 'icon-onboarding-proofs-32',
+  device: isMobile ? 'icon-onboarding-computer-48' : 'icon-onboarding-phone-32',
+  follow: isMobile ? 'icon-onboarding-follow-48' : 'icon-onboarding-follow-32',
+  chat: isMobile ? 'icon-onboarding-chat-48' : 'icon-onboarding-chat-32',
+  paperkey: isMobile ? 'icon-onboarding-paper-key-48' : 'icon-onboarding-paper-key-32',
+  team: isMobile ? 'icon-onboarding-team-48' : 'icon-onboarding-team-32',
+  folder: isMobile ? 'icon-onboarding-folder-48' : 'icon-onboarding-folder-32',
+  gitRepo: isMobile ? 'icon-onboarding-git-48' : 'icon-onboarding-git-32',
+  teamShowcase: isMobile ? 'icon-onboarding-team-publicity-48' : 'icon-onboarding-team-publicity-32',
 }
 
 // TODO clean this up

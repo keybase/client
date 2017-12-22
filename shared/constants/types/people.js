@@ -1,6 +1,7 @@
 // @flow
 import * as I from 'immutable'
 import * as RPCTypes from './flow-types'
+import {type IconType} from '../../common-adapters/icon.constants'
 
 // 'todo' | 'people'
 export type ItemTypeEnum = RPCTypes.HomeScreenItemType
@@ -21,6 +22,7 @@ export type Todo = {
   instructions: string,
   confirmLabel: string,
   dismissable: boolean,
+  icon: IconType,
 }
 
 export type FollowedNotification = {

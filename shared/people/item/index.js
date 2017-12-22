@@ -40,6 +40,7 @@ export default (props: Props) => (
       paddingTop: globalMargins.tiny,
       paddingLeft: 12,
       paddingBottom: globalMargins.tiny,
+      position: 'relative',
     }}
   >
     <Box style={{marginRight: 20, width: 32}}>

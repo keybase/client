@@ -17,6 +17,26 @@ const _processPeopleData = function(data: RPCTypes.HomeScreen) {
   let oldItems: I.List<Types.PeopleScreenItem> = I.List()
   let newItems: I.List<Types.PeopleScreenItem> = I.List()
   console.log(data)
+  if (!data.items) {
+    // $FlowIssue I'm not filling this in
+    data.items = [
+      {
+        badged: false,
+        data: {
+          t: 2,
+          people: {
+            t: 0,
+            followed: {
+              followTime: 1513965111449,
+              user: {
+                username: 'chris',
+              },
+            },
+          },
+        },
+      },
+    ]
+  }
   if (data.items) {
     // $FlowIssue I'm not filling this in
     data.items.push({
@@ -26,9 +46,9 @@ const _processPeopleData = function(data: RPCTypes.HomeScreen) {
         people: {
           t: 0,
           followed: {
-            followTime: 1513965111449,
+            followTime: 1513965011449,
             user: {
-              username: 'chris',
+              username: 'max',
             },
           },
         },
@@ -46,6 +66,7 @@ const _processPeopleData = function(data: RPCTypes.HomeScreen) {
           instructions: Constants.todoTypeToInstructions[todoType],
           confirmLabel: Constants.todoTypeToConfirmLabel[todoType],
           dismissable: Constants.todoTypeToDismissable[todoType],
+          icon: Constants.todoTypeToIcon[todoType],
         })
       } else if (item.data.t === RPCTypes.homeHomeScreenItemType.people) {
         const notification = item.data.people

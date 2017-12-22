@@ -1,12 +1,36 @@
 // @flow
-import React from 'react'
-import {Text} from '../common-adapters'
+import * as React from 'react'
+import * as Types from '../constants/types/people'
+import * as I from 'immutable'
+import {Box} from '../common-adapters'
+import {globalStyles} from '../styles'
+import Todo from './task'
+import FollowNotification from './follow-notification'
 
-type Props = {}
+type Props = {
+  oldItems: I.List<Types.PeopleScreenItem>,
+  newItems: I.List<Types.PeopleScreenItem>,
+}
 
+const itemToComponent: Types.PeopleScreenItem => React.Node = item => {
+  switch (item.type) {
+    case 'todo':
+      return <Todo {...item} onConfirm={onConfirm} onDismiss={onDismiss} key={item.todoType} />
+    case 'notification':
+      return <FollowNotification {...item} key={item.notificationTime} />
+  }
+}
+
+const onConfirm = () => {}
+const onDismiss = () => {}
 class People extends React.Component<Props> {
   render() {
-    return <Text type="BodySemibold">Welcome to people!</Text>
+    return (
+      <Box style={{...globalStyles.flexBoxColumn, width: '100%'}}>
+        {this.props.newItems.map(itemToComponent)}
+        {this.props.oldItems.map(itemToComponent)}
+      </Box>
+    )
   }
 }
 
