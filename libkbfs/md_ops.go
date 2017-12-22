@@ -252,7 +252,7 @@ func (md *MDOpsStandard) processMetadata(ctx context.Context,
 
 	// Get the UID unless this is a public tlf - then proceed with empty uid.
 	var uid keybase1.UID
-	if handle.TypeForKeying() != tlf.PublicKeying {
+	if handle.Type() != tlf.Public {
 		session, err := md.config.KBPKI().GetCurrentSession(ctx)
 		if err != nil {
 			return ImmutableRootMetadata{}, err
