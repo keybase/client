@@ -2275,7 +2275,7 @@ export type GitGetGitMetadataRpcParam = {|folder: Folder, incomingCallMap?: Inco
 
 export type GitGetTeamRepoSettingsRpcParam = {|folder: Folder, repoID: RepoID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type GitLocalMetadata = {|repoName: GitRepoName|}
+export type GitLocalMetadata = {|repoName: GitRepoName, branchName: String, commitMsgs?: ?Array<String>|}
 
 export type GitLocalMetadataV1 = {|repoName: GitRepoName|}
 

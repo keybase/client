@@ -116,12 +116,26 @@ func (o GitLocalMetadataVersioned) DeepCopy() GitLocalMetadataVersioned {
 }
 
 type GitLocalMetadata struct {
-	RepoName GitRepoName `codec:"repoName" json:"repoName"`
+	RepoName   GitRepoName `codec:"repoName" json:"repoName"`
+	BranchName string      `codec:"branchName" json:"branchName"`
+	CommitMsgs []string    `codec:"commitMsgs" json:"commitMsgs"`
 }
 
 func (o GitLocalMetadata) DeepCopy() GitLocalMetadata {
 	return GitLocalMetadata{
-		RepoName: o.RepoName.DeepCopy(),
+		RepoName:   o.RepoName.DeepCopy(),
+		BranchName: o.BranchName,
+		CommitMsgs: (func(x []string) []string {
+			if x == nil {
+				return nil
+			}
+			var ret []string
+			for _, v := range x {
+				vCopy := v
+				ret = append(ret, vCopy)
+			}
+			return ret
+		})(o.CommitMsgs),
 	}
 }
 

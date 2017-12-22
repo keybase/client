@@ -80,6 +80,17 @@
         {
           "type": "GitRepoName",
           "name": "repoName"
+        },
+        {
+          "type": "string",
+          "name": "branchName"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "commitMsgs"
         }
       ]
     },
