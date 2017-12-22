@@ -355,6 +355,16 @@ const iconMeta_ = {
     extension: 'png',
     require: require('../images/icons/icon-follow-me-32.png'),
   },
+  'icon-followers-new-32': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-followers-new-32.png'),
+  },
+  'icon-followers-new-48': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-followers-new-48.png'),
+  },
   'icon-following-21': {
     isFont: false,
     extension: 'png',
