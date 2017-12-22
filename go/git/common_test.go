@@ -82,6 +82,12 @@ func (m *mockChatHelper) SendTextByName(ctx context.Context, name string, topicN
 			Info: chat1.ConversationInfoLocal{
 				Id: rb,
 			},
+			MaxMessages: []chat1.MessageUnboxed{
+				chat1.MessageUnboxed{
+					MessageType: chat1.MessageType_METADATA,
+					Body:        chat1.NewMessageBodyWithMetadata(chat1.MessageConversationMetatdata{ConversationTitle: *topicName}),
+				},
+			},
 		}
 	}
 
