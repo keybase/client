@@ -2,9 +2,11 @@ package git
 
 import (
 	"context"
+	"errors"
 
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/keybase1"
 )
 
@@ -19,6 +21,10 @@ func (r *settingsResponse) GetAppStatus() *libkb.AppStatus {
 }
 
 func GetTeamRepoSettings(ctx context.Context, g *libkb.GlobalContext, arg keybase1.GetTeamRepoSettingsArg) (keybase1.GitTeamRepoSettings, error) {
+	if arg.Folder.FolderType != keybase1.FolderType_TEAM {
+		return keybase1.GitTeamRepoSettings{ChatDisabled: true}, nil
+	}
+
 	apiArg, err := settingsArg(ctx, g, arg.Folder, arg.RepoID)
 	if err != nil {
 		return keybase1.GitTeamRepoSettings{}, err
@@ -47,18 +53,37 @@ func GetTeamRepoSettings(ctx context.Context, g *libkb.GlobalContext, arg keybas
 }
 
 func SetTeamRepoSettings(ctx context.Context, g *libkb.GlobalContext, arg keybase1.SetTeamRepoSettingsArg) error {
+	if arg.Folder.FolderType != keybase1.FolderType_TEAM {
+		return errors.New("SetTeamRepoSettings denied: this repo is not a team repo")
+	}
 	apiArg, err := settingsArg(ctx, g, arg.Folder, arg.RepoID)
 	if err != nil {
 		return err
 	}
 	apiArg.Args["chat_disabled"] = libkb.B{Val: arg.ChatDisabled}
 
-	_, err = g.GetAPI().Post(*apiArg)
-	if err != nil {
-		return err
+	if arg.ChannelName != nil && *(arg.ChannelName) != "" {
+		// lookup the conv id for the channel name
+		vis := keybase1.TLFVisibility_PRIVATE
+		if !arg.Folder.Private {
+			vis = keybase1.TLFVisibility_PUBLIC
+		}
+		convs, err := g.ChatHelper.FindConversations(ctx, arg.Folder.Name, arg.ChannelName, chat1.TopicType_CHAT, chat1.ConversationMembersType_TEAM, vis)
+		if err != nil {
+			return err
+		}
+		if len(convs) == 0 {
+			return errors.New("no channel found")
+		}
+		if len(convs) > 1 {
+			return errors.New("multiple channels found")
+		}
+		convID := convs[0].Info.Id
+		apiArg.Args["chat_conv_id"] = libkb.HexArg(convID)
 	}
 
-	return nil
+	_, err = g.GetAPI().Post(*apiArg)
+	return err
 }
 
 func settingsArg(ctx context.Context, g *libkb.GlobalContext, folder keybase1.Folder, repoID keybase1.RepoID) (*libkb.APIArg, error) {

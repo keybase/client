@@ -66,6 +66,11 @@ func PutMetadata(ctx context.Context, g *libkb.GlobalContext, arg keybase1.PutGi
 }
 
 func sendChat(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID, arg keybase1.PutGitMetadataArg) error {
+	if arg.Folder.FolderType != keybase1.FolderType_TEAM {
+		// only send chat for team repos
+		return nil
+	}
+
 	settingsArg := keybase1.GetTeamRepoSettingsArg{
 		Folder: arg.Folder,
 		RepoID: arg.RepoID,

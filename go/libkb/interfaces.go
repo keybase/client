@@ -710,4 +710,6 @@ type ChatHelper interface {
 	SendMsgByNameNonblock(ctx context.Context, name string, topicName *string,
 		membersType chat1.ConversationMembersType, ident keybase1.TLFIdentifyBehavior, body chat1.MessageBody,
 		msgType chat1.MessageType) error
+	FindConversations(ctx context.Context, name string, topicName *string, topicType chat1.TopicType,
+		membersType chat1.ConversationMembersType, vis keybase1.TLFVisibility) ([]chat1.ConversationLocal, error)
 }

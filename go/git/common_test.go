@@ -15,7 +15,7 @@ import (
 func SetupTest(tb testing.TB, name string, depth int) (tc libkb.TestContext) {
 	tc = libkb.SetupTest(tb, name, depth+1)
 	tc.G.SetServices(externals.GetServices())
-	tc.G.ChatHelper = &mockChatHelper{}
+	tc.G.ChatHelper = newMockChatHelper()
 	teams.ServiceInit(tc.G)
 	return tc
 }
@@ -43,6 +43,13 @@ type MockMessage struct {
 
 type mockChatHelper struct {
 	sentMessages []MockMessage
+	convs        map[string]chat1.ConversationLocal
+}
+
+func newMockChatHelper() *mockChatHelper {
+	return &mockChatHelper{
+		convs: make(map[string]chat1.ConversationLocal),
+	}
 }
 
 func (m *mockChatHelper) SendTextByID(ctx context.Context, convID chat1.ConversationID,
@@ -63,6 +70,20 @@ func (m *mockChatHelper) SendMsgByIDNonblock(ctx context.Context, convID chat1.C
 }
 func (m *mockChatHelper) SendTextByName(ctx context.Context, name string, topicName *string,
 	membersType chat1.ConversationMembersType, ident keybase1.TLFIdentifyBehavior, text string) error {
+	rb, err := libkb.RandBytes(10)
+	if err != nil {
+		return err
+	}
+	// use this to fake making channels...
+	_, ok := m.convs[m.convKey(name, topicName)]
+	if !ok {
+		m.convs[m.convKey(name, topicName)] = chat1.ConversationLocal{
+			Info: chat1.ConversationInfoLocal{
+				Id: rb,
+			},
+		}
+	}
+
 	return nil
 }
 func (m *mockChatHelper) SendMsgByName(ctx context.Context, name string, topicName *string,
@@ -86,4 +107,21 @@ func (m *mockChatHelper) SendMsgByNameNonblock(ctx context.Context, name string,
 	membersType chat1.ConversationMembersType, ident keybase1.TLFIdentifyBehavior, body chat1.MessageBody,
 	msgType chat1.MessageType) error {
 	return nil
+}
+func (m *mockChatHelper) FindConversations(ctx context.Context, name string, topicName *string, topicType chat1.TopicType,
+	membersType chat1.ConversationMembersType, vis keybase1.TLFVisibility) ([]chat1.ConversationLocal, error) {
+
+	conv, ok := m.convs[m.convKey(name, topicName)]
+	if ok {
+		return []chat1.ConversationLocal{conv}, nil
+	}
+
+	return nil, nil
+}
+
+func (m *mockChatHelper) convKey(name string, topicName *string) string {
+	if topicName == nil {
+		return name + ":general"
+	}
+	return name + ":" + *topicName
 }

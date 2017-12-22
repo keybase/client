@@ -118,6 +118,21 @@ func (h *Helper) SendMsgByNameNonblock(ctx context.Context, name string, topicNa
 	return helper.SendBody(ctx, body, msgType)
 }
 
+func (h *Helper) FindConversations(ctx context.Context, name string, topicName *string, topicType chat1.TopicType, membersType chat1.ConversationMembersType, vis keybase1.TLFVisibility) ([]chat1.ConversationLocal, error) {
+	kuid, err := CurrentUID(h.G())
+	if err != nil {
+		return nil, err
+	}
+	uid := gregor1.UID(kuid.ToBytes())
+	ncHelper := newNewConversationHelper(h.G(), uid, name, topicName, topicType, membersType, vis, h.ri)
+	if topicName == nil {
+		s := ""
+		topicName = &s
+	}
+	convs, _, err := ncHelper.findConversations(ctx, membersType, *topicName)
+	return convs, err
+}
+
 type sendHelper struct {
 	utils.DebugLabeler
 
