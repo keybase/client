@@ -10,7 +10,7 @@ export type Props = {
   icon: IconType,
   instructions: string,
   confirmLabel: string,
-  dismissable?: boolean,
+  dismissable: boolean,
   onConfirm: () => void,
   onDismiss: () => void,
 }
