@@ -20,7 +20,30 @@ func SetupTest(tb testing.TB, name string, depth int) (tc libkb.TestContext) {
 	return tc
 }
 
-type mockChatHelper struct{}
+func MockSentMessages(tc libkb.TestContext) []MockMessage {
+	if tc.G.ChatHelper == nil {
+		tc.T.Fatal("ChatHelper is nil")
+	}
+	mch, ok := tc.G.ChatHelper.(*mockChatHelper)
+	if !ok {
+		tc.T.Fatalf("ChatHelper isn't a mock: %T", tc.G.ChatHelper)
+	}
+	return mch.sentMessages
+}
+
+// MockMessage only supports what we're currently testing (system message for git push).
+type MockMessage struct {
+	name        string
+	topicName   *string
+	membersType chat1.ConversationMembersType
+	ident       keybase1.TLFIdentifyBehavior
+	body        chat1.MessageBody
+	msgType     chat1.MessageType
+}
+
+type mockChatHelper struct {
+	sentMessages []MockMessage
+}
 
 func (m *mockChatHelper) SendTextByID(ctx context.Context, convID chat1.ConversationID,
 	trip chat1.ConversationIDTriple, tlfName string, text string) error {
@@ -45,6 +68,14 @@ func (m *mockChatHelper) SendTextByName(ctx context.Context, name string, topicN
 func (m *mockChatHelper) SendMsgByName(ctx context.Context, name string, topicName *string,
 	membersType chat1.ConversationMembersType, ident keybase1.TLFIdentifyBehavior, body chat1.MessageBody,
 	msgType chat1.MessageType) error {
+	m.sentMessages = append(m.sentMessages, MockMessage{
+		name:        name,
+		topicName:   topicName,
+		membersType: membersType,
+		ident:       ident,
+		body:        body,
+		msgType:     msgType,
+	})
 	return nil
 }
 func (m *mockChatHelper) SendTextByNameNonblock(ctx context.Context, name string, topicName *string,
