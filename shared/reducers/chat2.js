@@ -1,5 +1,5 @@
 // @flow
-// import * as I from 'immutable'
+import * as I from 'immutable'
 import * as Chat2Gen from '../actions/chat2-gen'
 import * as Constants from '../constants/chat2'
 import * as Types from '../constants/types/chat2'
@@ -32,9 +32,9 @@ const metaMapReducer = (metaMap, action) => {
         })
       })
     case Chat2Gen.metaUpdateTrustedState:
-      return metaMap.withMutations(m => {
+      return metaMap.withMutations((map: I.Map<Types.ConversationIDKey, Types.ConversationMeta>) => {
         action.payload.conversationIDKeys.forEach(id => {
-          m.setIn([id, 'trustedState'], action.payload.newState)
+          map.setIn([id, 'trustedState'], action.payload.newState)
         })
       })
     default:
@@ -42,17 +42,36 @@ const metaMapReducer = (metaMap, action) => {
   }
 }
 
-const messagesReducer = (messageMap, messageIDsList, action) => {
-  // messageMap: I.Map<Common.ConversationIDKey, I.Map<Message.MessageID, Message.Message>>,
-  // messageIDsList: I.Map<Common.ConversationIDKey, I.List<Message.MessageID>>,
-  let newState = {
-    messageIDsList,
-    messageMap,
-  }
-
+const messageMapReducer = (messageMap, action) => {
   switch (action.type) {
+    case Chat2Gen.messagesAdd: {
+      const {messages} = action.payload
+      return messageMap.withMutations(
+        (map: I.Map<Types.ConversationIDKey, I.Map<Types.Ordinal, Types.Message>>) =>
+          messages.forEach(message => map.setIn([message.conversationIDKey, message.ordinal], message))
+      )
+    }
     default:
-      return newState
+      return messageMap
+  }
+}
+
+const messageOrdinalsReducer = (messageOrdinalsList, action) => {
+  switch (action.type) {
+    case Chat2Gen.messagesAdd: {
+      const {messages} = action.payload
+      // TODO this just pushes to the end
+      return messageOrdinalsList.withMutations(map =>
+        messages.forEach(message =>
+          map.update(message.conversationIDKey, (list: ?I.List<Types.Ordinal>) => {
+            const ordinals: Array<Types.Ordinal> = messages.map(message => message.ordinal)
+            return list ? list.concat(ordinals) : I.List(ordinals)
+          })
+        )
+      )
+    }
+    default:
+      return messageOrdinalsList
   }
 }
 
@@ -69,11 +88,11 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
     case Chat2Gen.metaReceivedError:
     case Chat2Gen.metaRequestTrusted:
       return state.set('metaMap', metaMapReducer(state.metaMap, action))
-    // MessageMap/MessageIDsList actions
-    case Chat2Gen.messagesAdd: {
-      const {messageIDsList, messageMap} = messagesReducer(state.messageMap, state.messageIDsList, action)
-      return state.set('messageMap', messageMap).set('messageIDsList', messageIDsList)
-    }
+    // MessageMap/messageOrdinalsList actions
+    case Chat2Gen.messagesAdd:
+      return state
+        .set('messageMap', messageMapReducer(state.messageMap, action))
+        .set('messageOrdinals', messageOrdinalsReducer(state.messageOrdinals, action))
     // Saga only actions
     // return state
     default:

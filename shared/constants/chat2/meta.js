@@ -3,32 +3,7 @@
 import * as I from 'immutable'
 import * as RPCChatTypes from '../types/flow-types-chat'
 import * as Types from '../types/chat2'
-import type {TypedState} from '../reducer'
 import {toByteArray} from 'base64-js'
-
-// This is emoji aware hence all the weird ... stuff. See https://mathiasbynens.be/notes/javascript-unicode#iterating-over-symbols
-const textSnippet = (message: ?string = '', max: number) =>
-  // $FlowIssue flow doesn't understand spread + strings
-  [...message.substring(0, max * 4).replace(/\s+/g, ' ')].slice(0, max).join('')
-
-export const getSnippet = (state: TypedState, conversationIDKey: Types.ConversationIDKey) => {
-  const snippetTypes = ['Attachment', 'Text', 'System']
-  const messageMap = state.chat2.messageMap.get(conversationIDKey, I.Map())
-  const messageIDs = state.chat2.messageIDsList.get(conversationIDKey, I.List())
-  const messageID = messageIDs.findLast(id => snippetTypes.includes(messageMap.getIn([id, 'type'], '')))
-  const message: ?Types.Message = messageMap.get(messageID)
-  if (!message) {
-    return ''
-  }
-
-  switch (message.type) {
-    // case 'Attachment':
-    // case 'System':
-    case 'Text':
-      return textSnippet(message.content.stringValue(), 100)
-  }
-  return ''
-}
 
 const conversationMemberStatusToMembershipType = (m: RPCChatTypes.ConversationMemberStatus) => {
   switch (m) {
@@ -42,7 +17,7 @@ const conversationMemberStatusToMembershipType = (m: RPCChatTypes.ConversationMe
 }
 
 // This one call handles us getting a string or a buffer
-const supersededConversationIDToKey = (id: any): string =>
+const supersededConversationIDToKey = (id: string | Buffer): string =>
   typeof id === 'string' ? Buffer.from(toByteArray(id)).toString('hex') : id.toString('hex')
 
 export const unverifiedInboxUIItemToConversationMeta = (i: RPCChatTypes.UnverifiedInboxUIItem) => {

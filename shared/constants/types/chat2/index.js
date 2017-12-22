@@ -6,13 +6,13 @@ import * as Message from './message'
 
 export type _State = {
   metaMap: I.Map<Common.ConversationIDKey, Meta.ConversationMeta>,
-  messageMap: I.Map<Common.ConversationIDKey, I.Map<Message.MessageID, Message.Message>>,
-  messageIDsList: I.Map<Common.ConversationIDKey, I.List<Message.MessageID>>,
+  messageMap: I.Map<Common.ConversationIDKey, I.Map<Message.Ordinal, Message.Message>>,
+  messageOrdinals: I.Map<Common.ConversationIDKey, I.List<Message.Ordinal>>,
 }
 
 export type State = I.RecordOf<_State>
 
 export type {ConversationMeta, MetaTrustedState, _ConversationMeta} from './meta'
-export type {Message, _MessageText} from './message'
+export type {Message, _MessageText, Ordinal, MessageAttachment, _MessageAttachment} from './message'
 export type {ConversationIDKey} from './common'
 export {stringToConversationIDKey} from './common'

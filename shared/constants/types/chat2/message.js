@@ -7,27 +7,43 @@ import type {DeviceType} from '../devices'
 
 // TODO put back
 // export opaque type MessageID: string = string
-export type MessageID = number
-export const numberToMessageID = (n: number): MessageID => n
+export type ID = number
+export const numberToMessageID = (n: number): ID => n
 
 // TODO opaque
-export type MessageOrdinal = number
+export type Ordinal = number
 
-type ChannelMention = 'None' | 'All' | 'Here'
+type ChannelMention = 'none' | 'all' | 'here'
 
-export type _MessageText = {
+// TODO haivng issues w/ sprad
+// type _MessageCommon = {|
+// author: string,
+// conversationIDKey: Common.ConversationIDKey,
+// deviceName: string,
+// deviceRevokedAt: ?number,
+// deviceType: DeviceType,
+// id: ID,
+// hasBeenEdited: boolean,
+// mentionsAt: I.Set<string>,
+// mentionsChannel: ChannelMention,
+// ordinal: Ordinal,
+// timestamp: number,
+// |}
+
+export type _MessageText = {|
+  type: 'text',
   author: string,
-  content: HiddenString,
   conversationIDKey: Common.ConversationIDKey,
   deviceName: string,
   deviceRevokedAt: ?number,
   deviceType: DeviceType,
-  id: MessageID,
+  id: ID,
+  hasBeenEdited: boolean,
   mentionsAt: I.Set<string>,
   mentionsChannel: ChannelMention,
-  ordinal: MessageOrdinal,
+  ordinal: Ordinal,
   timestamp: number,
-  type: 'Text',
+  text: HiddenString,
   // state: MessageState,
   // you: string,
   // rawMessageID: number,
@@ -35,8 +51,51 @@ export type _MessageText = {
   // outboxID?: ?OutboxIDKey, // needed?
   // key: MessageKey,
   // editedCount: number, // increase as we edit it
-}
+|}
 export type MessageText = I.RecordOf<_MessageText>
 
-// TODO other types
-export type Message = MessageText
+type AttachmentType = 'image' | 'other'
+
+export type _MessageAttachment = {|
+  type: 'attachment',
+  author: string,
+  conversationIDKey: Common.ConversationIDKey,
+  deviceName: string,
+  deviceRevokedAt: ?number,
+  deviceType: DeviceType,
+  id: ID,
+  hasBeenEdited: boolean,
+  mentionsAt: I.Set<string>,
+  mentionsChannel: ChannelMention,
+  ordinal: Ordinal,
+  timestamp: number,
+  title: string,
+  attachmentType: AttachmentType,
+  durationMs: number,
+  filename: ?string,
+  percentUploaded: number,
+  previewHeight: number,
+  previewWidth: number,
+  title: string,
+|}
+export type MessageAttachment = I.RecordOf<_MessageAttachment>
+
+// export type _MessageError = {|
+// conversationIDKey: Common.ConversationIDKey,
+// ordinal: Ordinal,
+// type: 'error',
+// // errorType unknown version, etc
+// |}
+// export type MessageError = I.RecordOf<_MessageError>
+
+// export type _MessageSystem = {|
+// conversationIDKey: Common.ConversationIDKey,
+// ordinal: Ordinal,
+// type: 'system',
+// // systemType: joinLeft/etc
+// |}
+// export type MessageSystem = I.RecordOf<_MessageSystem>
+
+export type Message = MessageText | MessageAttachment
+// export type Message = I.RecordOf<_Message>
+// | MessageError | MessageSystem

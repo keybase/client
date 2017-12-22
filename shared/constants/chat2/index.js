@@ -11,16 +11,15 @@ export const keyToConversationID = (key: Types.ConversationIDKey): RPCChatTypes.
   Buffer.from(key, 'hex')
 
 export const makeState: I.RecordFactory<Types._State> = I.Record({
-  messageIDsList: I.Map(),
   messageMap: I.Map(),
+  messageOrdinals: I.Map(),
   metaMap: I.Map(),
 })
 
 export {
-  getSnippet,
   unverifiedInboxUIItemToConversationMeta,
   inboxUIItemToConversationMeta,
   makeConversationMeta,
 } from './meta'
 
-export {uiMessageToMessage} from './message'
+export {uiMessageToMessage, getSnippet} from './message'

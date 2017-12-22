@@ -55,9 +55,20 @@ function* rpcInboxRefresh(action: Chat2Gen.InboxRefreshPayload): Generator<any, 
     // We get meta
     const metas = items.map(Constants.unverifiedInboxUIItemToConversationMeta)
     yield Saga.put(Chat2Gen.createMetasReceived({metas}))
-    // We also get some cached messages
-    // const messages = items.map(Constants.unverifiedInboxUIItemToMessage)
-    // yield Saga.put(Chat2Gen.createUnboxingSuccess({inboxItem: JSON.parse(conv)}))
+    // We also get some cached messages which are trusted
+    const messages = items.reduce((arr, i) => {
+      if (i.localMetadata && i.localMetadata.snippetMsg) {
+        const message = Constants.uiMessageToMessage(i.convID, i.localMetadata.snippetMsg)
+        if (message) {
+          arr.push(message)
+        }
+      }
+
+      return arr
+    }, [])
+    if (messages.length) {
+      yield Saga.put(Chat2Gen.createMessagesAdd({messages}))
+    }
   }
 }
 
