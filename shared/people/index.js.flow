@@ -6,6 +6,7 @@ import * as Types from '../constants/types/people'
 export type Props = {
   oldItems: I.List<Types.PeopleScreenItem>,
   newItems: I.List<Types.PeopleScreenItem>,
+  onSearch: () => void,
 }
 
 export default class People extends React.Component<Props> {}
