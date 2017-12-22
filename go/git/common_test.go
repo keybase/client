@@ -1,6 +1,7 @@
 package git
 
 import (
+	"bytes"
 	"testing"
 
 	"github.com/keybase/client/go/externals"
@@ -108,6 +109,7 @@ func (m *mockChatHelper) SendMsgByNameNonblock(ctx context.Context, name string,
 	msgType chat1.MessageType) error {
 	return nil
 }
+
 func (m *mockChatHelper) FindConversations(ctx context.Context, name string, topicName *string, topicType chat1.TopicType,
 	membersType chat1.ConversationMembersType, vis keybase1.TLFVisibility) ([]chat1.ConversationLocal, error) {
 
@@ -117,6 +119,17 @@ func (m *mockChatHelper) FindConversations(ctx context.Context, name string, top
 	}
 
 	return nil, nil
+}
+
+func (m *mockChatHelper) FindConversationsByID(ctx context.Context, convIDs []chat1.ConversationID) (convs []chat1.ConversationLocal, err error) {
+	for _, id := range convIDs {
+		for _, v := range m.convs {
+			if bytes.Equal(v.Info.Id, id) {
+				convs = append(convs, v)
+			}
+		}
+	}
+	return convs, nil
 }
 
 func (m *mockChatHelper) convKey(name string, topicName *string) string {

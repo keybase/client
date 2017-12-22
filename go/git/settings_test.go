@@ -41,7 +41,7 @@ func TestSettings(t *testing.T) {
 
 	require.False(t, settings.ChatDisabled)
 	require.NotNil(t, settings.ChannelName)
-	require.Equal(t, *settings.ChannelName, globals.DefaultTeamTopic)
+	require.Equal(t, globals.DefaultTeamTopic, *settings.ChannelName)
 
 	setArg := keybase1.SetTeamRepoSettingsArg{
 		Folder:       folder,
@@ -70,4 +70,10 @@ func TestSettings(t *testing.T) {
 	}
 	err = SetTeamRepoSettings(context.Background(), tc.G, setArg)
 	require.NoError(t, err)
+
+	settings, err = GetTeamRepoSettings(context.Background(), tc.G, arg)
+	require.NoError(t, err)
+	require.False(t, settings.ChatDisabled)
+	require.NotNil(t, settings.ChannelName)
+	require.Equal(t, "git", *settings.ChannelName)
 }

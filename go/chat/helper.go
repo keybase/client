@@ -133,6 +133,22 @@ func (h *Helper) FindConversations(ctx context.Context, name string, topicName *
 	return convs, err
 }
 
+func (h *Helper) FindConversationsByID(ctx context.Context, convIDs []chat1.ConversationID) ([]chat1.ConversationLocal, error) {
+	kuid, err := CurrentUID(h.G())
+	if err != nil {
+		return nil, err
+	}
+	uid := gregor1.UID(kuid.ToBytes())
+	query := &chat1.GetInboxLocalQuery{
+		ConvIDs: convIDs,
+	}
+	inbox, _, err := h.G().InboxSource.Read(ctx, uid, nil, true, query, nil)
+	if err != nil {
+		return nil, err
+	}
+	return inbox.Convs, nil
+}
+
 type sendHelper struct {
 	utils.DebugLabeler
 

@@ -2,9 +2,11 @@ package git
 
 import (
 	"context"
+	"encoding/hex"
 	"errors"
 
 	"github.com/keybase/client/go/chat/globals"
+	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -35,7 +37,6 @@ func GetTeamRepoSettings(ctx context.Context, g *libkb.GlobalContext, arg keybas
 		return keybase1.GitTeamRepoSettings{}, err
 	}
 
-	g.Log.Warning("response: %+v", resp)
 	settings := keybase1.GitTeamRepoSettings{
 		ChatDisabled: resp.ChatDisabled,
 	}
@@ -46,6 +47,22 @@ func GetTeamRepoSettings(ctx context.Context, g *libkb.GlobalContext, arg keybas
 			settings.ChannelName = &globals.DefaultTeamTopic
 		} else {
 			// XXX lookup the channel name
+			convID, err := hex.DecodeString(resp.ChatConvID)
+			if err != nil {
+				return keybase1.GitTeamRepoSettings{}, err
+			}
+			convs, err := g.ChatHelper.FindConversationsByID(ctx, []chat1.ConversationID{convID})
+			if err != nil {
+				return keybase1.GitTeamRepoSettings{}, err
+			}
+			if len(convs) == 0 {
+				return keybase1.GitTeamRepoSettings{}, errors.New("no channel found")
+			}
+			if len(convs) > 1 {
+				return keybase1.GitTeamRepoSettings{}, errors.New("multiple conversations found")
+			}
+			name := utils.GetTopicName(convs[0])
+			settings.ChannelName = &name
 		}
 	}
 

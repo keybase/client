@@ -712,4 +712,5 @@ type ChatHelper interface {
 		msgType chat1.MessageType) error
 	FindConversations(ctx context.Context, name string, topicName *string, topicType chat1.TopicType,
 		membersType chat1.ConversationMembersType, vis keybase1.TLFVisibility) ([]chat1.ConversationLocal, error)
+	FindConversationsByID(ctx context.Context, convIDs []chat1.ConversationID) ([]chat1.ConversationLocal, error)
 }
