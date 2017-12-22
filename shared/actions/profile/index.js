@@ -46,15 +46,11 @@ function _showUserProfile(action: ProfileGen.ShowUserProfilePayload, state: Type
   const searchResultMap = Selectors.searchResultMapSelector(state)
   const username = SearchConstants.maybeUpgradeSearchResultIdToKeybaseId(searchResultMap, userId)
   // get data on whose profile is currently being shown
-  const me = Selectors.usernameSelector(state)
   const getTopProfile = (state: TypedState) => {
     const routeState = state.routeTree.routeState
     const routeProps = getPathProps(routeState, [peopleTab])
     const profileNode = (routeProps && routeProps.size > 0 && routeProps.get(routeProps.size - 1)) || null
-    return (
-      (profileNode && profileNode.props && profileNode.props.get('username')) ||
-      (profileNode && profileNode.node === peopleTab && me)
-    )
+    return profileNode && profileNode.props && profileNode.props.get('username')
   }
 
   const topProfile = getTopProfile(state)
