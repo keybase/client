@@ -305,7 +305,7 @@ func (fs *FS) lookupOrCreateEntry(
 	filename string, flag int, perm os.FileMode) (
 	n libkbfs.Node, ei libkbfs.EntryInfo, err error) {
 	// Shortcut the case where there's nothing to look up.
-	if filename == "" || filename == "/" {
+	if filename == "" || filename == "/" || filename == "." {
 		return fs.root, fs.rootInfo, nil
 	}
 	filename = strings.TrimPrefix(filename, "/")
@@ -474,6 +474,11 @@ func (fs *FS) Rename(oldpath, newpath string) (err error) {
 		fs.deferLog.CDebugf(fs.ctx, "Rename done: %+v", err)
 		err = translateErr(err)
 	}()
+
+	err = fs.mkdirAll(path.Dir(newpath), 0755)
+	if err != nil && !os.IsExist(err) {
+		return err
+	}
 
 	oldParent, _, oldBase, err := fs.lookupParent(oldpath)
 	if err != nil {
