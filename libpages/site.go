@@ -18,7 +18,7 @@ import (
 const configCacheTime = 16 * time.Second
 
 type site struct {
-	// fs should never once constructed.
+	// fs should never be changed once it's constructed.
 	fs *libfs.FS
 
 	// TODO: replace this with a notification mechanism from the FBO.
@@ -45,6 +45,12 @@ func (s *site) fetchConfigAndRefreshCache() (cfg config.Config, err error) {
 	s.cachedConfigLock.Lock()
 	defer s.cachedConfigLock.Unlock()
 
+	if s.cachedConfigExpiresAt.After(time.Now()) {
+		// Some other goroutine beat us! The cached config is up-to-date now so
+		// just return it.
+		return s.cachedConfig, nil
+	}
+
 	f, err := s.fs.Open(kbpConfigPath)
 	switch {
 	case os.IsNotExist(err):
@@ -59,7 +65,7 @@ func (s *site) fetchConfigAndRefreshCache() (cfg config.Config, err error) {
 	}
 
 	s.cachedConfig = cfg
-	s.cachedConfigExpiresAt = time.Now()
+	s.cachedConfigExpiresAt = time.Now().Add(configCacheTime)
 
 	return cfg, nil
 }

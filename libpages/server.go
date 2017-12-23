@@ -112,6 +112,36 @@ func (s *Server) handleNeedAuthentication(
 	w.WriteHeader(http.StatusUnauthorized)
 }
 
+func (s *Server) isDirWithNoIndexHTML(
+	st *site, requestURI string) (bool, error) {
+	fi, err := st.fs.Stat(strings.Trim(path.Clean(requestURI), "/"))
+	switch {
+	case os.IsNotExist(err):
+		// It doesn't exist! So jsut let the http package handle it.
+		return false, nil
+	case err != nil:
+		// Some other error happened. To be safe, error here.
+		return false, err
+	default:
+		// continue
+	}
+
+	if !fi.IsDir() {
+		return false, nil
+	}
+
+	fi, err = st.fs.Stat(path.Join(requestURI, "index.html"))
+	switch {
+	case err == nil:
+		return false, nil
+	case os.IsNotExist(err):
+		return true, nil
+	default:
+		// Some other error happened. To be safe, error here.
+		return false, err
+	}
+}
+
 // ServeHTTP implements the http.Handler interface.
 func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	s.config.Logger.Info("ServeHTTP",
@@ -166,32 +196,24 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !canRead {
+	// Check if it's a directory containing no index.html before letting
+	// http.FileServer handle it.  This permission check should ideally
+	// happen inside the http package, but unfortunately there isn't a
+	// way today.
+	isListing, err := s.isDirWithNoIndexHTML(st, r.RequestURI)
+	if err != nil {
+		s.handleError(w, err)
+		return
+	}
+
+	if isListing && !canList {
 		s.handleNeedAuthentication(w, r, realm)
 		return
 	}
 
-	if !canList {
-		// Check if it's a directory containing no index.html before letting
-		// http.FileServer handle it.  This permission check should ideally
-		// happen inside the http package, but unfortunately there isn't a
-		// way today.
-		fi, err := st.fs.Stat(r.RequestURI)
-		if err != nil {
-			s.handleError(w, err)
-			return
-		}
-		if fi.IsDir() {
-			fi, err = st.fs.Stat(path.Join(r.RequestURI, "index.html"))
-			if err != nil {
-				s.handleError(w, err)
-				return
-			}
-			if !os.IsNotExist(err) {
-				s.handleNeedAuthentication(w, r, realm)
-				return
-			}
-		}
+	if !isListing && !canRead {
+		s.handleNeedAuthentication(w, r, realm)
+		return
 	}
 
 	http.FileServer(st.getHTTPFileSystem(ctx)).ServeHTTP(w, r)
