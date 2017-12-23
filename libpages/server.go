@@ -27,11 +27,11 @@ import (
 
 // ServerConfig holds configuration parameters for Server.
 type ServerConfig struct {
-	AutoDirectHTTP     bool
-	DomainWhitelist    []string
-	UseStaging         bool
-	Logger             *zap.Logger
-	UseDiskCacheForDev bool
+	AutoDirectHTTP   bool
+	DomainWhitelist  []string
+	UseStaging       bool
+	Logger           *zap.Logger
+	UseDiskCertCache bool
 }
 
 const fsCacheSize = 2 << 15
@@ -298,8 +298,8 @@ func ListenAndServe(ctx context.Context,
 		HostPolicy: server.allowConnectionTo,
 	}
 
-	if config.UseDiskCacheForDev {
-		manager.Cache = autocert.DirCache("./kbp-cert-cache-dev")
+	if config.UseDiskCertCache {
+		manager.Cache = autocert.DirCache("./kbp-cert-cache")
 	}
 
 	if config.UseStaging {

@@ -23,7 +23,7 @@ var (
 
 func init() {
 	flag.BoolVar(&fProd, "prod", false, "disable development mode")
-	flag.BoolVar(&fDiskCertCache, "use-disk-cert-cache-dev", false, "cache cert on disk")
+	flag.BoolVar(&fDiskCertCache, "use-disk-cert-cache", false, "cache cert on disk")
 }
 
 func main() {
@@ -42,10 +42,6 @@ func main() {
 	}
 	if err != nil {
 		panic(err)
-	}
-
-	if fDiskCertCache && fProd {
-		logger.Panic("disk cert cache should be used in development only")
 	}
 
 	// Hack to make libkbfs.Init connect to prod {md,b}server all the time.
@@ -68,9 +64,9 @@ func main() {
 	serverConfig := libpages.ServerConfig{
 		// Connect to staging Let's Encrypt server while we are testing since
 		// the rate-limit is way higher.
-		UseStaging:         true,
-		Logger:             logger,
-		UseDiskCacheForDev: fDiskCertCache,
+		UseStaging:       true,
+		Logger:           logger,
+		UseDiskCertCache: fDiskCertCache,
 	}
 	libpages.ListenAndServe(ctx, serverConfig, kbConfig)
 }
