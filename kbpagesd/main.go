@@ -64,7 +64,7 @@ func main() {
 	serverConfig := libpages.ServerConfig{
 		// Connect to staging Let's Encrypt server while we are testing since
 		// the rate-limit is way higher.
-		UseStaging:       true,
+		UseStaging:       !fProd,
 		Logger:           logger,
 		UseDiskCertCache: fDiskCertCache,
 	}
