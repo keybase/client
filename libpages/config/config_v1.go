@@ -39,7 +39,7 @@ type V1 struct {
 
 	// Users is a [username -> bcrypt-hashed password] map that defines how
 	// users should be authenticated.
-	Users map[string][]byte `json:"users"`
+	Users map[string]string `json:"users"`
 
 	// ACLs is a path -> AccessControlV1 map that defines ACLs for different
 	// paths.
@@ -87,7 +87,7 @@ func (c *V1) Authenticate(username, password string) bool {
 	if !ok {
 		return false
 	}
-	return bcrypt.CompareHashAndPassword(passwordHash, []byte(password)) == nil
+	return bcrypt.CompareHashAndPassword([]byte(passwordHash), []byte(password)) == nil
 }
 
 // GetPermissionsForAnonymous implements the Config interface.

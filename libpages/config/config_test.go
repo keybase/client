@@ -17,9 +17,9 @@ func TestParseConfig(t *testing.T) {
 		Common: Common{
 			Version: Version1Str,
 		},
-		Users: map[string][]byte{
-			"alice": generatePasswordHashForTestOrBust(t, "12345"),
-			"bob":   generatePasswordHashForTestOrBust(t, "54321"),
+		Users: map[string]string{
+			"alice": string(generatePasswordHashForTestOrBust(t, "12345")),
+			"bob":   string(generatePasswordHashForTestOrBust(t, "54321")),
 		},
 		ACLs: map[string]AccessControlV1{
 			"/alice-and-bob": AccessControlV1{

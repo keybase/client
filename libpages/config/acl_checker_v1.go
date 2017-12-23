@@ -54,7 +54,7 @@ type accessControlV1 struct {
 // *AccessControlV1. The users map is used to check if every username defined
 // in WhitelistAdditionalPermissions is defined.
 func makeAccessControlV1Internal(
-	a *AccessControlV1, users map[string][]byte, p string) (
+	a *AccessControlV1, users map[string]string, p string) (
 	ac *accessControlV1, err error) {
 	if a == nil {
 		return nil, errors.New("nil AccessControlV1")
@@ -194,7 +194,7 @@ func (c *aclCheckerV1) getPermissions(p string, username *string) (
 // recursively constructs nested *aclCheckerV1 so that each defined path has a
 // corresponding checker, and all intermediate nodes have a checker populated.
 func makeACLCheckerV1(acl map[string]AccessControlV1,
-	users map[string][]byte) (*aclCheckerV1, error) {
+	users map[string]string) (*aclCheckerV1, error) {
 	root := &aclCheckerV1{ac: defaultAccessControlV1InternalForRoot()}
 	if acl == nil {
 		return root, nil
