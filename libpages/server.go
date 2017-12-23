@@ -113,11 +113,11 @@ func (s *Server) handleNeedAuthentication(
 }
 
 func (s *Server) isDirWithNoIndexHTML(
-	st *site, requestURI string) (bool, error) {
-	fi, err := st.fs.Stat(strings.Trim(path.Clean(requestURI), "/"))
+	st *site, requestPath string) (bool, error) {
+	fi, err := st.fs.Stat(strings.Trim(path.Clean(requestPath), "/"))
 	switch {
 	case os.IsNotExist(err):
-		// It doesn't exist! So jsut let the http package handle it.
+		// It doesn't exist! So just let the http package handle it.
 		return false, nil
 	case err != nil:
 		// Some other error happened. To be safe, error here.
@@ -130,7 +130,7 @@ func (s *Server) isDirWithNoIndexHTML(
 		return false, nil
 	}
 
-	fi, err = st.fs.Stat(path.Join(requestURI, "index.html"))
+	fi, err = st.fs.Stat(path.Join(requestPath, "index.html"))
 	switch {
 	case err == nil:
 		return false, nil
@@ -146,11 +146,11 @@ func (s *Server) isDirWithNoIndexHTML(
 func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	s.config.Logger.Info("ServeHTTP",
 		zap.String("host", r.Host),
-		zap.String("urk", r.RequestURI),
+		zap.String("path", r.URL.Path),
 		zap.String("proto", r.Proto),
 	)
 
-	if path.Clean(strings.ToLower(r.RequestURI)) == kbpConfigPath {
+	if path.Clean(strings.ToLower(r.URL.Path)) == kbpConfigPath {
 		// Don't serve .kbp_config.
 		// TODO: integrate this check into Config?
 		w.WriteHeader(http.StatusForbidden)
@@ -186,10 +186,10 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	user, pass, ok := r.BasicAuth()
 	if ok && cfg.Authenticate(user, pass) {
 		canRead, canList, realm, err = cfg.GetPermissionsForUsername(
-			r.RequestURI, user)
+			r.URL.Path, user)
 	} else {
 		canRead, canList, realm, err = cfg.GetPermissionsForAnonymous(
-			r.RequestURI)
+			r.URL.Path)
 	}
 	if err != nil {
 		s.handleError(w, err)
@@ -200,7 +200,7 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// http.FileServer handle it.  This permission check should ideally
 	// happen inside the http package, but unfortunately there isn't a
 	// way today.
-	isListing, err := s.isDirWithNoIndexHTML(st, r.RequestURI)
+	isListing, err := s.isDirWithNoIndexHTML(st, r.URL.Path)
 	if err != nil {
 		s.handleError(w, err)
 		return

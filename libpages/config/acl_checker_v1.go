@@ -44,8 +44,8 @@ type accessControlV1 struct {
 	// for more details. It's a map of username -> permissionsV1.
 	whitelistAdditional map[string]permissionsV1
 	anonymous           permissionsV1
-	// p stores the path (from Config declaration) that a *accessControlV1
-	// object is constructed for. When a *aclCheckerV1 is picked for a path,
+	// p stores the path (from Config declaration) that an *accessControlV1
+	// object is constructed for. When an *aclCheckerV1 is picked for a path,
 	// the p field can be used as a realm for HTTP Basic Authentication.
 	p string
 }
