@@ -268,7 +268,9 @@ func (s *Server) allowConnectionTo(ctx context.Context, host string) error {
 }
 
 const (
-	gracefulShutdownTimeout = 10 * time.Second
+	gracefulShutdownTimeout = 16 * time.Second
+	httpReadHeaderTimeout   = 8 * time.Second
+	httpIdleTimeout         = 1 * time.Minute
 	stagingDiskCacheName    = "./kbp-cert-cache-dev"
 	prodDiskCacheName       = "./kbp-cert-cache"
 )
@@ -320,7 +322,9 @@ func ListenAndServe(ctx context.Context,
 	}
 
 	httpServer := http.Server{
-		Handler: server,
+		Handler:           server,
+		ReadHeaderTimeout: httpReadHeaderTimeout,
+		IdleTimeout:       httpIdleTimeout,
 	}
 
 	go func() {
