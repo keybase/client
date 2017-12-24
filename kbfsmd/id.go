@@ -6,6 +6,7 @@ package kbfsmd
 
 import (
 	"encoding"
+	"encoding/hex"
 
 	"github.com/keybase/kbfs/kbfscodec"
 	"github.com/keybase/kbfs/kbfshash"
@@ -19,6 +20,9 @@ type ID struct {
 
 var _ encoding.BinaryMarshaler = ID{}
 var _ encoding.BinaryUnmarshaler = (*ID)(nil)
+
+var _ encoding.TextMarshaler = ID{}
+var _ encoding.TextUnmarshaler = (*ID)(nil)
 
 // MakeID creates a new ID from the given RootMetadata object.
 func MakeID(codec kbfscodec.Codec, md RootMetadata) (ID, error) {
@@ -73,4 +77,35 @@ func (id ID) MarshalBinary() (data []byte, err error) {
 // the ID is invalid.
 func (id *ID) UnmarshalBinary(data []byte) error {
 	return id.h.UnmarshalBinary(data)
+}
+
+// MarshalText implements the encoding.TextMarshaler interface for ID.
+func (id ID) MarshalText() ([]byte, error) {
+	bytes, err := id.MarshalBinary()
+	if err != nil {
+		return nil, err
+	}
+	return []byte(hex.EncodeToString(bytes)), nil
+}
+
+// UnmarshalText implements the encoding.TextUnmarshaler interface for
+// ID.
+func (id *ID) UnmarshalText(buf []byte) error {
+	s := string(buf)
+	bytes, err := hex.DecodeString(s)
+	if err != nil {
+		return errors.WithStack(InvalidIDError{s})
+	}
+	return id.UnmarshalBinary(bytes)
+}
+
+// ParseID parses a hex encoded ID. Returns ID{} and an InvalidIDError
+// on failure.
+func ParseID(s string) (ID, error) {
+	var id ID
+	err := id.UnmarshalText([]byte(s))
+	if err != nil {
+		return ID{}, err
+	}
+	return id, nil
 }

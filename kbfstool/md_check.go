@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"path/filepath"
 
-	"github.com/keybase/kbfs/kbfsmd"
 	"github.com/keybase/kbfs/libkbfs"
 	"golang.org/x/net/context"
 )
@@ -13,7 +12,9 @@ import (
 const mdCheckUsageStr = `Usage:
   kbfstool md check input [inputs...]
 
-Each input must be in the same format as in md dump.
+Each input must be in the same format as in md dump. However,
+revisions in a revision range rev1-rev2 are always checked in
+descending order, regardless of whether rev1 <= rev2 or rev1 > rev2.
 
 `
 
@@ -102,50 +103,51 @@ func checkFileBlock(ctx context.Context, config libkbfs.Config,
 	return nil
 }
 
-// mdCheckChain checks that the given MD object is a valid successor
-// of the previous revision, and so on all the way back to the given
-// revision. Along the way, it also checks that the root blocks that
-// haven't been garbage-collected are present. It returns a list of MD
-// objects with valid roots, in reverse revision order. If multiple MD
-// objects have the same root (which are assumed to all be adjacent),
-// the most recent one is returned.
+// mdCheckChain checks that every MD object in the given list is a
+// valid successor of the next object in the list. Along the way, it
+// also checks that the root blocks that haven't been
+// garbage-collected are present. It returns a list of MD objects with
+// valid roots, in reverse revision order. If multiple MD objects have
+// the same root (which are assumed to all be adjacent), the most
+// recent one is returned.
 func mdCheckChain(ctx context.Context, config libkbfs.Config,
-	irmd libkbfs.ImmutableRootMetadata,
-	minRevision kbfsmd.Revision, verbose bool) (
-	irmdsWithRoots []libkbfs.ImmutableRootMetadata, err error) {
+	reversedIRMDs []libkbfs.ImmutableRootMetadata, verbose bool) (
+	reversedIRMDsWithRoots []libkbfs.ImmutableRootMetadata) {
 	fmt.Printf("Checking chain from rev %d to %d...\n",
-		minRevision, irmd.Revision())
+		reversedIRMDs[0].Revision(), reversedIRMDs[len(reversedIRMDs)-1].Revision())
 	gcUnrefs := make(map[libkbfs.BlockRef]bool)
-	for {
-		rootPtr := irmd.Data().Dir.BlockPointer
+	for i, irmd := range reversedIRMDs {
+		currRev := irmd.Revision()
+		data := irmd.Data()
+		rootPtr := data.Dir.BlockPointer
 		if !rootPtr.Ref().IsValid() {
 			// This happens in the wild, but only for
 			// folders used for journal-related testing
 			// early on.
 			fmt.Printf("Skipping checking root for rev %d (is invalid)\n",
-				irmd.Revision())
+				currRev)
 		} else if gcUnrefs[rootPtr.Ref()] {
 			if verbose {
 				fmt.Printf("Skipping checking root for rev %d (GCed)\n",
-					irmd.Revision())
+					currRev)
 			}
 		} else {
 			fmt.Printf("Checking root for rev %d (%s)...\n",
-				irmd.Revision(), rootPtr.Ref())
+				currRev, rootPtr.Ref())
 			var dirBlock libkbfs.DirBlock
 			err := config.BlockOps().Get(
 				ctx, irmd, rootPtr, &dirBlock, libkbfs.NoCacheEntry)
 			if err != nil {
 				fmt.Printf("Got error while checking root "+
 					"for rev %d: %v\n",
-					irmd.Revision(), err)
-			} else if len(irmdsWithRoots) == 0 ||
-				irmdsWithRoots[len(irmdsWithRoots)-1].Data().Dir.BlockPointer != rootPtr {
-				irmdsWithRoots = append(irmdsWithRoots, irmd)
+					currRev, err)
+			} else if len(reversedIRMDsWithRoots) == 0 ||
+				reversedIRMDsWithRoots[len(reversedIRMDsWithRoots)-1].Data().Dir.BlockPointer != rootPtr {
+				reversedIRMDsWithRoots = append(reversedIRMDsWithRoots, irmd)
 			}
 		}
 
-		for _, op := range irmd.Data().Changes.Ops {
+		for _, op := range data.Changes.Ops {
 			if gcOp, ok := op.(*libkbfs.GCOp); ok {
 				for _, unref := range gcOp.Unrefs() {
 					gcUnrefs[unref.Ref()] = true
@@ -153,73 +155,43 @@ func mdCheckChain(ctx context.Context, config libkbfs.Config,
 			}
 		}
 
-		if irmd.Revision() <= minRevision {
+		if i == len(reversedIRMDs)-1 {
 			break
 		}
 
-		if verbose {
-			fmt.Printf("Fetching rev %d...\n", irmd.Revision()-1)
-		}
-
-		// TODO: Getting in chunks would be faster.
-		irmdPrev, err := mdGet(ctx, config, irmd.TlfID(),
-			irmd.BID(), irmd.Revision()-1)
-		if err != nil {
-			fmt.Printf("Got error while fetching rev %d: %v\n", irmd.Revision()-1, err)
-			break
-		}
-
-		if irmdPrev == (libkbfs.ImmutableRootMetadata{}) {
-			fmt.Printf("Rev %d missing\n", irmd.Revision()-1)
-			break
-		}
+		irmdPrev := reversedIRMDs[i+1]
+		predRev := irmdPrev.Revision()
 
 		if verbose {
 			fmt.Printf("Checking %d -> %d link...\n",
-				irmd.Revision()-1, irmd.Revision())
+				predRev, currRev)
 		}
-		err = irmdPrev.CheckValidSuccessor(
+		err := irmdPrev.CheckValidSuccessor(
 			irmdPrev.MdID(), irmd.ReadOnly())
 		if err != nil {
 			fmt.Printf("Got error while checking %d -> %d link: %v\n",
-				irmd.Revision()-1, irmd.Revision(), err)
+				predRev, currRev, err)
 		}
 
 		irmd = irmdPrev
 	}
-	return irmdsWithRoots, nil
+	return reversedIRMDsWithRoots
 }
 
-func mdCheckOne(ctx context.Context, config libkbfs.Config,
-	input string, irmd libkbfs.ImmutableRootMetadata,
-	mdLimit int, verbose bool) error {
-	// Subtract one for irmd.
-	mdLimit--
-	if mdLimit < 0 {
-		mdLimit = 0
-	}
-	var minRevision kbfsmd.Revision
-	if irmd.Revision() >= kbfsmd.RevisionInitial+
-		kbfsmd.Revision(mdLimit) {
-		minRevision = irmd.Revision() -
-			kbfsmd.Revision(mdLimit)
-	} else {
-		minRevision = kbfsmd.RevisionInitial
-	}
-	irmdsWithRoots, _ := mdCheckChain(
-		ctx, config, irmd, minRevision, verbose)
+func mdCheckIRMDs(ctx context.Context, config libkbfs.Config,
+	tlfStr, branchStr string, reversedIRMDs []libkbfs.ImmutableRootMetadata,
+	verbose bool) error {
+	reversedIRMDsWithRoots :=
+		mdCheckChain(ctx, config, reversedIRMDs, verbose)
 
-	fmt.Printf("Retrieved %d MD objects with roots\n", len(irmdsWithRoots))
+	fmt.Printf("Retrieved %d MD objects with roots\n", len(reversedIRMDsWithRoots))
 
-	for _, irmd := range irmdsWithRoots {
-		fmt.Printf("Checking revision %d...\n", irmd.Revision())
-		data := irmd.Data()
-
+	for _, irmd := range reversedIRMDsWithRoots {
 		// No need to check the blocks for unembedded changes,
 		// since they're already checked upon retrieval.
-
-		_ = checkDirBlock(
-			ctx, config, input, irmd, data.Dir.BlockInfo, verbose)
+		name := mdJoinInput(tlfStr, branchStr, irmd.Revision().String(), "")
+		_ = checkDirBlock(ctx, config, name, irmd,
+			irmd.Data().Dir.BlockInfo, verbose)
 	}
 	return nil
 }
@@ -227,8 +199,6 @@ func mdCheckOne(ctx context.Context, config libkbfs.Config,
 func mdCheck(ctx context.Context, config libkbfs.Config, args []string) (
 	exitStatus int) {
 	flags := flag.NewFlagSet("kbfs md check", flag.ContinueOnError)
-	mdLimit := flags.Int("fetch-limit", 100,
-		"Maximum number of MD objects to fetch (per argument).")
 	verbose := flags.Bool("v", false, "Print verbose output.")
 	err := flags.Parse(args)
 	if err != nil {
@@ -243,20 +213,43 @@ func mdCheck(ctx context.Context, config libkbfs.Config, args []string) (
 	}
 
 	for _, input := range inputs {
-		// The returned RMD is already verified, so we don't
-		// have to do anything else.
-		irmd, err := mdParseAndGet(ctx, config, input)
+		tlfStr, branchStr, startStr, stopStr, err := mdSplitInput(input)
 		if err != nil {
 			printError("md check", err)
 			return 1
 		}
 
-		if irmd == (libkbfs.ImmutableRootMetadata{}) {
+		tlfID, branchID, start, stop, err :=
+			mdParseInput(ctx, config, tlfStr, branchStr, startStr, stopStr)
+		if err != nil {
+			printError("md check", err)
+			return 1
+		}
+
+		min := start
+		max := stop
+		if start > stop {
+			min = stop
+			max = start
+		}
+
+		// The returned RMDs are already verified, so we don't
+		// have to do anything else.
+		//
+		// TODO: Chunk the range between start and stop.
+		irmds, err := mdGet(ctx, config, tlfID, branchID, min, max)
+		if err != nil {
+			printError("md check", err)
+			return 1
+		}
+
+		if len(irmds) == 0 {
 			fmt.Printf("No result found for %q\n\n", input)
 			continue
 		}
 
-		err = mdCheckOne(ctx, config, input, irmd, *mdLimit, *verbose)
+		reversedIRMDs := reverseIRMDList(irmds)
+		err = mdCheckIRMDs(ctx, config, tlfStr, branchStr, reversedIRMDs, *verbose)
 		if err != nil {
 			printError("md check", err)
 			return 1

@@ -3,130 +3,118 @@ package main
 import (
 	"flag"
 	"fmt"
-	"strings"
 
-	"github.com/davecgh/go-spew/spew"
-	"github.com/keybase/kbfs/kbfscodec"
-	"github.com/keybase/kbfs/kbfscrypto"
 	"github.com/keybase/kbfs/kbfsmd"
 	"github.com/keybase/kbfs/libkbfs"
+	"github.com/keybase/kbfs/tlf"
 	"golang.org/x/net/context"
 )
 
-func mdDumpGetDeviceString(k kbfscrypto.CryptPublicKey, ui libkbfs.UserInfo) (
-	string, bool) {
-	deviceName, ok := ui.KIDNames[k.KID()]
-	if !ok {
-		return "", false
-	}
-
-	if revokedTime, ok := ui.RevokedCryptPublicKeys[k]; ok {
-		return fmt.Sprintf("%s (revoked %s) (kid:%s)",
-			deviceName, revokedTime.Unix.Time(), k), true
-	}
-
-	return fmt.Sprintf("%s (kid:%s)", deviceName, k), true
-}
-
-func mdDumpGetReplacements(ctx context.Context, codec kbfscodec.Codec,
-	service libkbfs.KeybaseService, rmd kbfsmd.RootMetadata,
-	extra kbfsmd.ExtraMetadata) (map[string]string, error) {
-	writers, readers, err := rmd.GetUserDevicePublicKeys(extra)
-	if err != nil {
-		return nil, err
-	}
-
-	replacements := make(map[string]string)
-	for _, userKeys := range []kbfsmd.UserDevicePublicKeys{writers, readers} {
-		for u, deviceKeys := range userKeys {
-			if _, ok := replacements[u.String()]; ok {
-				continue
-			}
-
-			username, _, err := service.Resolve(
-				ctx, fmt.Sprintf("uid:%s", u))
-			if err == nil {
-				replacements[u.String()] = fmt.Sprintf(
-					"%s (uid:%s)", username, u)
-			} else {
-				printError("md dump", err)
-			}
-
-			ui, err := service.LoadUserPlusKeys(ctx, u, "")
-			if err != nil {
-				continue
-			}
-
-			for k := range deviceKeys {
-				if _, ok := replacements[k.String()]; ok {
-					continue
-				}
-
-				if deviceStr, ok := mdDumpGetDeviceString(k, ui); ok {
-					replacements[k.String()] = deviceStr
-				}
-			}
-		}
-	}
-
-	return replacements, nil
-}
-
-func mdDumpReplaceAll(s string, replacements map[string]string) string {
-	for old, new := range replacements {
-		s = strings.Replace(s, old, new, -1)
-	}
-	return s
-}
-
-func mdDumpReadOnlyRMD(ctx context.Context, config libkbfs.Config,
-	rmd libkbfs.ReadOnlyRootMetadata) error {
-	c := spew.NewDefaultConfig()
-	c.Indent = "  "
-	c.DisablePointerAddresses = true
-	c.DisableCapacities = true
-	c.SortKeys = true
-
-	brmd := rmd.GetBareRootMetadata()
-	extra := rmd.Extra()
-
-	replacements, err := mdDumpGetReplacements(
-		ctx, config.Codec(), config.KeybaseService(), brmd, extra)
+func mdDumpImmutableRMD(ctx context.Context, config libkbfs.Config,
+	replacements replacementMap,
+	irmd libkbfs.ImmutableRootMetadata) error {
+	err := mdDumpFillReplacements(
+		ctx, config.Codec(), config.KeybaseService(), "md dump",
+		irmd.GetBareRootMetadata(), irmd.Extra(), replacements)
 	if err != nil {
 		printError("md dump", err)
 	}
 
-	brmdDump, err := kbfsmd.DumpRootMetadata(config.Codec(), brmd)
+	fmt.Print("Immutable metadata\n")
+	fmt.Print("------------------\n")
+
+	fmt.Printf("MD ID: %s\n", irmd.MdID())
+	fmt.Printf("Local timestamp: %s\n", irmd.LocalTimestamp())
+	fmt.Printf("Last modifying device (verifying key): %s\n",
+		mdDumpReplaceAll(irmd.LastModifyingWriterVerifyingKey().String(), replacements))
+	fmt.Print("\n")
+
+	return mdDumpReadOnlyRMDWithReplacements(
+		ctx, config.Codec(), replacements, irmd.ReadOnly())
+}
+
+func mdDumpChunk(ctx context.Context, config libkbfs.Config,
+	replacements replacementMap, tlfStr, branchStr string,
+	tlfID tlf.ID, branchID kbfsmd.BranchID,
+	start, stop kbfsmd.Revision) error {
+	min := start
+	max := stop
+	reversed := false
+	if start > stop {
+		min = stop
+		max = start
+		reversed = true
+	}
+
+	irmds, err := mdGet(ctx, config, tlfID, branchID, min, max)
 	if err != nil {
 		return err
 	}
 
-	fmt.Printf("%s\n", mdDumpReplaceAll(brmdDump, replacements))
-
-	fmt.Print("Extra metadata\n")
-	fmt.Print("--------------\n")
-	extraDump, err := kbfsmd.DumpExtraMetadata(config.Codec(), extra)
-	if err != nil {
-		return err
+	if reversed {
+		irmds = reverseIRMDList(irmds)
 	}
-	fmt.Printf("%s\n", mdDumpReplaceAll(extraDump, replacements))
 
-	fmt.Print("Private metadata\n")
-	fmt.Print("----------------\n")
-	pmdDump, err := libkbfs.DumpPrivateMetadata(config.Codec(), *rmd.Data())
-	if err != nil {
-		return err
+	fmt.Printf("%d results for %q:\n\n", len(irmds),
+		mdJoinInput(tlfStr, branchStr, start.String(), stop.String()))
+
+	for _, irmd := range irmds {
+		err = mdDumpImmutableRMD(ctx, config, replacements, irmd)
+		if err != nil {
+			return err
+		}
+		fmt.Print("\n")
 	}
-	fmt.Printf("%s", mdDumpReplaceAll(pmdDump, replacements))
 
 	return nil
 }
 
-func mdDumpImmutableRMD(ctx context.Context, config libkbfs.Config,
-	rmd libkbfs.ImmutableRootMetadata) error {
-	fmt.Printf("MD ID: %s\n", rmd.MdID())
+func mdDumpInput(ctx context.Context, config libkbfs.Config,
+	replacements replacementMap, input string) error {
+	tlfStr, branchStr, startStr, stopStr, err := mdSplitInput(input)
+	if err != nil {
+		return err
+	}
 
-	return mdDumpReadOnlyRMD(ctx, config, rmd.ReadOnly())
+	tlfID, branchID, start, stop, err :=
+		mdParseInput(ctx, config, tlfStr, branchStr, startStr, stopStr)
+	if err != nil {
+		return err
+	}
+
+	// TODO: Ideally we'd fetch MDs concurrently with dumping
+	// them, but this works well enough for now.
+	//
+	// TODO: Make maxChunkSize configurable.
+
+	const maxChunkSize = 100
+
+	if start <= stop {
+		for chunkStart := start; chunkStart <= stop; chunkStart += maxChunkSize {
+			chunkStop := chunkStart + maxChunkSize - 1
+			if chunkStop > stop {
+				chunkStop = stop
+			}
+			err = mdDumpChunk(ctx, config, replacements, tlfStr, branchStr, tlfID, branchID, chunkStart, chunkStop)
+			if err != nil {
+				return err
+			}
+		}
+	} else {
+		for chunkStart := start; chunkStart >= stop; chunkStart -= maxChunkSize {
+			chunkStop := chunkStart - maxChunkSize + 1
+			if chunkStop < stop {
+				chunkStop = stop
+			}
+
+			err = mdDumpChunk(ctx, config, replacements, tlfStr, branchStr, tlfID, branchID, chunkStart, chunkStop)
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
 }
 
 const mdDumpUsageStr = `Usage:
@@ -136,13 +124,13 @@ Each input must be in the following format:
 
   TLF
   TLF:Branch
-  TLF^Revision
-  TLF:Branch^Revision
+  TLF^RevisionRange
+  TLF:Branch^RevisionRange
 
 where TLF can be:
 
-  - a TLF ID string (32 hex digits),
-  - or a keybase TLF path (e.g., "/keybase/public/user1,user2", or
+  - a TLF ID string (32 hex digits), or
+  - a keybase TLF path (e.g., "/keybase/public/user1,user2", or
     "/keybase/private/user1,assertion2");
 
 Branch can be:
@@ -154,7 +142,12 @@ Branch can be:
     the ID of the master branch "00000000000000000000000000000000", or
   - omitted, in which case it is treated as if it were the string "device";
 
-and Revision can be:
+and RevisionRange can be in the following format:
+
+  Revision
+  Revision-Revision
+
+where Revision can be:
 
   - a hex number prefixed with "0x",
   - a decimal number with no prefix,
@@ -162,6 +155,10 @@ and Revision can be:
     branch, or
   - omitted, in which case it is treated as if it were the string "latest".
 
+If a single revision "rev" is specified, it's treated as if the range
+"rev-rev" was specified. If a range "rev1-rev2" is specified, then the
+revisions are dumped in ascending order if rev1 <= rev2, and descending
+order if rev1 > rev2.
 `
 
 func mdDump(ctx context.Context, config libkbfs.Config, args []string) (exitStatus int) {
@@ -178,27 +175,14 @@ func mdDump(ctx context.Context, config libkbfs.Config, args []string) (exitStat
 		return 1
 	}
 
+	replacements := make(replacementMap)
+
 	for _, input := range inputs {
-		irmd, err := mdParseAndGet(ctx, config, input)
+		err := mdDumpInput(ctx, config, replacements, input)
 		if err != nil {
 			printError("md dump", err)
 			return 1
 		}
-
-		if irmd == (libkbfs.ImmutableRootMetadata{}) {
-			fmt.Printf("No result found for %q\n\n", input)
-			continue
-		}
-
-		fmt.Printf("Result for %q:\n\n", input)
-
-		err = mdDumpImmutableRMD(ctx, config, irmd)
-		if err != nil {
-			printError("md dump", err)
-			return 1
-		}
-
-		fmt.Print("\n")
 	}
 
 	return 0

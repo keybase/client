@@ -183,3 +183,13 @@ type MutableRootMetadataNoImplError struct {
 func (e MutableRootMetadataNoImplError) Error() string {
 	return "Does not implement MutableRootMetadata"
 }
+
+// InvalidIDError indicates that a metadata ID string is not parseable
+// or invalid.
+type InvalidIDError struct {
+	id string
+}
+
+func (e InvalidIDError) Error() string {
+	return fmt.Sprintf("Invalid metadata ID %q", e.id)
+}

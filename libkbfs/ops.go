@@ -29,7 +29,7 @@ type op interface {
 	Refs() []BlockPointer
 	Unrefs() []BlockPointer
 	String() string
-	StringWithRefs(numRefIndents int) string
+	StringWithRefs(indent string) string
 	setWriterInfo(writerInfo)
 	getWriterInfo() writerInfo
 	setFinalPath(p path)
@@ -270,8 +270,7 @@ func (oc *OpCommon) checkUpdatesValid() error {
 	return nil
 }
 
-func (oc *OpCommon) stringWithRefs(numRefIndents int) string {
-	indent := strings.Repeat("\t", numRefIndents)
+func (oc *OpCommon) stringWithRefs(indent string) string {
 	res := ""
 	for i, update := range oc.Updates {
 		res += indent + fmt.Sprintf(
@@ -384,11 +383,10 @@ func (co *createOp) String() string {
 	return res
 }
 
-func (co *createOp) StringWithRefs(numRefIndents int) string {
+func (co *createOp) StringWithRefs(indent string) string {
 	res := co.String() + "\n"
-	indent := strings.Repeat("\t", numRefIndents)
 	res += indent + fmt.Sprintf("Dir: %v -> %v\n", co.Dir.Unref, co.Dir.Ref)
-	res += co.stringWithRefs(numRefIndents)
+	res += co.stringWithRefs(indent)
 	return res
 }
 
@@ -539,11 +537,10 @@ func (ro *rmOp) String() string {
 	return fmt.Sprintf("rm %s", ro.OldName)
 }
 
-func (ro *rmOp) StringWithRefs(numRefIndents int) string {
+func (ro *rmOp) StringWithRefs(indent string) string {
 	res := ro.String() + "\n"
-	indent := strings.Repeat("\t", numRefIndents)
 	res += indent + fmt.Sprintf("Dir: %v -> %v\n", ro.Dir.Unref, ro.Dir.Ref)
-	res += ro.stringWithRefs(numRefIndents)
+	res += ro.stringWithRefs(indent)
 	return res
 }
 
@@ -679,9 +676,8 @@ func (ro *renameOp) String() string {
 		ro.OldName, ro.NewName, ro.RenamedType)
 }
 
-func (ro *renameOp) StringWithRefs(numRefIndents int) string {
+func (ro *renameOp) StringWithRefs(indent string) string {
 	res := ro.String() + "\n"
-	indent := strings.Repeat("\t", numRefIndents)
 	res += indent + fmt.Sprintf("OldDir: %v -> %v\n",
 		ro.OldDir.Unref, ro.OldDir.Ref)
 	if ro.NewDir != (blockUpdate{}) {
@@ -691,7 +687,7 @@ func (ro *renameOp) StringWithRefs(numRefIndents int) string {
 		res += indent + fmt.Sprintf("NewDir: same as above\n")
 	}
 	res += indent + fmt.Sprintf("Renamed: %v\n", ro.Renamed)
-	res += ro.stringWithRefs(numRefIndents)
+	res += ro.stringWithRefs(indent)
 	return res
 }
 
@@ -841,11 +837,10 @@ func (so *syncOp) String() string {
 	return fmt.Sprintf("sync [%s]", strings.Join(writes, ", "))
 }
 
-func (so *syncOp) StringWithRefs(numRefIndents int) string {
+func (so *syncOp) StringWithRefs(indent string) string {
 	res := so.String() + "\n"
-	indent := strings.Repeat("\t", numRefIndents)
 	res += indent + fmt.Sprintf("File: %v -> %v\n", so.File.Unref, so.File.Ref)
-	res += so.stringWithRefs(numRefIndents)
+	res += so.stringWithRefs(indent)
 	return res
 }
 
@@ -1111,12 +1106,11 @@ func (sao *setAttrOp) String() string {
 	return fmt.Sprintf("setAttr %s (%s)", sao.Name, sao.Attr)
 }
 
-func (sao *setAttrOp) StringWithRefs(numRefIndents int) string {
+func (sao *setAttrOp) StringWithRefs(indent string) string {
 	res := sao.String() + "\n"
-	indent := strings.Repeat("\t", numRefIndents)
 	res += indent + fmt.Sprintf("Dir: %v -> %v\n", sao.Dir.Unref, sao.Dir.Ref)
 	res += indent + fmt.Sprintf("File: %v\n", sao.File)
-	res += sao.stringWithRefs(numRefIndents)
+	res += sao.stringWithRefs(indent)
 	return res
 }
 
@@ -1203,9 +1197,9 @@ func (ro *resolutionOp) String() string {
 	return "resolution"
 }
 
-func (ro *resolutionOp) StringWithRefs(numRefIndents int) string {
+func (ro *resolutionOp) StringWithRefs(indent string) string {
 	res := ro.String() + "\n"
-	res += ro.stringWithRefs(numRefIndents)
+	res += ro.stringWithRefs(indent)
 	return res
 }
 
@@ -1251,9 +1245,9 @@ func (ro *rekeyOp) String() string {
 	return "rekey"
 }
 
-func (ro *rekeyOp) StringWithRefs(numRefIndents int) string {
+func (ro *rekeyOp) StringWithRefs(indent string) string {
 	res := ro.String() + "\n"
-	res += ro.stringWithRefs(numRefIndents)
+	res += ro.stringWithRefs(indent)
 	return res
 }
 
@@ -1313,9 +1307,9 @@ func (gco *GCOp) String() string {
 }
 
 // StringWithRefs implements the op interface for GCOp.
-func (gco *GCOp) StringWithRefs(numRefIndents int) string {
+func (gco *GCOp) StringWithRefs(indent string) string {
 	res := gco.String() + "\n"
-	res += gco.stringWithRefs(numRefIndents)
+	res += gco.stringWithRefs(indent)
 	return res
 }
 

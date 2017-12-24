@@ -1,20 +1,80 @@
 package main
 
 import (
-	"errors"
 	"fmt"
 	"regexp"
 	"strconv"
 	"strings"
 
+	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/fsrpc"
 	"github.com/keybase/kbfs/kbfsmd"
 	"github.com/keybase/kbfs/libkbfs"
 	"github.com/keybase/kbfs/tlf"
+	"github.com/pkg/errors"
 	"golang.org/x/net/context"
 )
 
-var mdGetRegexp = regexp.MustCompile("^(.+?)(?::(.*?))?(?:\\^(.*?))?$")
+var mdInputRegexp = regexp.MustCompile("^(.+?)(?::(.*?))?(?:\\^(.*?)(?:-(.*?))?)?$")
+
+func mdSplitInput(input string) (
+	tlfStr, branchStr, startStr, stopStr string, err error) {
+	matches := mdInputRegexp.FindStringSubmatch(input)
+	if matches == nil {
+		return "", "", "", "", fmt.Errorf("Could not parse %q", input)
+	}
+
+	return matches[1], matches[2], matches[3], matches[4], nil
+}
+
+func mdJoinInput(tlfStr, branchStr, startStr, stopStr string) string {
+	s := tlfStr
+	if branchStr != "" {
+		s += ":" + branchStr
+	}
+	if startStr != "" || stopStr != "" {
+		s += "^" + startStr
+		if stopStr != "" {
+			s += "-" + stopStr
+		}
+	}
+	return s
+}
+
+func mdParseInput(ctx context.Context, config libkbfs.Config,
+	tlfStr, branchStr, startStr, stopStr string) (
+	tlfID tlf.ID, branchID kbfsmd.BranchID, start, stop kbfsmd.Revision, err error) {
+	tlfID, err = getTlfID(ctx, config, tlfStr)
+	if err != nil {
+		return tlf.ID{}, kbfsmd.BranchID{}, kbfsmd.RevisionUninitialized,
+			kbfsmd.RevisionUninitialized, err
+	}
+
+	branchID, err = getBranchID(ctx, config, tlfID, branchStr)
+	if err != nil {
+		return tlf.ID{}, kbfsmd.BranchID{}, kbfsmd.RevisionUninitialized,
+			kbfsmd.RevisionUninitialized, err
+	}
+
+	start, err = getRevision(ctx, config, tlfID, branchID, startStr)
+	if err != nil {
+		return tlf.ID{}, kbfsmd.BranchID{}, kbfsmd.RevisionUninitialized,
+			kbfsmd.RevisionUninitialized, err
+	}
+
+	// TODO: Chunk the range between start and stop.
+
+	stop = start
+	if stopStr != "" {
+		stop, err = getRevision(ctx, config, tlfID, branchID, stopStr)
+		if err != nil {
+			return tlf.ID{}, kbfsmd.BranchID{}, kbfsmd.RevisionUninitialized,
+				kbfsmd.RevisionUninitialized, err
+		}
+	}
+
+	return tlfID, branchID, start, stop, nil
+}
 
 func parseTLFPath(ctx context.Context, kbpki libkbfs.KBPKI,
 	mdOps libkbfs.MDOps, tlfStr string) (*libkbfs.TlfHandle, error) {
@@ -35,9 +95,16 @@ func parseTLFPath(ctx context.Context, kbpki libkbfs.KBPKI,
 func getTlfID(
 	ctx context.Context, config libkbfs.Config, tlfStr string) (
 	tlf.ID, error) {
+	_, err := kbfsmd.ParseID(tlfStr)
+	if err == nil {
+		return tlf.ID{}, errors.New("Cannot handle metadata IDs")
+	}
+
 	tlfID, err := tlf.ParseID(tlfStr)
 	if err == nil {
 		return tlfID, nil
+	} else if _, ok := errors.Cause(err).(tlf.InvalidIDError); !ok {
+		return tlf.ID{}, err
 	}
 
 	handle, err := parseTLFPath(ctx, config.KBPKI(), config.MDOps(), tlfStr)
@@ -76,8 +143,7 @@ func getRevision(ctx context.Context, config libkbfs.Config,
 		if branchID == kbfsmd.NullBranchID {
 			irmd, err := config.MDOps().GetForTLF(ctx, tlfID, nil)
 			if err != nil {
-				return kbfsmd.RevisionUninitialized,
-					err
+				return kbfsmd.RevisionUninitialized, err
 			}
 			return irmd.Revision(), nil
 		}
@@ -102,59 +168,64 @@ func getRevision(ctx context.Context, config libkbfs.Config,
 	return kbfsmd.Revision(u), nil
 }
 
-func mdGet(ctx context.Context, config libkbfs.Config, tlfID tlf.ID,
-	branchID kbfsmd.BranchID, rev kbfsmd.Revision) (
-	libkbfs.ImmutableRootMetadata, error) {
-	var irmds []libkbfs.ImmutableRootMetadata
-	var err error
-	if branchID == kbfsmd.NullBranchID {
-		irmds, err = config.MDOps().GetRange(ctx, tlfID, rev, rev, nil)
-		if err != nil {
-			return libkbfs.ImmutableRootMetadata{}, err
-		}
-	} else {
-		irmds, err = config.MDOps().GetUnmergedRange(
-			ctx, tlfID, branchID, rev, rev)
-		if err != nil {
-			return libkbfs.ImmutableRootMetadata{}, err
-		}
+func reverseIRMDList(irmds []libkbfs.ImmutableRootMetadata) []libkbfs.ImmutableRootMetadata {
+	irmdsReversed := make([]libkbfs.ImmutableRootMetadata, len(irmds))
+	for i := range irmds {
+		irmdsReversed[i] = irmds[len(irmds)-1-i]
 	}
-
-	if len(irmds) >= 1 {
-		return irmds[0], nil
-	}
-
-	return libkbfs.ImmutableRootMetadata{}, nil
+	return irmdsReversed
 }
 
-func mdParseAndGet(ctx context.Context, config libkbfs.Config, input string) (
-	libkbfs.ImmutableRootMetadata, error) {
-	matches := mdGetRegexp.FindStringSubmatch(input)
-	if matches == nil {
-		return libkbfs.ImmutableRootMetadata{},
-			fmt.Errorf("Could not parse %q", input)
+func mdGet(ctx context.Context, config libkbfs.Config, tlfID tlf.ID,
+	branchID kbfsmd.BranchID, start, stop kbfsmd.Revision) (
+	irmds []libkbfs.ImmutableRootMetadata, err error) {
+	if start > stop {
+		panic("start unexpectedly greater than stop")
 	}
 
-	tlfStr := matches[1]
-	branchStr := matches[2]
-	revisionStr := matches[3]
-
-	tlfID, err := getTlfID(ctx, config, tlfStr)
+	if branchID == kbfsmd.NullBranchID {
+		irmds, err = config.MDOps().GetRange(ctx, tlfID, start, stop, nil)
+	} else {
+		irmds, err = config.MDOps().GetUnmergedRange(
+			ctx, tlfID, branchID, start, stop)
+	}
 	if err != nil {
-		return libkbfs.ImmutableRootMetadata{}, err
+		return nil, err
 	}
 
-	branchID, err := getBranchID(ctx, config, tlfID, branchStr)
-	if err != nil {
-		return libkbfs.ImmutableRootMetadata{}, err
+	var latestIRMD libkbfs.ImmutableRootMetadata
+	var uid keybase1.UID
+	for i, irmd := range irmds {
+		if !irmd.IsReadable() {
+			if latestIRMD == (libkbfs.ImmutableRootMetadata{}) {
+				if branchID == kbfsmd.NullBranchID {
+					latestIRMD, err = config.MDOps().GetForTLF(ctx, tlfID, nil)
+				} else {
+					latestIRMD, err = config.MDOps().GetUnmergedForTLF(ctx, tlfID, branchID)
+				}
+				if err != nil {
+					return nil, err
+				}
+			}
+
+			if uid == keybase1.UID("") {
+				session, err := config.KBPKI().GetCurrentSession(ctx)
+				if err != nil {
+					return nil, err
+				}
+				uid = session.UID
+			}
+
+			irmdCopy, err := libkbfs.MakeCopyWithDecryptedPrivateData(
+				ctx, config, irmd, latestIRMD, uid)
+			if err != nil {
+				return nil, err
+			}
+			irmds[i] = irmdCopy
+		}
 	}
 
-	rev, err := getRevision(ctx, config, tlfID, branchID, revisionStr)
-	if err != nil {
-		return libkbfs.ImmutableRootMetadata{}, err
-	}
-
-	return mdGet(ctx, config, tlfID, branchID, rev)
+	return irmds, nil
 }
 
 func mdGetMergedHeadForWriter(ctx context.Context, config libkbfs.Config,

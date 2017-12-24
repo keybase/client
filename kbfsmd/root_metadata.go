@@ -383,29 +383,27 @@ func DumpConfig() *spew.ConfigState {
 // DumpRootMetadata returns a detailed dump of the given
 // RootMetadata's contents.
 func DumpRootMetadata(
-	codec kbfscodec.Codec, brmd RootMetadata) (string, error) {
-	serializedBRMD, err := codec.Encode(brmd)
+	codec kbfscodec.Codec, rmd RootMetadata) (string, error) {
+	serializedRMD, err := codec.Encode(rmd)
 	if err != nil {
 		return "", err
 	}
 
 	// Make a copy so we can zero out SerializedPrivateMetadata.
-	brmdCopy, err := brmd.DeepCopy(codec)
+	rmdCopy, err := rmd.DeepCopy(codec)
 	if err != nil {
 		return "", err
 	}
 
-	switch brmdCopy := brmdCopy.(type) {
-	case *RootMetadataV2:
-		brmdCopy.SerializedPrivateMetadata = nil
-	case *RootMetadataV3:
-		brmdCopy.WriterMetadata.SerializedPrivateMetadata = nil
-	default:
-		// Do nothing, and let SerializedPrivateMetadata get
-		// spewed, I guess.
-	}
-	s := fmt.Sprintf("MD size: %d bytes\n"+
-		"MD version: %s\n\n", len(serializedBRMD), brmd.Version())
-	s += DumpConfig().Sdump(brmdCopy)
+	rmdCopy.SetSerializedPrivateMetadata(nil)
+	s := fmt.Sprintf("MD revision: %s\n"+
+		"MD size: %d bytes\n"+
+		"Private MD size: %d bytes\n"+
+		"MD version: %s\n\n",
+		rmd.RevisionNumber(),
+		len(serializedRMD),
+		len(rmd.GetSerializedPrivateMetadata()),
+		rmd.Version())
+	s += DumpConfig().Sdump(rmdCopy)
 	return s, nil
 }

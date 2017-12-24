@@ -7,6 +7,7 @@ package libkbfs
 import (
 	"fmt"
 	"reflect"
+	"strings"
 	"time"
 
 	"github.com/keybase/client/go/logger"
@@ -43,17 +44,43 @@ type PrivateMetadata struct {
 	cachedChanges BlockChanges
 }
 
+type verboseOp struct {
+	op
+	indent string
+}
+
+func (o verboseOp) String() string {
+	return o.op.StringWithRefs(o.indent)
+}
+
 // DumpPrivateMetadata returns a detailed dump of the given
 // PrivateMetadata's contents.
 func DumpPrivateMetadata(
-	codec kbfscodec.Codec, pmd PrivateMetadata) (string, error) {
-	serializedPMD, err := codec.Encode(pmd)
+	codec kbfscodec.Codec, serializedPMDLength int, pmd PrivateMetadata) (string, error) {
+	s := fmt.Sprintf("Size: %d bytes\n", serializedPMDLength)
+
+	eq, err := kbfscodec.Equal(codec, pmd, PrivateMetadata{})
 	if err != nil {
 		return "", err
 	}
 
-	s := fmt.Sprintf("Size: %d bytes\n", len(serializedPMD))
-	s += kbfsmd.DumpConfig().Sdump(pmd)
+	if eq {
+		s += "<Undecryptable>\n"
+	} else {
+		c := kbfsmd.DumpConfig()
+		// Hardcode the indent level, which depends on the
+		// position of the Ops list.
+		indent := strings.Repeat(c.Indent, 4)
+
+		var pmdCopy PrivateMetadata
+		kbfscodec.Update(codec, &pmdCopy, pmd)
+		ops := pmdCopy.Changes.Ops
+		for i, op := range ops {
+			ops[i] = verboseOp{op, indent}
+		}
+
+		s += c.Sdump(pmdCopy)
+	}
 	return s, nil
 }
 

@@ -14,7 +14,7 @@ import (
 
 func mdResetOne(
 	ctx context.Context, config libkbfs.Config, tlfPath string,
-	checkValid, dryRun, force bool) error {
+	replacements replacementMap, checkValid, dryRun, force bool) error {
 	irmd, err := mdGetMergedHeadForWriter(ctx, config, tlfPath)
 	if err != nil {
 		return err
@@ -62,7 +62,7 @@ func mdResetOne(
 		"Will put an empty root block for tlfID=%s with blockInfo=%s and bufLen=%d\n",
 		rmdNext.TlfID(), info, readyBlockData.GetEncodedSize())
 	fmt.Print("Will put MD:\n")
-	err = mdDumpReadOnlyRMD(ctx, config, rmdNext.ReadOnly())
+	err = mdDumpReadOnlyRMD(ctx, config, "md reset", replacements, rmdNext.ReadOnly())
 	if err != nil {
 		return err
 	}
@@ -137,7 +137,9 @@ func mdReset(ctx context.Context, config libkbfs.Config, args []string) (exitSta
 		return 1
 	}
 
-	err = mdResetOne(ctx, config, inputs[0], *checkValid, *dryRun, *force)
+	replacements := make(replacementMap)
+
+	err = mdResetOne(ctx, config, inputs[0], replacements, *checkValid, *dryRun, *force)
 	if err != nil {
 		printError("md reset", err)
 		return 1
