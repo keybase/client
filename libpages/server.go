@@ -269,6 +269,8 @@ func (s *Server) allowConnectionTo(ctx context.Context, host string) error {
 
 const (
 	gracefulShutdownTimeout = 10 * time.Second
+	stagingDiskCacheName    = "./kbp-cert-cache-dev"
+	prodDiskCacheName       = "./kbp-cert-cache"
 )
 
 // ListenAndServe listens on 443 and 80 ports of all addresses, and serve
@@ -299,7 +301,11 @@ func ListenAndServe(ctx context.Context,
 	}
 
 	if config.UseDiskCertCache {
-		manager.Cache = autocert.DirCache("./kbp-cert-cache")
+		if config.UseStaging {
+			manager.Cache = autocert.DirCache(stagingDiskCacheName)
+		} else {
+			manager.Cache = autocert.DirCache(prodDiskCacheName)
+		}
 	}
 
 	if config.UseStaging {
