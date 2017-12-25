@@ -21,7 +21,7 @@ const mapStateToProps = (state: TypedState, {messageKey, prevMessageKey}: OwnPro
   }
   const author = message.author
   const isYou = Constants.getYou(state) === author
-  const isFollowing = Constants.getFollowingMap(state).has(author)
+  const isFollowing = Constants.getFollowing(state).has(author)
   const isBroken = Constants.getMetaDataMap(state).getIn([author, 'brokenTracker'], false)
 
   const {message: _prevMessage} = lookupMessageProps(state, prevMessageKey)
@@ -65,10 +65,12 @@ const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps, ownPro
   const isRevoked = !!message.senderDeviceRevokedAt
   const failureDescription = message.messageState === 'failed' ? message.failureDescription : null
 
-  const isFirstNewMessage = !!(conversationState &&
+  const isFirstNewMessage = !!(
+    conversationState &&
     message &&
     message.messageID &&
-    conversationState.get('firstNewMessageID') === message.messageID)
+    conversationState.get('firstNewMessageID') === message.messageID
+  )
 
   const skipMsgHeader = prevMessage && prevMessage.type === 'Text' && prevMessage.author === message.author
 
@@ -80,9 +82,8 @@ const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps, ownPro
     prevMessage.timestamp &&
     message.timestamp &&
     message.timestamp - prevMessage.timestamp > Constants.howLongBetweenTimestampsMs
-  const timestamp = firstMessageEver || firstVisibleMessage || oldEnough
-    ? formatTimeForMessages(message.timestamp)
-    : null
+  const timestamp =
+    firstMessageEver || firstVisibleMessage || oldEnough ? formatTimeForMessages(message.timestamp) : null
   const includeHeader = isFirstNewMessage || !skipMsgHeader || !!timestamp
 
   return {

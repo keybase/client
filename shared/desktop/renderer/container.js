@@ -7,9 +7,7 @@ import '../renderer/style.css'
 
 const Root = ({store, children}: any) => (
   <GlobalEscapeHandler>
-    <Provider store={store}>
-      {children}
-    </Provider>
+    <Provider store={store}>{children}</Provider>
   </GlobalEscapeHandler>
 )
 

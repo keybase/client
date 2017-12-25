@@ -66,13 +66,14 @@ class Invites extends Component<Props, State> {
               onChangeText={inviteEmail => this._handleChangeEmail(inviteEmail)}
               style={{marginBottom: 0}}
             />
-            {this.state.showMessageField &&
+            {this.state.showMessageField && (
               <Input
                 hintText="Message (optional)"
                 multiline={true}
                 value={this.state.inviteMessage}
                 onChangeText={inviteMessage => this.setState({inviteMessage})}
-              />}
+              />
+            )}
             <Button
               type="Primary"
               label="Generate invitation"
@@ -81,7 +82,7 @@ class Invites extends Component<Props, State> {
               style={{alignSelf: 'center', marginTop: globalMargins.medium}}
             />
           </Box>
-          {props.pendingInvites.length > 0 &&
+          {props.pendingInvites.length > 0 && (
             <Box style={{...globalStyles.flexBoxColumn, marginBottom: 16, flexShrink: 0}}>
               <SubHeading>Pending invites ({props.pendingInvites.length})</SubHeading>
               {intersperseDividers(
@@ -94,7 +95,8 @@ class Invites extends Component<Props, State> {
                   />
                 ))
               )}
-            </Box>}
+            </Box>
+          )}
           <Box style={{...globalStyles.flexBoxColumn, flexShrink: 0}}>
             <SubHeading>Accepted invites ({props.acceptedInvites.length})</SubHeading>
             {intersperseDividers(
@@ -128,9 +130,11 @@ function PendingInviteItem({
 }) {
   return (
     <Box style={styleInviteItem}>
-      {invite.email
-        ? <PendingEmailContent invite={invite} onSelectPendingInvite={onSelectPendingInvite} />
-        : <PendingURLContent invite={invite} />}
+      {invite.email ? (
+        <PendingEmailContent invite={invite} onSelectPendingInvite={onSelectPendingInvite} />
+      ) : (
+        <PendingURLContent invite={invite} />
+      )}
       <Box style={{flex: 1}} />
       <Text
         type="BodyPrimaryLink"
@@ -157,9 +161,7 @@ function PendingEmailContent({
         <Text type="BodySemibold" onClick={() => onSelectPendingInvite(invite)}>
           {invite.email}
         </Text>
-        <Text type="BodySmall">
-          Invited {moment.unix(invite.created).format('MMM D, YYYY')}
-        </Text>
+        <Text type="BodySmall">Invited {moment.unix(invite.created).format('MMM D, YYYY')}</Text>
       </Box>
     </Box>
   )
@@ -177,7 +179,9 @@ function PendingURLContent({invite}: {invite: PendingInvite}) {
           marginTop: 3,
         }}
       />
-      <Text type="Body" style={{...globalStyles.selectable, color: globalColors.blue}}>{invite.url}</Text>
+      <Text type="Body" style={{...globalStyles.selectable, color: globalColors.blue}}>
+        {invite.url}
+      </Text>
     </Box>
   )
 }
@@ -197,9 +201,7 @@ function AcceptedInviteItem({
         <Text type="BodySemibold" style={{color: nameColor}}>
           {invite.username}
         </Text>
-        <Text type="BodySmall">
-          {invite.fullname}
-        </Text>
+        <Text type="BodySmall">{invite.fullname}</Text>
       </Box>
     </Box>
   )

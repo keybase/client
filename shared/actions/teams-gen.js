@@ -3,7 +3,7 @@
 /* eslint-disable no-unused-vars,prettier/prettier */
 
 import * as I from 'immutable'
-import * as RPCTypes from '../constants/types/flow-types'
+import * as RPCTypes from '../constants/types/rpc-gen'
 import * as More from '../constants/types/more'
 import * as ChatTypes from '../constants/types/chat'
 import * as Types from '../constants/types/teams'
@@ -22,6 +22,7 @@ export const editMembership = 'teams:editMembership'
 export const editTeamDescription = 'teams:editTeamDescription'
 export const getChannels = 'teams:getChannels'
 export const getDetails = 'teams:getDetails'
+export const getTeamOperations = 'teams:getTeamOperations'
 export const getTeams = 'teams:getTeams'
 export const ignoreRequest = 'teams:ignoreRequest'
 export const inviteToTeamByEmail = 'teams:inviteToTeamByEmail'
@@ -53,6 +54,7 @@ export const createEditMembership = (payload: {|+teamname: string, +username: st
 export const createEditTeamDescription = (payload: {|+teamname: string, +description: string|}) => ({error: false, payload, type: editTeamDescription})
 export const createGetChannels = (payload: {|+teamname: string|}) => ({error: false, payload, type: getChannels})
 export const createGetDetails = (payload: {|+teamname: string|}) => ({error: false, payload, type: getDetails})
+export const createGetTeamOperations = (payload: {|+teamname: string|}) => ({error: false, payload, type: getTeamOperations})
 export const createGetTeams = () => ({error: false, payload: undefined, type: getTeams})
 export const createIgnoreRequest = (payload: {|+teamname: string, +username: string|}) => ({error: false, payload, type: ignoreRequest})
 export const createInviteToTeamByEmail = (payload: {|+teamname: string, +role: Types.TeamRoleType, +invitees: string|}) => ({error: false, payload, type: inviteToTeamByEmail})
@@ -84,6 +86,7 @@ export type EditMembershipPayload = More.ReturnType<typeof createEditMembership>
 export type EditTeamDescriptionPayload = More.ReturnType<typeof createEditTeamDescription>
 export type GetChannelsPayload = More.ReturnType<typeof createGetChannels>
 export type GetDetailsPayload = More.ReturnType<typeof createGetDetails>
+export type GetTeamOperationsPayload = More.ReturnType<typeof createGetTeamOperations>
 export type GetTeamsPayload = More.ReturnType<typeof createGetTeams>
 export type IgnoreRequestPayload = More.ReturnType<typeof createIgnoreRequest>
 export type InviteToTeamByEmailPayload = More.ReturnType<typeof createInviteToTeamByEmail>
@@ -117,6 +120,7 @@ export type Actions =
   | More.ReturnType<typeof createEditTeamDescription>
   | More.ReturnType<typeof createGetChannels>
   | More.ReturnType<typeof createGetDetails>
+  | More.ReturnType<typeof createGetTeamOperations>
   | More.ReturnType<typeof createGetTeams>
   | More.ReturnType<typeof createIgnoreRequest>
   | More.ReturnType<typeof createInviteToTeamByEmail>

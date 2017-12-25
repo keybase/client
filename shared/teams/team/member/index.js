@@ -68,15 +68,16 @@ export const TeamMember = (props: Props) => {
             size={64}
           />
           {user.type &&
-            !!roleIconMap[user.type] &&
-            <Icon
-              type={roleIconMap[user.type]}
-              style={{
-                fontSize: isMobile ? 28 : 28,
-                margin: globalMargins.tiny,
-                alignSelf: 'center',
-              }}
-            />}
+            !!roleIconMap[user.type] && (
+              <Icon
+                type={roleIconMap[user.type]}
+                style={{
+                  fontSize: isMobile ? 28 : 28,
+                  margin: globalMargins.tiny,
+                  alignSelf: 'center',
+                }}
+              />
+            )}
           <Avatar
             style={{marginLeft: globalMargins.tiny, alignSelf: 'center'}}
             isTeam={true}
@@ -95,17 +96,20 @@ export const TeamMember = (props: Props) => {
           users={[{username: user.username, following}]}
           onUsernameClicked={() => onOpenProfile()}
         />
-        <Text type="BodySmall">{user.type} in {teamname}</Text>
+        <Text type="BodySmall">
+          {user.type} in {teamname}
+        </Text>
       </Box>
       <ButtonBar direction={isMobile ? 'column' : 'row'}>
         <Button type="Primary" label="Chat" onClick={onChat} />
         {admin && <Button type="Secondary" label="Edit role" onClick={onEditMembership} />}
-        {admin &&
+        {admin && (
           <Button
             type="Danger"
             label={you && you.username === user.username ? 'Leave team' : 'Remove'}
             onClick={onRemoveMember}
-          />}
+          />
+        )}
       </ButtonBar>
     </Box>
   )

@@ -173,7 +173,8 @@ const propsDefault: TrackerProps = {
   trackerState: Constants.normal,
   userInfo: {
     avatar: 'https://keybase.io/darksim905/picture',
-    bio: 'Etsy photo booth mlkshk semiotics, 8-bit literally slow-carb keytar bushwick +1. Plaid migas etsy yuccie, locavore street art mlkshk lumbersexual. Literally microdosing pug disrupt iPhone raw denim, quinoa meggings kitsch. ',
+    bio:
+      'Etsy photo booth mlkshk semiotics, 8-bit literally slow-carb keytar bushwick +1. Plaid migas etsy yuccie, locavore street art mlkshk lumbersexual. Literally microdosing pug disrupt iPhone raw denim, quinoa meggings kitsch. ',
     followersCount: 1871,
     followingCount: 356,
     followsYou: false,

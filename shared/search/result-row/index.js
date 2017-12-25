@@ -60,7 +60,7 @@ const Middle = ({rightService, rightIcon, rightUsername, rightFollowingState}) =
             width: isMobile ? 16 : 12,
           }}
         />
-        {!!rightUsername &&
+        {!!rightUsername && (
           <Text
             type="BodySmallSemibold"
             style={{
@@ -72,36 +72,37 @@ const Middle = ({rightService, rightIcon, rightUsername, rightFollowingState}) =
             }}
           >
             {rightUsername}
-          </Text>}
+          </Text>
+        )}
       </Box>
     </Box>
   )
 }
 
 const Right = ({showTrackerButton, onShowTracker}) => {
-  return showTrackerButton
-    ? <Icon
-        type="iconfont-usercard"
-        onClick={onShowTracker}
-        style={{
-          marginLeft: globalMargins.small,
-          marginRight: isMobile ? globalMargins.xtiny : globalMargins.small,
-        }}
-      />
-    : null
+  return showTrackerButton ? (
+    <Icon
+      type="iconfont-usercard"
+      onClick={onShowTracker}
+      style={{
+        marginLeft: globalMargins.small,
+        marginRight: isMobile ? globalMargins.xtiny : globalMargins.small,
+      }}
+    />
+  ) : null
 }
 
 const RightEdge = ({showCheckmark}) => {
-  return showCheckmark
-    ? <Icon
-        type="iconfont-check"
-        style={{
-          color: globalColors.blue,
-          marginLeft: globalMargins.small,
-          marginRight: isMobile ? globalMargins.xtiny : globalMargins.small,
-        }}
-      />
-    : null
+  return showCheckmark ? (
+    <Icon
+      type="iconfont-check"
+      style={{
+        color: globalColors.blue,
+        marginLeft: globalMargins.small,
+        marginRight: isMobile ? globalMargins.xtiny : globalMargins.small,
+      }}
+    />
+  ) : null
 }
 
 const Line = () => (

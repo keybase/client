@@ -1,5 +1,5 @@
 // @flow
-import * as RPCTypes from './flow-types'
+import * as RPCTypes from './rpc-gen'
 import type {Exact} from './more'
 type ListState = any
 // TODO this is super messy and there some entangled flow error. let's revisit this soon

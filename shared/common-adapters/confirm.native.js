@@ -11,9 +11,7 @@ class Confirm extends Component<Props> {
     return (
       <StandardScreen theme={mapTheme[this.props.theme]} onCancel={this.props.onCancel}>
         <Box style={styleBodyContainer}>
-          <Box style={styleIconContainer}>
-            {this.props.header}
-          </Box>
+          <Box style={styleIconContainer}>{this.props.header}</Box>
           {this.props.body}
           <Box
             style={{

@@ -55,22 +55,20 @@ const Row = ({name, membercount, isNew, newRequests, onOpenFolder, onManageChat,
       <ClickableBox style={{...globalStyles.flexBoxRow, alignItems: 'center', flex: 1}} onClick={onViewTeam}>
         <Avatar size={isMobile ? 48 : 32} teamname={name} isTeam={true} />
         <Box style={{...globalStyles.flexBoxColumn, flex: 1, marginLeft: globalMargins.small}}>
-          <Text type="BodySemibold">
-            {name}
-          </Text>
+          <Text type="BodySemibold">{name}</Text>
           <Box style={{...globalStyles.flexBoxRow, alignItems: 'center'}}>
-            {!!newRequests &&
-              <Badge badgeNumber={newRequests} badgeStyle={{marginLeft: 0, marginRight: 3, marginTop: 1}} />}
+            {!!newRequests && (
+              <Badge badgeNumber={newRequests} badgeStyle={{marginLeft: 0, marginRight: 3, marginTop: 1}} />
+            )}
             {isNew && <Meta title="NEW" style={newCharmStyle} />}
-            <Text type="BodySmall">
-              {membercount + ' member' + (membercount !== 1 ? 's' : '')}
-            </Text>
+            <Text type="BodySmall">{membercount + ' member' + (membercount !== 1 ? 's' : '')}</Text>
           </Box>
         </Box>
       </ClickableBox>
       {!isMobile && <Icon type="iconfont-folder-private" onClick={onOpenFolder} />}
-      {!isMobile &&
-        <Icon type="iconfont-chat" style={{marginLeft: globalMargins.small}} onClick={onManageChat} />}
+      {!isMobile && (
+        <Icon type="iconfont-chat" style={{marginLeft: globalMargins.small}} onClick={onManageChat} />
+      )}
     </Box>
     {!isMobile && <Divider style={{marginLeft: 48}} />}
   </Box>

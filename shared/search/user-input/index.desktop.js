@@ -91,7 +91,7 @@ class UserInput extends Component<Props, State> {
       !trim(this.props.usernameText) &&
       this.props.onEnterEmptyText
     ) {
-      this.props.onEnterEmptyText()
+      this.props.selectedSearchId ? this.props.onAddSelectedUser() : this.props.onEnterEmptyText()
     } else if (ev.key === 'Enter' || ev.key === 'Tab' || ev.key === ',') {
       this.props.onAddSelectedUser()
       ev.preventDefault()
@@ -121,9 +121,8 @@ class UserInput extends Component<Props, State> {
     const {isFocused} = this.state
 
     const showAddButton = !!userItems.length && !usernameText.length && onClickAddButton
-    const inputLeftPadding = !!userItems.length && (!!usernameText.length || isFocused)
-      ? globalMargins.xtiny
-      : 0
+    const inputLeftPadding =
+      !!userItems.length && (!!usernameText.length || isFocused) ? globalMargins.xtiny : 0
     return (
       <Box
         style={{
@@ -154,25 +153,27 @@ class UserInput extends Component<Props, State> {
               onBlur={this._onBlur}
             />
             {showAddButton &&
-              onClickAddButton &&
-              <Icon
-                onClick={onClickAddButton}
-                type="iconfont-add"
-                style={{
-                  fontSize: 12,
-                  color: globalColors.blue,
-                  marginLeft: globalMargins.xtiny,
-                  cursor: 'pointer',
-                }}
-              />}
+              onClickAddButton && (
+                <Icon
+                  onClick={onClickAddButton}
+                  type="iconfont-add"
+                  style={{
+                    fontSize: 12,
+                    color: globalColors.blue,
+                    marginLeft: globalMargins.xtiny,
+                    cursor: 'pointer',
+                  }}
+                />
+              )}
           </Box>
         </Box>
-        {onClearSearch &&
+        {onClearSearch && (
           <Icon
             type="iconfont-remove"
             style={{height: 16, width: 16, marginRight: globalMargins.tiny}}
             onClick={onClearSearch}
-          />}
+          />
+        )}
       </Box>
     )
   }

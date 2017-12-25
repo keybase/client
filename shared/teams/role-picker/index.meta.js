@@ -6,7 +6,8 @@ export const roleDescMap = {
   null: '',
   reader: 'Can write in chats but read only in folders.',
   writer: 'Can create channels, and write and read in chats and folders.',
-  admin: 'Can manage team member roles, create subteams and channels, and write and read in chats and folders.',
+  admin:
+    'Can manage team member roles, create subteams and channels, and write and read in chats and folders.',
   owner: 'Gets all the admin rights + can delete team. (A team can have multiple owners.)',
 }
 

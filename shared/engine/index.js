@@ -3,7 +3,7 @@
 import logger from '../logger'
 import * as Saga from '../util/saga'
 import Session from './session'
-import {constantsStatusCode} from '../constants/types/flow-types'
+import {constantsStatusCode} from '../constants/types/rpc-gen'
 import {call, race} from 'redux-saga/effects'
 import {convertToError} from '../util/errors'
 import {delay} from 'redux-saga'
@@ -17,7 +17,7 @@ import type {ChannelMap} from '../constants/types/saga'
 import type {Action} from '../constants/types/flux'
 import type {CancelHandlerType} from './session'
 import type {createClientType} from './index.platform'
-import type {IncomingCallMapType, LogUiLogRpcParam} from '../constants/types/flow-types'
+import type {IncomingCallMapType, LogUiLogRpcParam} from '../constants/types/rpc-gen'
 import type {SessionID, SessionIDKey, WaitingHandlerType, ResponseType, MethodKey} from './types'
 import type {TypedState} from '../constants/reducer'
 
@@ -207,14 +207,18 @@ class Engine {
 
     if (__DEV__) {
       localLog(
-        `${prefix} incoming rpc: ${sessionID} ${method} ${seqid} ${JSON.stringify(param)}${response ? ': Sending back error' : ''}`
+        `${prefix} incoming rpc: ${sessionID} ${method} ${seqid} ${JSON.stringify(param)}${
+          response ? ': Sending back error' : ''
+        }`
       )
     }
     logger.warn(`${prefix} incoming rpc: ${sessionID} ${method}`)
 
     if (__DEV__ && this._failOnError) {
       throw new Error(
-        `${prefix} incoming rpc: ${sessionID} ${method} ${JSON.stringify(param)}${response ? '. has response' : ''}`
+        `${prefix} incoming rpc: ${sessionID} ${method} ${JSON.stringify(param)}${
+          response ? '. has response' : ''
+        }`
       )
     }
 

@@ -35,7 +35,7 @@ func (e *ProfileEdit) Run(ctx *Context) (err error) {
 	if err != nil {
 		return err
 	}
-	u := e.G().LoginState().GetUID()
+	u := e.G().ActiveDevice.UID()
 	e.G().Log.CDebugf(ctx.NetContext, "Clearing Card cache for %s", u)
 	e.G().CardCache.Delete(u)
 	return nil

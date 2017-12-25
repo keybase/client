@@ -2,7 +2,7 @@
 import * as I from 'immutable'
 import {type ConversationIDKey} from './chat'
 import {type Tab} from '../tabs'
-import {type Config, type DeviceID, type ExtendedStatus} from './flow-types'
+import {type Config, type DeviceID, type ExtendedStatus} from './rpc-gen'
 
 export type InitialState = {|
   conversation?: ConversationIDKey,

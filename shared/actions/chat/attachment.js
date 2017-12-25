@@ -1,12 +1,12 @@
 // @flow
 import logger from '../../logger'
-import * as RPCChatTypes from '../../constants/types/flow-types-chat'
+import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
 import * as Types from '../../constants/types/chat'
 import * as Constants from '../../constants/chat'
 import * as ChatGen from '../chat-gen'
 import * as I from 'immutable'
 import * as EngineRpc from '../../constants/engine'
-import * as RPCTypes from '../../constants/types/flow-types'
+import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as Saga from '../../util/saga'
 import * as EntityCreators from '../entities'
 import * as Shared from './shared'
@@ -167,8 +167,20 @@ function* onLoadAttachment({
     }
   }
 
+  function _tmpFileName(
+    isPreview: boolean,
+    conversationID: Types.ConversationIDKey,
+    messageID: Types.MessageID
+  ) {
+    if (!messageID) {
+      throw new Error('tmpFileName called without messageID!')
+    }
+
+    return `kbchat-${conversationID}-${messageID}.${isPreview ? 'preview' : 'download'}`
+  }
+
   const {conversationIDKey, messageID} = Constants.splitMessageIDKey(messageKey)
-  const destPath = tmpFile(Shared.tmpFileName(loadPreview, conversationIDKey, messageID))
+  const destPath = tmpFile(_tmpFileName(loadPreview, conversationIDKey, messageID))
   const fileExists = yield Saga.call(exists, destPath)
   if (fileExists) {
     try {

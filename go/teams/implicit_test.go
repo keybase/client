@@ -305,3 +305,23 @@ func TestImplicitTeamRotate(t *testing.T) {
 		}
 	}
 }
+
+func TestLoggedOutPublicTeamLoad(t *testing.T) {
+	tc := SetupTest(t, "team", 1)
+	defer tc.Cleanup()
+	u, err := kbtest.CreateAndSignupFakeUser("t", tc.G)
+	require.NoError(t, err)
+	createdTeamID, _, impTeamName, _, err := LookupOrCreateImplicitTeam(context.TODO(), tc.G, u.Username, true)
+	require.NoError(t, err)
+	require.Equal(t, true, impTeamName.IsPublic)
+	err = tc.G.Logout()
+	require.NoError(t, err)
+
+	for i := 0; i < 2; i++ {
+		_, err = Load(context.TODO(), tc.G, keybase1.LoadTeamArg{
+			ID:     createdTeamID,
+			Public: true,
+		})
+		require.NoError(t, err)
+	}
+}

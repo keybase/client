@@ -63,11 +63,7 @@ class ButtonBar extends React.PureComponent<Props> {
       ...this.props.style,
     }
 
-    return (
-      <Box style={style}>
-        {childrenWithSpacing}
-      </Box>
-    )
+    return <Box style={style}>{childrenWithSpacing}</Box>
   }
 }
 

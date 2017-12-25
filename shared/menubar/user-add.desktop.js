@@ -96,15 +96,17 @@ class UserAdd extends Component<Props, State> {
   }
 
   render() {
-    return this.state.showingInput
-      ? <UserInput
-          onSubmit={() => this._submit()}
-          text={this.state.text}
-          onCancel={() => this._showInput(false)}
-          onUpdateText={text => this.setState({text})}
-          {...this.props}
-        />
-      : <UserButton isPublic={this.props.isPublic} onClick={() => this._showInput(true)} {...this.props} />
+    return this.state.showingInput ? (
+      <UserInput
+        onSubmit={() => this._submit()}
+        text={this.state.text}
+        onCancel={() => this._showInput(false)}
+        onUpdateText={text => this.setState({text})}
+        {...this.props}
+      />
+    ) : (
+      <UserButton isPublic={this.props.isPublic} onClick={() => this._showInput(true)} {...this.props} />
+    )
   }
 }
 

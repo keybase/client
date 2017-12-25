@@ -3,11 +3,11 @@
 /* eslint-disable no-unused-vars,prettier/prettier */
 
 import * as I from 'immutable'
-import * as RPCTypes from '../constants/types/flow-types'
+import * as RPCTypes from '../constants/types/rpc-gen'
 import * as More from '../constants/types/more'
 import * as TeamTypes from '../constants/types/teams'
 import * as Types from '../constants/types/chat'
-import * as RPCChatTypes from '../constants/types/flow-types-chat'
+import * as RPCChatTypes from '../constants/types/rpc-chat-gen'
 import HiddenString from '../util/hidden-string'
 import {type DeviceType} from '../constants/types/devices'
 import {type Path} from '../route-tree'
@@ -60,6 +60,8 @@ export const previewChannel = 'chat:previewChannel'
 export const removeOutboxMessage = 'chat:removeOutboxMessage'
 export const removeTempPendingConversations = 'chat:removeTempPendingConversations'
 export const replaceEntity = 'chat:replaceEntity'
+export const resetChatWithoutThem = 'chat:resetChatWithoutThem'
+export const resetLetThemIn = 'chat:resetLetThemIn'
 export const retryAttachment = 'chat:retryAttachment'
 export const retryMessage = 'chat:retryMessage'
 export const saveAttachment = 'chat:saveAttachment'
@@ -91,6 +93,7 @@ export const updateInboxRekeyOthers = 'chat:updateInboxRekeyOthers'
 export const updateInboxRekeySelf = 'chat:updateInboxRekeySelf'
 export const updateLatestMessage = 'chat:updateLatestMessage'
 export const updateMetadata = 'chat:updateMetadata'
+export const updateResetParticipants = 'chat:updateResetParticipants'
 export const updateSnippet = 'chat:updateSnippet'
 export const updateSupersededByState = 'chat:updateSupersededByState'
 export const updateSupersedesState = 'chat:updateSupersedesState'
@@ -148,6 +151,8 @@ export const createPreviewChannel = (payload: {|+conversationIDKey: Types.Conver
 export const createRemoveOutboxMessage = (payload: {|+conversationIDKey: Types.ConversationIDKey, +outboxID: Types.OutboxIDKey|}) => ({error: false, payload, type: removeOutboxMessage})
 export const createRemoveTempPendingConversations = () => ({error: false, payload: undefined, type: removeTempPendingConversations})
 export const createReplaceEntity = (payload: {|+keyPath: Array<string>, +entities: I.Map<any, any> | I.List<any>|}) => ({error: false, payload, type: replaceEntity})
+export const createResetChatWithoutThem = (payload: {|+conversationIDKey: Types.ConversationIDKey, +username: string|}) => ({error: false, payload, type: resetChatWithoutThem})
+export const createResetLetThemIn = (payload: {|+conversationIDKey: Types.ConversationIDKey, +username: string|}) => ({error: false, payload, type: resetLetThemIn})
 export const createRetryAttachment = (payload: {|+message: Types.AttachmentMessage|}) => ({error: false, payload, type: retryAttachment})
 export const createRetryMessage = (payload: {|+conversationIDKey: Types.ConversationIDKey, +outboxIDKey: string|}) => ({error: false, payload, type: retryMessage})
 export const createSaveAttachment = (payload: {|+messageKey: Types.MessageKey|}) => ({error: false, payload, type: saveAttachment})
@@ -179,6 +184,7 @@ export const createUpdateInboxRekeyOthers = (payload: {|+conversationIDKey: Type
 export const createUpdateInboxRekeySelf = (payload: {|+conversationIDKey: Types.ConversationIDKey|}) => ({error: false, payload, type: updateInboxRekeySelf})
 export const createUpdateLatestMessage = (payload: {|+conversationIDKey: Types.ConversationIDKey|}) => ({error: false, payload, type: updateLatestMessage})
 export const createUpdateMetadata = (payload: {|+users: Array<string>|}) => ({error: false, payload, type: updateMetadata})
+export const createUpdateResetParticipants = (payload: {|+conversationIDKey: Types.ConversationIDKey, +participants: Array<string>|}) => ({error: false, payload, type: updateResetParticipants})
 export const createUpdateSnippet = (payload: {|+conversationIDKey: Types.ConversationIDKey, +snippet: HiddenString|}) => ({error: false, payload, type: updateSnippet})
 export const createUpdateSupersededByState = (payload: {|+supersededByState: Types.SupersededByState|}) => ({error: false, payload, type: updateSupersededByState})
 export const createUpdateSupersedesState = (payload: {|+supersedesState: Types.SupersedesState|}) => ({error: false, payload, type: updateSupersedesState})
@@ -236,6 +242,8 @@ export type PreviewChannelPayload = More.ReturnType<typeof createPreviewChannel>
 export type RemoveOutboxMessagePayload = More.ReturnType<typeof createRemoveOutboxMessage>
 export type RemoveTempPendingConversationsPayload = More.ReturnType<typeof createRemoveTempPendingConversations>
 export type ReplaceEntityPayload = More.ReturnType<typeof createReplaceEntity>
+export type ResetChatWithoutThemPayload = More.ReturnType<typeof createResetChatWithoutThem>
+export type ResetLetThemInPayload = More.ReturnType<typeof createResetLetThemIn>
 export type RetryAttachmentPayload = More.ReturnType<typeof createRetryAttachment>
 export type RetryMessagePayload = More.ReturnType<typeof createRetryMessage>
 export type SaveAttachmentNativePayload = More.ReturnType<typeof createSaveAttachmentNative>
@@ -267,6 +275,7 @@ export type UpdateInboxRekeyOthersPayload = More.ReturnType<typeof createUpdateI
 export type UpdateInboxRekeySelfPayload = More.ReturnType<typeof createUpdateInboxRekeySelf>
 export type UpdateLatestMessagePayload = More.ReturnType<typeof createUpdateLatestMessage>
 export type UpdateMetadataPayload = More.ReturnType<typeof createUpdateMetadata>
+export type UpdateResetParticipantsPayload = More.ReturnType<typeof createUpdateResetParticipants>
 export type UpdateSnippetPayload = More.ReturnType<typeof createUpdateSnippet>
 export type UpdateSupersededByStatePayload = More.ReturnType<typeof createUpdateSupersededByState>
 export type UpdateSupersedesStatePayload = More.ReturnType<typeof createUpdateSupersedesState>
@@ -326,6 +335,8 @@ export type Actions =
   | More.ReturnType<typeof createRemoveOutboxMessage>
   | More.ReturnType<typeof createRemoveTempPendingConversations>
   | More.ReturnType<typeof createReplaceEntity>
+  | More.ReturnType<typeof createResetChatWithoutThem>
+  | More.ReturnType<typeof createResetLetThemIn>
   | More.ReturnType<typeof createRetryAttachment>
   | More.ReturnType<typeof createRetryMessage>
   | More.ReturnType<typeof createSaveAttachment>
@@ -357,6 +368,7 @@ export type Actions =
   | More.ReturnType<typeof createUpdateInboxRekeySelf>
   | More.ReturnType<typeof createUpdateLatestMessage>
   | More.ReturnType<typeof createUpdateMetadata>
+  | More.ReturnType<typeof createUpdateResetParticipants>
   | More.ReturnType<typeof createUpdateSnippet>
   | More.ReturnType<typeof createUpdateSupersededByState>
   | More.ReturnType<typeof createUpdateSupersedesState>

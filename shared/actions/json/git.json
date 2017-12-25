@@ -1,6 +1,6 @@
 {
   "prelude": [
-    "import * as RPCTypesGregor from '../constants/types/flow-types-gregor'"
+    "import * as RPCTypesGregor from '../constants/types/rpc-gregor-gen'"
   ],
   "actions": {
     "loadGit": {},

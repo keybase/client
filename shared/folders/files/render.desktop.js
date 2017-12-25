@@ -46,8 +46,12 @@ const ParticipantUnlock = ({waitingForParticipantUnlock, isPrivate, backgroundMo
               icon={<Avatar size={40} username={p.name} />}
               body={
                 <Box style={globalStyles.flexBoxColumn}>
-                  <Text type="Body" backgroundMode={backgroundMode}>{p.name}</Text>
-                  <Text type="BodySmall" backgroundMode={backgroundMode}>{p.devices}</Text>
+                  <Text type="Body" backgroundMode={backgroundMode}>
+                    {p.name}
+                  </Text>
+                  <Text type="BodySmall" backgroundMode={backgroundMode}>
+                    {p.devices}
+                  </Text>
                 </Box>
               }
             />
@@ -86,21 +90,28 @@ const YouCanUnlock = ({youCanUnlock, isPrivate, backgroundMode, onClickPaperkey,
               key={device.name}
               type="Large"
               action={
-                device.type === 'backup'
-                  ? <Button
-                      label="Enter paper key"
-                      onClick={() => onClickPaperkey(device)}
-                      type="Secondary"
-                      backgroundMode={backgroundMode}
-                    />
-                  : <Box />
+                device.type === 'backup' ? (
+                  <Button
+                    label="Enter paper key"
+                    onClick={() => onClickPaperkey(device)}
+                    type="Secondary"
+                    backgroundMode={backgroundMode}
+                  />
+                ) : (
+                  <Box />
+                )
               }
               icon={<Icon type={deviceIcon(isPrivate, device.type)} />}
               body={
                 <Box style={globalStyles.flexBoxColumn}>
-                  <Text type="Body" backgroundMode={backgroundMode}>{device.name}</Text>
-                  {device.type !== 'backup' &&
-                    <Text type="BodySmall" backgroundMode={backgroundMode}>Open the Keybase app</Text>}
+                  <Text type="Body" backgroundMode={backgroundMode}>
+                    {device.name}
+                  </Text>
+                  {device.type !== 'backup' && (
+                    <Text type="BodySmall" backgroundMode={backgroundMode}>
+                      Open the Keybase app
+                    </Text>
+                  )}
                 </Box>
               }
             />
@@ -151,30 +162,33 @@ class FilesRender extends Component<Props> {
           }}
         />
         {isPrivate &&
-          !hasReadOnlyUsers &&
-          <Button
-            key="chat"
-            type="Secondary"
-            onClick={this.props.openConversationFromFolder}
-            label="Open in chat"
-            style={{marginBottom: globalMargins.small, marginRight: 0}}
-          />}
+          !hasReadOnlyUsers && (
+            <Button
+              key="chat"
+              type="Secondary"
+              onClick={this.props.openConversationFromFolder}
+              label="Open in chat"
+              style={{marginBottom: globalMargins.small, marginRight: 0}}
+            />
+          )}
 
         {ignored
-          ? allowIgnore &&
+          ? allowIgnore && (
               <Button
                 type="Secondary"
                 onClick={this.props.unIgnoreCurrentFolder}
                 label="Unignore folder"
                 style={{marginRight: 0}}
               />
-          : allowIgnore &&
+            )
+          : allowIgnore && (
               <Button
                 type="Secondary"
                 onClick={this.props.ignoreCurrentFolder}
                 label="Ignore folder"
                 style={{marginRight: 0}}
-              />}
+              />
+            )}
       </Box>
     )
   }
@@ -195,7 +209,7 @@ class FilesRender extends Component<Props> {
       >
         <Box style={{...globalStyles.flexBoxRow, ...styleHeaderThemed[this.props.theme], height: 48}}>
           <BackButton onClick={this.props.onBack} style={{marginLeft: 16}} />
-          {this.props.recentFilesEnabled &&
+          {this.props.recentFilesEnabled && (
             <Icon
               style={{
                 ...styleMenu,
@@ -207,7 +221,8 @@ class FilesRender extends Component<Props> {
               }}
               type="iconfont-hamburger"
               onClick={this.props.onTogglePopupMenu}
-            />}
+            />
+          )}
         </Box>
         <Box
           style={{
@@ -231,26 +246,29 @@ class FilesRender extends Component<Props> {
                   <Avatar username={u.username} size={32} borderColor={globalColors.white} />
                 </Box>
               ))}
-            {this.props.isTeam &&
+            {this.props.isTeam && (
               <Avatar
                 teamname={this.props.users.length ? this.props.users[0].username : ''}
                 isTeam={true}
                 size={64}
-              />}
+              />
+            )}
           </Box>
           <Box style={styleTLFNameContainer}>
             <Text type="BodySemibold" style={tlfTextStyle}>
-              {!this.props.isTeam && (isPrivate ? 'private/' : 'public/')}{this.props.isTeam && 'team/'}
+              {!this.props.isTeam && (isPrivate ? 'private/' : 'public/')}
+              {this.props.isTeam && 'team/'}
             </Text>
             <Usernames users={this.props.users} type="Header" style={tlfTextStyle} />
           </Box>
         </Box>
-        {this.props.visiblePopupMenu &&
+        {this.props.visiblePopupMenu && (
           <PopupMenu
             style={{marginLeft: 'auto', marginRight: 8, marginTop: 36, width: 320}}
             items={this.props.popupMenuItems}
             onHidden={this.props.onTogglePopupMenu}
-          />}
+          />
+        )}
         {this._renderContents(
           this.props.hasReadOnlyUsers,
           isPrivate,

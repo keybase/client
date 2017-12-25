@@ -41,7 +41,7 @@ const EditChannelBare = (props: Props & TextState) => (
         value={props.newChannelName}
       />
 
-      {props.deleteRenameDisabled &&
+      {props.deleteRenameDisabled && (
         <Text
           type="BodySmall"
           style={{
@@ -53,7 +53,8 @@ const EditChannelBare = (props: Props & TextState) => (
           }}
         >
           #general can’t be renamed or deleted.
-        </Text>}
+        </Text>
+      )}
 
       <Input
         onChangeText={props.onChangeTopic}
@@ -63,12 +64,13 @@ const EditChannelBare = (props: Props & TextState) => (
     </Box>
     <Box style={_bottomRowStyle}>
       {!isMobile &&
-        props.showDelete &&
-        <DeleteChannel
-          channelName={props.channelName}
-          onConfirmedDelete={props.onConfirmedDelete}
-          disabled={props.deleteRenameDisabled}
-        />}
+        props.showDelete && (
+          <DeleteChannel
+            channelName={props.channelName}
+            onConfirmedDelete={props.onConfirmedDelete}
+            disabled={props.deleteRenameDisabled}
+          />
+        )}
       <ButtonBar>
         <Button type="Secondary" label="Cancel" onClick={props.onCancel} />
         <Button

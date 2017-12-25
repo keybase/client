@@ -73,19 +73,23 @@ export function parseMarkdown(
   }
 }
 
-export class EmojiIfExists
-  extends PureComponent<EmojiProps & {style?: Object, allowFontScaling?: boolean}, void> {
+export class EmojiIfExists extends PureComponent<
+  EmojiProps & {style?: Object, allowFontScaling?: boolean},
+  void
+> {
   render() {
     const emojiNameLower = this.props.emojiName.toLowerCase()
     const exists = !!emojiIndexByName[emojiNameLower]
-    return exists
-      ? <Emoji
-          emojiName={emojiNameLower}
-          size={this.props.size}
-          allowFontScaling={this.props.allowFontScaling}
-        />
-      : <Text type="Body" style={this.props.style} allowFontScaling={this.props.allowFontScaling}>
-          {this.props.emojiName}
-        </Text>
+    return exists ? (
+      <Emoji
+        emojiName={emojiNameLower}
+        size={this.props.size}
+        allowFontScaling={this.props.allowFontScaling}
+      />
+    ) : (
+      <Text type="Body" style={this.props.style} allowFontScaling={this.props.allowFontScaling}>
+        {this.props.emojiName}
+      </Text>
+    )
   }
 }

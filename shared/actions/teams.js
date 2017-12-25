@@ -9,8 +9,8 @@ import * as Constants from '../constants/teams'
 import * as ChatConstants from '../constants/chat'
 import * as ChatTypes from '../constants/types/chat'
 import * as SearchConstants from '../constants/search'
-import * as RPCChatTypes from '../constants/types/flow-types-chat'
-import * as RPCTypes from '../constants/types/flow-types'
+import * as RPCChatTypes from '../constants/types/rpc-chat-gen'
+import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Saga from '../util/saga'
 import * as RouteTypes from '../constants/types/route-tree'
 import * as RouteConstants from '../constants/route-tree'
@@ -107,11 +107,14 @@ const _inviteByEmail = function*(action: TeamsGen.InviteToTeamByEmailPayload) {
     replaceEntity(['teams', 'teamNameToLoadingInvites'], I.Map([[teamname, I.Map([[invitees, true]])]]))
   )
   try {
-    yield Saga.call(RPCTypes.teamsTeamAddEmailsBulkRpcPromise, {
+    const res: RPCTypes.BulkRes = yield Saga.call(RPCTypes.teamsTeamAddEmailsBulkRpcPromise, {
       name: teamname,
       emails: invitees,
       role: role ? RPCTypes.teamsTeamRole[role] : RPCTypes.teamsTeamRole.none,
     })
+    if (res.malformed && res.malformed.length > 0) {
+      throw new Error(`Unable to parse email addresses: ${res.malformed.join('; ')}`)
+    }
   } finally {
     // TODO handle error, but for now make sure loading is unset
     yield Saga.put((dispatch: Dispatch) => dispatch(TeamsGen.createGetDetails({teamname}))) // getDetails will unset loading
@@ -290,6 +293,7 @@ const _getDetails = function*(action: TeamsGen.GetDetailsPayload): Saga.SagaGene
   const waitingKey = {key: `getDetails:${teamname}`}
   // TODO completely replace teamNameToLoading with createIncrementWaiting?
   yield Saga.put(createIncrementWaiting(waitingKey))
+  yield Saga.put(TeamsGen.createGetTeamOperations({teamname}))
   yield Saga.put(replaceEntity(['teams', 'teamNameToLoading'], I.Map([[teamname, true]])))
   try {
     const details: RPCTypes.TeamDetails = yield Saga.call(RPCTypes.teamsTeamGetRpcPromise, {
@@ -302,11 +306,10 @@ const _getDetails = function*(action: TeamsGen.GetDetailsPayload): Saga.SagaGene
       details.settings.joinAs = RPCTypes.teamsTeamRole.reader
     }
 
-    const implicitAdminDetails: Array<
-      RPCTypes.TeamMemberDetails
-    > = (yield Saga.call(RPCTypes.teamsTeamImplicitAdminsRpcPromise, {
-      teamName: teamname,
-    })) || []
+    const implicitAdminDetails: Array<RPCTypes.TeamMemberDetails> =
+      (yield Saga.call(RPCTypes.teamsTeamImplicitAdminsRpcPromise, {
+        teamName: teamname,
+      })) || []
     const implicitAdminUsernames = I.Set(implicitAdminDetails.map(x => x.username))
 
     // Get requests to join
@@ -349,9 +352,8 @@ const _getDetails = function*(action: TeamsGen.GetDetailsPayload): Saga.SagaGene
         email: invite.type.c === RPCTypes.teamsTeamInviteCategory.email ? invite.name : '',
         name: invite.type.c === RPCTypes.teamsTeamInviteCategory.seitan ? invite.name : '',
         role: Constants.teamRoleByEnum[invite.role],
-        username: invite.type.c === RPCTypes.teamsTeamInviteCategory.sbs
-          ? `${invite.name}@${invite.type.sbs}`
-          : '',
+        username:
+          invite.type.c === RPCTypes.teamsTeamInviteCategory.sbs ? `${invite.name}@${invite.type.sbs}` : '',
         id: invite.id,
       })
     )
@@ -396,6 +398,22 @@ const _getDetails = function*(action: TeamsGen.GetDetailsPayload): Saga.SagaGene
   }
 }
 
+const _getTeamOperations = function*(
+  action: TeamsGen.GetTeamOperationsPayload
+): Saga.SagaGenerator<any, any> {
+  const teamname = action.payload.teamname
+
+  yield Saga.put(replaceEntity(['teams', 'teamNameToLoading'], I.Map([[teamname, true]])))
+  try {
+    const teamOperation = yield Saga.call(RPCTypes.teamsCanUserPerformRpcPromise, {
+      name: teamname,
+    })
+    yield Saga.put(replaceEntity(['teams', 'teamNameToCanPerform'], I.Map({[teamname]: teamOperation})))
+  } finally {
+    yield Saga.put(replaceEntity(['teams', 'teamNameToLoading'], I.Map([[teamname, false]])))
+  }
+}
+
 function _getChannels(action: TeamsGen.GetChannelsPayload) {
   const teamname = action.payload.teamname
   const waitingKey = {key: `getChannels:${teamname}`}
@@ -411,9 +429,11 @@ function _getChannels(action: TeamsGen.GetChannelsPayload) {
   ])
 }
 
-function _afterGetChannels(
-  [results, teamname, waitingKey]: [RPCChatTypes.GetTLFConversationsLocalRes, string, {|key: string|}]
-) {
+function _afterGetChannels([results, teamname, waitingKey]: [
+  RPCChatTypes.GetTLFConversationsLocalRes,
+  string,
+  {|key: string|},
+]) {
   const convIDs = []
   const convIDToChannelInfo = {}
 
@@ -469,6 +489,12 @@ const _getTeams = function*(action: TeamsGen.GetTeamsPayload): Saga.SagaGenerato
         })
       )
     )
+  } catch (err) {
+    if (err.code === RPCTypes.constantsStatusCode.scapinetworkerror) {
+      // Ignore API errors due to offline
+    } else {
+      throw err
+    }
   } finally {
     yield Saga.put(replaceEntity(['teams'], I.Map([['loaded', true]])))
   }
@@ -817,6 +843,7 @@ const teamsSaga = function*(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(TeamsGen.createNewTeam, _createNewTeam)
   yield Saga.safeTakeEvery(TeamsGen.joinTeam, _joinTeam)
   yield Saga.safeTakeEvery(TeamsGen.getDetails, _getDetails)
+  yield Saga.safeTakeEvery(TeamsGen.getTeamOperations, _getTeamOperations)
   yield Saga.safeTakeEvery(TeamsGen.createNewTeamFromConversation, _createNewTeamFromConversation)
   yield Saga.safeTakeEveryPure(TeamsGen.getChannels, _getChannels, _afterGetChannels)
   yield Saga.safeTakeEvery(TeamsGen.getTeams, _getTeams)

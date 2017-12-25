@@ -57,6 +57,10 @@ function saveAttachmentDialog(filePath: string): Promise<NextURI> {
   return Promise.resolve(goodPath)
 }
 
+function clearAllNotifications() {
+  PushNotifications.cancelAllLocalNotifications()
+}
+
 function displayNewMessageNotification(text: string, convID: ?string, badgeCount: ?number, myMsgID: ?number) {
   // Dismiss any non-plaintext notifications for the same message ID
   if (isIOS) {
@@ -177,4 +181,5 @@ export {
   saveAttachmentDialog,
   setNoPushPermissions,
   showShareActionSheet,
+  clearAllNotifications,
 }

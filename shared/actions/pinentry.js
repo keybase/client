@@ -3,7 +3,7 @@ import logger from '../logger'
 import * as PinentryGen from '../actions/pinentry-gen'
 import * as Saga from '../util/saga'
 import * as I from 'immutable'
-import * as RPCTypes from '../constants/types/flow-types'
+import * as RPCTypes from '../constants/types/rpc-gen'
 import engine from '../engine'
 
 // We keep track of sessionID to response objects since this is initiated by the daemon

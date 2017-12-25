@@ -1,9 +1,9 @@
 // @flow
 import logger from '../logger'
 import * as I from 'immutable'
-import * as RPCChatTypes from './types/flow-types-chat'
+import * as RPCChatTypes from './types/rpc-chat-gen'
 import * as Types from './types/chat'
-import * as RPCTypes from './types/flow-types'
+import * as RPCTypes from './types/rpc-gen'
 import clamp from 'lodash/clamp'
 import invert from 'lodash/invert'
 import {Buffer} from 'buffer'
@@ -93,6 +93,7 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   inboxGlobalUntrustedState: 'unloaded',
   inboxSyncingState: 'notSyncing',
   inboxUntrustedState: I.Map(),
+  inboxResetParticipants: I.Map(),
   inboxVersion: I.Map(),
   initialConversation: null,
   localMessageStates: I.Map(),
@@ -223,13 +224,13 @@ function usernamesToUserListItem(
   usernames: Array<string>,
   you: string,
   metaDataMap: Types.MetaDataMap,
-  followingMap: Types.FollowingMap
+  followingSet: Types.FollowingSet
 ): Array<UserListItem> {
   return usernames.map(username => ({
     username,
     broken: metaDataMap.getIn([username, 'brokenTracker'], false),
     you: username === you,
-    following: !!followingMap[username],
+    following: followingSet.has(username),
   }))
 }
 
@@ -310,6 +311,11 @@ function isPendingConversationIDKey(conversationIDKey: string) {
   return conversationIDKey.startsWith('__PendingConversation__')
 }
 
+function isResetConversationIDKey(state: TypedState, conversationIDKey: string) {
+  const inbox = state.chat.getIn(['inbox', conversationIDKey])
+  return inbox ? inbox.memberStatus === RPCChatTypes.commonConversationMemberStatus.reset : false
+}
+
 function pendingConversationIDKeyToTlfName(conversationIDKey: string): ?string {
   if (isPendingConversationIDKey(conversationIDKey)) {
     return conversationIDKey.substring('__PendingConversation__'.length)
@@ -384,6 +390,8 @@ function messageKeyKindIsMessageID(key: Types.MessageKey): boolean {
 function messageKeyKind(key: Types.MessageKey): Types.MessageKeyKind {
   const [, kind] = key.split(':')
   switch (kind) {
+    case 'resetUser':
+      return 'resetUser'
     case 'joinedleft':
       return 'joinedleft'
     case 'system':
@@ -422,7 +430,7 @@ function messageKeyKind(key: Types.MessageKey): Types.MessageKeyKind {
 
 // TODO(mm) type these properly - they return any
 const getYou = (state: TypedState) => state.config.username || ''
-const getFollowingMap = (state: TypedState) => state.config.following
+const getFollowing = (state: TypedState) => state.config.following
 const getMetaDataMap = (state: TypedState) => state.chat.get('metaData')
 const getInbox = (state: TypedState, conversationIDKey: ?Types.ConversationIDKey) =>
   conversationIDKey ? state.chat.getIn(['inbox', conversationIDKey]) : null
@@ -758,11 +766,12 @@ export {
   usernamesToUserListItem,
   pendingConversationIDKey,
   isPendingConversationIDKey,
+  isResetConversationIDKey,
   pendingConversationIDKeyToTlfName,
   getAttachmentInfo,
   getSelectedRouteState,
   getYou,
-  getFollowingMap,
+  getFollowing,
   getMetaDataMap,
   getParticipants,
   getParticipantsWithFullNames,

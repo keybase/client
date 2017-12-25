@@ -3,7 +3,7 @@ import * as I from 'immutable'
 import * as ChatTypes from './types/chat'
 import * as Types from './types/teams'
 import {userIsInTeam} from './selectors'
-import * as RPCTypes from './types/flow-types'
+import * as RPCTypes from './types/rpc-gen'
 import invert from 'lodash/invert'
 
 import type {Service} from './types/search'
@@ -58,6 +58,7 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   teamNameToMembers: I.Map(),
   teamNameToRequests: I.Map(),
   teamNameToRole: I.Map(),
+  teamNameToCanPerform: I.Map(),
   teamNameToTeamSettings: I.Map(),
   teamNameToPublicitySettings: I.Map(),
   teammembercounts: I.Map(),
@@ -65,6 +66,19 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   newTeamRequests: I.List(),
   teamnames: I.Set(),
 })
+
+export const initialCanUserPerform: RPCTypes.TeamOperation = {
+  manageMembers: false,
+  manageSubteams: false,
+  createChannel: false,
+  deleteChannel: false,
+  renameChannel: false,
+  editChannelDescription: false,
+  setTeamShowcase: false,
+  setMemberShowcase: false,
+  changeOpenTeam: false,
+  leaveTeam: false,
+}
 
 const userIsInTeamHelper = (state: TypedState, username: string, service: Service, teamname: string) =>
   service === 'Keybase' ? userIsInTeam(state, teamname, username) : false
@@ -84,6 +98,9 @@ const getTopicFromConvID = (state: TypedState, conversationIDKey: ChatTypes.Conv
 const getRole = (state: TypedState, teamname: Types.Teamname): ?Types.TeamRoleType =>
   state.entities.getIn(['teams', 'teamNameToRole', teamname], null)
 
+const getCanPerform = (state: TypedState, teamname: Types.Teamname): RPCTypes.TeamOperation =>
+  state.entities.getIn(['teams', 'teamNameToCanPerform', teamname], initialCanUserPerform)
+
 const isAdmin = (type: ?Types.TeamRoleType) => type === 'admin'
 const isOwner = (type: ?Types.TeamRoleType) => type === 'owner'
 
@@ -102,6 +119,7 @@ export const publicAdminsLimit = 6
 export {
   getConvIdsFromTeamName,
   getRole,
+  getCanPerform,
   userIsInTeamHelper,
   getTeamNameFromConvID,
   getChannelNameFromConvID,

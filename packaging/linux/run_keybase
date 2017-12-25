@@ -64,16 +64,36 @@ start_systemd() {
   # This script is intended to be run after updates, so we need to reload
   # potentially changed unit files.
   systemctl --user daemon-reload
-  # The GUI needs access to the env var KEYBASE_START_UI. This is set to
-  # "hideWindow" by the autostart file that might be calling us. We need to
-  # pass it along.
-  echo "KEYBASE_START_UI=${KEYBASE_START_UI:-}" > "$runtime_dir/keybase.gui.env"
-  # Some distros (e.g. Ubuntu 16.04) don't make X session variables available
-  # to user units automatically. Add them to the env file ourselves.
-  echo "DISPLAY=${DISPLAY:-}" >> "$runtime_dir/keybase.gui.env"
-  echo "XAUTHORITY=${XAUTHORITY:-}" >> "$runtime_dir/keybase.gui.env"
-  echo "XDG_CURRENT_DESKTOP=${XDG_CURRENT_DESKTOP:-}" >> "$runtime_dir/keybase.gui.env"
-  echo "DBUS_SESSION_BUS_ADDRESS=${DBUS_SESSION_BUS_ADDRESS:-}" >> "$runtime_dir/keybase.gui.env"
+
+  forwarded_env_vars=(
+      # The autostart file sets this to "hideWindow" to prevent opening the
+      # Keybase main window when the app is autostarted.
+      KEYBASE_START_UI
+
+      # Some older distros (e.g. Ubuntu 16.04) don't make X session variables
+      # available to user units automatically. Whitelisting them is safer than
+      # dumping the entire environment, even though there's a chance we might
+      # miss something, because some environment variables might contain
+      # passwords or keys. Hopefully this section won't be needed someday.
+      # (Arch Linux doesn't need it today.)
+      DISPLAY
+      XAUTHORITY
+      XDG_CURRENT_DESKTOP
+      DBUS_SESSION_BUS_ADDRESS
+      CLUTTER_IM_MODULE
+      GTK_IM_MODULE
+      QT_IM_MODULE
+      QT4_IM_MODULE
+      XMODIFIERS
+  )
+  cat /dev/null > "$runtime_dir/keybase.gui.env"
+  for varname in "${forwarded_env_vars[@]}" ; do
+      # Include set-but-empty variables but not unset variables.
+      if [ -n "${!varname+x}" ] ; then
+          echo "$varname=${!varname}" >> "$runtime_dir/keybase.gui.env"
+      fi
+  done
+
   # The keybase.gui.service unit has keybase.service and kbfs.service as
   # dependencies, so we don't have to list them here. But including them lets
   # us report an error if they fail to start. Also prefer `restart` to `start`

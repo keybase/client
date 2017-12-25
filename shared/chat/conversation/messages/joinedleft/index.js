@@ -30,21 +30,20 @@ const JoinedLeftNotice = ({
       {formatTimeForMessages(message.timestamp)}
     </Text>
     <Text type="BodySmallSemibold" backgroundMode="Announcements" style={{color: globalColors.black_40}}>
-      {you === message.author
-        ? 'You'
-        : <Usernames
-            inline={true}
-            type="BodySmallSemibold"
-            onUsernameClicked={onUsernameClicked}
-            colorFollowing={true}
-            users={[{username: message.author, following, you: you === message.author}]}
-          />}
-      {' '}
-      {message.message.stringValue()}
-      {' '}
-      #{channelname}.
+      {you === message.author ? (
+        'You'
+      ) : (
+        <Usernames
+          inline={true}
+          type="BodySmallSemibold"
+          onUsernameClicked={onUsernameClicked}
+          colorFollowing={true}
+          users={[{username: message.author, following, you: you === message.author}]}
+        />
+      )}{' '}
+      {message.message.stringValue()} #{channelname}.
     </Text>
-    {message.author === you &&
+    {message.author === you && (
       <Text
         backgroundMode="Announcements"
         onClick={onManageChannels}
@@ -52,7 +51,8 @@ const JoinedLeftNotice = ({
         type="BodySmallPrimaryLink"
       >
         Manage channel subscriptions.
-      </Text>}
+      </Text>
+    )}
   </UserNotice>
 )
 

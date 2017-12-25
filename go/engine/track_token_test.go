@@ -425,6 +425,10 @@ func (d *FakeGregorDismisser) DismissItem(ctx context.Context, cli gregor1.Incom
 	return nil
 }
 
+func (d *FakeGregorDismisser) LocalDismissItem(ctx context.Context, id gregor.MsgID) error {
+	return nil
+}
+
 func TestTrackWithTokenDismissesGregor(t *testing.T) {
 	tc := SetupEngineTest(t, "track")
 	defer tc.Cleanup()

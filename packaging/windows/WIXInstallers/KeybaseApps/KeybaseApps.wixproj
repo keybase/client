@@ -25,7 +25,7 @@
     <OutputPath>bin\$(Configuration)\</OutputPath>
     <IntermediateOutputPath>obj\$(Configuration)\</IntermediateOutputPath>
     <SuppressValidation>False</SuppressValidation>
-    <SuppressIces>ICE20;ICE38</SuppressIces>
+    <SuppressIces>ICE20;ICE38;ICE91;ICE60</SuppressIces>
     <DefineConstants>GuiSourceDir=$(GOPATH)\src\github.com\keybase\client\shared\desktop\release\win32-ia32\Keybase-win32-ia32</DefineConstants>
     <CompilerAdditionalOptions>
     </CompilerAdditionalOptions>

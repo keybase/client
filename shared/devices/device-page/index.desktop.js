@@ -7,7 +7,9 @@ import type {Props} from '.'
 
 const Banner = ({color, backgroundColor, desc}) => (
   <Box style={{...stylesBanner, backgroundColor}}>
-    <Text type="BodySemibold" style={{color}}>{desc}</Text>
+    <Text type="BodySemibold" style={{color}}>
+      {desc}
+    </Text>
   </Box>
 )
 
@@ -23,10 +25,12 @@ const Header = ({name, currentDevice, revokedAt}) => (
     >
       {name}
     </Text>
-    {revokedAt && <Text type="Header" style={stylesMeta}>REVOKED</Text>}
-    <Box style={globalStyles.flexBoxRow}>
-      {currentDevice && <Text type="BodySmall">Current device</Text>}
-    </Box>
+    {revokedAt && (
+      <Text type="Header" style={stylesMeta}>
+        REVOKED
+      </Text>
+    )}
+    <Box style={globalStyles.flexBoxRow}>{currentDevice && <Text type="BodySmall">Current device</Text>}</Box>
   </Box>
 )
 
@@ -46,15 +50,16 @@ const Timeline = ({timeline}) => (
         <Box style={globalStyles.flexBoxColumn}>
           <Text type="Body">{desc}</Text>
           {subDesc &&
-            (type === 'Added' || type === 'Revoked'
-              ? <Text type="BodySmall">
-                  by
-                  {' '}
-                  <Text style={{color: globalColors.black_75, fontStyle: 'italic'}} type="BodySmall">
-                    {subDesc}
-                  </Text>
+            (type === 'Added' || type === 'Revoked' ? (
+              <Text type="BodySmall">
+                by{' '}
+                <Text style={{color: globalColors.black_75, fontStyle: 'italic'}} type="BodySmall">
+                  {subDesc}
                 </Text>
-              : <Text type="BodySmall">{subDesc}</Text>)}
+              </Text>
+            ) : (
+              <Text type="BodySmall">{subDesc}</Text>
+            ))}
           <Box style={{height: 15}} />
         </Box>
       </Box>
@@ -67,12 +72,13 @@ const Render = (props: Props) => (
     <Box style={{...globalStyles.flexBoxColumn, height: 48, justifyContent: 'center', paddingLeft: 16}}>
       <BackButton onClick={props.onBack} />
     </Box>
-    {!!props.bannerDesc &&
+    {!!props.bannerDesc && (
       <Banner
         color={props.bannerColor}
         backgroundColor={props.bannerBackgroundColor}
         desc={props.bannerDesc}
-      />}
+      />
+    )}
     <Box style={{...globalStyles.flexBoxRow, padding: 30}}>
       <Box
         style={{...globalStyles.flexBoxRow, alignItems: 'flex-start', justifyContent: 'center', width: 240}}
@@ -82,13 +88,14 @@ const Render = (props: Props) => (
       <Box style={globalStyles.flexBoxColumn}>
         <Header name={props.name} currentDevice={props.currentDevice} revokedAt={props.revokedAt} />
         {!!props.timeline && <Timeline timeline={props.timeline} />}
-        {!props.revokedAt &&
+        {!props.revokedAt && (
           <Button
             type="Danger"
             style={{alignSelf: 'flex-start', marginTop: 15}}
             label={`Revoke this ${props.revokeName || ''}`}
             onClick={props.showRevokeDevicePage}
-          />}
+          />
+        )}
       </Box>
     </Box>
   </Box>

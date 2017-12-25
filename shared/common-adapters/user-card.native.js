@@ -14,9 +14,7 @@ const UserCard = ({outerStyle, onAvatarClicked, username, style, children}: Prop
       <Box style={styleAvatarBackground} />
       <Avatar size={avatarSize} onClick={onAvatarClicked} username={username} />
     </Box>
-    <Box style={{...styleInside, ...style}}>
-      {children}
-    </Box>
+    <Box style={{...styleInside, ...style}}>{children}</Box>
   </Box>
 )
 

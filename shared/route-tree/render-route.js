@@ -189,18 +189,20 @@ function renderRouteStack({
   if (routeDef.component) {
     // If this path has a leaf component to render, add it to the stack.
     const routeComponent = ({isActiveRoute, shouldRender}) =>
-      shouldRender
-        ? <RenderRouteNode
-            isActiveRoute={isActiveRoute}
-            shouldRender={shouldRender}
-            isContainer={false}
-            routeDef={routeDef}
-            routeState={routeState}
-            path={path}
-            key={path.join(':')}
-            setRouteState={setRouteState}
-          />
-        : <Box />
+      shouldRender ? (
+        <RenderRouteNode
+          isActiveRoute={isActiveRoute}
+          shouldRender={shouldRender}
+          isContainer={false}
+          routeDef={routeDef}
+          routeState={routeState}
+          path={path}
+          key={path.join(':')}
+          setRouteState={setRouteState}
+        />
+      ) : (
+        <Box />
+      )
     const result = makeRenderRouteResult({
       path,
       component: routeComponent,

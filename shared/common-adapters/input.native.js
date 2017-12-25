@@ -241,11 +241,12 @@ class Input extends Component<Props, State> {
       ...commonProps,
       multiline: false,
       style: {...singlelineStyle, ...this.props.inputStyle},
-      type: {
-        password: 'password',
-        text: 'text',
-        passwordVisible: 'text',
-      }[this.props.type || 'text'] || 'text',
+      type:
+        {
+          password: 'password',
+          text: 'text',
+          passwordVisible: 'text',
+        }[this.props.type || 'text'] || 'text',
     }
 
     const multilineProps = {
@@ -267,17 +268,25 @@ class Input extends Component<Props, State> {
 
     return (
       <Box style={{...containerStyle, ...this.props.style}}>
-        {!this.props.small && <Text type="BodySmall" style={_floatingStyle}>{floatingHintText}</Text>}
+        {!this.props.small && (
+          <Text type="BodySmall" style={_floatingStyle}>
+            {floatingHintText}
+          </Text>
+        )}
         {!!this.props.small &&
-          !!this.props.smallLabel &&
-          <Text type="BodySmall" style={smallLabelStyle}>{this.props.smallLabel}</Text>}
+          !!this.props.smallLabel && (
+            <Text type="BodySmall" style={smallLabelStyle}>
+              {this.props.smallLabel}
+            </Text>
+          )}
         <Box style={this.props.small ? {flex: 1} : {borderBottomWidth: 1, borderBottomColor: underlineColor}}>
           <NativeTextInput {...(this.props.multiline ? multilineProps : singlelineProps)} />
         </Box>
-        {!this.props.small &&
+        {!this.props.small && (
           <Text type="BodyError" style={{..._errorStyle, ...this.props.errorStyle}}>
             {this.props.errorText || ''}
-          </Text>}
+          </Text>
+        )}
       </Box>
     )
   }

@@ -13,8 +13,10 @@ import type {Position, RelativePopupHocType, RelativePopupProps} from './relativ
 
 const modalRoot = document.getElementById('modal-root')
 
-class DOMNodeFinder
-  extends React.Component<{setNode: (node: HTMLElement) => void, children: React.Element<*>}> {
+class DOMNodeFinder extends React.Component<{
+  setNode: (node: HTMLElement) => void,
+  children: React.Element<*>,
+}> {
   componentDidMount() {
     const {setNode} = this.props
     const node = findDOMNode(this)
@@ -264,17 +266,18 @@ const RelativePopupHoc: RelativePopupHocType<*> = PopupComponent => {
     PopupComponent
   )
 
-  const C: React.ComponentType<
-    RelativePopupProps<*>
-  > = connect(undefined, (dispatch, {navigateUp, routeProps}) => ({
-    onClosePopup: () => {
-      dispatch(navigateUp())
-      const onPopupWillClose = routeProps.get('onPopupWillClose')
-      onPopupWillClose && onPopupWillClose()
-    },
-    targetRect: routeProps.get('targetRect'),
-    position: routeProps.get('position'),
-  }))((props: RelativePopupProps<*> & {onClosePopup: () => void}) => {
+  const C: React.ComponentType<RelativePopupProps<*>> = connect(
+    undefined,
+    (dispatch, {navigateUp, routeProps}) => ({
+      onClosePopup: () => {
+        dispatch(navigateUp())
+        const onPopupWillClose = routeProps.get('onPopupWillClose')
+        onPopupWillClose && onPopupWillClose()
+      },
+      targetRect: routeProps.get('targetRect'),
+      position: routeProps.get('position'),
+    })
+  )((props: RelativePopupProps<*> & {onClosePopup: () => void}) => {
     return <ModalPopupComponent {...(props: RelativePopupProps<*>)} onClosePopup={props.onClosePopup} />
   })
 

@@ -38,18 +38,27 @@ const ChannelHeader = ({
       <Box style={{...globalStyles.flexBoxColumn}}>
         <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', alignSelf: 'center'}}>
           <Avatar teamname={teamName} size={smallTeam ? 16 : 12} />
-          {!smallTeam &&
-            <Text type="BodySmallSemibold" style={{color: globalColors.black_40}}>&nbsp;{teamName}</Text>}
-          {smallTeam && <Text type="BodyBig" style={{color: globalColors.black_75}}>&nbsp;{teamName}</Text>}
+          {!smallTeam && (
+            <Text type="BodySmallSemibold" style={{color: globalColors.black_40}}>
+              &nbsp;{teamName}
+            </Text>
+          )}
+          {smallTeam && (
+            <Text type="BodyBig" style={{color: globalColors.black_75}}>
+              &nbsp;{teamName}
+            </Text>
+          )}
           {smallTeam && muted && <ShhIcon />}
         </Box>
-        {!smallTeam &&
+        {!smallTeam && (
           <Box style={{...globalStyles.flexBoxRow, alignSelf: 'center'}}>
-            <Text type="BodyBig" style={{color: globalColors.black_75}}>#{channelName}</Text>
+            <Text type="BodyBig" style={{color: globalColors.black_75}}>
+              #{channelName}
+            </Text>
             {muted && <ShhIcon />}
-          </Box>}
+          </Box>
+        )}
       </Box>
-
     </Box>
     <Icon
       type="iconfont-info"
@@ -97,12 +106,13 @@ const UsernameHeader = ({
       />
       {muted && <ShhIcon />}
     </Box>
-    {canOpenInfoPanel &&
+    {canOpenInfoPanel && (
       <Icon
         type="iconfont-info"
         style={{...styleLeft, flexShrink: 0, padding: globalMargins.tiny, fontSize: 21}}
         onClick={onToggleInfoPanel}
-      />}
+      />
+    )}
   </Box>
 )
 

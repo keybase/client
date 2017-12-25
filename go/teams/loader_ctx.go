@@ -27,7 +27,7 @@ type LoaderContext interface {
 	// Get the current user's per-user-key's derived encryption key (full).
 	perUserEncryptionKey(ctx context.Context, userSeqno keybase1.Seqno) (*libkb.NaclDHKeyPair, error)
 	merkleLookup(ctx context.Context, teamID keybase1.TeamID, public bool) (r1 keybase1.Seqno, r2 keybase1.LinkID, err error)
-	merkleLookupTripleAtHashMeta(ctx context.Context, leafID keybase1.UserOrTeamID, hm keybase1.HashMeta) (triple *libkb.MerkleTriple, err error)
+	merkleLookupTripleAtHashMeta(ctx context.Context, isPublic bool, leafID keybase1.UserOrTeamID, hm keybase1.HashMeta) (triple *libkb.MerkleTriple, err error)
 	forceLinkMapRefreshForUser(ctx context.Context, uid keybase1.UID) (linkMap linkMapT, err error)
 	loadKeyV2(ctx context.Context, uid keybase1.UID, kid keybase1.KID) (keybase1.UserVersion, *keybase1.PublicKeyV2NaCl, linkMapT, error)
 }
@@ -51,7 +51,12 @@ func (l *LoaderContextG) getNewLinksFromServer(ctx context.Context,
 	readSubteamID *keybase1.TeamID) (*rawTeam, error) {
 
 	arg := libkb.NewAPIArgWithNetContext(ctx, "team/get")
-	arg.SessionType = libkb.APISessionTypeREQUIRED
+	if public {
+		arg.SessionType = libkb.APISessionTypeOPTIONAL
+	} else {
+		arg.SessionType = libkb.APISessionTypeREQUIRED
+
+	}
 	arg.Args = libkb.HTTPArgs{
 		"id":     libkb.S{Val: teamID.String()},
 		"low":    libkb.I{Val: int(lows.Seqno)},
@@ -109,9 +114,15 @@ func (l *LoaderContextG) getLinksFromServer(ctx context.Context,
 }
 
 func (l *LoaderContextG) getMe(ctx context.Context) (res keybase1.UserVersion, err error) {
+	uid := l.G().ActiveDevice.UID()
+	// If we're logged out, we still should be able to access the team loader
+	// for public teams. So we'll just return a nil UID here, and it should just work.
+	if uid.IsNil() {
+		return res, nil
+	}
 	loadMeArg := libkb.NewLoadUserArg(l.G()).
 		WithNetContext(ctx).
-		WithUID(l.G().Env.GetUID()).
+		WithUID(uid).
 		WithSelf(true).
 		WithPublicKeyOptional()
 	upak, _, err := l.G().GetUPAKLoader().LoadV2(loadMeArg)
@@ -199,12 +210,12 @@ func (l *LoaderContextG) merkleLookup(ctx context.Context, teamID keybase1.TeamI
 	return leaf.Private.Seqno, leaf.Private.LinkID.Export(), nil
 }
 
-func (l *LoaderContextG) merkleLookupTripleAtHashMeta(ctx context.Context, leafID keybase1.UserOrTeamID, hm keybase1.HashMeta) (triple *libkb.MerkleTriple, err error) {
+func (l *LoaderContextG) merkleLookupTripleAtHashMeta(ctx context.Context, isPublic bool, leafID keybase1.UserOrTeamID, hm keybase1.HashMeta) (triple *libkb.MerkleTriple, err error) {
 	leaf, err := l.G().MerkleClient.LookupLeafAtHashMeta(ctx, leafID, hm)
 	if err != nil {
 		return nil, err
 	}
-	if leafID.IsPublic() {
+	if isPublic {
 		triple = leaf.Public
 	} else {
 		triple = leaf.Private

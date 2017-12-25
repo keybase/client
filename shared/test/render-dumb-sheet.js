@@ -102,7 +102,7 @@ function run(options) {
 declare class ExtendedDocument extends Document {
   fonts: {
     ready: Promise<*>,
-  },
+  };
 }
 declare var document: ExtendedDocument
 

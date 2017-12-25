@@ -51,7 +51,7 @@ class UpdateEmail extends Component<Props, State> {
           waiting={this.props.waitingForResponse}
         />
 
-        {!!this.props.onResendConfirmationCode &&
+        {!!this.props.onResendConfirmationCode && (
           <Text
             style={{marginTop: globalMargins.large, textAlign: 'center'}}
             onClick={this.props.onResendConfirmationCode}
@@ -59,7 +59,8 @@ class UpdateEmail extends Component<Props, State> {
             type="BodyPrimaryLink"
           >
             Resend confirmation code
-          </Text>}
+          </Text>
+        )}
       </StandardScreen>
     )
   }

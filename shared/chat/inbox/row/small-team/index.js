@@ -10,6 +10,8 @@ import {isMobile} from '../../../../constants/platform'
 
 type Props = {
   backgroundColor: string,
+  hasBadge: boolean,
+  hasResetUsers: boolean,
   hasUnread: boolean,
   isMuted: boolean,
   isSelected: boolean,
@@ -22,8 +24,8 @@ type Props = {
   teamname: ?string,
   timestamp: string,
   usernameColor: string,
+  youAreReset: boolean,
   youNeedToRekey: boolean,
-  hasBadge: boolean,
 }
 
 class SmallTeam extends PureComponent<Props> {
@@ -32,20 +34,22 @@ class SmallTeam extends PureComponent<Props> {
     return (
       <ClickableBox onClick={props.onSelectConversation} style={{backgroundColor: props.backgroundColor}}>
         <Box style={{...rowContainerStyle, backgroundColor: props.backgroundColor}}>
-          {props.teamname
-            ? <TeamAvatar
-                teamname={props.teamname}
-                isMuted={props.isMuted}
-                isSelected={this.props.isSelected}
-              />
-            : <Avatars
-                backgroundColor={props.backgroundColor}
-                isMuted={props.isMuted}
-                isSelected={props.isSelected}
-                participantNeedToRekey={props.participantNeedToRekey}
-                participants={props.participants}
-                youNeedToRekey={props.youNeedToRekey}
-              />}
+          {props.teamname ? (
+            <TeamAvatar
+              teamname={props.teamname}
+              isMuted={props.isMuted}
+              isSelected={this.props.isSelected}
+            />
+          ) : (
+            <Avatars
+              backgroundColor={props.backgroundColor}
+              isMuted={props.isMuted}
+              isSelected={props.isSelected}
+              participantNeedToRekey={props.participantNeedToRekey}
+              participants={props.participants}
+              youNeedToRekey={props.youNeedToRekey}
+            />
+          )}
           <Box
             style={{
               ...conversationRowStyle,
@@ -64,9 +68,11 @@ class SmallTeam extends PureComponent<Props> {
             <BottomLine
               backgroundColor={props.backgroundColor}
               participantNeedToRekey={props.participantNeedToRekey}
+              youAreReset={props.youAreReset}
               showBold={props.showBold}
               snippet={props.snippet}
               subColor={props.subColor}
+              hasResetUsers={props.hasResetUsers}
               youNeedToRekey={props.youNeedToRekey}
             />
           </Box>

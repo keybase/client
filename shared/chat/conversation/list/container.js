@@ -4,9 +4,9 @@ import * as Types from '../../../constants/types/chat'
 import * as ChatGen from '../../../actions/chat-gen'
 import * as KBFSGen from '../../../actions/kbfs-gen'
 import * as Selectors from '../../../constants/selectors'
+import * as I from 'immutable'
 import HiddenString from '../../../util/hidden-string'
 import ListComponent, {type Props} from '.'
-import {List, is, Set} from 'immutable'
 import {compose, connect, type TypedState} from '../../../util/container'
 import {createSelector, createSelectorCreator, defaultMemoize} from 'reselect'
 import {navigateAppend} from '../../../actions/route-tree'
@@ -39,12 +39,12 @@ const ownPropsSelector = (_, {editLastMessageCounter, listScrollDownCounter, onF
   onFocusInput,
 })
 
-const immutableCreateSelector = createSelectorCreator(defaultMemoize, (a, b) => a === b || is(a, b))
+const immutableCreateSelector = createSelectorCreator(defaultMemoize, (a, b) => a === b || I.is(a, b))
 
 const getMessageKeysForSelectedConv = (state: TypedState) => {
   const conversationIDKey = Constants.getSelectedConversation(state)
   if (!conversationIDKey) {
-    return List()
+    return I.List()
   }
   const convMsgs = Constants.getConversationMessages(state, conversationIDKey)
   return convMsgs.messages
@@ -53,7 +53,7 @@ const getMessageKeysForSelectedConv = (state: TypedState) => {
 const getDeletedIDsForSelectedConv = (state: TypedState) => {
   const conversationIDKey = Constants.getSelectedConversation(state)
   if (!conversationIDKey) {
-    return Set()
+    return I.Set()
   }
   return Constants.getDeletedMessageIDs(state, conversationIDKey)
 }
@@ -96,6 +96,8 @@ const mapStateToProps = createSelector(
       selectedConversation: convStateProps.selectedConversation,
       validated: convStateProps.validated,
       you: username,
+      hasResetUsers:
+        state.chat.inboxResetParticipants.get(convStateProps.selectedConversation, I.Set()).size > 0,
       _supersedes: convStateProps._supersedes,
     }
   }
@@ -149,6 +151,9 @@ const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps): Props
         l.unshift(Constants.messageKey(selected, 'supersedes', Constants.selfInventedIDToMessageID(-1)))
       }
       l.unshift(Constants.messageKey(selected, 'header', Constants.selfInventedIDToMessageID(-1)))
+      if (stateProps.hasResetUsers) {
+        l.push(Constants.messageKey(selected, 'resetUser', Constants.selfInventedIDToMessageID(-1)))
+      }
     })
   }
 

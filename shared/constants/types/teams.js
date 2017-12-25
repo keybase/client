@@ -1,6 +1,6 @@
 // @flow
 import * as I from 'immutable'
-import * as RPCTypes from './flow-types'
+import * as RPCTypes from './rpc-gen'
 import type {ConversationIDKey} from './chat'
 
 export type TeamRoleType = 'reader' | 'writer' | 'admin' | 'owner'
@@ -87,6 +87,7 @@ export type _State = {
   teamNameToLoading: I.Map<Teamname, boolean>,
   teamNameToRequests: I.Map<Teamname, I.Set<RequestInfo>>,
   teamNameToRole: I.Map<Teamname, TeamRoleType>,
+  teamNameToCanPerform: I.Map<Teamname, RPCTypes.TeamOperation>,
   teamNameToTeamSettings: I.Map<Teamname, TeamSettings>,
   teamNameToPublicitySettings: I.Map<Teamname, _PublicitySettings>,
   teamnames: I.Set<Teamname>,

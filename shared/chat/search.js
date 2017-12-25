@@ -24,13 +24,15 @@ const SearchHeader = props => (
         />
       </Box>
     </Box>
-    {props.showSearchPending
-      ? <ProgressIndicator style={{width: globalMargins.large}} />
-      : <SearchResultsList
-          style={{flex: 1}}
-          searchKey={'chatSearch'}
-          onShowTracker={props.onShowTrackerInSearch}
-        />}
+    {props.showSearchPending ? (
+      <ProgressIndicator style={{width: globalMargins.large}} />
+    ) : (
+      <SearchResultsList
+        style={{flex: 1}}
+        searchKey={'chatSearch'}
+        onShowTracker={props.onShowTrackerInSearch}
+      />
+    )}
   </Box>
 )
 

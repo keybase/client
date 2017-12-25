@@ -23,7 +23,9 @@ export function SettingsItem({
   return (
     <ClickableBox onClick={onClick} style={itemStyle}>
       <Box style={{...globalStyles.flexBoxRow}}>
-        <Text type={'BodySmallSemibold'} style={itemTextStyle}>{text.toUpperCase()}</Text>
+        <Text type={'BodySmallSemibold'} style={itemTextStyle}>
+          {text.toUpperCase()}
+        </Text>
         {!!badgeNumber && badgeNumber > 0 && <Badge badgeStyle={badgeStyle} badgeNumber={badgeNumber} />}
       </Box>
     </ClickableBox>
@@ -34,12 +36,13 @@ function SettingsNav({badgeNumbers, selectedTab, onTabChange, onLogout}: Props) 
   return (
     <NativeScrollView style={{width: '100%', height: '100%'}}>
       <Box style={styleNavBox}>
-        {flags.teamChatEnabled &&
+        {flags.teamChatEnabled && (
           <SettingsItem
             text="Folders"
             badgeNumber={badgeNumbers[TabConstants.folderTab]}
             onClick={() => onTabChange(Constants.foldersTab)}
-          />}
+          />
+        )}
         <SettingsItem
           text="Git"
           badgeNumber={badgeNumbers[TabConstants.gitTab]}
@@ -62,12 +65,13 @@ function SettingsNav({badgeNumbers, selectedTab, onTabChange, onLogout}: Props) 
         />
         <SettingsItem text="About" badgeNumber={0} onClick={() => onTabChange(Constants.aboutTab)} />
         <SettingsItem text="Feedback" badgeNumber={0} onClick={() => onTabChange(Constants.feedbackTab)} />
-        {isAndroid &&
+        {isAndroid && (
           <SettingsItem
             text="Screen Protector"
             badgeNumber={0}
             onClick={() => onTabChange(Constants.screenprotectorTab)}
-          />}
+          />
+        )}
         <SettingsItem
           text="Advanced"
           selected={selectedTab === Constants.advancedTab}
@@ -75,12 +79,13 @@ function SettingsNav({badgeNumbers, selectedTab, onTabChange, onLogout}: Props) 
           onClick={() => onTabChange(Constants.advancedTab)}
         />
         <SettingsItem text="Sign out" badgeNumber={0} onClick={onLogout} />
-        {__DEV__ &&
+        {__DEV__ && (
           <SettingsItem
             text="😎 &nbsp; Dev Menu"
             badgeNumber={0}
             onClick={() => onTabChange(Constants.devMenuTab)}
-          />}
+          />
+        )}
       </Box>
     </NativeScrollView>
   )

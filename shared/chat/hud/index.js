@@ -1,5 +1,6 @@
 // @flow
 import React from 'react'
+import * as I from 'immutable'
 import {
   compose,
   withState,
@@ -20,7 +21,7 @@ type Props<D: {key: string, selected: boolean}> = {
 }
 
 type MentionDatum = {
-  following: {[username: string]: boolean},
+  following: I.Set<string>,
   you: string,
   username: string,
   fullName: string,
@@ -54,21 +55,23 @@ const MentionRowRenderer = ({
     <Usernames
       type="BodySemibold"
       colorFollowing={true}
-      users={[{you: you === username, username, following: following[username]}]}
+      users={[{you: you === username, username, following: following.has(username)}]}
       style={{marginLeft: globalMargins.small}}
     />
-    <Text type="Body" style={{marginLeft: globalMargins.tiny}}>{fullName}</Text>
+    <Text type="Body" style={{marginLeft: globalMargins.tiny}}>
+      {fullName}
+    </Text>
   </ClickableBox>
 )
 
 // We want to render Hud even if there's no data so we can still have lifecycle methods so we can still do things
 // This is important if you type a filter that gives you no results and you press enter for instance
 const Hud = ({style, data, rowRenderer, selectedIndex}: Props<*>) =>
-  data.length
-    ? <Box style={{...hudStyle, ...style}}>
-        <List items={data} renderItem={rowRenderer} selectedIndex={selectedIndex} fixedHeight={40} />
-      </Box>
-    : null
+  data.length ? (
+    <Box style={{...hudStyle, ...style}}>
+      <List items={data} renderItem={rowRenderer} selectedIndex={selectedIndex} fixedHeight={40} />
+    </Box>
+  ) : null
 
 const hudStyle = {
   ...globalStyles.flexBoxRow,

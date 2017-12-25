@@ -13,15 +13,18 @@ const Ignored = ({rows, showIgnored, styles, onToggle, isPublic, onClick}) => {
   return (
     <Box style={stylesIgnoreContainer}>
       <Box style={styles.topBox} onClick={onToggle}>
-        <Text type="BodySmallSemibold" style={stylesDividerText}>Ignored folders</Text>
+        <Text type="BodySmallSemibold" style={stylesDividerText}>
+          Ignored folders
+        </Text>
         <Icon type={caretIcon} style={{color: globalColors.black_40}} />
       </Box>
-      {showIgnored &&
+      {showIgnored && (
         <Box style={styles.bottomBox}>
           <Text type="BodySmall" style={stylesDividerBodyText}>
             Ignored folders won't show up on your computer and you won't receive alerts about them.
           </Text>
-        </Box>}
+        </Box>
+      )}
     </Box>
   )
 }

@@ -113,6 +113,11 @@ func (s *DiskStorage) Put(ctx context.Context, state *keybase1.TeamData) error {
 	s.Lock()
 	defer s.Unlock()
 
+	if !s.G().ActiveDevice.Valid() && state.Chain.Public {
+		s.G().Log.CDebugf(ctx, "skipping team store since user is logged out")
+		return nil
+	}
+
 	key := s.dbKey(ctx, state.Chain.Id, state.Chain.Public)
 	item := DiskStorageItem{
 		Version: diskStorageVersion,

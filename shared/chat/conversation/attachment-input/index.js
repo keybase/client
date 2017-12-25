@@ -45,10 +45,11 @@ class RenderAttachmentInput extends Component<Props, State> {
       <PopupDialog onClose={this.props.onClose}>
         <Box style={isMobile ? stylesMobile : stylesDesktop}>
           <Icon type="icon-file-uploading-48" />
-          {count > 0 &&
+          {count > 0 && (
             <Text type="BodySmall" style={{color: globalColors.black_40, marginTop: 5}}>
               {currentTitle} ({this.state.index + 1} of {count})
-            </Text>}
+            </Text>
+          )}
           <Input
             style={isMobile ? stylesInputMobile : stylesInputDesktop}
             autoFocus={true}

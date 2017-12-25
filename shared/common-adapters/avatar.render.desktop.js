@@ -139,17 +139,20 @@ class AvatarRender extends React.PureComponent<Props, State> {
         }}
       >
         {!this.props.skipBackground && <Background borderRadius={borderRadius} />}
-        {this.props.url &&
+        {this.props.url && (
           <UserImage
             opacity={this.props.opacity}
             size={this.props.size}
             url={this.props.url}
             borderRadius={borderRadius}
-          />}
-        {!!this.props.borderColor &&
-          <Border borderColor={this.props.borderColor} size={this.props.size} borderRadius={borderRadius} />}
-        {this.props.followIconType &&
-          <Icon type={this.props.followIconType} style={this.props.followIconStyle} />}
+          />
+        )}
+        {!!this.props.borderColor && (
+          <Border borderColor={this.props.borderColor} size={this.props.size} borderRadius={borderRadius} />
+        )}
+        {this.props.followIconType && (
+          <Icon type={this.props.followIconType} style={this.props.followIconStyle} />
+        )}
         {this.props.children}
       </div>
     )

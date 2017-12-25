@@ -3,7 +3,7 @@ import logger from '../logger'
 import * as React from 'react'
 import {Box, Text, Icon} from '../common-adapters'
 import {globalStyles, globalColors} from '../styles'
-import {reachabilityReachable} from '../constants/types/flow-types'
+import {reachabilityReachable} from '../constants/types/rpc-gen'
 import {ignoreDisconnectOverlay} from '../local-debug'
 
 import type {Props} from './index'
@@ -22,7 +22,9 @@ const Offline = ({reachable}: Props) => {
   return (
     <Box style={containerOverlayStyle}>
       <Box style={overlayRowStyle}>
-        <Text type="BodySemibold" style={textStyle}>{message}</Text>
+        <Text type="BodySemibold" style={textStyle}>
+          {message}
+        </Text>
       </Box>
       <Box style={overlayFillStyle}>
         <Icon type="icon-loader-connecting-266" />

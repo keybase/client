@@ -13,6 +13,7 @@ import {FilterBigTeamChannel} from './filter-big-team-channel'
 const simpleCommon = {
   backgroundColor: globalColors.white,
   conversationIDKey: '',
+  hasResetUsers: false,
   hasUnread: false,
   isMuted: false,
   isSelected: false,
@@ -27,6 +28,7 @@ const simpleCommon = {
   timestamp: '1:23 pm',
   unreadCount: 0,
   usernameColor: globalColors.darkBlue,
+  youAreReset: false,
   youNeedToRekey: false,
 }
 
@@ -70,9 +72,7 @@ const commonChannel = {
 const load = () => {
   storiesOf('Chat/Inbox', module)
     .add('Simple', () => (
-      <Box style={{width: 240}}>
-        {mocks.map(m => <SmallTeam key={m.conversationIDKey} {...m} />)}
-      </Box>
+      <Box style={{width: 240}}>{mocks.map(m => <SmallTeam key={m.conversationIDKey} {...m} />)}</Box>
     ))
     .add('Team', () => (
       <Box style={{borderColor: 'black', borderStyle: 'solid', borderWidth: 1, width: 240}}>

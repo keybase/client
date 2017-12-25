@@ -15,9 +15,13 @@ const ChoiceList = ({options}: Props) => {
         return (
           <Box style={styleEntry} key={idx} className="cl-entry" onClick={() => op.onClick()}>
             <Box style={styleIconContainer} className="cl-icon-container">
-              {typeof op.icon === 'string'
-                ? <Icon style={styleIcon} type={iconType} className="cl-icon" />
-                : <Box style={styleIcon} className="cl-icon">{op.icon}</Box>}
+              {typeof op.icon === 'string' ? (
+                <Icon style={styleIcon} type={iconType} className="cl-icon" />
+              ) : (
+                <Box style={styleIcon} className="cl-icon">
+                  {op.icon}
+                </Box>
+              )}
             </Box>
             <Box style={styleInfoContainer}>
               <Text type="BodyBigLink">{op.title}</Text>

@@ -219,7 +219,7 @@ func (e *SaltpackEncrypt) getCryptKeys(ctx context.Context, name string) (keybas
 	}
 	return cli.GetTLFCryptKeys(ctx, keybase1.TLFQuery{
 		TlfName:          name,
-		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
+		IdentifyBehavior: keybase1.TLFIdentifyBehavior_SALTPACK,
 	})
 }
 

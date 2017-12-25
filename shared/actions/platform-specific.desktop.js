@@ -36,6 +36,10 @@ function displayNewMessageNotification(text: string, convID: ?string, badgeCount
   throw new Error('Display new message notification not available on this platform')
 }
 
+function clearAllNotifications() {
+  throw new Error('Clear all notifications not available on this platform')
+}
+
 export {
   requestPushPermissions,
   showMainWindow,
@@ -44,4 +48,5 @@ export {
   showShareActionSheet,
   setNoPushPermissions,
   displayNewMessageNotification,
+  clearAllNotifications,
 }

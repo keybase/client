@@ -37,19 +37,21 @@ class Avatars extends React.PureComponent<any> {
           width: smallMode ? globalMargins.large : 56,
         }}
       >
-        {isTeam
-          ? <Avatar
-              size={smallMode ? 32 : 40}
-              teamname={teamname}
-              isTeam={true}
-              style={{opacity, marginLeft: globalMargins.xtiny, marginTop: globalMargins.xtiny}}
-            />
-          : <MultiAvatar
-              singleSize={smallMode ? 32 : 40}
-              multiSize={smallMode ? 24 : 32}
-              avatarProps={avatarProps}
-              style={{opacity}}
-            />}
+        {isTeam ? (
+          <Avatar
+            size={smallMode ? 32 : 40}
+            teamname={teamname}
+            isTeam={true}
+            style={{opacity, marginLeft: globalMargins.xtiny, marginTop: globalMargins.xtiny}}
+          />
+        ) : (
+          <MultiAvatar
+            singleSize={smallMode ? 32 : 40}
+            multiSize={smallMode ? 24 : 32}
+            avatarProps={avatarProps}
+            style={{opacity}}
+          />
+        )}
       </Box>
     )
   }
@@ -69,8 +71,12 @@ class Modified extends React.PureComponent<any> {
     return (
       <Box style={stylesModified}>
         <Icon type="iconfont-thunderbolt" style={boltStyle} hint="Modified" />
-        <Text type="BodySmall" backgroundMode={styles.modifiedMode}>Modified {modified.when} by&nbsp;</Text>
-        <Text type="BodySmallInlineLink" backgroundMode={styles.modifiedMode}>{modified.username}</Text>
+        <Text type="BodySmall" backgroundMode={styles.modifiedMode}>
+          Modified {modified.when} by&nbsp;
+        </Text>
+        <Text type="BodySmallInlineLink" backgroundMode={styles.modifiedMode}>
+          {modified.username}
+        </Text>
       </Box>
     )
   }
@@ -184,23 +190,23 @@ class Row extends React.PureComponent<RowType & Folder> {
             />
             {meta && !ignored && <RowMeta ignored={ignored} meta={meta} styles={styles} />}
             {!(meta || ignored) &&
-              modified &&
-              <Modified modified={modified} styles={styles} smallMode={smallMode} />}
+              modified && <Modified modified={modified} styles={styles} smallMode={smallMode} />}
           </Box>
           {!smallMode &&
             !isPublic &&
             !hasReadOnlyUsers &&
-            meta !== 'rekey' &&
-            <Box style={{...stylesActionContainer, width: smallMode ? undefined : 64}}>
-              <Text
-                type="BodySmallSecondaryLink"
-                className="folder-row-hover-action"
-                onClick={onChatClick}
-                style={styles.action}
-              >
-                Chat
-              </Text>
-            </Box>}
+            meta !== 'rekey' && (
+              <Box style={{...stylesActionContainer, width: smallMode ? undefined : 64}}>
+                <Text
+                  type="BodySmallSecondaryLink"
+                  className="folder-row-hover-action"
+                  onClick={onChatClick}
+                  style={styles.action}
+                >
+                  Chat
+                </Text>
+              </Box>
+            )}
           <Box
             style={{
               ...stylesActionContainer,
@@ -209,16 +215,17 @@ class Row extends React.PureComponent<RowType & Folder> {
             }}
           >
             {!smallMode &&
-              meta !== 'rekey' &&
-              <Text
-                type="BodySmallSecondaryLink"
-                className="folder-row-hover-action"
-                onClick={onOpenClick}
-                style={styles.action}
-              >
-                Open
-              </Text>}
-            {meta === 'rekey' &&
+              meta !== 'rekey' && (
+                <Text
+                  type="BodySmallSecondaryLink"
+                  className="folder-row-hover-action"
+                  onClick={onOpenClick}
+                  style={styles.action}
+                >
+                  Open
+                </Text>
+              )}
+            {meta === 'rekey' && (
               <Button
                 small={true}
                 type="PrimaryPrivate"
@@ -230,7 +237,8 @@ class Row extends React.PureComponent<RowType & Folder> {
                 }}
                 label="Rekey"
                 style={styles.action}
-              />}
+              />
+            )}
           </Box>
         </Box>
       </Box>

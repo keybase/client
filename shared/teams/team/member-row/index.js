@@ -45,27 +45,28 @@ export const TeamMemberRow = (props: Props) => {
             colorFollowing={true}
             users={[{username, following, you: you === username}]}
           />
-          {!active &&
+          {!active && (
             <Meta
               title="LOCKED OUT"
               style={{background: globalColors.red, marginLeft: globalMargins.xtiny, marginTop: 4}}
-            />}
+            />
+          )}
         </Box>
         <Box style={globalStyles.flexBoxRow}>
           {type &&
-            !!showCrown[type] &&
-            <Icon
-              // $FlowIssue "some string with unknown value"
-              type={'iconfont-crown-' + type}
-              style={{
-                color: roleIconColorMap[type],
-                fontSize: isMobile ? 16 : 12,
-                marginRight: globalMargins.xtiny,
-              }}
-            />}
+            !!showCrown[type] && (
+              <Icon
+                // $FlowIssue "some string with unknown value"
+                type={'iconfont-crown-' + type}
+                style={{
+                  color: roleIconColorMap[type],
+                  fontSize: isMobile ? 16 : 12,
+                  marginRight: globalMargins.xtiny,
+                }}
+              />
+            )}
           <Text type="BodySmall">
-            {active && type && typeToLabel[type]}
-            {' '}
+            {active && type && typeToLabel[type]}{' '}
             {!active && 'Has reset their account; admin(s) can re-invite'}
           </Text>
         </Box>

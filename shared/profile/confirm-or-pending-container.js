@@ -1,7 +1,7 @@
 // @flow
 import * as ProfileGen from '../actions/profile-gen'
 import ConfirmOrPending from './confirm-or-pending'
-import {proveCommonProofStatus} from '../constants/types/flow-types'
+import {proveCommonProofStatus} from '../constants/types/rpc-gen'
 import {globalColors} from '../styles'
 import {connect} from 'react-redux'
 import {type TypedState} from '../constants/reducer'

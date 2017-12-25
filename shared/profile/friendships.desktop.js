@@ -44,8 +44,12 @@ class UserEntry extends PureComponent<UserEntryProps> {
           followsYou={followsYou}
           following={following}
         />
-        <Text type="BodySemibold" style={userEntryUsernameStyle(following)}>{username}</Text>
-        <Text type="BodySmall" style={userEntryFullnameStyle}>{fullname}</Text>
+        <Text type="BodySemibold" style={userEntryUsernameStyle(following)}>
+          {username}
+        </Text>
+        <Text type="BodySmall" style={userEntryFullnameStyle}>
+          {fullname}
+        </Text>
       </Box>
     )
   }
@@ -106,10 +110,13 @@ class FriendshipsRender extends Component<Props> {
         >
           <Box style={{marginTop: globalMargins.small}}>
             {followers === 0 &&
-              isYou &&
-              <Box style={friendshipEmptyStyle}>
-                <Text type="Body" style={{color: globalColors.black_40}}>You have no followers.</Text>
-              </Box>}
+              isYou && (
+                <Box style={friendshipEmptyStyle}>
+                  <Text type="Body" style={{color: globalColors.black_40}}>
+                    You have no followers.
+                  </Text>
+                </Box>
+              )}
             <ReactList
               useTranslate3d={true}
               itemRenderer={(index, key) => this._itemRenderer(true, index)}
@@ -127,10 +134,13 @@ class FriendshipsRender extends Component<Props> {
         >
           <Box style={{marginTop: globalMargins.small}}>
             {following === 0 &&
-              isYou &&
-              <Box style={friendshipEmptyStyle}>
-                <Text type="Body" style={{color: globalColors.black_40}}>You are not following anyone.</Text>
-              </Box>}
+              isYou && (
+                <Box style={friendshipEmptyStyle}>
+                  <Text type="Body" style={{color: globalColors.black_40}}>
+                    You are not following anyone.
+                  </Text>
+                </Box>
+              )}
             <ReactList
               useTranslate3d={true}
               itemRenderer={(index, key) => this._itemRenderer(false, index)}

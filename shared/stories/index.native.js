@@ -22,7 +22,9 @@ const load = () => {
     noScrollBars.forEach(s => stories[s]())
 
     addDecorator(scrollViewDecorator)
-    Object.keys(stories).filter(s => !noScrollBars.includes(s)).forEach(s => stories[s]())
+    Object.keys(stories)
+      .filter(s => !noScrollBars.includes(s))
+      .forEach(s => stories[s]())
   }, module)
 }
 

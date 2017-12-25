@@ -27,7 +27,9 @@ const Row = ({deviceID, name, type, onSelect}) => {
           <Icon style={stylesIcon} type={iconType} />
         </Box>
         <Box style={{...globalStyles.flexBoxColumn, flex: 1}}>
-          <Text type="BodySemiboldItalic" onClick={onPress}>{name}</Text>
+          <Text type="BodySemiboldItalic" onClick={onPress}>
+            {name}
+          </Text>
           {type === 'backup' && <Text type="BodySmall">Paper key</Text>}
         </Box>
         <Button label="Use..." type="Secondary" small={true} onClick={onPress} />
@@ -91,7 +93,9 @@ const ResetOption = ({onReset}) => (
 const SelectOtherDevice = ({onBack, devices, onWont, onSelect, canSelectNoDevice, onReset}: Props) => (
   <Container style={stylesContainer} onBack={onBack} outerStyle={{paddingLeft: 0, paddingRight: 0}}>
     <Box style={globalStyles.flexBoxColumn}>
-      <Text type="Header" style={stylesInstructions}>Please prove you're you</Text>
+      <Text type="Header" style={stylesInstructions}>
+        Please prove you're you
+      </Text>
       <Text type="Body" style={stylesInstructions}>
         Which of your other devices do you have handy?
       </Text>
@@ -100,10 +104,11 @@ const SelectOtherDevice = ({onBack, devices, onWont, onSelect, canSelectNoDevice
       {devices.map(d => <Row onSelect={onSelect} {...d} key={d.deviceID} />)}
       <ResetOption onReset={onReset} />
     </NativeScrollView>
-    {canSelectNoDevice &&
+    {canSelectNoDevice && (
       <Text style={stylesWont} type="BodySmallSecondaryLink" onClick={onWont}>
         Log in with your passphrase
-      </Text>}
+      </Text>
+    )}
   </Container>
 )
 const stylesContainer = {

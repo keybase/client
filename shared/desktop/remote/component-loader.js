@@ -1,5 +1,6 @@
 // @flow
 // This loads up a remote component. It makes a pass-through store which accepts its props from the main window through ipc
+// Also protects it with an error boundary
 import React, {Component} from 'react'
 import ReactDOM from 'react-dom'
 // $FlowIssue
@@ -13,6 +14,7 @@ import {disable as disableDragDrop} from '../../util/drag-drop'
 import {globalColors, globalStyles} from '../../styles'
 import {remote, BrowserWindow} from 'electron'
 import {setupContextMenu} from '../app/menu-helper'
+import ErrorBoundary from '../../common-adapters/error-boundary'
 
 disableDragDrop()
 
@@ -39,6 +41,10 @@ class RemoteComponentLoader extends Component<Props> {
     }
   }
 
+  _onClose = () => {
+    this._window && this._window.close()
+  }
+
   _getComponent = (key: string) => {
     switch (key) {
       case 'unlockFolders':
@@ -56,11 +62,12 @@ class RemoteComponentLoader extends Component<Props> {
 
   componentWillMount() {
     this._window = remote.getCurrentWindow()
-    this._store = new RemoteStore({
+    const remoteStore = new RemoteStore({
       gotPropsCallback: this._onGotProps,
       windowComponent: this.props.windowComponent,
       windowParam: this.props.windowParam,
     })
+    this._store = remoteStore.getStore()
     this._ComponentClass = this._getComponent(this.props.windowComponent)
 
     setupContextMenu(this._window)
@@ -70,9 +77,11 @@ class RemoteComponentLoader extends Component<Props> {
     const TheComponent = this._ComponentClass
     return (
       <div id="RemoteComponentRoot" style={this._isMenubar() ? styles.menubarContainer : styles.container}>
-        <Root store={this._store}>
-          <TheComponent />
-        </Root>
+        <ErrorBoundary closeOnClick={this._onClose}>
+          <Root store={this._store}>
+            <TheComponent />
+          </Root>
+        </ErrorBoundary>
       </div>
     )
   }

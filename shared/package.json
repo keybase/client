@@ -108,7 +108,7 @@
     "moment": "2.19.4",
     "mousetrap": "1.6.1",
     "path-parse": "1.0.5",
-    "prettier": "1.3.1",
+    "prettier": "1.9.2",
     "prop-types": "15.6.0",
     "purepack": "1.0.4",
     "qrcode-generator": "1.3.1",

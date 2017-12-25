@@ -100,41 +100,43 @@ class ConversationInput extends Component<Props> {
 
     return (
       <Box style={styleContainer}>
-        {isIOS
-          ? <Input
-              autoCorrect={true}
-              autoCapitalize="sentences"
-              autoFocus={false}
-              hideUnderline={true}
-              hintText="Write a message"
-              inputStyle={styleInputText}
-              multiline={true}
-              onBlur={this._onBlur}
-              onChangeText={this.props.setText}
-              ref={this.props.inputSetRef}
-              small={true}
-              style={styleInput}
-              value={this.props.text}
-              {...multilineOpts}
-            />
-          : <CustomTextInput
-              autoCorrect={true}
-              autoCapitalize="sentences"
-              autoFocus={false}
-              autoGrow={true}
-              style={styleInput}
-              onChangeText={this.props.setText}
-              onBlur={this._onBlur}
-              placeholder="Write a message"
-              underlineColorAndroid={globalColors.transparent}
-              multiline={true}
-              maxHeight={80}
-              numberOfLines={1}
-              minHeight={40}
-              defaultValue={this.props.text || undefined}
-              ref={this.props.inputSetRef}
-              blurOnSubmit={false}
-            />}
+        {isIOS ? (
+          <Input
+            autoCorrect={true}
+            autoCapitalize="sentences"
+            autoFocus={false}
+            hideUnderline={true}
+            hintText="Write a message"
+            inputStyle={styleInputText}
+            multiline={true}
+            onBlur={this._onBlur}
+            onChangeText={this.props.setText}
+            ref={this.props.inputSetRef}
+            small={true}
+            style={styleInput}
+            value={this.props.text}
+            {...multilineOpts}
+          />
+        ) : (
+          <CustomTextInput
+            autoCorrect={true}
+            autoCapitalize="sentences"
+            autoFocus={false}
+            autoGrow={true}
+            style={styleInput}
+            onChangeText={this.props.setText}
+            onBlur={this._onBlur}
+            placeholder="Write a message"
+            underlineColorAndroid={globalColors.transparent}
+            multiline={true}
+            maxHeight={80}
+            numberOfLines={1}
+            minHeight={40}
+            defaultValue={this.props.text || undefined}
+            ref={this.props.inputSetRef}
+            blurOnSubmit={false}
+          />
+        )}
         {this.props.typing.length > 0 && <Typing typing={this.props.typing} />}
         <Action
           text={this.props.text}
@@ -165,17 +167,15 @@ const Typing = ({typing}) => (
 )
 
 const Action = ({text, onSubmit, editingMessage, openFilePicker, isLoading}) =>
-  text
-    ? <Box style={styleActionText}>
-        <Text
-          type="BodyBigLink"
-          style={{...(isLoading ? {color: globalColors.grey} : {})}}
-          onClick={onSubmit}
-        >
-          {editingMessage ? 'Save' : 'Send'}
-        </Text>
-      </Box>
-    : <Icon onClick={openFilePicker} type="iconfont-camera" style={styleActionButton} />
+  text ? (
+    <Box style={styleActionText}>
+      <Text type="BodyBigLink" style={{...(isLoading ? {color: globalColors.grey} : {})}} onClick={onSubmit}>
+        {editingMessage ? 'Save' : 'Send'}
+      </Text>
+    </Box>
+  ) : (
+    <Icon onClick={openFilePicker} type="iconfont-camera" style={styleActionButton} />
+  )
 
 const styleActionText = {
   ...globalStyles.flexBoxColumn,

@@ -18,10 +18,11 @@ class BackButton extends Component<Props> {
     return (
       <div style={{...styles.container, ...this.props.style}} onClick={e => this.onClick(e)}>
         <Icon type="iconfont-back" style={{...styles.icon, ...this.props.iconStyle}} />
-        {this.props.title !== null &&
+        {this.props.title !== null && (
           <Text type="BodyPrimaryLink" style={this.props.textStyle} onClick={e => this.onClick(e)}>
             {this.props.title || 'Back'}
-          </Text>}
+          </Text>
+        )}
       </div>
     )
   }
