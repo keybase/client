@@ -11,13 +11,6 @@ echo DOKAN_PATH %DOKAN_PATH%
 
 if NOT DEFINED DevEnvDir call "%ProgramFiles(x86)%\\Microsoft Visual Studio 14.0\\vc\\bin\\vcvars32.bat"
 
-:: Test run saltpack signer to fail early if the key is not correct
-go run %GOPATH%\src\github.com\keybase\client\go\tools\ssss\main.go $0
-IF %ERRORLEVEL% NEQ 0 (
-  echo Saltpack key not set right, can't build
-  EXIT /B 1
-)
-
 IF [%UpdateChannel%] == [] goto:donecheckingdrivers
 
 IF [%UpdateChannel%] == [None] goto:donecheckingdrivers
