@@ -52,7 +52,9 @@ export const PeoplePageContent = (props: Props) => (
     >
       <ClickableBox onClick={props.onSearch} style={{...styleSearchContainer}}>
         <Icon style={styleSearch} type="iconfont-search" />
-        <Text style={styleSearchText} type="Body">Search people</Text>
+        <Text style={styleSearchText} type="Body">
+          Search people
+        </Text>
       </ClickableBox>
     </Box>
     <ScrollView style={{...globalStyles.flexBoxColumn, width: '100%'}}>

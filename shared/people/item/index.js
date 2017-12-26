@@ -44,17 +44,16 @@ export default (props: Props) => (
       position: 'relative',
     }}
   >
-    <Box style={{marginRight: 20, width: isMobile ? 48 : 32}}>
-      {props.icon}
-    </Box>
+    <Box style={{marginRight: 20, width: isMobile ? 48 : 32}}>{props.icon}</Box>
     <Box style={{...globalStyles.flexBoxColumn, paddingRight: 70, width: 'auto', overflow: 'hidden'}}>
       {props.children}
     </Box>
     <Box style={{...globalStyles.flexBoxRow, position: 'absolute', alignItems: 'center', right: 8, top: 12}}>
-      {!!props.when &&
+      {!!props.when && (
         <Text type="BodySmall" style={{}}>
           {moment(props.when).fromNow(true)}
-        </Text>}
+        </Text>
+      )}
       {props.badged && <Badge badgeNumber={null} badgeStyle={{marginLeft: globalMargins.tiny, height: 10}} />}
     </Box>
   </Box>

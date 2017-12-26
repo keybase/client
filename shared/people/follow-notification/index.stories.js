@@ -41,11 +41,7 @@ const multiFollowProps2: Props = {
 
 const load = () => {
   storiesOf('People/Follow notification', module)
-    .addDecorator(story => (
-      <Provider store={createStore(ignore => store, store)}>
-        {story()}
-      </Provider>
-    ))
+    .addDecorator(story => <Provider store={createStore(ignore => store, store)}>{story()}</Provider>)
     .add('Someone followed you', () => <FollowNotification {...singleFollowProps1} />)
     .add('Someone you follow followed you', () => <FollowNotification {...singleFollowProps2} />)
     .add('A few people followed you', () => <FollowNotification {...multiFollowProps1} />)

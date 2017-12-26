@@ -35,7 +35,11 @@ export default (props: Props) => (
         onClick={props.onConfirm}
         style={{marginRight: globalMargins.small}}
       />
-      {props.dismissable && <Text type="BodyPrimaryLink" onClick={props.onDismiss}>Later</Text>}
+      {props.dismissable && (
+        <Text type="BodyPrimaryLink" onClick={props.onDismiss}>
+          Later
+        </Text>
+      )}
     </Box>
   </PeopleItem>
 )

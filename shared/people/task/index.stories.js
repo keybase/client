@@ -20,7 +20,8 @@ const bioTaskProps: Props = {
 const proofTaskProps: Props = {
   badged: true,
   confirmLabel: 'Prove your identities',
-  instructions: 'Add some proofs to your profile. The more you have, the stronger your cryptographic identity.',
+  instructions:
+    'Add some proofs to your profile. The more you have, the stronger your cryptographic identity.',
   dismissable: true,
   icon: 'icon-onboarding-proofs-32',
   ...actionProps,
@@ -38,7 +39,8 @@ const installTaskProps: Props = {
 const followTaskProps: Props = {
   badged: true,
   confirmLabel: 'Browse people',
-  instructions: 'Follow at least one person on Keybase. A "follow" is a signed snaphot of someone. It strengthens Keybase and your own security.',
+  instructions:
+    'Follow at least one person on Keybase. A "follow" is a signed snaphot of someone. It strengthens Keybase and your own security.',
   dismissable: true,
   icon: 'icon-onboarding-follow-32',
   ...actionProps,
@@ -56,7 +58,8 @@ const chatTaskProps: Props = {
 const paperKeyTaskProps: Props = {
   badged: true,
   confirmLabel: 'Create a paper key',
-  instructions: 'Please make a paper key. Unlike your account password, paper keys can provision new devices and recover data, for ultimate safety.',
+  instructions:
+    'Please make a paper key. Unlike your account password, paper keys can provision new devices and recover data, for ultimate safety.',
   dismissable: false,
   icon: 'icon-onboarding-paper-key-32',
   ...actionProps,
@@ -65,7 +68,8 @@ const paperKeyTaskProps: Props = {
 const teamTaskProps: Props = {
   badged: true,
   confirmLabel: 'Create a team',
-  instructions: 'Create a team! Keybase team chats are end-to-end encrypted - unlike Slack - and work for any kind of group, from casual friends to large communities.',
+  instructions:
+    'Create a team! Keybase team chats are end-to-end encrypted - unlike Slack - and work for any kind of group, from casual friends to large communities.',
   dismissable: true,
   icon: 'icon-onboarding-team-32',
   ...actionProps,
@@ -74,7 +78,8 @@ const teamTaskProps: Props = {
 const folderTaskProps: Props = {
   badged: true,
   confirmLabel: 'Open a private folder',
-  instructions: 'Open an encrypted private folder with someone! They’ll only get notified once you drop files in it.',
+  instructions:
+    'Open an encrypted private folder with someone! They’ll only get notified once you drop files in it.',
   dismissable: true,
   icon: 'icon-onboarding-folder-32',
   ...actionProps,
@@ -83,7 +88,8 @@ const folderTaskProps: Props = {
 const gitTaskProps: Props = {
   badged: true,
   confirmLabel: 'Create a personal git repo',
-  instructions: 'Create an encrypted Git repository! Only you will be able to decrypt any of it. And it’s so easy!',
+  instructions:
+    'Create an encrypted Git repository! Only you will be able to decrypt any of it. And it’s so easy!',
   dismissable: true,
   icon: 'icon-onboarding-git-32',
   ...actionProps,

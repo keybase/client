@@ -42,9 +42,7 @@ export const FollowNotification = (props: Props) => {
       when={props.notificationTime}
     >
       <Text type="Body" style={{marginTop: 2}}>
-        <ConnectedUsernames {...connectedUsernamesProps} usernames={[username]} />
-        {' '}
-        followed you.
+        <ConnectedUsernames {...connectedUsernamesProps} usernames={[username]} /> followed you.
       </Text>
     </PeopleItem>
   )
@@ -84,9 +82,8 @@ export const MultiFollowNotification = (props: Props) => {
           {...connectedUsernamesProps}
           usernames={usernames}
         />
-        {!!props.numAdditional && props.numAdditional > 0 && ` and ${props.numAdditional} others `}
-        {' '}
-        started following you.
+        {!!props.numAdditional && props.numAdditional > 0 && ` and ${props.numAdditional} others `} started
+        following you.
       </Text>
       <Box style={{...globalStyles.flexBoxRow, overflow: 'auto'}}>
         {usernames.map(username => (
