@@ -13,10 +13,14 @@ class FileRender extends Component<Props> {
   _renderBody() {
     return (
       <Box>
-        <Text type="Body" style={filenameStyleThemed[this.props.theme]}>{this.props.name}</Text>
+        <Text type="Body" style={filenameStyleThemed[this.props.theme]}>
+          {this.props.name}
+        </Text>
         <Box style={globalStyles.flexBoxRow}>
-          <Text type="BodySmall" style={pathStyleThemed[this.props.theme]}>{this.props.path}</Text>
-          {!!this.props.lastModifiedBy &&
+          <Text type="BodySmall" style={pathStyleThemed[this.props.theme]}>
+            {this.props.path}
+          </Text>
+          {!!this.props.lastModifiedBy && (
             <Box style={{display: 'inline'}}>
               <Text
                 type="BodySmall"
@@ -24,15 +28,19 @@ class FileRender extends Component<Props> {
               >
                 ·
               </Text>
-              {this.props.modifiedMarker &&
+              {this.props.modifiedMarker && (
                 <Icon
                   type="iconfont-thunderbolt"
                   style={{fontSize: 10, marginRight: 1, color: pathStyleThemed[this.props.theme].color}}
-                />}
+                />
+              )}
               <Text type="BodySmall" style={modifiedByStyleThemed[this.props.theme]}>
                 {this.props.lastModifiedMeta}
               </Text>
-              <Text type="BodySmall" style={modifiedByStyleThemed[this.props.theme]}> by </Text>
+              <Text type="BodySmall" style={modifiedByStyleThemed[this.props.theme]}>
+                {' '}
+                by{' '}
+              </Text>
               <Text
                 type="BodySmallInlineLink"
                 style={{
@@ -42,7 +50,8 @@ class FileRender extends Component<Props> {
               >
                 {this.props.lastModifiedBy}
               </Text>
-            </Box>}
+            </Box>
+          )}
         </Box>
       </Box>
     )

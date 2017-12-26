@@ -26,8 +26,9 @@ class Nav extends React.Component<Props> {
     return (
       <ErrorBoundary>
         <Box style={stylesTabsContainer}>
-          {props.routeSelected !== loginTab &&
-            <TabBar onTabClick={this._switchTab} selectedTab={props.routeSelected} />}
+          {props.routeSelected !== loginTab && (
+            <TabBar onTabClick={this._switchTab} selectedTab={props.routeSelected} />
+          )}
           <ErrorBoundary>
             <Box style={{...globalStyles.flexBoxColumn, flex: 1}}>
               {visibleScreen.component({isActiveRoute: true, shouldRender: true})}
@@ -37,8 +38,9 @@ class Nav extends React.Component<Props> {
           <ErrorBoundary>
             <div id="popupContainer" />
           </ErrorBoundary>
-          {![chatTab, loginTab].includes(props.routeSelected) &&
-            <Offline reachable={props.reachable} appFocused={props.appFocused} />}
+          {![chatTab, loginTab].includes(props.routeSelected) && (
+            <Offline reachable={props.reachable} appFocused={props.appFocused} />
+          )}
           <GlobalError />
         </Box>
       </ErrorBoundary>

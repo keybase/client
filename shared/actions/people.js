@@ -4,7 +4,7 @@ import * as Saga from '../util/saga'
 import * as I from 'immutable'
 import * as Constants from '../constants/people'
 import * as Types from '../constants/types/people'
-import * as RPCTypes from '../constants/types/flow-types'
+import * as RPCTypes from '../constants/types/rpc-gen'
 
 const _getPeopleData = function(action: PeopleGen.GetPeopleDataPayload) {
   return Saga.call(RPCTypes.homeHomeGetScreenRpcPromise, {

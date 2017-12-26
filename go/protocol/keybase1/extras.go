@@ -1056,7 +1056,8 @@ func (b TLFIdentifyBehavior) AlwaysRunIdentify() bool {
 	switch b {
 	case TLFIdentifyBehavior_CHAT_CLI,
 		TLFIdentifyBehavior_CHAT_GUI,
-		TLFIdentifyBehavior_CHAT_GUI_STRICT:
+		TLFIdentifyBehavior_CHAT_GUI_STRICT,
+		TLFIdentifyBehavior_SALTPACK:
 		return true
 	default:
 		return false
@@ -1066,7 +1067,8 @@ func (b TLFIdentifyBehavior) AlwaysRunIdentify() bool {
 func (b TLFIdentifyBehavior) CanUseUntrackedFastPath() bool {
 	switch b {
 	case TLFIdentifyBehavior_CHAT_GUI,
-		TLFIdentifyBehavior_CHAT_GUI_STRICT:
+		TLFIdentifyBehavior_CHAT_GUI_STRICT,
+		TLFIdentifyBehavior_SALTPACK:
 		return true
 	default:
 		// TLFIdentifyBehavior_DEFAULT_KBFS, for filesystem activity that
@@ -1094,7 +1096,8 @@ func (b TLFIdentifyBehavior) ShouldSuppressTrackerPopups() bool {
 		TLFIdentifyBehavior_CHAT_GUI_STRICT,
 		TLFIdentifyBehavior_CHAT_CLI,
 		TLFIdentifyBehavior_KBFS_REKEY,
-		TLFIdentifyBehavior_KBFS_QR:
+		TLFIdentifyBehavior_KBFS_QR,
+		TLFIdentifyBehavior_SALTPACK:
 		// These are identifies that either happen without user interaction at
 		// all, or happen while you're staring at some Keybase UI that can
 		// report errors on its own. No popups needed.

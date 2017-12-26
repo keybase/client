@@ -19,9 +19,10 @@ const mapDispatchToProps = (dispatch: any, {navigateAppend, navigateUp, routePro
   _loadTeams: () => dispatch(TeamsGen.createGetTeams()),
   onClose: () => dispatch(navigateUp()),
   onCreate: (name: string, teamname: ?string, notifyTeam: boolean) => {
-    const createAction = routeProps.get('isTeam') && teamname
-      ? GitGen.createCreateTeamRepo({teamname, name, notifyTeam})
-      : GitGen.createCreatePersonalRepo({name})
+    const createAction =
+      routeProps.get('isTeam') && teamname
+        ? GitGen.createCreateTeamRepo({teamname, name, notifyTeam})
+        : GitGen.createCreatePersonalRepo({name})
     dispatch(createAction)
   },
   onNewTeam: () => dispatch(navigateTo([teamsTab, 'showNewTeamDialog'])),

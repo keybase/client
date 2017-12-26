@@ -26,18 +26,25 @@ const Render = (props: Props) => {
           overlay={platformIconOverlay}
           overlayColor={platformIconOverlayColor}
         />
-        <Text type="Header" style={{color: globalColors.blue}}>{username}</Text>
-        {!!usernameSubtitle &&
+        <Text type="Header" style={{color: globalColors.blue}}>
+          {username}
+        </Text>
+        {!!usernameSubtitle && (
           <Text type="Body" style={{color: globalColors.black_20, paddingBottom: globalMargins.large}}>
             {usernameSubtitle}
-          </Text>}
+          </Text>
+        )}
         <Text
           type="Body"
           style={{marginTop: globalMargins.small, marginBottom: globalMargins.tiny, textAlign: 'center'}}
         >
           {message}
         </Text>
-        {!!messageSubtitle && <Text type="BodySmall" style={{textAlign: 'center'}}>{messageSubtitle}</Text>}
+        {!!messageSubtitle && (
+          <Text type="BodySmall" style={{textAlign: 'center'}}>
+            {messageSubtitle}
+          </Text>
+        )}
       </Box>
       <ButtonBar>
         <Button type="Primary" onClick={onReloadProfile} label="Reload profile" />
@@ -60,7 +67,9 @@ const Wrapped = (props: Props) => {
         height: globalMargins.large,
       }}
     >
-      <Text backgroundMode="Terminal" type="BodySemibold">{title}</Text>
+      <Text backgroundMode="Terminal" type="BodySemibold">
+        {title}
+      </Text>
     </Box>
   )
   return (

@@ -19,7 +19,6 @@ const Notifications = ({
       paddingRight: globalMargins.small,
     }}
   >
-
     <Checkbox
       checked={!channelWide}
       label="Ignore @here and @channel mentions"

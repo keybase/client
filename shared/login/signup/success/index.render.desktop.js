@@ -19,15 +19,19 @@ class SuccessRender extends Component<Props, State> {
   }
 
   render() {
-    const contents = this.props.paperkey
-      ? <Box style={stylesPaperKeyContainer}>
-          <Text type="Header" style={stylesPaperkey}>{this.props.paperkey.stringValue()}</Text>
-          <Icon type="icon-paper-key-corner" style={stylesPaperCorner} />
-        </Box>
-      : <Box style={{stylesPaperKeyContainer}}>
-          <ProgressIndicator type="Small" style={{width: 40}} />
-          <Icon type="icon-paper-key-corner" style={stylesPaperCorner} />
-        </Box>
+    const contents = this.props.paperkey ? (
+      <Box style={stylesPaperKeyContainer}>
+        <Text type="Header" style={stylesPaperkey}>
+          {this.props.paperkey.stringValue()}
+        </Text>
+        <Icon type="icon-paper-key-corner" style={stylesPaperCorner} />
+      </Box>
+    ) : (
+      <Box style={{stylesPaperKeyContainer}}>
+        <ProgressIndicator type="Small" style={{width: 40}} />
+        <Icon type="icon-paper-key-corner" style={stylesPaperCorner} />
+      </Box>
+    )
 
     return (
       <Container onBack={this.props.onBack} style={stylesContainer}>
@@ -35,23 +39,21 @@ class SuccessRender extends Component<Props, State> {
           {this.props.title || "Congratulations, you've just joined Keybase!"}
         </Text>
         <Text type="Body" style={stylesBody}>
-          Here is your unique paper key, it will allow you to perform important Keybase tasks in the future. This is the only time you'll see this so be sure to write it down.
+          Here is your unique paper key, it will allow you to perform important Keybase tasks in the future.
+          This is the only time you'll see this so be sure to write it down.
         </Text>
         {contents}
-        {this.props.onFinish &&
+        {this.props.onFinish && (
           <Checkbox
             style={stylesCheck}
             label="Yes, I wrote this down."
             checked={this.state.inWallet}
             onCheck={inWallet => this.setState({inWallet})}
-          />}
-        {this.props.onFinish &&
-          <Button
-            type="Primary"
-            label="Done"
-            onClick={this.props.onFinish}
-            disabled={!this.state.inWallet}
-          />}
+          />
+        )}
+        {this.props.onFinish && (
+          <Button type="Primary" label="Done" onClick={this.props.onFinish} disabled={!this.state.inWallet} />
+        )}
       </Container>
     )
   }

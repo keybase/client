@@ -11,15 +11,18 @@ const StandardScreen = ({theme = 'light', ...props}: Props) => {
   return (
     <Box style={{...styleContainer, ...backgroundColorThemed[theme]}}>
       <NativeScrollView>
-        {!!props.notification &&
+        {!!props.notification && (
           <Box style={{...styleBanner(props.notification.type), ...props.styleBanner}}>
-            {typeof props.notification.message === 'string'
-              ? <Text style={styleBannerText} type="BodySemibold">{props.notification.message}</Text>
-              : props.notification.message}
-          </Box>}
-        <Box style={{...styleContentContainer(!!props.notification), ...props.style}}>
-          {props.children}
-        </Box>
+            {typeof props.notification.message === 'string' ? (
+              <Text style={styleBannerText} type="BodySemibold">
+                {props.notification.message}
+              </Text>
+            ) : (
+              props.notification.message
+            )}
+          </Box>
+        )}
+        <Box style={{...styleContentContainer(!!props.notification), ...props.style}}>{props.children}</Box>
       </NativeScrollView>
     </Box>
   )

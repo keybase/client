@@ -28,16 +28,19 @@ const TeamInfo = (props: Props) => (
       {props.openTeam && 'OPEN '}TEAM
     </Text>
 
-    <Text type="BodySmall">
-      {props.memberCount} members
+    <Text type="BodySmall">{props.memberCount} members</Text>
+
+    <Text type={isMobile ? 'Body' : 'BodySmall'} style={styleDescription}>
+      {props.description}
     </Text>
 
-    <Text type={isMobile ? 'Body' : 'BodySmall'} style={styleDescription}>{props.description}</Text>
+    {!!props.teamJoinError && (
+      <Text type="BodySmall" style={styleDescription}>
+        Error: {props.teamJoinError}
+      </Text>
+    )}
 
-    {!!props.teamJoinError &&
-      <Text type="BodySmall" style={styleDescription}>Error: {props.teamJoinError}</Text>}
-
-    {!props.youAreInTeam &&
+    {!props.youAreInTeam && (
       <Box style={styleDivider}>
         <Button
           onClick={() => props.onJoinTeam(props.teamname)}
@@ -55,18 +58,18 @@ const TeamInfo = (props: Props) => (
               : props.openTeam ? 'PrimaryGreen' : 'Primary'
           }
         />
-      </Box>}
+      </Box>
+    )}
 
     {!props.youAreInTeam &&
       props.youHaveRequestedAccess &&
-      props.openTeam &&
-      <Box style={styleDescription}>
-        <Text type="BodySmall">
-          As soon as an admin comes online, this team will unlock for you.
-        </Text>
-      </Box>}
+      props.openTeam && (
+        <Box style={styleDescription}>
+          <Text type="BodySmall">As soon as an admin comes online, this team will unlock for you.</Text>
+        </Box>
+      )}
 
-    {!!props.publicAdmins.length &&
+    {!!props.publicAdmins.length && (
       <Box style={styleWrap}>
         <Text type="BodySmall">Public admins: </Text>
 
@@ -87,7 +90,8 @@ const TeamInfo = (props: Props) => (
             </Text>
           </Box>
         ))}
-      </Box>}
+      </Box>
+    )}
   </Box>
 )
 
@@ -130,14 +134,16 @@ const TeamInfoWrapper = (props: Props) => {
   }
   let items = []
 
-  return isMobile
-    ? <PopupMenu onHidden={props.onHidden} style={{overflow: 'visible'}} header={header} items={items} />
-    : <ModalLessPopupMenu
-        onHidden={() => {}}
-        style={{...props.style, overflow: 'visible', width: 220}}
-        header={header}
-        items={items}
-      />
+  return isMobile ? (
+    <PopupMenu onHidden={props.onHidden} style={{overflow: 'visible'}} header={header} items={items} />
+  ) : (
+    <ModalLessPopupMenu
+      onHidden={() => {}}
+      style={{...props.style, overflow: 'visible', width: 220}}
+      header={header}
+      items={items}
+    />
+  )
 }
 
 export default TeamInfoWrapper

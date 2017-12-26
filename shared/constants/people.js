@@ -1,7 +1,7 @@
 // @flow
 import * as I from 'immutable'
 import * as Types from './types/people'
-import * as RPCTypes from './types/flow-types'
+import * as RPCTypes from './types/rpc-gen'
 import {invert} from 'lodash'
 import {type IconType} from '../common-adapters/icon.constants'
 import {isMobile} from '../constants/platform'
@@ -14,12 +14,17 @@ export const todoTypeToInstructions: {[key: Types.TodoType]: string} = {
   bio: 'Add your name, bio, and location to complete your profile.',
   proof: 'Add some proofs to your profile. The more you have, the stronger your cryptographic identity.',
   device: 'Install Keybase on your phone. Until you have at least 2 devices, you risk losing data.',
-  follow: 'Follow at least one person on Keybase. A "follow" is a signed snaphot of someone. It strengthens Keybase and your own security.',
+  follow:
+    'Follow at least one person on Keybase. A "follow" is a signed snaphot of someone. It strengthens Keybase and your own security.',
   chat: 'Start a chat! All conversations on Keybase are end-to-end encrypted.',
-  paperkey: 'Please make a paper key. Unlike your account password, paper keys can provision new devices and recover data, for ultimate safety.',
-  team: 'Create a team! Keybase team chats are end-to-end encrypted - unlike Slack - and work for any kind of group, from casual friends to large communities.',
-  folder: 'Open an encrypted private folder with someone! They’ll only get notified once you drop files in it.',
-  gitRepo: 'Create an encrypted Git repository! Only you will be able to decrypt any of it. And it’s so easy!',
+  paperkey:
+    'Please make a paper key. Unlike your account password, paper keys can provision new devices and recover data, for ultimate safety.',
+  team:
+    'Create a team! Keybase team chats are end-to-end encrypted - unlike Slack - and work for any kind of group, from casual friends to large communities.',
+  folder:
+    'Open an encrypted private folder with someone! They’ll only get notified once you drop files in it.',
+  gitRepo:
+    'Create an encrypted Git repository! Only you will be able to decrypt any of it. And it’s so easy!',
   teamShowcase: `Tip: Keybase team chats are private, but you can choose to publish that you're an admin. Check out “Publicity settings" on any team you manage.`,
 }
 export const todoTypeToConfirmLabel: {[key: Types.TodoType]: string} = {

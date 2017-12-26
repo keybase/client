@@ -32,12 +32,13 @@ class SearchResultsList extends Component<Props> {
 
     return (
       <Box style={{width: '100%', ...style}}>
-        {showSearchSuggestions &&
+        {showSearchSuggestions && (
           <Box style={{padding: globalMargins.tiny}}>
             <Text type="BodySmallSemibold" style={{color: globalColors.black_40}}>
               Recommendations
             </Text>
-          </Box>}
+          </Box>
+        )}
         <NativeFlatList data={items} renderItem={this._renderItem} keyExtractor={this._keyExtractor} />
       </Box>
     )

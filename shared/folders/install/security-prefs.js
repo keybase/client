@@ -77,7 +77,9 @@ class InstallSecurityPrefs extends Component<Props, State> {
               <Text type="BodySemibold" style={stylesNumberList}>
                 2
               </Text>
-              <Text type="BodySemibold" style={styleListText}>Click "Allow"</Text>
+              <Text type="BodySemibold" style={styleListText}>
+                Click "Allow"
+              </Text>
             </Box>
             <Text
               type="BodySemiboldLink"

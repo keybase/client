@@ -5,22 +5,26 @@
 // We start up and send a 'remoteWindowWantsProps' to the main window which then sends us 'props'
 import {remote, BrowserWindow} from 'electron'
 import {sendToMainWindow} from './util'
+import {createStore, applyMiddleware, type Store} from 'redux'
+
+const updateStore = 'remoteStore:update'
 
 class RemoteStore {
   _window: ?BrowserWindow
-  _subscribers: Array<Function> = []
-  _internalState: any = {}
+  _store: Store<*, *, *>
   _gotPropsCallback: ?() => void // let component know it loaded once so it can show itself. Set to null after calling once
 
-  _onPropsUpdated = propsStr => {
-    const props = JSON.parse(propsStr)
-    // We get diffs of the top level props so we always overwrite
-    this._internalState = {
-      ...this._internalState,
-      ...props,
-    }
+  getStore = () => this._store
 
-    this._publishChange()
+  _onPropsUpdated = propsStr => {
+    // setImmediate since this can be a side effect of the reducer which redux doesn't like
+    setImmediate(() => {
+      this._store.dispatch({
+        payload: {propsStr},
+        type: updateStore,
+      })
+    })
+
     if (this._gotPropsCallback) {
       this._gotPropsCallback()
       this._gotPropsCallback = null
@@ -37,42 +41,40 @@ class RemoteStore {
     sendToMainWindow('remoteWindowWantsProps', props.windowComponent, props.windowParam)
   }
 
+  _reducer = (state: any, action: any) => {
+    switch (action.type) {
+      case updateStore: {
+        const props = JSON.parse(action.payload.propsStr)
+        // We get diffs of the top level props so we always overwrite
+        return {
+          ...state,
+          ...props,
+        }
+      }
+    }
+
+    return state
+  }
+
   constructor(props: {windowComponent: string, windowParam: string, gotPropsCallback: () => void}) {
+    this._store = createStore(this._reducer, {}, applyMiddleware(sendToRemoteMiddleware))
     this._gotPropsCallback = props.gotPropsCallback
     this._registerForRemoteUpdate()
     this._askMainWindowForOurProps(props)
   }
+}
 
-  getState(): any {
-    return this._internalState
+const sendToRemoteMiddleware = ({getState, dispatch}) => next => action => {
+  if (action.constructor === Function) {
+    throw new Error('pure actions only allowed in remote store2')
+  } else if (action.type === updateStore) {
+    // Don't forward our internal updateStore call
+    return next(action)
+  } else {
+    const {windowComponent, windowParam} = getState()
+    sendToMainWindow('dispatchAction', action, windowComponent, windowParam)
   }
-
-  // We send all actions across the wire to be handled by the main window
-  dispatch = (action: any) => {
-    if (action.constructor === Function) {
-      throw new Error('pure actions only allowed in remote store2')
-    } else {
-      sendToMainWindow(
-        'dispatchAction',
-        action,
-        this._internalState.windowComponent,
-        this._internalState.windowParam
-      )
-    }
-  }
-
-  subscribe(subscriber: Function): () => void {
-    this._subscribers.push(subscriber)
-    return subscriber => {
-      this._subscribers = this._subscribers.filter(s => s !== subscriber)
-    }
-  }
-
-  _publishChange() {
-    this._subscribers.forEach(s => {
-      setImmediate(s)
-    })
-  }
+  return next(action)
 }
 
 export default RemoteStore

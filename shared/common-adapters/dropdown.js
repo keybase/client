@@ -49,7 +49,7 @@ class Dropdown extends React.Component<Props, State> {
     return (
       <Box style={this.props.style}>
         <ButtonBox onClick={this._toggleOpen}>
-          {this.state.expanded &&
+          {this.state.expanded && (
             <PopupDialog
               onClose={this._toggleOpen}
               styleCover={{
@@ -82,7 +82,8 @@ class Dropdown extends React.Component<Props, State> {
                   ))}
                 </Box>
               </Box>
-            </PopupDialog>}
+            </PopupDialog>
+          )}
           <Box
             style={{
               ...globalStyles.flexBoxCenter,
@@ -93,7 +94,6 @@ class Dropdown extends React.Component<Props, State> {
             {this.state.selected}
           </Box>
           <Icon type="iconfont-caret-down" inheritColor={true} style={{fontSize: 11}} />
-
         </ButtonBox>
       </Box>
     )

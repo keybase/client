@@ -62,7 +62,7 @@ const Row = (
           </Text>
           <Text type="BodySmall">{props.description}</Text>
         </Box>
-        {props.showEdit &&
+        {props.showEdit && (
           <Edit
             style={{
               ...globalStyles.flexBoxRow,
@@ -70,7 +70,8 @@ const Row = (
               justifyContent: 'flex-end',
             }}
             onClick={props.onEdit}
-          />}
+          />
+        )}
       </Box>
     </Box>
   </Box>
@@ -110,7 +111,9 @@ const ManageChannels = (props: Props) => (
       </ScrollView>
       <Box style={_createStyle}>
         <Icon style={_createIcon} type="iconfont-new" onClick={props.onCreate} />
-        <Text type="BodyBigLink" onClick={props.onCreate}>New chat channel</Text>
+        <Text type="BodyBigLink" onClick={props.onCreate}>
+          New chat channel
+        </Text>
       </Box>
       <Box style={{flex: 2, ...globalStyles.flexBoxColumn, justifyContent: 'flex-end'}}>
         <ButtonBar>

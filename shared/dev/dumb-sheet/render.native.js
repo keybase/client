@@ -199,7 +199,8 @@ class DumbSheetRender extends Component<Props, any> {
               onChangeText={filter =>
                 this.props.onDebugConfigChange({
                   dumbIndex: parseInt(filter, 10) || 0,
-                })}
+                })
+              }
               autoCapitalize="none"
             />
             <Button
@@ -247,7 +248,8 @@ class DumbSheetRender extends Component<Props, any> {
             onChangeText={filter =>
               this.props.onDebugConfigChange({
                 dumbIndex: parseInt(filter, 10) || 0,
-              })}
+              })
+            }
             autoCapitalize="none"
           />
           <Button
@@ -269,17 +271,13 @@ class DumbSheetRender extends Component<Props, any> {
         <Box style={styleBox}>
           <Text type="BodySmall">
             {key}
-            :
-            {' '}
-            {mockKey}
+            : {mockKey}
             {!!mock.parentProps && !!mock.parentProps.style && Object.keys(mock.parentProps.style).length
               ? ' (with parent props style) '
               : ''}
           </Text>
           <Box style={styleSmallScreen}>
-            <Box {...mock.parentProps}>
-              {this._makeStoreWrapper(component)}
-            </Box>
+            <Box {...mock.parentProps}>{this._makeStoreWrapper(component)}</Box>
           </Box>
         </Box>
       </Box>

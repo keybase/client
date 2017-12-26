@@ -1,6 +1,6 @@
 // @flow
 import {Component} from 'react'
-import type {Time} from '../../constants/types/flow-types'
+import type {Time} from '../../constants/types/rpc-gen'
 import type {SimpleProofState} from '../../constants/types/tracker'
 
 type InviteBase = {

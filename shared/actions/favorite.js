@@ -2,7 +2,7 @@
 import logger from '../logger'
 import * as Constants from '../constants/favorite'
 import * as Types from '../constants/types/favorite'
-import * as RPCTypes from '../constants/types/flow-types'
+import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Saga from '../util/saga'
 import * as FavoriteGen from './favorite-gen'
 import * as NotificationsGen from './notifications-gen'
@@ -52,7 +52,9 @@ const _jsonToFolders = (json: Object, myKID: any): Array<FolderRPCWithMeta> => {
 
         return {
           name: json.users[userID],
-          devices: `Tell them to turn on${numDevices > 1 ? ':' : ' '} ${devices.join(', ')}${last ? ` or ${last}` : ''}.`,
+          devices: `Tell them to turn on${numDevices > 1 ? ':' : ' '} ${devices.join(', ')}${
+            last ? ` or ${last}` : ''
+          }.`,
         }
       })
     }

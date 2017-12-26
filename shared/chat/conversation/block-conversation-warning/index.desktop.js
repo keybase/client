@@ -19,15 +19,21 @@ const Contents = ({conversationIDKey, onBack, participants, onBlock, onBlockAndR
     }}
   >
     <Text type="Header">Block the conversation with {participants}?</Text>
-    <Text type="Body" style={{marginTop: globalMargins.large}}>You won't see this conversation anymore.</Text>
-    <Text type="Body" style={{marginTop: globalMargins.small}}>To unblock it, run:</Text>
+    <Text type="Body" style={{marginTop: globalMargins.large}}>
+      You won't see this conversation anymore.
+    </Text>
+    <Text type="Body" style={{marginTop: globalMargins.small}}>
+      To unblock it, run:
+    </Text>
     <Text
       type="Terminal"
       style={{...globalStyles.selectable, alignSelf: 'center', marginTop: globalMargins.small}}
     >
       keybase chat hide -u {participants}
     </Text>
-    <Text type="Body" style={{marginTop: globalMargins.small}}>in the terminal.</Text>
+    <Text type="Body" style={{marginTop: globalMargins.small}}>
+      in the terminal.
+    </Text>
     <ButtonBar>
       <Button type="Secondary" onClick={onBack} label="No, don't block them" />
       <Button type="Danger" onClick={onBlock} label="Yes, block them" />

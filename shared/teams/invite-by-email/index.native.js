@@ -66,9 +66,10 @@ const AccessDenied = () => (
 )
 
 const contactRow = (i: number, props: ContactRowProps) => {
-  const source = typeof props.contact.thumbnailPath === 'string'
-    ? {uri: `file://${props.contact.thumbnailPath}`}
-    : props.contact.thumbnailPath
+  const source =
+    typeof props.contact.thumbnailPath === 'string'
+      ? {uri: `file://${props.contact.thumbnailPath}`}
+      : props.contact.thumbnailPath
   const hasThumbnail = props.contact.thumbnailPath && props.contact.thumbnailPath.length > 0
   return (
     <Box
@@ -82,26 +83,22 @@ const contactRow = (i: number, props: ContactRowProps) => {
     >
       <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', flex: 1}}>
         <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', flex: 1}}>
-          {!!hasThumbnail &&
-            <NativeImage
-              style={{width: 48, height: 48, borderRadius: 24, marginRight: 16}}
-              source={source}
-            />}
+          {!!hasThumbnail && (
+            <NativeImage style={{width: 48, height: 48, borderRadius: 24, marginRight: 16}} source={source} />
+          )}
           {!hasThumbnail && <Avatar size={48} style={{marginRight: 16}} />}
           <Box>
             <Box style={globalStyles.flexBoxRow}>
               <Text type="BodySemibold">{props.contact.name}</Text>
             </Box>
             <Box style={globalStyles.flexBoxRow}>
-              <Text type="BodySmall">
-                {props.contact.email || props.contact.phoneNo}
-              </Text>
+              <Text type="BodySmall">{props.contact.email || props.contact.phoneNo}</Text>
             </Box>
           </Box>
         </Box>
         <Box>
           <Button
-            type={props.selected ? 'Following' : 'Primary'}
+            type={props.selected ? 'PrimaryGreenActive' : 'Primary'}
             label={props.selected ? 'Invited!' : 'Invite'}
             waiting={props.loading}
             small={true}
@@ -173,7 +170,8 @@ class InviteByEmail extends React.Component<MobileProps, State> {
             onClick={() =>
               this.props.onOpenRolePicker(this.props.role, (selectedRole: TeamRoleType) =>
                 this.props.onRoleChange(selectedRole)
-              )}
+              )
+            }
             style={{
               ...globalStyles.flexBoxColumn,
               alignItems: 'center',

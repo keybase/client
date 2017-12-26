@@ -10,16 +10,15 @@ function SettingsRender(props: Props) {
   return (
     <Box style={{...globalStyles.flexBoxColumn, flex: 1}}>
       <Box style={{...globalStyles.flexBoxRow, flex: 1}}>
-        {!props.isModal &&
+        {!props.isModal && (
           <SettingsNav
             badgeNumbers={props.badgeNumbers}
             selectedTab={props.selectedTab}
             onTabChange={props.onTabChange}
             onLogout={props.onLogout}
-          />}
-        <Box style={{...globalStyles.flexBoxRow, flex: 1, overflow: 'auto'}}>
-          {props.children}
-        </Box>
+          />
+        )}
+        <Box style={{...globalStyles.flexBoxRow, flex: 1, overflow: 'auto'}}>{props.children}</Box>
       </Box>
     </Box>
   )

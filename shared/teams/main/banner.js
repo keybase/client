@@ -50,7 +50,8 @@ const Banner = ({onReadMore, onHideBanner}: Props) => (
         type="BodySemibold"
         style={{marginBottom: globalMargins.small, ...(isMobile ? {textAlign: 'center'} : {})}}
       >
-        Keybase team chats are encrypted - unlike Slack - and work for any size group, from casual friends to large communities.
+        Keybase team chats are encrypted - unlike Slack - and work for any size group, from casual friends to
+        large communities.
       </Text>
       <Text backgroundMode="Terminal" type="BodySemiboldLink" className="underline" onClick={onReadMore}>
         Read our announcement

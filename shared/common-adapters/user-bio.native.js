@@ -116,39 +116,53 @@ class BioRender extends Component<Props> {
           >
             {username}
           </Text>
-          {!!userInfo.fullname && <Text type="BodySemibold" style={stylesFullname}>{userInfo.fullname}</Text>}
-          {!!followLabel &&
-            <Text type="BodySmall" style={stylesFollowLabel}>{followLabel.toUpperCase()}</Text>}
+          {!!userInfo.fullname && (
+            <Text type="BodySemibold" style={stylesFullname}>
+              {userInfo.fullname}
+            </Text>
+          )}
+          {!!followLabel && (
+            <Text type="BodySmall" style={stylesFollowLabel}>
+              {followLabel.toUpperCase()}
+            </Text>
+          )}
           <Text type="BodySmall" style={stylesFollowing}>
             <Text type="BodySmall" style={stylesFollowingLabel}>
-              <Text type="BodySmall" style={stylesFollowingCount}>{userInfo.followersCount}</Text>
-              {' '}
+              <Text type="BodySmall" style={stylesFollowingCount}>
+                {userInfo.followersCount}
+              </Text>{' '}
               {userInfo.followersCount === 1 ? 'Follower' : 'Followers'}
             </Text>
-            &nbsp;
-            &middot;
-            &nbsp;
+            &nbsp; &middot; &nbsp;
             <Text type="BodySmall" style={stylesFollowingLabel}>
-              Following <Text type="BodySmall" style={stylesFollowingCount}>{userInfo.followingCount}</Text>
+              Following{' '}
+              <Text type="BodySmall" style={stylesFollowingCount}>
+                {userInfo.followingCount}
+              </Text>
             </Text>
           </Text>
-          {!!userInfo.bio &&
+          {!!userInfo.bio && (
             <Text
               type={this.props.type === 'Profile' ? 'Body' : 'BodySmall'}
               style={stylesBio}
               {...bioLineClamp}
             >
               {userInfo.bio}
-            </Text>}
-          {!!userInfo.location &&
-            <Text type="BodySmall" style={stylesLocation} {...locationLineClamp}>{userInfo.location}</Text>}
-          {editFns &&
+            </Text>
+          )}
+          {!!userInfo.location && (
+            <Text type="BodySmall" style={stylesLocation} {...locationLineClamp}>
+              {userInfo.location}
+            </Text>
+          )}
+          {editFns && (
             <Button
               label="Edit profile"
               onClick={editFns.onEditProfile}
               style={{marginTop: globalMargins.small}}
               type="Primary"
-            />}
+            />
+          )}
         </Box>
       </Box>
     )

@@ -1,29 +1,29 @@
 // @flow
-// Sep. engine file so we can avoid import cycles w/ flow-types.js
+// Sep. engine file so we can avoid import cycles w/ rpc-gen.js
 // A lot of weak typing here as we're usually interfacing with this through helpers, could make it more accurate later
 declare export class EngineChannel {
-  map: () => any,
-  close(): void,
-  take(key: string): Generator<any, any, any>,
-  race(options: ?{timeout?: number, racers?: Object}): Generator<any, any, any>,
+  map: () => any;
+  close(): void;
+  take(key: string): Generator<any, any, any>;
+  race(options: ?{timeout?: number, racers?: Object}): Generator<any, any, any>;
 }
 
 declare export class Engine {
-  reset(): void,
-  cancelRPC(): void,
-  cancelSession(sessionID: any): void,
-  rpc(): void,
-  setFailOnError(): void,
-  listenOnConnect(key: string, f: () => void): void,
-  listenOnDisconnect(key: string, f: () => void): void,
-  hasEverConnected(): void,
-  setIncomingHandler(name: string, callback: Function): void,
+  reset(): void;
+  cancelRPC(): void;
+  cancelSession(sessionID: any): void;
+  rpc(): void;
+  setFailOnError(): void;
+  listenOnConnect(key: string, f: () => void): void;
+  listenOnDisconnect(key: string, f: () => void): void;
+  hasEverConnected(): void;
+  setIncomingHandler(name: string, callback: Function): void;
   setIncomingActionCreators(
     method: string,
     actionCreator: (param: Object, response: ?Object, dispatch: Dispatch, getState: () => any) => ?any
-  ): void,
-  createSession(incomingCallMap: ?any, waitingHandler: ?any, cancelHandler: ?any, dangling?: boolean): any,
-  _channelMapRpcHelper(configKeys: Array<string>, method: string, params: any): EngineChannel,
+  ): void;
+  createSession(incomingCallMap: ?any, waitingHandler: ?any, cancelHandler: ?any, dangling?: boolean): any;
+  _channelMapRpcHelper(configKeys: Array<string>, method: string, params: any): EngineChannel;
   _rpcOutgoing(
     method: string,
     params: ?{
@@ -31,7 +31,7 @@ declare export class Engine {
       waitingHandler?: any,
     },
     callback: (...args: Array<any>) => void
-  ): void,
+  ): void;
 }
 
 declare export function getEngine(): Engine

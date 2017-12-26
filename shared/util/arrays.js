@@ -9,7 +9,10 @@ export function intersperseFn(
     return []
   }
 
-  return arr.slice(1).reduce((acc, x, i, a) => {
-    return acc.concat([separatorFn(i, x, a), x])
-  }, [arr[0]])
+  return arr.slice(1).reduce(
+    (acc, x, i, a) => {
+      return acc.concat([separatorFn(i, x, a), x])
+    },
+    [arr[0]]
+  )
 }

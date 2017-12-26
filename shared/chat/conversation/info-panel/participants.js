@@ -36,10 +36,7 @@ const Participants = ({participants, onShowProfile}: Props) => (
                   type="BodySemibold"
                   users={[{broken, following, username, you: isYou}]}
                 />
-                {fullname !== '' &&
-                  <Text type="BodySmall">
-                    {fullname}
-                  </Text>}
+                {fullname !== '' && <Text type="BodySmall">{fullname}</Text>}
               </Box>
             </Box>
           </Box>

@@ -4,7 +4,7 @@ import * as ConfigGen from './config-gen'
 import * as KBFSGen from './kbfs-gen'
 import * as Constants from '../constants/config'
 import * as Saga from '../util/saga'
-import * as RPCTypes from '../constants/types/flow-types'
+import * as RPCTypes from '../constants/types/rpc-gen'
 import electron, {shell} from 'electron'
 import fs from 'fs'
 import path from 'path'
@@ -135,9 +135,8 @@ function fuseStatusUpdateSaga({payload: {prevStatus, status}}: KBFSGen.FuseStatu
 
 function* installFuseSaga(): Saga.SagaGenerator<any, any> {
   const result: RPCTypes.InstallResult = yield Saga.call(RPCTypes.installInstallFuseRpcPromise)
-  const fuseResults = result && result.componentResults
-    ? result.componentResults.filter(c => c.name === 'fuse')
-    : []
+  const fuseResults =
+    result && result.componentResults ? result.componentResults.filter(c => c.name === 'fuse') : []
   const kextPermissionError =
     fuseResults.length > 0 && fuseResults[0].exitCode === ExitCodeFuseKextPermissionError
 

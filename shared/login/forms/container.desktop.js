@@ -9,9 +9,7 @@ const Container = ({children, onBack, style, outerStyle}: Props) => {
   return (
     <div style={{...stylesContainer, ...outerStyle}}>
       {onBack && <BackButton style={stylesButton} onClick={onBack} />}
-      <div style={{...stylesInnerContainer, ...style}}>
-        {children}
-      </div>
+      <div style={{...stylesInnerContainer, ...style}}>{children}</div>
     </div>
   )
 }

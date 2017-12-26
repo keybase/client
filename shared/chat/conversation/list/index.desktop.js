@@ -139,11 +139,7 @@ class BaseList extends React.Component<Props, State> {
             isSelected,
             measure
           )
-          return (
-            <DivRow style={style}>
-              {message}
-            </DivRow>
-          )
+          return <DivRow style={style}>{message}</DivRow>
         }}
       </Virtualized.CellMeasurer>
     )

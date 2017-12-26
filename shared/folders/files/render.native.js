@@ -21,9 +21,11 @@ import type {FileSection} from '../../constants/types/folders'
 import type {Props} from './render'
 
 const RenderIgnore = ({isPrivate, ignored, unIgnoreCurrentFolder, ignoreCurrentFolder}) =>
-  ignored
-    ? <Button type="Secondary" onClick={unIgnoreCurrentFolder} label="Unignore folder" />
-    : <Button type="Secondary" onClick={ignoreCurrentFolder} label="Ignore folder" />
+  ignored ? (
+    <Button type="Secondary" onClick={unIgnoreCurrentFolder} label="Unignore folder" />
+  ) : (
+    <Button type="Secondary" onClick={ignoreCurrentFolder} label="Ignore folder" />
+  )
 
 const RenderNotImplemented = ({
   isPrivate,
@@ -34,17 +36,20 @@ const RenderNotImplemented = ({
 }) => {
   return (
     <Box style={{...globalStyles.flexBoxColumn, flex: 1, justifyContent: 'center'}}>
-      <Text style={{textAlign: 'center'}} type="BodySmall">Mobile files coming soon!</Text>
+      <Text style={{textAlign: 'center'}} type="BodySmall">
+        Mobile files coming soon!
+      </Text>
       <Text style={{textAlign: 'center', marginBottom: globalMargins.large}} type="BodySmall">
         For now you can browse this folder on your computer.
       </Text>
-      {allowIgnore &&
+      {allowIgnore && (
         <RenderIgnore
           isPrivate={isPrivate}
           ignored={ignored}
           unIgnoreCurrentFolder={unIgnoreCurrentFolder}
           ignoreCurrentFolder={ignoreCurrentFolder}
-        />}
+        />
+      )}
     </Box>
   )
 }
@@ -127,13 +132,11 @@ const YouCanUnlock = ({youCanUnlock, isPrivate, onClickPaperkey, theme}) => {
               key={device.name}
               type="Large"
               action={
-                device.type === 'backup'
-                  ? <Button
-                      label="Enter paper key"
-                      onClick={() => onClickPaperkey(device)}
-                      type="Secondary"
-                    />
-                  : <Box />
+                device.type === 'backup' ? (
+                  <Button label="Enter paper key" onClick={() => onClickPaperkey(device)} type="Secondary" />
+                ) : (
+                  <Box />
+                )
               }
               icon={<Icon type={deviceIcon(isPrivate, device.type)} />}
               body={
@@ -156,7 +159,7 @@ class FilesRender extends Component<Props> {
       <Box key={section.name} style={{...globalStyles.flexBoxColumn}}>
         <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', height: 32}}>
           <Box key={section.name} style={{...globalStyles.flexBoxRow, marginLeft: globalMargins.tiny}}>
-            {section.modifiedMarker &&
+            {section.modifiedMarker && (
               <Icon
                 type="iconfont-thunderbolt"
                 style={{
@@ -165,7 +168,8 @@ class FilesRender extends Component<Props> {
                   fontSize: 10,
                   ...styleSectionTextThemed[this.props.theme],
                 }}
-              />}
+              />
+            )}
             <Text type="BodySmallSemibold" style={styleSectionTextThemed[this.props.theme]}>
               {section.name}
             </Text>

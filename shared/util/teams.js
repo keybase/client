@@ -15,9 +15,8 @@ function parsePublicAdmins(publicAdmins: Array<string>, you: ?string): SortedAdm
   }
   // If there are more than six public admins, take the first six and mention
   // the count of the others.
-  const publicAdminsOthers = publicAdmins.length > publicAdminsLimit
-    ? publicAdmins.length - publicAdminsLimit
-    : 0
+  const publicAdminsOthers =
+    publicAdmins.length > publicAdminsLimit ? publicAdmins.length - publicAdminsLimit : 0
   // Remove the public admins past the sixth.
   publicAdmins.splice(publicAdminsLimit, publicAdmins.length - publicAdminsLimit)
   return {publicAdmins, publicAdminsOthers}

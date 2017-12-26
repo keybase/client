@@ -65,10 +65,12 @@ const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps, ownPro
   const isRevoked = !!message.senderDeviceRevokedAt
   const failureDescription = message.messageState === 'failed' ? message.failureDescription : null
 
-  const isFirstNewMessage = !!(conversationState &&
+  const isFirstNewMessage = !!(
+    conversationState &&
     message &&
     message.messageID &&
-    conversationState.get('firstNewMessageID') === message.messageID)
+    conversationState.get('firstNewMessageID') === message.messageID
+  )
 
   const skipMsgHeader = prevMessage && prevMessage.type === 'Text' && prevMessage.author === message.author
 
@@ -80,9 +82,8 @@ const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps, ownPro
     prevMessage.timestamp &&
     message.timestamp &&
     message.timestamp - prevMessage.timestamp > Constants.howLongBetweenTimestampsMs
-  const timestamp = firstMessageEver || firstVisibleMessage || oldEnough
-    ? formatTimeForMessages(message.timestamp)
-    : null
+  const timestamp =
+    firstMessageEver || firstVisibleMessage || oldEnough ? formatTimeForMessages(message.timestamp) : null
   const includeHeader = isFirstNewMessage || !skipMsgHeader || !!timestamp
 
   return {

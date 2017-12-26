@@ -128,20 +128,22 @@ function renderStackRoute(route, isActiveRoute, shouldRender) {
   if (root) {
     style = sceneWrapStyleNoStatusBarPadding
   } else {
-    style = route.tags && route.tags.underStatusBar
-      ? sceneWrapStyleNoStatusBarPadding
-      : sceneWrapStyleWithStatusBarPadding
+    style =
+      route.tags && route.tags.underStatusBar
+        ? sceneWrapStyleNoStatusBarPadding
+        : sceneWrapStyleWithStatusBarPadding
   }
 
   return (
     <Box style={style}>
-      {!isIPhoneX &&
+      {!isIPhoneX && (
         <NativeStatusBar
           hidden={hideStatusBar && !isIPhoneX}
           translucent={true}
           backgroundColor="rgba(0, 26, 51, 0.25)"
           barStyle={barStyle(showStatusBarDarkContent, underStatusBar)}
-        />}
+        />
+      )}
       {route.component({isActiveRoute, shouldRender})}
     </Box>
   )
@@ -190,9 +192,9 @@ class MainNavStack extends Component<any, any> {
     const content = (
       <Box style={globalStyles.flexGrow}>
         {stacks}
-        {![chatTab].includes(props.routeSelected)
-          ? <Offline key="offline" reachable={props.reachable} appFocused={true} />
-          : null}
+        {![chatTab].includes(props.routeSelected) ? (
+          <Offline key="offline" reachable={props.reachable} appFocused={true} />
+        ) : null}
         <GlobalError key="globalError" />
         <AnimatedTabBar show={!props.hideNav}>
           <TabBar onTabClick={this._switchTab} selectedTab={props.routeSelected} />
@@ -253,11 +255,7 @@ class AnimatedTabBar extends Component<AnimatedTabBarProps, {offset: any}> {
         </NativeAnimated.View>
       )
     } else {
-      return (
-        <Box style={this.props.show ? _tabBarHeightBar : _tabBarHeightZero}>
-          {this.props.children}
-        </Box>
-      )
+      return <Box style={this.props.show ? _tabBarHeightBar : _tabBarHeightZero}>{this.props.children}</Box>
     }
   }
 }
