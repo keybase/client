@@ -234,9 +234,7 @@ const mapStateToProps = (state: TypedState, {isActiveRoute, routeState}: OwnProp
     _user: Constants.getYou(state),
     showNewConversation:
       state.chat.get('inSearch') ||
-      (selectedConversationIDKey &&
-        // $FlowIssue this is a string
-        Constants.isPendingConversationIDKey(selectedConversationIDKey)),
+      (selectedConversationIDKey && Constants.isPendingConversationIDKey(selectedConversationIDKey)),
   }
 }
 

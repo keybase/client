@@ -367,6 +367,15 @@ def testGo(prefix) {
             dirs = getTestDirsNix()
             slash = '/'
             goversion = sh(returnStdout: true, script: "go version").trim()
+            /* TODO: Run unconditionally once
+
+                 libkb\\util_windows.go:92: possible misuse of unsafe.Pointer
+
+              is fixed.
+            */
+            shell "go vet ./..."
+            // TODO: Run unconditionally once the Windows environment has golint.
+            shell "make lint"
         } else {
             shell = { params -> bat params }
             dirs = getTestDirsWindows()
