@@ -51,10 +51,10 @@ js_tests() {
     yarn install --pure-lockfile --prefer-offline --no-emoji --no-progress
     check_rc $? 'yarn install fail' 1
     echo 'yarn run -s flow status'
-    flow_status_output=$(yarn run flow status)
+    flow_status_output=$(yarn run -s flow status)
     echo $flow_status_output
     [[ $flow_status_output == 'No errors!' ]]
-    check_rc $? 'yarn run flow status' 1
+    check_rc $? 'yarn run -s flow status' 1
     echo 'yarn run lint'
     yarn run lint
     check_rc $? 'yarn run lint fail' 1
