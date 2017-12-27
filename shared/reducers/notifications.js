@@ -25,6 +25,7 @@ export default function(state: Types.State = initialState, action: Notifications
       return initialState
     case NotificationsGen.receivedBadgeState: {
       const {
+        homeTodoItems,
         conversations,
         newTlfs,
         rekeysNeeded,
@@ -46,6 +47,7 @@ export default function(state: Types.State = initialState, action: Notifications
         n.set(Tabs.folderTab, newTlfs + rekeysNeeded)
         n.set(Tabs.gitTab, newGit)
         n.set(Tabs.teamsTab, newTeams)
+        n.set(Tabs.peopleTab, homeTodoItems)
       })
       let newState = state.withMutations(s => {
         s.set('navBadges', navBadges)
