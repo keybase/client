@@ -40,8 +40,6 @@ func handleQuickVersion() bool {
 	return false
 }
 
-// Trivial change to trigger CI.
-
 func main() {
 	err := libkb.SaferDLLLoading()
 
