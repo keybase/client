@@ -39,11 +39,10 @@ export type FollowedNotificationItem = {
 export type PeopleScreenItem = Todo | FollowedNotificationItem
 
 export type FollowSuggestion = {
-  uid: RPCTypes.UID,
   username: string,
-  bio: string,
-  fullName: string,
-  pics?: ?RPCTypes.Pics,
+  fullName: ?string,
+  followsMe: boolean,
+  iFollow: boolean,
 }
 
 export type _PeopleScreen = {

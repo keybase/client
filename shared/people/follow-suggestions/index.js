@@ -1,5 +1,6 @@
 // @flow
 import * as React from 'react'
+import * as Types from '../../constants/types/people'
 import {Avatar, Box, Text, ConnectedUsernames} from '../../common-adapters'
 import {globalStyles, globalMargins} from '../../styles'
 
@@ -10,12 +11,7 @@ const connectedUsernamesProps = {
   style: {marginTop: globalMargins.xtiny, display: 'block'},
 }
 
-export type FollowSuggestion = {
-  username: string,
-  fullName: ?string,
-  followsMe: boolean,
-  iFollow: boolean,
-}
+export type FollowSuggestion = Types.FollowSuggestion
 
 export type Props = {
   suggestions: Array<FollowSuggestion>,

@@ -15,6 +15,7 @@ export default function(state: Types.State = initialState, action: PeopleGen.Act
         lastViewed: action.payload.lastViewed,
         oldItems: action.payload.oldItems,
         newItems: action.payload.newItems,
+        followSuggestions: action.payload.followSuggestions,
       })
     case PeopleGen.getPeopleData:
       return state

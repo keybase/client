@@ -5,15 +5,24 @@ import * as I from 'immutable'
 import * as Constants from '../constants/people'
 import * as Types from '../constants/types/people'
 import * as RPCTypes from '../constants/types/rpc-gen'
+import {type TypedState} from '../constants/reducer'
 
-const _getPeopleData = function(action: PeopleGen.GetPeopleDataPayload) {
-  return Saga.call(RPCTypes.homeHomeGetScreenRpcPromise, {
-    markViewed: action.payload.markViewed,
-    numFollowSuggestionsWanted: action.payload.numFollowSuggestionsWanted,
-  })
+const _getPeopleData = function(action: PeopleGen.GetPeopleDataPayload, state: TypedState) {
+  return Saga.all([
+    Saga.call(RPCTypes.homeHomeGetScreenRpcPromise, {
+      markViewed: action.payload.markViewed,
+      numFollowSuggestionsWanted: action.payload.numFollowSuggestionsWanted,
+    }),
+    Saga.identity(state.config.following),
+    Saga.identity(state.config.followers),
+  ])
 }
 
-const _processPeopleData = function(data: RPCTypes.HomeScreen) {
+const _processPeopleData = function([
+  data: RPCTypes.HomeScreen,
+  following: I.Set<string>,
+  followers: I.Set<string>,
+]) {
   let oldItems: I.List<Types.PeopleScreenItem> = I.List()
   let newItems: I.List<Types.PeopleScreenItem> = I.List()
   console.log(data)
@@ -148,8 +157,26 @@ const _processPeopleData = function(data: RPCTypes.HomeScreen) {
       }
     })
   }
+  let followSuggestions: I.List<Types.FollowSuggestion> = I.List()
+  if (data.followSuggestions) {
+    data.followSuggestions.forEach(suggestion => {
+      const followsMe = followers.has(suggestion.username)
+      const iFollow = following.has(suggestion.username)
+      followSuggestions = followSuggestions.push({
+        username: suggestion.username,
+        followsMe,
+        iFollow,
+        fullName: suggestion.fullName,
+      })
+    })
+  }
   return Saga.put(
-    PeopleGen.createPeopleDataProcessed({oldItems, newItems, lastViewed: new Date(data.lastViewed)})
+    PeopleGen.createPeopleDataProcessed({
+      oldItems,
+      newItems,
+      lastViewed: new Date(data.lastViewed),
+      followSuggestions,
+    })
   )
 }
 

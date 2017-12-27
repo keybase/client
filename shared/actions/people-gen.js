@@ -14,7 +14,7 @@ export const peopleDataProcessed = 'people:peopleDataProcessed'
 
 // Action Creators
 export const createGetPeopleData = (payload: {|+markViewed: boolean, +numFollowSuggestionsWanted: number|}) => ({error: false, payload, type: getPeopleData})
-export const createPeopleDataProcessed = (payload: {|+oldItems: I.List<Types.PeopleScreenItem>, +newItems: I.List<Types.PeopleScreenItem>, +lastViewed: Date|}) => ({error: false, payload, type: peopleDataProcessed})
+export const createPeopleDataProcessed = (payload: {|+oldItems: I.List<Types.PeopleScreenItem>, +newItems: I.List<Types.PeopleScreenItem>, +followSuggestions: I.List<Types.FollowSuggestion>, +lastViewed: Date|}) => ({error: false, payload, type: peopleDataProcessed})
 
 // Action Payloads
 export type GetPeopleDataPayload = More.ReturnType<typeof createGetPeopleData>
