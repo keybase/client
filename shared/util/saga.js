@@ -129,7 +129,7 @@ function* sequentially(effects: Array<any>): Generator<any, Array<any>, any> {
 function safeTakeEveryPure<A, R, FinalAction, FinalActionError>(
   pattern: string | Array<any> | Function,
   pureWorker: ((action: A, state: TypedState) => any) | ((action: A) => any),
-  actionCreatorsWithResult?: (result: R, action: A) => FinalAction,
+  actionCreatorsWithResult?: (result: R, action: A, state: TypedState) => FinalAction,
   actionCreatorsWithError?: (result: R, action: A) => FinalActionError
 ) {
   return safeTakeEvery(pattern, function* safeTakeEveryPureWorker(action: A) {
@@ -146,7 +146,13 @@ function safeTakeEveryPure<A, R, FinalAction, FinalActionError>(
       }
 
       if (actionCreatorsWithResult) {
-        yield actionCreatorsWithResult(result, action)
+        if (actionCreatorsWithResult.length === 3) {
+          const state: TypedState = yield select()
+          yield actionCreatorsWithResult(result, action, state)
+        } else {
+          // $FlowIssue - doesn't understand checking for arity
+          yield actionCreatorsWithResult(result, action)
+        }
       }
     } catch (e) {
       if (actionCreatorsWithError) {
@@ -159,7 +165,7 @@ function safeTakeEveryPure<A, R, FinalAction, FinalActionError>(
 function safeTakeLatestPure<A, R, FinalAction, FinalActionError>(
   pattern: string | Array<any> | Function,
   pureWorker: ((action: A, state: TypedState) => any) | ((action: A) => any),
-  actionCreatorsWithResult?: (result: R, action: A) => FinalAction,
+  actionCreatorsWithResult?: (result: R, action: A, state: TypedState) => FinalAction,
   actionCreatorsWithError?: (result: R, action: A) => FinalActionError
 ) {
   const safeTakeLatestPureWorker = function* safeTakeLatestPureWorker(action: A) {
@@ -176,8 +182,14 @@ function safeTakeLatestPure<A, R, FinalAction, FinalActionError>(
       }
 
       if (actionCreatorsWithResult) {
-        // $FlowIssue confused
-        yield actionCreatorsWithResult(result, action)
+        if (actionCreatorsWithResult.length === 3) {
+          const state: TypedState = yield select(s => s)
+          // $FlowIssue - doesn't understand checking for arity
+          yield actionCreatorsWithResult(result, action, state)
+        } else {
+          // $FlowIssue - doesn't understand checking for arity
+          yield actionCreatorsWithResult(result, action)
+        }
       }
     } catch (e) {
       if (actionCreatorsWithError) {
