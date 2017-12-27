@@ -13,7 +13,9 @@ export const todoTypeEnumToType: {[key: Types.TodoTypeEnum]: Types.TodoType} = i
 export const todoTypeToInstructions: {[key: Types.TodoType]: string} = {
   bio: 'Add your name, bio, and location to complete your profile.',
   proof: 'Add some proofs to your profile. The more you have, the stronger your cryptographic identity.',
-  device: 'Install Keybase on your phone. Until you have at least 2 devices, you risk losing data.',
+  device: `Install Keybase on your ${
+    isMobile ? 'computer' : 'phone'
+  }. Until you have at least 2 devices, you risk losing data.`,
   follow:
     'Follow at least one person on Keybase. A "follow" is a signed snaphot of someone. It strengthens Keybase and your own security.',
   chat: 'Start a chat! All conversations on Keybase are end-to-end encrypted.',
@@ -30,7 +32,7 @@ export const todoTypeToInstructions: {[key: Types.TodoType]: string} = {
 export const todoTypeToConfirmLabel: {[key: Types.TodoType]: string} = {
   bio: 'Edit Profile',
   proof: 'Prove your identities',
-  device: 'Get the download link',
+  device: isMobile ? 'Get the download link' : 'Get the app',
   follow: 'Browse people',
   chat: 'Start a chat',
   paperkey: 'Create a paper key',

@@ -180,8 +180,15 @@ const _processPeopleData = function([
   )
 }
 
+const _skipTodo = (action: PeopleGen.SkipTodoPayload) => {
+  return Saga.call(RPCTypes.homeHomeSkipTodoTypeRpcPromise, {
+    t: RPCTypes.homeHomeScreenTodoType[action.payload.type],
+  })
+}
+
 const peopleSaga = function*(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeLatestPure(PeopleGen.getPeopleData, _getPeopleData, _processPeopleData)
+  yield Saga.safeTakeEveryPure(PeopleGen.skipTodo, _skipTodo)
 }
 
 export default peopleSaga

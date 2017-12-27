@@ -11,18 +11,22 @@ import * as Types from '../constants/types/people'
 export const resetStore = 'common:resetStore' // not a part of people but is handled by every reducer
 export const getPeopleData = 'people:getPeopleData'
 export const peopleDataProcessed = 'people:peopleDataProcessed'
+export const skipTodo = 'people:skipTodo'
 
 // Action Creators
 export const createGetPeopleData = (payload: {|+markViewed: boolean, +numFollowSuggestionsWanted: number|}) => ({error: false, payload, type: getPeopleData})
 export const createPeopleDataProcessed = (payload: {|+oldItems: I.List<Types.PeopleScreenItem>, +newItems: I.List<Types.PeopleScreenItem>, +followSuggestions: I.List<Types.FollowSuggestion>, +lastViewed: Date|}) => ({error: false, payload, type: peopleDataProcessed})
+export const createSkipTodo = (payload: {|+type: Types.TodoType|}) => ({error: false, payload, type: skipTodo})
 
 // Action Payloads
 export type GetPeopleDataPayload = More.ReturnType<typeof createGetPeopleData>
 export type PeopleDataProcessedPayload = More.ReturnType<typeof createPeopleDataProcessed>
+export type SkipTodoPayload = More.ReturnType<typeof createSkipTodo>
 
 // All Actions
 // prettier-ignore
 export type Actions =
   | More.ReturnType<typeof createGetPeopleData>
   | More.ReturnType<typeof createPeopleDataProcessed>
+  | More.ReturnType<typeof createSkipTodo>
   | {type: 'common:resetStore', payload: void}
