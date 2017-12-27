@@ -11,6 +11,7 @@ import {navigateAppend} from '../actions/route-tree'
 const mapStateToProps = (state: TypedState) => ({
   newItems: state.people.newItems,
   oldItems: state.people.oldItems,
+  followSuggestions: state.people.followSuggestions,
 })
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({

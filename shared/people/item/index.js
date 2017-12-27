@@ -36,7 +36,6 @@ export default (props: Props) => (
   <Box
     style={{
       ...globalStyles.flexBoxRow,
-      width: '100%',
       backgroundColor: props.badged ? globalColors.blue4 : globalColors.white,
       paddingTop: globalMargins.tiny,
       paddingLeft: 12,

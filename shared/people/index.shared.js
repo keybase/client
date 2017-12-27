@@ -5,6 +5,7 @@ import * as I from 'immutable'
 import {Box, ClickableBox, Icon, ScrollView, Text} from '../common-adapters'
 import Todo from './task'
 import FollowNotification from './follow-notification'
+import FollowSuggestions from './follow-suggestions'
 import {type Props} from '.'
 import {globalStyles, globalColors} from '../styles'
 import {isMobile} from '../constants/platform'
@@ -57,8 +58,9 @@ export const PeoplePageContent = (props: Props) => (
         </Text>
       </ClickableBox>
     </Box>
-    <ScrollView style={{...globalStyles.flexBoxColumn, width: '100%'}}>
+    <ScrollView contentContainerStyle={{...globalStyles.flexBoxColumn, width: '100%'}}>
       {intersperse(props.newItems.map(itemToComponent), true)}
+      <FollowSuggestions suggestions={props.followSuggestions} onClickUser={() => {}} />
       {intersperse(props.oldItems.map(itemToComponent), false)}
     </ScrollView>
   </Box>

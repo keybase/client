@@ -1,6 +1,7 @@
 // @flow
 import * as React from 'react'
 import * as Types from '../../constants/types/people'
+import {List} from 'immutable'
 import {Avatar, Box, Text, ConnectedUsernames} from '../../common-adapters'
 import {globalStyles, globalMargins} from '../../styles'
 
@@ -14,7 +15,7 @@ const connectedUsernamesProps = {
 export type FollowSuggestion = Types.FollowSuggestion
 
 export type Props = {
-  suggestions: Array<FollowSuggestion>,
+  suggestions: List<FollowSuggestion>,
   onClickUser: (username: string) => void,
 }
 
@@ -40,10 +41,10 @@ export default (props: Props) => (
   <Box
     style={{
       ...globalStyles.flexBoxColumn,
-      width: '100%',
       position: 'relative',
       paddingTop: globalMargins.tiny,
       paddingLeft: 12,
+      paddingRight: 12,
       paddingBottom: globalMargins.tiny,
     }}
   >

@@ -2,7 +2,7 @@
 import * as React from 'react'
 import {Provider} from 'react-redux'
 import {createStore} from 'redux'
-import {Set} from 'immutable'
+import {Set, List} from 'immutable'
 import {storiesOf, action} from '../../stories/storybook'
 import FollowSuggestions, {type Props} from '.'
 
@@ -15,19 +15,19 @@ const store = {
 
 const props1: Props = {
   onClickUser: action('onClickUser'),
-  suggestions: [
+  suggestions: List([
     {
       username: 'ayoubd',
       fullName: 'Danny Ayoub',
       followsMe: true,
       iFollow: false,
     },
-  ],
+  ]),
 }
 
 const props2: Props = {
   onClickUser: action('onClickUser'),
-  suggestions: [
+  suggestions: List([
     {
       username: 'ayoubd',
       fullName: 'Danny Ayoub',
@@ -70,7 +70,7 @@ const props2: Props = {
       followsMe: true,
       iFollow: false,
     },
-  ],
+  ]),
 }
 
 const props3: Props = {
