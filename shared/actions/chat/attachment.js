@@ -18,6 +18,8 @@ import {usernameSelector} from '../../constants/selectors'
 import {type TypedState} from '../../constants/reducer'
 import {type SagaGenerator} from '../../constants/types/saga'
 
+// dummy change
+
 function* onShareAttachment({
   payload: {messageKey},
 }: ChatGen.ShareAttachmentPayload): SagaGenerator<any, any> {
