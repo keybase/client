@@ -40,6 +40,8 @@ func handleQuickVersion() bool {
 	return false
 }
 
+// Dummy change.
+
 func main() {
 	err := libkb.SaferDLLLoading()
 
