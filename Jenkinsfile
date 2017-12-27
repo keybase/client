@@ -373,6 +373,8 @@ def testGo(prefix) {
             slash = '\\'
             goversion = bat(returnStdout: true, script: "@go version").trim()
         }
+        shell "go vet ./..."
+        shell "make lint"
         println "Running tests on commit ${env.COMMIT_HASH} with ${goversion}."
         def parallelTests = []
         def tests = [:]
