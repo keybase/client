@@ -70,8 +70,6 @@ func coTaskMemFree(pv uintptr) {
 	return
 }
 
-// Dummy change.
-
 func GetDataDir(id GUID, envname string) (string, error) {
 
 	var pszPath uintptr
