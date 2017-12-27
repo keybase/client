@@ -88,7 +88,7 @@ func GetDataDir(id GUID, envname string) (string, error) {
 	defer coTaskMemFree(pszPath)
 
 	var rawUnicode []uint16
-	for i := 0; ; i++ {
+	for i := uintptr(0); ; i++ {
 		// This triggers a "possible misuse of unsafe.Pointer"
 		// warning in go vet, but it is safe to ignore it: see
 		// https://groups.google.com/forum/#!msg/golang-nuts/0JYB0-ZcFpk/Zt5q1rPbBQAJ
