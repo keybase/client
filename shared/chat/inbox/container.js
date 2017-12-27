@@ -18,7 +18,7 @@ import {
   type TypedState,
   type Dispatch,
 } from '../../util/container'
-import {scoreFilter, passesStringFilter} from './filtering'
+// import {scoreFilter, passesStringFilter} from './filtering'
 
 const getMessageMap = (state: TypedState) => state.chat2.messageMap
 const getMessageOrdinals = (state: TypedState) => state.chat2.messageOrdinals
@@ -49,7 +49,7 @@ const getSmallIDs = createSelector(
 const smallTeamsCollapsedMaxShown = 5
 // const getAlwaysShow = (state: TypedState) => state.chat.get('inboxAlwaysShow')
 const getFilter = (state: TypedState) => state.chat.get('inboxFilter').toLowerCase()
-const getInbox = (state: TypedState) => state.chat.get('inbox')
+// const getInbox = (state: TypedState) => state.chat.get('inbox')
 // const getInboxBigChannels = (state: TypedState) => state.chat.get('inboxBigChannels')
 // const getInboxBigChannelsToTeam = (state: TypedState) => state.chat.get('inboxBigChannelsToTeam')
 // const getIsEmpty = (state: TypedState) => state.chat.get('inboxIsEmpty')
@@ -145,30 +145,55 @@ const _smallTeamsPassThrough = (_, smallTeamsExpanded) => smallTeamsExpanded
 const getBigRowItems = createSelector(
   [getMetaMap, getMessageOrdinals, getMessageMap],
   (metaMap, messageOrdinals, messageMap) => {
-    return []
+    let lastTeam
+    return (
+      metaMap
+        // only big teams
+        .filter(meta => meta.teamType === 'big')
+        // alpha by team/channel
+        .sort(
+          (a, b) =>
+            a.teamname === b.teamname
+              ? a.channelname.localeCompare(b.channelname)
+              : a.teamname.localeCompare(b.teamname)
+        )
+        .reduce((arr, meta) => {
+          // headers for new teams
+          if (meta.teamname !== lastTeam) {
+            lastTeam = meta.teamname
+            arr.push({
+              teamname: lastTeam,
+              type: 'bigHeader',
+            })
+          }
+          // channels
+          arr.push({
+            channelname: meta.channelname,
+            conversationIDKey: meta.conversationIDKey,
+            teamname: lastTeam,
+            type: 'big',
+          })
+
+          return arr
+        }, [])
+    )
   }
 )
 
 // Get smallIDs and big RowItems. Figure out the divider if it exists and truncate the small list.
 // Convert the smallIDs to the Small RowItems
 const getRowsAndMetadata = createSelector(
-  [getSmallIDs, _smallTeamsPassThrough, getBigRowItems],
-  (smallIDs, smallTeamsExpanded, bigRows) => {
+  [getSmallIDs, getBigRowItems, _smallTeamsPassThrough],
+  (smallIDs, bigRows, smallTeamsExpanded) => {
     const smallTeamsRowsToHideCount = Math.max(0, smallIDs.length - smallTeamsCollapsedMaxShown)
     const showSmallTeamsExpandDivider = !!(bigRows.length && smallTeamsRowsToHideCount)
     const truncate = showSmallTeamsExpandDivider && !smallTeamsExpanded
     const smallIDsToShow = truncate ? smallIDs.slice(0, smallTeamsCollapsedMaxShown) : smallIDs
-    const smallToShow = smallIDsToShow.map(conversationIDKey => ({
-      conversationIDKey,
-      type: 'small',
-    }))
+    const smallRowsToShow = smallIDsToShow.map(conversationIDKey => ({conversationIDKey, type: 'small'}))
     const smallIDsHidden = truncate ? smallIDs.slice(smallTeamsCollapsedMaxShown) : []
 
-    const divider = showSmallTeamsExpandDivider ? [{type: 'divider'}] : []
-    const rows = smallToShow.concat(divider, bigRows)
-
     return {
-      rows,
+      rows: [...smallRowsToShow, ...(showSmallTeamsExpandDivider ? [{type: 'divider'}] : []), ...bigRows],
       showBuildATeam: bigRows.length === 0,
       showSmallTeamsExpandDivider,
       smallIDsHidden,
@@ -275,7 +300,6 @@ const mapStateToProps = (state: TypedState, {isActiveRoute, routeState}: OwnProp
     isActiveRoute,
     isLoading: inboxGlobalUntrustedState === 'loading' || state.chat.get('inboxSyncingState') === 'syncing',
     neverLoaded: inboxGlobalUntrustedState === 'unloaded',
-    _user: Constants.getYou(state),
     showNewConversation:
       state.chat.get('inSearch') ||
       (selectedConversationIDKey && Constants.isPendingConversationIDKey(selectedConversationIDKey)),
@@ -328,12 +352,13 @@ const mergeProps = (
 ) => {
   return {
     filter: stateProps.filter,
+    filterFocusCount: ownProps.filterFocusCount,
     getTeams: dispatchProps.getTeams,
+    inSearch: stateProps.inSearch,
     isActiveRoute: stateProps.isActiveRoute,
     isLoading: stateProps.isLoading,
     loadInbox: dispatchProps.loadInbox,
     neverLoaded: stateProps.neverLoaded,
-    _user: stateProps._user,
     onHotkey: dispatchProps.onHotkey,
     onNewChat: dispatchProps.onNewChat,
     onSelect: dispatchProps.onSelect,
@@ -341,16 +366,14 @@ const mergeProps = (
     onSelectUp: () => dispatchProps._onSelectNext(_rowsForSelect(stateProps.rows), -1),
     onSetFilter: dispatchProps.onSetFilter,
     onUntrustedInboxVisible: dispatchProps.onUntrustedInboxVisible,
+    refreshInbox: dispatchProps.refreshInbox,
     rows: stateProps.rows,
     showBuildATeam: stateProps.showBuildATeam,
+    showNewConversation: stateProps.showNewConversation,
     showSmallTeamsExpandDivider: stateProps.showSmallTeamsExpandDivider,
     smallIDsHidden: stateProps.smallIDsHidden,
     smallTeamsExpanded: stateProps.smallTeamsExpanded,
     toggleSmallTeamsExpanded: dispatchProps.toggleSmallTeamsExpanded,
-    filterFocusCount: ownProps.filterFocusCount,
-    inSearch: stateProps.inSearch,
-    refreshInbox: dispatchProps.refreshInbox,
-    showNewConversation: stateProps.showNewConversation,
   }
 }
 

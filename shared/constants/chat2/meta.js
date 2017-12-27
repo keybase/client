@@ -23,7 +23,8 @@ const supersededConversationIDToKey = (id: string | Buffer): string =>
 
 export const unverifiedInboxUIItemToConversationMeta = (i: RPCChatTypes.UnverifiedInboxUIItem) => {
   return makeConversationMeta({
-    id: i.convID,
+    channelname: i.localMetadata ? i.localMetadata.channelName : '',
+    conversationIDKey: i.convID,
     inboxVersion: i.version,
     isMuted: i.status === RPCChatTypes.commonConversationStatus.muted,
     membershipType: conversationMemberStatusToMembershipType(i.memberStatus),
@@ -33,6 +34,7 @@ export const unverifiedInboxUIItemToConversationMeta = (i: RPCChatTypes.Unverifi
     supersededBy: null,
     supersedes: null,
     teamType: getTeamType(i),
+    teamname: i.name || '',
     trustedState: i.localMetadata ? 'trusted' : 'untrusted', // if we have localMetadata attached to an unverifiedInboxUIItem it's been loaded previously
   })
 }
@@ -59,8 +61,6 @@ const getTeamType = ({teamType, membersType}) => {
 }
 
 export const inboxUIItemToConversationMeta = (i: RPCChatTypes.InboxUIItem) => {
-  const teamType = getTeamType(i)
-
   // We only treat implied adhoc teams as having resetParticipants
   const resetParticipants = I.Set(
     i.membersType === RPCChatTypes.commonConversationMembersType.impteam && i.resetParticipants
@@ -78,7 +78,8 @@ export const inboxUIItemToConversationMeta = (i: RPCChatTypes.InboxUIItem) => {
   } = conversationMetadataToMetaSupersedeInfo(i.supersedes)
 
   return makeConversationMeta({
-    id: i.convID,
+    channelname: i.channel || '',
+    conversationIDKey: i.convID,
     inboxVersion: i.version,
     isMuted: i.status === RPCChatTypes.commonConversationStatus.muted,
     membershipType: conversationMemberStatusToMembershipType(i.memberStatus),
@@ -89,13 +90,15 @@ export const inboxUIItemToConversationMeta = (i: RPCChatTypes.InboxUIItem) => {
     supersededByCausedBy,
     supersedes,
     supersedesCausedBy,
-    teamType,
+    teamType: getTeamType(i),
+    teamname: i.name || '',
     trustedState: 'trusted',
   })
 }
 
 export const makeConversationMeta: I.RecordFactory<_ConversationMeta> = I.Record({
-  id: Types.stringToConversationIDKey(''),
+  channelname: '',
+  conversationIDKey: Types.stringToConversationIDKey(''),
   inboxVersion: -1,
   isMuted: false,
   membershipType: 'active',
@@ -107,5 +110,6 @@ export const makeConversationMeta: I.RecordFactory<_ConversationMeta> = I.Record
   supersedes: null,
   supersedesCausedBy: null,
   teamType: 'adhoc',
+  teamname: '',
   trustedState: 'untrusted',
 })

@@ -11,8 +11,8 @@ type Username = string
 export type MetaTrustedState = 'untrusted' | 'requesting' | 'trusted' | 'error'
 
 export type _ConversationMeta = {
-  channelname: ?string,
-  id: Common.ConversationIDKey,
+  channelname: string,
+  conversationIDKey: Common.ConversationIDKey,
   inboxVersion: number,
   isMuted: boolean,
   membershipType: MembershipType,
@@ -24,7 +24,7 @@ export type _ConversationMeta = {
   supersedes: ?Common.ConversationIDKey,
   supersedesCausedBy: ?Username,
   teamType: TeamType,
-  teamname: ?string,
+  teamname: string,
   trustedState: MetaTrustedState,
 }
 

@@ -24,10 +24,10 @@ const metaMapReducer = (metaMap, action) => {
     case Chat2Gen.metasReceived:
       return metaMap.withMutations(map => {
         action.payload.metas.forEach(meta => {
-          const old = map.get(meta.id)
+          const old = map.get(meta.conversationIDKey)
           // Only update if this is newer
           if (!old || meta.inboxVersion > old.inboxVersion) {
-            map.set(meta.id, meta)
+            map.set(meta.conversationIDKey, meta)
           }
         })
       })

@@ -391,49 +391,50 @@ function* _processConversation(c: RPCChatTypes.InboxUIItem): Generator<any, void
     // ),
     // ])
     // }
-  // }
+    // }
 
-  // if (!isBigTeam && c && c.snippet) {
+    // if (!isBigTeam && c && c.snippet) {
     // const snippet = c.snippet
     // yield Saga.put(
-      // ChatGen.createUpdateSnippet({
-        // conversationIDKey,
-        // snippet: new HiddenString(Constants.makeSnippet(snippet) || ''),
-      // })
+    // ChatGen.createUpdateSnippet({
+    // conversationIDKey,
+    // snippet: new HiddenString(Constants.makeSnippet(snippet) || ''),
+    // })
     // )
-  // }
+    // }
 
-  if (inboxState) {
-    // We blocked it
-    if (['ignored', 'blocked', 'reported'].includes(inboxState.status)) {
-      // yield Saga.put(
-      // ChatGen.createDeleteEntity({
-      // keyPath: ['inboxSmallTimestamps'],
-      // ids: I.List([inboxState.conversationIDKey]),
-      // })
-      // )
-      yield Saga.put(
-        ChatGen.createDeleteEntity({
-          keyPath: ['inbox'],
-          ids: I.List([inboxState.conversationIDKey]),
-        })
-      )
-    } else {
-      yield Saga.put(
-        ChatGen.createReplaceEntity({
-          keyPath: ['inbox'],
-          entities: I.Map({[inboxState.conversationIDKey]: inboxState}),
-        })
-      )
-    }
+    if (inboxState) {
+      // We blocked it
+      if (['ignored', 'blocked', 'reported'].includes(inboxState.status)) {
+        // yield Saga.put(
+        // ChatGen.createDeleteEntity({
+        // keyPath: ['inboxSmallTimestamps'],
+        // ids: I.List([inboxState.conversationIDKey]),
+        // })
+        // )
+        yield Saga.put(
+          ChatGen.createDeleteEntity({
+            keyPath: ['inbox'],
+            ids: I.List([inboxState.conversationIDKey]),
+          })
+        )
+      } else {
+        yield Saga.put(
+          ChatGen.createReplaceEntity({
+            keyPath: ['inbox'],
+            entities: I.Map({[inboxState.conversationIDKey]: inboxState}),
+          })
+        )
+      }
 
-    if (!isBigTeam) {
-      // inbox loaded so rekeyInfo is now clear
-      yield Saga.put(
-        ChatGen.createClearRekey({
-          conversationIDKey: inboxState.conversationIDKey,
-        })
-      )
+      if (!isBigTeam) {
+        // inbox loaded so rekeyInfo is now clear
+        yield Saga.put(
+          ChatGen.createClearRekey({
+            conversationIDKey: inboxState.conversationIDKey,
+          })
+        )
+      }
     }
   }
 }
