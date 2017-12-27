@@ -374,13 +374,14 @@ def testGo(prefix) {
               is fixed.
             */
             shell "go vet ./..."
+            // TODO: Run unconditionally once the Windows environment has golint.
+            shell "make lint"
         } else {
             shell = { params -> bat params }
             dirs = getTestDirsWindows()
             slash = '\\'
             goversion = bat(returnStdout: true, script: "@go version").trim()
         }
-        shell "make lint"
         println "Running tests on commit ${env.COMMIT_HASH} with ${goversion}."
         def parallelTests = []
         def tests = [:]
