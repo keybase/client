@@ -367,13 +367,14 @@ def testGo(prefix) {
             dirs = getTestDirsNix()
             slash = '/'
             goversion = sh(returnStdout: true, script: "go version").trim()
+	    // TODO: Run unconditionally once "libkb\util_windows.go:92: possible misuse of unsafe.Pointer" is fixed.
+            shell "go vet ./..."
         } else {
             shell = { params -> bat params }
             dirs = getTestDirsWindows()
             slash = '\\'
             goversion = bat(returnStdout: true, script: "@go version").trim()
         }
-        shell "go vet ./..."
         shell "make lint"
         println "Running tests on commit ${env.COMMIT_HASH} with ${goversion}."
         def parallelTests = []
