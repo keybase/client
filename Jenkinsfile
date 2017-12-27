@@ -367,7 +367,12 @@ def testGo(prefix) {
             dirs = getTestDirsNix()
             slash = '/'
             goversion = sh(returnStdout: true, script: "go version").trim()
-	    /* TODO: Run unconditionally once 'libkb\util_windows.go:92: possible misuse of unsafe.Pointer' is fixed. */
+            /* TODO: Run unconditionally once
+
+                 libkb\util_windows.go:92: possible misuse of unsafe.Pointer
+
+              is fixed.
+            */
             shell "go vet ./..."
         } else {
             shell = { params -> bat params }
