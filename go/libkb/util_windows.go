@@ -87,24 +87,24 @@ func GetDataDir(id GUID, envname string) (string, error) {
 
 	defer coTaskMemFree(pszPath)
 
-	// This triggers a "possible misuse of unsafe.Pointer" warning
-	// in go vet, but it is safe to ignore it: see
-	// https://groups.google.com/forum/#!msg/golang-nuts/0JYB0-ZcFpk/Zt5q1rPbBQAJ .
-	//
-	// Have to cast this Windows string to a Go array of uint16
-	// here, but we don't yet know the length.
-	rawUnicode := (*[1 << 16]uint16)(unsafe.Pointer(pszPath))[:]
-
-	// utf16.Decode crashes without adjusting the slice length
-	pathLen := 0
-	for i, r := range rawUnicode {
-		if r == 0 {
-			pathLen = i
+	var rawUnicode []uint16
+	for i := 0; ; i++ {
+		// This triggers a "possible misuse of unsafe.Pointer"
+		// warning in go vet, but it is safe to ignore it: see
+		// https://groups.google.com/forum/#!msg/golang-nuts/0JYB0-ZcFpk/Zt5q1rPbBQAJ
+		// .
+		u16 := *(*uint16)(unsafe.Pointer(pszPath + 2*i))
+		if u16 == 0 {
 			break
 		}
+		if i == 1<<16 {
+			return "", fmt.Errorf("%s path has more than 65535 characters", envname)
+		}
+
+		rawUnicode = append(rawUnicode, u16)
 	}
 
-	folder := string(utf16.Decode(rawUnicode[:pathLen]))
+	folder := string(utf16.Decode(rawUnicode))
 
 	if len(folder) == 0 {
 		// Try the environment as a backup
