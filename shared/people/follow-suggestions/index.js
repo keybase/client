@@ -2,7 +2,7 @@
 import * as React from 'react'
 import * as Types from '../../constants/types/people'
 import {List} from 'immutable'
-import {Avatar, Box, ScrollView, Text, ConnectedUsernames} from '../../common-adapters'
+import {Avatar, Box, ClickableBox, ScrollView, Text, ConnectedUsernames} from '../../common-adapters'
 import {globalStyles, globalMargins} from '../../styles'
 import {isMobile} from '../../constants/platform'
 
@@ -21,14 +21,11 @@ export type Props = {
 }
 
 const Suggestion = (props: FollowSuggestion & {onClickUser: () => void}) => (
-  <Box style={{...globalStyles.flexBoxColumn, flexShrink: 0, width: 112, height: 106, alignItems: 'center'}}>
-    <Avatar
-      onClick={props.onClickUser}
-      username={props.username}
-      size={64}
-      followsYou={props.followsMe}
-      following={props.iFollow}
-    />
+  <ClickableBox
+    style={{...globalStyles.flexBoxColumn, flexShrink: 0, width: 112, height: 106, alignItems: 'center'}}
+    onClick={props.onClickUser}
+  >
+    <Avatar username={props.username} size={64} followsYou={props.followsMe} following={props.iFollow} />
     <ConnectedUsernames
       {...connectedUsernamesProps}
       usernames={[props.username]}
@@ -39,7 +36,7 @@ const Suggestion = (props: FollowSuggestion & {onClickUser: () => void}) => (
         {props.fullName}
       </Text>
     )}
-  </Box>
+  </ClickableBox>
 )
 
 export default (props: Props) => (

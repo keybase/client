@@ -73,7 +73,7 @@ export const MultiFollowNotification = (props: Props) => {
         </Box>
       }
       when={props.notificationTime}
-      contentStyle={{paddingBottom: 32}}
+      contentStyle={isMobile ? null : {paddingBottom: 32}}
     >
       <Text type="Body" style={{marginTop: 2, marginBottom: globalMargins.xtiny}}>
         <ConnectedUsernames

@@ -60,7 +60,7 @@ export const PeoplePageContent = (props: Props) => (
     </Box>
     <ScrollView contentContainerStyle={{...globalStyles.flexBoxColumn, width: '100%'}}>
       {intersperse(props.newItems.map(itemToComponent), true)}
-      <FollowSuggestions suggestions={props.followSuggestions} onClickUser={() => {}} />
+      <FollowSuggestions suggestions={props.followSuggestions} onClickUser={props.onClickUser} />
       {intersperse(props.oldItems.map(itemToComponent), false)}
     </ScrollView>
   </Box>
