@@ -376,6 +376,9 @@ def testGo(prefix) {
             shell "go vet ./..."
             // TODO: Run unconditionally once the Windows environment has golint.
             shell "make lint"
+	    // Ideally, we'd do this on Windows also, but it might be harder
+	    // to do with batch syntax.
+	    sh 'test -z $(gofmt -l $(git ls-files | grep '.go$' | grep -v vendor/))'
         } else {
             shell = { params -> bat params }
             dirs = getTestDirsWindows()
