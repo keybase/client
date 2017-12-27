@@ -73,6 +73,7 @@ export const MultiFollowNotification = (props: Props) => {
         </Box>
       }
       when={props.notificationTime}
+      contentStyle={{paddingBottom: 32}}
     >
       <Text type="Body" style={{marginTop: 2, marginBottom: globalMargins.xtiny}}>
         <ConnectedUsernames
@@ -85,7 +86,16 @@ export const MultiFollowNotification = (props: Props) => {
         {!!props.numAdditional && props.numAdditional > 0 && ` and ${props.numAdditional} others `} started
         following you.
       </Text>
-      <Box style={{...globalStyles.flexBoxRow, overflow: 'auto'}}>
+      <Box
+        style={{
+          ...globalStyles.flexBoxRow,
+          overflow: 'auto',
+          position: 'absolute',
+          bottom: 0,
+          left: 0,
+          width: '100%',
+        }}
+      >
         {usernames.map(username => (
           <Avatar username={username} size={32} key={username} style={{marginRight: globalMargins.xtiny}} />
         ))}

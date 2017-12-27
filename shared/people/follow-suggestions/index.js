@@ -45,13 +45,23 @@ export default (props: Props) => (
       paddingTop: globalMargins.tiny,
       paddingLeft: 12,
       paddingRight: 12,
-      paddingBottom: globalMargins.tiny,
+      paddingBottom: 106,
     }}
   >
     <Text type="BodySmallSemibold" style={{marginBottom: globalMargins.tiny}}>
       Consider following...
     </Text>
-    <Box style={{...globalStyles.flexBoxRow, overflow: 'auto'}}>
+    <Box
+      style={{
+        ...globalStyles.flexBoxRow,
+        overflow: 'auto',
+        width: '100%',
+        position: 'absolute',
+        bottom: 0,
+        left: 0,
+        right: 0,
+      }}
+    >
       {props.suggestions.map(suggestion => (
         <Suggestion
           key={suggestion.username}

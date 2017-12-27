@@ -30,6 +30,7 @@ export type Props = {
   icon: React.Node,
   children: React.Node,
   when?: Date,
+  contentStyle?: any,
 }
 
 export default (props: Props) => (
@@ -44,7 +45,16 @@ export default (props: Props) => (
     }}
   >
     <Box style={{marginRight: 20, width: isMobile ? 48 : 32}}>{props.icon}</Box>
-    <Box style={{...globalStyles.flexBoxColumn, paddingRight: 70, width: 'auto', overflow: 'hidden'}}>
+    <Box
+      style={{
+        ...globalStyles.flexBoxColumn,
+        paddingRight: 70,
+        width: 'auto',
+        overflow: 'hidden',
+        position: 'relative',
+        ...props.contentStyle,
+      }}
+    >
       {props.children}
     </Box>
     <Box style={{...globalStyles.flexBoxRow, position: 'absolute', alignItems: 'center', right: 8, top: 12}}>
