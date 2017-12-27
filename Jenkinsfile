@@ -369,7 +369,7 @@ def testGo(prefix) {
             goversion = sh(returnStdout: true, script: "go version").trim()
             /* TODO: Run unconditionally once
 
-                 libkb\util_windows.go:92: possible misuse of unsafe.Pointer
+                 libkb\\util_windows.go:92: possible misuse of unsafe.Pointer
 
               is fixed.
             */
