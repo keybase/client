@@ -355,6 +355,8 @@ def getTestDirsWindows() {
 
 def testGo(prefix) {
     dir('go') {
+    shell "go vet ./..."
+    shell "make lint"
     withEnv([
         "KEYBASE_LOG_SETUPTEST_FUNCS=1",
     ]) {
