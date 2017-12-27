@@ -153,24 +153,24 @@ function* onInboxStale(action: ChatGen.InboxStalePayload): SagaGenerator<any, an
     // .filter(Boolean)
     // )
 
-    const inboxBigChannelsToTeam = I.Map(
-      conversations
-        .map(
-          c => (c.teamType === RPCChatTypes.commonTeamType.complex ? [c.conversationIDKey, c.teamname] : null)
-        )
-        .filter(Boolean)
-    )
+    // const inboxBigChannelsToTeam = I.Map(
+    // conversations
+    // .map(
+    // c => (c.teamType === RPCChatTypes.commonTeamType.complex ? [c.conversationIDKey, c.teamname] : null)
+    // )
+    // .filter(Boolean)
+    // )
 
-    const inboxBigChannels = I.Map(
-      conversations
-        .map(
-          c =>
-            c.teamType === RPCChatTypes.commonTeamType.complex && c.channelname
-              ? [c.conversationIDKey, c.channelname]
-              : null
-        )
-        .filter(Boolean)
-    )
+    // const inboxBigChannels = I.Map(
+    // conversations
+    // .map(
+    // c =>
+    // c.teamType === RPCChatTypes.commonTeamType.complex && c.channelname
+    // ? [c.conversationIDKey, c.channelname]
+    // : null
+    // )
+    // .filter(Boolean)
+    // )
 
     const inboxMap = I.Map(conversations.map(c => [c.conversationIDKey, c]))
 
@@ -189,18 +189,18 @@ function* onInboxStale(action: ChatGen.InboxStalePayload): SagaGenerator<any, an
       // entities: inboxSmallTimestamps,
       // })
       // ),
-      Saga.put(
-        ChatGen.createMergeEntity({
-          keyPath: ['inboxBigChannels'],
-          entities: inboxBigChannels,
-        })
-      ), // keep old names if we have them
-      Saga.put(
-        ChatGen.createReplaceEntity({
-          keyPath: ['inboxBigChannelsToTeam'],
-          entities: inboxBigChannelsToTeam,
-        })
-      ),
+      // Saga.put(
+      // ChatGen.createMergeEntity({
+      // keyPath: ['inboxBigChannels'],
+      // entities: inboxBigChannels,
+      // })
+      // ), // keep old names if we have them
+      // Saga.put(
+      // ChatGen.createReplaceEntity({
+      // keyPath: ['inboxBigChannelsToTeam'],
+      // entities: inboxBigChannelsToTeam,
+      // })
+      // ),
       Saga.put(
         ChatGen.createReplaceEntity({
           keyPath: ['inboxIsEmpty'],
@@ -215,12 +215,12 @@ function* onInboxStale(action: ChatGen.InboxStalePayload): SagaGenerator<any, an
       // ids: toDelete,
       // })
       // ),
-      Saga.put(
-        ChatGen.createDeleteEntity({
-          keyPath: ['inboxBigChannelsToTeam'],
-          ids: toDelete,
-        })
-      ),
+      // Saga.put(
+      // ChatGen.createDeleteEntity({
+      // keyPath: ['inboxBigChannelsToTeam'],
+      // ids: toDelete,
+      // })
+      // ),
       Saga.put(ChatGen.createDeleteEntity({keyPath: ['inboxIsEmpty'], ids: toDelete})),
       Saga.put(ChatGen.createDeleteEntity({keyPath: ['inbox'], ids: toDelete})),
       Saga.put(ChatGen.createInboxStoreLoaded()),
@@ -345,63 +345,63 @@ function* _processConversation(c: RPCChatTypes.InboxUIItem): Generator<any, void
         entities: I.Map({[conversationIDKey]: c.version}),
       })
     )
-    if (isBigTeam) {
-      // There's a bug where the untrusted inbox state for the channel is incorrect so we
-      // instead make sure that the small team maps and the big team maps don't allow duplicates
-      yield Saga.sequentially([
-        Saga.put(
-          ChatGen.createReplaceEntity({
-            keyPath: ['inboxBigChannels'],
-            entities: I.Map({[conversationIDKey]: inboxState.channelname}),
-          })
-        ),
-        Saga.put(
-          ChatGen.createReplaceEntity({
-            keyPath: ['inboxBigChannelsToTeam'],
-            entities: I.Map({[conversationIDKey]: inboxState.teamname}),
-          })
-        ),
+    // if (isBigTeam) {
+    // // There's a bug where the untrusted inbox state for the channel is incorrect so we
+    // // instead make sure that the small team maps and the big team maps don't allow duplicates
+    // // yield Saga.sequentially([
+    // // Saga.put(
+    // // ChatGen.createReplaceEntity({
+    // // keyPath: ['inboxBigChannels'],
+    // // entities: I.Map({[conversationIDKey]: inboxState.channelname}),
+    // // })
+    // // ),
+    // // Saga.put(
+    // // ChatGen.createReplaceEntity({
+    // // keyPath: ['inboxBigChannelsToTeam'],
+    // // entities: I.Map({[conversationIDKey]: inboxState.teamname}),
+    // // })
+    // // ),
 
-        // Saga.put(
-        // ChatGen.createDeleteEntity({
-        // keyPath: ['inboxSmallTimestamps'],
-        // ids: I.List([conversationIDKey]),
-        // })
-        // ),
-      ])
-    } else {
-      yield Saga.sequentially([
-        // Saga.put(
-        // ChatGen.createReplaceEntity({
-        // keyPath: ['inboxSmallTimestamps'],
-        // entities: I.Map({[conversationIDKey]: inboxState.time}),
-        // })
-        // ),
-        Saga.put(
-          ChatGen.createDeleteEntity({
-            keyPath: ['inboxBigChannels'],
-            ids: I.List([conversationIDKey]),
-          })
-        ),
-        Saga.put(
-          ChatGen.createDeleteEntity({
-            keyPath: ['inboxBigChannelsToTeam'],
-            ids: I.List([conversationIDKey]),
-          })
-        ),
-      ])
-    }
-  }
+    // // Saga.put(
+    // // ChatGen.createDeleteEntity({
+    // // keyPath: ['inboxSmallTimestamps'],
+    // // ids: I.List([conversationIDKey]),
+    // // })
+    // // ),
+    // // ])
+    // } else {
+    // yield Saga.sequentially([
+    // // Saga.put(
+    // // ChatGen.createReplaceEntity({
+    // // keyPath: ['inboxSmallTimestamps'],
+    // // entities: I.Map({[conversationIDKey]: inboxState.time}),
+    // // })
+    // // ),
+    // Saga.put(
+    // ChatGen.createDeleteEntity({
+    // keyPath: ['inboxBigChannels'],
+    // ids: I.List([conversationIDKey]),
+    // })
+    // ),
+    // Saga.put(
+    // ChatGen.createDeleteEntity({
+    // keyPath: ['inboxBigChannelsToTeam'],
+    // ids: I.List([conversationIDKey]),
+    // })
+    // ),
+    // ])
+    // }
+  // }
 
-  if (!isBigTeam && c && c.snippet) {
-    const snippet = c.snippet
-    yield Saga.put(
-      ChatGen.createUpdateSnippet({
-        conversationIDKey,
-        snippet: new HiddenString(Constants.makeSnippet(snippet) || ''),
-      })
-    )
-  }
+  // if (!isBigTeam && c && c.snippet) {
+    // const snippet = c.snippet
+    // yield Saga.put(
+      // ChatGen.createUpdateSnippet({
+        // conversationIDKey,
+        // snippet: new HiddenString(Constants.makeSnippet(snippet) || ''),
+      // })
+    // )
+  // }
 
   if (inboxState) {
     // We blocked it

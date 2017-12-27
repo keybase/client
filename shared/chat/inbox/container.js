@@ -50,8 +50,8 @@ const smallTeamsCollapsedMaxShown = 5
 // const getAlwaysShow = (state: TypedState) => state.chat.get('inboxAlwaysShow')
 const getFilter = (state: TypedState) => state.chat.get('inboxFilter').toLowerCase()
 const getInbox = (state: TypedState) => state.chat.get('inbox')
-const getInboxBigChannels = (state: TypedState) => state.chat.get('inboxBigChannels')
-const getInboxBigChannelsToTeam = (state: TypedState) => state.chat.get('inboxBigChannelsToTeam')
+// const getInboxBigChannels = (state: TypedState) => state.chat.get('inboxBigChannels')
+// const getInboxBigChannelsToTeam = (state: TypedState) => state.chat.get('inboxBigChannelsToTeam')
 // const getIsEmpty = (state: TypedState) => state.chat.get('inboxIsEmpty')
 // const getSmallTimestamps = (state: TypedState) => state.chat.getIn(['inboxSmallTimestamps'], I.Map())
 // const getSupersededBy = (state: TypedState) => state.chat.get('inboxSupersededBy')
@@ -86,58 +86,68 @@ const _smallTeamsPassThrough = (_, smallTeamsExpanded) => smallTeamsExpanded
 // )
 
 // Build a map of [team: {channel: id}]
-const getTeamToChannel = createSelector(
-  [getInboxBigChannels, getInboxBigChannelsToTeam],
-  (
-    inboxBigChannels,
-    inboxBigChannelsToTeam
-  ): {
-    [teamname: string]: {[channelname: string]: Types.ConversationIDKey},
-  } => {
-    const teamToChannels: {
-      [teamname: string]: {[channelname: string]: Types.ConversationIDKey},
-    } = {}
-    inboxBigChannelsToTeam.forEach((teamname, id) => {
-      if (!teamToChannels[teamname]) {
-        teamToChannels[teamname] = {}
-      }
-      const channelname = inboxBigChannels.get(id)
-      if (channelname) {
-        teamToChannels[teamname][channelname] = id
-      }
-    })
-    return teamToChannels
-  }
-)
+// const getTeamToChannel = createSelector(
+// [getInboxBigChannels, getInboxBigChannelsToTeam],
+// (
+// inboxBigChannels,
+// inboxBigChannelsToTeam
+// ): {
+// [teamname: string]: {[channelname: string]: Types.ConversationIDKey},
+// } => {
+// const teamToChannels: {
+// [teamname: string]: {[channelname: string]: Types.ConversationIDKey},
+// } = {}
+// inboxBigChannelsToTeam.forEach((teamname, id) => {
+// if (!teamToChannels[teamname]) {
+// teamToChannels[teamname] = {}
+// }
+// const channelname = inboxBigChannels.get(id)
+// if (channelname) {
+// teamToChannels[teamname][channelname] = id
+// }
+// })
+// return teamToChannels
+// }
+// )
 
 // Build a list of team header + channels
-const getBigRowItems = createSelector([getTeamToChannel], (teamToChannels): Array<
-  Inbox.RowItemBigHeader | Inbox.RowItemBig
-> => {
-  const rows = []
-  Object.keys(teamToChannels)
-    .sort()
-    .forEach(teamname => {
-      rows.push({
-        teamname,
-        type: 'bigHeader',
-      })
+// const getBigRowItems = createSelector([getTeamToChannel], (teamToChannels): Array<
+// Inbox.RowItemBigHeader | Inbox.RowItemBig
+// > => {
+// const rows = []
+// Object.keys(teamToChannels)
+// .sort()
+// .forEach(teamname => {
+// rows.push({
+// teamname,
+// type: 'bigHeader',
+// })
 
-      const channels = teamToChannels[teamname]
-      Object.keys(channels)
-        .sort()
-        .forEach(channelname => {
-          rows.push({
-            channelname,
-            conversationIDKey: channels[channelname],
-            teamname,
-            type: 'big',
-          })
-        })
-    })
+// const channels = teamToChannels[teamname]
+// Object.keys(channels)
+// .sort()
+// .forEach(channelname => {
+// rows.push({
+// channelname,
+// conversationIDKey: channels[channelname],
+// teamname,
+// type: 'big',
+// })
+// })
+// })
 
-  return rows
-})
+// return rows
+// })
+
+// const getBigRowItems = createSelector([getTeamToChannel], (teamToChannels): Array< Inbox.RowItemBigHeader | Inbox.RowItemBig > => {
+//
+// })
+const getBigRowItems = createSelector(
+  [getMetaMap, getMessageOrdinals, getMessageMap],
+  (metaMap, messageOrdinals, messageMap) => {
+    return []
+  }
+)
 
 // Get smallIDs and big RowItems. Figure out the divider if it exists and truncate the small list.
 // Convert the smallIDs to the Small RowItems
@@ -192,32 +202,32 @@ const getRowsAndMetadata = createSelector(
 // )
 
 // Filtered: Big RowItems if the channel name matches, or all the channels if the teamname matches
-const getFilteredBigRows = createSelector([getTeamToChannel, getFilter], (teamToChannels, lcFilter): Array<
-  Inbox.RowItemBig
-> => {
-  const rows = []
-  Object.keys(teamToChannels)
-    .sort()
-    .forEach(teamname => {
-      const teamPassed = passesStringFilter(lcFilter, teamname.toLowerCase())
-      const channels = teamToChannels[teamname]
-      Object.keys(channels)
-        .sort()
-        .forEach(channelname => {
-          const channelPassed = teamPassed || passesStringFilter(lcFilter, channelname.toLowerCase())
-          if (channelPassed) {
-            rows.push({
-              channelname,
-              conversationIDKey: channels[channelname],
-              teamname,
-              type: 'big',
-            })
-          }
-        })
-    })
+// const getFilteredBigRows = createSelector([getTeamToChannel, getFilter], (teamToChannels, lcFilter): Array<
+// Inbox.RowItemBig
+// > => {
+// const rows = []
+// Object.keys(teamToChannels)
+// .sort()
+// .forEach(teamname => {
+// const teamPassed = passesStringFilter(lcFilter, teamname.toLowerCase())
+// const channels = teamToChannels[teamname]
+// Object.keys(channels)
+// .sort()
+// .forEach(channelname => {
+// const channelPassed = teamPassed || passesStringFilter(lcFilter, channelname.toLowerCase())
+// if (channelPassed) {
+// rows.push({
+// channelname,
+// conversationIDKey: channels[channelname],
+// teamname,
+// type: 'big',
+// })
+// }
+// })
+// })
 
-  return rows
-})
+// return rows
+// })
 
 // Merge small and big filtered RowItems
 // const getFilteredRows = createSelector(

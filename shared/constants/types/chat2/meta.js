@@ -11,10 +11,10 @@ type Username = string
 export type MetaTrustedState = 'untrusted' | 'requesting' | 'trusted' | 'error'
 
 export type _ConversationMeta = {
+  channelname: ?string,
   id: Common.ConversationIDKey,
   inboxVersion: number,
   isMuted: boolean,
-  trustedState: MetaTrustedState,
   membershipType: MembershipType,
   notificationSettings: ?RPCChatTypes.ConversationNotificationInfo,
   participants: I.Set<string>,
@@ -24,6 +24,8 @@ export type _ConversationMeta = {
   supersedes: ?Common.ConversationIDKey,
   supersedesCausedBy: ?Username,
   teamType: TeamType,
+  teamname: ?string,
+  trustedState: MetaTrustedState,
 }
 
 export type ConversationMeta = I.RecordOf<_ConversationMeta>
