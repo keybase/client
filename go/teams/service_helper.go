@@ -1232,12 +1232,14 @@ func CanUserPerform(ctx context.Context, g *libkb.GlobalContext, teamname string
 		return false, nil
 	}
 
+	teamRole, err := team.MemberRole(ctx, meUV)
+	if err != nil {
+		return ret, err
+	}
+
 	isRoleOrAbove := func(role keybase1.TeamRole) (bool, error) {
-		r, err := team.MemberRole(ctx, meUV)
-		if err != nil {
-			return false, err
-		}
-		return r.IsOrAbove(role), nil
+
+		return teamRole.IsOrAbove(role), nil
 	}
 
 	isAdmin := func() (bool, error) {
@@ -1248,25 +1250,13 @@ func CanUserPerform(ctx context.Context, g *libkb.GlobalContext, teamname string
 		return isRoleOrAbove(keybase1.TeamRole_WRITER)
 	}
 
-	isAdminOrImplicitAdmin := func() (bool, error) {
-		ret, err := isAdmin()
-		if err != nil {
-			return false, err
-		}
-		if ret {
-			return true, nil
-		}
-		return isImplicitAdmin()
-	}
-
 	canMemberShowcase := func() (bool, error) {
-		r, err := team.MemberRole(ctx, meUV)
 		if err != nil {
 			return false, err
 		}
-		if r.IsOrAbove(keybase1.TeamRole_ADMIN) {
+		if teamRole.IsOrAbove(keybase1.TeamRole_ADMIN) {
 			return true, nil
-		} else if r == keybase1.TeamRole_NONE {
+		} else if teamRole == keybase1.TeamRole_NONE {
 			return false, nil
 		}
 		showcase, err := GetTeamShowcase(ctx, g, teamname)
@@ -1276,15 +1266,49 @@ func CanUserPerform(ctx context.Context, g *libkb.GlobalContext, teamname string
 		return showcase.AnyMemberShowcase, nil
 	}
 
-	var perm bool
-	perm, err = isAdminOrImplicitAdmin()
+	hasOtherOwner := func() (bool, error) {
+		owners, err := team.UsersWithRole(keybase1.TeamRole_OWNER)
+		if err != nil {
+			return false, err
+		}
+		if len(owners) > 1 {
+			return true, nil
+		}
+		for _, owner := range owners {
+			if owner == meUV {
+				g.Log.CInfof(ctx, "hasOtherOwner: I am the sole owner")
+				return false, nil
+			}
+		}
+		return true, nil
+	}
+
+	var implicitAdmin bool
+	implicitAdmin, err = isImplicitAdmin()
 	if err != nil {
 		return ret, err
 	}
-	ret.ManageMembers = perm
-	ret.ManageSubteams = perm
-	ret.SetTeamShowcase = perm
-	ret.ChangeOpenTeam = perm
+	var admin bool
+	admin, err = isAdmin()
+	if err != nil {
+		return ret, err
+	}
+
+	ret.ManageMembers = admin || implicitAdmin
+	ret.ManageSubteams = admin || implicitAdmin
+	ret.SetTeamShowcase = admin || implicitAdmin
+	ret.ChangeOpenTeam = admin || implicitAdmin
+
+	if teamRole != keybase1.TeamRole_NONE {
+		leaveTeam := true
+		if teamRole == keybase1.TeamRole_OWNER {
+			leaveTeam, err = hasOtherOwner()
+			if err != nil {
+				return ret, err
+			}
+		}
+		ret.LeaveTeam = leaveTeam
+	}
 
 	ret.CreateChannel, err = isWriter()
 	if err != nil {
@@ -1296,13 +1320,9 @@ func CanUserPerform(ctx context.Context, g *libkb.GlobalContext, teamname string
 		return ret, err
 	}
 
-	perm, err = isAdmin()
-	if err != nil {
-		return ret, err
-	}
-	ret.DeleteChannel = perm
-	ret.RenameChannel = perm
-	ret.EditChannelDescription = perm
+	ret.DeleteChannel = admin
+	ret.RenameChannel = admin
+	ret.EditChannelDescription = admin
 
 	return ret, err
 }
