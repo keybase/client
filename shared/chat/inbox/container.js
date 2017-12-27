@@ -24,30 +24,27 @@ const getMessageMap = (state: TypedState) => state.chat2.messageMap
 const getMessageOrdinals = (state: TypedState) => state.chat2.messageOrdinals
 const getMetaMap = (state: TypedState) => state.chat2.metaMap
 
-// TODO put back selector
-const getSmallIDs = (state: TypedState) => {
-  const metaMap = getMetaMap(state)
-  const messageOrdinals = getMessageOrdinals(state)
-  const messageMap = getMessageMap(state)
-  // const getSmallIDs = createSelector(
-  // [getMetaMap, getMessageOrdinals, getMessageMap],
-  // (metaMap, messageOrdinals, messageMap) => {
-  // TODO empty? supersedes? always show?
-  // Get small/adhoc teams
-  const smallMap = metaMap.filter(meta => meta.teamType !== 'big')
-  const recentMessages = smallMap.map((_, conversationIDKey) => {
-    const ordinal = messageOrdinals.get(conversationIDKey, I.List()).last()
-    if (ordinal) {
-      return messageMap.getIn([conversationIDKey, ordinal])
-    }
-  })
-  // Sort timestamps of the last messages
-  return recentMessages
-    .filter(Boolean)
-    .sort((a, b) => b.timestamp - a.timestamp)
-    .keySeq()
-    .toArray()
-}
+// TODO see if this is too slow for large inboxes, could split out the last extraction into its own rereselect selector
+const getSmallIDs = createSelector(
+  [getMetaMap, getMessageOrdinals, getMessageMap],
+  (metaMap, messageOrdinals, messageMap) => {
+    // TODO empty? supersedes? always show?
+    // Get small/adhoc teams
+    const smallMap = metaMap.filter(meta => meta.teamType !== 'big')
+    const recentMessages = smallMap.map((_, conversationIDKey) => {
+      const ordinal = messageOrdinals.get(conversationIDKey, I.List()).last()
+      if (ordinal) {
+        return messageMap.getIn([conversationIDKey, ordinal])
+      }
+    })
+    // Sort timestamps of the last messages
+    return recentMessages
+      .filter(Boolean)
+      .sort((a, b) => b.timestamp - a.timestamp)
+      .keySeq()
+      .toArray()
+  }
+)
 
 const smallTeamsCollapsedMaxShown = 5
 // const getAlwaysShow = (state: TypedState) => state.chat.get('inboxAlwaysShow')
