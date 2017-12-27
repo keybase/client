@@ -355,8 +355,6 @@ def getTestDirsWindows() {
 
 def testGo(prefix) {
     dir('go') {
-    shell "go vet ./..."
-    shell "make lint"
     withEnv([
         "KEYBASE_LOG_SETUPTEST_FUNCS=1",
     ]) {
@@ -375,6 +373,8 @@ def testGo(prefix) {
             slash = '\\'
             goversion = bat(returnStdout: true, script: "@go version").trim()
         }
+        shell "go vet ./..."
+        shell "make lint"
         println "Running tests on commit ${env.COMMIT_HASH} with ${goversion}."
         def parallelTests = []
         def tests = [:]
