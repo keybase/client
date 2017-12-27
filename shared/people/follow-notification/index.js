@@ -57,19 +57,29 @@ export const MultiFollowNotification = (props: Props) => {
     <PeopleItem
       badged={props.badged}
       icon={
-        <Box style={{...globalStyles.flexBoxColumn, width: 32, height: 32}}>
+        <Box
+          style={{
+            ...globalStyles.flexBoxColumn,
+            width: isMobile ? 48 : 32,
+            height: isMobile ? 48 : 32,
+            position: 'relative',
+          }}
+        >
           <Icon type={isMobile ? 'icon-followers-new-48' : 'icon-followers-new-32'} />
-          <Meta
-            title={`+${props.newFollows.length + (props.numAdditional || 0)}`}
+          <Box
             style={{
-              backgroundColor: globalColors.blue_60,
-              marginTop: -12,
-              marginLeft: 'auto',
-              marginRight: 'auto',
-              fontSize: 11,
-              paddingTop: 1,
+              ...globalStyles.flexBoxColumn,
+              position: 'absolute',
+              right: 0,
+              left: 0,
+              top: isMobile ? 30 : 20,
             }}
-          />
+          >
+            <Meta
+              title={`+${props.newFollows.length + (props.numAdditional || 0)}`}
+              style={{backgroundColor: globalColors.blue_60, alignSelf: 'center'}}
+            />
+          </Box>
         </Box>
       }
       when={props.notificationTime}
