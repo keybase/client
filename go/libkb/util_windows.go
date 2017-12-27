@@ -7,6 +7,7 @@ package libkb
 
 import (
 	"errors"
+	"fmt"
 	"io"
 	"os"
 	"os/exec"
@@ -81,7 +82,7 @@ func GetDataDir(id GUID, envname string) (string, error) {
 	r0, _, _ := procSHGetKnownFolderPath.Call(uintptr(unsafe.Pointer(&id)), uintptr(0), uintptr(0), uintptr(unsafe.Pointer(&pszPath)))
 	// Sometimes r0 == 0 and there still isn't a valid string returned
 	if r0 != 0 || pszPath == 0 {
-		return "", errors.New("can't get FOLDERIDRoamingAppData")
+		return "", fmt.Errorf("can't get %s", envname)
 	}
 
 	defer coTaskMemFree(pszPath)
