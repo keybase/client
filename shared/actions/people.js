@@ -54,14 +54,48 @@ const _processPeopleData = function(data: RPCTypes.HomeScreen) {
         },
       },
     })
+    // $FlowIssue same - just for testing
+    data.items.push({
+      badged: false,
+      data: {
+        t: 2, // $FlowIssue stop bugging me
+        people: {
+          t: 1,
+          followedMulti: {
+            followers: [
+              {
+                followTime: 1513653011449,
+                user: {
+                  username: 'mikem',
+                },
+              },
+              {
+                followTime: 1513554011449,
+                user: {
+                  username: 'chrisnojima',
+                },
+              },
+              {
+                followTime: 1513354011449,
+                user: {
+                  username: 'willnewman',
+                },
+              },
+            ],
+            numOthers: 5,
+          },
+        },
+      },
+    })
     // $FlowIssue because this isn't the line after the if statement
     data.items.forEach(item => {
       const badged = item.badged
       if (item.data.t === RPCTypes.homeHomeScreenItemType.todo) {
+        // Todo item
         const todoType = Constants.todoTypeEnumToType[(item.data.todo && item.data.todo.t) || 0]
         newItems = newItems.push({
           type: 'todo',
-          badged: badged,
+          badged: true, // todo items are always badged
           todoType,
           instructions: Constants.todoTypeToInstructions[todoType],
           confirmLabel: Constants.todoTypeToConfirmLabel[todoType],
@@ -69,8 +103,10 @@ const _processPeopleData = function(data: RPCTypes.HomeScreen) {
           icon: Constants.todoTypeToIcon[todoType],
         })
       } else if (item.data.t === RPCTypes.homeHomeScreenItemType.people) {
+        // Follow notification
         const notification = item.data.people
         if (notification && notification.t === RPCTypes.homeHomeScreenPeopleNotificationType.followed) {
+          // Single follow notification
           const follow = notification.followed
           if (!follow) {
             return
@@ -81,11 +117,33 @@ const _processPeopleData = function(data: RPCTypes.HomeScreen) {
             notificationTime: new Date(follow.followTime),
             badged,
           }
-          if (badged) {
-            newItems = newItems.push(item)
-          } else {
-            oldItems = oldItems.push(item)
+          badged ? (newItems = newItems.push(item)) : (oldItems = oldItems.push(item))
+        } else if (
+          notification &&
+          notification.t === RPCTypes.homeHomeScreenPeopleNotificationType.followedMulti
+        ) {
+          // Multiple follows notification
+          const multiFollow = notification.followedMulti
+          if (!multiFollow) {
+            return
           }
+          const followers = multiFollow.followers
+          if (!followers) {
+            return
+          }
+          const notificationTimes = followers.map(follow => follow.followTime)
+          const maxNotificationTime = Math.max(...notificationTimes)
+          const notificationTime = new Date(maxNotificationTime)
+          const item = {
+            type: 'notification',
+            newFollows: followers.map(follow => ({
+              username: follow.user.username,
+            })),
+            notificationTime,
+            badged,
+            numAdditional: multiFollow.numOthers,
+          }
+          badged ? (newItems = newItems.push(item)) : (oldItems = oldItems.push(item))
         }
       }
     })

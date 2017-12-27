@@ -178,13 +178,15 @@ const mapStateToProps = (state: TypedState, ownProps: ConnectedProps) => {
 }
 
 const mapDispatchToProps = (dispatch: Dispatch, ownProps: ConnectedProps) => ({
-  onUsernameClicked: ownProps.clickable
-    ? (username: string) => {
-        isMobile
-          ? dispatch(createShowUserProfile({username}))
-          : dispatch(createGetProfile({username, ignoreCache: true, forceDisplay: true}))
-      }
-    : undefined,
+  onUsernameClicked:
+    ownProps.onUsernameClicked ||
+    (ownProps.clickable
+      ? (username: string) => {
+          isMobile
+            ? dispatch(createShowUserProfile({username}))
+            : dispatch(createGetProfile({username, ignoreCache: true, forceDisplay: true}))
+        }
+      : undefined),
 })
 
 const ConnectedUsernames = connect(mapStateToProps, mapDispatchToProps)(Usernames)

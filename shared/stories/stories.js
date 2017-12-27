@@ -22,6 +22,7 @@ import text from '../common-adapters/text.stories'
 import editTeamDescription from '../teams/edit-team-description/index.stories'
 import peopleTask from '../people/task/index.stories'
 import peopleFollowNotification from '../people/follow-notification/index.stories'
+import peopleFollowSuggestions from '../people/follow-suggestions/index.stories'
 
 const stories = {
   avatar,
@@ -42,6 +43,7 @@ const stories = {
   icon,
   peopleTask,
   peopleFollowNotification,
+  peopleFollowSuggestions,
   radiobutton,
   roles,
   search,

@@ -33,6 +33,7 @@ export type FollowedNotificationItem = {
   newFollows: Array<FollowedNotification>,
   notificationTime: Date,
   badged: boolean,
+  numAdditional?: number,
 }
 
 export type PeopleScreenItem = Todo | FollowedNotificationItem
