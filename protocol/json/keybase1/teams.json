@@ -1602,6 +1602,10 @@
         {
           "type": "boolean",
           "name": "changeOpenTeam"
+        },
+        {
+          "type": "boolean",
+          "name": "leaveTeam"
         }
       ]
     },
