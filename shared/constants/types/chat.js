@@ -390,7 +390,7 @@ export type _State = {
   inboxFilter: string,
   inboxIsEmpty: I.Map<ConversationIDKey, boolean>,
   inboxSearch: I.List<string>,
-  inboxSmallTimestamps: I.Map<ConversationIDKey, number>,
+  // inboxSmallTimestamps: I.Map<ConversationIDKey, number>,
   // inboxSnippet: I.Map<ConversationIDKey, ?HiddenString>,
   inboxSupersededBy: I.Map<ConversationIDKey, boolean>,
   inboxUnreadCountBadge: I.Map<ConversationIDKey, number>,

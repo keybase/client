@@ -14,21 +14,50 @@ import {
   withState,
   withHandlers,
   createSelector,
-  createImmutableEqualSelector,
+  // createImmutableEqualSelector,
   type TypedState,
   type Dispatch,
 } from '../../util/container'
 import {scoreFilter, passesStringFilter} from './filtering'
 
+const getMessageMap = (state: TypedState) => state.chat2.messageMap
+const getMessageOrdinals = (state: TypedState) => state.chat2.messageOrdinals
+const getMetaMap = (state: TypedState) => state.chat2.metaMap
+
+// TODO put back selector
+const getSmallIDs = (state: TypedState) => {
+  const metaMap = getMetaMap(state)
+  const messageOrdinals = getMessageOrdinals(state)
+  const messageMap = getMessageMap(state)
+  // const getSmallIDs = createSelector(
+  // [getMetaMap, getMessageOrdinals, getMessageMap],
+  // (metaMap, messageOrdinals, messageMap) => {
+  // TODO empty? supersedes? always show?
+  // Get small/adhoc teams
+  const smallMap = metaMap.filter(meta => meta.teamType !== 'big')
+  const recentMessages = smallMap.map((_, conversationIDKey) => {
+    const ordinal = messageOrdinals.get(conversationIDKey, I.List()).last()
+    if (ordinal) {
+      return messageMap.getIn([conversationIDKey, ordinal])
+    }
+  })
+  // Sort timestamps of the last messages
+  return recentMessages
+    .filter(Boolean)
+    .sort((a, b) => b.timestamp - a.timestamp)
+    .keySeq()
+    .toArray()
+}
+
 const smallTeamsCollapsedMaxShown = 5
-const getAlwaysShow = (state: TypedState) => state.chat.get('inboxAlwaysShow')
+// const getAlwaysShow = (state: TypedState) => state.chat.get('inboxAlwaysShow')
 const getFilter = (state: TypedState) => state.chat.get('inboxFilter').toLowerCase()
 const getInbox = (state: TypedState) => state.chat.get('inbox')
 const getInboxBigChannels = (state: TypedState) => state.chat.get('inboxBigChannels')
 const getInboxBigChannelsToTeam = (state: TypedState) => state.chat.get('inboxBigChannelsToTeam')
-const getIsEmpty = (state: TypedState) => state.chat.get('inboxIsEmpty')
-const getSmallTimestamps = (state: TypedState) => state.chat.getIn(['inboxSmallTimestamps'], I.Map())
-const getSupersededBy = (state: TypedState) => state.chat.get('inboxSupersededBy')
+// const getIsEmpty = (state: TypedState) => state.chat.get('inboxIsEmpty')
+// const getSmallTimestamps = (state: TypedState) => state.chat.getIn(['inboxSmallTimestamps'], I.Map())
+// const getSupersededBy = (state: TypedState) => state.chat.get('inboxSupersededBy')
 const _rowsForSelect = (rows: Array<Inbox.RowItem>): Array<Inbox.RowItemSmall | Inbox.RowItemBig> =>
   // $FlowIssue doesn't underestand filter refinement sadly
   rows.filter(r => r.type === 'small' || r.type === 'big')
@@ -40,24 +69,24 @@ const _smallTeamsPassThrough = (_, smallTeamsExpanded) => smallTeamsExpanded
 // Else, truncate it if we are showing the 'show more' button and then convert to RowItem
 
 // IDs by timestamp
-const getSortedSmallRowsIDs = createSelector([getSmallTimestamps], (smallTimestamps): I.Seq.Indexed<
-  Types.ConversationIDKey
-> => {
-  return smallTimestamps.sort((a, b) => b - a).keySeq()
-})
+// const getSortedSmallRowsIDs = createSelector([getSmallTimestamps], (smallTimestamps): I.Seq.Indexed<
+// Types.ConversationIDKey
+// > => {
+// return smallTimestamps.sort((a, b) => b - a).keySeq()
+// })
 
 // IDs filtering out empty conversations (unless we always show them) or superseded ones
-const getVisibleSmallIDs = createImmutableEqualSelector(
-  [getSortedSmallRowsIDs, getAlwaysShow, getSupersededBy, getIsEmpty],
-  (sortedSmallRows, alwaysShow, supersededBy, isEmpty): Array<Types.ConversationIDKey> => {
-    return sortedSmallRows.toArray().filter(conversationIDKey => {
-      return (
-        !supersededBy.get(conversationIDKey) &&
-        (!isEmpty.get(conversationIDKey) || alwaysShow.get(conversationIDKey))
-      )
-    })
-  }
-)
+// const getVisibleSmallIDs = createImmutableEqualSelector(
+// [getSortedSmallRowsIDs, getAlwaysShow, getSupersededBy, getIsEmpty],
+// (sortedSmallRows, alwaysShow, supersededBy, isEmpty): Array<Types.ConversationIDKey> => {
+// return sortedSmallRows.toArray().filter(conversationIDKey => {
+// return (
+// !supersededBy.get(conversationIDKey) &&
+// (!isEmpty.get(conversationIDKey) || alwaysShow.get(conversationIDKey))
+// )
+// })
+// }
+// )
 
 // Build a map of [team: {channel: id}]
 const getTeamToChannel = createSelector(
@@ -116,7 +145,7 @@ const getBigRowItems = createSelector([getTeamToChannel], (teamToChannels): Arra
 // Get smallIDs and big RowItems. Figure out the divider if it exists and truncate the small list.
 // Convert the smallIDs to the Small RowItems
 const getRowsAndMetadata = createSelector(
-  [getVisibleSmallIDs, _smallTeamsPassThrough, getBigRowItems],
+  [getSmallIDs, _smallTeamsPassThrough, getBigRowItems],
   (smallIDs, smallTeamsExpanded, bigRows) => {
     const smallTeamsRowsToHideCount = Math.max(0, smallIDs.length - smallTeamsCollapsedMaxShown)
     const showSmallTeamsExpandDivider = !!(bigRows.length && smallTeamsRowsToHideCount)
@@ -143,27 +172,27 @@ const getRowsAndMetadata = createSelector(
 
 // Filtered view logic
 // Filtered: Small RowItems if the participants match the filter
-const getFilteredSmallRowItems = createSelector(
-  [getSmallTimestamps, getFilter, getInbox, Constants.getYou],
-  (smallTimestamps, lcFilter, inbox, you): Array<Inbox.RowItemSmall> => {
-    const lcYou = you.toLowerCase()
-    return smallTimestamps
-      .keySeq()
-      .toArray()
-      .map(conversationIDKey => {
-        const i = inbox.get(conversationIDKey)
-        return {
-          conversationIDKey,
-          filterScore: i
-            ? scoreFilter(lcFilter, i.teamname || '', i.get('participants').toArray(), lcYou, i.get('time'))
-            : 0,
-        }
-      })
-      .filter(obj => obj.filterScore > 0)
-      .sort((a, b) => b.filterScore - a.filterScore)
-      .map(({conversationIDKey}) => ({conversationIDKey, type: 'small'}))
-  }
-)
+// const getFilteredSmallRowItems = createSelector(
+// [getSmallTimestamps, getFilter, getInbox, Constants.getYou],
+// (smallTimestamps, lcFilter, inbox, you): Array<Inbox.RowItemSmall> => {
+// const lcYou = you.toLowerCase()
+// return smallTimestamps
+// .keySeq()
+// .toArray()
+// .map(conversationIDKey => {
+// const i = inbox.get(conversationIDKey)
+// return {
+// conversationIDKey,
+// filterScore: i
+// ? scoreFilter(lcFilter, i.teamname || '', i.get('participants').toArray(), lcYou, i.get('time'))
+// : 0,
+// }
+// })
+// .filter(obj => obj.filterScore > 0)
+// .sort((a, b) => b.filterScore - a.filterScore)
+// .map(({conversationIDKey}) => ({conversationIDKey, type: 'small'}))
+// }
+// )
 
 // Filtered: Big RowItems if the channel name matches, or all the channels if the teamname matches
 const getFilteredBigRows = createSelector([getTeamToChannel, getFilter], (teamToChannels, lcFilter): Array<
@@ -194,12 +223,12 @@ const getFilteredBigRows = createSelector([getTeamToChannel, getFilter], (teamTo
 })
 
 // Merge small and big filtered RowItems
-const getFilteredRows = createSelector(
-  [getFilteredSmallRowItems, getFilteredBigRows],
-  (smallRows, bigRows): Array<Inbox.RowItem> => {
-    return smallRows.concat(bigRows)
-  }
-)
+// const getFilteredRows = createSelector(
+// [getFilteredSmallRowItems, getFilteredBigRows],
+// (smallRows, bigRows): Array<Inbox.RowItem> => {
+// return smallRows.concat(bigRows)
+// }
+// )
 
 type OwnProps = {
   isActiveRoute: boolean,
@@ -220,7 +249,7 @@ const mapStateToProps = (state: TypedState, {isActiveRoute, routeState}: OwnProp
   let rowMetadata
   if (filter) {
     rowMetadata = {
-      rows: getFilteredRows(state),
+      rows: [], // TODO // getFilteredRows(state),
       showBuildATeam: false,
       showSmallTeamsExpandDivider: false,
       smallIDsHidden: null,

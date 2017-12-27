@@ -32,7 +32,7 @@ export const unverifiedInboxUIItemToConversationMeta = (i: RPCChatTypes.Unverifi
     resetParticipants: I.Set(),
     supersededBy: null,
     supersedes: null,
-    teamType: 'adhoc',
+    teamType: getTeamType(i),
     trustedState: i.localMetadata ? 'trusted' : 'untrusted', // if we have localMetadata attached to an unverifiedInboxUIItem it's been loaded previously
   })
 }
@@ -48,15 +48,18 @@ const conversationMetadataToMetaSupersedeInfo = (metas: ?Array<RPCChatTypes.Conv
   }
 }
 
-export const inboxUIItemToConversationMeta = (i: RPCChatTypes.InboxUIItem) => {
-  let teamType
-  if (i.teamType === RPCChatTypes.commonTeamType.complex) {
-    teamType = 'big'
-  } else if (i.membersType === RPCChatTypes.commonConversationMembersType.team) {
-    teamType = 'small'
+const getTeamType = ({teamType, membersType}) => {
+  if (teamType === RPCChatTypes.commonTeamType.complex) {
+    return 'big'
+  } else if (membersType === RPCChatTypes.commonConversationMembersType.team) {
+    return 'small'
   } else {
-    teamType = 'adhoc'
+    return 'adhoc'
   }
+}
+
+export const inboxUIItemToConversationMeta = (i: RPCChatTypes.InboxUIItem) => {
+  const teamType = getTeamType(i)
 
   // We only treat implied adhoc teams as having resetParticipants
   const resetParticipants = I.Set(

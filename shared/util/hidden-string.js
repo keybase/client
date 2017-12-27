@@ -6,8 +6,10 @@ import repeat from 'lodash/repeat'
 // output as a string to log, file or console
 class HiddenString {
   _value: () => string
+  _NOJIMA: string
 
   constructor(stringValue: string) {
+    this._NOJIMA = stringValue // TEMP
     if (maskStrings && stringValue) {
       this._value = () =>
         repeat('MaSkEd', Math.ceil(stringValue.length / 'MaSkEd'.length)).substr(0, stringValue.length)

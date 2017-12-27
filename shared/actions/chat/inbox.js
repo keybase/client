@@ -147,11 +147,11 @@ function* onInboxStale(action: ChatGen.InboxStalePayload): SagaGenerator<any, an
       })
     )
 
-    const inboxSmallTimestamps = I.Map(
-      conversations
-        .map(c => (c.teamType !== RPCChatTypes.commonTeamType.complex ? [c.conversationIDKey, c.time] : null))
-        .filter(Boolean)
-    )
+    // const inboxSmallTimestamps = I.Map(
+    // conversations
+    // .map(c => (c.teamType !== RPCChatTypes.commonTeamType.complex ? [c.conversationIDKey, c.time] : null))
+    // .filter(Boolean)
+    // )
 
     const inboxBigChannelsToTeam = I.Map(
       conversations
@@ -183,12 +183,12 @@ function* onInboxStale(action: ChatGen.InboxStalePayload): SagaGenerator<any, an
           entities: idToVersion,
         })
       ),
-      Saga.put(
-        ChatGen.createReplaceEntity({
-          keyPath: ['inboxSmallTimestamps'],
-          entities: inboxSmallTimestamps,
-        })
-      ),
+      // Saga.put(
+      // ChatGen.createReplaceEntity({
+      // keyPath: ['inboxSmallTimestamps'],
+      // entities: inboxSmallTimestamps,
+      // })
+      // ),
       Saga.put(
         ChatGen.createMergeEntity({
           keyPath: ['inboxBigChannels'],
@@ -209,12 +209,12 @@ function* onInboxStale(action: ChatGen.InboxStalePayload): SagaGenerator<any, an
       ),
       Saga.put(ChatGen.createReplaceEntity({keyPath: ['inbox'], entities: inboxMap})),
       Saga.put(ChatGen.createDeleteEntity({keyPath: ['inboxVersion'], ids: toDelete})),
-      Saga.put(
-        ChatGen.createDeleteEntity({
-          keyPath: ['inboxSmallTimestamps'],
-          ids: toDelete,
-        })
-      ),
+      // Saga.put(
+      // ChatGen.createDeleteEntity({
+      // keyPath: ['inboxSmallTimestamps'],
+      // ids: toDelete,
+      // })
+      // ),
       Saga.put(
         ChatGen.createDeleteEntity({
           keyPath: ['inboxBigChannelsToTeam'],
@@ -362,21 +362,21 @@ function* _processConversation(c: RPCChatTypes.InboxUIItem): Generator<any, void
           })
         ),
 
-        Saga.put(
-          ChatGen.createDeleteEntity({
-            keyPath: ['inboxSmallTimestamps'],
-            ids: I.List([conversationIDKey]),
-          })
-        ),
+        // Saga.put(
+        // ChatGen.createDeleteEntity({
+        // keyPath: ['inboxSmallTimestamps'],
+        // ids: I.List([conversationIDKey]),
+        // })
+        // ),
       ])
     } else {
       yield Saga.sequentially([
-        Saga.put(
-          ChatGen.createReplaceEntity({
-            keyPath: ['inboxSmallTimestamps'],
-            entities: I.Map({[conversationIDKey]: inboxState.time}),
-          })
-        ),
+        // Saga.put(
+        // ChatGen.createReplaceEntity({
+        // keyPath: ['inboxSmallTimestamps'],
+        // entities: I.Map({[conversationIDKey]: inboxState.time}),
+        // })
+        // ),
         Saga.put(
           ChatGen.createDeleteEntity({
             keyPath: ['inboxBigChannels'],
@@ -406,12 +406,12 @@ function* _processConversation(c: RPCChatTypes.InboxUIItem): Generator<any, void
   if (inboxState) {
     // We blocked it
     if (['ignored', 'blocked', 'reported'].includes(inboxState.status)) {
-      yield Saga.put(
-        ChatGen.createDeleteEntity({
-          keyPath: ['inboxSmallTimestamps'],
-          ids: I.List([inboxState.conversationIDKey]),
-        })
-      )
+      // yield Saga.put(
+      // ChatGen.createDeleteEntity({
+      // keyPath: ['inboxSmallTimestamps'],
+      // ids: I.List([inboxState.conversationIDKey]),
+      // })
+      // )
       yield Saga.put(
         ChatGen.createDeleteEntity({
           keyPath: ['inbox'],

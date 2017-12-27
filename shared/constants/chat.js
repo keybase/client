@@ -85,7 +85,7 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   inboxFilter: '',
   inboxIsEmpty: I.Map(),
   inboxSearch: I.List(),
-  inboxSmallTimestamps: I.Map(),
+  // inboxSmallTimestamps: I.Map(),
   // inboxSnippet: I.Map(),
   inboxSupersededBy: I.Map(),
   inboxUnreadCountBadge: I.Map(),

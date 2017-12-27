@@ -64,8 +64,8 @@ const messageOrdinalsReducer = (messageOrdinalsList, action) => {
       return messageOrdinalsList.withMutations(map =>
         messages.forEach(message =>
           map.update(message.conversationIDKey, (list: ?I.List<Types.Ordinal>) => {
-            const ordinals: Array<Types.Ordinal> = messages.map(message => message.ordinal)
-            return list ? list.concat(ordinals) : I.List(ordinals)
+            // const ordinals: Array<Types.Ordinal> = messages.map(message => message.ordinal)
+            return list ? list.push(message.ordinal) : I.List([message.ordinal])
           })
         )
       )

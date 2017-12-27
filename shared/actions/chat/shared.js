@@ -65,7 +65,7 @@ function* startNewConversation(
     yield put(ChatGen.createPendingToRealConversation({oldKey, newKey}))
   } else if (oldKey !== newKey) {
     yield put(ChatGen.createDeleteEntity({keyPath: ['inbox'], ids: I.List([oldKey])}))
-    yield put(ChatGen.createDeleteEntity({keyPath: ['inboxSmallTimestamps'], ids: I.List([oldKey])}))
+    // yield put(ChatGen.createDeleteEntity({keyPath: ['inboxSmallTimestamps'], ids: I.List([oldKey])}))
   }
 
   // Select the new version if the old one was selected
