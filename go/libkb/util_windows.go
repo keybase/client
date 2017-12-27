@@ -87,9 +87,12 @@ func GetDataDir(id GUID, envname string) (string, error) {
 
 	defer coTaskMemFree(pszPath)
 
-	// go vet: "possible misuse of unsafe.Pointer"
-	// Have to cast this Windows string to
-	// a Go array of uint16 here, but we don't yet know the length.
+	// This triggers a "possible misuse of unsafe.Pointer" warning
+	// in go vet, but it is safe to ignore it: see
+	// https://groups.google.com/forum/#!msg/golang-nuts/0JYB0-ZcFpk/Zt5q1rPbBQAJ .
+	//
+	// Have to cast this Windows string to a Go array of uint16
+	// here, but we don't yet know the length.
 	rawUnicode := (*[1 << 16]uint16)(unsafe.Pointer(pszPath))[:]
 
 	// utf16.Decode crashes without adjusting the slice length
