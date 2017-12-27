@@ -1,3 +1,11 @@
+//
+//
+// TODO filter
+// inboxFilter
+// inSearch etc
+//
+//
+//
 // @flow
 import * as Constants from '../../constants/chat'
 import * as More from '../../constants/types/more'
@@ -284,7 +292,7 @@ const mapStateToProps = (state: TypedState, {isActiveRoute, routeState}: OwnProp
       rows: [], // TODO // getFilteredRows(state),
       showBuildATeam: false,
       showSmallTeamsExpandDivider: false,
-      smallIDsHidden: null,
+      smallIDsHidden: [],
       smallTeamsExpanded: true,
     }
   } else {

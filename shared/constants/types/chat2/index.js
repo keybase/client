@@ -5,6 +5,7 @@ import * as Meta from './meta'
 import * as Message from './message'
 
 export type _State = {
+  inboxFilter: string,
   metaMap: I.Map<Common.ConversationIDKey, Meta.ConversationMeta>,
   messageMap: I.Map<Common.ConversationIDKey, I.Map<Message.Ordinal, Message.Message>>,
   messageOrdinals: I.Map<Common.ConversationIDKey, I.List<Message.Ordinal>>,

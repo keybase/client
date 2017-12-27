@@ -387,7 +387,7 @@ export type _State = {
   inboxAlwaysShow: I.Map<ConversationIDKey, boolean>,
   // inboxBigChannels: I.Map<ConversationIDKey, string>,
   // inboxBigChannelsToTeam: I.Map<ConversationIDKey, string>,
-  inboxFilter: string,
+  // inboxFilter: string,
   inboxIsEmpty: I.Map<ConversationIDKey, boolean>,
   inboxSearch: I.List<string>,
   // inboxSmallTimestamps: I.Map<ConversationIDKey, number>,
