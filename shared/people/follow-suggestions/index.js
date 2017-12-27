@@ -9,7 +9,7 @@ const connectedUsernamesProps = {
   clickable: true,
   colorFollowing: true,
   type: 'BodySemibold',
-  style: {marginTop: globalMargins.xtiny, display: 'block'},
+  style: {marginTop: globalMargins.xtiny, display: 'flex'},
 }
 
 export type FollowSuggestion = Types.FollowSuggestion
@@ -33,7 +33,11 @@ const Suggestion = (props: FollowSuggestion & {onClickUser: () => void}) => (
       usernames={[props.username]}
       onUsernameClicked={props.onClickUser}
     />
-    {!!props.fullName && <Text type="BodySmall">{props.fullName}</Text>}
+    {!!props.fullName && (
+      <Text type="BodySmall" lineClamp={1} style={{paddingLeft: 2, paddingRight: 2}}>
+        {props.fullName}
+      </Text>
+    )}
   </Box>
 )
 
@@ -54,7 +58,7 @@ export default (props: Props) => (
     <Box
       style={{
         ...globalStyles.flexBoxRow,
-        overflow: 'auto',
+        overflow: 'scroll',
         width: '100%',
         position: 'absolute',
         bottom: 0,

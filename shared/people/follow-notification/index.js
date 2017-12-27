@@ -89,7 +89,7 @@ export const MultiFollowNotification = (props: Props) => {
       <Box
         style={{
           ...globalStyles.flexBoxRow,
-          overflow: 'auto',
+          overflow: 'scroll',
           position: 'absolute',
           bottom: 0,
           left: 0,
