@@ -368,8 +368,7 @@ def testGo(prefix) {
             slash = '/'
             goversion = sh(returnStdout: true, script: "go version").trim()
             sh "go vet ./..."
-            // TODO: Run unconditionally once the Windows environment has golint.
-            shell "make lint"
+            sh "make lint"
 	    // Ideally, we'd do this on Windows also, but it might be harder
 	    // to do with batch syntax.
 	    sh 'test -z $(gofmt -l $(go list ./... | sed -e s/github.com.keybase.client.go.// ))'
