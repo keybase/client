@@ -1,7 +1,7 @@
 // @flow
 import React from 'react'
 import PeopleItem from '../item'
-import {Avatar, Box, ConnectedUsernames, Icon, Meta, Text} from '../../common-adapters'
+import {Avatar, Box, ConnectedUsernames, Icon, Meta, ScrollView, Text} from '../../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../../styles'
 import {isMobile} from '../../constants/platform'
 
@@ -86,20 +86,26 @@ export const MultiFollowNotification = (props: Props) => {
         {!!props.numAdditional && props.numAdditional > 0 && ` and ${props.numAdditional} others `} started
         following you.
       </Text>
-      <Box
+      <ScrollView
+        horizontal={true}
+        contentContainerStyle={globalStyles.flexBoxRow}
         style={{
           ...globalStyles.flexBoxRow,
           overflow: 'scroll',
-          position: 'absolute',
-          bottom: 0,
-          left: 0,
-          width: '100%',
+          ...(isMobile
+            ? null
+            : {
+                position: 'absolute',
+                bottom: 0,
+                left: 0,
+                width: '100%',
+              }),
         }}
       >
         {usernames.map(username => (
           <Avatar username={username} size={32} key={username} style={{marginRight: globalMargins.xtiny}} />
         ))}
-      </Box>
+      </ScrollView>
     </PeopleItem>
   )
 }

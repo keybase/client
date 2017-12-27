@@ -2,8 +2,9 @@
 import * as React from 'react'
 import * as Types from '../../constants/types/people'
 import {List} from 'immutable'
-import {Avatar, Box, Text, ConnectedUsernames} from '../../common-adapters'
+import {Avatar, Box, ScrollView, Text, ConnectedUsernames} from '../../common-adapters'
 import {globalStyles, globalMargins} from '../../styles'
+import {isMobile} from '../../constants/platform'
 
 const connectedUsernamesProps = {
   clickable: true,
@@ -49,21 +50,26 @@ export default (props: Props) => (
       paddingTop: globalMargins.tiny,
       paddingLeft: 12,
       paddingRight: 12,
-      paddingBottom: 106,
+      paddingBottom: isMobile ? globalMargins.tiny : 106,
     }}
   >
     <Text type="BodySmallSemibold" style={{marginBottom: globalMargins.tiny}}>
       Consider following...
     </Text>
-    <Box
+    <ScrollView
+      horizontal={true}
+      contentContainerStyle={globalStyles.flexBoxRow}
       style={{
         ...globalStyles.flexBoxRow,
         overflow: 'scroll',
-        width: '100%',
-        position: 'absolute',
-        bottom: 0,
-        left: 0,
-        right: 0,
+        ...(isMobile
+          ? null
+          : {
+              position: 'absolute',
+              bottom: 0,
+              left: 0,
+              right: 0,
+            }),
       }}
     >
       {props.suggestions.map(suggestion => (
@@ -73,6 +79,6 @@ export default (props: Props) => (
           onClickUser={() => props.onClickUser(suggestion.username)}
         />
       ))}
-    </Box>
+    </ScrollView>
   </Box>
 )
