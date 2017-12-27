@@ -1,7 +1,7 @@
 // @flow
 import * as I from 'immutable'
-import * as RPCChatTypes from './flow-types-chat'
-import * as RPCTypes from './flow-types'
+import * as RPCChatTypes from './rpc-chat-gen'
+import * as RPCTypes from './rpc-gen'
 import * as SearchTypes from './search'
 import HiddenString from '../../util/hidden-string'
 import type {DeviceType} from './devices'

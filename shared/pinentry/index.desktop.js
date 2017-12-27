@@ -3,7 +3,7 @@ import React, {Component} from 'react'
 import {globalStyles, globalColors, globalMargins} from '../styles'
 import {autoResize} from '../desktop/remote/util'
 import {Button, FormWithCheckbox, Header, Text, Box, Icon} from '../common-adapters'
-import * as RPCTypes from '../constants/types/flow-types'
+import * as RPCTypes from '../constants/types/rpc-gen'
 
 export type Props = {
   onSubmit: (passphrase: string) => void,
@@ -71,7 +71,8 @@ class Pinentry extends Component<Props, State> {
         floatingHintTextOverride: 'Paperkey',
         multiline: true,
         rowsMax: 2,
-        hintText: 'elephont sturm cectus opp blezzard tofi pando agg whi pany yaga jocket daubt ruril globil cose',
+        hintText:
+          'elephont sturm cectus opp blezzard tofi pando agg whi pany yaga jocket daubt ruril globil cose',
       },
     }[this.props.type]
 
@@ -91,7 +92,9 @@ class Pinentry extends Component<Props, State> {
       >
         <Header icon={true} title="" onClose={this.props.onCancel} />
         <Box style={{...globalStyles.flexBoxColumn, paddingLeft: 30, paddingRight: 30}}>
-          <Text type="Body" style={{textAlign: 'center'}}>{this.props.prompt}</Text>
+          <Text type="Body" style={{textAlign: 'center'}}>
+            {this.props.prompt}
+          </Text>
           {isPaperKey && <Icon type="icon-paper-key-48" style={{alignSelf: 'center'}} />}
           <FormWithCheckbox
             inputProps={{

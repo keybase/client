@@ -5,7 +5,7 @@ import * as Types from '../constants/types/search'
 import * as SearchGen from './search-gen'
 import * as EntityAction from './entities'
 import * as I from 'immutable'
-import * as RPCTypes from '../constants/types/flow-types'
+import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Saga from '../util/saga'
 import * as Selectors from '../constants/selectors'
 import isEqual from 'lodash/isEqual'
@@ -230,11 +230,12 @@ function* search({payload: {term, service, searchKey}}: SearchGen.SearchPayload)
 }
 
 function* searchSuggestions({payload: {maxUsers, searchKey}}: SearchGen.SearchSuggestionsPayload) {
-  let suggestions: Array<
-    RPCTypes.InterestingPerson
-  > = yield Saga.call(RPCTypes.userInterestingPeopleRpcPromise, {
-    maxUsers: maxUsers || 50,
-  })
+  let suggestions: Array<RPCTypes.InterestingPerson> = yield Saga.call(
+    RPCTypes.userInterestingPeopleRpcPromise,
+    {
+      maxUsers: maxUsers || 50,
+    }
+  )
 
   // No search results (e.g. this user doesn't follow/chat anyone)
   suggestions = suggestions || []

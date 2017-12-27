@@ -4,14 +4,14 @@ import {
   kbfsCommonFSErrorType,
   kbfsCommonFSNotificationType,
   kbfsCommonFSStatusCode,
-} from '../constants/types/flow-types'
+} from '../constants/types/rpc-gen'
 import path from 'path'
 import {parseFolderNameToUsers} from './kbfs'
-import type {FSNotification} from '../constants/types/flow-types'
+import type {FSNotification} from '../constants/types/rpc-gen'
 
 type DecodedKBFSError = {
-  'title': string,
-  'body': string,
+  title: string,
+  body: string,
 }
 
 function usernamesForNotification(notification: FSNotification) {
@@ -24,7 +24,10 @@ function tlfForNotification(notification: FSNotification): string {
   // The notification.filename is canonical platform independent path.
   // To get the TLF we can look at the first 3 directories.
   // /keybase/private/gabrielh/foo.txt => /keybase/private/gabrielh
-  return notification.filename.split(path.sep).slice(0, 4).join(path.sep)
+  return notification.filename
+    .split(path.sep)
+    .slice(0, 4)
+    .join(path.sep)
 }
 
 function decodeKBFSError(user: string, notification: FSNotification): DecodedKBFSError {
@@ -59,7 +62,9 @@ function decodeKBFSError(user: string, notification: FSNotification): DecodedKBF
     case kbfsCommonFSErrorType.timeout:
       return {
         title: `Keybase: ${capitalize(notification.params.mode)} timeout in ${tlf}`,
-        body: `The ${notification.params.mode} operation took too long and failed. Please run 'keybase log send' so our admins can review.`,
+        body: `The ${
+          notification.params.mode
+        } operation took too long and failed. Please run 'keybase log send' so our admins can review.`,
       }
 
     case kbfsCommonFSErrorType.rekeyNeeded:
@@ -94,7 +99,8 @@ function decodeKBFSError(user: string, notification: FSNotification): DecodedKBF
         } else {
           return {
             title: 'Keybase: Out of temporary space',
-            body: 'Keybase is using too many file system resources temporarily, and writes will fail until the data syncs to the remote server.',
+            body:
+              'Keybase is using too many file system resources temporarily, and writes will fail until the data syncs to the remote server.',
           }
         }
       }

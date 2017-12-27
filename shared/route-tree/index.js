@@ -73,16 +73,17 @@ class MakeRouteDefNodeClass extends _makeRouteDefNode {
       initialState: I.Map(initialState),
       props: I.Map(),
       state: I.Map(),
-      children: typeof children === 'function'
-        ? children
-        : I.Seq(children)
-            .map(
-              params =>
-                params instanceof MakeRouteDefNodeClass || typeof params === 'function'
-                  ? params
-                  : makeRouteDefNode(params)
-            )
-            .toMap(),
+      children:
+        typeof children === 'function'
+          ? children
+          : I.Seq(children)
+              .map(
+                params =>
+                  params instanceof MakeRouteDefNodeClass || typeof params === 'function'
+                    ? params
+                    : makeRouteDefNode(params)
+              )
+              .toMap(),
     })
   }
 

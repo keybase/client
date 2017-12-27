@@ -59,7 +59,7 @@ const makeRoleOption = (
     <Icon type="iconfont-check" style={{alignSelf: 'center', color: globalColors.white, fontSize: 24}} />
     <Box style={{...globalStyles.flexBoxColumn, paddingLeft: globalMargins.tiny}}>
       <Box style={globalStyles.flexBoxRow}>
-        {!!roleIconMap[role] &&
+        {!!roleIconMap[role] && (
           <Icon
             type={roleIconMap[role]}
             style={{
@@ -67,7 +67,8 @@ const makeRoleOption = (
               fontSize: 16,
               marginRight: globalMargins.tiny,
             }}
-          />}
+          />
+        )}
         <Text style={{color: selected === role ? globalColors.white : globalColors.black}} type="Header">
           {typeToLabel[role]}
         </Text>
@@ -106,18 +107,17 @@ export const RoleOptions = ({
     }}
   >
     <Box style={{marginTop: globalMargins.small, marginBottom: globalMargins.small}}>
-      <Text type="Header">
-        {username ? `Select a role for ${username}` : 'Select a role'}
-      </Text>
+      <Text type="Header">{username ? `Select a role for ${username}` : 'Select a role'}</Text>
     </Box>
     {allowOwner && makeRoleOption('owner', selectedRole, setSelectedRole)}
     {allowAdmin && makeRoleOption('admin', selectedRole, setSelectedRole)}
     {makeRoleOption('writer', selectedRole, setSelectedRole)}
     {makeRoleOption('reader', selectedRole, setSelectedRole)}
-    {showSendNotification &&
+    {showSendNotification && (
       <Box style={{marginTop: globalMargins.small, marginBottom: globalMargins.tiny}}>
         <Checkbox label="Send chat notification" onCheck={setSendNotification} checked={sendNotification} />
-      </Box>}
+      </Box>
+    )}
     <Box style={{marginBottom: globalMargins.small, marginTop: globalMargins.tiny}}>
       <Button
         label={controlled ? 'Select' : 'Continue'}
@@ -144,7 +144,9 @@ const PermissionRow = (props: {can: boolean, permission: string}) => (
       type={props.can ? 'iconfont-check' : 'iconfont-close'}
       style={{color: props.can ? globalColors.green : globalColors.red, alignSelf: 'center'}}
     />
-    <Text type="BodySemibold" style={{marginLeft: globalMargins.tiny}}>{props.permission}</Text>
+    <Text type="BodySemibold" style={{marginLeft: globalMargins.tiny}}>
+      {props.permission}
+    </Text>
   </Box>
 )
 
@@ -160,10 +162,12 @@ export const RoleConfirm = ({
   const permissions = permissionMap[selectedRole]
 
   // Hard-code lists to make height sizing simpler
-  const cans = (permissions.can || [])
-    .map((perm, idx) => <PermissionRow key={idx} can={true} permission={perm} />)
-  const cannots = (permissions.cannot || [])
-    .map((perm, idx) => <PermissionRow key={idx} can={false} permission={perm} />)
+  const cans = (permissions.can || []).map((perm, idx) => (
+    <PermissionRow key={idx} can={true} permission={perm} />
+  ))
+  const cannots = (permissions.cannot || []).map((perm, idx) => (
+    <PermissionRow key={idx} can={false} permission={perm} />
+  ))
 
   // Handle a / an
   const article = isOwner(selectedRole) || isAdmin(selectedRole) ? 'an' : 'a'
@@ -223,10 +227,11 @@ export const RoleConfirm = ({
         <Text type="BodySemibold">{introText}</Text>
       </Box>
       <Box style={{...globalStyles.flexBoxColumn, width: 280}}>{cans}</Box>
-      {cannots.length > 0 &&
+      {cannots.length > 0 && (
         <Box style={{...globalStyles.flexBoxRow, margin: globalMargins.tiny}}>
           <Text type="BodySemibold">They won't be able to:</Text>
-        </Box>}
+        </Box>
+      )}
       {cannots.length > 0 && <Box style={{...globalStyles.flexBoxColumn, width: 280}}>{cannots}</Box>}
       <ButtonBar>
         <Button type="Secondary" label="Back" onClick={() => setConfirm(false)} />
@@ -243,9 +248,7 @@ export const RoleConfirm = ({
 
 // Conglomerate role displays
 export const RolePicker = (props: RolePickerProps) => (
-  <ScrollView>
-    {props.confirm ? <RoleConfirm {...props} /> : <RoleOptions {...props} />}
-  </ScrollView>
+  <ScrollView>{props.confirm ? <RoleConfirm {...props} /> : <RoleOptions {...props} />}</ScrollView>
 )
 const PopupWrapped = (props: RolePickerProps) => (
   <PopupDialog onClose={props.onCancel}>

@@ -101,25 +101,29 @@ class GlobalError extends Component<Props, State> {
       <Box style={{...containerStyle, maxHeight}}>
         <NativeTouchableWithoutFeedback onPress={this._onExpandClick}>
           <Box style={summaryRowStyle}>
-            {summary &&
+            {summary && (
               <Icon
                 type="iconfont-exclamation"
                 style={{color: globalColors.white, marginRight: globalMargins.tiny}}
-              />}
+              />
+            )}
             <Text type="BodySmall" style={{color: globalColors.white, flex: 1, textAlign: 'center'}}>
               {summary}
             </Text>
-            {summary &&
+            {summary && (
               <Icon
                 type="iconfont-close"
                 onClick={onDismiss}
                 style={{color: globalColors.white_75, marginLeft: globalMargins.tiny}}
-              />}
+              />
+            )}
           </Box>
         </NativeTouchableWithoutFeedback>
         <NativeScrollView>
           <Text type="BodySmall" style={detailStyle}>
-            {this.props.error && this.props.error.message}{'\n\n'}{details}
+            {this.props.error && this.props.error.message}
+            {'\n\n'}
+            {details}
           </Text>
         </NativeScrollView>
       </Box>

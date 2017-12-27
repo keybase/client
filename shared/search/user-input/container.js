@@ -51,16 +51,19 @@ const UserInputWithServiceFilter = props => (
       onCancel={props.onExitSearch}
       selectedSearchId={props.selectedSearchId}
     />
-    {props.showServiceFilter &&
+    {props.showServiceFilter && (
       <Box
         style={{
           ...globalStyles.flexBoxRow,
           alignItems: 'center',
         }}
       >
-        <Text type="BodySmallSemibold" style={{marginRight: globalMargins.tiny}}>Filter:</Text>
+        <Text type="BodySmallSemibold" style={{marginRight: globalMargins.tiny}}>
+          Filter:
+        </Text>
         <ServiceFilter selectedService={props.selectedService} onSelectService={props.onSelectService} />
-      </Box>}
+      </Box>
+    )}
   </Box>
 )
 

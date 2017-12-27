@@ -96,26 +96,26 @@ const _ConversationInfoPanel = (props: ConversationInfoPanelProps) => (
 
     <Divider style={{marginBottom: 20, marginTop: props.showTeamButton ? 10 : 20}} />
 
-    {props.showTeamButton
-      ? <ButtonBar>
-          <Button type="Primary" small={true} label="Turn into team" onClick={props.onShowNewTeamDialog} />
-        </ButtonBar>
-      : null}
+    {props.showTeamButton ? (
+      <ButtonBar>
+        <Button type="Primary" small={true} label="Turn into team" onClick={props.onShowNewTeamDialog} />
+      </ButtonBar>
+    ) : null}
 
-    {props.showTeamButton
-      ? <Text
-          style={{
-            alignSelf: 'center',
-            marginLeft: globalMargins.small,
-            marginRight: globalMargins.small,
-            marginTop: globalMargins.tiny,
-            textAlign: 'center',
-          }}
-          type="BodySmall"
-        >
-          You'll be able to add and delete members as you wish.
-        </Text>
-      : null}
+    {props.showTeamButton ? (
+      <Text
+        style={{
+          alignSelf: 'center',
+          marginLeft: globalMargins.small,
+          marginRight: globalMargins.small,
+          marginTop: globalMargins.tiny,
+          textAlign: 'center',
+        }}
+        type="BodySmall"
+      >
+        You'll be able to add and delete members as you wish.
+      </Text>
+    ) : null}
 
     {props.showTeamButton ? <Divider style={styleDivider} /> : null}
 
@@ -165,11 +165,8 @@ const _SmallTeamInfoPanel = (props: SmallTeamInfoPanelProps) => (
     >
       <Avatar size={isMobile ? 48 : 32} teamname={props.teamname} isTeam={true} />
       <Box style={{...globalStyles.flexBoxColumn, flex: 1, marginLeft: globalMargins.small}}>
-        <Text type="BodySemibold">
-          {props.teamname}
-        </Text>
+        <Text type="BodySemibold">{props.teamname}</Text>
         <Box style={globalStyles.flexBoxRow}>
-
           <Text type="BodySmall">
             {props.participants.length.toString() + ' member' + (props.participants.length !== 1 ? 's' : '')}
           </Text>
@@ -196,10 +193,13 @@ const _SmallTeamInfoPanel = (props: SmallTeamInfoPanelProps) => (
       <Text style={{flex: 1, paddingLeft: globalMargins.small}} type="BodySmallSemibold">
         In this team ({props.participants.length.toString()})
       </Text>
-      {props.admin && <Text type="BodySmallPrimaryLink" onClick={props.onViewTeam}>Manage</Text>}
+      {props.admin && (
+        <Text type="BodySmallPrimaryLink" onClick={props.onViewTeam}>
+          Manage
+        </Text>
+      )}
     </Box>
     <Participants participants={props.participants} onShowProfile={props.onShowProfile} />
-
   </ScrollView>
 )
 
@@ -228,32 +228,36 @@ const _BigTeamInfoPanel = (props: BigTeamInfoPanelProps) => (
       </Text>
     </ClickableBox>
 
-    {!props.isPreview &&
+    {!props.isPreview && (
       <Box>
         <Divider style={styleDivider} />
         <MuteRow muted={props.muted} onMute={props.onMuteConversation} label="Mute entire channel" />
         <Notifications />
-      </Box>}
+      </Box>
+    )}
 
     <Divider style={styleDivider} />
 
     <Box style={{...globalStyles.flexBoxRow, justifyContent: 'center'}}>
-      {props.isPreview &&
+      {props.isPreview && (
         <Button
           type="Primary"
           label="Join channel"
           style={{marginRight: globalMargins.xtiny}}
           small={true}
           onClick={props.onJoinChannel}
-        />}
-      {!props.isPreview &&
-        <Button type="Danger" small={true} label="Leave channel" onClick={props.onLeaveConversation} />}
+        />
+      )}
+      {!props.isPreview && (
+        <Button type="Danger" small={true} label="Leave channel" onClick={props.onLeaveConversation} />
+      )}
     </Box>
 
-    {props.isPreview &&
+    {props.isPreview && (
       <Text type="BodySmall" style={{textAlign: 'center', marginTop: globalMargins.xtiny}}>
         Anyone in {props.teamname} can join.
-      </Text>}
+      </Text>
+    )}
 
     <Divider style={styleDivider} />
     <Box style={{...globalStyles.flexBoxRow, marginRight: globalMargins.small}}>
@@ -261,8 +265,11 @@ const _BigTeamInfoPanel = (props: BigTeamInfoPanelProps) => (
         In this channel ({props.participants.length.toString()})
       </Text>
       {props.admin &&
-        props.channelname === 'general' &&
-        <Text type="BodySmallPrimaryLink" onClick={props.onViewTeam}>Manage</Text>}
+        props.channelname === 'general' && (
+          <Text type="BodySmallPrimaryLink" onClick={props.onViewTeam}>
+            Manage
+          </Text>
+        )}
     </Box>
     <Participants participants={props.participants} onShowProfile={props.onShowProfile} />
   </ScrollView>

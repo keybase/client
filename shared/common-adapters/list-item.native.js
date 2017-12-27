@@ -35,7 +35,7 @@ class ListItem extends Component<Props> {
         >
           {this.props.body}
         </Box>
-        {!this.props.swipeToAction &&
+        {!this.props.swipeToAction && (
           <Box
             style={{
               ...globalStyles.flexBoxColumn,
@@ -44,14 +44,11 @@ class ListItem extends Component<Props> {
             }}
           >
             {this.props.action}
-          </Box>}
+          </Box>
+        )}
       </Box>
     )
-    return (
-      <ClickableBox onClick={this.props.onClick}>
-        {listItem}
-      </ClickableBox>
-    )
+    return <ClickableBox onClick={this.props.onClick}>{listItem}</ClickableBox>
   }
 }
 

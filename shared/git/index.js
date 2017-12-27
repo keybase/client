@@ -62,23 +62,26 @@ class Git extends React.Component<Props, State> {
         <ScrollView>
           <Box style={_sectionHeaderStyle}>
             <Text type="BodySmallSemibold">Personal</Text>
-            {this.props.loading &&
+            {this.props.loading && (
               <ProgressIndicator
                 style={{alignSelf: 'center', marginLeft: globalMargins.small, width: globalMargins.small}}
-              />}
+              />
+            )}
           </Box>
           {this.props.personals.map(p => <Row key={p} {...this._rowPropsToProps(p)} />)}
           <Box style={_sectionHeaderStyle}>
             <Text type="BodySmallSemibold">Team</Text>
-            {this.props.loading &&
+            {this.props.loading && (
               <ProgressIndicator
                 style={{alignSelf: 'center', marginLeft: globalMargins.small, width: globalMargins.small}}
-              />}
+              />
+            )}
           </Box>
           {this.props.teams.map(p => <Row key={p} {...this._rowPropsToProps(p)} />)}
         </ScrollView>
-        {this.state.showingMenu &&
-          <OLDPopupMenu items={this._menuItems} onHidden={this._toggleMenu} style={_popupStyle} />}
+        {this.state.showingMenu && (
+          <OLDPopupMenu items={this._menuItems} onHidden={this._toggleMenu} style={_popupStyle} />
+        )}
       </Box>
     )
   }

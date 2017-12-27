@@ -11,7 +11,9 @@ export type Props = {
 const ConversationError = ({conversationErrorText}: Props) => (
   <Box style={styleContainer}>
     <Text type="Header">There was an error loading this conversation.</Text>
-    <Text style={styleBody} type="Body">The error is:</Text>
+    <Text style={styleBody} type="Body">
+      The error is:
+    </Text>
     <Box style={styleErrorBox}>
       <CopyableText style={styleErrorText} value={conversationErrorText} />
     </Box>

@@ -27,7 +27,9 @@ const Row = ({deviceID, name, type, onSelect}) => {
           <Box style={stylesIconContainer}>
             <Icon style={stylesIcon} type={iconType} />
           </Box>
-          <Text type="BodySemiboldItalic" onClick={onClick}>{name}</Text>
+          <Text type="BodySemiboldItalic" onClick={onClick}>
+            {name}
+          </Text>
         </Box>
       </DeviceBox>
     </Box>
@@ -70,15 +72,18 @@ const ResetOption = ({onReset}) => (
 
 const SelectOtherDevice = ({onBack, devices, onWont, onSelect, canSelectNoDevice, onReset}: Props) => (
   <Container style={stylesContainer} onBack={onBack}>
-    <Text type="Header" style={stylesHeader}>Which Keybase install would you like to connect with?</Text>
+    <Text type="Header" style={stylesHeader}>
+      Which Keybase install would you like to connect with?
+    </Text>
     <Box style={stylesDevicesContainer}>
       {devices.map(d => <Row onSelect={onSelect} {...d} key={d.deviceID} />)}
       <ResetOption onReset={onReset} />
     </Box>
-    {canSelectNoDevice &&
+    {canSelectNoDevice && (
       <Text style={stylesWont} type="BodySmallSecondaryLink" onClick={onWont}>
         Log in with your passphrase
-      </Text>}
+      </Text>
+    )}
   </Container>
 )
 

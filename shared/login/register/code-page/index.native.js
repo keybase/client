@@ -66,7 +66,11 @@ class CodePage extends Component<Props> {
           }}
         >
           <Text type="BodySemibold">Code Scanned</Text>
-          {scanMessage && <Text type="Body" style={{textAlign: 'center'}}>{scanMessage}</Text>}
+          {scanMessage && (
+            <Text type="Body" style={{textAlign: 'center'}}>
+              {scanMessage}
+            </Text>
+          )}
         </Box>
       )
     }
@@ -77,8 +81,7 @@ class CodePage extends Component<Props> {
         style={stylesQRScan}
         qrCode={this.props.qrCode}
       >
-
-        {isIOS &&
+        {isIOS && (
           <Box style={{alignSelf: 'center', width: 200, height: 200}}>
             <Box style={[stylesScan.box, stylesScan.boxEdge, {left: 0}]} />
             <Box style={[stylesScan.box, stylesScan.boxEdge, {right: 0}]} />
@@ -86,7 +89,8 @@ class CodePage extends Component<Props> {
             <Box style={[stylesScan.box, stylesScan.boxCorner, {left: 0, top: 0}]} />
             <Box style={[stylesScan.box, stylesScan.boxCorner, {right: 0, bottom: 0}]} />
             <Box style={[stylesScan.box, stylesScan.boxCorner, {left: 0, bottom: 0}]} />
-          </Box>}
+          </Box>
+        )}
       </Qr>
     )
   }
@@ -94,7 +98,9 @@ class CodePage extends Component<Props> {
   renderShowText() {
     return (
       <Box style={stylesShowText}>
-        <Text type="Terminal" style={stylesTextCode}>{this.props.textCode}</Text>
+        <Text type="Terminal" style={stylesTextCode}>
+          {this.props.textCode}
+        </Text>
       </Box>
     )
   }
@@ -138,7 +144,9 @@ class CodePage extends Component<Props> {
           }}
         >
           <Icon type={icon} />
-          <Text type="BodyBigLink" style={{marginLeft: 4}}>{label}</Text>
+          <Text type="BodyBigLink" style={{marginLeft: 4}}>
+            {label}
+          </Text>
         </Box>
       </ClickableBox>
     )
@@ -148,7 +156,9 @@ class CodePage extends Component<Props> {
     return (
       <Container style={stylesContainer} onBack={this.props.onBack}>
         <Box style={stylesIntro}>
-          <Text type="Header" style={{marginBottom: 10}}>Scan QR code</Text>
+          <Text type="Header" style={{marginBottom: 10}}>
+            Scan QR code
+          </Text>
           <Text type="Body">In the Keybase app on your computer,</Text>
           <Text type="Body">{'go to Devices > Add a new device.'}</Text>
         </Box>
@@ -162,7 +172,9 @@ class CodePage extends Component<Props> {
     return (
       <Container style={stylesContainer} onBack={this.props.onBack}>
         <Box style={stylesIntro}>
-          <Text type="Header" style={{marginBottom: 10}}>Scan QR code</Text>
+          <Text type="Header" style={{marginBottom: 10}}>
+            Scan QR code
+          </Text>
           <Text type="Body">{'When adding a new mobile device.'}</Text>
         </Box>
         {this.renderShowCode()}
@@ -175,7 +187,9 @@ class CodePage extends Component<Props> {
     return (
       <Container style={stylesContainer} onBack={this.props.onBack}>
         <Box style={stylesIntro}>
-          <Text type="Header" style={{marginBottom: 10}}>Scan QR code</Text>
+          <Text type="Header" style={{marginBottom: 10}}>
+            Scan QR code
+          </Text>
           <Text type="Body">In the Keybase App on your other phone,</Text>
           <Text type="Body">{'go to Devices > Add a new device.'}</Text>
         </Box>
@@ -208,9 +222,13 @@ class CodePage extends Component<Props> {
     return (
       <Container style={stylesContainer} onBack={this.props.onBack}>
         <Box style={stylesIntro}>
-          <Text type="Header" style={{marginBottom: 10}}>Type in text code</Text>
+          <Text type="Header" style={{marginBottom: 10}}>
+            Type in text code
+          </Text>
           <Text type="Body">Please run</Text>
-          <Text type="TerminalInline" backgroundMode="Terminal">keybase device add</Text>
+          <Text type="TerminalInline" backgroundMode="Terminal">
+            keybase device add
+          </Text>
           <Text type="Body">in the terminal on your computer.</Text>
         </Box>
         {this.renderShowText()}
@@ -223,7 +241,9 @@ class CodePage extends Component<Props> {
     return (
       <Container style={stylesContainer} onBack={this.props.onBack}>
         <Box style={stylesIntro}>
-          <Text type="Header" style={{marginBottom: 10}}>Type in text code</Text>
+          <Text type="Header" style={{marginBottom: 10}}>
+            Type in text code
+          </Text>
           <Text type="Body">In the Keybase app on your computer,</Text>
           <Text type="Body">{'go to Devices > Add a new device.'}</Text>
         </Box>
@@ -237,7 +257,9 @@ class CodePage extends Component<Props> {
     return (
       <Container style={stylesContainer} onBack={this.props.onBack}>
         <Box style={stylesIntro}>
-          <Text type="Header" style={{marginBottom: 10}}>Type text code</Text>
+          <Text type="Header" style={{marginBottom: 10}}>
+            Type text code
+          </Text>
           <Text type="Body">In the Keybase App on your other phone,</Text>
           <Text type="Body">{'go to Devices > Add a new device.'}</Text>
         </Box>

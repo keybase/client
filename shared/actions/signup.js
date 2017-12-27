@@ -2,7 +2,7 @@
 import logger from '../logger'
 import * as LoginGen from './login-gen'
 import * as SignupGen from './signup-gen'
-import * as RPCTypes from '../constants/types/flow-types'
+import * as RPCTypes from '../constants/types/rpc-gen'
 import HiddenString from '../util/hidden-string'
 import trim from 'lodash/trim'
 import {isMobile} from '../constants/platform'

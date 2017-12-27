@@ -1,7 +1,7 @@
 // Metadata about a conversation. We keep the messages sep. since we update these at different times
 // @flow
 import * as I from 'immutable'
-import * as RPCChatTypes from '../flow-types-chat'
+import * as RPCChatTypes from '../rpc-chat-gen'
 import * as Common from './common'
 
 type MembershipType = 'active' | 'youArePreviewing' | 'youAreReset'

@@ -28,21 +28,19 @@ const setPublicNameMap: DumbComponentMap<SetPublicName> = {
   },
 }
 
-const mockDevices = [
-  ['iphone', 'mobile'],
-  ['Home Computer', 'desktop'],
-  ['Android Nexus 5x', 'mobile'],
-].map(([name, type], i) => ({
-  name,
-  deviceID: i.toString(),
-  type,
-  created: 0,
-  currentDevice: false,
-  provisioner: null,
-  provisionedAt: 0,
-  revokedAt: null,
-  lastUsed: 1,
-}))
+const mockDevices = [['iphone', 'mobile'], ['Home Computer', 'desktop'], ['Android Nexus 5x', 'mobile']].map(
+  ([name, type], i) => ({
+    name,
+    deviceID: i.toString(),
+    type,
+    created: 0,
+    currentDevice: false,
+    provisioner: null,
+    provisionedAt: 0,
+    revokedAt: null,
+    lastUsed: 1,
+  })
+)
 
 const selectOtherMock = {
   canSelectNoDevice: true,

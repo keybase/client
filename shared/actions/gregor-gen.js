@@ -3,10 +3,10 @@
 /* eslint-disable no-unused-vars,prettier/prettier */
 
 import * as I from 'immutable'
-import * as RPCTypes from '../constants/types/flow-types'
+import * as RPCTypes from '../constants/types/rpc-gen'
 import * as More from '../constants/types/more'
 import * as Types from '../constants/types/gregor'
-import * as RPCTypesGregor from '../constants/types/flow-types-gregor'
+import * as RPCTypesGregor from '../constants/types/rpc-gregor-gen'
 
 // Constants
 export const resetStore = 'common:resetStore' // not a part of gregor but is handled by every reducer

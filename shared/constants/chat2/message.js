@@ -2,7 +2,7 @@
 // @flow
 import * as DeviceTypes from '../types/devices'
 import * as I from 'immutable'
-import * as RPCChatTypes from '../types/flow-types-chat'
+import * as RPCChatTypes from '../types/rpc-chat-gen'
 import * as Types from '../types/chat2'
 import HiddenString from '../../util/hidden-string'
 import clamp from 'lodash/clamp'
@@ -98,12 +98,10 @@ export const uiMessageToMessage = (
           break // make an error
         }
         const {filename, title, mimeType, metadata} = attachment.object
-        const metadataVideo = metadata.assetType === RPCChatTypes.localAssetMetadataType.video
-          ? metadata.video
-          : null
-        const metadataImage = metadata.assetType === RPCChatTypes.localAssetMetadataType.image
-          ? metadata.image
-          : null
+        const metadataVideo =
+          metadata.assetType === RPCChatTypes.localAssetMetadataType.video ? metadata.video : null
+        const metadataImage =
+          metadata.assetType === RPCChatTypes.localAssetMetadataType.image ? metadata.image : null
         const attachmentType = mimeType.indexOf('image') === 0 ? 'image' : 'other'
         const {width, height} = metadataVideo || metadataImage || {height: 0, width: 0}
         const {width: previewWidth = 0, height: previewHeight = 0} = clampAttachmentPreviewSize(width, height)

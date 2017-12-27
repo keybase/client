@@ -123,7 +123,8 @@ class Icon extends Component<Exact<Props>, void> {
 }
 
 const imgName = (type: IconType, ext: string, mult: number, prefix: ?string, postfix: ?string) =>
-  `${prefix || ''}${resolveImageAsURL('icons', type)}${mult > 1 ? `@${mult}x` : ''}.${ext}${postfix || ''} ${mult}x`
+  `${prefix || ''}${resolveImageAsURL('icons', type)}${mult > 1 ? `@${mult}x` : ''}.${ext}${postfix ||
+    ''} ${mult}x`
 
 function iconTypeToSrcSet(type: IconType) {
   const ext = shared.typeExtension(type)
@@ -162,7 +163,9 @@ export function urlsToImgSet(imgMap: {[size: string]: string}, targetSize: numbe
     multsMap[mult] = size || sizes[sizes.length - 1]
   })
 
-  const str = Object.keys(multsMap).map(mult => `url(${imgMap[multsMap[mult]]}) ${mult}x`).join(', ')
+  const str = Object.keys(multsMap)
+    .map(mult => `url(${imgMap[multsMap[mult]]}) ${mult}x`)
+    .join(', ')
   return `-webkit-image-set(${str})`
 }
 

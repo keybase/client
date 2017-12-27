@@ -126,16 +126,18 @@ class Icon extends React.PureComponent<Props> {
     const filter = ['color', 'fontSize', 'textAlign']
     const boxStyle = filter.some(key => has(props.style, key)) ? omit(props.style, filter) : props.style
 
-    return props.onClick
-      ? <ClickableBox
-          activeOpacity={0.8}
-          underlayColor={props.underlayColor || globalColors.white}
-          onClick={props.onClick}
-          style={boxStyle}
-        >
-          {icon}
-        </ClickableBox>
-      : icon
+    return props.onClick ? (
+      <ClickableBox
+        activeOpacity={0.8}
+        underlayColor={props.underlayColor || globalColors.white}
+        onClick={props.onClick}
+        style={boxStyle}
+      >
+        {icon}
+      </ClickableBox>
+    ) : (
+      icon
+    )
   }
 }
 

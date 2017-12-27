@@ -3,7 +3,7 @@ import logger from '../logger'
 import * as Constants from '../constants/tracker'
 import * as TrackerGen from '../actions/tracker-gen'
 import * as Saga from '../util/saga'
-import * as RPCTypes from '../constants/types/flow-types'
+import * as RPCTypes from '../constants/types/rpc-gen'
 import Session, {type CancelHandlerType} from '../engine/session'
 import get from 'lodash/get'
 import engine from '../engine'
@@ -36,9 +36,10 @@ function _getProfile(action: TrackerGen.GetProfilePayload, state: TypedState) {
   }
 
   const trackerState = tracker.userTrackers[username]
-  const uid = trackerState && trackerState.type === 'tracker'
-    ? trackerState.userInfo && trackerState.userInfo.uid
-    : null
+  const uid =
+    trackerState && trackerState.type === 'tracker'
+      ? trackerState.userInfo && trackerState.userInfo.uid
+      : null
   const goodTill = uid && tracker.cachedIdentifies[uid + '']
   if (!ignoreCache && goodTill && goodTill >= Date.now()) {
     logger.info('Bailing on cached getProfile', username, uid)

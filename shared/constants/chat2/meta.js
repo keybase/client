@@ -1,7 +1,7 @@
 // Meta manages the metadata about a conversation. Participants, isMuted, reset people, etc. Things that drive the inbox
 // @flow
 import * as I from 'immutable'
-import * as RPCChatTypes from '../types/flow-types-chat'
+import * as RPCChatTypes from '../types/rpc-chat-gen'
 import * as Types from '../types/chat2'
 import {toByteArray} from 'base64-js'
 import type {_ConversationMeta} from '../types/chat2/meta'
@@ -38,8 +38,9 @@ export const unverifiedInboxUIItemToConversationMeta = (i: RPCChatTypes.Unverifi
 }
 
 const conversationMetadataToMetaSupersedeInfo = (metas: ?Array<RPCChatTypes.ConversationMetadata>) => {
-  const meta: ?RPCChatTypes.ConversationMetadata = (metas || [])
-    .find(m => m.idTriple.topicType === RPCChatTypes.commonTopicType.chat && m.finalizeInfo)
+  const meta: ?RPCChatTypes.ConversationMetadata = (metas || []).find(
+    m => m.idTriple.topicType === RPCChatTypes.commonTopicType.chat && m.finalizeInfo
+  )
 
   return {
     conversationIDKey: meta ? supersededConversationIDToKey(meta.conversationID) : null,

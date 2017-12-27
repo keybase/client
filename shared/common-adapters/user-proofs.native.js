@@ -70,12 +70,19 @@ function ProofRow({proof, onClickStatus, onClickProfile, hasMenu, style}: ProofR
       <Box style={styleProofNameSection}>
         <Box style={styleProofNameLabelContainer}>
           <Text type="Body" onClick={() => onClickProfile(proof)} style={styleProofName}>
-            <Text type="Body" style={shared.proofNameStyle(proof)}>{proof.name}</Text>
-            {!!proof.id && <Text type="Body" style={styleProofType}>@{proof.type}</Text>}
+            <Text type="Body" style={shared.proofNameStyle(proof)}>
+              {proof.name}
+            </Text>
+            {!!proof.id && (
+              <Text type="Body" style={styleProofType}>
+                @{proof.type}
+              </Text>
+            )}
           </Text>
           {proof.meta &&
-            proof.meta !== metaNone &&
-            <Meta title={proof.meta} style={{marginTop: 1, backgroundColor: shared.metaColor(proof)}} />}
+            proof.meta !== metaNone && (
+              <Meta title={proof.meta} style={{marginTop: 1, backgroundColor: shared.metaColor(proof)}} />
+            )}
         </Box>
       </Box>
       <ClickableBox
@@ -86,12 +93,14 @@ function ProofRow({proof, onClickStatus, onClickProfile, hasMenu, style}: ProofR
       >
         <Box style={styleStatusIconContainer} onClick={() => onClickStatus(proof)}>
           {proofStatusIconType &&
-            (proof.state === proofChecking
-              ? <ProgressIndicator style={styleSpinner} />
-              : <Icon
-                  type={proofStatusIconType}
-                  style={{fontSize: 32, color: shared.proofColor(proof, true)}}
-                />)}
+            (proof.state === proofChecking ? (
+              <ProgressIndicator style={styleSpinner} />
+            ) : (
+              <Icon
+                type={proofStatusIconType}
+                style={{fontSize: 32, color: shared.proofColor(proof, true)}}
+              />
+            ))}
           {hasMenu && <Icon type="iconfont-caret-down" />}
         </Box>
       </ClickableBox>
@@ -118,11 +127,7 @@ function LoadingProofRow({width}: {width: number}): React.Element<any> {
 }
 
 function LoadingProofs() {
-  return (
-    <Box>
-      {[117, 147, 97].map((width, idx) => <LoadingProofRow key={idx} width={width} />)}
-    </Box>
-  )
+  return <Box>{[117, 147, 97].map((width, idx) => <LoadingProofRow key={idx} width={width} />)}</Box>
 }
 
 class ProofsRender extends React.Component<Props> {

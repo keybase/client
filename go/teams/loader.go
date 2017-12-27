@@ -62,6 +62,9 @@ func (l *TeamLoader) Load(ctx context.Context, lArg keybase1.LoadTeamArg) (res *
 	if err != nil {
 		return nil, err
 	}
+	if me.IsNil() && !lArg.Public {
+		return nil, libkb.NewLoginRequiredError("login required to load a private team")
+	}
 	return l.load1(ctx, me, lArg)
 }
 
@@ -223,6 +226,8 @@ type load2ArgT struct {
 	// Load1 should never ever return a secret-less TeamData.
 	readSubteamID *keybase1.TeamID
 
+	// If the user is logged out, this will be a nil UserVersion, meaning
+	/// me.IsNil() will be true.
 	me keybase1.UserVersion
 }
 

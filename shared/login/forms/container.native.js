@@ -8,9 +8,7 @@ import {NativeScrollView} from '../../common-adapters/index.native'
 const Container = ({children, style, outerStyle}: Props) => {
   return (
     <NativeScrollView style={{...containerStyle, ...outerStyle}}>
-      <Box style={{...innerContainerStyle, ...style}}>
-        {children}
-      </Box>
+      <Box style={{...innerContainerStyle, ...style}}>{children}</Box>
     </NativeScrollView>
   )
 }

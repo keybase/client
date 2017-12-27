@@ -31,7 +31,11 @@ const AttachmentTitle = ({
       style = {backgroundColor: globalColors.white, color: globalColors.black_40}
       break
   }
-  return <Text type="BodySemibold" style={style} onClick={onOpenInPopup}>{title || filename}</Text>
+  return (
+    <Text type="BodySemibold" style={style} onClick={onOpenInPopup}>
+      {title || filename}
+    </Text>
+  )
 }
 
 function PreviewImage({
@@ -55,9 +59,8 @@ function PreviewImage({
 
     const imgWidth = imgMaxWidth()
     // Don't exceed screen dimensions, keep it scaled
-    const previewRatio = previewSize && previewSize.width
-      ? Math.min(previewSize.width, imgWidth) / previewSize.width
-      : 1
+    const previewRatio =
+      previewSize && previewSize.width ? Math.min(previewSize.width, imgWidth) / previewSize.width : 1
 
     const imgStyle = {
       borderRadius: 4,
@@ -87,32 +90,35 @@ function PreviewImage({
             {previewPath && <ImageRender style={imgStyle} src={previewPath} />}
           </Box>
           {!isMobile &&
-            (savedPath || (savedPath === false && downloadProgress !== null)) &&
-            <ImageIcon
-              style={{position: 'relative', right: 19, top: 4}}
-              type={savedPath ? 'Downloaded' : 'Downloading'}
-            />}
+            (savedPath || (savedPath === false && downloadProgress !== null)) && (
+              <ImageIcon
+                style={{position: 'relative', right: 19, top: 4}}
+                type={savedPath ? 'Downloaded' : 'Downloading'}
+              />
+            )}
           {attachmentDurationMs &&
             !previewDurationMs &&
-            previewPath &&
-            <Box style={{...globalStyles.flexBoxCenter, ...globalStyles.fillAbsolute}}>
-              <Icon type="icon-play-64" />
-            </Box>}
+            previewPath && (
+              <Box style={{...globalStyles.flexBoxCenter, ...globalStyles.fillAbsolute}}>
+                <Icon type="icon-play-64" />
+              </Box>
+            )}
           {attachmentDurationMs &&
-            previewType === 'Video' &&
-            <Text
-              type="BodySemibold"
-              style={{
-                backgroundColor: globalColors.transparent,
-                bottom: globalMargins.xtiny,
-                color: 'white',
-                fontSize: 12,
-                position: 'absolute',
-                right: globalMargins.tiny,
-              }}
-            >
-              {moment.utc(attachmentDurationMs).format('m:ss')}
-            </Text>}
+            previewType === 'Video' && (
+              <Text
+                type="BodySemibold"
+                style={{
+                  backgroundColor: globalColors.transparent,
+                  bottom: globalMargins.xtiny,
+                  color: 'white',
+                  fontSize: 12,
+                  position: 'absolute',
+                  right: globalMargins.tiny,
+                }}
+              >
+                {moment.utc(attachmentDurationMs).format('m:ss')}
+              </Text>
+            )}
         </Box>
       </ClickableBox>
     )
@@ -135,7 +141,9 @@ function ProgressBar({text, progress, style}: ProgressBarProps) {
 
   return (
     <Box style={containerStyle}>
-      <Text type={'BodySmall'} style={{marginRight: globalMargins.xtiny}}>{text}</Text>
+      <Text type={'BodySmall'} style={{marginRight: globalMargins.xtiny}}>
+        {text}
+      </Text>
       <Box
         style={{
           ...basicStyle,
@@ -174,7 +182,9 @@ function ImageIcon({type, style}: ImageIconProps) {
 }
 
 const ShowInFileUi = ({onOpenInFileUI}) => (
-  <Text type="BodySmallPrimaryLink" onClick={onOpenInFileUI}>Show in {fileUIName}</Text>
+  <Text type="BodySmallPrimaryLink" onClick={onOpenInFileUI}>
+    Show in {fileUIName}
+  </Text>
 )
 
 function PreviewImageWithInfo({
@@ -212,17 +222,18 @@ function PreviewImageWithInfo({
           onMessageAction={onMessageAction}
           onOpenInPopup={onOpenInPopup}
         />
-        {(messageState === 'placeholder' || previewProgress !== null) &&
+        {(messageState === 'placeholder' || previewProgress !== null) && (
           <Box style={{...globalStyles.flexBoxCenter, ...globalStyles.fillAbsolute}}>
             <ProgressIndicator style={{width: 32}} />
-          </Box>}
+          </Box>
+        )}
       </Box>
       <Box style={{marginTop: globalMargins.xtiny}}>
-        {uploadProgress !== null &&
-          <ProgressBar style={overlayProgressBarStyle} text="Encrypting" progress={uploadProgress} />}
+        {uploadProgress !== null && (
+          <ProgressBar style={overlayProgressBarStyle} text="Encrypting" progress={uploadProgress} />
+        )}
         {savedPath === false &&
-          downloadProgress !== null &&
-          <ProgressBar text="Downloading" progress={downloadProgress} />}
+          downloadProgress !== null && <ProgressBar text="Downloading" progress={downloadProgress} />}
         {!isMobile && savedPath && <ShowInFileUi onOpenInFileUI={onOpenInFileUI} />}
       </Box>
     </Box>
@@ -285,14 +296,14 @@ function AttachmentMessageGeneric({
         <AttachmentTitle {...message} onOpenInPopup={canOpen ? onOpenInPopup : null} />
 
         {!isMobile &&
-          (uploadProgress !== null || downloadProgress !== null || savedPath) &&
-          <Box style={{height: 14}}>
-            {uploadProgress !== null && <ProgressBar text="Encrypting" progress={uploadProgress} />}
-            {savedPath === false &&
-              downloadProgress !== null &&
-              <ProgressBar text="Downloading" progress={downloadProgress} />}
-            {savedPath && <ShowInFileUi onOpenInFileUI={onOpenInFileUI} />}
-          </Box>}
+          (uploadProgress !== null || downloadProgress !== null || savedPath) && (
+            <Box style={{height: 14}}>
+              {uploadProgress !== null && <ProgressBar text="Encrypting" progress={uploadProgress} />}
+              {savedPath === false &&
+                downloadProgress !== null && <ProgressBar text="Downloading" progress={downloadProgress} />}
+              {savedPath && <ShowInFileUi onOpenInFileUI={onOpenInFileUI} />}
+            </Box>
+          )}
       </Box>
     </Box>
   )

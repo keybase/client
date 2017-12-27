@@ -43,7 +43,9 @@ class NewConversation extends PureComponent<{}> {
               }}
             />
           </Box>
-          <Text style={{color: globalColors.white}} type="BodySemibold">New conversation</Text>
+          <Text style={{color: globalColors.white}} type="BodySemibold">
+            New conversation
+          </Text>
         </Box>
       </Box>
     )

@@ -1,9 +1,9 @@
 // @flow
 import logger from '../logger'
 import * as I from 'immutable'
-import * as RPCChatTypes from './types/flow-types-chat'
+import * as RPCChatTypes from './types/rpc-chat-gen'
 import * as Types from './types/chat'
-import * as RPCTypes from './types/flow-types'
+import * as RPCTypes from './types/rpc-gen'
 import clamp from 'lodash/clamp'
 import invert from 'lodash/invert'
 import {Buffer} from 'buffer'

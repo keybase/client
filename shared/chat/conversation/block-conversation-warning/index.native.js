@@ -28,7 +28,9 @@ const _Contents = ({conversationIDKey, onBack, participants, onBlock, onBlockAnd
         <Text type="Body" style={{marginTop: globalMargins.medium}}>
           You won't see this conversation anymore.
         </Text>
-        <Text type="Body" style={{marginTop: globalMargins.small}}>To unblock it, run:</Text>
+        <Text type="Body" style={{marginTop: globalMargins.small}}>
+          To unblock it, run:
+        </Text>
         <Box
           style={{
             backgroundColor: globalColors.darkBlue,

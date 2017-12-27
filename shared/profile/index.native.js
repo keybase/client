@@ -50,11 +50,10 @@ class Profile extends Component<Props, State> {
   _handleToggleMenu(idx: number) {
     const selectedProof = this.props.proofs[idx]
     this.setState({
-      activeMenuProof: this.state.activeMenuProof &&
-        selectedProof &&
-        this.state.activeMenuProof.id === selectedProof.id
-        ? undefined
-        : selectedProof,
+      activeMenuProof:
+        this.state.activeMenuProof && selectedProof && this.state.activeMenuProof.id === selectedProof.id
+          ? undefined
+          : selectedProof,
     })
   }
 
@@ -93,7 +92,8 @@ class Profile extends Component<Props, State> {
     if (proof.meta === Constants.metaUnreachable) {
       return {
         header: {
-          title: 'Your proof could not be found, and Keybase has stopped checking. How would you like to proceed?',
+          title:
+            'Your proof could not be found, and Keybase has stopped checking. How would you like to proceed?',
           danger: true,
         },
         items: [
@@ -126,10 +126,11 @@ class Profile extends Component<Props, State> {
               overlay="icon-proof-success"
               overlayColor={globalColors.blue}
             />
-            {!!proof.mTime &&
+            {!!proof.mTime && (
               <Text type="BodySmall" style={{textAlign: 'center'}}>
                 Posted on {moment(proof.mTime).format('ddd MMM D, YYYY')}
-              </Text>}
+              </Text>
+            )}
           </Box>
         ),
       },
@@ -188,12 +189,13 @@ class Profile extends Component<Props, State> {
       : shared.missingProofs(this.props.proofs, this.props.onMissingProofClick)
     return (
       <Box style={{backgroundColor: globalColors.white}}>
-        {proofNotice &&
+        {proofNotice && (
           <Box style={{...styleProofNotice, backgroundColor: trackerStateColors.header.background}}>
             <Text type="BodySemibold" style={{color: globalColors.white, textAlign: 'center'}}>
               {proofNotice}
             </Text>
-          </Box>}
+          </Box>
+        )}
         <Box style={{...globalStyles.flexBoxColumn, position: 'relative'}}>
           <Box
             style={{
@@ -212,16 +214,17 @@ class Profile extends Component<Props, State> {
           />
         </Box>
         {!this.props.isYou &&
-          !this.props.loading &&
-          <UserActions
-            style={styleActions}
-            trackerState={this.props.trackerState}
-            currentlyFollowing={this.props.currentlyFollowing}
-            onChat={this.props.onChat}
-            onFollow={this.props.onFollow}
-            onUnfollow={this.props.onUnfollow}
-            onAcceptProofs={this.props.onAcceptProofs}
-          />}
+          !this.props.loading && (
+            <UserActions
+              style={styleActions}
+              trackerState={this.props.trackerState}
+              currentlyFollowing={this.props.currentlyFollowing}
+              onChat={this.props.onChat}
+              onFollow={this.props.onFollow}
+              onUnfollow={this.props.onUnfollow}
+              onAcceptProofs={this.props.onAcceptProofs}
+            />
+          )}
         <Box
           style={{
             ...globalStyles.flexBoxRow,
@@ -233,26 +236,29 @@ class Profile extends Component<Props, State> {
         >
           {this.props.userInfo &&
             this.props.userInfo.showcasedTeams &&
-            this.props.userInfo.showcasedTeams.length > 0 &&
-            <Box style={{...globalStyles.flexBoxColumn}}>
-              <Box style={{...globalStyles.flexBoxRow, paddingBottom: globalMargins.tiny}}>
-                <Text type="BodySmallSemibold">Teams:</Text>
+            this.props.userInfo.showcasedTeams.length > 0 && (
+              <Box style={{...globalStyles.flexBoxColumn}}>
+                <Box style={{...globalStyles.flexBoxRow, paddingBottom: globalMargins.tiny}}>
+                  <Text type="BodySmallSemibold">Teams:</Text>
+                </Box>
+                {this.props.userInfo.showcasedTeams.map(team => (
+                  <ClickableBox
+                    key={team.fqName}
+                    onClick={event => this.props.onClickShowcased(null, team)}
+                    style={styleShowcasedTeamContainer}
+                  >
+                    <Box style={styleShowcasedTeamAvatar}>
+                      <Avatar teamname={team.fqName} size={40} />
+                    </Box>
+                    <Box style={styleShowcasedTeamName}>
+                      <Text style={{color: globalColors.black_75}} type="BodySemiboldLink">
+                        {team.fqName}
+                      </Text>
+                    </Box>
+                  </ClickableBox>
+                ))}
               </Box>
-              {this.props.userInfo.showcasedTeams.map(team => (
-                <ClickableBox
-                  key={team.fqName}
-                  onClick={event => this.props.onClickShowcased(null, team)}
-                  style={styleShowcasedTeamContainer}
-                >
-                  <Box style={styleShowcasedTeamAvatar}>
-                    <Avatar teamname={team.fqName} size={40} />
-                  </Box>
-                  <Box style={styleShowcasedTeamName}>
-                    <Text style={{color: globalColors.black_75}} type="BodySemiboldLink">{team.fqName}</Text>
-                  </Box>
-                </ClickableBox>
-              ))}
-            </Box>}
+            )}
         </Box>
         <Box style={styleProofsAndFolders}>
           <LoadingWrapper
@@ -262,13 +268,14 @@ class Profile extends Component<Props, State> {
             loadingComponent={this._makeUserProofs(true)}
             doneLoadingComponent={this._makeUserProofs(false)}
           />
-          {!this.props.loading &&
+          {!this.props.loading && (
             <UserProofs
               type={'missingProofs'}
               username={this.props.username}
               missingProofs={missingProofs}
               currentlyFollowing={false}
-            />}
+            />
+          )}
           {!this.props.loading && folders}
         </Box>
       </Box>
@@ -287,11 +294,13 @@ class Profile extends Component<Props, State> {
       >
         {item.map(
           user =>
-            user.dummy
-              ? <Text key={user.dummy} type="BodySmall" style={{color: globalColors.black_40, padding: 40}}>
-                  {user.dummy}
-                </Text>
-              : <UserEntry key={user.username} {...user} onClick={this.props.onUserClick} />
+            user.dummy ? (
+              <Text key={user.dummy} type="BodySmall" style={{color: globalColors.black_40, padding: 40}}>
+                {user.dummy}
+              </Text>
+            ) : (
+              <UserEntry key={user.username} {...user} onClick={this.props.onUserClick} />
+            )
         )}
       </Box>
     )
@@ -309,16 +318,19 @@ class Profile extends Component<Props, State> {
             paddingTop: isIPhoneX ? 40 : globalMargins.tiny + statusBarHeight,
           }}
         >
-          {this.props.onBack &&
+          {this.props.onBack && (
             <BackButton
               title={null}
               onClick={this.props.onBack}
               style={styleBack}
               iconStyle={{color: globalColors.white}}
-            />}
+            />
+          )}
           <ClickableBox onClick={this.props.onSearch} style={styleSearchContainer}>
             <Icon style={styleSearch} type="iconfont-search" />
-            <Text style={styleSearchText} type="Body">Search people</Text>
+            <Text style={styleSearchText} type="Body">
+              Search people
+            </Text>
           </ClickableBox>
         </Box>
       )
@@ -358,20 +370,20 @@ class Profile extends Component<Props, State> {
                 type="BodySmallSemibold"
                 style={{
                   padding: 10,
-                  color: this.state.currentFriendshipsTab === f
-                    ? globalColors.black_75
-                    : globalColors.black_60,
+                  color:
+                    this.state.currentFriendshipsTab === f ? globalColors.black_75 : globalColors.black_60,
                 }}
               >
-                {`${f.toUpperCase()} (${f === 'Followers' ? this.props.followers.length : this.props.following.length})`}
+                {`${f.toUpperCase()} (${
+                  f === 'Followers' ? this.props.followers.length : this.props.following.length
+                })`}
               </Text>
               <Box
                 style={{
                   width: '100%',
                   minHeight: 3,
-                  backgroundColor: this.state.currentFriendshipsTab === f
-                    ? globalColors.blue
-                    : globalColors.transparent,
+                  backgroundColor:
+                    this.state.currentFriendshipsTab === f ? globalColors.blue : globalColors.transparent,
                 }}
               />
             </ClickableBox>
@@ -393,20 +405,21 @@ class Profile extends Component<Props, State> {
     const activeMenuProof = this.state.activeMenuProof
 
     // TODO move this kind of stuff to connect and make this waaaaay dumber
-    const friends = this.state.currentFriendshipsTab === 'Followers'
-      ? this.props.followers
-      : this.props.following
+    const friends =
+      this.state.currentFriendshipsTab === 'Followers' ? this.props.followers : this.props.following
     let friendData = chunk(friends || [], 3)
     if (!friendData.length) {
       let type
       if (this.props.isYou) {
-        type = this.state.currentFriendshipsTab === 'Followers'
-          ? `You have no followers.`
-          : `You are not following anyone.`
+        type =
+          this.state.currentFriendshipsTab === 'Followers'
+            ? `You have no followers.`
+            : `You are not following anyone.`
       } else {
-        type = this.state.currentFriendshipsTab === 'Followers'
-          ? `${this.props.username} has no followers.`
-          : `${this.props.username} is not following anyone.`
+        type =
+          this.state.currentFriendshipsTab === 'Followers'
+            ? `${this.props.username} has no followers.`
+            : `${this.props.username} is not following anyone.`
       }
 
       friendData = [[{dummy: type}]]
@@ -438,11 +451,12 @@ class Profile extends Component<Props, State> {
             },
           ]}
         />
-        {!!activeMenuProof &&
+        {!!activeMenuProof && (
           <PopupMenu
             {...this._proofMenuContent(activeMenuProof)}
             onHidden={() => this._handleToggleMenu(this.props.proofs.indexOf(activeMenuProof))}
-          />}
+          />
+        )}
       </Box>
     )
   }
@@ -463,8 +477,12 @@ const UserEntry = ({onClick, username, fullname, followsYou, following}) => (
         followsYou={followsYou}
         following={following}
       />
-      <Text type="BodySemibold" style={userEntryUsernameStyle(following)}>{username}</Text>
-      <Text type="BodySmall" style={userEntryFullnameStyle}>{fullname}</Text>
+      <Text type="BodySemibold" style={userEntryUsernameStyle(following)}>
+        {username}
+      </Text>
+      <Text type="BodySmall" style={userEntryFullnameStyle}>
+        {fullname}
+      </Text>
     </Box>
   </ClickableBox>
 )

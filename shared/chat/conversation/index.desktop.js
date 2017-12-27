@@ -88,14 +88,13 @@ class Conversation extends Component<Props, State> {
   }
 
   render() {
-    const dropOverlay =
-      this.state.showDropOverlay &&
+    const dropOverlay = this.state.showDropOverlay && (
       <Box style={dropOverlayStyle} onDragLeave={this._onDragLeave} onDrop={this._onDrop}>
         <Icon type="icon-file-dropping-48" />
       </Box>
+    )
 
-    const offline =
-      this.props.threadLoadedOffline &&
+    const offline = this.props.threadLoadedOffline && (
       <Box
         style={{
           ...globalStyles.flexBoxCenter,
@@ -108,32 +107,35 @@ class Conversation extends Component<Props, State> {
           Couldn't load all chat messages due to network connectivity. Retrying...
         </Text>
       </Box>
+    )
 
     const loadingLine = this.props.showLoader ? <LoadingLine /> : null
 
-    const input = this.props.finalizeInfo
-      ? <OldProfileResetNotice />
-      : <Input
-          focusInputCounter={this.props.focusInputCounter}
-          onEditLastMessage={this.props.onEditLastMessage}
-          onScrollDown={this.props.onScrollDown}
-          previousPath={this.props.previousPath}
-        />
+    const input = this.props.finalizeInfo ? (
+      <OldProfileResetNotice />
+    ) : (
+      <Input
+        focusInputCounter={this.props.focusInputCounter}
+        onEditLastMessage={this.props.onEditLastMessage}
+        onScrollDown={this.props.onScrollDown}
+        previousPath={this.props.previousPath}
+      />
+    )
 
-    const infoPanel = this.state.infoPanelOpen
-      ? <div
-          style={{
-            ...globalStyles.flexBoxColumn,
-            bottom: 0,
-            position: 'absolute',
-            right: 0,
-            top: 35,
-            width: 320,
-          }}
-        >
-          <InfoPanel onToggleInfoPanel={this._onToggleInfoPanel} />
-        </div>
-      : null
+    const infoPanel = this.state.infoPanelOpen ? (
+      <div
+        style={{
+          ...globalStyles.flexBoxColumn,
+          bottom: 0,
+          position: 'absolute',
+          right: 0,
+          top: 35,
+          width: 320,
+        }}
+      >
+        <InfoPanel onToggleInfoPanel={this._onToggleInfoPanel} />
+      </div>
+    ) : null
 
     let list
 

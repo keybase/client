@@ -103,7 +103,7 @@ class NewRepo extends React.Component<Props, State> {
     return (
       <ScrollView>
         <Box style={_containerStyle}>
-          {!!this.props.error &&
+          {!!this.props.error && (
             <Box
               style={{
                 alignSelf: 'stretch',
@@ -112,8 +112,11 @@ class NewRepo extends React.Component<Props, State> {
                 padding: globalMargins.tiny,
               }}
             >
-              <Text type="Body" backgroundMode="Terminal">{this.props.error.message}</Text>
-            </Box>}
+              <Text type="Body" backgroundMode="Terminal">
+                {this.props.error.message}
+              </Text>
+            </Box>
+          )}
           <Text type="Header" style={{marginBottom: 27}}>
             New {this.props.isTeam ? 'team' : 'personal'} git repository
           </Text>
@@ -126,13 +129,14 @@ class NewRepo extends React.Component<Props, State> {
               ? 'Your repository will be end-to-end encrypted and accessible by all members in the team.'
               : 'Your repository will be encrypted and only accessible by you.'}
           </Text>
-          {this.props.isTeam &&
+          {this.props.isTeam && (
             <Dropdown
               items={this._makeDropdownItems()}
               selected={this._makeDropdownItem(this.state.selectedTeam)}
               onChanged={this._dropdownChanged}
               style={{marginBottom: globalMargins.small}}
-            />}
+            />
+          )}
           <Input
             value={this.state.name}
             autoFocus={true}
@@ -140,13 +144,14 @@ class NewRepo extends React.Component<Props, State> {
             hintText="Name your repository"
             onEnterKeyDown={this._onSubmit}
           />
-          {this.props.isTeam &&
+          {this.props.isTeam && (
             <Checkbox
               label="Notify the team"
               checked={this.state.notifyTeam}
               onCheck={notifyTeam => this.setState({notifyTeam})}
               style={{marginBottom: globalMargins.small, marginTop: globalMargins.small}}
-            />}
+            />
+          )}
           <Box style={{flex: 1}} />
           <Box style={globalStyles.flexBoxRow}>
             <Button

@@ -1,5 +1,5 @@
 // @flow
-import * as RPCTypes from '../constants/types/flow-types'
+import * as RPCTypes from '../constants/types/rpc-gen'
 import shared from './notification-listeners.shared'
 import {kbfsNotification} from '../util/kbfs-notifications'
 import {remote} from 'electron'
@@ -36,7 +36,10 @@ export default function(
       notify('Client out of date!', {body}, 60 * 60)
     },
     'keybase.1.logsend.prepareLogsend': (_, response) => {
-      logger.dump().then(writeLogLinesToFile).then(() => response.result())
+      logger
+        .dump()
+        .then(writeLogLinesToFile)
+        .then(() => response.result())
     },
   }
 

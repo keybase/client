@@ -3,8 +3,8 @@ import * as Chat2Gen from '../chat2-gen'
 import * as Constants from '../../constants/chat2'
 import * as EngineRpc from '../../constants/engine'
 import * as I from 'immutable'
-import * as RPCChatTypes from '../../constants/types/flow-types-chat'
-import * as RPCTypes from '../../constants/types/flow-types'
+import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
+import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as Saga from '../../util/saga'
 import * as Types from '../../constants/types/chat2'
 import logger from '../../logger'
@@ -100,9 +100,8 @@ const requestMeta = (action: Chat2Gen.MetaHandleQueuePayload, state: TypedState)
     ? [Saga.put(Chat2Gen.createMetaRequestTrusted({conversationIDKeys}))]
     : []
   const unboxSomeMoreActions = metaQueue.size ? [Saga.put(Chat2Gen.createMetaHandleQueue())] : []
-  const delayBeforeUnboxingMoreActions = toUnboxActions.length && unboxSomeMoreActions.length
-    ? [Saga.call(Saga.delay, 100)]
-    : []
+  const delayBeforeUnboxingMoreActions =
+    toUnboxActions.length && unboxSomeMoreActions.length ? [Saga.call(Saga.delay, 100)] : []
 
   const nextActions = [...toUnboxActions, ...delayBeforeUnboxingMoreActions, ...unboxSomeMoreActions]
 
@@ -190,7 +189,7 @@ const changeMetaTrustedState = (
       break
     default:
       // eslint-disable-next-line no-unused-expressions
-      (action: empty) // errors if we don't handle any new actions
+      ;(action: empty) // errors if we don't handle any new actions
       throw new Error('Invalid action passed to updateMetaTrustedState')
   }
   return Saga.put(

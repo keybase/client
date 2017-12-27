@@ -2,7 +2,7 @@
 import logger from '../../logger'
 import * as ProfileGen from '../profile-gen'
 import * as Saga from '../../util/saga'
-import * as RPCTypes from '../../constants/types/flow-types'
+import * as RPCTypes from '../../constants/types/rpc-gen'
 import engine, {Engine} from '../../engine'
 import {navigateTo, navigateAppend} from '../route-tree'
 import {peopleTab} from '../../constants/tabs'

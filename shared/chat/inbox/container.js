@@ -65,8 +65,12 @@ const getTeamToChannel = createSelector(
   (
     inboxBigChannels,
     inboxBigChannelsToTeam
-  ): {[teamname: string]: {[channelname: string]: Types.ConversationIDKey}} => {
-    const teamToChannels: {[teamname: string]: {[channelname: string]: Types.ConversationIDKey}} = {}
+  ): {
+    [teamname: string]: {[channelname: string]: Types.ConversationIDKey},
+  } => {
+    const teamToChannels: {
+      [teamname: string]: {[channelname: string]: Types.ConversationIDKey},
+    } = {}
     inboxBigChannelsToTeam.forEach((teamname, id) => {
       if (!teamToChannels[teamname]) {
         teamToChannels[teamname] = {}
@@ -85,22 +89,26 @@ const getBigRowItems = createSelector([getTeamToChannel], (teamToChannels): Arra
   Inbox.RowItemBigHeader | Inbox.RowItemBig
 > => {
   const rows = []
-  Object.keys(teamToChannels).sort().forEach(teamname => {
-    rows.push({
-      teamname,
-      type: 'bigHeader',
-    })
-
-    const channels = teamToChannels[teamname]
-    Object.keys(channels).sort().forEach(channelname => {
+  Object.keys(teamToChannels)
+    .sort()
+    .forEach(teamname => {
       rows.push({
-        channelname,
-        conversationIDKey: channels[channelname],
         teamname,
-        type: 'big',
+        type: 'bigHeader',
       })
+
+      const channels = teamToChannels[teamname]
+      Object.keys(channels)
+        .sort()
+        .forEach(channelname => {
+          rows.push({
+            channelname,
+            conversationIDKey: channels[channelname],
+            teamname,
+            type: 'big',
+          })
+        })
     })
-  })
 
   return rows
 })
@@ -114,7 +122,10 @@ const getRowsAndMetadata = createSelector(
     const showSmallTeamsExpandDivider = !!(bigRows.length && smallTeamsRowsToHideCount)
     const truncate = showSmallTeamsExpandDivider && !smallTeamsExpanded
     const smallIDsToShow = truncate ? smallIDs.slice(0, smallTeamsCollapsedMaxShown) : smallIDs
-    const smallToShow = smallIDsToShow.map(conversationIDKey => ({conversationIDKey, type: 'small'}))
+    const smallToShow = smallIDsToShow.map(conversationIDKey => ({
+      conversationIDKey,
+      type: 'small',
+    }))
     const smallIDsHidden = truncate ? smallIDs.slice(smallTeamsCollapsedMaxShown) : []
 
     const divider = showSmallTeamsExpandDivider ? [{type: 'divider'}] : []
@@ -159,21 +170,25 @@ const getFilteredBigRows = createSelector([getTeamToChannel, getFilter], (teamTo
   Inbox.RowItemBig
 > => {
   const rows = []
-  Object.keys(teamToChannels).sort().forEach(teamname => {
-    const teamPassed = passesStringFilter(lcFilter, teamname.toLowerCase())
-    const channels = teamToChannels[teamname]
-    Object.keys(channels).sort().forEach(channelname => {
-      const channelPassed = teamPassed || passesStringFilter(lcFilter, channelname.toLowerCase())
-      if (channelPassed) {
-        rows.push({
-          channelname,
-          conversationIDKey: channels[channelname],
-          teamname,
-          type: 'big',
+  Object.keys(teamToChannels)
+    .sort()
+    .forEach(teamname => {
+      const teamPassed = passesStringFilter(lcFilter, teamname.toLowerCase())
+      const channels = teamToChannels[teamname]
+      Object.keys(channels)
+        .sort()
+        .forEach(channelname => {
+          const channelPassed = teamPassed || passesStringFilter(lcFilter, channelname.toLowerCase())
+          if (channelPassed) {
+            rows.push({
+              channelname,
+              conversationIDKey: channels[channelname],
+              teamname,
+              type: 'big',
+            })
+          }
         })
-      }
     })
-  })
 
   return rows
 })
@@ -216,6 +231,7 @@ const mapStateToProps = (state: TypedState, {isActiveRoute, routeState}: OwnProp
   }
 
   const inboxGlobalUntrustedState = state.chat.get('inboxGlobalUntrustedState')
+  const selectedConversationIDKey = Constants.getSelectedConversation(state)
 
   return {
     ...rowMetadata,
@@ -224,7 +240,9 @@ const mapStateToProps = (state: TypedState, {isActiveRoute, routeState}: OwnProp
     isLoading: inboxGlobalUntrustedState === 'loading' || state.chat.get('inboxSyncingState') === 'syncing',
     neverLoaded: inboxGlobalUntrustedState === 'unloaded',
     _user: Constants.getYou(state),
-    inSearch: state.chat.get('inSearch'),
+    showNewConversation:
+      state.chat.get('inSearch') ||
+      (selectedConversationIDKey && Constants.isPendingConversationIDKey(selectedConversationIDKey)),
   }
 }
 
@@ -233,7 +251,10 @@ const mapDispatchToProps = (dispatch: Dispatch, {focusFilter, routeState, setRou
   loadInbox: () => dispatch(ChatGen.createLoadInbox()),
   _onSelectNext: (rows: Array<Inbox.RowItemSmall | Inbox.RowItemBig>, direction: -1 | 1) =>
     dispatch(
-      ChatGen.createSelectNext({rows: rows.map(r => ({conversationIDKey: r.conversationIDKey})), direction})
+      ChatGen.createSelectNext({
+        rows: rows.map(r => ({conversationIDKey: r.conversationIDKey})),
+        direction,
+      })
     ),
   onHotkey: (cmd: string) => {
     if (cmd.endsWith('+n')) {
@@ -249,9 +270,17 @@ const mapDispatchToProps = (dispatch: Dispatch, {focusFilter, routeState, setRou
   onSetFilter: (filter: string) => dispatch(ChatGen.createSetInboxFilter({filter})),
   onUntrustedInboxVisible: (conversationIDKeys: Array<Types.ConversationIDKey>) => {
     // dispatch(ChatGen.createUnboxConversations({conversationIDKeys, reason: 'untrusted inbox visible'}))
-    dispatch(Chat2Gen.createMetaNeedsUpdating({conversationIDKeys, reason: 'untrusted inbox visible'}))
+    dispatch(
+      Chat2Gen.createMetaNeedsUpdating({
+        conversationIDKeys,
+        reason: 'untrusted inbox visible',
+      })
+    )
   },
-  toggleSmallTeamsExpanded: () => setRouteState({smallTeamsExpanded: !routeState.get('smallTeamsExpanded')}),
+  toggleSmallTeamsExpanded: () =>
+    setRouteState({
+      smallTeamsExpanded: !routeState.get('smallTeamsExpanded'),
+    }),
   refreshInbox: (force: boolean) => dispatch(Chat2Gen.createInboxRefresh()),
 })
 
@@ -285,6 +314,7 @@ const mergeProps = (
     filterFocusCount: ownProps.filterFocusCount,
     inSearch: stateProps.inSearch,
     refreshInbox: dispatchProps.refreshInbox,
+    showNewConversation: stateProps.showNewConversation,
   }
 }
 
@@ -303,6 +333,6 @@ export default compose(
         // Get team counts for team headers in the inbox
         this.props.getTeams()
       }
-    }
+    },
   })
 )(Inbox.default)

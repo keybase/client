@@ -22,7 +22,9 @@ class DevMenu extends Component<any> {
         <Box>
           {menuItems.map(m => (
             <Box key={m.name} style={{padding: 10, borderBottom: `1px solid ${globalColors.lightGrey}`}}>
-              <Text onClick={m.onClick} type="Header">{m.name}</Text>
+              <Text onClick={m.onClick} type="Header">
+                {m.name}
+              </Text>
             </Box>
           ))}
         </Box>

@@ -2,8 +2,8 @@
 // Actions around sending / editing / deleting messages
 import logger from '../../logger'
 import * as I from 'immutable'
-import * as RPCChatTypes from '../../constants/types/flow-types-chat'
-import * as RPCTypes from '../../constants/types/flow-types'
+import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
+import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as Constants from '../../constants/chat'
 import * as Types from '../../constants/types/chat'
 import * as ChatGen from '../chat-gen'

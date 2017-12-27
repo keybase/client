@@ -41,12 +41,13 @@ class LoginRender extends Component<Props> {
         <Box style={styles.container}>
           {isAndroid &&
             !isDeviceSecureAndroid &&
-            !isAndroidNewerThanM &&
-            <Box style={deviceNotSecureStyle}>
-              <Text type="Body" backgroundMode="Information" style={{flex: 1, textAlign: 'center'}}>
-                Since you don't have a lock screen, you'll have to type your passphrase everytime.
-              </Text>
-            </Box>}
+            !isAndroidNewerThanM && (
+              <Box style={deviceNotSecureStyle}>
+                <Text type="Body" backgroundMode="Information" style={{flex: 1, textAlign: 'center'}}>
+                  Since you don't have a lock screen, you'll have to type your passphrase everytime.
+                </Text>
+              </Box>
+            )}
           <UserCard username={this.props.selectedUser} outerStyle={styles.card}>
             <Dropdown
               type="Username"

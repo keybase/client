@@ -4,7 +4,7 @@ import * as Constants from '../constants/git'
 import * as GitGen from './git-gen'
 import * as Entities from './entities'
 import * as I from 'immutable'
-import * as RPCTypes from '../constants/types/flow-types'
+import * as RPCTypes from '../constants/types/rpc-gen'
 import * as RouteTreeTypes from '../constants/types/route-tree'
 import * as RouteTreeConstants from '../constants/route-tree'
 import * as Saga from '../util/saga'
@@ -19,9 +19,8 @@ function* _loadGit(action: GitGen.LoadGitPayload): Saga.SagaGenerator<any, any> 
   yield Saga.put(GitGen.createSetLoading({loading: true}))
 
   try {
-    const results: Array<RPCTypes.GitRepoResult> = yield Saga.call(
-      RPCTypes.gitGetAllGitMetadataRpcPromise
-    ) || []
+    const results: Array<RPCTypes.GitRepoResult> = yield Saga.call(RPCTypes.gitGetAllGitMetadataRpcPromise) ||
+      []
 
     let idToInfo = {}
 

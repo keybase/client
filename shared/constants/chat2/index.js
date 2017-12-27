@@ -1,6 +1,6 @@
 // @flow
 import * as I from 'immutable'
-import * as RPCChatTypes from '../types/flow-types-chat'
+import * as RPCChatTypes from '../types/rpc-chat-gen'
 import * as Types from '../types/chat2'
 // import type {TypedState} from '../reducer'
 

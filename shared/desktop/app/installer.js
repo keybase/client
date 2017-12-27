@@ -7,7 +7,7 @@ import {isWindows} from '../../constants/platform'
 import {ExitCodeFuseKextError, ExitCodeFuseKextPermissionError} from '../../constants/favorite'
 import UserData from './user-data'
 
-import type {InstallResult} from '../../constants/types/flow-types'
+import type {InstallResult} from '../../constants/types/rpc-gen'
 
 type State = {
   promptedForCLI: boolean,

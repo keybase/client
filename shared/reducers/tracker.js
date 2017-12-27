@@ -239,8 +239,9 @@ export default function(
         proofs: Constants.dedupeProofs([
           ...(s ? s.proofs : []),
           ...(identity.revokedDetails || []).map(rv => Constants.revokedProofToProof(rv)),
-          ...(identity.proofs || [])
-            .map(rp => Constants.remoteProofToProof(username, Constants.checking, rp.proof)),
+          ...(identity.proofs || []).map(rp =>
+            Constants.remoteProofToProof(username, Constants.checking, rp.proof)
+          ),
         ]),
       }))
     }
@@ -416,7 +417,7 @@ export default function(
       return state
     default:
       // eslint-disable-next-line no-unused-expressions
-      (action: empty) // if you get a flow error here it means there's an action you claim to handle but didn't
+      ;(action: empty) // if you get a flow error here it means there's an action you claim to handle but didn't
       return state
   }
 }

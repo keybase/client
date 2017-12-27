@@ -49,12 +49,13 @@ class SearchResultsList extends Component<Props> {
     }
     return (
       <Box style={{width: '100%', height: 256, ...style}}>
-        {showSearchSuggestions &&
+        {showSearchSuggestions && (
           <Box style={{padding: globalMargins.tiny}}>
             <Text type="BodySmallSemibold" style={{color: globalColors.black_40}}>
               Recommendations
             </Text>
-          </Box>}
+          </Box>
+        )}
         <ReactList
           useTranslate3d={true}
           useStaticSize={true}

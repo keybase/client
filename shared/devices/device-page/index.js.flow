@@ -1,7 +1,7 @@
 // @flow
 import {Component} from 'react'
 import type {IconType} from '../../common-adapters/icon'
-import type {Time} from '../../constants/types/flow-types'
+import type {Time} from '../../constants/types/rpc-gen'
 
 export type TimelineItem = {
   desc: string,

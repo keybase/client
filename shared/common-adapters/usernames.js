@@ -48,14 +48,15 @@ function usernameText({
         >
           {u.username}
         </Text>
-        {i !== users.length - 1 && // Injecting the commas here so we never wrap and have newlines starting with a ,
+        {i !== users.length - 1 && ( // Injecting the commas here so we never wrap and have newlines starting with a ,
           <Text
             type={type}
             backgroundMode={backgroundMode}
             style={{...style, color: commaColor, marginRight: 1, textDecoration: 'none'}}
           >
             ,
-          </Text>}
+          </Text>
+        )}
       </Text>
     )
   })
@@ -101,24 +102,27 @@ class Usernames extends Component<Props> {
         title={this.props.title}
         {...(this.props.inline ? inlineProps : {})}
       >
-        {!!this.props.prefix &&
+        {!!this.props.prefix && (
           <Text type={this.props.type} backgroundMode={this.props.backgroundMode} style={this.props.style}>
             {this.props.prefix}
-          </Text>}
+          </Text>
+        )}
         {usernameText({...this.props, users: rwers})}
-        {!!readers.length &&
+        {!!readers.length && (
           <Text
             type={this.props.type}
             backgroundMode={this.props.backgroundMode}
             style={{...this.props.style, marginRight: 1}}
           >
             #
-          </Text>}
+          </Text>
+        )}
         {usernameText({...this.props, users: readers})}
-        {!!this.props.suffix &&
+        {!!this.props.suffix && (
           <Text type={this.props.type} backgroundMode={this.props.backgroundMode} style={this.props.style}>
             {this.props.suffix}
-          </Text>}
+          </Text>
+        )}
       </Text>
     )
   }

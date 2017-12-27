@@ -1,6 +1,6 @@
 {
   "prelude": [
-    "import * as RPCChatTypes from '../constants/types/flow-types-chat'",
+    "import * as RPCChatTypes from '../constants/types/rpc-chat-gen'",
     "import * as Types from '../constants/types/chat2'",
     "import HiddenString from '../util/hidden-string'"
   ],
