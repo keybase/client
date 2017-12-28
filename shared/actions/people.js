@@ -196,9 +196,17 @@ const _processPeopleData = function([
 }
 
 const _skipTodo = (action: PeopleGen.SkipTodoPayload) => {
-  return Saga.call(RPCTypes.homeHomeSkipTodoTypeRpcPromise, {
-    t: RPCTypes.homeHomeScreenTodoType[action.payload.type],
-  })
+  return Saga.sequentially([
+    Saga.call(RPCTypes.homeHomeSkipTodoTypeRpcPromise, {
+      t: RPCTypes.homeHomeScreenTodoType[action.payload.type],
+    }),
+    Saga.put(
+      PeopleGen.createGetPeopleData({
+        markViewed: true,
+        numFollowSuggestionsWanted: Constants.DEFAULT_FOLLOW_SUGGESTIONS_QUANT,
+      })
+    ),
+  ])
 }
 
 let _wasOnPeopleTab = false
