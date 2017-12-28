@@ -1,11 +1,12 @@
 // Meta manages the metadata about a conversation. Participants, isMuted, reset people, etc. Things that drive the inbox
 // @flow
 import * as I from 'immutable'
-import * as RPCTypes from '../types/rpc-gen'
 import * as RPCChatTypes from '../types/rpc-chat-gen'
+import * as RPCTypes from '../types/rpc-gen'
 import * as Types from '../types/chat2'
-import {toByteArray} from 'base64-js'
 import type {_ConversationMeta} from '../types/chat2/meta'
+import {parseFolderNameToUsers} from '../../util/kbfs'
+import {toByteArray} from 'base64-js'
 
 const conversationMemberStatusToMembershipType = (m: RPCChatTypes.ConversationMemberStatus) => {
   switch (m) {
@@ -22,24 +23,50 @@ const conversationMemberStatusToMembershipType = (m: RPCChatTypes.ConversationMe
 const supersededConversationIDToKey = (id: string | Buffer): string =>
   typeof id === 'string' ? Buffer.from(toByteArray(id)).toString('hex') : id.toString('hex')
 
-export const unverifiedInboxUIItemToConversationMeta = (i: RPCChatTypes.UnverifiedInboxUIItem) => {
+export const unverifiedInboxUIItemToConversationMeta = (
+  i: RPCChatTypes.UnverifiedInboxUIItem,
+  username: string
+) => {
   // Public chats only
   if (i.visibility !== RPCTypes.commonTLFVisibility.private) {
     return null
   }
+
+  // We only treat implied adhoc teams as having resetParticipants
+  const resetParticipants = I.Set(
+    i.localMetadata &&
+    i.membersType === RPCChatTypes.commonConversationMembersType.impteam &&
+    i.localMetadata.resetParticipants
+      ? i.localMetadata.resetParticipants
+      : []
+  )
+
+  const participants = I.Set(
+    i.localMetadata
+      ? i.localMetadata.writerNames || []
+      : parseFolderNameToUsers(username, i.name).map(ul => ul.username)
+  )
+
+  const channelname =
+    i.membersType === RPCChatTypes.commonConversationMembersType.team && i.localMetadata
+      ? i.localMetadata.channelName
+      : ''
+
+  const teamname = i.membersType === RPCChatTypes.commonConversationMembersType.team ? i.name : ''
+
   return makeConversationMeta({
-    channelname: i.localMetadata ? i.localMetadata.channelName : '',
+    channelname,
     conversationIDKey: i.convID,
     inboxVersion: i.version,
     isMuted: i.status === RPCChatTypes.commonConversationStatus.muted,
     membershipType: conversationMemberStatusToMembershipType(i.memberStatus),
     notificationSettings: null,
-    participants: I.Set(),
-    resetParticipants: I.Set(),
+    participants,
+    resetParticipants,
     supersededBy: null,
     supersedes: null,
     teamType: getTeamType(i),
-    teamname: i.name || '',
+    teamname,
     trustedState: i.localMetadata ? 'trusted' : 'untrusted', // if we have localMetadata attached to an unverifiedInboxUIItem it's been loaded previously
   })
 }
@@ -70,6 +97,10 @@ export const inboxUIItemToConversationMeta = (i: RPCChatTypes.InboxUIItem) => {
   if (i.visibility !== RPCTypes.commonTLFVisibility.private) {
     return null
   }
+  // We don't support mixed reader/writers
+  if (i.name.includes('#')) {
+    return null
+  }
 
   // We only treat implied adhoc teams as having resetParticipants
   const resetParticipants = I.Set(
@@ -87,8 +118,10 @@ export const inboxUIItemToConversationMeta = (i: RPCChatTypes.InboxUIItem) => {
     username: supersedesCausedBy,
   } = conversationMetadataToMetaSupersedeInfo(i.supersedes)
 
+  const isTeam = i.membersType === RPCChatTypes.commonConversationMembersType.team
+
   return makeConversationMeta({
-    channelname: i.channel || '',
+    channelname: (isTeam && i.channel) || '',
     conversationIDKey: i.convID,
     inboxVersion: i.version,
     isMuted: i.status === RPCChatTypes.commonConversationStatus.muted,
@@ -101,7 +134,7 @@ export const inboxUIItemToConversationMeta = (i: RPCChatTypes.InboxUIItem) => {
     supersedes,
     supersedesCausedBy,
     teamType: getTeamType(i),
-    teamname: i.name || '',
+    teamname: (isTeam && i.name) || '',
     trustedState: 'trusted',
   })
 }

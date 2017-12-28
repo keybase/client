@@ -42,6 +42,9 @@ function* rpcInboxRefresh(action: Chat2Gen.InboxRefreshPayload): Generator<any, 
     }
   )
 
+  const state: TypedState = yield Saga.select()
+  const username = state.config.username || ''
+
   const incoming = yield loadInboxChanMap.race()
 
   if (incoming.finished) {
@@ -55,7 +58,9 @@ function* rpcInboxRefresh(action: Chat2Gen.InboxRefreshPayload): Generator<any, 
     )
     const items = result.items || []
     // We get meta
-    const metas = items.map(Constants.unverifiedInboxUIItemToConversationMeta).filter(Boolean)
+    const metas = items
+      .map(item => Constants.unverifiedInboxUIItemToConversationMeta(item, username))
+      .filter(Boolean)
     yield Saga.put(Chat2Gen.createMetasReceived({metas}))
 
     // We also get some cached messages which are trusted
@@ -242,7 +247,7 @@ const onIncomingMessage = (incoming: RPCChatTypes.IncomingMessage) => {
 
 const chatActivityToMetasAction = payload => {
   const meta = payload && payload.conv && Constants.inboxUIItemToConversationMeta(payload.conv)
-  return meta ? Chat2Gen.createMetasReceived({metas: [meta]}) : null
+  return meta ? [Chat2Gen.createMetasReceived({metas: [meta]})] : null
 }
 
 const setupChatHandlers = () => {
